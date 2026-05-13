@@ -65,11 +65,11 @@
 | --- | --- | --- |
 | 项目定义 | 已完成基线审查 | 根文档、契约文档、验证计划已创建 |
 | 引导基线提交 | 已完成 | `a141648 Bootstrap MTPRO skeleton` |
-| Bootstrap PR | 未创建 | 当前只存在本地基线提交 |
+| Bootstrap PR | 已创建 | Draft PR：`https://github.com/atxinbao/MTPRO/pull/1` |
 | Human Review | 已确认 | 用户已在 2026-05-14 确认草案 |
 | Linear Setup | 已完成 | 已创建 Project `MTPRO 引导`、9 个里程碑和 `MTP-7` 到 `MTP-15` |
-| Automation Readiness | 部分通过 | PR 模板、WIP=1、Authorized Merge、Graphify 只读边界已确认；GitHub remote 和 GitHub + Linear 关联仍阻塞 |
-| 是否允许开发执行 | 否 | 仍需配置 GitHub remote、创建 Bootstrap PR，并验证 GitHub + Linear 关联 |
+| Automation Readiness | 已通过 | PR 模板、WIP=1、Authorized Merge、Graphify 只读边界、GitHub remote 和 GitHub + Linear 关联已确认 |
+| 是否允许开发执行 | 否 | 仍需 Human Review 审查 Bootstrap PR，并由 Authorized Merge Agent 合并 |
 
 ## 里程碑
 

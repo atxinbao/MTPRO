@@ -6,9 +6,9 @@
 
 ## 结论
 
-Automation Readiness 当前为部分通过，尚未完全就绪。
+Automation Readiness 当前已通过引导阶段检查。
 
-阻塞项是 GitHub 仓库前提未满足：本地仓库没有配置 Git remote，因此无法创建 Bootstrap PR，也无法验证 GitHub + Linear 关联。除 GitHub 关联外，PR 模板、Linear WIP=1、Authorized Merge 分离约束、Graphify 只读边界和本地忽略规则已完成或已确认。
+GitHub private 仓库已创建，`origin` 已配置，Bootstrap Draft PR 已创建，并已将 PR 作为 attachment 关联到 Linear `MTP-7`。正式开发仍未允许；后续必须先完成 Bootstrap PR 的 Human Review，并由 Authorized Merge Agent 执行合并。
 
 ## 检查范围
 
@@ -25,9 +25,10 @@ Automation Readiness 当前为部分通过，尚未完全就绪。
 
 | 项目 | 结果 | 证据 |
 | --- | --- | --- |
-| Git remote | 阻塞 | `git remote -v` 无输出 |
-| GitHub 仓库上下文 | 阻塞 | 无 remote，`gh repo view` 无可用仓库上下文 |
-| GitHub + Linear 关联 | 待验证 | 需要先配置 GitHub remote，并创建或关联 PR |
+| Git remote | 通过 | `origin` 指向 `https://github.com/atxinbao/MTPRO.git` |
+| GitHub 仓库上下文 | 通过 | private 仓库 `atxinbao/MTPRO` 已创建 |
+| Bootstrap PR | 通过 | Draft PR：`https://github.com/atxinbao/MTPRO/pull/1` |
+| GitHub + Linear 关联 | 通过 | Linear `MTP-7` 已追加 Bootstrap PR attachment |
 | PR 模板 | 通过 | 已新增 `.github/pull_request_template.md` |
 | Linear Project | 通过 | Project ID：`3a8e07ff-0c15-47cf-b9d2-9a077dfa037e`；名称：`MTPRO 引导` |
 | Linear WIP=1 | 通过 | 按 Project ID 查询，仅 `MTP-8` 为 `Todo` |
@@ -53,19 +54,18 @@ Automation Readiness 当前为部分通过，尚未完全就绪。
 | `MTP-14` | Trader Workstation 看板 ViewModel 契约 | `Backlog` |
 | `MTP-15` | 验证加固与自动化就绪 | `Backlog` |
 
-## 阻塞项
+## 剩余门槛
 
-1. 配置 GitHub remote。
-2. 推送 baseline 分支或 main 基线。
-3. 创建 Bootstrap PR。
-4. 验证 GitHub PR 与 Linear 事项关联。
-5. 由 Human Review 确认 Bootstrap PR 和自动化就绪证据。
+1. Human Review 审查 Bootstrap Draft PR。
+2. Authorized Merge Agent 检查 PR head sha、review comments 和 required checks。
+3. Authorized Merge Agent 合并 Bootstrap PR。
+4. 合并后再次确认 Linear WIP=1，再决定是否进入 `MTP-8`。
 
 ## 允许的下一步
 
-- 配置 GitHub remote。
-- 准备 Bootstrap PR。
-- 验证 GitHub + Linear 关联。
+- 审查 Bootstrap Draft PR。
+- 检查 PR head sha。
+- 保持 `MTP-8` 为唯一 `Todo`。
 - 继续维护项目定义、契约文档和验证证据。
 
 ## 仍然禁止
@@ -85,7 +85,10 @@ Automation Readiness 当前为部分通过，尚未完全就绪。
 
 - `git remote -v`
 - `git status --short --branch --ignored`
+- `gh repo view atxinbao/MTPRO --json nameWithOwner,url,isPrivate,defaultBranchRef`
+- GitHub compare：`main...codex/bootstrap-readiness`
 - Linear Project ID 查询
 - Linear `Todo` 查询
+- Linear `MTP-7` attachment 查询
 - `git diff --check`
 - `swift test`

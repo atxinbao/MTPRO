@@ -332,3 +332,92 @@ PR：未创建
 | Linear Todo 查询 | 通过 | 仅 `MTP-8` 为 `Todo` |
 | `git diff --check` | 通过 | 已通过 |
 | `swift test` | 通过 | 4 个 XCTest 通过 |
+
+## MTPRO Bootstrap PR
+
+日期：2026-05-14
+
+执行者：Codex
+
+PR：`https://github.com/atxinbao/MTPRO/pull/1`
+
+提交：待合并
+
+目的：
+
+- 创建 GitHub private 仓库。
+- 配置 `origin`。
+- 发布 Bootstrap Draft PR。
+- 验证 GitHub + Linear 关联。
+- 保持正式开发未开始。
+
+GitHub 结果：
+
+- Repository：`https://github.com/atxinbao/MTPRO`
+- Visibility：private
+- Remote：`origin https://github.com/atxinbao/MTPRO.git`
+- Base branch：`main`
+- PR branch：`codex/bootstrap-readiness`
+- Draft PR：`https://github.com/atxinbao/MTPRO/pull/1`
+
+降级说明：
+
+- 本地 `git push` 连续两次因 GitHub 443 连接超时失败。
+- 已改用 GitHub API 导入远端 Git objects。
+- 远端 commit SHA 与本地 commit SHA 不同，但 GitHub compare 已确认文件范围。
+
+证据链：
+
+| 项目 | 值 |
+| --- | --- |
+| 本地 baseline commit | `a141648 Bootstrap MTPRO skeleton` |
+| 远端 `main` import commit | `d4d172b7e51b43fc65cfbd2d5791d3b0aab0f4d0` |
+| 本地证据 commit | `24abb12 Document Linear setup and automation readiness` |
+| 远端 PR branch import commit | `58e488b928a9076bada4ca8854389a3e7b572e72` |
+
+Linear 结果：
+
+- `MTP-7` 已追加 Bootstrap PR attachment。
+- `MTP-8` 仍是唯一 `Todo`。
+- `MTP-9` 到 `MTP-15` 仍保持 `Backlog`。
+- 未修改 Linear 状态。
+
+文件范围：
+
+- 新增：
+  - 无
+- 更新：
+  - `docs/automation/automation-readiness.md`
+  - `docs/planning/linear-draft-plan.md`
+  - `verification.md`
+- 删除：
+  - 无
+
+边界确认：
+
+- 已创建 GitHub private 仓库。
+- 已创建 Bootstrap Draft PR。
+- 已将 PR 关联到 Linear `MTP-7`。
+- 未修改 Linear 状态。
+- 未启动 Symphony。
+- 未运行 Graphify 更新、范围更新或全量重建。
+- 未提交 `graphify-out/*`。
+- 未进入 `MTP-8` 开发执行。
+- 未实现 Binance 适配器。
+- 未实现回测引擎。
+- 未实现 Paper 执行。
+- 未实现 UI。
+- 未实现数据库适配器。
+- 未实现 `LiveExecutionAdapter`。
+- 未调用 Binance signed endpoint。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `gh repo view atxinbao/MTPRO --json nameWithOwner,url,isPrivate,defaultBranchRef` | 通过 | private 仓库存在，默认分支为 `main` |
+| GitHub compare `main...codex/bootstrap-readiness` | 通过 | ahead 1，变更文件为 PR 模板、自动化就绪、Linear 草案和验证日志 |
+| Linear `MTP-7` attachment 查询 | 通过 | 已关联 Bootstrap Draft PR |
+| Linear Todo 查询 | 通过 | 仅 `MTP-8` 为 `Todo` |
+| `git diff --check` | 通过 | 已通过 |
+| `swift test` | 通过 | 4 个 XCTest 通过 |
