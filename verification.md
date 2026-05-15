@@ -421,3 +421,47 @@ Linear 结果：
 | Linear Todo 查询 | 通过 | 仅 `MTP-8` 为 `Todo` |
 | `git diff --check` | 通过 | 已通过 |
 | `swift test` | 通过 | 4 个 XCTest 通过 |
+
+## MTPRO Onboarding Test Removal
+
+日期：2026-05-16
+执行者：Codex
+PR：本轮 PR
+Commit：本轮提交
+
+目的：
+
+- 将 MTPRO 项目路径调整为不创建单独的 test-mode onboarding Project / Issues。
+- 明确第一个真实 `MTP-8` PR 同时验证 GitHub PR Automation 链路。
+- 将旧 Authorized Merge / Bootstrap 阶段状态更新为 GitHub PR Automation 语义。
+
+文件范围：
+
+- Created：无
+- Updated：
+  - `README.md`
+  - `AGENTS.md`
+  - `ROADMAP.md`
+  - `docs/automation/automation-readiness.md`
+  - `docs/planning/linear-draft-plan.md`
+  - `docs/contracts/binance-market-data-contract.md`
+  - `verification.md`
+- Deleted：无
+
+边界确认：
+
+- 未创建单独 test Project。
+- 未创建单独 test Issues。
+- 未修改 Linear。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 未实现业务功能。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | 通过 | 无 whitespace 问题 |
+| `bash checks/run.sh` | 通过 | `swift test` 通过，4 个 XCTest 通过 |

@@ -6,7 +6,7 @@ MTPRO 是用于重构 `macos-trader` 的新独立 macOS 交易研究工作台项
 
 ## 当前状态
 
-当前仓库处于 Project Definition / Bootstrap Skeleton 阶段。
+当前仓库已完成 Project Definition、Bootstrap PR、Human review / merge、Linear Project setup 和 GitHub PR Automation setup。
 
 已定义：
 
@@ -16,38 +16,35 @@ MTPRO 是用于重构 `macos-trader` 的新独立 macOS 交易研究工作台项
 - contract-first 文档
 - SwiftPM 最小模块骨架
 - 本地验证入口
+- Linear Project：`MTPRO 引导`
+- 当前唯一 configured executable issue：`MTP-8`
+- GitHub PR Automation：`checks` workflow、`protect-main`、squash merge、auto-merge、branch cleanup
 
 未完成：
 
-- Human Review
-- Linear Setup
-- Automation Readiness
+- Linear Agent formal mode
+- Symphony Issue Automation 启动
+- Graphify post-execution scoped update
 - Binance 数据接入实现
 - 策略实现
 - 持久化 adapter
 - macOS UI 实现
 
-因此当前不允许进入正式开发执行。
+MTPRO 不创建单独的 test-mode onboarding Project / Issues。后续第一个真实 MTP-8 PR 同时承担 GitHub PR Automation 链路验证。
 
-## 新项目引导边界
+## 当前执行边界
 
-MTPRO 必须先完整走完新项目引导流程，才允许进入正式开发流程。
+MTPRO 已完成初始化和 Bootstrap 合并，不再走单独的 onboarding test。
 
-顺序：
+当前项目级路径：
 
-1. Project Definition
-2. Bootstrap PR
-3. Human Review
-4. Linear Setup
-5. Automation Readiness
+1. Human Project Planning：已完成，Linear Project / Issues 已创建。
+2. Linear Project Automation：当前由人工确认 WIP=1，后续接 Linear Agent。
+3. Symphony Issue Automation：尚未启动。
+4. GitHub PR Automation：已配置，下一次真实 PR 验证。
+5. Next Human Project Planning：当前 Project 全部 Done 后再进入。
 
-只有这些完成后，才允许进入：
-
-```text
-Symphony Preflight -> Codex Execution -> PR -> Authorized Merge -> Linear Done
-```
-
-在引导流程完成前，Agent / Codex 不得实现前端页面、后端 API、数据库 adapter、真实市场数据接入或业务功能。
+Agent / Codex 只能执行当前唯一 configured executable Linear issue。`ROADMAP.md`、Linear Draft、Backlog issue、标签、priority、assignee 都不授权执行。
 
 ## 第一版产品边界
 
