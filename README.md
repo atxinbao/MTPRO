@@ -30,21 +30,29 @@ MTPRO 是用于重构 `macos-trader` 的新独立 macOS 交易研究工作台项
 - 持久化 adapter
 - macOS UI 实现
 
-MTPRO 不创建单独的 test-mode onboarding Project / Issues。后续第一个真实 MTP-8 PR 同时承担 GitHub PR Automation 链路验证。
+MTPRO 不创建单独的 test-mode onboarding Project / Issues。后续 MTP-8 PR 使用已验证的 GitHub PR Automation 链路。
 
-## 当前执行边界
+## AEP v2 正式流程状态
 
 MTPRO 已完成初始化和 Bootstrap 合并，不再走单独的 onboarding test。
 
-当前项目级路径：
+当前项目按 AEP v2 正式流程推进：
 
-1. Human Project Planning：已完成，Linear Project / Issues 已创建。
-2. Linear Project Automation：当前由人工确认 WIP=1，后续接 Linear Agent。
-3. Symphony Issue Automation：尚未启动。
-4. GitHub PR Automation：已配置，下一次真实 PR 验证。
-5. Next Human Project Planning：当前 Project 全部 Done 后再进入。
+| 阶段 | MTPRO 当前状态 | 责任边界 |
+| --- | --- | --- |
+| 1. Human Project Planning | 已完成 | Human 已确认 Project `MTPRO 引导`、issue 顺序和当前阶段目标 |
+| 2. Linear Project Automation | 准备中 | 当前由人工确认 WIP=1；后续接 Linear Agent；Codex 不修改 Linear status |
+| 3. Symphony Issue Automation | 未启动 | 本机 workflow 已准备；未获明确授权前不启动 Symphony |
+| 4. GitHub PR Automation | 已配置 | `checks`、`protect-main`、auto-merge、squash merge、branch cleanup 已可用 |
+| 5. Next Human Project Planning | 未进入 | 当前 Project 全部 issues Done 后，由 Human 决定下一阶段 |
 
 Agent / Codex 只能执行当前唯一 configured executable Linear issue。`ROADMAP.md`、Linear Draft、Backlog issue、标签、priority、assignee 都不授权执行。
+
+当前唯一 configured executable issue：
+
+```text
+MTP-8 核心领域模型与事件日志契约
+```
 
 ## 第一版产品边界
 

@@ -465,3 +465,46 @@ Commit：本轮提交
 | --- | --- | --- |
 | `git diff --check` | 通过 | 无 whitespace 问题 |
 | `bash checks/run.sh` | 通过 | `swift test` 通过，4 个 XCTest 通过 |
+
+## MTPRO AEP v2 Flow Alignment
+
+日期：2026-05-16
+执行者：Codex
+PR：本轮 PR
+Commit：本轮提交
+
+目的：
+
+- 按 AEP v2 正式流程重新梳理 MTPRO 当前状态。
+- 明确 `1. Human Project Planning` 到 `5. Next Human Project Planning` 的项目级映射。
+- 明确当前唯一 configured executable issue 是 `MTP-8`。
+- 明确 Symphony Issue Automation 尚未启动，GitHub PR Automation 已配置。
+
+文件范围：
+
+- Created：无
+- Updated：
+  - `README.md`
+  - `AGENTS.md`
+  - `ROADMAP.md`
+  - `docs/automation/automation-readiness.md`
+  - `docs/planning/linear-draft-plan.md`
+  - `verification.md`
+- Deleted：无
+
+边界确认：
+
+- 未修改 Linear。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 未实现业务功能。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | 通过 | 无 whitespace 问题 |
+| `bash checks/run.sh` | 通过 | `swift test` 通过，4 个 XCTest 通过 |

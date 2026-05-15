@@ -24,6 +24,9 @@ Agent 开始工作前必须读取：
 - 只有 Linear 中唯一 configured executable issue 才能授权正式开发执行。
 - MTPRO 不创建单独的 test-mode onboarding Project / Issues。
 - 当前唯一 configured executable issue 是 Linear 中的 `MTP-8`；执行前仍必须确认 WIP=1、scope、validation 和 evidence。
+- Linear Project Automation 负责推进 Linear issue 状态；Codex 不修改 Linear status。
+- Symphony Issue Automation 尚未启动；未获明确授权前，Agent 不得启动 Symphony。
+- GitHub PR Automation 负责 required checks、auto-merge、squash merge、branch cleanup 和 Linear bot auto Done。
 - `.codex/*` 不进入 PR。
 - `graphify-out/*` 不进入 PR。
 
@@ -43,6 +46,16 @@ Agent 开始工作前必须读取：
 - 不运行 Graphify update。
 - 不实现 LiveExecutionAdapter。
 - 不调用 Binance signed endpoint。
+
+## AEP v2 职责地图
+
+| 阶段 | Agent 边界 |
+| --- | --- |
+| Human Project Planning | 只读项目目标、Roadmap 和 Linear 规划结果，不替代 Human 决策 |
+| Linear Project Automation | 只读取当前 configured executable issue；不修改 Linear status |
+| Symphony Issue Automation | 未启动前不得自行运行；启动后只执行唯一 Todo issue |
+| GitHub PR Automation | 创建 PR 后交给 GitHub checks / auto-merge；Codex 不直接 merge |
+| Next Human Project Planning | 当前 Project 全部 Done 前不得建议或创建下一 Project |
 
 ## 参考项目边界
 
