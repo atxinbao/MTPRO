@@ -508,3 +508,41 @@ Commit：本轮提交
 | --- | --- | --- |
 | `git diff --check` | 通过 | 无 whitespace 问题 |
 | `bash checks/run.sh` | 通过 | `swift test` 通过，4 个 XCTest 通过 |
+
+## MTPRO Graphify Resource Graph Initialization
+
+日期：2026-05-16
+执行者：Codex
+PR：本轮 PR
+Commit：本轮提交
+
+目的：
+- 初始化 MTPRO 本地 Graphify resource relationship graph，让后续 Agent 可读取项目资源关系上下文。
+- 明确 Graphify 默认不是 source code graph，源码目录、测试目录和 `graphify-out/*` 不进入 PR。
+
+文件范围：
+- Created：
+  - `.graphifyignore`
+  - `docs/automation/graphify-resource-graph-scope.md`
+- Updated：
+  - `docs/automation/automation-readiness.md`
+  - `verification.md`
+- Deleted：无
+
+边界确认：
+- 未修改 Linear。
+- 未启动 Symphony。
+- 未修改业务代码。
+- 未纳入完整源码目录。
+- 未纳入测试目录。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `graphify update .` | 通过 | 本地生成 176 nodes / 156 edges / 24 communities |
+| Graphify source / test directory exclusion check | 通过 | 确认 `Sources/` 和 `Tests/` 未作为 graph source files |
+| `git diff --check` | 通过 | 无 whitespace 问题 |
+| `bash checks/run.sh` | 通过 | `swift test` 通过，4 个 XCTest 通过 |
