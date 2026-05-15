@@ -70,13 +70,15 @@ Graphify 边界：
 
 - [ ] `.codex/*` 已排除在本 PR 之外。
 
-# Authorized Merge 门槛
+# GitHub PR Automation 门槛
 
-- [ ] Authorized Merge Agent 与 Codex Execution Agent 分离。
-- [ ] 合并前已检查 PR head sha。
-- [ ] 没有未解决的 review comments。
-- [ ] 没有失败的 required checks。
-- [ ] Authorized Merge Agent 未修改代码、PR diff 或证据链。
+- [ ] GitHub required checks 预计运行。
+- [ ] Required check: `checks`。
+- [ ] GitHub branch protection / main 保护规则预计适用。
+- [ ] GitHub auto-merge 预计启用。
+- [ ] Merge method: squash。
+- [ ] Linear bot auto Done 预计在 merge 后触发。
+- [ ] Codex Execution Agent 不直接 merge 自己生成的 PR。
 
 # 已知限制
 
