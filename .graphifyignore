@@ -1,0 +1,16 @@
+.git/
+.build/
+.swiftpm/
+.codex/
+graphify-out/
+
+Sources/
+Tests/
+
+*.xcodeproj/
+*.xcworkspace/
+DerivedData/
+
+.DS_Store
+*.log
+*.tmp

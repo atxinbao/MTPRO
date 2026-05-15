@@ -35,7 +35,7 @@ Codex creates ready-for-review PR
 | Linear Project | 通过 | Project `MTPRO 引导` |
 | Linear WIP=1 | 通过 | 当前仅 `MTP-8` 为 `Todo` |
 | Symphony workflow | 准备中 | 本机 workflow `/Users/mac/code/symphony-workflows/mtpro-aep-v2.md` 已存在，未启动 |
-| Graphify | 未运行 | 未运行 Graphify update、scoped update 或 full rebuild |
+| Graphify | 通过 | 已按 `docs/automation/graphify-resource-graph-scope.md` 初始化本地 resource relationship graph；`graphify-out/*` 不进入 PR |
 
 ## AEP v2 正式流程状态
 
@@ -75,7 +75,7 @@ Codex creates ready-for-review PR
 - 不修改 Linear status。
 - 不由 Codex 解锁 `MTP-9`。
 - 不启动 Symphony，除非用户明确授权。
-- 不运行 Graphify update、scoped update 或 full rebuild，除非当前 issue 明确要求。
+- 不再次运行 Graphify update、scoped update 或 full rebuild，除非当前 issue 或用户明确要求。
 - 不提交 `graphify-out/*`。
 - 不实现 `LiveExecutionAdapter`。
 - 不调用 Binance signed endpoint。
@@ -88,3 +88,5 @@ Codex creates ready-for-review PR
 - GitHub repo settings 查询
 - GitHub Actions `checks` run 查询
 - Linear Project / Issue 只读查询
+- `graphify update .`
+- Graphify source / test directory exclusion check
