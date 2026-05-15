@@ -41,12 +41,12 @@
 
 - 本文档不是执行授权。
 - 已获得人工确认并完成 Linear Setup。
-- Linear 已成为执行事实源，但仍需满足 Automation Readiness 和 Bootstrap PR 前提。
+- Linear 已成为执行事实源；当前执行门槛是同一 Project 中唯一 configured executable issue。
 - Symphony 只能调度当前唯一可执行 Linear 事项。
 - Codex 执行代理只创建 PR，不合并 PR。
-- Authorized Merge Agent 必须与 Codex 执行代理分离。
+- PR 合并由 GitHub PR Automation 处理。
 - Graphify 在默认流程中只能作为只读上下文。
-- 新项目引导流程完成前，不得进入正式开发执行。
+- MTPRO 不创建单独的 test-mode onboarding Project / Issues。
 - `ROADMAP.md` 不授权执行。
 
 ## Linear 项目草案
@@ -68,8 +68,9 @@
 | Bootstrap PR | 已创建 | Draft PR：`https://github.com/atxinbao/MTPRO/pull/1` |
 | Human Review | 已确认 | 用户已在 2026-05-14 确认草案 |
 | Linear Setup | 已完成 | 已创建 Project `MTPRO 引导`、9 个里程碑和 `MTP-7` 到 `MTP-15` |
-| Automation Readiness | 已通过 | PR 模板、WIP=1、Authorized Merge、Graphify 只读边界、GitHub remote 和 GitHub + Linear 关联已确认 |
-| 是否允许开发执行 | 否 | 仍需 Human Review 审查 Bootstrap PR，并由 Authorized Merge Agent 合并 |
+| Automation Readiness | 已通过 | GitHub PR Automation、WIP=1、Graphify 只读边界、GitHub remote 和 GitHub + Linear 关联已确认 |
+| Test-mode onboarding Project / Issues | 不适用 | MTPRO 不创建单独 test Project / test Issues，下一次真实 PR 验证 GitHub PR Automation |
+| 是否允许开发执行 | 是，仅限当前唯一 issue | 当前仅 `MTP-8` 为 configured executable issue |
 
 ## 里程碑
 
@@ -469,7 +470,7 @@ Linear 放置：
 - 检查 GitHub + Linear 关联。
 - 检查 PR 模板。
 - 检查 WIP=1。
-- 检查 Authorized Merge Agent 分离。
+- 检查 GitHub PR Automation evidence。
 - 检查 Graphify 只读边界。
 
 非目标：
@@ -478,7 +479,7 @@ Linear 放置：
 - 不运行 Graphify update。
 - 不修改 Linear 状态。
 - 不创建 Roadmap 外事项。
-- 不绕过 Authorized Merge。
+- 不绕过 GitHub PR Automation。
 
 验证：
 

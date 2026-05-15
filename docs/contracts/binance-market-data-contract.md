@@ -39,4 +39,4 @@
 
 第一版只做 read-only public market data。
 
-真实 adapter 实现必须在 Human Review、Linear Setup 和 Automation Readiness 之后，作为 configured executable issue 执行。
+真实 adapter 实现必须作为 Linear 中唯一 configured executable issue 执行，并通过 GitHub PR Automation 验证合并。

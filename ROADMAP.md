@@ -2,7 +2,9 @@
 
 ROADMAP 只定义推进顺序，不授权执行。
 
-正式执行必须等待 Human Review、Linear Setup、Automation Readiness，以及 Linear 中唯一 configured executable issue。
+正式执行必须等待 Linear 中唯一 configured executable issue，并按 GitHub PR Automation 验证合并。
+
+MTPRO 不创建单独的 test-mode onboarding Project / Issues。第一次真实 issue PR 将用于验证 GitHub PR Automation 链路。
 
 ## 阶段
 
@@ -20,9 +22,9 @@ ROADMAP 只定义推进顺序，不授权执行。
 
 ## 当前下一步
 
-1. 完成 Bootstrap Skeleton。
-2. 运行 `swift test`。
-3. 交给 Human Review。
-4. Human Review 通过后，再准备 Linear Draft Plan。
+1. 以 `MTP-8` 作为当前唯一 configured executable issue。
+2. 执行前确认 scope、validation、evidence 和 Graphify context 状态。
+3. 创建真实 PR，并用该 PR 验证 GitHub PR Automation。
+4. PR merge / Linear bot auto Done 后，再由 Linear Project Automation 判断下一 issue。
 
-在 Human Review 和 Linear Setup 完成前，不进入业务开发执行。
+`MTP-9` 到 `MTP-15` 保持 `Backlog`，不得由 Codex 解锁。
