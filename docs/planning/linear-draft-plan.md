@@ -49,6 +49,24 @@
 - MTPRO 不创建单独的 test-mode onboarding Project / Issues。
 - `ROADMAP.md` 不授权执行。
 
+## AEP v2 流程映射
+
+| AEP 阶段 | MTPRO 映射 | 当前状态 |
+| --- | --- | --- |
+| 1. Human Project Planning | 本文档和 Linear Project `MTPRO 引导` | 已完成 |
+| 2. Linear Project Automation | 当前 Project 中 WIP=1 的 issue 队列 | 准备中，后续接 Linear Agent |
+| 3. Symphony Issue Automation | `/Users/mac/code/symphony-workflows/mtpro-aep-v2.md` | 未启动 |
+| 4. GitHub PR Automation | GitHub `checks`、`protect-main`、auto-merge、branch cleanup | 已配置 |
+| 5. Next Human Project Planning | 当前 Project 全部 Done 后的新阶段规划 | 未进入 |
+
+当前正式执行入口只允许：
+
+```text
+MTP-8 核心领域模型与事件日志契约
+```
+
+`MTP-9` 到 `MTP-15` 必须保持 `Backlog`，直到 Linear Project Automation 根据前序 Done evidence 推进。
+
 ## Linear 项目草案
 
 - 名称：MTPRO 引导
