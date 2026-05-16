@@ -546,3 +546,37 @@ Commit：本轮提交
 | Graphify source / test directory exclusion check | 通过 | 确认 `Sources/` 和 `Tests/` 未作为 graph source files |
 | `git diff --check` | 通过 | 无 whitespace 问题 |
 | `bash checks/run.sh` | 通过 | `swift test` 通过，4 个 XCTest 通过 |
+
+## MTPRO symphony-issue Handoff Alignment
+
+日期：2026-05-16
+执行者：Codex
+PR：本轮 PR
+Commit：本轮提交
+
+目的：
+- 将 MTPRO PR 模板补齐 `symphony-issue` handoff evidence。
+- 将 Linear `MTP-8` 描述从旧 Authorized Merge / Graphify read-only-only 语义更新为 AEP v2 `symphony-issue` / GitHub PR Automation 语义。
+
+文件范围：
+- Created：无
+- Updated：
+  - `.github/pull_request_template.md`
+  - `verification.md`
+- Deleted：无
+
+边界确认：
+- 未修改业务代码。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未创建 Linear Project / Issue。
+- 仅更新 Linear `MTP-8` 描述，不修改 Linear status。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | 通过 | 无 whitespace 问题 |
+| `bash checks/run.sh` | 通过 | `swift test` 通过 |

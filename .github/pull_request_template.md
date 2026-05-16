@@ -69,6 +69,12 @@ Graphify 边界：
 
 - [ ] `.codex/*` 已排除在本 PR 之外。
 
+# symphony-issue Handoff
+
+- [ ] 本地 handoff marker `.codex/symphony-issue-handoff.json` 已在 ready-for-review PR 和 GitHub auto-merge handoff 后写入。
+- [ ] Handoff marker 包含 `pr_url`、`ready_for_review: true` 和 `auto_merge_enabled: true`。
+- [ ] Handoff marker 未进入本 PR。
+
 # GitHub PR Automation 门槛
 
 - [ ] GitHub required checks 预计运行。
