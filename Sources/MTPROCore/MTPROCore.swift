@@ -70,7 +70,7 @@ public struct MTPROSymbol: Codable, Equatable, Hashable, Sendable, CustomStringC
     }
 }
 
-public enum MTPROTimeframe: String, Codable, CaseIterable, Equatable, Sendable {
+public enum MTPROTimeframe: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
     case oneMinute = "1m"
     case fiveMinutes = "5m"
 
@@ -338,6 +338,21 @@ public enum MTPROMarketEvent: Codable, Equatable, Sendable {
     case bestBidAsk(MTPROBestBidAsk)
     case orderBookSnapshot(MTPROOrderBookSnapshot)
     case orderBookDelta(MTPROOrderBookDelta)
+
+    public var symbol: MTPROSymbol {
+        switch self {
+        case let .bar(bar):
+            bar.symbol
+        case let .trade(trade):
+            trade.symbol
+        case let .bestBidAsk(bestBidAsk):
+            bestBidAsk.symbol
+        case let .orderBookSnapshot(snapshot):
+            snapshot.symbol
+        case let .orderBookDelta(delta):
+            delta.symbol
+        }
+    }
 }
 
 public enum MTPROSignalDirection: String, Codable, Equatable, Sendable {
@@ -697,6 +712,225 @@ public struct AppendOnlyEventLog: Equatable, Sendable {
                 && (command.streams.isEmpty || command.streams.contains(envelope.stream))
         }
         return EventReplayResult(command: command, envelopes: matchedEnvelopes)
+    }
+}
+
+/// MessageBus 只负责把领域事件写入只追加事件流并按命令重放。
+public struct MTPROMessageBus: Equatable, Sendable {
+    private var eventLog: AppendOnlyEventLog
+
+    public init(envelopes: [EventEnvelope] = []) throws {
+        self.eventLog = try AppendOnlyEventLog(envelopes: envelopes)
+    }
+
+    public var envelopes: [EventEnvelope] {
+        eventLog.envelopes
+    }
+
+    @discardableResult
+    public mutating func publish(
+        _ event: MTPRODomainEvent,
+        stream: EventStreamID,
+        recordedAt: Date = Date(),
+        correlationID: UUID? = nil,
+        causationID: UUID? = nil
+    ) throws -> EventEnvelope {
+        try eventLog.append(
+            event,
+            stream: stream,
+            recordedAt: recordedAt,
+            correlationID: correlationID,
+            causationID: causationID
+        )
+    }
+
+    public func replay(_ command: EventReplayCommand) -> EventReplayResult {
+        eventLog.replay(command)
+    }
+}
+
+/// Cache series key 使用 symbol + timeframe 区分 kline 序列。
+public struct MTPROMarketDataSeriesKey: Equatable, Hashable, Sendable {
+    public let symbol: MTPROSymbol
+    public let timeframe: MTPROTimeframe
+
+    public init(symbol: MTPROSymbol, timeframe: MTPROTimeframe) {
+        self.symbol = symbol
+        self.timeframe = timeframe
+    }
+}
+
+/// Market data cache snapshot 是 read-only market event 的确定性投影结果。
+public struct MTPROMarketDataCacheSnapshot: Equatable, Sendable {
+    public let barsBySeries: [MTPROMarketDataSeriesKey: [MTPROMarketBar]]
+    public let tradesBySymbol: [MTPROSymbol: [MTPROTradeTick]]
+    public let bestBidAskBySymbol: [MTPROSymbol: MTPROBestBidAsk]
+    public let orderBookSnapshotsBySymbol: [MTPROSymbol: MTPROOrderBookSnapshot]
+    public let orderBookDeltasBySymbol: [MTPROSymbol: [MTPROOrderBookDelta]]
+
+    public init(
+        barsBySeries: [MTPROMarketDataSeriesKey: [MTPROMarketBar]] = [:],
+        tradesBySymbol: [MTPROSymbol: [MTPROTradeTick]] = [:],
+        bestBidAskBySymbol: [MTPROSymbol: MTPROBestBidAsk] = [:],
+        orderBookSnapshotsBySymbol: [MTPROSymbol: MTPROOrderBookSnapshot] = [:],
+        orderBookDeltasBySymbol: [MTPROSymbol: [MTPROOrderBookDelta]] = [:]
+    ) {
+        self.barsBySeries = barsBySeries
+        self.tradesBySymbol = tradesBySymbol
+        self.bestBidAskBySymbol = bestBidAskBySymbol
+        self.orderBookSnapshotsBySymbol = orderBookSnapshotsBySymbol
+        self.orderBookDeltasBySymbol = orderBookDeltasBySymbol
+    }
+
+    public var marketEventCount: Int {
+        barsBySeries.values.reduce(0) { $0 + $1.count }
+            + tradesBySymbol.values.reduce(0) { $0 + $1.count }
+            + bestBidAskBySymbol.count
+            + orderBookSnapshotsBySymbol.count
+            + orderBookDeltasBySymbol.values.reduce(0) { $0 + $1.count }
+    }
+
+    public func applying(_ event: MTPROMarketEvent) -> MTPROMarketDataCacheSnapshot {
+        var barsBySeries = barsBySeries
+        var tradesBySymbol = tradesBySymbol
+        var bestBidAskBySymbol = bestBidAskBySymbol
+        var orderBookSnapshotsBySymbol = orderBookSnapshotsBySymbol
+        var orderBookDeltasBySymbol = orderBookDeltasBySymbol
+
+        switch event {
+        case let .bar(bar):
+            let key = MTPROMarketDataSeriesKey(symbol: bar.symbol, timeframe: bar.timeframe)
+            barsBySeries[key, default: []].append(bar)
+        case let .trade(trade):
+            tradesBySymbol[trade.symbol, default: []].append(trade)
+        case let .bestBidAsk(bestBidAsk):
+            bestBidAskBySymbol[bestBidAsk.symbol] = bestBidAsk
+        case let .orderBookSnapshot(snapshot):
+            orderBookSnapshotsBySymbol[snapshot.symbol] = snapshot
+        case let .orderBookDelta(delta):
+            orderBookDeltasBySymbol[delta.symbol, default: []].append(delta)
+        }
+
+        return MTPROMarketDataCacheSnapshot(
+            barsBySeries: barsBySeries,
+            tradesBySymbol: tradesBySymbol,
+            bestBidAskBySymbol: bestBidAskBySymbol,
+            orderBookSnapshotsBySymbol: orderBookSnapshotsBySymbol,
+            orderBookDeltasBySymbol: orderBookDeltasBySymbol
+        )
+    }
+}
+
+/// Cache 只接收 MTPROCore market event，不读取网络或数据库。
+public struct MTPROMarketDataCache: Equatable, Sendable {
+    public private(set) var snapshot: MTPROMarketDataCacheSnapshot
+
+    public init(snapshot: MTPROMarketDataCacheSnapshot = MTPROMarketDataCacheSnapshot()) {
+        self.snapshot = snapshot
+    }
+
+    @discardableResult
+    public mutating func ingest(_ event: MTPROMarketEvent) -> MTPROMarketDataCacheSnapshot {
+        snapshot = snapshot.applying(event)
+        return snapshot
+    }
+
+    @discardableResult
+    public mutating func rebuild(from envelopes: [EventEnvelope]) -> MTPROMarketDataCacheSnapshot {
+        snapshot = Self.project(envelopes)
+        return snapshot
+    }
+
+    public static func project(_ envelopes: [EventEnvelope]) -> MTPROMarketDataCacheSnapshot {
+        envelopes.reduce(MTPROMarketDataCacheSnapshot()) { snapshot, envelope in
+            guard case let .market(event) = envelope.event else {
+                return snapshot
+            }
+            return snapshot.applying(event)
+        }
+    }
+}
+
+/// DataEngine 把只读行情事件同时写入 cache 和 MessageBus。
+public struct MTPRODataEngine: Equatable, Sendable {
+    public init() {}
+
+    @discardableResult
+    public func ingest(
+        _ event: MTPROMarketEvent,
+        cache: inout MTPROMarketDataCache,
+        messageBus: inout MTPROMessageBus,
+        recordedAt: Date = Date(),
+        correlationID: UUID? = nil,
+        causationID: UUID? = nil
+    ) throws -> EventEnvelope {
+        let envelope = try messageBus.publish(
+            .market(event),
+            stream: .market,
+            recordedAt: recordedAt,
+            correlationID: correlationID,
+            causationID: causationID
+        )
+        cache.ingest(event)
+        return envelope
+    }
+}
+
+/// TradingKernel actor 是当前 issue 的最小运行时边界，不包含策略、数据库或 Live 执行。
+public actor MTPROTradingKernel {
+    private var messageBus: MTPROMessageBus
+    private var cache: MTPROMarketDataCache
+    private let dataEngine: MTPRODataEngine
+
+    public init(
+        messageBus: MTPROMessageBus,
+        cache: MTPROMarketDataCache = MTPROMarketDataCache(),
+        dataEngine: MTPRODataEngine = MTPRODataEngine()
+    ) {
+        self.messageBus = messageBus
+        self.cache = cache
+        self.dataEngine = dataEngine
+    }
+
+    public init() throws {
+        self.messageBus = try MTPROMessageBus()
+        self.cache = MTPROMarketDataCache()
+        self.dataEngine = MTPRODataEngine()
+    }
+
+    @discardableResult
+    public func ingestMarketEvent(
+        _ event: MTPROMarketEvent,
+        recordedAt: Date = Date(),
+        correlationID: UUID? = nil,
+        causationID: UUID? = nil
+    ) throws -> EventEnvelope {
+        try dataEngine.ingest(
+            event,
+            cache: &cache,
+            messageBus: &messageBus,
+            recordedAt: recordedAt,
+            correlationID: correlationID,
+            causationID: causationID
+        )
+    }
+
+    public func replay(_ command: EventReplayCommand) -> EventReplayResult {
+        messageBus.replay(command)
+    }
+
+    public func eventStream() -> [EventEnvelope] {
+        messageBus.envelopes
+    }
+
+    public func cacheSnapshot() -> MTPROMarketDataCacheSnapshot {
+        cache.snapshot
+    }
+
+    @discardableResult
+    public func rebuildCache(from command: EventReplayCommand) -> MTPROMarketDataCacheSnapshot {
+        let replay = messageBus.replay(command)
+        return cache.rebuild(from: replay.envelopes)
     }
 }
 

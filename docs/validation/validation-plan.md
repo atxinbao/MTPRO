@@ -13,6 +13,10 @@ swift test
 - 项目名。
 - Swift-only core。
 - paper-only execution mode。
+- TradingKernel actor boundary。
+- MessageBus monotonic event stream。
+- DataEngine read-only market event ingest。
+- Cache deterministic replay projection。
 - Binance read-only boundary。
 - Binance public market data adapter contract。
 - Binance public fixture decoding。

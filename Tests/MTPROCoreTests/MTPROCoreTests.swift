@@ -196,19 +196,188 @@ final class MTPROCoreTests: XCTestCase {
         }
     }
 
-    private func makeMarketBar() throws -> MTPROMarketBar {
+    func testMessageBusPublishesMonotonicSequencesAndReplaysSelectedStreams() throws {
+        var messageBus = try MTPROMessageBus()
+        let marketEvent = MTPRODomainEvent.market(.bar(try makeMarketBar()))
+        let signalEvent = MTPRODomainEvent.strategySignal(
+            MTPROStrategySignalEvent(
+                strategyID: try MTPROIdentifier("ema-cross"),
+                symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+                direction: .long,
+                generatedAt: Date(timeIntervalSince1970: 220)
+            )
+        )
+
+        let first = try messageBus.publish(
+            marketEvent,
+            stream: .market,
+            recordedAt: Date(timeIntervalSince1970: 221)
+        )
+        let second = try messageBus.publish(
+            signalEvent,
+            stream: .strategy,
+            recordedAt: Date(timeIntervalSince1970: 222)
+        )
+
+        XCTAssertEqual(first.sequence, 1)
+        XCTAssertEqual(second.sequence, 2)
+        XCTAssertEqual(messageBus.envelopes.map(\.sequence), [1, 2])
+
+        let replay = messageBus.replay(
+            EventReplayCommand(
+                range: try EventSequenceRange(lowerBound: 1, upperBound: 2),
+                streams: [.market]
+            )
+        )
+
+        XCTAssertEqual(replay.envelopes, [first])
+        XCTAssertEqual(replay.envelopes.first?.event, marketEvent)
+    }
+
+    func testDataEngineMovesReadOnlyMarketEventsIntoCacheAndEventStream() throws {
+        var messageBus = try MTPROMessageBus()
+        var cache = MTPROMarketDataCache()
+        let dataEngine = MTPRODataEngine()
+        let bar = try makeMarketBar()
+
+        let envelope = try dataEngine.ingest(
+            .bar(bar),
+            cache: &cache,
+            messageBus: &messageBus,
+            recordedAt: Date(timeIntervalSince1970: 230)
+        )
+
+        let key = MTPROMarketDataSeriesKey(symbol: bar.symbol, timeframe: bar.timeframe)
+        XCTAssertEqual(envelope.sequence, 1)
+        XCTAssertEqual(envelope.stream, .market)
+        XCTAssertEqual(envelope.event, .market(.bar(bar)))
+        XCTAssertEqual(messageBus.envelopes, [envelope])
+        XCTAssertEqual(cache.snapshot.barsBySeries[key], [bar])
+        XCTAssertEqual(cache.snapshot.marketEventCount, 1)
+    }
+
+    func testCacheProjectionIsDeterministicFromMessageBusReplay() throws {
+        var messageBus = try MTPROMessageBus()
+        var cache = MTPROMarketDataCache()
+        let dataEngine = MTPRODataEngine()
+        let bar = try makeMarketBar(close: 105, start: 300)
+        let trade = try makeTradeTick()
+        let bestBidAsk = try makeBestBidAsk()
+
+        try dataEngine.ingest(.bar(bar), cache: &cache, messageBus: &messageBus, recordedAt: Date(timeIntervalSince1970: 301))
+        try dataEngine.ingest(.trade(trade), cache: &cache, messageBus: &messageBus, recordedAt: Date(timeIntervalSince1970: 302))
+        try dataEngine.ingest(.bestBidAsk(bestBidAsk), cache: &cache, messageBus: &messageBus, recordedAt: Date(timeIntervalSince1970: 303))
+
+        let replay = messageBus.replay(
+            EventReplayCommand(
+                range: try EventSequenceRange(lowerBound: 1, upperBound: 3),
+                streams: [.market]
+            )
+        )
+        let projectedSnapshot = MTPROMarketDataCache.project(replay.envelopes)
+
+        XCTAssertEqual(projectedSnapshot, cache.snapshot)
+        XCTAssertEqual(projectedSnapshot.marketEventCount, 3)
+        XCTAssertEqual(projectedSnapshot.tradesBySymbol[trade.symbol], [trade])
+        XCTAssertEqual(projectedSnapshot.bestBidAskBySymbol[bestBidAsk.symbol], bestBidAsk)
+    }
+
+    func testTradingKernelActorSerializesConcurrentMarketIngestion() async throws {
+        let kernel = try MTPROTradingKernel()
+        let marketEvents: [MTPROMarketEvent] = [
+            .bar(try makeMarketBar(close: 101, start: 400)),
+            .bar(try makeMarketBar(close: 102, start: 460)),
+            .trade(try makeTradeTick(price: 42010.50, quantity: 0.125, tradedAt: 470))
+        ]
+
+        let envelopes = try await withThrowingTaskGroup(of: EventEnvelope.self) { group in
+            for (index, event) in marketEvents.enumerated() {
+                group.addTask {
+                    try await kernel.ingestMarketEvent(
+                        event,
+                        recordedAt: Date(timeIntervalSince1970: 500 + Double(index))
+                    )
+                }
+            }
+
+            var envelopes: [EventEnvelope] = []
+            for try await envelope in group {
+                envelopes.append(envelope)
+            }
+            return envelopes
+        }
+
+        let sequences = envelopes.map(\.sequence).sorted()
+        let eventStream = await kernel.eventStream()
+        let snapshot = await kernel.cacheSnapshot()
+        let symbol = try MTPROSymbol(rawValue: "BTCUSDT")
+        let key = MTPROMarketDataSeriesKey(
+            symbol: symbol,
+            timeframe: .oneMinute
+        )
+
+        XCTAssertEqual(sequences, [1, 2, 3])
+        XCTAssertEqual(eventStream.map(\.sequence), [1, 2, 3])
+        XCTAssertEqual(snapshot.barsBySeries[key]?.count, 2)
+        XCTAssertEqual(snapshot.tradesBySymbol[symbol]?.count, 1)
+        XCTAssertEqual(snapshot.marketEventCount, 3)
+    }
+
+    func testTradingKernelCanRebuildCacheFromReplayCommand() async throws {
+        let kernel = try MTPROTradingKernel()
+        let firstBar = try makeMarketBar(close: 101, start: 600)
+        let secondBar = try makeMarketBar(close: 102, start: 660)
+
+        try await kernel.ingestMarketEvent(.bar(firstBar), recordedAt: Date(timeIntervalSince1970: 601))
+        try await kernel.ingestMarketEvent(.bar(secondBar), recordedAt: Date(timeIntervalSince1970: 661))
+
+        let replayCommand = EventReplayCommand(
+            range: try EventSequenceRange(lowerBound: 2, upperBound: 2),
+            streams: [.market]
+        )
+        let rebuiltSnapshot = await kernel.rebuildCache(from: replayCommand)
+        let key = MTPROMarketDataSeriesKey(symbol: firstBar.symbol, timeframe: firstBar.timeframe)
+
+        XCTAssertEqual(rebuiltSnapshot.barsBySeries[key], [secondBar])
+        XCTAssertEqual(rebuiltSnapshot.marketEventCount, 1)
+    }
+
+    private func makeMarketBar(close: Double = 105, start: TimeInterval = 100) throws -> MTPROMarketBar {
         try MTPROMarketBar(
             symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
             timeframe: .oneMinute,
             interval: try MTPRODateRange(
-                start: Date(timeIntervalSince1970: 100),
-                end: Date(timeIntervalSince1970: 160)
+                start: Date(timeIntervalSince1970: start),
+                end: Date(timeIntervalSince1970: start + 60)
             ),
             open: 100,
             high: 110,
             low: 95,
-            close: 105,
+            close: close,
             volume: 42
+        )
+    }
+
+    private func makeTradeTick(
+        price: Double = 42000,
+        quantity: Double = 0.25,
+        tradedAt: TimeInterval = 310
+    ) throws -> MTPROTradeTick {
+        try MTPROTradeTick(
+            symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+            tradedAt: Date(timeIntervalSince1970: tradedAt),
+            price: price,
+            quantity: quantity,
+            makerSide: .bid
+        )
+    }
+
+    private func makeBestBidAsk() throws -> MTPROBestBidAsk {
+        try MTPROBestBidAsk(
+            symbol: MTPROSymbol(rawValue: "BTCUSDT"),
+            observedAt: Date(timeIntervalSince1970: 320),
+            bid: MTPROOrderBookLevel(price: 41999, quantity: 1.25),
+            ask: MTPROOrderBookLevel(price: 42001, quantity: 0.75)
         )
     }
 

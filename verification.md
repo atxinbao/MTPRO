@@ -982,3 +982,89 @@ Host-side validation：
 | --- | --- | --- |
 | `git diff --check` | 通过 | 无 whitespace 问题 |
 | `bash checks/run.sh` | 通过 | `swift test` 通过，19 个 XCTest 通过 |
+
+## MTP-10 交易内核、数据引擎与缓存边界
+
+日期：2026-05-16
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 建立 `MTPROCore` 的最小 `MTPROTradingKernel` actor 边界。
+- 建立 `MTPROMessageBus`、`MTPRODataEngine` 和 `MTPROMarketDataCache` 的可测试契约。
+- 将只读 `MTPROMarketEvent` 同步写入 cache 和 append-only event stream。
+- 通过 replay envelope 确认 cache projection 可确定性重建。
+
+文件范围：
+
+- Created：
+  - 无
+- Updated：
+  - `Sources/MTPROCore/MTPROCore.swift`
+  - `Tests/MTPROCoreTests/MTPROCoreTests.swift`
+  - `docs/contracts/backend-use-case-contract.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+- Deleted：
+  - 无
+
+Linear / scope 确认：
+
+- Linear 查询显示 `MTP-10` 为当前唯一 active issue，状态为 `In Progress`。
+- Linear 查询显示 `MTP-9` 已 `Done`。
+- Linear 查询显示 `MTP-11` 至 `MTP-15` 仍为 `Backlog`。
+- 本轮只执行 MTP-10 scope，不解锁后续 issue。
+
+边界确认：
+
+- 未实现 Live 执行。
+- 未提交订单。
+- 未实现数据库适配器。
+- 未实现 SwiftUI 页面。
+- 未实现 Binance 网络客户端。
+- 未调用 Binance signed endpoint。
+- 未调用 Binance account endpoint。
+- 未实现策略、backtest engine 或 paper execution engine。
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+Graphify 状态：
+
+- 当前 issue workspace 未发现 `graphify-out/*` 可读取上下文。
+- 已读取 `docs/automation/graphify-resource-graph-scope.md` 和 `docs/automation/automation-readiness.md`。
+- 按本轮 workflow，Graphify post-merge resource graph refresh 由 symphony-issue host-side `before_remove` 在持久仓库 `/Users/mac/Documents/MTPRO` 执行；child Codex 本轮未运行 Graphify full rebuild。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test` | 通过 | 24 个 XCTest 通过，`MTPROCoreTests` 14 个测试通过 |
+| `bash checks/run.sh` | 通过 | `git diff --check` 和 `swift test` 通过，输出 `MTPRO checks passed.` |
+
+新增测试：
+
+- MessageBus monotonic sequence 和 stream replay 测试。
+- DataEngine read-only market event ingest 测试。
+- Cache deterministic replay projection 测试。
+- TradingKernel actor 并发 ingest 隔离测试。
+- TradingKernel replay cache rebuild 测试。
+
+Pre-PR Codex Code Review：
+
+| 检查项 | 结果 | 说明 |
+| --- | --- | --- |
+| Diff scope | 通过 | 变更集中在 `MTPROCore`、核心测试、backend contract、validation plan 和验证日志 |
+| Issue scope | 通过 | 覆盖 MTP-10 要求的 actor kernel、MessageBus、DataEngine、Cache 和 deterministic replay |
+| Forbidden paths | 通过 | 未修改 `MTPROAdapters`、`MTPROPersistence`、`MTPROApp`、`Package.swift` 或非当前 issue 业务模块 |
+| Live / signed endpoint boundary | 通过 | 未新增 API key、signature、account endpoint、listenKey、真实订单动作或 Live adapter |
+| Validation credibility | 通过 | 默认项目级 `bash checks/run.sh` 已通过 |
+| Graphify boundary | 通过 | 未运行 full rebuild，未提交 `graphify-out/*`，post-merge refresh 交由 host-side workflow |
+| Handoff marker | 待 PR 后完成 | ready-for-review PR 和 auto-merge handoff 后写入 `.codex/symphony-issue-handoff.json` |
