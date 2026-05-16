@@ -74,6 +74,7 @@ Graphify 边界：
 - [ ] 本地 handoff marker `.codex/symphony-issue-handoff.json` 已在 ready-for-review PR 和 GitHub auto-merge handoff 后写入。
 - [ ] Handoff marker 包含 `pr_url`、`ready_for_review: true` 和 `auto_merge_enabled: true`。
 - [ ] Handoff marker 未进入本 PR。
+- [ ] Child Codex 已在 symphony-issue automation write profile 下完成 git / PR / handoff，或已记录 host-side handoff fallback 原因。
 
 # GitHub PR Automation 门槛
 

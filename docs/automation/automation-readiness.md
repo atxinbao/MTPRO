@@ -33,6 +33,7 @@ Codex creates ready-for-review PR
 | Linear Project | 通过 | Project `MTPRO 引导` |
 | Linear WIP=1 | 通过 | 当前仅 `MTP-8` 为 `Todo` |
 | Symphony workflow | 准备中 | 本机 workflow `/Users/mac/code/symphony-workflows/mtpro-aep-v2.md` 已存在，未启动 |
+| symphony-issue automation write profile | 通过 | workflow 使用 `workspaceWrite` turn sandbox 服务 issue workspace 写入；git / PR / handoff marker 可由 child Codex 完成，阻塞时由 host-side handoff fallback 接管 |
 | Graphify | 通过 | 已按 `docs/automation/graphify-resource-graph-scope.md` 初始化本地 resource relationship graph；`graphify-out/*` 不进入 PR |
 
 ## AEP v2 正式流程状态
@@ -64,6 +65,7 @@ Codex creates ready-for-review PR
 - 执行当前唯一 configured executable issue：`MTP-8`。
 - 创建 ready-for-review PR。
 - 继续使用 GitHub PR Automation 验证 checks、auto-merge 和 branch cleanup。
+- 在 symphony-issue automation write profile 下完成当前 issue workspace 更新；git commit / push、PR、auto-merge handoff 和本地 handoff marker 可由 child Codex 完成，若被环境阻塞则由 host-side handoff fallback 接管并记录原因。
 - PR merge 后等待 Linear bot auto Done。
 
 ## 当前禁止

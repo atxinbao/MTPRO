@@ -28,6 +28,7 @@ Agent 开始工作前必须读取：
 - GitHub PR Automation 负责 required checks、auto-merge、squash merge、branch cleanup 和 Linear bot auto Done。
 - `.codex/*` 不进入 PR。
 - `graphify-out/*` 不进入 PR。
+- symphony-issue 调度 Codex 时使用 issue workspace automation write profile，允许 Codex 在隔离 workspace 内更新当前 issue scope；git commit / push、ready-for-review PR、GitHub auto-merge handoff 和本地 handoff marker 可由 Codex 完成，阻塞时由 host-side handoff fallback 接管。
 
 ## 当前可做
 
@@ -55,7 +56,7 @@ Agent 开始工作前必须读取：
 | --- | --- |
 | Human Project Planning | 只读项目目标、Roadmap 和 Linear 规划结果，不替代 Human 决策 |
 | symphony-project | 只读取当前 Project 队列；不执行 issue，不调度 Codex，不处理 PR |
-| symphony-issue | 只调度唯一 `Todo` issue；负责 `Todo` -> `In Progress`、Codex 执行调度、`In Progress` -> `In Review` |
+| symphony-issue | 只调度唯一 `Todo` issue；负责 `Todo` -> `In Progress`、Codex 执行调度、校验 handoff marker 后 `In Progress` -> `In Review` |
 | GitHub PR Automation | 创建 PR 后交给 GitHub checks / auto-merge；Codex 不直接 merge |
 | Next Human Project Planning | 当前 Project 全部 Done 前不得建议或创建下一 Project |
 
@@ -65,9 +66,11 @@ Agent 开始工作前必须读取：
 
 1. 执行前：读取 root docs、当前 Linear issue、相关 contracts、validation 和 Graphify read context，锁定 scope / non-goals / allowed files / forbidden files。
 2. 执行中：只完成当前 issue scope 内的代码、文档、测试或验证任务。
-3. 执行后：运行 validation，更新 evidence chain，执行 Graphify scoped resource relationship graph update 或记录不可用原因，执行 Pre-PR Codex Code Review，创建 ready-for-review PR，并启用 GitHub auto-merge handoff。
+3. 执行后：运行 validation，更新 evidence chain，执行 Graphify scoped resource relationship graph update 或记录不可用原因，执行 Pre-PR Codex Code Review，创建 commit，创建 ready-for-review PR，启用 GitHub auto-merge handoff，并写入本地 `.codex/symphony-issue-handoff.json`。
 
 Codex Execution Agent 不修改 Linear status；`In Progress` -> `In Review` 由 symphony-issue 在 PR 和 handoff evidence 就绪后推进。
+
+如果 child Codex 被 sandbox、GitHub token、网络或 MCP elicitation 阻塞，symphony-issue host-side handoff fallback 只接管 commit / push / PR / auto-merge handoff / 本地 marker，并在 PR evidence 中记录原因。fallback 不得扩大 diff scope，不得修改 Linear status，不得提交 `.codex/*`。
 
 ## 参考项目边界
 

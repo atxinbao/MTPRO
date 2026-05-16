@@ -688,3 +688,85 @@ Pre-PR Codex Code Review：
 | Live / signed endpoint boundary | 通过 | 未新增 `LiveExecutionAdapter`、网络调用、signed endpoint、account endpoint 或真实订单动作 |
 | Validation credibility | 需说明 | 默认 `bash checks/run.sh` 被本地 sandbox 阻塞；等价 `git diff --check` 与 sandbox-compatible `swift test --disable-sandbox` 已通过 |
 | Graphify boundary | 需说明 | 已尝试 scoped update，但 Graphify CLI 在当前 sandbox 中失败；未提交 `graphify-out/*` |
+
+## MTPRO symphony-issue Automation Write Profile
+
+日期：2026-05-16
+执行者：Codex
+PR：本轮 PR
+Commit：本轮提交
+
+目的：
+- 将 MTPRO 本地自动化边界对齐到 `symphony-issue` automation write profile。
+- 明确 child Codex 可在当前 issue workspace 内完成 git commit / push、ready-for-review PR、GitHub auto-merge handoff 和本地 handoff marker。
+- 明确 child Codex 被 sandbox、GitHub token、网络或 MCP elicitation 阻塞时，可由 host-side fallback 接管 handoff。
+
+文件范围：
+- Created：无
+- Updated：
+  - `.github/pull_request_template.md`
+  - `AGENTS.md`
+  - `docs/automation/automation-readiness.md`
+  - `verification.md`
+- Deleted：无
+
+本地运行配置：
+- `/Users/mac/code/symphony-workflows/mtpro-aep-v2.md`
+- `/Users/mac/code/symphony-workflows/runtime/mtpro-aep-v2-local-seed.md`
+
+边界确认：
+- 未修改业务代码。
+- 未创建 Linear Project / Issue。
+- 未修改 Linear status。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- host-side fallback 不扩大 issue scope，不替代 Linear 状态推进。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | 通过 | 无 whitespace 问题。 |
+| `bash checks/run.sh` | 通过 | `swift test` 通过，4 个 XCTest 通过。 |
+
+## MTPRO symphony-issue Host Handoff Fallback Alignment
+
+日期：2026-05-16
+执行者：Codex
+PR：本轮 PR
+Commit：本轮提交
+
+目的：
+- 将 MTPRO 本地自动化边界从默认 `dangerFullAccess` 收回到 `workspaceWrite` issue workspace 写入模型。
+- 明确 child Codex 可处理 git / PR / marker，若被 sandbox、GitHub token、网络或 MCP elicitation 阻塞，则由 symphony-issue host-side handoff fallback 接管。
+- 同步 workflow 运行配置，避免下一轮 MTP issue 自动化继续依赖 child Codex 直接写 `.git` 或 `.codex`。
+
+文件范围：
+- Created：无
+- Updated：
+  - `AGENTS.md`
+  - `docs/automation/automation-readiness.md`
+  - `verification.md`
+- Deleted：无
+
+本地运行配置：
+- `/Users/mac/code/symphony-workflows/mtpro-aep-v2.md`
+- `/Users/mac/code/symphony-workflows/runtime/mtpro-aep-v2-local-seed.md`
+
+边界确认：
+- 未修改业务代码。
+- 未创建 Linear Project / Issue。
+- 未修改 Linear status。
+- 未运行 Graphify update。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | 通过 | 无 whitespace 问题。 |
+| `bash checks/run.sh` | 通过 | `swift test` 通过，4 个 XCTest 通过。 |
+| `mix test core + workspace/config` | 通过 | Symphony 相关 90 个测试通过。 |
