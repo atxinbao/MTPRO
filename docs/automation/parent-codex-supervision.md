@@ -59,7 +59,7 @@ Linear Project 队列观察
 6. 审查 child Codex 生成的 diff、validation、PR body 和 evidence chain。
 7. 检查 ready-for-review PR、GitHub checks、auto-merge handoff、branch cleanup 和 Linear bot Done。
 8. 在 child Codex 被权限、网络或工具交互阻塞时执行 host-side fallback。
-9. 在 PR merge / Linear bot Done 后核对 Post-Issue Ledger / 施工后记账结果。
+9. 在 PR merge / Linear bot Done 后核对 Post-Issue Ledger / 施工后记账结构化摘要。
 10. 基于真实失败、阻塞和重复人工步骤，提出流程改进建议。
 
 ## Host-side fallback
@@ -102,7 +102,7 @@ Host-side fallback 只能处理当前 issue scope 内的自动化阻塞。
 
 Post-Issue Ledger / 施工后记账只提供关系事实和下一步观察提示。
 
-父 Codex 可以读取这些提示，用于判断下一步是否需要向 Human 汇报，但不得把它们当作执行授权。
+父 Codex 可以读取 `.codex/post-issue-ledger/latest.json`，用于判断下一步是否需要向 Human 汇报，但不得把它当作执行授权。
 
 下一步 issue 只能由 Human 明确授权后，父 Codex 才能把 eligible `Backlog` issue 推进为唯一 `Todo`。
 

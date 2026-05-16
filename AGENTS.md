@@ -36,9 +36,9 @@ Agent 开始工作前必须读取：
 - 执行当前唯一 configured executable issue 的明确 scope。
 - 维护项目定义文档、contract-first 文档和 SwiftPM skeleton。
 - 运行本地验证：`bash checks/run.sh`。
-- Post-Issue Ledger / 施工后记账由 symphony-issue host-side `before_remove` 在 PR merge / Linear bot Done 后执行：同步持久本地仓库、刷新 Graphify resource relationship graph，并产生只读下一步观察提示；如果环境不可用，必须记录原因且不提交 `graphify-out/*`。
+- Post-Issue Ledger / 施工后记账由 symphony-issue host-side `before_remove` 在 PR merge / Linear bot Done 后执行：同步持久本地仓库、刷新 Graphify resource relationship graph，并写入本地结构化摘要 `.codex/post-issue-ledger/latest.json`；如果环境不可用，必须记录原因且不提交 `graphify-out/*`。
 - 下一步观察提示不授权执行，不得自动推进下一个 issue，不得创建 Linear issue，不得修改 `ROADMAP.md`。
-- 父 Codex 可读取下一步观察提示并向 Human 汇报，但不得把它当作执行授权。
+- 父 Codex 可读取 `.codex/post-issue-ledger/latest.json` 的只读下一步观察提示并向 Human 汇报，但不得把它当作执行授权。
 - 执行 Pre-PR Codex Code Review。
 - 创建 ready-for-review PR，并启用 GitHub auto-merge handoff。
 
