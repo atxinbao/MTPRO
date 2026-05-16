@@ -616,3 +616,75 @@ Commit：本轮提交
 | --- | --- | --- |
 | `bash checks/run.sh` | 通过 | `swift test` 通过，4 个 XCTest 通过 |
 | `git diff --check` | 通过 | 无 whitespace 问题 |
+
+## MTP-8 核心领域模型与事件日志契约
+
+日期：2026-05-16
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 实现 `MTPROCore` 核心 symbol、timeframe、market event、domain event、command、query、event envelope 契约。
+- 定义只追加事件日志契约和 replay 契约。
+- 为后续 backtest / paper 一致性保留统一事件语义。
+- 增加核心单元测试，覆盖正常路径、边界值、价格 / 数量约束、Codable 反序列化约束、只追加序列和拒绝 Live action 的约束。
+
+文件范围：
+
+- Created：无
+- Updated：
+  - `Sources/MTPROCore/MTPROCore.swift`
+  - `Tests/MTPROCoreTests/MTPROCoreTests.swift`
+  - `verification.md`
+- Deleted：无
+
+边界确认：
+
+- 未修改 `MTPROAdapters`。
+- 未修改 `MTPROPersistence`。
+- 未修改 `MTPROApp`。
+- 未接 Binance 网络。
+- 未实现真实持久化 adapter。
+- 未实现内核运行时。
+- 未实现策略。
+- 未实现 UI。
+- 未实现 `LiveExecutionAdapter`。
+- 未调用 signed endpoint。
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+Graphify 状态：
+
+- 执行前 `graphify-out/*` 在当前 worktree 中不存在，无法读取既有 Graphify 输出上下文。
+- 已读取 `.graphifyignore` 和 `docs/automation/graphify-resource-graph-scope.md` 确认 Graphify 资源关系图边界。
+- 执行后已尝试 `graphify update .`。
+- Graphify update 未完成：当前 Graphify CLI 返回 `Re-extracting code files in . (no LLM needed)...` 后失败，错误为 `[Errno 1] Operation not permitted`。
+- 本轮未生成或提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/run.sh` | 阻塞 | SwiftPM 在当前 sandbox 中尝试写入 `/Users/mac/.cache/clang/ModuleCache`，随后内部 `sandbox-exec` 返回 `Operation not permitted`，未进入源码编译 |
+| `git diff --check` | 通过 | 无 whitespace 问题 |
+| `CLANG_MODULE_CACHE_PATH="$PWD/.build/clang-module-cache" swift test --disable-sandbox --cache-path "$PWD/.build/swiftpm-cache" --config-path "$PWD/.build/swiftpm-config" --security-path "$PWD/.build/swiftpm-security" --scratch-path "$PWD/.build"` | 通过 | 12 个 XCTest 通过；其中 `MTPROCoreTests` 9 个测试通过 |
+| `graphify update .` | 阻塞 | Graphify CLI 在当前 sandbox 中返回 `[Errno 1] Operation not permitted`，未生成可提交输出 |
+
+Pre-PR Codex Code Review：
+
+| 检查项 | 结果 | 说明 |
+| --- | --- | --- |
+| Diff scope | 通过 | 仅修改 `Sources/MTPROCore/MTPROCore.swift`、`Tests/MTPROCoreTests/MTPROCoreTests.swift`、`verification.md` |
+| Issue scope | 通过 | 变更只覆盖核心领域模型、事件、命令 / 查询、事件信封、只追加日志和 replay 契约 |
+| Forbidden paths | 通过 | 未修改 `MTPROAdapters`、`MTPROPersistence`、`MTPROApp` 或其他非当前 issue scope 文件 |
+| Live / signed endpoint boundary | 通过 | 未新增 `LiveExecutionAdapter`、网络调用、signed endpoint、account endpoint 或真实订单动作 |
+| Validation credibility | 需说明 | 默认 `bash checks/run.sh` 被本地 sandbox 阻塞；等价 `git diff --check` 与 sandbox-compatible `swift test --disable-sandbox` 已通过 |
+| Graphify boundary | 需说明 | 已尝试 scoped update，但 Graphify CLI 在当前 sandbox 中失败；未提交 `graphify-out/*` |
