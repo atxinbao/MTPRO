@@ -1269,3 +1269,90 @@ Commit：本轮提交
 | `swift package clean` | 通过 | 清理 SwiftPM 增量缓存 |
 | `swift test` | 通过 | 28 个 XCTest 通过，新增 EMA fixture、回测事件流、Paper 事件流和 parity 测试 |
 | `bash checks/run.sh` | 通过 | `git diff --check` 通过；`swift test` 28 个 XCTest 通过；输出 `MTPRO checks passed.` |
+
+## MTP-12 订单簿失衡策略研究链路
+
+日期：2026-05-17
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 定义订单簿读模型输入，复用只读 snapshot / delta market events。
+- 实现订单簿 top depth notional imbalance 信号契约。
+- 新增订单簿失衡研究 command / result / event flow，并可发布到 strategy stream。
+- 用测试夹具验证 delta 应用、信号稳定性、边界拒绝和研究链路事件流。
+
+文件范围：
+
+- Created：
+  - 无
+- Updated：
+  - `Sources/MTPROCore/MTPROCore.swift`
+  - `Tests/MTPROCoreTests/MTPROCoreTests.swift`
+  - `docs/contracts/backend-use-case-contract.md`
+  - `docs/contracts/api-contract.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+- Deleted：
+  - 无
+
+Linear / scope 确认：
+
+- Linear 查询显示 `MTP-12` 为当前唯一 active issue，状态为 `In Progress`。
+- Linear 查询显示 `MTP-11` 已 `Done`。
+- Linear 查询显示 `MTP-13` 至 `MTP-15` 仍为 `Backlog`。
+- 本轮只执行 MTP-12 scope，不解锁后续 issue。
+
+边界确认：
+
+- 未接 signed endpoint。
+- 未接 account endpoint。
+- 未做 futures leverage / margin action。
+- 未提交、取消或替换真实订单。
+- 未实现 `LiveExecutionAdapter`。
+- 未扩展 configured symbol universe。
+- 未实现 persistence adapter。
+- 未实现 SwiftUI 页面。
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未运行 Graphify full rebuild。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+Graphify 状态：
+
+- 当前 issue workspace 未发现 `graphify-out/*` 可读取上下文。
+- 已读取 `docs/automation/graphify-resource-graph-scope.md` 和 `docs/automation/post-issue-ledger.md`。
+- 按本轮 workflow，Graphify post-merge resource graph refresh 由 symphony-issue host-side `before_remove` 在持久仓库 `/Users/mac/Documents/MTPRO` 执行；child Codex 本轮未运行 Graphify full rebuild。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test` | 通过 | 32 个 XCTest 通过，新增订单簿读模型、失衡信号和研究事件流测试 |
+| `bash checks/run.sh` | 通过 | `git diff --check` 和 `swift test` 通过，32 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+新增测试：
+
+- Order book read model snapshot / delta deterministic application 测试。
+- Order book imbalance stable signal fixture 测试。
+- Order book imbalance invalid configuration / input rejection 测试。
+- Order book imbalance research event flow strategy stream 测试。
+
+Pre-PR Codex Code Review：
+
+| 检查项 | 结果 | 说明 |
+| --- | --- | --- |
+| Diff scope | 通过 | 变更集中在 `MTPROCore`、核心测试、contract 文档、validation plan 和验证日志 |
+| Issue scope | 通过 | 覆盖 MTP-12 要求的订单簿读模型输入、失衡信号、研究链路和测试夹具 |
+| Forbidden paths | 通过 | 未修改 `MTPROAdapters`、`MTPROPersistence`、`MTPROApp`、`Package.swift` 或非当前 issue 业务模块 |
+| Live / signed endpoint boundary | 通过 | 未新增 API key、signature、account endpoint、listenKey、真实订单动作、futures / margin action 或 Live adapter |
+| Validation credibility | 通过 | 默认项目级 `bash checks/run.sh` 已通过 |
+| Graphify boundary | 通过 | 未运行 full rebuild，未提交 `graphify-out/*`，post-merge refresh 交由 host-side workflow |

@@ -11,6 +11,7 @@ MTPRO 当前没有服务端 API；这里的 backend 指 Core runtime use case。
 | LoadMarketData | symbol / timeframe / date range | market events | planned |
 | RunBacktest | strategy config / market data range | backtest result events | planned |
 | StartPaperSession | strategy config / risk config | paper session events | planned |
+| RunOrderBookImbalanceResearch | order book imbalance config / order book read model inputs | research signal events | planned |
 | EvaluateRisk | proposed paper order | risk decision event | planned |
 | ProjectPortfolio | execution / fill events | portfolio projection | planned |
 | ReplayEvents | event log range | read model rebuild result | planned |
@@ -85,3 +86,39 @@ Use Case 输出必须先进入 read model projection，再供 UI 使用。
 - 订单簿失衡策略。
 - 完整 Dashboard 页面。
 - 数据库 adapter。
+
+## MTP-12 订单簿失衡研究链路契约
+
+日期：2026-05-17
+
+执行者：Codex
+
+`MTPROCore` 在本事项中建立订单簿读模型输入、失衡信号和研究事件流契约。
+
+契约结构：
+
+- `MTPROOrderBookReadModelInput`：由只读 `MTPROOrderBookSnapshot` 构建，并可应用同 symbol 的 `MTPROOrderBookDelta`。
+- `MTPROOrderBookImbalanceStrategyConfiguration`：定义 strategyID、symbol、timeframe、depth 和 signalThreshold。
+- `MTPROOrderBookImbalanceStrategyContract`：只消费本地订单簿读模型输入，计算 top depth bid / ask notional imbalance。
+- `MTPROOrderBookImbalanceSignalSample`：输出 signal、sourceObservedAt、depth、bidNotional、askNotional、imbalanceRatio 和 bias。
+- `MTPROOrderBookImbalanceResearchEventFlow`：生成 requested、signalGenerated 和 completed 研究事件流。
+
+契约要求：
+
+- depth 必须大于 0。
+- signalThreshold 必须是有限值并位于 `0...1`。
+- Delta 只能应用到同 symbol 的订单簿读模型输入。
+- Strategy symbol / timeframe 必须与 MarketDataQuery 一致。
+- 每个输入必须满足配置 depth 所需的 bid / ask level 数量。
+- 失衡使用 top depth notional 计算：`(bidNotional - askNotional) / (bidNotional + askNotional)`。
+- bid dominance 映射为 `.long` 研究信号；neutral 和 ask dominance 映射为 `.flat`，ask dominance 只通过 bias 字段表达，不引入 futures / margin 方向。
+- 研究事件可发布到 strategy stream，但不创建订单、不连接 broker、不触发 Paper 或 Live 执行。
+
+本契约不包含：
+
+- signed endpoint。
+- futures leverage / margin action。
+- 真实订单提交、取消或替换。
+- LiveExecutionAdapter。
+- 持久化 adapter。
+- SwiftUI 页面。

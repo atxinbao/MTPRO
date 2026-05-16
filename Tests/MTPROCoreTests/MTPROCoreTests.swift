@@ -539,6 +539,196 @@ final class MTPROCoreTests: XCTestCase {
         )
     }
 
+    func testOrderBookReadModelAppliesSnapshotAndDeltasDeterministically() throws {
+        let symbol = try MTPROSymbol(rawValue: "BTCUSDT")
+        let snapshot = MTPROOrderBookSnapshot(
+            symbol: symbol,
+            observedAt: Date(timeIntervalSince1970: 1_000),
+            bids: [
+                try makeOrderBookLevel(price: 100, quantity: 2),
+                try makeOrderBookLevel(price: 99, quantity: 1)
+            ],
+            asks: [
+                try makeOrderBookLevel(price: 101, quantity: 1),
+                try makeOrderBookLevel(price: 102, quantity: 1)
+            ]
+        )
+        let input = MTPROOrderBookReadModelInput(snapshot: snapshot)
+        let delta = MTPROOrderBookDelta(
+            symbol: symbol,
+            observedAt: Date(timeIntervalSince1970: 1_010),
+            bidUpdates: [
+                try makeOrderBookLevel(price: 99, quantity: 0),
+                try makeOrderBookLevel(price: 100.5, quantity: 1.5)
+            ],
+            askUpdates: [
+                try makeOrderBookLevel(price: 101, quantity: 0.5),
+                try makeOrderBookLevel(price: 103, quantity: 2)
+            ]
+        )
+
+        let updated = try input.applying(delta)
+
+        XCTAssertEqual(input.source, .snapshot)
+        XCTAssertEqual(input.bids.map(\.price.rawValue), [100, 99])
+        XCTAssertEqual(input.asks.map(\.price.rawValue), [101, 102])
+        XCTAssertEqual(updated.source, .deltaApplied)
+        XCTAssertEqual(updated.observedAt.timeIntervalSince1970, 1_010)
+        XCTAssertEqual(updated.bids.map(\.price.rawValue), [100.5, 100])
+        XCTAssertEqual(updated.asks.map(\.price.rawValue), [101, 102, 103])
+        XCTAssertEqual(updated.asks[0].quantity.rawValue, 0.5)
+
+        XCTAssertThrowsError(
+            try input.applying(
+                MTPROOrderBookDelta(
+                    symbol: try MTPROSymbol(rawValue: "ETHUSDT"),
+                    observedAt: Date(timeIntervalSince1970: 1_011),
+                    bidUpdates: [],
+                    askUpdates: []
+                )
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? MTPROCoreError,
+                .marketDataMismatch(field: "orderBookDelta.symbol", expected: "BTCUSDT", actual: "ETHUSDT")
+            )
+        }
+    }
+
+    func testOrderBookImbalanceStrategyGeneratesStableSignalFixture() throws {
+        let contract = MTPROOrderBookImbalanceStrategyContract(
+            configuration: try makeOrderBookImbalanceStrategy()
+        )
+
+        let samples = try contract.evaluate(try makeOrderBookImbalanceInputs())
+
+        XCTAssertEqual(samples.map(\.bias), [.bidDominant, .neutral, .askDominant])
+        XCTAssertEqual(samples.map(\.signal.direction), [.long, .flat, .flat])
+        XCTAssertEqual(samples.map(\.signal.generatedAt.timeIntervalSince1970), [1_000, 1_060, 1_120])
+        XCTAssertEqual(samples.map(\.signal.timeframe), [.oneMinute, .oneMinute, .oneMinute])
+        XCTAssertEqual(samples[0].bidNotional, 299, accuracy: 0.0001)
+        XCTAssertEqual(samples[0].askNotional, 203, accuracy: 0.0001)
+        XCTAssertEqual(samples[0].imbalanceRatio, 0.1912350598, accuracy: 0.0001)
+        XCTAssertEqual(samples[1].imbalanceRatio, 0, accuracy: 0.0001)
+        XCTAssertEqual(samples[2].imbalanceRatio, -0.2088353414, accuracy: 0.0001)
+    }
+
+    func testOrderBookImbalanceRejectsInvalidConfigurationAndInputs() throws {
+        XCTAssertThrowsError(
+            try MTPROOrderBookImbalanceStrategyConfiguration(
+                strategyID: try MTPROIdentifier("obi-fixture"),
+                symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+                timeframe: .oneMinute,
+                depth: 0,
+                signalThreshold: 0.15
+            )
+        ) { error in
+            XCTAssertEqual(error as? MTPROCoreError, .invalidOrderBookDepth("depth", 0))
+        }
+
+        XCTAssertThrowsError(
+            try MTPROOrderBookImbalanceStrategyConfiguration(
+                strategyID: try MTPROIdentifier("obi-fixture"),
+                symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+                timeframe: .oneMinute,
+                depth: 2,
+                signalThreshold: 1.1
+            )
+        ) { error in
+            XCTAssertEqual(error as? MTPROCoreError, .invalidImbalanceThreshold(1.1))
+        }
+
+        let contract = MTPROOrderBookImbalanceStrategyContract(
+            configuration: try makeOrderBookImbalanceStrategy()
+        )
+        let mismatchedInput = MTPROOrderBookReadModelInput(
+            symbol: try MTPROSymbol(rawValue: "ETHUSDT"),
+            observedAt: Date(timeIntervalSince1970: 1_000),
+            bids: [try makeOrderBookLevel(price: 100, quantity: 1), try makeOrderBookLevel(price: 99, quantity: 1)],
+            asks: [try makeOrderBookLevel(price: 101, quantity: 1), try makeOrderBookLevel(price: 102, quantity: 1)],
+            source: .snapshot
+        )
+        let thinInput = MTPROOrderBookReadModelInput(
+            symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+            observedAt: Date(timeIntervalSince1970: 1_000),
+            bids: [try makeOrderBookLevel(price: 100, quantity: 1)],
+            asks: [],
+            source: .snapshot
+        )
+
+        XCTAssertThrowsError(try contract.evaluate([mismatchedInput])) { error in
+            XCTAssertEqual(
+                error as? MTPROCoreError,
+                .marketDataMismatch(field: "orderBook.symbol", expected: "BTCUSDT", actual: "ETHUSDT")
+            )
+        }
+        XCTAssertThrowsError(try contract.evaluate([thinInput])) { error in
+            XCTAssertEqual(
+                error as? MTPROCoreError,
+                .insufficientOrderBookDepth(required: 2, bidLevels: 1, askLevels: 0)
+            )
+        }
+    }
+
+    func testOrderBookImbalanceResearchFlowPublishesThroughStrategyStream() throws {
+        var messageBus = try MTPROMessageBus()
+        let strategy = try makeOrderBookImbalanceStrategy()
+        let command = MTPROOrderBookImbalanceResearchCommand(
+            researchID: try MTPROIdentifier("obi-research-fixture"),
+            strategy: strategy,
+            marketData: try makeOrderBookMarketDataQuery()
+        )
+        let run = try MTPROOrderBookImbalanceResearchEventFlow().run(
+            command,
+            inputs: try makeOrderBookImbalanceInputs(),
+            completedAt: Date(timeIntervalSince1970: 1_300)
+        )
+
+        for event in run.events {
+            try messageBus.publish(.orderBookImbalanceResearch(event), stream: .strategy)
+        }
+
+        XCTAssertEqual(MTPROCommand.runOrderBookImbalanceResearch(command), .runOrderBookImbalanceResearch(command))
+        XCTAssertEqual(run.events.count, 5)
+        XCTAssertEqual(run.result.signalSamples.map(\.bias), [.bidDominant, .neutral, .askDominant])
+        XCTAssertEqual(messageBus.envelopes.map(\.sequence), Array(1...5))
+        XCTAssertEqual(
+            messageBus.replay(
+                EventReplayCommand(
+                    range: try EventSequenceRange(lowerBound: 1, upperBound: 5),
+                    streams: [.strategy]
+                )
+            ).envelopes.count,
+            5
+        )
+
+        let mismatchedMarketData = MarketDataQuery(
+            symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+            timeframe: .fiveMinutes,
+            range: try MTPRODateRange(
+                start: Date(timeIntervalSince1970: 1_000),
+                end: Date(timeIntervalSince1970: 1_200)
+            )
+        )
+        let mismatchedCommand = MTPROOrderBookImbalanceResearchCommand(
+            researchID: try MTPROIdentifier("obi-mismatch"),
+            strategy: strategy,
+            marketData: mismatchedMarketData
+        )
+
+        XCTAssertThrowsError(
+            try MTPROOrderBookImbalanceResearchEventFlow().run(
+                mismatchedCommand,
+                inputs: try makeOrderBookImbalanceInputs()
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? MTPROCoreError,
+                .marketDataMismatch(field: "marketData.timeframe", expected: "1m", actual: "5m")
+            )
+        }
+    }
+
     private func makeMarketBar(close: Double = 105, start: TimeInterval = 100) throws -> MTPROMarketBar {
         try MTPROMarketBar(
             symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
@@ -624,5 +814,75 @@ final class MTPROCoreTests: XCTestCase {
                 volume: 1
             )
         }
+    }
+
+    private func makeOrderBookLevel(price: Double, quantity: Double) throws -> MTPROOrderBookLevel {
+        try MTPROOrderBookLevel(price: price, quantity: quantity)
+    }
+
+    private func makeOrderBookImbalanceStrategy() throws -> MTPROOrderBookImbalanceStrategyConfiguration {
+        try MTPROOrderBookImbalanceStrategyConfiguration(
+            strategyID: try MTPROIdentifier("obi-fixture"),
+            symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+            timeframe: .oneMinute,
+            depth: 2,
+            signalThreshold: 0.15
+        )
+    }
+
+    private func makeOrderBookMarketDataQuery() throws -> MarketDataQuery {
+        MarketDataQuery(
+            symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+            timeframe: .oneMinute,
+            range: try MTPRODateRange(
+                start: Date(timeIntervalSince1970: 1_000),
+                end: Date(timeIntervalSince1970: 1_200)
+            )
+        )
+    }
+
+    private func makeOrderBookImbalanceInputs() throws -> [MTPROOrderBookReadModelInput] {
+        let symbol = try MTPROSymbol(rawValue: "BTCUSDT")
+        let bidDominant = MTPROOrderBookReadModelInput(
+            symbol: symbol,
+            observedAt: Date(timeIntervalSince1970: 1_000),
+            bids: [
+                try makeOrderBookLevel(price: 100, quantity: 2),
+                try makeOrderBookLevel(price: 99, quantity: 1)
+            ],
+            asks: [
+                try makeOrderBookLevel(price: 101, quantity: 1),
+                try makeOrderBookLevel(price: 102, quantity: 1)
+            ],
+            source: .snapshot
+        )
+        let neutral = MTPROOrderBookReadModelInput(
+            symbol: symbol,
+            observedAt: Date(timeIntervalSince1970: 1_060),
+            bids: [
+                try makeOrderBookLevel(price: 100, quantity: 1),
+                try makeOrderBookLevel(price: 99, quantity: 1)
+            ],
+            asks: [
+                try makeOrderBookLevel(price: 100, quantity: 1),
+                try makeOrderBookLevel(price: 99, quantity: 1)
+            ],
+            source: .snapshot
+        )
+        let askDominant = MTPROOrderBookReadModelInput(
+            symbol: symbol,
+            observedAt: Date(timeIntervalSince1970: 1_120),
+            bids: [
+                try makeOrderBookLevel(price: 99, quantity: 1),
+                try makeOrderBookLevel(price: 98, quantity: 1)
+            ],
+            asks: [
+                try makeOrderBookLevel(price: 100, quantity: 2),
+                try makeOrderBookLevel(price: 101, quantity: 1)
+            ],
+            source: .snapshot
+        )
+
+        return [askDominant, bidDominant, neutral]
     }
 }

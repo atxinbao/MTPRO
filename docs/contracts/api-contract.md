@@ -13,6 +13,7 @@ MTPRO 第一版没有 HTTP API。
 | MarketDataQuery | Query | 查询 read-only market data projection |
 | BacktestCommand | Command | 请求运行回测 |
 | PaperSessionCommand | Command | 请求启动 paper session |
+| OrderBookImbalanceResearchCommand | Command | 请求运行订单簿失衡研究 |
 | RiskEvaluationQuery | Query | 查询风险判断 |
 | PortfolioQuery | Query | 查询组合投影 |
 | EventReplayCommand | Command | 请求 replay event log |
@@ -62,3 +63,29 @@ MTPRO 第一版没有 HTTP API。
 - 不新增 broker account command。
 - 不新增 signed endpoint command。
 - 不把真实执行动作暴露为 API contract。
+
+## MTP-12 Command / Event Flow 细化
+
+日期：2026-05-17
+
+执行者：Codex
+
+新增 `MTPROOrderBookImbalanceResearchCommand`，绑定：
+
+- `researchID`
+- `MTPROOrderBookImbalanceStrategyConfiguration`
+- `MarketDataQuery`
+
+新增 `MTPROCommand.runOrderBookImbalanceResearch`，只授权本地研究链路，不代表可交易命令。
+
+新增研究事件流契约：
+
+- Order book imbalance research stream：`requested` -> `signalGenerated...` -> `completed`
+
+边界确认：
+
+- 不新增 live order command。
+- 不新增 broker account command。
+- 不新增 signed endpoint command。
+- 不新增 futures leverage / margin command。
+- 不把订单簿失衡信号暴露为真实订单动作。
