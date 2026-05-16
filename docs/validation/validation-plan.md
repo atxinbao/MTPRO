@@ -26,6 +26,10 @@ swift test
 - Backtest event flow。
 - Paper session event flow。
 - Backtest / Paper signal timeline parity。
+- Order book snapshot / delta read model input。
+- Order book imbalance signal fixture。
+- Order book imbalance research event flow。
+- Order book imbalance boundary rejection。
 - Top 5 USDT universe。
 - `1m` / `5m` timeframe。
 - Event Log / SQLite / DuckDB persistence boundary。
