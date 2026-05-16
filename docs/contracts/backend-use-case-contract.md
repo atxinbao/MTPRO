@@ -122,3 +122,33 @@ Use Case 输出必须先进入 read model projection，再供 UI 使用。
 - LiveExecutionAdapter。
 - 持久化 adapter。
 - SwiftUI 页面。
+
+## MTP-13 持久化重放与投影契约
+
+日期：2026-05-17
+
+执行者：Codex
+
+`MTPROPersistence` 在本事项中建立 `ReplayEvents` 后续 use case 所需的本地投影边界。
+
+契约结构：
+
+- Event Log replay：按 sequence range 和 stream 过滤 envelope。
+- Market cache rebuild：复用 Core market cache 投影逻辑。
+- SQLite runtime projection：构建 paper session、risk rejection 和 portfolio runtime read model。
+- DuckDB analytical projection：构建 market data、backtest、订单簿研究和 signal timeline 分析 read model。
+
+契约要求：
+
+- 输入只能是 `EventEnvelope` 与 `EventReplayCommand`。
+- 输出只能是稳定 projection snapshot。
+- 投影结果不得暴露 database schema。
+- 投影结果不得保存或返回运行时对象。
+
+本契约不包含：
+
+- 真实 SQLite / DuckDB adapter。
+- database migration。
+- UI ViewModel。
+- Live execution persistence。
+- broker / exchange side effect。

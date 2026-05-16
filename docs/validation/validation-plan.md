@@ -30,6 +30,10 @@ swift test
 - Order book imbalance signal fixture。
 - Order book imbalance research event flow。
 - Order book imbalance boundary rejection。
+- Event Log replay persistence boundary。
+- SQLite runtime projection boundary。
+- DuckDB analytical projection boundary。
+- Persistence projection isolation boundary。
 - Top 5 USDT universe。
 - `1m` / `5m` timeframe。
 - Event Log / SQLite / DuckDB persistence boundary。
