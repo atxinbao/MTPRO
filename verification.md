@@ -1068,3 +1068,50 @@ Pre-PR Codex Code Review：
 | Validation credibility | 通过 | 默认项目级 `bash checks/run.sh` 已通过 |
 | Graphify boundary | 通过 | 未运行 full rebuild，未提交 `graphify-out/*`，post-merge refresh 交由 host-side workflow |
 | Handoff marker | 待 PR 后完成 | ready-for-review PR 和 auto-merge handoff 后写入 `.codex/symphony-issue-handoff.json` |
+
+## Post-Issue Ledger / 施工后记账流程收口
+
+日期：2026-05-16
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 将 MTP-10 真实自动化跑通后暴露出的 `before_remove` 语义收口为 Post-Issue Ledger / 施工后记账。
+- 明确施工后记账只同步最新 `main`、刷新 Graphify resource relationship graph、承接只读下一步观察提示。
+- 明确下一步观察提示不授权下一个 issue、不创建 Linear issue、不修改 `ROADMAP.md`。
+
+文件范围：
+
+- Created：
+  - `docs/automation/post-issue-ledger.md`
+- Updated：
+  - `README.md`
+  - `AGENTS.md`
+  - `.github/pull_request_template.md`
+  - `docs/automation/automation-readiness.md`
+  - `verification.md`
+- Deleted：
+  - 无
+
+边界确认：
+
+- 未修改业务代码。
+- 未创建 Linear Project / Issue。
+- 未修改 Linear status。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 未把下一步观察提示写成执行授权。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | 通过 | 无 whitespace 问题 |
+| `bash checks/run.sh` | 通过 | `swift test` 通过，24 个 XCTest 通过 |
