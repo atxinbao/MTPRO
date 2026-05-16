@@ -54,7 +54,7 @@
 | --- | --- | --- |
 | 1. Human Project Planning | 本文档和 Linear Project `MTPRO 引导` | 已完成 |
 | 2. symphony-project | 当前 Project 中 WIP=1 的 issue 队列 | 准备中，后续接 symphony-project |
-| 3. symphony-issue | `/Users/mac/code/symphony-workflows/mtpro-aep-v2.md` | 未启动 |
+| 3. symphony-issue | `/Users/mac/code/symphony-workflows/mtpro-aep-v2.md` | 已验证 MTP-8 / MTP-9，后续等待 Human 设置唯一 Todo |
 | 4. GitHub PR Automation | GitHub `checks`、`protect-main`、auto-merge、branch cleanup | 已配置 |
 | 5. Next Human Project Planning | 当前 Project 全部 Done 后的新阶段规划 | 未进入 |
 

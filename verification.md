@@ -939,3 +939,46 @@ Host-side validation：
 | `graphify update .` | 通过 | host 环境更新 `graphify-out/*`，未纳入 git |
 | `git diff --check` | 通过 | 无 whitespace 问题 |
 | `bash checks/run.sh` | 通过 | `swift test` 通过，19 个 XCTest 通过 |
+
+## MTPRO symphony-issue execution profile and Graphify refresh alignment
+
+日期：2026-05-16
+
+执行者：Codex
+
+目的：
+
+- 将 MTPRO 文档对齐到本地 symphony-issue 的 `dangerFullAccess` issue automation profile。
+- 明确 child Codex 可在 issue workspace 内完成 git / PR / handoff marker；GitHub token、网络或 MCP elicitation 阻塞时再由 host-side handoff fallback 接管。
+- 明确 Graphify update 不再依赖 child sandbox，PR merge / Linear bot Done 后由 symphony-issue host-side `before_remove` 刷新 `/Users/mac/Documents/MTPRO` 的 resource relationship graph。
+
+文件范围：
+
+- Created：
+  - 无
+- Updated：
+  - `README.md`
+  - `AGENTS.md`
+  - `docs/automation/automation-readiness.md`
+  - `docs/planning/linear-draft-plan.md`
+  - `verification.md`
+- Deleted：
+  - 无
+
+边界确认：
+
+- 未接入 symphony-project continuation。
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未运行 Graphify full rebuild。
+- 未提交 `graphify-out/*`。
+- 未提交 `.codex/*`。
+- 未修改业务代码。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | 通过 | 无 whitespace 问题 |
+| `bash checks/run.sh` | 通过 | `swift test` 通过，19 个 XCTest 通过 |
