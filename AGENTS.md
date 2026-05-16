@@ -28,14 +28,14 @@ Agent 开始工作前必须读取：
 - GitHub PR Automation 负责 required checks、auto-merge、squash merge、branch cleanup 和 Linear bot auto Done。
 - `.codex/*` 不进入 PR。
 - `graphify-out/*` 不进入 PR。
-- symphony-issue 调度 Codex 时使用 issue workspace automation write profile，允许 Codex 在隔离 workspace 内更新当前 issue scope；git commit / push、ready-for-review PR、GitHub auto-merge handoff 和本地 handoff marker 可由 Codex 完成，阻塞时由 host-side handoff fallback 接管。
+- symphony-issue 调度 Codex 时使用 `dangerFullAccess` issue automation profile，允许 Codex 在当前 issue workspace 内更新当前 issue scope、完成 git commit / push、ready-for-review PR、GitHub auto-merge handoff 和本地 handoff marker；GitHub token、网络或 MCP elicitation 阻塞时由 host-side handoff fallback 接管。
 
 ## 当前可做
 
 - 执行当前唯一 configured executable issue 的明确 scope。
 - 维护项目定义文档、contract-first 文档和 SwiftPM skeleton。
 - 运行本地验证：`bash checks/run.sh`。
-- 执行 Graphify scoped resource relationship graph update；如果环境不可用或当前 issue 明确禁止，必须记录原因且不提交 `graphify-out/*`。
+- Graphify update 由 symphony-issue host-side `before_remove` 在 PR merge / Linear bot Done 后刷新持久本地仓库；如果环境不可用，必须记录原因且不提交 `graphify-out/*`。
 - 执行 Pre-PR Codex Code Review。
 - 创建 ready-for-review PR，并启用 GitHub auto-merge handoff。
 
@@ -66,11 +66,11 @@ Agent 开始工作前必须读取：
 
 1. 执行前：读取 root docs、当前 Linear issue、相关 contracts、validation 和 Graphify read context，锁定 scope / non-goals / allowed files / forbidden files。
 2. 执行中：只完成当前 issue scope 内的代码、文档、测试或验证任务。
-3. 执行后：运行 validation，更新 evidence chain，执行 Graphify scoped resource relationship graph update 或记录不可用原因，执行 Pre-PR Codex Code Review，创建 commit，创建 ready-for-review PR，启用 GitHub auto-merge handoff，并写入本地 `.codex/symphony-issue-handoff.json`。
+3. 执行后：运行 validation，更新 evidence chain，执行 Pre-PR Codex Code Review，创建 commit，创建 ready-for-review PR，启用 GitHub auto-merge handoff，并写入本地 `.codex/symphony-issue-handoff.json`。PR merge / Linear bot Done 后，Graphify host-side refresh 由 symphony-issue `before_remove` 处理。
 
 Codex Execution Agent 不修改 Linear status；`In Progress` -> `In Review` 由 symphony-issue 在 PR 和 handoff evidence 就绪后推进。
 
-如果 child Codex 被 sandbox、GitHub token、网络或 MCP elicitation 阻塞，symphony-issue host-side handoff fallback 只接管 commit / push / PR / auto-merge handoff / 本地 marker，并在 PR evidence 中记录原因。fallback 不得扩大 diff scope，不得修改 Linear status，不得提交 `.codex/*`。
+如果 child Codex 被 GitHub token、网络或 MCP elicitation 阻塞，symphony-issue host-side handoff fallback 只接管 commit / push / PR / auto-merge handoff / 本地 marker，并在 PR evidence 中记录原因。fallback 不得扩大 diff scope，不得修改 Linear status，不得提交 `.codex/*`。
 
 ## 参考项目边界
 

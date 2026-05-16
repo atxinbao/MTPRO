@@ -33,8 +33,8 @@ Codex creates ready-for-review PR
 | Linear Project | 通过 | Project `MTPRO 引导` |
 | Linear WIP=1 | 通过 | `MTP-8` 和 `MTP-9` 已 Done；当前不在文档中固定下一 Todo |
 | Symphony workflow | 已验证 | 本机 workflow 已跑通 MTP-8 / MTP-9 的 issue execution path |
-| symphony-issue automation write profile | 通过 | workflow 使用 `workspaceWrite` turn sandbox 服务 issue workspace 写入；git / PR / handoff marker 可由 child Codex 完成，阻塞时由 host-side handoff fallback 接管 |
-| Graphify | 通过 | 已按 `docs/automation/graphify-resource-graph-scope.md` 初始化本地 resource relationship graph；`graphify-out/*` 不进入 PR |
+| symphony-issue automation write profile | 通过 | workflow 使用 `dangerFullAccess` turn sandbox 服务 issue workspace 写入、git、PR 和 handoff marker；GitHub token / 网络 / MCP elicitation 阻塞时由 host-side handoff fallback 接管 |
+| Graphify | 通过 | 已按 `docs/automation/graphify-resource-graph-scope.md` 初始化本地 resource relationship graph；post-merge refresh 由 host-side `before_remove` 在 `/Users/mac/Documents/MTPRO` 执行；`graphify-out/*` 不进入 PR |
 
 ## AEP v2 正式流程状态
 
@@ -65,7 +65,7 @@ Codex creates ready-for-review PR
 - Human 明确选择是否将 `MTP-10` 推进为唯一 Todo。
 - 如果 Linear 中存在唯一 configured executable issue，symphony-issue 可继续调度该 issue。
 - 继续使用 GitHub PR Automation 验证 checks、auto-merge、branch cleanup 和 Linear bot auto Done。
-- 在 symphony-issue automation write profile 下完成当前 issue workspace 更新；git commit / push、PR、auto-merge handoff 和本地 handoff marker 可由 child Codex 完成，若被环境阻塞则由 host-side handoff fallback 接管并记录原因。
+- 在 symphony-issue `dangerFullAccess` automation profile 下完成当前 issue workspace 更新；git commit / push、PR、auto-merge handoff 和本地 handoff marker 可由 child Codex 完成，若被 GitHub token / 网络 / MCP elicitation 阻塞则由 host-side handoff fallback 接管并记录原因。
 - PR merge 后等待 Linear bot auto Done。
 
 ## 当前禁止
@@ -74,7 +74,7 @@ Codex creates ready-for-review PR
 - 不修改 Linear status。
 - 不由 Codex 解锁 `MTP-10` 或后续 issue。
 - 不启动 Symphony，除非用户明确授权。
-- 不再次运行 Graphify update、scoped update 或 full rebuild，除非当前 issue 或用户明确要求。
+- 不运行 Graphify full rebuild；Graphify post-merge resource graph refresh 由 symphony-issue host-side `before_remove` 处理。
 - 不提交 `graphify-out/*`。
 - 不实现 `LiveExecutionAdapter`。
 - 不调用 Binance signed endpoint。
@@ -87,5 +87,5 @@ Codex creates ready-for-review PR
 - GitHub repo settings 查询
 - GitHub Actions `checks` run 查询
 - Linear Project / Issue 只读查询
-- `graphify update .`
+- PR merge / Linear bot Done 后，symphony-issue host-side `before_remove` 在 `/Users/mac/Documents/MTPRO` 执行 `graphify update .`
 - Graphify source / test directory exclusion check
