@@ -22,19 +22,19 @@ ROADMAP 只定义推进顺序，不授权执行。
 
 ## 当前下一步
 
-1. 以 `MTP-8` 作为当前唯一 configured executable issue。
-2. 执行前确认 scope、validation、evidence 和 Graphify context 状态。
-3. 创建真实 PR，并用该 PR 验证 GitHub PR Automation。
-4. PR merge / Linear bot auto Done 后，再由 symphony-project 判断下一 issue。
+1. 不在 `ROADMAP.md` 中固定当前唯一 configured executable issue。
+2. 执行前必须从 Linear 查询当前 Project 的唯一 Todo / configured executable issue。
+3. `MTP-8` 和 `MTP-9` 已通过 symphony-issue + GitHub PR Automation 跑通并进入 `Done`。
+4. `MTP-10` 仍保持 `Backlog`；本轮暂不启用 symphony-project continuation，是否推进由 Human 明确决定。
 
-`MTP-9` 到 `MTP-15` 保持 `Backlog`，不得由 Codex 解锁。
+`MTP-10` 到 `MTP-15` 保持 `Backlog`，不得由 Codex 解锁。
 
 ## AEP v2 流程对应关系
 
 | AEP 阶段 | MTPRO 状态 | 下一动作 |
 | --- | --- | --- |
 | 1. Human Project Planning | 已完成 | 不再修改当前 Project 目标，除非 Human 重新规划 |
-| 2. symphony-project | 待接自动化 | 当前人工确认 `MTP-8` 为唯一 Todo |
-| 3. symphony-issue | 未启动 | 用户明确授权后，才能启动 MTPRO workflow |
-| 4. GitHub PR Automation | 已配置 | 下一个真实 PR 继续验证 checks / auto-merge / branch cleanup |
+| 2. symphony-project | 暂不接 continuation | 不自动把下一个 Backlog issue 推进为 Todo |
+| 3. symphony-issue | 已验证 | Human 明确设置唯一 Todo 后，可继续调度当前 issue |
+| 4. GitHub PR Automation | 已验证 | 继续使用 checks / auto-merge / branch cleanup / Linear bot auto Done |
 | 5. Next Human Project Planning | 未进入 | 当前 Project 全部 Done 后再进入 |

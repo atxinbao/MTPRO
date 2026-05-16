@@ -17,15 +17,14 @@ MTPRO 是用于重构 `macos-trader` 的新独立 macOS 交易研究工作台项
 - SwiftPM 最小模块骨架
 - 本地验证入口
 - Linear Project：`MTPRO 引导`
-- 当前唯一 configured executable issue：`MTP-8`
+- 当前执行事项：不写死在仓库文档中，运行时以 Linear / symphony-project 中唯一 configured executable issue 为准
 - GitHub PR Automation：`checks` workflow、`protect-main`、squash merge、auto-merge、branch cleanup
 
 未完成：
 
-- symphony-project normal mode
-- symphony-issue 启动
-- Graphify scoped resource relationship graph update
-- Binance 数据接入实现
+- symphony-project continuation
+- Graphify scoped resource relationship graph update 权限修复
+- Binance 真实网络 adapter 实现
 - 策略实现
 - 持久化 adapter
 - macOS UI 实现
@@ -37,18 +36,14 @@ MTPRO 是用于重构 `macos-trader` 的新独立 macOS 交易研究工作台项
 | 阶段 | MTPRO 当前状态 | 责任边界 |
 | --- | --- | --- |
 | 1. Human Project Planning | 已完成 | Human 已确认 Project `MTPRO 引导`、issue 顺序和当前阶段目标 |
-| 2. symphony-project | 准备中 | 当前由人工确认 WIP=1；后续由 symphony-project 处理 Project 队列；Codex 不修改 Linear status |
-| 3. symphony-issue | 未启动 | 本机 workflow 已准备；未获明确授权前不启动 symphony-issue |
-| 4. GitHub PR Automation | 已配置 | `checks`、`protect-main`、auto-merge、squash merge、branch cleanup 已可用 |
+| 2. symphony-project | 暂不接自动 continuation | 当前不自动把下一个 Backlog issue 推进为 Todo；Codex 不修改 Linear status |
+| 3. symphony-issue | 已完成 MTP-8 / MTP-9 链路验证 | 可在 Human 明确设置唯一 Todo 后调度当前 issue |
+| 4. GitHub PR Automation | 已验证 | `checks`、`protect-main`、auto-merge、squash merge、branch cleanup 和 Linear bot auto Done 已跑通 |
 | 5. Next Human Project Planning | 未进入 | 当前 Project 全部 issues Done 后，由 Human 决定下一阶段 |
 
 Agent / Codex 只能执行当前唯一 configured executable Linear issue。`ROADMAP.md`、Linear Draft、Backlog issue、标签、priority、assignee 都不授权执行。
 
-当前唯一 configured executable issue：
-
-```text
-MTP-8 核心领域模型与事件日志契约
-```
+当前唯一 configured executable issue 必须在执行前从 Linear 查询确认；仓库文档不得把某个 issue 永久写成 current issue。
 
 ## 第一版产品边界
 

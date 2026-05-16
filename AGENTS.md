@@ -22,7 +22,7 @@ Agent 开始工作前必须读取：
 - `ROADMAP.md` 不授权执行。
 - Linear Draft Plan 不授权执行。
 - 只有 Linear 中唯一 configured executable issue 才能授权正式开发执行。
-- 当前唯一 configured executable issue 是 Linear 中的 `MTP-8`；执行前仍必须确认 WIP=1、scope、validation 和 evidence。
+- 当前唯一 configured executable issue 不写死在仓库文档中；执行前必须从 Linear / symphony-project 运行时状态读取，并确认 WIP=1、scope、validation 和 evidence。
 - symphony-project 负责 Project 队列和 `Backlog` -> `Todo`；Codex 不修改 Linear status。
 - symphony-issue 负责唯一 `Todo` issue 的执行调度、`Todo` -> `In Progress` 和 `In Progress` -> `In Review` 状态推进。
 - GitHub PR Automation 负责 required checks、auto-merge、squash merge、branch cleanup 和 Linear bot auto Done。
