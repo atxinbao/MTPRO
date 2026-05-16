@@ -42,19 +42,18 @@
 - [ ] 未提交、取消或替换真实订单。
 - [ ] 未引入真实经纪商动作。
 
-# Graphify 上下文状态
+# Graphify 上下文和更新状态
 
-- [ ] 未使用 graph context。
-- [ ] 复用既有 Graphify 上下文。
-- [ ] Graphify 上下文不可用。
+- [ ] 执行前复用既有 Graphify read context。
+- [ ] Graphify read context 不可用，并已记录原因。
 
 Graphify 边界：
 
-- [ ] Graphify 仅作为只读上下文使用。
-- [ ] 未运行 Graphify update。
-- [ ] 未运行 Graphify scoped update。
+- [ ] 执行后已运行 Graphify scoped resource relationship graph update。
+- [ ] 本 issue 不需要 Graphify scoped update，并已记录原因。
+- [ ] Graphify scoped update 因环境不可用未运行，并已记录原因。
 - [ ] 未运行 Graphify full rebuild。
-- [ ] 未包含 `graphify-out` 变更。
+- [ ] 未提交 `graphify-out/*`。
 - [ ] 未提交 task-local graph。
 - [ ] 未提交 generic `Community N` graph regression。
 
