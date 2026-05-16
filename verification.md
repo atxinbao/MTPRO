@@ -582,3 +582,37 @@ Commit：本轮提交
 | `git diff --check` | 通过 | 无 whitespace 问题 |
 | `bash checks/run.sh` | 通过 | `swift test` 通过 |
 | Linear issue description consistency check | 通过 | `MTP-8` 至 `MTP-15` 无旧 Authorized Merge / Graphify no-update 语义，并包含 handoff marker、Graphify scoped update 和 GitHub auto-merge handoff 要求 |
+
+## MTPRO Agent Boundary Alignment for symphony-issue
+
+日期：2026-05-16
+执行者：Codex
+PR：本轮 PR
+Commit：本轮提交
+
+目的：
+- 修正 `AGENTS.md` 中仍保留的旧边界，明确 symphony-issue 已作为授权本地自动化负责唯一 `Todo` issue 调度。
+- 明确 Codex Execution Agent 执行后需要运行 Graphify scoped resource relationship graph update，或记录环境不可用 / issue 禁止原因。
+
+文件范围：
+- Created：无
+- Updated：
+  - `AGENTS.md`
+  - `verification.md`
+- Deleted：无
+
+边界确认：
+- 未修改业务代码。
+- 未创建 Linear Project / Issue。
+- 未修改 Linear status。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/run.sh` | 通过 | `swift test` 通过，4 个 XCTest 通过 |
+| `git diff --check` | 通过 | 无 whitespace 问题 |
