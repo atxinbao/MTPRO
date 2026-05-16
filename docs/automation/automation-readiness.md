@@ -32,6 +32,7 @@ Codex creates ready-for-review PR
 | Local validation entrypoint | 通过 | `checks/run.sh` 运行 `git diff --check` 和 `swift test` |
 | Linear Project | 通过 | Project `MTPRO 引导` |
 | Linear WIP=1 | 通过 | `MTP-8`、`MTP-9` 和 `MTP-10` 已 Done；当前不在文档中固定下一 Todo |
+| Parent Codex Automation Supervision | 通过 | 父 Codex 负责 Project 级 queue preview、child Codex 监控、代码审查、host-side fallback 和流程迭代建议；只有 Human 明确授权后才可推进 eligible `Backlog` 为唯一 `Todo` |
 | Symphony workflow | 已验证 | 本机 workflow 已跑通 MTP-8 / MTP-9 / MTP-10 的 issue execution path |
 | symphony-issue automation write profile | 通过 | workflow 使用 `dangerFullAccess` turn sandbox 服务 issue workspace 写入、git、PR 和 handoff marker；GitHub token / 网络 / MCP elicitation 阻塞时由 host-side handoff fallback 接管 |
 | Post-Issue Ledger / 施工后记账 | 通过 | PR merge / Linear bot Done 后，由 host-side `before_remove` 在 `/Users/mac/Documents/MTPRO` 同步 main、刷新 Graphify resource relationship graph，并保留只读下一步观察提示；`graphify-out/*` 不进入 PR |
@@ -41,10 +42,10 @@ Codex creates ready-for-review PR
 | 阶段 | 当前状态 | 通过条件 | 阻塞 / 边界 |
 | --- | --- | --- | --- |
 | 1. Human Project Planning | 已完成 | Project `MTPRO 引导` 和 issue 顺序已确认 | 不自动创建下一 Project |
-| 2. symphony-project | 暂不接 continuation | 当前不自动推进下一个 Backlog issue | Codex 不修改 Linear |
+| 2. Parent Codex Automation Supervision | 已启用人工监督模式 | 父 Codex 可做 queue preview、监控 child Codex、审查 diff、处理受控 host-side fallback | 只有 Human 明确授权后，父 Codex 才可把 eligible `Backlog` 推进为唯一 `Todo`；当前未接入独立 Project 级 continuation 程序 |
 | 3. symphony-issue | 已验证 | MTP-8 / MTP-9 / MTP-10 已完成 issue execution path | Human 明确设置唯一 Todo 后再继续 |
 | 4. GitHub PR Automation | 已通过真实 PR 验证 | PR #10 / PR #12 / PR #15 已验证 checks / auto-merge / branch cleanup / Linear bot auto Done | 后续 PR 仍必须通过 required check `checks` |
-| 5. Next Human Project Planning | 未进入 | 当前 Project 全部 issues Done | Codex / symphony-issue / symphony-project 不决定下一阶段目标 |
+| 5. Next Human Project Planning | 未进入 | 当前 Project 全部 issues Done | Codex / symphony-issue / 父 Codex 不决定下一阶段目标 |
 
 ## 当前 Linear 队列快照
 
@@ -62,17 +63,18 @@ Codex creates ready-for-review PR
 
 ## 当前允许的下一步
 
-- Human 明确选择是否将 `MTP-11` 推进为唯一 Todo。
+- Human 明确选择是否将 `MTP-11` 推进为唯一 Todo；父 Codex 只能在该授权后执行状态推进。
 - 如果 Linear 中存在唯一 configured executable issue，symphony-issue 可继续调度该 issue。
 - 继续使用 GitHub PR Automation 验证 checks、auto-merge、branch cleanup 和 Linear bot auto Done。
 - 在 symphony-issue `dangerFullAccess` automation profile 下完成当前 issue workspace 更新；git commit / push、PR、auto-merge handoff 和本地 handoff marker 可由 child Codex 完成，若被 GitHub token / 网络 / MCP elicitation 阻塞则由 host-side handoff fallback 接管并记录原因。
+- 父 Codex 监控 `symphony-issue` 和 child Codex，审查 diff / validation / PR evidence，并将真实阻塞反馈到 automation docs。
 - PR merge 后等待 Linear bot auto Done。
 
 ## 当前禁止
 
 - 不创建新的 Linear Project / Issue。
 - 不修改 Linear status。
-- 不由 Codex 解锁 `MTP-11` 或后续 issue。
+- 不由 Codex 自动解锁 `MTP-11` 或后续 issue；只有 Human 明确授权后，父 Codex 才可推进 eligible `Backlog` 为唯一 `Todo`。
 - 不启动 Symphony，除非用户明确授权。
 - 不运行 Graphify full rebuild；Post-Issue Ledger / 施工后记账由 symphony-issue host-side `before_remove` 处理，只刷新 resource relationship graph 并保留只读下一步观察提示。
 - 不提交 `graphify-out/*`。
