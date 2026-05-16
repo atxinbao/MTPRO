@@ -1,6 +1,6 @@
 # MTPRO Graphify 资源关系图范围
 
-日期：2026-05-16
+日期：2026-05-17
 
 执行者：Codex
 
@@ -68,3 +68,20 @@ Graphify context 可用于执行前理解项目资源关系。
 - Linear configured executable issue
 - PR evidence
 - `verification.md`
+
+## MTP-15 执行边界
+
+日期：2026-05-17
+
+执行者：Codex
+
+MTP-15 只验证 Graphify 资源关系图的边界和证据链，不在 child Codex workspace 内强制刷新 Graphify。
+
+当前执行约束：
+
+- Graphify read context 如本地不可用，必须在 PR evidence 和 `verification.md` 记录原因。
+- Child Codex 不运行 Graphify full rebuild。
+- Child Codex 不提交 `graphify-out/*`。
+- Child Codex 不把 scoped update 扩大为源码图，不纳入 `Sources/` 或 `Tests/`。
+- PR merge / Linear bot Done 后，Graphify resource relationship graph refresh 由 symphony-issue host-side `before_remove` 触发 Post-Issue Ledger / 施工后记账处理。
+- Post-Issue Ledger 输出 `.codex/post-issue-ledger/latest.json` 是本地只读摘要，不授权下一 issue。

@@ -1534,3 +1534,90 @@ Pre-PR Codex Code Review：
 | Validation credibility | 通过 | 默认项目级 `bash checks/run.sh` 已通过 |
 | Graphify boundary | 通过 | 未运行 full rebuild，未提交 `graphify-out/*`，post-merge refresh 交由 host-side workflow |
 | Handoff marker | 待 PR 后完成 | ready-for-review PR 和 auto-merge handoff 后写入 `.codex/symphony-issue-handoff.json` |
+
+## MTP-15 验证加固与自动化就绪
+
+日期：2026-05-17
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 完成 MTP-15 验证矩阵。
+- 将 PR evidence template、GitHub PR Automation Gate、WIP=1、symphony-issue handoff marker 和 Graphify / Post-Issue Ledger 边界固化为本地可重复检查。
+- 更新自动化就绪文档，记录 MTP-15 当前 Linear queue snapshot。
+
+文件范围：
+
+- Created：
+  - `checks/automation-readiness.sh`
+- Updated：
+  - `.github/pull_request_template.md`
+  - `checks/run.sh`
+  - `docs/automation/automation-readiness.md`
+  - `docs/automation/graphify-resource-graph-scope.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+- Deleted：
+  - 无
+
+Linear / scope 确认：
+
+- Linear 查询显示 `MTP-15` 为当前唯一 active issue，状态为 `In Progress`。
+- Linear 查询显示 `MTP-14` 已 `Done`。
+- 本轮只执行 MTP-15 scope，不解锁后续 issue。
+
+边界确认：
+
+- 未实现新的业务功能。
+- 未修改 `Sources/` 或 `Tests/`。
+- 未修改 `ROADMAP.md`。
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未运行 Graphify full rebuild。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 未实现 `LiveExecutionAdapter`。
+- 未调用 Binance signed endpoint。
+
+Graphify 状态：
+
+- 当前 issue workspace 未发现 `graphify-out/*` 可读取上下文。
+- 已读取并更新 `docs/automation/graphify-resource-graph-scope.md` 的 MTP-15 child Codex 执行边界。
+- 按本轮 workflow，Graphify post-merge resource graph refresh 由 symphony-issue host-side `before_remove` 在持久仓库 `/Users/mac/Documents/MTPRO` 执行；child Codex 本轮未运行 Graphify full rebuild。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/automation-readiness.sh` | 通过 | 检查 workflow、PR 模板、WIP=1、handoff marker、Graphify 边界、ignore 边界和验证文档，输出 `MTPRO automation readiness checks passed.` |
+| `bash -n checks/automation-readiness.sh checks/run.sh` | 通过 | shell 脚本语法检查通过 |
+| `git diff --check` | 通过 | 无空白或补丁格式问题 |
+| `bash checks/run.sh` | 通过 | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+新增验证：
+
+- Automation readiness shell gate。
+- PR template evidence gate。
+- GitHub workflow required check gate。
+- WIP=1 evidence gate。
+- symphony-issue handoff marker gate。
+- Graphify / Post-Issue Ledger boundary gate。
+- `.codex/*` 与 `graphify-out/*` local output isolation gate。
+
+Pre-PR Codex Code Review：
+
+| 检查项 | 结果 | 说明 |
+| --- | --- | --- |
+| Diff scope | 通过 | 变更集中在验证脚本、PR 模板、automation docs、validation plan 和验证日志 |
+| Issue scope | 通过 | 覆盖 MTP-15 要求的验证矩阵、PR 证据、WIP=1、handoff marker、GitHub PR Automation 和 Graphify 边界 |
+| Forbidden paths | 通过 | 未修改业务源码、测试源码或 `ROADMAP.md`；`.codex/*` 被 `.gitignore` 忽略，`graphify-out/*` 不存在且未进入 PR |
+| Live / signed endpoint boundary | 通过 | 未新增 API key、signature、account endpoint、listenKey、真实订单动作或 Live adapter |
+| Validation credibility | 通过 | 默认项目级 `bash checks/run.sh` 已通过，并包含新增 automation readiness gate |
+| Graphify boundary | 通过 | 未运行 full rebuild，未提交 `graphify-out/*`，post-merge refresh 交由 host-side workflow |
+| Handoff marker | 待 PR 后完成 | ready-for-review PR 和 auto-merge handoff 后写入 `.codex/symphony-issue-handoff.json` |
