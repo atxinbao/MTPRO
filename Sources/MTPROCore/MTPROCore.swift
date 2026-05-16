@@ -12,6 +12,10 @@ public enum MTPROCoreError: Error, Equatable, Sendable, CustomStringConvertible 
     case invalidQuantity(String, Double)
     case paperSessionRequiresPaperMode
     case emptyIdentifier(String)
+    case invalidEMAPeriod(String, Int)
+    case invalidEMAPeriodOrder(shortPeriod: Int, longPeriod: Int)
+    case insufficientMarketData(required: Int, actual: Int)
+    case marketDataMismatch(field: String, expected: String, actual: String)
 
     public var description: String {
         switch self {
@@ -37,6 +41,14 @@ public enum MTPROCoreError: Error, Equatable, Sendable, CustomStringConvertible 
             "Paper session command requires paper mode"
         case let .emptyIdentifier(field):
             "Identifier must not be empty: \(field)"
+        case let .invalidEMAPeriod(field, value):
+            "EMA period must be positive for \(field): \(value)"
+        case let .invalidEMAPeriodOrder(shortPeriod, longPeriod):
+            "EMA short period must be smaller than long period: \(shortPeriod) >= \(longPeriod)"
+        case let .insufficientMarketData(required, actual):
+            "Market data is insufficient: required \(required), actual \(actual)"
+        case let .marketDataMismatch(field, expected, actual):
+            "Market data mismatch for \(field): expected \(expected), actual \(actual)"
         }
     }
 }
@@ -363,30 +375,206 @@ public enum MTPROSignalDirection: String, Codable, Equatable, Sendable {
 public struct MTPROStrategySignalEvent: Codable, Equatable, Sendable {
     public let strategyID: MTPROIdentifier
     public let symbol: MTPROSymbol
+    public let timeframe: MTPROTimeframe
     public let direction: MTPROSignalDirection
     public let generatedAt: Date
 
     public init(
         strategyID: MTPROIdentifier,
         symbol: MTPROSymbol,
+        timeframe: MTPROTimeframe,
         direction: MTPROSignalDirection,
         generatedAt: Date
     ) {
         self.strategyID = strategyID
         self.symbol = symbol
+        self.timeframe = timeframe
         self.direction = direction
         self.generatedAt = generatedAt
     }
 }
 
+/// EMA 交叉策略配置只描述本地研究契约，不包含 broker 或 Live action。
+public struct MTPROEMACrossStrategyConfiguration: Codable, Equatable, Sendable {
+    public let strategyID: MTPROIdentifier
+    public let symbol: MTPROSymbol
+    public let timeframe: MTPROTimeframe
+    public let shortPeriod: Int
+    public let longPeriod: Int
+
+    public init(
+        strategyID: MTPROIdentifier,
+        symbol: MTPROSymbol,
+        timeframe: MTPROTimeframe,
+        shortPeriod: Int,
+        longPeriod: Int
+    ) throws {
+        guard shortPeriod > 0 else {
+            throw MTPROCoreError.invalidEMAPeriod("shortPeriod", shortPeriod)
+        }
+        guard longPeriod > 0 else {
+            throw MTPROCoreError.invalidEMAPeriod("longPeriod", longPeriod)
+        }
+        guard shortPeriod < longPeriod else {
+            throw MTPROCoreError.invalidEMAPeriodOrder(shortPeriod: shortPeriod, longPeriod: longPeriod)
+        }
+        self.strategyID = strategyID
+        self.symbol = symbol
+        self.timeframe = timeframe
+        self.shortPeriod = shortPeriod
+        self.longPeriod = longPeriod
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let strategyID = try container.decode(MTPROIdentifier.self, forKey: .strategyID)
+        let symbol = try container.decode(MTPROSymbol.self, forKey: .symbol)
+        let timeframe = try container.decode(MTPROTimeframe.self, forKey: .timeframe)
+        let shortPeriod = try container.decode(Int.self, forKey: .shortPeriod)
+        let longPeriod = try container.decode(Int.self, forKey: .longPeriod)
+        try self.init(
+            strategyID: strategyID,
+            symbol: symbol,
+            timeframe: timeframe,
+            shortPeriod: shortPeriod,
+            longPeriod: longPeriod
+        )
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(strategyID, forKey: .strategyID)
+        try container.encode(symbol, forKey: .symbol)
+        try container.encode(timeframe, forKey: .timeframe)
+        try container.encode(shortPeriod, forKey: .shortPeriod)
+        try container.encode(longPeriod, forKey: .longPeriod)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case strategyID
+        case symbol
+        case timeframe
+        case shortPeriod
+        case longPeriod
+    }
+}
+
+public struct MTPROEMACrossSignalSample: Codable, Equatable, Sendable {
+    public let signal: MTPROStrategySignalEvent
+    public let close: MTPROPrice
+    public let shortEMA: MTPROPrice
+    public let longEMA: MTPROPrice
+
+    public init(
+        signal: MTPROStrategySignalEvent,
+        close: Double,
+        shortEMA: Double,
+        longEMA: Double
+    ) throws {
+        self.signal = signal
+        self.close = try MTPROPrice(close, field: "ema.close")
+        self.shortEMA = try MTPROPrice(shortEMA, field: "ema.short")
+        self.longEMA = try MTPROPrice(longEMA, field: "ema.long")
+    }
+}
+
+/// EMA 计算保持确定性；回测与 Paper 复用同一契约来避免语义分叉。
+public struct MTPROEMACrossStrategyContract: Equatable, Sendable {
+    public let configuration: MTPROEMACrossStrategyConfiguration
+
+    public init(configuration: MTPROEMACrossStrategyConfiguration) {
+        self.configuration = configuration
+    }
+
+    public func evaluate(_ bars: [MTPROMarketBar]) throws -> [MTPROEMACrossSignalSample] {
+        guard bars.count >= configuration.longPeriod else {
+            throw MTPROCoreError.insufficientMarketData(
+                required: configuration.longPeriod,
+                actual: bars.count
+            )
+        }
+
+        let sortedBars = bars.sorted { left, right in
+            left.interval.start < right.interval.start
+        }
+        try validate(sortedBars)
+
+        let shortMultiplier = Self.multiplier(for: configuration.shortPeriod)
+        let longMultiplier = Self.multiplier(for: configuration.longPeriod)
+        var shortEMA: Double?
+        var longEMA: Double?
+        var samples: [MTPROEMACrossSignalSample] = []
+
+        for (index, bar) in sortedBars.enumerated() {
+            let close = bar.close.rawValue
+            shortEMA = Self.nextEMA(close: close, previous: shortEMA, multiplier: shortMultiplier)
+            longEMA = Self.nextEMA(close: close, previous: longEMA, multiplier: longMultiplier)
+
+            guard index + 1 >= configuration.longPeriod, let shortEMA, let longEMA else {
+                continue
+            }
+
+            let direction: MTPROSignalDirection = shortEMA > longEMA ? .long : .flat
+            let signal = MTPROStrategySignalEvent(
+                strategyID: configuration.strategyID,
+                symbol: configuration.symbol,
+                timeframe: configuration.timeframe,
+                direction: direction,
+                generatedAt: bar.interval.end
+            )
+            let sample = try MTPROEMACrossSignalSample(
+                signal: signal,
+                close: close,
+                shortEMA: shortEMA,
+                longEMA: longEMA
+            )
+            samples.append(sample)
+        }
+
+        return samples
+    }
+
+    private func validate(_ bars: [MTPROMarketBar]) throws {
+        for bar in bars {
+            guard bar.symbol == configuration.symbol else {
+                throw MTPROCoreError.marketDataMismatch(
+                    field: "symbol",
+                    expected: configuration.symbol.rawValue,
+                    actual: bar.symbol.rawValue
+                )
+            }
+            guard bar.timeframe == configuration.timeframe else {
+                throw MTPROCoreError.marketDataMismatch(
+                    field: "timeframe",
+                    expected: configuration.timeframe.rawValue,
+                    actual: bar.timeframe.rawValue
+                )
+            }
+        }
+    }
+
+    private static func multiplier(for period: Int) -> Double {
+        2 / (Double(period) + 1)
+    }
+
+    private static func nextEMA(close: Double, previous: Double?, multiplier: Double) -> Double {
+        guard let previous else {
+            return close
+        }
+        return (close * multiplier) + (previous * (1 - multiplier))
+    }
+}
+
 public enum MTPROBacktestEvent: Codable, Equatable, Sendable {
     case requested(BacktestCommand)
-    case completed(MTPROIdentifier)
+    case signalGenerated(MTPROEMACrossSignalSample)
+    case completed(MTPROBacktestResult)
 }
 
 public enum MTPROPaperEvent: Codable, Equatable, Sendable {
     case sessionRequested(PaperSessionCommand)
-    case simulatedOrderAccepted(MTPROIdentifier)
+    case signalGenerated(MTPROEMACrossSignalSample)
+    case sessionCompleted(MTPROPaperSessionResult)
 }
 
 public enum MTPRORiskEvent: Codable, Equatable, Sendable {
@@ -432,52 +620,265 @@ public struct MarketDataQuery: Codable, Equatable, Sendable {
 }
 
 public struct BacktestCommand: Codable, Equatable, Sendable {
-    public let strategyID: MTPROIdentifier
+    public let runID: MTPROIdentifier
+    public let strategy: MTPROEMACrossStrategyConfiguration
     public let marketData: MarketDataQuery
 
-    public init(strategyID: MTPROIdentifier, marketData: MarketDataQuery) {
-        self.strategyID = strategyID
+    public init(
+        runID: MTPROIdentifier,
+        strategy: MTPROEMACrossStrategyConfiguration,
+        marketData: MarketDataQuery
+    ) {
+        self.runID = runID
+        self.strategy = strategy
         self.marketData = marketData
+    }
+
+    public var strategyID: MTPROIdentifier {
+        strategy.strategyID
     }
 }
 
 public struct PaperSessionCommand: Codable, Equatable, Sendable {
-    public let strategyID: MTPROIdentifier
+    public let sessionID: MTPROIdentifier
+    public let strategy: MTPROEMACrossStrategyConfiguration
+    public let marketData: MarketDataQuery
     public let riskProfileID: MTPROIdentifier
     public let executionMode: MTPROExecutionMode
 
     public init(
-        strategyID: MTPROIdentifier,
+        sessionID: MTPROIdentifier,
+        strategy: MTPROEMACrossStrategyConfiguration,
+        marketData: MarketDataQuery,
         riskProfileID: MTPROIdentifier,
         executionMode: MTPROExecutionMode
     ) throws {
         guard executionMode == .paper else {
             throw MTPROCoreError.paperSessionRequiresPaperMode
         }
-        self.strategyID = strategyID
+        self.sessionID = sessionID
+        self.strategy = strategy
+        self.marketData = marketData
         self.riskProfileID = riskProfileID
         self.executionMode = executionMode
     }
 
+    public var strategyID: MTPROIdentifier {
+        strategy.strategyID
+    }
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        let strategyID = try container.decode(MTPROIdentifier.self, forKey: .strategyID)
+        let sessionID = try container.decode(MTPROIdentifier.self, forKey: .sessionID)
+        let strategy = try container.decode(MTPROEMACrossStrategyConfiguration.self, forKey: .strategy)
+        let marketData = try container.decode(MarketDataQuery.self, forKey: .marketData)
         let riskProfileID = try container.decode(MTPROIdentifier.self, forKey: .riskProfileID)
         let executionMode = try container.decode(MTPROExecutionMode.self, forKey: .executionMode)
-        try self.init(strategyID: strategyID, riskProfileID: riskProfileID, executionMode: executionMode)
+        try self.init(
+            sessionID: sessionID,
+            strategy: strategy,
+            marketData: marketData,
+            riskProfileID: riskProfileID,
+            executionMode: executionMode
+        )
     }
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(strategyID, forKey: .strategyID)
+        try container.encode(sessionID, forKey: .sessionID)
+        try container.encode(strategy, forKey: .strategy)
+        try container.encode(marketData, forKey: .marketData)
         try container.encode(riskProfileID, forKey: .riskProfileID)
         try container.encode(executionMode, forKey: .executionMode)
     }
 
     private enum CodingKeys: String, CodingKey {
-        case strategyID
+        case sessionID
+        case strategy
+        case marketData
         case riskProfileID
         case executionMode
+    }
+}
+
+public struct MTPROBacktestResult: Codable, Equatable, Sendable {
+    public let runID: MTPROIdentifier
+    public let command: BacktestCommand
+    public let signalSamples: [MTPROEMACrossSignalSample]
+    public let completedAt: Date
+
+    public init(
+        runID: MTPROIdentifier,
+        command: BacktestCommand,
+        signalSamples: [MTPROEMACrossSignalSample],
+        completedAt: Date
+    ) {
+        self.runID = runID
+        self.command = command
+        self.signalSamples = signalSamples
+        self.completedAt = completedAt
+    }
+}
+
+public struct MTPROPaperSessionResult: Codable, Equatable, Sendable {
+    public let sessionID: MTPROIdentifier
+    public let command: PaperSessionCommand
+    public let signalSamples: [MTPROEMACrossSignalSample]
+    public let completedAt: Date
+
+    public init(
+        sessionID: MTPROIdentifier,
+        command: PaperSessionCommand,
+        signalSamples: [MTPROEMACrossSignalSample],
+        completedAt: Date
+    ) {
+        self.sessionID = sessionID
+        self.command = command
+        self.signalSamples = signalSamples
+        self.completedAt = completedAt
+    }
+}
+
+public struct MTPROBacktestRun: Codable, Equatable, Sendable {
+    public let result: MTPROBacktestResult
+    public let events: [MTPROBacktestEvent]
+
+    public init(result: MTPROBacktestResult, events: [MTPROBacktestEvent]) {
+        self.result = result
+        self.events = events
+    }
+}
+
+public struct MTPROPaperSessionRun: Codable, Equatable, Sendable {
+    public let result: MTPROPaperSessionResult
+    public let events: [MTPROPaperEvent]
+
+    public init(result: MTPROPaperSessionResult, events: [MTPROPaperEvent]) {
+        self.result = result
+        self.events = events
+    }
+}
+
+/// 回测事件流只基于本地 market bars 生成策略信号和完成事件。
+public struct MTPROBacktestEventFlow: Equatable, Sendable {
+    public init() {}
+
+    public func run(
+        _ command: BacktestCommand,
+        bars: [MTPROMarketBar],
+        completedAt: Date = Date()
+    ) throws -> MTPROBacktestRun {
+        try MTPROStrategyMarketDataValidation.validate(
+            strategy: command.strategy,
+            marketData: command.marketData
+        )
+        let signalSamples = try MTPROEMACrossStrategyContract(
+            configuration: command.strategy
+        ).evaluate(bars)
+        let result = MTPROBacktestResult(
+            runID: command.runID,
+            command: command,
+            signalSamples: signalSamples,
+            completedAt: completedAt
+        )
+        let events = [.requested(command)]
+            + signalSamples.map(MTPROBacktestEvent.signalGenerated)
+            + [.completed(result)]
+
+        return MTPROBacktestRun(result: result, events: events)
+    }
+}
+
+/// Paper 会话事件流复用 EMA 契约，只模拟本地信号，不提交真实订单。
+public struct MTPROPaperSessionEventFlow: Equatable, Sendable {
+    public init() {}
+
+    public func start(
+        _ command: PaperSessionCommand,
+        bars: [MTPROMarketBar],
+        completedAt: Date = Date()
+    ) throws -> MTPROPaperSessionRun {
+        try MTPROStrategyMarketDataValidation.validate(
+            strategy: command.strategy,
+            marketData: command.marketData
+        )
+        let signalSamples = try MTPROEMACrossStrategyContract(
+            configuration: command.strategy
+        ).evaluate(bars)
+        let result = MTPROPaperSessionResult(
+            sessionID: command.sessionID,
+            command: command,
+            signalSamples: signalSamples,
+            completedAt: completedAt
+        )
+        let events = [.sessionRequested(command)]
+            + signalSamples.map(MTPROPaperEvent.signalGenerated)
+            + [.sessionCompleted(result)]
+
+        return MTPROPaperSessionRun(result: result, events: events)
+    }
+}
+
+public struct MTPROBacktestPaperParityResult: Codable, Equatable, Sendable {
+    public let backtestRunID: MTPROIdentifier
+    public let paperSessionID: MTPROIdentifier
+    public let sameStrategy: Bool
+    public let sameMarketData: Bool
+    public let matchingSignalTimeline: Bool
+
+    public init(
+        backtestRunID: MTPROIdentifier,
+        paperSessionID: MTPROIdentifier,
+        sameStrategy: Bool,
+        sameMarketData: Bool,
+        matchingSignalTimeline: Bool
+    ) {
+        self.backtestRunID = backtestRunID
+        self.paperSessionID = paperSessionID
+        self.sameStrategy = sameStrategy
+        self.sameMarketData = sameMarketData
+        self.matchingSignalTimeline = matchingSignalTimeline
+    }
+
+    public var isConsistent: Bool {
+        sameStrategy && sameMarketData && matchingSignalTimeline
+    }
+}
+
+public enum MTPROBacktestPaperParity {
+    public static func verify(
+        backtest: MTPROBacktestResult,
+        paper: MTPROPaperSessionResult
+    ) -> MTPROBacktestPaperParityResult {
+        MTPROBacktestPaperParityResult(
+            backtestRunID: backtest.runID,
+            paperSessionID: paper.sessionID,
+            sameStrategy: backtest.command.strategy == paper.command.strategy,
+            sameMarketData: backtest.command.marketData == paper.command.marketData,
+            matchingSignalTimeline: backtest.signalSamples == paper.signalSamples
+        )
+    }
+}
+
+private enum MTPROStrategyMarketDataValidation {
+    static func validate(
+        strategy: MTPROEMACrossStrategyConfiguration,
+        marketData: MarketDataQuery
+    ) throws {
+        guard strategy.symbol == marketData.symbol else {
+            throw MTPROCoreError.marketDataMismatch(
+                field: "marketData.symbol",
+                expected: strategy.symbol.rawValue,
+                actual: marketData.symbol.rawValue
+            )
+        }
+        guard strategy.timeframe == marketData.timeframe else {
+            throw MTPROCoreError.marketDataMismatch(
+                field: "marketData.timeframe",
+                expected: strategy.timeframe.rawValue,
+                actual: marketData.timeframe.rawValue
+            )
+        }
     }
 }
 

@@ -101,7 +101,27 @@ final class MTPROCoreTests: XCTestCase {
         XCTAssertThrowsError(
             try decoder.decode(
                 PaperSessionCommand.self,
-                from: Data(#"{"strategyID":"ema-cross","riskProfileID":"paper-risk","executionMode":"backtest"}"#.utf8)
+                from: Data(
+                    #"""
+                    {
+                      "sessionID": "paper-fixture",
+                      "strategy": {
+                        "strategyID": "ema-cross",
+                        "symbol": "BTCUSDT",
+                        "timeframe": "1m",
+                        "shortPeriod": 2,
+                        "longPeriod": 3
+                      },
+                      "marketData": {
+                        "symbol": "BTCUSDT",
+                        "timeframe": "1m",
+                        "range": { "start": 100, "end": 500 }
+                      },
+                      "riskProfileID": "paper-risk",
+                      "executionMode": "backtest"
+                    }
+                    """#.utf8
+                )
             )
         )
     }
@@ -141,20 +161,16 @@ final class MTPROCoreTests: XCTestCase {
     }
 
     func testCommandAndQueryContractsRejectLiveExecutionMode() throws {
-        let marketDataQuery = MarketDataQuery(
-            symbol: try MTPROSymbol(rawValue: "ETHUSDT"),
-            timeframe: .fiveMinutes,
-            range: try MTPRODateRange(
-                start: Date(timeIntervalSince1970: 300),
-                end: Date(timeIntervalSince1970: 600)
-            )
-        )
+        let marketDataQuery = try makeEMAMarketDataQuery()
         let backtestCommand = BacktestCommand(
-            strategyID: try MTPROIdentifier("ema-cross"),
+            runID: try MTPROIdentifier("backtest-ema-fixture"),
+            strategy: try makeEMAStrategy(),
             marketData: marketDataQuery
         )
         let paperCommand = try PaperSessionCommand(
-            strategyID: try MTPROIdentifier("ema-cross"),
+            sessionID: try MTPROIdentifier("paper-ema-fixture"),
+            strategy: try makeEMAStrategy(),
+            marketData: marketDataQuery,
             riskProfileID: try MTPROIdentifier("paper-risk"),
             executionMode: try MTPROExecutionMode(contractValue: "paper")
         )
@@ -168,7 +184,9 @@ final class MTPROCoreTests: XCTestCase {
         }
         XCTAssertThrowsError(
             try PaperSessionCommand(
-                strategyID: try MTPROIdentifier("ema-cross"),
+                sessionID: try MTPROIdentifier("paper-ema-fixture"),
+                strategy: try makeEMAStrategy(),
+                marketData: marketDataQuery,
                 riskProfileID: try MTPROIdentifier("paper-risk"),
                 executionMode: .backtest
             )
@@ -203,6 +221,7 @@ final class MTPROCoreTests: XCTestCase {
             MTPROStrategySignalEvent(
                 strategyID: try MTPROIdentifier("ema-cross"),
                 symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+                timeframe: .oneMinute,
                 direction: .long,
                 generatedAt: Date(timeIntervalSince1970: 220)
             )
@@ -342,6 +361,184 @@ final class MTPROCoreTests: XCTestCase {
         XCTAssertEqual(rebuiltSnapshot.marketEventCount, 1)
     }
 
+    func testEMACrossStrategyContractGeneratesDeterministicSignalFixture() throws {
+        let strategy = MTPROEMACrossStrategyContract(configuration: try makeEMAStrategy())
+        let samples = try strategy.evaluate(try makeEMAFixtureBars())
+
+        XCTAssertEqual(samples.map(\.signal.direction), [.long, .long, .flat, .long])
+        XCTAssertEqual(samples.map(\.signal.generatedAt.timeIntervalSince1970), [280, 340, 400, 460])
+        XCTAssertEqual(samples.map(\.signal.timeframe), [.oneMinute, .oneMinute, .oneMinute, .oneMinute])
+        XCTAssertEqual(samples[0].shortEMA.rawValue, 11.5555555556, accuracy: 0.0001)
+        XCTAssertEqual(samples[0].longEMA.rawValue, 11.25, accuracy: 0.0001)
+        XCTAssertEqual(samples[2].shortEMA.rawValue, 10.3950617284, accuracy: 0.0001)
+        XCTAssertEqual(samples[2].longEMA.rawValue, 10.5625, accuracy: 0.0001)
+    }
+
+    func testEMACrossStrategyRejectsInvalidConfigurationAndMismatchedMarketData() throws {
+        XCTAssertThrowsError(
+            try MTPROEMACrossStrategyConfiguration(
+                strategyID: try MTPROIdentifier("ema-cross"),
+                symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+                timeframe: .oneMinute,
+                shortPeriod: 3,
+                longPeriod: 3
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? MTPROCoreError,
+                .invalidEMAPeriodOrder(shortPeriod: 3, longPeriod: 3)
+            )
+        }
+
+        let strategy = MTPROEMACrossStrategyContract(configuration: try makeEMAStrategy())
+
+        XCTAssertThrowsError(try strategy.evaluate(Array(try makeEMAFixtureBars().prefix(2)))) { error in
+            XCTAssertEqual(error as? MTPROCoreError, .insufficientMarketData(required: 3, actual: 2))
+        }
+
+        let mismatchedBar = try MTPROMarketBar(
+            symbol: try MTPROSymbol(rawValue: "ETHUSDT"),
+            timeframe: .oneMinute,
+            interval: try MTPRODateRange(
+                start: Date(timeIntervalSince1970: 100),
+                end: Date(timeIntervalSince1970: 160)
+            ),
+            open: 10,
+            high: 12,
+            low: 9,
+            close: 11,
+            volume: 1
+        )
+
+        XCTAssertThrowsError(try strategy.evaluate([mismatchedBar, mismatchedBar, mismatchedBar])) { error in
+            XCTAssertEqual(
+                error as? MTPROCoreError,
+                .marketDataMismatch(field: "symbol", expected: "BTCUSDT", actual: "ETHUSDT")
+            )
+        }
+
+        let mismatchedMarketData = MarketDataQuery(
+            symbol: try MTPROSymbol(rawValue: "ETHUSDT"),
+            timeframe: .oneMinute,
+            range: try MTPRODateRange(
+                start: Date(timeIntervalSince1970: 100),
+                end: Date(timeIntervalSince1970: 400)
+            )
+        )
+
+        XCTAssertThrowsError(
+            try MTPROBacktestEventFlow().run(
+                BacktestCommand(
+                    runID: try MTPROIdentifier("backtest-ema-fixture"),
+                    strategy: try makeEMAStrategy(),
+                    marketData: mismatchedMarketData
+                ),
+                bars: try makeEMAFixtureBars()
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? MTPROCoreError,
+                .marketDataMismatch(field: "marketData.symbol", expected: "BTCUSDT", actual: "ETHUSDT")
+            )
+        }
+    }
+
+    func testBacktestAndPaperEventFlowsShareSignalTimelineForParity() throws {
+        let marketDataQuery = try makeEMAMarketDataQuery()
+        let strategy = try makeEMAStrategy()
+        let bars = try makeEMAFixtureBars()
+        let backtestCommand = BacktestCommand(
+            runID: try MTPROIdentifier("backtest-ema-fixture"),
+            strategy: strategy,
+            marketData: marketDataQuery
+        )
+        let paperCommand = try PaperSessionCommand(
+            sessionID: try MTPROIdentifier("paper-ema-fixture"),
+            strategy: strategy,
+            marketData: marketDataQuery,
+            riskProfileID: try MTPROIdentifier("paper-risk"),
+            executionMode: .paper
+        )
+
+        let backtestRun = try MTPROBacktestEventFlow().run(
+            backtestCommand,
+            bars: bars,
+            completedAt: Date(timeIntervalSince1970: 500)
+        )
+        let paperRun = try MTPROPaperSessionEventFlow().start(
+            paperCommand,
+            bars: bars,
+            completedAt: Date(timeIntervalSince1970: 501)
+        )
+        let parity = MTPROBacktestPaperParity.verify(
+            backtest: backtestRun.result,
+            paper: paperRun.result
+        )
+
+        XCTAssertEqual(backtestRun.events.count, 6)
+        XCTAssertEqual(paperRun.events.count, 6)
+        XCTAssertEqual(backtestRun.result.signalSamples.map(\.signal.direction), [.long, .long, .flat, .long])
+        XCTAssertEqual(paperRun.result.signalSamples, backtestRun.result.signalSamples)
+        XCTAssertTrue(parity.sameStrategy)
+        XCTAssertTrue(parity.sameMarketData)
+        XCTAssertTrue(parity.matchingSignalTimeline)
+        XCTAssertTrue(parity.isConsistent)
+    }
+
+    func testBacktestAndPaperEventFlowsCanPublishThroughMessageBusStreams() throws {
+        var messageBus = try MTPROMessageBus()
+        let bars = try makeEMAFixtureBars()
+        let marketDataQuery = try makeEMAMarketDataQuery()
+        let strategy = try makeEMAStrategy()
+        let backtestRun = try MTPROBacktestEventFlow().run(
+            BacktestCommand(
+                runID: try MTPROIdentifier("backtest-ema-fixture"),
+                strategy: strategy,
+                marketData: marketDataQuery
+            ),
+            bars: bars,
+            completedAt: Date(timeIntervalSince1970: 500)
+        )
+        let paperRun = try MTPROPaperSessionEventFlow().start(
+            PaperSessionCommand(
+                sessionID: try MTPROIdentifier("paper-ema-fixture"),
+                strategy: strategy,
+                marketData: marketDataQuery,
+                riskProfileID: try MTPROIdentifier("paper-risk"),
+                executionMode: .paper
+            ),
+            bars: bars,
+            completedAt: Date(timeIntervalSince1970: 501)
+        )
+
+        for event in backtestRun.events {
+            try messageBus.publish(.backtest(event), stream: .backtest)
+        }
+        for event in paperRun.events {
+            try messageBus.publish(.paper(event), stream: .paper)
+        }
+
+        XCTAssertEqual(messageBus.envelopes.map(\.sequence), Array(1...12))
+        XCTAssertEqual(
+            messageBus.replay(
+                EventReplayCommand(
+                    range: try EventSequenceRange(lowerBound: 1, upperBound: 12),
+                    streams: [.backtest]
+                )
+            ).envelopes.count,
+            6
+        )
+        XCTAssertEqual(
+            messageBus.replay(
+                EventReplayCommand(
+                    range: try EventSequenceRange(lowerBound: 1, upperBound: 12),
+                    streams: [.paper]
+                )
+            ).envelopes.count,
+            6
+        )
+    }
+
     private func makeMarketBar(close: Double = 105, start: TimeInterval = 100) throws -> MTPROMarketBar {
         try MTPROMarketBar(
             symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
@@ -383,15 +580,49 @@ final class MTPROCoreTests: XCTestCase {
 
     private func makeBacktestCommand() throws -> BacktestCommand {
         BacktestCommand(
+            runID: try MTPROIdentifier("backtest-ema-fixture"),
+            strategy: try makeEMAStrategy(),
+            marketData: try makeEMAMarketDataQuery()
+        )
+    }
+
+    private func makeEMAStrategy() throws -> MTPROEMACrossStrategyConfiguration {
+        try MTPROEMACrossStrategyConfiguration(
             strategyID: try MTPROIdentifier("ema-cross"),
-            marketData: MarketDataQuery(
-                symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
-                timeframe: .oneMinute,
-                range: try MTPRODateRange(
-                    start: Date(timeIntervalSince1970: 100),
-                    end: Date(timeIntervalSince1970: 160)
-                )
+            symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+            timeframe: .oneMinute,
+            shortPeriod: 2,
+            longPeriod: 3
+        )
+    }
+
+    private func makeEMAMarketDataQuery() throws -> MarketDataQuery {
+        MarketDataQuery(
+            symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+            timeframe: .oneMinute,
+            range: try MTPRODateRange(
+                start: Date(timeIntervalSince1970: 100),
+                end: Date(timeIntervalSince1970: 400)
             )
         )
+    }
+
+    private func makeEMAFixtureBars() throws -> [MTPROMarketBar] {
+        try [10.0, 11.0, 12.0, 11.0, 10.0, 13.0].enumerated().map { index, close in
+            let start = 100 + TimeInterval(index * 60)
+            return try MTPROMarketBar(
+                symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+                timeframe: .oneMinute,
+                interval: try MTPRODateRange(
+                    start: Date(timeIntervalSince1970: start),
+                    end: Date(timeIntervalSince1970: start + 60)
+                ),
+                open: close,
+                high: close + 1,
+                low: close - 1,
+                close: close,
+                volume: 1
+            )
+        }
     }
 }

@@ -52,3 +52,36 @@ Use Case 输出必须先进入 read model projection，再供 UI 使用。
 - 数据库适配器。
 - SwiftUI 页面。
 - Binance 网络客户端。
+
+## MTP-11 EMA 回测与 Paper 一致性契约
+
+日期：2026-05-17
+
+执行者：Codex
+
+`MTPROCore` 在本事项中建立 EMA cross 策略、回测事件流、Paper 会话事件流和一致性验证的最小本地契约。
+
+契约结构：
+
+- `MTPROEMACrossStrategyConfiguration`：定义 strategyID、symbol、timeframe、shortPeriod 和 longPeriod。
+- `MTPROEMACrossStrategyContract`：只消费本地 `MTPROMarketBar` 序列，生成确定性 EMA signal timeline。
+- `MTPROBacktestEventFlow`：生成 backtest requested、signalGenerated 和 completed 事件流。
+- `MTPROPaperSessionEventFlow`：生成 paper sessionRequested、signalGenerated 和 sessionCompleted 事件流。
+- `MTPROBacktestPaperParity`：比较 strategy、market data 和 signal timeline，生成一致性结果。
+
+契约要求：
+
+- short EMA period 必须大于 0，long EMA period 必须大于 0，且 shortPeriod 必须小于 longPeriod。
+- Backtest / Paper command 的 `MarketDataQuery` 必须与 EMA 配置中的 symbol 和 timeframe 一致。
+- 输入 market bars 必须满足配置中的 symbol 和 timeframe。
+- 输入 bars 数量必须至少覆盖 long EMA warm-up。
+- Backtest 与 Paper 必须复用同一 EMA contract，确保同一输入下 signal timeline 一致。
+- Paper 会话只生成本地模拟信号事件，不提交真实订单，不连接 broker。
+
+本契约不包含：
+
+- Live trading。
+- 真实 broker / exchange action。
+- 订单簿失衡策略。
+- 完整 Dashboard 页面。
+- 数据库 adapter。
