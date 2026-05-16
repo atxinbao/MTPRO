@@ -31,7 +31,7 @@
 
 | 协议状态 | Linear 团队状态 | 说明 |
 | --- | --- | --- |
-| 唯一可执行状态 | `Todo` | 已用于 `MTP-8` |
+| 唯一可执行状态 | `Todo` | 运行时从 Linear 查询，不在文档中固定具体 issue |
 | 进行中状态 | `In Progress` | 后续执行时使用 |
 | 审查状态 | `In Review` | 建议映射；不可执行 |
 | 完成状态 | `Done` | 建议映射；不可执行 |
@@ -58,13 +58,13 @@
 | 4. GitHub PR Automation | GitHub `checks`、`protect-main`、auto-merge、branch cleanup | 已配置 |
 | 5. Next Human Project Planning | 当前 Project 全部 Done 后的新阶段规划 | 未进入 |
 
-当前正式执行入口只允许：
+当前正式执行入口不在本文档中固定具体 issue：
 
 ```text
-MTP-8 核心领域模型与事件日志契约
+执行前必须从 Linear 查询当前 Project 的唯一 Todo / configured executable issue。
 ```
 
-`MTP-9` 到 `MTP-15` 必须保持 `Backlog`，直到 symphony-project 根据前序 Done evidence 推进。
+`MTP-10` 到 `MTP-15` 必须保持 `Backlog`，直到 Human 明确推进或后续启用 symphony-project continuation。
 
 ## Linear 项目草案
 
@@ -86,7 +86,7 @@ MTP-8 核心领域模型与事件日志契约
 | Human Review | 已确认 | 用户已在 2026-05-14 确认草案 |
 | Linear Setup | 已完成 | 已创建 Project `MTPRO 引导`、9 个里程碑和 `MTP-7` 到 `MTP-15` |
 | Automation Readiness | 已通过 | GitHub PR Automation、WIP=1、Graphify 只读边界、GitHub remote 和 GitHub + Linear 关联已确认 |
-| 是否允许开发执行 | 是，仅限当前唯一 issue | 当前仅 `MTP-8` 为 configured executable issue |
+| 是否允许开发执行 | 是，仅限运行时唯一 issue | 执行前必须从 Linear 查询唯一 configured executable issue |
 
 ## 里程碑
 
@@ -553,8 +553,8 @@ Linear 放置：
 | Linear 事项 | 标题 | 状态 | URL |
 | --- | --- | --- | --- |
 | `MTP-7` | 记录引导基线 | `Done` | `https://linear.app/atxinbao/issue/MTP-7/记录引导基线` |
-| `MTP-8` | 核心领域模型与事件日志契约 | `Todo` | `https://linear.app/atxinbao/issue/MTP-8/核心领域模型与事件日志契约` |
-| `MTP-9` | Binance 公开只读行情适配器契约 | `Backlog` | `https://linear.app/atxinbao/issue/MTP-9/binance-公开只读行情适配器契约` |
+| `MTP-8` | 核心领域模型与事件日志契约 | `Done` | `https://linear.app/atxinbao/issue/MTP-8/核心领域模型与事件日志契约` |
+| `MTP-9` | Binance 公开只读行情适配器契约 | `Done` | `https://linear.app/atxinbao/issue/MTP-9/binance-公开只读行情适配器契约` |
 | `MTP-10` | 交易内核、数据引擎与缓存边界 | `Backlog` | `https://linear.app/atxinbao/issue/MTP-10/交易内核数据引擎与缓存边界` |
 | `MTP-11` | EMA 回测与 Paper 一致性契约 | `Backlog` | `https://linear.app/atxinbao/issue/MTP-11/ema-回测与-paper-一致性契约` |
 | `MTP-12` | 订单簿失衡策略研究链路 | `Backlog` | `https://linear.app/atxinbao/issue/MTP-12/订单簿失衡策略研究链路` |
@@ -564,10 +564,11 @@ Linear 放置：
 
 队列确认：
 
-- 唯一 `Todo`：`MTP-8`
+- 唯一 `Todo`：运行时从 Linear 查询；本文档不固定 current issue
 - 基线记录：`MTP-7`，状态 `Done`
-- 后续开发事项：`MTP-9` 到 `MTP-15`，状态 `Backlog`
-- 开发执行仍未允许；下一步必须配置 GitHub remote、创建 Bootstrap PR，并验证 GitHub + Linear 关联。
+- 已完成事项：`MTP-8`、`MTP-9`，状态 `Done`
+- 后续开发事项：`MTP-10` 到 `MTP-15`，状态 `Backlog`
+- 后续开发执行必须等待 Human 明确推进唯一 Todo，或后续启用 symphony-project continuation。
 
 ## 草案边界确认
 
