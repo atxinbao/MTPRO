@@ -4,7 +4,9 @@
 
 # 关联 Linear 事项
 
--
+- Linked Linear Issue：
+- Linear Project：`MTPRO 引导`
+- WIP=1 证据：
 
 # 来源
 
@@ -22,6 +24,7 @@
 
 # 边界确认
 
+- [ ] 当前 Linear Project 执行前已确认 WIP=1，且当前事项是唯一 active configured executable issue。
 - [ ] 本 PR 只执行当前唯一 configured executable Linear 事项。
 - [ ] 本 PR 不执行任何 `Backlog`、`In Review` 或 `Done` 事项。
 - [ ] 本 PR 不依赖 label gate 作为执行授权。
@@ -74,6 +77,7 @@ Graphify 边界：
 - [ ] 本地 handoff marker `.codex/symphony-issue-handoff.json` 已在 ready-for-review PR 和 GitHub auto-merge handoff 后写入。
 - [ ] Handoff marker 包含 `pr_url`、`ready_for_review: true` 和 `auto_merge_enabled: true`。
 - [ ] Handoff marker 未进入本 PR。
+- [ ] symphony-issue handoff marker 只供本地状态推进读取，不作为 PR artifact。
 - [ ] Child Codex 已在 symphony-issue automation write profile 下完成 git / PR / handoff，或已记录 host-side handoff fallback 原因。
 
 # Parent Codex Automation Supervision
