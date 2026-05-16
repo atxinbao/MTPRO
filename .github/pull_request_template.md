@@ -76,6 +76,15 @@ Graphify 边界：
 - [ ] Handoff marker 未进入本 PR。
 - [ ] Child Codex 已在 symphony-issue automation write profile 下完成 git / PR / handoff，或已记录 host-side handoff fallback 原因。
 
+# Parent Codex Automation Supervision
+
+- [ ] 父 Codex 已执行或不需要执行 Project 级监督。
+- [ ] Queue preview / issue state 检查只读，除非 Human 明确授权推进唯一 `Todo`。
+- [ ] 如使用 host-side fallback，已记录原因、范围和证据。
+- [ ] 父 Codex 未扩大当前 issue scope。
+- [ ] 父 Codex 未创建 Linear Project / Issue。
+- [ ] 父 Codex 未直接 merge PR 或绕过 GitHub required checks。
+
 # Post-Issue Ledger / 施工后记账
 
 - [ ] PR merge / Linear bot auto Done 后，预计由 symphony-issue host-side `before_remove` 执行 Post-Issue Ledger。

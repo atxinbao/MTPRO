@@ -41,7 +41,7 @@ Post-Issue Ledger 做四件事：
 1. 同步最新 `main`。
 2. 刷新本地 Graphify resource relationship graph。
 3. 保留 `graphify-out/*` 作为本地 ignored output，不进入 Git PR。
-4. 生成或承接下一步观察提示，用于 Human / symphony-project 后续判断。
+4. 生成或承接下一步观察提示，用于 Human / Parent Codex 后续判断。
 
 ## 下一步观察提示
 
@@ -64,16 +64,16 @@ Post-Issue Ledger 做四件事：
 - 不启动 Symphony。
 - 不决定下一阶段目标。
 
-## 和 symphony-project 的关系
+## 和 Parent Codex 的关系
 
 Post-Issue Ledger 只提供施工后关系事实和观察提示。
 
-是否推进下一个 issue 仍由 Human 或后续接入的 `symphony-project` 判断。
+是否推进下一个 issue 仍由 Human 决定。
 
-`symphony-project` 读取账本时也必须遵守：
+父 Codex 可以读取账本并做 queue preview、风险提示和流程迭代建议，但必须遵守：
 
 - WIP=1。
-- 只推进 eligible next issue。
+- 只有 Human 明确授权后，才可推进 eligible next issue。
 - 不从观察提示直接获得执行授权。
 - 不自动创建下一个 Project。
 

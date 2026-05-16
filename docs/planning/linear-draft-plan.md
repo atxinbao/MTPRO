@@ -53,8 +53,8 @@
 | AEP 阶段 | MTPRO 映射 | 当前状态 |
 | --- | --- | --- |
 | 1. Human Project Planning | 本文档和 Linear Project `MTPRO 引导` | 已完成 |
-| 2. symphony-project | 当前 Project 中 WIP=1 的 issue 队列 | 准备中，后续接 symphony-project |
-| 3. symphony-issue | `/Users/mac/code/symphony-workflows/mtpro-aep-v2.md` | 已验证 MTP-8 / MTP-9，后续等待 Human 设置唯一 Todo |
+| 2. Parent Codex Automation Supervision | 当前 Project queue preview、child Codex 监控、代码审查和 host-side fallback | 已启用人工监督模式；独立 Project 级 continuation 程序暂不接入 |
+| 3. symphony-issue | `/Users/mac/code/symphony-workflows/mtpro-aep-v2.md` | 已验证 MTP-8 / MTP-9 / MTP-10，后续等待 Human 授权唯一 Todo |
 | 4. GitHub PR Automation | GitHub `checks`、`protect-main`、auto-merge、branch cleanup | 已配置 |
 | 5. Next Human Project Planning | 当前 Project 全部 Done 后的新阶段规划 | 未进入 |
 
@@ -64,7 +64,7 @@
 执行前必须从 Linear 查询当前 Project 的唯一 Todo / configured executable issue。
 ```
 
-`MTP-10` 到 `MTP-15` 必须保持 `Backlog`，直到 Human 明确推进或后续启用 symphony-project continuation。
+`MTP-11` 到 `MTP-15` 必须保持 `Backlog`，直到 Human 明确授权父 Codex 推进唯一 Todo。
 
 ## Linear 项目草案
 
@@ -555,7 +555,7 @@ Linear 放置：
 | `MTP-7` | 记录引导基线 | `Done` | `https://linear.app/atxinbao/issue/MTP-7/记录引导基线` |
 | `MTP-8` | 核心领域模型与事件日志契约 | `Done` | `https://linear.app/atxinbao/issue/MTP-8/核心领域模型与事件日志契约` |
 | `MTP-9` | Binance 公开只读行情适配器契约 | `Done` | `https://linear.app/atxinbao/issue/MTP-9/binance-公开只读行情适配器契约` |
-| `MTP-10` | 交易内核、数据引擎与缓存边界 | `Backlog` | `https://linear.app/atxinbao/issue/MTP-10/交易内核数据引擎与缓存边界` |
+| `MTP-10` | 交易内核、数据引擎与缓存边界 | `Done` | `https://linear.app/atxinbao/issue/MTP-10/交易内核数据引擎与缓存边界` |
 | `MTP-11` | EMA 回测与 Paper 一致性契约 | `Backlog` | `https://linear.app/atxinbao/issue/MTP-11/ema-回测与-paper-一致性契约` |
 | `MTP-12` | 订单簿失衡策略研究链路 | `Backlog` | `https://linear.app/atxinbao/issue/MTP-12/订单簿失衡策略研究链路` |
 | `MTP-13` | SQLite / DuckDB 投影与重放边界 | `Backlog` | `https://linear.app/atxinbao/issue/MTP-13/sqlite-duckdb-投影与重放边界` |
@@ -566,9 +566,9 @@ Linear 放置：
 
 - 唯一 `Todo`：运行时从 Linear 查询；本文档不固定 current issue
 - 基线记录：`MTP-7`，状态 `Done`
-- 已完成事项：`MTP-8`、`MTP-9`，状态 `Done`
-- 后续开发事项：`MTP-10` 到 `MTP-15`，状态 `Backlog`
-- 后续开发执行必须等待 Human 明确推进唯一 Todo，或后续启用 symphony-project continuation。
+- 已完成事项：`MTP-8`、`MTP-9`、`MTP-10`，状态 `Done`
+- 后续开发事项：`MTP-11` 到 `MTP-15`，状态 `Backlog`
+- 后续开发执行必须等待 Human 明确授权父 Codex 推进唯一 Todo。
 
 ## 草案边界确认
 

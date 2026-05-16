@@ -1115,3 +1115,52 @@ Commit：本轮提交
 | --- | --- | --- |
 | `git diff --check` | 通过 | 无 whitespace 问题 |
 | `bash checks/run.sh` | 通过 | `swift test` 通过，24 个 XCTest 通过 |
+
+## Parent Codex Automation Supervision Flow
+
+日期：2026-05-16
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 将父 Codex 明确为当前 Project 级自动化监督角色，替代未接入的独立 `symphony-project` continuation。
+- 明确父 Codex 负责 queue preview、child Codex 监控、代码审查、host-side fallback 和流程迭代建议。
+- 明确父 Codex 只有在 Human 明确授权后，才可将 eligible `Backlog` 推进为唯一 `Todo`。
+
+文件范围：
+
+- Created：
+  - `docs/automation/parent-codex-supervision.md`
+- Updated：
+  - `README.md`
+  - `AGENTS.md`
+  - `.github/pull_request_template.md`
+  - `docs/automation/automation-readiness.md`
+  - `docs/automation/post-issue-ledger.md`
+  - `docs/planning/linear-draft-plan.md`
+  - `verification.md`
+- Deleted：
+  - 无
+
+边界确认：
+
+- 未修改业务代码。
+- 未创建 Linear Project / Issue。
+- 未自动推进 Linear issue。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 未把父 Codex 写成业务实现 Agent 或 PR merge Agent。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | 通过 | 无 whitespace 问题 |
+| `bash checks/run.sh` | 通过 | `swift test` 通过，24 个 XCTest 通过 |
