@@ -35,7 +35,8 @@ Agent 开始工作前必须读取：
 - 执行当前唯一 configured executable issue 的明确 scope。
 - 维护项目定义文档、contract-first 文档和 SwiftPM skeleton。
 - 运行本地验证：`bash checks/run.sh`。
-- Graphify update 由 symphony-issue host-side `before_remove` 在 PR merge / Linear bot Done 后刷新持久本地仓库；如果环境不可用，必须记录原因且不提交 `graphify-out/*`。
+- Post-Issue Ledger / 施工后记账由 symphony-issue host-side `before_remove` 在 PR merge / Linear bot Done 后执行：同步持久本地仓库、刷新 Graphify resource relationship graph，并产生只读下一步观察提示；如果环境不可用，必须记录原因且不提交 `graphify-out/*`。
+- 下一步观察提示不授权执行，不得自动推进下一个 issue，不得创建 Linear issue，不得修改 `ROADMAP.md`。
 - 执行 Pre-PR Codex Code Review。
 - 创建 ready-for-review PR，并启用 GitHub auto-merge handoff。
 
@@ -66,7 +67,7 @@ Agent 开始工作前必须读取：
 
 1. 执行前：读取 root docs、当前 Linear issue、相关 contracts、validation 和 Graphify read context，锁定 scope / non-goals / allowed files / forbidden files。
 2. 执行中：只完成当前 issue scope 内的代码、文档、测试或验证任务。
-3. 执行后：运行 validation，更新 evidence chain，执行 Pre-PR Codex Code Review，创建 commit，创建 ready-for-review PR，启用 GitHub auto-merge handoff，并写入本地 `.codex/symphony-issue-handoff.json`。PR merge / Linear bot Done 后，Graphify host-side refresh 由 symphony-issue `before_remove` 处理。
+3. 执行后：运行 validation，更新 evidence chain，执行 Pre-PR Codex Code Review，创建 commit，创建 ready-for-review PR，启用 GitHub auto-merge handoff，并写入本地 `.codex/symphony-issue-handoff.json`。PR merge / Linear bot Done 后，Post-Issue Ledger / 施工后记账由 symphony-issue `before_remove` 处理。
 
 Codex Execution Agent 不修改 Linear status；`In Progress` -> `In Review` 由 symphony-issue 在 PR 和 handoff evidence 就绪后推进。
 

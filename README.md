@@ -36,7 +36,7 @@ MTPRO 是用于重构 `macos-trader` 的新独立 macOS 交易研究工作台项
 | --- | --- | --- |
 | 1. Human Project Planning | 已完成 | Human 已确认 Project `MTPRO 引导`、issue 顺序和当前阶段目标 |
 | 2. symphony-project | 暂不接自动 continuation | 当前不自动把下一个 Backlog issue 推进为 Todo；Codex 不修改 Linear status |
-| 3. symphony-issue | 已完成 MTP-8 / MTP-9 链路验证 | 使用 `dangerFullAccess` issue automation profile；可在 Human 明确设置唯一 Todo 后调度当前 issue |
+| 3. symphony-issue | 已完成 MTP-8 / MTP-9 / MTP-10 链路验证 | 使用 `dangerFullAccess` issue automation profile；可在 Human 明确设置唯一 Todo 后调度当前 issue |
 | 4. GitHub PR Automation | 已验证 | `checks`、`protect-main`、auto-merge、squash merge、branch cleanup 和 Linear bot auto Done 已跑通 |
 | 5. Next Human Project Planning | 未进入 | 当前 Project 全部 issues Done 后，由 Human 决定下一阶段 |
 
@@ -44,7 +44,7 @@ Agent / Codex 只能执行当前唯一 configured executable Linear issue。`ROA
 
 当前唯一 configured executable issue 必须在执行前从 Linear 查询确认；仓库文档不得把某个 issue 永久写成 current issue。
 
-Graphify update 当前由 symphony-issue host-side `before_remove` 在 PR merge / Linear bot Done 后刷新持久本地仓库 `/Users/mac/Documents/MTPRO` 的 resource relationship graph。`graphify-out/*` 仍不进入 PR。
+PR merge / Linear bot Done 后，symphony-issue host-side `before_remove` 执行 Post-Issue Ledger / 施工后记账：同步持久本地仓库、刷新 Graphify resource relationship graph，并保留下一步观察提示。观察提示只读，不授权下一个 issue；`graphify-out/*` 仍不进入 PR。详见 `docs/automation/post-issue-ledger.md`。
 
 ## 第一版产品边界
 
@@ -82,6 +82,7 @@ Tests/
 - `docs/product/product-surface-map.md`：产品面。
 - `docs/contracts/`：contract-first 输入。
 - `docs/validation/validation-plan.md`：验证计划。
+- `docs/automation/post-issue-ledger.md`：PR merge 后的施工后记账规则。
 - `verification.md`：append-only 验证流水账。
 
 ## 本地验证
