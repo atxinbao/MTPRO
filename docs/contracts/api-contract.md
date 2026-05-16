@@ -89,3 +89,30 @@ MTPRO 第一版没有 HTTP API。
 - 不新增 signed endpoint command。
 - 不新增 futures leverage / margin command。
 - 不把订单簿失衡信号暴露为真实订单动作。
+
+## MTP-13 Replay / Projection 细化
+
+日期：2026-05-17
+
+执行者：Codex
+
+`EventReplayCommand` 在 MTP-13 中绑定持久化投影重建边界：
+
+- `MTPROPersistenceReplayBoundary.replay(_:)`
+- `MTPROPersistenceReplayBoundary.rebuildMarketDataCache(from:)`
+- `MTPROPersistenceReplayBoundary.rebuildSQLiteRuntimeProjection(from:)`
+- `MTPROPersistenceReplayBoundary.rebuildDuckDBAnalyticalProjection(from:)`
+
+新增投影契约：
+
+- SQLite runtime projection：paper session、risk rejection、portfolio projection。
+- DuckDB analytical projection：market data、backtest run、order book research run、analytical signal timeline。
+
+边界确认：
+
+- 不新增 HTTP API。
+- 不新增 database table API。
+- 不把 ORM model 暴露为 API contract。
+- 不新增 live order command。
+- 不新增 broker account command。
+- 不新增真实数据库迁移 command。

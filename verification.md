@@ -1067,7 +1067,6 @@ Pre-PR Codex Code Review：
 | Live / signed endpoint boundary | 通过 | 未新增 API key、signature、account endpoint、listenKey、真实订单动作或 Live adapter |
 | Validation credibility | 通过 | 默认项目级 `bash checks/run.sh` 已通过 |
 | Graphify boundary | 通过 | 未运行 full rebuild，未提交 `graphify-out/*`，post-merge refresh 交由 host-side workflow |
-| Handoff marker | 待 PR 后完成 | ready-for-review PR 和 auto-merge handoff 后写入 `.codex/symphony-issue-handoff.json` |
 
 ## Post-Issue Ledger / 施工后记账流程收口
 
@@ -1356,3 +1355,94 @@ Pre-PR Codex Code Review：
 | Live / signed endpoint boundary | 通过 | 未新增 API key、signature、account endpoint、listenKey、真实订单动作、futures / margin action 或 Live adapter |
 | Validation credibility | 通过 | 默认项目级 `bash checks/run.sh` 已通过 |
 | Graphify boundary | 通过 | 未运行 full rebuild，未提交 `graphify-out/*`，post-merge refresh 交由 host-side workflow |
+
+## MTP-13 SQLite / DuckDB 投影与重放边界
+
+日期：2026-05-17
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 实现 persistence replay boundary，复用 `AppendOnlyEventLog` 与 `EventReplayCommand`。
+- 建立 SQLite runtime projection contract，投影 paper session、risk rejection 和 portfolio runtime read model。
+- 建立 DuckDB analytical projection contract，投影 market data、backtest、订单簿研究和 analytical signal timeline。
+- 确认 database table、ORM model 和 runtime object 不作为 UI contract。
+
+文件范围：
+
+- Created：
+  - 无
+- Updated：
+  - `Sources/MTPROPersistence/MTPROPersistence.swift`
+  - `Tests/MTPROPersistenceTests/MTPROPersistenceTests.swift`
+  - `docs/contracts/persistence-boundary.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/contracts/api-contract.md`
+  - `docs/contracts/backend-use-case-contract.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+- Deleted：
+  - 无
+
+Linear / scope 确认：
+
+- Linear 查询显示 `MTP-13` 为当前唯一 active issue，状态为 `In Progress`。
+- Linear 查询显示 `MTP-12` 已 `Done`。
+- Linear 查询显示 `MTP-14` 和 `MTP-15` 仍为 `Backlog`。
+- 本轮只执行 MTP-13 scope，不解锁后续 issue。
+
+边界确认：
+
+- 未让 UI 直接读取数据库表。
+- 未暴露 ORM model。
+- 未把 runtime object 持久化为 UI contract。
+- 未做破坏性数据库迁移。
+- 未引入真实 SQLite / DuckDB driver。
+- 未实现 Live execution persistence。
+- 未连接 broker。
+- 未调用 Binance signed endpoint。
+- 未提交、取消或替换真实订单。
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未运行 Graphify full rebuild。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+Graphify 状态：
+
+- 当前 issue workspace 未发现 `graphify-out/*` 可读取上下文。
+- 已读取 `docs/automation/graphify-resource-graph-scope.md`。
+- 按本轮 workflow，Graphify post-merge resource graph refresh 由 symphony-issue host-side `before_remove` 在持久仓库 `/Users/mac/Documents/MTPRO` 执行；child Codex 本轮未运行 Graphify full rebuild。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/run.sh` | 执行前通过 | 基线 `git diff --check` 和 `swift test` 通过，32 个 XCTest 通过 |
+| `swift test` | 通过 | 36 个 XCTest 通过，新增 replay、临时 SQLite、临时 DuckDB 和投影隔离测试 |
+| `bash checks/run.sh` | 通过 | `git diff --check` 和 `swift test` 通过，36 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+新增测试：
+
+- Persistence replay boundary selected event range rebuild 测试。
+- Temporary SQLite runtime projection rebuild 测试。
+- Temporary DuckDB analytical projection rebuild 测试。
+- Runtime / analytical projection isolation 测试。
+
+Pre-PR Codex Code Review：
+
+| 检查项 | 结果 | 说明 |
+| --- | --- | --- |
+| Diff scope | 通过 | 变更集中在 `MTPROPersistence`、持久化测试、contract 文档、validation plan 和验证日志 |
+| Issue scope | 通过 | 覆盖 MTP-13 要求的事件日志重放、SQLite 运行投影、DuckDB 分析投影和隔离验证 |
+| Forbidden paths | 通过 | 未修改 `MTPROApp`、`MTPROCore`、`MTPROAdapters`、`Package.swift` 或后续 issue scope |
+| Live / signed endpoint boundary | 通过 | 未新增 API key、signature、account endpoint、listenKey、真实订单动作或 Live adapter |
+| Validation credibility | 通过 | 默认项目级 `bash checks/run.sh` 已通过 |
+| Graphify boundary | 通过 | 未运行 full rebuild，未提交 `graphify-out/*`，post-merge refresh 交由 host-side workflow |
+| Handoff marker | 待 PR 后完成 | ready-for-review PR 和 auto-merge handoff 后写入 `.codex/symphony-issue-handoff.json` |
