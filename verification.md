@@ -623,9 +623,9 @@ Commit：本轮提交
 
 执行者：Codex
 
-PR：本轮 PR
+PR：未创建（当前 sandbox / GitHub token 阻塞，需 host-side handoff fallback）
 
-Commit：本轮提交
+Commit：未创建（当前 sandbox 拒绝写入 `.git/index.lock`）
 
 目的：
 
@@ -770,3 +770,126 @@ Commit：本轮提交
 | `git diff --check` | 通过 | 无 whitespace 问题。 |
 | `bash checks/run.sh` | 通过 | `swift test` 通过，4 个 XCTest 通过。 |
 | `mix test core + workspace/config` | 通过 | Symphony 相关 90 个测试通过。 |
+
+## MTP-9 Binance 公开只读行情适配器契约
+
+日期：2026-05-16
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 实现 `MTPROAdapters` 的 Binance public market data read-only endpoint contract。
+- 固化 `exchangeInfo`、`klines`、recent trades、best bid / ask、有限深度快照和深度增量的 contract。
+- 将 Binance public fixture payload 解码为 `MTPROCore` market event model。
+- 用测试覆盖 configured universe、`1m` / `5m` timeframe、record limit、fixture decoding、unsupported symbol、invalid numeric payload 和 forbidden capability boundary。
+
+文件范围：
+
+- Created：
+  - 无
+- Updated：
+  - `Sources/MTPROAdapters/MTPROAdapters.swift`
+  - `Tests/MTPROAdaptersTests/MTPROAdaptersTests.swift`
+  - `docs/contracts/binance-market-data-contract.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+- Deleted：
+  - 无
+
+Linear / scope 确认：
+
+- Linear 查询显示 `MTP-9` 为当前唯一 `In Progress` issue。
+- Linear 查询显示 `MTP-8` 已 `Done`。
+- Linear 查询显示 `MTP-10` 至 `MTP-15` 仍为 `Backlog`。
+- 根文档中仍有 `MTP-8` current issue 的历史文字；本轮执行授权以 Linear 当前状态和用户提供的 `symphony-issue` workflow 为准。
+
+边界确认：
+
+- 未接真实 Binance 网络。
+- 未实现 URLSession client。
+- 未实现 WebSocket 生命周期管理。
+- 未使用 API key。
+- 未调用 signed endpoint。
+- 未调用 account endpoint。
+- 未提交、取消或替换订单。
+- 未实现 `LiveExecutionAdapter`。
+- 未实现策略。
+- 未实现 TradingKernel / DataEngine / Cache。
+- 未实现 persistence adapter。
+- 未实现 SwiftUI 页面。
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+Graphify 状态：
+
+- 执行前 `graphify-out/*` 在当前 worktree 中不存在，无法读取既有 Graphify 输出上下文。
+- 已读取 `docs/automation/graphify-resource-graph-scope.md`，确认 Graphify 资源关系图边界和 `graphify-out/*` 不进入 PR。
+- 执行后已尝试 `graphify update .`。
+- Graphify update 未完成：当前 Graphify CLI 返回 `Re-extracting code files in . (no LLM needed)...` 后失败，错误为 `[Errno 1] Operation not permitted`。
+- 本轮未生成或提交 `graphify-out/*`。
+
+本地 `.codex` evidence 状态：
+
+- 已创建仓库根目录 `.codex/`，但当前 sandbox 拒绝向 `.codex/*` 写入文件。
+- `apply_patch` 写入 `.codex/*` 返回 `writing outside of the project`。
+- `touch .codex/foo` 返回 `Operation not permitted`。
+- 因此 `.codex/structured-request.json`、`.codex/context-scan.json`、`.codex/operations-log.md`、`.codex/testing.md` 和 `.codex/review-report.md` 未能写入。
+- 后续 `.codex/symphony-issue-handoff.json` 很可能需要 host-side handoff fallback 接管写入。
+
+Git / PR handoff 状态：
+
+- 已尝试 `git add` 精确暂存本轮 5 个 tracked 文件。
+- `git add` 被当前 sandbox 阻塞，错误为 `Unable to create '.git/index.lock': Operation not permitted`。
+- 未产生半写入的 `.git/index.lock`。
+- `git diff --cached --name-only` 为空，未产生 partial staging。
+- `gh auth status` 显示当前 GitHub CLI token invalid。
+- 因此 commit / push / ready-for-review PR / auto-merge handoff / `.codex/symphony-issue-handoff.json` 需要 host-side handoff fallback 接管。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test` | 通过 | 19 个 XCTest 通过，其中 `MTPROAdaptersTests` 8 个测试通过 |
+| `bash checks/run.sh` | 阻塞 | SwiftPM 在当前 sandbox 中尝试写入 `/Users/mac/.cache/clang/ModuleCache`，随后返回 `Operation not permitted`，未进入源码编译 |
+| `CLANG_MODULE_CACHE_PATH="$PWD/.build/clang-module-cache" swift test --disable-sandbox --cache-path "$PWD/.build/swiftpm-cache" --config-path "$PWD/.build/swiftpm-config" --security-path "$PWD/.build/swiftpm-security" --scratch-path "$PWD/.build"` | 通过 | 19 个 XCTest 通过，其中 `MTPROAdaptersTests` 8 个测试通过 |
+| `git diff --check` | 通过 | 无 whitespace 问题 |
+| `graphify update .` | 阻塞 | Graphify CLI 返回 `[Errno 1] Operation not permitted`，未生成可提交输出 |
+| `git add ... && git commit ...` | 阻塞 | 当前 sandbox 拒绝创建 `.git/index.lock`，未完成 commit |
+| `gh auth status` | 阻塞 | GitHub CLI token invalid，无法由 child Codex 创建 PR |
+
+Pre-PR Codex Code Review：
+
+| 检查项 | 结果 | 说明 |
+| --- | --- | --- |
+| Diff scope | 通过 | 变更集中在 adapter contract、adapter tests、Binance contract 文档、validation 文档和验证日志 |
+| Issue scope | 通过 | 覆盖 MTP-9 要求的 public read-only market data adapter contract、fixture decoding 和 forbidden capability tests |
+| Forbidden paths | 通过 | 未修改 `MTPROCore`、`MTPROPersistence`、`MTPROApp`、`Package.swift` 或非当前 issue 业务模块 |
+| Live / signed endpoint boundary | 通过 | 未新增 API key、signature、account endpoint、listenKey、真实订单动作或 Live adapter |
+| Validation credibility | 需说明 | 默认 `bash checks/run.sh` 被本地 sandbox 阻塞；等价 `git diff --check` 与 sandbox-compatible `swift test --disable-sandbox` 已通过 |
+| Graphify boundary | 需说明 | 已尝试 update，但 sandbox 阻塞；未提交 `graphify-out/*` |
+| Handoff marker | 需 fallback | 当前 sandbox 拒绝写入 `.codex/*`，本地 marker 预计需要 host-side fallback |
+| GitHub handoff | 需 fallback | 当前 sandbox 拒绝写 `.git`，且 `gh` token invalid；commit / push / PR / auto-merge 预计需要 host-side fallback |
+
+Host-side handoff fallback：
+
+- child Codex 已完成当前 issue scope 的实现、测试、Graphify update 尝试和 Pre-PR Code Review。
+- child Codex sandbox 拒绝写入 `.codex/*`，因此本地 handoff marker 由 host-side fallback 在 PR 创建后写入。
+- child Codex sandbox 的 `bash checks/run.sh` 失败原因是 SwiftPM cache 写入权限，不是源码或测试失败。
+- host-side fallback 在同一 issue workspace 中补跑 `git diff --check`，结果通过。
+- host-side fallback 在同一 issue workspace 中补跑 `bash checks/run.sh`，结果通过，19 个 XCTest 全部通过。
+- host-side fallback 只接管 commit / push / PR / auto-merge handoff / 本地 marker，不扩大 diff scope，不修改 Linear status。
+
+Host-side validation：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | 通过 | host 环境无 whitespace 问题 |
+| `bash checks/run.sh` | 通过 | host 环境 `swift test` 通过，19 个 XCTest 通过 |

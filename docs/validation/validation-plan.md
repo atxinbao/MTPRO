@@ -14,6 +14,9 @@ swift test
 - Swift-only core。
 - paper-only execution mode。
 - Binance read-only boundary。
+- Binance public market data adapter contract。
+- Binance public fixture decoding。
+- Binance forbidden capability boundary。
 - Top 5 USDT universe。
 - `1m` / `5m` timeframe。
 - Event Log / SQLite / DuckDB persistence boundary。
@@ -23,7 +26,6 @@ swift test
 
 后续必须按阶段增加：
 
-- Binance adapter contract tests。
 - market data replay tests。
 - EMA cross backtest tests。
 - paper / backtest parity tests。
