@@ -29,7 +29,7 @@ let package = Package(
         ),
         .target(
             name: "MTPROApp",
-            dependencies: ["MTPROCore", "MTPROAdapters", "MTPROPersistence"],
+            dependencies: ["MTPROCore", "MTPROPersistence"],
             path: "Sources/MTPROApp"
         ),
         .testTarget(
@@ -49,7 +49,7 @@ let package = Package(
         ),
         .testTarget(
             name: "MTPROAppTests",
-            dependencies: ["MTPROApp"],
+            dependencies: ["MTPROApp", "MTPROCore", "MTPROPersistence"],
             path: "Tests/MTPROAppTests"
         )
     ]

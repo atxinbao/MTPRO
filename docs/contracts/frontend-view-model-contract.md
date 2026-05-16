@@ -28,3 +28,35 @@ ViewModel 只能来自稳定 read model projection。
 ## 边界
 
 当前只定义契约，不实现 SwiftUI 页面。
+
+## MTP-14 ViewModel 契约细化
+
+日期：2026-05-17
+
+执行者：Codex
+
+`MTPROApp` 在本事项中建立 Trader Workstation Dashboard 的 ViewModel contract，覆盖：
+
+- `MTPROMarketViewModel`
+- `MTPROStrategyViewModel`
+- `MTPROBacktestViewModel`
+- `MTPROPaperViewModel`
+- `MTPRORiskViewModel`
+- `MTPROPortfolioViewModel`
+- `MTPROEventLogViewModel`
+- `MTPRODashboardViewModel`
+
+输入契约：
+
+- Market / Strategy / Backtest 来自 `MTPRODuckDBAnalyticalProjectionSnapshot` 派生的稳定 read model。
+- Paper / Risk / Portfolio 来自 `MTPROSQLiteRuntimeProjectionSnapshot` 派生的稳定 read model。
+- Events 来自 append-only `EventEnvelope` timeline 派生的稳定事件观察面。
+
+边界确认：
+
+- ViewModel 不暴露 database table。
+- ViewModel 不暴露 ORM model。
+- ViewModel 不暴露 runtime object。
+- ViewModel 不调用 Binance adapter。
+- ViewModel 不提供 live order action。
+- 当前只实现 ViewModel contract，不实现 SwiftUI 页面。

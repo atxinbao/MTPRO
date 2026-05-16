@@ -1446,3 +1446,91 @@ Pre-PR Codex Code Review：
 | Validation credibility | 通过 | 默认项目级 `bash checks/run.sh` 已通过 |
 | Graphify boundary | 通过 | 未运行 full rebuild，未提交 `graphify-out/*`，post-merge refresh 交由 host-side workflow |
 | Handoff marker | 待 PR 后完成 | ready-for-review PR 和 auto-merge handoff 后写入 `.codex/symphony-issue-handoff.json` |
+
+## MTP-14 Trader Workstation 看板 ViewModel 契约
+
+日期：2026-05-17
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 实现 Market / Strategy / Backtest / Paper / Risk / Portfolio / Events 的 App 层 ViewModel contract。
+- 建立 Dashboard read model 聚合，输入只来自 SQLite runtime projection、DuckDB analytical projection 和 append-only event timeline。
+- 移除 `MTPROApp` target 对 `MTPROAdapters` 的直接依赖，强化 UI 不直接调用 Binance adapter 的边界。
+- 新增 ViewModel source contract、读模型映射测试和状态快照测试。
+
+文件范围：
+
+- Created：
+  - 无
+- Updated：
+  - `Package.swift`
+  - `Sources/MTPROApp/MTPROApp.swift`
+  - `Tests/MTPROAppTests/MTPROAppTests.swift`
+  - `docs/contracts/frontend-view-model-contract.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+- Deleted：
+  - 无
+
+Linear / scope 确认：
+
+- Linear 查询显示 `MTP-14` 为当前唯一 active issue，状态为 `In Progress`。
+- Linear 查询显示 `MTP-13` 已 `Done`。
+- Linear 查询显示 `MTP-15` 仍为 `Backlog`。
+- 本轮只执行 MTP-14 scope，不解锁后续 issue。
+
+边界确认：
+
+- 未实现 SwiftUI 页面。
+- 未让 UI 直接读取数据库表。
+- 未暴露 ORM model。
+- 未暴露 runtime object。
+- 未调用 Binance adapter。
+- 未提供 live order button。
+- 未连接 broker。
+- 未调用 Binance signed endpoint。
+- 未提交、取消或替换真实订单。
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未运行 Graphify full rebuild。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+Graphify 状态：
+
+- 当前 issue workspace 未发现 `graphify-out/*` 可读取上下文。
+- 已读取 `docs/automation/graphify-resource-graph-scope.md`。
+- 按本轮 workflow，Graphify post-merge resource graph refresh 由 symphony-issue host-side `before_remove` 在持久仓库 `/Users/mac/Documents/MTPRO` 执行；child Codex 本轮未运行 Graphify full rebuild。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test` | 通过 | 39 个 XCTest 通过，新增 Dashboard ViewModel source contract、读模型映射和状态快照测试 |
+| `bash checks/run.sh` | 通过 | `git diff --check` 和 `swift test` 通过，39 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+新增测试：
+
+- Dashboard ViewModel stable read model source contract 测试。
+- Read model projection maps all dashboard sections 测试。
+- Dashboard ViewModel Codable deterministic state snapshot 测试。
+
+Pre-PR Codex Code Review：
+
+| 检查项 | 结果 | 说明 |
+| --- | --- | --- |
+| Diff scope | 通过 | 变更集中在 `MTPROApp`、App tests、contract 文档、validation plan 和验证日志；`Package.swift` 仅移除 App 对 adapter 直接依赖并补测试依赖 |
+| Issue scope | 通过 | 覆盖 MTP-14 要求的 ViewModel 契约、读模型映射和状态契约测试 |
+| Forbidden paths | 通过 | `.codex/*` 被 `.gitignore` 忽略，`graphify-out/*` 不存在且未进入 PR |
+| Live / signed endpoint boundary | 通过 | 未新增 API key、signature、account endpoint、listenKey、真实订单动作或 Live adapter |
+| Validation credibility | 通过 | 默认项目级 `bash checks/run.sh` 已通过 |
+| Graphify boundary | 通过 | 未运行 full rebuild，未提交 `graphify-out/*`，post-merge refresh 交由 host-side workflow |
+| Handoff marker | 待 PR 后完成 | ready-for-review PR 和 auto-merge handoff 后写入 `.codex/symphony-issue-handoff.json` |

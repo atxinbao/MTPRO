@@ -38,6 +38,9 @@ swift test
 - `1m` / `5m` timeframe。
 - Event Log / SQLite / DuckDB persistence boundary。
 - Trader Workstation Dashboard 信息架构。
+- Trader Workstation Dashboard ViewModel contract。
+- Dashboard read model to ViewModel mapping。
+- Dashboard ViewModel state snapshot contract。
 
 ## 后续验证
 
@@ -49,6 +52,26 @@ swift test
 - risk decision tests。
 - persistence projection rebuild tests。
 - UI ViewModel snapshot tests。
+
+## MTP-14 当前验证补充
+
+日期：2026-05-17
+
+执行者：Codex
+
+新增本地 XCTest 覆盖：
+
+- `MTPRODashboardViewModel` 的 Market / Strategy / Backtest / Paper / Risk / Portfolio / Events source contract。
+- SQLite runtime projection 和 DuckDB analytical projection 到 Dashboard read model / ViewModel 的字段映射。
+- Dashboard ViewModel Codable round-trip 和稳定状态快照。
+
+边界验证：
+
+- ViewModel source contract 明确 `exposesDatabaseTables == false`。
+- ViewModel source contract 明确 `exposesORMModels == false`。
+- ViewModel source contract 明确 `exposesRuntimeObjects == false`。
+- ViewModel source contract 明确 `callsBinanceAdapter == false`。
+- ViewModel source contract 明确 `providesLiveOrderAction == false`。
 
 ## 当前禁止
 
