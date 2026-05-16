@@ -124,3 +124,40 @@ DuckDB analytical projection 当前可投影字段：
 - 当前不把 database table、ORM model 或 runtime object 暴露给前端。
 - 当前不引入真实 SQLite / DuckDB driver。
 - 当前不包含 Live execution persistence。
+
+## MTP-14 Dashboard ViewModel 观察面
+
+日期：2026-05-17
+
+执行者：Codex
+
+Trader Workstation Dashboard 在当前事项中以 App 层 read model 聚合为唯一 ViewModel 输入。
+
+当前 App 层 read model：
+
+- `MTPROMarketReadModel`：由 DuckDB analytical projection 中的 market bars、trades、best bid / ask、order book snapshots 和 deltas 构建。
+- `MTPROStrategyReadModel`：由 analytical signal timeline 构建。
+- `MTPROBacktestReadModel`：由 backtest run projection 和 backtest signal timeline 构建。
+- `MTPROPaperReadModel`：由 SQLite paper session runtime projection 构建。
+- `MTPRORiskReadModel`：由 SQLite rejected paper order projection 构建。
+- `MTPROPortfolioReadModel`：由 SQLite portfolio runtime projection 构建。
+- `MTPROEventTimelineReadModel`：由 append-only event timeline 构建。
+
+当前 ViewModel 可投影字段：
+
+- Market：symbols、bar / trade / best bid ask / order book 计数、latest bar close、last applied sequence。
+- Strategy：strategy IDs、signal count、latest signal direction、last applied sequence。
+- Backtest：run IDs、strategy、symbol、timeframe、state、signal count、latest signal direction。
+- Paper：session IDs、strategy、symbol、timeframe、risk profile、paper execution mode、state、signal count。
+- Risk：rejected paper order IDs 和 rejection count。
+- Portfolio：portfolio IDs 和 updated portfolio count。
+- Events：event count、streams 和 last sequence。
+
+边界：
+
+- 当前只定义 SwiftUI 页面前的 ViewModel contract。
+- App target 不再直接依赖 `MTPROAdapters`。
+- 当前不把 database table、ORM model 或 runtime object 暴露给前端。
+- 当前不直接读取 SQLite / DuckDB schema。
+- 当前不调用 Binance adapter。
+- 当前不提供 live order button 或 broker action。
