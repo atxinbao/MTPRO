@@ -556,7 +556,8 @@ Commit：本轮提交
 
 目的：
 - 将 MTPRO PR 模板补齐 `symphony-issue` handoff evidence。
-- 将 Linear `MTP-8` 描述从旧 Authorized Merge / Graphify read-only-only 语义更新为 AEP v2 `symphony-issue` / GitHub PR Automation 语义。
+- 将 Linear `MTP-8` 至 `MTP-15` 描述统一对齐为 AEP v2 `symphony-issue` / GitHub PR Automation / Graphify scoped update 语义。
+- 移除 future issues 中的旧 Authorized Merge / Graphify no-update 表述，并保留 Backlog 执行锁定。
 
 文件范围：
 - Created：无
@@ -570,7 +571,7 @@ Commit：本轮提交
 - 未启动 Symphony。
 - 未运行 Graphify update。
 - 未创建 Linear Project / Issue。
-- 仅更新 Linear `MTP-8` 描述，不修改 Linear status。
+- 仅更新 Linear `MTP-8` 至 `MTP-15` 描述，不修改 Linear status。
 - 未提交 `.codex/*`。
 - 未提交 `graphify-out/*`。
 
@@ -580,3 +581,4 @@ Commit：本轮提交
 | --- | --- | --- |
 | `git diff --check` | 通过 | 无 whitespace 问题 |
 | `bash checks/run.sh` | 通过 | `swift test` 通过 |
+| Linear issue description consistency check | 通过 | `MTP-8` 至 `MTP-15` 无旧 Authorized Merge / Graphify no-update 语义，并包含 handoff marker、Graphify scoped update 和 GitHub auto-merge handoff 要求 |
