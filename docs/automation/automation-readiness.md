@@ -8,8 +8,6 @@
 
 MTPRO 已完成项目初始化、Bootstrap PR human merge、Linear Project setup 和 GitHub PR Automation setup。
 
-MTPRO 项目级决策：不创建单独的 test-mode onboarding Project / Issues。
-
 后续真实 PR，包括当前 `MTP-8` 的 PR，使用已验证的 GitHub PR Automation 链路：
 
 ```text
@@ -42,10 +40,10 @@ Codex creates ready-for-review PR
 | 阶段 | 当前状态 | 通过条件 | 阻塞 / 边界 |
 | --- | --- | --- | --- |
 | 1. Human Project Planning | 已完成 | Project `MTPRO 引导` 和 issue 顺序已确认 | 不自动创建下一 Project |
-| 2. Linear Project Automation | 准备中 | 当前仅 `MTP-8` 为 Todo | Linear Agent formal mode 尚未启用；Codex 不修改 Linear |
-| 3. Symphony Issue Automation | 未启动 | 本机 workflow 已准备 | 用户明确授权前不启动 Symphony |
+| 2. symphony-project | 准备中 | 当前仅 `MTP-8` 为 Todo | symphony-project normal mode 尚未启用；Codex 不修改 Linear |
+| 3. symphony-issue | 未启动 | 本机 workflow 已准备 | 用户明确授权前不启动 symphony-issue |
 | 4. GitHub PR Automation | 已通过环境验证 | PR #3 已验证 checks / auto-merge / branch cleanup | 后续 PR 仍必须通过 required check `checks` |
-| 5. Next Human Project Planning | 未进入 | 当前 Project 全部 issues Done | Codex / Symphony / Linear Agent 不决定下一阶段目标 |
+| 5. Next Human Project Planning | 未进入 | 当前 Project 全部 issues Done | Codex / symphony-issue / symphony-project 不决定下一阶段目标 |
 
 ## 当前 Linear 队列快照
 
@@ -70,7 +68,6 @@ Codex creates ready-for-review PR
 
 ## 当前禁止
 
-- 不创建单独的 test-mode onboarding Project / Issues。
 - 不创建新的 Linear Project / Issue。
 - 不修改 Linear status。
 - 不由 Codex 解锁 `MTP-9`。

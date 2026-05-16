@@ -22,27 +22,23 @@ MTPRO 是用于重构 `macos-trader` 的新独立 macOS 交易研究工作台项
 
 未完成：
 
-- Linear Agent formal mode
-- Symphony Issue Automation 启动
-- Graphify post-execution scoped update
+- symphony-project normal mode
+- symphony-issue 启动
+- Graphify scoped resource relationship graph update
 - Binance 数据接入实现
 - 策略实现
 - 持久化 adapter
 - macOS UI 实现
 
-MTPRO 不创建单独的 test-mode onboarding Project / Issues。后续 MTP-8 PR 使用已验证的 GitHub PR Automation 链路。
-
 ## AEP v2 正式流程状态
-
-MTPRO 已完成初始化和 Bootstrap 合并，不再走单独的 onboarding test。
 
 当前项目按 AEP v2 正式流程推进：
 
 | 阶段 | MTPRO 当前状态 | 责任边界 |
 | --- | --- | --- |
 | 1. Human Project Planning | 已完成 | Human 已确认 Project `MTPRO 引导`、issue 顺序和当前阶段目标 |
-| 2. Linear Project Automation | 准备中 | 当前由人工确认 WIP=1；后续接 Linear Agent；Codex 不修改 Linear status |
-| 3. Symphony Issue Automation | 未启动 | 本机 workflow 已准备；未获明确授权前不启动 Symphony |
+| 2. symphony-project | 准备中 | 当前由人工确认 WIP=1；后续由 symphony-project 处理 Project 队列；Codex 不修改 Linear status |
+| 3. symphony-issue | 未启动 | 本机 workflow 已准备；未获明确授权前不启动 symphony-issue |
 | 4. GitHub PR Automation | 已配置 | `checks`、`protect-main`、auto-merge、squash merge、branch cleanup 已可用 |
 | 5. Next Human Project Planning | 未进入 | 当前 Project 全部 issues Done 后，由 Human 决定下一阶段 |
 
