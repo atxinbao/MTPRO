@@ -88,9 +88,9 @@ Graphify 边界：
 # Post-Issue Ledger / 施工后记账
 
 - [ ] PR merge / Linear bot auto Done 后，预计由 symphony-issue host-side `before_remove` 执行 Post-Issue Ledger。
-- [ ] Post-Issue Ledger 只同步持久本地仓库、刷新 Graphify resource relationship graph，并产生只读下一步观察提示。
+- [ ] Post-Issue Ledger 只同步持久本地仓库、刷新 Graphify resource relationship graph，并写入 `.codex/post-issue-ledger/latest.json` 只读摘要。
 - [ ] 下一步观察提示不授权下一个 issue，不创建 Linear issue，不修改 `ROADMAP.md`。
-- [ ] `graphify-out/*` 仍为本地 ignored output，不进入 PR。
+- [ ] `.codex/post-issue-ledger/*` 和 `graphify-out/*` 仍为本地 ignored output，不进入 PR。
 
 # GitHub PR Automation 门槛
 

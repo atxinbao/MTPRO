@@ -1116,6 +1116,55 @@ Commit：本轮提交
 | `git diff --check` | 通过 | 无 whitespace 问题 |
 | `bash checks/run.sh` | 通过 | `swift test` 通过，24 个 XCTest 通过 |
 
+## Structured Post-Issue Ledger Summary
+
+日期：2026-05-17
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 将 Post-Issue Ledger / 施工后记账从纯 hook 命令说明升级为结构化本地摘要。
+- 明确摘要路径为 `.codex/post-issue-ledger/latest.json`，只供父 Codex / Human 读取。
+- 明确摘要不授权下一 issue，不进入 PR。
+
+文件范围：
+
+- Created：
+  - 无
+- Updated：
+  - `README.md`
+  - `AGENTS.md`
+  - `.github/pull_request_template.md`
+  - `docs/automation/automation-readiness.md`
+  - `docs/automation/parent-codex-supervision.md`
+  - `docs/automation/post-issue-ledger.md`
+  - `verification.md`
+- Deleted：
+  - 无
+
+边界确认：
+
+- 未修改业务代码。
+- 未创建 Linear Project / Issue。
+- 未自动推进 Linear issue。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 未把 ledger summary 写成执行授权。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | 通过 | 无 whitespace 问题 |
+| `bash checks/run.sh` | 通过 | `swift test` 通过，24 个 XCTest 通过 |
+
 ## Parent Codex Automation Supervision Flow
 
 日期：2026-05-16

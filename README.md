@@ -44,7 +44,7 @@ Agent / Codex 只能执行当前唯一 configured executable Linear issue。`ROA
 
 当前唯一 configured executable issue 必须在执行前从 Linear 查询确认；仓库文档不得把某个 issue 永久写成 current issue。
 
-PR merge / Linear bot Done 后，symphony-issue host-side `before_remove` 执行 Post-Issue Ledger / 施工后记账：同步持久本地仓库、刷新 Graphify resource relationship graph，并保留下一步观察提示。观察提示只读，不授权下一个 issue；`graphify-out/*` 仍不进入 PR。详见 `docs/automation/post-issue-ledger.md`。
+PR merge / Linear bot Done 后，symphony-issue host-side `before_remove` 执行 Post-Issue Ledger / 施工后记账：同步持久本地仓库、刷新 Graphify resource relationship graph，并写入本地结构化摘要 `.codex/post-issue-ledger/latest.json`。摘要只读，不授权下一个 issue；`graphify-out/*` 仍不进入 PR。详见 `docs/automation/post-issue-ledger.md`。
 
 Parent Codex Automation Supervision 负责监督 `symphony-issue` 和 child Codex 的执行质量，处理受控 host-side fallback，并把真实失败反馈用于流程迭代。详见 `docs/automation/parent-codex-supervision.md`。
 

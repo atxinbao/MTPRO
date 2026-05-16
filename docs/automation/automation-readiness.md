@@ -35,7 +35,7 @@ Codex creates ready-for-review PR
 | Parent Codex Automation Supervision | 通过 | 父 Codex 负责 Project 级 queue preview、child Codex 监控、代码审查、host-side fallback 和流程迭代建议；只有 Human 明确授权后才可推进 eligible `Backlog` 为唯一 `Todo` |
 | Symphony workflow | 已验证 | 本机 workflow 已跑通 MTP-8 / MTP-9 / MTP-10 的 issue execution path |
 | symphony-issue automation write profile | 通过 | workflow 使用 `dangerFullAccess` turn sandbox 服务 issue workspace 写入、git、PR 和 handoff marker；GitHub token / 网络 / MCP elicitation 阻塞时由 host-side handoff fallback 接管 |
-| Post-Issue Ledger / 施工后记账 | 通过 | PR merge / Linear bot Done 后，由 host-side `before_remove` 在 `/Users/mac/Documents/MTPRO` 同步 main、刷新 Graphify resource relationship graph，并保留只读下一步观察提示；`graphify-out/*` 不进入 PR |
+| Post-Issue Ledger / 施工后记账 | 通过 | PR merge / Linear bot Done 后，由 host-side `before_remove` 在 `/Users/mac/Documents/MTPRO` 同步 main、刷新 Graphify resource relationship graph，并写入 `.codex/post-issue-ledger/latest.json` 只读摘要；`.codex/*` 和 `graphify-out/*` 不进入 PR |
 
 ## AEP v2 正式流程状态
 
@@ -76,7 +76,7 @@ Codex creates ready-for-review PR
 - 不修改 Linear status。
 - 不由 Codex 自动解锁 `MTP-11` 或后续 issue；只有 Human 明确授权后，父 Codex 才可推进 eligible `Backlog` 为唯一 `Todo`。
 - 不启动 Symphony，除非用户明确授权。
-- 不运行 Graphify full rebuild；Post-Issue Ledger / 施工后记账由 symphony-issue host-side `before_remove` 处理，只刷新 resource relationship graph 并保留只读下一步观察提示。
+- 不运行 Graphify full rebuild；Post-Issue Ledger / 施工后记账由 symphony-issue host-side `before_remove` 处理，只刷新 resource relationship graph 并写入只读结构化摘要。
 - 不提交 `graphify-out/*`。
 - 不实现 `LiveExecutionAdapter`。
 - 不调用 Binance signed endpoint。
@@ -89,6 +89,6 @@ Codex creates ready-for-review PR
 - GitHub repo settings 查询
 - GitHub Actions `checks` run 查询
 - Linear Project / Issue 只读查询
-- PR merge / Linear bot Done 后，symphony-issue host-side `before_remove` 在 `/Users/mac/Documents/MTPRO` 执行 Post-Issue Ledger：`git pull --ff-only origin main` 和 `graphify update .`
+- PR merge / Linear bot Done 后，symphony-issue host-side `before_remove` 在 `/Users/mac/Documents/MTPRO` 执行 Post-Issue Ledger，并写入 `.codex/post-issue-ledger/latest.json`
 - 下一步观察提示只读，不授权下一个 issue
 - Graphify source / test directory exclusion check
