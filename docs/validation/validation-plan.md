@@ -21,6 +21,11 @@ swift test
 - Binance public market data adapter contract。
 - Binance public fixture decoding。
 - Binance forbidden capability boundary。
+- EMA cross strategy contract。
+- EMA signal fixture。
+- Backtest event flow。
+- Paper session event flow。
+- Backtest / Paper signal timeline parity。
 - Top 5 USDT universe。
 - `1m` / `5m` timeframe。
 - Event Log / SQLite / DuckDB persistence boundary。

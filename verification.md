@@ -1213,3 +1213,59 @@ Commit：本轮提交
 | --- | --- | --- |
 | `git diff --check` | 通过 | 无 whitespace 问题 |
 | `bash checks/run.sh` | 通过 | `swift test` 通过，24 个 XCTest 通过 |
+
+## MTP-11 EMA 回测与 Paper 一致性契约
+
+日期：2026-05-17
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 实现 EMA cross 策略配置、EMA 信号样本和确定性 signal timeline。
+- 实现 Backtest requested / signalGenerated / completed 事件流。
+- 实现 Paper sessionRequested / signalGenerated / sessionCompleted 事件流。
+- 建立 Backtest / Paper signal timeline parity 验证。
+
+文件范围：
+
+- Created：
+  - 无
+- Updated：
+  - `Sources/MTPROCore/MTPROCore.swift`
+  - `Tests/MTPROCoreTests/MTPROCoreTests.swift`
+  - `docs/contracts/backend-use-case-contract.md`
+  - `docs/contracts/api-contract.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+- Deleted：
+  - 无
+
+边界确认：
+
+- 未实现 Live trading。
+- 未连接 broker。
+- 未提交真实订单。
+- 未调用 Binance signed endpoint。
+- 未实现订单簿失衡策略。
+- 未实现完整 Dashboard 页面。
+- 未实现数据库 adapter。
+- 未修改 Linear status。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/run.sh` | 执行前通过 | 基线 24 个 XCTest 通过 |
+| `swift package clean` | 通过 | 清理 SwiftPM 增量缓存 |
+| `swift test` | 通过 | 28 个 XCTest 通过，新增 EMA fixture、回测事件流、Paper 事件流和 parity 测试 |
+| `bash checks/run.sh` | 通过 | `git diff --check` 通过；`swift test` 28 个 XCTest 通过；输出 `MTPRO checks passed.` |
