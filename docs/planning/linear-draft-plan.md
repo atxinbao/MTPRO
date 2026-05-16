@@ -42,11 +42,10 @@
 - 本文档不是执行授权。
 - 已获得人工确认并完成 Linear Setup。
 - Linear 已成为执行事实源；当前执行门槛是同一 Project 中唯一 configured executable issue。
-- Symphony 只能调度当前唯一可执行 Linear 事项。
+- symphony-issue 只能调度当前唯一可执行 Linear 事项。
 - Codex 执行代理只创建 PR，不合并 PR。
 - PR 合并由 GitHub PR Automation 处理。
 - Graphify 在默认流程中只能作为只读上下文。
-- MTPRO 不创建单独的 test-mode onboarding Project / Issues。
 - `ROADMAP.md` 不授权执行。
 
 ## AEP v2 流程映射
@@ -54,8 +53,8 @@
 | AEP 阶段 | MTPRO 映射 | 当前状态 |
 | --- | --- | --- |
 | 1. Human Project Planning | 本文档和 Linear Project `MTPRO 引导` | 已完成 |
-| 2. Linear Project Automation | 当前 Project 中 WIP=1 的 issue 队列 | 准备中，后续接 Linear Agent |
-| 3. Symphony Issue Automation | `/Users/mac/code/symphony-workflows/mtpro-aep-v2.md` | 未启动 |
+| 2. symphony-project | 当前 Project 中 WIP=1 的 issue 队列 | 准备中，后续接 symphony-project |
+| 3. symphony-issue | `/Users/mac/code/symphony-workflows/mtpro-aep-v2.md` | 未启动 |
 | 4. GitHub PR Automation | GitHub `checks`、`protect-main`、auto-merge、branch cleanup | 已配置 |
 | 5. Next Human Project Planning | 当前 Project 全部 Done 后的新阶段规划 | 未进入 |
 
@@ -65,7 +64,7 @@
 MTP-8 核心领域模型与事件日志契约
 ```
 
-`MTP-9` 到 `MTP-15` 必须保持 `Backlog`，直到 Linear Project Automation 根据前序 Done evidence 推进。
+`MTP-9` 到 `MTP-15` 必须保持 `Backlog`，直到 symphony-project 根据前序 Done evidence 推进。
 
 ## Linear 项目草案
 
@@ -87,7 +86,6 @@ MTP-8 核心领域模型与事件日志契约
 | Human Review | 已确认 | 用户已在 2026-05-14 确认草案 |
 | Linear Setup | 已完成 | 已创建 Project `MTPRO 引导`、9 个里程碑和 `MTP-7` 到 `MTP-15` |
 | Automation Readiness | 已通过 | GitHub PR Automation、WIP=1、Graphify 只读边界、GitHub remote 和 GitHub + Linear 关联已确认 |
-| Test-mode onboarding Project / Issues | 不适用 | MTPRO 不创建单独 test Project / test Issues，下一次真实 PR 验证 GitHub PR Automation |
 | 是否允许开发执行 | 是，仅限当前唯一 issue | 当前仅 `MTP-8` 为 configured executable issue |
 
 ## 里程碑

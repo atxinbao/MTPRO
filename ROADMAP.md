@@ -4,7 +4,7 @@ ROADMAP 只定义推进顺序，不授权执行。
 
 正式执行必须等待 Linear 中唯一 configured executable issue，并按 GitHub PR Automation 验证合并。
 
-MTPRO 不创建单独的 test-mode onboarding Project / Issues。后续真实 issue PR 使用已验证的 GitHub PR Automation 链路。
+后续真实 issue PR 使用已验证的 GitHub PR Automation 链路。
 
 ## 阶段
 
@@ -25,7 +25,7 @@ MTPRO 不创建单独的 test-mode onboarding Project / Issues。后续真实 is
 1. 以 `MTP-8` 作为当前唯一 configured executable issue。
 2. 执行前确认 scope、validation、evidence 和 Graphify context 状态。
 3. 创建真实 PR，并用该 PR 验证 GitHub PR Automation。
-4. PR merge / Linear bot auto Done 后，再由 Linear Project Automation 判断下一 issue。
+4. PR merge / Linear bot auto Done 后，再由 symphony-project 判断下一 issue。
 
 `MTP-9` 到 `MTP-15` 保持 `Backlog`，不得由 Codex 解锁。
 
@@ -34,7 +34,7 @@ MTPRO 不创建单独的 test-mode onboarding Project / Issues。后续真实 is
 | AEP 阶段 | MTPRO 状态 | 下一动作 |
 | --- | --- | --- |
 | 1. Human Project Planning | 已完成 | 不再修改当前 Project 目标，除非 Human 重新规划 |
-| 2. Linear Project Automation | 待接 Linear Agent | 当前人工确认 `MTP-8` 为唯一 Todo |
-| 3. Symphony Issue Automation | 未启动 | 用户明确授权后，才能启动 MTPRO workflow |
+| 2. symphony-project | 待接自动化 | 当前人工确认 `MTP-8` 为唯一 Todo |
+| 3. symphony-issue | 未启动 | 用户明确授权后，才能启动 MTPRO workflow |
 | 4. GitHub PR Automation | 已配置 | 下一个真实 PR 继续验证 checks / auto-merge / branch cleanup |
 | 5. Next Human Project Planning | 未进入 | 当前 Project 全部 Done 后再进入 |
