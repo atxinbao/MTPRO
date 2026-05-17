@@ -1927,3 +1927,47 @@ Commit：本轮提交
 | --- | --- | --- |
 | `git diff --check` | pass | Codex use-cases alignment 文档和检查更新无空白问题。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+## Team Role Map Alignment
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 按 Codex use cases 的 Team 视角完善 MTPRO 项目角色图。
+- 补齐 Product / Design / Engineering / Finance / Operations / QA 的职责映射。
+- 新增 Finance / Trading Domain Analyst、Product Designer、Frontend / App Designer 和 Automation / Runtime Operations Engineer 边界。
+- 将交易语义验证、fees / slippage、Backtest / Paper parity 和 runtime readiness 纳入角色和验证规则。
+
+文件范围：
+
+- Updated：
+  - `README.md`
+  - `AGENTS.md`
+  - `docs/planning/project-role-map.md`
+  - `docs/validation/validation-plan.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未运行 Graphify update / full rebuild。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 未修改业务代码。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Team role map alignment 无空白问题。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |

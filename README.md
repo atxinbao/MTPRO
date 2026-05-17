@@ -82,6 +82,7 @@ Tests/
 - `ROADMAP.md`：阶段推进顺序。
 - `docs/product/product-surface-map.md`：产品面。
 - `docs/contracts/`：contract-first 输入。
+- `docs/planning/project-role-map.md`：项目角色覆盖地图，按 Product / Design / Engineering / Finance / Operations / QA 记录职责边界。
 - `docs/validation/validation-plan.md`：验证计划。
 - `docs/automation/parent-codex-supervision.md`：父 Codex 自动化监督职责。
 - `docs/automation/codex-use-cases-alignment.md`：Codex 官方 use cases 到 MTPRO 的落地映射。

@@ -39,6 +39,7 @@ Agent 开始工作前必须读取：
 - 执行当前唯一 configured executable issue 的明确 scope。
 - 维护项目定义文档、contract-first 文档和 SwiftPM skeleton。
 - 维护 `docs/planning/project-role-map.md`，用于记录系统架构、前端设计、后端开发、数据 / 持久化、质量验证、部署与运营等能力角色覆盖情况。
+- 维护 Product / Design / Engineering / Finance / Operations / QA 的 team role map，尤其是 Finance / Trading Domain、Product / Design 分工、Runtime Operations 和 Trading validation。
 - 运行本地验证：`bash checks/run.sh`。
 - Post-Issue Ledger / 施工后记账由 symphony-issue host-side `before_remove` 在 PR merge / Linear bot Done 后执行：同步持久本地仓库、刷新 Graphify resource relationship graph，并写入本地结构化摘要 `.codex/post-issue-ledger/latest.json`；如果环境不可用，必须记录原因且不提交 `graphify-out/*`。
 - 下一步观察提示不授权执行，不得自动推进下一个 issue，不得创建 Linear issue，不得修改 `ROADMAP.md`。
@@ -57,6 +58,7 @@ Agent 开始工作前必须读取：
 - 不提交 `graphify-out/*`。
 - 不实现 LiveExecutionAdapter。
 - 不调用 Binance signed endpoint。
+- 不绕过 Finance / Trading Domain 边界；策略、risk、fees、slippage、Backtest / Paper parity 相关变更必须保留交易语义验证。
 
 ## AEP v2 职责地图
 
@@ -70,7 +72,7 @@ Agent 开始工作前必须读取：
 
 Parent Codex 监督边界详见 `docs/automation/parent-codex-supervision.md`。
 
-项目能力角色地图见 `docs/planning/project-role-map.md`。该文件只服务 Human Project Planning 和阶段复盘，不授权执行，不替代 Linear Project / Issue。
+项目能力角色地图见 `docs/planning/project-role-map.md`。该文件按 Product / Design / Engineering / Finance / Operations / QA 维护 MTPRO 角色覆盖，只服务 Human Project Planning 和阶段复盘，不授权执行，不替代 Linear Project / Issue。
 
 ## Codex Execution Agent 流程
 
