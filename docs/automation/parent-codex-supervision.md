@@ -53,14 +53,47 @@ Linear Project 队列观察
 
 1. 读取 Linear Project 队列，只做当前 Project 的只读 queue preview。
 2. 检查 WIP=1，确认同一 Project 中最多一个 configured executable issue。
-3. 在 Human 明确授权后，将 eligible `Backlog` issue 推进为唯一 `Todo`。
-4. 监控 `symphony-issue` dashboard、日志、workspace 和 terminal state。
-5. 监控 child Codex 是否只按当前 Linear issue execution contract 执行。
-6. 审查 child Codex 生成的 diff、validation、PR body 和 evidence chain。
-7. 检查 ready-for-review PR、GitHub checks、auto-merge handoff、branch cleanup 和 Linear bot Done。
-8. 在 child Codex 被权限、网络或工具交互阻塞时执行 host-side fallback。
-9. 在 PR merge / Linear bot Done 后核对 Post-Issue Ledger / 施工后记账结构化摘要。
-10. 基于真实失败、阻塞和重复人工步骤，提出流程改进建议。
+3. 在首个或下一个 issue 进入 `Todo` 前，确认 Linear Project / Issue 描述格式已统一为执行合同格式。
+4. 在 Human 明确授权后，将 eligible `Backlog` issue 推进为唯一 `Todo`。
+5. 监控 `symphony-issue` dashboard、日志、workspace 和 terminal state。
+6. 监控 child Codex 是否只按当前 Linear issue execution contract 执行。
+7. 审查 child Codex 生成的 diff、validation、PR body 和 evidence chain。
+8. 检查 ready-for-review PR、GitHub checks、auto-merge handoff、branch cleanup 和 Linear bot Done。
+9. 在 child Codex 被权限、网络或工具交互阻塞时执行 host-side fallback。
+10. 在 PR merge / Linear bot Done 后核对 Post-Issue Ledger / 施工后记账结构化摘要。
+11. 基于真实失败、阻塞和重复人工步骤，提出流程改进建议。
+
+## Linear Project / Issue 格式 Gate
+
+Human Project Planning 写入 Linear 后，父 Codex 必须在第一个 `Todo` 前做一次只读格式核对。
+
+核对内容：
+
+- Project description 包含 Goal、Scope、Non-goals、Issue Order、Dependencies、Validation Requirements、Evidence Requirements、WIP=1 和 Current State。
+- 每个 issue description 包含 Goal、Scope、Non-goals、Codex Instructions、Validation、Boundary、PR Requirements、Dependencies 和 Initial Linear State。
+- 所有 issue 初始状态仍为 `Backlog` 或等价非可执行状态。
+- First executable candidate 没有在 Human 授权前进入 `Todo`。
+
+格式 Gate 只确认 Linear issue 可作为执行合同，不授权执行，不修改 Linear status，不启动 symphony-issue。
+
+## Todo 激活归属
+
+第一个 issue 和后续 issue 的 `Backlog` -> `Todo` 操作都归属父 Codex。
+
+允许条件：
+
+- Human 明确授权具体 issue 进入 `Todo`。
+- 父 Codex queue preview 确认 WIP=1。
+- issue 依赖已满足。
+- issue description 已满足执行合同格式。
+
+禁止：
+
+- Human Planning Facilitator 直接操作 `Todo`。
+- child Codex 操作 `Todo`。
+- symphony-issue 操作 `Backlog` -> `Todo`。
+- GitHub PR Automation 操作 `Todo`。
+- Post-Issue Ledger 的 next-step hints 自动触发 `Todo`。
 
 ## Host-side fallback
 
@@ -91,7 +124,7 @@ Host-side fallback 只能处理当前 issue scope 内的自动化阻塞。
 
 | 对象 | 职责 |
 | --- | --- |
-| Parent Codex | Project 级监督、queue preview、Human 授权后的 `Backlog` -> `Todo`、child Codex 监控、代码审查、host-side fallback、流程迭代建议 |
+| Parent Codex | Project 级监督、Project / Issue 格式 Gate、queue preview、Human 授权后的 `Backlog` -> `Todo`、child Codex 监控、代码审查、host-side fallback、流程迭代建议 |
 | symphony-issue | 唯一 `Todo` issue 的自动执行调度、`Todo` -> `In Progress`、调度 child Codex、handoff 后 `In Progress` -> `In Review` |
 | child Codex | 按当前 Linear issue execution contract 执行、运行 validation、执行 Pre-PR Codex Code Review、创建 PR、启用 GitHub auto-merge handoff |
 | GitHub PR Automation | required checks、auto-merge、squash merge、branch cleanup |

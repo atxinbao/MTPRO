@@ -65,6 +65,102 @@
 - 当前执行事实源：Linear。
 - 阶段审计：`docs/audit/mtpro-guidance-stage-code-audit.md`。
 
+## 下一阶段 Linear Project
+
+- 名称：`MTPRO Runtime Research Workbench v1`
+- 状态：已写入 Linear，Project status 为 `Planned`。
+- Issue range：`MTP-16` 到 `MTP-23`。
+- Current Todo：none。
+- First executable candidate：`MTP-16`，当前仍为 `Backlog`。
+- 格式 Gate：Linear Project / Issue 正文必须在第一个 `Todo` 前统一为 Codex Execution Agent 执行合同格式，并由父 Codex 做只读核对。
+
+该 Project 目标是把 `MTPRO 引导` 阶段形成的契约优先基线推进为阶段性研究工作台闭环：核心领域边界、追加式事件日志、投影适配器、只读行情入口、ingest / replay / projection 串联、macOS 看板壳和“研究 -> 回测 -> 报告”最小路径。
+
+该 Project 不授权 Live trading，不实现 `LiveExecutionAdapter`，不接 signed endpoint，不做真实 broker action，不把数据库 schema 暴露给 UI。
+
+### 下一阶段 issue 顺序
+
+| 顺序 | Linear issue | 目标 |
+| --- | --- | --- |
+| 1 | `MTP-16` | 按领域边界拆分 `Core.swift`，不改变行为 |
+| 2 | `MTP-17` | 新增追加式事件日志文件持久化和重放冒烟测试 |
+| 3 | `MTP-18` | 新增 SQLite 运行时投影适配器最小闭环 |
+| 4 | `MTP-19` | 新增 DuckDB 分析投影适配器最小闭环 |
+| 5 | `MTP-20` | 新增 Binance 公开只读行情客户端边界 |
+| 6 | `MTP-21` | 串联行情 ingest -> event log -> replay -> projection snapshots |
+| 7 | `MTP-22` | 新增绑定视图模型快照的 macOS 看板壳 |
+| 8 | `MTP-23` | 新增“研究 -> 回测 -> 报告”最小路径和阶段证据就绪 |
+
+### 下一阶段依赖
+
+- `MTP-17` blocked by `MTP-16`。
+- `MTP-18` blocked by `MTP-17`。
+- `MTP-19` blocked by `MTP-17`。
+- `MTP-20` blocked by `MTP-16`。
+- `MTP-21` blocked by `MTP-17`, `MTP-18`, `MTP-19`, `MTP-20`。
+- `MTP-22` blocked by `MTP-18`, `MTP-19`, `MTP-21`。
+- `MTP-23` blocked by `MTP-21`, `MTP-22`。
+
+### Project / Issue 格式统一 Gate
+
+Linear 写入后、任何 issue 进入 `Todo` 前，必须先统一 Project / Issue 描述格式。
+
+Project description 必须包含：
+
+- `Goal`
+- `Scope`
+- `Non-goals`
+- `Issue Order`
+- `Dependencies`
+- `Validation Requirements`
+- `Evidence Requirements`
+- `WIP=1`
+- `Current State`
+
+`MTP-16` 到 `MTP-23` 的 Linear issue 正文统一使用以下字段：
+
+- `Goal`
+- `Scope`
+- `Non-goals`
+- `Codex Instructions`
+- `Validation`
+- `Boundary`
+- `PR Requirements`
+- `Dependencies`
+- `Initial Linear State`
+
+每个 issue 固定包含：
+
+- `This issue is not executable until Human authorizes Todo.`
+- `Run bash checks/run.sh.`
+- `Do not submit .codex/*.`
+- `Do not submit graphify-out/*.`
+- `Run Pre-PR Codex Code Review.`
+- `Use GitHub PR Automation.`
+- `If executed by symphony-issue, provide handoff marker evidence.`
+
+涉及生产代码的 issue 要求 touched production code 必须包含详细中文注释。涉及交易、Binance、persistence 或 report 的 issue 要求不触碰 Live trading、signed endpoint、broker action 或真实订单行为。
+
+格式统一只保证 Linear issue 可作为 Codex Execution Agent 的执行合同，不授权执行，不修改 Linear status，不启动 symphony-issue。
+
+## Todo 激活规则
+
+`MTP-16` 是第一个可执行候选，但当前仍为 `Backlog`。
+
+进入第一个 `Todo` 的顺序必须是：
+
+```text
+Project / Issue 格式统一
+-> 父 Codex 只读 queue preview
+-> Human 明确授权 MTP-16 -> Todo
+-> 父 Codex 执行 Backlog -> Todo
+-> symphony-issue 调度唯一 Todo
+```
+
+只有父 Codex 可以在 Human 明确授权后操作 `Backlog` -> `Todo`。
+
+Human Planning Facilitator、child Codex、symphony-issue、GitHub PR Automation、Post-Issue Ledger 都不得操作第一个或后续 issue 的 `Backlog` -> `Todo`。
+
 ## 里程碑和 issues
 
 | 顺序 | Linear issue | 目标 |

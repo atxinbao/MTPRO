@@ -26,7 +26,8 @@ Agent 开始工作前必须读取：
 - 当前唯一 configured executable issue 不写死在仓库文档中；执行前必须从 Linear / Parent Codex queue preview 读取，并确认 WIP=1。
 - Linear issue 中已填写的 Scope / Non-goals / Codex Instructions / Validation / Boundary / PR Requirements 是 Codex Execution Agent 的执行合同；子 Codex 按模板字段执行，不二次确认 issue scope，不重新定义边界。
 - Parent Codex Automation Supervision 负责 Project 级 queue preview、child Codex 监控、代码审查、host-side fallback 和流程迭代建议。
-- 父 Codex 只有在 Human 明确授权后，才可将 eligible `Backlog` issue 推进为唯一 `Todo`。
+- 父 Codex 必须在第一个 `Todo` 前核对 Linear Project / Issue 执行合同格式。
+- 第一个 issue 和后续 issue 的 `Backlog` -> `Todo` 操作都只能由父 Codex 在 Human 明确授权后执行。
 - symphony-issue 负责唯一 `Todo` issue 的执行调度、`Todo` -> `In Progress` 和 `In Progress` -> `In Review` 状态推进。
 - GitHub PR Automation 负责 required checks、auto-merge、squash merge、branch cleanup 和 Linear bot auto Done。
 - `.codex/*` 不进入 PR。
