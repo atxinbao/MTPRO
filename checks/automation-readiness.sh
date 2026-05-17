@@ -93,7 +93,7 @@ require_contains "docs/automation/parent-codex-supervision.md" "Project Planning
 require_contains "docs/automation/parent-codex-supervision.md" "active Project pointer"
 require_contains "docs/automation/parent-codex-supervision.md" "mtpro-runtime-research-workbench-v1-222cf4e1965c"
 require_contains "docs/automation/parent-codex-supervision.md" '第一个 issue 和后续 issue 的 `Backlog` -> `Todo` 操作都归属父 Codex'
-require_contains "docs/automation/parent-codex-supervision.md" "Human 明确授权"
+require_contains "docs/automation/parent-codex-supervision.md" "Human 确认 Project / Issue plan"
 require_contains "docs/automation/post-issue-ledger.md" "before_remove"
 require_contains "docs/automation/post-issue-ledger.md" "read_only"
 require_contains "docs/automation/symphony-issue-workflow-template.md" "稳定 workflow 本体"
@@ -148,7 +148,7 @@ require_contains "docs/planning/linear-draft-plan.md" "已写入 Linear 的 issu
 require_contains "docs/planning/linear-draft-plan.md" "不二次确认 issue scope"
 require_contains "docs/planning/linear-draft-plan.md" "Project / Issue 格式统一 Gate"
 require_contains "docs/planning/linear-draft-plan.md" "Project Planning Facilitator"
-require_contains "docs/planning/linear-draft-plan.md" '只有父 Codex 可以在 Human 明确授权后操作 `Backlog` -> `Todo`'
+require_contains "docs/planning/linear-draft-plan.md" '只有父 Codex 可以操作 `Backlog` -> `Todo`'
 
 require_absent ".github/workflows/checks.yml" "pull_request_target"
 

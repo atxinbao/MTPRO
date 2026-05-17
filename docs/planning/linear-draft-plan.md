@@ -41,7 +41,7 @@
 - 当前执行门槛是同一 Project 中唯一 configured executable issue。
 - 已写入 Linear 的 issue 内容是 Codex Execution Agent 的执行合同。
 - 子 Codex 按 Linear issue 模板字段执行，不二次确认 issue scope，不重新定义边界。
-- Parent Codex 只有在 Human 明确授权后，才可把 eligible issue 推进为唯一 `Todo`。
+- Human 确认 Project / Issue plan 并写入 Linear 后，Parent Codex 负责把 eligible issue 自动推进为唯一 `Todo`。
 - symphony-issue 只能调度唯一 `Todo` issue。
 - Codex Execution Agent 只创建 PR 和 auto-merge handoff，不直接 merge PR。
 - GitHub PR Automation 负责 required checks、squash auto-merge、branch cleanup 和 Linear bot auto Done。
@@ -63,10 +63,10 @@
 | 角色 | 负责 | 不负责 |
 | --- | --- | --- |
 | Project Planning Facilitator | 基于 Stage Code Audit、Human 目标和 AEP 模板整理 `MTPRO Runtime Research Workbench v1` 的 Project / Issue 草案；Human 授权后可写入 Linear Project / Issues | 不执行 issue，不操作 `Backlog` -> `Todo`，不启动 symphony-issue，不创建 PR |
-| Parent Codex Automation Supervision | 在 Linear 写入后核对 Project / Issue 执行合同格式，做 queue preview，在 Human 授权后将唯一 eligible issue 从 `Backlog` 推进为 `Todo` | 不默认写业务代码，不创建新 Project / Issue，不决定下一阶段目标，不直接 merge PR |
+| Parent Codex Automation Supervision | 在 Linear 写入后核对 Project / Issue 执行合同格式，做 queue preview，自动将唯一 eligible issue 从 `Backlog` 推进为 `Todo` | 不默认写业务代码，不创建新 Project / Issue，不决定下一阶段目标，不直接 merge PR |
 | Child Codex Execution Agent | 被 symphony-issue 调度后，只执行当前唯一 Linear issue scope，运行 validation，做 PR 前代码审查，创建 PR 和 auto-merge handoff | 不修改 Linear status，不操作 `Backlog` -> `Todo`，不决定下一 issue，不合并自己 PR |
 
-Project Planning Facilitator 已完成本轮 Project / Issue 写入后，所有 `MTP-16` 至 `MTP-23` 必须保持 `Backlog`，直到 Parent Codex queue preview 通过且 Human 明确授权某个 issue 进入 `Todo`。
+Project Planning Facilitator 已完成本轮 Project / Issue 写入后，所有 `MTP-16` 至 `MTP-23` 必须初始保持 `Backlog`。进入 Parent Codex 后，父 Codex 按 queue preview、WIP=1、依赖、previous issue Done 和执行合同格式 Gate 自动推进唯一 eligible issue 进入 `Todo`。
 
 ## Linear Project
 
@@ -80,8 +80,8 @@ Project Planning Facilitator 已完成本轮 Project / Issue 写入后，所有 
 - 名称：`MTPRO Runtime Research Workbench v1`
 - 状态：已写入 Linear，Project status 为 `Planned`。
 - Issue range：`MTP-16` 到 `MTP-23`。
-- Current Todo：none。
-- First executable candidate：`MTP-16`，当前仍为 `Backlog`。
+- Current Todo：从 Linear 实时读取。
+- Next eligible candidate：由 Parent Codex queue preview 从 Linear 实时判断；`MTP-16` 已完成后，应优先检查 `MTP-17`。
 - 格式 Gate：Linear Project / Issue 正文必须在第一个 `Todo` 前统一为 Codex Execution Agent 执行合同格式，并由父 Codex 做只读核对。
 
 该 Project 目标是把 `MTPRO 引导` 阶段形成的契约优先基线推进为阶段性研究工作台闭环：核心领域边界、追加式事件日志、投影适配器、只读行情入口、ingest / replay / projection 串联、macOS 看板壳和“研究 -> 回测 -> 报告”最小路径。
@@ -141,7 +141,7 @@ Project description 必须包含：
 
 每个 issue 固定包含：
 
-- `This issue is not executable until Human authorizes Todo.`
+- `This issue is executable only when Parent Codex queue preflight passes and it is the unique eligible Todo candidate.`
 - `Run bash checks/run.sh.`
 - `Do not submit .codex/*.`
 - `Do not submit graphify-out/*.`
@@ -155,19 +155,19 @@ Project description 必须包含：
 
 ## Todo 激活规则
 
-`MTP-16` 是第一个可执行候选，但当前仍为 `Backlog`。
+`MTP-16` 是本 Project 的第一个可执行候选，现已完成。后续 `Todo` 由父 Codex 按 Linear 实时状态、依赖和 queue preflight 自动判断。
 
-进入第一个 `Todo` 的顺序必须是：
+进入 `Todo` 的顺序必须是：
 
 ```text
 Project / Issue 格式统一
--> 父 Codex 只读 queue preview
--> Human 明确授权 MTP-16 -> Todo
--> 父 Codex 执行 Backlog -> Todo
+-> 父 Codex queue preview
+-> 父 Codex 确认 WIP=1 / dependencies / previous issue Done / execution contract
+-> 父 Codex 自动执行 eligible Backlog -> Todo
 -> symphony-issue 调度唯一 Todo
 ```
 
-只有父 Codex 可以在 Human 明确授权后操作 `Backlog` -> `Todo`。
+只有父 Codex 可以操作 `Backlog` -> `Todo`。该操作不需要每个 issue 再等待 Human 授权，但必须发生在 Human-approved Project / Issue plan 内，并通过 queue preflight。
 
 Human Planning Facilitator、child Codex、symphony-issue、GitHub PR Automation、Post-Issue Ledger 都不得操作第一个或后续 issue 的 `Backlog` -> `Todo`。
 
