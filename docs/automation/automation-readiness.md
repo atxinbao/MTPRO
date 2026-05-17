@@ -29,7 +29,7 @@ MTPRO 已完成 `MTPRO 引导` Project 的自动化基线验证。
 
 | 阶段 | 状态 | 边界 |
 | --- | --- | --- |
-| Human Project Planning | 下一 Project 前置 | Human 决定阶段目标、Project 和 issue 顺序 |
+| Project Planning Facilitator / Human Project Planning | 下一 Project 前置 | Human 决定阶段目标；Planning Facilitator 整理 Project / Issue 草案、顺序、依赖、validation 和 evidence，并保持 issues 为 `Backlog` |
 | Parent Codex Automation Supervision | 当前 Project 级监督方案 | 不替代 Human，不直接 merge PR，不自动创建下一 Project |
 | symphony-issue | issue 级调度 | 只调度唯一 `Todo` issue |
 | GitHub PR Automation | 已验证 | PR 合并由 GitHub required checks / auto-merge 执行 |
@@ -39,6 +39,7 @@ MTPRO 已完成 `MTPRO 引导` Project 的自动化基线验证。
 
 - `checks/run.sh` 是本地统一验证入口。
 - `.github/pull_request_template.md` 必须保留 WIP=1、Graphify、handoff、Parent Codex、Post-Issue Ledger、GitHub PR Automation、Pre-PR Code Review 和 verified operations 证据项。
+- Project Planning Facilitator 不得操作 `Backlog` -> `Todo`；Todo 激活只归属父 Codex，并且必须有 Human 明确授权。
 - `.gitignore` 必须排除 `.codex/` 和 `graphify-out/`。
 - `.graphifyignore` 必须排除 `.codex/`、`graphify-out/`、`Sources/` 和 `Tests/`。
 - Graphify 默认是 resource relationship graph，不是 source code graph。

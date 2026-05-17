@@ -52,11 +52,21 @@
 
 | AEP 阶段 | MTPRO 映射 |
 | --- | --- |
-| Human Project Planning | Human 确认 Linear Project、阶段目标和 issue 顺序 |
+| Project Planning Facilitator / Human Project Planning | Human 确认阶段目标；Planning Facilitator 整理 Project / Issue 草案、顺序、依赖、validation、evidence 和 first executable candidate |
 | Parent Codex Automation Supervision | queue preview、child Codex 监控、代码审查、host-side fallback、stage audit |
 | symphony-issue | 唯一 `Todo` issue 的执行调度 |
 | GitHub PR Automation | checks、auto-merge、squash merge、branch cleanup、Linear bot auto Done |
 | Next Human Project Planning | 当前 Project 全部 Done 后的新阶段规划 |
+
+## 三角色职责边界
+
+| 角色 | 负责 | 不负责 |
+| --- | --- | --- |
+| Project Planning Facilitator | 基于 Stage Code Audit、Human 目标和 AEP 模板整理 `MTPRO Runtime Research Workbench v1` 的 Project / Issue 草案；Human 授权后可写入 Linear Project / Issues | 不执行 issue，不操作 `Backlog` -> `Todo`，不启动 symphony-issue，不创建 PR |
+| Parent Codex Automation Supervision | 在 Linear 写入后核对 Project / Issue 执行合同格式，做 queue preview，在 Human 授权后将唯一 eligible issue 从 `Backlog` 推进为 `Todo` | 不默认写业务代码，不创建新 Project / Issue，不决定下一阶段目标，不直接 merge PR |
+| Child Codex Execution Agent | 被 symphony-issue 调度后，只执行当前唯一 Linear issue scope，运行 validation，做 PR 前代码审查，创建 PR 和 auto-merge handoff | 不修改 Linear status，不操作 `Backlog` -> `Todo`，不决定下一 issue，不合并自己 PR |
+
+Project Planning Facilitator 已完成本轮 Project / Issue 写入后，所有 `MTP-16` 至 `MTP-23` 必须保持 `Backlog`，直到 Parent Codex queue preview 通过且 Human 明确授权某个 issue 进入 `Todo`。
 
 ## Linear Project
 
