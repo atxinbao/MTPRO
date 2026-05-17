@@ -51,6 +51,21 @@ bash checks/run.sh
 - Graphify resource relationship graph boundary contract。
 - `.codex/*` 与 `graphify-out/*` 本地输出排除契约。
 
+## Finance / Trading Validation
+
+策略、market data、Backtest、Paper、risk 或 portfolio 相关 issue 必须补充交易语义验证。
+
+最低要求：
+
+- 明确策略假设。
+- 明确 market data 时间粒度和 symbol universe。
+- 明确 fees / slippage 是否进入当前 scope。
+- 明确 Backtest / Paper parity 验收方式。
+- 明确 risk metric 或 risk blocker。
+- 明确不触碰 Live trading、signed endpoint 和真实 broker action。
+
+当前阶段继续使用 XCTest + fixtures 表达交易语义验证，不引入独立 eval 框架。
+
 ## Codex use-cases 对齐后的验证补充
 
 本项目当前新增以下验证治理入口：
