@@ -114,7 +114,7 @@ MTP-22 的 required validation：
 - 验证 shell source 不导入 Runtime / Adapters，也不直接引用数据库实现名或 public market data client 类型。
 - 验证 `swift build --product MTPRODashboard` 可构建 macOS 看板入口。
 - 验证 `MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard` 可输出 read-model-only smoke summary 并退出。
-- 验证 Linux CI 可通过非 SwiftUI fallback 编译 App target 和 AppTests；真实 SwiftUI shell 只在 macOS 本地构建。
+- 验证 Linux CI 可通过非 SwiftUI fallback 编译 App target、executable target 和 AppTests；真实 SwiftUI shell 只在 macOS 本地构建。
 - required validation 不接真实网络、不读取 secret、不连接 broker、不触发真实交易行为。
 
 ## 禁止

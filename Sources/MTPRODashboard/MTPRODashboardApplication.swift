@@ -1,4 +1,5 @@
 import App
+#if canImport(SwiftUI) && os(macOS)
 import Darwin
 import OSLog
 import SwiftUI
@@ -44,3 +45,16 @@ private enum DashboardSmokeRun {
         exit(EXIT_SUCCESS)
     }
 }
+#else
+/// 非 macOS runner 的 executable fallback 只验证 dashboard snapshot contract 可生成。
+///
+/// Linux CI 会在 `swift test` 期间编译 executable target，但不提供 SwiftUI / Darwin；
+/// 该入口不代表可运行 macOS UI，只保留 smoke summary 输出能力，真实窗口仍由 macOS 分支负责。
+@main
+struct MTPRODashboardApplication {
+    static func main() {
+        let snapshot = DashboardShellSnapshot(viewModel: .emptyResearchWorkbench)
+        print(snapshot.smokeSummary)
+    }
+}
+#endif

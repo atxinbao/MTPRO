@@ -2689,4 +2689,5 @@ CI 修复记录：
 
 - GitHub Actions 初次运行失败：Linux runner 编译 `App` target 时不提供 SwiftUI，错误为 `no such module 'SwiftUI'`。
 - 修复方式：`DashboardShell.swift` 保留跨平台 shell snapshot contract；真实 SwiftUI view 只在 `canImport(SwiftUI) && os(macOS)` 分支构建，非 macOS 使用 snapshot-only fallback 供 XCTest 和 CI 验证。
+- 二次修复：SwiftPM Linux `swift test` 仍会编译 executable target，因此 `MTPRODashboardApplication` 也新增非 macOS command-line fallback，避免 unconditional `Darwin` / `SwiftUI` import。
 - `checks/run.sh` 修复为只在 Darwin runner 执行 `swift build --product MTPRODashboard` 和 dashboard smoke run；Linux CI 跳过 macOS-only shell build / smoke 后继续运行 `swift test`。
