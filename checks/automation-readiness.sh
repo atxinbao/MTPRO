@@ -65,18 +65,27 @@ require_contains ".graphifyignore" "Tests/"
 
 require_contains "docs/automation/automation-readiness.md" "MTP-15"
 require_contains "docs/automation/automation-readiness.md" "WIP=1"
+require_contains "docs/automation/automation-readiness.md" "Linear issue execution contract"
+require_contains "docs/automation/automation-readiness.md" "子 Codex 不二次确认 issue scope"
 require_contains "docs/automation/automation-readiness.md" "symphony-issue handoff marker"
 require_contains "docs/automation/automation-readiness.md" "GitHub PR Automation"
 require_contains "docs/automation/graphify-resource-graph-scope.md" "resource relationship graph"
 require_contains "docs/automation/graphify-resource-graph-scope.md" "Post-Issue Ledger"
 require_contains "docs/automation/parent-codex-supervision.md" "host-side fallback"
+require_contains "docs/automation/parent-codex-supervision.md" "Linear issue execution contract"
 require_contains "docs/automation/parent-codex-supervision.md" "Human 明确授权"
 require_contains "docs/automation/post-issue-ledger.md" "before_remove"
 require_contains "docs/automation/post-issue-ledger.md" "read_only"
 
 require_contains "docs/validation/validation-plan.md" "MTP-15 验证矩阵"
+require_contains "docs/validation/validation-plan.md" "Linear issue execution contract"
 require_contains "docs/validation/validation-plan.md" "bash checks/automation-readiness.sh"
 require_contains "docs/validation/validation-plan.md" "bash checks/run.sh"
+
+require_contains "AGENTS.md" "Linear issue 中已填写的 Scope / Non-goals / Codex Instructions / Validation / Boundary / PR Requirements 是 Codex Execution Agent 的执行合同"
+require_contains "AGENTS.md" "不二次确认 issue scope"
+require_contains "docs/planning/linear-draft-plan.md" "已写入 Linear 的 issue 内容是 Codex Execution Agent 的执行合同"
+require_contains "docs/planning/linear-draft-plan.md" "不二次确认 issue scope"
 
 require_absent ".github/workflows/checks.yml" "pull_request_target"
 

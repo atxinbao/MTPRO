@@ -35,6 +35,7 @@ Codex creates ready-for-review PR
 | Automation readiness shell gate | 通过 | `checks/automation-readiness.sh` 检查 workflow、PR 模板、WIP=1、handoff marker、Graphify 边界、ignore 边界和验证文档 |
 | Linear Project | 通过 | Project `MTPRO 引导` |
 | Linear WIP=1 | 通过 | 当前只读查询显示 `MTP-15` 为唯一 active issue；`MTP-14` 已 Done；文档不固定未来 current issue |
+| Linear issue execution contract | 通过 | 当前 Linear issue 中已填写的 Scope / Non-goals / Codex Instructions / Validation / Boundary / PR Requirements 是子 Codex 的执行合同；子 Codex 不二次确认 issue scope，不重新定义边界 |
 | Parent Codex Automation Supervision | 通过 | 父 Codex 负责 Project 级 queue preview、child Codex 监控、代码审查、host-side fallback 和流程迭代建议；只有 Human 明确授权后才可推进 eligible `Backlog` 为唯一 `Todo` |
 | Symphony workflow | 已验证 | 本机 workflow 已跑通 MTP-8 / MTP-9 / MTP-10 的 issue execution path |
 | symphony-issue automation write profile | 通过 | workflow 使用 `dangerFullAccess` turn sandbox 服务 issue workspace 写入、git、PR 和 handoff marker；GitHub token / 网络 / MCP elicitation 阻塞时由 host-side handoff fallback 接管 |
@@ -70,7 +71,7 @@ Codex creates ready-for-review PR
 
 - 只完成 `MTP-15` 验证加固与自动化就绪 scope。
 - 继续使用 GitHub PR Automation 验证 checks、auto-merge、branch cleanup 和 Linear bot auto Done。
-- 在 symphony-issue `dangerFullAccess` automation profile 下完成当前 issue workspace 更新；git commit / push、PR、auto-merge handoff 和本地 handoff marker 可由 child Codex 完成，若被 GitHub token / 网络 / MCP elicitation 阻塞则由 host-side handoff fallback 接管并记录原因。
+- 在 symphony-issue `dangerFullAccess` automation profile 下按当前 Linear issue execution contract 完成当前 issue workspace 更新；git commit / push、PR、auto-merge handoff 和本地 handoff marker 可由 child Codex 完成，若被 GitHub token / 网络 / MCP elicitation 阻塞则由 host-side handoff fallback 接管并记录原因。
 - 父 Codex 监控 `symphony-issue` 和 child Codex，审查 diff / validation / PR evidence，并将真实阻塞反馈到 automation docs。
 - PR merge 后等待 Linear bot auto Done。
 
