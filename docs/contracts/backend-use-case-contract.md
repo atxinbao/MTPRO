@@ -180,3 +180,34 @@ Use Case 输出必须先进入 read model projection，再供 UI 使用。
 - Binance 网络客户端。
 - UI 页面。
 - Live trading、signed endpoint、broker action 或真实订单行为。
+
+## MTP-18 SQLite 运行时投影适配器契约
+
+日期：2026-05-18
+
+执行者：Codex
+
+`ReplayEvents` 在本事项中可以把 replay envelope 重建为 SQLite runtime projection adapter 的最小读写闭环。
+
+契约结构：
+
+- `SQLiteRuntimeProjectionAdapter.rebuild(from:)`：复用 `SQLiteRuntimeProjectionStore.project` 从 replay envelope 生成稳定 runtime snapshot，并用 SQLite3 事务替换私有投影记录。
+- `SQLiteRuntimeProjectionAdapter.querySnapshot()`：从 SQLite 私有投影存储查询回 `SQLiteRuntimeProjectionSnapshot`。
+- `PersistenceReplayBoundary.rebuildSQLiteRuntimeProjection(from:using:)`：把 `EventReplayCommand`、append-only replay 和 SQLite adapter 串成最小闭环。
+
+契约要求：
+
+- Event Log / replay envelope 仍是事实源。
+- SQLite 只保存 paper session、risk rejection、portfolio projection 的最小运行时投影。
+- 查询输出只能是稳定 `SQLiteRuntimeProjectionSnapshot`。
+- SQLite 表名、列名和 payload 编码是 `Persistence` 私有实现细节，不能暴露给 UI、API 或 ViewModel contract。
+
+本契约不包含：
+
+- 完整 schema 设计。
+- migration framework。
+- ORM。
+- DuckDB adapter。
+- Binance 网络客户端。
+- UI 页面。
+- Live trading、signed endpoint、broker action 或真实订单行为。

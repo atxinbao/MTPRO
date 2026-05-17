@@ -31,6 +31,7 @@ bash checks/run.sh
 - Event Log replay persistence boundary。
 - File-backed append-only event log persistence boundary。
 - SQLite runtime projection boundary。
+- SQLite runtime projection adapter 最小 rebuild / query snapshot 闭环。
 - DuckDB analytical projection boundary。
 - Trader Workstation Dashboard ViewModel contract。
 - GitHub workflow / PR evidence / WIP=1 / handoff marker / Graphify 边界。

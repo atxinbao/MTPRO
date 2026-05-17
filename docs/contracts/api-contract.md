@@ -143,3 +143,34 @@ MTPRO 第一版没有 HTTP API。
 - 不新增 live order command。
 - 不新增 broker account command。
 - 不新增 signed endpoint command。
+
+## MTP-18 SQLite Runtime Projection Adapter 细化
+
+日期：2026-05-18
+
+执行者：Codex
+
+`EventReplayCommand` 在 MTP-18 中可以通过 SQLite runtime projection adapter 重建并查询运行时投影：
+
+- `PersistenceReplayBoundary.rebuildSQLiteRuntimeProjection(from:using:)`
+- `SQLiteRuntimeProjectionAdapter.rebuild(from: [EventEnvelope])`
+- `SQLiteRuntimeProjectionAdapter.rebuild(from: EventReplayResult)`
+- `SQLiteRuntimeProjectionAdapter.querySnapshot()`
+
+新增 adapter 契约：
+
+- 输入只能是 append-only event log replay 后的 `EventEnvelope` 集合。
+- 输出只能是 `SQLiteRuntimeProjectionSnapshot`。
+- SQLite 只作为 Paper / Risk / Portfolio runtime projection 的私有 adapter。
+- UI / API / ViewModel 不得依赖 SQLite schema、SQL statement 或 ORM model。
+
+边界确认：
+
+- 不新增 HTTP API。
+- 不新增 database table API。
+- 不新增 migration command。
+- 不新增 ORM contract。
+- 不新增 DuckDB adapter command。
+- 不新增 live order command。
+- 不新增 broker account command。
+- 不新增 signed endpoint command。

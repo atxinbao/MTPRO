@@ -1,5 +1,6 @@
 import Foundation
 import Core
+import CSQLite
 
 public struct PersistenceBoundary: Equatable, Sendable {
     public let factSource: String
@@ -141,6 +142,17 @@ public struct PersistenceReplayBoundary: Equatable, Sendable {
     ) -> SQLiteRuntimeProjectionSnapshot {
         let replay = replay(command)
         return SQLiteRuntimeProjectionStore.project(replay.envelopes)
+    }
+
+    /// 使用 SQLite 运行投影适配器重建当前 replay 范围内的运行时快照。
+    /// 输入仍然是 append-only event log 的 replay envelope；SQLite 只作为私有投影存储，
+    /// 输出仍是稳定 `SQLiteRuntimeProjectionSnapshot`，不会把表结构暴露给 UI 或 API。
+    public func rebuildSQLiteRuntimeProjection(
+        from command: EventReplayCommand,
+        using adapter: SQLiteRuntimeProjectionAdapter
+    ) throws -> SQLiteRuntimeProjectionSnapshot {
+        let replay = replay(command)
+        return try adapter.rebuild(from: replay)
     }
 
     public func rebuildDuckDBAnalyticalProjection(
@@ -378,6 +390,419 @@ public struct SQLiteRuntimeProjectionStore: Equatable, Sendable {
                 lastUpdatedAt: envelope.recordedAt
             )
         }
+    }
+}
+
+/// SQLiteRuntimeProjectionAdapterError 表达 SQLite runtime projection adapter 的本地读写错误边界。
+/// 错误只描述私有投影存储失败，不代表 broker、exchange、真实订单或 Live execution 状态。
+public enum SQLiteRuntimeProjectionAdapterError: Error, Equatable, Sendable {
+    case databaseFailure(String)
+    case missingProjectionPayload(String)
+}
+
+/// SQLiteRuntimeProjectionAdapter 是 MTP-18 的最小 SQLite 运行时投影适配器。
+///
+/// 输入只能来自 `EventReplayResult` 或 `EventEnvelope` replay 输出；adapter 会先复用
+/// `SQLiteRuntimeProjectionStore.project` 生成稳定 read model snapshot，再用 SQLite3 事务替换私有投影记录。
+/// 查询输出仍然是 `SQLiteRuntimeProjectionSnapshot`，禁止 UI、ORM 或 API 直接依赖 SQLite 表结构。
+/// 该 adapter 不保存真实 broker 状态，不连接 Binance，不触发 signed endpoint，也不执行任何真实订单动作。
+public struct SQLiteRuntimeProjectionAdapter: Equatable, Sendable {
+    public let databaseURL: URL
+
+    /// 初始化 SQLite 投影适配器，只绑定本地数据库文件路径，不创建迁移框架或外部系统连接。
+    public init(databaseURL: URL) {
+        self.databaseURL = databaseURL
+    }
+
+    /// 从 replay envelope 重建 SQLite runtime projection。
+    /// 返回值是稳定 snapshot，用于 Paper / Risk / Portfolio read model；SQLite schema 保持私有。
+    @discardableResult
+    public func rebuild(from envelopes: [EventEnvelope]) throws -> SQLiteRuntimeProjectionSnapshot {
+        let snapshot = SQLiteRuntimeProjectionStore.project(envelopes)
+        try SQLiteRuntimeProjectionDatabase(databaseURL: databaseURL).replace(with: snapshot)
+        return snapshot
+    }
+
+    /// 从 `EventReplayResult` 重建 SQLite runtime projection。
+    /// 该入口明确表达 event log 仍是事实源，adapter 只消费 replay 后的 envelope 集合。
+    @discardableResult
+    public func rebuild(from replay: EventReplayResult) throws -> SQLiteRuntimeProjectionSnapshot {
+        try rebuild(from: replay.envelopes)
+    }
+
+    /// 查询 SQLite 中保存的最小运行时投影，并返回稳定 snapshot。
+    /// 调用方拿不到表名、列名或 SQL statement，避免把 SQLite schema 暴露为 UI 合同。
+    public func querySnapshot() throws -> SQLiteRuntimeProjectionSnapshot {
+        try SQLiteRuntimeProjectionDatabase(databaseURL: databaseURL).snapshot()
+    }
+}
+
+private enum SQLiteRuntimeProjectionRecordKind: String {
+    case paperSession
+    case rejectedPaperOrder
+    case portfolioProjection
+}
+
+private struct SQLiteRejectedPaperOrderProjectionRecord: Codable {
+    let paperOrderID: Identifier
+}
+
+private struct SQLiteRuntimeProjectionRow {
+    let key: String
+    let kind: SQLiteRuntimeProjectionRecordKind
+    let sortOrder: Int
+    let payload: String
+}
+
+private struct SQLiteRuntimeProjectionDatabase {
+    let databaseURL: URL
+
+    private static let transientDestructor = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
+
+    func replace(with snapshot: SQLiteRuntimeProjectionSnapshot) throws {
+        try createParentDirectoryIfNeeded()
+        try withDatabase { database in
+            try bootstrap(database)
+            try execute("BEGIN IMMEDIATE TRANSACTION", database: database)
+            do {
+                try execute("DELETE FROM runtime_projection_records", database: database)
+                try execute("DELETE FROM runtime_projection_metadata", database: database)
+                try insert(snapshot: snapshot, database: database)
+                try execute("COMMIT", database: database)
+            } catch {
+                try? execute("ROLLBACK", database: database)
+                throw error
+            }
+        }
+    }
+
+    func snapshot() throws -> SQLiteRuntimeProjectionSnapshot {
+        guard FileManager.default.fileExists(atPath: databaseURL.path) else {
+            return SQLiteRuntimeProjectionSnapshot()
+        }
+
+        return try withDatabase { database in
+            try bootstrap(database)
+
+            var paperSessions: [Identifier: SQLitePaperSessionProjection] = [:]
+            var rejectedPaperOrderIDs: [Identifier] = []
+            var portfolioProjections: [Identifier: SQLitePortfolioProjection] = [:]
+
+            for row in try rows(database: database) {
+                switch row.kind {
+                case .paperSession:
+                    let projection = try decode(SQLitePaperSessionProjection.self, from: row.payload)
+                    paperSessions[projection.sessionID] = projection
+
+                case .rejectedPaperOrder:
+                    let projection = try decode(
+                        SQLiteRejectedPaperOrderProjectionRecord.self,
+                        from: row.payload
+                    )
+                    rejectedPaperOrderIDs.append(projection.paperOrderID)
+
+                case .portfolioProjection:
+                    let projection = try decode(SQLitePortfolioProjection.self, from: row.payload)
+                    portfolioProjections[projection.portfolioID] = projection
+                }
+            }
+
+            return SQLiteRuntimeProjectionSnapshot(
+                paperSessions: paperSessions,
+                rejectedPaperOrderIDs: rejectedPaperOrderIDs,
+                portfolioProjections: portfolioProjections,
+                lastAppliedSequence: try lastAppliedSequence(database: database)
+            )
+        }
+    }
+
+    private func bootstrap(_ database: OpaquePointer) throws {
+        try execute(
+            """
+            CREATE TABLE IF NOT EXISTS runtime_projection_records (
+                record_key TEXT PRIMARY KEY NOT NULL,
+                record_kind TEXT NOT NULL,
+                sort_order INTEGER NOT NULL,
+                payload TEXT NOT NULL
+            )
+            """,
+            database: database
+        )
+        try execute(
+            """
+            CREATE TABLE IF NOT EXISTS runtime_projection_metadata (
+                metadata_key TEXT PRIMARY KEY NOT NULL,
+                metadata_value TEXT NOT NULL
+            )
+            """,
+            database: database
+        )
+    }
+
+    private func insert(snapshot: SQLiteRuntimeProjectionSnapshot, database: OpaquePointer) throws {
+        for (index, session) in snapshot.paperSessions.values
+            .sorted(by: { $0.sessionID.rawValue < $1.sessionID.rawValue })
+            .enumerated() {
+            try insert(
+                row: SQLiteRuntimeProjectionRow(
+                    key: "paper:\(session.sessionID.rawValue)",
+                    kind: .paperSession,
+                    sortOrder: index,
+                    payload: try encode(session)
+                ),
+                database: database
+            )
+        }
+
+        for (index, paperOrderID) in snapshot.rejectedPaperOrderIDs.enumerated() {
+            try insert(
+                row: SQLiteRuntimeProjectionRow(
+                    key: "risk-rejection:\(paperOrderID.rawValue)",
+                    kind: .rejectedPaperOrder,
+                    sortOrder: index,
+                    payload: try encode(
+                        SQLiteRejectedPaperOrderProjectionRecord(paperOrderID: paperOrderID)
+                    )
+                ),
+                database: database
+            )
+        }
+
+        for (index, portfolio) in snapshot.portfolioProjections.values
+            .sorted(by: { $0.portfolioID.rawValue < $1.portfolioID.rawValue })
+            .enumerated() {
+            try insert(
+                row: SQLiteRuntimeProjectionRow(
+                    key: "portfolio:\(portfolio.portfolioID.rawValue)",
+                    kind: .portfolioProjection,
+                    sortOrder: index,
+                    payload: try encode(portfolio)
+                ),
+                database: database
+            )
+        }
+
+        if let lastAppliedSequence = snapshot.lastAppliedSequence {
+            try insertMetadata(
+                key: "lastAppliedSequence",
+                value: String(lastAppliedSequence),
+                database: database
+            )
+        }
+    }
+
+    private func insert(row: SQLiteRuntimeProjectionRow, database: OpaquePointer) throws {
+        try withStatement(
+            """
+            INSERT INTO runtime_projection_records (
+                record_key,
+                record_kind,
+                sort_order,
+                payload
+            ) VALUES (?, ?, ?, ?)
+            """,
+            database: database
+        ) { statement in
+            try bind(row.key, to: statement, at: 1, database: database)
+            try bind(row.kind.rawValue, to: statement, at: 2, database: database)
+            try bind(row.sortOrder, to: statement, at: 3, database: database)
+            try bind(row.payload, to: statement, at: 4, database: database)
+            try stepDone(statement, database: database)
+        }
+    }
+
+    private func insertMetadata(
+        key: String,
+        value: String,
+        database: OpaquePointer
+    ) throws {
+        try withStatement(
+            """
+            INSERT INTO runtime_projection_metadata (
+                metadata_key,
+                metadata_value
+            ) VALUES (?, ?)
+            """,
+            database: database
+        ) { statement in
+            try bind(key, to: statement, at: 1, database: database)
+            try bind(value, to: statement, at: 2, database: database)
+            try stepDone(statement, database: database)
+        }
+    }
+
+    private func rows(database: OpaquePointer) throws -> [SQLiteRuntimeProjectionRow] {
+        try withStatement(
+            """
+            SELECT record_key, record_kind, sort_order, payload
+            FROM runtime_projection_records
+            ORDER BY record_kind, sort_order, record_key
+            """,
+            database: database
+        ) { statement in
+            var rows: [SQLiteRuntimeProjectionRow] = []
+            while true {
+                let result = sqlite3_step(statement)
+                if result == SQLITE_DONE {
+                    return rows
+                }
+                guard result == SQLITE_ROW else {
+                    throw sqliteError(database)
+                }
+
+                let kindRawValue = try columnText(statement, at: 1)
+                guard let kind = SQLiteRuntimeProjectionRecordKind(rawValue: kindRawValue) else {
+                    throw SQLiteRuntimeProjectionAdapterError.databaseFailure(
+                        "unknown runtime projection record kind: \(kindRawValue)"
+                    )
+                }
+                rows.append(
+                    SQLiteRuntimeProjectionRow(
+                        key: try columnText(statement, at: 0),
+                        kind: kind,
+                        sortOrder: Int(sqlite3_column_int64(statement, 2)),
+                        payload: try columnText(statement, at: 3)
+                    )
+                )
+            }
+        }
+    }
+
+    private func lastAppliedSequence(database: OpaquePointer) throws -> Int? {
+        try withStatement(
+            """
+            SELECT metadata_value
+            FROM runtime_projection_metadata
+            WHERE metadata_key = ?
+            """,
+            database: database
+        ) { statement in
+            try bind("lastAppliedSequence", to: statement, at: 1, database: database)
+            let result = sqlite3_step(statement)
+            if result == SQLITE_DONE {
+                return nil
+            }
+            guard result == SQLITE_ROW else {
+                throw sqliteError(database)
+            }
+            guard let value = Int(try columnText(statement, at: 0)) else {
+                throw SQLiteRuntimeProjectionAdapterError.databaseFailure(
+                    "invalid lastAppliedSequence metadata"
+                )
+            }
+            return value
+        }
+    }
+
+    private func withDatabase<T>(_ body: (OpaquePointer) throws -> T) throws -> T {
+        var database: OpaquePointer?
+        guard sqlite3_open(databaseURL.path, &database) == SQLITE_OK, let openedDatabase = database else {
+            let message = database.map { String(cString: sqlite3_errmsg($0)) } ?? "unknown sqlite open error"
+            if let database {
+                sqlite3_close(database)
+            }
+            throw SQLiteRuntimeProjectionAdapterError.databaseFailure(message)
+        }
+        defer {
+            sqlite3_close(openedDatabase)
+        }
+        return try body(openedDatabase)
+    }
+
+    private func withStatement<T>(
+        _ sql: String,
+        database: OpaquePointer,
+        body: (OpaquePointer) throws -> T
+    ) throws -> T {
+        var statement: OpaquePointer?
+        guard sqlite3_prepare_v2(database, sql, -1, &statement, nil) == SQLITE_OK,
+              let preparedStatement = statement else {
+            throw sqliteError(database)
+        }
+        defer {
+            sqlite3_finalize(preparedStatement)
+        }
+        return try body(preparedStatement)
+    }
+
+    private func execute(_ sql: String, database: OpaquePointer) throws {
+        guard sqlite3_exec(database, sql, nil, nil, nil) == SQLITE_OK else {
+            throw sqliteError(database)
+        }
+    }
+
+    private func bind(
+        _ value: String,
+        to statement: OpaquePointer,
+        at index: Int32,
+        database: OpaquePointer
+    ) throws {
+        let result = value.withCString { cString in
+            sqlite3_bind_text(statement, index, cString, -1, Self.transientDestructor)
+        }
+        guard result == SQLITE_OK else {
+            throw sqliteError(database)
+        }
+    }
+
+    private func bind(
+        _ value: Int,
+        to statement: OpaquePointer,
+        at index: Int32,
+        database: OpaquePointer
+    ) throws {
+        guard sqlite3_bind_int64(statement, index, sqlite3_int64(value)) == SQLITE_OK else {
+            throw sqliteError(database)
+        }
+    }
+
+    private func stepDone(_ statement: OpaquePointer, database: OpaquePointer) throws {
+        guard sqlite3_step(statement) == SQLITE_DONE else {
+            throw sqliteError(database)
+        }
+    }
+
+    private func columnText(_ statement: OpaquePointer, at index: Int32) throws -> String {
+        guard let pointer = sqlite3_column_text(statement, index) else {
+            throw SQLiteRuntimeProjectionAdapterError.missingProjectionPayload(
+                "missing text column at index \(index)"
+            )
+        }
+        return String(cString: UnsafeRawPointer(pointer).assumingMemoryBound(to: CChar.self))
+    }
+
+    private func encode<T: Encodable>(_ value: T) throws -> String {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        let data = try encoder.encode(value)
+        guard let encoded = String(data: data, encoding: .utf8) else {
+            throw SQLiteRuntimeProjectionAdapterError.databaseFailure("unable to encode projection payload")
+        }
+        return encoded
+    }
+
+    private func decode<T: Decodable>(_ type: T.Type, from payload: String) throws -> T {
+        guard let data = payload.data(using: .utf8) else {
+            throw SQLiteRuntimeProjectionAdapterError.missingProjectionPayload(
+                "projection payload is not valid UTF-8"
+            )
+        }
+        return try JSONDecoder().decode(type, from: data)
+    }
+
+    private func sqliteError(_ database: OpaquePointer) -> SQLiteRuntimeProjectionAdapterError {
+        SQLiteRuntimeProjectionAdapterError.databaseFailure(String(cString: sqlite3_errmsg(database)))
+    }
+
+    private func createParentDirectoryIfNeeded() throws {
+        let directoryURL = databaseURL.deletingLastPathComponent()
+        guard directoryURL.path.isEmpty == false else {
+            return
+        }
+        try FileManager.default.createDirectory(
+            at: directoryURL,
+            withIntermediateDirectories: true
+        )
     }
 }
 

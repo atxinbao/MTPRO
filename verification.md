@@ -2406,3 +2406,55 @@ Commit：本轮提交
 | --- | --- | --- |
 | `swift test` | pass | 42 个 XCTest 通过；新增文件事件日志 append、append-only 拒绝跳号、file replay projection smoke 测试。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；42 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+## MTP-18 SQLite Runtime Projection Adapter
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 按 Linear issue `MTP-18` 新增 SQLite runtime projection adapter 最小闭环。
+- 基于 MTP-17 event log / replay envelope 重建 paper session、risk rejection、portfolio projection。
+- 提供 query snapshot，把 SQLite 私有投影存储重新读回稳定 `SQLiteRuntimeProjectionSnapshot`。
+- 保持 SQLite schema、SQL statement 和 payload 编码不暴露给 UI、API 或 ViewModel contract。
+
+文件范围：
+
+- Updated：
+  - `Package.swift`
+  - `Sources/Persistence/Persistence.swift`
+  - `Tests/PersistenceTests/PersistenceTests.swift`
+  - `docs/contracts/api-contract.md`
+  - `docs/contracts/backend-use-case-contract.md`
+  - `docs/contracts/persistence-boundary.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- Event Log / replay envelope 仍是事实源。
+- SQLite 只作为运行时投影 adapter，不保存真实 broker 状态。
+- 未做完整 schema 设计。
+- 未做 migration framework。
+- 未引入 ORM。
+- 未实现 DuckDB adapter。
+- 未接 Binance 网络。
+- 未做 UI。
+- 未触碰 Live trading、signed endpoint、broker action 或真实订单行为。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test` | pass | 45 个 XCTest 通过；新增 SQLite runtime projection adapter rebuild / query snapshot / replacement / empty snapshot 测试。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；45 个 XCTest 通过，输出 `MTPRO checks passed.` |
