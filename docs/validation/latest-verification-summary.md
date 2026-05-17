@@ -40,7 +40,8 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 | `swift build --product MTPRODashboard` | pass | macOS dashboard executable 构建通过。 |
 | `MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard` | pass | 输出 `MTPRO Dashboard smoke: sections=7; readModelOnly=true; sections=Market,Strategy,Backtest,Paper,Risk,Portfolio,Events`。 |
 | `swift test` | pass | 新增 AppTests 覆盖 shell snapshot binding、空 read model 初始快照和 forbidden integration source boundary；58 个 XCTest 通过。 |
-| `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke run 和 `swift test` 通过；58 个 XCTest 通过，输出 `MTPRO checks passed.` |
+| `bash checks/run.sh` | pass | macOS 本地执行 `git diff --check`、automation readiness、dashboard build、dashboard smoke run 和 `swift test` 通过；58 个 XCTest 通过，输出 `MTPRO checks passed.` |
+| GitHub Actions `checks` 初次运行 | fail -> fixed | Linux runner 无 SwiftUI，已改为 macOS 分支构建真实 SwiftUI shell、非 macOS fallback 验证 snapshot binding。 |
 
 ## 当前边界
 

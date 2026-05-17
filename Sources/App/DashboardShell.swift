@@ -1,6 +1,8 @@
 import Foundation
 import Core
+#if canImport(SwiftUI) && os(macOS)
 import SwiftUI
+#endif
 
 /// DashboardShellMetric 是 macOS 看板壳用于渲染单个只读指标的稳定展示快照。
 ///
@@ -309,6 +311,7 @@ public extension DashboardViewModel {
 /// 该 View 只接收 `DashboardViewModel`，内部立即转换为 `DashboardShellSnapshot` 渲染
 /// Market、Strategy、Backtest、Paper、Risk、Portfolio 和 Events 七个区域；它没有按钮、
 /// 表单或命令出口，因此不会触发外部系统、副作用或真实交易行为。
+#if canImport(SwiftUI) && os(macOS)
 public struct DashboardShellView: View {
     public let snapshot: DashboardShellSnapshot
 
@@ -352,7 +355,26 @@ public struct DashboardShellView: View {
         .background(Color(nsColor: .windowBackgroundColor))
     }
 }
+#else
+/// DashboardShellView 的非 macOS fallback 只保留 snapshot binding contract。
+///
+/// GitHub Linux runner 不提供 SwiftUI；该 fallback 让 App target 和 XCTest 仍能验证
+/// ViewModel snapshot 绑定、只读来源和 forbidden integration 边界。真实 macOS UI 只在
+/// `canImport(SwiftUI) && os(macOS)` 分支中构建。
+public struct DashboardShellView: Equatable, Sendable {
+    public let snapshot: DashboardShellSnapshot
 
+    public init(viewModel: DashboardViewModel) {
+        self.snapshot = DashboardShellSnapshot(viewModel: viewModel)
+    }
+
+    public init(snapshot: DashboardShellSnapshot) {
+        self.snapshot = snapshot
+    }
+}
+#endif
+
+#if canImport(SwiftUI) && os(macOS)
 private struct DashboardSectionPanel: View {
     let section: DashboardShellSectionSnapshot
 
@@ -409,3 +431,4 @@ private struct DashboardMetricTile: View {
         .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
     }
 }
+#endif

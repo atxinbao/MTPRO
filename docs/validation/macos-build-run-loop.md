@@ -19,12 +19,15 @@ swift test
 bash checks/run.sh
 ```
 
-MTP-22 后 `bash checks/run.sh` 已包含：
+MTP-22 后 `bash checks/run.sh` 在 macOS 本地包含：
 
 ```bash
 swift build --product MTPRODashboard
 MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard
 ```
+
+Linux CI 不提供 SwiftUI；`checks/run.sh` 在非 Darwin runner 上跳过 macOS executable build / smoke，
+并继续执行 `swift test` 验证 snapshot binding 和 source boundary。
 
 ## UI 阶段前必须补齐
 
@@ -44,6 +47,7 @@ MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard
 - 本地 run / smoke：`MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard`。
 - 最小 telemetry：app launch 与 ViewModel snapshot generated 通过 `OSLog.Logger` 记录。
 - UI smoke check：smoke run 输出七个 section 和 `readModelOnly=true`。
+- CI 兼容：App target 在非 macOS 环境使用 non-SwiftUI fallback 保留 snapshot binding contract。
 
 当前未补截图证据；本事项的 required validation 以 SwiftPM build / smoke run / XCTest snapshot binding 为准。
 
