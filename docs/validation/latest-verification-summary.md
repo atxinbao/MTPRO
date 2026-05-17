@@ -26,6 +26,8 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - Linear Project / Issue 正文必须在第一个 `Todo` 前统一为 Codex Execution Agent 执行合同格式，并由父 Codex 做只读核对。
 - Project Planning Facilitator 只负责阶段规划和 Linear 写入准备；不得操作 `Backlog` -> `Todo`。
 - Parent Codex 是唯一可在 Human 授权后操作 `Backlog` -> `Todo` 的角色。
+- `symphony-issue` active Project pointer 已切到 `MTPRO Runtime Research Workbench v1`；当前 Symphony runtime 使用 project slug：`mtpro-runtime-research-workbench-v1-222cf4e1965c`。
+- workflow 本体不得为每个 Project 复制一套；Project 切换只更新 active Project pointer，并先做 queue preview。
 
 ## 最近验证
 
@@ -40,6 +42,7 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - 不固定 current Linear issue。
 - 不修改 Linear status。
 - Project Planning Facilitator 不操作 `Backlog` -> `Todo`。
+- Parent Codex 更新 active Project pointer 不授权启动 `symphony-issue`。
 - 不再创建新的 Linear Project / Issue。
 - 不启动 Symphony。
 - 不运行 Graphify full rebuild。

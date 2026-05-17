@@ -2196,3 +2196,53 @@ Commit：本轮提交
 | --- | --- | --- |
 | `git diff --check` | pass | 三角色职责边界文档变更通过 whitespace 检查。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+## symphony-issue Active Project Pointer
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 将 MTPRO 本地 `symphony-issue` workflow 定位为稳定执行规则 + active Project pointer。
+- 将当前 active Project pointer 切到 `MTPRO Runtime Research Workbench v1`。
+- 明确 Parent Codex 负责 Project 切换时更新 pointer，并在更新后先做 queue preview。
+
+文件范围：
+
+- Created：
+  - `docs/automation/symphony-issue-workflow-template.md`
+- Updated：
+  - `AGENTS.md`
+  - `docs/automation/automation-readiness.md`
+  - `docs/automation/parent-codex-supervision.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+- Local-only runtime updated：
+  - `/Users/mac/code/symphony-workflows/mtpro-aep-v2.md`
+  - `/Users/mac/code/symphony-workflows/runtime/mtpro-aep-v2-local-seed.md`
+  - `/Users/mac/code/symphony-workflows/README.md`
+
+边界确认：
+
+- 未写业务代码。
+- 未创建 Linear Project / Issue。
+- 未推进任何 Linear issue 到 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update / full rebuild。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 本地 workflow pointer 更新不授权执行。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | `symphony-issue` active Project pointer 文档变更通过 whitespace 检查。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |
