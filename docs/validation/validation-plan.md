@@ -33,6 +33,7 @@ bash checks/run.sh
 - SQLite runtime projection boundary。
 - SQLite runtime projection adapter 最小 rebuild / query snapshot 闭环。
 - DuckDB analytical projection boundary。
+- DuckDB analytical projection adapter 最小 rebuild / query snapshot 闭环。
 - Trader Workstation Dashboard ViewModel contract。
 - GitHub workflow / PR evidence / WIP=1 / handoff marker / Graphify 边界。
 - Linear issue execution contract。

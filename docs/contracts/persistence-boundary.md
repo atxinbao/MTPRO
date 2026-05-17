@@ -19,7 +19,11 @@ Persistence Boundary 必须先于真实 database adapter 实现。
 
 ## 当前状态
 
-当前只定义边界，不实现 adapter。
+当前已按 Linear issue 小步实现：
+
+- `MTP-17`：append-only 文件事件日志事实源。
+- `MTP-18`：SQLite runtime projection adapter 最小 rebuild / query snapshot 闭环。
+- `MTP-19`：DuckDB analytical projection adapter 最小 rebuild / query snapshot 闭环。
 
 ## MTP-13 SQLite / DuckDB 投影与重放边界
 
@@ -115,6 +119,40 @@ Persistence Boundary 必须先于真实 database adapter 实现。
 - migration framework。
 - ORM。
 - DuckDB adapter。
+- UI 直接读库。
+- database table API。
+- Binance 网络客户端。
+- Live execution persistence。
+- broker / exchange side effect。
+
+## MTP-19 DuckDB 分析投影适配器边界
+
+日期：2026-05-18
+
+执行者：Codex
+
+`Persistence` 在本事项中新增 DuckDB analytical projection adapter 的最小闭环，用于验证从 replay envelope 到本地 DuckDB 分析投影再到稳定 query snapshot 的读写路径。
+
+契约结构：
+
+- `DuckDBAnalyticalProjectionAdapter`：绑定本地 DuckDB 文件，提供 rebuild 和 query snapshot。
+- `DuckDBAnalyticalProjectionDatabase`：`Persistence` 私有实现，维护最小 key / kind / payload 投影记录和 last applied sequence metadata。
+- `PersistenceReplayBoundary.rebuildDuckDBAnalyticalProjection(from:using:)`：以 event log replay 作为事实源驱动 DuckDB adapter rebuild。
+
+契约要求：
+
+- append-only event log / replay envelope 仍是唯一事实源。
+- DuckDB 只承载 market data、backtest run、order book research run 和 signal timeline 的分析 read model 副本。
+- rebuild 必须事务性替换旧投影，避免 stale backtest / research / signal 数据残留。
+- query snapshot 必须返回稳定 `DuckDBAnalyticalProjectionSnapshot`，不返回 SQL row、table、column 或 schema 结构。
+- adapter 在 macOS runtime target 使用官方 SwiftPM 包 `duckdb/duckdb-swift`，不建立 migration framework。
+
+本契约不包含：
+
+- 完整 DuckDB schema 设计。
+- migration framework。
+- ORM。
+- SQLite runtime adapter 扩展。
 - UI 直接读库。
 - database table API。
 - Binance 网络客户端。

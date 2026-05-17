@@ -211,3 +211,34 @@ Use Case 输出必须先进入 read model projection，再供 UI 使用。
 - Binance 网络客户端。
 - UI 页面。
 - Live trading、signed endpoint、broker action 或真实订单行为。
+
+## MTP-19 DuckDB 分析投影适配器契约
+
+日期：2026-05-18
+
+执行者：Codex
+
+`ReplayEvents` 在本事项中可以把 replay envelope 重建为 DuckDB analytical projection adapter 的最小读写闭环。
+
+契约结构：
+
+- `DuckDBAnalyticalProjectionAdapter.rebuild(from:)`：复用 `DuckDBAnalyticalProjectionStore.project` 从 replay envelope 生成稳定 analytical snapshot，并用 DuckDB 事务替换私有分析投影记录。
+- `DuckDBAnalyticalProjectionAdapter.querySnapshot()`：从 DuckDB 私有投影存储查询回 `DuckDBAnalyticalProjectionSnapshot`。
+- `PersistenceReplayBoundary.rebuildDuckDBAnalyticalProjection(from:using:)`：把 `EventReplayCommand`、append-only replay 和 DuckDB adapter 串成最小闭环。
+
+契约要求：
+
+- Event Log / replay envelope 仍是事实源。
+- DuckDB 只保存 market data、backtest run、order book research run 和 signal timeline 的分析投影副本。
+- 查询输出只能是稳定 `DuckDBAnalyticalProjectionSnapshot`。
+- DuckDB 表名、列名和 payload 编码是 `Persistence` 私有实现细节，不能暴露给 UI、API 或 ViewModel contract。
+
+本契约不包含：
+
+- 完整 schema 设计。
+- migration framework。
+- ORM。
+- SQLite runtime adapter 扩展。
+- Binance 网络客户端。
+- UI 页面。
+- Live trading、signed endpoint、broker action 或真实订单行为。

@@ -2458,3 +2458,58 @@ Commit：本轮提交
 | --- | --- | --- |
 | `swift test` | pass | 45 个 XCTest 通过；新增 SQLite runtime projection adapter rebuild / query snapshot / replacement / empty snapshot 测试。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；45 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+## MTP-19 DuckDB Analytical Projection Adapter
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 按 Linear issue `MTP-19` 新增 DuckDB analytical projection adapter 最小闭环。
+- 基于 MTP-17 event log / replay envelope 重建 market data、backtest run、order book research run 和 signal timeline。
+- 在 macOS runtime target 使用官方 SwiftPM 包 `duckdb/duckdb-swift`，提供 query snapshot，把 DuckDB 私有分析投影存储重新读回稳定 `DuckDBAnalyticalProjectionSnapshot`。
+- 保持 DuckDB schema、SQL statement 和 payload 编码不暴露给 UI、API 或 ViewModel contract。
+
+文件范围：
+
+- Added：
+  - `Package.resolved`
+  - `Sources/Persistence/DuckDBAnalyticalProjectionAdapter.swift`
+- Updated：
+  - `Package.swift`
+  - `Tests/PersistenceTests/PersistenceTests.swift`
+  - `docs/contracts/api-contract.md`
+  - `docs/contracts/backend-use-case-contract.md`
+  - `docs/contracts/persistence-boundary.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- Event Log / replay envelope 仍是事实源。
+- DuckDB 只作为分析投影 adapter，不保存 runtime object 或真实 broker 状态。
+- 未做完整 schema 设计。
+- 未做 migration framework。
+- 未引入 ORM。
+- 未扩展 SQLite runtime adapter。
+- 未接 Binance 网络。
+- 未做 UI。
+- 未触碰 Live trading、signed endpoint、broker action 或真实订单行为。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- GitHub Ubuntu runner 不构建官方 DuckDB Swift wrapper；真实 DuckDB adapter 由 macOS 本地验证覆盖，Linux CI 只编译公共 API。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter PersistenceTests/testDuckDBAnalyticalProjectionAdapter` | pass | 3 个 DuckDB adapter focused tests 通过；覆盖 rebuild / query snapshot、重复 rebuild 替换旧投影、空 snapshot。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；48 个 XCTest 通过，输出 `MTPRO checks passed.` |
