@@ -11,7 +11,8 @@ let package = Package(
         .library(name: "Adapters", targets: ["Adapters"]),
         .library(name: "Persistence", targets: ["Persistence"]),
         .library(name: "Runtime", targets: ["Runtime"]),
-        .library(name: "App", targets: ["App"])
+        .library(name: "App", targets: ["App"]),
+        .executable(name: "MTPRODashboard", targets: ["MTPRODashboard"])
     ],
     dependencies: [
         .package(url: "https://github.com/duckdb/duckdb-swift.git", from: "1.1.3")
@@ -55,6 +56,11 @@ let package = Package(
             name: "App",
             dependencies: ["Core", "Persistence"],
             path: "Sources/App"
+        ),
+        .executableTarget(
+            name: "MTPRODashboard",
+            dependencies: ["App"],
+            path: "Sources/MTPRODashboard"
         ),
         .testTarget(
             name: "CoreTests",

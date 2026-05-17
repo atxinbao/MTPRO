@@ -79,6 +79,77 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(decoded.events.lastSequence, 3)
     }
 
+    @MainActor
+    func testDashboardShellSnapshotBindsViewModelSectionsForReadOnlyMacOSShell() throws {
+        // 测试场景：MTP-22 macOS 看板壳必须把现有 DashboardViewModel 快照绑定到七个只读区域，
+        // 且每个区域继续保留 read-model-only 来源证据，不能新增交易控制或外部 adapter 调用。
+        let viewModel = try makeDashboardViewModel()
+        let shell = DashboardShellView(viewModel: viewModel)
+        let snapshot = shell.snapshot
+
+        XCTAssertEqual(snapshot.title, "MTPRO Research Workbench")
+        XCTAssertEqual(snapshot.subtitle, "Research -> Backtest -> Paper")
+        XCTAssertEqual(snapshot.sections.map(\.section), viewModel.sections)
+        XCTAssertTrue(snapshot.isReadModelOnly)
+        XCTAssertTrue(snapshot.viewModelSources.allSatisfy(\.isReadModelOnly))
+
+        let market = try XCTUnwrap(snapshot.sections.first { $0.section == .market })
+        XCTAssertEqual(metricValue("Symbols", in: market), "2")
+        XCTAssertEqual(metricValue("Bars", in: market), "2")
+        XCTAssertEqual(metricValue("Latest close", in: market), "2305.00")
+        XCTAssertTrue(market.details.contains("Universe: BTCUSDT, ETHUSDT"))
+
+        let backtest = try XCTUnwrap(snapshot.sections.first { $0.section == .backtest })
+        XCTAssertEqual(metricValue("Runs", in: backtest), "1")
+        XCTAssertEqual(metricValue("Signals", in: backtest), "2")
+
+        let paper = try XCTUnwrap(snapshot.sections.first { $0.section == .paper })
+        XCTAssertEqual(metricValue("Sessions", in: paper), "1")
+        XCTAssertEqual(metricValue("Completed", in: paper), "1")
+
+        XCTAssertTrue(snapshot.smokeSummary.contains("sections=7"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("readModelOnly=true"))
+    }
+
+    func testDashboardShellInitialSnapshotIsEmptyReadModelProjection() {
+        // 测试场景：可运行 macOS shell 的默认快照只能表示空 read model projection，
+        // 不能伪造行情、Paper、Risk、Portfolio 或事件事实。
+        let snapshot = DashboardShellSnapshot(viewModel: .emptyResearchWorkbench)
+
+        XCTAssertEqual(snapshot.sections.map(\.section), DashboardSection.allCases)
+        XCTAssertTrue(snapshot.isReadModelOnly)
+
+        let market = snapshot.sections.first { $0.section == .market }
+        XCTAssertEqual(market?.metrics.first { $0.label == "Symbols" }?.value, "0")
+        XCTAssertEqual(market?.metrics.first { $0.label == "Bars" }?.value, "0")
+        XCTAssertEqual(market?.metrics.first { $0.label == "Latest close" }?.value, "n/a")
+
+        let events = snapshot.sections.first { $0.section == .events }
+        XCTAssertEqual(events?.metrics.first { $0.label == "Events" }?.value, "0")
+        XCTAssertEqual(events?.metrics.first { $0.label == "Last sequence" }?.value, "n/a")
+    }
+
+    func testDashboardShellSourceDoesNotImportForbiddenIntegrationLayers() throws {
+        // 测试场景：SwiftUI shell 文件只能消费 App 层 ViewModel，不能导入 Runtime / Adapters，
+        // 也不能直接引用数据库实现名或 public market data client 类型。
+        let shellSource = try String(contentsOf: sourceFile("Sources/App/DashboardShell.swift"))
+        let executableSource = try String(
+            contentsOf: sourceFile("Sources/MTPRODashboard/MTPRODashboardApplication.swift")
+        )
+
+        XCTAssertFalse(shellSource.contains("import Runtime"))
+        XCTAssertFalse(shellSource.contains("import Adapters"))
+        XCTAssertFalse(shellSource.contains("BinancePublic"))
+        XCTAssertFalse(shellSource.contains("SQLite"))
+        XCTAssertFalse(shellSource.contains("DuckDB"))
+
+        XCTAssertFalse(executableSource.contains("import Runtime"))
+        XCTAssertFalse(executableSource.contains("import Adapters"))
+        XCTAssertFalse(executableSource.contains("BinancePublic"))
+        XCTAssertFalse(executableSource.contains("SQLite"))
+        XCTAssertFalse(executableSource.contains("DuckDB"))
+    }
+
     private func makeDashboardViewModel() throws -> DashboardViewModel {
         let runtimeProjection = try makeRuntimeProjection()
         let analyticalProjection = try makeAnalyticalProjection()
@@ -90,6 +161,21 @@ final class AppTests: XCTestCase {
         )
 
         return DashboardViewModel(readModel: readModel)
+    }
+
+    private func metricValue(
+        _ label: String,
+        in section: DashboardShellSectionSnapshot
+    ) -> String? {
+        section.metrics.first { $0.label == label }?.value
+    }
+
+    private func sourceFile(_ relativePath: String) -> URL {
+        URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent(relativePath)
     }
 
     private func makeRuntimeProjection() throws -> SQLiteRuntimeProjectionSnapshot {

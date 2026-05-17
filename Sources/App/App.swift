@@ -2,7 +2,7 @@ import Foundation
 import Core
 import Persistence
 
-public enum DashboardSection: String, CaseIterable, Codable, Sendable {
+public enum DashboardSection: String, CaseIterable, Codable, Hashable, Sendable {
     case market = "Market"
     case strategy = "Strategy"
     case backtest = "Backtest"

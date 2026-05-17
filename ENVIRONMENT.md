@@ -19,6 +19,8 @@ bash checks/run.sh
 
 - `git diff --check`
 - `bash checks/automation-readiness.sh`
+- `swift build --product MTPRODashboard`
+- `MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard`
 - `swift test`
 
 ## 外部系统边界
