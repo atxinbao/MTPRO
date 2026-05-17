@@ -2151,3 +2151,48 @@ Linear blocker 依赖：
 | 命令 | 结果 | 说明 |
 | --- | --- | --- |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+## Project Planning / Parent / Child Role Boundaries
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 固化 MTPRO 当前流程中的 Project Planning Facilitator、Parent Codex Automation Supervision 和 Child Codex Execution Agent 三角色职责边界。
+- 明确 Project Planning Facilitator 只负责阶段规划、Linear Project / Issue 草案和写入准备，不操作 `Backlog` -> `Todo`。
+- 明确第一个 issue 和后续 issue 的 `Backlog` -> `Todo` 都只能由 Parent Codex 在 Human 明确授权后执行。
+
+文件范围：
+
+- Updated：
+  - `AGENTS.md`
+  - `docs/automation/automation-readiness.md`
+  - `docs/automation/parent-codex-supervision.md`
+  - `docs/planning/linear-draft-plan.md`
+  - `docs/planning/project-role-map.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+
+边界确认：
+
+- 未写业务代码。
+- 未创建 Linear Project / Issue。
+- 未推进任何 Linear issue 到 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update / full rebuild。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | 三角色职责边界文档变更通过 whitespace 检查。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |

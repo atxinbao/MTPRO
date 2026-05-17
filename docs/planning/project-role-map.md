@@ -61,7 +61,7 @@
 | Read Model Projection | Data / Persistence Designer | Frontend / App Designer | Bootstrap PR |
 | API Contract | Backend Engineer | Product Owner / Frontend / App Designer | Bootstrap PR |
 | Trading assumptions / risk notes | Finance / Trading Domain Analyst | Product Owner / QA | Strategy issue |
-| Linear Project / Issue plan | Human Owner / ChatGPT Planning Partner | Parent Codex Supervisor | Human Project Planning |
+| Linear Project / Issue plan | Human Owner / ChatGPT Planning Partner / Project Planning Facilitator | Parent Codex Supervisor | Human Project Planning |
 | Validation plan | QA / Trading Validation Engineer | Parent Codex Supervisor | symphony-issue |
 | Stage Code Audit Report | Parent Codex Supervisor | Human Owner / ChatGPT Planning Partner | Next Human Project Planning |
 
@@ -72,6 +72,7 @@
 - System Architect 给出架构边界建议，但不替代 Human confirmation。
 - Product Owner、Product Designer、Frontend / App Designer、Backend Engineer、Data / Persistence Designer、Finance / Trading Domain Analyst、QA / Trading Validation Engineer、Automation / Runtime Operations Engineer 只定义各自专业面的合同和验收建议。
 - Finance / Trading Domain Analyst 不授权 Live trading，不允许扩大到真实 broker action；它只定义策略假设、风险指标、费用 / 滑点和 Paper parity 验收。
+- Project Planning Facilitator 只负责 Project / Issue 草案、顺序、依赖、validation、evidence 和 Linear 写入准备；不得操作 `Backlog` -> `Todo`，不得启动 symphony-issue。
 - Parent Codex Supervisor 可以做 Project 级审计、child Codex 监控、代码审查和只读 queue preview；不得自动创建下一个 Project。
 - Codex Execution Agent 只能执行当前唯一 configured executable issue。
 

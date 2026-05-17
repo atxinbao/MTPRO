@@ -16,14 +16,16 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 
 ## 最近基线
 
-- 最近合并 PR：MTPRO #31 `Close out MTPRO active documentation`
-- 最近 merge commit：`486cee21bfeb7e1fbc34e0506a37825eb165509e`
-- 当前基线：active docs 已收口，`MTPRO 引导` Project 已完成。
+- 最近合并 PR：MTPRO #34 `Record Runtime Research Workbench planning`
+- 最近 merge commit：`7800698b479d09e0109e60aa13e42cf56518d69d`
+- 当前基线：active docs 已收口，`MTPRO 引导` Project 已完成，`MTPRO Runtime Research Workbench v1` 已写入 Linear。
 - 下一阶段 Linear Project：`MTPRO Runtime Research Workbench v1` 已创建，Project status 为 `Planned`。
 - 下一阶段 Linear issues：`MTP-16` 到 `MTP-23` 已创建且仍为 `Backlog`。
 - 当前 Todo：none。
 - First executable candidate：`MTP-16`，进入 `Todo` 仍需 Human 明确授权。
 - Linear Project / Issue 正文必须在第一个 `Todo` 前统一为 Codex Execution Agent 执行合同格式，并由父 Codex 做只读核对。
+- Project Planning Facilitator 只负责阶段规划和 Linear 写入准备；不得操作 `Backlog` -> `Todo`。
+- Parent Codex 是唯一可在 Human 授权后操作 `Backlog` -> `Todo` 的角色。
 
 ## 最近验证
 
@@ -37,6 +39,7 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 
 - 不固定 current Linear issue。
 - 不修改 Linear status。
+- Project Planning Facilitator 不操作 `Backlog` -> `Todo`。
 - 不再创建新的 Linear Project / Issue。
 - 不启动 Symphony。
 - 不运行 Graphify full rebuild。

@@ -25,6 +25,7 @@ Agent 开始工作前必须读取：
 - 只有 Linear 中唯一 configured executable issue 才能授权正式开发执行。
 - 当前唯一 configured executable issue 不写死在仓库文档中；执行前必须从 Linear / Parent Codex queue preview 读取，并确认 WIP=1。
 - Linear issue 中已填写的 Scope / Non-goals / Codex Instructions / Validation / Boundary / PR Requirements 是 Codex Execution Agent 的执行合同；子 Codex 按模板字段执行，不二次确认 issue scope，不重新定义边界。
+- Project Planning Facilitator 只负责阶段规划、Linear Project / Issue 草案、Human review 后的 Linear 写入准备；不得执行 issue，不得启动 symphony-issue，不得操作 `Backlog` -> `Todo`。
 - Parent Codex Automation Supervision 负责 Project 级 queue preview、child Codex 监控、代码审查、host-side fallback 和流程迭代建议。
 - 父 Codex 必须在第一个 `Todo` 前核对 Linear Project / Issue 执行合同格式。
 - 第一个 issue 和后续 issue 的 `Backlog` -> `Todo` 操作都只能由父 Codex 在 Human 明确授权后执行。
@@ -67,11 +68,19 @@ Agent 开始工作前必须读取：
 
 | 阶段 | Agent 边界 |
 | --- | --- |
-| Human Project Planning | 只读项目目标、Roadmap 和 Linear 规划结果，不替代 Human 决策 |
+| Project Planning Facilitator / Human Project Planning | 形成阶段目标、Linear Project / Issue 草案、顺序、依赖、验证和证据要求；Human 授权后可写入 Linear，但所有 issue 必须保持 `Backlog` |
 | Parent Codex Automation Supervision | Project 级 queue preview、child Codex 监控、代码审查、host-side fallback 和流程迭代建议；不替代 Human 决策，不直接 merge PR |
 | symphony-issue | 只调度唯一 `Todo` issue；负责 `Todo` -> `In Progress`、Codex 执行调度、校验 handoff marker 后 `In Progress` -> `In Review` |
 | GitHub PR Automation | 创建 PR 后交给 GitHub checks / auto-merge；Codex 不直接 merge |
 | Next Human Project Planning | 当前 Project 全部 Done 前不得建议或创建下一 Project |
+
+## 三角色职责边界
+
+| 角色 | MTPRO 当前职责 | 禁止 |
+| --- | --- | --- |
+| Project Planning Facilitator | 基于 Stage Code Audit 和 Human 目标整理 `MTPRO Runtime Research Workbench v1` 的 Project / Issue 草案、顺序、依赖、validation、evidence 和 first executable candidate | 不执行 issue，不操作 `Backlog` -> `Todo`，不启动 symphony-issue，不创建 PR |
+| Parent Codex Automation Supervision | 核对 `MTP-16` 至 `MTP-23` 的执行合同格式，做 queue preview，在 Human 授权后操作唯一 `Backlog` -> `Todo`，监督 child Codex 和阶段审计 | 不默认写业务代码，不创建新 Project / Issue，不决定下一阶段目标，不直接 merge PR |
+| Child Codex Execution Agent | 只执行当前唯一 Linear issue scope，运行 validation，执行 Pre-PR Codex Code Review，创建 ready-for-review PR 和 GitHub auto-merge handoff | 不修改 Linear status，不操作 `Backlog` -> `Todo`，不决定下一 issue，不合并自己 PR |
 
 Parent Codex 监督边界详见 `docs/automation/parent-codex-supervision.md`。
 
