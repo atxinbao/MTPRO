@@ -22,13 +22,17 @@ let package = Package(
             dependencies: ["Core"],
             path: "Sources/Adapters"
         ),
+        .systemLibrary(
+            name: "CSQLite",
+            pkgConfig: "sqlite3",
+            providers: [
+                .apt(["libsqlite3-dev"])
+            ]
+        ),
         .target(
             name: "Persistence",
-            dependencies: ["Core"],
-            path: "Sources/Persistence",
-            linkerSettings: [
-                .linkedLibrary("sqlite3")
-            ]
+            dependencies: ["Core", "CSQLite"],
+            path: "Sources/Persistence"
         ),
         .target(
             name: "App",

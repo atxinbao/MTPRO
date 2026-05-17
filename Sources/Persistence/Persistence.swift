@@ -1,6 +1,6 @@
 import Foundation
 import Core
-import SQLite3
+import CSQLite
 
 public struct PersistenceBoundary: Equatable, Sendable {
     public let factSource: String
