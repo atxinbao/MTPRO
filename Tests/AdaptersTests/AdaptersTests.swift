@@ -1,8 +1,8 @@
-import MTPROAdapters
-import MTPROCore
+import Adapters
+import Core
 import XCTest
 
-final class MTPROAdaptersTests: XCTestCase {
+final class AdaptersTests: XCTestCase {
     func testBinanceBoundaryIsReadOnlyAndMatchesConfiguredUniverse() {
         let boundary = BinanceReadOnlyAdapterBoundary()
 
@@ -15,8 +15,8 @@ final class MTPROAdaptersTests: XCTestCase {
     }
 
     func testPublicRequestContractsUseReadOnlyPublicEndpointsOnly() throws {
-        let symbol = try MTPROSymbol(rawValue: "BTCUSDT")
-        let range = try MTPRODateRange(
+        let symbol = try Symbol(rawValue: "BTCUSDT")
+        let range = try DateRange(
             start: Date(timeIntervalSince1970: 1_704_067_200),
             end: Date(timeIntervalSince1970: 1_704_067_260)
         )
@@ -51,8 +51,8 @@ final class MTPROAdaptersTests: XCTestCase {
     }
 
     func testPublicRequestContractRejectsInvalidRecordLimits() throws {
-        let symbol = try MTPROSymbol(rawValue: "ETHUSDT")
-        let range = try MTPRODateRange(
+        let symbol = try Symbol(rawValue: "ETHUSDT")
+        let range = try DateRange(
             start: Date(timeIntervalSince1970: 1_704_067_200),
             end: Date(timeIntervalSince1970: 1_704_067_260)
         )
@@ -123,7 +123,7 @@ final class MTPROAdaptersTests: XCTestCase {
 
         let bars = try BinancePublicMarketDataPayloadDecoder.decodeKlines(
             from: payload,
-            symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+            symbol: try Symbol(rawValue: "BTCUSDT"),
             timeframe: .oneMinute
         )
 
@@ -168,7 +168,7 @@ final class MTPROAdaptersTests: XCTestCase {
 
         let trades = try BinancePublicMarketDataPayloadDecoder.decodeRecentTrades(
             from: tradesPayload,
-            symbol: try MTPROSymbol(rawValue: "BTCUSDT")
+            symbol: try Symbol(rawValue: "BTCUSDT")
         )
         let bestBidAsk = try BinancePublicMarketDataPayloadDecoder.decodeBestBidAsk(
             from: bookTickerPayload,
@@ -216,7 +216,7 @@ final class MTPROAdaptersTests: XCTestCase {
 
         let snapshot = try BinancePublicMarketDataPayloadDecoder.decodeDepthSnapshot(
             from: snapshotPayload,
-            symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+            symbol: try Symbol(rawValue: "BTCUSDT"),
             observedAt: Date(timeIntervalSince1970: 1_704_067_204)
         )
         let delta = try BinancePublicMarketDataPayloadDecoder.decodeDepthDelta(from: deltaPayload)
@@ -268,13 +268,13 @@ final class MTPROAdaptersTests: XCTestCase {
                 observedAt: Date(timeIntervalSince1970: 1_704_067_202)
             )
         ) { error in
-            XCTAssertEqual(error as? MTPROCoreError, .unsupportedSymbol("DOGEUSDT"))
+            XCTAssertEqual(error as? CoreError, .unsupportedSymbol("DOGEUSDT"))
         }
 
         XCTAssertThrowsError(
             try BinancePublicMarketDataPayloadDecoder.decodeKlines(
                 from: invalidKline,
-                symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+                symbol: try Symbol(rawValue: "BTCUSDT"),
                 timeframe: .oneMinute
             )
         ) { error in

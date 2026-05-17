@@ -7,50 +7,50 @@ let package = Package(
         .macOS(.v14)
     ],
     products: [
-        .library(name: "MTPROCore", targets: ["MTPROCore"]),
-        .library(name: "MTPROAdapters", targets: ["MTPROAdapters"]),
-        .library(name: "MTPROPersistence", targets: ["MTPROPersistence"]),
-        .library(name: "MTPROApp", targets: ["MTPROApp"])
+        .library(name: "Core", targets: ["Core"]),
+        .library(name: "Adapters", targets: ["Adapters"]),
+        .library(name: "Persistence", targets: ["Persistence"]),
+        .library(name: "App", targets: ["App"])
     ],
     targets: [
         .target(
-            name: "MTPROCore",
-            path: "Sources/MTPROCore"
+            name: "Core",
+            path: "Sources/Core"
         ),
         .target(
-            name: "MTPROAdapters",
-            dependencies: ["MTPROCore"],
-            path: "Sources/MTPROAdapters"
+            name: "Adapters",
+            dependencies: ["Core"],
+            path: "Sources/Adapters"
         ),
         .target(
-            name: "MTPROPersistence",
-            dependencies: ["MTPROCore"],
-            path: "Sources/MTPROPersistence"
+            name: "Persistence",
+            dependencies: ["Core"],
+            path: "Sources/Persistence"
         ),
         .target(
-            name: "MTPROApp",
-            dependencies: ["MTPROCore", "MTPROPersistence"],
-            path: "Sources/MTPROApp"
+            name: "App",
+            dependencies: ["Core", "Persistence"],
+            path: "Sources/App"
         ),
         .testTarget(
-            name: "MTPROCoreTests",
-            dependencies: ["MTPROCore"],
-            path: "Tests/MTPROCoreTests"
+            name: "CoreTests",
+            dependencies: ["Core"],
+            path: "Tests/CoreTests"
         ),
         .testTarget(
-            name: "MTPROAdaptersTests",
-            dependencies: ["MTPROAdapters"],
-            path: "Tests/MTPROAdaptersTests"
+            name: "AdaptersTests",
+            dependencies: ["Adapters"],
+            path: "Tests/AdaptersTests"
         ),
         .testTarget(
-            name: "MTPROPersistenceTests",
-            dependencies: ["MTPROPersistence"],
-            path: "Tests/MTPROPersistenceTests"
+            name: "PersistenceTests",
+            dependencies: ["Persistence"],
+            path: "Tests/PersistenceTests"
         ),
         .testTarget(
-            name: "MTPROAppTests",
-            dependencies: ["MTPROApp", "MTPROCore", "MTPROPersistence"],
-            path: "Tests/MTPROAppTests"
+            name: "AppTests",
+            dependencies: ["App", "Core", "Persistence"],
+            path: "Tests/AppTests"
         )
     ]
 )

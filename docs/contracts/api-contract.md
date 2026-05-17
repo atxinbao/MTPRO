@@ -34,13 +34,13 @@ MTPRO 第一版没有 HTTP API。
 `BacktestCommand` 在 MTP-11 中绑定：
 
 - `runID`
-- `MTPROEMACrossStrategyConfiguration`
+- `EMACrossStrategyConfiguration`
 - `MarketDataQuery`
 
 `PaperSessionCommand` 在 MTP-11 中绑定：
 
 - `sessionID`
-- `MTPROEMACrossStrategyConfiguration`
+- `EMACrossStrategyConfiguration`
 - `MarketDataQuery`
 - `riskProfileID`
 - `executionMode == paper`
@@ -52,10 +52,10 @@ MTPRO 第一版没有 HTTP API。
 
 新增一致性契约：
 
-- `MTPROBacktestPaperParityResult.sameStrategy`
-- `MTPROBacktestPaperParityResult.sameMarketData`
-- `MTPROBacktestPaperParityResult.matchingSignalTimeline`
-- `MTPROBacktestPaperParityResult.isConsistent`
+- `BacktestPaperParityResult.sameStrategy`
+- `BacktestPaperParityResult.sameMarketData`
+- `BacktestPaperParityResult.matchingSignalTimeline`
+- `BacktestPaperParityResult.isConsistent`
 
 边界确认：
 
@@ -70,13 +70,13 @@ MTPRO 第一版没有 HTTP API。
 
 执行者：Codex
 
-新增 `MTPROOrderBookImbalanceResearchCommand`，绑定：
+新增 `OrderBookImbalanceResearchCommand`，绑定：
 
 - `researchID`
-- `MTPROOrderBookImbalanceStrategyConfiguration`
+- `OrderBookImbalanceStrategyConfiguration`
 - `MarketDataQuery`
 
-新增 `MTPROCommand.runOrderBookImbalanceResearch`，只授权本地研究链路，不代表可交易命令。
+新增 `Command.runOrderBookImbalanceResearch`，只授权本地研究链路，不代表可交易命令。
 
 新增研究事件流契约：
 
@@ -98,10 +98,10 @@ MTPRO 第一版没有 HTTP API。
 
 `EventReplayCommand` 在 MTP-13 中绑定持久化投影重建边界：
 
-- `MTPROPersistenceReplayBoundary.replay(_:)`
-- `MTPROPersistenceReplayBoundary.rebuildMarketDataCache(from:)`
-- `MTPROPersistenceReplayBoundary.rebuildSQLiteRuntimeProjection(from:)`
-- `MTPROPersistenceReplayBoundary.rebuildDuckDBAnalyticalProjection(from:)`
+- `PersistenceReplayBoundary.replay(_:)`
+- `PersistenceReplayBoundary.rebuildMarketDataCache(from:)`
+- `PersistenceReplayBoundary.rebuildSQLiteRuntimeProjection(from:)`
+- `PersistenceReplayBoundary.rebuildDuckDBAnalyticalProjection(from:)`
 
 新增投影契约：
 

@@ -95,13 +95,13 @@
 | 顺序 | 里程碑 | 来源 Roadmap 阶段 | 架构模块 | 产出 | 依赖 |
 | --- | --- | --- | --- | --- | --- |
 | 1 | 引导基线 | 引导定义与构建骨架 | 根文档 / 契约 / SwiftPM 骨架 | 基线提交作为项目定义和骨架记录 | 无 |
-| 2 | 核心模型与事件日志 | 核心领域模型与事件日志契约 | `MTPROCore` | 领域模型、事件信封、命令、查询和只追加事件日志契约明确 | 引导基线 |
-| 3 | Binance 只读行情 | Binance 只读行情适配器 | `MTPROAdapters` | Binance 公开只读行情适配器和测试夹具契约完成 | 核心模型与事件日志 |
-| 4 | 内核与缓存 | 交易内核、数据引擎与缓存 | `MTPROCore` | actor 内核、消息总线、缓存、数据引擎边界完成 | Binance 只读行情 |
-| 5 | EMA 回测与 Paper 一致性 | EMA 交叉回测与 Paper 一致性 | `MTPROCore` / `MTPROApp` | EMA 交叉回测与 Paper 一致性验证链路完成 | 内核与缓存 |
-| 6 | 订单簿策略 | 订单簿失衡策略 | `MTPROCore` / `MTPROAdapters` | 订单簿失衡研究策略链路完成 | EMA 回测与 Paper 一致性 |
-| 7 | SQLite / DuckDB 投影 | SQLite / DuckDB 投影与重放 | `MTPROPersistence` | 事件日志重放、SQLite 运行投影、DuckDB 分析投影完成 | 订单簿策略 |
-| 8 | 工作台看板 | Trader Workstation 看板 | `MTPROApp` | Market / Strategy / Backtest / Paper / Risk / Portfolio / Events 的 ViewModel 和最小产品面完成 | SQLite / DuckDB 投影 |
+| 2 | 核心模型与事件日志 | 核心领域模型与事件日志契约 | `Core` | 领域模型、事件信封、命令、查询和只追加事件日志契约明确 | 引导基线 |
+| 3 | Binance 只读行情 | Binance 只读行情适配器 | `Adapters` | Binance 公开只读行情适配器和测试夹具契约完成 | 核心模型与事件日志 |
+| 4 | 内核与缓存 | 交易内核、数据引擎与缓存 | `Core` | actor 内核、消息总线、缓存、数据引擎边界完成 | Binance 只读行情 |
+| 5 | EMA 回测与 Paper 一致性 | EMA 交叉回测与 Paper 一致性 | `Core` / `App` | EMA 交叉回测与 Paper 一致性验证链路完成 | 内核与缓存 |
+| 6 | 订单簿策略 | 订单簿失衡策略 | `Core` / `Adapters` | 订单簿失衡研究策略链路完成 | EMA 回测与 Paper 一致性 |
+| 7 | SQLite / DuckDB 投影 | SQLite / DuckDB 投影与重放 | `Persistence` | 事件日志重放、SQLite 运行投影、DuckDB 分析投影完成 | 订单簿策略 |
+| 8 | 工作台看板 | Trader Workstation 看板 | `App` | Market / Strategy / Backtest / Paper / Risk / Portfolio / Events 的 ViewModel 和最小产品面完成 | SQLite / DuckDB 投影 |
 | 9 | 验证与自动化就绪 | 验证加固与自动化就绪 | 验证 / 自动化边界 | 验证矩阵、自动化就绪、证据链和发布就绪完成 | 工作台看板 |
 
 ## Linear 事项计划
@@ -111,13 +111,13 @@
 | 顺序 | Linear 事项标题 | 里程碑 | 架构模块 | 初始状态 | 是否可由 Codex 执行 | 依赖 | 必须验证 | 必须证据 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | 记录引导基线 | 引导基线 | 根文档 / 契约 / SwiftPM 骨架 | `Done` 或仅记录、不可执行 | 否 | 无 | 已有 `swift test`；已有 `git diff --check` | 基线提交 `a141648`；`verification.md` |
-| 1 | 核心领域模型与事件日志契约 | 核心模型与事件日志 | `MTPROCore` | Linear Setup 后唯一 `Todo` | 写入 Linear 后是 | 引导基线 | `swift test`；核心单元测试；只追加契约测试 | PR 证据；验证日志；Graphify 上下文状态 |
-| 2 | Binance 公开只读行情适配器契约 | Binance 只读行情 | `MTPROAdapters` | `Backlog` 或 `Planned` | 前序事项 Done 后是 | 核心领域模型与事件日志契约 | `swift test`；适配器契约测试；测试夹具测试；无签名端点测试 | PR 证据；Binance 边界确认；Graphify 上下文状态 |
-| 3 | 交易内核、数据引擎与缓存边界 | 内核与缓存 | `MTPROCore` | `Backlog` 或 `Planned` | 前序事项 Done 后是 | Binance 公开只读行情适配器契约 | `swift test`；actor / 消息总线 / 缓存测试；确定性重放检查 | PR 证据；并发边界证据；Graphify 上下文状态 |
-| 4 | EMA 回测与 Paper 一致性契约 | EMA 回测与 Paper 一致性 | `MTPROCore` / `MTPROApp` | `Backlog` 或 `Planned` | 前序事项 Done 后是 | 交易内核、数据引擎与缓存边界 | `swift test`；回测测试夹具测试；Paper / 回测一致性测试 | PR 证据；一致性证据；Graphify 上下文状态 |
-| 5 | 订单簿失衡策略研究链路 | 订单簿策略 | `MTPROCore` / `MTPROAdapters` | `Backlog` 或 `Planned` | 前序事项 Done 后是 | EMA 回测与 Paper 一致性契约 | `swift test`；订单簿测试夹具测试；策略信号测试 | PR 证据；策略边界证据；Graphify 上下文状态 |
-| 6 | SQLite / DuckDB 投影与重放边界 | SQLite / DuckDB 投影 | `MTPROPersistence` | `Backlog` 或 `Planned` | 前序事项 Done 后是 | 订单簿失衡策略研究链路 | `swift test`；临时数据库测试；重放重建测试 | PR 证据；投影证据；Graphify 上下文状态 |
-| 7 | Trader Workstation 看板 ViewModel 契约 | 工作台看板 | `MTPROApp` | `Backlog` 或 `Planned` | 前序事项 Done 后是 | SQLite / DuckDB 投影与重放边界 | `swift test`；ViewModel 测试；快照或状态契约测试 | PR 证据；UI 边界证据；Graphify 上下文状态 |
+| 1 | 核心领域模型与事件日志契约 | 核心模型与事件日志 | `Core` | Linear Setup 后唯一 `Todo` | 写入 Linear 后是 | 引导基线 | `swift test`；核心单元测试；只追加契约测试 | PR 证据；验证日志；Graphify 上下文状态 |
+| 2 | Binance 公开只读行情适配器契约 | Binance 只读行情 | `Adapters` | `Backlog` 或 `Planned` | 前序事项 Done 后是 | 核心领域模型与事件日志契约 | `swift test`；适配器契约测试；测试夹具测试；无签名端点测试 | PR 证据；Binance 边界确认；Graphify 上下文状态 |
+| 3 | 交易内核、数据引擎与缓存边界 | 内核与缓存 | `Core` | `Backlog` 或 `Planned` | 前序事项 Done 后是 | Binance 公开只读行情适配器契约 | `swift test`；actor / 消息总线 / 缓存测试；确定性重放检查 | PR 证据；并发边界证据；Graphify 上下文状态 |
+| 4 | EMA 回测与 Paper 一致性契约 | EMA 回测与 Paper 一致性 | `Core` / `App` | `Backlog` 或 `Planned` | 前序事项 Done 后是 | 交易内核、数据引擎与缓存边界 | `swift test`；回测测试夹具测试；Paper / 回测一致性测试 | PR 证据；一致性证据；Graphify 上下文状态 |
+| 5 | 订单簿失衡策略研究链路 | 订单簿策略 | `Core` / `Adapters` | `Backlog` 或 `Planned` | 前序事项 Done 后是 | EMA 回测与 Paper 一致性契约 | `swift test`；订单簿测试夹具测试；策略信号测试 | PR 证据；策略边界证据；Graphify 上下文状态 |
+| 6 | SQLite / DuckDB 投影与重放边界 | SQLite / DuckDB 投影 | `Persistence` | `Backlog` 或 `Planned` | 前序事项 Done 后是 | 订单簿失衡策略研究链路 | `swift test`；临时数据库测试；重放重建测试 | PR 证据；投影证据；Graphify 上下文状态 |
+| 7 | Trader Workstation 看板 ViewModel 契约 | 工作台看板 | `App` | `Backlog` 或 `Planned` | 前序事项 Done 后是 | SQLite / DuckDB 投影与重放边界 | `swift test`；ViewModel 测试；快照或状态契约测试 | PR 证据；UI 边界证据；Graphify 上下文状态 |
 | 8 | 验证加固与自动化就绪 | 验证与自动化就绪 | 验证 / 自动化边界 | `Backlog` 或 `Planned` | 前序事项 Done 后是 | Trader Workstation 看板 ViewModel 契约 | `swift test`；验证矩阵；PR 证据检查；自动化就绪清单 | PR 证据；就绪证据；Graphify 上下文状态 |
 
 ## Linear 事项草案
@@ -160,7 +160,7 @@ Linear 放置：
 来源：
 
 - Roadmap 阶段：Core Domain Model and Event Log Contract
-- 架构模块：`MTPROCore`
+- 架构模块：`Core`
 
 Linear 放置：
 
@@ -192,7 +192,7 @@ Linear 放置：
 
 Codex 指令：
 
-- 优先修改 `MTPROCore` 和 `MTPROCoreTests`。
+- 优先修改 `Core` 和 `CoreTests`。
 - 保持契约优先，只定义领域模型、事件和本地可测试契约。
 - 不得引入数据库、网络、UI 或签名端点依赖。
 
@@ -215,7 +215,7 @@ Codex 指令：
 来源：
 
 - Roadmap 阶段：Binance Read-only Market Data Adapter
-- 架构模块：`MTPROAdapters`
+- 架构模块：`Adapters`
 
 Linear 放置：
 
@@ -260,7 +260,7 @@ Linear 放置：
 来源：
 
 - Roadmap 阶段：TradingKernel / DataEngine / Cache
-- 架构模块：`MTPROCore`
+- 架构模块：`Core`
 
 Linear 放置：
 
@@ -302,7 +302,7 @@ Linear 放置：
 来源：
 
 - Roadmap 阶段：EMA Cross Backtest and Paper Parity
-- 架构模块：`MTPROCore` / `MTPROApp`
+- 架构模块：`Core` / `App`
 
 Linear 放置：
 
@@ -345,7 +345,7 @@ Linear 放置：
 来源：
 
 - Roadmap 阶段：Order Book Imbalance Strategy
-- 架构模块：`MTPROCore` / `MTPROAdapters`
+- 架构模块：`Core` / `Adapters`
 
 Linear 放置：
 
@@ -387,7 +387,7 @@ Linear 放置：
 来源：
 
 - Roadmap 阶段：SQLite / DuckDB 投影与重放
-- 架构模块：`MTPROPersistence`
+- 架构模块：`Persistence`
 
 Linear 放置：
 
@@ -430,7 +430,7 @@ Linear 放置：
 来源：
 
 - Roadmap 阶段：Trader Workstation Dashboard
-- 架构模块：`MTPROApp`
+- 架构模块：`App`
 
 Linear 放置：
 

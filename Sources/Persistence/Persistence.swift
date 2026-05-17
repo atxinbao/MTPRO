@@ -1,7 +1,7 @@
 import Foundation
-import MTPROCore
+import Core
 
-public struct MTPROPersistenceBoundary: Equatable, Sendable {
+public struct PersistenceBoundary: Equatable, Sendable {
     public let factSource: String
     public let sqliteResponsibility: String
     public let duckDBResponsibility: String
@@ -27,7 +27,7 @@ public struct MTPROPersistenceBoundary: Equatable, Sendable {
 }
 
 /// 持久化重放边界复用 Core 只追加事件日志，输出稳定投影而不是数据库表。
-public struct MTPROPersistenceReplayBoundary: Equatable, Sendable {
+public struct PersistenceReplayBoundary: Equatable, Sendable {
     private let eventLog: AppendOnlyEventLog
 
     public init(envelopes: [EventEnvelope]) throws {
@@ -42,52 +42,52 @@ public struct MTPROPersistenceReplayBoundary: Equatable, Sendable {
         eventLog.replay(command)
     }
 
-    public func rebuildMarketDataCache(from command: EventReplayCommand) -> MTPROMarketDataCacheSnapshot {
+    public func rebuildMarketDataCache(from command: EventReplayCommand) -> MarketDataCacheSnapshot {
         let replay = replay(command)
-        return MTPROMarketDataCache.project(replay.envelopes)
+        return MarketDataCache.project(replay.envelopes)
     }
 
     public func rebuildSQLiteRuntimeProjection(
         from command: EventReplayCommand
-    ) -> MTPROSQLiteRuntimeProjectionSnapshot {
+    ) -> SQLiteRuntimeProjectionSnapshot {
         let replay = replay(command)
-        return MTPROSQLiteRuntimeProjectionStore.project(replay.envelopes)
+        return SQLiteRuntimeProjectionStore.project(replay.envelopes)
     }
 
     public func rebuildDuckDBAnalyticalProjection(
         from command: EventReplayCommand
-    ) -> MTPRODuckDBAnalyticalProjectionSnapshot {
+    ) -> DuckDBAnalyticalProjectionSnapshot {
         let replay = replay(command)
-        return MTPRODuckDBAnalyticalProjectionStore.project(replay.envelopes)
+        return DuckDBAnalyticalProjectionStore.project(replay.envelopes)
     }
 }
 
-public enum MTPROProjectionLifecycleState: String, Codable, Equatable, Sendable {
+public enum ProjectionLifecycleState: String, Codable, Equatable, Sendable {
     case requested
     case completed
 }
 
-public struct MTPROSQLitePaperSessionProjection: Codable, Equatable, Sendable {
-    public let sessionID: MTPROIdentifier
-    public let strategyID: MTPROIdentifier
-    public let symbol: MTPROSymbol
-    public let timeframe: MTPROTimeframe
-    public let riskProfileID: MTPROIdentifier
-    public let executionMode: MTPROExecutionMode
-    public let state: MTPROProjectionLifecycleState
+public struct SQLitePaperSessionProjection: Codable, Equatable, Sendable {
+    public let sessionID: Identifier
+    public let strategyID: Identifier
+    public let symbol: Symbol
+    public let timeframe: Timeframe
+    public let riskProfileID: Identifier
+    public let executionMode: ExecutionMode
+    public let state: ProjectionLifecycleState
     public let signalCount: Int
     public let requestedAt: Date
     public let completedAt: Date?
     public let lastUpdatedAt: Date
 
     public init(
-        sessionID: MTPROIdentifier,
-        strategyID: MTPROIdentifier,
-        symbol: MTPROSymbol,
-        timeframe: MTPROTimeframe,
-        riskProfileID: MTPROIdentifier,
-        executionMode: MTPROExecutionMode,
-        state: MTPROProjectionLifecycleState,
+        sessionID: Identifier,
+        strategyID: Identifier,
+        symbol: Symbol,
+        timeframe: Timeframe,
+        riskProfileID: Identifier,
+        executionMode: ExecutionMode,
+        state: ProjectionLifecycleState,
         signalCount: Int,
         requestedAt: Date,
         completedAt: Date?,
@@ -107,21 +107,21 @@ public struct MTPROSQLitePaperSessionProjection: Codable, Equatable, Sendable {
     }
 }
 
-public enum MTPROSQLitePortfolioProjectionState: String, Codable, Equatable, Sendable {
+public enum SQLitePortfolioProjectionState: String, Codable, Equatable, Sendable {
     case requested
     case updated
 }
 
-public struct MTPROSQLitePortfolioProjection: Codable, Equatable, Sendable {
-    public let portfolioID: MTPROIdentifier
-    public let state: MTPROSQLitePortfolioProjectionState
+public struct SQLitePortfolioProjection: Codable, Equatable, Sendable {
+    public let portfolioID: Identifier
+    public let state: SQLitePortfolioProjectionState
     public let requestedAt: Date?
     public let updatedAt: Date?
     public let lastUpdatedAt: Date
 
     public init(
-        portfolioID: MTPROIdentifier,
-        state: MTPROSQLitePortfolioProjectionState,
+        portfolioID: Identifier,
+        state: SQLitePortfolioProjectionState,
         requestedAt: Date?,
         updatedAt: Date?,
         lastUpdatedAt: Date
@@ -134,16 +134,16 @@ public struct MTPROSQLitePortfolioProjection: Codable, Equatable, Sendable {
     }
 }
 
-public struct MTPROSQLiteRuntimeProjectionSnapshot: Equatable, Sendable {
-    public let paperSessions: [MTPROIdentifier: MTPROSQLitePaperSessionProjection]
-    public let rejectedPaperOrderIDs: [MTPROIdentifier]
-    public let portfolioProjections: [MTPROIdentifier: MTPROSQLitePortfolioProjection]
+public struct SQLiteRuntimeProjectionSnapshot: Equatable, Sendable {
+    public let paperSessions: [Identifier: SQLitePaperSessionProjection]
+    public let rejectedPaperOrderIDs: [Identifier]
+    public let portfolioProjections: [Identifier: SQLitePortfolioProjection]
     public let lastAppliedSequence: Int?
 
     public init(
-        paperSessions: [MTPROIdentifier: MTPROSQLitePaperSessionProjection] = [:],
-        rejectedPaperOrderIDs: [MTPROIdentifier] = [],
-        portfolioProjections: [MTPROIdentifier: MTPROSQLitePortfolioProjection] = [:],
+        paperSessions: [Identifier: SQLitePaperSessionProjection] = [:],
+        rejectedPaperOrderIDs: [Identifier] = [],
+        portfolioProjections: [Identifier: SQLitePortfolioProjection] = [:],
         lastAppliedSequence: Int? = nil
     ) {
         self.paperSessions = paperSessions
@@ -154,23 +154,23 @@ public struct MTPROSQLiteRuntimeProjectionSnapshot: Equatable, Sendable {
 }
 
 /// SQLite 运行投影边界保存轻量运行状态，不暴露 SQL schema 给 UI。
-public struct MTPROSQLiteRuntimeProjectionStore: Equatable, Sendable {
-    public private(set) var snapshot: MTPROSQLiteRuntimeProjectionSnapshot
+public struct SQLiteRuntimeProjectionStore: Equatable, Sendable {
+    public private(set) var snapshot: SQLiteRuntimeProjectionSnapshot
 
-    public init(snapshot: MTPROSQLiteRuntimeProjectionSnapshot = MTPROSQLiteRuntimeProjectionSnapshot()) {
+    public init(snapshot: SQLiteRuntimeProjectionSnapshot = SQLiteRuntimeProjectionSnapshot()) {
         self.snapshot = snapshot
     }
 
     @discardableResult
-    public mutating func rebuild(from envelopes: [EventEnvelope]) -> MTPROSQLiteRuntimeProjectionSnapshot {
+    public mutating func rebuild(from envelopes: [EventEnvelope]) -> SQLiteRuntimeProjectionSnapshot {
         snapshot = Self.project(envelopes)
         return snapshot
     }
 
-    public static func project(_ envelopes: [EventEnvelope]) -> MTPROSQLiteRuntimeProjectionSnapshot {
-        var paperSessions: [MTPROIdentifier: MTPROSQLitePaperSessionProjection] = [:]
-        var rejectedPaperOrderIDs: [MTPROIdentifier] = []
-        var portfolioProjections: [MTPROIdentifier: MTPROSQLitePortfolioProjection] = [:]
+    public static func project(_ envelopes: [EventEnvelope]) -> SQLiteRuntimeProjectionSnapshot {
+        var paperSessions: [Identifier: SQLitePaperSessionProjection] = [:]
+        var rejectedPaperOrderIDs: [Identifier] = []
+        var portfolioProjections: [Identifier: SQLitePortfolioProjection] = [:]
         var lastAppliedSequence: Int?
 
         for envelope in envelopes.sorted(by: { $0.sequence < $1.sequence }) {
@@ -200,7 +200,7 @@ public struct MTPROSQLiteRuntimeProjectionStore: Equatable, Sendable {
             }
         }
 
-        return MTPROSQLiteRuntimeProjectionSnapshot(
+        return SQLiteRuntimeProjectionSnapshot(
             paperSessions: paperSessions,
             rejectedPaperOrderIDs: rejectedPaperOrderIDs,
             portfolioProjections: portfolioProjections,
@@ -209,14 +209,14 @@ public struct MTPROSQLiteRuntimeProjectionStore: Equatable, Sendable {
     }
 
     private static func apply(
-        paperEvent: MTPROPaperEvent,
+        paperEvent: PaperEvent,
         envelope: EventEnvelope,
-        paperSessions: inout [MTPROIdentifier: MTPROSQLitePaperSessionProjection]
+        paperSessions: inout [Identifier: SQLitePaperSessionProjection]
     ) {
         switch paperEvent {
         case let .sessionRequested(command):
             let existing = paperSessions[command.sessionID]
-            paperSessions[command.sessionID] = MTPROSQLitePaperSessionProjection(
+            paperSessions[command.sessionID] = SQLitePaperSessionProjection(
                 sessionID: command.sessionID,
                 strategyID: command.strategyID,
                 symbol: command.strategy.symbol,
@@ -235,7 +235,7 @@ public struct MTPROSQLiteRuntimeProjectionStore: Equatable, Sendable {
 
         case let .sessionCompleted(result):
             let existing = paperSessions[result.sessionID]
-            paperSessions[result.sessionID] = MTPROSQLitePaperSessionProjection(
+            paperSessions[result.sessionID] = SQLitePaperSessionProjection(
                 sessionID: result.sessionID,
                 strategyID: result.command.strategyID,
                 symbol: result.command.strategy.symbol,
@@ -252,8 +252,8 @@ public struct MTPROSQLiteRuntimeProjectionStore: Equatable, Sendable {
     }
 
     private static func apply(
-        riskEvent: MTPRORiskEvent,
-        rejectedPaperOrderIDs: inout [MTPROIdentifier]
+        riskEvent: RiskEvent,
+        rejectedPaperOrderIDs: inout [Identifier]
     ) {
         guard case let .rejected(paperOrderID) = riskEvent else {
             return
@@ -264,14 +264,14 @@ public struct MTPROSQLiteRuntimeProjectionStore: Equatable, Sendable {
     }
 
     private static func apply(
-        portfolioEvent: MTPROPortfolioEvent,
+        portfolioEvent: PortfolioEvent,
         envelope: EventEnvelope,
-        portfolioProjections: inout [MTPROIdentifier: MTPROSQLitePortfolioProjection]
+        portfolioProjections: inout [Identifier: SQLitePortfolioProjection]
     ) {
         switch portfolioEvent {
         case let .projectionRequested(query):
             let existing = portfolioProjections[query.portfolioID]
-            portfolioProjections[query.portfolioID] = MTPROSQLitePortfolioProjection(
+            portfolioProjections[query.portfolioID] = SQLitePortfolioProjection(
                 portfolioID: query.portfolioID,
                 state: existing?.state ?? .requested,
                 requestedAt: existing?.requestedAt ?? envelope.recordedAt,
@@ -281,7 +281,7 @@ public struct MTPROSQLiteRuntimeProjectionStore: Equatable, Sendable {
 
         case let .projectionUpdated(portfolioID):
             let existing = portfolioProjections[portfolioID]
-            portfolioProjections[portfolioID] = MTPROSQLitePortfolioProjection(
+            portfolioProjections[portfolioID] = SQLitePortfolioProjection(
                 portfolioID: portfolioID,
                 state: .updated,
                 requestedAt: existing?.requestedAt,
@@ -292,18 +292,18 @@ public struct MTPROSQLiteRuntimeProjectionStore: Equatable, Sendable {
     }
 }
 
-public enum MTPRODuckDBSignalSource: String, Codable, Equatable, Sendable {
+public enum DuckDBSignalSource: String, Codable, Equatable, Sendable {
     case backtest
     case orderBookImbalanceResearch
 }
 
-public struct MTPRODuckDBSignalTimelineProjection: Codable, Equatable, Sendable {
-    public let source: MTPRODuckDBSignalSource
-    public let strategyID: MTPROIdentifier
-    public let symbol: MTPROSymbol
-    public let timeframe: MTPROTimeframe
+public struct DuckDBSignalTimelineProjection: Codable, Equatable, Sendable {
+    public let source: DuckDBSignalSource
+    public let strategyID: Identifier
+    public let symbol: Symbol
+    public let timeframe: Timeframe
     public let generatedAt: Date
-    public let direction: MTPROSignalDirection
+    public let direction: SignalDirection
     public let close: Double?
     public let shortEMA: Double?
     public let longEMA: Double?
@@ -312,12 +312,12 @@ public struct MTPRODuckDBSignalTimelineProjection: Codable, Equatable, Sendable 
     public let imbalanceRatio: Double?
 
     public init(
-        source: MTPRODuckDBSignalSource,
-        strategyID: MTPROIdentifier,
-        symbol: MTPROSymbol,
-        timeframe: MTPROTimeframe,
+        source: DuckDBSignalSource,
+        strategyID: Identifier,
+        symbol: Symbol,
+        timeframe: Timeframe,
         generatedAt: Date,
-        direction: MTPROSignalDirection,
+        direction: SignalDirection,
         close: Double? = nil,
         shortEMA: Double? = nil,
         longEMA: Double? = nil,
@@ -340,21 +340,21 @@ public struct MTPRODuckDBSignalTimelineProjection: Codable, Equatable, Sendable 
     }
 }
 
-public struct MTPRODuckDBBacktestProjection: Codable, Equatable, Sendable {
-    public let runID: MTPROIdentifier
-    public let strategyID: MTPROIdentifier
-    public let symbol: MTPROSymbol
-    public let timeframe: MTPROTimeframe
-    public let state: MTPROProjectionLifecycleState
+public struct DuckDBBacktestProjection: Codable, Equatable, Sendable {
+    public let runID: Identifier
+    public let strategyID: Identifier
+    public let symbol: Symbol
+    public let timeframe: Timeframe
+    public let state: ProjectionLifecycleState
     public let signalCount: Int
     public let completedAt: Date?
 
     public init(
-        runID: MTPROIdentifier,
-        strategyID: MTPROIdentifier,
-        symbol: MTPROSymbol,
-        timeframe: MTPROTimeframe,
-        state: MTPROProjectionLifecycleState,
+        runID: Identifier,
+        strategyID: Identifier,
+        symbol: Symbol,
+        timeframe: Timeframe,
+        state: ProjectionLifecycleState,
         signalCount: Int,
         completedAt: Date?
     ) {
@@ -368,23 +368,23 @@ public struct MTPRODuckDBBacktestProjection: Codable, Equatable, Sendable {
     }
 }
 
-public struct MTPRODuckDBOrderBookResearchProjection: Codable, Equatable, Sendable {
-    public let researchID: MTPROIdentifier
-    public let strategyID: MTPROIdentifier
-    public let symbol: MTPROSymbol
-    public let timeframe: MTPROTimeframe
+public struct DuckDBOrderBookResearchProjection: Codable, Equatable, Sendable {
+    public let researchID: Identifier
+    public let strategyID: Identifier
+    public let symbol: Symbol
+    public let timeframe: Timeframe
     public let depth: Int
-    public let state: MTPROProjectionLifecycleState
+    public let state: ProjectionLifecycleState
     public let signalCount: Int
     public let completedAt: Date?
 
     public init(
-        researchID: MTPROIdentifier,
-        strategyID: MTPROIdentifier,
-        symbol: MTPROSymbol,
-        timeframe: MTPROTimeframe,
+        researchID: Identifier,
+        strategyID: Identifier,
+        symbol: Symbol,
+        timeframe: Timeframe,
         depth: Int,
-        state: MTPROProjectionLifecycleState,
+        state: ProjectionLifecycleState,
         signalCount: Int,
         completedAt: Date?
     ) {
@@ -399,26 +399,26 @@ public struct MTPRODuckDBOrderBookResearchProjection: Codable, Equatable, Sendab
     }
 }
 
-public struct MTPRODuckDBAnalyticalProjectionSnapshot: Equatable, Sendable {
-    public let marketBars: [MTPROMarketBar]
-    public let trades: [MTPROTradeTick]
-    public let bestBidAsks: [MTPROBestBidAsk]
-    public let orderBookSnapshots: [MTPROOrderBookSnapshot]
-    public let orderBookDeltas: [MTPROOrderBookDelta]
-    public let backtestRuns: [MTPROIdentifier: MTPRODuckDBBacktestProjection]
-    public let orderBookResearchRuns: [MTPROIdentifier: MTPRODuckDBOrderBookResearchProjection]
-    public let signalTimeline: [MTPRODuckDBSignalTimelineProjection]
+public struct DuckDBAnalyticalProjectionSnapshot: Equatable, Sendable {
+    public let marketBars: [MarketBar]
+    public let trades: [TradeTick]
+    public let bestBidAsks: [BestBidAsk]
+    public let orderBookSnapshots: [OrderBookSnapshot]
+    public let orderBookDeltas: [OrderBookDelta]
+    public let backtestRuns: [Identifier: DuckDBBacktestProjection]
+    public let orderBookResearchRuns: [Identifier: DuckDBOrderBookResearchProjection]
+    public let signalTimeline: [DuckDBSignalTimelineProjection]
     public let lastAppliedSequence: Int?
 
     public init(
-        marketBars: [MTPROMarketBar] = [],
-        trades: [MTPROTradeTick] = [],
-        bestBidAsks: [MTPROBestBidAsk] = [],
-        orderBookSnapshots: [MTPROOrderBookSnapshot] = [],
-        orderBookDeltas: [MTPROOrderBookDelta] = [],
-        backtestRuns: [MTPROIdentifier: MTPRODuckDBBacktestProjection] = [:],
-        orderBookResearchRuns: [MTPROIdentifier: MTPRODuckDBOrderBookResearchProjection] = [:],
-        signalTimeline: [MTPRODuckDBSignalTimelineProjection] = [],
+        marketBars: [MarketBar] = [],
+        trades: [TradeTick] = [],
+        bestBidAsks: [BestBidAsk] = [],
+        orderBookSnapshots: [OrderBookSnapshot] = [],
+        orderBookDeltas: [OrderBookDelta] = [],
+        backtestRuns: [Identifier: DuckDBBacktestProjection] = [:],
+        orderBookResearchRuns: [Identifier: DuckDBOrderBookResearchProjection] = [:],
+        signalTimeline: [DuckDBSignalTimelineProjection] = [],
         lastAppliedSequence: Int? = nil
     ) {
         self.marketBars = marketBars
@@ -434,28 +434,28 @@ public struct MTPRODuckDBAnalyticalProjectionSnapshot: Equatable, Sendable {
 }
 
 /// DuckDB 分析投影边界面向 market data、backtest 和研究分析，不保存运行时对象。
-public struct MTPRODuckDBAnalyticalProjectionStore: Equatable, Sendable {
-    public private(set) var snapshot: MTPRODuckDBAnalyticalProjectionSnapshot
+public struct DuckDBAnalyticalProjectionStore: Equatable, Sendable {
+    public private(set) var snapshot: DuckDBAnalyticalProjectionSnapshot
 
-    public init(snapshot: MTPRODuckDBAnalyticalProjectionSnapshot = MTPRODuckDBAnalyticalProjectionSnapshot()) {
+    public init(snapshot: DuckDBAnalyticalProjectionSnapshot = DuckDBAnalyticalProjectionSnapshot()) {
         self.snapshot = snapshot
     }
 
     @discardableResult
-    public mutating func rebuild(from envelopes: [EventEnvelope]) -> MTPRODuckDBAnalyticalProjectionSnapshot {
+    public mutating func rebuild(from envelopes: [EventEnvelope]) -> DuckDBAnalyticalProjectionSnapshot {
         snapshot = Self.project(envelopes)
         return snapshot
     }
 
-    public static func project(_ envelopes: [EventEnvelope]) -> MTPRODuckDBAnalyticalProjectionSnapshot {
-        var marketBars: [MTPROMarketBar] = []
-        var trades: [MTPROTradeTick] = []
-        var bestBidAsks: [MTPROBestBidAsk] = []
-        var orderBookSnapshots: [MTPROOrderBookSnapshot] = []
-        var orderBookDeltas: [MTPROOrderBookDelta] = []
-        var backtestRuns: [MTPROIdentifier: MTPRODuckDBBacktestProjection] = [:]
-        var orderBookResearchRuns: [MTPROIdentifier: MTPRODuckDBOrderBookResearchProjection] = [:]
-        var signalTimeline: [MTPRODuckDBSignalTimelineProjection] = []
+    public static func project(_ envelopes: [EventEnvelope]) -> DuckDBAnalyticalProjectionSnapshot {
+        var marketBars: [MarketBar] = []
+        var trades: [TradeTick] = []
+        var bestBidAsks: [BestBidAsk] = []
+        var orderBookSnapshots: [OrderBookSnapshot] = []
+        var orderBookDeltas: [OrderBookDelta] = []
+        var backtestRuns: [Identifier: DuckDBBacktestProjection] = [:]
+        var orderBookResearchRuns: [Identifier: DuckDBOrderBookResearchProjection] = [:]
+        var signalTimeline: [DuckDBSignalTimelineProjection] = []
         var lastAppliedSequence: Int?
 
         for envelope in envelopes.sorted(by: { $0.sequence < $1.sequence }) {
@@ -489,7 +489,7 @@ public struct MTPRODuckDBAnalyticalProjectionStore: Equatable, Sendable {
             }
         }
 
-        return MTPRODuckDBAnalyticalProjectionSnapshot(
+        return DuckDBAnalyticalProjectionSnapshot(
             marketBars: marketBars,
             trades: trades,
             bestBidAsks: bestBidAsks,
@@ -503,12 +503,12 @@ public struct MTPRODuckDBAnalyticalProjectionStore: Equatable, Sendable {
     }
 
     private static func apply(
-        marketEvent: MTPROMarketEvent,
-        marketBars: inout [MTPROMarketBar],
-        trades: inout [MTPROTradeTick],
-        bestBidAsks: inout [MTPROBestBidAsk],
-        orderBookSnapshots: inout [MTPROOrderBookSnapshot],
-        orderBookDeltas: inout [MTPROOrderBookDelta]
+        marketEvent: MarketEvent,
+        marketBars: inout [MarketBar],
+        trades: inout [TradeTick],
+        bestBidAsks: inout [BestBidAsk],
+        orderBookSnapshots: inout [OrderBookSnapshot],
+        orderBookDeltas: inout [OrderBookDelta]
     ) {
         switch marketEvent {
         case let .bar(bar):
@@ -525,14 +525,14 @@ public struct MTPRODuckDBAnalyticalProjectionStore: Equatable, Sendable {
     }
 
     private static func apply(
-        backtestEvent: MTPROBacktestEvent,
-        backtestRuns: inout [MTPROIdentifier: MTPRODuckDBBacktestProjection],
-        signalTimeline: inout [MTPRODuckDBSignalTimelineProjection]
+        backtestEvent: BacktestEvent,
+        backtestRuns: inout [Identifier: DuckDBBacktestProjection],
+        signalTimeline: inout [DuckDBSignalTimelineProjection]
     ) {
         switch backtestEvent {
         case let .requested(command):
             let existing = backtestRuns[command.runID]
-            backtestRuns[command.runID] = MTPRODuckDBBacktestProjection(
+            backtestRuns[command.runID] = DuckDBBacktestProjection(
                 runID: command.runID,
                 strategyID: command.strategyID,
                 symbol: command.strategy.symbol,
@@ -546,7 +546,7 @@ public struct MTPRODuckDBAnalyticalProjectionStore: Equatable, Sendable {
             signalTimeline.append(signalProjection(from: sample))
 
         case let .completed(result):
-            backtestRuns[result.runID] = MTPRODuckDBBacktestProjection(
+            backtestRuns[result.runID] = DuckDBBacktestProjection(
                 runID: result.runID,
                 strategyID: result.command.strategyID,
                 symbol: result.command.strategy.symbol,
@@ -559,14 +559,14 @@ public struct MTPRODuckDBAnalyticalProjectionStore: Equatable, Sendable {
     }
 
     private static func apply(
-        researchEvent: MTPROOrderBookImbalanceResearchEvent,
-        orderBookResearchRuns: inout [MTPROIdentifier: MTPRODuckDBOrderBookResearchProjection],
-        signalTimeline: inout [MTPRODuckDBSignalTimelineProjection]
+        researchEvent: OrderBookImbalanceResearchEvent,
+        orderBookResearchRuns: inout [Identifier: DuckDBOrderBookResearchProjection],
+        signalTimeline: inout [DuckDBSignalTimelineProjection]
     ) {
         switch researchEvent {
         case let .requested(command):
             let existing = orderBookResearchRuns[command.researchID]
-            orderBookResearchRuns[command.researchID] = MTPRODuckDBOrderBookResearchProjection(
+            orderBookResearchRuns[command.researchID] = DuckDBOrderBookResearchProjection(
                 researchID: command.researchID,
                 strategyID: command.strategyID,
                 symbol: command.strategy.symbol,
@@ -581,7 +581,7 @@ public struct MTPRODuckDBAnalyticalProjectionStore: Equatable, Sendable {
             signalTimeline.append(signalProjection(from: sample))
 
         case let .completed(result):
-            orderBookResearchRuns[result.researchID] = MTPRODuckDBOrderBookResearchProjection(
+            orderBookResearchRuns[result.researchID] = DuckDBOrderBookResearchProjection(
                 researchID: result.researchID,
                 strategyID: result.command.strategyID,
                 symbol: result.command.strategy.symbol,
@@ -595,9 +595,9 @@ public struct MTPRODuckDBAnalyticalProjectionStore: Equatable, Sendable {
     }
 
     private static func signalProjection(
-        from sample: MTPROEMACrossSignalSample
-    ) -> MTPRODuckDBSignalTimelineProjection {
-        MTPRODuckDBSignalTimelineProjection(
+        from sample: EMACrossSignalSample
+    ) -> DuckDBSignalTimelineProjection {
+        DuckDBSignalTimelineProjection(
             source: .backtest,
             strategyID: sample.signal.strategyID,
             symbol: sample.signal.symbol,
@@ -611,9 +611,9 @@ public struct MTPRODuckDBAnalyticalProjectionStore: Equatable, Sendable {
     }
 
     private static func signalProjection(
-        from sample: MTPROOrderBookImbalanceSignalSample
-    ) -> MTPRODuckDBSignalTimelineProjection {
-        MTPRODuckDBSignalTimelineProjection(
+        from sample: OrderBookImbalanceSignalSample
+    ) -> DuckDBSignalTimelineProjection {
+        DuckDBSignalTimelineProjection(
             source: .orderBookImbalanceResearch,
             strategyID: sample.signal.strategyID,
             symbol: sample.signal.symbol,
