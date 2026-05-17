@@ -20,6 +20,7 @@ ViewModel 只能来自稳定 read model projection。
 | MarketViewModel | Market read model | 行情观察 |
 | StrategyViewModel | Strategy read model | 策略状态 |
 | BacktestViewModel | Backtest read model | 回测结果 |
+| ReportViewModel | Report read model | 研究报告快照 |
 | PaperViewModel | Paper execution read model | Paper 状态 |
 | RiskViewModel | Risk read model | 风险状态 |
 | PortfolioViewModel | Portfolio read model | 组合投影 |
@@ -82,3 +83,29 @@ MTP-22 新增 `DashboardShellView` 与 `MTPRODashboard` SwiftPM executable。
 - shell 不直接读取 SQLite / DuckDB schema、table、column、SQL statement 或 ORM object。
 - shell 不调用 Binance adapter。
 - shell 不提供 live order action、broker action、signed endpoint 或真实交易控制。
+
+## MTP-23 Report ViewModel 契约
+
+日期：2026-05-18
+
+执行者：Codex
+
+MTP-23 新增 Report read model / ViewModel，覆盖：
+
+- `ReportReadModel`
+- `ResearchBacktestReportArtifact`
+- `ReportViewModel`
+- `ReportArtifactViewModel`
+
+输入契约：
+
+- Report read model 只能由 `DuckDBAnalyticalProjectionSnapshot`、`SQLiteRuntimeProjectionSnapshot` 和 append-only event timeline 派生。
+- Report artifact 绑定 backtest run、同 symbol / timeframe 的 research run、matching Paper session、事件数量和投影级 parity evidence。
+- Report ViewModel 只暴露报告快照字段，不暴露 database table、SQL statement、ORM model、runtime object 或 adapter request。
+
+边界确认：
+
+- Report 不调用 Runtime / Adapters。
+- Report 不提供 live order action。
+- Report 不替代 Core 层 `BacktestPaperParity` 完整信号时间线验证，只表达 projection-level evidence。
+- Report artifact 的 `executionAuthorization` 固定为 research output only，不代表 broker action、signed endpoint 或真实订单授权。

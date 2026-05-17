@@ -309,3 +309,28 @@ MTP-21 ingest 串联。
 - 多 run 续写游标合同。
 - signed endpoint、account endpoint、listenKey user data stream。
 - broker action、真实订单行为、Live trading 或 futures leverage / margin action。
+
+## MTP-23 Research -> Backtest -> Report Use Case 边界
+
+日期：2026-05-18
+
+执行者：Codex
+
+`ResearchBacktestReport` 在本事项中作为 App 层最小读模型生成路径：
+
+- 输入：`DuckDBAnalyticalProjectionSnapshot`、`SQLiteRuntimeProjectionSnapshot`、append-only event timeline。
+- 输出：`ReportReadModel` / `ResearchBacktestReportArtifact` / `ReportViewModel`。
+- 数据链：Research projection -> Backtest projection -> Paper projection evidence -> Report artifact -> Dashboard shell snapshot。
+
+契约要求：
+
+- Report 只能汇总既有 projection snapshots，不重跑策略、不调用 Runtime / Adapters。
+- Report 可以表达 projection-level Backtest / Paper evidence，但不替代 Core 层 `BacktestPaperParity` 完整时间线验证。
+- Report artifact 必须标记为 research output only，不能授权真实交易执行。
+
+本契约不包含：
+
+- Stage Code Audit Report。
+- 完整报表系统。
+- 完整 Paper execution 工作流。
+- signed endpoint、account endpoint、broker action、真实订单行为或 Live execution。

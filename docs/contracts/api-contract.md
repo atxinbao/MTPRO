@@ -257,3 +257,25 @@ MTP-21 不新增 HTTP API，也不新增 database table API、live / broker / si
 - 不新增 broker account command。
 - 不新增 signed endpoint command。
 - 不把 SQLite / DuckDB schema 暴露为 API contract。
+
+## MTP-23 Report Artifact / Read Model 边界
+
+日期：2026-05-18
+
+执行者：Codex
+
+MTP-23 不新增 HTTP API，也不新增 live / broker / signed command。
+
+Report artifact 由 App 层 read model 派生，不作为新的交易 command：
+
+- `ReportReadModel`：从 projection snapshots / event timeline 生成最小 Research -> Backtest -> Report 观察面。
+- `ResearchBacktestReportArtifact`：绑定 backtest、research、Paper projection evidence 和 execution authorization。
+- `ReportViewModel`：给 Dashboard shell 提供只读报告快照。
+
+边界确认：
+
+- 不新增 live order command。
+- 不新增 broker account command。
+- 不新增 signed endpoint command。
+- 不新增 database table API。
+- 不把 report artifact 解释为订单、账户或执行授权。

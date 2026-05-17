@@ -2,10 +2,15 @@ import Foundation
 import Core
 import Persistence
 
+/// DashboardSection 定义研究工作台 shell 的只读区域顺序。
+///
+/// MTP-23 新增 Report 区域用于展示研究输出快照；所有区域都只消费 App 层 ViewModel，
+/// 不承载外部系统命令、broker action、signed endpoint 或真实交易入口。
 public enum DashboardSection: String, CaseIterable, Codable, Hashable, Sendable {
     case market = "Market"
     case strategy = "Strategy"
     case backtest = "Backtest"
+    case report = "Report"
     case paper = "Paper"
     case risk = "Risk"
     case portfolio = "Portfolio"
@@ -220,10 +225,203 @@ public struct EventTimelineReadModel: Equatable, Sendable {
     }
 }
 
+/// ReportParityStatus 描述报告层能从 projection snapshot 证明的 Backtest / Paper 一致性证据。
+///
+/// 这里不会替代 Core 层 `BacktestPaperParity` 的完整信号时间线校验；报告只消费稳定投影，
+/// 因此只能表达同策略、同 symbol / timeframe 和信号数量的投影级证据。
+public enum ReportParityStatus: String, Codable, Equatable, Sendable {
+    case matchedProjectionEvidence = "matched projection evidence"
+    case missingPaperProjection = "missing paper projection"
+    case mismatchedProjectionEvidence = "mismatched projection evidence"
+}
+
+/// ReportExecutionAuthorization 明确报告只是研究输出，不是交易执行授权。
+///
+/// 该值会进入 Dashboard ViewModel 和 shell snapshot，作为 Paper / Live 禁区的可观察证据；
+/// 它不提供 order submit、broker action、signed endpoint 或真实账户访问能力。
+public enum ReportExecutionAuthorization: String, Codable, Equatable, Sendable {
+    case researchOutputOnly = "research output only"
+}
+
+/// ResearchBacktestReportArtifact 是 MTP-23 的最小报告 artifact。
+///
+/// 输入来自 `DuckDBAnalyticalProjectionSnapshot`、`SQLiteRuntimeProjectionSnapshot` 和 append-only
+/// event timeline 派生的 read model；输出只保留报告观察字段，不暴露数据库表、SQL、runtime object、
+/// Binance adapter 或任何可触发真实交易的命令。
+public struct ResearchBacktestReportArtifact: Codable, Equatable, Sendable {
+    public let reportID: String
+    public let backtestRunID: String
+    public let backtestState: ProjectionLifecycleState
+    public let researchIDs: [String]
+    public let paperSessionIDs: [String]
+    public let strategyIDs: [String]
+    public let symbol: String
+    public let timeframe: String
+    public let backtestSignalCount: Int
+    public let researchSignalCount: Int
+    public let paperSignalCount: Int
+    public let eventCount: Int
+    public let parityStatus: ReportParityStatus
+    public let executionAuthorization: ReportExecutionAuthorization
+    public let lastAppliedSequence: Int?
+
+    public init(
+        reportID: String,
+        backtestRunID: String,
+        backtestState: ProjectionLifecycleState,
+        researchIDs: [String],
+        paperSessionIDs: [String],
+        strategyIDs: [String],
+        symbol: String,
+        timeframe: String,
+        backtestSignalCount: Int,
+        researchSignalCount: Int,
+        paperSignalCount: Int,
+        eventCount: Int,
+        parityStatus: ReportParityStatus,
+        executionAuthorization: ReportExecutionAuthorization = .researchOutputOnly,
+        lastAppliedSequence: Int?
+    ) {
+        self.reportID = reportID
+        self.backtestRunID = backtestRunID
+        self.backtestState = backtestState
+        self.researchIDs = researchIDs.uniqueSorted()
+        self.paperSessionIDs = paperSessionIDs.uniqueSorted()
+        self.strategyIDs = strategyIDs.uniqueSorted()
+        self.symbol = symbol
+        self.timeframe = timeframe
+        self.backtestSignalCount = backtestSignalCount
+        self.researchSignalCount = researchSignalCount
+        self.paperSignalCount = paperSignalCount
+        self.eventCount = eventCount
+        self.parityStatus = parityStatus
+        self.executionAuthorization = executionAuthorization
+        self.lastAppliedSequence = lastAppliedSequence
+    }
+
+    public var authorizesTradingExecution: Bool {
+        false
+    }
+}
+
+/// ReportReadModel 从现有 projection snapshots 生成 Research -> Backtest -> Report 最小观察面。
+///
+/// 它把订单簿研究投影、EMA 回测投影、Paper session 投影和事件流水汇总成报告 artifact；
+/// 该 read model 不重跑策略、不读取数据库 schema、不调用 Runtime / Adapters，也不把报告解释为交易授权。
+public struct ReportReadModel: Equatable, Sendable {
+    public let artifacts: [ResearchBacktestReportArtifact]
+    public let lastAppliedSequence: Int?
+
+    public init(
+        artifacts: [ResearchBacktestReportArtifact] = [],
+        lastAppliedSequence: Int? = nil
+    ) {
+        self.artifacts = artifacts.sorted { left, right in
+            left.reportID < right.reportID
+        }
+        self.lastAppliedSequence = lastAppliedSequence
+    }
+
+    public init(
+        analyticalProjection: DuckDBAnalyticalProjectionSnapshot,
+        runtimeProjection: SQLiteRuntimeProjectionSnapshot,
+        eventTimeline: [EventEnvelope]
+    ) {
+        let sortedBacktests = analyticalProjection.backtestRuns.values.sorted {
+            $0.runID.rawValue < $1.runID.rawValue
+        }
+        let researchRuns = Array(analyticalProjection.orderBookResearchRuns.values)
+        let paperSessions = Array(runtimeProjection.paperSessions.values)
+        let lastAppliedSequence = Self.maxSequence(
+            analyticalProjection.lastAppliedSequence,
+            runtimeProjection.lastAppliedSequence,
+            eventTimeline.map(\.sequence).max()
+        )
+
+        let artifacts = sortedBacktests.map { backtest in
+            Self.makeArtifact(
+                backtest: backtest,
+                researchRuns: researchRuns,
+                signalTimeline: analyticalProjection.signalTimeline,
+                paperSessions: paperSessions,
+                eventCount: eventTimeline.count,
+                lastAppliedSequence: lastAppliedSequence
+            )
+        }
+
+        self.init(artifacts: artifacts, lastAppliedSequence: lastAppliedSequence)
+    }
+
+    private static func makeArtifact(
+        backtest: DuckDBBacktestProjection,
+        researchRuns: [DuckDBOrderBookResearchProjection],
+        signalTimeline: [DuckDBSignalTimelineProjection],
+        paperSessions: [SQLitePaperSessionProjection],
+        eventCount: Int,
+        lastAppliedSequence: Int?
+    ) -> ResearchBacktestReportArtifact {
+        let matchingResearchRuns = researchRuns.filter {
+            $0.symbol == backtest.symbol && $0.timeframe == backtest.timeframe
+        }
+        let matchingPaperSessions = paperSessions.filter {
+            $0.strategyID == backtest.strategyID
+                && $0.symbol == backtest.symbol
+                && $0.timeframe == backtest.timeframe
+        }
+        let matchingResearchSignals = signalTimeline.filter {
+            $0.source == .orderBookImbalanceResearch
+                && $0.symbol == backtest.symbol
+                && $0.timeframe == backtest.timeframe
+        }
+
+        return ResearchBacktestReportArtifact(
+            reportID: "report-\(backtest.runID.rawValue)",
+            backtestRunID: backtest.runID.rawValue,
+            backtestState: backtest.state,
+            researchIDs: matchingResearchRuns.map(\.researchID.rawValue),
+            paperSessionIDs: matchingPaperSessions.map(\.sessionID.rawValue),
+            strategyIDs: ([backtest.strategyID.rawValue] + matchingResearchRuns.map(\.strategyID.rawValue)),
+            symbol: backtest.symbol.rawValue,
+            timeframe: backtest.timeframe.rawValue,
+            backtestSignalCount: backtest.signalCount,
+            researchSignalCount: matchingResearchSignals.count,
+            paperSignalCount: matchingPaperSessions.reduce(0) { $0 + $1.signalCount },
+            eventCount: eventCount,
+            parityStatus: parityStatus(backtest: backtest, paperSessions: matchingPaperSessions),
+            lastAppliedSequence: lastAppliedSequence
+        )
+    }
+
+    private static func parityStatus(
+        backtest: DuckDBBacktestProjection,
+        paperSessions: [SQLitePaperSessionProjection]
+    ) -> ReportParityStatus {
+        guard paperSessions.isEmpty == false else {
+            return .missingPaperProjection
+        }
+        let completedPaperSignalCount = paperSessions
+            .filter { $0.state == .completed }
+            .reduce(0) { $0 + $1.signalCount }
+        guard completedPaperSignalCount == backtest.signalCount else {
+            return .mismatchedProjectionEvidence
+        }
+        return .matchedProjectionEvidence
+    }
+
+    private static func maxSequence(_ values: Int?...) -> Int? {
+        values.compactMap { $0 }.max()
+    }
+}
+
+/// DashboardReadModel 聚合 Dashboard 所需的稳定 read model。
+///
+/// 输入来自 Persistence projection snapshots 和 append-only event timeline；新增 Report read model
+/// 也遵循同一来源边界，禁止 UI 直接读取数据库 schema、Runtime object 或行情 adapter。
 public struct DashboardReadModel: Equatable, Sendable {
     public let market: MarketReadModel
     public let strategy: StrategyReadModel
     public let backtest: BacktestReadModel
+    public let report: ReportReadModel
     public let paper: PaperReadModel
     public let risk: RiskReadModel
     public let portfolio: PortfolioReadModel
@@ -233,6 +431,7 @@ public struct DashboardReadModel: Equatable, Sendable {
         market: MarketReadModel,
         strategy: StrategyReadModel,
         backtest: BacktestReadModel,
+        report: ReportReadModel,
         paper: PaperReadModel,
         risk: RiskReadModel,
         portfolio: PortfolioReadModel,
@@ -241,6 +440,7 @@ public struct DashboardReadModel: Equatable, Sendable {
         self.market = market
         self.strategy = strategy
         self.backtest = backtest
+        self.report = report
         self.paper = paper
         self.risk = risk
         self.portfolio = portfolio
@@ -256,6 +456,11 @@ public struct DashboardReadModel: Equatable, Sendable {
             market: MarketReadModel(analyticalProjection: analyticalProjection),
             strategy: StrategyReadModel(analyticalProjection: analyticalProjection),
             backtest: BacktestReadModel(analyticalProjection: analyticalProjection),
+            report: ReportReadModel(
+                analyticalProjection: analyticalProjection,
+                runtimeProjection: runtimeProjection,
+                eventTimeline: eventTimeline
+            ),
             paper: PaperReadModel(runtimeProjection: runtimeProjection),
             risk: RiskReadModel(runtimeProjection: runtimeProjection),
             portfolio: PortfolioReadModel(runtimeProjection: runtimeProjection),
@@ -344,6 +549,90 @@ public struct BacktestViewModel: Codable, Equatable, Sendable {
         self.totalSignalCount = readModel.runs.reduce(0) { $0 + $1.signalCount }
         self.completedRunCount = readModel.runs.filter { $0.state == .completed }.count
         self.latestSignalDirection = readModel.signals.last?.direction
+        self.lastAppliedSequence = readModel.lastAppliedSequence
+    }
+}
+
+/// ReportArtifactViewModel 是单个报告 artifact 的可编码展示快照。
+///
+/// 它只复制 `ResearchBacktestReportArtifact` 的只读字段，供 Dashboard shell 展示；
+/// `authorizesTradingExecution` 必须保持 false，避免把报告误用为 Paper / Live 执行入口。
+public struct ReportArtifactViewModel: Codable, Equatable, Sendable {
+    public let reportID: String
+    public let backtestRunID: String
+    public let backtestState: ProjectionLifecycleState
+    public let researchIDs: [String]
+    public let paperSessionIDs: [String]
+    public let strategyIDs: [String]
+    public let symbol: String
+    public let timeframe: String
+    public let backtestSignalCount: Int
+    public let researchSignalCount: Int
+    public let paperSignalCount: Int
+    public let eventCount: Int
+    public let parityStatus: ReportParityStatus
+    public let executionAuthorization: ReportExecutionAuthorization
+    public let authorizesTradingExecution: Bool
+    public let lastAppliedSequence: Int?
+
+    public init(artifact: ResearchBacktestReportArtifact) {
+        self.reportID = artifact.reportID
+        self.backtestRunID = artifact.backtestRunID
+        self.backtestState = artifact.backtestState
+        self.researchIDs = artifact.researchIDs
+        self.paperSessionIDs = artifact.paperSessionIDs
+        self.strategyIDs = artifact.strategyIDs
+        self.symbol = artifact.symbol
+        self.timeframe = artifact.timeframe
+        self.backtestSignalCount = artifact.backtestSignalCount
+        self.researchSignalCount = artifact.researchSignalCount
+        self.paperSignalCount = artifact.paperSignalCount
+        self.eventCount = artifact.eventCount
+        self.parityStatus = artifact.parityStatus
+        self.executionAuthorization = artifact.executionAuthorization
+        self.authorizesTradingExecution = artifact.authorizesTradingExecution
+        self.lastAppliedSequence = artifact.lastAppliedSequence
+    }
+}
+
+/// ReportViewModel 汇总 MTP-23 最小报告路径的只读指标。
+///
+/// 指标来自 `ReportReadModel`，用于展示报告数、研究运行数和投影级 parity evidence；
+/// 该 ViewModel 不调用 Runtime / Adapters，不暴露数据库实现细节，也不提供真实交易控制。
+public struct ReportViewModel: Codable, Equatable, Sendable {
+    public let section: DashboardSection
+    public let source: ViewModelSourceContract
+    public let artifacts: [ReportArtifactViewModel]
+    public let artifactCount: Int
+    public let completedBacktestCount: Int
+    public let researchRunCount: Int
+    public let paperSessionCount: Int
+    public let matchedParityEvidenceCount: Int
+    public let authorizesTradingExecution: Bool
+    public let latestParityStatus: ReportParityStatus?
+    public let lastAppliedSequence: Int?
+
+    public init(readModel: ReportReadModel) {
+        self.section = .report
+        self.source = ViewModelSourceContract()
+        self.artifacts = readModel.artifacts.map(ReportArtifactViewModel.init)
+        self.artifactCount = readModel.artifacts.count
+        self.completedBacktestCount = readModel.artifacts.filter { $0.backtestState == .completed }.count
+        self.researchRunCount = readModel.artifacts
+            .flatMap(\.researchIDs)
+            .uniqueSorted()
+            .count
+        self.paperSessionCount = readModel.artifacts
+            .flatMap(\.paperSessionIDs)
+            .uniqueSorted()
+            .count
+        self.matchedParityEvidenceCount = readModel.artifacts.filter {
+            $0.parityStatus == .matchedProjectionEvidence
+        }.count
+        self.authorizesTradingExecution = readModel.artifacts.contains {
+            $0.authorizesTradingExecution
+        }
+        self.latestParityStatus = readModel.artifacts.last?.parityStatus
         self.lastAppliedSequence = readModel.lastAppliedSequence
     }
 }
@@ -443,6 +732,7 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
     public let market: MarketViewModel
     public let strategy: StrategyViewModel
     public let backtest: BacktestViewModel
+    public let report: ReportViewModel
     public let paper: PaperViewModel
     public let risk: RiskViewModel
     public let portfolio: PortfolioViewModel
@@ -456,6 +746,7 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
         self.market = MarketViewModel(readModel: readModel.market)
         self.strategy = StrategyViewModel(readModel: readModel.strategy)
         self.backtest = BacktestViewModel(readModel: readModel.backtest)
+        self.report = ReportViewModel(readModel: readModel.report)
         self.paper = PaperViewModel(readModel: readModel.paper)
         self.risk = RiskViewModel(readModel: readModel.risk)
         self.portfolio = PortfolioViewModel(readModel: readModel.portfolio)
@@ -467,6 +758,7 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
             market.source,
             strategy.source,
             backtest.source,
+            report.source,
             paper.source,
             risk.source,
             portfolio.source,

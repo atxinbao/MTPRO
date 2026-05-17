@@ -2691,3 +2691,60 @@ CI 修复记录：
 - 修复方式：`DashboardShell.swift` 保留跨平台 shell snapshot contract；真实 SwiftUI view 只在 `canImport(SwiftUI) && os(macOS)` 分支构建，非 macOS 使用 snapshot-only fallback 供 XCTest 和 CI 验证。
 - 二次修复：SwiftPM Linux `swift test` 仍会编译 executable target，因此 `MTPRODashboardApplication` 也新增非 macOS command-line fallback，避免 unconditional `Darwin` / `SwiftUI` import。
 - `checks/run.sh` 修复为只在 Darwin runner 执行 `swift build --product MTPRODashboard` 和 dashboard smoke run；Linux CI 跳过 macOS-only shell build / smoke 后继续运行 `swift test`。
+
+## MTP-23 Research -> Backtest -> Report 最小路径
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 按 Linear issue `MTP-23` 新增 Research -> Backtest -> Report 最小路径。
+- 新增 `ReportReadModel`、`ResearchBacktestReportArtifact`、`ReportViewModel` 和 Dashboard Report 快照。
+- 复用既有 strategy / backtest / paper parity / projection snapshots，不新增 Runtime / Adapter 依赖。
+- 准备阶段证据材料 `docs/validation/mtp-23-stage-evidence.md`。
+- 明确 Stage Code Audit Report 不属于本 issue，必须在 Project 全部 Done 后由父 Codex 单独输出。
+
+文件范围：
+
+- Updated：
+  - `Sources/App/App.swift`
+  - `Sources/App/DashboardShell.swift`
+  - `Tests/AppTests/AppTests.swift`
+  - `docs/product/product-surface-map.md`
+  - `docs/contracts/api-contract.md`
+  - `docs/contracts/backend-use-case-contract.md`
+  - `docs/contracts/frontend-view-model-contract.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+- Added：
+  - `docs/validation/mtp-23-stage-evidence.md`
+
+边界确认：
+
+- Report 输入只来自 `DuckDBAnalyticalProjectionSnapshot`、`SQLiteRuntimeProjectionSnapshot` 和 append-only event timeline 派生的 read model。
+- Report 只表达 projection-level Backtest / Paper evidence，不替代 Core 层完整 signal timeline parity。
+- Dashboard shell 只展示 Report ViewModel 快照，不导入 Runtime / Adapters，不调用行情 adapter。
+- Report artifact 的 execution authorization 固定为 research output only。
+- 未输出 Stage Code Audit Report。
+- 未做完整报表系统。
+- 未扩展完整 Paper execution 工作流。
+- 未连接真实 broker / exchange。
+- 未读取 secret。
+- 未触碰 Live trading、signed endpoint、account endpoint、broker action 或真实订单行为。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test` | pass | 59 个 XCTest 通过；新增 AppTests 覆盖 Report read model、Dashboard Report 快照、projection-level parity evidence 和 missing Paper projection 禁区断言。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、`swift build --product MTPRODashboard`、`MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard` 和 `swift test` 通过；smoke 输出 `sections=8`；59 个 XCTest 通过，输出 `MTPRO checks passed.` |

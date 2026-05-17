@@ -41,6 +41,7 @@ bash checks/run.sh
 - Runtime market data ingest -> event log -> replay -> projection snapshots 端到端链路。
 - Trader Workstation Dashboard ViewModel contract。
 - Trader Workstation Dashboard macOS shell、ViewModel snapshot binding 和 smoke run。
+- Research -> Backtest -> Report 最小路径、report artifact / read model 和 Dashboard Report 快照。
 - GitHub workflow / PR evidence / WIP=1 / handoff marker / Graphify 边界。
 - Linear issue execution contract。
 - `.codex/*` 与 `graphify-out/*` 本地输出排除契约。
@@ -115,6 +116,18 @@ MTP-22 的 required validation：
 - 验证 `swift build --product MTPRODashboard` 可构建 macOS 看板入口。
 - 验证 `MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard` 可输出 read-model-only smoke summary 并退出。
 - 验证 Linux CI 可通过非 SwiftUI fallback 编译 App target、executable target 和 AppTests；真实 SwiftUI shell 只在 macOS 本地构建。
+- required validation 不接真实网络、不读取 secret、不连接 broker、不触发真实交易行为。
+
+## MTP-23 Research -> Backtest -> Report Validation
+
+MTP-23 的 required validation：
+
+- 验证 `ReportReadModel` 只能从 projection snapshots / read model 和 append-only event timeline 生成。
+- 验证 report artifact 绑定 backtest run、research run、Paper session、event count 和 last applied sequence。
+- 验证 projection-level Backtest / Paper parity evidence 保持一致，同时不替代 Core 层完整时间线 parity 测试。
+- 验证 Dashboard shell 呈现 Report 快照，且 shell 不导入 Runtime / Adapters、不引用数据库实现名、不调用行情 adapter。
+- 验证缺失 Paper projection 时报告标记为 missing paper projection，不回退到 Live、broker、signed endpoint 或真实订单路径。
+- 验证 Issue 8 只准备阶段证据材料；Stage Code Audit Report 仍须在 Project 全部 Done 后由父 Codex 单独输出。
 - required validation 不接真实网络、不读取 secret、不连接 broker、不触发真实交易行为。
 
 ## 禁止
