@@ -1876,3 +1876,54 @@ Commit：本轮提交
 | --- | --- | --- |
 | `git diff --check` | pass | Project supervision / examples cleanup 无空白问题。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+## Codex Use Cases Alignment
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 将 OpenAI Codex use cases 映射到 MTPRO 当前工程流程。
+- 补齐 codebase onboarding、Codex code review、verified operations、macOS build / run loop、eval strategy 和 docs sync 的本地规则。
+- 明确当前不引入独立 eval 框架，并记录未来允许引入的条件。
+- 新增代码详细中文注释规则。
+
+文件范围：
+
+- Created：
+  - `docs/automation/codex-use-cases-alignment.md`
+  - `docs/automation/verified-operations.md`
+  - `docs/validation/eval-strategy.md`
+  - `docs/validation/macos-build-run-loop.md`
+- Updated：
+  - `AGENTS.md`
+  - `README.md`
+  - `.github/pull_request_template.md`
+  - `checks/automation-readiness.sh`
+  - `docs/automation/automation-readiness.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未运行 Graphify update / full rebuild。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 未修改业务代码。
+- 未引入独立 eval 框架。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Codex use-cases alignment 文档和检查更新无空白问题。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |

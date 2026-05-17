@@ -37,6 +37,8 @@ Codex creates ready-for-review PR
 | Linear WIP=1 | 通过 | 当前只读查询显示 `MTP-15` 为唯一 active issue；`MTP-14` 已 Done；文档不固定未来 current issue |
 | Linear issue execution contract | 通过 | 当前 Linear issue 中已填写的 Scope / Non-goals / Codex Instructions / Validation / Boundary / PR Requirements 是子 Codex 的执行合同；子 Codex 不二次确认 issue scope，不重新定义边界 |
 | Parent Codex Automation Supervision | 通过 | 父 Codex 负责 Project 级 queue preview、child Codex 监控、代码审查、host-side fallback 和流程迭代建议；只有 Human 明确授权后才可推进 eligible `Backlog` 为唯一 `Todo` |
+| Codex use-cases alignment | 通过 | `docs/automation/codex-use-cases-alignment.md` 已定义 codebase onboarding、code review、verified operations、macOS loop、eval strategy 和 docs sync 的 MTPRO 落地方式 |
+| Verified operations | 通过 | `docs/automation/verified-operations.md` 已定义跨系统操作的 actor、授权来源、输入、输出、validation 和 evidence location |
 | Symphony workflow | 已验证 | 本机 workflow 已跑通 MTP-8 / MTP-9 / MTP-10 的 issue execution path |
 | symphony-issue automation write profile | 通过 | workflow 使用 `dangerFullAccess` turn sandbox 服务 issue workspace 写入、git、PR 和 handoff marker；GitHub token / 网络 / MCP elicitation 阻塞时由 host-side handoff fallback 接管 |
 | Post-Issue Ledger / 施工后记账 | 通过 | PR merge / Linear bot Done 后，由 host-side `before_remove` 在 `/Users/mac/Documents/MTPRO` 同步 main、刷新 Graphify resource relationship graph，并写入 `.codex/post-issue-ledger/latest.json` 只读摘要；`.codex/*` 和 `graphify-out/*` 不进入 PR |
