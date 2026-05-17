@@ -2513,3 +2513,55 @@ Commit：本轮提交
 | --- | --- | --- |
 | `swift test --filter PersistenceTests/testDuckDBAnalyticalProjectionAdapter` | pass | 3 个 DuckDB adapter focused tests 通过；覆盖 rebuild / query snapshot、重复 rebuild 替换旧投影、空 snapshot。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；48 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+## MTP-20 Binance Public Read-only Client Boundary
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 按 Linear issue `MTP-20` 新增 Binance public read-only market data client boundary。
+- 在现有 endpoint contract 和 fixture decoder 基础上增加 client configuration、transport request、transport protocol、URLSession transport 和 client facade。
+- 通过 mock transport required validation 覆盖 REST public endpoint、public depth stream path、fixture parity 和 forbidden capability 断言。
+- 保持 required validation 不依赖真实 Binance 网络；真实网络 smoke test 仍仅可作为可选人工证据。
+
+文件范围：
+
+- Updated：
+  - `Sources/Adapters/Adapters.swift`
+  - `Tests/AdaptersTests/AdaptersTests.swift`
+  - `docs/architecture/module-boundary.md`
+  - `docs/contracts/api-contract.md`
+  - `docs/contracts/backend-use-case-contract.md`
+  - `docs/contracts/binance-market-data-contract.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- Binance client 只读取 public market data。
+- request 发给 transport 前校验 `isReadOnly == true` 和 `requiresAPIKey == false`。
+- request 发给 transport 前校验 path 属于 Binance public market data allowlist。
+- transport request 不携带 API key、signature、listenKey、account、order、SAPI、FAPI 或 DAPI 片段。
+- 未做 MTP-21 ingest 串联。
+- 未写 Event Log。
+- 未接 DataEngine / TradingKernel。
+- 未做 SwiftUI 页面。
+- 未把真实 Binance 网络 smoke test 作为 required validation。
+- 未触碰 Live trading、signed endpoint、broker action 或真实订单行为。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter AdaptersTests` | pass | 12 个 AdaptersTests 通过；新增 mock transport、REST fixture parity、public depth stream path 和 mutable/API-key contract transport 前拒绝测试。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；52 个 XCTest 通过，输出 `MTPRO checks passed.` |

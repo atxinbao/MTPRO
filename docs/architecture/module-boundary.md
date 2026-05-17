@@ -24,12 +24,15 @@
 
 - 外部 read-only market data adapter 边界。
 - Binance public endpoint mapping。
+- Binance public read-only client / transport boundary。
 
 不负责：
 
 - signed endpoint
 - account endpoint
 - order submit
+- listenKey user data stream
+- DataEngine ingest 串联
 - 策略判断
 
 ## Persistence

@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 import Core
 
 public enum BinancePublicMarketDataContractError: Error, Equatable, Sendable, CustomStringConvertible {
@@ -82,6 +85,358 @@ public struct BinancePublicRequestContract: Equatable, Sendable {
         self.queryItems = queryItems
         self.isReadOnly = isReadOnly
         self.requiresAPIKey = requiresAPIKey
+    }
+}
+
+/// Binance public 行情客户端配置只保存公开 REST 与 WebSocket base URL，不保存 API key、
+/// signature、account 或 order 相关信息。输入来自只读 endpoint contract，输出仍由 decoder
+/// 转成 Core 市场数据模型，禁止把网络响应直接暴露给 App 或 Persistence。
+public struct BinancePublicMarketDataClientConfiguration: Equatable, Sendable {
+    public let restBaseURL: URL
+    public let webSocketBaseURL: URL
+
+    public init(
+        restBaseURL: URL = URL(string: "https://api.binance.com")!,
+        webSocketBaseURL: URL = URL(string: "wss://stream.binance.com:9443")!
+    ) {
+        self.restBaseURL = restBaseURL
+        self.webSocketBaseURL = webSocketBaseURL
+    }
+}
+
+/// Binance public transport request 是客户端交给传输层的唯一请求形态。
+/// headers 固定由客户端生成且默认为空，用于保证 required validation 可以断言没有 API key、
+/// signature、listenKey 或任何 signed/account/order 能力进入网络边界。
+public struct BinancePublicTransportRequest: Equatable, Sendable {
+    public let contract: BinancePublicRequestContract
+    public let method: String
+    public let url: URL
+    public let headers: [String: String]
+
+    public init(
+        contract: BinancePublicRequestContract,
+        method: String,
+        url: URL,
+        headers: [String: String] = [:]
+    ) {
+        self.contract = contract
+        self.method = method
+        self.url = url
+        self.headers = headers
+    }
+}
+
+/// Binance public market data transport 抽象只负责读取公开 payload。
+/// 实现者不得要求 API key，不得签名请求，不得访问 account/order/listenKey endpoint；
+/// 测试可注入 mock transport，避免 required validation 依赖真实 Binance 网络。
+public protocol BinancePublicMarketDataTransport: Sendable {
+    func load(_ request: BinancePublicTransportRequest) async throws -> Data
+}
+
+/// URLSession 传输实现提供真实网络客户端边界，但只接受客户端已经校验过的 public read-only
+/// request。REST 使用 GET 读取公开 endpoint；WebSocket 分支只接收单条公开 stream payload，
+/// 不管理 listenKey、不建立用户数据流，也不触发任何交易或账户动作。
+public final class URLSessionBinancePublicMarketDataTransport: BinancePublicMarketDataTransport, @unchecked Sendable {
+    private let session: URLSession
+
+    public init(session: URLSession = .shared) {
+        self.session = session
+    }
+
+    public func load(_ request: BinancePublicTransportRequest) async throws -> Data {
+        switch request.contract.transport {
+        case .restGET:
+            var urlRequest = URLRequest(url: request.url)
+            urlRequest.httpMethod = request.method
+            request.headers.forEach { key, value in
+                urlRequest.setValue(value, forHTTPHeaderField: key)
+            }
+            let (data, response) = try await session.data(for: urlRequest)
+            if let response = response as? HTTPURLResponse, (200..<300).contains(response.statusCode) == false {
+                throw BinancePublicMarketDataClientError.httpStatus(response.statusCode)
+            }
+            return data
+
+        case .webSocketStream:
+            #if os(macOS)
+            let task = session.webSocketTask(with: request.url)
+            task.resume()
+            defer {
+                task.cancel(with: .goingAway, reason: nil)
+            }
+            let message = try await task.receive()
+            switch message {
+            case let .data(data):
+                return data
+            case let .string(text):
+                return Data(text.utf8)
+            @unknown default:
+                throw BinancePublicMarketDataClientError.unsupportedWebSocketPayload
+            }
+            #else
+            throw BinancePublicMarketDataClientError.webSocketUnavailable
+            #endif
+        }
+    }
+}
+
+/// Binance public client 错误只描述只读客户端边界内的校验、URL 构造、HTTP 状态或
+/// WebSocket payload 问题；它不表达账户、订单、broker 或 Live trading 状态。
+public enum BinancePublicMarketDataClientError: Error, Equatable, Sendable, CustomStringConvertible {
+    case forbiddenRequest(path: String, reason: String)
+    case invalidURL(path: String)
+    case httpStatus(Int)
+    case unsupportedWebSocketPayload
+    case webSocketUnavailable
+    case streamSymbolMismatch(expected: String, actual: String)
+
+    public var description: String {
+        switch self {
+        case let .forbiddenRequest(path, reason):
+            "Binance public client rejected request \(path): \(reason)"
+        case let .invalidURL(path):
+            "Binance public client could not build URL for \(path)"
+        case let .httpStatus(statusCode):
+            "Binance public client received unsupported HTTP status \(statusCode)"
+        case .unsupportedWebSocketPayload:
+            "Binance public client received unsupported WebSocket payload"
+        case .webSocketUnavailable:
+            "Binance public client WebSocket transport is unavailable on this platform"
+        case let .streamSymbolMismatch(expected, actual):
+            "Binance public client stream symbol mismatch, expected \(expected), actual \(actual)"
+        }
+    }
+}
+
+/// Binance public market data client 是 Adapters 模块内的只读网络边界。
+/// 它复用 `BinancePublicMarketDataContract` 生成 endpoint / stream 请求路径，复用
+/// `BinancePublicMarketDataPayloadDecoder` 转换 payload，并在发给 transport 前拒绝
+/// mutable、requires API key、signed、account、order 和 listenKey 语义。该类型不负责
+/// MTP-21 ingest 串联，不写 event log，不连接 broker，也不执行真实订单动作。
+public struct BinancePublicMarketDataClient: Sendable {
+    public let configuration: BinancePublicMarketDataClientConfiguration
+
+    private let transport: any BinancePublicMarketDataTransport
+
+    public init(
+        configuration: BinancePublicMarketDataClientConfiguration = BinancePublicMarketDataClientConfiguration(),
+        transport: any BinancePublicMarketDataTransport = URLSessionBinancePublicMarketDataTransport()
+    ) {
+        self.configuration = configuration
+        self.transport = transport
+    }
+
+    /// 读取 Binance exchangeInfo public endpoint，并只返回已配置交易标的的稳定模型。
+    public func exchangeInfo(symbols: [Symbol]) async throws -> BinanceExchangeInfo {
+        let data = try await payload(for: .exchangeInfo(symbols: symbols))
+        return try BinancePublicMarketDataPayloadDecoder.decodeExchangeInfo(from: data)
+    }
+
+    /// 读取 Binance kline public endpoint，并把 fixture 或真实 public payload 转成 Core `MarketBar`。
+    public func klines(
+        symbol: Symbol,
+        timeframe: Timeframe,
+        range: DateRange,
+        limit: Int
+    ) async throws -> [MarketBar] {
+        let data = try await payload(
+            for: .klines(
+                symbol: symbol,
+                timeframe: timeframe,
+                range: range,
+                limit: limit
+            )
+        )
+        return try BinancePublicMarketDataPayloadDecoder.decodeKlines(
+            from: data,
+            symbol: symbol,
+            timeframe: timeframe
+        )
+    }
+
+    /// 读取 Binance recent trades public endpoint，不读取 account trades 或 private fill。
+    public func recentTrades(symbol: Symbol, limit: Int) async throws -> [TradeTick] {
+        let data = try await payload(for: .recentTrades(symbol: symbol, limit: limit))
+        return try BinancePublicMarketDataPayloadDecoder.decodeRecentTrades(from: data, symbol: symbol)
+    }
+
+    /// 读取 Binance best bid / ask public endpoint，并由调用方提供本地 observedAt 观察时间。
+    public func bestBidAsk(symbol: Symbol, observedAt: Date) async throws -> BestBidAsk {
+        let data = try await payload(for: .bestBidAsk(symbol: symbol))
+        return try BinancePublicMarketDataPayloadDecoder.decodeBestBidAsk(from: data, observedAt: observedAt)
+    }
+
+    /// 读取 Binance limited depth snapshot public endpoint，只返回有限深度 read model 输入。
+    public func depthSnapshot(
+        symbol: Symbol,
+        limit: BinanceDepthSnapshotLimit,
+        observedAt: Date
+    ) async throws -> OrderBookSnapshot {
+        let data = try await payload(for: .depthSnapshot(symbol: symbol, limit: limit))
+        return try BinancePublicMarketDataPayloadDecoder.decodeDepthSnapshot(
+            from: data,
+            symbol: symbol,
+            observedAt: observedAt
+        )
+    }
+
+    /// 读取 Binance public depth stream 的单条 payload，用于验证 stream request path 和 decoder
+    /// parity；该方法不创建 listenKey user data stream，也不串联 ingest 或交易执行。
+    public func depthDelta(symbol: Symbol) async throws -> OrderBookDelta {
+        let data = try await payload(for: .depthDelta(symbol: symbol))
+        let delta = try BinancePublicMarketDataPayloadDecoder.decodeDepthDelta(from: data)
+        guard delta.symbol == symbol else {
+            throw BinancePublicMarketDataClientError.streamSymbolMismatch(
+                expected: symbol.rawValue,
+                actual: delta.symbol.rawValue
+            )
+        }
+        return delta
+    }
+
+    /// 按 endpoint 生成只读 contract 后读取原始 payload，供测试验证 request path 与 decoder parity。
+    public func payload(for endpoint: BinancePublicMarketDataEndpoint) async throws -> Data {
+        try await payload(for: BinancePublicMarketDataContract.request(for: endpoint))
+    }
+
+    /// 读取已经构造好的 public request contract；发起 transport 前会重新校验 read-only、不需要
+    /// API key，并拒绝 signed/account/order/listenKey 字符串进入 URL 或 query。
+    public func payload(for contract: BinancePublicRequestContract) async throws -> Data {
+        try validatePublicReadOnlyContract(contract)
+        let request = try transportRequest(for: contract)
+        return try await transport.load(request)
+    }
+
+    private func transportRequest(for contract: BinancePublicRequestContract) throws -> BinancePublicTransportRequest {
+        let baseURL: URL
+        switch contract.transport {
+        case .restGET:
+            baseURL = configuration.restBaseURL
+        case .webSocketStream:
+            baseURL = configuration.webSocketBaseURL
+        }
+
+        let base = baseURL.absoluteString.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        let path = contract.path.hasPrefix("/") ? contract.path : "/\(contract.path)"
+        guard var components = URLComponents(string: "\(base)\(path)") else {
+            throw BinancePublicMarketDataClientError.invalidURL(path: contract.path)
+        }
+        if contract.queryItems.isEmpty == false {
+            components.queryItems = contract.queryItems.map { item in
+                URLQueryItem(name: item.name, value: item.value)
+            }
+        }
+        guard let url = components.url else {
+            throw BinancePublicMarketDataClientError.invalidURL(path: contract.path)
+        }
+        return BinancePublicTransportRequest(
+            contract: contract,
+            method: "GET",
+            url: url,
+            headers: [:]
+        )
+    }
+
+    private func validatePublicReadOnlyContract(_ contract: BinancePublicRequestContract) throws {
+        guard contract.isReadOnly else {
+            throw BinancePublicMarketDataClientError.forbiddenRequest(
+                path: contract.path,
+                reason: "request is not read-only"
+            )
+        }
+        guard contract.requiresAPIKey == false else {
+            throw BinancePublicMarketDataClientError.forbiddenRequest(
+                path: contract.path,
+                reason: "request requires API key"
+            )
+        }
+        let publicPaths = Self.allowedPublicPaths(for: contract.capability)
+        guard contract.transport == publicPaths.transport else {
+            throw BinancePublicMarketDataClientError.forbiddenRequest(
+                path: contract.path,
+                reason: "transport does not match public capability"
+            )
+        }
+        guard publicPaths.paths.contains(contract.path) else {
+            throw BinancePublicMarketDataClientError.forbiddenRequest(
+                path: contract.path,
+                reason: "path is not in Binance public allowlist"
+            )
+        }
+
+        let allowedQueryItemNames = Self.allowedQueryItemNames(for: contract.capability)
+        if let disallowedQueryItem = contract.queryItems.first(where: { allowedQueryItemNames.contains($0.name) == false }) {
+            throw BinancePublicMarketDataClientError.forbiddenRequest(
+                path: contract.path,
+                reason: "query item is not allowed: \(disallowedQueryItem.name)"
+            )
+        }
+
+        let serializedRequest = (
+            [contract.path]
+                + contract.queryItems.flatMap { [$0.name, $0.value] }
+        )
+        .joined(separator: " ")
+        .lowercased()
+
+        if let forbiddenFragment = Self.forbiddenRequestFragments.first(where: { serializedRequest.contains($0) }) {
+            throw BinancePublicMarketDataClientError.forbiddenRequest(
+                path: contract.path,
+                reason: "contains forbidden fragment: \(forbiddenFragment)"
+            )
+        }
+    }
+
+    private static let forbiddenRequestFragments = [
+        "apikey",
+        "signature",
+        "listenkey",
+        "/api/v3/account",
+        "/api/v3/order",
+        "/sapi/",
+        "/fapi/",
+        "/dapi/"
+    ]
+
+    private static func allowedPublicPaths(
+        for capability: BinancePublicMarketDataCapability
+    ) -> (transport: BinancePublicTransport, paths: [String]) {
+        switch capability {
+        case .exchangeInfo:
+            (.restGET, ["/api/v3/exchangeInfo"])
+        case .klines:
+            (.restGET, ["/api/v3/klines"])
+        case .recentTrades:
+            (.restGET, ["/api/v3/trades"])
+        case .bestBidAsk:
+            (.restGET, ["/api/v3/ticker/bookTicker"])
+        case .depthSnapshot:
+            (.restGET, ["/api/v3/depth"])
+        case .depthDelta:
+            (
+                .webSocketStream,
+                Symbol.supportedRawValues.map { symbol in
+                    "/ws/\(symbol.lowercased())@depth"
+                }
+            )
+        }
+    }
+
+    private static func allowedQueryItemNames(for capability: BinancePublicMarketDataCapability) -> Set<String> {
+        switch capability {
+        case .exchangeInfo:
+            ["symbols"]
+        case .klines:
+            ["symbol", "interval", "startTime", "endTime", "limit"]
+        case .recentTrades:
+            ["symbol", "limit"]
+        case .bestBidAsk:
+            ["symbol"]
+        case .depthSnapshot:
+            ["symbol", "limit"]
+        case .depthDelta:
+            []
+        }
     }
 }
 
