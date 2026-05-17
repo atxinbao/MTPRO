@@ -42,6 +42,8 @@
 - 本文档不是执行授权。
 - 已获得人工确认并完成 Linear Setup。
 - Linear 已成为执行事实源；当前执行门槛是同一 Project 中唯一 configured executable issue。
+- 已写入 Linear 的 issue 内容是 Codex Execution Agent 的执行合同；Scope / Non-goals / Codex Instructions / Validation / Boundary / PR Requirements 必须在 issue 中一次性写清。
+- 子 Codex 按当前 Linear issue 模板字段执行，不二次确认 issue scope，不重新定义边界。
 - symphony-issue 只能调度当前唯一可执行 Linear 事项。
 - Codex 执行代理只创建 PR，不合并 PR。
 - PR 合并由 GitHub PR Automation 处理。

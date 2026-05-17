@@ -1621,3 +1621,54 @@ Pre-PR Codex Code Review：
 | Validation credibility | 通过 | 默认项目级 `bash checks/run.sh` 已通过，并包含新增 automation readiness gate |
 | Graphify boundary | 通过 | 未运行 full rebuild，未提交 `graphify-out/*`，post-merge refresh 交由 host-side workflow |
 | Handoff marker | 待 PR 后完成 | ready-for-review PR 和 auto-merge handoff 后写入 `.codex/symphony-issue-handoff.json` |
+
+## MTPRO Linear Issue Execution Contract Alignment
+
+日期：2026-05-17
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 将 MTPRO 的 Codex Execution Agent 执行前语义对齐为“Linear issue 内容就是执行合同”。
+- 移除“执行前二次确认 issue scope / boundary / validation”的流程含义。
+- 明确子 Codex 读取 Linear issue 中已填写的 Scope / Non-goals / Codex Instructions / Validation / Boundary / PR Requirements 后直接执行。
+
+文件范围：
+
+- Created：
+  - 无
+- Updated：
+  - `AGENTS.md`
+  - `checks/automation-readiness.sh`
+  - `docs/automation/automation-readiness.md`
+  - `docs/automation/parent-codex-supervision.md`
+  - `docs/planning/linear-draft-plan.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+- Deleted：
+  - 无
+
+边界确认：
+
+- 未修改业务源码。
+- 未修改测试源码。
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未运行 Graphify update / full rebuild。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 未实现 `LiveExecutionAdapter`。
+- 未调用 Binance signed endpoint。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | 通过 | 无空白或补丁格式问题。 |
+| `bash checks/run.sh` | 通过 | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |

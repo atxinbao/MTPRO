@@ -29,7 +29,7 @@ Linear Project 队列观察
 唯一 Todo
 -> In Progress
 -> 调度 child Codex
--> child Codex 执行当前 issue scope
+-> child Codex 按当前 Linear issue execution contract 执行
 -> PR / auto-merge handoff
 -> In Review
 -> GitHub PR Automation
@@ -55,7 +55,7 @@ Linear Project 队列观察
 2. 检查 WIP=1，确认同一 Project 中最多一个 configured executable issue。
 3. 在 Human 明确授权后，将 eligible `Backlog` issue 推进为唯一 `Todo`。
 4. 监控 `symphony-issue` dashboard、日志、workspace 和 terminal state。
-5. 监控 child Codex 是否只执行当前 issue scope。
+5. 监控 child Codex 是否只按当前 Linear issue execution contract 执行。
 6. 审查 child Codex 生成的 diff、validation、PR body 和 evidence chain。
 7. 检查 ready-for-review PR、GitHub checks、auto-merge handoff、branch cleanup 和 Linear bot Done。
 8. 在 child Codex 被权限、网络或工具交互阻塞时执行 host-side fallback。
@@ -93,7 +93,7 @@ Host-side fallback 只能处理当前 issue scope 内的自动化阻塞。
 | --- | --- |
 | Parent Codex | Project 级监督、queue preview、Human 授权后的 `Backlog` -> `Todo`、child Codex 监控、代码审查、host-side fallback、流程迭代建议 |
 | symphony-issue | 唯一 `Todo` issue 的自动执行调度、`Todo` -> `In Progress`、调度 child Codex、handoff 后 `In Progress` -> `In Review` |
-| child Codex | 执行当前 issue scope、运行 validation、执行 Pre-PR Codex Code Review、创建 PR、启用 GitHub auto-merge handoff |
+| child Codex | 按当前 Linear issue execution contract 执行、运行 validation、执行 Pre-PR Codex Code Review、创建 PR、启用 GitHub auto-merge handoff |
 | GitHub PR Automation | required checks、auto-merge、squash merge、branch cleanup |
 | Linear bot | PR merge 后将当前 issue 推进为 `Done` |
 | Human | 决定 Project 目标、确认是否推进下一个 issue、处理跨 scope 决策 |
