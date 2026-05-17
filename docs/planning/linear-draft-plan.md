@@ -22,7 +22,7 @@
 
 ## 目标 Linear 团队
 
-- 团队名称：NautilusTrade Pro
+- 团队名称：Macostrader Pro
 - 团队标识：MTP
 - 团队 ID：MTP
 - Linear 返回显示名称：Macostrader Pro
@@ -514,7 +514,7 @@ Linear 放置：
 
 ## 人工审查开放问题
 
-1. Linear 团队名称、团队标识、团队 ID 已确认：NautilusTrade Pro / MTP；Linear 返回显示名称为 Macostrader Pro。
+1. Linear 团队名称、团队标识、团队 ID 已确认：Macostrader Pro / MTP；Linear 返回显示名称为 Macostrader Pro。
 2. 状态映射已确认：`Todo` / `In Progress` / `In Review` / `Done` / `Canceled`；非执行队列使用 `Backlog`。
 3. 引导基线已创建为只记录用的 `Done` 事项：`MTP-7`。
 4. 基线提交 `a141648` 是否需要先创建 Bootstrap PR，再进入 Linear Setup？
