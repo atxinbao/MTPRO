@@ -25,7 +25,10 @@ let package = Package(
         .target(
             name: "Persistence",
             dependencies: ["Core"],
-            path: "Sources/Persistence"
+            path: "Sources/Persistence",
+            linkerSettings: [
+                .linkedLibrary("sqlite3")
+            ]
         ),
         .target(
             name: "App",

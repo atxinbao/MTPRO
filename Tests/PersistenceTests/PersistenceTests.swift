@@ -93,6 +93,73 @@ final class PersistenceTests: XCTestCase {
         XCTAssertEqual(session.executionMode, .paper)
     }
 
+    func testSQLiteRuntimeProjectionAdapterRebuildsAndQueriesSnapshotFromReplay() throws {
+        // 测试场景：SQLite adapter 从 replay envelope 写入私有投影存储，再查询回稳定 runtime snapshot。
+        let envelopes = try makeFullEventLog()
+        let boundary = try PersistenceReplayBoundary(envelopes: envelopes)
+        let adapter = try makeTemporarySQLiteRuntimeProjectionAdapter()
+        let command = EventReplayCommand(
+            range: try EventSequenceRange(lowerBound: 1, upperBound: envelopes.count),
+            streams: [.paper, .risk, .portfolio]
+        )
+
+        let rebuiltSnapshot = try boundary.rebuildSQLiteRuntimeProjection(
+            from: command,
+            using: adapter
+        )
+        let queriedSnapshot = try adapter.querySnapshot()
+        let session = try XCTUnwrap(queriedSnapshot.paperSessions[try Identifier("paper-ema-fixture")])
+        let portfolio = try XCTUnwrap(queriedSnapshot.portfolioProjections[try Identifier("portfolio-main")])
+
+        XCTAssertEqual(queriedSnapshot, rebuiltSnapshot)
+        XCTAssertEqual(session.state, .completed)
+        XCTAssertEqual(session.executionMode, .paper)
+        XCTAssertEqual(session.signalCount, 4)
+        XCTAssertEqual(queriedSnapshot.rejectedPaperOrderIDs, [try Identifier("paper-order-rejected")])
+        XCTAssertEqual(portfolio.state, .updated)
+        XCTAssertEqual(queriedSnapshot.lastAppliedSequence, envelopes.count)
+    }
+
+    func testSQLiteRuntimeProjectionAdapterRebuildReplacesPreviousSnapshot() throws {
+        // 测试场景：重复 rebuild 必须以 event log replay 为事实源替换旧投影，不能残留旧 risk / portfolio 数据。
+        let envelopes = try makeFullEventLog()
+        let boundary = try PersistenceReplayBoundary(envelopes: envelopes)
+        let adapter = try makeTemporarySQLiteRuntimeProjectionAdapter()
+        let fullCommand = EventReplayCommand(
+            range: try EventSequenceRange(lowerBound: 1, upperBound: envelopes.count),
+            streams: [.paper, .risk, .portfolio]
+        )
+        let paperOnlyCommand = EventReplayCommand(
+            range: try EventSequenceRange(lowerBound: 1, upperBound: envelopes.count),
+            streams: [.paper]
+        )
+
+        _ = try boundary.rebuildSQLiteRuntimeProjection(from: fullCommand, using: adapter)
+        let paperOnlySnapshot = try boundary.rebuildSQLiteRuntimeProjection(
+            from: paperOnlyCommand,
+            using: adapter
+        )
+        let queriedSnapshot = try adapter.querySnapshot()
+
+        XCTAssertEqual(queriedSnapshot, paperOnlySnapshot)
+        XCTAssertEqual(queriedSnapshot.paperSessions.count, 1)
+        XCTAssertTrue(queriedSnapshot.rejectedPaperOrderIDs.isEmpty)
+        XCTAssertTrue(queriedSnapshot.portfolioProjections.isEmpty)
+        XCTAssertLessThan(try XCTUnwrap(queriedSnapshot.lastAppliedSequence), envelopes.count)
+    }
+
+    func testSQLiteRuntimeProjectionAdapterStartsWithStableEmptySnapshot() throws {
+        // 测试场景：未重建前的 SQLite adapter 只返回空 read model snapshot，不暴露私有表结构。
+        let adapter = try makeTemporarySQLiteRuntimeProjectionAdapter()
+        let snapshot = try adapter.querySnapshot()
+        let boundary = PersistenceBoundary()
+
+        XCTAssertEqual(snapshot, SQLiteRuntimeProjectionSnapshot())
+        XCTAssertEqual(boundary.uiExposure, "stable read model projections only")
+        XCTAssertFalse(boundary.exposesDatabaseTablesToUI)
+        XCTAssertFalse(boundary.persistsRuntimeObjectsAsUIContract)
+    }
+
     func testTemporarySQLiteProjectionRebuildsRuntimeState() throws {
         let envelopes = try makeFullEventLog()
         let boundary = try PersistenceReplayBoundary(envelopes: envelopes)
@@ -280,6 +347,19 @@ final class PersistenceTests: XCTestCase {
             try? FileManager.default.removeItem(at: directoryURL)
         }
         return FileEventLogStore(fileURL: directoryURL.appendingPathComponent("events.jsonl"))
+    }
+
+    private func makeTemporarySQLiteRuntimeProjectionAdapter() throws -> SQLiteRuntimeProjectionAdapter {
+        let directoryURL = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "MTPRO-SQLiteRuntimeProjectionTests-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: directoryURL)
+        }
+        return SQLiteRuntimeProjectionAdapter(
+            databaseURL: directoryURL.appendingPathComponent("runtime.sqlite")
+        )
     }
 
     private func makeMarketBar(close: Double = 105, start: TimeInterval = 100) throws -> MarketBar {
