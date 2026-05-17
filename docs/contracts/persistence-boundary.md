@@ -27,14 +27,14 @@ Persistence Boundary 必须先于真实 database adapter 实现。
 
 执行者：Codex
 
-`MTPROPersistence` 在本事项中建立本地可测试的 persistence projection contract，不引入真实数据库 driver、schema migration 或 UI 直连数据库路径。
+`Persistence` 在本事项中建立本地可测试的 persistence projection contract，不引入真实数据库 driver、schema migration 或 UI 直连数据库路径。
 
 契约结构：
 
-- `MTPROPersistenceReplayBoundary`：复用 `AppendOnlyEventLog`，按 `EventReplayCommand` 重放事件，并可重建 market cache、SQLite runtime projection 和 DuckDB analytical projection。
-- `MTPROSQLiteRuntimeProjectionStore`：从 replay envelope 构建 paper session、risk rejection 和 portfolio runtime read model。
-- `MTPRODuckDBAnalyticalProjectionStore`：从 replay envelope 构建 market data、backtest run、order book research run 和 analytical signal timeline。
-- `MTPROPersistenceBoundary`：显式声明 UI 只能消费稳定 read model projection，不暴露 database table 或 runtime object。
+- `PersistenceReplayBoundary`：复用 `AppendOnlyEventLog`，按 `EventReplayCommand` 重放事件，并可重建 market cache、SQLite runtime projection 和 DuckDB analytical projection。
+- `SQLiteRuntimeProjectionStore`：从 replay envelope 构建 paper session、risk rejection 和 portfolio runtime read model。
+- `DuckDBAnalyticalProjectionStore`：从 replay envelope 构建 market data、backtest run、order book research run 和 analytical signal timeline。
+- `PersistenceBoundary`：显式声明 UI 只能消费稳定 read model projection，不暴露 database table 或 runtime object。
 
 契约要求：
 

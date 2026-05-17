@@ -64,16 +64,16 @@ Parent Codex Automation Supervision 负责监督 `symphony-issue` 和 child Code
 
 ```text
 Sources/
-  MTPROCore/          领域模型、事件、Kernel 边界
-  MTPROAdapters/      外部数据源 adapter 边界
-  MTPROPersistence/   Event Log / SQLite / DuckDB 边界
-  MTPROApp/           macOS 产品面和 ViewModel 边界
+  Core/          领域模型、事件、Kernel 边界
+  Adapters/      外部数据源 adapter 边界
+  Persistence/   Event Log / SQLite / DuckDB 边界
+  App/           macOS 产品面和 ViewModel 边界
 
 Tests/
-  MTPROCoreTests/
-  MTPROAdaptersTests/
-  MTPROPersistenceTests/
-  MTPROAppTests/
+  CoreTests/
+  AdaptersTests/
+  PersistenceTests/
+  AppTests/
 ```
 
 ## 文档入口

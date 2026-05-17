@@ -1,10 +1,10 @@
-import MTPROCore
-import MTPROPersistence
+import Core
+import Persistence
 import XCTest
 
-final class MTPROPersistenceTests: XCTestCase {
+final class PersistenceTests: XCTestCase {
     func testPersistenceBoundarySeparatesFactsAndProjections() {
-        let boundary = MTPROPersistenceBoundary()
+        let boundary = PersistenceBoundary()
 
         XCTAssertEqual(boundary.factSource, "append-only event log")
         XCTAssertTrue(boundary.sqliteResponsibility.contains("runtime state"))
@@ -16,7 +16,7 @@ final class MTPROPersistenceTests: XCTestCase {
 
     func testReplayBoundaryRebuildsSelectedEventRanges() throws {
         let envelopes = try makeFullEventLog()
-        let boundary = try MTPROPersistenceReplayBoundary(envelopes: envelopes)
+        let boundary = try PersistenceReplayBoundary(envelopes: envelopes)
         let command = EventReplayCommand(
             range: try EventSequenceRange(lowerBound: 1, upperBound: 2),
             streams: [.market]
@@ -34,39 +34,39 @@ final class MTPROPersistenceTests: XCTestCase {
 
     func testTemporarySQLiteProjectionRebuildsRuntimeState() throws {
         let envelopes = try makeFullEventLog()
-        let boundary = try MTPROPersistenceReplayBoundary(envelopes: envelopes)
+        let boundary = try PersistenceReplayBoundary(envelopes: envelopes)
         let command = EventReplayCommand(
             range: try EventSequenceRange(lowerBound: 1, upperBound: envelopes.count),
             streams: [.paper, .risk, .portfolio]
         )
 
         let snapshot = boundary.rebuildSQLiteRuntimeProjection(from: command)
-        let session = try XCTUnwrap(snapshot.paperSessions[try MTPROIdentifier("paper-ema-fixture")])
-        let portfolio = try XCTUnwrap(snapshot.portfolioProjections[try MTPROIdentifier("portfolio-main")])
+        let session = try XCTUnwrap(snapshot.paperSessions[try Identifier("paper-ema-fixture")])
+        let portfolio = try XCTUnwrap(snapshot.portfolioProjections[try Identifier("portfolio-main")])
 
         XCTAssertEqual(session.state, .completed)
-        XCTAssertEqual(session.strategyID, try MTPROIdentifier("ema-cross"))
-        XCTAssertEqual(session.symbol, try MTPROSymbol(rawValue: "BTCUSDT"))
+        XCTAssertEqual(session.strategyID, try Identifier("ema-cross"))
+        XCTAssertEqual(session.symbol, try Symbol(rawValue: "BTCUSDT"))
         XCTAssertEqual(session.timeframe, .oneMinute)
         XCTAssertEqual(session.executionMode, .paper)
         XCTAssertEqual(session.signalCount, 4)
         XCTAssertEqual(session.completedAt?.timeIntervalSince1970, 1_000)
-        XCTAssertEqual(snapshot.rejectedPaperOrderIDs, [try MTPROIdentifier("paper-order-rejected")])
+        XCTAssertEqual(snapshot.rejectedPaperOrderIDs, [try Identifier("paper-order-rejected")])
         XCTAssertEqual(portfolio.state, .updated)
         XCTAssertEqual(portfolio.updatedAt?.timeIntervalSince1970, 1_500)
     }
 
     func testTemporaryDuckDBProjectionRebuildsAnalyticalState() throws {
         let envelopes = try makeFullEventLog()
-        let boundary = try MTPROPersistenceReplayBoundary(envelopes: envelopes)
+        let boundary = try PersistenceReplayBoundary(envelopes: envelopes)
         let command = EventReplayCommand(
             range: try EventSequenceRange(lowerBound: 1, upperBound: envelopes.count),
             streams: [.market, .backtest, .strategy]
         )
 
         let snapshot = boundary.rebuildDuckDBAnalyticalProjection(from: command)
-        let backtest = try XCTUnwrap(snapshot.backtestRuns[try MTPROIdentifier("backtest-ema-fixture")])
-        let research = try XCTUnwrap(snapshot.orderBookResearchRuns[try MTPROIdentifier("obi-research-fixture")])
+        let backtest = try XCTUnwrap(snapshot.backtestRuns[try Identifier("backtest-ema-fixture")])
+        let research = try XCTUnwrap(snapshot.orderBookResearchRuns[try Identifier("obi-research-fixture")])
 
         XCTAssertEqual(snapshot.marketBars.count, 1)
         XCTAssertEqual(snapshot.trades.count, 1)
@@ -85,8 +85,8 @@ final class MTPROPersistenceTests: XCTestCase {
 
     func testProjectionIsolationKeepsRuntimeAndAnalyticalReadModelsSeparate() throws {
         let envelopes = try makeFullEventLog()
-        let sqliteSnapshot = MTPROSQLiteRuntimeProjectionStore.project(envelopes)
-        let duckDBSnapshot = MTPRODuckDBAnalyticalProjectionStore.project(envelopes)
+        let sqliteSnapshot = SQLiteRuntimeProjectionStore.project(envelopes)
+        let duckDBSnapshot = DuckDBAnalyticalProjectionStore.project(envelopes)
 
         XCTAssertEqual(sqliteSnapshot.paperSessions.count, 1)
         XCTAssertEqual(sqliteSnapshot.portfolioProjections.count, 1)
@@ -99,7 +99,7 @@ final class MTPROPersistenceTests: XCTestCase {
     }
 
     private func makeFullEventLog() throws -> [EventEnvelope] {
-        var messageBus = try MTPROMessageBus()
+        var messageBus = try MessageBus()
 
         try messageBus.publish(
             .market(.bar(try makeMarketBar(close: 105, start: 100))),
@@ -115,9 +115,9 @@ final class MTPROPersistenceTests: XCTestCase {
         let bars = try makeEMAFixtureBars()
         let marketDataQuery = try makeEMAMarketDataQuery()
         let strategy = try makeEMAStrategy()
-        let backtestRun = try MTPROBacktestEventFlow().run(
+        let backtestRun = try BacktestEventFlow().run(
             BacktestCommand(
-                runID: try MTPROIdentifier("backtest-ema-fixture"),
+                runID: try Identifier("backtest-ema-fixture"),
                 strategy: strategy,
                 marketData: marketDataQuery
             ),
@@ -132,12 +132,12 @@ final class MTPROPersistenceTests: XCTestCase {
             )
         }
 
-        let paperRun = try MTPROPaperSessionEventFlow().start(
+        let paperRun = try PaperSessionEventFlow().start(
             PaperSessionCommand(
-                sessionID: try MTPROIdentifier("paper-ema-fixture"),
+                sessionID: try Identifier("paper-ema-fixture"),
                 strategy: strategy,
                 marketData: marketDataQuery,
-                riskProfileID: try MTPROIdentifier("paper-risk"),
+                riskProfileID: try Identifier("paper-risk"),
                 executionMode: .paper
             ),
             bars: bars,
@@ -151,9 +151,9 @@ final class MTPROPersistenceTests: XCTestCase {
             )
         }
 
-        let researchRun = try MTPROOrderBookImbalanceResearchEventFlow().run(
-            MTPROOrderBookImbalanceResearchCommand(
-                researchID: try MTPROIdentifier("obi-research-fixture"),
+        let researchRun = try OrderBookImbalanceResearchEventFlow().run(
+            OrderBookImbalanceResearchCommand(
+                researchID: try Identifier("obi-research-fixture"),
                 strategy: try makeOrderBookImbalanceStrategy(),
                 marketData: try makeOrderBookMarketDataQuery()
             ),
@@ -168,13 +168,13 @@ final class MTPROPersistenceTests: XCTestCase {
             )
         }
 
-        let paperOrderID = try MTPROIdentifier("paper-order-rejected")
+        let paperOrderID = try Identifier("paper-order-rejected")
         try messageBus.publish(
             .risk(
                 .evaluationRequested(
                     RiskEvaluationQuery(
                         paperOrderID: paperOrderID,
-                        symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+                        symbol: try Symbol(rawValue: "BTCUSDT"),
                         proposedQuantity: 1.25
                     )
                 )
@@ -188,7 +188,7 @@ final class MTPROPersistenceTests: XCTestCase {
             recordedAt: Date(timeIntervalSince1970: 1_401)
         )
 
-        let portfolioID = try MTPROIdentifier("portfolio-main")
+        let portfolioID = try Identifier("portfolio-main")
         try messageBus.publish(
             .portfolio(
                 .projectionRequested(
@@ -210,11 +210,11 @@ final class MTPROPersistenceTests: XCTestCase {
         return messageBus.envelopes
     }
 
-    private func makeMarketBar(close: Double = 105, start: TimeInterval = 100) throws -> MTPROMarketBar {
-        try MTPROMarketBar(
-            symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+    private func makeMarketBar(close: Double = 105, start: TimeInterval = 100) throws -> MarketBar {
+        try MarketBar(
+            symbol: try Symbol(rawValue: "BTCUSDT"),
             timeframe: .oneMinute,
-            interval: try MTPRODateRange(
+            interval: try DateRange(
                 start: Date(timeIntervalSince1970: start),
                 end: Date(timeIntervalSince1970: start + 60)
             ),
@@ -226,9 +226,9 @@ final class MTPROPersistenceTests: XCTestCase {
         )
     }
 
-    private func makeTradeTick() throws -> MTPROTradeTick {
-        try MTPROTradeTick(
-            symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+    private func makeTradeTick() throws -> TradeTick {
+        try TradeTick(
+            symbol: try Symbol(rawValue: "BTCUSDT"),
             tradedAt: Date(timeIntervalSince1970: 310),
             price: 42_000,
             quantity: 0.25,
@@ -236,10 +236,10 @@ final class MTPROPersistenceTests: XCTestCase {
         )
     }
 
-    private func makeEMAStrategy() throws -> MTPROEMACrossStrategyConfiguration {
-        try MTPROEMACrossStrategyConfiguration(
-            strategyID: try MTPROIdentifier("ema-cross"),
-            symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+    private func makeEMAStrategy() throws -> EMACrossStrategyConfiguration {
+        try EMACrossStrategyConfiguration(
+            strategyID: try Identifier("ema-cross"),
+            symbol: try Symbol(rawValue: "BTCUSDT"),
             timeframe: .oneMinute,
             shortPeriod: 2,
             longPeriod: 3
@@ -248,22 +248,22 @@ final class MTPROPersistenceTests: XCTestCase {
 
     private func makeEMAMarketDataQuery() throws -> MarketDataQuery {
         MarketDataQuery(
-            symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+            symbol: try Symbol(rawValue: "BTCUSDT"),
             timeframe: .oneMinute,
-            range: try MTPRODateRange(
+            range: try DateRange(
                 start: Date(timeIntervalSince1970: 100),
                 end: Date(timeIntervalSince1970: 500)
             )
         )
     }
 
-    private func makeEMAFixtureBars() throws -> [MTPROMarketBar] {
+    private func makeEMAFixtureBars() throws -> [MarketBar] {
         try [10.0, 11.0, 12.0, 11.0, 10.0, 13.0].enumerated().map { index, close in
             let start = 100 + TimeInterval(index * 60)
-            return try MTPROMarketBar(
-                symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+            return try MarketBar(
+                symbol: try Symbol(rawValue: "BTCUSDT"),
                 timeframe: .oneMinute,
-                interval: try MTPRODateRange(
+                interval: try DateRange(
                     start: Date(timeIntervalSince1970: start),
                     end: Date(timeIntervalSince1970: start + 60)
                 ),
@@ -276,14 +276,14 @@ final class MTPROPersistenceTests: XCTestCase {
         }
     }
 
-    private func makeOrderBookLevel(price: Double, quantity: Double) throws -> MTPROOrderBookLevel {
-        try MTPROOrderBookLevel(price: price, quantity: quantity)
+    private func makeOrderBookLevel(price: Double, quantity: Double) throws -> OrderBookLevel {
+        try OrderBookLevel(price: price, quantity: quantity)
     }
 
-    private func makeOrderBookImbalanceStrategy() throws -> MTPROOrderBookImbalanceStrategyConfiguration {
-        try MTPROOrderBookImbalanceStrategyConfiguration(
-            strategyID: try MTPROIdentifier("obi-fixture"),
-            symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+    private func makeOrderBookImbalanceStrategy() throws -> OrderBookImbalanceStrategyConfiguration {
+        try OrderBookImbalanceStrategyConfiguration(
+            strategyID: try Identifier("obi-fixture"),
+            symbol: try Symbol(rawValue: "BTCUSDT"),
             timeframe: .oneMinute,
             depth: 2,
             signalThreshold: 0.15
@@ -292,18 +292,18 @@ final class MTPROPersistenceTests: XCTestCase {
 
     private func makeOrderBookMarketDataQuery() throws -> MarketDataQuery {
         MarketDataQuery(
-            symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+            symbol: try Symbol(rawValue: "BTCUSDT"),
             timeframe: .oneMinute,
-            range: try MTPRODateRange(
+            range: try DateRange(
                 start: Date(timeIntervalSince1970: 1_000),
                 end: Date(timeIntervalSince1970: 1_200)
             )
         )
     }
 
-    private func makeOrderBookImbalanceInputs() throws -> [MTPROOrderBookReadModelInput] {
-        let symbol = try MTPROSymbol(rawValue: "BTCUSDT")
-        let bidDominant = MTPROOrderBookReadModelInput(
+    private func makeOrderBookImbalanceInputs() throws -> [OrderBookReadModelInput] {
+        let symbol = try Symbol(rawValue: "BTCUSDT")
+        let bidDominant = OrderBookReadModelInput(
             symbol: symbol,
             observedAt: Date(timeIntervalSince1970: 1_000),
             bids: [
@@ -316,7 +316,7 @@ final class MTPROPersistenceTests: XCTestCase {
             ],
             source: .snapshot
         )
-        let neutral = MTPROOrderBookReadModelInput(
+        let neutral = OrderBookReadModelInput(
             symbol: symbol,
             observedAt: Date(timeIntervalSince1970: 1_060),
             bids: [
@@ -329,7 +329,7 @@ final class MTPROPersistenceTests: XCTestCase {
             ],
             source: .snapshot
         )
-        let askDominant = MTPROOrderBookReadModelInput(
+        let askDominant = OrderBookReadModelInput(
             symbol: symbol,
             observedAt: Date(timeIntervalSince1970: 1_120),
             bids: [

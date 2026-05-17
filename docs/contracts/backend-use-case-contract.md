@@ -28,18 +28,18 @@ Use Case 输出必须先进入 read model projection，再供 UI 使用。
 
 执行者：Codex
 
-`MTPROCore` 在本事项中建立最小 actor 内核边界，用于把只读行情事件转入 cache 和 append-only event stream。
+`Core` 在本事项中建立最小 actor 内核边界，用于把只读行情事件转入 cache 和 append-only event stream。
 
 契约结构：
 
-- `MTPROMessageBus`：基于 `AppendOnlyEventLog` 发布 `MTPRODomainEvent`，并按 `EventReplayCommand` 重放。
-- `MTPROMarketDataCache`：只接收 `MTPROMarketEvent`，投影 bars、trades、best bid / ask、order book snapshot 和 order book delta。
-- `MTPRODataEngine`：把只读 market event 同步写入 cache 和 MessageBus。
-- `MTPROTradingKernel`：Swift actor 边界，串行管理 DataEngine、MessageBus 和 Cache。
+- `MessageBus`：基于 `AppendOnlyEventLog` 发布 `DomainEvent`，并按 `EventReplayCommand` 重放。
+- `MarketDataCache`：只接收 `MarketEvent`，投影 bars、trades、best bid / ask、order book snapshot 和 order book delta。
+- `DataEngine`：把只读 market event 同步写入 cache 和 MessageBus。
+- `TradingKernel`：Swift actor 边界，串行管理 DataEngine、MessageBus 和 Cache。
 
 契约要求：
 
-- 所有 market event 必须来自 `MTPROCore` 已定义的只读行情事件模型。
+- 所有 market event 必须来自 `Core` 已定义的只读行情事件模型。
 - MessageBus 必须保持 monotonic sequence。
 - Cache 必须能从 replay envelope 确定性重建。
 - TradingKernel actor 必须在并发 ingest 时保持事件流和 cache 状态一致。
@@ -60,15 +60,15 @@ Use Case 输出必须先进入 read model projection，再供 UI 使用。
 
 执行者：Codex
 
-`MTPROCore` 在本事项中建立 EMA cross 策略、回测事件流、Paper 会话事件流和一致性验证的最小本地契约。
+`Core` 在本事项中建立 EMA cross 策略、回测事件流、Paper 会话事件流和一致性验证的最小本地契约。
 
 契约结构：
 
-- `MTPROEMACrossStrategyConfiguration`：定义 strategyID、symbol、timeframe、shortPeriod 和 longPeriod。
-- `MTPROEMACrossStrategyContract`：只消费本地 `MTPROMarketBar` 序列，生成确定性 EMA signal timeline。
-- `MTPROBacktestEventFlow`：生成 backtest requested、signalGenerated 和 completed 事件流。
-- `MTPROPaperSessionEventFlow`：生成 paper sessionRequested、signalGenerated 和 sessionCompleted 事件流。
-- `MTPROBacktestPaperParity`：比较 strategy、market data 和 signal timeline，生成一致性结果。
+- `EMACrossStrategyConfiguration`：定义 strategyID、symbol、timeframe、shortPeriod 和 longPeriod。
+- `EMACrossStrategyContract`：只消费本地 `MarketBar` 序列，生成确定性 EMA signal timeline。
+- `BacktestEventFlow`：生成 backtest requested、signalGenerated 和 completed 事件流。
+- `PaperSessionEventFlow`：生成 paper sessionRequested、signalGenerated 和 sessionCompleted 事件流。
+- `BacktestPaperParity`：比较 strategy、market data 和 signal timeline，生成一致性结果。
 
 契约要求：
 
@@ -93,15 +93,15 @@ Use Case 输出必须先进入 read model projection，再供 UI 使用。
 
 执行者：Codex
 
-`MTPROCore` 在本事项中建立订单簿读模型输入、失衡信号和研究事件流契约。
+`Core` 在本事项中建立订单簿读模型输入、失衡信号和研究事件流契约。
 
 契约结构：
 
-- `MTPROOrderBookReadModelInput`：由只读 `MTPROOrderBookSnapshot` 构建，并可应用同 symbol 的 `MTPROOrderBookDelta`。
-- `MTPROOrderBookImbalanceStrategyConfiguration`：定义 strategyID、symbol、timeframe、depth 和 signalThreshold。
-- `MTPROOrderBookImbalanceStrategyContract`：只消费本地订单簿读模型输入，计算 top depth bid / ask notional imbalance。
-- `MTPROOrderBookImbalanceSignalSample`：输出 signal、sourceObservedAt、depth、bidNotional、askNotional、imbalanceRatio 和 bias。
-- `MTPROOrderBookImbalanceResearchEventFlow`：生成 requested、signalGenerated 和 completed 研究事件流。
+- `OrderBookReadModelInput`：由只读 `OrderBookSnapshot` 构建，并可应用同 symbol 的 `OrderBookDelta`。
+- `OrderBookImbalanceStrategyConfiguration`：定义 strategyID、symbol、timeframe、depth 和 signalThreshold。
+- `OrderBookImbalanceStrategyContract`：只消费本地订单簿读模型输入，计算 top depth bid / ask notional imbalance。
+- `OrderBookImbalanceSignalSample`：输出 signal、sourceObservedAt、depth、bidNotional、askNotional、imbalanceRatio 和 bias。
+- `OrderBookImbalanceResearchEventFlow`：生成 requested、signalGenerated 和 completed 研究事件流。
 
 契约要求：
 
@@ -129,7 +129,7 @@ Use Case 输出必须先进入 read model projection，再供 UI 使用。
 
 执行者：Codex
 
-`MTPROPersistence` 在本事项中建立 `ReplayEvents` 后续 use case 所需的本地投影边界。
+`Persistence` 在本事项中建立 `ReplayEvents` 后续 use case 所需的本地投影边界。
 
 契约结构：
 

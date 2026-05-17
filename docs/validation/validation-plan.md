@@ -102,7 +102,7 @@ bash checks/run.sh
 
 新增本地 XCTest 覆盖：
 
-- `MTPRODashboardViewModel` 的 Market / Strategy / Backtest / Paper / Risk / Portfolio / Events source contract。
+- `DashboardViewModel` 的 Market / Strategy / Backtest / Paper / Risk / Portfolio / Events source contract。
 - SQLite runtime projection 和 DuckDB analytical projection 到 Dashboard read model / ViewModel 的字段映射。
 - Dashboard ViewModel Codable round-trip 和稳定状态快照。
 

@@ -1,6 +1,6 @@
 import Foundation
 
-public enum MTPROCoreError: Error, Equatable, Sendable, CustomStringConvertible {
+public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
     case unsupportedSymbol(String)
     case unsupportedTimeframe(String)
     case unsupportedExecutionMode(String)
@@ -65,7 +65,7 @@ public enum MTPROCoreError: Error, Equatable, Sendable, CustomStringConvertible 
     }
 }
 
-public struct MTPROSymbol: Codable, Equatable, Hashable, Sendable, CustomStringConvertible {
+public struct Symbol: Codable, Equatable, Hashable, Sendable, CustomStringConvertible {
     public static let supportedRawValues = ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT"]
 
     public let rawValue: String
@@ -73,7 +73,7 @@ public struct MTPROSymbol: Codable, Equatable, Hashable, Sendable, CustomStringC
     public init(rawValue: String) throws {
         let normalized = rawValue.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         guard Self.supportedRawValues.contains(normalized) else {
-            throw MTPROCoreError.unsupportedSymbol(rawValue)
+            throw CoreError.unsupportedSymbol(rawValue)
         }
         self.rawValue = normalized
     }
@@ -94,7 +94,7 @@ public struct MTPROSymbol: Codable, Equatable, Hashable, Sendable, CustomStringC
     }
 }
 
-public enum MTPROTimeframe: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+public enum Timeframe: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
     case oneMinute = "1m"
     case fiveMinutes = "5m"
 
@@ -104,13 +104,13 @@ public enum MTPROTimeframe: String, Codable, CaseIterable, Equatable, Hashable, 
 
     public init(contractValue: String) throws {
         guard let timeframe = Self(rawValue: contractValue) else {
-            throw MTPROCoreError.unsupportedTimeframe(contractValue)
+            throw CoreError.unsupportedTimeframe(contractValue)
         }
         self = timeframe
     }
 }
 
-public enum MTPROExecutionMode: String, Codable, CaseIterable, Equatable, Sendable {
+public enum ExecutionMode: String, Codable, CaseIterable, Equatable, Sendable {
     case backtest
     case paper
 
@@ -122,20 +122,20 @@ public enum MTPROExecutionMode: String, Codable, CaseIterable, Equatable, Sendab
         case Self.paper.rawValue:
             self = .paper
         case "live", "broker", "real", "production":
-            throw MTPROCoreError.liveExecutionForbidden(contractValue)
+            throw CoreError.liveExecutionForbidden(contractValue)
         default:
-            throw MTPROCoreError.unsupportedExecutionMode(contractValue)
+            throw CoreError.unsupportedExecutionMode(contractValue)
         }
     }
 }
 
-public struct MTPRODateRange: Codable, Equatable, Sendable {
+public struct DateRange: Codable, Equatable, Sendable {
     public let start: Date
     public let end: Date
 
     public init(start: Date, end: Date) throws {
         guard start < end else {
-            throw MTPROCoreError.invalidDateRange
+            throw CoreError.invalidDateRange
         }
         self.start = start
         self.end = end
@@ -160,13 +160,13 @@ public struct MTPRODateRange: Codable, Equatable, Sendable {
     }
 }
 
-public struct MTPROIdentifier: Codable, Equatable, Hashable, Sendable, CustomStringConvertible {
+public struct Identifier: Codable, Equatable, Hashable, Sendable, CustomStringConvertible {
     public let rawValue: String
 
     public init(_ rawValue: String, field: String = "identifier") throws {
         let trimmed = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmed.isEmpty == false else {
-            throw MTPROCoreError.emptyIdentifier(field)
+            throw CoreError.emptyIdentifier(field)
         }
         self.rawValue = trimmed
     }
@@ -187,12 +187,12 @@ public struct MTPROIdentifier: Codable, Equatable, Hashable, Sendable, CustomStr
     }
 }
 
-public struct MTPROPrice: Codable, Equatable, Sendable {
+public struct Price: Codable, Equatable, Sendable {
     public let rawValue: Double
 
     public init(_ rawValue: Double, field: String = "price") throws {
         guard rawValue.isFinite, rawValue > 0 else {
-            throw MTPROCoreError.invalidPrice(field, rawValue)
+            throw CoreError.invalidPrice(field, rawValue)
         }
         self.rawValue = rawValue
     }
@@ -209,12 +209,12 @@ public struct MTPROPrice: Codable, Equatable, Sendable {
     }
 }
 
-public struct MTPROQuantity: Codable, Equatable, Sendable {
+public struct Quantity: Codable, Equatable, Sendable {
     public let rawValue: Double
 
     public init(_ rawValue: Double, field: String = "quantity") throws {
         guard rawValue.isFinite, rawValue >= 0 else {
-            throw MTPROCoreError.invalidQuantity(field, rawValue)
+            throw CoreError.invalidQuantity(field, rawValue)
         }
         self.rawValue = rawValue
     }
@@ -231,20 +231,20 @@ public struct MTPROQuantity: Codable, Equatable, Sendable {
     }
 }
 
-public struct MTPROMarketBar: Codable, Equatable, Sendable {
-    public let symbol: MTPROSymbol
-    public let timeframe: MTPROTimeframe
-    public let interval: MTPRODateRange
-    public let open: MTPROPrice
-    public let high: MTPROPrice
-    public let low: MTPROPrice
-    public let close: MTPROPrice
-    public let volume: MTPROQuantity
+public struct MarketBar: Codable, Equatable, Sendable {
+    public let symbol: Symbol
+    public let timeframe: Timeframe
+    public let interval: DateRange
+    public let open: Price
+    public let high: Price
+    public let low: Price
+    public let close: Price
+    public let volume: Quantity
 
     public init(
-        symbol: MTPROSymbol,
-        timeframe: MTPROTimeframe,
-        interval: MTPRODateRange,
+        symbol: Symbol,
+        timeframe: Timeframe,
+        interval: DateRange,
         open: Double,
         high: Double,
         low: Double,
@@ -254,62 +254,62 @@ public struct MTPROMarketBar: Codable, Equatable, Sendable {
         self.symbol = symbol
         self.timeframe = timeframe
         self.interval = interval
-        self.open = try MTPROPrice(open, field: "open")
-        self.high = try MTPROPrice(high, field: "high")
-        self.low = try MTPROPrice(low, field: "low")
-        self.close = try MTPROPrice(close, field: "close")
-        self.volume = try MTPROQuantity(volume, field: "volume")
+        self.open = try Price(open, field: "open")
+        self.high = try Price(high, field: "high")
+        self.low = try Price(low, field: "low")
+        self.close = try Price(close, field: "close")
+        self.volume = try Quantity(volume, field: "volume")
     }
 }
 
-public struct MTPROTradeTick: Codable, Equatable, Sendable {
-    public let symbol: MTPROSymbol
+public struct TradeTick: Codable, Equatable, Sendable {
+    public let symbol: Symbol
     public let tradedAt: Date
-    public let price: MTPROPrice
-    public let quantity: MTPROQuantity
-    public let makerSide: MTPROBookSide
+    public let price: Price
+    public let quantity: Quantity
+    public let makerSide: BookSide
 
     public init(
-        symbol: MTPROSymbol,
+        symbol: Symbol,
         tradedAt: Date,
         price: Double,
         quantity: Double,
-        makerSide: MTPROBookSide
+        makerSide: BookSide
     ) throws {
         self.symbol = symbol
         self.tradedAt = tradedAt
-        self.price = try MTPROPrice(price)
-        self.quantity = try MTPROQuantity(quantity)
+        self.price = try Price(price)
+        self.quantity = try Quantity(quantity)
         self.makerSide = makerSide
     }
 }
 
-public enum MTPROBookSide: String, Codable, Equatable, Sendable {
+public enum BookSide: String, Codable, Equatable, Sendable {
     case bid
     case ask
 }
 
-public struct MTPROOrderBookLevel: Codable, Equatable, Sendable {
-    public let price: MTPROPrice
-    public let quantity: MTPROQuantity
+public struct OrderBookLevel: Codable, Equatable, Sendable {
+    public let price: Price
+    public let quantity: Quantity
 
     public init(price: Double, quantity: Double) throws {
-        self.price = try MTPROPrice(price)
-        self.quantity = try MTPROQuantity(quantity)
+        self.price = try Price(price)
+        self.quantity = try Quantity(quantity)
     }
 }
 
-public struct MTPROBestBidAsk: Codable, Equatable, Sendable {
-    public let symbol: MTPROSymbol
+public struct BestBidAsk: Codable, Equatable, Sendable {
+    public let symbol: Symbol
     public let observedAt: Date
-    public let bid: MTPROOrderBookLevel
-    public let ask: MTPROOrderBookLevel
+    public let bid: OrderBookLevel
+    public let ask: OrderBookLevel
 
     public init(
-        symbol: MTPROSymbol,
+        symbol: Symbol,
         observedAt: Date,
-        bid: MTPROOrderBookLevel,
-        ask: MTPROOrderBookLevel
+        bid: OrderBookLevel,
+        ask: OrderBookLevel
     ) {
         self.symbol = symbol
         self.observedAt = observedAt
@@ -318,17 +318,17 @@ public struct MTPROBestBidAsk: Codable, Equatable, Sendable {
     }
 }
 
-public struct MTPROOrderBookSnapshot: Codable, Equatable, Sendable {
-    public let symbol: MTPROSymbol
+public struct OrderBookSnapshot: Codable, Equatable, Sendable {
+    public let symbol: Symbol
     public let observedAt: Date
-    public let bids: [MTPROOrderBookLevel]
-    public let asks: [MTPROOrderBookLevel]
+    public let bids: [OrderBookLevel]
+    public let asks: [OrderBookLevel]
 
     public init(
-        symbol: MTPROSymbol,
+        symbol: Symbol,
         observedAt: Date,
-        bids: [MTPROOrderBookLevel],
-        asks: [MTPROOrderBookLevel]
+        bids: [OrderBookLevel],
+        asks: [OrderBookLevel]
     ) {
         self.symbol = symbol
         self.observedAt = observedAt
@@ -337,17 +337,17 @@ public struct MTPROOrderBookSnapshot: Codable, Equatable, Sendable {
     }
 }
 
-public struct MTPROOrderBookDelta: Codable, Equatable, Sendable {
-    public let symbol: MTPROSymbol
+public struct OrderBookDelta: Codable, Equatable, Sendable {
+    public let symbol: Symbol
     public let observedAt: Date
-    public let bidUpdates: [MTPROOrderBookLevel]
-    public let askUpdates: [MTPROOrderBookLevel]
+    public let bidUpdates: [OrderBookLevel]
+    public let askUpdates: [OrderBookLevel]
 
     public init(
-        symbol: MTPROSymbol,
+        symbol: Symbol,
         observedAt: Date,
-        bidUpdates: [MTPROOrderBookLevel],
-        askUpdates: [MTPROOrderBookLevel]
+        bidUpdates: [OrderBookLevel],
+        askUpdates: [OrderBookLevel]
     ) {
         self.symbol = symbol
         self.observedAt = observedAt
@@ -356,25 +356,25 @@ public struct MTPROOrderBookDelta: Codable, Equatable, Sendable {
     }
 }
 
-public enum MTPROOrderBookReadModelSource: String, Codable, Equatable, Sendable {
+public enum OrderBookReadModelSource: String, Codable, Equatable, Sendable {
     case snapshot
     case deltaApplied
 }
 
 /// 订单簿读模型输入由只读 snapshot / delta 构建，供研究信号使用，不代表可交易状态。
-public struct MTPROOrderBookReadModelInput: Codable, Equatable, Sendable {
-    public let symbol: MTPROSymbol
+public struct OrderBookReadModelInput: Codable, Equatable, Sendable {
+    public let symbol: Symbol
     public let observedAt: Date
-    public let bids: [MTPROOrderBookLevel]
-    public let asks: [MTPROOrderBookLevel]
-    public let source: MTPROOrderBookReadModelSource
+    public let bids: [OrderBookLevel]
+    public let asks: [OrderBookLevel]
+    public let source: OrderBookReadModelSource
 
     public init(
-        symbol: MTPROSymbol,
+        symbol: Symbol,
         observedAt: Date,
-        bids: [MTPROOrderBookLevel],
-        asks: [MTPROOrderBookLevel],
-        source: MTPROOrderBookReadModelSource
+        bids: [OrderBookLevel],
+        asks: [OrderBookLevel],
+        source: OrderBookReadModelSource
     ) {
         self.symbol = symbol
         self.observedAt = observedAt
@@ -383,7 +383,7 @@ public struct MTPROOrderBookReadModelInput: Codable, Equatable, Sendable {
         self.source = source
     }
 
-    public init(snapshot: MTPROOrderBookSnapshot) {
+    public init(snapshot: OrderBookSnapshot) {
         self.init(
             symbol: snapshot.symbol,
             observedAt: snapshot.observedAt,
@@ -393,9 +393,9 @@ public struct MTPROOrderBookReadModelInput: Codable, Equatable, Sendable {
         )
     }
 
-    public func applying(_ delta: MTPROOrderBookDelta) throws -> MTPROOrderBookReadModelInput {
+    public func applying(_ delta: OrderBookDelta) throws -> OrderBookReadModelInput {
         guard delta.symbol == symbol else {
-            throw MTPROCoreError.marketDataMismatch(
+            throw CoreError.marketDataMismatch(
                 field: "orderBookDelta.symbol",
                 expected: symbol.rawValue,
                 actual: delta.symbol.rawValue
@@ -405,7 +405,7 @@ public struct MTPROOrderBookReadModelInput: Codable, Equatable, Sendable {
         let bids = Self.applying(delta.bidUpdates, to: bids)
         let asks = Self.applying(delta.askUpdates, to: asks)
 
-        return MTPROOrderBookReadModelInput(
+        return OrderBookReadModelInput(
             symbol: symbol,
             observedAt: delta.observedAt,
             bids: bids,
@@ -415,10 +415,10 @@ public struct MTPROOrderBookReadModelInput: Codable, Equatable, Sendable {
     }
 
     private static func applying(
-        _ updates: [MTPROOrderBookLevel],
-        to levels: [MTPROOrderBookLevel]
-    ) -> [MTPROOrderBookLevel] {
-        var levelsByPrice: [Double: MTPROOrderBookLevel] = [:]
+        _ updates: [OrderBookLevel],
+        to levels: [OrderBookLevel]
+    ) -> [OrderBookLevel] {
+        var levelsByPrice: [Double: OrderBookLevel] = [:]
         for level in levels {
             levelsByPrice[level.price.rawValue] = level
         }
@@ -434,31 +434,31 @@ public struct MTPROOrderBookReadModelInput: Codable, Equatable, Sendable {
         return Array(levelsByPrice.values)
     }
 
-    private static func nonZero(levels: [MTPROOrderBookLevel]) -> [MTPROOrderBookLevel] {
+    private static func nonZero(levels: [OrderBookLevel]) -> [OrderBookLevel] {
         levels.filter { $0.quantity.rawValue > 0 }
     }
 
-    private static func sortedBids(_ levels: [MTPROOrderBookLevel]) -> [MTPROOrderBookLevel] {
+    private static func sortedBids(_ levels: [OrderBookLevel]) -> [OrderBookLevel] {
         levels.sorted { left, right in
             left.price.rawValue > right.price.rawValue
         }
     }
 
-    private static func sortedAsks(_ levels: [MTPROOrderBookLevel]) -> [MTPROOrderBookLevel] {
+    private static func sortedAsks(_ levels: [OrderBookLevel]) -> [OrderBookLevel] {
         levels.sorted { left, right in
             left.price.rawValue < right.price.rawValue
         }
     }
 }
 
-public enum MTPROMarketEvent: Codable, Equatable, Sendable {
-    case bar(MTPROMarketBar)
-    case trade(MTPROTradeTick)
-    case bestBidAsk(MTPROBestBidAsk)
-    case orderBookSnapshot(MTPROOrderBookSnapshot)
-    case orderBookDelta(MTPROOrderBookDelta)
+public enum MarketEvent: Codable, Equatable, Sendable {
+    case bar(MarketBar)
+    case trade(TradeTick)
+    case bestBidAsk(BestBidAsk)
+    case orderBookSnapshot(OrderBookSnapshot)
+    case orderBookDelta(OrderBookDelta)
 
-    public var symbol: MTPROSymbol {
+    public var symbol: Symbol {
         switch self {
         case let .bar(bar):
             bar.symbol
@@ -474,23 +474,23 @@ public enum MTPROMarketEvent: Codable, Equatable, Sendable {
     }
 }
 
-public enum MTPROSignalDirection: String, Codable, Equatable, Sendable {
+public enum SignalDirection: String, Codable, Equatable, Sendable {
     case long
     case flat
 }
 
-public struct MTPROStrategySignalEvent: Codable, Equatable, Sendable {
-    public let strategyID: MTPROIdentifier
-    public let symbol: MTPROSymbol
-    public let timeframe: MTPROTimeframe
-    public let direction: MTPROSignalDirection
+public struct StrategySignalEvent: Codable, Equatable, Sendable {
+    public let strategyID: Identifier
+    public let symbol: Symbol
+    public let timeframe: Timeframe
+    public let direction: SignalDirection
     public let generatedAt: Date
 
     public init(
-        strategyID: MTPROIdentifier,
-        symbol: MTPROSymbol,
-        timeframe: MTPROTimeframe,
-        direction: MTPROSignalDirection,
+        strategyID: Identifier,
+        symbol: Symbol,
+        timeframe: Timeframe,
+        direction: SignalDirection,
         generatedAt: Date
     ) {
         self.strategyID = strategyID
@@ -501,32 +501,32 @@ public struct MTPROStrategySignalEvent: Codable, Equatable, Sendable {
     }
 }
 
-public enum MTPROOrderBookImbalanceBias: String, Codable, Equatable, Sendable {
+public enum OrderBookImbalanceBias: String, Codable, Equatable, Sendable {
     case bidDominant
     case neutral
     case askDominant
 }
 
 /// 订单簿失衡策略配置只描述本地研究信号，不包含 futures、margin 或真实订单动作。
-public struct MTPROOrderBookImbalanceStrategyConfiguration: Codable, Equatable, Sendable {
-    public let strategyID: MTPROIdentifier
-    public let symbol: MTPROSymbol
-    public let timeframe: MTPROTimeframe
+public struct OrderBookImbalanceStrategyConfiguration: Codable, Equatable, Sendable {
+    public let strategyID: Identifier
+    public let symbol: Symbol
+    public let timeframe: Timeframe
     public let depth: Int
     public let signalThreshold: Double
 
     public init(
-        strategyID: MTPROIdentifier,
-        symbol: MTPROSymbol,
-        timeframe: MTPROTimeframe,
+        strategyID: Identifier,
+        symbol: Symbol,
+        timeframe: Timeframe,
         depth: Int,
         signalThreshold: Double
     ) throws {
         guard depth > 0 else {
-            throw MTPROCoreError.invalidOrderBookDepth("depth", depth)
+            throw CoreError.invalidOrderBookDepth("depth", depth)
         }
         guard signalThreshold.isFinite, (0...1).contains(signalThreshold) else {
-            throw MTPROCoreError.invalidImbalanceThreshold(signalThreshold)
+            throw CoreError.invalidImbalanceThreshold(signalThreshold)
         }
         self.strategyID = strategyID
         self.symbol = symbol
@@ -537,9 +537,9 @@ public struct MTPROOrderBookImbalanceStrategyConfiguration: Codable, Equatable, 
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        let strategyID = try container.decode(MTPROIdentifier.self, forKey: .strategyID)
-        let symbol = try container.decode(MTPROSymbol.self, forKey: .symbol)
-        let timeframe = try container.decode(MTPROTimeframe.self, forKey: .timeframe)
+        let strategyID = try container.decode(Identifier.self, forKey: .strategyID)
+        let symbol = try container.decode(Symbol.self, forKey: .symbol)
+        let timeframe = try container.decode(Timeframe.self, forKey: .timeframe)
         let depth = try container.decode(Int.self, forKey: .depth)
         let signalThreshold = try container.decode(Double.self, forKey: .signalThreshold)
         try self.init(
@@ -569,23 +569,23 @@ public struct MTPROOrderBookImbalanceStrategyConfiguration: Codable, Equatable, 
     }
 }
 
-public struct MTPROOrderBookImbalanceSignalSample: Codable, Equatable, Sendable {
-    public let signal: MTPROStrategySignalEvent
+public struct OrderBookImbalanceSignalSample: Codable, Equatable, Sendable {
+    public let signal: StrategySignalEvent
     public let sourceObservedAt: Date
     public let depth: Int
     public let bidNotional: Double
     public let askNotional: Double
     public let imbalanceRatio: Double
-    public let bias: MTPROOrderBookImbalanceBias
+    public let bias: OrderBookImbalanceBias
 
     public init(
-        signal: MTPROStrategySignalEvent,
+        signal: StrategySignalEvent,
         sourceObservedAt: Date,
         depth: Int,
         bidNotional: Double,
         askNotional: Double,
         imbalanceRatio: Double,
-        bias: MTPROOrderBookImbalanceBias
+        bias: OrderBookImbalanceBias
     ) {
         self.signal = signal
         self.sourceObservedAt = sourceObservedAt
@@ -598,14 +598,14 @@ public struct MTPROOrderBookImbalanceSignalSample: Codable, Equatable, Sendable 
 }
 
 /// 失衡计算只消费本地订单簿读模型输入，输出研究信号和可投影指标。
-public struct MTPROOrderBookImbalanceStrategyContract: Equatable, Sendable {
-    public let configuration: MTPROOrderBookImbalanceStrategyConfiguration
+public struct OrderBookImbalanceStrategyContract: Equatable, Sendable {
+    public let configuration: OrderBookImbalanceStrategyConfiguration
 
-    public init(configuration: MTPROOrderBookImbalanceStrategyConfiguration) {
+    public init(configuration: OrderBookImbalanceStrategyConfiguration) {
         self.configuration = configuration
     }
 
-    public func evaluate(_ inputs: [MTPROOrderBookReadModelInput]) throws -> [MTPROOrderBookImbalanceSignalSample] {
+    public func evaluate(_ inputs: [OrderBookReadModelInput]) throws -> [OrderBookImbalanceSignalSample] {
         let sortedInputs = inputs.sorted { left, right in
             left.observedAt < right.observedAt
         }
@@ -613,9 +613,9 @@ public struct MTPROOrderBookImbalanceStrategyContract: Equatable, Sendable {
         return try sortedInputs.map(sample)
     }
 
-    private func sample(from input: MTPROOrderBookReadModelInput) throws -> MTPROOrderBookImbalanceSignalSample {
+    private func sample(from input: OrderBookReadModelInput) throws -> OrderBookImbalanceSignalSample {
         guard input.symbol == configuration.symbol else {
-            throw MTPROCoreError.marketDataMismatch(
+            throw CoreError.marketDataMismatch(
                 field: "orderBook.symbol",
                 expected: configuration.symbol.rawValue,
                 actual: input.symbol.rawValue
@@ -625,7 +625,7 @@ public struct MTPROOrderBookImbalanceStrategyContract: Equatable, Sendable {
         let bids = Array(input.bids.prefix(configuration.depth))
         let asks = Array(input.asks.prefix(configuration.depth))
         guard bids.count == configuration.depth, asks.count == configuration.depth else {
-            throw MTPROCoreError.insufficientOrderBookDepth(
+            throw CoreError.insufficientOrderBookDepth(
                 required: configuration.depth,
                 bidLevels: bids.count,
                 askLevels: asks.count
@@ -636,13 +636,13 @@ public struct MTPROOrderBookImbalanceStrategyContract: Equatable, Sendable {
         let askNotional = Self.notional(for: asks)
         let totalNotional = bidNotional + askNotional
         guard totalNotional > 0 else {
-            throw MTPROCoreError.insufficientOrderBookLiquidity
+            throw CoreError.insufficientOrderBookLiquidity
         }
 
         let ratio = (bidNotional - askNotional) / totalNotional
         let bias = Self.bias(ratio: ratio, threshold: configuration.signalThreshold)
-        let direction: MTPROSignalDirection = bias == .bidDominant ? .long : .flat
-        let signal = MTPROStrategySignalEvent(
+        let direction: SignalDirection = bias == .bidDominant ? .long : .flat
+        let signal = StrategySignalEvent(
             strategyID: configuration.strategyID,
             symbol: configuration.symbol,
             timeframe: configuration.timeframe,
@@ -650,7 +650,7 @@ public struct MTPROOrderBookImbalanceStrategyContract: Equatable, Sendable {
             generatedAt: input.observedAt
         )
 
-        return MTPROOrderBookImbalanceSignalSample(
+        return OrderBookImbalanceSignalSample(
             signal: signal,
             sourceObservedAt: input.observedAt,
             depth: configuration.depth,
@@ -661,13 +661,13 @@ public struct MTPROOrderBookImbalanceStrategyContract: Equatable, Sendable {
         )
     }
 
-    private static func notional(for levels: [MTPROOrderBookLevel]) -> Double {
+    private static func notional(for levels: [OrderBookLevel]) -> Double {
         levels.reduce(0) { partialResult, level in
             partialResult + (level.price.rawValue * level.quantity.rawValue)
         }
     }
 
-    private static func bias(ratio: Double, threshold: Double) -> MTPROOrderBookImbalanceBias {
+    private static func bias(ratio: Double, threshold: Double) -> OrderBookImbalanceBias {
         if ratio >= threshold {
             return .bidDominant
         }
@@ -679,28 +679,28 @@ public struct MTPROOrderBookImbalanceStrategyContract: Equatable, Sendable {
 }
 
 /// EMA 交叉策略配置只描述本地研究契约，不包含 broker 或 Live action。
-public struct MTPROEMACrossStrategyConfiguration: Codable, Equatable, Sendable {
-    public let strategyID: MTPROIdentifier
-    public let symbol: MTPROSymbol
-    public let timeframe: MTPROTimeframe
+public struct EMACrossStrategyConfiguration: Codable, Equatable, Sendable {
+    public let strategyID: Identifier
+    public let symbol: Symbol
+    public let timeframe: Timeframe
     public let shortPeriod: Int
     public let longPeriod: Int
 
     public init(
-        strategyID: MTPROIdentifier,
-        symbol: MTPROSymbol,
-        timeframe: MTPROTimeframe,
+        strategyID: Identifier,
+        symbol: Symbol,
+        timeframe: Timeframe,
         shortPeriod: Int,
         longPeriod: Int
     ) throws {
         guard shortPeriod > 0 else {
-            throw MTPROCoreError.invalidEMAPeriod("shortPeriod", shortPeriod)
+            throw CoreError.invalidEMAPeriod("shortPeriod", shortPeriod)
         }
         guard longPeriod > 0 else {
-            throw MTPROCoreError.invalidEMAPeriod("longPeriod", longPeriod)
+            throw CoreError.invalidEMAPeriod("longPeriod", longPeriod)
         }
         guard shortPeriod < longPeriod else {
-            throw MTPROCoreError.invalidEMAPeriodOrder(shortPeriod: shortPeriod, longPeriod: longPeriod)
+            throw CoreError.invalidEMAPeriodOrder(shortPeriod: shortPeriod, longPeriod: longPeriod)
         }
         self.strategyID = strategyID
         self.symbol = symbol
@@ -711,9 +711,9 @@ public struct MTPROEMACrossStrategyConfiguration: Codable, Equatable, Sendable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        let strategyID = try container.decode(MTPROIdentifier.self, forKey: .strategyID)
-        let symbol = try container.decode(MTPROSymbol.self, forKey: .symbol)
-        let timeframe = try container.decode(MTPROTimeframe.self, forKey: .timeframe)
+        let strategyID = try container.decode(Identifier.self, forKey: .strategyID)
+        let symbol = try container.decode(Symbol.self, forKey: .symbol)
+        let timeframe = try container.decode(Timeframe.self, forKey: .timeframe)
         let shortPeriod = try container.decode(Int.self, forKey: .shortPeriod)
         let longPeriod = try container.decode(Int.self, forKey: .longPeriod)
         try self.init(
@@ -743,36 +743,36 @@ public struct MTPROEMACrossStrategyConfiguration: Codable, Equatable, Sendable {
     }
 }
 
-public struct MTPROEMACrossSignalSample: Codable, Equatable, Sendable {
-    public let signal: MTPROStrategySignalEvent
-    public let close: MTPROPrice
-    public let shortEMA: MTPROPrice
-    public let longEMA: MTPROPrice
+public struct EMACrossSignalSample: Codable, Equatable, Sendable {
+    public let signal: StrategySignalEvent
+    public let close: Price
+    public let shortEMA: Price
+    public let longEMA: Price
 
     public init(
-        signal: MTPROStrategySignalEvent,
+        signal: StrategySignalEvent,
         close: Double,
         shortEMA: Double,
         longEMA: Double
     ) throws {
         self.signal = signal
-        self.close = try MTPROPrice(close, field: "ema.close")
-        self.shortEMA = try MTPROPrice(shortEMA, field: "ema.short")
-        self.longEMA = try MTPROPrice(longEMA, field: "ema.long")
+        self.close = try Price(close, field: "ema.close")
+        self.shortEMA = try Price(shortEMA, field: "ema.short")
+        self.longEMA = try Price(longEMA, field: "ema.long")
     }
 }
 
 /// EMA 计算保持确定性；回测与 Paper 复用同一契约来避免语义分叉。
-public struct MTPROEMACrossStrategyContract: Equatable, Sendable {
-    public let configuration: MTPROEMACrossStrategyConfiguration
+public struct EMACrossStrategyContract: Equatable, Sendable {
+    public let configuration: EMACrossStrategyConfiguration
 
-    public init(configuration: MTPROEMACrossStrategyConfiguration) {
+    public init(configuration: EMACrossStrategyConfiguration) {
         self.configuration = configuration
     }
 
-    public func evaluate(_ bars: [MTPROMarketBar]) throws -> [MTPROEMACrossSignalSample] {
+    public func evaluate(_ bars: [MarketBar]) throws -> [EMACrossSignalSample] {
         guard bars.count >= configuration.longPeriod else {
-            throw MTPROCoreError.insufficientMarketData(
+            throw CoreError.insufficientMarketData(
                 required: configuration.longPeriod,
                 actual: bars.count
             )
@@ -787,7 +787,7 @@ public struct MTPROEMACrossStrategyContract: Equatable, Sendable {
         let longMultiplier = Self.multiplier(for: configuration.longPeriod)
         var shortEMA: Double?
         var longEMA: Double?
-        var samples: [MTPROEMACrossSignalSample] = []
+        var samples: [EMACrossSignalSample] = []
 
         for (index, bar) in sortedBars.enumerated() {
             let close = bar.close.rawValue
@@ -798,15 +798,15 @@ public struct MTPROEMACrossStrategyContract: Equatable, Sendable {
                 continue
             }
 
-            let direction: MTPROSignalDirection = shortEMA > longEMA ? .long : .flat
-            let signal = MTPROStrategySignalEvent(
+            let direction: SignalDirection = shortEMA > longEMA ? .long : .flat
+            let signal = StrategySignalEvent(
                 strategyID: configuration.strategyID,
                 symbol: configuration.symbol,
                 timeframe: configuration.timeframe,
                 direction: direction,
                 generatedAt: bar.interval.end
             )
-            let sample = try MTPROEMACrossSignalSample(
+            let sample = try EMACrossSignalSample(
                 signal: signal,
                 close: close,
                 shortEMA: shortEMA,
@@ -818,17 +818,17 @@ public struct MTPROEMACrossStrategyContract: Equatable, Sendable {
         return samples
     }
 
-    private func validate(_ bars: [MTPROMarketBar]) throws {
+    private func validate(_ bars: [MarketBar]) throws {
         for bar in bars {
             guard bar.symbol == configuration.symbol else {
-                throw MTPROCoreError.marketDataMismatch(
+                throw CoreError.marketDataMismatch(
                     field: "symbol",
                     expected: configuration.symbol.rawValue,
                     actual: bar.symbol.rawValue
                 )
             }
             guard bar.timeframe == configuration.timeframe else {
-                throw MTPROCoreError.marketDataMismatch(
+                throw CoreError.marketDataMismatch(
                     field: "timeframe",
                     expected: configuration.timeframe.rawValue,
                     actual: bar.timeframe.rawValue
@@ -850,25 +850,25 @@ public struct MTPROEMACrossStrategyContract: Equatable, Sendable {
 }
 
 public struct MarketDataQuery: Codable, Equatable, Sendable {
-    public let symbol: MTPROSymbol
-    public let timeframe: MTPROTimeframe
-    public let range: MTPRODateRange
+    public let symbol: Symbol
+    public let timeframe: Timeframe
+    public let range: DateRange
 
-    public init(symbol: MTPROSymbol, timeframe: MTPROTimeframe, range: MTPRODateRange) {
+    public init(symbol: Symbol, timeframe: Timeframe, range: DateRange) {
         self.symbol = symbol
         self.timeframe = timeframe
         self.range = range
     }
 }
 
-public struct MTPROOrderBookImbalanceResearchCommand: Codable, Equatable, Sendable {
-    public let researchID: MTPROIdentifier
-    public let strategy: MTPROOrderBookImbalanceStrategyConfiguration
+public struct OrderBookImbalanceResearchCommand: Codable, Equatable, Sendable {
+    public let researchID: Identifier
+    public let strategy: OrderBookImbalanceStrategyConfiguration
     public let marketData: MarketDataQuery
 
     public init(
-        researchID: MTPROIdentifier,
-        strategy: MTPROOrderBookImbalanceStrategyConfiguration,
+        researchID: Identifier,
+        strategy: OrderBookImbalanceStrategyConfiguration,
         marketData: MarketDataQuery
     ) {
         self.researchID = researchID
@@ -876,21 +876,21 @@ public struct MTPROOrderBookImbalanceResearchCommand: Codable, Equatable, Sendab
         self.marketData = marketData
     }
 
-    public var strategyID: MTPROIdentifier {
+    public var strategyID: Identifier {
         strategy.strategyID
     }
 }
 
-public struct MTPROOrderBookImbalanceResearchResult: Codable, Equatable, Sendable {
-    public let researchID: MTPROIdentifier
-    public let command: MTPROOrderBookImbalanceResearchCommand
-    public let signalSamples: [MTPROOrderBookImbalanceSignalSample]
+public struct OrderBookImbalanceResearchResult: Codable, Equatable, Sendable {
+    public let researchID: Identifier
+    public let command: OrderBookImbalanceResearchCommand
+    public let signalSamples: [OrderBookImbalanceSignalSample]
     public let completedAt: Date
 
     public init(
-        researchID: MTPROIdentifier,
-        command: MTPROOrderBookImbalanceResearchCommand,
-        signalSamples: [MTPROOrderBookImbalanceSignalSample],
+        researchID: Identifier,
+        command: OrderBookImbalanceResearchCommand,
+        signalSamples: [OrderBookImbalanceSignalSample],
         completedAt: Date
     ) {
         self.researchID = researchID
@@ -900,35 +900,35 @@ public struct MTPROOrderBookImbalanceResearchResult: Codable, Equatable, Sendabl
     }
 }
 
-public enum MTPROOrderBookImbalanceResearchEvent: Codable, Equatable, Sendable {
-    case requested(MTPROOrderBookImbalanceResearchCommand)
-    case signalGenerated(MTPROOrderBookImbalanceSignalSample)
-    case completed(MTPROOrderBookImbalanceResearchResult)
+public enum OrderBookImbalanceResearchEvent: Codable, Equatable, Sendable {
+    case requested(OrderBookImbalanceResearchCommand)
+    case signalGenerated(OrderBookImbalanceSignalSample)
+    case completed(OrderBookImbalanceResearchResult)
 }
 
-public enum MTPROBacktestEvent: Codable, Equatable, Sendable {
+public enum BacktestEvent: Codable, Equatable, Sendable {
     case requested(BacktestCommand)
-    case signalGenerated(MTPROEMACrossSignalSample)
-    case completed(MTPROBacktestResult)
+    case signalGenerated(EMACrossSignalSample)
+    case completed(BacktestResult)
 }
 
-public enum MTPROPaperEvent: Codable, Equatable, Sendable {
+public enum PaperEvent: Codable, Equatable, Sendable {
     case sessionRequested(PaperSessionCommand)
-    case signalGenerated(MTPROEMACrossSignalSample)
-    case sessionCompleted(MTPROPaperSessionResult)
+    case signalGenerated(EMACrossSignalSample)
+    case sessionCompleted(PaperSessionResult)
 }
 
-public enum MTPRORiskEvent: Codable, Equatable, Sendable {
+public enum RiskEvent: Codable, Equatable, Sendable {
     case evaluationRequested(RiskEvaluationQuery)
-    case rejected(MTPROIdentifier)
+    case rejected(Identifier)
 }
 
-public enum MTPROPortfolioEvent: Codable, Equatable, Sendable {
+public enum PortfolioEvent: Codable, Equatable, Sendable {
     case projectionRequested(PortfolioQuery)
-    case projectionUpdated(MTPROIdentifier)
+    case projectionUpdated(Identifier)
 }
 
-public struct MTPROReplayEvent: Codable, Equatable, Sendable {
+public struct ReplayEvent: Codable, Equatable, Sendable {
     public let command: EventReplayCommand
     public let replayedCount: Int
 
@@ -938,25 +938,25 @@ public struct MTPROReplayEvent: Codable, Equatable, Sendable {
     }
 }
 
-public enum MTPRODomainEvent: Codable, Equatable, Sendable {
-    case market(MTPROMarketEvent)
-    case strategySignal(MTPROStrategySignalEvent)
-    case orderBookImbalanceResearch(MTPROOrderBookImbalanceResearchEvent)
-    case backtest(MTPROBacktestEvent)
-    case paper(MTPROPaperEvent)
-    case risk(MTPRORiskEvent)
-    case portfolio(MTPROPortfolioEvent)
-    case replay(MTPROReplayEvent)
+public enum DomainEvent: Codable, Equatable, Sendable {
+    case market(MarketEvent)
+    case strategySignal(StrategySignalEvent)
+    case orderBookImbalanceResearch(OrderBookImbalanceResearchEvent)
+    case backtest(BacktestEvent)
+    case paper(PaperEvent)
+    case risk(RiskEvent)
+    case portfolio(PortfolioEvent)
+    case replay(ReplayEvent)
 }
 
 public struct BacktestCommand: Codable, Equatable, Sendable {
-    public let runID: MTPROIdentifier
-    public let strategy: MTPROEMACrossStrategyConfiguration
+    public let runID: Identifier
+    public let strategy: EMACrossStrategyConfiguration
     public let marketData: MarketDataQuery
 
     public init(
-        runID: MTPROIdentifier,
-        strategy: MTPROEMACrossStrategyConfiguration,
+        runID: Identifier,
+        strategy: EMACrossStrategyConfiguration,
         marketData: MarketDataQuery
     ) {
         self.runID = runID
@@ -964,27 +964,27 @@ public struct BacktestCommand: Codable, Equatable, Sendable {
         self.marketData = marketData
     }
 
-    public var strategyID: MTPROIdentifier {
+    public var strategyID: Identifier {
         strategy.strategyID
     }
 }
 
 public struct PaperSessionCommand: Codable, Equatable, Sendable {
-    public let sessionID: MTPROIdentifier
-    public let strategy: MTPROEMACrossStrategyConfiguration
+    public let sessionID: Identifier
+    public let strategy: EMACrossStrategyConfiguration
     public let marketData: MarketDataQuery
-    public let riskProfileID: MTPROIdentifier
-    public let executionMode: MTPROExecutionMode
+    public let riskProfileID: Identifier
+    public let executionMode: ExecutionMode
 
     public init(
-        sessionID: MTPROIdentifier,
-        strategy: MTPROEMACrossStrategyConfiguration,
+        sessionID: Identifier,
+        strategy: EMACrossStrategyConfiguration,
         marketData: MarketDataQuery,
-        riskProfileID: MTPROIdentifier,
-        executionMode: MTPROExecutionMode
+        riskProfileID: Identifier,
+        executionMode: ExecutionMode
     ) throws {
         guard executionMode == .paper else {
-            throw MTPROCoreError.paperSessionRequiresPaperMode
+            throw CoreError.paperSessionRequiresPaperMode
         }
         self.sessionID = sessionID
         self.strategy = strategy
@@ -993,17 +993,17 @@ public struct PaperSessionCommand: Codable, Equatable, Sendable {
         self.executionMode = executionMode
     }
 
-    public var strategyID: MTPROIdentifier {
+    public var strategyID: Identifier {
         strategy.strategyID
     }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        let sessionID = try container.decode(MTPROIdentifier.self, forKey: .sessionID)
-        let strategy = try container.decode(MTPROEMACrossStrategyConfiguration.self, forKey: .strategy)
+        let sessionID = try container.decode(Identifier.self, forKey: .sessionID)
+        let strategy = try container.decode(EMACrossStrategyConfiguration.self, forKey: .strategy)
         let marketData = try container.decode(MarketDataQuery.self, forKey: .marketData)
-        let riskProfileID = try container.decode(MTPROIdentifier.self, forKey: .riskProfileID)
-        let executionMode = try container.decode(MTPROExecutionMode.self, forKey: .executionMode)
+        let riskProfileID = try container.decode(Identifier.self, forKey: .riskProfileID)
+        let executionMode = try container.decode(ExecutionMode.self, forKey: .executionMode)
         try self.init(
             sessionID: sessionID,
             strategy: strategy,
@@ -1031,16 +1031,16 @@ public struct PaperSessionCommand: Codable, Equatable, Sendable {
     }
 }
 
-public struct MTPROBacktestResult: Codable, Equatable, Sendable {
-    public let runID: MTPROIdentifier
+public struct BacktestResult: Codable, Equatable, Sendable {
+    public let runID: Identifier
     public let command: BacktestCommand
-    public let signalSamples: [MTPROEMACrossSignalSample]
+    public let signalSamples: [EMACrossSignalSample]
     public let completedAt: Date
 
     public init(
-        runID: MTPROIdentifier,
+        runID: Identifier,
         command: BacktestCommand,
-        signalSamples: [MTPROEMACrossSignalSample],
+        signalSamples: [EMACrossSignalSample],
         completedAt: Date
     ) {
         self.runID = runID
@@ -1050,16 +1050,16 @@ public struct MTPROBacktestResult: Codable, Equatable, Sendable {
     }
 }
 
-public struct MTPROPaperSessionResult: Codable, Equatable, Sendable {
-    public let sessionID: MTPROIdentifier
+public struct PaperSessionResult: Codable, Equatable, Sendable {
+    public let sessionID: Identifier
     public let command: PaperSessionCommand
-    public let signalSamples: [MTPROEMACrossSignalSample]
+    public let signalSamples: [EMACrossSignalSample]
     public let completedAt: Date
 
     public init(
-        sessionID: MTPROIdentifier,
+        sessionID: Identifier,
         command: PaperSessionCommand,
-        signalSamples: [MTPROEMACrossSignalSample],
+        signalSamples: [EMACrossSignalSample],
         completedAt: Date
     ) {
         self.sessionID = sessionID
@@ -1069,33 +1069,33 @@ public struct MTPROPaperSessionResult: Codable, Equatable, Sendable {
     }
 }
 
-public struct MTPROBacktestRun: Codable, Equatable, Sendable {
-    public let result: MTPROBacktestResult
-    public let events: [MTPROBacktestEvent]
+public struct BacktestRun: Codable, Equatable, Sendable {
+    public let result: BacktestResult
+    public let events: [BacktestEvent]
 
-    public init(result: MTPROBacktestResult, events: [MTPROBacktestEvent]) {
+    public init(result: BacktestResult, events: [BacktestEvent]) {
         self.result = result
         self.events = events
     }
 }
 
-public struct MTPROPaperSessionRun: Codable, Equatable, Sendable {
-    public let result: MTPROPaperSessionResult
-    public let events: [MTPROPaperEvent]
+public struct PaperSessionRun: Codable, Equatable, Sendable {
+    public let result: PaperSessionResult
+    public let events: [PaperEvent]
 
-    public init(result: MTPROPaperSessionResult, events: [MTPROPaperEvent]) {
+    public init(result: PaperSessionResult, events: [PaperEvent]) {
         self.result = result
         self.events = events
     }
 }
 
-public struct MTPROOrderBookImbalanceResearchRun: Codable, Equatable, Sendable {
-    public let result: MTPROOrderBookImbalanceResearchResult
-    public let events: [MTPROOrderBookImbalanceResearchEvent]
+public struct OrderBookImbalanceResearchRun: Codable, Equatable, Sendable {
+    public let result: OrderBookImbalanceResearchResult
+    public let events: [OrderBookImbalanceResearchEvent]
 
     public init(
-        result: MTPROOrderBookImbalanceResearchResult,
-        events: [MTPROOrderBookImbalanceResearchEvent]
+        result: OrderBookImbalanceResearchResult,
+        events: [OrderBookImbalanceResearchEvent]
     ) {
         self.result = result
         self.events = events
@@ -1103,105 +1103,105 @@ public struct MTPROOrderBookImbalanceResearchRun: Codable, Equatable, Sendable {
 }
 
 /// 回测事件流只基于本地 market bars 生成策略信号和完成事件。
-public struct MTPROBacktestEventFlow: Equatable, Sendable {
+public struct BacktestEventFlow: Equatable, Sendable {
     public init() {}
 
     public func run(
         _ command: BacktestCommand,
-        bars: [MTPROMarketBar],
+        bars: [MarketBar],
         completedAt: Date = Date()
-    ) throws -> MTPROBacktestRun {
-        try MTPROStrategyMarketDataValidation.validate(
+    ) throws -> BacktestRun {
+        try StrategyMarketDataValidation.validate(
             strategy: command.strategy,
             marketData: command.marketData
         )
-        let signalSamples = try MTPROEMACrossStrategyContract(
+        let signalSamples = try EMACrossStrategyContract(
             configuration: command.strategy
         ).evaluate(bars)
-        let result = MTPROBacktestResult(
+        let result = BacktestResult(
             runID: command.runID,
             command: command,
             signalSamples: signalSamples,
             completedAt: completedAt
         )
         let events = [.requested(command)]
-            + signalSamples.map(MTPROBacktestEvent.signalGenerated)
+            + signalSamples.map(BacktestEvent.signalGenerated)
             + [.completed(result)]
 
-        return MTPROBacktestRun(result: result, events: events)
+        return BacktestRun(result: result, events: events)
     }
 }
 
 /// Paper 会话事件流复用 EMA 契约，只模拟本地信号，不提交真实订单。
-public struct MTPROPaperSessionEventFlow: Equatable, Sendable {
+public struct PaperSessionEventFlow: Equatable, Sendable {
     public init() {}
 
     public func start(
         _ command: PaperSessionCommand,
-        bars: [MTPROMarketBar],
+        bars: [MarketBar],
         completedAt: Date = Date()
-    ) throws -> MTPROPaperSessionRun {
-        try MTPROStrategyMarketDataValidation.validate(
+    ) throws -> PaperSessionRun {
+        try StrategyMarketDataValidation.validate(
             strategy: command.strategy,
             marketData: command.marketData
         )
-        let signalSamples = try MTPROEMACrossStrategyContract(
+        let signalSamples = try EMACrossStrategyContract(
             configuration: command.strategy
         ).evaluate(bars)
-        let result = MTPROPaperSessionResult(
+        let result = PaperSessionResult(
             sessionID: command.sessionID,
             command: command,
             signalSamples: signalSamples,
             completedAt: completedAt
         )
         let events = [.sessionRequested(command)]
-            + signalSamples.map(MTPROPaperEvent.signalGenerated)
+            + signalSamples.map(PaperEvent.signalGenerated)
             + [.sessionCompleted(result)]
 
-        return MTPROPaperSessionRun(result: result, events: events)
+        return PaperSessionRun(result: result, events: events)
     }
 }
 
 /// 订单簿失衡研究链路只生成本地研究事件，不创建订单或 broker action。
-public struct MTPROOrderBookImbalanceResearchEventFlow: Equatable, Sendable {
+public struct OrderBookImbalanceResearchEventFlow: Equatable, Sendable {
     public init() {}
 
     public func run(
-        _ command: MTPROOrderBookImbalanceResearchCommand,
-        inputs: [MTPROOrderBookReadModelInput],
+        _ command: OrderBookImbalanceResearchCommand,
+        inputs: [OrderBookReadModelInput],
         completedAt: Date = Date()
-    ) throws -> MTPROOrderBookImbalanceResearchRun {
-        try MTPROStrategyMarketDataValidation.validate(
+    ) throws -> OrderBookImbalanceResearchRun {
+        try StrategyMarketDataValidation.validate(
             strategy: command.strategy,
             marketData: command.marketData
         )
-        let signalSamples = try MTPROOrderBookImbalanceStrategyContract(
+        let signalSamples = try OrderBookImbalanceStrategyContract(
             configuration: command.strategy
         ).evaluate(inputs)
-        let result = MTPROOrderBookImbalanceResearchResult(
+        let result = OrderBookImbalanceResearchResult(
             researchID: command.researchID,
             command: command,
             signalSamples: signalSamples,
             completedAt: completedAt
         )
         let events = [.requested(command)]
-            + signalSamples.map(MTPROOrderBookImbalanceResearchEvent.signalGenerated)
+            + signalSamples.map(OrderBookImbalanceResearchEvent.signalGenerated)
             + [.completed(result)]
 
-        return MTPROOrderBookImbalanceResearchRun(result: result, events: events)
+        return OrderBookImbalanceResearchRun(result: result, events: events)
     }
 }
 
-public struct MTPROBacktestPaperParityResult: Codable, Equatable, Sendable {
-    public let backtestRunID: MTPROIdentifier
-    public let paperSessionID: MTPROIdentifier
+public struct BacktestPaperParityResult: Codable, Equatable, Sendable {
+    public let backtestRunID: Identifier
+    public let paperSessionID: Identifier
     public let sameStrategy: Bool
     public let sameMarketData: Bool
     public let matchingSignalTimeline: Bool
 
     public init(
-        backtestRunID: MTPROIdentifier,
-        paperSessionID: MTPROIdentifier,
+        backtestRunID: Identifier,
+        paperSessionID: Identifier,
         sameStrategy: Bool,
         sameMarketData: Bool,
         matchingSignalTimeline: Bool
@@ -1218,12 +1218,12 @@ public struct MTPROBacktestPaperParityResult: Codable, Equatable, Sendable {
     }
 }
 
-public enum MTPROBacktestPaperParity {
+public enum BacktestPaperParity {
     public static func verify(
-        backtest: MTPROBacktestResult,
-        paper: MTPROPaperSessionResult
-    ) -> MTPROBacktestPaperParityResult {
-        MTPROBacktestPaperParityResult(
+        backtest: BacktestResult,
+        paper: PaperSessionResult
+    ) -> BacktestPaperParityResult {
+        BacktestPaperParityResult(
             backtestRunID: backtest.runID,
             paperSessionID: paper.sessionID,
             sameStrategy: backtest.command.strategy == paper.command.strategy,
@@ -1233,20 +1233,20 @@ public enum MTPROBacktestPaperParity {
     }
 }
 
-private enum MTPROStrategyMarketDataValidation {
+private enum StrategyMarketDataValidation {
     static func validate(
-        strategy: MTPROEMACrossStrategyConfiguration,
+        strategy: EMACrossStrategyConfiguration,
         marketData: MarketDataQuery
     ) throws {
         guard strategy.symbol == marketData.symbol else {
-            throw MTPROCoreError.marketDataMismatch(
+            throw CoreError.marketDataMismatch(
                 field: "marketData.symbol",
                 expected: strategy.symbol.rawValue,
                 actual: marketData.symbol.rawValue
             )
         }
         guard strategy.timeframe == marketData.timeframe else {
-            throw MTPROCoreError.marketDataMismatch(
+            throw CoreError.marketDataMismatch(
                 field: "marketData.timeframe",
                 expected: strategy.timeframe.rawValue,
                 actual: marketData.timeframe.rawValue
@@ -1255,18 +1255,18 @@ private enum MTPROStrategyMarketDataValidation {
     }
 
     static func validate(
-        strategy: MTPROOrderBookImbalanceStrategyConfiguration,
+        strategy: OrderBookImbalanceStrategyConfiguration,
         marketData: MarketDataQuery
     ) throws {
         guard strategy.symbol == marketData.symbol else {
-            throw MTPROCoreError.marketDataMismatch(
+            throw CoreError.marketDataMismatch(
                 field: "marketData.symbol",
                 expected: strategy.symbol.rawValue,
                 actual: marketData.symbol.rawValue
             )
         }
         guard strategy.timeframe == marketData.timeframe else {
-            throw MTPROCoreError.marketDataMismatch(
+            throw CoreError.marketDataMismatch(
                 field: "marketData.timeframe",
                 expected: strategy.timeframe.rawValue,
                 actual: marketData.timeframe.rawValue
@@ -1276,11 +1276,11 @@ private enum MTPROStrategyMarketDataValidation {
 }
 
 public struct RiskEvaluationQuery: Codable, Equatable, Sendable {
-    public let paperOrderID: MTPROIdentifier
-    public let symbol: MTPROSymbol
+    public let paperOrderID: Identifier
+    public let symbol: Symbol
     public let proposedQuantity: Double
 
-    public init(paperOrderID: MTPROIdentifier, symbol: MTPROSymbol, proposedQuantity: Double) {
+    public init(paperOrderID: Identifier, symbol: Symbol, proposedQuantity: Double) {
         self.paperOrderID = paperOrderID
         self.symbol = symbol
         self.proposedQuantity = proposedQuantity
@@ -1288,23 +1288,23 @@ public struct RiskEvaluationQuery: Codable, Equatable, Sendable {
 }
 
 public struct PortfolioQuery: Codable, Equatable, Sendable {
-    public let portfolioID: MTPROIdentifier
+    public let portfolioID: Identifier
     public let asOf: Date
 
-    public init(portfolioID: MTPROIdentifier, asOf: Date) {
+    public init(portfolioID: Identifier, asOf: Date) {
         self.portfolioID = portfolioID
         self.asOf = asOf
     }
 }
 
-public enum MTPROCommand: Codable, Equatable, Sendable {
+public enum Command: Codable, Equatable, Sendable {
     case runBacktest(BacktestCommand)
     case startPaperSession(PaperSessionCommand)
-    case runOrderBookImbalanceResearch(MTPROOrderBookImbalanceResearchCommand)
+    case runOrderBookImbalanceResearch(OrderBookImbalanceResearchCommand)
     case replayEvents(EventReplayCommand)
 }
 
-public enum MTPROQuery: Codable, Equatable, Sendable {
+public enum Query: Codable, Equatable, Sendable {
     case marketData(MarketDataQuery)
     case riskEvaluation(RiskEvaluationQuery)
     case portfolio(PortfolioQuery)
@@ -1337,7 +1337,7 @@ public struct EventEnvelope: Codable, Equatable, Sendable {
     public let recordedAt: Date
     public let correlationID: UUID?
     public let causationID: UUID?
-    public let event: MTPRODomainEvent
+    public let event: DomainEvent
 
     public init(
         id: UUID = UUID(),
@@ -1346,10 +1346,10 @@ public struct EventEnvelope: Codable, Equatable, Sendable {
         recordedAt: Date,
         correlationID: UUID? = nil,
         causationID: UUID? = nil,
-        event: MTPRODomainEvent
+        event: DomainEvent
     ) throws {
         guard sequence > 0 else {
-            throw MTPROCoreError.invalidEventSequence(sequence)
+            throw CoreError.invalidEventSequence(sequence)
         }
         self.id = id
         self.sequence = sequence
@@ -1368,7 +1368,7 @@ public struct EventEnvelope: Codable, Equatable, Sendable {
         let recordedAt = try container.decode(Date.self, forKey: .recordedAt)
         let correlationID = try container.decodeIfPresent(UUID.self, forKey: .correlationID)
         let causationID = try container.decodeIfPresent(UUID.self, forKey: .causationID)
-        let event = try container.decode(MTPRODomainEvent.self, forKey: .event)
+        let event = try container.decode(DomainEvent.self, forKey: .event)
         try self.init(
             id: id,
             sequence: sequence,
@@ -1408,13 +1408,13 @@ public struct EventSequenceRange: Codable, Equatable, Sendable {
 
     public init(lowerBound: Int? = nil, upperBound: Int? = nil) throws {
         if let lowerBound, lowerBound < 1 {
-            throw MTPROCoreError.invalidSequenceRange
+            throw CoreError.invalidSequenceRange
         }
         if let upperBound, upperBound < 1 {
-            throw MTPROCoreError.invalidSequenceRange
+            throw CoreError.invalidSequenceRange
         }
         if let lowerBound, let upperBound, lowerBound > upperBound {
-            throw MTPROCoreError.invalidSequenceRange
+            throw CoreError.invalidSequenceRange
         }
         self.lowerBound = lowerBound
         self.upperBound = upperBound
@@ -1476,14 +1476,14 @@ public struct AppendOnlyEventLog: Equatable, Sendable {
         let sequences = envelopes.map(\.sequence)
         let expectedSequences = sequences.indices.map { $0 + 1 }
         guard sequences == expectedSequences else {
-            throw MTPROCoreError.invalidSequenceRange
+            throw CoreError.invalidSequenceRange
         }
         self.envelopes = envelopes
     }
 
     @discardableResult
     public mutating func append(
-        _ event: MTPRODomainEvent,
+        _ event: DomainEvent,
         stream: EventStreamID,
         recordedAt: Date = Date(),
         correlationID: UUID? = nil,
@@ -1511,7 +1511,7 @@ public struct AppendOnlyEventLog: Equatable, Sendable {
 }
 
 /// MessageBus 只负责把领域事件写入只追加事件流并按命令重放。
-public struct MTPROMessageBus: Equatable, Sendable {
+public struct MessageBus: Equatable, Sendable {
     private var eventLog: AppendOnlyEventLog
 
     public init(envelopes: [EventEnvelope] = []) throws {
@@ -1524,7 +1524,7 @@ public struct MTPROMessageBus: Equatable, Sendable {
 
     @discardableResult
     public mutating func publish(
-        _ event: MTPRODomainEvent,
+        _ event: DomainEvent,
         stream: EventStreamID,
         recordedAt: Date = Date(),
         correlationID: UUID? = nil,
@@ -1545,30 +1545,30 @@ public struct MTPROMessageBus: Equatable, Sendable {
 }
 
 /// Cache series key 使用 symbol + timeframe 区分 kline 序列。
-public struct MTPROMarketDataSeriesKey: Equatable, Hashable, Sendable {
-    public let symbol: MTPROSymbol
-    public let timeframe: MTPROTimeframe
+public struct MarketDataSeriesKey: Equatable, Hashable, Sendable {
+    public let symbol: Symbol
+    public let timeframe: Timeframe
 
-    public init(symbol: MTPROSymbol, timeframe: MTPROTimeframe) {
+    public init(symbol: Symbol, timeframe: Timeframe) {
         self.symbol = symbol
         self.timeframe = timeframe
     }
 }
 
 /// Market data cache snapshot 是 read-only market event 的确定性投影结果。
-public struct MTPROMarketDataCacheSnapshot: Equatable, Sendable {
-    public let barsBySeries: [MTPROMarketDataSeriesKey: [MTPROMarketBar]]
-    public let tradesBySymbol: [MTPROSymbol: [MTPROTradeTick]]
-    public let bestBidAskBySymbol: [MTPROSymbol: MTPROBestBidAsk]
-    public let orderBookSnapshotsBySymbol: [MTPROSymbol: MTPROOrderBookSnapshot]
-    public let orderBookDeltasBySymbol: [MTPROSymbol: [MTPROOrderBookDelta]]
+public struct MarketDataCacheSnapshot: Equatable, Sendable {
+    public let barsBySeries: [MarketDataSeriesKey: [MarketBar]]
+    public let tradesBySymbol: [Symbol: [TradeTick]]
+    public let bestBidAskBySymbol: [Symbol: BestBidAsk]
+    public let orderBookSnapshotsBySymbol: [Symbol: OrderBookSnapshot]
+    public let orderBookDeltasBySymbol: [Symbol: [OrderBookDelta]]
 
     public init(
-        barsBySeries: [MTPROMarketDataSeriesKey: [MTPROMarketBar]] = [:],
-        tradesBySymbol: [MTPROSymbol: [MTPROTradeTick]] = [:],
-        bestBidAskBySymbol: [MTPROSymbol: MTPROBestBidAsk] = [:],
-        orderBookSnapshotsBySymbol: [MTPROSymbol: MTPROOrderBookSnapshot] = [:],
-        orderBookDeltasBySymbol: [MTPROSymbol: [MTPROOrderBookDelta]] = [:]
+        barsBySeries: [MarketDataSeriesKey: [MarketBar]] = [:],
+        tradesBySymbol: [Symbol: [TradeTick]] = [:],
+        bestBidAskBySymbol: [Symbol: BestBidAsk] = [:],
+        orderBookSnapshotsBySymbol: [Symbol: OrderBookSnapshot] = [:],
+        orderBookDeltasBySymbol: [Symbol: [OrderBookDelta]] = [:]
     ) {
         self.barsBySeries = barsBySeries
         self.tradesBySymbol = tradesBySymbol
@@ -1585,7 +1585,7 @@ public struct MTPROMarketDataCacheSnapshot: Equatable, Sendable {
             + orderBookDeltasBySymbol.values.reduce(0) { $0 + $1.count }
     }
 
-    public func applying(_ event: MTPROMarketEvent) -> MTPROMarketDataCacheSnapshot {
+    public func applying(_ event: MarketEvent) -> MarketDataCacheSnapshot {
         var barsBySeries = barsBySeries
         var tradesBySymbol = tradesBySymbol
         var bestBidAskBySymbol = bestBidAskBySymbol
@@ -1594,7 +1594,7 @@ public struct MTPROMarketDataCacheSnapshot: Equatable, Sendable {
 
         switch event {
         case let .bar(bar):
-            let key = MTPROMarketDataSeriesKey(symbol: bar.symbol, timeframe: bar.timeframe)
+            let key = MarketDataSeriesKey(symbol: bar.symbol, timeframe: bar.timeframe)
             barsBySeries[key, default: []].append(bar)
         case let .trade(trade):
             tradesBySymbol[trade.symbol, default: []].append(trade)
@@ -1606,7 +1606,7 @@ public struct MTPROMarketDataCacheSnapshot: Equatable, Sendable {
             orderBookDeltasBySymbol[delta.symbol, default: []].append(delta)
         }
 
-        return MTPROMarketDataCacheSnapshot(
+        return MarketDataCacheSnapshot(
             barsBySeries: barsBySeries,
             tradesBySymbol: tradesBySymbol,
             bestBidAskBySymbol: bestBidAskBySymbol,
@@ -1616,28 +1616,28 @@ public struct MTPROMarketDataCacheSnapshot: Equatable, Sendable {
     }
 }
 
-/// Cache 只接收 MTPROCore market event，不读取网络或数据库。
-public struct MTPROMarketDataCache: Equatable, Sendable {
-    public private(set) var snapshot: MTPROMarketDataCacheSnapshot
+/// Cache 只接收 Core market event，不读取网络或数据库。
+public struct MarketDataCache: Equatable, Sendable {
+    public private(set) var snapshot: MarketDataCacheSnapshot
 
-    public init(snapshot: MTPROMarketDataCacheSnapshot = MTPROMarketDataCacheSnapshot()) {
+    public init(snapshot: MarketDataCacheSnapshot = MarketDataCacheSnapshot()) {
         self.snapshot = snapshot
     }
 
     @discardableResult
-    public mutating func ingest(_ event: MTPROMarketEvent) -> MTPROMarketDataCacheSnapshot {
+    public mutating func ingest(_ event: MarketEvent) -> MarketDataCacheSnapshot {
         snapshot = snapshot.applying(event)
         return snapshot
     }
 
     @discardableResult
-    public mutating func rebuild(from envelopes: [EventEnvelope]) -> MTPROMarketDataCacheSnapshot {
+    public mutating func rebuild(from envelopes: [EventEnvelope]) -> MarketDataCacheSnapshot {
         snapshot = Self.project(envelopes)
         return snapshot
     }
 
-    public static func project(_ envelopes: [EventEnvelope]) -> MTPROMarketDataCacheSnapshot {
-        envelopes.reduce(MTPROMarketDataCacheSnapshot()) { snapshot, envelope in
+    public static func project(_ envelopes: [EventEnvelope]) -> MarketDataCacheSnapshot {
+        envelopes.reduce(MarketDataCacheSnapshot()) { snapshot, envelope in
             guard case let .market(event) = envelope.event else {
                 return snapshot
             }
@@ -1647,14 +1647,14 @@ public struct MTPROMarketDataCache: Equatable, Sendable {
 }
 
 /// DataEngine 把只读行情事件同时写入 cache 和 MessageBus。
-public struct MTPRODataEngine: Equatable, Sendable {
+public struct DataEngine: Equatable, Sendable {
     public init() {}
 
     @discardableResult
     public func ingest(
-        _ event: MTPROMarketEvent,
-        cache: inout MTPROMarketDataCache,
-        messageBus: inout MTPROMessageBus,
+        _ event: MarketEvent,
+        cache: inout MarketDataCache,
+        messageBus: inout MessageBus,
         recordedAt: Date = Date(),
         correlationID: UUID? = nil,
         causationID: UUID? = nil
@@ -1672,15 +1672,15 @@ public struct MTPRODataEngine: Equatable, Sendable {
 }
 
 /// TradingKernel actor 是当前 issue 的最小运行时边界，不包含策略、数据库或 Live 执行。
-public actor MTPROTradingKernel {
-    private var messageBus: MTPROMessageBus
-    private var cache: MTPROMarketDataCache
-    private let dataEngine: MTPRODataEngine
+public actor TradingKernel {
+    private var messageBus: MessageBus
+    private var cache: MarketDataCache
+    private let dataEngine: DataEngine
 
     public init(
-        messageBus: MTPROMessageBus,
-        cache: MTPROMarketDataCache = MTPROMarketDataCache(),
-        dataEngine: MTPRODataEngine = MTPRODataEngine()
+        messageBus: MessageBus,
+        cache: MarketDataCache = MarketDataCache(),
+        dataEngine: DataEngine = DataEngine()
     ) {
         self.messageBus = messageBus
         self.cache = cache
@@ -1688,14 +1688,14 @@ public actor MTPROTradingKernel {
     }
 
     public init() throws {
-        self.messageBus = try MTPROMessageBus()
-        self.cache = MTPROMarketDataCache()
-        self.dataEngine = MTPRODataEngine()
+        self.messageBus = try MessageBus()
+        self.cache = MarketDataCache()
+        self.dataEngine = DataEngine()
     }
 
     @discardableResult
     public func ingestMarketEvent(
-        _ event: MTPROMarketEvent,
+        _ event: MarketEvent,
         recordedAt: Date = Date(),
         correlationID: UUID? = nil,
         causationID: UUID? = nil
@@ -1718,18 +1718,18 @@ public actor MTPROTradingKernel {
         messageBus.envelopes
     }
 
-    public func cacheSnapshot() -> MTPROMarketDataCacheSnapshot {
+    public func cacheSnapshot() -> MarketDataCacheSnapshot {
         cache.snapshot
     }
 
     @discardableResult
-    public func rebuildCache(from command: EventReplayCommand) -> MTPROMarketDataCacheSnapshot {
+    public func rebuildCache(from command: EventReplayCommand) -> MarketDataCacheSnapshot {
         let replay = messageBus.replay(command)
         return cache.rebuild(from: replay.envelopes)
     }
 }
 
-public struct MTPROCoreBaseline: Equatable, Sendable {
+public struct CoreBaseline: Equatable, Sendable {
     public let projectName: String
     public let coreMode: String
     public let executionMode: String
@@ -1740,8 +1740,8 @@ public struct MTPROCoreBaseline: Equatable, Sendable {
         projectName: String = "MTPRO",
         coreMode: String = "Swift-only actor core",
         executionMode: String = "paper-only",
-        primaryUniverse: [String] = MTPROSymbol.supportedRawValues,
-        timeframes: [String] = MTPROTimeframe.supportedRawValues
+        primaryUniverse: [String] = Symbol.supportedRawValues,
+        timeframes: [String] = Timeframe.supportedRawValues
     ) {
         self.projectName = projectName
         self.coreMode = coreMode

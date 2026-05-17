@@ -35,21 +35,21 @@ ViewModel 只能来自稳定 read model projection。
 
 执行者：Codex
 
-`MTPROApp` 在本事项中建立 Trader Workstation Dashboard 的 ViewModel contract，覆盖：
+`App` 在本事项中建立 Trader Workstation Dashboard 的 ViewModel contract，覆盖：
 
-- `MTPROMarketViewModel`
-- `MTPROStrategyViewModel`
-- `MTPROBacktestViewModel`
-- `MTPROPaperViewModel`
-- `MTPRORiskViewModel`
-- `MTPROPortfolioViewModel`
-- `MTPROEventLogViewModel`
-- `MTPRODashboardViewModel`
+- `MarketViewModel`
+- `StrategyViewModel`
+- `BacktestViewModel`
+- `PaperViewModel`
+- `RiskViewModel`
+- `PortfolioViewModel`
+- `EventLogViewModel`
+- `DashboardViewModel`
 
 输入契约：
 
-- Market / Strategy / Backtest 来自 `MTPRODuckDBAnalyticalProjectionSnapshot` 派生的稳定 read model。
-- Paper / Risk / Portfolio 来自 `MTPROSQLiteRuntimeProjectionSnapshot` 派生的稳定 read model。
+- Market / Strategy / Backtest 来自 `DuckDBAnalyticalProjectionSnapshot` 派生的稳定 read model。
+- Paper / Risk / Portfolio 来自 `SQLiteRuntimeProjectionSnapshot` 派生的稳定 read model。
 - Events 来自 append-only `EventEnvelope` timeline 派生的稳定事件观察面。
 
 边界确认：

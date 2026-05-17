@@ -1,9 +1,9 @@
-import MTPROCore
+import Core
 import XCTest
 
-final class MTPROCoreTests: XCTestCase {
+final class CoreTests: XCTestCase {
     func testBaselineCapturesSelectedUniverseAndTimeframes() {
-        let baseline = MTPROCoreBaseline()
+        let baseline = CoreBaseline()
 
         XCTAssertEqual(baseline.projectName, "MTPRO")
         XCTAssertEqual(baseline.executionMode, "paper-only")
@@ -12,34 +12,34 @@ final class MTPROCoreTests: XCTestCase {
     }
 
     func testSymbolAndTimeframeContractsAcceptOnlyConfiguredUniverse() throws {
-        let symbol = try MTPROSymbol(rawValue: "btcusdt")
-        let oneMinute = try MTPROTimeframe(contractValue: "1m")
-        let fiveMinutes = try MTPROTimeframe(contractValue: "5m")
+        let symbol = try Symbol(rawValue: "btcusdt")
+        let oneMinute = try Timeframe(contractValue: "1m")
+        let fiveMinutes = try Timeframe(contractValue: "5m")
 
         XCTAssertEqual(symbol.rawValue, "BTCUSDT")
         XCTAssertEqual(oneMinute, .oneMinute)
         XCTAssertEqual(fiveMinutes, .fiveMinutes)
 
-        XCTAssertThrowsError(try MTPROSymbol(rawValue: "DOGEUSDT")) { error in
-            XCTAssertEqual(error as? MTPROCoreError, .unsupportedSymbol("DOGEUSDT"))
+        XCTAssertThrowsError(try Symbol(rawValue: "DOGEUSDT")) { error in
+            XCTAssertEqual(error as? CoreError, .unsupportedSymbol("DOGEUSDT"))
         }
-        XCTAssertThrowsError(try MTPROTimeframe(contractValue: "1h")) { error in
-            XCTAssertEqual(error as? MTPROCoreError, .unsupportedTimeframe("1h"))
+        XCTAssertThrowsError(try Timeframe(contractValue: "1h")) { error in
+            XCTAssertEqual(error as? CoreError, .unsupportedTimeframe("1h"))
         }
     }
 
     func testPriceAndQuantityContractsRejectInvalidNumericValues() throws {
-        let price = try MTPROPrice(100)
-        let quantity = try MTPROQuantity(0)
+        let price = try Price(100)
+        let quantity = try Quantity(0)
 
         XCTAssertEqual(price.rawValue, 100)
         XCTAssertEqual(quantity.rawValue, 0)
 
-        XCTAssertThrowsError(try MTPROPrice(-1, field: "bid")) { error in
-            XCTAssertEqual(error as? MTPROCoreError, .invalidPrice("bid", -1))
+        XCTAssertThrowsError(try Price(-1, field: "bid")) { error in
+            XCTAssertEqual(error as? CoreError, .invalidPrice("bid", -1))
         }
-        XCTAssertThrowsError(try MTPROQuantity(-0.01, field: "volume")) { error in
-            XCTAssertEqual(error as? MTPROCoreError, .invalidQuantity("volume", -0.01))
+        XCTAssertThrowsError(try Quantity(-0.01, field: "volume")) { error in
+            XCTAssertEqual(error as? CoreError, .invalidQuantity("volume", -0.01))
         }
     }
 
@@ -47,7 +47,7 @@ final class MTPROCoreTests: XCTestCase {
         let start = Date(timeIntervalSince1970: 100)
         let end = Date(timeIntervalSince1970: 160)
 
-        let validDateRange = try MTPRODateRange(start: start, end: end)
+        let validDateRange = try DateRange(start: start, end: end)
         let validSequenceRange = try EventSequenceRange(lowerBound: 1, upperBound: 3)
 
         XCTAssertEqual(validDateRange.start, start)
@@ -55,20 +55,20 @@ final class MTPROCoreTests: XCTestCase {
         XCTAssertTrue(validSequenceRange.contains(2))
         XCTAssertFalse(validSequenceRange.contains(4))
 
-        XCTAssertThrowsError(try MTPRODateRange(start: end, end: start)) { error in
-            XCTAssertEqual(error as? MTPROCoreError, .invalidDateRange)
+        XCTAssertThrowsError(try DateRange(start: end, end: start)) { error in
+            XCTAssertEqual(error as? CoreError, .invalidDateRange)
         }
         XCTAssertThrowsError(try EventSequenceRange(lowerBound: 0, upperBound: 1)) { error in
-            XCTAssertEqual(error as? MTPROCoreError, .invalidSequenceRange)
+            XCTAssertEqual(error as? CoreError, .invalidSequenceRange)
         }
         XCTAssertThrowsError(try EventSequenceRange(lowerBound: 4, upperBound: 3)) { error in
-            XCTAssertEqual(error as? MTPROCoreError, .invalidSequenceRange)
+            XCTAssertEqual(error as? CoreError, .invalidSequenceRange)
         }
     }
 
     func testEventEnvelopeWrapsMarketEventsAndRoundTripsThroughCodable() throws {
         let bar = try makeMarketBar()
-        let event = MTPRODomainEvent.market(.bar(bar))
+        let event = DomainEvent.market(.bar(bar))
         let envelope = try EventEnvelope(
             id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
             sequence: 1,
@@ -90,10 +90,10 @@ final class MTPROCoreTests: XCTestCase {
         let decoder = JSONDecoder()
 
         XCTAssertThrowsError(
-            try decoder.decode(MTPROSymbol.self, from: Data(#""DOGEUSDT""#.utf8))
+            try decoder.decode(Symbol.self, from: Data(#""DOGEUSDT""#.utf8))
         )
         XCTAssertThrowsError(
-            try decoder.decode(MTPRODateRange.self, from: Data(#"{"start":160,"end":100}"#.utf8))
+            try decoder.decode(DateRange.self, from: Data(#"{"start":160,"end":100}"#.utf8))
         )
         XCTAssertThrowsError(
             try decoder.decode(EventSequenceRange.self, from: Data(#"{"lowerBound":0,"upperBound":1}"#.utf8))
@@ -127,14 +127,14 @@ final class MTPROCoreTests: XCTestCase {
     }
 
     func testAppendOnlyEventLogAssignsMonotonicSequencesAndReplaysRanges() throws {
-        let marketEvent = MTPRODomainEvent.market(.bar(try makeMarketBar()))
-        let backtestEvent = MTPRODomainEvent.backtest(
+        let marketEvent = DomainEvent.market(.bar(try makeMarketBar()))
+        let backtestEvent = DomainEvent.backtest(
             .requested(try makeBacktestCommand())
         )
-        let portfolioEvent = MTPRODomainEvent.portfolio(
+        let portfolioEvent = DomainEvent.portfolio(
             .projectionRequested(
                 PortfolioQuery(
-                    portfolioID: try MTPROIdentifier("portfolio-main"),
+                    portfolioID: try Identifier("portfolio-main"),
                     asOf: Date(timeIntervalSince1970: 180)
                 )
             )
@@ -163,35 +163,35 @@ final class MTPROCoreTests: XCTestCase {
     func testCommandAndQueryContractsRejectLiveExecutionMode() throws {
         let marketDataQuery = try makeEMAMarketDataQuery()
         let backtestCommand = BacktestCommand(
-            runID: try MTPROIdentifier("backtest-ema-fixture"),
+            runID: try Identifier("backtest-ema-fixture"),
             strategy: try makeEMAStrategy(),
             marketData: marketDataQuery
         )
         let paperCommand = try PaperSessionCommand(
-            sessionID: try MTPROIdentifier("paper-ema-fixture"),
+            sessionID: try Identifier("paper-ema-fixture"),
             strategy: try makeEMAStrategy(),
             marketData: marketDataQuery,
-            riskProfileID: try MTPROIdentifier("paper-risk"),
-            executionMode: try MTPROExecutionMode(contractValue: "paper")
+            riskProfileID: try Identifier("paper-risk"),
+            executionMode: try ExecutionMode(contractValue: "paper")
         )
 
-        XCTAssertEqual(MTPROCommand.runBacktest(backtestCommand), .runBacktest(backtestCommand))
-        XCTAssertEqual(MTPROCommand.startPaperSession(paperCommand), .startPaperSession(paperCommand))
-        XCTAssertEqual(MTPROQuery.marketData(marketDataQuery), .marketData(marketDataQuery))
+        XCTAssertEqual(Command.runBacktest(backtestCommand), .runBacktest(backtestCommand))
+        XCTAssertEqual(Command.startPaperSession(paperCommand), .startPaperSession(paperCommand))
+        XCTAssertEqual(Query.marketData(marketDataQuery), .marketData(marketDataQuery))
 
-        XCTAssertThrowsError(try MTPROExecutionMode(contractValue: "live")) { error in
-            XCTAssertEqual(error as? MTPROCoreError, .liveExecutionForbidden("live"))
+        XCTAssertThrowsError(try ExecutionMode(contractValue: "live")) { error in
+            XCTAssertEqual(error as? CoreError, .liveExecutionForbidden("live"))
         }
         XCTAssertThrowsError(
             try PaperSessionCommand(
-                sessionID: try MTPROIdentifier("paper-ema-fixture"),
+                sessionID: try Identifier("paper-ema-fixture"),
                 strategy: try makeEMAStrategy(),
                 marketData: marketDataQuery,
-                riskProfileID: try MTPROIdentifier("paper-risk"),
+                riskProfileID: try Identifier("paper-risk"),
                 executionMode: .backtest
             )
         ) { error in
-            XCTAssertEqual(error as? MTPROCoreError, .paperSessionRequiresPaperMode)
+            XCTAssertEqual(error as? CoreError, .paperSessionRequiresPaperMode)
         }
     }
 
@@ -210,17 +210,17 @@ final class MTPROCoreTests: XCTestCase {
         )
 
         XCTAssertThrowsError(try AppendOnlyEventLog(envelopes: [first, third])) { error in
-            XCTAssertEqual(error as? MTPROCoreError, .invalidSequenceRange)
+            XCTAssertEqual(error as? CoreError, .invalidSequenceRange)
         }
     }
 
     func testMessageBusPublishesMonotonicSequencesAndReplaysSelectedStreams() throws {
-        var messageBus = try MTPROMessageBus()
-        let marketEvent = MTPRODomainEvent.market(.bar(try makeMarketBar()))
-        let signalEvent = MTPRODomainEvent.strategySignal(
-            MTPROStrategySignalEvent(
-                strategyID: try MTPROIdentifier("ema-cross"),
-                symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+        var messageBus = try MessageBus()
+        let marketEvent = DomainEvent.market(.bar(try makeMarketBar()))
+        let signalEvent = DomainEvent.strategySignal(
+            StrategySignalEvent(
+                strategyID: try Identifier("ema-cross"),
+                symbol: try Symbol(rawValue: "BTCUSDT"),
                 timeframe: .oneMinute,
                 direction: .long,
                 generatedAt: Date(timeIntervalSince1970: 220)
@@ -254,9 +254,9 @@ final class MTPROCoreTests: XCTestCase {
     }
 
     func testDataEngineMovesReadOnlyMarketEventsIntoCacheAndEventStream() throws {
-        var messageBus = try MTPROMessageBus()
-        var cache = MTPROMarketDataCache()
-        let dataEngine = MTPRODataEngine()
+        var messageBus = try MessageBus()
+        var cache = MarketDataCache()
+        let dataEngine = DataEngine()
         let bar = try makeMarketBar()
 
         let envelope = try dataEngine.ingest(
@@ -266,7 +266,7 @@ final class MTPROCoreTests: XCTestCase {
             recordedAt: Date(timeIntervalSince1970: 230)
         )
 
-        let key = MTPROMarketDataSeriesKey(symbol: bar.symbol, timeframe: bar.timeframe)
+        let key = MarketDataSeriesKey(symbol: bar.symbol, timeframe: bar.timeframe)
         XCTAssertEqual(envelope.sequence, 1)
         XCTAssertEqual(envelope.stream, .market)
         XCTAssertEqual(envelope.event, .market(.bar(bar)))
@@ -276,9 +276,9 @@ final class MTPROCoreTests: XCTestCase {
     }
 
     func testCacheProjectionIsDeterministicFromMessageBusReplay() throws {
-        var messageBus = try MTPROMessageBus()
-        var cache = MTPROMarketDataCache()
-        let dataEngine = MTPRODataEngine()
+        var messageBus = try MessageBus()
+        var cache = MarketDataCache()
+        let dataEngine = DataEngine()
         let bar = try makeMarketBar(close: 105, start: 300)
         let trade = try makeTradeTick()
         let bestBidAsk = try makeBestBidAsk()
@@ -293,7 +293,7 @@ final class MTPROCoreTests: XCTestCase {
                 streams: [.market]
             )
         )
-        let projectedSnapshot = MTPROMarketDataCache.project(replay.envelopes)
+        let projectedSnapshot = MarketDataCache.project(replay.envelopes)
 
         XCTAssertEqual(projectedSnapshot, cache.snapshot)
         XCTAssertEqual(projectedSnapshot.marketEventCount, 3)
@@ -302,8 +302,8 @@ final class MTPROCoreTests: XCTestCase {
     }
 
     func testTradingKernelActorSerializesConcurrentMarketIngestion() async throws {
-        let kernel = try MTPROTradingKernel()
-        let marketEvents: [MTPROMarketEvent] = [
+        let kernel = try TradingKernel()
+        let marketEvents: [MarketEvent] = [
             .bar(try makeMarketBar(close: 101, start: 400)),
             .bar(try makeMarketBar(close: 102, start: 460)),
             .trade(try makeTradeTick(price: 42010.50, quantity: 0.125, tradedAt: 470))
@@ -329,8 +329,8 @@ final class MTPROCoreTests: XCTestCase {
         let sequences = envelopes.map(\.sequence).sorted()
         let eventStream = await kernel.eventStream()
         let snapshot = await kernel.cacheSnapshot()
-        let symbol = try MTPROSymbol(rawValue: "BTCUSDT")
-        let key = MTPROMarketDataSeriesKey(
+        let symbol = try Symbol(rawValue: "BTCUSDT")
+        let key = MarketDataSeriesKey(
             symbol: symbol,
             timeframe: .oneMinute
         )
@@ -343,7 +343,7 @@ final class MTPROCoreTests: XCTestCase {
     }
 
     func testTradingKernelCanRebuildCacheFromReplayCommand() async throws {
-        let kernel = try MTPROTradingKernel()
+        let kernel = try TradingKernel()
         let firstBar = try makeMarketBar(close: 101, start: 600)
         let secondBar = try makeMarketBar(close: 102, start: 660)
 
@@ -355,14 +355,14 @@ final class MTPROCoreTests: XCTestCase {
             streams: [.market]
         )
         let rebuiltSnapshot = await kernel.rebuildCache(from: replayCommand)
-        let key = MTPROMarketDataSeriesKey(symbol: firstBar.symbol, timeframe: firstBar.timeframe)
+        let key = MarketDataSeriesKey(symbol: firstBar.symbol, timeframe: firstBar.timeframe)
 
         XCTAssertEqual(rebuiltSnapshot.barsBySeries[key], [secondBar])
         XCTAssertEqual(rebuiltSnapshot.marketEventCount, 1)
     }
 
     func testEMACrossStrategyContractGeneratesDeterministicSignalFixture() throws {
-        let strategy = MTPROEMACrossStrategyContract(configuration: try makeEMAStrategy())
+        let strategy = EMACrossStrategyContract(configuration: try makeEMAStrategy())
         let samples = try strategy.evaluate(try makeEMAFixtureBars())
 
         XCTAssertEqual(samples.map(\.signal.direction), [.long, .long, .flat, .long])
@@ -376,30 +376,30 @@ final class MTPROCoreTests: XCTestCase {
 
     func testEMACrossStrategyRejectsInvalidConfigurationAndMismatchedMarketData() throws {
         XCTAssertThrowsError(
-            try MTPROEMACrossStrategyConfiguration(
-                strategyID: try MTPROIdentifier("ema-cross"),
-                symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+            try EMACrossStrategyConfiguration(
+                strategyID: try Identifier("ema-cross"),
+                symbol: try Symbol(rawValue: "BTCUSDT"),
                 timeframe: .oneMinute,
                 shortPeriod: 3,
                 longPeriod: 3
             )
         ) { error in
             XCTAssertEqual(
-                error as? MTPROCoreError,
+                error as? CoreError,
                 .invalidEMAPeriodOrder(shortPeriod: 3, longPeriod: 3)
             )
         }
 
-        let strategy = MTPROEMACrossStrategyContract(configuration: try makeEMAStrategy())
+        let strategy = EMACrossStrategyContract(configuration: try makeEMAStrategy())
 
         XCTAssertThrowsError(try strategy.evaluate(Array(try makeEMAFixtureBars().prefix(2)))) { error in
-            XCTAssertEqual(error as? MTPROCoreError, .insufficientMarketData(required: 3, actual: 2))
+            XCTAssertEqual(error as? CoreError, .insufficientMarketData(required: 3, actual: 2))
         }
 
-        let mismatchedBar = try MTPROMarketBar(
-            symbol: try MTPROSymbol(rawValue: "ETHUSDT"),
+        let mismatchedBar = try MarketBar(
+            symbol: try Symbol(rawValue: "ETHUSDT"),
             timeframe: .oneMinute,
-            interval: try MTPRODateRange(
+            interval: try DateRange(
                 start: Date(timeIntervalSince1970: 100),
                 end: Date(timeIntervalSince1970: 160)
             ),
@@ -412,24 +412,24 @@ final class MTPROCoreTests: XCTestCase {
 
         XCTAssertThrowsError(try strategy.evaluate([mismatchedBar, mismatchedBar, mismatchedBar])) { error in
             XCTAssertEqual(
-                error as? MTPROCoreError,
+                error as? CoreError,
                 .marketDataMismatch(field: "symbol", expected: "BTCUSDT", actual: "ETHUSDT")
             )
         }
 
         let mismatchedMarketData = MarketDataQuery(
-            symbol: try MTPROSymbol(rawValue: "ETHUSDT"),
+            symbol: try Symbol(rawValue: "ETHUSDT"),
             timeframe: .oneMinute,
-            range: try MTPRODateRange(
+            range: try DateRange(
                 start: Date(timeIntervalSince1970: 100),
                 end: Date(timeIntervalSince1970: 400)
             )
         )
 
         XCTAssertThrowsError(
-            try MTPROBacktestEventFlow().run(
+            try BacktestEventFlow().run(
                 BacktestCommand(
-                    runID: try MTPROIdentifier("backtest-ema-fixture"),
+                    runID: try Identifier("backtest-ema-fixture"),
                     strategy: try makeEMAStrategy(),
                     marketData: mismatchedMarketData
                 ),
@@ -437,7 +437,7 @@ final class MTPROCoreTests: XCTestCase {
             )
         ) { error in
             XCTAssertEqual(
-                error as? MTPROCoreError,
+                error as? CoreError,
                 .marketDataMismatch(field: "marketData.symbol", expected: "BTCUSDT", actual: "ETHUSDT")
             )
         }
@@ -448,29 +448,29 @@ final class MTPROCoreTests: XCTestCase {
         let strategy = try makeEMAStrategy()
         let bars = try makeEMAFixtureBars()
         let backtestCommand = BacktestCommand(
-            runID: try MTPROIdentifier("backtest-ema-fixture"),
+            runID: try Identifier("backtest-ema-fixture"),
             strategy: strategy,
             marketData: marketDataQuery
         )
         let paperCommand = try PaperSessionCommand(
-            sessionID: try MTPROIdentifier("paper-ema-fixture"),
+            sessionID: try Identifier("paper-ema-fixture"),
             strategy: strategy,
             marketData: marketDataQuery,
-            riskProfileID: try MTPROIdentifier("paper-risk"),
+            riskProfileID: try Identifier("paper-risk"),
             executionMode: .paper
         )
 
-        let backtestRun = try MTPROBacktestEventFlow().run(
+        let backtestRun = try BacktestEventFlow().run(
             backtestCommand,
             bars: bars,
             completedAt: Date(timeIntervalSince1970: 500)
         )
-        let paperRun = try MTPROPaperSessionEventFlow().start(
+        let paperRun = try PaperSessionEventFlow().start(
             paperCommand,
             bars: bars,
             completedAt: Date(timeIntervalSince1970: 501)
         )
-        let parity = MTPROBacktestPaperParity.verify(
+        let parity = BacktestPaperParity.verify(
             backtest: backtestRun.result,
             paper: paperRun.result
         )
@@ -486,25 +486,25 @@ final class MTPROCoreTests: XCTestCase {
     }
 
     func testBacktestAndPaperEventFlowsCanPublishThroughMessageBusStreams() throws {
-        var messageBus = try MTPROMessageBus()
+        var messageBus = try MessageBus()
         let bars = try makeEMAFixtureBars()
         let marketDataQuery = try makeEMAMarketDataQuery()
         let strategy = try makeEMAStrategy()
-        let backtestRun = try MTPROBacktestEventFlow().run(
+        let backtestRun = try BacktestEventFlow().run(
             BacktestCommand(
-                runID: try MTPROIdentifier("backtest-ema-fixture"),
+                runID: try Identifier("backtest-ema-fixture"),
                 strategy: strategy,
                 marketData: marketDataQuery
             ),
             bars: bars,
             completedAt: Date(timeIntervalSince1970: 500)
         )
-        let paperRun = try MTPROPaperSessionEventFlow().start(
+        let paperRun = try PaperSessionEventFlow().start(
             PaperSessionCommand(
-                sessionID: try MTPROIdentifier("paper-ema-fixture"),
+                sessionID: try Identifier("paper-ema-fixture"),
                 strategy: strategy,
                 marketData: marketDataQuery,
-                riskProfileID: try MTPROIdentifier("paper-risk"),
+                riskProfileID: try Identifier("paper-risk"),
                 executionMode: .paper
             ),
             bars: bars,
@@ -540,8 +540,8 @@ final class MTPROCoreTests: XCTestCase {
     }
 
     func testOrderBookReadModelAppliesSnapshotAndDeltasDeterministically() throws {
-        let symbol = try MTPROSymbol(rawValue: "BTCUSDT")
-        let snapshot = MTPROOrderBookSnapshot(
+        let symbol = try Symbol(rawValue: "BTCUSDT")
+        let snapshot = OrderBookSnapshot(
             symbol: symbol,
             observedAt: Date(timeIntervalSince1970: 1_000),
             bids: [
@@ -553,8 +553,8 @@ final class MTPROCoreTests: XCTestCase {
                 try makeOrderBookLevel(price: 102, quantity: 1)
             ]
         )
-        let input = MTPROOrderBookReadModelInput(snapshot: snapshot)
-        let delta = MTPROOrderBookDelta(
+        let input = OrderBookReadModelInput(snapshot: snapshot)
+        let delta = OrderBookDelta(
             symbol: symbol,
             observedAt: Date(timeIntervalSince1970: 1_010),
             bidUpdates: [
@@ -580,8 +580,8 @@ final class MTPROCoreTests: XCTestCase {
 
         XCTAssertThrowsError(
             try input.applying(
-                MTPROOrderBookDelta(
-                    symbol: try MTPROSymbol(rawValue: "ETHUSDT"),
+                OrderBookDelta(
+                    symbol: try Symbol(rawValue: "ETHUSDT"),
                     observedAt: Date(timeIntervalSince1970: 1_011),
                     bidUpdates: [],
                     askUpdates: []
@@ -589,14 +589,14 @@ final class MTPROCoreTests: XCTestCase {
             )
         ) { error in
             XCTAssertEqual(
-                error as? MTPROCoreError,
+                error as? CoreError,
                 .marketDataMismatch(field: "orderBookDelta.symbol", expected: "BTCUSDT", actual: "ETHUSDT")
             )
         }
     }
 
     func testOrderBookImbalanceStrategyGeneratesStableSignalFixture() throws {
-        let contract = MTPROOrderBookImbalanceStrategyContract(
+        let contract = OrderBookImbalanceStrategyContract(
             configuration: try makeOrderBookImbalanceStrategy()
         )
 
@@ -615,41 +615,41 @@ final class MTPROCoreTests: XCTestCase {
 
     func testOrderBookImbalanceRejectsInvalidConfigurationAndInputs() throws {
         XCTAssertThrowsError(
-            try MTPROOrderBookImbalanceStrategyConfiguration(
-                strategyID: try MTPROIdentifier("obi-fixture"),
-                symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+            try OrderBookImbalanceStrategyConfiguration(
+                strategyID: try Identifier("obi-fixture"),
+                symbol: try Symbol(rawValue: "BTCUSDT"),
                 timeframe: .oneMinute,
                 depth: 0,
                 signalThreshold: 0.15
             )
         ) { error in
-            XCTAssertEqual(error as? MTPROCoreError, .invalidOrderBookDepth("depth", 0))
+            XCTAssertEqual(error as? CoreError, .invalidOrderBookDepth("depth", 0))
         }
 
         XCTAssertThrowsError(
-            try MTPROOrderBookImbalanceStrategyConfiguration(
-                strategyID: try MTPROIdentifier("obi-fixture"),
-                symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+            try OrderBookImbalanceStrategyConfiguration(
+                strategyID: try Identifier("obi-fixture"),
+                symbol: try Symbol(rawValue: "BTCUSDT"),
                 timeframe: .oneMinute,
                 depth: 2,
                 signalThreshold: 1.1
             )
         ) { error in
-            XCTAssertEqual(error as? MTPROCoreError, .invalidImbalanceThreshold(1.1))
+            XCTAssertEqual(error as? CoreError, .invalidImbalanceThreshold(1.1))
         }
 
-        let contract = MTPROOrderBookImbalanceStrategyContract(
+        let contract = OrderBookImbalanceStrategyContract(
             configuration: try makeOrderBookImbalanceStrategy()
         )
-        let mismatchedInput = MTPROOrderBookReadModelInput(
-            symbol: try MTPROSymbol(rawValue: "ETHUSDT"),
+        let mismatchedInput = OrderBookReadModelInput(
+            symbol: try Symbol(rawValue: "ETHUSDT"),
             observedAt: Date(timeIntervalSince1970: 1_000),
             bids: [try makeOrderBookLevel(price: 100, quantity: 1), try makeOrderBookLevel(price: 99, quantity: 1)],
             asks: [try makeOrderBookLevel(price: 101, quantity: 1), try makeOrderBookLevel(price: 102, quantity: 1)],
             source: .snapshot
         )
-        let thinInput = MTPROOrderBookReadModelInput(
-            symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+        let thinInput = OrderBookReadModelInput(
+            symbol: try Symbol(rawValue: "BTCUSDT"),
             observedAt: Date(timeIntervalSince1970: 1_000),
             bids: [try makeOrderBookLevel(price: 100, quantity: 1)],
             asks: [],
@@ -658,27 +658,27 @@ final class MTPROCoreTests: XCTestCase {
 
         XCTAssertThrowsError(try contract.evaluate([mismatchedInput])) { error in
             XCTAssertEqual(
-                error as? MTPROCoreError,
+                error as? CoreError,
                 .marketDataMismatch(field: "orderBook.symbol", expected: "BTCUSDT", actual: "ETHUSDT")
             )
         }
         XCTAssertThrowsError(try contract.evaluate([thinInput])) { error in
             XCTAssertEqual(
-                error as? MTPROCoreError,
+                error as? CoreError,
                 .insufficientOrderBookDepth(required: 2, bidLevels: 1, askLevels: 0)
             )
         }
     }
 
     func testOrderBookImbalanceResearchFlowPublishesThroughStrategyStream() throws {
-        var messageBus = try MTPROMessageBus()
+        var messageBus = try MessageBus()
         let strategy = try makeOrderBookImbalanceStrategy()
-        let command = MTPROOrderBookImbalanceResearchCommand(
-            researchID: try MTPROIdentifier("obi-research-fixture"),
+        let command = OrderBookImbalanceResearchCommand(
+            researchID: try Identifier("obi-research-fixture"),
             strategy: strategy,
             marketData: try makeOrderBookMarketDataQuery()
         )
-        let run = try MTPROOrderBookImbalanceResearchEventFlow().run(
+        let run = try OrderBookImbalanceResearchEventFlow().run(
             command,
             inputs: try makeOrderBookImbalanceInputs(),
             completedAt: Date(timeIntervalSince1970: 1_300)
@@ -688,7 +688,7 @@ final class MTPROCoreTests: XCTestCase {
             try messageBus.publish(.orderBookImbalanceResearch(event), stream: .strategy)
         }
 
-        XCTAssertEqual(MTPROCommand.runOrderBookImbalanceResearch(command), .runOrderBookImbalanceResearch(command))
+        XCTAssertEqual(Command.runOrderBookImbalanceResearch(command), .runOrderBookImbalanceResearch(command))
         XCTAssertEqual(run.events.count, 5)
         XCTAssertEqual(run.result.signalSamples.map(\.bias), [.bidDominant, .neutral, .askDominant])
         XCTAssertEqual(messageBus.envelopes.map(\.sequence), Array(1...5))
@@ -703,37 +703,37 @@ final class MTPROCoreTests: XCTestCase {
         )
 
         let mismatchedMarketData = MarketDataQuery(
-            symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+            symbol: try Symbol(rawValue: "BTCUSDT"),
             timeframe: .fiveMinutes,
-            range: try MTPRODateRange(
+            range: try DateRange(
                 start: Date(timeIntervalSince1970: 1_000),
                 end: Date(timeIntervalSince1970: 1_200)
             )
         )
-        let mismatchedCommand = MTPROOrderBookImbalanceResearchCommand(
-            researchID: try MTPROIdentifier("obi-mismatch"),
+        let mismatchedCommand = OrderBookImbalanceResearchCommand(
+            researchID: try Identifier("obi-mismatch"),
             strategy: strategy,
             marketData: mismatchedMarketData
         )
 
         XCTAssertThrowsError(
-            try MTPROOrderBookImbalanceResearchEventFlow().run(
+            try OrderBookImbalanceResearchEventFlow().run(
                 mismatchedCommand,
                 inputs: try makeOrderBookImbalanceInputs()
             )
         ) { error in
             XCTAssertEqual(
-                error as? MTPROCoreError,
+                error as? CoreError,
                 .marketDataMismatch(field: "marketData.timeframe", expected: "1m", actual: "5m")
             )
         }
     }
 
-    private func makeMarketBar(close: Double = 105, start: TimeInterval = 100) throws -> MTPROMarketBar {
-        try MTPROMarketBar(
-            symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+    private func makeMarketBar(close: Double = 105, start: TimeInterval = 100) throws -> MarketBar {
+        try MarketBar(
+            symbol: try Symbol(rawValue: "BTCUSDT"),
             timeframe: .oneMinute,
-            interval: try MTPRODateRange(
+            interval: try DateRange(
                 start: Date(timeIntervalSince1970: start),
                 end: Date(timeIntervalSince1970: start + 60)
             ),
@@ -749,9 +749,9 @@ final class MTPROCoreTests: XCTestCase {
         price: Double = 42000,
         quantity: Double = 0.25,
         tradedAt: TimeInterval = 310
-    ) throws -> MTPROTradeTick {
-        try MTPROTradeTick(
-            symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+    ) throws -> TradeTick {
+        try TradeTick(
+            symbol: try Symbol(rawValue: "BTCUSDT"),
             tradedAt: Date(timeIntervalSince1970: tradedAt),
             price: price,
             quantity: quantity,
@@ -759,27 +759,27 @@ final class MTPROCoreTests: XCTestCase {
         )
     }
 
-    private func makeBestBidAsk() throws -> MTPROBestBidAsk {
-        try MTPROBestBidAsk(
-            symbol: MTPROSymbol(rawValue: "BTCUSDT"),
+    private func makeBestBidAsk() throws -> BestBidAsk {
+        try BestBidAsk(
+            symbol: Symbol(rawValue: "BTCUSDT"),
             observedAt: Date(timeIntervalSince1970: 320),
-            bid: MTPROOrderBookLevel(price: 41999, quantity: 1.25),
-            ask: MTPROOrderBookLevel(price: 42001, quantity: 0.75)
+            bid: OrderBookLevel(price: 41999, quantity: 1.25),
+            ask: OrderBookLevel(price: 42001, quantity: 0.75)
         )
     }
 
     private func makeBacktestCommand() throws -> BacktestCommand {
         BacktestCommand(
-            runID: try MTPROIdentifier("backtest-ema-fixture"),
+            runID: try Identifier("backtest-ema-fixture"),
             strategy: try makeEMAStrategy(),
             marketData: try makeEMAMarketDataQuery()
         )
     }
 
-    private func makeEMAStrategy() throws -> MTPROEMACrossStrategyConfiguration {
-        try MTPROEMACrossStrategyConfiguration(
-            strategyID: try MTPROIdentifier("ema-cross"),
-            symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+    private func makeEMAStrategy() throws -> EMACrossStrategyConfiguration {
+        try EMACrossStrategyConfiguration(
+            strategyID: try Identifier("ema-cross"),
+            symbol: try Symbol(rawValue: "BTCUSDT"),
             timeframe: .oneMinute,
             shortPeriod: 2,
             longPeriod: 3
@@ -788,22 +788,22 @@ final class MTPROCoreTests: XCTestCase {
 
     private func makeEMAMarketDataQuery() throws -> MarketDataQuery {
         MarketDataQuery(
-            symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+            symbol: try Symbol(rawValue: "BTCUSDT"),
             timeframe: .oneMinute,
-            range: try MTPRODateRange(
+            range: try DateRange(
                 start: Date(timeIntervalSince1970: 100),
                 end: Date(timeIntervalSince1970: 400)
             )
         )
     }
 
-    private func makeEMAFixtureBars() throws -> [MTPROMarketBar] {
+    private func makeEMAFixtureBars() throws -> [MarketBar] {
         try [10.0, 11.0, 12.0, 11.0, 10.0, 13.0].enumerated().map { index, close in
             let start = 100 + TimeInterval(index * 60)
-            return try MTPROMarketBar(
-                symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+            return try MarketBar(
+                symbol: try Symbol(rawValue: "BTCUSDT"),
                 timeframe: .oneMinute,
-                interval: try MTPRODateRange(
+                interval: try DateRange(
                     start: Date(timeIntervalSince1970: start),
                     end: Date(timeIntervalSince1970: start + 60)
                 ),
@@ -816,14 +816,14 @@ final class MTPROCoreTests: XCTestCase {
         }
     }
 
-    private func makeOrderBookLevel(price: Double, quantity: Double) throws -> MTPROOrderBookLevel {
-        try MTPROOrderBookLevel(price: price, quantity: quantity)
+    private func makeOrderBookLevel(price: Double, quantity: Double) throws -> OrderBookLevel {
+        try OrderBookLevel(price: price, quantity: quantity)
     }
 
-    private func makeOrderBookImbalanceStrategy() throws -> MTPROOrderBookImbalanceStrategyConfiguration {
-        try MTPROOrderBookImbalanceStrategyConfiguration(
-            strategyID: try MTPROIdentifier("obi-fixture"),
-            symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+    private func makeOrderBookImbalanceStrategy() throws -> OrderBookImbalanceStrategyConfiguration {
+        try OrderBookImbalanceStrategyConfiguration(
+            strategyID: try Identifier("obi-fixture"),
+            symbol: try Symbol(rawValue: "BTCUSDT"),
             timeframe: .oneMinute,
             depth: 2,
             signalThreshold: 0.15
@@ -832,18 +832,18 @@ final class MTPROCoreTests: XCTestCase {
 
     private func makeOrderBookMarketDataQuery() throws -> MarketDataQuery {
         MarketDataQuery(
-            symbol: try MTPROSymbol(rawValue: "BTCUSDT"),
+            symbol: try Symbol(rawValue: "BTCUSDT"),
             timeframe: .oneMinute,
-            range: try MTPRODateRange(
+            range: try DateRange(
                 start: Date(timeIntervalSince1970: 1_000),
                 end: Date(timeIntervalSince1970: 1_200)
             )
         )
     }
 
-    private func makeOrderBookImbalanceInputs() throws -> [MTPROOrderBookReadModelInput] {
-        let symbol = try MTPROSymbol(rawValue: "BTCUSDT")
-        let bidDominant = MTPROOrderBookReadModelInput(
+    private func makeOrderBookImbalanceInputs() throws -> [OrderBookReadModelInput] {
+        let symbol = try Symbol(rawValue: "BTCUSDT")
+        let bidDominant = OrderBookReadModelInput(
             symbol: symbol,
             observedAt: Date(timeIntervalSince1970: 1_000),
             bids: [
@@ -856,7 +856,7 @@ final class MTPROCoreTests: XCTestCase {
             ],
             source: .snapshot
         )
-        let neutral = MTPROOrderBookReadModelInput(
+        let neutral = OrderBookReadModelInput(
             symbol: symbol,
             observedAt: Date(timeIntervalSince1970: 1_060),
             bids: [
@@ -869,7 +869,7 @@ final class MTPROCoreTests: XCTestCase {
             ],
             source: .snapshot
         )
-        let askDominant = MTPROOrderBookReadModelInput(
+        let askDominant = OrderBookReadModelInput(
             symbol: symbol,
             observedAt: Date(timeIntervalSince1970: 1_120),
             bids: [

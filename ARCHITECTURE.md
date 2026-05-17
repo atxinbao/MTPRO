@@ -22,10 +22,10 @@ MTPRO 是 Swift-only macOS 交易研究工作台。
 
 | 模块 | 职责 | 当前状态 |
 | --- | --- | --- |
-| `MTPROCore` | 领域模型、事件、Kernel / Engine 边界 | skeleton |
-| `MTPROAdapters` | Binance read-only market data adapter 边界 | skeleton |
-| `MTPROPersistence` | Event Log / SQLite / DuckDB 边界 | skeleton |
-| `MTPROApp` | Trader Workstation Dashboard 产品面 | skeleton |
+| `Core` | 领域模型、事件、Kernel / Engine 边界 | skeleton |
+| `Adapters` | Binance read-only market data adapter 边界 | skeleton |
+| `Persistence` | Event Log / SQLite / DuckDB 边界 | skeleton |
+| `App` | Trader Workstation Dashboard 产品面 | skeleton |
 
 ## 数据流目标
 

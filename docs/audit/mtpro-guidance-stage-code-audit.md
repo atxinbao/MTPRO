@@ -28,17 +28,17 @@
 
 代码范围：
 
-- `Sources/MTPROCore/MTPROCore.swift`
-- `Sources/MTPROAdapters/MTPROAdapters.swift`
-- `Sources/MTPROPersistence/MTPROPersistence.swift`
-- `Sources/MTPROApp/MTPROApp.swift`
+- `Sources/Core/Core.swift`
+- `Sources/Adapters/Adapters.swift`
+- `Sources/Persistence/Persistence.swift`
+- `Sources/App/App.swift`
 
 测试范围：
 
-- `Tests/MTPROCoreTests/MTPROCoreTests.swift`
-- `Tests/MTPROAdaptersTests/MTPROAdaptersTests.swift`
-- `Tests/MTPROPersistenceTests/MTPROPersistenceTests.swift`
-- `Tests/MTPROAppTests/MTPROAppTests.swift`
+- `Tests/CoreTests/CoreTests.swift`
+- `Tests/AdaptersTests/AdaptersTests.swift`
+- `Tests/PersistenceTests/PersistenceTests.swift`
+- `Tests/AppTests/AppTests.swift`
 
 文档和自动化范围：
 
@@ -59,10 +59,10 @@
 
 当前 Swift 测试结果：
 
-- `MTPROAdaptersTests`：8 个测试通过。
-- `MTPROAppTests`：4 个测试通过。
-- `MTPROCoreTests`：22 个测试通过。
-- `MTPROPersistenceTests`：5 个测试通过。
+- `AdaptersTests`：8 个测试通过。
+- `AppTests`：4 个测试通过。
+- `CoreTests`：22 个测试通过。
+- `PersistenceTests`：5 个测试通过。
 - 总计：39 个 XCTest 通过。
 
 ## 代码结构判断
@@ -71,16 +71,16 @@
 
 | 模块 | 当前职责 | 审计判断 |
 | --- | --- | --- |
-| `MTPROCore` | 领域模型、事件、策略契约、message bus、kernel、cache | 功能完整，但单文件已经过大 |
-| `MTPROAdapters` | Binance public read-only contract、fixture decoder、只读边界 | 边界清楚，尚未接真实网络 client |
-| `MTPROPersistence` | replay boundary、SQLite runtime projection、DuckDB analytical projection | 投影语义清楚，尚未接真实 SQLite / DuckDB adapter |
-| `MTPROApp` | Dashboard read model 和 ViewModel contract | ViewModel 边界清楚，尚未实现真实 SwiftUI 页面 |
+| `Core` | 领域模型、事件、策略契约、message bus、kernel、cache | 功能完整，但单文件已经过大 |
+| `Adapters` | Binance public read-only contract、fixture decoder、只读边界 | 边界清楚，尚未接真实网络 client |
+| `Persistence` | replay boundary、SQLite runtime projection、DuckDB analytical projection | 投影语义清楚，尚未接真实 SQLite / DuckDB adapter |
+| `App` | Dashboard read model 和 ViewModel contract | ViewModel 边界清楚，尚未实现真实 SwiftUI 页面 |
 
 ## 主要发现
 
 ### 1. Core 单文件已经达到下一阶段拆分门槛
 
-`Sources/MTPROCore/MTPROCore.swift` 当前约 1752 行，承载了 symbol / timeframe、market events、order book、EMA、backtest、paper、risk、portfolio、event log、message bus、kernel 和 cache。
+`Sources/Core/Core.swift` 当前约 1752 行，承载了 symbol / timeframe、market events、order book、EMA、backtest、paper、risk、portfolio、event log、message bus、kernel 和 cache。
 
 这在引导阶段可以接受，因为它降低了 early-stage 结构噪音；但下一阶段如果继续新增功能，应先拆分 Core 内部文件，避免后续 Codex 修改时上下文过大、冲突面过宽。
 
@@ -96,7 +96,7 @@
 
 ### 2. Persistence 目前是投影边界，不是真实数据库 adapter
 
-`MTPROPersistence` 当前正确表达了 SQLite / DuckDB 的职责边界和投影语义，但实现仍是内存 projection store，不是真实 SQLite / DuckDB adapter。
+`Persistence` 当前正确表达了 SQLite / DuckDB 的职责边界和投影语义，但实现仍是内存 projection store，不是真实 SQLite / DuckDB adapter。
 
 这符合引导阶段的 minimum viable contract，但下一阶段如果要进入真实研究工作台，需要明确是否推进真实持久化 adapter。
 
@@ -108,7 +108,7 @@
 
 ### 3. Binance adapter 仍是 public contract + fixture decoder
 
-`MTPROAdapters` 已明确只读 public endpoint、禁止 signed endpoint、禁止 order action，并且测试覆盖 fixture decoding。
+`Adapters` 已明确只读 public endpoint、禁止 signed endpoint、禁止 order action，并且测试覆盖 fixture decoding。
 
 当前还没有真实 Binance network client。下一阶段如果需要真实行情回放，应先补一个 read-only fetch boundary，而不是直接把网络调用散落到 Core 或 App。
 
@@ -121,7 +121,7 @@
 
 ### 4. App 层是 ViewModel contract，不是真实产品 UI
 
-`MTPROApp` 当前已经把 Dashboard read model 和 ViewModel contract 固化，并且明确不暴露 database table、ORM、runtime object、Binance adapter 或 live order action。
+`App` 当前已经把 Dashboard read model 和 ViewModel contract 固化，并且明确不暴露 database table、ORM、runtime object、Binance adapter 或 live order action。
 
 但当前仍不是 macOS App UI。下一阶段如果目标是产品可观察入口，应先进入 SwiftUI App shell，而不是继续扩展 ViewModel 字段。
 
@@ -181,7 +181,7 @@ MTPRO Runtime Research Workbench v1
 
 建议 issue 顺序：
 
-1. 拆分 `MTPROCore` 单文件，保持 API 与测试行为不变。
+1. 拆分 `Core` 单文件，保持 API 与测试行为不变。
 2. 建立 read-only Binance network client boundary。
 3. 建立 append-only event log 文件落盘和 replay smoke test。
 4. 建立 SQLite runtime projection adapter 最小闭环。

@@ -1761,3 +1761,72 @@ Commit：本轮提交
 | --- | --- | --- |
 | `git diff --check` | 通过 | Linear team name 修正文档无空白问题。 |
 | `bash checks/run.sh` | 通过 | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+## Swift Module MTPRO Prefix Removal
+
+日期：2026-05-17
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 移除 `Sources/`、`Tests/`、SwiftPM target / product 和 Swift 类型命名中的 `MTPRO` 前缀。
+- 保留项目名 `MTPRO`，但代码模块使用通用名称 `Core`、`Adapters`、`Persistence`、`App`。
+- 同步更新当前合同文档和 README 中的代码模块引用。
+
+文件范围：
+
+- Created / Renamed：
+  - `Sources/Core/Core.swift`
+  - `Sources/Adapters/Adapters.swift`
+  - `Sources/Persistence/Persistence.swift`
+  - `Sources/App/App.swift`
+  - `Tests/CoreTests/CoreTests.swift`
+  - `Tests/AdaptersTests/AdaptersTests.swift`
+  - `Tests/PersistenceTests/PersistenceTests.swift`
+  - `Tests/AppTests/AppTests.swift`
+- Updated：
+  - `Package.swift`
+  - `README.md`
+  - `ARCHITECTURE.md`
+  - `ROADMAP.md`
+  - `AGENTS.md`
+  - `checks/automation-readiness.sh`
+  - `docs/architecture/module-boundary.md`
+  - `docs/audit/mtpro-guidance-stage-code-audit.md`
+  - `docs/contracts/*.md`
+  - `docs/planning/linear-draft-plan.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+- Deleted / Renamed from：
+  - `Sources/MTPROCore/MTPROCore.swift`
+  - `Sources/MTPROAdapters/MTPROAdapters.swift`
+  - `Sources/MTPROPersistence/MTPROPersistence.swift`
+  - `Sources/MTPROApp/MTPROApp.swift`
+  - `Tests/MTPROCoreTests/MTPROCoreTests.swift`
+  - `Tests/MTPROAdaptersTests/MTPROAdaptersTests.swift`
+  - `Tests/MTPROPersistenceTests/MTPROPersistenceTests.swift`
+  - `Tests/MTPROAppTests/MTPROAppTests.swift`
+
+边界确认：
+
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未运行 Graphify update / full rebuild。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 未实现 `LiveExecutionAdapter`。
+- 未调用 Binance signed endpoint。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Swift module rename 无空白问题。 |
+| `swift test` | pass | 39 个 XCTest 通过；module 名称已变为 `Core`、`Adapters`、`Persistence`、`App`。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；输出 `MTPRO checks passed.` |

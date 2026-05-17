@@ -1,5 +1,5 @@
 import Foundation
-import MTPROCore
+import Core
 
 public enum BinancePublicMarketDataContractError: Error, Equatable, Sendable, CustomStringConvertible {
     case invalidLimit(field: String, value: Int, allowedRange: String)
@@ -86,12 +86,12 @@ public struct BinancePublicRequestContract: Equatable, Sendable {
 }
 
 public enum BinancePublicMarketDataEndpoint: Equatable, Sendable {
-    case exchangeInfo(symbols: [MTPROSymbol])
-    case klines(symbol: MTPROSymbol, timeframe: MTPROTimeframe, range: MTPRODateRange, limit: Int)
-    case recentTrades(symbol: MTPROSymbol, limit: Int)
-    case bestBidAsk(symbol: MTPROSymbol)
-    case depthSnapshot(symbol: MTPROSymbol, limit: BinanceDepthSnapshotLimit)
-    case depthDelta(symbol: MTPROSymbol)
+    case exchangeInfo(symbols: [Symbol])
+    case klines(symbol: Symbol, timeframe: Timeframe, range: DateRange, limit: Int)
+    case recentTrades(symbol: Symbol, limit: Int)
+    case bestBidAsk(symbol: Symbol)
+    case depthSnapshot(symbol: Symbol, limit: BinanceDepthSnapshotLimit)
+    case depthDelta(symbol: Symbol)
 
     public var capability: BinancePublicMarketDataCapability {
         switch self {
@@ -112,8 +112,8 @@ public enum BinancePublicMarketDataEndpoint: Equatable, Sendable {
 }
 
 public enum BinancePublicMarketDataContract {
-    public static let supportedSymbols = MTPROSymbol.supportedRawValues
-    public static let supportedTimeframes = MTPROTimeframe.supportedRawValues
+    public static let supportedSymbols = Symbol.supportedRawValues
+    public static let supportedTimeframes = Timeframe.supportedRawValues
     public static let forbiddenCapabilities = BinanceForbiddenCapability.allCases
 
     public static func request(for endpoint: BinancePublicMarketDataEndpoint) throws -> BinancePublicRequestContract {
@@ -199,16 +199,16 @@ public enum BinancePublicMarketDataContract {
         String(Int64((date.timeIntervalSince1970 * 1_000).rounded()))
     }
 
-    private static func symbolsQueryValue(_ symbols: [MTPROSymbol]) -> String {
+    private static func symbolsQueryValue(_ symbols: [Symbol]) -> String {
         let values = symbols.map { #""\#($0.rawValue)""# }.joined(separator: ",")
         return "[\(values)]"
     }
 }
 
 public struct BinanceExchangeInfo: Equatable, Sendable {
-    public let symbols: [MTPROSymbol]
+    public let symbols: [Symbol]
 
-    public init(symbols: [MTPROSymbol]) {
+    public init(symbols: [Symbol]) {
         self.symbols = symbols
     }
 }
@@ -216,26 +216,26 @@ public struct BinanceExchangeInfo: Equatable, Sendable {
 public enum BinancePublicMarketDataPayloadDecoder {
     public static func decodeExchangeInfo(from data: Data) throws -> BinanceExchangeInfo {
         let payload = try JSONDecoder().decode(BinanceExchangeInfoPayload.self, from: data)
-        let symbols = payload.symbols.compactMap { symbol -> MTPROSymbol? in
+        let symbols = payload.symbols.compactMap { symbol -> Symbol? in
             guard symbol.status == "TRADING" else {
                 return nil
             }
-            return try? MTPROSymbol(rawValue: symbol.symbol)
+            return try? Symbol(rawValue: symbol.symbol)
         }
         return BinanceExchangeInfo(symbols: symbols)
     }
 
     public static func decodeKlines(
         from data: Data,
-        symbol: MTPROSymbol,
-        timeframe: MTPROTimeframe
-    ) throws -> [MTPROMarketBar] {
+        symbol: Symbol,
+        timeframe: Timeframe
+    ) throws -> [MarketBar] {
         let rows = try JSONDecoder().decode([BinanceKlineRow].self, from: data)
         return try rows.map { row in
-            try MTPROMarketBar(
+            try MarketBar(
                 symbol: symbol,
                 timeframe: timeframe,
-                interval: try MTPRODateRange(
+                interval: try DateRange(
                     start: dateFromMilliseconds(row.openTime),
                     end: dateFromMilliseconds(row.closeTime + 1)
                 ),
@@ -248,10 +248,10 @@ public enum BinancePublicMarketDataPayloadDecoder {
         }
     }
 
-    public static func decodeRecentTrades(from data: Data, symbol: MTPROSymbol) throws -> [MTPROTradeTick] {
+    public static func decodeRecentTrades(from data: Data, symbol: Symbol) throws -> [TradeTick] {
         let payloads = try JSONDecoder().decode([BinanceRecentTradePayload].self, from: data)
         return try payloads.map { payload in
-            try MTPROTradeTick(
+            try TradeTick(
                 symbol: symbol,
                 tradedAt: dateFromMilliseconds(payload.time),
                 price: try decimal(payload.price, field: "trade.price"),
@@ -261,25 +261,25 @@ public enum BinancePublicMarketDataPayloadDecoder {
         }
     }
 
-    public static func decodeBestBidAsk(from data: Data, observedAt: Date) throws -> MTPROBestBidAsk {
+    public static func decodeBestBidAsk(from data: Data, observedAt: Date) throws -> BestBidAsk {
         let payload = try JSONDecoder().decode(BinanceBookTickerPayload.self, from: data)
-        return try MTPROBestBidAsk(
-            symbol: MTPROSymbol(rawValue: payload.symbol),
+        return try BestBidAsk(
+            symbol: Symbol(rawValue: payload.symbol),
             observedAt: observedAt,
-            bid: try MTPROOrderBookLevel(
+            bid: try OrderBookLevel(
                 price: try decimal(payload.bidPrice, field: "bookTicker.bidPrice"),
                 quantity: try decimal(payload.bidQuantity, field: "bookTicker.bidQty")
             ),
-            ask: try MTPROOrderBookLevel(
+            ask: try OrderBookLevel(
                 price: try decimal(payload.askPrice, field: "bookTicker.askPrice"),
                 quantity: try decimal(payload.askQuantity, field: "bookTicker.askQty")
             )
         )
     }
 
-    public static func decodeDepthSnapshot(from data: Data, symbol: MTPROSymbol, observedAt: Date) throws -> MTPROOrderBookSnapshot {
+    public static func decodeDepthSnapshot(from data: Data, symbol: Symbol, observedAt: Date) throws -> OrderBookSnapshot {
         let payload = try JSONDecoder().decode(BinanceDepthSnapshotPayload.self, from: data)
-        return try MTPROOrderBookSnapshot(
+        return try OrderBookSnapshot(
             symbol: symbol,
             observedAt: observedAt,
             bids: payload.bids.map { try $0.toCoreLevel(fieldPrefix: "depthSnapshot.bid") },
@@ -287,10 +287,10 @@ public enum BinancePublicMarketDataPayloadDecoder {
         )
     }
 
-    public static func decodeDepthDelta(from data: Data) throws -> MTPROOrderBookDelta {
+    public static func decodeDepthDelta(from data: Data) throws -> OrderBookDelta {
         let payload = try JSONDecoder().decode(BinanceDepthDeltaPayload.self, from: data)
-        return try MTPROOrderBookDelta(
-            symbol: MTPROSymbol(rawValue: payload.symbol),
+        return try OrderBookDelta(
+            symbol: Symbol(rawValue: payload.symbol),
             observedAt: dateFromMilliseconds(payload.eventTime),
             bidUpdates: payload.bidUpdates.map { try $0.toCoreLevel(fieldPrefix: "depthDelta.bid") },
             askUpdates: payload.askUpdates.map { try $0.toCoreLevel(fieldPrefix: "depthDelta.ask") }
@@ -414,8 +414,8 @@ private struct BinanceDepthLevelPayload: Decodable {
         self.quantity = try container.decode(String.self)
     }
 
-    func toCoreLevel(fieldPrefix: String) throws -> MTPROOrderBookLevel {
-        try MTPROOrderBookLevel(
+    func toCoreLevel(fieldPrefix: String) throws -> OrderBookLevel {
+        try OrderBookLevel(
             price: try BinancePublicMarketDataPayloadDecoder.decimal(price, field: "\(fieldPrefix).price"),
             quantity: try BinancePublicMarketDataPayloadDecoder.decimal(quantity, field: "\(fieldPrefix).quantity")
         )

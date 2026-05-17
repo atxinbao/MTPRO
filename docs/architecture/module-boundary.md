@@ -2,7 +2,7 @@
 
 本文档定义 MTPRO 第一版模块边界。
 
-## MTPROCore
+## Core
 
 职责：
 
@@ -18,7 +18,7 @@
 - SQLite / DuckDB adapter
 - SwiftUI View
 
-## MTPROAdapters
+## Adapters
 
 职责：
 
@@ -32,7 +32,7 @@
 - order submit
 - 策略判断
 
-## MTPROPersistence
+## Persistence
 
 职责：
 
@@ -45,7 +45,7 @@
 - 直接驱动 UI。
 - 直接执行策略。
 
-## MTPROApp
+## App
 
 职责：
 

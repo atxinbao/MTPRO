@@ -1,8 +1,8 @@
 import Foundation
-import MTPROCore
-import MTPROPersistence
+import Core
+import Persistence
 
-public enum MTPRODashboardSection: String, CaseIterable, Codable, Sendable {
+public enum DashboardSection: String, CaseIterable, Codable, Sendable {
     case market = "Market"
     case strategy = "Strategy"
     case backtest = "Backtest"
@@ -12,20 +12,20 @@ public enum MTPRODashboardSection: String, CaseIterable, Codable, Sendable {
     case events = "Events"
 }
 
-public struct MTPROAppBaseline: Equatable, Sendable {
-    public let sections: [MTPRODashboardSection]
+public struct AppBaseline: Equatable, Sendable {
+    public let sections: [DashboardSection]
 
-    public init(sections: [MTPRODashboardSection] = MTPRODashboardSection.allCases) {
+    public init(sections: [DashboardSection] = DashboardSection.allCases) {
         self.sections = sections
     }
 }
 
-public enum MTPROViewModelSourceKind: String, Codable, Equatable, Sendable {
+public enum ViewModelSourceKind: String, Codable, Equatable, Sendable {
     case stableReadModelProjection = "stable read model projection"
 }
 
-public struct MTPROViewModelSourceContract: Codable, Equatable, Sendable {
-    public let sourceKind: MTPROViewModelSourceKind
+public struct ViewModelSourceContract: Codable, Equatable, Sendable {
+    public let sourceKind: ViewModelSourceKind
     public let exposesDatabaseTables: Bool
     public let exposesORMModels: Bool
     public let exposesRuntimeObjects: Bool
@@ -33,7 +33,7 @@ public struct MTPROViewModelSourceContract: Codable, Equatable, Sendable {
     public let providesLiveOrderAction: Bool
 
     public init(
-        sourceKind: MTPROViewModelSourceKind = .stableReadModelProjection,
+        sourceKind: ViewModelSourceKind = .stableReadModelProjection,
         exposesDatabaseTables: Bool = false,
         exposesORMModels: Bool = false,
         exposesRuntimeObjects: Bool = false,
@@ -58,20 +58,20 @@ public struct MTPROViewModelSourceContract: Codable, Equatable, Sendable {
     }
 }
 
-public struct MTPROMarketReadModel: Equatable, Sendable {
-    public let bars: [MTPROMarketBar]
-    public let trades: [MTPROTradeTick]
-    public let bestBidAsks: [MTPROBestBidAsk]
-    public let orderBookSnapshots: [MTPROOrderBookSnapshot]
-    public let orderBookDeltas: [MTPROOrderBookDelta]
+public struct MarketReadModel: Equatable, Sendable {
+    public let bars: [MarketBar]
+    public let trades: [TradeTick]
+    public let bestBidAsks: [BestBidAsk]
+    public let orderBookSnapshots: [OrderBookSnapshot]
+    public let orderBookDeltas: [OrderBookDelta]
     public let lastAppliedSequence: Int?
 
     public init(
-        bars: [MTPROMarketBar] = [],
-        trades: [MTPROTradeTick] = [],
-        bestBidAsks: [MTPROBestBidAsk] = [],
-        orderBookSnapshots: [MTPROOrderBookSnapshot] = [],
-        orderBookDeltas: [MTPROOrderBookDelta] = [],
+        bars: [MarketBar] = [],
+        trades: [TradeTick] = [],
+        bestBidAsks: [BestBidAsk] = [],
+        orderBookSnapshots: [OrderBookSnapshot] = [],
+        orderBookDeltas: [OrderBookDelta] = [],
         lastAppliedSequence: Int? = nil
     ) {
         self.bars = bars.sortedByBarTime()
@@ -94,7 +94,7 @@ public struct MTPROMarketReadModel: Equatable, Sendable {
         self.lastAppliedSequence = lastAppliedSequence
     }
 
-    public init(analyticalProjection: MTPRODuckDBAnalyticalProjectionSnapshot) {
+    public init(analyticalProjection: DuckDBAnalyticalProjectionSnapshot) {
         self.init(
             bars: analyticalProjection.marketBars,
             trades: analyticalProjection.trades,
@@ -106,19 +106,19 @@ public struct MTPROMarketReadModel: Equatable, Sendable {
     }
 }
 
-public struct MTPROStrategyReadModel: Equatable, Sendable {
-    public let signals: [MTPRODuckDBSignalTimelineProjection]
+public struct StrategyReadModel: Equatable, Sendable {
+    public let signals: [DuckDBSignalTimelineProjection]
     public let lastAppliedSequence: Int?
 
     public init(
-        signals: [MTPRODuckDBSignalTimelineProjection] = [],
+        signals: [DuckDBSignalTimelineProjection] = [],
         lastAppliedSequence: Int? = nil
     ) {
         self.signals = signals.sortedBySignalTime()
         self.lastAppliedSequence = lastAppliedSequence
     }
 
-    public init(analyticalProjection: MTPRODuckDBAnalyticalProjectionSnapshot) {
+    public init(analyticalProjection: DuckDBAnalyticalProjectionSnapshot) {
         self.init(
             signals: analyticalProjection.signalTimeline,
             lastAppliedSequence: analyticalProjection.lastAppliedSequence
@@ -126,14 +126,14 @@ public struct MTPROStrategyReadModel: Equatable, Sendable {
     }
 }
 
-public struct MTPROBacktestReadModel: Equatable, Sendable {
-    public let runs: [MTPRODuckDBBacktestProjection]
-    public let signals: [MTPRODuckDBSignalTimelineProjection]
+public struct BacktestReadModel: Equatable, Sendable {
+    public let runs: [DuckDBBacktestProjection]
+    public let signals: [DuckDBSignalTimelineProjection]
     public let lastAppliedSequence: Int?
 
     public init(
-        runs: [MTPRODuckDBBacktestProjection] = [],
-        signals: [MTPRODuckDBSignalTimelineProjection] = [],
+        runs: [DuckDBBacktestProjection] = [],
+        signals: [DuckDBSignalTimelineProjection] = [],
         lastAppliedSequence: Int? = nil
     ) {
         self.runs = runs.sorted { $0.runID.rawValue < $1.runID.rawValue }
@@ -143,7 +143,7 @@ public struct MTPROBacktestReadModel: Equatable, Sendable {
         self.lastAppliedSequence = lastAppliedSequence
     }
 
-    public init(analyticalProjection: MTPRODuckDBAnalyticalProjectionSnapshot) {
+    public init(analyticalProjection: DuckDBAnalyticalProjectionSnapshot) {
         self.init(
             runs: Array(analyticalProjection.backtestRuns.values),
             signals: analyticalProjection.signalTimeline,
@@ -152,19 +152,19 @@ public struct MTPROBacktestReadModel: Equatable, Sendable {
     }
 }
 
-public struct MTPROPaperReadModel: Equatable, Sendable {
-    public let sessions: [MTPROSQLitePaperSessionProjection]
+public struct PaperReadModel: Equatable, Sendable {
+    public let sessions: [SQLitePaperSessionProjection]
     public let lastAppliedSequence: Int?
 
     public init(
-        sessions: [MTPROSQLitePaperSessionProjection] = [],
+        sessions: [SQLitePaperSessionProjection] = [],
         lastAppliedSequence: Int? = nil
     ) {
         self.sessions = sessions.sorted { $0.sessionID.rawValue < $1.sessionID.rawValue }
         self.lastAppliedSequence = lastAppliedSequence
     }
 
-    public init(runtimeProjection: MTPROSQLiteRuntimeProjectionSnapshot) {
+    public init(runtimeProjection: SQLiteRuntimeProjectionSnapshot) {
         self.init(
             sessions: Array(runtimeProjection.paperSessions.values),
             lastAppliedSequence: runtimeProjection.lastAppliedSequence
@@ -172,19 +172,19 @@ public struct MTPROPaperReadModel: Equatable, Sendable {
     }
 }
 
-public struct MTPRORiskReadModel: Equatable, Sendable {
-    public let rejectedPaperOrderIDs: [MTPROIdentifier]
+public struct RiskReadModel: Equatable, Sendable {
+    public let rejectedPaperOrderIDs: [Identifier]
     public let lastAppliedSequence: Int?
 
     public init(
-        rejectedPaperOrderIDs: [MTPROIdentifier] = [],
+        rejectedPaperOrderIDs: [Identifier] = [],
         lastAppliedSequence: Int? = nil
     ) {
         self.rejectedPaperOrderIDs = rejectedPaperOrderIDs.sorted { $0.rawValue < $1.rawValue }
         self.lastAppliedSequence = lastAppliedSequence
     }
 
-    public init(runtimeProjection: MTPROSQLiteRuntimeProjectionSnapshot) {
+    public init(runtimeProjection: SQLiteRuntimeProjectionSnapshot) {
         self.init(
             rejectedPaperOrderIDs: runtimeProjection.rejectedPaperOrderIDs,
             lastAppliedSequence: runtimeProjection.lastAppliedSequence
@@ -192,19 +192,19 @@ public struct MTPRORiskReadModel: Equatable, Sendable {
     }
 }
 
-public struct MTPROPortfolioReadModel: Equatable, Sendable {
-    public let portfolios: [MTPROSQLitePortfolioProjection]
+public struct PortfolioReadModel: Equatable, Sendable {
+    public let portfolios: [SQLitePortfolioProjection]
     public let lastAppliedSequence: Int?
 
     public init(
-        portfolios: [MTPROSQLitePortfolioProjection] = [],
+        portfolios: [SQLitePortfolioProjection] = [],
         lastAppliedSequence: Int? = nil
     ) {
         self.portfolios = portfolios.sorted { $0.portfolioID.rawValue < $1.portfolioID.rawValue }
         self.lastAppliedSequence = lastAppliedSequence
     }
 
-    public init(runtimeProjection: MTPROSQLiteRuntimeProjectionSnapshot) {
+    public init(runtimeProjection: SQLiteRuntimeProjectionSnapshot) {
         self.init(
             portfolios: Array(runtimeProjection.portfolioProjections.values),
             lastAppliedSequence: runtimeProjection.lastAppliedSequence
@@ -212,7 +212,7 @@ public struct MTPROPortfolioReadModel: Equatable, Sendable {
     }
 }
 
-public struct MTPROEventTimelineReadModel: Equatable, Sendable {
+public struct EventTimelineReadModel: Equatable, Sendable {
     public let envelopes: [EventEnvelope]
 
     public init(envelopes: [EventEnvelope] = []) {
@@ -220,23 +220,23 @@ public struct MTPROEventTimelineReadModel: Equatable, Sendable {
     }
 }
 
-public struct MTPRODashboardReadModel: Equatable, Sendable {
-    public let market: MTPROMarketReadModel
-    public let strategy: MTPROStrategyReadModel
-    public let backtest: MTPROBacktestReadModel
-    public let paper: MTPROPaperReadModel
-    public let risk: MTPRORiskReadModel
-    public let portfolio: MTPROPortfolioReadModel
-    public let events: MTPROEventTimelineReadModel
+public struct DashboardReadModel: Equatable, Sendable {
+    public let market: MarketReadModel
+    public let strategy: StrategyReadModel
+    public let backtest: BacktestReadModel
+    public let paper: PaperReadModel
+    public let risk: RiskReadModel
+    public let portfolio: PortfolioReadModel
+    public let events: EventTimelineReadModel
 
     public init(
-        market: MTPROMarketReadModel,
-        strategy: MTPROStrategyReadModel,
-        backtest: MTPROBacktestReadModel,
-        paper: MTPROPaperReadModel,
-        risk: MTPRORiskReadModel,
-        portfolio: MTPROPortfolioReadModel,
-        events: MTPROEventTimelineReadModel
+        market: MarketReadModel,
+        strategy: StrategyReadModel,
+        backtest: BacktestReadModel,
+        paper: PaperReadModel,
+        risk: RiskReadModel,
+        portfolio: PortfolioReadModel,
+        events: EventTimelineReadModel
     ) {
         self.market = market
         self.strategy = strategy
@@ -248,25 +248,25 @@ public struct MTPRODashboardReadModel: Equatable, Sendable {
     }
 
     public init(
-        runtimeProjection: MTPROSQLiteRuntimeProjectionSnapshot,
-        analyticalProjection: MTPRODuckDBAnalyticalProjectionSnapshot,
+        runtimeProjection: SQLiteRuntimeProjectionSnapshot,
+        analyticalProjection: DuckDBAnalyticalProjectionSnapshot,
         eventTimeline: [EventEnvelope]
     ) {
         self.init(
-            market: MTPROMarketReadModel(analyticalProjection: analyticalProjection),
-            strategy: MTPROStrategyReadModel(analyticalProjection: analyticalProjection),
-            backtest: MTPROBacktestReadModel(analyticalProjection: analyticalProjection),
-            paper: MTPROPaperReadModel(runtimeProjection: runtimeProjection),
-            risk: MTPRORiskReadModel(runtimeProjection: runtimeProjection),
-            portfolio: MTPROPortfolioReadModel(runtimeProjection: runtimeProjection),
-            events: MTPROEventTimelineReadModel(envelopes: eventTimeline)
+            market: MarketReadModel(analyticalProjection: analyticalProjection),
+            strategy: StrategyReadModel(analyticalProjection: analyticalProjection),
+            backtest: BacktestReadModel(analyticalProjection: analyticalProjection),
+            paper: PaperReadModel(runtimeProjection: runtimeProjection),
+            risk: RiskReadModel(runtimeProjection: runtimeProjection),
+            portfolio: PortfolioReadModel(runtimeProjection: runtimeProjection),
+            events: EventTimelineReadModel(envelopes: eventTimeline)
         )
     }
 }
 
-public struct MTPROMarketViewModel: Codable, Equatable, Sendable {
-    public let section: MTPRODashboardSection
-    public let source: MTPROViewModelSourceContract
+public struct MarketViewModel: Codable, Equatable, Sendable {
+    public let section: DashboardSection
+    public let source: ViewModelSourceContract
     public let symbols: [String]
     public let barCount: Int
     public let tradeCount: Int
@@ -276,9 +276,9 @@ public struct MTPROMarketViewModel: Codable, Equatable, Sendable {
     public let latestBarClose: Double?
     public let lastAppliedSequence: Int?
 
-    public init(readModel: MTPROMarketReadModel) {
+    public init(readModel: MarketReadModel) {
         self.section = .market
-        self.source = MTPROViewModelSourceContract()
+        self.source = ViewModelSourceContract()
         self.symbols = readModel.marketSymbols()
         self.barCount = readModel.bars.count
         self.tradeCount = readModel.trades.count
@@ -290,17 +290,17 @@ public struct MTPROMarketViewModel: Codable, Equatable, Sendable {
     }
 }
 
-public struct MTPROStrategyViewModel: Codable, Equatable, Sendable {
-    public let section: MTPRODashboardSection
-    public let source: MTPROViewModelSourceContract
+public struct StrategyViewModel: Codable, Equatable, Sendable {
+    public let section: DashboardSection
+    public let source: ViewModelSourceContract
     public let strategyIDs: [String]
     public let signalCount: Int
-    public let latestSignalDirection: MTPROSignalDirection?
+    public let latestSignalDirection: SignalDirection?
     public let lastAppliedSequence: Int?
 
-    public init(readModel: MTPROStrategyReadModel) {
+    public init(readModel: StrategyReadModel) {
         self.section = .strategy
-        self.source = MTPROViewModelSourceContract()
+        self.source = ViewModelSourceContract()
         self.strategyIDs = readModel.signals.map(\.strategyID.rawValue).uniqueSorted()
         self.signalCount = readModel.signals.count
         self.latestSignalDirection = readModel.signals.last?.direction
@@ -308,16 +308,16 @@ public struct MTPROStrategyViewModel: Codable, Equatable, Sendable {
     }
 }
 
-public struct MTPROBacktestRunViewModel: Codable, Equatable, Sendable {
+public struct BacktestRunViewModel: Codable, Equatable, Sendable {
     public let runID: String
     public let strategyID: String
     public let symbol: String
     public let timeframe: String
-    public let state: MTPROProjectionLifecycleState
+    public let state: ProjectionLifecycleState
     public let signalCount: Int
     public let completedAt: Date?
 
-    public init(projection: MTPRODuckDBBacktestProjection) {
+    public init(projection: DuckDBBacktestProjection) {
         self.runID = projection.runID.rawValue
         self.strategyID = projection.strategyID.rawValue
         self.symbol = projection.symbol.rawValue
@@ -328,19 +328,19 @@ public struct MTPROBacktestRunViewModel: Codable, Equatable, Sendable {
     }
 }
 
-public struct MTPROBacktestViewModel: Codable, Equatable, Sendable {
-    public let section: MTPRODashboardSection
-    public let source: MTPROViewModelSourceContract
-    public let runs: [MTPROBacktestRunViewModel]
+public struct BacktestViewModel: Codable, Equatable, Sendable {
+    public let section: DashboardSection
+    public let source: ViewModelSourceContract
+    public let runs: [BacktestRunViewModel]
     public let totalSignalCount: Int
     public let completedRunCount: Int
-    public let latestSignalDirection: MTPROSignalDirection?
+    public let latestSignalDirection: SignalDirection?
     public let lastAppliedSequence: Int?
 
-    public init(readModel: MTPROBacktestReadModel) {
+    public init(readModel: BacktestReadModel) {
         self.section = .backtest
-        self.source = MTPROViewModelSourceContract()
-        self.runs = readModel.runs.map(MTPROBacktestRunViewModel.init)
+        self.source = ViewModelSourceContract()
+        self.runs = readModel.runs.map(BacktestRunViewModel.init)
         self.totalSignalCount = readModel.runs.reduce(0) { $0 + $1.signalCount }
         self.completedRunCount = readModel.runs.filter { $0.state == .completed }.count
         self.latestSignalDirection = readModel.signals.last?.direction
@@ -348,18 +348,18 @@ public struct MTPROBacktestViewModel: Codable, Equatable, Sendable {
     }
 }
 
-public struct MTPROPaperSessionViewModel: Codable, Equatable, Sendable {
+public struct PaperSessionViewModel: Codable, Equatable, Sendable {
     public let sessionID: String
     public let strategyID: String
     public let symbol: String
     public let timeframe: String
     public let riskProfileID: String
-    public let executionMode: MTPROExecutionMode
-    public let state: MTPROProjectionLifecycleState
+    public let executionMode: ExecutionMode
+    public let state: ProjectionLifecycleState
     public let signalCount: Int
     public let completedAt: Date?
 
-    public init(projection: MTPROSQLitePaperSessionProjection) {
+    public init(projection: SQLitePaperSessionProjection) {
         self.sessionID = projection.sessionID.rawValue
         self.strategyID = projection.strategyID.rawValue
         self.symbol = projection.symbol.rawValue
@@ -372,97 +372,97 @@ public struct MTPROPaperSessionViewModel: Codable, Equatable, Sendable {
     }
 }
 
-public struct MTPROPaperViewModel: Codable, Equatable, Sendable {
-    public let section: MTPRODashboardSection
-    public let source: MTPROViewModelSourceContract
-    public let sessions: [MTPROPaperSessionViewModel]
+public struct PaperViewModel: Codable, Equatable, Sendable {
+    public let section: DashboardSection
+    public let source: ViewModelSourceContract
+    public let sessions: [PaperSessionViewModel]
     public let activeSessionCount: Int
     public let completedSessionCount: Int
     public let lastAppliedSequence: Int?
 
-    public init(readModel: MTPROPaperReadModel) {
+    public init(readModel: PaperReadModel) {
         self.section = .paper
-        self.source = MTPROViewModelSourceContract()
-        self.sessions = readModel.sessions.map(MTPROPaperSessionViewModel.init)
+        self.source = ViewModelSourceContract()
+        self.sessions = readModel.sessions.map(PaperSessionViewModel.init)
         self.activeSessionCount = readModel.sessions.filter { $0.state == .requested }.count
         self.completedSessionCount = readModel.sessions.filter { $0.state == .completed }.count
         self.lastAppliedSequence = readModel.lastAppliedSequence
     }
 }
 
-public struct MTPRORiskViewModel: Codable, Equatable, Sendable {
-    public let section: MTPRODashboardSection
-    public let source: MTPROViewModelSourceContract
+public struct RiskViewModel: Codable, Equatable, Sendable {
+    public let section: DashboardSection
+    public let source: ViewModelSourceContract
     public let rejectedPaperOrderIDs: [String]
     public let rejectionCount: Int
     public let lastAppliedSequence: Int?
 
-    public init(readModel: MTPRORiskReadModel) {
+    public init(readModel: RiskReadModel) {
         self.section = .risk
-        self.source = MTPROViewModelSourceContract()
+        self.source = ViewModelSourceContract()
         self.rejectedPaperOrderIDs = readModel.rejectedPaperOrderIDs.map(\.rawValue)
         self.rejectionCount = readModel.rejectedPaperOrderIDs.count
         self.lastAppliedSequence = readModel.lastAppliedSequence
     }
 }
 
-public struct MTPROPortfolioViewModel: Codable, Equatable, Sendable {
-    public let section: MTPRODashboardSection
-    public let source: MTPROViewModelSourceContract
+public struct PortfolioViewModel: Codable, Equatable, Sendable {
+    public let section: DashboardSection
+    public let source: ViewModelSourceContract
     public let portfolioIDs: [String]
     public let updatedPortfolioCount: Int
     public let lastAppliedSequence: Int?
 
-    public init(readModel: MTPROPortfolioReadModel) {
+    public init(readModel: PortfolioReadModel) {
         self.section = .portfolio
-        self.source = MTPROViewModelSourceContract()
+        self.source = ViewModelSourceContract()
         self.portfolioIDs = readModel.portfolios.map(\.portfolioID.rawValue)
         self.updatedPortfolioCount = readModel.portfolios.filter { $0.state == .updated }.count
         self.lastAppliedSequence = readModel.lastAppliedSequence
     }
 }
 
-public struct MTPROEventLogViewModel: Codable, Equatable, Sendable {
-    public let section: MTPRODashboardSection
-    public let source: MTPROViewModelSourceContract
+public struct EventLogViewModel: Codable, Equatable, Sendable {
+    public let section: DashboardSection
+    public let source: ViewModelSourceContract
     public let eventCount: Int
     public let streams: [String]
     public let lastSequence: Int?
 
-    public init(readModel: MTPROEventTimelineReadModel) {
+    public init(readModel: EventTimelineReadModel) {
         self.section = .events
-        self.source = MTPROViewModelSourceContract()
+        self.source = ViewModelSourceContract()
         self.eventCount = readModel.envelopes.count
         self.streams = readModel.envelopes.map(\.stream.rawValue).uniqueSorted()
         self.lastSequence = readModel.envelopes.last?.sequence
     }
 }
 
-public struct MTPRODashboardViewModel: Codable, Equatable, Sendable {
-    public let sections: [MTPRODashboardSection]
-    public let market: MTPROMarketViewModel
-    public let strategy: MTPROStrategyViewModel
-    public let backtest: MTPROBacktestViewModel
-    public let paper: MTPROPaperViewModel
-    public let risk: MTPRORiskViewModel
-    public let portfolio: MTPROPortfolioViewModel
-    public let events: MTPROEventLogViewModel
+public struct DashboardViewModel: Codable, Equatable, Sendable {
+    public let sections: [DashboardSection]
+    public let market: MarketViewModel
+    public let strategy: StrategyViewModel
+    public let backtest: BacktestViewModel
+    public let paper: PaperViewModel
+    public let risk: RiskViewModel
+    public let portfolio: PortfolioViewModel
+    public let events: EventLogViewModel
 
     public init(
-        readModel: MTPRODashboardReadModel,
-        sections: [MTPRODashboardSection] = MTPRODashboardSection.allCases
+        readModel: DashboardReadModel,
+        sections: [DashboardSection] = DashboardSection.allCases
     ) {
         self.sections = sections
-        self.market = MTPROMarketViewModel(readModel: readModel.market)
-        self.strategy = MTPROStrategyViewModel(readModel: readModel.strategy)
-        self.backtest = MTPROBacktestViewModel(readModel: readModel.backtest)
-        self.paper = MTPROPaperViewModel(readModel: readModel.paper)
-        self.risk = MTPRORiskViewModel(readModel: readModel.risk)
-        self.portfolio = MTPROPortfolioViewModel(readModel: readModel.portfolio)
-        self.events = MTPROEventLogViewModel(readModel: readModel.events)
+        self.market = MarketViewModel(readModel: readModel.market)
+        self.strategy = StrategyViewModel(readModel: readModel.strategy)
+        self.backtest = BacktestViewModel(readModel: readModel.backtest)
+        self.paper = PaperViewModel(readModel: readModel.paper)
+        self.risk = RiskViewModel(readModel: readModel.risk)
+        self.portfolio = PortfolioViewModel(readModel: readModel.portfolio)
+        self.events = EventLogViewModel(readModel: readModel.events)
     }
 
-    public var viewModelSources: [MTPROViewModelSourceContract] {
+    public var viewModelSources: [ViewModelSourceContract] {
         [
             market.source,
             strategy.source,
@@ -475,8 +475,8 @@ public struct MTPRODashboardViewModel: Codable, Equatable, Sendable {
     }
 }
 
-private extension Array where Element == MTPROMarketBar {
-    func sortedByBarTime() -> [MTPROMarketBar] {
+private extension Array where Element == MarketBar {
+    func sortedByBarTime() -> [MarketBar] {
         sorted { lhs, rhs in
             lhs.interval.end == rhs.interval.end
                 ? lhs.symbol.rawValue < rhs.symbol.rawValue
@@ -485,8 +485,8 @@ private extension Array where Element == MTPROMarketBar {
     }
 }
 
-private extension Array where Element == MTPRODuckDBSignalTimelineProjection {
-    func sortedBySignalTime() -> [MTPRODuckDBSignalTimelineProjection] {
+private extension Array where Element == DuckDBSignalTimelineProjection {
+    func sortedBySignalTime() -> [DuckDBSignalTimelineProjection] {
         sorted { lhs, rhs in
             if lhs.generatedAt != rhs.generatedAt {
                 return lhs.generatedAt < rhs.generatedAt
@@ -499,7 +499,7 @@ private extension Array where Element == MTPRODuckDBSignalTimelineProjection {
     }
 }
 
-private extension MTPROMarketReadModel {
+private extension MarketReadModel {
     func marketSymbols() -> [String] {
         (
             bars.map(\.symbol.rawValue)
