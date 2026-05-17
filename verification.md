@@ -2246,3 +2246,65 @@ Commit：本轮提交
 | --- | --- | --- |
 | `git diff --check` | pass | `symphony-issue` active Project pointer 文档变更通过 whitespace 检查。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+## MTP-16 Core Domain File Split
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 按 Linear issue `MTP-16` 将 `Sources/Core/Core.swift` 按领域边界拆分为多个文件。
+- 保持 `Core` module public API、行为和现有测试语义不变。
+- 补齐触达 production code 的中文边界注释，明确 read-only market data、append-only event log、Paper-only 和禁止 Live trading / signed endpoint / broker action。
+
+文件范围：
+
+- Deleted：
+  - `Sources/Core/Core.swift`
+- Created：
+  - `Sources/Core/CoreError.swift`
+  - `Sources/Core/MarketPrimitives.swift`
+  - `Sources/Core/MarketDataModels.swift`
+  - `Sources/Core/OrderBookReadModel.swift`
+  - `Sources/Core/StrategySignals.swift`
+  - `Sources/Core/OrderBookImbalance.swift`
+  - `Sources/Core/EMACross.swift`
+  - `Sources/Core/CommandsAndQueries.swift`
+  - `Sources/Core/ResearchResults.swift`
+  - `Sources/Core/DomainEvents.swift`
+  - `Sources/Core/ResearchEventFlows.swift`
+  - `Sources/Core/EventLog.swift`
+  - `Sources/Core/MarketDataCache.swift`
+  - `Sources/Core/TradingKernel.swift`
+  - `Sources/Core/CoreBaseline.swift`
+
+边界确认：
+
+- 未新增业务功能。
+- 未修改策略逻辑。
+- 未修改 persistence、adapter、App 行为。
+- 未引入数据库、网络或 UI。
+- 未触碰 Live trading、signed endpoint、broker action 或真实订单行为。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+行为保持检查：
+
+- public 顶层类型数量：拆分前 66，拆分后 66。
+- public 顶层类型缺失：无。
+- public 顶层类型新增：无。
+- `StrategyMarketDataValidation` 仍为 `ResearchEventFlows.swift` 文件内 private helper。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test` | pass | 修复一次机械切分遗漏括号后，39 个 XCTest 通过。 |
+| `git diff --check` | pass | Core 文件拆分无 whitespace error。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |
