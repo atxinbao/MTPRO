@@ -1718,3 +1718,46 @@ Commit：本轮提交
 | --- | --- | --- |
 | `git diff --check` | 通过 | Project Role Map 文档和检查脚本更新无空白问题。 |
 | `bash checks/run.sh` | 通过 | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+## Linear Team Name Correction
+
+日期：2026-05-17
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 修正 `docs/planning/linear-draft-plan.md` 中的目标 Linear 团队名称。
+- 将团队名称统一为 `Macostrader Pro`，团队标识和团队 ID 仍为 `MTP`。
+
+文件范围：
+
+- Created：
+  - 无
+- Updated：
+  - `docs/planning/linear-draft-plan.md`
+  - `verification.md`
+- Deleted：
+  - 无
+
+边界确认：
+
+- 未修改业务源码。
+- 未修改测试源码。
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未运行 Graphify update / full rebuild。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | 通过 | Linear team name 修正文档无空白问题。 |
+| `bash checks/run.sh` | 通过 | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |
