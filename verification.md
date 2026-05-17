@@ -1672,3 +1672,49 @@ Commit：本轮提交
 | --- | --- | --- |
 | `git diff --check` | 通过 | 无空白或补丁格式问题。 |
 | `bash checks/run.sh` | 通过 | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+## MTPRO Project Role Map
+
+日期：2026-05-17
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 补充 MTPRO 项目能力角色地图，明确系统架构、前端设计、后端开发、数据 / 持久化、质量验证、部署与运营等职责覆盖。
+- 将角色地图定位为 Human Project Planning 和阶段复盘辅助文档，不授权执行，不替代 Linear Project / Issue。
+
+文件范围：
+
+- Created：
+  - `docs/planning/project-role-map.md`
+- Updated：
+  - `AGENTS.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+- Deleted：
+  - 无
+
+边界确认：
+
+- 未修改业务源码。
+- 未修改测试源码。
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未运行 Graphify update / full rebuild。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 未实现 `LiveExecutionAdapter`。
+- 未调用 Binance signed endpoint。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | 通过 | Project Role Map 文档和检查脚本更新无空白问题。 |
+| `bash checks/run.sh` | 通过 | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |
