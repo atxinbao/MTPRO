@@ -206,3 +206,31 @@ MTPRO 第一版没有 HTTP API。
 - 不新增 live order command。
 - 不新增 broker account command。
 - 不新增 signed endpoint command。
+
+## MTP-20 Binance Client Command / Query 边界
+
+日期：2026-05-18
+
+执行者：Codex
+
+MTP-20 不新增 HTTP API，也不新增 live / broker / signed command。
+
+`MarketDataQuery` 的后续实现可以通过 `BinancePublicMarketDataClient` 获取 public payload，
+但 client 仍是 Adapters 模块内部边界，不把 raw network response、URL、headers 或 transport
+对象暴露为 API contract。
+
+新增内部边界：
+
+- `BinancePublicMarketDataClient.payload(for:)`：只接受 public read-only request contract。
+- `BinancePublicMarketDataClient.exchangeInfo / klines / recentTrades / bestBidAsk / depthSnapshot / depthDelta`：
+  只返回稳定 Core market data model。
+
+边界确认：
+
+- 不新增 HTTP API。
+- 不新增 database table API。
+- 不新增 Binance signed/account/order command。
+- 不新增 listenKey user data stream command。
+- 不新增 live order command。
+- 不新增 broker account command。
+- 不把 API key、signature、headers 或 transport object 暴露给 UI / App / Persistence。

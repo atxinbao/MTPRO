@@ -25,6 +25,7 @@ bash checks/run.sh
 - DataEngine read-only market event ingest。
 - Cache deterministic replay projection。
 - Binance public read-only contract 和 fixture decoding。
+- Binance public read-only client boundary、mock transport、fixture parity 和 public stream path 断言。
 - EMA cross strategy contract。
 - Backtest / Paper signal timeline parity。
 - Order book imbalance research contract。
@@ -73,6 +74,18 @@ bash checks/run.sh
 - file event log corruption / recovery tests。
 - UI ViewModel snapshot tests。
 - macOS App shell build / run / telemetry tests。
+
+## MTP-20 Binance Client Validation
+
+MTP-20 的 required validation：
+
+- 使用 mock transport 覆盖 REST public endpoint request。
+- 使用 mock transport 覆盖 public depth stream request path。
+- 使用 fixture parity 验证 client decode 结果与 `BinancePublicMarketDataPayloadDecoder` 一致。
+- 断言 transport request 不携带 API key、signature、listenKey、account、order、SAPI、FAPI 或 DAPI 片段。
+- 断言 mutable 或 `requiresAPIKey == true` 的 request contract 在 transport 前被拒绝。
+- 断言非 public market data allowlist 的 Binance path 在 transport 前被拒绝。
+- required validation 不依赖真实 Binance 网络；真实网络 smoke test 只能作为可选人工证据。
 
 ## 禁止
 

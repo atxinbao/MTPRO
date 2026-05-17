@@ -242,3 +242,37 @@ Use Case 输出必须先进入 read model projection，再供 UI 使用。
 - Binance 网络客户端。
 - UI 页面。
 - Live trading、signed endpoint、broker action 或真实订单行为。
+
+## MTP-20 Binance 公开只读行情客户端 Use Case 边界
+
+日期：2026-05-18
+
+执行者：Codex
+
+`LoadMarketData` 在本事项中获得 Adapters 层 public read-only client boundary，但仍不进入
+MTP-21 ingest 串联。
+
+契约结构：
+
+- 输入仍来自 `BinancePublicMarketDataEndpoint`、`Symbol`、`Timeframe` 和 `DateRange`。
+- 网络边界由 `BinancePublicMarketDataClient` 负责生成 public request、调用 transport 并复用 decoder。
+- 输出只能是 Core market data model：`BinanceExchangeInfo`、`MarketBar`、`TradeTick`、`BestBidAsk`、
+  `OrderBookSnapshot` 或 `OrderBookDelta`。
+- required validation 通过 mock transport 与 fixture parity 验证，不依赖真实 Binance 网络。
+
+契约要求：
+
+- Use Case 只能读取 Binance public market data。
+- request 必须是 read-only，且 `requiresAPIKey == false`。
+- client 必须拒绝 mutable、API key、signed、account、order、listenKey、SAPI、FAPI 和 DAPI 语义。
+- depth stream 当前只验证 public depth delta 单条 payload 边界，不管理 WebSocket 生命周期。
+
+本契约不包含：
+
+- DataEngine ingest 串联。
+- Event Log 写入。
+- replay / projection 触发。
+- SwiftUI 页面。
+- 真实网络 smoke test required validation。
+- signed endpoint、account endpoint、listenKey user data stream。
+- 真实 broker action、真实订单行为、Live trading 或 futures leverage / margin action。

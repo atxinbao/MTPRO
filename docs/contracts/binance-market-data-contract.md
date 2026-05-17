@@ -73,3 +73,43 @@
 - API key、signature、listenKey 或 account payload。
 - 订单 submit / cancel / replace。
 - 策略、内核、缓存、持久化或 UI 行为。
+
+## MTP-20 公开只读客户端边界
+
+日期：2026-05-18
+
+执行者：Codex
+
+`Adapters` 在本事项中新增 Binance public market data client boundary，用于把既有 endpoint contract
+和 fixture decoder 串成可测试的真实网络客户端边界。
+
+契约结构：
+
+- `BinancePublicMarketDataClientConfiguration`：只保存 public REST base URL 和 public WebSocket base URL。
+- `BinancePublicTransportRequest`：封装 transport 前的 method、URL、headers 和原始 public request contract；headers 默认为空。
+- `BinancePublicMarketDataTransport`：抽象 public payload 读取能力，允许 required validation 使用 mock transport。
+- `URLSessionBinancePublicMarketDataTransport`：真实网络边界实现，只接受已校验的 public read-only request。
+- `BinancePublicMarketDataClient`：复用 `BinancePublicMarketDataContract.request(for:)` 和
+  `BinancePublicMarketDataPayloadDecoder`，提供 exchangeInfo、klines、recent trades、best bid / ask、
+  depth snapshot 和 depth delta 的只读读取入口。
+
+契约要求：
+
+- client 发起 transport 前必须重新校验 `isReadOnly == true`。
+- client 发起 transport 前必须重新校验 `requiresAPIKey == false`。
+- client 发起 transport 前必须校验 path 属于 Binance public market data allowlist。
+- transport request 不得携带 API key、signature、listenKey、account、order、SAPI、FAPI 或 DAPI 片段。
+- REST endpoint 使用 public GET 路径。
+- depth delta 只支持 public depth stream 单条 payload 读取边界，不创建 listenKey user data stream。
+- required validation 必须使用 mock transport 和 fixture parity，不依赖真实 Binance 网络。
+
+本契约不包含：
+
+- MTP-21 ingest 串联。
+- Event Log 写入。
+- DataEngine / TradingKernel 接入。
+- 真实网络 smoke test 作为 required validation。
+- API key、signed endpoint、account endpoint、listenKey user data stream。
+- 订单提交、取消、替换。
+- futures leverage / margin action。
+- LiveExecutionAdapter、真实 broker action 或真实订单行为。
