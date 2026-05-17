@@ -19,7 +19,11 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - 最近合并 PR：MTPRO #31 `Close out MTPRO active documentation`
 - 最近 merge commit：`486cee21bfeb7e1fbc34e0506a37825eb165509e`
 - 当前基线：active docs 已收口，`MTPRO 引导` Project 已完成。
-- 当前下一步：Human 基于阶段审计报告规划新的 Linear Project。
+- 下一阶段 Linear Project：`MTPRO Runtime Research Workbench v1` 已创建，Project status 为 `Planned`。
+- 下一阶段 Linear issues：`MTP-16` 到 `MTP-23` 已创建且仍为 `Backlog`。
+- 当前 Todo：none。
+- First executable candidate：`MTP-16`，进入 `Todo` 仍需 Human 明确授权。
+- Linear Project / Issue 正文必须在第一个 `Todo` 前统一为 Codex Execution Agent 执行合同格式，并由父 Codex 做只读核对。
 
 ## 最近验证
 
@@ -27,13 +31,13 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 | --- | --- | --- |
 | `git diff --check` | pass | Active docs closeout 无空白问题。 |
 | `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.` |
-| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |
+| `bash checks/run.sh` | pass | Runtime Research Workbench Linear planning 摘要更新通过；`git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |
 
 ## 当前边界
 
 - 不固定 current Linear issue。
 - 不修改 Linear status。
-- 不创建 Linear Project / Issue。
+- 不再创建新的 Linear Project / Issue。
 - 不启动 Symphony。
 - 不运行 Graphify full rebuild。
 - 不提交 `.codex/*`。

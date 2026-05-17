@@ -6,7 +6,12 @@ ROADMAP 只定义阶段顺序，不授权执行。
 
 ## 当前基线
 
-`MTPRO 引导` Project 已完成。下一步是 Human 基于 `docs/audit/mtpro-guidance-stage-code-audit.md` 规划新的 Linear Project。
+`MTPRO 引导` Project 已完成。Human 已确认下一阶段 Project：
+
+- Linear Project：`MTPRO Runtime Research Workbench v1`
+- Linear issues：`MTP-16` 到 `MTP-23`
+- Project / Issue 描述必须在第一个 `Todo` 前统一为 Codex Execution Agent 执行合同格式，并由父 Codex 做只读核对。
+- 当前无 `Todo` issue；`MTP-16` 是 first executable candidate，但仍为 `Backlog`。
 
 仓库文档不得把某个 Linear issue 永久写成 current issue；执行前必须从 Linear / Parent Codex queue preview 读取当前 Project 的唯一 active configured executable issue。
 
@@ -26,9 +31,9 @@ ROADMAP 只定义阶段顺序，不授权执行。
 
 ## 下一步
 
-1. Human 确认下一 Project 目标。
-2. 父 Codex 可辅助做 queue preview、阶段代码审计引用和 Linear planning draft。
-3. 只有 Human 明确授权后，父 Codex 才可将 eligible issue 推进为唯一 `Todo`。
+1. 统一 Linear Project / Issue 描述格式，确认 issue execution contract 完整。
+2. 父 Codex 做只读 queue preview，确认 `MTP-16` 仍为 first executable candidate、其他 issue 仍为 `Backlog` 且 WIP=1。
+3. 只有 Human 明确授权后，父 Codex 才可将 `MTP-16` 推进为唯一 `Todo`。
 4. symphony-issue 只调度唯一 `Todo` issue。
 
 ## 非授权边界
@@ -38,3 +43,4 @@ ROADMAP 只定义阶段顺序，不授权执行。
 - `ROADMAP.md` 不启动 symphony-issue。
 - `ROADMAP.md` 不运行 Graphify update。
 - `ROADMAP.md` 不解锁下一个 issue。
+- `ROADMAP.md` 不授权任何 Agent 直接把 issue 改为 `Todo`。

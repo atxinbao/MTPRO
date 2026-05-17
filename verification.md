@@ -2075,3 +2075,79 @@ Commit：本轮提交
 | --- | --- | --- |
 | `git diff --check` | pass | 最近验证摘要无空白问题。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+## Runtime Research Workbench Linear Planning
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 将 Human 确认的 `MTPRO Runtime Research Workbench v1` 写入 Linear。
+- 创建 `MTP-16` 到 `MTP-23`，全部保持 `Backlog` / non-executable。
+- 统一 Linear Project / Issue 正文为 Codex Execution Agent 执行合同格式。
+- 在仓库中只记录摘要、issue 顺序、依赖和格式规则，不复制 8 个 issue 全文。
+
+Linear 写入摘要：
+
+- Project：`MTPRO Runtime Research Workbench v1`
+- Project status：`Planned`
+- Issue range：`MTP-16` 到 `MTP-23`
+- Current Todo：none
+- First executable candidate：`MTP-16`
+- WIP=1：当前满足，未推进任何 issue 到 `Todo`
+
+Linear issue 顺序：
+
+| 顺序 | Linear issue | 目标 |
+| --- | --- | --- |
+| 1 | `MTP-16` | 按领域边界拆分 `Core.swift`，不改变行为 |
+| 2 | `MTP-17` | 新增追加式事件日志文件持久化和重放冒烟测试 |
+| 3 | `MTP-18` | 新增 SQLite 运行时投影适配器最小闭环 |
+| 4 | `MTP-19` | 新增 DuckDB 分析投影适配器最小闭环 |
+| 5 | `MTP-20` | 新增 Binance 公开只读行情客户端边界 |
+| 6 | `MTP-21` | 串联行情 ingest -> event log -> replay -> projection snapshots |
+| 7 | `MTP-22` | 新增绑定视图模型快照的 macOS 看板壳 |
+| 8 | `MTP-23` | 新增“研究 -> 回测 -> 报告”最小路径和阶段证据就绪 |
+
+Linear blocker 依赖：
+
+- `MTP-17` blocked by `MTP-16`。
+- `MTP-18` blocked by `MTP-17`。
+- `MTP-19` blocked by `MTP-17`。
+- `MTP-20` blocked by `MTP-16`。
+- `MTP-21` blocked by `MTP-17`, `MTP-18`, `MTP-19`, `MTP-20`。
+- `MTP-22` blocked by `MTP-18`, `MTP-19`, `MTP-21`。
+- `MTP-23` blocked by `MTP-21`, `MTP-22`。
+
+仓库文件范围：
+
+- Updated：
+  - `AGENTS.md`
+  - `ROADMAP.md`
+  - `checks/automation-readiness.sh`
+  - `docs/automation/parent-codex-supervision.md`
+  - `docs/planning/linear-draft-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- 未写业务代码。
+- 未推进任何 Linear issue 到 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update / full rebuild。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 仓库文档只记录摘要和格式规则，不复制 8 个 issue 全文。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |
