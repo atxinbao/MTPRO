@@ -1,3 +1,4 @@
+import Foundation
 import Core
 import Persistence
 import XCTest
@@ -30,6 +31,66 @@ final class PersistenceTests: XCTestCase {
         XCTAssertEqual(rebuiltCache.marketEventCount, 2)
         XCTAssertEqual(rebuiltCache.barsBySeries.count, 1)
         XCTAssertEqual(rebuiltCache.tradesBySymbol.count, 1)
+    }
+
+    func testFileEventLogStoreAppendsAndReplaysStableEnvelopes() throws {
+        // 测试场景：文件事件日志只追加 Core envelope，并通过 replay contract 输出稳定事实。
+        let store = try makeTemporaryFileEventLogStore()
+        let envelopes = Array(try makeFullEventLog().prefix(3))
+
+        try store.append(contentsOf: envelopes)
+        let restoredEnvelopes = try store.readEnvelopes()
+        let replay = try store.replay(
+            EventReplayCommand(
+                range: try EventSequenceRange(lowerBound: 1, upperBound: 3),
+                streams: [.market]
+            )
+        )
+
+        XCTAssertEqual(restoredEnvelopes, envelopes)
+        XCTAssertEqual(restoredEnvelopes.map(\.sequence), [1, 2, 3])
+        XCTAssertEqual(replay.envelopes.map(\.sequence), [1, 2])
+        XCTAssertTrue(replay.envelopes.allSatisfy { $0.stream == .market })
+    }
+
+    func testFileEventLogStoreRejectsOutOfOrderAppendToProtectAppendOnlyInvariant() throws {
+        // 测试场景：文件中已有 sequence 1 时拒绝跳过 sequence 2，避免破坏 append-only 事实流。
+        let store = try makeTemporaryFileEventLogStore()
+        let envelopes = try makeFullEventLog()
+
+        try store.append(envelopes[0])
+
+        XCTAssertThrowsError(try store.append(envelopes[2])) { error in
+            XCTAssertEqual(error as? CoreError, .invalidSequenceRange)
+        }
+        XCTAssertEqual(try store.readEnvelopes(), [envelopes[0]])
+    }
+
+    func testReplayBoundaryCanRebuildProjectionSnapshotsFromFileEventLog() throws {
+        // 测试场景：文件 facts source 经 replay 后仍只能产生稳定投影输入，不暴露 JSONL 文件格式给 UI。
+        let store = try makeTemporaryFileEventLogStore()
+        let envelopes = try makeFullEventLog()
+        try store.append(contentsOf: envelopes)
+
+        let boundary = try PersistenceReplayBoundary(fileStore: store)
+        let marketCommand = EventReplayCommand(
+            range: try EventSequenceRange(lowerBound: 1, upperBound: envelopes.count),
+            streams: [.market]
+        )
+        let runtimeCommand = EventReplayCommand(
+            range: try EventSequenceRange(lowerBound: 1, upperBound: envelopes.count),
+            streams: [.paper, .risk, .portfolio]
+        )
+
+        let marketSnapshot = boundary.rebuildMarketDataCache(from: marketCommand)
+        let runtimeSnapshot = boundary.rebuildSQLiteRuntimeProjection(from: runtimeCommand)
+        let session = try XCTUnwrap(runtimeSnapshot.paperSessions[try Identifier("paper-ema-fixture")])
+
+        XCTAssertEqual(boundary.envelopes, envelopes)
+        XCTAssertEqual(marketSnapshot.marketEventCount, 2)
+        XCTAssertEqual(runtimeSnapshot.lastAppliedSequence, envelopes.count)
+        XCTAssertEqual(session.state, .completed)
+        XCTAssertEqual(session.executionMode, .paper)
     }
 
     func testTemporarySQLiteProjectionRebuildsRuntimeState() throws {
@@ -208,6 +269,17 @@ final class PersistenceTests: XCTestCase {
         )
 
         return messageBus.envelopes
+    }
+
+    private func makeTemporaryFileEventLogStore() throws -> FileEventLogStore {
+        let directoryURL = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "MTPRO-PersistenceTests-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: directoryURL)
+        }
+        return FileEventLogStore(fileURL: directoryURL.appendingPathComponent("events.jsonl"))
     }
 
     private func makeMarketBar(close: Double = 105, start: TimeInterval = 100) throws -> MarketBar {

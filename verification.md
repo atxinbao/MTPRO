@@ -2359,3 +2359,50 @@ Commit：本轮提交
 | --- | --- | --- |
 | `git diff --check` | pass | Parent Codex 自动 Project 调度文档变更通过 whitespace 检查。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+## MTP-17 File-backed Append-only Event Log
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 按 Linear issue `MTP-17` 新增追加式事件日志文件持久化边界。
+- 支持写入 Core `EventEnvelope`，并按 `EventReplayCommand` 从文件事实源 replay。
+- 验证 append-only sequence 不变量和 replay smoke path，为后续 SQLite / DuckDB adapter 提供稳定事实源。
+- 保持文件格式对 UI、数据库 schema 和外部 API 不可见。
+
+文件范围：
+
+- Updated：
+  - `Sources/Persistence/Persistence.swift`
+  - `Tests/PersistenceTests/PersistenceTests.swift`
+  - `docs/contracts/api-contract.md`
+  - `docs/contracts/backend-use-case-contract.md`
+  - `docs/contracts/persistence-boundary.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- 未实现 SQLite adapter。
+- 未实现 DuckDB adapter。
+- 未做 schema migration。
+- 未接 Binance 网络。
+- 未做 UI。
+- 未触碰 Live trading、signed endpoint、broker action 或真实订单行为。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test` | pass | 42 个 XCTest 通过；新增文件事件日志 append、append-only 拒绝跳号、file replay projection smoke 测试。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；42 个 XCTest 通过，输出 `MTPRO checks passed.` |
