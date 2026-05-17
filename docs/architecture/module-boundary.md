@@ -48,6 +48,23 @@
 - 直接驱动 UI。
 - 直接执行策略。
 
+## Runtime
+
+职责：
+
+- 串联 Binance public read-only client boundary。
+- 调用 Core TradingKernel / DataEngine 写入 append-only market event stream。
+- 通过 FileEventLogStore 和 PersistenceReplayBoundary 做 replay。
+- 输出稳定 SQLite runtime projection snapshot 和 DuckDB analytical projection snapshot。
+
+不负责：
+
+- SwiftUI 页面。
+- 真实 Binance 网络 smoke test 的 required validation。
+- signed endpoint、account endpoint、listenKey user data stream。
+- broker action、真实订单行为或 Live execution。
+- 暴露 SQLite / DuckDB schema 给 UI。
+
 ## App
 
 职责：

@@ -276,3 +276,36 @@ MTP-21 ingest 串联。
 - 真实网络 smoke test required validation。
 - signed endpoint、account endpoint、listenKey user data stream。
 - 真实 broker action、真实订单行为、Live trading 或 futures leverage / margin action。
+
+## MTP-21 行情 ingest / replay / projection 串联契约
+
+日期：2026-05-18
+
+执行者：Codex
+
+`LoadMarketData` 在本事项中进入 Runtime 本地编排边界，把 Binance public read-only client
+输出的 Core market data model 写入 append-only event log，并从 replay 重建投影快照。
+
+契约结构：
+
+- `PublicMarketDataIngestPlan`：定义 symbol、timeframe、range、public endpoint limit、观察时间和确定性 recordedAt。
+- `MarketDataIngestReplayProjectionWorkflow`：串联 `BinancePublicMarketDataClient`、`TradingKernel`、`FileEventLogStore` 和 `PersistenceReplayBoundary`。
+- `MarketDataIngestReplayProjectionResult`：输出 ingest events、event envelopes、replay result、market cache snapshot、SQLite runtime projection snapshot 和 DuckDB analytical projection snapshot。
+
+契约要求：
+
+- required validation 必须注入 mock transport 和 fixture payload，不依赖真实 Binance 网络。
+- event log sequence 必须保持从 1 开始连续递增。
+- replay result 必须与写入的 market event envelopes 一致。
+- DuckDB analytical snapshot 必须从 replay envelope 重建 market bars、trades、best bid / ask、order book snapshot 和 delta。
+- SQLite runtime snapshot 在 market-only ingest 下保持稳定空 snapshot，因为 Paper / Risk / Portfolio 不属于当前行情 ingest 事实。
+- Runtime 不允许 App 直接调用 Binance adapter，也不允许 UI 直接读取 SQLite / DuckDB schema。
+
+本契约不包含：
+
+- SwiftUI 页面。
+- 完整报表路径。
+- 真实网络 smoke test required validation。
+- 多 run 续写游标合同。
+- signed endpoint、account endpoint、listenKey user data stream。
+- broker action、真实订单行为、Live trading 或 futures leverage / margin action。

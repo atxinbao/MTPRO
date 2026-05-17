@@ -2565,3 +2565,61 @@ Commit：本轮提交
 | --- | --- | --- |
 | `swift test --filter AdaptersTests` | pass | 12 个 AdaptersTests 通过；新增 mock transport、REST fixture parity、public depth stream path 和 mutable/API-key contract transport 前拒绝测试。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；52 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+## MTP-21 Runtime Market Data Ingest Replay Projection
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 按 Linear issue `MTP-21` 串联 Binance public read-only market data ingest -> Core event log -> replay -> SQLite / DuckDB projection snapshots。
+- 新增薄 `Runtime` target，依赖 `Adapters`、`Core` 和 `Persistence` 做跨模块编排，避免 `App` 直接调用 Binance adapter。
+- required validation 使用 mock transport / fixture parity，不依赖真实 Binance 网络。
+- 验证 market event sequence 单调、replay deterministic、DuckDB analytical snapshot 来自 replay，SQLite runtime snapshot 在 market-only ingest 下保持稳定空 snapshot。
+
+文件范围：
+
+- Added：
+  - `Sources/Runtime/Runtime.swift`
+  - `Tests/RuntimeTests/RuntimeTests.swift`
+- Updated：
+  - `Package.swift`
+  - `README.md`
+  - `ARCHITECTURE.md`
+  - `docs/architecture/module-boundary.md`
+  - `docs/contracts/api-contract.md`
+  - `docs/contracts/backend-use-case-contract.md`
+  - `docs/contracts/binance-market-data-contract.md`
+  - `docs/contracts/persistence-boundary.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- Runtime 只消费 Binance public read-only client 输出。
+- 自动验证只使用 mock transport 和 fixture payload。
+- request 不携带 API key、signature、listenKey、account、order、SAPI、FAPI 或 DAPI 片段。
+- Event Log / replay envelope 仍是事实源。
+- Projection snapshots 来自 replay，不暴露 SQLite / DuckDB schema。
+- Market-only ingest 不伪造 Paper / Risk / Portfolio runtime facts。
+- 未新增 UI。
+- 未新增完整报表路径。
+- 未把真实 Binance 网络 smoke test 作为 required validation。
+- 未触碰 Live trading、signed endpoint、broker action 或真实订单行为。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test` | pass | 55 个 XCTest 通过；新增 3 个 RuntimeTests 覆盖端到端 ingest / event log / replay / projection snapshot、非空 file event log 拒绝和 SQLite adapter replay query。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；55 个 XCTest 通过，输出 `MTPRO checks passed.` |

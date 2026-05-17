@@ -15,6 +15,7 @@ MTPRO 是 Swift-only macOS 交易研究工作台。
 | `Core` | 领域模型、事件、命令、策略契约、MessageBus、Kernel / Engine 边界 |
 | `Adapters` | Binance public read-only market data adapter 边界 |
 | `Persistence` | Event Log、SQLite runtime projection、DuckDB analytical projection 边界 |
+| `Runtime` | Binance public read-only ingest、Core event log、replay 与 projection snapshot 的本地编排边界 |
 | `App` | Trader Workstation Dashboard 产品面和 ViewModel 边界 |
 
 ## 目标数据流
@@ -22,6 +23,7 @@ MTPRO 是 Swift-only macOS 交易研究工作台。
 ```text
 Binance public data
 -> Adapter
+-> Runtime ingest workflow
 -> DataEngine
 -> Cache
 -> Strategy

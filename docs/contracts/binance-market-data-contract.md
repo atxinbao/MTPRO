@@ -113,3 +113,29 @@
 - 订单提交、取消、替换。
 - futures leverage / margin action。
 - LiveExecutionAdapter、真实 broker action 或真实订单行为。
+
+## MTP-21 Runtime Ingest 串联边界
+
+日期：2026-05-18
+
+执行者：Codex
+
+MTP-21 通过 `Runtime` 模块消费 `BinancePublicMarketDataClient` 的 public read-only 输出，
+并把结果转换为 Core `MarketEvent` 写入本地 event log。
+
+新增确认：
+
+- 自动验证必须使用 mock transport / fixture parity。
+- Runtime 只允许读取 `klines`、recent trades、best bid / ask、depth snapshot 和 public depth delta。
+- transport request 仍必须满足 read-only、`requiresAPIKey == false` 和 public allowlist。
+- depth delta 仍只消费 public stream 单条 payload，不创建 listenKey user data stream。
+- 真实 Binance 网络 smoke test 只能作为可选人工证据，不得成为 required validation。
+
+边界确认：
+
+- 不接 API key。
+- 不接 signed endpoint。
+- 不接 account endpoint。
+- 不提交、取消或替换订单。
+- 不实现 futures leverage / margin action。
+- 不实现 LiveExecutionAdapter、真实 broker action 或真实订单行为。

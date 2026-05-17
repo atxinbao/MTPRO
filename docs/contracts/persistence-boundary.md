@@ -158,3 +158,33 @@ Persistence Boundary 必须先于真实 database adapter 实现。
 - Binance 网络客户端。
 - Live execution persistence。
 - broker / exchange side effect。
+
+## MTP-21 Ingest Replay Projection 边界
+
+日期：2026-05-18
+
+执行者：Codex
+
+`Runtime` 在本事项中把 market data ingest 结果写入 `FileEventLogStore`，再通过
+`PersistenceReplayBoundary` 重建 projection snapshots。
+
+契约结构：
+
+- `FileEventLogStore` 仍是 append-only facts source。
+- replay command 当前只选择 `.market` stream。
+- `SQLiteRuntimeProjectionSnapshot` 仍只表达 Paper / Risk / Portfolio runtime read model；market-only replay 输出稳定空 snapshot。
+- `DuckDBAnalyticalProjectionSnapshot` 承载 market bars、trades、best bid / ask、order book snapshot 和 delta。
+
+契约要求：
+
+- Runtime workflow 只接受空文件事实源，避免未定义的多 run 续写破坏 sequence 单调性。
+- Projection snapshots 必须来自 replay envelope，不得由 UI 或 ViewModel 直连 database schema。
+- SQLite / DuckDB adapter 仍是私有投影存储实现细节。
+
+本契约不包含：
+
+- 多 run event log 游标。
+- UI 直接读库。
+- database table API。
+- 真实 Binance 网络 required validation。
+- Live execution persistence、signed endpoint、broker action 或真实订单行为。
