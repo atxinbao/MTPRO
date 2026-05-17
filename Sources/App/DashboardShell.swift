@@ -66,7 +66,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
 
     public init(
         title: String = "MTPRO Research Workbench",
-        subtitle: String = "Research -> Backtest -> Paper",
+        subtitle: String = "Research -> Backtest -> Report",
         viewModel: DashboardViewModel
     ) {
         self.title = title
@@ -100,6 +100,8 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             return makeStrategySnapshot(viewModel.strategy)
         case .backtest:
             return makeBacktestSnapshot(viewModel.backtest)
+        case .report:
+            return makeReportSnapshot(viewModel.report)
         case .paper:
             return makePaperSnapshot(viewModel.paper)
         case .risk:
@@ -171,6 +173,31 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             ],
             details: [
                 "Run IDs: \(joined(viewModel.runs.map(\.runID)))",
+                "Last sequence: \(format(viewModel.lastAppliedSequence))"
+            ]
+        )
+    }
+
+    private static func makeReportSnapshot(
+        _ viewModel: ReportViewModel
+    ) -> DashboardShellSectionSnapshot {
+        DashboardShellSectionSnapshot(
+            section: .report,
+            title: viewModel.section.rawValue,
+            systemImage: "doc.richtext",
+            source: viewModel.source,
+            metrics: [
+                DashboardShellMetric(label: "Reports", value: "\(viewModel.artifactCount)"),
+                DashboardShellMetric(label: "Backtests", value: "\(viewModel.completedBacktestCount)"),
+                DashboardShellMetric(label: "Research", value: "\(viewModel.researchRunCount)"),
+                DashboardShellMetric(label: "Parity", value: "\(viewModel.matchedParityEvidenceCount)")
+            ],
+            details: [
+                "Report IDs: \(joined(viewModel.artifacts.map(\.reportID)))",
+                "Backtest run IDs: \(joined(viewModel.artifacts.map(\.backtestRunID)))",
+                "Paper sessions: \(joined(viewModel.artifacts.flatMap(\.paperSessionIDs)))",
+                "Execution: \(format(viewModel.authorizesTradingExecution))",
+                "Latest parity: \(format(viewModel.latestParityStatus))",
                 "Last sequence: \(format(viewModel.lastAppliedSequence))"
             ]
         )
@@ -273,6 +300,17 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         return value.rawValue
     }
 
+    private static func format(_ value: Bool) -> String {
+        value ? "authorized" : "research-only"
+    }
+
+    private static func format(_ value: ReportParityStatus?) -> String {
+        guard let value else {
+            return "n/a"
+        }
+        return value.rawValue
+    }
+
     private static func joined(_ values: [String]) -> String {
         values.isEmpty ? "n/a" : values.joined(separator: ", ")
     }
@@ -288,6 +326,7 @@ public extension DashboardReadModel {
             market: MarketReadModel(),
             strategy: StrategyReadModel(),
             backtest: BacktestReadModel(),
+            report: ReportReadModel(),
             paper: PaperReadModel(),
             risk: RiskReadModel(),
             portfolio: PortfolioReadModel(),
@@ -309,7 +348,7 @@ public extension DashboardViewModel {
 /// DashboardShellView 是 MTPRO 第一版 macOS 只读看板壳。
 ///
 /// 该 View 只接收 `DashboardViewModel`，内部立即转换为 `DashboardShellSnapshot` 渲染
-/// Market、Strategy、Backtest、Paper、Risk、Portfolio 和 Events 七个区域；它没有按钮、
+/// Market、Strategy、Backtest、Report、Paper、Risk、Portfolio 和 Events 八个区域；它没有按钮、
 /// 表单或命令出口，因此不会触发外部系统、副作用或真实交易行为。
 #if canImport(SwiftUI) && os(macOS)
 public struct DashboardShellView: View {

@@ -9,7 +9,7 @@ final class AppTests: XCTestCase {
 
         XCTAssertEqual(
             baseline.sections,
-            [.market, .strategy, .backtest, .paper, .risk, .portfolio, .events]
+            [.market, .strategy, .backtest, .report, .paper, .risk, .portfolio, .events]
         )
     }
 
@@ -18,9 +18,15 @@ final class AppTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.sections,
-            [.market, .strategy, .backtest, .paper, .risk, .portfolio, .events]
+            [.market, .strategy, .backtest, .report, .paper, .risk, .portfolio, .events]
         )
         XCTAssertTrue(viewModel.viewModelSources.allSatisfy(\.isReadModelOnly))
+        XCTAssertEqual(viewModel.report.source.sourceKind, .stableReadModelProjection)
+        XCTAssertFalse(viewModel.report.source.exposesDatabaseTables)
+        XCTAssertFalse(viewModel.report.source.exposesORMModels)
+        XCTAssertFalse(viewModel.report.source.exposesRuntimeObjects)
+        XCTAssertFalse(viewModel.report.source.callsBinanceAdapter)
+        XCTAssertFalse(viewModel.report.source.providesLiveOrderAction)
         XCTAssertEqual(viewModel.events.source.sourceKind, .stableReadModelProjection)
         XCTAssertFalse(viewModel.events.source.exposesDatabaseTables)
         XCTAssertFalse(viewModel.events.source.exposesORMModels)
@@ -50,6 +56,31 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(viewModel.backtest.completedRunCount, 1)
         XCTAssertEqual(viewModel.backtest.latestSignalDirection, .flat)
 
+        XCTAssertEqual(viewModel.report.artifactCount, 1)
+        XCTAssertEqual(viewModel.report.completedBacktestCount, 1)
+        XCTAssertEqual(viewModel.report.researchRunCount, 1)
+        XCTAssertEqual(viewModel.report.paperSessionCount, 1)
+        XCTAssertEqual(viewModel.report.matchedParityEvidenceCount, 1)
+        XCTAssertEqual(viewModel.report.latestParityStatus, .matchedProjectionEvidence)
+        XCTAssertEqual(viewModel.report.lastAppliedSequence, 12)
+        XCTAssertFalse(viewModel.report.authorizesTradingExecution)
+        let report = try XCTUnwrap(viewModel.report.artifacts.first)
+        XCTAssertEqual(report.reportID, "report-backtest-ema-fixture")
+        XCTAssertEqual(report.backtestRunID, "backtest-ema-fixture")
+        XCTAssertEqual(report.backtestState, .completed)
+        XCTAssertEqual(report.researchIDs, ["obi-research-fixture"])
+        XCTAssertEqual(report.paperSessionIDs, ["paper-ema-fixture"])
+        XCTAssertEqual(report.strategyIDs, ["ema-cross", "obi-fixture"])
+        XCTAssertEqual(report.symbol, "BTCUSDT")
+        XCTAssertEqual(report.timeframe, "1m")
+        XCTAssertEqual(report.backtestSignalCount, 2)
+        XCTAssertEqual(report.researchSignalCount, 1)
+        XCTAssertEqual(report.paperSignalCount, 2)
+        XCTAssertEqual(report.eventCount, 3)
+        XCTAssertEqual(report.parityStatus, .matchedProjectionEvidence)
+        XCTAssertEqual(report.executionAuthorization, .researchOutputOnly)
+        XCTAssertFalse(report.authorizesTradingExecution)
+
         XCTAssertEqual(viewModel.paper.sessions.map(\.sessionID), ["paper-ema-fixture"])
         XCTAssertEqual(viewModel.paper.sessions.first?.executionMode, .paper)
         XCTAssertEqual(viewModel.paper.completedSessionCount, 1)
@@ -75,8 +106,26 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(decoded, viewModel)
         XCTAssertEqual(decoded.market.section, .market)
         XCTAssertEqual(decoded.backtest.runs.first?.state, .completed)
+        XCTAssertEqual(decoded.report.artifacts.first?.parityStatus, .matchedProjectionEvidence)
+        XCTAssertFalse(decoded.report.authorizesTradingExecution)
         XCTAssertEqual(decoded.paper.sessions.first?.state, .completed)
         XCTAssertEqual(decoded.events.lastSequence, 3)
+    }
+
+    func testReportReadModelMarksMissingPaperProjectionWithoutLiveFallback() throws {
+        // 测试场景：MTP-23 报告只能从 projection snapshot / read model 生成。
+        // 当 Paper 投影缺失时，报告必须给出缺失证据状态，不能退回 Live、broker 或真实订单路径。
+        let report = ReportReadModel(
+            analyticalProjection: try makeAnalyticalProjection(),
+            runtimeProjection: SQLiteRuntimeProjectionSnapshot(),
+            eventTimeline: try makeEventTimeline()
+        )
+        let artifact = try XCTUnwrap(report.artifacts.first)
+
+        XCTAssertEqual(artifact.parityStatus, .missingPaperProjection)
+        XCTAssertEqual(artifact.executionAuthorization, .researchOutputOnly)
+        XCTAssertFalse(artifact.authorizesTradingExecution)
+        XCTAssertEqual(artifact.paperSessionIDs, [])
     }
 
     @MainActor
@@ -88,7 +137,7 @@ final class AppTests: XCTestCase {
         let snapshot = shell.snapshot
 
         XCTAssertEqual(snapshot.title, "MTPRO Research Workbench")
-        XCTAssertEqual(snapshot.subtitle, "Research -> Backtest -> Paper")
+        XCTAssertEqual(snapshot.subtitle, "Research -> Backtest -> Report")
         XCTAssertEqual(snapshot.sections.map(\.section), viewModel.sections)
         XCTAssertTrue(snapshot.isReadModelOnly)
         XCTAssertTrue(snapshot.viewModelSources.allSatisfy(\.isReadModelOnly))
@@ -103,11 +152,20 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(metricValue("Runs", in: backtest), "1")
         XCTAssertEqual(metricValue("Signals", in: backtest), "2")
 
+        let report = try XCTUnwrap(snapshot.sections.first { $0.section == .report })
+        XCTAssertEqual(metricValue("Reports", in: report), "1")
+        XCTAssertEqual(metricValue("Backtests", in: report), "1")
+        XCTAssertEqual(metricValue("Research", in: report), "1")
+        XCTAssertEqual(metricValue("Parity", in: report), "1")
+        XCTAssertTrue(report.details.contains("Report IDs: report-backtest-ema-fixture"))
+        XCTAssertTrue(report.details.contains("Execution: research-only"))
+        XCTAssertTrue(report.details.contains("Latest parity: matched projection evidence"))
+
         let paper = try XCTUnwrap(snapshot.sections.first { $0.section == .paper })
         XCTAssertEqual(metricValue("Sessions", in: paper), "1")
         XCTAssertEqual(metricValue("Completed", in: paper), "1")
 
-        XCTAssertTrue(snapshot.smokeSummary.contains("sections=7"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("sections=8"))
         XCTAssertTrue(snapshot.smokeSummary.contains("readModelOnly=true"))
     }
 
@@ -123,6 +181,10 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(market?.metrics.first { $0.label == "Symbols" }?.value, "0")
         XCTAssertEqual(market?.metrics.first { $0.label == "Bars" }?.value, "0")
         XCTAssertEqual(market?.metrics.first { $0.label == "Latest close" }?.value, "n/a")
+
+        let report = snapshot.sections.first { $0.section == .report }
+        XCTAssertEqual(report?.metrics.first { $0.label == "Reports" }?.value, "0")
+        XCTAssertEqual(report?.metrics.first { $0.label == "Parity" }?.value, "0")
 
         let events = snapshot.sections.first { $0.section == .events }
         XCTAssertEqual(events?.metrics.first { $0.label == "Events" }?.value, "0")

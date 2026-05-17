@@ -15,6 +15,7 @@ UI 第一版只做最小观察和操作入口，不追求完整交易终端。
 | Market | 观察 Binance public market data | 只读 |
 | Strategy | 查看策略配置和信号 | EMA cross 优先 |
 | Backtest | 运行和查看回测结果 | 第一优先级 |
+| Report | 查看研究到回测的最小报告快照 | 只读，报告不授权交易执行 |
 | Paper | 查看 paper execution 状态 | 不触发 live broker action |
 | Risk | 查看风险限制和拦截原因 | 只读投影 |
 | Portfolio | 查看组合投影 | 只读投影 |
@@ -46,3 +47,26 @@ UI 第一版只做最小观察和操作入口，不追求完整交易终端。
 - live order button。
 - 真实 broker action。
 - UI 直连 database table、ORM、runtime object 或行情 adapter。
+
+## MTP-23 最小报告观察面
+
+日期：2026-05-18
+
+执行者：Codex
+
+当前 Dashboard 在既有只读区域基础上新增 Report 快照，用于呈现 Research -> Backtest -> Report 最小路径。
+
+Report 区域：
+
+- 只消费 App 层 `ReportViewModel`。
+- 输入来自稳定 projection snapshots / read model：订单簿研究投影、EMA 回测投影、Paper session 投影和 append-only event timeline。
+- 展示 report artifact 数、已完成回测数、研究运行数和 Backtest / Paper 投影级一致性证据数。
+- 明确报告是研究输出，不是交易执行授权。
+
+仍不包含：
+
+- 完整报表系统。
+- Paper execution 工作流扩展。
+- live order button。
+- 真实 broker action。
+- signed endpoint、account endpoint 或真实订单行为。
