@@ -29,6 +29,7 @@ bash checks/run.sh
 - Backtest / Paper signal timeline parity。
 - Order book imbalance research contract。
 - Event Log replay persistence boundary。
+- File-backed append-only event log persistence boundary。
 - SQLite runtime projection boundary。
 - DuckDB analytical projection boundary。
 - Trader Workstation Dashboard ViewModel contract。
@@ -67,6 +68,7 @@ bash checks/run.sh
 - paper / backtest parity tests。
 - risk decision tests。
 - persistence projection rebuild tests。
+- file event log corruption / recovery tests。
 - UI ViewModel snapshot tests。
 - macOS App shell build / run / telemetry tests。
 

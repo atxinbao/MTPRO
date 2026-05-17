@@ -26,12 +26,101 @@ public struct PersistenceBoundary: Equatable, Sendable {
     }
 }
 
+/// FileEventLogStore 是 Persistence 层的本地文件事实源边界。
+///
+/// 输入只接受 Core 已验证的 `EventEnvelope`，输出只返回 `EventEnvelope` 或 `EventReplayResult`。
+/// 文件内部使用逐行 JSON 编码保存，但该格式不是 UI、数据库 schema 或 runtime object contract。
+/// 每次追加前都会重读并校验现有 sequence，确保只能写入下一个连续事件；这里不连接 Binance、
+/// signed endpoint、真实 broker 或任何交易执行能力。
+public struct FileEventLogStore: Equatable, Sendable {
+    public let fileURL: URL
+
+    /// 初始化文件事件日志边界，只记录落盘位置，不创建数据库、不迁移 schema。
+    public init(fileURL: URL) {
+        self.fileURL = fileURL
+    }
+
+    /// 读取文件中的稳定事件事实，返回按文件追加顺序校验过的 envelope 数组。
+    /// 空文件或不存在的文件代表尚无事实，不会向 UI 暴露底层文件格式。
+    public func readEnvelopes() throws -> [EventEnvelope] {
+        guard FileManager.default.fileExists(atPath: fileURL.path) else {
+            return []
+        }
+
+        let data = try Data(contentsOf: fileURL)
+        guard data.isEmpty == false else {
+            return []
+        }
+
+        let decoder = JSONDecoder()
+        let envelopes = try data.split(separator: UInt8(ascii: "\n")).map { line in
+            try decoder.decode(EventEnvelope.self, from: Data(line))
+        }
+        return try AppendOnlyEventLog(envelopes: envelopes).envelopes
+    }
+
+    /// 按 replay command 从文件事实源重放事件，输出仍是稳定 read model / projection 输入。
+    public func replay(_ command: EventReplayCommand) throws -> EventReplayResult {
+        let eventLog = try AppendOnlyEventLog(envelopes: readEnvelopes())
+        return eventLog.replay(command)
+    }
+
+    /// 追加写入一个已验证 envelope，只允许 sequence 等于当前文件事实数量加一。
+    /// 该边界只做本地 facts 持久化，不保存 runtime object，也不会触发订单或 broker side effect。
+    public func append(_ envelope: EventEnvelope) throws {
+        let existingEnvelopes = try readEnvelopes()
+        guard envelope.sequence == existingEnvelopes.count + 1 else {
+            throw CoreError.invalidSequenceRange
+        }
+
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        var encodedLine = try encoder.encode(envelope)
+        encodedLine.append(contentsOf: [0x0A])
+
+        try createParentDirectoryIfNeeded()
+        if FileManager.default.fileExists(atPath: fileURL.path) {
+            let fileHandle = try FileHandle(forWritingTo: fileURL)
+            defer {
+                try? fileHandle.close()
+            }
+            try fileHandle.seekToEnd()
+            try fileHandle.write(contentsOf: encodedLine)
+        } else {
+            try encodedLine.write(to: fileURL, options: .atomic)
+        }
+    }
+
+    /// 批量追加已经按 sequence 排好序的 envelope，用于把内存事件流落盘为后续 replay 事实源。
+    public func append(contentsOf envelopes: [EventEnvelope]) throws {
+        for envelope in envelopes {
+            try append(envelope)
+        }
+    }
+
+    private func createParentDirectoryIfNeeded() throws {
+        let directoryURL = fileURL.deletingLastPathComponent()
+        guard directoryURL.path.isEmpty == false else {
+            return
+        }
+        try FileManager.default.createDirectory(
+            at: directoryURL,
+            withIntermediateDirectories: true
+        )
+    }
+}
+
 /// 持久化重放边界复用 Core 只追加事件日志，输出稳定投影而不是数据库表。
 public struct PersistenceReplayBoundary: Equatable, Sendable {
     private let eventLog: AppendOnlyEventLog
 
     public init(envelopes: [EventEnvelope]) throws {
         self.eventLog = try AppendOnlyEventLog(envelopes: envelopes)
+    }
+
+    /// 从文件事件日志边界构建 replay 边界，仍然只消费稳定 `EventEnvelope`，不暴露文件格式。
+    public init(fileStore: FileEventLogStore) throws {
+        self.eventLog = try AppendOnlyEventLog(envelopes: fileStore.readEnvelopes())
     }
 
     public var envelopes: [EventEnvelope] {

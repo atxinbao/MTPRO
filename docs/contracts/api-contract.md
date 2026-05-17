@@ -116,3 +116,30 @@ MTPRO 第一版没有 HTTP API。
 - 不新增 live order command。
 - 不新增 broker account command。
 - 不新增真实数据库迁移 command。
+
+## MTP-17 File Event Log Replay 细化
+
+日期：2026-05-18
+
+执行者：Codex
+
+`EventReplayCommand` 在 MTP-17 中可作用于文件事件日志事实源：
+
+- `FileEventLogStore.replay(_:)`
+- `PersistenceReplayBoundary.init(fileStore:)`
+
+新增文件事实源契约：
+
+- 写入对象只能是 `EventEnvelope`。
+- replay 输出只能是 `EventReplayResult`。
+- sequence 必须保持 append-only 连续递增。
+- 文件格式不作为 Command / Query API 暴露。
+
+边界确认：
+
+- 不新增 HTTP API。
+- 不新增 database table API。
+- 不新增 SQLite / DuckDB adapter command。
+- 不新增 live order command。
+- 不新增 broker account command。
+- 不新增 signed endpoint command。

@@ -152,3 +152,31 @@ Use Case 输出必须先进入 read model projection，再供 UI 使用。
 - UI ViewModel。
 - Live execution persistence。
 - broker / exchange side effect。
+
+## MTP-17 文件事实源 ReplayEvents 契约
+
+日期：2026-05-18
+
+执行者：Codex
+
+`ReplayEvents` 在本事项中可以从文件事件日志事实源读取 `EventEnvelope`，并继续输出稳定 replay / projection 输入。
+
+契约结构：
+
+- `FileEventLogStore.append(_:)`：追加写入单个 `EventEnvelope`。
+- `FileEventLogStore.replay(_:)`：按 `EventReplayCommand` 读取文件事实并输出 `EventReplayResult`。
+- `PersistenceReplayBoundary.init(fileStore:)`：复用文件事实源重建 market cache 和 runtime / analytical projection snapshot。
+
+契约要求：
+
+- append-only 文件事实源必须保持 sequence 从 1 开始连续递增。
+- replay 结果必须仍由 `EventEnvelope` 表达，不能暴露 JSONL 或任何文件内部格式给 UI。
+- 文件事实源只服务本地研究、回放和后续投影适配器，不代表可交易命令。
+
+本契约不包含：
+
+- SQLite / DuckDB driver。
+- database schema migration。
+- Binance 网络客户端。
+- UI 页面。
+- Live trading、signed endpoint、broker action 或真实订单行为。
