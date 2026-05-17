@@ -2308,3 +2308,54 @@ Commit：本轮提交
 | `swift test` | pass | 修复一次机械切分遗漏括号后，39 个 XCTest 通过。 |
 | `git diff --check` | pass | Core 文件拆分无 whitespace error。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+## Parent Codex Auto Project Scheduling
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 将 MTPRO 中 Parent Codex Automation Supervision 调整为 Project 级自动调度角色。
+- 明确 Human 授权停留在 Project / Issue plan review 和 Linear 写入层；`MTPRO Runtime Research Workbench v1` 内后续 eligible issue 由父 Codex 按 queue preflight 自动推进。
+
+文件范围：
+
+- Updated：
+  - `README.md`
+  - `AGENTS.md`
+  - `.github/pull_request_template.md`
+  - `docs/automation/automation-readiness.md`
+  - `docs/automation/codex-use-cases-alignment.md`
+  - `docs/automation/parent-codex-supervision.md`
+  - `docs/automation/post-issue-ledger.md`
+  - `docs/automation/symphony-issue-workflow-template.md`
+  - `docs/automation/verified-operations.md`
+  - `docs/planning/linear-draft-plan.md`
+  - `docs/planning/project-role-map.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+
+边界确认：
+
+- 未写业务代码。
+- 未创建 Linear Project / Issue。
+- 未推进任何 Linear issue 到 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update / full rebuild。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 父 Codex 自动调度仍必须通过 WIP=1、依赖、previous issue Done 和 execution contract Gate。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Parent Codex 自动 Project 调度文档变更通过 whitespace 检查。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |

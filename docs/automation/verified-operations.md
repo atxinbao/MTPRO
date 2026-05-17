@@ -14,7 +14,7 @@
 
 必须按 verified operation 记录的操作：
 
-- 父 Codex 在 Human 明确授权后推进 eligible `Backlog` -> `Todo`。
+- 父 Codex 在 Human-approved Project 内自动推进 eligible `Backlog` -> `Todo`。
 - symphony-issue 调度 child Codex。
 - child Codex 创建 commit / ready-for-review PR / GitHub auto-merge handoff。
 - host-side fallback。
@@ -29,7 +29,7 @@
 | --- | --- |
 | Operation | 操作名称 |
 | Actor | 执行者，例如 Parent Codex、symphony-issue、child Codex、GitHub |
-| Authorization Source | 授权来源，例如 Human 明确授权、当前 Linear issue、PR merge evidence |
+| Authorization Source | 授权来源，例如 Human-approved Project plan、当前 Linear issue、PR merge evidence |
 | Input | 输入对象，例如 Linear issue、PR、workspace、Graphify context |
 | Action | 实际动作 |
 | Output | 输出对象，例如 PR URL、handoff marker、ledger summary |
@@ -64,5 +64,4 @@
 
 Post-Issue Ledger 是 issue 完成后的 verified operation。
 
-它只记录施工后关系事实和下一步观察提示，不授权下一个 issue。
-
+它只记录施工后关系事实和下一步观察提示，不能单独授权下一个 issue；下一个 issue 仍必须由 Parent Codex queue preflight 判断是否 eligible。

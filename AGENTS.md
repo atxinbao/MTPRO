@@ -26,9 +26,10 @@ Agent 开始工作前必须读取：
 - 当前唯一 configured executable issue 不写死在仓库文档中；执行前必须从 Linear / Parent Codex queue preview 读取，并确认 WIP=1。
 - Linear issue 中已填写的 Scope / Non-goals / Codex Instructions / Validation / Boundary / PR Requirements 是 Codex Execution Agent 的执行合同；子 Codex 按模板字段执行，不二次确认 issue scope，不重新定义边界。
 - Project Planning Facilitator 只负责阶段规划、Linear Project / Issue 草案、Human review 后的 Linear 写入准备；不得执行 issue，不得启动 symphony-issue，不得操作 `Backlog` -> `Todo`。
-- Parent Codex Automation Supervision 负责 Project 级 queue preview、child Codex 监控、代码审查、host-side fallback 和流程迭代建议。
+- Parent Codex Automation Supervision 负责 Project 级 queue preview、eligible issue 自动调度、child Codex 监控、代码审查、host-side fallback 和流程迭代建议。
 - 父 Codex 必须在第一个 `Todo` 前核对 Linear Project / Issue 执行合同格式。
-- 第一个 issue 和后续 issue 的 `Backlog` -> `Todo` 操作都只能由父 Codex 在 Human 明确授权后执行。
+- Human 确认 Project / Issue plan 并写入 Linear 后，第一个 issue 和后续 issue 的 `Backlog` -> `Todo` 操作都只能由父 Codex 自动执行。
+- 父 Codex 自动调度前必须确认 WIP=1、previous issue Done、依赖满足、执行合同格式完整，并且当前 Project 没有 `Todo` / `In Progress` / `In Review` active conflict。
 - 父 Codex 负责 Project 切换时更新 `symphony-issue` active Project pointer；workflow 本体不得为每个 Project 复制一套。
 - 父 Codex 更新 active Project pointer 后必须先做 queue preview，不得直接启动 `symphony-issue`，不得直接操作 `Backlog` -> `Todo`。
 - symphony-issue 负责唯一 `Todo` issue 的执行调度、`Todo` -> `In Progress` 和 `In Progress` -> `In Review` 状态推进。
@@ -48,8 +49,8 @@ Agent 开始工作前必须读取：
 - 维护 Product / Design / Engineering / Finance / Operations / QA 的 team role map，尤其是 Finance / Trading Domain、Product / Design 分工、Runtime Operations 和 Trading validation。
 - 运行本地验证：`bash checks/run.sh`。
 - Post-Issue Ledger / 施工后记账由 symphony-issue host-side `before_remove` 在 PR merge / Linear bot Done 后执行：同步持久本地仓库、刷新 Graphify resource relationship graph，并写入本地结构化摘要 `.codex/post-issue-ledger/latest.json`；如果环境不可用，必须记录原因且不提交 `graphify-out/*`。
-- 下一步观察提示不授权执行，不得自动推进下一个 issue，不得创建 Linear issue，不得修改 `ROADMAP.md`。
-- 父 Codex 可读取 `.codex/post-issue-ledger/latest.json` 的只读下一步观察提示并向 Human 汇报，但不得把它当作执行授权。
+- 下一步观察提示不单独授权执行，不得绕过 Parent Codex queue preflight，不得创建 Linear issue，不得修改 `ROADMAP.md`。
+- 父 Codex 可读取 `.codex/post-issue-ledger/latest.json` 的下一步观察提示，用于 queue preview 和自动调度判断；提示本身不创建新 Project / Issue，不绕过依赖或 WIP=1。
 - 执行 Pre-PR Codex Code Review。
 - 创建 ready-for-review PR，并启用 GitHub auto-merge handoff。
 - 在涉及跨系统动作时，按 verified operation 记录 actor、授权来源、输入、输出、validation 和 evidence location。
@@ -58,7 +59,7 @@ Agent 开始工作前必须读取：
 
 - 不执行非当前 Linear issue scope 的前端页面、Binance adapter、backtest engine、paper execution 或 database adapter。
 - 不创建 Linear Project / Issue。
-- 不修改 Linear status，除非 Human 明确授权父 Codex 将 eligible `Backlog` issue 推进为唯一 `Todo`。
+- 不修改 Linear status，除非父 Codex 在 Human-approved Project 内将 eligible `Backlog` issue 推进为唯一 `Todo`，或 symphony-issue 按规则推进当前 issue 执行状态。
 - 不自行启动 Symphony；`symphony-issue` 只能由明确授权的本地自动化任务启动。
 - 不运行 Graphify full rebuild。
 - 不提交 `graphify-out/*`。
@@ -71,7 +72,7 @@ Agent 开始工作前必须读取：
 | 阶段 | Agent 边界 |
 | --- | --- |
 | Project Planning Facilitator / Human Project Planning | 形成阶段目标、Linear Project / Issue 草案、顺序、依赖、验证和证据要求；Human 授权后可写入 Linear，但所有 issue 必须保持 `Backlog` |
-| Parent Codex Automation Supervision | Project 级 queue preview、child Codex 监控、代码审查、host-side fallback 和流程迭代建议；不替代 Human 决策，不直接 merge PR |
+| Parent Codex Automation Supervision | Project 级 queue preview、eligible issue 自动调度、child Codex 监控、代码审查、host-side fallback 和流程迭代建议；不替代 Human 阶段规划，不直接 merge PR |
 | symphony-issue | 只调度唯一 `Todo` issue；负责 `Todo` -> `In Progress`、Codex 执行调度、校验 handoff marker 后 `In Progress` -> `In Review` |
 | GitHub PR Automation | 创建 PR 后交给 GitHub checks / auto-merge；Codex 不直接 merge |
 | Next Human Project Planning | 当前 Project 全部 Done 前不得建议或创建下一 Project |
@@ -81,7 +82,7 @@ Agent 开始工作前必须读取：
 | 角色 | MTPRO 当前职责 | 禁止 |
 | --- | --- | --- |
 | Project Planning Facilitator | 基于 Stage Code Audit 和 Human 目标整理 `MTPRO Runtime Research Workbench v1` 的 Project / Issue 草案、顺序、依赖、validation、evidence 和 first executable candidate | 不执行 issue，不操作 `Backlog` -> `Todo`，不启动 symphony-issue，不创建 PR |
-| Parent Codex Automation Supervision | 核对 `MTP-16` 至 `MTP-23` 的执行合同格式，做 queue preview，在 Human 授权后操作唯一 `Backlog` -> `Todo`，监督 child Codex 和阶段审计 | 不默认写业务代码，不创建新 Project / Issue，不决定下一阶段目标，不直接 merge PR |
+| Parent Codex Automation Supervision | 核对 `MTP-16` 至 `MTP-23` 的执行合同格式，做 queue preview，自动操作唯一 eligible `Backlog` -> `Todo`，监督 child Codex 和阶段审计 | 不默认写业务代码，不创建新 Project / Issue，不决定下一阶段目标，不直接 merge PR |
 | Child Codex Execution Agent | 只执行当前唯一 Linear issue scope，运行 validation，执行 Pre-PR Codex Code Review，创建 ready-for-review PR 和 GitHub auto-merge handoff | 不修改 Linear status，不操作 `Backlog` -> `Todo`，不决定下一 issue，不合并自己 PR |
 
 Parent Codex 监督边界详见 `docs/automation/parent-codex-supervision.md`。

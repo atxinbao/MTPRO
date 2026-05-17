@@ -97,7 +97,7 @@ Graphify 边界：
 # Parent Codex Automation Supervision
 
 - [ ] 父 Codex 已执行或不需要执行 Project 级监督。
-- [ ] Queue preview / issue state 检查只读，除非 Human 明确授权推进唯一 `Todo`。
+- [ ] Queue preview / issue state 检查已确认 WIP=1、依赖满足和执行合同格式；如推进 `Todo`，仅由父 Codex 在当前 Human-approved Project 内执行。
 - [ ] 如使用 host-side fallback，已记录原因、范围和证据。
 - [ ] 父 Codex 未扩大当前 issue scope。
 - [ ] 父 Codex 未创建 Linear Project / Issue。
@@ -107,7 +107,7 @@ Graphify 边界：
 
 - [ ] PR merge / Linear bot auto Done 后，预计由 symphony-issue host-side `before_remove` 执行 Post-Issue Ledger。
 - [ ] Post-Issue Ledger 只同步持久本地仓库、刷新 Graphify resource relationship graph，并写入 `.codex/post-issue-ledger/latest.json` 只读摘要。
-- [ ] 下一步观察提示不授权下一个 issue，不创建 Linear issue，不修改 `ROADMAP.md`。
+- [ ] 下一步观察提示不单独授权下一个 issue；后续推进必须由 Parent Codex queue preflight 判断，不创建 Linear issue，不修改 `ROADMAP.md`。
 - [ ] `.codex/post-issue-ledger/*` 和 `graphify-out/*` 仍为本地 ignored output，不进入 PR。
 
 # GitHub PR Automation 门槛

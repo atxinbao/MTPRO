@@ -73,7 +73,7 @@
 - Product Owner、Product Designer、Frontend / App Designer、Backend Engineer、Data / Persistence Designer、Finance / Trading Domain Analyst、QA / Trading Validation Engineer、Automation / Runtime Operations Engineer 只定义各自专业面的合同和验收建议。
 - Finance / Trading Domain Analyst 不授权 Live trading，不允许扩大到真实 broker action；它只定义策略假设、风险指标、费用 / 滑点和 Paper parity 验收。
 - Project Planning Facilitator 只负责 Project / Issue 草案、顺序、依赖、validation、evidence 和 Linear 写入准备；不得操作 `Backlog` -> `Todo`，不得启动 symphony-issue。
-- Parent Codex Supervisor 可以做 Project 级审计、child Codex 监控、代码审查和只读 queue preview；不得自动创建下一个 Project。
+- Parent Codex Supervisor 可以做 Project 级自动调度、child Codex 监控、代码审查和 queue preview；不得自动创建下一个 Project。
 - Codex Execution Agent 只能执行当前唯一 configured executable issue。
 
 ## Automation Role Boundary

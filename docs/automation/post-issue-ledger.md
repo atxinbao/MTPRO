@@ -113,7 +113,7 @@ Post-Issue Ledger 只提供施工后关系事实和观察提示。
 父 Codex 可以读取 `.codex/post-issue-ledger/latest.json` 并做 queue preview、风险提示和流程迭代建议，但必须遵守：
 
 - WIP=1。
-- 只有 Human 明确授权后，才可推进 eligible next issue。
+- 只有 Parent Codex 在当前 Human-approved Project 内完成 queue preflight 后，才可推进 eligible next issue。
 - 不从观察提示直接获得执行授权。
 - 不自动创建下一个 Project。
 

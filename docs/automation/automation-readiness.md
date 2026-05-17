@@ -40,7 +40,7 @@ MTPRO 已完成 `MTPRO 引导` Project 的自动化基线验证。
 
 - `checks/run.sh` 是本地统一验证入口。
 - `.github/pull_request_template.md` 必须保留 WIP=1、Graphify、handoff、Parent Codex、Post-Issue Ledger、GitHub PR Automation、Pre-PR Code Review 和 verified operations 证据项。
-- Project Planning Facilitator 不得操作 `Backlog` -> `Todo`；Todo 激活只归属父 Codex，并且必须有 Human 明确授权。
+- Project Planning Facilitator 不得操作 `Backlog` -> `Todo`；Todo 激活只归属父 Codex。Human 确认 Project / Issue plan 并写入 Linear 后，父 Codex 在当前 Project 内按 WIP=1、依赖和执行合同 Gate 自动推进 eligible issue。
 - `symphony-issue` workflow 本体不得为每个 Linear Project 复制一套；Project 切换只更新 active Project pointer。
 - Parent Codex 更新 active Project pointer 后必须先做 queue preview，不得直接启动 `symphony-issue`。
 - `.gitignore` 必须排除 `.codex/` 和 `graphify-out/`。

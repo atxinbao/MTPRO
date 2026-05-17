@@ -60,7 +60,7 @@ MTPRO 中所有跨系统操作必须按 verified operations 方式记录。
 
 适用操作：
 
-- Human 授权后父 Codex 将 eligible `Backlog` 推进为唯一 `Todo`。
+- Human 确认 Project / Issue plan 并写入 Linear 后，父 Codex 将 eligible `Backlog` 自动推进为唯一 `Todo`。
 - symphony-issue 调度 child Codex。
 - host-side fallback。
 - GitHub auto-merge handoff。
@@ -132,4 +132,3 @@ MTPRO 是 macOS 交易研究工作台，后续不能长期只依赖 `swift test`
 - 用英文替代中文说明。
 - 写空泛注释，例如“处理数据”“执行逻辑”。
 - 为了注释而逐行复述代码。
-
