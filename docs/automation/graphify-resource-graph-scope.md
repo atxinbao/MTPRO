@@ -30,7 +30,7 @@ resource relationship graph
 - `.github/workflows/checks.yml`
 - `checks/`
 - `docs/`
-- `verification.md` latest records only for context
+- `docs/validation/latest-verification-summary.md`
 
 ## 默认排除路径
 
@@ -41,6 +41,7 @@ resource relationship graph
 - `.git/`
 - `.codex/`
 - `graphify-out/`
+- 完整 `verification.md`
 
 ## 使用位置
 
@@ -54,4 +55,5 @@ resource relationship graph
 - 不运行 full rebuild。
 - 不提交 `graphify-out/*`。
 - 不把 Graphify 输出作为执行授权。
+- 完整 `verification.md` 默认不进入 Graphify context；只有审计、追溯或 debug 时才读取。
 - 如果 Graphify 不可用，必须记录原因，不阻塞已经完成的 PR / Linear Done。

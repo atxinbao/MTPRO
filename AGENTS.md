@@ -15,6 +15,7 @@ Agent 开始工作前必须读取：
 7. `docs/product/product-surface-map.md`
 8. `docs/contracts/`
 9. `docs/validation/validation-plan.md`
+10. `docs/validation/latest-verification-summary.md`
 
 ## 核心硬规则
 
@@ -33,6 +34,7 @@ Agent 开始工作前必须读取：
 - symphony-issue 调度 Codex 时使用 `dangerFullAccess` issue automation profile，允许 Codex 在当前 issue workspace 内更新当前 issue scope、完成 git commit / push、ready-for-review PR、GitHub auto-merge handoff 和本地 handoff marker；GitHub token、网络或 MCP elicitation 阻塞时由 host-side handoff fallback 接管。
 - 新增或修改 production code 必须添加详细中文注释，说明业务目的、输入输出、领域不变量、外部系统边界和禁止触碰的交易能力；禁止用空泛注释逐行复述代码。
 - Codex use-cases 对齐规则见 `docs/automation/codex-use-cases-alignment.md`；verified operations 记录格式见 `docs/automation/verified-operations.md`。
+- Agent 默认读取 `docs/validation/latest-verification-summary.md`；完整 `verification.md` 只在审计、追溯或 debug 时读取。
 
 ## 当前可做
 

@@ -6,6 +6,12 @@
 
 它不是协议事实源，不替代 `README.md`、`ROADMAP.md`、PR 正文或 Linear 证据。
 
+Agent / Graphify 默认读取 `docs/validation/latest-verification-summary.md`。
+
+完整历史只在审计、追溯或 debug 时读取。
+
+历史记录不压缩、不拆分、不重写。
+
 ## MTPRO 引导骨架
 
 日期：2026-05-14
@@ -2022,4 +2028,50 @@ Commit：本轮提交
 | --- | --- | --- |
 | `git diff --check` | pass | Active docs closeout 无空白问题。 |
 | `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.` |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+## 最近验证摘要
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 新增最近验证摘要，降低 Agent / Graphify 日常读取完整 `verification.md` 的上下文成本。
+- 保持 `verification.md` 为 append-only 完整证据流水账。
+
+文件范围：
+
+- Created：
+  - `docs/validation/latest-verification-summary.md`
+- Updated：
+  - `README.md`
+  - `AGENTS.md`
+  - `docs/automation/graphify-resource-graph-scope.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+- Deleted：
+  - 无
+
+边界确认：
+
+- 未修改业务代码。
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未运行 Graphify update / full rebuild。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 未压缩、拆分或重写历史 verification 记录。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | 最近验证摘要无空白问题。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |

@@ -62,9 +62,10 @@ Tests/
 - `docs/contracts/`：contract-first 输入。
 - `docs/planning/project-role-map.md`：Product / Design / Engineering / Finance / Operations / QA 角色边界。
 - `docs/validation/validation-plan.md`：验证计划。
+- `docs/validation/latest-verification-summary.md`：最近验证摘要，Agent / Graphify 默认读取。
 - `docs/automation/`：Parent Codex、symphony-issue、Graphify、Post-Issue Ledger 和 verified operations 边界。
 - `docs/audit/mtpro-guidance-stage-code-audit.md`：`MTPRO 引导` 阶段审计报告。
-- `verification.md`：append-only 验证流水账。
+- `verification.md`：append-only 完整验证流水账，仅用于审计、追溯和 debug。
 
 ## 本地验证
 
