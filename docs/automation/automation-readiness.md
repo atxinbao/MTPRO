@@ -46,7 +46,7 @@ Codex creates ready-for-review PR
 | 阶段 | 当前状态 | 通过条件 | 阻塞 / 边界 |
 | --- | --- | --- | --- |
 | 1. Human Project Planning | 已完成 | Project `MTPRO 引导` 和 issue 顺序已确认 | 不自动创建下一 Project |
-| 2. Parent Codex Automation Supervision | 已启用人工监督模式 | 父 Codex 可做 queue preview、监控 child Codex、审查 diff、处理受控 host-side fallback | 只有 Human 明确授权后，父 Codex 才可把 eligible `Backlog` 推进为唯一 `Todo`；当前未接入独立 Project 级 continuation 程序 |
+| 2. Parent Codex Automation Supervision | 已启用人工监督模式 | 父 Codex 可做 queue preview、监控 child Codex、审查 diff、处理受控 host-side fallback | 只有 Human 明确授权后，父 Codex 才可把 eligible `Backlog` 推进为唯一 `Todo` |
 | 3. symphony-issue | 已验证并执行 MTP-15 | MTP-8 到 MTP-14 已完成 issue execution path；MTP-15 当前为唯一 active issue | 当前 child Codex 只执行 MTP-15 scope，不修改 Linear status |
 | 4. GitHub PR Automation | 已通过真实 PR 验证 | 前序事项已验证 checks / auto-merge / branch cleanup / Linear bot auto Done | 后续 PR 仍必须通过 required check `checks` |
 | 5. Next Human Project Planning | 未进入 | 当前 Project 全部 issues Done | Codex / symphony-issue / 父 Codex 不决定下一阶段目标 |

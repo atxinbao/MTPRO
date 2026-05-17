@@ -20,9 +20,8 @@ MTPRO 是用于重构 `macos-trader` 的新独立 macOS 交易研究工作台项
 - 当前执行事项：不写死在仓库文档中，运行时以 Linear / Parent Codex queue preview 中唯一 configured executable issue 为准
 - GitHub PR Automation：`checks` workflow、`protect-main`、squash merge、auto-merge、branch cleanup
 
-未完成：
+后续业务实现：
 
-- 独立 Project 级自动 continuation 程序（当前由父 Codex 监督替代）
 - Binance 真实网络 adapter 实现
 - 策略实现
 - 持久化 adapter
