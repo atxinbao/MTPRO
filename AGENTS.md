@@ -37,7 +37,7 @@ Agent 开始工作前必须读取：
 ## 当前可做
 
 - 执行当前唯一 configured executable issue 的明确 scope。
-- 维护项目定义文档、contract-first 文档和 SwiftPM skeleton。
+- 维护项目定义文档、contract-first 文档和 SwiftPM baseline。
 - 维护 `docs/planning/project-role-map.md`，用于记录系统架构、前端设计、后端开发、数据 / 持久化、质量验证、部署与运营等能力角色覆盖情况。
 - 维护 Product / Design / Engineering / Finance / Operations / QA 的 team role map，尤其是 Finance / Trading Domain、Product / Design 分工、Runtime Operations 和 Trading validation。
 - 运行本地验证：`bash checks/run.sh`。
