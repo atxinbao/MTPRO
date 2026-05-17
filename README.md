@@ -45,12 +45,14 @@ Sources/
   Core/          领域模型、事件、Kernel 边界
   Adapters/      外部数据源 adapter 边界
   Persistence/   Event Log / SQLite / DuckDB 边界
+  Runtime/       ingest / event log / replay / projection 编排边界
   App/           macOS 产品面和 ViewModel 边界
 
 Tests/
   CoreTests/
   AdaptersTests/
   PersistenceTests/
+  RuntimeTests/
   AppTests/
 ```
 

@@ -16,14 +16,14 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 
 ## 最近基线
 
-- 最近合并 PR：MTPRO #41 `MTP-19 Add DuckDB analytical projection adapter`
-- 最近 merge commit：`b7750a7`
+- 最近合并 PR：MTPRO #42 `MTP-20 Add Binance public read-only client boundary`
+- 最近 merge commit：`b4849a4`
 - 当前基线：active docs 已收口，`MTPRO 引导` Project 已完成，`MTPRO Runtime Research Workbench v1` 已写入 Linear。
 - 下一阶段 Linear Project：`MTPRO Runtime Research Workbench v1` 已创建，Project status 为 `Planned`。
-- 下一阶段 Linear issues：`MTP-16` 到 `MTP-23` 已创建且仍为 `Backlog`。
-- 当前 Todo：从 Linear 实时读取。
-- `MTP-16`、`MTP-17`、`MTP-18` 和 `MTP-19` 已通过 symphony-issue / GitHub PR Automation 完成并进入 `Done`。
-- 当前 active issue 由 Linear 实时读取；本轮执行确认 `MTP-20` 为唯一 `In Progress` issue。
+- 下一阶段 Linear issues：`MTP-16` 到 `MTP-23` 已创建；当前状态以 Linear 实时读取为准。
+- 当前 Todo / In Progress：从 Linear 实时读取。
+- `MTP-16`、`MTP-17`、`MTP-18`、`MTP-19` 和 `MTP-20` 已通过 symphony-issue / GitHub PR Automation 完成并进入 `Done`。
+- 当前 active issue 由 Linear 实时读取；本轮执行确认 `MTP-21` 为唯一 `In Progress` issue。
 - Linear Project / Issue 正文必须在进入 `Todo` 前统一为 Codex Execution Agent 执行合同格式，并由父 Codex核对。
 - Project Planning Facilitator 只负责阶段规划和 Linear 写入准备；不得操作 `Backlog` -> `Todo`。
 - Parent Codex 是唯一可在当前 Human-approved Project 内自动操作 `Backlog` -> `Todo` 的角色。
@@ -34,10 +34,10 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 
 | 命令 | 结果 | 说明 |
 | --- | --- | --- |
-| `git diff --check` | pass | MTP-20 Binance public read-only client boundary 和 contract 文档变更无空白问题。 |
+| `git diff --check` | pass | MTP-21 Runtime ingest / replay / projection 编排和 contract 文档变更无空白问题。 |
 | `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.` |
-| `swift test` | pass | MTP-20 Binance public read-only client boundary 新增 mock transport、fixture parity、public stream path 和 forbidden contract 测试；52 个 XCTest 通过。 |
-| `bash checks/run.sh` | pass | MTP-20 Binance public read-only client boundary 验证通过；`git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；52 个 XCTest 通过，输出 `MTPRO checks passed.` |
+| `swift test` | pass | MTP-21 新增 RuntimeTests，覆盖 mock transport fixture parity、event sequence 单调、replay deterministic、SQLite / DuckDB snapshots；55 个 XCTest 通过。 |
+| `bash checks/run.sh` | pass | MTP-21 Runtime ingest 链路验证通过；`git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；55 个 XCTest 通过，输出 `MTPRO checks passed.` |
 
 ## 当前边界
 

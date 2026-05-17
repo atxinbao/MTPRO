@@ -10,6 +10,7 @@ let package = Package(
         .library(name: "Core", targets: ["Core"]),
         .library(name: "Adapters", targets: ["Adapters"]),
         .library(name: "Persistence", targets: ["Persistence"]),
+        .library(name: "Runtime", targets: ["Runtime"]),
         .library(name: "App", targets: ["App"])
     ],
     dependencies: [
@@ -46,6 +47,11 @@ let package = Package(
             path: "Sources/Persistence"
         ),
         .target(
+            name: "Runtime",
+            dependencies: ["Core", "Adapters", "Persistence"],
+            path: "Sources/Runtime"
+        ),
+        .target(
             name: "App",
             dependencies: ["Core", "Persistence"],
             path: "Sources/App"
@@ -64,6 +70,11 @@ let package = Package(
             name: "PersistenceTests",
             dependencies: ["Persistence"],
             path: "Tests/PersistenceTests"
+        ),
+        .testTarget(
+            name: "RuntimeTests",
+            dependencies: ["Runtime"],
+            path: "Tests/RuntimeTests"
         ),
         .testTarget(
             name: "AppTests",

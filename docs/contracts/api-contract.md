@@ -234,3 +234,26 @@ MTP-20 不新增 HTTP API，也不新增 live / broker / signed command。
 - 不新增 live order command。
 - 不新增 broker account command。
 - 不把 API key、signature、headers 或 transport object 暴露给 UI / App / Persistence。
+
+## MTP-21 Runtime Ingest Command / Query 边界
+
+日期：2026-05-18
+
+执行者：Codex
+
+MTP-21 不新增 HTTP API，也不新增 database table API、live / broker / signed command。
+
+新增内部运行时边界：
+
+- `PublicMarketDataIngestPlan`：作为本地行情 ingest 输入 contract。
+- `MarketDataIngestReplayProjectionWorkflow.run(_:)`：执行 public market data ingest -> event log -> replay -> projection snapshots。
+- `MarketDataIngestReplayProjectionResult`：只返回 Core / Persistence 稳定模型和 replay evidence，不返回 transport、URL、headers、SQL row、table 或 ORM object。
+
+边界确认：
+
+- Runtime 可以依赖 `Adapters`、`Core` 和 `Persistence` 做跨模块编排。
+- `App` / ViewModel 仍不得直接调用 Binance adapter。
+- 不新增 live order command。
+- 不新增 broker account command。
+- 不新增 signed endpoint command。
+- 不把 SQLite / DuckDB schema 暴露为 API contract。

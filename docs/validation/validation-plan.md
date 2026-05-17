@@ -35,6 +35,7 @@ bash checks/run.sh
 - SQLite runtime projection adapter 最小 rebuild / query snapshot 闭环。
 - DuckDB analytical projection boundary。
 - DuckDB analytical projection adapter 最小 rebuild / query snapshot 闭环。
+- Runtime market data ingest -> event log -> replay -> projection snapshots 端到端链路。
 - Trader Workstation Dashboard ViewModel contract。
 - GitHub workflow / PR evidence / WIP=1 / handoff marker / Graphify 边界。
 - Linear issue execution contract。
@@ -85,6 +86,19 @@ MTP-20 的 required validation：
 - 断言 transport request 不携带 API key、signature、listenKey、account、order、SAPI、FAPI 或 DAPI 片段。
 - 断言 mutable 或 `requiresAPIKey == true` 的 request contract 在 transport 前被拒绝。
 - 断言非 public market data allowlist 的 Binance path 在 transport 前被拒绝。
+- required validation 不依赖真实 Binance 网络；真实网络 smoke test 只能作为可选人工证据。
+
+## MTP-21 Runtime Ingest Validation
+
+MTP-21 的 required validation：
+
+- 使用 mock transport 覆盖 Binance public REST / public depth stream request。
+- 使用 fixture parity 验证 workflow ingest events 与 `BinancePublicMarketDataPayloadDecoder` 输出一致。
+- 验证 event log sequence 从 1 开始连续递增。
+- 验证 replay result 与写入 envelopes 一致，且 market cache projection deterministic。
+- 验证 DuckDB analytical snapshot 来自 replay，并包含 market bars、trades、best bid / ask、order book snapshot 和 delta。
+- 验证 SQLite runtime snapshot 在 market-only ingest 下保持稳定空 snapshot，且仍由 replay 驱动。
+- 断言 request 不携带 API key、signature、listenKey、account、order、SAPI、FAPI 或 DAPI 片段。
 - required validation 不依赖真实 Binance 网络；真实网络 smoke test 只能作为可选人工证据。
 
 ## 禁止
