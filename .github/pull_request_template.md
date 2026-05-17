@@ -64,6 +64,20 @@ Graphify 边界：
 
 -
 
+# Pre-PR Codex Code Review
+
+- [ ] 已执行 Pre-PR Codex Code Review。
+- [ ] 已检查 diff 只覆盖当前 Linear issue scope。
+- [ ] 已检查新增或修改 production code 具备详细中文注释。
+- [ ] 已检查未突破 Live trading / Binance signed endpoint / broker action 边界。
+- [ ] 已检查 validation 结果可信且可复现。
+
+# Verified Operations
+
+- [ ] 本 PR 不涉及跨系统 verified operation。
+- [ ] 本 PR 涉及 verified operation，已记录 actor、授权来源、输入、输出、validation 和 evidence location。
+- [ ] 如发生 host-side fallback，已记录原因、范围和证据。
+
 # 证据链
 
 -

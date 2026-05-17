@@ -84,7 +84,11 @@ Tests/
 - `docs/contracts/`：contract-first 输入。
 - `docs/validation/validation-plan.md`：验证计划。
 - `docs/automation/parent-codex-supervision.md`：父 Codex 自动化监督职责。
+- `docs/automation/codex-use-cases-alignment.md`：Codex 官方 use cases 到 MTPRO 的落地映射。
+- `docs/automation/verified-operations.md`：跨系统操作的可审计记录格式。
 - `docs/automation/post-issue-ledger.md`：PR merge 后的施工后记账规则。
+- `docs/validation/eval-strategy.md`：当前不引入独立 eval 框架的判断标准和未来引入条件。
+- `docs/validation/macos-build-run-loop.md`：macOS UI 阶段前需要补齐的 build / run / telemetry 验证闭环。
 - `verification.md`：append-only 验证流水账。
 
 ## 本地验证

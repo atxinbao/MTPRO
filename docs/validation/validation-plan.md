@@ -51,6 +51,19 @@ bash checks/run.sh
 - Graphify resource relationship graph boundary contract。
 - `.codex/*` 与 `graphify-out/*` 本地输出排除契约。
 
+## Codex use-cases 对齐后的验证补充
+
+本项目当前新增以下验证治理入口：
+
+- Codex use-cases 对齐：`docs/automation/codex-use-cases-alignment.md`。
+- Verified operations：`docs/automation/verified-operations.md`。
+- Eval 引入策略：`docs/validation/eval-strategy.md`。
+- macOS build / run / telemetry 闭环：`docs/validation/macos-build-run-loop.md`。
+
+当前不引入独立 eval 框架。只有当 XCTest + fixtures 无法表达跨策略、跨数据窗口、报告质量评分、长期趋势对比或连续出现人工判断型 validation failure 时，才允许通过明确 Linear issue 讨论 eval 框架。
+
+新增或修改 production code 时，验证前必须检查详细中文注释是否覆盖业务目的、输入输出、领域不变量、外部系统边界和交易能力禁区。
+
 ## MTP-15 验证矩阵
 
 日期：2026-05-17
@@ -66,6 +79,8 @@ bash checks/run.sh
 | PR 证据检查 | `.github/pull_request_template.md` | Linked Linear Issue、Scope、Non-goals、Graphify、Validation、Evidence Chain、Pre-PR review、handoff marker、GitHub PR Automation Gate | PR body 填写后能逐项映射 MTP-15 evidence 要求 |
 | 本地输出隔离 | `.gitignore`、`.graphifyignore`、Pre-PR review | `.codex/*`、`.codex/post-issue-ledger/*`、`graphify-out/*` 不进入 PR；Graphify 不纳入 `Sources/` 和 `Tests/` | `git status --short` 和 PR diff 中无被禁止输出 |
 | Linear issue execution contract | Linear issue / `docs/planning/linear-draft-plan.md` / `AGENTS.md` | Scope、Non-goals、Codex Instructions、Validation、Boundary、PR Requirements 作为子 Codex 执行合同 | 子 Codex 不二次确认 issue scope，不重新定义边界 |
+| Codex Code Review | `AGENTS.md` / PR body / local diff | scope drift、交易边界、测试覆盖、Graphify / ledger evidence 和中文代码注释 | Pre-PR Codex Code Review 已完成且问题已处理 |
+| Verified Operations | `docs/automation/verified-operations.md` / PR evidence | actor、授权来源、输入、输出、validation、evidence location | 跨系统动作可追溯，fallback 已记录原因 |
 
 ## MTP-15 当前验证补充
 

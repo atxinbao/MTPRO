@@ -31,6 +31,8 @@ Agent 开始工作前必须读取：
 - `.codex/*` 不进入 PR。
 - `graphify-out/*` 不进入 PR。
 - symphony-issue 调度 Codex 时使用 `dangerFullAccess` issue automation profile，允许 Codex 在当前 issue workspace 内更新当前 issue scope、完成 git commit / push、ready-for-review PR、GitHub auto-merge handoff 和本地 handoff marker；GitHub token、网络或 MCP elicitation 阻塞时由 host-side handoff fallback 接管。
+- 新增或修改 production code 必须添加详细中文注释，说明业务目的、输入输出、领域不变量、外部系统边界和禁止触碰的交易能力；禁止用空泛注释逐行复述代码。
+- Codex use-cases 对齐规则见 `docs/automation/codex-use-cases-alignment.md`；verified operations 记录格式见 `docs/automation/verified-operations.md`。
 
 ## 当前可做
 
@@ -43,6 +45,7 @@ Agent 开始工作前必须读取：
 - 父 Codex 可读取 `.codex/post-issue-ledger/latest.json` 的只读下一步观察提示并向 Human 汇报，但不得把它当作执行授权。
 - 执行 Pre-PR Codex Code Review。
 - 创建 ready-for-review PR，并启用 GitHub auto-merge handoff。
+- 在涉及跨系统动作时，按 verified operation 记录 actor、授权来源、输入、输出、validation 和 evidence location。
 
 ## 当前禁止
 
@@ -82,6 +85,26 @@ Codex Execution Agent 不修改 Linear status；`In Progress` -> `In Review` 由
 如果 child Codex 被 GitHub token、网络或 MCP elicitation 阻塞，symphony-issue host-side handoff fallback 只接管 commit / push / PR / auto-merge handoff / 本地 marker，并在 PR evidence 中记录原因。fallback 不得扩大 diff scope，不得修改 Linear status，不得提交 `.codex/*`。
 
 如果 child Codex 暴露流程缺口，父 Codex 可以在当前 issue scope 内修复自动化文档、PR evidence 或 handoff 规则，并把可复用结论追加到 automation docs。父 Codex 不得借此扩大业务实现范围。
+
+## 代码中文注释规则
+
+新增或修改 production code 时，Codex 必须补充详细中文注释。
+
+必须注释：
+
+- public type / protocol / actor / service 的职责。
+- 关键函数的输入、输出和错误边界。
+- 领域不变量，例如 paper-only、read-only market data、append-only event log。
+- 外部系统边界，例如 Binance、SQLite、DuckDB、Graphify、Linear、GitHub。
+- 任何禁止 Live trading、signed endpoint 或真实 broker action 的原因。
+
+测试代码中的注释必须说明测试场景和验证目的。
+
+禁止：
+
+- 用英文替代中文说明。
+- 写“处理数据”“执行逻辑”这类无信息量注释。
+- 逐行复述代码。
 
 ## 参考项目边界
 
