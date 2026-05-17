@@ -19,6 +19,16 @@ swift test
 bash checks/run.sh
 ```
 
+MTP-22 后 `bash checks/run.sh` 在 macOS 本地包含：
+
+```bash
+swift build --product MTPRODashboard
+MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard
+```
+
+Linux CI 不提供 SwiftUI；`checks/run.sh` 在非 Darwin runner 上跳过 macOS executable build / smoke，
+并继续执行 `swift test` 验证 snapshot binding、source boundary 和 executable fallback 编译。
+
 ## UI 阶段前必须补齐
 
 当 Linear issue 进入 Trader Workstation Dashboard 或 macOS App shell 实现时，必须补齐：
@@ -29,6 +39,17 @@ bash checks/run.sh
 - 最小 Logger / telemetry 事件。
 - UI smoke check。
 - 运行日志或截图证据。
+
+## MTP-22 已补齐内容
+
+- 可运行入口：`MTPRODashboard` SwiftPM executable。
+- 本地 build：`swift build --product MTPRODashboard`。
+- 本地 run / smoke：`MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard`。
+- 最小 telemetry：app launch 与 ViewModel snapshot generated 通过 `OSLog.Logger` 记录。
+- UI smoke check：smoke run 输出七个 section 和 `readModelOnly=true`。
+- CI 兼容：App target 和 executable target 在非 macOS 环境使用 non-SwiftUI fallback 保留 snapshot binding contract。
+
+当前未补截图证据；本事项的 required validation 以 SwiftPM build / smoke run / XCTest snapshot binding 为准。
 
 ## telemetry 规则
 
@@ -50,4 +71,3 @@ telemetry 只记录开发和验证所需的运行事实：
 ## 进入条件
 
 只有当前 Linear issue 明确要求 macOS App shell、UI 或 runtime validation 时，才需要扩展本文件和验证命令。
-

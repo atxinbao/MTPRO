@@ -19,6 +19,9 @@ bash checks/run.sh
 
 - `git diff --check`
 - `bash checks/automation-readiness.sh`
+- macOS 本地：`swift build --product MTPRODashboard`
+- macOS 本地：`MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard`
+- Linux CI：跳过 macOS-only SwiftUI shell build / smoke，并继续运行 SwiftPM tests
 - `swift test`
 
 ## 外部系统边界

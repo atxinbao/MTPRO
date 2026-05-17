@@ -2623,3 +2623,71 @@ Commit：本轮提交
 | --- | --- | --- |
 | `swift test` | pass | 55 个 XCTest 通过；新增 3 个 RuntimeTests 覆盖端到端 ingest / event log / replay / projection snapshot、非空 file event log 拒绝和 SQLite adapter replay query。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；55 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+## MTP-22 macOS Dashboard Shell
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 按 Linear issue `MTP-22` 新增绑定 `DashboardViewModel` snapshot 的 macOS 只读看板 shell。
+- 新增 `MTPRODashboard` SwiftPM executable，提供可构建、可 smoke-run 的 macOS app shell 入口。
+- 展示 Market / Strategy / Backtest / Paper / Risk / Portfolio / Events 七个只读区域。
+- 验证 shell 只消费 App 层 ViewModel / Read Model，不导入 Runtime / Adapters，不直连 database schema 或行情 adapter。
+
+文件范围：
+
+- Added：
+  - `Sources/App/DashboardShell.swift`
+  - `Sources/MTPRODashboard/MTPRODashboardApplication.swift`
+- Updated：
+  - `Package.swift`
+  - `Sources/App/App.swift`
+  - `Tests/AppTests/AppTests.swift`
+  - `checks/run.sh`
+  - `README.md`
+  - `ARCHITECTURE.md`
+  - `ENVIRONMENT.md`
+  - `docs/product/product-surface-map.md`
+  - `docs/contracts/frontend-view-model-contract.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/validation/macos-build-run-loop.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- SwiftUI shell 唯一输入是 `DashboardViewModel` / `DashboardShellSnapshot`。
+- 默认 app launch snapshot 是空 read model projection，不伪造 market、paper、risk、portfolio 或 event facts。
+- `MTPRODashboard` executable 只依赖 `App` target。
+- `Sources/App/DashboardShell.swift` 和 `Sources/MTPRODashboard/MTPRODashboardApplication.swift` 不导入 Runtime / Adapters。
+- shell source 不直接引用 database implementation 名或 public market data client 类型。
+- 未提供 live order button。
+- 未连接真实 broker / exchange。
+- 未读取 secret。
+- 未触碰 signed endpoint、broker action 或真实订单行为。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift build --product MTPRODashboard` | pass | macOS dashboard executable 构建通过。 |
+| `MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard` | pass | 输出 `MTPRO Dashboard smoke: sections=7; readModelOnly=true; sections=Market,Strategy,Backtest,Paper,Risk,Portfolio,Events`。 |
+| `swift test` | pass | 58 个 XCTest 通过；新增 AppTests 覆盖 shell snapshot binding、空 read model 初始快照和 forbidden integration source boundary。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、`swift build --product MTPRODashboard`、`MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard` 和 `swift test` 通过；58 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+CI 修复记录：
+
+- GitHub Actions 初次运行失败：Linux runner 编译 `App` target 时不提供 SwiftUI，错误为 `no such module 'SwiftUI'`。
+- 修复方式：`DashboardShell.swift` 保留跨平台 shell snapshot contract；真实 SwiftUI view 只在 `canImport(SwiftUI) && os(macOS)` 分支构建，非 macOS 使用 snapshot-only fallback 供 XCTest 和 CI 验证。
+- 二次修复：SwiftPM Linux `swift test` 仍会编译 executable target，因此 `MTPRODashboardApplication` 也新增非 macOS command-line fallback，避免 unconditional `Darwin` / `SwiftUI` import。
+- `checks/run.sh` 修复为只在 Darwin runner 执行 `swift build --product MTPRODashboard` 和 dashboard smoke run；Linux CI 跳过 macOS-only shell build / smoke 后继续运行 `swift test`。

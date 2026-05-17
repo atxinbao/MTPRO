@@ -12,6 +12,9 @@ bash checks/run.sh
 
 - `git diff --check`
 - `bash checks/automation-readiness.sh`
+- macOS 本地：`swift build --product MTPRODashboard`
+- macOS 本地：`MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard`
+- Linux CI：跳过 macOS-only SwiftUI shell build / smoke，并继续运行 SwiftPM tests
 - `swift test`
 
 ## 当前覆盖
@@ -37,6 +40,7 @@ bash checks/run.sh
 - DuckDB analytical projection adapter 最小 rebuild / query snapshot 闭环。
 - Runtime market data ingest -> event log -> replay -> projection snapshots 端到端链路。
 - Trader Workstation Dashboard ViewModel contract。
+- Trader Workstation Dashboard macOS shell、ViewModel snapshot binding 和 smoke run。
 - GitHub workflow / PR evidence / WIP=1 / handoff marker / Graphify 边界。
 - Linear issue execution contract。
 - `.codex/*` 与 `graphify-out/*` 本地输出排除契约。
@@ -100,6 +104,18 @@ MTP-21 的 required validation：
 - 验证 SQLite runtime snapshot 在 market-only ingest 下保持稳定空 snapshot，且仍由 replay 驱动。
 - 断言 request 不携带 API key、signature、listenKey、account、order、SAPI、FAPI 或 DAPI 片段。
 - required validation 不依赖真实 Binance 网络；真实网络 smoke test 只能作为可选人工证据。
+
+## MTP-22 macOS Dashboard Shell Validation
+
+MTP-22 的 required validation：
+
+- 使用 SwiftUI shell 绑定 `DashboardViewModel` snapshot。
+- 验证 Market / Strategy / Backtest / Paper / Risk / Portfolio / Events 七个只读区域都来自 ViewModel / Read Model。
+- 验证 shell source 不导入 Runtime / Adapters，也不直接引用数据库实现名或 public market data client 类型。
+- 验证 `swift build --product MTPRODashboard` 可构建 macOS 看板入口。
+- 验证 `MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard` 可输出 read-model-only smoke summary 并退出。
+- 验证 Linux CI 可通过非 SwiftUI fallback 编译 App target、executable target 和 AppTests；真实 SwiftUI shell 只在 macOS 本地构建。
+- required validation 不接真实网络、不读取 secret、不连接 broker、不触发真实交易行为。
 
 ## 禁止
 

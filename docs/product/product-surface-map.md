@@ -26,3 +26,23 @@ UI 第一版只做最小观察和操作入口，不追求完整交易终端。
 - 不提供真实 broker action。
 - 不直接展示数据库表结构。
 - 不让 UI 直接消费 ORM model 或 runtime object。
+
+## MTP-22 macOS 看板壳
+
+日期：2026-05-18
+
+执行者：Codex
+
+当前 macOS 看板壳已提供 Market / Strategy / Backtest / Paper / Risk / Portfolio / Events 七个只读区域。
+
+输入边界：
+
+- SwiftUI shell 只接收 `DashboardViewModel`。
+- 可运行入口 `MTPRODashboard` 使用空 read model projection 作为安全启动快照。
+- shell smoke run 只输出 read-model-only summary，不连接网络、不读取 secret、不触发交易动作。
+
+仍不包含：
+
+- live order button。
+- 真实 broker action。
+- UI 直连 database table、ORM、runtime object 或行情 adapter。
