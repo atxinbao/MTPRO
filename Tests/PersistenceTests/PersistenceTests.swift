@@ -211,6 +211,83 @@ final class PersistenceTests: XCTestCase {
         XCTAssertEqual(lastImbalanceRatio, -0.2088353414, accuracy: 0.0001)
     }
 
+    #if canImport(DuckDB)
+    func testDuckDBAnalyticalProjectionAdapterRebuildsAndQueriesSnapshotFromReplay() throws {
+        // 测试场景：DuckDB adapter 从 replay envelope 写入私有分析投影存储，再查询回稳定 snapshot。
+        let envelopes = try makeFullEventLog()
+        let boundary = try PersistenceReplayBoundary(envelopes: envelopes)
+        let adapter = try makeTemporaryDuckDBAnalyticalProjectionAdapter()
+        let command = EventReplayCommand(
+            range: try EventSequenceRange(lowerBound: 1, upperBound: envelopes.count),
+            streams: [.market, .backtest, .strategy]
+        )
+
+        let rebuiltSnapshot = try boundary.rebuildDuckDBAnalyticalProjection(
+            from: command,
+            using: adapter
+        )
+        let queriedSnapshot = try adapter.querySnapshot()
+        let backtest = try XCTUnwrap(queriedSnapshot.backtestRuns[try Identifier("backtest-ema-fixture")])
+        let research = try XCTUnwrap(
+            queriedSnapshot.orderBookResearchRuns[try Identifier("obi-research-fixture")]
+        )
+
+        XCTAssertEqual(queriedSnapshot, rebuiltSnapshot)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: adapter.databaseURL.path))
+        XCTAssertEqual(queriedSnapshot.marketBars.count, 1)
+        XCTAssertEqual(queriedSnapshot.trades.count, 1)
+        XCTAssertEqual(backtest.state, .completed)
+        XCTAssertEqual(backtest.signalCount, 4)
+        XCTAssertEqual(research.state, .completed)
+        XCTAssertEqual(research.depth, 2)
+        XCTAssertEqual(research.signalCount, 3)
+        XCTAssertEqual(queriedSnapshot.signalTimeline.count, 7)
+        XCTAssertEqual(queriedSnapshot.lastAppliedSequence, 19)
+    }
+
+    func testDuckDBAnalyticalProjectionAdapterRebuildReplacesPreviousSnapshot() throws {
+        // 测试场景：重复 rebuild 必须以 event log replay 为事实源替换旧分析投影，不能残留旧研究信号。
+        let envelopes = try makeFullEventLog()
+        let boundary = try PersistenceReplayBoundary(envelopes: envelopes)
+        let adapter = try makeTemporaryDuckDBAnalyticalProjectionAdapter()
+        let fullCommand = EventReplayCommand(
+            range: try EventSequenceRange(lowerBound: 1, upperBound: envelopes.count),
+            streams: [.market, .backtest, .strategy]
+        )
+        let marketOnlyCommand = EventReplayCommand(
+            range: try EventSequenceRange(lowerBound: 1, upperBound: envelopes.count),
+            streams: [.market]
+        )
+
+        _ = try boundary.rebuildDuckDBAnalyticalProjection(from: fullCommand, using: adapter)
+        let marketOnlySnapshot = try boundary.rebuildDuckDBAnalyticalProjection(
+            from: marketOnlyCommand,
+            using: adapter
+        )
+        let queriedSnapshot = try adapter.querySnapshot()
+
+        XCTAssertEqual(queriedSnapshot, marketOnlySnapshot)
+        XCTAssertEqual(queriedSnapshot.marketBars.count, 1)
+        XCTAssertEqual(queriedSnapshot.trades.count, 1)
+        XCTAssertTrue(queriedSnapshot.backtestRuns.isEmpty)
+        XCTAssertTrue(queriedSnapshot.orderBookResearchRuns.isEmpty)
+        XCTAssertTrue(queriedSnapshot.signalTimeline.isEmpty)
+        XCTAssertEqual(queriedSnapshot.lastAppliedSequence, 2)
+    }
+
+    func testDuckDBAnalyticalProjectionAdapterStartsWithStableEmptySnapshot() throws {
+        // 测试场景：未重建前的 DuckDB adapter 只返回空 read model snapshot，不暴露私有 schema。
+        let adapter = try makeTemporaryDuckDBAnalyticalProjectionAdapter()
+        let snapshot = try adapter.querySnapshot()
+        let boundary = PersistenceBoundary()
+
+        XCTAssertEqual(snapshot, DuckDBAnalyticalProjectionSnapshot())
+        XCTAssertEqual(boundary.uiExposure, "stable read model projections only")
+        XCTAssertFalse(boundary.exposesDatabaseTablesToUI)
+        XCTAssertFalse(boundary.persistsRuntimeObjectsAsUIContract)
+    }
+    #endif
+
     func testProjectionIsolationKeepsRuntimeAndAnalyticalReadModelsSeparate() throws {
         let envelopes = try makeFullEventLog()
         let sqliteSnapshot = SQLiteRuntimeProjectionStore.project(envelopes)
@@ -361,6 +438,21 @@ final class PersistenceTests: XCTestCase {
             databaseURL: directoryURL.appendingPathComponent("runtime.sqlite")
         )
     }
+
+    #if canImport(DuckDB)
+    private func makeTemporaryDuckDBAnalyticalProjectionAdapter() throws -> DuckDBAnalyticalProjectionAdapter {
+        let directoryURL = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "MTPRO-DuckDBAnalyticalProjectionTests-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: directoryURL)
+        }
+        return DuckDBAnalyticalProjectionAdapter(
+            databaseURL: directoryURL.appendingPathComponent("analytical.duckdb")
+        )
+    }
+    #endif
 
     private func makeMarketBar(close: Double = 105, start: TimeInterval = 100) throws -> MarketBar {
         try MarketBar(

@@ -12,6 +12,9 @@ let package = Package(
         .library(name: "Persistence", targets: ["Persistence"]),
         .library(name: "App", targets: ["App"])
     ],
+    dependencies: [
+        .package(url: "https://github.com/duckdb/duckdb-swift.git", from: "1.1.3")
+    ],
     targets: [
         .target(
             name: "Core",
@@ -31,7 +34,15 @@ let package = Package(
         ),
         .target(
             name: "Persistence",
-            dependencies: ["Core", "CSQLite"],
+            dependencies: [
+                "Core",
+                "CSQLite",
+                .product(
+                    name: "DuckDB",
+                    package: "duckdb-swift",
+                    condition: .when(platforms: [.macOS])
+                )
+            ],
             path: "Sources/Persistence"
         ),
         .target(
