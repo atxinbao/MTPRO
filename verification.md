@@ -1971,3 +1971,55 @@ Commit：本轮提交
 | --- | --- | --- |
 | `git diff --check` | pass | Team role map alignment 无空白问题。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+## Active Documentation Closeout
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 从 `README.md` 开始梳理 MTPRO active documentation。
+- 移除 active docs 中写死 current issue / stale Linear 状态的表述。
+- 压缩 README、ROADMAP、ENVIRONMENT、ARCHITECTURE、automation readiness、Graphify scope、validation plan 和 Linear draft plan。
+- 明确 `MTPRO 引导` Project 已完成，当前下一步是 Human 基于阶段审计报告规划新的 Linear Project。
+
+文件范围：
+
+- Updated：
+  - `README.md`
+  - `ENVIRONMENT.md`
+  - `GOAL.md`
+  - `AGENTS.md`
+  - `ARCHITECTURE.md`
+  - `ROADMAP.md`
+  - `checks/automation-readiness.sh`
+  - `docs/automation/automation-readiness.md`
+  - `docs/automation/graphify-resource-graph-scope.md`
+  - `docs/planning/linear-draft-plan.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+
+边界确认：
+
+- 未修改业务代码。
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未运行 Graphify update / full rebuild。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 未压缩历史 verification 记录。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Active docs closeout 无空白问题。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.` |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |

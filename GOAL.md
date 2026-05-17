@@ -17,12 +17,13 @@ MTPRO 应提供一个从策略研究到 Paper 执行一致的本地工作台：
 
 ## 成功标准
 
-第一阶段成功标准：
+当前项目成功标准：
 
 - 项目目标、架构、产品面、契约和验证计划清楚。
-- SwiftPM skeleton 可以构建和测试。
-- Linear Draft Plan 可以从 ROADMAP 转换，但当前不写入 Linear。
-- Human Review 完成前不进入业务实现。
+- SwiftPM baseline 可以构建和测试。
+- Linear Project / Issue 已按 Human Project Planning 写入并成为执行事实源。
+- 正式开发只从 Linear 中唯一 configured executable issue 进入。
+- 每个 PR 通过 GitHub PR Automation 和本地验证。
 
 ## 非目标
 

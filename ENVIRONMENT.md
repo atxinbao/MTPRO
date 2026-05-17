@@ -9,28 +9,38 @@
 - 并发：Swift actor / AsyncSequence
 - 网络：URLSession / URLSessionWebSocketTask
 
+## 本地验证
+
+```bash
+bash checks/run.sh
+```
+
+`checks/run.sh` 串联：
+
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `swift test`
+
 ## 外部系统边界
 
-当前允许：
+允许在明确授权任务中使用：
 
-- Binance public market data。
-- 本地 SwiftPM build / test。
+- GitHub PR Automation。
+- Linear 只读查询。
+- Human 授权后的 Linear issue 状态推进。
+- symphony-issue 本地调度。
+- Graphify resource relationship graph read context。
+- Post-Issue Ledger 中的 Graphify scoped resource relationship graph refresh。
 
-当前禁止：
+默认禁止：
 
-- Linear API 写入。
-- Symphony execution。
-- Graphify update / scoped update / full rebuild。
 - Binance signed endpoint。
 - API key。
 - account endpoint。
 - order submit / cancel / replace。
 - listenKey user data stream。
-
-## 本地验证
-
-```bash
-swift test
-```
-
-当前不接 CI，不接远程流水线。
+- LiveExecutionAdapter。
+- 未经 Human 授权创建 Linear Project / Issue。
+- 未经 Human 授权启动 symphony-issue。
+- Graphify full rebuild。
+- 提交 `.codex/*` 或 `graphify-out/*`。
