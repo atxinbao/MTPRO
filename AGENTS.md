@@ -29,6 +29,8 @@ Agent 开始工作前必须读取：
 - Parent Codex Automation Supervision 负责 Project 级 queue preview、child Codex 监控、代码审查、host-side fallback 和流程迭代建议。
 - 父 Codex 必须在第一个 `Todo` 前核对 Linear Project / Issue 执行合同格式。
 - 第一个 issue 和后续 issue 的 `Backlog` -> `Todo` 操作都只能由父 Codex 在 Human 明确授权后执行。
+- 父 Codex 负责 Project 切换时更新 `symphony-issue` active Project pointer；workflow 本体不得为每个 Project 复制一套。
+- 父 Codex 更新 active Project pointer 后必须先做 queue preview，不得直接启动 `symphony-issue`，不得直接操作 `Backlog` -> `Todo`。
 - symphony-issue 负责唯一 `Todo` issue 的执行调度、`Todo` -> `In Progress` 和 `In Progress` -> `In Review` 状态推进。
 - GitHub PR Automation 负责 required checks、auto-merge、squash merge、branch cleanup 和 Linear bot auto Done。
 - `.codex/*` 不进入 PR。
@@ -83,6 +85,8 @@ Agent 开始工作前必须读取：
 | Child Codex Execution Agent | 只执行当前唯一 Linear issue scope，运行 validation，执行 Pre-PR Codex Code Review，创建 ready-for-review PR 和 GitHub auto-merge handoff | 不修改 Linear status，不操作 `Backlog` -> `Todo`，不决定下一 issue，不合并自己 PR |
 
 Parent Codex 监督边界详见 `docs/automation/parent-codex-supervision.md`。
+
+MTPRO `symphony-issue` workflow 模板和当前 active Project pointer 见 `docs/automation/symphony-issue-workflow-template.md`。
 
 项目能力角色地图见 `docs/planning/project-role-map.md`。该文件按 Product / Design / Engineering / Finance / Operations / QA 维护 MTPRO 角色覆盖，只服务 Human Project Planning 和阶段复盘，不授权执行，不替代 Linear Project / Issue。
 
