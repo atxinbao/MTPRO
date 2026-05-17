@@ -8,7 +8,7 @@
 
 Parent Codex Automation Supervision 是 MTPRO 当前的 Project 级自动化监督角色。
 
-它承担原计划中独立 Project 级 continuation 程序尚未接入前的监督职责：
+它承担 MTPRO 的 Project 级监督职责：
 
 ```text
 Linear Project 队列观察

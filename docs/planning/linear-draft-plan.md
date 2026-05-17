@@ -55,7 +55,7 @@
 | AEP 阶段 | MTPRO 映射 | 当前状态 |
 | --- | --- | --- |
 | 1. Human Project Planning | 本文档和 Linear Project `MTPRO 引导` | 已完成 |
-| 2. Parent Codex Automation Supervision | 当前 Project queue preview、child Codex 监控、代码审查和 host-side fallback | 已启用人工监督模式；独立 Project 级 continuation 程序暂不接入 |
+| 2. Parent Codex Automation Supervision | 当前 Project queue preview、child Codex 监控、代码审查和 host-side fallback | 已启用人工监督模式 |
 | 3. symphony-issue | `/Users/mac/code/symphony-workflows/mtpro-aep-v2.md` | 已验证 MTP-8 / MTP-9 / MTP-10，后续等待 Human 授权唯一 Todo |
 | 4. GitHub PR Automation | GitHub `checks`、`protect-main`、auto-merge、branch cleanup | 已配置 |
 | 5. Next Human Project Planning | 当前 Project 全部 Done 后的新阶段规划 | 未进入 |

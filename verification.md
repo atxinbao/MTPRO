@@ -1830,3 +1830,49 @@ Commit：本轮提交
 | `git diff --check` | pass | Swift module rename 无空白问题。 |
 | `swift test` | pass | 39 个 XCTest 通过；module 名称已变为 `Core`、`Adapters`、`Persistence`、`App`。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；输出 `MTPRO checks passed.` |
+
+## Project Supervision And Examples Cleanup
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 删除 MTPRO 项目中的 `examples/` 目录。
+- 移除 active docs 中把独立 Project 级自动 continuation 程序作为未完成项的表述。
+- 明确 MTPRO 当前 Project 级监督由 Parent Codex Automation Supervision 承接。
+
+文件范围：
+
+- Updated：
+  - `README.md`
+  - `ROADMAP.md`
+  - `docs/automation/automation-readiness.md`
+  - `docs/automation/graphify-resource-graph-scope.md`
+  - `docs/automation/parent-codex-supervision.md`
+  - `docs/planning/linear-draft-plan.md`
+  - `verification.md`
+- Deleted：
+  - `examples/README.md`
+
+边界确认：
+
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未运行 Graphify update / full rebuild。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 未修改业务代码。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Project supervision / examples cleanup 无空白问题。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh` 和 `swift test` 通过；39 个 XCTest 通过，输出 `MTPRO checks passed.` |

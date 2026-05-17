@@ -33,7 +33,6 @@ no
 - `docs/planning/`
 - `docs/product/`
 - `docs/validation/`
-- `examples/README.md`
 - `verification.md` latest records only for context
 
 ## 默认排除路径
