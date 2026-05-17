@@ -41,6 +41,7 @@ require_file "docs/automation/post-issue-ledger.md"
 require_file "docs/automation/verified-operations.md"
 require_file "docs/planning/project-role-map.md"
 require_file "docs/validation/eval-strategy.md"
+require_file "docs/validation/latest-verification-summary.md"
 require_file "docs/validation/macos-build-run-loop.md"
 require_file "docs/validation/validation-plan.md"
 require_file "verification.md"
@@ -80,6 +81,8 @@ require_contains "docs/automation/automation-readiness.md" "Codex use-cases alig
 require_contains "docs/automation/codex-use-cases-alignment.md" "当前不引入独立 eval 框架"
 require_contains "docs/automation/codex-use-cases-alignment.md" "代码中文注释规则"
 require_contains "docs/automation/graphify-resource-graph-scope.md" "resource relationship graph"
+require_contains "docs/automation/graphify-resource-graph-scope.md" "docs/validation/latest-verification-summary.md"
+require_contains "docs/automation/graphify-resource-graph-scope.md" '完整 `verification.md` 默认不进入 Graphify context'
 require_contains "docs/automation/graphify-resource-graph-scope.md" "Post-Issue Ledger"
 require_contains "docs/automation/parent-codex-supervision.md" "host-side fallback"
 require_contains "docs/automation/parent-codex-supervision.md" "Linear issue execution contract"
@@ -113,10 +116,15 @@ require_contains "docs/validation/validation-plan.md" "Finance / Trading Validat
 require_contains "docs/validation/validation-plan.md" "fees / slippage"
 require_contains "docs/validation/validation-plan.md" "Backtest / Paper parity"
 require_contains "docs/validation/eval-strategy.md" "什么时候可以引入独立 eval 框架"
+require_contains "docs/validation/latest-verification-summary.md" "Agent / Graphify 默认读取本文档"
+require_contains "docs/validation/latest-verification-summary.md" '完整 `verification.md` 只用于审计、追溯和 debug'
+require_contains "docs/validation/latest-verification-summary.md" "bash checks/run.sh"
 require_contains "docs/validation/macos-build-run-loop.md" "macOS App shell"
 
 require_contains "AGENTS.md" "Linear issue 中已填写的 Scope / Non-goals / Codex Instructions / Validation / Boundary / PR Requirements 是 Codex Execution Agent 的执行合同"
 require_contains "AGENTS.md" "不二次确认 issue scope"
+require_contains "AGENTS.md" "docs/validation/latest-verification-summary.md"
+require_contains "AGENTS.md" '完整 `verification.md` 只在审计、追溯或 debug 时读取'
 require_contains "AGENTS.md" "详细中文注释"
 require_contains "AGENTS.md" "Finance / Trading Domain"
 require_contains "AGENTS.md" "Trading validation"
