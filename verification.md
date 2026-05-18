@@ -2764,6 +2764,7 @@ Commit：本轮提交
 - 将本会话已输出的 `MTPRO Runtime Research Workbench v1` Stage Code Audit Report 固化为 canonical 仓库文档。
 - 新增 `docs/audit/mtpro-runtime-research-workbench-v1-stage-code-audit.md`，作为后续 Next Human Project Planning 的固定读取入口。
 - 更新 `docs/validation/latest-verification-summary.md`，指向新的 Stage Code Audit Report。
+- 补充 Known CI Boundary，记录 `MTP-18` / `MTP-19` / `MTP-22` 的临时 CI 平台边界、修复方式和最终通过 run。
 
 边界确认：
 

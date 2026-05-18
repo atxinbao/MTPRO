@@ -62,6 +62,41 @@ Linear Project slug：`mtpro-runtime-research-workbench-v1-222cf4e1965c`
 
 GitHub PR Automation 已完成 required check、auto-merge handoff、squash merge 和 branch cleanup 路径。Linear bot 已在 PR merge 后完成 issue `Done` 收口。
 
+## Known CI Boundary / 临时失败说明
+
+本节记录 PR 执行过程中暴露的 CI 平台边界。以下失败都是 PR 过程中的临时失败，不是当前 `main` 遗留失败；对应 PR 后续 `checks` 均已通过并合并。
+
+当前 `main` 为 `948cc67`，本地 `bash checks/run.sh` 已通过，无当前遗留 failing PR run。
+
+### MTP-18 / PR #40
+
+- 失败 run：[26002733894](https://github.com/atxinbao/MTPRO/actions/runs/26002733894)。
+- 原因：GitHub Ubuntu runner 上 Swift 找不到 SQLite3 模块。
+- 关键错误：`Sources/Persistence/Persistence.swift:3:8: error: no such module 'SQLite3'`。
+- 修复：后续提交 `c85d697` 改为 portable SQLite system module。
+- 最终通过 run：[26002816845](https://github.com/atxinbao/MTPRO/actions/runs/26002816845)。
+
+### MTP-19 / PR #41
+
+- 失败 run：[26003287473](https://github.com/atxinbao/MTPRO/actions/runs/26003287473)。
+- 原因：`duckdb-swift` 在 Ubuntu / Linux Swift 环境下编译失败，属于第三方 Swift wrapper 与 Linux runner 的平台兼容边界。
+- 关键错误摘要：`Decimal+IntHuge.swift: error: extra arguments ...`。
+- 关键错误摘要：`CTypeUtilities.swift: error: '_mantissa' is inaccessible due to 'internal' protection level`。
+- 关键错误摘要：`CTypeUtilities.swift: error: '_length' is inaccessible due to 'internal' protection level`。
+- 修复：Linux CI 不再构建官方 DuckDB Swift wrapper，只编译公共 API；真实 DuckDB adapter 由 macOS 本地验证覆盖。
+- 最终通过 run：[26003585562](https://github.com/atxinbao/MTPRO/actions/runs/26003585562)。
+
+### MTP-22 / PR #44
+
+- 失败 run 1：[26004839733](https://github.com/atxinbao/MTPRO/actions/runs/26004839733)。
+- 原因 1：Linux runner 没有 SwiftUI。
+- 关键错误 1：`Sources/App/DashboardShell.swift:3:8: error: no such module 'SwiftUI'`。
+- 失败 run 2：[26004920396](https://github.com/atxinbao/MTPRO/actions/runs/26004920396)。
+- 原因 2：SwiftPM 在 Linux `swift test` 时仍会编译 executable target，入口文件无条件 import macOS-only 模块。
+- 关键错误 2：`Sources/MTPRODashboard/MTPRODashboardApplication.swift:2:8: error: no such module 'Darwin'`。
+- 修复：后续提交 `16b5b7c` 做 SwiftUI / macOS gating，`5e2b501` 增加 non-macOS executable fallback。
+- 最终通过 run：[26004978166](https://github.com/atxinbao/MTPRO/actions/runs/26004978166)。
+
 ## Boundary Audit
 
 本阶段保持了以下边界：

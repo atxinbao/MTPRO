@@ -21,6 +21,7 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - 当前 active issue：无。
 - 当前工作树：已同步到 `origin/main` 的 `948cc67a6b9dff898deb4d46c7f793a2e7de6e83`。
 - Stage Code Audit Report 已由 Parent Codex 固化到 `docs/audit/mtpro-runtime-research-workbench-v1-stage-code-audit.md`。
+- Stage Code Audit Report 已记录 `MTP-18` / `MTP-19` / `MTP-22` 的临时 CI 平台边界和最终通过证据。
 - Post-Issue Ledger 已完成，`git_pull_ff_only` 和 `graphify_update` 均为 `passed`。
 - `graphify-out/*` 未提交，`.codex/*` 未提交。
 - `symphony-issue` active Project pointer 仍指向 `mtpro-runtime-research-workbench-v1-222cf4e1965c`。
