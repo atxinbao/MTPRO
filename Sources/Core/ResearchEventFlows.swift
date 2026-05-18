@@ -15,6 +15,10 @@ public struct BacktestEventFlow: Equatable, Sendable {
             strategy: command.strategy,
             marketData: command.marketData
         )
+        try StrategyMarketDataValidation.validateBars(
+            bars,
+            marketData: command.marketData
+        )
         let signalSamples = try EMACrossStrategyContract(
             configuration: command.strategy
         ).evaluate(bars)
@@ -43,6 +47,10 @@ public struct PaperSessionEventFlow: Equatable, Sendable {
     ) throws -> PaperSessionRun {
         try StrategyMarketDataValidation.validate(
             strategy: command.strategy,
+            marketData: command.marketData
+        )
+        try StrategyMarketDataValidation.validateBars(
+            bars,
             marketData: command.marketData
         )
         let signalSamples = try EMACrossStrategyContract(
@@ -136,6 +144,29 @@ public enum BacktestPaperParity {
 }
 
 private enum StrategyMarketDataValidation {
+    /// Backtest / Paper 的 `MarketDataQuery` 必须完整覆盖本次 EMA 计算使用的 bar 区间。
+    /// 这个校验防止同一组实际行情被错误地标记为不同查询窗口下的一致结果；它只检查本地 fixture
+    /// 的时间边界，不连接 Binance、broker、signed endpoint，也不产生任何交易动作。
+    static func validateBars(
+        _ bars: [MarketBar],
+        marketData: MarketDataQuery
+    ) throws {
+        guard
+            let firstStart = bars.map(\.interval.start).min(),
+            let lastEnd = bars.map(\.interval.end).max()
+        else {
+            return
+        }
+
+        guard firstStart >= marketData.range.start, lastEnd <= marketData.range.end else {
+            throw CoreError.marketDataMismatch(
+                field: "marketData.range",
+                expected: rangeDescription(marketData.range),
+                actual: rangeDescription(start: firstStart, end: lastEnd)
+            )
+        }
+    }
+
     static func validate(
         strategy: EMACrossStrategyConfiguration,
         marketData: MarketDataQuery
@@ -174,5 +205,17 @@ private enum StrategyMarketDataValidation {
                 actual: marketData.timeframe.rawValue
             )
         }
+    }
+
+    private static func rangeDescription(_ range: DateRange) -> String {
+        rangeDescription(start: range.start, end: range.end)
+    }
+
+    private static func rangeDescription(start: Date, end: Date) -> String {
+        "\(timestampDescription(start))...\(timestampDescription(end))"
+    }
+
+    private static func timestampDescription(_ date: Date) -> String {
+        String(format: "%.0f", date.timeIntervalSince1970)
     }
 }

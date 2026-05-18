@@ -74,6 +74,7 @@ Use Case 输出必须先进入 read model projection，再供 UI 使用。
 
 - short EMA period 必须大于 0，long EMA period 必须大于 0，且 shortPeriod 必须小于 longPeriod。
 - Backtest / Paper command 的 `MarketDataQuery` 必须与 EMA 配置中的 symbol 和 timeframe 一致。
+- Backtest / Paper command 的 `MarketDataQuery.range` 必须完整覆盖输入 market bars 的 interval，禁止使用查询窗口外数据生成 parity 结果。
 - 输入 market bars 必须满足配置中的 symbol 和 timeframe。
 - 输入 bars 数量必须至少覆盖 long EMA warm-up。
 - Backtest 与 Paper 必须复用同一 EMA contract，确保同一输入下 signal timeline 一致。
@@ -86,6 +87,25 @@ Use Case 输出必须先进入 read model projection，再供 UI 使用。
 - 订单簿失衡策略。
 - 完整 Dashboard 页面。
 - 数据库 adapter。
+
+## MTP-25 EMA parity 加固
+
+日期：2026-05-18
+
+执行者：Codex
+
+MTP-25 在 MTP-11 契约基础上加固 `RunBacktest` 与 `StartPaperSession` 的行情查询边界：
+
+- `MarketDataQuery.range` 必须覆盖本次 EMA 计算所用 bars 的最早 interval start 和最晚 interval end。
+- 同一 deterministic fixture 下，Backtest 与 Paper 必须锁定相同 strategy config、symbol、timeframe、query range、warm-up 后首个 signal timestamp、direction timeline 和 signal sample。
+- query range 过窄时，Backtest 与 Paper 都必须拒绝运行，不得生成看似一致的 parity 结果。
+
+本加固仍不包含：
+
+- Live trading。
+- 真实 broker / exchange action。
+- 真实 Binance 网络验证。
+- 完整 Paper execution 工作流。
 
 ## MTP-12 订单簿失衡研究链路契约
 
