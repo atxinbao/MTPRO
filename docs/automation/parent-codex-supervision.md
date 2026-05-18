@@ -180,6 +180,35 @@ Post-Issue Ledger / 施工后记账只提供关系事实和下一步观察提示
 
 下一步 issue 由父 Codex 在当前 Human-approved Project 内自动判断并推进；如果 Post-Issue Ledger 暴露 scope 冲突、验证缺口、active conflict 或依赖不满足，父 Codex 必须停止并交给 Human 处理。
 
+## Stage Code Audit Report 落仓规则
+
+当当前 Linear Project 的有效 issues 全部 `Done` 后，Parent Codex 必须输出 Project 级 Stage Code Audit Report，并落到仓库：
+
+```text
+docs/audit/<linear-project-slug>-stage-code-audit.md
+```
+
+命名规则：
+
+- `<linear-project-slug>` 使用 Linear Project 名称的小写 kebab-case。
+- 文件名不放日期。
+- 日期、执行者、PR、commit 和 validation evidence 写入正文。
+- 一个 Linear Project 对应一份 canonical Stage Code Audit Report。
+
+内容要求：
+
+- 报告必须覆盖整个 Linear Project，不得只覆盖单个 issue。
+- 报告必须包含 Project scope / issue range、Issue / PR evidence、Validation、Boundary Audit、Known CI Boundary、Residual Notes For Human Planning 和 Next Human Project Planning Handoff。
+- 仅有会话输出、单个 issue evidence、PR body、`verification.md` 或 Post-Issue Ledger，都不能替代落仓的 Stage Code Audit Report。
+
+当前 Project 的 canonical report 是：
+
+```text
+docs/audit/mtpro-runtime-research-workbench-v1-stage-code-audit.md
+```
+
+Next Human Project Planning 必须读取该文件后才能开始。
+
 ## 边界
 
 - 父 Codex 不替代 Human Project Planning。
