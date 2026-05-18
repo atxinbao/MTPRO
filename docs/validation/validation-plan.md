@@ -42,6 +42,7 @@ bash checks/run.sh
 - Trader Workstation Dashboard ViewModel contract。
 - Trader Workstation Dashboard macOS shell、ViewModel snapshot binding 和 smoke run。
 - Research -> Backtest -> Report 最小路径、report artifact / read model 和 Dashboard Report 快照。
+- Paper Session lifecycle started / updated / closed facts、paper-only event log 写入边界和 deterministic fixture。
 - GitHub workflow / PR evidence / WIP=1 / handoff marker / Graphify 边界。
 - Linear issue execution contract。
 - `.codex/*` 与 `graphify-out/*` 本地输出排除契约。
@@ -138,6 +139,19 @@ MTP-30 的 required validation：
 - `checks/automation-readiness.sh` 必须检查 MTP-30 输入材料和关键锚点，避免 Stage Code Audit 输入材料缺失。
 - Stage Code Audit input 必须明确：最终 Stage Code Audit Report 仍由 Parent Codex 在 `MTP-24` 至 `MTP-30` 全部 Done 后单独输出。
 - Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`。
+
+## MTP-31 Paper Session Lifecycle Validation
+
+MTP-31 的 required validation：
+
+- Paper session lifecycle 必须使用 deterministic fixture，不依赖真实 Binance 网络、secret、broker、account endpoint 或真实订单。
+- Core 测试必须覆盖 `sessionStarted`、`sessionUpdated`、`sessionClosed` 三类 lifecycle facts。
+- Core 测试必须固定 startedAt、updatedAt、closedAt、event log recordedAt 和 stream replay 结果。
+- event log 写入边界必须只接受 `PaperEvent` 并固定写入 `.paper` stream。
+- `PaperSessionUpdated.signalCount` 必须非负，并只代表本地 signal timeline 数量。
+- Persistence / App 只能把 lifecycle facts 投影为稳定 read model state，不得新增交易执行入口。
+- `docs/validation/trading-validation-matrix.md` 的 `TVM-PAPER-SESSION-LIFECYCLE` 必须回填新增 Core 类型、测试、fixture 和 PR evidence 边界。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不触发 Paper / Live 执行。
 
 ## Codex / Automation Validation
 

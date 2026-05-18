@@ -89,7 +89,7 @@ final class PersistenceTests: XCTestCase {
         XCTAssertEqual(boundary.envelopes, envelopes)
         XCTAssertEqual(marketSnapshot.marketEventCount, 2)
         XCTAssertEqual(runtimeSnapshot.lastAppliedSequence, envelopes.count)
-        XCTAssertEqual(session.state, .completed)
+        XCTAssertEqual(session.state, .closed)
         XCTAssertEqual(session.executionMode, .paper)
     }
 
@@ -112,7 +112,7 @@ final class PersistenceTests: XCTestCase {
         let portfolio = try XCTUnwrap(queriedSnapshot.portfolioProjections[try Identifier("portfolio-main")])
 
         XCTAssertEqual(queriedSnapshot, rebuiltSnapshot)
-        XCTAssertEqual(session.state, .completed)
+        XCTAssertEqual(session.state, .closed)
         XCTAssertEqual(session.executionMode, .paper)
         XCTAssertEqual(session.signalCount, 4)
         XCTAssertEqual(queriedSnapshot.rejectedPaperOrderIDs, [try Identifier("paper-order-rejected")])
@@ -175,7 +175,7 @@ final class PersistenceTests: XCTestCase {
         let session = try XCTUnwrap(snapshot.paperSessions[try Identifier("paper-ema-fixture")])
         let portfolio = try XCTUnwrap(snapshot.portfolioProjections[try Identifier("portfolio-main")])
 
-        XCTAssertEqual(session.state, .completed)
+        XCTAssertEqual(session.state, .closed)
         XCTAssertEqual(session.strategyID, try Identifier("ema-cross"))
         XCTAssertEqual(session.symbol, try Symbol(rawValue: "BTCUSDT"))
         XCTAssertEqual(session.timeframe, .oneMinute)
@@ -183,7 +183,7 @@ final class PersistenceTests: XCTestCase {
         XCTAssertEqual(session.signalCount, 4)
         XCTAssertEqual(session.completedAt?.timeIntervalSince1970, 1_000)
         XCTAssertEqual(snapshot.rejectedPaperOrderIDs, [try Identifier("paper-order-rejected")])
-        XCTAssertEqual(snapshot.riskBlockerEvidence.first?.sourceSequence, 21)
+        XCTAssertEqual(snapshot.riskBlockerEvidence.first?.sourceSequence, 22)
         XCTAssertEqual(portfolio.state, .updated)
         XCTAssertEqual(portfolio.updatedAt?.timeIntervalSince1970, 1_500)
         XCTAssertEqual(portfolio.exposures.first?.symbol, try Symbol(rawValue: "BTCUSDT"))
@@ -255,7 +255,7 @@ final class PersistenceTests: XCTestCase {
             $0.source == .orderBookImbalanceResearch
         }
         XCTAssertEqual(queriedResearchSignals.map(\.orderBookInputSource), [.snapshot, .deltaApplied, .snapshot])
-        XCTAssertEqual(queriedSnapshot.lastAppliedSequence, 19)
+        XCTAssertEqual(queriedSnapshot.lastAppliedSequence, 20)
     }
 
     func testDuckDBAnalyticalProjectionAdapterRebuildReplacesPreviousSnapshot() throws {

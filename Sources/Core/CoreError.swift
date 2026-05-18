@@ -26,6 +26,7 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
     case invalidExecutionCostAssumption(field: String, value: Double)
     case invalidExecutionCostRoundingDecimalPlaces(Int)
     case riskEvaluationRequiresPaperMode(ExecutionMode)
+    case invalidPaperSessionSignalCount(Int)
 
     public var description: String {
         switch self {
@@ -73,6 +74,8 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
             "Execution cost rounding decimal places must be within 0...8: \(value)"
         case let .riskEvaluationRequiresPaperMode(value):
             "Risk evaluation requires paper mode: \(value.rawValue)"
+        case let .invalidPaperSessionSignalCount(value):
+            "Paper session signal count must be non-negative: \(value)"
         }
     }
 }

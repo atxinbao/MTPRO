@@ -86,7 +86,7 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(decoded.event, event)
     }
 
-    func testCodableDecodingCannotBypassCoreContractValidation() {
+    func testCodableDecodingCannotBypassCoreContractValidation() throws {
         let decoder = JSONDecoder()
 
         XCTAssertThrowsError(
@@ -124,6 +124,31 @@ final class CoreTests: XCTestCase {
                 )
             )
         )
+
+        let paperLifecycleCommand = try PaperSessionCommand(
+            sessionID: try Identifier("paper-lifecycle-fixture"),
+            strategy: try makeEMAStrategy(),
+            marketData: try makeEMAMarketDataQuery(),
+            riskProfileID: try Identifier("paper-risk"),
+            executionMode: .paper
+        )
+        let paperLifecycleUpdate = try PaperSessionUpdated(
+            command: paperLifecycleCommand,
+            signalCount: 0,
+            updatedAt: Date(timeIntervalSince1970: 700)
+        )
+        let validLifecycleData = try JSONEncoder().encode(paperLifecycleUpdate)
+        var invalidLifecycleObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: validLifecycleData) as? [String: Any]
+        )
+        invalidLifecycleObject["signalCount"] = -1
+        let invalidLifecycleData = try JSONSerialization.data(withJSONObject: invalidLifecycleObject)
+
+        XCTAssertThrowsError(
+            try decoder.decode(PaperSessionUpdated.self, from: invalidLifecycleData)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .invalidPaperSessionSignalCount(-1))
+        }
     }
 
     func testAppendOnlyEventLogAssignsMonotonicSequencesAndReplaysRanges() throws {
@@ -533,13 +558,125 @@ final class CoreTests: XCTestCase {
         )
 
         XCTAssertEqual(backtestRun.events.count, 6)
-        XCTAssertEqual(paperRun.events.count, 6)
+        XCTAssertEqual(paperRun.events.count, 7)
         XCTAssertEqual(backtestRun.result.signalSamples.map(\.signal.direction), [.long, .long, .flat, .long])
         XCTAssertEqual(paperRun.result.signalSamples, backtestRun.result.signalSamples)
         XCTAssertTrue(parity.sameStrategy)
         XCTAssertTrue(parity.sameMarketData)
         XCTAssertTrue(parity.matchingSignalTimeline)
         XCTAssertTrue(parity.isConsistent)
+    }
+
+    func testPaperSessionLifecycleEmitsStartedUpdatedClosedFactsDeterministically() throws {
+        // 测试场景：MTP-31 Paper session lifecycle 必须输出 started / updated / closed
+        // 三类确定性本地事实，并继续保持 signal timeline 与真实交易能力隔离。
+        let marketDataQuery = try makeEMAMarketDataQuery()
+        let strategy = try makeEMAStrategy()
+        let command = try PaperSessionCommand(
+            sessionID: try Identifier("paper-lifecycle-fixture"),
+            strategy: strategy,
+            marketData: marketDataQuery,
+            riskProfileID: try Identifier("paper-risk"),
+            executionMode: .paper
+        )
+        let startedAt = Date(timeIntervalSince1970: 600)
+        let updatedAt = Date(timeIntervalSince1970: 700)
+        let closedAt = Date(timeIntervalSince1970: 800)
+
+        let run = try PaperSessionEventFlow().start(
+            command,
+            bars: try makeEMAFixtureBars(),
+            startedAt: startedAt,
+            updatedAt: updatedAt,
+            completedAt: closedAt
+        )
+
+        XCTAssertEqual(run.events.count, 7)
+        XCTAssertEqual(run.events.filter { event in
+            if case .signalGenerated = event {
+                return true
+            }
+            return false
+        }.count, 4)
+
+        guard case let .sessionStarted(started) = run.events[0] else {
+            return XCTFail("first paper lifecycle event must be sessionStarted")
+        }
+        guard case let .sessionUpdated(updated) = run.events[5] else {
+            return XCTFail("updated lifecycle event must follow signal timeline")
+        }
+        guard case let .sessionClosed(closed) = run.events[6] else {
+            return XCTFail("last paper lifecycle event must be sessionClosed")
+        }
+
+        XCTAssertEqual(started.sessionID, command.sessionID)
+        XCTAssertEqual(started.state, .started)
+        XCTAssertEqual(started.startedAt, startedAt)
+        XCTAssertEqual(updated.sessionID, command.sessionID)
+        XCTAssertEqual(updated.state, .updated)
+        XCTAssertEqual(updated.signalCount, 4)
+        XCTAssertEqual(updated.updatedAt, updatedAt)
+        XCTAssertEqual(closed.sessionID, command.sessionID)
+        XCTAssertEqual(closed.state, .closed)
+        XCTAssertEqual(closed.signalCount, 4)
+        XCTAssertEqual(closed.closedAt, closedAt)
+        XCTAssertEqual(run.result.completedAt, closedAt)
+    }
+
+    func testPaperSessionEventLogBoundaryWritesOnlyPaperStreamFacts() throws {
+        // 测试场景：MTP-31 event log 写入边界只接受 PaperEvent，并固定写入 `.paper` stream；
+        // replay 证据必须可按 stream 确定性过滤，不能混入 risk、portfolio、broker 或 signed endpoint 事实。
+        var eventLog = try AppendOnlyEventLog()
+        let boundary = PaperSessionEventLogBoundary()
+        let command = try PaperSessionCommand(
+            sessionID: try Identifier("paper-event-log-boundary"),
+            strategy: try makeEMAStrategy(),
+            marketData: try makeEMAMarketDataQuery(),
+            riskProfileID: try Identifier("paper-risk"),
+            executionMode: .paper
+        )
+        let run = try PaperSessionEventFlow().start(
+            command,
+            bars: try makeEMAFixtureBars(),
+            startedAt: Date(timeIntervalSince1970: 600),
+            updatedAt: Date(timeIntervalSince1970: 700),
+            completedAt: Date(timeIntervalSince1970: 800)
+        )
+
+        for (index, event) in run.events.enumerated() {
+            try boundary.append(
+                event,
+                to: &eventLog,
+                recordedAt: Date(timeIntervalSince1970: 900 + TimeInterval(index))
+            )
+        }
+
+        XCTAssertEqual(eventLog.envelopes.map(\.sequence), Array(1...run.events.count))
+        XCTAssertEqual(eventLog.envelopes.map(\.stream), Array(repeating: EventStreamID.paper, count: run.events.count))
+        XCTAssertEqual(eventLog.envelopes.map(\.recordedAt.timeIntervalSince1970), [900, 901, 902, 903, 904, 905, 906])
+        XCTAssertTrue(eventLog.envelopes.allSatisfy { envelope in
+            if case .paper = envelope.event {
+                return true
+            }
+            return false
+        })
+        XCTAssertEqual(
+            eventLog.replay(
+                EventReplayCommand(
+                    range: try EventSequenceRange(lowerBound: 1, upperBound: run.events.count),
+                    streams: [.paper]
+                )
+            ).envelopes.count,
+            run.events.count
+        )
+        XCTAssertTrue(
+            eventLog.replay(
+                EventReplayCommand(
+                    range: try EventSequenceRange(lowerBound: 1, upperBound: run.events.count),
+                    streams: [.risk]
+                )
+            ).envelopes.isEmpty
+        )
     }
 
     func testEMABacktestPaperParityLocksStrategyQueryWarmupAndSignalTimeline() throws {
@@ -750,11 +887,11 @@ final class CoreTests: XCTestCase {
             try messageBus.publish(.paper(event), stream: .paper)
         }
 
-        XCTAssertEqual(messageBus.envelopes.map(\.sequence), Array(1...12))
+        XCTAssertEqual(messageBus.envelopes.map(\.sequence), Array(1...13))
         XCTAssertEqual(
             messageBus.replay(
                 EventReplayCommand(
-                    range: try EventSequenceRange(lowerBound: 1, upperBound: 12),
+                    range: try EventSequenceRange(lowerBound: 1, upperBound: 13),
                     streams: [.backtest]
                 )
             ).envelopes.count,
@@ -763,11 +900,11 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(
             messageBus.replay(
                 EventReplayCommand(
-                    range: try EventSequenceRange(lowerBound: 1, upperBound: 12),
+                    range: try EventSequenceRange(lowerBound: 1, upperBound: 13),
                     streams: [.paper]
                 )
             ).envelopes.count,
-            6
+            7
         )
     }
 

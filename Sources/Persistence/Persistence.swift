@@ -165,7 +165,25 @@ public struct PersistenceReplayBoundary: Equatable, Sendable {
 
 public enum ProjectionLifecycleState: String, Codable, Equatable, Sendable {
     case requested
+    case started
+    case updated
     case completed
+    case closed
+
+    /// active 状态表示本地事实源已经看到 session / run，但尚未看到 terminal lifecycle event。
+    public var isActive: Bool {
+        switch self {
+        case .requested, .started, .updated:
+            true
+        case .completed, .closed:
+            false
+        }
+    }
+
+    /// terminal 状态表示本地 replay 已看到完成或关闭事实；它不代表真实 broker 成交或账户结算。
+    public var isTerminal: Bool {
+        isActive == false
+    }
 }
 
 public struct SQLitePaperSessionProjection: Codable, Equatable, Sendable {
@@ -440,6 +458,57 @@ public struct SQLiteRuntimeProjectionStore: Equatable, Sendable {
         paperSessions: inout [Identifier: SQLitePaperSessionProjection]
     ) {
         switch paperEvent {
+        case let .sessionStarted(started):
+            let command = started.command
+            let existing = paperSessions[command.sessionID]
+            paperSessions[command.sessionID] = SQLitePaperSessionProjection(
+                sessionID: command.sessionID,
+                strategyID: command.strategyID,
+                symbol: command.strategy.symbol,
+                timeframe: command.strategy.timeframe,
+                riskProfileID: command.riskProfileID,
+                executionMode: command.executionMode,
+                state: .started,
+                signalCount: existing?.signalCount ?? 0,
+                requestedAt: existing?.requestedAt ?? started.startedAt,
+                completedAt: existing?.completedAt,
+                lastUpdatedAt: envelope.recordedAt
+            )
+
+        case let .sessionUpdated(update):
+            let command = update.command
+            let existing = paperSessions[command.sessionID]
+            paperSessions[command.sessionID] = SQLitePaperSessionProjection(
+                sessionID: command.sessionID,
+                strategyID: command.strategyID,
+                symbol: command.strategy.symbol,
+                timeframe: command.strategy.timeframe,
+                riskProfileID: command.riskProfileID,
+                executionMode: command.executionMode,
+                state: .updated,
+                signalCount: update.signalCount,
+                requestedAt: existing?.requestedAt ?? update.updatedAt,
+                completedAt: existing?.completedAt,
+                lastUpdatedAt: envelope.recordedAt
+            )
+
+        case let .sessionClosed(closed):
+            let result = closed.result
+            let existing = paperSessions[result.sessionID]
+            paperSessions[result.sessionID] = SQLitePaperSessionProjection(
+                sessionID: result.sessionID,
+                strategyID: result.command.strategyID,
+                symbol: result.command.strategy.symbol,
+                timeframe: result.command.strategy.timeframe,
+                riskProfileID: result.command.riskProfileID,
+                executionMode: result.command.executionMode,
+                state: .closed,
+                signalCount: result.signalSamples.count,
+                requestedAt: existing?.requestedAt ?? envelope.recordedAt,
+                completedAt: closed.closedAt,
+                lastUpdatedAt: envelope.recordedAt
+            )
+
         case let .sessionRequested(command):
             let existing = paperSessions[command.sessionID]
             paperSessions[command.sessionID] = SQLitePaperSessionProjection(

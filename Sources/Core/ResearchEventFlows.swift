@@ -43,6 +43,8 @@ public struct PaperSessionEventFlow: Equatable, Sendable {
     public func start(
         _ command: PaperSessionCommand,
         bars: [MarketBar],
+        startedAt: Date = Date(),
+        updatedAt: Date? = nil,
         completedAt: Date = Date()
     ) throws -> PaperSessionRun {
         try StrategyMarketDataValidation.validate(
@@ -62,9 +64,30 @@ public struct PaperSessionEventFlow: Equatable, Sendable {
             signalSamples: signalSamples,
             completedAt: completedAt
         )
-        let events = [.sessionRequested(command)]
+        let lifecycleUpdatedAt = updatedAt
+            ?? signalSamples.last?.signal.generatedAt
+            ?? startedAt
+        let events = [
+            .sessionStarted(
+                PaperSessionStarted(
+                    command: command,
+                    startedAt: startedAt
+                )
+            )
+        ]
             + signalSamples.map(PaperEvent.signalGenerated)
-            + [.sessionCompleted(result)]
+            + [
+                .sessionUpdated(
+                    try PaperSessionUpdated(
+                        command: command,
+                        signalCount: signalSamples.count,
+                        updatedAt: lifecycleUpdatedAt
+                    )
+                ),
+                .sessionClosed(
+                    PaperSessionClosed(result: result)
+                )
+            ]
 
         return PaperSessionRun(result: result, events: events)
     }
