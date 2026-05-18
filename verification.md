@@ -2829,3 +2829,46 @@ Commit：本轮提交
 | --- | --- | --- |
 | `git diff --check` | pass | Stage Code Audit Report 落仓规则文档变更无空白错误。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、dashboard build / smoke 和 `swift test` 通过；59 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+## Role Alias Number Rule
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 固化 MTPRO 三位数字编号和三字母角色代号规则。
+- 明确 `@001 = PLN`，并固定 `001` 到 `007` 的核心角色映射。
+- 明确角色编号只用于沟通压缩，不改变职责边界，不授权执行。
+
+文件范围：
+
+- Updated：
+  - `AGENTS.md`
+  - `docs/planning/project-role-map.md`
+  - `docs/automation/parent-codex-supervision.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 Linear Project / Issue。
+- 未修改 Linear status。
+- 未启动 symphony-issue。
+- 未运行 Graphify update。
+- 未修改业务代码。
+- 未创建下一阶段 Project / Issue。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Role Alias Rule 文档变更无空白错误。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、dashboard build / smoke 和 `swift test` 通过；59 个 XCTest 通过，输出 `MTPRO checks passed.` |
