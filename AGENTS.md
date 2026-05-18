@@ -43,6 +43,24 @@ Agent 开始工作前必须读取：
 - Codex use-cases 对齐规则见 `docs/automation/codex-use-cases-alignment.md`；verified operations 记录格式见 `docs/automation/verified-operations.md`。
 - Agent 默认读取 `docs/validation/latest-verification-summary.md`；完整 `verification.md` 只在审计、追溯或 debug 时读取。
 
+## Role Alias Rule
+
+MTPRO 采用 AEP 三位数字编号和三字母角色代号。数字编号与三字母代号等价，例如 `@001 = PLN`。
+
+角色编号只用于沟通压缩，不改变职责边界，不授权执行，不替代 Linear issue、Project planning、GitHub required checks 或 Human decision。
+
+| 编号 | 代号 | 角色 | MTPRO 职责摘要 |
+| --- | --- | --- | --- |
+| `001` | `PLN` | Project Planning Lead | 新阶段规划、Next Human Project Planning、Project / Issue 草案 |
+| `002` | `PAR` | Parent Codex Automation Supervision | Project queue、eligible issue 调度、child Codex 监督、Stage Code Audit |
+| `003` | `SYM` | symphony-issue | 唯一 issue 调度、`Todo` -> `In Progress`、`In Progress` -> `In Review` |
+| `004` | `COD` | Codex Execution Agent | 当前 issue scope 内实现、验证、Pre-PR Code Review、PR handoff |
+| `005` | `GHA` | GitHub PR Automation | required checks、auto-merge、squash merge、branch cleanup、Linear bot auto Done |
+| `006` | `QAV` | QA / Validation | 验证、失败归因、验收证据、交易验证和回归边界 |
+| `007` | `OPS` | Operations | 本地环境、运行、部署、Graphify / Symphony / GitHub 自动化可用性 |
+
+Agent 收到 `给 @001 下 Codex 指令` 或 `@001：<任务>` 时，必须按 `PLN` 职责解析。其他编号同理。
+
 ## 当前可做
 
 - 执行当前唯一 configured executable issue 的明确 scope。

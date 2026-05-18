@@ -19,6 +19,22 @@
 - Source Linear Project：`MTPRO 引导`
 - AEP reference：`/Users/mac/code/ai-engineering-protocol/templates/project-role-map-template.md`
 
+## Role Alias Map
+
+三位数字编号和三字母角色代号等价，例如 `@001 = PLN`。
+
+角色编号只用于沟通压缩，不改变职责边界，不授权执行。
+
+| 编号 | 代号 | 角色 | MTPRO 当前使用方式 |
+| --- | --- | --- | --- |
+| `001` | `PLN` | Project Planning Lead | Next Human Project Planning、阶段目标、Linear Project / Issue 草案 |
+| `002` | `PAR` | Parent Codex Automation Supervision | queue preview、eligible issue 调度、child Codex 监督、Stage Code Audit |
+| `003` | `SYM` | symphony-issue | 唯一 issue 自动调度和 issue 执行状态推进 |
+| `004` | `COD` | Codex Execution Agent | 当前 Linear issue scope 内实现、验证、PR handoff |
+| `005` | `GHA` | GitHub PR Automation | checks、auto-merge、squash merge、branch cleanup、Linear bot auto Done |
+| `006` | `QAV` | QA / Trading Validation | XCTest、fixture、交易语义验证、失败归因、回归边界 |
+| `007` | `OPS` | Operations | 本地环境、运行、Graphify / Symphony / GitHub 自动化可用性 |
+
 ## Role Coverage
 
 | Role | Primary responsibility | Required artifacts | Covered by | Status |

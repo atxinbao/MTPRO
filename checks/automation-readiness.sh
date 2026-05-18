@@ -98,6 +98,9 @@ require_contains "docs/automation/parent-codex-supervision.md" "Stage Code Audit
 require_contains "docs/automation/parent-codex-supervision.md" 'docs/audit/<linear-project-slug>-stage-code-audit.md'
 require_contains "docs/automation/parent-codex-supervision.md" "报告必须覆盖整个 Linear Project"
 require_contains "docs/automation/parent-codex-supervision.md" "Next Human Project Planning 必须读取该文件后才能开始"
+require_contains "docs/automation/parent-codex-supervision.md" "Role Alias Rule"
+require_contains "docs/automation/parent-codex-supervision.md" '@002 = PAR'
+require_contains "docs/automation/parent-codex-supervision.md" "给 @002 下 Codex 指令"
 require_contains "docs/automation/post-issue-ledger.md" "before_remove"
 require_contains "docs/automation/post-issue-ledger.md" "read_only"
 require_contains "docs/automation/symphony-issue-workflow-template.md" "稳定 workflow 本体"
@@ -117,6 +120,16 @@ require_contains "docs/planning/project-role-map.md" "QA"
 require_contains "docs/planning/project-role-map.md" "Finance / Trading Domain Analyst"
 require_contains "docs/planning/project-role-map.md" "Automation / Runtime Operations Engineer"
 require_contains "docs/planning/project-role-map.md" "Project Planning Facilitator"
+require_contains "docs/planning/project-role-map.md" "Role Alias Map"
+require_contains "docs/planning/project-role-map.md" "三位数字编号和三字母角色代号等价"
+require_contains "docs/planning/project-role-map.md" '角色编号只用于沟通压缩，不改变职责边界，不授权执行'
+require_contains "docs/planning/project-role-map.md" '`001` | `PLN`'
+require_contains "docs/planning/project-role-map.md" '`002` | `PAR`'
+require_contains "docs/planning/project-role-map.md" '`003` | `SYM`'
+require_contains "docs/planning/project-role-map.md" '`004` | `COD`'
+require_contains "docs/planning/project-role-map.md" '`005` | `GHA`'
+require_contains "docs/planning/project-role-map.md" '`006` | `QAV`'
+require_contains "docs/planning/project-role-map.md" '`007` | `OPS`'
 require_contains "docs/planning/project-role-map.md" "前端设计"
 require_contains "docs/planning/project-role-map.md" "后端开发"
 require_contains "docs/planning/project-role-map.md" "数据 / 持久化"
@@ -156,6 +169,9 @@ require_contains "AGENTS.md" '完整 `verification.md` 只在审计、追溯或 
 require_contains "AGENTS.md" "详细中文注释"
 require_contains "AGENTS.md" "Finance / Trading Domain"
 require_contains "AGENTS.md" "Trading validation"
+require_contains "AGENTS.md" "Role Alias Rule"
+require_contains "AGENTS.md" '@001 = PLN'
+require_contains "AGENTS.md" "给 @001 下 Codex 指令"
 require_contains "docs/planning/linear-draft-plan.md" "已写入 Linear 的 issue 内容是 Codex Execution Agent 的执行合同"
 require_contains "docs/planning/linear-draft-plan.md" "不二次确认 issue scope"
 require_contains "docs/planning/linear-draft-plan.md" "Project / Issue 格式统一 Gate"

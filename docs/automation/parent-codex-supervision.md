@@ -21,6 +21,20 @@ Linear Project 队列观察
 
 它不是独立业务实现 Agent，也不是新的执行授权来源。
 
+## Role Alias Rule
+
+MTPRO 支持 AEP 三位数字编号和三字母角色代号。数字编号与三字母代号等价，例如 `@002 = PAR`。
+
+角色编号只用于沟通压缩，不改变职责边界，不授权执行。
+
+常用指令可以写成：
+
+```text
+给 @002 下 Codex 指令：检查当前 Linear Project queue，并按规则推进 eligible issue。
+```
+
+该指令等价于给 `PAR / Parent Codex Automation Supervision` 下指令。父 Codex 仍必须执行 queue preview、WIP=1、依赖、active conflict 和执行合同格式 Gate。
+
 ## 三角色职责边界
 
 MTPRO 当前自动化流程必须区分三个角色：
