@@ -3837,6 +3837,44 @@ Commit：本轮提交
 | `swift test` | pass | 80 个 XCTest 通过；新增 `testPaperSessionReplayEvidenceSummarizesRuntimeEventsDeterministically`、`testPaperSessionReplayEvidenceRejectsOutOfOrderReplayResult`、`testPaperSessionReplayEvidenceUsesFileAppendOnlyFactsSource`，覆盖 replay summary、乱序 replay 拒绝、append-only facts source、SQLite runtime projection replay 和 paper-only boundary flags。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、dashboard build、dashboard smoke 和 `swift test` 全部通过；80 个 XCTest 0 failures，输出 `MTPRO checks passed.` |
 
+## Stage Code Audit Report - MTPRO Paper Session Runtime v1
+
+日期：2026-05-19
+
+执行者：Parent Codex Automation Supervision（`@002 / PAR`）
+
+目的：
+
+- 将 `MTPRO Paper Session Runtime v1` 的 Project 级 Stage Code Audit Report 落仓为 canonical 文档。
+- 固化 `MTP-31` 至 `MTP-37` 全部 Linear `Done`、PR #62 至 #68、merge commit、GitHub required check、Post-Issue Ledger 和边界审计证据。
+- 更新 latest verification summary，指向 `docs/audit/mtpro-paper-session-runtime-v1-stage-code-audit.md`。
+
+文件范围：
+
+- Added：
+  - `docs/audit/mtpro-paper-session-runtime-v1-stage-code-audit.md`
+- Updated：
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 symphony-issue。
+- 未推进任何 issue 到 `Todo`。
+- 未运行 Graphify update。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 未写业务代码。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | 本轮审计落仓后执行通过。 |
+| `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 全部通过；80 个 XCTest 0 failures，输出 `MTPRO checks passed.` |
+
 ## MTP-36 Paper Session Runtime Evidence Report / Dashboard Read Model
 
 日期：2026-05-19

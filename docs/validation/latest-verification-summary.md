@@ -39,7 +39,8 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - MTP-37 新增 `docs/validation/mtp-37-stage-audit-input.md`，集中记录 `MTP-31` 至 `MTP-36` 的 PR evidence、merge commit、required check、paper runtime validation evidence chain、automation readiness evidence、known boundaries、Root Docs Delta input 和 Stage Code Audit handoff checklist。
 - MTP-37 更新 Trading Validation Matrix、validation plan 和 automation readiness gate，使 Project 级 Stage Code Audit input 成为本地机械检查对象。
 - 上一阶段 Stage Code Audit Report 已记录 `MTP-18` / `MTP-19` / `MTP-22` 的临时 CI 平台边界，并确认审计报告覆盖完整 Linear Project；本 Project 目前未记录新增临时 CI 平台边界。
-- 当前 Project 全部 Done 后，Stage Code Audit Report 必须包含 Root Docs Delta，并先完成 Root Docs Refresh Gate，才进入 Next Human Project Planning。
+- `MTPRO Paper Session Runtime v1` Stage Code Audit Report 已落仓到 `docs/audit/mtpro-paper-session-runtime-v1-stage-code-audit.md`，记录 `MTP-31` 至 `MTP-37` 全部 Done、PR #62 至 #68 evidence、validation、boundary audit、Known CI Boundary、Root Docs Delta 和 Next Human Project Planning handoff。
+- 当前 Project 全部 Done 后，Stage Code Audit Report 已完成；仍需单独执行 Root Docs Refresh Gate，才进入 Next Human Project Planning。
 - Root Docs Refresh Gate 只允许 `@002 / PAR` 同步 `GOAL.md`、`ENVIRONMENT.md`、`ARCHITECTURE.md`、`ROADMAP.md` 中已发生的事实；方向性变化交给 Human + `@001 / PLN`。
 - `graphify-out/*` 不提交，`.codex/*` 不提交。
 - 本文档不作为 current issue 或 queue pointer 的事实源；当前 issue 状态必须继续从 Linear live-read 获取。
