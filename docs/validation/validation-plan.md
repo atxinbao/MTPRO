@@ -43,6 +43,7 @@ bash checks/run.sh
 - Trader Workstation Dashboard macOS shell、ViewModel snapshot binding 和 smoke run。
 - Research -> Backtest -> Report 最小路径、report artifact / read model 和 Dashboard Report 快照。
 - Paper Session lifecycle started / updated / closed facts、paper-only event log 写入边界和 deterministic fixture。
+- Paper action proposal 最小模型、long / flat signal 映射、deterministic sizing fixture、fixed cost evidence 复用和 paper-only 不可执行边界。
 - GitHub workflow / PR evidence / WIP=1 / handoff marker / Graphify 边界。
 - Linear issue execution contract。
 - `.codex/*` 与 `graphify-out/*` 本地输出排除契约。
@@ -151,6 +152,18 @@ MTP-31 的 required validation：
 - `PaperSessionUpdated.signalCount` 必须非负，并只代表本地 signal timeline 数量。
 - Persistence / App 只能把 lifecycle facts 投影为稳定 read model state，不得新增交易执行入口。
 - `docs/validation/trading-validation-matrix.md` 的 `TVM-PAPER-SESSION-LIFECYCLE` 必须回填新增 Core 类型、测试、fixture 和 PR evidence 边界。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不触发 Paper / Live 执行。
+
+## MTP-32 Paper Action Proposal Validation
+
+MTP-32 的 required validation：
+
+- Paper action proposal 必须使用 deterministic fixture，不依赖真实 Binance 网络、secret、broker、account endpoint 或真实订单。
+- Core 测试必须覆盖 `StrategySignalEvent` 到 proposal side 的映射：`long -> buy`，`flat -> hold`。
+- Core 测试必须覆盖 symbol、timeframe、quantity、reference price、notional 和 MTP-27 fixed cost evidence 复用。
+- Core 测试必须证明 proposal 固定 `executionMode == paper`、`executionAuthorization == paperIntentOnly` 且 `isExecutableAsRealOrder == false`。
+- Codable 解码必须拒绝非 paper mode 或与 signal 不一致的 side，避免绕过 proposal 不变量。
+- `docs/validation/trading-validation-matrix.md` 的 `TVM-PAPER-ACTION-PROPOSAL` 必须回填新增 Core 类型、测试、fixture 和 PR evidence 边界。
 - Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不触发 Paper / Live 执行。
 
 ## Codex / Automation Validation

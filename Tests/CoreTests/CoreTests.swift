@@ -679,6 +679,90 @@ final class CoreTests: XCTestCase {
         )
     }
 
+    func testPaperActionProposalMapsStrategySignalToPaperOnlyIntentDeterministically() throws {
+        // 测试场景：MTP-32 proposal fixture 必须把 strategy signal 确定性映射为
+        // paper-only action intent，并复用 MTP-27 fixed cost evidence，不生成真实订单能力。
+        let longProposal = try PaperActionProposalFixture.deterministicLong()
+        let flatProposal = try PaperActionProposalFixture.deterministicFlat()
+
+        XCTAssertEqual(longProposal.proposalID, try Identifier("paper-action-proposal-long"))
+        XCTAssertEqual(longProposal.sessionID, try Identifier("paper-session-fixture"))
+        XCTAssertEqual(longProposal.signal.strategyID, try Identifier("ema-cross"))
+        XCTAssertEqual(longProposal.symbol, try Symbol(rawValue: "BTCUSDT"))
+        XCTAssertEqual(longProposal.timeframe, .oneMinute)
+        XCTAssertEqual(longProposal.side, .buy)
+        XCTAssertEqual(longProposal.sizingAssumptionID, try Identifier("mtp-32-paper-action-sizing"))
+        XCTAssertEqual(longProposal.quantity.rawValue, 0.5, accuracy: 0.00000001)
+        XCTAssertEqual(longProposal.referencePrice.rawValue, 100, accuracy: 0.00000001)
+        XCTAssertEqual(longProposal.notionalAmount, 50, accuracy: 0.00000001)
+        XCTAssertEqual(longProposal.costEstimate.executionMode, .paper)
+        XCTAssertEqual(longProposal.costEstimate.assumptionID, try Identifier("mtp-27-fixed-cost-assumptions"))
+        XCTAssertEqual(longProposal.costEstimate.grossNotional, 50, accuracy: 0.00000001)
+        XCTAssertEqual(longProposal.costEstimate.feeAmount, 0.01, accuracy: 0.00000001)
+        XCTAssertEqual(longProposal.costEstimate.slippageAmount, 0.0075, accuracy: 0.00000001)
+        XCTAssertEqual(longProposal.costEstimate.totalCostAmount, 0.0175, accuracy: 0.00000001)
+        XCTAssertEqual(longProposal.executionMode, .paper)
+        XCTAssertEqual(longProposal.executionAuthorization, .paperIntentOnly)
+        XCTAssertFalse(longProposal.executionAuthorization.allowsRealOrder)
+        XCTAssertFalse(longProposal.executionAuthorization.allowsBrokerAction)
+        XCTAssertFalse(longProposal.isExecutableAsRealOrder)
+        XCTAssertEqual(longProposal.proposedAt.timeIntervalSince1970, 1_620)
+
+        XCTAssertEqual(flatProposal.side, .hold)
+        XCTAssertEqual(flatProposal.quantity.rawValue, 0, accuracy: 0.00000001)
+        XCTAssertEqual(flatProposal.notionalAmount, 0, accuracy: 0.00000001)
+        XCTAssertEqual(flatProposal.costEstimate.totalCostAmount, 0, accuracy: 0.00000001)
+        XCTAssertFalse(flatProposal.isExecutableAsRealOrder)
+
+        let encoded = try JSONEncoder().encode(longProposal)
+        let decoded = try JSONDecoder().decode(PaperActionProposal.self, from: encoded)
+        XCTAssertEqual(decoded, longProposal)
+
+        XCTAssertThrowsError(
+            try PaperActionProposalSizingAssumption(
+                assumptionID: try Identifier("invalid-zero-sizing"),
+                quantity: try Quantity(0, field: "paperActionProposal.quantity"),
+                referencePrice: try Price(100, field: "paperActionProposal.referencePrice"),
+                liquidityRole: .maker
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .invalidPaperActionProposalQuantity(0))
+        }
+    }
+
+    func testPaperActionProposalDecodingRejectsNonPaperOrMismatchedIntent() throws {
+        // 测试场景：Codable 解码不能绕过 MTP-32 paper-only 不变量；
+        // 非 paper mode 或与 strategy signal 不一致的 side 必须被拒绝。
+        let proposal = try PaperActionProposalFixture.deterministicLong()
+        let encoded = try JSONEncoder().encode(proposal)
+        let decoder = JSONDecoder()
+
+        var nonPaperObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        nonPaperObject["executionMode"] = "backtest"
+        let nonPaperData = try JSONSerialization.data(withJSONObject: nonPaperObject)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperActionProposal.self, from: nonPaperData)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .paperActionProposalRequiresPaperMode(.backtest))
+        }
+
+        var mismatchedSideObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        mismatchedSideObject["side"] = "hold"
+        let mismatchedSideData = try JSONSerialization.data(withJSONObject: mismatchedSideObject)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperActionProposal.self, from: mismatchedSideData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperActionProposalSignalMismatch(field: "side", expected: "buy", actual: "hold")
+            )
+        }
+    }
+
     func testEMABacktestPaperParityLocksStrategyQueryWarmupAndSignalTimeline() throws {
         // 场景：用乱序 deterministic fixture 验证 Backtest 与 Paper 共享同一 EMA 合同，
         // 并锁定 strategy、MarketDataQuery、warm-up 后首个 timestamp、方向和完整时间线。

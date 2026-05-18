@@ -3594,3 +3594,60 @@ Commit：本轮提交
 | `swift test` | pass | 68 个 XCTest 通过；新增 Paper lifecycle deterministic facts、`.paper` stream event log boundary 和 decode validation coverage。 |
 | `bash checks/run.sh` | failed first attempt after rebase | rebase 到 PR #61 后，automation readiness 仍机械要求最近验证摘要包含 `尚未写入 Linear`；已在 latest summary 中保留该历史 planning 状态说明，并明确当前 MTP-31 执行授权来自 Linear live-read issue contract。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、dashboard build、dashboard smoke 和 `swift test` 全部通过；输出 `MTPRO checks passed.` |
+
+## MTP-32 Paper Action Proposal Minimal Model and Fixture
+
+日期：2026-05-19
+
+执行者：Codex
+
+目的：
+
+- 定义 Paper action proposal 最小模型，把 strategy signal 转换为 paper-only action intent。
+- 映射 strategy signal、symbol、timeframe、side、quantity / notional assumption。
+- 复用 MTP-27 deterministic execution cost evidence。
+- 增加 deterministic long / flat proposal fixture 和 validation tests。
+- 回填 contracts、validation plan、Trading Validation Matrix 和 latest verification summary。
+
+文件范围：
+
+- Added：
+  - `Sources/Core/PaperActionProposal.swift`
+- Updated：
+  - `Sources/Core/CoreError.swift`
+  - `Tests/CoreTests/CoreTests.swift`
+  - `docs/contracts/api-contract.md`
+  - `docs/contracts/backend-use-case-contract.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 symphony-issue。
+- 未解锁下一 issue。
+- 未运行 Graphify full rebuild。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 未接真实 Binance 网络。
+- 未读取 secret。
+- 未接 signed endpoint / account endpoint。
+- 未连接 broker。
+- 未提交、取消或替换真实订单。
+- 未新增 order command。
+- 未新增 Paper action event log 写入。
+- 未串联 risk blocker。
+- 未实现 portfolio projection update。
+- 未实现完整 Paper execution engine。
+- 未实现 Live execution。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test` | pass | 70 个 XCTest 通过；新增 `testPaperActionProposalMapsStrategySignalToPaperOnlyIntentDeterministically` 和 `testPaperActionProposalDecodingRejectsNonPaperOrMismatchedIntent`，覆盖 long / flat 映射、notional、MTP-27 fixed cost evidence、paper-only authorization 和 Codable 不变量。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、dashboard build、dashboard smoke 和 `swift test` 全部通过；70 个 XCTest 0 failures，输出 `MTPRO checks passed.` |
