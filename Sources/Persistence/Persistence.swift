@@ -529,6 +529,9 @@ public struct SQLiteRuntimeProjectionStore: Equatable, Sendable {
                 lastUpdatedAt: envelope.recordedAt
             )
 
+        case .actionProposed:
+            break
+
         case let .sessionRequested(command):
             let existing = paperSessions[command.sessionID]
             paperSessions[command.sessionID] = SQLitePaperSessionProjection(

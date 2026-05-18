@@ -242,3 +242,31 @@ Persistence Boundary 必须先于真实 database adapter 实现。
 - margin、leverage、broker position sync。
 - 真实 broker balance 或 account endpoint。
 - Live execution persistence、signed endpoint、broker action 或真实订单行为。
+
+## MTP-35 Paper Session Replay Evidence Persistence 边界
+
+日期：2026-05-19
+
+执行者：Codex
+
+`Persistence` 在本事项中继续把 append-only event log 作为唯一 replay facts source：
+
+- `FileEventLogStore` 保存 MTP-35 deterministic event log envelopes。
+- `FileEventLogStore.replay` 输出 `EventReplayResult`，再由 `PaperSessionReplayPath.summarize` 生成 evidence summary。
+- `PersistenceReplayBoundary.rebuildSQLiteRuntimeProjection` 使用同一 replay command 重建 Paper / Risk / Portfolio runtime projection。
+
+契约要求：
+
+- 文件 facts source 必须保持 sequence 连续追加，不能跳号或乱序。
+- replay summary 和 SQLite runtime projection 必须来自同一批 replay envelopes。
+- `PaperEvent.actionProposed` 可以参与 replay evidence summary，但不改变 SQLite paper session lifecycle state。
+- SQLite 仍只保存稳定 runtime projection snapshot，不暴露 schema 给 UI / API。
+
+本契约不包含：
+
+- 生产级 event sourcing 平台。
+- schema migration framework。
+- 真实 broker event replay。
+- 外部 execution venue。
+- database table API、ORM contract 或 UI 直连数据库。
+- Live execution persistence、signed endpoint、broker action 或真实订单行为。

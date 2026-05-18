@@ -434,3 +434,26 @@ MTP-34 不新增 HTTP API，也不新增 live / broker / signed command。
 - 不做 margin / leverage。
 - 不做 broker position sync。
 - 不把 portfolio projection update 解释为真实持仓、broker fill、真实订单或 Live execution。
+
+## MTP-35 Paper Session Replay Evidence 边界
+
+日期：2026-05-19
+
+执行者：Codex
+
+MTP-35 不新增 HTTP API，也不新增 live / broker / signed command。
+
+新增内部 Core replay evidence contract：
+
+- `PaperEvent.actionProposed`：把 paper action proposal 作为 `.paper` stream 中的 replay fact。
+- `PaperSessionReplayEvidenceSummary`：输出 replay facts source、sequences、streams、session IDs、lifecycle states、proposal IDs、risk blocker evidence IDs、portfolio update IDs 和 paper-only boundary flags。
+- `PaperSessionReplayPath.summarize`：消费 `EventReplayResult`，只做本地 deterministic summary。
+
+边界确认：
+
+- 不新增 live order command。
+- 不新增 broker account command。
+- 不新增 signed endpoint command。
+- 不新增 database table API。
+- 不把 replay summary 解释为真实订单、真实成交、broker event、账户状态或执行授权。
+- 不绕过 append-only event log；summary 只从 replay result 派生。

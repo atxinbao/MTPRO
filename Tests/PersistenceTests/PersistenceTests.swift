@@ -66,6 +66,43 @@ final class PersistenceTests: XCTestCase {
         XCTAssertEqual(try store.readEnvelopes(), [envelopes[0]])
     }
 
+    func testPaperSessionReplayEvidenceUsesFileAppendOnlyFactsSource() throws {
+        // 测试场景：MTP-35 Paper Session replay 必须从文件 append-only facts source 重放，
+        // 同一 replay 结果要能生成 deterministic summary 并驱动 SQLite runtime projection。
+        let store = try makeTemporaryFileEventLogStore()
+        let envelopes = try PaperSessionReplayFixture.deterministicEventLog().envelopes
+        try store.append(contentsOf: envelopes)
+
+        let command = EventReplayCommand(
+            range: try EventSequenceRange(lowerBound: 1, upperBound: envelopes.count),
+            streams: [.paper, .risk, .portfolio]
+        )
+        let replay = try store.replay(command)
+        let summary = try PaperSessionReplayPath.summarize(replay)
+        let repeatedSummary = try PaperSessionReplayPath.summarize(try store.replay(command))
+        let boundary = try PersistenceReplayBoundary(fileStore: store)
+        let runtimeSnapshot = boundary.rebuildSQLiteRuntimeProjection(from: command)
+        let session = try XCTUnwrap(runtimeSnapshot.paperSessions[try Identifier("paper-replay-session")])
+        let portfolio = try XCTUnwrap(runtimeSnapshot.portfolioProjections[try Identifier("portfolio-main")])
+        let exposure = try XCTUnwrap(portfolio.exposures.first)
+
+        XCTAssertEqual(try store.readEnvelopes(), envelopes)
+        XCTAssertEqual(summary, repeatedSummary)
+        XCTAssertEqual(summary.replayedSequences, Array(1...13))
+        XCTAssertTrue(summary.coversSessionEvents)
+        XCTAssertTrue(summary.coversProposalEvents)
+        XCTAssertTrue(summary.coversRiskBlockerEvents)
+        XCTAssertTrue(summary.coversPortfolioProjectionEvents)
+        XCTAssertTrue(summary.paperOnlyBoundaryHeld)
+        XCTAssertEqual(runtimeSnapshot.lastAppliedSequence, summary.lastSequence)
+        XCTAssertEqual(session.state, .closed)
+        XCTAssertEqual(session.signalCount, 4)
+        XCTAssertEqual(runtimeSnapshot.riskBlockerEvidence.first?.evidenceID, summary.riskBlockerEvidenceIDs.first)
+        XCTAssertEqual(portfolio.state, .updated)
+        XCTAssertEqual(exposure.grossExposureNotional, 50, accuracy: 0.00000001)
+        XCTAssertEqual(exposure.sourceSequence, 8)
+    }
+
     func testReplayBoundaryCanRebuildProjectionSnapshotsFromFileEventLog() throws {
         // 测试场景：文件 facts source 经 replay 后仍只能产生稳定投影输入，不暴露 JSONL 文件格式给 UI。
         let store = try makeTemporaryFileEventLogStore()
