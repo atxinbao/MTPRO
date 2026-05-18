@@ -388,6 +388,121 @@ public struct TradingValidationEvidenceSummary: Codable, Equatable, Sendable {
     }
 }
 
+/// PaperSessionRuntimeEvidenceSummary 汇总 Paper Session runtime 的只读证据。
+///
+/// 输入只允许来自 append-only event timeline 的 replay summary，以及 SQLite runtime projection
+/// 已经输出的稳定 read model。它把 lifecycle、proposal、risk blocker、portfolio exposure
+/// 和 replay flags 收敛给 Report / Dashboard 展示，不暴露数据库 schema、runtime object、
+/// broker action、signed endpoint 或真实订单授权。
+public struct PaperSessionRuntimeEvidenceSummary: Codable, Equatable, Sendable {
+    public let factsSource: String
+    public let replayAvailable: Bool
+    public let replayedSequences: [Int]
+    public let replayedStreams: [String]
+    public let sessionIDs: [String]
+    public let lifecycleStates: [PaperSessionLifecycleState]
+    public let signalEventCount: Int
+    public let proposalIDs: [String]
+    public let riskEvaluationRequestedCount: Int
+    public let riskBlockerEvidenceIDs: [String]
+    public let rejectedPaperOrderIDs: [String]
+    public let portfolioUpdateIDs: [String]
+    public let portfolioIDs: [String]
+    public let portfolioExposureSymbols: [String]
+    public let portfolioExposureCount: Int
+    public let portfolioGrossExposureNotional: Double
+    public let sourceSequences: [Int]
+    public let coversSessionEvents: Bool
+    public let coversProposalEvents: Bool
+    public let coversRiskBlockerEvents: Bool
+    public let coversPortfolioProjectionEvents: Bool
+    public let appendOnlyFactsSourceIsReplaySource: Bool
+    public let replayResultIsDeterministic: Bool
+    public let paperOnlyBoundaryHeld: Bool
+    public let authorizesLiveTrading: Bool
+    public let touchesBrokerAction: Bool
+    public let authorizesTradingExecution: Bool
+
+    public init(
+        replaySummary: PaperSessionReplayEvidenceSummary? = nil,
+        paperSessions: [SQLitePaperSessionProjection] = [],
+        riskBlockerEvidence: [SQLiteRiskBlockerEvidenceProjection] = [],
+        portfolioExposures: [SQLitePortfolioExposureProjection] = []
+    ) {
+        let replayedSequences = replaySummary?.replayedSequences ?? []
+        let replaySessionIDs = replaySummary?.sessionIDs.map(\.rawValue) ?? []
+        let replayRiskEvidenceIDs = replaySummary?.riskBlockerEvidenceIDs.map(\.rawValue) ?? []
+        let replayRejectedOrderIDs = replaySummary?.rejectedPaperOrderIDs.map(\.rawValue) ?? []
+        let replayPortfolioIDs = replaySummary?.portfolioIDs.map(\.rawValue) ?? []
+        let projectionPortfolioIDs = portfolioExposures.map(\.portfolioID.rawValue)
+        let runtimePaperBoundaryHeld = paperSessions.allSatisfy { $0.executionMode == .paper }
+            && riskBlockerEvidence.allSatisfy { $0.executionMode == .paper }
+            && portfolioExposures.allSatisfy { $0.source == .paperProjection }
+
+        self.factsSource = replaySummary?.factsSource ?? "no matching append-only replay facts"
+        self.replayAvailable = replaySummary != nil
+        self.replayedSequences = replayedSequences
+        self.replayedStreams = (replaySummary?.replayedStreams.map(\.rawValue) ?? []).uniqueSorted()
+        self.sessionIDs = (
+            replaySessionIDs + paperSessions.map(\.sessionID.rawValue)
+        ).uniqueSorted()
+        self.lifecycleStates = replaySummary?.lifecycleStates ?? []
+        self.signalEventCount = replaySummary?.signalEventCount ?? 0
+        self.proposalIDs = (replaySummary?.proposalIDs.map(\.rawValue) ?? []).uniqueSorted()
+        self.riskEvaluationRequestedCount = replaySummary?.riskEvaluationRequestedCount ?? 0
+        self.riskBlockerEvidenceIDs = (
+            replayRiskEvidenceIDs + riskBlockerEvidence.map(\.evidenceID.rawValue)
+        ).uniqueSorted()
+        self.rejectedPaperOrderIDs = (
+            replayRejectedOrderIDs + riskBlockerEvidence.map(\.paperOrderID.rawValue)
+        ).uniqueSorted()
+        self.portfolioUpdateIDs = (replaySummary?.portfolioUpdateIDs.map(\.rawValue) ?? []).uniqueSorted()
+        self.portfolioIDs = (
+            replayPortfolioIDs + projectionPortfolioIDs
+        ).uniqueSorted()
+        self.portfolioExposureSymbols = portfolioExposures
+            .map(\.symbol.rawValue)
+            .uniqueSorted()
+        self.portfolioExposureCount = portfolioExposures.count
+        self.portfolioGrossExposureNotional = portfolioExposures.reduce(0) {
+            $0 + $1.grossExposureNotional
+        }
+        self.sourceSequences = (
+            replayedSequences
+                + riskBlockerEvidence.map(\.sourceSequence)
+                + portfolioExposures.map(\.sourceSequence)
+        ).uniqueSorted()
+        self.coversSessionEvents = replaySummary?.coversSessionEvents ?? false
+        self.coversProposalEvents = replaySummary?.coversProposalEvents ?? false
+        self.coversRiskBlockerEvents = (replaySummary?.coversRiskBlockerEvents ?? false)
+            || riskBlockerEvidence.isEmpty == false
+        self.coversPortfolioProjectionEvents = (replaySummary?.coversPortfolioProjectionEvents ?? false)
+            || portfolioExposures.isEmpty == false
+        self.appendOnlyFactsSourceIsReplaySource = replaySummary?.appendOnlyFactsSourceIsReplaySource ?? false
+        self.replayResultIsDeterministic = replaySummary?.replayResultIsDeterministic ?? false
+        self.paperOnlyBoundaryHeld = (replaySummary?.paperOnlyBoundaryHeld ?? true)
+            && runtimePaperBoundaryHeld
+        self.authorizesLiveTrading = replaySummary?.authorizesLiveTrading ?? false
+        self.touchesBrokerAction = replaySummary?.touchesBrokerAction ?? false
+        self.authorizesTradingExecution = false
+    }
+
+    public var hasEvidence: Bool {
+        replayAvailable
+            || sessionIDs.isEmpty == false
+            || riskBlockerEvidenceIDs.isEmpty == false
+            || portfolioExposureCount > 0
+    }
+
+    public var replayedSequenceCount: Int {
+        replayedSequences.count
+    }
+
+    public var proposalCount: Int {
+        proposalIDs.count
+    }
+}
+
 /// ResearchBacktestReportArtifact 是 MTP-23 的最小报告 artifact。
 ///
 /// 输入来自 `DuckDBAnalyticalProjectionSnapshot`、`SQLiteRuntimeProjectionSnapshot` 和 append-only
@@ -408,6 +523,7 @@ public struct ResearchBacktestReportArtifact: Codable, Equatable, Sendable {
     public let eventCount: Int
     public let parityStatus: ReportParityStatus
     public let tradingValidationEvidence: TradingValidationEvidenceSummary
+    public let paperRuntimeEvidence: PaperSessionRuntimeEvidenceSummary
     public let executionAuthorization: ReportExecutionAuthorization
     public let lastAppliedSequence: Int?
 
@@ -426,6 +542,7 @@ public struct ResearchBacktestReportArtifact: Codable, Equatable, Sendable {
         eventCount: Int,
         parityStatus: ReportParityStatus,
         tradingValidationEvidence: TradingValidationEvidenceSummary,
+        paperRuntimeEvidence: PaperSessionRuntimeEvidenceSummary,
         executionAuthorization: ReportExecutionAuthorization = .researchOutputOnly,
         lastAppliedSequence: Int?
     ) {
@@ -443,6 +560,7 @@ public struct ResearchBacktestReportArtifact: Codable, Equatable, Sendable {
         self.eventCount = eventCount
         self.parityStatus = parityStatus
         self.tradingValidationEvidence = tradingValidationEvidence
+        self.paperRuntimeEvidence = paperRuntimeEvidence
         self.executionAuthorization = executionAuthorization
         self.lastAppliedSequence = lastAppliedSequence
     }
@@ -496,7 +614,7 @@ public struct ReportReadModel: Equatable, Sendable {
                 paperSessions: paperSessions,
                 riskBlockerEvidence: riskBlockerEvidence,
                 portfolioExposures: portfolioExposures,
-                eventCount: eventTimeline.count,
+                eventTimeline: eventTimeline,
                 lastAppliedSequence: lastAppliedSequence
             )
         }
@@ -511,7 +629,7 @@ public struct ReportReadModel: Equatable, Sendable {
         paperSessions: [SQLitePaperSessionProjection],
         riskBlockerEvidence: [SQLiteRiskBlockerEvidenceProjection],
         portfolioExposures: [SQLitePortfolioExposureProjection],
-        eventCount: Int,
+        eventTimeline: [EventEnvelope],
         lastAppliedSequence: Int?
     ) -> ResearchBacktestReportArtifact {
         let matchingResearchRuns = researchRuns.filter {
@@ -535,6 +653,13 @@ public struct ReportReadModel: Equatable, Sendable {
         }
         let parityEvidenceStatus = parityStatus(backtest: backtest, paperSessions: matchingPaperSessions)
         let executionCostEvidence = makeExecutionCostEvidence(from: matchingPortfolioExposures)
+        let paperRuntimeEvidence = makePaperRuntimeEvidence(
+            backtest: backtest,
+            paperSessions: matchingPaperSessions,
+            riskBlockerEvidence: matchingRiskBlockers,
+            portfolioExposures: matchingPortfolioExposures,
+            eventTimeline: eventTimeline
+        )
 
         return ResearchBacktestReportArtifact(
             reportID: "report-\(backtest.runID.rawValue)",
@@ -548,7 +673,7 @@ public struct ReportReadModel: Equatable, Sendable {
             backtestSignalCount: backtest.signalCount,
             researchSignalCount: matchingResearchSignals.count,
             paperSignalCount: matchingPaperSessions.reduce(0) { $0 + $1.signalCount },
-            eventCount: eventCount,
+            eventCount: eventTimeline.count,
             parityStatus: parityEvidenceStatus,
             tradingValidationEvidence: TradingValidationEvidenceSummary(
                 parityStatus: parityEvidenceStatus,
@@ -556,8 +681,134 @@ public struct ReportReadModel: Equatable, Sendable {
                 riskBlockerEvidence: matchingRiskBlockers,
                 portfolioExposures: matchingPortfolioExposures
             ),
+            paperRuntimeEvidence: paperRuntimeEvidence,
             lastAppliedSequence: lastAppliedSequence
         )
+    }
+
+    private static func makePaperRuntimeEvidence(
+        backtest: DuckDBBacktestProjection,
+        paperSessions: [SQLitePaperSessionProjection],
+        riskBlockerEvidence: [SQLiteRiskBlockerEvidenceProjection],
+        portfolioExposures: [SQLitePortfolioExposureProjection],
+        eventTimeline: [EventEnvelope]
+    ) -> PaperSessionRuntimeEvidenceSummary {
+        let matchingReplayEnvelopes = eventTimeline
+            .filter {
+                matchesPaperRuntimeEvidence(
+                    envelope: $0,
+                    symbol: backtest.symbol,
+                    timeframe: backtest.timeframe
+                )
+            }
+            .sorted { $0.sequence < $1.sequence }
+
+        return PaperSessionRuntimeEvidenceSummary(
+            replaySummary: makePaperRuntimeReplaySummary(from: matchingReplayEnvelopes),
+            paperSessions: paperSessions,
+            riskBlockerEvidence: riskBlockerEvidence,
+            portfolioExposures: portfolioExposures
+        )
+    }
+
+    private static func makePaperRuntimeReplaySummary(
+        from envelopes: [EventEnvelope]
+    ) -> PaperSessionReplayEvidenceSummary? {
+        guard
+            let lowerBound = envelopes.map(\.sequence).min(),
+            let upperBound = envelopes.map(\.sequence).max()
+        else {
+            return nil
+        }
+
+        let command: EventReplayCommand
+        do {
+            command = EventReplayCommand(
+                range: try EventSequenceRange(
+                    lowerBound: lowerBound,
+                    upperBound: upperBound
+                ),
+                streams: Set(envelopes.map(\.stream))
+            )
+        } catch {
+            return nil
+        }
+
+        return try? PaperSessionReplayPath.summarize(
+            EventReplayResult(command: command, envelopes: envelopes)
+        )
+    }
+
+    private static func matchesPaperRuntimeEvidence(
+        envelope: EventEnvelope,
+        symbol: Symbol,
+        timeframe: Timeframe
+    ) -> Bool {
+        switch envelope.event {
+        case let .paper(event):
+            return matchesPaperEvent(event, symbol: symbol, timeframe: timeframe)
+        case let .risk(event):
+            return matchesRiskEvent(event, symbol: symbol, timeframe: timeframe)
+        case let .portfolio(event):
+            return matchesPortfolioEvent(event, symbol: symbol, timeframe: timeframe)
+        default:
+            return false
+        }
+    }
+
+    private static func matchesPaperEvent(
+        _ event: PaperEvent,
+        symbol: Symbol,
+        timeframe: Timeframe
+    ) -> Bool {
+        switch event {
+        case let .sessionStarted(started):
+            return started.command.strategy.symbol == symbol
+                && started.command.strategy.timeframe == timeframe
+        case let .sessionUpdated(updated):
+            return updated.command.strategy.symbol == symbol
+                && updated.command.strategy.timeframe == timeframe
+        case let .sessionClosed(closed):
+            return closed.result.command.strategy.symbol == symbol
+                && closed.result.command.strategy.timeframe == timeframe
+        case let .actionProposed(proposal):
+            return proposal.symbol == symbol && proposal.timeframe == timeframe
+        case let .sessionRequested(command):
+            return command.strategy.symbol == symbol && command.strategy.timeframe == timeframe
+        case let .signalGenerated(sample):
+            return sample.signal.symbol == symbol && sample.signal.timeframe == timeframe
+        case let .sessionCompleted(result):
+            return result.command.strategy.symbol == symbol
+                && result.command.strategy.timeframe == timeframe
+        }
+    }
+
+    private static func matchesRiskEvent(
+        _ event: RiskEvent,
+        symbol: Symbol,
+        timeframe: Timeframe
+    ) -> Bool {
+        switch event {
+        case let .evaluationRequested(query):
+            return query.symbol == symbol && query.timeframe == timeframe
+        case let .blocked(evidence):
+            return evidence.symbol == symbol && evidence.timeframe == timeframe
+        }
+    }
+
+    private static func matchesPortfolioEvent(
+        _ event: PortfolioEvent,
+        symbol: Symbol,
+        timeframe: Timeframe
+    ) -> Bool {
+        switch event {
+        case .projectionRequested:
+            return false
+        case let .paperProjectionUpdated(update):
+            return update.exposure.symbol == symbol && update.exposure.timeframe == timeframe
+        case let .exposureUpdated(exposure):
+            return exposure.symbol == symbol && exposure.timeframe == timeframe
+        }
     }
 
     private static func makeExecutionCostEvidence(
@@ -753,6 +1004,7 @@ public struct ReportArtifactViewModel: Codable, Equatable, Sendable {
     public let eventCount: Int
     public let parityStatus: ReportParityStatus
     public let tradingValidationEvidence: TradingValidationEvidenceSummary
+    public let paperRuntimeEvidence: PaperSessionRuntimeEvidenceSummary
     public let executionAuthorization: ReportExecutionAuthorization
     public let authorizesTradingExecution: Bool
     public let lastAppliedSequence: Int?
@@ -772,6 +1024,7 @@ public struct ReportArtifactViewModel: Codable, Equatable, Sendable {
         self.eventCount = artifact.eventCount
         self.parityStatus = artifact.parityStatus
         self.tradingValidationEvidence = artifact.tradingValidationEvidence
+        self.paperRuntimeEvidence = artifact.paperRuntimeEvidence
         self.executionAuthorization = artifact.executionAuthorization
         self.authorizesTradingExecution = artifact.authorizesTradingExecution
         self.lastAppliedSequence = artifact.lastAppliedSequence
@@ -800,6 +1053,24 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
     public let portfolioExposureEvidenceCount: Int
     public let portfolioExposureSymbols: [String]
     public let portfolioGrossExposureNotional: Double
+    public let paperRuntimeEvidenceCount: Int
+    public let paperRuntimeSessionIDs: [String]
+    public let paperRuntimeLifecycleStates: [String]
+    public let paperRuntimeProposalIDs: [String]
+    public let paperRuntimeRiskBlockerEvidenceIDs: [String]
+    public let paperRuntimePortfolioUpdateIDs: [String]
+    public let paperRuntimePortfolioIDs: [String]
+    public let paperRuntimeReplaySequenceCount: Int
+    public let paperRuntimeReplayStreams: [String]
+    public let paperRuntimeCoversSessionEvents: Bool
+    public let paperRuntimeCoversProposalEvents: Bool
+    public let paperRuntimeCoversRiskBlockerEvents: Bool
+    public let paperRuntimeCoversPortfolioProjectionEvents: Bool
+    public let paperRuntimeReplayDeterministic: Bool
+    public let paperRuntimePaperOnlyBoundaryHeld: Bool
+    public let paperRuntimeAuthorizesLiveTrading: Bool
+    public let paperRuntimeTouchesBrokerAction: Bool
+    public let paperRuntimeAuthorizesTradingExecution: Bool
     public let tradingValidationAuthorizesExecution: Bool
     public let authorizesTradingExecution: Bool
     public let latestParityStatus: ReportParityStatus?
@@ -808,6 +1079,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
     public init(readModel: ReportReadModel) {
         let tradingEvidence = readModel.artifacts.map(\.tradingValidationEvidence)
         let costEvidence = tradingEvidence.flatMap(\.executionCostEvidence)
+        let runtimeEvidence = readModel.artifacts.map(\.paperRuntimeEvidence)
         self.section = .report
         self.source = ViewModelSourceContract()
         self.artifacts = readModel.artifacts.map(ReportArtifactViewModel.init)
@@ -845,6 +1117,57 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
             .uniqueSorted()
         self.portfolioGrossExposureNotional = tradingEvidence.reduce(0) {
             $0 + $1.portfolioGrossExposureNotional
+        }
+        self.paperRuntimeEvidenceCount = runtimeEvidence.filter(\.hasEvidence).count
+        self.paperRuntimeSessionIDs = runtimeEvidence
+            .flatMap(\.sessionIDs)
+            .uniqueSorted()
+        self.paperRuntimeLifecycleStates = runtimeEvidence
+            .flatMap(\.lifecycleStates)
+            .map(\.rawValue)
+            .uniquePreservingOrder()
+        self.paperRuntimeProposalIDs = runtimeEvidence
+            .flatMap(\.proposalIDs)
+            .uniqueSorted()
+        self.paperRuntimeRiskBlockerEvidenceIDs = runtimeEvidence
+            .flatMap(\.riskBlockerEvidenceIDs)
+            .uniqueSorted()
+        self.paperRuntimePortfolioUpdateIDs = runtimeEvidence
+            .flatMap(\.portfolioUpdateIDs)
+            .uniqueSorted()
+        self.paperRuntimePortfolioIDs = runtimeEvidence
+            .flatMap(\.portfolioIDs)
+            .uniqueSorted()
+        self.paperRuntimeReplaySequenceCount = runtimeEvidence.reduce(0) {
+            $0 + $1.replayedSequenceCount
+        }
+        self.paperRuntimeReplayStreams = runtimeEvidence
+            .flatMap(\.replayedStreams)
+            .uniqueSorted()
+        self.paperRuntimeCoversSessionEvents = runtimeEvidence.contains {
+            $0.coversSessionEvents
+        }
+        self.paperRuntimeCoversProposalEvents = runtimeEvidence.contains {
+            $0.coversProposalEvents
+        }
+        self.paperRuntimeCoversRiskBlockerEvents = runtimeEvidence.contains {
+            $0.coversRiskBlockerEvents
+        }
+        self.paperRuntimeCoversPortfolioProjectionEvents = runtimeEvidence.contains {
+            $0.coversPortfolioProjectionEvents
+        }
+        self.paperRuntimeReplayDeterministic = runtimeEvidence.isEmpty
+            || runtimeEvidence.allSatisfy(\.replayResultIsDeterministic)
+        self.paperRuntimePaperOnlyBoundaryHeld = runtimeEvidence.isEmpty
+            || runtimeEvidence.allSatisfy(\.paperOnlyBoundaryHeld)
+        self.paperRuntimeAuthorizesLiveTrading = runtimeEvidence.contains {
+            $0.authorizesLiveTrading
+        }
+        self.paperRuntimeTouchesBrokerAction = runtimeEvidence.contains {
+            $0.touchesBrokerAction
+        }
+        self.paperRuntimeAuthorizesTradingExecution = runtimeEvidence.contains {
+            $0.authorizesTradingExecution
         }
         self.tradingValidationAuthorizesExecution = tradingEvidence.contains {
             $0.authorizesTradingExecution
@@ -1103,6 +1426,15 @@ private extension MarketReadModel {
 private extension Array where Element == String {
     func uniqueSorted() -> [String] {
         Array(Set(self)).sorted()
+    }
+
+    func uniquePreservingOrder() -> [String] {
+        var seen = Set<String>()
+        var values: [String] = []
+        for value in self where seen.insert(value).inserted {
+            values.append(value)
+        }
+        return values
     }
 }
 

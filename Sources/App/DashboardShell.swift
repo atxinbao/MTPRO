@@ -191,7 +191,9 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 DashboardShellMetric(label: "Parity", value: "\(viewModel.matchedParityEvidenceCount)"),
                 DashboardShellMetric(label: "Cost evidence", value: "\(viewModel.executionCostEvidenceCount)"),
                 DashboardShellMetric(label: "Risk blockers", value: "\(viewModel.riskBlockerEvidenceCount)"),
-                DashboardShellMetric(label: "Exposure", value: "\(viewModel.portfolioExposureEvidenceCount)")
+                DashboardShellMetric(label: "Exposure", value: "\(viewModel.portfolioExposureEvidenceCount)"),
+                DashboardShellMetric(label: "Runtime", value: "\(viewModel.paperRuntimeEvidenceCount)"),
+                DashboardShellMetric(label: "Replay facts", value: "\(viewModel.paperRuntimeReplaySequenceCount)")
             ],
             details: [
                 "Report IDs: \(joined(viewModel.artifacts.map(\.reportID)))",
@@ -202,6 +204,14 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 "Risk blocker evidence: \(joined(viewModel.riskBlockerEvidenceIDs))",
                 "Exposure symbols: \(joined(viewModel.portfolioExposureSymbols))",
                 "Gross exposure: \(format(viewModel.portfolioGrossExposureNotional))",
+                "Runtime sessions: \(joined(viewModel.paperRuntimeSessionIDs))",
+                "Lifecycle: \(joined(viewModel.paperRuntimeLifecycleStates))",
+                "Proposals: \(joined(viewModel.paperRuntimeProposalIDs))",
+                "Runtime blockers: \(joined(viewModel.paperRuntimeRiskBlockerEvidenceIDs))",
+                "Portfolio updates: \(joined(viewModel.paperRuntimePortfolioUpdateIDs))",
+                "Replay streams: \(joined(viewModel.paperRuntimeReplayStreams))",
+                "Runtime boundary: \(formatRuntimeBoundary(viewModel.paperRuntimePaperOnlyBoundaryHeld))",
+                "Replay deterministic: \(formatEvidenceFlag(viewModel.paperRuntimeReplayDeterministic))",
                 "Trading validation execution: \(format(viewModel.tradingValidationAuthorizesExecution))",
                 "Execution: \(format(viewModel.authorizesTradingExecution))",
                 "Latest parity: \(format(viewModel.latestParityStatus))",
@@ -327,6 +337,14 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             return "missing"
         }
         return viewModel.executionCostParityConsistent ? "consistent" : "mismatched"
+    }
+
+    private static func formatRuntimeBoundary(_ value: Bool) -> String {
+        value ? "paper-only" : "breached"
+    }
+
+    private static func formatEvidenceFlag(_ value: Bool) -> String {
+        value ? "confirmed" : "missing"
     }
 
     private static func joined(_ values: [String]) -> String {
