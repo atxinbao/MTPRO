@@ -824,6 +824,8 @@ public struct DuckDBSignalTimelineProjection: Codable, Equatable, Sendable {
     public let bidNotional: Double?
     public let askNotional: Double?
     public let imbalanceRatio: Double?
+    /// 订单簿研究信号的本地输入来源，只记录 snapshot / delta evidence，不暴露 DuckDB schema 或交易执行能力。
+    public let orderBookInputSource: OrderBookReadModelSource?
 
     public init(
         source: DuckDBSignalSource,
@@ -837,7 +839,8 @@ public struct DuckDBSignalTimelineProjection: Codable, Equatable, Sendable {
         longEMA: Double? = nil,
         bidNotional: Double? = nil,
         askNotional: Double? = nil,
-        imbalanceRatio: Double? = nil
+        imbalanceRatio: Double? = nil,
+        orderBookInputSource: OrderBookReadModelSource? = nil
     ) {
         self.source = source
         self.strategyID = strategyID
@@ -851,6 +854,7 @@ public struct DuckDBSignalTimelineProjection: Codable, Equatable, Sendable {
         self.bidNotional = bidNotional
         self.askNotional = askNotional
         self.imbalanceRatio = imbalanceRatio
+        self.orderBookInputSource = orderBookInputSource
     }
 }
 
@@ -1136,7 +1140,8 @@ public struct DuckDBAnalyticalProjectionStore: Equatable, Sendable {
             direction: sample.signal.direction,
             bidNotional: sample.bidNotional,
             askNotional: sample.askNotional,
-            imbalanceRatio: sample.imbalanceRatio
+            imbalanceRatio: sample.imbalanceRatio,
+            orderBookInputSource: sample.inputSource
         )
     }
 }

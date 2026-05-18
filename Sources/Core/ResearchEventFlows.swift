@@ -143,6 +143,85 @@ public enum BacktestPaperParity {
     }
 }
 
+/// OrderBookImbalanceResearchParityResult 保存订单簿失衡研究链路的一致性与 bias 证据。
+///
+/// 该结果只比较本地策略 contract 与 research event flow 的输出，确认 snapshot / delta
+/// 输入来源、signal timeline 和 ask dominance research-only 语义一致；它不代表 Paper、
+/// Live、signed endpoint、margin 或真实 broker action 的执行授权。
+public struct OrderBookImbalanceResearchParityResult: Codable, Equatable, Sendable {
+    public let researchID: Identifier
+    public let sameResearchID: Bool
+    public let sameStrategy: Bool
+    public let sameMarketData: Bool
+    public let matchingSignalSamples: Bool
+    public let coveredInputSources: [OrderBookReadModelSource]
+    public let askDominanceRemainsResearchOnly: Bool
+
+    public init(
+        researchID: Identifier,
+        sameResearchID: Bool,
+        sameStrategy: Bool,
+        sameMarketData: Bool,
+        matchingSignalSamples: Bool,
+        coveredInputSources: [OrderBookReadModelSource],
+        askDominanceRemainsResearchOnly: Bool
+    ) {
+        self.researchID = researchID
+        self.sameResearchID = sameResearchID
+        self.sameStrategy = sameStrategy
+        self.sameMarketData = sameMarketData
+        self.matchingSignalSamples = matchingSignalSamples
+        self.coveredInputSources = coveredInputSources
+        self.askDominanceRemainsResearchOnly = askDominanceRemainsResearchOnly
+    }
+
+    public var isConsistent: Bool {
+        sameResearchID
+            && sameStrategy
+            && sameMarketData
+            && matchingSignalSamples
+            && askDominanceRemainsResearchOnly
+    }
+}
+
+/// OrderBookImbalanceResearchParity 生成本地研究 parity evidence，不触发任何交易执行。
+public enum OrderBookImbalanceResearchParity {
+    public static func verify(
+        command: OrderBookImbalanceResearchCommand,
+        inputs: [OrderBookReadModelInput],
+        run: OrderBookImbalanceResearchRun
+    ) throws -> OrderBookImbalanceResearchParityResult {
+        let directSamples = try OrderBookImbalanceStrategyContract(
+            configuration: command.strategy
+        ).evaluate(inputs)
+        let coveredSources = uniqueInputSources(from: directSamples)
+        let askDominanceRemainsResearchOnly = run.result.signalSamples.allSatisfy { sample in
+            sample.bias != .askDominant || sample.signal.direction == .flat
+        }
+
+        return OrderBookImbalanceResearchParityResult(
+            researchID: command.researchID,
+            sameResearchID: command.researchID == run.result.researchID,
+            sameStrategy: command.strategy == run.result.command.strategy,
+            sameMarketData: command.marketData == run.result.command.marketData,
+            matchingSignalSamples: directSamples == run.result.signalSamples,
+            coveredInputSources: coveredSources,
+            askDominanceRemainsResearchOnly: askDominanceRemainsResearchOnly
+        )
+    }
+
+    private static func uniqueInputSources(
+        from samples: [OrderBookImbalanceSignalSample]
+    ) -> [OrderBookReadModelSource] {
+        samples.reduce(into: []) { partialResult, sample in
+            guard partialResult.contains(sample.inputSource) == false else {
+                return
+            }
+            partialResult.append(sample.inputSource)
+        }
+    }
+}
+
 private enum StrategyMarketDataValidation {
     /// Backtest / Paper 的 `MarketDataQuery` 必须完整覆盖本次 EMA 计算使用的 bar 区间。
     /// 这个校验防止同一组实际行情被错误地标记为不同查询窗口下的一致结果；它只检查本地 fixture

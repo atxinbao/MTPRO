@@ -207,6 +207,8 @@ final class PersistenceTests: XCTestCase {
         XCTAssertEqual(snapshot.signalTimeline.filter { $0.source == .backtest }.count, 4)
         XCTAssertEqual(snapshot.signalTimeline.filter { $0.source == .orderBookImbalanceResearch }.count, 3)
         XCTAssertEqual(snapshot.signalTimeline.first?.close, 12)
+        let researchSignals = snapshot.signalTimeline.filter { $0.source == .orderBookImbalanceResearch }
+        XCTAssertEqual(researchSignals.map(\.orderBookInputSource), [.snapshot, .deltaApplied, .snapshot])
         let lastImbalanceRatio = try XCTUnwrap(snapshot.signalTimeline.last?.imbalanceRatio)
         XCTAssertEqual(lastImbalanceRatio, -0.2088353414, accuracy: 0.0001)
     }
@@ -242,6 +244,10 @@ final class PersistenceTests: XCTestCase {
         XCTAssertEqual(research.depth, 2)
         XCTAssertEqual(research.signalCount, 3)
         XCTAssertEqual(queriedSnapshot.signalTimeline.count, 7)
+        let queriedResearchSignals = queriedSnapshot.signalTimeline.filter {
+            $0.source == .orderBookImbalanceResearch
+        }
+        XCTAssertEqual(queriedResearchSignals.map(\.orderBookInputSource), [.snapshot, .deltaApplied, .snapshot])
         XCTAssertEqual(queriedSnapshot.lastAppliedSequence, 19)
     }
 
@@ -560,18 +566,17 @@ final class PersistenceTests: XCTestCase {
             ],
             source: .snapshot
         )
-        let neutral = OrderBookReadModelInput(
-            symbol: symbol,
-            observedAt: Date(timeIntervalSince1970: 1_060),
-            bids: [
-                try makeOrderBookLevel(price: 100, quantity: 1),
-                try makeOrderBookLevel(price: 99, quantity: 1)
-            ],
-            asks: [
-                try makeOrderBookLevel(price: 100, quantity: 1),
-                try makeOrderBookLevel(price: 99, quantity: 1)
-            ],
-            source: .snapshot
+        let neutral = try bidDominant.applying(
+            OrderBookDelta(
+                symbol: symbol,
+                observedAt: Date(timeIntervalSince1970: 1_060),
+                bidUpdates: [
+                    try makeOrderBookLevel(price: 100, quantity: 1)
+                ],
+                askUpdates: [
+                    try makeOrderBookLevel(price: 102, quantity: 0.96078431372549)
+                ]
+            )
         )
         let askDominant = OrderBookReadModelInput(
             symbol: symbol,
