@@ -117,6 +117,32 @@ MTP-32 不新增 HTTP API，也不新增 live / broker / signed command。
 - 不把 proposal 解释为真实订单、真实成交、broker fill、portfolio update 或执行授权。
 - Codable 解码必须保持 `executionMode == paper`、signal side mapping 和 cost evidence 一致性。
 
+## MTP-33 Paper Action Risk Link 内部模型边界
+
+日期：2026-05-19
+
+执行者：Codex
+
+MTP-33 不新增 HTTP API，也不新增 live / broker / signed command。
+
+新增内部 Core evidence 边界：
+
+- `PaperActionProposalRiskPolicy`：定义本地 deterministic risk profile 与 max paper quantity。
+- `PaperActionProposalRiskDecisionStatus`：表达 `allowed` 或 `blocked`。
+- `PaperActionProposalRiskDecision`：保存 proposal、risk query、source sequence、状态、可选 blocker evidence 和 evaluatedAt。
+- `PaperActionProposalRiskLink.evaluate`：从 proposal 生成 `RiskEvaluationQuery`，并在本地 policy 阻断时生成 `RiskBlockerEvidence`。
+
+边界确认：
+
+- 不新增 `Command` case。
+- 不新增 live order command。
+- 不新增 broker account command。
+- 不新增 signed endpoint command。
+- 不新增 order submit / cancel / replace command。
+- 不新增 broker rejection fallback。
+- 不把 allowed decision 解释为订单授权、真实风控通过、真实成交或 portfolio update。
+- blocked decision 只代表本地 Paper blocker evidence，不代表 broker 拒单或 Live fallback。
+
 ## MTP-12 Command / Event Flow 细化
 
 日期：2026-05-17

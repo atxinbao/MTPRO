@@ -44,6 +44,7 @@ bash checks/run.sh
 - Research -> Backtest -> Report 最小路径、report artifact / read model 和 Dashboard Report 快照。
 - Paper Session lifecycle started / updated / closed facts、paper-only event log 写入边界和 deterministic fixture。
 - Paper action proposal 最小模型、long / flat signal 映射、deterministic sizing fixture、fixed cost evidence 复用和 paper-only 不可执行边界。
+- Paper action proposal -> risk blocker 本地链路、allowed / blocked deterministic evidence、source sequence、paper-only context 和无 broker / Live fallback 边界。
 - GitHub workflow / PR evidence / WIP=1 / handoff marker / Graphify 边界。
 - Linear issue execution contract。
 - `.codex/*` 与 `graphify-out/*` 本地输出排除契约。
@@ -164,6 +165,17 @@ MTP-32 的 required validation：
 - Core 测试必须证明 proposal 固定 `executionMode == paper`、`executionAuthorization == paperIntentOnly` 且 `isExecutableAsRealOrder == false`。
 - Codable 解码必须拒绝非 paper mode 或与 signal 不一致的 side，避免绕过 proposal 不变量。
 - `docs/validation/trading-validation-matrix.md` 的 `TVM-PAPER-ACTION-PROPOSAL` 必须回填新增 Core 类型、测试、fixture 和 PR evidence 边界。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不触发 Paper / Live 执行。
+
+## MTP-33 Paper Action Proposal -> Risk Blocker Validation
+
+MTP-33 的 required validation：
+
+- Paper action risk link 必须使用 deterministic fixture，不依赖真实 Binance 网络、secret、broker、account endpoint 或真实订单。
+- Core 测试必须覆盖 allowed paper proposal evidence：proposal、risk query、risk profile、source sequence、paper-only context 和无 broker / Live fallback。
+- Core 测试必须覆盖 blocked paper proposal evidence：blocker reason、`RiskBlockerEvidence`、source sequence、paper-only execution mode 和无 broker / Live fallback。
+- Codable 解码必须拒绝 allowed decision 携带 blocker evidence，且 source sequence 必须为正数。
+- `docs/validation/trading-validation-matrix.md` 的 `TVM-RISK-BLOCKER` 必须回填新增 Core 类型、fixture、测试和 PR evidence 边界。
 - Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不触发 Paper / Live 执行。
 
 ## Codex / Automation Validation

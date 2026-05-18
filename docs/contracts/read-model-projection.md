@@ -101,6 +101,31 @@ Paper action proposal 在当前事项中先以 Core value contract 和 determini
 - 当前不新增 event log 写入、SQLite / DuckDB projection、Report / Dashboard 字段或 portfolio update。
 - 当前不把 proposal 解释为 order、fill、account state、broker 状态、signed endpoint 或 Live execution。
 
+## MTP-33 Paper Action Risk Link 观察面
+
+日期：2026-05-19
+
+执行者：Codex
+
+Paper action risk link 在当前事项中先以 Core value contract 和 deterministic fixture 作为观察面，为后续 paper-only portfolio projection、replay 和 report evidence 提供稳定输入。
+
+当前可观察字段：
+
+- decisionID、proposalID、sessionID。
+- strategyID、symbol、timeframe、signal direction、paper-only side。
+- riskProfileID、proposedQuantity、executionMode。
+- sourceSequence、evaluatedAt。
+- decision status：`allowed` 或 `blocked`。
+- blocker evidence：evidenceID、reason、generatedAt。
+- paper-only context consistency、broker fallback availability 和 Live execution fallback availability。
+
+边界：
+
+- 当前只定义 Core risk link result、deterministic fixtures 和 tests，不新增 SwiftUI 页面字段。
+- 当前不新增 event log 写入、SQLite / DuckDB projection、Report / Dashboard 字段或 portfolio update。
+- allowed 不代表真实订单授权、真实风控通过、broker fill 或 portfolio update。
+- blocked 只代表本地 Paper blocker evidence，不代表真实 broker 拒单、account state、signed endpoint 或 Live execution fallback。
+
 ## MTP-12 订单簿失衡观察面
 
 日期：2026-05-17
