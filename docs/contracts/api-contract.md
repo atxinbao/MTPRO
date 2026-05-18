@@ -308,3 +308,25 @@ MTP-27 不新增 HTTP API，也不新增 live / broker / signed command。
 - 不新增 exchange fee table API。
 - 不新增 dynamic slippage model API。
 - 不把 cost evidence 解释为真实成交、真实订单、账户余额、broker fill 或执行授权。
+
+## MTP-28 Risk Blocker / Portfolio Exposure Evidence 边界
+
+日期：2026-05-18
+
+执行者：Codex
+
+MTP-28 不新增 HTTP API，也不新增 live / broker / signed command。
+
+新增或细化的内部 Core evidence 边界：
+
+- `RiskEvaluationQuery`：保留 paperOrderID、symbol、timeframe、proposedQuantity、riskProfileID 和 `executionMode == paper`。
+- `RiskBlockerEvidence`：输出 blocker reason、proposed Paper action context、risk profile 和 generatedAt。
+- `PortfolioExposureSnapshot`：输出 portfolio ID、symbol、timeframe、paperQuantity、referencePrice、grossExposureNotional 和 `paperProjection` source。
+
+边界确认：
+
+- 不新增 live order command。
+- 不新增 broker account command。
+- 不新增 signed endpoint command。
+- 不新增 margin / leverage / position management command。
+- 不把 risk blocker 或 exposure evidence 解释为真实订单、真实账户余额、broker fill 或执行授权。

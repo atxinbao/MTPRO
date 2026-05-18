@@ -121,15 +121,71 @@ public struct PaperSessionCommand: Codable, Equatable, Sendable {
 }
 
 /// RiskEvaluationQuery 描述 Paper 风险观察输入，不连接真实 broker 或账户。
+///
+/// 输入只允许 `.paper` execution mode，并保留 symbol / timeframe、proposed quantity
+/// 和 risk profile，让后续 risk blocker evidence 能证明阻断来自本地 Paper 语境。
 public struct RiskEvaluationQuery: Codable, Equatable, Sendable {
     public let paperOrderID: Identifier
     public let symbol: Symbol
-    public let proposedQuantity: Double
+    public let timeframe: Timeframe
+    public let proposedQuantity: Quantity
+    public let riskProfileID: Identifier
+    public let executionMode: ExecutionMode
 
-    public init(paperOrderID: Identifier, symbol: Symbol, proposedQuantity: Double) {
+    public init(
+        paperOrderID: Identifier,
+        symbol: Symbol,
+        timeframe: Timeframe,
+        proposedQuantity: Quantity,
+        riskProfileID: Identifier,
+        executionMode: ExecutionMode
+    ) throws {
+        guard executionMode == .paper else {
+            throw CoreError.riskEvaluationRequiresPaperMode(executionMode)
+        }
         self.paperOrderID = paperOrderID
         self.symbol = symbol
+        self.timeframe = timeframe
         self.proposedQuantity = proposedQuantity
+        self.riskProfileID = riskProfileID
+        self.executionMode = executionMode
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let paperOrderID = try container.decode(Identifier.self, forKey: .paperOrderID)
+        let symbol = try container.decode(Symbol.self, forKey: .symbol)
+        let timeframe = try container.decode(Timeframe.self, forKey: .timeframe)
+        let proposedQuantity = try container.decode(Quantity.self, forKey: .proposedQuantity)
+        let riskProfileID = try container.decode(Identifier.self, forKey: .riskProfileID)
+        let executionMode = try container.decode(ExecutionMode.self, forKey: .executionMode)
+        try self.init(
+            paperOrderID: paperOrderID,
+            symbol: symbol,
+            timeframe: timeframe,
+            proposedQuantity: proposedQuantity,
+            riskProfileID: riskProfileID,
+            executionMode: executionMode
+        )
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(paperOrderID, forKey: .paperOrderID)
+        try container.encode(symbol, forKey: .symbol)
+        try container.encode(timeframe, forKey: .timeframe)
+        try container.encode(proposedQuantity, forKey: .proposedQuantity)
+        try container.encode(riskProfileID, forKey: .riskProfileID)
+        try container.encode(executionMode, forKey: .executionMode)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case paperOrderID
+        case symbol
+        case timeframe
+        case proposedQuantity
+        case riskProfileID
+        case executionMode
     }
 }
 

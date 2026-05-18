@@ -25,6 +25,7 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
     case marketDataMismatch(field: String, expected: String, actual: String)
     case invalidExecutionCostAssumption(field: String, value: Double)
     case invalidExecutionCostRoundingDecimalPlaces(Int)
+    case riskEvaluationRequiresPaperMode(ExecutionMode)
 
     public var description: String {
         switch self {
@@ -70,6 +71,8 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
             "Execution cost assumption must be finite and non-negative for \(field): \(value)"
         case let .invalidExecutionCostRoundingDecimalPlaces(value):
             "Execution cost rounding decimal places must be within 0...8: \(value)"
+        case let .riskEvaluationRequiresPaperMode(value):
+            "Risk evaluation requires paper mode: \(value.rawValue)"
         }
     }
 }

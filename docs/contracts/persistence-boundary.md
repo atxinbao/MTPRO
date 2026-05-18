@@ -188,3 +188,30 @@ Persistence Boundary 必须先于真实 database adapter 实现。
 - database table API。
 - 真实 Binance 网络 required validation。
 - Live execution persistence、signed endpoint、broker action 或真实订单行为。
+
+## MTP-28 Risk Blocker / Portfolio Exposure Runtime Projection 边界
+
+日期：2026-05-18
+
+执行者：Codex
+
+`Persistence` 在本事项中扩展 SQLite runtime projection 的 Paper / Risk / Portfolio read model：
+
+- `SQLiteRiskBlockerEvidenceProjection`：保存 risk blocker evidence、paper action context、risk profile、reason、source sequence 和 projectedAt。
+- `SQLitePortfolioExposureProjection`：保存 paper-only exposure 的 portfolio ID、symbol、timeframe、quantity、reference price、gross notional、source sequence 和 projectedAt。
+- `SQLitePortfolioProjection.exposures`：把最小 exposure 指标挂到 portfolio runtime projection。
+
+契约要求：
+
+- append-only event log / replay envelope 仍是唯一事实源。
+- SQLite 只承载 Paper / Risk / Portfolio runtime read model 副本。
+- Risk blocker evidence 必须能从 projection 回溯到 source sequence。
+- Portfolio exposure 必须声明 `paperProjection` source，不得表达真实账户、margin、leverage 或 broker balance。
+
+本契约不包含：
+
+- 完整风险引擎。
+- 实时风控。
+- 仓位管理、保证金、杠杆。
+- 真实 broker balance 或 account endpoint。
+- Live execution persistence、signed endpoint、broker action 或真实订单行为。

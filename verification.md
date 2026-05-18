@@ -3263,3 +3263,71 @@ Commit：本轮提交
 | --- | --- | --- |
 | `swift test --filter CoreTests/testExecutionCost` | pass | 3 个 CoreTests 通过；覆盖 maker / taker fee、fixed slippage、gross notional、total cost、rounding scale、Backtest / Paper cost parity 和 invalid assumptions。 |
 | `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 通过；65 个 XCTest 通过；输出 `MTPRO checks passed.` |
+
+## MTP-28 Risk blocker evidence and portfolio exposure read model
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 新增 `RiskBlockerEvidence` / `RiskBlockerReason`，记录 proposed Paper action context、risk profile、blocker reason 和 generatedAt。
+- 新增 `PortfolioExposureSnapshot` / `PortfolioExposureSource`，记录 paper-only portfolio exposure、reference price、gross exposure notional 和 source。
+- 扩展 SQLite runtime projection，保存 risk blocker evidence、portfolio exposure、source sequence 和 projected timestamp。
+- 扩展 App / Dashboard Risk / Portfolio 只读 ViewModel，展示 blocker reason、exposure count 和 gross exposure notional。
+- 回填 `TVM-RISK-BLOCKER`、`TVM-PORTFOLIO-EXPOSURE`，并在 validation plan / contract docs 记录 MTP-28 验收边界。
+
+文件范围：
+
+- Updated：
+  - `Sources/Core/CoreError.swift`
+  - `Sources/Core/CommandsAndQueries.swift`
+  - `Sources/Core/DomainEvents.swift`
+  - `Sources/Persistence/Persistence.swift`
+  - `Sources/App/App.swift`
+  - `Sources/App/DashboardShell.swift`
+  - `Tests/CoreTests/CoreTests.swift`
+  - `Tests/PersistenceTests/PersistenceTests.swift`
+  - `Tests/AppTests/AppTests.swift`
+  - `docs/contracts/api-contract.md`
+  - `docs/contracts/backend-use-case-contract.md`
+  - `docs/contracts/frontend-view-model-contract.md`
+  - `docs/contracts/persistence-boundary.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/product/product-surface-map.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 symphony-issue。
+- 未运行 Graphify full rebuild。
+- 未接真实 Binance 网络。
+- 未读取 secret。
+- 未接 signed endpoint / account endpoint。
+- 未连接 broker。
+- 未提交、取消或替换真实订单。
+- 未实现完整风险引擎。
+- 未实现实时风控。
+- 未实现仓位管理、保证金、杠杆。
+- 未实现真实账户余额、broker balance 或 Live execution。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter CoreTests/testRiskBlockerEvidenceAndPortfolioExposureRemainPaperOnlyReadModels` | pass | 1 个 CoreTests 通过；覆盖 proposed Paper action context、risk profile、blocker reason、paper-only execution mode、portfolio exposure source 和 gross exposure notional。 |
+| `swift test --filter <MTP-28 targeted Persistence/App tests>` | pass | 4 个 targeted XCTest 通过；覆盖 SQLite runtime projection、Risk / Portfolio ViewModel 和 Dashboard shell snapshot。 |
+| `swift test` | pass | 66 个 XCTest 通过；新增 MTP-28 risk blocker / portfolio exposure evidence coverage。 |
+| `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 通过；66 个 XCTest 通过；输出 `MTPRO checks passed.` |
