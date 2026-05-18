@@ -57,6 +57,11 @@ MTPRO 第一版没有 HTTP API。
 - `BacktestPaperParityResult.matchingSignalTimeline`
 - `BacktestPaperParityResult.isConsistent`
 
+MTP-25 加固补充：
+
+- `BacktestCommand.marketData.range` 和 `PaperSessionCommand.marketData.range` 必须覆盖实际输入 bars 的完整 interval。
+- range 过窄时，Backtest / Paper event flow 都必须拒绝运行，不得输出 parity 假阳性。
+
 边界确认：
 
 - 不新增 live order command。

@@ -485,6 +485,96 @@ final class CoreTests: XCTestCase {
         XCTAssertTrue(parity.isConsistent)
     }
 
+    func testEMABacktestPaperParityLocksStrategyQueryWarmupAndSignalTimeline() throws {
+        // 场景：用乱序 deterministic fixture 验证 Backtest 与 Paper 共享同一 EMA 合同，
+        // 并锁定 strategy、MarketDataQuery、warm-up 后首个 timestamp、方向和完整时间线。
+        let marketDataQuery = try makeEMAMarketDataQuery()
+        let strategy = try makeEMAStrategy()
+        let bars = Array(try makeEMAFixtureBars().reversed())
+        let backtestRun = try BacktestEventFlow().run(
+            BacktestCommand(
+                runID: try Identifier("backtest-ema-fixture"),
+                strategy: strategy,
+                marketData: marketDataQuery
+            ),
+            bars: bars,
+            completedAt: Date(timeIntervalSince1970: 500)
+        )
+        let paperRun = try PaperSessionEventFlow().start(
+            PaperSessionCommand(
+                sessionID: try Identifier("paper-ema-fixture"),
+                strategy: strategy,
+                marketData: marketDataQuery,
+                riskProfileID: try Identifier("paper-risk"),
+                executionMode: .paper
+            ),
+            bars: bars,
+            completedAt: Date(timeIntervalSince1970: 501)
+        )
+        let backtestSamples = backtestRun.result.signalSamples
+        let paperSamples = paperRun.result.signalSamples
+        let parity = BacktestPaperParity.verify(
+            backtest: backtestRun.result,
+            paper: paperRun.result
+        )
+
+        XCTAssertEqual(backtestRun.result.command.strategy, strategy)
+        XCTAssertEqual(paperRun.result.command.strategy, strategy)
+        XCTAssertEqual(backtestRun.result.command.marketData, marketDataQuery)
+        XCTAssertEqual(paperRun.result.command.marketData, marketDataQuery)
+        XCTAssertEqual(backtestSamples.count, bars.count - strategy.longPeriod + 1)
+        XCTAssertEqual(backtestSamples.map(\.signal.symbol), Array(repeating: strategy.symbol, count: 4))
+        XCTAssertEqual(backtestSamples.map(\.signal.timeframe), Array(repeating: strategy.timeframe, count: 4))
+        XCTAssertEqual(backtestSamples.map(\.signal.generatedAt.timeIntervalSince1970), [280, 340, 400, 460])
+        XCTAssertEqual(backtestSamples.map(\.signal.direction), [.long, .long, .flat, .long])
+        XCTAssertEqual(paperSamples, backtestSamples)
+        XCTAssertTrue(parity.sameStrategy)
+        XCTAssertTrue(parity.sameMarketData)
+        XCTAssertTrue(parity.matchingSignalTimeline)
+        XCTAssertTrue(parity.isConsistent)
+    }
+
+    func testEMAEventFlowsRejectBarsOutsideMarketDataQueryRange() throws {
+        // 场景：MarketDataQuery 的时间范围窄于 fixture bars 时，Backtest 和 Paper 都必须拒绝，
+        // 防止用超出查询窗口的数据生成看似一致的 signal timeline。
+        let strategy = try makeEMAStrategy()
+        let narrowMarketDataQuery = try makeEMAMarketDataQuery(end: 400)
+        let bars = try makeEMAFixtureBars()
+        let expectedError = CoreError.marketDataMismatch(
+            field: "marketData.range",
+            expected: "100...400",
+            actual: "100...460"
+        )
+
+        XCTAssertThrowsError(
+            try BacktestEventFlow().run(
+                BacktestCommand(
+                    runID: try Identifier("backtest-ema-fixture"),
+                    strategy: strategy,
+                    marketData: narrowMarketDataQuery
+                ),
+                bars: bars
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, expectedError)
+        }
+
+        XCTAssertThrowsError(
+            try PaperSessionEventFlow().start(
+                PaperSessionCommand(
+                    sessionID: try Identifier("paper-ema-fixture"),
+                    strategy: strategy,
+                    marketData: narrowMarketDataQuery,
+                    riskProfileID: try Identifier("paper-risk"),
+                    executionMode: .paper
+                ),
+                bars: bars
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, expectedError)
+        }
+    }
+
     func testBacktestAndPaperEventFlowsCanPublishThroughMessageBusStreams() throws {
         var messageBus = try MessageBus()
         let bars = try makeEMAFixtureBars()
@@ -786,13 +876,13 @@ final class CoreTests: XCTestCase {
         )
     }
 
-    private func makeEMAMarketDataQuery() throws -> MarketDataQuery {
+    private func makeEMAMarketDataQuery(end: TimeInterval = 460) throws -> MarketDataQuery {
         MarketDataQuery(
             symbol: try Symbol(rawValue: "BTCUSDT"),
             timeframe: .oneMinute,
             range: try DateRange(
                 start: Date(timeIntervalSince1970: 100),
-                end: Date(timeIntervalSince1970: 400)
+                end: Date(timeIntervalSince1970: end)
             )
         )
     }

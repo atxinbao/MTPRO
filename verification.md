@@ -3066,3 +3066,40 @@ Commit：本轮提交
 | --- | --- | --- |
 | `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；已检查 `docs/validation/trading-validation-matrix.md` 和 `TVM-EMA-PARITY`、`TVM-ORDER-BOOK-IMBALANCE-PARITY`、`TVM-FEES-SLIPPAGE`、`TVM-RISK-BLOCKER`、`TVM-PORTFOLIO-EXPOSURE`、`TVM-REPORT-EVIDENCE`、`TVM-FUTURE-ISSUE-BACKFILL`。 |
 | `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 通过；59 个 XCTest 通过；输出 `MTPRO checks passed.` |
+## 2026-05-18 — MTP-25 EMA Backtest / Paper parity hardening
+
+执行者：Codex
+
+关联 Linear issue：`MTP-25` — 加固 EMA Backtest / Paper signal timeline parity。
+
+本轮变更：
+
+- `BacktestEventFlow` / `PaperSessionEventFlow` 在 EMA 计算前校验 bars 是否被 `MarketDataQuery.range` 完整覆盖。
+- 新增 deterministic Core tests，覆盖 strategy config、symbol、timeframe、warm-up、signal direction、timestamp、完整 signal timeline 和 query range too narrow 错误边界。
+- 回填 `docs/validation/trading-validation-matrix.md` 的 `TVM-EMA-PARITY`。
+- 更新 `docs/contracts/backend-use-case-contract.md`、`docs/contracts/api-contract.md` 和 `docs/validation/validation-plan.md` 的 MTP-25 契约 / 验证说明。
+
+验证命令：
+
+```bash
+swift test --filter CoreTests/testEMA
+bash checks/run.sh
+```
+
+验证结果：
+
+- `swift test --filter CoreTests/testEMA` 通过：4 个 EMA XCTest，0 failure。
+- 更新 latest summary 后的两次中间验证失败均来自 automation readiness 固定锚点缺失：先缺少 `临时 CI 平台边界`，再缺少 `覆盖完整 Linear Project`；两个锚点已恢复。
+- `bash checks/run.sh` 通过：`git diff --check`、`bash checks/automation-readiness.sh`、`swift build --product MTPRODashboard`、`MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard`、`swift test` 均通过。
+- `swift test` 全量结果：61 个 XCTest，0 failure。
+- Dashboard smoke 输出：`MTPRO Dashboard smoke: sections=8; readModelOnly=true; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`。
+- 最终输出：`MTPRO checks passed.`。
+
+边界确认：
+
+- 未接真实 Binance 网络。
+- 未读取 secret。
+- 未接 signed endpoint、account endpoint、broker action 或真实订单行为。
+- 未修改 Linear status。
+- 未运行 Graphify full rebuild。
+- `.codex/*` 和 `graphify-out/*` 不进入 PR。

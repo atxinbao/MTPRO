@@ -73,6 +73,17 @@ MTP-24 的 required validation：
 - Matrix 必须明确 MTP-25 至 MTP-30 如何回填 evidence。
 - `checks/automation-readiness.sh` 必须在 matrix 文件或 required anchors 缺失时失败。
 
+## MTP-25 EMA Backtest / Paper Parity Validation
+
+MTP-25 的 required validation：
+
+- EMA Backtest / Paper parity 必须使用 deterministic fixture，不依赖真实 Binance 网络。
+- 测试必须覆盖同一 `EMACrossStrategyConfiguration`、同一 `MarketDataQuery`、同一 symbol、同一 timeframe。
+- 测试必须锁定 long EMA warm-up 后的首个 signal timestamp、完整 signal direction timeline 和 Backtest / Paper signalSamples 等价。
+- Backtest / Paper event flow 必须拒绝超出 `MarketDataQuery.range` 的 bars，避免使用查询窗口外数据生成 parity 假阳性。
+- `docs/validation/trading-validation-matrix.md` 的 `TVM-EMA-PARITY` 必须回填新增测试、edge case 和 PR evidence 边界。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不接 signed endpoint、broker action 或真实订单行为。
+
 ## Codex / Automation Validation
 
 - Codex use-cases 对齐：`docs/automation/codex-use-cases-alignment.md`。
