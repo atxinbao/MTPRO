@@ -27,6 +27,9 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - `graphify-out/*` 未提交，`.codex/*` 未提交。
 - `symphony-issue` active Project pointer 仍指向 `mtpro-runtime-research-workbench-v1-222cf4e1965c`。
 - workflow 本体不得为每个 Project 复制一套；Project 切换只更新 active Project pointer，并先做 queue preview。
+- 当前 Project Planning Record：`docs/planning/mtpro-trading-validation-and-parity-hardening-plan.md`。
+- Planning Record 状态：写入 Linear 前记录；不授权执行，不创建 Linear Project / Issues，不修改 Linear status。
+- Planning Record 只保存 Project 级计划摘要和格式门槛；完整 issue execution contract 以 Linear 为准。
 
 ## 最近验证
 
@@ -44,6 +47,8 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 
 - Runtime Research Workbench v1 已完成；本摘要不授权下一阶段开发。
 - Stage Code Audit Report 只作为 Next Human Project Planning 输入，不替代 Human 决策。
+- `MTPRO Trading Validation and Parity Hardening` planning record 不授权执行。
+- 当前 planning record 不创建 Linear Project / Issues。
 - Report 输入只来自 projection snapshots / read model 和 append-only event timeline。
 - Report 只表达 projection-level Backtest / Paper evidence，不替代 Core 层完整 signal timeline parity。
 - Report 是研究输出，不是交易执行授权。
