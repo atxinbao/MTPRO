@@ -679,6 +679,64 @@ final class CoreTests: XCTestCase {
         )
     }
 
+    func testPaperSessionReplayEvidenceSummarizesRuntimeEventsDeterministically() throws {
+        // 测试场景：MTP-35 replay evidence 必须从 append-only replay result 汇总
+        // session lifecycle、proposal、risk blocker 和 portfolio projection event，且不恢复真实交易能力。
+        let replay = try PaperSessionReplayFixture.deterministicReplayResult()
+        let summary = try PaperSessionReplayPath.summarize(replay)
+
+        XCTAssertEqual(summary.factsSource, "append-only event log replay")
+        XCTAssertEqual(summary.replayedSequences, Array(1...13))
+        XCTAssertEqual(summary.replayedStreams, [.paper, .portfolio, .risk])
+        XCTAssertEqual(summary.firstSequence, 1)
+        XCTAssertEqual(summary.lastSequence, 13)
+        XCTAssertEqual(summary.sessionIDs, [try Identifier("paper-replay-session")])
+        XCTAssertEqual(summary.lifecycleStates, [.started, .updated, .closed])
+        XCTAssertEqual(summary.signalEventCount, 4)
+        XCTAssertEqual(
+            summary.proposalIDs,
+            [
+                try Identifier("paper-replay-proposal"),
+                try Identifier("paper-replay-proposal-blocked")
+            ]
+        )
+        XCTAssertEqual(summary.riskEvaluationRequestedCount, 2)
+        XCTAssertEqual(
+            summary.riskBlockerEvidenceIDs,
+            [try Identifier("risk-blocker-paper-replay-proposal-blocked")]
+        )
+        XCTAssertEqual(summary.rejectedPaperOrderIDs, [try Identifier("paper-replay-proposal-blocked")])
+        XCTAssertEqual(summary.portfolioUpdateIDs, [try Identifier("paper-replay-portfolio-update")])
+        XCTAssertEqual(summary.portfolioIDs, [try Identifier("portfolio-main")])
+        XCTAssertTrue(summary.coversSessionEvents)
+        XCTAssertTrue(summary.coversProposalEvents)
+        XCTAssertTrue(summary.coversRiskBlockerEvents)
+        XCTAssertTrue(summary.coversPortfolioProjectionEvents)
+        XCTAssertTrue(summary.appendOnlyFactsSourceIsReplaySource)
+        XCTAssertTrue(summary.replayResultIsDeterministic)
+        XCTAssertTrue(summary.paperOnlyBoundaryHeld)
+        XCTAssertFalse(summary.authorizesLiveTrading)
+        XCTAssertFalse(summary.touchesBrokerAction)
+
+        let encoded = try JSONEncoder().encode(summary)
+        let decoded = try JSONDecoder().decode(PaperSessionReplayEvidenceSummary.self, from: encoded)
+        XCTAssertEqual(decoded, summary)
+    }
+
+    func testPaperSessionReplayEvidenceRejectsOutOfOrderReplayResult() throws {
+        // 测试场景：replay summary 必须拒绝乱序 envelope，避免把非 append-only 顺序的输入
+        // 误标记为 deterministic evidence。
+        let replay = try PaperSessionReplayFixture.deterministicReplayResult()
+        let outOfOrderReplay = EventReplayResult(
+            command: replay.command,
+            envelopes: replay.envelopes.reversed()
+        )
+
+        XCTAssertThrowsError(try PaperSessionReplayPath.summarize(outOfOrderReplay)) { error in
+            XCTAssertEqual(error as? CoreError, .invalidSequenceRange)
+        }
+    }
+
     func testPaperActionProposalMapsStrategySignalToPaperOnlyIntentDeterministically() throws {
         // 测试场景：MTP-32 proposal fixture 必须把 strategy signal 确定性映射为
         // paper-only action intent，并复用 MTP-27 fixed cost evidence，不生成真实订单能力。

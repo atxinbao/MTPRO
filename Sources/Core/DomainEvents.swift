@@ -19,12 +19,14 @@ public enum BacktestEvent: Codable, Equatable, Sendable {
 /// PaperEvent 表示 Paper 会话生命周期事件，只记录本地 paper-only lifecycle 和模拟信号。
 ///
 /// MTP-31 起新增 `sessionStarted`、`sessionUpdated` 和 `sessionClosed` 作为稳定 lifecycle facts。
-/// 历史 `sessionRequested` / `sessionCompleted` 仍可被 replay，用于兼容既有本地事件日志；新事件流默认
-/// 写入 started / updated / closed，不连接 broker、不提交订单、不调用 signed endpoint。
+/// MTP-35 起新增 `actionProposed`，让 proposal 可以作为 paper-only replay fact 进入 `.paper`
+/// stream。历史 `sessionRequested` / `sessionCompleted` 仍可被 replay，用于兼容既有本地事件日志；
+/// 新事件流默认写入 started / updated / closed，不连接 broker、不提交订单、不调用 signed endpoint。
 public enum PaperEvent: Codable, Equatable, Sendable {
     case sessionStarted(PaperSessionStarted)
     case sessionUpdated(PaperSessionUpdated)
     case sessionClosed(PaperSessionClosed)
+    case actionProposed(PaperActionProposal)
     case sessionRequested(PaperSessionCommand)
     case signalGenerated(EMACrossSignalSample)
     case sessionCompleted(PaperSessionResult)

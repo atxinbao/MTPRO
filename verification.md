@@ -3774,3 +3774,65 @@ Commit：本轮提交
 | --- | --- | --- |
 | `swift test` | pass | 77 个 XCTest 通过；新增 `testPaperPortfolioProjectionUpdateEmitsPaperOnlyPortfolioEventFromAllowedDecision`、`testPaperPortfolioProjectionUpdateRejectsBlockedDecisionAndCapabilityBypass`、`testSQLiteRuntimeProjectionAppliesPaperPortfolioProjectionUpdateFromReplay`、`testPortfolioViewModelConsumesPaperPortfolioUpdateProjectionReadOnly`，覆盖 allowed risk decision -> portfolio update、blocked decision 拒绝、Codable 禁区、SQLite replay projection 和 ViewModel read-model-only 边界。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、dashboard build、dashboard smoke 和 `swift test` 全部通过；77 个 XCTest 0 failures，输出 `MTPRO checks passed.` |
+
+## MTP-35 Paper Session Replay and Deterministic Evidence
+
+日期：2026-05-19
+
+执行者：Codex
+
+目的：
+
+- 建立 Paper Session replay path。
+- 用 `PaperEvent.actionProposed` 将 proposal 纳入 `.paper` stream replay fact。
+- 从 append-only event log replay 汇总 session lifecycle、proposal、risk blocker 和 portfolio projection event。
+- 输出 `PaperSessionReplayEvidenceSummary` deterministic evidence。
+- 证明 `FileEventLogStore` append-only facts source 经 replay 后可生成同一 summary，并驱动 SQLite runtime projection。
+- 回填 contracts、validation plan、Trading Validation Matrix 和 latest verification summary。
+
+文件范围：
+
+- Added：
+  - `Sources/Core/PaperSessionReplay.swift`
+- Updated：
+  - `Sources/Core/DomainEvents.swift`
+  - `Sources/Persistence/Persistence.swift`
+  - `Tests/CoreTests/CoreTests.swift`
+  - `Tests/PersistenceTests/PersistenceTests.swift`
+  - `docs/contracts/api-contract.md`
+  - `docs/contracts/backend-use-case-contract.md`
+  - `docs/contracts/persistence-boundary.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 symphony-issue。
+- 未解锁下一 issue。
+- 未运行 Graphify full rebuild。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 未接真实 Binance 网络。
+- 未读取 secret。
+- 未接 signed endpoint / account endpoint。
+- 未连接 broker。
+- 未提交、取消或替换真实订单。
+- 未新增生产级 event sourcing 平台。
+- 未新增 schema migration framework。
+- 未新增真实 broker event replay。
+- 未接外部 execution venue。
+- 未暴露 SQLite / DuckDB schema 给 UI。
+- 未实现完整 Paper execution workflow。
+- 未实现 Live execution。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test` | pass | 80 个 XCTest 通过；新增 `testPaperSessionReplayEvidenceSummarizesRuntimeEventsDeterministically`、`testPaperSessionReplayEvidenceRejectsOutOfOrderReplayResult`、`testPaperSessionReplayEvidenceUsesFileAppendOnlyFactsSource`，覆盖 replay summary、乱序 replay 拒绝、append-only facts source、SQLite runtime projection replay 和 paper-only boundary flags。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、dashboard build、dashboard smoke 和 `swift test` 全部通过；80 个 XCTest 0 failures，输出 `MTPRO checks passed.` |

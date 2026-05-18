@@ -567,3 +567,35 @@ MTP-21 ingest 串联。
 - margin、leverage、broker position sync。
 - broker / exchange side effect。
 - signed endpoint、account endpoint、真实订单行为或 Live execution。
+
+## MTP-35 Paper Session Replay Evidence Use Case 边界
+
+日期：2026-05-19
+
+执行者：Codex
+
+`ReplayEvents` 在本事项中获得 Paper Session runtime evidence summary，用于从 append-only
+event log replay 汇总 lifecycle、proposal、risk blocker 和 portfolio projection 证据。
+
+契约结构：
+
+- `PaperEvent.actionProposed`：把 MTP-32 proposal 作为 paper-only replay fact 写入 `.paper` stream。
+- `PaperSessionReplayEvidenceSummary`：汇总 replay sequence、stream、session、lifecycle、proposal、risk blocker 和 portfolio update evidence。
+- `PaperSessionReplayPath.summarize`：只消费 `EventReplayResult`，拒绝乱序 replay result。
+- `PaperSessionReplayFixture`：生成 deterministic event log、replay result 和 summary，用于 XCTest / PR evidence。
+
+契约要求：
+
+- replay 输入必须来自 append-only event log 产生的 `EventReplayResult`。
+- summary 必须覆盖 session events、proposal events、risk blocker events 和 portfolio projection events。
+- summary 必须固定 replayed sequences、streams、proposal IDs、risk blocker IDs、portfolio update IDs 和 paper-only boundary flags。
+- proposal、risk 和 portfolio evidence 只能表达本地 Paper runtime evidence，不得恢复真实订单授权或 broker fallback。
+- SQLite runtime projection 仍只能消费 replay envelope，不暴露 table、column、SQL statement 或 ORM model。
+
+本契约不包含：
+
+- 生产级 event sourcing 平台。
+- schema migration framework。
+- 真实 broker event replay。
+- 外部 execution venue。
+- signed endpoint、account endpoint、broker action、真实订单行为或 Live execution。
