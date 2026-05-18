@@ -3892,3 +3892,53 @@ Commit：本轮提交
 | --- | --- | --- |
 | `swift test --filter AppTests` | pass | 9 个 AppTests 通过；覆盖 Report / Dashboard runtime evidence read model、Codable deterministic snapshot、Dashboard shell runtime evidence 展示和 read-model-only 边界。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、dashboard build、dashboard smoke 和 `swift test` 全部通过；80 个 XCTest 0 failures，输出 `MTPRO checks passed.` |
+
+## MTP-37 Validation Docs, Automation Evidence, and Stage Audit Input
+
+日期：2026-05-19
+
+执行者：Codex
+
+目的：
+
+- 收口 `MTPRO Paper Session Runtime v1` 的 validation docs、automation evidence、known boundaries 和 Stage Code Audit input。
+- 新增 `docs/validation/mtp-37-stage-audit-input.md`，汇总 MTP-31 至 MTP-36 的 PR evidence、merge commit、required check、paper runtime validation evidence chain、known boundaries、automation readiness evidence、Root Docs Delta input 和 Stage Code Audit handoff checklist。
+- 更新 `docs/validation/latest-verification-summary.md`，记录 MTP-37 live-read issue 状态、当前 Project PR evidence 和 MTP-37 本地验证摘要。
+- 更新 `docs/validation/trading-validation-matrix.md` 和 `docs/validation/validation-plan.md`，补充 MTP-37 Paper Session Runtime 阶段收口和 required validation。
+- 更新 `checks/automation-readiness.sh`，把 MTP-37 stage audit input、latest summary、matrix 和 validation plan anchors 纳入机械检查。
+
+文件范围：
+
+- Added：
+  - `docs/validation/mtp-37-stage-audit-input.md`
+- Updated：
+  - `checks/automation-readiness.sh`
+  - `docs/validation/latest-verification-summary.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 symphony-issue。
+- 未解锁下一 issue。
+- 未运行 Graphify full rebuild。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 未接真实 Binance 网络。
+- 未读取 secret。
+- 未接 signed endpoint / account endpoint。
+- 未连接 broker。
+- 未提交、取消或替换真实订单。
+- 未输出最终 Stage Code Audit Report。
+- 未推进下一 Project / Issue。
+- 未修改 production code。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；确认 MTP-37 Stage Code Audit input、Trading Validation Matrix、latest summary 和 automation readiness anchors 完整。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、dashboard build、dashboard smoke 和 `swift test` 全部通过；80 个 XCTest 0 failures，输出 `MTPRO checks passed.` |
