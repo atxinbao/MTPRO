@@ -124,12 +124,12 @@ bash checks/run.sh
 
 ## Linear write boundary
 
-- 本文档不创建 Linear Project。
-- 本文档不创建 Linear Issues。
-- 本文档不修改 Linear status。
+- planning record 不创建 Linear Project。
+- planning record 不创建 Linear Issues。
+- planning record 不修改 Linear status。
 - Human review / merge 后，才允许进入 Linear 写入。
 - Linear 写入后，所有 issue 初始必须保持 Backlog / non-executable。
-- 完整 issue execution contract 以 Linear 为准。
+- 完整 issue execution contract 以 Linear issue body 为准。
 
 ## Repository record boundary
 
