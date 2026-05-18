@@ -22,6 +22,7 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - 当前工作树：已同步到 `origin/main` 的 `948cc67a6b9dff898deb4d46c7f793a2e7de6e83`。
 - Stage Code Audit Report 已由 Parent Codex 固化到 `docs/audit/mtpro-runtime-research-workbench-v1-stage-code-audit.md`。
 - Stage Code Audit Report 已记录 `MTP-18` / `MTP-19` / `MTP-22` 的临时 CI 平台边界和最终通过证据。
+- Stage Code Audit Report 使用 `<linear-project-slug>-stage-code-audit.md` 命名规则，覆盖完整 Linear Project，不是单个 issue evidence。
 - Post-Issue Ledger 已完成，`git_pull_ff_only` 和 `graphify_update` 均为 `passed`。
 - `graphify-out/*` 未提交，`.codex/*` 未提交。
 - `symphony-issue` active Project pointer 仍指向 `mtpro-runtime-research-workbench-v1-222cf4e1965c`。
@@ -37,7 +38,7 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 | `MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard` | pass | 输出 `MTPRO Dashboard smoke: sections=8; readModelOnly=true; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`。 |
 | `swift test` | pass | 59 个 XCTest 通过；新增 AppTests 覆盖 Report read model、Dashboard Report 快照、projection-level parity evidence 和 missing Paper projection 禁区断言。 |
 | `bash checks/run.sh` | pass | macOS 本地执行 `git diff --check`、automation readiness、dashboard build、dashboard smoke run 和 `swift test` 通过；输出 `MTPRO checks passed.` |
-| Stage Code Audit Report | pass | `docs/audit/mtpro-runtime-research-workbench-v1-stage-code-audit.md` 已记录 Project completion、Issue / PR evidence、validation、boundary audit 和 handoff。 |
+| Stage Code Audit Report | pass | `docs/audit/mtpro-runtime-research-workbench-v1-stage-code-audit.md` 已记录 Project completion、Issue / PR evidence、validation、Known CI Boundary、boundary audit 和 handoff。 |
 
 ## 当前边界
 

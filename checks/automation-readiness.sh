@@ -94,6 +94,10 @@ require_contains "docs/automation/parent-codex-supervision.md" "active Project p
 require_contains "docs/automation/parent-codex-supervision.md" "mtpro-runtime-research-workbench-v1-222cf4e1965c"
 require_contains "docs/automation/parent-codex-supervision.md" '第一个 issue 和后续 issue 的 `Backlog` -> `Todo` 操作都归属父 Codex'
 require_contains "docs/automation/parent-codex-supervision.md" "Human 确认 Project / Issue plan"
+require_contains "docs/automation/parent-codex-supervision.md" "Stage Code Audit Report 落仓规则"
+require_contains "docs/automation/parent-codex-supervision.md" 'docs/audit/<linear-project-slug>-stage-code-audit.md'
+require_contains "docs/automation/parent-codex-supervision.md" "报告必须覆盖整个 Linear Project"
+require_contains "docs/automation/parent-codex-supervision.md" "Next Human Project Planning 必须读取该文件后才能开始"
 require_contains "docs/automation/post-issue-ledger.md" "before_remove"
 require_contains "docs/automation/post-issue-ledger.md" "read_only"
 require_contains "docs/automation/symphony-issue-workflow-template.md" "稳定 workflow 本体"
@@ -132,7 +136,15 @@ require_contains "docs/validation/eval-strategy.md" "什么时候可以引入独
 require_contains "docs/validation/latest-verification-summary.md" "Agent / Graphify 默认读取本文档"
 require_contains "docs/validation/latest-verification-summary.md" '完整 `verification.md` 只用于审计、追溯和 debug'
 require_contains "docs/validation/latest-verification-summary.md" "bash checks/run.sh"
+require_contains "docs/validation/latest-verification-summary.md" "临时 CI 平台边界"
+require_contains "docs/validation/latest-verification-summary.md" "覆盖完整 Linear Project"
 require_contains "docs/validation/macos-build-run-loop.md" "macOS App shell"
+
+require_contains "docs/audit/mtpro-runtime-research-workbench-v1-stage-code-audit.md" "文档路径"
+require_contains "docs/audit/mtpro-runtime-research-workbench-v1-stage-code-audit.md" "命名规则"
+require_contains "docs/audit/mtpro-runtime-research-workbench-v1-stage-code-audit.md" "本报告审计完整 Linear Project"
+require_contains "docs/audit/mtpro-runtime-research-workbench-v1-stage-code-audit.md" "Known CI Boundary / 临时失败说明"
+require_contains "docs/audit/mtpro-runtime-research-workbench-v1-stage-code-audit.md" "无当前遗留 failing PR run"
 
 require_contains "AGENTS.md" "Linear issue 中已填写的 Scope / Non-goals / Codex Instructions / Validation / Boundary / PR Requirements 是 Codex Execution Agent 的执行合同"
 require_contains "AGENTS.md" "不二次确认 issue scope"

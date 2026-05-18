@@ -30,6 +30,8 @@ Agent 开始工作前必须读取：
 - 父 Codex 必须在第一个 `Todo` 前核对 Linear Project / Issue 执行合同格式。
 - Human 确认 Project / Issue plan 并写入 Linear 后，第一个 issue 和后续 issue 的 `Backlog` -> `Todo` 操作都只能由父 Codex 自动执行。
 - 父 Codex 自动调度前必须确认 WIP=1、previous issue Done、依赖满足、执行合同格式完整，并且当前 Project 没有 `Todo` / `In Progress` / `In Review` active conflict。
+- Project 全部 Done 后，Parent Codex 必须把 Project 级 Stage Code Audit Report 落到 `docs/audit/<linear-project-slug>-stage-code-audit.md`，才能进入 Next Human Project Planning。
+- Stage Code Audit Report 必须覆盖完整 Linear Project，不得只覆盖单个 issue。
 - 父 Codex 负责 Project 切换时更新 `symphony-issue` active Project pointer；workflow 本体不得为每个 Project 复制一套。
 - 父 Codex 更新 active Project pointer 后必须先做 queue preview，不得直接启动 `symphony-issue`，不得直接操作 `Backlog` -> `Todo`。
 - symphony-issue 负责唯一 `Todo` issue 的执行调度、`Todo` -> `In Progress` 和 `In Progress` -> `In Review` 状态推进。
@@ -75,7 +77,7 @@ Agent 开始工作前必须读取：
 | Parent Codex Automation Supervision | Project 级 queue preview、eligible issue 自动调度、child Codex 监控、代码审查、host-side fallback 和流程迭代建议；不替代 Human 阶段规划，不直接 merge PR |
 | symphony-issue | 只调度唯一 `Todo` issue；负责 `Todo` -> `In Progress`、Codex 执行调度、校验 handoff marker 后 `In Progress` -> `In Review` |
 | GitHub PR Automation | 创建 PR 后交给 GitHub checks / auto-merge；Codex 不直接 merge |
-| Next Human Project Planning | 当前 Project 全部 Done 前不得建议或创建下一 Project |
+| Next Human Project Planning | 当前 Project 全部 Done 且 Stage Code Audit Report 已落仓前不得建议或创建下一 Project |
 
 ## 三角色职责边界
 

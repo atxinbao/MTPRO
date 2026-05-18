@@ -24,7 +24,7 @@ MTPRO 是用于重构 `macos-trader` 的新独立 macOS 交易研究工作台项
 | Parent Codex Automation Supervision | 已作为 Project 级自动调度方案 | queue preview、eligible issue 自动推进、child Codex 监控、代码审查、host-side fallback |
 | symphony-issue | 已验证 issue 执行路径 | 调度唯一 `Todo` issue，推进 `Todo -> In Progress -> In Review` |
 | GitHub PR Automation | 已验证 | required checks、auto-merge、squash merge、branch cleanup、Linear bot auto Done |
-| Next Human Project Planning | 当前下一步 | 基于阶段审计报告决定下一个 Linear Project |
+| Next Human Project Planning | 当前下一步 | 基于落仓的 Project 级 Stage Code Audit Report 决定下一个 Linear Project |
 
 ## 第一版产品边界
 
@@ -67,7 +67,9 @@ Tests/
 - `docs/validation/validation-plan.md`：验证计划。
 - `docs/validation/latest-verification-summary.md`：最近验证摘要，Agent / Graphify 默认读取。
 - `docs/automation/`：Parent Codex、symphony-issue、Graphify、Post-Issue Ledger 和 verified operations 边界。
+- `docs/audit/`：阶段代码审计报告。命名规则为 `<linear-project-slug>-stage-code-audit.md`，一份报告对应一个完整 Linear Project。
 - `docs/audit/mtpro-guidance-stage-code-audit.md`：`MTPRO 引导` 阶段审计报告。
+- `docs/audit/mtpro-runtime-research-workbench-v1-stage-code-audit.md`：`MTPRO Runtime Research Workbench v1` 阶段审计报告。
 - `verification.md`：append-only 完整验证流水账，仅用于审计、追溯和 debug。
 
 ## 本地验证

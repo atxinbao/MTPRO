@@ -6,6 +6,10 @@
 
 报告类型：Stage Code Audit Report
 
+文档路径：`docs/audit/mtpro-runtime-research-workbench-v1-stage-code-audit.md`
+
+命名规则：`<linear-project-slug>-stage-code-audit.md`
+
 ## Project
 
 Linear Project：`MTPRO Runtime Research Workbench v1`
@@ -15,6 +19,8 @@ Linear Project slug：`mtpro-runtime-research-workbench-v1-222cf4e1965c`
 ## 范围
 
 本报告覆盖 `MTP-16` 到 `MTP-23` 的 Project 级执行结果。
+
+本报告审计完整 Linear Project，不是单个 issue 的执行记录。
 
 本报告只作为 Next Human Project Planning 的输入，不授权创建下一 Linear Project / Issue，不授权推进任何 issue 到 `Todo`，不替代 PR evidence、Linear evidence 或 `verification.md`。
 

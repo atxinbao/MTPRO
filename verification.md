@@ -2783,3 +2783,49 @@ Commit：本轮提交
 | --- | --- | --- |
 | `git diff --check` | pass | 文档变更无空白错误。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、`swift build --product MTPRODashboard`、`MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard` 和 `swift test` 通过；59 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+## Stage Code Audit Report Repository Gate
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 固化 MTPRO Stage Code Audit Report 落仓规则。
+- 明确命名规则为 `docs/audit/<linear-project-slug>-stage-code-audit.md`。
+- 明确 Stage Code Audit Report 必须覆盖完整 Linear Project，不得只覆盖单个 issue。
+- 明确 Next Human Project Planning 必须读取落仓的 Project 级审计报告。
+
+文件范围：
+
+- Updated：
+  - `README.md`
+  - `AGENTS.md`
+  - `docs/automation/parent-codex-supervision.md`
+  - `docs/audit/mtpro-runtime-research-workbench-v1-stage-code-audit.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 Linear Project / Issue。
+- 未修改 Linear status。
+- 未启动 symphony-issue。
+- 未运行 Graphify update。
+- 未修改业务代码。
+- 未创建下一阶段 Project / Issue。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Stage Code Audit Report 落仓规则文档变更无空白错误。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、dashboard build / smoke 和 `swift test` 通过；59 个 XCTest 通过，输出 `MTPRO checks passed.` |
