@@ -413,3 +413,30 @@ MTP-21 ingest 串联。
 - 执行成本优化。
 - 真实成交、broker fill、账户余额、保证金、杠杆。
 - signed endpoint、account endpoint、broker action、真实订单行为或 Live execution。
+
+## MTP-28 Risk Blocker / Portfolio Exposure Evidence Use Case 边界
+
+日期：2026-05-18
+
+执行者：Codex
+
+`EvaluateRisk` 和 `ProjectPortfolio` 在本事项中补充最小 evidence / read model 边界：
+
+- `RiskBlockerEvidence`：绑定 proposed Paper action context、risk profile、blocker reason 和 generatedAt。
+- `PortfolioExposureSnapshot`：绑定 portfolio ID、symbol、timeframe、paper quantity、reference price、gross exposure notional 和 paper projection source。
+- `SQLiteRiskBlockerEvidenceProjection`：把 Core risk blocker evidence 映射到 runtime projection，并保留 source sequence。
+- `SQLitePortfolioExposureProjection`：把 paper-only exposure 映射到 portfolio read model，并保留 source sequence。
+
+契约要求：
+
+- Risk blocker evidence 只能来自本地 Paper 风险观察，`RiskEvaluationQuery.executionMode` 必须是 `paper`。
+- Portfolio exposure 只能来自 Paper projection，不能读取真实账户、保证金、杠杆或 broker balance。
+- App / Dashboard 只能展示 read-only evidence，不提供风险控制命令、仓位管理命令或交易执行入口。
+
+本契约不包含：
+
+- 完整风险引擎。
+- 实时风控。
+- 仓位管理、保证金、杠杆。
+- 真实 broker / exchange action。
+- signed endpoint、account endpoint、真实订单行为或 Live execution。

@@ -213,44 +213,168 @@ public enum SQLitePortfolioProjectionState: String, Codable, Equatable, Sendable
     case updated
 }
 
+/// SQLiteRiskBlockerEvidenceProjection 是 runtime read model 中的风险阻断证据。
+///
+/// 该投影从 Core `RiskBlockerEvidence` 和 append-only envelope sequence 派生，保留
+/// proposed paper action context、risk profile、reason 和 source sequence；它不保存
+/// broker 拒单、账户状态、signed endpoint 或 Live execution 信息。
+public struct SQLiteRiskBlockerEvidenceProjection: Codable, Equatable, Sendable {
+    public let evidenceID: Identifier
+    public let paperOrderID: Identifier
+    public let symbol: Symbol
+    public let timeframe: Timeframe
+    public let proposedQuantity: Quantity
+    public let riskProfileID: Identifier
+    public let executionMode: ExecutionMode
+    public let reason: RiskBlockerReason
+    public let generatedAt: Date
+    public let sourceSequence: Int
+    public let projectedAt: Date
+
+    public init(
+        evidenceID: Identifier,
+        paperOrderID: Identifier,
+        symbol: Symbol,
+        timeframe: Timeframe,
+        proposedQuantity: Quantity,
+        riskProfileID: Identifier,
+        executionMode: ExecutionMode,
+        reason: RiskBlockerReason,
+        generatedAt: Date,
+        sourceSequence: Int,
+        projectedAt: Date
+    ) {
+        self.evidenceID = evidenceID
+        self.paperOrderID = paperOrderID
+        self.symbol = symbol
+        self.timeframe = timeframe
+        self.proposedQuantity = proposedQuantity
+        self.riskProfileID = riskProfileID
+        self.executionMode = executionMode
+        self.reason = reason
+        self.generatedAt = generatedAt
+        self.sourceSequence = sourceSequence
+        self.projectedAt = projectedAt
+    }
+
+    public init(evidence: RiskBlockerEvidence, envelope: EventEnvelope) {
+        self.init(
+            evidenceID: evidence.evidenceID,
+            paperOrderID: evidence.paperOrderID,
+            symbol: evidence.symbol,
+            timeframe: evidence.timeframe,
+            proposedQuantity: evidence.proposedQuantity,
+            riskProfileID: evidence.riskProfileID,
+            executionMode: evidence.executionMode,
+            reason: evidence.reason,
+            generatedAt: evidence.generatedAt,
+            sourceSequence: envelope.sequence,
+            projectedAt: envelope.recordedAt
+        )
+    }
+}
+
+/// SQLitePortfolioExposureProjection 是组合 exposure 的只读 runtime 投影。
+///
+/// 投影只保存 Paper projection 派生的 symbol / timeframe / quantity / notional 和 source
+/// sequence，供 Dashboard / Report 读取；不得解释为真实账户余额、margin、leverage 或 broker position。
+public struct SQLitePortfolioExposureProjection: Codable, Equatable, Sendable {
+    public let portfolioID: Identifier
+    public let symbol: Symbol
+    public let timeframe: Timeframe
+    public let paperQuantity: Quantity
+    public let referencePrice: Price
+    public let grossExposureNotional: Double
+    public let source: PortfolioExposureSource
+    public let observedAt: Date
+    public let sourceSequence: Int
+    public let projectedAt: Date
+
+    public init(
+        portfolioID: Identifier,
+        symbol: Symbol,
+        timeframe: Timeframe,
+        paperQuantity: Quantity,
+        referencePrice: Price,
+        grossExposureNotional: Double,
+        source: PortfolioExposureSource,
+        observedAt: Date,
+        sourceSequence: Int,
+        projectedAt: Date
+    ) {
+        self.portfolioID = portfolioID
+        self.symbol = symbol
+        self.timeframe = timeframe
+        self.paperQuantity = paperQuantity
+        self.referencePrice = referencePrice
+        self.grossExposureNotional = grossExposureNotional
+        self.source = source
+        self.observedAt = observedAt
+        self.sourceSequence = sourceSequence
+        self.projectedAt = projectedAt
+    }
+
+    public init(exposure: PortfolioExposureSnapshot, envelope: EventEnvelope) {
+        self.init(
+            portfolioID: exposure.portfolioID,
+            symbol: exposure.symbol,
+            timeframe: exposure.timeframe,
+            paperQuantity: exposure.paperQuantity,
+            referencePrice: exposure.referencePrice,
+            grossExposureNotional: exposure.grossExposureNotional,
+            source: exposure.source,
+            observedAt: exposure.observedAt,
+            sourceSequence: envelope.sequence,
+            projectedAt: envelope.recordedAt
+        )
+    }
+}
+
 public struct SQLitePortfolioProjection: Codable, Equatable, Sendable {
     public let portfolioID: Identifier
     public let state: SQLitePortfolioProjectionState
     public let requestedAt: Date?
     public let updatedAt: Date?
     public let lastUpdatedAt: Date
+    public let exposures: [SQLitePortfolioExposureProjection]
 
     public init(
         portfolioID: Identifier,
         state: SQLitePortfolioProjectionState,
         requestedAt: Date?,
         updatedAt: Date?,
-        lastUpdatedAt: Date
+        lastUpdatedAt: Date,
+        exposures: [SQLitePortfolioExposureProjection] = []
     ) {
         self.portfolioID = portfolioID
         self.state = state
         self.requestedAt = requestedAt
         self.updatedAt = updatedAt
         self.lastUpdatedAt = lastUpdatedAt
+        self.exposures = exposures.sortedByPortfolioExposure()
     }
 }
 
 public struct SQLiteRuntimeProjectionSnapshot: Equatable, Sendable {
     public let paperSessions: [Identifier: SQLitePaperSessionProjection]
-    public let rejectedPaperOrderIDs: [Identifier]
+    public let riskBlockerEvidence: [SQLiteRiskBlockerEvidenceProjection]
     public let portfolioProjections: [Identifier: SQLitePortfolioProjection]
     public let lastAppliedSequence: Int?
 
     public init(
         paperSessions: [Identifier: SQLitePaperSessionProjection] = [:],
-        rejectedPaperOrderIDs: [Identifier] = [],
+        riskBlockerEvidence: [SQLiteRiskBlockerEvidenceProjection] = [],
         portfolioProjections: [Identifier: SQLitePortfolioProjection] = [:],
         lastAppliedSequence: Int? = nil
     ) {
         self.paperSessions = paperSessions
-        self.rejectedPaperOrderIDs = rejectedPaperOrderIDs
+        self.riskBlockerEvidence = riskBlockerEvidence.sortedByRiskEvidence()
         self.portfolioProjections = portfolioProjections
         self.lastAppliedSequence = lastAppliedSequence
+    }
+
+    public var rejectedPaperOrderIDs: [Identifier] {
+        riskBlockerEvidence.map(\.paperOrderID)
     }
 }
 
@@ -270,7 +394,7 @@ public struct SQLiteRuntimeProjectionStore: Equatable, Sendable {
 
     public static func project(_ envelopes: [EventEnvelope]) -> SQLiteRuntimeProjectionSnapshot {
         var paperSessions: [Identifier: SQLitePaperSessionProjection] = [:]
-        var rejectedPaperOrderIDs: [Identifier] = []
+        var riskBlockerEvidence: [SQLiteRiskBlockerEvidenceProjection] = []
         var portfolioProjections: [Identifier: SQLitePortfolioProjection] = [:]
         var lastAppliedSequence: Int?
 
@@ -286,7 +410,8 @@ public struct SQLiteRuntimeProjectionStore: Equatable, Sendable {
             case let .risk(event):
                 apply(
                     riskEvent: event,
-                    rejectedPaperOrderIDs: &rejectedPaperOrderIDs
+                    envelope: envelope,
+                    riskBlockerEvidence: &riskBlockerEvidence
                 )
                 lastAppliedSequence = envelope.sequence
             case let .portfolio(event):
@@ -303,7 +428,7 @@ public struct SQLiteRuntimeProjectionStore: Equatable, Sendable {
 
         return SQLiteRuntimeProjectionSnapshot(
             paperSessions: paperSessions,
-            rejectedPaperOrderIDs: rejectedPaperOrderIDs,
+            riskBlockerEvidence: riskBlockerEvidence,
             portfolioProjections: portfolioProjections,
             lastAppliedSequence: lastAppliedSequence
         )
@@ -354,13 +479,18 @@ public struct SQLiteRuntimeProjectionStore: Equatable, Sendable {
 
     private static func apply(
         riskEvent: RiskEvent,
-        rejectedPaperOrderIDs: inout [Identifier]
+        envelope: EventEnvelope,
+        riskBlockerEvidence: inout [SQLiteRiskBlockerEvidenceProjection]
     ) {
-        guard case let .rejected(paperOrderID) = riskEvent else {
+        guard case let .blocked(evidence) = riskEvent else {
             return
         }
-        if rejectedPaperOrderIDs.contains(paperOrderID) == false {
-            rejectedPaperOrderIDs.append(paperOrderID)
+        let projection = SQLiteRiskBlockerEvidenceProjection(
+            evidence: evidence,
+            envelope: envelope
+        )
+        if riskBlockerEvidence.contains(where: { $0.evidenceID == evidence.evidenceID }) == false {
+            riskBlockerEvidence.append(projection)
         }
     }
 
@@ -377,19 +507,37 @@ public struct SQLiteRuntimeProjectionStore: Equatable, Sendable {
                 state: existing?.state ?? .requested,
                 requestedAt: existing?.requestedAt ?? envelope.recordedAt,
                 updatedAt: existing?.updatedAt,
-                lastUpdatedAt: envelope.recordedAt
+                lastUpdatedAt: envelope.recordedAt,
+                exposures: existing?.exposures ?? []
             )
 
-        case let .projectionUpdated(portfolioID):
-            let existing = portfolioProjections[portfolioID]
-            portfolioProjections[portfolioID] = SQLitePortfolioProjection(
-                portfolioID: portfolioID,
+        case let .exposureUpdated(exposure):
+            let existing = portfolioProjections[exposure.portfolioID]
+            portfolioProjections[exposure.portfolioID] = SQLitePortfolioProjection(
+                portfolioID: exposure.portfolioID,
                 state: .updated,
                 requestedAt: existing?.requestedAt,
                 updatedAt: envelope.recordedAt,
-                lastUpdatedAt: envelope.recordedAt
+                lastUpdatedAt: envelope.recordedAt,
+                exposures: replacing(
+                    existing?.exposures ?? [],
+                    with: SQLitePortfolioExposureProjection(
+                        exposure: exposure,
+                        envelope: envelope
+                    )
+                )
             )
         }
+    }
+
+    private static func replacing(
+        _ exposures: [SQLitePortfolioExposureProjection],
+        with replacement: SQLitePortfolioExposureProjection
+    ) -> [SQLitePortfolioExposureProjection] {
+        let filtered = exposures.filter {
+            $0.symbol != replacement.symbol || $0.timeframe != replacement.timeframe
+        }
+        return (filtered + [replacement]).sortedByPortfolioExposure()
     }
 }
 
@@ -439,12 +587,8 @@ public struct SQLiteRuntimeProjectionAdapter: Equatable, Sendable {
 
 private enum SQLiteRuntimeProjectionRecordKind: String {
     case paperSession
-    case rejectedPaperOrder
+    case riskBlockerEvidence
     case portfolioProjection
-}
-
-private struct SQLiteRejectedPaperOrderProjectionRecord: Codable {
-    let paperOrderID: Identifier
 }
 
 private struct SQLiteRuntimeProjectionRow {
@@ -485,7 +629,7 @@ private struct SQLiteRuntimeProjectionDatabase {
             try bootstrap(database)
 
             var paperSessions: [Identifier: SQLitePaperSessionProjection] = [:]
-            var rejectedPaperOrderIDs: [Identifier] = []
+            var riskBlockerEvidence: [SQLiteRiskBlockerEvidenceProjection] = []
             var portfolioProjections: [Identifier: SQLitePortfolioProjection] = [:]
 
             for row in try rows(database: database) {
@@ -494,12 +638,12 @@ private struct SQLiteRuntimeProjectionDatabase {
                     let projection = try decode(SQLitePaperSessionProjection.self, from: row.payload)
                     paperSessions[projection.sessionID] = projection
 
-                case .rejectedPaperOrder:
+                case .riskBlockerEvidence:
                     let projection = try decode(
-                        SQLiteRejectedPaperOrderProjectionRecord.self,
+                        SQLiteRiskBlockerEvidenceProjection.self,
                         from: row.payload
                     )
-                    rejectedPaperOrderIDs.append(projection.paperOrderID)
+                    riskBlockerEvidence.append(projection)
 
                 case .portfolioProjection:
                     let projection = try decode(SQLitePortfolioProjection.self, from: row.payload)
@@ -509,7 +653,7 @@ private struct SQLiteRuntimeProjectionDatabase {
 
             return SQLiteRuntimeProjectionSnapshot(
                 paperSessions: paperSessions,
-                rejectedPaperOrderIDs: rejectedPaperOrderIDs,
+                riskBlockerEvidence: riskBlockerEvidence,
                 portfolioProjections: portfolioProjections,
                 lastAppliedSequence: try lastAppliedSequence(database: database)
             )
@@ -554,15 +698,13 @@ private struct SQLiteRuntimeProjectionDatabase {
             )
         }
 
-        for (index, paperOrderID) in snapshot.rejectedPaperOrderIDs.enumerated() {
+        for (index, evidence) in snapshot.riskBlockerEvidence.enumerated() {
             try insert(
                 row: SQLiteRuntimeProjectionRow(
-                    key: "risk-rejection:\(paperOrderID.rawValue)",
-                    kind: .rejectedPaperOrder,
+                    key: "risk-blocker:\(evidence.evidenceID.rawValue)",
+                    kind: .riskBlockerEvidence,
                     sortOrder: index,
-                    payload: try encode(
-                        SQLiteRejectedPaperOrderProjectionRecord(paperOrderID: paperOrderID)
-                    )
+                    payload: try encode(evidence)
                 ),
                 database: database
             )
@@ -1143,5 +1285,30 @@ public struct DuckDBAnalyticalProjectionStore: Equatable, Sendable {
             imbalanceRatio: sample.imbalanceRatio,
             orderBookInputSource: sample.inputSource
         )
+    }
+}
+
+private extension Array where Element == SQLiteRiskBlockerEvidenceProjection {
+    func sortedByRiskEvidence() -> [SQLiteRiskBlockerEvidenceProjection] {
+        sorted { lhs, rhs in
+            if lhs.sourceSequence != rhs.sourceSequence {
+                return lhs.sourceSequence < rhs.sourceSequence
+            }
+            return lhs.evidenceID.rawValue < rhs.evidenceID.rawValue
+        }
+    }
+}
+
+private extension Array where Element == SQLitePortfolioExposureProjection {
+    func sortedByPortfolioExposure() -> [SQLitePortfolioExposureProjection] {
+        sorted { lhs, rhs in
+            if lhs.portfolioID != rhs.portfolioID {
+                return lhs.portfolioID.rawValue < rhs.portfolioID.rawValue
+            }
+            if lhs.symbol != rhs.symbol {
+                return lhs.symbol.rawValue < rhs.symbol.rawValue
+            }
+            return lhs.timeframe.rawValue < rhs.timeframe.rawValue
+        }
     }
 }

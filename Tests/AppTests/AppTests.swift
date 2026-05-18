@@ -88,9 +88,17 @@ final class AppTests: XCTestCase {
 
         XCTAssertEqual(viewModel.risk.rejectedPaperOrderIDs, ["paper-order-rejected"])
         XCTAssertEqual(viewModel.risk.rejectionCount, 1)
+        XCTAssertEqual(viewModel.risk.evidence.first?.reason, .maxPaperQuantityExceeded)
+        XCTAssertEqual(viewModel.risk.evidence.first?.riskProfileID, "paper-risk")
+        XCTAssertEqual(viewModel.risk.evidence.first?.symbol, "BTCUSDT")
+        XCTAssertEqual(viewModel.risk.evidence.first?.sourceSequence, 10)
 
         XCTAssertEqual(viewModel.portfolio.portfolioIDs, ["portfolio-main"])
         XCTAssertEqual(viewModel.portfolio.updatedPortfolioCount, 1)
+        XCTAssertEqual(viewModel.portfolio.exposureCount, 1)
+        XCTAssertEqual(viewModel.portfolio.exposures.first?.symbol, "BTCUSDT")
+        XCTAssertEqual(viewModel.portfolio.exposures.first?.source, .paperProjection)
+        XCTAssertEqual(viewModel.portfolio.totalGrossExposureNotional, 52_500, accuracy: 0.00000001)
 
         XCTAssertEqual(viewModel.events.eventCount, 3)
         XCTAssertEqual(viewModel.events.streams, ["backtest", "market", "paper"])
@@ -164,6 +172,15 @@ final class AppTests: XCTestCase {
         let paper = try XCTUnwrap(snapshot.sections.first { $0.section == .paper })
         XCTAssertEqual(metricValue("Sessions", in: paper), "1")
         XCTAssertEqual(metricValue("Completed", in: paper), "1")
+
+        let risk = try XCTUnwrap(snapshot.sections.first { $0.section == .risk })
+        XCTAssertEqual(metricValue("Blockers", in: risk), "1")
+        XCTAssertTrue(risk.details.contains("Reasons: maxPaperQuantityExceeded"))
+
+        let portfolio = try XCTUnwrap(snapshot.sections.first { $0.section == .portfolio })
+        XCTAssertEqual(metricValue("Exposures", in: portfolio), "1")
+        XCTAssertEqual(metricValue("Gross exposure", in: portfolio), "52500.00")
+        XCTAssertTrue(portfolio.details.contains("Exposure symbols: BTCUSDT"))
 
         XCTAssertTrue(snapshot.smokeSummary.contains("sections=8"))
         XCTAssertTrue(snapshot.smokeSummary.contains("readModelOnly=true"))
@@ -243,6 +260,67 @@ final class AppTests: XCTestCase {
     private func makeRuntimeProjection() throws -> SQLiteRuntimeProjectionSnapshot {
         let sessionID = try Identifier("paper-ema-fixture")
         let portfolioID = try Identifier("portfolio-main")
+        let paperOrderID = try Identifier("paper-order-rejected")
+        let riskQuery = try RiskEvaluationQuery(
+            paperOrderID: paperOrderID,
+            symbol: try Symbol(rawValue: "BTCUSDT"),
+            timeframe: .oneMinute,
+            proposedQuantity: try Quantity(1.25),
+            riskProfileID: try Identifier("paper-risk"),
+            executionMode: .paper
+        )
+        let riskEvidence = SQLiteRiskBlockerEvidenceProjection(
+            evidence: RiskBlockerEvidence(
+                evidenceID: try Identifier("risk-blocker-fixture"),
+                query: riskQuery,
+                reason: .maxPaperQuantityExceeded,
+                generatedAt: Date(timeIntervalSince1970: 1_010)
+            ),
+            envelope: try EventEnvelope(
+                sequence: 10,
+                stream: .risk,
+                recordedAt: Date(timeIntervalSince1970: 1_011),
+                event: .risk(
+                    .blocked(
+                        RiskBlockerEvidence(
+                            evidenceID: try Identifier("risk-blocker-fixture"),
+                            query: riskQuery,
+                            reason: .maxPaperQuantityExceeded,
+                            generatedAt: Date(timeIntervalSince1970: 1_010)
+                        )
+                    )
+                )
+            )
+        )
+        let exposure = SQLitePortfolioExposureProjection(
+            exposure: PortfolioExposureSnapshot(
+                portfolioID: portfolioID,
+                symbol: try Symbol(rawValue: "BTCUSDT"),
+                timeframe: .oneMinute,
+                paperQuantity: try Quantity(1.25),
+                referencePrice: try Price(42_000),
+                source: .paperProjection,
+                observedAt: Date(timeIntervalSince1970: 1_120)
+            ),
+            envelope: try EventEnvelope(
+                sequence: 11,
+                stream: .portfolio,
+                recordedAt: Date(timeIntervalSince1970: 1_120),
+                event: .portfolio(
+                    .exposureUpdated(
+                        PortfolioExposureSnapshot(
+                            portfolioID: portfolioID,
+                            symbol: try Symbol(rawValue: "BTCUSDT"),
+                            timeframe: .oneMinute,
+                            paperQuantity: try Quantity(1.25),
+                            referencePrice: try Price(42_000),
+                            source: .paperProjection,
+                            observedAt: Date(timeIntervalSince1970: 1_120)
+                        )
+                    )
+                )
+            )
+        )
 
         let session = SQLitePaperSessionProjection(
             sessionID: sessionID,
@@ -262,12 +340,13 @@ final class AppTests: XCTestCase {
             state: .updated,
             requestedAt: Date(timeIntervalSince1970: 1_100),
             updatedAt: Date(timeIntervalSince1970: 1_120),
-            lastUpdatedAt: Date(timeIntervalSince1970: 1_120)
+            lastUpdatedAt: Date(timeIntervalSince1970: 1_120),
+            exposures: [exposure]
         )
 
         return SQLiteRuntimeProjectionSnapshot(
             paperSessions: [sessionID: session],
-            rejectedPaperOrderIDs: [try Identifier("paper-order-rejected")],
+            riskBlockerEvidence: [riskEvidence],
             portfolioProjections: [portfolioID: portfolio],
             lastAppliedSequence: 11
         )

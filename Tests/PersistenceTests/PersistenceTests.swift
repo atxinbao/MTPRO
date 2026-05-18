@@ -116,7 +116,10 @@ final class PersistenceTests: XCTestCase {
         XCTAssertEqual(session.executionMode, .paper)
         XCTAssertEqual(session.signalCount, 4)
         XCTAssertEqual(queriedSnapshot.rejectedPaperOrderIDs, [try Identifier("paper-order-rejected")])
+        XCTAssertEqual(queriedSnapshot.riskBlockerEvidence.first?.reason, .maxPaperQuantityExceeded)
+        XCTAssertEqual(queriedSnapshot.riskBlockerEvidence.first?.riskProfileID, try Identifier("paper-risk"))
         XCTAssertEqual(portfolio.state, .updated)
+        XCTAssertEqual(portfolio.exposures.first?.grossExposureNotional, 52_500)
         XCTAssertEqual(queriedSnapshot.lastAppliedSequence, envelopes.count)
     }
 
@@ -180,8 +183,12 @@ final class PersistenceTests: XCTestCase {
         XCTAssertEqual(session.signalCount, 4)
         XCTAssertEqual(session.completedAt?.timeIntervalSince1970, 1_000)
         XCTAssertEqual(snapshot.rejectedPaperOrderIDs, [try Identifier("paper-order-rejected")])
+        XCTAssertEqual(snapshot.riskBlockerEvidence.first?.sourceSequence, 21)
         XCTAssertEqual(portfolio.state, .updated)
         XCTAssertEqual(portfolio.updatedAt?.timeIntervalSince1970, 1_500)
+        XCTAssertEqual(portfolio.exposures.first?.symbol, try Symbol(rawValue: "BTCUSDT"))
+        XCTAssertEqual(portfolio.exposures.first?.source, .paperProjection)
+        XCTAssertEqual(portfolio.exposures.first?.grossExposureNotional, 52_500)
     }
 
     func testTemporaryDuckDBProjectionRebuildsAnalyticalState() throws {
@@ -302,6 +309,11 @@ final class PersistenceTests: XCTestCase {
         XCTAssertEqual(sqliteSnapshot.paperSessions.count, 1)
         XCTAssertEqual(sqliteSnapshot.portfolioProjections.count, 1)
         XCTAssertEqual(sqliteSnapshot.rejectedPaperOrderIDs.count, 1)
+        XCTAssertEqual(sqliteSnapshot.riskBlockerEvidence.first?.reason, .maxPaperQuantityExceeded)
+        XCTAssertEqual(
+            sqliteSnapshot.portfolioProjections[try Identifier("portfolio-main")]?.exposures.count,
+            1
+        )
 
         XCTAssertEqual(duckDBSnapshot.backtestRuns.count, 1)
         XCTAssertEqual(duckDBSnapshot.orderBookResearchRuns.count, 1)
@@ -380,21 +392,34 @@ final class PersistenceTests: XCTestCase {
         }
 
         let paperOrderID = try Identifier("paper-order-rejected")
+        let riskQuery = try RiskEvaluationQuery(
+            paperOrderID: paperOrderID,
+            symbol: try Symbol(rawValue: "BTCUSDT"),
+            timeframe: .oneMinute,
+            proposedQuantity: try Quantity(1.25),
+            riskProfileID: try Identifier("paper-risk"),
+            executionMode: .paper
+        )
         try messageBus.publish(
             .risk(
                 .evaluationRequested(
-                    RiskEvaluationQuery(
-                        paperOrderID: paperOrderID,
-                        symbol: try Symbol(rawValue: "BTCUSDT"),
-                        proposedQuantity: 1.25
-                    )
+                    riskQuery
                 )
             ),
             stream: .risk,
             recordedAt: Date(timeIntervalSince1970: 1_400)
         )
         try messageBus.publish(
-            .risk(.rejected(paperOrderID)),
+            .risk(
+                .blocked(
+                    RiskBlockerEvidence(
+                        evidenceID: try Identifier("risk-blocker-fixture"),
+                        query: riskQuery,
+                        reason: .maxPaperQuantityExceeded,
+                        generatedAt: Date(timeIntervalSince1970: 1_401)
+                    )
+                )
+            ),
             stream: .risk,
             recordedAt: Date(timeIntervalSince1970: 1_401)
         )
@@ -413,7 +438,19 @@ final class PersistenceTests: XCTestCase {
             recordedAt: Date(timeIntervalSince1970: 1_499)
         )
         try messageBus.publish(
-            .portfolio(.projectionUpdated(portfolioID)),
+            .portfolio(
+                .exposureUpdated(
+                    PortfolioExposureSnapshot(
+                        portfolioID: portfolioID,
+                        symbol: try Symbol(rawValue: "BTCUSDT"),
+                        timeframe: .oneMinute,
+                        paperQuantity: try Quantity(1.25),
+                        referencePrice: try Price(42_000),
+                        source: .paperProjection,
+                        observedAt: Date(timeIntervalSince1970: 1_500)
+                    )
+                )
+            ),
             stream: .portfolio,
             recordedAt: Date(timeIntervalSince1970: 1_500)
         )

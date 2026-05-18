@@ -178,22 +178,30 @@ public struct PaperReadModel: Equatable, Sendable {
 }
 
 public struct RiskReadModel: Equatable, Sendable {
-    public let rejectedPaperOrderIDs: [Identifier]
+    public let riskBlockerEvidence: [SQLiteRiskBlockerEvidenceProjection]
     public let lastAppliedSequence: Int?
 
     public init(
-        rejectedPaperOrderIDs: [Identifier] = [],
+        riskBlockerEvidence: [SQLiteRiskBlockerEvidenceProjection] = [],
         lastAppliedSequence: Int? = nil
     ) {
-        self.rejectedPaperOrderIDs = rejectedPaperOrderIDs.sorted { $0.rawValue < $1.rawValue }
+        self.riskBlockerEvidence = riskBlockerEvidence.sorted { lhs, rhs in
+            lhs.sourceSequence == rhs.sourceSequence
+                ? lhs.evidenceID.rawValue < rhs.evidenceID.rawValue
+                : lhs.sourceSequence < rhs.sourceSequence
+        }
         self.lastAppliedSequence = lastAppliedSequence
     }
 
     public init(runtimeProjection: SQLiteRuntimeProjectionSnapshot) {
         self.init(
-            rejectedPaperOrderIDs: runtimeProjection.rejectedPaperOrderIDs,
+            riskBlockerEvidence: runtimeProjection.riskBlockerEvidence,
             lastAppliedSequence: runtimeProjection.lastAppliedSequence
         )
+    }
+
+    public var rejectedPaperOrderIDs: [Identifier] {
+        riskBlockerEvidence.map(\.paperOrderID)
     }
 }
 
@@ -214,6 +222,20 @@ public struct PortfolioReadModel: Equatable, Sendable {
             portfolios: Array(runtimeProjection.portfolioProjections.values),
             lastAppliedSequence: runtimeProjection.lastAppliedSequence
         )
+    }
+
+    public var exposures: [SQLitePortfolioExposureProjection] {
+        portfolios
+            .flatMap(\.exposures)
+            .sorted { lhs, rhs in
+                if lhs.portfolioID != rhs.portfolioID {
+                    return lhs.portfolioID.rawValue < rhs.portfolioID.rawValue
+                }
+                if lhs.symbol != rhs.symbol {
+                    return lhs.symbol.rawValue < rhs.symbol.rawValue
+                }
+                return lhs.timeframe.rawValue < rhs.timeframe.rawValue
+            }
     }
 }
 
@@ -679,19 +701,70 @@ public struct PaperViewModel: Codable, Equatable, Sendable {
     }
 }
 
+public struct RiskBlockerEvidenceViewModel: Codable, Equatable, Sendable {
+    public let evidenceID: String
+    public let paperOrderID: String
+    public let symbol: String
+    public let timeframe: String
+    public let proposedQuantity: Double
+    public let riskProfileID: String
+    public let executionMode: ExecutionMode
+    public let reason: RiskBlockerReason
+    public let sourceSequence: Int
+
+    public init(projection: SQLiteRiskBlockerEvidenceProjection) {
+        self.evidenceID = projection.evidenceID.rawValue
+        self.paperOrderID = projection.paperOrderID.rawValue
+        self.symbol = projection.symbol.rawValue
+        self.timeframe = projection.timeframe.rawValue
+        self.proposedQuantity = projection.proposedQuantity.rawValue
+        self.riskProfileID = projection.riskProfileID.rawValue
+        self.executionMode = projection.executionMode
+        self.reason = projection.reason
+        self.sourceSequence = projection.sourceSequence
+    }
+}
+
 public struct RiskViewModel: Codable, Equatable, Sendable {
     public let section: DashboardSection
     public let source: ViewModelSourceContract
+    public let evidence: [RiskBlockerEvidenceViewModel]
     public let rejectedPaperOrderIDs: [String]
     public let rejectionCount: Int
+    public let blockerReasons: [RiskBlockerReason]
     public let lastAppliedSequence: Int?
 
     public init(readModel: RiskReadModel) {
+        let evidence = readModel.riskBlockerEvidence.map(RiskBlockerEvidenceViewModel.init)
         self.section = .risk
         self.source = ViewModelSourceContract()
+        self.evidence = evidence
         self.rejectedPaperOrderIDs = readModel.rejectedPaperOrderIDs.map(\.rawValue)
-        self.rejectionCount = readModel.rejectedPaperOrderIDs.count
+        self.rejectionCount = evidence.count
+        self.blockerReasons = evidence.map(\.reason)
         self.lastAppliedSequence = readModel.lastAppliedSequence
+    }
+}
+
+public struct PortfolioExposureViewModel: Codable, Equatable, Sendable {
+    public let portfolioID: String
+    public let symbol: String
+    public let timeframe: String
+    public let paperQuantity: Double
+    public let referencePrice: Double
+    public let grossExposureNotional: Double
+    public let source: PortfolioExposureSource
+    public let sourceSequence: Int
+
+    public init(projection: SQLitePortfolioExposureProjection) {
+        self.portfolioID = projection.portfolioID.rawValue
+        self.symbol = projection.symbol.rawValue
+        self.timeframe = projection.timeframe.rawValue
+        self.paperQuantity = projection.paperQuantity.rawValue
+        self.referencePrice = projection.referencePrice.rawValue
+        self.grossExposureNotional = projection.grossExposureNotional
+        self.source = projection.source
+        self.sourceSequence = projection.sourceSequence
     }
 }
 
@@ -700,13 +773,22 @@ public struct PortfolioViewModel: Codable, Equatable, Sendable {
     public let source: ViewModelSourceContract
     public let portfolioIDs: [String]
     public let updatedPortfolioCount: Int
+    public let exposures: [PortfolioExposureViewModel]
+    public let exposureCount: Int
+    public let totalGrossExposureNotional: Double
     public let lastAppliedSequence: Int?
 
     public init(readModel: PortfolioReadModel) {
+        let exposures = readModel.exposures.map(PortfolioExposureViewModel.init)
         self.section = .portfolio
         self.source = ViewModelSourceContract()
         self.portfolioIDs = readModel.portfolios.map(\.portfolioID.rawValue)
         self.updatedPortfolioCount = readModel.portfolios.filter { $0.state == .updated }.count
+        self.exposures = exposures
+        self.exposureCount = exposures.count
+        self.totalGrossExposureNotional = exposures.reduce(0) {
+            $0 + $1.grossExposureNotional
+        }
         self.lastAppliedSequence = readModel.lastAppliedSequence
     }
 }

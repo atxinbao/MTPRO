@@ -195,6 +195,63 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testRiskBlockerEvidenceAndPortfolioExposureRemainPaperOnlyReadModels() throws {
+        // 测试场景：MTP-28 risk blocker evidence 必须锁定 proposed Paper action context、
+        // risk profile 和 blocker reason；portfolio exposure 只能是 Paper 投影派生的只读 notional。
+        let riskQuery = try RiskEvaluationQuery(
+            paperOrderID: try Identifier("paper-order-rejected"),
+            symbol: try Symbol(rawValue: "BTCUSDT"),
+            timeframe: .oneMinute,
+            proposedQuantity: try Quantity(1.25),
+            riskProfileID: try Identifier("paper-risk"),
+            executionMode: .paper
+        )
+        let evidence = RiskBlockerEvidence(
+            evidenceID: try Identifier("risk-blocker-fixture"),
+            query: riskQuery,
+            reason: .maxPaperQuantityExceeded,
+            generatedAt: Date(timeIntervalSince1970: 1_401)
+        )
+        let exposure = PortfolioExposureSnapshot(
+            portfolioID: try Identifier("portfolio-main"),
+            symbol: try Symbol(rawValue: "BTCUSDT"),
+            timeframe: .oneMinute,
+            paperQuantity: try Quantity(1.25),
+            referencePrice: try Price(42_000),
+            source: .paperProjection,
+            observedAt: Date(timeIntervalSince1970: 1_500)
+        )
+
+        XCTAssertEqual(Query.riskEvaluation(riskQuery), .riskEvaluation(riskQuery))
+        XCTAssertEqual(evidence.paperOrderID, riskQuery.paperOrderID)
+        XCTAssertEqual(evidence.riskProfileID, try Identifier("paper-risk"))
+        XCTAssertEqual(evidence.executionMode, .paper)
+        XCTAssertEqual(evidence.reason, .maxPaperQuantityExceeded)
+        XCTAssertEqual(exposure.source, .paperProjection)
+        XCTAssertEqual(exposure.grossExposureNotional, 52_500, accuracy: 0.00000001)
+        XCTAssertEqual(
+            DomainEvent.risk(.blocked(evidence)),
+            .risk(.blocked(evidence))
+        )
+        XCTAssertEqual(
+            DomainEvent.portfolio(.exposureUpdated(exposure)),
+            .portfolio(.exposureUpdated(exposure))
+        )
+
+        XCTAssertThrowsError(
+            try RiskEvaluationQuery(
+                paperOrderID: try Identifier("backtest-order"),
+                symbol: try Symbol(rawValue: "BTCUSDT"),
+                timeframe: .oneMinute,
+                proposedQuantity: try Quantity(1),
+                riskProfileID: try Identifier("paper-risk"),
+                executionMode: .backtest
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .riskEvaluationRequiresPaperMode(.backtest))
+        }
+    }
+
     func testAppendOnlyEventLogRejectsNonContiguousSeedSequences() throws {
         let first = try EventEnvelope(
             sequence: 1,

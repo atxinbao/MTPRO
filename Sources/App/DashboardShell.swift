@@ -232,10 +232,11 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             systemImage: "exclamationmark.triangle",
             source: viewModel.source,
             metrics: [
-                DashboardShellMetric(label: "Rejections", value: "\(viewModel.rejectionCount)")
+                DashboardShellMetric(label: "Blockers", value: "\(viewModel.rejectionCount)")
             ],
             details: [
                 "Rejected paper order IDs: \(joined(viewModel.rejectedPaperOrderIDs))",
+                "Reasons: \(joined(viewModel.blockerReasons.map(\.rawValue)))",
                 "Last sequence: \(format(viewModel.lastAppliedSequence))"
             ]
         )
@@ -251,10 +252,13 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             source: viewModel.source,
             metrics: [
                 DashboardShellMetric(label: "Portfolios", value: "\(viewModel.portfolioIDs.count)"),
-                DashboardShellMetric(label: "Updated", value: "\(viewModel.updatedPortfolioCount)")
+                DashboardShellMetric(label: "Updated", value: "\(viewModel.updatedPortfolioCount)"),
+                DashboardShellMetric(label: "Exposures", value: "\(viewModel.exposureCount)"),
+                DashboardShellMetric(label: "Gross exposure", value: format(viewModel.totalGrossExposureNotional))
             ],
             details: [
                 "Portfolio IDs: \(joined(viewModel.portfolioIDs))",
+                "Exposure symbols: \(joined(viewModel.exposures.map(\.symbol)))",
                 "Last sequence: \(format(viewModel.lastAppliedSequence))"
             ]
         )

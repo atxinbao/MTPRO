@@ -70,3 +70,22 @@ Report 区域：
 - live order button。
 - 真实 broker action。
 - signed endpoint、account endpoint 或真实订单行为。
+
+## MTP-28 Risk / Portfolio 证据观察面
+
+日期：2026-05-18
+
+执行者：Codex
+
+当前 Dashboard 的 Risk / Portfolio 区域补充只读交易验证证据：
+
+- Risk 区域展示 paper blocker 数、rejected paper order IDs 和 blocker reasons。
+- Portfolio 区域展示 portfolio 数、updated portfolio 数、exposure 数、gross exposure notional 和 exposure symbols。
+- 这些字段只来自 App 层 ViewModel / SQLite runtime projection snapshot。
+
+仍不包含：
+
+- 完整风险引擎。
+- 实时风控或仓位管理。
+- 保证金、杠杆、真实账户余额或 broker balance。
+- live order button、signed endpoint、account endpoint 或真实订单行为。

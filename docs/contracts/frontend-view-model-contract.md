@@ -109,3 +109,23 @@ MTP-23 新增 Report read model / ViewModel，覆盖：
 - Report 不提供 live order action。
 - Report 不替代 Core 层 `BacktestPaperParity` 完整信号时间线验证，只表达 projection-level evidence。
 - Report artifact 的 `executionAuthorization` 固定为 research output only，不代表 broker action、signed endpoint 或真实订单授权。
+
+## MTP-28 Risk / Portfolio ViewModel 契约
+
+日期：2026-05-18
+
+执行者：Codex
+
+MTP-28 细化 Risk / Portfolio 只读 ViewModel：
+
+- `RiskBlockerEvidenceViewModel`：展示 evidenceID、paperOrderID、symbol、timeframe、proposedQuantity、riskProfileID、executionMode、reason 和 sourceSequence。
+- `RiskViewModel`：展示 blocker evidence、rejected paper order IDs、blocker reason 列表和 lastAppliedSequence。
+- `PortfolioExposureViewModel`：展示 portfolioID、symbol、timeframe、paperQuantity、referencePrice、grossExposureNotional、source 和 sourceSequence。
+- `PortfolioViewModel`：展示 portfolio IDs、updated count、exposure count、total gross exposure notional 和 lastAppliedSequence。
+
+边界确认：
+
+- Risk / Portfolio ViewModel 只消费 `SQLiteRuntimeProjectionSnapshot` 派生的稳定 read model。
+- ViewModel 不暴露 SQLite table、column、SQL statement、payload 编码或 ORM model。
+- ViewModel 不调用 Runtime / Adapters，不连接 broker / exchange。
+- ViewModel 不提供 risk control command、position management command、live order action 或 signed endpoint。
