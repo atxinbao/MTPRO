@@ -383,3 +383,33 @@ MTP-21 ingest 串联。
 - 完整报表系统。
 - 完整 Paper execution 工作流。
 - signed endpoint、account endpoint、broker action、真实订单行为或 Live execution。
+
+## MTP-27 Fixed Execution Cost Evidence Use Case 边界
+
+日期：2026-05-18
+
+执行者：Codex
+
+`EstimateExecutionCostEvidence` 在本事项中作为 Core 层最小成本证据边界：
+
+- 输入：`ExecutionCostEstimateRequest` 和 `ExecutionCostAssumptions`。
+- 输出：`ExecutionCostEstimate` 和 `ExecutionCostParityResult`。
+- 计算：gross notional、固定 maker / taker fee、固定 slippage 和 total cost。
+- 验证：Backtest 与 Paper 在同一 deterministic fixture 下必须得到一致 cost breakdown。
+
+契约要求：
+
+- 假设必须是有限且非负的固定 bps。
+- rounding scale 必须统一，当前限制为 `0...8` 位小数。
+- deterministic fixture 只服务 XCTest、Trading Validation Matrix 和 PR evidence。
+- Backtest / Paper parity evidence 只能比较本地成本估算，不触发 Paper execution 工作流。
+
+本契约不包含：
+
+- 完整费用模型。
+- 交易所费率表。
+- symbol-specific tier / account VIP tier。
+- 动态滑点模型。
+- 执行成本优化。
+- 真实成交、broker fill、账户余额、保证金、杠杆。
+- signed endpoint、account endpoint、broker action、真实订单行为或 Live execution。

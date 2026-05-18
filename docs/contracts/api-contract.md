@@ -284,3 +284,27 @@ Report artifact 由 App 层 read model 派生，不作为新的交易 command：
 - 不新增 signed endpoint command。
 - 不新增 database table API。
 - 不把 report artifact 解释为订单、账户或执行授权。
+
+## MTP-27 Execution Cost Evidence 边界
+
+日期：2026-05-18
+
+执行者：Codex
+
+MTP-27 不新增 HTTP API，也不新增 live / broker / signed command。
+
+新增内部 Core evidence 边界：
+
+- `ExecutionCostAssumptions`：定义固定 maker fee bps、taker fee bps、fixed slippage bps 和统一 rounding scale。
+- `ExecutionCostEstimateRequest`：只接收 symbol、timeframe、Backtest / Paper execution mode、reference price、quantity 和 maker / taker 角色。
+- `ExecutionCostCalculator.estimate`：输出 gross notional、fee amount、slippage amount 和 total cost amount。
+- `ExecutionCostParity.verify`：比较 Backtest / Paper 使用同一假设和同一输入时的 cost evidence 是否一致。
+
+边界确认：
+
+- 不新增 live order command。
+- 不新增 broker account command。
+- 不新增 signed endpoint command。
+- 不新增 exchange fee table API。
+- 不新增 dynamic slippage model API。
+- 不把 cost evidence 解释为真实成交、真实订单、账户余额、broker fill 或执行授权。

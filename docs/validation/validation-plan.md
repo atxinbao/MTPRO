@@ -95,6 +95,17 @@ MTP-26 的 required validation：
 - Persistence / DuckDB analytical projection 必须保留 order book input source，且仍只输出稳定 read model snapshot，不暴露 schema 或 adapter internals。
 - required validation 不依赖真实 Binance 网络、不读取 secret、不连接 broker、不触发真实交易行为。
 
+## MTP-27 Fees / Slippage Validation
+
+MTP-27 的 required validation：
+
+- fees / slippage assumptions 必须使用 deterministic fixture，不依赖真实 Binance 网络、secret、broker 或交易所账户等级。
+- Core 测试必须覆盖 maker fee、taker fee、fixed slippage、gross notional、total cost 和统一 rounding scale。
+- Backtest / Paper cost evidence 必须在同一 assumption、同一 symbol / timeframe、同一 reference price、同一 quantity 和同一 liquidity role 下保持一致。
+- 无效 assumptions 必须被拒绝，包括负数 bps、非有限 bps 或超出允许范围的 rounding scale。
+- `docs/validation/trading-validation-matrix.md` 的 `TVM-FEES-SLIPPAGE` 必须回填新增 Core 类型、测试、fixture 和 PR evidence 边界。
+- required validation 不引入完整费用模型、不引入交易所费率表、不引入动态滑点模型、不做执行成本优化、不触发 Paper / Live 执行。
+
 ## Codex / Automation Validation
 
 - Codex use-cases 对齐：`docs/automation/codex-use-cases-alignment.md`。
