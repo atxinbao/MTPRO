@@ -188,14 +188,21 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             source: viewModel.source,
             metrics: [
                 DashboardShellMetric(label: "Reports", value: "\(viewModel.artifactCount)"),
-                DashboardShellMetric(label: "Backtests", value: "\(viewModel.completedBacktestCount)"),
-                DashboardShellMetric(label: "Research", value: "\(viewModel.researchRunCount)"),
-                DashboardShellMetric(label: "Parity", value: "\(viewModel.matchedParityEvidenceCount)")
+                DashboardShellMetric(label: "Parity", value: "\(viewModel.matchedParityEvidenceCount)"),
+                DashboardShellMetric(label: "Cost evidence", value: "\(viewModel.executionCostEvidenceCount)"),
+                DashboardShellMetric(label: "Risk blockers", value: "\(viewModel.riskBlockerEvidenceCount)"),
+                DashboardShellMetric(label: "Exposure", value: "\(viewModel.portfolioExposureEvidenceCount)")
             ],
             details: [
                 "Report IDs: \(joined(viewModel.artifacts.map(\.reportID)))",
                 "Backtest run IDs: \(joined(viewModel.artifacts.map(\.backtestRunID)))",
                 "Paper sessions: \(joined(viewModel.artifacts.flatMap(\.paperSessionIDs)))",
+                "Cost assumptions: \(joined(viewModel.executionCostAssumptionIDs))",
+                "Cost parity: \(formatCostParity(viewModel))",
+                "Risk blocker evidence: \(joined(viewModel.riskBlockerEvidenceIDs))",
+                "Exposure symbols: \(joined(viewModel.portfolioExposureSymbols))",
+                "Gross exposure: \(format(viewModel.portfolioGrossExposureNotional))",
+                "Trading validation execution: \(format(viewModel.tradingValidationAuthorizesExecution))",
                 "Execution: \(format(viewModel.authorizesTradingExecution))",
                 "Latest parity: \(format(viewModel.latestParityStatus))",
                 "Last sequence: \(format(viewModel.lastAppliedSequence))"
@@ -313,6 +320,13 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             return "n/a"
         }
         return value.rawValue
+    }
+
+    private static func formatCostParity(_ viewModel: ReportViewModel) -> String {
+        guard viewModel.executionCostEvidenceCount > 0 else {
+            return "missing"
+        }
+        return viewModel.executionCostParityConsistent ? "consistent" : "mismatched"
     }
 
     private static func joined(_ values: [String]) -> String {

@@ -61,8 +61,18 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(viewModel.report.researchRunCount, 1)
         XCTAssertEqual(viewModel.report.paperSessionCount, 1)
         XCTAssertEqual(viewModel.report.matchedParityEvidenceCount, 1)
+        XCTAssertEqual(viewModel.report.tradingValidationEvidenceCount, 1)
+        XCTAssertEqual(viewModel.report.executionCostEvidenceCount, 2)
+        XCTAssertEqual(viewModel.report.executionCostAssumptionIDs, ["mtp-27-fixed-cost-assumptions"])
+        XCTAssertTrue(viewModel.report.executionCostParityConsistent)
+        XCTAssertEqual(viewModel.report.riskBlockerEvidenceCount, 1)
+        XCTAssertEqual(viewModel.report.riskBlockerEvidenceIDs, ["risk-blocker-fixture"])
+        XCTAssertEqual(viewModel.report.portfolioExposureEvidenceCount, 1)
+        XCTAssertEqual(viewModel.report.portfolioExposureSymbols, ["BTCUSDT"])
+        XCTAssertEqual(viewModel.report.portfolioGrossExposureNotional, 52_500, accuracy: 0.00000001)
         XCTAssertEqual(viewModel.report.latestParityStatus, .matchedProjectionEvidence)
         XCTAssertEqual(viewModel.report.lastAppliedSequence, 12)
+        XCTAssertFalse(viewModel.report.tradingValidationAuthorizesExecution)
         XCTAssertFalse(viewModel.report.authorizesTradingExecution)
         let report = try XCTUnwrap(viewModel.report.artifacts.first)
         XCTAssertEqual(report.reportID, "report-backtest-ema-fixture")
@@ -80,6 +90,32 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(report.parityStatus, .matchedProjectionEvidence)
         XCTAssertEqual(report.executionAuthorization, .researchOutputOnly)
         XCTAssertFalse(report.authorizesTradingExecution)
+        XCTAssertEqual(report.tradingValidationEvidence.parityStatus, .matchedProjectionEvidence)
+        XCTAssertEqual(report.tradingValidationEvidence.executionCostEvidenceCount, 2)
+        XCTAssertTrue(report.tradingValidationEvidence.executionCostParityConsistent)
+        XCTAssertEqual(report.tradingValidationEvidence.riskBlockerEvidenceIDs, ["risk-blocker-fixture"])
+        XCTAssertEqual(report.tradingValidationEvidence.riskBlockerReasons, [.maxPaperQuantityExceeded])
+        XCTAssertEqual(report.tradingValidationEvidence.portfolioExposureSymbols, ["BTCUSDT"])
+        XCTAssertEqual(report.tradingValidationEvidence.portfolioExposureCount, 1)
+        XCTAssertEqual(
+            report.tradingValidationEvidence.portfolioGrossExposureNotional,
+            52_500,
+            accuracy: 0.00000001
+        )
+        XCTAssertEqual(report.tradingValidationEvidence.sourceSequences, [10, 11])
+        XCTAssertFalse(report.tradingValidationEvidence.authorizesTradingExecution)
+        let makerCost = try XCTUnwrap(
+            report.tradingValidationEvidence.executionCostEvidence.first {
+                $0.liquidityRole == .maker
+            }
+        )
+        XCTAssertEqual(makerCost.assumptionID, "mtp-27-fixed-cost-assumptions")
+        XCTAssertEqual(makerCost.grossNotional, 52_500, accuracy: 0.00000001)
+        XCTAssertEqual(makerCost.feeAmount, 10.5, accuracy: 0.00000001)
+        XCTAssertEqual(makerCost.slippageAmount, 7.875, accuracy: 0.00000001)
+        XCTAssertEqual(makerCost.backtestTotalCostAmount, 18.375, accuracy: 0.00000001)
+        XCTAssertEqual(makerCost.paperTotalCostAmount, 18.375, accuracy: 0.00000001)
+        XCTAssertTrue(makerCost.parityConsistent)
 
         XCTAssertEqual(viewModel.paper.sessions.map(\.sessionID), ["paper-ema-fixture"])
         XCTAssertEqual(viewModel.paper.sessions.first?.executionMode, .paper)
@@ -134,6 +170,11 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(artifact.executionAuthorization, .researchOutputOnly)
         XCTAssertFalse(artifact.authorizesTradingExecution)
         XCTAssertEqual(artifact.paperSessionIDs, [])
+        XCTAssertEqual(artifact.tradingValidationEvidence.executionCostEvidenceCount, 0)
+        XCTAssertFalse(artifact.tradingValidationEvidence.executionCostParityConsistent)
+        XCTAssertEqual(artifact.tradingValidationEvidence.riskBlockerEvidenceIDs, [])
+        XCTAssertEqual(artifact.tradingValidationEvidence.portfolioExposureSymbols, [])
+        XCTAssertFalse(artifact.tradingValidationEvidence.authorizesTradingExecution)
     }
 
     @MainActor
@@ -162,10 +203,17 @@ final class AppTests: XCTestCase {
 
         let report = try XCTUnwrap(snapshot.sections.first { $0.section == .report })
         XCTAssertEqual(metricValue("Reports", in: report), "1")
-        XCTAssertEqual(metricValue("Backtests", in: report), "1")
-        XCTAssertEqual(metricValue("Research", in: report), "1")
         XCTAssertEqual(metricValue("Parity", in: report), "1")
+        XCTAssertEqual(metricValue("Cost evidence", in: report), "2")
+        XCTAssertEqual(metricValue("Risk blockers", in: report), "1")
+        XCTAssertEqual(metricValue("Exposure", in: report), "1")
         XCTAssertTrue(report.details.contains("Report IDs: report-backtest-ema-fixture"))
+        XCTAssertTrue(report.details.contains("Cost assumptions: mtp-27-fixed-cost-assumptions"))
+        XCTAssertTrue(report.details.contains("Cost parity: consistent"))
+        XCTAssertTrue(report.details.contains("Risk blocker evidence: risk-blocker-fixture"))
+        XCTAssertTrue(report.details.contains("Exposure symbols: BTCUSDT"))
+        XCTAssertTrue(report.details.contains("Gross exposure: 52500.00"))
+        XCTAssertTrue(report.details.contains("Trading validation execution: research-only"))
         XCTAssertTrue(report.details.contains("Execution: research-only"))
         XCTAssertTrue(report.details.contains("Latest parity: matched projection evidence"))
 
@@ -202,6 +250,9 @@ final class AppTests: XCTestCase {
         let report = snapshot.sections.first { $0.section == .report }
         XCTAssertEqual(report?.metrics.first { $0.label == "Reports" }?.value, "0")
         XCTAssertEqual(report?.metrics.first { $0.label == "Parity" }?.value, "0")
+        XCTAssertEqual(report?.metrics.first { $0.label == "Cost evidence" }?.value, "0")
+        XCTAssertEqual(report?.metrics.first { $0.label == "Risk blockers" }?.value, "0")
+        XCTAssertEqual(report?.metrics.first { $0.label == "Exposure" }?.value, "0")
 
         let events = snapshot.sections.first { $0.section == .events }
         XCTAssertEqual(events?.metrics.first { $0.label == "Events" }?.value, "0")

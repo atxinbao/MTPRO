@@ -129,3 +129,24 @@ MTP-28 细化 Risk / Portfolio 只读 ViewModel：
 - ViewModel 不暴露 SQLite table、column、SQL statement、payload 编码或 ORM model。
 - ViewModel 不调用 Runtime / Adapters，不连接 broker / exchange。
 - ViewModel 不提供 risk control command、position management command、live order action 或 signed endpoint。
+
+## MTP-29 Report / Dashboard Trading Validation Evidence 契约
+
+日期：2026-05-18
+
+执行者：Codex
+
+MTP-29 在 Report / Dashboard ViewModel 中汇总交易验证 evidence：
+
+- `ReportExecutionCostEvidence`：从 paper-only exposure projection 和 MTP-27 deterministic fixture 派生 maker / taker cost parity evidence。
+- `TradingValidationEvidenceSummary`：聚合 projection-level parity、execution cost evidence、risk blocker evidence 和 portfolio exposure evidence。
+- `ReportArtifactViewModel.tradingValidationEvidence`：把单个 report artifact 的交易验证证据作为可编码只读快照暴露给 Dashboard。
+- `ReportViewModel`：汇总 execution cost evidence count、assumption IDs、cost parity consistency、risk blocker evidence IDs、portfolio exposure symbols 和 gross exposure notional。
+- `DashboardShellSnapshot` 的 Report 区域展示 cost evidence、risk blocker 和 exposure evidence。
+
+边界确认：
+
+- Report / Dashboard 仍只消费 ViewModel / Read Model，不暴露 SQLite / DuckDB schema、SQL、ORM model、runtime object 或 adapter request。
+- fees / slippage evidence 只来自 deterministic fixture 和本地 projection，不代表 Binance 实际费率、真实成交、broker fill 或账户成本。
+- Risk / Portfolio evidence 只代表 Paper readiness，不代表真实账户余额、margin、leverage、broker position 或 Live fallback。
+- Report / Dashboard 不提供 live order action、risk control command、position management command、broker action 或 signed endpoint。

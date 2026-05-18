@@ -89,3 +89,23 @@ Report 区域：
 - 实时风控或仓位管理。
 - 保证金、杠杆、真实账户余额或 broker balance。
 - live order button、signed endpoint、account endpoint 或真实订单行为。
+
+## MTP-29 Report / Dashboard 交易验证证据汇总
+
+日期：2026-05-18
+
+执行者：Codex
+
+当前 Dashboard 的 Report 区域补充交易验证 evidence 汇总：
+
+- Report artifact 展示 projection-level parity、fees / slippage cost evidence、risk blocker evidence 和 portfolio exposure evidence。
+- Report 区域展示 cost evidence 数、risk blocker 数、exposure evidence 数、cost assumption、cost parity、risk blocker evidence ID、exposure symbols 和 gross exposure notional。
+- Cost evidence 只由 MTP-27 deterministic fixture 与 paper-only portfolio exposure projection 派生。
+- Risk / Portfolio evidence 只来自 App 层 ViewModel / SQLite runtime projection snapshot。
+
+仍不包含：
+
+- 完整报表系统。
+- 交易所费率表、动态滑点模型或执行成本优化。
+- 完整风险引擎、仓位管理、保证金、杠杆或真实账户余额。
+- live order button、signed endpoint、account endpoint、broker action 或真实订单行为。
