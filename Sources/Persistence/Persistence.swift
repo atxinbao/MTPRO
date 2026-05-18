@@ -346,6 +346,26 @@ public struct SQLitePortfolioExposureProjection: Codable, Equatable, Sendable {
             projectedAt: envelope.recordedAt
         )
     }
+
+    /// 从 MTP-34 paper-only portfolio update event 构建 exposure projection。
+    ///
+    /// `sourceSequence` 保留产生 proposal / risk decision 的本地 source sequence，`projectedAt`
+    /// 则来自当前 portfolio event envelope；两者都只是本地 replay evidence，不是 broker
+    /// order sequence、真实账户流水或交易所回报。
+    public init(update: PaperPortfolioProjectionUpdate, envelope: EventEnvelope) {
+        self.init(
+            portfolioID: update.exposure.portfolioID,
+            symbol: update.exposure.symbol,
+            timeframe: update.exposure.timeframe,
+            paperQuantity: update.exposure.paperQuantity,
+            referencePrice: update.exposure.referencePrice,
+            grossExposureNotional: update.exposure.grossExposureNotional,
+            source: update.exposure.source,
+            observedAt: update.exposure.observedAt,
+            sourceSequence: update.sourceSequence,
+            projectedAt: envelope.recordedAt
+        )
+    }
 }
 
 public struct SQLitePortfolioProjection: Codable, Equatable, Sendable {
@@ -578,6 +598,23 @@ public struct SQLiteRuntimeProjectionStore: Equatable, Sendable {
                 updatedAt: existing?.updatedAt,
                 lastUpdatedAt: envelope.recordedAt,
                 exposures: existing?.exposures ?? []
+            )
+
+        case let .paperProjectionUpdated(update):
+            let existing = portfolioProjections[update.portfolioID]
+            portfolioProjections[update.portfolioID] = SQLitePortfolioProjection(
+                portfolioID: update.portfolioID,
+                state: .updated,
+                requestedAt: existing?.requestedAt,
+                updatedAt: envelope.recordedAt,
+                lastUpdatedAt: envelope.recordedAt,
+                exposures: replacing(
+                    existing?.exposures ?? [],
+                    with: SQLitePortfolioExposureProjection(
+                        update: update,
+                        envelope: envelope
+                    )
+                )
             )
 
         case let .exposureUpdated(exposure):

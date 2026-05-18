@@ -404,3 +404,33 @@ MTP-28 不新增 HTTP API，也不新增 live / broker / signed command。
 - 不新增 signed endpoint command。
 - 不新增 margin / leverage / position management command。
 - 不把 risk blocker 或 exposure evidence 解释为真实订单、真实账户余额、broker fill 或执行授权。
+
+## MTP-34 Paper-only Portfolio Projection Update 边界
+
+日期：2026-05-19
+
+执行者：Codex
+
+MTP-34 不新增 HTTP API，也不新增 live / broker / signed command。
+
+新增内部 Core event / value contract：
+
+- `PaperPortfolioProjectionUpdate`：消费 MTP-33 的 allowed `PaperActionProposalRiskDecision`，生成 paper-only portfolio exposure update。
+- `PortfolioEvent.paperProjectionUpdated`：把 update 写入 `.portfolio` event stream，供 replay / SQLite runtime projection 消费。
+
+契约要求：
+
+- 输入 risk decision 必须是 `allowed`，blocked decision 必须被拒绝。
+- update 必须保持 `executionMode == paper`，并记录 proposal、session、risk profile、side、source sequence 和 `paperProjection` exposure。
+- `authorizesTradingExecution`、`readsRealAccountBalance` 和 `syncsBrokerPosition` 必须固定为 `false`。
+- Codable 解码不能恢复真实交易授权、真实账户余额读取或 broker position sync。
+
+边界确认：
+
+- 不新增 order command。
+- 不新增 broker account command。
+- 不新增 signed endpoint command。
+- 不读取真实账户余额。
+- 不做 margin / leverage。
+- 不做 broker position sync。
+- 不把 portfolio projection update 解释为真实持仓、broker fill、真实订单或 Live execution。

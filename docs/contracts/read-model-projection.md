@@ -441,6 +441,31 @@ MTP-28 将 risk blocker evidence 和 portfolio exposure 纳入 runtime read mode
 - Exposure 是 paper-only read model evidence，不代表真实账户余额、broker position、margin 或 leverage。
 - Risk blocker 是本地 Paper 阻断证据，不代表真实 broker 拒单或 Live fallback。
 
+## MTP-34 Paper-only Portfolio Projection Update 观察面
+
+日期：2026-05-19
+
+执行者：Codex
+
+Paper-only portfolio update 在当前事项中把 MTP-33 allowed risk decision 转成可 replay 的 portfolio projection fact。
+
+当前可观察字段：
+
+- updateID、decisionID、proposalID、sessionID。
+- riskProfileID、riskDecisionStatus、side。
+- portfolioID、symbol、timeframe。
+- paperQuantity、referencePrice、grossExposureNotional。
+- source：固定 `paperProjection`。
+- sourceSequence、updatedAt、projectedAt。
+- authorizesTradingExecution、readsRealAccountBalance、syncsBrokerPosition：固定 `false`。
+
+边界：
+
+- 只有 allowed risk decision 可以生成 portfolio update；blocked decision 不更新 exposure。
+- Runtime / Persistence 只通过 append-only event log replay 派生 SQLite runtime projection。
+- ViewModel 只消费 `PortfolioReadModel`，不读取 SQLite schema、runtime object 或 adapter。
+- 当前不读取真实账户余额，不做 margin / leverage，不做 broker position sync，不触发真实订单或 Live execution。
+
 ## MTP-29 Report / Dashboard Trading Validation Evidence 观察面
 
 日期：2026-05-18

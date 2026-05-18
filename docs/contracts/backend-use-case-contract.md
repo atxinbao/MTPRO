@@ -538,3 +538,32 @@ MTP-21 ingest 串联。
 - 仓位管理、保证金、杠杆。
 - 真实 broker / exchange action。
 - signed endpoint、account endpoint、真实订单行为或 Live execution。
+
+## MTP-34 Paper-only Portfolio Projection Update Use Case 边界
+
+日期：2026-05-19
+
+执行者：Codex
+
+`ProjectPortfolio` 在本事项中获得从 allowed paper risk decision 到 portfolio exposure projection 的本地更新路径。
+
+契约结构：
+
+- `PaperPortfolioProjectionUpdate`：以 MTP-33 `PaperActionProposalRiskDecision` 为输入，要求 decision status 为 `allowed`。
+- `PortfolioEvent.paperProjectionUpdated`：作为 append-only portfolio stream 中的本地 projection fact。
+- `SQLiteRuntimeProjectionStore.project`：从 replay envelope 应用 update，更新 `SQLitePortfolioProjection.exposures`。
+
+契约要求：
+
+- blocked decision 不得生成 portfolio update。
+- update 的 exposure 只能来自 proposal 的 symbol、timeframe、paper quantity 和 reference price。
+- update 的 source sequence 必须回溯到 allowed risk decision source sequence，不代表 broker order sequence。
+- App / Dashboard 只能通过 `SQLiteRuntimeProjectionSnapshot` 派生的 `PortfolioReadModel` / `PortfolioViewModel` 展示 exposure。
+
+本契约不包含：
+
+- 完整 portfolio management。
+- 真实账户余额读取。
+- margin、leverage、broker position sync。
+- broker / exchange side effect。
+- signed endpoint、account endpoint、真实订单行为或 Live execution。

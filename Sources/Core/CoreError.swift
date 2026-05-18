@@ -32,6 +32,10 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
     case paperActionProposalSignalMismatch(field: String, expected: String, actual: String)
     case paperActionProposalCostEvidenceMismatch(field: String, expected: String, actual: String)
     case paperActionRiskDecisionMismatch(field: String, expected: String, actual: String)
+    case paperPortfolioProjectionRequiresAllowedRiskDecision(PaperActionProposalRiskDecisionStatus)
+    case paperPortfolioProjectionRequiresPaperMode(ExecutionMode)
+    case paperPortfolioProjectionForbiddenCapability(String)
+    case paperPortfolioProjectionMismatch(field: String, expected: String, actual: String)
 
     public var description: String {
         switch self {
@@ -91,6 +95,14 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
             "Paper action proposal cost evidence mismatch for \(field): expected \(expected), actual \(actual)"
         case let .paperActionRiskDecisionMismatch(field, expected, actual):
             "Paper action risk decision mismatch for \(field): expected \(expected), actual \(actual)"
+        case let .paperPortfolioProjectionRequiresAllowedRiskDecision(value):
+            "Paper portfolio projection requires allowed risk decision: \(value.rawValue)"
+        case let .paperPortfolioProjectionRequiresPaperMode(value):
+            "Paper portfolio projection requires paper mode: \(value.rawValue)"
+        case let .paperPortfolioProjectionForbiddenCapability(field):
+            "Paper portfolio projection forbids capability: \(field)"
+        case let .paperPortfolioProjectionMismatch(field, expected, actual):
+            "Paper portfolio projection mismatch for \(field): expected \(expected), actual \(actual)"
         }
     }
 }

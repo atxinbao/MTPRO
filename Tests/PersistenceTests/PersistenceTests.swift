@@ -123,6 +123,55 @@ final class PersistenceTests: XCTestCase {
         XCTAssertEqual(queriedSnapshot.lastAppliedSequence, envelopes.count)
     }
 
+    func testSQLiteRuntimeProjectionAppliesPaperPortfolioProjectionUpdateFromReplay() throws {
+        // 测试场景：MTP-34 portfolio update event 必须能经 replay 驱动 SQLite runtime projection，
+        // 并保留 allowed risk decision 的 source sequence，而不是读取真实账户或 broker position。
+        var messageBus = try MessageBus()
+        let decision = try PaperActionProposalRiskFixture.deterministicAllowed()
+        let update = try PaperPortfolioProjectionUpdate(
+            updateID: try Identifier("paper-portfolio-update-allowed"),
+            portfolioID: try Identifier("portfolio-main"),
+            decision: decision,
+            updatedAt: Date(timeIntervalSince1970: 1_900)
+        )
+        let envelope = try messageBus.publish(
+            .portfolio(.paperProjectionUpdated(update)),
+            stream: .portfolio,
+            recordedAt: Date(timeIntervalSince1970: 1_901)
+        )
+        let boundary = try PersistenceReplayBoundary(envelopes: messageBus.envelopes)
+        let adapter = try makeTemporarySQLiteRuntimeProjectionAdapter()
+        let command = EventReplayCommand(
+            range: try EventSequenceRange(lowerBound: 1, upperBound: 1),
+            streams: [.portfolio]
+        )
+
+        let rebuiltSnapshot = try boundary.rebuildSQLiteRuntimeProjection(
+            from: command,
+            using: adapter
+        )
+        let queriedSnapshot = try adapter.querySnapshot()
+        let portfolio = try XCTUnwrap(
+            queriedSnapshot.portfolioProjections[try Identifier("portfolio-main")]
+        )
+        let exposure = try XCTUnwrap(portfolio.exposures.first)
+
+        XCTAssertEqual(envelope.sequence, 1)
+        XCTAssertEqual(queriedSnapshot, rebuiltSnapshot)
+        XCTAssertEqual(portfolio.state, .updated)
+        XCTAssertEqual(portfolio.updatedAt?.timeIntervalSince1970, 1_901)
+        XCTAssertEqual(exposure.portfolioID, try Identifier("portfolio-main"))
+        XCTAssertEqual(exposure.symbol, decision.proposal.symbol)
+        XCTAssertEqual(exposure.timeframe, decision.proposal.timeframe)
+        XCTAssertEqual(exposure.paperQuantity, decision.proposal.quantity)
+        XCTAssertEqual(exposure.referencePrice, decision.proposal.referencePrice)
+        XCTAssertEqual(exposure.grossExposureNotional, 50, accuracy: 0.00000001)
+        XCTAssertEqual(exposure.source, .paperProjection)
+        XCTAssertEqual(exposure.sourceSequence, decision.sourceSequence)
+        XCTAssertEqual(exposure.projectedAt.timeIntervalSince1970, 1_901)
+        XCTAssertEqual(queriedSnapshot.lastAppliedSequence, 1)
+    }
+
     func testSQLiteRuntimeProjectionAdapterRebuildReplacesPreviousSnapshot() throws {
         // 测试场景：重复 rebuild 必须以 event log replay 为事实源替换旧投影，不能残留旧 risk / portfolio 数据。
         let envelopes = try makeFullEventLog()

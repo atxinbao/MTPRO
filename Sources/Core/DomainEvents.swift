@@ -126,6 +126,8 @@ public enum RiskEvent: Codable, Equatable, Sendable {
 /// PortfolioEvent 表示组合投影观察事件，不映射真实账户变更。
 public enum PortfolioEvent: Codable, Equatable, Sendable {
     case projectionRequested(PortfolioQuery)
+    /// MTP-34 paper-only update 来自 allowed risk decision，只驱动本地 projection，不同步真实账户。
+    case paperProjectionUpdated(PaperPortfolioProjectionUpdate)
     case exposureUpdated(PortfolioExposureSnapshot)
 }
 
