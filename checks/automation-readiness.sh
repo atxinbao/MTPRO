@@ -102,7 +102,10 @@ require_contains "docs/automation/parent-codex-supervision.md" "Human 确认 Pro
 require_contains "docs/automation/parent-codex-supervision.md" "Stage Code Audit Report 落仓规则"
 require_contains "docs/automation/parent-codex-supervision.md" 'docs/audit/<linear-project-slug>-stage-code-audit.md'
 require_contains "docs/automation/parent-codex-supervision.md" "报告必须覆盖整个 Linear Project"
-require_contains "docs/automation/parent-codex-supervision.md" "Next Human Project Planning 必须读取该文件后才能开始"
+require_contains "docs/automation/parent-codex-supervision.md" "Root Docs Delta"
+require_contains "docs/automation/parent-codex-supervision.md" "Root Docs Refresh Gate"
+require_contains "docs/automation/parent-codex-supervision.md" 'Human + `@001 / PLN`'
+require_contains "docs/automation/parent-codex-supervision.md" "Next Human Project Planning 必须读取该文件"
 require_contains "docs/automation/parent-codex-supervision.md" "Role Alias Rule"
 require_contains "docs/automation/parent-codex-supervision.md" '@002 = PAR'
 require_contains "docs/automation/parent-codex-supervision.md" "给 @002 下 Codex 指令"
@@ -222,6 +225,8 @@ require_contains "AGENTS.md" "@002 Startup Runbook"
 require_contains "AGENTS.md" "执行前检查"
 require_contains "AGENTS.md" "pointer 更新后再次执行 queue preview"
 require_contains "AGENTS.md" '自动推进唯一 eligible `Backlog` -> `Todo`'
+require_contains "AGENTS.md" "Root Docs Delta"
+require_contains "AGENTS.md" "Root Docs Refresh Gate"
 require_contains "docs/planning/linear-draft-plan.md" "Project Planning Record 命名规则"
 require_contains "docs/planning/linear-draft-plan.md" '所有 Project planning record 必须放在 `docs/planning/projects/`'
 require_contains "docs/planning/linear-draft-plan.md" '文件名格式：`<linear-project-slug>-plan.md`'
@@ -232,8 +237,13 @@ require_contains "docs/planning/linear-draft-plan.md" "Linear write boundary"
 require_contains "docs/planning/linear-draft-plan.md" "Repository record boundary"
 require_contains "docs/planning/linear-draft-plan.md" "完整 issue execution contract 以 Linear issue body 为准"
 require_contains "docs/planning/linear-draft-plan.md" '只有父 Codex 可以操作 `Backlog` -> `Todo`'
+require_contains "docs/planning/linear-draft-plan.md" "Root Docs Refresh Gate"
+require_contains "docs/planning/linear-draft-plan.md" "Stage Code Audit Report"
+require_contains "docs/planning/linear-draft-plan.md" 'Human + `@001 / PLN`'
 require_contains "docs/planning/linear-draft-plan.md" "docs/planning/projects/mtpro-trading-validation-and-parity-hardening-plan.md"
 require_contains "docs/planning/linear-draft-plan.md" "仓库只保存 Project 级计划摘要和格式门槛，不复制维护完整 issue 正文"
+require_contains "docs/validation/latest-verification-summary.md" "Root Docs Refresh Gate"
+require_contains "docs/validation/latest-verification-summary.md" "Root Docs Delta"
 
 require_absent ".github/workflows/checks.yml" "pull_request_target"
 

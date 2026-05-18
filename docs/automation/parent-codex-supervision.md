@@ -248,7 +248,7 @@ docs/audit/<linear-project-slug>-stage-code-audit.md
 内容要求：
 
 - 报告必须覆盖整个 Linear Project，不得只覆盖单个 issue。
-- 报告必须包含 Project scope / issue range、Issue / PR evidence、Validation、Boundary Audit、Known CI Boundary、Residual Notes For Human Planning 和 Next Human Project Planning Handoff。
+- 报告必须包含 Project scope / issue range、Issue / PR evidence、Validation、Boundary Audit、Known CI Boundary、Root Docs Delta、Residual Notes For Human Planning 和 Next Human Project Planning Handoff。
 - 仅有会话输出、单个 issue evidence、PR body、`verification.md` 或 Post-Issue Ledger，都不能替代落仓的 Stage Code Audit Report。
 
 当前 Project 的 canonical report 是：
@@ -257,7 +257,22 @@ docs/audit/<linear-project-slug>-stage-code-audit.md
 docs/audit/mtpro-runtime-research-workbench-v1-stage-code-audit.md
 ```
 
-Next Human Project Planning 必须读取该文件后才能开始。
+Next Human Project Planning 必须读取该文件，并确认 Root Docs Refresh Gate 已完成或明确记录无需更新后才能开始。
+
+## Root Docs Refresh Gate
+
+Stage Code Audit Report 落仓后，进入 Next Human Project Planning 之前，父 Codex 必须执行 Root Docs Refresh Gate。
+
+Root Docs Delta 必须检查：
+
+- `GOAL.md`：只在项目目标、用户、成功标准或安全边界已经变化时更新。
+- `ENVIRONMENT.md`：只在工具、运行方式、Graphify、Symphony、GitHub、Linear、本地依赖或 CI 环境已经变化时更新。
+- `ARCHITECTURE.md`：只记录已经稳定落地的功能模块、边界、依赖方向和数据流；不得提前写未来设计。
+- `ROADMAP.md`：只记录阶段状态、已完成 Project 和下一阶段 planning input；不授权执行。
+
+`@002 / PAR` 可以为 factual refresh 开小 PR。该 PR 只能同步已经发生的事实，不决定下一阶段目标，不改变产品方向，不新增未来架构路线，不创建 Linear Project / Issue，不推进 `Todo`。
+
+如果 Root Docs Delta 暴露方向性问题，父 Codex 只能记录 planning question，并交给 Human + `@001 / PLN` 在 Next Human Project Planning 中处理。
 
 ## 边界
 

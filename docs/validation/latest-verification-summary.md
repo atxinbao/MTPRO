@@ -26,6 +26,8 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - `docs/contracts/backend-use-case-contract.md` 与 `docs/contracts/api-contract.md` 已补充 MTP-25 的 query range 契约。
 - `MTP-24` 已完成并定义 Trading Validation Matrix；`MTP-26` 到 `MTP-30` 仍必须等 Parent Codex queue preflight 和唯一 eligible issue 调度。
 - 上一阶段 Stage Code Audit Report 已记录 `MTP-18` / `MTP-19` / `MTP-22` 的临时 CI 平台边界，并确认审计报告覆盖完整 Linear Project；本轮 MTP-25 未新增临时 CI 平台边界。
+- Project 全部 Done 后，Stage Code Audit Report 必须包含 Root Docs Delta，并先完成 Root Docs Refresh Gate，才进入 Next Human Project Planning。
+- Root Docs Refresh Gate 只允许 `@002 / PAR` 同步 `GOAL.md`、`ENVIRONMENT.md`、`ARCHITECTURE.md`、`ROADMAP.md` 中已发生的事实；方向性变化交给 Human + `@001 / PLN`。
 - `graphify-out/*` 未提交，`.codex/*` 未提交。
 - 本轮执行上下文中的 `symphony-issue` active Project pointer 指向 `mtpro-trading-validation-and-parity-hardening-4286a197bec0`；child Codex 不修改 pointer，本文档不作为 current issue 或 queue pointer 的事实源。
 

@@ -3066,6 +3066,7 @@ Commit：本轮提交
 | --- | --- | --- |
 | `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；已检查 `docs/validation/trading-validation-matrix.md` 和 `TVM-EMA-PARITY`、`TVM-ORDER-BOOK-IMBALANCE-PARITY`、`TVM-FEES-SLIPPAGE`、`TVM-RISK-BLOCKER`、`TVM-PORTFOLIO-EXPOSURE`、`TVM-REPORT-EVIDENCE`、`TVM-FUTURE-ISSUE-BACKFILL`。 |
 | `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 通过；59 个 XCTest 通过；输出 `MTPRO checks passed.` |
+
 ## 2026-05-18 — MTP-25 EMA Backtest / Paper parity hardening
 
 执行者：Codex
@@ -3103,3 +3104,48 @@ bash checks/run.sh
 - 未修改 Linear status。
 - 未运行 Graphify full rebuild。
 - `.codex/*` 和 `graphify-out/*` 不进入 PR。
+
+## Root Docs Refresh Gate
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 固化 Project Done 后的 Root Docs Refresh Gate。
+- 明确 Stage Code Audit Report 必须包含 Root Docs Delta。
+- 明确 `@002 / PAR` 只同步 `GOAL.md`、`ENVIRONMENT.md`、`ARCHITECTURE.md`、`ROADMAP.md` 中已发生的事实；方向性变化交给 Human + `@001 / PLN`。
+
+文件范围：
+
+- Updated：
+  - `AGENTS.md`
+  - `docs/automation/parent-codex-supervision.md`
+  - `docs/planning/linear-draft-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+
+边界确认：
+
+- 未创建 Linear Project。
+- 未创建 Linear Issues。
+- 未修改 Linear status。
+- 未推进任何 issue 到 Todo。
+- 未启动 symphony-issue。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Root Docs Refresh Gate 文档变更无空白错误。 |
+| `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build / smoke 和 `swift test` 通过；61 个 XCTest 通过；输出 `MTPRO checks passed.` |
