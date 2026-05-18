@@ -265,6 +265,129 @@ public enum ReportExecutionAuthorization: String, Codable, Equatable, Sendable {
     case researchOutputOnly = "research output only"
 }
 
+/// ReportExecutionCostEvidence 把 MTP-27 固定费用 / 滑点假设映射成报告层只读证据。
+///
+/// 该证据只从 portfolio exposure projection 的 symbol、timeframe、paper quantity 和 reference price
+/// 派生，并同时计算 Backtest / Paper 两种本地模式的成本估算一致性；它不读取交易所费率表、
+/// 不连接 broker、不提交订单，也不代表真实成交或账户成本。
+public struct ReportExecutionCostEvidence: Codable, Equatable, Sendable {
+    public let assumptionID: String
+    public let symbol: String
+    public let timeframe: String
+    public let liquidityRole: ExecutionCostLiquidityRole
+    public let grossNotional: Double
+    public let feeAmount: Double
+    public let slippageAmount: Double
+    public let backtestTotalCostAmount: Double
+    public let paperTotalCostAmount: Double
+    public let roundingDecimalPlaces: Int
+    public let sourceSequence: Int
+    public let parityConsistent: Bool
+
+    public init(
+        exposure: SQLitePortfolioExposureProjection,
+        liquidityRole: ExecutionCostLiquidityRole,
+        assumptions: ExecutionCostAssumptions = .deterministicFixture
+    ) {
+        let backtest = ExecutionCostCalculator.estimate(
+            ExecutionCostEstimateRequest(
+                symbol: exposure.symbol,
+                timeframe: exposure.timeframe,
+                executionMode: .backtest,
+                referencePrice: exposure.referencePrice,
+                quantity: exposure.paperQuantity,
+                liquidityRole: liquidityRole
+            ),
+            assumptions: assumptions
+        )
+        let paper = ExecutionCostCalculator.estimate(
+            ExecutionCostEstimateRequest(
+                symbol: exposure.symbol,
+                timeframe: exposure.timeframe,
+                executionMode: .paper,
+                referencePrice: exposure.referencePrice,
+                quantity: exposure.paperQuantity,
+                liquidityRole: liquidityRole
+            ),
+            assumptions: assumptions
+        )
+        let parity = ExecutionCostParity.verify(backtest: backtest, paper: paper)
+
+        self.assumptionID = assumptions.assumptionID.rawValue
+        self.symbol = exposure.symbol.rawValue
+        self.timeframe = exposure.timeframe.rawValue
+        self.liquidityRole = liquidityRole
+        self.grossNotional = backtest.grossNotional
+        self.feeAmount = backtest.feeAmount
+        self.slippageAmount = backtest.slippageAmount
+        self.backtestTotalCostAmount = backtest.totalCostAmount
+        self.paperTotalCostAmount = paper.totalCostAmount
+        self.roundingDecimalPlaces = assumptions.roundingDecimalPlaces
+        self.sourceSequence = exposure.sourceSequence
+        self.parityConsistent = parity.isConsistent
+    }
+}
+
+/// TradingValidationEvidenceSummary 是 Report / Dashboard 共享的交易验证证据聚合。
+///
+/// 它把 projection-level parity、固定 fees / slippage 成本一致性、risk blocker 和 paper-only
+/// portfolio exposure 收敛到一个只读快照中。所有字段都来自 Core / Persistence 的稳定 read model，
+/// 不暴露 SQLite / DuckDB schema、runtime object、adapter request 或任何真实交易能力。
+public struct TradingValidationEvidenceSummary: Codable, Equatable, Sendable {
+    public let parityStatus: ReportParityStatus
+    public let executionCostEvidence: [ReportExecutionCostEvidence]
+    public let riskBlockerEvidenceIDs: [String]
+    public let riskBlockerReasons: [RiskBlockerReason]
+    public let portfolioExposureSymbols: [String]
+    public let portfolioExposureCount: Int
+    public let portfolioGrossExposureNotional: Double
+    public let sourceSequences: [Int]
+    public let authorizesTradingExecution: Bool
+
+    public init(
+        parityStatus: ReportParityStatus,
+        executionCostEvidence: [ReportExecutionCostEvidence] = [],
+        riskBlockerEvidence: [SQLiteRiskBlockerEvidenceProjection] = [],
+        portfolioExposures: [SQLitePortfolioExposureProjection] = []
+    ) {
+        self.parityStatus = parityStatus
+        self.executionCostEvidence = executionCostEvidence.sortedByCostEvidence()
+        self.riskBlockerEvidenceIDs = riskBlockerEvidence
+            .map(\.evidenceID.rawValue)
+            .uniqueSorted()
+        self.riskBlockerReasons = riskBlockerEvidence
+            .map(\.reason.rawValue)
+            .uniqueSorted()
+            .compactMap(RiskBlockerReason.init(rawValue:))
+        self.portfolioExposureSymbols = portfolioExposures
+            .map(\.symbol.rawValue)
+            .uniqueSorted()
+        self.portfolioExposureCount = portfolioExposures.count
+        self.portfolioGrossExposureNotional = portfolioExposures.reduce(0) {
+            $0 + $1.grossExposureNotional
+        }
+        self.sourceSequences = (
+            executionCostEvidence.map(\.sourceSequence)
+                + riskBlockerEvidence.map(\.sourceSequence)
+                + portfolioExposures.map(\.sourceSequence)
+        ).uniqueSorted()
+        self.authorizesTradingExecution = false
+    }
+
+    public var executionCostEvidenceCount: Int {
+        executionCostEvidence.count
+    }
+
+    public var executionCostParityConsistent: Bool {
+        executionCostEvidence.isEmpty == false
+            && executionCostEvidence.allSatisfy(\.parityConsistent)
+    }
+
+    public var riskBlockerEvidenceCount: Int {
+        riskBlockerEvidenceIDs.count
+    }
+}
+
 /// ResearchBacktestReportArtifact 是 MTP-23 的最小报告 artifact。
 ///
 /// 输入来自 `DuckDBAnalyticalProjectionSnapshot`、`SQLiteRuntimeProjectionSnapshot` 和 append-only
@@ -284,6 +407,7 @@ public struct ResearchBacktestReportArtifact: Codable, Equatable, Sendable {
     public let paperSignalCount: Int
     public let eventCount: Int
     public let parityStatus: ReportParityStatus
+    public let tradingValidationEvidence: TradingValidationEvidenceSummary
     public let executionAuthorization: ReportExecutionAuthorization
     public let lastAppliedSequence: Int?
 
@@ -301,6 +425,7 @@ public struct ResearchBacktestReportArtifact: Codable, Equatable, Sendable {
         paperSignalCount: Int,
         eventCount: Int,
         parityStatus: ReportParityStatus,
+        tradingValidationEvidence: TradingValidationEvidenceSummary,
         executionAuthorization: ReportExecutionAuthorization = .researchOutputOnly,
         lastAppliedSequence: Int?
     ) {
@@ -317,6 +442,7 @@ public struct ResearchBacktestReportArtifact: Codable, Equatable, Sendable {
         self.paperSignalCount = paperSignalCount
         self.eventCount = eventCount
         self.parityStatus = parityStatus
+        self.tradingValidationEvidence = tradingValidationEvidence
         self.executionAuthorization = executionAuthorization
         self.lastAppliedSequence = lastAppliedSequence
     }
@@ -354,6 +480,8 @@ public struct ReportReadModel: Equatable, Sendable {
         }
         let researchRuns = Array(analyticalProjection.orderBookResearchRuns.values)
         let paperSessions = Array(runtimeProjection.paperSessions.values)
+        let riskBlockerEvidence = runtimeProjection.riskBlockerEvidence
+        let portfolioExposures = runtimeProjection.portfolioProjections.values.flatMap(\.exposures)
         let lastAppliedSequence = Self.maxSequence(
             analyticalProjection.lastAppliedSequence,
             runtimeProjection.lastAppliedSequence,
@@ -366,6 +494,8 @@ public struct ReportReadModel: Equatable, Sendable {
                 researchRuns: researchRuns,
                 signalTimeline: analyticalProjection.signalTimeline,
                 paperSessions: paperSessions,
+                riskBlockerEvidence: riskBlockerEvidence,
+                portfolioExposures: portfolioExposures,
                 eventCount: eventTimeline.count,
                 lastAppliedSequence: lastAppliedSequence
             )
@@ -379,6 +509,8 @@ public struct ReportReadModel: Equatable, Sendable {
         researchRuns: [DuckDBOrderBookResearchProjection],
         signalTimeline: [DuckDBSignalTimelineProjection],
         paperSessions: [SQLitePaperSessionProjection],
+        riskBlockerEvidence: [SQLiteRiskBlockerEvidenceProjection],
+        portfolioExposures: [SQLitePortfolioExposureProjection],
         eventCount: Int,
         lastAppliedSequence: Int?
     ) -> ResearchBacktestReportArtifact {
@@ -395,6 +527,14 @@ public struct ReportReadModel: Equatable, Sendable {
                 && $0.symbol == backtest.symbol
                 && $0.timeframe == backtest.timeframe
         }
+        let matchingRiskBlockers = riskBlockerEvidence.filter {
+            $0.symbol == backtest.symbol && $0.timeframe == backtest.timeframe
+        }
+        let matchingPortfolioExposures = portfolioExposures.filter {
+            $0.symbol == backtest.symbol && $0.timeframe == backtest.timeframe
+        }
+        let parityEvidenceStatus = parityStatus(backtest: backtest, paperSessions: matchingPaperSessions)
+        let executionCostEvidence = makeExecutionCostEvidence(from: matchingPortfolioExposures)
 
         return ResearchBacktestReportArtifact(
             reportID: "report-\(backtest.runID.rawValue)",
@@ -409,9 +549,28 @@ public struct ReportReadModel: Equatable, Sendable {
             researchSignalCount: matchingResearchSignals.count,
             paperSignalCount: matchingPaperSessions.reduce(0) { $0 + $1.signalCount },
             eventCount: eventCount,
-            parityStatus: parityStatus(backtest: backtest, paperSessions: matchingPaperSessions),
+            parityStatus: parityEvidenceStatus,
+            tradingValidationEvidence: TradingValidationEvidenceSummary(
+                parityStatus: parityEvidenceStatus,
+                executionCostEvidence: executionCostEvidence,
+                riskBlockerEvidence: matchingRiskBlockers,
+                portfolioExposures: matchingPortfolioExposures
+            ),
             lastAppliedSequence: lastAppliedSequence
         )
+    }
+
+    private static func makeExecutionCostEvidence(
+        from exposures: [SQLitePortfolioExposureProjection]
+    ) -> [ReportExecutionCostEvidence] {
+        exposures.flatMap { exposure in
+            ExecutionCostLiquidityRole.allCases.map { liquidityRole in
+                ReportExecutionCostEvidence(
+                    exposure: exposure,
+                    liquidityRole: liquidityRole
+                )
+            }
+        }
     }
 
     private static func parityStatus(
@@ -593,6 +752,7 @@ public struct ReportArtifactViewModel: Codable, Equatable, Sendable {
     public let paperSignalCount: Int
     public let eventCount: Int
     public let parityStatus: ReportParityStatus
+    public let tradingValidationEvidence: TradingValidationEvidenceSummary
     public let executionAuthorization: ReportExecutionAuthorization
     public let authorizesTradingExecution: Bool
     public let lastAppliedSequence: Int?
@@ -611,6 +771,7 @@ public struct ReportArtifactViewModel: Codable, Equatable, Sendable {
         self.paperSignalCount = artifact.paperSignalCount
         self.eventCount = artifact.eventCount
         self.parityStatus = artifact.parityStatus
+        self.tradingValidationEvidence = artifact.tradingValidationEvidence
         self.executionAuthorization = artifact.executionAuthorization
         self.authorizesTradingExecution = artifact.authorizesTradingExecution
         self.lastAppliedSequence = artifact.lastAppliedSequence
@@ -630,11 +791,23 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
     public let researchRunCount: Int
     public let paperSessionCount: Int
     public let matchedParityEvidenceCount: Int
+    public let tradingValidationEvidenceCount: Int
+    public let executionCostEvidenceCount: Int
+    public let executionCostAssumptionIDs: [String]
+    public let executionCostParityConsistent: Bool
+    public let riskBlockerEvidenceCount: Int
+    public let riskBlockerEvidenceIDs: [String]
+    public let portfolioExposureEvidenceCount: Int
+    public let portfolioExposureSymbols: [String]
+    public let portfolioGrossExposureNotional: Double
+    public let tradingValidationAuthorizesExecution: Bool
     public let authorizesTradingExecution: Bool
     public let latestParityStatus: ReportParityStatus?
     public let lastAppliedSequence: Int?
 
     public init(readModel: ReportReadModel) {
+        let tradingEvidence = readModel.artifacts.map(\.tradingValidationEvidence)
+        let costEvidence = tradingEvidence.flatMap(\.executionCostEvidence)
         self.section = .report
         self.source = ViewModelSourceContract()
         self.artifacts = readModel.artifacts.map(ReportArtifactViewModel.init)
@@ -651,6 +824,31 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
         self.matchedParityEvidenceCount = readModel.artifacts.filter {
             $0.parityStatus == .matchedProjectionEvidence
         }.count
+        self.tradingValidationEvidenceCount = tradingEvidence.count
+        self.executionCostEvidenceCount = costEvidence.count
+        self.executionCostAssumptionIDs = costEvidence
+            .map(\.assumptionID)
+            .uniqueSorted()
+        self.executionCostParityConsistent = costEvidence.isEmpty == false
+            && costEvidence.allSatisfy(\.parityConsistent)
+        self.riskBlockerEvidenceCount = tradingEvidence.reduce(0) {
+            $0 + $1.riskBlockerEvidenceCount
+        }
+        self.riskBlockerEvidenceIDs = tradingEvidence
+            .flatMap(\.riskBlockerEvidenceIDs)
+            .uniqueSorted()
+        self.portfolioExposureEvidenceCount = tradingEvidence.reduce(0) {
+            $0 + $1.portfolioExposureCount
+        }
+        self.portfolioExposureSymbols = tradingEvidence
+            .flatMap(\.portfolioExposureSymbols)
+            .uniqueSorted()
+        self.portfolioGrossExposureNotional = tradingEvidence.reduce(0) {
+            $0 + $1.portfolioGrossExposureNotional
+        }
+        self.tradingValidationAuthorizesExecution = tradingEvidence.contains {
+            $0.authorizesTradingExecution
+        }
         self.authorizesTradingExecution = readModel.artifacts.contains {
             $0.authorizesTradingExecution
         }
@@ -873,6 +1071,23 @@ private extension Array where Element == DuckDBSignalTimelineProjection {
     }
 }
 
+private extension Array where Element == ReportExecutionCostEvidence {
+    func sortedByCostEvidence() -> [ReportExecutionCostEvidence] {
+        sorted { lhs, rhs in
+            if lhs.symbol != rhs.symbol {
+                return lhs.symbol < rhs.symbol
+            }
+            if lhs.timeframe != rhs.timeframe {
+                return lhs.timeframe < rhs.timeframe
+            }
+            if lhs.sourceSequence != rhs.sourceSequence {
+                return lhs.sourceSequence < rhs.sourceSequence
+            }
+            return lhs.liquidityRole.rawValue < rhs.liquidityRole.rawValue
+        }
+    }
+}
+
 private extension MarketReadModel {
     func marketSymbols() -> [String] {
         (
@@ -887,6 +1102,12 @@ private extension MarketReadModel {
 
 private extension Array where Element == String {
     func uniqueSorted() -> [String] {
+        Array(Set(self)).sorted()
+    }
+}
+
+private extension Array where Element == Int {
+    func uniqueSorted() -> [Int] {
         Array(Set(self)).sorted()
     }
 }

@@ -3331,3 +3331,60 @@ Commit：本轮提交
 | `swift test --filter <MTP-28 targeted Persistence/App tests>` | pass | 4 个 targeted XCTest 通过；覆盖 SQLite runtime projection、Risk / Portfolio ViewModel 和 Dashboard shell snapshot。 |
 | `swift test` | pass | 66 个 XCTest 通过；新增 MTP-28 risk blocker / portfolio exposure evidence coverage。 |
 | `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 通过；66 个 XCTest 通过；输出 `MTPRO checks passed.` |
+
+## MTP-29 Report / Dashboard trading validation evidence summary
+
+日期：2026-05-19
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 新增 `ReportExecutionCostEvidence`，把 MTP-27 deterministic fees / slippage fixture 和 paper-only portfolio exposure projection 映射为 Report 层只读成本证据。
+- 新增 `TradingValidationEvidenceSummary`，聚合 projection-level parity、Backtest / Paper cost parity、risk blocker evidence 和 portfolio exposure evidence。
+- 扩展 `ResearchBacktestReportArtifact`、`ReportArtifactViewModel` 和 `ReportViewModel`，展示 cost assumption IDs、cost evidence count、cost parity consistency、risk blocker evidence IDs、portfolio exposure symbols 和 gross exposure notional。
+- 扩展 Dashboard Report shell snapshot，展示 cost evidence、risk blockers、exposure evidence、cost parity、risk blocker evidence、exposure symbols 和 gross exposure。
+- 回填 `TVM-REPORT-EVIDENCE`、validation plan、read model / frontend contract 和 product surface map。
+
+文件范围：
+
+- Updated：
+  - `Sources/App/App.swift`
+  - `Sources/App/DashboardShell.swift`
+  - `Tests/AppTests/AppTests.swift`
+  - `docs/contracts/frontend-view-model-contract.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/product/product-surface-map.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 symphony-issue。
+- 未运行 Graphify full rebuild。
+- 未接真实 Binance 网络。
+- 未读取 secret。
+- 未接 signed endpoint / account endpoint。
+- 未连接 broker。
+- 未提交、取消或替换真实订单。
+- 未实现完整报表系统。
+- 未实现交易所费率表、动态滑点模型或执行成本优化。
+- 未实现完整风险引擎、实时风控、仓位管理、保证金、杠杆或真实账户余额。
+- 未实现 Paper 或 Live execution 推进。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter AppTests` | pass | 8 个 AppTests 通过；覆盖 Report / Dashboard trading validation evidence summary、Codable deterministic snapshot、schema leakage 禁区和 research-only execution authorization。 |
+| `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 通过；66 个 XCTest 通过；输出 `MTPRO checks passed.` |
