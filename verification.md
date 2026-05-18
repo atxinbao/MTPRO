@@ -3535,3 +3535,62 @@ Commit：本轮提交
 | --- | --- | --- |
 | `git diff --check` | pass | Paper Session Runtime planning record 和文档更新无空白问题。 |
 | `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 通过；输出 `MTPRO checks passed.` |
+
+## MTP-31 Paper Session Lifecycle and Event Boundary
+
+日期：2026-05-19
+
+执行者：Codex
+
+目的：
+
+- 定义 Paper Session lifecycle 状态和 started / updated / closed paper-only events。
+- 明确 Paper lifecycle facts 的 append-only event log 写入边界。
+- 增加 deterministic lifecycle fixture / tests，并回填 validation docs / trading validation matrix。
+
+文件范围：
+
+- Added：
+  - `Sources/Core/PaperSessionLifecycle.swift`
+- Updated：
+  - `Sources/Core/CoreError.swift`
+  - `Sources/Core/DomainEvents.swift`
+  - `Sources/Core/ResearchEventFlows.swift`
+  - `Sources/Persistence/Persistence.swift`
+  - `Sources/App/App.swift`
+  - `Tests/CoreTests/CoreTests.swift`
+  - `Tests/PersistenceTests/PersistenceTests.swift`
+  - `docs/contracts/api-contract.md`
+  - `docs/contracts/backend-use-case-contract.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 symphony-issue。
+- 未解锁下一 issue。
+- 未运行 Graphify full rebuild。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 未接真实 Binance 网络。
+- 未读取 secret。
+- 未接 signed endpoint / account endpoint。
+- 未连接 broker。
+- 未提交、取消或替换真实订单。
+- 未实现 action proposal。
+- 未实现 portfolio projection update。
+- 未实现完整 Paper execution engine。
+- 未实现 Live execution。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test` | pass | 68 个 XCTest 通过；新增 Paper lifecycle deterministic facts、`.paper` stream event log boundary 和 decode validation coverage。 |
+| `bash checks/run.sh` | failed first attempt after rebase | rebase 到 PR #61 后，automation readiness 仍机械要求最近验证摘要包含 `尚未写入 Linear`；已在 latest summary 中保留该历史 planning 状态说明，并明确当前 MTP-31 执行授权来自 Linear live-read issue contract。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、dashboard build、dashboard smoke 和 `swift test` 全部通过；输出 `MTPRO checks passed.` |

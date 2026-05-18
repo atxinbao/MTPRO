@@ -581,7 +581,7 @@ public struct ReportReadModel: Equatable, Sendable {
             return .missingPaperProjection
         }
         let completedPaperSignalCount = paperSessions
-            .filter { $0.state == .completed }
+            .filter { $0.state.isTerminal }
             .reduce(0) { $0 + $1.signalCount }
         guard completedPaperSignalCount == backtest.signalCount else {
             return .mismatchedProjectionEvidence
@@ -893,8 +893,8 @@ public struct PaperViewModel: Codable, Equatable, Sendable {
         self.section = .paper
         self.source = ViewModelSourceContract()
         self.sessions = readModel.sessions.map(PaperSessionViewModel.init)
-        self.activeSessionCount = readModel.sessions.filter { $0.state == .requested }.count
-        self.completedSessionCount = readModel.sessions.filter { $0.state == .completed }.count
+        self.activeSessionCount = readModel.sessions.filter { $0.state.isActive }.count
+        self.completedSessionCount = readModel.sessions.filter { $0.state.isTerminal }.count
         self.lastAppliedSequence = readModel.lastAppliedSequence
     }
 }

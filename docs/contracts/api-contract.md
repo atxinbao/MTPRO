@@ -69,6 +69,30 @@ MTP-25 加固补充：
 - 不新增 signed endpoint command。
 - 不把真实执行动作暴露为 API contract。
 
+## MTP-31 Paper Session Lifecycle Command / Event 边界
+
+日期：2026-05-19
+
+执行者：Codex
+
+MTP-31 不新增 HTTP API，也不新增 live / broker / signed command。
+
+新增或细化的 Core 内部事件契约：
+
+- `PaperSessionLifecycleState`：定义 `started`、`updated`、`closed` 三个 paper-only lifecycle 状态。
+- `PaperSessionStarted`：绑定已校验的 `PaperSessionCommand`、`sessionID` 和 `startedAt`。
+- `PaperSessionUpdated`：绑定已校验的 `PaperSessionCommand`、`sessionID`、`signalCount` 和 `updatedAt`。
+- `PaperSessionClosed`：绑定 `PaperSessionResult`、`sessionID`、`signalCount` 和 `closedAt`。
+- `PaperEvent.sessionStarted / sessionUpdated / sessionClosed`：作为 MTP-31 后默认 Paper lifecycle facts。
+- `PaperSessionEventLogBoundary.append`：只接受 `PaperEvent`，并固定写入 `.paper` event stream。
+
+边界确认：
+
+- `PaperSessionCommand` 仍必须 `executionMode == paper`。
+- lifecycle facts 只描述本地 Paper session，不代表真实订单、broker session、account state、成交、仓位或资金。
+- event log 写入边界不允许调用 Binance adapter、signed endpoint、account endpoint、order submit / cancel / replace 或 Live execution。
+- 历史 `sessionRequested` / `sessionCompleted` 仍可被本地 replay 消费；新事件流默认输出 `started -> signalGenerated... -> updated -> closed`。
+
 ## MTP-12 Command / Event Flow 细化
 
 日期：2026-05-17
