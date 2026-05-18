@@ -2748,3 +2748,37 @@ Commit：本轮提交
 | --- | --- | --- |
 | `swift test` | pass | 59 个 XCTest 通过；新增 AppTests 覆盖 Report read model、Dashboard Report 快照、projection-level parity evidence 和 missing Paper projection 禁区断言。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、`swift build --product MTPRODashboard`、`MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard` 和 `swift test` 通过；smoke 输出 `sections=8`；59 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+## Runtime Research Workbench Stage Code Audit 落仓
+
+日期：2026-05-18
+
+执行者：Parent Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 将本会话已输出的 `MTPRO Runtime Research Workbench v1` Stage Code Audit Report 固化为 canonical 仓库文档。
+- 新增 `docs/audit/mtpro-runtime-research-workbench-v1-stage-code-audit.md`，作为后续 Next Human Project Planning 的固定读取入口。
+- 更新 `docs/validation/latest-verification-summary.md`，指向新的 Stage Code Audit Report。
+
+边界确认：
+
+- 未修改 Linear Project / Issue。
+- 未修改 Linear status。
+- 未启动 symphony-issue。
+- 未运行 Graphify update。
+- 未修改业务代码。
+- 未创建下一阶段 Project / Issue。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | 文档变更无空白错误。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、`swift build --product MTPRODashboard`、`MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard` 和 `swift test` 通过；59 个 XCTest 通过，输出 `MTPRO checks passed.` |
