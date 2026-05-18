@@ -105,12 +105,21 @@ require_contains "docs/automation/parent-codex-supervision.md" "Next Human Proje
 require_contains "docs/automation/parent-codex-supervision.md" "Role Alias Rule"
 require_contains "docs/automation/parent-codex-supervision.md" '@002 = PAR'
 require_contains "docs/automation/parent-codex-supervision.md" "给 @002 下 Codex 指令"
+require_contains "docs/automation/parent-codex-supervision.md" "@002 Startup Runbook"
+require_contains "docs/automation/parent-codex-supervision.md" "执行前检查"
+require_contains "docs/automation/parent-codex-supervision.md" "更新 active Project pointer"
+require_contains "docs/automation/parent-codex-supervision.md" "pointer 更新后二次 queue preview"
+require_contains "docs/automation/parent-codex-supervision.md" "gate 通过后推进唯一 eligible issue 到 Todo"
+require_contains "docs/automation/parent-codex-supervision.md" '不启动 `symphony-issue`'
 require_contains "docs/automation/post-issue-ledger.md" "before_remove"
 require_contains "docs/automation/post-issue-ledger.md" "read_only"
 require_contains "docs/automation/symphony-issue-workflow-template.md" "稳定 workflow 本体"
 require_contains "docs/automation/symphony-issue-workflow-template.md" "当前 active Project pointer"
 require_contains "docs/automation/symphony-issue-workflow-template.md" "mtpro-runtime-research-workbench-v1-222cf4e1965c"
 require_contains "docs/automation/symphony-issue-workflow-template.md" "Parent Codex 更新规则"
+require_contains "docs/automation/symphony-issue-workflow-template.md" "@002 Startup Runbook"
+require_contains "docs/automation/symphony-issue-workflow-template.md" "pointer 更新后再次执行 queue preview"
+require_contains "docs/automation/symphony-issue-workflow-template.md" '自动推进唯一 eligible `Backlog` -> `Todo`'
 require_contains "docs/automation/symphony-issue-workflow-template.md" "不为每个新 Project 复制一套 workflow"
 require_contains "docs/automation/verified-operations.md" "Authorization Source"
 require_contains "docs/automation/verified-operations.md" "Evidence Location"
@@ -197,6 +206,10 @@ require_contains "AGENTS.md" "Trading validation"
 require_contains "AGENTS.md" "Role Alias Rule"
 require_contains "AGENTS.md" '@001 = PLN'
 require_contains "AGENTS.md" "给 @001 下 Codex 指令"
+require_contains "AGENTS.md" "@002 Startup Runbook"
+require_contains "AGENTS.md" "执行前检查"
+require_contains "AGENTS.md" "pointer 更新后再次执行 queue preview"
+require_contains "AGENTS.md" '自动推进唯一 eligible `Backlog` -> `Todo`'
 require_contains "docs/planning/linear-draft-plan.md" "Project Planning Record 命名规则"
 require_contains "docs/planning/linear-draft-plan.md" '所有 Project planning record 必须放在 `docs/planning/projects/`'
 require_contains "docs/planning/linear-draft-plan.md" '文件名格式：`<linear-project-slug>-plan.md`'

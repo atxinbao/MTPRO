@@ -86,6 +86,20 @@ tracker:
 9. Parent Codex 自动执行 eligible `Backlog` -> `Todo`。
 10. 再允许 `symphony-issue` 调度唯一 `Todo`。
 
+## @002 Startup Runbook
+
+当 Human 指令要求 `@002 / PAR` 接管一个已写入 Linear 的 Project 时，Parent Codex 必须执行：
+
+1. 读取 Project Planning Record 和 Linear Project / Issues。
+2. 执行 Project / Issue 格式 Gate。
+3. 执行 queue preview，确认 WIP=1、无 active conflict、依赖满足、first executable issue candidate 唯一。
+4. 更新 active Project pointer。
+5. pointer 更新后再次执行 queue preview。
+6. gate 全部通过后，自动推进唯一 eligible `Backlog` -> `Todo`。
+7. gate 任一失败时停止并报告，不推进 `Todo`。
+
+`@002 Startup Runbook` 不启动 `symphony-issue`，不复制 workflow 本体，不新建 workflow，不创建 Linear Project / Issue，不创建 PR，不运行 Graphify update。
+
 ## 禁止事项
 
 - 不为每个新 Project 复制一套 workflow。

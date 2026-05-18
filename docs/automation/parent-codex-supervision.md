@@ -35,6 +35,42 @@ MTPRO 支持 AEP 三位数字编号和三字母角色代号。数字编号与三
 
 该指令等价于给 `PAR / Parent Codex Automation Supervision` 下指令。父 Codex 仍必须执行 queue preview、WIP=1、依赖、active conflict 和执行合同格式 Gate。
 
+## @002 Startup Runbook
+
+`@002 Startup Runbook` 是父 Codex 接管一个已写入 Linear 的 Project 时的标准启动动作。
+
+它把以下动作合并为一个连续流程：
+
+```text
+@002 启动
+-> 执行前检查
+-> 更新 active Project pointer
+-> pointer 更新后二次 queue preview
+-> gate 通过后推进唯一 eligible issue 到 Todo
+```
+
+执行顺序：
+
+1. 读取 `docs/planning/projects/<linear-project-slug>-plan.md`。
+2. 读取 Linear Project / Issues、issue status、dependencies / blocker 关系和 issue body。
+3. 执行 Project / Issue 格式 Gate，确认 Project planning record 和 Linear issue body 都满足执行合同字段要求。
+4. 执行 queue preview，确认 WIP=1、无 `Todo` / `In Progress` / `In Review` active conflict、依赖满足、first executable issue candidate 唯一。
+5. 更新 `symphony-issue` active Project pointer，只更新 Project name、Project ID / URL source、Project slug、issue range 和 next eligible candidate。
+6. 不复制 workflow 本体，不为新 Project 新建 workflow。
+7. pointer 更新后再次执行 queue preview。
+8. 如果所有 gate 全部通过，自动将唯一 eligible issue 从 `Backlog` 推进为 `Todo`。
+9. 如果任一 gate 失败，停止并报告阻塞项，不推进 `Todo`。
+
+边界：
+
+- `@002 Startup Runbook` 不创建 Linear Project。
+- `@002 Startup Runbook` 不创建 Linear issue。
+- `@002 Startup Runbook` 不修改 issue body，除非任务另行明确授权。
+- `@002 Startup Runbook` 不启动 `symphony-issue`。
+- `@002 Startup Runbook` 不写代码。
+- `@002 Startup Runbook` 不创建 PR。
+- `@002 Startup Runbook` 不运行 Graphify update。
+
 ## 三角色职责边界
 
 MTPRO 当前自动化流程必须区分三个角色：

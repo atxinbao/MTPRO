@@ -61,6 +61,22 @@ MTPRO 采用 AEP 三位数字编号和三字母角色代号。数字编号与三
 
 Agent 收到 `给 @001 下 Codex 指令` 或 `@001：<任务>` 时，必须按 `PLN` 职责解析。其他编号同理。
 
+## @002 Startup Runbook
+
+当 Human 指令要求 `@002 / PAR` 接管一个已写入 Linear 的 Project 时，父 Codex 必须把启动、执行前检查、active Project pointer 更新、二次 queue preview 和首个 eligible issue 推进合并为一个连续动作。
+
+标准顺序：
+
+1. 读取 Project Planning Record 和 Linear Project / Issues。
+2. 执行 Project / Issue 格式 Gate。
+3. 执行 queue preview，确认 WIP=1、无 active conflict、依赖满足、first executable issue candidate 唯一。
+4. 更新 `symphony-issue` active Project pointer，只更新 Project name、Project ID、Project slug、issue range 和 next eligible candidate。
+5. pointer 更新后再次执行 queue preview。
+6. gate 全部通过后，自动推进唯一 eligible `Backlog` -> `Todo`。
+7. gate 任一失败时停止并报告。
+
+`@002 Startup Runbook` 不创建 Linear Project / Issue，不修改 issue body，不启动 `symphony-issue`，不写代码，不创建 PR，不运行 Graphify update。
+
 ## 当前可做
 
 - 执行当前唯一 configured executable issue 的明确 scope。
