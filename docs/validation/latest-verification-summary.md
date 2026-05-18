@@ -27,7 +27,8 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - `graphify-out/*` 未提交，`.codex/*` 未提交。
 - `symphony-issue` active Project pointer 仍指向 `mtpro-runtime-research-workbench-v1-222cf4e1965c`。
 - workflow 本体不得为每个 Project 复制一套；Project 切换只更新 active Project pointer，并先做 queue preview。
-- 当前 Project Planning Record：`docs/planning/mtpro-trading-validation-and-parity-hardening-plan.md`。
+- Project Planning Record 已统一到 `docs/planning/projects/`。
+- 当前 Project Planning Record：`docs/planning/projects/mtpro-trading-validation-and-parity-hardening-plan.md`。
 - Planning Record 状态：写入 Linear 前记录；不授权执行，不创建 Linear Project / Issues，不修改 Linear status。
 - Planning Record 只保存 Project 级计划摘要和格式门槛；完整 issue execution contract 以 Linear 为准。
 

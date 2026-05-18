@@ -2920,3 +2920,55 @@ Commit：本轮提交
 | --- | --- | --- |
 | `git diff --check` | pass | Trading Validation planning record 文档变更无空白错误。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、dashboard build / smoke 和 `swift test` 通过；输出 `MTPRO checks passed.` |
+
+## Project Planning Record Structure Normalization
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 将历史 Project planning 内容迁移到 `docs/planning/projects/`。
+- 固化 Project Planning Record 的 canonical 命名规则和内容规则。
+- 将 `docs/planning/linear-draft-plan.md` 收敛为入口索引和边界规则文档。
+- 明确完整 issue execution contract 归属 Linear issue body。
+
+文件范围：
+
+- Created：
+  - `docs/planning/projects/mtpro-guidance-plan.md`
+  - `docs/planning/projects/mtpro-runtime-research-workbench-v1-plan.md`
+  - `docs/planning/projects/mtpro-trading-validation-and-parity-hardening-plan.md`
+- Deleted：
+  - `docs/planning/mtpro-trading-validation-and-parity-hardening-plan.md`
+- Updated：
+  - `docs/planning/linear-draft-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+
+边界确认：
+
+- 未创建 Linear Project。
+- 未创建 Linear Issues。
+- 未修改 Linear status。
+- 未推进任何 issue 到 Todo。
+- 未启动 symphony-issue。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未复制完整 issue body 到仓库。
+- 未把 planning record 当作执行授权。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Project Planning Record 结构迁移文档变更无空白错误。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、dashboard build / smoke 和 `swift test` 通过；输出 `MTPRO checks passed.` |
