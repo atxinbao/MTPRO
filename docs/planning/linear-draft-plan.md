@@ -75,6 +75,21 @@ Project Planning Facilitator 已完成本轮 Project / Issue 写入后，所有 
 - 当前执行事实源：Linear。
 - 阶段审计：`docs/audit/mtpro-guidance-stage-code-audit.md`。
 
+## 当前下一阶段 Project Planning Record
+
+- 名称：`MTPRO Trading Validation and Parity Hardening`
+- 记录文件：`docs/planning/mtpro-trading-validation-and-parity-hardening-plan.md`
+- 来源审计：`docs/audit/mtpro-runtime-research-workbench-v1-stage-code-audit.md`
+- 状态：写入 Linear 前的 Project Planning Record。
+- First executable issue candidate：定义 Trading Validation Matrix 和验收证据边界。
+- WIP=1：所有候选 issue 写入 Linear 后必须初始保持 `Backlog / non-executable`。
+
+该记录只保存 Project 级计划摘要、issue 列表摘要、依赖、验证要求、证据要求、Linear 写入边界和仓库记录边界。
+
+完整 issue execution contract 以 Linear 为准。仓库只保存 Project 级计划摘要和格式门槛，不复制维护完整 issue 正文。
+
+本文档和 Project Planning Record 不授权执行，不创建 Linear Project / Issues，不修改 Linear status，不启动 symphony-issue，不推进任何 issue 到 `Todo`。
+
 ## 下一阶段 Linear Project
 
 - 名称：`MTPRO Runtime Research Workbench v1`

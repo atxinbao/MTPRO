@@ -2872,3 +2872,51 @@ Commit：本轮提交
 | --- | --- | --- |
 | `git diff --check` | pass | Role Alias Rule 文档变更无空白错误。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、dashboard build / smoke 和 `swift test` 通过；59 个 XCTest 通过，输出 `MTPRO checks passed.` |
+
+## Trading Validation Project Planning Record
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 新增 `MTPRO Trading Validation and Parity Hardening` 写入 Linear 前的 Project Planning Record。
+- 在 `docs/planning/linear-draft-plan.md` 中链接当前 planning record。
+- 明确仓库只保存 Project 级计划摘要和格式门槛。
+- 明确完整 issue execution contract 以 Linear issue body 为准。
+
+文件范围：
+
+- Created：
+  - `docs/planning/mtpro-trading-validation-and-parity-hardening-plan.md`
+- Updated：
+  - `docs/planning/linear-draft-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+
+边界确认：
+
+- 未创建 Linear Project。
+- 未创建 Linear Issues。
+- 未修改 Linear status。
+- 未推进任何 issue 到 Todo。
+- 未启动 symphony-issue。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未复制 7 个 issue 的完整正文到仓库。
+- 未把 planning record 当作执行授权。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Trading Validation planning record 文档变更无空白错误。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、dashboard build / smoke 和 `swift test` 通过；输出 `MTPRO checks passed.` |
