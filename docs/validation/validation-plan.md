@@ -59,6 +59,20 @@ bash checks/run.sh
 
 当前继续使用 XCTest + fixtures 表达交易语义验证，不引入独立 eval 框架。
 
+交易验证矩阵入口：`docs/validation/trading-validation-matrix.md`。
+
+该矩阵记录 EMA parity、order book imbalance parity、fees / slippage、risk blocker、portfolio exposure 和 report evidence 的现有 coverage、验收证据边界和后续 issue 回填规则。
+
+## MTP-24 Trading Validation Matrix Validation
+
+MTP-24 的 required validation：
+
+- `docs/validation/trading-validation-matrix.md` 必须存在。
+- Matrix 必须包含 EMA parity、order book imbalance parity、fees / slippage、risk blocker、portfolio exposure、report evidence 和 future issue backfill 的稳定锚点。
+- Matrix 必须记录现有 XCTest / fixture coverage 入口。
+- Matrix 必须明确 MTP-25 至 MTP-30 如何回填 evidence。
+- `checks/automation-readiness.sh` 必须在 matrix 文件或 required anchors 缺失时失败。
+
 ## Codex / Automation Validation
 
 - Codex use-cases 对齐：`docs/automation/codex-use-cases-alignment.md`。

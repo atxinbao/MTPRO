@@ -3016,3 +3016,53 @@ Commit：本轮提交
 | --- | --- | --- |
 | `git diff --check` | pass | Parent Codex startup runbook 文档变更无空白错误。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、dashboard build / smoke 和 `swift test` 通过；输出 `MTPRO checks passed.` |
+
+## MTP-24 Trading Validation Matrix
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 新增 `docs/validation/trading-validation-matrix.md`，作为 Trading Validation Matrix 和验收证据边界入口。
+- 记录 EMA parity、order book imbalance parity、fees / slippage、risk blocker、portfolio exposure 和 report evidence 的现有 coverage、证据边界和后续回填责任。
+- 在 `checks/automation-readiness.sh` 中检查 matrix 文件和 required `TVM-*` anchors，防止矩阵入口丢失。
+- 在 `docs/validation/validation-plan.md` 中链接 matrix，并记录 MTP-24 的 required validation。
+- 更新最近验证摘要，保留 MTP-24 本轮验证结果和当前 Project 边界。
+
+文件范围：
+
+- Created：
+  - `docs/validation/trading-validation-matrix.md`
+- Updated：
+  - `checks/automation-readiness.sh`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 production Swift code。
+- 未实现策略逻辑。
+- 未实现 fees / slippage 计算。
+- 未实现 risk engine。
+- 未创建 Linear Project。
+- 未创建 Linear Issues。
+- 未修改 Linear status。
+- 未启动 symphony-issue。
+- 未运行 Graphify update。
+- 未接 Live trading、signed endpoint、account endpoint、broker action 或真实订单行为。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；已检查 `docs/validation/trading-validation-matrix.md` 和 `TVM-EMA-PARITY`、`TVM-ORDER-BOOK-IMBALANCE-PARITY`、`TVM-FEES-SLIPPAGE`、`TVM-RISK-BLOCKER`、`TVM-PORTFOLIO-EXPOSURE`、`TVM-REPORT-EVIDENCE`、`TVM-FUTURE-ISSUE-BACKFILL`。 |
+| `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 通过；59 个 XCTest 通过；输出 `MTPRO checks passed.` |
