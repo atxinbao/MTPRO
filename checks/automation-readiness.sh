@@ -45,6 +45,7 @@ require_file "docs/planning/project-role-map.md"
 require_file "docs/planning/projects/mtpro-guidance-plan.md"
 require_file "docs/planning/projects/mtpro-runtime-research-workbench-v1-plan.md"
 require_file "docs/planning/projects/mtpro-trading-validation-and-parity-hardening-plan.md"
+require_file "docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md"
 require_file "docs/validation/eval-strategy.md"
 require_file "docs/validation/latest-verification-summary.md"
 require_file "docs/validation/macos-build-run-loop.md"
@@ -157,7 +158,8 @@ require_contains "docs/planning/project-role-map.md" "不授权执行"
 for planning_record in \
   "docs/planning/projects/mtpro-guidance-plan.md" \
   "docs/planning/projects/mtpro-runtime-research-workbench-v1-plan.md" \
-  "docs/planning/projects/mtpro-trading-validation-and-parity-hardening-plan.md"; do
+  "docs/planning/projects/mtpro-trading-validation-and-parity-hardening-plan.md" \
+  "docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md"; do
   require_contains "$planning_record" "Project name"
   require_contains "$planning_record" "Project goal"
   require_contains "$planning_record" "Scope"
@@ -175,6 +177,12 @@ for planning_record in \
 done
 
 require_contains "docs/planning/projects/mtpro-trading-validation-and-parity-hardening-plan.md" "MTPRO Trading Validation and Parity Hardening"
+require_contains "docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md" "MTPRO Paper Session Runtime v1"
+require_contains "docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md" "Parent Codex queue preflight rule"
+require_contains "docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md" "不复制维护完整 Linear issue body"
+require_contains "docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md" "不推进 Todo"
+require_contains "docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md" "不启动 Symphony"
+require_contains "docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md" "Project 经 Human 确认并写入 Linear 后，由 Parent Codex queue preflight 自动判断唯一 eligible issue，并推进 Todo"
 
 require_contains "docs/validation/validation-plan.md" "Linear issue execution contract"
 require_contains "docs/validation/validation-plan.md" "bash checks/automation-readiness.sh"
@@ -255,9 +263,12 @@ require_contains "docs/planning/linear-draft-plan.md" "Root Docs Refresh Gate"
 require_contains "docs/planning/linear-draft-plan.md" "Stage Code Audit Report"
 require_contains "docs/planning/linear-draft-plan.md" 'Human + `@001 / PLN`'
 require_contains "docs/planning/linear-draft-plan.md" "docs/planning/projects/mtpro-trading-validation-and-parity-hardening-plan.md"
+require_contains "docs/planning/linear-draft-plan.md" "docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md"
 require_contains "docs/planning/linear-draft-plan.md" "仓库只保存 Project 级计划摘要和格式门槛，不复制维护完整 issue 正文"
 require_contains "docs/validation/latest-verification-summary.md" "Root Docs Refresh Gate"
 require_contains "docs/validation/latest-verification-summary.md" "Root Docs Delta"
+require_contains "docs/validation/latest-verification-summary.md" "docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md"
+require_contains "docs/validation/latest-verification-summary.md" "尚未写入 Linear"
 
 require_absent ".github/workflows/checks.yml" "pull_request_target"
 

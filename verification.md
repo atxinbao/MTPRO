@@ -3490,3 +3490,48 @@ Commit：本轮提交
 | `git diff --check` | pass | 本轮 Stage Code Audit Report 和文档更新无空白问题。 |
 | `bash checks/run.sh` | failed first attempt | 首次本地增量构建在 `swift test` 链接阶段引用旧的 `SQLiteRuntimeProjectionSnapshot` 符号并失败；本轮仅改文档，判断为 SwiftPM 本地缓存边界。 |
 | `swift package clean && bash checks/run.sh` | pass | 清理 SwiftPM build cache 后，同一验证入口通过；`git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 通过；66 个 XCTest 通过；输出 `MTPRO checks passed.` |
+
+## MTPRO Paper Session Runtime v1 Project Planning Record
+
+日期：2026-05-19
+
+执行者：Codex（@001 / PLN）
+
+目的：
+
+- 将 Human 确认的 `MTPRO Paper Session Runtime v1` 修正版 Project / Issue 草案落仓为 Project-level planning record。
+- 新增 `docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md`，只保存 Project 级计划摘要和格式门槛。
+- 更新 `docs/planning/linear-draft-plan.md` 索引，指向当前下一阶段 planning record。
+- 更新 `docs/validation/latest-verification-summary.md`，记录该 planning record 已落仓但尚未写入 Linear。
+- 更新 `checks/automation-readiness.sh`，将新 planning record 的命名、边界、不授权执行、Parent Codex queue preflight 规则纳入机械检查。
+
+文件范围：
+
+- Added：
+  - `docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md`
+- Updated：
+  - `checks/automation-readiness.sh`
+  - `docs/planning/linear-draft-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- 未创建 Linear Project。
+- 未创建 Linear Issues。
+- 未修改 Linear status。
+- 未推进 Todo。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未复制完整 Linear issue body 到仓库。
+- 未把 planning record 当作执行授权。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Paper Session Runtime planning record 和文档更新无空白问题。 |
+| `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 通过；输出 `MTPRO checks passed.` |

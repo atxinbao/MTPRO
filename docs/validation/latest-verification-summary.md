@@ -38,6 +38,9 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - Root Docs Refresh Gate 只允许 `@002 / PAR` 同步 `GOAL.md`、`ENVIRONMENT.md`、`ARCHITECTURE.md`、`ROADMAP.md` 中已发生的事实；方向性变化交给 Human + `@001 / PLN`。
 - `graphify-out/*` 未提交，`.codex/*` 未提交。
 - 本轮执行上下文中的 `symphony-issue` active Project pointer 指向 `mtpro-trading-validation-and-parity-hardening-4286a197bec0`；child Codex 不修改 pointer，本文档不作为 current issue 或 queue pointer 的事实源。
+- 下一阶段 Project Planning Record 已落仓：`docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md`。
+- `MTPRO Paper Session Runtime v1` 尚未写入 Linear；未创建 Linear Project / Issues，未修改 Linear status，未推进 Todo，未启动 Symphony。
+- `MTPRO Paper Session Runtime v1` planning record 只保存 Project 级计划摘要和格式门槛；完整 issue execution contract 以 Linear issue body 为准。
 
 ## Project PR evidence
 
@@ -69,6 +72,7 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - Trading Validation Matrix 是 evidence routing 入口，不替代 Linear issue contract、PR evidence 或 Stage Code Audit Report。
 - `docs/validation/mtp-30-stage-audit-input.md` 是阶段审计输入材料，不授权下一 Project planning 或 execution。
 - `MTPRO Trading Validation and Parity Hardening` planning record 不单独授权执行。
+- `MTPRO Paper Session Runtime v1` planning record 不授权执行，不创建 Linear Project / Issues，不修改 Linear status，不推进 Todo。
 - Report 输入只来自 projection snapshots / read model 和 append-only event timeline。
 - Report 可汇总 projection-level Backtest / Paper evidence，但不替代 Core 层完整 signal timeline parity。
 - `ReportExecutionCostEvidence` 只从 deterministic fixture 和 paper-only exposure projection 派生，不读取交易所费率表、account tier、真实成交或 broker fill。
