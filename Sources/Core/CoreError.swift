@@ -27,6 +27,10 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
     case invalidExecutionCostRoundingDecimalPlaces(Int)
     case riskEvaluationRequiresPaperMode(ExecutionMode)
     case invalidPaperSessionSignalCount(Int)
+    case invalidPaperActionProposalQuantity(Double)
+    case paperActionProposalRequiresPaperMode(ExecutionMode)
+    case paperActionProposalSignalMismatch(field: String, expected: String, actual: String)
+    case paperActionProposalCostEvidenceMismatch(field: String, expected: String, actual: String)
 
     public var description: String {
         switch self {
@@ -76,6 +80,14 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
             "Risk evaluation requires paper mode: \(value.rawValue)"
         case let .invalidPaperSessionSignalCount(value):
             "Paper session signal count must be non-negative: \(value)"
+        case let .invalidPaperActionProposalQuantity(value):
+            "Paper action proposal quantity must be positive before signal-side mapping: \(value)"
+        case let .paperActionProposalRequiresPaperMode(value):
+            "Paper action proposal requires paper mode: \(value.rawValue)"
+        case let .paperActionProposalSignalMismatch(field, expected, actual):
+            "Paper action proposal signal mismatch for \(field): expected \(expected), actual \(actual)"
+        case let .paperActionProposalCostEvidenceMismatch(field, expected, actual):
+            "Paper action proposal cost evidence mismatch for \(field): expected \(expected), actual \(actual)"
         }
     }
 }

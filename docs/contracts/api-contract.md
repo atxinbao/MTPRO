@@ -93,6 +93,30 @@ MTP-31 不新增 HTTP API，也不新增 live / broker / signed command。
 - event log 写入边界不允许调用 Binance adapter、signed endpoint、account endpoint、order submit / cancel / replace 或 Live execution。
 - 历史 `sessionRequested` / `sessionCompleted` 仍可被本地 replay 消费；新事件流默认输出 `started -> signalGenerated... -> updated -> closed`。
 
+## MTP-32 Paper Action Proposal 内部模型边界
+
+日期：2026-05-19
+
+执行者：Codex
+
+MTP-32 不新增 HTTP API，也不新增 live / broker / signed command。
+
+新增内部 Core value contract：
+
+- `PaperActionProposalSizingAssumption`：保存 deterministic quantity / reference price / liquidity role 假设。
+- `PaperActionProposal`：从 `StrategySignalEvent` 派生 paper-only action intent，并携带 fixed cost evidence。
+- `PaperActionProposalFixture`：提供本地 deterministic long / flat proposal evidence。
+
+边界确认：
+
+- 不新增 `Command` case。
+- 不新增 live order command。
+- 不新增 broker account command。
+- 不新增 signed endpoint command。
+- 不新增 order submit / cancel / replace command。
+- 不把 proposal 解释为真实订单、真实成交、broker fill、portfolio update 或执行授权。
+- Codable 解码必须保持 `executionMode == paper`、signal side mapping 和 cost evidence 一致性。
+
 ## MTP-12 Command / Event Flow 细化
 
 日期：2026-05-17
