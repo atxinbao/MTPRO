@@ -3206,3 +3206,60 @@ Commit：本轮提交
 | `swift test --filter CoreTests/testOrderBookImbalance` | pass | 4 个 CoreTests 通过；覆盖订单簿失衡 invalid input、research stream、parity / bias evidence 和 deterministic fixture。 |
 | `swift test --filter PersistenceTests/testTemporaryDuckDBProjectionRebuildsAnalyticalState` | pass | 1 个 PersistenceTests 通过；验证 DuckDB analytical signal timeline 保存 order book input source。 |
 | `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 通过；62 个 XCTest 通过；输出 `MTPRO checks passed.` |
+
+## MTP-27 Fees / slippage assumptions and minimum cost evidence
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 新增 Core-only `ExecutionCostAssumptions`，定义 deterministic fixture：maker fee `2 bps`、taker fee `5 bps`、fixed slippage `1.5 bps` 和 `8` 位小数 rounding scale。
+- 新增 `ExecutionCostEstimateRequest` / `ExecutionCostEstimate` / `ExecutionCostCalculator`，输出 gross notional、fee amount、slippage amount 和 total cost amount。
+- 新增 `ExecutionCostParity` / `ExecutionCostParityResult`，比较 Backtest 与 Paper 使用同一固定假设和同一输入时的 cost evidence 是否一致。
+- 回填 `TVM-FEES-SLIPPAGE`，并在 validation plan / contract docs 记录 MTP-27 验收边界。
+
+文件范围：
+
+- Added：
+  - `Sources/Core/ExecutionCosts.swift`
+- Updated：
+  - `Sources/Core/CoreError.swift`
+  - `Tests/CoreTests/CoreTests.swift`
+  - `docs/contracts/api-contract.md`
+  - `docs/contracts/backend-use-case-contract.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 symphony-issue。
+- 未运行 Graphify full rebuild。
+- 未接真实 Binance 网络。
+- 未读取 secret。
+- 未接 signed endpoint / account endpoint。
+- 未连接 broker。
+- 未提交、取消或替换真实订单。
+- 未实现 exchange fee table。
+- 未实现 dynamic slippage model。
+- 未实现 execution cost optimizer。
+- 未实现 Paper 或 Live execution 推进。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter CoreTests/testExecutionCost` | pass | 3 个 CoreTests 通过；覆盖 maker / taker fee、fixed slippage、gross notional、total cost、rounding scale、Backtest / Paper cost parity 和 invalid assumptions。 |
+| `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 通过；65 个 XCTest 通过；输出 `MTPRO checks passed.` |

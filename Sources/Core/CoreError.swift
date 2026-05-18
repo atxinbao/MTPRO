@@ -23,6 +23,8 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
     case insufficientOrderBookLiquidity
     case insufficientMarketData(required: Int, actual: Int)
     case marketDataMismatch(field: String, expected: String, actual: String)
+    case invalidExecutionCostAssumption(field: String, value: Double)
+    case invalidExecutionCostRoundingDecimalPlaces(Int)
 
     public var description: String {
         switch self {
@@ -64,6 +66,10 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
             "Market data is insufficient: required \(required), actual \(actual)"
         case let .marketDataMismatch(field, expected, actual):
             "Market data mismatch for \(field): expected \(expected), actual \(actual)"
+        case let .invalidExecutionCostAssumption(field, value):
+            "Execution cost assumption must be finite and non-negative for \(field): \(value)"
+        case let .invalidExecutionCostRoundingDecimalPlaces(value):
+            "Execution cost rounding decimal places must be within 0...8: \(value)"
         }
     }
 }

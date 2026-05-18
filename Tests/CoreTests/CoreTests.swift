@@ -575,6 +575,91 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testExecutionCostAssumptionsGenerateDeterministicFeesAndSlippageFixture() throws {
+        // 测试场景：MTP-27 固定成本 fixture 必须用同一 notional 和同一四舍五入规则，
+        // 稳定输出 maker / taker fee、fixed slippage 和 total cost evidence。
+        let assumptions = ExecutionCostAssumptions.deterministicFixture
+        let makerRequest = try makeExecutionCostRequest(liquidityRole: .maker)
+        let takerRequest = try makeExecutionCostRequest(liquidityRole: .taker)
+
+        let maker = ExecutionCostCalculator.estimate(makerRequest, assumptions: assumptions)
+        let taker = ExecutionCostCalculator.estimate(takerRequest, assumptions: assumptions)
+        let sameNotional = ExecutionCostCalculator.estimate(
+            try makeExecutionCostRequest(referencePrice: 50, quantity: 1, liquidityRole: .maker),
+            assumptions: assumptions
+        )
+
+        XCTAssertEqual(assumptions.assumptionID.rawValue, "mtp-27-fixed-cost-assumptions")
+        XCTAssertEqual(assumptions.makerFeeRateBps, 2)
+        XCTAssertEqual(assumptions.takerFeeRateBps, 5)
+        XCTAssertEqual(assumptions.slippageRateBps, 1.5)
+        XCTAssertEqual(maker.grossNotional, 50, accuracy: 0.00000001)
+        XCTAssertEqual(maker.feeRateBps, 2, accuracy: 0.00000001)
+        XCTAssertEqual(maker.feeAmount, 0.01, accuracy: 0.00000001)
+        XCTAssertEqual(maker.slippageAmount, 0.0075, accuracy: 0.00000001)
+        XCTAssertEqual(maker.totalCostAmount, 0.0175, accuracy: 0.00000001)
+        XCTAssertEqual(taker.feeRateBps, 5, accuracy: 0.00000001)
+        XCTAssertEqual(taker.feeAmount, 0.025, accuracy: 0.00000001)
+        XCTAssertEqual(taker.totalCostAmount, 0.0325, accuracy: 0.00000001)
+        XCTAssertEqual(sameNotional.grossNotional, maker.grossNotional, accuracy: 0.00000001)
+        XCTAssertEqual(sameNotional.slippageAmount, maker.slippageAmount, accuracy: 0.00000001)
+    }
+
+    func testExecutionCostParityKeepsBacktestAndPaperCostEvidenceConsistent() throws {
+        // 测试场景：Backtest 与 Paper 只要使用同一固定假设和同一输入，
+        // fee / slippage evidence 必须完全一致，但仍不代表真实成交或 broker fill。
+        let assumptions = ExecutionCostAssumptions.deterministicFixture
+        let backtest = ExecutionCostCalculator.estimate(
+            try makeExecutionCostRequest(executionMode: .backtest),
+            assumptions: assumptions
+        )
+        let paper = ExecutionCostCalculator.estimate(
+            try makeExecutionCostRequest(executionMode: .paper),
+            assumptions: assumptions
+        )
+
+        let parity = ExecutionCostParity.verify(backtest: backtest, paper: paper)
+
+        XCTAssertTrue(parity.sameAssumptionID)
+        XCTAssertTrue(parity.sameCostInput)
+        XCTAssertTrue(parity.matchingCostBreakdown)
+        XCTAssertTrue(parity.backtestModeIsBacktest)
+        XCTAssertTrue(parity.paperModeIsPaper)
+        XCTAssertTrue(parity.isConsistent)
+        XCTAssertEqual(backtest.totalCostAmount, paper.totalCostAmount, accuracy: 0.00000001)
+    }
+
+    func testExecutionCostAssumptionsRejectInvalidRatesAndRounding() throws {
+        // 测试场景：成本假设只能使用有限且非负的固定 bps，并锁定统一 rounding scale，
+        // 防止动态或不可复现的费用 / 滑点输入进入 parity evidence。
+        XCTAssertThrowsError(
+            try ExecutionCostAssumptions(
+                assumptionID: try Identifier("invalid-maker-fee"),
+                makerFeeRateBps: -0.1,
+                takerFeeRateBps: 5,
+                slippageRateBps: 1.5,
+                roundingDecimalPlaces: 8
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .invalidExecutionCostAssumption(field: "makerFeeRateBps", value: -0.1)
+            )
+        }
+
+        XCTAssertThrowsError(
+            try ExecutionCostAssumptions(
+                assumptionID: try Identifier("invalid-rounding"),
+                makerFeeRateBps: 2,
+                takerFeeRateBps: 5,
+                slippageRateBps: 1.5,
+                roundingDecimalPlaces: 9
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .invalidExecutionCostRoundingDecimalPlaces(9))
+        }
+    }
+
     func testBacktestAndPaperEventFlowsCanPublishThroughMessageBusStreams() throws {
         var messageBus = try MessageBus()
         let bars = try makeEMAFixtureBars()
@@ -946,6 +1031,22 @@ final class CoreTests: XCTestCase {
                 volume: 1
             )
         }
+    }
+
+    private func makeExecutionCostRequest(
+        referencePrice: Double = 100,
+        quantity: Double = 0.5,
+        executionMode: ExecutionMode = .backtest,
+        liquidityRole: ExecutionCostLiquidityRole = .maker
+    ) throws -> ExecutionCostEstimateRequest {
+        ExecutionCostEstimateRequest(
+            symbol: try Symbol(rawValue: "BTCUSDT"),
+            timeframe: .oneMinute,
+            executionMode: executionMode,
+            referencePrice: try Price(referencePrice, field: "executionCost.referencePrice"),
+            quantity: try Quantity(quantity, field: "executionCost.quantity"),
+            liquidityRole: liquidityRole
+        )
     }
 
     private func makeOrderBookLevel(price: Double, quantity: Double) throws -> OrderBookLevel {
