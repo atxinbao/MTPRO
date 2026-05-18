@@ -686,6 +686,8 @@ final class CoreTests: XCTestCase {
     }
 
     func testOrderBookImbalanceStrategyGeneratesStableSignalFixture() throws {
+        // 测试场景：订单簿失衡 fixture 必须稳定覆盖 bid、neutral、ask 三种 bias，
+        // 并保留 snapshot / delta 输入来源，作为后续投影和 PR evidence 的可审计字段。
         let contract = OrderBookImbalanceStrategyContract(
             configuration: try makeOrderBookImbalanceStrategy()
         )
@@ -694,6 +696,7 @@ final class CoreTests: XCTestCase {
 
         XCTAssertEqual(samples.map(\.bias), [.bidDominant, .neutral, .askDominant])
         XCTAssertEqual(samples.map(\.signal.direction), [.long, .flat, .flat])
+        XCTAssertEqual(samples.map(\.inputSource), [.snapshot, .deltaApplied, .snapshot])
         XCTAssertEqual(samples.map(\.signal.generatedAt.timeIntervalSince1970), [1_000, 1_060, 1_120])
         XCTAssertEqual(samples.map(\.signal.timeframe), [.oneMinute, .oneMinute, .oneMinute])
         XCTAssertEqual(samples[0].bidNotional, 299, accuracy: 0.0001)
@@ -701,6 +704,45 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(samples[0].imbalanceRatio, 0.1912350598, accuracy: 0.0001)
         XCTAssertEqual(samples[1].imbalanceRatio, 0, accuracy: 0.0001)
         XCTAssertEqual(samples[2].imbalanceRatio, -0.2088353414, accuracy: 0.0001)
+    }
+
+    func testOrderBookImbalanceResearchParityEvidenceCoversBiasAndInputSources() throws {
+        // 测试场景：research event flow 必须与直接策略 contract 生成相同 signal timeline，
+        // 并证明 ask dominance 只保留为研究 bias，不会映射为 short、margin 或真实订单动作。
+        let inputs = try makeOrderBookImbalanceInputs()
+        let strategy = try makeOrderBookImbalanceStrategy()
+        let marketData = try makeOrderBookMarketDataQuery()
+        let command = OrderBookImbalanceResearchCommand(
+            researchID: try Identifier("obi-research-fixture"),
+            strategy: strategy,
+            marketData: marketData
+        )
+        let directSamples = try OrderBookImbalanceStrategyContract(
+            configuration: strategy
+        ).evaluate(inputs)
+        let run = try OrderBookImbalanceResearchEventFlow().run(
+            command,
+            inputs: inputs,
+            completedAt: Date(timeIntervalSince1970: 1_300)
+        )
+
+        let parity = try OrderBookImbalanceResearchParity.verify(
+            command: command,
+            inputs: inputs,
+            run: run
+        )
+
+        XCTAssertEqual(run.result.signalSamples, directSamples)
+        XCTAssertTrue(parity.sameResearchID)
+        XCTAssertTrue(parity.sameStrategy)
+        XCTAssertTrue(parity.sameMarketData)
+        XCTAssertTrue(parity.matchingSignalSamples)
+        XCTAssertEqual(parity.coveredInputSources, [.snapshot, .deltaApplied])
+        XCTAssertTrue(parity.askDominanceRemainsResearchOnly)
+        XCTAssertTrue(parity.isConsistent)
+        XCTAssertEqual(directSamples.map(\.bias), [.bidDominant, .neutral, .askDominant])
+        XCTAssertEqual(directSamples.map(\.signal.direction), [.long, .flat, .flat])
+        XCTAssertEqual(directSamples.map(\.inputSource), [.snapshot, .deltaApplied, .snapshot])
     }
 
     func testOrderBookImbalanceRejectsInvalidConfigurationAndInputs() throws {
@@ -946,18 +988,17 @@ final class CoreTests: XCTestCase {
             ],
             source: .snapshot
         )
-        let neutral = OrderBookReadModelInput(
-            symbol: symbol,
-            observedAt: Date(timeIntervalSince1970: 1_060),
-            bids: [
-                try makeOrderBookLevel(price: 100, quantity: 1),
-                try makeOrderBookLevel(price: 99, quantity: 1)
-            ],
-            asks: [
-                try makeOrderBookLevel(price: 100, quantity: 1),
-                try makeOrderBookLevel(price: 99, quantity: 1)
-            ],
-            source: .snapshot
+        let neutral = try bidDominant.applying(
+            OrderBookDelta(
+                symbol: symbol,
+                observedAt: Date(timeIntervalSince1970: 1_060),
+                bidUpdates: [
+                    try makeOrderBookLevel(price: 100, quantity: 1)
+                ],
+                askUpdates: [
+                    try makeOrderBookLevel(price: 102, quantity: 0.96078431372549)
+                ]
+            )
         )
         let askDominant = OrderBookReadModelInput(
             symbol: symbol,

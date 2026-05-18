@@ -72,10 +72,15 @@ public struct OrderBookImbalanceStrategyConfiguration: Codable, Equatable, Senda
 }
 
 /// OrderBookImbalanceSignalSample 保存失衡研究的信号和可投影指标。
+///
+/// 样本显式携带 `inputSource`，让验证证据能追溯信号来自原始 snapshot
+/// 还是 delta 应用后的本地读模型。该样本只用于研究和投影，不授权真实订单、
+/// signed endpoint、futures margin 或 broker action。
 public struct OrderBookImbalanceSignalSample: Codable, Equatable, Sendable {
     public let signal: StrategySignalEvent
     public let sourceObservedAt: Date
     public let depth: Int
+    public let inputSource: OrderBookReadModelSource
     public let bidNotional: Double
     public let askNotional: Double
     public let imbalanceRatio: Double
@@ -85,6 +90,7 @@ public struct OrderBookImbalanceSignalSample: Codable, Equatable, Sendable {
         signal: StrategySignalEvent,
         sourceObservedAt: Date,
         depth: Int,
+        inputSource: OrderBookReadModelSource,
         bidNotional: Double,
         askNotional: Double,
         imbalanceRatio: Double,
@@ -93,6 +99,7 @@ public struct OrderBookImbalanceSignalSample: Codable, Equatable, Sendable {
         self.signal = signal
         self.sourceObservedAt = sourceObservedAt
         self.depth = depth
+        self.inputSource = inputSource
         self.bidNotional = bidNotional
         self.askNotional = askNotional
         self.imbalanceRatio = imbalanceRatio
@@ -157,6 +164,7 @@ public struct OrderBookImbalanceStrategyContract: Equatable, Sendable {
             signal: signal,
             sourceObservedAt: input.observedAt,
             depth: configuration.depth,
+            inputSource: input.source,
             bidNotional: bidNotional,
             askNotional: askNotional,
             imbalanceRatio: ratio,

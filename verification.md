@@ -3149,3 +3149,60 @@ Commit：本轮提交
 | --- | --- | --- |
 | `git diff --check` | pass | Root Docs Refresh Gate 文档变更无空白错误。 |
 | `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build / smoke 和 `swift test` 通过；61 个 XCTest 通过；输出 `MTPRO checks passed.` |
+
+## MTP-26 Order Book Imbalance parity / bias evidence
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 为 `OrderBookImbalanceSignalSample` 增加 `inputSource`，让订单簿失衡信号 evidence 可追溯到原始 snapshot 或 delta 应用后的本地读模型。
+- 新增 `OrderBookImbalanceResearchParity` 与 `OrderBookImbalanceResearchParityResult`，比较直接策略 contract 和 research event flow 的 signal samples。
+- 明确 ask dominance 只作为 research bias，signal direction 仍为 `.flat`，不映射为 short、margin、futures leverage 或真实订单动作。
+- 在 DuckDB analytical signal timeline projection 中保留 `orderBookInputSource`，供 read model / report evidence 使用，不暴露数据库 schema。
+- 回填 `TVM-ORDER-BOOK-IMBALANCE-PARITY`，并在 validation plan / contract docs 记录 MTP-26 验收边界。
+
+文件范围：
+
+- Updated：
+  - `Sources/Core/OrderBookImbalance.swift`
+  - `Sources/Core/ResearchEventFlows.swift`
+  - `Sources/Persistence/Persistence.swift`
+  - `Tests/CoreTests/CoreTests.swift`
+  - `Tests/PersistenceTests/PersistenceTests.swift`
+  - `docs/contracts/backend-use-case-contract.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 symphony-issue。
+- 未运行 Graphify full rebuild。
+- 未接真实 Binance 网络。
+- 未读取 secret。
+- 未接 signed endpoint / account endpoint。
+- 未连接 broker。
+- 未提交、取消或替换真实订单。
+- 未实现 futures leverage / margin action。
+- 未实现 Paper 或 Live execution 推进。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter CoreTests/testOrderBookImbalance` | pass | 4 个 CoreTests 通过；覆盖订单簿失衡 invalid input、research stream、parity / bias evidence 和 deterministic fixture。 |
+| `swift test --filter PersistenceTests/testTemporaryDuckDBProjectionRebuildsAnalyticalState` | pass | 1 个 PersistenceTests 通过；验证 DuckDB analytical signal timeline 保存 order book input source。 |
+| `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 通过；62 个 XCTest 通过；输出 `MTPRO checks passed.` |
