@@ -493,6 +493,28 @@ Dashboard read model 汇总提供稳定输入。
 - Summary 只表达 replay evidence，不提供 UI command、risk control command、position management command 或交易执行入口。
 - Proposal、risk blocker 和 portfolio evidence 都保持 paper-only，不代表 broker event、真实账户状态、真实订单或 Live execution。
 
+## MTP-36 Paper Session Runtime Evidence Report 观察面
+
+日期：2026-05-19
+
+执行者：Codex
+
+Paper Session runtime evidence 在当前事项中从 Core replay summary 与 runtime projection 汇总到
+Report / Dashboard read model。
+
+新增或细化的 Report 可观察字段：
+
+- `PaperSessionRuntimeEvidenceSummary`：聚合 replay facts source、replayed sequences / streams、session IDs、lifecycle states、proposal IDs、risk blocker evidence IDs、portfolio update IDs 和 portfolio exposure summary。
+- `ResearchBacktestReportArtifact.paperRuntimeEvidence`：把 matching symbol / timeframe 的 Paper runtime evidence 绑定到单个 report artifact。
+- `ReportViewModel` 汇总 runtime evidence count、runtime session IDs、lifecycle states、proposal IDs、risk blocker evidence IDs、portfolio update IDs、replay sequence count、replay streams、deterministic replay flag 和 paper-only boundary flag。
+
+边界：
+
+- Runtime evidence 只来自 append-only event timeline replay summary、SQLite runtime projection snapshot 和 App 层 read model。
+- Report 只按 matching symbol / timeframe 过滤 Paper / Risk / Portfolio event timeline，不读取 SQLite / DuckDB schema。
+- replay deterministic 与 paper-only boundary 只是证据旗标，不授权交易执行。
+- 当前不新增 UI command、risk control command、position management command、broker action、signed endpoint、account endpoint 或真实订单行为。
+
 ## MTP-29 Report / Dashboard Trading Validation Evidence 观察面
 
 日期：2026-05-18

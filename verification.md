@@ -3836,3 +3836,59 @@ Commit：本轮提交
 | --- | --- | --- |
 | `swift test` | pass | 80 个 XCTest 通过；新增 `testPaperSessionReplayEvidenceSummarizesRuntimeEventsDeterministically`、`testPaperSessionReplayEvidenceRejectsOutOfOrderReplayResult`、`testPaperSessionReplayEvidenceUsesFileAppendOnlyFactsSource`，覆盖 replay summary、乱序 replay 拒绝、append-only facts source、SQLite runtime projection replay 和 paper-only boundary flags。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、dashboard build、dashboard smoke 和 `swift test` 全部通过；80 个 XCTest 0 failures，输出 `MTPRO checks passed.` |
+
+## MTP-36 Paper Session Runtime Evidence Report / Dashboard Read Model
+
+日期：2026-05-19
+
+执行者：Codex
+
+目的：
+
+- 将 Paper Session lifecycle、proposal、risk blocker、portfolio exposure 和 replay evidence 汇总到 Report / Dashboard read model。
+- 新增 `PaperSessionRuntimeEvidenceSummary`，只消费 append-only event timeline replay summary 和 runtime projection read model。
+- 扩展 `ResearchBacktestReportArtifact.paperRuntimeEvidence`、`ReportArtifactViewModel.paperRuntimeEvidence` 和 `ReportViewModel` runtime evidence 汇总字段。
+- 扩展 Dashboard Report section，展示 runtime evidence、replay facts、runtime sessions、proposal IDs、runtime blocker IDs、portfolio update IDs、replay streams、deterministic replay 和 paper-only boundary。
+- 回填 contracts、product surface、validation plan、Trading Validation Matrix 和 latest verification summary。
+
+文件范围：
+
+- Updated：
+  - `Sources/App/App.swift`
+  - `Sources/App/DashboardShell.swift`
+  - `Tests/AppTests/AppTests.swift`
+  - `docs/contracts/frontend-view-model-contract.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/product/product-surface-map.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 symphony-issue。
+- 未解锁下一 issue。
+- 未运行 Graphify full rebuild。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 未接真实 Binance 网络。
+- 未读取 secret。
+- 未接 signed endpoint / account endpoint。
+- 未连接 broker。
+- 未提交、取消或替换真实订单。
+- 未新增 UI 大改版。
+- 未新增完整报告系统。
+- 未新增 Paper execution workflow 扩展。
+- 未新增 risk control command 或 position management command。
+- 未暴露 SQLite / DuckDB schema、SQL、ORM model、runtime object 或 adapter request 给 UI。
+- 未实现 Live execution。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter AppTests` | pass | 9 个 AppTests 通过；覆盖 Report / Dashboard runtime evidence read model、Codable deterministic snapshot、Dashboard shell runtime evidence 展示和 read-model-only 边界。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、dashboard build、dashboard smoke 和 `swift test` 全部通过；80 个 XCTest 0 failures，输出 `MTPRO checks passed.` |

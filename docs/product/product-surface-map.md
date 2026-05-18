@@ -109,3 +109,24 @@ Report 区域：
 - 交易所费率表、动态滑点模型或执行成本优化。
 - 完整风险引擎、仓位管理、保证金、杠杆或真实账户余额。
 - live order button、signed endpoint、account endpoint、broker action 或真实订单行为。
+
+## MTP-36 Paper Session runtime evidence 汇总
+
+日期：2026-05-19
+
+执行者：Codex
+
+当前 Dashboard 的 Report 区域补充 Paper Session runtime evidence 汇总：
+
+- Report artifact 展示 lifecycle states、proposal IDs、risk blocker evidence IDs、portfolio update IDs、replay streams 和 replay sequence count。
+- Report 区域展示 runtime evidence count、replay facts、runtime sessions、proposal IDs、portfolio update IDs、paper-only boundary 和 deterministic replay flag。
+- Runtime evidence 只从 append-only event timeline 的 replay summary、SQLite runtime projection snapshot 和 App 层 read model 派生。
+- Dashboard shell 仍只消费 `ReportViewModel` / `DashboardShellSnapshot`，不新增按钮、表单、命令出口或交易控制。
+
+仍不包含：
+
+- UI 大改版或完整报告系统。
+- Paper execution workflow 扩展。
+- live order button。
+- database schema、SQL、ORM model、runtime object 或 adapter request 暴露。
+- signed endpoint、account endpoint、broker action 或真实订单行为。

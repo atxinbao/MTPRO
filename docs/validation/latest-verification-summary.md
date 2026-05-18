@@ -17,8 +17,8 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 ## 最近基线
 
 - 最近验证关联 Linear Project：`MTPRO Paper Session Runtime v1`。
-- 最近验证对象：`MTP-35` 新增 Paper Session replay 和 deterministic evidence 的本地 pre-PR 验证。
-- Linear 只读查询确认：`MTP-35` 为 `In Progress`；同 Project 内 `MTP-31` / `MTP-32` / `MTP-33` / `MTP-34` 为 `Done`，`MTP-36` / `MTP-37` 为 `Backlog`。
+- 最近验证对象：`MTP-36` 汇总 Paper Session runtime evidence 到 Report / Dashboard read model 的本地 pre-PR 验证。
+- Linear 只读查询确认：`MTP-36` 为 `In Progress`；同 Project 内 `MTP-31` / `MTP-32` / `MTP-33` / `MTP-34` / `MTP-35` 为 `Done`，`MTP-37` 为 `Backlog`。
 - 当前 issue 不修改 Linear status，不启动 Symphony，不解锁下一 issue。
 - 上一完成 Project 为 `MTPRO Trading Validation and Parity Hardening`，main 为 `4e694f96c56eff07d39267a799083474d7c1c9f5`。
 - MTP-24 已定义 `docs/validation/trading-validation-matrix.md`，并把 `TVM-EMA-PARITY`、`TVM-ORDER-BOOK-IMBALANCE-PARITY`、`TVM-FEES-SLIPPAGE`、`TVM-RISK-BLOCKER`、`TVM-PORTFOLIO-EXPOSURE`、`TVM-REPORT-EVIDENCE` 和 `TVM-FUTURE-ISSUE-BACKFILL` 固定为 automation readiness 锚点。
@@ -43,6 +43,10 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - MTP-35 新增 `PaperEvent.actionProposed`、`PaperSessionReplayEvidenceSummary`、`PaperSessionReplayPath` 和 `PaperSessionReplayFixture`。
 - MTP-35 将 Paper lifecycle、proposal、risk blocker 和 portfolio projection update 统一从 append-only event log replay 为 deterministic evidence summary。
 - MTP-35 已将 `TVM-PAPER-SESSION-REPLAY` 回填到 Trading Validation Matrix，并在 contracts / validation docs 记录 FileEventLogStore facts source、乱序 replay 拒绝、SQLite runtime projection replay 和 paper-only boundary flags。
+- MTP-36 新增 `PaperSessionRuntimeEvidenceSummary`，并把 MTP-35 replay summary、Paper lifecycle、proposal、risk blocker、portfolio update 和 portfolio exposure evidence 汇总到 Report read model。
+- MTP-36 扩展 `ResearchBacktestReportArtifact.paperRuntimeEvidence`、`ReportArtifactViewModel.paperRuntimeEvidence` 和 `ReportViewModel` runtime evidence 汇总字段。
+- MTP-36 的 Dashboard Report section 展示 runtime evidence、replay facts、runtime sessions、proposal IDs、runtime blocker IDs、portfolio update IDs、replay streams、deterministic replay 和 paper-only boundary。
+- MTP-36 已将 `TVM-PAPER-SESSION-REPLAY` 和 `TVM-REPORT-EVIDENCE` 回填到 Trading Validation Matrix，并在 contracts / product / validation docs 记录 read-model-only 汇总边界。
 - 上一阶段 Stage Code Audit Report 已记录 `MTP-18` / `MTP-19` / `MTP-22` 的临时 CI 平台边界，并确认审计报告覆盖完整 Linear Project；本 Project 目前未记录新增临时 CI 平台边界。
 - 上一 Project Stage Code Audit Report 已记录 Known CI Boundary：无 main 遗留 failing PR run；`MTP-24` 至 `MTP-30` 对应 PR checks 均已通过并合并。
 - 当前 Project 全部 Done 后，Stage Code Audit Report 必须包含 Root Docs Delta，并先完成 Root Docs Refresh Gate，才进入 Next Human Project Planning；MTP-31 不输出阶段审计报告。
@@ -73,7 +77,7 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 | `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；MTP-30 Stage Code Audit input、Trading Validation Matrix 和 automation readiness 锚点完整。 |
 | `swift build --product MTPRODashboard` | pass | macOS dashboard executable 构建通过。 |
 | `MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard` | pass | 输出 `MTPRO Dashboard smoke: sections=8; readModelOnly=true; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`。 |
-| `swift test` | pass | 80 个 XCTest 通过；新增覆盖 Paper Session replay evidence summary、乱序 replay 拒绝、FileEventLogStore append-only facts source、SQLite runtime projection replay 和 paper-only boundary flags。 |
+| `swift test` | pass | 80 个 XCTest 通过；App tests 新增覆盖 Paper Session runtime evidence -> Report / Dashboard read model、Codable deterministic snapshot、shell snapshot runtime evidence 和 paper-only boundary flags。 |
 | `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 通过；80 个 XCTest 0 failures，输出 `MTPRO checks passed.` |
 
 ## 当前边界
@@ -83,12 +87,13 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - MTP-33 只定义 Paper action proposal -> risk blocker 的 Core 本地 evidence 链路；不新增 Paper action event log 写入、portfolio projection update、完整风险引擎、broker rejection fallback 或完整 Paper execution workflow。
 - MTP-34 只定义 allowed risk decision -> paper-only portfolio projection update 的本地链路；不新增 Paper action event log 写入、完整 portfolio management、真实账户余额读取、margin、leverage、broker position sync 或完整 Paper execution workflow。
 - MTP-35 只定义 Paper Session replay evidence summary 和 proposal event replay fact；不新增生产级 event sourcing 平台、schema migration framework、真实 broker event replay、外部 execution venue、Report / Dashboard 汇总或完整 Paper execution workflow。
+- MTP-36 只把 Paper Session runtime evidence 汇总到 Report / Dashboard read model；不新增 UI 大改版、完整报告系统、Paper execution workflow 扩展、risk control command、position management command 或交易执行入口。
 - Paper action proposal 固定 `executionMode == paper`、`executionAuthorization == paperIntentOnly` 且 `isExecutableAsRealOrder == false`。
 - Paper action risk decision 的 allowed / blocked 结果都不提供 broker fallback 或 Live execution fallback；allowed 不代表真实订单授权，blocked 不代表真实 broker 拒单。
 - Trading Validation Matrix 是 evidence routing 入口，不替代 Linear issue contract、PR evidence 或 Stage Code Audit Report。
 - `docs/validation/mtp-30-stage-audit-input.md` 是阶段审计输入材料，不授权下一 Project planning 或 execution。
 - `MTPRO Trading Validation and Parity Hardening` planning record 不单独授权执行。
-- `MTPRO Paper Session Runtime v1` planning record 不授权执行；当前执行授权来自 Linear live-read 的 `MTP-35` issue contract。
+- `MTPRO Paper Session Runtime v1` planning record 不授权执行；当前执行授权来自 Linear live-read 的 `MTP-36` issue contract。
 - Paper lifecycle events 只代表本地 paper-only facts，不代表真实订单、broker session、account state、成交、仓位或资金。
 - Report 输入只来自 projection snapshots / read model 和 append-only event timeline。
 - Report 可汇总 projection-level Backtest / Paper evidence，但不替代 Core 层完整 signal timeline parity。

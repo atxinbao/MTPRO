@@ -52,7 +52,7 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(viewModel.strategy.latestSignalDirection, .flat)
 
         XCTAssertEqual(viewModel.backtest.runs.map(\.runID), ["backtest-ema-fixture"])
-        XCTAssertEqual(viewModel.backtest.totalSignalCount, 2)
+        XCTAssertEqual(viewModel.backtest.totalSignalCount, 4)
         XCTAssertEqual(viewModel.backtest.completedRunCount, 1)
         XCTAssertEqual(viewModel.backtest.latestSignalDirection, .flat)
 
@@ -66,12 +66,36 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(viewModel.report.executionCostAssumptionIDs, ["mtp-27-fixed-cost-assumptions"])
         XCTAssertTrue(viewModel.report.executionCostParityConsistent)
         XCTAssertEqual(viewModel.report.riskBlockerEvidenceCount, 1)
-        XCTAssertEqual(viewModel.report.riskBlockerEvidenceIDs, ["risk-blocker-fixture"])
+        XCTAssertEqual(viewModel.report.riskBlockerEvidenceIDs, ["risk-blocker-paper-replay-proposal-blocked"])
         XCTAssertEqual(viewModel.report.portfolioExposureEvidenceCount, 1)
         XCTAssertEqual(viewModel.report.portfolioExposureSymbols, ["BTCUSDT"])
-        XCTAssertEqual(viewModel.report.portfolioGrossExposureNotional, 52_500, accuracy: 0.00000001)
+        XCTAssertEqual(viewModel.report.portfolioGrossExposureNotional, 50, accuracy: 0.00000001)
+        XCTAssertEqual(viewModel.report.paperRuntimeEvidenceCount, 1)
+        XCTAssertEqual(viewModel.report.paperRuntimeSessionIDs, ["paper-replay-session"])
+        XCTAssertEqual(viewModel.report.paperRuntimeLifecycleStates, ["started", "updated", "closed"])
+        XCTAssertEqual(
+            viewModel.report.paperRuntimeProposalIDs,
+            ["paper-replay-proposal", "paper-replay-proposal-blocked"]
+        )
+        XCTAssertEqual(
+            viewModel.report.paperRuntimeRiskBlockerEvidenceIDs,
+            ["risk-blocker-paper-replay-proposal-blocked"]
+        )
+        XCTAssertEqual(viewModel.report.paperRuntimePortfolioUpdateIDs, ["paper-replay-portfolio-update"])
+        XCTAssertEqual(viewModel.report.paperRuntimePortfolioIDs, ["portfolio-main"])
+        XCTAssertEqual(viewModel.report.paperRuntimeReplaySequenceCount, 13)
+        XCTAssertEqual(viewModel.report.paperRuntimeReplayStreams, ["paper", "portfolio", "risk"])
+        XCTAssertTrue(viewModel.report.paperRuntimeCoversSessionEvents)
+        XCTAssertTrue(viewModel.report.paperRuntimeCoversProposalEvents)
+        XCTAssertTrue(viewModel.report.paperRuntimeCoversRiskBlockerEvents)
+        XCTAssertTrue(viewModel.report.paperRuntimeCoversPortfolioProjectionEvents)
+        XCTAssertTrue(viewModel.report.paperRuntimeReplayDeterministic)
+        XCTAssertTrue(viewModel.report.paperRuntimePaperOnlyBoundaryHeld)
+        XCTAssertFalse(viewModel.report.paperRuntimeAuthorizesLiveTrading)
+        XCTAssertFalse(viewModel.report.paperRuntimeTouchesBrokerAction)
+        XCTAssertFalse(viewModel.report.paperRuntimeAuthorizesTradingExecution)
         XCTAssertEqual(viewModel.report.latestParityStatus, .matchedProjectionEvidence)
-        XCTAssertEqual(viewModel.report.lastAppliedSequence, 12)
+        XCTAssertEqual(viewModel.report.lastAppliedSequence, 13)
         XCTAssertFalse(viewModel.report.tradingValidationAuthorizesExecution)
         XCTAssertFalse(viewModel.report.authorizesTradingExecution)
         let report = try XCTUnwrap(viewModel.report.artifacts.first)
@@ -79,66 +103,82 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(report.backtestRunID, "backtest-ema-fixture")
         XCTAssertEqual(report.backtestState, .completed)
         XCTAssertEqual(report.researchIDs, ["obi-research-fixture"])
-        XCTAssertEqual(report.paperSessionIDs, ["paper-ema-fixture"])
+        XCTAssertEqual(report.paperSessionIDs, ["paper-replay-session"])
         XCTAssertEqual(report.strategyIDs, ["ema-cross", "obi-fixture"])
         XCTAssertEqual(report.symbol, "BTCUSDT")
         XCTAssertEqual(report.timeframe, "1m")
-        XCTAssertEqual(report.backtestSignalCount, 2)
+        XCTAssertEqual(report.backtestSignalCount, 4)
         XCTAssertEqual(report.researchSignalCount, 1)
-        XCTAssertEqual(report.paperSignalCount, 2)
-        XCTAssertEqual(report.eventCount, 3)
+        XCTAssertEqual(report.paperSignalCount, 4)
+        XCTAssertEqual(report.eventCount, 13)
         XCTAssertEqual(report.parityStatus, .matchedProjectionEvidence)
         XCTAssertEqual(report.executionAuthorization, .researchOutputOnly)
         XCTAssertFalse(report.authorizesTradingExecution)
         XCTAssertEqual(report.tradingValidationEvidence.parityStatus, .matchedProjectionEvidence)
         XCTAssertEqual(report.tradingValidationEvidence.executionCostEvidenceCount, 2)
         XCTAssertTrue(report.tradingValidationEvidence.executionCostParityConsistent)
-        XCTAssertEqual(report.tradingValidationEvidence.riskBlockerEvidenceIDs, ["risk-blocker-fixture"])
+        XCTAssertEqual(
+            report.tradingValidationEvidence.riskBlockerEvidenceIDs,
+            ["risk-blocker-paper-replay-proposal-blocked"]
+        )
         XCTAssertEqual(report.tradingValidationEvidence.riskBlockerReasons, [.maxPaperQuantityExceeded])
         XCTAssertEqual(report.tradingValidationEvidence.portfolioExposureSymbols, ["BTCUSDT"])
         XCTAssertEqual(report.tradingValidationEvidence.portfolioExposureCount, 1)
         XCTAssertEqual(
             report.tradingValidationEvidence.portfolioGrossExposureNotional,
-            52_500,
+            50,
             accuracy: 0.00000001
         )
-        XCTAssertEqual(report.tradingValidationEvidence.sourceSequences, [10, 11])
+        XCTAssertEqual(report.tradingValidationEvidence.sourceSequences, [8, 13])
         XCTAssertFalse(report.tradingValidationEvidence.authorizesTradingExecution)
+        XCTAssertEqual(report.paperRuntimeEvidence.factsSource, "append-only event log replay")
+        XCTAssertTrue(report.paperRuntimeEvidence.replayAvailable)
+        XCTAssertEqual(report.paperRuntimeEvidence.replayedSequences, Array(1...13))
+        XCTAssertEqual(report.paperRuntimeEvidence.replayedStreams, ["paper", "portfolio", "risk"])
+        XCTAssertEqual(report.paperRuntimeEvidence.lifecycleStates, [.started, .updated, .closed])
+        XCTAssertEqual(report.paperRuntimeEvidence.signalEventCount, 4)
+        XCTAssertEqual(report.paperRuntimeEvidence.proposalCount, 2)
+        XCTAssertEqual(report.paperRuntimeEvidence.portfolioExposureCount, 1)
+        XCTAssertEqual(report.paperRuntimeEvidence.portfolioGrossExposureNotional, 50, accuracy: 0.00000001)
+        XCTAssertEqual(report.paperRuntimeEvidence.sourceSequences, Array(1...13))
+        XCTAssertTrue(report.paperRuntimeEvidence.appendOnlyFactsSourceIsReplaySource)
+        XCTAssertTrue(report.paperRuntimeEvidence.paperOnlyBoundaryHeld)
+        XCTAssertFalse(report.paperRuntimeEvidence.authorizesTradingExecution)
         let makerCost = try XCTUnwrap(
             report.tradingValidationEvidence.executionCostEvidence.first {
                 $0.liquidityRole == .maker
             }
         )
         XCTAssertEqual(makerCost.assumptionID, "mtp-27-fixed-cost-assumptions")
-        XCTAssertEqual(makerCost.grossNotional, 52_500, accuracy: 0.00000001)
-        XCTAssertEqual(makerCost.feeAmount, 10.5, accuracy: 0.00000001)
-        XCTAssertEqual(makerCost.slippageAmount, 7.875, accuracy: 0.00000001)
-        XCTAssertEqual(makerCost.backtestTotalCostAmount, 18.375, accuracy: 0.00000001)
-        XCTAssertEqual(makerCost.paperTotalCostAmount, 18.375, accuracy: 0.00000001)
+        XCTAssertEqual(makerCost.grossNotional, 50, accuracy: 0.00000001)
+        XCTAssertEqual(makerCost.feeAmount, 0.01, accuracy: 0.00000001)
+        XCTAssertEqual(makerCost.slippageAmount, 0.0075, accuracy: 0.00000001)
+        XCTAssertEqual(makerCost.backtestTotalCostAmount, 0.0175, accuracy: 0.00000001)
+        XCTAssertEqual(makerCost.paperTotalCostAmount, 0.0175, accuracy: 0.00000001)
         XCTAssertTrue(makerCost.parityConsistent)
 
-        XCTAssertEqual(viewModel.paper.sessions.map(\.sessionID), ["paper-ema-fixture"])
+        XCTAssertEqual(viewModel.paper.sessions.map(\.sessionID), ["paper-replay-session"])
         XCTAssertEqual(viewModel.paper.sessions.first?.executionMode, .paper)
         XCTAssertEqual(viewModel.paper.completedSessionCount, 1)
         XCTAssertEqual(viewModel.paper.activeSessionCount, 0)
 
-        XCTAssertEqual(viewModel.risk.rejectedPaperOrderIDs, ["paper-order-rejected"])
+        XCTAssertEqual(viewModel.risk.rejectedPaperOrderIDs, ["paper-replay-proposal-blocked"])
         XCTAssertEqual(viewModel.risk.rejectionCount, 1)
         XCTAssertEqual(viewModel.risk.evidence.first?.reason, .maxPaperQuantityExceeded)
         XCTAssertEqual(viewModel.risk.evidence.first?.riskProfileID, "paper-risk")
         XCTAssertEqual(viewModel.risk.evidence.first?.symbol, "BTCUSDT")
-        XCTAssertEqual(viewModel.risk.evidence.first?.sourceSequence, 10)
+        XCTAssertEqual(viewModel.risk.evidence.first?.sourceSequence, 13)
 
         XCTAssertEqual(viewModel.portfolio.portfolioIDs, ["portfolio-main"])
         XCTAssertEqual(viewModel.portfolio.updatedPortfolioCount, 1)
         XCTAssertEqual(viewModel.portfolio.exposureCount, 1)
         XCTAssertEqual(viewModel.portfolio.exposures.first?.symbol, "BTCUSDT")
         XCTAssertEqual(viewModel.portfolio.exposures.first?.source, .paperProjection)
-        XCTAssertEqual(viewModel.portfolio.totalGrossExposureNotional, 52_500, accuracy: 0.00000001)
+        XCTAssertEqual(viewModel.portfolio.totalGrossExposureNotional, 50, accuracy: 0.00000001)
 
-        XCTAssertEqual(viewModel.events.eventCount, 3)
-        XCTAssertEqual(viewModel.events.streams, ["backtest", "market", "paper"])
-        XCTAssertEqual(viewModel.events.lastSequence, 3)
+        XCTAssertEqual(viewModel.events.eventCount, 13)
+        XCTAssertEqual(viewModel.events.streams, ["paper", "portfolio", "risk"])
+        XCTAssertEqual(viewModel.events.lastSequence, 13)
     }
 
     func testDashboardViewModelStateSnapshotIsCodableAndDeterministic() throws {
@@ -151,9 +191,11 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(decoded.market.section, .market)
         XCTAssertEqual(decoded.backtest.runs.first?.state, .completed)
         XCTAssertEqual(decoded.report.artifacts.first?.parityStatus, .matchedProjectionEvidence)
+        XCTAssertEqual(decoded.report.artifacts.first?.paperRuntimeEvidence.proposalCount, 2)
+        XCTAssertTrue(decoded.report.paperRuntimePaperOnlyBoundaryHeld)
         XCTAssertFalse(decoded.report.authorizesTradingExecution)
-        XCTAssertEqual(decoded.paper.sessions.first?.state, .completed)
-        XCTAssertEqual(decoded.events.lastSequence, 3)
+        XCTAssertEqual(decoded.paper.sessions.first?.state, .closed)
+        XCTAssertEqual(decoded.events.lastSequence, 13)
     }
 
     func testReportReadModelMarksMissingPaperProjectionWithoutLiveFallback() throws {
@@ -231,7 +273,7 @@ final class AppTests: XCTestCase {
 
     @MainActor
     func testDashboardShellSnapshotBindsViewModelSectionsForReadOnlyMacOSShell() throws {
-        // 测试场景：MTP-22 macOS 看板壳必须把现有 DashboardViewModel 快照绑定到七个只读区域，
+        // 测试场景：macOS 看板壳必须把现有 DashboardViewModel 快照绑定到八个只读区域，
         // 且每个区域继续保留 read-model-only 来源证据，不能新增交易控制或外部 adapter 调用。
         let viewModel = try makeDashboardViewModel()
         let shell = DashboardShellView(viewModel: viewModel)
@@ -251,7 +293,7 @@ final class AppTests: XCTestCase {
 
         let backtest = try XCTUnwrap(snapshot.sections.first { $0.section == .backtest })
         XCTAssertEqual(metricValue("Runs", in: backtest), "1")
-        XCTAssertEqual(metricValue("Signals", in: backtest), "2")
+        XCTAssertEqual(metricValue("Signals", in: backtest), "4")
 
         let report = try XCTUnwrap(snapshot.sections.first { $0.section == .report })
         XCTAssertEqual(metricValue("Reports", in: report), "1")
@@ -259,12 +301,22 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(metricValue("Cost evidence", in: report), "2")
         XCTAssertEqual(metricValue("Risk blockers", in: report), "1")
         XCTAssertEqual(metricValue("Exposure", in: report), "1")
+        XCTAssertEqual(metricValue("Runtime", in: report), "1")
+        XCTAssertEqual(metricValue("Replay facts", in: report), "13")
         XCTAssertTrue(report.details.contains("Report IDs: report-backtest-ema-fixture"))
         XCTAssertTrue(report.details.contains("Cost assumptions: mtp-27-fixed-cost-assumptions"))
         XCTAssertTrue(report.details.contains("Cost parity: consistent"))
-        XCTAssertTrue(report.details.contains("Risk blocker evidence: risk-blocker-fixture"))
+        XCTAssertTrue(report.details.contains("Risk blocker evidence: risk-blocker-paper-replay-proposal-blocked"))
         XCTAssertTrue(report.details.contains("Exposure symbols: BTCUSDT"))
-        XCTAssertTrue(report.details.contains("Gross exposure: 52500.00"))
+        XCTAssertTrue(report.details.contains("Gross exposure: 50.00"))
+        XCTAssertTrue(report.details.contains("Runtime sessions: paper-replay-session"))
+        XCTAssertTrue(report.details.contains("Lifecycle: started, updated, closed"))
+        XCTAssertTrue(report.details.contains("Proposals: paper-replay-proposal, paper-replay-proposal-blocked"))
+        XCTAssertTrue(report.details.contains("Runtime blockers: risk-blocker-paper-replay-proposal-blocked"))
+        XCTAssertTrue(report.details.contains("Portfolio updates: paper-replay-portfolio-update"))
+        XCTAssertTrue(report.details.contains("Replay streams: paper, portfolio, risk"))
+        XCTAssertTrue(report.details.contains("Runtime boundary: paper-only"))
+        XCTAssertTrue(report.details.contains("Replay deterministic: confirmed"))
         XCTAssertTrue(report.details.contains("Trading validation execution: research-only"))
         XCTAssertTrue(report.details.contains("Execution: research-only"))
         XCTAssertTrue(report.details.contains("Latest parity: matched projection evidence"))
@@ -279,7 +331,7 @@ final class AppTests: XCTestCase {
 
         let portfolio = try XCTUnwrap(snapshot.sections.first { $0.section == .portfolio })
         XCTAssertEqual(metricValue("Exposures", in: portfolio), "1")
-        XCTAssertEqual(metricValue("Gross exposure", in: portfolio), "52500.00")
+        XCTAssertEqual(metricValue("Gross exposure", in: portfolio), "50.00")
         XCTAssertTrue(portfolio.details.contains("Exposure symbols: BTCUSDT"))
 
         XCTAssertTrue(snapshot.smokeSummary.contains("sections=8"))
@@ -305,6 +357,8 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(report?.metrics.first { $0.label == "Cost evidence" }?.value, "0")
         XCTAssertEqual(report?.metrics.first { $0.label == "Risk blockers" }?.value, "0")
         XCTAssertEqual(report?.metrics.first { $0.label == "Exposure" }?.value, "0")
+        XCTAssertEqual(report?.metrics.first { $0.label == "Runtime" }?.value, "0")
+        XCTAssertEqual(report?.metrics.first { $0.label == "Replay facts" }?.value, "0")
 
         let events = snapshot.sections.first { $0.section == .events }
         XCTAssertEqual(events?.metrics.first { $0.label == "Events" }?.value, "0")
@@ -361,98 +415,9 @@ final class AppTests: XCTestCase {
     }
 
     private func makeRuntimeProjection() throws -> SQLiteRuntimeProjectionSnapshot {
-        let sessionID = try Identifier("paper-ema-fixture")
-        let portfolioID = try Identifier("portfolio-main")
-        let paperOrderID = try Identifier("paper-order-rejected")
-        let riskQuery = try RiskEvaluationQuery(
-            paperOrderID: paperOrderID,
-            symbol: try Symbol(rawValue: "BTCUSDT"),
-            timeframe: .oneMinute,
-            proposedQuantity: try Quantity(1.25),
-            riskProfileID: try Identifier("paper-risk"),
-            executionMode: .paper
-        )
-        let riskEvidence = SQLiteRiskBlockerEvidenceProjection(
-            evidence: RiskBlockerEvidence(
-                evidenceID: try Identifier("risk-blocker-fixture"),
-                query: riskQuery,
-                reason: .maxPaperQuantityExceeded,
-                generatedAt: Date(timeIntervalSince1970: 1_010)
-            ),
-            envelope: try EventEnvelope(
-                sequence: 10,
-                stream: .risk,
-                recordedAt: Date(timeIntervalSince1970: 1_011),
-                event: .risk(
-                    .blocked(
-                        RiskBlockerEvidence(
-                            evidenceID: try Identifier("risk-blocker-fixture"),
-                            query: riskQuery,
-                            reason: .maxPaperQuantityExceeded,
-                            generatedAt: Date(timeIntervalSince1970: 1_010)
-                        )
-                    )
-                )
-            )
-        )
-        let exposure = SQLitePortfolioExposureProjection(
-            exposure: PortfolioExposureSnapshot(
-                portfolioID: portfolioID,
-                symbol: try Symbol(rawValue: "BTCUSDT"),
-                timeframe: .oneMinute,
-                paperQuantity: try Quantity(1.25),
-                referencePrice: try Price(42_000),
-                source: .paperProjection,
-                observedAt: Date(timeIntervalSince1970: 1_120)
-            ),
-            envelope: try EventEnvelope(
-                sequence: 11,
-                stream: .portfolio,
-                recordedAt: Date(timeIntervalSince1970: 1_120),
-                event: .portfolio(
-                    .exposureUpdated(
-                        PortfolioExposureSnapshot(
-                            portfolioID: portfolioID,
-                            symbol: try Symbol(rawValue: "BTCUSDT"),
-                            timeframe: .oneMinute,
-                            paperQuantity: try Quantity(1.25),
-                            referencePrice: try Price(42_000),
-                            source: .paperProjection,
-                            observedAt: Date(timeIntervalSince1970: 1_120)
-                        )
-                    )
-                )
-            )
-        )
-
-        let session = SQLitePaperSessionProjection(
-            sessionID: sessionID,
-            strategyID: try Identifier("ema-cross"),
-            symbol: try Symbol(rawValue: "BTCUSDT"),
-            timeframe: .oneMinute,
-            riskProfileID: try Identifier("paper-risk"),
-            executionMode: .paper,
-            state: .completed,
-            signalCount: 2,
-            requestedAt: Date(timeIntervalSince1970: 900),
-            completedAt: Date(timeIntervalSince1970: 1_000),
-            lastUpdatedAt: Date(timeIntervalSince1970: 1_000)
-        )
-        let portfolio = SQLitePortfolioProjection(
-            portfolioID: portfolioID,
-            state: .updated,
-            requestedAt: Date(timeIntervalSince1970: 1_100),
-            updatedAt: Date(timeIntervalSince1970: 1_120),
-            lastUpdatedAt: Date(timeIntervalSince1970: 1_120),
-            exposures: [exposure]
-        )
-
-        return SQLiteRuntimeProjectionSnapshot(
-            paperSessions: [sessionID: session],
-            riskBlockerEvidence: [riskEvidence],
-            portfolioProjections: [portfolioID: portfolio],
-            lastAppliedSequence: 11
-        )
+        // 测试场景：App 层 fixture 复用 MTP-35 的 append-only replay facts，
+        // 确认 Report / Dashboard 只消费 runtime projection 和 event timeline，不手写交易执行状态。
+        try SQLiteRuntimeProjectionStore.project(PaperSessionReplayFixture.deterministicEventLog().envelopes)
     }
 
     private func makeAnalyticalProjection() throws -> DuckDBAnalyticalProjectionSnapshot {
@@ -463,7 +428,7 @@ final class AppTests: XCTestCase {
             symbol: try Symbol(rawValue: "BTCUSDT"),
             timeframe: .oneMinute,
             state: .completed,
-            signalCount: 2,
+            signalCount: 4,
             completedAt: Date(timeIntervalSince1970: 800)
         )
         let researchID = try Identifier("obi-research-fixture")
@@ -529,44 +494,9 @@ final class AppTests: XCTestCase {
     }
 
     private func makeEventTimeline() throws -> [EventEnvelope] {
-        [
-            try EventEnvelope(
-                sequence: 1,
-                stream: .market,
-                recordedAt: Date(timeIntervalSince1970: 201),
-                event: .market(.bar(try makeMarketBar(symbol: "BTCUSDT", close: 42_050, start: 100)))
-            ),
-            try EventEnvelope(
-                sequence: 2,
-                stream: .backtest,
-                recordedAt: Date(timeIntervalSince1970: 300),
-                event: .backtest(
-                    .requested(
-                        BacktestCommand(
-                            runID: try Identifier("backtest-ema-fixture"),
-                            strategy: try makeEMAStrategy(),
-                            marketData: try makeEMAMarketDataQuery()
-                        )
-                    )
-                )
-            ),
-            try EventEnvelope(
-                sequence: 3,
-                stream: .paper,
-                recordedAt: Date(timeIntervalSince1970: 400),
-                event: .paper(
-                    .sessionRequested(
-                        try PaperSessionCommand(
-                            sessionID: try Identifier("paper-ema-fixture"),
-                            strategy: try makeEMAStrategy(),
-                            marketData: try makeEMAMarketDataQuery(),
-                            riskProfileID: try Identifier("paper-risk"),
-                            executionMode: .paper
-                        )
-                    )
-                )
-            )
-        ]
+        // 测试场景：Report runtime evidence 必须来自可 replay 的 append-only facts source；
+        // 该 deterministic timeline 覆盖 lifecycle、proposal、risk blocker 和 portfolio update。
+        try PaperSessionReplayFixture.deterministicEventLog().envelopes
     }
 
     private func makeMarketBar(symbol: String, close: Double, start: TimeInterval) throws -> MarketBar {

@@ -171,3 +171,23 @@ MTP-34 不新增 SwiftUI 交易控制，也不让 ViewModel 直连 runtime / dat
 - ViewModel 不调用 Runtime / Adapters，不连接 broker / exchange。
 - ViewModel 不提供 position management command、live order action、broker action 或 signed endpoint。
 - portfolio exposure 只代表 paper-only projection evidence，不代表真实账户余额、margin、leverage、broker position 或真实成交。
+
+## MTP-36 Paper Session Runtime Evidence ViewModel 契约
+
+日期：2026-05-19
+
+执行者：Codex
+
+MTP-36 在 Report / Dashboard ViewModel 中汇总 Paper Session runtime evidence：
+
+- `PaperSessionRuntimeEvidenceSummary`：把 append-only replay summary 与 runtime projection evidence 汇总为可编码只读快照。
+- `ReportArtifactViewModel.paperRuntimeEvidence`：展示单个 report artifact 关联的 lifecycle、proposal、risk blocker、portfolio update 和 replay evidence。
+- `ReportViewModel`：汇总 runtime evidence count、runtime session IDs、lifecycle states、proposal IDs、runtime risk blocker evidence IDs、portfolio update IDs、replay sequence count、replay streams、deterministic replay flag 和 paper-only boundary flag。
+- `DashboardShellSnapshot` 的 Report 区域展示 runtime evidence、replay facts、runtime sessions、proposal IDs、portfolio update IDs、replay streams 和 paper-only boundary。
+
+边界确认：
+
+- Report / Dashboard 仍只消费 ViewModel / Read Model，不暴露 SQLite / DuckDB schema、SQL、ORM model、runtime object 或 adapter request。
+- runtime evidence 来自 append-only event timeline replay summary 与 SQLite runtime projection snapshot；它不触发 replay 写入、数据库迁移、broker action 或订单动作。
+- `paperRuntimeAuthorizesTradingExecution`、`paperRuntimeAuthorizesLiveTrading` 和 `paperRuntimeTouchesBrokerAction` 必须保持 false。
+- Report / Dashboard 不提供 live order action、risk control command、position management command、broker action 或 signed endpoint。
