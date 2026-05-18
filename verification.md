@@ -3388,3 +3388,58 @@ Commit：本轮提交
 | --- | --- | --- |
 | `swift test --filter AppTests` | pass | 8 个 AppTests 通过；覆盖 Report / Dashboard trading validation evidence summary、Codable deterministic snapshot、schema leakage 禁区和 research-only execution authorization。 |
 | `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 通过；66 个 XCTest 通过；输出 `MTPRO checks passed.` |
+
+## MTP-30 Validation summary, automation evidence, and Stage Code Audit input
+
+日期：2026-05-19
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 更新最近验证摘要，记录 `MTPRO Trading Validation and Parity Hardening` 中 `MTP-24` 至 `MTP-29` 的 Done evidence 和 MTP-30 当前收口目标。
+- 回填 `docs/validation/trading-validation-matrix.md` 的 MTP-30 阶段收口说明。
+- 新增 `docs/validation/mtp-30-stage-audit-input.md`，汇总 Issue / PR evidence、merge commit、required check、matrix evidence chain、known boundaries、automation readiness evidence、Root Docs Delta input 和 Stage Code Audit handoff checklist。
+- 更新 `docs/validation/validation-plan.md` 和 `checks/automation-readiness.sh`，使 MTP-30 输入材料和关键锚点进入本地机械检查。
+
+文件范围：
+
+- Added：
+  - `docs/validation/mtp-30-stage-audit-input.md`
+- Updated：
+  - `checks/automation-readiness.sh`
+  - `docs/validation/latest-verification-summary.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 symphony-issue。
+- 未输出最终 Stage Code Audit Report。
+- 未修改 active Project pointer。
+- 未运行 Graphify full rebuild。
+- 未接真实 Binance 网络。
+- 未读取 secret。
+- 未接 signed endpoint / account endpoint。
+- 未连接 broker。
+- 未提交、取消或替换真实订单。
+- 未实现完整报表系统。
+- 未实现交易所费率表、动态滑点模型或执行成本优化。
+- 未实现完整风险引擎、实时风控、仓位管理、保证金、杠杆或真实账户余额。
+- 未实现 Paper 或 Live execution 推进。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；MTP-30 Stage Code Audit input、Trading Validation Matrix 和 automation anchors 完整。 |
+| `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 通过；66 个 XCTest 通过；输出 `MTPRO checks passed.` |

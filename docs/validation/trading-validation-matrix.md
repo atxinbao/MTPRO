@@ -1,6 +1,6 @@
 # Trading Validation Matrix
 
-日期：2026-05-18
+日期：2026-05-19
 
 执行者：Codex
 
@@ -46,7 +46,19 @@
 | `MTP-27` | `TVM-FEES-SLIPPAGE` | 已回填 fees / slippage fixed assumptions、deterministic fixture、最小计算边界、Backtest / Paper cost parity、禁止项和 validation 摘要。 |
 | `MTP-28` | `TVM-RISK-BLOCKER`、`TVM-PORTFOLIO-EXPOSURE` | 已回填 risk blocker evidence、portfolio exposure read model、Core / Persistence / App tests、shell snapshot、禁止项和 validation 摘要。 |
 | `MTP-29` | `TVM-REPORT-EVIDENCE` | 已回填 Report / Dashboard 中交易验证 evidence summary、execution cost evidence、risk blocker evidence、portfolio exposure evidence、snapshot tests、read-only boundary 和 validation 摘要。 |
-| `MTP-30` | 全部 Matrix ID | 阶段收口时确认每个已实现验证域都有 test / fixture / evidence / PR 链接，并为 Stage Code Audit Report 准备输入。 |
+| `MTP-30` | 全部 Matrix ID | 已新增 `docs/validation/mtp-30-stage-audit-input.md`，集中记录 MTP-24 至 MTP-29 的 PR evidence、merge commit、required check、matrix evidence chain、known boundaries、automation readiness evidence 和 Stage Code Audit handoff checklist；最终 Stage Code Audit Report 仍由 Parent Codex 在 Project 全部 Done 后单独输出。 |
+
+## MTP-30 阶段收口
+
+MTP-30 对已实现验证域做阶段收口，不新增业务交易能力，不替代最终 Stage Code Audit Report。
+
+| 收口项 | Evidence location | 审计用途 |
+| --- | --- | --- |
+| Issue / PR evidence | `docs/validation/mtp-30-stage-audit-input.md` 的 `Issue / PR evidence input` | 为 Parent Codex 汇总 PR #52、#53、#55、#56、#57、#58 和 MTP-30 PR 提供输入。 |
+| Matrix coverage | `docs/validation/mtp-30-stage-audit-input.md` 的 `Trading validation evidence chain` | 确认所有 Matrix ID 都有 test / fixture / read model / PR evidence。 |
+| Known boundaries | `docs/validation/mtp-30-stage-audit-input.md` 的 `Known boundaries` | 为 Stage Code Audit 的交易禁区、schema leakage 禁区和 Report 授权边界提供输入。 |
+| Automation readiness | `checks/automation-readiness.sh`、`docs/automation/verified-operations.md`、`.github/pull_request_template.md` | 确认 `checks`、WIP=1、handoff marker、Post-Issue Ledger、Graphify ignore 和 PR Automation 证据链仍完整。 |
+| Root Docs Delta input | `docs/validation/mtp-30-stage-audit-input.md` 的 `Root Docs Delta input` | 提醒 Parent Codex 在最终 Stage Code Audit Report 中检查 root docs，只同步已发生事实。 |
 
 ## Automation readiness anchors
 
