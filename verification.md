@@ -2972,3 +2972,47 @@ Commit：本轮提交
 | --- | --- | --- |
 | `git diff --check` | pass | Project Planning Record 结构迁移文档变更无空白错误。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、dashboard build / smoke 和 `swift test` 通过；输出 `MTPRO checks passed.` |
+
+## Parent Codex Startup Runbook
+
+日期：2026-05-18
+
+执行者：Codex
+
+PR：本轮 PR
+
+Commit：本轮提交
+
+目的：
+
+- 固化 `@002 / PAR` 接管已写入 Linear Project 时的启动 runbook。
+- 明确执行前检查、active Project pointer 更新、pointer 后二次 queue preview 和唯一 eligible issue 推进必须作为连续动作处理。
+
+文件范围：
+
+- Updated：
+  - `AGENTS.md`
+  - `docs/automation/parent-codex-supervision.md`
+  - `docs/automation/symphony-issue-workflow-template.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+
+边界确认：
+
+- 未创建 Linear Project。
+- 未创建 Linear Issues。
+- 未修改 Linear status。
+- 未推进任何 issue 到 Todo。
+- 未启动 symphony-issue。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Parent Codex startup runbook 文档变更无空白错误。 |
+| `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、dashboard build / smoke 和 `swift test` 通过；输出 `MTPRO checks passed.` |
