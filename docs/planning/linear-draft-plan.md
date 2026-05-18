@@ -93,3 +93,22 @@
 - 只有父 Codex 可以在 Human-approved Project 内，通过 queue preflight、WIP=1、依赖、previous issue Done 和 execution contract gate 后，操作唯一 eligible issue 的 `Backlog` -> `Todo`。
 - symphony-issue 只能调度唯一 `Todo` issue。
 - Codex Execution Agent 只执行当前唯一 Linear issue scope。
+
+## Next Human Project Planning 前置 Gate
+
+当前 Project 全部 Done 后，必须按以下顺序进入下一轮规划：
+
+```text
+Stage Code Audit Report
+-> Root Docs Refresh Gate
+-> Next Human Project Planning
+```
+
+Root Docs Refresh Gate 只同步已发生事实：
+
+- `GOAL.md`：目标、用户、成功标准或安全边界事实变化。
+- `ENVIRONMENT.md`：工具、运行方式、Graphify、Symphony、GitHub、Linear、本地依赖或 CI 环境事实变化。
+- `ARCHITECTURE.md`：已稳定落地的功能模块、边界、依赖方向和数据流。
+- `ROADMAP.md`：阶段状态、已完成 Project 和下一阶段 planning input；不授权执行。
+
+`@002 / PAR` 可以开 factual refresh PR。下一阶段方向、目标、架构路线和优先级必须由 Human + `@001 / PLN` 决定。
