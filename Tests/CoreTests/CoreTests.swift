@@ -763,6 +763,107 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testPaperActionRiskLinkAllowsPaperProposalWithTraceableContext() throws {
+        // 测试场景：MTP-33 允许路径必须把 strategy signal、paper proposal 和 risk query
+        // 串成可追溯证据，同时证明 allowed 不等于真实订单授权或 broker fallback。
+        let decision = try PaperActionProposalRiskFixture.deterministicAllowed()
+
+        XCTAssertEqual(decision.decisionID, try Identifier("paper-action-risk-allowed"))
+        XCTAssertEqual(decision.status, .allowed)
+        XCTAssertTrue(decision.isAllowed)
+        XCTAssertFalse(decision.isBlocked)
+        XCTAssertNil(decision.blockerEvidence)
+        XCTAssertEqual(decision.sourceSequence, 7)
+        XCTAssertEqual(decision.evaluatedAt.timeIntervalSince1970, 1_800)
+        XCTAssertEqual(decision.proposal.proposalID, try Identifier("paper-action-proposal-long"))
+        XCTAssertEqual(decision.proposal.side, .buy)
+        XCTAssertEqual(decision.riskQuery.paperOrderID, decision.proposal.proposalID)
+        XCTAssertEqual(decision.riskQuery.symbol, decision.proposal.symbol)
+        XCTAssertEqual(decision.riskQuery.timeframe, decision.proposal.timeframe)
+        XCTAssertEqual(decision.riskQuery.proposedQuantity, decision.proposal.quantity)
+        XCTAssertEqual(decision.riskQuery.riskProfileID, try Identifier("paper-risk"))
+        XCTAssertEqual(decision.riskQuery.executionMode, .paper)
+        XCTAssertEqual(decision.riskEvents, [.evaluationRequested(decision.riskQuery)])
+        XCTAssertTrue(decision.paperOnlyContextIsConsistent)
+        XCTAssertFalse(decision.liveExecutionFallbackAvailable)
+        XCTAssertFalse(decision.brokerFallbackAvailable)
+        XCTAssertFalse(decision.proposal.isExecutableAsRealOrder)
+
+        let encoded = try JSONEncoder().encode(decision)
+        let decoded = try JSONDecoder().decode(PaperActionProposalRiskDecision.self, from: encoded)
+        XCTAssertEqual(decoded, decision)
+    }
+
+    func testPaperActionRiskLinkBlocksOversizedPaperProposalWithEvidence() throws {
+        // 测试场景：MTP-33 阻断路径必须复用 RiskBlockerEvidence，固定 blocker reason、
+        // source sequence 和 paper-only context，不引入真实风控或 broker 拒单回退。
+        let decision = try PaperActionProposalRiskFixture.deterministicBlocked()
+        let evidence = try XCTUnwrap(decision.blockerEvidence)
+
+        XCTAssertEqual(decision.decisionID, try Identifier("paper-action-risk-blocked"))
+        XCTAssertEqual(decision.status, .blocked)
+        XCTAssertFalse(decision.isAllowed)
+        XCTAssertTrue(decision.isBlocked)
+        XCTAssertEqual(decision.sourceSequence, 8)
+        XCTAssertEqual(decision.evaluatedAt.timeIntervalSince1970, 1_860)
+        XCTAssertEqual(evidence.evidenceID, try Identifier("risk-blocker-paper-action-proposal-long"))
+        XCTAssertEqual(evidence.paperOrderID, decision.proposal.proposalID)
+        XCTAssertEqual(evidence.symbol, decision.proposal.symbol)
+        XCTAssertEqual(evidence.timeframe, decision.proposal.timeframe)
+        XCTAssertEqual(evidence.proposedQuantity, decision.proposal.quantity)
+        XCTAssertEqual(evidence.riskProfileID, try Identifier("paper-risk"))
+        XCTAssertEqual(evidence.executionMode, .paper)
+        XCTAssertEqual(evidence.reason, .maxPaperQuantityExceeded)
+        XCTAssertEqual(evidence.generatedAt, decision.evaluatedAt)
+        XCTAssertEqual(
+            decision.riskEvents,
+            [
+                .evaluationRequested(decision.riskQuery),
+                .blocked(evidence)
+            ]
+        )
+        XCTAssertTrue(decision.paperOnlyContextIsConsistent)
+        XCTAssertFalse(decision.liveExecutionFallbackAvailable)
+        XCTAssertFalse(decision.brokerFallbackAvailable)
+    }
+
+    func testPaperActionRiskDecisionDecodingRejectsMismatchedEvidence() throws {
+        // 测试场景：MTP-33 decision 解码不能把 allowed 结果伪造成带 blocker 的混合状态；
+        // source sequence 也必须保持正数，避免不可追溯的风险证据进入 replay 链路。
+        let decision = try PaperActionProposalRiskFixture.deterministicBlocked()
+        let encoded = try JSONEncoder().encode(decision)
+        let decoder = JSONDecoder()
+
+        var allowedWithBlocker = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        allowedWithBlocker["status"] = "allowed"
+        let allowedWithBlockerData = try JSONSerialization.data(withJSONObject: allowedWithBlocker)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperActionProposalRiskDecision.self, from: allowedWithBlockerData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperActionRiskDecisionMismatch(
+                    field: "blockerEvidence",
+                    expected: "nil for allowed decision",
+                    actual: "present"
+                )
+            )
+        }
+
+        var missingSourceSequence = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        missingSourceSequence["sourceSequence"] = 0
+        let missingSourceSequenceData = try JSONSerialization.data(withJSONObject: missingSourceSequence)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperActionProposalRiskDecision.self, from: missingSourceSequenceData)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .invalidEventSequence(0))
+        }
+    }
+
     func testEMABacktestPaperParityLocksStrategyQueryWarmupAndSignalTimeline() throws {
         // 场景：用乱序 deterministic fixture 验证 Backtest 与 Paper 共享同一 EMA 合同，
         // 并锁定 strategy、MarketDataQuery、warm-up 后首个 timestamp、方向和完整时间线。

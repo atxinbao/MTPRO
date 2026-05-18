@@ -31,6 +31,7 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
     case paperActionProposalRequiresPaperMode(ExecutionMode)
     case paperActionProposalSignalMismatch(field: String, expected: String, actual: String)
     case paperActionProposalCostEvidenceMismatch(field: String, expected: String, actual: String)
+    case paperActionRiskDecisionMismatch(field: String, expected: String, actual: String)
 
     public var description: String {
         switch self {
@@ -88,6 +89,8 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
             "Paper action proposal signal mismatch for \(field): expected \(expected), actual \(actual)"
         case let .paperActionProposalCostEvidenceMismatch(field, expected, actual):
             "Paper action proposal cost evidence mismatch for \(field): expected \(expected), actual \(actual)"
+        case let .paperActionRiskDecisionMismatch(field, expected, actual):
+            "Paper action risk decision mismatch for \(field): expected \(expected), actual \(actual)"
         }
     }
 }
