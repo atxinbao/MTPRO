@@ -150,3 +150,24 @@ MTP-29 在 Report / Dashboard ViewModel 中汇总交易验证 evidence：
 - fees / slippage evidence 只来自 deterministic fixture 和本地 projection，不代表 Binance 实际费率、真实成交、broker fill 或账户成本。
 - Risk / Portfolio evidence 只代表 Paper readiness，不代表真实账户余额、margin、leverage、broker position 或 Live fallback。
 - Report / Dashboard 不提供 live order action、risk control command、position management command、broker action 或 signed endpoint。
+
+## MTP-34 Paper-only Portfolio Projection Update ViewModel 契约
+
+日期：2026-05-19
+
+执行者：Codex
+
+MTP-34 不新增 SwiftUI 交易控制，也不让 ViewModel 直连 runtime / database。
+
+确认的只读 ViewModel 路径：
+
+- `PortfolioViewModel` 继续只消费 `PortfolioReadModel`。
+- `PortfolioReadModel` 继续只从 `SQLiteRuntimeProjectionSnapshot` 派生。
+- `PaperPortfolioProjectionUpdate` 经 replay / SQLite runtime projection 后，才以 `PortfolioExposureViewModel` 展示。
+
+边界确认：
+
+- ViewModel 不暴露 SQLite table、column、SQL statement、payload 编码或 ORM model。
+- ViewModel 不调用 Runtime / Adapters，不连接 broker / exchange。
+- ViewModel 不提供 position management command、live order action、broker action 或 signed endpoint。
+- portfolio exposure 只代表 paper-only projection evidence，不代表真实账户余额、margin、leverage、broker position 或真实成交。

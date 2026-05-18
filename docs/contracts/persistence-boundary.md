@@ -215,3 +215,30 @@ Persistence Boundary 必须先于真实 database adapter 实现。
 - 仓位管理、保证金、杠杆。
 - 真实 broker balance 或 account endpoint。
 - Live execution persistence、signed endpoint、broker action 或真实订单行为。
+
+## MTP-34 Paper-only Portfolio Projection Update Runtime Projection 边界
+
+日期：2026-05-19
+
+执行者：Codex
+
+`Persistence` 在本事项中让 SQLite runtime projection 可以消费 `PortfolioEvent.paperProjectionUpdated`：
+
+- `PaperPortfolioProjectionUpdate` 保留 allowed risk decision 的 source sequence。
+- `SQLitePortfolioExposureProjection.init(update:envelope:)` 把 update 转成 stable exposure read model。
+- `SQLiteRuntimeProjectionStore.project` 将 update 应用到 `SQLitePortfolioProjection.exposures`，并保持 `updated` state。
+
+契约要求：
+
+- append-only event log / replay envelope 仍是唯一事实源。
+- SQLite 只承载 Paper / Portfolio runtime read model 副本，不暴露 schema。
+- projection 中的 `sourceSequence` 只回溯本地 allowed risk decision，不代表 broker order sequence 或交易所回报。
+- projection 不读取真实账户余额、不同步 broker position、不表达 margin / leverage。
+
+本契约不包含：
+
+- 完整 portfolio management。
+- 真实账户余额读取。
+- margin、leverage、broker position sync。
+- 真实 broker balance 或 account endpoint。
+- Live execution persistence、signed endpoint、broker action 或真实订单行为。

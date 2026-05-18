@@ -178,6 +178,18 @@ MTP-33 的 required validation：
 - `docs/validation/trading-validation-matrix.md` 的 `TVM-RISK-BLOCKER` 必须回填新增 Core 类型、fixture、测试和 PR evidence 边界。
 - Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不触发 Paper / Live 执行。
 
+## MTP-34 Paper-only Portfolio Projection Update Validation
+
+MTP-34 的 required validation：
+
+- Paper-only portfolio update 必须使用 deterministic fixture，不依赖真实 Binance 网络、secret、broker、account endpoint 或真实订单。
+- Core 测试必须覆盖 allowed paper risk decision 生成 `PaperPortfolioProjectionUpdate` 和 `PortfolioEvent.paperProjectionUpdated`。
+- Core 测试必须覆盖 blocked risk decision 不得生成 portfolio update，并验证 Codable 解码不能恢复交易授权、真实账户余额读取或 broker position sync。
+- Persistence 测试必须覆盖 replay envelope 驱动 SQLite runtime projection update，并保留 allowed risk decision source sequence。
+- App 测试必须覆盖 Portfolio ViewModel 只消费 read model projection，不直连 database schema、runtime object、adapter、broker 或交易动作。
+- `docs/validation/trading-validation-matrix.md` 的 `TVM-PORTFOLIO-EXPOSURE` 必须回填新增 Core / Persistence / App 测试、fixture 和 PR evidence 边界。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不触发 Paper / Live 执行。
+
 ## Codex / Automation Validation
 
 - Codex use-cases 对齐：`docs/automation/codex-use-cases-alignment.md`。

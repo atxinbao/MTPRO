@@ -177,6 +177,58 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(artifact.tradingValidationEvidence.authorizesTradingExecution)
     }
 
+    func testPortfolioViewModelConsumesPaperPortfolioUpdateProjectionReadOnly() throws {
+        // 测试场景：MTP-34 的 portfolio update path 到达 App 层时只能是 SQLite runtime snapshot
+        // 派生的 read model；ViewModel 不得直连 schema、runtime object、broker 或交易动作。
+        let decision = try PaperActionProposalRiskFixture.deterministicAllowed()
+        let update = try PaperPortfolioProjectionUpdate(
+            updateID: try Identifier("paper-portfolio-update-allowed"),
+            portfolioID: try Identifier("portfolio-main"),
+            decision: decision,
+            updatedAt: Date(timeIntervalSince1970: 1_900)
+        )
+        let envelope = try EventEnvelope(
+            sequence: 12,
+            stream: .portfolio,
+            recordedAt: Date(timeIntervalSince1970: 1_901),
+            event: .portfolio(.paperProjectionUpdated(update))
+        )
+        let exposure = SQLitePortfolioExposureProjection(update: update, envelope: envelope)
+        let portfolio = SQLitePortfolioProjection(
+            portfolioID: update.portfolioID,
+            state: .updated,
+            requestedAt: nil,
+            updatedAt: envelope.recordedAt,
+            lastUpdatedAt: envelope.recordedAt,
+            exposures: [exposure]
+        )
+        let runtimeProjection = SQLiteRuntimeProjectionSnapshot(
+            portfolioProjections: [update.portfolioID: portfolio],
+            lastAppliedSequence: envelope.sequence
+        )
+        let readModel = DashboardReadModel(
+            runtimeProjection: runtimeProjection,
+            analyticalProjection: DuckDBAnalyticalProjectionSnapshot(),
+            eventTimeline: [envelope]
+        )
+        let viewModel = DashboardViewModel(readModel: readModel)
+
+        XCTAssertTrue(viewModel.portfolio.source.isReadModelOnly)
+        XCTAssertFalse(viewModel.portfolio.source.exposesDatabaseTables)
+        XCTAssertFalse(viewModel.portfolio.source.exposesRuntimeObjects)
+        XCTAssertFalse(viewModel.portfolio.source.callsBinanceAdapter)
+        XCTAssertFalse(viewModel.portfolio.source.providesLiveOrderAction)
+        XCTAssertEqual(viewModel.portfolio.portfolioIDs, ["portfolio-main"])
+        XCTAssertEqual(viewModel.portfolio.updatedPortfolioCount, 1)
+        XCTAssertEqual(viewModel.portfolio.exposureCount, 1)
+        let exposureViewModel = try XCTUnwrap(viewModel.portfolio.exposures.first)
+        XCTAssertEqual(exposureViewModel.paperQuantity, 0.5, accuracy: 0.00000001)
+        XCTAssertEqual(exposureViewModel.referencePrice, 100, accuracy: 0.00000001)
+        XCTAssertEqual(viewModel.portfolio.totalGrossExposureNotional, 50, accuracy: 0.00000001)
+        XCTAssertEqual(exposureViewModel.sourceSequence, decision.sourceSequence)
+        XCTAssertEqual(viewModel.events.streams, ["portfolio"])
+    }
+
     @MainActor
     func testDashboardShellSnapshotBindsViewModelSectionsForReadOnlyMacOSShell() throws {
         // 测试场景：MTP-22 macOS 看板壳必须把现有 DashboardViewModel 快照绑定到七个只读区域，

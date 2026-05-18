@@ -864,6 +864,104 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testPaperPortfolioProjectionUpdateEmitsPaperOnlyPortfolioEventFromAllowedDecision() throws {
+        // 测试场景：MTP-34 只能用 allowed paper risk decision 生成 portfolio exposure update；
+        // 输出必须是 paper-only read model fact，不能携带真实账户读取、broker sync 或交易执行授权。
+        let decision = try PaperActionProposalRiskFixture.deterministicAllowed()
+        let update = try PaperPortfolioProjectionUpdate(
+            updateID: try Identifier("paper-portfolio-update-allowed"),
+            portfolioID: try Identifier("portfolio-main"),
+            decision: decision,
+            updatedAt: Date(timeIntervalSince1970: 1_900)
+        )
+
+        XCTAssertEqual(update.updateID, try Identifier("paper-portfolio-update-allowed"))
+        XCTAssertEqual(update.decisionID, decision.decisionID)
+        XCTAssertEqual(update.proposalID, decision.proposal.proposalID)
+        XCTAssertEqual(update.sessionID, decision.proposal.sessionID)
+        XCTAssertEqual(update.riskProfileID, try Identifier("paper-risk"))
+        XCTAssertEqual(update.side, .buy)
+        XCTAssertEqual(update.riskDecisionStatus, .allowed)
+        XCTAssertEqual(update.executionMode, .paper)
+        XCTAssertEqual(update.sourceSequence, decision.sourceSequence)
+        XCTAssertEqual(update.exposure.portfolioID, try Identifier("portfolio-main"))
+        XCTAssertEqual(update.exposure.symbol, try Symbol(rawValue: "BTCUSDT"))
+        XCTAssertEqual(update.exposure.timeframe, .oneMinute)
+        XCTAssertEqual(update.exposure.paperQuantity.rawValue, 0.5, accuracy: 0.00000001)
+        XCTAssertEqual(update.exposure.referencePrice.rawValue, 100, accuracy: 0.00000001)
+        XCTAssertEqual(update.exposure.grossExposureNotional, 50, accuracy: 0.00000001)
+        XCTAssertEqual(update.exposure.source, .paperProjection)
+        XCTAssertEqual(update.updatedAt.timeIntervalSince1970, 1_900)
+        XCTAssertFalse(update.authorizesTradingExecution)
+        XCTAssertFalse(update.readsRealAccountBalance)
+        XCTAssertFalse(update.syncsBrokerPosition)
+        XCTAssertEqual(update.portfolioEvent, .paperProjectionUpdated(update))
+        XCTAssertEqual(
+            DomainEvent.portfolio(update.portfolioEvent),
+            .portfolio(.paperProjectionUpdated(update))
+        )
+
+        let encoded = try JSONEncoder().encode(update)
+        let decoded = try JSONDecoder().decode(PaperPortfolioProjectionUpdate.self, from: encoded)
+        XCTAssertEqual(decoded, update)
+    }
+
+    func testPaperPortfolioProjectionUpdateRejectsBlockedDecisionAndCapabilityBypass() throws {
+        // 测试场景：blocked risk decision 不能更新 portfolio projection；Codable 解码也不能
+        // 恢复 trading authorization、真实账户余额读取或 broker position sync 能力。
+        let blockedDecision = try PaperActionProposalRiskFixture.deterministicBlocked()
+        XCTAssertThrowsError(
+            try PaperPortfolioProjectionUpdate(
+                updateID: try Identifier("paper-portfolio-update-blocked"),
+                portfolioID: try Identifier("portfolio-main"),
+                decision: blockedDecision,
+                updatedAt: Date(timeIntervalSince1970: 1_900)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperPortfolioProjectionRequiresAllowedRiskDecision(.blocked)
+            )
+        }
+
+        let allowedUpdate = try PaperPortfolioProjectionUpdate(
+            updateID: try Identifier("paper-portfolio-update-allowed"),
+            portfolioID: try Identifier("portfolio-main"),
+            decision: try PaperActionProposalRiskFixture.deterministicAllowed(),
+            updatedAt: Date(timeIntervalSince1970: 1_900)
+        )
+        let encoded = try JSONEncoder().encode(allowedUpdate)
+        let decoder = JSONDecoder()
+
+        var blockedObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        blockedObject["riskDecisionStatus"] = "blocked"
+        let blockedData = try JSONSerialization.data(withJSONObject: blockedObject)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperPortfolioProjectionUpdate.self, from: blockedData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperPortfolioProjectionRequiresAllowedRiskDecision(.blocked)
+            )
+        }
+
+        var tradingAuthorizationObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        tradingAuthorizationObject["authorizesTradingExecution"] = true
+        let tradingAuthorizationData = try JSONSerialization.data(withJSONObject: tradingAuthorizationObject)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperPortfolioProjectionUpdate.self, from: tradingAuthorizationData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperPortfolioProjectionForbiddenCapability("authorizesTradingExecution")
+            )
+        }
+    }
+
     func testEMABacktestPaperParityLocksStrategyQueryWarmupAndSignalTimeline() throws {
         // 场景：用乱序 deterministic fixture 验证 Backtest 与 Paper 共享同一 EMA 合同，
         // 并锁定 strategy、MarketDataQuery、warm-up 后首个 timestamp、方向和完整时间线。
