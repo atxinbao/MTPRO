@@ -17,10 +17,12 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 ## 最近基线
 
 - 最近验证关联 Linear Project：`MTPRO Trading Validation and Parity Hardening`。
-- 最近验证对象：`MTP-30`，目标是收口 validation summary、trading validation matrix、automation evidence 和 Stage Code Audit 输入材料。
+- 最近验证对象：Project 级 Stage Code Audit Report 落仓。
 - Project Planning Record：`docs/planning/projects/mtpro-trading-validation-and-parity-hardening-plan.md`。
-- 执行事实源是 Linear `MTP-30` issue body；planning record 不单独授权执行。
-- Linear 只读查询确认：`MTP-24` 至 `MTP-29` 为 `Done`，`MTP-30` 为 `In Progress`。
+- Stage Code Audit Report：`docs/audit/mtpro-trading-validation-and-parity-hardening-stage-code-audit.md`。
+- Linear 只读查询确认：`MTP-24` 至 `MTP-30` 全部为 `Done`。
+- 当前 Project 无 `Todo` / `In Progress` / `In Review` active conflict。
+- Project 完成时 main 为 `4e694f96c56eff07d39267a799083474d7c1c9f5`。
 - MTP-24 已定义 `docs/validation/trading-validation-matrix.md`，并把 `TVM-EMA-PARITY`、`TVM-ORDER-BOOK-IMBALANCE-PARITY`、`TVM-FEES-SLIPPAGE`、`TVM-RISK-BLOCKER`、`TVM-PORTFOLIO-EXPOSURE`、`TVM-REPORT-EVIDENCE` 和 `TVM-FUTURE-ISSUE-BACKFILL` 固定为 automation readiness 锚点。
 - MTP-25 已完成 EMA Backtest / Paper signal timeline parity 加固，覆盖同一 strategy、同一 `MarketDataQuery`、query range、warm-up 后首个 signal timestamp 和 query range 过窄拒绝边界。
 - MTP-26 已完成 Order Book Imbalance research parity 和 bias evidence 加固，覆盖 snapshot / delta input source、direct contract 与 research event flow parity，以及 ask dominance research-only 边界。
@@ -29,8 +31,10 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - MTP-29 已将 projection-level parity、fees / slippage cost evidence、risk blocker evidence 和 portfolio exposure evidence 汇总到 Report / Dashboard read model。
 - MTP-30 新增 `docs/validation/mtp-30-stage-audit-input.md`，集中记录 Issue / PR evidence、merge commit、required check、matrix evidence chain、known boundaries、automation readiness evidence、Root Docs Delta input 和 Stage Code Audit handoff checklist。
 - MTP-30 更新 `docs/validation/trading-validation-matrix.md` 的阶段收口说明，并在 `docs/validation/validation-plan.md` 记录 MTP-30 required validation。
+- Stage Code Audit Report 已记录 `MTP-24` 至 `MTP-30` 全部 Done、PR #52 / #53 / #55 / #56 / #57 / #58 / #59 evidence、validation、boundary audit、Root Docs Delta 和 Next Human Project Planning handoff。
 - 上一阶段 Stage Code Audit Report 已记录 `MTP-18` / `MTP-19` / `MTP-22` 的临时 CI 平台边界，并确认审计报告覆盖完整 Linear Project；本 Project 目前未记录新增临时 CI 平台边界。
-- Project 全部 Done 后，Stage Code Audit Report 必须包含 Root Docs Delta，并先完成 Root Docs Refresh Gate，才进入 Next Human Project Planning。
+- 本 Project Stage Code Audit Report 已记录 Known CI Boundary：无当前 main 遗留 failing PR run；`MTP-24` 至 `MTP-30` 对应 PR checks 均已通过并合并。
+- Project 全部 Done 后，Stage Code Audit Report 必须包含 Root Docs Delta，并先完成 Root Docs Refresh Gate，才进入 Next Human Project Planning；本轮已完成该落仓动作。
 - Root Docs Refresh Gate 只允许 `@002 / PAR` 同步 `GOAL.md`、`ENVIRONMENT.md`、`ARCHITECTURE.md`、`ROADMAP.md` 中已发生的事实；方向性变化交给 Human + `@001 / PLN`。
 - `graphify-out/*` 未提交，`.codex/*` 未提交。
 - 本轮执行上下文中的 `symphony-issue` active Project pointer 指向 `mtpro-trading-validation-and-parity-hardening-4286a197bec0`；child Codex 不修改 pointer，本文档不作为 current issue 或 queue pointer 的事实源。
@@ -45,7 +49,7 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 | `MTP-27` | [#56 MTP-27 define fixed execution cost evidence](https://github.com/atxinbao/MTPRO/pull/56) | `fdfd25da8a4342ed0a5bc7089737644a6e29d6a4` | `checks` success |
 | `MTP-28` | [#57 Add risk blocker and portfolio exposure evidence](https://github.com/atxinbao/MTPRO/pull/57) | `a42018fc61c65937e4c39a7fe01e732671653b42` | `checks` success |
 | `MTP-29` | [#58 MTP-29 汇总 Report / Dashboard 交易验证证据](https://github.com/atxinbao/MTPRO/pull/58) | `f34fc38c036210ec90f60f5ec465f9482eac027e` | `checks` success |
-| `MTP-30` | 当前 issue PR | 当前 issue merge commit 待 GitHub PR Automation 产生 | 当前 issue PR 必须通过 `checks` |
+| `MTP-30` | [#59 MTP-30 加固验证文档和阶段审计输入](https://github.com/atxinbao/MTPRO/pull/59) | `4e694f96c56eff07d39267a799083474d7c1c9f5` | [checks success](https://github.com/atxinbao/MTPRO/actions/runs/26046045767/job/76570399101) |
 
 ## 最近验证
 
@@ -56,12 +60,12 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 | `swift build --product MTPRODashboard` | pass | macOS dashboard executable 构建通过。 |
 | `MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard` | pass | 输出 `MTPRO Dashboard smoke: sections=8; readModelOnly=true; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`。 |
 | `swift test` | pass | 66 个 XCTest 通过；验证既有 Core / Adapters / Persistence / Runtime / App coverage 在 MTP-30 文档收口后未回归。 |
-| `bash checks/run.sh` | pass | macOS 本地执行 `git diff --check`、automation readiness、dashboard build、dashboard smoke run 和 `swift test` 通过；输出 `MTPRO checks passed.` |
-| Stage Code Audit Report | n/a | 当前 Project 尚未全部 Done；Project 级 Stage Code Audit Report 仍须在 MTP-24 至 MTP-30 全部 Done 后由 Parent Codex 输出。 |
+| `bash checks/run.sh` | pass | 首次本地增量构建在 `swift test` 链接阶段命中旧符号缓存；执行 `swift package clean` 后重新运行同一入口通过，66 个 XCTest 0 failures，输出 `MTPRO checks passed.` |
+| Stage Code Audit Report | pass | 已落仓到 `docs/audit/mtpro-trading-validation-and-parity-hardening-stage-code-audit.md`；覆盖 Project 结论、Issue / PR evidence、Validation、Boundary Audit、Known CI Boundary、Root Docs Delta 和 Next Human Project Planning handoff。 |
 
 ## 当前边界
 
-- MTP-30 只收口 validation summary、trading validation matrix、automation evidence 和 Stage Code Audit input，不输出最终 Stage Code Audit Report。
+- MTP-30 只收口 validation summary、trading validation matrix、automation evidence 和 Stage Code Audit input；最终 Stage Code Audit Report 已由 Parent Codex 单独落仓。
 - Trading Validation Matrix 是 evidence routing 入口，不替代 Linear issue contract、PR evidence 或 Stage Code Audit Report。
 - `docs/validation/mtp-30-stage-audit-input.md` 是阶段审计输入材料，不授权下一 Project planning 或 execution。
 - `MTPRO Trading Validation and Parity Hardening` planning record 不单独授权执行。

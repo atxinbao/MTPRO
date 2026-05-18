@@ -6,12 +6,15 @@ ROADMAP 只定义阶段顺序，不授权执行。
 
 ## 当前基线
 
-`MTPRO 引导` Project 已完成。Human 已确认下一阶段 Project：
+已完成的 Linear Project：
 
-- Linear Project：`MTPRO Runtime Research Workbench v1`
-- Linear issues：`MTP-16` 到 `MTP-23`
-- Project / Issue 描述必须在第一个 `Todo` 前统一为 Codex Execution Agent 执行合同格式，并由父 Codex 做只读核对。
-- 当前无 `Todo` issue；`MTP-16` 是 first executable candidate，但仍为 `Backlog`。
+- `MTPRO 引导`
+- `MTPRO Runtime Research Workbench v1`，Linear issues：`MTP-16` 到 `MTP-23`
+- `MTPRO Trading Validation and Parity Hardening`，Linear issues：`MTP-24` 到 `MTP-30`
+
+最近完成的 Project 为 `MTPRO Trading Validation and Parity Hardening`。Parent Codex Stage Code Audit Report 已落仓到 `docs/audit/mtpro-trading-validation-and-parity-hardening-stage-code-audit.md`。
+
+当前无已授权下一阶段 Project；当前无 `Todo` / `In Progress` / `In Review` issue。下一阶段必须由 Human + `@001 / PLN` 重新规划并写入 Linear 后，才可交给 `@002 / PAR` 执行 Project queue preflight。
 
 仓库文档不得把某个 Linear issue 永久写成 current issue；执行前必须从 Linear / Parent Codex queue preview 读取当前 Project 的唯一 active configured executable issue。
 
@@ -31,10 +34,11 @@ ROADMAP 只定义阶段顺序，不授权执行。
 
 ## 下一步
 
-1. 统一 Linear Project / Issue 描述格式，确认 issue execution contract 完整。
-2. 父 Codex 做只读 queue preview，确认 `MTP-16` 仍为 first executable candidate、其他 issue 仍为 `Backlog` 且 WIP=1。
-3. 只有 Human 明确授权后，父 Codex 才可将 `MTP-16` 推进为唯一 `Todo`。
-4. symphony-issue 只调度唯一 `Todo` issue。
+1. Human + `@001 / PLN` 读取最新 Stage Code Audit Report，决定是否进入 Next Human Project Planning。
+2. 如果 Human 确认新 Project / Issue plan，先写入 Linear，并保持所有 issue 初始为 `Backlog` 或等价 non-executable 状态。
+3. `@002 / PAR` 只能在新 Project 已写入 Linear 后执行 Project / Issue 格式 Gate、active Project pointer 更新和二次 queue preview。
+4. gate 全部通过后，`@002 / PAR` 才能在 WIP=1 下推进唯一 eligible issue 到 `Todo`。
+5. symphony-issue 只调度唯一 `Todo` issue。
 
 ## 非授权边界
 

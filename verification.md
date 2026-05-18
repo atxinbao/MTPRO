@@ -3443,3 +3443,50 @@ Commit：本轮提交
 | --- | --- | --- |
 | `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；MTP-30 Stage Code Audit input、Trading Validation Matrix 和 automation anchors 完整。 |
 | `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 通过；66 个 XCTest 通过；输出 `MTPRO checks passed.` |
+
+## MTPRO Trading Validation and Parity Hardening Stage Code Audit Report
+
+日期：2026-05-19
+
+执行者：Parent Codex Automation Supervision（@002 / PAR）
+
+目的：
+
+- 将 `MTPRO Trading Validation and Parity Hardening` 的 Project 级 Stage Code Audit Report 落仓到 canonical audit path。
+- 同步最新验证摘要，记录 `MTP-24` 到 `MTP-30` 全部 Done、PR evidence、final validation、Known CI Boundary、Boundary Audit 和 Next Human Project Planning handoff。
+- 通过 Root Docs Refresh Gate 更新 `README.md` 与 `ROADMAP.md` 中已发生的 Project 完成事实。
+
+文件范围：
+
+- Added：
+  - `docs/audit/mtpro-trading-validation-and-parity-hardening-stage-code-audit.md`
+- Updated：
+  - `README.md`
+  - `ROADMAP.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未推进任何 issue 到 `Todo`。
+- 未启动 symphony-issue。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未接真实 Binance 网络。
+- 未读取 secret。
+- 未接 signed endpoint / account endpoint。
+- 未连接 broker。
+- 未提交、取消或替换真实订单。
+- 未实现 Live execution。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | 本轮 Stage Code Audit Report 和文档更新无空白问题。 |
+| `bash checks/run.sh` | failed first attempt | 首次本地增量构建在 `swift test` 链接阶段引用旧的 `SQLiteRuntimeProjectionSnapshot` 符号并失败；本轮仅改文档，判断为 SwiftPM 本地缓存边界。 |
+| `swift package clean && bash checks/run.sh` | pass | 清理 SwiftPM build cache 后，同一验证入口通过；`git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 通过；66 个 XCTest 通过；输出 `MTPRO checks passed.` |
