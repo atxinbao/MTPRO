@@ -821,6 +821,144 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testPaperExecutionWorkflowContractDefinesPaperOnlyStageAndEventBoundaries() throws {
+        // 测试场景：MTP-38 workflow contract 只定义 paper-only 阶段顺序和 event boundary；
+        // future issue 只能在该合同内补充 order / fill / execution decision，不能触碰真实交易能力。
+        let contract = PaperExecutionWorkflowContract.deterministicFixture
+
+        XCTAssertEqual(contract.contractID, try Identifier("mtp-38-paper-execution-workflow-contract"))
+        XCTAssertEqual(contract.issueID, try Identifier("MTP-38"))
+        XCTAssertEqual(contract.stageOrder, PaperExecutionWorkflowStage.allCases)
+        XCTAssertTrue(contract.paperOnlyBoundaryHeld)
+
+        let proposal = try XCTUnwrap(contract.boundary(for: .proposal))
+        XCTAssertNil(proposal.consumes)
+        XCTAssertEqual(proposal.produces, .riskDecision)
+        XCTAssertEqual(proposal.eventStream, .paper)
+        XCTAssertEqual(proposal.evidenceKind, .paperActionProposal)
+        XCTAssertTrue(proposal.implementedInCurrentCode)
+        XCTAssertNil(proposal.futureIssueID)
+
+        let riskDecision = try XCTUnwrap(contract.boundary(for: .riskDecision))
+        XCTAssertEqual(riskDecision.consumes, .proposal)
+        XCTAssertEqual(riskDecision.produces, .paperExecutionDecision)
+        XCTAssertEqual(riskDecision.eventStream, .risk)
+        XCTAssertEqual(riskDecision.evidenceKind, .paperActionProposalRiskDecision)
+        XCTAssertTrue(riskDecision.implementedInCurrentCode)
+
+        let executionDecision = try XCTUnwrap(contract.boundary(for: .paperExecutionDecision))
+        XCTAssertEqual(executionDecision.consumes, .riskDecision)
+        XCTAssertEqual(executionDecision.produces, .paperOrder)
+        XCTAssertEqual(executionDecision.eventStream, .paper)
+        XCTAssertEqual(executionDecision.evidenceKind, .paperExecutionDecision)
+        XCTAssertFalse(executionDecision.implementedInCurrentCode)
+        XCTAssertEqual(executionDecision.futureIssueID, try Identifier("MTP-41"))
+
+        let paperOrder = try XCTUnwrap(contract.boundary(for: .paperOrder))
+        XCTAssertEqual(paperOrder.consumes, .paperExecutionDecision)
+        XCTAssertEqual(paperOrder.produces, .simulatedFill)
+        XCTAssertEqual(paperOrder.eventStream, .paper)
+        XCTAssertEqual(paperOrder.evidenceKind, .paperOrder)
+        XCTAssertFalse(paperOrder.implementedInCurrentCode)
+        XCTAssertEqual(paperOrder.futureIssueID, try Identifier("MTP-39"))
+
+        let simulatedFill = try XCTUnwrap(contract.boundary(for: .simulatedFill))
+        XCTAssertEqual(simulatedFill.consumes, .paperOrder)
+        XCTAssertEqual(simulatedFill.produces, .portfolioProjection)
+        XCTAssertEqual(simulatedFill.eventStream, .paper)
+        XCTAssertEqual(simulatedFill.evidenceKind, .simulatedFill)
+        XCTAssertFalse(simulatedFill.implementedInCurrentCode)
+        XCTAssertEqual(simulatedFill.futureIssueID, try Identifier("MTP-40"))
+
+        let portfolioProjection = try XCTUnwrap(contract.boundary(for: .portfolioProjection))
+        XCTAssertEqual(portfolioProjection.consumes, .simulatedFill)
+        XCTAssertNil(portfolioProjection.produces)
+        XCTAssertEqual(portfolioProjection.eventStream, .portfolio)
+        XCTAssertEqual(portfolioProjection.evidenceKind, .paperPortfolioProjectionUpdate)
+        XCTAssertTrue(portfolioProjection.implementedInCurrentCode)
+
+        for boundary in contract.stageBoundaries {
+            XCTAssertFalse(boundary.authorizesTradingExecution)
+            XCTAssertFalse(boundary.authorizesLiveTrading)
+            XCTAssertFalse(boundary.touchesSignedEndpoint)
+            XCTAssertFalse(boundary.touchesBrokerAction)
+            XCTAssertFalse(boundary.representsRealOrder)
+            XCTAssertTrue(boundary.paperOnlyBoundaryHeld)
+        }
+
+        let encoded = try JSONEncoder().encode(contract)
+        let decoded = try JSONDecoder().decode(PaperExecutionWorkflowContract.self, from: encoded)
+        XCTAssertEqual(decoded, contract)
+    }
+
+    func testPaperExecutionWorkflowContractRejectsRealTradingCapabilityAndOrderBypass() throws {
+        // 测试场景：MTP-38 contract 的 Codable 边界必须拒绝 trading capability 注入；
+        // 阶段顺序也不能被重排，避免绕过 risk decision 直接进入 order / fill / portfolio。
+        let contract = PaperExecutionWorkflowContract.deterministicFixture
+        let encoded = try JSONEncoder().encode(contract)
+        let decoder = JSONDecoder()
+        var capabilityObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        var capabilityStages = try XCTUnwrap(
+            capabilityObject["stageBoundaries"] as? [[String: Any]]
+        )
+        capabilityStages[0]["authorizesTradingExecution"] = true
+        capabilityObject["stageBoundaries"] = capabilityStages
+        let capabilityData = try JSONSerialization.data(withJSONObject: capabilityObject)
+
+        XCTAssertThrowsError(
+            try decoder.decode(PaperExecutionWorkflowContract.self, from: capabilityData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperExecutionWorkflowForbiddenCapability("authorizesTradingExecution")
+            )
+        }
+
+        var orderObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        var reorderedStages = try XCTUnwrap(orderObject["stageBoundaries"] as? [[String: Any]])
+        reorderedStages.swapAt(0, 1)
+        orderObject["stageBoundaries"] = reorderedStages
+        let orderData = try JSONSerialization.data(withJSONObject: orderObject)
+
+        XCTAssertThrowsError(
+            try decoder.decode(PaperExecutionWorkflowContract.self, from: orderData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperExecutionWorkflowContractMismatch(
+                    field: "stageOrder",
+                    expected: "proposal,riskDecision,paperExecutionDecision,paperOrder,simulatedFill,portfolioProjection",
+                    actual: "riskDecision,proposal,paperExecutionDecision,paperOrder,simulatedFill,portfolioProjection"
+                )
+            )
+        }
+
+        var transitionObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        var transitionStages = try XCTUnwrap(transitionObject["stageBoundaries"] as? [[String: Any]])
+        transitionStages[0]["produces"] = "portfolioProjection"
+        transitionObject["stageBoundaries"] = transitionStages
+        let transitionData = try JSONSerialization.data(withJSONObject: transitionObject)
+
+        XCTAssertThrowsError(
+            try decoder.decode(PaperExecutionWorkflowContract.self, from: transitionData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperExecutionWorkflowContractMismatch(
+                    field: "proposal.produces",
+                    expected: "riskDecision",
+                    actual: "portfolioProjection"
+                )
+            )
+        }
+    }
+
     func testPaperActionRiskLinkAllowsPaperProposalWithTraceableContext() throws {
         // 测试场景：MTP-33 允许路径必须把 strategy signal、paper proposal 和 risk query
         // 串成可追溯证据，同时证明 allowed 不等于真实订单授权或 broker fallback。

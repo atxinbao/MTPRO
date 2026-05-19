@@ -515,6 +515,30 @@ Report / Dashboard read model。
 - replay deterministic 与 paper-only boundary 只是证据旗标，不授权交易执行。
 - 当前不新增 UI command、risk control command、position management command、broker action、signed endpoint、account endpoint 或真实订单行为。
 
+## MTP-38 Paper-only Execution Workflow Contract 观察面
+
+日期：2026-05-19
+
+执行者：Codex
+
+Paper-only execution workflow contract 在当前事项中只作为 Core contract / validation 观察面，为后续 paper order、simulated fill、replay 和 Report evidence 提供稳定边界。
+
+当前可观察字段：
+
+- contractID、issueID。
+- stage order：proposal、riskDecision、paperExecutionDecision、paperOrder、simulatedFill、portfolioProjection。
+- consumes / produces 阶段关系。
+- eventStream：`.paper`、`.risk`、`.portfolio`。
+- evidenceKind。
+- implementedInCurrentCode 和 futureIssueID。
+- paper-only capability flags：`authorizesTradingExecution`、`authorizesLiveTrading`、`touchesSignedEndpoint`、`touchesBrokerAction`、`representsRealOrder` 固定为 `false`。
+
+边界：
+
+- Contract 只表达后续本地 paper-only evidence 的 stage / event boundary，不写 event log、不读 projection schema、不生成 ViewModel。
+- paper execution decision、paper order 和 simulated fill 在 MTP-38 只作为 future issue 占位。
+- 当前不新增 UI command、risk control command、position management command、broker action、signed endpoint、account endpoint、真实订单行为或 Live execution。
+
 ## MTP-29 Report / Dashboard Trading Validation Evidence 观察面
 
 日期：2026-05-18

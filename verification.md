@@ -4227,3 +4227,54 @@ Linear 状态修正：
 | --- | --- | --- |
 | `git diff --check` | pass | Dashboard source naming cleanup 无空白问题。 |
 | `bash checks/run.sh` | pass | `git diff --check`、automation readiness、`swift build --product Dashboard`、`DASHBOARD_SMOKE=1 swift run Dashboard` 和 `swift test` 全部通过；80 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |
+
+## MTP-38 Paper-only Execution Workflow Contract
+
+日期：2026-05-19
+
+执行者：Codex
+
+目的：
+
+- 定义 paper-only execution workflow 的阶段顺序和事件边界。
+- 明确 proposal、risk decision、paper execution decision、paper order、simulated fill 和 portfolio projection 的关系。
+- 用 deterministic Core fixture / tests 固定 paper-only capability 禁区。
+- 回填 Trading Validation Matrix、contract docs、validation plan 和最近验证摘要。
+
+文件范围：
+
+- Added：
+  - `Sources/Core/PaperExecutionWorkflowContract.swift`
+- Updated：
+  - `Sources/Core/CoreError.swift`
+  - `Tests/CoreTests/CoreTests.swift`
+  - `checks/automation-readiness.sh`
+  - `docs/contracts/api-contract.md`
+  - `docs/contracts/backend-use-case-contract.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未实现 paper order lifecycle。
+- 未实现 simulated fill。
+- 未实现完整 OMS。
+- 未接 Live trading、signed endpoint、account endpoint、broker action 或真实订单行为。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test` | pass | 82 个 XCTest 通过；新增 `testPaperExecutionWorkflowContractDefinesPaperOnlyStageAndEventBoundaries` 和 `testPaperExecutionWorkflowContractRejectsRealTradingCapabilityAndOrderBypass`。 |
+| `swift test --filter CoreTests/testPaperExecutionWorkflowContract` | pass | 2 个 focused CoreTests 通过，覆盖 MTP-38 workflow contract stage order、event boundary、future issue 占位和 capability 禁区。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；确认新增 `TVM-PAPER-EXECUTION-WORKFLOW` anchor 可被机械检查定位。 |
+| `bash checks/run.sh` | pass | `git diff --check`、automation readiness、`swift build --product Dashboard`、`DASHBOARD_SMOKE=1 swift run Dashboard` 和 `swift test` 全部通过；82 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |
