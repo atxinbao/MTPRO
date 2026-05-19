@@ -123,9 +123,12 @@ require_contains "docs/automation/parent-codex-supervision.md" "Root Docs Delta"
 require_contains "docs/automation/parent-codex-supervision.md" "Root Docs Refresh Gate"
 require_contains "docs/automation/parent-codex-supervision.md" "Current Phase Progress Bar"
 require_contains "docs/automation/parent-codex-supervision.md" "当前阶段完成进度条"
-require_contains "docs/automation/parent-codex-supervision.md" "进度条是 Project closure 结果摘要，不是蓝图内容"
+require_contains "docs/automation/parent-codex-supervision.md" "Goal / Roadmap target progress"
+require_contains "docs/automation/parent-codex-supervision.md" '基于当前 `GOAL.md` 和 `ROADMAP.md` 的目标切片计算'
+require_contains "docs/automation/parent-codex-supervision.md" 'Project closure 数量必须单独输出为 `Project Closure Count`'
 require_contains "docs/automation/parent-codex-supervision.md" 'Linear Project status 已设置或确认为 `Completed`'
-require_contains "docs/automation/parent-codex-supervision.md" "Completed Projects"
+require_contains "docs/automation/parent-codex-supervision.md" "Project Closure Count"
+require_contains "docs/automation/parent-codex-supervision.md" "Goal / Roadmap Target Progress"
 require_contains "docs/automation/parent-codex-supervision.md" 'Human + `@001 / PLN`'
 require_contains "docs/automation/parent-codex-supervision.md" "Next Human Project Planning 必须读取该文件"
 require_contains "docs/automation/parent-codex-supervision.md" "Role Alias Rule"
@@ -208,6 +211,7 @@ require_contains "docs/design/mtpro-complete-blueprint.md" "不启动 Symphony"
 require_contains "README.md" "docs/design/mtpro-complete-blueprint.md"
 require_contains "AGENTS.md" "Complete Blueprint Design"
 require_contains "AGENTS.md" "当前阶段完成进度条"
+require_contains "AGENTS.md" "Goal / Roadmap Target Progress"
 require_contains "AGENTS.md" "不写入蓝图文档"
 require_contains "AGENTS.md" 'Human + `@000 / AIE`'
 require_contains "AGENTS.md" "Future Construction Zones"

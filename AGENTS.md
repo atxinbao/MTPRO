@@ -46,7 +46,7 @@ Agent 开始工作前必须读取：
 - Project 全部有效 issues `Done` 只是 Project closure 前置条件；Parent Codex 必须将 Linear Project status 设置或确认为 `Completed`，并确认 `type=completed`、`completedAt` 非空。
 - Stage Code Audit Report 必须覆盖完整 Linear Project，必须包含 Linear Project `Completed` evidence 和 Root Docs Delta。
 - Root Docs Refresh Gate 只允许 `@002 / PAR` 同步已发生事实；方向、目标、架构路线和下一阶段优先级必须交给 Human + `@001 / PLN`。
-- Root Docs Refresh Gate closure 后，`@002 / PAR` 必须输出当前阶段完成进度条；进度条属于 Project closure 摘要，不写入蓝图文档，不授权下一阶段执行。
+- Root Docs Refresh Gate closure 后，`@002 / PAR` 必须输出当前阶段完成进度条；进度条必须基于 `GOAL.md` 和 `ROADMAP.md` 的目标切片计算，Project closure 数量只能作为单独证据口径，不写入蓝图文档，不授权下一阶段执行。
 - `.codex/*` 不进入 PR。
 - `graphify-out/*` 不进入 PR。
 - Agent 默认读取 `docs/validation/latest-verification-summary.md`。
@@ -96,7 +96,7 @@ symphony-issue、Codex Execution Agent 和 GitHub PR Automation 是流程工具 
 
 `@002 Startup Runbook` 不创建 Linear Project / Issue，不修改 issue body，不启动 `symphony-issue`，不写代码，不创建 PR，不运行 Graphify update。
 
-Project closure 后，`@002 / PAR` 还必须输出当前阶段完成进度条。该进度条只统计当前 Human-approved phase 内已完成并完成 closure 的 Project，不统计完整蓝图中的 future capability，不写入 `docs/design/mtpro-complete-blueprint.md`。
+Project closure 后，`@002 / PAR` 还必须输出当前阶段完成进度条。该进度条使用 Goal / Roadmap Target Progress 口径；Project Closure Count 只说明已关闭 Project 数量，不等于目标完成度，不统计完整蓝图中的 future capability，不写入 `docs/design/mtpro-complete-blueprint.md`。
 
 ## Codex Execution Agent 流程
 

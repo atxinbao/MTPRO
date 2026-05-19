@@ -168,9 +168,11 @@ Root Docs Delta 只同步已发生事实。
 
 Root Docs Refresh Gate closure 后，Parent Codex 必须输出当前阶段完成进度条。
 
-进度条是 Project closure 结果摘要，不是蓝图内容，不写入 `docs/design/mtpro-complete-blueprint.md`，不授权下一阶段执行。
+进度条是 Goal / Roadmap target progress 摘要，不是蓝图内容，不写入 `docs/design/mtpro-complete-blueprint.md`，不授权下一阶段执行。
 
-进度条必须基于当前 Human-approved phase 内的 Project 列表计算，而不是基于完整最终蓝图、Future Construction Zones 或未授权方向计算。
+进度条必须基于当前 `GOAL.md` 和 `ROADMAP.md` 的目标切片计算，而不是直接用 Project closure 数量计算，也不是基于完整最终蓝图、Future Construction Zones 或未授权方向计算。
+
+Project closure 数量必须单独输出为 `Project Closure Count`，只作为证据口径，不等于目标完成度。
 
 一个 Project 只有同时满足以下条件，才能计为 completed：
 
@@ -183,10 +185,10 @@ Root Docs Refresh Gate closure 后，Parent Codex 必须输出当前阶段完成
 进度条输出必须包含：
 
 - 当前 phase 名称或范围。
-- phase 内 Project 总数。
-- completed Project 数量。
-- 百分比。
+- Project Closure Count。
+- Goal / Roadmap Target Progress。
 - ASCII progress bar。
+- 目标切片状态。
 - 最近完成 Project。
 - 下一步 handoff：交给 Human + `@001 / PLN`，或说明当前 phase 已全部完成、等待 Human 选择下一阶段。
 
@@ -195,7 +197,8 @@ Root Docs Refresh Gate closure 后，Parent Codex 必须输出当前阶段完成
 ```text
 Current Phase Progress
 Phase: <phase name>
-Completed Projects: <done>/<total> (<percent>%)
+Project Closure Count: <closed-projects>/<approved-projects> (<closure-percent>%)
+Goal / Roadmap Target Progress: <done-goal-slices>/<total-goal-slices> (<goal-percent>%)
 Progress: [########--] <percent>%
 Latest Completed Project: <project name>
 Next Handoff: Human + @001 / PLN

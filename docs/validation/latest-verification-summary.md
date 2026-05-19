@@ -26,23 +26,33 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - 本轮 MTP-42 paper execution event log / replay / projection focused Core 链路已通过 `swift test --filter CoreTests/testPaperExecution`；最终 `bash checks/run.sh` 结果见本文件最近验证表和 `verification.md` 追加记录。
 - 当前 main 已包含 `docs/reference/nautilus-trader/` reference study 汇总文档；它只作为 Linear 外 Product / Design / Architecture 参考和 root docs delta proposal，不授权执行。
 - 当前 main 已包含 `docs/design/mtpro-complete-blueprint.md`，作为 Human + `@000 / AIE` 维护的 MTPRO 完整产品 / 系统 / 设计蓝图。
-- 当前阶段完成进度条由 `@002 / PAR` 在 Project closure、Stage Code Audit Report 和 Root Docs Refresh Gate closure 后输出；进度条不写入蓝图文档，不授权下一阶段执行。
+- 当前阶段完成进度条由 `@002 / PAR` 在 Project closure、Stage Code Audit Report 和 Root Docs Refresh Gate closure 后输出；进度条必须基于 `GOAL.md` 和 `ROADMAP.md` 的目标切片计算，不按 Project closure 数量直接得出目标完成度，不写入蓝图文档，不授权下一阶段执行。
 
-## Current Phase Progress Baseline / 当前阶段完成进度基线
+## Goal / Roadmap Progress Baseline / 当前目标进度基线
 
 Phase：`MTPRO paper-only research / validation / execution foundation`
 
-Completed Projects：5 / 5（100%）
+Project Closure Count：5 / 5（100%）
 
-Progress：`[##########] 100%`
+Goal / Roadmap Target Progress：3 / 5（60%）
 
-Completed Projects 是计算依据，只统计当前已 Human-approved、已执行、已完成 Project closure、已落仓 Stage Code Audit Report、并已完成 Root Docs Refresh Gate closure 的建设阶段 Project：
+Progress：`[######----] 60%`
+
+Project Closure Count 只说明当前已批准、已执行、已完成 Project closure、已落仓 Stage Code Audit Report、并已完成 Root Docs Refresh Gate closure 的建设阶段 Project 数量，不代表完整目标 100% 完成：
 
 - `MTPRO 引导`
 - `MTPRO Runtime Research Workbench v1`
 - `MTPRO Trading Validation and Parity Hardening`
 - `MTPRO Paper Session Runtime v1`
 - `MTPRO Paper Execution Workflow v1`
+
+Goal / Roadmap Target Progress 才是当前目标进度。当前按 `GOAL.md` 核心结果和 `ROADMAP.md` 产品路线拆为 5 个目标切片：
+
+- Complete：Research / Backtest / Report / Paper readiness。
+- Complete：Paper-only execution evidence。
+- Complete / enforced：Live trading 禁区和 future boundary。
+- Pending：Paper workflow 可观察性和本地控制壳。
+- Pending：更长周期 market data replay / operations。
 
 Latest Completed Project：`MTPRO Paper Execution Workflow v1`
 
