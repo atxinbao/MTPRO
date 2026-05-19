@@ -27,6 +27,8 @@ MTPRO 支持 AEP 三位数字编号和三字母角色代号。数字编号与三
 
 角色编号只用于沟通压缩，不改变职责边界，不授权执行。
 
+本文档只定义 `@002 / PAR` 的自动化监督职责。`@003 / PRD`、`@004 / DSG`、`@005 / ARC` 固定为 Linear 外 reference / root docs 角色，不属于 issue 执行调度层。symphony-issue、Codex Execution Agent 和 GitHub PR Automation 必须按流程 actor 名称调用，不占用这些编号。
+
 常用指令可以写成：
 
 ```text
@@ -71,7 +73,7 @@ MTPRO 支持 AEP 三位数字编号和三字母角色代号。数字编号与三
 - `@002 Startup Runbook` 不创建 PR。
 - `@002 Startup Runbook` 不运行 Graphify update。
 
-## 三角色职责边界
+## 执行三角色职责边界
 
 MTPRO 当前自动化流程必须区分三个角色：
 

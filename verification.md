@@ -4278,3 +4278,42 @@ Linear 状态修正：
 | `swift test --filter CoreTests/testPaperExecutionWorkflowContract` | pass | 2 个 focused CoreTests 通过，覆盖 MTP-38 workflow contract stage order、event boundary、future issue 占位和 capability 禁区。 |
 | `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；确认新增 `TVM-PAPER-EXECUTION-WORKFLOW` anchor 可被机械检查定位。 |
 | `bash checks/run.sh` | pass | `git diff --check`、automation readiness、`swift build --product Dashboard`、`DASHBOARD_SMOKE=1 swift run Dashboard` 和 `swift test` 全部通过；82 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |
+
+## Role Alias Reference Roles
+
+日期：2026-05-19
+
+执行者：Codex
+
+目的：
+
+- 固定 MTPRO 的三位数字编号和三字母角色代号。
+- 将 `@003 / PRD`、`@004 / DSG`、`@005 / ARC` 明确为 Linear 外 reference / root docs 角色。
+- 明确 symphony-issue、Codex Execution Agent 和 GitHub PR Automation 是流程工具 / 执行层 actor，按名称调用，不占用 `@003`、`@004`、`@005` 编号。
+
+文件范围：
+
+- `AGENTS.md`
+- `docs/automation/parent-codex-supervision.md`
+- `docs/planning/project-role-map.md`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+边界确认：
+
+- 未创建 Linear Project。
+- 未创建 Linear issue。
+- 未修改 Linear status。
+- 未推进任何 issue 到 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Role Alias Reference Roles 文档变更通过 whitespace 检查。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 `swift test` 全部通过；82 个 XCTest 0 failures，输出 `MTPRO checks passed.`。首次两次 `swift test` 在 `PersistenceTests/testFileEventLogStoreRejectsOutOfOrderAppendToProtectAppendOnlyInvariant` 附近触发 `xctest` signal 11，执行 `swift package clean` 后完整入口通过；未修改业务代码。 |

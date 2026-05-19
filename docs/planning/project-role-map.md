@@ -25,15 +25,29 @@
 
 角色编号只用于沟通压缩，不改变职责边界，不授权执行。
 
+`@003 / PRD`、`@004 / DSG`、`@005 / ARC` 是 Linear 外的 reference / root docs 角色。它们用于外部参考项目研究、产品 / 设计 / 架构差距分析，以及 `GOAL.md`、`ARCHITECTURE.md`、`ENVIRONMENT.md`、`ROADMAP.md` 的 delta proposal。它们不创建 Linear Project / Issue，不修改 Linear status，不推进 `Todo`，不启动 symphony-issue，不写业务代码。
+
 | 编号 | 代号 | 角色 | MTPRO 当前使用方式 |
 | --- | --- | --- | --- |
 | `001` | `PLN` | Project Planning Lead | Next Human Project Planning、阶段目标、Linear Project / Issue 草案 |
 | `002` | `PAR` | Parent Codex Automation Supervision | queue preview、eligible issue 调度、child Codex 监督、Stage Code Audit |
-| `003` | `SYM` | symphony-issue | 唯一 issue 自动调度和 issue 执行状态推进 |
-| `004` | `COD` | Codex Execution Agent | 当前 Linear issue scope 内实现、验证、PR handoff |
-| `005` | `GHA` | GitHub PR Automation | checks、auto-merge、squash merge、branch cleanup、Linear bot auto Done |
+| `003` | `PRD` | Product Reference Lead | Linear 外产品参考研究、用户路径、工作台能力、`GOAL.md` / `ROADMAP.md` / `docs/product/*` delta proposal |
+| `004` | `DSG` | Design Reference Lead | Linear 外页面结构、信息架构、Dashboard / Workbench 状态与 ViewModel 映射 delta proposal |
+| `005` | `ARC` | Architecture Reference Lead | Linear 外系统结构参考、模块边界、event / replay / adapter / runtime / execution 语义映射 delta proposal |
 | `006` | `QAV` | QA / Trading Validation | XCTest、fixture、交易语义验证、失败归因、回归边界 |
 | `007` | `OPS` | Operations | 本地环境、运行、Graphify / Symphony / GitHub 自动化可用性 |
+
+symphony-issue、Codex Execution Agent 和 GitHub PR Automation 是流程工具 / 执行层 actor，按名称调用，不占用 `@003`、`@004`、`@005` 编号。
+
+## Reference Role Boundary
+
+| 角色编号 | 当前职责 | 产物 | 禁止 |
+| --- | --- | --- | --- |
+| `@003 / PRD` | 阅读外部参考项目的产品能力、用户路径、工作台流程和 acceptance 组织方式，提炼 MTPRO 应该采用 / 不采用的产品决策 | `docs/reference/*/product-reference.md`、`GOAL.md` / `ROADMAP.md` / `docs/product/*` delta proposal | 不创建 Linear Project / Issue，不推进 `Todo`，不写业务代码，不把参考项目能力直接当成 MTPRO scope |
+| `@004 / DSG` | 阅读外部参考项目的信息架构、页面组织、操作路径、状态表达和工作台结构，提炼 Dashboard / Workbench / ViewModel 设计建议 | `docs/reference/*/design-reference.md`、Product Surface / Frontend ViewModel delta proposal | 不写 UI 代码，不启动 symphony-issue，不把 wireframe / 页面建议当作执行授权 |
+| `@005 / ARC` | 阅读外部参考项目源码、官方文档和 API 文档，提炼 event-driven、replay、adapter、runtime、portfolio、risk、execution 等系统结构参考 | `docs/reference/*/architecture-reference.md`、`api-reference-map.md`、`ARCHITECTURE.md` / `ENVIRONMENT.md` / `docs/contracts/*` delta proposal | 不重写架构，不引入 Live trading / signed endpoint / broker action，不把外部 API 直接映射为实现任务 |
+
+Reference role 输出必须先形成 reference pack 和 delta proposal。只有 Human + `@001 / PLN` 确认某个 delta 进入下一阶段 Project Planning 后，才可能转化为 Linear Project / Issue。
 
 ## Role Coverage
 
