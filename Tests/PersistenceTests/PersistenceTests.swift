@@ -88,9 +88,12 @@ final class PersistenceTests: XCTestCase {
 
         XCTAssertEqual(try store.readEnvelopes(), envelopes)
         XCTAssertEqual(summary, repeatedSummary)
-        XCTAssertEqual(summary.replayedSequences, Array(1...13))
+        XCTAssertEqual(summary.replayedSequences, Array(1...16))
         XCTAssertTrue(summary.coversSessionEvents)
         XCTAssertTrue(summary.coversProposalEvents)
+        XCTAssertTrue(summary.coversPaperExecutionDecisionEvents)
+        XCTAssertTrue(summary.coversPaperOrderEvents)
+        XCTAssertTrue(summary.coversSimulatedFillEvents)
         XCTAssertTrue(summary.coversRiskBlockerEvents)
         XCTAssertTrue(summary.coversPortfolioProjectionEvents)
         XCTAssertTrue(summary.paperOnlyBoundaryHeld)
@@ -100,7 +103,7 @@ final class PersistenceTests: XCTestCase {
         XCTAssertEqual(runtimeSnapshot.riskBlockerEvidence.first?.evidenceID, summary.riskBlockerEvidenceIDs.first)
         XCTAssertEqual(portfolio.state, .updated)
         XCTAssertEqual(exposure.grossExposureNotional, 50, accuracy: 0.00000001)
-        XCTAssertEqual(exposure.sourceSequence, 8)
+        XCTAssertEqual(exposure.sourceSequence, 12)
     }
 
     func testReplayBoundaryCanRebuildProjectionSnapshotsFromFileEventLog() throws {
@@ -164,11 +167,12 @@ final class PersistenceTests: XCTestCase {
         // 测试场景：MTP-34 portfolio update event 必须能经 replay 驱动 SQLite runtime projection，
         // 并保留 allowed risk decision 的 source sequence，而不是读取真实账户或 broker position。
         var messageBus = try MessageBus()
-        let decision = try PaperActionProposalRiskFixture.deterministicAllowed()
+        let simulatedFill = try PaperSimulatedFillFixture.deterministicAllowed()
         let update = try PaperPortfolioProjectionUpdate(
             updateID: try Identifier("paper-portfolio-update-allowed"),
             portfolioID: try Identifier("portfolio-main"),
-            decision: decision,
+            simulatedFill: simulatedFill,
+            sourceSimulatedFillSequence: 12,
             updatedAt: Date(timeIntervalSince1970: 1_900)
         )
         let envelope = try messageBus.publish(
@@ -198,13 +202,13 @@ final class PersistenceTests: XCTestCase {
         XCTAssertEqual(portfolio.state, .updated)
         XCTAssertEqual(portfolio.updatedAt?.timeIntervalSince1970, 1_901)
         XCTAssertEqual(exposure.portfolioID, try Identifier("portfolio-main"))
-        XCTAssertEqual(exposure.symbol, decision.proposal.symbol)
-        XCTAssertEqual(exposure.timeframe, decision.proposal.timeframe)
-        XCTAssertEqual(exposure.paperQuantity, decision.proposal.quantity)
-        XCTAssertEqual(exposure.referencePrice, decision.proposal.referencePrice)
+        XCTAssertEqual(exposure.symbol, simulatedFill.symbol)
+        XCTAssertEqual(exposure.timeframe, simulatedFill.timeframe)
+        XCTAssertEqual(exposure.paperQuantity, simulatedFill.filledQuantity)
+        XCTAssertEqual(exposure.referencePrice, simulatedFill.fillPrice)
         XCTAssertEqual(exposure.grossExposureNotional, 50, accuracy: 0.00000001)
         XCTAssertEqual(exposure.source, .paperProjection)
-        XCTAssertEqual(exposure.sourceSequence, decision.sourceSequence)
+        XCTAssertEqual(exposure.sourceSequence, 12)
         XCTAssertEqual(exposure.projectedAt.timeIntervalSince1970, 1_901)
         XCTAssertEqual(queriedSnapshot.lastAppliedSequence, 1)
     }

@@ -83,7 +83,7 @@ final class AppTests: XCTestCase {
         )
         XCTAssertEqual(viewModel.report.paperRuntimePortfolioUpdateIDs, ["paper-replay-portfolio-update"])
         XCTAssertEqual(viewModel.report.paperRuntimePortfolioIDs, ["portfolio-main"])
-        XCTAssertEqual(viewModel.report.paperRuntimeReplaySequenceCount, 13)
+        XCTAssertEqual(viewModel.report.paperRuntimeReplaySequenceCount, 16)
         XCTAssertEqual(viewModel.report.paperRuntimeReplayStreams, ["paper", "portfolio", "risk"])
         XCTAssertTrue(viewModel.report.paperRuntimeCoversSessionEvents)
         XCTAssertTrue(viewModel.report.paperRuntimeCoversProposalEvents)
@@ -95,7 +95,7 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(viewModel.report.paperRuntimeTouchesBrokerAction)
         XCTAssertFalse(viewModel.report.paperRuntimeAuthorizesTradingExecution)
         XCTAssertEqual(viewModel.report.latestParityStatus, .matchedProjectionEvidence)
-        XCTAssertEqual(viewModel.report.lastAppliedSequence, 13)
+        XCTAssertEqual(viewModel.report.lastAppliedSequence, 16)
         XCTAssertFalse(viewModel.report.tradingValidationAuthorizesExecution)
         XCTAssertFalse(viewModel.report.authorizesTradingExecution)
         let report = try XCTUnwrap(viewModel.report.artifacts.first)
@@ -110,7 +110,7 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(report.backtestSignalCount, 4)
         XCTAssertEqual(report.researchSignalCount, 1)
         XCTAssertEqual(report.paperSignalCount, 4)
-        XCTAssertEqual(report.eventCount, 13)
+        XCTAssertEqual(report.eventCount, 16)
         XCTAssertEqual(report.parityStatus, .matchedProjectionEvidence)
         XCTAssertEqual(report.executionAuthorization, .researchOutputOnly)
         XCTAssertFalse(report.authorizesTradingExecution)
@@ -129,18 +129,18 @@ final class AppTests: XCTestCase {
             50,
             accuracy: 0.00000001
         )
-        XCTAssertEqual(report.tradingValidationEvidence.sourceSequences, [8, 13])
+        XCTAssertEqual(report.tradingValidationEvidence.sourceSequences, [12, 16])
         XCTAssertFalse(report.tradingValidationEvidence.authorizesTradingExecution)
         XCTAssertEqual(report.paperRuntimeEvidence.factsSource, "append-only event log replay")
         XCTAssertTrue(report.paperRuntimeEvidence.replayAvailable)
-        XCTAssertEqual(report.paperRuntimeEvidence.replayedSequences, Array(1...13))
+        XCTAssertEqual(report.paperRuntimeEvidence.replayedSequences, Array(1...16))
         XCTAssertEqual(report.paperRuntimeEvidence.replayedStreams, ["paper", "portfolio", "risk"])
         XCTAssertEqual(report.paperRuntimeEvidence.lifecycleStates, [.started, .updated, .closed])
         XCTAssertEqual(report.paperRuntimeEvidence.signalEventCount, 4)
         XCTAssertEqual(report.paperRuntimeEvidence.proposalCount, 2)
         XCTAssertEqual(report.paperRuntimeEvidence.portfolioExposureCount, 1)
         XCTAssertEqual(report.paperRuntimeEvidence.portfolioGrossExposureNotional, 50, accuracy: 0.00000001)
-        XCTAssertEqual(report.paperRuntimeEvidence.sourceSequences, Array(1...13))
+        XCTAssertEqual(report.paperRuntimeEvidence.sourceSequences, Array(1...16))
         XCTAssertTrue(report.paperRuntimeEvidence.appendOnlyFactsSourceIsReplaySource)
         XCTAssertTrue(report.paperRuntimeEvidence.paperOnlyBoundaryHeld)
         XCTAssertFalse(report.paperRuntimeEvidence.authorizesTradingExecution)
@@ -167,7 +167,7 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(viewModel.risk.evidence.first?.reason, .maxPaperQuantityExceeded)
         XCTAssertEqual(viewModel.risk.evidence.first?.riskProfileID, "paper-risk")
         XCTAssertEqual(viewModel.risk.evidence.first?.symbol, "BTCUSDT")
-        XCTAssertEqual(viewModel.risk.evidence.first?.sourceSequence, 13)
+        XCTAssertEqual(viewModel.risk.evidence.first?.sourceSequence, 16)
 
         XCTAssertEqual(viewModel.portfolio.portfolioIDs, ["portfolio-main"])
         XCTAssertEqual(viewModel.portfolio.updatedPortfolioCount, 1)
@@ -176,9 +176,9 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(viewModel.portfolio.exposures.first?.source, .paperProjection)
         XCTAssertEqual(viewModel.portfolio.totalGrossExposureNotional, 50, accuracy: 0.00000001)
 
-        XCTAssertEqual(viewModel.events.eventCount, 13)
+        XCTAssertEqual(viewModel.events.eventCount, 16)
         XCTAssertEqual(viewModel.events.streams, ["paper", "portfolio", "risk"])
-        XCTAssertEqual(viewModel.events.lastSequence, 13)
+        XCTAssertEqual(viewModel.events.lastSequence, 16)
     }
 
     func testDashboardViewModelStateSnapshotIsCodableAndDeterministic() throws {
@@ -195,7 +195,7 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(decoded.report.paperRuntimePaperOnlyBoundaryHeld)
         XCTAssertFalse(decoded.report.authorizesTradingExecution)
         XCTAssertEqual(decoded.paper.sessions.first?.state, .closed)
-        XCTAssertEqual(decoded.events.lastSequence, 13)
+        XCTAssertEqual(decoded.events.lastSequence, 16)
     }
 
     func testReportReadModelMarksMissingPaperProjectionWithoutLiveFallback() throws {
@@ -222,11 +222,12 @@ final class AppTests: XCTestCase {
     func testPortfolioViewModelConsumesPaperPortfolioUpdateProjectionReadOnly() throws {
         // 测试场景：MTP-34 的 portfolio update path 到达 App 层时只能是 SQLite runtime snapshot
         // 派生的 read model；ViewModel 不得直连 schema、runtime object、broker 或交易动作。
-        let decision = try PaperActionProposalRiskFixture.deterministicAllowed()
+        let simulatedFill = try PaperSimulatedFillFixture.deterministicAllowed()
         let update = try PaperPortfolioProjectionUpdate(
             updateID: try Identifier("paper-portfolio-update-allowed"),
             portfolioID: try Identifier("portfolio-main"),
-            decision: decision,
+            simulatedFill: simulatedFill,
+            sourceSimulatedFillSequence: 12,
             updatedAt: Date(timeIntervalSince1970: 1_900)
         )
         let envelope = try EventEnvelope(
@@ -267,7 +268,7 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(exposureViewModel.paperQuantity, 0.5, accuracy: 0.00000001)
         XCTAssertEqual(exposureViewModel.referencePrice, 100, accuracy: 0.00000001)
         XCTAssertEqual(viewModel.portfolio.totalGrossExposureNotional, 50, accuracy: 0.00000001)
-        XCTAssertEqual(exposureViewModel.sourceSequence, decision.sourceSequence)
+        XCTAssertEqual(exposureViewModel.sourceSequence, 12)
         XCTAssertEqual(viewModel.events.streams, ["portfolio"])
     }
 
@@ -302,7 +303,7 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(metricValue("Risk blockers", in: report), "1")
         XCTAssertEqual(metricValue("Exposure", in: report), "1")
         XCTAssertEqual(metricValue("Runtime", in: report), "1")
-        XCTAssertEqual(metricValue("Replay facts", in: report), "13")
+        XCTAssertEqual(metricValue("Replay facts", in: report), "16")
         XCTAssertTrue(report.details.contains("Report IDs: report-backtest-ema-fixture"))
         XCTAssertTrue(report.details.contains("Cost assumptions: mtp-27-fixed-cost-assumptions"))
         XCTAssertTrue(report.details.contains("Cost parity: consistent"))
