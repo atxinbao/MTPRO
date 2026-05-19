@@ -23,9 +23,11 @@ Linear Project 队列观察
 
 ## Role Alias Rule
 
-MTPRO 支持 AEP 三位数字编号和三字母角色代号。数字编号与三字母代号等价，例如 `@002 = PAR`。
+MTPRO 支持 AEP 三位数字编号和三字母角色代号。数字编号与三字母代号等价，例如 `@000 = AIE`、`@002 = PAR`。
 
 角色编号只用于沟通压缩，不改变职责边界，不授权执行。
+
+`@000 / AIE` 是当前 Codex 协作入口，负责识别任务、选择正确角色或流程，并在明确任务范围内完成代码 / 文档 / 验证 / PR handoff。`@000 / AIE` 不替代 `@002 / PAR` 的 Project queue gate，不得用 AI Engineer 身份绕过 WIP=1、依赖、active conflict 或执行合同格式检查。
 
 本文档只定义 `@002 / PAR` 的自动化监督职责。`@003 / PRD`、`@004 / DSG`、`@005 / ARC` 固定为 Linear 外 reference / root docs 角色，不属于 issue 执行调度层。symphony-issue、Codex Execution Agent 和 GitHub PR Automation 必须按流程 actor 名称调用，不占用这些编号。
 

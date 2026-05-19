@@ -155,6 +155,9 @@ require_contains "docs/planning/project-role-map.md" "Project Planning Facilitat
 require_contains "docs/planning/project-role-map.md" "Role Alias Map"
 require_contains "docs/planning/project-role-map.md" "三位数字编号和三字母角色代号等价"
 require_contains "docs/planning/project-role-map.md" '角色编号只用于沟通压缩，不改变职责边界，不授权执行'
+require_contains "docs/planning/project-role-map.md" '`000` | `AIE`'
+require_contains "docs/planning/project-role-map.md" "AI Engineer"
+require_contains "docs/planning/project-role-map.md" "当前 Codex 协作入口"
 require_contains "docs/planning/project-role-map.md" '`001` | `PLN`'
 require_contains "docs/planning/project-role-map.md" '`002` | `PAR`'
 require_contains "docs/planning/project-role-map.md" '`003` | `PRD`'
@@ -297,7 +300,10 @@ require_contains "AGENTS.md" "详细中文注释"
 require_contains "AGENTS.md" "Finance / Trading Domain"
 require_contains "AGENTS.md" "Trading validation"
 require_contains "AGENTS.md" "Role Alias Rule"
+require_contains "AGENTS.md" '@000 = AIE'
 require_contains "AGENTS.md" '@001 = PLN'
+require_contains "AGENTS.md" "AI Engineer"
+require_contains "AGENTS.md" "不替代 Human decision"
 require_contains "AGENTS.md" "给 @001 下 Codex 指令"
 require_contains "AGENTS.md" "@002 Startup Runbook"
 require_contains "AGENTS.md" "执行前检查"

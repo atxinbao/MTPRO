@@ -4369,3 +4369,43 @@ Linear 状态修正：
 | `swift test --filter CoreTests` | pass | 45 个 CoreTests 通过；新增 `testPaperOrderIntentCreatesPaperOnlyLifecycleFromAllowedRiskDecision`、`testPaperOrderIntentMapsBlockedRiskDecisionToRejectedLifecycle` 和 `testPaperOrderIntentDecodingRejectsCapabilityAndLifecycleBypass`。 |
 | `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；确认新增 `TVM-PAPER-ORDER-LIFECYCLE` anchor 可被机械检查定位。 |
 | `bash checks/run.sh` | pass | `git diff --check`、automation readiness、`swift build --product Dashboard`、`DASHBOARD_SMOKE=1 swift run Dashboard` 和 `swift test` 全部通过；85 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |
+
+## AI Engineer Role Alias
+
+日期：2026-05-19
+
+执行者：Codex
+
+目的：
+
+- 将 `000 / AIE` 固定为 MTPRO 的 AI Engineer 角色。
+- 明确 `@000 / AIE` 是当前 Codex 协作入口，负责任务理解、仓库 / 流程选择、代码 / 文档执行、验证、PR handoff、角色路由和边界守护。
+- 明确 `@000 / AIE` 不替代 Human decision，不绕过 Linear configured executable issue，不替代 `@001 / PLN`、`@002 / PAR` 或 Linear 外 reference 角色。
+
+文件范围：
+
+- `AGENTS.md`
+- `docs/automation/parent-codex-supervision.md`
+- `docs/planning/project-role-map.md`
+- `docs/validation/latest-verification-summary.md`
+- `checks/automation-readiness.sh`
+- `verification.md`
+
+边界确认：
+
+- 未创建 Linear Project。
+- 未创建 Linear issue。
+- 未修改 Linear status。
+- 未推进任何 issue 到 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | AI Engineer Role Alias 文档变更通过 whitespace 检查。 |
+| `bash checks/run.sh` | pass | rebase 到最新 `main` 后，先遇到一次 SwiftPM 增量缓存导致的错误文案污染；执行 `swift package clean` 后完整入口通过，automation readiness、Dashboard build / smoke 和 `swift test` 全部通过；85 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |
