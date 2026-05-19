@@ -17,13 +17,12 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 ## 当前基线
 
 - 当前 Project 状态必须从 Linear live-read 获取；仓库文档不固定 current issue、current Todo 或 active Project pointer。
-- `MTPRO Paper Execution Workflow v1` 已写入 Linear；Project-level planning record 位于 `docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md`。
-- 当前 Project 尚未完成；完成状态必须以 Linear Project status `Completed` 为准，并记录 `type=completed`、`completedAt` 非空。
-- Project 全部有效 issues `Done` 只是 closure 前置条件；不能替代 Linear Project status `Completed`。
-- Stage Code Audit Report 必须覆盖完整 Linear Project。
+- `MTPRO Paper Execution Workflow v1` 已完成；Project-level planning record 位于 `docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md`。
+- Linear Project status `Completed` 已确认，`type=completed`，`completedAt=2026-05-19T14:48:42.973Z`。
+- Stage Code Audit Report 已覆盖完整 Linear Project，路径为 `docs/audit/mtpro-paper-execution-workflow-v1-stage-code-audit.md`。
 - Root Docs Refresh Gate 只同步已发生事实；Root Docs Delta 不决定下一阶段方向。
-- 本轮 MTP-45 只读 Linear 查询（2026-05-19）确认 `MTPRO Paper Execution Workflow v1` 中 `MTP-38`、`MTP-39`、`MTP-40`、`MTP-41`、`MTP-42`、`MTP-44` 已 `Done`，`MTP-43`、`MTP-46` 为 `Duplicate`，`MTP-45` 为当前 `In Progress` issue。
-- `MTP-45` 新增 Project 级 Stage Audit Input，路径为 `docs/audit/inputs/mtpro-paper-execution-workflow-v1-stage-audit-input.md`；最终 Stage Code Audit Report 仍由 Parent Codex 在有效 issue 全部 `Done` 且 Linear Project `Completed` 后单独输出。
+- 本轮 queue closure（2026-05-19）确认 `MTPRO Paper Execution Workflow v1` 中 canonical issues `MTP-38`、`MTP-39`、`MTP-40`、`MTP-41`、`MTP-42`、`MTP-44`、`MTP-45` 全部 `Done`；`MTP-43`、`MTP-46` 为 `Duplicate` 并排除。
+- `MTP-45` 新增 Project 级 Stage Audit Input，路径为 `docs/audit/inputs/mtpro-paper-execution-workflow-v1-stage-audit-input.md`；Parent Codex 已基于该输入落仓 canonical Stage Code Audit Report。
 - 本轮 MTP-42 paper execution event log / replay / projection focused Core 链路已通过 `swift test --filter CoreTests/testPaperExecution`；最终 `bash checks/run.sh` 结果见本文件最近验证表和 `verification.md` 追加记录。
 - 当前 main 已包含 `docs/reference/nautilus-trader/` reference study 汇总文档；它只作为 Linear 外 Product / Design / Architecture 参考和 root docs delta proposal，不授权执行。
 
@@ -40,6 +39,7 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - `MTP-42` 串联 paper execution decision / order / simulated fill facts -> append-only event log -> deterministic replay -> replayed simulated fill evidence -> paper-only portfolio projection。
 - `MTP-44` 将 paper execution workflow evidence 汇总到 Report / Dashboard read model，展示 decision IDs、paper order IDs、simulated fill IDs、workflow replay streams、portfolio update IDs、decision / order / fill chain coverage 和 paper-only boundary。
 - `MTP-45` 固化 `MTPRO Paper Execution Workflow v1` 阶段审计输入，汇总 MTP-38 至 MTP-44 的 PR evidence、merge commit、required check、paper execution workflow validation evidence chain、known boundaries、automation readiness evidence 和 Root Docs Delta input。
+- `MTPRO Paper Execution Workflow v1` Stage Code Audit Report 已落仓，路径为 `docs/audit/mtpro-paper-execution-workflow-v1-stage-code-audit.md`。
 - 历史 `MTP-30` 阶段收口已迁入 `docs/audit/inputs/`，`docs/validation/` 不再存放 `MTP-xx` 命名的阶段输入文件。
 - `@000 / AIE` 是当前 Codex / AI Engineer 协作入口；`@003 / PRD`、`@004 / DSG`、`@005 / ARC` 是 Linear 外 reference / root docs 角色。
 
@@ -65,7 +65,7 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - MTP-41 只定义 paper execution decision 本地链路和 deterministic fixture；blocked risk decision 不生成 paper order，allowed decision 只生成 paper-only order / fill evidence。
 - MTP-41 issue 本身不写 event log、不新增 replay / projection / ViewModel；MTP-42 只把已存在的 paper execution facts 串入 event log / replay / projection，不实现完整 execution engine、完整风险引擎、broker rejection fallback、真实撮合、真实成交回报、broker fill、account update、broker action、signed endpoint 或真实订单行为。
 - Report / Dashboard 只展示 read model / ViewModel，不提供交易执行入口。
-- MTP-45 只准备 Stage Code Audit 输入材料，不输出最终 Stage Code Audit Report，不创建下一 Project / Issue，不推进下一 issue，不启动下一阶段 `symphony-issue`。
+- MTP-45 只准备 Stage Code Audit 输入材料，不创建下一 Project / Issue，不推进下一 issue，不启动下一阶段 `symphony-issue`；最终 Stage Code Audit Report 已由 Parent Codex 作为 Project closure 单独落仓。
 - Trading Validation Matrix 是 evidence routing 入口，不替代 Linear issue contract、PR evidence 或 Stage Code Audit Report。
 - `docs/audit/inputs/` 只放阶段审计输入材料，不授权下一 Project planning 或 execution。
 - `docs/audit/inputs/mtpro-paper-session-runtime-v1-stage-audit-input.md` 是 Paper Session Runtime 的阶段审计输入，不替代 canonical Stage Code Audit Report。
