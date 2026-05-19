@@ -726,6 +726,29 @@ Paper workflow observability 在当前事项中以 App 层 read model / ViewMode
 - replay freshness 只比较 sequence，不触发 replay、不写 event log、不读取 SQLite / DuckDB schema。
 - 观察面不提供 order-level command、UI control、Event Timeline explorer、broker action、signed endpoint、account endpoint、listenKey、真实订单或 Live execution。
 
+## MTP-51 Paper Workflow Event Timeline / Evidence Explorer 观察面
+
+日期：2026-05-20
+
+执行者：Codex
+
+Paper workflow Event Timeline / Evidence Explorer 在当前事项中以 App 层 read model / ViewModel 子集汇总既有 read model 和 append-only event timeline，不新增 projection schema。
+
+当前可观察字段：
+
+- timeline item 的 section、sequence、occurredAt、stream、title、summary 和 evidence links。
+- evidence link summary 的 section、evidence ID、label 和 source sequence。
+- market event、strategy signal、risk decision、paper order、simulated fill、portfolio projection 和 report artifact section coverage。
+- read-only filter snapshot、section item count、section evidence link count 和 latest sequence。
+- paper workflow chain evidence coverage，覆盖 decision -> order -> simulated fill -> portfolio projection -> report artifact。
+
+边界：
+
+- `PaperWorkflowEvidenceExplorerReadModel` 只组合既有 `MarketReadModel`、`StrategyReadModel`、`ReportReadModel`、`PaperWorkflowObservabilityReadModel` 和 `EventTimelineReadModel`。
+- `PaperWorkflowEvidenceExplorerViewModel` 只输出 Codable deterministic snapshot，不暴露 database schema、runtime object、adapter request 或 Persistence adapter direct read。
+- filter 只筛选已生成 snapshot 中的 section，不触发 replay、不写 event log、不读取 SQLite / DuckDB schema、不下推为查询语言。
+- Explorer 不提供 order-level command、UI control、Runtime command、risk control、position management、broker action、signed endpoint、account endpoint、listenKey、真实订单或 Live execution。
+
 ## MTP-29 Report / Dashboard Trading Validation Evidence 观察面
 
 日期：2026-05-18

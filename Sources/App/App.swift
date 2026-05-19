@@ -966,6 +966,7 @@ public struct DashboardReadModel: Equatable, Sendable {
     public let backtest: BacktestReadModel
     public let report: ReportReadModel
     public let paperWorkflowObservability: PaperWorkflowObservabilityReadModel
+    public let paperWorkflowEvidenceExplorer: PaperWorkflowEvidenceExplorerReadModel
     public let paper: PaperReadModel
     public let risk: RiskReadModel
     public let portfolio: PortfolioReadModel
@@ -977,6 +978,7 @@ public struct DashboardReadModel: Equatable, Sendable {
         backtest: BacktestReadModel,
         report: ReportReadModel,
         paperWorkflowObservability: PaperWorkflowObservabilityReadModel = PaperWorkflowObservabilityReadModel(),
+        paperWorkflowEvidenceExplorer: PaperWorkflowEvidenceExplorerReadModel? = nil,
         paper: PaperReadModel,
         risk: RiskReadModel,
         portfolio: PortfolioReadModel,
@@ -987,6 +989,13 @@ public struct DashboardReadModel: Equatable, Sendable {
         self.backtest = backtest
         self.report = report
         self.paperWorkflowObservability = paperWorkflowObservability
+        self.paperWorkflowEvidenceExplorer = paperWorkflowEvidenceExplorer ?? PaperWorkflowEvidenceExplorerReadModel(
+            market: market,
+            strategy: strategy,
+            report: report,
+            paperWorkflowObservability: paperWorkflowObservability,
+            events: events
+        )
         self.paper = paper
         self.risk = risk
         self.portfolio = portfolio
@@ -1007,16 +1016,27 @@ public struct DashboardReadModel: Equatable, Sendable {
         let risk = RiskReadModel(runtimeProjection: runtimeProjection)
         let portfolio = PortfolioReadModel(runtimeProjection: runtimeProjection)
         let events = EventTimelineReadModel(envelopes: eventTimeline)
-        self.init(
-            market: MarketReadModel(analyticalProjection: analyticalProjection),
-            strategy: StrategyReadModel(analyticalProjection: analyticalProjection),
-            backtest: BacktestReadModel(analyticalProjection: analyticalProjection),
+        let market = MarketReadModel(analyticalProjection: analyticalProjection)
+        let strategy = StrategyReadModel(analyticalProjection: analyticalProjection)
+        let backtest = BacktestReadModel(analyticalProjection: analyticalProjection)
+        let paperWorkflowObservability = PaperWorkflowObservabilityReadModel(
             report: report,
-            paperWorkflowObservability: PaperWorkflowObservabilityReadModel(
+            paper: paper,
+            risk: risk,
+            portfolio: portfolio,
+            events: events
+        )
+        self.init(
+            market: market,
+            strategy: strategy,
+            backtest: backtest,
+            report: report,
+            paperWorkflowObservability: paperWorkflowObservability,
+            paperWorkflowEvidenceExplorer: PaperWorkflowEvidenceExplorerReadModel(
+                market: market,
+                strategy: strategy,
                 report: report,
-                paper: paper,
-                risk: risk,
-                portfolio: portfolio,
+                paperWorkflowObservability: paperWorkflowObservability,
                 events: events
             ),
             paper: paper,
@@ -1534,6 +1554,7 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
     public let backtest: BacktestViewModel
     public let report: ReportViewModel
     public let paperWorkflowObservability: PaperWorkflowObservabilityViewModel
+    public let paperWorkflowEvidenceExplorer: PaperWorkflowEvidenceExplorerViewModel
     public let paper: PaperViewModel
     public let risk: RiskViewModel
     public let portfolio: PortfolioViewModel
@@ -1551,6 +1572,9 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
         self.paperWorkflowObservability = PaperWorkflowObservabilityViewModel(
             readModel: readModel.paperWorkflowObservability
         )
+        self.paperWorkflowEvidenceExplorer = PaperWorkflowEvidenceExplorerViewModel(
+            readModel: readModel.paperWorkflowEvidenceExplorer
+        )
         self.paper = PaperViewModel(readModel: readModel.paper)
         self.risk = RiskViewModel(readModel: readModel.risk)
         self.portfolio = PortfolioViewModel(readModel: readModel.portfolio)
@@ -1564,6 +1588,7 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
             backtest.source,
             report.source,
             paperWorkflowObservability.source,
+            paperWorkflowEvidenceExplorer.source,
             paper.source,
             risk.source,
             portfolio.source,
