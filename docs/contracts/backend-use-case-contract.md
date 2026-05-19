@@ -693,3 +693,38 @@ event log replay 汇总 lifecycle、proposal、risk blocker 和 portfolio projec
 - 动态滑点模型、交易所费率表或执行成本优化。
 - broker / exchange side effect。
 - signed endpoint、account endpoint、真实订单提交 / 取消 / 替换或 Live execution。
+
+## MTP-41 Paper Execution Decision Use Case 边界
+
+日期：2026-05-19
+
+执行者：Codex
+
+`StartPaperSession` / `EvaluateRisk` 在本事项中获得本地 paper execution decision 链路，用于把 proposal、risk decision、paper order intent 和 simulated fill evidence 串成可验证 evidence chain。
+
+契约结构：
+
+- `PaperExecutionDecisionStatus`：表达 `allowed` / `blocked`，并必须与上游 `PaperActionProposalRiskDecisionStatus` 一致。
+- `PaperExecutionDecision`：保存 risk decision、可选 paper order intent、可选 simulated fill assumption / evidence、source sequence、workflow stage 和 capability flags。
+- `PaperExecutionDecisionLink.decide`：无副作用地消费已校验 risk decision；allowed 路径生成本地 order / fill evidence，blocked 路径只保留 blocker evidence。
+- `PaperExecutionDecisionFixture`：提供 deterministic allowed / blocked decision flow，用于 XCTest 和 PR evidence。
+- `PaperExecutionWorkflowContract.deterministicFixture`：将 paper execution decision stage 标记为当前代码已实现。
+
+契约要求：
+
+- allowed decision 必须由 allowed risk decision 派生，并生成 `PaperOrderIntent` 与 `PaperSimulatedFillEvidence`。
+- blocked decision 必须保留 `RiskBlockerEvidence`，且不得生成 paper order intent、simulated fill assumption 或 simulated fill evidence。
+- status、workflow stage、event stream、evidence kind 和 source sequence 必须保持内部一致。
+- 所有真实交易能力、真实订单、真实 fill、broker fill、account update、signed endpoint 和 Live trading 旗标必须固定为 `false`。
+- Codable 解码不得把 blocked decision 伪造成可下单链路，也不得恢复真实交易能力。
+
+本契约不包含：
+
+- event log 写入。
+- replay 串联。
+- portfolio projection update。
+- 完整 execution engine。
+- 完整风险引擎。
+- broker rejection fallback。
+- broker / exchange side effect。
+- signed endpoint、account endpoint、真实订单提交 / 取消 / 替换或 Live execution。

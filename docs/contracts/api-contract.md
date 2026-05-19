@@ -556,3 +556,36 @@ MTP-40 不新增 HTTP API，也不新增 live / broker / signed command。
 - 不实现动态滑点模型、交易所费率表或执行成本优化。
 - 不写 event log，不新增 projection / ViewModel，不更新真实账户。
 - 不把 simulated fill evidence 解释为真实成交、broker fill、account update、真实订单授权或 Live execution。
+
+## MTP-41 Paper Execution Decision 内部模型边界
+
+日期：2026-05-19
+
+执行者：Codex
+
+MTP-41 不新增 HTTP API，也不新增 live / broker / signed command。
+
+新增内部 Core value contract：
+
+- `PaperExecutionDecisionStatus`：表达 allowed / blocked 本地执行决策状态，并锁定与 risk decision status 一致。
+- `PaperExecutionDecision`：组合 `PaperActionProposalRiskDecision`、allowed 路径的 `PaperOrderIntent` 和 `PaperSimulatedFillEvidence`，或 blocked 路径的 blocker evidence。
+- `PaperExecutionDecisionLink.decide`：提供本地无副作用串联函数，不访问网络、数据库或 broker。
+- `PaperExecutionDecisionFixture`：提供 deterministic allowed / blocked decision flow，用于 XCTest 和 PR evidence。
+
+契约要求：
+
+- allowed risk decision 必须提供 order ID、fill ID、simulated fill assumption 和 source order intent sequence，才能生成 paper-only order / fill evidence。
+- blocked risk decision 不得携带 order ID、fill ID、simulated fill assumption 或 source order intent sequence。
+- `PaperExecutionDecision` 必须固定 `executionMode == paper`、`proposalAuthorization == paperIntentOnly`、`workflowStage == paperExecutionDecision`、`eventStream == .paper` 和 `evidenceKind == paperExecutionDecision`。
+- Codable 解码必须拒绝 status mismatch、blocked order bypass、非 paper mode、trading authorization、signed endpoint、broker action、real order、real fill、broker fill 或 account update capability。
+
+边界确认：
+
+- 不新增 `Command` case。
+- 不新增 live order command。
+- 不新增 broker account command。
+- 不新增 signed endpoint command。
+- 不实现完整 execution engine。
+- 不实现完整风险引擎。
+- 不写 event log，不新增 replay / projection / ViewModel。
+- 不把 paper execution decision 解释为真实订单授权、真实成交、broker fill、account update 或 Live execution。

@@ -4513,3 +4513,56 @@ Linear 状态修正：
 | `swift test --filter CoreTests` | pass | 首次执行在 SwiftPM 拉取 `duckdb-swift` 时遇到 GitHub TLS transient fetch failure，重试后通过；48 个 CoreTests 0 failures，新增 `testPaperSimulatedFillEvidenceCreatesDeterministicPaperOnlyFillFromAllowedOrderIntent`、`testPaperSimulatedFillEvidenceRejectsRejectedIntentAndAssumptionMismatch` 和 `testPaperSimulatedFillEvidenceDecodingRejectsRealFillBrokerAndAccountBypass`。 |
 | `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；确认新增 `TVM-PAPER-SIMULATED-FILL` anchor 可被机械检查定位。 |
 | `bash checks/run.sh` | pass | `git diff --check`、automation readiness、`swift build --product Dashboard`、`DASHBOARD_SMOKE=1 swift run Dashboard` 和 `swift test` 全部通过；88 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |
+
+## MTP-41 Paper Execution Decision
+
+日期：2026-05-19
+
+执行者：Codex
+
+目的：
+
+- 定义 paper execution decision 本地链路。
+- 串联 allowed risk decision -> paper order intent -> simulated fill evidence。
+- 确认 blocked risk decision 只保留 blocker evidence，不生成 paper order、simulated fill assumption 或 simulated fill evidence。
+- 回填 Trading Validation Matrix、contract docs、validation plan 和最近验证摘要。
+
+文件范围：
+
+- Added：
+  - `Sources/Core/PaperExecutionDecision.swift`
+- Updated：
+  - `Sources/Core/CoreError.swift`
+  - `Sources/Core/PaperExecutionWorkflowContract.swift`
+  - `Tests/CoreTests/CoreTests.swift`
+  - `checks/automation-readiness.sh`
+  - `docs/contracts/api-contract.md`
+  - `docs/contracts/backend-use-case-contract.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写 event log。
+- 未新增 replay / projection / ViewModel。
+- 未实现完整 execution engine。
+- 未实现完整风险引擎。
+- 未实现 broker rejection fallback。
+- 未接 Live trading、signed endpoint、account endpoint、broker fill、account update、broker action 或真实订单行为。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter CoreTests/testPaperExecutionDecision` | pass | 3 个 MTP-41 focused XCTest 0 failures，覆盖 allowed decision chain、blocked no-order 和 Codable bypass。 |
+| `swift test --filter CoreTests` | pass | 51 个 CoreTests 0 failures。 |
+| `bash checks/run.sh` | pass | `git diff --check`、automation readiness、`swift build --product Dashboard`、`DASHBOARD_SMOKE=1 swift run Dashboard` 和 `swift test` 全部通过；91 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |

@@ -851,8 +851,8 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(executionDecision.produces, .paperOrder)
         XCTAssertEqual(executionDecision.eventStream, .paper)
         XCTAssertEqual(executionDecision.evidenceKind, .paperExecutionDecision)
-        XCTAssertFalse(executionDecision.implementedInCurrentCode)
-        XCTAssertEqual(executionDecision.futureIssueID, try Identifier("MTP-41"))
+        XCTAssertTrue(executionDecision.implementedInCurrentCode)
+        XCTAssertNil(executionDecision.futureIssueID)
 
         let paperOrder = try XCTUnwrap(contract.boundary(for: .paperOrder))
         XCTAssertEqual(paperOrder.consumes, .paperExecutionDecision)
@@ -1255,6 +1255,192 @@ final class CoreTests: XCTestCase {
             XCTAssertEqual(
                 error as? CoreError,
                 .paperSimulatedFillForbiddenCapability("updatesRealAccountBalance")
+            )
+        }
+    }
+
+    func testPaperExecutionDecisionCreatesAllowedPaperOnlyDecisionChain() throws {
+        // 测试场景：MTP-41 allowed risk decision 必须串联成本地 paper execution decision，
+        // 并只生成 paper order intent 和 simulated fill evidence，不授权真实订单或 broker action。
+        let decision = try PaperExecutionDecisionFixture.deterministicAllowed()
+        let orderIntent = try XCTUnwrap(decision.paperOrderIntent)
+        let fillAssumption = try XCTUnwrap(decision.simulatedFillAssumption)
+        let fillEvidence = try XCTUnwrap(decision.simulatedFillEvidence)
+
+        XCTAssertEqual(decision.decisionID, try Identifier("paper-execution-decision-allowed"))
+        XCTAssertEqual(decision.status, .allowed)
+        XCTAssertTrue(decision.isAllowed)
+        XCTAssertFalse(decision.isBlocked)
+        XCTAssertEqual(decision.riskDecisionID, try Identifier("paper-action-risk-allowed"))
+        XCTAssertEqual(decision.proposalID, try Identifier("paper-action-proposal-long"))
+        XCTAssertEqual(decision.sessionID, try Identifier("paper-session-fixture"))
+        XCTAssertEqual(decision.riskProfileID, try Identifier("paper-risk"))
+        XCTAssertNil(decision.blockerEvidenceID)
+        XCTAssertEqual(decision.sourceRiskDecisionSequence, 7)
+        XCTAssertEqual(decision.sourceOrderIntentSequence, 9)
+        XCTAssertEqual(decision.decidedAt.timeIntervalSince1970, 2_900)
+        XCTAssertEqual(decision.executionMode, .paper)
+        XCTAssertEqual(decision.proposalAuthorization, .paperIntentOnly)
+        XCTAssertEqual(decision.workflowStage, .paperExecutionDecision)
+        XCTAssertEqual(decision.eventStream, .paper)
+        XCTAssertEqual(decision.evidenceKind, .paperExecutionDecision)
+
+        XCTAssertTrue(decision.generatedPaperOrderIntent)
+        XCTAssertEqual(orderIntent.orderID, try Identifier("paper-execution-order-allowed"))
+        XCTAssertEqual(orderIntent.riskDecisionID, decision.riskDecisionID)
+        XCTAssertEqual(orderIntent.lifecycleState, .intentCreated)
+        XCTAssertEqual(orderIntent.sourceRiskDecisionSequence, decision.sourceRiskDecisionSequence)
+        XCTAssertTrue(orderIntent.paperOnlyBoundaryHeld)
+
+        XCTAssertEqual(fillAssumption.assumptionID, try Identifier("mtp-40-simulated-fill-assumption"))
+        XCTAssertTrue(decision.generatedSimulatedFillEvidence)
+        XCTAssertEqual(fillEvidence.fillID, try Identifier("paper-execution-fill-allowed"))
+        XCTAssertEqual(fillEvidence.orderID, orderIntent.orderID)
+        XCTAssertEqual(fillEvidence.riskDecisionID, decision.riskDecisionID)
+        XCTAssertEqual(fillEvidence.sourceOrderIntentSequence, 9)
+        XCTAssertEqual(fillEvidence.sourceRiskDecisionSequence, 7)
+        XCTAssertEqual(fillEvidence.filledQuantity.rawValue, orderIntent.quantity.rawValue, accuracy: 0.00000001)
+        XCTAssertEqual(fillEvidence.fillPrice.rawValue, orderIntent.referencePrice.rawValue, accuracy: 0.00000001)
+        XCTAssertTrue(fillEvidence.paperOnlyBoundaryHeld)
+
+        XCTAssertFalse(decision.authorizesTradingExecution)
+        XCTAssertFalse(decision.authorizesLiveTrading)
+        XCTAssertFalse(decision.touchesSignedEndpoint)
+        XCTAssertFalse(decision.touchesBrokerAction)
+        XCTAssertFalse(decision.representsRealOrder)
+        XCTAssertFalse(decision.representsRealFill)
+        XCTAssertFalse(decision.representsBrokerFill)
+        XCTAssertFalse(decision.updatesRealAccountBalance)
+        XCTAssertFalse(decision.isExecutableAsRealOrder)
+        XCTAssertTrue(decision.paperOnlyBoundaryHeld)
+
+        let encoded = try JSONEncoder().encode(decision)
+        let decoded = try JSONDecoder().decode(PaperExecutionDecision.self, from: encoded)
+        XCTAssertEqual(decoded, decision)
+    }
+
+    func testPaperExecutionDecisionBlocksWithoutGeneratingPaperOrder() throws {
+        // 测试场景：MTP-41 blocked risk decision 必须只保留本地 blocker evidence；
+        // blocked 链路不得生成 paper order intent、simulated fill assumption 或 fill evidence。
+        let decision = try PaperExecutionDecisionFixture.deterministicBlocked()
+        let blockerEvidence = try XCTUnwrap(decision.riskDecision.blockerEvidence)
+
+        XCTAssertEqual(decision.decisionID, try Identifier("paper-execution-decision-blocked"))
+        XCTAssertEqual(decision.status, .blocked)
+        XCTAssertFalse(decision.isAllowed)
+        XCTAssertTrue(decision.isBlocked)
+        XCTAssertEqual(decision.riskDecisionID, try Identifier("paper-action-risk-blocked"))
+        XCTAssertEqual(decision.blockerEvidenceID, try Identifier("risk-blocker-paper-action-proposal-long"))
+        XCTAssertEqual(blockerEvidence.reason, .maxPaperQuantityExceeded)
+        XCTAssertEqual(decision.sourceRiskDecisionSequence, 8)
+        XCTAssertNil(decision.sourceOrderIntentSequence)
+        XCTAssertNil(decision.paperOrderIntent)
+        XCTAssertNil(decision.simulatedFillAssumption)
+        XCTAssertNil(decision.simulatedFillEvidence)
+        XCTAssertFalse(decision.generatedPaperOrderIntent)
+        XCTAssertFalse(decision.generatedSimulatedFillEvidence)
+        XCTAssertEqual(decision.workflowStage, .paperExecutionDecision)
+        XCTAssertEqual(decision.eventStream, .paper)
+        XCTAssertEqual(decision.evidenceKind, .paperExecutionDecision)
+        XCTAssertTrue(decision.paperOnlyBoundaryHeld)
+        XCTAssertFalse(decision.isExecutableAsRealOrder)
+
+        XCTAssertThrowsError(
+            try PaperExecutionDecisionLink.decide(
+                decisionID: try Identifier("invalid-blocked-order-bypass"),
+                riskDecision: PaperActionProposalRiskFixture.deterministicBlocked(),
+                orderID: try Identifier("must-not-exist"),
+                fillID: try Identifier("must-not-fill"),
+                simulatedFillAssumption: .deterministicFixture,
+                sourceOrderIntentSequence: 10,
+                decidedAt: Date(timeIntervalSince1970: 2_960)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperExecutionDecisionMismatch(
+                    field: "orderID",
+                    expected: "nil for blocked decision",
+                    actual: "present"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(decision)
+        let decoded = try JSONDecoder().decode(PaperExecutionDecision.self, from: encoded)
+        XCTAssertEqual(decoded, decision)
+    }
+
+    func testPaperExecutionDecisionRejectsBypassAndRealTradingCapability() throws {
+        // 测试场景：MTP-41 decision 解码不能把 blocked 风险结果伪造成可下单链路，
+        // 也不能恢复真实交易、Live、signed endpoint、broker fill 或 account update 能力。
+        let allowedDecision = try PaperExecutionDecisionFixture.deterministicAllowed()
+        let blockedDecision = try PaperExecutionDecisionFixture.deterministicBlocked()
+        let encoder = JSONEncoder()
+        let decoder = JSONDecoder()
+
+        XCTAssertThrowsError(
+            try PaperExecutionDecisionLink.decide(
+                decisionID: try Identifier("invalid-allowed-without-order"),
+                riskDecision: PaperActionProposalRiskFixture.deterministicAllowed(),
+                decidedAt: Date(timeIntervalSince1970: 2_900)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperExecutionDecisionMismatch(
+                    field: "orderID",
+                    expected: "present for allowed decision",
+                    actual: "nil"
+                )
+            )
+        }
+
+        var blockedOrderBypass = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoder.encode(blockedDecision)) as? [String: Any]
+        )
+        blockedOrderBypass["paperOrderIntent"] = try JSONSerialization.jsonObject(
+            with: encoder.encode(try XCTUnwrap(allowedDecision.paperOrderIntent))
+        )
+        let blockedOrderBypassData = try JSONSerialization.data(withJSONObject: blockedOrderBypass)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperExecutionDecision.self, from: blockedOrderBypassData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperExecutionDecisionMismatch(
+                    field: "paperOrderIntent",
+                    expected: "nil for blocked decision",
+                    actual: "present"
+                )
+            )
+        }
+
+        var statusBypass = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoder.encode(allowedDecision)) as? [String: Any]
+        )
+        statusBypass["status"] = "blocked"
+        let statusBypassData = try JSONSerialization.data(withJSONObject: statusBypass)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperExecutionDecision.self, from: statusBypassData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperExecutionDecisionMismatch(field: "status", expected: "allowed", actual: "blocked")
+            )
+        }
+
+        var tradingCapabilityBypass = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoder.encode(allowedDecision)) as? [String: Any]
+        )
+        tradingCapabilityBypass["authorizesTradingExecution"] = true
+        let tradingCapabilityBypassData = try JSONSerialization.data(withJSONObject: tradingCapabilityBypass)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperExecutionDecision.self, from: tradingCapabilityBypassData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperExecutionDecisionForbiddenCapability("authorizesTradingExecution")
             )
         }
     }
