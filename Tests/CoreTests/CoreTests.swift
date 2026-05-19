@@ -859,8 +859,8 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(paperOrder.produces, .simulatedFill)
         XCTAssertEqual(paperOrder.eventStream, .paper)
         XCTAssertEqual(paperOrder.evidenceKind, .paperOrder)
-        XCTAssertFalse(paperOrder.implementedInCurrentCode)
-        XCTAssertEqual(paperOrder.futureIssueID, try Identifier("MTP-39"))
+        XCTAssertTrue(paperOrder.implementedInCurrentCode)
+        XCTAssertNil(paperOrder.futureIssueID)
 
         let simulatedFill = try XCTUnwrap(contract.boundary(for: .simulatedFill))
         XCTAssertEqual(simulatedFill.consumes, .paperOrder)
@@ -955,6 +955,130 @@ final class CoreTests: XCTestCase {
                     expected: "riskDecision",
                     actual: "portfolioProjection"
                 )
+            )
+        }
+    }
+
+    func testPaperOrderIntentCreatesPaperOnlyLifecycleFromAllowedRiskDecision() throws {
+        // 测试场景：MTP-39 allowed risk decision 可以生成本地 paper order intent；
+        // lifecycle 只记录 paper-only intentCreated，不代表真实订单、broker action 或 simulated fill。
+        let intent = try PaperOrderIntentFixture.deterministicAllowed()
+
+        XCTAssertEqual(intent.orderID, try Identifier("paper-order-intent-allowed"))
+        XCTAssertEqual(intent.proposalID, try Identifier("paper-action-proposal-long"))
+        XCTAssertEqual(intent.sessionID, try Identifier("paper-session-fixture"))
+        XCTAssertEqual(intent.riskDecisionID, try Identifier("paper-action-risk-allowed"))
+        XCTAssertEqual(intent.riskDecisionStatus, .allowed)
+        XCTAssertNil(intent.blockerEvidenceID)
+        XCTAssertEqual(intent.lifecycleState, .intentCreated)
+        XCTAssertEqual(intent.riskProfileID, try Identifier("paper-risk"))
+        XCTAssertEqual(intent.side, .buy)
+        XCTAssertEqual(intent.symbol, try Symbol(rawValue: "BTCUSDT"))
+        XCTAssertEqual(intent.timeframe, .oneMinute)
+        XCTAssertEqual(intent.quantity.rawValue, 0.5, accuracy: 0.00000001)
+        XCTAssertEqual(intent.referencePrice.rawValue, 100, accuracy: 0.00000001)
+        XCTAssertEqual(intent.notionalAmount, 50, accuracy: 0.00000001)
+        XCTAssertEqual(intent.executionMode, .paper)
+        XCTAssertEqual(intent.proposalAuthorization, .paperIntentOnly)
+        XCTAssertEqual(intent.workflowStage, .paperOrder)
+        XCTAssertEqual(intent.eventStream, .paper)
+        XCTAssertEqual(intent.evidenceKind, .paperOrder)
+        XCTAssertEqual(intent.sourceRiskDecisionSequence, 7)
+        XCTAssertEqual(intent.createdAt.timeIntervalSince1970, 2_500)
+        XCTAssertFalse(intent.authorizesTradingExecution)
+        XCTAssertFalse(intent.authorizesLiveTrading)
+        XCTAssertFalse(intent.touchesSignedEndpoint)
+        XCTAssertFalse(intent.touchesBrokerAction)
+        XCTAssertFalse(intent.representsRealOrder)
+        XCTAssertFalse(intent.representsSimulatedFill)
+        XCTAssertFalse(intent.isExecutableAsRealOrder)
+        XCTAssertTrue(intent.paperOnlyBoundaryHeld)
+
+        let encoded = try JSONEncoder().encode(intent)
+        let decoded = try JSONDecoder().decode(PaperOrderIntent.self, from: encoded)
+        XCTAssertEqual(decoded, intent)
+    }
+
+    func testPaperOrderIntentMapsBlockedRiskDecisionToRejectedLifecycle() throws {
+        // 测试场景：blocked risk decision 只生成 rejectedByRisk 的本地 lifecycle evidence；
+        // 它保留 blocker ID 便于追溯，但不能进入真实订单或 simulated fill 语义。
+        let intent = try PaperOrderIntentFixture.deterministicRiskRejected()
+
+        XCTAssertEqual(intent.orderID, try Identifier("paper-order-intent-risk-rejected"))
+        XCTAssertEqual(intent.proposalID, try Identifier("paper-action-proposal-long"))
+        XCTAssertEqual(intent.riskDecisionID, try Identifier("paper-action-risk-blocked"))
+        XCTAssertEqual(intent.riskDecisionStatus, .blocked)
+        XCTAssertEqual(intent.blockerEvidenceID, try Identifier("risk-blocker-paper-action-proposal-long"))
+        XCTAssertEqual(intent.lifecycleState, .rejectedByRisk)
+        XCTAssertEqual(intent.sourceRiskDecisionSequence, 8)
+        XCTAssertEqual(intent.createdAt.timeIntervalSince1970, 2_560)
+        XCTAssertEqual(PaperOrderLifecycleState.allCases, [.intentCreated, .rejectedByRisk])
+        XCTAssertTrue(intent.paperOnlyBoundaryHeld)
+        XCTAssertFalse(intent.isExecutableAsRealOrder)
+        XCTAssertFalse(intent.representsSimulatedFill)
+    }
+
+    func testPaperOrderIntentDecodingRejectsCapabilityAndLifecycleBypass() throws {
+        // 测试场景：Codable 解码不能把 paper order intent 伪造成真实订单、Live 执行、
+        // signed endpoint 调用或与 risk result 不一致的 lifecycle state。
+        let intent = try PaperOrderIntentFixture.deterministicAllowed()
+        let encoded = try JSONEncoder().encode(intent)
+        let decoder = JSONDecoder()
+
+        var nonPaperObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        nonPaperObject["executionMode"] = "backtest"
+        let nonPaperData = try JSONSerialization.data(withJSONObject: nonPaperObject)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperOrderIntent.self, from: nonPaperData)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .paperOrderIntentRequiresPaperMode(.backtest))
+        }
+
+        var lifecycleObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        lifecycleObject["lifecycleState"] = "rejectedByRisk"
+        let lifecycleData = try JSONSerialization.data(withJSONObject: lifecycleObject)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperOrderIntent.self, from: lifecycleData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperOrderIntentMismatch(
+                    field: "lifecycleState",
+                    expected: "intentCreated",
+                    actual: "rejectedByRisk"
+                )
+            )
+        }
+
+        var tradingAuthorizationObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        tradingAuthorizationObject["authorizesTradingExecution"] = true
+        let tradingAuthorizationData = try JSONSerialization.data(withJSONObject: tradingAuthorizationObject)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperOrderIntent.self, from: tradingAuthorizationData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperOrderIntentForbiddenCapability("authorizesTradingExecution")
+            )
+        }
+
+        var simulatedFillObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        simulatedFillObject["representsSimulatedFill"] = true
+        let simulatedFillData = try JSONSerialization.data(withJSONObject: simulatedFillObject)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperOrderIntent.self, from: simulatedFillData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperOrderIntentForbiddenCapability("representsSimulatedFill")
             )
         }
     }

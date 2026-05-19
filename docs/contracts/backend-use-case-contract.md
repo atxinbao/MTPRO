@@ -623,8 +623,39 @@ event log replay 汇总 lifecycle、proposal、risk blocker 和 portfolio projec
 
 本契约不包含：
 
-- paper order lifecycle。
 - simulated fill。
 - 完整 OMS。
+- broker / exchange side effect。
+- signed endpoint、account endpoint、真实订单提交 / 取消 / 替换或 Live execution。
+
+## MTP-39 Paper Order Intent / Lifecycle Use Case 边界
+
+日期：2026-05-19
+
+执行者：Codex
+
+`StartPaperSession` / `EvaluateRisk` 在本事项中获得 paper-only order intent 和 lifecycle 的最小本地模型，用于把 proposal 与 risk result 记录为可验证的 paper order 状态。
+
+契约结构：
+
+- `PaperOrderLifecycleState`：定义 `intentCreated` 和 `rejectedByRisk` 两个本地 lifecycle state。
+- `PaperOrderIntent`：绑定 order ID、proposal ID、risk decision ID、risk result、blocker evidence、symbol、timeframe、quantity、notional、workflow stage 和 `.paper` event boundary。
+- `PaperOrderIntentFixture`：提供 deterministic allowed / risk-rejected fixture，用于 XCTest 和 PR evidence。
+- `PaperExecutionWorkflowContract.deterministicFixture`：将 paper order stage 标记为当前代码已实现，但仍保留 paper execution decision 和 simulated fill 的独立边界。
+
+契约要求：
+
+- allowed risk decision 只能映射为 `intentCreated`。
+- blocked risk decision 只能映射为 `rejectedByRisk`，并必须保留 blocker evidence ID。
+- paper order intent 必须固定 `executionMode == paper`、`proposalAuthorization == paperIntentOnly`、`workflowStage == paperOrder`、`eventStream == .paper` 和 `evidenceKind == paperOrder`。
+- source risk decision sequence 必须为正数，用于回溯本地 append-only event log 语境，不代表 broker order sequence。
+- 所有交易能力旗标必须固定为 `false`，Codable 解码不得恢复真实订单、broker action、signed endpoint、simulated fill 或 Live execution。
+
+本契约不包含：
+
+- paper execution decision。
+- simulated fill。
+- 完整 OMS。
+- cancel / replace 工作流。
 - broker / exchange side effect。
 - signed endpoint、account endpoint、真实订单提交 / 取消 / 替换或 Live execution。
