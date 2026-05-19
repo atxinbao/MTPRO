@@ -4409,3 +4409,54 @@ Linear 状态修正：
 | --- | --- | --- |
 | `git diff --check` | pass | AI Engineer Role Alias 文档变更通过 whitespace 检查。 |
 | `bash checks/run.sh` | pass | rebase 到最新 `main` 后，先遇到一次 SwiftPM 增量缓存导致的错误文案污染；执行 `swift package clean` 后完整入口通过，automation readiness、Dashboard build / smoke 和 `swift test` 全部通过；85 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |
+
+## Documentation Entry Point Compression
+
+日期：2026-05-19
+
+执行者：Codex
+
+目的：
+
+- 从 `README.md` 开始压缩 MTPRO 项目入口文档，减少多轮迭代后残留的历史叙事、旧 Project pointer 和重复规则。
+- 保留必要流程边界：Linear live-read、父 Codex queue gate、`symphony-issue` 执行边界、GitHub PR Automation、Post-Issue Ledger、Stage Code Audit Report 和 Root Docs Refresh Gate。
+- 继续保持 `verification.md` append-only；默认验证入口仍是 `docs/validation/latest-verification-summary.md`。
+
+文件范围：
+
+- `README.md`
+- `ROADMAP.md`
+- `AGENTS.md`
+- `docs/automation/automation-readiness.md`
+- `docs/automation/parent-codex-supervision.md`
+- `docs/automation/symphony-issue-workflow-template.md`
+- `docs/validation/latest-verification-summary.md`
+- `checks/automation-readiness.sh`
+- `verification.md`
+
+收口结果：
+
+- `README.md` 压缩为项目目标、硬边界、当前执行源、代码结构、文档入口和验证入口。
+- `ROADMAP.md` 压缩为阶段地图；当前 Project / active issue 必须从 Linear live-read，不固化到仓库。
+- `AGENTS.md` 压缩为角色、执行链路、父 Codex、`symphony-issue`、Root Docs Refresh Gate 和代码 / 文档规则。
+- `docs/automation/*` 移除旧 active Project slug，改为标准 workflow pointer / queue gate 规则。
+- `latest-verification-summary.md` 保留轻量当前态和最近事实，避免日常读取完整 `verification.md`。
+
+边界确认：
+
+- 未创建 Linear Project。
+- 未创建 Linear issue。
+- 未修改 Linear status。
+- 未推进任何 issue 到 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | 文档压缩变更通过 whitespace 检查。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 `swift test` 全部通过；85 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |
