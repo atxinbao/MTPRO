@@ -20,6 +20,7 @@ Linear Project queue preview
 -> host-side fallback
 -> Stage Code Audit Report
 -> Root Docs Refresh Gate
+-> Current Phase Progress Bar
 ```
 
 它不是业务实现 Agent，不替代 Human 阶段决策，不直接 merge PR。
@@ -162,6 +163,45 @@ Stage Code Audit Report 合并后，Parent Codex 必须检查：
 Root Docs Delta 只同步已发生事实。
 
 下一阶段方向、目标、架构路线和优先级必须由 Human + `@001 / PLN` 决定。
+
+## Current Phase Progress Bar / 当前阶段完成进度条
+
+Root Docs Refresh Gate closure 后，Parent Codex 必须输出当前阶段完成进度条。
+
+进度条是 Project closure 结果摘要，不是蓝图内容，不写入 `docs/design/mtpro-complete-blueprint.md`，不授权下一阶段执行。
+
+进度条必须基于当前 Human-approved phase 内的 Project 列表计算，而不是基于完整最终蓝图、Future Construction Zones 或未授权方向计算。
+
+一个 Project 只有同时满足以下条件，才能计为 completed：
+
+- Linear Project status 已设置或确认为 `Completed`。
+- Linear 返回 `type=completed`。
+- `completedAt` 非空。
+- Project 级 Stage Code Audit Report 已落仓并合并。
+- Root Docs Refresh Gate 已 closure。
+
+进度条输出必须包含：
+
+- 当前 phase 名称或范围。
+- phase 内 Project 总数。
+- completed Project 数量。
+- 百分比。
+- ASCII progress bar。
+- 最近完成 Project。
+- 下一步 handoff：交给 Human + `@001 / PLN`，或说明当前 phase 已全部完成、等待 Human 选择下一阶段。
+
+推荐格式：
+
+```text
+Current Phase Progress
+Phase: <phase name>
+Completed Projects: <done>/<total> (<percent>%)
+Progress: [########--] <percent>%
+Latest Completed Project: <project name>
+Next Handoff: Human + @001 / PLN
+```
+
+Parent Codex 可以在最终会话输出、Stage Code Audit Report、Root Docs Refresh Gate closure 记录或 `docs/validation/latest-verification-summary.md` 中记录该进度条。若写入仓库，必须保持 docs-only，不得修改 Linear、不得推进 `Todo`、不得启动 `symphony-issue`。
 
 ## Host-side fallback
 

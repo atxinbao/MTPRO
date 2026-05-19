@@ -26,12 +26,14 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - 本轮 MTP-42 paper execution event log / replay / projection focused Core 链路已通过 `swift test --filter CoreTests/testPaperExecution`；最终 `bash checks/run.sh` 结果见本文件最近验证表和 `verification.md` 追加记录。
 - 当前 main 已包含 `docs/reference/nautilus-trader/` reference study 汇总文档；它只作为 Linear 外 Product / Design / Architecture 参考和 root docs delta proposal，不授权执行。
 - 当前 main 已包含 `docs/design/mtpro-complete-blueprint.md`，作为 Human + `@000 / AIE` 维护的 MTPRO 完整产品 / 系统 / 设计蓝图。
+- 当前阶段完成进度条由 `@002 / PAR` 在 Project closure、Stage Code Audit Report 和 Root Docs Refresh Gate closure 后输出；进度条不写入蓝图文档，不授权下一阶段执行。
 
 ## 最近工程事实
 
 - `MTPRO NautilusTrader Reference Study` 已形成 @003 / PRD、@004 / DSG、@005 / ARC 三份角色文档，并由 @000 / AIE 汇总入口和 root docs delta proposal。
 - `MTPRO Complete Blueprint Design` 已把 NautilusTrader reference study、Stage Code Audit Reports、root docs 和现有代码能力收敛为 Final Product Blueprint、System Architecture Blueprint、Workbench / UX Blueprint、Current Construction Scope 和 Future Construction Zones。
 - `@000 / AIE` 与 Human 共同负责 Complete Blueprint Design；`@001 / PLN` 只在蓝图确认后基于 Current Construction Scope 进入下一阶段 Project Planning。
+- `docs/design/mtpro-complete-blueprint.md` 只保留蓝图本体，不重复 `@000 / AIE` 职责清单；角色职责由 `AGENTS.md` 和 `docs/planning/project-role-map.md` 维护。
 - Reference study 只服务 Human + `@001 / PLN` 后续规划判断，不写 Linear、不创建 Project / Issue、不推进 `Todo`、不启动 Symphony、不写业务代码。
 - `MTPRO Paper Session Runtime v1` 已完成，planning record 位于 `docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md`，Stage Code Audit Report 位于 `docs/audit/mtpro-paper-session-runtime-v1-stage-code-audit.md`。
 - `MTP-37` 产生 Project 级 Stage Audit Input，路径为 `docs/audit/inputs/mtpro-paper-session-runtime-v1-stage-audit-input.md`。

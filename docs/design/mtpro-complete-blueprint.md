@@ -12,6 +12,8 @@
 
 本文档不是 Linear Project，不是下一批 Linear issue，不授权执行，不推进 `Todo`，不启动 Symphony，不写业务代码。
 
+本文档只记录 MTPRO 产品 / 系统 / 设计蓝图本体。角色职责、Project 调度规则、阶段完成进度条和自动化 closure 规则不在本文档重复定义，统一由 `AGENTS.md`、`docs/planning/project-role-map.md` 和 `docs/automation/parent-codex-supervision.md` 维护。
+
 ## 来源
 
 | 来源 | 用途 |
@@ -24,30 +26,6 @@
 | `docs/audit/` | 已完成 Project 的 Stage Code Audit Reports |
 | `docs/validation/trading-validation-matrix.md` | 交易语义验证证据地图 |
 | `docs/planning/project-role-map.md` | MTPRO 角色编号、职责和边界 |
-
-## @000 / AIE 蓝图职责
-
-`@000 / AIE` 在 MTPRO Complete Blueprint Design 中承担 AI Engineer + 蓝图协作入口职责。
-
-它负责：
-
-- 和 Human 一起阅读 root docs、审计报告和 reference study。
-- 把 `@003 / PRD`、`@004 / DSG`、`@005 / ARC` 的参考结论综合成 MTPRO 自己的完整蓝图。
-- 区分 Final Product Blueprint、Current Construction Scope 和 Future Construction Zones。
-- 把蓝图落仓为 docs-only PR。
-- 更新必要的 role / readiness / validation 文档。
-- 运行 `bash checks/run.sh`。
-
-它不负责：
-
-- 不替代 Human 决定最终产品方向。
-- 不创建 Linear Project / Issue。
-- 不修改 Linear status。
-- 不推进 `Backlog` -> `Todo`。
-- 不启动 `@002 / PAR`。
-- 不启动 symphony-issue。
-- 不写业务代码。
-- 不把 blueprint 中的 future capability 变成当前 execution scope。
 
 ## Final Product Blueprint
 
@@ -275,8 +253,8 @@ Market event
 | `ENVIRONMENT.md` | 后续可增加 Complete Blueprint Design 作为 docs-only 规划活动，并把 future Live gates 作为未来环境能力。 | 本 PR 不新增运行依赖。 |
 | `ARCHITECTURE.md` | 后续可把完整蓝图中的系统结构和 future execution boundary 写入模块地图。 | 本 PR 不改业务架构事实。 |
 | `ROADMAP.md` | 后续可在 Product Roadmap 中新增 Complete Blueprint Design Gate 和 Future Construction Zones。 | 本 PR 不授权下一阶段 Project。 |
-| `docs/planning/project-role-map.md` | 需要立即明确 `@000 / AIE` 与 Human 共同负责 Complete Blueprint Design。 | 本 PR 执行。 |
-| `AGENTS.md` | 需要立即明确 `@000 / AIE` 的蓝图职责和非授权边界。 | 本 PR 执行。 |
+| `docs/planning/project-role-map.md` | 维护 `@000 / AIE` 与 Human 的 Complete Blueprint Design 职责。 | 已由角色文档维护，本文档不重复职责清单。 |
+| `AGENTS.md` | 维护 `@000 / AIE` 的蓝图职责和非授权边界。 | 已由 Agent 手册维护，本文档不重复职责清单。 |
 
 ## Linear Planning Handoff
 
@@ -309,9 +287,8 @@ Human confirms blueprint
 - [x] Final Product Blueprint 与 Current Construction Scope 分离。
 - [x] Future Construction Zones 明确。
 - [x] Live / signed endpoint / broker / OMS 被标记为 future / gated。
-- [x] `@000 / AIE` 蓝图职责明确。
+- [x] 蓝图文档只记录蓝图本体；`@000 / AIE` 职责由角色文档和 Agent 手册维护。
 - [x] 本文档不创建 Linear Project / Issue。
 - [x] 本文档不推进 `Todo`。
 - [x] 本文档不启动 Symphony。
 - [x] 本文档不写业务代码。
-

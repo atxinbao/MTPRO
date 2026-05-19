@@ -4857,3 +4857,49 @@ Commit：
 | --- | --- | --- |
 | `git diff --check` | pass | Complete Blueprint Design docs-only 变更通过 whitespace 检查。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 93 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
+## Blueprint Responsibility Cleanup and Phase Progress Rule
+
+日期：2026-05-20
+执行者：Codex（`@000 / AIE`）
+PR：
+Commit：
+
+目的：
+- 将 `@000 / AIE` 的详细职责清单从 `docs/design/mtpro-complete-blueprint.md` 移出，保持蓝图文档专注产品 / 系统 / 设计蓝图本体。
+- 明确当前阶段完成进度条由 `@002 / PAR` 在 Project closure、Stage Code Audit Report 和 Root Docs Refresh Gate closure 后输出。
+- 明确阶段进度条不写入蓝图文档，不授权下一阶段执行。
+
+文件范围：
+- Updated:
+  - `AGENTS.md`
+  - `checks/automation-readiness.sh`
+  - `docs/automation/parent-codex-supervision.md`
+  - `docs/design/mtpro-complete-blueprint.md`
+  - `docs/planning/project-role-map.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+收口结果：
+- 蓝图文档删除 `@000 / AIE 蓝图职责` 大段职责清单，只保留蓝图本体和边界说明。
+- `@000 / AIE` 职责继续由 `AGENTS.md` 和 `docs/planning/project-role-map.md` 维护。
+- `@002 / PAR` closure 规则新增 `Current Phase Progress Bar / 当前阶段完成进度条`。
+- 进度条必须基于当前 Human-approved phase 内 completed Project 数量计算，不能基于完整蓝图或 Future Construction Zones 计算。
+
+边界确认：
+- 未创建 Linear Project。
+- 未创建 Linear issue。
+- 未修改 Linear status。
+- 未推进 `Backlog` -> `Todo`。
+- 未启动 `@002 / PAR`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Blueprint responsibility cleanup 和 progress rule docs-only 变更通过 whitespace 检查。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 93 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
