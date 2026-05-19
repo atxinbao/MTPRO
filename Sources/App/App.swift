@@ -503,6 +503,104 @@ public struct PaperSessionRuntimeEvidenceSummary: Codable, Equatable, Sendable {
     }
 }
 
+/// PaperExecutionWorkflowEvidenceSummary 汇总 paper execution workflow 的只读证据。
+///
+/// 输入只来自 append-only replay summary 和同一批 replay envelope，用于把 decision -> order
+/// -> simulated fill -> portfolio projection 的本地 evidence 暴露给 Report / Dashboard。
+/// 该摘要不创建订单、不读取 SQLite / DuckDB schema、不调用 Runtime / Adapter，也不授权真实交易。
+public struct PaperExecutionWorkflowEvidenceSummary: Codable, Equatable, Sendable {
+    public let factsSource: String
+    public let replayAvailable: Bool
+    public let workflowSequences: [Int]
+    public let workflowStreams: [String]
+    public let decisionIDs: [String]
+    public let paperOrderIDs: [String]
+    public let simulatedFillIDs: [String]
+    public let portfolioUpdateIDs: [String]
+    public let portfolioIDs: [String]
+    public let coversDecisionEvents: Bool
+    public let coversPaperOrderEvents: Bool
+    public let coversSimulatedFillEvents: Bool
+    public let coversDecisionOrderFillChain: Bool
+    public let projectsPortfolioFromSimulatedFill: Bool
+    public let appendOnlyFactsSourceIsReplaySource: Bool
+    public let replayResultIsDeterministic: Bool
+    public let paperOnlyBoundaryHeld: Bool
+    public let authorizesLiveTrading: Bool
+    public let touchesBrokerAction: Bool
+    public let authorizesTradingExecution: Bool
+
+    public init(
+        replaySummary: PaperSessionReplayEvidenceSummary? = nil,
+        workflowEnvelopes: [EventEnvelope] = []
+    ) {
+        let paperExecutionEnvelopes = workflowEnvelopes.filter(Self.isPaperExecutionWorkflowEnvelope)
+        let decisionIDs = replaySummary?.paperExecutionDecisionIDs.map(\.rawValue) ?? []
+        let paperOrderIDs = replaySummary?.paperOrderIDs.map(\.rawValue) ?? []
+        let simulatedFillIDs = replaySummary?.simulatedFillIDs.map(\.rawValue) ?? []
+        let portfolioUpdateIDs = replaySummary?.portfolioUpdateIDs.map(\.rawValue) ?? []
+        let coversDecisionEvents = replaySummary?.coversPaperExecutionDecisionEvents ?? false
+        let coversPaperOrderEvents = replaySummary?.coversPaperOrderEvents ?? false
+        let coversSimulatedFillEvents = replaySummary?.coversSimulatedFillEvents ?? false
+        let coversDecisionOrderFillChain = coversDecisionEvents
+            && coversPaperOrderEvents
+            && coversSimulatedFillEvents
+            && decisionIDs.isEmpty == false
+            && paperOrderIDs.isEmpty == false
+            && simulatedFillIDs.isEmpty == false
+
+        self.factsSource = replaySummary?.factsSource ?? "no matching append-only paper execution workflow facts"
+        self.replayAvailable = replaySummary != nil
+        self.workflowSequences = paperExecutionEnvelopes
+            .map(\.sequence)
+            .uniqueSorted()
+        self.workflowStreams = paperExecutionEnvelopes
+            .map(\.stream.rawValue)
+            .uniqueSorted()
+        self.decisionIDs = decisionIDs.uniqueSorted()
+        self.paperOrderIDs = paperOrderIDs.uniqueSorted()
+        self.simulatedFillIDs = simulatedFillIDs.uniqueSorted()
+        self.portfolioUpdateIDs = portfolioUpdateIDs.uniqueSorted()
+        self.portfolioIDs = (replaySummary?.portfolioIDs.map(\.rawValue) ?? []).uniqueSorted()
+        self.coversDecisionEvents = coversDecisionEvents
+        self.coversPaperOrderEvents = coversPaperOrderEvents
+        self.coversSimulatedFillEvents = coversSimulatedFillEvents
+        self.coversDecisionOrderFillChain = coversDecisionOrderFillChain
+        self.projectsPortfolioFromSimulatedFill = coversDecisionOrderFillChain
+            && (replaySummary?.coversPortfolioProjectionEvents ?? false)
+            && portfolioUpdateIDs.isEmpty == false
+        self.appendOnlyFactsSourceIsReplaySource = replaySummary?.appendOnlyFactsSourceIsReplaySource ?? false
+        self.replayResultIsDeterministic = replaySummary?.replayResultIsDeterministic ?? false
+        self.paperOnlyBoundaryHeld = replaySummary?.paperOnlyBoundaryHeld ?? true
+        self.authorizesLiveTrading = replaySummary?.authorizesLiveTrading ?? false
+        self.touchesBrokerAction = replaySummary?.touchesBrokerAction ?? false
+        self.authorizesTradingExecution = false
+    }
+
+    public var hasEvidence: Bool {
+        decisionIDs.isEmpty == false
+            || paperOrderIDs.isEmpty == false
+            || simulatedFillIDs.isEmpty == false
+            || portfolioUpdateIDs.isEmpty == false
+    }
+
+    public var workflowSequenceCount: Int {
+        workflowSequences.count
+    }
+
+    private static func isPaperExecutionWorkflowEnvelope(_ envelope: EventEnvelope) -> Bool {
+        switch envelope.event {
+        case .paper(.executionDecisionRecorded),
+             .paper(.orderIntentRecorded),
+             .paper(.simulatedFillRecorded),
+             .portfolio(.paperProjectionUpdated):
+            return true
+        default:
+            return false
+        }
+    }
+}
+
 /// ResearchBacktestReportArtifact 是 MTP-23 的最小报告 artifact。
 ///
 /// 输入来自 `DuckDBAnalyticalProjectionSnapshot`、`SQLiteRuntimeProjectionSnapshot` 和 append-only
@@ -524,6 +622,7 @@ public struct ResearchBacktestReportArtifact: Codable, Equatable, Sendable {
     public let parityStatus: ReportParityStatus
     public let tradingValidationEvidence: TradingValidationEvidenceSummary
     public let paperRuntimeEvidence: PaperSessionRuntimeEvidenceSummary
+    public let paperExecutionWorkflowEvidence: PaperExecutionWorkflowEvidenceSummary
     public let executionAuthorization: ReportExecutionAuthorization
     public let lastAppliedSequence: Int?
 
@@ -543,6 +642,7 @@ public struct ResearchBacktestReportArtifact: Codable, Equatable, Sendable {
         parityStatus: ReportParityStatus,
         tradingValidationEvidence: TradingValidationEvidenceSummary,
         paperRuntimeEvidence: PaperSessionRuntimeEvidenceSummary,
+        paperExecutionWorkflowEvidence: PaperExecutionWorkflowEvidenceSummary,
         executionAuthorization: ReportExecutionAuthorization = .researchOutputOnly,
         lastAppliedSequence: Int?
     ) {
@@ -561,6 +661,7 @@ public struct ResearchBacktestReportArtifact: Codable, Equatable, Sendable {
         self.parityStatus = parityStatus
         self.tradingValidationEvidence = tradingValidationEvidence
         self.paperRuntimeEvidence = paperRuntimeEvidence
+        self.paperExecutionWorkflowEvidence = paperExecutionWorkflowEvidence
         self.executionAuthorization = executionAuthorization
         self.lastAppliedSequence = lastAppliedSequence
     }
@@ -653,12 +754,20 @@ public struct ReportReadModel: Equatable, Sendable {
         }
         let parityEvidenceStatus = parityStatus(backtest: backtest, paperSessions: matchingPaperSessions)
         let executionCostEvidence = makeExecutionCostEvidence(from: matchingPortfolioExposures)
-        let paperRuntimeEvidence = makePaperRuntimeEvidence(
+        let matchingReplayEnvelopes = matchingPaperRuntimeEnvelopes(
             backtest: backtest,
+            eventTimeline: eventTimeline
+        )
+        let replaySummary = makePaperRuntimeReplaySummary(from: matchingReplayEnvelopes)
+        let paperRuntimeEvidence = PaperSessionRuntimeEvidenceSummary(
+            replaySummary: replaySummary,
             paperSessions: matchingPaperSessions,
             riskBlockerEvidence: matchingRiskBlockers,
-            portfolioExposures: matchingPortfolioExposures,
-            eventTimeline: eventTimeline
+            portfolioExposures: matchingPortfolioExposures
+        )
+        let paperExecutionWorkflowEvidence = PaperExecutionWorkflowEvidenceSummary(
+            replaySummary: replaySummary,
+            workflowEnvelopes: matchingReplayEnvelopes
         )
 
         return ResearchBacktestReportArtifact(
@@ -682,18 +791,16 @@ public struct ReportReadModel: Equatable, Sendable {
                 portfolioExposures: matchingPortfolioExposures
             ),
             paperRuntimeEvidence: paperRuntimeEvidence,
+            paperExecutionWorkflowEvidence: paperExecutionWorkflowEvidence,
             lastAppliedSequence: lastAppliedSequence
         )
     }
 
-    private static func makePaperRuntimeEvidence(
+    private static func matchingPaperRuntimeEnvelopes(
         backtest: DuckDBBacktestProjection,
-        paperSessions: [SQLitePaperSessionProjection],
-        riskBlockerEvidence: [SQLiteRiskBlockerEvidenceProjection],
-        portfolioExposures: [SQLitePortfolioExposureProjection],
         eventTimeline: [EventEnvelope]
-    ) -> PaperSessionRuntimeEvidenceSummary {
-        let matchingReplayEnvelopes = eventTimeline
+    ) -> [EventEnvelope] {
+        eventTimeline
             .filter {
                 matchesPaperRuntimeEvidence(
                     envelope: $0,
@@ -702,13 +809,6 @@ public struct ReportReadModel: Equatable, Sendable {
                 )
             }
             .sorted { $0.sequence < $1.sequence }
-
-        return PaperSessionRuntimeEvidenceSummary(
-            replaySummary: makePaperRuntimeReplaySummary(from: matchingReplayEnvelopes),
-            paperSessions: paperSessions,
-            riskBlockerEvidence: riskBlockerEvidence,
-            portfolioExposures: portfolioExposures
-        )
     }
 
     private static func makePaperRuntimeReplaySummary(
@@ -1012,6 +1112,7 @@ public struct ReportArtifactViewModel: Codable, Equatable, Sendable {
     public let parityStatus: ReportParityStatus
     public let tradingValidationEvidence: TradingValidationEvidenceSummary
     public let paperRuntimeEvidence: PaperSessionRuntimeEvidenceSummary
+    public let paperExecutionWorkflowEvidence: PaperExecutionWorkflowEvidenceSummary
     public let executionAuthorization: ReportExecutionAuthorization
     public let authorizesTradingExecution: Bool
     public let lastAppliedSequence: Int?
@@ -1032,6 +1133,7 @@ public struct ReportArtifactViewModel: Codable, Equatable, Sendable {
         self.parityStatus = artifact.parityStatus
         self.tradingValidationEvidence = artifact.tradingValidationEvidence
         self.paperRuntimeEvidence = artifact.paperRuntimeEvidence
+        self.paperExecutionWorkflowEvidence = artifact.paperExecutionWorkflowEvidence
         self.executionAuthorization = artifact.executionAuthorization
         self.authorizesTradingExecution = artifact.authorizesTradingExecution
         self.lastAppliedSequence = artifact.lastAppliedSequence
@@ -1078,6 +1180,24 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
     public let paperRuntimeAuthorizesLiveTrading: Bool
     public let paperRuntimeTouchesBrokerAction: Bool
     public let paperRuntimeAuthorizesTradingExecution: Bool
+    public let paperExecutionWorkflowEvidenceCount: Int
+    public let paperExecutionWorkflowDecisionIDs: [String]
+    public let paperExecutionWorkflowOrderIDs: [String]
+    public let paperExecutionWorkflowSimulatedFillIDs: [String]
+    public let paperExecutionWorkflowPortfolioUpdateIDs: [String]
+    public let paperExecutionWorkflowPortfolioIDs: [String]
+    public let paperExecutionWorkflowSequenceCount: Int
+    public let paperExecutionWorkflowStreams: [String]
+    public let paperExecutionWorkflowCoversDecisionEvents: Bool
+    public let paperExecutionWorkflowCoversOrderEvents: Bool
+    public let paperExecutionWorkflowCoversSimulatedFillEvents: Bool
+    public let paperExecutionWorkflowCoversDecisionOrderFillChain: Bool
+    public let paperExecutionWorkflowProjectsPortfolioFromSimulatedFill: Bool
+    public let paperExecutionWorkflowReplayDeterministic: Bool
+    public let paperExecutionWorkflowPaperOnlyBoundaryHeld: Bool
+    public let paperExecutionWorkflowAuthorizesLiveTrading: Bool
+    public let paperExecutionWorkflowTouchesBrokerAction: Bool
+    public let paperExecutionWorkflowAuthorizesTradingExecution: Bool
     public let tradingValidationAuthorizesExecution: Bool
     public let authorizesTradingExecution: Bool
     public let latestParityStatus: ReportParityStatus?
@@ -1087,6 +1207,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
         let tradingEvidence = readModel.artifacts.map(\.tradingValidationEvidence)
         let costEvidence = tradingEvidence.flatMap(\.executionCostEvidence)
         let runtimeEvidence = readModel.artifacts.map(\.paperRuntimeEvidence)
+        let workflowEvidence = readModel.artifacts.map(\.paperExecutionWorkflowEvidence)
         self.section = .report
         self.source = ViewModelSourceContract()
         self.artifacts = readModel.artifacts.map(ReportArtifactViewModel.init)
@@ -1174,6 +1295,56 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
             $0.touchesBrokerAction
         }
         self.paperRuntimeAuthorizesTradingExecution = runtimeEvidence.contains {
+            $0.authorizesTradingExecution
+        }
+        self.paperExecutionWorkflowEvidenceCount = workflowEvidence.filter(\.hasEvidence).count
+        self.paperExecutionWorkflowDecisionIDs = workflowEvidence
+            .flatMap(\.decisionIDs)
+            .uniqueSorted()
+        self.paperExecutionWorkflowOrderIDs = workflowEvidence
+            .flatMap(\.paperOrderIDs)
+            .uniqueSorted()
+        self.paperExecutionWorkflowSimulatedFillIDs = workflowEvidence
+            .flatMap(\.simulatedFillIDs)
+            .uniqueSorted()
+        self.paperExecutionWorkflowPortfolioUpdateIDs = workflowEvidence
+            .flatMap(\.portfolioUpdateIDs)
+            .uniqueSorted()
+        self.paperExecutionWorkflowPortfolioIDs = workflowEvidence
+            .flatMap(\.portfolioIDs)
+            .uniqueSorted()
+        self.paperExecutionWorkflowSequenceCount = workflowEvidence.reduce(0) {
+            $0 + $1.workflowSequenceCount
+        }
+        self.paperExecutionWorkflowStreams = workflowEvidence
+            .flatMap(\.workflowStreams)
+            .uniqueSorted()
+        self.paperExecutionWorkflowCoversDecisionEvents = workflowEvidence.contains {
+            $0.coversDecisionEvents
+        }
+        self.paperExecutionWorkflowCoversOrderEvents = workflowEvidence.contains {
+            $0.coversPaperOrderEvents
+        }
+        self.paperExecutionWorkflowCoversSimulatedFillEvents = workflowEvidence.contains {
+            $0.coversSimulatedFillEvents
+        }
+        self.paperExecutionWorkflowCoversDecisionOrderFillChain = workflowEvidence.contains {
+            $0.coversDecisionOrderFillChain
+        }
+        self.paperExecutionWorkflowProjectsPortfolioFromSimulatedFill = workflowEvidence.contains {
+            $0.projectsPortfolioFromSimulatedFill
+        }
+        self.paperExecutionWorkflowReplayDeterministic = workflowEvidence.isEmpty
+            || workflowEvidence.allSatisfy(\.replayResultIsDeterministic)
+        self.paperExecutionWorkflowPaperOnlyBoundaryHeld = workflowEvidence.isEmpty
+            || workflowEvidence.allSatisfy(\.paperOnlyBoundaryHeld)
+        self.paperExecutionWorkflowAuthorizesLiveTrading = workflowEvidence.contains {
+            $0.authorizesLiveTrading
+        }
+        self.paperExecutionWorkflowTouchesBrokerAction = workflowEvidence.contains {
+            $0.touchesBrokerAction
+        }
+        self.paperExecutionWorkflowAuthorizesTradingExecution = workflowEvidence.contains {
             $0.authorizesTradingExecution
         }
         self.tradingValidationAuthorizesExecution = tradingEvidence.contains {

@@ -191,3 +191,23 @@ MTP-36 在 Report / Dashboard ViewModel 中汇总 Paper Session runtime evidence
 - runtime evidence 来自 append-only event timeline replay summary 与 SQLite runtime projection snapshot；它不触发 replay 写入、数据库迁移、broker action 或订单动作。
 - `paperRuntimeAuthorizesTradingExecution`、`paperRuntimeAuthorizesLiveTrading` 和 `paperRuntimeTouchesBrokerAction` 必须保持 false。
 - Report / Dashboard 不提供 live order action、risk control command、position management command、broker action 或 signed endpoint。
+
+## MTP-44 Paper Execution Workflow Evidence ViewModel 契约
+
+日期：2026-05-19
+
+执行者：Codex
+
+MTP-44 在 Report / Dashboard ViewModel 中汇总 Paper execution workflow evidence：
+
+- `PaperExecutionWorkflowEvidenceSummary`：把 append-only replay summary 中的 paper execution decision、paper order、simulated fill 和 portfolio projection evidence 汇总为可编码只读快照。
+- `ReportArtifactViewModel.paperExecutionWorkflowEvidence`：展示单个 report artifact 关联的 decision IDs、paper order IDs、simulated fill IDs、portfolio update IDs、workflow sequences 和 workflow streams。
+- `ReportViewModel`：汇总 workflow evidence count、decision IDs、paper order IDs、simulated fill IDs、portfolio update IDs、workflow sequence count、workflow streams、decision / order / fill chain coverage、portfolio projection coverage、deterministic replay flag 和 paper-only boundary flag。
+- `DashboardShellSnapshot` 的 Report 区域展示 workflow evidence、decision / order / fill IDs、workflow streams、execution chain coverage、portfolio projection coverage 和 paper-only boundary。
+
+边界确认：
+
+- Report / Dashboard 仍只消费 ViewModel / Read Model，不暴露 SQLite / DuckDB schema、SQL、ORM model、runtime object 或 adapter request。
+- workflow evidence 来自 append-only event timeline replay summary；它不触发 replay 写入、数据库迁移、broker action 或订单动作。
+- `paperExecutionWorkflowAuthorizesTradingExecution`、`paperExecutionWorkflowAuthorizesLiveTrading` 和 `paperExecutionWorkflowTouchesBrokerAction` 必须保持 false。
+- Report / Dashboard 不提供 live order action、risk control command、position management command、order command、broker action 或 signed endpoint。

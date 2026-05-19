@@ -193,7 +193,8 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 DashboardShellMetric(label: "Risk blockers", value: "\(viewModel.riskBlockerEvidenceCount)"),
                 DashboardShellMetric(label: "Exposure", value: "\(viewModel.portfolioExposureEvidenceCount)"),
                 DashboardShellMetric(label: "Runtime", value: "\(viewModel.paperRuntimeEvidenceCount)"),
-                DashboardShellMetric(label: "Replay facts", value: "\(viewModel.paperRuntimeReplaySequenceCount)")
+                DashboardShellMetric(label: "Replay facts", value: "\(viewModel.paperRuntimeReplaySequenceCount)"),
+                DashboardShellMetric(label: "Exec workflow", value: "\(viewModel.paperExecutionWorkflowEvidenceCount)")
             ],
             details: [
                 "Report IDs: \(joined(viewModel.artifacts.map(\.reportID)))",
@@ -212,6 +213,13 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 "Replay streams: \(joined(viewModel.paperRuntimeReplayStreams))",
                 "Runtime boundary: \(formatRuntimeBoundary(viewModel.paperRuntimePaperOnlyBoundaryHeld))",
                 "Replay deterministic: \(formatEvidenceFlag(viewModel.paperRuntimeReplayDeterministic))",
+                "Execution decisions: \(joined(viewModel.paperExecutionWorkflowDecisionIDs))",
+                "Paper orders: \(joined(viewModel.paperExecutionWorkflowOrderIDs))",
+                "Simulated fills: \(joined(viewModel.paperExecutionWorkflowSimulatedFillIDs))",
+                "Execution workflow streams: \(joined(viewModel.paperExecutionWorkflowStreams))",
+                "Execution workflow chain: \(formatEvidenceFlag(viewModel.paperExecutionWorkflowCoversDecisionOrderFillChain))",
+                "Execution workflow portfolio projection: \(formatEvidenceFlag(viewModel.paperExecutionWorkflowProjectsPortfolioFromSimulatedFill))",
+                "Execution workflow boundary: \(formatRuntimeBoundary(viewModel.paperExecutionWorkflowPaperOnlyBoundaryHeld))",
                 "Trading validation execution: \(format(viewModel.tradingValidationAuthorizesExecution))",
                 "Execution: \(format(viewModel.authorizesTradingExecution))",
                 "Latest parity: \(format(viewModel.latestParityStatus))",

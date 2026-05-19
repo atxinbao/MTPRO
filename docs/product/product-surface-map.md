@@ -130,3 +130,24 @@ Report 区域：
 - live order button。
 - database schema、SQL、ORM model、runtime object 或 adapter request 暴露。
 - signed endpoint、account endpoint、broker action 或真实订单行为。
+
+## MTP-44 Paper execution workflow evidence 汇总
+
+日期：2026-05-19
+
+执行者：Codex
+
+当前 Dashboard 的 Report 区域补充 Paper execution workflow evidence 汇总：
+
+- Report artifact 展示 paper execution decision IDs、paper order IDs、simulated fill IDs、workflow replay streams 和 portfolio update IDs。
+- Report 区域展示 execution workflow evidence count，并把 decision -> order -> simulated fill -> portfolio projection 的链路作为只读证据展示。
+- Workflow evidence 只从 append-only event timeline replay summary 和 App 层 read model 派生，不新增 runtime 写入、不读取 database schema、不调用 adapter。
+- Dashboard shell 仍只消费 `ReportViewModel` / `DashboardShellSnapshot`，不新增按钮、表单、命令出口或交易控制。
+
+仍不包含：
+
+- UI 大改版或完整报告系统。
+- live order button。
+- risk control command、position management command 或 order command。
+- database schema、SQL、ORM model、runtime object 或 adapter request 暴露。
+- signed endpoint、account endpoint、broker action 或真实订单行为。
