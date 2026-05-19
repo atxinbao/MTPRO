@@ -86,7 +86,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
 
     public var smokeSummary: String {
         let sectionNames = sections.map(\.title).joined(separator: ",")
-        return "MTPRO Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); sections=\(sectionNames)"
+        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); sections=\(sectionNames)"
     }
 
     private static func makeSectionSnapshot(

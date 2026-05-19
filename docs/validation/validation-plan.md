@@ -12,8 +12,8 @@ bash checks/run.sh
 
 - `git diff --check`
 - `bash checks/automation-readiness.sh`
-- macOS 本地：`swift build --product MTPRODashboard`
-- macOS 本地：`MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard`
+- macOS 本地：`swift build --product Dashboard`
+- macOS 本地：`DASHBOARD_SMOKE=1 swift run Dashboard`
 - Linux CI：跳过 macOS-only SwiftUI shell build / smoke，并继续运行 SwiftPM tests
 - `swift test`
 
@@ -314,8 +314,8 @@ MTP-22 的 required validation：
 - 使用 SwiftUI shell 绑定 `DashboardViewModel` snapshot。
 - 验证 Market / Strategy / Backtest / Paper / Risk / Portfolio / Events 七个只读区域都来自 ViewModel / Read Model。
 - 验证 shell source 不导入 Runtime / Adapters，也不直接引用数据库实现名或 public market data client 类型。
-- 验证 `swift build --product MTPRODashboard` 可构建 macOS 看板入口。
-- 验证 `MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard` 可输出 read-model-only smoke summary 并退出。
+- 验证 `swift build --product Dashboard` 可构建 macOS 看板入口。
+- 验证 `DASHBOARD_SMOKE=1 swift run Dashboard` 可输出 read-model-only smoke summary 并退出。
 - 验证 Linux CI 可通过非 SwiftUI fallback 编译 App target、executable target 和 AppTests；真实 SwiftUI shell 只在 macOS 本地构建。
 - required validation 不接真实网络、不读取 secret、不连接 broker、不触发真实交易行为。
 

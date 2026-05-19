@@ -47,7 +47,7 @@ Sources/
   Persistence/   Event Log / SQLite / DuckDB 边界
   Runtime/       ingest / event log / replay / projection 编排边界
   App/           macOS 产品面和 ViewModel 边界
-  MTPRODashboard/ SwiftPM 可构建的 macOS 只读看板 shell
+  Dashboard/ SwiftPM 可构建的 macOS 只读看板 shell
 
 Tests/
   CoreTests/
