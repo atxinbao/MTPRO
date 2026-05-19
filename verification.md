@@ -5330,3 +5330,45 @@ Next Handoff：Human + `@001 / PLN`
 | `swift test --filter AppTests` | pass | 16 个 AppTests，0 failures；覆盖 Dashboard / Workbench shell snapshot control / observability / explorer binding、Dashboard smoke workbench evidence、session-level local command presentation 和 no button / no command / schema / runtime / adapter boundary tests。 |
 | `bash checks/automation-readiness.sh` | pass | 新增 MTP-52 contract / product / validation / matrix / source / test anchors 后通过，输出 `MTPRO automation readiness checks passed.`。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 106 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset`，最终输出 `MTPRO checks passed.`。 |
+
+## MTP-53 加固 deterministic validation、Dashboard smoke 和 automation readiness evidence
+
+日期：2026-05-20
+
+执行者：Codex（Codex Execution Agent）
+
+目的：
+
+- 按 Linear issue `MTP-53` 收口 `MTPRO Paper Workflow Control Shell v1` 的 deterministic validation、Dashboard smoke、automation readiness anchor、known boundaries 和 Stage Code Audit input。
+- 汇总 MTP-47 至 MTP-52 的 issue / PR evidence、merge commit、required check、Dashboard smoke 和 validation evidence chain。
+- 明确最终 Stage Code Audit Report 仍由 Parent Codex 在 Project 全部 Done 且 Linear Project `Completed` 后单独输出。
+
+文件范围：
+
+- Added：
+  - `docs/audit/inputs/mtpro-paper-workflow-control-shell-v1-stage-audit-input.md`
+- Updated：
+  - `checks/automation-readiness.sh`
+  - `docs/validation/latest-verification-summary.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+
+边界确认：
+
+- 本 issue 只准备阶段证据材料，不输出最终 Stage Code Audit Report。
+- 未创建下一 Project / Issue，未推进下一 Project / Issue，未启动下一阶段 `symphony-issue`。
+- 未写业务功能扩展，未修改 production code。
+- Dashboard smoke evidence 覆盖 `sections=8`、`readModelOnly=true`、`workbenchReadModelOnly=true`、`controls=start,pause,close,reset` 和 `timelineItems=0`。
+- `timelineItems=0` 来自空启动 read model；fixture 级 Event Timeline / Evidence Explorer coverage 仍由 App deterministic tests 覆盖。
+- 未接 Live trading、signed endpoint、account endpoint、listenKey、broker action 或真实订单行为。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `DASHBOARD_SMOKE=1 swift run Dashboard` | pass | 输出 `Dashboard smoke: sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`。 |
+| `bash checks/automation-readiness.sh` | pass | MTP-53 stage audit input、validation plan、matrix、latest summary 和 Dashboard smoke anchors 均可机械定位，输出 `MTPRO automation readiness checks passed.`。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 106 个 XCTest 全部通过，最终输出 `MTPRO checks passed.`。 |
