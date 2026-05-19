@@ -5372,3 +5372,49 @@ Next Handoff：Human + `@001 / PLN`
 | `DASHBOARD_SMOKE=1 swift run Dashboard` | pass | 输出 `Dashboard smoke: sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`。 |
 | `bash checks/automation-readiness.sh` | pass | MTP-53 stage audit input、validation plan、matrix、latest summary 和 Dashboard smoke anchors 均可机械定位，输出 `MTPRO automation readiness checks passed.`。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 106 个 XCTest 全部通过，最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO Paper Workflow Control Shell v1 Stage Code Audit Report
+
+日期：2026-05-20
+
+执行者：Parent Codex Automation Supervision（`@002 / PAR`）
+
+目的：
+
+- 将 `MTPRO Paper Workflow Control Shell v1` 的 canonical Stage Code Audit Report 落仓。
+- 基于 Linear live-read、PR #91 至 #97、Post-Issue Ledger 和 `MTP-53` Stage Audit Input 固化 Project closure 证据。
+- 更新最近验证摘要，指向 canonical Stage Code Audit Report。
+
+文件范围：
+
+- Added：
+  - `docs/audit/mtpro-paper-workflow-control-shell-v1-stage-code-audit.md`
+- Updated：
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+证据：
+
+- Canonical issues `MTP-47`、`MTP-48`、`MTP-49`、`MTP-50`、`MTP-51`、`MTP-52`、`MTP-53` 全部 Linear `Done`。
+- Linear Project status 已设置为 `Completed`，`completedAt=2026-05-19T21:37:34.706Z`。
+- `MTP-53` PR #97 已 merge，merge commit 为 `f2efe3d23a092b9e938c7697a8002860abc1962a`。
+- GitHub required check `checks` 已通过：`https://github.com/atxinbao/MTPRO/actions/runs/26126719584/job/76842160441`。
+- Post-Issue Ledger 对 `MTP-53` 的 `git_pull_ff_only` 和 `graphify_update` 均为 `passed`；`graphify-out/*` 未提交。
+
+边界确认：
+
+- 本轮只落仓 Stage Code Audit Report，不创建 Linear Project / Issue。
+- 未推进任何 issue 到 `Todo`。
+- 未启动新的 Symphony。
+- 未运行 Graphify manual update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- Root Docs Refresh Gate 尚未执行；Current Phase Progress Bar 需在该 gate closure 后单独刷新。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Stage Code Audit Report 落仓变更无 whitespace error。 |
+| `bash checks/run.sh` | pass | 首次运行暴露 persistent repo `.build` 缓存污染导致的 `CoreError` enum layout 断言串扰；执行 `swift package clean` 后完整验证通过，Dashboard build / smoke 和 106 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
