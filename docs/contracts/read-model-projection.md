@@ -700,6 +700,32 @@ Paper workflow Workbench 在当前事项中新增 information architecture fixtu
 - Read Model / ViewModel 不暴露 SQLite / DuckDB schema、ORM model、SQL、runtime object 或 adapter request。
 - control shell 不代表真实订单、真实成交、broker fill、account update、signed endpoint、account endpoint、listenKey、broker action 或 Live execution。
 
+## MTP-50 Paper Workflow Observability 观察面
+
+日期：2026-05-20
+
+执行者：Codex
+
+Paper workflow observability 在当前事项中以 App 层 read model / ViewModel 聚合既有 paper-only evidence，不新增 projection schema。
+
+当前可观察字段：
+
+- session IDs、session status、active session count、completed session count。
+- proposal IDs。
+- allowed decision IDs、paper order IDs、simulated fill IDs。
+- blocked risk evidence IDs、blocked paper order IDs。
+- portfolio update IDs、portfolio IDs。
+- allowed execution chain coverage 和 blocked evidence coverage。
+- replay available、deterministic replay、append-only facts source、last replay sequence、event timeline last sequence 和 freshness。
+- report artifact IDs、artifact parity status、completed artifact count、latest parity status 和 research-only authorization。
+
+边界：
+
+- `PaperWorkflowObservabilityReadModel` 只组合既有 `ReportReadModel`、`PaperReadModel`、`RiskReadModel`、`PortfolioReadModel` 和 `EventTimelineReadModel`。
+- `PaperWorkflowObservabilityViewModel` 只输出 Codable deterministic snapshot，不暴露 database schema、runtime object 或 adapter request。
+- replay freshness 只比较 sequence，不触发 replay、不写 event log、不读取 SQLite / DuckDB schema。
+- 观察面不提供 order-level command、UI control、Event Timeline explorer、broker action、signed endpoint、account endpoint、listenKey、真实订单或 Live execution。
+
 ## MTP-29 Report / Dashboard Trading Validation Evidence 观察面
 
 日期：2026-05-18

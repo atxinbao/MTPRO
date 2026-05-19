@@ -27,6 +27,15 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(viewModel.report.source.exposesRuntimeObjects)
         XCTAssertFalse(viewModel.report.source.callsBinanceAdapter)
         XCTAssertFalse(viewModel.report.source.providesLiveOrderAction)
+        XCTAssertEqual(
+            viewModel.paperWorkflowObservability.source.sourceKind,
+            .stableReadModelProjection
+        )
+        XCTAssertFalse(viewModel.paperWorkflowObservability.source.exposesDatabaseTables)
+        XCTAssertFalse(viewModel.paperWorkflowObservability.source.exposesORMModels)
+        XCTAssertFalse(viewModel.paperWorkflowObservability.source.exposesRuntimeObjects)
+        XCTAssertFalse(viewModel.paperWorkflowObservability.source.callsBinanceAdapter)
+        XCTAssertFalse(viewModel.paperWorkflowObservability.source.providesLiveOrderAction)
         XCTAssertEqual(viewModel.events.source.sourceKind, .stableReadModelProjection)
         XCTAssertFalse(viewModel.events.source.exposesDatabaseTables)
         XCTAssertFalse(viewModel.events.source.exposesORMModels)
@@ -112,6 +121,83 @@ final class AppTests: XCTestCase {
         ) { error in
             XCTAssertEqual(error as? PaperWorkflowWorkbenchContractError, .implementationEscapedIssueScope)
         }
+    }
+
+    func testPaperWorkflowObservabilityViewModelAggregatesStatusChainAndFreshness() throws {
+        // 测试场景：MTP-50 的 Paper workflow observability 必须只从既有 read model / ViewModel
+        // evidence 汇总 session status、blocked / allowed evidence、执行链覆盖和 replay freshness。
+        let viewModel = try makeDashboardViewModel().paperWorkflowObservability
+
+        XCTAssertTrue(viewModel.source.isReadModelOnly)
+        XCTAssertEqual(viewModel.sessionIDs, ["paper-replay-session"])
+        XCTAssertEqual(viewModel.sessionStatusLabels, ["started", "updated", "closed"])
+        XCTAssertEqual(viewModel.activeSessionCount, 0)
+        XCTAssertEqual(viewModel.completedSessionCount, 1)
+        XCTAssertEqual(
+            viewModel.proposalIDs,
+            ["paper-replay-proposal", "paper-replay-proposal-blocked"]
+        )
+        XCTAssertEqual(viewModel.allowedDecisionIDs, ["paper-replay-execution-decision-allowed"])
+        XCTAssertEqual(viewModel.allowedPaperOrderIDs, ["paper-replay-order-allowed"])
+        XCTAssertEqual(viewModel.allowedSimulatedFillIDs, ["paper-replay-fill-allowed"])
+        XCTAssertEqual(viewModel.portfolioUpdateIDs, ["paper-replay-portfolio-update"])
+        XCTAssertEqual(viewModel.portfolioIDs, ["portfolio-main"])
+        XCTAssertEqual(
+            viewModel.blockedRiskEvidenceIDs,
+            ["risk-blocker-paper-replay-proposal-blocked"]
+        )
+        XCTAssertEqual(viewModel.blockedPaperOrderIDs, ["paper-replay-proposal-blocked"])
+        XCTAssertEqual(viewModel.allowedEvidenceCount, 3)
+        XCTAssertEqual(viewModel.blockedEvidenceCount, 1)
+
+        XCTAssertTrue(viewModel.coversSessionStatus)
+        XCTAssertTrue(viewModel.coversProposalEvidence)
+        XCTAssertTrue(viewModel.coversRiskDecisionEvidence)
+        XCTAssertTrue(viewModel.coversPaperOrderEvidence)
+        XCTAssertTrue(viewModel.coversSimulatedFillEvidence)
+        XCTAssertTrue(viewModel.coversPortfolioProjectionEvidence)
+        XCTAssertTrue(viewModel.coversAllowedExecutionChain)
+        XCTAssertTrue(viewModel.coversBlockedEvidence)
+        XCTAssertTrue(viewModel.coversReportArtifactStatus)
+
+        XCTAssertTrue(viewModel.replayAvailable)
+        XCTAssertTrue(viewModel.replayDeterministic)
+        XCTAssertTrue(viewModel.appendOnlyFactsSourceIsReplaySource)
+        XCTAssertEqual(viewModel.replaySequenceCount, 16)
+        XCTAssertEqual(viewModel.lastReplaySequence, 16)
+        XCTAssertEqual(viewModel.eventTimelineLastSequence, 16)
+        XCTAssertEqual(viewModel.replayFreshness, .fresh)
+
+        XCTAssertEqual(viewModel.reportArtifactIDs, ["report-backtest-ema-fixture"])
+        XCTAssertEqual(viewModel.reportArtifactStatuses, [.matchedProjectionEvidence])
+        XCTAssertEqual(viewModel.reportArtifactCount, 1)
+        XCTAssertEqual(viewModel.completedReportArtifactCount, 1)
+        XCTAssertEqual(viewModel.latestReportParityStatus, .matchedProjectionEvidence)
+        XCTAssertTrue(viewModel.reportArtifactsHavePaperOnlyAuthorization)
+        XCTAssertEqual(viewModel.lastAppliedSequence, 16)
+    }
+
+    func testPaperWorkflowObservabilityViewModelIsCodableAndKeepsReadModelOnlyBoundary() throws {
+        // 测试场景：MTP-50 新增 ViewModel 必须是 deterministic Codable snapshot，并且不能暴露
+        // database schema、runtime object、adapter request、order-level command 或真实交易授权。
+        let viewModel = try makeDashboardViewModel().paperWorkflowObservability
+
+        let encoded = try JSONEncoder().encode(viewModel)
+        let decoded = try JSONDecoder().decode(
+            PaperWorkflowObservabilityViewModel.self,
+            from: encoded
+        )
+
+        XCTAssertEqual(decoded, viewModel)
+        XCTAssertTrue(decoded.paperOnlyBoundaryHeld)
+        XCTAssertTrue(decoded.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(decoded.exposesDatabaseSchema)
+        XCTAssertFalse(decoded.exposesRuntimeObject)
+        XCTAssertFalse(decoded.exposesAdapterRequest)
+        XCTAssertFalse(decoded.providesOrderLevelCommand)
+        XCTAssertFalse(decoded.authorizesLiveTrading)
+        XCTAssertFalse(decoded.touchesBrokerAction)
+        XCTAssertFalse(decoded.authorizesTradingExecution)
     }
 
     func testReadModelProjectionMapsAllDashboardSections() throws {

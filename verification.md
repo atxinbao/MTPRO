@@ -5197,3 +5197,48 @@ Next Handoff：Human + `@001 / PLN`
 | `swift test --filter CoreTests/testPaperSessionLocalControl` | pass | 6 个 CoreTests，0 failures；覆盖 accepted command -> `sessionControlApplied`、invalid command -> `sessionControlRejected`、append-only `.paper` stream 和 no order / no broker event。 |
 | `bash checks/automation-readiness.sh` | pass | `PaperSessionLocalControlEventLogBoundary`、MTP-49 validation-plan、contract docs、product surface 和 matrix anchors 均可机械定位。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 101 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
+
+## MTP-50 Paper workflow observability Read Model / ViewModel
+
+日期：2026-05-20
+
+执行者：Codex（Codex Execution Agent）
+
+目的：
+
+- 按 Linear issue `MTP-50` 扩展 Paper workflow observability Read Model / ViewModel。
+- 展示 session status、proposal evidence、allowed paper execution chain、blocked risk evidence、portfolio projection evidence、replay freshness 和 report artifact status。
+- 保持 UI-facing shape 只通过 ViewModel / Read Model，不暴露 SQLite / DuckDB schema、adapter request 或 runtime object。
+
+文件范围：
+
+- Added：
+  - `Sources/App/PaperWorkflowObservability.swift`
+- Updated：
+  - `Sources/App/App.swift`
+  - `Tests/AppTests/AppTests.swift`
+  - `docs/product/product-surface-map.md`
+  - `docs/contracts/api-contract.md`
+  - `docs/contracts/frontend-view-model-contract.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+
+边界确认：
+
+- `PaperWorkflowObservabilityReadModel` 只从既有 `ReportReadModel`、`PaperReadModel`、`RiskReadModel`、`PortfolioReadModel` 和 `EventTimelineReadModel` 聚合稳定输入。
+- `PaperWorkflowObservabilityViewModel` 是 Codable deterministic snapshot，展示 blocked / allowed evidence、chain coverage、replay freshness 和 report artifact status。
+- `DashboardReadModel` / `DashboardViewModel` 只新增 read-model-only 观察快照，不修改 Dashboard shell UI。
+- 未新增 projection schema、Runtime wiring、adapter request、Event Timeline explorer、UI control 或 order-level command。
+- 未接 Live trading、signed endpoint、account endpoint、listenKey、broker action 或真实订单行为。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter AppTests` | pass | 13 个 AppTests，0 failures；覆盖 Paper workflow observability snapshot、session status、blocked / allowed evidence、chain coverage、replay freshness、report artifact status、Codable deterministic equality 和 schema / runtime / adapter non-exposure。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 103 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
