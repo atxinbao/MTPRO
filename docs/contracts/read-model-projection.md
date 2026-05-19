@@ -536,7 +536,7 @@ Paper-only execution workflow contract 在当前事项中只作为 Core contract
 边界：
 
 - Contract 只表达后续本地 paper-only evidence 的 stage / event boundary，不写 event log、不读 projection schema、不生成 ViewModel。
-- paper execution decision 和 simulated fill 在 MTP-38 只作为 future issue 占位；paper order stage 已由 MTP-39 的本地 intent / lifecycle 模型补充。
+- MTP-38 最初只定义 workflow stage boundary；paper order stage 已由 MTP-39 的本地 intent / lifecycle 模型补充，simulated fill stage 已由 MTP-40 补充，paper execution decision stage 已由 MTP-41 补充。
 - 当前不新增 UI command、risk control command、position management command、broker action、signed endpoint、account endpoint、真实订单行为或 Live execution。
 
 ## MTP-39 Paper Order Intent / Lifecycle 观察面
@@ -592,6 +592,33 @@ Simulated fill evidence 在当前事项中先以 Core value contract 和 determi
 - 当前只定义 Core simulated fill evidence value model 和 deterministic tests，不新增 SwiftUI 页面字段。
 - 当前不新增 event log 写入、SQLite / DuckDB projection、Report / Dashboard 字段或 portfolio update。
 - Simulated fill evidence 只表达本地 Paper 模拟成交证据，不代表真实成交、broker fill、execution report、account update 或交易执行授权。
+- 当前不新增 UI command、risk control command、position management command、broker action、signed endpoint、account endpoint、真实订单行为或 Live execution。
+
+## MTP-41 Paper Execution Decision 观察面
+
+日期：2026-05-19
+
+执行者：Codex
+
+Paper execution decision 在当前事项中先以 Core value contract 和 deterministic fixture 作为观察面，为后续 event log、replay、portfolio projection 和 Report evidence 提供稳定输入。
+
+当前可观察字段：
+
+- decisionID。
+- riskDecision：保留 proposal、risk query、source sequence、allowed / blocked status 和 blocker evidence。
+- status：`allowed` 或 `blocked`，必须与 risk decision status 一致。
+- allowed 路径：paperOrderIntent、simulatedFillAssumption、simulatedFillEvidence、sourceOrderIntentSequence。
+- blocked 路径：blockerEvidenceID；paperOrderIntent、simulatedFillAssumption、simulatedFillEvidence 和 sourceOrderIntentSequence 必须为空。
+- executionMode、proposalAuthorization。
+- workflowStage、eventStream、evidenceKind。
+- decidedAt、sourceRiskDecisionSequence。
+- paper-only capability flags：`authorizesTradingExecution`、`authorizesLiveTrading`、`touchesSignedEndpoint`、`touchesBrokerAction`、`representsRealOrder`、`representsRealFill`、`representsBrokerFill`、`updatesRealAccountBalance` 固定为 `false`。
+
+边界：
+
+- 当前只定义 Core paper execution decision value model 和 deterministic tests，不新增 SwiftUI 页面字段。
+- 当前不新增 event log 写入、SQLite / DuckDB projection、Report / Dashboard 字段或 portfolio update。
+- Paper execution decision 只表达本地 allowed / blocked evidence chain，不代表真实订单授权、真实成交、broker fill、execution report、account update 或交易执行入口。
 - 当前不新增 UI command、risk control command、position management command、broker action、signed endpoint、account endpoint、真实订单行为或 Live execution。
 
 ## MTP-29 Report / Dashboard Trading Validation Evidence 观察面

@@ -22,7 +22,7 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - Project 全部有效 issues `Done` 只是 closure 前置条件；不能替代 Linear Project status `Completed`。
 - Stage Code Audit Report 必须覆盖完整 Linear Project。
 - Root Docs Refresh Gate 只同步已发生事实；Root Docs Delta 不决定下一阶段方向。
-- 本轮 MTP-40 simulated fill evidence 最小模型已通过 `swift test --filter CoreTests`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；完整入口执行 88 个 XCTest 0 failures。
+- 本轮 MTP-41 paper execution decision 本地链路已通过 `swift test --filter CoreTests/testPaperExecutionDecision`；最终 `bash checks/run.sh` 结果见本文件最近验证表和 `verification.md` 追加记录。
 
 ## 最近工程事实
 
@@ -31,6 +31,7 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - `MTP-38` 固化 `TVM-PAPER-EXECUTION-WORKFLOW`，定义 paper-only execution workflow contract。
 - `MTP-39` 固化 `TVM-PAPER-ORDER-LIFECYCLE`，定义 paper order intent / lifecycle 的本地 paper-only evidence。
 - `MTP-40` 固化 `TVM-PAPER-SIMULATED-FILL`，定义 allowed paper order intent -> deterministic simulated fill evidence 的本地 paper-only value model。
+- `MTP-41` 固化 `TVM-PAPER-EXECUTION-DECISION`，定义 allowed risk decision -> paper order intent -> simulated fill evidence，以及 blocked risk decision 不生成 paper order 的本地 paper-only decision flow。
 - 历史 `MTP-30` 阶段收口已迁入 `docs/audit/inputs/`，`docs/validation/` 不再存放 `MTP-xx` 命名的阶段输入文件。
 - `@000 / AIE` 是当前 Codex / AI Engineer 协作入口；`@003 / PRD`、`@004 / DSG`、`@005 / ARC` 是 Linear 外 reference / root docs 角色。
 
@@ -39,16 +40,17 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 | 命令 | 结果 | 说明 |
 | --- | --- | --- |
 | `git diff --check` | pass | 由 `bash checks/run.sh` 串联执行。 |
-| `bash checks/automation-readiness.sh` | pass | MTPRO automation readiness checks passed；新增 `TVM-PAPER-SIMULATED-FILL` anchor。 |
+| `bash checks/automation-readiness.sh` | pass | MTPRO automation readiness checks passed；新增 `TVM-PAPER-EXECUTION-DECISION` anchor。 |
 | `swift build --product Dashboard` | pass | macOS dashboard executable 构建通过。 |
 | `DASHBOARD_SMOKE=1 swift run Dashboard` | pass | Dashboard smoke 通过，sections=8，readModelOnly=true。 |
-| `swift test` | pass | 88 个 XCTest，0 failures。 |
+| `swift test` | pass | 91 个 XCTest，0 failures。 |
 | `bash checks/run.sh` | pass | 统一验证入口通过，输出 `MTPRO checks passed.`。 |
 
 ## 当前边界
 
 - Paper execution / order / fill / portfolio 语义全部是 paper-only evidence，不代表真实订单、真实成交、broker fill、account state 或 Live fallback。
-- MTP-40 只定义 simulated fill evidence value model 和 deterministic fixture；不写 event log、不新增 projection / ViewModel、不实现 paper execution decision、真实撮合、真实成交回报、动态滑点、交易所费率表、执行成本优化、broker fill、account update、broker action、signed endpoint 或真实订单行为。
+- MTP-41 只定义 paper execution decision 本地链路和 deterministic fixture；blocked risk decision 不生成 paper order，allowed decision 只生成 paper-only order / fill evidence。
+- MTP-41 不写 event log、不新增 replay / projection / ViewModel、不实现完整 execution engine、完整风险引擎、broker rejection fallback、真实撮合、真实成交回报、broker fill、account update、broker action、signed endpoint 或真实订单行为。
 - Report / Dashboard 只展示 read model / ViewModel，不提供交易执行入口。
 - Trading Validation Matrix 是 evidence routing 入口，不替代 Linear issue contract、PR evidence 或 Stage Code Audit Report。
 - `docs/audit/inputs/` 只放阶段审计输入材料，不授权下一 Project planning 或 execution。

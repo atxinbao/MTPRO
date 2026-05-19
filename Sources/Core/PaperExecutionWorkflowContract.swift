@@ -209,8 +209,7 @@ public struct PaperExecutionWorkflowContract: Codable, Equatable, Sendable {
                         produces: .paperOrder,
                         eventStream: .paper,
                         evidenceKind: .paperExecutionDecision,
-                        implementedInCurrentCode: false,
-                        futureIssueID: try Identifier("MTP-41")
+                        implementedInCurrentCode: true
                     ),
                     PaperExecutionWorkflowStageBoundary(
                         stage: .paperOrder,
