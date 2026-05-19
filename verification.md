@@ -3980,3 +3980,53 @@ Commit：本轮提交
 | --- | --- | --- |
 | `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；确认 MTP-37 Stage Code Audit input、Trading Validation Matrix、latest summary 和 automation readiness anchors 完整。 |
 | `bash checks/run.sh` | pass | `git diff --check`、`bash checks/automation-readiness.sh`、dashboard build、dashboard smoke 和 `swift test` 全部通过；80 个 XCTest 0 failures，输出 `MTPRO checks passed.` |
+
+## MTPRO Paper Session Runtime v1 Root Docs Refresh Gate closure
+
+日期：2026-05-19
+
+执行者：Parent Codex Automation Supervision（`@002 / PAR`）
+
+目的：
+
+- 基于 `docs/audit/mtpro-paper-session-runtime-v1-stage-code-audit.md` 逐项核查 root docs 是否需要事实刷新。
+- 确认 `GOAL.md`、`ENVIRONMENT.md` 和 `ARCHITECTURE.md` 与已完成事实一致，无需更新。
+- 更新 `ROADMAP.md`，记录最近完成 Project 为 `MTPRO Paper Session Runtime v1`，并指向 canonical Stage Code Audit Report。
+- 更新 Stage Code Audit Report 的 Root Docs Delta pending note，记录本轮 closure 已执行。
+- 更新 `docs/validation/latest-verification-summary.md`，记录 Root Docs Refresh Gate closure 已执行。
+
+文件范围：
+
+- Updated：
+  - `docs/audit/mtpro-paper-session-runtime-v1-stage-code-audit.md`
+  - `ROADMAP.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未推进任何 issue 到 `Todo`。
+- 未启动 symphony-issue。
+- 未运行 Graphify update。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 未写业务代码。
+- 未决定下一阶段方向。
+
+Root Docs Refresh Gate 逐项结论：
+
+| 文档 | 结果 | 原因 |
+| --- | --- | --- |
+| `GOAL.md` | no update needed | 目标仍是 Research -> Backtest -> Paper 一致性工作台，Live trading 禁区未变化。 |
+| `ENVIRONMENT.md` | no update needed | Stage Code Audit Report 确认未新增本地运行依赖，统一验证入口仍是 `bash checks/run.sh`。 |
+| `ARCHITECTURE.md` | no update needed | Core / Persistence / App / Dashboard 边界继续成立；paper-only event log、runtime projection 和 read-model-only Dashboard 仍落在既有架构边界内。 |
+| `ROADMAP.md` | updated | 原文仍指向上一完成 Project，已同步为 `MTPRO Paper Session Runtime v1` 和对应 audit report 路径。 |
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | 本轮 docs-only Root Docs Refresh Gate closure 变更无空白问题。 |
+| `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 全部通过；80 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |
