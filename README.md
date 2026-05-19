@@ -1,53 +1,48 @@
 # MTPRO
 
-MTPRO 是用于重构 `macos-trader` 的新独立 macOS 交易研究工作台项目。
+MTPRO 是一个 SwiftPM-first 的 macOS 交易研究工作台，用于重构 `macos-trader` 中已经验证过的产品语义。
 
-本项目借鉴 `nautilus_trader` 的 Kernel / MessageBus / Cache / Engine / Adapter 分层思想，但不引入 NautilusTrader 作为运行依赖，也不复制 `macos-trader` 整仓代码。
+项目借鉴 `nautilus_trader` 的 Kernel / MessageBus / Cache / Engine / Adapter 分层思想，但不引入 NautilusTrader 作为运行依赖，也不复制 `macos-trader` 整仓代码。
 
-## 当前基线
+## 当前定位
 
-`MTPRO 引导` Project 已完成：
+第一版产品只做 Research -> Backtest -> Report -> Paper readiness / paper-only execution evidence。
 
-- 项目目标、架构边界、产品面和 contract-first 文档。
-- SwiftPM 模块：`Core`、`Adapters`、`Persistence`、`App`。
-- 本地验证入口：`bash checks/run.sh`。
-- GitHub PR Automation：`checks`、`protect-main`、squash auto-merge、branch cleanup。
-- Parent Codex Automation Supervision、symphony-issue、Post-Issue Ledger 和 Graphify resource relationship graph 边界。
+硬边界：
 
-当前仓库不固定正在执行的 Linear issue。正式开发只能来自 Linear 中唯一 configured executable issue；`ROADMAP.md`、Linear Draft、Backlog issue、label、priority、assignee 都不授权执行。
+- Binance 只允许 public market data read-only。
+- Live trading、signed endpoint、account endpoint、listenKey、broker action 和真实订单全部禁止。
+- Event Log 是 append-only facts source。
+- SQLite / DuckDB 只作为 projection。
+- UI 只消费 ViewModel / Read Model，不直接读取 adapter、database schema 或 runtime object。
 
-## AEP v2 流程
+## 当前执行事实源
 
-| 阶段 | MTPRO 状态 | 边界 |
-| --- | --- | --- |
-| Human Project Planning | 下一 Project 规划前置 | Human 决定阶段目标、Linear Project 和 issue 顺序 |
-| Parent Codex Automation Supervision | 已完成 `MTPRO Paper Session Runtime v1` Project 级审计收口；历史已完成 Project 已确认 Linear status `Completed` | queue preview、eligible issue 自动推进、child Codex 监控、代码审查、host-side fallback、Linear Project closure、Stage Code Audit Report |
-| symphony-issue | 已验证 issue 执行路径 | 调度唯一 `Todo` issue，推进 `Todo -> In Progress -> In Review` |
-| GitHub PR Automation | 已验证 | required checks、auto-merge、squash merge、branch cleanup、Linear bot auto Done |
-| Next Human Project Planning | 当前 `MTPRO Paper Execution Workflow v1` 已写入 Linear 且 status 为 `Planned` | 仓库文档不自行授权下一阶段；`@002 / PAR` 执行 queue preflight 后才可推进唯一 eligible issue |
+仓库文档不固定 current issue。
 
-## 第一版产品边界
+正式开发必须来自 Linear live-read 中唯一 configured executable issue：
 
-第一版只做策略研究到 Paper 的一致性闭环：
+```text
+Linear Project / Issues
+-> Parent Codex queue preflight
+-> unique Todo
+-> symphony-issue
+-> Codex Execution Agent
+-> GitHub PR Automation
+```
 
-- UI：最小观察和操作入口。
-- Backtest / Paper：第一优先级。
-- Live：完全禁止，不保留真实 broker action。
-- 数据源：Binance public market data read-only。
-- 策略：先 EMA cross，再 order book imbalance。
-- 时间粒度：`1m` 和 `5m`。
-- 标的：`BTCUSDT`、`ETHUSDT`、`BNBUSDT`、`SOLUSDT`、`XRPUSDT`。
+`ROADMAP.md`、planning record、Backlog issue、label、priority、assignee 或文档摘要都不授权执行。
 
-## 模块
+## 代码结构
 
 ```text
 Sources/
-  Core/          领域模型、事件、Kernel 边界
-  Adapters/      外部数据源 adapter 边界
-  Persistence/   Event Log / SQLite / DuckDB 边界
-  Runtime/       ingest / event log / replay / projection 编排边界
-  App/           macOS 产品面和 ViewModel 边界
-  Dashboard/ SwiftPM 可构建的 macOS 只读看板 shell
+  Core/          领域模型、事件、策略、paper-only execution contract
+  Adapters/      Binance public read-only market data boundary
+  Persistence/   append-only Event Log、SQLite / DuckDB projections
+  Runtime/       ingest / event log / replay / projection orchestration
+  App/           ViewModel / Read Model boundary
+  Dashboard/     SwiftPM macOS dashboard shell
 
 Tests/
   CoreTests/
@@ -59,22 +54,26 @@ Tests/
 
 ## 文档入口
 
-- `GOAL.md`：项目目标。
-- `ARCHITECTURE.md`：模块地图和边界。
-- `ROADMAP.md`：阶段推进顺序，不授权执行。
-- `docs/contracts/`：contract-first 输入。
-- `docs/planning/project-role-map.md`：Product / Design / Engineering / Finance / Operations / QA 角色边界。
-- `docs/validation/validation-plan.md`：验证计划。
-- `docs/validation/latest-verification-summary.md`：最近验证摘要，Agent / Graphify 默认读取。
-- `docs/automation/`：Parent Codex、symphony-issue、Graphify、Post-Issue Ledger 和 verified operations 边界。
-- `docs/audit/`：阶段代码审计报告。命名规则为 `<linear-project-slug>-stage-code-audit.md`，一份报告对应一个完整 Linear Project。
-- `docs/audit/mtpro-guidance-stage-code-audit.md`：`MTPRO 引导` 阶段审计报告。
-- `docs/audit/mtpro-runtime-research-workbench-v1-stage-code-audit.md`：`MTPRO Runtime Research Workbench v1` 阶段审计报告。
-- `docs/audit/mtpro-trading-validation-and-parity-hardening-stage-code-audit.md`：`MTPRO Trading Validation and Parity Hardening` 阶段审计报告。
-- `verification.md`：append-only 完整验证流水账，仅用于审计、追溯和 debug。
+| 文件 | 作用 |
+| --- | --- |
+| `GOAL.md` | 项目目标和非目标 |
+| `ENVIRONMENT.md` | 本地环境、验证入口、外部系统边界 |
+| `ARCHITECTURE.md` | 模块地图、数据流、不变量 |
+| `ROADMAP.md` | 阶段地图和非授权边界 |
+| `AGENTS.md` | Agent / Codex 行为规则 |
+| `docs/planning/linear-draft-plan.md` | Project Planning Record 索引和规则 |
+| `docs/planning/project-role-map.md` | `@000` 到 `@007` 角色边界 |
+| `docs/validation/latest-verification-summary.md` | Agent / Graphify 默认读取的最近验证摘要 |
+| `docs/validation/validation-plan.md` | 长期验证计划 |
+| `docs/validation/trading-validation-matrix.md` | trading validation evidence map |
+| `docs/automation/` | Parent Codex、symphony-issue、Graphify、GitHub PR Automation、Post-Issue Ledger 边界 |
+| `docs/audit/` | Project 级 Stage Code Audit Reports |
+| `verification.md` | append-only 完整验证流水账，仅用于审计、追溯和 debug |
 
 ## 本地验证
 
 ```bash
 bash checks/run.sh
 ```
+
+`checks/run.sh` 是统一入口，包含 whitespace、automation readiness、Dashboard build / smoke 和 Swift tests。

@@ -1,49 +1,43 @@
 # ROADMAP.md
 
-ROADMAP 只定义阶段顺序，不授权执行。
+ROADMAP 只定义阶段地图，不授权执行。
 
-正式执行必须等待 Linear 中唯一 configured executable issue，并按 GitHub PR Automation 验证合并。
+正式执行必须来自 Linear live-read 中唯一 configured executable issue，并通过 Parent Codex queue preflight、symphony-issue 和 GitHub PR Automation。
 
-## 当前基线
+## 阶段地图
 
-已完成的 Linear Project：
-
-- `MTPRO 引导`
-- `MTPRO Runtime Research Workbench v1`，Linear issues：`MTP-16` 到 `MTP-23`，Linear Project status：`Completed`
-- `MTPRO Trading Validation and Parity Hardening`，Linear issues：`MTP-24` 到 `MTP-30`，Linear Project status：`Completed`
-- `MTPRO Paper Session Runtime v1`，Linear issues：`MTP-31` 到 `MTP-37`，Linear Project status：`Completed`
-
-当前已写入 Linear 但尚未完成的 Project：
-
-- `MTPRO Paper Execution Workflow v1`，Linear Project status：`Planned`
-
-最近完成的 Project 为 `MTPRO Paper Session Runtime v1`。Parent Codex Stage Code Audit Report 已落仓到 `docs/audit/mtpro-paper-session-runtime-v1-stage-code-audit.md`。
-
-`MTPRO Paper Execution Workflow v1` 已写入 Linear，但不代表任何 issue 已获得执行授权。只有 `@002 / PAR` 完成 Project / Issue 格式 Gate、active Project pointer 更新和二次 queue preview 后，才能在 WIP=1 下推进唯一 eligible issue 到 `Todo`。
-
-仓库文档不得把某个 Linear issue 永久写成 current issue；执行前必须从 Linear / Parent Codex queue preview 读取当前 Project 的唯一 active configured executable issue。
-
-## 阶段顺序
-
-| 顺序 | 阶段 | 目标 |
+| 阶段 | 状态 | 结果 |
 | --- | --- | --- |
-| 1 | Bootstrap Definition and Build Skeleton | 完成根文档、契约文档和 SwiftPM baseline |
-| 2 | Core Domain Model and Event Log Contract | 定义核心事件、命令、状态和 append-only event log contract |
-| 3 | Binance Read-only Market Data Adapter | 实现 Binance public read-only market data adapter |
-| 4 | TradingKernel / DataEngine / Cache | 建立 actor kernel、message bus、cache 和 data engine |
-| 5 | EMA Cross Backtest and Paper Parity | 实现 EMA cross backtest / paper 一致性 |
-| 6 | Order Book Imbalance Strategy | 实现 order book imbalance 策略研究链路 |
-| 7 | SQLite / DuckDB Projections and Replay | 建立运行投影、分析投影和 replay |
-| 8 | Trader Workstation Dashboard | 实现 Market / Strategy / Backtest / Paper / Risk / Portfolio / Events |
-| 9 | Validation Hardening and Automation Readiness | 完成验证硬化和自动化 readiness |
+| MTPRO 引导 | Completed | 根文档、contract-first 文档、SwiftPM baseline、自动化基线 |
+| MTPRO Runtime Research Workbench v1 | Completed | Core 拆分、read-only market data boundary、event log / replay、SQLite / DuckDB projection、Dashboard shell、Research -> Backtest -> Report path |
+| MTPRO Trading Validation and Parity Hardening | Completed | trading validation matrix、EMA / order book parity、fees / slippage assumptions、risk blocker、portfolio exposure、Report / Dashboard evidence |
+| MTPRO Paper Session Runtime v1 | Completed | paper session lifecycle、proposal、risk link、paper-only portfolio projection、replay、report evidence |
+| MTPRO Paper Execution Workflow v1 | In Progress / live-read required | paper-only execution workflow、paper order lifecycle、simulated fill、event log replay、Report / Dashboard evidence |
 
-## 下一步
+Completed Project 的完整证据见 `docs/audit/`。
 
-1. Human + `@001 / PLN` 读取最新 Stage Code Audit Report，决定是否进入 Next Human Project Planning。
-2. 如果 Human 确认新 Project / Issue plan，先写入 Linear，并保持所有 issue 初始为 `Backlog` 或等价 non-executable 状态。
-3. `@002 / PAR` 只能在新 Project 已写入 Linear 后执行 Project / Issue 格式 Gate、active Project pointer 更新和二次 queue preview。
-4. gate 全部通过后，`@002 / PAR` 才能在 WIP=1 下推进唯一 eligible issue 到 `Todo`。
-5. symphony-issue 只调度唯一 `Todo` issue。
+当前 Project、active issue、Todo / In Progress / In Review 状态必须从 Linear 和 Parent Codex queue preview 实时读取，不写死在仓库文档中。
+
+## 产品路线
+
+1. Research / Backtest / Report / Paper readiness。
+2. Paper-only execution evidence。
+3. Paper workflow 可观察性和本地控制壳。
+4. 更长周期 market data replay / operations。
+5. Live trading 仍保持禁止，除非未来 Human 明确开启新的安全边界和 Project。
+
+## 下一步规则
+
+当前 Project 全部有效 issues `Done` 后，必须按顺序关闭：
+
+```text
+Linear Project status Completed
+-> Stage Code Audit Report
+-> Root Docs Refresh Gate
+-> Next Human Project Planning
+```
+
+`@002 / PAR` 只同步已发生事实；下一阶段方向、目标、架构路线和优先级必须由 Human + `@001 / PLN` 决定。
 
 ## 非授权边界
 
