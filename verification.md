@@ -4951,3 +4951,51 @@ Next Handoff：Human + `@001 / PLN`
 | --- | --- | --- |
 | `git diff --check` | pass | Current Phase Progress baseline docs-only 变更无 whitespace error。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 93 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
+
+## Goal / Roadmap Progress Baseline Correction
+
+日期：2026-05-20
+执行者：Codex（`@000 / AIE`）
+
+目的：
+- 修正 Current Phase Progress baseline 的计算口径。
+- 明确 Project Closure Count 只说明已关闭 Project 数量，不代表 `GOAL.md` / `ROADMAP.md` 目标完成度。
+- 将真正的进度条改为 Goal / Roadmap Target Progress。
+
+修正结果：
+- Project Closure Count：5 / 5（100%）。
+- Goal / Roadmap Target Progress：3 / 5（60%）。
+- Progress：`[######----] 60%`。
+
+目标切片：
+- Complete：Research / Backtest / Report / Paper readiness。
+- Complete：Paper-only execution evidence。
+- Complete / enforced：Live trading 禁区和 future boundary。
+- Pending：Paper workflow 可观察性和本地控制壳。
+- Pending：更长周期 market data replay / operations。
+
+文件范围：
+- Updated:
+  - `AGENTS.md`
+  - `ROADMAP.md`
+  - `checks/automation-readiness.sh`
+  - `docs/automation/parent-codex-supervision.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+- docs-only。
+- 未修改 `docs/design/mtpro-complete-blueprint.md`。
+- 未创建 Linear Project / Issue。
+- 未修改 Linear status。
+- 未推进 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Goal / Roadmap progress baseline correction 无 whitespace error。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 93 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |

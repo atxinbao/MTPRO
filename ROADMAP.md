@@ -18,21 +18,33 @@ Completed Project 的完整证据见 `docs/audit/`。
 
 当前 Project、active issue、Todo / In Progress / In Review 状态必须从 Linear 和 Parent Codex queue preview 实时读取，不写死在仓库文档中。
 
-## Current Phase Progress
+## Goal / Roadmap Progress
 
 Phase：`MTPRO paper-only research / validation / execution foundation`
 
-Completed Projects：5 / 5（100%）
+Project Closure Count：5 / 5（100%）
 
-Progress：`[##########] 100%`
+Goal / Roadmap Target Progress：3 / 5（60%）
 
-Completed Projects 是计算依据，Progress 是视觉展示。本进度条只统计当前已 Human-approved、已执行、已 closure 的建设阶段 Project：
+Progress：`[######----] 60%`
+
+Project Closure Count 只说明当前已批准、已执行、已 closure 的建设阶段 Project 数量，不代表完整目标已经 100% 完成：
 
 - `MTPRO 引导`
 - `MTPRO Runtime Research Workbench v1`
 - `MTPRO Trading Validation and Parity Hardening`
 - `MTPRO Paper Session Runtime v1`
 - `MTPRO Paper Execution Workflow v1`
+
+Goal / Roadmap Target Progress 才是当前目标进度。它基于 `GOAL.md` 的核心结果和本文件的产品路线计算：
+
+| 目标切片 | 状态 | 证据 |
+| --- | --- | --- |
+| Research / Backtest / Report / Paper readiness | Complete | Runtime Research Workbench、Trading Validation、Paper Session Runtime 已完成 |
+| Paper-only execution evidence | Complete | Paper Execution Workflow v1 已完成 |
+| Live trading 禁区和 future boundary | Complete / enforced | root docs、validation matrix、Stage Audit 均保持 no signed endpoint / no broker action |
+| Paper workflow 可观察性和本地控制壳 | Pending | 下一阶段候选，尚未形成用户可操作控制壳 |
+| 更长周期 market data replay / operations | Pending | 尚未形成长期数据批次、回放运营和 retention 边界 |
 
 Latest Completed Project：`MTPRO Paper Execution Workflow v1`
 
