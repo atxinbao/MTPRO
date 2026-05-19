@@ -37,6 +37,9 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - `MTP-52` 的 Linear issue body 是本轮执行合同；scope 限定为现有 Dashboard / Workbench shell 增量扩展、session-level controls、paper workflow observability sections、Event Timeline / Evidence Explorer 子集、Dashboard smoke 和 UI read-model-only / forbidden command evidence。
 - 本轮 MTP-53 执行前 live-read 确认：`MTP-53` 为唯一 `In Progress` issue，`MTP-47`、`MTP-48`、`MTP-49`、`MTP-50`、`MTP-51` 和 `MTP-52` 已 `Done`，WIP=1。
 - `MTP-53` 的 Linear issue body 是本轮执行合同；scope 限定为 validation summary、trading validation matrix / validation section、issue / PR evidence、Stage Code Audit input、automation readiness anchor 和 Dashboard smoke evidence。
+- 本轮 queue closure（2026-05-20）确认 `MTPRO Paper Workflow Control Shell v1` 中 canonical issues `MTP-47`、`MTP-48`、`MTP-49`、`MTP-50`、`MTP-51`、`MTP-52`、`MTP-53` 全部 `Done`。
+- Linear Project status `Completed` 已确认，`type=completed`，`completedAt=2026-05-19T21:37:34.706Z`。
+- Stage Code Audit Report 已覆盖完整 Linear Project，路径为 `docs/audit/mtpro-paper-workflow-control-shell-v1-stage-code-audit.md`。
 - 本轮 queue closure（2026-05-19）确认 `MTPRO Paper Execution Workflow v1` 中 canonical issues `MTP-38`、`MTP-39`、`MTP-40`、`MTP-41`、`MTP-42`、`MTP-44`、`MTP-45` 全部 `Done`；`MTP-43`、`MTP-46` 为 `Duplicate` 并排除。
 - `MTP-45` 新增 Project 级 Stage Audit Input，路径为 `docs/audit/inputs/mtpro-paper-execution-workflow-v1-stage-audit-input.md`；Parent Codex 已基于该输入落仓 canonical Stage Code Audit Report。
 - 本轮 MTP-42 paper execution event log / replay / projection focused Core 链路已通过 `swift test --filter CoreTests/testPaperExecution`；最终 `bash checks/run.sh` 结果见本文件最近验证表和 `verification.md` 追加记录。
@@ -105,7 +108,7 @@ Next Handoff：Human + `@001 / PLN`
 - `MTP-51` 的 Explorer ViewModel 展示 market event、strategy signal、risk decision、paper order、simulated fill、portfolio projection 和 report artifact evidence links，并保持 read-model-only、no query language、no command surface、schema / runtime / adapter non-exposure boundary。
 - `MTP-52` 新增 App 层 `DashboardShellControlSnapshot` 和 `DashboardShellWorkbenchSnapshot`，把 session-level local controls、Paper workflow observability 和 Event Timeline / Evidence Explorer preview 增量挂入现有 Dashboard shell snapshot。
 - `MTP-52` 的 shell smoke summary 继续保持八个 Dashboard sections，并新增 `workbenchReadModelOnly=true`、`controls=start,pause,close,reset` 和 timeline item evidence；SwiftUI shell 只渲染文本 / 指标，不新增按钮、表单、order-level command 或真实交易入口。
-- `MTP-53` 新增 Project 级 Stage Audit Input，路径为 `docs/audit/inputs/mtpro-paper-workflow-control-shell-v1-stage-audit-input.md`；最终 canonical Stage Code Audit Report 仍由 Parent Codex 在 Project 全部 Done 且 Linear Project `Completed` 后单独落仓。
+- `MTP-53` 新增 Project 级 Stage Audit Input，路径为 `docs/audit/inputs/mtpro-paper-workflow-control-shell-v1-stage-audit-input.md`；Parent Codex 已基于该输入落仓 canonical Stage Code Audit Report，路径为 `docs/audit/mtpro-paper-workflow-control-shell-v1-stage-code-audit.md`。
 - `MTP-53` 加固 automation readiness anchor，使 `checks/automation-readiness.sh` 能机械定位 MTP-53 audit input、validation plan、trading validation matrix、latest summary 和 Dashboard smoke evidence。
 - `MTP-53` 的 Dashboard smoke evidence 为 `Dashboard smoke: sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`；`timelineItems=0` 来自空启动 read model，fixture 级 timeline coverage 仍由 App deterministic tests 覆盖。
 - 历史 `MTP-30` 阶段收口已迁入 `docs/audit/inputs/`，`docs/validation/` 不再存放 `MTP-xx` 命名的阶段输入文件。
@@ -166,7 +169,8 @@ Next Handoff：Human + `@001 / PLN`
 - MTP-52 只在现有 Dashboard / Workbench shell 上增量呈现 control shell、observability 和 Event Timeline / Evidence Explorer preview；不做完整 UI redesign，不新增 Runtime wiring、projection schema、adapter request 或 operations console。
 - MTP-52 的 session-level controls 只能作为 read-only presentation 显示 `start` / `pause` / `close` / `reset`，不得形成按钮、表单、order submit / cancel / replace、order-level command、broker action、signed endpoint、account endpoint、listenKey、真实订单或 Live execution。
 - MTP-53 只准备 Stage Code Audit 输入材料、validation docs、automation readiness anchor 和 Dashboard smoke evidence；不输出最终 Stage Code Audit Report，不创建下一 Project / Issue，不推进下一 Project / Issue，不启动下一阶段 `symphony-issue`。
-- MTP-53 Stage Audit Input 只服务 Parent Codex Project closure；最终 Stage Code Audit Report 必须在有效 issues 全部 `Done` 且 Linear Project `Completed` 后单独输出。
+- MTP-53 Stage Audit Input 只服务 Parent Codex Project closure；最终 Stage Code Audit Report 已在有效 issues 全部 `Done` 且 Linear Project `Completed` 后单独输出。
+- `MTPRO Paper Workflow Control Shell v1` Root Docs Refresh Gate 尚未执行；Current Phase Progress Bar 仍需在该 gate closure 后由 `@002 / PAR` 按规则刷新。
 - MTP-41 只定义 paper execution decision 本地链路和 deterministic fixture；blocked risk decision 不生成 paper order，allowed decision 只生成 paper-only order / fill evidence。
 - MTP-41 issue 本身不写 event log、不新增 replay / projection / ViewModel；MTP-42 只把已存在的 paper execution facts 串入 event log / replay / projection，不实现完整 execution engine、完整风险引擎、broker rejection fallback、真实撮合、真实成交回报、broker fill、account update、broker action、signed endpoint 或真实订单行为。
 - Report / Dashboard 只展示 read model / ViewModel，不提供交易执行入口。
