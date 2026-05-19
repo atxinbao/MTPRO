@@ -21,6 +21,10 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - Linear Project status `Completed` 已确认，`type=completed`，`completedAt=2026-05-19T14:48:42.973Z`。
 - Stage Code Audit Report 已覆盖完整 Linear Project，路径为 `docs/audit/mtpro-paper-execution-workflow-v1-stage-code-audit.md`。
 - Root Docs Refresh Gate 只同步已发生事实；Root Docs Delta 不决定下一阶段方向。
+- `MTPRO Paper Workflow Control Shell v1` Project-level planning record 已落仓到 `docs/planning/projects/mtpro-paper-workflow-control-shell-v1-plan.md`，作为下一阶段写入 Linear 前的 planning summary。
+- `MTPRO Paper Workflow Control Shell v1` 当前尚未写入 Linear；未创建 Linear Project，未创建 Linear Issues，未修改 Linear status，未推进 Todo，未启动 `@002 / PAR`，未启动 Symphony。
+- `MTPRO Paper Workflow Control Shell v1` planning record 只保存 Project 级计划摘要和格式门槛，不复制维护完整 Linear issue body；完整 issue execution contract 以后以 Linear issue body 为准。
+- Project 写入 Linear 后，所有 issue 初始必须保持 `Backlog / non-executable`；后续由 Parent Codex queue preflight 自动判断唯一 eligible issue，并在 WIP=1、依赖满足、无 active conflict、execution contract 格式完整时推进 Todo。
 - 本轮 queue closure（2026-05-19）确认 `MTPRO Paper Execution Workflow v1` 中 canonical issues `MTP-38`、`MTP-39`、`MTP-40`、`MTP-41`、`MTP-42`、`MTP-44`、`MTP-45` 全部 `Done`；`MTP-43`、`MTP-46` 为 `Duplicate` 并排除。
 - `MTP-45` 新增 Project 级 Stage Audit Input，路径为 `docs/audit/inputs/mtpro-paper-execution-workflow-v1-stage-audit-input.md`；Parent Codex 已基于该输入落仓 canonical Stage Code Audit Report。
 - 本轮 MTP-42 paper execution event log / replay / projection focused Core 链路已通过 `swift test --filter CoreTests/testPaperExecution`；最终 `bash checks/run.sh` 结果见本文件最近验证表和 `verification.md` 追加记录。
@@ -105,6 +109,7 @@ Next Handoff：Human + `@001 / PLN`
 - MTP-41 issue 本身不写 event log、不新增 replay / projection / ViewModel；MTP-42 只把已存在的 paper execution facts 串入 event log / replay / projection，不实现完整 execution engine、完整风险引擎、broker rejection fallback、真实撮合、真实成交回报、broker fill、account update、broker action、signed endpoint 或真实订单行为。
 - Report / Dashboard 只展示 read model / ViewModel，不提供交易执行入口。
 - MTP-45 只准备 Stage Code Audit 输入材料，不创建下一 Project / Issue，不推进下一 issue，不启动下一阶段 `symphony-issue`；最终 Stage Code Audit Report 已由 Parent Codex 作为 Project closure 单独落仓。
+- `MTPRO Paper Workflow Control Shell v1` planning record 已落仓但未写入 Linear，不授权执行，不创建 Linear Project / Issue，不推进 Todo，不启动 `@002 / PAR`，不启动 Symphony。
 - Trading Validation Matrix 是 evidence routing 入口，不替代 Linear issue contract、PR evidence 或 Stage Code Audit Report。
 - `docs/audit/inputs/` 只放阶段审计输入材料，不授权下一 Project planning 或 execution。
 - `docs/audit/inputs/mtpro-paper-session-runtime-v1-stage-audit-input.md` 是 Paper Session Runtime 的阶段审计输入，不替代 canonical Stage Code Audit Report。
