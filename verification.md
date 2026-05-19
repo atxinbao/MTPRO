@@ -4566,3 +4566,51 @@ Linear 状态修正：
 | `swift test --filter CoreTests/testPaperExecutionDecision` | pass | 3 个 MTP-41 focused XCTest 0 failures，覆盖 allowed decision chain、blocked no-order 和 Codable bypass。 |
 | `swift test --filter CoreTests` | pass | 51 个 CoreTests 0 failures。 |
 | `bash checks/run.sh` | pass | `git diff --check`、automation readiness、`swift build --product Dashboard`、`DASHBOARD_SMOKE=1 swift run Dashboard` 和 `swift test` 全部通过；91 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |
+
+## NautilusTrader Reference Study
+
+日期：2026-05-19
+
+执行者：Codex
+
+目的：
+
+- 记录 `@003 / PRD`、`@004 / DSG`、`@005 / ARC` 对 NautilusTrader 的 Linear 外 reference study。
+- 汇总 NautilusTrader 对 MTPRO Product / Design / Architecture 的参考价值。
+- 输出 root docs delta proposal，作为 Human + `@001 / PLN` 后续规划输入。
+
+文件范围：
+
+- Added：
+  - `docs/reference/nautilus-trader/README.md`
+  - `docs/reference/nautilus-trader/product-reference.md`
+  - `docs/reference/nautilus-trader/design-reference.md`
+  - `docs/reference/nautilus-trader/architecture-reference.md`
+  - `docs/reference/nautilus-trader/root-docs-delta-proposal.md`
+- Updated：
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未推进任何 issue 到 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未直接修改 `GOAL.md`、`ENVIRONMENT.md`、`ARCHITECTURE.md` 或 `ROADMAP.md`。
+- 未复制 NautilusTrader 代码。
+- 未引入 NautilusTrader 作为运行依赖。
+- 未接 Live trading、signed endpoint、account endpoint、broker action 或真实订单行为。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift package clean` | pass | 先清理 SwiftPM 增量缓存；此前本地曾因缓存污染导致 `testFileEventLogStoreRejectsOutOfOrderAppendToProtectAppendOnlyInvariant` 报旧错误。 |
+| `swift test --filter PersistenceTests/testFileEventLogStoreRejectsOutOfOrderAppendToProtectAppendOnlyInvariant` | pass | 清理后 focused test 通过，确认不是 reference docs 引入的逻辑回归。 |
+| `git diff --check` | pass | Reference study 文档通过 whitespace 检查。 |
+| `bash checks/run.sh` | pass | `git diff --check`、automation readiness、Dashboard build / smoke 和 `swift test` 全部通过；91 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |
