@@ -30,8 +30,11 @@ Agent 开始工作前必须读取：
 - 父 Codex 必须在第一个 `Todo` 前核对 Linear Project / Issue 执行合同格式。
 - Human 确认 Project / Issue plan 并写入 Linear 后，第一个 issue 和后续 issue 的 `Backlog` -> `Todo` 操作都只能由父 Codex 自动执行。
 - 父 Codex 自动调度前必须确认 WIP=1、previous issue Done、依赖满足、执行合同格式完整，并且当前 Project 没有 `Todo` / `In Progress` / `In Review` active conflict。
-- Project 全部 Done 后，Parent Codex 必须把 Project 级 Stage Code Audit Report 落到 `docs/audit/<linear-project-slug>-stage-code-audit.md`，才能进入 Next Human Project Planning。
+- Project 全部有效 issues `Done` 只是 Project closure 前置条件，不等于 Project 已关闭。
+- Parent Codex 必须在 Project 全部有效 issues `Done` 后，将 Linear Project status 设置或确认为 `Completed`，并确认 `type=completed`、`completedAt` 非空。
+- Project status `Completed` 完成后，Parent Codex 才能把 Project 级 Stage Code Audit Report 落到 `docs/audit/<linear-project-slug>-stage-code-audit.md`，并进入 Root Docs Refresh Gate。
 - Stage Code Audit Report 必须覆盖完整 Linear Project，不得只覆盖单个 issue。
+- Stage Code Audit Report 必须包含 Linear Project `Completed` evidence。
 - Stage Code Audit Report 必须包含 Root Docs Delta，检查 `GOAL.md`、`ENVIRONMENT.md`、`ARCHITECTURE.md`、`ROADMAP.md` 是否与已完成 Project 的事实一致。
 - Root Docs Refresh Gate 只允许 `@002 / PAR` 同步已发生事实；方向、目标、架构路线和下一阶段优先级必须交给 Human + `@001 / PLN` 决定。
 - 父 Codex 负责 Project 切换时更新 `symphony-issue` active Project pointer；workflow 本体不得为每个 Project 复制一套。
@@ -113,7 +116,7 @@ Agent 收到 `给 @001 下 Codex 指令` 或 `@001：<任务>` 时，必须按 `
 | Parent Codex Automation Supervision | Project 级 queue preview、eligible issue 自动调度、child Codex 监控、代码审查、host-side fallback 和流程迭代建议；不替代 Human 阶段规划，不直接 merge PR |
 | symphony-issue | 只调度唯一 `Todo` issue；负责 `Todo` -> `In Progress`、Codex 执行调度、校验 handoff marker 后 `In Progress` -> `In Review` |
 | GitHub PR Automation | 创建 PR 后交给 GitHub checks / auto-merge；Codex 不直接 merge |
-| Next Human Project Planning | 当前 Project 全部 Done、Stage Code Audit Report 已落仓且 Root Docs Refresh Gate 已完成前不得建议或创建下一 Project |
+| Next Human Project Planning | 当前 Project 全部有效 issues `Done`、Linear Project status `Completed`、Stage Code Audit Report 已落仓且 Root Docs Refresh Gate 已完成前不得建议或创建下一 Project |
 
 ## 三角色职责边界
 

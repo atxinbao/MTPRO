@@ -4125,3 +4125,54 @@ Root Docs Refresh Gate 逐项结论：
 | --- | --- | --- |
 | `git diff --check` | pass | 本轮迁移和规则变更无空白问题。 |
 | `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 全部通过；80 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |
+
+## Project Completed State Gate
+
+日期：2026-05-19
+
+执行者：Codex
+
+目的：
+
+- 将 MTPRO Project closure 规则收口为 Linear Project status `Completed`。
+- 明确全部有效 issues `Done` 只是 Project closure 前置条件，不等于 Project 已关闭。
+- 明确 Parent Codex 必须确认 `type=completed`、`completedAt` 非空后，才能进入 Stage Code Audit Report 和 Root Docs Refresh Gate。
+- 记录已完成历史 Project 的 Linear status 修正结果，并保留当前 `MTPRO Paper Execution Workflow v1` 为 `Planned`。
+
+Linear 状态修正：
+
+- `MTPRO Runtime Research Workbench v1`：已从 `Planned` 修正为 `Completed`，Linear 返回 `type=completed`、`completedAt` 非空。
+- `MTPRO Trading Validation and Parity Hardening`：已从 `Planned` 修正为 `Completed`，Linear 返回 `type=completed`、`completedAt` 非空。
+- `MTPRO Paper Session Runtime v1`：已从 `Planned` 修正为 `Completed`，Linear 返回 `type=completed`、`completedAt` 非空。
+- `MTPRO Paper Execution Workflow v1`：保持 `Planned`，不作为已完成 Project 处理。
+
+文件范围：
+
+- Updated：
+  - `AGENTS.md`
+  - `README.md`
+  - `ROADMAP.md`
+  - `checks/automation-readiness.sh`
+  - `docs/automation/parent-codex-supervision.md`
+  - `docs/planning/linear-draft-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- 未创建 Linear Project。
+- 未创建 Linear Issues。
+- 未推进任何 issue 到 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 当前 `MTPRO Paper Execution Workflow v1` 仍为 `Planned`，不授权执行。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Project Completed State Gate 文档变更无空白问题。 |
+| `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 全部通过；80 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |

@@ -21,10 +21,10 @@ MTPRO 是用于重构 `macos-trader` 的新独立 macOS 交易研究工作台项
 | 阶段 | MTPRO 状态 | 边界 |
 | --- | --- | --- |
 | Human Project Planning | 下一 Project 规划前置 | Human 决定阶段目标、Linear Project 和 issue 顺序 |
-| Parent Codex Automation Supervision | 已完成 `MTPRO Trading Validation and Parity Hardening` Project 级审计收口 | queue preview、eligible issue 自动推进、child Codex 监控、代码审查、host-side fallback、Stage Code Audit Report |
+| Parent Codex Automation Supervision | 已完成 `MTPRO Paper Session Runtime v1` Project 级审计收口；历史已完成 Project 已确认 Linear status `Completed` | queue preview、eligible issue 自动推进、child Codex 监控、代码审查、host-side fallback、Linear Project closure、Stage Code Audit Report |
 | symphony-issue | 已验证 issue 执行路径 | 调度唯一 `Todo` issue，推进 `Todo -> In Progress -> In Review` |
 | GitHub PR Automation | 已验证 | required checks、auto-merge、squash merge、branch cleanup、Linear bot auto Done |
-| Next Human Project Planning | 当前下一步 | 基于落仓的 Project 级 Stage Code Audit Report 决定下一个 Linear Project；仓库文档不自行授权下一阶段 |
+| Next Human Project Planning | 当前 `MTPRO Paper Execution Workflow v1` 已写入 Linear 且 status 为 `Planned` | 仓库文档不自行授权下一阶段；`@002 / PAR` 执行 queue preflight 后才可推进唯一 eligible issue |
 
 ## 第一版产品边界
 
