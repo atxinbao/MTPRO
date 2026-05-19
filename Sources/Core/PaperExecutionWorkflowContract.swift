@@ -218,8 +218,7 @@ public struct PaperExecutionWorkflowContract: Codable, Equatable, Sendable {
                         produces: .simulatedFill,
                         eventStream: .paper,
                         evidenceKind: .paperOrder,
-                        implementedInCurrentCode: false,
-                        futureIssueID: try Identifier("MTP-39")
+                        implementedInCurrentCode: true
                     ),
                     PaperExecutionWorkflowStageBoundary(
                         stage: .simulatedFill,

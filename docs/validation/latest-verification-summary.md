@@ -28,7 +28,7 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - Project 写入 Linear 后，所有 issue 初始必须保持 `Backlog / non-executable`；后续由 Parent Codex queue preflight 自动判断唯一 eligible issue，并在 WIP=1、依赖满足、无 active conflict、execution contract 格式完整时推进 Todo。
 - Project 全部有效 issues `Done` 只是 Project closure 前置条件；Parent Codex 必须将 Linear Project status 设置或确认为 `Completed`，并记录 `type=completed`、`completedAt` 非空后，才能进入 Stage Code Audit Report。
 - Linear Project status `Completed` 是 Stage Code Audit Report 和 Next Human Project Planning 前的 Project closure gate。
-- 本轮 MTP-38 paper-only execution workflow contract 已通过 `git diff --check`、`bash checks/automation-readiness.sh`、Dashboard build / smoke 和 `swift test`；MTPRO 本地验证为 82 个 XCTest 0 failures。
+- 本轮 MTP-39 paper order intent / lifecycle 最小模型已通过 `swift test --filter CoreTests` 和 `bash checks/automation-readiness.sh`；完整 `bash checks/run.sh` 作为当前 issue 最终 validation gate。
 - 本轮 Dashboard source naming 收口已将 SwiftPM executable product / target 改为 `Dashboard`，源码目录改为 `Sources/Dashboard`，入口文件改为 `DashboardApplication.swift`，smoke 命令改为 `DASHBOARD_SMOKE=1 swift run Dashboard`。
 - 本轮 role alias 收口已将 `@003 / PRD`、`@004 / DSG`、`@005 / ARC` 固定为 Linear 外 reference / root docs 角色；symphony-issue、Codex Execution Agent 和 GitHub PR Automation 继续按流程 actor 名称调用，不占用这些编号。
 - 历史 planning record 曾记录 `尚未写入 Linear`；该状态只解释 planning record 生成时点，不代表 Project 完成后的审计状态。
@@ -50,6 +50,8 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - MTP-37 更新 Trading Validation Matrix、validation plan 和 automation readiness gate，使 Project 级 Stage Code Audit input 成为本地机械检查对象。
 - MTP-38 新增 `PaperExecutionWorkflowContract`，定义 proposal、risk decision、paper execution decision、paper order、simulated fill 和 portfolio projection 的 paper-only stage order 与 event boundary。
 - MTP-38 已将 `TVM-PAPER-EXECUTION-WORKFLOW` 回填到 Trading Validation Matrix，并在 contracts / validation docs 记录 future issue 占位、Codable 禁区和无 signed endpoint / broker / real order 边界。
+- MTP-39 新增 `PaperOrderLifecycleState`、`PaperOrderIntent` 和 `PaperOrderIntentFixture`，定义 allowed / blocked risk result 到 `intentCreated` / `rejectedByRisk` 的 paper-only order intent / lifecycle 映射。
+- MTP-39 已将 `TVM-PAPER-ORDER-LIFECYCLE` 回填到 Trading Validation Matrix，并在 contracts / validation docs 记录 paper order intent 不代表真实订单、simulated fill、OMS、broker action 或 Live execution。
 - Project 级阶段证据和 Stage Code Audit 输入材料统一放在 `docs/audit/inputs/`；`docs/validation/` 只保留长期验证入口，不再放 `MTP-xx` 命名的阶段输入文件。
 - 上一阶段 Stage Code Audit Report 已记录 `MTP-18` / `MTP-19` / `MTP-22` 的临时 CI 平台边界，并确认审计报告覆盖完整 Linear Project；本 Project 目前未记录新增临时 CI 平台边界。
 - `MTPRO Paper Session Runtime v1` Stage Code Audit Report 已落仓到 `docs/audit/mtpro-paper-session-runtime-v1-stage-code-audit.md`，记录 `MTP-31` 至 `MTP-37` 全部 Done、PR #62 至 #68 evidence、validation、boundary audit、Known CI Boundary、Root Docs Delta 和 Next Human Project Planning handoff。
@@ -90,8 +92,8 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 | `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；MTP-37 Stage Code Audit input、Trading Validation Matrix、latest summary 和 automation readiness 锚点完整。 |
 | `swift build --product Dashboard` | pass | macOS dashboard executable 构建通过。 |
 | `DASHBOARD_SMOKE=1 swift run Dashboard` | pass | 输出 `Dashboard smoke: sections=8; readModelOnly=true; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`。 |
-| `swift test` | pass | 82 个 XCTest 通过；新增 MTP-38 paper-only execution workflow contract / boundary tests，回归覆盖既有 Paper Session runtime evidence 和 paper-only boundary。 |
-| `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 全部通过；82 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |
+| `swift test` | pass | 85 个 XCTest 通过；新增 MTP-39 paper order intent / lifecycle tests，回归覆盖既有 Paper Session runtime evidence、workflow contract 和 paper-only boundary。 |
+| `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 全部通过；85 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |
 
 ## 当前边界
 
@@ -102,7 +104,8 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - MTP-35 只定义 Paper Session replay evidence summary 和 proposal event replay fact；不新增生产级 event sourcing 平台、schema migration framework、真实 broker event replay、外部 execution venue、Report / Dashboard 汇总或完整 Paper execution workflow。
 - MTP-36 只把 Paper Session runtime evidence 汇总到 Report / Dashboard read model；不新增 UI 大改版、完整报告系统、Paper execution workflow 扩展、risk control command、position management command 或交易执行入口。
 - MTP-37 只收口 validation docs、automation evidence、known boundaries 和 Stage Code Audit input；不输出最终 Stage Code Audit Report，不创建下一 Project / Issue。
-- MTP-38 只定义 paper-only execution workflow contract、stage order、event boundary 和 deterministic fixture；不实现 paper order lifecycle、simulated fill、完整 OMS、broker action、signed endpoint 或真实订单行为。
+- MTP-38 只定义 paper-only execution workflow contract、stage order、event boundary 和 deterministic fixture；MTP-39 已补充 paper order stage 的本地 intent / lifecycle evidence，但 paper execution decision、simulated fill、完整 OMS、broker action、signed endpoint 和真实订单行为仍不在当前边界内。
+- MTP-39 只定义 paper order intent / lifecycle value model 和 deterministic fixture；不写 event log、不新增 projection / ViewModel、不实现 paper execution decision、simulated fill、完整 OMS、cancel / replace、broker action、signed endpoint 或真实订单行为。
 - Root Docs Refresh Gate closure 只同步已发生事实；不决定下一阶段方向，不创建 Linear Project / Issue，不推进 Todo，不启动 Symphony。
 - Paper action proposal 固定 `executionMode == paper`、`executionAuthorization == paperIntentOnly` 且 `isExecutableAsRealOrder == false`。
 - Paper action risk decision 的 allowed / blocked 结果都不提供 broker fallback 或 Live execution fallback；allowed 不代表真实订单授权，blocked 不代表真实 broker 拒单。

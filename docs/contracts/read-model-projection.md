@@ -536,7 +536,34 @@ Paper-only execution workflow contract 在当前事项中只作为 Core contract
 边界：
 
 - Contract 只表达后续本地 paper-only evidence 的 stage / event boundary，不写 event log、不读 projection schema、不生成 ViewModel。
-- paper execution decision、paper order 和 simulated fill 在 MTP-38 只作为 future issue 占位。
+- paper execution decision 和 simulated fill 在 MTP-38 只作为 future issue 占位；paper order stage 已由 MTP-39 的本地 intent / lifecycle 模型补充。
+- 当前不新增 UI command、risk control command、position management command、broker action、signed endpoint、account endpoint、真实订单行为或 Live execution。
+
+## MTP-39 Paper Order Intent / Lifecycle 观察面
+
+日期：2026-05-19
+
+执行者：Codex
+
+Paper order intent / lifecycle 在当前事项中先以 Core value contract 和 deterministic fixture 作为观察面，为后续 simulated fill、replay 和 Report evidence 提供稳定输入。
+
+当前可观察字段：
+
+- orderID、proposalID、sessionID。
+- riskDecisionID、riskDecisionStatus、blockerEvidenceID。
+- lifecycleState：`intentCreated` 或 `rejectedByRisk`。
+- riskProfileID、side、symbol、timeframe、quantity、referencePrice、notionalAmount。
+- executionMode、proposalAuthorization。
+- workflowStage、eventStream、evidenceKind。
+- sourceRiskDecisionSequence、createdAt。
+- paper-only capability flags：`authorizesTradingExecution`、`authorizesLiveTrading`、`touchesSignedEndpoint`、`touchesBrokerAction`、`representsRealOrder`、`representsSimulatedFill` 固定为 `false`。
+
+边界：
+
+- 当前只定义 Core order intent / lifecycle value model 和 deterministic tests，不新增 SwiftUI 页面字段。
+- 当前不新增 event log 写入、SQLite / DuckDB projection、Report / Dashboard 字段或 simulated fill。
+- `intentCreated` 只代表本地 paper order intent 已被记录，不代表真实订单、broker order state 或交易执行授权。
+- `rejectedByRisk` 只代表本地 risk blocker 结果被保留，不代表真实 broker rejection。
 - 当前不新增 UI command、risk control command、position management command、broker action、signed endpoint、account endpoint、真实订单行为或 Live execution。
 
 ## MTP-29 Report / Dashboard Trading Validation Evidence 观察面

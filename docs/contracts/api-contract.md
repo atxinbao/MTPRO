@@ -486,7 +486,39 @@ MTP-38 不新增 HTTP API，也不新增 live / broker / signed command。
 - 不新增 live order command。
 - 不新增 broker account command。
 - 不新增 signed endpoint command。
-- 不实现 paper order lifecycle。
 - 不实现 simulated fill。
 - 不实现完整 OMS。
 - 不把 paper execution decision、paper order 或 simulated fill 解释为真实订单授权、真实成交、broker fill 或 Live execution。
+
+## MTP-39 Paper Order Intent / Lifecycle 内部模型边界
+
+日期：2026-05-19
+
+执行者：Codex
+
+MTP-39 不新增 HTTP API，也不新增 live / broker / signed command。
+
+新增内部 Core value contract：
+
+- `PaperOrderLifecycleState`：表达 `intentCreated` 和 `rejectedByRisk` 的本地 paper-only lifecycle state。
+- `PaperOrderIntent`：从 `PaperActionProposalRiskDecision` 派生 paper order intent，并携带 risk result、blocker evidence、proposal authorization、workflow stage、event stream 和 capability flags。
+- `PaperOrderIntentFixture`：提供 deterministic allowed / risk-rejected evidence。
+
+契约要求：
+
+- allowed risk decision 必须映射为 `intentCreated`；blocked risk decision 必须映射为 `rejectedByRisk`。
+- blocked intent 必须携带 blocker evidence ID；allowed intent 不得携带 blocker evidence ID。
+- `PaperOrderIntent` 必须固定 `.paper` execution mode、`.paperOrder` workflow stage 和 `.paper` event stream。
+- Codable 解码必须拒绝非 paper mode、risk result / lifecycle 不一致、trading authorization、signed endpoint、broker action、real order 或 simulated fill capability。
+
+边界确认：
+
+- 不新增 `Command` case。
+- 不新增 live order command。
+- 不新增 broker account command。
+- 不新增 signed endpoint command。
+- 不实现 paper execution decision。
+- 不实现 simulated fill。
+- 不实现完整 OMS。
+- 不实现 cancel / replace 工作流。
+- 不把 paper order intent 解释为真实订单授权、真实成交、broker fill 或 Live execution。
