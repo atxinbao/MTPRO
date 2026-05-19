@@ -25,10 +25,13 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - `MTP-45` 新增 Project 级 Stage Audit Input，路径为 `docs/audit/inputs/mtpro-paper-execution-workflow-v1-stage-audit-input.md`；Parent Codex 已基于该输入落仓 canonical Stage Code Audit Report。
 - 本轮 MTP-42 paper execution event log / replay / projection focused Core 链路已通过 `swift test --filter CoreTests/testPaperExecution`；最终 `bash checks/run.sh` 结果见本文件最近验证表和 `verification.md` 追加记录。
 - 当前 main 已包含 `docs/reference/nautilus-trader/` reference study 汇总文档；它只作为 Linear 外 Product / Design / Architecture 参考和 root docs delta proposal，不授权执行。
+- 当前 main 已包含 `docs/design/mtpro-complete-blueprint.md`，作为 Human + `@000 / AIE` 维护的 MTPRO 完整产品 / 系统 / 设计蓝图。
 
 ## 最近工程事实
 
 - `MTPRO NautilusTrader Reference Study` 已形成 @003 / PRD、@004 / DSG、@005 / ARC 三份角色文档，并由 @000 / AIE 汇总入口和 root docs delta proposal。
+- `MTPRO Complete Blueprint Design` 已把 NautilusTrader reference study、Stage Code Audit Reports、root docs 和现有代码能力收敛为 Final Product Blueprint、System Architecture Blueprint、Workbench / UX Blueprint、Current Construction Scope 和 Future Construction Zones。
+- `@000 / AIE` 与 Human 共同负责 Complete Blueprint Design；`@001 / PLN` 只在蓝图确认后基于 Current Construction Scope 进入下一阶段 Project Planning。
 - Reference study 只服务 Human + `@001 / PLN` 后续规划判断，不写 Linear、不创建 Project / Issue、不推进 `Todo`、不启动 Symphony、不写业务代码。
 - `MTPRO Paper Session Runtime v1` 已完成，planning record 位于 `docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md`，Stage Code Audit Report 位于 `docs/audit/mtpro-paper-session-runtime-v1-stage-code-audit.md`。
 - `MTP-37` 产生 Project 级 Stage Audit Input，路径为 `docs/audit/inputs/mtpro-paper-session-runtime-v1-stage-audit-input.md`。
@@ -59,6 +62,8 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 ## 当前边界
 
 - NautilusTrader reference study 不复制 NautilusTrader 代码，不引入 NautilusTrader 作为运行依赖，不直接修改 root docs，不写 Linear，不授权执行。
+- Complete Blueprint Design 不创建 Linear Project / Issue，不修改 Linear status，不推进 `Todo`，不启动 `@002 / PAR`，不启动 Symphony，不写业务代码。
+- Complete Blueprint Design 可以描述 Live / signed endpoint / broker / OMS 等最终产品长期能力，但这些能力必须保持 future / gated，除非 Human 后续明确选入 Current Construction Scope。
 - Paper execution / order / fill / portfolio 语义全部是 paper-only evidence，不代表真实订单、真实成交、broker fill、account state 或 Live fallback。
 - MTP-42 只定义 paper execution facts 写入、replay 和 portfolio projection 串联；portfolio update 只能从 replay 后的 paper-only simulated fill evidence 派生。
 - MTP-44 只把 paper execution workflow evidence 汇总到 Report / Dashboard read model；decision、order、fill、portfolio update ID 只作为 append-only replay evidence，不代表真实订单、真实成交、broker fill、account update、execution report 或交易授权。

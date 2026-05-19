@@ -4806,3 +4806,54 @@ Linear 状态修正：
 | --- | --- | --- |
 | `git diff --check` | pass | 无 whitespace error。 |
 | `bash checks/run.sh` | pass | `git diff --check`、automation readiness、Dashboard build、Dashboard smoke 和 `swift test` 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true`；93 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |
+## MTPRO Complete Blueprint Design
+
+日期：2026-05-19
+执行者：Codex（`@000 / AIE`）
+PR：
+Commit：
+
+目的：
+- 将 MTPRO 的完整产品 / 系统 / 设计蓝图落仓。
+- 明确 Human + `@000 / AIE` 共同负责 Complete Blueprint Design。
+- 明确 `@001 / PLN` 只在蓝图确认后基于 Current Construction Scope 进入下一阶段 Project Planning。
+- 明确 Live / signed endpoint / broker / OMS 等长期能力可以进入最终蓝图，但当前仍保持 future / gated，不授权执行。
+
+文件范围：
+- Created:
+  - `docs/design/mtpro-complete-blueprint.md`
+- Updated:
+  - `README.md`
+  - `AGENTS.md`
+  - `docs/planning/project-role-map.md`
+  - `docs/reference/nautilus-trader/README.md`
+  - `docs/reference/nautilus-trader/root-docs-delta-proposal.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+- Deleted:
+
+收口结果：
+- 新增 MTPRO Complete Blueprint Design，覆盖 Final Product Blueprint、System Architecture Blueprint、Workbench / UX Blueprint、Complete Capability Map、Current Construction Scope、Future Construction Zones、Root Docs Delta Proposal 和 Linear Planning Handoff。
+- `@000 / AIE` 职责补充为 Human 的完整蓝图协作入口，负责把 reference study、Stage Code Audit、root docs 和现有代码能力综合成 MTPRO 自己的蓝图。
+- NautilusTrader reference study 的后续路径调整为先进入 Human + `@000 / AIE` Complete Blueprint Design，再进入 Human + `@001 / PLN` Project Planning。
+- automation readiness 增加蓝图文件和角色边界锚点。
+
+边界确认：
+- 未创建 Linear Project。
+- 未创建 Linear issue。
+- 未修改 Linear status。
+- 未推进 `Backlog` -> `Todo`。
+- 未启动 `@002 / PAR`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Complete Blueprint Design docs-only 变更通过 whitespace 检查。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 93 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |

@@ -63,6 +63,7 @@ Tests/
 | `AGENTS.md` | Agent / Codex 行为规则 |
 | `docs/planning/linear-draft-plan.md` | Project Planning Record 索引和规则 |
 | `docs/planning/project-role-map.md` | `@000` 到 `@007` 角色边界 |
+| `docs/design/mtpro-complete-blueprint.md` | Human + `@000 / AIE` 维护的完整产品 / 系统 / 设计蓝图 |
 | `docs/validation/latest-verification-summary.md` | Agent / Graphify 默认读取的最近验证摘要 |
 | `docs/validation/validation-plan.md` | 长期验证计划 |
 | `docs/validation/trading-validation-matrix.md` | trading validation evidence map |

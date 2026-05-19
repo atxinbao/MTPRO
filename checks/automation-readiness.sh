@@ -40,6 +40,7 @@ require_file "docs/automation/parent-codex-supervision.md"
 require_file "docs/automation/post-issue-ledger.md"
 require_file "docs/automation/symphony-issue-workflow-template.md"
 require_file "docs/automation/verified-operations.md"
+require_file "docs/design/mtpro-complete-blueprint.md"
 require_file "docs/planning/project-role-map.md"
 [[ -d "docs/planning/projects" ]] || fail "missing required directory: docs/planning/projects"
 require_file "docs/planning/projects/mtpro-guidance-plan.md"
@@ -175,6 +176,32 @@ require_contains "docs/planning/project-role-map.md" "数据 / 持久化"
 require_contains "docs/planning/project-role-map.md" "交易语义"
 require_contains "docs/planning/project-role-map.md" "部署与运营"
 require_contains "docs/planning/project-role-map.md" "不授权执行"
+require_contains "docs/planning/project-role-map.md" "Complete Blueprint Design"
+require_contains "docs/planning/project-role-map.md" "MTPRO Complete Blueprint Design"
+require_contains "docs/planning/project-role-map.md" 'Human + `@000 / AIE`'
+require_contains "docs/planning/project-role-map.md" "Current Construction Scope"
+require_contains "docs/planning/project-role-map.md" "Future Construction Zones"
+require_contains "docs/planning/project-role-map.md" '不启动 `@002 / PAR`'
+require_contains "docs/design/mtpro-complete-blueprint.md" "MTPRO Complete Blueprint Design"
+require_contains "docs/design/mtpro-complete-blueprint.md" 'Human + `@000 / AIE`'
+require_contains "docs/design/mtpro-complete-blueprint.md" "@000 / AIE 蓝图职责"
+require_contains "docs/design/mtpro-complete-blueprint.md" "Final Product Blueprint"
+require_contains "docs/design/mtpro-complete-blueprint.md" "System Architecture Blueprint"
+require_contains "docs/design/mtpro-complete-blueprint.md" "Workbench / UX Blueprint"
+require_contains "docs/design/mtpro-complete-blueprint.md" "Complete Capability Map"
+require_contains "docs/design/mtpro-complete-blueprint.md" "Current Construction Scope"
+require_contains "docs/design/mtpro-complete-blueprint.md" "Future Construction Zones"
+require_contains "docs/design/mtpro-complete-blueprint.md" "Live / signed endpoint / broker / OMS"
+require_contains "docs/design/mtpro-complete-blueprint.md" "Root Docs Delta Proposal"
+require_contains "docs/design/mtpro-complete-blueprint.md" "Linear Planning Handoff"
+require_contains "docs/design/mtpro-complete-blueprint.md" "不创建 Linear Project / Issue"
+require_contains "docs/design/mtpro-complete-blueprint.md" '不推进 `Todo`'
+require_contains "docs/design/mtpro-complete-blueprint.md" "不启动 Symphony"
+require_contains "README.md" "docs/design/mtpro-complete-blueprint.md"
+require_contains "AGENTS.md" "Complete Blueprint Design"
+require_contains "AGENTS.md" 'Human + `@000 / AIE`'
+require_contains "AGENTS.md" "Future Construction Zones"
+require_contains "AGENTS.md" '不启动 `@002 / PAR`'
 for planning_record in \
   "docs/planning/projects/mtpro-guidance-plan.md" \
   "docs/planning/projects/mtpro-runtime-research-workbench-v1-plan.md" \

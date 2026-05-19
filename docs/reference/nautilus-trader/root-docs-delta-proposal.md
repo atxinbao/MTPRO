@@ -8,7 +8,7 @@
 
 本文档汇总 `@003 / PRD`、`@004 / DSG`、`@005 / ARC` 对 NautilusTrader 的参考研究，形成 MTPRO root docs 的候选 delta proposal。
 
-本文档不直接修改 `GOAL.md`、`ENVIRONMENT.md`、`ARCHITECTURE.md`、`ROADMAP.md` 或 `docs/product/*` / `docs/contracts/*`。它只作为 Human + `@001 / PLN` 后续规划输入，不写 Linear、不创建 Project / Issue、不推进 `Todo`、不启动 Symphony、不写业务代码。
+本文档不直接修改 `GOAL.md`、`ENVIRONMENT.md`、`ARCHITECTURE.md`、`ROADMAP.md` 或 `docs/product/*` / `docs/contracts/*`。它先作为 Human + `@000 / AIE` 的 Complete Blueprint Design 输入，再作为 Human + `@001 / PLN` 后续规划输入。不写 Linear、不创建 Project / Issue、不推进 `Todo`、不启动 Symphony、不写业务代码。
 
 ## 采纳原则
 
@@ -139,6 +139,7 @@ Reference study 是 Linear 外研究活动，只能输出 reference docs 和 roo
 External reference study
 -> Product / Design / Architecture reference docs
 -> root docs delta proposal
+-> Human + @000 / AIE Complete Blueprint Design
 -> Human + @001 / PLN planning decision
 -> optional Linear Project / Issues
 ```
