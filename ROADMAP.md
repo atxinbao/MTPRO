@@ -11,10 +11,11 @@ ROADMAP 只定义阶段顺序，不授权执行。
 - `MTPRO 引导`
 - `MTPRO Runtime Research Workbench v1`，Linear issues：`MTP-16` 到 `MTP-23`
 - `MTPRO Trading Validation and Parity Hardening`，Linear issues：`MTP-24` 到 `MTP-30`
+- `MTPRO Paper Session Runtime v1`，Linear issues：`MTP-31` 到 `MTP-37`
 
-最近完成的 Project 为 `MTPRO Trading Validation and Parity Hardening`。Parent Codex Stage Code Audit Report 已落仓到 `docs/audit/mtpro-trading-validation-and-parity-hardening-stage-code-audit.md`。
+最近完成的 Project 为 `MTPRO Paper Session Runtime v1`。Parent Codex Stage Code Audit Report 已落仓到 `docs/audit/mtpro-paper-session-runtime-v1-stage-code-audit.md`。
 
-当前无已授权下一阶段 Project；当前无 `Todo` / `In Progress` / `In Review` issue。下一阶段必须由 Human + `@001 / PLN` 重新规划并写入 Linear 后，才可交给 `@002 / PAR` 执行 Project queue preflight。
+截至该 Stage Code Audit Report 落仓时，审计结论记录当前没有新的 authorized Project / issue。下一阶段必须由 Human + `@001 / PLN` 重新规划并写入 Linear 后，才可交给 `@002 / PAR` 执行 Project queue preflight。
 
 仓库文档不得把某个 Linear issue 永久写成 current issue；执行前必须从 Linear / Parent Codex queue preview 读取当前 Project 的唯一 active configured executable issue。
 

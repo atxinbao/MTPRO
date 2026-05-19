@@ -17,11 +17,11 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 ## 最近基线
 
 - 最近验证关联 Linear Project：`MTPRO Paper Session Runtime v1`。
-- 最近验证对象：`MTP-37` 加固 validation docs、automation evidence 和阶段审计输入的本地 pre-PR 验证。
-- Linear live-read / 只读查询确认：`MTP-37` 为 `In Progress`；同 Project 内 `MTP-31` / `MTP-32` / `MTP-33` / `MTP-34` / `MTP-35` / `MTP-36` 为 `Done`。
-- 当前 issue 不修改 Linear status，不启动 Symphony，不解锁下一 issue。
+- 最近验证对象：`MTPRO Paper Session Runtime v1` Root Docs Refresh Gate closure。
+- Stage Code Audit Report 记录：`MTP-31` 至 `MTP-37` 全部为 `Done`，PR #62 至 #68 均通过 GitHub required check 后合并。
+- 本轮 Root Docs Refresh Gate 只同步已发生事实；不修改 Linear status，不启动 Symphony，不解锁下一 issue。
 - `MTPRO Paper Session Runtime v1` planning record 已落仓到 `docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md`；完整 issue execution contract 以 Linear issue body 为准。
-- 历史 planning record 曾记录 `尚未写入 Linear`；该状态只解释 planning record 生成时点，不代表当前 MTP-37 live-read 执行状态。
+- 历史 planning record 曾记录 `尚未写入 Linear`；该状态只解释 planning record 生成时点，不代表 Project 完成后的审计状态。
 - MTP-30 新增 `docs/validation/mtp-30-stage-audit-input.md`，集中记录 `MTP-24` 至 `MTP-30` 的 Issue / PR evidence、merge commit、required check、matrix evidence chain、known boundaries、automation readiness evidence、Root Docs Delta input 和 Stage Code Audit handoff checklist。
 - `MTPRO Trading Validation and Parity Hardening` Stage Code Audit Report 已落仓，记录 `MTP-24` 至 `MTP-30` 全部 Done、PR #52 / #53 / #55 / #56 / #57 / #58 / #59 evidence、validation、boundary audit、Root Docs Delta 和 Next Human Project Planning handoff。
 - MTP-31 新增 `PaperSessionLifecycleState`、`PaperSessionStarted`、`PaperSessionUpdated`、`PaperSessionClosed` 和 `PaperSessionEventLogBoundary`，默认 Paper event flow 输出 `started -> signalGenerated... -> updated -> closed`。
@@ -40,7 +40,7 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - MTP-37 更新 Trading Validation Matrix、validation plan 和 automation readiness gate，使 Project 级 Stage Code Audit input 成为本地机械检查对象。
 - 上一阶段 Stage Code Audit Report 已记录 `MTP-18` / `MTP-19` / `MTP-22` 的临时 CI 平台边界，并确认审计报告覆盖完整 Linear Project；本 Project 目前未记录新增临时 CI 平台边界。
 - `MTPRO Paper Session Runtime v1` Stage Code Audit Report 已落仓到 `docs/audit/mtpro-paper-session-runtime-v1-stage-code-audit.md`，记录 `MTP-31` 至 `MTP-37` 全部 Done、PR #62 至 #68 evidence、validation、boundary audit、Known CI Boundary、Root Docs Delta 和 Next Human Project Planning handoff。
-- 当前 Project 全部 Done 后，Stage Code Audit Report 已完成；仍需单独执行 Root Docs Refresh Gate，才进入 Next Human Project Planning。
+- Root Docs Refresh Gate closure 已基于该 Stage Code Audit Report 执行：`GOAL.md`、`ENVIRONMENT.md` 和 `ARCHITECTURE.md` 无需事实刷新，`ROADMAP.md` 已同步最近完成 Project 与 canonical audit report 路径。
 - Root Docs Refresh Gate 只允许 `@002 / PAR` 同步 `GOAL.md`、`ENVIRONMENT.md`、`ARCHITECTURE.md`、`ROADMAP.md` 中已发生的事实；方向性变化交给 Human + `@001 / PLN`。
 - `graphify-out/*` 不提交，`.codex/*` 不提交。
 - 本文档不作为 current issue 或 queue pointer 的事实源；当前 issue 状态必须继续从 Linear live-read 获取。
@@ -67,7 +67,7 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 | `MTP-34` | [#65 MTP-34 新增 paper-only portfolio projection update path](https://github.com/atxinbao/MTPRO/pull/65) | `8250c7ab088077ff3f9ea277e252ff415a413cdd` | [checks success](https://github.com/atxinbao/MTPRO/actions/runs/26052078591/job/76590891105) |
 | `MTP-35` | [#66 MTP-35 add Paper Session replay evidence](https://github.com/atxinbao/MTPRO/pull/66) | `aa66ff53a6e96b558f2a994a8ec03d514ad8e9b0` | [checks success](https://github.com/atxinbao/MTPRO/actions/runs/26053013626/job/76594084398) |
 | `MTP-36` | [#67 MTP-36 汇总 Paper Session runtime evidence 到 Report / Dashboard read model](https://github.com/atxinbao/MTPRO/pull/67) | `7109184503a7b2addfa07f78cd2191a2eeed3ed0` | [checks success](https://github.com/atxinbao/MTPRO/actions/runs/26054145509/job/76597907236) |
-| `MTP-37` | 当前 issue PR | 当前 issue merge commit 待 GitHub PR Automation 产生 | 当前 issue PR 必须通过 `checks` |
+| `MTP-37` | [#68 MTP-37 加固 validation docs 和阶段审计输入](https://github.com/atxinbao/MTPRO/pull/68) | `576871832f0951b59f7adbd4f486079810720051` | [checks success](https://github.com/atxinbao/MTPRO/actions/runs/26054919807/job/76600525605) |
 
 ## 最近验证
 
@@ -77,7 +77,7 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 | `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；MTP-37 Stage Code Audit input、Trading Validation Matrix、latest summary 和 automation readiness 锚点完整。 |
 | `swift build --product MTPRODashboard` | pass | macOS dashboard executable 构建通过。 |
 | `MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard` | pass | 输出 `MTPRO Dashboard smoke: sections=8; readModelOnly=true; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`。 |
-| `swift test` | pass | 80 个 XCTest 通过；本 issue 不改 production code，回归覆盖 Paper Session runtime evidence 和既有 paper-only boundary。 |
+| `swift test` | pass | 80 个 XCTest 通过；本轮 Root Docs Refresh Gate closure 不改 production code，回归覆盖 Paper Session runtime evidence 和既有 paper-only boundary。 |
 | `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 全部通过；80 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |
 
 ## 当前边界
@@ -89,11 +89,12 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - MTP-35 只定义 Paper Session replay evidence summary 和 proposal event replay fact；不新增生产级 event sourcing 平台、schema migration framework、真实 broker event replay、外部 execution venue、Report / Dashboard 汇总或完整 Paper execution workflow。
 - MTP-36 只把 Paper Session runtime evidence 汇总到 Report / Dashboard read model；不新增 UI 大改版、完整报告系统、Paper execution workflow 扩展、risk control command、position management command 或交易执行入口。
 - MTP-37 只收口 validation docs、automation evidence、known boundaries 和 Stage Code Audit input；不输出最终 Stage Code Audit Report，不创建下一 Project / Issue。
+- Root Docs Refresh Gate closure 只同步已发生事实；不决定下一阶段方向，不创建 Linear Project / Issue，不推进 Todo，不启动 Symphony。
 - Paper action proposal 固定 `executionMode == paper`、`executionAuthorization == paperIntentOnly` 且 `isExecutableAsRealOrder == false`。
 - Paper action risk decision 的 allowed / blocked 结果都不提供 broker fallback 或 Live execution fallback；allowed 不代表真实订单授权，blocked 不代表真实 broker 拒单。
 - Trading Validation Matrix 是 evidence routing 入口，不替代 Linear issue contract、PR evidence 或 Stage Code Audit Report。
 - `docs/validation/mtp-37-stage-audit-input.md` 是阶段审计输入材料，不授权下一 Project planning 或 execution。
-- `MTPRO Paper Session Runtime v1` planning record 不授权执行；当前执行授权来自 Linear live-read 的 `MTP-37` issue contract。
+- `MTPRO Paper Session Runtime v1` planning record、Stage Code Audit Report 和 Root Docs Refresh Gate closure 均不授权下一 issue 执行；后续执行仍必须从 Linear live-read 和 Parent Codex queue preview 获取唯一 eligible issue。
 - Report 输入只来自 projection snapshots / read model 和 append-only event timeline。
 - Report 可汇总 projection-level Backtest / Paper evidence，但不替代 Core 层完整 signal timeline parity。
 - `ReportExecutionCostEvidence` 只从 deterministic fixture 和 paper-only exposure projection 派生，不读取交易所费率表、account tier、真实成交或 broker fill。

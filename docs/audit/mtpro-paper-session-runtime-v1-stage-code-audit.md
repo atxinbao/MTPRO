@@ -111,9 +111,9 @@ Project 末端合并点为 `MTP-37` PR #68，merge commit 为 `576871832f0951b59
 | `GOAL.md` | 项目目标仍是 Research -> Backtest -> Paper 一致性工作台；本 Project 建立本地 Paper Session runtime readiness，不改变 Live 禁区。 |
 | `ENVIRONMENT.md` | 未新增本地运行依赖；统一验证入口仍是 `bash checks/run.sh`。 |
 | `ARCHITECTURE.md` | Core / Persistence / App / Dashboard 边界继续成立；新增事实沿 paper-only event log、runtime projection 和 read-model-only Dashboard 路径流动。 |
-| `ROADMAP.md` | Project 完成后需要由 Parent Codex 通过 Root Docs Refresh Gate 同步已发生事实；本报告不直接修改下一阶段路线，不创建下一 Project / Issue。 |
+| `ROADMAP.md` | Root Docs Refresh Gate closure 已同步最近完成 Project 与 canonical Stage Code Audit Report 路径；不修改下一阶段路线，不创建下一 Project / Issue。 |
 
-Root Docs Refresh Gate 仍需作为单独父 Codex docs-only closure 执行，只同步已发生事实，不决定下一阶段方向。
+Root Docs Refresh Gate 已作为单独父 Codex docs-only closure 执行，只同步已发生事实，不决定下一阶段方向。
 
 ## Residual Notes For Human Planning
 
