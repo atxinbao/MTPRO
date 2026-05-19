@@ -50,14 +50,17 @@ Agent 开始工作前必须读取：
 
 ## Role Alias Rule
 
-MTPRO 采用 AEP 三位数字编号和三字母角色代号。数字编号与三字母代号等价，例如 `@001 = PLN`。
+MTPRO 采用 AEP 三位数字编号和三字母角色代号。数字编号与三字母代号等价，例如 `@000 = AIE`、`@001 = PLN`。
 
 角色编号只用于沟通压缩，不改变职责边界，不授权执行，不替代 Linear issue、Project planning、GitHub required checks 或 Human decision。
+
+`@000 / AIE` 是 AI Engineer 角色，也是当前 Codex 协作入口。它负责理解 Human 指令、读取 root docs、选择正确仓库与流程、执行明确授权的代码 / 文档修改、维护验证与 PR handoff，并在需要时把任务路由给 `@001` 至 `@007`。`@000 / AIE` 不替代 Human decision，不绕过 Linear configured executable issue，不替代 `@001 / PLN` 的规划职责，不替代 `@002 / PAR` 的 Project queue 调度职责，也不替代 `@003` / `@004` / `@005` 的 Linear 外 reference 研究职责。
 
 `@003 / PRD`、`@004 / DSG`、`@005 / ARC` 是 Linear 外的 reference / root docs 角色。它们服务 `GOAL.md`、`ARCHITECTURE.md`、`ENVIRONMENT.md`、`ROADMAP.md` 和 `docs/reference/*` 的研究、差距分析与 delta proposal，不创建 Linear Project / Issue，不推进 `Todo`，不启动 symphony-issue。
 
 | 编号 | 代号 | 角色 | MTPRO 职责摘要 |
 | --- | --- | --- | --- |
+| `000` | `AIE` | AI Engineer | 当前 Codex 协作入口、任务理解、仓库 / 流程选择、代码 / 文档执行、验证、PR handoff、角色路由和边界守护 |
 | `001` | `PLN` | Project Planning Lead | 新阶段规划、Next Human Project Planning、Project / Issue 草案、reference synthesis |
 | `002` | `PAR` | Parent Codex Automation Supervision | Project queue、eligible issue 调度、child Codex 监督、Stage Code Audit |
 | `003` | `PRD` | Product Reference Lead | Linear 外产品参考、用户路径、工作台能力、`GOAL.md` / `ROADMAP.md` / `docs/product/*` delta proposal |
@@ -66,7 +69,7 @@ MTPRO 采用 AEP 三位数字编号和三字母角色代号。数字编号与三
 | `006` | `QAV` | QA / Validation | 验证、失败归因、验收证据、交易验证和回归边界 |
 | `007` | `OPS` | Operations | 本地环境、运行、部署、Graphify / Symphony / GitHub 自动化可用性 |
 
-Agent 收到 `给 @001 下 Codex 指令` 或 `@001：<任务>` 时，必须按 `PLN` 职责解析。其他编号同理。
+Agent 收到 `给 @000 下 Codex 指令`、`给 @001 下 Codex 指令` 或 `@001：<任务>` 时，必须按对应角色职责解析。`@000 / AIE` 可以执行当前明确任务或路由到其他角色，但不能用自己的编号绕过对应角色的授权边界。
 
 symphony-issue、Codex Execution Agent 和 GitHub PR Automation 是流程工具 / 执行层 actor，按名称调用，不再占用 `@003`、`@004`、`@005` 编号。
 
