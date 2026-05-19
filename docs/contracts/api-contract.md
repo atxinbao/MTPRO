@@ -13,6 +13,7 @@ MTPRO 第一版没有 HTTP API。
 | MarketDataQuery | Query | 查询 read-only market data projection |
 | BacktestCommand | Command | 请求运行回测 |
 | PaperSessionCommand | Command | 请求启动 paper session |
+| PaperSessionLocalControlCommand | Command | 请求本地控制 paper session |
 | OrderBookImbalanceResearchCommand | Command | 请求运行订单簿失衡研究 |
 | RiskEvaluationQuery | Query | 查询风险判断 |
 | PortfolioQuery | Query | 查询组合投影 |
@@ -654,3 +655,33 @@ MTP-47 不新增 HTTP API，不新增 `Command` case，也不实现 session cont
 - 不提供 order submit / cancel / replace。
 - 不实现 OMS。
 - 不接 signed endpoint、account endpoint、listenKey、broker action 或 Live execution。
+
+## MTP-48 Paper Session Local Control Command Model
+
+日期：2026-05-20
+
+执行者：Codex
+
+MTP-48 新增 Swift module 内部 `Command` case 和本地 paper-only session control value model；仍不新增 HTTP API，不写 event log，不实现 UI 控件。
+
+新增 Core command contract：
+
+- `PaperSessionLocalControlAction`：只允许 `start` / `pause` / `close` / `reset`。
+- `PaperSessionLocalControlScope`：固定为 `local paper session`。
+- `PaperSessionLocalControlLevel`：固定为 `session`，拒绝 order-level command。
+- `PaperSessionLocalControlRejectedReason`：记录 raw request 被拒绝原因，包括 non-session-level control、order-level command、real order command、broker-facing command、非 paper execution mode 和空 ID。
+- `PaperSessionLocalControlCommand`：保存已接受的本地 Paper session control intent，所有 order / broker / signed endpoint / real order capability flags 固定为 false。
+- `Command.controlPaperSession`：把已接受 command 纳入 Core 内部 command 聚合，但不代表 runtime side effect。
+
+契约要求：
+
+- command 只能作用于本地 Paper session。
+- command 必须 `executionMode == paper`、scope 必须是 `local paper session`、level 必须是 `session`。
+- `submit` / `cancel` / `replace`、broker action、signed endpoint、account endpoint、listenKey、Live trading 和 order-level command 必须被 raw validation 拒绝。
+- Codable 解码必须拒绝任何试图恢复 order-level command、真实交易授权、Live trading、signed endpoint、account endpoint、listenKey、broker action 或真实订单 submit / cancel / replace 的 payload。
+
+边界确认：
+
+- 不实现 session-level control -> event boundary 串联。
+- 不新增 SwiftUI 控件、按钮或表单。
+- 不实现 OMS、order submit / cancel / replace、broker adapter、signed endpoint、account endpoint、listenKey 或 Live execution。

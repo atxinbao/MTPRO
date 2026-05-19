@@ -220,6 +220,175 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testPaperSessionLocalControlCommandModelSupportsSessionActionsDeterministically() throws {
+        // 测试场景：MTP-48 只允许本地 Paper session-level control intent。
+        // 四个 control 都必须保持 paper-only，且不能携带 order-level、broker 或真实订单能力。
+        let commands = try PaperSessionLocalControlCommandFixture.allDeterministic()
+
+        XCTAssertEqual(PaperSessionLocalControlAction.allCases, [.start, .pause, .close, .reset])
+        XCTAssertEqual(commands.map(\.control), [.start, .pause, .close, .reset])
+        XCTAssertEqual(
+            commands.map { $0.commandID.rawValue },
+            [
+                "paper-session-local-control-start",
+                "paper-session-local-control-pause",
+                "paper-session-local-control-close",
+                "paper-session-local-control-reset"
+            ]
+        )
+
+        for command in commands {
+            XCTAssertEqual(command.sessionID, try Identifier("paper-session-fixture"))
+            XCTAssertEqual(command.scope, .localPaperSession)
+            XCTAssertEqual(command.controlLevel, .session)
+            XCTAssertEqual(command.executionMode, .paper)
+            XCTAssertEqual(command.requestedAt.timeIntervalSince1970, 3_200)
+            XCTAssertTrue(command.isSessionLevelLocalPaperControl)
+            XCTAssertTrue(command.paperOnlyBoundaryHeld)
+            XCTAssertFalse(command.authorizesOrderLevelCommand)
+            XCTAssertFalse(command.authorizesTradingExecution)
+            XCTAssertFalse(command.authorizesLiveTrading)
+            XCTAssertFalse(command.touchesSignedEndpoint)
+            XCTAssertFalse(command.touchesAccountEndpoint)
+            XCTAssertFalse(command.touchesListenKey)
+            XCTAssertFalse(command.touchesBrokerAction)
+            XCTAssertFalse(command.submitsRealOrder)
+            XCTAssertFalse(command.cancelsRealOrder)
+            XCTAssertFalse(command.replacesRealOrder)
+        }
+
+        let accepted = PaperSessionLocalControlCommand.validate(
+            commandID: " paper-control-start ",
+            sessionID: " paper-session-fixture ",
+            requestedControl: " START ",
+            executionMode: .paper,
+            requestedAt: Date(timeIntervalSince1970: 3_200)
+        )
+        XCTAssertTrue(accepted.isAccepted)
+        XCTAssertEqual(accepted.acceptedCommand?.control, .start)
+        XCTAssertEqual(accepted.acceptedCommand?.commandID, try Identifier("paper-control-start"))
+        XCTAssertNil(accepted.rejection)
+        XCTAssertEqual(Command.controlPaperSession(commands[0]), .controlPaperSession(commands[0]))
+    }
+
+    func testPaperSessionLocalControlValidationRejectsNonSessionOrderAndBrokerCommands() throws {
+        // 测试场景：raw request validation 必须拒绝非 session-level control、order-level command、
+        // submit / cancel / replace 和 broker-facing action，避免 MTP-48 越界成 OMS 或真实交易入口。
+        let requestedAt = Date(timeIntervalSince1970: 3_210)
+
+        func assertRejected(
+            _ requestedControl: String,
+            reason expectedReason: PaperSessionLocalControlRejectedReason,
+            executionMode: ExecutionMode = .paper,
+            file: StaticString = #filePath,
+            line: UInt = #line
+        ) {
+            let validation = PaperSessionLocalControlCommand.validate(
+                commandID: "paper-control-\(requestedControl)",
+                sessionID: "paper-session-fixture",
+                requestedControl: requestedControl,
+                executionMode: executionMode,
+                requestedAt: requestedAt
+            )
+            XCTAssertFalse(validation.isAccepted, file: file, line: line)
+            XCTAssertEqual(validation.rejection?.reason, expectedReason, file: file, line: line)
+            XCTAssertEqual(validation.rejection?.rejectedAt, requestedAt, file: file, line: line)
+        }
+
+        assertRejected("rebalance", reason: .nonSessionLevelControl)
+        assertRejected("order", reason: .orderLevelCommand)
+        assertRejected("submit", reason: .realOrderCommand)
+        assertRejected("cancel", reason: .realOrderCommand)
+        assertRejected("replace", reason: .realOrderCommand)
+        assertRejected("broker action", reason: .brokerFacingCommand)
+        assertRejected("start", reason: .nonPaperExecutionMode, executionMode: .backtest)
+
+        let emptyCommandID = PaperSessionLocalControlCommand.validate(
+            commandID: " ",
+            sessionID: "paper-session-fixture",
+            requestedControl: "start",
+            executionMode: .paper,
+            requestedAt: requestedAt
+        )
+        XCTAssertEqual(emptyCommandID.rejection?.reason, .emptyCommandID)
+
+        let emptySessionID = PaperSessionLocalControlCommand.validate(
+            commandID: "paper-control-start",
+            sessionID: " ",
+            requestedControl: "start",
+            executionMode: .paper,
+            requestedAt: requestedAt
+        )
+        XCTAssertEqual(emptySessionID.rejection?.reason, .emptySessionID)
+
+        let rawControls = Set(PaperSessionLocalControlAction.allCases.map(\.rawValue))
+        XCTAssertFalse(rawControls.contains("submit"))
+        XCTAssertFalse(rawControls.contains("cancel"))
+        XCTAssertFalse(rawControls.contains("replace"))
+        XCTAssertFalse(rawControls.contains("broker action"))
+    }
+
+    func testPaperSessionLocalControlCommandDecodingRejectsRealTradingCapabilityBypass() throws {
+        // 测试场景：Codable payload 不能把 session-level local command 伪造成 order-level、
+        // signed endpoint、broker action 或真实订单 submit / cancel / replace 能力。
+        let command = try PaperSessionLocalControlCommandFixture.deterministic(control: .start)
+        let encoded = try JSONEncoder().encode(command)
+        let decoder = JSONDecoder()
+
+        var nonPaperObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        nonPaperObject["executionMode"] = "backtest"
+        let nonPaperData = try JSONSerialization.data(withJSONObject: nonPaperObject)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperSessionLocalControlCommand.self, from: nonPaperData)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .paperSessionLocalControlRequiresPaperMode(.backtest))
+        }
+
+        var orderLevelObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        orderLevelObject["authorizesOrderLevelCommand"] = true
+        let orderLevelData = try JSONSerialization.data(withJSONObject: orderLevelObject)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperSessionLocalControlCommand.self, from: orderLevelData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperSessionLocalControlForbiddenCapability("authorizesOrderLevelCommand")
+            )
+        }
+
+        var brokerObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        brokerObject["touchesBrokerAction"] = true
+        let brokerData = try JSONSerialization.data(withJSONObject: brokerObject)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperSessionLocalControlCommand.self, from: brokerData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperSessionLocalControlForbiddenCapability("touchesBrokerAction")
+            )
+        }
+
+        var submitObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        submitObject["submitsRealOrder"] = true
+        let submitData = try JSONSerialization.data(withJSONObject: submitObject)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperSessionLocalControlCommand.self, from: submitData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperSessionLocalControlForbiddenCapability("submitsRealOrder")
+            )
+        }
+    }
+
     func testRiskBlockerEvidenceAndPortfolioExposureRemainPaperOnlyReadModels() throws {
         // 测试场景：MTP-28 risk blocker evidence 必须锁定 proposed Paper action context、
         // risk profile 和 blocker reason；portfolio exposure 只能是 Paper 投影派生的只读 notional。

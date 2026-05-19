@@ -185,3 +185,32 @@ Workbench 观察面必须覆盖：
 - order-level command。
 - live order button、risk control command、position management command 或 OMS。
 - signed endpoint、account endpoint、listenKey、broker action、真实订单提交 / 撤销 / 替换或 Live execution。
+
+## MTP-48 Paper session 本地控制 Command Model
+
+日期：2026-05-20
+
+执行者：Codex
+
+当前产品面新增 session-level local control Command Model，但仍不新增 SwiftUI 控件、按钮、表单或事件时间线。
+
+Command Model 覆盖：
+
+- `start`：表达本地 Paper session 启动意图。
+- `pause`：表达本地 Paper session 暂停意图。
+- `close`：表达本地 Paper session 关闭意图。
+- `reset`：表达本地 Paper session 重置意图。
+
+拒绝边界：
+
+- 非 session-level control 会被拒绝。
+- order-level command 会被拒绝。
+- `submit` / `cancel` / `replace` 会被拒绝。
+- broker action、signed endpoint、account endpoint、listenKey 和 Live trading 会被拒绝。
+
+仍不包含：
+
+- UI 控件或 Dashboard 交互入口。
+- session-level control -> event boundary 串联。
+- order-level command、OMS、真实订单提交 / 撤销 / 替换。
+- broker / exchange side effect、signed endpoint、account endpoint、listenKey 或 Live execution。
