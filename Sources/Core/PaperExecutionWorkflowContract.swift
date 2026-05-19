@@ -226,8 +226,7 @@ public struct PaperExecutionWorkflowContract: Codable, Equatable, Sendable {
                         produces: .portfolioProjection,
                         eventStream: .paper,
                         evidenceKind: .simulatedFill,
-                        implementedInCurrentCode: false,
-                        futureIssueID: try Identifier("MTP-40")
+                        implementedInCurrentCode: true
                     ),
                     PaperExecutionWorkflowStageBoundary(
                         stage: .portfolioProjection,

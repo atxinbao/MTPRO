@@ -4460,3 +4460,56 @@ Linear 状态修正：
 | --- | --- | --- |
 | `git diff --check` | pass | 文档压缩变更通过 whitespace 检查。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 `swift test` 全部通过；85 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |
+
+## MTP-40 Simulated Fill Evidence
+
+日期：2026-05-19
+
+执行者：Codex
+
+目的：
+
+- 定义 paper-only simulated fill evidence 的最小 Core value model。
+- 定义 deterministic fill assumption，并复用 MTP-27 fixed fee / slippage cost evidence。
+- 将 simulated fill stage 标记为当前代码已实现，但不写 event log、不做 replay / projection 串联。
+- 回填 Trading Validation Matrix、contract docs、validation plan 和最近验证摘要。
+
+文件范围：
+
+- Added：
+  - `Sources/Core/PaperSimulatedFillEvidence.swift`
+- Updated：
+  - `Sources/Core/CoreError.swift`
+  - `Sources/Core/PaperExecutionWorkflowContract.swift`
+  - `Tests/CoreTests/CoreTests.swift`
+  - `checks/automation-readiness.sh`
+  - `docs/contracts/api-contract.md`
+  - `docs/contracts/backend-use-case-contract.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未实现 paper execution decision。
+- 未写 event log。
+- 未新增 projection / ViewModel。
+- 未实现真实撮合或真实成交回报。
+- 未实现动态滑点模型、交易所费率表或执行成本优化。
+- 未接 Live trading、signed endpoint、account endpoint、broker fill、account update、broker action 或真实订单行为。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter CoreTests` | pass | 首次执行在 SwiftPM 拉取 `duckdb-swift` 时遇到 GitHub TLS transient fetch failure，重试后通过；48 个 CoreTests 0 failures，新增 `testPaperSimulatedFillEvidenceCreatesDeterministicPaperOnlyFillFromAllowedOrderIntent`、`testPaperSimulatedFillEvidenceRejectsRejectedIntentAndAssumptionMismatch` 和 `testPaperSimulatedFillEvidenceDecodingRejectsRealFillBrokerAndAccountBypass`。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；确认新增 `TVM-PAPER-SIMULATED-FILL` anchor 可被机械检查定位。 |
+| `bash checks/run.sh` | pass | `git diff --check`、automation readiness、`swift build --product Dashboard`、`DASHBOARD_SMOKE=1 swift run Dashboard` 和 `swift test` 全部通过；88 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |
