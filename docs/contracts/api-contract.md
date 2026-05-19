@@ -457,3 +457,36 @@ MTP-35 不新增 HTTP API，也不新增 live / broker / signed command。
 - 不新增 database table API。
 - 不把 replay summary 解释为真实订单、真实成交、broker event、账户状态或执行授权。
 - 不绕过 append-only event log；summary 只从 replay result 派生。
+
+## MTP-38 Paper-only Execution Workflow Contract 边界
+
+日期：2026-05-19
+
+执行者：Codex
+
+MTP-38 不新增 HTTP API，也不新增 live / broker / signed command。
+
+新增内部 Core contract：
+
+- `PaperExecutionWorkflowStage`：定义 `proposal -> riskDecision -> paperExecutionDecision -> paperOrder -> simulatedFill -> portfolioProjection` 阶段顺序。
+- `PaperExecutionWorkflowEvidenceKind`：记录每个阶段允许使用的 evidence 类型。
+- `PaperExecutionWorkflowStageBoundary`：绑定阶段输入、输出、event stream、当前实现状态、future issue 占位和交易能力禁区。
+- `PaperExecutionWorkflowContract.deterministicFixture`：固定 MTP-38 合同、stage order、`.paper` / `.risk` / `.portfolio` stream 和 paper-only capability flags。
+
+契约要求：
+
+- proposal event boundary 只能使用 `.paper` stream 和 `PaperActionProposal` evidence。
+- risk decision event boundary 只能使用 `.risk` stream 和 `PaperActionProposalRiskDecision` evidence。
+- paper execution decision、paper order 和 simulated fill 仅作为 future issue 合同占位，不在 MTP-38 实现 lifecycle、fill 或 OMS。
+- portfolio projection event boundary 只能使用 `.portfolio` stream 和 `PaperPortfolioProjectionUpdate` evidence。
+- Codable 解码不得恢复 `authorizesTradingExecution`、Live trading、signed endpoint、broker action 或 real order capability。
+
+边界确认：
+
+- 不新增 live order command。
+- 不新增 broker account command。
+- 不新增 signed endpoint command。
+- 不实现 paper order lifecycle。
+- 不实现 simulated fill。
+- 不实现完整 OMS。
+- 不把 paper execution decision、paper order 或 simulated fill 解释为真实订单授权、真实成交、broker fill 或 Live execution。

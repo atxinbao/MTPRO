@@ -599,3 +599,32 @@ event log replay 汇总 lifecycle、proposal、risk blocker 和 portfolio projec
 - 真实 broker event replay。
 - 外部 execution venue。
 - signed endpoint、account endpoint、broker action、真实订单行为或 Live execution。
+
+## MTP-38 Paper-only Execution Workflow Contract Use Case 边界
+
+日期：2026-05-19
+
+执行者：Codex
+
+`StartPaperSession` / `EvaluateRisk` / `ProjectPortfolio` 在本事项中获得一个共享的 paper-only execution workflow contract，用于约束后续 issue 的本地执行证据链。
+
+契约结构：
+
+- `PaperExecutionWorkflowContract`：汇总 proposal、risk decision、paper execution decision、paper order、simulated fill 和 portfolio projection 的阶段顺序。
+- `PaperExecutionWorkflowStageBoundary`：为每个阶段记录 consumes、produces、event stream、evidence kind、当前实现状态和 future issue 占位。
+- `PaperExecutionWorkflowContract.deterministicFixture`：为 XCTest 和 PR evidence 固定 MTP-38 合同。
+
+契约要求：
+
+- proposal 必须先于 risk decision，risk decision 必须先于 paper execution decision；后续 issue 不能跳过 risk decision 直接生成 order、fill 或 portfolio projection。
+- paper execution decision、paper order 和 simulated fill 只是 future issue 占位；MTP-38 不实现 lifecycle、fill 生成或 OMS。
+- portfolio projection 阶段只能消费本地 simulated fill 之后的 paper-only evidence，并保持 `.portfolio` stream 边界。
+- 所有阶段的 `authorizesTradingExecution`、`authorizesLiveTrading`、`touchesSignedEndpoint`、`touchesBrokerAction` 和 `representsRealOrder` 必须固定为 `false`。
+
+本契约不包含：
+
+- paper order lifecycle。
+- simulated fill。
+- 完整 OMS。
+- broker / exchange side effect。
+- signed endpoint、account endpoint、真实订单提交 / 取消 / 替换或 Live execution。

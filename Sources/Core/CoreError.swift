@@ -36,6 +36,8 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
     case paperPortfolioProjectionRequiresPaperMode(ExecutionMode)
     case paperPortfolioProjectionForbiddenCapability(String)
     case paperPortfolioProjectionMismatch(field: String, expected: String, actual: String)
+    case paperExecutionWorkflowForbiddenCapability(String)
+    case paperExecutionWorkflowContractMismatch(field: String, expected: String, actual: String)
 
     public var description: String {
         switch self {
@@ -103,6 +105,10 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
             "Paper portfolio projection forbids capability: \(field)"
         case let .paperPortfolioProjectionMismatch(field, expected, actual):
             "Paper portfolio projection mismatch for \(field): expected \(expected), actual \(actual)"
+        case let .paperExecutionWorkflowForbiddenCapability(field):
+            "Paper execution workflow forbids capability: \(field)"
+        case let .paperExecutionWorkflowContractMismatch(field, expected, actual):
+            "Paper execution workflow contract mismatch for \(field): expected \(expected), actual \(actual)"
         }
     }
 }
