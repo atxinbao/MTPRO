@@ -211,3 +211,23 @@ MTP-44 在 Report / Dashboard ViewModel 中汇总 Paper execution workflow evide
 - workflow evidence 来自 append-only event timeline replay summary；它不触发 replay 写入、数据库迁移、broker action 或订单动作。
 - `paperExecutionWorkflowAuthorizesTradingExecution`、`paperExecutionWorkflowAuthorizesLiveTrading` 和 `paperExecutionWorkflowTouchesBrokerAction` 必须保持 false。
 - Report / Dashboard 不提供 live order action、risk control command、position management command、order command、broker action 或 signed endpoint。
+
+## MTP-47 Paper Workflow Workbench IA ViewModel 契约
+
+日期：2026-05-20
+
+执行者：Codex
+
+MTP-47 新增 Workbench information architecture 合同 fixture，用于在实现 SwiftUI 控件、Command Model 或 Event Timeline 前固定 ViewModel / Read Model 观察边界：
+
+- `PaperWorkflowSessionControl`：只允许 `start`、`pause`、`close`、`reset` 四个 session-level local controls。
+- `PaperWorkflowObservabilitySection`：固定 session、proposal、risk decision、paper order、simulated fill、portfolio projection、replay freshness、report artifact status 和 event timeline 九个观察面。
+- `PaperWorkflowForbiddenCapability`：固定 order-level command、Live trading、signed endpoint、account endpoint、listenKey、broker action、真实订单 submit / cancel / replace、OMS、database schema surface、runtime object surface 和 adapter request surface 禁区。
+- `PaperWorkflowWorkbenchInformationArchitecture.deterministicFixture`：以可编码 fixture 证明当前 Workbench IA 仍是 read-model-only 合同，不提前实现命令、控件或 Event Timeline。
+
+边界确认：
+
+- 该合同只定义后续 Workbench / ViewModel / Command Model / Event Timeline 的输入边界。
+- 当前 issue 不新增 SwiftUI 页面字段，不新增按钮，不新增 `Command` case，不写 event log。
+- Workbench IA 仍只引用 `DashboardSection` 和 `ViewModelSourceContract`，不暴露 SQLite / DuckDB schema、SQL、ORM model、runtime object 或 adapter request。
+- order-level command 明确禁止；session-level controls 不能被解释为真实订单、真实成交、broker fill、account update 或交易授权。

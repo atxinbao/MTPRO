@@ -763,3 +763,33 @@ event log -> replay -> portfolio projection 串联路径。
 - broker event replay。
 - 真实账户、真实 position、真实 broker fill。
 - signed endpoint、account endpoint、真实订单提交 / 取消 / 替换或 Live execution。
+
+## MTP-47 Paper Workflow Workbench Control Shell Use Case 边界
+
+日期：2026-05-20
+
+执行者：Codex
+
+MTP-47 只定义 Workbench information architecture 和控制壳边界，不新增 backend use case，不实现 Command Model，不把 session control 串入 event boundary。
+
+契约结构：
+
+- `PaperWorkflowWorkbenchInformationArchitecture`：固定 Workbench 观察面、session-level controls 和 forbidden capability。
+- `PaperWorkflowSessionControl`：只允许 `start` / `pause` / `close` / `reset`。
+- `PaperWorkflowObservabilitySection`：固定 session、proposal、risk decision、paper order、simulated fill、portfolio projection、replay freshness、report artifact status 和 event timeline 观察面。
+
+契约要求：
+
+- 该 fixture 必须保持 read-model-only，不得引用 Runtime object、adapter request 或 database schema surface。
+- order-level command 必须明确禁止。
+- 当前 issue 不得生成 paper session facts，不得写入 event log，不得改变 replay / projection。
+
+本契约不包含：
+
+- Command Model。
+- session-level control -> event boundary 串联。
+- UI 控件或 Event Timeline 实现。
+- order submit / cancel / replace。
+- OMS。
+- broker / exchange side effect。
+- signed endpoint、account endpoint、listenKey、真实订单行为或 Live execution。
