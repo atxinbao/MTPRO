@@ -370,7 +370,7 @@ final class AppTests: XCTestCase {
         // 也不能直接引用数据库实现名或 public market data client 类型。
         let shellSource = try String(contentsOf: sourceFile("Sources/App/DashboardShell.swift"))
         let executableSource = try String(
-            contentsOf: sourceFile("Sources/MTPRODashboard/MTPRODashboardApplication.swift")
+            contentsOf: sourceFile("Sources/Dashboard/DashboardApplication.swift")
         )
 
         XCTAssertFalse(shellSource.contains("import Runtime"))

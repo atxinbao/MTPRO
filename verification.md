@@ -4176,3 +4176,54 @@ Linear 状态修正：
 | --- | --- | --- |
 | `git diff --check` | pass | Project Completed State Gate 文档变更无空白问题。 |
 | `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 全部通过；80 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |
+
+## Dashboard Source Naming Cleanup
+
+日期：2026-05-19
+
+执行者：Codex
+
+目的：
+
+- 移除 `Sources/MTPRODashboard` 目录中的项目名前缀。
+- 移除 `MTPRODashboardApplication.swift` 文件名和入口类型中的项目名前缀。
+- 将 SwiftPM executable product / target 收口为 `Dashboard`。
+- 同步 macOS dashboard build / smoke 命令和当前文档引用。
+
+文件范围：
+
+- Renamed：
+  - `Sources/MTPRODashboard/MTPRODashboardApplication.swift` -> `Sources/Dashboard/DashboardApplication.swift`
+- Updated：
+  - `Package.swift`
+  - `Sources/App/DashboardShell.swift`
+  - `Sources/Dashboard/DashboardApplication.swift`
+  - `Tests/AppTests/AppTests.swift`
+  - `checks/run.sh`
+  - `README.md`
+  - `ARCHITECTURE.md`
+  - `ENVIRONMENT.md`
+  - `docs/contracts/frontend-view-model-contract.md`
+  - `docs/product/product-surface-map.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `docs/validation/macos-build-run-loop.md`
+  - `docs/validation/validation-plan.md`
+
+边界确认：
+
+- 未创建 Linear Project。
+- 未创建 Linear Issues。
+- 未修改 Linear status。
+- 未推进任何 issue 到 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未修改业务交易逻辑。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Dashboard source naming cleanup 无空白问题。 |
+| `bash checks/run.sh` | pass | `git diff --check`、automation readiness、`swift build --product Dashboard`、`DASHBOARD_SMOKE=1 swift run Dashboard` 和 `swift test` 全部通过；80 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |

@@ -39,7 +39,7 @@ UI 第一版只做最小观察和操作入口，不追求完整交易终端。
 输入边界：
 
 - SwiftUI shell 只接收 `DashboardViewModel`。
-- 可运行入口 `MTPRODashboard` 使用空 read model projection 作为安全启动快照。
+- 可运行入口 `Dashboard` 使用空 read model projection 作为安全启动快照。
 - shell smoke run 只输出 read-model-only summary，不连接网络、不读取 secret、不触发交易动作。
 
 仍不包含：

@@ -29,6 +29,7 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - Project 全部有效 issues `Done` 只是 Project closure 前置条件；Parent Codex 必须将 Linear Project status 设置或确认为 `Completed`，并记录 `type=completed`、`completedAt` 非空后，才能进入 Stage Code Audit Report。
 - Linear Project status `Completed` 是 Stage Code Audit Report 和 Next Human Project Planning 前的 Project closure gate。
 - 本轮 Project Completed Gate 文档收口已通过 `git diff --check` 和 `bash checks/run.sh`；MTPRO 本地验证仍为 80 个 XCTest 0 failures。
+- 本轮 Dashboard source naming 收口已将 SwiftPM executable product / target 改为 `Dashboard`，源码目录改为 `Sources/Dashboard`，入口文件改为 `DashboardApplication.swift`，smoke 命令改为 `DASHBOARD_SMOKE=1 swift run Dashboard`。
 - 历史 planning record 曾记录 `尚未写入 Linear`；该状态只解释 planning record 生成时点，不代表 Project 完成后的审计状态。
 - MTP-30 新增 `docs/audit/inputs/mtpro-trading-validation-and-parity-hardening-stage-audit-input.md`，集中记录 `MTP-24` 至 `MTP-30` 的 Issue / PR evidence、merge commit、required check、matrix evidence chain、known boundaries、automation readiness evidence、Root Docs Delta input 和 Stage Code Audit handoff checklist。
 - `MTPRO Trading Validation and Parity Hardening` Stage Code Audit Report 已落仓，记录 `MTP-24` 至 `MTP-30` 全部 Done、PR #52 / #53 / #55 / #56 / #57 / #58 / #59 evidence、validation、boundary audit、Root Docs Delta 和 Next Human Project Planning handoff。
@@ -84,8 +85,8 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 | --- | --- | --- |
 | `git diff --check` | pass | 由 `bash checks/run.sh` 串联执行，当前 diff 无空白问题。 |
 | `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；MTP-37 Stage Code Audit input、Trading Validation Matrix、latest summary 和 automation readiness 锚点完整。 |
-| `swift build --product MTPRODashboard` | pass | macOS dashboard executable 构建通过。 |
-| `MTPRO_DASHBOARD_SMOKE=1 swift run MTPRODashboard` | pass | 输出 `MTPRO Dashboard smoke: sections=8; readModelOnly=true; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`。 |
+| `swift build --product Dashboard` | pass | macOS dashboard executable 构建通过。 |
+| `DASHBOARD_SMOKE=1 swift run Dashboard` | pass | 输出 `Dashboard smoke: sections=8; readModelOnly=true; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`。 |
 | `swift test` | pass | 80 个 XCTest 通过；本轮 Root Docs Refresh Gate closure 不改 production code，回归覆盖 Paper Session runtime evidence 和既有 paper-only boundary。 |
 | `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 全部通过；80 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |
 
