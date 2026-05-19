@@ -28,6 +28,28 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - 当前 main 已包含 `docs/design/mtpro-complete-blueprint.md`，作为 Human + `@000 / AIE` 维护的 MTPRO 完整产品 / 系统 / 设计蓝图。
 - 当前阶段完成进度条由 `@002 / PAR` 在 Project closure、Stage Code Audit Report 和 Root Docs Refresh Gate closure 后输出；进度条不写入蓝图文档，不授权下一阶段执行。
 
+## Current Phase Progress Baseline / 当前阶段完成进度基线
+
+Phase：`MTPRO paper-only research / validation / execution foundation`
+
+Completed Projects：5 / 5（100%）
+
+Progress：`[##########] 100%`
+
+Completed Projects 是计算依据，只统计当前已 Human-approved、已执行、已完成 Project closure、已落仓 Stage Code Audit Report、并已完成 Root Docs Refresh Gate closure 的建设阶段 Project：
+
+- `MTPRO 引导`
+- `MTPRO Runtime Research Workbench v1`
+- `MTPRO Trading Validation and Parity Hardening`
+- `MTPRO Paper Session Runtime v1`
+- `MTPRO Paper Execution Workflow v1`
+
+Latest Completed Project：`MTPRO Paper Execution Workflow v1`
+
+Next Handoff：Human + `@001 / PLN`
+
+该进度条只统计当前已批准并已 closure 的建设阶段 Project，不统计 `docs/design/mtpro-complete-blueprint.md` 中的 Future Construction Zones，不统计未授权 future capability，不授权下一阶段执行。下一阶段方向、目标、架构路线和优先级仍交给 Human + `@001 / PLN`。
+
 ## 最近工程事实
 
 - `MTPRO NautilusTrader Reference Study` 已形成 @003 / PRD、@004 / DSG、@005 / ARC 三份角色文档，并由 @000 / AIE 汇总入口和 root docs delta proposal。

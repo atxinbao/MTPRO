@@ -4903,3 +4903,51 @@ Commit：
 | --- | --- | --- |
 | `git diff --check` | pass | Blueprint responsibility cleanup 和 progress rule docs-only 变更通过 whitespace 检查。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 93 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
+
+## Current Phase Progress Baseline
+
+日期：2026-05-20
+执行者：Parent Codex Automation Supervision（`@002 / PAR`）
+
+目的：
+- 补齐当前版本的 Current Phase Progress baseline。
+- 明确当前阶段为 `MTPRO paper-only research / validation / execution foundation`。
+- 明确 Completed Projects 为 5 / 5（100%），Progress 为 `[##########] 100%`。
+- 明确进度条只统计当前已 Human-approved、已执行、已 closure 的建设阶段 Project。
+- 明确进度条不统计 `docs/design/mtpro-complete-blueprint.md` 中的 Future Construction Zones，不授权下一阶段执行。
+
+Completed Projects：
+- `MTPRO 引导`
+- `MTPRO Runtime Research Workbench v1`
+- `MTPRO Trading Validation and Parity Hardening`
+- `MTPRO Paper Session Runtime v1`
+- `MTPRO Paper Execution Workflow v1`
+
+Latest Completed Project：`MTPRO Paper Execution Workflow v1`
+
+Next Handoff：Human + `@001 / PLN`
+
+文件范围：
+- Updated:
+  - `docs/validation/latest-verification-summary.md`
+  - `ROADMAP.md`
+  - `docs/planning/linear-draft-plan.md`
+  - `verification.md`
+
+边界确认：
+- docs-only。
+- 未修改 `docs/design/mtpro-complete-blueprint.md`。
+- 未创建 Linear Project / Issue。
+- 未修改 Linear status。
+- 未推进 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未把 future capability 计入 progress。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Current Phase Progress baseline docs-only 变更无 whitespace error。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 93 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
