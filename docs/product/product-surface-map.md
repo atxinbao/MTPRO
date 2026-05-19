@@ -263,3 +263,27 @@ Event boundary 覆盖：
 - order-level command、paper order command、OMS、真实订单提交 / 撤销 / 替换。
 - SQLite / DuckDB schema、SQL、ORM model、runtime object 或 adapter request 暴露。
 - broker / exchange side effect、signed endpoint、account endpoint、listenKey 或 Live execution。
+
+## MTP-51 read-model-only Event Timeline / Evidence Explorer 子集
+
+日期：2026-05-20
+
+执行者：Codex
+
+当前产品面新增 Event Timeline / Evidence Explorer 的只读子集，用于从既有 read model 和 append-only event timeline 汇总 evidence links。该子集不新增 SwiftUI 交互控件，不提供命令，不实现完整查询语言。
+
+可观察字段覆盖：
+
+- market event、strategy signal、risk decision、paper order、simulated fill、portfolio projection 和 report artifact 分区。
+- timeline item 的 sequence、recorded time、stream、title、summary 和 evidence link summary。
+- report artifact 到 decision / order / fill / portfolio / risk blocker evidence 的 chain links。
+- read-only filter snapshot 和 section snapshot。
+- read-model-only、no schema、no runtime object、no adapter request、no command surface 和 no trading authorization 边界。
+
+仍不包含：
+
+- Dashboard / Workbench UI redesign、按钮、表单或操作控件。
+- 完整查询语言、report archive 或 export 系统。
+- order-level command、risk control command、position management command、OMS、真实订单提交 / 撤销 / 替换。
+- SQLite / DuckDB schema、SQL、ORM model、runtime object、Persistence adapter direct read 或 adapter request 暴露。
+- broker / exchange side effect、signed endpoint、account endpoint、listenKey 或 Live execution。

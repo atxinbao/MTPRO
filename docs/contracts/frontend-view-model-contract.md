@@ -251,3 +251,23 @@ MTP-50 新增 Paper workflow observability 的 App 层 read model / ViewModel：
 - ViewModel 不暴露 SQLite / DuckDB schema、table、column、SQL、ORM model、Runtime object 或 adapter request。
 - ViewModel 不提供 UI control、Event Timeline explorer、order-level command、broker action、signed endpoint、account endpoint、listenKey 或真实订单行为。
 - `paperOnlyBoundaryHeld`、`readModelOnlyBoundaryHeld` 必须为 true；Live trading、broker action 和 trading execution authorization 必须为 false。
+
+## MTP-51 Paper Workflow Event Timeline / Evidence Explorer ViewModel 契约
+
+日期：2026-05-20
+
+执行者：Codex
+
+MTP-51 新增 Event Timeline / Evidence Explorer 的 App 层 read model / ViewModel 子集：
+
+- `PaperWorkflowEvidenceExplorerReadModel`：只从 `MarketReadModel`、`StrategyReadModel`、`ReportReadModel`、`PaperWorkflowObservabilityReadModel` 和 `EventTimelineReadModel` 聚合稳定输入。
+- `PaperWorkflowEvidenceExplorerViewModel`：展示 timeline items、evidence links、section snapshots、read-only filter snapshot 和 coverage flags。
+- `PaperWorkflowEvidenceExplorerSection`：固定 market event、strategy signal、risk decision、paper order、simulated fill、portfolio projection 和 report artifact 分区。
+- `DashboardReadModel.paperWorkflowEvidenceExplorer` 和 `DashboardViewModel.paperWorkflowEvidenceExplorer`：把 Explorer 快照挂到现有 Dashboard / Workbench ViewModel 边界，供后续 shell issue 消费。
+
+边界确认：
+
+- ViewModel 继续使用 `ViewModelSourceContract` 证明 read-model-only。
+- ViewModel 不暴露 SQLite / DuckDB schema、table、column、SQL、ORM model、Runtime object、Persistence adapter direct read 或 adapter request。
+- ViewModel 不提供 UI control、Runtime command、query language、order-level command、risk control、position management、broker action、signed endpoint、account endpoint、listenKey 或真实订单行为。
+- `readModelOnlyBoundaryHeld` 必须为 true；Live trading、broker action、command surface、query language 和 trading execution authorization 必须为 false。

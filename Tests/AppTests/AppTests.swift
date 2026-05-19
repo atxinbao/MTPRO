@@ -36,6 +36,15 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(viewModel.paperWorkflowObservability.source.exposesRuntimeObjects)
         XCTAssertFalse(viewModel.paperWorkflowObservability.source.callsBinanceAdapter)
         XCTAssertFalse(viewModel.paperWorkflowObservability.source.providesLiveOrderAction)
+        XCTAssertEqual(
+            viewModel.paperWorkflowEvidenceExplorer.source.sourceKind,
+            .stableReadModelProjection
+        )
+        XCTAssertFalse(viewModel.paperWorkflowEvidenceExplorer.source.exposesDatabaseTables)
+        XCTAssertFalse(viewModel.paperWorkflowEvidenceExplorer.source.exposesORMModels)
+        XCTAssertFalse(viewModel.paperWorkflowEvidenceExplorer.source.exposesRuntimeObjects)
+        XCTAssertFalse(viewModel.paperWorkflowEvidenceExplorer.source.callsBinanceAdapter)
+        XCTAssertFalse(viewModel.paperWorkflowEvidenceExplorer.source.providesLiveOrderAction)
         XCTAssertEqual(viewModel.events.source.sourceKind, .stableReadModelProjection)
         XCTAssertFalse(viewModel.events.source.exposesDatabaseTables)
         XCTAssertFalse(viewModel.events.source.exposesORMModels)
@@ -200,6 +209,90 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(decoded.authorizesTradingExecution)
     }
 
+    func testPaperWorkflowEvidenceExplorerTimelineSnapshotAggregatesReadModelOnlyEvidence() throws {
+        // 测试场景：MTP-51 的 Event Timeline / Evidence Explorer 子集必须只从 read model
+        // 汇总 market event、strategy signal、risk decision、paper order、simulated fill、
+        // portfolio projection 和 report artifact evidence links。
+        let explorer = try makeDashboardViewModel().paperWorkflowEvidenceExplorer
+
+        XCTAssertTrue(explorer.source.isReadModelOnly)
+        XCTAssertEqual(explorer.timelineItemCount, 17)
+        XCTAssertTrue(explorer.coversMarketEvents)
+        XCTAssertTrue(explorer.coversStrategySignals)
+        XCTAssertTrue(explorer.coversRiskDecisions)
+        XCTAssertTrue(explorer.coversPaperOrders)
+        XCTAssertTrue(explorer.coversSimulatedFills)
+        XCTAssertTrue(explorer.coversPortfolioProjections)
+        XCTAssertTrue(explorer.coversReportArtifacts)
+        XCTAssertTrue(explorer.coversPaperWorkflowChainEvidence)
+
+        let itemCounts = Dictionary(
+            uniqueKeysWithValues: explorer.sectionSnapshots.map { ($0.section, $0.itemCount) }
+        )
+        XCTAssertEqual(itemCounts[.marketEvent], 6)
+        XCTAssertEqual(itemCounts[.strategySignal], 3)
+        XCTAssertEqual(itemCounts[.riskDecision], 4)
+        XCTAssertEqual(itemCounts[.paperOrder], 1)
+        XCTAssertEqual(itemCounts[.simulatedFill], 1)
+        XCTAssertEqual(itemCounts[.portfolioProjection], 1)
+        XCTAssertEqual(itemCounts[.reportArtifact], 1)
+
+        XCTAssertEqual(explorer.filterSnapshot.availableSections, PaperWorkflowEvidenceExplorerSection.allCases)
+        XCTAssertEqual(explorer.filterSnapshot.selectedSections, PaperWorkflowEvidenceExplorerSection.allCases)
+        XCTAssertTrue(explorer.filterSnapshot.readOnly)
+        XCTAssertFalse(explorer.filterSnapshot.supportsQueryLanguage)
+        XCTAssertFalse(explorer.filterSnapshot.supportsCommandSurface)
+
+        let evidenceIDs = explorer.evidenceLinks.map(\.evidenceID)
+        XCTAssertTrue(evidenceIDs.contains("report-backtest-ema-fixture"))
+        XCTAssertTrue(evidenceIDs.contains("paper-replay-execution-decision-allowed"))
+        XCTAssertTrue(evidenceIDs.contains("paper-replay-order-allowed"))
+        XCTAssertTrue(evidenceIDs.contains("paper-replay-fill-allowed"))
+        XCTAssertTrue(evidenceIDs.contains("paper-replay-portfolio-update"))
+        XCTAssertTrue(evidenceIDs.contains("risk-blocker-paper-replay-proposal-blocked"))
+        XCTAssertEqual(explorer.timelineItems.first?.section, .marketEvent)
+        XCTAssertEqual(explorer.timelineItems.last?.section, .reportArtifact)
+        XCTAssertEqual(explorer.lastAppliedSequence, 16)
+    }
+
+    func testPaperWorkflowEvidenceExplorerFilterIsReadOnlyAndKeepsBoundary() throws {
+        // 测试场景：MTP-51 的 filter 只是 ViewModel snapshot 内的只读 section 选择，
+        // 不能下推成查询语言、Runtime command、schema access 或 order-level command。
+        let readModel = try makeEvidenceExplorerReadModel()
+        let explorer = PaperWorkflowEvidenceExplorerViewModel(
+            readModel: readModel,
+            selectedSections: [.paperOrder, .simulatedFill]
+        )
+
+        XCTAssertEqual(explorer.timelineItems.map(\.section), [.paperOrder, .simulatedFill])
+        XCTAssertEqual(explorer.filterSnapshot.selectedSections, [.paperOrder, .simulatedFill])
+        XCTAssertEqual(explorer.filterSnapshot.matchingItemCount, 2)
+        XCTAssertTrue(explorer.filterSnapshot.readOnly)
+        XCTAssertFalse(explorer.filterSnapshot.supportsQueryLanguage)
+        XCTAssertFalse(explorer.filterSnapshot.supportsCommandSurface)
+        XCTAssertTrue(explorer.sectionSnapshots.first { $0.section == .paperOrder }?.selected == true)
+        XCTAssertTrue(explorer.sectionSnapshots.first { $0.section == .simulatedFill }?.selected == true)
+        XCTAssertTrue(explorer.sectionSnapshots.first { $0.section == .marketEvent }?.selected == false)
+
+        let encoded = try JSONEncoder().encode(explorer)
+        let decoded = try JSONDecoder().decode(
+            PaperWorkflowEvidenceExplorerViewModel.self,
+            from: encoded
+        )
+
+        XCTAssertEqual(decoded, explorer)
+        XCTAssertTrue(decoded.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(decoded.exposesDatabaseSchema)
+        XCTAssertFalse(decoded.exposesRuntimeObject)
+        XCTAssertFalse(decoded.exposesAdapterRequest)
+        XCTAssertFalse(decoded.providesCommandSurface)
+        XCTAssertFalse(decoded.providesOrderLevelCommand)
+        XCTAssertFalse(decoded.supportsQueryLanguage)
+        XCTAssertFalse(decoded.authorizesLiveTrading)
+        XCTAssertFalse(decoded.touchesBrokerAction)
+        XCTAssertFalse(decoded.authorizesTradingExecution)
+    }
+
     func testReadModelProjectionMapsAllDashboardSections() throws {
         let viewModel = try makeDashboardViewModel()
 
@@ -290,6 +383,11 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(viewModel.report.lastAppliedSequence, 16)
         XCTAssertFalse(viewModel.report.tradingValidationAuthorizesExecution)
         XCTAssertFalse(viewModel.report.authorizesTradingExecution)
+        XCTAssertEqual(viewModel.paperWorkflowEvidenceExplorer.timelineItemCount, 17)
+        XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversPaperWorkflowChainEvidence)
+        XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(viewModel.paperWorkflowEvidenceExplorer.providesCommandSurface)
+        XCTAssertFalse(viewModel.paperWorkflowEvidenceExplorer.exposesDatabaseSchema)
         let report = try XCTUnwrap(viewModel.report.artifacts.first)
         XCTAssertEqual(report.reportID, "report-backtest-ema-fixture")
         XCTAssertEqual(report.backtestRunID, "backtest-ema-fixture")
@@ -406,6 +504,9 @@ final class AppTests: XCTestCase {
             decoded.report.artifacts.first?.paperExecutionWorkflowEvidence.paperOrderIDs,
             ["paper-replay-order-allowed"]
         )
+        XCTAssertEqual(decoded.paperWorkflowEvidenceExplorer.timelineItemCount, 17)
+        XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversReportArtifacts)
+        XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.readModelOnlyBoundaryHeld)
         XCTAssertTrue(decoded.report.paperExecutionWorkflowCoversDecisionOrderFillChain)
         XCTAssertTrue(decoded.report.paperRuntimePaperOnlyBoundaryHeld)
         XCTAssertFalse(decoded.report.authorizesTradingExecution)
@@ -624,6 +725,19 @@ final class AppTests: XCTestCase {
         )
 
         return DashboardViewModel(readModel: readModel)
+    }
+
+    private func makeEvidenceExplorerReadModel() throws -> PaperWorkflowEvidenceExplorerReadModel {
+        let runtimeProjection = try makeRuntimeProjection()
+        let analyticalProjection = try makeAnalyticalProjection()
+        let eventTimeline = try makeEventTimeline()
+        let readModel = DashboardReadModel(
+            runtimeProjection: runtimeProjection,
+            analyticalProjection: analyticalProjection,
+            eventTimeline: eventTimeline
+        )
+
+        return readModel.paperWorkflowEvidenceExplorer
     }
 
     private func metricValue(

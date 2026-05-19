@@ -5242,3 +5242,48 @@ Next Handoff：Human + `@001 / PLN`
 | --- | --- | --- |
 | `swift test --filter AppTests` | pass | 13 个 AppTests，0 failures；覆盖 Paper workflow observability snapshot、session status、blocked / allowed evidence、chain coverage、replay freshness、report artifact status、Codable deterministic equality 和 schema / runtime / adapter non-exposure。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 103 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
+
+## MTP-51 read-model-only Event Timeline / Evidence Explorer 子集
+
+日期：2026-05-20
+
+执行者：Codex（Codex Execution Agent）
+
+目的：
+
+- 按 Linear issue `MTP-51` 新增 Event Timeline / Evidence Explorer 的 read-model-only 子集。
+- 让用户可以按 timeline snapshot 观察 market event、strategy signal、risk decision、paper order、simulated fill、portfolio projection 和 report artifact 的 evidence links。
+- 保持 Explorer 只读，不提供 query language、command surface、Persistence adapter direct read、Runtime command、UI control 或交易操作。
+
+文件范围：
+
+- Added：
+  - `Sources/App/PaperWorkflowEvidenceExplorer.swift`
+- Updated：
+  - `Sources/App/App.swift`
+  - `Tests/AppTests/AppTests.swift`
+  - `docs/product/product-surface-map.md`
+  - `docs/contracts/api-contract.md`
+  - `docs/contracts/frontend-view-model-contract.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+
+边界确认：
+
+- `PaperWorkflowEvidenceExplorerReadModel` 只从既有 `MarketReadModel`、`StrategyReadModel`、`ReportReadModel`、`PaperWorkflowObservabilityReadModel` 和 `EventTimelineReadModel` 聚合稳定输入。
+- `PaperWorkflowEvidenceExplorerViewModel` 是 Codable deterministic snapshot，展示 timeline items、evidence links、section snapshots、read-only filter snapshot 和 coverage flags。
+- filter 只在已生成 ViewModel snapshot 内筛选 section，不下推为 query language，不读取 SQLite / DuckDB schema，不调用 Runtime 或 Persistence adapter。
+- `DashboardReadModel` / `DashboardViewModel` 只新增 read-model-only Explorer 快照，不修改 Dashboard shell UI。
+- 未新增 projection schema、Runtime wiring、adapter request、UI control、order-level command、risk control、position management、broker action、signed endpoint、account endpoint、listenKey、真实订单或 Live execution。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter AppTests` | pass | 15 个 AppTests，0 failures；覆盖 Event Timeline / Evidence Explorer deterministic snapshot、market / strategy / risk / order / fill / portfolio / report section coverage、evidence links、read-only filter、Codable deterministic equality 和 schema / runtime / adapter / command non-exposure。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 105 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |

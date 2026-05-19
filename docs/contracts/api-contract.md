@@ -740,3 +740,31 @@ MTP-50 不新增 HTTP API，不新增 external command endpoint，也不把 View
 
 - 不实现 UI redesign、Event Timeline explorer、order-level command、OMS、broker adapter、signed endpoint、account endpoint、listenKey 或 Live execution。
 - 不新增 projection schema，不写 event log，不触发 replay side effect，不提交 / 撤销 / 替换真实订单。
+
+## MTP-51 Paper Workflow Event Timeline / Evidence Explorer Boundary
+
+日期：2026-05-20
+
+执行者：Codex
+
+MTP-51 不新增 HTTP API，不新增 external command endpoint，不新增 Runtime command，也不把 Explorer 暴露为交易、风控或持仓管理入口。
+
+新增 App 层 contract：
+
+- `PaperWorkflowEvidenceExplorerSection`：固定 market event、strategy signal、risk decision、paper order、simulated fill、portfolio projection 和 report artifact 七个只读分区。
+- `PaperWorkflowEvidenceLinkSummary`：表达 evidence ID、分区、label 和可选 source sequence。
+- `PaperWorkflowEventTimelineItem`：表达 timeline item 的 sequence、recorded time、stream、summary 和 evidence links。
+- `PaperWorkflowEvidenceExplorerReadModel`：只组合既有 Dashboard read models 和 append-only event timeline。
+- `PaperWorkflowEvidenceExplorerViewModel`：输出 deterministic Codable snapshot、section snapshots、read-only filter snapshot 和 no-command boundary flags。
+
+契约要求：
+
+- Explorer 必须只消费 stable read model projection。
+- filter 只在 ViewModel snapshot 内筛选分区，不得变成查询语言或 adapter / runtime 调用。
+- `readModelOnlyBoundaryHeld` 必须为 true。
+- `authorizesTradingExecution`、`authorizesLiveTrading`、`touchesBrokerAction`、`providesCommandSurface`、`providesOrderLevelCommand` 和 `supportsQueryLanguage` 必须保持 false。
+
+边界确认：
+
+- 不实现 UI redesign、operations console、report archive/export、完整查询语言、order-level command、OMS、broker adapter、signed endpoint、account endpoint、listenKey 或 Live execution。
+- 不新增 projection schema，不写 event log，不触发 replay side effect，不直接读取 Persistence adapter，不提交 / 撤销 / 替换真实订单。

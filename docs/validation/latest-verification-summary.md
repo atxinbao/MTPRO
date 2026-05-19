@@ -31,6 +31,8 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - `MTP-49` 的 Linear issue body 是本轮执行合同；scope 限定为 session-level control -> paper-only event boundary、invalid rejection evidence、append-only event boundary 和 deterministic tests。
 - 本轮 MTP-50 执行前 live-read 确认：`MTP-50` 为唯一 `In Progress` issue，`MTP-47`、`MTP-48` 和 `MTP-49` 已 `Done`，`MTP-51` 至 `MTP-53` 均为 `Backlog`，WIP=1。
 - `MTP-50` 的 Linear issue body 是本轮执行合同；scope 限定为 Paper workflow observability Read Model / ViewModel、session status、blocked / allowed evidence、chain coverage、replay freshness、report artifact status 和 deterministic tests。
+- 本轮 MTP-51 执行前 live-read 确认：`MTP-51` 为唯一 `In Progress` issue，`MTP-47`、`MTP-48`、`MTP-49` 和 `MTP-50` 已 `Done`，`MTP-52` 和 `MTP-53` 均为 `Backlog`，WIP=1。
+- `MTP-51` 的 Linear issue body 是本轮执行合同；scope 限定为 read-model-only Event Timeline / Evidence Explorer 子集、evidence link summary、read-only filter / section snapshot、paper workflow chain evidence 和 deterministic timeline snapshot tests。
 - 本轮 queue closure（2026-05-19）确认 `MTPRO Paper Execution Workflow v1` 中 canonical issues `MTP-38`、`MTP-39`、`MTP-40`、`MTP-41`、`MTP-42`、`MTP-44`、`MTP-45` 全部 `Done`；`MTP-43`、`MTP-46` 为 `Duplicate` 并排除。
 - `MTP-45` 新增 Project 级 Stage Audit Input，路径为 `docs/audit/inputs/mtpro-paper-execution-workflow-v1-stage-audit-input.md`；Parent Codex 已基于该输入落仓 canonical Stage Code Audit Report。
 - 本轮 MTP-42 paper execution event log / replay / projection focused Core 链路已通过 `swift test --filter CoreTests/testPaperExecution`；最终 `bash checks/run.sh` 结果见本文件最近验证表和 `verification.md` 追加记录。
@@ -95,6 +97,8 @@ Next Handoff：Human + `@001 / PLN`
 - `MTP-49` 新增 `PaperEvent.sessionControlRejected`，把 invalid command 的 `PaperSessionLocalControlRejectedReason` 写为可 replay 的本地 rejection evidence；replay summary、SQLite projection 和 App matcher 显式处理新增 paper event cases，但当前不扩展 projection schema 或 ViewModel。
 - `MTP-50` 新增 App 层 `PaperWorkflowObservabilityReadModel`、`PaperWorkflowObservabilityViewModel` 和 `PaperWorkflowReplayFreshnessStatus`，从既有 Report / Paper / Risk / Portfolio / Event read model 汇总 Paper workflow observability evidence。
 - `MTP-50` 的 ViewModel 展示 session status、proposal IDs、allowed decision / order / simulated fill evidence、blocked risk evidence、portfolio projection evidence、replay freshness 和 report artifact status，并保持 read-model-only / paper-only / schema non-exposure boundary。
+- `MTP-51` 新增 App 层 `PaperWorkflowEvidenceExplorerReadModel`、`PaperWorkflowEvidenceExplorerViewModel`、`PaperWorkflowEvidenceExplorerSection`、`PaperWorkflowEvidenceLinkSummary` 和 `PaperWorkflowEventTimelineItem`，从既有 Market / Strategy / Report / Paper workflow observability / Event read model 汇总 Event Timeline / Evidence Explorer snapshot。
+- `MTP-51` 的 Explorer ViewModel 展示 market event、strategy signal、risk decision、paper order、simulated fill、portfolio projection 和 report artifact evidence links，并保持 read-model-only、no query language、no command surface、schema / runtime / adapter non-exposure boundary。
 - 历史 `MTP-30` 阶段收口已迁入 `docs/audit/inputs/`，`docs/validation/` 不再存放 `MTP-xx` 命名的阶段输入文件。
 - `@000 / AIE` 是当前 Codex / AI Engineer 协作入口；`@003 / PRD`、`@004 / DSG`、`@005 / ARC` 是 Linear 外 reference / root docs 角色。
 
@@ -121,6 +125,8 @@ Next Handoff：Human + `@001 / PLN`
 | `bash checks/run.sh` | pass | MTP-49 统一验证入口通过；automation readiness、Dashboard build / smoke 和 101 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
 | `swift test --filter AppTests` | pass | MTP-50 focused App validation 通过，13 个 AppTests，0 failures；新增 Paper workflow observability snapshot、Codable deterministic equality、replay freshness、blocked / allowed evidence 和 schema / runtime / adapter non-exposure tests。 |
 | `bash checks/run.sh` | pass | MTP-50 统一验证入口通过；automation readiness、Dashboard build / smoke 和 103 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
+| `swift test --filter AppTests` | pass | MTP-51 focused App validation 通过，15 个 AppTests，0 failures；新增 Event Timeline / Evidence Explorer deterministic snapshot、evidence links、read-only filter、Codable deterministic equality 和 no command / no schema / no runtime / no adapter boundary tests。 |
+| `bash checks/run.sh` | pass | MTP-51 统一验证入口通过；automation readiness、Dashboard build / smoke 和 105 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
 
 ## 当前边界
 
@@ -141,6 +147,8 @@ Next Handoff：Human + `@001 / PLN`
 - MTP-49 不新增 SwiftUI 控件、Event Timeline、Evidence Explorer、projection schema 或 ViewModel；App / Persistence 只显式识别新增 event case 并保持当前 no-op 边界。
 - MTP-50 只扩展 App 层 Paper workflow observability read model / ViewModel；不实现 UI redesign、Event Timeline explorer、order-level command、projection schema、Runtime wiring 或 adapter request。
 - MTP-50 的 observability ViewModel 只能从既有 read model 派生，`readModelOnlyBoundaryHeld` 和 `paperOnlyBoundaryHeld` 必须为 true；不得暴露 database schema、runtime object、adapter request、broker action、signed endpoint、account endpoint、listenKey、真实订单或 Live execution。
+- MTP-51 只扩展 App 层 read-model-only Event Timeline / Evidence Explorer 子集；不实现 UI redesign、operations console、完整 query language、report archive/export、projection schema、Runtime command、Persistence adapter direct read 或 adapter request。
+- MTP-51 的 Explorer ViewModel 只能从既有 read model 派生，`readModelOnlyBoundaryHeld` 必须为 true；filter 只筛选 ViewModel snapshot 内 section，不得暴露 database schema、runtime object、adapter request、command surface、order-level command、broker action、signed endpoint、account endpoint、listenKey、真实订单或 Live execution。
 - MTP-41 只定义 paper execution decision 本地链路和 deterministic fixture；blocked risk decision 不生成 paper order，allowed decision 只生成 paper-only order / fill evidence。
 - MTP-41 issue 本身不写 event log、不新增 replay / projection / ViewModel；MTP-42 只把已存在的 paper execution facts 串入 event log / replay / projection，不实现完整 execution engine、完整风险引擎、broker rejection fallback、真实撮合、真实成交回报、broker fill、account update、broker action、signed endpoint 或真实订单行为。
 - Report / Dashboard 只展示 read model / ViewModel，不提供交易执行入口。
