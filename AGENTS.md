@@ -54,17 +54,21 @@ MTPRO 采用 AEP 三位数字编号和三字母角色代号。数字编号与三
 
 角色编号只用于沟通压缩，不改变职责边界，不授权执行，不替代 Linear issue、Project planning、GitHub required checks 或 Human decision。
 
+`@003 / PRD`、`@004 / DSG`、`@005 / ARC` 是 Linear 外的 reference / root docs 角色。它们服务 `GOAL.md`、`ARCHITECTURE.md`、`ENVIRONMENT.md`、`ROADMAP.md` 和 `docs/reference/*` 的研究、差距分析与 delta proposal，不创建 Linear Project / Issue，不推进 `Todo`，不启动 symphony-issue。
+
 | 编号 | 代号 | 角色 | MTPRO 职责摘要 |
 | --- | --- | --- | --- |
-| `001` | `PLN` | Project Planning Lead | 新阶段规划、Next Human Project Planning、Project / Issue 草案 |
+| `001` | `PLN` | Project Planning Lead | 新阶段规划、Next Human Project Planning、Project / Issue 草案、reference synthesis |
 | `002` | `PAR` | Parent Codex Automation Supervision | Project queue、eligible issue 调度、child Codex 监督、Stage Code Audit |
-| `003` | `SYM` | symphony-issue | 唯一 issue 调度、`Todo` -> `In Progress`、`In Progress` -> `In Review` |
-| `004` | `COD` | Codex Execution Agent | 当前 issue scope 内实现、验证、Pre-PR Code Review、PR handoff |
-| `005` | `GHA` | GitHub PR Automation | required checks、auto-merge、squash merge、branch cleanup、Linear bot auto Done |
+| `003` | `PRD` | Product Reference Lead | Linear 外产品参考、用户路径、工作台能力、`GOAL.md` / `ROADMAP.md` / `docs/product/*` delta proposal |
+| `004` | `DSG` | Design Reference Lead | Linear 外信息架构、Dashboard / Workbench 页面结构、状态与 ViewModel 映射 delta proposal |
+| `005` | `ARC` | Architecture Reference Lead | Linear 外系统结构参考、模块边界、event / replay / adapter / runtime / execution 语义映射 delta proposal |
 | `006` | `QAV` | QA / Validation | 验证、失败归因、验收证据、交易验证和回归边界 |
 | `007` | `OPS` | Operations | 本地环境、运行、部署、Graphify / Symphony / GitHub 自动化可用性 |
 
 Agent 收到 `给 @001 下 Codex 指令` 或 `@001：<任务>` 时，必须按 `PLN` 职责解析。其他编号同理。
+
+symphony-issue、Codex Execution Agent 和 GitHub PR Automation 是流程工具 / 执行层 actor，按名称调用，不再占用 `@003`、`@004`、`@005` 编号。
 
 ## @002 Startup Runbook
 
@@ -88,6 +92,7 @@ Agent 收到 `给 @001 下 Codex 指令` 或 `@001：<任务>` 时，必须按 `
 - 维护项目定义文档、contract-first 文档和 SwiftPM baseline。
 - 维护 `docs/planning/project-role-map.md`，用于记录系统架构、前端设计、后端开发、数据 / 持久化、质量验证、部署与运营等能力角色覆盖情况。
 - 维护 Product / Design / Engineering / Finance / Operations / QA 的 team role map，尤其是 Finance / Trading Domain、Product / Design 分工、Runtime Operations 和 Trading validation。
+- 维护 Linear 外 reference pack，例如 `docs/reference/nautilus-trader/*`，用于 Product / Design / Architecture 参考研究和 root docs delta proposal。
 - 运行本地验证：`bash checks/run.sh`。
 - Post-Issue Ledger / 施工后记账由 symphony-issue host-side `before_remove` 在 PR merge / Linear bot Done 后执行：同步持久本地仓库、刷新 Graphify resource relationship graph，并写入本地结构化摘要 `.codex/post-issue-ledger/latest.json`；如果环境不可用，必须记录原因且不提交 `graphify-out/*`。
 - 下一步观察提示不单独授权执行，不得绕过 Parent Codex queue preflight，不得创建 Linear issue，不得修改 `ROADMAP.md`。
@@ -118,7 +123,7 @@ Agent 收到 `给 @001 下 Codex 指令` 或 `@001：<任务>` 时，必须按 `
 | GitHub PR Automation | 创建 PR 后交给 GitHub checks / auto-merge；Codex 不直接 merge |
 | Next Human Project Planning | 当前 Project 全部有效 issues `Done`、Linear Project status `Completed`、Stage Code Audit Report 已落仓且 Root Docs Refresh Gate 已完成前不得建议或创建下一 Project |
 
-## 三角色职责边界
+## 执行三角色职责边界
 
 | 角色 | MTPRO 当前职责 | 禁止 |
 | --- | --- | --- |

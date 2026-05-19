@@ -30,6 +30,7 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - Linear Project status `Completed` 是 Stage Code Audit Report 和 Next Human Project Planning 前的 Project closure gate。
 - 本轮 MTP-38 paper-only execution workflow contract 已通过 `git diff --check`、`bash checks/automation-readiness.sh`、Dashboard build / smoke 和 `swift test`；MTPRO 本地验证为 82 个 XCTest 0 failures。
 - 本轮 Dashboard source naming 收口已将 SwiftPM executable product / target 改为 `Dashboard`，源码目录改为 `Sources/Dashboard`，入口文件改为 `DashboardApplication.swift`，smoke 命令改为 `DASHBOARD_SMOKE=1 swift run Dashboard`。
+- 本轮 role alias 收口已将 `@003 / PRD`、`@004 / DSG`、`@005 / ARC` 固定为 Linear 外 reference / root docs 角色；symphony-issue、Codex Execution Agent 和 GitHub PR Automation 继续按流程 actor 名称调用，不占用这些编号。
 - 历史 planning record 曾记录 `尚未写入 Linear`；该状态只解释 planning record 生成时点，不代表 Project 完成后的审计状态。
 - MTP-30 新增 `docs/audit/inputs/mtpro-trading-validation-and-parity-hardening-stage-audit-input.md`，集中记录 `MTP-24` 至 `MTP-30` 的 Issue / PR evidence、merge commit、required check、matrix evidence chain、known boundaries、automation readiness evidence、Root Docs Delta input 和 Stage Code Audit handoff checklist。
 - `MTPRO Trading Validation and Parity Hardening` Stage Code Audit Report 已落仓，记录 `MTP-24` 至 `MTP-30` 全部 Done、PR #52 / #53 / #55 / #56 / #57 / #58 / #59 evidence、validation、boundary audit、Root Docs Delta 和 Next Human Project Planning handoff。
