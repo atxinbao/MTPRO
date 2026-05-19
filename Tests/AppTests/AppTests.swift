@@ -661,6 +661,78 @@ final class AppTests: XCTestCase {
 
         XCTAssertTrue(snapshot.smokeSummary.contains("sections=8"))
         XCTAssertTrue(snapshot.smokeSummary.contains("readModelOnly=true"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("workbenchReadModelOnly=true"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("controls=start,pause,close,reset"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("timelineItems=17"))
+    }
+
+    func testDashboardShellWorkbenchSnapshotBindsControlsObservabilityAndExplorerReadOnly() throws {
+        // 测试场景：MTP-52 只在现有 Dashboard / Workbench shell 上增量展示控制壳、
+        // observability 和 Evidence Explorer 子集；展示层必须继续保持 read-model-only，
+        // 且 session control 只能表达本地 Paper session-level intent。
+        let snapshot = DashboardShellSnapshot(viewModel: try makeDashboardViewModel())
+        let workbench = snapshot.workbench
+
+        XCTAssertEqual(workbench.title, "Paper Workflow Control Shell")
+        XCTAssertEqual(workbench.sessionControls.map(\.control), [.start, .pause, .close, .reset])
+        XCTAssertEqual(workbench.sessionControls.map(\.commandAction), [.start, .pause, .close, .reset])
+        XCTAssertTrue(workbench.sessionControls.allSatisfy(\.isSessionLevelLocalPaperControl))
+        XCTAssertTrue(workbench.sessionControls.allSatisfy(\.paperOnlyBoundaryHeld))
+        XCTAssertEqual(
+            workbench.sessionControls.map(\.scope),
+            Array(repeating: .localPaperSession, count: 4)
+        )
+        XCTAssertEqual(
+            workbench.sessionControls.map(\.controlLevel),
+            Array(repeating: .session, count: 4)
+        )
+        XCTAssertEqual(
+            workbench.sessionControls.map(\.executionMode),
+            Array(repeating: .paper, count: 4)
+        )
+        XCTAssertFalse(workbench.sessionControls.contains { $0.authorizesOrderLevelCommand })
+        XCTAssertFalse(workbench.sessionControls.contains { $0.authorizesTradingExecution })
+        XCTAssertFalse(workbench.sessionControls.contains { $0.touchesBrokerAction })
+        XCTAssertFalse(workbench.sessionControls.contains { $0.submitsRealOrder })
+        XCTAssertFalse(workbench.sessionControls.contains { $0.cancelsRealOrder })
+        XCTAssertFalse(workbench.sessionControls.contains { $0.replacesRealOrder })
+
+        XCTAssertEqual(workbench.observabilitySections, PaperWorkflowObservabilitySection.allCases)
+        XCTAssertEqual(metricValue("Controls", in: workbench.observabilityMetrics), "4")
+        XCTAssertEqual(metricValue("Completed sessions", in: workbench.observabilityMetrics), "1")
+        XCTAssertEqual(metricValue("Allowed evidence", in: workbench.observabilityMetrics), "3")
+        XCTAssertEqual(metricValue("Blocked evidence", in: workbench.observabilityMetrics), "1")
+        XCTAssertEqual(metricValue("Replay", in: workbench.observabilityMetrics), "fresh")
+        XCTAssertTrue(workbench.observabilityDetails.contains("Session status: started, updated, closed"))
+        XCTAssertTrue(
+            workbench.observabilityDetails.contains(
+                "Session controls: start, pause, close, reset"
+            )
+        )
+
+        XCTAssertEqual(metricValue("Timeline items", in: workbench.evidenceExplorerMetrics), "17")
+        XCTAssertEqual(metricValue("Sections", in: workbench.evidenceExplorerMetrics), "7")
+        XCTAssertTrue(
+            workbench.evidenceExplorerDetails.contains(
+                "Filter: read-only"
+            )
+        )
+        XCTAssertTrue(workbench.timelinePreview.isEmpty == false)
+        XCTAssertTrue(workbench.timelinePreview.allSatisfy { $0.contains(":") })
+
+        XCTAssertTrue(workbench.source.isReadModelOnly)
+        XCTAssertTrue(workbench.observabilitySource.isReadModelOnly)
+        XCTAssertTrue(workbench.evidenceExplorerSource.isReadModelOnly)
+        XCTAssertTrue(workbench.readModelOnlyBoundaryHeld)
+        XCTAssertTrue(workbench.paperOnlyBoundaryHeld)
+        XCTAssertFalse(workbench.providesCommandSurface)
+        XCTAssertFalse(workbench.providesOrderLevelCommand)
+        XCTAssertFalse(workbench.exposesDatabaseSchema)
+        XCTAssertFalse(workbench.exposesRuntimeObject)
+        XCTAssertFalse(workbench.exposesAdapterRequest)
+        XCTAssertFalse(workbench.authorizesLiveTrading)
+        XCTAssertFalse(workbench.touchesBrokerAction)
+        XCTAssertFalse(workbench.authorizesTradingExecution)
     }
 
     func testDashboardShellInitialSnapshotIsEmptyReadModelProjection() {
@@ -689,6 +761,11 @@ final class AppTests: XCTestCase {
         let events = snapshot.sections.first { $0.section == .events }
         XCTAssertEqual(events?.metrics.first { $0.label == "Events" }?.value, "0")
         XCTAssertEqual(events?.metrics.first { $0.label == "Last sequence" }?.value, "n/a")
+
+        XCTAssertEqual(metricValue("Controls", in: snapshot.workbench.observabilityMetrics), "4")
+        XCTAssertEqual(metricValue("Timeline items", in: snapshot.workbench.evidenceExplorerMetrics), "0")
+        XCTAssertTrue(snapshot.workbench.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(snapshot.workbench.providesOrderLevelCommand)
     }
 
     func testDashboardShellSourceDoesNotImportForbiddenIntegrationLayers() throws {
@@ -705,6 +782,8 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(shellSource.contains("SQLite"))
         XCTAssertFalse(shellSource.contains("DuckDB"))
         XCTAssertFalse(shellSource.contains("Button("))
+        XCTAssertFalse(shellSource.contains("TextField("))
+        XCTAssertFalse(shellSource.contains("Toggle("))
 
         XCTAssertFalse(executableSource.contains("import Runtime"))
         XCTAssertFalse(executableSource.contains("import Adapters"))
@@ -712,6 +791,8 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(executableSource.contains("SQLite"))
         XCTAssertFalse(executableSource.contains("DuckDB"))
         XCTAssertFalse(executableSource.contains("Button("))
+        XCTAssertFalse(executableSource.contains("TextField("))
+        XCTAssertFalse(executableSource.contains("Toggle("))
     }
 
     private func makeDashboardViewModel() throws -> DashboardViewModel {
@@ -745,6 +826,13 @@ final class AppTests: XCTestCase {
         in section: DashboardShellSectionSnapshot
     ) -> String? {
         section.metrics.first { $0.label == label }?.value
+    }
+
+    private func metricValue(
+        _ label: String,
+        in metrics: [DashboardShellMetric]
+    ) -> String? {
+        metrics.first { $0.label == label }?.value
     }
 
     private func sourceFile(_ relativePath: String) -> URL {
