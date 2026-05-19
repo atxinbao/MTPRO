@@ -21,6 +21,10 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - Stage Code Audit Report 记录：`MTP-31` 至 `MTP-37` 全部为 `Done`，PR #62 至 #68 均通过 GitHub required check 后合并。
 - 本轮 Root Docs Refresh Gate 只同步已发生事实；不修改 Linear status，不启动 Symphony，不解锁下一 issue。
 - `MTPRO Paper Session Runtime v1` planning record 已落仓到 `docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md`；完整 issue execution contract 以 Linear issue body 为准。
+- `MTPRO Paper Execution Workflow v1` Project-level planning record 已落仓到 `docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md`，作为下一阶段写入 Linear 前的 planning summary。
+- `MTPRO Paper Execution Workflow v1` 当前尚未写入 Linear；未创建 Linear Project，未创建 Linear Issues，未修改 Linear status，未推进 Todo，未启动 Symphony。
+- `MTPRO Paper Execution Workflow v1` planning record 只保存 Project 级计划摘要和格式门槛，不复制维护完整 Linear issue body；完整 issue execution contract 以后以 Linear issue body 为准。
+- Project 写入 Linear 后，所有 issue 初始必须保持 `Backlog / non-executable`；后续由 Parent Codex queue preflight 自动判断唯一 eligible issue，并在 WIP=1、依赖满足、无 active conflict、execution contract 格式完整时推进 Todo。
 - 历史 planning record 曾记录 `尚未写入 Linear`；该状态只解释 planning record 生成时点，不代表 Project 完成后的审计状态。
 - MTP-30 新增 `docs/validation/mtp-30-stage-audit-input.md`，集中记录 `MTP-24` 至 `MTP-30` 的 Issue / PR evidence、merge commit、required check、matrix evidence chain、known boundaries、automation readiness evidence、Root Docs Delta input 和 Stage Code Audit handoff checklist。
 - `MTPRO Trading Validation and Parity Hardening` Stage Code Audit Report 已落仓，记录 `MTP-24` 至 `MTP-30` 全部 Done、PR #52 / #53 / #55 / #56 / #57 / #58 / #59 evidence、validation、boundary audit、Root Docs Delta 和 Next Human Project Planning handoff。
@@ -95,6 +99,7 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - Trading Validation Matrix 是 evidence routing 入口，不替代 Linear issue contract、PR evidence 或 Stage Code Audit Report。
 - `docs/validation/mtp-37-stage-audit-input.md` 是阶段审计输入材料，不授权下一 Project planning 或 execution。
 - `MTPRO Paper Session Runtime v1` planning record、Stage Code Audit Report 和 Root Docs Refresh Gate closure 均不授权下一 issue 执行；后续执行仍必须从 Linear live-read 和 Parent Codex queue preview 获取唯一 eligible issue。
+- `MTPRO Paper Execution Workflow v1` planning record 已落仓但未写入 Linear，不授权执行，不创建 Linear Project / Issue，不推进 Todo，不启动 Symphony。
 - Report 输入只来自 projection snapshots / read model 和 append-only event timeline。
 - Report 可汇总 projection-level Backtest / Paper evidence，但不替代 Core 层完整 signal timeline parity。
 - `ReportExecutionCostEvidence` 只从 deterministic fixture 和 paper-only exposure projection 派生，不读取交易所费率表、account tier、真实成交或 broker fill。

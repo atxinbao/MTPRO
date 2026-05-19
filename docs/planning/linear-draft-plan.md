@@ -28,15 +28,16 @@
 | `MTPRO 引导` | `docs/planning/projects/mtpro-guidance-plan.md` | 已写入 Linear；Project 已完成；Stage Code Audit Report 已落仓。 |
 | `MTPRO Runtime Research Workbench v1` | `docs/planning/projects/mtpro-runtime-research-workbench-v1-plan.md` | 已写入 Linear；`MTP-16` 至 `MTP-23` 已完成；Stage Code Audit Report 已落仓。 |
 | `MTPRO Trading Validation and Parity Hardening` | `docs/planning/projects/mtpro-trading-validation-and-parity-hardening-plan.md` | 已写入 Linear；`MTP-24` 至 `MTP-30` 已完成；Stage Code Audit Report 已落仓。 |
-| `MTPRO Paper Session Runtime v1` | `docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md` | 写入 Linear 前的当前 Project Planning Record；不授权执行。 |
+| `MTPRO Paper Session Runtime v1` | `docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md` | 已写入 Linear；`MTP-31` 至 `MTP-37` 已完成；Stage Code Audit Report 已落仓。 |
+| `MTPRO Paper Execution Workflow v1` | `docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md` | 写入 Linear 前的当前 Project Planning Record；不授权执行。 |
 
 ## 当前 Project planning record
 
-- Project：`MTPRO Paper Session Runtime v1`
-- Canonical record：`docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md`
-- 来源审计：`docs/audit/mtpro-trading-validation-and-parity-hardening-stage-code-audit.md`
+- Project：`MTPRO Paper Execution Workflow v1`
+- Canonical record：`docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md`
+- 来源审计：`docs/audit/mtpro-paper-session-runtime-v1-stage-code-audit.md`
 - 当前状态：写入 Linear 前的 Project Planning Record。
-- First executable issue candidate：定义 Paper Session lifecycle 和事件边界。
+- First executable issue candidate：定义 paper-only execution workflow contract 和事件边界。
 - WIP=1：所有候选 issue 写入 Linear 后必须初始保持 `Backlog / non-executable`。
 
 ## Project Planning Record 命名规则

@@ -46,6 +46,7 @@ require_file "docs/planning/projects/mtpro-guidance-plan.md"
 require_file "docs/planning/projects/mtpro-runtime-research-workbench-v1-plan.md"
 require_file "docs/planning/projects/mtpro-trading-validation-and-parity-hardening-plan.md"
 require_file "docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md"
+require_file "docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md"
 require_file "docs/validation/eval-strategy.md"
 require_file "docs/validation/latest-verification-summary.md"
 require_file "docs/validation/macos-build-run-loop.md"
@@ -160,7 +161,8 @@ for planning_record in \
   "docs/planning/projects/mtpro-guidance-plan.md" \
   "docs/planning/projects/mtpro-runtime-research-workbench-v1-plan.md" \
   "docs/planning/projects/mtpro-trading-validation-and-parity-hardening-plan.md" \
-  "docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md"; do
+  "docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md" \
+  "docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md"; do
   require_contains "$planning_record" "Project name"
   require_contains "$planning_record" "Project goal"
   require_contains "$planning_record" "Scope"
@@ -184,6 +186,19 @@ require_contains "docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md"
 require_contains "docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md" "不推进 Todo"
 require_contains "docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md" "不启动 Symphony"
 require_contains "docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md" "Project 经 Human 确认并写入 Linear 后，由 Parent Codex queue preflight 自动判断唯一 eligible issue，并推进 Todo"
+require_contains "docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md" "MTPRO Paper Execution Workflow v1"
+require_contains "docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md" "Parent Codex queue preflight rule"
+require_contains "docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md" "本 draft 不创建 Linear Project"
+require_contains "docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md" "本 draft 不创建 Linear Issues"
+require_contains "docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md" "本 draft 不修改 Linear status"
+require_contains "docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md" "本 draft 不推进任何 issue 到 Todo"
+require_contains "docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md" "完整 issue execution contract 以后以 Linear issue body 为准"
+require_contains "docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md" 'Project 写入 Linear 后，所有 issue 初始必须是 `Backlog / non-executable`'
+require_contains "docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md" "Project 经 Human 确认并写入 Linear 后，由 Parent Codex queue preflight 自动判断唯一 eligible issue，并在 WIP=1、依赖满足、无 active conflict、execution contract 格式完整时推进 Todo"
+require_contains "docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md" "不复制维护完整 Linear issue body"
+require_contains "docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md" "不启动 Symphony"
+require_contains "docs/planning/linear-draft-plan.md" "docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md"
+require_contains "docs/planning/linear-draft-plan.md" "MTPRO Paper Execution Workflow v1"
 
 require_contains "docs/validation/validation-plan.md" "Linear issue execution contract"
 require_contains "docs/validation/validation-plan.md" "bash checks/automation-readiness.sh"
