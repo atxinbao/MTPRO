@@ -4672,3 +4672,50 @@ Linear 状态修正：
 | `swift test --filter CoreTests` | pass | 53 个 CoreTests 0 failures。 |
 | `swift test` | pass | 93 个 XCTest 0 failures。 |
 | `bash checks/run.sh` | pass | `git diff --check`、automation readiness、`swift build --product Dashboard`、`DASHBOARD_SMOKE=1 swift run Dashboard` 和 `swift test` 全部通过；93 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |
+
+## MTP-44 Paper Execution Workflow Report / Dashboard Evidence
+
+日期：2026-05-19
+
+执行者：Codex
+
+目的：
+
+- 将 paper execution workflow evidence 汇总到 Report read model。
+- 在 Dashboard Report snapshot 中展示 decision、paper order、simulated fill、workflow streams、portfolio projection 和 paper-only boundary。
+- 保持 UI 只消费 ViewModel / Read Model，不新增交易入口。
+- 回填 product surface、read model / ViewModel contract 和 Trading Validation Matrix。
+
+文件范围：
+
+- Updated：
+  - `Sources/App/App.swift`
+  - `Sources/App/DashboardShell.swift`
+  - `Tests/AppTests/AppTests.swift`
+  - `docs/product/product-surface-map.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/contracts/frontend-view-model-contract.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未推进任何 issue 到 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未实现完整报告系统。
+- 未新增 UI command、order command、risk control command 或 position management command。
+- 未暴露 SQLite / DuckDB schema、SQL、ORM model、runtime object 或 adapter request。
+- 未接 Live trading、signed endpoint、account endpoint、broker fill、account update、broker action 或真实订单行为。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter AppTests` | pass | 9 个 AppTests 0 failures，覆盖 Report / Dashboard workflow evidence、Codable snapshot、read-model-only boundary 和无 UI execution surface。 |
+| `bash checks/run.sh` | pass | `git diff --check`、automation readiness、`swift build --product Dashboard`、`DASHBOARD_SMOKE=1 swift run Dashboard` 和 `swift test` 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true`；93 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |

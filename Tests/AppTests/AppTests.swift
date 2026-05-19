@@ -94,6 +94,33 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(viewModel.report.paperRuntimeAuthorizesLiveTrading)
         XCTAssertFalse(viewModel.report.paperRuntimeTouchesBrokerAction)
         XCTAssertFalse(viewModel.report.paperRuntimeAuthorizesTradingExecution)
+        XCTAssertEqual(viewModel.report.paperExecutionWorkflowEvidenceCount, 1)
+        XCTAssertEqual(
+            viewModel.report.paperExecutionWorkflowDecisionIDs,
+            ["paper-replay-execution-decision-allowed"]
+        )
+        XCTAssertEqual(viewModel.report.paperExecutionWorkflowOrderIDs, ["paper-replay-order-allowed"])
+        XCTAssertEqual(
+            viewModel.report.paperExecutionWorkflowSimulatedFillIDs,
+            ["paper-replay-fill-allowed"]
+        )
+        XCTAssertEqual(
+            viewModel.report.paperExecutionWorkflowPortfolioUpdateIDs,
+            ["paper-replay-portfolio-update"]
+        )
+        XCTAssertEqual(viewModel.report.paperExecutionWorkflowPortfolioIDs, ["portfolio-main"])
+        XCTAssertEqual(viewModel.report.paperExecutionWorkflowSequenceCount, 4)
+        XCTAssertEqual(viewModel.report.paperExecutionWorkflowStreams, ["paper", "portfolio"])
+        XCTAssertTrue(viewModel.report.paperExecutionWorkflowCoversDecisionEvents)
+        XCTAssertTrue(viewModel.report.paperExecutionWorkflowCoversOrderEvents)
+        XCTAssertTrue(viewModel.report.paperExecutionWorkflowCoversSimulatedFillEvents)
+        XCTAssertTrue(viewModel.report.paperExecutionWorkflowCoversDecisionOrderFillChain)
+        XCTAssertTrue(viewModel.report.paperExecutionWorkflowProjectsPortfolioFromSimulatedFill)
+        XCTAssertTrue(viewModel.report.paperExecutionWorkflowReplayDeterministic)
+        XCTAssertTrue(viewModel.report.paperExecutionWorkflowPaperOnlyBoundaryHeld)
+        XCTAssertFalse(viewModel.report.paperExecutionWorkflowAuthorizesLiveTrading)
+        XCTAssertFalse(viewModel.report.paperExecutionWorkflowTouchesBrokerAction)
+        XCTAssertFalse(viewModel.report.paperExecutionWorkflowAuthorizesTradingExecution)
         XCTAssertEqual(viewModel.report.latestParityStatus, .matchedProjectionEvidence)
         XCTAssertEqual(viewModel.report.lastAppliedSequence, 16)
         XCTAssertFalse(viewModel.report.tradingValidationAuthorizesExecution)
@@ -144,6 +171,24 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(report.paperRuntimeEvidence.appendOnlyFactsSourceIsReplaySource)
         XCTAssertTrue(report.paperRuntimeEvidence.paperOnlyBoundaryHeld)
         XCTAssertFalse(report.paperRuntimeEvidence.authorizesTradingExecution)
+        XCTAssertEqual(report.paperExecutionWorkflowEvidence.factsSource, "append-only event log replay")
+        XCTAssertTrue(report.paperExecutionWorkflowEvidence.replayAvailable)
+        XCTAssertEqual(report.paperExecutionWorkflowEvidence.workflowSequenceCount, 4)
+        XCTAssertEqual(report.paperExecutionWorkflowEvidence.workflowStreams, ["paper", "portfolio"])
+        XCTAssertEqual(
+            report.paperExecutionWorkflowEvidence.decisionIDs,
+            ["paper-replay-execution-decision-allowed"]
+        )
+        XCTAssertEqual(report.paperExecutionWorkflowEvidence.paperOrderIDs, ["paper-replay-order-allowed"])
+        XCTAssertEqual(
+            report.paperExecutionWorkflowEvidence.simulatedFillIDs,
+            ["paper-replay-fill-allowed"]
+        )
+        XCTAssertTrue(report.paperExecutionWorkflowEvidence.coversDecisionOrderFillChain)
+        XCTAssertTrue(report.paperExecutionWorkflowEvidence.projectsPortfolioFromSimulatedFill)
+        XCTAssertTrue(report.paperExecutionWorkflowEvidence.appendOnlyFactsSourceIsReplaySource)
+        XCTAssertTrue(report.paperExecutionWorkflowEvidence.paperOnlyBoundaryHeld)
+        XCTAssertFalse(report.paperExecutionWorkflowEvidence.authorizesTradingExecution)
         let makerCost = try XCTUnwrap(
             report.tradingValidationEvidence.executionCostEvidence.first {
                 $0.liquidityRole == .maker
@@ -192,6 +237,11 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(decoded.backtest.runs.first?.state, .completed)
         XCTAssertEqual(decoded.report.artifacts.first?.parityStatus, .matchedProjectionEvidence)
         XCTAssertEqual(decoded.report.artifacts.first?.paperRuntimeEvidence.proposalCount, 2)
+        XCTAssertEqual(
+            decoded.report.artifacts.first?.paperExecutionWorkflowEvidence.paperOrderIDs,
+            ["paper-replay-order-allowed"]
+        )
+        XCTAssertTrue(decoded.report.paperExecutionWorkflowCoversDecisionOrderFillChain)
         XCTAssertTrue(decoded.report.paperRuntimePaperOnlyBoundaryHeld)
         XCTAssertFalse(decoded.report.authorizesTradingExecution)
         XCTAssertEqual(decoded.paper.sessions.first?.state, .closed)
@@ -304,6 +354,7 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(metricValue("Exposure", in: report), "1")
         XCTAssertEqual(metricValue("Runtime", in: report), "1")
         XCTAssertEqual(metricValue("Replay facts", in: report), "16")
+        XCTAssertEqual(metricValue("Exec workflow", in: report), "1")
         XCTAssertTrue(report.details.contains("Report IDs: report-backtest-ema-fixture"))
         XCTAssertTrue(report.details.contains("Cost assumptions: mtp-27-fixed-cost-assumptions"))
         XCTAssertTrue(report.details.contains("Cost parity: consistent"))
@@ -318,6 +369,13 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(report.details.contains("Replay streams: paper, portfolio, risk"))
         XCTAssertTrue(report.details.contains("Runtime boundary: paper-only"))
         XCTAssertTrue(report.details.contains("Replay deterministic: confirmed"))
+        XCTAssertTrue(report.details.contains("Execution decisions: paper-replay-execution-decision-allowed"))
+        XCTAssertTrue(report.details.contains("Paper orders: paper-replay-order-allowed"))
+        XCTAssertTrue(report.details.contains("Simulated fills: paper-replay-fill-allowed"))
+        XCTAssertTrue(report.details.contains("Execution workflow streams: paper, portfolio"))
+        XCTAssertTrue(report.details.contains("Execution workflow chain: confirmed"))
+        XCTAssertTrue(report.details.contains("Execution workflow portfolio projection: confirmed"))
+        XCTAssertTrue(report.details.contains("Execution workflow boundary: paper-only"))
         XCTAssertTrue(report.details.contains("Trading validation execution: research-only"))
         XCTAssertTrue(report.details.contains("Execution: research-only"))
         XCTAssertTrue(report.details.contains("Latest parity: matched projection evidence"))
@@ -360,6 +418,7 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(report?.metrics.first { $0.label == "Exposure" }?.value, "0")
         XCTAssertEqual(report?.metrics.first { $0.label == "Runtime" }?.value, "0")
         XCTAssertEqual(report?.metrics.first { $0.label == "Replay facts" }?.value, "0")
+        XCTAssertEqual(report?.metrics.first { $0.label == "Exec workflow" }?.value, "0")
 
         let events = snapshot.sections.first { $0.section == .events }
         XCTAssertEqual(events?.metrics.first { $0.label == "Events" }?.value, "0")
@@ -379,12 +438,14 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(shellSource.contains("BinancePublic"))
         XCTAssertFalse(shellSource.contains("SQLite"))
         XCTAssertFalse(shellSource.contains("DuckDB"))
+        XCTAssertFalse(shellSource.contains("Button("))
 
         XCTAssertFalse(executableSource.contains("import Runtime"))
         XCTAssertFalse(executableSource.contains("import Adapters"))
         XCTAssertFalse(executableSource.contains("BinancePublic"))
         XCTAssertFalse(executableSource.contains("SQLite"))
         XCTAssertFalse(executableSource.contains("DuckDB"))
+        XCTAssertFalse(executableSource.contains("Button("))
     }
 
     private func makeDashboardViewModel() throws -> DashboardViewModel {

@@ -644,6 +644,30 @@ Paper execution replay projection 在当前事项中把 decision / order / simul
 - ViewModel 只消费 `PortfolioReadModel` / `PaperSessionRuntimeEvidenceSummary`，不读取 SQLite schema、Runtime object 或 adapter。
 - 当前不新增 UI command、risk control command、position management command、broker action、signed endpoint、account endpoint、真实订单行为或 Live execution。
 
+## MTP-44 Paper Execution Workflow Report 观察面
+
+日期：2026-05-19
+
+执行者：Codex
+
+Paper execution workflow evidence 在当前事项中从 append-only event timeline replay summary
+汇总到 Report / Dashboard read model，用于观察 decision -> order -> simulated fill ->
+portfolio projection 的本地 paper-only 链路。
+
+新增或细化的 Report 可观察字段：
+
+- `PaperExecutionWorkflowEvidenceSummary`：聚合 workflow sequences、workflow streams、paper execution decision IDs、paper order IDs、simulated fill IDs、portfolio update IDs 和 paper-only boundary flags。
+- `ResearchBacktestReportArtifact.paperExecutionWorkflowEvidence`：把 matching symbol / timeframe 的 workflow evidence 绑定到单个 report artifact。
+- `ReportViewModel` 汇总 workflow evidence count、decision IDs、paper order IDs、simulated fill IDs、portfolio update IDs、workflow sequence count、workflow streams、decision / order / fill coverage、portfolio projection coverage、deterministic replay flag 和 paper-only boundary flag。
+- `DashboardShellSnapshot` 的 Report 区域展示 workflow evidence count、decision / order / fill IDs、workflow streams、execution chain coverage、portfolio projection coverage 和 paper-only boundary。
+
+边界：
+
+- Workflow evidence 只来自 append-only event timeline replay summary 和 App 层 read model。
+- Report 只按 matching symbol / timeframe 过滤 Paper / Portfolio event timeline，不读取 SQLite / DuckDB schema。
+- decision / order / fill IDs 是 paper-only evidence，不代表真实订单、真实成交、broker fill、execution report、account update 或交易执行授权。
+- 当前不新增 UI command、risk control command、position management command、order command、broker action、signed endpoint、account endpoint、真实订单行为或 Live execution。
+
 ## MTP-29 Report / Dashboard Trading Validation Evidence 观察面
 
 日期：2026-05-18
