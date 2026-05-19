@@ -686,10 +686,10 @@ final class CoreTests: XCTestCase {
         let summary = try PaperSessionReplayPath.summarize(replay)
 
         XCTAssertEqual(summary.factsSource, "append-only event log replay")
-        XCTAssertEqual(summary.replayedSequences, Array(1...13))
+        XCTAssertEqual(summary.replayedSequences, Array(1...16))
         XCTAssertEqual(summary.replayedStreams, [.paper, .portfolio, .risk])
         XCTAssertEqual(summary.firstSequence, 1)
-        XCTAssertEqual(summary.lastSequence, 13)
+        XCTAssertEqual(summary.lastSequence, 16)
         XCTAssertEqual(summary.sessionIDs, [try Identifier("paper-replay-session")])
         XCTAssertEqual(summary.lifecycleStates, [.started, .updated, .closed])
         XCTAssertEqual(summary.signalEventCount, 4)
@@ -700,6 +700,9 @@ final class CoreTests: XCTestCase {
                 try Identifier("paper-replay-proposal-blocked")
             ]
         )
+        XCTAssertEqual(summary.paperExecutionDecisionIDs, [try Identifier("paper-replay-execution-decision-allowed")])
+        XCTAssertEqual(summary.paperOrderIDs, [try Identifier("paper-replay-order-allowed")])
+        XCTAssertEqual(summary.simulatedFillIDs, [try Identifier("paper-replay-fill-allowed")])
         XCTAssertEqual(summary.riskEvaluationRequestedCount, 2)
         XCTAssertEqual(
             summary.riskBlockerEvidenceIDs,
@@ -710,6 +713,9 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(summary.portfolioIDs, [try Identifier("portfolio-main")])
         XCTAssertTrue(summary.coversSessionEvents)
         XCTAssertTrue(summary.coversProposalEvents)
+        XCTAssertTrue(summary.coversPaperExecutionDecisionEvents)
+        XCTAssertTrue(summary.coversPaperOrderEvents)
+        XCTAssertTrue(summary.coversSimulatedFillEvents)
         XCTAssertTrue(summary.coversRiskBlockerEvents)
         XCTAssertTrue(summary.coversPortfolioProjectionEvents)
         XCTAssertTrue(summary.appendOnlyFactsSourceIsReplaySource)
@@ -1546,26 +1552,120 @@ final class CoreTests: XCTestCase {
         }
     }
 
-    func testPaperPortfolioProjectionUpdateEmitsPaperOnlyPortfolioEventFromAllowedDecision() throws {
-        // 测试场景：MTP-34 只能用 allowed paper risk decision 生成 portfolio exposure update；
-        // 输出必须是 paper-only read model fact，不能携带真实账户读取、broker sync 或交易执行授权。
-        let decision = try PaperActionProposalRiskFixture.deterministicAllowed()
-        let update = try PaperPortfolioProjectionUpdate(
+    func testPaperExecutionEventLogBoundaryAppendsDecisionOrderAndFillFacts() throws {
+        // 测试场景：MTP-42 allowed paper execution decision 必须按 decision -> order -> fill
+        // 写入 `.paper` stream；source order sequence 必须与 append-only event log 分配的 sequence 对齐。
+        var eventLog = try makePaperExecutionSeedEventLog()
+        let proposalEnvelope = try XCTUnwrap(eventLog.envelopes.last)
+        let decision = try makeAllowedPaperExecutionDecision(
+            proposalEnvelope: proposalEnvelope,
+            expectedSourceOrderIntentSequence: eventLog.envelopes.count + 2
+        )
+        let appendResult = try PaperExecutionEventLogBoundary().append(
+            decision,
+            to: &eventLog,
+            recordedAt: Date(timeIntervalSince1970: 3_000)
+        )
+
+        XCTAssertEqual(appendResult.appendedEnvelopes.map(\.sequence), [8, 9, 10])
+        XCTAssertEqual(appendResult.appendedEnvelopes.map(\.stream), [.paper, .paper, .paper])
+        XCTAssertEqual(
+            appendResult.appendedEnvelopes.map { $0.recordedAt.timeIntervalSince1970 },
+            [3_000, 3_001, 3_002]
+        )
+
+        guard case let .paper(.executionDecisionRecorded(recordedDecision)) = appendResult.decisionEnvelope.event else {
+            return XCTFail("first execution event must record the decision")
+        }
+        guard case let .paper(.orderIntentRecorded(recordedOrder)) = appendResult.orderIntentEnvelope?.event else {
+            return XCTFail("second execution event must record the paper order intent")
+        }
+        guard case let .paper(.simulatedFillRecorded(recordedFill)) = appendResult.simulatedFillEnvelope?.event else {
+            return XCTFail("third execution event must record the simulated fill evidence")
+        }
+
+        XCTAssertEqual(recordedDecision.decisionID, decision.decisionID)
+        XCTAssertEqual(recordedOrder.orderID, try Identifier("paper-execution-log-order"))
+        XCTAssertEqual(recordedFill.fillID, try Identifier("paper-execution-log-fill"))
+        XCTAssertEqual(recordedFill.sourceOrderIntentSequence, appendResult.orderIntentEnvelope?.sequence)
+        XCTAssertTrue(recordedDecision.paperOnlyBoundaryHeld)
+        XCTAssertTrue(recordedOrder.paperOnlyBoundaryHeld)
+        XCTAssertTrue(recordedFill.paperOnlyBoundaryHeld)
+    }
+
+    func testPaperExecutionEventLogBoundaryRejectsMismatchedOrderSequence() throws {
+        // 测试场景：MTP-42 写入边界必须拒绝 source order sequence 与实际 append-only
+        // sequence 不一致的 decision，避免 replay 后产生不可追溯的 fill evidence。
+        var eventLog = try makePaperExecutionSeedEventLog()
+        let proposalEnvelope = try XCTUnwrap(eventLog.envelopes.last)
+        let decision = try makeAllowedPaperExecutionDecision(
+            proposalEnvelope: proposalEnvelope,
+            expectedSourceOrderIntentSequence: 99
+        )
+
+        XCTAssertThrowsError(
+            try PaperExecutionEventLogBoundary().append(
+                decision,
+                to: &eventLog,
+                recordedAt: Date(timeIntervalSince1970: 3_000)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperExecutionDecisionMismatch(
+                    field: "sourceOrderIntentSequence",
+                    expected: "9",
+                    actual: "Optional(99)"
+                )
+            )
+        }
+        XCTAssertEqual(eventLog.envelopes.map(\.sequence), Array(1...7))
+    }
+
+    func testPaperExecutionReplayProjectsPortfolioOnlyFromSimulatedFillEvidence() throws {
+        // 测试场景：MTP-42 portfolio projection update 必须由 replay 后的
+        // `simulatedFillRecorded` fact 派生；risk decision 本身不能直接更新组合投影。
+        var eventLog = try makePaperExecutionSeedEventLog()
+        let proposalEnvelope = try XCTUnwrap(eventLog.envelopes.last)
+        let decision = try makeAllowedPaperExecutionDecision(
+            proposalEnvelope: proposalEnvelope,
+            expectedSourceOrderIntentSequence: eventLog.envelopes.count + 2
+        )
+        let appendResult = try PaperExecutionEventLogBoundary().append(
+            decision,
+            to: &eventLog,
+            recordedAt: Date(timeIntervalSince1970: 3_000)
+        )
+        let replay = eventLog.replay(
+            EventReplayCommand(
+                range: try EventSequenceRange(lowerBound: 1, upperBound: eventLog.envelopes.count),
+                streams: [.paper]
+            )
+        )
+        let fillEnvelope = try XCTUnwrap(
+            try PaperExecutionReplayProjectionPath.simulatedFillEnvelopes(from: replay).first
+        )
+        let update = try PaperExecutionReplayProjectionPath.projectPortfolioUpdate(
+            from: fillEnvelope,
             updateID: try Identifier("paper-portfolio-update-allowed"),
             portfolioID: try Identifier("portfolio-main"),
-            decision: decision,
             updatedAt: Date(timeIntervalSince1970: 1_900)
         )
 
+        XCTAssertEqual(fillEnvelope, appendResult.simulatedFillEnvelope)
         XCTAssertEqual(update.updateID, try Identifier("paper-portfolio-update-allowed"))
-        XCTAssertEqual(update.decisionID, decision.decisionID)
-        XCTAssertEqual(update.proposalID, decision.proposal.proposalID)
-        XCTAssertEqual(update.sessionID, decision.proposal.sessionID)
+        XCTAssertEqual(update.decisionID, decision.riskDecisionID)
+        XCTAssertEqual(update.orderID, try Identifier("paper-execution-log-order"))
+        XCTAssertEqual(update.fillID, try Identifier("paper-execution-log-fill"))
+        XCTAssertEqual(update.proposalID, decision.proposalID)
+        XCTAssertEqual(update.sessionID, decision.sessionID)
         XCTAssertEqual(update.riskProfileID, try Identifier("paper-risk"))
         XCTAssertEqual(update.side, .buy)
         XCTAssertEqual(update.riskDecisionStatus, .allowed)
         XCTAssertEqual(update.executionMode, .paper)
-        XCTAssertEqual(update.sourceSequence, decision.sourceSequence)
+        XCTAssertEqual(update.sourceSequence, 10)
+        XCTAssertEqual(update.sourceOrderIntentSequence, 9)
+        XCTAssertEqual(update.sourceRiskDecisionSequence, proposalEnvelope.sequence)
         XCTAssertEqual(update.exposure.portfolioID, try Identifier("portfolio-main"))
         XCTAssertEqual(update.exposure.symbol, try Symbol(rawValue: "BTCUSDT"))
         XCTAssertEqual(update.exposure.timeframe, .oneMinute)
@@ -1574,6 +1674,7 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(update.exposure.grossExposureNotional, 50, accuracy: 0.00000001)
         XCTAssertEqual(update.exposure.source, .paperProjection)
         XCTAssertEqual(update.updatedAt.timeIntervalSince1970, 1_900)
+        XCTAssertTrue(update.usesSimulatedFillEvidence)
         XCTAssertFalse(update.authorizesTradingExecution)
         XCTAssertFalse(update.readsRealAccountBalance)
         XCTAssertFalse(update.syncsBrokerPosition)
@@ -1588,28 +1689,14 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(decoded, update)
     }
 
-    func testPaperPortfolioProjectionUpdateRejectsBlockedDecisionAndCapabilityBypass() throws {
-        // 测试场景：blocked risk decision 不能更新 portfolio projection；Codable 解码也不能
+    func testPaperPortfolioProjectionUpdateRejectsCapabilityAndFillBypass() throws {
+        // 测试场景：portfolio update 解码不能绕过 simulated fill evidence 来源，也不能
         // 恢复 trading authorization、真实账户余额读取或 broker position sync 能力。
-        let blockedDecision = try PaperActionProposalRiskFixture.deterministicBlocked()
-        XCTAssertThrowsError(
-            try PaperPortfolioProjectionUpdate(
-                updateID: try Identifier("paper-portfolio-update-blocked"),
-                portfolioID: try Identifier("portfolio-main"),
-                decision: blockedDecision,
-                updatedAt: Date(timeIntervalSince1970: 1_900)
-            )
-        ) { error in
-            XCTAssertEqual(
-                error as? CoreError,
-                .paperPortfolioProjectionRequiresAllowedRiskDecision(.blocked)
-            )
-        }
-
         let allowedUpdate = try PaperPortfolioProjectionUpdate(
             updateID: try Identifier("paper-portfolio-update-allowed"),
             portfolioID: try Identifier("portfolio-main"),
-            decision: try PaperActionProposalRiskFixture.deterministicAllowed(),
+            simulatedFill: PaperSimulatedFillFixture.deterministicAllowed(),
+            sourceSimulatedFillSequence: 10,
             updatedAt: Date(timeIntervalSince1970: 1_900)
         )
         let encoded = try JSONEncoder().encode(allowedUpdate)
@@ -1626,6 +1713,24 @@ final class CoreTests: XCTestCase {
             XCTAssertEqual(
                 error as? CoreError,
                 .paperPortfolioProjectionRequiresAllowedRiskDecision(.blocked)
+            )
+        }
+
+        var fillBypassObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        fillBypassObject["usesSimulatedFillEvidence"] = false
+        let fillBypassData = try JSONSerialization.data(withJSONObject: fillBypassObject)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperPortfolioProjectionUpdate.self, from: fillBypassData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperPortfolioProjectionMismatch(
+                    field: "usesSimulatedFillEvidence",
+                    expected: "true",
+                    actual: "false"
+                )
             )
         }
 
@@ -2230,6 +2335,52 @@ final class CoreTests: XCTestCase {
                 start: Date(timeIntervalSince1970: 1_000),
                 end: Date(timeIntervalSince1970: 1_200)
             )
+        )
+    }
+
+    private func makePaperExecutionSeedEventLog() throws -> AppendOnlyEventLog {
+        var eventLog = try AppendOnlyEventLog()
+        for index in 0..<6 {
+            try eventLog.append(
+                .market(.bar(try makeMarketBar(close: 100 + Double(index), start: TimeInterval(100 + index * 60)))),
+                stream: .market,
+                recordedAt: Date(timeIntervalSince1970: 2_000 + TimeInterval(index))
+            )
+        }
+        try eventLog.append(
+            .paper(.actionProposed(PaperActionProposalFixture.deterministicLong())),
+            stream: .paper,
+            recordedAt: Date(timeIntervalSince1970: 2_100)
+        )
+        return eventLog
+    }
+
+    private func makeAllowedPaperExecutionDecision(
+        proposalEnvelope: EventEnvelope,
+        expectedSourceOrderIntentSequence: Int
+    ) throws -> PaperExecutionDecision {
+        guard case let .paper(.actionProposed(proposal)) = proposalEnvelope.event else {
+            throw CoreError.paperExecutionDecisionMismatch(
+                field: "proposalEnvelope.event",
+                expected: "paper.actionProposed",
+                actual: "\(proposalEnvelope.event)"
+            )
+        }
+        let riskDecision = try PaperActionProposalRiskLink.evaluate(
+            decisionID: try Identifier("paper-execution-log-risk"),
+            proposal: proposal,
+            policy: .deterministicAllowingFixture,
+            sourceSequence: proposalEnvelope.sequence,
+            evaluatedAt: Date(timeIntervalSince1970: 2_200)
+        )
+        return try PaperExecutionDecisionLink.decide(
+            decisionID: try Identifier("paper-execution-log-decision"),
+            riskDecision: riskDecision,
+            orderID: try Identifier("paper-execution-log-order"),
+            fillID: try Identifier("paper-execution-log-fill"),
+            simulatedFillAssumption: .deterministicFixture,
+            sourceOrderIntentSequence: expectedSourceOrderIntentSequence,
+            decidedAt: Date(timeIntervalSince1970: 2_260)
         )
     }
 

@@ -728,3 +728,38 @@ event log replay 汇总 lifecycle、proposal、risk blocker 和 portfolio projec
 - broker rejection fallback。
 - broker / exchange side effect。
 - signed endpoint、account endpoint、真实订单提交 / 取消 / 替换或 Live execution。
+
+## MTP-42 Paper Execution Event Replay Projection Use Case 边界
+
+日期：2026-05-19
+
+执行者：Codex
+
+`ReplayEvents` / `ProjectPortfolio` 在本事项中获得本地 paper execution evidence 的
+event log -> replay -> portfolio projection 串联路径。
+
+契约结构：
+
+- `PaperEvent.executionDecisionRecorded`：把 MTP-41 decision chain 写入 `.paper` stream。
+- `PaperEvent.orderIntentRecorded`：把 allowed decision 生成的 `PaperOrderIntent` 写入 `.paper` stream。
+- `PaperEvent.simulatedFillRecorded`：把 allowed decision 生成的 `PaperSimulatedFillEvidence` 写入 `.paper` stream。
+- `PaperExecutionEventLogBoundary`：按 decision -> order intent -> simulated fill 顺序追加本地 facts，并校验 source order sequence。
+- `PaperExecutionReplayProjectionPath`：只从 replay 出来的 `simulatedFillRecorded` envelope 生成 `PaperPortfolioProjectionUpdate`。
+- `PaperPortfolioProjectionUpdate`：当前只能消费 replay 后的 paper-only simulated fill evidence，并把 fill event sequence 作为 source sequence。
+
+契约要求：
+
+- allowed decision 必须按 decision、paper order、simulated fill 顺序写入 `.paper` stream。
+- blocked decision 只能写入 decision fact，不得生成 paper order、simulated fill 或 portfolio update。
+- portfolio projection 必须来自 replay 后的 `PaperSimulatedFillEvidence`，不得直接从 risk decision、真实 broker fill、account update 或外部 execution venue 派生。
+- replay summary 必须覆盖 execution decision、paper order、simulated fill 和 portfolio projection evidence，并拒绝乱序 replay result。
+- SQLite runtime projection 仍只消费 replay envelope，输出稳定 read model snapshot，不暴露 schema。
+
+本契约不包含：
+
+- 生产级 event sourcing 平台。
+- schema migration framework。
+- FileEventLogStore 重写。
+- broker event replay。
+- 真实账户、真实 position、真实 broker fill。
+- signed endpoint、account endpoint、真实订单提交 / 取消 / 替换或 Live execution。

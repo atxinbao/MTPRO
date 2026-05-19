@@ -529,7 +529,7 @@ public struct SQLiteRuntimeProjectionStore: Equatable, Sendable {
                 lastUpdatedAt: envelope.recordedAt
             )
 
-        case .actionProposed:
+        case .actionProposed, .executionDecisionRecorded, .orderIntentRecorded, .simulatedFillRecorded:
             break
 
         case let .sessionRequested(command):

@@ -222,9 +222,10 @@ Persistence Boundary 必须先于真实 database adapter 实现。
 
 执行者：Codex
 
-`Persistence` 在本事项中让 SQLite runtime projection 可以消费 `PortfolioEvent.paperProjectionUpdated`：
+`Persistence` 在本事项中让 SQLite runtime projection 可以消费 `PortfolioEvent.paperProjectionUpdated`。
+MTP-42 之后，当前代码中的 update source 已收窄为 replay 后的 simulated fill evidence：
 
-- `PaperPortfolioProjectionUpdate` 保留 allowed risk decision 的 source sequence。
+- `PaperPortfolioProjectionUpdate` 保留 replayed simulated fill 的 source sequence。
 - `SQLitePortfolioExposureProjection.init(update:envelope:)` 把 update 转成 stable exposure read model。
 - `SQLiteRuntimeProjectionStore.project` 将 update 应用到 `SQLitePortfolioProjection.exposures`，并保持 `updated` state。
 
@@ -232,7 +233,7 @@ Persistence Boundary 必须先于真实 database adapter 实现。
 
 - append-only event log / replay envelope 仍是唯一事实源。
 - SQLite 只承载 Paper / Portfolio runtime read model 副本，不暴露 schema。
-- projection 中的 `sourceSequence` 只回溯本地 allowed risk decision，不代表 broker order sequence 或交易所回报。
+- projection 中的 `sourceSequence` 只回溯本地 simulated fill event，不代表 broker order sequence 或交易所回报。
 - projection 不读取真实账户余额、不同步 broker position、不表达 margin / leverage。
 
 本契约不包含：
@@ -270,3 +271,32 @@ Persistence Boundary 必须先于真实 database adapter 实现。
 - 外部 execution venue。
 - database table API、ORM contract 或 UI 直连数据库。
 - Live execution persistence、signed endpoint、broker action 或真实订单行为。
+
+## MTP-42 Paper Execution Replay Projection Persistence 边界
+
+日期：2026-05-19
+
+执行者：Codex
+
+`Persistence` 在本事项中继续把 append-only event log / replay envelope 作为唯一事实源，
+让 paper execution order / fill facts 可以驱动 portfolio runtime projection：
+
+- `PaperEvent.executionDecisionRecorded`、`PaperEvent.orderIntentRecorded` 和 `PaperEvent.simulatedFillRecorded` 作为 `.paper` stream facts。
+- `PaperExecutionReplayProjectionPath` 从 replay result 中筛选 `simulatedFillRecorded` envelope。
+- `PaperPortfolioProjectionUpdate` 只能由 replay 后的 `PaperSimulatedFillEvidence` 构建。
+- `SQLiteRuntimeProjectionStore.project` 继续只从 `PortfolioEvent.paperProjectionUpdated` 更新稳定 portfolio projection。
+
+契约要求：
+
+- FileEventLogStore 仍负责 append-only sequence 校验，不在本事项中重写。
+- replay result 必须保持 sequence 单调；乱序 replay 不能被标记为 deterministic evidence。
+- portfolio exposure 的 `sourceSequence` 指向 simulated fill event sequence，不指向 risk decision、broker order 或真实成交回报。
+- SQLite adapter 仍只保存稳定 snapshot，不暴露 table、column、SQL statement 或 ORM model。
+
+本契约不包含：
+
+- 生产级 event sourcing 平台。
+- schema migration framework。
+- broker event replay。
+- 真实账户、真实 position、真实 broker fill。
+- signed endpoint、account endpoint、broker action 或真实订单行为。

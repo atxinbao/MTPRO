@@ -1,14 +1,16 @@
 import Foundation
 
-/// Paper portfolio projection update 把 allowed paper risk decision 转成组合 exposure 更新事件。
+/// Paper portfolio projection update 把 replay 后的 simulated fill evidence 转成组合 exposure 更新事件。
 ///
-/// 输入只能是 MTP-33 的 allowed `PaperActionProposalRiskDecision`；输出只是一条本地
-/// paper-only portfolio projection fact，可被 replay / SQLite runtime projection 消费。
-/// 该路径不读取真实账户余额、不同步 broker position、不处理 margin / leverage，也不提交、
-/// 取消或替换任何真实订单。
+/// 输入只能是 MTP-40 / MTP-41 生成并经 MTP-42 event log replay 取回的
+/// `PaperSimulatedFillEvidence`；输出只是一条本地 paper-only portfolio projection fact，
+/// 可被 replay / SQLite runtime projection 消费。该路径不读取真实账户余额、不同步 broker
+/// position、不处理 margin / leverage，也不提交、取消或替换任何真实订单。
 public struct PaperPortfolioProjectionUpdate: Codable, Equatable, Sendable {
     public let updateID: Identifier
     public let decisionID: Identifier
+    public let orderID: Identifier
+    public let fillID: Identifier
     public let proposalID: Identifier
     public let sessionID: Identifier
     public let riskProfileID: Identifier
@@ -17,7 +19,10 @@ public struct PaperPortfolioProjectionUpdate: Codable, Equatable, Sendable {
     public let exposure: PortfolioExposureSnapshot
     public let executionMode: ExecutionMode
     public let sourceSequence: Int
+    public let sourceOrderIntentSequence: Int
+    public let sourceRiskDecisionSequence: Int
     public let updatedAt: Date
+    public let usesSimulatedFillEvidence: Bool
     public let authorizesTradingExecution: Bool
     public let readsRealAccountBalance: Bool
     public let syncsBrokerPosition: Bool
@@ -33,32 +38,35 @@ public struct PaperPortfolioProjectionUpdate: Codable, Equatable, Sendable {
     public init(
         updateID: Identifier,
         portfolioID: Identifier,
-        decision: PaperActionProposalRiskDecision,
+        simulatedFill: PaperSimulatedFillEvidence,
+        sourceSimulatedFillSequence: Int,
         updatedAt: Date
     ) throws {
-        guard decision.isAllowed else {
-            throw CoreError.paperPortfolioProjectionRequiresAllowedRiskDecision(decision.status)
-        }
         try self.init(
             updateID: updateID,
-            decisionID: decision.decisionID,
-            proposalID: decision.proposal.proposalID,
-            sessionID: decision.proposal.sessionID,
-            riskProfileID: decision.riskQuery.riskProfileID,
-            side: decision.proposal.side,
-            riskDecisionStatus: decision.status,
+            decisionID: simulatedFill.riskDecisionID,
+            orderID: simulatedFill.orderID,
+            fillID: simulatedFill.fillID,
+            proposalID: simulatedFill.proposalID,
+            sessionID: simulatedFill.sessionID,
+            riskProfileID: simulatedFill.riskProfileID,
+            side: simulatedFill.side,
+            riskDecisionStatus: simulatedFill.riskDecisionStatus,
             exposure: PortfolioExposureSnapshot(
                 portfolioID: portfolioID,
-                symbol: decision.proposal.symbol,
-                timeframe: decision.proposal.timeframe,
-                paperQuantity: decision.proposal.quantity,
-                referencePrice: decision.proposal.referencePrice,
+                symbol: simulatedFill.symbol,
+                timeframe: simulatedFill.timeframe,
+                paperQuantity: simulatedFill.filledQuantity,
+                referencePrice: simulatedFill.fillPrice,
                 source: .paperProjection,
                 observedAt: updatedAt
             ),
-            executionMode: decision.proposal.executionMode,
-            sourceSequence: decision.sourceSequence,
+            executionMode: simulatedFill.executionMode,
+            sourceSequence: sourceSimulatedFillSequence,
+            sourceOrderIntentSequence: simulatedFill.sourceOrderIntentSequence,
+            sourceRiskDecisionSequence: simulatedFill.sourceRiskDecisionSequence,
             updatedAt: updatedAt,
+            usesSimulatedFillEvidence: true,
             authorizesTradingExecution: false,
             readsRealAccountBalance: false,
             syncsBrokerPosition: false
@@ -70,6 +78,8 @@ public struct PaperPortfolioProjectionUpdate: Codable, Equatable, Sendable {
         try self.init(
             updateID: try container.decode(Identifier.self, forKey: .updateID),
             decisionID: try container.decode(Identifier.self, forKey: .decisionID),
+            orderID: try container.decode(Identifier.self, forKey: .orderID),
+            fillID: try container.decode(Identifier.self, forKey: .fillID),
             proposalID: try container.decode(Identifier.self, forKey: .proposalID),
             sessionID: try container.decode(Identifier.self, forKey: .sessionID),
             riskProfileID: try container.decode(Identifier.self, forKey: .riskProfileID),
@@ -81,7 +91,10 @@ public struct PaperPortfolioProjectionUpdate: Codable, Equatable, Sendable {
             exposure: try container.decode(PortfolioExposureSnapshot.self, forKey: .exposure),
             executionMode: try container.decode(ExecutionMode.self, forKey: .executionMode),
             sourceSequence: try container.decode(Int.self, forKey: .sourceSequence),
+            sourceOrderIntentSequence: try container.decode(Int.self, forKey: .sourceOrderIntentSequence),
+            sourceRiskDecisionSequence: try container.decode(Int.self, forKey: .sourceRiskDecisionSequence),
             updatedAt: try container.decode(Date.self, forKey: .updatedAt),
+            usesSimulatedFillEvidence: try container.decode(Bool.self, forKey: .usesSimulatedFillEvidence),
             authorizesTradingExecution: try container.decode(
                 Bool.self,
                 forKey: .authorizesTradingExecution
@@ -95,6 +108,8 @@ public struct PaperPortfolioProjectionUpdate: Codable, Equatable, Sendable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(updateID, forKey: .updateID)
         try container.encode(decisionID, forKey: .decisionID)
+        try container.encode(orderID, forKey: .orderID)
+        try container.encode(fillID, forKey: .fillID)
         try container.encode(proposalID, forKey: .proposalID)
         try container.encode(sessionID, forKey: .sessionID)
         try container.encode(riskProfileID, forKey: .riskProfileID)
@@ -103,7 +118,10 @@ public struct PaperPortfolioProjectionUpdate: Codable, Equatable, Sendable {
         try container.encode(exposure, forKey: .exposure)
         try container.encode(executionMode, forKey: .executionMode)
         try container.encode(sourceSequence, forKey: .sourceSequence)
+        try container.encode(sourceOrderIntentSequence, forKey: .sourceOrderIntentSequence)
+        try container.encode(sourceRiskDecisionSequence, forKey: .sourceRiskDecisionSequence)
         try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encode(usesSimulatedFillEvidence, forKey: .usesSimulatedFillEvidence)
         try container.encode(authorizesTradingExecution, forKey: .authorizesTradingExecution)
         try container.encode(readsRealAccountBalance, forKey: .readsRealAccountBalance)
         try container.encode(syncsBrokerPosition, forKey: .syncsBrokerPosition)
@@ -112,6 +130,8 @@ public struct PaperPortfolioProjectionUpdate: Codable, Equatable, Sendable {
     private init(
         updateID: Identifier,
         decisionID: Identifier,
+        orderID: Identifier,
+        fillID: Identifier,
         proposalID: Identifier,
         sessionID: Identifier,
         riskProfileID: Identifier,
@@ -120,7 +140,10 @@ public struct PaperPortfolioProjectionUpdate: Codable, Equatable, Sendable {
         exposure: PortfolioExposureSnapshot,
         executionMode: ExecutionMode,
         sourceSequence: Int,
+        sourceOrderIntentSequence: Int,
+        sourceRiskDecisionSequence: Int,
         updatedAt: Date,
+        usesSimulatedFillEvidence: Bool,
         authorizesTradingExecution: Bool,
         readsRealAccountBalance: Bool,
         syncsBrokerPosition: Bool
@@ -133,6 +156,19 @@ public struct PaperPortfolioProjectionUpdate: Codable, Equatable, Sendable {
         }
         guard sourceSequence > 0 else {
             throw CoreError.invalidEventSequence(sourceSequence)
+        }
+        guard sourceOrderIntentSequence > 0 else {
+            throw CoreError.invalidEventSequence(sourceOrderIntentSequence)
+        }
+        guard sourceRiskDecisionSequence > 0 else {
+            throw CoreError.invalidEventSequence(sourceRiskDecisionSequence)
+        }
+        guard sourceSequence > sourceOrderIntentSequence else {
+            throw CoreError.paperPortfolioProjectionMismatch(
+                field: "sourceSequence",
+                expected: "greater than sourceOrderIntentSequence",
+                actual: "\(sourceSequence)"
+            )
         }
         guard exposure.source == .paperProjection else {
             throw CoreError.paperPortfolioProjectionMismatch(
@@ -150,6 +186,13 @@ public struct PaperPortfolioProjectionUpdate: Codable, Equatable, Sendable {
                 actual: "\(exposure.observedAt.timeIntervalSince1970)"
             )
         }
+        guard usesSimulatedFillEvidence else {
+            throw CoreError.paperPortfolioProjectionMismatch(
+                field: "usesSimulatedFillEvidence",
+                expected: "true",
+                actual: "false"
+            )
+        }
         guard authorizesTradingExecution == false else {
             throw CoreError.paperPortfolioProjectionForbiddenCapability("authorizesTradingExecution")
         }
@@ -162,6 +205,8 @@ public struct PaperPortfolioProjectionUpdate: Codable, Equatable, Sendable {
 
         self.updateID = updateID
         self.decisionID = decisionID
+        self.orderID = orderID
+        self.fillID = fillID
         self.proposalID = proposalID
         self.sessionID = sessionID
         self.riskProfileID = riskProfileID
@@ -170,7 +215,10 @@ public struct PaperPortfolioProjectionUpdate: Codable, Equatable, Sendable {
         self.exposure = exposure
         self.executionMode = executionMode
         self.sourceSequence = sourceSequence
+        self.sourceOrderIntentSequence = sourceOrderIntentSequence
+        self.sourceRiskDecisionSequence = sourceRiskDecisionSequence
         self.updatedAt = updatedAt
+        self.usesSimulatedFillEvidence = usesSimulatedFillEvidence
         self.authorizesTradingExecution = authorizesTradingExecution
         self.readsRealAccountBalance = readsRealAccountBalance
         self.syncsBrokerPosition = syncsBrokerPosition
@@ -214,6 +262,8 @@ public struct PaperPortfolioProjectionUpdate: Codable, Equatable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case updateID
         case decisionID
+        case orderID
+        case fillID
         case proposalID
         case sessionID
         case riskProfileID
@@ -222,7 +272,10 @@ public struct PaperPortfolioProjectionUpdate: Codable, Equatable, Sendable {
         case exposure
         case executionMode
         case sourceSequence
+        case sourceOrderIntentSequence
+        case sourceRiskDecisionSequence
         case updatedAt
+        case usesSimulatedFillEvidence
         case authorizesTradingExecution
         case readsRealAccountBalance
         case syncsBrokerPosition

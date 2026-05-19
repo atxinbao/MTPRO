@@ -773,6 +773,13 @@ public struct ReportReadModel: Equatable, Sendable {
                 && closed.result.command.strategy.timeframe == timeframe
         case let .actionProposed(proposal):
             return proposal.symbol == symbol && proposal.timeframe == timeframe
+        case let .executionDecisionRecorded(decision):
+            return decision.riskDecision.proposal.symbol == symbol
+                && decision.riskDecision.proposal.timeframe == timeframe
+        case let .orderIntentRecorded(orderIntent):
+            return orderIntent.symbol == symbol && orderIntent.timeframe == timeframe
+        case let .simulatedFillRecorded(fill):
+            return fill.symbol == symbol && fill.timeframe == timeframe
         case let .sessionRequested(command):
             return command.strategy.symbol == symbol && command.strategy.timeframe == timeframe
         case let .signalGenerated(sample):

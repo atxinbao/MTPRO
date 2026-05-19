@@ -15,6 +15,9 @@ public struct PaperSessionReplayEvidenceSummary: Codable, Equatable, Sendable {
     public let lifecycleStates: [PaperSessionLifecycleState]
     public let signalEventCount: Int
     public let proposalIDs: [Identifier]
+    public let paperExecutionDecisionIDs: [Identifier]
+    public let paperOrderIDs: [Identifier]
+    public let simulatedFillIDs: [Identifier]
     public let riskEvaluationRequestedCount: Int
     public let riskBlockerEvidenceIDs: [Identifier]
     public let rejectedPaperOrderIDs: [Identifier]
@@ -22,6 +25,9 @@ public struct PaperSessionReplayEvidenceSummary: Codable, Equatable, Sendable {
     public let portfolioIDs: [Identifier]
     public let coversSessionEvents: Bool
     public let coversProposalEvents: Bool
+    public let coversPaperExecutionDecisionEvents: Bool
+    public let coversPaperOrderEvents: Bool
+    public let coversSimulatedFillEvents: Bool
     public let coversRiskBlockerEvents: Bool
     public let coversPortfolioProjectionEvents: Bool
     public let appendOnlyFactsSourceIsReplaySource: Bool
@@ -45,6 +51,9 @@ public enum PaperSessionReplayPath {
         var lifecycleStates: [PaperSessionLifecycleState] = []
         var signalEventCount = 0
         var proposals: [PaperActionProposal] = []
+        var executionDecisions: [PaperExecutionDecision] = []
+        var paperOrders: [PaperOrderIntent] = []
+        var simulatedFills: [PaperSimulatedFillEvidence] = []
         var riskEvaluationRequestedCount = 0
         var riskBlockerEvidence: [RiskBlockerEvidence] = []
         var portfolioUpdates: [PaperPortfolioProjectionUpdate] = []
@@ -58,7 +67,10 @@ public enum PaperSessionReplayPath {
                     sessionIDs: &sessionIDs,
                     lifecycleStates: &lifecycleStates,
                     signalEventCount: &signalEventCount,
-                    proposals: &proposals
+                    proposals: &proposals,
+                    executionDecisions: &executionDecisions,
+                    paperOrders: &paperOrders,
+                    simulatedFills: &simulatedFills
                 )
 
             case let .risk(event):
@@ -90,8 +102,12 @@ public enum PaperSessionReplayPath {
                 && proposal.executionAuthorization.allowsRealOrder == false
                 && proposal.isExecutableAsRealOrder == false
         }
+        let executionDecisionPaperBoundary = executionDecisions.allSatisfy(\.paperOnlyBoundaryHeld)
+        let paperOrderBoundary = paperOrders.allSatisfy(\.paperOnlyBoundaryHeld)
+        let simulatedFillBoundary = simulatedFills.allSatisfy(\.paperOnlyBoundaryHeld)
         let portfolioPaperBoundary = portfolioUpdates.allSatisfy { update in
             update.executionMode == .paper
+                && update.usesSimulatedFillEvidence
                 && update.authorizesTradingExecution == false
                 && update.readsRealAccountBalance == false
                 && update.syncsBrokerPosition == false
@@ -107,6 +123,9 @@ public enum PaperSessionReplayPath {
             lifecycleStates: lifecycleStates,
             signalEventCount: signalEventCount,
             proposalIDs: uniqueIdentifiers(proposals.map(\.proposalID)),
+            paperExecutionDecisionIDs: uniqueIdentifiers(executionDecisions.map(\.decisionID)),
+            paperOrderIDs: uniqueIdentifiers(paperOrders.map(\.orderID)),
+            simulatedFillIDs: uniqueIdentifiers(simulatedFills.map(\.fillID)),
             riskEvaluationRequestedCount: riskEvaluationRequestedCount,
             riskBlockerEvidenceIDs: uniqueIdentifiers(riskBlockerEvidence.map(\.evidenceID)),
             rejectedPaperOrderIDs: uniqueIdentifiers(riskBlockerEvidence.map(\.paperOrderID)),
@@ -116,11 +135,18 @@ public enum PaperSessionReplayPath {
                 && lifecycleStates.contains(.updated)
                 && lifecycleStates.contains(.closed),
             coversProposalEvents: proposals.isEmpty == false,
+            coversPaperExecutionDecisionEvents: executionDecisions.isEmpty == false,
+            coversPaperOrderEvents: paperOrders.isEmpty == false,
+            coversSimulatedFillEvents: simulatedFills.isEmpty == false,
             coversRiskBlockerEvents: riskBlockerEvidence.isEmpty == false,
             coversPortfolioProjectionEvents: portfolioUpdates.isEmpty == false,
             appendOnlyFactsSourceIsReplaySource: true,
             replayResultIsDeterministic: replayedSequences == Array(Set(replayedSequences)).sorted(),
-            paperOnlyBoundaryHeld: proposalPaperBoundary && portfolioPaperBoundary,
+            paperOnlyBoundaryHeld: proposalPaperBoundary
+                && executionDecisionPaperBoundary
+                && paperOrderBoundary
+                && simulatedFillBoundary
+                && portfolioPaperBoundary,
             authorizesLiveTrading: false,
             touchesBrokerAction: false
         )
@@ -139,7 +165,10 @@ public enum PaperSessionReplayPath {
         sessionIDs: inout [Identifier],
         lifecycleStates: inout [PaperSessionLifecycleState],
         signalEventCount: inout Int,
-        proposals: inout [PaperActionProposal]
+        proposals: inout [PaperActionProposal],
+        executionDecisions: inout [PaperExecutionDecision],
+        paperOrders: inout [PaperOrderIntent],
+        simulatedFills: inout [PaperSimulatedFillEvidence]
     ) {
         switch paperEvent {
         case let .sessionStarted(started):
@@ -154,6 +183,15 @@ public enum PaperSessionReplayPath {
         case let .actionProposed(proposal):
             sessionIDs.append(proposal.sessionID)
             proposals.append(proposal)
+        case let .executionDecisionRecorded(decision):
+            sessionIDs.append(decision.sessionID)
+            executionDecisions.append(decision)
+        case let .orderIntentRecorded(orderIntent):
+            sessionIDs.append(orderIntent.sessionID)
+            paperOrders.append(orderIntent)
+        case let .simulatedFillRecorded(fill):
+            sessionIDs.append(fill.sessionID)
+            simulatedFills.append(fill)
         case let .sessionRequested(command):
             sessionIDs.append(command.sessionID)
         case .signalGenerated:
@@ -296,10 +334,31 @@ public enum PaperSessionReplayFixture {
             )
         }
 
-        let update = try PaperPortfolioProjectionUpdate(
+        let paperExecutionBoundary = PaperExecutionEventLogBoundary()
+        let sourceOrderIntentSequence = eventLog.envelopes.count + 2
+        let executionDecision = try PaperExecutionDecisionLink.decide(
+            decisionID: try Identifier("paper-replay-execution-decision-allowed"),
+            riskDecision: allowedDecision,
+            orderID: try Identifier("paper-replay-order-allowed"),
+            fillID: try Identifier("paper-replay-fill-allowed"),
+            simulatedFillAssumption: .deterministicFixture,
+            sourceOrderIntentSequence: sourceOrderIntentSequence,
+            decidedAt: Date(timeIntervalSince1970: 2_260)
+        )
+        let executionAppend = try paperExecutionBoundary.append(
+            executionDecision,
+            to: &eventLog,
+            recordedAt: Date(timeIntervalSince1970: 2_260)
+        )
+
+        let fillEnvelope = try unwrap(
+            executionAppend.simulatedFillEnvelope,
+            field: "simulatedFillEnvelope"
+        )
+        let update = try PaperExecutionReplayProjectionPath.projectPortfolioUpdate(
+            from: fillEnvelope,
             updateID: try Identifier("paper-replay-portfolio-update"),
             portfolioID: try Identifier("portfolio-main"),
-            decision: allowedDecision,
             updatedAt: Date(timeIntervalSince1970: 2_300)
         )
         try eventLog.append(
@@ -337,6 +396,17 @@ public enum PaperSessionReplayFixture {
         }
 
         return eventLog
+    }
+
+    private static func unwrap<T>(_ value: T?, field: String) throws -> T {
+        guard let value else {
+            throw CoreError.paperExecutionDecisionMismatch(
+                field: field,
+                expected: "present",
+                actual: "nil"
+            )
+        }
+        return value
     }
 
     private static func deterministicStrategy() throws -> EMACrossStrategyConfiguration {

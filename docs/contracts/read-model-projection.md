@@ -447,21 +447,22 @@ MTP-28 将 risk blocker evidence 和 portfolio exposure 纳入 runtime read mode
 
 执行者：Codex
 
-Paper-only portfolio update 在当前事项中把 MTP-33 allowed risk decision 转成可 replay 的 portfolio projection fact。
+Paper-only portfolio update 在当前实现中把 replay 后的 simulated fill evidence 转成可 replay 的 portfolio projection fact。
 
 当前可观察字段：
 
-- updateID、decisionID、proposalID、sessionID。
+- updateID、decisionID、orderID、fillID、proposalID、sessionID。
 - riskProfileID、riskDecisionStatus、side。
 - portfolioID、symbol、timeframe。
 - paperQuantity、referencePrice、grossExposureNotional。
 - source：固定 `paperProjection`。
-- sourceSequence、updatedAt、projectedAt。
+- sourceSequence、sourceOrderIntentSequence、sourceRiskDecisionSequence、updatedAt、projectedAt。
+- usesSimulatedFillEvidence：固定 `true`。
 - authorizesTradingExecution、readsRealAccountBalance、syncsBrokerPosition：固定 `false`。
 
 边界：
 
-- 只有 allowed risk decision 可以生成 portfolio update；blocked decision 不更新 exposure。
+- 只有 replay 后的 allowed simulated fill evidence 可以生成 portfolio update；blocked decision 不更新 exposure。
 - Runtime / Persistence 只通过 append-only event log replay 派生 SQLite runtime projection。
 - ViewModel 只消费 `PortfolioReadModel`，不读取 SQLite schema、runtime object 或 adapter。
 - 当前不读取真实账户余额，不做 margin / leverage，不做 broker position sync，不触发真实订单或 Live execution。
@@ -480,10 +481,10 @@ Dashboard read model 汇总提供稳定输入。
 - factsSource：固定 `append-only event log replay`。
 - replayedSequences、replayedStreams、firstSequence、lastSequence。
 - sessionIDs、lifecycleStates、signalEventCount。
-- proposalIDs。
+- proposalIDs、paperExecutionDecisionIDs、paperOrderIDs、simulatedFillIDs。
 - riskEvaluationRequestedCount、riskBlockerEvidenceIDs、rejectedPaperOrderIDs。
 - portfolioUpdateIDs、portfolioIDs。
-- coversSessionEvents、coversProposalEvents、coversRiskBlockerEvents、coversPortfolioProjectionEvents。
+- coversSessionEvents、coversProposalEvents、coversPaperExecutionDecisionEvents、coversPaperOrderEvents、coversSimulatedFillEvents、coversRiskBlockerEvents、coversPortfolioProjectionEvents。
 - appendOnlyFactsSourceIsReplaySource、replayResultIsDeterministic、paperOnlyBoundaryHeld。
 - authorizesLiveTrading、touchesBrokerAction：固定 `false`。
 
@@ -491,7 +492,7 @@ Dashboard read model 汇总提供稳定输入。
 
 - Summary 只消费 `EventReplayResult`，不读取 SQLite / DuckDB schema。
 - Summary 只表达 replay evidence，不提供 UI command、risk control command、position management command 或交易执行入口。
-- Proposal、risk blocker 和 portfolio evidence 都保持 paper-only，不代表 broker event、真实账户状态、真实订单或 Live execution。
+- Proposal、execution decision、order、simulated fill、risk blocker 和 portfolio evidence 都保持 paper-only，不代表 broker event、真实账户状态、真实订单或 Live execution。
 
 ## MTP-36 Paper Session Runtime Evidence Report 观察面
 
@@ -537,7 +538,7 @@ Paper-only execution workflow contract 在当前事项中只作为 Core contract
 
 - Contract 只表达后续本地 paper-only evidence 的 stage / event boundary，不写 event log、不读 projection schema、不生成 ViewModel。
 - MTP-38 最初只定义 workflow stage boundary；paper order stage 已由 MTP-39 的本地 intent / lifecycle 模型补充，simulated fill stage 已由 MTP-40 补充，paper execution decision stage 已由 MTP-41 补充。
-- 当前不新增 UI command、risk control command、position management command、broker action、signed endpoint、account endpoint、真实订单行为或 Live execution。
+- MTP-42 已补充 event log / replay / portfolio projection 串联，但仍不新增 UI command、risk control command、position management command、broker action、signed endpoint、account endpoint、真实订单行为或 Live execution。
 
 ## MTP-39 Paper Order Intent / Lifecycle 观察面
 
@@ -590,7 +591,7 @@ Simulated fill evidence 在当前事项中先以 Core value contract 和 determi
 边界：
 
 - 当前只定义 Core simulated fill evidence value model 和 deterministic tests，不新增 SwiftUI 页面字段。
-- 当前不新增 event log 写入、SQLite / DuckDB projection、Report / Dashboard 字段或 portfolio update。
+- MTP-42 已允许该 evidence 被写入 `.paper` stream 并经 replay 驱动 portfolio update；它仍不代表真实成交、broker fill、execution report、account update 或交易执行授权。
 - Simulated fill evidence 只表达本地 Paper 模拟成交证据，不代表真实成交、broker fill、execution report、account update 或交易执行授权。
 - 当前不新增 UI command、risk control command、position management command、broker action、signed endpoint、account endpoint、真实订单行为或 Live execution。
 
@@ -617,8 +618,30 @@ Paper execution decision 在当前事项中先以 Core value contract 和 determ
 边界：
 
 - 当前只定义 Core paper execution decision value model 和 deterministic tests，不新增 SwiftUI 页面字段。
-- 当前不新增 event log 写入、SQLite / DuckDB projection、Report / Dashboard 字段或 portfolio update。
+- MTP-42 已允许 allowed decision chain 被写入 `.paper` stream 并经 replay 驱动 portfolio update；blocked decision 仍不得生成 order、fill 或 portfolio update。
 - Paper execution decision 只表达本地 allowed / blocked evidence chain，不代表真实订单授权、真实成交、broker fill、execution report、account update 或交易执行入口。
+- 当前不新增 UI command、risk control command、position management command、broker action、signed endpoint、account endpoint、真实订单行为或 Live execution。
+
+## MTP-42 Paper Execution Replay Projection 观察面
+
+日期：2026-05-19
+
+执行者：Codex
+
+Paper execution replay projection 在当前事项中把 decision / order / simulated fill facts
+写入 append-only event log，再从 replayed simulated fill evidence 派生 portfolio projection。
+
+当前可观察字段：
+
+- `.paper` stream facts：`executionDecisionRecorded`、`orderIntentRecorded`、`simulatedFillRecorded`。
+- replay summary：paperExecutionDecisionIDs、paperOrderIDs、simulatedFillIDs、portfolioUpdateIDs。
+- portfolio exposure：sourceSequence 指向 simulated fill event sequence，sourceOrderIntentSequence / sourceRiskDecisionSequence 保留本地链路追溯。
+- Report / Dashboard：继续通过 runtime projection 和 event timeline 展示只读 evidence count、replay facts 和 exposure summary。
+
+边界：
+
+- Portfolio projection 只能从 replayed simulated fill evidence 派生，不直接读取 risk decision、broker fill、account data 或真实 position。
+- ViewModel 只消费 `PortfolioReadModel` / `PaperSessionRuntimeEvidenceSummary`，不读取 SQLite schema、Runtime object 或 adapter。
 - 当前不新增 UI command、risk control command、position management command、broker action、signed endpoint、account endpoint、真实订单行为或 Live execution。
 
 ## MTP-29 Report / Dashboard Trading Validation Evidence 观察面

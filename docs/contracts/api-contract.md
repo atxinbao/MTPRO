@@ -412,18 +412,19 @@ MTP-28 不新增 HTTP API，也不新增 live / broker / signed command。
 执行者：Codex
 
 MTP-34 不新增 HTTP API，也不新增 live / broker / signed command。
+MTP-42 之后，当前内部 update source 已从 allowed risk decision 收窄为 replay 后的 simulated fill evidence。
 
 新增内部 Core event / value contract：
 
-- `PaperPortfolioProjectionUpdate`：消费 MTP-33 的 allowed `PaperActionProposalRiskDecision`，生成 paper-only portfolio exposure update。
+- `PaperPortfolioProjectionUpdate`：消费 replay 后的 `PaperSimulatedFillEvidence`，生成 paper-only portfolio exposure update。
 - `PortfolioEvent.paperProjectionUpdated`：把 update 写入 `.portfolio` event stream，供 replay / SQLite runtime projection 消费。
 
 契约要求：
 
-- 输入 risk decision 必须是 `allowed`，blocked decision 必须被拒绝。
-- update 必须保持 `executionMode == paper`，并记录 proposal、session、risk profile、side、source sequence 和 `paperProjection` exposure。
+- 输入 simulated fill 必须来自 paper-only allowed order，且必须经 append-only event log replay 取得。
+- update 必须保持 `executionMode == paper`，并记录 proposal、session、risk profile、side、fill ID、source sequence 和 `paperProjection` exposure。
 - `authorizesTradingExecution`、`readsRealAccountBalance` 和 `syncsBrokerPosition` 必须固定为 `false`。
-- Codable 解码不能恢复真实交易授权、真实账户余额读取或 broker position sync。
+- Codable 解码不能绕过 simulated fill evidence 来源，不能恢复真实交易授权、真实账户余额读取或 broker position sync。
 
 边界确认：
 
@@ -589,3 +590,38 @@ MTP-41 不新增 HTTP API，也不新增 live / broker / signed command。
 - 不实现完整风险引擎。
 - 不写 event log，不新增 replay / projection / ViewModel。
 - 不把 paper execution decision 解释为真实订单授权、真实成交、broker fill、account update 或 Live execution。
+
+## MTP-42 Paper Execution Event Replay Projection 内部边界
+
+日期：2026-05-19
+
+执行者：Codex
+
+MTP-42 不新增 HTTP API，也不新增 live / broker / signed command。
+
+新增内部 Core event / replay contract：
+
+- `PaperEvent.executionDecisionRecorded`：记录 paper execution decision fact。
+- `PaperEvent.orderIntentRecorded`：记录 allowed paper order intent fact。
+- `PaperEvent.simulatedFillRecorded`：记录 allowed simulated fill evidence fact。
+- `PaperExecutionEventLogBoundary`：按 decision -> order -> fill 顺序写入 `.paper` stream，并校验 source order sequence。
+- `PaperExecutionReplayProjectionPath`：只从 replayed simulated fill envelope 生成 `PaperPortfolioProjectionUpdate`。
+
+契约要求：
+
+- allowed decision 才能写入 order 和 fill；blocked decision 只能写入 decision fact。
+- portfolio update 只能从 replay 后的 `simulatedFillRecorded` fact 派生，不能直接从 risk decision、broker fill、account update 或真实账户状态派生。
+- replay summary 必须保留 execution decision IDs、paper order IDs、simulated fill IDs 和 paper-only boundary flags。
+- 所有交易能力旗标必须继续固定为 `false`。
+
+边界确认：
+
+- 不新增 `Command` case。
+- 不新增 live order command。
+- 不新增 broker account command。
+- 不新增 signed endpoint command。
+- 不实现生产级 event sourcing 或 schema migration framework。
+- 不重写 FileEventLogStore。
+- 不接 broker event replay。
+- 不读取真实账户、真实 position 或 broker fill。
+- 不把 replay / projection evidence 解释为真实订单授权、真实成交、broker fill、account update 或 Live execution。

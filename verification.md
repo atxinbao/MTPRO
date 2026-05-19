@@ -4614,3 +4614,61 @@ Linear 状态修正：
 | `swift test --filter PersistenceTests/testFileEventLogStoreRejectsOutOfOrderAppendToProtectAppendOnlyInvariant` | pass | 清理后 focused test 通过，确认不是 reference docs 引入的逻辑回归。 |
 | `git diff --check` | pass | Reference study 文档通过 whitespace 检查。 |
 | `bash checks/run.sh` | pass | `git diff --check`、automation readiness、Dashboard build / smoke 和 `swift test` 全部通过；91 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |
+
+## MTP-42 Paper Execution Event Log Replay Projection
+
+日期：2026-05-19
+
+执行者：Codex
+
+目的：
+
+- 串联 paper execution decision、paper order intent 和 simulated fill evidence 到 append-only event log。
+- 通过 deterministic replay 提取 paper-only simulated fill evidence。
+- 将 replay 后的 simulated fill evidence 作为 paper-only portfolio projection 的唯一来源。
+- 回填 Trading Validation Matrix、contract docs、validation plan 和最近验证摘要。
+
+文件范围：
+
+- Added：
+  - `Sources/Core/PaperExecutionEventLog.swift`
+- Updated：
+  - `Sources/App/App.swift`
+  - `Sources/Core/DomainEvents.swift`
+  - `Sources/Core/PaperPortfolioProjectionUpdate.swift`
+  - `Sources/Core/PaperSessionReplay.swift`
+  - `Sources/Persistence/Persistence.swift`
+  - `Tests/AppTests/AppTests.swift`
+  - `Tests/CoreTests/CoreTests.swift`
+  - `Tests/PersistenceTests/PersistenceTests.swift`
+  - `docs/contracts/api-contract.md`
+  - `docs/contracts/backend-use-case-contract.md`
+  - `docs/contracts/persistence-boundary.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未推进任何 issue 到 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未实现完整 execution engine。
+- 未实现完整风险引擎。
+- 未实现 broker rejection fallback。
+- 未接 Live trading、signed endpoint、account endpoint、broker fill、account update、broker action 或真实订单行为。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter CoreTests/testPaperExecution` | pass | 8 个 focused XCTest 0 failures，覆盖 MTP-41 decision 链路和 MTP-42 event append / replay / projection focused path。 |
+| `swift test --filter CoreTests` | pass | 53 个 CoreTests 0 failures。 |
+| `swift test` | pass | 93 个 XCTest 0 failures。 |
+| `bash checks/run.sh` | pass | `git diff --check`、automation readiness、`swift build --product Dashboard`、`DASHBOARD_SMOKE=1 swift run Dashboard` 和 `swift test` 全部通过；93 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |
