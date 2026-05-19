@@ -204,6 +204,7 @@ public struct PortfolioQuery: Codable, Equatable, Sendable {
 public enum Command: Codable, Equatable, Sendable {
     case runBacktest(BacktestCommand)
     case startPaperSession(PaperSessionCommand)
+    case controlPaperSession(PaperSessionLocalControlCommand)
     case runOrderBookImbalanceResearch(OrderBookImbalanceResearchCommand)
     case replayEvents(EventReplayCommand)
 }

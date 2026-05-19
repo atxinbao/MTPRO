@@ -5096,3 +5096,54 @@ Next Handoff：Human + `@001 / PLN`
 | `swift test --filter AppTests` | pass | 11 个 AppTests，0 failures；覆盖 MTP-47 Workbench IA fixture、session-level controls、observability sections、forbidden capability 和 no order-level command 合同拒绝。 |
 | `bash checks/automation-readiness.sh` | pass | `TVM-PAPER-WORKFLOW-CONTROL-SHELL`、MTP-47 validation-plan、contract docs 和 product surface anchors 均可机械定位。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 95 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
+
+## MTP-48 Paper session local control Command Model
+
+日期：2026-05-20
+
+执行者：Codex（Codex Execution Agent）
+
+目的：
+
+- 按 Linear issue `MTP-48` 新增 session-level Paper local control Command Model。
+- 支持 `start` / `pause` / `close` / `reset` 四个本地 Paper session control intent。
+- 定义 command validation、rejected reason 和 Codable capability bypass 拒绝边界。
+- 保持不实现 UI 控件、不写 event log、不触碰 order-level command、broker action、signed endpoint 或真实订单行为。
+
+文件范围：
+
+- Added：
+  - `Sources/Core/PaperSessionLocalControlCommand.swift`
+- Updated：
+  - `Sources/Core/CommandsAndQueries.swift`
+  - `Sources/Core/CoreError.swift`
+  - `Tests/CoreTests/CoreTests.swift`
+  - `checks/automation-readiness.sh`
+  - `docs/product/product-surface-map.md`
+  - `docs/contracts/api-contract.md`
+  - `docs/contracts/backend-use-case-contract.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+
+边界确认：
+
+- accepted command 只能作用于本地 Paper session。
+- session-level controls 只允许 `start` / `pause` / `close` / `reset`。
+- 非 session-level command、order-level command、`submit` / `cancel` / `replace`、broker action 和非 paper execution mode 均被 validation 拒绝。
+- Codable 解码拒绝恢复 order-level command、真实交易授权、Live trading、signed endpoint、account endpoint、listenKey、broker action 或真实订单 submit / cancel / replace capability。
+- 未实现 session-level control -> event boundary 串联。
+- 未实现 UI 控件或 Event Timeline。
+- 未连接 broker / exchange。
+- 未接 signed endpoint、account endpoint、listenKey 或 Live execution。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter CoreTests/testPaperSessionLocalControl` | pass | 3 个 CoreTests，0 failures；覆盖 Command Model 四个 session-level controls、raw request rejected reason、no submit / cancel / replace / broker action 和 Codable capability bypass 拒绝。 |
+| `bash checks/automation-readiness.sh` | pass | `PaperSessionLocalControlCommand`、MTP-48 validation-plan、contract docs、product surface 和 matrix anchors 均可机械定位。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 98 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |

@@ -14,6 +14,9 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
     case invalidPrice(String, Double)
     case invalidQuantity(String, Double)
     case paperSessionRequiresPaperMode
+    case paperSessionLocalControlRequiresPaperMode(ExecutionMode)
+    case paperSessionLocalControlForbiddenCapability(String)
+    case paperSessionLocalControlMismatch(field: String, expected: String, actual: String)
     case emptyIdentifier(String)
     case invalidEMAPeriod(String, Int)
     case invalidEMAPeriodOrder(shortPeriod: Int, longPeriod: Int)
@@ -72,6 +75,12 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
             "Quantity must be finite and non-negative for \(field): \(value)"
         case .paperSessionRequiresPaperMode:
             "Paper session command requires paper mode"
+        case let .paperSessionLocalControlRequiresPaperMode(value):
+            "Paper session local control requires paper mode: \(value.rawValue)"
+        case let .paperSessionLocalControlForbiddenCapability(field):
+            "Paper session local control forbids capability: \(field)"
+        case let .paperSessionLocalControlMismatch(field, expected, actual):
+            "Paper session local control mismatch for \(field): expected \(expected), actual \(actual)"
         case let .emptyIdentifier(field):
             "Identifier must not be empty: \(field)"
         case let .invalidEMAPeriod(field, value):
