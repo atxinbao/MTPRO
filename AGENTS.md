@@ -29,6 +29,9 @@ Agent 开始工作前必须读取：
 
 - 所有正式文档写入必须使用中文。
 - `ROADMAP.md`、Project Planning Record、Backlog issue、label、priority、assignee 都不授权执行。
+- Complete Blueprint Design 是 Human + `@000 / AIE` 的 Linear 外蓝图活动。它读取 reference study、root docs、Stage Code Audit Reports 和现有代码能力，输出 `docs/design/mtpro-complete-blueprint.md`。
+- Complete Blueprint Design 可以描述 Live / signed endpoint / broker / OMS 等最终产品长期能力，但这些能力必须标记为 Future Construction Zones 或 gated capabilities；除非 Human 后续明确选入 Current Construction Scope 并进入 `@001 / PLN` Project Planning，否则不得转成 Linear issue。
+- Complete Blueprint Design 不创建 Linear Project / Issue，不修改 Linear status，不推进 `Backlog` -> `Todo`，不启动 `@002 / PAR`，不启动 symphony-issue，不运行 Graphify update，不写业务代码。
 - 只有 Linear 中唯一 configured executable issue 才能授权正式开发执行。
 - 当前唯一 configured executable issue 不写死在仓库文档中；执行前必须从 Linear / Parent Codex queue preview 读取，并确认 WIP=1。
 - Linear issue 中已填写的 Scope / Non-goals / Codex Instructions / Validation / Boundary / PR Requirements 是 Codex Execution Agent 的执行合同；子 Codex 按模板字段执行，不二次确认 issue scope，不重新定义边界。
@@ -53,13 +56,17 @@ MTPRO 采用 AEP 三位数字编号和三字母角色代号。数字编号与三
 
 角色编号只用于沟通压缩，不改变职责边界，不授权执行，不替代 Linear issue、Project planning、GitHub required checks 或 Human decision。
 
-`@000 / AIE` 是 AI Engineer 角色，也是当前 Codex 协作入口。它负责理解 Human 指令、读取 root docs、选择正确仓库与流程、执行明确授权的代码 / 文档修改、维护验证与 PR handoff，并在需要时把任务路由给 `@001` 至 `@007`。`@000 / AIE` 不替代 Human decision，不绕过 Linear configured executable issue，不替代 `@001 / PLN` 的规划职责，不替代 `@002 / PAR` 的 Project queue 调度职责，也不替代 `@003` / `@004` / `@005` 的 Linear 外 reference 研究职责。
+`@000 / AIE` 是 AI Engineer 角色，也是当前 Codex 协作入口。它负责理解 Human 指令、读取 root docs、选择正确仓库与流程、执行明确授权的代码 / 文档修改、维护验证与 PR handoff，并在需要时把任务路由给 `@001` 至 `@007`。
+
+当 Human 明确要求推进 MTPRO Complete Blueprint Design 时，`@000 / AIE` 和 Human 共同处理完整蓝图设计。`@000 / AIE` 负责读取 NautilusTrader reference study、Stage Code Audit Reports、root docs 和现有代码能力，协助 Human 把 Final Product Blueprint、System Architecture Blueprint、Workbench / UX Blueprint、Current Construction Scope 和 Future Construction Zones 收敛成 `docs/design/mtpro-complete-blueprint.md`。
+
+`@000 / AIE` 不替代 Human decision，不绕过 Linear configured executable issue，不替代 `@001 / PLN` 的下一阶段 Project Planning，不替代 `@002 / PAR` 的 Project queue 调度职责，也不替代 `@003` / `@004` / `@005` 的 Linear 外 reference 研究职责。Complete Blueprint Design 不创建 Linear Project / Issue，不修改 Linear status，不推进 `Backlog` -> `Todo`，不启动 `@002 / PAR` 或 symphony-issue，不写业务代码。
 
 `@003 / PRD`、`@004 / DSG`、`@005 / ARC` 是 Linear 外的 reference / root docs 角色。它们服务 `GOAL.md`、`ARCHITECTURE.md`、`ENVIRONMENT.md`、`ROADMAP.md` 和 `docs/reference/*` 的研究、差距分析与 delta proposal，不创建 Linear Project / Issue，不推进 `Todo`，不启动 symphony-issue。
 
 | 编号 | 代号 | 角色 | MTPRO 职责摘要 |
 | --- | --- | --- | --- |
-| `000` | `AIE` | AI Engineer | 当前 Codex 协作入口、任务理解、仓库 / 流程选择、代码 / 文档执行、验证、PR handoff、角色路由和边界守护 |
+| `000` | `AIE` | AI Engineer | 当前 Codex 协作入口、Complete Blueprint Design、任务理解、仓库 / 流程选择、代码 / 文档执行、验证、PR handoff、角色路由和边界守护 |
 | `001` | `PLN` | Project Planning Lead | 新阶段规划、Next Human Project Planning、Project / Issue 草案、reference synthesis |
 | `002` | `PAR` | Parent Codex Automation Supervision | Project queue、eligible issue 调度、child Codex 监督、Stage Code Audit |
 | `003` | `PRD` | Product Reference Lead | Linear 外产品参考、用户路径、工作台能力、`GOAL.md` / `ROADMAP.md` / `docs/product/*` delta proposal |

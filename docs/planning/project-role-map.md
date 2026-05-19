@@ -25,13 +25,17 @@
 
 角色编号只用于沟通压缩，不改变职责边界，不授权执行。
 
-`@000 / AIE` 是 AI Engineer 角色，也是当前 Codex 协作入口。它负责理解 Human 指令、读取 root docs、选择正确仓库与流程、执行明确授权的代码 / 文档修改、维护验证与 PR handoff，并在需要时把任务路由给 `@001` 至 `@007`。它不替代 Human decision，不绕过 Linear configured executable issue，不替代 Project Planning、Parent Codex queue 调度或 Linear 外 reference 研究角色。
+`@000 / AIE` 是 AI Engineer 角色，也是当前 Codex 协作入口。它负责理解 Human 指令、读取 root docs、选择正确仓库与流程、执行明确授权的代码 / 文档修改、维护验证与 PR handoff，并在需要时把任务路由给 `@001` 至 `@007`。
+
+当 Human 明确要求完整蓝图设计时，`@000 / AIE` 和 Human 共同负责 MTPRO Complete Blueprint Design。该职责高于单个 Linear Project Planning，用于把 NautilusTrader reference study、Stage Code Audit Reports、root docs 和现有代码能力收敛成 MTPRO 的 Final Product Blueprint、System Architecture Blueprint、Workbench / UX Blueprint、Current Construction Scope 和 Future Construction Zones。
+
+`@000 / AIE` 不替代 Human decision，不绕过 Linear configured executable issue，不替代 `@001 / PLN` 的下一阶段 Project Planning，不替代 `@002 / PAR` queue 调度或 Linear 外 reference 研究角色。Complete Blueprint Design 不创建 Linear Project / Issue，不修改 Linear status，不推进 `Todo`，不启动 symphony-issue，不写业务代码。
 
 `@003 / PRD`、`@004 / DSG`、`@005 / ARC` 是 Linear 外的 reference / root docs 角色。它们用于外部参考项目研究、产品 / 设计 / 架构差距分析，以及 `GOAL.md`、`ARCHITECTURE.md`、`ENVIRONMENT.md`、`ROADMAP.md` 的 delta proposal。它们不创建 Linear Project / Issue，不修改 Linear status，不推进 `Todo`，不启动 symphony-issue，不写业务代码。
 
 | 编号 | 代号 | 角色 | MTPRO 当前使用方式 |
 | --- | --- | --- | --- |
-| `000` | `AIE` | AI Engineer | 当前 Codex 协作入口、任务理解、仓库 / 流程选择、代码 / 文档执行、验证、PR handoff、角色路由和边界守护 |
+| `000` | `AIE` | AI Engineer | 当前 Codex 协作入口、Complete Blueprint Design、任务理解、仓库 / 流程选择、代码 / 文档执行、验证、PR handoff、角色路由和边界守护 |
 | `001` | `PLN` | Project Planning Lead | Next Human Project Planning、阶段目标、Linear Project / Issue 草案 |
 | `002` | `PAR` | Parent Codex Automation Supervision | queue preview、eligible issue 调度、child Codex 监督、Stage Code Audit |
 | `003` | `PRD` | Product Reference Lead | Linear 外产品参考研究、用户路径、工作台能力、`GOAL.md` / `ROADMAP.md` / `docs/product/*` delta proposal |
@@ -46,7 +50,7 @@ symphony-issue、Codex Execution Agent 和 GitHub PR Automation 是流程工具 
 
 | 角色编号 | 当前职责 | 产物 | 禁止 |
 | --- | --- | --- | --- |
-| `@000 / AIE` | 作为当前 Codex 协作入口，读取 root docs 和最近验证摘要，判断任务属于规划、自动化监督、reference 研究、issue 执行、文档修订还是环境操作；在明确任务范围内直接改代码 / 文档、运行验证、提交 PR；必要时输出给 `@001` 至 `@007` 的角色化指令 | 代码 / 文档 PR、validation summary、PR handoff、角色化 Codex 指令、边界确认 | 不替代 Human decision，不绕过 Linear configured executable issue，不替代 `@001 / PLN` 规划，不替代 `@002 / PAR` queue 调度，不替代 reference roles 的研究结论，不直接 merge 自己的 PR |
+| `@000 / AIE` | 作为当前 Codex 协作入口，读取 root docs 和最近验证摘要，判断任务属于完整蓝图设计、规划、自动化监督、reference 研究、issue 执行、文档修订还是环境操作；在 Human 明确要求时与 Human 共同推进 Complete Blueprint Design；在明确任务范围内直接改代码 / 文档、运行验证、提交 PR；必要时输出给 `@001` 至 `@007` 的角色化指令 | `docs/design/mtpro-complete-blueprint.md`、代码 / 文档 PR、validation summary、PR handoff、角色化 Codex 指令、边界确认 | 不替代 Human decision，不绕过 Linear configured executable issue，不替代 `@001 / PLN` 的下一阶段 Project Planning，不替代 `@002 / PAR` queue 调度，不替代 reference roles 的研究结论，不直接 merge 自己的 PR |
 
 ## Reference Role Boundary
 
@@ -56,7 +60,7 @@ symphony-issue、Codex Execution Agent 和 GitHub PR Automation 是流程工具 
 | `@004 / DSG` | 阅读外部参考项目的信息架构、页面组织、操作路径、状态表达和工作台结构，提炼 Dashboard / Workbench / ViewModel 设计建议 | `docs/reference/*/design-reference.md`、Product Surface / Frontend ViewModel delta proposal | 不写 UI 代码，不启动 symphony-issue，不把 wireframe / 页面建议当作执行授权 |
 | `@005 / ARC` | 阅读外部参考项目源码、官方文档和 API 文档，提炼 event-driven、replay、adapter、runtime、portfolio、risk、execution 等系统结构参考 | `docs/reference/*/architecture-reference.md`、`api-reference-map.md`、`ARCHITECTURE.md` / `ENVIRONMENT.md` / `docs/contracts/*` delta proposal | 不重写架构，不引入 Live trading / signed endpoint / broker action，不把外部 API 直接映射为实现任务 |
 
-Reference role 输出必须先形成 reference pack 和 delta proposal。只有 Human + `@001 / PLN` 确认某个 delta 进入下一阶段 Project Planning 后，才可能转化为 Linear Project / Issue。
+Reference role 输出必须先形成 reference pack 和 delta proposal。完整产品 / 系统 / 设计蓝图由 Human + `@000 / AIE` 共同收敛。只有蓝图中的 Current Construction Scope 被 Human 选中，并交给 Human + `@001 / PLN` 进入下一阶段 Project Planning 后，才可能转化为 Linear Project / Issue。
 
 ## Role Coverage
 
@@ -64,7 +68,7 @@ Reference role 输出必须先形成 reference pack 和 delta proposal。只有 
 | --- | --- | --- | --- | --- |
 | Human Owner | 确认 MTPRO 目标、阶段取舍、Linear 写入和下一阶段验收 | GOAL / Linear Project confirmation / Stage decision | Human | covered |
 | ChatGPT Planning Partner | 问答式收敛目标、拆分阶段、辅助 Linear issue 规划和阶段复盘 | Project guidance notes / Linear Draft / next planning notes | ChatGPT | covered |
-| AI Engineer | 作为 Codex 协作入口执行明确任务、维护代码 / 文档 / 验证 / PR handoff，并把任务路由到对应角色规则 | Code / docs PR / validation / role-specific instruction | Codex `@000 / AIE` | covered |
+| AI Engineer | 作为 Codex 协作入口执行明确任务、维护 Complete Blueprint Design、代码 / 文档 / 验证 / PR handoff，并把任务路由到对应角色规则 | Complete Blueprint / Code / docs PR / validation / role-specific instruction | Codex `@000 / AIE` | covered |
 | System Architect | 维护 MTPRO 架构边界、模块关系、事件流和自动化边界 | `ARCHITECTURE.md` / module boundary / API boundary | Human + ChatGPT + Parent Codex | partial |
 | Product Owner | 定义 Research -> Backtest -> Report -> Paper readiness 主路径、阶段目标和验收重点 | Product Surface Map / Linear Project acceptance / stage decision | Human + ChatGPT | partial |
 | Product Designer | 定义页面骨架、用户路径、空状态、错误状态和可观察状态 | Product Surface Map / future wireframes / UI state notes | Human + ChatGPT | partial |
@@ -104,11 +108,13 @@ Reference role 输出必须先形成 reference pack 和 delta proposal。只有 
 | Linear Project / Issue plan | Human Owner / ChatGPT Planning Partner / Project Planning Facilitator | Parent Codex Supervisor | Human Project Planning |
 | Validation plan | QA / Trading Validation Engineer | Parent Codex Supervisor | symphony-issue |
 | Stage Code Audit Report | Parent Codex Supervisor | Human Owner / ChatGPT Planning Partner | Next Human Project Planning |
+| MTPRO Complete Blueprint Design | Human Owner / `@000 / AIE` | Product / Design / Architecture reference roles | Next Human Project Planning 前 |
 
 ## Decision Authority
 
 - Human Owner 决定 MTPRO 的项目目标、阶段目标、Linear 写入、是否进入下一阶段。
 - ChatGPT Planning Partner 辅助拆分和复盘，但不单独授权执行。
+- `@000 / AIE` 与 Human 共同维护 MTPRO Complete Blueprint Design；蓝图可以描述最终产品长期能力，但不授权执行，不写 Linear，不启动 `@002 / PAR`。
 - System Architect 给出架构边界建议，但不替代 Human confirmation。
 - Product Owner、Product Designer、Frontend / App Designer、Backend Engineer、Data / Persistence Designer、Finance / Trading Domain Analyst、QA / Trading Validation Engineer、Automation / Runtime Operations Engineer 只定义各自专业面的合同和验收建议。
 - Finance / Trading Domain Analyst 不授权 Live trading，不允许扩大到真实 broker action；它只定义策略假设、风险指标、费用 / 滑点和 Paper parity 验收。

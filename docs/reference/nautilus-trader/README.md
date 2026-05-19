@@ -22,7 +22,7 @@ NautilusTrader 只作为参考项目：
 | `product-reference.md` | `@003 / PRD` | 产品流程、用户路径、Research / Backtest / Paper / Report / Dashboard 能力参考 |
 | `design-reference.md` | `@004 / DSG` | Workbench 信息架构、页面拆分、ViewModel / Read Model 映射和状态语言参考 |
 | `architecture-reference.md` | `@005 / ARC` | Kernel / Engine / MessageBus / Cache / Adapter / Risk / Portfolio / Execution / Replay 架构映射 |
-| `root-docs-delta-proposal.md` | `@000 / AIE` | 汇总候选 root docs delta，只作为 Human + `@001 / PLN` 的规划输入 |
+| `root-docs-delta-proposal.md` | `@000 / AIE` | 汇总候选 root docs delta，先进入 Human + `@000 / AIE` 的 Complete Blueprint Design，再作为 Human + `@001 / PLN` 的规划输入 |
 
 ## 共识结论
 
@@ -53,7 +53,8 @@ MTPRO 当前不应该学习：
 ## 后续使用规则
 
 - 本目录只提供 reference study，不授权执行。
-- 候选 delta 必须先进入 Human + `@001 / PLN` 的下一阶段规划判断。
+- 候选 delta 必须先进入 Human + `@000 / AIE` 的 Complete Blueprint Design。
+- 只有蓝图中的 Current Construction Scope 被 Human 选中后，才进入 Human + `@001 / PLN` 的下一阶段规划判断。
 - 只有被 Human 确认并写入 Linear Project / Issue 后，才可能进入 `@002 / PAR` queue preflight 和 symphony-issue 执行链路。
 - 如果后续 root docs 采纳某个 delta，应在对应 PR 中引用本目录文件和具体 proposal。
 
