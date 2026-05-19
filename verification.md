@@ -4030,3 +4030,98 @@ Root Docs Refresh Gate 逐项结论：
 | --- | --- | --- |
 | `git diff --check` | pass | 本轮 docs-only Root Docs Refresh Gate closure 变更无空白问题。 |
 | `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 全部通过；80 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |
+
+## MTPRO Paper Execution Workflow v1 Project Planning Record
+
+日期：2026-05-19
+
+执行者：Codex（`@001 / PLN`）
+
+目的：
+
+- 基于 Human 确认的 `MTPRO Paper Execution Workflow v1` Linear Project Draft 和 Candidate Linear Issue Drafts，落仓下一阶段 Project-level planning record。
+- 新增 `docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md`，只保存 Project 级计划摘要、issue order、dependencies、validation、evidence、first executable issue candidate、WIP=1 和边界。
+- 更新 `docs/planning/linear-draft-plan.md`，将当前 Project planning record 指向 `MTPRO Paper Execution Workflow v1`。
+- 更新 `docs/validation/latest-verification-summary.md`，记录 planning record 已落仓但尚未写入 Linear。
+- 更新 `checks/automation-readiness.sh`，把新 planning record 的命名、边界和不授权执行规则纳入机械检查。
+
+文件范围：
+
+- Added：
+  - `docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md`
+- Updated：
+  - `checks/automation-readiness.sh`
+  - `docs/planning/linear-draft-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- 未创建 Linear Project。
+- 未创建 Linear Issues。
+- 未修改 Linear status。
+- 未推进任何 issue 到 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 未复制完整 Linear issue body 到仓库。
+- Planning record 不授权执行。
+- 完整 issue execution contract 以后以 Linear issue body 为准。
+- Project 写入 Linear 后，所有 issue 初始必须保持 `Backlog / non-executable`。
+- 后续由 Parent Codex queue preflight 自动判断唯一 eligible issue，并在 WIP=1、依赖满足、无 active conflict、execution contract 格式完整时推进 Todo。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | 本轮 docs-only planning record 变更无空白问题。 |
+| `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 全部通过；80 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |
+
+## Stage Audit Input Location Normalization
+
+日期：2026-05-19
+
+执行者：Codex
+
+目的：
+
+- 将 Project 级阶段证据和 Stage Code Audit 输入材料从 `docs/validation/` 迁移到 `docs/audit/inputs/`。
+- 使用 Project slug 命名输入材料，避免继续用单个 Linear issue 编号污染验证目录。
+- 保留 `docs/validation/` 作为长期验证入口目录。
+
+文件范围：
+
+- Renamed：
+  - `docs/validation/mtp-23-stage-evidence.md` -> `docs/audit/inputs/mtpro-runtime-research-workbench-v1-stage-evidence.md`
+  - `docs/validation/mtp-30-stage-audit-input.md` -> `docs/audit/inputs/mtpro-trading-validation-and-parity-hardening-stage-audit-input.md`
+  - `docs/validation/mtp-37-stage-audit-input.md` -> `docs/audit/inputs/mtpro-paper-session-runtime-v1-stage-audit-input.md`
+- Updated：
+  - `checks/automation-readiness.sh`
+  - `docs/audit/mtpro-trading-validation-and-parity-hardening-stage-code-audit.md`
+  - `docs/audit/mtpro-paper-session-runtime-v1-stage-code-audit.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+
+边界确认：
+
+- 未创建 Linear Project。
+- 未创建 Linear Issues。
+- 未修改 Linear status。
+- 未推进任何 issue 到 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 未重写 `verification.md` 历史记录；旧路径只保留为历史流水账。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | 本轮迁移和规则变更无空白问题。 |
+| `bash checks/run.sh` | pass | `git diff --check`、automation readiness、dashboard build、dashboard smoke 和 `swift test` 全部通过；80 个 XCTest 0 failures，输出 `MTPRO checks passed.`。 |

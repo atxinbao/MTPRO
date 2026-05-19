@@ -117,7 +117,7 @@ Project 末端业务合并点为 `MTP-30` PR #59，merge commit 为 `4e694f96c56
 ## Residual Notes For Human Planning
 
 - 本报告是 Next Human Project Planning 的输入，不是下一阶段目标。
-- `docs/validation/mtp-30-stage-audit-input.md` 是本审计报告的输入材料，后续默认读取本报告作为 canonical Stage Code Audit Report。
+- `docs/audit/inputs/mtpro-trading-validation-and-parity-hardening-stage-audit-input.md` 是本审计报告的输入材料，后续默认读取本报告作为 canonical Stage Code Audit Report。
 - `docs/validation/trading-validation-matrix.md` 可作为下一阶段交易语义验证参考，但不创建 Linear Project / Issue，不授权任何 issue 进入 `Todo`。
 - 当前 Project 已完成 Research / Backtest / Paper readiness 的验证硬化；Live trading、signed endpoint、account endpoint、broker action 和真实订单仍保持禁止。
 - 如果 Human 进入下一阶段规划，应由 Human + `@001 / PLN` 先定义 Project / Issue plan，再由 `@002 / PAR` 做 queue preflight 和 active Project pointer 更新。
@@ -129,7 +129,7 @@ Next Human Project Planning 固定读取：
 - `docs/audit/mtpro-trading-validation-and-parity-hardening-stage-code-audit.md`
 - `docs/validation/latest-verification-summary.md`
 - `docs/validation/trading-validation-matrix.md`
-- `docs/validation/mtp-30-stage-audit-input.md`
+- `docs/audit/inputs/mtpro-trading-validation-and-parity-hardening-stage-audit-input.md`
 - `docs/planning/projects/mtpro-trading-validation-and-parity-hardening-plan.md`
 
 Handoff 结论：

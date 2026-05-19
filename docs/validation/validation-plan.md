@@ -70,6 +70,36 @@ bash checks/run.sh
 
 该矩阵记录 EMA parity、order book imbalance parity、fees / slippage、risk blocker、portfolio exposure 和 report evidence 的现有 coverage、验收证据边界和后续 issue 回填规则。
 
+## Stage Audit Input Location Rule
+
+`docs/validation/` 只保留长期验证入口，例如 latest summary、validation plan、trading validation matrix、eval strategy 和 macOS build / run loop。
+
+Project 级阶段证据和 Stage Code Audit 输入材料必须放在：
+
+```text
+docs/audit/inputs/
+```
+
+命名规则：
+
+- 使用 Project slug，不使用单个 Linear issue 编号作为文件名主体。
+- stage evidence 命名为 `<linear-project-slug>-stage-evidence.md`。
+- stage audit input 命名为 `<linear-project-slug>-stage-audit-input.md`。
+
+示例：
+
+- `docs/audit/inputs/mtpro-runtime-research-workbench-v1-stage-evidence.md`
+- `docs/audit/inputs/mtpro-trading-validation-and-parity-hardening-stage-audit-input.md`
+- `docs/audit/inputs/mtpro-paper-session-runtime-v1-stage-audit-input.md`
+
+这些输入材料不替代最终 Stage Code Audit Report。最终 Project 级审计报告仍必须落到：
+
+```text
+docs/audit/<linear-project-slug>-stage-code-audit.md
+```
+
+`docs/audit/inputs/` 中的文件不授权下一 Project planning，不创建 Linear Project / Issue，不修改 Linear status，不推进 Todo，不启动下一阶段 `symphony-issue`。
+
 ## MTP-24 Trading Validation Matrix Validation
 
 MTP-24 的 required validation：
@@ -141,7 +171,7 @@ MTP-30 的 required validation：
 
 - `docs/validation/latest-verification-summary.md` 必须更新为 MTP-30 当前验证摘要，并引用 MTP-24 至 MTP-29 的 Project evidence。
 - `docs/validation/trading-validation-matrix.md` 必须包含 MTP-30 阶段收口说明，并指向 Stage Code Audit 输入材料。
-- `docs/validation/mtp-30-stage-audit-input.md` 必须存在，并包含 Issue / PR evidence、Trading validation evidence chain、Automation readiness evidence、Known boundaries、Root Docs Delta input 和 Stage Code Audit handoff checklist。
+- `docs/audit/inputs/mtpro-trading-validation-and-parity-hardening-stage-audit-input.md` 必须存在，并包含 Issue / PR evidence、Trading validation evidence chain、Automation readiness evidence、Known boundaries、Root Docs Delta input 和 Stage Code Audit handoff checklist。
 - `checks/automation-readiness.sh` 必须检查 MTP-30 输入材料和关键锚点，避免 Stage Code Audit 输入材料缺失。
 - Stage Code Audit input 必须明确：最终 Stage Code Audit Report 仍由 Parent Codex 在 `MTP-24` 至 `MTP-30` 全部 Done 后单独输出。
 - Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`。
@@ -225,7 +255,7 @@ MTP-37 的 required validation：
 
 - `docs/validation/latest-verification-summary.md` 必须更新为 MTP-37 当前验证摘要，并引用 MTP-31 至 MTP-36 的 Project evidence。
 - `docs/validation/trading-validation-matrix.md` 必须包含 MTP-37 Paper Session Runtime 阶段收口说明，并指向 MTP-37 Stage Code Audit 输入材料。
-- `docs/validation/mtp-37-stage-audit-input.md` 必须存在，并包含 Issue / PR evidence、Paper runtime validation evidence chain、Automation readiness evidence、Known boundaries、Root Docs Delta input 和 Stage Code Audit handoff checklist。
+- `docs/audit/inputs/mtpro-paper-session-runtime-v1-stage-audit-input.md` 必须存在，并包含 Issue / PR evidence、Paper runtime validation evidence chain、Automation readiness evidence、Known boundaries、Root Docs Delta input 和 Stage Code Audit handoff checklist。
 - `checks/automation-readiness.sh` 必须检查 MTP-37 输入材料和关键锚点，避免 Stage Code Audit 输入材料缺失。
 - Stage Code Audit input 必须明确：最终 Stage Code Audit Report 仍由 Parent Codex 在 `MTP-31` 至 `MTP-37` 全部 Done 后单独输出。
 - Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`。
