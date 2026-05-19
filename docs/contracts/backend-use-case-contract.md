@@ -659,3 +659,37 @@ event log replay 汇总 lifecycle、proposal、risk blocker 和 portfolio projec
 - cancel / replace 工作流。
 - broker / exchange side effect。
 - signed endpoint、account endpoint、真实订单提交 / 取消 / 替换或 Live execution。
+
+## MTP-40 Simulated Fill Evidence Use Case 边界
+
+日期：2026-05-19
+
+执行者：Codex
+
+`StartPaperSession` / `EvaluateRisk` 在本事项中获得本地 simulated fill evidence 的最小 value model，用于让后续 paper execution workflow 能引用模拟成交证据，但不进入 event log / replay / portfolio projection 串联。
+
+契约结构：
+
+- `PaperSimulatedFillAssumption`：固定 deterministic filled quantity、fill price、liquidity role 和 MTP-27 execution cost assumptions。
+- `PaperSimulatedFillEvidence`：绑定 fill ID、order ID、proposal / session / risk decision trace、symbol / timeframe、filled quantity、fill price、fixed cost evidence、workflow stage 和 `.paper` event boundary。
+- `PaperSimulatedFillFixture`：提供 deterministic allowed fill fixture，用于 XCTest 和 PR evidence。
+- `PaperExecutionWorkflowContract.deterministicFixture`：将 simulated fill stage 标记为当前代码已实现，但不引入 event log 写入或 projection 更新。
+
+契约要求：
+
+- simulated fill evidence 只能消费 allowed `PaperOrderIntent`，不能由 `rejectedByRisk` intent 生成。
+- source order intent sequence 和 source risk decision sequence 必须为正数，用于本地 append-only event log 语境中的追溯，不代表 broker order sequence 或交易所回报。
+- filled quantity / fill price 必须与 order intent quantity / reference price 一致；当前不支持 partial fill、dynamic slippage、market matching 或执行成本优化。
+- fixed cost evidence 必须由 `ExecutionCostCalculator` 和 deterministic assumptions 派生。
+- 所有真实交易能力、真实 fill、broker fill、account update、signed endpoint 和 Live trading 旗标必须固定为 `false`。
+
+本契约不包含：
+
+- paper execution decision。
+- event log 写入。
+- replay 串联。
+- portfolio projection update。
+- 真实撮合或真实成交回报。
+- 动态滑点模型、交易所费率表或执行成本优化。
+- broker / exchange side effect。
+- signed endpoint、account endpoint、真实订单提交 / 取消 / 替换或 Live execution。

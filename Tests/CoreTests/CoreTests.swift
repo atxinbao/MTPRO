@@ -867,8 +867,8 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(simulatedFill.produces, .portfolioProjection)
         XCTAssertEqual(simulatedFill.eventStream, .paper)
         XCTAssertEqual(simulatedFill.evidenceKind, .simulatedFill)
-        XCTAssertFalse(simulatedFill.implementedInCurrentCode)
-        XCTAssertEqual(simulatedFill.futureIssueID, try Identifier("MTP-40"))
+        XCTAssertTrue(simulatedFill.implementedInCurrentCode)
+        XCTAssertNil(simulatedFill.futureIssueID)
 
         let portfolioProjection = try XCTUnwrap(contract.boundary(for: .portfolioProjection))
         XCTAssertEqual(portfolioProjection.consumes, .simulatedFill)
@@ -1079,6 +1079,182 @@ final class CoreTests: XCTestCase {
             XCTAssertEqual(
                 error as? CoreError,
                 .paperOrderIntentForbiddenCapability("representsSimulatedFill")
+            )
+        }
+    }
+
+    func testPaperSimulatedFillEvidenceCreatesDeterministicPaperOnlyFillFromAllowedOrderIntent() throws {
+        // 测试场景：MTP-40 simulated fill evidence 必须从 allowed paper order intent 派生，
+        // 并复用 MTP-27 fixed cost evidence；它只表示本地模拟成交证据，不代表真实成交或 broker fill。
+        let evidence = try PaperSimulatedFillFixture.deterministicAllowed()
+        let orderIntent = try PaperOrderIntentFixture.deterministicAllowed()
+        let expectedCost = ExecutionCostCalculator.estimate(
+            ExecutionCostEstimateRequest(
+                symbol: orderIntent.symbol,
+                timeframe: orderIntent.timeframe,
+                executionMode: .paper,
+                referencePrice: orderIntent.referencePrice,
+                quantity: orderIntent.quantity,
+                liquidityRole: .maker
+            ),
+            assumptions: .deterministicFixture
+        )
+
+        XCTAssertEqual(evidence.fillID, try Identifier("paper-simulated-fill-allowed"))
+        XCTAssertEqual(evidence.orderID, orderIntent.orderID)
+        XCTAssertEqual(evidence.proposalID, orderIntent.proposalID)
+        XCTAssertEqual(evidence.sessionID, orderIntent.sessionID)
+        XCTAssertEqual(evidence.riskDecisionID, orderIntent.riskDecisionID)
+        XCTAssertEqual(evidence.riskProfileID, try Identifier("paper-risk"))
+        XCTAssertEqual(evidence.orderLifecycleState, .intentCreated)
+        XCTAssertEqual(evidence.riskDecisionStatus, .allowed)
+        XCTAssertEqual(evidence.side, .buy)
+        XCTAssertEqual(evidence.symbol, try Symbol(rawValue: "BTCUSDT"))
+        XCTAssertEqual(evidence.timeframe, .oneMinute)
+        XCTAssertEqual(evidence.filledQuantity.rawValue, 0.5, accuracy: 0.00000001)
+        XCTAssertEqual(evidence.fillPrice.rawValue, 100, accuracy: 0.00000001)
+        XCTAssertEqual(evidence.orderIntentQuantity.rawValue, orderIntent.quantity.rawValue, accuracy: 0.00000001)
+        XCTAssertEqual(
+            evidence.orderIntentReferencePrice.rawValue,
+            orderIntent.referencePrice.rawValue,
+            accuracy: 0.00000001
+        )
+        XCTAssertEqual(evidence.grossNotional, 50, accuracy: 0.00000001)
+        XCTAssertEqual(evidence.costEstimate, expectedCost)
+        XCTAssertEqual(evidence.costEstimate.assumptionID, try Identifier("mtp-27-fixed-cost-assumptions"))
+        XCTAssertEqual(evidence.costEstimate.feeAmount, 0.01, accuracy: 0.00000001)
+        XCTAssertEqual(evidence.costEstimate.slippageAmount, 0.0075, accuracy: 0.00000001)
+        XCTAssertEqual(evidence.costEstimate.totalCostAmount, 0.0175, accuracy: 0.00000001)
+        XCTAssertEqual(evidence.executionMode, .paper)
+        XCTAssertEqual(evidence.proposalAuthorization, .paperIntentOnly)
+        XCTAssertEqual(evidence.workflowStage, .simulatedFill)
+        XCTAssertEqual(evidence.eventStream, .paper)
+        XCTAssertEqual(evidence.evidenceKind, .simulatedFill)
+        XCTAssertEqual(evidence.sourceOrderIntentSequence, 9)
+        XCTAssertEqual(evidence.sourceRiskDecisionSequence, 7)
+        XCTAssertEqual(evidence.filledAt.timeIntervalSince1970, 2_700)
+        XCTAssertTrue(evidence.isSimulatedFillEvidence)
+        XCTAssertFalse(evidence.authorizesTradingExecution)
+        XCTAssertFalse(evidence.authorizesLiveTrading)
+        XCTAssertFalse(evidence.touchesSignedEndpoint)
+        XCTAssertFalse(evidence.touchesBrokerAction)
+        XCTAssertFalse(evidence.representsRealOrder)
+        XCTAssertFalse(evidence.representsRealFill)
+        XCTAssertFalse(evidence.representsBrokerFill)
+        XCTAssertFalse(evidence.updatesRealAccountBalance)
+        XCTAssertFalse(evidence.isExecutableAsRealOrder)
+        XCTAssertTrue(evidence.paperOnlyBoundaryHeld)
+
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoded = try JSONDecoder().decode(PaperSimulatedFillEvidence.self, from: encoded)
+        XCTAssertEqual(decoded, evidence)
+    }
+
+    func testPaperSimulatedFillEvidenceRejectsRejectedIntentAndAssumptionMismatch() throws {
+        // 测试场景：risk-rejected order intent 不得生成 simulated fill；填充数量或价格也必须
+        // 与 order intent deterministic assumption 对齐，避免引入部分成交或动态滑点语义。
+        XCTAssertThrowsError(
+            try PaperSimulatedFillEvidence(
+                fillID: try Identifier("paper-simulated-fill-rejected"),
+                orderIntent: PaperOrderIntentFixture.deterministicRiskRejected(),
+                assumption: .deterministicFixture,
+                sourceOrderIntentSequence: 10,
+                filledAt: Date(timeIntervalSince1970: 2_700)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperSimulatedFillRequiresOrderIntentCreated(.rejectedByRisk)
+            )
+        }
+
+        XCTAssertThrowsError(
+            try PaperSimulatedFillAssumption(
+                assumptionID: try Identifier("invalid-zero-simulated-fill"),
+                filledQuantity: try Quantity(0, field: "paperSimulatedFill.filledQuantity"),
+                fillPrice: try Price(100, field: "paperSimulatedFill.fillPrice"),
+                liquidityRole: .maker
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .invalidPaperSimulatedFillQuantity(0))
+        }
+
+        let evidence = try PaperSimulatedFillFixture.deterministicAllowed()
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoder = JSONDecoder()
+
+        var quantityMismatchObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        quantityMismatchObject["filledQuantity"] = 0.25
+        let quantityMismatchData = try JSONSerialization.data(withJSONObject: quantityMismatchObject)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperSimulatedFillEvidence.self, from: quantityMismatchData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperSimulatedFillMismatch(field: "filledQuantity", expected: "0.5", actual: "0.25")
+            )
+        }
+    }
+
+    func testPaperSimulatedFillEvidenceDecodingRejectsRealFillBrokerAndAccountBypass() throws {
+        // 测试场景：Codable 解码不能把 simulated fill evidence 伪造成真实成交、
+        // broker fill、account update、signed endpoint 或 Live trading 能力。
+        let evidence = try PaperSimulatedFillFixture.deterministicAllowed()
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoder = JSONDecoder()
+
+        var nonPaperObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        nonPaperObject["executionMode"] = "backtest"
+        let nonPaperData = try JSONSerialization.data(withJSONObject: nonPaperObject)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperSimulatedFillEvidence.self, from: nonPaperData)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .paperSimulatedFillRequiresPaperMode(.backtest))
+        }
+
+        var realFillObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        realFillObject["representsRealFill"] = true
+        let realFillData = try JSONSerialization.data(withJSONObject: realFillObject)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperSimulatedFillEvidence.self, from: realFillData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperSimulatedFillForbiddenCapability("representsRealFill")
+            )
+        }
+
+        var brokerFillObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        brokerFillObject["representsBrokerFill"] = true
+        let brokerFillData = try JSONSerialization.data(withJSONObject: brokerFillObject)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperSimulatedFillEvidence.self, from: brokerFillData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperSimulatedFillForbiddenCapability("representsBrokerFill")
+            )
+        }
+
+        var accountUpdateObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        accountUpdateObject["updatesRealAccountBalance"] = true
+        let accountUpdateData = try JSONSerialization.data(withJSONObject: accountUpdateObject)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperSimulatedFillEvidence.self, from: accountUpdateData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperSimulatedFillForbiddenCapability("updatesRealAccountBalance")
             )
         }
     }

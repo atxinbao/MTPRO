@@ -41,6 +41,11 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
     case paperOrderIntentRequiresPaperMode(ExecutionMode)
     case paperOrderIntentForbiddenCapability(String)
     case paperOrderIntentMismatch(field: String, expected: String, actual: String)
+    case invalidPaperSimulatedFillQuantity(Double)
+    case paperSimulatedFillRequiresPaperMode(ExecutionMode)
+    case paperSimulatedFillRequiresOrderIntentCreated(PaperOrderLifecycleState)
+    case paperSimulatedFillForbiddenCapability(String)
+    case paperSimulatedFillMismatch(field: String, expected: String, actual: String)
 
     public var description: String {
         switch self {
@@ -118,6 +123,16 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
             "Paper order intent forbids capability: \(field)"
         case let .paperOrderIntentMismatch(field, expected, actual):
             "Paper order intent mismatch for \(field): expected \(expected), actual \(actual)"
+        case let .invalidPaperSimulatedFillQuantity(value):
+            "Paper simulated fill quantity must be positive: \(value)"
+        case let .paperSimulatedFillRequiresPaperMode(value):
+            "Paper simulated fill requires paper mode: \(value.rawValue)"
+        case let .paperSimulatedFillRequiresOrderIntentCreated(value):
+            "Paper simulated fill requires intentCreated order lifecycle state: \(value.rawValue)"
+        case let .paperSimulatedFillForbiddenCapability(field):
+            "Paper simulated fill forbids capability: \(field)"
+        case let .paperSimulatedFillMismatch(field, expected, actual):
+            "Paper simulated fill mismatch for \(field): expected \(expected), actual \(actual)"
         }
     }
 }

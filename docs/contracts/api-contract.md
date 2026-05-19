@@ -522,3 +522,37 @@ MTP-39 不新增 HTTP API，也不新增 live / broker / signed command。
 - 不实现完整 OMS。
 - 不实现 cancel / replace 工作流。
 - 不把 paper order intent 解释为真实订单授权、真实成交、broker fill 或 Live execution。
+
+## MTP-40 Simulated Fill Evidence 内部模型边界
+
+日期：2026-05-19
+
+执行者：Codex
+
+MTP-40 不新增 HTTP API，也不新增 live / broker / signed command。
+
+新增内部 Core value contract：
+
+- `PaperSimulatedFillAssumption`：保存 deterministic 模拟成交假设，固定 filled quantity、fill price、liquidity role 和 MTP-27 fixed execution cost assumptions。
+- `PaperSimulatedFillEvidence`：从 `PaperOrderIntent` 派生本地 simulated fill evidence，并携带 fixed cost evidence、workflow stage、event stream 和 capability flags。
+- `PaperSimulatedFillFixture`：提供 deterministic allowed fill evidence，用于 XCTest 和 PR evidence。
+
+契约要求：
+
+- 输入 order intent 必须是 `intentCreated`，且 risk decision status 必须是 `allowed`。
+- filled quantity 和 fill price 必须与上游 order intent 完全一致，当前不表达部分成交、价格改善、动态滑点或执行优化。
+- Simulated fill 必须固定 `executionMode == paper`、`proposalAuthorization == paperIntentOnly`、`workflowStage == simulatedFill`、`eventStream == .paper` 和 `evidenceKind == simulatedFill`。
+- Cost evidence 必须复用 MTP-27 fixed fee / slippage assumptions，不读取交易所费率表、account tier、broker fill 或真实成交回报。
+- Codable 解码必须拒绝非 paper mode、risk-rejected intent、real fill、broker fill、account update、trading authorization、signed endpoint、broker action 或 Live trading capability。
+
+边界确认：
+
+- 不新增 `Command` case。
+- 不新增 live order command。
+- 不新增 broker account command。
+- 不新增 signed endpoint command。
+- 不实现真实撮合。
+- 不处理真实成交回报。
+- 不实现动态滑点模型、交易所费率表或执行成本优化。
+- 不写 event log，不新增 projection / ViewModel，不更新真实账户。
+- 不把 simulated fill evidence 解释为真实成交、broker fill、account update、真实订单授权或 Live execution。

@@ -566,6 +566,34 @@ Paper order intent / lifecycle 在当前事项中先以 Core value contract 和 
 - `rejectedByRisk` 只代表本地 risk blocker 结果被保留，不代表真实 broker rejection。
 - 当前不新增 UI command、risk control command、position management command、broker action、signed endpoint、account endpoint、真实订单行为或 Live execution。
 
+## MTP-40 Simulated Fill Evidence 观察面
+
+日期：2026-05-19
+
+执行者：Codex
+
+Simulated fill evidence 在当前事项中先以 Core value contract 和 deterministic fixture 作为观察面，为后续 event log、replay、portfolio projection 和 Report evidence 提供稳定输入。
+
+当前可观察字段：
+
+- fillID、orderID、proposalID、sessionID、riskDecisionID、riskProfileID。
+- orderLifecycleState：必须为 `intentCreated`。
+- riskDecisionStatus：必须为 `allowed`。
+- side、symbol、timeframe。
+- filledQuantity、fillPrice、orderIntentQuantity、orderIntentReferencePrice、grossNotional。
+- MTP-27 fixed cost evidence：assumptionID、liquidityRole、feeAmount、slippageAmount、totalCostAmount。
+- executionMode、proposalAuthorization。
+- workflowStage、eventStream、evidenceKind。
+- sourceOrderIntentSequence、sourceRiskDecisionSequence、filledAt。
+- paper-only capability flags：`authorizesTradingExecution`、`authorizesLiveTrading`、`touchesSignedEndpoint`、`touchesBrokerAction`、`representsRealOrder`、`representsRealFill`、`representsBrokerFill`、`updatesRealAccountBalance` 固定为 `false`。
+
+边界：
+
+- 当前只定义 Core simulated fill evidence value model 和 deterministic tests，不新增 SwiftUI 页面字段。
+- 当前不新增 event log 写入、SQLite / DuckDB projection、Report / Dashboard 字段或 portfolio update。
+- Simulated fill evidence 只表达本地 Paper 模拟成交证据，不代表真实成交、broker fill、execution report、account update 或交易执行授权。
+- 当前不新增 UI command、risk control command、position management command、broker action、signed endpoint、account endpoint、真实订单行为或 Live execution。
+
 ## MTP-29 Report / Dashboard Trading Validation Evidence 观察面
 
 日期：2026-05-18
