@@ -271,3 +271,23 @@ MTP-51 新增 Event Timeline / Evidence Explorer 的 App 层 read model / ViewMo
 - ViewModel 不暴露 SQLite / DuckDB schema、table、column、SQL、ORM model、Runtime object、Persistence adapter direct read 或 adapter request。
 - ViewModel 不提供 UI control、Runtime command、query language、order-level command、risk control、position management、broker action、signed endpoint、account endpoint、listenKey 或真实订单行为。
 - `readModelOnlyBoundaryHeld` 必须为 true；Live trading、broker action、command surface、query language 和 trading execution authorization 必须为 false。
+
+## MTP-52 Dashboard / Workbench Shell ViewModel 契约
+
+日期：2026-05-20
+
+执行者：Codex
+
+MTP-52 在现有 Dashboard / Workbench shell 上增量消费 MTP-47 至 MTP-51 的 App 层合同：
+
+- `DashboardShellControlSnapshot`：把 `PaperWorkflowSessionControl` 和 `PaperSessionLocalControlAction` 映射成只读 session-level local control 展示行，固定 scope、control level、paper execution mode 和全部 false 的 capability flags。
+- `DashboardShellWorkbenchSnapshot`：汇总 control shell、`PaperWorkflowObservabilityViewModel` 和 `PaperWorkflowEvidenceExplorerViewModel`，作为 Dashboard shell 的只读 Workbench 输入。
+- `DashboardShellSnapshot.workbench`：在保持八个 `DashboardSection` 不变的前提下，把 Paper workflow control shell、observability sections 和 Event Timeline / Evidence Explorer preview 挂到现有 shell。
+- `DashboardShellView`：只渲染 snapshot 文本、指标和 read-only preview，不提供按钮、表单、runtime command 或 adapter 访问。
+
+边界确认：
+
+- Shell 只能消费 ViewModel / Read Model / Command Model，不直接读取 projection schema、runtime object、adapter request 或外部系统。
+- Session-level controls 只能是 `start` / `pause` / `close` / `reset`，且只作为 read-only presentation；不得解释为 order submit / cancel / replace 或真实交易授权。
+- `DashboardShellWorkbenchSnapshot.readModelOnlyBoundaryHeld` 和 `paperOnlyBoundaryHeld` 必须为 true。
+- `providesCommandSurface`、`providesOrderLevelCommand`、`exposesDatabaseSchema`、`exposesRuntimeObject`、`exposesAdapterRequest`、`authorizesLiveTrading`、`touchesBrokerAction` 和 `authorizesTradingExecution` 必须为 false。

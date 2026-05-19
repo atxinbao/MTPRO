@@ -5287,3 +5287,46 @@ Next Handoff：Human + `@001 / PLN`
 | --- | --- | --- |
 | `swift test --filter AppTests` | pass | 15 个 AppTests，0 failures；覆盖 Event Timeline / Evidence Explorer deterministic snapshot、market / strategy / risk / order / fill / portfolio / report section coverage、evidence links、read-only filter、Codable deterministic equality 和 schema / runtime / adapter / command non-exposure。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 105 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
+
+## MTP-52 增量扩展 Dashboard / Workbench shell 并保持 read-model-only
+
+日期：2026-05-20
+
+执行者：Codex（Codex Execution Agent）
+
+目的：
+
+- 按 Linear issue `MTP-52` 在现有 Dashboard / Workbench shell 上增量呈现 Paper workflow control shell、observability read model 和 Event Timeline / Evidence Explorer 子集。
+- 让 shell snapshot 展示 `start` / `pause` / `close` / `reset` 四个 session-level local controls，并证明它们只消费 Command Model，不形成按钮、表单或可执行交易入口。
+- 保持 Dashboard smoke、read-model-only、paper-only、no schema / runtime / adapter direct access 和 forbidden command evidence。
+
+文件范围：
+
+- Updated：
+  - `Sources/App/DashboardShell.swift`
+  - `Tests/AppTests/AppTests.swift`
+  - `checks/automation-readiness.sh`
+  - `docs/product/product-surface-map.md`
+  - `docs/contracts/frontend-view-model-contract.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+
+边界确认：
+
+- `DashboardShellControlSnapshot` 只把 `PaperWorkflowSessionControl` 映射到 `PaperSessionLocalControlAction`，scope 固定为 local paper session，control level 固定为 session，execution mode 固定为 paper。
+- `DashboardShellWorkbenchSnapshot` 只组合现有 App 层 ViewModel / Read Model / Command Model，展示 observability metrics、Event Timeline / Evidence Explorer preview 和 workbench boundary flags。
+- SwiftUI shell 只渲染文本、指标和 read-only preview，不包含按钮、文本输入、开关、order-level command、Runtime command、adapter request 或 schema direct access。
+- Dashboard smoke 继续保持八个 Dashboard sections，并新增 `workbenchReadModelOnly=true`、controls 和 timeline item evidence。
+- 未接 Live trading、signed endpoint、account endpoint、listenKey、broker action 或真实订单行为。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter AppTests` | pass | 16 个 AppTests，0 failures；覆盖 Dashboard / Workbench shell snapshot control / observability / explorer binding、Dashboard smoke workbench evidence、session-level local command presentation 和 no button / no command / schema / runtime / adapter boundary tests。 |
+| `bash checks/automation-readiness.sh` | pass | 新增 MTP-52 contract / product / validation / matrix / source / test anchors 后通过，输出 `MTPRO automation readiness checks passed.`。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 106 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset`，最终输出 `MTPRO checks passed.`。 |

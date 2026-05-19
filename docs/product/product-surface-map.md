@@ -287,3 +287,25 @@ Event boundary 覆盖：
 - order-level command、risk control command、position management command、OMS、真实订单提交 / 撤销 / 替换。
 - SQLite / DuckDB schema、SQL、ORM model、runtime object、Persistence adapter direct read 或 adapter request 暴露。
 - broker / exchange side effect、signed endpoint、account endpoint、listenKey 或 Live execution。
+
+## MTP-52 Dashboard / Workbench shell 增量扩展
+
+日期：2026-05-20
+
+执行者：Codex
+
+当前产品面把 Paper workflow control shell、observability read model 和 Event Timeline / Evidence Explorer 子集增量呈现在现有 Dashboard / Workbench shell 中，不做完整 UI redesign。
+
+Shell 新增展示：
+
+- session-level local controls：`start` / `pause` / `close` / `reset`。
+- Paper workflow observability sections、session status、allowed / blocked evidence、replay freshness 和 report artifact status。
+- Event Timeline / Evidence Explorer preview，包括 timeline item count、evidence link count、selected sections、read-only filter 和前若干 timeline rows。
+- Dashboard smoke 继续保留八个原有 Dashboard sections，并新增 workbench read-model-only evidence。
+
+仍不包含：
+
+- 真实交易按钮、表单、order submit / cancel / replace 或 order-level command。
+- Runtime command、完整 operations console、完整 query language、report archive 或 export 系统。
+- SQLite / DuckDB schema、SQL、ORM model、runtime object、Persistence adapter direct read 或 adapter request 暴露。
+- broker / exchange side effect、signed endpoint、account endpoint、listenKey 或 Live execution。
