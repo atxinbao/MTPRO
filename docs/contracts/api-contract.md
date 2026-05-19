@@ -625,3 +625,32 @@ MTP-42 不新增 HTTP API，也不新增 live / broker / signed command。
 - 不接 broker event replay。
 - 不读取真实账户、真实 position 或 broker fill。
 - 不把 replay / projection evidence 解释为真实订单授权、真实成交、broker fill、account update 或 Live execution。
+
+## MTP-47 Paper Workflow Workbench Control Shell API 边界
+
+日期：2026-05-20
+
+执行者：Codex
+
+MTP-47 不新增 HTTP API，不新增 `Command` case，也不实现 session control Command Model。
+
+新增 App 层合同 fixture：
+
+- `PaperWorkflowSessionControl`：只定义未来 session-level local controls 的允许集合 `start` / `pause` / `close` / `reset`。
+- `PaperWorkflowWorkbenchInformationArchitecture`：记录 Workbench 信息架构、read-model-only 来源、观察面和 forbidden capability。
+
+契约要求：
+
+- session-level control 名称只能用于后续 paper-only local control shell。
+- order-level command 必须保持禁止。
+- Workbench IA 不得调用 Runtime、Adapters、Binance signed endpoint、account endpoint、listenKey、broker 或真实订单 API。
+- `PaperWorkflowWorkbenchInformationArchitecture` 的合同验证必须拒绝 order-level command、非 read-model-only source、提前实现 Command Model、UI controls 或 Event Timeline。
+
+边界确认：
+
+- 不实现 Command Model。
+- 不新增 UI 控件。
+- 不写 event log，不新增 replay / projection。
+- 不提供 order submit / cancel / replace。
+- 不实现 OMS。
+- 不接 signed endpoint、account endpoint、listenKey、broker action 或 Live execution。

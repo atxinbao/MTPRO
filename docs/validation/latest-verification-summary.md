@@ -1,6 +1,6 @@
 # 最近验证摘要
 
-日期：2026-05-19
+日期：2026-05-20
 
 执行者：Codex
 
@@ -21,10 +21,10 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - Linear Project status `Completed` 已确认，`type=completed`，`completedAt=2026-05-19T14:48:42.973Z`。
 - Stage Code Audit Report 已覆盖完整 Linear Project，路径为 `docs/audit/mtpro-paper-execution-workflow-v1-stage-code-audit.md`。
 - Root Docs Refresh Gate 只同步已发生事实；Root Docs Delta 不决定下一阶段方向。
-- `MTPRO Paper Workflow Control Shell v1` Project-level planning record 已落仓到 `docs/planning/projects/mtpro-paper-workflow-control-shell-v1-plan.md`，作为下一阶段写入 Linear 前的 planning summary。
-- `MTPRO Paper Workflow Control Shell v1` 当前尚未写入 Linear；未创建 Linear Project，未创建 Linear Issues，未修改 Linear status，未推进 Todo，未启动 `@002 / PAR`，未启动 Symphony。
-- `MTPRO Paper Workflow Control Shell v1` planning record 只保存 Project 级计划摘要和格式门槛，不复制维护完整 Linear issue body；完整 issue execution contract 以后以 Linear issue body 为准。
-- Project 写入 Linear 后，所有 issue 初始必须保持 `Backlog / non-executable`；后续由 Parent Codex queue preflight 自动判断唯一 eligible issue，并在 WIP=1、依赖满足、无 active conflict、execution contract 格式完整时推进 Todo。
+- `MTPRO Paper Workflow Control Shell v1` Project-level planning record 位于 `docs/planning/projects/mtpro-paper-workflow-control-shell-v1-plan.md`；该文档仍只是 planning summary，不替代 Linear issue body。
+- `MTPRO Paper Workflow Control Shell v1` 已写入 Linear；当前 issue、status 和 queue integrity 必须从 Linear live-read 获取。
+- 本轮 MTP-47 执行前 live-read 确认：`MTP-47` 为唯一 `In Progress` issue，`MTP-48` 至 `MTP-53` 均为 `Backlog`，WIP=1。
+- `MTP-47` 的 Linear issue body 是本轮执行合同；scope 限定为 Workbench information architecture、session-level control shell 边界、validation anchor 和合同文档。
 - 本轮 queue closure（2026-05-19）确认 `MTPRO Paper Execution Workflow v1` 中 canonical issues `MTP-38`、`MTP-39`、`MTP-40`、`MTP-41`、`MTP-42`、`MTP-44`、`MTP-45` 全部 `Done`；`MTP-43`、`MTP-46` 为 `Duplicate` 并排除。
 - `MTP-45` 新增 Project 级 Stage Audit Input，路径为 `docs/audit/inputs/mtpro-paper-execution-workflow-v1-stage-audit-input.md`；Parent Codex 已基于该输入落仓 canonical Stage Code Audit Report。
 - 本轮 MTP-42 paper execution event log / replay / projection focused Core 链路已通过 `swift test --filter CoreTests/testPaperExecution`；最终 `bash checks/run.sh` 结果见本文件最近验证表和 `verification.md` 追加记录。
@@ -81,6 +81,8 @@ Next Handoff：Human + `@001 / PLN`
 - `MTP-44` 将 paper execution workflow evidence 汇总到 Report / Dashboard read model，展示 decision IDs、paper order IDs、simulated fill IDs、workflow replay streams、portfolio update IDs、decision / order / fill chain coverage 和 paper-only boundary。
 - `MTP-45` 固化 `MTPRO Paper Execution Workflow v1` 阶段审计输入，汇总 MTP-38 至 MTP-44 的 PR evidence、merge commit、required check、paper execution workflow validation evidence chain、known boundaries、automation readiness evidence 和 Root Docs Delta input。
 - `MTPRO Paper Execution Workflow v1` Stage Code Audit Report 已落仓，路径为 `docs/audit/mtpro-paper-execution-workflow-v1-stage-code-audit.md`。
+- `MTP-47` 新增 `PaperWorkflowWorkbenchInformationArchitecture` App 层合同 fixture，固定 Paper workflow Workbench IA、session-level controls、observability sections 和 forbidden capability。
+- `MTP-47` 验证 session-level controls 只能为 `start` / `pause` / `close` / `reset`，并验证 order-level command、非 read-model-only source、提前实现 Command Model / UI controls / Event Timeline 会被拒绝。
 - 历史 `MTP-30` 阶段收口已迁入 `docs/audit/inputs/`，`docs/validation/` 不再存放 `MTP-xx` 命名的阶段输入文件。
 - `@000 / AIE` 是当前 Codex / AI Engineer 协作入口；`@003 / PRD`、`@004 / DSG`、`@005 / ARC` 是 Linear 外 reference / root docs 角色。
 
@@ -96,6 +98,9 @@ Next Handoff：Human + `@001 / PLN`
 | `swift test --filter AppTests` | pass | 9 个 AppTests，0 failures；覆盖 MTP-44 Report / Dashboard workflow evidence、Codable snapshot、read-model-only boundary 和无 UI execution surface。 |
 | `swift test` | pass | 93 个 XCTest，0 failures；覆盖 MTP-45 后完整 Core / Persistence / Runtime / App 回归。 |
 | `bash checks/run.sh` | pass | 统一验证入口通过，输出 `MTPRO checks passed.`；覆盖 git diff check、automation readiness、Dashboard build / smoke 和 Swift tests。 |
+| `swift test --filter AppTests` | pass | MTP-47 focused App validation 通过，11 个 AppTests，0 failures；新增 Workbench IA / control shell boundary fixture 和 no order-level command 合同验证。 |
+| `bash checks/automation-readiness.sh` | pass | MTP-47 新增 `TVM-PAPER-WORKFLOW-CONTROL-SHELL`、validation-plan、contract docs 和 product surface anchors 后通过。 |
+| `bash checks/run.sh` | pass | MTP-47 统一验证入口通过；automation readiness、Dashboard build / smoke 和 95 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
 
 ## 当前边界
 
@@ -105,11 +110,14 @@ Next Handoff：Human + `@001 / PLN`
 - Paper execution / order / fill / portfolio 语义全部是 paper-only evidence，不代表真实订单、真实成交、broker fill、account state 或 Live fallback。
 - MTP-42 只定义 paper execution facts 写入、replay 和 portfolio projection 串联；portfolio update 只能从 replay 后的 paper-only simulated fill evidence 派生。
 - MTP-44 只把 paper execution workflow evidence 汇总到 Report / Dashboard read model；decision、order、fill、portfolio update ID 只作为 append-only replay evidence，不代表真实订单、真实成交、broker fill、account update、execution report 或交易授权。
+- MTP-47 只定义 Workbench information architecture 和 session-level control shell 边界；不实现 Command Model、UI 控件或 Event Timeline。
+- MTP-47 的 session-level local controls 只允许 `start` / `pause` / `close` / `reset`，并且不得被解释为真实交易授权。
+- MTP-47 明确禁止 order-level command、Live trading、signed endpoint、account endpoint、listenKey、broker action、真实订单 submit / cancel / replace、OMS、database schema surface、runtime object surface 和 adapter request surface。
 - MTP-41 只定义 paper execution decision 本地链路和 deterministic fixture；blocked risk decision 不生成 paper order，allowed decision 只生成 paper-only order / fill evidence。
 - MTP-41 issue 本身不写 event log、不新增 replay / projection / ViewModel；MTP-42 只把已存在的 paper execution facts 串入 event log / replay / projection，不实现完整 execution engine、完整风险引擎、broker rejection fallback、真实撮合、真实成交回报、broker fill、account update、broker action、signed endpoint 或真实订单行为。
 - Report / Dashboard 只展示 read model / ViewModel，不提供交易执行入口。
 - MTP-45 只准备 Stage Code Audit 输入材料，不创建下一 Project / Issue，不推进下一 issue，不启动下一阶段 `symphony-issue`；最终 Stage Code Audit Report 已由 Parent Codex 作为 Project closure 单独落仓。
-- `MTPRO Paper Workflow Control Shell v1` planning record 已落仓但未写入 Linear，不授权执行，不创建 Linear Project / Issue，不推进 Todo，不启动 `@002 / PAR`，不启动 Symphony。
+- `MTPRO Paper Workflow Control Shell v1` 已写入 Linear；当前执行事实仍只能来自 Linear live-read 和当前 issue body，不来自 planning record。
 - Trading Validation Matrix 是 evidence routing 入口，不替代 Linear issue contract、PR evidence 或 Stage Code Audit Report。
 - `docs/audit/inputs/` 只放阶段审计输入材料，不授权下一 Project planning 或 execution。
 - `docs/audit/inputs/mtpro-paper-session-runtime-v1-stage-audit-input.md` 是 Paper Session Runtime 的阶段审计输入，不替代 canonical Stage Code Audit Report。

@@ -5048,3 +5048,51 @@ Next Handoff：Human + `@001 / PLN`
 | --- | --- | --- |
 | `git diff --check` | pass | 本轮 docs-only planning record 变更无 whitespace error。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 93 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
+
+## MTP-47 Paper workflow Workbench information architecture / control shell boundary
+
+日期：2026-05-20
+
+执行者：Codex（Codex Execution Agent）
+
+目的：
+
+- 按 Linear issue `MTP-47` 定义 Paper workflow Workbench information architecture 和控制壳边界。
+- 新增 App 层 `PaperWorkflowWorkbenchInformationArchitecture` deterministic fixture，固定 session-level controls、observability sections 和 forbidden capability。
+- 将 `TVM-PAPER-WORKFLOW-CONTROL-SHELL` 回填到 trading validation matrix，并更新 product / contract / validation docs。
+
+文件范围：
+
+- Added：
+  - `Sources/App/PaperWorkflowWorkbenchArchitecture.swift`
+- Updated：
+  - `Tests/AppTests/AppTests.swift`
+  - `checks/automation-readiness.sh`
+  - `docs/product/product-surface-map.md`
+  - `docs/contracts/api-contract.md`
+  - `docs/contracts/backend-use-case-contract.md`
+  - `docs/contracts/frontend-view-model-contract.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+
+边界确认：
+
+- 只定义 Workbench information architecture、session-level control shell 边界、validation anchor 和合同文档。
+- session-level controls 只允许 `start` / `pause` / `close` / `reset`。
+- 未实现 Command Model。
+- 未实现 UI 控件。
+- 未实现 Event Timeline。
+- 未实现 order-level command、OMS、Live trading、signed endpoint、account endpoint、listenKey、broker action 或真实订单提交 / 撤销 / 替换。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter AppTests` | pass | 11 个 AppTests，0 failures；覆盖 MTP-47 Workbench IA fixture、session-level controls、observability sections、forbidden capability 和 no order-level command 合同拒绝。 |
+| `bash checks/automation-readiness.sh` | pass | `TVM-PAPER-WORKFLOW-CONTROL-SHELL`、MTP-47 validation-plan、contract docs 和 product surface anchors 均可机械定位。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 95 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |

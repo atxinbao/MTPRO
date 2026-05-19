@@ -151,3 +151,37 @@ Report 区域：
 - risk control command、position management command 或 order command。
 - database schema、SQL、ORM model、runtime object 或 adapter request 暴露。
 - signed endpoint、account endpoint、broker action 或真实订单行为。
+
+## MTP-47 Paper workflow Workbench 信息架构和控制壳边界
+
+日期：2026-05-20
+
+执行者：Codex
+
+当前产品面新增 Paper workflow Workbench information architecture 合同，但不新增 UI 控件或命令执行入口。
+
+Workbench 观察面必须覆盖：
+
+- session。
+- proposal。
+- risk decision。
+- paper order。
+- simulated fill。
+- portfolio projection。
+- replay freshness。
+- report artifact status。
+- event timeline。
+
+控制壳边界：
+
+- 后续 session-level local controls 只允许 `start` / `pause` / `close` / `reset`。
+- 这些 control 只是后续本地 paper-only session 控制壳入口，不是当前 issue 的 Command Model 或 SwiftUI 控件。
+- Workbench 仍只消费 ViewModel / Read Model，不读取 database schema、runtime object 或 adapter request。
+
+仍不包含：
+
+- Command Model。
+- UI 控件或 Event Timeline 实现。
+- order-level command。
+- live order button、risk control command、position management command 或 OMS。
+- signed endpoint、account endpoint、listenKey、broker action、真实订单提交 / 撤销 / 替换或 Live execution。

@@ -35,6 +35,85 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(viewModel.events.source.providesLiveOrderAction)
     }
 
+    func testPaperWorkflowWorkbenchInformationArchitectureDefinesSessionControlShellBoundary() throws {
+        // 测试场景：MTP-47 只固定 Paper workflow Workbench 信息架构和控制壳边界。
+        // fixture 必须保持 read-model-only，并且 session-level control 只能是 start / pause / close / reset。
+        let contract = PaperWorkflowWorkbenchInformationArchitecture.deterministicFixture
+
+        XCTAssertEqual(contract.dashboardSections, DashboardSection.allCases)
+        XCTAssertEqual(contract.sessionLevelControls, [.start, .pause, .close, .reset])
+        XCTAssertEqual(
+            contract.observabilitySections,
+            [
+                .session,
+                .proposal,
+                .riskDecision,
+                .paperOrder,
+                .simulatedFill,
+                .portfolioProjection,
+                .replayFreshness,
+                .reportArtifactStatus,
+                .eventTimeline
+            ]
+        )
+        XCTAssertEqual(
+            contract.forbiddenCapabilities,
+            [
+                .orderLevelCommand,
+                .liveTrading,
+                .signedEndpoint,
+                .accountEndpoint,
+                .listenKey,
+                .brokerAction,
+                .realOrderSubmit,
+                .realOrderCancel,
+                .realOrderReplace,
+                .oms,
+                .databaseSchemaSurface,
+                .runtimeObjectSurface,
+                .adapterRequestSurface
+            ]
+        )
+        XCTAssertTrue(contract.source.isReadModelOnly)
+        XCTAssertTrue(contract.controlShellBoundaryHeld)
+        XCTAssertFalse(contract.allowsOrderLevelCommand)
+        XCTAssertFalse(contract.implementsCommandModel)
+        XCTAssertFalse(contract.implementsUIControls)
+        XCTAssertFalse(contract.implementsEventTimeline)
+    }
+
+    func testPaperWorkflowWorkbenchInformationArchitectureRejectsOutOfScopeControlShellExpansion() throws {
+        // 测试场景：任何 order-level command、非 read-model-only source 或提前实现 Command/UI/Event Timeline
+        // 的尝试都必须被合同 fixture 拒绝，避免 MTP-47 越界进入后续 issue。
+        XCTAssertThrowsError(
+            try PaperWorkflowWorkbenchInformationArchitecture(allowsOrderLevelCommand: true)
+        ) { error in
+            XCTAssertEqual(error as? PaperWorkflowWorkbenchContractError, .orderLevelCommandExposed)
+        }
+        XCTAssertThrowsError(
+            try PaperWorkflowWorkbenchInformationArchitecture(sessionLevelControls: [.start, .pause, .close])
+        ) { error in
+            XCTAssertEqual(error as? PaperWorkflowWorkbenchContractError, .sessionControlsMismatch)
+        }
+        XCTAssertThrowsError(
+            try PaperWorkflowWorkbenchInformationArchitecture(dashboardSections: [.paper])
+        ) { error in
+            XCTAssertEqual(error as? PaperWorkflowWorkbenchContractError, .dashboardSectionsMismatch)
+        }
+        XCTAssertThrowsError(
+            try PaperWorkflowWorkbenchInformationArchitecture(
+                source: ViewModelSourceContract(exposesRuntimeObjects: true)
+            )
+        ) { error in
+            XCTAssertEqual(error as? PaperWorkflowWorkbenchContractError, .sourceIsNotReadModelOnly)
+        }
+        XCTAssertThrowsError(
+            try PaperWorkflowWorkbenchInformationArchitecture(implementsCommandModel: true)
+        ) { error in
+            XCTAssertEqual(error as? PaperWorkflowWorkbenchContractError, .implementationEscapedIssueScope)
+        }
+    }
+
     func testReadModelProjectionMapsAllDashboardSections() throws {
         let viewModel = try makeDashboardViewModel()
 

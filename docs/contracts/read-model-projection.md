@@ -668,6 +668,38 @@ portfolio projection 的本地 paper-only 链路。
 - decision / order / fill IDs 是 paper-only evidence，不代表真实订单、真实成交、broker fill、execution report、account update 或交易执行授权。
 - 当前不新增 UI command、risk control command、position management command、order command、broker action、signed endpoint、account endpoint、真实订单行为或 Live execution。
 
+## MTP-47 Paper Workflow Workbench IA 观察面
+
+日期：2026-05-20
+
+执行者：Codex
+
+Paper workflow Workbench 在当前事项中新增 information architecture fixture，用于固定后续 read model / ViewModel 扩展的观察合同。
+
+当前可观察字段：
+
+- session。
+- proposal。
+- risk decision。
+- paper order。
+- simulated fill。
+- portfolio projection。
+- replay freshness。
+- report artifact status。
+- event timeline。
+
+控制壳观察边界：
+
+- session-level local controls 只允许 `start` / `pause` / `close` / `reset`。
+- Workbench control shell 只表达本地 paper-only session 控制入口的允许集合，不生成 command、不写 event log、不触发 runtime。
+- fixture 明确拒绝 order-level command、非 read-model-only source、提前实现 Command Model、UI controls 或 Event Timeline。
+
+边界：
+
+- 当前不新增 SwiftUI 页面字段，不实现 Event Timeline，不新增 Command Model。
+- Read Model / ViewModel 不暴露 SQLite / DuckDB schema、ORM model、SQL、runtime object 或 adapter request。
+- control shell 不代表真实订单、真实成交、broker fill、account update、signed endpoint、account endpoint、listenKey、broker action 或 Live execution。
+
 ## MTP-29 Report / Dashboard Trading Validation Evidence 观察面
 
 日期：2026-05-18
