@@ -23,6 +23,7 @@
 | Graphify resource graph | ready | read context + scoped post-issue refresh；不提交 `graphify-out/*` |
 | Codex use-cases alignment | ready | `docs/automation/codex-use-cases-alignment.md` |
 | Verified operations | ready | `docs/automation/verified-operations.md` |
+| Paper Execution Workflow stage audit input anchor | ready | `docs/audit/inputs/mtpro-paper-execution-workflow-v1-stage-audit-input.md` |
 
 ## Project 切换规则
 

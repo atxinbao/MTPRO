@@ -67,6 +67,7 @@
 | `MTP-41` | `TVM-PAPER-EXECUTION-DECISION`、`TVM-PAPER-EXECUTION-WORKFLOW` | 已回填 paper execution decision 本地链路、allowed risk decision 生成 paper order intent 和 simulated fill evidence、blocked risk decision 不生成 paper order、deterministic fixtures、Core tests、Codable 禁区、paper-only capability flags 和无 event log / replay / projection / broker / real order 边界。 |
 | `MTP-42` | `TVM-PAPER-EXECUTION-WORKFLOW`、`TVM-PAPER-SESSION-REPLAY`、`TVM-PORTFOLIO-EXPOSURE` | 已回填 paper execution decision / order / simulated fill facts 写入 `.paper` stream、append-only source sequence invariant、replay deterministic summary、replayed simulated fill evidence -> portfolio projection update、SQLite runtime projection 和 read-only Report / Dashboard evidence 边界。 |
 | `MTP-44` | `TVM-PAPER-EXECUTION-WORKFLOW`、`TVM-PAPER-SESSION-REPLAY`、`TVM-REPORT-EVIDENCE` | 已回填 paper execution workflow evidence -> Report / Dashboard read model 汇总、`PaperExecutionWorkflowEvidenceSummary`、report artifact / ViewModel / shell snapshot 字段、Codable deterministic snapshot、read-model-only boundary、无 UI execution surface 和无 broker / Live fallback 边界。 |
+| `MTP-45` | `TVM-PAPER-EXECUTION-WORKFLOW`、`TVM-PAPER-ORDER-LIFECYCLE`、`TVM-PAPER-SIMULATED-FILL`、`TVM-PAPER-EXECUTION-DECISION`、`TVM-PAPER-SESSION-REPLAY`、`TVM-PORTFOLIO-EXPOSURE`、`TVM-REPORT-EVIDENCE` | 已新增 `docs/audit/inputs/mtpro-paper-execution-workflow-v1-stage-audit-input.md`，集中记录 MTP-38 至 MTP-44 的 PR evidence、merge commit、required check、paper execution workflow validation evidence chain、known boundaries、automation readiness evidence 和 Stage Code Audit handoff checklist；最终 Stage Code Audit Report 仍由 Parent Codex 在有效 issue 全部 Done 且 Linear Project `Completed` 后单独输出。 |
 
 ## MTP-30 阶段收口
 
@@ -91,6 +92,18 @@ MTP-37 对 Paper Session Runtime v1 的 paper-only runtime evidence 做阶段收
 | Known boundaries | `docs/audit/inputs/mtpro-paper-session-runtime-v1-stage-audit-input.md` 的 `Known boundaries` | 为 Stage Code Audit 的 paper-only、Live trading、signed endpoint、broker action、schema leakage 和 Report 授权边界提供输入。 |
 | Automation readiness | `checks/automation-readiness.sh`、`docs/automation/verified-operations.md`、`.github/pull_request_template.md` | 确认 `checks`、WIP=1、handoff marker、Post-Issue Ledger、Graphify ignore 和 PR Automation 证据链仍完整。 |
 | Root Docs Delta input | `docs/audit/inputs/mtpro-paper-session-runtime-v1-stage-audit-input.md` 的 `Root Docs Delta input` | 提醒 Parent Codex 在最终 Stage Code Audit Report 中检查 root docs，只同步已发生事实。 |
+
+## MTP-45 Paper Execution Workflow 阶段收口
+
+MTP-45 对 Paper Execution Workflow v1 的 paper-only execution evidence 做阶段收口，不新增业务交易能力，不替代最终 Stage Code Audit Report。
+
+| 收口项 | Evidence location | 审计用途 |
+| --- | --- | --- |
+| Issue / PR evidence | `docs/audit/inputs/mtpro-paper-execution-workflow-v1-stage-audit-input.md` 的 `Issue / PR evidence input` | 为 Parent Codex 汇总 PR #74、#76、#79、#80、#82、#83 和 MTP-45 PR 提供输入；`MTP-43`、`MTP-46` 为 Duplicate，不进入有效 issue queue。 |
+| Paper execution workflow validation evidence chain | `docs/audit/inputs/mtpro-paper-execution-workflow-v1-stage-audit-input.md` 的 `Paper execution workflow validation evidence chain` | 确认 workflow contract、paper order lifecycle、simulated fill、paper execution decision、event log / replay、portfolio projection 和 Report / Dashboard evidence 均有 test / fixture / read model / PR evidence。 |
+| Known boundaries | `docs/audit/inputs/mtpro-paper-execution-workflow-v1-stage-audit-input.md` 的 `Known boundaries` | 为 Stage Code Audit 的 paper-only、Live trading、signed endpoint、broker action、真实订单、真实成交、schema leakage 和 Report 授权边界提供输入。 |
+| Automation readiness | `checks/automation-readiness.sh`、`docs/automation/verified-operations.md`、`.github/pull_request_template.md` | 确认 `checks`、WIP=1、handoff marker、Post-Issue Ledger、Graphify ignore、MTP-45 audit input anchor 和 PR Automation 证据链仍完整。 |
+| Root Docs Delta input | `docs/audit/inputs/mtpro-paper-execution-workflow-v1-stage-audit-input.md` 的 `Root Docs Delta input` | 提醒 Parent Codex 在最终 Stage Code Audit Report 中检查 root docs，只同步已发生事实。 |
 
 ## Automation readiness anchors
 
