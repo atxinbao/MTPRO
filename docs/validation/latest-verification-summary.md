@@ -23,9 +23,12 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - Stage Code Audit Report 必须覆盖完整 Linear Project。
 - Root Docs Refresh Gate 只同步已发生事实；Root Docs Delta 不决定下一阶段方向。
 - 本轮 MTP-42 paper execution event log / replay / projection focused Core 链路已通过 `swift test --filter CoreTests/testPaperExecution`；最终 `bash checks/run.sh` 结果见本文件最近验证表和 `verification.md` 追加记录。
+- 当前 main 已包含 `docs/reference/nautilus-trader/` reference study 汇总文档；它只作为 Linear 外 Product / Design / Architecture 参考和 root docs delta proposal，不授权执行。
 
 ## 最近工程事实
 
+- `MTPRO NautilusTrader Reference Study` 已形成 @003 / PRD、@004 / DSG、@005 / ARC 三份角色文档，并由 @000 / AIE 汇总入口和 root docs delta proposal。
+- Reference study 只服务 Human + `@001 / PLN` 后续规划判断，不写 Linear、不创建 Project / Issue、不推进 `Todo`、不启动 Symphony、不写业务代码。
 - `MTPRO Paper Session Runtime v1` 已完成，planning record 位于 `docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md`，Stage Code Audit Report 位于 `docs/audit/mtpro-paper-session-runtime-v1-stage-code-audit.md`。
 - `MTP-37` 产生 Project 级 Stage Audit Input，路径为 `docs/audit/inputs/mtpro-paper-session-runtime-v1-stage-audit-input.md`。
 - `MTP-38` 固化 `TVM-PAPER-EXECUTION-WORKFLOW`，定义 paper-only execution workflow contract。
@@ -40,7 +43,7 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 
 | 命令 | 结果 | 说明 |
 | --- | --- | --- |
-| `git diff --check` | pass | 由 `bash checks/run.sh` 串联执行。 |
+| `git diff --check` | pass | 由 `bash checks/run.sh` 串联执行；覆盖 MTP-42 变更与当前 main reference study 文档合并状态。 |
 | `bash checks/automation-readiness.sh` | pass | MTPRO automation readiness checks passed；确认当前 paper execution workflow anchors 和 root docs routing 可被机械检查定位。 |
 | `swift build --product Dashboard` | pass | macOS dashboard executable 构建通过。 |
 | `DASHBOARD_SMOKE=1 swift run Dashboard` | pass | Dashboard smoke 通过，sections=8，readModelOnly=true。 |
@@ -50,6 +53,7 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 
 ## 当前边界
 
+- NautilusTrader reference study 不复制 NautilusTrader 代码，不引入 NautilusTrader 作为运行依赖，不直接修改 root docs，不写 Linear，不授权执行。
 - Paper execution / order / fill / portfolio 语义全部是 paper-only evidence，不代表真实订单、真实成交、broker fill、account state 或 Live fallback。
 - MTP-42 只定义 paper execution facts 写入、replay 和 portfolio projection 串联；portfolio update 只能从 replay 后的 paper-only simulated fill evidence 派生。
 - MTP-41 只定义 paper execution decision 本地链路和 deterministic fixture；blocked risk decision 不生成 paper order，allowed decision 只生成 paper-only order / fill evidence。
