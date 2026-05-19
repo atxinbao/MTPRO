@@ -106,12 +106,17 @@ require_contains "docs/automation/parent-codex-supervision.md" "Linear issue exe
 require_contains "docs/automation/parent-codex-supervision.md" "Linear Project / Issue 格式 Gate"
 require_contains "docs/automation/parent-codex-supervision.md" "Project Planning Facilitator"
 require_contains "docs/automation/parent-codex-supervision.md" "active Project pointer"
-require_contains "docs/automation/parent-codex-supervision.md" "mtpro-runtime-research-workbench-v1-222cf4e1965c"
+require_contains "docs/automation/parent-codex-supervision.md" 'docs/audit/<linear-project-slug>-stage-code-audit.md'
 require_contains "docs/automation/parent-codex-supervision.md" '第一个 issue 和后续 issue 的 `Backlog` -> `Todo` 操作都归属父 Codex'
 require_contains "docs/automation/parent-codex-supervision.md" "Human 确认 Project / Issue plan"
 require_contains "docs/automation/parent-codex-supervision.md" "Stage Code Audit Report 落仓规则"
 require_contains "docs/automation/parent-codex-supervision.md" 'docs/audit/<linear-project-slug>-stage-code-audit.md'
+require_contains "docs/automation/parent-codex-supervision.md" 'Linear Project status 设置或确认为 `Completed`'
+require_contains "docs/automation/parent-codex-supervision.md" 'type=completed'
+require_contains "docs/automation/parent-codex-supervision.md" 'completedAt'
+require_contains "docs/automation/parent-codex-supervision.md" '不能替代 Linear Project status `Completed`'
 require_contains "docs/automation/parent-codex-supervision.md" "报告必须覆盖整个 Linear Project"
+require_contains "docs/automation/parent-codex-supervision.md" 'Linear Project `Completed` evidence'
 require_contains "docs/automation/parent-codex-supervision.md" "Root Docs Delta"
 require_contains "docs/automation/parent-codex-supervision.md" "Root Docs Refresh Gate"
 require_contains "docs/automation/parent-codex-supervision.md" 'Human + `@001 / PLN`'
@@ -306,12 +311,18 @@ require_contains "docs/planning/linear-draft-plan.md" "完整 issue execution co
 require_contains "docs/planning/linear-draft-plan.md" '只有父 Codex 可以操作 `Backlog` -> `Todo`'
 require_contains "docs/planning/linear-draft-plan.md" "Root Docs Refresh Gate"
 require_contains "docs/planning/linear-draft-plan.md" "Stage Code Audit Report"
+require_contains "docs/planning/linear-draft-plan.md" 'Linear Project status 必须设置或确认为 `Completed`'
+require_contains "docs/planning/linear-draft-plan.md" 'Linear Project status type 必须是 `completed`'
+require_contains "docs/planning/linear-draft-plan.md" 'Linear Project `completedAt` 必须非空'
 require_contains "docs/planning/linear-draft-plan.md" 'Human + `@001 / PLN`'
 require_contains "docs/planning/linear-draft-plan.md" "docs/planning/projects/mtpro-trading-validation-and-parity-hardening-plan.md"
 require_contains "docs/planning/linear-draft-plan.md" "docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md"
 require_contains "docs/planning/linear-draft-plan.md" "仓库只保存 Project 级计划摘要和格式门槛，不复制维护完整 issue 正文"
 require_contains "docs/validation/latest-verification-summary.md" "Root Docs Refresh Gate"
 require_contains "docs/validation/latest-verification-summary.md" "Root Docs Delta"
+require_contains "docs/validation/latest-verification-summary.md" 'Linear Project status `Completed`'
+require_contains "docs/validation/latest-verification-summary.md" 'type=completed'
+require_contains "docs/validation/latest-verification-summary.md" 'completedAt'
 require_contains "docs/validation/latest-verification-summary.md" "docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md"
 require_contains "docs/validation/latest-verification-summary.md" "docs/audit/inputs/"
 require_contains "docs/validation/latest-verification-summary.md" "docs/audit/inputs/mtpro-paper-session-runtime-v1-stage-audit-input.md"

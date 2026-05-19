@@ -232,7 +232,16 @@ Post-Issue Ledger / 施工后记账只提供关系事实和下一步观察提示
 
 ## Stage Code Audit Report 落仓规则
 
-当当前 Linear Project 的有效 issues 全部 `Done` 后，Parent Codex 必须输出 Project 级 Stage Code Audit Report，并落到仓库：
+当当前 Linear Project 的有效 issues 全部 `Done` 后，Parent Codex 必须先完成 Linear Project closure：
+
+- 将 Linear Project status 设置或确认为 `Completed`。
+- 确认 Linear 返回 `type=completed`。
+- 确认 Linear 返回 `completedAt` 非空。
+- 记录 Project closure evidence。
+
+仅有全部 issues `Done`、PR 全部 merge、Post-Issue Ledger passed 或会话输出，都不能替代 Linear Project status `Completed`。
+
+Linear Project closure 完成后，Parent Codex 必须输出 Project 级 Stage Code Audit Report，并落到仓库：
 
 ```text
 docs/audit/<linear-project-slug>-stage-code-audit.md
@@ -248,13 +257,13 @@ docs/audit/<linear-project-slug>-stage-code-audit.md
 内容要求：
 
 - 报告必须覆盖整个 Linear Project，不得只覆盖单个 issue。
-- 报告必须包含 Project scope / issue range、Issue / PR evidence、Validation、Boundary Audit、Known CI Boundary、Root Docs Delta、Residual Notes For Human Planning 和 Next Human Project Planning Handoff。
+- 报告必须包含 Project scope / issue range、Linear Project `Completed` evidence、Issue / PR evidence、Validation、Boundary Audit、Known CI Boundary、Root Docs Delta、Residual Notes For Human Planning 和 Next Human Project Planning Handoff。
 - 仅有会话输出、单个 issue evidence、PR body、`verification.md` 或 Post-Issue Ledger，都不能替代落仓的 Stage Code Audit Report。
 
-当前 Project 的 canonical report 是：
+当前 Project 的 canonical report 必须由 Linear Project slug 推导，例如：
 
 ```text
-docs/audit/mtpro-runtime-research-workbench-v1-stage-code-audit.md
+docs/audit/<linear-project-slug>-stage-code-audit.md
 ```
 
 Next Human Project Planning 必须读取该文件，并确认 Root Docs Refresh Gate 已完成或明确记录无需更新后才能开始。

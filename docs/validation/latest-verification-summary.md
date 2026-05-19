@@ -16,15 +16,19 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 
 ## 最近基线
 
-- 最近验证关联 Linear Project：`MTPRO Paper Session Runtime v1`。
-- 最近验证对象：`MTPRO Paper Session Runtime v1` Root Docs Refresh Gate closure。
+- 最近验证关联 Linear Project：MTPRO 历史 Project closure 状态和 Project Completed Gate。
+- 最近验证对象：Linear Project `Completed` 状态修正，以及 Parent Codex / Stage Code Audit / Next Human Project Planning 规则收口。
 - Stage Code Audit Report 记录：`MTP-31` 至 `MTP-37` 全部为 `Done`，PR #62 至 #68 均通过 GitHub required check 后合并。
 - 本轮 Root Docs Refresh Gate 只同步已发生事实；不修改 Linear status，不启动 Symphony，不解锁下一 issue。
 - `MTPRO Paper Session Runtime v1` planning record 已落仓到 `docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md`；完整 issue execution contract 以 Linear issue body 为准。
-- `MTPRO Paper Execution Workflow v1` Project-level planning record 已落仓到 `docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md`，作为下一阶段写入 Linear 前的 planning summary。
-- `MTPRO Paper Execution Workflow v1` 当前尚未写入 Linear；未创建 Linear Project，未创建 Linear Issues，未修改 Linear status，未推进 Todo，未启动 Symphony。
+- `MTPRO Runtime Research Workbench v1`、`MTPRO Trading Validation and Parity Hardening`、`MTPRO Paper Session Runtime v1` 已在 Linear 修正为 Project status `Completed`，且 Linear 返回 `type=completed`、`completedAt` 非空。
+- `MTPRO Paper Execution Workflow v1` Project-level planning record 已落仓到 `docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md`，并已写入 Linear；当前 Project status 仍为 `Planned`，尚未完成。
+- `MTPRO Paper Execution Workflow v1` 写入 Linear 不授权执行；未推进 Todo，未启动 Symphony。
 - `MTPRO Paper Execution Workflow v1` planning record 只保存 Project 级计划摘要和格式门槛，不复制维护完整 Linear issue body；完整 issue execution contract 以后以 Linear issue body 为准。
 - Project 写入 Linear 后，所有 issue 初始必须保持 `Backlog / non-executable`；后续由 Parent Codex queue preflight 自动判断唯一 eligible issue，并在 WIP=1、依赖满足、无 active conflict、execution contract 格式完整时推进 Todo。
+- Project 全部有效 issues `Done` 只是 Project closure 前置条件；Parent Codex 必须将 Linear Project status 设置或确认为 `Completed`，并记录 `type=completed`、`completedAt` 非空后，才能进入 Stage Code Audit Report。
+- Linear Project status `Completed` 是 Stage Code Audit Report 和 Next Human Project Planning 前的 Project closure gate。
+- 本轮 Project Completed Gate 文档收口已通过 `git diff --check` 和 `bash checks/run.sh`；MTPRO 本地验证仍为 80 个 XCTest 0 failures。
 - 历史 planning record 曾记录 `尚未写入 Linear`；该状态只解释 planning record 生成时点，不代表 Project 完成后的审计状态。
 - MTP-30 新增 `docs/audit/inputs/mtpro-trading-validation-and-parity-hardening-stage-audit-input.md`，集中记录 `MTP-24` 至 `MTP-30` 的 Issue / PR evidence、merge commit、required check、matrix evidence chain、known boundaries、automation readiness evidence、Root Docs Delta input 和 Stage Code Audit handoff checklist。
 - `MTPRO Trading Validation and Parity Hardening` Stage Code Audit Report 已落仓，记录 `MTP-24` 至 `MTP-30` 全部 Done、PR #52 / #53 / #55 / #56 / #57 / #58 / #59 evidence、validation、boundary audit、Root Docs Delta 和 Next Human Project Planning handoff。

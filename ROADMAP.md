@@ -9,13 +9,17 @@ ROADMAP 只定义阶段顺序，不授权执行。
 已完成的 Linear Project：
 
 - `MTPRO 引导`
-- `MTPRO Runtime Research Workbench v1`，Linear issues：`MTP-16` 到 `MTP-23`
-- `MTPRO Trading Validation and Parity Hardening`，Linear issues：`MTP-24` 到 `MTP-30`
-- `MTPRO Paper Session Runtime v1`，Linear issues：`MTP-31` 到 `MTP-37`
+- `MTPRO Runtime Research Workbench v1`，Linear issues：`MTP-16` 到 `MTP-23`，Linear Project status：`Completed`
+- `MTPRO Trading Validation and Parity Hardening`，Linear issues：`MTP-24` 到 `MTP-30`，Linear Project status：`Completed`
+- `MTPRO Paper Session Runtime v1`，Linear issues：`MTP-31` 到 `MTP-37`，Linear Project status：`Completed`
+
+当前已写入 Linear 但尚未完成的 Project：
+
+- `MTPRO Paper Execution Workflow v1`，Linear Project status：`Planned`
 
 最近完成的 Project 为 `MTPRO Paper Session Runtime v1`。Parent Codex Stage Code Audit Report 已落仓到 `docs/audit/mtpro-paper-session-runtime-v1-stage-code-audit.md`。
 
-截至该 Stage Code Audit Report 落仓时，审计结论记录当前没有新的 authorized Project / issue。下一阶段必须由 Human + `@001 / PLN` 重新规划并写入 Linear 后，才可交给 `@002 / PAR` 执行 Project queue preflight。
+`MTPRO Paper Execution Workflow v1` 已写入 Linear，但不代表任何 issue 已获得执行授权。只有 `@002 / PAR` 完成 Project / Issue 格式 Gate、active Project pointer 更新和二次 queue preview 后，才能在 WIP=1 下推进唯一 eligible issue 到 `Todo`。
 
 仓库文档不得把某个 Linear issue 永久写成 current issue；执行前必须从 Linear / Parent Codex queue preview 读取当前 Project 的唯一 active configured executable issue。
 
