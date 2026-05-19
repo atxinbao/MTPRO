@@ -5147,3 +5147,53 @@ Next Handoff：Human + `@001 / PLN`
 | `swift test --filter CoreTests/testPaperSessionLocalControl` | pass | 3 个 CoreTests，0 failures；覆盖 Command Model 四个 session-level controls、raw request rejected reason、no submit / cancel / replace / broker action 和 Codable capability bypass 拒绝。 |
 | `bash checks/automation-readiness.sh` | pass | `PaperSessionLocalControlCommand`、MTP-48 validation-plan、contract docs、product surface 和 matrix anchors 均可机械定位。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 98 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
+
+## MTP-49 Paper session local control event boundary
+
+日期：2026-05-20
+
+执行者：Codex（Codex Execution Agent）
+
+目的：
+
+- 按 Linear issue `MTP-49` 串联 session-level control -> paper-only event boundary。
+- 将 valid `start` / `pause` / `close` / `reset` command 映射为 `.paper` stream 中的本地 session control fact。
+- 将 invalid command rejection reason 写为可 replay 的本地 rejection evidence。
+- 保持 append-only event boundary，不生成 order command、broker action、signed endpoint 或真实交易行为。
+
+文件范围：
+
+- Added：
+  - `Sources/Core/PaperSessionLocalControlEventLog.swift`
+- Updated：
+  - `Sources/Core/DomainEvents.swift`
+  - `Sources/Core/PaperSessionReplay.swift`
+  - `Sources/Persistence/Persistence.swift`
+  - `Sources/App/App.swift`
+  - `Tests/CoreTests/CoreTests.swift`
+  - `checks/automation-readiness.sh`
+  - `docs/product/product-surface-map.md`
+  - `docs/contracts/api-contract.md`
+  - `docs/contracts/backend-use-case-contract.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+
+边界确认：
+
+- accepted command 只能写入 `PaperEvent.sessionControlApplied`，并固定为 `.paper` stream。
+- rejected command 只能写入 `PaperEvent.sessionControlRejected`，保留 `PaperSessionLocalControlRejectedReason`。
+- event sequence 继续由 `AppendOnlyEventLog` 单调分配，不能重排或覆盖既有 facts。
+- replay summary、SQLite projection 和 App matcher 已显式识别新增 paper event cases；当前不新增 projection schema、ViewModel、UI 控件或 Event Timeline。
+- 未生成 paper order command、real order command、order intent、simulated fill、broker action、signed endpoint、account endpoint、listenKey 或 Live execution。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter CoreTests/testPaperSessionLocalControl` | pass | 6 个 CoreTests，0 failures；覆盖 accepted command -> `sessionControlApplied`、invalid command -> `sessionControlRejected`、append-only `.paper` stream 和 no order / no broker event。 |
+| `bash checks/automation-readiness.sh` | pass | `PaperSessionLocalControlEventLogBoundary`、MTP-49 validation-plan、contract docs、product surface 和 matrix anchors 均可机械定位。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 101 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |

@@ -824,3 +824,34 @@ MTP-48 只新增本地 Paper session-level control Command Model，不把 contro
 - OMS。
 - broker / exchange side effect。
 - signed endpoint、account endpoint、listenKey、真实订单行为或 Live execution。
+
+## MTP-49 Paper Session Local Control Event Boundary Use Case 边界
+
+日期：2026-05-20
+
+执行者：Codex
+
+MTP-49 把本地 Paper session-level control validation 写入 append-only `.paper` event stream，使 accepted `start` / `pause` / `close` / `reset` 和 invalid rejection reason 都成为可 replay 的本地 evidence。
+
+契约结构：
+
+- `PaperSessionLocalControlApplied`：accepted command 的 paper-only event fact。
+- `PaperSessionLocalControlEventLogBoundary`：session control validation -> `.paper` event boundary。
+- `PaperEvent.sessionControlApplied`：accepted command event case。
+- `PaperEvent.sessionControlRejected`：rejected reason event case。
+
+契约要求：
+
+- accepted path 只能来自 `PaperSessionLocalControlValidation.accepted`，并继承 `PaperSessionLocalControlCommand.paperOnlyBoundaryHeld`。
+- rejected path 只能记录 `PaperSessionLocalControlRejection`，用于后续 evidence / read model，不得变成 fallback execution。
+- event log sequence 必须保持 append-only 单调递增。
+- replay summary、SQLite projection 和 App read model matcher 对新增 event case 必须显式处理；当前 issue 不新增 projection 字段、不新增 Dashboard UI。
+
+本契约不包含：
+
+- paper order command 或 real order command。
+- UI 控件、Event Timeline、Evidence Explorer 或完整 workflow engine。
+- order submit / cancel / replace。
+- OMS。
+- broker / exchange side effect。
+- signed endpoint、account endpoint、listenKey、真实订单行为或 Live execution。

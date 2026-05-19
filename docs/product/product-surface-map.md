@@ -214,3 +214,25 @@ Command Model 覆盖：
 - session-level control -> event boundary 串联。
 - order-level command、OMS、真实订单提交 / 撤销 / 替换。
 - broker / exchange side effect、signed endpoint、account endpoint、listenKey 或 Live execution。
+
+## MTP-49 Paper session 本地控制 Event Boundary
+
+日期：2026-05-20
+
+执行者：Codex
+
+当前产品面把 session-level local control validation 记录为本地 paper-only event facts，但仍不新增 SwiftUI 控件、按钮、表单、Event Timeline 或 Evidence Explorer。
+
+Event boundary 覆盖：
+
+- accepted `start` / `pause` / `close` / `reset` 写入 `PaperEvent.sessionControlApplied`。
+- invalid raw request 写入 `PaperEvent.sessionControlRejected`，保留 rejected reason。
+- 所有 session control facts 固定进入 `.paper` stream，由 append-only event log 分配 sequence。
+
+仍不包含：
+
+- UI 控件或 Dashboard 交互入口。
+- 完整 workflow engine。
+- projection schema 或 ViewModel 扩展。
+- order-level command、paper order command、OMS、真实订单提交 / 撤销 / 替换。
+- broker / exchange side effect、signed endpoint、account endpoint、listenKey 或 Live execution。
