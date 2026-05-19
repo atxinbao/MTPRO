@@ -389,6 +389,159 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testPaperSessionLocalControlEventBoundaryMapsAcceptedCommandsToPaperOnlyFacts() throws {
+        // 测试场景：MTP-49 把 MTP-48 accepted session-level command 映射为 `.paper`
+        // append-only fact；四个 control 都不能生成 order command、broker action 或真实订单行为。
+        var eventLog = try AppendOnlyEventLog()
+        let boundary = PaperSessionLocalControlEventLogBoundary()
+        let commands = try PaperSessionLocalControlCommandFixture.allDeterministic()
+
+        for (index, command) in commands.enumerated() {
+            let recordedAt = Date(timeIntervalSince1970: 3_300 + Double(index))
+            let result = try boundary.append(
+                .accepted(command),
+                to: &eventLog,
+                recordedAt: recordedAt
+            )
+
+            XCTAssertEqual(result.envelope.sequence, index + 1)
+            XCTAssertEqual(result.envelope.stream, .paper)
+            XCTAssertEqual(result.envelope.recordedAt, recordedAt)
+            XCTAssertEqual(result.acceptedFact?.commandID, command.commandID)
+            XCTAssertEqual(result.acceptedFact?.sessionID, command.sessionID)
+            XCTAssertEqual(result.acceptedFact?.control, command.control)
+            XCTAssertEqual(result.acceptedFact?.eventStream, .paper)
+            XCTAssertEqual(result.acceptedFact?.appliedAt, recordedAt)
+            XCTAssertTrue(result.acceptedFact?.paperOnlyBoundaryHeld == true)
+            XCTAssertNil(result.rejection)
+
+            guard case let .paper(.sessionControlApplied(fact)) = result.envelope.event else {
+                return XCTFail("accepted session control must append sessionControlApplied paper fact")
+            }
+            XCTAssertEqual(fact, result.acceptedFact)
+            XCTAssertTrue(fact.command.paperOnlyBoundaryHeld)
+            XCTAssertFalse(fact.command.authorizesOrderLevelCommand)
+            XCTAssertFalse(fact.command.authorizesTradingExecution)
+            XCTAssertFalse(fact.command.touchesBrokerAction)
+            XCTAssertFalse(fact.command.submitsRealOrder)
+            XCTAssertFalse(fact.command.cancelsRealOrder)
+            XCTAssertFalse(fact.command.replacesRealOrder)
+        }
+
+        XCTAssertEqual(eventLog.envelopes.map(\.sequence), [1, 2, 3, 4])
+        XCTAssertEqual(eventLog.envelopes.map(\.stream), Array(repeating: EventStreamID.paper, count: 4))
+        XCTAssertEqual(
+            eventLog.replay(
+                EventReplayCommand(
+                    range: try EventSequenceRange(lowerBound: 1, upperBound: 4),
+                    streams: [.paper]
+                )
+            ).envelopes.count,
+            4
+        )
+        XCTAssertTrue(
+            eventLog.replay(
+                EventReplayCommand(
+                    range: try EventSequenceRange(lowerBound: 1, upperBound: 4),
+                    streams: [.risk, .portfolio]
+                )
+            ).envelopes.isEmpty
+        )
+        XCTAssertFalse(eventLog.envelopes.contains { envelope in
+            switch envelope.event {
+            case .paper(.executionDecisionRecorded),
+                 .paper(.orderIntentRecorded),
+                 .paper(.simulatedFillRecorded):
+                return true
+            default:
+                return false
+            }
+        })
+    }
+
+    func testPaperSessionLocalControlEventBoundaryRecordsRejectedReasonEvidence() throws {
+        // 测试场景：invalid session control request 只能写入 rejection evidence，
+        // 不能降级为 submit / cancel / replace、broker action、order intent 或 simulated fill。
+        var eventLog = try AppendOnlyEventLog()
+        let boundary = PaperSessionLocalControlEventLogBoundary()
+        let rejectedAt = Date(timeIntervalSince1970: 3_400)
+        let cases: [(String, ExecutionMode, PaperSessionLocalControlRejectedReason)] = [
+            ("submit", .paper, .realOrderCommand),
+            ("cancel", .paper, .realOrderCommand),
+            ("replace", .paper, .realOrderCommand),
+            ("broker action", .paper, .brokerFacingCommand),
+            ("order", .paper, .orderLevelCommand),
+            ("start", .backtest, .nonPaperExecutionMode)
+        ]
+
+        for (index, entry) in cases.enumerated() {
+            let validation = PaperSessionLocalControlCommand.validate(
+                commandID: "paper-control-rejected-\(index)",
+                sessionID: "paper-session-fixture",
+                requestedControl: entry.0,
+                executionMode: entry.1,
+                requestedAt: rejectedAt
+            )
+
+            let result = try boundary.append(
+                validation,
+                to: &eventLog,
+                recordedAt: Date(timeIntervalSince1970: 3_410 + Double(index))
+            )
+
+            XCTAssertEqual(result.envelope.sequence, index + 1)
+            XCTAssertEqual(result.envelope.stream, .paper)
+            XCTAssertNil(result.acceptedFact)
+            XCTAssertEqual(result.rejection?.reason, entry.2)
+            XCTAssertEqual(result.rejection?.executionMode, entry.1)
+            XCTAssertEqual(result.rejection?.rejectedAt, rejectedAt)
+
+            guard case let .paper(.sessionControlRejected(rejection)) = result.envelope.event else {
+                return XCTFail("invalid session control must append sessionControlRejected paper fact")
+            }
+            XCTAssertEqual(rejection, result.rejection)
+            XCTAssertEqual(rejection.reason, entry.2)
+        }
+
+        XCTAssertEqual(eventLog.envelopes.map(\.sequence), Array(1...cases.count))
+        XCTAssertFalse(eventLog.envelopes.contains { envelope in
+            switch envelope.event {
+            case .paper(.sessionControlApplied),
+                 .paper(.executionDecisionRecorded),
+                 .paper(.orderIntentRecorded),
+                 .paper(.simulatedFillRecorded):
+                return true
+            default:
+                return false
+            }
+        })
+    }
+
+    func testPaperSessionLocalControlEventBoundaryPreservesAppendOnlySequenceAfterExistingFacts() throws {
+        // 测试场景：session control event boundary 追加到已有 event log 时，只能取得下一个
+        // 单调 sequence，并固定写入 `.paper` stream，不能重排或覆盖既有事实。
+        var eventLog = try AppendOnlyEventLog()
+        let marketEnvelope = try eventLog.append(
+            .market(.bar(try makeMarketBar())),
+            stream: .market,
+            recordedAt: Date(timeIntervalSince1970: 3_500)
+        )
+        let command = try PaperSessionLocalControlCommandFixture.deterministic(control: .pause)
+        let result = try PaperSessionLocalControlEventLogBoundary().append(
+            .accepted(command),
+            to: &eventLog,
+            recordedAt: Date(timeIntervalSince1970: 3_501)
+        )
+
+        XCTAssertEqual(marketEnvelope.sequence, 1)
+        XCTAssertEqual(result.envelope.sequence, 2)
+        XCTAssertEqual(eventLog.envelopes.map(\.sequence), [1, 2])
+        XCTAssertEqual(eventLog.envelopes.map(\.stream), [.market, .paper])
+        XCTAssertThrowsError(try AppendOnlyEventLog(envelopes: [result.envelope, marketEnvelope])) { error in
+            XCTAssertEqual(error as? CoreError, .invalidSequenceRange)
+        }
+    }
+
     func testRiskBlockerEvidenceAndPortfolioExposureRemainPaperOnlyReadModels() throws {
         // 测试场景：MTP-28 risk blocker evidence 必须锁定 proposed Paper action context、
         // risk profile 和 blocker reason；portfolio exposure 只能是 Paper 投影派生的只读 notional。

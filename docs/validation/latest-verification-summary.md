@@ -27,6 +27,8 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - `MTP-47` 的 Linear issue body 是本轮执行合同；scope 限定为 Workbench information architecture、session-level control shell 边界、validation anchor 和合同文档。
 - 本轮 MTP-48 执行前 live-read 确认：`MTP-48` 为唯一 `In Progress` issue，`MTP-47` 已 `Done`，`MTP-49` 至 `MTP-53` 均为 `Backlog`，WIP=1。
 - `MTP-48` 的 Linear issue body 是本轮执行合同；scope 限定为 session-level Paper local control Command Model、command validation、rejected reason 和 deterministic tests。
+- 本轮 MTP-49 执行前 live-read 确认：`MTP-49` 为唯一 `In Progress` issue，`MTP-47` 和 `MTP-48` 已 `Done`，`MTP-50` 至 `MTP-53` 均为 `Backlog`，WIP=1。
+- `MTP-49` 的 Linear issue body 是本轮执行合同；scope 限定为 session-level control -> paper-only event boundary、invalid rejection evidence、append-only event boundary 和 deterministic tests。
 - 本轮 queue closure（2026-05-19）确认 `MTPRO Paper Execution Workflow v1` 中 canonical issues `MTP-38`、`MTP-39`、`MTP-40`、`MTP-41`、`MTP-42`、`MTP-44`、`MTP-45` 全部 `Done`；`MTP-43`、`MTP-46` 为 `Duplicate` 并排除。
 - `MTP-45` 新增 Project 级 Stage Audit Input，路径为 `docs/audit/inputs/mtpro-paper-execution-workflow-v1-stage-audit-input.md`；Parent Codex 已基于该输入落仓 canonical Stage Code Audit Report。
 - 本轮 MTP-42 paper execution event log / replay / projection focused Core 链路已通过 `swift test --filter CoreTests/testPaperExecution`；最终 `bash checks/run.sh` 结果见本文件最近验证表和 `verification.md` 追加记录。
@@ -87,6 +89,8 @@ Next Handoff：Human + `@001 / PLN`
 - `MTP-47` 验证 session-level controls 只能为 `start` / `pause` / `close` / `reset`，并验证 order-level command、非 read-model-only source、提前实现 Command Model / UI controls / Event Timeline 会被拒绝。
 - `MTP-48` 新增 Core 层 `PaperSessionLocalControlCommand`、`PaperSessionLocalControlValidation`、`PaperSessionLocalControlRejectedReason` 和 `Command.controlPaperSession`，只表达本地 Paper session-level `start` / `pause` / `close` / `reset` intent。
 - `MTP-48` 验证非 session-level command、order-level command、`submit` / `cancel` / `replace`、broker action 和非 paper execution mode 会被拒绝，Codable payload 不能恢复真实交易或外部系统能力。
+- `MTP-49` 新增 Core 层 `PaperSessionLocalControlApplied`、`PaperSessionLocalControlEventAppendResult` 和 `PaperSessionLocalControlEventLogBoundary`，把 accepted session-level command 映射为 `.paper` stream 的 `sessionControlApplied` fact。
+- `MTP-49` 新增 `PaperEvent.sessionControlRejected`，把 invalid command 的 `PaperSessionLocalControlRejectedReason` 写为可 replay 的本地 rejection evidence；replay summary、SQLite projection 和 App matcher 显式处理新增 paper event cases，但当前不扩展 projection schema 或 ViewModel。
 - 历史 `MTP-30` 阶段收口已迁入 `docs/audit/inputs/`，`docs/validation/` 不再存放 `MTP-xx` 命名的阶段输入文件。
 - `@000 / AIE` 是当前 Codex / AI Engineer 协作入口；`@003 / PRD`、`@004 / DSG`、`@005 / ARC` 是 Linear 外 reference / root docs 角色。
 
@@ -108,6 +112,9 @@ Next Handoff：Human + `@001 / PLN`
 | `swift test --filter CoreTests/testPaperSessionLocalControl` | pass | MTP-48 focused Core validation 通过，3 个 CoreTests，0 failures；覆盖 session-level local Command Model、rejected reason 和 Codable capability bypass 拒绝。 |
 | `bash checks/automation-readiness.sh` | pass | MTP-48 新增 `PaperSessionLocalControlCommand`、validation-plan、contract docs、product surface 和 matrix anchors 后通过。 |
 | `bash checks/run.sh` | pass | MTP-48 统一验证入口通过；automation readiness、Dashboard build / smoke 和 98 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
+| `swift test --filter CoreTests/testPaperSessionLocalControl` | pass | MTP-49 focused Core validation 通过，6 个 CoreTests，0 failures；新增 accepted command -> `sessionControlApplied`、invalid command -> `sessionControlRejected`、append-only `.paper` stream 和 no order / no broker event tests。 |
+| `bash checks/automation-readiness.sh` | pass | MTP-49 新增 `PaperSessionLocalControlEventLogBoundary`、validation-plan、contract docs、product surface 和 matrix anchors 后通过。 |
+| `bash checks/run.sh` | pass | MTP-49 统一验证入口通过；automation readiness、Dashboard build / smoke 和 101 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
 
 ## 当前边界
 
@@ -123,6 +130,9 @@ Next Handoff：Human + `@001 / PLN`
 - MTP-48 只定义本地 Paper session-level Command Model；不写 event log，不串联 runtime，不实现 UI 控件或 Event Timeline。
 - MTP-48 accepted command 只能作用于本地 Paper session，`scope == local paper session`、`controlLevel == session`、`executionMode == paper`。
 - MTP-48 明确拒绝非 session-level command、order-level command、`submit` / `cancel` / `replace`、broker action、signed endpoint、account endpoint、listenKey、Live trading 和非 paper execution mode。
+- MTP-49 只把 session-level local control validation 写入本地 `.paper` stream facts；accepted path 是 `sessionControlApplied`，rejected path 是 `sessionControlRejected`。
+- MTP-49 不生成 paper order command、real order command、order intent、simulated fill、broker action、signed endpoint、account endpoint、listenKey 或 Live execution。
+- MTP-49 不新增 SwiftUI 控件、Event Timeline、Evidence Explorer、projection schema 或 ViewModel；App / Persistence 只显式识别新增 event case 并保持当前 no-op 边界。
 - MTP-41 只定义 paper execution decision 本地链路和 deterministic fixture；blocked risk decision 不生成 paper order，allowed decision 只生成 paper-only order / fill evidence。
 - MTP-41 issue 本身不写 event log、不新增 replay / projection / ViewModel；MTP-42 只把已存在的 paper execution facts 串入 event log / replay / projection，不实现完整 execution engine、完整风险引擎、broker rejection fallback、真实撮合、真实成交回报、broker fill、account update、broker action、signed endpoint 或真实订单行为。
 - Report / Dashboard 只展示 read model / ViewModel，不提供交易执行入口。

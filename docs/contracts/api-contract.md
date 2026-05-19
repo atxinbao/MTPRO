@@ -685,3 +685,32 @@ MTP-48 新增 Swift module 内部 `Command` case 和本地 paper-only session co
 - 不实现 session-level control -> event boundary 串联。
 - 不新增 SwiftUI 控件、按钮或表单。
 - 不实现 OMS、order submit / cancel / replace、broker adapter、signed endpoint、account endpoint、listenKey 或 Live execution。
+
+## MTP-49 Paper Session Local Control Event Boundary
+
+日期：2026-05-20
+
+执行者：Codex
+
+MTP-49 将 MTP-48 的 session-level local control validation 串入本地 paper-only append-only event boundary；仍不新增 HTTP API、不实现 UI 控件、不启动完整 workflow engine。
+
+新增 Core event contract：
+
+- `PaperSessionLocalControlApplied`：把 accepted `PaperSessionLocalControlCommand` 记录为 `.paper` stream 中的本地 session control fact。
+- `PaperSessionLocalControlEventAppendResult`：记录 accepted / rejected validation 写入 event log 后的 envelope 和 evidence。
+- `PaperSessionLocalControlEventLogBoundary`：只消费 `PaperSessionLocalControlValidation`，把 accepted command 映射为 `PaperEvent.sessionControlApplied`，把 rejected reason 映射为 `PaperEvent.sessionControlRejected`。
+- `PaperEvent.sessionControlApplied`：表示本地 Paper session control 已被记录，不表示订单、成交或 broker side effect。
+- `PaperEvent.sessionControlRejected`：表示 invalid raw request 的 rejected reason 已被记录，供后续 evidence / read model 消费。
+
+契约要求：
+
+- accepted command 必须保持 `paperOnlyBoundaryHeld == true`，并固定写入 `.paper` stream。
+- rejected reason 必须保持可 replay 的本地 evidence，不得恢复 order-level、broker-facing 或真实订单行为。
+- event sequence 只能由 `AppendOnlyEventLog` 单调分配，调用方不得覆盖 sequence。
+- replay / projection / App matcher 必须显式识别新增 paper event case；当前 issue 不扩展 projection schema 或 ViewModel。
+
+边界确认：
+
+- 不生成 paper order command 或 real order command。
+- 不实现 UI 控件、Event Timeline、Evidence Explorer 或完整 workflow engine。
+- 不实现 OMS、order submit / cancel / replace、broker adapter、signed endpoint、account endpoint、listenKey 或 Live execution。

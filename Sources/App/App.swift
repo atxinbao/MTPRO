@@ -880,6 +880,10 @@ public struct ReportReadModel: Equatable, Sendable {
             return orderIntent.symbol == symbol && orderIntent.timeframe == timeframe
         case let .simulatedFillRecorded(fill):
             return fill.symbol == symbol && fill.timeframe == timeframe
+        case .sessionControlApplied, .sessionControlRejected:
+            // MTP-49 的 session control facts 只记录本地控制壳 evidence，不携带 symbol/timeframe，
+            // 当前 App read model 不消费这些 facts，避免提前实现 Event Timeline / Evidence Explorer。
+            return false
         case let .sessionRequested(command):
             return command.strategy.symbol == symbol && command.strategy.timeframe == timeframe
         case let .signalGenerated(sample):

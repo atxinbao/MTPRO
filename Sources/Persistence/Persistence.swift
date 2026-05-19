@@ -532,6 +532,12 @@ public struct SQLiteRuntimeProjectionStore: Equatable, Sendable {
         case .actionProposed, .executionDecisionRecorded, .orderIntentRecorded, .simulatedFillRecorded:
             break
 
+        case .sessionControlApplied, .sessionControlRejected:
+            // MTP-49 只把 session-level local control 写入 append-only `.paper` facts。
+            // 当前 SQLite projection 仍只维护既有 Paper session lifecycle read model，不新增
+            // schema surface，也不把 rejected reason 解释为 Runtime side effect 或订单状态。
+            break
+
         case let .sessionRequested(command):
             let existing = paperSessions[command.sessionID]
             paperSessions[command.sessionID] = SQLitePaperSessionProjection(

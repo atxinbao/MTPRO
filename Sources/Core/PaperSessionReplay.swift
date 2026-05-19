@@ -192,6 +192,17 @@ public enum PaperSessionReplayPath {
         case let .simulatedFillRecorded(fill):
             sessionIDs.append(fill.sessionID)
             simulatedFills.append(fill)
+        case let .sessionControlApplied(fact):
+            // MTP-49 control facts 可以被 event log replay；当前 runtime summary 只聚合
+            // session lifecycle / proposal / execution / portfolio evidence，因此这里只保留
+            // session identity，不把 control fact 误算成订单、成交或 broker evidence。
+            sessionIDs.append(fact.sessionID)
+        case let .sessionControlRejected(rejection):
+            // rejection evidence 供后续 read model / evidence explorer 消费；当前 summary 不聚合
+            // rejected reason，避免把 invalid command 误解为执行行为。
+            if let sessionID = try? Identifier(rejection.sessionID) {
+                sessionIDs.append(sessionID)
+            }
         case let .sessionRequested(command):
             sessionIDs.append(command.sessionID)
         case .signalGenerated:
