@@ -714,3 +714,29 @@ MTP-49 将 MTP-48 的 session-level local control validation 串入本地 paper-
 - 不生成 paper order command 或 real order command。
 - 不实现 UI 控件、Event Timeline、Evidence Explorer 或完整 workflow engine。
 - 不实现 OMS、order submit / cancel / replace、broker adapter、signed endpoint、account endpoint、listenKey 或 Live execution。
+
+## MTP-50 Paper Workflow Observability Read Model / ViewModel Boundary
+
+日期：2026-05-20
+
+执行者：Codex
+
+MTP-50 不新增 HTTP API，不新增 external command endpoint，也不把 ViewModel 暴露为交易入口。
+
+新增 App 层 contract：
+
+- `PaperWorkflowObservabilityReadModel`：从既有 Dashboard read model 聚合 paper workflow observability evidence。
+- `PaperWorkflowObservabilityViewModel`：输出 session status、blocked / allowed evidence、chain coverage、replay freshness 和 report artifact status。
+- `PaperWorkflowReplayFreshnessStatus`：只描述本地 replay evidence 与 event timeline sequence 的 freshness。
+
+契约要求：
+
+- UI-facing shape 必须是 ViewModel / Read Model。
+- 不允许 UI 或 tests 依赖 database schema、adapter request 或 runtime object。
+- ViewModel 必须保持 `readModelOnlyBoundaryHeld == true`、`paperOnlyBoundaryHeld == true`。
+- `authorizesTradingExecution`、`authorizesLiveTrading`、`touchesBrokerAction`、`providesOrderLevelCommand` 必须保持 false。
+
+边界确认：
+
+- 不实现 UI redesign、Event Timeline explorer、order-level command、OMS、broker adapter、signed endpoint、account endpoint、listenKey 或 Live execution。
+- 不新增 projection schema，不写 event log，不触发 replay side effect，不提交 / 撤销 / 替换真实订单。

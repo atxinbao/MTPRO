@@ -236,3 +236,30 @@ Event boundary 覆盖：
 - projection schema 或 ViewModel 扩展。
 - order-level command、paper order command、OMS、真实订单提交 / 撤销 / 替换。
 - broker / exchange side effect、signed endpoint、account endpoint、listenKey 或 Live execution。
+
+## MTP-50 Paper workflow observability Read Model / ViewModel
+
+日期：2026-05-20
+
+执行者：Codex
+
+当前产品面新增 Paper workflow observability read model / ViewModel，但仍不新增 SwiftUI 控件、按钮、表单、Event Timeline explorer 或 order-level command。
+
+可观察字段覆盖：
+
+- session IDs、session status、active / completed session count。
+- proposal IDs。
+- allowed paper execution decision IDs、paper order IDs、simulated fill IDs。
+- blocked risk evidence IDs 和 blocked paper order IDs。
+- portfolio update IDs 和 portfolio IDs。
+- decision -> order -> simulated fill -> portfolio projection chain coverage。
+- replay available、deterministic replay、append-only facts source 和 replay freshness。
+- report artifact IDs、artifact parity status、completed artifact count 和 research-only authorization。
+
+仍不包含：
+
+- Dashboard / Workbench UI redesign。
+- Event Timeline / Evidence Explorer 实现。
+- order-level command、paper order command、OMS、真实订单提交 / 撤销 / 替换。
+- SQLite / DuckDB schema、SQL、ORM model、runtime object 或 adapter request 暴露。
+- broker / exchange side effect、signed endpoint、account endpoint、listenKey 或 Live execution。

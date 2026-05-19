@@ -965,6 +965,7 @@ public struct DashboardReadModel: Equatable, Sendable {
     public let strategy: StrategyReadModel
     public let backtest: BacktestReadModel
     public let report: ReportReadModel
+    public let paperWorkflowObservability: PaperWorkflowObservabilityReadModel
     public let paper: PaperReadModel
     public let risk: RiskReadModel
     public let portfolio: PortfolioReadModel
@@ -975,6 +976,7 @@ public struct DashboardReadModel: Equatable, Sendable {
         strategy: StrategyReadModel,
         backtest: BacktestReadModel,
         report: ReportReadModel,
+        paperWorkflowObservability: PaperWorkflowObservabilityReadModel = PaperWorkflowObservabilityReadModel(),
         paper: PaperReadModel,
         risk: RiskReadModel,
         portfolio: PortfolioReadModel,
@@ -984,6 +986,7 @@ public struct DashboardReadModel: Equatable, Sendable {
         self.strategy = strategy
         self.backtest = backtest
         self.report = report
+        self.paperWorkflowObservability = paperWorkflowObservability
         self.paper = paper
         self.risk = risk
         self.portfolio = portfolio
@@ -995,19 +998,31 @@ public struct DashboardReadModel: Equatable, Sendable {
         analyticalProjection: DuckDBAnalyticalProjectionSnapshot,
         eventTimeline: [EventEnvelope]
     ) {
+        let report = ReportReadModel(
+            analyticalProjection: analyticalProjection,
+            runtimeProjection: runtimeProjection,
+            eventTimeline: eventTimeline
+        )
+        let paper = PaperReadModel(runtimeProjection: runtimeProjection)
+        let risk = RiskReadModel(runtimeProjection: runtimeProjection)
+        let portfolio = PortfolioReadModel(runtimeProjection: runtimeProjection)
+        let events = EventTimelineReadModel(envelopes: eventTimeline)
         self.init(
             market: MarketReadModel(analyticalProjection: analyticalProjection),
             strategy: StrategyReadModel(analyticalProjection: analyticalProjection),
             backtest: BacktestReadModel(analyticalProjection: analyticalProjection),
-            report: ReportReadModel(
-                analyticalProjection: analyticalProjection,
-                runtimeProjection: runtimeProjection,
-                eventTimeline: eventTimeline
+            report: report,
+            paperWorkflowObservability: PaperWorkflowObservabilityReadModel(
+                report: report,
+                paper: paper,
+                risk: risk,
+                portfolio: portfolio,
+                events: events
             ),
-            paper: PaperReadModel(runtimeProjection: runtimeProjection),
-            risk: RiskReadModel(runtimeProjection: runtimeProjection),
-            portfolio: PortfolioReadModel(runtimeProjection: runtimeProjection),
-            events: EventTimelineReadModel(envelopes: eventTimeline)
+            paper: paper,
+            risk: risk,
+            portfolio: portfolio,
+            events: events
         )
     }
 }
@@ -1518,6 +1533,7 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
     public let strategy: StrategyViewModel
     public let backtest: BacktestViewModel
     public let report: ReportViewModel
+    public let paperWorkflowObservability: PaperWorkflowObservabilityViewModel
     public let paper: PaperViewModel
     public let risk: RiskViewModel
     public let portfolio: PortfolioViewModel
@@ -1532,6 +1548,9 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
         self.strategy = StrategyViewModel(readModel: readModel.strategy)
         self.backtest = BacktestViewModel(readModel: readModel.backtest)
         self.report = ReportViewModel(readModel: readModel.report)
+        self.paperWorkflowObservability = PaperWorkflowObservabilityViewModel(
+            readModel: readModel.paperWorkflowObservability
+        )
         self.paper = PaperViewModel(readModel: readModel.paper)
         self.risk = RiskViewModel(readModel: readModel.risk)
         self.portfolio = PortfolioViewModel(readModel: readModel.portfolio)
@@ -1544,6 +1563,7 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
             strategy.source,
             backtest.source,
             report.source,
+            paperWorkflowObservability.source,
             paper.source,
             risk.source,
             portfolio.source,
