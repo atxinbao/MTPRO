@@ -38,24 +38,38 @@ README.md
 | Linear Project status | Linear Project status `Completed`，`type=completed`，`completedAt=2026-05-20T08:23:20Z` |
 | Stage Code Audit Report | `docs/audit/mtpro-market-data-replay-operations-v1-stage-code-audit.md`，已覆盖完整 Linear Project |
 | Root Docs Refresh Gate | 已 closure；Root Docs Delta 已同步到 `GOAL.md`、`ARCHITECTURE.md`、`ROADMAP.md`，`ENVIRONMENT.md` no update needed |
-| Goal / Roadmap Target Progress | 5 / 5（100%） |
+| Current Foundation Progress | 4 / 4（100%） |
+| Final Product Goal Progress | 4 / 9（44%） |
 
 ## Goal / Roadmap Progress Baseline
 
 ```text
-Phase: MTPRO paper-only research / validation / execution foundation
+Phase: MTPRO professional trading workstation
 Project Closure Count: 7 / 7 (100%)
-Goal / Roadmap Target Progress: 5 / 5 (100%)
-Progress: [##########] 100%
+Current Foundation Progress: 4 / 4 (100%)
+Final Product Goal Progress: 4 / 9 (44%)
+Foundation Progress: [##########] 100%
+Final Product Progress: [####------] 44%
 ```
 
-目标切片：
+Current Foundation 目标切片：
 
 - Complete：Research / Backtest / Report / Paper readiness。
 - Complete：Paper-only execution evidence。
-- Complete / enforced：Live trading 禁区和 future boundary。
 - Complete：Paper workflow 可观察性和本地控制壳。
 - Complete：更长周期 market data replay / operations。
+
+Final Product 目标切片：
+
+- Complete：研究 / 回测 / 报告基础能力（Research / Backtest / Report foundation）。
+- Complete：Paper 模拟执行基础能力（Paper execution foundation）。
+- Complete：工作台证据导航与本地控制壳（Workbench evidence navigation and local control shell）。
+- Complete：行情数据回放运营能力（Market data replay operations）。
+- Pending / gated：实盘交易基础边界（Live trading foundation）。
+- Pending / gated：实盘监控台（Live monitoring console）。
+- Pending / gated：实盘执行控制（Live execution control）。
+- Pending / gated：实盘风险控制（Live risk control）。
+- Pending / gated：实盘审计 / 事故回放 / 停机控制（Live audit / incident replay / stop controls）。
 
 Project Closure Count 只说明当前已批准、已执行、已完成 Project closure、已落仓 Stage Code Audit Report、并已完成 Root Docs Refresh Gate closure 的建设阶段 Project 数量，不代表完整产品蓝图或 Future Construction Zones 已经完成。
 
@@ -85,24 +99,30 @@ Stage audit / input 入口：
 
 ## 最近验证
 
-本轮 Goal / Blueprint 分工优化已完成：
+本轮 Professional Trading Workstation Goal Alignment 已完成：
 
 ```bash
 git diff --check
+bash checks/automation-readiness.sh
 bash checks/run.sh
 ```
 
 结果：
 
 - `git diff --check`：pass。
+- `bash checks/automation-readiness.sh`：pass。
 - `bash checks/run.sh`：pass。
 - Dashboard smoke：`sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`。
 - XCTest：121 tests, 0 failures。
 
 本轮 docs-only Goal / Blueprint evidence：
 
-- `BLUEPRINT.md`
+- `README.md`
+- `AGENTS.md`
 - `GOAL.md`
+- `BLUEPRINT.md`
+- `ROADMAP.md`
+- `docs/automation/parent-codex-supervision.md`
 - `checks/automation-readiness.sh`
 - `docs/validation/latest-verification-summary.md`
 
@@ -115,6 +135,7 @@ bash checks/run.sh
 - Paper execution / order / fill / portfolio 语义全部是 paper-only evidence，不代表真实订单、真实成交、broker fill、account state 或 Live fallback。
 - Market data replay operations 自动验证只使用本地 fixture / batch replay evidence，不依赖真实 Binance 网络。
 - Binance signed endpoint、account endpoint、listenKey、broker action、real order submit / cancel / replace、OMS 和 real account balance 仍禁止。
+- 实盘交易基础边界、实盘监控台、实盘执行控制、实盘风险控制、实盘审计 / 事故回放 / 停机控制属于 Final Product Goal 的 Pending / gated 切片。
 - Report / Dashboard / Event Timeline 只展示 read model / ViewModel，不提供交易执行入口。
 
 ## Known CI Boundary

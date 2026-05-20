@@ -41,7 +41,7 @@
 | Canonical Blueprint | `BLUEPRINT.md` | Root Blueprint + Complete Blueprint，项目总览、最终产品蓝图、Current / Future 边界 |
 | Environment | `ENVIRONMENT.md` | 本地工具、验证入口、外部系统禁区 |
 | Architecture Map | `ARCHITECTURE.md` | 当前架构地图 / 设计基线、模块边界、目标数据流和不变量 |
-| Construction Plan | `ROADMAP.md` | 当前阶段路线、Project closure、Goal / Roadmap Target Progress |
+| Construction Plan | `ROADMAP.md` | 当前阶段路线、Project closure、Current Foundation Progress、Final Product Goal Progress |
 | Shared Language | `docs/domain/context.md` | MTPRO 领域术语、禁止混用词、paper-only / read-only / future-gated 语义 |
 | Agent Engineering Practices | `docs/automation/agent-engineering-practices.md` | shared language、feedback loop、tracer bullet、diagnose、architecture deepening 和 handoff discipline |
 | Evidence | `docs/audit/`、`docs/validation/`、`verification.md` | Stage Code Audit、验证摘要和 append-only 历史 |
@@ -83,7 +83,7 @@ MTPRO 的 root docs 按职责分工读取和维护：
 
 ## Final Product Blueprint
 
-MTPRO 最终要成为一个 macOS 原生交易研究与执行工作台。
+MTPRO 最终要成为一个 local-first 的 macOS 原生专业交易工作台，先完成 Research -> Backtest -> Report -> Paper 的本地证据链，再演进为支持 Live trading、实盘监控、实盘执行控制、实盘风险控制和实盘审计 / 事故回放 / 停机控制的专业版本产品。
 
 最终产品形态不是 NautilusTrader 的 Swift 复刻，也不是 `macos-trader` 的整仓迁移。MTPRO 学习 NautilusTrader 的交易语义、event-driven runtime、adapter 分层、risk / execution / portfolio 因果链和 report / replay evidence 组织方式，但保持 SwiftPM-first、macOS-native、ViewModel-first 的产品形态。
 
@@ -97,16 +97,34 @@ MTPRO 最终要成为一个 macOS 原生交易研究与执行工作台。
 6. Risk：从 blocker evidence 发展到更完整的风险解释、限制、状态和未来 live risk gate。
 7. Events：append-only facts、replay、projection freshness、audit trail 和 incident replay 观察面。
 8. Operations：本地运行、验证、Graphify relationship memory、GitHub PR Automation、Linear / Symphony 自动化和阶段审计。
-9. Future Live：未来可选的 signed endpoint、broker integration、real account state、real execution reconciliation、OMS 和 deployment / operations，必须作为独立 Future Construction Zones 处理。
+9. Future Live：未来可选的 signed endpoint、broker integration、real account state、real execution reconciliation、OMS、实盘监控台、实盘执行控制、实盘风险控制、实盘审计 / 事故回放 / 停机控制和 deployment / operations，必须作为独立 Future Construction Zones 处理。
+
+## Final Product Goal Slices
+
+最终产品不是只做到 paper-only foundation。MTPRO 的完整产品目标分为 9 个目标切片：
+
+| # | 目标切片 | 当前状态 | 中文说明 |
+| --- | --- | --- | --- |
+| 1 | 研究 / 回测 / 报告基础能力（Research / Backtest / Report foundation） | Complete | 能研究策略、跑回测、生成报告，并说明数据、策略和结果来源。 |
+| 2 | Paper 模拟执行基础能力（Paper execution foundation） | Complete | 能跑模拟交易，有 paper order、simulated fill、paper portfolio，但不碰真实资金和真实订单。 |
+| 3 | 工作台证据导航与本地控制壳（Workbench evidence navigation and local control shell） | Complete | 能在 Mac 工作台里观察 Research、Backtest、Report、Paper、Risk、Portfolio、Events，并做本地 Paper session 控制。 |
+| 4 | 行情数据回放运营能力（Market data replay operations） | Complete | 能管理行情批次、回放数据、检查 freshness / retention / consistency，为研究和 Paper 提供稳定数据底座。 |
+| 5 | 实盘交易基础边界（Live trading foundation） | Pending / gated | 开始接真实交易边界，包括 API key、signed endpoint、account endpoint、broker / exchange adapter 和真实订单生命周期。 |
+| 6 | 实盘监控台（Live monitoring console） | Pending / gated | 能监控实盘节点、连接、行情流、订单流、错误、延迟和运行健康状态。 |
+| 7 | 实盘执行控制（Live execution control） | Pending / gated | 能控制真实订单提交、撤销、替换、成交回报、订单状态和执行失败处理。 |
+| 8 | 实盘风险控制（Live risk control） | Pending / gated | 能用真实风控阻止危险订单，例如仓位、订单金额、频率、亏损、熔断和禁交易状态。 |
+| 9 | 实盘审计 / 事故回放 / 停机控制（Live audit / incident replay / stop controls） | Pending / gated | 能审计和回放每个 signal、order、risk decision、fill，并支持紧急停止、停机、恢复和事故复盘。 |
+
+Current Foundation Progress 已完成 4 / 4；Final Product Goal Progress 当前为 4 / 9。完整进度口径由 `ROADMAP.md` 维护，蓝图只定义目标结构。
 
 ## Target Users / Jobs
 
 | 用户 | 核心任务 | MTPRO 应提供 |
 | --- | --- | --- |
-| 本地交易研究用户 | 用 Binance public market data 研究策略和市场状态 | Research / Backtest / Report / Paper evidence 工作台 |
+| 个人专业交易者 / 独立策略研究者 | 用 Binance public market data 研究策略和市场状态 | Research / Backtest / Report / Paper evidence 工作台 |
 | 策略验证用户 | 确认 backtest、paper、risk、cost、portfolio evidence 是否一致 | trading validation matrix、report artifact、event timeline |
 | Paper readiness 用户 | 在不触碰真实交易的前提下观察 paper workflow | paper-only session、order intent、simulated fill、portfolio projection |
-| 未来实盘准备用户 | 判断何时可以独立进入 Live 规划 | Live future zone、gates、禁区说明和风险条件 |
+| 未来实盘准备用户 | 判断何时可以独立进入 Live 规划 | Live future zone、实盘交易基础边界、实盘监控台、实盘执行控制、实盘风险控制、实盘审计 / 事故回放 / 停机控制、禁区说明和风险条件 |
 
 ## Complete Capability Map
 
@@ -122,7 +140,11 @@ MTPRO 最终要成为一个 macOS 原生交易研究与执行工作台。
 | Market Data Replay Operations | Final | 已完成 v1 baseline | 后续只扩展 deterministic local operations，不变成生产数据平台 |
 | Portfolio | Final | 现为 paper-only exposure | Live 前不得读取真实账户或 broker position |
 | Risk | Final | 现为 paper blocker / evidence | Live 前不得升级为真实 pre-trade engine |
-| Live trading | Future / gated | 当前禁止 | 需要 Human 决策、独立 Project Definition、signed endpoint / broker / risk / reconciliation / operations gates |
+| 实盘交易基础边界 / Live trading foundation | Future / gated | 当前禁止 | 需要 Human 决策、独立 Project Definition、signed endpoint / broker / risk / reconciliation / operations gates |
+| 实盘监控台 / Live monitoring console | Future / gated | 当前禁止 | 需要 live runtime health、连接状态、行情流、订单流、错误和延迟的独立 Project |
+| 实盘执行控制 / Live execution control | Future / gated | 当前禁止 | 需要 real order submit / cancel / replace contract、execution reconciliation 和 incident fallback |
+| 实盘风险控制 / Live risk control | Future / gated | 当前禁止 | 需要真实 pre-trade risk gate、熔断、禁交易状态和 operations readiness |
+| 实盘审计 / 事故回放 / 停机控制 | Future / gated | 当前禁止 | 需要 audit trail、incident replay、emergency stop、停机 / 恢复策略 |
 | OMS / broker integration | Future / gated | 当前禁止 | 需要独立架构蓝图、adapter capability contract 和安全运行计划 |
 
 ## Product Workflow Blueprint
@@ -137,6 +159,8 @@ Market Data
 -> Paper Session
 -> Paper Execution Evidence
 -> Portfolio / Risk / Events
+-> Future gated Live trading foundation
+-> Future live monitoring / execution control / risk control / audit
 -> Stage Audit
 -> Future gated Live decision
 ```
@@ -151,7 +175,7 @@ Market Data
 - Report artifact 的来源和状态。
 - Paper session / paper order / simulated fill / portfolio projection 的因果链。
 - Replay / freshness / event timeline 的证据链。
-- Live 能力为什么当前被阻断，以及未来进入 Live 需要哪些 gate。
+- Live 能力为什么当前被阻断，以及未来进入实盘交易基础边界、实盘监控台、实盘执行控制、实盘风险控制、实盘审计 / 事故回放 / 停机控制需要哪些 gate。
 
 ## System Architecture Blueprint
 
@@ -200,7 +224,7 @@ MTPRO Workbench 最终应包含：
 | Risk | 展示 blocker、risk status、paper-only / future live gate | `RiskViewModel` |
 | Events | 展示 append-only events、replay、projection freshness、audit trail | `EventLogViewModel`、`ReportViewModel` |
 | Operations | 展示 local validation、automation readiness、Graphify / Symphony / GitHub 状态 | operations read model |
-| Future Live | 仅展示 gated readiness，不提供当前交易入口 | future Live readiness model |
+| Future Live | 仅展示 gated readiness，不提供当前交易入口；未来覆盖实盘交易基础边界、实盘监控台、实盘执行控制、实盘风险控制、实盘审计 / 事故回放 / 停机控制 | future Live readiness model |
 
 当前 UI 仍保持 read-model-only，不提供真实交易按钮，不直接读取 database schema、adapter request 或 runtime object。
 
@@ -264,13 +288,19 @@ Market event
 - NautilusTrader reference study。
 - `mattpocock/skills` 方法论整合。
 
-当前 paper-only foundation 目标切片已经达到 5 / 5（100%）：
+当前 foundation / final product 采用两层进度口径：
+
+- Current Foundation Progress：4 / 4（100%）。
+- Final Product Goal Progress：4 / 9（44%）。
+
+Current Foundation Progress 已完成：
 
 - Research / Backtest / Report / Paper readiness。
 - Paper-only execution evidence。
-- Live trading 禁区和 future boundary。
 - Paper workflow 可观察性和本地 session-level control shell。
 - 更长周期 market data replay / operations。
+
+Final Product Goal Progress 尚未完成；实盘交易基础边界、实盘监控台、实盘执行控制、实盘风险控制、实盘审计 / 事故回放 / 停机控制仍属于 Future Construction Zones。
 
 当前没有已授权的下一阶段 construction scope。
 
@@ -280,8 +310,12 @@ Market event
 
 | Zone | 内容 | 为什么未来处理 | Gate |
 | --- | --- | --- | --- |
-| Live Trading Foundation | signed endpoint、broker adapter、real order lifecycle | 当前 paper-only evidence 尚未形成可运营实盘系统 | Human decision、独立 Project Definition、security / risk / operations gates |
-| OMS / Execution Management | order submit / cancel / replace、execution reconciliation | 完整 OMS 会改变核心风险和运行边界 | 独立架构蓝图、adapter capability contract、incident replay |
+| 实盘交易基础边界 / Live Trading Foundation | API key、signed endpoint、account endpoint、broker / exchange adapter、real order lifecycle | 当前 paper-only evidence 尚未形成可运营实盘系统 | Human decision、独立 Project Definition、security / risk / operations gates |
+| 实盘监控台 / Live Monitoring Console | live runtime health、连接、行情流、订单流、错误、延迟和运行健康状态 | 需要先定义 live runtime 和 operations readiness | 独立 Live monitoring Project、telemetry / health evidence |
+| 实盘执行控制 / Live Execution Control | order submit / cancel / replace、execution reconciliation、执行失败处理 | 真实订单控制会改变风险边界 | 独立架构蓝图、adapter capability contract、incident replay |
+| 实盘风险控制 / Live Risk Control | 真实 pre-trade risk gate、仓位、订单金额、频率、亏损、熔断、禁交易状态 | 当前 risk 仍是 paper blocker / evidence | risk policy、operations readiness、emergency stop |
+| 实盘审计 / 事故回放 / 停机控制 | signal / order / risk decision / fill 审计、incident replay、紧急停止、停机和恢复 | 需要 live event chain 和 operations policy | audit trail、stop policy、restore policy |
+| OMS / Execution Management | 完整订单管理、状态机、broker reconciliation | 完整 OMS 会改变核心风险和运行边界 | 独立架构蓝图、adapter capability contract、incident replay |
 | Real Portfolio / Account | account state、position sync、real balance | 当前 Portfolio 只表达 paper projection | broker contract、account data audit、read-only / write split |
 | Deployment / Operations | packaging、release、telemetry、runtime monitoring | 当前仍以本地开发验证为主 | OPS project、signing / notarization / telemetry gates |
 | Advanced Research Platform | 多策略、多标的、长周期数据、参数实验 | 需要更稳定 data operations 和 report artifact taxonomy | market data operations、eval strategy、storage policy |
