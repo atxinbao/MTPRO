@@ -6662,3 +6662,47 @@ Next Handoff: Human + @001 / PLN
 | `git diff --check` | pass | Roadmap Docs Deepening 变更无 whitespace error。 |
 | `bash checks/automation-readiness.sh` | pass | roadmap 新章节锚点通过。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
+
+## Root Docs Stack Compression
+
+日期：2026-05-20
+执行者：Codex
+PR：本 PR
+Commit：
+
+目的：
+- 从 `README.md` 开始继续压缩 MTPRO 文档栈。
+- 保持 `GOAL.md` / `BLUEPRINT.md` / `docs/environment.md` / `docs/architecture.md` / `docs/roadmap.md` 的权重分工。
+- 压缩重复叙述，让 `README.md` 只做入口，`GOAL.md` 只做 Project Charter，`BLUEPRINT.md` 只做 canonical Root / Complete Blueprint。
+- 保留 `docs/architecture.md` 作为 Engineering Module Map / 工程模块地图。
+- 保留 `docs/roadmap.md` 作为 Construction Plan / 施工路线。
+
+文件范围：
+- Updated:
+  - `README.md`
+  - `AGENTS.md`
+  - `GOAL.md`
+  - `BLUEPRINT.md`
+  - `docs/architecture.md`
+  - `docs/roadmap.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+- docs-only。
+- 未创建 Linear Project / Issue。
+- 未修改 Linear status。
+- 未推进 Todo。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Root Docs Stack Compression 变更无 whitespace error。 |
+| `bash checks/automation-readiness.sh` | pass | root docs / blueprint / roadmap / architecture 锚点通过。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |

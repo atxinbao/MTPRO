@@ -16,15 +16,7 @@ Agent 开始工作前必须读取：
 8. `docs/domain/context.md`
 9. `docs/validation/latest-verification-summary.md`
 
-需要实现或验证时，再按 scope 读取：
-
-- `docs/product/product-surface-map.md`
-- `docs/automation/agent-engineering-practices.md`
-- `docs/contracts/`
-- `docs/validation/validation-plan.md`
-- `docs/validation/trading-validation-matrix.md`
-- `docs/automation/`
-- 当前 Linear issue body
+需要实现或验证时，再按 scope 读取 `docs/product/product-surface-map.md`、`docs/automation/agent-engineering-practices.md`、`docs/contracts/`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/` 和当前 Linear issue body。
 
 完整 `verification.md` 只在审计、追溯或 debug 时读取。
 
@@ -37,24 +29,11 @@ Agent 开始工作前必须读取：
 - `docs/roadmap.md`、Project Planning Record、Backlog issue、label、priority、assignee 都不授权执行。
 - 只有 Linear live-read 中唯一 configured executable issue 才能授权正式开发；执行前必须由 Parent Codex queue preview 确认 WIP=1。
 - Linear issue 的 Scope / Non-goals / Codex Instructions / Validation / Boundary / PR Requirements 是 Codex Execution Agent 的执行合同。
-- Project Planning Facilitator 只做规划和草案，不执行 issue，不启动 symphony-issue，不操作 `Backlog` -> `Todo`。
-- Human 确认 Project / Issue plan 并写入 Linear 后，第一个 issue 和后续 issue 的 `Backlog` -> `Todo` 操作都只能由父 Codex 自动执行。
-- 父 Codex 自动调度前必须确认 WIP=1、previous issue Done、依赖满足、执行合同格式完整，并且当前 Project 没有 `Todo` / `In Progress` / `In Review` active conflict。
-- symphony-issue 只调度唯一 `Todo` issue，并负责 `Todo -> In Progress -> In Review` 状态推进。
-- GitHub PR Automation 负责 required checks、auto-merge、squash merge、branch cleanup 和 Linear bot auto Done。
-- Project closure 必须确认 Linear Project status 为 `Completed`，并确认 `type=completed`、`completedAt` 非空。
-- Stage Code Audit Report 必须覆盖完整 Linear Project，包含 Linear Project `Completed` evidence 和 Root Docs Delta。
-- Root Docs Refresh Gate 只允许 `@002 / PAR` 同步已发生事实；方向、目标、架构路线和下一阶段优先级必须交给 Human + `@001 / PLN`。
-- Root Docs Refresh Gate closure 后，`@002 / PAR` 必须输出当前阶段完成进度条；进度条必须基于 `GOAL.md` 和 `docs/roadmap.md` 的两层目标口径计算：Current Foundation Progress 和 Final Product Goal Progress。Project closure 数量只能作为单独证据口径，不写入蓝图文档，不授权下一阶段执行。
-- Complete Blueprint Design 是 Human + `@000 / AIE` 的 Linear 外蓝图活动，产物统一维护在根目录 `BLUEPRINT.md`；它可描述 Live / signed endpoint / broker / OMS 等 Future Construction Zones / 未来建设区，但不得自动转成 Linear issue。
-- Complete Blueprint Design 不创建 Linear Project / Issue，不修改 Linear status，不推进 `Backlog` -> `Todo`，不启动 `@002 / PAR`，不启动 symphony-issue，不运行 Graphify update，不写业务代码。
-- 触碰 production behavior 时，优先用 deterministic fixture / test 表达目标行为；不能只靠最终大检查判断正确性。
-- Linear issue 应优先拆成可独立验证的 vertical slice / tracer bullet，不把跨层闭环机械拆成无法单独验收的横向模块切片。
 - `.codex/*` 不进入 PR。
 - `graphify-out/*` 不进入 PR。
-- Agent 默认读取 `docs/validation/latest-verification-summary.md`。
+- Agent 默认读取 `docs/validation/latest-verification-summary.md`，不默认读取完整 `verification.md`。
 
-## Role Alias Rule
+## Role Alias Rule / 角色和自动化边界
 
 MTPRO 采用 AEP 三位数字编号和三字母角色代号。数字编号与三字母代号等价，例如 `@000 = AIE`、`@001 = PLN`。角色编号只用于沟通压缩，不改变职责边界，不授权执行，不替代 Linear issue、Project planning、GitHub required checks，不替代 Human decision。
 
@@ -73,6 +52,14 @@ MTPRO 采用 AEP 三位数字编号和三字母角色代号。数字编号与三
 
 Agent 收到 `给 @000 下 Codex 指令`、`给 @001 下 Codex 指令` 或 `@001：<任务>` 时，必须按对应角色职责解析。symphony-issue、Codex Execution Agent 和 GitHub PR Automation 是流程工具 / 执行层 actor，按名称调用，不占用角色编号。
 
+## Planning / Execution 分界
+
+- Project Planning Facilitator 只做规划和草案；`@001 / PLN` 不执行 issue，不启动 symphony-issue，不操作 `Backlog` -> `Todo`。
+- Human 确认 Project / Issue plan 并写入 Linear 后，第一个 issue 和后续 issue 的 `Backlog` -> `Todo` 操作都只能由父 Codex 自动执行。
+- 父 Codex 自动调度前必须确认 WIP=1、previous issue Done、依赖满足、执行合同格式完整，并且当前 Project 没有 `Todo` / `In Progress` / `In Review` active conflict。
+- symphony-issue 只调度唯一 `Todo` issue，并负责 `Todo -> In Progress -> In Review` 状态推进。
+- GitHub PR Automation 负责 required checks、auto-merge、squash merge、branch cleanup 和 Linear bot auto Done。
+
 ## @002 Startup Runbook
 
 当 Human 指令要求 `@002 / PAR` 接管一个已写入 Linear 的 Project 时，父 Codex 必须把启动、执行前检查、active Project pointer 更新、二次 queue preview 和首个 eligible issue 推进合并为一个连续动作。
@@ -86,6 +73,21 @@ Agent 收到 `给 @000 下 Codex 指令`、`给 @001 下 Codex 指令` 或 `@001
 7. gate 任一失败时停止并报告。
 
 `@002 Startup Runbook` 不创建 Linear Project / Issue，不修改 issue body，不启动 `symphony-issue`，不写代码，不创建 PR，不运行 Graphify update。
+
+## Project Closure
+
+- Project closure 必须确认 Linear Project status 为 `Completed`，并确认 `type=completed`、`completedAt` 非空。
+- Stage Code Audit Report 必须覆盖完整 Linear Project，包含 Linear Project `Completed` evidence 和 Root Docs Delta。
+- Root Docs Refresh Gate 只允许 `@002 / PAR` 同步已发生事实；方向、目标、架构路线和下一阶段优先级必须交给 Human + `@001 / PLN`。
+- Root Docs Refresh Gate closure 后，`@002 / PAR` 必须输出当前阶段完成进度条；进度条必须基于 `GOAL.md` 和 `docs/roadmap.md` 的两层目标口径计算：Current Foundation Progress 和 Final Product Goal Progress。Project closure 数量只能作为单独证据口径，不写入蓝图文档，不授权下一阶段执行。
+
+## Complete Blueprint Design
+
+Complete Blueprint Design 是 Human + `@000 / AIE` 的 Linear 外蓝图活动，产物统一维护在根目录 `BLUEPRINT.md`。
+
+它可描述 Live / signed endpoint / broker / OMS 等 Future Construction Zones / 未来建设区，但不得自动转成 Linear issue。
+
+Complete Blueprint Design 不创建 Linear Project / Issue，不修改 Linear status，不推进 `Backlog` -> `Todo`，不启动 `@002 / PAR`，不启动 symphony-issue，不运行 Graphify update，不写业务代码。
 
 ## Codex Execution Agent 流程
 

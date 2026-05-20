@@ -1,12 +1,10 @@
 # docs/roadmap.md
 
-ROADMAP 只定义阶段地图，不授权执行。
-
-正式执行必须来自 Linear live-read 中唯一 configured executable issue，并通过 Parent Codex queue preflight、symphony-issue 和 GitHub PR Automation。
-
 本文档是 Construction Plan / 施工路线。它是 `BLUEPRINT.md` 的二级权重承接文档，根据蓝图和工程模块定义施工顺序、进度和下一阶段 handoff。
 
-完整产品终局和 Future Construction Zones / 未来建设区见 canonical `BLUEPRINT.md`；本文档只记录当前已批准阶段、目标切片进度和下一轮 planning handoff，不能推翻 `BLUEPRINT.md`。
+ROADMAP 只定义阶段地图，不授权执行。正式执行必须来自 Linear live-read 中唯一 configured executable issue，并通过 Parent Codex queue preflight、symphony-issue 和 GitHub PR Automation。
+
+完整产品终局和 Future Construction Zones / 未来建设区见 `BLUEPRINT.md`；工程模块细节见 `docs/architecture.md`。
 
 ## Roadmap Responsibility / 路线职责
 
@@ -17,7 +15,7 @@ ROADMAP 只定义阶段地图，不授权执行。
 3. 下一轮 planning 应该从哪些未完成切片里选择。
 4. Project closure 后如何反写进度和 handoff。
 
-它不定义最终产品终局；终局由 `BLUEPRINT.md` 定义。它不定义工程模块细节；工程模块由 `docs/architecture.md` 定义。它不授权执行；执行只能来自 Linear live-read 中唯一 configured executable issue。
+它不定义最终产品终局，不定义工程模块细节，不授权执行。
 
 ## Roadmap Inputs / 路线输入
 
@@ -53,9 +51,7 @@ GOAL.md
 | MTPRO Paper Workflow Control Shell v1 | Completed | Paper workflow Workbench information architecture、session-level local controls、observability、Event Timeline / Evidence Explorer preview、Dashboard / Workbench shell evidence、Stage Code Audit Report |
 | MTPRO Market Data Replay Operations v1 | Completed | public read-only batch / replay boundary、local replay metadata、retention / freshness evidence、fixture parity、event log / projection consistency、Report / Dashboard / Event Timeline evidence、Stage Code Audit Report |
 
-Completed Project 的完整证据见 `docs/audit/`。
-
-当前 Project、active issue、Todo / In Progress / In Review 状态必须从 Linear 和 Parent Codex queue preview 实时读取，不写死在仓库文档中。
+Completed Project 的完整证据见 `docs/audit/`。当前 Project、active issue、Todo / In Progress / In Review 状态必须从 Linear 和 Parent Codex queue preview 实时读取，不写死在仓库文档中。
 
 ## Progress Model / 进度模型
 
@@ -75,24 +71,14 @@ Foundation Progress: [##########] 100%
 Final Product Progress: [####------] 44%
 ```
 
-已 closure Project：
-
-- `MTPRO 引导`
-- `MTPRO Runtime Research Workbench v1`
-- `MTPRO Trading Validation and Parity Hardening`
-- `MTPRO Paper Session Runtime v1`
-- `MTPRO Paper Execution Workflow v1`
-- `MTPRO Paper Workflow Control Shell v1`
-- `MTPRO Market Data Replay Operations v1`
-
 Current Foundation Progress 基于 `GOAL.md` 的当前 foundation 目标切片计算：
 
 | Foundation 目标切片 | 状态 | 证据 |
 | --- | --- | --- |
 | Research / Backtest / Report / Paper readiness | Complete | Runtime Research Workbench、Trading Validation、Paper Session Runtime 已完成 |
 | Paper-only execution evidence | Complete | Paper Execution Workflow v1 已完成 |
-| Paper workflow 可观察性和本地控制壳 | Complete | Paper Workflow Control Shell v1 已完成，形成本地 session-level controls、observability、Event Timeline / Evidence Explorer preview 和 Dashboard / Workbench shell evidence |
-| 更长周期 market data replay / operations | Complete | Market Data Replay Operations v1 已完成，形成 public read-only batch / replay boundary、local replay metadata、retention / freshness、fixture parity、event log / projection consistency 和 Report / Dashboard read-model-only evidence |
+| Paper workflow 可观察性和本地控制壳 | Complete | Paper Workflow Control Shell v1 已完成 |
+| 更长周期 market data replay / operations | Complete | Market Data Replay Operations v1 已完成 |
 
 Final Product Goal Progress 基于 `GOAL.md` 的完整产品目标切片计算：
 
@@ -136,7 +122,7 @@ Next Handoff：Human + `@001 / PLN`
 - 能用 deterministic validation、PR evidence、Stage Code Audit 和 Root Docs Refresh 收口。
 - 不把多个 future capability 一次性打包成模糊大 Project。
 
-当前最自然的候选顺序仍是：
+当前自然候选顺序：
 
 ```text
 实盘交易基础边界
@@ -146,7 +132,7 @@ Next Handoff：Human + `@001 / PLN`
 -> 实盘审计 / 事故回放 / 停机控制
 ```
 
-但该顺序不是执行授权。Human + `@001 / PLN` 可以基于最新 Stage Audit、风险和产品优先级调整。
+该顺序不是执行授权。Human + `@001 / PLN` 可以基于最新 Stage Audit、风险和产品优先级调整。
 
 ## Live Route Gates / 实盘路线门槛
 
