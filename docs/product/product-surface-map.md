@@ -331,3 +331,26 @@ Shell 新增展示：
 - Dashboard / Workbench UI 扩展、Event Timeline evidence 接入或 read model 输出。
 - SQLite / DuckDB schema、runtime object 或 adapter request 暴露。
 - signed endpoint、account endpoint、listenKey、broker action、Live trading 或真实订单提交 / 撤销 / 替换。
+
+## MTP-55 Market Data Replay Metadata / Batch Replay Contract
+
+日期：2026-05-20
+
+执行者：Codex
+
+当前产品面新增本地 replay operations metadata 和 batch replay contract，但仍不新增 Dashboard UI、operations console、真实历史下载器或生产调度器。
+
+边界覆盖：
+
+- 本地 replay operations metadata：batch id、replay run id、symbol、interval、time window、fixture source、record count 和 checksum / parity hint。
+- batch replay contract：metadata 绑定 MTP-54 public read-only boundary，并固定 required fields、required validation mode、optional validation mode 和 forbidden capability。
+- deterministic fixture：BTCUSDT / 1m / 单条本地 fixture，用于 Codable equality、contract completeness 和 forbidden field surface validation。
+- required validation 继续固定为 mock transport、fixture parity 和 local batch replay，不依赖真实 Binance 网络。
+
+仍不包含：
+
+- 真实长周期历史下载器、production scheduler、多节点运行或云端数据湖。
+- retention policy、freshness read model、fixture parity hardening、event log / projection consistency 或 read-model evidence 接入。
+- Dashboard / Workbench UI 扩展、Event Timeline evidence 接入或 operations console。
+- SQLite / DuckDB schema、runtime object 或 adapter request 暴露。
+- signed endpoint、account endpoint、listenKey、broker action、Live trading 或真实订单提交 / 撤销 / 替换。

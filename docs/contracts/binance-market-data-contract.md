@@ -171,3 +171,34 @@ MTP-21 通过 `Runtime` 模块消费 `BinancePublicMarketDataClient` 的 public 
 - 多节点运行、云端数据湖或大规模数据平台。
 - signed endpoint、account endpoint、listenKey user data stream。
 - broker action、Live trading、真实订单提交 / 撤销 / 替换。
+
+## MTP-55 Market Data Replay Metadata / Batch Replay Contract
+
+日期：2026-05-20
+
+执行者：Codex
+
+`Adapters` 在本事项中新增本地 replay operations metadata 和 batch replay contract，用于把 MTP-54 的 boundary 字段落实为可 Codable、可 deterministic equality 验证的 value model。
+
+契约结构：
+
+- `BinanceMarketDataReplayOperationsMetadata`：描述 batch id、replay run id、symbol、interval、time window、fixture source、record count 和 checksum / parity hint。
+- `BinanceMarketDataBatchReplayContract`：把 metadata 绑定到 `BinanceMarketDataBatchReplayBoundary`，并固定 required fields、required validation mode、optional validation mode 和 forbidden capability。
+- `BinanceMarketDataReplayOperationsMetadataError`：只表达本地 metadata 合同错误，例如负数 record count、空 checksum / parity hint 或不完整 boundary。
+- `BinanceMarketDataReplayOperationsFixture`：提供 BTCUSDT / 1m / 单条本地 fixture 的 deterministic metadata 和 contract evidence。
+
+契约要求：
+
+- metadata 只描述本地 replay operations evidence，不代表 production runtime operations。
+- batch replay contract 必须覆盖 MTP-54 最小字段集合，并保持 public read-only / local fixture replay。
+- required validation 固定为 mock transport、fixture parity 和 local batch replay，不依赖真实 Binance 网络。
+- optional manual Binance public network smoke 仍只能作为人工证据，不得进入 required validation。
+- metadata field values 不得包含 signed endpoint、account endpoint、listenKey、broker、real order 或 production runtime operations 字段。
+
+本契约不包含：
+
+- 真实长周期历史下载器。
+- production scheduler、多节点运行或云端数据湖。
+- retention engine、freshness read model、fixture parity hardening、event log / projection consistency 或 UI evidence 接入。
+- signed endpoint、account endpoint、listenKey user data stream。
+- broker action、Live trading、真实订单提交 / 撤销 / 替换。

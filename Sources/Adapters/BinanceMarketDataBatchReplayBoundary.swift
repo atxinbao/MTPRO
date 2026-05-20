@@ -8,7 +8,7 @@ import Foundation
 /// 也不授权 broker action、Live trading 或真实订单提交 / 撤销 / 替换。
 
 /// 批次回放 contract 的最小字段集合。
-/// 这些字段只描述本地 replay operations evidence；MTP-55 后续可基于该字段集合实现具体 metadata value model。
+/// 这些字段只描述本地 replay operations evidence；MTP-55 metadata value model 必须完整覆盖该字段集合。
 public enum BinanceMarketDataBatchReplayContractField: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
     case batchID = "batch id"
     case replayRunID = "replay run id"
