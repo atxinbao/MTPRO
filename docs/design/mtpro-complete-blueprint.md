@@ -23,6 +23,8 @@
 | `ENVIRONMENT.md` | 本地环境、验证入口和外部系统禁区 |
 | `ARCHITECTURE.md` | 当前模块地图、目标数据流和不变量 |
 | `ROADMAP.md` | 已完成阶段、当前路线和非授权边界 |
+| `docs/domain/context.md` | MTPRO shared language、领域术语和禁止混用词 |
+| `docs/automation/agent-engineering-practices.md` | 从 `mattpocock/skills` 吸收的 Agent 工程实践 |
 | `docs/reference/nautilus-trader/` | NautilusTrader 产品 / 设计 / 架构参考研究 |
 | `docs/audit/` | 已完成 Project 的 Stage Code Audit Reports |
 | `docs/validation/trading-validation-matrix.md` | 交易语义验证证据地图 |

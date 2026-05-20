@@ -26,10 +26,13 @@ README.md
 -> ENVIRONMENT.md
 -> ARCHITECTURE.md
 -> ROADMAP.md
+-> docs/domain/context.md
 -> docs/validation/latest-verification-summary.md
 ```
 
 `BLUEPRINT.md` 是 Root Blueprint 入口；完整蓝图见 `docs/design/mtpro-complete-blueprint.md`。
+
+`docs/domain/context.md` 是 shared language 入口；`docs/automation/agent-engineering-practices.md` 记录从 `mattpocock/skills` 吸收的 Feedback Loop First、TDD / Tracer Bullet、Diagnose Loop、Architecture Deepening Review 和 Handoff Discipline。
 
 ## 当前基线
 
@@ -96,7 +99,7 @@ Project Closure Count 只说明当前已批准、已执行、已完成 Project c
 
 ## 最近验证
 
-本轮 AEP alignment 已完成验证：
+本轮 AEP / skills methodology alignment 已完成验证：
 
 ```bash
 git diff --check
@@ -111,6 +114,13 @@ bash checks/run.sh
 - XCTest：121 tests, 0 failures。
 
 `bash checks/run.sh` 是统一验证入口，包含 automation readiness、Dashboard build / smoke 和 Swift tests。
+
+本轮新增 docs-only methodology evidence：
+
+- `docs/domain/context.md`
+- `docs/automation/agent-engineering-practices.md`
+
+两者不授权执行，不创建 Linear Project / Issue，不修改 Linear status，不推进 `Todo`，不启动 Symphony。
 
 最近已完成 Project 的验证事实见对应 Stage Code Audit Report 和 `verification.md` append-only 历史。
 

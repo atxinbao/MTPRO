@@ -21,9 +21,10 @@ Agent 进入 MTPRO 时必须按以下顺序读取：
 5. `ENVIRONMENT.md`
 6. `ARCHITECTURE.md`
 7. `ROADMAP.md`
-8. `docs/validation/latest-verification-summary.md`
+8. `docs/domain/context.md`
+9. `docs/validation/latest-verification-summary.md`
 
-需要执行或验证时，再按当前 Linear issue scope 读取 `docs/contracts/`、`docs/product/`、`docs/validation/`、`docs/automation/`、Stage Code Audit Report 和当前 Linear issue body。
+需要执行或验证时，再按当前 Linear issue scope 读取 `docs/contracts/`、`docs/product/`、`docs/validation/`、`docs/automation/agent-engineering-practices.md`、`docs/automation/`、Stage Code Audit Report 和当前 Linear issue body。
 
 完整 `verification.md` 只在审计、追溯或 debug 时读取。
 
@@ -37,6 +38,8 @@ Agent 进入 MTPRO 时必须按以下顺序读取：
 | Environment | `ENVIRONMENT.md` | 本地工具、验证入口、外部系统禁区 |
 | Architecture Map | `ARCHITECTURE.md` | 当前架构地图 / 设计基线、模块边界、目标数据流和不变量 |
 | Construction Plan | `ROADMAP.md` | 当前阶段路线、Project closure、Goal / Roadmap Target Progress |
+| Shared Language | `docs/domain/context.md` | MTPRO 领域术语、禁止混用词、paper-only / read-only / future-gated 语义 |
+| Agent Engineering Practices | `docs/automation/agent-engineering-practices.md` | shared language、feedback loop、tracer bullet、diagnose、architecture deepening 和 handoff discipline |
 | Evidence | `docs/audit/`、`docs/validation/`、`verification.md` | Stage Code Audit、验证摘要和 append-only 历史 |
 
 ## Final Product Blueprint
@@ -101,4 +104,3 @@ MTPRO 最终目标是一个 macOS 原生交易研究与执行工作台。
 - Project Planning Record 不授权执行。
 - Backlog issue、label、priority、assignee 不授权执行。
 - 只有 Linear live-read 中唯一 configured executable issue 可以进入正式开发。
-

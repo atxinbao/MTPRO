@@ -15,7 +15,8 @@ Agent 进入仓库时先读：
 5. `ENVIRONMENT.md`
 6. `ARCHITECTURE.md`
 7. `ROADMAP.md`
-8. `docs/validation/latest-verification-summary.md`
+8. `docs/domain/context.md`
+9. `docs/validation/latest-verification-summary.md`
 
 完整 `verification.md` 只在审计、追溯或 debug 时读取。
 
@@ -77,12 +78,14 @@ Tests/
 | `AGENTS.md` | Agent / Codex 行为规则 |
 | `ARCHITECTURE.md` | Architecture Map：模块地图、设计基线、数据流、不变量 |
 | `ROADMAP.md` | Construction Plan：阶段地图、目标进度和非授权边界 |
+| `docs/domain/context.md` | Shared Language：领域术语、禁止混用词和 paper-only / future-gated 语义 |
 | `docs/planning/linear-draft-plan.md` | Project Planning Record 索引和规则 |
 | `docs/planning/project-role-map.md` | `@000` 到 `@007` 角色边界 |
 | `docs/design/mtpro-complete-blueprint.md` | Human + `@000 / AIE` 维护的完整产品 / 系统 / 设计蓝图 |
 | `docs/validation/latest-verification-summary.md` | Agent / Graphify 默认读取的最近验证摘要 |
 | `docs/validation/validation-plan.md` | 长期验证计划 |
 | `docs/validation/trading-validation-matrix.md` | trading validation evidence map |
+| `docs/automation/agent-engineering-practices.md` | 从 `mattpocock/skills` 吸收的 shared language、feedback loop、tracer bullet、diagnose 和 architecture deepening 方法 |
 | `docs/automation/` | Parent Codex、symphony-issue、Graphify、GitHub PR Automation、Post-Issue Ledger 边界 |
 | `docs/audit/` | Project 级 Stage Code Audit Reports |
 | `verification.md` | append-only 完整验证流水账，仅用于审计、追溯和 debug |
@@ -111,5 +114,7 @@ MTPRO 采用 AEP 编号方法论：
 8. Root Docs Refresh / Current Phase Progress Bar
 9. Next Human Project Planning
 ```
+
+同时吸收 `mattpocock/skills` 的小而可组合工程实践：shared language、Feedback Loop First、TDD / Tracer Bullet、Diagnose Loop、Architecture Deepening Review 和 Handoff Discipline。MTPRO 的落地规则见 `docs/domain/context.md` 和 `docs/automation/agent-engineering-practices.md`。
 
 当前已完成 paper-only foundation 的 `0 -> 8` 多轮闭环。下一阶段仍必须从 Human + `@001 / PLN` 的 Next Human Project Planning 开始。
