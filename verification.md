@@ -7103,3 +7103,53 @@ Commit：
 | --- | --- | --- |
 | `bash checks/automation-readiness.sh` | pass | MTP-67 stage audit input、Live boundary contract、latest summary、validation plan、matrix、Dashboard smoke evidence 和关键锚点均可机械定位；输出 `MTPRO automation readiness checks passed.`。 |
 | `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6`；135 个 XCTest 通过；最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO Live Trading Boundary Definition v1 Stage Code Audit Report
+
+日期：2026-05-21
+
+执行者：Parent Codex Automation Supervision（`@002 / PAR`）
+
+目的：
+
+- 将 `MTPRO Live Trading Boundary Definition v1` 的 canonical Stage Code Audit Report 落仓。
+- 固化 `MTP-61`、`MTP-62`、`MTP-63`、`MTP-64`、`MTP-65`、`MTP-66`、`MTP-67` 的 issue / PR evidence、merge commit、required check、validation、Boundary Audit、Known CI Boundary、Root Docs Delta pending 和 Next Human Project Planning handoff。
+- 记录 Linear Project closure：status `Completed`，type `completed`，`completedAt=2026-05-20T18:40:57.214Z`。
+
+文件范围：
+
+- Added：
+  - `docs/audit/mtpro-live-trading-boundary-definition-v1-stage-code-audit.md`
+- Updated：
+  - `checks/automation-readiness.sh`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+证据：
+
+- `MTP-61` 至 `MTP-67` 全部 Linear `Done`。
+- PR #132 已 merge。
+- Merge commit：`ad1e64c3d52b0e037cd72de59edf520ab403d81d`。
+- GitHub required check：`checks` pass，run `https://github.com/atxinbao/MTPRO/actions/runs/26182443581/job/77028886608`。
+- Final validation：`bash checks/run.sh` passed。
+- XCTest：135 tests, 0 failures。
+- Dashboard smoke：`sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6`。
+- Post-Issue Ledger：`git_pull_ff_only` failed because `/Users/mac/Documents/MTPRO` had unrelated local Workbench 中文优先设计 changes; `graphify_update` skipped to avoid stale graph.
+
+边界确认：
+
+- 本轮只落仓 Stage Code Audit Report，不创建 Linear Project / Issue。
+- 不推进 Todo。
+- 不启动 Symphony。
+- 不运行 Graphify update。
+- 不写业务代码。
+- 不提交 `.codex/*`。
+- 不提交 `graphify-out/*`。
+- Root Docs Refresh Gate 仍需在本 Stage Code Audit Report 合并后单独执行。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Stage Code Audit Report 落仓变更无 whitespace error。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 135 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6`；最终输出 `MTPRO checks passed.`。 |
