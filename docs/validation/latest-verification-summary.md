@@ -37,7 +37,7 @@ README.md
 | Planning record | `docs/planning/projects/mtpro-market-data-replay-operations-v1-plan.md` |
 | Linear Project status | Linear Project status `Completed`，`type=completed`，`completedAt=2026-05-20T08:23:20Z` |
 | Stage Code Audit Report | `docs/audit/mtpro-market-data-replay-operations-v1-stage-code-audit.md`，已覆盖完整 Linear Project |
-| Root Docs Refresh Gate | 已 closure；Root Docs Delta 已同步到 `GOAL.md`、`docs/architecture.md`、`docs/roadmap.md`，`docs/environment.md` no update needed |
+| Root Docs Refresh Gate | 已 closure；Root Docs Delta 已同步到 `GOAL.md`、`docs/architecture.md`、`docs/roadmap.md`；后续二级文档整理已补强 `docs/environment.md` 和 `docs/architecture.md` |
 | Current Foundation Progress | 4 / 4（100%） |
 | Final Product Goal Progress | 4 / 9（44%） |
 
@@ -99,7 +99,7 @@ Stage audit / input 入口：
 
 ## 最近验证
 
-本轮 Secondary Weight Docs Rehome 已完成：
+本轮 Environment / Architecture Docs Deepening 已完成：
 
 ```bash
 git diff --check
@@ -117,18 +117,17 @@ bash checks/run.sh
 
 本轮 docs-only second-tier docs evidence：
 
-- `README.md`
-- `AGENTS.md`
-- `GOAL.md`
-- `BLUEPRINT.md`
 - `docs/architecture.md`
 - `docs/environment.md`
-- `docs/roadmap.md`
-- `docs/domain/context.md`
-- `docs/planning/project-role-map.md`
 - `checks/automation-readiness.sh`
 - `docs/validation/latest-verification-summary.md`
 - `verification.md`
+
+更新重点：
+
+- `docs/environment.md`：补强 Environment Responsibility、Required Validation、Optional Evidence、Platform Boundary、External System Capability Matrix、Secrets / Local State Boundary、Automation Boundary。
+- `docs/architecture.md`：补强 Package Dependency Direction、Module Boundary Contracts、Capability Flow Map、Architecture Invariants、Future Live Isolation、Architecture Update Gate。
+- `checks/automation-readiness.sh`：加入上述章节锚点，确保二级承接文档不会退化为松散摘要。
 
 ## 当前边界
 
