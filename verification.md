@@ -6706,3 +6706,56 @@ Commit：
 | `git diff --check` | pass | Root Docs Stack Compression 变更无 whitespace error。 |
 | `bash checks/automation-readiness.sh` | pass | root docs / blueprint / roadmap / architecture 锚点通过。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO Live Trading Boundary Definition v1 Project Planning Record
+
+日期：2026-05-20
+
+执行者：Codex（`@000 / AIE`）
+
+目的：
+
+- 将 Human 确认的 `MTPRO Live Trading Boundary Definition v1` 下一阶段 Project-level planning record 落仓。
+- 只保存 Project 级计划摘要和格式门槛，不复制维护完整 Linear issue body。
+- 更新 Project Planning Record 索引、最近验证摘要和 automation readiness anchor。
+
+文件范围：
+
+- Added：
+  - `docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md`
+- Updated：
+  - `docs/planning/linear-draft-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+
+规划摘要：
+
+- Project name：`MTPRO Live Trading Boundary Definition v1`
+- Project goal：定义 Live trading foundation 的 gate、contract、blocked evidence 和 forbidden capability tests。
+- First executable issue candidate：定义 Live trading foundation capability taxonomy 和 gate。
+- WIP=1：所有候选 issue 写入 Linear 后必须初始保持 `Backlog / non-executable`。
+- 完整 issue execution contract 以后以 Linear issue body 为准。
+
+边界确认：
+
+- 本轮只落仓 Project Planning Record。
+- 未创建 Linear Project。
+- 未创建 Linear Issues。
+- 未修改 Linear status。
+- 未推进任何 issue 到 `Todo`。
+- 未启动 `@002 / PAR`。
+- 未启动 Symphony / `symphony-issue`。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 本 planning record 不授权执行。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Live Trading Boundary planning record docs-only 变更无 whitespace error。 |
+| `bash checks/automation-readiness.sh` | pass | Live Trading Boundary planning record 锚点通过。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |

@@ -41,6 +41,10 @@ README.md
 | Current Foundation Progress | 4 / 4（100%） |
 | Final Product Goal Progress | 4 / 9（44%） |
 
+`MTPRO Live Trading Boundary Definition v1` Project-level planning record 已落仓，路径为 `docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md`；该文档仍只是 planning summary，不创建 Linear Project，不创建 Linear Issues，不修改 Linear status，不推进 Todo，不启动 `@002 / PAR`，不启动 Symphony，不授权执行。
+
+`MTPRO Live Trading Boundary Definition v1` 尚未写入 Linear；完整 issue execution contract 以后以 Linear issue body 为准。
+
 ## Goal / Roadmap Progress Baseline
 
 ```text
