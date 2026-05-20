@@ -220,6 +220,134 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testLiveTradingCredentialEndpointBoundaryDefinesMTP62GateOneAsFutureOnly() throws {
+        // 测试场景：MTP-62 只定义 API key / secret / signed / account / listenKey
+        // 的 Gate 1 禁止边界和 future gate，不实现任何 credential 或账户请求能力。
+        let boundary = LiveTradingCredentialEndpointBoundary.deterministicFixture
+
+        XCTAssertEqual(
+            boundary.contractID,
+            try Identifier("mtp-62-live-credential-endpoint-boundary")
+        )
+        XCTAssertEqual(boundary.issueID, try Identifier("MTP-62"))
+        XCTAssertEqual(boundary.gate, .credentialEndpointBoundary)
+        XCTAssertEqual(
+            boundary.forbiddenCapabilities,
+            [
+                .apiKey,
+                .secretStorage,
+                .requestSignature,
+                .signedEndpoint,
+                .accountEndpoint,
+                .listenKeyUserDataStream,
+                .realAccountPayload
+            ]
+        )
+        XCTAssertEqual(
+            boundary.futureGates,
+            [
+                .humanLiveDecision,
+                .apiKeySecretPolicy,
+                .signedEndpointCapabilityContract,
+                .accountEndpointCapabilityContract,
+                .listenKeyUserDataStreamContract,
+                .publicReadOnlyAdapterSeparation,
+                .auditAndOperationsEvidence
+            ]
+        )
+        XCTAssertEqual(
+            boundary.allowedEvidenceKinds,
+            [
+                .contractDocumentation,
+                .validationMatrixAnchor,
+                .automationReadinessAnchor,
+                .deterministicForbiddenTest,
+                .prBoundaryEvidence
+            ]
+        )
+        XCTAssertTrue(boundary.gateOneBoundaryHeld)
+        XCTAssertFalse(boundary.readsAPIKey)
+        XCTAssertFalse(boundary.storesSecret)
+        XCTAssertFalse(boundary.signsRequests)
+        XCTAssertFalse(boundary.callsSignedEndpoint)
+        XCTAssertFalse(boundary.callsAccountEndpoint)
+        XCTAssertFalse(boundary.createsListenKey)
+        XCTAssertFalse(boundary.consumesRealAccountPayload)
+        XCTAssertFalse(boundary.upgradesPublicReadOnlyAdapter)
+        XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(
+            LiveTradingCredentialEndpointBoundary.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, boundary)
+    }
+
+    func testLiveTradingCredentialEndpointBoundaryRejectsSecretSignedAccountAndListenKeyBypass() throws {
+        // 测试场景：Gate 1 fixture 的初始化和 Codable 解码都必须拒绝恢复真实 API key、
+        // secret storage、签名请求、账户 endpoint 或 listenKey user data stream。
+        XCTAssertThrowsError(
+            try LiveTradingCredentialEndpointBoundary(readsAPIKey: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("readsAPIKey"))
+        }
+        XCTAssertThrowsError(
+            try LiveTradingCredentialEndpointBoundary(storesSecret: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("storesSecret"))
+        }
+        XCTAssertThrowsError(
+            try LiveTradingCredentialEndpointBoundary(signsRequests: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("signsRequests"))
+        }
+        XCTAssertThrowsError(
+            try LiveTradingCredentialEndpointBoundary(callsAccountEndpoint: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("callsAccountEndpoint")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveTradingCredentialEndpointBoundary(createsListenKey: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("createsListenKey"))
+        }
+        XCTAssertThrowsError(
+            try LiveTradingCredentialEndpointBoundary(
+                forbiddenCapabilities: [.apiKey]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "forbiddenCapabilities",
+                    expected: LiveTradingCredentialEndpointBoundary
+                        .requiredForbiddenCapabilities
+                        .map(\.rawValue)
+                        .joined(separator: ","),
+                    actual: "API key"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(LiveTradingCredentialEndpointBoundary.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["callsSignedEndpoint"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveTradingCredentialEndpointBoundary.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("callsSignedEndpoint")
+            )
+        }
+    }
+
     func testPaperSessionLocalControlCommandModelSupportsSessionActionsDeterministically() throws {
         // 测试场景：MTP-48 只允许本地 Paper session-level control intent。
         // 四个 control 都必须保持 paper-only，且不能携带 order-level、broker 或真实订单能力。

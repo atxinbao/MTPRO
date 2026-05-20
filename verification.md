@@ -6806,3 +6806,54 @@ Commit：
 | `git diff --check` | pass | MTP-61 docs / checks 变更无 whitespace error。 |
 | `bash checks/automation-readiness.sh` | pass | `docs/contracts/live-trading-boundary-contract.md`、`TVM-LIVE-TRADING-FOUNDATION`、MTP-61 validation-plan 和 domain terms anchors 通过。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
+
+## MTP-62 API key / signed endpoint / account endpoint / listenKey boundary
+
+日期：2026-05-21
+
+执行者：Codex
+
+目的：
+
+- 定义 API key / secret / signed endpoint / account endpoint / listenKey 的禁止边界和 future gate。
+- 证明 public read-only market data adapter 不能升级为 signed / account capability。
+- 将 Gate 1 validation anchor 回填到 `TVM-LIVE-TRADING-FOUNDATION`、validation plan 和 automation readiness。
+
+文件范围：
+
+- Added：
+  - `Sources/Core/LiveTradingBoundary.swift`
+- Updated：
+  - `Sources/Core/CoreError.swift`
+  - `Tests/CoreTests/CoreTests.swift`
+  - `Tests/AdaptersTests/AdaptersTests.swift`
+  - `docs/contracts/live-trading-boundary-contract.md`
+  - `docs/domain/context.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+
+边界确认：
+
+- 未读取真实 API key。
+- 未新增环境变量、配置项、Keychain 读取或 secret 文件读取。
+- 未实现 secret storage。
+- 未实现 request signature / signed request helper。
+- 未调用 signed endpoint。
+- 未调用 account endpoint。
+- 未创建 listenKey 或 user data stream。
+- 未连接 broker / exchange execution adapter。
+- 未实现真实账户 payload、真实订单、OMS 或 `LiveExecutionAdapter`。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter LiveTradingCredentialEndpointBoundary` | pass | 2 tests, 0 failures；覆盖 MTP-62 Core Gate 1 fixture、Codable round trip 和 forbidden flag bypass rejection。 |
+| `swift test --filter PublicReadOnlyAdapterCannotUpgradeIntoMTP62CredentialOrAccountCapability` | pass | 1 test, 0 failures；覆盖 public read-only adapter 对 keyed / signature / account / listenKey contract 的 transport 前拒绝。 |
+| `bash checks/automation-readiness.sh` | pass | MTP-62 contract、matrix、validation-plan、domain terms 和 deterministic test anchors 通过。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 124 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |

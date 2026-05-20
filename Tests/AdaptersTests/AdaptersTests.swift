@@ -459,6 +459,122 @@ final class AdaptersTests: XCTestCase {
         XCTAssertTrue(requests.isEmpty)
     }
 
+    func testPublicReadOnlyAdapterCannotUpgradeIntoMTP62CredentialOrAccountCapability() async throws {
+        // 测试场景：MTP-62 的 Gate 1 边界要求 public market data adapter 继续只读；
+        // API key、signature、account endpoint 和 listenKey 即使被手写成 contract 也必须在 transport 前拒绝。
+        let liveBoundary = LiveTradingCredentialEndpointBoundary.deterministicFixture
+        let adapterBoundary = BinanceReadOnlyAdapterBoundary()
+
+        XCTAssertTrue(liveBoundary.gateOneBoundaryHeld)
+        XCTAssertFalse(liveBoundary.upgradesPublicReadOnlyAdapter)
+        XCTAssertTrue(adapterBoundary.forbiddenCapabilities.contains(BinanceForbiddenCapability.apiKey.rawValue))
+        XCTAssertTrue(
+            adapterBoundary.forbiddenCapabilities.contains(BinanceForbiddenCapability.signedEndpoint.rawValue)
+        )
+        XCTAssertTrue(
+            adapterBoundary.forbiddenCapabilities.contains(BinanceForbiddenCapability.accountEndpoint.rawValue)
+        )
+        XCTAssertTrue(
+            adapterBoundary.forbiddenCapabilities.contains(
+                BinanceForbiddenCapability.listenKeyUserDataStream.rawValue
+            )
+        )
+        XCTAssertFalse(adapterBoundary.allowedCapabilities.contains("signed endpoint"))
+        XCTAssertFalse(adapterBoundary.allowedCapabilities.contains("account endpoint"))
+        XCTAssertFalse(adapterBoundary.allowedCapabilities.contains("listenKey user data stream"))
+
+        let transport = MockBinancePublicMarketDataTransport { _ in
+            Data()
+        }
+        let client = BinancePublicMarketDataClient(transport: transport)
+
+        func assertRejected(
+            _ contract: BinancePublicRequestContract,
+            expected: BinancePublicMarketDataClientError,
+            file: StaticString = #filePath,
+            line: UInt = #line
+        ) async {
+            do {
+                _ = try await client.payload(for: contract)
+                XCTFail("MTP-62 forbidden contract should be rejected before transport", file: file, line: line)
+            } catch {
+                XCTAssertEqual(error as? BinancePublicMarketDataClientError, expected, file: file, line: line)
+            }
+        }
+
+        await assertRejected(
+            BinancePublicRequestContract(
+                capability: .bestBidAsk,
+                transport: .restGET,
+                path: "/api/v3/ticker/bookTicker",
+                queryItems: [BinanceQueryItem(name: "symbol", value: "apiKey")],
+                isReadOnly: true,
+                requiresAPIKey: false
+            ),
+            expected: .forbiddenRequest(
+                path: "/api/v3/ticker/bookTicker",
+                reason: "contains forbidden fragment: apikey"
+            )
+        )
+        await assertRejected(
+            BinancePublicRequestContract(
+                capability: .bestBidAsk,
+                transport: .restGET,
+                path: "/api/v3/ticker/bookTicker",
+                isReadOnly: true,
+                requiresAPIKey: true
+            ),
+            expected: .forbiddenRequest(
+                path: "/api/v3/ticker/bookTicker",
+                reason: "request requires API key"
+            )
+        )
+        await assertRejected(
+            BinancePublicRequestContract(
+                capability: .bestBidAsk,
+                transport: .restGET,
+                path: "/api/v3/ticker/bookTicker",
+                queryItems: [BinanceQueryItem(name: "symbol", value: "signature")],
+                isReadOnly: true,
+                requiresAPIKey: false
+            ),
+            expected: .forbiddenRequest(
+                path: "/api/v3/ticker/bookTicker",
+                reason: "contains forbidden fragment: signature"
+            )
+        )
+        await assertRejected(
+            BinancePublicRequestContract(
+                capability: .bestBidAsk,
+                transport: .restGET,
+                path: "/api/v3/account",
+                isReadOnly: true,
+                requiresAPIKey: false
+            ),
+            expected: .forbiddenRequest(
+                path: "/api/v3/account",
+                reason: "path is not in Binance public allowlist"
+            )
+        )
+        await assertRejected(
+            BinancePublicRequestContract(
+                capability: .depthSnapshot,
+                transport: .restGET,
+                path: "/api/v3/depth",
+                queryItems: [BinanceQueryItem(name: "symbol", value: "listenKey")],
+                isReadOnly: true,
+                requiresAPIKey: false
+            ),
+            expected: .forbiddenRequest(
+                path: "/api/v3/depth",
+                reason: "contains forbidden fragment: listenkey"
+            )
+        )
+
+        let requests = await transport.requests()
+        XCTAssertTrue(requests.isEmpty)
+    }
+
     func testBatchReplayBoundaryDefinesPublicReadOnlyLocalFixtureContract() {
         // 测试场景：MTP-54 只定义本地 batch / replay boundary，不实现真实历史下载器、
         // production operations 或任何交易能力。该 fixture 是后续 metadata / replay issue 的合同入口。
