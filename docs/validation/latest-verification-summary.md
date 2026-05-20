@@ -99,7 +99,7 @@ Stage audit / input 入口：
 
 ## 最近验证
 
-本轮 Goal Charter Progress Scope Compression 已完成：
+本轮 Complete Blueprint Product / Architecture / Design Structure 已完成：
 
 ```bash
 git diff --check
@@ -115,9 +115,9 @@ bash checks/run.sh
 - Dashboard smoke：`sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`。
 - XCTest：121 tests, 0 failures。
 
-本轮 docs-only Goal Charter evidence：
+本轮 docs-only Complete Blueprint evidence：
 
-- `GOAL.md`
+- `BLUEPRINT.md`
 - `checks/automation-readiness.sh`
 - `docs/validation/latest-verification-summary.md`
 - `verification.md`
