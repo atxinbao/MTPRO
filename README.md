@@ -1,6 +1,6 @@
 # MTPRO
 
-MTPRO 是 SwiftPM-first 的 macOS 交易研究工作台，用于重构 `macos-trader` 中已经验证过的产品语义。
+MTPRO 是 SwiftPM-first、local-first 的 macOS 原生专业交易工作台，用于重构 `macos-trader` 中已经验证过的产品语义。
 
 项目借鉴 `nautilus_trader` 的 Kernel / MessageBus / Cache / Engine / Adapter 分层思想，但不引入 NautilusTrader 作为运行依赖，也不复制 `macos-trader` 整仓代码。
 
@@ -22,12 +22,14 @@ Agent 进入仓库时按以下顺序读取：
 
 ## 当前定位
 
-第一版产品只做 Research -> Backtest -> Report -> Paper readiness / paper-only execution evidence。
+MTPRO 当前已经完成 Research -> Backtest -> Report -> Paper readiness / paper-only execution evidence / Paper workflow control shell / Market data replay operations 的 paper-only foundation。
+
+最终产品目标是专业交易工作台：先以可追溯证据链服务个人专业交易者 / 独立策略研究者，后续再通过独立 Human decision、独立 Project Definition、signed endpoint / broker / risk / operations gates，演进到 Live trading、实盘监控台、实盘执行控制、实盘风险控制和实盘审计 / 事故回放 / 停机控制。
 
 当前硬边界：
 
 - Binance 只允许 public market data read-only。
-- Live trading、signed endpoint、account endpoint、listenKey、broker action 和真实订单全部禁止。
+- 当前 execution scope 内，Live trading、signed endpoint、account endpoint、listenKey、broker action 和真实订单全部禁止。
 - Event Log 是 append-only facts source。
 - SQLite / DuckDB 只作为 projection。
 - UI 只消费 ViewModel / Read Model，不直接读取 adapter、database schema 或 runtime object。

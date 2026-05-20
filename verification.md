@@ -5891,6 +5891,53 @@ Linear live-read：
 | `bash checks/automation-readiness.sh` | pass | 新增 MTP-59 App read model / ViewModel、Report / Dashboard / Event Timeline evidence、validation-plan、matrix、contract docs、product surface 和 source/test anchors 后通过，输出 `MTPRO automation readiness checks passed.`。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
 
+## Professional Trading Workstation Goal Alignment
+
+日期：2026-05-20
+
+执行者：Codex
+
+目的：
+
+- 将 MTPRO 最终产品定位明确为 local-first 的 macOS 原生专业交易工作台。
+- 将 `GOAL.md` 从旧的 paper-only 5/5 口径调整为两层进度：Current Foundation Progress 和 Final Product Goal Progress。
+- 将最终产品目标拆成 9 个中文优先目标切片，覆盖 Research / Backtest / Report、Paper、Workbench、Market Data Replay，以及 future-gated 的实盘交易基础边界、实盘监控台、实盘执行控制、实盘风险控制、实盘审计 / 事故回放 / 停机控制。
+- 同步 `BLUEPRINT.md`、`ROADMAP.md`、Parent Codex 进度条规则和 automation readiness 锚点。
+
+文件范围：
+
+- Updated：
+  - `README.md`
+  - `AGENTS.md`
+  - `GOAL.md`
+  - `BLUEPRINT.md`
+  - `ROADMAP.md`
+  - `docs/automation/parent-codex-supervision.md`
+  - `checks/automation-readiness.sh`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- docs / checks only。
+- 未创建 Linear Project。
+- 未创建 Linear issue。
+- 未修改 Linear status。
+- 未推进 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Professional Trading Workstation Goal Alignment 变更无 whitespace error。 |
+| `bash checks/automation-readiness.sh` | pass | 两层进度、专业交易工作台定位、final product goal slices 和 future-gated 实盘切片锚点通过。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
+
 ## 2026-05-20 — MTP-60 automation readiness、validation evidence 和 stage audit input material 收口
 
 执行者：Codex
