@@ -51,6 +51,8 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - `MTP-56` 的 Linear issue body 是本轮执行合同；scope 限定为最小 retention policy、freshness status / evidence read model、replay batch freshness summary、本地 fixture / batch replay retention evidence、deterministic tests 和 read-model-only boundary。
 - 本轮 MTP-57 执行前 live-read 确认：`MTP-57` 为唯一 `In Progress` issue，`MTP-54`、`MTP-55` 和 `MTP-56` 已 `Done`，`MTP-58`、`MTP-59` 和 `MTP-60` 均为 `Backlog`，WIP=1。
 - `MTP-57` 的 Linear issue body 是本轮执行合同；scope 限定为 deterministic fixture parity、replay consistency、metadata / record count / ordering / checksum parity hint validation、network independence evidence 和 validation docs / matrix anchor。
+- 本轮 MTP-58 执行前 live-read 确认：`MTP-58` 为唯一 `In Progress` issue，`MTP-54`、`MTP-55`、`MTP-56` 和 `MTP-57` 已 `Done`，`MTP-59` 和 `MTP-60` 均为 `Backlog`，WIP=1。
+- `MTP-58` 的 Linear issue body 是本轮执行合同；scope 限定为 replay metadata / freshness evidence 与 event log evidence 对齐、projection snapshot consistency summary、replay run -> event log -> projection snapshot 一致性、deterministic tests 和 schema non-exposure boundary。
 - 本轮 queue closure（2026-05-19）确认 `MTPRO Paper Execution Workflow v1` 中 canonical issues `MTP-38`、`MTP-39`、`MTP-40`、`MTP-41`、`MTP-42`、`MTP-44`、`MTP-45` 全部 `Done`；`MTP-43`、`MTP-46` 为 `Duplicate` 并排除。
 - `MTP-45` 新增 Project 级 Stage Audit Input，路径为 `docs/audit/inputs/mtpro-paper-execution-workflow-v1-stage-audit-input.md`；Parent Codex 已基于该输入落仓 canonical Stage Code Audit Report。
 - 本轮 MTP-42 paper execution event log / replay / projection focused Core 链路已通过 `swift test --filter CoreTests/testPaperExecution`；最终 `bash checks/run.sh` 结果见本文件最近验证表和 `verification.md` 追加记录。
@@ -133,6 +135,8 @@ Current Project Planning Record：`docs/planning/projects/mtpro-market-data-repl
 - `MTP-56` 验证 freshness evidence 覆盖 fresh / stale / expired / not retained、batch age、retention evidence、batch freshness summary、required validation local-only 和 schema / adapter / runtime non-exposure；不实现 production retention engine、云端 archive、storage tiering、signed endpoint、broker action 或真实订单行为。
 - `MTP-57` 新增 `BinanceMarketDataBatchReplayConsistencyEvidence`、`BinanceMarketDataBatchReplayDeterministicParity` 和 `BinanceMarketDataBatchReplayParityError`，把本地 fixture replay output 与 batch replay metadata / contract 绑定为 deterministic parity evidence。
 - `MTP-57` 验证 replay consistency 覆盖 replay output summary、record count、symbol、interval、time window、record ordering、checksum / parity hint matching、metadata drift rejection、network independence 和 no signed endpoint / no broker / no real order boundary；不实现真实网络 required validation、历史下载器、production operations、event / projection consistency 或 Dashboard UI。
+- `MTP-58` 新增 Runtime 层 `MarketDataReplayProjectionConsistency`、`MarketDataReplayEventLogConsistencyEvidence`、`MarketDataReplayProjectionSnapshotConsistencySummary`、`MarketDataReplayProjectionSourceContract` 和 `MarketDataReplayProjectionConsistencyFixture`，把 MTP-55 metadata、MTP-56 freshness evidence、MTP-57 replay consistency evidence 与 append-only `.market` event log、cache snapshot、SQLite runtime projection 空快照和 DuckDB analytical projection snapshot 串联。
+- `MTP-58` 验证 event log sequence、replay result sequence、record count、replay output summary、cache snapshot summary 和 DuckDB analytical projection summary 一致；summary 保持 read-model-only，不暴露 SQLite / DuckDB schema、SQL、ORM、adapter request、Runtime object、signed endpoint、broker action 或真实订单行为。
 - 历史 `MTP-30` 阶段收口已迁入 `docs/audit/inputs/`，`docs/validation/` 不再存放 `MTP-xx` 命名的阶段输入文件。
 - `@000 / AIE` 是当前 Codex / AI Engineer 协作入口；`@003 / PRD`、`@004 / DSG`、`@005 / ARC` 是 Linear 外 reference / root docs 角色。
 
@@ -180,6 +184,9 @@ Current Project Planning Record：`docs/planning/projects/mtpro-market-data-repl
 | `swift test --filter AdaptersTests/testBatchReplay` | pass | MTP-57 focused Adapters validation 通过，11 个 XCTest，0 failures；新增 deterministic fixture parity、replay consistency、metadata count / ordering / checksum drift rejection 和 network boundary drift tests。 |
 | `bash checks/automation-readiness.sh` | pass | MTP-57 新增 replay consistency validation-plan、matrix、contract docs、product surface、source/test anchors 后通过，输出 `MTPRO automation readiness checks passed.`。 |
 | `bash checks/run.sh` | pass | MTP-57 统一验证入口通过；automation readiness、Dashboard build / smoke 和 117 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
+| `swift test --filter RuntimeTests` | pass | MTP-58 focused Runtime validation 通过，7 个 RuntimeTests，0 failures；新增 event log / projection consistency、deterministic summary、schema non-exposure、event log drift、projection drift 和 source boundary drift tests。 |
+| `bash checks/automation-readiness.sh` | pass | MTP-58 新增 Runtime source / tests、validation-plan、matrix、contract docs、product surface anchors 后通过，输出 `MTPRO automation readiness checks passed.`。 |
+| `bash checks/run.sh` | pass | MTP-58 统一验证入口通过；automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
 
 ## 当前边界
 
@@ -219,6 +226,9 @@ Current Project Planning Record：`docs/planning/projects/mtpro-market-data-repl
 - MTP-57 只加固 deterministic fixture parity 和 replay consistency；不实现真实历史下载器、production runtime operations、event log / projection consistency、Report / Dashboard / Event Timeline 接入或数据质量平台。
 - MTP-57 replay consistency evidence 只能从 `BinanceMarketDataBatchReplayContract` 和本地 replayed `MarketBar` records 派生，必须保持 required validation local-only、network independent、public read-only 和 local fixture replay。
 - MTP-57 明确拒绝 metadata record count、symbol、interval、time window、record ordering 或 checksum / parity hint drift，并保持 signed endpoint、account endpoint、listenKey、broker action、Live trading、真实订单和 production operations 禁区。
+- MTP-58 只串联 event log / projection snapshot consistency evidence；不实现完整 schema、migration framework、production data pipeline、Report / Dashboard / Event Timeline UI 接入或 operations console。
+- MTP-58 consistency summary 只能从本地 replay metadata、freshness evidence、deterministic replay consistency evidence 和 append-only `.market` event log replay 派生，并保持 read-model-only、schema non-exposure、public read-only、local fixture replay 和 required validation local-only。
+- MTP-58 明确拒绝 event log drift、projection snapshot drift、schema / source boundary drift 和非本地 replay contract drift，并保持 signed endpoint、account endpoint、listenKey、broker action、Live trading、真实订单和 production operations 禁区。
 - MTP-41 只定义 paper execution decision 本地链路和 deterministic fixture；blocked risk decision 不生成 paper order，allowed decision 只生成 paper-only order / fill evidence。
 - MTP-41 issue 本身不写 event log、不新增 replay / projection / ViewModel；MTP-42 只把已存在的 paper execution facts 串入 event log / replay / projection，不实现完整 execution engine、完整风险引擎、broker rejection fallback、真实撮合、真实成交回报、broker fill、account update、broker action、signed endpoint 或真实订单行为。
 - Report / Dashboard 只展示 read model / ViewModel，不提供交易执行入口。

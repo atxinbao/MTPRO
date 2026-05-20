@@ -268,3 +268,37 @@ MTP-21 通过 `Runtime` 模块消费 `BinancePublicMarketDataClient` 的 public 
 - 生产级数据质量平台、数据修复或多节点运行。
 - signed endpoint、account endpoint、listenKey user data stream。
 - broker action、Live trading、真实订单提交 / 撤销 / 替换。
+
+## MTP-58 Market Data Replay Event Log / Projection Consistency
+
+日期：2026-05-20
+
+执行者：Codex
+
+`Runtime` 在本事项中新增 market data replay event log / projection consistency evidence，用于把 MTP-55 metadata、MTP-56 freshness evidence、MTP-57 replay consistency evidence 与 append-only event log 和 projection snapshot 对齐。
+
+契约结构：
+
+- `MarketDataReplayProjectionConsistency`：从本地 batch replay contract、freshness evidence、fixture parity evidence 和 append-only event log facts 生成 consistency summary。
+- `MarketDataReplayEventLogConsistencyEvidence`：记录 `.market` stream sequence、replay result sequence、metadata record count 和 event log record count 是否一致。
+- `MarketDataReplayProjectionSnapshotConsistencySummary`：输出 replay run -> event log -> cache / SQLite runtime / DuckDB analytical projection snapshot 的稳定 read model summary。
+- `MarketDataReplayProjectionSourceContract`：证明 summary 不暴露 SQLite / DuckDB schema、SQL、ORM、Runtime object 或 adapter request。
+- `MarketDataReplayProjectionConsistencyFixture`：提供 BTCUSDT / 1m deterministic event log 和 summary fixture，只用于 XCTest、docs 和 PR evidence。
+
+契约要求：
+
+- event log facts 必须来自 append-only `EventEnvelope`，stream 固定为 `.market`。
+- event log 中的 `MarketBar` summary 必须与 MTP-57 deterministic replay output summary 完全一致。
+- cache snapshot 和 DuckDB analytical projection snapshot 必须从同一 replay command 重建，并与 replay output summary 一致。
+- market-only replay 不得在 SQLite runtime projection 中产生 Paper / Risk / Portfolio 状态。
+- summary 必须保持 read-model-only，不暴露 SQLite / DuckDB schema、SQL statement、ORM、Runtime object、adapter request 或 persistence implementation。
+- required validation 继续固定为 mock transport、fixture parity 和 local batch replay，不依赖真实 Binance 网络。
+
+本契约不包含：
+
+- 完整数据库 schema 设计或 migration framework。
+- production data pipeline、真实历史下载器、production scheduler 或多节点运行。
+- Dashboard / Report / Event Timeline UI 接入。
+- SQLite / DuckDB schema、SQL、ORM、Runtime object、adapter request 或 persistence adapter direct read 暴露。
+- signed endpoint、account endpoint、listenKey user data stream。
+- broker action、Live trading、真实订单提交 / 撤销 / 替换。
