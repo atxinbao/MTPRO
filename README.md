@@ -82,7 +82,6 @@ Tests/
 | `AGENTS.md` | Agent / Codex 行为规则 |
 | `docs/domain/context.md` | Shared Language：领域术语和禁止混用词 |
 | `docs/automation/agent-engineering-practices.md` | 从 `mattpocock/skills` 吸收的 feedback loop、tracer bullet、diagnose、architecture deepening 方法 |
-| `docs/design/mtpro-complete-blueprint.md` | 旧链接兼容入口，指向 canonical `BLUEPRINT.md` |
 | `docs/planning/` | Project Planning Record、角色编号和 Linear 草案规则 |
 | `docs/automation/` | Parent Codex、symphony-issue、Graphify、GitHub PR Automation、Post-Issue Ledger 边界 |
 | `docs/validation/` | 最近验证摘要、长期验证计划、trading validation matrix |

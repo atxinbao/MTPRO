@@ -26,7 +26,7 @@ README.md
 -> docs/validation/latest-verification-summary.md
 ```
 
-`BLUEPRINT.md` 是 canonical Root / Complete Blueprint，统一承载项目总览和完整产品 / 系统 / 设计蓝图；`docs/design/mtpro-complete-blueprint.md` 只保留为兼容指针。`docs/domain/context.md` 是 shared language 入口；`docs/automation/agent-engineering-practices.md` 记录从 `mattpocock/skills` 吸收的 Feedback Loop First、TDD / Tracer Bullet、Diagnose Loop、Architecture Deepening Review 和 Handoff Discipline。
+`BLUEPRINT.md` 是 canonical Root / Complete Blueprint，统一承载项目总览和完整产品 / 系统 / 设计蓝图。`docs/domain/context.md` 是 shared language 入口；`docs/automation/agent-engineering-practices.md` 记录从 `mattpocock/skills` 吸收的 Feedback Loop First、TDD / Tracer Bullet、Diagnose Loop、Architecture Deepening Review 和 Handoff Discipline。
 
 ## 当前基线
 
@@ -99,7 +99,7 @@ Stage audit / input 入口：
 
 ## 最近验证
 
-本轮 Complete Blueprint Product / Architecture / Design Structure 已完成：
+本轮 Remove Legacy Blueprint Compatibility Entry 已完成：
 
 ```bash
 git diff --check
@@ -115,9 +115,11 @@ bash checks/run.sh
 - Dashboard smoke：`sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`。
 - XCTest：121 tests, 0 failures。
 
-本轮 docs-only Complete Blueprint evidence：
+本轮 docs-only Blueprint entry evidence：
 
 - `BLUEPRINT.md`
+- `README.md`
+- `docs/domain/context.md`
 - `checks/automation-readiness.sh`
 - `docs/validation/latest-verification-summary.md`
 - `verification.md`
@@ -126,7 +128,7 @@ bash checks/run.sh
 
 - Root docs、planning record、Backlog issue、label、priority、assignee 都不授权执行。
 - Complete Blueprint Design 不创建 Linear Project / Issue，不修改 Linear status，不推进 `Todo`，不启动 `@002 / PAR`，不启动 Symphony，不写业务代码。
-- `BLUEPRINT.md` 可以描述 Future Construction Zones，但不能把 future capability 变成当前执行 scope；`docs/design/mtpro-complete-blueprint.md` 只作为旧链接兼容入口。
+- `BLUEPRINT.md` 可以描述 Future Construction Zones，但不能把 future capability 变成当前执行 scope；蓝图本体只维护在根目录 `BLUEPRINT.md`。
 - 当前唯一 configured executable issue 必须从 Linear live-read 和 Parent Codex queue preview 获取。
 - Paper execution / order / fill / portfolio 语义全部是 paper-only evidence，不代表真实订单、真实成交、broker fill、account state 或 Live fallback。
 - Market data replay operations 自动验证只使用本地 fixture / batch replay evidence，不依赖真实 Binance 网络。
