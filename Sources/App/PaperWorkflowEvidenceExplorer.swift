@@ -9,6 +9,7 @@ import Persistence
 /// schema、Runtime object、adapter request，也禁止恢复任何真实交易能力。
 public enum PaperWorkflowEvidenceExplorerSection: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
     case marketEvent = "market event"
+    case marketDataReplayOperation = "market data replay operation"
     case strategySignal = "strategy signal"
     case riskDecision = "risk decision"
     case paperOrder = "paper order"
@@ -179,6 +180,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
     public let timelineItemCount: Int
     public let evidenceLinkCount: Int
     public let coversMarketEvents: Bool
+    public let coversMarketDataReplayOperations: Bool
     public let coversStrategySignals: Bool
     public let coversRiskDecisions: Bool
     public let coversPaperOrders: Bool
@@ -217,6 +219,9 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             selectedSections: selectedSectionSet
         )
         let coversMarketEvents = allTimelineItems.contains { $0.section == .marketEvent }
+        let coversMarketDataReplayOperations = allTimelineItems.contains {
+            $0.section == .marketDataReplayOperation
+        }
         let coversStrategySignals = allTimelineItems.contains { $0.section == .strategySignal }
         let coversRiskDecisions = allTimelineItems.contains { $0.section == .riskDecision }
         let coversPaperOrders = allTimelineItems.contains { $0.section == .paperOrder }
@@ -246,6 +251,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         self.timelineItemCount = timelineItems.count
         self.evidenceLinkCount = evidenceLinks.count
         self.coversMarketEvents = coversMarketEvents
+        self.coversMarketDataReplayOperations = coversMarketDataReplayOperations
         self.coversStrategySignals = coversStrategySignals
         self.coversRiskDecisions = coversRiskDecisions
         self.coversPaperOrders = coversPaperOrders
@@ -292,6 +298,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
     ) -> [PaperWorkflowEventTimelineItem] {
         (
             makeMarketItems(readModel.market)
+                + makeMarketDataReplayOperationItems(readModel.report.marketDataReplayOperations)
                 + makeStrategyItems(readModel.strategy)
                 + readModel.events.envelopes.compactMap(makeEnvelopeItem)
                 + makeReportItems(readModel.report)
@@ -375,6 +382,37 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             )
         }
         return barItems + tradeItems + bestBidAskItems + snapshotItems + deltaItems
+    }
+
+    private static func makeMarketDataReplayOperationItems(
+        _ readModel: MarketDataReplayOperationsEvidenceReadModel
+    ) -> [PaperWorkflowEventTimelineItem] {
+        readModel.items.map { item in
+            let projectionStatus = item.projectionSnapshotConsistencyHeld
+                ? "projection consistent"
+                : "projection drift"
+            return PaperWorkflowEventTimelineItem(
+                section: .marketDataReplayOperation,
+                sequence: item.eventLogLastSequence,
+                stream: "market replay",
+                title: "Market data replay operation",
+                summary: "batch=\(item.batchID); replay=\(item.replayRunID); freshness=\(item.freshnessStatus); retention=\(item.retentionStatus.rawValue); \(projectionStatus)",
+                evidenceLinks: [
+                    PaperWorkflowEvidenceLinkSummary(
+                        section: .marketDataReplayOperation,
+                        evidenceID: item.batchID,
+                        label: "batch id",
+                        sourceSequence: item.eventLogLastSequence
+                    ),
+                    PaperWorkflowEvidenceLinkSummary(
+                        section: .marketDataReplayOperation,
+                        evidenceID: item.replayRunID,
+                        label: "replay run id",
+                        sourceSequence: item.projectionLastAppliedSequence
+                    )
+                ]
+            )
+        }
     }
 
     private static func makeStrategyItems(_ readModel: StrategyReadModel) -> [PaperWorkflowEventTimelineItem] {

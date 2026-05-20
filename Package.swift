@@ -84,7 +84,7 @@ let package = Package(
         ),
         .testTarget(
             name: "AppTests",
-            dependencies: ["App", "Core", "Persistence"],
+            dependencies: ["App", "Core", "Adapters", "Persistence", "Runtime"],
             path: "Tests/AppTests"
         )
     ]

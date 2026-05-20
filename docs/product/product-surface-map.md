@@ -424,3 +424,25 @@ Shell 新增展示：
 - 完整数据库 schema 设计、migration framework、生产数据管线或 production scheduler。
 - SQLite / DuckDB schema、SQL、ORM model、runtime object、adapter request 或 persistence adapter direct read 暴露。
 - signed endpoint、account endpoint、listenKey、broker action、Live trading 或真实订单提交 / 撤销 / 替换。
+
+## MTP-59 Market Data Replay Report / Dashboard / Event Timeline Evidence
+
+日期：2026-05-20
+
+执行者：Codex
+
+当前产品面把 market data replay operations、retention / freshness evidence 和 event log / projection consistency summary 接入 Report、Dashboard 和 Event Timeline 的只读展示层。该接入只消费 App 层 read model，不做完整 UI redesign，也不形成 production operations console。
+
+新增观察面：
+
+- Report evidence：展示 replay operations evidence count、batch id、replay run id、freshness status、retention status、event log record count、replayed record count 和 projection consistency summary。
+- Dashboard Report section：新增 `Replay ops` 指标和 replay operation details。
+- Event Timeline / Evidence Explorer：新增 `market data replay operation` 分区，用于展示 batch / replay / freshness / retention / projection consistency evidence item。
+- Boundary evidence：保留 read-model-only、public read-only、local fixture replay、required validation local-only、no schema、no runtime object、no adapter request 和 no trading authorization flags。
+
+仍不包含：
+
+- 完整 UI redesign、生产运营控制台、数据质量平台或可变 query language。
+- Runtime command、projection rebuild command、retention cleanup、真实历史下载器或 production scheduler。
+- SQLite / DuckDB schema、SQL、ORM model、runtime object、adapter request 或 persistence adapter direct read 暴露。
+- 按钮、表单、order-level command、broker action、signed endpoint、account endpoint、listenKey、Live trading 或真实订单提交 / 撤销 / 替换。
