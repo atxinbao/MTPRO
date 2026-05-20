@@ -37,11 +37,11 @@ README.md
 | Planning record | `docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md` |
 | Linear Project status | Linear Project status `Completed`，`type=completed`，`completedAt=2026-05-20T18:40:57.214Z` |
 | Stage Code Audit Report | `docs/audit/mtpro-live-trading-boundary-definition-v1-stage-code-audit.md`，已覆盖完整 Linear Project |
-| Root Docs Refresh Gate | pending；Stage Code Audit Report 合并后由 `@002 / PAR` 单独执行，不在本报告中决定下一阶段方向 |
+| Root Docs Refresh Gate | closed；`GOAL.md`、`docs/architecture.md`、`docs/roadmap.md` 已同步已发生事实，`docs/environment.md` no update needed |
 | Current Foundation Progress | 4 / 4（100%） |
-| Final Product Goal Progress | 4 / 9（44%） |
+| Final Product Goal Progress | 5 / 9（56%） |
 
-`MTPRO Live Trading Boundary Definition v1` 已由 Parent Codex 完成 Project closure：`MTP-61` 至 `MTP-67` 全部 Linear `Done`，Project status 为 `Completed/type=completed`，PR #132 已通过 `checks` 并 squash merge，merge commit 为 `ad1e64c3d52b0e037cd72de59edf520ab403d81d`。本轮只落仓 Stage Code Audit Report；Root Docs Refresh Gate 和进度条重算仍待单独 closure。
+`MTPRO Live Trading Boundary Definition v1` 已由 Parent Codex 完成 Project closure：`MTP-61` 至 `MTP-67` 全部 Linear `Done`，Project status 为 `Completed/type=completed`，PR #132 已通过 `checks` 并 squash merge，merge commit 为 `ad1e64c3d52b0e037cd72de59edf520ab403d81d`。Stage Code Audit Report 已经由 PR #133 合并，merge commit 为 `408198d05ce8622420ec39b35fd77b78fae93c42`。Root Docs Refresh Gate 已关闭；本轮只同步已发生事实，不决定下一阶段方向。
 
 MTP-61 的长期验证锚点为 `docs/contracts/live-trading-boundary-contract.md` 和 `TVM-LIVE-TRADING-FOUNDATION`。该锚点只定义 Live trading foundation capability taxonomy、gate 顺序、blocked capability 和 forbidden capability，不实现 API key、secret storage、signed endpoint、account endpoint、listenKey、broker adapter、真实订单、OMS 或 `LiveExecutionAdapter`。
 
@@ -55,17 +55,17 @@ MTP-66 的长期验证锚点仍为 `docs/contracts/live-trading-boundary-contrac
 
 MTP-67 的长期验证锚点仍为 `docs/contracts/live-trading-boundary-contract.md` 和 `TVM-LIVE-TRADING-FOUNDATION`，并同时回填 `TVM-REPORT-EVIDENCE` / `TVM-PAPER-WORKFLOW-CONTROL-SHELL` 的阶段收口证据。该锚点新增 Gate 6 Stage validation closeout、`docs/audit/inputs/mtpro-live-trading-boundary-definition-v1-stage-audit-input.md`、`MTP-67-LIVE-BOUNDARY-STAGE-AUDIT-INPUT`、`MTP-67-LIVE-BOUNDARY-VALIDATION-EVIDENCE-CHAIN` 和 `MTP-67-AUTOMATION-READINESS-STAGE-CLOSEOUT`，只准备 Parent Codex Stage Code Audit input material；不输出最终 Stage Code Audit Report，不创建下一 Project / Issue，不推进下一阶段，不启动下一阶段 `symphony-issue`，不实现任何 Live capability。
 
-`MTPRO Live Trading Boundary Definition v1` 的 canonical Stage Code Audit Report 已落仓到 `docs/audit/mtpro-live-trading-boundary-definition-v1-stage-code-audit.md`。该报告记录 PR #126 至 #132、merge commits、GitHub `checks` 成功证据、Linear Project `Completed` evidence、Live boundary validation evidence chain、Known CI Boundary、Post-Issue Ledger 持久仓同步阻塞说明、Boundary Audit、Root Docs Delta pending 和 Next Human Project Planning handoff。
+`MTPRO Live Trading Boundary Definition v1` 的 canonical Stage Code Audit Report 已落仓到 `docs/audit/mtpro-live-trading-boundary-definition-v1-stage-code-audit.md`。该报告记录 PR #126 至 #132、merge commits、GitHub `checks` 成功证据、Linear Project `Completed` evidence、Live boundary validation evidence chain、Known CI Boundary、Post-Issue Ledger 持久仓同步阻塞说明、Boundary Audit、Root Docs Delta 和 Next Human Project Planning handoff。
 
 ## Goal / Roadmap Progress Baseline
 
 ```text
 Phase: MTPRO professional trading workstation
-Project Closure Count: 7 / 7 (100%)
+Project Closure Count: 8 / 8 (100%)
 Current Foundation Progress: 4 / 4 (100%)
-Final Product Goal Progress: 4 / 9 (44%)
+Final Product Goal Progress: 5 / 9 (56%)
 Foundation Progress: [##########] 100%
-Final Product Progress: [####------] 44%
+Final Product Progress: [######----] 56%
 ```
 
 Current Foundation 目标切片：
@@ -81,7 +81,7 @@ Final Product 目标切片：
 - Complete：Paper 模拟执行基础能力（Paper execution foundation）。
 - Complete：工作台证据导航与本地控制壳（Workbench evidence navigation and local control shell）。
 - Complete：行情数据回放运营能力（Market data replay operations）。
-- Pending / gated：实盘交易基础边界（Live trading foundation）。
+- Complete：实盘交易基础边界（Live trading foundation）；仅完成 boundary、blocked evidence 和只读 evidence surface，不实现真实 Live trading。
 - Pending / gated：实盘监控台（Live monitoring console）。
 - Pending / gated：实盘执行控制（Live execution control）。
 - Pending / gated：实盘风险控制（Live risk control）。
@@ -100,6 +100,7 @@ Project Closure Count 只说明当前已批准、已执行、已完成 Project c
 - `MTPRO Paper Execution Workflow v1`
 - `MTPRO Paper Workflow Control Shell v1`
 - `MTPRO Market Data Replay Operations v1`
+- `MTPRO Live Trading Boundary Definition v1`
 
 Stage audit / input 入口：
 
@@ -117,6 +118,7 @@ Planning record 入口：
 - `MTP-37`：Paper Session Runtime v1 阶段收口。
 - `MTP-53`：Paper Workflow Control Shell v1 阶段收口。
 - `MTP-60`：Market Data Replay Operations v1 阶段收口。
+- `MTP-67`：Live Trading Boundary Definition v1 阶段收口。
 
 ## 最近验证
 
@@ -133,7 +135,7 @@ bash checks/run.sh
 - `bash checks/run.sh`：pass，串联 automation readiness、Dashboard build / smoke 和 Swift tests。
 - GitHub PR #132：`checks` pass，merge commit `ad1e64c3d52b0e037cd72de59edf520ab403d81d`。
 - Linear Project：`Completed/type=completed`，`completedAt=2026-05-20T18:40:57.214Z`。
-- Root Docs Refresh Gate：pending，需在本 Stage Code Audit Report 合并后单独执行。
+- Root Docs Refresh Gate：closed，`GOAL.md`、`docs/architecture.md`、`docs/roadmap.md` 已同步已发生事实，`docs/environment.md` no update needed。
 
 MTP-67 validation matrix、automation readiness 和 stage audit input material 收口已进入当前 issue 验证链：
 
@@ -150,7 +152,7 @@ bash checks/run.sh
 - `bash checks/automation-readiness.sh`：pass，MTP-67 stage audit input、contract、matrix、validation plan、latest summary 和 Dashboard smoke anchors 均可机械定位。
 - `bash checks/run.sh`：pass，串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；135 个 XCTest 通过，最终输出 `MTPRO checks passed.`。
 - Dashboard smoke evidence 保持 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; liveBlockedGates=6`。
-- 最终 Stage Code Audit Report 仍必须由 Parent Codex 在有效 issue 全部 `Done` 且 Linear Project `Completed` 后单独输出；MTP-67 不替代最终审计报告。
+- 最终 Stage Code Audit Report 已由 Parent Codex 在有效 issue 全部 `Done` 且 Linear Project `Completed` 后单独输出；MTP-67 的 Stage Audit Input 不替代 canonical 审计报告。
 
 MTP-66 Dashboard / Report / Event Timeline Live blocked evidence read-model-only surface 已完成：
 

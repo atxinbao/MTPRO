@@ -44,12 +44,12 @@ Dashboard -> App
 
 | 模块 | 职责 |
 | --- | --- |
-| `Core` | 领域模型、事件、命令、策略契约、MessageBus、Kernel / Engine 边界；当前包含 paper-only execution facts 和本地 Paper session-level control command / event boundary |
-| `Adapters` | Binance public read-only market data adapter 边界；当前包含本地 batch / replay contract、metadata、retention / freshness 和 fixture parity evidence |
+| `Core` | 领域模型、事件、命令、策略契约、MessageBus、Kernel / Engine 边界；当前包含 paper-only execution facts、本地 Paper session-level control command / event boundary、Live trading foundation taxonomy、real order lifecycle future gates 和 `LiveReadiness` / `LiveBlockedEvidence` blocked read model |
+| `Adapters` | Binance public read-only market data adapter 边界；当前包含本地 batch / replay contract、metadata、retention / freshness、fixture parity evidence，以及 public read-only adapter 与 future live / broker / exchange execution adapter 的 capability isolation |
 | `Persistence` | Event Log、SQLite runtime projection、DuckDB analytical projection 边界 |
 | `Runtime` | Binance public read-only ingest、Core event log、replay 与 projection snapshot 的本地编排边界；当前包含 market data replay event log / projection consistency evidence |
-| `App` | Trader Workstation Dashboard 产品面和 ViewModel 边界；当前包含 Paper workflow observability、Event Timeline / Evidence Explorer read model、Market Data Replay Operations read model 和 Dashboard / Workbench shell snapshot |
-| `Dashboard` | SwiftPM 可构建 / smoke-run 的 macOS shell，只装载 App 层 ViewModel snapshot；当前展示 read-model-only Workbench、`start` / `pause` / `close` / `reset` session-level local controls、paper workflow evidence preview 和 market data replay operations evidence |
+| `App` | Trader Workstation Dashboard 产品面和 ViewModel 边界；当前包含 Paper workflow observability、Event Timeline / Evidence Explorer read model、Market Data Replay Operations read model、Live blocked evidence read model 和 Dashboard / Workbench shell snapshot |
+| `Dashboard` | SwiftPM 可构建 / smoke-run 的 macOS shell，只装载 App 层 ViewModel snapshot；当前展示 read-model-only Workbench、`start` / `pause` / `close` / `reset` session-level local controls、paper workflow evidence preview、market data replay operations evidence 和 Live blocked gates 只读证据 |
 
 ## Capability Flow Map / 能力流地图
 
@@ -106,6 +106,19 @@ Read Models
 
 Workbench 可以表达 `start` / `pause` / `close` / `reset` 本地 paper session control，但不得新增 order-level command。
 
+### Live Trading Boundary / 实盘边界
+
+```text
+Live trading foundation taxonomy
+-> credential endpoint boundary
+-> public read-only adapter / future live adapter isolation
+-> real order lifecycle future gates
+-> LiveReadiness / LiveBlockedEvidence
+-> Report / Dashboard / Event Timeline read model
+```
+
+该流只表达实盘能力的 future gates、forbidden capabilities、blocked evidence 和只读展示面。它不读取 API key、secret、account endpoint、listenKey、broker state 或真实账户，不提交、撤销、替换真实订单，不实现 `LiveExecutionAdapter`、OMS、reconciliation、broker fill 或 real order state machine。
+
 ## Target Data Flow / 目标数据流
 
 ```text
@@ -133,6 +146,7 @@ Binance public data
 - SQLite / DuckDB 是 projection，不是 UI 展示模型。
 - ViewModel 只能来自稳定 Read Model。
 - Paper workflow controls 只能表达本地 session-level paper intent 或 read-only presentation，不得升级为 order-level command。
+- Live boundary evidence 只能以 `LiveReadiness` / `LiveBlockedEvidence` 的 blocked read model 进入 Report / Dashboard / Event Timeline，不得变成 command surface。
 - Live trading、signed endpoint、account endpoint 和真实 broker action 在当前 scope 禁止。
 - `macos-trader` 只提供产品语义参考。
 - `nautilus_trader` 只提供架构分层参考。
@@ -140,7 +154,7 @@ Binance public data
 
 ## Future Live Isolation / 未来实盘隔离
 
-Future Live 能力可以在 `BLUEPRINT.md` 中定义为最终产品目标，但在当前架构中必须保持隔离：
+Future Live 能力可以在 `BLUEPRINT.md` 中定义为最终产品目标，但在当前架构中必须保持隔离。当前已完成的是 Live trading foundation boundary、blocked evidence 和只读展示面；真实 Live monitoring、execution control、risk control、audit / incident replay 和 stop controls 仍是 future gated 能力：
 
 - future signed endpoint / account endpoint 需要独立 adapter capability。
 - future broker integration 需要独立 Project Definition、risk gate、operations gate 和 audit gate。

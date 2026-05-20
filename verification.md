@@ -7153,3 +7153,56 @@ Commit：
 | --- | --- | --- |
 | `git diff --check` | pass | Stage Code Audit Report 落仓变更无 whitespace error。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 135 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6`；最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO Live Trading Boundary Definition v1 Root Docs Refresh Gate Closure
+
+日期：2026-05-21
+
+执行者：Parent Codex Automation Supervision（`@002 / PAR`）
+
+目的：
+
+- 基于已落仓的 `docs/audit/mtpro-live-trading-boundary-definition-v1-stage-code-audit.md` 执行 Root Docs Refresh Gate closure。
+- 只同步已发生事实：`MTPRO Live Trading Boundary Definition v1` 已完成，Live trading foundation boundary 已从 Pending / gated 进入 Complete。
+- 重新计算 Current Foundation Progress、Final Product Goal Progress 和 Project Closure Count。
+- 保持下一阶段方向、目标、架构路线和优先级交给 Human + `@001 / PLN`。
+
+文件范围：
+
+- Updated：
+  - `GOAL.md`
+  - `docs/architecture.md`
+  - `docs/roadmap.md`
+  - `docs/audit/mtpro-live-trading-boundary-definition-v1-stage-code-audit.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+
+Root docs 判断：
+
+| Root doc | 结果 | 原因 |
+| --- | --- | --- |
+| `GOAL.md` | updated | Final Product Goal Progress 从 `4 / 9 (44%)` 更新为 `5 / 9 (56%)`，并明确 Live trading foundation 只完成 boundary / blocked evidence / read-only surface。 |
+| `docs/environment.md` | no update needed | 本 Project 未新增 required validation、secret、broker credential、signed endpoint、Graphify 或外部写能力；统一验证入口仍是 `bash checks/run.sh`。 |
+| `docs/architecture.md` | updated | 同步 Core / Adapters / App / Dashboard 的 Live boundary evidence flow 和 public read-only / future execution adapter isolation。 |
+| `docs/roadmap.md` | updated | 新增 completed Project，Project Closure Count 更新为 `8 / 8 (100%)`，Final Product Goal Progress 更新为 `5 / 9 (56%)`。 |
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 Todo。
+- 不启动 Symphony。
+- 不运行 Graphify update。
+- 不写业务代码。
+- 不决定下一阶段方向。
+- 不修改 `BLUEPRINT.md`。
+- 不提交 `.codex/*`。
+- 不提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Root Docs Refresh Gate closure 变更无 whitespace error。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 135 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6`；最终输出 `MTPRO checks passed.`。 |
