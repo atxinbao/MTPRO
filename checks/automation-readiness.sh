@@ -55,6 +55,7 @@ require_file "docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md"
 require_file "docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md"
 require_file "docs/planning/projects/mtpro-paper-workflow-control-shell-v1-plan.md"
 require_file "docs/planning/projects/mtpro-market-data-replay-operations-v1-plan.md"
+require_file "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md"
 [[ -d "docs/audit/inputs" ]] || fail "missing required directory: docs/audit/inputs"
 require_file "docs/audit/inputs/mtpro-runtime-research-workbench-v1-stage-evidence.md"
 require_file "docs/audit/inputs/mtpro-trading-validation-and-parity-hardening-stage-audit-input.md"
@@ -350,7 +351,8 @@ for planning_record in \
   "docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md" \
   "docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md" \
   "docs/planning/projects/mtpro-paper-workflow-control-shell-v1-plan.md" \
-  "docs/planning/projects/mtpro-market-data-replay-operations-v1-plan.md"; do
+  "docs/planning/projects/mtpro-market-data-replay-operations-v1-plan.md" \
+  "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md"; do
   require_contains "$planning_record" "Project name"
   require_contains "$planning_record" "Project goal"
   require_contains "$planning_record" "Scope"
@@ -422,6 +424,29 @@ require_contains "docs/planning/linear-draft-plan.md" "docs/planning/projects/mt
 require_contains "docs/planning/linear-draft-plan.md" "MTPRO Market Data Replay Operations v1"
 require_contains "docs/validation/latest-verification-summary.md" "docs/planning/projects/mtpro-market-data-replay-operations-v1-plan.md"
 require_contains "docs/validation/latest-verification-summary.md" "MTPRO Market Data Replay Operations v1"
+require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" "MTPRO Live Trading Boundary Definition v1"
+require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" "Parent Codex queue preflight rule"
+require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" "本 draft 不创建 Linear Project"
+require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" "本 draft 不创建 Linear Issues"
+require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" "本 draft 不修改 Linear status"
+require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" "本 draft 不推进任何 issue 到 Todo"
+require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" "完整 issue execution contract 以后以 Linear issue body 为准"
+require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" 'Project 写入 Linear 后，所有 issue 初始必须是 `Backlog / non-executable`'
+require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" "Project 经 Human 确认并写入 Linear 后，由 Parent Codex queue preflight 自动判断唯一 eligible issue，并在 WIP=1、依赖满足、无 active conflict、execution contract 格式完整时推进 Todo"
+require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" "不复制维护完整 Linear issue body"
+require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" "不启动 Symphony"
+require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" '不启动 `@002 / PAR`'
+require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" "Live trading foundation capability taxonomy"
+require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" "API key / secret / signed endpoint / account endpoint / listenKey"
+require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" "LiveReadiness"
+require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" "LiveBlockedEvidence"
+require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" "不实现 LiveExecutionAdapter"
+require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" "不实现 real order state machine"
+require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" "不得提供 live command 或交易按钮"
+require_contains "docs/planning/linear-draft-plan.md" "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md"
+require_contains "docs/planning/linear-draft-plan.md" "MTPRO Live Trading Boundary Definition v1"
+require_contains "docs/validation/latest-verification-summary.md" "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md"
+require_contains "docs/validation/latest-verification-summary.md" "MTPRO Live Trading Boundary Definition v1"
 
 require_contains "docs/validation/validation-plan.md" "Linear issue execution contract"
 require_contains "docs/validation/validation-plan.md" "bash checks/automation-readiness.sh"
