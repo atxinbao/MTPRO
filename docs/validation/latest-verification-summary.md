@@ -85,7 +85,7 @@ Stage audit / input 入口：
 
 ## 最近验证
 
-本轮 canonical blueprint unification 已完成：
+本轮 Goal / Blueprint 分工优化已完成：
 
 ```bash
 git diff --check
@@ -99,18 +99,11 @@ bash checks/run.sh
 - Dashboard smoke：`sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`。
 - XCTest：121 tests, 0 failures。
 
-本轮 docs-only blueprint unification evidence：
+本轮 docs-only Goal / Blueprint evidence：
 
-- `README.md`
-- `AGENTS.md`
 - `BLUEPRINT.md`
 - `GOAL.md`
-- `ROADMAP.md`
 - `checks/automation-readiness.sh`
-- `docs/domain/context.md`
-- `docs/design/mtpro-complete-blueprint.md`
-- `docs/planning/project-role-map.md`
-- `docs/automation/parent-codex-supervision.md`
 - `docs/validation/latest-verification-summary.md`
 
 ## 当前边界

@@ -6257,3 +6257,46 @@ Next Handoff: Human + @001 / PLN
 | `git diff --check` | pass | blueprint unification docs/checks 变更无 whitespace error。 |
 | `bash checks/automation-readiness.sh` | pass | canonical `BLUEPRINT.md`、兼容入口、root docs、shared language 和关键锚点通过。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
+
+## Goal / Blueprint Responsibility Optimization
+
+日期：2026-05-20
+
+执行者：Codex
+
+目的：
+
+- 将 `GOAL.md` 压回 Project Charter：为什么建、服务谁、永久硬边界、成功标准和当前目标进度入口。
+- 将最终产品 / 系统 / 设计规划集中到 `BLUEPRINT.md`。
+- 在 `BLUEPRINT.md` 中固化 `GOAL.md` / `BLUEPRINT.md` / `ARCHITECTURE.md` / `ROADMAP.md` 的职责分工。
+- 将 Goal / Blueprint 分工加入 automation readiness 机械锚点。
+
+文件范围：
+
+- Updated：
+  - `GOAL.md`
+  - `BLUEPRINT.md`
+  - `checks/automation-readiness.sh`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- docs / checks only。
+- 未创建 Linear Project。
+- 未创建 Linear issue。
+- 未修改 Linear status。
+- 未推进 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Goal / Blueprint 分工优化变更无 whitespace error。 |
+| `bash checks/automation-readiness.sh` | pass | Project Charter、Blueprint responsibility contract、Blueprint update rule 和 root docs 锚点通过。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
