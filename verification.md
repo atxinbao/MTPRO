@@ -6907,3 +6907,54 @@ Commit：
 | `swift test --filter MTP63` | pass | 2 tests, 0 failures；覆盖 Core deterministic fixture 和 Adapters execution semantic rejection fast path。 |
 | `bash checks/automation-readiness.sh` | pass | MTP-63 contract、matrix、validation-plan、domain terms、deterministic test anchors 和 `LiveExecutionAdapter` declaration guard 通过。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 127 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
+
+## MTP-64 real order lifecycle terminology / future gate / forbidden capability tests
+
+日期：2026-05-21
+
+执行者：Codex
+
+目的：
+
+- 定义 Gate 3 real order lifecycle terminology、future gate 和 forbidden capability tests。
+- 证明 submit / cancel / replace、execution report、broker fill、reconciliation、OMS、真实账户状态和 broker position sync 仍是 future / forbidden capability。
+- 证明 paper order lifecycle、simulated fill 和 paper portfolio projection 不能升级为 real order、broker fill 或 account state。
+
+文件范围：
+
+- Updated：
+  - `Sources/Core/LiveTradingBoundary.swift`
+  - `Sources/Adapters/Adapters.swift`
+  - `Tests/CoreTests/CoreTests.swift`
+  - `Tests/AdaptersTests/AdaptersTests.swift`
+  - `docs/contracts/live-trading-boundary-contract.md`
+  - `docs/contracts/binance-market-data-contract.md`
+  - `docs/domain/context.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+
+边界确认：
+
+- 未实现 real order state machine。
+- 未实现 submit / cancel / replace。
+- 未实现 execution report ingestion。
+- 未记录 broker fill 或 real fill。
+- 未执行 reconciliation。
+- 未实现 OMS。
+- 未读取真实账户状态。
+- 未同步 broker position。
+- 未把 paper order intent、simulated fill 或 paper portfolio projection 升级为真实订单、broker fill 或 account state。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter RealOrderLifecycle` | pass | 4 tests, 0 failures；覆盖 Gate 3 Core fixture、paper / real lifecycle isolation 和 Adapters real order lifecycle rejection。 |
+| `swift test --filter MTP64` | pass | 3 tests, 0 failures；覆盖 Core deterministic fixture、forbidden bypass rejection 和 Adapters transport-before-network rejection fast path。 |
+| `bash checks/automation-readiness.sh` | pass | MTP-64 contract、matrix、validation-plan、domain terms、deterministic test anchors 和 `RealOrderStateMachine` declaration guard 通过。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 131 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |

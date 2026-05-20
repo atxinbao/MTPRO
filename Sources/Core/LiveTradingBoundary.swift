@@ -99,6 +99,79 @@ public enum LiveAdapterIsolationEvidenceKind: String, Codable, CaseIterable, Equ
     case prBoundaryEvidence = "PR boundary evidence"
 }
 
+/// RealOrderLifecycleTerm 枚举 MTP-64 只能命名、不能实现的真实订单生命周期术语。
+///
+/// 这些术语服务 Gate 3 合同、validation matrix 和 forbidden tests；它们不代表当前 Core
+/// 拥有真实订单状态机、OMS、broker fill 或 reconciliation 能力，也不能从 paper-only
+/// lifecycle、simulated fill 或 portfolio projection 偷渡。
+public enum RealOrderLifecycleTerm: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case realOrderIntent = "real order intent"
+    case realOrderStateMachine = "real order state machine"
+    case realOrderSubmit = "real order submit"
+    case realOrderCancel = "real order cancel"
+    case realOrderReplace = "real order replace"
+    case executionReport = "execution report"
+    case brokerFill = "broker fill"
+    case orderReconciliation = "order reconciliation"
+    case oms = "OMS"
+    case realAccountState = "real account state"
+}
+
+/// RealOrderLifecycleFutureGate 定义真实订单生命周期进入 future Project 前必须补齐的 gate。
+///
+/// Gate 3 只把 submit / cancel / replace、execution report、broker fill 和 reconciliation
+/// 列为后续合同条件；当前类型不执行订单、不读取成交回报、不同步账户或仓位。
+public enum RealOrderLifecycleFutureGate: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case humanLiveDecision = "Human independent Live decision"
+    case credentialEndpointBoundarySatisfied = "credential endpoint boundary satisfied"
+    case adapterCapabilityIsolationSatisfied = "adapter capability isolation satisfied"
+    case realOrderStateMachineContract = "real order state machine contract"
+    case submitContract = "submit contract"
+    case cancelContract = "cancel contract"
+    case replaceContract = "replace contract"
+    case executionReportContract = "execution report contract"
+    case brokerFillContract = "broker fill contract"
+    case reconciliationContract = "reconciliation contract"
+    case omsBlueprint = "OMS blueprint"
+    case liveRiskOperationsAuditEvidence = "live risk / operations / audit evidence"
+}
+
+/// RealOrderLifecycleForbiddenCapability 枚举 MTP-64 必须保持禁止的真实订单能力。
+///
+/// 这些能力可以被 deterministic tests 断言为 false，但不能出现在当前可调用 API、adapter、
+/// command model、paper evidence 升级路径或 read model 授权语义中。
+public enum RealOrderLifecycleForbiddenCapability: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case realOrderStateMachine = "real order state machine"
+    case orderSubmit = "order submit"
+    case orderCancel = "order cancel"
+    case orderReplace = "order replace"
+    case executionReport = "execution report"
+    case brokerFill = "broker fill"
+    case orderReconciliation = "order reconciliation"
+    case oms = "OMS"
+    case realAccountState = "real account state"
+    case brokerPositionSync = "broker position sync"
+    case paperOrderLifecycleUpgrade = "paper order lifecycle upgrade"
+    case paperOrderIntentUpgrade = "paper order intent upgrade"
+    case simulatedFillUpgrade = "simulated fill upgrade"
+    case paperPortfolioProjectionUpgrade = "paper portfolio projection upgrade"
+    case readModelRealOrderState = "read model real order state"
+}
+
+/// RealOrderLifecycleEvidenceKind 限定 MTP-64 当前允许输出的非执行证据。
+///
+/// Evidence 只用于合同、矩阵、automation readiness、deterministic forbidden tests 和 PR
+/// 审计；它不代表 Live readiness，也不授权 MTP-65+ 或后续 Live execution scope。
+public enum RealOrderLifecycleEvidenceKind: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case terminologyDocumentation = "terminology documentation"
+    case futureGateDocumentation = "future gate documentation"
+    case validationMatrixAnchor = "validation matrix anchor"
+    case automationReadinessAnchor = "automation readiness anchor"
+    case deterministicForbiddenTest = "deterministic forbidden capability test"
+    case paperLiveIsolationEvidence = "paper / live isolation evidence"
+    case prBoundaryEvidence = "PR boundary evidence"
+}
+
 /// LiveTradingCredentialEndpointBoundary 是 MTP-62 的 Gate 1 合同 fixture。
 ///
 /// 该合同只表达 API key、secret storage、signed endpoint、account endpoint 和 listenKey
@@ -319,6 +392,308 @@ public struct LiveTradingCredentialEndpointBoundary: Codable, Equatable, Sendabl
             ("createsListenKey", createsListenKey),
             ("consumesRealAccountPayload", consumesRealAccountPayload),
             ("upgradesPublicReadOnlyAdapter", upgradesPublicReadOnlyAdapter),
+            ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(capability.0)
+        }
+    }
+}
+
+/// RealOrderLifecycleBoundary 是 MTP-64 的 Gate 3 合同 fixture。
+///
+/// 该合同只定义真实订单生命周期术语、future gates 和 forbidden capability tests。所有
+/// submit / cancel / replace、execution report、broker fill、reconciliation、OMS、真实账户
+/// 和 paper evidence 升级 flag 都必须保持 false；Codable 解码会重复校验，防止后续
+/// read model 或测试 payload 把 blocked evidence 反序列化成真实订单状态机。
+public struct RealOrderLifecycleBoundary: Codable, Equatable, Sendable {
+    public let contractID: Identifier
+    public let issueID: Identifier
+    public let gate: LiveTradingFoundationGate
+    public let terminology: [RealOrderLifecycleTerm]
+    public let forbiddenCapabilities: [RealOrderLifecycleForbiddenCapability]
+    public let futureGates: [RealOrderLifecycleFutureGate]
+    public let allowedEvidenceKinds: [RealOrderLifecycleEvidenceKind]
+    public let implementsRealOrderStateMachine: Bool
+    public let submitsRealOrder: Bool
+    public let cancelsRealOrder: Bool
+    public let replacesRealOrder: Bool
+    public let consumesExecutionReport: Bool
+    public let recordsBrokerFill: Bool
+    public let performsReconciliation: Bool
+    public let implementsOMS: Bool
+    public let readsRealAccountState: Bool
+    public let syncsBrokerPosition: Bool
+    public let upgradesPaperOrderLifecycle: Bool
+    public let upgradesPaperOrderIntent: Bool
+    public let upgradesSimulatedFillToBrokerFill: Bool
+    public let upgradesPaperPortfolioToAccountState: Bool
+    public let readModelRepresentsRealOrderLifecycle: Bool
+    public let requiredValidationDependsOnNetwork: Bool
+
+    public var gateThreeBoundaryHeld: Bool {
+        gate == .realOrderLifecycleTerms
+            && terminology == Self.requiredTerminology
+            && forbiddenCapabilities == Self.requiredForbiddenCapabilities
+            && futureGates == Self.requiredFutureGates
+            && allowedEvidenceKinds == Self.allowedEvidenceKinds
+            && implementsRealOrderStateMachine == false
+            && submitsRealOrder == false
+            && cancelsRealOrder == false
+            && replacesRealOrder == false
+            && consumesExecutionReport == false
+            && recordsBrokerFill == false
+            && performsReconciliation == false
+            && implementsOMS == false
+            && readsRealAccountState == false
+            && syncsBrokerPosition == false
+            && upgradesPaperOrderLifecycle == false
+            && upgradesPaperOrderIntent == false
+            && upgradesSimulatedFillToBrokerFill == false
+            && upgradesPaperPortfolioToAccountState == false
+            && readModelRepresentsRealOrderLifecycle == false
+            && requiredValidationDependsOnNetwork == false
+    }
+
+    public init(
+        contractID: Identifier = try! Identifier("mtp-64-real-order-lifecycle-boundary"),
+        issueID: Identifier = try! Identifier("MTP-64"),
+        gate: LiveTradingFoundationGate = .realOrderLifecycleTerms,
+        terminology: [RealOrderLifecycleTerm] = Self.requiredTerminology,
+        forbiddenCapabilities: [RealOrderLifecycleForbiddenCapability] = Self.requiredForbiddenCapabilities,
+        futureGates: [RealOrderLifecycleFutureGate] = Self.requiredFutureGates,
+        allowedEvidenceKinds: [RealOrderLifecycleEvidenceKind] = Self.allowedEvidenceKinds,
+        implementsRealOrderStateMachine: Bool = false,
+        submitsRealOrder: Bool = false,
+        cancelsRealOrder: Bool = false,
+        replacesRealOrder: Bool = false,
+        consumesExecutionReport: Bool = false,
+        recordsBrokerFill: Bool = false,
+        performsReconciliation: Bool = false,
+        implementsOMS: Bool = false,
+        readsRealAccountState: Bool = false,
+        syncsBrokerPosition: Bool = false,
+        upgradesPaperOrderLifecycle: Bool = false,
+        upgradesPaperOrderIntent: Bool = false,
+        upgradesSimulatedFillToBrokerFill: Bool = false,
+        upgradesPaperPortfolioToAccountState: Bool = false,
+        readModelRepresentsRealOrderLifecycle: Bool = false,
+        requiredValidationDependsOnNetwork: Bool = false
+    ) throws {
+        guard gate == .realOrderLifecycleTerms else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "gate",
+                expected: LiveTradingFoundationGate.realOrderLifecycleTerms.rawValue,
+                actual: gate.rawValue
+            )
+        }
+        try Self.validate(
+            terminology: terminology,
+            forbiddenCapabilities: forbiddenCapabilities,
+            futureGates: futureGates,
+            allowedEvidenceKinds: allowedEvidenceKinds
+        )
+        try Self.validateForbiddenFlags(
+            implementsRealOrderStateMachine: implementsRealOrderStateMachine,
+            submitsRealOrder: submitsRealOrder,
+            cancelsRealOrder: cancelsRealOrder,
+            replacesRealOrder: replacesRealOrder,
+            consumesExecutionReport: consumesExecutionReport,
+            recordsBrokerFill: recordsBrokerFill,
+            performsReconciliation: performsReconciliation,
+            implementsOMS: implementsOMS,
+            readsRealAccountState: readsRealAccountState,
+            syncsBrokerPosition: syncsBrokerPosition,
+            upgradesPaperOrderLifecycle: upgradesPaperOrderLifecycle,
+            upgradesPaperOrderIntent: upgradesPaperOrderIntent,
+            upgradesSimulatedFillToBrokerFill: upgradesSimulatedFillToBrokerFill,
+            upgradesPaperPortfolioToAccountState: upgradesPaperPortfolioToAccountState,
+            readModelRepresentsRealOrderLifecycle: readModelRepresentsRealOrderLifecycle,
+            requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork
+        )
+
+        self.contractID = contractID
+        self.issueID = issueID
+        self.gate = gate
+        self.terminology = terminology
+        self.forbiddenCapabilities = forbiddenCapabilities
+        self.futureGates = futureGates
+        self.allowedEvidenceKinds = allowedEvidenceKinds
+        self.implementsRealOrderStateMachine = implementsRealOrderStateMachine
+        self.submitsRealOrder = submitsRealOrder
+        self.cancelsRealOrder = cancelsRealOrder
+        self.replacesRealOrder = replacesRealOrder
+        self.consumesExecutionReport = consumesExecutionReport
+        self.recordsBrokerFill = recordsBrokerFill
+        self.performsReconciliation = performsReconciliation
+        self.implementsOMS = implementsOMS
+        self.readsRealAccountState = readsRealAccountState
+        self.syncsBrokerPosition = syncsBrokerPosition
+        self.upgradesPaperOrderLifecycle = upgradesPaperOrderLifecycle
+        self.upgradesPaperOrderIntent = upgradesPaperOrderIntent
+        self.upgradesSimulatedFillToBrokerFill = upgradesSimulatedFillToBrokerFill
+        self.upgradesPaperPortfolioToAccountState = upgradesPaperPortfolioToAccountState
+        self.readModelRepresentsRealOrderLifecycle = readModelRepresentsRealOrderLifecycle
+        self.requiredValidationDependsOnNetwork = requiredValidationDependsOnNetwork
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            contractID: try container.decode(Identifier.self, forKey: .contractID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            gate: try container.decode(LiveTradingFoundationGate.self, forKey: .gate),
+            terminology: try container.decode([RealOrderLifecycleTerm].self, forKey: .terminology),
+            forbiddenCapabilities: try container.decode(
+                [RealOrderLifecycleForbiddenCapability].self,
+                forKey: .forbiddenCapabilities
+            ),
+            futureGates: try container.decode([RealOrderLifecycleFutureGate].self, forKey: .futureGates),
+            allowedEvidenceKinds: try container.decode(
+                [RealOrderLifecycleEvidenceKind].self,
+                forKey: .allowedEvidenceKinds
+            ),
+            implementsRealOrderStateMachine: try container.decode(
+                Bool.self,
+                forKey: .implementsRealOrderStateMachine
+            ),
+            submitsRealOrder: try container.decode(Bool.self, forKey: .submitsRealOrder),
+            cancelsRealOrder: try container.decode(Bool.self, forKey: .cancelsRealOrder),
+            replacesRealOrder: try container.decode(Bool.self, forKey: .replacesRealOrder),
+            consumesExecutionReport: try container.decode(Bool.self, forKey: .consumesExecutionReport),
+            recordsBrokerFill: try container.decode(Bool.self, forKey: .recordsBrokerFill),
+            performsReconciliation: try container.decode(Bool.self, forKey: .performsReconciliation),
+            implementsOMS: try container.decode(Bool.self, forKey: .implementsOMS),
+            readsRealAccountState: try container.decode(Bool.self, forKey: .readsRealAccountState),
+            syncsBrokerPosition: try container.decode(Bool.self, forKey: .syncsBrokerPosition),
+            upgradesPaperOrderLifecycle: try container.decode(Bool.self, forKey: .upgradesPaperOrderLifecycle),
+            upgradesPaperOrderIntent: try container.decode(Bool.self, forKey: .upgradesPaperOrderIntent),
+            upgradesSimulatedFillToBrokerFill: try container.decode(
+                Bool.self,
+                forKey: .upgradesSimulatedFillToBrokerFill
+            ),
+            upgradesPaperPortfolioToAccountState: try container.decode(
+                Bool.self,
+                forKey: .upgradesPaperPortfolioToAccountState
+            ),
+            readModelRepresentsRealOrderLifecycle: try container.decode(
+                Bool.self,
+                forKey: .readModelRepresentsRealOrderLifecycle
+            ),
+            requiredValidationDependsOnNetwork: try container.decode(
+                Bool.self,
+                forKey: .requiredValidationDependsOnNetwork
+            )
+        )
+    }
+
+    public static let requiredTerminology = RealOrderLifecycleTerm.allCases
+    public static let requiredForbiddenCapabilities = RealOrderLifecycleForbiddenCapability.allCases
+
+    public static let requiredFutureGates: [RealOrderLifecycleFutureGate] = [
+        .humanLiveDecision,
+        .credentialEndpointBoundarySatisfied,
+        .adapterCapabilityIsolationSatisfied,
+        .realOrderStateMachineContract,
+        .submitContract,
+        .cancelContract,
+        .replaceContract,
+        .executionReportContract,
+        .brokerFillContract,
+        .reconciliationContract,
+        .omsBlueprint,
+        .liveRiskOperationsAuditEvidence
+    ]
+
+    public static let allowedEvidenceKinds: [RealOrderLifecycleEvidenceKind] = [
+        .terminologyDocumentation,
+        .futureGateDocumentation,
+        .validationMatrixAnchor,
+        .automationReadinessAnchor,
+        .deterministicForbiddenTest,
+        .paperLiveIsolationEvidence,
+        .prBoundaryEvidence
+    ]
+
+    public static let deterministicFixture: RealOrderLifecycleBoundary = {
+        do {
+            return try RealOrderLifecycleBoundary()
+        } catch {
+            preconditionFailure("MTP-64 real order lifecycle boundary fixture must be valid: \(error)")
+        }
+    }()
+
+    private static func validate(
+        terminology: [RealOrderLifecycleTerm],
+        forbiddenCapabilities: [RealOrderLifecycleForbiddenCapability],
+        futureGates: [RealOrderLifecycleFutureGate],
+        allowedEvidenceKinds: [RealOrderLifecycleEvidenceKind]
+    ) throws {
+        guard terminology == Self.requiredTerminology else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "terminology",
+                expected: Self.requiredTerminology.map(\.rawValue).joined(separator: ","),
+                actual: terminology.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard forbiddenCapabilities == Self.requiredForbiddenCapabilities else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "forbiddenCapabilities",
+                expected: Self.requiredForbiddenCapabilities.map(\.rawValue).joined(separator: ","),
+                actual: forbiddenCapabilities.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard futureGates == Self.requiredFutureGates else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "futureGates",
+                expected: Self.requiredFutureGates.map(\.rawValue).joined(separator: ","),
+                actual: futureGates.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard allowedEvidenceKinds == Self.allowedEvidenceKinds else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "allowedEvidenceKinds",
+                expected: Self.allowedEvidenceKinds.map(\.rawValue).joined(separator: ","),
+                actual: allowedEvidenceKinds.map(\.rawValue).joined(separator: ",")
+            )
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        implementsRealOrderStateMachine: Bool,
+        submitsRealOrder: Bool,
+        cancelsRealOrder: Bool,
+        replacesRealOrder: Bool,
+        consumesExecutionReport: Bool,
+        recordsBrokerFill: Bool,
+        performsReconciliation: Bool,
+        implementsOMS: Bool,
+        readsRealAccountState: Bool,
+        syncsBrokerPosition: Bool,
+        upgradesPaperOrderLifecycle: Bool,
+        upgradesPaperOrderIntent: Bool,
+        upgradesSimulatedFillToBrokerFill: Bool,
+        upgradesPaperPortfolioToAccountState: Bool,
+        readModelRepresentsRealOrderLifecycle: Bool,
+        requiredValidationDependsOnNetwork: Bool
+    ) throws {
+        let forbiddenFlags = [
+            ("implementsRealOrderStateMachine", implementsRealOrderStateMachine),
+            ("submitsRealOrder", submitsRealOrder),
+            ("cancelsRealOrder", cancelsRealOrder),
+            ("replacesRealOrder", replacesRealOrder),
+            ("consumesExecutionReport", consumesExecutionReport),
+            ("recordsBrokerFill", recordsBrokerFill),
+            ("performsReconciliation", performsReconciliation),
+            ("implementsOMS", implementsOMS),
+            ("readsRealAccountState", readsRealAccountState),
+            ("syncsBrokerPosition", syncsBrokerPosition),
+            ("upgradesPaperOrderLifecycle", upgradesPaperOrderLifecycle),
+            ("upgradesPaperOrderIntent", upgradesPaperOrderIntent),
+            ("upgradesSimulatedFillToBrokerFill", upgradesSimulatedFillToBrokerFill),
+            ("upgradesPaperPortfolioToAccountState", upgradesPaperPortfolioToAccountState),
+            ("readModelRepresentsRealOrderLifecycle", readModelRepresentsRealOrderLifecycle),
             ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
         ]
 

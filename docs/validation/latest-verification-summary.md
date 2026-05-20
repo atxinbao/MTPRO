@@ -49,6 +49,8 @@ MTP-61 的长期验证锚点为 `docs/contracts/live-trading-boundary-contract.m
 
 MTP-63 的长期验证锚点仍为 `docs/contracts/live-trading-boundary-contract.md` 和 `TVM-LIVE-TRADING-FOUNDATION`。该锚点在 MTP-62 credential boundary 基础上新增 Gate 2 adapter capability isolation，只定义 current Binance public read-only adapter 与 future live adapter / broker / exchange execution adapter 的隔离合同，不实现 future live adapter、`LiveExecutionAdapter`、broker / exchange execution adapter、execution venue connection 或真实订单 submit / cancel / replace。
 
+MTP-64 的长期验证锚点仍为 `docs/contracts/live-trading-boundary-contract.md` 和 `TVM-LIVE-TRADING-FOUNDATION`。该锚点在 MTP-63 adapter isolation 基础上新增 Gate 3 real order lifecycle terminology / future gates / forbidden capability tests，只定义 real order intent、real order state machine、submit / cancel / replace、execution report、broker fill、reconciliation、OMS 和 real account state 的 future / forbidden 边界，不实现真实订单状态机、真实 submit / cancel / replace、execution report、broker fill、reconciliation、OMS、真实账户状态或 broker position sync。
+
 ## Goal / Roadmap Progress Baseline
 
 ```text
@@ -106,6 +108,33 @@ Stage audit / input 入口：
 - `MTP-60`：Market Data Replay Operations v1 阶段收口。
 
 ## 最近验证
+
+MTP-64 real order lifecycle terminology / future gate / forbidden capability tests 已完成：
+
+```bash
+swift test --filter RealOrderLifecycle
+swift test --filter MTP64
+bash checks/automation-readiness.sh
+bash checks/run.sh
+```
+
+结果：
+
+- `swift test --filter RealOrderLifecycle`：pass，4 tests, 0 failures。
+- `swift test --filter MTP64`：pass，3 tests, 0 failures。
+- `bash checks/automation-readiness.sh`：pass，已检查 `MTP-64-REAL-ORDER-LIFECYCLE-TERMINOLOGY`、`MTP-64-REAL-ORDER-LIFECYCLE-FUTURE-GATES`、`MTP-64-PAPER-REAL-LIFECYCLE-ISOLATION`、`MTP-64-FORBIDDEN-CAPABILITY-TESTS`、MTP-64 validation anchor、deterministic test anchors 和 `RealOrderStateMachine` non-implementation declaration guard。
+- `bash checks/run.sh`：pass。
+- Dashboard smoke：`sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`。
+- XCTest：131 tests, 0 failures。
+
+MTP-64 更新重点：
+
+- `Sources/Core/LiveTradingBoundary.swift`：新增 `RealOrderLifecycleBoundary` Gate 3 contract fixture，只表达 real order lifecycle terminology、future gates 和 forbidden tests，不实现真实订单状态机、submit / cancel / replace、execution report、broker fill、reconciliation 或 OMS。
+- `Sources/Adapters/Adapters.swift`：补强 `BinanceForbiddenCapability`、`BinanceReadOnlyAdapterBoundary` 和 transport-before-network forbidden fragments，证明 Binance adapter 仍不能消费 execution report、broker fill、reconciliation、OMS、real account state 或 broker position sync。
+- `Tests/CoreTests/CoreTests.swift`：新增 Gate 3 deterministic fixture、Codable round trip、submit / cancel / replace / execution report / broker fill / reconciliation / OMS bypass rejection，以及 paper order / simulated fill / paper portfolio 不可升级为 real order / broker fill / account state tests。
+- `Tests/AdaptersTests/AdaptersTests.swift`：新增 public read-only adapter rejection test，证明 execution report、broker fill、reconciliation 和 OMS contract 在 transport 前被拒绝。
+- `docs/contracts/live-trading-boundary-contract.md`、`docs/contracts/binance-market-data-contract.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/validation-plan.md`、`checks/automation-readiness.sh`：回填 MTP-64 mechanical validation anchor。
+- `docs/domain/context.md`：补充 `real order lifecycle boundary` shared language，并把 real order lifecycle、execution report、broker fill 和 order reconciliation 纳入必须带门禁语义的 forbidden terms。
 
 MTP-63 public read-only adapter / future live adapter capability isolation evidence 已完成：
 

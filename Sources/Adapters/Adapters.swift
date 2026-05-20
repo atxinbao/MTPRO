@@ -34,6 +34,11 @@ public enum BinanceForbiddenCapability: String, CaseIterable, Codable, Equatable
     case orderSubmit = "order submit"
     case orderCancel = "order cancel"
     case orderReplace = "order replace"
+    case executionReport = "execution report"
+    case brokerFill = "broker fill"
+    case orderReconciliation = "order reconciliation"
+    case realAccountState = "real account state"
+    case brokerPositionSync = "broker position sync"
     case listenKeyUserDataStream = "listenKey user data stream"
     case liveExecutionAdapter = "LiveExecutionAdapter"
     case brokerExecutionAdapter = "broker execution adapter"
@@ -401,7 +406,9 @@ public struct BinancePublicMarketDataClient: Sendable {
         "/api/v3/order",
         "liveexecutionadapter",
         "executionadapter",
+        "broker fill",
         "broker",
+        "order reconciliation",
         "realorder",
         "order submit",
         "order cancel",
@@ -409,6 +416,11 @@ public struct BinancePublicMarketDataClient: Sendable {
         "submit",
         "cancel",
         "replace",
+        "execution report",
+        "reconciliation",
+        "oms",
+        "real account state",
+        "broker position sync",
         "/sapi/",
         "/fapi/",
         "/dapi/"
@@ -698,6 +710,12 @@ public struct BinanceReadOnlyAdapterBoundary: Equatable, Sendable {
     public let submitsRealOrder: Bool
     public let cancelsRealOrder: Bool
     public let replacesRealOrder: Bool
+    public let consumesExecutionReport: Bool
+    public let recordsBrokerFill: Bool
+    public let performsReconciliation: Bool
+    public let implementsOMS: Bool
+    public let readsRealAccountState: Bool
+    public let syncsBrokerPosition: Bool
 
     public init() {
         self.sourceName = "Binance public market data"
@@ -717,11 +735,18 @@ public struct BinanceReadOnlyAdapterBoundary: Equatable, Sendable {
         self.submitsRealOrder = false
         self.cancelsRealOrder = false
         self.replacesRealOrder = false
+        self.consumesExecutionReport = false
+        self.recordsBrokerFill = false
+        self.performsReconciliation = false
+        self.implementsOMS = false
+        self.readsRealAccountState = false
+        self.syncsBrokerPosition = false
     }
 
-    /// MTP-63 adapter capability isolation 证明当前 Binance adapter 仍只是公开行情读取边界。
+    /// MTP-63 / MTP-64 adapter capability isolation 证明当前 Binance adapter 仍只是公开行情读取边界。
     /// 该 summary 不创建 future live adapter，不连接 broker / exchange execution venue，
-    /// 也不提供 submit / cancel / replace 等真实订单能力。
+    /// 也不提供 submit / cancel / replace、execution report、broker fill、reconciliation
+    /// 或 OMS 等真实订单生命周期能力。
     public var adapterCapabilityIsolationHeld: Bool {
         isReadOnly
             && requiresAPIKey == false
@@ -735,6 +760,12 @@ public struct BinanceReadOnlyAdapterBoundary: Equatable, Sendable {
             && submitsRealOrder == false
             && cancelsRealOrder == false
             && replacesRealOrder == false
+            && consumesExecutionReport == false
+            && recordsBrokerFill == false
+            && performsReconciliation == false
+            && implementsOMS == false
+            && readsRealAccountState == false
+            && syncsBrokerPosition == false
     }
 
     public func forbidsCapability(_ capability: BinanceForbiddenCapability) -> Bool {
