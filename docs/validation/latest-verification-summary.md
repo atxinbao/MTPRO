@@ -53,6 +53,8 @@ MTP-64 的长期验证锚点仍为 `docs/contracts/live-trading-boundary-contrac
 
 MTP-65 的长期验证锚点仍为 `docs/contracts/live-trading-boundary-contract.md` 和 `TVM-LIVE-TRADING-FOUNDATION`。该锚点在 MTP-62 credential boundary、MTP-63 adapter isolation 和 MTP-64 real order lifecycle boundary 基础上新增 Gate 4 `LiveReadiness` / `LiveBlockedEvidence` read-model-only blocked evidence，只表达 API key、signed endpoint、account endpoint、listenKey、broker adapter 和 real order lifecycle gates 仍被阻断；不实现 live command、交易按钮、API key、secret storage、signed endpoint、account endpoint、listenKey、broker adapter、Runtime object / persistence schema 暴露、真实订单生命周期或真实交易授权。
 
+MTP-66 的长期验证锚点仍为 `docs/contracts/live-trading-boundary-contract.md` 和 `TVM-LIVE-TRADING-FOUNDATION`，并同时回填 `TVM-REPORT-EVIDENCE` / `TVM-PAPER-WORKFLOW-CONTROL-SHELL`。该锚点在 MTP-65 `LiveReadiness` 基础上新增 Gate 5 Dashboard / Report / Event Timeline read-model-only Live blocked evidence surface；只展示 API key、signed endpoint、account endpoint、listenKey、broker adapter 和 real order lifecycle blocked gates，不实现 live monitoring console、live execution control、live risk control、live audit、live command、交易按钮、API key、signed endpoint、account endpoint、listenKey、broker adapter、Runtime object / persistence schema 暴露、真实订单生命周期或真实交易授权。
+
 ## Goal / Roadmap Progress Baseline
 
 ```text
@@ -110,6 +112,30 @@ Stage audit / input 入口：
 - `MTP-60`：Market Data Replay Operations v1 阶段收口。
 
 ## 最近验证
+
+MTP-66 Dashboard / Report / Event Timeline Live blocked evidence read-model-only surface 已完成：
+
+```bash
+swift test --filter AppTests
+bash checks/automation-readiness.sh
+DASHBOARD_SMOKE=1 swift run Dashboard
+bash checks/run.sh
+```
+
+结果：
+
+- `swift test --filter AppTests`：pass，17 tests, 0 failures。
+- `bash checks/automation-readiness.sh`：pass，已检查 `MTP-66-LIVE-BLOCKED-EVIDENCE-SURFACE`、`MTP-66-DASHBOARD-REPORT-EVENT-TIMELINE-READ-MODEL`、`MTP-66-NO-LIVE-COMMAND-OR-BUTTON`、`MTP-66-SCHEMA-ADAPTER-RUNTIME-NON-EXPOSURE`、MTP-66 validation anchor、App source anchors、Dashboard smoke anchor 和 deterministic test anchors。
+- `DASHBOARD_SMOKE=1 swift run Dashboard`：pass，输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6`。
+- `bash checks/run.sh`：pass。
+- XCTest：135 tests, 0 failures。
+
+MTP-66 更新重点：
+
+- `Sources/App/LiveTradingBlockedEvidence.swift`：新增 `LiveTradingBlockedEvidenceItem`、`LiveTradingBlockedEvidenceReadModel` 和 `LiveTradingBlockedEvidenceViewModel`，只复制 Core `LiveReadiness` blocked evidence，所有 command、adapter、runtime、SQLite / DuckDB schema、API key、signed endpoint、account endpoint、listenKey、broker adapter、real order lifecycle 和 network dependency flags 均保持 false。
+- `Sources/App/App.swift`、`Sources/App/PaperWorkflowEvidenceExplorer.swift`、`Sources/App/DashboardShell.swift`：接入 `ReportViewModel.liveTradingBlockedEvidence`、`PaperWorkflowEvidenceExplorerSection.liveTradingBlockedEvidence`、Dashboard Report `Live gates` 指标、Workbench `Live Blocked Gates` group 和 Dashboard smoke `liveBlockedGates` evidence。
+- `Tests/AppTests/AppTests.swift`：新增 MTP-66 deterministic Codable snapshot、Report / Dashboard / Event Timeline blocked evidence、read-model-only boundary、no command / no button / no adapter / no runtime / no schema assertions。
+- `docs/contracts/live-trading-boundary-contract.md`、`docs/contracts/frontend-view-model-contract.md`、`docs/product/product-surface-map.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/validation-plan.md`、`checks/automation-readiness.sh`：回填 MTP-66 mechanical validation anchor。
 
 MTP-65 LiveReadiness / LiveBlockedEvidence read-model-only blocked evidence 已完成：
 

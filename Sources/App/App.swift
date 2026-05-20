@@ -673,25 +673,30 @@ public struct ResearchBacktestReportArtifact: Codable, Equatable, Sendable {
 
 /// ReportReadModel 从现有 projection snapshots 生成 Research -> Backtest -> Report 最小观察面。
 ///
-/// 它把订单簿研究投影、EMA 回测投影、Paper session 投影和事件流水汇总成报告 artifact；
-/// 该 read model 不重跑策略、不读取数据库 schema、不调用 Runtime / Adapters，也不把报告解释为交易授权。
+/// 它把订单簿研究投影、EMA 回测投影、Paper session 投影、事件流水和 Live blocked evidence
+/// 汇总成报告 artifact / boundary evidence；该 read model 不重跑策略、不读取数据库 schema、
+/// 不调用 Runtime / Adapters，也不把报告或 Live readiness blocked 状态解释为交易授权。
 public struct ReportReadModel: Equatable, Sendable {
     public let artifacts: [ResearchBacktestReportArtifact]
     public let marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel
+    public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel
     public let lastAppliedSequence: Int?
 
     public init(
         artifacts: [ResearchBacktestReportArtifact] = [],
         marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel = MarketDataReplayOperationsEvidenceReadModel(),
+        liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel(),
         lastAppliedSequence: Int? = nil
     ) {
         self.artifacts = artifacts.sorted { left, right in
             left.reportID < right.reportID
         }
         self.marketDataReplayOperations = marketDataReplayOperations
+        self.liveTradingBlockedEvidence = liveTradingBlockedEvidence
         self.lastAppliedSequence = Self.maxSequence(
             lastAppliedSequence,
-            marketDataReplayOperations.lastAppliedSequence
+            marketDataReplayOperations.lastAppliedSequence,
+            liveTradingBlockedEvidence.lastAppliedSequence
         )
     }
 
@@ -699,7 +704,8 @@ public struct ReportReadModel: Equatable, Sendable {
         analyticalProjection: DuckDBAnalyticalProjectionSnapshot,
         runtimeProjection: SQLiteRuntimeProjectionSnapshot,
         eventTimeline: [EventEnvelope],
-        marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel = MarketDataReplayOperationsEvidenceReadModel()
+        marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel = MarketDataReplayOperationsEvidenceReadModel(),
+        liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel()
     ) {
         let sortedBacktests = analyticalProjection.backtestRuns.values.sorted {
             $0.runID.rawValue < $1.runID.rawValue
@@ -730,6 +736,7 @@ public struct ReportReadModel: Equatable, Sendable {
         self.init(
             artifacts: artifacts,
             marketDataReplayOperations: marketDataReplayOperations,
+            liveTradingBlockedEvidence: liveTradingBlockedEvidence,
             lastAppliedSequence: lastAppliedSequence
         )
     }
@@ -969,8 +976,9 @@ public struct ReportReadModel: Equatable, Sendable {
 
 /// DashboardReadModel 聚合 Dashboard 所需的稳定 read model。
 ///
-/// 输入来自 Persistence projection snapshots 和 append-only event timeline；新增 Report read model
-/// 也遵循同一来源边界，禁止 UI 直接读取数据库 schema、Runtime object 或行情 adapter。
+/// 输入来自 Persistence projection snapshots、append-only event timeline 和 Core Live readiness
+/// blocked read model；新增 Report / Event Timeline evidence 也遵循同一来源边界，禁止 UI
+/// 直接读取数据库 schema、Runtime object、行情 adapter 或任何真实 Live trading capability。
 public struct DashboardReadModel: Equatable, Sendable {
     public let market: MarketReadModel
     public let strategy: StrategyReadModel
@@ -1004,6 +1012,7 @@ public struct DashboardReadModel: Equatable, Sendable {
             market: market,
             strategy: strategy,
             report: report,
+            liveTradingBlockedEvidence: report.liveTradingBlockedEvidence,
             paperWorkflowObservability: paperWorkflowObservability,
             events: events
         )
@@ -1017,13 +1026,15 @@ public struct DashboardReadModel: Equatable, Sendable {
         runtimeProjection: SQLiteRuntimeProjectionSnapshot,
         analyticalProjection: DuckDBAnalyticalProjectionSnapshot,
         eventTimeline: [EventEnvelope],
-        marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel = MarketDataReplayOperationsEvidenceReadModel()
+        marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel = MarketDataReplayOperationsEvidenceReadModel(),
+        liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel()
     ) {
         let report = ReportReadModel(
             analyticalProjection: analyticalProjection,
             runtimeProjection: runtimeProjection,
             eventTimeline: eventTimeline,
-            marketDataReplayOperations: marketDataReplayOperations
+            marketDataReplayOperations: marketDataReplayOperations,
+            liveTradingBlockedEvidence: liveTradingBlockedEvidence
         )
         let paper = PaperReadModel(runtimeProjection: runtimeProjection)
         let risk = RiskReadModel(runtimeProjection: runtimeProjection)
@@ -1049,6 +1060,7 @@ public struct DashboardReadModel: Equatable, Sendable {
                 market: market,
                 strategy: strategy,
                 report: report,
+                liveTradingBlockedEvidence: report.liveTradingBlockedEvidence,
                 paperWorkflowObservability: paperWorkflowObservability,
                 events: events
             ),
@@ -1194,13 +1206,15 @@ public struct ReportArtifactViewModel: Codable, Equatable, Sendable {
 
 /// ReportViewModel 汇总 MTP-23 最小报告路径的只读指标。
 ///
-/// 指标来自 `ReportReadModel`，用于展示报告数、研究运行数和投影级 parity evidence；
-/// 该 ViewModel 不调用 Runtime / Adapters，不暴露数据库实现细节，也不提供真实交易控制。
+/// 指标来自 `ReportReadModel`，用于展示报告数、研究运行数、投影级 parity evidence 和
+/// Live trading foundation blocked gates；该 ViewModel 不调用 Runtime / Adapters，不暴露
+/// 数据库实现细节，也不提供 live command、交易按钮或真实交易控制。
 public struct ReportViewModel: Codable, Equatable, Sendable {
     public let section: DashboardSection
     public let source: ViewModelSourceContract
     public let artifacts: [ReportArtifactViewModel]
     public let marketDataReplayOperations: MarketDataReplayOperationsEvidenceViewModel
+    public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceViewModel
     public let artifactCount: Int
     public let completedBacktestCount: Int
     public let researchRunCount: Int
@@ -1262,6 +1276,26 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
     public let marketDataReplayProjectionConsistencyHeld: Bool
     public let marketDataReplayReadModelOnlyBoundaryHeld: Bool
     public let marketDataReplayAuthorizesTradingExecution: Bool
+    public let liveBlockedEvidenceCount: Int
+    public let liveBlockedCapabilityLabels: [String]
+    public let liveBlockedGateLabels: [String]
+    public let liveBlockedSourceAnchors: [String]
+    public let liveReadinessStatus: LiveReadinessStatus
+    public let liveReadinessAllGatesBlocked: Bool
+    public let liveReadinessReadModelOnlyBoundaryHeld: Bool
+    public let liveReadinessProvidesCommandSurface: Bool
+    public let liveReadinessAuthorizesLiveTrading: Bool
+    public let liveReadinessTouchesBrokerAction: Bool
+    public let liveReadinessAuthorizesTradingExecution: Bool
+    public let liveReadinessExposesDatabaseSchema: Bool
+    public let liveReadinessExposesRuntimeObject: Bool
+    public let liveReadinessExposesAdapterSurface: Bool
+    public let liveReadinessReadsAPIKey: Bool
+    public let liveReadinessUsesSignedEndpoint: Bool
+    public let liveReadinessCallsAccountEndpoint: Bool
+    public let liveReadinessCreatesListenKey: Bool
+    public let liveReadinessInstantiatesBrokerAdapter: Bool
+    public let liveReadinessRepresentsRealOrderLifecycle: Bool
     public let tradingValidationAuthorizesExecution: Bool
     public let authorizesTradingExecution: Bool
     public let latestParityStatus: ReportParityStatus?
@@ -1275,10 +1309,14 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
         let replayOperations = MarketDataReplayOperationsEvidenceViewModel(
             readModel: readModel.marketDataReplayOperations
         )
+        let liveBlockedEvidence = LiveTradingBlockedEvidenceViewModel(
+            readModel: readModel.liveTradingBlockedEvidence
+        )
         self.section = .report
         self.source = ViewModelSourceContract()
         self.artifacts = readModel.artifacts.map(ReportArtifactViewModel.init)
         self.marketDataReplayOperations = replayOperations
+        self.liveTradingBlockedEvidence = liveBlockedEvidence
         self.artifactCount = readModel.artifacts.count
         self.completedBacktestCount = readModel.artifacts.filter { $0.backtestState == .completed }.count
         self.researchRunCount = readModel.artifacts
@@ -1430,12 +1468,32 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
             .readModelOnlyBoundaryHeld
         self.marketDataReplayAuthorizesTradingExecution = replayOperations
             .authorizesTradingExecution
+        self.liveBlockedEvidenceCount = liveBlockedEvidence.blockedEvidenceCount
+        self.liveBlockedCapabilityLabels = liveBlockedEvidence.blockedCapabilityLabels
+        self.liveBlockedGateLabels = liveBlockedEvidence.blockedGateLabels
+        self.liveBlockedSourceAnchors = liveBlockedEvidence.sourceAnchors
+        self.liveReadinessStatus = liveBlockedEvidence.status
+        self.liveReadinessAllGatesBlocked = liveBlockedEvidence.allLiveGatesBlocked
+        self.liveReadinessReadModelOnlyBoundaryHeld = liveBlockedEvidence.readModelOnlyBoundaryHeld
+        self.liveReadinessProvidesCommandSurface = liveBlockedEvidence.providesCommandSurface
+        self.liveReadinessAuthorizesLiveTrading = liveBlockedEvidence.authorizesLiveTrading
+        self.liveReadinessTouchesBrokerAction = liveBlockedEvidence.touchesBrokerAction
+        self.liveReadinessAuthorizesTradingExecution = liveBlockedEvidence.authorizesTradingExecution
+        self.liveReadinessExposesDatabaseSchema = liveBlockedEvidence.exposesDatabaseSchema
+        self.liveReadinessExposesRuntimeObject = liveBlockedEvidence.exposesRuntimeObject
+        self.liveReadinessExposesAdapterSurface = liveBlockedEvidence.exposesAdapterSurface
+        self.liveReadinessReadsAPIKey = liveBlockedEvidence.readsAPIKey
+        self.liveReadinessUsesSignedEndpoint = liveBlockedEvidence.usesSignedEndpoint
+        self.liveReadinessCallsAccountEndpoint = liveBlockedEvidence.callsAccountEndpoint
+        self.liveReadinessCreatesListenKey = liveBlockedEvidence.createsListenKey
+        self.liveReadinessInstantiatesBrokerAdapter = liveBlockedEvidence.instantiatesBrokerAdapter
+        self.liveReadinessRepresentsRealOrderLifecycle = liveBlockedEvidence.representsRealOrderLifecycle
         self.tradingValidationAuthorizesExecution = tradingEvidence.contains {
             $0.authorizesTradingExecution
         }
         self.authorizesTradingExecution = readModel.artifacts.contains {
             $0.authorizesTradingExecution
-        }
+        } || liveBlockedEvidence.authorizesTradingExecution
         self.latestParityStatus = readModel.artifacts.last?.parityStatus
         self.lastAppliedSequence = readModel.lastAppliedSequence
     }
@@ -1632,6 +1690,7 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
             backtest.source,
             report.source,
             report.marketDataReplayOperations.source,
+            report.liveTradingBlockedEvidence.source,
             paperWorkflowObservability.source,
             paperWorkflowEvidenceExplorer.source,
             paper.source,

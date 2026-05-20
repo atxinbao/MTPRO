@@ -5,11 +5,13 @@ import Persistence
 /// PaperWorkflowEvidenceExplorerSection 定义 Event Timeline / Evidence Explorer 的只读分区。
 ///
 /// 分区只用于 App 层 read model / ViewModel 观察，不是查询语言、命令路由或 UI 控件配置。
-/// 每个分区都只能从稳定 read model 或 append-only event envelope 派生，禁止读取 SQLite / DuckDB
-/// schema、Runtime object、adapter request，也禁止恢复任何真实交易能力。
+/// 每个分区都只能从稳定 read model 或 append-only event envelope 派生；Live 分区只能展示
+/// blocked evidence。禁止读取 SQLite / DuckDB schema、Runtime object、adapter request，
+/// 也禁止恢复任何真实交易能力。
 public enum PaperWorkflowEvidenceExplorerSection: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
     case marketEvent = "market event"
     case marketDataReplayOperation = "market data replay operation"
+    case liveTradingBlockedEvidence = "live trading blocked evidence"
     case strategySignal = "strategy signal"
     case riskDecision = "risk decision"
     case paperOrder = "paper order"
@@ -130,12 +132,14 @@ public struct PaperWorkflowEvidenceExplorerFilterSnapshot: Codable, Equatable, S
 /// PaperWorkflowEvidenceExplorerReadModel 汇总 Event Timeline / Evidence Explorer 的稳定输入。
 ///
 /// 该 read model 只组合 Dashboard 已有 App read models：market、strategy、report、
-/// paper workflow observability 和 append-only event timeline。它不新增 projection schema，
-/// 不直接读取 Persistence adapter，不暴露 Runtime object，也不提供交易或风控命令。
+/// Live blocked evidence、paper workflow observability 和 append-only event timeline。
+/// 它不新增 projection schema，不直接读取 Persistence adapter，不暴露 Runtime object，
+/// 也不提供交易、风控或 live command。
 public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
     public let market: MarketReadModel
     public let strategy: StrategyReadModel
     public let report: ReportReadModel
+    public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel
     public let paperWorkflowObservability: PaperWorkflowObservabilityReadModel
     public let events: EventTimelineReadModel
     public let lastAppliedSequence: Int?
@@ -144,18 +148,22 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
         market: MarketReadModel = MarketReadModel(),
         strategy: StrategyReadModel = StrategyReadModel(),
         report: ReportReadModel = ReportReadModel(),
+        liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel? = nil,
         paperWorkflowObservability: PaperWorkflowObservabilityReadModel = PaperWorkflowObservabilityReadModel(),
         events: EventTimelineReadModel = EventTimelineReadModel()
     ) {
         self.market = market
         self.strategy = strategy
         self.report = report
+        self.liveTradingBlockedEvidence = liveTradingBlockedEvidence
+            ?? report.liveTradingBlockedEvidence
         self.paperWorkflowObservability = paperWorkflowObservability
         self.events = events
         self.lastAppliedSequence = Self.maxSequence(
             market.lastAppliedSequence,
             strategy.lastAppliedSequence,
             report.lastAppliedSequence,
+            self.liveTradingBlockedEvidence.lastAppliedSequence,
             paperWorkflowObservability.lastAppliedSequence,
             events.envelopes.map(\.sequence).max()
         )
@@ -169,8 +177,8 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
 /// PaperWorkflowEvidenceExplorerViewModel 是 Dashboard / Workbench 可消费的只读 Explorer 快照。
 ///
 /// ViewModel 从 read model 派生 timeline rows、evidence links 和 section filter snapshot。
-/// 所有 boundary flags 必须保持 read-model-only / paper-only；该类型不实现 UI controls、
-/// Runtime command、order-level command、report archive/export 或任何 Live / broker 能力。
+/// 所有 boundary flags 必须保持 read-model-only / paper-only / Live blocked only；该类型不实现
+/// UI controls、Runtime command、order-level command、report archive/export 或任何 Live / broker 能力。
 public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendable {
     public let source: ViewModelSourceContract
     public let timelineItems: [PaperWorkflowEventTimelineItem]
@@ -181,6 +189,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
     public let evidenceLinkCount: Int
     public let coversMarketEvents: Bool
     public let coversMarketDataReplayOperations: Bool
+    public let coversLiveTradingBlockedEvidence: Bool
     public let coversStrategySignals: Bool
     public let coversRiskDecisions: Bool
     public let coversPaperOrders: Bool
@@ -222,6 +231,9 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         let coversMarketDataReplayOperations = allTimelineItems.contains {
             $0.section == .marketDataReplayOperation
         }
+        let coversLiveTradingBlockedEvidence = allTimelineItems.contains {
+            $0.section == .liveTradingBlockedEvidence
+        }
         let coversStrategySignals = allTimelineItems.contains { $0.section == .strategySignal }
         let coversRiskDecisions = allTimelineItems.contains { $0.section == .riskDecision }
         let coversPaperOrders = allTimelineItems.contains { $0.section == .paperOrder }
@@ -252,6 +264,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         self.evidenceLinkCount = evidenceLinks.count
         self.coversMarketEvents = coversMarketEvents
         self.coversMarketDataReplayOperations = coversMarketDataReplayOperations
+        self.coversLiveTradingBlockedEvidence = coversLiveTradingBlockedEvidence
         self.coversStrategySignals = coversStrategySignals
         self.coversRiskDecisions = coversRiskDecisions
         self.coversPaperOrders = coversPaperOrders
@@ -299,6 +312,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         (
             makeMarketItems(readModel.market)
                 + makeMarketDataReplayOperationItems(readModel.report.marketDataReplayOperations)
+                + makeLiveTradingBlockedEvidenceItems(readModel.liveTradingBlockedEvidence)
                 + makeStrategyItems(readModel.strategy)
                 + readModel.events.envelopes.compactMap(makeEnvelopeItem)
                 + makeReportItems(readModel.report)
@@ -409,6 +423,28 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
                         evidenceID: item.replayRunID,
                         label: "replay run id",
                         sourceSequence: item.projectionLastAppliedSequence
+                    )
+                ]
+            )
+        }
+    }
+
+    private static func makeLiveTradingBlockedEvidenceItems(
+        _ readModel: LiveTradingBlockedEvidenceReadModel
+    ) -> [PaperWorkflowEventTimelineItem] {
+        readModel.items.map { item in
+            PaperWorkflowEventTimelineItem(
+                section: .liveTradingBlockedEvidence,
+                sequence: readModel.lastAppliedSequence,
+                stream: "live boundary",
+                title: "Live trading gate blocked",
+                summary: "\(item.capability.rawValue) blocked; gate=\(item.gate.rawValue)",
+                evidenceLinks: [
+                    PaperWorkflowEvidenceLinkSummary(
+                        section: .liveTradingBlockedEvidence,
+                        evidenceID: item.evidenceID,
+                        label: "live blocked capability",
+                        sourceSequence: readModel.lastAppliedSequence
                     )
                 ]
             )

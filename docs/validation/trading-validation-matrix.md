@@ -94,6 +94,7 @@
 | `MTP-63` | `TVM-LIVE-TRADING-FOUNDATION` | 已回填 Gate 2 adapter capability isolation、`LiveAdapterCapabilityIsolationBoundary` Core contract、future live adapter / broker / exchange execution adapter forbidden tests、public read-only adapter execution semantic rejection tests、contract docs、validation-plan anchor 和 automation readiness anchor；不实现 future live adapter，不实现 `LiveExecutionAdapter`，不连接 broker / exchange execution adapter，不连接 execution venue，不提交 / 撤销 / 替换真实订单。 |
 | `MTP-64` | `TVM-LIVE-TRADING-FOUNDATION` | 已回填 Gate 3 real order lifecycle terminology、`RealOrderLifecycleBoundary` Core contract、submit / cancel / replace / execution report / broker fill / reconciliation / OMS forbidden tests、paper order / simulated fill / paper portfolio 不可升级为 real order / broker fill / account state tests、public read-only adapter rejection tests、contract docs、validation-plan anchor 和 automation readiness anchor；不实现 real order state machine、真实 submit / cancel / replace、execution report、broker fill、reconciliation、OMS、真实账户状态或 broker position sync。 |
 | `MTP-65` | `TVM-LIVE-TRADING-FOUNDATION` | 已回填 Gate 4 Live readiness blocked read model、`LiveReadiness` / `LiveBlockedEvidence` Core read-model-only fixture、API key / signed endpoint / account endpoint / listenKey / broker adapter / real order lifecycle 全 blocked tests、Codable deterministic snapshot、command surface rejection、schema / adapter / runtime non-exposure tests、contract docs、validation-plan anchor 和 automation readiness anchor；不实现 live command、交易按钮、API key、secret storage、signed endpoint、account endpoint、listenKey、broker adapter、Runtime object 暴露、persistence schema 暴露、真实订单生命周期或真实交易授权。 |
+| `MTP-66` | `TVM-LIVE-TRADING-FOUNDATION`、`TVM-REPORT-EVIDENCE`、`TVM-PAPER-WORKFLOW-CONTROL-SHELL` | 已回填 Gate 5 Dashboard / Report / Event Timeline Live blocked evidence surface、`LiveTradingBlockedEvidenceReadModel` / `LiveTradingBlockedEvidenceViewModel`、`ReportViewModel.liveTradingBlockedEvidence`、`PaperWorkflowEvidenceExplorerSection.liveTradingBlockedEvidence`、Dashboard shell `Live gates` 指标、Dashboard smoke `liveBlockedGates` evidence、App deterministic tests、Codable snapshot、read-model-only boundary、无 live command / 无交易按钮 / 无 adapter / runtime / schema 暴露；不实现 live monitoring console、live execution control、live risk control、live audit、API key、signed endpoint、account endpoint、listenKey、broker adapter、真实订单生命周期或真实交易授权。 |
 
 ## MTP-65 LiveReadiness / LiveBlockedEvidence Read Model Evidence
 
@@ -109,6 +110,24 @@ MTP-65 把 MTP-62 credential endpoint boundary、MTP-63 adapter capability isola
 | `Tests/CoreTests/CoreTests.swift` | `testLiveReadinessDefinesMTP65BlockedReadModelOnlyEvidence`、`testLiveReadinessRejectsMTP65CommandSchemaAndLiveCapabilityBypass` 和 `testLiveBlockedEvidenceKeepsMTP65AllLiveGatesBlocked`。 |
 | `docs/contracts/live-trading-boundary-contract.md` | `MTP-65-LIVE-READINESS-BLOCKED-READ-MODEL`、`MTP-65-LIVE-BLOCKED-EVIDENCE-GATES`、`MTP-65-READ-MODEL-ONLY-NON-COMMAND` 和 `MTP-65-SCHEMA-ADAPTER-RUNTIME-NON-EXPOSURE`。 |
 | `checks/automation-readiness.sh` | MTP-65 contract / matrix / validation anchors、Core type anchors 和 deterministic test anchors。 |
+
+## MTP-66 Live Blocked Evidence Dashboard / Report / Event Timeline Evidence
+
+日期：2026-05-21
+
+执行者：Codex
+
+MTP-66 把 MTP-65 的 Core `LiveReadiness` / `LiveBlockedEvidence` 接入 App 层 Report、Dashboard 和 Event Timeline 展示面。该接入只复制 read-model-only blocked evidence 字段，展示 API key、signed endpoint、account endpoint、listenKey user data stream、broker adapter 和 real order lifecycle 六个 Live gates 仍为 blocked；不暴露 adapter、Runtime object、SQLite / DuckDB schema，不提供 command surface，不授权 Live trading。
+
+| Evidence location | 验证内容 |
+| --- | --- |
+| `Sources/App/LiveTradingBlockedEvidence.swift` | `LiveTradingBlockedEvidenceItem`、`LiveTradingBlockedEvidenceReadModel` 和 `LiveTradingBlockedEvidenceViewModel`，固定 source contract、blocked capability labels、gate labels、source anchors、all-gates-blocked 和 forbidden flags。 |
+| `Sources/App/App.swift` | `ReportReadModel.liveTradingBlockedEvidence`、`ReportViewModel.liveTradingBlockedEvidence`、`liveBlockedEvidenceCount`、`liveBlockedCapabilityLabels`、`liveReadinessReadModelOnlyBoundaryHeld` 和 Dashboard source contract 聚合。 |
+| `Sources/App/PaperWorkflowEvidenceExplorer.swift` | `PaperWorkflowEvidenceExplorerSection.liveTradingBlockedEvidence`、`coversLiveTradingBlockedEvidence` 和每个 blocked capability 的只读 timeline item / evidence link。 |
+| `Sources/App/DashboardShell.swift` | Report section `Live gates` 指标、Live blocked details、Workbench `Live Blocked Gates` group、Dashboard smoke `liveBlockedGates` evidence 和 no command / no schema / no adapter / no runtime boundary。 |
+| `Tests/AppTests/AppTests.swift` | `testLiveTradingBlockedEvidenceViewModelAggregatesMTP66ReadModelOnlyEvidence`、Report / Dashboard / Event Timeline deterministic assertions、Dashboard smoke `timelineItems=24` / `liveBlockedGates=6`、empty snapshot static Live blocked gates 和 no button / no integration layer source checks。 |
+| `docs/contracts/live-trading-boundary-contract.md` | `MTP-66-LIVE-BLOCKED-EVIDENCE-SURFACE`、`MTP-66-DASHBOARD-REPORT-EVENT-TIMELINE-READ-MODEL`、`MTP-66-NO-LIVE-COMMAND-OR-BUTTON` 和 `MTP-66-SCHEMA-ADAPTER-RUNTIME-NON-EXPOSURE`。 |
+| `checks/automation-readiness.sh` | MTP-66 contract / matrix / validation anchors、App source anchors、Dashboard smoke `liveBlockedGates` 和 deterministic test anchors。 |
 
 ## MTP-59 Market Data Replay Operations Read Model Evidence
 

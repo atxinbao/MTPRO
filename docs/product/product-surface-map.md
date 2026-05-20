@@ -446,3 +446,26 @@ Shell 新增展示：
 - Runtime command、projection rebuild command、retention cleanup、真实历史下载器或 production scheduler。
 - SQLite / DuckDB schema、SQL、ORM model、runtime object、adapter request 或 persistence adapter direct read 暴露。
 - 按钮、表单、order-level command、broker action、signed endpoint、account endpoint、listenKey、Live trading 或真实订单提交 / 撤销 / 替换。
+
+## MTP-66 Live blocked evidence Dashboard / Report / Event Timeline 展示面
+
+日期：2026-05-21
+
+执行者：Codex
+
+当前产品面把 Live trading foundation 的 blocked gates 接入 Report、Dashboard 和 Event Timeline 的只读展示层。该接入只消费 App 层 read model，不做实盘监控台、实盘执行控制、实盘风险控制或实盘审计 / 停机控制。
+
+新增观察面：
+
+- Report evidence：展示 Live blocked evidence count、blocked capabilities、gate labels、source anchors、readiness status 和 read-model-only boundary。
+- Dashboard Report section：新增 `Live gates` 指标和 Live blocked details。
+- Dashboard Workbench：新增 `Live Blocked Gates` 只读 detail group，展示 blocked count、status、capabilities 和 no command / no Live authorization evidence。
+- Event Timeline / Evidence Explorer：新增 `live trading blocked evidence` 分区，用于展示 API key、signed endpoint、account endpoint、listenKey、broker adapter 和 real order lifecycle blocked evidence item。
+- Dashboard smoke：新增 `liveBlockedGates=6` evidence，同时保留八个 Dashboard sections、readModelOnly=true、workbenchReadModelOnly=true 和 session-level controls。
+
+仍不包含：
+
+- 实盘监控台、实盘执行控制、实盘风险控制、实盘审计 / 事故回放 / 停机控制。
+- live command、交易按钮、表单、order-level command、risk control command、position management command。
+- API key、secret storage、signed endpoint、account endpoint、listenKey、broker adapter、real order lifecycle、真实订单提交 / 撤销 / 替换或真实交易授权。
+- SQLite / DuckDB schema、SQL、ORM model、Runtime object、adapter request 或 persistence adapter direct read 暴露。

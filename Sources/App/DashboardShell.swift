@@ -159,20 +159,24 @@ public struct DashboardShellControlSnapshot: Codable, Equatable, Identifiable, S
 /// DashboardShellWorkbenchSnapshot 汇总 MTP-52 需要渲染的 Paper workflow Workbench 壳输入。
 ///
 /// Workbench 壳只组合现有 App 层 ViewModel / Read Model / Command Model：session-level controls
-/// 来自固定合同，observability 和 Evidence Explorer 来自 `DashboardViewModel`。所有字段都是
-/// read-only 展示材料，不访问运行时对象、adapter request 或数据库结构，也不形成交易入口。
+/// 来自固定合同，observability、Evidence Explorer 和 Live blocked evidence 都来自
+/// `DashboardViewModel`。所有字段都是 read-only 展示材料，不访问运行时对象、adapter request、
+/// 数据库结构或真实账户能力，也不形成 live command、交易按钮或真实交易入口。
 public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
     public let title: String
     public let subtitle: String
     public let source: ViewModelSourceContract
     public let observabilitySource: ViewModelSourceContract
     public let evidenceExplorerSource: ViewModelSourceContract
+    public let liveBlockedEvidenceSource: ViewModelSourceContract
     public let sessionControls: [DashboardShellControlSnapshot]
     public let observabilitySections: [PaperWorkflowObservabilitySection]
     public let observabilityMetrics: [DashboardShellMetric]
     public let observabilityDetails: [String]
     public let evidenceExplorerMetrics: [DashboardShellMetric]
     public let evidenceExplorerDetails: [String]
+    public let liveBlockedEvidenceMetrics: [DashboardShellMetric]
+    public let liveBlockedEvidenceDetails: [String]
     public let timelinePreview: [String]
     public let readModelOnlyBoundaryHeld: Bool
     public let paperOnlyBoundaryHeld: Bool
@@ -191,12 +195,15 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         source: ViewModelSourceContract,
         observabilitySource: ViewModelSourceContract,
         evidenceExplorerSource: ViewModelSourceContract,
+        liveBlockedEvidenceSource: ViewModelSourceContract,
         sessionControls: [DashboardShellControlSnapshot],
         observabilitySections: [PaperWorkflowObservabilitySection],
         observabilityMetrics: [DashboardShellMetric],
         observabilityDetails: [String],
         evidenceExplorerMetrics: [DashboardShellMetric],
         evidenceExplorerDetails: [String],
+        liveBlockedEvidenceMetrics: [DashboardShellMetric],
+        liveBlockedEvidenceDetails: [String],
         timelinePreview: [String],
         paperOnlyBoundaryHeld: Bool,
         providesCommandSurface: Bool,
@@ -213,12 +220,15 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         self.source = source
         self.observabilitySource = observabilitySource
         self.evidenceExplorerSource = evidenceExplorerSource
+        self.liveBlockedEvidenceSource = liveBlockedEvidenceSource
         self.sessionControls = sessionControls
         self.observabilitySections = observabilitySections
         self.observabilityMetrics = observabilityMetrics
         self.observabilityDetails = observabilityDetails
         self.evidenceExplorerMetrics = evidenceExplorerMetrics
         self.evidenceExplorerDetails = evidenceExplorerDetails
+        self.liveBlockedEvidenceMetrics = liveBlockedEvidenceMetrics
+        self.liveBlockedEvidenceDetails = liveBlockedEvidenceDetails
         self.timelinePreview = timelinePreview
         self.paperOnlyBoundaryHeld = paperOnlyBoundaryHeld
         self.providesCommandSurface = providesCommandSurface
@@ -232,6 +242,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         self.readModelOnlyBoundaryHeld = source.isReadModelOnly
             && observabilitySource.isReadModelOnly
             && evidenceExplorerSource.isReadModelOnly
+            && liveBlockedEvidenceSource.isReadModelOnly
             && sessionControls.allSatisfy(\.paperOnlyBoundaryHeld)
             && paperOnlyBoundaryHeld
             && providesCommandSurface == false
@@ -245,7 +256,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
     }
 
     public var viewModelSources: [ViewModelSourceContract] {
-        [source, observabilitySource, evidenceExplorerSource]
+        [source, observabilitySource, evidenceExplorerSource, liveBlockedEvidenceSource]
     }
 
     public var controlLabels: [String] {
@@ -256,7 +267,8 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
 /// DashboardShellSnapshot 是 macOS 看板壳的唯一 View input。
 ///
 /// 它从 `DashboardViewModel` 生成可渲染快照，保证 UI 只消费 App 层 ViewModel / Read Model；
-/// shell 不直接连接外部行情 adapter、数据库 schema、runtime object 或任何真实交易能力。
+/// shell 不直接连接外部行情 adapter、数据库 schema、runtime object 或任何真实交易能力；
+/// Live gates 只作为 blocked evidence 展示，不能被解释成实盘监控台或执行控制面。
 public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
     public let title: String
     public let subtitle: String
@@ -289,7 +301,8 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         let sectionNames = sections.map(\.title).joined(separator: ",")
         let controls = workbench.controlLabels.joined(separator: ",")
         let timelineItems = Self.metricValue("Timeline items", in: workbench.evidenceExplorerMetrics)
-        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); workbenchReadModelOnly=\(workbench.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); sections=\(sectionNames)"
+        let liveBlockedGates = Self.metricValue("Live gates", in: workbench.liveBlockedEvidenceMetrics)
+        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); workbenchReadModelOnly=\(workbench.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); liveBlockedGates=\(liveBlockedGates); sections=\(sectionNames)"
     }
 
     private static func makeSectionSnapshot(
@@ -322,12 +335,14 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         let architecture = PaperWorkflowWorkbenchInformationArchitecture.deterministicFixture
         let observability = viewModel.paperWorkflowObservability
         let explorer = viewModel.paperWorkflowEvidenceExplorer
+        let liveBlockedEvidence = viewModel.report.liveTradingBlockedEvidence
         let sessionControls = architecture.sessionLevelControls.map(DashboardShellControlSnapshot.init)
 
         return DashboardShellWorkbenchSnapshot(
             source: architecture.source,
             observabilitySource: observability.source,
             evidenceExplorerSource: explorer.source,
+            liveBlockedEvidenceSource: liveBlockedEvidence.source,
             sessionControls: sessionControls,
             observabilitySections: architecture.observabilitySections,
             observabilityMetrics: [
@@ -366,6 +381,20 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 "Query language: \(formatForbiddenFlag(explorer.supportsQueryLanguage))",
                 "Read model boundary: \(formatEvidenceFlag(explorer.readModelOnlyBoundaryHeld))"
             ],
+            liveBlockedEvidenceMetrics: [
+                DashboardShellMetric(label: "Live gates", value: "\(liveBlockedEvidence.blockedEvidenceCount)"),
+                DashboardShellMetric(label: "Blocked", value: "\(liveBlockedEvidence.blockedCapabilityLabels.count)"),
+                DashboardShellMetric(label: "Status", value: liveBlockedEvidence.status.rawValue)
+            ],
+            liveBlockedEvidenceDetails: [
+                "Live readiness: \(liveBlockedEvidence.status.rawValue)",
+                "Live blocked capabilities: \(joined(liveBlockedEvidence.blockedCapabilityLabels))",
+                "Live gates: \(joined(liveBlockedEvidence.blockedGateLabels))",
+                "Live source anchors: \(joined(liveBlockedEvidence.sourceAnchors))",
+                "Live command surface: \(formatForbiddenFlag(liveBlockedEvidence.providesCommandSurface))",
+                "Live trading authorization: \(formatForbiddenFlag(liveBlockedEvidence.authorizesLiveTrading))",
+                "Live blocked boundary: \(formatEvidenceFlag(liveBlockedEvidence.readModelOnlyBoundaryHeld))"
+            ],
             timelinePreview: explorer.timelineItems.prefix(5).map {
                 "\($0.title): \($0.summary)"
             },
@@ -373,19 +402,26 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             providesCommandSurface: explorer.providesCommandSurface,
             providesOrderLevelCommand: observability.providesOrderLevelCommand
                 || explorer.providesOrderLevelCommand
+                || liveBlockedEvidence.providesOrderLevelCommand
                 || sessionControls.contains { $0.authorizesOrderLevelCommand },
             exposesDatabaseSchema: observability.exposesDatabaseSchema
-                || explorer.exposesDatabaseSchema,
+                || explorer.exposesDatabaseSchema
+                || liveBlockedEvidence.exposesDatabaseSchema,
             exposesRuntimeObject: observability.exposesRuntimeObject
-                || explorer.exposesRuntimeObject,
+                || explorer.exposesRuntimeObject
+                || liveBlockedEvidence.exposesRuntimeObject,
             exposesAdapterRequest: observability.exposesAdapterRequest
-                || explorer.exposesAdapterRequest,
+                || explorer.exposesAdapterRequest
+                || liveBlockedEvidence.exposesAdapterSurface,
             authorizesLiveTrading: observability.authorizesLiveTrading
-                || explorer.authorizesLiveTrading,
+                || explorer.authorizesLiveTrading
+                || liveBlockedEvidence.authorizesLiveTrading,
             touchesBrokerAction: observability.touchesBrokerAction
-                || explorer.touchesBrokerAction,
+                || explorer.touchesBrokerAction
+                || liveBlockedEvidence.touchesBrokerAction,
             authorizesTradingExecution: observability.authorizesTradingExecution
                 || explorer.authorizesTradingExecution
+                || liveBlockedEvidence.authorizesTradingExecution
         )
     }
 
@@ -471,7 +507,8 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 DashboardShellMetric(label: "Runtime", value: "\(viewModel.paperRuntimeEvidenceCount)"),
                 DashboardShellMetric(label: "Replay facts", value: "\(viewModel.paperRuntimeReplaySequenceCount)"),
                 DashboardShellMetric(label: "Exec workflow", value: "\(viewModel.paperExecutionWorkflowEvidenceCount)"),
-                DashboardShellMetric(label: "Replay ops", value: "\(viewModel.marketDataReplayEvidenceCount)")
+                DashboardShellMetric(label: "Replay ops", value: "\(viewModel.marketDataReplayEvidenceCount)"),
+                DashboardShellMetric(label: "Live gates", value: "\(viewModel.liveBlockedEvidenceCount)")
             ],
             details: [
                 "Report IDs: \(joined(viewModel.artifacts.map(\.reportID)))",
@@ -503,6 +540,13 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 "Replay operation retention: \(joined(viewModel.marketDataReplayRetentionStatuses.map(\.rawValue)))",
                 "Replay operation projections: \(joined(viewModel.marketDataReplayProjectionConsistencySummaries))",
                 "Replay operation boundary: \(formatEvidenceFlag(viewModel.marketDataReplayReadModelOnlyBoundaryHeld))",
+                "Live readiness: \(viewModel.liveReadinessStatus.rawValue)",
+                "Live blocked capabilities: \(joined(viewModel.liveBlockedCapabilityLabels))",
+                "Live gates: \(joined(viewModel.liveBlockedGateLabels))",
+                "Live source anchors: \(joined(viewModel.liveBlockedSourceAnchors))",
+                "Live blocked boundary: \(formatEvidenceFlag(viewModel.liveReadinessReadModelOnlyBoundaryHeld))",
+                "Live command surface: \(formatForbiddenFlag(viewModel.liveReadinessProvidesCommandSurface))",
+                "Live trading authorization: \(formatForbiddenFlag(viewModel.liveReadinessAuthorizesLiveTrading))",
                 "Trading validation execution: \(format(viewModel.tradingValidationAuthorizesExecution))",
                 "Execution: \(format(viewModel.authorizesTradingExecution))",
                 "Latest parity: \(format(viewModel.latestParityStatus))",
@@ -676,8 +720,9 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
 public extension DashboardReadModel {
     /// 空研究工作台 read model 是可运行 shell 的安全初始快照。
     ///
-    /// 该快照只表达“当前没有已重放事实”，不会伪造 market、paper、risk 或 portfolio 状态；
-    /// 后续真实数据必须继续通过稳定 read model projection 注入。
+    /// 该快照只表达“当前没有已重放事实”和静态 Live blocked gates，不会伪造 market、
+    /// paper、risk、portfolio 或真实交易状态；后续真实数据必须继续通过稳定 read model
+    /// projection 注入，Live capability 仍需 future gate 独立授权。
     static var emptyResearchWorkbench: DashboardReadModel {
         DashboardReadModel(
             market: MarketReadModel(),
@@ -810,6 +855,12 @@ private struct DashboardWorkbenchPanel: View {
                     systemImage: "timeline.selection",
                     metrics: workbench.evidenceExplorerMetrics,
                     details: workbench.evidenceExplorerDetails + workbench.timelinePreview
+                )
+                DashboardWorkbenchDetailGroup(
+                    title: "Live Blocked Gates",
+                    systemImage: "lock.shield",
+                    metrics: workbench.liveBlockedEvidenceMetrics,
+                    details: workbench.liveBlockedEvidenceDetails
                 )
             }
         }
