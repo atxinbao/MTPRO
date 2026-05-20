@@ -6049,3 +6049,52 @@ Next Handoff: Human + @001 / PLN
 | --- | --- | --- |
 | `git diff --check` | pass | Root Docs Refresh Gate closure docs-only 变更无 whitespace error。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
+
+## AEP Numbered Blueprint Flow Alignment
+
+日期：2026-05-20
+
+执行者：Codex
+
+目的：
+
+- 将调整后的 AEP Root Blueprint / Complete Blueprint / Construction Plan 分层应用到 MTPRO。
+- 新增根目录 `BLUEPRINT.md` 作为 Root Blueprint 入口和默认读取顺序事实源。
+- 将 MTPRO root docs 对齐到 AEP 编号方法论：`GOAL.md` 是 Project Charter，`BLUEPRINT.md` 是 Root Blueprint，`ARCHITECTURE.md` 是 Architecture Map，`ROADMAP.md` 是 Construction Plan。
+- 将 `docs/validation/latest-verification-summary.md` 从长历史摘录压缩回轻量入口，同时保留 automation readiness 所需锚点。
+
+文件范围：
+
+- Added：
+  - `BLUEPRINT.md`
+- Updated：
+  - `README.md`
+  - `AGENTS.md`
+  - `GOAL.md`
+  - `ARCHITECTURE.md`
+  - `ROADMAP.md`
+  - `checks/automation-readiness.sh`
+  - `docs/design/mtpro-complete-blueprint.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- docs / checks only。
+- 未创建 Linear Project。
+- 未创建 Linear issue。
+- 未修改 Linear status。
+- 未推进 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | AEP alignment docs-only 变更无 whitespace error。 |
+| `bash checks/automation-readiness.sh` | pass | Root Blueprint、默认读取顺序、Complete Blueprint 分层和 latest summary 锚点通过。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；输出 `MTPRO checks passed.`。 |

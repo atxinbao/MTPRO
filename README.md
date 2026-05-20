@@ -4,6 +4,21 @@ MTPRO 是一个 SwiftPM-first 的 macOS 交易研究工作台，用于重构 `ma
 
 项目借鉴 `nautilus_trader` 的 Kernel / MessageBus / Cache / Engine / Adapter 分层思想，但不引入 NautilusTrader 作为运行依赖，也不复制 `macos-trader` 整仓代码。
 
+## 默认读取
+
+Agent 进入仓库时先读：
+
+1. `README.md`
+2. `AGENTS.md`
+3. `GOAL.md`
+4. `BLUEPRINT.md`
+5. `ENVIRONMENT.md`
+6. `ARCHITECTURE.md`
+7. `ROADMAP.md`
+8. `docs/validation/latest-verification-summary.md`
+
+完整 `verification.md` 只在审计、追溯或 debug 时读取。
+
 ## 当前定位
 
 第一版产品只做 Research -> Backtest -> Report -> Paper readiness / paper-only execution evidence。
@@ -56,11 +71,12 @@ Tests/
 
 | 文件 | 作用 |
 | --- | --- |
-| `GOAL.md` | 项目目标和非目标 |
+| `GOAL.md` | Project Charter：项目使命、用户、硬边界和成功标准 |
+| `BLUEPRINT.md` | Root Blueprint：项目总览、默认读取顺序、完整蓝图入口 |
 | `ENVIRONMENT.md` | 本地环境、验证入口、外部系统边界 |
-| `ARCHITECTURE.md` | 模块地图、数据流、不变量 |
-| `ROADMAP.md` | 阶段地图和非授权边界 |
 | `AGENTS.md` | Agent / Codex 行为规则 |
+| `ARCHITECTURE.md` | Architecture Map：模块地图、设计基线、数据流、不变量 |
+| `ROADMAP.md` | Construction Plan：阶段地图、目标进度和非授权边界 |
 | `docs/planning/linear-draft-plan.md` | Project Planning Record 索引和规则 |
 | `docs/planning/project-role-map.md` | `@000` 到 `@007` 角色边界 |
 | `docs/design/mtpro-complete-blueprint.md` | Human + `@000 / AIE` 维护的完整产品 / 系统 / 设计蓝图 |
@@ -78,3 +94,22 @@ bash checks/run.sh
 ```
 
 `checks/run.sh` 是统一入口，包含 whitespace、automation readiness、Dashboard build / smoke 和 Swift tests。
+
+## AEP 方法论
+
+MTPRO 采用 AEP 编号方法论：
+
+```text
+0. New Project Initialization
+1. Human Project Planning
+2. Construction Plan / Linear Draft
+3. Linear execution contract
+4. Parent Codex project supervision
+5. symphony-issue single issue execution
+6. GitHub PR Automation
+7. Stage Code Audit
+8. Root Docs Refresh / Current Phase Progress Bar
+9. Next Human Project Planning
+```
+
+当前已完成 paper-only foundation 的 `0 -> 8` 多轮闭环。下一阶段仍必须从 Human + `@001 / PLN` 的 Next Human Project Planning 开始。

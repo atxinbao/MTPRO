@@ -7,12 +7,13 @@
 Agent 开始工作前必须读取：
 
 1. `README.md`
-2. `ENVIRONMENT.md`
+2. `AGENTS.md`
 3. `GOAL.md`
-4. `AGENTS.md`
-5. `ARCHITECTURE.md`
-6. `ROADMAP.md`
-7. `docs/validation/latest-verification-summary.md`
+4. `BLUEPRINT.md`
+5. `ENVIRONMENT.md`
+6. `ARCHITECTURE.md`
+7. `ROADMAP.md`
+8. `docs/validation/latest-verification-summary.md`
 
 需要实现或验证时，再按 scope 读取：
 
@@ -28,6 +29,7 @@ Agent 开始工作前必须读取：
 ## 核心硬规则
 
 - 所有正式文档写入必须使用中文。
+- `GOAL.md` 是 Project Charter，`BLUEPRINT.md` 是 Root Blueprint，`ARCHITECTURE.md` 是 Architecture Map，`ROADMAP.md` 是 Construction Plan。
 - `ROADMAP.md`、Project Planning Record、Backlog issue、label、priority、assignee 都不授权执行。
 - Complete Blueprint Design 是 Human + `@000 / AIE` 的 Linear 外蓝图活动。它读取 reference study、root docs、Stage Code Audit Reports 和现有代码能力，输出 `docs/design/mtpro-complete-blueprint.md`。
 - Complete Blueprint Design 可以描述 Live / signed endpoint / broker / OMS 等最终产品长期能力，但这些能力必须标记为 Future Construction Zones 或 gated capabilities；除非 Human 后续明确选入 Current Construction Scope 并进入 `@001 / PLN` Project Planning，否则不得转成 Linear issue。
