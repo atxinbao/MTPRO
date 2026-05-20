@@ -236,6 +236,8 @@ require_contains "GOAL.md" "实盘监控台"
 require_contains "GOAL.md" "实盘执行控制"
 require_contains "GOAL.md" "实盘风险控制"
 require_contains "GOAL.md" "实盘审计 / 事故回放 / 停机控制"
+require_contains "GOAL.md" '完整 9 项目标切片、状态和证据口径见 `ROADMAP.md`'
+require_contains "GOAL.md" '`GOAL.md` 不复制维护详细进度表'
 require_contains "GOAL.md" '不把 `BLUEPRINT.md` 中的 Future Construction Zones 自动转成当前 execution scope'
 require_contains "docs/design/mtpro-complete-blueprint.md" "兼容入口"
 require_contains "docs/design/mtpro-complete-blueprint.md" "BLUEPRINT.md"

@@ -5938,6 +5938,48 @@ Linear live-read：
 | `bash checks/automation-readiness.sh` | pass | 两层进度、专业交易工作台定位、final product goal slices 和 future-gated 实盘切片锚点通过。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
 
+## Goal Charter Progress Scope Compression
+
+日期：2026-05-20
+
+执行者：Codex
+
+目的：
+
+- 将 `GOAL.md` 中的当前进度内容压回 Project Charter 级别。
+- 保留 Current Foundation Progress 和 Final Product Goal Progress 两层总数。
+- 保留已完成 foundation 摘要和 future-gated 实盘目标名称。
+- 明确完整 9 项目标切片、状态和证据口径由 `ROADMAP.md` 维护，`GOAL.md` 不复制维护详细进度表。
+
+文件范围：
+
+- Updated：
+  - `GOAL.md`
+  - `checks/automation-readiness.sh`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- docs / checks only。
+- 未创建 Linear Project。
+- 未创建 Linear issue。
+- 未修改 Linear status。
+- 未推进 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Goal Charter Progress Scope Compression 变更无 whitespace error。 |
+| `bash checks/automation-readiness.sh` | pass | `GOAL.md` 保留两层进度总数并指向 `ROADMAP.md` 维护详细目标切片。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
+
 ## 2026-05-20 — MTP-60 automation readiness、validation evidence 和 stage audit input material 收口
 
 执行者：Codex
