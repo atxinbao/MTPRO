@@ -6958,3 +6958,49 @@ Commit：
 | `swift test --filter MTP64` | pass | 3 tests, 0 failures；覆盖 Core deterministic fixture、forbidden bypass rejection 和 Adapters transport-before-network rejection fast path。 |
 | `bash checks/automation-readiness.sh` | pass | MTP-64 contract、matrix、validation-plan、domain terms、deterministic test anchors 和 `RealOrderStateMachine` declaration guard 通过。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 131 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
+
+## MTP-65 LiveReadiness / LiveBlockedEvidence read model
+
+日期：2026-05-21
+
+执行者：Codex
+
+目的：
+
+- 新增 Gate 4 `LiveReadiness` / `LiveBlockedEvidence` read-model-only blocked evidence。
+- 表达 API key、signed endpoint、account endpoint、listenKey、broker adapter 和 real order lifecycle gates 当前全部 blocked。
+- 证明 read model 不提供 live command、交易按钮、adapter / runtime / SQLite / DuckDB schema 暴露、真实订单生命周期或真实交易授权。
+
+文件范围：
+
+- Updated：
+  - `Sources/Core/LiveTradingBoundary.swift`
+  - `Tests/CoreTests/CoreTests.swift`
+  - `docs/contracts/live-trading-boundary-contract.md`
+  - `docs/domain/context.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+
+边界确认：
+
+- 未实现 live command。
+- 未新增交易按钮。
+- 未读取 API key。
+- 未新增 secret storage。
+- 未实现 signed endpoint、account endpoint 或 listenKey。
+- 未实例化 broker adapter。
+- 未暴露 Runtime object、adapter surface、SQLite schema 或 DuckDB schema。
+- 未实现 real order lifecycle、real order state machine、submit / cancel / replace、execution report、broker fill、reconciliation、OMS、真实账户状态或 broker position sync。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP65` | pass | 3 tests, 0 failures；覆盖 `LiveReadiness` deterministic snapshot、`LiveBlockedEvidence` per-gate evidence、Codable round trip、blocked capability drift rejection、command / schema / adapter / runtime / Live bypass rejection。 |
+| `bash checks/automation-readiness.sh` | pass | MTP-65 contract、matrix、validation-plan、domain terms、Core type anchors 和 deterministic test anchors 通过。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 134 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |

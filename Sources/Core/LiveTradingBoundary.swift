@@ -172,6 +172,568 @@ public enum RealOrderLifecycleEvidenceKind: String, Codable, CaseIterable, Equat
     case prBoundaryEvidence = "PR boundary evidence"
 }
 
+/// LiveReadinessStatus 表达 MTP-65 read model 当前唯一允许的 readiness 状态。
+///
+/// 当前 Project 只允许输出 blocked readiness，不能出现 ready、partial、enabled 或 degraded
+/// 这类会被误读为实盘可用的状态。
+public enum LiveReadinessStatus: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case blocked = "blocked"
+}
+
+/// LiveBlockedCapability 枚举 Gate 4 read model 必须展示为 blocked 的最小实盘能力。
+///
+/// 这些值只用于 read-model-only evidence，不能被解释成 command、adapter capability、secret
+/// provider、account endpoint、broker adapter 或真实订单生命周期实现。
+public enum LiveBlockedCapability: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case apiKey = "API key"
+    case signedEndpoint = "signed endpoint"
+    case accountEndpoint = "account endpoint"
+    case listenKeyUserDataStream = "listenKey user data stream"
+    case brokerAdapter = "broker adapter"
+    case realOrderLifecycle = "real order lifecycle"
+}
+
+/// LiveBlockedEvidenceKind 限定 MTP-65 当前允许输出的 read-model-only evidence 类型。
+///
+/// Evidence 只用于 deterministic snapshot、contract、validation matrix、automation readiness 和
+/// PR 审计；它不提供 UI command surface，也不授权真实 Live trading。
+public enum LiveBlockedEvidenceKind: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case readModelSnapshot = "read model snapshot"
+    case contractDocumentation = "contract documentation"
+    case validationMatrixAnchor = "validation matrix anchor"
+    case automationReadinessAnchor = "automation readiness anchor"
+    case deterministicCodableTest = "deterministic Codable test"
+    case prBoundaryEvidence = "PR boundary evidence"
+}
+
+/// LiveBlockedEvidence 是 MTP-65 的单项 blocked evidence read model。
+///
+/// 每条 evidence 只把某个 Live gate 显示为 blocked，并记录它来自哪一层已完成合同锚点。
+/// 所有 command、adapter、runtime、SQLite / DuckDB schema、API key、signed endpoint、account
+/// endpoint、listenKey、broker adapter 和真实订单生命周期 flag 都必须保持 false；Codable 解码
+/// 会重复校验，防止 fixture 或后续 App read model 反序列化成可执行 Live 能力。
+public struct LiveBlockedEvidence: Codable, Equatable, Sendable {
+    public let evidenceID: Identifier
+    public let gate: LiveTradingFoundationGate
+    public let capability: LiveBlockedCapability
+    public let evidenceKind: LiveBlockedEvidenceKind
+    public let sourceAnchors: [String]
+    public let isBlocked: Bool
+    public let isReadModelOnly: Bool
+    public let providesCommandSurface: Bool
+    public let authorizesLiveTrading: Bool
+    public let exposesAdapterSurface: Bool
+    public let exposesRuntimeObject: Bool
+    public let exposesSQLiteSchema: Bool
+    public let exposesDuckDBSchema: Bool
+    public let requiresAPIKey: Bool
+    public let usesSignedEndpoint: Bool
+    public let callsAccountEndpoint: Bool
+    public let createsListenKey: Bool
+    public let instantiatesBrokerAdapter: Bool
+    public let representsRealOrderLifecycle: Bool
+
+    public var blockedReadModelBoundaryHeld: Bool {
+        gate == Self.requiredGate(for: capability)
+            && sourceAnchors == Self.requiredSourceAnchors(for: capability)
+            && isBlocked
+            && isReadModelOnly
+            && providesCommandSurface == false
+            && authorizesLiveTrading == false
+            && exposesAdapterSurface == false
+            && exposesRuntimeObject == false
+            && exposesSQLiteSchema == false
+            && exposesDuckDBSchema == false
+            && requiresAPIKey == false
+            && usesSignedEndpoint == false
+            && callsAccountEndpoint == false
+            && createsListenKey == false
+            && instantiatesBrokerAdapter == false
+            && representsRealOrderLifecycle == false
+    }
+
+    public init(
+        evidenceID: Identifier,
+        gate: LiveTradingFoundationGate,
+        capability: LiveBlockedCapability,
+        evidenceKind: LiveBlockedEvidenceKind = .readModelSnapshot,
+        sourceAnchors: [String]? = nil,
+        isBlocked: Bool = true,
+        isReadModelOnly: Bool = true,
+        providesCommandSurface: Bool = false,
+        authorizesLiveTrading: Bool = false,
+        exposesAdapterSurface: Bool = false,
+        exposesRuntimeObject: Bool = false,
+        exposesSQLiteSchema: Bool = false,
+        exposesDuckDBSchema: Bool = false,
+        requiresAPIKey: Bool = false,
+        usesSignedEndpoint: Bool = false,
+        callsAccountEndpoint: Bool = false,
+        createsListenKey: Bool = false,
+        instantiatesBrokerAdapter: Bool = false,
+        representsRealOrderLifecycle: Bool = false
+    ) throws {
+        let requiredGate = Self.requiredGate(for: capability)
+        let requiredSourceAnchors = Self.requiredSourceAnchors(for: capability)
+        guard gate == requiredGate else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "gate",
+                expected: requiredGate.rawValue,
+                actual: gate.rawValue
+            )
+        }
+        let anchors = sourceAnchors ?? requiredSourceAnchors
+        guard anchors == requiredSourceAnchors else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "sourceAnchors",
+                expected: requiredSourceAnchors.joined(separator: ","),
+                actual: anchors.joined(separator: ",")
+            )
+        }
+        try Self.validateForbiddenFlags(
+            isBlocked: isBlocked,
+            isReadModelOnly: isReadModelOnly,
+            providesCommandSurface: providesCommandSurface,
+            authorizesLiveTrading: authorizesLiveTrading,
+            exposesAdapterSurface: exposesAdapterSurface,
+            exposesRuntimeObject: exposesRuntimeObject,
+            exposesSQLiteSchema: exposesSQLiteSchema,
+            exposesDuckDBSchema: exposesDuckDBSchema,
+            requiresAPIKey: requiresAPIKey,
+            usesSignedEndpoint: usesSignedEndpoint,
+            callsAccountEndpoint: callsAccountEndpoint,
+            createsListenKey: createsListenKey,
+            instantiatesBrokerAdapter: instantiatesBrokerAdapter,
+            representsRealOrderLifecycle: representsRealOrderLifecycle
+        )
+
+        self.evidenceID = evidenceID
+        self.gate = gate
+        self.capability = capability
+        self.evidenceKind = evidenceKind
+        self.sourceAnchors = anchors
+        self.isBlocked = isBlocked
+        self.isReadModelOnly = isReadModelOnly
+        self.providesCommandSurface = providesCommandSurface
+        self.authorizesLiveTrading = authorizesLiveTrading
+        self.exposesAdapterSurface = exposesAdapterSurface
+        self.exposesRuntimeObject = exposesRuntimeObject
+        self.exposesSQLiteSchema = exposesSQLiteSchema
+        self.exposesDuckDBSchema = exposesDuckDBSchema
+        self.requiresAPIKey = requiresAPIKey
+        self.usesSignedEndpoint = usesSignedEndpoint
+        self.callsAccountEndpoint = callsAccountEndpoint
+        self.createsListenKey = createsListenKey
+        self.instantiatesBrokerAdapter = instantiatesBrokerAdapter
+        self.representsRealOrderLifecycle = representsRealOrderLifecycle
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            evidenceID: try container.decode(Identifier.self, forKey: .evidenceID),
+            gate: try container.decode(LiveTradingFoundationGate.self, forKey: .gate),
+            capability: try container.decode(LiveBlockedCapability.self, forKey: .capability),
+            evidenceKind: try container.decode(LiveBlockedEvidenceKind.self, forKey: .evidenceKind),
+            sourceAnchors: try container.decode([String].self, forKey: .sourceAnchors),
+            isBlocked: try container.decode(Bool.self, forKey: .isBlocked),
+            isReadModelOnly: try container.decode(Bool.self, forKey: .isReadModelOnly),
+            providesCommandSurface: try container.decode(Bool.self, forKey: .providesCommandSurface),
+            authorizesLiveTrading: try container.decode(Bool.self, forKey: .authorizesLiveTrading),
+            exposesAdapterSurface: try container.decode(Bool.self, forKey: .exposesAdapterSurface),
+            exposesRuntimeObject: try container.decode(Bool.self, forKey: .exposesRuntimeObject),
+            exposesSQLiteSchema: try container.decode(Bool.self, forKey: .exposesSQLiteSchema),
+            exposesDuckDBSchema: try container.decode(Bool.self, forKey: .exposesDuckDBSchema),
+            requiresAPIKey: try container.decode(Bool.self, forKey: .requiresAPIKey),
+            usesSignedEndpoint: try container.decode(Bool.self, forKey: .usesSignedEndpoint),
+            callsAccountEndpoint: try container.decode(Bool.self, forKey: .callsAccountEndpoint),
+            createsListenKey: try container.decode(Bool.self, forKey: .createsListenKey),
+            instantiatesBrokerAdapter: try container.decode(Bool.self, forKey: .instantiatesBrokerAdapter),
+            representsRealOrderLifecycle: try container.decode(Bool.self, forKey: .representsRealOrderLifecycle)
+        )
+    }
+
+    public static func requiredGate(for capability: LiveBlockedCapability) -> LiveTradingFoundationGate {
+        switch capability {
+        case .apiKey, .signedEndpoint, .accountEndpoint, .listenKeyUserDataStream:
+            .credentialEndpointBoundary
+        case .brokerAdapter:
+            .adapterCapabilityIsolation
+        case .realOrderLifecycle:
+            .realOrderLifecycleTerms
+        }
+    }
+
+    public static func requiredSourceAnchors(for capability: LiveBlockedCapability) -> [String] {
+        switch capability {
+        case .apiKey:
+            [
+                "MTP-62-CREDENTIAL-ENDPOINT-BOUNDARY",
+                "LiveTradingCredentialEndpointBoundary"
+            ]
+        case .signedEndpoint:
+            [
+                "MTP-62-LIVE-CREDENTIAL-FUTURE-GATES",
+                "LiveTradingCredentialEndpointBoundary"
+            ]
+        case .accountEndpoint:
+            [
+                "MTP-62-CREDENTIAL-ENDPOINT-BOUNDARY",
+                "LiveTradingCredentialEndpointBoundary"
+            ]
+        case .listenKeyUserDataStream:
+            [
+                "MTP-62-LIVE-CREDENTIAL-FUTURE-GATES",
+                "LiveTradingCredentialEndpointBoundary"
+            ]
+        case .brokerAdapter:
+            [
+                "MTP-63-ADAPTER-CAPABILITY-ISOLATION",
+                "LiveAdapterCapabilityIsolationBoundary"
+            ]
+        case .realOrderLifecycle:
+            [
+                "MTP-64-REAL-ORDER-LIFECYCLE-TERMINOLOGY",
+                "RealOrderLifecycleBoundary"
+            ]
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        isBlocked: Bool,
+        isReadModelOnly: Bool,
+        providesCommandSurface: Bool,
+        authorizesLiveTrading: Bool,
+        exposesAdapterSurface: Bool,
+        exposesRuntimeObject: Bool,
+        exposesSQLiteSchema: Bool,
+        exposesDuckDBSchema: Bool,
+        requiresAPIKey: Bool,
+        usesSignedEndpoint: Bool,
+        callsAccountEndpoint: Bool,
+        createsListenKey: Bool,
+        instantiatesBrokerAdapter: Bool,
+        representsRealOrderLifecycle: Bool
+    ) throws {
+        guard isBlocked else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("isBlocked")
+        }
+        guard isReadModelOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("isReadModelOnly")
+        }
+
+        let forbiddenFlags = [
+            ("providesCommandSurface", providesCommandSurface),
+            ("authorizesLiveTrading", authorizesLiveTrading),
+            ("exposesAdapterSurface", exposesAdapterSurface),
+            ("exposesRuntimeObject", exposesRuntimeObject),
+            ("exposesSQLiteSchema", exposesSQLiteSchema),
+            ("exposesDuckDBSchema", exposesDuckDBSchema),
+            ("requiresAPIKey", requiresAPIKey),
+            ("usesSignedEndpoint", usesSignedEndpoint),
+            ("callsAccountEndpoint", callsAccountEndpoint),
+            ("createsListenKey", createsListenKey),
+            ("instantiatesBrokerAdapter", instantiatesBrokerAdapter),
+            ("representsRealOrderLifecycle", representsRealOrderLifecycle)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(capability.0)
+        }
+    }
+}
+
+/// LiveReadiness 是 MTP-65 的最小 Live readiness read model。
+///
+/// 该 read model 聚合 Gate 1、Gate 2 和 Gate 3 已固定的 blocked evidence，向 App / 后续
+/// Dashboard 接入提供稳定只读输入。它不暴露 adapter surface、Runtime object、SQLite / DuckDB
+/// schema，不提供 command surface，不读取 API key，不调用 signed / account endpoint，不创建
+/// listenKey，不实例化 broker adapter，也不表达真实订单生命周期 readiness。
+public struct LiveReadiness: Codable, Equatable, Sendable {
+    public let readinessID: Identifier
+    public let issueID: Identifier
+    public let gate: LiveTradingFoundationGate
+    public let status: LiveReadinessStatus
+    public let blockedEvidence: [LiveBlockedEvidence]
+    public let allowedEvidenceKinds: [LiveBlockedEvidenceKind]
+    public let isReadModelOnly: Bool
+    public let providesCommandSurface: Bool
+    public let authorizesLiveTrading: Bool
+    public let exposesAdapterSurface: Bool
+    public let exposesRuntimeObject: Bool
+    public let exposesSQLiteSchema: Bool
+    public let exposesDuckDBSchema: Bool
+    public let readsAPIKey: Bool
+    public let usesSignedEndpoint: Bool
+    public let callsAccountEndpoint: Bool
+    public let createsListenKey: Bool
+    public let instantiatesBrokerAdapter: Bool
+    public let representsRealOrderLifecycle: Bool
+    public let requiredValidationDependsOnNetwork: Bool
+
+    public var liveReadinessBoundaryHeld: Bool {
+        gate == .liveReadinessBlockedReadModel
+            && status == .blocked
+            && blockedEvidence == Self.requiredBlockedEvidence
+            && allowedEvidenceKinds == Self.allowedEvidenceKinds
+            && blockedEvidence.allSatisfy(\.blockedReadModelBoundaryHeld)
+            && isReadModelOnly
+            && providesCommandSurface == false
+            && authorizesLiveTrading == false
+            && exposesAdapterSurface == false
+            && exposesRuntimeObject == false
+            && exposesSQLiteSchema == false
+            && exposesDuckDBSchema == false
+            && readsAPIKey == false
+            && usesSignedEndpoint == false
+            && callsAccountEndpoint == false
+            && createsListenKey == false
+            && instantiatesBrokerAdapter == false
+            && representsRealOrderLifecycle == false
+            && requiredValidationDependsOnNetwork == false
+    }
+
+    public var allLiveGatesBlocked: Bool {
+        status == .blocked
+            && blockedEvidence.map(\.capability) == LiveBlockedCapability.allCases
+            && blockedEvidence.allSatisfy(\.isBlocked)
+    }
+
+    public init(
+        readinessID: Identifier = try! Identifier("mtp-65-live-readiness"),
+        issueID: Identifier = try! Identifier("MTP-65"),
+        gate: LiveTradingFoundationGate = .liveReadinessBlockedReadModel,
+        status: LiveReadinessStatus = .blocked,
+        blockedEvidence: [LiveBlockedEvidence] = Self.requiredBlockedEvidence,
+        allowedEvidenceKinds: [LiveBlockedEvidenceKind] = Self.allowedEvidenceKinds,
+        isReadModelOnly: Bool = true,
+        providesCommandSurface: Bool = false,
+        authorizesLiveTrading: Bool = false,
+        exposesAdapterSurface: Bool = false,
+        exposesRuntimeObject: Bool = false,
+        exposesSQLiteSchema: Bool = false,
+        exposesDuckDBSchema: Bool = false,
+        readsAPIKey: Bool = false,
+        usesSignedEndpoint: Bool = false,
+        callsAccountEndpoint: Bool = false,
+        createsListenKey: Bool = false,
+        instantiatesBrokerAdapter: Bool = false,
+        representsRealOrderLifecycle: Bool = false,
+        requiredValidationDependsOnNetwork: Bool = false
+    ) throws {
+        guard gate == .liveReadinessBlockedReadModel else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "gate",
+                expected: LiveTradingFoundationGate.liveReadinessBlockedReadModel.rawValue,
+                actual: gate.rawValue
+            )
+        }
+        try Self.validate(
+            blockedEvidence: blockedEvidence,
+            allowedEvidenceKinds: allowedEvidenceKinds
+        )
+        try Self.validateForbiddenFlags(
+            isReadModelOnly: isReadModelOnly,
+            providesCommandSurface: providesCommandSurface,
+            authorizesLiveTrading: authorizesLiveTrading,
+            exposesAdapterSurface: exposesAdapterSurface,
+            exposesRuntimeObject: exposesRuntimeObject,
+            exposesSQLiteSchema: exposesSQLiteSchema,
+            exposesDuckDBSchema: exposesDuckDBSchema,
+            readsAPIKey: readsAPIKey,
+            usesSignedEndpoint: usesSignedEndpoint,
+            callsAccountEndpoint: callsAccountEndpoint,
+            createsListenKey: createsListenKey,
+            instantiatesBrokerAdapter: instantiatesBrokerAdapter,
+            representsRealOrderLifecycle: representsRealOrderLifecycle,
+            requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork
+        )
+
+        self.readinessID = readinessID
+        self.issueID = issueID
+        self.gate = gate
+        self.status = status
+        self.blockedEvidence = blockedEvidence
+        self.allowedEvidenceKinds = allowedEvidenceKinds
+        self.isReadModelOnly = isReadModelOnly
+        self.providesCommandSurface = providesCommandSurface
+        self.authorizesLiveTrading = authorizesLiveTrading
+        self.exposesAdapterSurface = exposesAdapterSurface
+        self.exposesRuntimeObject = exposesRuntimeObject
+        self.exposesSQLiteSchema = exposesSQLiteSchema
+        self.exposesDuckDBSchema = exposesDuckDBSchema
+        self.readsAPIKey = readsAPIKey
+        self.usesSignedEndpoint = usesSignedEndpoint
+        self.callsAccountEndpoint = callsAccountEndpoint
+        self.createsListenKey = createsListenKey
+        self.instantiatesBrokerAdapter = instantiatesBrokerAdapter
+        self.representsRealOrderLifecycle = representsRealOrderLifecycle
+        self.requiredValidationDependsOnNetwork = requiredValidationDependsOnNetwork
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            readinessID: try container.decode(Identifier.self, forKey: .readinessID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            gate: try container.decode(LiveTradingFoundationGate.self, forKey: .gate),
+            status: try container.decode(LiveReadinessStatus.self, forKey: .status),
+            blockedEvidence: try container.decode([LiveBlockedEvidence].self, forKey: .blockedEvidence),
+            allowedEvidenceKinds: try container.decode(
+                [LiveBlockedEvidenceKind].self,
+                forKey: .allowedEvidenceKinds
+            ),
+            isReadModelOnly: try container.decode(Bool.self, forKey: .isReadModelOnly),
+            providesCommandSurface: try container.decode(Bool.self, forKey: .providesCommandSurface),
+            authorizesLiveTrading: try container.decode(Bool.self, forKey: .authorizesLiveTrading),
+            exposesAdapterSurface: try container.decode(Bool.self, forKey: .exposesAdapterSurface),
+            exposesRuntimeObject: try container.decode(Bool.self, forKey: .exposesRuntimeObject),
+            exposesSQLiteSchema: try container.decode(Bool.self, forKey: .exposesSQLiteSchema),
+            exposesDuckDBSchema: try container.decode(Bool.self, forKey: .exposesDuckDBSchema),
+            readsAPIKey: try container.decode(Bool.self, forKey: .readsAPIKey),
+            usesSignedEndpoint: try container.decode(Bool.self, forKey: .usesSignedEndpoint),
+            callsAccountEndpoint: try container.decode(Bool.self, forKey: .callsAccountEndpoint),
+            createsListenKey: try container.decode(Bool.self, forKey: .createsListenKey),
+            instantiatesBrokerAdapter: try container.decode(Bool.self, forKey: .instantiatesBrokerAdapter),
+            representsRealOrderLifecycle: try container.decode(Bool.self, forKey: .representsRealOrderLifecycle),
+            requiredValidationDependsOnNetwork: try container.decode(
+                Bool.self,
+                forKey: .requiredValidationDependsOnNetwork
+            )
+        )
+    }
+
+    public static let allowedEvidenceKinds: [LiveBlockedEvidenceKind] = [
+        .readModelSnapshot,
+        .contractDocumentation,
+        .validationMatrixAnchor,
+        .automationReadinessAnchor,
+        .deterministicCodableTest,
+        .prBoundaryEvidence
+    ]
+
+    public static let requiredBlockedEvidence: [LiveBlockedEvidence] = [
+        Self.makeEvidence(
+            "mtp-65-api-key-blocked",
+            gate: .credentialEndpointBoundary,
+            capability: .apiKey
+        ),
+        Self.makeEvidence(
+            "mtp-65-signed-endpoint-blocked",
+            gate: .credentialEndpointBoundary,
+            capability: .signedEndpoint
+        ),
+        Self.makeEvidence(
+            "mtp-65-account-endpoint-blocked",
+            gate: .credentialEndpointBoundary,
+            capability: .accountEndpoint
+        ),
+        Self.makeEvidence(
+            "mtp-65-listen-key-blocked",
+            gate: .credentialEndpointBoundary,
+            capability: .listenKeyUserDataStream
+        ),
+        Self.makeEvidence(
+            "mtp-65-broker-adapter-blocked",
+            gate: .adapterCapabilityIsolation,
+            capability: .brokerAdapter
+        ),
+        Self.makeEvidence(
+            "mtp-65-real-order-lifecycle-blocked",
+            gate: .realOrderLifecycleTerms,
+            capability: .realOrderLifecycle
+        )
+    ]
+
+    public static let deterministicFixture: LiveReadiness = {
+        do {
+            return try LiveReadiness()
+        } catch {
+            preconditionFailure("MTP-65 Live readiness read model fixture must be valid: \(error)")
+        }
+    }()
+
+    private static func makeEvidence(
+        _ evidenceID: String,
+        gate: LiveTradingFoundationGate,
+        capability: LiveBlockedCapability
+    ) -> LiveBlockedEvidence {
+        do {
+            return try LiveBlockedEvidence(
+                evidenceID: try Identifier(evidenceID),
+                gate: gate,
+                capability: capability
+            )
+        } catch {
+            preconditionFailure("MTP-65 Live blocked evidence fixture must be valid: \(error)")
+        }
+    }
+
+    private static func validate(
+        blockedEvidence: [LiveBlockedEvidence],
+        allowedEvidenceKinds: [LiveBlockedEvidenceKind]
+    ) throws {
+        guard blockedEvidence == Self.requiredBlockedEvidence else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "blockedEvidence",
+                expected: Self.requiredBlockedEvidence.map(\.capability.rawValue).joined(separator: ","),
+                actual: blockedEvidence.map(\.capability.rawValue).joined(separator: ",")
+            )
+        }
+        guard blockedEvidence.allSatisfy(\.blockedReadModelBoundaryHeld) else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("blockedEvidence")
+        }
+        guard allowedEvidenceKinds == Self.allowedEvidenceKinds else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "allowedEvidenceKinds",
+                expected: Self.allowedEvidenceKinds.map(\.rawValue).joined(separator: ","),
+                actual: allowedEvidenceKinds.map(\.rawValue).joined(separator: ",")
+            )
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        isReadModelOnly: Bool,
+        providesCommandSurface: Bool,
+        authorizesLiveTrading: Bool,
+        exposesAdapterSurface: Bool,
+        exposesRuntimeObject: Bool,
+        exposesSQLiteSchema: Bool,
+        exposesDuckDBSchema: Bool,
+        readsAPIKey: Bool,
+        usesSignedEndpoint: Bool,
+        callsAccountEndpoint: Bool,
+        createsListenKey: Bool,
+        instantiatesBrokerAdapter: Bool,
+        representsRealOrderLifecycle: Bool,
+        requiredValidationDependsOnNetwork: Bool
+    ) throws {
+        guard isReadModelOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("isReadModelOnly")
+        }
+
+        let forbiddenFlags = [
+            ("providesCommandSurface", providesCommandSurface),
+            ("authorizesLiveTrading", authorizesLiveTrading),
+            ("exposesAdapterSurface", exposesAdapterSurface),
+            ("exposesRuntimeObject", exposesRuntimeObject),
+            ("exposesSQLiteSchema", exposesSQLiteSchema),
+            ("exposesDuckDBSchema", exposesDuckDBSchema),
+            ("readsAPIKey", readsAPIKey),
+            ("usesSignedEndpoint", usesSignedEndpoint),
+            ("callsAccountEndpoint", callsAccountEndpoint),
+            ("createsListenKey", createsListenKey),
+            ("instantiatesBrokerAdapter", instantiatesBrokerAdapter),
+            ("representsRealOrderLifecycle", representsRealOrderLifecycle),
+            ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(capability.0)
+        }
+    }
+}
+
 /// LiveTradingCredentialEndpointBoundary 是 MTP-62 的 Gate 1 合同 fixture。
 ///
 /// 该合同只表达 API key、secret storage、signed endpoint、account endpoint 和 listenKey

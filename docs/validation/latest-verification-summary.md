@@ -51,6 +51,8 @@ MTP-63 的长期验证锚点仍为 `docs/contracts/live-trading-boundary-contrac
 
 MTP-64 的长期验证锚点仍为 `docs/contracts/live-trading-boundary-contract.md` 和 `TVM-LIVE-TRADING-FOUNDATION`。该锚点在 MTP-63 adapter isolation 基础上新增 Gate 3 real order lifecycle terminology / future gates / forbidden capability tests，只定义 real order intent、real order state machine、submit / cancel / replace、execution report、broker fill、reconciliation、OMS 和 real account state 的 future / forbidden 边界，不实现真实订单状态机、真实 submit / cancel / replace、execution report、broker fill、reconciliation、OMS、真实账户状态或 broker position sync。
 
+MTP-65 的长期验证锚点仍为 `docs/contracts/live-trading-boundary-contract.md` 和 `TVM-LIVE-TRADING-FOUNDATION`。该锚点在 MTP-62 credential boundary、MTP-63 adapter isolation 和 MTP-64 real order lifecycle boundary 基础上新增 Gate 4 `LiveReadiness` / `LiveBlockedEvidence` read-model-only blocked evidence，只表达 API key、signed endpoint、account endpoint、listenKey、broker adapter 和 real order lifecycle gates 仍被阻断；不实现 live command、交易按钮、API key、secret storage、signed endpoint、account endpoint、listenKey、broker adapter、Runtime object / persistence schema 暴露、真实订单生命周期或真实交易授权。
+
 ## Goal / Roadmap Progress Baseline
 
 ```text
@@ -108,6 +110,28 @@ Stage audit / input 入口：
 - `MTP-60`：Market Data Replay Operations v1 阶段收口。
 
 ## 最近验证
+
+MTP-65 LiveReadiness / LiveBlockedEvidence read-model-only blocked evidence 已完成：
+
+```bash
+swift test --filter MTP65
+bash checks/automation-readiness.sh
+bash checks/run.sh
+```
+
+结果：
+
+- `swift test --filter MTP65`：pass，3 tests, 0 failures。
+- `bash checks/automation-readiness.sh`：pass，已检查 `MTP-65-LIVE-READINESS-BLOCKED-READ-MODEL`、`MTP-65-LIVE-BLOCKED-EVIDENCE-GATES`、`MTP-65-READ-MODEL-ONLY-NON-COMMAND`、`MTP-65-SCHEMA-ADAPTER-RUNTIME-NON-EXPOSURE`、MTP-65 validation anchor、Core type anchors 和 deterministic test anchors。
+- `bash checks/run.sh`：pass。
+- Dashboard smoke：`sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`。
+- XCTest：134 tests, 0 failures。
+
+MTP-65 更新重点：
+
+- `Sources/Core/LiveTradingBoundary.swift`：新增 `LiveReadinessStatus`、`LiveBlockedCapability`、`LiveBlockedEvidenceKind`、`LiveBlockedEvidence` 和 `LiveReadiness` Gate 4 read model fixture；所有 command、adapter、runtime、SQLite / DuckDB schema、API key、signed endpoint、account endpoint、listenKey、broker adapter、real order lifecycle 和 network dependency flags 均保持 false。
+- `Tests/CoreTests/CoreTests.swift`：新增 MTP-65 deterministic snapshot、Codable round trip、blocked capability list drift rejection、command surface rejection、schema / adapter / runtime non-exposure、API key / signed / account / listenKey / broker / real order lifecycle bypass rejection tests。
+- `docs/contracts/live-trading-boundary-contract.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/validation-plan.md`、`checks/automation-readiness.sh`：回填 MTP-65 mechanical validation anchor。
 
 MTP-64 real order lifecycle terminology / future gate / forbidden capability tests 已完成：
 
