@@ -354,3 +354,25 @@ Shell 新增展示：
 - Dashboard / Workbench UI 扩展、Event Timeline evidence 接入或 operations console。
 - SQLite / DuckDB schema、runtime object 或 adapter request 暴露。
 - signed endpoint、account endpoint、listenKey、broker action、Live trading 或真实订单提交 / 撤销 / 替换。
+
+## MTP-56 Market Data Replay Retention / Freshness Evidence
+
+日期：2026-05-20
+
+执行者：Codex
+
+当前产品面新增本地 retention / freshness evidence read model，让 market data replay operations 可以以稳定 read model 表达本地 batch 是否 retained、stale、expired 或 not retained。
+
+边界覆盖：
+
+- 最小 retention policy：policy id、stale window、expires window、retention window 和本地保留开关。
+- freshness status：`fresh`、`stale`、`expired`、`not retained`。
+- freshness evidence read model：batch / replay metadata、policy 摘要、batch age、retention evidence、required validation local-only 和 read-model-only boundary flags。
+- batch freshness summary：聚合 fresh / stale / expired / not retained / retained batch ids，供后续 Report / Dashboard / Event Timeline 只读消费。
+
+仍不包含：
+
+- 完整 retention engine、生产清理任务、云端 archive、storage tiering、多节点运行或数据湖。
+- event log / projection consistency 串联、fixture parity hardening 或 Dashboard UI 接入。
+- SQLite / DuckDB schema、runtime object、adapter request 或 persistence adapter direct read。
+- signed endpoint、account endpoint、listenKey、broker action、Live trading 或真实订单提交 / 撤销 / 替换。

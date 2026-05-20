@@ -5636,3 +5636,68 @@ Linear live-read：
 | `swift test --filter AdaptersTests/testBatchReplay` | pass | 5 个 focused XCTest，0 failures；覆盖 metadata Codable deterministic equality、batch replay contract completeness、required validation local-only、invalid metadata 和 forbidden field surface tests。 |
 | `bash checks/automation-readiness.sh` | pass | 新增 MTP-55 validation matrix、validation plan、contract docs、product surface、source/test anchors 后通过，输出 `MTPRO automation readiness checks passed.`。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 111 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
+
+## MTP-56 最小 retention policy 和 freshness evidence read model
+
+日期：2026-05-20
+
+执行者：Codex Execution Agent
+
+目的：
+
+- 新增 `MTPRO Market Data Replay Operations v1` 第三项 issue 的最小 retention policy 和 freshness evidence read model。
+- 让本地 replay operations 可以表达 batch 是否 retained、stale、expired 或 not retained。
+- 更新 contract、product surface、validation plan、trading validation matrix、latest verification summary 和 automation readiness anchor。
+
+Linear live-read：
+
+- Linear Project：`MTPRO Market Data Replay Operations v1`。
+- 当前 issue：`MTP-56` 为唯一 `In Progress` issue。
+- `MTP-54` 和 `MTP-55` 已 `Done`。
+- `MTP-57`、`MTP-58`、`MTP-59` 和 `MTP-60` 均为 `Backlog`。
+- WIP=1。
+
+文件范围：
+
+- Added：
+  - `Sources/Adapters/BinanceMarketDataReplayFreshness.swift`
+- Updated：
+  - `Tests/AdaptersTests/AdaptersTests.swift`
+  - `docs/contracts/binance-market-data-contract.md`
+  - `docs/product/product-surface-map.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+
+证据：
+
+- `BinanceMarketDataReplayRetentionPolicy` 固定最小本地 retention policy，并 deterministic 计算 fresh、stale、expired 和 not retained。
+- `BinanceMarketDataReplayFreshnessEvidenceReadModel` 从 `BinanceMarketDataBatchReplayContract` 派生 batch / replay metadata、policy 摘要、batch age、freshness status 和 retention evidence。
+- `BinanceMarketDataReplayBatchFreshnessSummary` 聚合 fresh / stale / expired / not retained / retained batch ids，并输出稳定 summary line。
+- Tests 验证 freshness read model 不暴露 SQLite / DuckDB schema、adapter request、runtime object、storage tiering、cloud archive、production deletion job 或 command surface。
+- Tests 验证 non-local replay contract 会被拒绝，required validation 继续只依赖 mock transport / fixture parity / local batch replay。
+- Trading Validation Matrix 继续使用 `TVM-MARKET-DATA-REPLAY-OPERATIONS`，并由 `checks/automation-readiness.sh` 机械检查 MTP-56 source / tests / docs anchors。
+
+边界确认：
+
+- 不实现完整 retention engine。
+- 不执行生产数据清理任务。
+- 不做云端 archive、storage tiering、多节点运行或数据湖。
+- 不串联 event log / projection consistency，不接 Dashboard UI 或 operations console。
+- 不暴露 SQLite / DuckDB schema、runtime object、adapter request 或 persistence adapter direct read。
+- 不接 API key、signed endpoint、account endpoint、listenKey、broker action、Live trading 或真实订单提交 / 撤销 / 替换。
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未提交 `.codex/*` 或 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter AdaptersTests/testBatchReplay` | pass | 8 个 focused XCTest，0 failures；覆盖 retention policy、freshness evidence read model、batch freshness summary、schema / adapter / runtime non-exposure 和 non-local replay contract rejection tests。 |
+| `bash checks/automation-readiness.sh` | pass | 新增 MTP-56 validation matrix、validation plan、contract docs、product surface、source/test anchors 后通过，输出 `MTPRO automation readiness checks passed.`。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 114 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |

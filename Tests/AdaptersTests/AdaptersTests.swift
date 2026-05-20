@@ -647,6 +647,206 @@ final class AdaptersTests: XCTestCase {
         }
     }
 
+    func testBatchReplayRetentionPolicyComputesFreshStaleExpiredEvidence() throws {
+        // 测试场景：MTP-56 retention policy 只计算本地 batch evidence 的 fresh / stale / expired 状态，
+        // 不执行生产清理任务、不接云端 archive，也不把状态解释为 runtime operations。
+        let contract = try BinanceMarketDataReplayOperationsFixture.deterministicContract()
+        let metadata = contract.metadata
+        let policy = try BinanceMarketDataReplayOperationsFixture.deterministicRetentionPolicy()
+
+        let freshEvidence = try BinanceMarketDataReplayFreshnessEvidenceReadModel(
+            contract: contract,
+            policy: policy,
+            evaluatedAt: Date(timeIntervalSince1970: metadata.timeWindow.end.timeIntervalSince1970 + 120)
+        )
+        let staleEvidence = try BinanceMarketDataReplayFreshnessEvidenceReadModel(
+            contract: contract,
+            policy: policy,
+            evaluatedAt: Date(timeIntervalSince1970: metadata.timeWindow.end.timeIntervalSince1970 + 600)
+        )
+        let expiredEvidence = try BinanceMarketDataReplayFreshnessEvidenceReadModel(
+            contract: contract,
+            policy: policy,
+            evaluatedAt: Date(timeIntervalSince1970: metadata.timeWindow.end.timeIntervalSince1970 + 4_000)
+        )
+        let notRetainedPolicy = try BinanceMarketDataReplayRetentionPolicy(
+            policyID: Identifier("local-replay-retention-policy-disabled"),
+            retainBatchLocally: false,
+            staleAfterSeconds: 300,
+            expiresAfterSeconds: 3_600,
+            retentionWindowSeconds: 7_200
+        )
+        let notRetainedEvidence = try BinanceMarketDataReplayFreshnessEvidenceReadModel(
+            contract: contract,
+            policy: notRetainedPolicy,
+            evaluatedAt: Date(timeIntervalSince1970: metadata.timeWindow.end.timeIntervalSince1970 + 120)
+        )
+
+        XCTAssertEqual(freshEvidence.status, .fresh)
+        XCTAssertTrue(freshEvidence.isRetainedLocally)
+        XCTAssertFalse(freshEvidence.isStale)
+        XCTAssertFalse(freshEvidence.isExpired)
+        XCTAssertEqual(staleEvidence.status, .stale)
+        XCTAssertTrue(staleEvidence.isRetainedLocally)
+        XCTAssertTrue(staleEvidence.isStale)
+        XCTAssertFalse(staleEvidence.isExpired)
+        XCTAssertEqual(expiredEvidence.status, .expired)
+        XCTAssertFalse(expiredEvidence.isRetainedLocally)
+        XCTAssertFalse(expiredEvidence.isStale)
+        XCTAssertTrue(expiredEvidence.isExpired)
+        XCTAssertEqual(notRetainedEvidence.status, .notRetained)
+        XCTAssertFalse(notRetainedEvidence.isRetainedLocally)
+
+        XCTAssertThrowsError(
+            try BinanceMarketDataReplayRetentionPolicy(
+                policyID: Identifier("invalid-local-replay-retention-policy"),
+                staleAfterSeconds: 3_600,
+                expiresAfterSeconds: 300,
+                retentionWindowSeconds: 7_200
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? BinanceMarketDataReplayRetentionPolicyError,
+                .invalidWindowOrder(staleAfterSeconds: 3_600, expiresAfterSeconds: 300)
+            )
+        }
+    }
+
+    func testBatchReplayFreshnessReadModelIsCodableAndHidesSchemaAdapterRuntimeSurface() throws {
+        // 测试场景：freshness read model 是后续 Report / Dashboard / Event Timeline 可消费的稳定 DTO；
+        // 它不得暴露 SQLite / DuckDB schema、adapter request、runtime object 或任何真实交易能力。
+        let evidence = try BinanceMarketDataReplayOperationsFixture.deterministicFreshnessEvidence()
+        let contract = try BinanceMarketDataReplayOperationsFixture.deterministicContract()
+
+        XCTAssertEqual(evidence.batchID, "batch-BTCUSDT-1m-20240101")
+        XCTAssertEqual(evidence.replayRunID, "replay-run-BTCUSDT-1m-20240101T000000Z")
+        XCTAssertEqual(evidence.status, .fresh)
+        XCTAssertEqual(evidence.batchAgeSeconds, 120)
+        XCTAssertEqual(evidence.retentionEvidence.first, "policy=local-replay-retention-policy-v1")
+        XCTAssertEqual(
+            evidence.freshnessSummary,
+            "batch-BTCUSDT-1m-20240101; fresh; age=120s; retained=true"
+        )
+        XCTAssertEqual(evidence.requiredValidationModes, [.mockTransport, .fixtureParity, .localBatchReplay])
+        XCTAssertTrue(evidence.requiredValidationIsLocalOnly)
+        XCTAssertTrue(evidence.isPublicReadOnly)
+        XCTAssertTrue(evidence.isLocalFixtureReplayOnly)
+        XCTAssertTrue(evidence.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(evidence.exposesSQLiteSchema)
+        XCTAssertFalse(evidence.exposesDuckDBSchema)
+        XCTAssertFalse(evidence.exposesAdapterRequest)
+        XCTAssertFalse(evidence.exposesRuntimeObject)
+        XCTAssertFalse(evidence.authorizesLiveTrading)
+        XCTAssertFalse(evidence.touchesBrokerAction)
+        XCTAssertFalse(evidence.authorizesTradingExecution)
+        XCTAssertFalse(evidence.containsForbiddenCapabilityText(contract.forbiddenCapabilities))
+
+        let serializedEvidence = (
+            evidence.retentionEvidence + [
+                evidence.freshnessSummary,
+                evidence.source.sourceKind
+            ]
+        )
+        .joined(separator: " ")
+        .lowercased()
+        XCTAssertFalse(serializedEvidence.contains("sqlite"))
+        XCTAssertFalse(serializedEvidence.contains("duckdb"))
+        XCTAssertFalse(serializedEvidence.contains("adapter request"))
+        XCTAssertFalse(serializedEvidence.contains("runtime object"))
+        XCTAssertFalse(serializedEvidence.contains("broker"))
+        XCTAssertFalse(serializedEvidence.contains("signed endpoint"))
+        XCTAssertFalse(serializedEvidence.contains("account endpoint"))
+
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoded = try JSONDecoder().decode(
+            BinanceMarketDataReplayFreshnessEvidenceReadModel.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, evidence)
+
+        let nonLocalContract = try BinanceMarketDataBatchReplayContract(
+            metadata: contract.metadata,
+            boundary: BinanceMarketDataBatchReplayBoundary(
+                requiredValidationModes: [.optionalManualNetworkSmoke]
+            )
+        )
+
+        XCTAssertThrowsError(
+            try BinanceMarketDataReplayFreshnessEvidenceReadModel(
+                contract: nonLocalContract,
+                policy: BinanceMarketDataReplayOperationsFixture.deterministicRetentionPolicy(),
+                evaluatedAt: Date(timeIntervalSince1970: 1_704_067_380)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? BinanceMarketDataReplayRetentionPolicyError,
+                .nonLocalReplayContract
+            )
+        }
+    }
+
+    func testBatchReplayFreshnessSummaryAggregatesRetentionEvidenceDeterministically() throws {
+        // 测试场景：batch freshness summary 只聚合已生成的 read model evidence，
+        // 不读取底层 schema、不触发 replay、不执行 retention cleanup 或生产运营动作。
+        let policy = try BinanceMarketDataReplayOperationsFixture.deterministicRetentionPolicy()
+        let evaluatedAt = Date(timeIntervalSince1970: 1_704_071_260)
+        let freshEvidence = try makeFreshnessEvidence(
+            batchID: "batch-fresh",
+            replayRunID: "replay-fresh",
+            windowEnd: Date(timeIntervalSince1970: 1_704_071_140),
+            evaluatedAt: evaluatedAt,
+            policy: policy
+        )
+        let staleEvidence = try makeFreshnessEvidence(
+            batchID: "batch-stale",
+            replayRunID: "replay-stale",
+            windowEnd: Date(timeIntervalSince1970: 1_704_070_660),
+            evaluatedAt: evaluatedAt,
+            policy: policy
+        )
+        let expiredEvidence = try makeFreshnessEvidence(
+            batchID: "batch-expired",
+            replayRunID: "replay-expired",
+            windowEnd: Date(timeIntervalSince1970: 1_704_067_200),
+            evaluatedAt: evaluatedAt,
+            policy: policy
+        )
+
+        let summary = BinanceMarketDataReplayBatchFreshnessSummary(
+            evidence: [
+                staleEvidence,
+                expiredEvidence,
+                freshEvidence
+            ]
+        )
+
+        XCTAssertEqual(summary.totalBatchCount, 3)
+        XCTAssertEqual(summary.freshBatchIDs, ["batch-fresh"])
+        XCTAssertEqual(summary.staleBatchIDs, ["batch-stale"])
+        XCTAssertEqual(summary.expiredBatchIDs, ["batch-expired"])
+        XCTAssertEqual(summary.notRetainedBatchIDs, [])
+        XCTAssertEqual(summary.retainedBatchIDs, ["batch-fresh", "batch-stale"])
+        XCTAssertEqual(
+            summary.summaryLine,
+            "batches=3; fresh=1; stale=1; expired=1; notRetained=0; retained=2; readModelOnly=true"
+        )
+        XCTAssertTrue(summary.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(summary.exposesSQLiteSchema)
+        XCTAssertFalse(summary.exposesDuckDBSchema)
+        XCTAssertFalse(summary.exposesAdapterRequest)
+        XCTAssertFalse(summary.exposesRuntimeObject)
+        XCTAssertFalse(summary.authorizesLiveTrading)
+        XCTAssertFalse(summary.touchesBrokerAction)
+        XCTAssertFalse(summary.authorizesTradingExecution)
+
+        let encoded = try JSONEncoder().encode(summary)
+        let decoded = try JSONDecoder().decode(
+            BinanceMarketDataReplayBatchFreshnessSummary.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, summary)
+    }
+
     private static let exchangeInfoFixture = Data(
         #"""
         {
@@ -751,6 +951,35 @@ final class AdaptersTests: XCTestCase {
         XCTAssertFalse(serializedRequests.contains("/sapi/"), file: file, line: line)
         XCTAssertFalse(serializedRequests.contains("/fapi/"), file: file, line: line)
         XCTAssertFalse(serializedRequests.contains("/dapi/"), file: file, line: line)
+    }
+
+    private func makeFreshnessEvidence(
+        batchID: String,
+        replayRunID: String,
+        windowEnd: Date,
+        evaluatedAt: Date,
+        policy: BinanceMarketDataReplayRetentionPolicy
+    ) throws -> BinanceMarketDataReplayFreshnessEvidenceReadModel {
+        let metadata = try BinanceMarketDataReplayOperationsMetadata(
+            batchID: Identifier(batchID),
+            replayRunID: Identifier(replayRunID),
+            symbol: Symbol(rawValue: "BTCUSDT"),
+            timeframe: .oneMinute,
+            timeWindow: DateRange(
+                start: Date(timeIntervalSince1970: windowEnd.timeIntervalSince1970 - 60),
+                end: windowEnd
+            ),
+            fixtureSource: Identifier("fixtures/binance/\(batchID).json"),
+            recordCount: 1,
+            checksumParityHint: "sha256:\(batchID)"
+        )
+        let contract = try BinanceMarketDataBatchReplayContract(metadata: metadata)
+
+        return try BinanceMarketDataReplayFreshnessEvidenceReadModel(
+            contract: contract,
+            policy: policy,
+            evaluatedAt: evaluatedAt
+        )
     }
 }
 
