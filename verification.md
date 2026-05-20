@@ -5980,6 +5980,48 @@ Linear live-read：
 | `bash checks/automation-readiness.sh` | pass | `GOAL.md` 保留两层进度总数并指向 `ROADMAP.md` 维护详细目标切片。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
 
+## Complete Blueprint Product / Architecture / Design Structure
+
+日期：2026-05-20
+
+执行者：Codex
+
+目的：
+
+- 将 `BLUEPRINT.md` 明确为产品、架构、设计三线合一的完整蓝图。
+- 新增 Blueprint Design Lenses，说明 Product / Architecture / Design 三条线分别回答什么问题。
+- 将蓝图结构调整为 Product Blueprint、Architecture Blueprint、Design Blueprint、Infrastructure Blueprint、Trading Capability Blueprint、Live Gate Blueprint、Current / Future Boundary、Blueprint -> Architecture -> Roadmap Handoff。
+- 明确 `ARCHITECTURE.md` 承接 `BLUEPRINT.md`，把蓝图翻译为系统模块、边界、数据流、接口、约束和技术分层；`ROADMAP.md` 再承接施工顺序。
+
+文件范围：
+
+- Updated：
+  - `BLUEPRINT.md`
+  - `checks/automation-readiness.sh`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- docs / checks only。
+- 未创建 Linear Project。
+- 未创建 Linear issue。
+- 未修改 Linear status。
+- 未推进 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Complete Blueprint Product / Architecture / Design Structure 变更无 whitespace error。 |
+| `bash checks/automation-readiness.sh` | pass | 蓝图三线结构、基础设施、交易能力、实盘准入和蓝图到架构 / 路线交接锚点通过。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
+
 ## 2026-05-20 — MTP-60 automation readiness、validation evidence 和 stage audit input material 收口
 
 执行者：Codex
