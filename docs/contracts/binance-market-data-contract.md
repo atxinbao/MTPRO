@@ -302,3 +302,35 @@ MTP-21 通过 `Runtime` 模块消费 `BinancePublicMarketDataClient` 的 public 
 - SQLite / DuckDB schema、SQL、ORM、Runtime object、adapter request 或 persistence adapter direct read 暴露。
 - signed endpoint、account endpoint、listenKey user data stream。
 - broker action、Live trading、真实订单提交 / 撤销 / 替换。
+
+## MTP-59 Market Data Replay Operations Report / Dashboard / Event Timeline Evidence
+
+日期：2026-05-20
+
+执行者：Codex
+
+`App` 在本事项中新增 market data replay operations read model / ViewModel 接入层，用于把 MTP-56 freshness / retention evidence 和 MTP-58 projection consistency summary 转成 Report、Dashboard 和 Event Timeline 可展示的只读证据。
+
+契约结构：
+
+- `MarketDataReplayOperationsEvidenceItem`：复制 batch id、replay run id、freshness status、retention status、projection consistency summary、event log record count、replayed record count 和 boundary flags。
+- `MarketDataReplayOperationsEvidenceReadModel`：只持有稳定 evidence items 和 last applied sequence，不读取 SQLite / DuckDB schema，不调用 adapter 或 Runtime。
+- `MarketDataReplayOperationsEvidenceViewModel`：聚合 batch ids、replay run ids、freshness / retention status、event log / projection consistency 和 read-model-only boundary。
+- `ReportViewModel`：展示 replay operations evidence count、batch ids、replay run ids、freshness / retention status 和 projection consistency。
+- `PaperWorkflowEvidenceExplorerViewModel`：新增 `market data replay operation` timeline item。
+- `DashboardShellSnapshot`：在 Report section 和 smoke evidence 中保留 replay operations read-model-only boundary。
+
+契约要求：
+
+- UI 只能消费 App 层复制型 read model，不直接消费 Runtime object、adapter request 或 persistence adapter。
+- Event Timeline 只能展示 batch / replay / freshness / retention / projection consistency evidence，不触发 replay、retention cleanup、projection rebuild 或 production operations。
+- Dashboard 不新增按钮、表单、order-level command、真实交易入口或 operations console。
+- summary 字段不得包含 signed endpoint、account endpoint、listenKey、broker、real order、Live trading 或 production runtime operations surface。
+
+本契约不包含：
+
+- 完整 UI redesign、生产运营控制台或完整数据质量平台。
+- 真实历史下载器、production scheduler、retention engine、projection rebuild command 或多节点运行。
+- SQLite / DuckDB schema、SQL、ORM model、Runtime object、adapter request 或 persistence implementation 暴露。
+- signed endpoint、account endpoint、listenKey user data stream。
+- broker action、Live trading、真实订单提交 / 撤销 / 替换。

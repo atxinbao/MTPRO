@@ -1,6 +1,8 @@
 import App
+import Adapters
 import Core
 import Persistence
+import Runtime
 import XCTest
 
 final class AppTests: XCTestCase {
@@ -27,6 +29,15 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(viewModel.report.source.exposesRuntimeObjects)
         XCTAssertFalse(viewModel.report.source.callsBinanceAdapter)
         XCTAssertFalse(viewModel.report.source.providesLiveOrderAction)
+        XCTAssertEqual(
+            viewModel.report.marketDataReplayOperations.source.sourceKind,
+            .stableReadModelProjection
+        )
+        XCTAssertFalse(viewModel.report.marketDataReplayOperations.source.exposesDatabaseTables)
+        XCTAssertFalse(viewModel.report.marketDataReplayOperations.source.exposesORMModels)
+        XCTAssertFalse(viewModel.report.marketDataReplayOperations.source.exposesRuntimeObjects)
+        XCTAssertFalse(viewModel.report.marketDataReplayOperations.source.callsBinanceAdapter)
+        XCTAssertFalse(viewModel.report.marketDataReplayOperations.source.providesLiveOrderAction)
         XCTAssertEqual(
             viewModel.paperWorkflowObservability.source.sourceKind,
             .stableReadModelProjection
@@ -216,8 +227,9 @@ final class AppTests: XCTestCase {
         let explorer = try makeDashboardViewModel().paperWorkflowEvidenceExplorer
 
         XCTAssertTrue(explorer.source.isReadModelOnly)
-        XCTAssertEqual(explorer.timelineItemCount, 17)
+        XCTAssertEqual(explorer.timelineItemCount, 18)
         XCTAssertTrue(explorer.coversMarketEvents)
+        XCTAssertTrue(explorer.coversMarketDataReplayOperations)
         XCTAssertTrue(explorer.coversStrategySignals)
         XCTAssertTrue(explorer.coversRiskDecisions)
         XCTAssertTrue(explorer.coversPaperOrders)
@@ -230,6 +242,7 @@ final class AppTests: XCTestCase {
             uniqueKeysWithValues: explorer.sectionSnapshots.map { ($0.section, $0.itemCount) }
         )
         XCTAssertEqual(itemCounts[.marketEvent], 6)
+        XCTAssertEqual(itemCounts[.marketDataReplayOperation], 1)
         XCTAssertEqual(itemCounts[.strategySignal], 3)
         XCTAssertEqual(itemCounts[.riskDecision], 4)
         XCTAssertEqual(itemCounts[.paperOrder], 1)
@@ -250,6 +263,8 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(evidenceIDs.contains("paper-replay-fill-allowed"))
         XCTAssertTrue(evidenceIDs.contains("paper-replay-portfolio-update"))
         XCTAssertTrue(evidenceIDs.contains("risk-blocker-paper-replay-proposal-blocked"))
+        XCTAssertTrue(evidenceIDs.contains("batch-BTCUSDT-1m-20240101"))
+        XCTAssertTrue(evidenceIDs.contains("replay-run-BTCUSDT-1m-20240101T000000Z"))
         XCTAssertEqual(explorer.timelineItems.first?.section, .marketEvent)
         XCTAssertEqual(explorer.timelineItems.last?.section, .reportArtifact)
         XCTAssertEqual(explorer.lastAppliedSequence, 16)
@@ -379,12 +394,26 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(viewModel.report.paperExecutionWorkflowAuthorizesLiveTrading)
         XCTAssertFalse(viewModel.report.paperExecutionWorkflowTouchesBrokerAction)
         XCTAssertFalse(viewModel.report.paperExecutionWorkflowAuthorizesTradingExecution)
+        XCTAssertEqual(viewModel.report.marketDataReplayEvidenceCount, 1)
+        XCTAssertEqual(viewModel.report.marketDataReplayBatchIDs, ["batch-BTCUSDT-1m-20240101"])
+        XCTAssertEqual(
+            viewModel.report.marketDataReplayRunIDs,
+            ["replay-run-BTCUSDT-1m-20240101T000000Z"]
+        )
+        XCTAssertEqual(viewModel.report.marketDataReplayFreshnessStatuses, ["fresh"])
+        XCTAssertEqual(viewModel.report.marketDataReplayRetentionStatuses, [.retained])
+        XCTAssertEqual(viewModel.report.marketDataReplayEventLogRecordCount, 1)
+        XCTAssertEqual(viewModel.report.marketDataReplayReplayedRecordCount, 1)
+        XCTAssertTrue(viewModel.report.marketDataReplayProjectionConsistencyHeld)
+        XCTAssertTrue(viewModel.report.marketDataReplayReadModelOnlyBoundaryHeld)
+        XCTAssertFalse(viewModel.report.marketDataReplayAuthorizesTradingExecution)
         XCTAssertEqual(viewModel.report.latestParityStatus, .matchedProjectionEvidence)
         XCTAssertEqual(viewModel.report.lastAppliedSequence, 16)
         XCTAssertFalse(viewModel.report.tradingValidationAuthorizesExecution)
         XCTAssertFalse(viewModel.report.authorizesTradingExecution)
-        XCTAssertEqual(viewModel.paperWorkflowEvidenceExplorer.timelineItemCount, 17)
+        XCTAssertEqual(viewModel.paperWorkflowEvidenceExplorer.timelineItemCount, 18)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversPaperWorkflowChainEvidence)
+        XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversMarketDataReplayOperations)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.readModelOnlyBoundaryHeld)
         XCTAssertFalse(viewModel.paperWorkflowEvidenceExplorer.providesCommandSurface)
         XCTAssertFalse(viewModel.paperWorkflowEvidenceExplorer.exposesDatabaseSchema)
@@ -504,9 +533,12 @@ final class AppTests: XCTestCase {
             decoded.report.artifacts.first?.paperExecutionWorkflowEvidence.paperOrderIDs,
             ["paper-replay-order-allowed"]
         )
-        XCTAssertEqual(decoded.paperWorkflowEvidenceExplorer.timelineItemCount, 17)
+        XCTAssertEqual(decoded.paperWorkflowEvidenceExplorer.timelineItemCount, 18)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversReportArtifacts)
+        XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversMarketDataReplayOperations)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.readModelOnlyBoundaryHeld)
+        XCTAssertEqual(decoded.report.marketDataReplayEvidenceCount, 1)
+        XCTAssertTrue(decoded.report.marketDataReplayReadModelOnlyBoundaryHeld)
         XCTAssertTrue(decoded.report.paperExecutionWorkflowCoversDecisionOrderFillChain)
         XCTAssertTrue(decoded.report.paperRuntimePaperOnlyBoundaryHeld)
         XCTAssertFalse(decoded.report.authorizesTradingExecution)
@@ -621,6 +653,7 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(metricValue("Runtime", in: report), "1")
         XCTAssertEqual(metricValue("Replay facts", in: report), "16")
         XCTAssertEqual(metricValue("Exec workflow", in: report), "1")
+        XCTAssertEqual(metricValue("Replay ops", in: report), "1")
         XCTAssertTrue(report.details.contains("Report IDs: report-backtest-ema-fixture"))
         XCTAssertTrue(report.details.contains("Cost assumptions: mtp-27-fixed-cost-assumptions"))
         XCTAssertTrue(report.details.contains("Cost parity: consistent"))
@@ -642,6 +675,15 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(report.details.contains("Execution workflow chain: confirmed"))
         XCTAssertTrue(report.details.contains("Execution workflow portfolio projection: confirmed"))
         XCTAssertTrue(report.details.contains("Execution workflow boundary: paper-only"))
+        XCTAssertTrue(report.details.contains("Replay operation batches: batch-BTCUSDT-1m-20240101"))
+        XCTAssertTrue(
+            report.details.contains(
+                "Replay operation runs: replay-run-BTCUSDT-1m-20240101T000000Z"
+            )
+        )
+        XCTAssertTrue(report.details.contains("Replay operation freshness: fresh"))
+        XCTAssertTrue(report.details.contains("Replay operation retention: retained"))
+        XCTAssertTrue(report.details.contains("Replay operation boundary: confirmed"))
         XCTAssertTrue(report.details.contains("Trading validation execution: research-only"))
         XCTAssertTrue(report.details.contains("Execution: research-only"))
         XCTAssertTrue(report.details.contains("Latest parity: matched projection evidence"))
@@ -663,7 +705,7 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(snapshot.smokeSummary.contains("readModelOnly=true"))
         XCTAssertTrue(snapshot.smokeSummary.contains("workbenchReadModelOnly=true"))
         XCTAssertTrue(snapshot.smokeSummary.contains("controls=start,pause,close,reset"))
-        XCTAssertTrue(snapshot.smokeSummary.contains("timelineItems=17"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("timelineItems=18"))
     }
 
     func testDashboardShellWorkbenchSnapshotBindsControlsObservabilityAndExplorerReadOnly() throws {
@@ -710,8 +752,8 @@ final class AppTests: XCTestCase {
             )
         )
 
-        XCTAssertEqual(metricValue("Timeline items", in: workbench.evidenceExplorerMetrics), "17")
-        XCTAssertEqual(metricValue("Sections", in: workbench.evidenceExplorerMetrics), "7")
+        XCTAssertEqual(metricValue("Timeline items", in: workbench.evidenceExplorerMetrics), "18")
+        XCTAssertEqual(metricValue("Sections", in: workbench.evidenceExplorerMetrics), "8")
         XCTAssertTrue(
             workbench.evidenceExplorerDetails.contains(
                 "Filter: read-only"
@@ -799,10 +841,12 @@ final class AppTests: XCTestCase {
         let runtimeProjection = try makeRuntimeProjection()
         let analyticalProjection = try makeAnalyticalProjection()
         let eventTimeline = try makeEventTimeline()
+        let marketDataReplayOperations = try makeMarketDataReplayOperationsReadModel()
         let readModel = DashboardReadModel(
             runtimeProjection: runtimeProjection,
             analyticalProjection: analyticalProjection,
-            eventTimeline: eventTimeline
+            eventTimeline: eventTimeline,
+            marketDataReplayOperations: marketDataReplayOperations
         )
 
         return DashboardViewModel(readModel: readModel)
@@ -812,13 +856,58 @@ final class AppTests: XCTestCase {
         let runtimeProjection = try makeRuntimeProjection()
         let analyticalProjection = try makeAnalyticalProjection()
         let eventTimeline = try makeEventTimeline()
+        let marketDataReplayOperations = try makeMarketDataReplayOperationsReadModel()
         let readModel = DashboardReadModel(
             runtimeProjection: runtimeProjection,
             analyticalProjection: analyticalProjection,
-            eventTimeline: eventTimeline
+            eventTimeline: eventTimeline,
+            marketDataReplayOperations: marketDataReplayOperations
         )
 
         return readModel.paperWorkflowEvidenceExplorer
+    }
+
+    private func makeMarketDataReplayOperationsReadModel() throws -> MarketDataReplayOperationsEvidenceReadModel {
+        // 测试场景：MTP-59 只把 MTP-58 已验证 summary 复制成 App 层 read model。
+        // App / Dashboard 不导入 Runtime object，不读取 SQLite / DuckDB schema，也不触发 replay side effect。
+        let summary = try MarketDataReplayProjectionConsistencyFixture.deterministicSummary()
+        let retentionStatus: MarketDataReplayOperationsRetentionStatus = summary.freshnessSummary
+            .contains("retained=true") ? .retained : .notRetained
+        let item = MarketDataReplayOperationsEvidenceItem(
+            batchID: summary.batchID,
+            replayRunID: summary.replayRunID,
+            symbol: summary.symbol,
+            timeframe: summary.timeframe,
+            freshnessStatus: summary.freshnessStatus.rawValue,
+            retentionStatus: retentionStatus,
+            projectionConsistencySummary: summary.summaryLine,
+            metadataRecordCount: summary.metadataRecordCount,
+            eventLogRecordCount: summary.eventLogRecordCount,
+            replayedRecordCount: summary.replayedRecordCount,
+            cacheBarCount: summary.cacheBarCount,
+            analyticalMarketBarCount: summary.analyticalMarketBarCount,
+            eventLogLastSequence: summary.eventLogLastSequence,
+            projectionLastAppliedSequence: summary.projectionLastAppliedSequence,
+            eventLogConsistencyHeld: summary.eventLogConsistencyHeld,
+            projectionSnapshotConsistencyHeld: summary.projectionSnapshotConsistencyHeld,
+            deterministicProjectionSummary: summary.deterministicProjectionSummary,
+            readModelOnlyBoundaryHeld: summary.readModelOnlyBoundaryHeld,
+            isPublicReadOnly: summary.isPublicReadOnly,
+            isLocalFixtureReplayOnly: summary.isLocalFixtureReplayOnly,
+            requiredValidationIsLocalOnly: summary.requiredValidationIsLocalOnly,
+            requiredValidationDependsOnNetwork: summary.requiredValidationDependsOnNetwork,
+            exposesSQLiteSchema: summary.exposesSQLiteSchema,
+            exposesDuckDBSchema: summary.exposesDuckDBSchema,
+            exposesAdapterRequest: summary.exposesAdapterRequest,
+            exposesRuntimeObject: summary.exposesRuntimeObject,
+            exposesSQLStatement: summary.exposesSQLStatement,
+            authorizesLiveTrading: summary.authorizesLiveTrading,
+            touchesBrokerAction: summary.touchesBrokerAction,
+            authorizesTradingExecution: summary.authorizesTradingExecution,
+            authorizesProductionRuntimeOperations: summary.authorizesProductionRuntimeOperations
+        )
+
+        return MarketDataReplayOperationsEvidenceReadModel(items: [item])
     }
 
     private func metricValue(

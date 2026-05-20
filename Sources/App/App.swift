@@ -677,22 +677,29 @@ public struct ResearchBacktestReportArtifact: Codable, Equatable, Sendable {
 /// 该 read model 不重跑策略、不读取数据库 schema、不调用 Runtime / Adapters，也不把报告解释为交易授权。
 public struct ReportReadModel: Equatable, Sendable {
     public let artifacts: [ResearchBacktestReportArtifact]
+    public let marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel
     public let lastAppliedSequence: Int?
 
     public init(
         artifacts: [ResearchBacktestReportArtifact] = [],
+        marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel = MarketDataReplayOperationsEvidenceReadModel(),
         lastAppliedSequence: Int? = nil
     ) {
         self.artifacts = artifacts.sorted { left, right in
             left.reportID < right.reportID
         }
-        self.lastAppliedSequence = lastAppliedSequence
+        self.marketDataReplayOperations = marketDataReplayOperations
+        self.lastAppliedSequence = Self.maxSequence(
+            lastAppliedSequence,
+            marketDataReplayOperations.lastAppliedSequence
+        )
     }
 
     public init(
         analyticalProjection: DuckDBAnalyticalProjectionSnapshot,
         runtimeProjection: SQLiteRuntimeProjectionSnapshot,
-        eventTimeline: [EventEnvelope]
+        eventTimeline: [EventEnvelope],
+        marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel = MarketDataReplayOperationsEvidenceReadModel()
     ) {
         let sortedBacktests = analyticalProjection.backtestRuns.values.sorted {
             $0.runID.rawValue < $1.runID.rawValue
@@ -720,7 +727,11 @@ public struct ReportReadModel: Equatable, Sendable {
             )
         }
 
-        self.init(artifacts: artifacts, lastAppliedSequence: lastAppliedSequence)
+        self.init(
+            artifacts: artifacts,
+            marketDataReplayOperations: marketDataReplayOperations,
+            lastAppliedSequence: lastAppliedSequence
+        )
     }
 
     private static func makeArtifact(
@@ -1005,12 +1016,14 @@ public struct DashboardReadModel: Equatable, Sendable {
     public init(
         runtimeProjection: SQLiteRuntimeProjectionSnapshot,
         analyticalProjection: DuckDBAnalyticalProjectionSnapshot,
-        eventTimeline: [EventEnvelope]
+        eventTimeline: [EventEnvelope],
+        marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel = MarketDataReplayOperationsEvidenceReadModel()
     ) {
         let report = ReportReadModel(
             analyticalProjection: analyticalProjection,
             runtimeProjection: runtimeProjection,
-            eventTimeline: eventTimeline
+            eventTimeline: eventTimeline,
+            marketDataReplayOperations: marketDataReplayOperations
         )
         let paper = PaperReadModel(runtimeProjection: runtimeProjection)
         let risk = RiskReadModel(runtimeProjection: runtimeProjection)
@@ -1187,6 +1200,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
     public let section: DashboardSection
     public let source: ViewModelSourceContract
     public let artifacts: [ReportArtifactViewModel]
+    public let marketDataReplayOperations: MarketDataReplayOperationsEvidenceViewModel
     public let artifactCount: Int
     public let completedBacktestCount: Int
     public let researchRunCount: Int
@@ -1237,6 +1251,17 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
     public let paperExecutionWorkflowAuthorizesLiveTrading: Bool
     public let paperExecutionWorkflowTouchesBrokerAction: Bool
     public let paperExecutionWorkflowAuthorizesTradingExecution: Bool
+    public let marketDataReplayEvidenceCount: Int
+    public let marketDataReplayBatchIDs: [String]
+    public let marketDataReplayRunIDs: [String]
+    public let marketDataReplayFreshnessStatuses: [String]
+    public let marketDataReplayRetentionStatuses: [MarketDataReplayOperationsRetentionStatus]
+    public let marketDataReplayProjectionConsistencySummaries: [String]
+    public let marketDataReplayEventLogRecordCount: Int
+    public let marketDataReplayReplayedRecordCount: Int
+    public let marketDataReplayProjectionConsistencyHeld: Bool
+    public let marketDataReplayReadModelOnlyBoundaryHeld: Bool
+    public let marketDataReplayAuthorizesTradingExecution: Bool
     public let tradingValidationAuthorizesExecution: Bool
     public let authorizesTradingExecution: Bool
     public let latestParityStatus: ReportParityStatus?
@@ -1247,9 +1272,13 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
         let costEvidence = tradingEvidence.flatMap(\.executionCostEvidence)
         let runtimeEvidence = readModel.artifacts.map(\.paperRuntimeEvidence)
         let workflowEvidence = readModel.artifacts.map(\.paperExecutionWorkflowEvidence)
+        let replayOperations = MarketDataReplayOperationsEvidenceViewModel(
+            readModel: readModel.marketDataReplayOperations
+        )
         self.section = .report
         self.source = ViewModelSourceContract()
         self.artifacts = readModel.artifacts.map(ReportArtifactViewModel.init)
+        self.marketDataReplayOperations = replayOperations
         self.artifactCount = readModel.artifacts.count
         self.completedBacktestCount = readModel.artifacts.filter { $0.backtestState == .completed }.count
         self.researchRunCount = readModel.artifacts
@@ -1386,6 +1415,21 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
         self.paperExecutionWorkflowAuthorizesTradingExecution = workflowEvidence.contains {
             $0.authorizesTradingExecution
         }
+        self.marketDataReplayEvidenceCount = replayOperations.evidenceCount
+        self.marketDataReplayBatchIDs = replayOperations.batchIDs
+        self.marketDataReplayRunIDs = replayOperations.replayRunIDs
+        self.marketDataReplayFreshnessStatuses = replayOperations.freshnessStatuses
+        self.marketDataReplayRetentionStatuses = replayOperations.retentionStatuses
+        self.marketDataReplayProjectionConsistencySummaries = replayOperations
+            .projectionConsistencySummaries
+        self.marketDataReplayEventLogRecordCount = replayOperations.eventLogRecordCount
+        self.marketDataReplayReplayedRecordCount = replayOperations.replayedRecordCount
+        self.marketDataReplayProjectionConsistencyHeld = replayOperations
+            .projectionSnapshotConsistencyHeld
+        self.marketDataReplayReadModelOnlyBoundaryHeld = replayOperations
+            .readModelOnlyBoundaryHeld
+        self.marketDataReplayAuthorizesTradingExecution = replayOperations
+            .authorizesTradingExecution
         self.tradingValidationAuthorizesExecution = tradingEvidence.contains {
             $0.authorizesTradingExecution
         }
@@ -1587,6 +1631,7 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
             strategy.source,
             backtest.source,
             report.source,
+            report.marketDataReplayOperations.source,
             paperWorkflowObservability.source,
             paperWorkflowEvidenceExplorer.source,
             paper.source,

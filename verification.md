@@ -5834,3 +5834,59 @@ Linear live-read：
 | `swift test --filter RuntimeTests` | pass | 7 个 RuntimeTests，0 failures；覆盖 event log / projection consistency、deterministic summary、schema non-exposure、event log drift、projection drift 和 source boundary drift tests。 |
 | `bash checks/automation-readiness.sh` | pass | 新增 MTP-58 Runtime source / tests、validation-plan、matrix、contract docs、product surface anchors 后通过，输出 `MTPRO automation readiness checks passed.`。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
+
+## 2026-05-20 — MTP-59 Report / Dashboard / Event Timeline replay operations evidence
+
+执行者：Codex
+
+上下文：
+
+- Linear live-read 确认 `MTP-59` 为唯一 `In Progress` issue；`MTP-54`、`MTP-55`、`MTP-56`、`MTP-57` 和 `MTP-58` 已 `Done`；`MTP-60` 为 `Backlog`；WIP=1。
+- 本轮 scope 限定为 Report / Dashboard / Event Timeline read-model-only evidence 接入，展示 batch id、replay run id、freshness status、retention status 和 projection consistency summary。
+
+文件范围：
+
+- Added：
+  - `Sources/App/MarketDataReplayOperationsEvidence.swift`
+- Updated：
+  - `Package.swift`
+  - `Sources/App/App.swift`
+  - `Sources/App/PaperWorkflowEvidenceExplorer.swift`
+  - `Sources/App/DashboardShell.swift`
+  - `Tests/AppTests/AppTests.swift`
+  - `docs/contracts/frontend-view-model-contract.md`
+  - `docs/contracts/binance-market-data-contract.md`
+  - `docs/product/product-surface-map.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+
+证据：
+
+- `MarketDataReplayOperationsEvidenceReadModel` 和 `MarketDataReplayOperationsEvidenceViewModel` 将 MTP-58 summary 复制成 App 层 read-model-only evidence，不让 Dashboard shell 直接导入 Runtime / Adapters。
+- `ReportViewModel` 展示 replay operations evidence count、batch ids、replay run ids、freshness / retention status、event log / replay record counts 和 projection consistency boundary。
+- `PaperWorkflowEvidenceExplorerSection.marketDataReplayOperation` 新增 Event Timeline 专用分区，展示 replay operations evidence item。
+- `DashboardShellSnapshot` Report section 新增 `Replay ops` 指标和 replay operation details；Dashboard smoke 保持 8 个主 sections。
+
+边界确认：
+
+- 不做完整 UI redesign。
+- 不做 production operations console。
+- 不新增 Runtime command、retention cleanup、projection rebuild、order-level command、按钮或表单。
+- 不暴露 SQLite / DuckDB schema、SQL、ORM、Runtime object、adapter request 或 persistence implementation。
+- 不接 API key、signed endpoint、account endpoint、listenKey、broker action、Live trading 或真实订单提交 / 撤销 / 替换。
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未提交 `.codex/*` 或 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter AppTests` | pass | 16 个 AppTests，0 failures；覆盖 Report / Dashboard / Event Timeline replay operations evidence、Codable snapshot、market data replay operation timeline item 和 no schema / no runtime / no adapter / no command boundary tests。 |
+| `bash checks/automation-readiness.sh` | pass | 新增 MTP-59 App read model / ViewModel、Report / Dashboard / Event Timeline evidence、validation-plan、matrix、contract docs、product surface 和 source/test anchors 后通过，输出 `MTPRO automation readiness checks passed.`。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
