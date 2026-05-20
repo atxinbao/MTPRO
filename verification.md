@@ -6022,6 +6022,52 @@ Linear live-read：
 | `bash checks/automation-readiness.sh` | pass | 蓝图三线结构、基础设施、交易能力、实盘准入和蓝图到架构 / 路线交接锚点通过。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
 
+## Remove Legacy Blueprint Compatibility Entry
+
+日期：2026-05-20
+
+执行者：Codex
+
+目的：
+
+- 删除 `docs/design/mtpro-complete-blueprint.md` 旧兼容入口。
+- 明确蓝图本体只维护在根目录 `BLUEPRINT.md`。
+- 清理当前入口文档、shared language、latest verification summary 和 automation readiness 中的旧兼容入口引用。
+- 保留 `verification.md` 历史记录中的旧路径引用，保持 append-only 审计历史不重写。
+
+文件范围：
+
+- Deleted：
+  - `docs/design/mtpro-complete-blueprint.md`
+- Updated：
+  - `BLUEPRINT.md`
+  - `README.md`
+  - `docs/domain/context.md`
+  - `checks/automation-readiness.sh`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- docs / checks only。
+- 未创建 Linear Project。
+- 未创建 Linear issue。
+- 未修改 Linear status。
+- 未推进 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Remove Legacy Blueprint Compatibility Entry 变更无 whitespace error。 |
+| `bash checks/automation-readiness.sh` | pass | readiness 确认旧兼容入口不存在，蓝图入口只保留 `BLUEPRINT.md`。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
+
 ## 2026-05-20 — MTP-60 automation readiness、validation evidence 和 stage audit input material 收口
 
 执行者：Codex

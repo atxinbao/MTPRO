@@ -18,7 +18,7 @@
 | --- | --- | --- |
 | `Project Charter` | `GOAL.md`，说明为什么建、服务谁、硬边界和成功标准 | 不叫完整蓝图 |
 | `Root Blueprint` | `BLUEPRINT.md`，项目总览、默认读取顺序和完整蓝图入口 | 不授权执行 |
-| `Complete Blueprint` | `BLUEPRINT.md`，最终产品 / 系统 / 设计蓝图；`docs/design/mtpro-complete-blueprint.md` 只是兼容指针 | 不叫当前 sprint，不叫 issue plan |
+| `Complete Blueprint` | `BLUEPRINT.md`，最终产品 / 系统 / 设计蓝图 | 不叫当前 sprint，不叫 issue plan |
 | `Architecture Map` | `ARCHITECTURE.md`，当前项目架构地图和设计基线 | 不等于完整未来蓝图 |
 | `Construction Plan` | `ROADMAP.md`，当前施工阶段、完成进度和非授权边界 | 不等于 Linear queue |
 | `Current Construction Scope` | Human 当前允许进入规划的施工范围 | 不包含 Future Construction Zones |

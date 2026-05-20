@@ -13,7 +13,7 @@
 - Root Blueprint：项目总览、默认读取顺序、Current / Future 边界。
 - Complete Blueprint：Product Blueprint、Architecture Blueprint、Design Blueprint、Infrastructure Blueprint、Trading Capability Blueprint、Live Gate Blueprint、Current / Future Boundary、Blueprint -> Architecture -> Roadmap Handoff。
 
-`docs/design/mtpro-complete-blueprint.md` 只保留为兼容入口，指向本文档。蓝图本体只维护在根目录 `BLUEPRINT.md`。
+蓝图本体只维护在根目录 `BLUEPRINT.md`。不再维护 `docs/design/` 下的兼容蓝图入口，避免双写漂移。
 
 本文档不是 Linear Project，不是 Linear issue，不授权执行，不推进 `Todo`，不启动 Symphony，不运行 Graphify update，不写业务代码。
 
@@ -469,7 +469,7 @@ Human confirms blueprint
 - [x] Goal / Blueprint / Architecture / Roadmap 分工明确。
 - [x] Product / Architecture / Design Blueprint 三线明确。
 - [x] Infrastructure Blueprint、Trading Capability Blueprint 和 Live Gate Blueprint 明确。
-- [x] `docs/design/mtpro-complete-blueprint.md` 只作为兼容入口。
+- [x] 旧 `docs/design/mtpro-complete-blueprint.md` 兼容入口已移除，蓝图只维护在根目录 `BLUEPRINT.md`。
 - [x] Complete Blueprint 与 Current Construction Scope 分离。
 - [x] Blueprint -> Architecture -> Roadmap Handoff 明确。
 - [x] Future Construction Zones 明确。
