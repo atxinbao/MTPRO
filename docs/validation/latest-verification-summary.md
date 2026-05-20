@@ -40,6 +40,7 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - 本轮 queue closure（2026-05-20）确认 `MTPRO Paper Workflow Control Shell v1` 中 canonical issues `MTP-47`、`MTP-48`、`MTP-49`、`MTP-50`、`MTP-51`、`MTP-52`、`MTP-53` 全部 `Done`。
 - Linear Project status `Completed` 已确认，`type=completed`，`completedAt=2026-05-19T21:37:34.706Z`。
 - Stage Code Audit Report 已覆盖完整 Linear Project，路径为 `docs/audit/mtpro-paper-workflow-control-shell-v1-stage-code-audit.md`。
+- Root Docs Refresh Gate closure 已执行：`GOAL.md`、`ARCHITECTURE.md`、`ROADMAP.md` 已同步已发生事实，`ENVIRONMENT.md` 为 no update needed；当前 Goal / Roadmap Target Progress 更新为 4 / 5（80%）。
 - 本轮 queue closure（2026-05-19）确认 `MTPRO Paper Execution Workflow v1` 中 canonical issues `MTP-38`、`MTP-39`、`MTP-40`、`MTP-41`、`MTP-42`、`MTP-44`、`MTP-45` 全部 `Done`；`MTP-43`、`MTP-46` 为 `Duplicate` 并排除。
 - `MTP-45` 新增 Project 级 Stage Audit Input，路径为 `docs/audit/inputs/mtpro-paper-execution-workflow-v1-stage-audit-input.md`；Parent Codex 已基于该输入落仓 canonical Stage Code Audit Report。
 - 本轮 MTP-42 paper execution event log / replay / projection focused Core 链路已通过 `swift test --filter CoreTests/testPaperExecution`；最终 `bash checks/run.sh` 结果见本文件最近验证表和 `verification.md` 追加记录。
@@ -51,11 +52,11 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 
 Phase：`MTPRO paper-only research / validation / execution foundation`
 
-Project Closure Count：5 / 5（100%）
+Project Closure Count：6 / 6（100%）
 
-Goal / Roadmap Target Progress：3 / 5（60%）
+Goal / Roadmap Target Progress：4 / 5（80%）
 
-Progress：`[######----] 60%`
+Progress：`[########--] 80%`
 
 Project Closure Count 只说明当前已批准、已执行、已完成 Project closure、已落仓 Stage Code Audit Report、并已完成 Root Docs Refresh Gate closure 的建设阶段 Project 数量，不代表完整目标 100% 完成：
 
@@ -64,16 +65,17 @@ Project Closure Count 只说明当前已批准、已执行、已完成 Project c
 - `MTPRO Trading Validation and Parity Hardening`
 - `MTPRO Paper Session Runtime v1`
 - `MTPRO Paper Execution Workflow v1`
+- `MTPRO Paper Workflow Control Shell v1`
 
 Goal / Roadmap Target Progress 才是当前目标进度。当前按 `GOAL.md` 核心结果和 `ROADMAP.md` 产品路线拆为 5 个目标切片：
 
 - Complete：Research / Backtest / Report / Paper readiness。
 - Complete：Paper-only execution evidence。
 - Complete / enforced：Live trading 禁区和 future boundary。
-- Pending：Paper workflow 可观察性和本地控制壳。
+- Complete：Paper workflow 可观察性和本地控制壳。
 - Pending：更长周期 market data replay / operations。
 
-Latest Completed Project：`MTPRO Paper Execution Workflow v1`
+Latest Completed Project：`MTPRO Paper Workflow Control Shell v1`
 
 Next Handoff：Human + `@001 / PLN`
 
@@ -144,6 +146,8 @@ Next Handoff：Human + `@001 / PLN`
 | `DASHBOARD_SMOKE=1 swift run Dashboard` | pass | MTP-53 focused Dashboard smoke 通过；输出 `Dashboard smoke: sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`。 |
 | `bash checks/automation-readiness.sh` | pass | MTP-53 新增 stage audit input、validation plan、matrix、latest summary 和 Dashboard smoke anchors 后通过，输出 `MTPRO automation readiness checks passed.`。 |
 | `bash checks/run.sh` | pass | MTP-53 统一验证入口通过；automation readiness、Dashboard build / smoke 和 106 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
+| `git diff --check` | pass | `MTPRO Paper Workflow Control Shell v1` Root Docs Refresh Gate closure docs-only 变更无 whitespace error。 |
+| `bash checks/run.sh` | pass | Root Docs Refresh Gate closure 后统一验证入口通过；automation readiness、Dashboard build / smoke 和 106 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
 
 ## 当前边界
 
@@ -170,7 +174,7 @@ Next Handoff：Human + `@001 / PLN`
 - MTP-52 的 session-level controls 只能作为 read-only presentation 显示 `start` / `pause` / `close` / `reset`，不得形成按钮、表单、order submit / cancel / replace、order-level command、broker action、signed endpoint、account endpoint、listenKey、真实订单或 Live execution。
 - MTP-53 只准备 Stage Code Audit 输入材料、validation docs、automation readiness anchor 和 Dashboard smoke evidence；不输出最终 Stage Code Audit Report，不创建下一 Project / Issue，不推进下一 Project / Issue，不启动下一阶段 `symphony-issue`。
 - MTP-53 Stage Audit Input 只服务 Parent Codex Project closure；最终 Stage Code Audit Report 已在有效 issues 全部 `Done` 且 Linear Project `Completed` 后单独输出。
-- `MTPRO Paper Workflow Control Shell v1` Root Docs Refresh Gate 尚未执行；Current Phase Progress Bar 仍需在该 gate closure 后由 `@002 / PAR` 按规则刷新。
+- `MTPRO Paper Workflow Control Shell v1` Root Docs Refresh Gate closure 已执行；Current Phase Progress Bar 已按目标切片刷新为 4 / 5（80%）。
 - MTP-41 只定义 paper execution decision 本地链路和 deterministic fixture；blocked risk decision 不生成 paper order，allowed decision 只生成 paper-only order / fill evidence。
 - MTP-41 issue 本身不写 event log、不新增 replay / projection / ViewModel；MTP-42 只把已存在的 paper execution facts 串入 event log / replay / projection，不实现完整 execution engine、完整风险引擎、broker rejection fallback、真实撮合、真实成交回报、broker fill、account update、broker action、signed endpoint 或真实订单行为。
 - Report / Dashboard 只展示 read model / ViewModel，不提供交易执行入口。
