@@ -5571,3 +5571,68 @@ Linear live-read：
 | `swift test --filter AdaptersTests/testBatchReplay` | pass | 2 个 focused XCTest，0 failures；覆盖 boundary 最小字段、required / optional validation mode、forbidden capability 和 Codable deterministic snapshot。 |
 | `bash checks/automation-readiness.sh` | pass | 新增 MTP-54 validation matrix、validation plan、contract docs、source/test anchors 后通过，输出 `MTPRO automation readiness checks passed.`。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 108 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
+
+## MTP-55 local replay operations metadata 和 batch replay contract
+
+日期：2026-05-20
+
+执行者：Codex Execution Agent
+
+目的：
+
+- 新增 `MTPRO Market Data Replay Operations v1` 第二项 issue 的本地 replay operations metadata 和 batch replay contract。
+- 将 MTP-54 的 batch / replay 字段集合落实为 deterministic metadata value model，覆盖 batch id、replay run id、symbol、interval、time window、fixture source、record count 和 checksum / parity hint。
+- 更新 contract、product surface、validation plan、trading validation matrix、latest verification summary 和 automation readiness anchor。
+
+Linear live-read：
+
+- Linear Project：`MTPRO Market Data Replay Operations v1`。
+- 当前 issue：`MTP-55` 为唯一 `In Progress` issue。
+- `MTP-54` 已 `Done`。
+- `MTP-56`、`MTP-57`、`MTP-58`、`MTP-59` 和 `MTP-60` 均为 `Backlog`。
+- WIP=1。
+
+文件范围：
+
+- Added：
+  - `Sources/Adapters/BinanceMarketDataReplayOperationsMetadata.swift`
+- Updated：
+  - `Sources/Adapters/BinanceMarketDataBatchReplayBoundary.swift`
+  - `Tests/AdaptersTests/AdaptersTests.swift`
+  - `docs/contracts/binance-market-data-contract.md`
+  - `docs/product/product-surface-map.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+
+证据：
+
+- `BinanceMarketDataReplayOperationsMetadata` 固定 local replay operations metadata 字段，且 Codable round-trip 后保持 deterministic equality。
+- `BinanceMarketDataBatchReplayContract` 把 metadata 绑定到 `BinanceMarketDataBatchReplayBoundary`，并证明 required fields、required validation mode、optional validation mode 和 forbidden capability 未漂移。
+- `BinanceMarketDataReplayOperationsFixture` 提供 BTCUSDT / 1m / 单条本地 fixture 的 deterministic metadata / contract evidence。
+- Tests 覆盖 invalid metadata：负数 record count、空 checksum / parity hint 和不完整 boundary contract。
+- Tests 验证 metadata field values 不包含 signed endpoint、account endpoint、listenKey、broker、real order 或 production runtime operations surface。
+- Trading Validation Matrix 继续使用 `TVM-MARKET-DATA-REPLAY-OPERATIONS`，并由 `checks/automation-readiness.sh` 机械检查 MTP-55 source / tests / docs anchors。
+
+边界确认：
+
+- 不实现真实长周期历史下载器。
+- 不实现 production scheduler、多节点运行、云端数据湖或大规模数据平台。
+- 不实现 retention engine、freshness read model、fixture parity hardening、event log / projection consistency 或 UI evidence 接入。
+- 不暴露 SQLite / DuckDB schema、runtime object 或 adapter request。
+- 不接 API key、signed endpoint、account endpoint、listenKey、broker action、Live trading 或真实订单提交 / 撤销 / 替换。
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未提交 `.codex/*` 或 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter AdaptersTests/testBatchReplay` | pass | 5 个 focused XCTest，0 failures；覆盖 metadata Codable deterministic equality、batch replay contract completeness、required validation local-only、invalid metadata 和 forbidden field surface tests。 |
+| `bash checks/automation-readiness.sh` | pass | 新增 MTP-55 validation matrix、validation plan、contract docs、product surface、source/test anchors 后通过，输出 `MTPRO automation readiness checks passed.`。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 111 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |

@@ -513,6 +513,140 @@ final class AdaptersTests: XCTestCase {
         XCTAssertEqual(decoded, boundary)
     }
 
+    func testBatchReplayMetadataDefinesDeterministicLocalReplayOperationsEvidence() throws {
+        // 测试场景：MTP-55 metadata 只固定本地 replay operations evidence，
+        // 不触发真实 Binance 网络、不表达 production runtime operations 或交易授权。
+        let metadata = try BinanceMarketDataReplayOperationsFixture.deterministicMetadata()
+
+        XCTAssertEqual(metadata.batchID.rawValue, "batch-BTCUSDT-1m-20240101")
+        XCTAssertEqual(metadata.replayRunID.rawValue, "replay-run-BTCUSDT-1m-20240101T000000Z")
+        XCTAssertEqual(metadata.symbol.rawValue, "BTCUSDT")
+        XCTAssertEqual(metadata.timeframe, .oneMinute)
+        XCTAssertEqual(metadata.timeWindowDescription, "1704067200...1704067260")
+        XCTAssertEqual(metadata.fixtureSource.rawValue, "fixtures/binance/btcusdt-1m-20240101.json")
+        XCTAssertEqual(metadata.recordCount, 1)
+        XCTAssertEqual(metadata.checksumParityHint, "sha256:mtp-55-btcusdt-1m-local-fixture")
+        XCTAssertEqual(metadata.contractFields, BinanceMarketDataBatchReplayContractField.allCases)
+        XCTAssertEqual(metadata.value(for: .symbol), "BTCUSDT")
+        XCTAssertEqual(metadata.value(for: .timeframe), "1m")
+
+        let encoded = try JSONEncoder().encode(metadata)
+        let decoded = try JSONDecoder().decode(BinanceMarketDataReplayOperationsMetadata.self, from: encoded)
+        XCTAssertEqual(decoded, metadata)
+    }
+
+    func testBatchReplayContractBindsMetadataToPublicReadOnlyFixtureBoundary() throws {
+        // 测试场景：batch replay contract 必须把 MTP-55 metadata 绑定到 MTP-54 public read-only boundary，
+        // required validation 只能是 mock transport / fixture parity / local batch replay。
+        let contract = try BinanceMarketDataReplayOperationsFixture.deterministicContract()
+
+        XCTAssertTrue(contract.coversRequiredFields)
+        XCTAssertEqual(contract.requiredFields, BinanceMarketDataBatchReplayContractField.allCases)
+        XCTAssertEqual(contract.requiredValidationModes, [.mockTransport, .fixtureParity, .localBatchReplay])
+        XCTAssertEqual(contract.optionalValidationModes, [.optionalManualNetworkSmoke])
+        XCTAssertTrue(contract.requiredValidationIsLocalOnly)
+        XCTAssertTrue(contract.isPublicReadOnly)
+        XCTAssertTrue(contract.isLocalFixtureReplayOnly)
+        XCTAssertFalse(contract.requiredValidationDependsOnNetwork)
+        XCTAssertFalse(contract.authorizesTradingExecution)
+        XCTAssertFalse(contract.authorizesProductionRuntimeOperations)
+        XCTAssertTrue(contract.forbidsCapability("signed endpoint"))
+        XCTAssertTrue(contract.forbidsCapability("account endpoint"))
+        XCTAssertTrue(contract.forbidsCapability("broker action"))
+        XCTAssertTrue(contract.forbidsCapability("real order submit"))
+        XCTAssertFalse(contract.metadataContainsForbiddenCapabilityText)
+
+        let encoded = try JSONEncoder().encode(contract)
+        let decoded = try JSONDecoder().decode(BinanceMarketDataBatchReplayContract.self, from: encoded)
+        XCTAssertEqual(decoded, contract)
+    }
+
+    func testBatchReplayMetadataRejectsInvalidValuesAndForbiddenCapabilitySurface() throws {
+        // 测试场景：metadata value model 拒绝非法本地 evidence，并验证 contract surface
+        // 不包含 signed/account/listenKey/broker/order 字段或 production operations 字段。
+        let metadata = try BinanceMarketDataReplayOperationsFixture.deterministicMetadata()
+        let contract = try BinanceMarketDataReplayOperationsFixture.deterministicContract()
+        let serializedMetadata = metadata.deterministicFieldValues.joined(separator: " ").lowercased()
+
+        XCTAssertFalse(serializedMetadata.contains("signed"))
+        XCTAssertFalse(serializedMetadata.contains("account"))
+        XCTAssertFalse(serializedMetadata.contains("listenkey"))
+        XCTAssertFalse(serializedMetadata.contains("broker"))
+        XCTAssertFalse(serializedMetadata.contains("order submit"))
+        XCTAssertFalse(serializedMetadata.contains("order cancel"))
+        XCTAssertFalse(serializedMetadata.contains("order replace"))
+        XCTAssertFalse(serializedMetadata.contains("production runtime operations"))
+        XCTAssertFalse(metadata.containsForbiddenCapabilityText(contract.forbiddenCapabilities))
+
+        XCTAssertThrowsError(
+            try BinanceMarketDataReplayOperationsMetadata(
+                batchID: metadata.batchID,
+                replayRunID: metadata.replayRunID,
+                symbol: metadata.symbol,
+                timeframe: metadata.timeframe,
+                timeWindow: metadata.timeWindow,
+                fixtureSource: metadata.fixtureSource,
+                recordCount: -1,
+                checksumParityHint: metadata.checksumParityHint
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? BinanceMarketDataReplayOperationsMetadataError,
+                .invalidRecordCount(-1)
+            )
+        }
+
+        XCTAssertThrowsError(
+            try BinanceMarketDataReplayOperationsMetadata(
+                batchID: metadata.batchID,
+                replayRunID: metadata.replayRunID,
+                symbol: metadata.symbol,
+                timeframe: metadata.timeframe,
+                timeWindow: metadata.timeWindow,
+                fixtureSource: metadata.fixtureSource,
+                recordCount: metadata.recordCount,
+                checksumParityHint: "   "
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? BinanceMarketDataReplayOperationsMetadataError,
+                .emptyChecksumParityHint
+            )
+        }
+
+        XCTAssertThrowsError(
+            try BinanceMarketDataBatchReplayContract(
+                metadata: metadata,
+                boundary: BinanceMarketDataBatchReplayBoundary(
+                    inputFields: [],
+                    outputFields: [],
+                    metadataFields: []
+                )
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? BinanceMarketDataReplayOperationsMetadataError,
+                .incompleteBoundaryContract
+            )
+        }
+
+        let encodedMetadata = try JSONEncoder().encode(metadata)
+        let invalidBoundary = BinanceMarketDataBatchReplayBoundary(metadataFields: [])
+        let encodedInvalidBoundary = try JSONEncoder().encode(invalidBoundary)
+        let invalidPayload = Data(
+            #"{"metadata":\#(String(data: encodedMetadata, encoding: .utf8)!),"boundary":\#(String(data: encodedInvalidBoundary, encoding: .utf8)!)}"#.utf8
+        )
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(BinanceMarketDataBatchReplayContract.self, from: invalidPayload)
+        ) { error in
+            XCTAssertEqual(
+                error as? BinanceMarketDataReplayOperationsMetadataError,
+                .incompleteBoundaryContract
+            )
+        }
+    }
+
     private static let exchangeInfoFixture = Data(
         #"""
         {
