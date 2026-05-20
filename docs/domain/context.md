@@ -8,21 +8,11 @@
 
 本文档是 MTPRO 的 shared language / 领域上下文入口。
 
-它用于让 Agent、Human 和后续 Project Planning 使用同一套项目语言，减少“同一个词在不同会话里含义漂移”的成本。
+它只定义稳定词汇和禁止混用的说法，不是 spec，不是 implementation plan，不授权创建 Linear Project / Issue，不授权推进 `Todo`，不启动 Symphony，不写业务代码。
 
-本文档只定义 MTPRO 的领域词汇和禁止混用的说法，不是 spec，不是 implementation plan，不授权创建 Linear Project / Issue，不授权推进 `Todo`，不启动 Symphony，不写业务代码。
+来源：`mattpocock/skills` 的 shared language / `CONTEXT.md` 思路。参考 `https://github.com/mattpocock/skills`、`https://github.com/mattpocock/skills/blob/main/CONTEXT.md`、`https://github.com/mattpocock/skills/tree/main/skills/engineering/grill-with-docs`。
 
-## 来源
-
-本文档吸收 `mattpocock/skills` 中 shared language / `CONTEXT.md` 的思路：先把项目中高频、易混淆、影响命名和边界判断的词固定下来，再让 Agent 使用这些词读取代码、拆 issue、写 PR 和做架构判断。
-
-参考：
-
-- `https://github.com/mattpocock/skills`
-- `https://github.com/mattpocock/skills/blob/main/CONTEXT.md`
-- `https://github.com/mattpocock/skills/tree/main/skills/engineering/grill-with-docs`
-
-## Core Project Terms
+## Project / Execution Terms
 
 | 术语 | MTPRO 含义 | 避免混用 |
 | --- | --- | --- |
@@ -33,11 +23,6 @@
 | `Construction Plan` | `ROADMAP.md`，当前施工阶段、完成进度和非授权边界 | 不等于 Linear queue |
 | `Current Construction Scope` | Human 当前允许进入规划的施工范围 | 不包含 Future Construction Zones |
 | `Future Construction Zones` | 完整蓝图中的长期能力区，例如 Live、signed endpoint、broker、OMS | 不得自动变成 Linear issue |
-
-## Execution Terms
-
-| 术语 | MTPRO 含义 | 避免混用 |
-| --- | --- | --- |
 | `Project Planning Record` | 仓库中的 Project 级计划摘要，位于 `docs/planning/projects/` | 不复制完整 Linear issue body |
 | `Linear execution contract` | Linear issue body 中的 Scope / Non-goals / Codex Instructions / Validation / Boundary / PR Requirements | 不由仓库文档替代 |
 | `configured executable issue` | Linear live-read 中通过 Parent Codex queue preflight 后唯一可执行 issue | 不等于 Backlog issue |
@@ -47,7 +32,7 @@
 | `Root Docs Refresh Gate` | Project closure 后把已发生代码事实同步回 root docs 的 gate | 不决定下一阶段方向 |
 | `Current Phase Progress Bar` | `@002 / PAR` 按 `GOAL.md` / `ROADMAP.md` 目标切片输出的阶段完成进度 | 不按 Project 数量直接计算 |
 
-## Trading / Runtime Terms
+## Runtime / App Terms
 
 | 术语 | MTPRO 含义 | 避免混用 |
 | --- | --- | --- |
@@ -104,4 +89,4 @@
 - 新 Linear Project 规划前，`@001 / PLN` 必须读取本文档，避免 issue title / body 使用漂移术语。
 - `@002 / PAR` 做 Stage Code Audit 和 Root Docs Refresh Gate 时，如发现 root docs、PR 或 validation evidence 中出现术语漂移，应记录为 Root Docs Delta。
 - Codex Execution Agent 新增 public type / protocol / actor / service 时，应优先复用本文档中的领域词命名，并在中文注释中保持同一语义。
-- 本文档只记录稳定词汇；临时 planning note、implementation detail 和代码文件清单不得写入本文档。
+- 临时 planning note、implementation detail 和代码文件清单不得写入本文档。

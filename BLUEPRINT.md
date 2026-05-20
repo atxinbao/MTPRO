@@ -4,15 +4,11 @@
 
 本文档是 MTPRO 的 Root Blueprint 入口。
 
-它让 Agent 每次从项目总览读到当前阶段，并指向完整产品 / 系统 / 设计蓝图。它不授权执行，不创建 Linear Project / Issue，不修改 Linear status，不推进 `Todo`，不启动 Symphony，不运行 Graphify update。
+它让 Agent 从项目总览读到当前阶段，并指向完整产品 / 系统 / 设计蓝图。它不授权执行，不创建 Linear Project / Issue，不修改 Linear status，不推进 `Todo`，不启动 Symphony，不运行 Graphify update。
 
-完整蓝图正文位于：
-
-- `docs/design/mtpro-complete-blueprint.md`
+完整蓝图正文位于 `docs/design/mtpro-complete-blueprint.md`。
 
 ## 默认读取顺序
-
-Agent 进入 MTPRO 时必须按以下顺序读取：
 
 1. `README.md`
 2. `AGENTS.md`
@@ -24,7 +20,7 @@ Agent 进入 MTPRO 时必须按以下顺序读取：
 8. `docs/domain/context.md`
 9. `docs/validation/latest-verification-summary.md`
 
-需要执行或验证时，再按当前 Linear issue scope 读取 `docs/contracts/`、`docs/product/`、`docs/validation/`、`docs/automation/agent-engineering-practices.md`、`docs/automation/`、Stage Code Audit Report 和当前 Linear issue body。
+执行或验证时，再按当前 Linear issue scope 读取 `docs/contracts/`、`docs/product/`、`docs/validation/`、`docs/automation/agent-engineering-practices.md`、`docs/automation/`、Stage Code Audit Report 和当前 Linear issue body。
 
 完整 `verification.md` 只在审计、追溯或 debug 时读取。
 
@@ -44,11 +40,9 @@ Agent 进入 MTPRO 时必须按以下顺序读取：
 
 ## Final Product Blueprint
 
-MTPRO 最终目标是一个 macOS 原生交易研究与执行工作台。
+MTPRO 最终目标是 macOS 原生交易研究与执行工作台。
 
-最终产品不是 NautilusTrader 的 Swift 复刻，也不是 `macos-trader` 的整仓迁移。MTPRO 只吸收它们已经验证的交易语义、事件驱动 runtime、adapter 分层、risk / execution / portfolio 因果链和 replay / report evidence 组织方式。
-
-长期完整能力包括：
+长期完整能力：
 
 - Research
 - Backtest
@@ -60,7 +54,7 @@ MTPRO 最终目标是一个 macOS 原生交易研究与执行工作台。
 - Operations
 - Future gated Live
 
-这些长期能力不等于当前施工范围。
+这些长期能力不等于当前施工范围。MTPRO 不是 NautilusTrader 的 Swift 复刻，也不是 `macos-trader` 的整仓迁移。
 
 ## Current Construction Scope
 
@@ -82,7 +76,7 @@ MTPRO 最终目标是一个 macOS 原生交易研究与执行工作台。
 
 ## Future Construction Zones
 
-以下能力属于 Future Construction Zones，不得从本文档直接进入 Linear issue scope：
+以下能力不得从本文档直接进入 Linear issue scope：
 
 - Live trading。
 - Binance signed endpoint。
@@ -98,9 +92,6 @@ MTPRO 最终目标是一个 macOS 原生交易研究与执行工作台。
 
 ## 执行边界
 
-- `BLUEPRINT.md` 不授权执行。
-- `docs/design/mtpro-complete-blueprint.md` 不授权执行。
-- `ROADMAP.md` 不授权执行。
-- Project Planning Record 不授权执行。
-- Backlog issue、label、priority、assignee 不授权执行。
-- 只有 Linear live-read 中唯一 configured executable issue 可以进入正式开发。
+`BLUEPRINT.md`、`docs/design/mtpro-complete-blueprint.md`、`ROADMAP.md`、Project Planning Record、Backlog issue、label、priority 和 assignee 都不授权执行。
+
+只有 Linear live-read 中唯一 configured executable issue 可以进入正式开发。
