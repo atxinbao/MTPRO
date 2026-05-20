@@ -459,6 +459,60 @@ final class AdaptersTests: XCTestCase {
         XCTAssertTrue(requests.isEmpty)
     }
 
+    func testBatchReplayBoundaryDefinesPublicReadOnlyLocalFixtureContract() {
+        // 测试场景：MTP-54 只定义本地 batch / replay boundary，不实现真实历史下载器、
+        // production operations 或任何交易能力。该 fixture 是后续 metadata / replay issue 的合同入口。
+        let boundary = BinanceMarketDataBatchReplayBoundary()
+
+        XCTAssertEqual(boundary.boundaryName, "Binance public market data batch / replay boundary")
+        XCTAssertEqual(boundary.sourceName, "Binance public market data")
+        XCTAssertEqual(boundary.inputFields, [.symbol, .timeframe, .timeWindow, .fixtureSource])
+        XCTAssertEqual(boundary.outputFields, [.batchID, .replayRunID, .recordCount, .checksumParityHint])
+        XCTAssertEqual(boundary.metadataFields, BinanceMarketDataBatchReplayContractField.allCases)
+        XCTAssertTrue(boundary.coversMinimumContractFields)
+        XCTAssertEqual(boundary.allowedMarketDataCapabilities, BinancePublicMarketDataCapability.allCases)
+        XCTAssertEqual(boundary.requiredValidationModes, [.mockTransport, .fixtureParity, .localBatchReplay])
+        XCTAssertEqual(boundary.optionalValidationModes, [.optionalManualNetworkSmoke])
+        XCTAssertTrue(boundary.isPublicReadOnly)
+        XCTAssertTrue(boundary.isLocalFixtureReplayOnly)
+        XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
+        XCTAssertFalse(boundary.authorizesTradingExecution)
+        XCTAssertFalse(boundary.authorizesProductionRuntimeOperations)
+    }
+
+    func testBatchReplayBoundaryForbidsSignedAccountBrokerAndRealOrderCapabilities() throws {
+        // 测试场景：batch replay 的 metadata 字段只能描述本地 fixture / replay evidence；
+        // forbidden capability 需要显式存在，但不能混入输入、输出或 metadata 字段。
+        let boundary = BinanceMarketDataBatchReplayBoundary()
+
+        XCTAssertTrue(boundary.forbidsCapability("signed endpoint"))
+        XCTAssertTrue(boundary.forbidsCapability("account endpoint"))
+        XCTAssertTrue(boundary.forbidsCapability("listenKey user data stream"))
+        XCTAssertTrue(boundary.forbidsCapability("broker action"))
+        XCTAssertTrue(boundary.forbidsCapability("real order submit"))
+        XCTAssertTrue(boundary.forbidsCapability("real order cancel"))
+        XCTAssertTrue(boundary.forbidsCapability("real order replace"))
+        XCTAssertTrue(boundary.forbidsCapability("production runtime operations"))
+        XCTAssertFalse(boundary.forbidsCapability("fixture parity"))
+
+        let serializedFields = (boundary.inputFields + boundary.outputFields + boundary.metadataFields)
+            .map(\.rawValue)
+            .joined(separator: " ")
+            .lowercased()
+
+        XCTAssertFalse(serializedFields.contains("signed"))
+        XCTAssertFalse(serializedFields.contains("account"))
+        XCTAssertFalse(serializedFields.contains("listenkey"))
+        XCTAssertFalse(serializedFields.contains("broker"))
+        XCTAssertFalse(serializedFields.contains("order submit"))
+        XCTAssertFalse(serializedFields.contains("order cancel"))
+        XCTAssertFalse(serializedFields.contains("order replace"))
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(BinanceMarketDataBatchReplayBoundary.self, from: encoded)
+        XCTAssertEqual(decoded, boundary)
+    }
+
     private static let exchangeInfoFixture = Data(
         #"""
         {

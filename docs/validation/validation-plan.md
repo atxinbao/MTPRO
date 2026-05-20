@@ -510,6 +510,19 @@ MTP-23 的 required validation：
 - 验证 Issue 8 只准备阶段证据材料；Stage Code Audit Report 仍须在 Project 全部 Done 后由父 Codex 单独输出。
 - required validation 不接真实网络、不读取 secret、不连接 broker、不触发真实交易行为。
 
+## MTP-54 Binance Market Data Batch / Replay Boundary Validation
+
+MTP-54 的 required validation：
+
+- `BinanceMarketDataBatchReplayBoundary` 必须定义 public read-only、本地 fixture replay 和 required validation 离线可重复边界。
+- `BinanceMarketDataBatchReplayContractField` 必须覆盖 batch id、replay run id、symbol、interval、time window、fixture source、record count 和 checksum / parity hint。
+- `BinanceMarketDataBatchReplayValidationMode` 必须把 required mock transport / fixture parity / local batch replay 与 optional manual Binance public network smoke 分开。
+- Tests 必须验证 required validation 不依赖真实 Binance 网络。
+- Tests 必须验证 contract 明确 public read-only、fixture / batch replay 和 local replay operations evidence。
+- Tests 必须验证 signed endpoint、account endpoint、listenKey、broker action、真实订单和 production runtime operations 被禁止。
+- `docs/validation/trading-validation-matrix.md` 的 `TVM-MARKET-DATA-REPLAY-OPERATIONS` 必须回填 MTP-54 boundary fixture、tests、contract docs 和 public read-only / no signed endpoint / no broker action validation anchor。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不实现真实历史下载器，不接 Live trading、signed endpoint、account endpoint、broker action 或真实订单。
+
 ## 禁止
 
 - 不接 Binance signed endpoint。

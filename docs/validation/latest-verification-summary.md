@@ -42,7 +42,9 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - Stage Code Audit Report 已覆盖完整 Linear Project，路径为 `docs/audit/mtpro-paper-workflow-control-shell-v1-stage-code-audit.md`。
 - Root Docs Refresh Gate closure 已执行：`GOAL.md`、`ARCHITECTURE.md`、`ROADMAP.md` 已同步已发生事实，`ENVIRONMENT.md` 为 no update needed；当前 Goal / Roadmap Target Progress 更新为 4 / 5（80%）。
 - `MTPRO Market Data Replay Operations v1` Project-level planning record 已落仓，路径为 `docs/planning/projects/mtpro-market-data-replay-operations-v1-plan.md`；该文档仍只是 planning summary，不创建 Linear Project，不创建 Linear Issues，不修改 Linear status，不推进 Todo，不启动 `@002 / PAR`，不启动 Symphony，不授权执行。
-- `MTPRO Market Data Replay Operations v1` 尚未写入 Linear；完整 issue execution contract 以后以 Linear issue body 为准。
+- `MTPRO Market Data Replay Operations v1` 已写入 Linear；当前 issue、status 和 queue integrity 必须从 Linear live-read 获取。
+- 本轮 MTP-54 执行前 live-read 确认：`MTP-54` 为唯一 `In Progress` issue，`MTP-55`、`MTP-56`、`MTP-57`、`MTP-58`、`MTP-59` 和 `MTP-60` 均为 `Backlog`，WIP=1。
+- `MTP-54` 的 Linear issue body 是本轮执行合同；scope 限定为 Binance public read-only market data batch / replay boundary、最小 fixture / batch replay contract 字段、validation anchor 和文档 / fixture 级验证。
 - 本轮 queue closure（2026-05-19）确认 `MTPRO Paper Execution Workflow v1` 中 canonical issues `MTP-38`、`MTP-39`、`MTP-40`、`MTP-41`、`MTP-42`、`MTP-44`、`MTP-45` 全部 `Done`；`MTP-43`、`MTP-46` 为 `Duplicate` 并排除。
 - `MTP-45` 新增 Project 级 Stage Audit Input，路径为 `docs/audit/inputs/mtpro-paper-execution-workflow-v1-stage-audit-input.md`；Parent Codex 已基于该输入落仓 canonical Stage Code Audit Report。
 - 本轮 MTP-42 paper execution event log / replay / projection focused Core 链路已通过 `swift test --filter CoreTests/testPaperExecution`；最终 `bash checks/run.sh` 结果见本文件最近验证表和 `verification.md` 追加记录。
@@ -117,6 +119,8 @@ Current Project Planning Record：`docs/planning/projects/mtpro-market-data-repl
 - `MTP-53` 新增 Project 级 Stage Audit Input，路径为 `docs/audit/inputs/mtpro-paper-workflow-control-shell-v1-stage-audit-input.md`；Parent Codex 已基于该输入落仓 canonical Stage Code Audit Report，路径为 `docs/audit/mtpro-paper-workflow-control-shell-v1-stage-code-audit.md`。
 - `MTP-53` 加固 automation readiness anchor，使 `checks/automation-readiness.sh` 能机械定位 MTP-53 audit input、validation plan、trading validation matrix、latest summary 和 Dashboard smoke evidence。
 - `MTP-53` 的 Dashboard smoke evidence 为 `Dashboard smoke: sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`；`timelineItems=0` 来自空启动 read model，fixture 级 timeline coverage 仍由 App deterministic tests 覆盖。
+- `MTP-54` 固化 `TVM-MARKET-DATA-REPLAY-OPERATIONS`，新增 `BinanceMarketDataBatchReplayBoundary`、`BinanceMarketDataBatchReplayContractField`、`BinanceMarketDataBatchReplayValidationMode` 和 `BinanceMarketDataBatchReplayForbiddenCapability`。
+- `MTP-54` 验证 batch / replay boundary 只表达 public read-only、local fixture replay、batch id、replay run id、symbol、interval、time window、fixture source、record count、checksum / parity hint 和离线 required validation；signed endpoint、account endpoint、listenKey、broker action、真实订单和 production runtime operations 均保持 forbidden。
 - 历史 `MTP-30` 阶段收口已迁入 `docs/audit/inputs/`，`docs/validation/` 不再存放 `MTP-xx` 命名的阶段输入文件。
 - `@000 / AIE` 是当前 Codex / AI Engineer 协作入口；`@003 / PRD`、`@004 / DSG`、`@005 / ARC` 是 Linear 外 reference / root docs 角色。
 
@@ -152,6 +156,9 @@ Current Project Planning Record：`docs/planning/projects/mtpro-market-data-repl
 | `bash checks/run.sh` | pass | MTP-53 统一验证入口通过；automation readiness、Dashboard build / smoke 和 106 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
 | `git diff --check` | pass | `MTPRO Paper Workflow Control Shell v1` Root Docs Refresh Gate closure docs-only 变更无 whitespace error。 |
 | `bash checks/run.sh` | pass | Root Docs Refresh Gate closure 后统一验证入口通过；automation readiness、Dashboard build / smoke 和 106 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
+| `swift test --filter AdaptersTests/testBatchReplay` | pass | MTP-54 focused Adapters validation 通过，2 个 XCTest，0 failures；覆盖 batch / replay boundary 最小字段、required / optional validation mode、forbidden capability 和 Codable deterministic snapshot。 |
+| `bash checks/automation-readiness.sh` | pass | MTP-54 新增 `TVM-MARKET-DATA-REPLAY-OPERATIONS`、validation-plan、contract docs、source/test anchors 后通过，输出 `MTPRO automation readiness checks passed.`。 |
+| `bash checks/run.sh` | pass | MTP-54 统一验证入口通过；automation readiness、Dashboard build / smoke 和 108 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
 
 ## 当前边界
 
@@ -179,6 +186,9 @@ Current Project Planning Record：`docs/planning/projects/mtpro-market-data-repl
 - MTP-53 只准备 Stage Code Audit 输入材料、validation docs、automation readiness anchor 和 Dashboard smoke evidence；不输出最终 Stage Code Audit Report，不创建下一 Project / Issue，不推进下一 Project / Issue，不启动下一阶段 `symphony-issue`。
 - MTP-53 Stage Audit Input 只服务 Parent Codex Project closure；最终 Stage Code Audit Report 已在有效 issues 全部 `Done` 且 Linear Project `Completed` 后单独输出。
 - `MTPRO Paper Workflow Control Shell v1` Root Docs Refresh Gate closure 已执行；Current Phase Progress Bar 已按目标切片刷新为 4 / 5（80%）。
+- MTP-54 只定义 Binance public read-only market data batch / replay boundary、最小字段集合和 validation anchor；不实现真实历史下载规模、production runtime operations、Dashboard UI、Event Timeline evidence、retention engine 或 metadata value model。
+- MTP-54 的 required validation 必须使用 mock transport / fixture parity / local batch replay；真实 Binance public network smoke test 只能作为 optional manual evidence，不得成为自动验证前置条件。
+- MTP-54 明确禁止 API key、signed endpoint、account endpoint、listenKey、Live trading、broker action、真实订单提交 / 撤销 / 替换、production runtime operations、large-scale historical downloader 和 data platform。
 - MTP-41 只定义 paper execution decision 本地链路和 deterministic fixture；blocked risk decision 不生成 paper order，allowed decision 只生成 paper-only order / fill evidence。
 - MTP-41 issue 本身不写 event log、不新增 replay / projection / ViewModel；MTP-42 只把已存在的 paper execution facts 串入 event log / replay / projection，不实现完整 execution engine、完整风险引擎、broker rejection fallback、真实撮合、真实成交回报、broker fill、account update、broker action、signed endpoint 或真实订单行为。
 - Report / Dashboard 只展示 read model / ViewModel，不提供交易执行入口。
