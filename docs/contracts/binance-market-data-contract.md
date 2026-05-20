@@ -34,6 +34,12 @@
 - order replace
 - listenKey user data stream
 - futures leverage / margin action
+- LiveExecutionAdapter
+- broker execution adapter
+- exchange execution adapter
+- execution venue connection
+- real order lifecycle
+- OMS
 
 ## 第一版边界
 
@@ -139,6 +145,34 @@ MTP-21 通过 `Runtime` 模块消费 `BinancePublicMarketDataClient` 的 public 
 - 不提交、取消或替换订单。
 - 不实现 futures leverage / margin action。
 - 不实现 LiveExecutionAdapter、真实 broker action 或真实订单行为。
+
+## MTP-63 Public Read-only Adapter Capability Isolation
+
+日期：2026-05-21
+
+执行者：Codex
+
+`Adapters` 在本事项中补强 Binance public read-only adapter 与 future live adapter capability 的隔离合同。
+
+契约结构：
+
+- `BinanceForbiddenCapability`：在既有 API key、signed endpoint、account endpoint、listenKey 和 order 禁区基础上，显式补充 `LiveExecutionAdapter`、broker execution adapter、exchange execution adapter、execution venue connection、real order lifecycle 和 OMS。
+- `BinanceReadOnlyAdapterBoundary`：固定当前 adapter 只允许 public market data capabilities，并把所有 live adapter / broker / exchange execution flags 固定为 false。
+- `BinancePublicMarketDataClient`：继续在 transport 前拒绝非 public allowlist path，并补充拒绝 broker、LiveExecutionAdapter、submit、cancel 和 replace 等执行语义片段。
+
+契约要求：
+
+- 当前 Binance adapter 只能表达 exchangeInfo、klines、recent trades、best bid / ask、depth snapshot 和 depth delta。
+- 当前 adapter 不得实现 `LiveExecutionAdapter`、broker / exchange execution adapter 或 execution venue connection。
+- 当前 adapter 不得提供 real order submit / cancel / replace、real order lifecycle 或 OMS。
+- required validation 必须使用本地 deterministic tests 和 mock transport，不依赖真实 Binance 网络。
+
+本契约不包含：
+
+- future live adapter 实现。
+- broker SDK 或 exchange execution venue 连接。
+- signed endpoint、account endpoint、listenKey user data stream。
+- 真实订单提交、撤销、替换或订单状态机。
 
 ## MTP-54 Market Data Batch / Replay 边界
 
