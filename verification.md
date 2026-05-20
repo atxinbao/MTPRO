@@ -6622,3 +6622,43 @@ Next Handoff: Human + @001 / PLN
 | `git diff --check` | pass | Environment / Architecture Docs Deepening 变更无 whitespace error。 |
 | `bash checks/automation-readiness.sh` | pass | environment / architecture 新章节锚点通过。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
+
+## Roadmap Docs Deepening
+
+日期：2026-05-20
+
+执行者：Codex
+
+目的：
+
+- 补强 `docs/roadmap.md`，使其成为承接 `BLUEPRINT.md` 和 `docs/architecture.md` 的施工路线、进度口径和下一轮 handoff 合同。
+- 明确路线输入、已完成阶段地图、两层进度模型、施工切片选择规则、实盘路线门槛、Project 收口规则和下一轮交接合同。
+- 将关键章节写入 `checks/automation-readiness.sh` 锚点，降低后续路线和进度口径漂移风险。
+
+文件范围：
+
+- `docs/roadmap.md`
+- `checks/automation-readiness.sh`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+边界确认：
+
+- docs / checks only。
+- 未创建 Linear Project。
+- 未创建 Linear issue。
+- 未修改 Linear status。
+- 未推进 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Roadmap Docs Deepening 变更无 whitespace error。 |
+| `bash checks/automation-readiness.sh` | pass | roadmap 新章节锚点通过。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
