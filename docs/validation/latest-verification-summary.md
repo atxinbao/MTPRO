@@ -99,7 +99,7 @@ Stage audit / input 入口：
 
 ## 最近验证
 
-本轮 Roadmap Docs Deepening 已完成：
+本轮 Root Docs Stack Compression / 根文档栈压缩已完成：
 
 ```bash
 git diff --check
@@ -124,8 +124,12 @@ bash checks/run.sh
 
 更新重点：
 
-- `docs/roadmap.md`：补强 Roadmap Responsibility、Roadmap Inputs、Completed Project Map、Progress Model、Construction Slice Selection、Live Route Gates、Project Closure Rule、Next Handoff Contract。
-- `checks/automation-readiness.sh`：加入 roadmap 新章节锚点，确保施工路线和进度口径不会退化为松散摘要。
+- `README.md`：压缩为项目入口、文档分工、当前边界、代码结构、验证入口和 AEP 方法论。
+- `AGENTS.md`：压缩为读序、核心硬规则、角色 / 自动化边界、`@002` runbook、Project closure 和执行流程。
+- `GOAL.md`：压缩为 Project Charter、使命、用户、核心承诺、两层进度摘要和永久硬边界。
+- `BLUEPRINT.md`：保留 canonical Root / Complete Blueprint，但压缩重复描述，突出 Product / Architecture / Design 蓝图和 Live gates。
+- `docs/architecture.md`：保留 Engineering Module Map / 工程模块地图，聚焦模块、数据流、不变量和 future Live 隔离。
+- `docs/roadmap.md`：保留 Construction Plan、两层进度、Live Route Gates 和下一轮 handoff。
 
 ## 当前边界
 

@@ -2,19 +2,15 @@
 
 ## 工程模块地图定位
 
-MTPRO 是 Swift-only macOS 交易研究工作台。
-
-本文档是 Engineering Module Map / 工程模块地图。它是 `BLUEPRINT.md` 的二级权重承接文档，负责把完整蓝图翻译成系统模块、模块边界、数据流、接口关系、依赖方向和架构不变量。
+本文档是 MTPRO 的 Engineering Module Map / 工程模块地图。它是 `BLUEPRINT.md` 的二级权重承接文档，负责把完整蓝图翻译成系统模块、模块边界、数据流、接口关系、依赖方向和架构不变量。
 
 本文档不能推翻 `BLUEPRINT.md`，不重新定义产品目标，不作为 Stage Code Audit、validation 或 PR evidence 流水账。已完成 Project 的事实证据进入 `docs/audit/`、`docs/validation/` 和 `verification.md`。
 
-架构借鉴 NautilusTrader 的职责拆分：Kernel、MessageBus、Cache、DataEngine、StrategyEngine、RiskEngine、ExecutionEngine、Portfolio 和 Adapter。
-
-当前已完成 Research -> Backtest -> Report -> Paper readiness、paper-only execution evidence、本地 Paper workflow 可观察性和 session-level control shell，以及 market data replay operations 本地 evidence baseline。MTPRO 仍不进入 Live trading。
+MTPRO 是 SwiftPM-first、Swift-only、local-first 的 macOS 交易研究工作台。架构借鉴 NautilusTrader 的 Kernel、MessageBus、Cache、DataEngine、StrategyEngine、RiskEngine、ExecutionEngine、Portfolio 和 Adapter 职责拆分，但不引入 NautilusTrader 作为运行依赖。
 
 ## Architecture Responsibility / 架构职责
 
-`docs/architecture.md` 只回答“蓝图如何落到工程模块”：
+`docs/architecture.md` 只回答五个问题：
 
 1. 当前有哪些模块。
 2. 模块之间允许怎么依赖。
@@ -25,8 +21,6 @@ MTPRO 是 Swift-only macOS 交易研究工作台。
 它不复制完整产品蓝图，不维护 Project 进度条，也不记录每个 PR 的审计流水账。
 
 ## Package Dependency Direction / SwiftPM 依赖方向
-
-当前 SwiftPM target 依赖方向：
 
 ```text
 Core
@@ -55,7 +49,7 @@ Dashboard -> App
 | `Persistence` | Event Log、SQLite runtime projection、DuckDB analytical projection 边界 |
 | `Runtime` | Binance public read-only ingest、Core event log、replay 与 projection snapshot 的本地编排边界；当前包含 market data replay event log / projection consistency evidence |
 | `App` | Trader Workstation Dashboard 产品面和 ViewModel 边界；当前包含 Paper workflow observability、Event Timeline / Evidence Explorer read model、Market Data Replay Operations read model 和 Dashboard / Workbench shell snapshot |
-| `Dashboard` | SwiftPM 可构建 / smoke-run 的 macOS 只读看板 shell，只装载 App 层 ViewModel snapshot；当前展示 read-model-only Workbench、`start` / `pause` / `close` / `reset` session-level local controls、paper workflow evidence preview 和 market data replay operations evidence |
+| `Dashboard` | SwiftPM 可构建 / smoke-run 的 macOS shell，只装载 App 层 ViewModel snapshot；当前展示 read-model-only Workbench、`start` / `pause` / `close` / `reset` session-level local controls、paper workflow evidence preview 和 market data replay operations evidence |
 
 ## Capability Flow Map / 能力流地图
 
@@ -139,7 +133,7 @@ Binance public data
 - SQLite / DuckDB 是 projection，不是 UI 展示模型。
 - ViewModel 只能来自稳定 Read Model。
 - Paper workflow controls 只能表达本地 session-level paper intent 或 read-only presentation，不得升级为 order-level command。
-- Live trading、signed endpoint、account endpoint 和真实 broker action 在 v1 禁止。
+- Live trading、signed endpoint、account endpoint 和真实 broker action 在当前 scope 禁止。
 - `macos-trader` 只提供产品语义参考。
 - `nautilus_trader` 只提供架构分层参考。
 - MTPRO 不复制参考项目整仓代码。
