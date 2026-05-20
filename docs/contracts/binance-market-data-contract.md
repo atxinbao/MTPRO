@@ -139,3 +139,35 @@ MTP-21 通过 `Runtime` 模块消费 `BinancePublicMarketDataClient` 的 public 
 - 不提交、取消或替换订单。
 - 不实现 futures leverage / margin action。
 - 不实现 LiveExecutionAdapter、真实 broker action 或真实订单行为。
+
+## MTP-54 Market Data Batch / Replay 边界
+
+日期：2026-05-20
+
+执行者：Codex
+
+`Adapters` 在本事项中新增 Binance public market data batch / replay boundary fixture，用于定义更长周期 market data replay operations 的第一层合同。
+
+契约结构：
+
+- `BinanceMarketDataBatchReplayBoundary`：固定 public read-only、local fixture replay、required validation 离线可重复和 production operations 禁区。
+- `BinanceMarketDataBatchReplayContractField`：固定最小 metadata 字段集合：batch id、replay run id、symbol、interval、time window、fixture source、record count 和 checksum / parity hint。
+- `BinanceMarketDataBatchReplayValidationMode`：区分 required mock transport / fixture parity / local batch replay 与 optional manual Binance public network smoke。
+- `BinanceMarketDataBatchReplayForbiddenCapability`：显式列出 API key、signed endpoint、account endpoint、listenKey、Live trading、broker action、真实订单、production runtime operations、large-scale historical downloader 和 data platform 禁区。
+
+契约要求：
+
+- batch / replay boundary 只能复用 Binance public read-only market data capability。
+- 输入字段只描述 symbol、interval、time window 和 fixture source。
+- 输出字段只描述 batch id、replay run id、record count 和 checksum / parity hint。
+- metadata 只服务本地 replay operations evidence，不代表 production runtime operations。
+- required validation 必须使用 mock transport / fixture parity / local batch replay，不依赖真实 Binance 网络。
+- 真实 Binance 网络 smoke test 只能作为 optional manual evidence，不得成为 required validation。
+
+本契约不包含：
+
+- 真实长周期历史下载器。
+- production scheduler 或 production runtime operations。
+- 多节点运行、云端数据湖或大规模数据平台。
+- signed endpoint、account endpoint、listenKey user data stream。
+- broker action、Live trading、真实订单提交 / 撤销 / 替换。

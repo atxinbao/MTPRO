@@ -309,3 +309,25 @@ Shell 新增展示：
 - Runtime command、完整 operations console、完整 query language、report archive 或 export 系统。
 - SQLite / DuckDB schema、SQL、ORM model、runtime object、Persistence adapter direct read 或 adapter request 暴露。
 - broker / exchange side effect、signed endpoint、account endpoint、listenKey 或 Live execution。
+
+## MTP-54 Market Data Replay Operations 边界
+
+日期：2026-05-20
+
+执行者：Codex
+
+当前产品面新增 market data replay operations 的第一层边界定义，但不新增 Dashboard UI、operations console、真实历史下载器或生产调度器。
+
+边界覆盖：
+
+- Binance public read-only market data batch / replay boundary。
+- 最小 batch / replay metadata 字段：batch id、replay run id、symbol、interval、time window、fixture source、record count 和 checksum / parity hint。
+- required validation 固定为 mock transport、fixture parity 和 local batch replay。
+- 真实 Binance public network smoke test 只能作为 optional manual evidence。
+
+仍不包含：
+
+- 真实长周期历史下载器、production scheduler、多节点运行或云端数据湖。
+- Dashboard / Workbench UI 扩展、Event Timeline evidence 接入或 read model 输出。
+- SQLite / DuckDB schema、runtime object 或 adapter request 暴露。
+- signed endpoint、account endpoint、listenKey、broker action、Live trading 或真实订单提交 / 撤销 / 替换。
