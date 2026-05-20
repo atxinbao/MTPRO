@@ -6828,6 +6828,7 @@ Commit：
   - `Tests/CoreTests/CoreTests.swift`
   - `Tests/AdaptersTests/AdaptersTests.swift`
   - `docs/contracts/live-trading-boundary-contract.md`
+  - `docs/contracts/binance-market-data-contract.md`
   - `docs/domain/context.md`
   - `docs/validation/trading-validation-matrix.md`
   - `docs/validation/validation-plan.md`
@@ -6857,3 +6858,52 @@ Commit：
 | `swift test --filter PublicReadOnlyAdapterCannotUpgradeIntoMTP62CredentialOrAccountCapability` | pass | 1 test, 0 failures；覆盖 public read-only adapter 对 keyed / signature / account / listenKey contract 的 transport 前拒绝。 |
 | `bash checks/automation-readiness.sh` | pass | MTP-62 contract、matrix、validation-plan、domain terms 和 deterministic test anchors 通过。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 124 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
+
+## MTP-63 public read-only adapter / future live adapter capability isolation
+
+日期：2026-05-21
+
+执行者：Codex
+
+目的：
+
+- 定义 current Binance public read-only adapter 与 future live adapter capability 的隔离合同。
+- 证明 future live adapter、`LiveExecutionAdapter`、broker / exchange execution adapter 和 execution venue 只能作为 future gate / forbidden capability 出现。
+- 将 Gate 2 validation anchor 回填到 `TVM-LIVE-TRADING-FOUNDATION`、validation plan 和 automation readiness。
+
+文件范围：
+
+- Updated：
+  - `Sources/Core/LiveTradingBoundary.swift`
+  - `Sources/Adapters/Adapters.swift`
+  - `Tests/CoreTests/CoreTests.swift`
+  - `Tests/AdaptersTests/AdaptersTests.swift`
+  - `docs/contracts/live-trading-boundary-contract.md`
+  - `docs/domain/context.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+
+边界确认：
+
+- 未实现 future live adapter。
+- 未实现 `LiveExecutionAdapter` public type / protocol / actor / class / enum。
+- 未连接 broker / exchange execution adapter。
+- 未连接 execution venue。
+- 未调用 signed endpoint、account endpoint 或 listenKey。
+- 未提交、撤销或替换真实订单。
+- 未实现 real order lifecycle 或 OMS。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter LiveAdapterCapabilityIsolationBoundary` | pass | 2 tests, 0 failures；覆盖 MTP-63 Core Gate 2 fixture、Codable round trip、`LiveExecutionAdapter` non-implementation、broker / exchange adapter instantiation rejection 和 real order bypass rejection。 |
+| `swift test --filter PublicReadOnlyAdapterCannotInstantiateMTP63LiveAdapterOrExecutionVenueCapability` | pass | 1 test, 0 failures；覆盖 public read-only adapter 对 broker、`LiveExecutionAdapter`、submit、cancel 和 replace contract 的 transport 前拒绝。 |
+| `swift test --filter MTP63` | pass | 2 tests, 0 failures；覆盖 Core deterministic fixture 和 Adapters execution semantic rejection fast path。 |
+| `bash checks/automation-readiness.sh` | pass | MTP-63 contract、matrix、validation-plan、domain terms、deterministic test anchors 和 `LiveExecutionAdapter` declaration guard 通过。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 127 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |

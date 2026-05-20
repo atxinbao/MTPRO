@@ -348,6 +348,142 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testLiveAdapterCapabilityIsolationBoundaryDefinesMTP63GateTwoAsFutureOnly() throws {
+        // 测试场景：MTP-63 只定义 current public read-only adapter 与 future live adapter
+        // capability 的隔离合同；LiveExecutionAdapter 和 broker / exchange execution adapter
+        // 只能作为 future gate / forbidden evidence 出现，不能成为当前可实例化能力。
+        let boundary = LiveAdapterCapabilityIsolationBoundary.deterministicFixture
+
+        XCTAssertEqual(
+            boundary.contractID,
+            try Identifier("mtp-63-live-adapter-capability-isolation")
+        )
+        XCTAssertEqual(boundary.issueID, try Identifier("MTP-63"))
+        XCTAssertEqual(boundary.gate, .adapterCapabilityIsolation)
+        XCTAssertEqual(boundary.currentAdapterName, "Binance public market data")
+        XCTAssertEqual(
+            boundary.readOnlyAllowedCapabilities,
+            [
+                "exchangeInfo",
+                "klines",
+                "recent trades",
+                "best bid / ask",
+                "depth snapshot",
+                "depth delta"
+            ]
+        )
+        XCTAssertEqual(boundary.forbiddenCapabilities, LiveAdapterIsolationForbiddenCapability.allCases)
+        XCTAssertEqual(
+            boundary.futureGates,
+            [
+                .humanLiveDecision,
+                .credentialEndpointBoundarySatisfied,
+                .adapterCapabilityContract,
+                .brokerExchangeAdapterContract,
+                .realOrderLifecycleContract,
+                .riskAndOperationsReadiness,
+                .auditEvidence
+            ]
+        )
+        XCTAssertEqual(
+            boundary.allowedEvidenceKinds,
+            [
+                .contractDocumentation,
+                .validationMatrixAnchor,
+                .automationReadinessAnchor,
+                .deterministicForbiddenTest,
+                .prBoundaryEvidence
+            ]
+        )
+        XCTAssertTrue(boundary.gateTwoBoundaryHeld)
+        XCTAssertTrue(boundary.currentAdapterIsReadOnly)
+        XCTAssertFalse(boundary.currentAdapterRequiresAPIKey)
+        XCTAssertFalse(boundary.currentAdapterUsesSignedEndpoint)
+        XCTAssertFalse(boundary.currentAdapterCallsAccountEndpoint)
+        XCTAssertFalse(boundary.currentAdapterCreatesListenKey)
+        XCTAssertFalse(boundary.implementsLiveExecutionAdapter)
+        XCTAssertFalse(boundary.instantiatesBrokerExecutionAdapter)
+        XCTAssertFalse(boundary.instantiatesExchangeExecutionAdapter)
+        XCTAssertFalse(boundary.exposesExecutionVenueConnection)
+        XCTAssertFalse(boundary.submitsRealOrder)
+        XCTAssertFalse(boundary.cancelsRealOrder)
+        XCTAssertFalse(boundary.replacesRealOrder)
+        XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(
+            LiveAdapterCapabilityIsolationBoundary.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, boundary)
+    }
+
+    func testLiveAdapterCapabilityIsolationBoundaryRejectsExecutionAdapterInstantiationBypass() throws {
+        // 测试场景：Gate 2 fixture 的初始化和 Codable 解码都必须拒绝把 future live
+        // adapter capability 反序列化为 LiveExecutionAdapter、broker / exchange execution adapter
+        // 或真实订单 submit / cancel / replace 能力。
+        XCTAssertThrowsError(
+            try LiveAdapterCapabilityIsolationBoundary(implementsLiveExecutionAdapter: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("implementsLiveExecutionAdapter")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveAdapterCapabilityIsolationBoundary(instantiatesBrokerExecutionAdapter: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("instantiatesBrokerExecutionAdapter")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveAdapterCapabilityIsolationBoundary(instantiatesExchangeExecutionAdapter: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("instantiatesExchangeExecutionAdapter")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveAdapterCapabilityIsolationBoundary(submitsRealOrder: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("submitsRealOrder"))
+        }
+        XCTAssertThrowsError(
+            try LiveAdapterCapabilityIsolationBoundary(
+                forbiddenCapabilities: [.liveExecutionAdapter]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "forbiddenCapabilities",
+                    expected: LiveAdapterCapabilityIsolationBoundary
+                        .requiredForbiddenCapabilities
+                        .map(\.rawValue)
+                        .joined(separator: ","),
+                    actual: "LiveExecutionAdapter"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(LiveAdapterCapabilityIsolationBoundary.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["implementsLiveExecutionAdapter"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveAdapterCapabilityIsolationBoundary.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("implementsLiveExecutionAdapter")
+            )
+        }
+    }
+
     func testPaperSessionLocalControlCommandModelSupportsSessionActionsDeterministically() throws {
         // 测试场景：MTP-48 只允许本地 Paper session-level control intent。
         // 四个 control 都必须保持 paper-only，且不能携带 order-level、broker 或真实订单能力。

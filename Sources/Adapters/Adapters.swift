@@ -35,6 +35,12 @@ public enum BinanceForbiddenCapability: String, CaseIterable, Codable, Equatable
     case orderCancel = "order cancel"
     case orderReplace = "order replace"
     case listenKeyUserDataStream = "listenKey user data stream"
+    case liveExecutionAdapter = "LiveExecutionAdapter"
+    case brokerExecutionAdapter = "broker execution adapter"
+    case exchangeExecutionAdapter = "exchange execution adapter"
+    case executionVenueConnection = "execution venue connection"
+    case realOrderLifecycle = "real order lifecycle"
+    case oms = "OMS"
 }
 
 public enum BinancePublicTransport: String, Codable, Equatable, Sendable {
@@ -393,6 +399,16 @@ public struct BinancePublicMarketDataClient: Sendable {
         "listenkey",
         "/api/v3/account",
         "/api/v3/order",
+        "liveexecutionadapter",
+        "executionadapter",
+        "broker",
+        "realorder",
+        "order submit",
+        "order cancel",
+        "order replace",
+        "submit",
+        "cancel",
+        "replace",
         "/sapi/",
         "/fapi/",
         "/dapi/"
@@ -670,6 +686,18 @@ public struct BinanceReadOnlyAdapterBoundary: Equatable, Sendable {
     public let forbiddenCapabilities: [String]
     public let supportedSymbols: [String]
     public let supportedTimeframes: [String]
+    public let isReadOnly: Bool
+    public let requiresAPIKey: Bool
+    public let usesSignedEndpoint: Bool
+    public let callsAccountEndpoint: Bool
+    public let createsListenKey: Bool
+    public let implementsLiveExecutionAdapter: Bool
+    public let connectsBrokerExecutionAdapter: Bool
+    public let connectsExchangeExecutionAdapter: Bool
+    public let exposesExecutionVenueConnection: Bool
+    public let submitsRealOrder: Bool
+    public let cancelsRealOrder: Bool
+    public let replacesRealOrder: Bool
 
     public init() {
         self.sourceName = "Binance public market data"
@@ -677,6 +705,40 @@ public struct BinanceReadOnlyAdapterBoundary: Equatable, Sendable {
         self.forbiddenCapabilities = BinanceForbiddenCapability.allCases.map(\.rawValue)
         self.supportedSymbols = BinancePublicMarketDataContract.supportedSymbols
         self.supportedTimeframes = BinancePublicMarketDataContract.supportedTimeframes
+        self.isReadOnly = true
+        self.requiresAPIKey = false
+        self.usesSignedEndpoint = false
+        self.callsAccountEndpoint = false
+        self.createsListenKey = false
+        self.implementsLiveExecutionAdapter = false
+        self.connectsBrokerExecutionAdapter = false
+        self.connectsExchangeExecutionAdapter = false
+        self.exposesExecutionVenueConnection = false
+        self.submitsRealOrder = false
+        self.cancelsRealOrder = false
+        self.replacesRealOrder = false
+    }
+
+    /// MTP-63 adapter capability isolation 证明当前 Binance adapter 仍只是公开行情读取边界。
+    /// 该 summary 不创建 future live adapter，不连接 broker / exchange execution venue，
+    /// 也不提供 submit / cancel / replace 等真实订单能力。
+    public var adapterCapabilityIsolationHeld: Bool {
+        isReadOnly
+            && requiresAPIKey == false
+            && usesSignedEndpoint == false
+            && callsAccountEndpoint == false
+            && createsListenKey == false
+            && implementsLiveExecutionAdapter == false
+            && connectsBrokerExecutionAdapter == false
+            && connectsExchangeExecutionAdapter == false
+            && exposesExecutionVenueConnection == false
+            && submitsRealOrder == false
+            && cancelsRealOrder == false
+            && replacesRealOrder == false
+    }
+
+    public func forbidsCapability(_ capability: BinanceForbiddenCapability) -> Bool {
+        forbiddenCapabilities.contains(capability.rawValue)
     }
 }
 

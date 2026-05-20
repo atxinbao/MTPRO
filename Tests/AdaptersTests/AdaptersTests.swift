@@ -10,6 +10,17 @@ final class AdaptersTests: XCTestCase {
         XCTAssertTrue(boundary.allowedCapabilities.contains("depth delta"))
         XCTAssertTrue(boundary.forbiddenCapabilities.contains("order submit"))
         XCTAssertTrue(boundary.forbiddenCapabilities.contains("API key"))
+        XCTAssertTrue(boundary.forbidsCapability(.liveExecutionAdapter))
+        XCTAssertTrue(boundary.forbidsCapability(.brokerExecutionAdapter))
+        XCTAssertTrue(boundary.forbidsCapability(.exchangeExecutionAdapter))
+        XCTAssertTrue(boundary.adapterCapabilityIsolationHeld)
+        XCTAssertFalse(boundary.implementsLiveExecutionAdapter)
+        XCTAssertFalse(boundary.connectsBrokerExecutionAdapter)
+        XCTAssertFalse(boundary.connectsExchangeExecutionAdapter)
+        XCTAssertFalse(boundary.exposesExecutionVenueConnection)
+        XCTAssertFalse(boundary.submitsRealOrder)
+        XCTAssertFalse(boundary.cancelsRealOrder)
+        XCTAssertFalse(boundary.replacesRealOrder)
         XCTAssertEqual(boundary.supportedSymbols, ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT"])
         XCTAssertEqual(boundary.supportedTimeframes, ["1m", "5m"])
     }
@@ -569,6 +580,116 @@ final class AdaptersTests: XCTestCase {
                 path: "/api/v3/depth",
                 reason: "contains forbidden fragment: listenkey"
             )
+        )
+
+        let requests = await transport.requests()
+        XCTAssertTrue(requests.isEmpty)
+    }
+
+    func testPublicReadOnlyAdapterCannotInstantiateMTP63LiveAdapterOrExecutionVenueCapability() async throws {
+        // 测试场景：MTP-63 Gate 2 要求 public read-only adapter 与 future live adapter
+        // capability 隔离。Binance public adapter 不得暴露 LiveExecutionAdapter、broker / exchange
+        // execution venue，且任何手写 broker / submit / cancel / replace contract 都必须在 transport 前拒绝。
+        let liveBoundary = LiveAdapterCapabilityIsolationBoundary.deterministicFixture
+        let adapterBoundary = BinanceReadOnlyAdapterBoundary()
+
+        XCTAssertTrue(liveBoundary.gateTwoBoundaryHeld)
+        XCTAssertEqual(adapterBoundary.allowedCapabilities, liveBoundary.readOnlyAllowedCapabilities)
+        XCTAssertTrue(adapterBoundary.adapterCapabilityIsolationHeld)
+        XCTAssertTrue(adapterBoundary.forbidsCapability(.liveExecutionAdapter))
+        XCTAssertTrue(adapterBoundary.forbidsCapability(.brokerExecutionAdapter))
+        XCTAssertTrue(adapterBoundary.forbidsCapability(.exchangeExecutionAdapter))
+        XCTAssertTrue(adapterBoundary.forbidsCapability(.executionVenueConnection))
+        XCTAssertFalse(adapterBoundary.allowedCapabilities.contains("LiveExecutionAdapter"))
+        XCTAssertFalse(adapterBoundary.allowedCapabilities.contains("broker execution adapter"))
+        XCTAssertFalse(adapterBoundary.allowedCapabilities.contains("exchange execution adapter"))
+        XCTAssertFalse(adapterBoundary.implementsLiveExecutionAdapter)
+        XCTAssertFalse(adapterBoundary.connectsBrokerExecutionAdapter)
+        XCTAssertFalse(adapterBoundary.connectsExchangeExecutionAdapter)
+        XCTAssertFalse(adapterBoundary.exposesExecutionVenueConnection)
+        XCTAssertFalse(adapterBoundary.submitsRealOrder)
+        XCTAssertFalse(adapterBoundary.cancelsRealOrder)
+        XCTAssertFalse(adapterBoundary.replacesRealOrder)
+
+        let transport = MockBinancePublicMarketDataTransport { _ in
+            Data()
+        }
+        let client = BinancePublicMarketDataClient(transport: transport)
+
+        func assertRejected(
+            _ contract: BinancePublicRequestContract,
+            expected: BinancePublicMarketDataClientError,
+            file: StaticString = #filePath,
+            line: UInt = #line
+        ) async {
+            do {
+                _ = try await client.payload(for: contract)
+                XCTFail("MTP-63 execution adapter contract should be rejected before transport", file: file, line: line)
+            } catch {
+                XCTAssertEqual(error as? BinancePublicMarketDataClientError, expected, file: file, line: line)
+            }
+        }
+
+        await assertRejected(
+            BinancePublicRequestContract(
+                capability: .bestBidAsk,
+                transport: .restGET,
+                path: "/api/v3/ticker/bookTicker",
+                queryItems: [BinanceQueryItem(name: "symbol", value: "broker")],
+                isReadOnly: true,
+                requiresAPIKey: false
+            ),
+            expected: .forbiddenRequest(
+                path: "/api/v3/ticker/bookTicker",
+                reason: "contains forbidden fragment: broker"
+            )
+        )
+        await assertRejected(
+            BinancePublicRequestContract(
+                capability: .bestBidAsk,
+                transport: .restGET,
+                path: "/api/v3/ticker/bookTicker",
+                queryItems: [BinanceQueryItem(name: "symbol", value: "LiveExecutionAdapter")],
+                isReadOnly: true,
+                requiresAPIKey: false
+            ),
+            expected: .forbiddenRequest(
+                path: "/api/v3/ticker/bookTicker",
+                reason: "contains forbidden fragment: liveexecutionadapter"
+            )
+        )
+        await assertRejected(
+            BinancePublicRequestContract(
+                capability: .depthSnapshot,
+                transport: .restGET,
+                path: "/api/v3/depth",
+                queryItems: [BinanceQueryItem(name: "symbol", value: "submit")],
+                isReadOnly: true,
+                requiresAPIKey: false
+            ),
+            expected: .forbiddenRequest(path: "/api/v3/depth", reason: "contains forbidden fragment: submit")
+        )
+        await assertRejected(
+            BinancePublicRequestContract(
+                capability: .depthSnapshot,
+                transport: .restGET,
+                path: "/api/v3/depth",
+                queryItems: [BinanceQueryItem(name: "symbol", value: "cancel")],
+                isReadOnly: true,
+                requiresAPIKey: false
+            ),
+            expected: .forbiddenRequest(path: "/api/v3/depth", reason: "contains forbidden fragment: cancel")
+        )
+        await assertRejected(
+            BinancePublicRequestContract(
+                capability: .depthSnapshot,
+                transport: .restGET,
+                path: "/api/v3/depth",
+                queryItems: [BinanceQueryItem(name: "symbol", value: "replace")],
+                isReadOnly: true,
+                requiresAPIKey: false
+            ),
+            expected: .forbiddenRequest(path: "/api/v3/depth", reason: "contains forbidden fragment: replace")
         )
 
         let requests = await transport.requests()

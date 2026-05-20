@@ -1,6 +1,6 @@
 # 最近验证摘要
 
-日期：2026-05-20
+日期：2026-05-21
 
 执行者：Codex
 
@@ -46,6 +46,8 @@ README.md
 `MTPRO Live Trading Boundary Definition v1` 若已由 Parent Codex 写入 Linear，current Project / current issue / active queue 状态必须继续从 Linear live-read 获取；完整 issue execution contract 以 Linear issue body 为准，不由仓库 planning record 替代。
 
 MTP-61 的长期验证锚点为 `docs/contracts/live-trading-boundary-contract.md` 和 `TVM-LIVE-TRADING-FOUNDATION`。该锚点只定义 Live trading foundation capability taxonomy、gate 顺序、blocked capability 和 forbidden capability，不实现 API key、secret storage、signed endpoint、account endpoint、listenKey、broker adapter、真实订单、OMS 或 `LiveExecutionAdapter`。
+
+MTP-63 的长期验证锚点仍为 `docs/contracts/live-trading-boundary-contract.md` 和 `TVM-LIVE-TRADING-FOUNDATION`。该锚点在 MTP-62 credential boundary 基础上新增 Gate 2 adapter capability isolation，只定义 current Binance public read-only adapter 与 future live adapter / broker / exchange execution adapter 的隔离合同，不实现 future live adapter、`LiveExecutionAdapter`、broker / exchange execution adapter、execution venue connection 或真实订单 submit / cancel / replace。
 
 ## Goal / Roadmap Progress Baseline
 
@@ -104,6 +106,35 @@ Stage audit / input 入口：
 - `MTP-60`：Market Data Replay Operations v1 阶段收口。
 
 ## 最近验证
+
+MTP-63 public read-only adapter / future live adapter capability isolation evidence 已完成：
+
+```bash
+swift test --filter LiveAdapterCapabilityIsolationBoundary
+swift test --filter PublicReadOnlyAdapterCannotInstantiateMTP63LiveAdapterOrExecutionVenueCapability
+swift test --filter MTP63
+bash checks/automation-readiness.sh
+bash checks/run.sh
+```
+
+结果：
+
+- `swift test --filter LiveAdapterCapabilityIsolationBoundary`：pass，2 tests, 0 failures。
+- `swift test --filter PublicReadOnlyAdapterCannotInstantiateMTP63LiveAdapterOrExecutionVenueCapability`：pass，1 test, 0 failures。
+- `swift test --filter MTP63`：pass，2 tests, 0 failures。
+- `bash checks/automation-readiness.sh`：pass，已检查 `MTP-63-ADAPTER-CAPABILITY-ISOLATION`、`MTP-63-LIVE-ADAPTER-FUTURE-GATES`、`MTP-63-BROKER-EXCHANGE-FUTURE-ONLY`、`MTP-63-LIVEEXECUTIONADAPTER-NON-IMPLEMENTATION`、MTP-63 validation anchor、deterministic test anchors 和 `LiveExecutionAdapter` non-implementation declaration guard。
+- `bash checks/run.sh`：pass。
+- Dashboard smoke：`sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`。
+- XCTest：127 tests, 0 failures。
+
+MTP-63 更新重点：
+
+- `Sources/Core/LiveTradingBoundary.swift`：新增 `LiveAdapterCapabilityIsolationBoundary` Gate 2 contract fixture，只表达 current public read-only adapter 与 future live adapter capability 隔离，不实现 `LiveExecutionAdapter`、broker / exchange execution adapter、execution venue 或真实订单行为。
+- `Sources/Adapters/Adapters.swift`：补强 `BinanceForbiddenCapability`、`BinanceReadOnlyAdapterBoundary` 和 transport-before-network forbidden fragments，证明 Binance adapter 仍只暴露 public market data read-only capabilities。
+- `Tests/CoreTests/CoreTests.swift`：新增 Gate 2 deterministic fixture、Codable round trip、`LiveExecutionAdapter` / broker / exchange adapter instantiation rejection 和 real order bypass rejection tests。
+- `Tests/AdaptersTests/AdaptersTests.swift`：新增 public read-only adapter rejection test，证明 broker、`LiveExecutionAdapter`、submit、cancel 和 replace contract 在 transport 前被拒绝。
+- `docs/contracts/live-trading-boundary-contract.md`、`docs/contracts/binance-market-data-contract.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/validation-plan.md`、`checks/automation-readiness.sh`：回填 MTP-63 mechanical validation anchor。
+- `docs/domain/context.md`：补充 `adapter capability isolation` shared language，并把 broker / exchange execution adapter 与 execution venue connection 纳入必须带门禁语义的 forbidden terms。
 
 MTP-62 API key / signed endpoint / account endpoint / listenKey boundary evidence 已完成：
 
