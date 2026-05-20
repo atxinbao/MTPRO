@@ -1,0 +1,107 @@
+# MTPRO Domain Context
+
+日期：2026-05-20
+
+执行者：Codex
+
+## 定位
+
+本文档是 MTPRO 的 shared language / 领域上下文入口。
+
+它用于让 Agent、Human 和后续 Project Planning 使用同一套项目语言，减少“同一个词在不同会话里含义漂移”的成本。
+
+本文档只定义 MTPRO 的领域词汇和禁止混用的说法，不是 spec，不是 implementation plan，不授权创建 Linear Project / Issue，不授权推进 `Todo`，不启动 Symphony，不写业务代码。
+
+## 来源
+
+本文档吸收 `mattpocock/skills` 中 shared language / `CONTEXT.md` 的思路：先把项目中高频、易混淆、影响命名和边界判断的词固定下来，再让 Agent 使用这些词读取代码、拆 issue、写 PR 和做架构判断。
+
+参考：
+
+- `https://github.com/mattpocock/skills`
+- `https://github.com/mattpocock/skills/blob/main/CONTEXT.md`
+- `https://github.com/mattpocock/skills/tree/main/skills/engineering/grill-with-docs`
+
+## Core Project Terms
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `Project Charter` | `GOAL.md`，说明为什么建、服务谁、硬边界和成功标准 | 不叫完整蓝图 |
+| `Root Blueprint` | `BLUEPRINT.md`，项目总览、默认读取顺序和完整蓝图入口 | 不授权执行 |
+| `Complete Blueprint` | `docs/design/mtpro-complete-blueprint.md`，最终产品 / 系统 / 设计蓝图 | 不叫当前 sprint，不叫 issue plan |
+| `Architecture Map` | `ARCHITECTURE.md`，当前项目架构地图和设计基线 | 不等于完整未来蓝图 |
+| `Construction Plan` | `ROADMAP.md`，当前施工阶段、完成进度和非授权边界 | 不等于 Linear queue |
+| `Current Construction Scope` | Human 当前允许进入规划的施工范围 | 不包含 Future Construction Zones |
+| `Future Construction Zones` | 完整蓝图中的长期能力区，例如 Live、signed endpoint、broker、OMS | 不得自动变成 Linear issue |
+
+## Execution Terms
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `Project Planning Record` | 仓库中的 Project 级计划摘要，位于 `docs/planning/projects/` | 不复制完整 Linear issue body |
+| `Linear execution contract` | Linear issue body 中的 Scope / Non-goals / Codex Instructions / Validation / Boundary / PR Requirements | 不由仓库文档替代 |
+| `configured executable issue` | Linear live-read 中通过 Parent Codex queue preflight 后唯一可执行 issue | 不等于 Backlog issue |
+| `Parent Codex queue preflight` | `@002 / PAR` 在 Project 内确认 WIP=1、依赖、contract 和 active conflict 的检查 | 不等于 symphony-issue 执行 |
+| `symphony-issue` | 调度唯一 `Todo` issue 的执行层 actor | 不创建 Project，不做 planning |
+| `Stage Code Audit Report` | Project 全部 Done 后由 Parent Codex 单独输出并落仓的 Project 级审计报告 | 不由 child issue 输出 |
+| `Root Docs Refresh Gate` | Project closure 后把已发生代码事实同步回 root docs 的 gate | 不决定下一阶段方向 |
+| `Current Phase Progress Bar` | `@002 / PAR` 按 `GOAL.md` / `ROADMAP.md` 目标切片输出的阶段完成进度 | 不按 Project 数量直接计算 |
+
+## Trading / Runtime Terms
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `Market Data` | Binance public read-only 行情数据 | 不包含 account、listenKey、signed endpoint |
+| `Event Log` | append-only facts source | 不叫 UI model，不保存 runtime object |
+| `Replay` | 从 facts source 重建 projection / evidence 的确定性路径 | 不叫生产恢复系统 |
+| `Projection` | SQLite / DuckDB 或内存读模型中的派生视图 | 不作为 UI contract |
+| `Read Model` | App / Dashboard 可以消费的稳定只读数据结构 | 不暴露 database schema |
+| `ViewModel` | Dashboard / Workbench 绑定的 UI 输入 | 不直接读取 adapter、runtime object 或 persistence schema |
+| `Command Model` | 本地 paper-only session-level 控制意图模型 | 不表示真实交易命令 |
+| `Report Artifact` | 汇总 research / backtest / paper / risk / event evidence 的研究输出 | 不授权真实交易 |
+| `Event Timeline` | read-model-only 的 evidence 浏览视图 | 不做完整查询语言，不暴露 persistence |
+
+## Paper-only Terms
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `Paper Session` | 本地 paper-only session lifecycle | 不等于真实账户 session |
+| `Paper Action Proposal` | 策略信号转出的本地 paper-only action intent | 不等于 order |
+| `Risk Blocker` | 本地 paper readiness 的 blocker / evidence | 不等于完整实盘风控引擎 |
+| `Paper Order Intent` | 本地 paper-only order intent value model | 不等于真实订单请求 |
+| `Paper Order Lifecycle` | 本地 paper order 状态证据 | 不等于交易所订单生命周期 |
+| `Simulated Fill Evidence` | deterministic simulated fill 研究证据 | 不等于 broker fill 或 execution report |
+| `Portfolio Projection` | 从 paper-only evidence 派生的组合观察面 | 不等于真实账户余额或 broker position |
+| `Paper Workflow Control Shell` | session-level `start` / `pause` / `close` / `reset` 本地控制壳 | 不允许 submit / cancel / replace |
+
+## Market Replay Terms
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `Market Data Batch` | 本地 public read-only fixture / batch replay 输入集合 | 不绑定真实历史下载规模 |
+| `Replay Run` | 一次本地 deterministic replay 的 metadata 和 evidence | 不等于生产调度任务 |
+| `Retention Policy` | 本地 batch 是否保留 / 过期 / stale 的最小证据规则 | 不等于云端 archive 或 storage tiering |
+| `Freshness Evidence` | Report / Dashboard / Event Timeline 可消费的 freshness read model | 不暴露 adapter 或 schema |
+| `Fixture Parity` | mock transport / fixture 与 decoder / replay contract 的一致性验证 | 不依赖真实 Binance 网络 |
+
+## Forbidden Terms
+
+以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义，不能写成当前能力：
+
+- Live trading
+- signed endpoint
+- account endpoint
+- listenKey
+- broker integration
+- real order submit / cancel / replace
+- OMS
+- real account balance
+- broker position sync
+- production deployment / runtime operations
+
+## 维护规则
+
+- 新 Linear Project 规划前，`@001 / PLN` 必须读取本文档，避免 issue title / body 使用漂移术语。
+- `@002 / PAR` 做 Stage Code Audit 和 Root Docs Refresh Gate 时，如发现 root docs、PR 或 validation evidence 中出现术语漂移，应记录为 Root Docs Delta。
+- Codex Execution Agent 新增 public type / protocol / actor / service 时，应优先复用本文档中的领域词命名，并在中文注释中保持同一语义。
+- 本文档只记录稳定词汇；临时 planning note、implementation detail 和代码文件清单不得写入本文档。

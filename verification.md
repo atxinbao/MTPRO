@@ -6098,3 +6098,60 @@ Next Handoff: Human + @001 / PLN
 | `git diff --check` | pass | AEP alignment docs-only 变更无 whitespace error。 |
 | `bash checks/automation-readiness.sh` | pass | Root Blueprint、默认读取顺序、Complete Blueprint 分层和 latest summary 锚点通过。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；输出 `MTPRO checks passed.`。 |
+
+## Skill-derived Agent Engineering Practices Integration
+
+日期：2026-05-20
+
+执行者：Codex
+
+目的：
+
+- 将 `mattpocock/skills` 中适合 MTPRO 的 shared language、Feedback Loop First、TDD / Tracer Bullet、Diagnose Loop、Architecture Deepening Review 和 Handoff Discipline 整合到 MTPRO 项目流程。
+- 新增 MTPRO 领域上下文入口，让 Agent 在 Project Planning、Linear issue、PR、Stage Audit 和代码注释中使用统一术语。
+- 用 automation readiness 将新增方法论文档和关键锚点变成机械检查项。
+
+参考来源：
+
+- `https://github.com/mattpocock/skills`
+- `https://github.com/mattpocock/skills/blob/main/CONTEXT.md`
+- `https://github.com/mattpocock/skills/tree/main/skills/engineering/grill-with-docs`
+- `https://github.com/mattpocock/skills/tree/main/skills/engineering/tdd`
+- `https://github.com/mattpocock/skills/tree/main/skills/engineering/diagnose`
+- `https://github.com/mattpocock/skills/tree/main/skills/engineering/to-issues`
+- `https://github.com/mattpocock/skills/tree/main/skills/engineering/improve-codebase-architecture`
+
+文件范围：
+
+- Added：
+  - `docs/domain/context.md`
+  - `docs/automation/agent-engineering-practices.md`
+- Updated：
+  - `README.md`
+  - `AGENTS.md`
+  - `BLUEPRINT.md`
+  - `checks/automation-readiness.sh`
+  - `docs/design/mtpro-complete-blueprint.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- docs / checks only。
+- 未创建 Linear Project。
+- 未创建 Linear issue。
+- 未修改 Linear status。
+- 未推进 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | docs-only methodology 变更无 whitespace error。 |
+| `bash checks/automation-readiness.sh` | pass | shared language、agent engineering practices、Root Blueprint 读序和关键锚点通过。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
