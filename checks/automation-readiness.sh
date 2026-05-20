@@ -169,7 +169,7 @@ require_contains "docs/domain/context.md" "configured executable issue"
 require_contains "docs/domain/context.md" "Paper Action Proposal"
 require_contains "docs/domain/context.md" "Simulated Fill Evidence"
 require_contains "docs/domain/context.md" "Market Data Batch"
-require_contains "docs/domain/context.md" "Future Construction Zones"
+require_contains "docs/domain/context.md" "Future Construction Zones / 未来建设区"
 require_contains "docs/domain/context.md" "不授权创建 Linear Project / Issue"
 require_contains "docs/automation/agent-engineering-practices.md" "Agent Engineering Practices"
 require_contains "docs/automation/agent-engineering-practices.md" "mattpocock/skills"
@@ -218,7 +218,7 @@ require_contains "docs/planning/project-role-map.md" "Current Phase Progress Bar
 require_contains "docs/planning/project-role-map.md" "当前阶段完成进度条"
 require_contains "docs/planning/project-role-map.md" 'Human + `@000 / AIE`'
 require_contains "docs/planning/project-role-map.md" "Current Construction Scope"
-require_contains "docs/planning/project-role-map.md" "Future Construction Zones"
+require_contains "docs/planning/project-role-map.md" "Future Construction Zones / 未来建设区"
 require_contains "docs/planning/project-role-map.md" '不启动 `@002 / PAR`'
 require_contains "GOAL.md" "Project Charter，不是完整蓝图"
 require_contains "GOAL.md" "为什么建"
@@ -237,7 +237,7 @@ require_contains "GOAL.md" "实盘风险控制"
 require_contains "GOAL.md" "实盘审计 / 事故回放 / 停机控制"
 require_contains "GOAL.md" '完整 9 项目标切片、状态和证据口径见 `ROADMAP.md`'
 require_contains "GOAL.md" '`GOAL.md` 不复制维护详细进度表'
-require_contains "GOAL.md" '不把 `BLUEPRINT.md` 中的 Future Construction Zones 自动转成当前 execution scope'
+require_contains "GOAL.md" '不把 `BLUEPRINT.md` 中的 Future Construction Zones / 未来建设区自动转成当前 execution scope'
 if [[ -e "docs/design/mtpro-complete-blueprint.md" ]]; then
   fail "legacy blueprint compatibility entry must be removed: docs/design/mtpro-complete-blueprint.md"
 fi
@@ -271,7 +271,10 @@ require_contains "BLUEPRINT.md" "Complete Capability Map"
 require_contains "BLUEPRINT.md" "docs/domain/context.md"
 require_contains "BLUEPRINT.md" "Agent Engineering Practices"
 require_contains "BLUEPRINT.md" "Current Construction Scope"
-require_contains "BLUEPRINT.md" "Future Construction Zones"
+require_contains "BLUEPRINT.md" "Future Construction Zones / 未来建设区"
+require_contains "BLUEPRINT.md" "Gated / Forbidden Capabilities / 受门禁保护或当前禁止的能力"
+require_contains "BLUEPRINT.md" "可以被蓝图描述，但不能自动变成当前 Project、Linear issue 或执行授权"
+require_contains "BLUEPRINT.md" "未来可能需要，但当前必须被门禁或禁止的能力"
 require_contains "BLUEPRINT.md" "Live / signed endpoint / broker / OMS"
 require_contains "BLUEPRINT.md" "Root Docs Delta Proposal"
 require_contains "BLUEPRINT.md" "Blueprint -> Architecture -> Roadmap Handoff"
@@ -295,7 +298,7 @@ require_contains "AGENTS.md" "Current Foundation Progress"
 require_contains "AGENTS.md" "Final Product Goal Progress"
 require_contains "AGENTS.md" "不写入蓝图文档"
 require_contains "AGENTS.md" 'Human + `@000 / AIE`'
-require_contains "AGENTS.md" "Future Construction Zones"
+require_contains "AGENTS.md" "Future Construction Zones / 未来建设区"
 require_contains "AGENTS.md" '不启动 `@002 / PAR`'
 require_contains "ROADMAP.md" "Current Foundation Progress"
 require_contains "ROADMAP.md" "Final Product Goal Progress"

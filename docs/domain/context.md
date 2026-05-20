@@ -21,8 +21,8 @@
 | `Complete Blueprint` | `BLUEPRINT.md`，最终产品 / 系统 / 设计蓝图 | 不叫当前 sprint，不叫 issue plan |
 | `Architecture Map` | `ARCHITECTURE.md`，当前项目架构地图和设计基线 | 不等于完整未来蓝图 |
 | `Construction Plan` | `ROADMAP.md`，当前施工阶段、完成进度和非授权边界 | 不等于 Linear queue |
-| `Current Construction Scope` | Human 当前允许进入规划的施工范围 | 不包含 Future Construction Zones |
-| `Future Construction Zones` | 完整蓝图中的长期能力区，例如 Live、signed endpoint、broker、OMS | 不得自动变成 Linear issue |
+| `Current Construction Scope` | Human 当前允许进入规划的施工范围 | 不包含 Future Construction Zones / 未来建设区 |
+| `Future Construction Zones / 未来建设区` | 完整蓝图中的长期能力区，例如 Live、signed endpoint、broker、OMS；可以设计，但当前不施工 | 不得自动变成 Linear issue |
 | `Project Planning Record` | 仓库中的 Project 级计划摘要，位于 `docs/planning/projects/` | 不复制完整 Linear issue body |
 | `Linear execution contract` | Linear issue body 中的 Scope / Non-goals / Codex Instructions / Validation / Boundary / PR Requirements | 不由仓库文档替代 |
 | `configured executable issue` | Linear live-read 中通过 Parent Codex queue preflight 后唯一可执行 issue | 不等于 Backlog issue |
@@ -69,9 +69,9 @@
 | `Freshness Evidence` | Report / Dashboard / Event Timeline 可消费的 freshness read model | 不暴露 adapter 或 schema |
 | `Fixture Parity` | mock transport / fixture 与 decoder / replay contract 的一致性验证 | 不依赖真实 Binance 网络 |
 
-## Forbidden Terms
+## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
-以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义，不能写成当前能力：
+以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
 
 - Live trading
 - signed endpoint
