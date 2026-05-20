@@ -99,7 +99,7 @@ Stage audit / input 入口：
 
 ## 最近验证
 
-本轮 Professional Trading Workstation Goal Alignment 已完成：
+本轮 Goal Charter Progress Scope Compression 已完成：
 
 ```bash
 git diff --check
@@ -115,16 +115,12 @@ bash checks/run.sh
 - Dashboard smoke：`sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`。
 - XCTest：121 tests, 0 failures。
 
-本轮 docs-only Goal / Blueprint evidence：
+本轮 docs-only Goal Charter evidence：
 
-- `README.md`
-- `AGENTS.md`
 - `GOAL.md`
-- `BLUEPRINT.md`
-- `ROADMAP.md`
-- `docs/automation/parent-codex-supervision.md`
 - `checks/automation-readiness.sh`
 - `docs/validation/latest-verification-summary.md`
+- `verification.md`
 
 ## 当前边界
 

@@ -68,14 +68,14 @@ Current Foundation Progress：4 / 4（100%）
 
 Progress：`[##########] 100%`
 
-当前 foundation 已完成：
+当前 foundation 已完成四类结果：
 
 1. Research / Backtest / Report / Paper readiness。
 2. Paper-only execution evidence。
 3. Paper workflow 可观察性和本地 session-level control shell。
 4. 更长周期 market data replay / operations 本地 evidence baseline。
 
-该进度只覆盖当前已批准、已执行并完成 closure 的 paper-only foundation，不代表最终专业交易工作台已经完成，也不授权 Live trading。
+该进度只覆盖当前已批准、已执行并完成 closure 的 paper-only foundation。详细 Project、PR、Stage Audit 和目标切片状态见 `ROADMAP.md` 和 `docs/audit/`。
 
 ### Final Product Goal Progress
 
@@ -83,21 +83,11 @@ Final Product Goal Progress：4 / 9（44%）
 
 Progress：`[####------] 44%`
 
-最终产品目标切片：
+已完成的最终产品目标：研究 / 回测 / 报告基础能力、Paper 模拟执行基础能力、工作台证据导航与本地控制壳、行情数据回放运营能力。
 
-| # | 目标切片 | 状态 | 中文说明 |
-| --- | --- | --- | --- |
-| 1 | 研究 / 回测 / 报告基础能力（Research / Backtest / Report foundation） | Complete | 能研究策略、跑回测、生成报告，并说明数据、策略和结果来源。 |
-| 2 | Paper 模拟执行基础能力（Paper execution foundation） | Complete | 能跑模拟交易，有 paper order、simulated fill、paper portfolio，但不碰真实资金和真实订单。 |
-| 3 | 工作台证据导航与本地控制壳（Workbench evidence navigation and local control shell） | Complete | 能在 Mac 工作台里观察 Research、Backtest、Report、Paper、Risk、Portfolio、Events，并做本地 Paper session 控制。 |
-| 4 | 行情数据回放运营能力（Market data replay operations） | Complete | 能管理行情批次、回放数据、检查 freshness / retention / consistency，为研究和 Paper 提供稳定数据底座。 |
-| 5 | 实盘交易基础边界（Live trading foundation） | Pending / gated | 开始接真实交易边界，包括 API key、signed endpoint、account endpoint、broker / exchange adapter 和真实订单生命周期。 |
-| 6 | 实盘监控台（Live monitoring console） | Pending / gated | 能监控实盘节点、连接、行情流、订单流、错误、延迟和运行健康状态。 |
-| 7 | 实盘执行控制（Live execution control） | Pending / gated | 能控制真实订单提交、撤销、替换、成交回报、订单状态和执行失败处理。 |
-| 8 | 实盘风险控制（Live risk control） | Pending / gated | 能用真实风控阻止危险订单，例如仓位、订单金额、频率、亏损、熔断和禁交易状态。 |
-| 9 | 实盘审计 / 事故回放 / 停机控制（Live audit / incident replay / stop controls） | Pending / gated | 能审计和回放每个 signal、order、risk decision、fill，并支持紧急停止、停机、恢复和事故复盘。 |
+Pending / gated 的最终产品目标：实盘交易基础边界、实盘监控台、实盘执行控制、实盘风险控制、实盘审计 / 事故回放 / 停机控制。
 
-Pending / gated 的实盘目标属于最终产品目标，不属于当前 execution scope。
+完整 9 项目标切片、状态和证据口径见 `ROADMAP.md`。`GOAL.md` 不复制维护详细进度表。
 
 ## 永久硬边界
 
