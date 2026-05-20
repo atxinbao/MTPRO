@@ -4,7 +4,7 @@ ROADMAP 只定义阶段地图，不授权执行。
 
 正式执行必须来自 Linear live-read 中唯一 configured executable issue，并通过 Parent Codex queue preflight、symphony-issue 和 GitHub PR Automation。
 
-本文档是 Construction Plan。完整产品终局和 Future Construction Zones 见 `BLUEPRINT.md` 和 `docs/design/mtpro-complete-blueprint.md`；本文档只记录当前已批准阶段、目标切片进度和下一轮 planning handoff。
+本文档是 Construction Plan。完整产品终局和 Future Construction Zones 见 canonical `BLUEPRINT.md`；本文档只记录当前已批准阶段、目标切片进度和下一轮 planning handoff。
 
 ## 阶段地图
 
@@ -56,7 +56,7 @@ Latest Completed Project：`MTPRO Market Data Replay Operations v1`
 
 Next Handoff：Human + `@001 / PLN`
 
-本进度条只表示当前已批准 paper-only foundation 目标切片已完成 closure，不统计 `docs/design/mtpro-complete-blueprint.md` 中的 Future Construction Zones，不统计未授权 future capability，不授权下一阶段执行。下一阶段方向、目标、架构路线和优先级仍交给 Human + `@001 / PLN`。
+本进度条只表示当前已批准 paper-only foundation 目标切片已完成 closure，不统计 `BLUEPRINT.md` 中的 Future Construction Zones，不统计未授权 future capability，不授权下一阶段执行。下一阶段方向、目标、架构路线和优先级仍交给 Human + `@001 / PLN`。
 
 ## 产品路线
 

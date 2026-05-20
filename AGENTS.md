@@ -31,7 +31,7 @@ Agent 开始工作前必须读取：
 ## 核心硬规则
 
 - 所有正式文档写入必须使用中文。
-- `GOAL.md` 是 Project Charter，`BLUEPRINT.md` 是 Root Blueprint，`ARCHITECTURE.md` 是 Architecture Map，`ROADMAP.md` 是 Construction Plan。
+- `GOAL.md` 是 Project Charter，`BLUEPRINT.md` 是 canonical Root Blueprint + Complete Blueprint，`ARCHITECTURE.md` 是 Architecture Map，`ROADMAP.md` 是 Construction Plan。
 - `docs/domain/context.md` 是 MTPRO shared language；Project Planning、Linear issue、PR、Stage Audit、public type 注释和验证证据必须优先复用其中 canonical terms。
 - `docs/automation/agent-engineering-practices.md` 是 skill-derived 工程实践入口；执行 issue 时必须遵守 Feedback Loop First、TDD / Tracer Bullet、Diagnose Loop、Architecture Deepening Review 和 Handoff Discipline。
 - `ROADMAP.md`、Project Planning Record、Backlog issue、label、priority、assignee 都不授权执行。
@@ -46,7 +46,7 @@ Agent 开始工作前必须读取：
 - Stage Code Audit Report 必须覆盖完整 Linear Project，包含 Linear Project `Completed` evidence 和 Root Docs Delta。
 - Root Docs Refresh Gate 只允许 `@002 / PAR` 同步已发生事实；方向、目标、架构路线和下一阶段优先级必须交给 Human + `@001 / PLN`。
 - Root Docs Refresh Gate closure 后，`@002 / PAR` 必须输出当前阶段完成进度条；进度条必须基于 `GOAL.md` 和 `ROADMAP.md` 的 Goal / Roadmap Target Progress 目标切片计算，Project closure 数量只能作为单独证据口径，不写入蓝图文档，不授权下一阶段执行。
-- Complete Blueprint Design 是 Human + `@000 / AIE` 的 Linear 外蓝图活动；它可描述 Live / signed endpoint / broker / OMS 等 Future Construction Zones，但不得自动转成 Linear issue。
+- Complete Blueprint Design 是 Human + `@000 / AIE` 的 Linear 外蓝图活动，产物统一维护在根目录 `BLUEPRINT.md`；它可描述 Live / signed endpoint / broker / OMS 等 Future Construction Zones，但不得自动转成 Linear issue。
 - Complete Blueprint Design 不创建 Linear Project / Issue，不修改 Linear status，不推进 `Backlog` -> `Todo`，不启动 `@002 / PAR`，不启动 symphony-issue，不运行 Graphify update，不写业务代码。
 - 触碰 production behavior 时，优先用 deterministic fixture / test 表达目标行为；不能只靠最终大检查判断正确性。
 - Linear issue 应优先拆成可独立验证的 vertical slice / tracer bullet，不把跨层闭环机械拆成无法单独验收的横向模块切片。

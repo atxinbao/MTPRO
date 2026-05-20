@@ -73,14 +73,14 @@ Tests/
 | 文件 | 作用 |
 | --- | --- |
 | `GOAL.md` | Project Charter：项目使命、用户、硬边界和成功标准 |
-| `BLUEPRINT.md` | Root Blueprint：项目总览、完整蓝图入口、Current / Future 边界 |
+| `BLUEPRINT.md` | Canonical Blueprint：Root Blueprint + Complete Blueprint，项目总览、完整产品 / 系统 / 设计蓝图、Current / Future 边界 |
 | `ARCHITECTURE.md` | Architecture Map：模块地图、设计基线、数据流、不变量 |
 | `ROADMAP.md` | Construction Plan：阶段地图、目标进度和非授权边界 |
 | `ENVIRONMENT.md` | 本地环境、验证入口、外部系统边界 |
 | `AGENTS.md` | Agent / Codex 行为规则 |
 | `docs/domain/context.md` | Shared Language：领域术语和禁止混用词 |
 | `docs/automation/agent-engineering-practices.md` | 从 `mattpocock/skills` 吸收的 feedback loop、tracer bullet、diagnose、architecture deepening 方法 |
-| `docs/design/mtpro-complete-blueprint.md` | Human + `@000 / AIE` 维护的完整产品 / 系统 / 设计蓝图 |
+| `docs/design/mtpro-complete-blueprint.md` | 旧链接兼容入口，指向 canonical `BLUEPRINT.md` |
 | `docs/planning/` | Project Planning Record、角色编号和 Linear 草案规则 |
 | `docs/automation/` | Parent Codex、symphony-issue、Graphify、GitHub PR Automation、Post-Issue Ledger 边界 |
 | `docs/validation/` | 最近验证摘要、长期验证计划、trading validation matrix |

@@ -1,6 +1,6 @@
 # GOAL.md
 
-本文档是 MTPRO 的 Project Charter。它只定义为什么建、服务谁、硬边界和成功标准；完整产品 / 系统 / 设计蓝图见 `BLUEPRINT.md` 和 `docs/design/mtpro-complete-blueprint.md`，当前施工阶段和目标进度见 `ROADMAP.md`。
+本文档是 MTPRO 的 Project Charter。它只定义为什么建、服务谁、硬边界和成功标准；完整产品 / 系统 / 设计蓝图见 canonical `BLUEPRINT.md`，当前施工阶段和目标进度见 `ROADMAP.md`。
 
 ## 项目目标
 
@@ -40,7 +40,7 @@ MTPRO 应提供一个从策略研究到 Paper 执行一致的本地工作台：
 - 更长周期 market data replay / operations 本地 evidence baseline。
 - Live trading、signed endpoint、account endpoint、broker action 和真实订单能力仍保持禁止边界。
 
-当前 Goal / Roadmap Target Progress 为 5 / 5（100%）。该进度只覆盖当前已批准、已执行并完成 closure 的 paper-only foundation 目标切片，不按 Project 数量直接计算，也不统计 `docs/design/mtpro-complete-blueprint.md` 中的 Future Construction Zones。
+当前 Goal / Roadmap Target Progress 为 5 / 5（100%）。该进度只覆盖当前已批准、已执行并完成 closure 的 paper-only foundation 目标切片，不按 Project 数量直接计算，也不统计 `BLUEPRINT.md` 中的 Future Construction Zones。
 
 ## 非目标
 
