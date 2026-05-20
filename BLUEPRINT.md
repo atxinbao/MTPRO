@@ -99,19 +99,7 @@ MTPRO 最终要成为一个 local-first 的 macOS 原生专业交易工作台，
 
 最终产品形态不是 NautilusTrader 的 Swift 复刻，也不是 `macos-trader` 的整仓迁移。MTPRO 学习 NautilusTrader 的交易语义、event-driven runtime、adapter 分层、risk / execution / portfolio 因果链和 report / replay evidence 组织方式，但保持 SwiftPM-first、macOS-native、ViewModel-first 的产品形态。
 
-本节承接 Final Product Blueprint，但重点从产品角度定义最终产品形态、目标用户、核心能力和可信证据链。
-
-最终产品能力：
-
-1. Research：研究数据、策略信号、指标假设和证据入口。
-2. Backtest：基于本地事件 / fixture / replay 的确定性回测。
-3. Report：把 research、backtest、paper、risk、portfolio、event log 和 validation evidence 汇总成可审计 artifact。
-4. Paper：本地 paper-only session、proposal、risk blocker、paper order lifecycle、simulated fill、portfolio projection 和 replay evidence。
-5. Portfolio：从事件和 projection 派生的组合观察面，当前只表达 paper-only exposure，未来可扩展到真实账户视图。
-6. Risk：从 blocker evidence 发展到更完整的风险解释、限制、状态和未来 live risk gate。
-7. Events：append-only facts、replay、projection freshness、audit trail 和 incident replay 观察面。
-8. Operations：本地运行、验证、Graphify relationship memory、GitHub PR Automation、Linear / Symphony 自动化和阶段审计。
-9. Future Live：未来可选的 signed endpoint、broker integration、real account state、real execution reconciliation、OMS、实盘监控台、实盘执行控制、实盘风险控制、实盘审计 / 事故回放 / 停机控制和 deployment / operations，必须作为独立 Future Construction Zones / 未来建设区处理。
+产品可信度来自 evidence chain：数据来源、策略信号、回测结果、Paper 行为、风险证据、组合变化、事件时间线和报告 artifact 都必须可追溯、可回放、可验证。Future Live 必须作为独立 Future Construction Zones / 未来建设区进入，不能从 paper-only 能力偷渡。
 
 ## Final Product Goal Slices
 
@@ -142,28 +130,24 @@ Current Foundation Progress 已完成 4 / 4；Final Product Goal Progress 当前
 
 ## Complete Capability Map
 
-| Capability | Final blueprint status | Current construction status | Gate before implementation |
-| --- | --- | --- | --- |
-| Binance public read-only ingest | Final | 已有 baseline | 保持 public read-only，不接 API key |
-| Event Log / Replay | Final | 已有 append-only / replay baseline | 后续只扩展 deterministic evidence，不破坏 facts source |
-| Research / Backtest / Report | Final | 已有最小闭环 | 后续加强工作台、报告和 evidence explorer |
-| Trading Validation | Final | 已有 matrix 和 parity / risk / cost evidence | 按 issue 继续扩展，不跳过 validation |
-| Paper Session Runtime | Final | 已完成 v1 | 后续只按明确 Project 扩展 |
-| Paper Execution Workflow | Final | 已完成 v1 evidence | 后续只按明确 Project 扩展 workflow / replay consistency |
-| Dashboard / Workbench | Final | 现为 read-model-only shell | UI issue 必须保持 ViewModel / Read Model 边界 |
-| Market Data Replay Operations | Final | 已完成 v1 baseline | 后续只扩展 deterministic local operations，不变成生产数据平台 |
-| Portfolio | Final | 现为 paper-only exposure | Live 前不得读取真实账户或 broker position |
-| Risk | Final | 现为 paper blocker / evidence | Live 前不得升级为真实 pre-trade engine |
-| 实盘交易基础边界 / Live trading foundation | Future / gated | 当前禁止 | 需要 Human 决策、独立 Project Definition、signed endpoint / broker / risk / reconciliation / operations gates |
-| 实盘监控台 / Live monitoring console | Future / gated | 当前禁止 | 需要 live runtime health、连接状态、行情流、订单流、错误和延迟的独立 Project |
-| 实盘执行控制 / Live execution control | Future / gated | 当前禁止 | 需要 real order submit / cancel / replace contract、execution reconciliation 和 incident fallback |
-| 实盘风险控制 / Live risk control | Future / gated | 当前禁止 | 需要真实 pre-trade risk gate、熔断、禁交易状态和 operations readiness |
-| 实盘审计 / 事故回放 / 停机控制 | Future / gated | 当前禁止 | 需要 audit trail、incident replay、emergency stop、停机 / 恢复策略 |
-| OMS / broker integration | Future / gated | 当前禁止 | 需要独立架构蓝图、adapter capability contract 和安全运行计划 |
+当前 foundation 已覆盖：
+
+- Binance public read-only ingest、Event Log / Replay、Research / Backtest / Report、Trading Validation。
+- Paper Session Runtime、Paper Execution Workflow、Dashboard / Workbench、Market Data Replay Operations。
+- Portfolio 和 Risk 当前只表达 paper-only exposure / blocker evidence，Live 前不得读取真实账户、broker position 或升级为真实 pre-trade engine。
+
+Future / gated capability 必须独立规划：
+
+- 实盘交易基础边界 / Live trading foundation：API key、signed endpoint、account endpoint、broker / exchange adapter、real order lifecycle。
+- 实盘监控台 / Live monitoring console：live runtime health、连接状态、行情流、订单流、错误和延迟。
+- 实盘执行控制 / Live execution control：real order submit / cancel / replace、execution reconciliation、incident fallback。
+- 实盘风险控制 / Live risk control：真实 pre-trade risk gate、熔断、禁交易状态和 operations readiness。
+- 实盘审计 / 事故回放 / 停机控制：audit trail、incident replay、emergency stop、停机 / 恢复策略。
+- OMS / broker integration：完整订单管理、broker reconciliation、adapter capability contract。
 
 ## Product Workflow Blueprint
 
-最终产品工作流：
+最终产品工作流以 evidence 为主线，而不是以交易按钮为中心：
 
 ```text
 Market Data
@@ -179,16 +163,11 @@ Market Data
 -> Future gated Live decision
 ```
 
-工作台不应以交易按钮为中心，而应以 evidence 和状态解释为中心。
-
 用户应能看到：
 
-- 当前数据来源和读取边界。
-- 当前策略和 signal evidence。
-- Backtest / Paper parity。
-- Report artifact 的来源和状态。
-- Paper session / paper order / simulated fill / portfolio projection 的因果链。
-- Replay / freshness / event timeline 的证据链。
+- 数据来源和读取边界、策略和 signal evidence、Backtest / Paper parity。
+- Report artifact 来源和状态、Paper session / paper order / simulated fill / portfolio projection 因果链。
+- Replay / freshness / event timeline 证据链。
 - Live 能力为什么当前被阻断，以及未来进入实盘交易基础边界、实盘监控台、实盘执行控制、实盘风险控制、实盘审计 / 事故回放 / 停机控制需要哪些 gate。
 
 ## Architecture Blueprint / 架构蓝图
@@ -246,9 +225,7 @@ MTPRO Workbench 最终应包含：
 
 ## Infrastructure Blueprint / 基础设施蓝图
 
-本节定义“地基承重和市政管线”：数据、事件、回放、投影、读模型、命令模型、审计和自动化如何支撑最终专业交易工作台。它不是当前全部施工授权。
-
-MTPRO 的可信度来自 evidence chain，而不是单个 UI 状态。
+本节定义“地基承重和市政管线”：数据、事件、回放、投影、读模型、命令模型、审计和自动化如何支撑最终专业交易工作台。它不是当前全部施工授权。MTPRO 的可信度来自 evidence chain，而不是单个 UI 状态。
 
 长期 evidence chain：
 
@@ -266,18 +243,6 @@ Market event
 -> Stage Code Audit
 ```
 
-未来 Live 如果被 Human 明确开启，必须新增：
-
-- signed endpoint capability evidence。
-- broker adapter capability evidence。
-- real order submit / cancel / replace contract。
-- execution reconciliation evidence。
-- account state / position sync evidence。
-- incident replay 和 audit evidence。
-- operations readiness 和 rollback / stop policy。
-
-这些 future Live evidence 不属于当前 construction scope。
-
 基础设施蓝图必须覆盖：
 
 - Data infrastructure：market data、batch、fixture、retention、freshness、event log、replay、projection。
@@ -286,11 +251,11 @@ Market event
 - Audit infrastructure：event timeline、report artifact、Stage Code Audit、future incident replay。
 - Automation infrastructure：Linear、symphony-issue、GitHub PR Automation、Graphify、Post-Issue Ledger、Root Docs Refresh。
 
+未来 Live 若被 Human 明确开启，还必须新增 signed endpoint capability、broker adapter capability、real order submit / cancel / replace contract、execution reconciliation、account / position sync、incident replay、operations readiness 和 rollback / stop policy。上述 future Live evidence 不属于当前 construction scope。
+
 ## Trading Capability Blueprint / 交易能力蓝图
 
-交易能力分为当前 paper-only 能力和 future-gated live 能力。
-
-当前 paper-only 能力：
+交易能力分为当前 paper-only 能力和 future-gated live 能力。当前 paper-only 能力：
 
 ```text
 Strategy signal
@@ -302,9 +267,7 @@ Strategy signal
 -> Report / Dashboard / Event Timeline evidence
 ```
 
-当前 paper-only 能力不能被解释为真实订单、真实成交、broker fill、account update 或 Live fallback。
-
-Future live 能力：
+当前 paper-only 能力不能被解释为真实订单、真实成交、broker fill、account update 或 Live fallback。Future live 能力：
 
 ```text
 Strategy signal
@@ -321,9 +284,7 @@ Future live 能力必须作为独立 Project Definition 和独立 execution cont
 
 ## Live Gate Blueprint / 实盘准入蓝图
 
-Live trading 是最终产品目标的一部分，但不是当前 execution scope。
-
-进入 Live 前必须至少满足：
+Live trading 是最终产品目标的一部分，但不是当前 execution scope。进入 Live 前必须至少满足：
 
 - Human 独立确认进入 Live 方向。
 - 独立 Project Definition，不复用 paper-only issue scope。
@@ -357,29 +318,14 @@ Live trading 是最终产品目标的一部分，但不是当前 execution scope
 
 ### Current Construction Scope
 
-当前已批准并 closure 的 construction baseline：
-
-- Bootstrap / contract-first baseline。
-- Runtime Research Workbench v1。
-- Trading Validation and Parity Hardening。
-- Paper Session Runtime v1。
-- Paper Execution Workflow v1。
-- Paper Workflow Control Shell v1。
-- Market Data Replay Operations v1。
-- NautilusTrader reference study。
-- `mattpocock/skills` 方法论整合。
+当前已批准并 closure 的 construction baseline：Bootstrap / contract-first baseline、Runtime Research Workbench v1、Trading Validation and Parity Hardening、Paper Session Runtime v1、Paper Execution Workflow v1、Paper Workflow Control Shell v1、Market Data Replay Operations v1、NautilusTrader reference study、`mattpocock/skills` 方法论整合。
 
 当前 foundation / final product 采用两层进度口径：
 
 - Current Foundation Progress：4 / 4（100%）。
 - Final Product Goal Progress：4 / 9（44%）。
 
-Current Foundation Progress 已完成：
-
-- Research / Backtest / Report / Paper readiness。
-- Paper-only execution evidence。
-- Paper workflow 可观察性和本地 session-level control shell。
-- 更长周期 market data replay / operations。
+Current Foundation Progress 已完成 Research / Backtest / Report / Paper readiness、Paper-only execution evidence、Paper workflow 可观察性和本地 session-level control shell、更长周期 market data replay / operations。
 
 Final Product Goal Progress 尚未完成；实盘交易基础边界、实盘监控台、实盘执行控制、实盘风险控制、实盘审计 / 事故回放 / 停机控制仍属于 Future Construction Zones / 未来建设区。
 
@@ -434,26 +380,9 @@ GOAL.md
 
 蓝图不能直接执行。
 
-后续顺序：
+后续顺序：Human confirms blueprint -> Human + `@001 / PLN` selects Current Construction Scope slice -> Project Planning Record -> Human confirms Linear write -> Linear Project / Issues created as Backlog -> `@002 / PAR` startup gate -> unique eligible issue -> `Todo`。
 
-```text
-Human confirms blueprint
--> Human + @001 / PLN selects Current Construction Scope slice
--> Project Planning Record
--> Human confirms Linear write
--> Linear Project / Issues created as Backlog
--> @002 / PAR startup gate
--> unique eligible issue -> Todo
-```
-
-当前 handoff 状态：
-
-- Blueprint canonical location：`BLUEPRINT.md`
-- Human confirmed next scope：pending
-- Current Construction Scope selected for next Project：pending
-- Next Project Planning authorized：no
-- Linear write authorized：no
-- `@002 / PAR` authorized：no
+当前 handoff 状态：Blueprint canonical location 是 `BLUEPRINT.md`；Human confirmed next scope、Current Construction Scope selected for next Project、Next Project Planning、Linear write 和 `@002 / PAR` authorization 均为 pending / no。
 
 ## Blueprint Update Rule
 
@@ -467,21 +396,13 @@ Human confirms blueprint
 
 ## Validation Checklist
 
-- [x] NautilusTrader reference study 被总结为 MTPRO 自己的蓝图，不复制外部项目。
-- [x] `mattpocock/skills` 方法论被收敛为 MTPRO 自己的 shared language / feedback loop / diagnosis / handoff 规则。
-- [x] Root Blueprint 和 Complete Blueprint 已统一到根目录 `BLUEPRINT.md`。
-- [x] Goal / Blueprint / Architecture / Roadmap 分工明确。
-- [x] Product / Architecture / Design Blueprint 三线明确。
-- [x] Infrastructure Blueprint、Trading Capability Blueprint 和 Live Gate Blueprint 明确。
-- [x] 旧 `docs/design/mtpro-complete-blueprint.md` 兼容入口已移除，蓝图只维护在根目录 `BLUEPRINT.md`。
-- [x] Complete Blueprint 与 Current Construction Scope 分离。
-- [x] Blueprint -> Architecture -> Roadmap Handoff 明确。
-- [x] Future Construction Zones / 未来建设区明确。
-- [x] Live / signed endpoint / broker / OMS 被标记为 future / gated。
-- [x] 蓝图不创建 Linear Project / Issue。
-- [x] 蓝图不推进 `Todo`。
-- [x] 蓝图不启动 Symphony。
-- [x] 蓝图不写业务代码。
+已确认：
+
+- NautilusTrader reference study 和 `mattpocock/skills` 已收敛为 MTPRO 自己的蓝图、shared language、feedback loop、diagnosis 和 handoff 规则。
+- Root Blueprint 和 Complete Blueprint 已统一到根目录 `BLUEPRINT.md`；旧 `docs/design/mtpro-complete-blueprint.md` 兼容入口已移除。
+- Goal / Blueprint / Architecture / Roadmap 分工明确；Product / Architecture / Design Blueprint 三线明确。
+- Infrastructure Blueprint、Trading Capability Blueprint、Live Gate Blueprint、Blueprint -> Architecture -> Roadmap Handoff、Future Construction Zones / 未来建设区均已明确。
+- Live / signed endpoint / broker / OMS 被标记为 future / gated；蓝图不创建 Linear Project / Issue，不推进 `Todo`，不启动 Symphony，不写业务代码。
 
 ## 执行边界
 
