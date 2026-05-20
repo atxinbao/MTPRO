@@ -7060,3 +7060,46 @@ Commit：
 | `bash checks/automation-readiness.sh` | pass | MTP-66 contract、matrix、validation-plan、frontend contract、product surface、domain term、App source anchors、Dashboard smoke anchor 和 deterministic test anchors 通过。 |
 | `DASHBOARD_SMOKE=1 swift run Dashboard` | pass | 输出 `Dashboard smoke: sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 135 个 XCTest 全部通过；最终输出 `MTPRO checks passed.`。 |
+
+## MTP-67 validation matrix、automation readiness 和 stage audit input material 收口
+
+日期：2026-05-21
+
+执行者：Codex
+
+目的：
+
+- 收口 `MTPRO Live Trading Boundary Definition v1` 的 validation matrix、automation readiness anchor、known boundaries、Dashboard smoke evidence 和 Stage Code Audit input material。
+- 汇总 `MTP-61` 至 `MTP-66` 的 PR evidence、merge commit 和 GitHub required check，为 Parent Codex 最终 Stage Code Audit Report 提供输入。
+- 明确 MTP-67 不输出最终 Stage Code Audit Report，不创建或推进下一 Project / Issue，不启动下一阶段 `symphony-issue`，不实现任何 Live capability。
+
+文件范围：
+
+- Added：
+  - `docs/audit/inputs/mtpro-live-trading-boundary-definition-v1-stage-audit-input.md`
+- Updated：
+  - `docs/contracts/live-trading-boundary-contract.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 production code。
+- 未输出最终 Stage Code Audit Report。
+- 未创建 Linear Project / Issue。
+- 未修改 Linear status。
+- 未启动下一阶段 `symphony-issue`。
+- 未实现 API key、secret storage、signed endpoint、account endpoint、listenKey、broker adapter、`LiveExecutionAdapter`、真实订单、OMS、live command 或交易按钮。
+- 未暴露 adapter request、Runtime object、SQLite / DuckDB schema、SQL、ORM、真实账户或 broker state。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/automation-readiness.sh` | pass | MTP-67 stage audit input、Live boundary contract、latest summary、validation plan、matrix、Dashboard smoke evidence 和关键锚点均可机械定位；输出 `MTPRO automation readiness checks passed.`。 |
+| `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6`；135 个 XCTest 通过；最终输出 `MTPRO checks passed.`。 |

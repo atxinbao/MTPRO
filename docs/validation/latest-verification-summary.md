@@ -55,6 +55,8 @@ MTP-65 的长期验证锚点仍为 `docs/contracts/live-trading-boundary-contrac
 
 MTP-66 的长期验证锚点仍为 `docs/contracts/live-trading-boundary-contract.md` 和 `TVM-LIVE-TRADING-FOUNDATION`，并同时回填 `TVM-REPORT-EVIDENCE` / `TVM-PAPER-WORKFLOW-CONTROL-SHELL`。该锚点在 MTP-65 `LiveReadiness` 基础上新增 Gate 5 Dashboard / Report / Event Timeline read-model-only Live blocked evidence surface；只展示 API key、signed endpoint、account endpoint、listenKey、broker adapter 和 real order lifecycle blocked gates，不实现 live monitoring console、live execution control、live risk control、live audit、live command、交易按钮、API key、signed endpoint、account endpoint、listenKey、broker adapter、Runtime object / persistence schema 暴露、真实订单生命周期或真实交易授权。
 
+MTP-67 的长期验证锚点仍为 `docs/contracts/live-trading-boundary-contract.md` 和 `TVM-LIVE-TRADING-FOUNDATION`，并同时回填 `TVM-REPORT-EVIDENCE` / `TVM-PAPER-WORKFLOW-CONTROL-SHELL` 的阶段收口证据。该锚点新增 Gate 6 Stage validation closeout、`docs/audit/inputs/mtpro-live-trading-boundary-definition-v1-stage-audit-input.md`、`MTP-67-LIVE-BOUNDARY-STAGE-AUDIT-INPUT`、`MTP-67-LIVE-BOUNDARY-VALIDATION-EVIDENCE-CHAIN` 和 `MTP-67-AUTOMATION-READINESS-STAGE-CLOSEOUT`，只准备 Parent Codex Stage Code Audit input material；不输出最终 Stage Code Audit Report，不创建下一 Project / Issue，不推进下一阶段，不启动下一阶段 `symphony-issue`，不实现任何 Live capability。
+
 ## Goal / Roadmap Progress Baseline
 
 ```text
@@ -112,6 +114,23 @@ Stage audit / input 入口：
 - `MTP-60`：Market Data Replay Operations v1 阶段收口。
 
 ## 最近验证
+
+MTP-67 validation matrix、automation readiness 和 stage audit input material 收口已进入当前 issue 验证链：
+
+```bash
+bash checks/automation-readiness.sh
+bash checks/run.sh
+```
+
+当前收口证据：
+
+- Stage Audit input：`docs/audit/inputs/mtpro-live-trading-boundary-definition-v1-stage-audit-input.md`，覆盖 MTP-61 至 MTP-66 的 PR evidence、merge commit、required check、Live trading boundary validation evidence chain、Dashboard smoke、known boundaries、Root Docs Delta input 和 Stage Code Audit handoff checklist。
+- Contract anchors：`MTP-67-LIVE-BOUNDARY-STAGE-CLOSEOUT`、`MTP-67-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-67-NO-FINAL-STAGE-CODE-AUDIT`。
+- Automation readiness anchors：`MTP-67-LIVE-BOUNDARY-STAGE-AUDIT-INPUT`、`MTP-67-LIVE-BOUNDARY-VALIDATION-EVIDENCE-CHAIN`、`MTP-67-AUTOMATION-READINESS-STAGE-CLOSEOUT`。
+- `bash checks/automation-readiness.sh`：pass，MTP-67 stage audit input、contract、matrix、validation plan、latest summary 和 Dashboard smoke anchors 均可机械定位。
+- `bash checks/run.sh`：pass，串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；135 个 XCTest 通过，最终输出 `MTPRO checks passed.`。
+- Dashboard smoke evidence 保持 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; liveBlockedGates=6`。
+- 最终 Stage Code Audit Report 仍必须由 Parent Codex 在有效 issue 全部 `Done` 且 Linear Project `Completed` 后单独输出；MTP-67 不替代最终审计报告。
 
 MTP-66 Dashboard / Report / Event Timeline Live blocked evidence read-model-only surface 已完成：
 
