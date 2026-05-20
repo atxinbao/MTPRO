@@ -189,6 +189,37 @@ Persistence Boundary 必须先于真实 database adapter 实现。
 - 真实 Binance 网络 required validation。
 - Live execution persistence、signed endpoint、broker action 或真实订单行为。
 
+## MTP-58 Market Data Replay Event Log / Projection Consistency 边界
+
+日期：2026-05-20
+
+执行者：Codex
+
+`Runtime` 在本事项中以 append-only event log replay 作为唯一事实源，生成 market data replay projection consistency summary：
+
+- `MarketDataReplayProjectionConsistency` 先校验 event log sequence 连续性，再按 `.market` stream replay。
+- `MarketDataReplayEventLogConsistencyEvidence` 只保存 event log sequence、stream 和 record count evidence，不暴露文件格式或数据库 schema。
+- `MarketDataReplayProjectionSnapshotConsistencySummary` 比较 replay output summary、cache snapshot、SQLite runtime projection 空快照和 DuckDB analytical projection snapshot。
+- SQLite runtime projection 在 market-only replay 中必须保持 Paper / Risk / Portfolio 空快照。
+- DuckDB analytical projection 只以稳定 `DuckDBAnalyticalProjectionSnapshot` 参与比较，不向 UI 暴露 table、column、SQL 或 migration 信息。
+
+契约要求：
+
+- append-only event log 仍是唯一 facts source。
+- projection consistency summary 必须是 read model evidence，不得成为 SQLite / DuckDB schema contract。
+- summary 不读取 adapter request、不暴露 Runtime object、不触发 production data pipeline。
+- schema / source boundary drift、event log drift 或 projection snapshot drift 必须由本地 deterministic tests 拒绝。
+
+本契约不包含：
+
+- 完整数据库 schema 设计。
+- migration framework。
+- production data pipeline。
+- UI 直接读库。
+- database table API、SQL statement API 或 ORM model。
+- Binance signed endpoint、account endpoint、listenKey。
+- Live execution persistence、broker action 或真实订单行为。
+
 ## MTP-28 Risk Blocker / Portfolio Exposure Runtime Projection 边界
 
 日期：2026-05-18

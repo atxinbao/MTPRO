@@ -400,3 +400,27 @@ Shell 新增展示：
 - 数据质量平台、生产数据修复、多节点运行或云端数据湖。
 - SQLite / DuckDB schema、runtime object 或 adapter request 暴露。
 - signed endpoint、account endpoint、listenKey、broker action、Live trading 或真实订单提交 / 撤销 / 替换。
+
+## MTP-58 Market Data Replay Event Log / Projection Consistency
+
+日期：2026-05-20
+
+执行者：Codex
+
+当前产品面新增本地 replay event log / projection snapshot consistency evidence，但仍不新增 Dashboard UI、Report 页面、Event Timeline 接入或 operations console。
+
+边界覆盖：
+
+- replay metadata、freshness evidence 和 deterministic fixture parity evidence 对齐。
+- append-only `.market` event log sequence 与 replay result sequence 一致。
+- event log 中的 `MarketBar` summary 与 replay output summary 一致。
+- cache snapshot 和 DuckDB analytical projection snapshot 均由同一 replay command 重建，并与 replay output summary 一致。
+- market-only replay 保持 SQLite runtime projection 空快照。
+- projection consistency summary 只作为 read-model-only evidence，供后续 Report / Dashboard / Event Timeline issue 消费。
+
+仍不包含：
+
+- Dashboard / Workbench UI 扩展、Report 接入、Event Timeline 接入或完整 operations console。
+- 完整数据库 schema 设计、migration framework、生产数据管线或 production scheduler。
+- SQLite / DuckDB schema、SQL、ORM model、runtime object、adapter request 或 persistence adapter direct read 暴露。
+- signed endpoint、account endpoint、listenKey、broker action、Live trading 或真实订单提交 / 撤销 / 替换。

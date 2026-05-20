@@ -5766,3 +5766,71 @@ Linear live-read：
 | `swift test --filter AdaptersTests/testBatchReplay` | pass | 11 个 focused XCTest，0 failures；覆盖 deterministic fixture parity、replay consistency、metadata count / ordering / checksum drift rejection 和 network boundary drift tests。 |
 | `bash checks/automation-readiness.sh` | pass | 新增 MTP-57 validation matrix、validation plan、contract docs、product surface、source/test anchors 后通过，输出 `MTPRO automation readiness checks passed.`。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 117 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
+
+## MTP-58 event log / projection snapshot consistency evidence
+
+日期：2026-05-20
+
+执行者：Codex Execution Agent
+
+目的：
+
+- 新增 `MTPRO Market Data Replay Operations v1` 第五项 issue 的 event log / projection snapshot consistency evidence。
+- 将 MTP-55 replay metadata、MTP-56 freshness evidence、MTP-57 deterministic replay consistency evidence 与 append-only `.market` event log、replay result、cache snapshot、SQLite runtime projection 空快照和 DuckDB analytical projection snapshot 串联。
+- 更新 contract、read-model projection、persistence boundary、product surface、validation plan、trading validation matrix、latest verification summary 和 automation readiness anchor。
+
+Linear live-read：
+
+- Linear Project：`MTPRO Market Data Replay Operations v1`。
+- 当前 issue：`MTP-58` 为唯一 `In Progress` issue。
+- `MTP-54`、`MTP-55`、`MTP-56` 和 `MTP-57` 已 `Done`。
+- `MTP-59` 和 `MTP-60` 均为 `Backlog`。
+- WIP=1。
+
+文件范围：
+
+- Added：
+  - `Sources/Runtime/MarketDataReplayProjectionConsistency.swift`
+- Updated：
+  - `Tests/RuntimeTests/RuntimeTests.swift`
+  - `docs/contracts/binance-market-data-contract.md`
+  - `docs/contracts/read-model-projection.md`
+  - `docs/contracts/persistence-boundary.md`
+  - `docs/product/product-surface-map.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+
+证据：
+
+- `MarketDataReplayProjectionConsistency` 从本地 batch replay contract、freshness evidence、fixture parity evidence 和 append-only event log facts 生成 consistency summary。
+- `MarketDataReplayEventLogConsistencyEvidence` 验证 `.market` stream sequence、replay result sequence、metadata record count 和 event log record count 一致。
+- `MarketDataReplayProjectionSnapshotConsistencySummary` 验证 replay output summary、event log summary、cache snapshot summary 和 DuckDB analytical projection summary 一致。
+- Tests 验证 market-only replay 不在 SQLite runtime projection 中产生 Paper / Risk / Portfolio 状态。
+- Tests 验证 summary 可 Codable encode / decode，并保持 deterministic equality。
+- Tests 验证 event log drift、projection snapshot drift、schema / runtime source drift 和 non-local replay contract drift 会被拒绝。
+- Trading Validation Matrix 继续使用 `TVM-MARKET-DATA-REPLAY-OPERATIONS`，并由 `checks/automation-readiness.sh` 机械检查 MTP-58 source / tests / docs anchors。
+
+边界确认：
+
+- 不做完整数据库 schema 设计。
+- 不做 migration framework。
+- 不做 production data pipeline。
+- 不接 Dashboard / Report / Event Timeline UI。
+- 不暴露 SQLite / DuckDB schema、SQL、ORM、runtime object、adapter request 或 persistence adapter direct read。
+- 不接 API key、signed endpoint、account endpoint、listenKey、broker action、Live trading 或真实订单提交 / 撤销 / 替换。
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未提交 `.codex/*` 或 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter RuntimeTests` | pass | 7 个 RuntimeTests，0 failures；覆盖 event log / projection consistency、deterministic summary、schema non-exposure、event log drift、projection drift 和 source boundary drift tests。 |
+| `bash checks/automation-readiness.sh` | pass | 新增 MTP-58 Runtime source / tests、validation-plan、matrix、contract docs、product surface anchors 后通过，输出 `MTPRO automation readiness checks passed.`。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |

@@ -144,6 +144,200 @@ final class RuntimeTests: XCTestCase {
         XCTAssertFalse(PersistenceBoundary().exposesDatabaseTablesToUI)
     }
 
+    func testMarketDataReplayProjectionConsistencyLinksEventLogReplayAndSnapshots() throws {
+        // 测试场景：MTP-58 将本地 batch replay output 写入 append-only event log，
+        // 再从同一 replay result 重建 cache / SQLite / DuckDB projection snapshot consistency evidence。
+        let contract = try BinanceMarketDataReplayOperationsFixture.deterministicContract()
+        let summary = try MarketDataReplayProjectionConsistencyFixture.deterministicSummary()
+
+        XCTAssertEqual(summary.batchID, "batch-BTCUSDT-1m-20240101")
+        XCTAssertEqual(summary.replayRunID, "replay-run-BTCUSDT-1m-20240101T000000Z")
+        XCTAssertEqual(summary.symbol, "BTCUSDT")
+        XCTAssertEqual(summary.timeframe, "1m")
+        XCTAssertEqual(summary.freshnessStatus, .fresh)
+        XCTAssertEqual(summary.eventLogEvidence.eventLogStream, "market")
+        XCTAssertEqual(summary.eventLogEvidence.eventLogSequences, [1])
+        XCTAssertEqual(summary.eventLogEvidence.replayResultSequences, [1])
+        XCTAssertTrue(summary.eventLogEvidence.appendOnlyFactsSource)
+        XCTAssertTrue(summary.eventLogEvidence.eventLogMatchesReplayOutput)
+        XCTAssertEqual(summary.metadataRecordCount, 1)
+        XCTAssertEqual(summary.eventLogRecordCount, 1)
+        XCTAssertEqual(summary.replayedRecordCount, 1)
+        XCTAssertEqual(summary.cacheMarketEventCount, 1)
+        XCTAssertEqual(summary.cacheBarCount, 1)
+        XCTAssertEqual(summary.analyticalMarketBarCount, 1)
+        XCTAssertEqual(summary.eventLogLastSequence, 1)
+        XCTAssertEqual(summary.projectionLastAppliedSequence, 1)
+        XCTAssertEqual(summary.replayOutputSummary, summary.cacheSnapshotSummary)
+        XCTAssertEqual(summary.replayOutputSummary, summary.projectionSnapshotSummary)
+        XCTAssertTrue(summary.appendOnlyFactsSource)
+        XCTAssertTrue(summary.eventLogConsistencyHeld)
+        XCTAssertTrue(summary.projectionSnapshotConsistencyHeld)
+        XCTAssertTrue(summary.deterministicProjectionSummary)
+        XCTAssertTrue(summary.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(summary.containsForbiddenCapabilityText(contract.forbiddenCapabilities))
+    }
+
+    func testMarketDataReplayProjectionConsistencySummaryIsCodableDeterministicAndHidesSchema() throws {
+        // 测试场景：projection consistency summary 是后续 UI / Report 可消费的稳定 read model，
+        // 它只携带摘要、计数和边界 flags，不暴露 SQLite / DuckDB schema、SQL、adapter 或 Runtime object。
+        let first = try MarketDataReplayProjectionConsistencyFixture.deterministicSummary()
+        let second = try MarketDataReplayProjectionConsistencyFixture.deterministicSummary()
+
+        XCTAssertEqual(first, second)
+        XCTAssertEqual(
+            first.summaryLine,
+            "batch=batch-BTCUSDT-1m-20240101; replay=replay-run-BTCUSDT-1m-20240101T000000Z; eventLogRecords=1; replayRecords=1; cacheBars=1; analyticalBars=1; projectionLastSequence=1; readModelOnly=true"
+        )
+        XCTAssertTrue(first.source.isReadModelOnly)
+        XCTAssertFalse(first.exposesSQLiteSchema)
+        XCTAssertFalse(first.exposesDuckDBSchema)
+        XCTAssertFalse(first.exposesAdapterRequest)
+        XCTAssertFalse(first.exposesRuntimeObject)
+        XCTAssertFalse(first.exposesSQLStatement)
+        XCTAssertFalse(first.authorizesLiveTrading)
+        XCTAssertFalse(first.touchesBrokerAction)
+        XCTAssertFalse(first.authorizesTradingExecution)
+        XCTAssertFalse(first.authorizesProductionRuntimeOperations)
+        XCTAssertFalse(first.summaryLine.lowercased().contains("sqlite"))
+        XCTAssertFalse(first.summaryLine.lowercased().contains("duckdb"))
+        XCTAssertFalse(first.summaryLine.lowercased().contains("sql"))
+        XCTAssertFalse(first.consistencyEvidence.joined(separator: " ").lowercased().contains("schema"))
+
+        let encoded = try JSONEncoder().encode(first)
+        let decoded = try JSONDecoder().decode(
+            MarketDataReplayProjectionSnapshotConsistencySummary.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, first)
+    }
+
+    func testMarketDataReplayProjectionConsistencyRejectsEventLogAndProjectionDrift() throws {
+        // 测试场景：event log facts 或 projection snapshot 只要与 deterministic replay output 不一致，
+        // MTP-58 evidence 就必须拒绝，避免 replay run -> event log -> projection 链路出现伪一致。
+        let contract = try BinanceMarketDataReplayOperationsFixture.deterministicContract()
+        let freshnessEvidence = try BinanceMarketDataReplayOperationsFixture.deterministicFreshnessEvidence()
+        let replayConsistencyEvidence = try BinanceMarketDataReplayOperationsFixture
+            .deterministicReplayConsistencyEvidence()
+        let envelopes = try MarketDataReplayProjectionConsistencyFixture.deterministicEventLogEnvelopes()
+        let driftedBar = try MarketBar(
+            symbol: try Symbol(rawValue: "BTCUSDT"),
+            timeframe: .oneMinute,
+            interval: try DateRange(
+                start: Date(timeIntervalSince1970: 1_704_067_200),
+                end: Date(timeIntervalSince1970: 1_704_067_260)
+            ),
+            open: 42_000.10,
+            high: 42_100.20,
+            low: 41_900.30,
+            close: 42_051.40,
+            volume: 12.345
+        )
+        let driftedEnvelope = try EventEnvelope(
+            sequence: 1,
+            stream: .market,
+            recordedAt: Date(timeIntervalSince1970: 1_704_067_300),
+            event: .market(.bar(driftedBar))
+        )
+
+        XCTAssertThrowsError(
+            try MarketDataReplayProjectionConsistency.summarize(
+                contract: contract,
+                freshnessEvidence: freshnessEvidence,
+                replayConsistencyEvidence: replayConsistencyEvidence,
+                eventLogEnvelopes: [driftedEnvelope]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? MarketDataReplayProjectionConsistencyError,
+                .eventLogReplayOutputMismatch(
+                    expected: replayConsistencyEvidence.replayOutputSummary,
+                    actual: BinanceMarketDataBatchReplayDeterministicParity
+                        .canonicalReplaySummary(for: [driftedBar])
+                )
+            )
+        }
+
+        let replayBoundary = try PersistenceReplayBoundary(envelopes: envelopes)
+        let command = EventReplayCommand(
+            range: try EventSequenceRange(lowerBound: 1, upperBound: envelopes.count),
+            streams: [.market]
+        )
+
+        XCTAssertThrowsError(
+            try MarketDataReplayProjectionConsistency.summarize(
+                contract: contract,
+                freshnessEvidence: freshnessEvidence,
+                replayConsistencyEvidence: replayConsistencyEvidence,
+                eventLogEnvelopes: envelopes,
+                replayResult: replayBoundary.replay(command),
+                cacheSnapshot: replayBoundary.rebuildMarketDataCache(from: command),
+                runtimeProjectionSnapshot: replayBoundary.rebuildSQLiteRuntimeProjection(from: command),
+                analyticalProjectionSnapshot: DuckDBAnalyticalProjectionSnapshot(
+                    marketBars: [],
+                    lastAppliedSequence: 1
+                )
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? MarketDataReplayProjectionConsistencyError,
+                .analyticalProjectionMismatch(
+                    expected: replayConsistencyEvidence.replayOutputSummary,
+                    actual: []
+                )
+            )
+        }
+    }
+
+    func testMarketDataReplayProjectionConsistencyRejectsSchemaAndLiveBoundaryDrift() throws {
+        // 测试场景：consistency summary 的来源如果暴露 schema / runtime surface，或 replay contract
+        // 退化为真实网络 / production operations，就必须被拒绝，不能进入后续 UI evidence。
+        let contract = try BinanceMarketDataReplayOperationsFixture.deterministicContract()
+        let freshnessEvidence = try BinanceMarketDataReplayOperationsFixture.deterministicFreshnessEvidence()
+        let replayConsistencyEvidence = try BinanceMarketDataReplayOperationsFixture
+            .deterministicReplayConsistencyEvidence()
+        let envelopes = try MarketDataReplayProjectionConsistencyFixture.deterministicEventLogEnvelopes()
+
+        XCTAssertThrowsError(
+            try MarketDataReplayProjectionConsistency.summarize(
+                contract: contract,
+                freshnessEvidence: freshnessEvidence,
+                replayConsistencyEvidence: replayConsistencyEvidence,
+                eventLogEnvelopes: envelopes,
+                source: MarketDataReplayProjectionSourceContract(exposesSQLiteSchema: true)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? MarketDataReplayProjectionConsistencyError,
+                .projectionSourceBoundaryViolation
+            )
+        }
+
+        let nonLocalContract = try BinanceMarketDataBatchReplayContract(
+            metadata: contract.metadata,
+            boundary: BinanceMarketDataBatchReplayBoundary(
+                requiredValidationModes: [.optionalManualNetworkSmoke],
+                isLocalFixtureReplayOnly: false,
+                requiredValidationDependsOnNetwork: true,
+                authorizesProductionRuntimeOperations: true
+            )
+        )
+
+        XCTAssertThrowsError(
+            try MarketDataReplayProjectionConsistency.summarize(
+                contract: nonLocalContract,
+                freshnessEvidence: freshnessEvidence,
+                replayConsistencyEvidence: replayConsistencyEvidence,
+                eventLogEnvelopes: envelopes
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? MarketDataReplayProjectionConsistencyError,
+                .nonLocalReplayEvidence
+            )
+        }
+    }
+
     private func makeWorkflow(
         transport: MockBinancePublicMarketDataTransport,
         sqliteRuntimeProjectionAdapter: SQLiteRuntimeProjectionAdapter? = nil
