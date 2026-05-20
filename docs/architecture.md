@@ -1,10 +1,12 @@
-# ARCHITECTURE.md
+# docs/architecture.md
 
-## 架构定位
+## 工程模块地图定位
 
 MTPRO 是 Swift-only macOS 交易研究工作台。
 
-本文档是 Architecture Map / 设计基线。它记录当前采用的模块地图、目标数据流、依赖方向和不变量；不作为 Stage Code Audit、validation 或 PR evidence 流水账。已完成 Project 的事实证据进入 `docs/audit/`、`docs/validation/` 和 `verification.md`。
+本文档是 Engineering Module Map / 工程模块地图。它是 `BLUEPRINT.md` 的二级权重承接文档，负责把完整蓝图翻译成系统模块、模块边界、数据流、接口关系、依赖方向和架构不变量。
+
+本文档不能推翻 `BLUEPRINT.md`，不重新定义产品目标，不作为 Stage Code Audit、validation 或 PR evidence 流水账。已完成 Project 的事实证据进入 `docs/audit/`、`docs/validation/` 和 `verification.md`。
 
 架构借鉴 NautilusTrader 的职责拆分：Kernel、MessageBus、Cache、DataEngine、StrategyEngine、RiskEngine、ExecutionEngine、Portfolio 和 Adapter。
 

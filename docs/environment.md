@@ -1,4 +1,8 @@
-# ENVIRONMENT.md
+# docs/environment.md
+
+本文档是运行 / 验证 / 外部系统边界文档。它是 `BLUEPRINT.md` 的二级权重承接文档，只定义当前本地环境、验证入口和外部系统使用禁区，不定义产品目标、工程模块或施工路线。
+
+本文档不能推翻 `BLUEPRINT.md`，也不授权 Linear Project / Issue、`Todo` 推进、Symphony 启动或业务代码修改。
 
 ## 基线环境
 

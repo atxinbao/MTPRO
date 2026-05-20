@@ -99,7 +99,7 @@ Post-Issue Ledger 做五件事：
 
 - 不把下一个 issue 改成 `Todo`。
 - 不创建 Linear issue。
-- 不修改 `ROADMAP.md`。
+- 不修改 `docs/roadmap.md`。
 - 不修改业务代码。
 - 不启动 Symphony。
 - 不决定下一阶段目标。

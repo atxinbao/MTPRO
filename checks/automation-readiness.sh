@@ -34,6 +34,9 @@ require_file ".github/pull_request_template.md"
 require_file ".gitignore"
 require_file ".graphifyignore"
 require_file "BLUEPRINT.md"
+require_file "docs/architecture.md"
+require_file "docs/environment.md"
+require_file "docs/roadmap.md"
 require_file "docs/domain/context.md"
 require_file "docs/automation/agent-engineering-practices.md"
 require_file "docs/automation/automation-readiness.md"
@@ -65,6 +68,12 @@ require_file "docs/validation/macos-build-run-loop.md"
 require_file "docs/validation/trading-validation-matrix.md"
 require_file "docs/validation/validation-plan.md"
 require_file "verification.md"
+
+for legacy_root_doc in "ARCHITECTURE.md" "ENVIRONMENT.md" "ROADMAP.md"; do
+  if [[ -e "$legacy_root_doc" ]]; then
+    fail "secondary-weight docs must live under docs/: $legacy_root_doc"
+  fi
+done
 
 if find docs/validation -maxdepth 1 -type f -name 'mtp-*-stage-*' | grep -q .; then
   fail "Project stage evidence / audit input files must live under docs/audit/inputs/"
@@ -131,7 +140,7 @@ require_contains "docs/automation/parent-codex-supervision.md" "Current Phase Pr
 require_contains "docs/automation/parent-codex-supervision.md" "当前阶段完成进度条"
 require_contains "docs/automation/parent-codex-supervision.md" "Current Foundation Progress"
 require_contains "docs/automation/parent-codex-supervision.md" "Final Product Goal Progress"
-require_contains "docs/automation/parent-codex-supervision.md" '基于当前 `GOAL.md` 和 `ROADMAP.md` 的两层目标切片计算'
+require_contains "docs/automation/parent-codex-supervision.md" '基于当前 `GOAL.md` 和 `docs/roadmap.md` 的两层目标切片计算'
 require_contains "docs/automation/parent-codex-supervision.md" 'Project closure 数量必须单独输出为 `Project Closure Count`'
 require_contains "docs/automation/parent-codex-supervision.md" 'Linear Project status 已设置或确认为 `Completed`'
 require_contains "docs/automation/parent-codex-supervision.md" "Project Closure Count"
@@ -235,7 +244,7 @@ require_contains "GOAL.md" "实盘监控台"
 require_contains "GOAL.md" "实盘执行控制"
 require_contains "GOAL.md" "实盘风险控制"
 require_contains "GOAL.md" "实盘审计 / 事故回放 / 停机控制"
-require_contains "GOAL.md" '完整 9 项目标切片、状态和证据口径见 `ROADMAP.md`'
+require_contains "GOAL.md" '完整 9 项目标切片、状态和证据口径见 `docs/roadmap.md`'
 require_contains "GOAL.md" '`GOAL.md` 不复制维护详细进度表'
 require_contains "GOAL.md" '不把 `BLUEPRINT.md` 中的 Future Construction Zones / 未来建设区自动转成当前 execution scope'
 if [[ -e "docs/design/mtpro-complete-blueprint.md" ]]; then
@@ -245,10 +254,11 @@ require_contains "BLUEPRINT.md" "Root Blueprint"
 require_contains "BLUEPRINT.md" "Complete Blueprint"
 require_contains "BLUEPRINT.md" "canonical Root / Complete Blueprint"
 require_contains "BLUEPRINT.md" "Root Docs Responsibility Contract"
-require_contains "BLUEPRINT.md" "Goal / Blueprint / Architecture / Roadmap 分工明确"
+require_contains "BLUEPRINT.md" "Goal / Blueprint / Engineering Module / Roadmap 分工明确"
 require_contains "BLUEPRINT.md" "Blueprint Update Rule"
 require_contains "BLUEPRINT.md" "默认读取顺序"
 require_contains "BLUEPRINT.md" '不再维护 `docs/design/` 下的兼容蓝图入口'
+require_contains "BLUEPRINT.md" '二级权重文档'
 require_contains "BLUEPRINT.md" "Blueprint Design Lenses"
 require_contains "BLUEPRINT.md" "Product Blueprint / 产品蓝图"
 require_contains "BLUEPRINT.md" "Architecture Blueprint / 架构蓝图"
@@ -265,7 +275,7 @@ require_contains "BLUEPRINT.md" "实盘监控台"
 require_contains "BLUEPRINT.md" "实盘执行控制"
 require_contains "BLUEPRINT.md" "实盘风险控制"
 require_contains "BLUEPRINT.md" "实盘审计 / 事故回放 / 停机控制"
-require_contains "BLUEPRINT.md" '承接 `BLUEPRINT.md`，把蓝图翻译为系统模块、边界、数据流、接口、约束和技术分层'
+require_contains "BLUEPRINT.md" '承接 `BLUEPRINT.md`，把蓝图翻译为工程模块、模块边界、数据流、接口、约束和技术分层'
 require_contains "BLUEPRINT.md" "Product / Architecture / Design Blueprint 三线明确"
 require_contains "BLUEPRINT.md" "Complete Capability Map"
 require_contains "BLUEPRINT.md" "docs/domain/context.md"
@@ -283,6 +293,8 @@ require_contains "BLUEPRINT.md" "只有 Linear live-read 中唯一 configured ex
 require_contains "README.md" "BLUEPRINT.md"
 require_contains "README.md" "AEP 方法论"
 require_contains "README.md" "BLUEPRINT.md"
+require_contains "README.md" "Engineering Module Map / 工程模块地图"
+require_contains "README.md" "根据蓝图和工程模块定义施工顺序"
 require_contains "README.md" "docs/domain/context.md"
 require_contains "README.md" "mattpocock/skills"
 require_contains "AGENTS.md" "BLUEPRINT.md"
@@ -290,7 +302,8 @@ require_contains "AGENTS.md" "docs/domain/context.md"
 require_contains "AGENTS.md" "docs/automation/agent-engineering-practices.md"
 require_contains "AGENTS.md" "Project Charter"
 require_contains "AGENTS.md" "Root Blueprint"
-require_contains "AGENTS.md" "Architecture Map"
+require_contains "AGENTS.md" "Engineering Module Map"
+require_contains "AGENTS.md" "工程模块地图"
 require_contains "AGENTS.md" "Construction Plan"
 require_contains "AGENTS.md" "Complete Blueprint Design"
 require_contains "AGENTS.md" "当前阶段完成进度条"
@@ -300,9 +313,15 @@ require_contains "AGENTS.md" "不写入蓝图文档"
 require_contains "AGENTS.md" 'Human + `@000 / AIE`'
 require_contains "AGENTS.md" "Future Construction Zones / 未来建设区"
 require_contains "AGENTS.md" '不启动 `@002 / PAR`'
-require_contains "ROADMAP.md" "Current Foundation Progress"
-require_contains "ROADMAP.md" "Final Product Goal Progress"
-require_contains "ROADMAP.md" "Final Product Progress"
+require_contains "docs/roadmap.md" "Current Foundation Progress"
+require_contains "docs/roadmap.md" "Final Product Goal Progress"
+require_contains "docs/roadmap.md" "Final Product Progress"
+require_contains "docs/roadmap.md" "根据蓝图和工程模块定义施工顺序"
+require_contains "docs/architecture.md" "Engineering Module Map / 工程模块地图"
+require_contains "docs/architecture.md" "把完整蓝图翻译成系统模块、模块边界、数据流、接口关系、依赖方向和架构不变量"
+require_contains "docs/architecture.md" '不能推翻 `BLUEPRINT.md`'
+require_contains "docs/environment.md" "运行 / 验证 / 外部系统边界"
+require_contains "docs/environment.md" '不能推翻 `BLUEPRINT.md`'
 require_contains "docs/validation/latest-verification-summary.md" "Current Foundation Progress: 4 / 4 (100%)"
 require_contains "docs/validation/latest-verification-summary.md" "Final Product Goal Progress: 4 / 9 (44%)"
 for planning_record in \

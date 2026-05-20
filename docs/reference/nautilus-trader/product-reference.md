@@ -8,7 +8,7 @@
 
 本文档只执行 MTPRO NautilusTrader Reference Study 的 Product Reference 部分。
 
-本文档不创建 Linear Project / Issue，不推进 `Todo`，不启动 Symphony，不写业务代码，不直接修改 `GOAL.md` 或 `ROADMAP.md`。
+本文档不创建 Linear Project / Issue，不推进 `Todo`，不启动 Symphony，不写业务代码，不直接修改 `GOAL.md` 或 `docs/roadmap.md`。
 
 ## 研究目标
 
@@ -321,9 +321,9 @@ MTPRO 不试图成为 NautilusTrader 的 Swift 复刻，也不覆盖多 venue / 
 
 - 防止后续规划膨胀到全功能 trading platform。
 
-## 对 ROADMAP.md 的候选 delta proposal
+## 对 docs/roadmap.md 的候选 delta proposal
 
-以下为候选修改建议，不在本任务中直接修改 `ROADMAP.md`。
+以下为候选修改建议，不在本任务中直接修改 `docs/roadmap.md`。
 
 ### Proposal R1：下一阶段增加 Product Reference Synthesis Gate
 

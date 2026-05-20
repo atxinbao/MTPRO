@@ -8,7 +8,7 @@
 
 本文档是 `MTPRO NautilusTrader Reference Study` 的 Architecture Reference 部分，只提炼 NautilusTrader 对 MTPRO 的架构参考价值。
 
-本文档不创建 Linear Project / Issue，不推进 Todo，不启动 Symphony，不写业务代码，不直接修改 `ARCHITECTURE.md`、`ENVIRONMENT.md` 或 `ROADMAP.md`。
+本文档不创建 Linear Project / Issue，不推进 Todo，不启动 Symphony，不写业务代码，不直接修改 `docs/architecture.md`、`docs/environment.md` 或 `docs/roadmap.md`。
 
 NautilusTrader 只作为系统结构、模块边界、事件流、重放、适配器、运行时、执行、风险和组合语义参考。MTPRO 不复制 NautilusTrader 代码，不引入 NautilusTrader 作为运行依赖。
 
@@ -254,9 +254,9 @@ MTPRO 当前边界：
 
 ## 候选 Delta Proposal
 
-以下只是候选修改建议，不在本任务中直接改 `ARCHITECTURE.md`、`ENVIRONMENT.md` 或 `ROADMAP.md`。
+以下只是候选修改建议，不在本任务中直接改 `docs/architecture.md`、`docs/environment.md` 或 `docs/roadmap.md`。
 
-### ARCHITECTURE.md 候选 delta
+### docs/architecture.md 候选 delta
 
 建议补强三个表述：
 
@@ -277,7 +277,7 @@ Strategy Signal
 
 3. 在“不变量”中增加：Paper / Live 不共用 adapter capability；任何 LiveExecutionAdapter、ExecutionClient、signed endpoint、account state、broker reconciliation 都必须由未来 Human Project 明确授权。
 
-### ENVIRONMENT.md 候选 delta
+### docs/environment.md 候选 delta
 
 建议在“外部系统边界”增加：
 
@@ -285,7 +285,7 @@ Strategy Signal
 - Reference study 可以读取 GitHub / official docs / Rust API / Python API；不得复制源码到 MTPRO，不得新增运行依赖。
 - Live reconciliation、ExecutionClient、broker account、signed endpoint 相关内容只作为未来禁区说明，不进入本地验证路径。
 
-### ROADMAP.md 候选 delta
+### docs/roadmap.md 候选 delta
 
 建议在“产品路线”或“非授权边界”增加：
 

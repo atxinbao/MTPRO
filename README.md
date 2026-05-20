@@ -12,9 +12,9 @@ Agent 进入仓库时按以下顺序读取：
 2. `AGENTS.md`
 3. `GOAL.md`
 4. `BLUEPRINT.md`
-5. `ENVIRONMENT.md`
-6. `ARCHITECTURE.md`
-7. `ROADMAP.md`
+5. `docs/environment.md`
+6. `docs/architecture.md`
+7. `docs/roadmap.md`
 8. `docs/domain/context.md`
 9. `docs/validation/latest-verification-summary.md`
 
@@ -49,7 +49,7 @@ Linear Project / Issues
 -> GitHub PR Automation
 ```
 
-`ROADMAP.md`、planning record、Backlog issue、label、priority、assignee 或文档摘要都不授权执行。
+`docs/roadmap.md`、planning record、Backlog issue、label、priority、assignee 或文档摘要都不授权执行。
 
 ## 代码结构
 
@@ -76,9 +76,9 @@ Tests/
 | --- | --- |
 | `GOAL.md` | Project Charter：项目使命、用户、硬边界和成功标准 |
 | `BLUEPRINT.md` | Canonical Blueprint：Root Blueprint + Complete Blueprint，项目总览、完整产品 / 系统 / 设计蓝图、Current / Future 边界 |
-| `ARCHITECTURE.md` | Architecture Map：模块地图、设计基线、数据流、不变量 |
-| `ROADMAP.md` | Construction Plan：阶段地图、目标进度和非授权边界 |
-| `ENVIRONMENT.md` | 本地环境、验证入口、外部系统边界 |
+| `docs/architecture.md` | Engineering Module Map / 工程模块地图：根据蓝图拆工程模块、边界、数据流和不变量 |
+| `docs/roadmap.md` | Construction Plan：根据蓝图和工程模块定义施工顺序、目标进度和非授权边界 |
+| `docs/environment.md` | 本地环境、验证入口、外部系统边界 |
 | `AGENTS.md` | Agent / Codex 行为规则 |
 | `docs/domain/context.md` | Shared Language：领域术语和禁止混用词 |
 | `docs/automation/agent-engineering-practices.md` | 从 `mattpocock/skills` 吸收的 feedback loop、tracer bullet、diagnose、architecture deepening 方法 |

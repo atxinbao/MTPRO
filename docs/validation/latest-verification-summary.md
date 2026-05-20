@@ -19,9 +19,9 @@ README.md
 -> AGENTS.md
 -> GOAL.md
 -> BLUEPRINT.md
--> ENVIRONMENT.md
--> ARCHITECTURE.md
--> ROADMAP.md
+-> docs/environment.md
+-> docs/architecture.md
+-> docs/roadmap.md
 -> docs/domain/context.md
 -> docs/validation/latest-verification-summary.md
 ```
@@ -37,7 +37,7 @@ README.md
 | Planning record | `docs/planning/projects/mtpro-market-data-replay-operations-v1-plan.md` |
 | Linear Project status | Linear Project status `Completed`，`type=completed`，`completedAt=2026-05-20T08:23:20Z` |
 | Stage Code Audit Report | `docs/audit/mtpro-market-data-replay-operations-v1-stage-code-audit.md`，已覆盖完整 Linear Project |
-| Root Docs Refresh Gate | 已 closure；Root Docs Delta 已同步到 `GOAL.md`、`ARCHITECTURE.md`、`ROADMAP.md`，`ENVIRONMENT.md` no update needed |
+| Root Docs Refresh Gate | 已 closure；Root Docs Delta 已同步到 `GOAL.md`、`docs/architecture.md`、`docs/roadmap.md`，`docs/environment.md` no update needed |
 | Current Foundation Progress | 4 / 4（100%） |
 | Final Product Goal Progress | 4 / 9（44%） |
 
@@ -99,7 +99,7 @@ Stage audit / input 入口：
 
 ## 最近验证
 
-本轮 Blueprint Boundary Chinese Labels 已完成：
+本轮 Secondary Weight Docs Rehome 已完成：
 
 ```bash
 git diff --check
@@ -115,12 +115,15 @@ bash checks/run.sh
 - Dashboard smoke：`sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`。
 - XCTest：121 tests, 0 failures。
 
-本轮 docs-only Blueprint boundary label evidence：
+本轮 docs-only second-tier docs evidence：
 
-- `BLUEPRINT.md`
-- `GOAL.md`
-- `ROADMAP.md`
+- `README.md`
 - `AGENTS.md`
+- `GOAL.md`
+- `BLUEPRINT.md`
+- `docs/architecture.md`
+- `docs/environment.md`
+- `docs/roadmap.md`
 - `docs/domain/context.md`
 - `docs/planning/project-role-map.md`
 - `checks/automation-readiness.sh`
@@ -132,6 +135,7 @@ bash checks/run.sh
 - Root docs、planning record、Backlog issue、label、priority、assignee 都不授权执行。
 - Complete Blueprint Design 不创建 Linear Project / Issue，不修改 Linear status，不推进 `Todo`，不启动 `@002 / PAR`，不启动 Symphony，不写业务代码。
 - `BLUEPRINT.md` 可以描述 Future Construction Zones / 未来建设区，但不能把 future capability 变成当前执行 scope；蓝图本体只维护在根目录 `BLUEPRINT.md`。
+- `docs/architecture.md`、`docs/environment.md` 和 `docs/roadmap.md` 是二级权重文档，只能承接并细化 `BLUEPRINT.md`，不能推翻蓝图。
 - 当前唯一 configured executable issue 必须从 Linear live-read 和 Parent Codex queue preview 获取。
 - Paper execution / order / fill / portfolio 语义全部是 paper-only evidence，不代表真实订单、真实成交、broker fill、account state 或 Live fallback。
 - Market data replay operations 自动验证只使用本地 fixture / batch replay evidence，不依赖真实 Binance 网络。

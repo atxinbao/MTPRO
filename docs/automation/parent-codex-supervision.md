@@ -156,9 +156,9 @@ Next Human Project Planning 必须读取该文件。
 Stage Code Audit Report 合并后，Parent Codex 必须检查：
 
 - `GOAL.md`
-- `ENVIRONMENT.md`
-- `ARCHITECTURE.md`
-- `ROADMAP.md`
+- `docs/environment.md`
+- `docs/architecture.md`
+- `docs/roadmap.md`
 
 Root Docs Delta 只同步已发生事实。
 
@@ -170,7 +170,7 @@ Root Docs Refresh Gate closure 后，Parent Codex 必须输出当前阶段完成
 
 进度条是 Current Foundation Progress 和 Final Product Goal Progress 摘要，不是蓝图内容，不写入 `BLUEPRINT.md`，不授权下一阶段执行。
 
-进度条必须基于当前 `GOAL.md` 和 `ROADMAP.md` 的两层目标切片计算，而不是直接用 Project closure 数量计算，也不是基于未授权方向计算。
+进度条必须基于当前 `GOAL.md` 和 `docs/roadmap.md` 的两层目标切片计算，而不是直接用 Project closure 数量计算，也不是基于未授权方向计算。
 
 - Current Foundation Progress：当前已批准、已执行、已 closure 的 foundation 目标切片。
 - Final Product Goal Progress：完整专业交易工作台产品目标切片，包括仍处于 Pending / gated 的 future capability。
