@@ -311,9 +311,43 @@ MTP-66 的展示层不得暴露内部实现面：
 - 不暴露 SQLite / DuckDB schema、SQL、ORM、table、column 或 persistence adapter direct read。
 - 不读取 API key、secret、account data，不调用 signed endpoint、account endpoint 或 listenKey。
 
+## MTP-67 Stage validation closeout / 阶段验证收口
+
+日期：2026-05-21
+
+执行者：Codex
+
+`MTP-67-LIVE-BOUNDARY-STAGE-CLOSEOUT`
+
+MTP-67 固定 Gate 6 的阶段验证收口方式：只汇总 MTP-61 至 MTP-66 的 contract、validation matrix、automation readiness、Dashboard smoke、PR evidence 和 Stage Code Audit input material。该 gate 不输出最终 Stage Code Audit Report，不修改 Linear status，不创建下一 Project / Issue，不启动下一阶段 `symphony-issue`，不实现任何 Live capability。
+
+`MTP-67-STAGE-AUDIT-INPUT-MATERIAL`
+
+MTP-67 的 Stage Audit input 必须落在：
+
+```text
+docs/audit/inputs/mtpro-live-trading-boundary-definition-v1-stage-audit-input.md
+```
+
+该输入材料必须覆盖：
+
+- `MTP-61` 至 `MTP-66` 的 PR evidence、merge commit 和 GitHub required check。
+- `TVM-LIVE-TRADING-FOUNDATION`、`TVM-REPORT-EVIDENCE` 和 `TVM-PAPER-WORKFLOW-CONTROL-SHELL` 的 evidence chain。
+- Dashboard smoke `sections=8`、`readModelOnly=true`、`workbenchReadModelOnly=true`、`controls=start,pause,close,reset`、`liveBlockedGates=6`。
+- Known boundaries：API key、secret storage、signed endpoint、account endpoint、listenKey、broker adapter、`LiveExecutionAdapter`、真实订单、OMS、live command、交易按钮、schema / adapter / runtime exposure 均未实现。
+- Root Docs Delta input 和 Stage Code Audit handoff checklist。
+
+`MTP-67-NO-FINAL-STAGE-CODE-AUDIT`
+
+MTP-67 不能替代 Parent Codex 的最终 Stage Code Audit Report。最终报告只能在有效 issue 全部 `Done`、Linear Project status `Completed`、`type=completed`、`completedAt` 非空后，由 Parent Codex 单独输出到：
+
+```text
+docs/audit/mtpro-live-trading-boundary-definition-v1-stage-code-audit.md
+```
+
 ## Current allowed evidence
 
-MTP-61 至 MTP-66 当前只允许产生以下 evidence：
+MTP-61 至 MTP-67 当前只允许产生以下 evidence：
 
 - Live trading foundation taxonomy。
 - Gate sequence。
@@ -323,6 +357,7 @@ MTP-61 至 MTP-66 当前只允许产生以下 evidence：
 - Gate 3 real order lifecycle terminology / future gates / forbidden tests。
 - Gate 4 Live readiness blocked read model / LiveBlockedEvidence deterministic snapshot。
 - Gate 5 Dashboard / Report / Event Timeline Live blocked evidence read-model-only surface。
+- Gate 6 validation matrix / automation readiness / stage audit input material closeout。
 - Validation matrix anchor。
 - Automation readiness anchor。
 - PR evidence 和 `bash checks/run.sh` 摘要。
@@ -401,3 +436,10 @@ MTP-66 必须满足：
 - `checks/automation-readiness.sh` 必须检查 `MTP-66-LIVE-BLOCKED-EVIDENCE-SURFACE`、`MTP-66-DASHBOARD-REPORT-EVENT-TIMELINE-READ-MODEL`、`MTP-66-NO-LIVE-COMMAND-OR-BUTTON` 和 `MTP-66-SCHEMA-ADAPTER-RUNTIME-NON-EXPOSURE`。
 - `Tests/AppTests/AppTests.swift` 必须覆盖 `LiveTradingBlockedEvidenceViewModel` deterministic snapshot、Report 汇总字段、Event Timeline `live trading blocked evidence` 分区、Dashboard shell `Live gates` 指标、Dashboard smoke `liveBlockedGates` evidence 和 no command / no button / no schema / no adapter / no runtime boundary。
 - PR evidence 必须确认没有 live command、交易按钮、API key、secret storage、signed endpoint、account endpoint、listenKey、broker adapter、Runtime object / persistence schema 暴露、真实订单生命周期或任何真实交易授权。
+
+MTP-67 必须满足：
+
+- `bash checks/run.sh` 通过。
+- `checks/automation-readiness.sh` 必须检查 `MTP-67-LIVE-BOUNDARY-STAGE-CLOSEOUT`、`MTP-67-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-67-NO-FINAL-STAGE-CODE-AUDIT`、`MTP-67-LIVE-BOUNDARY-STAGE-AUDIT-INPUT`、`MTP-67-LIVE-BOUNDARY-VALIDATION-EVIDENCE-CHAIN` 和 `MTP-67-AUTOMATION-READINESS-STAGE-CLOSEOUT`。
+- `docs/audit/inputs/mtpro-live-trading-boundary-definition-v1-stage-audit-input.md` 必须汇总 MTP-61 至 MTP-66 PR evidence、merge commit、required check、validation evidence chain、Dashboard smoke、known boundaries、Root Docs Delta input 和 Stage Code Audit handoff checklist。
+- PR evidence 必须确认 MTP-67 不输出最终 Stage Code Audit Report，不修改 Linear status，不创建下一 Project / Issue，不启动下一阶段 `symphony-issue`，不实现任何 API key、secret storage、signed endpoint、account endpoint、listenKey、broker adapter、`LiveExecutionAdapter`、真实订单、OMS、live command 或交易按钮。
