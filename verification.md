@@ -6155,3 +6155,56 @@ Next Handoff: Human + @001 / PLN
 | `git diff --check` | pass | docs-only methodology 变更无 whitespace error。 |
 | `bash checks/automation-readiness.sh` | pass | shared language、agent engineering practices、Root Blueprint 读序和关键锚点通过。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
+
+## Root Docs Compression Pass After Skills Integration
+
+日期：2026-05-20
+
+执行者：Codex
+
+目的：
+
+- 基于 `mattpocock/skills` 方法论整合后的版本，从 `README.md` 开始再压缩一轮默认读路径。
+- 保持 `README.md` 为仓库入口，`BLUEPRINT.md` 为 Root Blueprint，`AGENTS.md` 为行为边界，`docs/domain/context.md` 为 shared language，`docs/automation/agent-engineering-practices.md` 为方法论入口，`docs/validation/latest-verification-summary.md` 为轻量验证入口。
+- 删除重复解释，保留必要锚点和 automation readiness 机械检查。
+
+文件范围：
+
+- Updated：
+  - `README.md`
+  - `AGENTS.md`
+  - `BLUEPRINT.md`
+  - `checks/automation-readiness.sh`
+  - `docs/domain/context.md`
+  - `docs/automation/agent-engineering-practices.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- docs / checks only。
+- 未创建 Linear Project。
+- 未创建 Linear issue。
+- 未修改 Linear status。
+- 未推进 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+压缩结果：
+
+- 默认入口相关文档从 1054 行压缩到约 965 行。
+- `AGENTS.md` 将角色长解释收回 `docs/planning/project-role-map.md`。
+- `docs/domain/context.md` 合并 Project / Execution 术语表。
+- `docs/automation/agent-engineering-practices.md` 保留规则和锚点，减少解释性展开。
+- `docs/validation/latest-verification-summary.md` 保持轻量入口，不复制完整 audit/input 路径清单。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | docs compression 变更无 whitespace error。 |
+| `bash checks/automation-readiness.sh` | pass | root docs、shared language、skills practices、latest summary 和关键锚点通过。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |

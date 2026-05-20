@@ -578,9 +578,8 @@ require_contains "docs/audit/mtpro-runtime-research-workbench-v1-stage-code-audi
 require_contains "docs/audit/mtpro-runtime-research-workbench-v1-stage-code-audit.md" "Known CI Boundary / 临时失败说明"
 require_contains "docs/audit/mtpro-runtime-research-workbench-v1-stage-code-audit.md" "无当前遗留 failing PR run"
 
-require_contains "AGENTS.md" "Linear issue 中已填写的 Scope / Non-goals / Codex Instructions / Validation / Boundary / PR Requirements 是 Codex Execution Agent 的执行合同"
-require_contains "AGENTS.md" "不二次确认 issue scope"
-require_contains "AGENTS.md" "Project Planning Facilitator 只负责阶段规划"
+require_contains "AGENTS.md" "Linear issue 的 Scope / Non-goals / Codex Instructions / Validation / Boundary / PR Requirements 是 Codex Execution Agent 的执行合同"
+require_contains "AGENTS.md" "Project Planning Facilitator 只做规划和草案"
 require_contains "AGENTS.md" "active Project pointer"
 require_contains "AGENTS.md" '第一个 issue 和后续 issue 的 `Backlog` -> `Todo` 操作都只能由父 Codex'
 require_contains "AGENTS.md" "docs/validation/latest-verification-summary.md"
@@ -624,12 +623,7 @@ require_contains "docs/validation/latest-verification-summary.md" "Root Docs Del
 require_contains "docs/validation/latest-verification-summary.md" 'Linear Project status `Completed`'
 require_contains "docs/validation/latest-verification-summary.md" 'type=completed'
 require_contains "docs/validation/latest-verification-summary.md" 'completedAt'
-require_contains "docs/validation/latest-verification-summary.md" "docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md"
 require_contains "docs/validation/latest-verification-summary.md" "docs/audit/inputs/"
-require_contains "docs/validation/latest-verification-summary.md" "docs/audit/inputs/mtpro-paper-session-runtime-v1-stage-audit-input.md"
-require_contains "docs/validation/latest-verification-summary.md" "docs/audit/inputs/mtpro-paper-execution-workflow-v1-stage-audit-input.md"
-require_contains "docs/validation/latest-verification-summary.md" "docs/audit/inputs/mtpro-paper-workflow-control-shell-v1-stage-audit-input.md"
-require_contains "docs/validation/latest-verification-summary.md" "docs/audit/inputs/mtpro-market-data-replay-operations-v1-stage-audit-input.md"
 
 require_absent ".github/workflows/checks.yml" "pull_request_target"
 
