@@ -57,6 +57,10 @@ Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`
 - `MTP-59` 的 Linear issue body 是本轮执行合同；scope 限定为 Report / Dashboard / Event Timeline read-model-only evidence 接入、batch id、replay run id、freshness status、retention status、projection consistency summary、Dashboard smoke 和 deterministic App tests。
 - 本轮 MTP-60 执行前 live-read 确认：`MTP-60` 为唯一 `In Progress` issue，`MTP-54`、`MTP-55`、`MTP-56`、`MTP-57`、`MTP-58` 和 `MTP-59` 已 `Done`，WIP=1。
 - `MTP-60` 的 Linear issue body 是本轮执行合同；scope 限定为 validation evidence、automation readiness anchor、Dashboard smoke evidence、known boundaries 和 Stage Code Audit input material；最终 Stage Code Audit Report 仍由 Parent Codex 在 Project 全部 Done 后单独输出。
+- 本轮 queue closure（2026-05-20）确认 `MTPRO Market Data Replay Operations v1` 中 canonical issues `MTP-54`、`MTP-55`、`MTP-56`、`MTP-57`、`MTP-58`、`MTP-59`、`MTP-60` 全部 `Done`。
+- Linear Project status `Completed` 已由 `@002 / PAR` 设置并确认，`type=completed`，`completedAt=2026-05-20T08:23:20Z`。
+- Stage Code Audit Report 已覆盖完整 Linear Project，路径为 `docs/audit/mtpro-market-data-replay-operations-v1-stage-code-audit.md`。
+- Root Docs Refresh Gate 尚未执行；本报告合并后必须由 `@002 / PAR` 单独检查 `GOAL.md`、`ENVIRONMENT.md`、`ARCHITECTURE.md`、`ROADMAP.md`，并只同步已发生事实。
 - 本轮 queue closure（2026-05-19）确认 `MTPRO Paper Execution Workflow v1` 中 canonical issues `MTP-38`、`MTP-39`、`MTP-40`、`MTP-41`、`MTP-42`、`MTP-44`、`MTP-45` 全部 `Done`；`MTP-43`、`MTP-46` 为 `Duplicate` 并排除。
 - `MTP-45` 新增 Project 级 Stage Audit Input，路径为 `docs/audit/inputs/mtpro-paper-execution-workflow-v1-stage-audit-input.md`；Parent Codex 已基于该输入落仓 canonical Stage Code Audit Report。
 - 本轮 MTP-42 paper execution event log / replay / projection focused Core 链路已通过 `swift test --filter CoreTests/testPaperExecution`；最终 `bash checks/run.sh` 结果见本文件最近验证表和 `verification.md` 追加记录。
@@ -246,8 +250,8 @@ Current Project Planning Record：`docs/planning/projects/mtpro-market-data-repl
 - MTP-58 明确拒绝 event log drift、projection snapshot drift、schema / source boundary drift 和非本地 replay contract drift，并保持 signed endpoint、account endpoint、listenKey、broker action、Live trading、真实订单和 production operations 禁区。
 - MTP-59 只把 replay operations、retention / freshness 和 projection consistency evidence 接入 Report / Dashboard / Event Timeline read model；不实现完整 UI redesign、production operations console、Runtime command、retention cleanup、projection rebuild、真实历史下载器或 production scheduler。
 - MTP-59 的 App read model 只能复制已验证 summary 字段，必须保持 read-model-only、schema non-exposure、no Runtime object、no adapter request、no command surface、no signed endpoint、no broker action、no Live trading、no real order 和 no production runtime operations。
-- MTP-60 只准备 Stage Code Audit 输入材料、validation docs、automation readiness anchor 和 Dashboard smoke evidence；不输出最终 Stage Code Audit Report，不创建下一 Project / Issue，不推进下一 Project / Issue，不启动下一阶段 `symphony-issue`。
-- MTP-60 Stage Audit Input 只服务 Parent Codex Project closure；最终 Stage Code Audit Report 必须在有效 issues 全部 `Done` 且 Linear Project `Completed` 后单独输出。
+- MTP-60 只准备 Stage Code Audit 输入材料、validation docs、automation readiness anchor 和 Dashboard smoke evidence；issue 本身不创建下一 Project / Issue，不推进下一 Project / Issue，不启动下一阶段 `symphony-issue`。
+- MTP-60 Stage Audit Input 只服务 Parent Codex Project closure；最终 Stage Code Audit Report 已在有效 issues 全部 `Done` 且 Linear Project `Completed` 后由 `@002 / PAR` 单独落仓。
 - MTP-41 只定义 paper execution decision 本地链路和 deterministic fixture；blocked risk decision 不生成 paper order，allowed decision 只生成 paper-only order / fill evidence。
 - MTP-41 issue 本身不写 event log、不新增 replay / projection / ViewModel；MTP-42 只把已存在的 paper execution facts 串入 event log / replay / projection，不实现完整 execution engine、完整风险引擎、broker rejection fallback、真实撮合、真实成交回报、broker fill、account update、broker action、signed endpoint 或真实订单行为。
 - Report / Dashboard 只展示 read model / ViewModel，不提供交易执行入口。

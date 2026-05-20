@@ -5940,3 +5940,51 @@ Linear live-read：
 | --- | --- | --- |
 | `bash checks/automation-readiness.sh` | pass | 新增 MTP-60 stage audit input、validation plan、matrix、latest summary 和 Dashboard smoke anchors 后通过，输出 `MTPRO automation readiness checks passed.`。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO Market Data Replay Operations v1 Stage Code Audit Report
+
+日期：2026-05-20
+
+执行者：Parent Codex Automation Supervision（`@002 / PAR`）
+
+目的：
+
+- 完成 `MTPRO Market Data Replay Operations v1` 的 Project closure evidence。
+- 确认 `MTP-54`、`MTP-55`、`MTP-56`、`MTP-57`、`MTP-58`、`MTP-59`、`MTP-60` 全部 Linear `Done/type=completed`。
+- 将 Linear Project status 设置并确认为 `Completed/type=completed`，`completedAt=2026-05-20T08:23:20Z`。
+- 将 Project 级 Stage Code Audit Report 落仓为 canonical 文档。
+- 更新最近验证摘要，指向 canonical Stage Code Audit Report。
+
+文件范围：
+
+- Added：
+  - `docs/audit/mtpro-market-data-replay-operations-v1-stage-code-audit.md`
+- Updated：
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+证据：
+
+- PR #101、#102、#103、#104、#105、#106、#107 全部已通过 GitHub required check `checks` 并 squash merge。
+- 末端 merge commit 为 `640c7c096fc236f7037551edb7611cbe17f226a2`。
+- Post-Issue Ledger 对 `MTP-60` 记录 `git_pull_ff_only` 和 `graphify_update` 均为 `passed`。
+- Graphify resource relationship graph 由 Post-Issue Ledger 刷新为 1140 nodes、1092 edges、66 communities。
+- Stage Code Audit Report 已记录 Known CI Boundary：本 Project 无当前 main 遗留 failing PR run；MTP-57 的 Linear 状态 race 属于临时 automation 现象，不是 GitHub checks 失败。
+
+边界确认：
+
+- 本轮只落仓 Stage Code Audit Report，不创建 Linear Project / Issue。
+- 未推进任何 issue 到 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update；Graphify evidence 来自 Post-Issue Ledger 已完成记录。
+- 未写业务代码。
+- 未修改 root docs；Root Docs Refresh Gate 需在本 Stage Code Audit Report 合并后单独执行。
+- 未提交 `.codex/*` 或 `graphify-out/*`。
+- 不接 Live trading、signed endpoint、account endpoint、listenKey、broker action 或真实订单行为。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | 本轮 Stage Code Audit Report 落仓变更无 whitespace error。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
