@@ -208,9 +208,67 @@ MTP-64 的 non-implementation evidence 必须来自三层本地证据：
 - Adapters deterministic test 证明 `BinanceReadOnlyAdapterBoundary` 不暴露 execution report、broker fill、order reconciliation、real account state 或 broker position sync，且 `BinancePublicMarketDataClient` 在 transport 前拒绝 execution report、broker fill、reconciliation 和 OMS 语义片段。
 - `checks/automation-readiness.sh` 必须机械检查 MTP-64 anchors，并拒绝 `Sources/` 或 `Tests/` 中出现 `RealOrderStateMachine` public type / protocol / actor / class / enum declaration。
 
+## MTP-65 LiveReadiness / LiveBlockedEvidence read model
+
+`MTP-65-LIVE-READINESS-BLOCKED-READ-MODEL`
+
+MTP-65 固定 Gate 4 的最小 Live readiness blocked read model。该 gate 只允许新增 `LiveReadiness` 和 `LiveBlockedEvidence` 这类 read-model-only evidence，用来解释当前 Live trading foundation 为什么仍然被阻断；它不允许新增 command surface、execution authorization、UI button、adapter surface、Runtime object、SQLite / DuckDB schema、API key、signed endpoint、account endpoint、listenKey、broker adapter 或真实订单生命周期实现。
+
+当前 `LiveReadiness` fixture 必须满足：
+
+- `issueID == MTP-65`。
+- `gate == liveReadinessBlockedReadModel`。
+- `status == blocked`。
+- `blockedEvidence == API key / signed endpoint / account endpoint / listenKey user data stream / broker adapter / real order lifecycle`。
+- `isReadModelOnly == true`。
+- `providesCommandSurface == false`。
+- `authorizesLiveTrading == false`。
+- `exposesAdapterSurface == false`。
+- `exposesRuntimeObject == false`。
+- `exposesSQLiteSchema == false`。
+- `exposesDuckDBSchema == false`。
+- `readsAPIKey == false`。
+- `usesSignedEndpoint == false`。
+- `callsAccountEndpoint == false`。
+- `createsListenKey == false`。
+- `instantiatesBrokerAdapter == false`。
+- `representsRealOrderLifecycle == false`。
+- `requiredValidationDependsOnNetwork == false`。
+
+`MTP-65-LIVE-BLOCKED-EVIDENCE-GATES`
+
+`LiveBlockedEvidence` 必须把每个 blocked capability 映射回已完成的 gate / contract anchor：
+
+| Blocked capability | Required gate | Required source anchors |
+| --- | --- | --- |
+| `API key` | Gate 1 credential endpoint boundary | `MTP-62-CREDENTIAL-ENDPOINT-BOUNDARY`、`LiveTradingCredentialEndpointBoundary` |
+| `signed endpoint` | Gate 1 credential endpoint boundary | `MTP-62-LIVE-CREDENTIAL-FUTURE-GATES`、`LiveTradingCredentialEndpointBoundary` |
+| `account endpoint` | Gate 1 credential endpoint boundary | `MTP-62-CREDENTIAL-ENDPOINT-BOUNDARY`、`LiveTradingCredentialEndpointBoundary` |
+| `listenKey user data stream` | Gate 1 credential endpoint boundary | `MTP-62-LIVE-CREDENTIAL-FUTURE-GATES`、`LiveTradingCredentialEndpointBoundary` |
+| `broker adapter` | Gate 2 adapter capability isolation | `MTP-63-ADAPTER-CAPABILITY-ISOLATION`、`LiveAdapterCapabilityIsolationBoundary` |
+| `real order lifecycle` | Gate 3 real order lifecycle terms | `MTP-64-REAL-ORDER-LIFECYCLE-TERMINOLOGY`、`RealOrderLifecycleBoundary` |
+
+`MTP-65-READ-MODEL-ONLY-NON-COMMAND`
+
+MTP-65 的 read model 不得提供任何 command surface：
+
+- 不新增 live command、order command、risk control command、position management command 或 trading entry point。
+- 不把 `LiveReadinessStatus.blocked` 扩展为 ready / enabled / partial readiness。
+- `LiveReadiness.allLiveGatesBlocked` 必须只在所有 blocked evidence 仍为 blocked 时为 `true`。
+- Codable 解码必须拒绝把 `providesCommandSurface`、`authorizesLiveTrading`、API key、signed endpoint、account endpoint、listenKey、broker adapter 或 real order lifecycle flag 恢复为 `true`。
+
+`MTP-65-SCHEMA-ADAPTER-RUNTIME-NON-EXPOSURE`
+
+MTP-65 的 read model 不得暴露内部实现面：
+
+- 不暴露 adapter request、adapter instance 或 broker adapter。
+- 不暴露 Runtime object、workflow object 或 actor。
+- 不暴露 SQLite schema、DuckDB schema、SQL、ORM 或 persistence implementation。
+- 不依赖真实 Binance 网络、真实 API key、真实账户、broker state 或 production runtime operations。
+
 ## Current allowed evidence
 
-MTP-61 至 MTP-64 当前只允许产生以下 evidence：
+MTP-61 至 MTP-65 当前只允许产生以下 evidence：
 
 - Live trading foundation taxonomy。
 - Gate sequence。
@@ -218,6 +276,7 @@ MTP-61 至 MTP-64 当前只允许产生以下 evidence：
 - Gate 1 credential / signed / account / listenKey boundary。
 - Gate 2 adapter capability isolation。
 - Gate 3 real order lifecycle terminology / future gates / forbidden tests。
+- Gate 4 Live readiness blocked read model / LiveBlockedEvidence deterministic snapshot。
 - Validation matrix anchor。
 - Automation readiness anchor。
 - PR evidence 和 `bash checks/run.sh` 摘要。
@@ -282,3 +341,10 @@ MTP-64 必须满足：
 - `Tests/CoreTests/CoreTests.swift` 必须覆盖 `RealOrderLifecycleBoundary` deterministic fixture、Codable 禁区、submit / cancel / replace / execution report / broker fill / reconciliation / OMS bypass rejection，以及 paper order / simulated fill / paper portfolio 不可升级为 real order / broker fill / account state。
 - `Tests/AdaptersTests/AdaptersTests.swift` 必须覆盖 public read-only adapter 拒绝 execution report、broker fill、reconciliation、OMS、real account state 和 broker position sync contract。
 - PR evidence 必须确认没有 real order state machine、submit / cancel / replace、execution report、broker fill、reconciliation、OMS、真实账户状态、broker position sync 或 paper-to-real lifecycle upgrade。
+
+MTP-65 必须满足：
+
+- `bash checks/run.sh` 通过。
+- `checks/automation-readiness.sh` 必须检查 `MTP-65-LIVE-READINESS-BLOCKED-READ-MODEL`、`MTP-65-LIVE-BLOCKED-EVIDENCE-GATES`、`MTP-65-READ-MODEL-ONLY-NON-COMMAND` 和 `MTP-65-SCHEMA-ADAPTER-RUNTIME-NON-EXPOSURE`。
+- `Tests/CoreTests/CoreTests.swift` 必须覆盖 `LiveReadiness` deterministic fixture、`LiveBlockedEvidence` deterministic evidence、Codable round trip、blocked capability list drift rejection、command surface rejection、schema / adapter / runtime non-exposure、API key / signed / account / listenKey / broker / real order lifecycle bypass rejection。
+- PR evidence 必须确认没有 live command、交易按钮、API key、secret storage、signed endpoint、account endpoint、listenKey、broker adapter、Runtime object / persistence schema 暴露、真实订单生命周期或任何真实交易授权。

@@ -680,6 +680,204 @@ final class CoreTests: XCTestCase {
         XCTAssertFalse(portfolioUpdate.syncsBrokerPosition)
     }
 
+    func testLiveReadinessDefinesMTP65BlockedReadModelOnlyEvidence() throws {
+        // 测试场景：MTP-65 只定义最小 Live readiness read model，把 API key、signed endpoint、
+        // account endpoint、listenKey、broker adapter 和 real order lifecycle 全部表达为 blocked。
+        let readiness = LiveReadiness.deterministicFixture
+
+        XCTAssertEqual(readiness.readinessID, try Identifier("mtp-65-live-readiness"))
+        XCTAssertEqual(readiness.issueID, try Identifier("MTP-65"))
+        XCTAssertEqual(readiness.gate, .liveReadinessBlockedReadModel)
+        XCTAssertEqual(readiness.status, .blocked)
+        XCTAssertEqual(readiness.allowedEvidenceKinds, LiveReadiness.allowedEvidenceKinds)
+        XCTAssertEqual(readiness.blockedEvidence, LiveReadiness.requiredBlockedEvidence)
+        XCTAssertEqual(readiness.blockedEvidence.map(\.capability), LiveBlockedCapability.allCases)
+        XCTAssertTrue(readiness.liveReadinessBoundaryHeld)
+        XCTAssertTrue(readiness.allLiveGatesBlocked)
+        XCTAssertTrue(readiness.isReadModelOnly)
+        XCTAssertFalse(readiness.providesCommandSurface)
+        XCTAssertFalse(readiness.authorizesLiveTrading)
+        XCTAssertFalse(readiness.exposesAdapterSurface)
+        XCTAssertFalse(readiness.exposesRuntimeObject)
+        XCTAssertFalse(readiness.exposesSQLiteSchema)
+        XCTAssertFalse(readiness.exposesDuckDBSchema)
+        XCTAssertFalse(readiness.readsAPIKey)
+        XCTAssertFalse(readiness.usesSignedEndpoint)
+        XCTAssertFalse(readiness.callsAccountEndpoint)
+        XCTAssertFalse(readiness.createsListenKey)
+        XCTAssertFalse(readiness.instantiatesBrokerAdapter)
+        XCTAssertFalse(readiness.representsRealOrderLifecycle)
+        XCTAssertFalse(readiness.requiredValidationDependsOnNetwork)
+
+        for evidence in readiness.blockedEvidence {
+            XCTAssertTrue(evidence.blockedReadModelBoundaryHeld)
+            XCTAssertEqual(
+                evidence.gate,
+                LiveBlockedEvidence.requiredGate(for: evidence.capability)
+            )
+            XCTAssertEqual(
+                evidence.sourceAnchors,
+                LiveBlockedEvidence.requiredSourceAnchors(for: evidence.capability)
+            )
+            XCTAssertEqual(evidence.evidenceKind, .readModelSnapshot)
+            XCTAssertTrue(evidence.isBlocked)
+            XCTAssertTrue(evidence.isReadModelOnly)
+            XCTAssertFalse(evidence.providesCommandSurface)
+            XCTAssertFalse(evidence.authorizesLiveTrading)
+            XCTAssertFalse(evidence.exposesAdapterSurface)
+            XCTAssertFalse(evidence.exposesRuntimeObject)
+            XCTAssertFalse(evidence.exposesSQLiteSchema)
+            XCTAssertFalse(evidence.exposesDuckDBSchema)
+            XCTAssertFalse(evidence.requiresAPIKey)
+            XCTAssertFalse(evidence.usesSignedEndpoint)
+            XCTAssertFalse(evidence.callsAccountEndpoint)
+            XCTAssertFalse(evidence.createsListenKey)
+            XCTAssertFalse(evidence.instantiatesBrokerAdapter)
+            XCTAssertFalse(evidence.representsRealOrderLifecycle)
+        }
+
+        let encoded = try JSONEncoder().encode(readiness)
+        let decoded = try JSONDecoder().decode(LiveReadiness.self, from: encoded)
+        XCTAssertEqual(decoded, readiness)
+    }
+
+    func testLiveReadinessRejectsMTP65CommandSchemaAndLiveCapabilityBypass() throws {
+        // 测试场景：Gate 4 read model 的初始化和 Codable 解码都必须拒绝 command surface、
+        // schema / runtime / adapter 暴露、API key、signed/account/listenKey、broker 和真实订单语义。
+        XCTAssertThrowsError(
+            try LiveReadiness(providesCommandSurface: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("providesCommandSurface"))
+        }
+        XCTAssertThrowsError(
+            try LiveReadiness(exposesSQLiteSchema: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("exposesSQLiteSchema"))
+        }
+        XCTAssertThrowsError(
+            try LiveReadiness(exposesRuntimeObject: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("exposesRuntimeObject"))
+        }
+        XCTAssertThrowsError(
+            try LiveReadiness(readsAPIKey: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("readsAPIKey"))
+        }
+        XCTAssertThrowsError(
+            try LiveReadiness(usesSignedEndpoint: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("usesSignedEndpoint"))
+        }
+        XCTAssertThrowsError(
+            try LiveReadiness(instantiatesBrokerAdapter: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("instantiatesBrokerAdapter"))
+        }
+        XCTAssertThrowsError(
+            try LiveReadiness(
+                blockedEvidence: Array(LiveReadiness.requiredBlockedEvidence.dropLast())
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "blockedEvidence",
+                    expected: LiveReadiness.requiredBlockedEvidence
+                        .map(\.capability.rawValue)
+                        .joined(separator: ","),
+                    actual: Array(LiveReadiness.requiredBlockedEvidence.dropLast())
+                        .map(\.capability.rawValue)
+                        .joined(separator: ",")
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(LiveReadiness.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["authorizesLiveTrading"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveReadiness.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("authorizesLiveTrading")
+            )
+        }
+    }
+
+    func testLiveBlockedEvidenceKeepsMTP65AllLiveGatesBlocked() throws {
+        // 测试场景：单项 blocked evidence 本身也必须拒绝被改写成可执行 readiness、command、
+        // adapter surface、broker adapter 或 real order lifecycle read model。
+        let brokerEvidence = try LiveBlockedEvidence(
+            evidenceID: try Identifier("mtp-65-broker-adapter-blocked"),
+            gate: .adapterCapabilityIsolation,
+            capability: .brokerAdapter
+        )
+
+        XCTAssertTrue(brokerEvidence.blockedReadModelBoundaryHeld)
+        XCTAssertEqual(brokerEvidence.sourceAnchors, [
+            "MTP-63-ADAPTER-CAPABILITY-ISOLATION",
+            "LiveAdapterCapabilityIsolationBoundary"
+        ])
+
+        XCTAssertThrowsError(
+            try LiveBlockedEvidence(
+                evidenceID: try Identifier("mtp-65-api-key-blocked"),
+                gate: .adapterCapabilityIsolation,
+                capability: .apiKey
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "gate",
+                    expected: LiveTradingFoundationGate.credentialEndpointBoundary.rawValue,
+                    actual: LiveTradingFoundationGate.adapterCapabilityIsolation.rawValue
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveBlockedEvidence(
+                evidenceID: try Identifier("mtp-65-api-key-blocked"),
+                gate: .credentialEndpointBoundary,
+                capability: .apiKey,
+                isBlocked: false
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("isBlocked"))
+        }
+        XCTAssertThrowsError(
+            try LiveBlockedEvidence(
+                evidenceID: try Identifier("mtp-65-real-order-lifecycle-blocked"),
+                gate: .realOrderLifecycleTerms,
+                capability: .realOrderLifecycle,
+                representsRealOrderLifecycle: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("representsRealOrderLifecycle")
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(brokerEvidence)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["instantiatesBrokerAdapter"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveBlockedEvidence.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("instantiatesBrokerAdapter")
+            )
+        }
+    }
+
     func testPaperSessionLocalControlCommandModelSupportsSessionActionsDeterministically() throws {
         // 测试场景：MTP-48 只允许本地 Paper session-level control intent。
         // 四个 control 都必须保持 paper-only，且不能携带 order-level、broker 或真实订单能力。
