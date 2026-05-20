@@ -116,15 +116,15 @@ Post-Issue Ledger 对 `MTP-67` 已执行，但持久仓 `/Users/mac/Documents/MT
 
 | Root doc | Root Docs Refresh Gate status |
 | --- | --- |
-| `GOAL.md` | pending：本 Project 完成后应同步 “实盘交易基础边界” 已从 Pending / gated 进入 Complete 的事实，但仍必须说明 Live trading 未实现，signed endpoint / broker / real order 仍为 future gated。 |
+| `GOAL.md` | updated：已同步 “实盘交易基础边界” 从 Pending / gated 进入 Complete 的事实，并保留 Live trading 未实现、signed endpoint / broker / real order 仍为 future gated 的边界。 |
 | `BLUEPRINT.md` | no update expected：`BLUEPRINT.md` 已把 Future Live 保持为 Future Construction Zones / 未来建设区；本 Project 只增加 gate、blocked evidence 和 read-model-only surface 的事实证据，不改变完整蓝图方向。 |
 | `docs/environment.md` | no update expected：本 Project 未新增 required validation 入口、secret 读取、broker credential 或外部写能力；统一验证入口仍是 `bash checks/run.sh`。 |
-| `docs/architecture.md` | pending：应同步 Core / Adapters / App / Dashboard 的 Live boundary evidence flow：public read-only adapter 与 future execution adapter 隔离，App / Dashboard 只消费 read model / ViewModel。 |
-| `docs/roadmap.md` | pending：应新增 `MTPRO Live Trading Boundary Definition v1` 为 Completed，并在 Root Docs Refresh Gate closure 时重新计算 Current Foundation Progress、Final Product Goal Progress 和 Project Closure Count。 |
+| `docs/architecture.md` | updated：已同步 Core / Adapters / App / Dashboard 的 Live boundary evidence flow，明确 public read-only adapter 与 future execution adapter 隔离，App / Dashboard 只消费 read model / ViewModel。 |
+| `docs/roadmap.md` | updated：已新增 `MTPRO Live Trading Boundary Definition v1` 为 Completed，并重新计算 Current Foundation Progress、Final Product Goal Progress 和 Project Closure Count。 |
 
-Root Docs Refresh Gate closure：pending。
+Root Docs Refresh Gate closure：closed。
 
-Stage Code Audit Report 合并后，`@002 / PAR` 必须单独执行 Root Docs Refresh Gate closure。本报告不直接决定下一阶段方向，不创建 Linear Project / Issue，不推进 `Todo`，不启动 Symphony，不运行 Graphify update，不写业务代码。
+Root Docs Refresh Gate closure 只同步已发生事实；本报告和本轮 closure 不直接决定下一阶段方向，不创建 Linear Project / Issue，不推进 `Todo`，不启动 Symphony，不运行 Graphify update，不写业务代码。
 
 ## Residual Notes For Human Planning
 
@@ -154,5 +154,5 @@ Handoff 结论：
 - 当前没有新的 authorized Project。
 - 当前没有新的 authorized issue。
 - 当前不得自动推进任何 issue 到 `Todo`。
-- Root Docs Refresh Gate 仍待本报告合并后单独 closure。
+- Root Docs Refresh Gate 已 closed。
 - 下一阶段必须由 Human + `@001 / PLN` 重新规划；`@002 / PAR` 只在 Project / Issue 已写入 Linear 且 gate 通过后接管自动调度。

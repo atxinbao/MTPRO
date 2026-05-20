@@ -56,14 +56,14 @@ MTPRO 采用两层进度口径：
 1. Current Foundation Progress：当前已批准 paper-only foundation 的完成度。
 2. Final Product Goal Progress：最终专业交易工作台产品目标的完成度。
 
-截至 2026-05-20：
+截至 2026-05-21：
 
 ```text
 Current Foundation Progress: 4 / 4 (100%)
 Foundation Progress: [##########] 100%
 
-Final Product Goal Progress: 4 / 9 (44%)
-Final Product Progress: [####------] 44%
+Final Product Goal Progress: 5 / 9 (56%)
+Final Product Progress: [######----] 56%
 ```
 
 Current Foundation 已完成：
@@ -73,9 +73,8 @@ Current Foundation 已完成：
 3. Paper workflow 可观察性和本地控制壳。
 4. 更长周期 market data replay / operations。
 
-Final Product 已完成前 4 项；Pending / gated 项为：
+Final Product 已完成前 5 项；其中第 5 项只完成实盘交易基础边界、阻断证据和只读展示面，不代表真实 Live trading 已实现或获授权。
 
-5. 实盘交易基础边界。
 6. 实盘监控台。
 7. 实盘执行控制。
 8. 实盘风险控制。
