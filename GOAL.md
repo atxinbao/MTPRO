@@ -14,6 +14,7 @@ MTPRO 应提供一个从策略研究到 Paper 执行一致的本地工作台：
 - 使用统一 Core 驱动 backtest 和 paper。
 - 让策略、风险、组合、事件和验证证据可观察。
 - 让 paper-only execution workflow、session-level local controls 和 Paper workflow evidence 在本地可回放、可验证、可展示。
+- 让更长周期 market data replay / operations 证据通过本地 batch / replay contract、retention / freshness、event log / projection consistency 和 Report / Dashboard read model 被确定性验证。
 - 保留未来 Live 执行边界，但第一版完全禁止真实 broker action。
 
 ## 成功标准
@@ -34,9 +35,10 @@ MTPRO 应提供一个从策略研究到 Paper 执行一致的本地工作台：
 - Research / Backtest / Report / Paper readiness。
 - Paper-only execution evidence。
 - Paper workflow 可观察性和本地 session-level control shell。
+- 更长周期 market data replay / operations 本地 evidence baseline。
 - Live trading、signed endpoint、account endpoint、broker action 和真实订单能力仍保持禁止边界。
 
-当前 Goal / Roadmap Target Progress 为 4 / 5（80%）。该进度按目标切片计算，不按 Project 数量直接计算，也不统计 `docs/design/mtpro-complete-blueprint.md` 中的 Future Construction Zones。
+当前 Goal / Roadmap Target Progress 为 5 / 5（100%）。该进度只覆盖当前已批准、已执行并完成 closure 的 paper-only foundation 目标切片，不按 Project 数量直接计算，也不统计 `docs/design/mtpro-complete-blueprint.md` 中的 Future Construction Zones。
 
 ## 非目标
 

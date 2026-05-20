@@ -5988,3 +5988,64 @@ Linear live-read：
 | --- | --- | --- |
 | `git diff --check` | pass | 本轮 Stage Code Audit Report 落仓变更无 whitespace error。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO Market Data Replay Operations v1 Root Docs Refresh Gate closure
+
+日期：2026-05-20
+
+执行者：Parent Codex Automation Supervision（`@002 / PAR`）
+
+目的：
+
+- 基于已合并的 `docs/audit/mtpro-market-data-replay-operations-v1-stage-code-audit.md` 执行 Root Docs Refresh Gate closure。
+- 逐项核查 `GOAL.md`、`ENVIRONMENT.md`、`ARCHITECTURE.md`、`ROADMAP.md` 是否落后于已完成事实。
+- 更新当前 Goal / Roadmap Target Progress 和 Current Phase Progress Bar。
+
+Root docs 判断：
+
+- `GOAL.md`：updated。同步 “更长周期 market data replay / operations” 已形成本地 evidence baseline，并将当前目标进度更新为 5 / 5（100%）。
+- `ENVIRONMENT.md`：no update needed。本 Project 未新增外部依赖或验证入口；统一验证入口仍是 `bash checks/run.sh`。
+- `ARCHITECTURE.md`：updated。同步 Adapters / Runtime / App / Dashboard 的 market data replay operations evidence flow。
+- `ROADMAP.md`：updated。新增 `MTPRO Market Data Replay Operations v1` 为 Completed，并将 Project Closure Count 更新为 7 / 7、Goal / Roadmap Target Progress 更新为 5 / 5（100%）。
+
+文件范围：
+
+- Updated：
+  - `GOAL.md`
+  - `ARCHITECTURE.md`
+  - `ROADMAP.md`
+  - `docs/audit/mtpro-market-data-replay-operations-v1-stage-code-audit.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- 本轮只同步已发生事实。
+- 不决定下一阶段方向。
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 `Todo`。
+- 不启动 Symphony。
+- 不运行 Graphify update。
+- 不写业务代码。
+- 不修改 `docs/design/mtpro-complete-blueprint.md`。
+- 不把 future capability 计入 progress。
+
+Current Phase Progress：
+
+```text
+Current Phase Progress
+Phase: MTPRO paper-only research / validation / execution foundation
+Project Closure Count: 7/7 (100%)
+Goal / Roadmap Target Progress: 5/5 (100%)
+Progress: [##########] 100%
+Latest Completed Project: MTPRO Market Data Replay Operations v1
+Next Handoff: Human + @001 / PLN
+```
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Root Docs Refresh Gate closure docs-only 变更无 whitespace error。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
