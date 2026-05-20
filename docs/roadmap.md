@@ -1,10 +1,12 @@
-# ROADMAP.md
+# docs/roadmap.md
 
 ROADMAP 只定义阶段地图，不授权执行。
 
 正式执行必须来自 Linear live-read 中唯一 configured executable issue，并通过 Parent Codex queue preflight、symphony-issue 和 GitHub PR Automation。
 
-本文档是 Construction Plan。完整产品终局和 Future Construction Zones / 未来建设区见 canonical `BLUEPRINT.md`；本文档只记录当前已批准阶段、目标切片进度和下一轮 planning handoff。
+本文档是 Construction Plan / 施工路线。它是 `BLUEPRINT.md` 的二级权重承接文档，根据蓝图和工程模块定义施工顺序、进度和下一阶段 handoff。
+
+完整产品终局和 Future Construction Zones / 未来建设区见 canonical `BLUEPRINT.md`；本文档只记录当前已批准阶段、目标切片进度和下一轮 planning handoff，不能推翻 `BLUEPRINT.md`。
 
 ## 阶段地图
 
@@ -107,9 +109,9 @@ Linear Project status Completed
 
 ## 非授权边界
 
-- `ROADMAP.md` 不创建 Linear Project / Issue。
-- `ROADMAP.md` 不修改 Linear status。
-- `ROADMAP.md` 不启动 symphony-issue。
-- `ROADMAP.md` 不运行 Graphify update。
-- `ROADMAP.md` 不解锁下一个 issue。
-- `ROADMAP.md` 不授权任何 Agent 直接把 issue 改为 `Todo`。
+- `docs/roadmap.md` 不创建 Linear Project / Issue。
+- `docs/roadmap.md` 不修改 Linear status。
+- `docs/roadmap.md` 不启动 symphony-issue。
+- `docs/roadmap.md` 不运行 Graphify update。
+- `docs/roadmap.md` 不解锁下一个 issue。
+- `docs/roadmap.md` 不授权任何 Agent 直接把 issue 改为 `Todo`。

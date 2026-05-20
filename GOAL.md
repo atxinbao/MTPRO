@@ -1,6 +1,6 @@
 # GOAL.md
 
-本文档是 MTPRO 的 Project Charter，不是完整蓝图，不是架构地图，不是施工计划。
+本文档是 MTPRO 的 Project Charter，不是完整蓝图，不是工程模块地图，不是施工计划。
 
 它只回答四个问题：
 
@@ -9,7 +9,7 @@
 - 永久硬边界是什么。
 - 怎样判断当前阶段仍然在正确方向上。
 
-完整产品 / 系统 / 设计蓝图见 canonical `BLUEPRINT.md`；当前施工阶段、目标切片和进度条见 `ROADMAP.md`。
+完整产品 / 系统 / 设计蓝图见 canonical `BLUEPRINT.md`；当前施工阶段、目标切片和进度条见 `docs/roadmap.md`。
 
 ## 项目使命
 
@@ -46,8 +46,8 @@ MTPRO 必须长期保持这些结果：
 当前阶段只判断 paper-only foundation 是否继续健康：
 
 - `BLUEPRINT.md` 保持最终产品 / 系统 / 设计蓝图清楚。
-- `ARCHITECTURE.md` 保持当前架构地图和设计基线清楚。
-- `ROADMAP.md` 保持已批准阶段、目标切片和两层进度条清楚。
+- `docs/architecture.md` 保持工程模块地图、边界、数据流和不变量清楚。
+- `docs/roadmap.md` 保持已批准阶段、目标切片和两层进度条清楚。
 - Linear / PR / Stage Code Audit evidence 能追溯每个已完成建设阶段。
 - SwiftPM baseline、Dashboard smoke 和统一验证入口 `bash checks/run.sh` 持续可运行。
 - 正式开发只从 Linear 中唯一 configured executable issue 进入。
@@ -75,7 +75,7 @@ Progress：`[##########] 100%`
 3. Paper workflow 可观察性和本地 session-level control shell。
 4. 更长周期 market data replay / operations 本地 evidence baseline。
 
-该进度只覆盖当前已批准、已执行并完成 closure 的 paper-only foundation。详细 Project、PR、Stage Audit 和目标切片状态见 `ROADMAP.md` 和 `docs/audit/`。
+该进度只覆盖当前已批准、已执行并完成 closure 的 paper-only foundation。详细 Project、PR、Stage Audit 和目标切片状态见 `docs/roadmap.md` 和 `docs/audit/`。
 
 ### Final Product Goal Progress
 
@@ -87,7 +87,7 @@ Progress：`[####------] 44%`
 
 Pending / gated 的最终产品目标：实盘交易基础边界、实盘监控台、实盘执行控制、实盘风险控制、实盘审计 / 事故回放 / 停机控制。
 
-完整 9 项目标切片、状态和证据口径见 `ROADMAP.md`。`GOAL.md` 不复制维护详细进度表。
+完整 9 项目标切片、状态和证据口径见 `docs/roadmap.md`。`GOAL.md` 不复制维护详细进度表。
 
 ## 永久硬边界
 

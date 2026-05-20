@@ -21,11 +21,11 @@ resource relationship graph
 ## 默认纳入路径
 
 - `README.md`
-- `ENVIRONMENT.md`
+- `docs/environment.md`
 - `GOAL.md`
 - `AGENTS.md`
-- `ARCHITECTURE.md`
-- `ROADMAP.md`
+- `docs/architecture.md`
+- `docs/roadmap.md`
 - `.github/pull_request_template.md`
 - `.github/workflows/checks.yml`
 - `checks/`

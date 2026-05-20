@@ -90,7 +90,7 @@
 
 ## 执行边界
 
-- `ROADMAP.md` 不授权执行。
+- `docs/roadmap.md` 不授权执行。
 - Project Planning Record 不授权执行。
 - Project Planning Facilitator 不操作 `Backlog` -> `Todo`。
 - 只有父 Codex 可以操作 `Backlog` -> `Todo`。
@@ -119,8 +119,8 @@ Linear Project status Completed
 Root Docs Refresh Gate 只同步已发生事实：
 
 - `GOAL.md`：目标、用户、成功标准或安全边界事实变化。
-- `ENVIRONMENT.md`：工具、运行方式、Graphify、Symphony、GitHub、Linear、本地依赖或 CI 环境事实变化。
-- `ARCHITECTURE.md`：已稳定落地的功能模块、边界、依赖方向和数据流。
-- `ROADMAP.md`：阶段状态、已完成 Project 和下一阶段 planning input；不授权执行。
+- `docs/environment.md`：工具、运行方式、Graphify、Symphony、GitHub、Linear、本地依赖或 CI 环境事实变化。
+- `docs/architecture.md`：已稳定落地的功能模块、边界、依赖方向和数据流。
+- `docs/roadmap.md`：阶段状态、已完成 Project 和下一阶段 planning input；不授权执行。
 
 `@002 / PAR` 可以开 factual refresh PR。下一阶段方向、目标、架构路线和优先级必须由 Human + `@001 / PLN` 决定。

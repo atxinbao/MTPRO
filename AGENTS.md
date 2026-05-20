@@ -10,9 +10,9 @@ Agent 开始工作前必须读取：
 2. `AGENTS.md`
 3. `GOAL.md`
 4. `BLUEPRINT.md`
-5. `ENVIRONMENT.md`
-6. `ARCHITECTURE.md`
-7. `ROADMAP.md`
+5. `docs/environment.md`
+6. `docs/architecture.md`
+7. `docs/roadmap.md`
 8. `docs/domain/context.md`
 9. `docs/validation/latest-verification-summary.md`
 
@@ -31,10 +31,10 @@ Agent 开始工作前必须读取：
 ## 核心硬规则
 
 - 所有正式文档写入必须使用中文。
-- `GOAL.md` 是 Project Charter，`BLUEPRINT.md` 是 canonical Root Blueprint + Complete Blueprint，`ARCHITECTURE.md` 是 Architecture Map，`ROADMAP.md` 是 Construction Plan。
+- `GOAL.md` 是 Project Charter，`BLUEPRINT.md` 是 canonical Root Blueprint + Complete Blueprint，`docs/architecture.md` 是 Engineering Module Map / 工程模块地图，`docs/roadmap.md` 是 Construction Plan。
 - `docs/domain/context.md` 是 MTPRO shared language；Project Planning、Linear issue、PR、Stage Audit、public type 注释和验证证据必须优先复用其中 canonical terms。
 - `docs/automation/agent-engineering-practices.md` 是 skill-derived 工程实践入口；执行 issue 时必须遵守 Feedback Loop First、TDD / Tracer Bullet、Diagnose Loop、Architecture Deepening Review 和 Handoff Discipline。
-- `ROADMAP.md`、Project Planning Record、Backlog issue、label、priority、assignee 都不授权执行。
+- `docs/roadmap.md`、Project Planning Record、Backlog issue、label、priority、assignee 都不授权执行。
 - 只有 Linear live-read 中唯一 configured executable issue 才能授权正式开发；执行前必须由 Parent Codex queue preview 确认 WIP=1。
 - Linear issue 的 Scope / Non-goals / Codex Instructions / Validation / Boundary / PR Requirements 是 Codex Execution Agent 的执行合同。
 - Project Planning Facilitator 只做规划和草案，不执行 issue，不启动 symphony-issue，不操作 `Backlog` -> `Todo`。
@@ -45,7 +45,7 @@ Agent 开始工作前必须读取：
 - Project closure 必须确认 Linear Project status 为 `Completed`，并确认 `type=completed`、`completedAt` 非空。
 - Stage Code Audit Report 必须覆盖完整 Linear Project，包含 Linear Project `Completed` evidence 和 Root Docs Delta。
 - Root Docs Refresh Gate 只允许 `@002 / PAR` 同步已发生事实；方向、目标、架构路线和下一阶段优先级必须交给 Human + `@001 / PLN`。
-- Root Docs Refresh Gate closure 后，`@002 / PAR` 必须输出当前阶段完成进度条；进度条必须基于 `GOAL.md` 和 `ROADMAP.md` 的两层目标口径计算：Current Foundation Progress 和 Final Product Goal Progress。Project closure 数量只能作为单独证据口径，不写入蓝图文档，不授权下一阶段执行。
+- Root Docs Refresh Gate closure 后，`@002 / PAR` 必须输出当前阶段完成进度条；进度条必须基于 `GOAL.md` 和 `docs/roadmap.md` 的两层目标口径计算：Current Foundation Progress 和 Final Product Goal Progress。Project closure 数量只能作为单独证据口径，不写入蓝图文档，不授权下一阶段执行。
 - Complete Blueprint Design 是 Human + `@000 / AIE` 的 Linear 外蓝图活动，产物统一维护在根目录 `BLUEPRINT.md`；它可描述 Live / signed endpoint / broker / OMS 等 Future Construction Zones / 未来建设区，但不得自动转成 Linear issue。
 - Complete Blueprint Design 不创建 Linear Project / Issue，不修改 Linear status，不推进 `Backlog` -> `Todo`，不启动 `@002 / PAR`，不启动 symphony-issue，不运行 Graphify update，不写业务代码。
 - 触碰 production behavior 时，优先用 deterministic fixture / test 表达目标行为；不能只靠最终大检查判断正确性。

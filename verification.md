@@ -6524,3 +6524,60 @@ Next Handoff: Human + @001 / PLN
 | `git diff --check` | pass | Blueprint boundary Chinese labels 变更无 whitespace error。 |
 | `bash checks/automation-readiness.sh` | pass | Future Construction Zones / 未来建设区、Gated / Forbidden Capabilities / 受门禁保护或当前禁止的能力等锚点通过。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
+
+## Secondary Weight Docs Rehome
+
+日期：2026-05-20
+
+执行者：Codex
+
+目的：
+
+- 将 `ARCHITECTURE.md`、`ENVIRONMENT.md`、`ROADMAP.md` 下沉为 `docs/` 下的二级权重文档。
+- 固定 `docs/architecture.md` 的中文语义为 Engineering Module Map / 工程模块地图。
+- 固定 `docs/roadmap.md` 的职责为“根据蓝图和工程模块定义施工顺序、进度和下一阶段 handoff”。
+- 明确 `docs/architecture.md`、`docs/environment.md` 和 `docs/roadmap.md` 只能承接并细化 `BLUEPRINT.md`，不能推翻蓝图。
+
+文件范围：
+
+- Moved：
+  - `ARCHITECTURE.md` -> `docs/architecture.md`
+  - `ENVIRONMENT.md` -> `docs/environment.md`
+  - `ROADMAP.md` -> `docs/roadmap.md`
+- Updated：
+  - `README.md`
+  - `AGENTS.md`
+  - `GOAL.md`
+  - `BLUEPRINT.md`
+  - `checks/automation-readiness.sh`
+  - `docs/domain/context.md`
+  - `docs/planning/project-role-map.md`
+  - `docs/planning/linear-draft-plan.md`
+  - `docs/automation/graphify-resource-graph-scope.md`
+  - `docs/automation/parent-codex-supervision.md`
+  - `docs/automation/codex-use-cases-alignment.md`
+  - `docs/automation/post-issue-ledger.md`
+  - `docs/reference/nautilus-trader/*`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- docs / checks only。
+- 未创建 Linear Project。
+- 未创建 Linear issue。
+- 未修改 Linear status。
+- 未推进 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Secondary Weight Docs Rehome 变更无 whitespace error。 |
+| `bash checks/automation-readiness.sh` | pass | 二级权重文档位置、工程模块地图语义、roadmap 施工路线语义和旧根目录入口反向检查通过。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
