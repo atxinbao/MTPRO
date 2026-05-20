@@ -46,11 +46,30 @@
 | Agent Engineering Practices | `docs/automation/agent-engineering-practices.md` | shared language、feedback loop、tracer bullet、diagnose、architecture deepening 和 handoff discipline |
 | Evidence | `docs/audit/`、`docs/validation/`、`verification.md` | Stage Code Audit、验证摘要和 append-only 历史 |
 
+## Root Docs Responsibility Contract
+
+MTPRO 的 root docs 按职责分工读取和维护：
+
+| 文件 | 只回答 | 不负责 |
+| --- | --- | --- |
+| `GOAL.md` | 为什么建、服务谁、硬边界、成功标准 | 不展开最终产品蓝图，不列完整系统结构，不决定下一阶段 Project |
+| `BLUEPRINT.md` | 最终产品要建成什么、系统和 Workbench 长期如何组织、Current / Future 如何分界 | 不记录完成进度条，不替代 `ROADMAP.md`，不授权 Linear execution |
+| `ARCHITECTURE.md` | 当前架构地图 / 设计基线、模块边界、目标数据流、不变量 | 不维护完整未来蓝图，不记录 Stage Audit 流水账 |
+| `ROADMAP.md` | 当前已批准阶段、目标切片、Project closure、下一步 planning handoff | 不替代蓝图，不创建 Linear，不推进 `Todo` |
+
+维护原则：
+
+- 目标冲突先看 `GOAL.md`。
+- 终局设计和 Future Construction Zones 先看 `BLUEPRINT.md`。
+- 当前代码结构和模块边界先看 `ARCHITECTURE.md`。
+- 当前施工进度和下一步 planning handoff 先看 `ROADMAP.md`。
+- 如果蓝图被更新，必须确认它没有把 future capability 变成当前 execution scope。
+
 ## 来源
 
 | 来源 | 用途 |
 | --- | --- |
-| `GOAL.md` | 当前项目目标、第一版边界和非目标 |
+| `GOAL.md` | Project Charter、服务对象、永久硬边界和当前成功标准 |
 | `ENVIRONMENT.md` | 本地环境、验证入口和外部系统禁区 |
 | `ARCHITECTURE.md` | 当前模块地图、目标数据流和不变量 |
 | `ROADMAP.md` | 已完成阶段、当前路线和非授权边界 |
@@ -233,7 +252,7 @@ Market event
 
 ## Current Construction Scope
 
-当前已完成并 closure：
+当前已批准并 closure 的 construction baseline：
 
 - Bootstrap / contract-first baseline。
 - Runtime Research Workbench v1。
@@ -253,7 +272,9 @@ Market event
 - Paper workflow 可观察性和本地 session-level control shell。
 - 更长周期 market data replay / operations。
 
-下一阶段方向仍必须由 Human + `@001 / PLN` 基于本文档、Stage Code Audit Reports 和最新验证摘要确认。
+当前没有已授权的下一阶段 construction scope。
+
+下一阶段方向仍必须由 Human + `@001 / PLN` 基于本文档、`GOAL.md`、`ROADMAP.md`、Stage Code Audit Reports 和最新验证摘要确认。
 
 ## Future Construction Zones
 
@@ -300,11 +321,22 @@ Human confirms blueprint
 - Linear write authorized：no
 - `@002 / PAR` authorized：no
 
+## Blueprint Update Rule
+
+修改本文档时必须保持三条线分开：
+
+- Final Product Blueprint：可以描述长期终局和 Future Construction Zones。
+- Current Construction Scope：只能描述已经完成或 Human 明确允许进入 planning 的当前施工范围。
+- Execution Authorization：只能来自 Linear live-read 中唯一 configured executable issue。
+
+因此，本文档可以帮助 `@001 / PLN` 形成下一阶段 Project 草案，但不能直接创建 Linear Project / Issue，不能推进 `Todo`，不能启动 `@002 / PAR` 或 symphony-issue。
+
 ## Validation Checklist
 
 - [x] NautilusTrader reference study 被总结为 MTPRO 自己的蓝图，不复制外部项目。
 - [x] `mattpocock/skills` 方法论被收敛为 MTPRO 自己的 shared language / feedback loop / diagnosis / handoff 规则。
 - [x] Root Blueprint 和 Complete Blueprint 已统一到根目录 `BLUEPRINT.md`。
+- [x] Goal / Blueprint / Architecture / Roadmap 分工明确。
 - [x] `docs/design/mtpro-complete-blueprint.md` 只作为兼容入口。
 - [x] Final Product Blueprint 与 Current Construction Scope 分离。
 - [x] Future Construction Zones 明确。
