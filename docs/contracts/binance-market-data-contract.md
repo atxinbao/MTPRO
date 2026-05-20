@@ -202,3 +202,36 @@ MTP-21 通过 `Runtime` 模块消费 `BinancePublicMarketDataClient` 的 public 
 - retention engine、freshness read model、fixture parity hardening、event log / projection consistency 或 UI evidence 接入。
 - signed endpoint、account endpoint、listenKey user data stream。
 - broker action、Live trading、真实订单提交 / 撤销 / 替换。
+
+## MTP-56 Market Data Replay Retention / Freshness Evidence
+
+日期：2026-05-20
+
+执行者：Codex
+
+`Adapters` 在本事项中新增最小 retention policy、freshness status、freshness evidence read model 和 batch freshness summary，用于表达本地 replay batch 是否保留、是否 stale、是否 expired，并为后续 Report / Dashboard / Event Timeline 提供稳定只读 evidence。
+
+契约结构：
+
+- `BinanceMarketDataReplayRetentionPolicy`：描述本地 batch replay retention 的 policy id、stale window、expires window、retention window 和本地保留开关。
+- `BinanceMarketDataReplayFreshnessStatus`：固定 `fresh`、`stale`、`expired`、`not retained` 四种状态。
+- `BinanceMarketDataReplayFreshnessEvidenceReadModel`：复制 batch / replay metadata、retention policy 摘要、freshness status、retention evidence 和 read-model-only boundary flags。
+- `BinanceMarketDataReplayBatchFreshnessSummary`：聚合多个 freshness evidence read model，输出 fresh / stale / expired / not retained / retained batch ids 和稳定 summary line。
+- `BinanceMarketDataReplayFreshnessSourceContract`：证明 freshness evidence 不暴露 SQLite / DuckDB schema、ORM、Runtime object、adapter request、storage tiering、cloud archive 或 production deletion job。
+
+契约要求：
+
+- retention policy 只服务本地 replay operations evidence，不执行 production retention cleanup。
+- freshness evidence read model 必须从 `BinanceMarketDataBatchReplayContract` 派生，并保持 public read-only、local fixture replay 和 required validation local-only。
+- batch freshness summary 只聚合已生成的 freshness read model，不触发 replay、不读取 persistence schema、不调用 adapter / runtime。
+- freshness evidence 不得包含 signed endpoint、account endpoint、listenKey、broker、real order 或 production runtime operations surface。
+- 后续 Report / Dashboard / Event Timeline 只能消费 read model 字段，不得直接访问 SQLite / DuckDB schema、adapter request 或 runtime object。
+
+本契约不包含：
+
+- 完整 retention engine 或 production 数据清理任务。
+- 云端 archive、storage tiering、多节点运行或数据湖。
+- event log / projection consistency 串联。
+- Dashboard / Event Timeline UI 接入。
+- signed endpoint、account endpoint、listenKey user data stream。
+- broker action、Live trading、真实订单提交 / 撤销 / 替换。
