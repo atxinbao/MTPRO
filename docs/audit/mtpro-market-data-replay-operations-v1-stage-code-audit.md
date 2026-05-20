@@ -110,14 +110,18 @@ Post-Issue Ledger 对 `MTP-60` 已完成，`git_pull_ff_only` 和 `graphify_upda
 
 ## Root Docs Delta
 
-| Root doc | Root Docs Refresh Gate input |
+| Root doc | Root Docs Refresh Gate closure |
 | --- | --- |
-| `GOAL.md` | Project 完成后需要同步 “更长周期 market data replay / operations” 已形成本地 evidence baseline；不改变 no Live / no signed endpoint / no broker action 禁区。 |
-| `ENVIRONMENT.md` | no update needed candidate：本 Project 未新增外部依赖或验证入口；统一验证入口仍是 `bash checks/run.sh`，required validation 仍不依赖真实 Binance 网络。 |
-| `ARCHITECTURE.md` | Project 完成后需要同步 Adapters / Runtime / App / Dashboard 的 market data replay operations evidence flow：public read-only adapter contract、本地 replay metadata、append-only event log / projection consistency 和 read-model-only Dashboard path。 |
-| `ROADMAP.md` | Project 完成后需要同步 `MTPRO Market Data Replay Operations v1` 为 Completed，并重新计算 Goal / Roadmap Target Progress；不得借此创建下一 Project / Issue 或授权下一阶段执行。 |
+| `GOAL.md` | updated：同步 “更长周期 market data replay / operations” 已形成本地 evidence baseline，并将当前 Goal / Roadmap Target Progress 更新为 5 / 5（100%）。 |
+| `ENVIRONMENT.md` | no update needed：本 Project 未新增外部依赖或验证入口；统一验证入口仍是 `bash checks/run.sh`，required validation 仍不依赖真实 Binance 网络。 |
+| `ARCHITECTURE.md` | updated：同步 Adapters / Runtime / App / Dashboard 的 market data replay operations evidence flow：public read-only adapter contract、本地 replay metadata、append-only event log / projection consistency 和 read-model-only Dashboard path。 |
+| `ROADMAP.md` | updated：新增 `MTPRO Market Data Replay Operations v1` 为 Completed，Project Closure Count 更新为 7 / 7，Goal / Roadmap Target Progress 更新为 5 / 5（100%）。 |
 
-Root Docs Refresh Gate 尚未执行。本报告合并后，`@002 / PAR` 必须按 gate 单独检查 `GOAL.md`、`ENVIRONMENT.md`、`ARCHITECTURE.md`、`ROADMAP.md`，只同步已发生事实。
+Root Docs Refresh Gate closure：closed。
+
+本次 closure 只同步已发生事实，不决定下一阶段方向，不创建 Linear Project / Issue，不修改 Linear status，不推进 `Todo`，不启动 Symphony，不运行 Graphify update，不写业务代码。
+
+本次 closure 验证：`git diff --check` passed；`bash checks/run.sh` passed，Dashboard smoke 和 121 个 XCTest 全部通过。
 
 ## Residual Notes For Human Planning
 
