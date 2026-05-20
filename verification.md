@@ -6759,3 +6759,50 @@ Commit：
 | `git diff --check` | pass | Live Trading Boundary planning record docs-only 变更无 whitespace error。 |
 | `bash checks/automation-readiness.sh` | pass | Live Trading Boundary planning record 锚点通过。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
+
+## MTP-61 Live Trading Foundation taxonomy / gate
+
+日期：2026-05-21
+
+执行者：Codex
+
+目的：
+
+- 定义 Live trading foundation capability taxonomy、gate 顺序和当前禁止边界。
+- 为 `live capability`、`blocked capability`、`future gate` 和 `forbidden capability` 建立 shared language。
+- 将 MTP-61 的验证入口固定到 `TVM-LIVE-TRADING-FOUNDATION` 和 automation readiness anchor。
+
+文件范围：
+
+- Added：
+  - `docs/contracts/live-trading-boundary-contract.md`
+- Updated：
+  - `docs/domain/context.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+
+边界确认：
+
+- 未实现 API key。
+- 未实现 secret storage。
+- 未实现 signed endpoint。
+- 未实现 account endpoint。
+- 未实现 listenKey user data stream。
+- 未连接 broker / exchange execution adapter。
+- 未实现 real order submit / cancel / replace。
+- 未实现 OMS。
+- 未实现 `LiveExecutionAdapter`。
+- 未做实盘监控台、执行控制、风险控制、审计 / 停机控制。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | MTP-61 docs / checks 变更无 whitespace error。 |
+| `bash checks/automation-readiness.sh` | pass | `docs/contracts/live-trading-boundary-contract.md`、`TVM-LIVE-TRADING-FOUNDATION`、MTP-61 validation-plan 和 domain terms anchors 通过。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |

@@ -43,7 +43,9 @@ README.md
 
 `MTPRO Live Trading Boundary Definition v1` Project-level planning record 已落仓，路径为 `docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md`；该文档仍只是 planning summary，不创建 Linear Project，不创建 Linear Issues，不修改 Linear status，不推进 Todo，不启动 `@002 / PAR`，不启动 Symphony，不授权执行。
 
-`MTPRO Live Trading Boundary Definition v1` 尚未写入 Linear；完整 issue execution contract 以后以 Linear issue body 为准。
+`MTPRO Live Trading Boundary Definition v1` 若已由 Parent Codex 写入 Linear，current Project / current issue / active queue 状态必须继续从 Linear live-read 获取；完整 issue execution contract 以 Linear issue body 为准，不由仓库 planning record 替代。
+
+MTP-61 的长期验证锚点为 `docs/contracts/live-trading-boundary-contract.md` 和 `TVM-LIVE-TRADING-FOUNDATION`。该锚点只定义 Live trading foundation capability taxonomy、gate 顺序、blocked capability 和 forbidden capability，不实现 API key、secret storage、signed endpoint、account endpoint、listenKey、broker adapter、真实订单、OMS 或 `LiveExecutionAdapter`。
 
 ## Goal / Roadmap Progress Baseline
 
@@ -102,6 +104,30 @@ Stage audit / input 入口：
 - `MTP-60`：Market Data Replay Operations v1 阶段收口。
 
 ## 最近验证
+
+MTP-61 Live Trading Foundation taxonomy / gate evidence 已完成：
+
+```bash
+git diff --check
+bash checks/automation-readiness.sh
+bash checks/run.sh
+```
+
+结果：
+
+- `git diff --check`：pass。
+- `bash checks/automation-readiness.sh`：pass，已检查 `docs/contracts/live-trading-boundary-contract.md`、`TVM-LIVE-TRADING-FOUNDATION` 和 MTP-61 validation anchor。
+- `bash checks/run.sh`：pass。
+- Dashboard smoke：`sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`。
+- XCTest：121 tests, 0 failures。
+
+MTP-61 更新重点：
+
+- `docs/contracts/live-trading-boundary-contract.md`：新增 Live trading foundation capability taxonomy、Gate 0 至 Gate 6 顺序和 future slice 分界。
+- `docs/domain/context.md`：新增 `live capability`、`blocked capability`、`future gate`、`forbidden capability` shared language。
+- `docs/validation/trading-validation-matrix.md`：新增 `TVM-LIVE-TRADING-FOUNDATION` 和 MTP-61 回填行。
+- `docs/validation/validation-plan.md`：新增 MTP-61 required validation。
+- `checks/automation-readiness.sh`：新增 MTP-61 mechanical anchors。
 
 本轮 Root Docs Stack Compression / 根文档栈压缩已完成：
 
