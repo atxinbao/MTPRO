@@ -235,3 +235,36 @@ MTP-21 通过 `Runtime` 模块消费 `BinancePublicMarketDataClient` 的 public 
 - Dashboard / Event Timeline UI 接入。
 - signed endpoint、account endpoint、listenKey user data stream。
 - broker action、Live trading、真实订单提交 / 撤销 / 替换。
+
+## MTP-57 Market Data Replay Fixture Parity / Replay Consistency
+
+日期：2026-05-20
+
+执行者：Codex
+
+`Adapters` 在本事项中新增 deterministic fixture parity 和 replay consistency evidence，用于验证本地 batch replay output 与 MTP-55 metadata / contract 完全一致。
+
+契约结构：
+
+- `BinanceMarketDataBatchReplayConsistencyEvidence`：从 `BinanceMarketDataBatchReplayContract` 和本地 replayed `MarketBar` records 派生，复制 replay output summary、record ordering、record count、metadata consistency 和 checksum / parity hint match evidence。
+- `BinanceMarketDataBatchReplayDeterministicParity`：生成 deterministic replay output summary 和稳定 FNV-1a parity hint，并提供本地 validation 入口。
+- `BinanceMarketDataBatchReplayParityError`：表达 metadata record count、symbol、interval、time window、record ordering、checksum / parity hint 或非本地 replay contract 漂移。
+- `BinanceMarketDataReplayOperationsFixture.deterministicReplayRecords()`：提供 BTCUSDT / 1m 的本地 replay output fixture，只用于 XCTest、docs 和 PR evidence。
+
+契约要求：
+
+- replay consistency evidence 必须从本地 `MarketBar` records 和 batch replay contract 生成，不读取真实 Binance 网络。
+- record count、symbol、interval、time window 必须与 metadata 一致。
+- replay records 必须按 interval start 严格递增，乱序 replay output 必须被拒绝。
+- checksum / parity hint 必须从 deterministic replay output summary 计算，并与 metadata checksum / parity hint 一致。
+- required validation 固定为 mock transport、fixture parity 和 local batch replay，不依赖真实 Binance 网络。
+- consistency evidence 不得包含 signed endpoint、account endpoint、listenKey、broker、real order、Live trading 或 production runtime operations surface。
+
+本契约不包含：
+
+- 真实长周期历史下载器或 production replay job。
+- event log / projection consistency 串联。
+- Dashboard / Report / Event Timeline UI 接入。
+- 生产级数据质量平台、数据修复或多节点运行。
+- signed endpoint、account endpoint、listenKey user data stream。
+- broker action、Live trading、真实订单提交 / 撤销 / 替换。

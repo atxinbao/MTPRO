@@ -376,3 +376,27 @@ Shell 新增展示：
 - event log / projection consistency 串联、fixture parity hardening 或 Dashboard UI 接入。
 - SQLite / DuckDB schema、runtime object、adapter request 或 persistence adapter direct read。
 - signed endpoint、account endpoint、listenKey、broker action、Live trading 或真实订单提交 / 撤销 / 替换。
+
+## MTP-57 Market Data Replay Fixture Parity / Replay Consistency
+
+日期：2026-05-20
+
+执行者：Codex
+
+当前产品面新增本地 fixture parity / replay consistency evidence，但仍不新增 Dashboard UI、operations console、真实历史下载器或 production replay operations。
+
+边界覆盖：
+
+- deterministic replay output summary：从本地 replayed `MarketBar` records 生成稳定 summary。
+- metadata consistency：record count、symbol、interval、time window 与 batch replay metadata 对齐。
+- record ordering：replay records 必须按 interval start 严格递增，乱序 output 被拒绝。
+- checksum / parity hint：由本地 replay output 计算并与 metadata checksum / parity hint 匹配。
+- network independence：required validation 继续固定为 mock transport、fixture parity 和 local batch replay。
+
+仍不包含：
+
+- 真实 Binance 网络 required validation、真实长周期历史下载器或 production scheduler。
+- event log / projection consistency 串联、Dashboard / Report / Event Timeline evidence 接入。
+- 数据质量平台、生产数据修复、多节点运行或云端数据湖。
+- SQLite / DuckDB schema、runtime object 或 adapter request 暴露。
+- signed endpoint、account endpoint、listenKey、broker action、Live trading 或真实订单提交 / 撤销 / 替换。

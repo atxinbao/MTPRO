@@ -5701,3 +5701,68 @@ Linear live-read：
 | `swift test --filter AdaptersTests/testBatchReplay` | pass | 8 个 focused XCTest，0 failures；覆盖 retention policy、freshness evidence read model、batch freshness summary、schema / adapter / runtime non-exposure 和 non-local replay contract rejection tests。 |
 | `bash checks/automation-readiness.sh` | pass | 新增 MTP-56 validation matrix、validation plan、contract docs、product surface、source/test anchors 后通过，输出 `MTPRO automation readiness checks passed.`。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 114 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
+
+## MTP-57 deterministic fixture parity 和 replay consistency
+
+日期：2026-05-20
+
+执行者：Codex Execution Agent
+
+目的：
+
+- 新增 `MTPRO Market Data Replay Operations v1` 第四项 issue 的 deterministic fixture parity 和 replay consistency evidence。
+- 验证本地 batch replay output、metadata record count、record ordering、checksum / parity hint 和 metadata consistency。
+- 更新 contract、product surface、validation plan、trading validation matrix、latest verification summary 和 automation readiness anchor。
+
+Linear live-read：
+
+- Linear Project：`MTPRO Market Data Replay Operations v1`。
+- 当前 issue：`MTP-57` 为唯一 `In Progress` issue。
+- `MTP-54`、`MTP-55` 和 `MTP-56` 已 `Done`。
+- `MTP-58`、`MTP-59` 和 `MTP-60` 均为 `Backlog`。
+- WIP=1。
+
+文件范围：
+
+- Added：
+  - `Sources/Adapters/BinanceMarketDataReplayParity.swift`
+- Updated：
+  - `Sources/Adapters/BinanceMarketDataReplayOperationsMetadata.swift`
+  - `Tests/AdaptersTests/AdaptersTests.swift`
+  - `docs/contracts/binance-market-data-contract.md`
+  - `docs/product/product-surface-map.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+
+证据：
+
+- `BinanceMarketDataBatchReplayConsistencyEvidence` 从 `BinanceMarketDataBatchReplayContract` 和本地 replayed `MarketBar` records 派生，不读取真实 Binance 网络、不写 event log、不触发 projection。
+- `BinanceMarketDataBatchReplayDeterministicParity` 生成 deterministic replay output summary 和稳定 FNV-1a parity hint。
+- Tests 验证 metadata record count、symbol、interval、time window、record ordering 和 checksum / parity hint 与 replay output 一致。
+- Tests 验证 record count drift、乱序 replay output、checksum drift、metadata drift 和 non-local replay contract 会被拒绝。
+- Trading Validation Matrix 继续使用 `TVM-MARKET-DATA-REPLAY-OPERATIONS`，并由 `checks/automation-readiness.sh` 机械检查 MTP-57 source / tests / docs anchors。
+
+边界确认：
+
+- 不做真实 Binance 网络 required validation。
+- 不实现真实长周期历史下载器。
+- 不进入 production operations。
+- 不串联 event log / projection consistency，不接 Dashboard UI 或 operations console。
+- 不暴露 SQLite / DuckDB schema、runtime object、adapter request 或 persistence adapter direct read。
+- 不接 API key、signed endpoint、account endpoint、listenKey、broker action、Live trading 或真实订单提交 / 撤销 / 替换。
+- 未修改 Linear status。
+- 未创建 Linear Project / Issue。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未提交 `.codex/*` 或 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter AdaptersTests/testBatchReplay` | pass | 11 个 focused XCTest，0 failures；覆盖 deterministic fixture parity、replay consistency、metadata count / ordering / checksum drift rejection 和 network boundary drift tests。 |
+| `bash checks/automation-readiness.sh` | pass | 新增 MTP-57 validation matrix、validation plan、contract docs、product surface、source/test anchors 后通过，输出 `MTPRO automation readiness checks passed.`。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 117 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
