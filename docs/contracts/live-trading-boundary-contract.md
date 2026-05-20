@@ -152,13 +152,72 @@ MTP-63 的 non-implementation evidence 必须来自三层本地证据：
 - Adapters deterministic test 证明 `BinanceReadOnlyAdapterBoundary` 不暴露 `LiveExecutionAdapter`、broker / exchange execution adapter 或 execution venue capability，且 transport 前拒绝执行语义片段。
 - `checks/automation-readiness.sh` 必须机械检查 MTP-63 anchors，并拒绝 `Sources/` 或 `Tests/` 中出现 `LiveExecutionAdapter` public type / protocol / actor / class / enum declaration。
 
+## MTP-64 real order lifecycle 术语、future gate 和 forbidden capability tests
+
+`MTP-64-REAL-ORDER-LIFECYCLE-TERMINOLOGY`
+
+MTP-64 固定 Gate 3 的 real order lifecycle terminology。该 gate 只允许把真实订单生命周期表达为术语、future gate、validation anchor 和 deterministic forbidden test，不允许实现真实订单状态机、submit / cancel / replace、execution report、broker fill、reconciliation、OMS、真实账户状态或 broker position sync。
+
+| Term | 中文定义 | 当前状态 | 当前允许证据 | 当前禁止输出 |
+| --- | --- | --- | --- | --- |
+| `real order intent` | 后续 Live / OMS 可能需要的真实订单意图。 | Future / gated | 术语、future gate、forbidden test | 当前 Swift command、paper order intent 升级 |
+| `real order state machine` | 后续跟踪真实订单状态迁移的状态机。 | Future / gated | 合同名称、gate 条件 | 当前 enum / reducer / engine 实现 |
+| `real order submit` | 后续向 broker / exchange 提交真实订单。 | Forbidden now | future submit contract | HTTP / SDK / adapter submit |
+| `real order cancel` | 后续撤销真实订单。 | Forbidden now | future cancel contract | cancel command / transport |
+| `real order replace` | 后续替换真实订单参数。 | Forbidden now | future replace contract | replace command / transport |
+| `execution report` | 后续 broker / exchange 返回的真实订单执行回报。 | Future / gated | future execution report contract | 当前 ingestion、event 或 read model 授权 |
+| `broker fill` | 后续真实 broker / exchange fill。 | Future / gated | future broker fill contract | simulated fill 升级为 broker fill |
+| `order reconciliation` | 后续本地状态与 broker / exchange 状态核对。 | Future / gated | future reconciliation contract | 当前 reconciliation service |
+| `OMS` | 后续完整订单管理系统。 | Future / gated | OMS blueprint gate | 当前 OMS 类型、服务或 workflow |
+| `real account state` | 后续真实账户余额、持仓和 account update。 | Future / gated | account state future gate | 当前 account state / broker position sync |
+
+`MTP-64-REAL-ORDER-LIFECYCLE-FUTURE-GATES`
+
+Future real order lifecycle 只有在后续独立 Project Definition 中补齐以下 gate 后才能进入实现规划：
+
+- Human independent Live decision。
+- credential endpoint boundary satisfied。
+- adapter capability isolation satisfied。
+- real order state machine contract。
+- submit contract。
+- cancel contract。
+- replace contract。
+- execution report contract。
+- broker fill contract。
+- reconciliation contract。
+- OMS blueprint。
+- live risk / operations / audit evidence。
+
+这些 gate 不授权当前实现真实订单状态机，不创建 submit / cancel / replace command，不消费 execution report，不记录 broker fill，不执行 reconciliation，也不实现 OMS。
+
+`MTP-64-PAPER-REAL-LIFECYCLE-ISOLATION`
+
+Paper order lifecycle 与 real order lifecycle 必须保持隔离：
+
+- `PaperOrderIntent` 只表达本地 paper order intent / lifecycle evidence，`representsRealOrder`、`authorizesLiveTrading` 和 `isExecutableAsRealOrder` 必须保持 `false`。
+- `PaperSimulatedFillEvidence` 只表达 deterministic simulated fill evidence，`representsRealFill`、`representsBrokerFill` 和 `updatesRealAccountBalance` 必须保持 `false`。
+- `PaperPortfolioProjectionUpdate` 只表达 paper portfolio projection，`readsRealAccountBalance` 和 `syncsBrokerPosition` 必须保持 `false`。
+- `RealOrderLifecycleBoundary` 的 `upgradesPaperOrderLifecycle`、`upgradesPaperOrderIntent`、`upgradesSimulatedFillToBrokerFill`、`upgradesPaperPortfolioToAccountState` 和 `readModelRepresentsRealOrderLifecycle` 必须保持 `false`。
+
+`MTP-64-FORBIDDEN-CAPABILITY-TESTS`
+
+MTP-64 的 non-implementation evidence 必须来自三层本地证据：
+
+- Core deterministic test 证明 `RealOrderLifecycleBoundary` 只定义术语、future gate 和 allowed evidence，且所有 real order lifecycle / OMS / account / broker position / paper upgrade flags 全部为 `false`。
+- Core deterministic test 证明 `PaperOrderIntent`、`PaperSimulatedFillEvidence` 和 `PaperPortfolioProjectionUpdate` 不能升级为 real order、broker fill 或 real account state。
+- Adapters deterministic test 证明 `BinanceReadOnlyAdapterBoundary` 不暴露 execution report、broker fill、order reconciliation、real account state 或 broker position sync，且 `BinancePublicMarketDataClient` 在 transport 前拒绝 execution report、broker fill、reconciliation 和 OMS 语义片段。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-64 anchors，并拒绝 `Sources/` 或 `Tests/` 中出现 `RealOrderStateMachine` public type / protocol / actor / class / enum declaration。
+
 ## Current allowed evidence
 
-MTP-61 当前只允许产生以下 evidence：
+MTP-61 至 MTP-64 当前只允许产生以下 evidence：
 
 - Live trading foundation taxonomy。
 - Gate sequence。
 - 当前禁止能力清单。
+- Gate 1 credential / signed / account / listenKey boundary。
+- Gate 2 adapter capability isolation。
+- Gate 3 real order lifecycle terminology / future gates / forbidden tests。
 - Validation matrix anchor。
 - Automation readiness anchor。
 - PR evidence 和 `bash checks/run.sh` 摘要。
@@ -176,7 +235,12 @@ MTP-61 当前只允许产生以下 evidence：
 - listenKey user data stream。
 - broker / exchange execution adapter。
 - real order submit / cancel / replace。
+- execution report。
+- broker fill。
+- order reconciliation。
 - real order lifecycle implementation。
+- real account state。
+- broker position sync。
 - OMS。
 - `LiveExecutionAdapter`。
 - live monitoring console。
@@ -210,3 +274,11 @@ MTP-63 必须满足：
 - `Tests/CoreTests/CoreTests.swift` 必须覆盖 `LiveAdapterCapabilityIsolationBoundary` deterministic fixture、Codable 禁区、`LiveExecutionAdapter` non-implementation、broker / exchange adapter instantiation rejection 和 real order bypass rejection。
 - `Tests/AdaptersTests/AdaptersTests.swift` 必须覆盖 public read-only adapter 拒绝 broker、LiveExecutionAdapter、submit、cancel 和 replace contract。
 - PR evidence 必须确认没有 `LiveExecutionAdapter` 实现、broker / exchange execution adapter、execution venue connection、real order submit / cancel / replace、signed endpoint、account endpoint、listenKey 或真实订单行为。
+
+MTP-64 必须满足：
+
+- `bash checks/run.sh` 通过。
+- `checks/automation-readiness.sh` 必须检查 `MTP-64-REAL-ORDER-LIFECYCLE-TERMINOLOGY`、`MTP-64-REAL-ORDER-LIFECYCLE-FUTURE-GATES`、`MTP-64-PAPER-REAL-LIFECYCLE-ISOLATION` 和 `MTP-64-FORBIDDEN-CAPABILITY-TESTS`。
+- `Tests/CoreTests/CoreTests.swift` 必须覆盖 `RealOrderLifecycleBoundary` deterministic fixture、Codable 禁区、submit / cancel / replace / execution report / broker fill / reconciliation / OMS bypass rejection，以及 paper order / simulated fill / paper portfolio 不可升级为 real order / broker fill / account state。
+- `Tests/AdaptersTests/AdaptersTests.swift` 必须覆盖 public read-only adapter 拒绝 execution report、broker fill、reconciliation、OMS、real account state 和 broker position sync contract。
+- PR evidence 必须确认没有 real order state machine、submit / cancel / replace、execution report、broker fill、reconciliation、OMS、真实账户状态、broker position sync 或 paper-to-real lifecycle upgrade。

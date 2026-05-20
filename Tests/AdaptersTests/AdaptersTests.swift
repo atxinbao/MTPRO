@@ -696,6 +696,100 @@ final class AdaptersTests: XCTestCase {
         XCTAssertTrue(requests.isEmpty)
     }
 
+    func testPublicReadOnlyAdapterCannotUpgradeIntoMTP64RealOrderLifecycleCapability() async throws {
+        // 测试场景：MTP-64 Gate 3 要求 public read-only adapter 不得暴露 real order lifecycle、
+        // execution report、broker fill、reconciliation、OMS 或真实账户 / 仓位同步能力。
+        let realOrderBoundary = RealOrderLifecycleBoundary.deterministicFixture
+        let adapterBoundary = BinanceReadOnlyAdapterBoundary()
+
+        XCTAssertTrue(realOrderBoundary.gateThreeBoundaryHeld)
+        XCTAssertTrue(adapterBoundary.adapterCapabilityIsolationHeld)
+        XCTAssertTrue(adapterBoundary.forbidsCapability(.executionReport))
+        XCTAssertTrue(adapterBoundary.forbidsCapability(.brokerFill))
+        XCTAssertTrue(adapterBoundary.forbidsCapability(.orderReconciliation))
+        XCTAssertTrue(adapterBoundary.forbidsCapability(.realAccountState))
+        XCTAssertTrue(adapterBoundary.forbidsCapability(.brokerPositionSync))
+        XCTAssertFalse(adapterBoundary.consumesExecutionReport)
+        XCTAssertFalse(adapterBoundary.recordsBrokerFill)
+        XCTAssertFalse(adapterBoundary.performsReconciliation)
+        XCTAssertFalse(adapterBoundary.implementsOMS)
+        XCTAssertFalse(adapterBoundary.readsRealAccountState)
+        XCTAssertFalse(adapterBoundary.syncsBrokerPosition)
+        XCTAssertFalse(adapterBoundary.allowedCapabilities.contains("execution report"))
+        XCTAssertFalse(adapterBoundary.allowedCapabilities.contains("broker fill"))
+        XCTAssertFalse(adapterBoundary.allowedCapabilities.contains("order reconciliation"))
+
+        let transport = MockBinancePublicMarketDataTransport { _ in
+            Data()
+        }
+        let client = BinancePublicMarketDataClient(transport: transport)
+
+        func assertRejected(
+            _ contract: BinancePublicRequestContract,
+            expected: BinancePublicMarketDataClientError,
+            file: StaticString = #filePath,
+            line: UInt = #line
+        ) async {
+            do {
+                _ = try await client.payload(for: contract)
+                XCTFail("MTP-64 real order lifecycle contract should be rejected before transport", file: file, line: line)
+            } catch {
+                XCTAssertEqual(error as? BinancePublicMarketDataClientError, expected, file: file, line: line)
+            }
+        }
+
+        await assertRejected(
+            BinancePublicRequestContract(
+                capability: .bestBidAsk,
+                transport: .restGET,
+                path: "/api/v3/ticker/bookTicker",
+                queryItems: [BinanceQueryItem(name: "symbol", value: "execution report")],
+                isReadOnly: true,
+                requiresAPIKey: false
+            ),
+            expected: .forbiddenRequest(
+                path: "/api/v3/ticker/bookTicker",
+                reason: "contains forbidden fragment: execution report"
+            )
+        )
+        await assertRejected(
+            BinancePublicRequestContract(
+                capability: .depthSnapshot,
+                transport: .restGET,
+                path: "/api/v3/depth",
+                queryItems: [BinanceQueryItem(name: "symbol", value: "broker fill")],
+                isReadOnly: true,
+                requiresAPIKey: false
+            ),
+            expected: .forbiddenRequest(path: "/api/v3/depth", reason: "contains forbidden fragment: broker fill")
+        )
+        await assertRejected(
+            BinancePublicRequestContract(
+                capability: .depthSnapshot,
+                transport: .restGET,
+                path: "/api/v3/depth",
+                queryItems: [BinanceQueryItem(name: "symbol", value: "reconciliation")],
+                isReadOnly: true,
+                requiresAPIKey: false
+            ),
+            expected: .forbiddenRequest(path: "/api/v3/depth", reason: "contains forbidden fragment: reconciliation")
+        )
+        await assertRejected(
+            BinancePublicRequestContract(
+                capability: .depthSnapshot,
+                transport: .restGET,
+                path: "/api/v3/depth",
+                queryItems: [BinanceQueryItem(name: "symbol", value: "OMS")],
+                isReadOnly: true,
+                requiresAPIKey: false
+            ),
+            expected: .forbiddenRequest(path: "/api/v3/depth", reason: "contains forbidden fragment: oms")
+        )
+
+        let requests = await transport.requests()
+        XCTAssertTrue(requests.isEmpty)
+    }
+
     func testBatchReplayBoundaryDefinesPublicReadOnlyLocalFixtureContract() {
         // 测试场景：MTP-54 只定义本地 batch / replay boundary，不实现真实历史下载器、
         // production operations 或任何交易能力。该 fixture 是后续 metadata / replay issue 的合同入口。

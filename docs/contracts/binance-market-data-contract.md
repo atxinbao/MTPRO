@@ -174,6 +174,35 @@ MTP-21 通过 `Runtime` 模块消费 `BinancePublicMarketDataClient` 的 public 
 - signed endpoint、account endpoint、listenKey user data stream。
 - 真实订单提交、撤销、替换或订单状态机。
 
+## MTP-64 Public Read-only Adapter / Real Order Lifecycle 禁止边界
+
+日期：2026-05-21
+
+执行者：Codex
+
+`Adapters` 在本事项中补强 Binance public read-only adapter 与 Gate 3 real order lifecycle 的隔离证据。
+
+契约结构：
+
+- `BinanceForbiddenCapability`：在 MTP-63 live adapter 禁区基础上补充 execution report、broker fill、order reconciliation、real account state 和 broker position sync。
+- `BinanceReadOnlyAdapterBoundary`：继续固定 execution report、broker fill、reconciliation、OMS、real account state 和 broker position sync flags 为 false。
+- `BinancePublicMarketDataClient`：继续在 transport 前拒绝 execution report、broker fill、reconciliation 和 OMS 语义片段。
+
+契约要求：
+
+- 当前 Binance adapter 只能表达 public market data read-only capabilities。
+- 当前 adapter 不得消费 execution report，不得记录 broker fill，不得执行 reconciliation，不得实现 OMS。
+- 当前 adapter 不得读取 real account state 或同步 broker position。
+- required validation 必须使用本地 deterministic tests 和 mock transport，不依赖真实 Binance 网络。
+
+本契约不包含：
+
+- real order state machine。
+- submit / cancel / replace。
+- execution report ingestion。
+- broker fill / account update。
+- reconciliation / OMS。
+
 ## MTP-54 Market Data Batch / Replay 边界
 
 日期：2026-05-20

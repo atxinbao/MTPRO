@@ -484,6 +484,202 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testRealOrderLifecycleBoundaryDefinesMTP64GateThreeAsFutureOnly() throws {
+        // 测试场景：MTP-64 只定义真实订单生命周期术语和 future gates；submit / cancel /
+        // replace、execution report、broker fill、reconciliation 和 OMS 都必须保持不可执行。
+        let boundary = RealOrderLifecycleBoundary.deterministicFixture
+
+        XCTAssertEqual(
+            boundary.contractID,
+            try Identifier("mtp-64-real-order-lifecycle-boundary")
+        )
+        XCTAssertEqual(boundary.issueID, try Identifier("MTP-64"))
+        XCTAssertEqual(boundary.gate, .realOrderLifecycleTerms)
+        XCTAssertEqual(boundary.terminology, RealOrderLifecycleTerm.allCases)
+        XCTAssertEqual(boundary.forbiddenCapabilities, RealOrderLifecycleForbiddenCapability.allCases)
+        XCTAssertEqual(
+            boundary.futureGates,
+            [
+                .humanLiveDecision,
+                .credentialEndpointBoundarySatisfied,
+                .adapterCapabilityIsolationSatisfied,
+                .realOrderStateMachineContract,
+                .submitContract,
+                .cancelContract,
+                .replaceContract,
+                .executionReportContract,
+                .brokerFillContract,
+                .reconciliationContract,
+                .omsBlueprint,
+                .liveRiskOperationsAuditEvidence
+            ]
+        )
+        XCTAssertEqual(
+            boundary.allowedEvidenceKinds,
+            [
+                .terminologyDocumentation,
+                .futureGateDocumentation,
+                .validationMatrixAnchor,
+                .automationReadinessAnchor,
+                .deterministicForbiddenTest,
+                .paperLiveIsolationEvidence,
+                .prBoundaryEvidence
+            ]
+        )
+        XCTAssertTrue(boundary.gateThreeBoundaryHeld)
+        XCTAssertFalse(boundary.implementsRealOrderStateMachine)
+        XCTAssertFalse(boundary.submitsRealOrder)
+        XCTAssertFalse(boundary.cancelsRealOrder)
+        XCTAssertFalse(boundary.replacesRealOrder)
+        XCTAssertFalse(boundary.consumesExecutionReport)
+        XCTAssertFalse(boundary.recordsBrokerFill)
+        XCTAssertFalse(boundary.performsReconciliation)
+        XCTAssertFalse(boundary.implementsOMS)
+        XCTAssertFalse(boundary.readsRealAccountState)
+        XCTAssertFalse(boundary.syncsBrokerPosition)
+        XCTAssertFalse(boundary.upgradesPaperOrderLifecycle)
+        XCTAssertFalse(boundary.upgradesPaperOrderIntent)
+        XCTAssertFalse(boundary.upgradesSimulatedFillToBrokerFill)
+        XCTAssertFalse(boundary.upgradesPaperPortfolioToAccountState)
+        XCTAssertFalse(boundary.readModelRepresentsRealOrderLifecycle)
+        XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(RealOrderLifecycleBoundary.self, from: encoded)
+        XCTAssertEqual(decoded, boundary)
+    }
+
+    func testRealOrderLifecycleBoundaryRejectsMTP64ForbiddenCapabilityBypass() throws {
+        // 测试场景：Gate 3 fixture 的初始化和 Codable 解码都必须拒绝恢复真实订单状态机、
+        // submit / cancel / replace、execution report、broker fill、reconciliation、OMS 或 paper 升级路径。
+        XCTAssertThrowsError(
+            try RealOrderLifecycleBoundary(implementsRealOrderStateMachine: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("implementsRealOrderStateMachine")
+            )
+        }
+        XCTAssertThrowsError(
+            try RealOrderLifecycleBoundary(submitsRealOrder: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("submitsRealOrder"))
+        }
+        XCTAssertThrowsError(
+            try RealOrderLifecycleBoundary(cancelsRealOrder: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("cancelsRealOrder"))
+        }
+        XCTAssertThrowsError(
+            try RealOrderLifecycleBoundary(replacesRealOrder: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("replacesRealOrder"))
+        }
+        XCTAssertThrowsError(
+            try RealOrderLifecycleBoundary(consumesExecutionReport: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("consumesExecutionReport")
+            )
+        }
+        XCTAssertThrowsError(
+            try RealOrderLifecycleBoundary(recordsBrokerFill: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("recordsBrokerFill"))
+        }
+        XCTAssertThrowsError(
+            try RealOrderLifecycleBoundary(performsReconciliation: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("performsReconciliation")
+            )
+        }
+        XCTAssertThrowsError(
+            try RealOrderLifecycleBoundary(implementsOMS: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("implementsOMS"))
+        }
+        XCTAssertThrowsError(
+            try RealOrderLifecycleBoundary(upgradesSimulatedFillToBrokerFill: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("upgradesSimulatedFillToBrokerFill")
+            )
+        }
+        XCTAssertThrowsError(
+            try RealOrderLifecycleBoundary(terminology: [.realOrderIntent])
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "terminology",
+                    expected: RealOrderLifecycleBoundary
+                        .requiredTerminology
+                        .map(\.rawValue)
+                        .joined(separator: ","),
+                    actual: "real order intent"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(RealOrderLifecycleBoundary.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["performsReconciliation"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(RealOrderLifecycleBoundary.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("performsReconciliation")
+            )
+        }
+    }
+
+    func testPaperOrderFillAndPortfolioEvidenceCannotUpgradeToRealOrderLifecycle() throws {
+        // 测试场景：MTP-64 明确 paper order lifecycle、simulated fill 和 paper portfolio
+        // projection 只能保持 paper-only evidence，不能升级为真实订单、broker fill 或 account state。
+        let boundary = RealOrderLifecycleBoundary.deterministicFixture
+        let paperOrder = try PaperOrderIntentFixture.deterministicAllowed()
+        let simulatedFill = try PaperSimulatedFillFixture.deterministicAllowed()
+        let portfolioUpdate = try PaperPortfolioProjectionUpdate(
+            updateID: try Identifier("paper-portfolio-update-mtp-64"),
+            portfolioID: try Identifier("portfolio-main"),
+            simulatedFill: simulatedFill,
+            sourceSimulatedFillSequence: 10,
+            updatedAt: Date(timeIntervalSince1970: 1_900)
+        )
+
+        XCTAssertTrue(boundary.gateThreeBoundaryHeld)
+        XCTAssertFalse(boundary.upgradesPaperOrderLifecycle)
+        XCTAssertFalse(boundary.upgradesPaperOrderIntent)
+        XCTAssertFalse(boundary.upgradesSimulatedFillToBrokerFill)
+        XCTAssertFalse(boundary.upgradesPaperPortfolioToAccountState)
+        XCTAssertFalse(boundary.readModelRepresentsRealOrderLifecycle)
+
+        XCTAssertEqual(paperOrder.lifecycleState, .intentCreated)
+        XCTAssertTrue(paperOrder.paperOnlyBoundaryHeld)
+        XCTAssertFalse(paperOrder.representsRealOrder)
+        XCTAssertFalse(paperOrder.authorizesLiveTrading)
+        XCTAssertFalse(paperOrder.isExecutableAsRealOrder)
+
+        XCTAssertTrue(simulatedFill.isSimulatedFillEvidence)
+        XCTAssertTrue(simulatedFill.paperOnlyBoundaryHeld)
+        XCTAssertFalse(simulatedFill.representsRealFill)
+        XCTAssertFalse(simulatedFill.representsBrokerFill)
+        XCTAssertFalse(simulatedFill.updatesRealAccountBalance)
+
+        XCTAssertTrue(portfolioUpdate.usesSimulatedFillEvidence)
+        XCTAssertEqual(portfolioUpdate.exposure.source, .paperProjection)
+        XCTAssertFalse(portfolioUpdate.authorizesTradingExecution)
+        XCTAssertFalse(portfolioUpdate.readsRealAccountBalance)
+        XCTAssertFalse(portfolioUpdate.syncsBrokerPosition)
+    }
+
     func testPaperSessionLocalControlCommandModelSupportsSessionActionsDeterministically() throws {
         // 测试场景：MTP-48 只允许本地 Paper session-level control intent。
         // 四个 control 都必须保持 paper-only，且不能携带 order-level、broker 或真实订单能力。
