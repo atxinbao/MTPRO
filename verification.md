@@ -5457,3 +5457,55 @@ Root docs 判断：
 | --- | --- | --- |
 | `git diff --check` | pass | Root Docs Refresh Gate closure docs-only 变更无 whitespace error。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 106 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
+
+## MTPRO Market Data Replay Operations v1 Project Planning Record
+
+日期：2026-05-20
+
+执行者：Codex（`@001 / PLN`）
+
+目的：
+
+- 将 Human 确认的 `MTPRO Market Data Replay Operations v1` 下一阶段 Project-level planning record 落仓。
+- 只保存 Project 级计划摘要和格式门槛，不复制维护完整 Linear issue body。
+- 更新 Project Planning Record 索引、最近验证摘要和 automation readiness anchor。
+
+文件范围：
+
+- Added：
+  - `docs/planning/projects/mtpro-market-data-replay-operations-v1-plan.md`
+- Updated：
+  - `docs/planning/linear-draft-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+
+规划摘要：
+
+- Project name：`MTPRO Market Data Replay Operations v1`
+- Project goal：建立本地、paper-only、public-read-only 的 market data batch / replay operations 基线。
+- First executable issue candidate：定义 Binance public read-only market data batch / replay boundary。
+- WIP=1：所有候选 issue 写入 Linear 后必须初始保持 `Backlog / non-executable`。
+- 完整 issue execution contract 以后以 Linear issue body 为准。
+
+边界确认：
+
+- 本轮只落仓 Project Planning Record。
+- 未创建 Linear Project。
+- 未创建 Linear Issues。
+- 未修改 Linear status。
+- 未推进任何 issue 到 `Todo`。
+- 未启动 `@002 / PAR`。
+- 未启动 Symphony / `symphony-issue`。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+- 本 planning record 不授权执行。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Project Planning Record 落仓 docs-only 变更无 whitespace error。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 106 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
