@@ -71,7 +71,7 @@ Final Product 目标切片：
 - Pending / gated：实盘风险控制（Live risk control）。
 - Pending / gated：实盘审计 / 事故回放 / 停机控制（Live audit / incident replay / stop controls）。
 
-Project Closure Count 只说明当前已批准、已执行、已完成 Project closure、已落仓 Stage Code Audit Report、并已完成 Root Docs Refresh Gate closure 的建设阶段 Project 数量，不代表完整产品蓝图或 Future Construction Zones 已经完成。
+Project Closure Count 只说明当前已批准、已执行、已完成 Project closure、已落仓 Stage Code Audit Report、并已完成 Root Docs Refresh Gate closure 的建设阶段 Project 数量，不代表完整产品蓝图或 Future Construction Zones / 未来建设区已经完成。
 
 ## Evidence Pointers
 
@@ -99,7 +99,7 @@ Stage audit / input 入口：
 
 ## 最近验证
 
-本轮 Remove Legacy Blueprint Compatibility Entry 已完成：
+本轮 Blueprint Boundary Chinese Labels 已完成：
 
 ```bash
 git diff --check
@@ -115,11 +115,14 @@ bash checks/run.sh
 - Dashboard smoke：`sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`。
 - XCTest：121 tests, 0 failures。
 
-本轮 docs-only Blueprint entry evidence：
+本轮 docs-only Blueprint boundary label evidence：
 
 - `BLUEPRINT.md`
-- `README.md`
+- `GOAL.md`
+- `ROADMAP.md`
+- `AGENTS.md`
 - `docs/domain/context.md`
+- `docs/planning/project-role-map.md`
 - `checks/automation-readiness.sh`
 - `docs/validation/latest-verification-summary.md`
 - `verification.md`
@@ -128,7 +131,7 @@ bash checks/run.sh
 
 - Root docs、planning record、Backlog issue、label、priority、assignee 都不授权执行。
 - Complete Blueprint Design 不创建 Linear Project / Issue，不修改 Linear status，不推进 `Todo`，不启动 `@002 / PAR`，不启动 Symphony，不写业务代码。
-- `BLUEPRINT.md` 可以描述 Future Construction Zones，但不能把 future capability 变成当前执行 scope；蓝图本体只维护在根目录 `BLUEPRINT.md`。
+- `BLUEPRINT.md` 可以描述 Future Construction Zones / 未来建设区，但不能把 future capability 变成当前执行 scope；蓝图本体只维护在根目录 `BLUEPRINT.md`。
 - 当前唯一 configured executable issue 必须从 Linear live-read 和 Parent Codex queue preview 获取。
 - Paper execution / order / fill / portfolio 语义全部是 paper-only evidence，不代表真实订单、真实成交、broker fill、account state 或 Live fallback。
 - Market data replay operations 自动验证只使用本地 fixture / batch replay evidence，不依赖真实 Binance 网络。

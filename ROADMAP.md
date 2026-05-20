@@ -4,7 +4,7 @@ ROADMAP 只定义阶段地图，不授权执行。
 
 正式执行必须来自 Linear live-read 中唯一 configured executable issue，并通过 Parent Codex queue preflight、symphony-issue 和 GitHub PR Automation。
 
-本文档是 Construction Plan。完整产品终局和 Future Construction Zones 见 canonical `BLUEPRINT.md`；本文档只记录当前已批准阶段、目标切片进度和下一轮 planning handoff。
+本文档是 Construction Plan。完整产品终局和 Future Construction Zones / 未来建设区见 canonical `BLUEPRINT.md`；本文档只记录当前已批准阶段、目标切片进度和下一轮 planning handoff。
 
 ## 阶段地图
 
@@ -29,7 +29,7 @@ MTPRO 采用两层进度口径：
 1. Current Foundation Progress：当前已批准 paper-only foundation 的完成度。
 2. Final Product Goal Progress：最终专业交易工作台产品目标的完成度。
 
-Project Closure Count 只说明当前已批准、已执行、已 closure 的建设阶段 Project 数量，不代表完整产品蓝图或 Future Construction Zones 已经完成。
+Project Closure Count 只说明当前已批准、已执行、已 closure 的建设阶段 Project 数量，不代表完整产品蓝图或 Future Construction Zones / 未来建设区已经完成。
 
 ```text
 Phase: MTPRO professional trading workstation

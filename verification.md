@@ -6477,3 +6477,50 @@ Next Handoff: Human + @001 / PLN
 | `git diff --check` | pass | Goal / Blueprint 分工优化变更无 whitespace error。 |
 | `bash checks/automation-readiness.sh` | pass | Project Charter、Blueprint responsibility contract、Blueprint update rule 和 root docs 锚点通过。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
+
+## Blueprint Boundary Chinese Labels
+
+日期：2026-05-20
+
+执行者：Codex
+
+目的：
+
+- 为 `Future Construction Zones` 增加中文并列描述：`未来建设区`。
+- 为 `Gated / Forbidden Capabilities` 增加中文并列描述：`受门禁保护或当前禁止的能力`。
+- 为 `Forbidden Terms` 增加中文并列描述：`当前禁用或必须带门禁语义的词`。
+- 将中英并列写法加入 automation readiness，避免蓝图边界退回全英文标签。
+
+文件范围：
+
+- Updated：
+  - `BLUEPRINT.md`
+  - `GOAL.md`
+  - `ROADMAP.md`
+  - `AGENTS.md`
+  - `docs/domain/context.md`
+  - `docs/planning/project-role-map.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+
+边界确认：
+
+- docs / checks only。
+- 未创建 Linear Project。
+- 未创建 Linear issue。
+- 未修改 Linear status。
+- 未推进 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Blueprint boundary Chinese labels 变更无 whitespace error。 |
+| `bash checks/automation-readiness.sh` | pass | Future Construction Zones / 未来建设区、Gated / Forbidden Capabilities / 受门禁保护或当前禁止的能力等锚点通过。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |

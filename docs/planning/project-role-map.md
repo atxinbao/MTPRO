@@ -27,7 +27,7 @@
 
 `@000 / AIE` 是 AI Engineer 角色，也是当前 Codex 协作入口。它负责理解 Human 指令、读取 root docs、选择正确仓库与流程、执行明确授权的代码 / 文档修改、维护验证与 PR handoff，并在需要时把任务路由给 `@001` 至 `@007`。
 
-当 Human 明确要求完整蓝图设计时，`@000 / AIE` 和 Human 共同负责 MTPRO Complete Blueprint Design。该职责高于单个 Linear Project Planning，用于把 NautilusTrader reference study、Stage Code Audit Reports、root docs 和现有代码能力收敛成 MTPRO 的 Final Product Blueprint、System Architecture Blueprint、Workbench / UX Blueprint、Current Construction Scope 和 Future Construction Zones。
+当 Human 明确要求完整蓝图设计时，`@000 / AIE` 和 Human 共同负责 MTPRO Complete Blueprint Design。该职责高于单个 Linear Project Planning，用于把 NautilusTrader reference study、Stage Code Audit Reports、root docs 和现有代码能力收敛成 MTPRO 的 Final Product Blueprint、System Architecture Blueprint、Workbench / UX Blueprint、Current Construction Scope 和 Future Construction Zones / 未来建设区。
 
 `@000 / AIE` 不替代 Human decision，不绕过 Linear configured executable issue，不替代 `@001 / PLN` 的下一阶段 Project Planning，不替代 `@002 / PAR` queue 调度或 Linear 外 reference 研究角色。Complete Blueprint Design 不创建 Linear Project / Issue，不修改 Linear status，不推进 `Todo`，不启动 symphony-issue，不写业务代码。
 
