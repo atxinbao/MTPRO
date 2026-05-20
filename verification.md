@@ -5418,3 +5418,42 @@ Next Handoff：Human + `@001 / PLN`
 | --- | --- | --- |
 | `git diff --check` | pass | Stage Code Audit Report 落仓变更无 whitespace error。 |
 | `bash checks/run.sh` | pass | 首次运行暴露 persistent repo `.build` 缓存污染导致的 `CoreError` enum layout 断言串扰；执行 `swift package clean` 后完整验证通过，Dashboard build / smoke 和 106 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |
+
+## MTPRO Paper Workflow Control Shell v1 Root Docs Refresh Gate closure
+
+日期：2026-05-20
+
+执行者：Parent Codex Automation Supervision（`@002 / PAR`）
+
+目的：
+
+- 基于 `docs/audit/mtpro-paper-workflow-control-shell-v1-stage-code-audit.md` 逐项核查 root docs 是否落后于已完成事实。
+- 同步当前 Goal / Roadmap Target Progress，明确进度按目标切片计算，不按 Project 数量直接计算。
+- 记录 Root Docs Refresh Gate closure，作为交给 Human + `@001 / PLN` 的事实输入。
+
+Root docs 判断：
+
+- `GOAL.md`：updated。同步 Paper workflow 可观察性、本地 session-level control shell 和当前 Goal / Roadmap Target Progress 4 / 5（80%）。
+- `ENVIRONMENT.md`：no update needed。未新增本地运行依赖；统一验证入口仍是 `bash checks/run.sh`，并继续包含 Dashboard smoke。
+- `ARCHITECTURE.md`：updated。同步 Core paper-only command / event boundary、App read model / ViewModel 和 Dashboard / Workbench read-only shell snapshot 的已完成事实。
+- `ROADMAP.md`：updated。新增 `MTPRO Paper Workflow Control Shell v1` 为 Completed，Project Closure Count 更新为 6 / 6，Goal / Roadmap Target Progress 更新为 4 / 5（80%）。
+
+边界确认：
+
+- 本轮只同步已发生事实，不写下一阶段方向、目标、架构路线或优先级。
+- 未创建 Linear Project / Issue。
+- 未修改 Linear status。
+- 未推进任何 issue 到 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未修改 `docs/design/mtpro-complete-blueprint.md`。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Root Docs Refresh Gate closure docs-only 变更无 whitespace error。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 106 个 XCTest 全部通过，输出 `MTPRO checks passed.`。 |

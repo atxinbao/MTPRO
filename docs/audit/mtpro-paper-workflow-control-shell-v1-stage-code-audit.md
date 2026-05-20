@@ -108,14 +108,18 @@ Post-Issue Ledger 对 `MTP-53` 已完成，`git_pull_ff_only` 和 `graphify_upda
 
 ## Root Docs Delta
 
-| Root doc | 审计处理 |
+| Root doc | Root Docs Refresh Gate closure |
 | --- | --- |
-| `GOAL.md` | 项目目标仍是 Research -> Backtest -> Paper 一致性工作台；本 Project 增加 Paper workflow 可观察性和本地控制壳 evidence，不改变 Live 禁区。 |
-| `ENVIRONMENT.md` | 未新增本地运行依赖；统一验证入口仍是 `bash checks/run.sh`，并继续包含 Dashboard smoke。 |
-| `ARCHITECTURE.md` | Core / App / Dashboard 边界继续成立；新增事实沿 Core command / paper event boundary、App read model / ViewModel 和 Dashboard shell snapshot 流动。 |
-| `ROADMAP.md` | 本报告只记录 Project 完成事实和审计输入，不直接修改 roadmap；Root Docs Refresh Gate closure 应作为本报告合并后的单独父 Codex docs-only closure 执行。 |
+| `GOAL.md` | updated：同步 Paper workflow 可观察性、本地 session-level control shell 和当前 Goal / Roadmap Target Progress 4 / 5（80%）。 |
+| `ENVIRONMENT.md` | no update needed：未新增本地运行依赖；统一验证入口仍是 `bash checks/run.sh`，并继续包含 Dashboard smoke。 |
+| `ARCHITECTURE.md` | updated：同步 Core paper-only command / event boundary、App read model / ViewModel 和 Dashboard / Workbench read-only shell snapshot 的已完成事实。 |
+| `ROADMAP.md` | updated：新增 `MTPRO Paper Workflow Control Shell v1` 为 Completed，Project Closure Count 更新为 6 / 6，Goal / Roadmap Target Progress 更新为 4 / 5（80%）。 |
 
-Root Docs Refresh Gate 尚未执行。该 gate 只同步已发生事实，不决定下一阶段方向。
+Root Docs Refresh Gate closure：closed。
+
+本次 closure 只同步已发生事实，不决定下一阶段方向，不创建 Linear Project / Issue，不修改 Linear status，不推进 `Todo`，不启动 Symphony，不运行 Graphify update，不写业务代码。
+
+本次 closure 验证：`git diff --check` passed；`bash checks/run.sh` passed，Dashboard smoke 和 106 个 XCTest 全部通过。
 
 ## Residual Notes For Human Planning
 
