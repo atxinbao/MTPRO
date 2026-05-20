@@ -168,7 +168,7 @@ Root Docs Delta 只同步已发生事实。
 
 Root Docs Refresh Gate closure 后，Parent Codex 必须输出当前阶段完成进度条。
 
-进度条是 Goal / Roadmap target progress 摘要，不是蓝图内容，不写入 `docs/design/mtpro-complete-blueprint.md`，不授权下一阶段执行。
+进度条是 Goal / Roadmap target progress 摘要，不是蓝图内容，不写入 `BLUEPRINT.md`，不授权下一阶段执行。
 
 进度条必须基于当前 `GOAL.md` 和 `ROADMAP.md` 的目标切片计算，而不是直接用 Project closure 数量计算，也不是基于完整最终蓝图、Future Construction Zones 或未授权方向计算。
 

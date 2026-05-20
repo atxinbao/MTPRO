@@ -6208,3 +6208,52 @@ Next Handoff: Human + @001 / PLN
 | `git diff --check` | pass | docs compression 变更无 whitespace error。 |
 | `bash checks/automation-readiness.sh` | pass | root docs、shared language、skills practices、latest summary 和关键锚点通过。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
+
+## Canonical Blueprint Unification
+
+日期：2026-05-20
+
+执行者：Codex
+
+目的：
+
+- 将 Root Blueprint 与 Complete Blueprint 统一到根目录 `BLUEPRINT.md`。
+- 保留 `docs/design/mtpro-complete-blueprint.md` 为旧链接兼容入口，避免蓝图正文双写漂移。
+- 同步 README、AGENTS、GOAL、ROADMAP、shared language、role map、Parent Codex supervision、latest summary 和 automation readiness 锚点。
+
+文件范围：
+
+- Updated：
+  - `README.md`
+  - `AGENTS.md`
+  - `GOAL.md`
+  - `BLUEPRINT.md`
+  - `ROADMAP.md`
+  - `checks/automation-readiness.sh`
+  - `docs/domain/context.md`
+  - `docs/design/mtpro-complete-blueprint.md`
+  - `docs/planning/project-role-map.md`
+  - `docs/automation/parent-codex-supervision.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `verification.md`
+
+边界确认：
+
+- docs / checks only。
+- 未创建 Linear Project。
+- 未创建 Linear issue。
+- 未修改 Linear status。
+- 未推进 `Todo`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | blueprint unification docs/checks 变更无 whitespace error。 |
+| `bash checks/automation-readiness.sh` | pass | canonical `BLUEPRINT.md`、兼容入口、root docs、shared language 和关键锚点通过。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |

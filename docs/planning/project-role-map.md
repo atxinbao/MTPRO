@@ -50,7 +50,7 @@ symphony-issue、Codex Execution Agent 和 GitHub PR Automation 是流程工具 
 
 | 角色编号 | 当前职责 | 产物 | 禁止 |
 | --- | --- | --- | --- |
-| `@000 / AIE` | 作为当前 Codex 协作入口，读取 root docs 和最近验证摘要，判断任务属于完整蓝图设计、规划、自动化监督、reference 研究、issue 执行、文档修订还是环境操作；在 Human 明确要求时与 Human 共同推进 Complete Blueprint Design；在明确任务范围内直接改代码 / 文档、运行验证、提交 PR；必要时输出给 `@001` 至 `@007` 的角色化指令 | `docs/design/mtpro-complete-blueprint.md`、代码 / 文档 PR、validation summary、PR handoff、角色化 Codex 指令、边界确认 | 不替代 Human decision，不绕过 Linear configured executable issue，不替代 `@001 / PLN` 的下一阶段 Project Planning，不替代 `@002 / PAR` queue 调度，不替代 reference roles 的研究结论，不直接 merge 自己的 PR |
+| `@000 / AIE` | 作为当前 Codex 协作入口，读取 root docs 和最近验证摘要，判断任务属于完整蓝图设计、规划、自动化监督、reference 研究、issue 执行、文档修订还是环境操作；在 Human 明确要求时与 Human 共同推进 Complete Blueprint Design；在明确任务范围内直接改代码 / 文档、运行验证、提交 PR；必要时输出给 `@001` 至 `@007` 的角色化指令 | `BLUEPRINT.md`、代码 / 文档 PR、validation summary、PR handoff、角色化 Codex 指令、边界确认 | 不替代 Human decision，不绕过 Linear configured executable issue，不替代 `@001 / PLN` 的下一阶段 Project Planning，不替代 `@002 / PAR` queue 调度，不替代 reference roles 的研究结论，不直接 merge 自己的 PR |
 
 ## Reference Role Boundary
 
