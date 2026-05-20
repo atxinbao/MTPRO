@@ -293,7 +293,9 @@ public enum BinanceMarketDataReplayOperationsFixture {
             ),
             fixtureSource: Identifier("fixtures/binance/btcusdt-1m-20240101.json"),
             recordCount: 1,
-            checksumParityHint: "sha256:mtp-55-btcusdt-1m-local-fixture"
+            checksumParityHint: BinanceMarketDataBatchReplayDeterministicParity.checksumParityHint(
+                for: deterministicReplayRecords()
+            )
         )
     }
 

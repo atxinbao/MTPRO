@@ -525,7 +525,12 @@ final class AdaptersTests: XCTestCase {
         XCTAssertEqual(metadata.timeWindowDescription, "1704067200...1704067260")
         XCTAssertEqual(metadata.fixtureSource.rawValue, "fixtures/binance/btcusdt-1m-20240101.json")
         XCTAssertEqual(metadata.recordCount, 1)
-        XCTAssertEqual(metadata.checksumParityHint, "sha256:mtp-55-btcusdt-1m-local-fixture")
+        XCTAssertEqual(
+            metadata.checksumParityHint,
+            BinanceMarketDataBatchReplayDeterministicParity.checksumParityHint(
+                for: try BinanceMarketDataReplayOperationsFixture.deterministicReplayRecords()
+            )
+        )
         XCTAssertEqual(metadata.contractFields, BinanceMarketDataBatchReplayContractField.allCases)
         XCTAssertEqual(metadata.value(for: .symbol), "BTCUSDT")
         XCTAssertEqual(metadata.value(for: .timeframe), "1m")
@@ -847,6 +852,213 @@ final class AdaptersTests: XCTestCase {
         XCTAssertEqual(decoded, summary)
     }
 
+    func testBatchReplayFixtureParityBuildsDeterministicReplayConsistencyEvidence() throws {
+        // 测试场景：MTP-57 的 replay consistency evidence 只消费本地 fixture replay output，
+        // 并把 metadata record count、ordering 和 checksum / parity hint 锁定为 deterministic。
+        let contract = try BinanceMarketDataReplayOperationsFixture.deterministicContract()
+        let records = try BinanceMarketDataReplayOperationsFixture.deterministicReplayRecords()
+
+        let evidence = try BinanceMarketDataBatchReplayDeterministicParity.validate(
+            contract: contract,
+            replayedBars: records
+        )
+        let repeatedEvidence = try BinanceMarketDataReplayOperationsFixture.deterministicReplayConsistencyEvidence()
+
+        XCTAssertEqual(evidence, repeatedEvidence)
+        XCTAssertEqual(evidence.recordCount, contract.metadata.recordCount)
+        XCTAssertEqual(evidence.metadataRecordCount, 1)
+        XCTAssertEqual(evidence.replayedBars, records)
+        XCTAssertEqual(evidence.orderedRecordStarts, [1_704_067_200])
+        XCTAssertEqual(evidence.replayOutputSummary.count, 1)
+        XCTAssertEqual(evidence.metadataChecksumParityHint, contract.metadata.checksumParityHint)
+        XCTAssertEqual(evidence.computedChecksumParityHint, contract.metadata.checksumParityHint)
+        XCTAssertTrue(evidence.checksumParityHintMatched)
+        XCTAssertTrue(evidence.metadataConsistencyHeld)
+        XCTAssertTrue(evidence.recordOrderingHeld)
+        XCTAssertTrue(evidence.networkIndependent)
+        XCTAssertEqual(evidence.requiredValidationModes, [.mockTransport, .fixtureParity, .localBatchReplay])
+        XCTAssertEqual(evidence.optionalValidationModes, [.optionalManualNetworkSmoke])
+        XCTAssertTrue(evidence.requiredValidationIsLocalOnly)
+        XCTAssertFalse(evidence.requiredValidationDependsOnNetwork)
+        XCTAssertTrue(evidence.isPublicReadOnly)
+        XCTAssertTrue(evidence.isLocalFixtureReplayOnly)
+        XCTAssertFalse(evidence.authorizesLiveTrading)
+        XCTAssertFalse(evidence.touchesBrokerAction)
+        XCTAssertFalse(evidence.authorizesTradingExecution)
+        XCTAssertFalse(evidence.authorizesProductionRuntimeOperations)
+        XCTAssertFalse(evidence.containsForbiddenCapabilityText(contract.forbiddenCapabilities))
+
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoded = try JSONDecoder().decode(
+            BinanceMarketDataBatchReplayConsistencyEvidence.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, evidence)
+    }
+
+    func testBatchReplayConsistencyRejectsRecordCountOrderingAndChecksumDrift() throws {
+        // 测试场景：replay consistency 必须拒绝 metadata record count 漂移、乱序 output
+        // 和 checksum / parity hint 漂移，避免 batch replay 结果被非确定性输入污染。
+        let first = try makeReplayBar(
+            start: 1_704_067_200,
+            end: 1_704_067_260,
+            open: 42_000.10,
+            high: 42_100.20,
+            low: 41_900.30,
+            close: 42_050.40,
+            volume: 12.345
+        )
+        let second = try makeReplayBar(
+            start: 1_704_067_260,
+            end: 1_704_067_320,
+            open: 42_050.40,
+            high: 42_180.00,
+            low: 42_000.00,
+            close: 42_120.25,
+            volume: 8.5
+        )
+        let orderedRecords = [first, second]
+        let metadata = try makeReplayMetadata(
+            recordCount: 2,
+            windowStart: 1_704_067_200,
+            windowEnd: 1_704_067_320,
+            checksumParityHint: BinanceMarketDataBatchReplayDeterministicParity.checksumParityHint(
+                for: orderedRecords
+            )
+        )
+        let contract = try BinanceMarketDataBatchReplayContract(metadata: metadata)
+
+        let evidence = try BinanceMarketDataBatchReplayDeterministicParity.validate(
+            contract: contract,
+            replayedBars: orderedRecords
+        )
+        XCTAssertEqual(evidence.recordCount, 2)
+        XCTAssertEqual(evidence.orderedRecordStarts, [1_704_067_200, 1_704_067_260])
+        XCTAssertEqual(evidence.computedChecksumParityHint, metadata.checksumParityHint)
+
+        XCTAssertThrowsError(
+            try BinanceMarketDataBatchReplayDeterministicParity.validate(
+                contract: contract,
+                replayedBars: [first]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? BinanceMarketDataBatchReplayParityError,
+                .metadataRecordCountMismatch(expected: 2, actual: 1)
+            )
+        }
+
+        XCTAssertThrowsError(
+            try BinanceMarketDataBatchReplayDeterministicParity.validate(
+                contract: contract,
+                replayedBars: [second, first]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? BinanceMarketDataBatchReplayParityError,
+                .outOfOrderRecord(previousStart: 1_704_067_260, currentStart: 1_704_067_200)
+            )
+        }
+
+        let driftedChecksumMetadata = try makeReplayMetadata(
+            recordCount: 2,
+            windowStart: 1_704_067_200,
+            windowEnd: 1_704_067_320,
+            checksumParityHint: "fnv1a64:0000000000000000"
+        )
+        let driftedChecksumContract = try BinanceMarketDataBatchReplayContract(metadata: driftedChecksumMetadata)
+
+        XCTAssertThrowsError(
+            try BinanceMarketDataBatchReplayDeterministicParity.validate(
+                contract: driftedChecksumContract,
+                replayedBars: orderedRecords
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? BinanceMarketDataBatchReplayParityError,
+                .checksumParityHintMismatch(
+                    expected: "fnv1a64:0000000000000000",
+                    actual: metadata.checksumParityHint
+                )
+            )
+        }
+    }
+
+    func testBatchReplayConsistencyRejectsMetadataAndNetworkBoundaryDrift() throws {
+        // 测试场景：fixture parity 必须继续拒绝 symbol / interval / time window 漂移，
+        // 并证明 required validation 不能退化为真实网络 smoke 或 production operations。
+        let records = try BinanceMarketDataReplayOperationsFixture.deterministicReplayRecords()
+        let contract = try BinanceMarketDataReplayOperationsFixture.deterministicContract()
+        let ethRecord = try makeReplayBar(
+            symbol: "ETHUSDT",
+            start: 1_704_067_200,
+            end: 1_704_067_260
+        )
+        let fiveMinuteRecord = try makeReplayBar(
+            timeframe: .fiveMinutes,
+            start: 1_704_067_200,
+            end: 1_704_067_260
+        )
+        let shiftedWindowRecord = try makeReplayBar(
+            start: 1_704_067_260,
+            end: 1_704_067_320
+        )
+        let nonLocalContract = try BinanceMarketDataBatchReplayContract(
+            metadata: contract.metadata,
+            boundary: BinanceMarketDataBatchReplayBoundary(
+                requiredValidationModes: [.optionalManualNetworkSmoke],
+                isLocalFixtureReplayOnly: false,
+                requiredValidationDependsOnNetwork: true,
+                authorizesProductionRuntimeOperations: true
+            )
+        )
+
+        XCTAssertThrowsError(
+            try BinanceMarketDataBatchReplayDeterministicParity.validate(
+                contract: contract,
+                replayedBars: [ethRecord]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? BinanceMarketDataBatchReplayParityError,
+                .metadataSymbolMismatch(expected: "BTCUSDT", actual: "ETHUSDT")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try BinanceMarketDataBatchReplayDeterministicParity.validate(
+                contract: contract,
+                replayedBars: [fiveMinuteRecord]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? BinanceMarketDataBatchReplayParityError,
+                .metadataTimeframeMismatch(expected: "1m", actual: "5m")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try BinanceMarketDataBatchReplayDeterministicParity.validate(
+                contract: contract,
+                replayedBars: [shiftedWindowRecord]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? BinanceMarketDataBatchReplayParityError,
+                .metadataTimeWindowMismatch(expected: "1704067200...1704067260", actual: "1704067260...1704067320")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try BinanceMarketDataBatchReplayDeterministicParity.validate(
+                contract: nonLocalContract,
+                replayedBars: records
+            )
+        ) { error in
+            XCTAssertEqual(error as? BinanceMarketDataBatchReplayParityError, .nonLocalReplayContract)
+        }
+    }
+
     private static let exchangeInfoFixture = Data(
         #"""
         {
@@ -979,6 +1191,53 @@ final class AdaptersTests: XCTestCase {
             contract: contract,
             policy: policy,
             evaluatedAt: evaluatedAt
+        )
+    }
+
+    private func makeReplayMetadata(
+        recordCount: Int,
+        windowStart: TimeInterval,
+        windowEnd: TimeInterval,
+        checksumParityHint: String
+    ) throws -> BinanceMarketDataReplayOperationsMetadata {
+        try BinanceMarketDataReplayOperationsMetadata(
+            batchID: Identifier("batch-BTCUSDT-1m-custom"),
+            replayRunID: Identifier("replay-run-BTCUSDT-1m-custom"),
+            symbol: Symbol(rawValue: "BTCUSDT"),
+            timeframe: .oneMinute,
+            timeWindow: DateRange(
+                start: Date(timeIntervalSince1970: windowStart),
+                end: Date(timeIntervalSince1970: windowEnd)
+            ),
+            fixtureSource: Identifier("fixtures/binance/btcusdt-1m-custom.json"),
+            recordCount: recordCount,
+            checksumParityHint: checksumParityHint
+        )
+    }
+
+    private func makeReplayBar(
+        symbol rawSymbol: String = "BTCUSDT",
+        timeframe: Timeframe = .oneMinute,
+        start: TimeInterval,
+        end: TimeInterval,
+        open: Double = 42_000.10,
+        high: Double = 42_100.20,
+        low: Double = 41_900.30,
+        close: Double = 42_050.40,
+        volume: Double = 12.345
+    ) throws -> MarketBar {
+        try MarketBar(
+            symbol: Symbol(rawValue: rawSymbol),
+            timeframe: timeframe,
+            interval: DateRange(
+                start: Date(timeIntervalSince1970: start),
+                end: Date(timeIntervalSince1970: end)
+            ),
+            open: open,
+            high: high,
+            low: low,
+            close: close,
+            volume: volume
         )
     }
 }
