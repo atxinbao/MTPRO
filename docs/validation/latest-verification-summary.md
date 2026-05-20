@@ -105,6 +105,33 @@ Stage audit / input 入口：
 
 ## 最近验证
 
+MTP-62 API key / signed endpoint / account endpoint / listenKey boundary evidence 已完成：
+
+```bash
+swift test --filter LiveTradingCredentialEndpointBoundary
+swift test --filter PublicReadOnlyAdapterCannotUpgradeIntoMTP62CredentialOrAccountCapability
+bash checks/automation-readiness.sh
+bash checks/run.sh
+```
+
+结果：
+
+- `swift test --filter LiveTradingCredentialEndpointBoundary`：pass，2 tests, 0 failures。
+- `swift test --filter PublicReadOnlyAdapterCannotUpgradeIntoMTP62CredentialOrAccountCapability`：pass，1 test, 0 failures。
+- `bash checks/automation-readiness.sh`：pass，已检查 `MTP-62-CREDENTIAL-ENDPOINT-BOUNDARY`、`MTP-62-LIVE-CREDENTIAL-FUTURE-GATES`、`MTP-62-PUBLIC-READ-ONLY-SEPARATION`、MTP-62 validation anchor 和 deterministic test anchors。
+- `bash checks/run.sh`：pass。
+- Dashboard smoke：`sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`。
+- XCTest：124 tests, 0 failures。
+
+MTP-62 更新重点：
+
+- `Sources/Core/LiveTradingBoundary.swift`：新增 `LiveTradingCredentialEndpointBoundary` Gate 1 contract fixture，只表达 forbidden capability / future gate，不读取 API key，不存储 secret，不签名请求，不调用 account endpoint，不创建 listenKey。
+- `Tests/CoreTests/CoreTests.swift`：新增 Gate 1 deterministic fixture、Codable round trip、API key / secret / signed / account / listenKey bypass rejection tests。
+- `Tests/AdaptersTests/AdaptersTests.swift`：新增 public read-only adapter rejection test，证明 keyed / signature / account / listenKey contract 在 transport 前被拒绝。
+- `docs/contracts/live-trading-boundary-contract.md`：新增 MTP-62 credential endpoint boundary、future gates 和 public read-only adapter separation anchors。
+- `docs/validation/trading-validation-matrix.md`、`docs/validation/validation-plan.md`、`checks/automation-readiness.sh`：回填 MTP-62 mechanical validation anchor。
+- `docs/domain/context.md`：补充 `credential endpoint boundary` shared language，并把 API key / secret storage 纳入必须带门禁语义的 forbidden terms。
+
 MTP-61 Live Trading Foundation taxonomy / gate evidence 已完成：
 
 ```bash

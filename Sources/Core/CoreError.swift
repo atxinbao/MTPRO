@@ -52,6 +52,8 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
     case paperExecutionDecisionRequiresPaperMode(ExecutionMode)
     case paperExecutionDecisionForbiddenCapability(String)
     case paperExecutionDecisionMismatch(field: String, expected: String, actual: String)
+    case liveTradingBoundaryForbiddenCapability(String)
+    case liveTradingBoundaryContractMismatch(field: String, expected: String, actual: String)
 
     public var description: String {
         switch self {
@@ -151,6 +153,10 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
             "Paper execution decision forbids capability: \(field)"
         case let .paperExecutionDecisionMismatch(field, expected, actual):
             "Paper execution decision mismatch for \(field): expected \(expected), actual \(actual)"
+        case let .liveTradingBoundaryForbiddenCapability(field):
+            "Live trading boundary forbids capability: \(field)"
+        case let .liveTradingBoundaryContractMismatch(field, expected, actual):
+            "Live trading boundary contract mismatch for \(field): expected \(expected), actual \(actual)"
         }
     }
 }

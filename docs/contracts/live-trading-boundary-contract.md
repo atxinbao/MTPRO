@@ -51,6 +51,49 @@ MTP-61 只定义 Live trading foundation 的 taxonomy 和 gate，不施工后续
 | 实盘风险控制 / Live risk control | Future slice | 不实现真实 pre-trade risk、仓位限制、订单金额限制、频率限制、熔断或禁交易状态。 |
 | 实盘审计 / 事故回放 / 停机控制 | Future slice | 不实现 live audit trail、incident replay、emergency stop、shutdown / restore policy。 |
 
+## MTP-62 API key / signed endpoint / account endpoint / listenKey 禁止边界
+
+`MTP-62-CREDENTIAL-ENDPOINT-BOUNDARY`
+
+MTP-62 固定 Gate 1 的 credential / signed / account / listenKey 边界。该 gate 只允许把这些能力表达为 forbidden terminology、future gate、validation anchor 和 deterministic forbidden capability test，不允许新增任何 secret handling、签名请求、账户 endpoint 调用或 listenKey user data stream。
+
+| Capability | 当前状态 | 当前允许证据 | 当前禁止输出 |
+| --- | --- | --- | --- |
+| `API key` | Forbidden / future gate | 合同术语、`LiveTradingCredentialEndpointBoundary` forbidden capability、PR boundary evidence | 环境变量、配置项、Keychain 读取、secret 文件读取、HTTP header、query item |
+| `secret storage` | Forbidden / future gate | future gate 条件、validation matrix anchor | secret store、credential provider、加密落盘、测试 fixture secret |
+| `request signature` | Forbidden / future gate | signed endpoint capability contract 的 future gate | HMAC / signature 计算、timestamp / recvWindow signing、signed request helper |
+| `signed endpoint` | Forbidden / future gate | contract docs、Core deterministic forbidden test、Adapters rejection test | SAPI / FAPI / DAPI / signed REST request、order 或 account signed path |
+| `account endpoint` | Forbidden / future gate | account endpoint capability contract 的 future gate | `/api/v3/account`、account payload、balance / position sync |
+| `listenKey user data stream` | Forbidden / future gate | listenKey contract 的 future gate | listenKey 创建、keepalive、user data stream、private WebSocket |
+| `real account payload` | Forbidden / future gate | audit / operations evidence 要求 | 真实余额、真实持仓、broker position、account update event |
+
+## MTP-62 future gates
+
+`MTP-62-LIVE-CREDENTIAL-FUTURE-GATES`
+
+以下 gate 只是后续 Project Definition 前的必要条件，不是当前实现任务：
+
+- Human independent Live decision。
+- API key / secret policy。
+- signed endpoint capability contract。
+- account endpoint capability contract。
+- listenKey user data stream contract。
+- public read-only adapter separation。
+- audit and operations evidence。
+
+MTP-62 当前新增的 Core fixture 是 `LiveTradingCredentialEndpointBoundary`，只用于 deterministic contract validation。它的 `readsAPIKey`、`storesSecret`、`signsRequests`、`callsSignedEndpoint`、`callsAccountEndpoint`、`createsListenKey`、`consumesRealAccountPayload`、`upgradesPublicReadOnlyAdapter` 和 `requiredValidationDependsOnNetwork` 必须全部为 `false`。
+
+## MTP-62 public read-only adapter separation
+
+`MTP-62-PUBLIC-READ-ONLY-SEPARATION`
+
+当前 Binance adapter 仍只能使用 public read-only market data boundary。`BinanceReadOnlyAdapterBoundary` 和 `BinancePublicMarketDataClient` 不得升级为 signed / account capability：
+
+- `BinanceForbiddenCapability` 必须继续包含 `API key`、`signed endpoint`、`account endpoint` 和 `listenKey user data stream`。
+- `BinancePublicMarketDataClient` 必须在 transport 前拒绝 `requiresAPIKey`、`signature`、`/api/v3/account`、`listenKey`、SAPI、FAPI 和 DAPI surface。
+- Required validation 继续使用本地 deterministic tests，不依赖真实 Binance 网络、真实 API key 或真实账户。
+- 任何 future signed / account / listenKey capability 必须进入独立 Project Definition，不能复用当前 public market data adapter 偷渡。
+
 ## Current allowed evidence
 
 MTP-61 当前只允许产生以下 evidence：
@@ -93,3 +136,11 @@ MTP-61 必须满足：
 - `docs/validation/trading-validation-matrix.md` 必须能定位 Live trading foundation taxonomy 和 gate。
 - `docs/validation/validation-plan.md` 必须说明 MTP-61 只做 taxonomy / gate / contract / blocked evidence。
 - PR evidence 必须确认没有 API key、secret storage、signed endpoint、account endpoint、listenKey、broker、real order、OMS 或 `LiveExecutionAdapter` 实现。
+
+MTP-62 必须满足：
+
+- `bash checks/run.sh` 通过。
+- `checks/automation-readiness.sh` 必须检查 `MTP-62-CREDENTIAL-ENDPOINT-BOUNDARY`、`MTP-62-LIVE-CREDENTIAL-FUTURE-GATES` 和 `MTP-62-PUBLIC-READ-ONLY-SEPARATION`。
+- `Tests/CoreTests/CoreTests.swift` 必须覆盖 `LiveTradingCredentialEndpointBoundary` deterministic fixture、Codable 禁区和 API key / secret / signed / account / listenKey bypass rejection。
+- `Tests/AdaptersTests/AdaptersTests.swift` 必须覆盖 public read-only adapter 拒绝 API key、signature、account endpoint 和 listenKey contract。
+- PR evidence 必须确认没有环境变量、配置项、Keychain 读取、secret 文件读取、签名 helper、account endpoint 调用或 listenKey user data stream。
