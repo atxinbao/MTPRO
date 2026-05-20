@@ -1,5 +1,7 @@
 # GOAL.md
 
+本文档是 MTPRO 的 Project Charter。它只定义为什么建、服务谁、硬边界和成功标准；完整产品 / 系统 / 设计蓝图见 `BLUEPRINT.md` 和 `docs/design/mtpro-complete-blueprint.md`，当前施工阶段和目标进度见 `ROADMAP.md`。
+
 ## 项目目标
 
 MTPRO 的目标是构建一个新的 macOS 原生交易研究工作台，用于替代和重构 `macos-trader` 中已经验证过的产品语义。
@@ -48,3 +50,11 @@ MTPRO 应提供一个从策略研究到 Paper 执行一致的本地工作台：
 - 不迁移 `macos-trader` 整仓代码。
 - 不引入 NautilusTrader 作为运行依赖。
 - 不在 Project Definition 阶段实现业务功能。
+
+## 非授权边界
+
+- `GOAL.md` 不创建 Linear Project / Issue。
+- `GOAL.md` 不修改 Linear status。
+- `GOAL.md` 不推进 `Todo`。
+- `GOAL.md` 不启动 Symphony。
+- `GOAL.md` 不授权 future capability 进入当前执行 scope。

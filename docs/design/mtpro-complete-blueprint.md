@@ -19,6 +19,7 @@
 | 来源 | 用途 |
 | --- | --- |
 | `GOAL.md` | 当前项目目标、第一版边界和非目标 |
+| `BLUEPRINT.md` | Root Blueprint 入口、默认读取顺序、Current Construction Scope 和 Future Construction Zones 索引 |
 | `ENVIRONMENT.md` | 本地环境、验证入口和外部系统禁区 |
 | `ARCHITECTURE.md` | 当前模块地图、目标数据流和不变量 |
 | `ROADMAP.md` | 已完成阶段、当前路线和非授权边界 |

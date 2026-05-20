@@ -4,6 +4,8 @@
 
 MTPRO 是 Swift-only macOS 交易研究工作台。
 
+本文档是 Architecture Map / 设计基线。它记录当前采用的模块地图、目标数据流、依赖方向和不变量；不作为 Stage Code Audit、validation 或 PR evidence 流水账。已完成 Project 的事实证据进入 `docs/audit/`、`docs/validation/` 和 `verification.md`。
+
 架构借鉴 NautilusTrader 的职责拆分：Kernel、MessageBus、Cache、DataEngine、StrategyEngine、RiskEngine、ExecutionEngine、Portfolio 和 Adapter。
 
 当前已完成 Research -> Backtest -> Report -> Paper readiness、paper-only execution evidence、本地 Paper workflow 可观察性和 session-level control shell，以及 market data replay operations 本地 evidence baseline。MTPRO 仍不进入 Live trading。
