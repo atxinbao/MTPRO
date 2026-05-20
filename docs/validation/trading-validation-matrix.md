@@ -87,10 +87,23 @@
 | `MTP-57` | `TVM-MARKET-DATA-REPLAY-OPERATIONS` | 已回填 deterministic fixture parity / replay consistency evidence、replay output summary、metadata record count / symbol / interval / time window consistency、record ordering、checksum / parity hint matching、drift rejection tests、network independence evidence、contract docs、product surface、validation-plan anchor 和 automation readiness anchor；不实现真实网络 required validation、历史下载器、production operations、event / projection consistency、UI evidence、signed endpoint、broker action 或真实订单。 |
 | `MTP-58` | `TVM-MARKET-DATA-REPLAY-OPERATIONS` | 已回填 Runtime event log / projection consistency evidence、append-only `.market` sequence、replay result sequence、cache snapshot summary、market-only SQLite runtime empty snapshot、DuckDB analytical projection summary、deterministic Codable summary、schema / SQL / ORM / adapter / runtime non-exposure tests、contract docs、product surface、validation-plan anchor 和 automation readiness anchor；不实现完整 schema、migration framework、production data pipeline、Dashboard UI、signed endpoint、broker action 或真实订单。 |
 | `MTP-59` | `TVM-MARKET-DATA-REPLAY-OPERATIONS`、`TVM-REPORT-EVIDENCE` | 已回填 `MarketDataReplayOperationsEvidenceReadModel`、`MarketDataReplayOperationsEvidenceViewModel`、`ReportViewModel.marketDataReplayOperations`、`PaperWorkflowEvidenceExplorerSection.marketDataReplayOperation`、`DashboardShellSnapshot` replay ops 指标、App deterministic tests、Codable snapshot、Dashboard smoke read-model-only evidence、schema / runtime / adapter non-exposure 和 no command / no Live / no broker / no real order boundary。 |
+| `MTP-60` | `TVM-MARKET-DATA-REPLAY-OPERATIONS`、`TVM-REPORT-EVIDENCE` | 已新增 `docs/audit/inputs/mtpro-market-data-replay-operations-v1-stage-audit-input.md`，集中记录 MTP-54 至 MTP-59 的 PR evidence、merge commit、required check、market data replay operations validation evidence chain、Dashboard smoke、known boundaries、automation readiness evidence 和 Stage Code Audit handoff checklist；最终 Stage Code Audit Report 仍由 Parent Codex 在有效 issue 全部 Done 且 Linear Project `Completed` 后单独输出。 |
 
 ## MTP-59 Market Data Replay Operations Read Model Evidence
 
 MTP-59 把 MTP-56 freshness / retention evidence 与 MTP-58 projection consistency summary 接入 App 层 Report / Dashboard / Event Timeline read-model-only evidence。该接入只消费复制后的 read model 字段，展示 batch id、replay run id、freshness status、retention status、event log record count、replayed record count 和 projection consistency summary，不读取 SQLite / DuckDB schema，不暴露 Runtime object 或 adapter request，不新增 command surface、order-level command、broker action、signed endpoint、Live trading 或真实订单入口。
+
+## MTP-60 Market Data Replay Operations 阶段收口
+
+MTP-60 对 Market Data Replay Operations v1 的 validation evidence、Dashboard smoke、automation readiness 和 Stage Code Audit 输入材料做阶段收口，不新增业务交易能力，不替代最终 Stage Code Audit Report。
+
+| 收口项 | Evidence location | 审计用途 |
+| --- | --- | --- |
+| Issue / PR evidence | `docs/audit/inputs/mtpro-market-data-replay-operations-v1-stage-audit-input.md` 的 `Issue / PR evidence input` | 为 Parent Codex 汇总 PR #101、#102、#103、#104、#105、#106 和 MTP-60 PR 提供输入。 |
+| Market data replay operations validation evidence chain | `docs/audit/inputs/mtpro-market-data-replay-operations-v1-stage-audit-input.md` 的 `Market data replay operations validation evidence chain` | 确认 batch / replay boundary、metadata contract、retention / freshness evidence、fixture parity、event log / projection consistency 和 Report / Dashboard / Event Timeline read model 均有 test / fixture / smoke / PR evidence。 |
+| Known boundaries | `docs/audit/inputs/mtpro-market-data-replay-operations-v1-stage-audit-input.md` 的 `Known boundaries` | 为 Stage Code Audit 的 public-read-only、local fixture replay、network-independent required validation、no signed endpoint、no broker action、no real order、no production operations、schema leakage 和 command surface 禁区提供输入。 |
+| Automation readiness | `checks/automation-readiness.sh`、`docs/automation/verified-operations.md`、`.github/pull_request_template.md` | 确认 `checks`、WIP=1、handoff marker、Post-Issue Ledger、Graphify ignore、MTP-60 audit input anchor、Dashboard smoke anchor 和 PR Automation 证据链仍完整。 |
+| Root Docs Delta input | `docs/audit/inputs/mtpro-market-data-replay-operations-v1-stage-audit-input.md` 的 `Root Docs Delta input` | 提醒 Parent Codex 在最终 Stage Code Audit Report 中检查 root docs，只同步已发生事实，并在 Root Docs Refresh Gate closure 后输出当前阶段完成进度条。 |
 
 ## MTP-30 阶段收口
 

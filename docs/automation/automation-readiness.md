@@ -1,6 +1,6 @@
 # MTPRO 自动化就绪状态
 
-日期：2026-05-19
+日期：2026-05-20
 
 执行者：Codex
 
@@ -24,6 +24,8 @@
 | Codex use-cases alignment | ready | `docs/automation/codex-use-cases-alignment.md` |
 | Verified operations | ready | `docs/automation/verified-operations.md` |
 | Paper Execution Workflow stage audit input anchor | ready | `docs/audit/inputs/mtpro-paper-execution-workflow-v1-stage-audit-input.md` |
+| Paper Workflow Control Shell stage audit input anchor | ready | `docs/audit/inputs/mtpro-paper-workflow-control-shell-v1-stage-audit-input.md` |
+| Market Data Replay Operations stage audit input anchor | ready | `docs/audit/inputs/mtpro-market-data-replay-operations-v1-stage-audit-input.md` |
 
 ## Project 切换规则
 

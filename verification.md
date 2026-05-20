@@ -5890,3 +5890,53 @@ Linear live-read：
 | `swift test --filter AppTests` | pass | 16 个 AppTests，0 failures；覆盖 Report / Dashboard / Event Timeline replay operations evidence、Codable snapshot、market data replay operation timeline item 和 no schema / no runtime / no adapter / no command boundary tests。 |
 | `bash checks/automation-readiness.sh` | pass | 新增 MTP-59 App read model / ViewModel、Report / Dashboard / Event Timeline evidence、validation-plan、matrix、contract docs、product surface 和 source/test anchors 后通过，输出 `MTPRO automation readiness checks passed.`。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
+
+## 2026-05-20 — MTP-60 automation readiness、validation evidence 和 stage audit input material 收口
+
+执行者：Codex
+
+上下文：
+
+- Linear live-read 确认 `MTP-60` 为唯一 `In Progress` issue；`MTP-54`、`MTP-55`、`MTP-56`、`MTP-57`、`MTP-58` 和 `MTP-59` 已 `Done`；WIP=1。
+- 本轮 scope 限定为 validation evidence、automation readiness anchor、Dashboard smoke evidence、known boundaries 和 Stage Code Audit input material。
+- 本 issue 不输出最终 Stage Code Audit Report；最终报告仍由 Parent Codex 在 Project 全部 Done 且 Linear Project `Completed` 后单独输出。
+
+文件范围：
+
+- Added：
+  - `docs/audit/inputs/mtpro-market-data-replay-operations-v1-stage-audit-input.md`
+- Updated：
+  - `checks/automation-readiness.sh`
+  - `docs/automation/automation-readiness.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `verification.md`
+
+证据：
+
+- MTP-60 Stage Audit Input 汇总 PR #101、#102、#103、#104、#105、#106 和当前 issue PR 的 evidence 输入。
+- Market data replay operations validation evidence chain 覆盖 MTP-54 batch / replay boundary、MTP-55 metadata contract、MTP-56 retention / freshness evidence、MTP-57 fixture parity、MTP-58 event log / projection consistency 和 MTP-59 Report / Dashboard / Event Timeline read-model-only evidence。
+- `checks/automation-readiness.sh` 新增 MTP-60 audit input、validation plan、matrix、latest summary 和 Dashboard smoke anchors。
+- Trading Validation Matrix 新增 MTP-60 阶段收口说明，指向 `docs/audit/inputs/mtpro-market-data-replay-operations-v1-stage-audit-input.md`。
+
+边界确认：
+
+- 不输出最终 Stage Code Audit Report。
+- 不创建下一 Project / Issue。
+- 不推进下一 Project / Issue。
+- 不启动下一阶段 `symphony-issue`。
+- 不写业务功能扩展。
+- 不接 API key、signed endpoint、account endpoint、listenKey、broker action、Live trading 或真实订单提交 / 撤销 / 替换。
+- 不实现 production data platform、production scheduler、retention cleanup job、projection rebuild command 或 operations console。
+- 未修改 Linear status。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未提交 `.codex/*` 或 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/automation-readiness.sh` | pass | 新增 MTP-60 stage audit input、validation plan、matrix、latest summary 和 Dashboard smoke anchors 后通过，输出 `MTPRO automation readiness checks passed.`。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
