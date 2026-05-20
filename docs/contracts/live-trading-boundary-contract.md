@@ -266,9 +266,54 @@ MTP-65 的 read model 不得暴露内部实现面：
 - 不暴露 SQLite schema、DuckDB schema、SQL、ORM 或 persistence implementation。
 - 不依赖真实 Binance 网络、真实 API key、真实账户、broker state 或 production runtime operations。
 
+## MTP-66 Dashboard / Report / Event Timeline Live blocked evidence surface
+
+日期：2026-05-21
+
+执行者：Codex
+
+`MTP-66-LIVE-BLOCKED-EVIDENCE-SURFACE`
+
+MTP-66 固定 Gate 5 的展示层接入方式：Dashboard / Report / Event Timeline 只能消费
+`LiveReadiness` 派生的 App 层 read model / ViewModel，把 API key、signed endpoint、account
+endpoint、listenKey、broker adapter 和 real order lifecycle 展示为 blocked evidence。该展示层不实现
+live monitoring console、live execution control、live risk control、live audit、停机控制或真实交易入口。
+
+`MTP-66-DASHBOARD-REPORT-EVENT-TIMELINE-READ-MODEL`
+
+MTP-66 的 read-model-only 接入必须覆盖：
+
+- `LiveTradingBlockedEvidenceReadModel` 和 `LiveTradingBlockedEvidenceViewModel`：复制 Core
+  `LiveReadiness` blocked evidence，保留 source contract、gate、capability、source anchors 和
+  forbidden flags。
+- `ReportViewModel.liveTradingBlockedEvidence`：在 Report evidence 中展示 Live blocked gates、
+  blocked capability labels、gate labels、source anchors 和 boundary flags。
+- `PaperWorkflowEvidenceExplorerSection.liveTradingBlockedEvidence`：在 Event Timeline /
+  Evidence Explorer 中展示每个 blocked capability 的只读 timeline item 和 evidence link。
+- `DashboardShellSnapshot` / `DashboardShellWorkbenchSnapshot`：展示 `Live gates` 指标、
+  blocked details 和 Dashboard smoke `liveBlockedGates` evidence。
+
+`MTP-66-NO-LIVE-COMMAND-OR-BUTTON`
+
+MTP-66 不得新增任何 command 或 UI 执行入口：
+
+- 不新增 live command、order-level command、risk control command、position management command。
+- 不新增交易按钮、表单、TextField、Toggle 或 order submit / cancel / replace 入口。
+- 不把 `LiveReadinessStatus.blocked` 或 blocked evidence 转换为可执行 readiness。
+- Dashboard smoke 只能输出 read-model-only summary，不触发外部系统 side effect。
+
+`MTP-66-SCHEMA-ADAPTER-RUNTIME-NON-EXPOSURE`
+
+MTP-66 的展示层不得暴露内部实现面：
+
+- 不暴露 adapter request、adapter instance、broker adapter 或 execution venue。
+- 不暴露 Runtime object、actor、workflow object 或 production runtime operations。
+- 不暴露 SQLite / DuckDB schema、SQL、ORM、table、column 或 persistence adapter direct read。
+- 不读取 API key、secret、account data，不调用 signed endpoint、account endpoint 或 listenKey。
+
 ## Current allowed evidence
 
-MTP-61 至 MTP-65 当前只允许产生以下 evidence：
+MTP-61 至 MTP-66 当前只允许产生以下 evidence：
 
 - Live trading foundation taxonomy。
 - Gate sequence。
@@ -277,6 +322,7 @@ MTP-61 至 MTP-65 当前只允许产生以下 evidence：
 - Gate 2 adapter capability isolation。
 - Gate 3 real order lifecycle terminology / future gates / forbidden tests。
 - Gate 4 Live readiness blocked read model / LiveBlockedEvidence deterministic snapshot。
+- Gate 5 Dashboard / Report / Event Timeline Live blocked evidence read-model-only surface。
 - Validation matrix anchor。
 - Automation readiness anchor。
 - PR evidence 和 `bash checks/run.sh` 摘要。
@@ -347,4 +393,11 @@ MTP-65 必须满足：
 - `bash checks/run.sh` 通过。
 - `checks/automation-readiness.sh` 必须检查 `MTP-65-LIVE-READINESS-BLOCKED-READ-MODEL`、`MTP-65-LIVE-BLOCKED-EVIDENCE-GATES`、`MTP-65-READ-MODEL-ONLY-NON-COMMAND` 和 `MTP-65-SCHEMA-ADAPTER-RUNTIME-NON-EXPOSURE`。
 - `Tests/CoreTests/CoreTests.swift` 必须覆盖 `LiveReadiness` deterministic fixture、`LiveBlockedEvidence` deterministic evidence、Codable round trip、blocked capability list drift rejection、command surface rejection、schema / adapter / runtime non-exposure、API key / signed / account / listenKey / broker / real order lifecycle bypass rejection。
+- PR evidence 必须确认没有 live command、交易按钮、API key、secret storage、signed endpoint、account endpoint、listenKey、broker adapter、Runtime object / persistence schema 暴露、真实订单生命周期或任何真实交易授权。
+
+MTP-66 必须满足：
+
+- `bash checks/run.sh` 通过。
+- `checks/automation-readiness.sh` 必须检查 `MTP-66-LIVE-BLOCKED-EVIDENCE-SURFACE`、`MTP-66-DASHBOARD-REPORT-EVENT-TIMELINE-READ-MODEL`、`MTP-66-NO-LIVE-COMMAND-OR-BUTTON` 和 `MTP-66-SCHEMA-ADAPTER-RUNTIME-NON-EXPOSURE`。
+- `Tests/AppTests/AppTests.swift` 必须覆盖 `LiveTradingBlockedEvidenceViewModel` deterministic snapshot、Report 汇总字段、Event Timeline `live trading blocked evidence` 分区、Dashboard shell `Live gates` 指标、Dashboard smoke `liveBlockedGates` evidence 和 no command / no button / no schema / no adapter / no runtime boundary。
 - PR evidence 必须确认没有 live command、交易按钮、API key、secret storage、signed endpoint、account endpoint、listenKey、broker adapter、Runtime object / persistence schema 暴露、真实订单生命周期或任何真实交易授权。

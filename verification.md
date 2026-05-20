@@ -7004,3 +7004,59 @@ Commit：
 | `swift test --filter MTP65` | pass | 3 tests, 0 failures；覆盖 `LiveReadiness` deterministic snapshot、`LiveBlockedEvidence` per-gate evidence、Codable round trip、blocked capability drift rejection、command / schema / adapter / runtime / Live bypass rejection。 |
 | `bash checks/automation-readiness.sh` | pass | MTP-65 contract、matrix、validation-plan、domain terms、Core type anchors 和 deterministic test anchors 通过。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 134 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
+
+## MTP-66 Dashboard / Report / Event Timeline Live blocked evidence
+
+日期：2026-05-21
+
+执行者：Codex
+
+目的：
+
+- 将 Gate 4 `LiveReadiness` / `LiveBlockedEvidence` 接入 Gate 5 Dashboard / Report / Event Timeline read-model-only 展示面。
+- 展示 API key、signed endpoint、account endpoint、listenKey、broker adapter 和 real order lifecycle 六个 Live gates 仍为 blocked。
+- 证明 Dashboard / Report / Event Timeline 不提供 live command、交易按钮、adapter / runtime / SQLite / DuckDB schema 暴露、真实订单生命周期或真实交易授权。
+
+文件范围：
+
+- Added：
+  - `Sources/App/LiveTradingBlockedEvidence.swift`
+- Updated：
+  - `Sources/App/App.swift`
+  - `Sources/App/PaperWorkflowEvidenceExplorer.swift`
+  - `Sources/App/DashboardShell.swift`
+  - `Tests/AppTests/AppTests.swift`
+  - `docs/contracts/live-trading-boundary-contract.md`
+  - `docs/contracts/frontend-view-model-contract.md`
+  - `docs/product/product-surface-map.md`
+  - `docs/domain/context.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `checks/automation-readiness.sh`
+  - `verification.md`
+
+边界确认：
+
+- 未实现 live monitoring console。
+- 未实现 live execution control。
+- 未实现 live risk control。
+- 未实现 live audit / incident replay / stop controls。
+- 未新增 live command、order-level command、risk control command 或 position management command。
+- 未新增交易按钮、表单或真实订单入口。
+- 未读取 API key、secret 或真实账户数据。
+- 未实现 signed endpoint、account endpoint 或 listenKey。
+- 未实例化 broker adapter。
+- 未暴露 Runtime object、adapter surface、SQLite schema 或 DuckDB schema。
+- 未实现 real order lifecycle、real order state machine、submit / cancel / replace、execution report、broker fill、reconciliation、OMS、真实账户状态或 broker position sync。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter AppTests` | pass | 17 tests, 0 failures；覆盖 `LiveTradingBlockedEvidenceViewModel` deterministic Codable snapshot、Report / Dashboard / Event Timeline blocked evidence、read-model-only boundary、no command / no button / no adapter / no runtime / no schema assertions。 |
+| `bash checks/automation-readiness.sh` | pass | MTP-66 contract、matrix、validation-plan、frontend contract、product surface、domain term、App source anchors、Dashboard smoke anchor 和 deterministic test anchors 通过。 |
+| `DASHBOARD_SMOKE=1 swift run Dashboard` | pass | 输出 `Dashboard smoke: sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 135 个 XCTest 全部通过；最终输出 `MTPRO checks passed.`。 |
