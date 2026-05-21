@@ -678,3 +678,34 @@ Shell 新增展示：
 - 高保真最终视觉稿、组件规范或 SwiftUI 实现。
 - Linear Project / Issue、Todo 推进、Symphony 启动或业务代码 scope。
 - submit / cancel / replace、order form、broker action、signed endpoint、account endpoint / listenKey、reconnect / start live / stop live、live command、trading button、real order state machine、real account balance 或 real broker position。
+
+## MTPRO Workbench Component / Layout Specification v1
+
+日期：2026-05-22
+
+执行者：Codex（`@000 / AIE`）
+
+当前设计层新增 `MTPRO Workbench Component / Layout Specification v1`，路径为 `docs/design/mtpro-workbench-component-layout-specification-v1.md`。该文档记录 Figma canonical `57:2`，承接 Product User Flow Blueprint、Product Interaction Model、Screen Layout v1 和 UI/UX Design Rules v1，用于定义 macOS native 工作台的组件 / 布局规格。
+
+该文档是设计层组件 / 布局规格依据，不是高保真最终视觉稿、SwiftUI 实现或 Linear execution 授权。
+
+规格覆盖：
+
+- Layout primitives：Sidebar、Top status、Main evidence workspace、Detail inspector、Events / Audit preview、Future placeholder area。
+- Evidence components：evidence row、evidence card、evidence table、source link、blocked reason panel、inspector section、timeline preview row。
+- State components：`empty`、`healthy`、`stale`、`blocked`、`degraded`、`error`。
+- Partition components：Current completed、Completed read-model-only evidence surface、Future Gated。
+- Paper local session controls：只允许 `start` / `pause` / `close` / `reset`，且视觉权重弱于 evidence navigation。
+- Live Monitoring read-only evidence components：health / connection / stream / latency / error / degraded。
+- Future Gated placeholder：planning / boundary placeholder、不是执行授权、不创建规划或施工入口。
+- Sizing / spacing / density tokens：服务高频扫描和稳定布局，不做营销式大留白。
+
+`@005 / ARC` 审查结论：通过。P0 / P1 / P2 均未发现问题。
+
+禁止 UI Surface 检查结果：无 API key / secret storage input、无 signed endpoint、无 account endpoint / listenKey、无 broker adapter / broker action、无 `LiveExecutionAdapter`、无 real order state machine / OMS、无 submit / cancel / replace、无 broker fill / execution report / reconciliation、无 real account balance / broker position、无 trading button / live command / order-level command UI、无 reconnect / start live / stop live。
+
+仍不包含：
+
+- 高保真最终视觉稿、SwiftUI 实现或业务代码开发。
+- Linear Project / Issue、Todo 推进、Symphony 启动或 Future Live trading execution scope。
+- submit / cancel / replace、order form、broker action、signed endpoint、account endpoint / listenKey、reconnect / start live / stop live、live command、trading button、real order state machine、real account balance 或 real broker position。
