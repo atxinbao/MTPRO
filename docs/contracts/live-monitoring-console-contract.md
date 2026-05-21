@@ -379,6 +379,38 @@ MTP-73 的验证入口：
 - Required validation：`swift test --filter AppTests` 和 `bash checks/run.sh`。
 - `checks/automation-readiness.sh` 的完整 MTP-68 至 MTP-73 机械收口仍保留给 MTP-74；MTP-73 只回填 Event Timeline preview evidence 和本地验证证据。
 
+## MTP-74 validation closeout / Stage Audit input
+
+`MTP-74-LIVE-MONITORING-STAGE-CLOSEOUT`
+
+MTP-74 只收口 `MTPRO Live Monitoring Console v1` 的 validation matrix、automation readiness、Dashboard smoke evidence、read-model-only boundary evidence 和 Stage Audit input material。该收口不新增 production code，不扩展 Live monitoring runtime，不输出最终 Stage Code Audit Report，不授权下一 Project planning 或 execution。
+
+`MTP-74-STAGE-AUDIT-INPUT-MATERIAL`
+
+MTP-74 的阶段审计输入材料必须落到：
+
+```text
+docs/audit/inputs/mtpro-live-monitoring-console-v1-stage-audit-input.md
+```
+
+该输入材料必须覆盖：
+
+- `MTP-68` 至 `MTP-73` 的 issue / PR evidence、merge commit 和 required check `checks` 证据。
+- `TVM-LIVE-MONITORING-CONSOLE`、`TVM-REPORT-EVIDENCE` 和 `TVM-PAPER-WORKFLOW-CONTROL-SHELL` 的 validation evidence chain。
+- Dashboard smoke：`sections=8`、`readModelOnly=true`、`workbenchReadModelOnly=true`、`controls=start,pause,close,reset`、`timelineItems=24`、`liveBlockedGates=6`、`liveMonitoringHealth=blocked` 和 `liveMonitoringErrors=3`。
+- Known boundaries：no signed endpoint、no account endpoint、no listenKey、no broker adapter、no `LiveExecutionAdapter`、no real order state machine、no live command、no trading button、no live audit、no incident replay、no stop control、no adapter / Runtime / schema exposure。
+- Root Docs Delta input 和 Stage Code Audit handoff checklist。
+
+`MTP-74-NO-FINAL-STAGE-CODE-AUDIT`
+
+MTP-74 不输出最终 Stage Code Audit Report。最终报告必须在 `MTP-68` 至 `MTP-74` 全部进入 Linear `Done`，且 Linear Project status 被设置或确认为 `Completed`、`type=completed`、`completedAt` 非空后，由 Parent Codex 单独输出到：
+
+```text
+docs/audit/mtpro-live-monitoring-console-v1-stage-code-audit.md
+```
+
+MTP-74 也不修改 Linear status、不创建下一 Project / Issue、不推进下一阶段、不启动下一阶段 `symphony-issue`。
+
 ## MTP-68 validation anchors
 
 `MTP-68-LIVE-MONITORING-VALIDATION-ANCHORS`

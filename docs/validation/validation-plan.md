@@ -856,3 +856,38 @@ MTP-73 的 required validation：
 - 不读取 API key、secret 或 account payload。
 - 不连接 broker、broker session、exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不消费 execution report，不记录 broker fill，不实现 real order state machine、OMS 或 submit / cancel / replace。
+
+## MTP-74 Validation Docs / Stage Audit Input Validation
+
+日期：2026-05-21
+
+执行者：Codex
+
+MTP-74 的 required validation：
+
+- `docs/validation/latest-verification-summary.md` 必须更新为 MTP-74 当前验证摘要，并引用 MTP-68 至 MTP-73 的 Project evidence。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-LIVE-MONITORING-CONSOLE` 的 MTP-74 阶段收口说明，并指向 MTP-74 Stage Code Audit 输入材料。
+- `docs/audit/inputs/mtpro-live-monitoring-console-v1-stage-audit-input.md` 必须存在，并包含 Issue / PR evidence、Live monitoring validation evidence chain、Dashboard smoke、Automation readiness evidence、Known boundaries、Root Docs Delta input 和 Stage Code Audit handoff checklist。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-68 至 MTP-74 的 contract、matrix、validation plan、latest summary、source / test anchors、Dashboard smoke evidence 和 stage audit input material。
+- Stage Code Audit input 必须明确：最终 Stage Code Audit Report 仍由 Parent Codex 在有效 issue 全部 Done 且 Linear Project `Completed`、`type=completed`、`completedAt` 非空后单独输出。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`。
+
+MTP-74 必须收口的主要 anchors：
+
+- `MTP-74-LIVE-MONITORING-STAGE-CLOSEOUT`
+- `MTP-74-STAGE-AUDIT-INPUT-MATERIAL`
+- `MTP-74-NO-FINAL-STAGE-CODE-AUDIT`
+- `MTP-74-LIVE-MONITORING-STAGE-AUDIT-INPUT`
+- `MTP-74-LIVE-MONITORING-VALIDATION-EVIDENCE-CHAIN`
+- `MTP-74-AUTOMATION-READINESS-STAGE-CLOSEOUT`
+
+## MTP-74 禁止
+
+- 不输出最终 Stage Code Audit Report。
+- 不创建下一 Project 或下一 Project issues。
+- 不推进下一 Project / Issue。
+- 不把 planning notes 当执行授权。
+- 不启动下一阶段 `symphony-issue`。
+- 不写业务功能扩展。
+- 不实现任何 Live trading、execution control、risk control、live audit、incident replay 或 stop control capability。
+- 不接 signed endpoint、account endpoint、listenKey、broker adapter、`LiveExecutionAdapter`、real order state machine 或真实订单行为。
