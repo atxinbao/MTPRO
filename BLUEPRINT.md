@@ -65,6 +65,7 @@
 | `docs/product/mtpro-workbench-user-flow-blueprint-v1.md` | Figma canonical `15:2` 的产品层用户动线蓝图，定义用户动线、页面角色和 Current / Future 边界 |
 | `docs/product/mtpro-product-interaction-model-v1.md` | 产品层交互模型，定义页面能看什么、判断什么、点什么、不能点什么，以及 evidence navigation 串联规则 |
 | `docs/design/mtpro-workbench-screen-layout-v1.md` | 设计层 screen layout 依据，承接产品用户动线和交互模型，定义 macOS 工作台页面区域、信息优先级和禁止动作 |
+| `docs/design/mtpro-workbench-ui-ux-design-rules-v1.md` | 设计层 UI/UX rules 依据，承接 Screen Layout v1，定义 macOS native 工作台视觉方向、状态表达、evidence components 和禁止 UI 表面 |
 | `docs/audit/` | 已完成 Project 的 Stage Code Audit Reports |
 | `docs/validation/trading-validation-matrix.md` | 交易语义验证证据地图 |
 | `docs/planning/project-role-map.md` | MTPRO 角色编号、职责和边界 |
@@ -259,6 +260,8 @@ MTPRO Workbench 最终应包含：
 产品层交互模型见 `docs/product/mtpro-product-interaction-model-v1.md`。后续设计层 `Workbench Screen Layout v1` 必须承接该交互模型，再定义屏幕布局、信息优先级和 macOS native UI / UX rules。
 
 `docs/design/mtpro-workbench-screen-layout-v1.md` 已记录 Figma canonical `40:2` 的 `MTPRO Workbench Screen Layout v1` 作为设计层依据。该文档只定义 screen layout、页面区域、信息优先级、状态表达和禁止动作，不是最终高保真视觉稿、组件规范、SwiftUI 实现稿或 Linear execution 授权。
+
+`docs/design/mtpro-workbench-ui-ux-design-rules-v1.md` 已记录 Figma canonical `51:2` 的 `MTPRO Workbench UI/UX Design Rules v1` 作为设计层依据。该文档承接 Product User Flow Blueprint、Product Interaction Model 和 Screen Layout v1，定义 macOS native 工作台的 UI/UX 规则、状态标签、evidence components、三态分区、Paper 本地控制、Live Monitoring 只读证据面、Future Gated placeholder 和 Forbidden UI Surface Checklist；它不是高保真最终视觉稿、组件规范、SwiftUI 实现稿或 Linear execution 授权。
 
 ## Infrastructure Blueprint / 基础设施蓝图
 

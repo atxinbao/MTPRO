@@ -8112,6 +8112,50 @@ Linear / scope evidence：
 | `swift test --filter MTP75` | pass | 3 个 MTP-75 regression Core XCTest 通过，0 failures。 |
 | `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=24; liveBlockedGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；152 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
 
+## MTPRO Workbench UI/UX Design Rules v1 Design Record
+
+日期：2026-05-22
+
+执行者：Codex
+
+目的：
+
+- 将已通过 `@005 / ARC` 审查的 `MTPRO Workbench UI/UX Design Rules v1` 落仓为设计层依据。
+- 记录 Figma canonical `51:2`，承接 Product User Flow Blueprint、Product Interaction Model 和 Screen Layout v1。
+- 明确该文档只定义 macOS native 工作台的 UI/UX 规则，不是高保真最终视觉稿、组件规范、SwiftUI 实现稿或 Linear execution 授权。
+
+文件范围：
+
+- `docs/design/mtpro-workbench-ui-ux-design-rules-v1.md`
+- `docs/product/product-surface-map.md`
+- `BLUEPRINT.md`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+更新重点：
+
+- 记录 Figma canonical file `0MkTyZXHmfBaZ2K9fqddCm` 和主节点 `51:2`。
+- 记录 `51:*` frame node-id 清单。
+- 固化 macOS native workstation 设计方向、统一布局规则、typography / spacing / density、evidence components、状态标签和三态分区。
+- 记录 Paper 本地 session-level controls 只允许 `start` / `pause` / `close` / `reset`，且视觉权重必须弱于 evidence navigation。
+- 记录 Live Monitoring 为 Complete / read-model-only evidence surface，只展示 health / connection / stream / latency / error / degraded evidence，不表达外部运行时控制。
+- 记录 Future Gated 只作为 planning / boundary placeholder，不是执行授权，不创建规划或施工入口。
+- 增加 Forbidden UI Surface Checklist：API key / secret storage input、signed endpoint、account endpoint / listenKey、broker adapter / broker action、`LiveExecutionAdapter`、real order state machine / OMS、submit / cancel / replace、broker fill / execution report / reconciliation、real account balance / broker position、trading button / live command / order-level command UI 均禁止出现在当前 UI surface。
+
+边界确认：
+
+- 不修改 Figma。
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony。
+- 不运行 Graphify update。
+- 不写业务代码。
+- 不把 Future Live trading 写成当前 execution scope。
+- 不提交 `.codex/*`。
+- 不提交 `graphify-out/*`。
+
 ## MTP-77 Execution Report / Broker Fill / Reconciliation Future Gates
 
 日期：2026-05-22
