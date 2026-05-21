@@ -721,3 +721,28 @@ MTP-68 的 required validation：
 - 不运行 live execution。
 - 不把 eval 框架作为业务实现前置依赖。
 - 不把 validation result 当作 Linear 执行授权。
+
+## MTP-69 Live Runtime Health / Connection Status Read Model Validation
+
+日期：2026-05-21
+
+执行者：Codex
+
+MTP-69 的 required validation：
+
+- Core 层必须新增 `LiveRuntimeHealthReadModel` 和 `LiveConnectionStatusReadModel`，并保持 Codable / Equatable / Sendable value model。
+- `LiveMonitoringStatus` 必须覆盖 `healthy`、`blocked`、`disconnected`、`degraded` 和 `unavailable`。
+- Deterministic fixture 默认必须保持 runtime health `blocked`，connection evidence 必须保持 public market data `disconnected`、future private user data `blocked`、future broker session `unavailable`。
+- Tests 必须覆盖 deterministic fixture、Codable round trip、connection source anchors、command surface rejection、network connection rejection、secret / account endpoint / listenKey rejection、broker adapter rejection、Runtime object / SQLite / DuckDB schema rejection。
+- Focused validation：`swift test --filter MTP69`。
+- Required validation：`bash checks/run.sh`。
+- `checks/automation-readiness.sh` 在本 issue 中不得新增 MTP-69 机械收口；MTP-74 统一收口 MTP-68 至 MTP-73 anchors。
+
+## MTP-69 禁止
+
+- 不实现 live runtime。
+- 不建立真实网络连接、WebSocket 或 private WebSocket。
+- 不接 signed endpoint、account endpoint 或 listenKey。
+- 不读取 API key、secret 或 account payload。
+- 不连接 broker、broker session、exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不提供 reconnect、start / stop live command、交易按钮或真实交易授权。

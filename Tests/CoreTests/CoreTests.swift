@@ -878,6 +878,193 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testLiveRuntimeHealthDefinesMTP69ReadModelOnlyFixture() throws {
+        // 测试场景：MTP-69 只新增 future live runtime health / connection status 的最小
+        // read model。fixture 可以表达 healthy / blocked / disconnected / degraded /
+        // unavailable 状态分类，但默认仍是 blocked / disconnected / unavailable evidence。
+        let health = LiveRuntimeHealthReadModel.deterministicFixture
+
+        XCTAssertEqual(health.healthID, try Identifier("mtp-69-live-runtime-health"))
+        XCTAssertEqual(health.issueID, try Identifier("MTP-69"))
+        XCTAssertEqual(health.status, .blocked)
+        XCTAssertEqual(
+            LiveMonitoringStatus.allCases,
+            [.healthy, .blocked, .disconnected, .degraded, .unavailable]
+        )
+        XCTAssertEqual(health.allowedStatuses, LiveMonitoringStatus.allCases)
+        XCTAssertEqual(health.sourceAnchors, LiveRuntimeHealthReadModel.requiredSourceAnchors)
+        XCTAssertEqual(health.connections, LiveRuntimeHealthReadModel.requiredConnectionStatuses)
+        XCTAssertEqual(
+            health.connections.map(\.connectionKind),
+            [.publicMarketData, .futurePrivateUserData, .futureBrokerSession]
+        )
+        XCTAssertEqual(health.connections.map(\.status), [.disconnected, .blocked, .unavailable])
+        XCTAssertTrue(health.runtimeHealthBoundaryHeld)
+        XCTAssertTrue(health.connectionStatusBoundaryHeld)
+        XCTAssertTrue(health.isReadModelOnly)
+        XCTAssertFalse(health.providesCommandSurface)
+        XCTAssertFalse(health.startsLiveRuntime)
+        XCTAssertFalse(health.stopsLiveRuntime)
+        XCTAssertFalse(health.pollsRuntimeHealth)
+        XCTAssertFalse(health.opensNetworkConnection)
+        XCTAssertFalse(health.readsAPIKey)
+        XCTAssertFalse(health.readsSecret)
+        XCTAssertFalse(health.callsSignedEndpoint)
+        XCTAssertFalse(health.callsAccountEndpoint)
+        XCTAssertFalse(health.createsListenKey)
+        XCTAssertFalse(health.readsAccountPayload)
+        XCTAssertFalse(health.instantiatesBrokerAdapter)
+        XCTAssertFalse(health.exposesAdapterSurface)
+        XCTAssertFalse(health.exposesRuntimeObject)
+        XCTAssertFalse(health.exposesSQLiteSchema)
+        XCTAssertFalse(health.exposesDuckDBSchema)
+        XCTAssertFalse(health.authorizesLiveTrading)
+        XCTAssertFalse(health.authorizesTradingExecution)
+        XCTAssertFalse(health.requiredValidationDependsOnNetwork)
+
+        for connection in health.connections {
+            XCTAssertTrue(connection.connectionBoundaryHeld)
+            XCTAssertTrue(connection.isReadModelOnly)
+            XCTAssertTrue(connection.isFutureEvidence)
+            XCTAssertFalse(connection.hasActiveNetworkConnection)
+            XCTAssertFalse(connection.opensWebSocket)
+            XCTAssertFalse(connection.usesPrivateWebSocket)
+            XCTAssertFalse(connection.callsSignedEndpoint)
+            XCTAssertFalse(connection.callsAccountEndpoint)
+            XCTAssertFalse(connection.createsListenKey)
+            XCTAssertFalse(connection.readsAPIKey)
+            XCTAssertFalse(connection.readsSecret)
+            XCTAssertFalse(connection.readsAccountPayload)
+            XCTAssertFalse(connection.instantiatesBrokerAdapter)
+            XCTAssertFalse(connection.exposesAdapterSurface)
+            XCTAssertFalse(connection.exposesRuntimeObject)
+            XCTAssertFalse(connection.exposesSQLiteSchema)
+            XCTAssertFalse(connection.exposesDuckDBSchema)
+            XCTAssertFalse(connection.providesReconnectCommand)
+            XCTAssertFalse(connection.providesStartStopCommand)
+            XCTAssertFalse(connection.authorizesLiveTrading)
+            XCTAssertFalse(connection.authorizesTradingExecution)
+        }
+
+        let encoded = try JSONEncoder().encode(health)
+        let decoded = try JSONDecoder().decode(LiveRuntimeHealthReadModel.self, from: encoded)
+        XCTAssertEqual(decoded, health)
+    }
+
+    func testLiveRuntimeHealthRejectsMTP69CommandNetworkSecretAndSchemaBypass() throws {
+        // 测试场景：MTP-69 read model 的初始化和 Codable 解码都必须拒绝 command surface、
+        // runtime polling、真实网络连接、secret/account payload、broker adapter 和 schema 暴露。
+        XCTAssertThrowsError(
+            try LiveRuntimeHealthReadModel(providesCommandSurface: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveMonitoringConsoleForbiddenCapability("providesCommandSurface"))
+        }
+        XCTAssertThrowsError(
+            try LiveRuntimeHealthReadModel(opensNetworkConnection: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveMonitoringConsoleForbiddenCapability("opensNetworkConnection"))
+        }
+        XCTAssertThrowsError(
+            try LiveRuntimeHealthReadModel(readsAPIKey: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveMonitoringConsoleForbiddenCapability("readsAPIKey"))
+        }
+        XCTAssertThrowsError(
+            try LiveRuntimeHealthReadModel(exposesRuntimeObject: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveMonitoringConsoleForbiddenCapability("exposesRuntimeObject"))
+        }
+        XCTAssertThrowsError(
+            try LiveRuntimeHealthReadModel(
+                connections: Array(LiveRuntimeHealthReadModel.requiredConnectionStatuses.dropLast())
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveMonitoringConsoleContractMismatch(
+                    field: "connections",
+                    expected: LiveRuntimeHealthReadModel.requiredConnectionStatuses
+                        .map(\.connectionKind.rawValue)
+                        .joined(separator: ","),
+                    actual: Array(LiveRuntimeHealthReadModel.requiredConnectionStatuses.dropLast())
+                        .map(\.connectionKind.rawValue)
+                        .joined(separator: ",")
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(LiveRuntimeHealthReadModel.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["callsAccountEndpoint"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveRuntimeHealthReadModel.self, from: data)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveMonitoringConsoleForbiddenCapability("callsAccountEndpoint"))
+        }
+    }
+
+    func testLiveConnectionStatusKeepsMTP69ConnectionEvidenceNonExecutable() throws {
+        // 测试场景：connection status 只能是 read-model-only evidence。即使描述 public 或
+        // future private / broker connection，也不能打开 WebSocket、创建 listenKey 或触发 reconnect。
+        let privateConnection = try LiveConnectionStatusReadModel(
+            connectionID: try Identifier("mtp-69-private-user-data-blocked"),
+            connectionKind: .futurePrivateUserData,
+            status: .blocked
+        )
+
+        XCTAssertTrue(privateConnection.connectionBoundaryHeld)
+        XCTAssertEqual(privateConnection.sourceAnchors, [
+            "MTP-62-CREDENTIAL-ENDPOINT-BOUNDARY",
+            "MTP-68-LIVE-MONITORING-READ-MODEL-ONLY",
+            "MTP-69-CONNECTION-STATUS-READ-MODEL"
+        ])
+
+        XCTAssertThrowsError(
+            try LiveConnectionStatusReadModel(
+                connectionID: try Identifier("mtp-69-private-user-data-blocked"),
+                connectionKind: .futurePrivateUserData,
+                status: .blocked,
+                sourceAnchors: ["wrong-anchor"]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveMonitoringConsoleContractMismatch(
+                    field: "sourceAnchors",
+                    expected: [
+                        "MTP-62-CREDENTIAL-ENDPOINT-BOUNDARY",
+                        "MTP-68-LIVE-MONITORING-READ-MODEL-ONLY",
+                        "MTP-69-CONNECTION-STATUS-READ-MODEL"
+                    ].joined(separator: ","),
+                    actual: "wrong-anchor"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveConnectionStatusReadModel(
+                connectionID: try Identifier("mtp-69-public-market-disconnected"),
+                connectionKind: .publicMarketData,
+                status: .disconnected,
+                hasActiveNetworkConnection: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveMonitoringConsoleForbiddenCapability("hasActiveNetworkConnection"))
+        }
+
+        let encoded = try JSONEncoder().encode(privateConnection)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["createsListenKey"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveConnectionStatusReadModel.self, from: data)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveMonitoringConsoleForbiddenCapability("createsListenKey"))
+        }
+    }
+
     func testPaperSessionLocalControlCommandModelSupportsSessionActionsDeterministically() throws {
         // 测试场景：MTP-48 只允许本地 Paper session-level control intent。
         // 四个 control 都必须保持 paper-only，且不能携带 order-level、broker 或真实订单能力。

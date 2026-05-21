@@ -54,6 +54,8 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
     case paperExecutionDecisionMismatch(field: String, expected: String, actual: String)
     case liveTradingBoundaryForbiddenCapability(String)
     case liveTradingBoundaryContractMismatch(field: String, expected: String, actual: String)
+    case liveMonitoringConsoleForbiddenCapability(String)
+    case liveMonitoringConsoleContractMismatch(field: String, expected: String, actual: String)
 
     public var description: String {
         switch self {
@@ -157,6 +159,10 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
             "Live trading boundary forbids capability: \(field)"
         case let .liveTradingBoundaryContractMismatch(field, expected, actual):
             "Live trading boundary contract mismatch for \(field): expected \(expected), actual \(actual)"
+        case let .liveMonitoringConsoleForbiddenCapability(field):
+            "Live monitoring console forbids capability: \(field)"
+        case let .liveMonitoringConsoleContractMismatch(field, expected, actual):
+            "Live monitoring console contract mismatch for \(field): expected \(expected), actual \(actual)"
         }
     }
 }
