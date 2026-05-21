@@ -828,3 +828,31 @@ MTP-72 的 required validation：
 - 不读取 adapter、Runtime object、SQLite / DuckDB schema。
 - 不连接真实外部系统。
 - 不实现 execution control、risk control、stop control、alerting、paging、reconnect、incident command 或自动恢复。
+
+## MTP-73 Event Timeline Live Monitoring Evidence Preview Validation
+
+日期：2026-05-21
+
+执行者：Codex
+
+MTP-73 的 required validation：
+
+- App 层必须新增 `PaperWorkflowEvidenceExplorerSection.liveMonitoringEvidence`，并保持 Event Timeline / Evidence Explorer 为 read-model-only ViewModel snapshot。
+- `PaperWorkflowEvidenceExplorerReadModel.liveMonitoringEvidence` 必须默认从 `ReportReadModel.liveMonitoringEvidence` 派生，也允许 deterministic tests 显式注入同形 read model。
+- `PaperWorkflowEvidenceExplorerViewModel` 必须设置 `coversLiveMonitoringEvidence == true`，并把 live monitoring evidence 分区纳入 `sectionSnapshots` 和 `filterSnapshot`。
+- Live monitoring evidence 分区必须生成 18 条 timeline item：runtime health 1 条、connection 3 条、stream 4 条、latency 5 条、error 3 条、degraded state 2 条。
+- Full dashboard fixture 必须保持 `timelineItems=42`；empty dashboard snapshot 必须保持 `timelineItems=24`；Dashboard smoke 必须继续输出 `liveBlockedGates=6`、`liveMonitoringHealth=blocked` 和 `liveMonitoringErrors=3`。
+- Tests 必须验证 no command surface、no order-level command、no query language、no live audit、no incident replay、no stop control、no broker action、no Live trading authorization 和 no trading execution。
+- Focused validation：`swift test --filter AppTests/testLiveMonitoringEvidenceExplorerPreviewDefinesMTP73ReadOnlyTimelineItems`。
+- Required validation：`swift test --filter AppTests` 和 `bash checks/run.sh`。
+- `checks/automation-readiness.sh` 的 MTP-68 至 MTP-73 机械收口仍保留给 MTP-74；MTP-73 只回填 Event Timeline preview evidence 和本地验证证据。
+
+## MTP-73 禁止
+
+- 不新增 live command、交易按钮、表单、order-level command、risk command 或 position command。
+- 不实现 live audit、incident replay、stop control、alert / paging / reconnect、incident command 或自动恢复。
+- 不实现 production telemetry、runtime profiler、external metrics service、真实 runtime monitoring、真实网络连接或 WebSocket。
+- 不接 signed endpoint、account endpoint 或 listenKey。
+- 不读取 API key、secret 或 account payload。
+- 不连接 broker、broker session、exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不消费 execution report，不记录 broker fill，不实现 real order state machine、OMS 或 submit / cancel / replace。

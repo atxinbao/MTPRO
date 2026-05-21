@@ -1020,6 +1020,7 @@ public struct DashboardReadModel: Equatable, Sendable {
             strategy: strategy,
             report: report,
             liveTradingBlockedEvidence: report.liveTradingBlockedEvidence,
+            liveMonitoringEvidence: report.liveMonitoringEvidence,
             paperWorkflowObservability: paperWorkflowObservability,
             events: events
         )
@@ -1070,6 +1071,7 @@ public struct DashboardReadModel: Equatable, Sendable {
                 strategy: strategy,
                 report: report,
                 liveTradingBlockedEvidence: report.liveTradingBlockedEvidence,
+                liveMonitoringEvidence: report.liveMonitoringEvidence,
                 paperWorkflowObservability: paperWorkflowObservability,
                 events: events
             ),

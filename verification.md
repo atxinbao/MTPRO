@@ -7608,3 +7608,59 @@ Root docs 判断：
 | `bash checks/run.sh` | pass after clean | 前两次本地 XCTest 进程尾部出现 `xctest ... unexpected signal code 11`；执行 `swift package clean` 后同一入口通过。 |
 | Dashboard smoke | pass | `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`。 |
 | XCTest | pass | 145 tests, 0 failures。 |
+
+## MTP-73 Event Timeline Live Monitoring Evidence Preview
+
+日期：2026-05-21
+
+执行者：Codex
+
+目的：
+
+- 将 MTP-69 / MTP-70 / MTP-71 的 live monitoring evidence 接入 Event Timeline / Evidence Explorer read-model-only preview。
+- 让 Explorer 能展示 runtime health、connection、market / order stream、latency、error 和 degraded state evidence links。
+- 保持 Dashboard smoke，不新增 live command、交易按钮、query language、live audit、incident replay、stop control、真实外部系统连接、execution control 或 risk control。
+
+文件范围：
+
+- `Sources/App/PaperWorkflowEvidenceExplorer.swift`
+- `Sources/App/App.swift`
+- `Tests/AppTests/AppTests.swift`
+- `docs/contracts/live-monitoring-console-contract.md`
+- `docs/contracts/frontend-view-model-contract.md`
+- `docs/product/product-surface-map.md`
+- `docs/validation/validation-plan.md`
+- `docs/validation/trading-validation-matrix.md`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+更新重点：
+
+- 新增 `PaperWorkflowEvidenceExplorerSection.liveMonitoringEvidence` 分区。
+- `PaperWorkflowEvidenceExplorerReadModel` 新增 `liveMonitoringEvidence` 输入，默认复用 `ReportReadModel.liveMonitoringEvidence`。
+- `PaperWorkflowEvidenceExplorerViewModel` 新增 `coversLiveMonitoringEvidence`、`providesLiveAudit`、`providesIncidentReplay` 和 `providesStopControl` boundary flags。
+- Event Timeline 新增 18 条 live monitoring timeline item：runtime health 1 条、connection 3 条、stream 4 条、latency 5 条、error 3 条、degraded state 2 条。
+- Full dashboard fixture `timelineItems=42`；empty Dashboard smoke snapshot `timelineItems=24`。
+- AppTests 新增 MTP-73 deterministic Explorer preview 测试，并扩展 timeline item count、section count、evidence IDs 和 no command / no live audit / no incident replay / no stop control assertions。
+
+边界确认：
+
+- 不新增 live command、交易按钮、order-level command、risk command、position command 或 query language。
+- 不实现 live audit、incident replay、stop control、alerting / paging、reconnect、incident command 或 auto recovery。
+- 不实现 production telemetry、runtime profiler、external metrics service、真实 runtime monitoring、真实网络连接或 WebSocket。
+- 不接 signed endpoint、account endpoint、listenKey。
+- 不读取 API key、secret 或 account payload。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`、real order state machine、execution report、broker fill、OMS 或真实交易授权。
+- 不暴露 adapter surface、Runtime object、SQLite / DuckDB schema、SQL、ORM、table、column 或 persistence implementation。
+- 不修改 `checks/automation-readiness.sh`；MTP-74 才做 MTP-68 至 MTP-73 的统一机械收口。
+- 不提交 `.codex/*`。
+- 不提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter AppTests/testLiveMonitoringEvidenceExplorerPreviewDefinesMTP73ReadOnlyTimelineItems` | pass | 1 个 AppTests 通过；覆盖 MTP-73 live monitoring evidence 分区 18 条 timeline item、runtime health / connection / stream / latency / error / degraded title、关键 evidence IDs、read-only filter 和 no command / no live audit / no incident replay / no stop control assertions。 |
+| `swift test --filter AppTests` | pass | 19 个 AppTests 通过；覆盖 MTP-73 Event Timeline preview、MTP-72 Dashboard / Report monitoring evidence、Dashboard smoke、Workbench snapshot、Codable deterministic snapshot 和 no schema / no adapter / no runtime / no broker / no trading execution。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 146 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=24; liveBlockedGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；最终输出 `MTPRO checks passed.`。 |
