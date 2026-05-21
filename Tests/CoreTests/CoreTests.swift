@@ -1089,6 +1089,208 @@ final class CoreTests: XCTestCase {
         XCTAssertFalse(simulatedFill.updatesRealAccountBalance)
     }
 
+    func testLiveSubmitCancelReplaceBoundaryDefinesMTP76FutureGatesAndForbiddenCommands() throws {
+        // 测试场景：MTP-76 只把 submit / cancel / replace 固定为 future gates 和
+        // forbidden capability evidence，不提供真实订单命令、签名请求、broker action 或 UI。
+        let boundary = LiveSubmitCancelReplaceCommandBoundary.deterministicFixture
+
+        XCTAssertEqual(boundary.contractID, try Identifier("mtp-76-submit-cancel-replace-boundary"))
+        XCTAssertEqual(boundary.issueID, try Identifier("MTP-76"))
+        XCTAssertEqual(boundary.commandTaxonomy, [.submit, .cancel, .replace])
+        XCTAssertEqual(
+            boundary.futureGates,
+            [
+                .humanLiveDecision,
+                .credentialEndpointBoundarySatisfied,
+                .adapterCapabilityIsolationSatisfied,
+                .realOrderLifecycleBoundarySatisfied,
+                .submitCommandContractDefined,
+                .cancelCommandContractDefined,
+                .replaceCommandContractDefined,
+                .liveRiskGateDefined,
+                .executionReportReconciliationGateDefined,
+                .operationsAuditHandoffDefined
+            ]
+        )
+        XCTAssertEqual(boundary.forbiddenCapabilities, LiveSubmitCancelReplaceForbiddenCapability.allCases)
+        XCTAssertTrue(boundary.forbidsCapability(.submitCommandAPI))
+        XCTAssertTrue(boundary.forbidsCapability(.cancelCommandAPI))
+        XCTAssertTrue(boundary.forbidsCapability(.replaceCommandAPI))
+        XCTAssertTrue(boundary.forbidsCapability(.signedSubmitRequest))
+        XCTAssertTrue(boundary.forbidsCapability(.brokerSubmitAction))
+        XCTAssertEqual(
+            boundary.allowedEvidenceKinds,
+            [
+                .contractDocumentation,
+                .validationMatrixCandidate,
+                .validationPlanAnchor,
+                .deterministicForbiddenTest,
+                .paperRealIsolationEvidence,
+                .prBoundaryEvidence
+            ]
+        )
+        XCTAssertEqual(boundary.validationAnchors, [
+            "MTP-76-SUBMIT-CANCEL-REPLACE-FUTURE-GATES",
+            "MTP-76-FORBIDDEN-SUBMIT-CANCEL-REPLACE-CAPABILITY-TESTS",
+            "MTP-76-NO-REAL-SUBMIT-CANCEL-REPLACE",
+            "MTP-76-PAPER-INTENT-NO-REAL-COMMAND-UPGRADE",
+            "MTP-76-LIVE-EXECUTION-CONTROL-VALIDATION",
+            "TVM-LIVE-EXECUTION-CONTROL"
+        ])
+        XCTAssertEqual(boundary.sourceAnchors, [
+            "MTP-75-REAL-ORDER-COMMAND-TAXONOMY",
+            "MTP-75-NO-EXECUTABLE-COMMAND-SURFACE",
+            "MTP-64-PAPER-REAL-LIFECYCLE-ISOLATION",
+            "TVM-PAPER-ORDER-LIFECYCLE",
+            "TVM-PAPER-EXECUTION-DECISION",
+            "TVM-PAPER-SIMULATED-FILL"
+        ])
+        XCTAssertTrue(boundary.submitCancelReplaceBoundaryHeld)
+        XCTAssertTrue(boundary.allRealOrderCommandsBlocked)
+        XCTAssertTrue(boundary.paperIntentUpgradeBoundaryHeld)
+        XCTAssertTrue(boundary.isFutureGateOnly)
+        XCTAssertFalse(boundary.providesExecutableCommandSurface)
+        XCTAssertFalse(boundary.readsAPIKey)
+        XCTAssertFalse(boundary.storesSecret)
+        XCTAssertFalse(boundary.usesSignedEndpoint)
+        XCTAssertFalse(boundary.callsAccountEndpoint)
+        XCTAssertFalse(boundary.createsListenKey)
+        XCTAssertFalse(boundary.instantiatesBrokerExecutionAdapter)
+        XCTAssertFalse(boundary.instantiatesExchangeExecutionAdapter)
+        XCTAssertFalse(boundary.implementsLiveExecutionAdapter)
+        XCTAssertFalse(boundary.implementsRealOrderStateMachine)
+        XCTAssertFalse(boundary.implementsOMS)
+        XCTAssertFalse(boundary.submitsRealOrder)
+        XCTAssertFalse(boundary.cancelsRealOrder)
+        XCTAssertFalse(boundary.replacesRealOrder)
+        XCTAssertFalse(boundary.sendsSignedSubmitRequest)
+        XCTAssertFalse(boundary.sendsSignedCancelRequest)
+        XCTAssertFalse(boundary.sendsSignedReplaceRequest)
+        XCTAssertFalse(boundary.exposesOrderForm)
+        XCTAssertFalse(boundary.exposesOrderLevelCommandUI)
+        XCTAssertFalse(boundary.providesTradingButton)
+        XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(
+            LiveSubmitCancelReplaceCommandBoundary.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, boundary)
+    }
+
+    func testLiveSubmitCancelReplaceBoundaryRejectsMTP76RealCommandBypass() throws {
+        // 测试场景：MTP-76 fixture 的初始化和 Codable 解码都必须拒绝真实 submit /
+        // cancel / replace、签名请求、broker adapter、LiveExecutionAdapter 和 order form。
+        XCTAssertThrowsError(
+            try LiveSubmitCancelReplaceCommandBoundary(submitsRealOrder: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("submitsRealOrder"))
+        }
+        XCTAssertThrowsError(
+            try LiveSubmitCancelReplaceCommandBoundary(cancelsRealOrder: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("cancelsRealOrder"))
+        }
+        XCTAssertThrowsError(
+            try LiveSubmitCancelReplaceCommandBoundary(replacesRealOrder: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("replacesRealOrder"))
+        }
+        XCTAssertThrowsError(
+            try LiveSubmitCancelReplaceCommandBoundary(sendsSignedSubmitRequest: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("sendsSignedSubmitRequest")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveSubmitCancelReplaceCommandBoundary(instantiatesBrokerExecutionAdapter: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("instantiatesBrokerExecutionAdapter")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveSubmitCancelReplaceCommandBoundary(implementsLiveExecutionAdapter: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("implementsLiveExecutionAdapter")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveSubmitCancelReplaceCommandBoundary(exposesOrderForm: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("exposesOrderForm"))
+        }
+        XCTAssertThrowsError(
+            try LiveSubmitCancelReplaceCommandBoundary(commandTaxonomy: [.submit, .cancel])
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "commandTaxonomy",
+                    expected: LiveSubmitCancelReplaceCommandBoundary
+                        .requiredCommandTaxonomy
+                        .map(\.rawValue)
+                        .joined(separator: ","),
+                    actual: "submit,cancel"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(LiveSubmitCancelReplaceCommandBoundary.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["sendsSignedReplaceRequest"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveSubmitCancelReplaceCommandBoundary.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("sendsSignedReplaceRequest")
+            )
+        }
+    }
+
+    func testPaperOrderIntentCannotUpgradeToMTP76SubmitCancelReplaceCommands() throws {
+        // 测试场景：MTP-76 明确 paper-only intent / decision / simulated fill 不能升级为
+        // real submit / cancel / replace command，也不能绕过 MTP-75 的 taxonomy 禁区。
+        let boundary = LiveSubmitCancelReplaceCommandBoundary.deterministicFixture
+        let paperOrder = try PaperOrderIntentFixture.deterministicAllowed()
+        let executionDecision = try PaperExecutionDecisionFixture.deterministicAllowed()
+        let simulatedFill = try PaperSimulatedFillFixture.deterministicAllowed()
+
+        XCTAssertTrue(boundary.paperIntentUpgradeBoundaryHeld)
+        XCTAssertTrue(boundary.forbidsCapability(.paperOrderIntentToSubmitUpgrade))
+        XCTAssertTrue(boundary.forbidsCapability(.paperOrderIntentToCancelUpgrade))
+        XCTAssertTrue(boundary.forbidsCapability(.paperOrderIntentToReplaceUpgrade))
+        XCTAssertFalse(boundary.mapsPaperOrderIntentToSubmit)
+        XCTAssertFalse(boundary.mapsPaperOrderIntentToCancel)
+        XCTAssertFalse(boundary.mapsPaperOrderIntentToReplace)
+        XCTAssertFalse(boundary.upgradesPaperExecutionDecision)
+        XCTAssertFalse(boundary.upgradesSimulatedFillToBrokerFill)
+
+        XCTAssertTrue(paperOrder.paperOnlyBoundaryHeld)
+        XCTAssertFalse(paperOrder.representsRealOrder)
+        XCTAssertFalse(paperOrder.authorizesLiveTrading)
+        XCTAssertFalse(paperOrder.isExecutableAsRealOrder)
+
+        XCTAssertTrue(executionDecision.paperOnlyBoundaryHeld)
+        XCTAssertFalse(executionDecision.representsRealOrder)
+        XCTAssertFalse(executionDecision.authorizesLiveTrading)
+        XCTAssertFalse(executionDecision.isExecutableAsRealOrder)
+
+        XCTAssertTrue(simulatedFill.paperOnlyBoundaryHeld)
+        XCTAssertFalse(simulatedFill.representsRealFill)
+        XCTAssertFalse(simulatedFill.representsBrokerFill)
+        XCTAssertFalse(simulatedFill.updatesRealAccountBalance)
+    }
+
     func testLiveRuntimeHealthDefinesMTP69ReadModelOnlyFixture() throws {
         // 测试场景：MTP-69 只新增 future live runtime health / connection status 的最小
         // read model。fixture 可以表达 healthy / blocked / disconnected / degraded /

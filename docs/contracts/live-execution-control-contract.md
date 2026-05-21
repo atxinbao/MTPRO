@@ -103,3 +103,105 @@ MTP-75 建立以下 validation anchors，供后续 issue 接入 forbidden capabi
 - `MTP-75-NO-EXECUTABLE-COMMAND-SURFACE`
 
 本 issue 不修改 `checks/automation-readiness.sh` 做最终机械收口；`MTPRO Live Execution Control Contract v1` 的 automation readiness 收口保留给 Issue 7。
+
+## MTP-76 submit / cancel / replace future gates
+
+`MTP-76-SUBMIT-CANCEL-REPLACE-FUTURE-GATES`
+
+MTP-76 把 `submit`、`cancel` 和 `replace` 从 MTP-75 taxonomy 进一步收窄为 future gate contract。当前系统仍不得提供真实订单提交、撤销或替换能力；这些词只允许作为 future gate、blocked evidence 和 deterministic forbidden tests 出现。
+
+| Command | Future gate 条件 | 当前状态 | 当前禁止输出 |
+| --- | --- | --- | --- |
+| `submit` | Human 独立 Live decision、credential endpoint boundary、adapter capability isolation、real order lifecycle boundary、future submit command contract、future live risk gate、execution report / reconciliation gate、operations / audit handoff。 | Forbidden now | submit command API、signed submit request、broker submit action、order form、trading button |
+| `cancel` | Human 独立 Live decision、credential endpoint boundary、adapter capability isolation、real order lifecycle boundary、future cancel command contract、future live risk gate、execution report / reconciliation gate、operations / audit handoff。 | Forbidden now | cancel command API、signed cancel request、broker cancel action、order-level command UI |
+| `replace` | Human 独立 Live decision、credential endpoint boundary、adapter capability isolation、real order lifecycle boundary、future replace command contract、future live risk gate、execution report / reconciliation gate、operations / audit handoff。 | Forbidden now | replace command API、signed replace request、broker replace action、order amendment UI |
+
+Core fixture：`LiveSubmitCancelReplaceCommandBoundary` 固定以下 gates：
+
+- Human independent Live execution decision。
+- credential endpoint boundary satisfied。
+- adapter capability isolation satisfied。
+- real order lifecycle boundary satisfied。
+- future submit command contract defined。
+- future cancel command contract defined。
+- future replace command contract defined。
+- future live risk gate defined。
+- future execution report / reconciliation gate defined。
+- future operations / audit handoff defined。
+
+## MTP-76 forbidden submit / cancel / replace capability tests
+
+`MTP-76-FORBIDDEN-SUBMIT-CANCEL-REPLACE-CAPABILITY-TESTS`
+
+MTP-76 的 forbidden capability tests 必须覆盖：
+
+- API key / secret storage。
+- signed endpoint / account endpoint / listenKey。
+- broker / exchange execution adapter 和 `LiveExecutionAdapter`。
+- real order state machine / OMS。
+- submit / cancel / replace command API。
+- signed submit / cancel / replace request。
+- broker submit / cancel / replace action。
+- order form、order-level command UI、live command surface 和 trading button。
+- paper order intent / paper execution decision / simulated fill 升级为真实 submit / cancel / replace。
+- required validation 依赖真实网络。
+
+Core tests：
+
+- `testLiveSubmitCancelReplaceBoundaryDefinesMTP76FutureGatesAndForbiddenCommands`
+- `testLiveSubmitCancelReplaceBoundaryRejectsMTP76RealCommandBypass`
+- `testPaperOrderIntentCannotUpgradeToMTP76SubmitCancelReplaceCommands`
+
+## MTP-76 no real submit / cancel / replace
+
+`MTP-76-NO-REAL-SUBMIT-CANCEL-REPLACE`
+
+`LiveSubmitCancelReplaceCommandBoundary` 的以下 flags 必须全部保持 `false`：
+
+- `submitsRealOrder`
+- `cancelsRealOrder`
+- `replacesRealOrder`
+- `sendsSignedSubmitRequest`
+- `sendsSignedCancelRequest`
+- `sendsSignedReplaceRequest`
+- `providesExecutableCommandSurface`
+- `exposesOrderForm`
+- `exposesOrderLevelCommandUI`
+- `providesTradingButton`
+
+这些 flags 只用于证明当前系统没有真实 submit / cancel / replace，不代表存在 mock broker、sandbox broker、paper-to-live fallback 或隐藏命令入口。
+
+## MTP-76 paper intent no real command upgrade
+
+`MTP-76-PAPER-INTENT-NO-REAL-COMMAND-UPGRADE`
+
+MTP-76 必须保持 paper-only intent 与 future real order command 隔离：
+
+- `PaperOrderIntent` 不得映射为 real submit。
+- `PaperOrderIntent` 不得映射为 real cancel。
+- `PaperOrderIntent` 不得映射为 real replace。
+- `PaperExecutionDecision` 不得升级为 real order command。
+- `PaperSimulatedFillEvidence` 不得升级为 broker fill、execution report 或 account update。
+
+Source anchors：
+
+- `MTP-75-REAL-ORDER-COMMAND-TAXONOMY`
+- `MTP-75-NO-EXECUTABLE-COMMAND-SURFACE`
+- `MTP-64-PAPER-REAL-LIFECYCLE-ISOLATION`
+- `TVM-PAPER-ORDER-LIFECYCLE`
+- `TVM-PAPER-EXECUTION-DECISION`
+- `TVM-PAPER-SIMULATED-FILL`
+
+## MTP-76 validation anchors
+
+`MTP-76-LIVE-EXECUTION-CONTROL-VALIDATION`
+
+MTP-76 建立以下 validation anchors：
+
+- `MTP-76-SUBMIT-CANCEL-REPLACE-FUTURE-GATES`
+- `MTP-76-FORBIDDEN-SUBMIT-CANCEL-REPLACE-CAPABILITY-TESTS`
+- `MTP-76-NO-REAL-SUBMIT-CANCEL-REPLACE`
+- `MTP-76-PAPER-INTENT-NO-REAL-COMMAND-UPGRADE`
+- `MTP-76-LIVE-EXECUTION-CONTROL-VALIDATION`
+
+本 issue 不修改 `checks/automation-readiness.sh` 做最终机械收口；`MTPRO Live Execution Control Contract v1` 的 automation readiness 收口保留给 Issue 7。
