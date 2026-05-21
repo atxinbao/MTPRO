@@ -57,6 +57,7 @@ require_file "docs/planning/projects/mtpro-paper-workflow-control-shell-v1-plan.
 require_file "docs/planning/projects/mtpro-market-data-replay-operations-v1-plan.md"
 require_file "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md"
 require_file "docs/planning/projects/mtpro-live-monitoring-console-v1-plan.md"
+require_file "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md"
 [[ -d "docs/audit/inputs" ]] || fail "missing required directory: docs/audit/inputs"
 require_file "docs/audit/inputs/mtpro-runtime-research-workbench-v1-stage-evidence.md"
 require_file "docs/audit/inputs/mtpro-trading-validation-and-parity-hardening-stage-audit-input.md"
@@ -378,7 +379,8 @@ for planning_record in \
   "docs/planning/projects/mtpro-paper-workflow-control-shell-v1-plan.md" \
   "docs/planning/projects/mtpro-market-data-replay-operations-v1-plan.md" \
   "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" \
-  "docs/planning/projects/mtpro-live-monitoring-console-v1-plan.md"; do
+  "docs/planning/projects/mtpro-live-monitoring-console-v1-plan.md" \
+  "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md"; do
   require_contains "$planning_record" "Project name"
   require_contains "$planning_record" "Project goal"
   require_contains "$planning_record" "Scope"
@@ -502,6 +504,33 @@ require_contains "docs/planning/linear-draft-plan.md" "docs/planning/projects/mt
 require_contains "docs/planning/linear-draft-plan.md" "MTPRO Live Monitoring Console v1"
 require_contains "docs/validation/latest-verification-summary.md" "docs/planning/projects/mtpro-live-monitoring-console-v1-plan.md"
 require_contains "docs/validation/latest-verification-summary.md" "MTPRO Live Monitoring Console v1"
+require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "MTPRO Live Execution Control Contract v1"
+require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "Final Product Goal Slice #7"
+require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "本阶段只定义 Future Live Execution 的 execution-control contract / boundary"
+require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "Parent Codex queue preflight rule"
+require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "本 draft 不创建 Linear Project"
+require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "本 draft 不创建 Linear Issues"
+require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "本 draft 不修改 Linear status"
+require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "本 draft 不推进任何 issue 到 Todo"
+require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "完整 issue execution contract 以后以 Linear issue body 为准"
+require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" 'Project 写入 Linear 后，所有 issue 初始必须是 `Backlog / non-executable`'
+require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "First executable issue candidate"
+require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "只是 first executable issue candidate"
+require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "不复制维护完整 Linear issue body"
+require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "不启动 Symphony"
+require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" '不启动 `@002 / PAR`'
+require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "不实现 API key / secret storage"
+require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "不实现 signed endpoint / account endpoint / listenKey"
+require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "不连接 broker / exchange execution adapter"
+require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" '不实现 `LiveExecutionAdapter`'
+require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "不实现 real order state machine / OMS"
+require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "不提交、撤销、替换真实订单"
+require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "不新增交易按钮、order form、live command 或 order-level command UI"
+require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "LiveExecutionControlBlockedEvidence"
+require_contains "docs/planning/linear-draft-plan.md" "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md"
+require_contains "docs/planning/linear-draft-plan.md" "MTPRO Live Execution Control Contract v1"
+require_contains "docs/validation/latest-verification-summary.md" "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md"
+require_contains "docs/validation/latest-verification-summary.md" "MTPRO Live Execution Control Contract v1"
 require_contains "docs/validation/latest-verification-summary.md" "订单流 / 订单事件流，仅表示 blocked / simulated / future evidence，不表示真实订单状态机"
 
 require_contains "docs/validation/validation-plan.md" "Linear issue execution contract"
