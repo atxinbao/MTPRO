@@ -59,6 +59,8 @@ MTP-76 的当前 issue execution evidence 已在 `docs/contracts/live-execution-
 
 `MTPRO Product Interaction Model v1` 已作为产品层交互模型落仓，路径为 `docs/product/mtpro-product-interaction-model-v1.md`。该文档承接 Figma canonical `15:2` 用户动线蓝图，定义用户在每个页面能看什么、判断什么、点什么、不能点什么，以及页面之间如何通过 evidence navigation 串联；它用于指导后续 `Workbench Screen Layout v1`，不是最终 UI/UX 视觉稿、组件规范或 SwiftUI 实现稿，不创建 Linear Project / Issue，不修改 Linear status，不推进 Todo，不启动 Symphony，不授权 Future Live trading。
 
+`MTPRO Workbench Screen Layout v1` 已作为设计层 screen layout 依据落仓，路径为 `docs/design/mtpro-workbench-screen-layout-v1.md`。该文档记录 Figma canonical `40:2`、frame node-id 清单、macOS native workstation layout 原则、统一 screen structure、页面 layout 摘要、Product Interaction Model 映射和 `@005 / ARC` 复审通过结论；它不是最终 UI/UX 高保真视觉稿、组件规范或 SwiftUI 实现稿，不创建 Linear Project / Issue，不修改 Linear status，不推进 Todo，不启动 Symphony，不授权 Future Live trading。
+
 Target System Architecture v3 已进入 root docs 收口路径：`BLUEPRINT.md` 增加 Product Workbench Map / 产品工作台地图，明确 Current completed / Completed read-model-only evidence surfaces / Future Gated 三块状态；`docs/architecture.md` 增加 Engineering Layer Map / 工程分层地图和 Evidence Data Flow / 证据数据流。该收口只改变文档蓝图和工程模块地图，不创建 Linear Project / Issue，不修改 Linear status，不推进 Todo，不启动 Symphony，不运行 Graphify update，不写业务代码，不把 Future Live trading 写成当前 execution scope。
 
 MTP-61 的长期验证锚点为 `docs/contracts/live-trading-boundary-contract.md` 和 `TVM-LIVE-TRADING-FOUNDATION`。该锚点只定义 Live trading foundation capability taxonomy、gate 顺序、blocked capability 和 forbidden capability，不实现 API key、secret storage、signed endpoint、account endpoint、listenKey、broker adapter、真实订单、OMS 或 `LiveExecutionAdapter`。
