@@ -7557,3 +7557,54 @@ Root docs 判断：
 | --- | --- | --- |
 | `swift test --filter AppTests` | pass | 18 个 AppTests 通过；覆盖 MTP-72 ViewModel deterministic snapshot、Report / Dashboard / Workbench monitoring evidence、Dashboard smoke、no command / no button / no schema / no adapter / no runtime / no network / no production telemetry / no signed endpoint / no account endpoint / no listenKey / no broker / no real order state machine。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 145 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；最终输出 `MTPRO checks passed.`。 |
+
+## Target System Architecture v3 docs-only 收口
+
+日期：2026-05-21
+
+执行者：Codex
+
+目的：
+
+- 将 @005 / ARC 的 Target System Architecture v3 最终版收口到 root docs。
+- 在 `BLUEPRINT.md` 中补充 Product Workbench Map / 产品工作台地图，明确 Current / In Progress / Future Gated 三块状态。
+- 在 `docs/architecture.md` 中补充 Engineering Layer Map / 工程分层地图和 Evidence Data Flow / 证据数据流。
+- 明确 `Live Monitoring` 当前只代表 read-model-only health / connection / stream / latency / error evidence，不代表真实交易执行入口。
+
+文件范围：
+
+- `BLUEPRINT.md`
+- `docs/architecture.md`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+更新重点：
+
+- `BLUEPRINT.md`：把 Final Product Goal Slice #5 更新为 Complete，并说明只完成 Live boundary / blocked evidence；把 Slice #6 标为 In Progress / read-model-only。
+- `BLUEPRINT.md`：新增 Product Workbench Map，拆分 Current / 已完成基础工作台、In Progress / 当前建设、Future Gated / 未来门禁区。
+- `docs/architecture.md`：新增五层 Engineering Layer Map：Workbench UI Layer、App Interface Layer、Evidence Read Model Layer、Local Runtime / Eventing Layer、Domain + Adapter Boundary Layer。
+- `docs/architecture.md`：新增标准 Evidence Data Flow：Input source -> Domain interpretation -> Event fact -> Append-only Event Log -> Replay -> Projection -> Read Model -> ViewModel -> Workbench evidence surface。
+- `docs/architecture.md`：明确 Dashboard / App 不直接读取 Runtime、Adapter、SQLite / DuckDB schema；Paper intent / simulated fill 不能升级为 real order lifecycle。
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 Todo。
+- 不启动 @002 / PAR。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify update。
+- 不写业务代码。
+- 不修改当前正在执行的 Live Monitoring issue 内容。
+- 不把 Future Live trading 写成当前 execution scope。
+- 不提交 `.codex/*`。
+- 不提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | 文档 diff whitespace 检查通过。 |
+| `bash checks/run.sh` | pass after clean | 前两次本地 XCTest 进程尾部出现 `xctest ... unexpected signal code 11`；执行 `swift package clean` 后同一入口通过。 |
+| Dashboard smoke | pass | `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`。 |
+| XCTest | pass | 145 tests, 0 failures。 |
