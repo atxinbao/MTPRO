@@ -7449,3 +7449,56 @@ Root docs 判断：
 | --- | --- | --- |
 | `swift test --filter MTP70` | pass | 3 个 focused XCTest 通过；覆盖 deterministic fixture、Codable round trip、market stream public read-only boundary、order stream blocked / simulated / future-only evidence、no listenKey、no account endpoint、no execution report、no broker fill、no real order state machine、no order command。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 141 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6`；最终输出 `MTPRO checks passed.`。 |
+
+## MTP-71 Latency / Error / Degraded State Monitoring Evidence
+
+日期：2026-05-21
+
+执行者：Codex
+
+目的：
+
+- 新增 latency / error / degraded state monitoring evidence read model。
+- 用本地 deterministic fixtures 表达 future live monitoring console 的运行健康证据。
+- 保持 Report / Dashboard 后续可消费的 read-model-only 结构，不提供 production telemetry、alerting、reconnect、stop control 或 live command。
+
+文件范围：
+
+- `Sources/Core/LiveMonitoringConsole.swift`
+- `Tests/CoreTests/CoreTests.swift`
+- `docs/contracts/live-monitoring-console-contract.md`
+- `docs/validation/validation-plan.md`
+- `docs/validation/trading-validation-matrix.md`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+更新重点：
+
+- 新增 `LiveMonitoringEvidenceScope` 和 `LiveMonitoringLatencyBucket`，固定 latency / error / degraded evidence 的只读 scope 与 bucket。
+- 新增 `LiveMonitoringLatencyEvidenceItem`，fixture 覆盖 runtime health `stale`、public market stream `degraded`、simulated order stream `nominal`、future private user data `unavailable` 和 future broker session `unavailable`。
+- 新增 `LiveMonitoringErrorEvidenceItem`，fixture 覆盖 public market stream disconnected、private user data blocked 和 broker session unavailable。
+- 新增 `LiveMonitoringDegradedStateEvidenceItem`，fixture 覆盖 public market stream `degraded` 和 future broker session `unavailable`，只把 latency / error evidence 串成只读状态摘要。
+- 新增 `LiveLatencyErrorDegradedMonitoringEvidenceReadModel`，聚合 MTP-70 stream evidence fixture、MTP-71 latency evidence、error evidence 和 degraded state evidence。
+- 新增 constructor / Codable 解码校验，拒绝 production telemetry、runtime profiler、external metrics service、runtime monitor、runtime polling、真实网络连接、alerting / paging、incident command、auto recovery、reconnect / stop control、live risk control、signed endpoint、account endpoint、listenKey、API key、secret、account payload、broker adapter、adapter surface、Runtime object、SQLite / DuckDB schema、Live trading authorization、trading execution authorization 和 network-dependent validation。
+- 回填 `MTP-71-LATENCY-ERROR-DEGRADED-READ-MODEL`、`MTP-71-LATENCY-EVIDENCE-READ-MODEL`、`MTP-71-ERROR-EVIDENCE-READ-MODEL`、`MTP-71-DEGRADED-STATE-READ-MODEL`、`MTP-71-NO-PRODUCTION-TELEMETRY-OR-COMMAND` 和 `MTP-71-LIVE-MONITORING-LATENCY-ERROR-DEGRADED-VALIDATION`。
+
+边界确认：
+
+- 不实现 production telemetry、runtime profiler 或 external metrics service。
+- 不实现真实 runtime monitoring、runtime polling 或 production monitor。
+- 不建立真实网络连接、WebSocket 或 private user data stream。
+- 不接 signed endpoint、account endpoint 或 listenKey。
+- 不读取 API key、secret 或 account payload。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`。
+- 不提供 alerting、paging、reconnect、stop control、incident command、auto recovery、live risk control、live command、交易按钮或真实交易授权。
+- 不修改 `checks/automation-readiness.sh`；MTP-74 才做 MTP-68 至 MTP-73 的统一机械收口。
+- 不提交 `.codex/*`。
+- 不提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP71` | pass | 3 个 focused XCTest 通过；覆盖 deterministic fixture、Codable round trip、latency / error / degraded source anchors、no production telemetry、no external metrics、no alerting / paging、no reconnect / stop control、no incident command、no auto recovery、no signed endpoint、no broker、no live risk control。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 144 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6`；最终输出 `MTPRO checks passed.`。 |

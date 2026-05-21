@@ -1501,3 +1501,1421 @@ public struct LiveStreamMonitoringEvidenceReadModel: Codable, Equatable, Sendabl
         }
     }
 }
+
+/// LiveMonitoringEvidenceScope 定义 MTP-71 latency / error / degraded evidence 可覆盖的只读监控范围。
+///
+/// 这些 scope 都来自 MTP-69 / MTP-70 已建立的 deterministic read model。它们只是后续
+/// Dashboard / Report / Event Timeline 可消费的证据分区，不代表当前存在 production telemetry、
+/// private user data stream、broker session、runtime monitor 或任何 live command。
+public enum LiveMonitoringEvidenceScope: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case runtimeHealth = "runtime health"
+    case publicMarketStream = "public market stream"
+    case simulatedOrderStream = "simulated order stream"
+    case futurePrivateUserData = "future private user data"
+    case futureBrokerSession = "future broker session"
+}
+
+/// LiveMonitoringLatencyBucket 定义 MTP-71 延迟证据允许展示的 bucket。
+///
+/// bucket 只由本地 deterministic fixture 派生，不来自生产 telemetry agent、runtime profiler、
+/// 外部 metrics service 或自动扩缩容信号。
+public enum LiveMonitoringLatencyBucket: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case nominal = "nominal"
+    case stale = "stale"
+    case degraded = "degraded"
+    case error = "error"
+    case unavailable = "unavailable"
+}
+
+/// LiveMonitoringLatencyEvidenceItem 是 MTP-71 的单项 latency evidence。
+///
+/// 该类型只保存 scope、bucket、延迟 / freshness 数值和 source anchors。缺失值表示 future /
+/// gated 能力当前不可观测；它不会采集生产 telemetry、调用外部 metrics service、打开网络连接或触发
+/// alert / reconnect / stop control。
+public struct LiveMonitoringLatencyEvidenceItem: Codable, Equatable, Sendable {
+    public let latencyID: Identifier
+    public let issueID: Identifier
+    public let scope: LiveMonitoringEvidenceScope
+    public let bucket: LiveMonitoringLatencyBucket
+    public let measuredLatencyMilliseconds: Int?
+    public let freshnessAgeMilliseconds: Int?
+    public let sourceAnchors: [String]
+    public let observedAt: Date
+    public let isReadModelOnly: Bool
+    public let isDeterministicEvidence: Bool
+    public let usesProductionTelemetry: Bool
+    public let usesExternalMetricsService: Bool
+    public let startsRuntimeMonitor: Bool
+    public let opensNetworkConnection: Bool
+    public let providesAlertingCommand: Bool
+    public let providesPagingCommand: Bool
+    public let providesReconnectCommand: Bool
+    public let providesStopControl: Bool
+    public let authorizesLiveTrading: Bool
+    public let authorizesTradingExecution: Bool
+    public let requiredValidationDependsOnNetwork: Bool
+
+    public var latencyBoundaryHeld: Bool {
+        sourceAnchors == Self.requiredSourceAnchors(for: scope)
+            && bucket == Self.requiredBucket(for: scope)
+            && measuredLatencyMilliseconds == Self.requiredMeasuredLatencyMilliseconds(for: scope)
+            && freshnessAgeMilliseconds == Self.requiredFreshnessAgeMilliseconds(for: scope)
+            && isReadModelOnly
+            && isDeterministicEvidence
+            && usesProductionTelemetry == false
+            && usesExternalMetricsService == false
+            && startsRuntimeMonitor == false
+            && opensNetworkConnection == false
+            && providesAlertingCommand == false
+            && providesPagingCommand == false
+            && providesReconnectCommand == false
+            && providesStopControl == false
+            && authorizesLiveTrading == false
+            && authorizesTradingExecution == false
+            && requiredValidationDependsOnNetwork == false
+    }
+
+    public init(
+        latencyID: Identifier,
+        issueID: Identifier = try! Identifier("MTP-71"),
+        scope: LiveMonitoringEvidenceScope,
+        bucket: LiveMonitoringLatencyBucket? = nil,
+        measuredLatencyMilliseconds: Int?? = nil,
+        freshnessAgeMilliseconds: Int?? = nil,
+        sourceAnchors: [String]? = nil,
+        observedAt: Date = Date(timeIntervalSince1970: 7_100),
+        isReadModelOnly: Bool = true,
+        isDeterministicEvidence: Bool = true,
+        usesProductionTelemetry: Bool = false,
+        usesExternalMetricsService: Bool = false,
+        startsRuntimeMonitor: Bool = false,
+        opensNetworkConnection: Bool = false,
+        providesAlertingCommand: Bool = false,
+        providesPagingCommand: Bool = false,
+        providesReconnectCommand: Bool = false,
+        providesStopControl: Bool = false,
+        authorizesLiveTrading: Bool = false,
+        authorizesTradingExecution: Bool = false,
+        requiredValidationDependsOnNetwork: Bool = false
+    ) throws {
+        let requiredBucket = Self.requiredBucket(for: scope)
+        let latency = measuredLatencyMilliseconds ?? Self.requiredMeasuredLatencyMilliseconds(for: scope)
+        let freshness = freshnessAgeMilliseconds ?? Self.requiredFreshnessAgeMilliseconds(for: scope)
+        let anchors = sourceAnchors ?? Self.requiredSourceAnchors(for: scope)
+
+        guard bucket ?? requiredBucket == requiredBucket else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "bucket",
+                expected: requiredBucket.rawValue,
+                actual: (bucket ?? requiredBucket).rawValue
+            )
+        }
+        guard latency == Self.requiredMeasuredLatencyMilliseconds(for: scope) else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "measuredLatencyMilliseconds",
+                expected: Self.describe(Self.requiredMeasuredLatencyMilliseconds(for: scope)),
+                actual: Self.describe(latency)
+            )
+        }
+        guard freshness == Self.requiredFreshnessAgeMilliseconds(for: scope) else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "freshnessAgeMilliseconds",
+                expected: Self.describe(Self.requiredFreshnessAgeMilliseconds(for: scope)),
+                actual: Self.describe(freshness)
+            )
+        }
+        guard anchors == Self.requiredSourceAnchors(for: scope) else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "sourceAnchors",
+                expected: Self.requiredSourceAnchors(for: scope).joined(separator: ","),
+                actual: anchors.joined(separator: ",")
+            )
+        }
+        try Self.validateForbiddenFlags(
+            isReadModelOnly: isReadModelOnly,
+            isDeterministicEvidence: isDeterministicEvidence,
+            usesProductionTelemetry: usesProductionTelemetry,
+            usesExternalMetricsService: usesExternalMetricsService,
+            startsRuntimeMonitor: startsRuntimeMonitor,
+            opensNetworkConnection: opensNetworkConnection,
+            providesAlertingCommand: providesAlertingCommand,
+            providesPagingCommand: providesPagingCommand,
+            providesReconnectCommand: providesReconnectCommand,
+            providesStopControl: providesStopControl,
+            authorizesLiveTrading: authorizesLiveTrading,
+            authorizesTradingExecution: authorizesTradingExecution,
+            requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork
+        )
+
+        self.latencyID = latencyID
+        self.issueID = issueID
+        self.scope = scope
+        self.bucket = requiredBucket
+        self.measuredLatencyMilliseconds = latency
+        self.freshnessAgeMilliseconds = freshness
+        self.sourceAnchors = anchors
+        self.observedAt = observedAt
+        self.isReadModelOnly = isReadModelOnly
+        self.isDeterministicEvidence = isDeterministicEvidence
+        self.usesProductionTelemetry = usesProductionTelemetry
+        self.usesExternalMetricsService = usesExternalMetricsService
+        self.startsRuntimeMonitor = startsRuntimeMonitor
+        self.opensNetworkConnection = opensNetworkConnection
+        self.providesAlertingCommand = providesAlertingCommand
+        self.providesPagingCommand = providesPagingCommand
+        self.providesReconnectCommand = providesReconnectCommand
+        self.providesStopControl = providesStopControl
+        self.authorizesLiveTrading = authorizesLiveTrading
+        self.authorizesTradingExecution = authorizesTradingExecution
+        self.requiredValidationDependsOnNetwork = requiredValidationDependsOnNetwork
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            latencyID: try container.decode(Identifier.self, forKey: .latencyID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            scope: try container.decode(LiveMonitoringEvidenceScope.self, forKey: .scope),
+            bucket: try container.decode(LiveMonitoringLatencyBucket.self, forKey: .bucket),
+            measuredLatencyMilliseconds: try container.decodeIfPresent(
+                Int.self,
+                forKey: .measuredLatencyMilliseconds
+            ),
+            freshnessAgeMilliseconds: try container.decodeIfPresent(
+                Int.self,
+                forKey: .freshnessAgeMilliseconds
+            ),
+            sourceAnchors: try container.decode([String].self, forKey: .sourceAnchors),
+            observedAt: try container.decode(Date.self, forKey: .observedAt),
+            isReadModelOnly: try container.decode(Bool.self, forKey: .isReadModelOnly),
+            isDeterministicEvidence: try container.decode(Bool.self, forKey: .isDeterministicEvidence),
+            usesProductionTelemetry: try container.decode(Bool.self, forKey: .usesProductionTelemetry),
+            usesExternalMetricsService: try container.decode(Bool.self, forKey: .usesExternalMetricsService),
+            startsRuntimeMonitor: try container.decode(Bool.self, forKey: .startsRuntimeMonitor),
+            opensNetworkConnection: try container.decode(Bool.self, forKey: .opensNetworkConnection),
+            providesAlertingCommand: try container.decode(Bool.self, forKey: .providesAlertingCommand),
+            providesPagingCommand: try container.decode(Bool.self, forKey: .providesPagingCommand),
+            providesReconnectCommand: try container.decode(Bool.self, forKey: .providesReconnectCommand),
+            providesStopControl: try container.decode(Bool.self, forKey: .providesStopControl),
+            authorizesLiveTrading: try container.decode(Bool.self, forKey: .authorizesLiveTrading),
+            authorizesTradingExecution: try container.decode(Bool.self, forKey: .authorizesTradingExecution),
+            requiredValidationDependsOnNetwork: try container.decode(
+                Bool.self,
+                forKey: .requiredValidationDependsOnNetwork
+            )
+        )
+    }
+
+    public static func requiredBucket(for scope: LiveMonitoringEvidenceScope) -> LiveMonitoringLatencyBucket {
+        switch scope {
+        case .publicMarketStream:
+            .degraded
+        case .simulatedOrderStream:
+            .nominal
+        case .futurePrivateUserData, .futureBrokerSession:
+            .unavailable
+        case .runtimeHealth:
+            .stale
+        }
+    }
+
+    public static func requiredMeasuredLatencyMilliseconds(for scope: LiveMonitoringEvidenceScope) -> Int? {
+        switch scope {
+        case .publicMarketStream:
+            1_250
+        case .simulatedOrderStream:
+            25
+        case .runtimeHealth:
+            6_000
+        case .futurePrivateUserData, .futureBrokerSession:
+            nil
+        }
+    }
+
+    public static func requiredFreshnessAgeMilliseconds(for scope: LiveMonitoringEvidenceScope) -> Int? {
+        switch scope {
+        case .publicMarketStream:
+            45_000
+        case .simulatedOrderStream:
+            500
+        case .runtimeHealth:
+            30_000
+        case .futurePrivateUserData, .futureBrokerSession:
+            nil
+        }
+    }
+
+    public static func requiredSourceAnchors(for scope: LiveMonitoringEvidenceScope) -> [String] {
+        switch scope {
+        case .runtimeHealth:
+            [
+                "MTP-69-LIVE-RUNTIME-HEALTH-READ-MODEL",
+                "MTP-71-LATENCY-ERROR-DEGRADED-READ-MODEL"
+            ]
+        case .publicMarketStream:
+            [
+                "MTP-70-MARKET-STREAM-PUBLIC-READ-ONLY-EVIDENCE",
+                "MTP-71-LATENCY-EVIDENCE-READ-MODEL"
+            ]
+        case .simulatedOrderStream:
+            [
+                "TVM-PAPER-EXECUTION-WORKFLOW",
+                "MTP-70-ORDER-STREAM-BLOCKED-SIMULATED-FUTURE-EVIDENCE",
+                "MTP-71-LATENCY-EVIDENCE-READ-MODEL"
+            ]
+        case .futurePrivateUserData:
+            [
+                "MTP-62-CREDENTIAL-ENDPOINT-BOUNDARY",
+                "MTP-71-LATENCY-EVIDENCE-READ-MODEL"
+            ]
+        case .futureBrokerSession:
+            [
+                "MTP-63-ADAPTER-CAPABILITY-ISOLATION",
+                "MTP-71-LATENCY-EVIDENCE-READ-MODEL"
+            ]
+        }
+    }
+
+    private static func describe(_ value: Int?) -> String {
+        value.map(String.init) ?? "nil"
+    }
+
+    private static func validateForbiddenFlags(
+        isReadModelOnly: Bool,
+        isDeterministicEvidence: Bool,
+        usesProductionTelemetry: Bool,
+        usesExternalMetricsService: Bool,
+        startsRuntimeMonitor: Bool,
+        opensNetworkConnection: Bool,
+        providesAlertingCommand: Bool,
+        providesPagingCommand: Bool,
+        providesReconnectCommand: Bool,
+        providesStopControl: Bool,
+        authorizesLiveTrading: Bool,
+        authorizesTradingExecution: Bool,
+        requiredValidationDependsOnNetwork: Bool
+    ) throws {
+        guard isReadModelOnly else {
+            throw CoreError.liveMonitoringConsoleForbiddenCapability("isReadModelOnly")
+        }
+        guard isDeterministicEvidence else {
+            throw CoreError.liveMonitoringConsoleForbiddenCapability("isDeterministicEvidence")
+        }
+
+        let forbiddenFlags = [
+            ("usesProductionTelemetry", usesProductionTelemetry),
+            ("usesExternalMetricsService", usesExternalMetricsService),
+            ("startsRuntimeMonitor", startsRuntimeMonitor),
+            ("opensNetworkConnection", opensNetworkConnection),
+            ("providesAlertingCommand", providesAlertingCommand),
+            ("providesPagingCommand", providesPagingCommand),
+            ("providesReconnectCommand", providesReconnectCommand),
+            ("providesStopControl", providesStopControl),
+            ("authorizesLiveTrading", authorizesLiveTrading),
+            ("authorizesTradingExecution", authorizesTradingExecution),
+            ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveMonitoringConsoleForbiddenCapability(capability.0)
+        }
+    }
+}
+
+/// LiveMonitoringErrorEvidenceKind 定义 MTP-71 error evidence 的稳定分类。
+///
+/// 分类只用于只读摘要，不触发 incident command、自动恢复、alerting、paging 或 broker failure
+/// handler。
+public enum LiveMonitoringErrorEvidenceKind: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case publicMarketStreamDisconnected = "public market stream disconnected"
+    case privateUserDataBlocked = "private user data blocked"
+    case brokerSessionUnavailable = "broker session unavailable"
+}
+
+/// LiveMonitoringErrorEvidenceItem 是 MTP-71 的单项 error evidence。
+///
+/// 它记录 deterministic error code、scope、status 和 source anchors。`recoveredAt` 只表示只读
+/// 证据字段，不能解释为自动恢复动作或清除审计事实。
+public struct LiveMonitoringErrorEvidenceItem: Codable, Equatable, Sendable {
+    public let errorID: Identifier
+    public let issueID: Identifier
+    public let scope: LiveMonitoringEvidenceScope
+    public let status: LiveMonitoringStatus
+    public let errorKind: LiveMonitoringErrorEvidenceKind
+    public let errorCode: String
+    public let message: String
+    public let sourceAnchors: [String]
+    public let occurredAt: Date
+    public let recoveredAt: Date?
+    public let isReadModelOnly: Bool
+    public let isDeterministicEvidence: Bool
+    public let comesFromProductionRuntime: Bool
+    public let triggersIncidentCommand: Bool
+    public let triggersAutoRecovery: Bool
+    public let providesAlertingCommand: Bool
+    public let providesPagingCommand: Bool
+    public let providesReconnectCommand: Bool
+    public let providesStopControl: Bool
+    public let authorizesLiveTrading: Bool
+    public let authorizesTradingExecution: Bool
+    public let requiredValidationDependsOnNetwork: Bool
+
+    public var errorBoundaryHeld: Bool {
+        sourceAnchors == Self.requiredSourceAnchors(for: errorKind)
+            && scope == Self.requiredScope(for: errorKind)
+            && status == Self.requiredStatus(for: errorKind)
+            && errorCode == Self.requiredErrorCode(for: errorKind)
+            && message == Self.requiredMessage(for: errorKind)
+            && isReadModelOnly
+            && isDeterministicEvidence
+            && comesFromProductionRuntime == false
+            && triggersIncidentCommand == false
+            && triggersAutoRecovery == false
+            && providesAlertingCommand == false
+            && providesPagingCommand == false
+            && providesReconnectCommand == false
+            && providesStopControl == false
+            && authorizesLiveTrading == false
+            && authorizesTradingExecution == false
+            && requiredValidationDependsOnNetwork == false
+    }
+
+    public init(
+        errorID: Identifier,
+        issueID: Identifier = try! Identifier("MTP-71"),
+        errorKind: LiveMonitoringErrorEvidenceKind,
+        scope: LiveMonitoringEvidenceScope? = nil,
+        status: LiveMonitoringStatus? = nil,
+        errorCode: String? = nil,
+        message: String? = nil,
+        sourceAnchors: [String]? = nil,
+        occurredAt: Date = Date(timeIntervalSince1970: 7_101),
+        recoveredAt: Date? = nil,
+        isReadModelOnly: Bool = true,
+        isDeterministicEvidence: Bool = true,
+        comesFromProductionRuntime: Bool = false,
+        triggersIncidentCommand: Bool = false,
+        triggersAutoRecovery: Bool = false,
+        providesAlertingCommand: Bool = false,
+        providesPagingCommand: Bool = false,
+        providesReconnectCommand: Bool = false,
+        providesStopControl: Bool = false,
+        authorizesLiveTrading: Bool = false,
+        authorizesTradingExecution: Bool = false,
+        requiredValidationDependsOnNetwork: Bool = false
+    ) throws {
+        let requiredScope = Self.requiredScope(for: errorKind)
+        let requiredStatus = Self.requiredStatus(for: errorKind)
+        let requiredCode = Self.requiredErrorCode(for: errorKind)
+        let requiredMessage = Self.requiredMessage(for: errorKind)
+        let anchors = sourceAnchors ?? Self.requiredSourceAnchors(for: errorKind)
+
+        guard scope ?? requiredScope == requiredScope else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "scope",
+                expected: requiredScope.rawValue,
+                actual: (scope ?? requiredScope).rawValue
+            )
+        }
+        guard status ?? requiredStatus == requiredStatus else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "status",
+                expected: requiredStatus.rawValue,
+                actual: (status ?? requiredStatus).rawValue
+            )
+        }
+        guard errorCode ?? requiredCode == requiredCode else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "errorCode",
+                expected: requiredCode,
+                actual: errorCode ?? requiredCode
+            )
+        }
+        guard message ?? requiredMessage == requiredMessage else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "message",
+                expected: requiredMessage,
+                actual: message ?? requiredMessage
+            )
+        }
+        guard anchors == Self.requiredSourceAnchors(for: errorKind) else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "sourceAnchors",
+                expected: Self.requiredSourceAnchors(for: errorKind).joined(separator: ","),
+                actual: anchors.joined(separator: ",")
+            )
+        }
+        try Self.validateForbiddenFlags(
+            isReadModelOnly: isReadModelOnly,
+            isDeterministicEvidence: isDeterministicEvidence,
+            comesFromProductionRuntime: comesFromProductionRuntime,
+            triggersIncidentCommand: triggersIncidentCommand,
+            triggersAutoRecovery: triggersAutoRecovery,
+            providesAlertingCommand: providesAlertingCommand,
+            providesPagingCommand: providesPagingCommand,
+            providesReconnectCommand: providesReconnectCommand,
+            providesStopControl: providesStopControl,
+            authorizesLiveTrading: authorizesLiveTrading,
+            authorizesTradingExecution: authorizesTradingExecution,
+            requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork
+        )
+
+        self.errorID = errorID
+        self.issueID = issueID
+        self.scope = requiredScope
+        self.status = requiredStatus
+        self.errorKind = errorKind
+        self.errorCode = requiredCode
+        self.message = requiredMessage
+        self.sourceAnchors = anchors
+        self.occurredAt = occurredAt
+        self.recoveredAt = recoveredAt
+        self.isReadModelOnly = isReadModelOnly
+        self.isDeterministicEvidence = isDeterministicEvidence
+        self.comesFromProductionRuntime = comesFromProductionRuntime
+        self.triggersIncidentCommand = triggersIncidentCommand
+        self.triggersAutoRecovery = triggersAutoRecovery
+        self.providesAlertingCommand = providesAlertingCommand
+        self.providesPagingCommand = providesPagingCommand
+        self.providesReconnectCommand = providesReconnectCommand
+        self.providesStopControl = providesStopControl
+        self.authorizesLiveTrading = authorizesLiveTrading
+        self.authorizesTradingExecution = authorizesTradingExecution
+        self.requiredValidationDependsOnNetwork = requiredValidationDependsOnNetwork
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            errorID: try container.decode(Identifier.self, forKey: .errorID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            errorKind: try container.decode(LiveMonitoringErrorEvidenceKind.self, forKey: .errorKind),
+            scope: try container.decode(LiveMonitoringEvidenceScope.self, forKey: .scope),
+            status: try container.decode(LiveMonitoringStatus.self, forKey: .status),
+            errorCode: try container.decode(String.self, forKey: .errorCode),
+            message: try container.decode(String.self, forKey: .message),
+            sourceAnchors: try container.decode([String].self, forKey: .sourceAnchors),
+            occurredAt: try container.decode(Date.self, forKey: .occurredAt),
+            recoveredAt: try container.decodeIfPresent(Date.self, forKey: .recoveredAt),
+            isReadModelOnly: try container.decode(Bool.self, forKey: .isReadModelOnly),
+            isDeterministicEvidence: try container.decode(Bool.self, forKey: .isDeterministicEvidence),
+            comesFromProductionRuntime: try container.decode(Bool.self, forKey: .comesFromProductionRuntime),
+            triggersIncidentCommand: try container.decode(Bool.self, forKey: .triggersIncidentCommand),
+            triggersAutoRecovery: try container.decode(Bool.self, forKey: .triggersAutoRecovery),
+            providesAlertingCommand: try container.decode(Bool.self, forKey: .providesAlertingCommand),
+            providesPagingCommand: try container.decode(Bool.self, forKey: .providesPagingCommand),
+            providesReconnectCommand: try container.decode(Bool.self, forKey: .providesReconnectCommand),
+            providesStopControl: try container.decode(Bool.self, forKey: .providesStopControl),
+            authorizesLiveTrading: try container.decode(Bool.self, forKey: .authorizesLiveTrading),
+            authorizesTradingExecution: try container.decode(Bool.self, forKey: .authorizesTradingExecution),
+            requiredValidationDependsOnNetwork: try container.decode(
+                Bool.self,
+                forKey: .requiredValidationDependsOnNetwork
+            )
+        )
+    }
+
+    public static func requiredScope(for errorKind: LiveMonitoringErrorEvidenceKind) -> LiveMonitoringEvidenceScope {
+        switch errorKind {
+        case .publicMarketStreamDisconnected:
+            .publicMarketStream
+        case .privateUserDataBlocked:
+            .futurePrivateUserData
+        case .brokerSessionUnavailable:
+            .futureBrokerSession
+        }
+    }
+
+    public static func requiredStatus(for errorKind: LiveMonitoringErrorEvidenceKind) -> LiveMonitoringStatus {
+        switch errorKind {
+        case .publicMarketStreamDisconnected:
+            .disconnected
+        case .privateUserDataBlocked:
+            .blocked
+        case .brokerSessionUnavailable:
+            .unavailable
+        }
+    }
+
+    public static func requiredErrorCode(for errorKind: LiveMonitoringErrorEvidenceKind) -> String {
+        switch errorKind {
+        case .publicMarketStreamDisconnected:
+            "MTP71_PUBLIC_MARKET_STREAM_DISCONNECTED"
+        case .privateUserDataBlocked:
+            "MTP71_PRIVATE_USER_DATA_BLOCKED"
+        case .brokerSessionUnavailable:
+            "MTP71_BROKER_SESSION_UNAVAILABLE"
+        }
+    }
+
+    public static func requiredMessage(for errorKind: LiveMonitoringErrorEvidenceKind) -> String {
+        switch errorKind {
+        case .publicMarketStreamDisconnected:
+            "Public market stream is represented only as disconnected deterministic evidence."
+        case .privateUserDataBlocked:
+            "Private user data stream remains blocked by credential endpoint boundary."
+        case .brokerSessionUnavailable:
+            "Future broker session remains unavailable until a separate live execution project."
+        }
+    }
+
+    public static func requiredSourceAnchors(for errorKind: LiveMonitoringErrorEvidenceKind) -> [String] {
+        switch errorKind {
+        case .publicMarketStreamDisconnected:
+            [
+                "MTP-70-MARKET-STREAM-PUBLIC-READ-ONLY-EVIDENCE",
+                "MTP-71-ERROR-EVIDENCE-READ-MODEL"
+            ]
+        case .privateUserDataBlocked:
+            [
+                "MTP-62-CREDENTIAL-ENDPOINT-BOUNDARY",
+                "MTP-71-ERROR-EVIDENCE-READ-MODEL"
+            ]
+        case .brokerSessionUnavailable:
+            [
+                "MTP-63-ADAPTER-CAPABILITY-ISOLATION",
+                "MTP-71-ERROR-EVIDENCE-READ-MODEL"
+            ]
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        isReadModelOnly: Bool,
+        isDeterministicEvidence: Bool,
+        comesFromProductionRuntime: Bool,
+        triggersIncidentCommand: Bool,
+        triggersAutoRecovery: Bool,
+        providesAlertingCommand: Bool,
+        providesPagingCommand: Bool,
+        providesReconnectCommand: Bool,
+        providesStopControl: Bool,
+        authorizesLiveTrading: Bool,
+        authorizesTradingExecution: Bool,
+        requiredValidationDependsOnNetwork: Bool
+    ) throws {
+        guard isReadModelOnly else {
+            throw CoreError.liveMonitoringConsoleForbiddenCapability("isReadModelOnly")
+        }
+        guard isDeterministicEvidence else {
+            throw CoreError.liveMonitoringConsoleForbiddenCapability("isDeterministicEvidence")
+        }
+
+        let forbiddenFlags = [
+            ("comesFromProductionRuntime", comesFromProductionRuntime),
+            ("triggersIncidentCommand", triggersIncidentCommand),
+            ("triggersAutoRecovery", triggersAutoRecovery),
+            ("providesAlertingCommand", providesAlertingCommand),
+            ("providesPagingCommand", providesPagingCommand),
+            ("providesReconnectCommand", providesReconnectCommand),
+            ("providesStopControl", providesStopControl),
+            ("authorizesLiveTrading", authorizesLiveTrading),
+            ("authorizesTradingExecution", authorizesTradingExecution),
+            ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveMonitoringConsoleForbiddenCapability(capability.0)
+        }
+    }
+}
+
+/// LiveMonitoringDegradedStateEvidenceItem 是 MTP-71 的 degraded / unavailable state 证据。
+///
+/// 该类型把 latency 和 error evidence 串成只读状态摘要。它不授权 risk bypass，不触发 stop
+/// control、incident command、自动恢复或真实订单继续执行。
+public struct LiveMonitoringDegradedStateEvidenceItem: Codable, Equatable, Sendable {
+    public let stateID: Identifier
+    public let issueID: Identifier
+    public let scope: LiveMonitoringEvidenceScope
+    public let status: LiveMonitoringStatus
+    public let reason: String
+    public let sourceAnchors: [String]
+    public let contributingLatencyEvidenceIDs: [Identifier]
+    public let contributingErrorEvidenceIDs: [Identifier]
+    public let observedAt: Date
+    public let recoveredAt: Date?
+    public let isReadModelOnly: Bool
+    public let isDeterministicEvidence: Bool
+    public let bypassesRiskGate: Bool
+    public let continuesRealOrders: Bool
+    public let triggersIncidentCommand: Bool
+    public let triggersAutoRecovery: Bool
+    public let providesStopControl: Bool
+    public let providesLiveRiskControl: Bool
+    public let authorizesLiveTrading: Bool
+    public let authorizesTradingExecution: Bool
+
+    public var degradedStateBoundaryHeld: Bool {
+        sourceAnchors == Self.requiredSourceAnchors(for: scope)
+            && status == Self.requiredStatus(for: scope)
+            && reason == Self.requiredReason(for: scope)
+            && contributingLatencyEvidenceIDs == Self.requiredLatencyEvidenceIDs(for: scope)
+            && contributingErrorEvidenceIDs == Self.requiredErrorEvidenceIDs(for: scope)
+            && isReadModelOnly
+            && isDeterministicEvidence
+            && bypassesRiskGate == false
+            && continuesRealOrders == false
+            && triggersIncidentCommand == false
+            && triggersAutoRecovery == false
+            && providesStopControl == false
+            && providesLiveRiskControl == false
+            && authorizesLiveTrading == false
+            && authorizesTradingExecution == false
+    }
+
+    public init(
+        stateID: Identifier,
+        issueID: Identifier = try! Identifier("MTP-71"),
+        scope: LiveMonitoringEvidenceScope,
+        status: LiveMonitoringStatus? = nil,
+        reason: String? = nil,
+        sourceAnchors: [String]? = nil,
+        contributingLatencyEvidenceIDs: [Identifier]? = nil,
+        contributingErrorEvidenceIDs: [Identifier]? = nil,
+        observedAt: Date = Date(timeIntervalSince1970: 7_102),
+        recoveredAt: Date? = nil,
+        isReadModelOnly: Bool = true,
+        isDeterministicEvidence: Bool = true,
+        bypassesRiskGate: Bool = false,
+        continuesRealOrders: Bool = false,
+        triggersIncidentCommand: Bool = false,
+        triggersAutoRecovery: Bool = false,
+        providesStopControl: Bool = false,
+        providesLiveRiskControl: Bool = false,
+        authorizesLiveTrading: Bool = false,
+        authorizesTradingExecution: Bool = false
+    ) throws {
+        let requiredStatus = Self.requiredStatus(for: scope)
+        let requiredReason = Self.requiredReason(for: scope)
+        let anchors = sourceAnchors ?? Self.requiredSourceAnchors(for: scope)
+        let latencyIDs = contributingLatencyEvidenceIDs ?? Self.requiredLatencyEvidenceIDs(for: scope)
+        let errorIDs = contributingErrorEvidenceIDs ?? Self.requiredErrorEvidenceIDs(for: scope)
+
+        guard status ?? requiredStatus == requiredStatus else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "status",
+                expected: requiredStatus.rawValue,
+                actual: (status ?? requiredStatus).rawValue
+            )
+        }
+        guard reason ?? requiredReason == requiredReason else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "reason",
+                expected: requiredReason,
+                actual: reason ?? requiredReason
+            )
+        }
+        guard anchors == Self.requiredSourceAnchors(for: scope) else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "sourceAnchors",
+                expected: Self.requiredSourceAnchors(for: scope).joined(separator: ","),
+                actual: anchors.joined(separator: ",")
+            )
+        }
+        guard latencyIDs == Self.requiredLatencyEvidenceIDs(for: scope) else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "contributingLatencyEvidenceIDs",
+                expected: Self.requiredLatencyEvidenceIDs(for: scope).map(\.rawValue).joined(separator: ","),
+                actual: latencyIDs.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard errorIDs == Self.requiredErrorEvidenceIDs(for: scope) else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "contributingErrorEvidenceIDs",
+                expected: Self.requiredErrorEvidenceIDs(for: scope).map(\.rawValue).joined(separator: ","),
+                actual: errorIDs.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        try Self.validateForbiddenFlags(
+            isReadModelOnly: isReadModelOnly,
+            isDeterministicEvidence: isDeterministicEvidence,
+            bypassesRiskGate: bypassesRiskGate,
+            continuesRealOrders: continuesRealOrders,
+            triggersIncidentCommand: triggersIncidentCommand,
+            triggersAutoRecovery: triggersAutoRecovery,
+            providesStopControl: providesStopControl,
+            providesLiveRiskControl: providesLiveRiskControl,
+            authorizesLiveTrading: authorizesLiveTrading,
+            authorizesTradingExecution: authorizesTradingExecution
+        )
+
+        self.stateID = stateID
+        self.issueID = issueID
+        self.scope = scope
+        self.status = requiredStatus
+        self.reason = requiredReason
+        self.sourceAnchors = anchors
+        self.contributingLatencyEvidenceIDs = latencyIDs
+        self.contributingErrorEvidenceIDs = errorIDs
+        self.observedAt = observedAt
+        self.recoveredAt = recoveredAt
+        self.isReadModelOnly = isReadModelOnly
+        self.isDeterministicEvidence = isDeterministicEvidence
+        self.bypassesRiskGate = bypassesRiskGate
+        self.continuesRealOrders = continuesRealOrders
+        self.triggersIncidentCommand = triggersIncidentCommand
+        self.triggersAutoRecovery = triggersAutoRecovery
+        self.providesStopControl = providesStopControl
+        self.providesLiveRiskControl = providesLiveRiskControl
+        self.authorizesLiveTrading = authorizesLiveTrading
+        self.authorizesTradingExecution = authorizesTradingExecution
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            stateID: try container.decode(Identifier.self, forKey: .stateID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            scope: try container.decode(LiveMonitoringEvidenceScope.self, forKey: .scope),
+            status: try container.decode(LiveMonitoringStatus.self, forKey: .status),
+            reason: try container.decode(String.self, forKey: .reason),
+            sourceAnchors: try container.decode([String].self, forKey: .sourceAnchors),
+            contributingLatencyEvidenceIDs: try container.decode(
+                [Identifier].self,
+                forKey: .contributingLatencyEvidenceIDs
+            ),
+            contributingErrorEvidenceIDs: try container.decode(
+                [Identifier].self,
+                forKey: .contributingErrorEvidenceIDs
+            ),
+            observedAt: try container.decode(Date.self, forKey: .observedAt),
+            recoveredAt: try container.decodeIfPresent(Date.self, forKey: .recoveredAt),
+            isReadModelOnly: try container.decode(Bool.self, forKey: .isReadModelOnly),
+            isDeterministicEvidence: try container.decode(Bool.self, forKey: .isDeterministicEvidence),
+            bypassesRiskGate: try container.decode(Bool.self, forKey: .bypassesRiskGate),
+            continuesRealOrders: try container.decode(Bool.self, forKey: .continuesRealOrders),
+            triggersIncidentCommand: try container.decode(Bool.self, forKey: .triggersIncidentCommand),
+            triggersAutoRecovery: try container.decode(Bool.self, forKey: .triggersAutoRecovery),
+            providesStopControl: try container.decode(Bool.self, forKey: .providesStopControl),
+            providesLiveRiskControl: try container.decode(Bool.self, forKey: .providesLiveRiskControl),
+            authorizesLiveTrading: try container.decode(Bool.self, forKey: .authorizesLiveTrading),
+            authorizesTradingExecution: try container.decode(Bool.self, forKey: .authorizesTradingExecution)
+        )
+    }
+
+    public static func requiredStatus(for scope: LiveMonitoringEvidenceScope) -> LiveMonitoringStatus {
+        switch scope {
+        case .publicMarketStream:
+            .degraded
+        case .futureBrokerSession:
+            .unavailable
+        case .runtimeHealth, .simulatedOrderStream, .futurePrivateUserData:
+            .blocked
+        }
+    }
+
+    public static func requiredReason(for scope: LiveMonitoringEvidenceScope) -> String {
+        switch scope {
+        case .publicMarketStream:
+            "Public market stream is degraded by stale latency and disconnected stream evidence."
+        case .futureBrokerSession:
+            "Future broker session is unavailable and cannot provide live monitoring evidence."
+        case .runtimeHealth:
+            "Runtime health remains blocked by read-model-only boundary."
+        case .simulatedOrderStream:
+            "Simulated order stream remains paper-only evidence."
+        case .futurePrivateUserData:
+            "Private user data stream remains blocked by credential endpoint boundary."
+        }
+    }
+
+    public static func requiredSourceAnchors(for scope: LiveMonitoringEvidenceScope) -> [String] {
+        switch scope {
+        case .publicMarketStream:
+            [
+                "MTP-70-MARKET-STREAM-PUBLIC-READ-ONLY-EVIDENCE",
+                "MTP-71-DEGRADED-STATE-READ-MODEL"
+            ]
+        case .futureBrokerSession:
+            [
+                "MTP-63-ADAPTER-CAPABILITY-ISOLATION",
+                "MTP-71-DEGRADED-STATE-READ-MODEL"
+            ]
+        case .runtimeHealth:
+            [
+                "MTP-69-LIVE-RUNTIME-HEALTH-READ-MODEL",
+                "MTP-71-DEGRADED-STATE-READ-MODEL"
+            ]
+        case .simulatedOrderStream:
+            [
+                "TVM-PAPER-EXECUTION-WORKFLOW",
+                "MTP-71-DEGRADED-STATE-READ-MODEL"
+            ]
+        case .futurePrivateUserData:
+            [
+                "MTP-62-CREDENTIAL-ENDPOINT-BOUNDARY",
+                "MTP-71-DEGRADED-STATE-READ-MODEL"
+            ]
+        }
+    }
+
+    public static func requiredLatencyEvidenceIDs(for scope: LiveMonitoringEvidenceScope) -> [Identifier] {
+        switch scope {
+        case .publicMarketStream:
+            [try! Identifier("mtp-71-public-market-stream-latency-degraded")]
+        case .futureBrokerSession:
+            [try! Identifier("mtp-71-broker-session-latency-unavailable")]
+        case .runtimeHealth:
+            [try! Identifier("mtp-71-runtime-health-latency-stale")]
+        case .simulatedOrderStream:
+            [try! Identifier("mtp-71-simulated-order-stream-latency-nominal")]
+        case .futurePrivateUserData:
+            [try! Identifier("mtp-71-private-user-data-latency-unavailable")]
+        }
+    }
+
+    public static func requiredErrorEvidenceIDs(for scope: LiveMonitoringEvidenceScope) -> [Identifier] {
+        switch scope {
+        case .publicMarketStream:
+            [try! Identifier("mtp-71-public-market-stream-error-disconnected")]
+        case .futureBrokerSession:
+            [try! Identifier("mtp-71-broker-session-error-unavailable")]
+        case .futurePrivateUserData:
+            [try! Identifier("mtp-71-private-user-data-error-blocked")]
+        case .runtimeHealth, .simulatedOrderStream:
+            []
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        isReadModelOnly: Bool,
+        isDeterministicEvidence: Bool,
+        bypassesRiskGate: Bool,
+        continuesRealOrders: Bool,
+        triggersIncidentCommand: Bool,
+        triggersAutoRecovery: Bool,
+        providesStopControl: Bool,
+        providesLiveRiskControl: Bool,
+        authorizesLiveTrading: Bool,
+        authorizesTradingExecution: Bool
+    ) throws {
+        guard isReadModelOnly else {
+            throw CoreError.liveMonitoringConsoleForbiddenCapability("isReadModelOnly")
+        }
+        guard isDeterministicEvidence else {
+            throw CoreError.liveMonitoringConsoleForbiddenCapability("isDeterministicEvidence")
+        }
+
+        let forbiddenFlags = [
+            ("bypassesRiskGate", bypassesRiskGate),
+            ("continuesRealOrders", continuesRealOrders),
+            ("triggersIncidentCommand", triggersIncidentCommand),
+            ("triggersAutoRecovery", triggersAutoRecovery),
+            ("providesStopControl", providesStopControl),
+            ("providesLiveRiskControl", providesLiveRiskControl),
+            ("authorizesLiveTrading", authorizesLiveTrading),
+            ("authorizesTradingExecution", authorizesTradingExecution)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveMonitoringConsoleForbiddenCapability(capability.0)
+        }
+    }
+}
+
+/// LiveLatencyErrorDegradedMonitoringEvidenceReadModel 汇总 MTP-71 的 latency、error 和 degraded evidence。
+///
+/// 该 read model 以上一层 MTP-70 stream evidence 为输入，输出后续 Report / Dashboard 可消费的
+/// 只读证据数组。它不实现 production telemetry、runtime monitoring、external metrics service、
+/// alerting / paging、reconnect / stop control、live risk control 或任何真实交易能力。
+public struct LiveLatencyErrorDegradedMonitoringEvidenceReadModel: Codable, Equatable, Sendable {
+    public let readModelID: Identifier
+    public let issueID: Identifier
+    public let streamEvidence: LiveStreamMonitoringEvidenceReadModel
+    public let sourceAnchors: [String]
+    public let latencyEvidence: [LiveMonitoringLatencyEvidenceItem]
+    public let errorEvidence: [LiveMonitoringErrorEvidenceItem]
+    public let degradedStateEvidence: [LiveMonitoringDegradedStateEvidenceItem]
+    public let updatedAt: Date
+    public let isReadModelOnly: Bool
+    public let isDeterministicEvidence: Bool
+    public let providesCommandSurface: Bool
+    public let usesProductionTelemetry: Bool
+    public let usesExternalMetricsService: Bool
+    public let startsRuntimeMonitor: Bool
+    public let pollsProductionRuntime: Bool
+    public let opensNetworkConnection: Bool
+    public let callsSignedEndpoint: Bool
+    public let callsAccountEndpoint: Bool
+    public let createsListenKey: Bool
+    public let readsAPIKey: Bool
+    public let readsSecret: Bool
+    public let readsAccountPayload: Bool
+    public let instantiatesBrokerAdapter: Bool
+    public let exposesAdapterSurface: Bool
+    public let exposesRuntimeObject: Bool
+    public let exposesSQLiteSchema: Bool
+    public let exposesDuckDBSchema: Bool
+    public let providesAlertingCommand: Bool
+    public let providesPagingCommand: Bool
+    public let providesReconnectCommand: Bool
+    public let providesStopControl: Bool
+    public let providesLiveRiskControl: Bool
+    public let triggersIncidentCommand: Bool
+    public let triggersAutoRecovery: Bool
+    public let authorizesLiveTrading: Bool
+    public let authorizesTradingExecution: Bool
+    public let requiredValidationDependsOnNetwork: Bool
+
+    public var latencyBuckets: [LiveMonitoringLatencyBucket] {
+        latencyEvidence.map(\.bucket)
+    }
+
+    public var errorCodes: [String] {
+        errorEvidence.map(\.errorCode)
+    }
+
+    public var degradedStateStatuses: [LiveMonitoringStatus] {
+        degradedStateEvidence.map(\.status)
+    }
+
+    public var latencyEvidenceBoundaryHeld: Bool {
+        latencyEvidence == Self.requiredLatencyEvidence
+            && latencyEvidence.allSatisfy(\.latencyBoundaryHeld)
+    }
+
+    public var errorEvidenceBoundaryHeld: Bool {
+        errorEvidence == Self.requiredErrorEvidence
+            && errorEvidence.allSatisfy(\.errorBoundaryHeld)
+    }
+
+    public var degradedStateBoundaryHeld: Bool {
+        degradedStateEvidence == Self.requiredDegradedStateEvidence
+            && degradedStateEvidence.allSatisfy(\.degradedStateBoundaryHeld)
+    }
+
+    public var readModelOnlyBoundaryHeld: Bool {
+        sourceAnchors == Self.requiredSourceAnchors
+            && streamEvidence == .deterministicFixture
+            && streamEvidence.readModelOnlyBoundaryHeld
+            && latencyEvidenceBoundaryHeld
+            && errorEvidenceBoundaryHeld
+            && degradedStateBoundaryHeld
+            && isReadModelOnly
+            && isDeterministicEvidence
+            && providesCommandSurface == false
+            && usesProductionTelemetry == false
+            && usesExternalMetricsService == false
+            && startsRuntimeMonitor == false
+            && pollsProductionRuntime == false
+            && opensNetworkConnection == false
+            && callsSignedEndpoint == false
+            && callsAccountEndpoint == false
+            && createsListenKey == false
+            && readsAPIKey == false
+            && readsSecret == false
+            && readsAccountPayload == false
+            && instantiatesBrokerAdapter == false
+            && exposesAdapterSurface == false
+            && exposesRuntimeObject == false
+            && exposesSQLiteSchema == false
+            && exposesDuckDBSchema == false
+            && providesAlertingCommand == false
+            && providesPagingCommand == false
+            && providesReconnectCommand == false
+            && providesStopControl == false
+            && providesLiveRiskControl == false
+            && triggersIncidentCommand == false
+            && triggersAutoRecovery == false
+            && authorizesLiveTrading == false
+            && authorizesTradingExecution == false
+            && requiredValidationDependsOnNetwork == false
+    }
+
+    public init(
+        readModelID: Identifier = try! Identifier("mtp-71-live-latency-error-degraded-evidence"),
+        issueID: Identifier = try! Identifier("MTP-71"),
+        streamEvidence: LiveStreamMonitoringEvidenceReadModel = .deterministicFixture,
+        sourceAnchors: [String] = Self.requiredSourceAnchors,
+        latencyEvidence: [LiveMonitoringLatencyEvidenceItem] = Self.requiredLatencyEvidence,
+        errorEvidence: [LiveMonitoringErrorEvidenceItem] = Self.requiredErrorEvidence,
+        degradedStateEvidence: [LiveMonitoringDegradedStateEvidenceItem] = Self.requiredDegradedStateEvidence,
+        updatedAt: Date = Date(timeIntervalSince1970: 7_103),
+        isReadModelOnly: Bool = true,
+        isDeterministicEvidence: Bool = true,
+        providesCommandSurface: Bool = false,
+        usesProductionTelemetry: Bool = false,
+        usesExternalMetricsService: Bool = false,
+        startsRuntimeMonitor: Bool = false,
+        pollsProductionRuntime: Bool = false,
+        opensNetworkConnection: Bool = false,
+        callsSignedEndpoint: Bool = false,
+        callsAccountEndpoint: Bool = false,
+        createsListenKey: Bool = false,
+        readsAPIKey: Bool = false,
+        readsSecret: Bool = false,
+        readsAccountPayload: Bool = false,
+        instantiatesBrokerAdapter: Bool = false,
+        exposesAdapterSurface: Bool = false,
+        exposesRuntimeObject: Bool = false,
+        exposesSQLiteSchema: Bool = false,
+        exposesDuckDBSchema: Bool = false,
+        providesAlertingCommand: Bool = false,
+        providesPagingCommand: Bool = false,
+        providesReconnectCommand: Bool = false,
+        providesStopControl: Bool = false,
+        providesLiveRiskControl: Bool = false,
+        triggersIncidentCommand: Bool = false,
+        triggersAutoRecovery: Bool = false,
+        authorizesLiveTrading: Bool = false,
+        authorizesTradingExecution: Bool = false,
+        requiredValidationDependsOnNetwork: Bool = false
+    ) throws {
+        guard streamEvidence == .deterministicFixture else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "streamEvidence",
+                expected: LiveStreamMonitoringEvidenceReadModel.deterministicFixture.readModelID.rawValue,
+                actual: streamEvidence.readModelID.rawValue
+            )
+        }
+        guard sourceAnchors == Self.requiredSourceAnchors else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "sourceAnchors",
+                expected: Self.requiredSourceAnchors.joined(separator: ","),
+                actual: sourceAnchors.joined(separator: ",")
+            )
+        }
+        try Self.validate(latencyEvidence: latencyEvidence)
+        try Self.validate(errorEvidence: errorEvidence)
+        try Self.validate(degradedStateEvidence: degradedStateEvidence)
+        try Self.validateForbiddenFlags(
+            isReadModelOnly: isReadModelOnly,
+            isDeterministicEvidence: isDeterministicEvidence,
+            providesCommandSurface: providesCommandSurface,
+            usesProductionTelemetry: usesProductionTelemetry,
+            usesExternalMetricsService: usesExternalMetricsService,
+            startsRuntimeMonitor: startsRuntimeMonitor,
+            pollsProductionRuntime: pollsProductionRuntime,
+            opensNetworkConnection: opensNetworkConnection,
+            callsSignedEndpoint: callsSignedEndpoint,
+            callsAccountEndpoint: callsAccountEndpoint,
+            createsListenKey: createsListenKey,
+            readsAPIKey: readsAPIKey,
+            readsSecret: readsSecret,
+            readsAccountPayload: readsAccountPayload,
+            instantiatesBrokerAdapter: instantiatesBrokerAdapter,
+            exposesAdapterSurface: exposesAdapterSurface,
+            exposesRuntimeObject: exposesRuntimeObject,
+            exposesSQLiteSchema: exposesSQLiteSchema,
+            exposesDuckDBSchema: exposesDuckDBSchema,
+            providesAlertingCommand: providesAlertingCommand,
+            providesPagingCommand: providesPagingCommand,
+            providesReconnectCommand: providesReconnectCommand,
+            providesStopControl: providesStopControl,
+            providesLiveRiskControl: providesLiveRiskControl,
+            triggersIncidentCommand: triggersIncidentCommand,
+            triggersAutoRecovery: triggersAutoRecovery,
+            authorizesLiveTrading: authorizesLiveTrading,
+            authorizesTradingExecution: authorizesTradingExecution,
+            requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork
+        )
+
+        self.readModelID = readModelID
+        self.issueID = issueID
+        self.streamEvidence = streamEvidence
+        self.sourceAnchors = sourceAnchors
+        self.latencyEvidence = latencyEvidence
+        self.errorEvidence = errorEvidence
+        self.degradedStateEvidence = degradedStateEvidence
+        self.updatedAt = updatedAt
+        self.isReadModelOnly = isReadModelOnly
+        self.isDeterministicEvidence = isDeterministicEvidence
+        self.providesCommandSurface = providesCommandSurface
+        self.usesProductionTelemetry = usesProductionTelemetry
+        self.usesExternalMetricsService = usesExternalMetricsService
+        self.startsRuntimeMonitor = startsRuntimeMonitor
+        self.pollsProductionRuntime = pollsProductionRuntime
+        self.opensNetworkConnection = opensNetworkConnection
+        self.callsSignedEndpoint = callsSignedEndpoint
+        self.callsAccountEndpoint = callsAccountEndpoint
+        self.createsListenKey = createsListenKey
+        self.readsAPIKey = readsAPIKey
+        self.readsSecret = readsSecret
+        self.readsAccountPayload = readsAccountPayload
+        self.instantiatesBrokerAdapter = instantiatesBrokerAdapter
+        self.exposesAdapterSurface = exposesAdapterSurface
+        self.exposesRuntimeObject = exposesRuntimeObject
+        self.exposesSQLiteSchema = exposesSQLiteSchema
+        self.exposesDuckDBSchema = exposesDuckDBSchema
+        self.providesAlertingCommand = providesAlertingCommand
+        self.providesPagingCommand = providesPagingCommand
+        self.providesReconnectCommand = providesReconnectCommand
+        self.providesStopControl = providesStopControl
+        self.providesLiveRiskControl = providesLiveRiskControl
+        self.triggersIncidentCommand = triggersIncidentCommand
+        self.triggersAutoRecovery = triggersAutoRecovery
+        self.authorizesLiveTrading = authorizesLiveTrading
+        self.authorizesTradingExecution = authorizesTradingExecution
+        self.requiredValidationDependsOnNetwork = requiredValidationDependsOnNetwork
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            readModelID: try container.decode(Identifier.self, forKey: .readModelID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            streamEvidence: try container.decode(LiveStreamMonitoringEvidenceReadModel.self, forKey: .streamEvidence),
+            sourceAnchors: try container.decode([String].self, forKey: .sourceAnchors),
+            latencyEvidence: try container.decode(
+                [LiveMonitoringLatencyEvidenceItem].self,
+                forKey: .latencyEvidence
+            ),
+            errorEvidence: try container.decode([LiveMonitoringErrorEvidenceItem].self, forKey: .errorEvidence),
+            degradedStateEvidence: try container.decode(
+                [LiveMonitoringDegradedStateEvidenceItem].self,
+                forKey: .degradedStateEvidence
+            ),
+            updatedAt: try container.decode(Date.self, forKey: .updatedAt),
+            isReadModelOnly: try container.decode(Bool.self, forKey: .isReadModelOnly),
+            isDeterministicEvidence: try container.decode(Bool.self, forKey: .isDeterministicEvidence),
+            providesCommandSurface: try container.decode(Bool.self, forKey: .providesCommandSurface),
+            usesProductionTelemetry: try container.decode(Bool.self, forKey: .usesProductionTelemetry),
+            usesExternalMetricsService: try container.decode(Bool.self, forKey: .usesExternalMetricsService),
+            startsRuntimeMonitor: try container.decode(Bool.self, forKey: .startsRuntimeMonitor),
+            pollsProductionRuntime: try container.decode(Bool.self, forKey: .pollsProductionRuntime),
+            opensNetworkConnection: try container.decode(Bool.self, forKey: .opensNetworkConnection),
+            callsSignedEndpoint: try container.decode(Bool.self, forKey: .callsSignedEndpoint),
+            callsAccountEndpoint: try container.decode(Bool.self, forKey: .callsAccountEndpoint),
+            createsListenKey: try container.decode(Bool.self, forKey: .createsListenKey),
+            readsAPIKey: try container.decode(Bool.self, forKey: .readsAPIKey),
+            readsSecret: try container.decode(Bool.self, forKey: .readsSecret),
+            readsAccountPayload: try container.decode(Bool.self, forKey: .readsAccountPayload),
+            instantiatesBrokerAdapter: try container.decode(Bool.self, forKey: .instantiatesBrokerAdapter),
+            exposesAdapterSurface: try container.decode(Bool.self, forKey: .exposesAdapterSurface),
+            exposesRuntimeObject: try container.decode(Bool.self, forKey: .exposesRuntimeObject),
+            exposesSQLiteSchema: try container.decode(Bool.self, forKey: .exposesSQLiteSchema),
+            exposesDuckDBSchema: try container.decode(Bool.self, forKey: .exposesDuckDBSchema),
+            providesAlertingCommand: try container.decode(Bool.self, forKey: .providesAlertingCommand),
+            providesPagingCommand: try container.decode(Bool.self, forKey: .providesPagingCommand),
+            providesReconnectCommand: try container.decode(Bool.self, forKey: .providesReconnectCommand),
+            providesStopControl: try container.decode(Bool.self, forKey: .providesStopControl),
+            providesLiveRiskControl: try container.decode(Bool.self, forKey: .providesLiveRiskControl),
+            triggersIncidentCommand: try container.decode(Bool.self, forKey: .triggersIncidentCommand),
+            triggersAutoRecovery: try container.decode(Bool.self, forKey: .triggersAutoRecovery),
+            authorizesLiveTrading: try container.decode(Bool.self, forKey: .authorizesLiveTrading),
+            authorizesTradingExecution: try container.decode(Bool.self, forKey: .authorizesTradingExecution),
+            requiredValidationDependsOnNetwork: try container.decode(
+                Bool.self,
+                forKey: .requiredValidationDependsOnNetwork
+            )
+        )
+    }
+
+    public static let requiredSourceAnchors: [String] = [
+        "MTP-68-LIVE-MONITORING-CONSOLE-IA",
+        "MTP-69-LIVE-RUNTIME-HEALTH-READ-MODEL",
+        "MTP-70-MARKET-STREAM-ORDER-STREAM-READ-MODEL",
+        "MTP-71-LATENCY-ERROR-DEGRADED-READ-MODEL"
+    ]
+
+    public static let requiredLatencyEvidence: [LiveMonitoringLatencyEvidenceItem] = [
+        Self.makeLatencyEvidence(
+            "mtp-71-runtime-health-latency-stale",
+            scope: .runtimeHealth
+        ),
+        Self.makeLatencyEvidence(
+            "mtp-71-public-market-stream-latency-degraded",
+            scope: .publicMarketStream
+        ),
+        Self.makeLatencyEvidence(
+            "mtp-71-simulated-order-stream-latency-nominal",
+            scope: .simulatedOrderStream
+        ),
+        Self.makeLatencyEvidence(
+            "mtp-71-private-user-data-latency-unavailable",
+            scope: .futurePrivateUserData
+        ),
+        Self.makeLatencyEvidence(
+            "mtp-71-broker-session-latency-unavailable",
+            scope: .futureBrokerSession
+        )
+    ]
+
+    public static let requiredErrorEvidence: [LiveMonitoringErrorEvidenceItem] = [
+        Self.makeErrorEvidence(
+            "mtp-71-public-market-stream-error-disconnected",
+            kind: .publicMarketStreamDisconnected
+        ),
+        Self.makeErrorEvidence(
+            "mtp-71-private-user-data-error-blocked",
+            kind: .privateUserDataBlocked
+        ),
+        Self.makeErrorEvidence(
+            "mtp-71-broker-session-error-unavailable",
+            kind: .brokerSessionUnavailable
+        )
+    ]
+
+    public static let requiredDegradedStateEvidence: [LiveMonitoringDegradedStateEvidenceItem] = [
+        Self.makeDegradedStateEvidence(
+            "mtp-71-public-market-stream-degraded",
+            scope: .publicMarketStream
+        ),
+        Self.makeDegradedStateEvidence(
+            "mtp-71-broker-session-unavailable",
+            scope: .futureBrokerSession
+        )
+    ]
+
+    public static let deterministicFixture: LiveLatencyErrorDegradedMonitoringEvidenceReadModel = {
+        do {
+            return try LiveLatencyErrorDegradedMonitoringEvidenceReadModel()
+        } catch {
+            preconditionFailure("MTP-71 latency/error/degraded fixture must be valid: \(error)")
+        }
+    }()
+
+    private static func makeLatencyEvidence(
+        _ latencyID: String,
+        scope: LiveMonitoringEvidenceScope
+    ) -> LiveMonitoringLatencyEvidenceItem {
+        do {
+            return try LiveMonitoringLatencyEvidenceItem(
+                latencyID: try Identifier(latencyID),
+                scope: scope
+            )
+        } catch {
+            preconditionFailure("MTP-71 latency evidence fixture must be valid: \(error)")
+        }
+    }
+
+    private static func makeErrorEvidence(
+        _ errorID: String,
+        kind: LiveMonitoringErrorEvidenceKind
+    ) -> LiveMonitoringErrorEvidenceItem {
+        do {
+            return try LiveMonitoringErrorEvidenceItem(
+                errorID: try Identifier(errorID),
+                errorKind: kind
+            )
+        } catch {
+            preconditionFailure("MTP-71 error evidence fixture must be valid: \(error)")
+        }
+    }
+
+    private static func makeDegradedStateEvidence(
+        _ stateID: String,
+        scope: LiveMonitoringEvidenceScope
+    ) -> LiveMonitoringDegradedStateEvidenceItem {
+        do {
+            return try LiveMonitoringDegradedStateEvidenceItem(
+                stateID: try Identifier(stateID),
+                scope: scope
+            )
+        } catch {
+            preconditionFailure("MTP-71 degraded state fixture must be valid: \(error)")
+        }
+    }
+
+    private static func validate(latencyEvidence: [LiveMonitoringLatencyEvidenceItem]) throws {
+        guard latencyEvidence == Self.requiredLatencyEvidence else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "latencyEvidence",
+                expected: Self.requiredLatencyEvidence.map(\.scope.rawValue).joined(separator: ","),
+                actual: latencyEvidence.map(\.scope.rawValue).joined(separator: ",")
+            )
+        }
+        guard latencyEvidence.allSatisfy(\.latencyBoundaryHeld) else {
+            throw CoreError.liveMonitoringConsoleForbiddenCapability("latencyEvidence")
+        }
+    }
+
+    private static func validate(errorEvidence: [LiveMonitoringErrorEvidenceItem]) throws {
+        guard errorEvidence == Self.requiredErrorEvidence else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "errorEvidence",
+                expected: Self.requiredErrorEvidence.map(\.errorKind.rawValue).joined(separator: ","),
+                actual: errorEvidence.map(\.errorKind.rawValue).joined(separator: ",")
+            )
+        }
+        guard errorEvidence.allSatisfy(\.errorBoundaryHeld) else {
+            throw CoreError.liveMonitoringConsoleForbiddenCapability("errorEvidence")
+        }
+    }
+
+    private static func validate(degradedStateEvidence: [LiveMonitoringDegradedStateEvidenceItem]) throws {
+        guard degradedStateEvidence == Self.requiredDegradedStateEvidence else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "degradedStateEvidence",
+                expected: Self.requiredDegradedStateEvidence.map(\.scope.rawValue).joined(separator: ","),
+                actual: degradedStateEvidence.map(\.scope.rawValue).joined(separator: ",")
+            )
+        }
+        guard degradedStateEvidence.allSatisfy(\.degradedStateBoundaryHeld) else {
+            throw CoreError.liveMonitoringConsoleForbiddenCapability("degradedStateEvidence")
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        isReadModelOnly: Bool,
+        isDeterministicEvidence: Bool,
+        providesCommandSurface: Bool,
+        usesProductionTelemetry: Bool,
+        usesExternalMetricsService: Bool,
+        startsRuntimeMonitor: Bool,
+        pollsProductionRuntime: Bool,
+        opensNetworkConnection: Bool,
+        callsSignedEndpoint: Bool,
+        callsAccountEndpoint: Bool,
+        createsListenKey: Bool,
+        readsAPIKey: Bool,
+        readsSecret: Bool,
+        readsAccountPayload: Bool,
+        instantiatesBrokerAdapter: Bool,
+        exposesAdapterSurface: Bool,
+        exposesRuntimeObject: Bool,
+        exposesSQLiteSchema: Bool,
+        exposesDuckDBSchema: Bool,
+        providesAlertingCommand: Bool,
+        providesPagingCommand: Bool,
+        providesReconnectCommand: Bool,
+        providesStopControl: Bool,
+        providesLiveRiskControl: Bool,
+        triggersIncidentCommand: Bool,
+        triggersAutoRecovery: Bool,
+        authorizesLiveTrading: Bool,
+        authorizesTradingExecution: Bool,
+        requiredValidationDependsOnNetwork: Bool
+    ) throws {
+        guard isReadModelOnly else {
+            throw CoreError.liveMonitoringConsoleForbiddenCapability("isReadModelOnly")
+        }
+        guard isDeterministicEvidence else {
+            throw CoreError.liveMonitoringConsoleForbiddenCapability("isDeterministicEvidence")
+        }
+
+        let forbiddenFlags = [
+            ("providesCommandSurface", providesCommandSurface),
+            ("usesProductionTelemetry", usesProductionTelemetry),
+            ("usesExternalMetricsService", usesExternalMetricsService),
+            ("startsRuntimeMonitor", startsRuntimeMonitor),
+            ("pollsProductionRuntime", pollsProductionRuntime),
+            ("opensNetworkConnection", opensNetworkConnection),
+            ("callsSignedEndpoint", callsSignedEndpoint),
+            ("callsAccountEndpoint", callsAccountEndpoint),
+            ("createsListenKey", createsListenKey),
+            ("readsAPIKey", readsAPIKey),
+            ("readsSecret", readsSecret),
+            ("readsAccountPayload", readsAccountPayload),
+            ("instantiatesBrokerAdapter", instantiatesBrokerAdapter),
+            ("exposesAdapterSurface", exposesAdapterSurface),
+            ("exposesRuntimeObject", exposesRuntimeObject),
+            ("exposesSQLiteSchema", exposesSQLiteSchema),
+            ("exposesDuckDBSchema", exposesDuckDBSchema),
+            ("providesAlertingCommand", providesAlertingCommand),
+            ("providesPagingCommand", providesPagingCommand),
+            ("providesReconnectCommand", providesReconnectCommand),
+            ("providesStopControl", providesStopControl),
+            ("providesLiveRiskControl", providesLiveRiskControl),
+            ("triggersIncidentCommand", triggersIncidentCommand),
+            ("triggersAutoRecovery", triggersAutoRecovery),
+            ("authorizesLiveTrading", authorizesLiveTrading),
+            ("authorizesTradingExecution", authorizesTradingExecution),
+            ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveMonitoringConsoleForbiddenCapability(capability.0)
+        }
+    }
+}

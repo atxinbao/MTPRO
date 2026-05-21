@@ -65,6 +65,8 @@ MTP-69 的长期验证锚点仍为 `docs/contracts/live-monitoring-console-contr
 
 MTP-70 的长期验证锚点仍为 `docs/contracts/live-monitoring-console-contract.md` 和 `TVM-LIVE-MONITORING-CONSOLE`。该锚点在 MTP-69 runtime health / connection status 基础上新增 `LiveStreamMonitoringEvidenceReadModel` / `LiveStreamMonitoringEvidenceItem` 最小 Core read model：默认 fixture 只表达 public market stream `disconnected`、blocked order stream `blocked`、simulated order stream `blocked` 和 future order stream `unavailable`；market stream 只允许 public read-only / fixture evidence，order stream / order flow 只允许 blocked / simulated / future-only evidence；不实现 market streaming runtime、account/order streaming runtime、WebSocket、signed endpoint、account endpoint、listenKey、execution report、broker fill、real order state machine、order command、broker adapter、`LiveExecutionAdapter`、Runtime object / persistence schema 暴露、live command 或交易按钮。
 
+MTP-71 的长期验证锚点仍为 `docs/contracts/live-monitoring-console-contract.md` 和 `TVM-LIVE-MONITORING-CONSOLE`。该锚点在 MTP-70 stream evidence 基础上新增 `LiveLatencyErrorDegradedMonitoringEvidenceReadModel` / `LiveMonitoringLatencyEvidenceItem` / `LiveMonitoringErrorEvidenceItem` / `LiveMonitoringDegradedStateEvidenceItem` 最小 Core read model：默认 fixture 只表达 runtime health stale latency、public market stream degraded latency / disconnected error、simulated order stream nominal latency、future private user data unavailable latency / blocked error、future broker session unavailable latency / error、public market stream degraded state 和 future broker session unavailable state；不实现 production telemetry、runtime profiler、external metrics service、真实 runtime monitoring、真实网络连接、alerting / paging、reconnect / stop control、incident command、auto recovery、live risk control、signed endpoint、account endpoint、listenKey、broker adapter、`LiveExecutionAdapter`、Runtime object / persistence schema 暴露、live command 或交易按钮。
+
 `MTPRO Live Trading Boundary Definition v1` 的 canonical Stage Code Audit Report 已落仓到 `docs/audit/mtpro-live-trading-boundary-definition-v1-stage-code-audit.md`。该报告记录 PR #126 至 #132、merge commits、GitHub `checks` 成功证据、Linear Project `Completed` evidence、Live boundary validation evidence chain、Known CI Boundary、Post-Issue Ledger 持久仓同步阻塞说明、Boundary Audit、Root Docs Delta 和 Next Human Project Planning handoff。
 
 ## Goal / Roadmap Progress Baseline
@@ -132,6 +134,23 @@ Planning record 入口：
 - `MTP-67`：Live Trading Boundary Definition v1 阶段收口。
 
 ## 最近验证
+
+MTP-71 latency / error / degraded state monitoring evidence read model 已完成：
+
+```bash
+swift test --filter MTP71
+bash checks/run.sh
+```
+
+当前收口证据：
+
+- `Sources/Core/LiveMonitoringConsole.swift`：新增 `LiveMonitoringEvidenceScope`、`LiveMonitoringLatencyBucket`、`LiveMonitoringLatencyEvidenceItem`、`LiveMonitoringErrorEvidenceKind`、`LiveMonitoringErrorEvidenceItem`、`LiveMonitoringDegradedStateEvidenceItem` 和 `LiveLatencyErrorDegradedMonitoringEvidenceReadModel`，所有 production telemetry、runtime profiler、external metrics service、runtime monitor、network connection、alerting / paging、reconnect / stop control、incident command、auto recovery、live risk control、API key、secret、signed endpoint、account endpoint、listenKey、account payload、broker adapter、adapter surface、Runtime object、SQLite / DuckDB schema、Live trading authorization 和 trading execution flags 均保持 false。
+- `Tests/CoreTests/CoreTests.swift`：新增 `testLiveLatencyErrorDegradedEvidenceDefinesMTP71DeterministicFixture`、`testLiveLatencyErrorDegradedEvidenceRejectsMTP71ProductionTelemetryAndCommands`、`testLiveMonitoringDegradedStateKeepsMTP71ReadModelOnlyNoRecoveryCommands`。
+- `docs/contracts/live-monitoring-console-contract.md`：新增 `MTP-71-LATENCY-ERROR-DEGRADED-READ-MODEL`、`MTP-71-LATENCY-EVIDENCE-READ-MODEL`、`MTP-71-ERROR-EVIDENCE-READ-MODEL`、`MTP-71-DEGRADED-STATE-READ-MODEL`、`MTP-71-NO-PRODUCTION-TELEMETRY-OR-COMMAND` 和 `MTP-71-LIVE-MONITORING-LATENCY-ERROR-DEGRADED-VALIDATION`。
+- `docs/validation/trading-validation-matrix.md` / `docs/validation/validation-plan.md`：回填 MTP-71 至 `TVM-LIVE-MONITORING-CONSOLE`，并明确 MTP-74 才做 automation readiness 机械收口。
+- `swift test --filter MTP71`：pass，3 tests, 0 failures。
+- `bash checks/run.sh`：pass，串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6`；144 个 XCTest 通过，最终输出 `MTPRO checks passed.`。
+- MTP-71 不修改 `checks/automation-readiness.sh`，机械收口仍保留给 MTP-74。
 
 MTP-70 market stream / order stream blocked evidence read model 已完成：
 

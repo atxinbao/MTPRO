@@ -194,6 +194,95 @@ MTP-70 的验证入口：
 - `checks/automation-readiness.sh` 仍不在 MTP-70 中收口 `TVM-LIVE-MONITORING-CONSOLE`；
   MTP-74 才允许统一机械化 MTP-68 至 MTP-73 anchors。
 
+## MTP-71 latency / error / degraded state monitoring evidence
+
+`MTP-71-LATENCY-ERROR-DEGRADED-READ-MODEL`
+
+MTP-71 在 Core 层新增 `LiveLatencyErrorDegradedMonitoringEvidenceReadModel`、
+`LiveMonitoringLatencyEvidenceItem`、`LiveMonitoringErrorEvidenceItem` 和
+`LiveMonitoringDegradedStateEvidenceItem`。该 read model 以上一层
+`LiveStreamMonitoringEvidenceReadModel.deterministicFixture` 为输入证据，只输出
+Report / Dashboard 后续可消费的 latency、error 和 degraded / unavailable state evidence。
+
+`LiveLatencyErrorDegradedMonitoringEvidenceReadModel` 必须满足：
+
+- `readModelID = mtp-71-live-latency-error-degraded-evidence`。
+- `issueID = MTP-71`。
+- `streamEvidence = LiveStreamMonitoringEvidenceReadModel.deterministicFixture`。
+- `sourceAnchors` 固定包含 `MTP-68-LIVE-MONITORING-CONSOLE-IA`、
+  `MTP-69-LIVE-RUNTIME-HEALTH-READ-MODEL`、
+  `MTP-70-MARKET-STREAM-ORDER-STREAM-READ-MODEL` 和
+  `MTP-71-LATENCY-ERROR-DEGRADED-READ-MODEL`。
+- `latencyEvidence` 必须等于
+  `LiveLatencyErrorDegradedMonitoringEvidenceReadModel.requiredLatencyEvidence`。
+- `errorEvidence` 必须等于
+  `LiveLatencyErrorDegradedMonitoringEvidenceReadModel.requiredErrorEvidence`。
+- `degradedStateEvidence` 必须等于
+  `LiveLatencyErrorDegradedMonitoringEvidenceReadModel.requiredDegradedStateEvidence`。
+
+`MTP-71-LATENCY-EVIDENCE-READ-MODEL`
+
+Latency evidence 只能表达本地 deterministic bucket / freshness evidence：
+
+| Scope | Fixture bucket | Fixture value | Source anchors | 禁止解释 |
+| --- | --- | --- | --- | --- |
+| `runtime health` | `stale` | latency `6000ms` / freshness `30000ms` | `MTP-69-LIVE-RUNTIME-HEALTH-READ-MODEL`、`MTP-71-LATENCY-ERROR-DEGRADED-READ-MODEL` | 不等于生产 runtime profiler 或 live runtime 已启动。 |
+| `public market stream` | `degraded` | latency `1250ms` / freshness `45000ms` | `MTP-70-MARKET-STREAM-PUBLIC-READ-ONLY-EVIDENCE`、`MTP-71-LATENCY-EVIDENCE-READ-MODEL` | 不等于生产 telemetry、WebSocket 订阅或自动扩缩容信号。 |
+| `simulated order stream` | `nominal` | latency `25ms` / freshness `500ms` | `TVM-PAPER-EXECUTION-WORKFLOW`、`MTP-70-ORDER-STREAM-BLOCKED-SIMULATED-FUTURE-EVIDENCE`、`MTP-71-LATENCY-EVIDENCE-READ-MODEL` | 不等于 broker order stream 或真实成交回报。 |
+| `future private user data` | `unavailable` | 无可观测 latency | `MTP-62-CREDENTIAL-ENDPOINT-BOUNDARY`、`MTP-71-LATENCY-EVIDENCE-READ-MODEL` | 不等于 listenKey、account endpoint 或 private WebSocket。 |
+| `future broker session` | `unavailable` | 无可观测 latency | `MTP-63-ADAPTER-CAPABILITY-ISOLATION`、`MTP-71-LATENCY-EVIDENCE-READ-MODEL` | 不等于 broker session、execution venue 或 `LiveExecutionAdapter`。 |
+
+`MTP-71-ERROR-EVIDENCE-READ-MODEL`
+
+Error evidence 只能表达 deterministic error summary，不触发 incident command、自动恢复、
+alerting、paging、reconnect 或 stop control：
+
+| Error kind | Scope | Fixture status | Error code | 禁止解释 |
+| --- | --- | --- | --- | --- |
+| public market stream disconnected | public market stream | `disconnected` | `MTP71_PUBLIC_MARKET_STREAM_DISCONNECTED` | 不等于生产故障处理或自动重连。 |
+| private user data blocked | future private user data | `blocked` | `MTP71_PRIVATE_USER_DATA_BLOCKED` | 不等于 account endpoint / listenKey 已实现。 |
+| broker session unavailable | future broker session | `unavailable` | `MTP71_BROKER_SESSION_UNAVAILABLE` | 不等于 broker adapter 或 execution venue 已存在。 |
+
+`MTP-71-DEGRADED-STATE-READ-MODEL`
+
+Degraded / unavailable state evidence 只把 latency 和 error evidence 串成只读状态摘要：
+
+| State scope | Fixture status | Contributing evidence | 禁止解释 |
+| --- | --- | --- | --- |
+| public market stream | `degraded` | public market stream latency degraded + public market stream disconnected error | 不允许 risk bypass、继续真实订单或自动恢复。 |
+| future broker session | `unavailable` | broker session latency unavailable + broker session unavailable error | 不允许 broker fallback、真实订单执行或 live risk control。 |
+
+`MTP-71-NO-PRODUCTION-TELEMETRY-OR-COMMAND`
+
+MTP-71 的 Core read model 和 tests 必须拒绝以下能力：
+
+- production telemetry、runtime profiler、external metrics service。
+- production runtime monitor、runtime polling、active network connection。
+- alerting command、paging command、incident command、auto recovery。
+- reconnect command、stop control、live risk control。
+- signed endpoint、account endpoint、listenKey、API key、secret、account payload。
+- broker adapter、`LiveExecutionAdapter`、adapter surface、Runtime object、SQLite / DuckDB schema。
+- live trading authorization、trading execution authorization。
+- required validation 依赖真实网络。
+
+`MTP-71-LIVE-MONITORING-LATENCY-ERROR-DEGRADED-VALIDATION`
+
+MTP-71 的验证入口：
+
+- `Sources/Core/LiveMonitoringConsole.swift` 必须包含 `LiveMonitoringEvidenceScope`、
+  `LiveMonitoringLatencyBucket`、`LiveMonitoringLatencyEvidenceItem`、
+  `LiveMonitoringErrorEvidenceKind`、`LiveMonitoringErrorEvidenceItem`、
+  `LiveMonitoringDegradedStateEvidenceItem` 和
+  `LiveLatencyErrorDegradedMonitoringEvidenceReadModel`。
+- `Tests/CoreTests/CoreTests.swift` 必须覆盖
+  `testLiveLatencyErrorDegradedEvidenceDefinesMTP71DeterministicFixture`、
+  `testLiveLatencyErrorDegradedEvidenceRejectsMTP71ProductionTelemetryAndCommands` 和
+  `testLiveMonitoringDegradedStateKeepsMTP71ReadModelOnlyNoRecoveryCommands`。
+- Focused validation：`swift test --filter MTP71`。
+- Required validation：`bash checks/run.sh`。
+- `checks/automation-readiness.sh` 仍不在 MTP-71 中收口 `TVM-LIVE-MONITORING-CONSOLE`；
+  MTP-74 才允许统一机械化 MTP-68 至 MTP-73 anchors。
+
 ## MTP-68 validation anchors
 
 `MTP-68-LIVE-MONITORING-VALIDATION-ANCHORS`
