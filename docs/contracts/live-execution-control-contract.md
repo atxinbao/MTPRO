@@ -314,3 +314,91 @@ MTP-77 建立以下 validation anchors：
 - `MTP-77-LIVE-EXECUTION-CONTROL-VALIDATION`
 
 本 issue 不修改 `checks/automation-readiness.sh` 做最终机械收口；`MTPRO Live Execution Control Contract v1` 的 automation readiness 收口保留给 Issue 7。
+
+## MTP-78 paper / real command isolation contract
+
+`MTP-78-PAPER-REAL-COMMAND-ISOLATION-CONTRACT`
+
+MTP-78 把既有 paper-only evidence 与 future real order command 明确隔离。当前系统可以继续展示 paper order intent、paper execution decision、simulated fill evidence 和 paper portfolio projection，但这些 evidence 只能作为 research / paper / report / timeline 的只读证据，不能成为 submit / cancel / replace、execution report、broker fill 或 reconciliation 的输入。
+
+Core fixture：`LivePaperRealCommandIsolationBoundary` 固定以下 evidence sources：
+
+- `paper order intent`
+- `paper execution decision`
+- `simulated fill evidence`
+- `paper portfolio projection`
+- `report read model`
+- `dashboard ViewModel`
+- `event timeline read model`
+
+该 fixture 只引用 MTP-75 / MTP-76 / MTP-77 已建立的 future-gate anchors，不新增真实执行能力。
+
+## MTP-78 paper evidence no real command upgrade
+
+`MTP-78-PAPER-EVIDENCE-NO-REAL-COMMAND-UPGRADE`
+
+MTP-78 必须证明 paper-only evidence 不能升级为 future real order command：
+
+- `PaperOrderIntent` 不得映射为 real order command、real submit、real cancel 或 real replace。
+- `PaperExecutionDecision` 不得授权 real order command。
+- `PaperSimulatedFillEvidence` 不得映射为 real order command、execution report 或 broker fill。
+- `PaperPortfolioProjectionUpdate` 不得映射为 broker position、real account state 或 reconciliation input。
+- `LivePaperRealCommandIsolationBoundary.paperEvidenceCannotUpgradeToRealCommand` 必须为 `true`。
+
+禁止能力 baseline：
+
+- real order command / real submit / real cancel / real replace。
+- signed command request。
+- execution report ingestion。
+- broker fill event fact。
+- reconciliation runtime。
+- real account state / broker position sync。
+- `LiveExecutionAdapter`、real order state machine 和 OMS。
+- paper-to-real upgrade。
+- report / dashboard / event timeline command surface。
+- order form、order-level command UI 和 trading button。
+
+## MTP-78 paper projection read-model-only
+
+`MTP-78-PAPER-PROJECTION-READ-MODEL-ONLY`
+
+Paper portfolio projection 仍然只能从 replay 后的 `PaperSimulatedFillEvidence` 派生：
+
+- `PaperPortfolioProjectionUpdate.usesSimulatedFillEvidence` 必须为 `true`。
+- `PaperPortfolioProjectionUpdate.exposure.source` 必须保持 `paperProjection`。
+- `PaperPortfolioProjectionUpdate.authorizesTradingExecution` 必须为 `false`。
+- `PaperPortfolioProjectionUpdate.readsRealAccountBalance` 必须为 `false`。
+- `PaperPortfolioProjectionUpdate.syncsBrokerPosition` 必须为 `false`。
+
+该 projection 只进入 Report / Dashboard / Event Timeline 的 read model / ViewModel，不代表真实账户余额、broker position、account sync 或 reconciliation。
+
+## MTP-78 report / dashboard / timeline read-model-only
+
+`MTP-78-REPORT-DASHBOARD-TIMELINE-READ-MODEL-ONLY`
+
+MTP-78 必须验证展示面仍然只消费 read model / ViewModel：
+
+- `ReportViewModel` 只能汇总 paper workflow evidence、paper portfolio projection、Live blocked evidence 和 Live monitoring evidence；不得提供 command surface、order form、交易按钮或真实交易授权。
+- `DashboardShellSnapshot` 只能从 `DashboardViewModel` 生成只读 snapshot；Workbench session controls 仍限于 local paper session-level `start` / `pause` / `close` / `reset` 展示。
+- `PaperWorkflowEvidenceExplorerViewModel` / Event Timeline 只能展示 evidence links 和 timeline rows；不得提供 query language、Runtime command、order-level command、live audit、incident replay 或 stop control。
+
+Core / App tests：
+
+- `testPaperRealCommandIsolationBoundaryDefinesMTP78Contract`
+- `testPaperRealCommandIsolationBoundaryRejectsMTP78RealCommandUpgradeBypass`
+- `testPaperEvidenceCannotUpgradeToMTP78FutureRealOrderCommand`
+- `testReportDashboardAndTimelineRemainMTP78ReadModelOnly`
+
+## MTP-78 validation anchors
+
+`MTP-78-LIVE-EXECUTION-CONTROL-VALIDATION`
+
+MTP-78 建立以下 validation anchors：
+
+- `MTP-78-PAPER-REAL-COMMAND-ISOLATION-CONTRACT`
+- `MTP-78-PAPER-EVIDENCE-NO-REAL-COMMAND-UPGRADE`
+- `MTP-78-PAPER-PROJECTION-READ-MODEL-ONLY`
+- `MTP-78-REPORT-DASHBOARD-TIMELINE-READ-MODEL-ONLY`
+- `MTP-78-LIVE-EXECUTION-CONTROL-VALIDATION`
+
+本 issue 不修改 `checks/automation-readiness.sh` 做最终机械收口；`MTPRO Live Execution Control Contract v1` 的 automation readiness 收口保留给 Issue 7。

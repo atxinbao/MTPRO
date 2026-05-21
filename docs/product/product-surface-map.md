@@ -543,6 +543,27 @@ Shell 新增展示：
 - signed endpoint、account endpoint、listenKey、API key、secret、account payload、broker adapter、`LiveExecutionAdapter`、execution report、broker fill、real order state machine、OMS 或真实交易授权。
 - Runtime object、adapter request、SQLite / DuckDB schema、SQL、ORM model 或 persistence adapter direct read 暴露。
 
+## MTP-78 paper / real command isolation product surface
+
+日期：2026-05-22
+
+执行者：Codex
+
+当前产品面把 paper order intent、paper execution decision、simulated fill 和 paper portfolio projection 继续限制在 Report / Dashboard / Event Timeline 的只读 evidence 展示中。MTP-78 只定义 paper evidence 与 future real order command 的隔离合同，不新增执行控制台、order form、order-level command UI 或交易按钮。
+
+新增观察面：
+
+- Report evidence：继续展示 paper execution workflow decision IDs、paper order IDs、simulated fill IDs、portfolio update IDs 和 paper-only boundary。
+- Dashboard / Workbench：继续展示 session-level local paper controls 和 read-model-only evidence group；`start` / `pause` / `close` / `reset` 仍只表示本地 paper session-level presentation。
+- Event Timeline / Evidence Explorer：继续展示 `paper order`、`simulated fill` 和 `portfolio projection` 分区的 evidence links，不提供 real order command、query language 或 Runtime command。
+
+仍不包含：
+
+- real order command、submit / cancel / replace、signed command request、order form、order-level command UI、live command 或交易按钮。
+- execution report ingestion、broker fill event fact、reconciliation runtime、account sync、real account balance read 或 broker position sync。
+- signed endpoint、account endpoint、listenKey、API key、secret、account payload、broker adapter、`LiveExecutionAdapter`、real order state machine、OMS 或真实交易授权。
+- Runtime object、adapter request、SQLite / DuckDB schema、SQL、ORM model 或 persistence adapter direct read 暴露。
+
 ## MTPRO Workbench User Flow Blueprint v1
 
 日期：2026-05-22

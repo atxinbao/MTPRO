@@ -8272,3 +8272,72 @@ Linear / scope evidence：
 | `swift test --filter MTP77` | pass | 3 个 MTP-77 focused Core XCTest 通过，0 failures。 |
 | `swift test --filter MTP76` | pass | 3 个 MTP-76 regression Core XCTest 通过，0 failures。 |
 | `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=24; liveBlockedGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；155 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
+
+## MTP-78 Paper / Simulated Evidence and Future Real Command Isolation
+
+日期：2026-05-22
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear live-read 中当前唯一 active issue `MTP-78`：定义 paper order intent / paper execution decision / simulated fill / paper portfolio projection 与 future real order command 的隔离合同。
+- 在 `MTPRO Live Execution Control Contract v1` 中补齐 paper evidence cannot upgrade to future real command 的 forbidden capability tests、read-model-only App surface evidence 和 validation anchors。
+- 保持本 issue 为 contract / boundary / deterministic forbidden evidence，不提供任何 real order command、signed command、broker action、execution report ingestion、broker fill ingestion、reconciliation runtime、order form、trading button 或 order-level command UI。
+
+Linear / scope evidence：
+
+- Linear read-only queue preview 确认 Project `MTPRO Live Execution Control Contract v1` 中 `MTP-78` 为唯一 active issue，状态 `In Progress`；`MTP-75`、`MTP-76` 和 `MTP-77` 为 `Done`；`MTP-79` 至 `MTP-81` 均为 `Backlog`。
+- 当前 issue scope 只允许定义 paper / simulated / read-model evidence 与 future real order command 的隔离合同、forbidden capability tests 和 Report / Dashboard / Event Timeline read-model-only evidence。
+- Non-goals：不实现 API key / secret storage，不实现 signed endpoint / account endpoint / listenKey，不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、real order state machine、OMS，不提交、撤销、替换真实订单，不实现 execution report parser / ingestion、broker fill recorder / event fact、reconciliation runtime，不新增 order form、trading button、live command 或 order-level command UI。
+- MTP-78 不修改 `checks/automation-readiness.sh` 做最终机械收口；`MTPRO Live Execution Control Contract v1` 的 Issue 7 才允许统一机械化 MTP-75 至 MTP-80 anchors。
+
+文件范围：
+
+- `Sources/Core/LiveExecutionControlContract.swift`
+- `Tests/CoreTests/CoreTests.swift`
+- `Tests/AppTests/AppTests.swift`
+- `docs/contracts/live-execution-control-contract.md`
+- `docs/domain/context.md`
+- `docs/product/product-surface-map.md`
+- `docs/validation/validation-plan.md`
+- `docs/validation/trading-validation-matrix.md`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+更新重点：
+
+- 新增 `LivePaperRealCommandIsolationEvidenceSource`、`LivePaperRealCommandIsolationForbiddenCapability` 和 `LivePaperRealCommandIsolationBoundary`。
+- `LivePaperRealCommandIsolationBoundary` 固定 `MTP-78-PAPER-REAL-COMMAND-ISOLATION-CONTRACT`、`MTP-78-PAPER-EVIDENCE-NO-REAL-COMMAND-UPGRADE`、`MTP-78-PAPER-PROJECTION-READ-MODEL-ONLY`、`MTP-78-REPORT-DASHBOARD-TIMELINE-READ-MODEL-ONLY`、`MTP-78-LIVE-EXECUTION-CONTROL-VALIDATION` 和 `TVM-LIVE-EXECUTION-CONTROL`。
+- 新增三条 focused Core tests，覆盖 deterministic fixture、Codable round trip、MTP-75 / MTP-76 / MTP-77 boundary regression、real command / signed command / execution report / broker fill / reconciliation / `LiveExecutionAdapter` / OMS / order form / trading button bypass rejection，以及 paper-only evidence 不升级为 future real order command。
+- 新增一条 App test，覆盖 Report、Dashboard shell、Workbench snapshot 和 Event Timeline / Evidence Explorer 仍然只消费 read model / ViewModel evidence，不提供 live command、order form、order-level command UI、trading button、broker action 或 `LiveExecutionAdapter`。
+- 在 contract docs、domain context、product surface map、validation plan、trading validation matrix 和 latest verification summary 回填 MTP-78 anchors。
+
+边界确认：
+
+- 不读取 secret / credential。
+- 不接真实 broker / exchange。
+- 不执行真实交易动作。
+- 不新增 Linear Project / Issue。
+- 不修改 Linear status。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify update。
+- 不提交 `.codex/*`。
+- 不提交 `graphify-out/*`。
+- 不实现 API key / secret storage。
+- 不实现 signed endpoint / account endpoint / listenKey。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`。
+- 不实现 real order state machine / OMS。
+- 不提交、撤销、替换真实订单。
+- 不实现 real order command、signed command request、execution report parser / ingestion、broker fill recorder / event fact 或 reconciliation service / runtime。
+- 不读取真实账户余额，不执行 account sync，不执行 broker position sync。
+- 不实现 live command、order-level command UI、order form 或交易按钮。
+- 不把 `PaperOrderIntent`、`PaperExecutionDecision`、`PaperSimulatedFillEvidence` 或 `PaperPortfolioProjectionUpdate` 升级为 future real order command、broker fill、execution report、broker position 或 real account state。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP78` | pass | 4 个 MTP-78 focused Core / App XCTest 通过，0 failures。 |
+| `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=24; liveBlockedGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；159 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |

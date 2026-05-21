@@ -1192,6 +1192,99 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(workbench.authorizesTradingExecution)
     }
 
+    func testReportDashboardAndTimelineRemainMTP78ReadModelOnly() throws {
+        // 测试场景：MTP-78 要求 Report、Dashboard 和 Event Timeline 只能展示 paper-only /
+        // read-model evidence。它们可以显示 paper order、simulated fill 和 portfolio projection，
+        // 但不能提供 real order command、order form、order-level UI 或交易按钮。
+        let boundary = LivePaperRealCommandIsolationBoundary.deterministicFixture
+        let viewModel = try makeDashboardViewModel()
+        let report = viewModel.report
+        let explorer = viewModel.paperWorkflowEvidenceExplorer
+        let snapshot = DashboardShellSnapshot(viewModel: viewModel)
+        let workbench = snapshot.workbench
+
+        XCTAssertTrue(boundary.appSurfaceReadModelOnlyBoundaryHeld)
+        XCTAssertTrue(boundary.paperEvidenceCannotUpgradeToRealCommand)
+        XCTAssertTrue(boundary.futureRealCommandCapabilitiesBlocked)
+        XCTAssertTrue(report.source.isReadModelOnly)
+        XCTAssertTrue(report.paperExecutionWorkflowPaperOnlyBoundaryHeld)
+        XCTAssertTrue(report.paperExecutionWorkflowCoversDecisionOrderFillChain)
+        XCTAssertTrue(report.paperExecutionWorkflowProjectsPortfolioFromSimulatedFill)
+        XCTAssertFalse(report.paperExecutionWorkflowAuthorizesLiveTrading)
+        XCTAssertFalse(report.paperExecutionWorkflowTouchesBrokerAction)
+        XCTAssertFalse(report.paperExecutionWorkflowAuthorizesTradingExecution)
+        XCTAssertTrue(report.marketDataReplayReadModelOnlyBoundaryHeld)
+        XCTAssertFalse(report.marketDataReplayAuthorizesTradingExecution)
+        XCTAssertTrue(report.liveReadinessReadModelOnlyBoundaryHeld)
+        XCTAssertFalse(report.liveReadinessProvidesCommandSurface)
+        XCTAssertFalse(report.liveReadinessAuthorizesLiveTrading)
+        XCTAssertFalse(report.liveReadinessAuthorizesTradingExecution)
+        XCTAssertTrue(report.liveMonitoringReadModelOnlyBoundaryHeld)
+        XCTAssertFalse(report.liveMonitoringProvidesCommandSurface)
+        XCTAssertFalse(report.liveMonitoringProvidesOrderLevelCommand)
+        XCTAssertFalse(report.liveMonitoringProvidesTradingButton)
+        XCTAssertFalse(report.liveMonitoringAuthorizesLiveTrading)
+        XCTAssertFalse(report.liveMonitoringAuthorizesTradingExecution)
+        XCTAssertFalse(report.authorizesTradingExecution)
+
+        XCTAssertTrue(explorer.readModelOnlyBoundaryHeld)
+        XCTAssertTrue(explorer.coversPaperOrders)
+        XCTAssertTrue(explorer.coversSimulatedFills)
+        XCTAssertTrue(explorer.coversPortfolioProjections)
+        XCTAssertTrue(explorer.coversReportArtifacts)
+        XCTAssertTrue(explorer.coversPaperWorkflowChainEvidence)
+        XCTAssertFalse(explorer.providesCommandSurface)
+        XCTAssertFalse(explorer.providesOrderLevelCommand)
+        XCTAssertFalse(explorer.supportsQueryLanguage)
+        XCTAssertFalse(explorer.authorizesLiveTrading)
+        XCTAssertFalse(explorer.touchesBrokerAction)
+        XCTAssertFalse(explorer.authorizesTradingExecution)
+        XCTAssertTrue(
+            explorer.timelineItems.contains {
+                $0.section == .paperOrder && $0.evidenceLinks.contains { $0.evidenceID == "paper-replay-order-allowed" }
+            }
+        )
+        XCTAssertTrue(
+            explorer.timelineItems.contains {
+                $0.section == .simulatedFill
+                    && $0.evidenceLinks.contains { $0.evidenceID == "paper-replay-fill-allowed" }
+            }
+        )
+        XCTAssertTrue(
+            explorer.timelineItems.contains {
+                $0.section == .portfolioProjection
+                    && $0.evidenceLinks.contains { $0.evidenceID == "paper-replay-portfolio-update" }
+            }
+        )
+        XCTAssertFalse(
+            explorer.timelineItems.contains {
+                $0.title.localizedCaseInsensitiveContains("real order command")
+                    || $0.summary.localizedCaseInsensitiveContains("real order command")
+                    || $0.title.localizedCaseInsensitiveContains("broker fill")
+                    || $0.summary.localizedCaseInsensitiveContains("broker fill")
+            }
+        )
+
+        XCTAssertTrue(snapshot.isReadModelOnly)
+        XCTAssertTrue(snapshot.viewModelSources.allSatisfy(\.isReadModelOnly))
+        XCTAssertTrue(workbench.readModelOnlyBoundaryHeld)
+        XCTAssertTrue(workbench.paperOnlyBoundaryHeld)
+        XCTAssertFalse(workbench.providesCommandSurface)
+        XCTAssertFalse(workbench.providesOrderLevelCommand)
+        XCTAssertFalse(workbench.exposesDatabaseSchema)
+        XCTAssertFalse(workbench.exposesRuntimeObject)
+        XCTAssertFalse(workbench.exposesAdapterRequest)
+        XCTAssertFalse(workbench.authorizesLiveTrading)
+        XCTAssertFalse(workbench.touchesBrokerAction)
+        XCTAssertFalse(workbench.authorizesTradingExecution)
+        XCTAssertFalse(workbench.sessionControls.contains { $0.authorizesOrderLevelCommand })
+        XCTAssertFalse(workbench.sessionControls.contains { $0.submitsRealOrder })
+        XCTAssertFalse(workbench.sessionControls.contains { $0.cancelsRealOrder })
+        XCTAssertFalse(workbench.sessionControls.contains { $0.replacesRealOrder })
+        XCTAssertTrue(snapshot.smokeSummary.contains("readModelOnly=true"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("workbenchReadModelOnly=true"))
+    }
+
     func testDashboardShellInitialSnapshotIsEmptyReadModelProjection() {
         // 测试场景：可运行 macOS shell 的默认快照只能表示空事实投影和静态 Live blocked gates，
         // 不能伪造行情、Paper、Risk、Portfolio 或真实交易事件事实。

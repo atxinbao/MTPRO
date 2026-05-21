@@ -1645,3 +1645,518 @@ public struct LiveExecutionReportBrokerFillReconciliationBoundary: Codable, Equa
         }
     }
 }
+
+/// LivePaperRealCommandIsolationEvidenceSource 固定 MTP-78 允许引用的 paper-only / read-model evidence 来源。
+///
+/// 这些来源只能作为隔离合同、验证矩阵和 PR evidence 的输入。它们不能被解释为真实订单命令、
+/// broker request、execution report、broker fill、account update 或 Dashboard command surface。
+public enum LivePaperRealCommandIsolationEvidenceSource: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case paperOrderIntent = "paper order intent"
+    case paperExecutionDecision = "paper execution decision"
+    case simulatedFillEvidence = "simulated fill evidence"
+    case paperPortfolioProjection = "paper portfolio projection"
+    case reportReadModel = "report read model"
+    case dashboardViewModel = "dashboard ViewModel"
+    case eventTimelineReadModel = "event timeline read model"
+}
+
+/// LivePaperRealCommandIsolationForbiddenCapability 枚举 MTP-78 必须阻断的 paper-to-real 升级面。
+///
+/// 这些值只用于 deterministic forbidden capability tests 和合同文档。当前阶段不得新增真实
+/// order command、signed command request、broker fill、reconciliation、order form 或交易按钮。
+public enum LivePaperRealCommandIsolationForbiddenCapability: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case realOrderCommand = "real order command"
+    case realOrderSubmit = "real order submit"
+    case realOrderCancel = "real order cancel"
+    case realOrderReplace = "real order replace"
+    case signedCommandRequest = "signed command request"
+    case executionReportIngestion = "execution report ingestion"
+    case brokerFillEventFact = "broker fill event fact"
+    case reconciliationRuntime = "reconciliation runtime"
+    case realAccountState = "real account state"
+    case brokerPositionSync = "broker position sync"
+    case liveExecutionAdapter = "LiveExecutionAdapter"
+    case realOrderStateMachine = "real order state machine"
+    case oms = "OMS"
+    case paperOrderIntentToRealCommandUpgrade = "paper order intent to real command upgrade"
+    case paperExecutionDecisionToRealCommandUpgrade = "paper execution decision to real command upgrade"
+    case simulatedFillToRealCommandUpgrade = "simulated fill to real command upgrade"
+    case simulatedFillToExecutionReportUpgrade = "simulated fill to execution report upgrade"
+    case simulatedFillToBrokerFillUpgrade = "simulated fill to broker fill upgrade"
+    case paperPortfolioToBrokerPositionUpgrade = "paper portfolio to broker position upgrade"
+    case reportCommandSurface = "report command surface"
+    case dashboardCommandSurface = "dashboard command surface"
+    case eventTimelineCommandSurface = "event timeline command surface"
+    case orderForm = "order form"
+    case orderLevelCommandUI = "order-level command UI"
+    case tradingButton = "trading button"
+    case networkValidationDependency = "network validation dependency"
+}
+
+/// LivePaperRealCommandIsolationBoundary 是 MTP-78 的 paper / future real command 隔离合同。
+///
+/// 该 fixture 把既有 paper order intent、paper execution decision、simulated fill、paper
+/// portfolio projection 和 App read-model surface 固定为不可升级证据。它只引用 MTP-75 /
+/// MTP-76 / MTP-77 已建立的 future gates，不实现真实命令、adapter、订单状态机、执行回报、
+/// broker fill、对账、账户读取、order form、order-level command UI 或交易按钮。
+public struct LivePaperRealCommandIsolationBoundary: Codable, Equatable, Sendable {
+    public let contractID: Identifier
+    public let issueID: Identifier
+    public let evidenceSources: [LivePaperRealCommandIsolationEvidenceSource]
+    public let forbiddenCapabilities: [LivePaperRealCommandIsolationForbiddenCapability]
+    public let allowedEvidenceKinds: [LiveExecutionControlEvidenceKind]
+    public let validationAnchors: [String]
+    public let sourceAnchors: [String]
+    public let isIsolationContractOnly: Bool
+    public let reportConsumesReadModelOnly: Bool
+    public let dashboardConsumesViewModelOnly: Bool
+    public let eventTimelineConsumesReadModelOnly: Bool
+    public let createsRealOrderCommand: Bool
+    public let submitsRealOrder: Bool
+    public let cancelsRealOrder: Bool
+    public let replacesRealOrder: Bool
+    public let sendsSignedCommandRequest: Bool
+    public let consumesExecutionReport: Bool
+    public let recordsBrokerFill: Bool
+    public let performsReconciliation: Bool
+    public let implementsLiveExecutionAdapter: Bool
+    public let implementsRealOrderStateMachine: Bool
+    public let implementsOMS: Bool
+    public let readsRealAccountBalance: Bool
+    public let syncsBrokerPosition: Bool
+    public let mapsPaperOrderIntentToRealCommand: Bool
+    public let mapsPaperExecutionDecisionToRealCommand: Bool
+    public let mapsSimulatedFillToRealCommand: Bool
+    public let mapsSimulatedFillToExecutionReport: Bool
+    public let mapsSimulatedFillToBrokerFill: Bool
+    public let mapsPaperPortfolioToBrokerPosition: Bool
+    public let reportProvidesCommandSurface: Bool
+    public let dashboardProvidesCommandSurface: Bool
+    public let eventTimelineProvidesCommandSurface: Bool
+    public let exposesOrderForm: Bool
+    public let exposesOrderLevelCommandUI: Bool
+    public let providesTradingButton: Bool
+    public let requiredValidationDependsOnNetwork: Bool
+
+    public var isolationBoundaryHeld: Bool {
+        evidenceSources == Self.requiredEvidenceSources
+            && forbiddenCapabilities == Self.requiredForbiddenCapabilities
+            && allowedEvidenceKinds == Self.allowedEvidenceKinds
+            && validationAnchors == Self.requiredValidationAnchors
+            && sourceAnchors == Self.requiredSourceAnchors
+            && isIsolationContractOnly
+            && appSurfaceReadModelOnlyBoundaryHeld
+            && paperEvidenceCannotUpgradeToRealCommand
+            && futureRealCommandCapabilitiesBlocked
+            && requiredValidationDependsOnNetwork == false
+    }
+
+    public var paperEvidenceCannotUpgradeToRealCommand: Bool {
+        mapsPaperOrderIntentToRealCommand == false
+            && mapsPaperExecutionDecisionToRealCommand == false
+            && mapsSimulatedFillToRealCommand == false
+            && mapsSimulatedFillToExecutionReport == false
+            && mapsSimulatedFillToBrokerFill == false
+            && mapsPaperPortfolioToBrokerPosition == false
+    }
+
+    public var futureRealCommandCapabilitiesBlocked: Bool {
+        createsRealOrderCommand == false
+            && submitsRealOrder == false
+            && cancelsRealOrder == false
+            && replacesRealOrder == false
+            && sendsSignedCommandRequest == false
+            && consumesExecutionReport == false
+            && recordsBrokerFill == false
+            && performsReconciliation == false
+            && implementsLiveExecutionAdapter == false
+            && implementsRealOrderStateMachine == false
+            && implementsOMS == false
+            && readsRealAccountBalance == false
+            && syncsBrokerPosition == false
+    }
+
+    public var appSurfaceReadModelOnlyBoundaryHeld: Bool {
+        reportConsumesReadModelOnly
+            && dashboardConsumesViewModelOnly
+            && eventTimelineConsumesReadModelOnly
+            && reportProvidesCommandSurface == false
+            && dashboardProvidesCommandSurface == false
+            && eventTimelineProvidesCommandSurface == false
+            && exposesOrderForm == false
+            && exposesOrderLevelCommandUI == false
+            && providesTradingButton == false
+    }
+
+    public func forbidsCapability(_ capability: LivePaperRealCommandIsolationForbiddenCapability) -> Bool {
+        forbiddenCapabilities.contains(capability)
+    }
+
+    public init(
+        contractID: Identifier = try! Identifier("mtp-78-paper-real-command-isolation-boundary"),
+        issueID: Identifier = try! Identifier("MTP-78"),
+        evidenceSources: [LivePaperRealCommandIsolationEvidenceSource] = Self.requiredEvidenceSources,
+        forbiddenCapabilities: [LivePaperRealCommandIsolationForbiddenCapability] = Self.requiredForbiddenCapabilities,
+        allowedEvidenceKinds: [LiveExecutionControlEvidenceKind] = Self.allowedEvidenceKinds,
+        validationAnchors: [String] = Self.requiredValidationAnchors,
+        sourceAnchors: [String] = Self.requiredSourceAnchors,
+        isIsolationContractOnly: Bool = true,
+        reportConsumesReadModelOnly: Bool = true,
+        dashboardConsumesViewModelOnly: Bool = true,
+        eventTimelineConsumesReadModelOnly: Bool = true,
+        createsRealOrderCommand: Bool = false,
+        submitsRealOrder: Bool = false,
+        cancelsRealOrder: Bool = false,
+        replacesRealOrder: Bool = false,
+        sendsSignedCommandRequest: Bool = false,
+        consumesExecutionReport: Bool = false,
+        recordsBrokerFill: Bool = false,
+        performsReconciliation: Bool = false,
+        implementsLiveExecutionAdapter: Bool = false,
+        implementsRealOrderStateMachine: Bool = false,
+        implementsOMS: Bool = false,
+        readsRealAccountBalance: Bool = false,
+        syncsBrokerPosition: Bool = false,
+        mapsPaperOrderIntentToRealCommand: Bool = false,
+        mapsPaperExecutionDecisionToRealCommand: Bool = false,
+        mapsSimulatedFillToRealCommand: Bool = false,
+        mapsSimulatedFillToExecutionReport: Bool = false,
+        mapsSimulatedFillToBrokerFill: Bool = false,
+        mapsPaperPortfolioToBrokerPosition: Bool = false,
+        reportProvidesCommandSurface: Bool = false,
+        dashboardProvidesCommandSurface: Bool = false,
+        eventTimelineProvidesCommandSurface: Bool = false,
+        exposesOrderForm: Bool = false,
+        exposesOrderLevelCommandUI: Bool = false,
+        providesTradingButton: Bool = false,
+        requiredValidationDependsOnNetwork: Bool = false
+    ) throws {
+        try Self.validate(
+            evidenceSources: evidenceSources,
+            forbiddenCapabilities: forbiddenCapabilities,
+            allowedEvidenceKinds: allowedEvidenceKinds,
+            validationAnchors: validationAnchors,
+            sourceAnchors: sourceAnchors
+        )
+        try Self.validateForbiddenFlags(
+            isIsolationContractOnly: isIsolationContractOnly,
+            reportConsumesReadModelOnly: reportConsumesReadModelOnly,
+            dashboardConsumesViewModelOnly: dashboardConsumesViewModelOnly,
+            eventTimelineConsumesReadModelOnly: eventTimelineConsumesReadModelOnly,
+            createsRealOrderCommand: createsRealOrderCommand,
+            submitsRealOrder: submitsRealOrder,
+            cancelsRealOrder: cancelsRealOrder,
+            replacesRealOrder: replacesRealOrder,
+            sendsSignedCommandRequest: sendsSignedCommandRequest,
+            consumesExecutionReport: consumesExecutionReport,
+            recordsBrokerFill: recordsBrokerFill,
+            performsReconciliation: performsReconciliation,
+            implementsLiveExecutionAdapter: implementsLiveExecutionAdapter,
+            implementsRealOrderStateMachine: implementsRealOrderStateMachine,
+            implementsOMS: implementsOMS,
+            readsRealAccountBalance: readsRealAccountBalance,
+            syncsBrokerPosition: syncsBrokerPosition,
+            mapsPaperOrderIntentToRealCommand: mapsPaperOrderIntentToRealCommand,
+            mapsPaperExecutionDecisionToRealCommand: mapsPaperExecutionDecisionToRealCommand,
+            mapsSimulatedFillToRealCommand: mapsSimulatedFillToRealCommand,
+            mapsSimulatedFillToExecutionReport: mapsSimulatedFillToExecutionReport,
+            mapsSimulatedFillToBrokerFill: mapsSimulatedFillToBrokerFill,
+            mapsPaperPortfolioToBrokerPosition: mapsPaperPortfolioToBrokerPosition,
+            reportProvidesCommandSurface: reportProvidesCommandSurface,
+            dashboardProvidesCommandSurface: dashboardProvidesCommandSurface,
+            eventTimelineProvidesCommandSurface: eventTimelineProvidesCommandSurface,
+            exposesOrderForm: exposesOrderForm,
+            exposesOrderLevelCommandUI: exposesOrderLevelCommandUI,
+            providesTradingButton: providesTradingButton,
+            requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork
+        )
+
+        self.contractID = contractID
+        self.issueID = issueID
+        self.evidenceSources = evidenceSources
+        self.forbiddenCapabilities = forbiddenCapabilities
+        self.allowedEvidenceKinds = allowedEvidenceKinds
+        self.validationAnchors = validationAnchors
+        self.sourceAnchors = sourceAnchors
+        self.isIsolationContractOnly = isIsolationContractOnly
+        self.reportConsumesReadModelOnly = reportConsumesReadModelOnly
+        self.dashboardConsumesViewModelOnly = dashboardConsumesViewModelOnly
+        self.eventTimelineConsumesReadModelOnly = eventTimelineConsumesReadModelOnly
+        self.createsRealOrderCommand = createsRealOrderCommand
+        self.submitsRealOrder = submitsRealOrder
+        self.cancelsRealOrder = cancelsRealOrder
+        self.replacesRealOrder = replacesRealOrder
+        self.sendsSignedCommandRequest = sendsSignedCommandRequest
+        self.consumesExecutionReport = consumesExecutionReport
+        self.recordsBrokerFill = recordsBrokerFill
+        self.performsReconciliation = performsReconciliation
+        self.implementsLiveExecutionAdapter = implementsLiveExecutionAdapter
+        self.implementsRealOrderStateMachine = implementsRealOrderStateMachine
+        self.implementsOMS = implementsOMS
+        self.readsRealAccountBalance = readsRealAccountBalance
+        self.syncsBrokerPosition = syncsBrokerPosition
+        self.mapsPaperOrderIntentToRealCommand = mapsPaperOrderIntentToRealCommand
+        self.mapsPaperExecutionDecisionToRealCommand = mapsPaperExecutionDecisionToRealCommand
+        self.mapsSimulatedFillToRealCommand = mapsSimulatedFillToRealCommand
+        self.mapsSimulatedFillToExecutionReport = mapsSimulatedFillToExecutionReport
+        self.mapsSimulatedFillToBrokerFill = mapsSimulatedFillToBrokerFill
+        self.mapsPaperPortfolioToBrokerPosition = mapsPaperPortfolioToBrokerPosition
+        self.reportProvidesCommandSurface = reportProvidesCommandSurface
+        self.dashboardProvidesCommandSurface = dashboardProvidesCommandSurface
+        self.eventTimelineProvidesCommandSurface = eventTimelineProvidesCommandSurface
+        self.exposesOrderForm = exposesOrderForm
+        self.exposesOrderLevelCommandUI = exposesOrderLevelCommandUI
+        self.providesTradingButton = providesTradingButton
+        self.requiredValidationDependsOnNetwork = requiredValidationDependsOnNetwork
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            contractID: try container.decode(Identifier.self, forKey: .contractID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            evidenceSources: try container.decode(
+                [LivePaperRealCommandIsolationEvidenceSource].self,
+                forKey: .evidenceSources
+            ),
+            forbiddenCapabilities: try container.decode(
+                [LivePaperRealCommandIsolationForbiddenCapability].self,
+                forKey: .forbiddenCapabilities
+            ),
+            allowedEvidenceKinds: try container.decode(
+                [LiveExecutionControlEvidenceKind].self,
+                forKey: .allowedEvidenceKinds
+            ),
+            validationAnchors: try container.decode([String].self, forKey: .validationAnchors),
+            sourceAnchors: try container.decode([String].self, forKey: .sourceAnchors),
+            isIsolationContractOnly: try container.decode(Bool.self, forKey: .isIsolationContractOnly),
+            reportConsumesReadModelOnly: try container.decode(Bool.self, forKey: .reportConsumesReadModelOnly),
+            dashboardConsumesViewModelOnly: try container.decode(Bool.self, forKey: .dashboardConsumesViewModelOnly),
+            eventTimelineConsumesReadModelOnly: try container.decode(
+                Bool.self,
+                forKey: .eventTimelineConsumesReadModelOnly
+            ),
+            createsRealOrderCommand: try container.decode(Bool.self, forKey: .createsRealOrderCommand),
+            submitsRealOrder: try container.decode(Bool.self, forKey: .submitsRealOrder),
+            cancelsRealOrder: try container.decode(Bool.self, forKey: .cancelsRealOrder),
+            replacesRealOrder: try container.decode(Bool.self, forKey: .replacesRealOrder),
+            sendsSignedCommandRequest: try container.decode(Bool.self, forKey: .sendsSignedCommandRequest),
+            consumesExecutionReport: try container.decode(Bool.self, forKey: .consumesExecutionReport),
+            recordsBrokerFill: try container.decode(Bool.self, forKey: .recordsBrokerFill),
+            performsReconciliation: try container.decode(Bool.self, forKey: .performsReconciliation),
+            implementsLiveExecutionAdapter: try container.decode(Bool.self, forKey: .implementsLiveExecutionAdapter),
+            implementsRealOrderStateMachine: try container.decode(
+                Bool.self,
+                forKey: .implementsRealOrderStateMachine
+            ),
+            implementsOMS: try container.decode(Bool.self, forKey: .implementsOMS),
+            readsRealAccountBalance: try container.decode(Bool.self, forKey: .readsRealAccountBalance),
+            syncsBrokerPosition: try container.decode(Bool.self, forKey: .syncsBrokerPosition),
+            mapsPaperOrderIntentToRealCommand: try container.decode(
+                Bool.self,
+                forKey: .mapsPaperOrderIntentToRealCommand
+            ),
+            mapsPaperExecutionDecisionToRealCommand: try container.decode(
+                Bool.self,
+                forKey: .mapsPaperExecutionDecisionToRealCommand
+            ),
+            mapsSimulatedFillToRealCommand: try container.decode(Bool.self, forKey: .mapsSimulatedFillToRealCommand),
+            mapsSimulatedFillToExecutionReport: try container.decode(
+                Bool.self,
+                forKey: .mapsSimulatedFillToExecutionReport
+            ),
+            mapsSimulatedFillToBrokerFill: try container.decode(
+                Bool.self,
+                forKey: .mapsSimulatedFillToBrokerFill
+            ),
+            mapsPaperPortfolioToBrokerPosition: try container.decode(
+                Bool.self,
+                forKey: .mapsPaperPortfolioToBrokerPosition
+            ),
+            reportProvidesCommandSurface: try container.decode(Bool.self, forKey: .reportProvidesCommandSurface),
+            dashboardProvidesCommandSurface: try container.decode(
+                Bool.self,
+                forKey: .dashboardProvidesCommandSurface
+            ),
+            eventTimelineProvidesCommandSurface: try container.decode(
+                Bool.self,
+                forKey: .eventTimelineProvidesCommandSurface
+            ),
+            exposesOrderForm: try container.decode(Bool.self, forKey: .exposesOrderForm),
+            exposesOrderLevelCommandUI: try container.decode(Bool.self, forKey: .exposesOrderLevelCommandUI),
+            providesTradingButton: try container.decode(Bool.self, forKey: .providesTradingButton),
+            requiredValidationDependsOnNetwork: try container.decode(
+                Bool.self,
+                forKey: .requiredValidationDependsOnNetwork
+            )
+        )
+    }
+
+    public static let requiredEvidenceSources: [LivePaperRealCommandIsolationEvidenceSource] =
+        LivePaperRealCommandIsolationEvidenceSource.allCases
+
+    public static let requiredForbiddenCapabilities: [LivePaperRealCommandIsolationForbiddenCapability] =
+        LivePaperRealCommandIsolationForbiddenCapability.allCases
+
+    public static let allowedEvidenceKinds: [LiveExecutionControlEvidenceKind] = [
+        .contractDocumentation,
+        .validationMatrixCandidate,
+        .validationPlanAnchor,
+        .deterministicForbiddenTest,
+        .paperRealIsolationEvidence,
+        .prBoundaryEvidence
+    ]
+
+    public static let requiredValidationAnchors: [String] = [
+        "MTP-78-PAPER-REAL-COMMAND-ISOLATION-CONTRACT",
+        "MTP-78-PAPER-EVIDENCE-NO-REAL-COMMAND-UPGRADE",
+        "MTP-78-PAPER-PROJECTION-READ-MODEL-ONLY",
+        "MTP-78-REPORT-DASHBOARD-TIMELINE-READ-MODEL-ONLY",
+        "MTP-78-LIVE-EXECUTION-CONTROL-VALIDATION",
+        "TVM-LIVE-EXECUTION-CONTROL"
+    ]
+
+    public static let requiredSourceAnchors: [String] = [
+        "MTP-75-PAPER-REAL-COMMAND-ISOLATION",
+        "MTP-76-PAPER-INTENT-NO-REAL-COMMAND-UPGRADE",
+        "MTP-77-SIMULATED-FILL-NO-BROKER-FILL-OR-EXECUTION-REPORT",
+        "MTP-77-RECONCILIATION-BLOCKED-EVIDENCE-ONLY",
+        "TVM-PAPER-ORDER-LIFECYCLE",
+        "TVM-PAPER-EXECUTION-DECISION",
+        "TVM-PAPER-SIMULATED-FILL",
+        "TVM-PAPER-EXECUTION-WORKFLOW",
+        "TVM-REPORT-EVIDENCE",
+        "TVM-PAPER-WORKFLOW-CONTROL-SHELL"
+    ]
+
+    public static let deterministicFixture: LivePaperRealCommandIsolationBoundary = {
+        do {
+            return try LivePaperRealCommandIsolationBoundary()
+        } catch {
+            preconditionFailure("MTP-78 paper / real command isolation fixture must be valid: \(error)")
+        }
+    }()
+
+    private static func validate(
+        evidenceSources: [LivePaperRealCommandIsolationEvidenceSource],
+        forbiddenCapabilities: [LivePaperRealCommandIsolationForbiddenCapability],
+        allowedEvidenceKinds: [LiveExecutionControlEvidenceKind],
+        validationAnchors: [String],
+        sourceAnchors: [String]
+    ) throws {
+        guard evidenceSources == Self.requiredEvidenceSources else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "evidenceSources",
+                expected: Self.requiredEvidenceSources.map(\.rawValue).joined(separator: ","),
+                actual: evidenceSources.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard forbiddenCapabilities == Self.requiredForbiddenCapabilities else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "forbiddenCapabilities",
+                expected: Self.requiredForbiddenCapabilities.map(\.rawValue).joined(separator: ","),
+                actual: forbiddenCapabilities.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard allowedEvidenceKinds == Self.allowedEvidenceKinds else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "allowedEvidenceKinds",
+                expected: Self.allowedEvidenceKinds.map(\.rawValue).joined(separator: ","),
+                actual: allowedEvidenceKinds.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard validationAnchors == Self.requiredValidationAnchors else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "validationAnchors",
+                expected: Self.requiredValidationAnchors.joined(separator: ","),
+                actual: validationAnchors.joined(separator: ",")
+            )
+        }
+        guard sourceAnchors == Self.requiredSourceAnchors else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "sourceAnchors",
+                expected: Self.requiredSourceAnchors.joined(separator: ","),
+                actual: sourceAnchors.joined(separator: ",")
+            )
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        isIsolationContractOnly: Bool,
+        reportConsumesReadModelOnly: Bool,
+        dashboardConsumesViewModelOnly: Bool,
+        eventTimelineConsumesReadModelOnly: Bool,
+        createsRealOrderCommand: Bool,
+        submitsRealOrder: Bool,
+        cancelsRealOrder: Bool,
+        replacesRealOrder: Bool,
+        sendsSignedCommandRequest: Bool,
+        consumesExecutionReport: Bool,
+        recordsBrokerFill: Bool,
+        performsReconciliation: Bool,
+        implementsLiveExecutionAdapter: Bool,
+        implementsRealOrderStateMachine: Bool,
+        implementsOMS: Bool,
+        readsRealAccountBalance: Bool,
+        syncsBrokerPosition: Bool,
+        mapsPaperOrderIntentToRealCommand: Bool,
+        mapsPaperExecutionDecisionToRealCommand: Bool,
+        mapsSimulatedFillToRealCommand: Bool,
+        mapsSimulatedFillToExecutionReport: Bool,
+        mapsSimulatedFillToBrokerFill: Bool,
+        mapsPaperPortfolioToBrokerPosition: Bool,
+        reportProvidesCommandSurface: Bool,
+        dashboardProvidesCommandSurface: Bool,
+        eventTimelineProvidesCommandSurface: Bool,
+        exposesOrderForm: Bool,
+        exposesOrderLevelCommandUI: Bool,
+        providesTradingButton: Bool,
+        requiredValidationDependsOnNetwork: Bool
+    ) throws {
+        guard isIsolationContractOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("isIsolationContractOnly")
+        }
+        guard reportConsumesReadModelOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("reportConsumesReadModelOnly")
+        }
+        guard dashboardConsumesViewModelOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("dashboardConsumesViewModelOnly")
+        }
+        guard eventTimelineConsumesReadModelOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("eventTimelineConsumesReadModelOnly")
+        }
+
+        let forbiddenFlags = [
+            ("createsRealOrderCommand", createsRealOrderCommand),
+            ("submitsRealOrder", submitsRealOrder),
+            ("cancelsRealOrder", cancelsRealOrder),
+            ("replacesRealOrder", replacesRealOrder),
+            ("sendsSignedCommandRequest", sendsSignedCommandRequest),
+            ("consumesExecutionReport", consumesExecutionReport),
+            ("recordsBrokerFill", recordsBrokerFill),
+            ("performsReconciliation", performsReconciliation),
+            ("implementsLiveExecutionAdapter", implementsLiveExecutionAdapter),
+            ("implementsRealOrderStateMachine", implementsRealOrderStateMachine),
+            ("implementsOMS", implementsOMS),
+            ("readsRealAccountBalance", readsRealAccountBalance),
+            ("syncsBrokerPosition", syncsBrokerPosition),
+            ("mapsPaperOrderIntentToRealCommand", mapsPaperOrderIntentToRealCommand),
+            ("mapsPaperExecutionDecisionToRealCommand", mapsPaperExecutionDecisionToRealCommand),
+            ("mapsSimulatedFillToRealCommand", mapsSimulatedFillToRealCommand),
+            ("mapsSimulatedFillToExecutionReport", mapsSimulatedFillToExecutionReport),
+            ("mapsSimulatedFillToBrokerFill", mapsSimulatedFillToBrokerFill),
+            ("mapsPaperPortfolioToBrokerPosition", mapsPaperPortfolioToBrokerPosition),
+            ("reportProvidesCommandSurface", reportProvidesCommandSurface),
+            ("dashboardProvidesCommandSurface", dashboardProvidesCommandSurface),
+            ("eventTimelineProvidesCommandSurface", eventTimelineProvidesCommandSurface),
+            ("exposesOrderForm", exposesOrderForm),
+            ("exposesOrderLevelCommandUI", exposesOrderLevelCommandUI),
+            ("providesTradingButton", providesTradingButton),
+            ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(capability.0)
+        }
+    }
+}

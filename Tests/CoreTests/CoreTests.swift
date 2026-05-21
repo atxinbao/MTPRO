@@ -1534,6 +1534,255 @@ final class CoreTests: XCTestCase {
         XCTAssertFalse(portfolioUpdate.syncsBrokerPosition)
     }
 
+    func testPaperRealCommandIsolationBoundaryDefinesMTP78Contract() throws {
+        // 测试场景：MTP-78 只定义 paper evidence 与 future real order command 的隔离合同。
+        // 该 fixture 必须引用 MTP-75 / MTP-76 / MTP-77 的 future gate evidence，但不能形成真实命令。
+        let boundary = LivePaperRealCommandIsolationBoundary.deterministicFixture
+
+        XCTAssertEqual(
+            boundary.contractID,
+            try Identifier("mtp-78-paper-real-command-isolation-boundary")
+        )
+        XCTAssertEqual(boundary.issueID, try Identifier("MTP-78"))
+        XCTAssertEqual(boundary.evidenceSources, LivePaperRealCommandIsolationEvidenceSource.allCases)
+        XCTAssertEqual(
+            boundary.forbiddenCapabilities,
+            LivePaperRealCommandIsolationForbiddenCapability.allCases
+        )
+        XCTAssertTrue(boundary.forbidsCapability(.realOrderCommand))
+        XCTAssertTrue(boundary.forbidsCapability(.paperOrderIntentToRealCommandUpgrade))
+        XCTAssertTrue(boundary.forbidsCapability(.simulatedFillToExecutionReportUpgrade))
+        XCTAssertTrue(boundary.forbidsCapability(.paperPortfolioToBrokerPositionUpgrade))
+        XCTAssertTrue(boundary.forbidsCapability(.dashboardCommandSurface))
+        XCTAssertEqual(
+            boundary.allowedEvidenceKinds,
+            [
+                .contractDocumentation,
+                .validationMatrixCandidate,
+                .validationPlanAnchor,
+                .deterministicForbiddenTest,
+                .paperRealIsolationEvidence,
+                .prBoundaryEvidence
+            ]
+        )
+        XCTAssertEqual(boundary.validationAnchors, [
+            "MTP-78-PAPER-REAL-COMMAND-ISOLATION-CONTRACT",
+            "MTP-78-PAPER-EVIDENCE-NO-REAL-COMMAND-UPGRADE",
+            "MTP-78-PAPER-PROJECTION-READ-MODEL-ONLY",
+            "MTP-78-REPORT-DASHBOARD-TIMELINE-READ-MODEL-ONLY",
+            "MTP-78-LIVE-EXECUTION-CONTROL-VALIDATION",
+            "TVM-LIVE-EXECUTION-CONTROL"
+        ])
+        XCTAssertEqual(boundary.sourceAnchors, [
+            "MTP-75-PAPER-REAL-COMMAND-ISOLATION",
+            "MTP-76-PAPER-INTENT-NO-REAL-COMMAND-UPGRADE",
+            "MTP-77-SIMULATED-FILL-NO-BROKER-FILL-OR-EXECUTION-REPORT",
+            "MTP-77-RECONCILIATION-BLOCKED-EVIDENCE-ONLY",
+            "TVM-PAPER-ORDER-LIFECYCLE",
+            "TVM-PAPER-EXECUTION-DECISION",
+            "TVM-PAPER-SIMULATED-FILL",
+            "TVM-PAPER-EXECUTION-WORKFLOW",
+            "TVM-REPORT-EVIDENCE",
+            "TVM-PAPER-WORKFLOW-CONTROL-SHELL"
+        ])
+        XCTAssertTrue(boundary.isolationBoundaryHeld)
+        XCTAssertTrue(boundary.paperEvidenceCannotUpgradeToRealCommand)
+        XCTAssertTrue(boundary.futureRealCommandCapabilitiesBlocked)
+        XCTAssertTrue(boundary.appSurfaceReadModelOnlyBoundaryHeld)
+        XCTAssertTrue(boundary.isIsolationContractOnly)
+        XCTAssertTrue(boundary.reportConsumesReadModelOnly)
+        XCTAssertTrue(boundary.dashboardConsumesViewModelOnly)
+        XCTAssertTrue(boundary.eventTimelineConsumesReadModelOnly)
+        XCTAssertFalse(boundary.createsRealOrderCommand)
+        XCTAssertFalse(boundary.submitsRealOrder)
+        XCTAssertFalse(boundary.cancelsRealOrder)
+        XCTAssertFalse(boundary.replacesRealOrder)
+        XCTAssertFalse(boundary.sendsSignedCommandRequest)
+        XCTAssertFalse(boundary.consumesExecutionReport)
+        XCTAssertFalse(boundary.recordsBrokerFill)
+        XCTAssertFalse(boundary.performsReconciliation)
+        XCTAssertFalse(boundary.implementsLiveExecutionAdapter)
+        XCTAssertFalse(boundary.implementsRealOrderStateMachine)
+        XCTAssertFalse(boundary.implementsOMS)
+        XCTAssertFalse(boundary.readsRealAccountBalance)
+        XCTAssertFalse(boundary.syncsBrokerPosition)
+        XCTAssertFalse(boundary.mapsPaperOrderIntentToRealCommand)
+        XCTAssertFalse(boundary.mapsPaperExecutionDecisionToRealCommand)
+        XCTAssertFalse(boundary.mapsSimulatedFillToRealCommand)
+        XCTAssertFalse(boundary.mapsSimulatedFillToExecutionReport)
+        XCTAssertFalse(boundary.mapsSimulatedFillToBrokerFill)
+        XCTAssertFalse(boundary.mapsPaperPortfolioToBrokerPosition)
+        XCTAssertFalse(boundary.reportProvidesCommandSurface)
+        XCTAssertFalse(boundary.dashboardProvidesCommandSurface)
+        XCTAssertFalse(boundary.eventTimelineProvidesCommandSurface)
+        XCTAssertFalse(boundary.exposesOrderForm)
+        XCTAssertFalse(boundary.exposesOrderLevelCommandUI)
+        XCTAssertFalse(boundary.providesTradingButton)
+        XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
+        XCTAssertTrue(LiveExecutionControlTerminologyBoundary.deterministicFixture.paperRealIsolationBoundaryHeld)
+        XCTAssertTrue(LiveSubmitCancelReplaceCommandBoundary.deterministicFixture.paperIntentUpgradeBoundaryHeld)
+        XCTAssertTrue(
+            LiveExecutionReportBrokerFillReconciliationBoundary
+                .deterministicFixture
+                .simulatedFillIsolationBoundaryHeld
+        )
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(
+            LivePaperRealCommandIsolationBoundary.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, boundary)
+    }
+
+    func testPaperRealCommandIsolationBoundaryRejectsMTP78RealCommandUpgradeBypass() throws {
+        // 测试场景：MTP-78 fixture 的初始化和 Codable 解码都必须拒绝 paper-to-real
+        // command、真实 submit / cancel / replace、execution report、broker fill、对账和 UI 命令绕过。
+        XCTAssertThrowsError(
+            try LivePaperRealCommandIsolationBoundary(mapsPaperOrderIntentToRealCommand: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("mapsPaperOrderIntentToRealCommand")
+            )
+        }
+        XCTAssertThrowsError(
+            try LivePaperRealCommandIsolationBoundary(mapsPaperExecutionDecisionToRealCommand: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("mapsPaperExecutionDecisionToRealCommand")
+            )
+        }
+        XCTAssertThrowsError(
+            try LivePaperRealCommandIsolationBoundary(mapsSimulatedFillToExecutionReport: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("mapsSimulatedFillToExecutionReport")
+            )
+        }
+        XCTAssertThrowsError(
+            try LivePaperRealCommandIsolationBoundary(mapsPaperPortfolioToBrokerPosition: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("mapsPaperPortfolioToBrokerPosition")
+            )
+        }
+        XCTAssertThrowsError(
+            try LivePaperRealCommandIsolationBoundary(createsRealOrderCommand: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("createsRealOrderCommand"))
+        }
+        XCTAssertThrowsError(
+            try LivePaperRealCommandIsolationBoundary(submitsRealOrder: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("submitsRealOrder"))
+        }
+        XCTAssertThrowsError(
+            try LivePaperRealCommandIsolationBoundary(consumesExecutionReport: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("consumesExecutionReport"))
+        }
+        XCTAssertThrowsError(
+            try LivePaperRealCommandIsolationBoundary(recordsBrokerFill: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("recordsBrokerFill"))
+        }
+        XCTAssertThrowsError(
+            try LivePaperRealCommandIsolationBoundary(performsReconciliation: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("performsReconciliation"))
+        }
+        XCTAssertThrowsError(
+            try LivePaperRealCommandIsolationBoundary(dashboardProvidesCommandSurface: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("dashboardProvidesCommandSurface")
+            )
+        }
+        XCTAssertThrowsError(
+            try LivePaperRealCommandIsolationBoundary(
+                evidenceSources: Array(LivePaperRealCommandIsolationEvidenceSource.allCases.dropLast())
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "evidenceSources",
+                    expected: LivePaperRealCommandIsolationBoundary
+                        .requiredEvidenceSources
+                        .map(\.rawValue)
+                        .joined(separator: ","),
+                    actual: Array(LivePaperRealCommandIsolationEvidenceSource.allCases.dropLast())
+                        .map(\.rawValue)
+                        .joined(separator: ",")
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(LivePaperRealCommandIsolationBoundary.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["eventTimelineProvidesCommandSurface"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LivePaperRealCommandIsolationBoundary.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("eventTimelineProvidesCommandSurface")
+            )
+        }
+    }
+
+    func testPaperEvidenceCannotUpgradeToMTP78FutureRealOrderCommand() throws {
+        // 测试场景：MTP-78 把 paper order intent、paper execution decision、simulated fill
+        // 和 paper portfolio projection 固定为 paper-only evidence，不能升级为 future real command 输入。
+        let boundary = LivePaperRealCommandIsolationBoundary.deterministicFixture
+        let paperOrder = try PaperOrderIntentFixture.deterministicAllowed()
+        let executionDecision = try PaperExecutionDecisionFixture.deterministicAllowed()
+        let simulatedFill = try PaperSimulatedFillFixture.deterministicAllowed()
+        let portfolioUpdate = try PaperPortfolioProjectionUpdate(
+            updateID: try Identifier("paper-portfolio-update-mtp-78"),
+            portfolioID: try Identifier("portfolio-main"),
+            simulatedFill: simulatedFill,
+            sourceSimulatedFillSequence: 18,
+            updatedAt: Date(timeIntervalSince1970: 2_100)
+        )
+
+        XCTAssertTrue(boundary.paperEvidenceCannotUpgradeToRealCommand)
+        XCTAssertTrue(boundary.futureRealCommandCapabilitiesBlocked)
+        XCTAssertTrue(boundary.forbidsCapability(.paperOrderIntentToRealCommandUpgrade))
+        XCTAssertTrue(boundary.forbidsCapability(.paperExecutionDecisionToRealCommandUpgrade))
+        XCTAssertTrue(boundary.forbidsCapability(.simulatedFillToRealCommandUpgrade))
+        XCTAssertTrue(boundary.forbidsCapability(.simulatedFillToBrokerFillUpgrade))
+        XCTAssertTrue(boundary.forbidsCapability(.paperPortfolioToBrokerPositionUpgrade))
+
+        XCTAssertTrue(paperOrder.paperOnlyBoundaryHeld)
+        XCTAssertFalse(paperOrder.representsRealOrder)
+        XCTAssertFalse(paperOrder.authorizesLiveTrading)
+        XCTAssertFalse(paperOrder.isExecutableAsRealOrder)
+
+        XCTAssertTrue(executionDecision.paperOnlyBoundaryHeld)
+        XCTAssertFalse(executionDecision.representsRealOrder)
+        XCTAssertFalse(executionDecision.authorizesLiveTrading)
+        XCTAssertFalse(executionDecision.isExecutableAsRealOrder)
+
+        XCTAssertTrue(simulatedFill.paperOnlyBoundaryHeld)
+        XCTAssertFalse(simulatedFill.representsRealFill)
+        XCTAssertFalse(simulatedFill.representsBrokerFill)
+        XCTAssertFalse(simulatedFill.updatesRealAccountBalance)
+
+        XCTAssertTrue(portfolioUpdate.usesSimulatedFillEvidence)
+        XCTAssertEqual(portfolioUpdate.exposure.source, .paperProjection)
+        XCTAssertFalse(portfolioUpdate.authorizesTradingExecution)
+        XCTAssertFalse(portfolioUpdate.readsRealAccountBalance)
+        XCTAssertFalse(portfolioUpdate.syncsBrokerPosition)
+    }
+
     func testLiveRuntimeHealthDefinesMTP69ReadModelOnlyFixture() throws {
         // 测试场景：MTP-69 只新增 future live runtime health / connection status 的最小
         // read model。fixture 可以表达 healthy / blocked / disconnected / degraded /
