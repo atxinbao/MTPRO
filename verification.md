@@ -7146,6 +7146,48 @@ Commit：
 - 不提交 `.codex/*`。
 - 不提交 `graphify-out/*`。
 
+## MTPRO Workbench Screen Layout v1 Design Record
+
+日期：2026-05-22
+
+执行者：Codex（`@000 / AIE`）
+
+目的：
+
+- 将已通过 `@005 / ARC` 复审的 `MTPRO Workbench Screen Layout v1` 落仓为设计层依据。
+- 记录 Figma canonical `40:2`、frame node-id 清单、页面 layout 摘要、Product Interaction Model 映射和 P1 文案修正结果。
+- 明确该文档只定义 macOS 工作台 screen layout、页面区域、信息优先级、状态表达和禁止动作，不是最终高保真视觉稿、组件规范、SwiftUI 实现稿或 Linear execution 授权。
+
+文件范围：
+
+- `docs/design/mtpro-workbench-screen-layout-v1.md`
+- `docs/product/product-surface-map.md`
+- `BLUEPRINT.md`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+更新重点：
+
+- 新增 `docs/design/mtpro-workbench-screen-layout-v1.md`。
+- 记录统一 macOS workstation screen structure：Sidebar、Top status、Main evidence workspace、Detail inspector、Events / Audit timeline preview、Status presentation、Future Gated placeholder area。
+- 记录 Overview、Market Replay、Research、Backtest、Report、Paper、Portfolio、Risk、Events / Audit、Live Readiness、Live Monitoring、Future Gated 和三类 Future placeholder 的 screen layout 摘要。
+- 记录 `@005 / ARC` 初审 P1 和复审通过结论。
+- 记录 P1 修正：`future gate opened` -> `future gate reviewed`、`boundary source opened` -> `boundary source linked`、`policy placeholder opened` -> `policy placeholder reviewed`、`source evidence opened` -> `source evidence linked`、`source anchor opened` -> `source anchor linked`。
+
+边界确认：
+
+- 不修改 Figma。
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony。
+- 不运行 Graphify update。
+- 不写业务代码。
+- 不把 Future Live trading 写成当前 execution scope。
+- 不提交 `.codex/*`。
+- 不提交 `graphify-out/*`。
+
 ## MTPRO Product Interaction Model v1 Product Record
 
 日期：2026-05-22
