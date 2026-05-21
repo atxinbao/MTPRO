@@ -48,6 +48,15 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(viewModel.report.liveTradingBlockedEvidence.source.callsBinanceAdapter)
         XCTAssertFalse(viewModel.report.liveTradingBlockedEvidence.source.providesLiveOrderAction)
         XCTAssertEqual(
+            viewModel.report.liveMonitoringEvidence.source.sourceKind,
+            .stableReadModelProjection
+        )
+        XCTAssertFalse(viewModel.report.liveMonitoringEvidence.source.exposesDatabaseTables)
+        XCTAssertFalse(viewModel.report.liveMonitoringEvidence.source.exposesORMModels)
+        XCTAssertFalse(viewModel.report.liveMonitoringEvidence.source.exposesRuntimeObjects)
+        XCTAssertFalse(viewModel.report.liveMonitoringEvidence.source.callsBinanceAdapter)
+        XCTAssertFalse(viewModel.report.liveMonitoringEvidence.source.providesLiveOrderAction)
+        XCTAssertEqual(
             viewModel.paperWorkflowObservability.source.sourceKind,
             .stableReadModelProjection
         )
@@ -384,6 +393,105 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(decoded.items.allSatisfy(\.boundaryHeld))
     }
 
+    func testLiveMonitoringEvidenceViewModelAggregatesMTP72ReadModelOnlyEvidence() throws {
+        // 测试场景：MTP-72 只把 MTP-69 / MTP-70 / MTP-71 的 Core read model 复制成
+        // Dashboard / Report 可展示的只读 monitoring evidence，不新增 live command 或交易按钮。
+        let readModel = LiveMonitoringEvidenceReadModel()
+        let viewModel = LiveMonitoringEvidenceViewModel(readModel: readModel)
+
+        XCTAssertTrue(readModel.source.isReadModelOnly)
+        XCTAssertTrue(readModel.readModelOnlyBoundaryHeld)
+        XCTAssertEqual(viewModel.readModelID, "mtp-71-live-latency-error-degraded-evidence")
+        XCTAssertEqual(viewModel.issueID, "MTP-71")
+        XCTAssertEqual(viewModel.runtimeHealthStatus, .blocked)
+        XCTAssertEqual(viewModel.connectionCount, 3)
+        XCTAssertEqual(
+            viewModel.connectionKinds,
+            [
+                "public market data connection",
+                "future private user data connection",
+                "future broker session"
+            ]
+        )
+        XCTAssertEqual(viewModel.connectionStatusLabels, ["disconnected", "blocked", "unavailable"])
+        XCTAssertEqual(viewModel.streamEvidenceCount, 4)
+        XCTAssertEqual(viewModel.marketStreamEvidenceCount, 1)
+        XCTAssertEqual(viewModel.orderStreamEvidenceCount, 3)
+        XCTAssertEqual(
+            viewModel.streamKinds,
+            [
+                "public market stream",
+                "blocked order stream",
+                "simulated order stream",
+                "future order stream"
+            ]
+        )
+        XCTAssertEqual(
+            viewModel.orderStreamEvidenceKindLabels,
+            [
+                "blocked order stream evidence",
+                "simulated paper order evidence",
+                "future order stream gate evidence"
+            ]
+        )
+        XCTAssertEqual(viewModel.latencyEvidenceCount, 5)
+        XCTAssertEqual(viewModel.latencyBucketLabels, ["stale", "degraded", "nominal", "unavailable"])
+        XCTAssertEqual(viewModel.errorEvidenceCount, 3)
+        XCTAssertEqual(
+            viewModel.errorCodes,
+            [
+                "MTP71_PUBLIC_MARKET_STREAM_DISCONNECTED",
+                "MTP71_PRIVATE_USER_DATA_BLOCKED",
+                "MTP71_BROKER_SESSION_UNAVAILABLE"
+            ]
+        )
+        XCTAssertEqual(viewModel.degradedStateEvidenceCount, 2)
+        XCTAssertEqual(viewModel.degradedStateStatusLabels, ["degraded", "unavailable"])
+        XCTAssertTrue(viewModel.sourceAnchors.contains("MTP-69-LIVE-RUNTIME-HEALTH-READ-MODEL"))
+        XCTAssertTrue(viewModel.sourceAnchors.contains("MTP-70-MARKET-STREAM-ORDER-STREAM-READ-MODEL"))
+        XCTAssertTrue(viewModel.sourceAnchors.contains("MTP-71-LATENCY-ERROR-DEGRADED-READ-MODEL"))
+
+        XCTAssertTrue(viewModel.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(viewModel.providesCommandSurface)
+        XCTAssertFalse(viewModel.providesOrderLevelCommand)
+        XCTAssertFalse(viewModel.providesTradingButton)
+        XCTAssertFalse(viewModel.providesRiskCommand)
+        XCTAssertFalse(viewModel.providesPositionCommand)
+        XCTAssertFalse(viewModel.providesAlertingCommand)
+        XCTAssertFalse(viewModel.providesPagingCommand)
+        XCTAssertFalse(viewModel.providesReconnectCommand)
+        XCTAssertFalse(viewModel.providesStopControl)
+        XCTAssertFalse(viewModel.providesLiveRiskControl)
+        XCTAssertFalse(viewModel.triggersIncidentCommand)
+        XCTAssertFalse(viewModel.triggersAutoRecovery)
+        XCTAssertFalse(viewModel.usesProductionTelemetry)
+        XCTAssertFalse(viewModel.usesExternalMetricsService)
+        XCTAssertFalse(viewModel.opensNetworkConnection)
+        XCTAssertFalse(viewModel.exposesDatabaseSchema)
+        XCTAssertFalse(viewModel.exposesRuntimeObject)
+        XCTAssertFalse(viewModel.exposesAdapterSurface)
+        XCTAssertFalse(viewModel.readsAPIKey)
+        XCTAssertFalse(viewModel.readsSecret)
+        XCTAssertFalse(viewModel.callsSignedEndpoint)
+        XCTAssertFalse(viewModel.callsAccountEndpoint)
+        XCTAssertFalse(viewModel.createsListenKey)
+        XCTAssertFalse(viewModel.readsAccountPayload)
+        XCTAssertFalse(viewModel.instantiatesBrokerAdapter)
+        XCTAssertFalse(viewModel.implementsRealOrderStateMachine)
+        XCTAssertFalse(viewModel.authorizesLiveTrading)
+        XCTAssertFalse(viewModel.authorizesTradingExecution)
+        XCTAssertFalse(viewModel.requiredValidationDependsOnNetwork)
+
+        let encoded = try JSONEncoder().encode(viewModel)
+        let decoded = try JSONDecoder().decode(
+            LiveMonitoringEvidenceViewModel.self,
+            from: encoded
+        )
+
+        XCTAssertEqual(decoded, viewModel)
+        XCTAssertTrue(decoded.readModelOnlyBoundaryHeld)
+    }
+
     func testReadModelProjectionMapsAllDashboardSections() throws {
         let viewModel = try makeDashboardViewModel()
 
@@ -511,6 +619,64 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(viewModel.report.liveReadinessCreatesListenKey)
         XCTAssertFalse(viewModel.report.liveReadinessInstantiatesBrokerAdapter)
         XCTAssertFalse(viewModel.report.liveReadinessRepresentsRealOrderLifecycle)
+        XCTAssertEqual(viewModel.report.liveMonitoringHealthStatus, .blocked)
+        XCTAssertEqual(viewModel.report.liveMonitoringConnectionCount, 3)
+        XCTAssertEqual(
+            viewModel.report.liveMonitoringConnectionStatusLabels,
+            ["disconnected", "blocked", "unavailable"]
+        )
+        XCTAssertEqual(viewModel.report.liveMonitoringStreamEvidenceCount, 4)
+        XCTAssertEqual(viewModel.report.liveMonitoringMarketStreamEvidenceCount, 1)
+        XCTAssertEqual(viewModel.report.liveMonitoringOrderStreamEvidenceCount, 3)
+        XCTAssertEqual(viewModel.report.liveMonitoringLatencyEvidenceCount, 5)
+        XCTAssertEqual(
+            viewModel.report.liveMonitoringLatencyBucketLabels,
+            ["stale", "degraded", "nominal", "unavailable"]
+        )
+        XCTAssertEqual(viewModel.report.liveMonitoringErrorEvidenceCount, 3)
+        XCTAssertEqual(
+            viewModel.report.liveMonitoringErrorCodes,
+            [
+                "MTP71_PUBLIC_MARKET_STREAM_DISCONNECTED",
+                "MTP71_PRIVATE_USER_DATA_BLOCKED",
+                "MTP71_BROKER_SESSION_UNAVAILABLE"
+            ]
+        )
+        XCTAssertEqual(viewModel.report.liveMonitoringDegradedStateEvidenceCount, 2)
+        XCTAssertEqual(
+            viewModel.report.liveMonitoringDegradedStateStatusLabels,
+            ["degraded", "unavailable"]
+        )
+        XCTAssertTrue(viewModel.report.liveMonitoringReadModelOnlyBoundaryHeld)
+        XCTAssertFalse(viewModel.report.liveMonitoringProvidesCommandSurface)
+        XCTAssertFalse(viewModel.report.liveMonitoringProvidesOrderLevelCommand)
+        XCTAssertFalse(viewModel.report.liveMonitoringProvidesTradingButton)
+        XCTAssertFalse(viewModel.report.liveMonitoringProvidesRiskCommand)
+        XCTAssertFalse(viewModel.report.liveMonitoringProvidesPositionCommand)
+        XCTAssertFalse(viewModel.report.liveMonitoringExposesDatabaseSchema)
+        XCTAssertFalse(viewModel.report.liveMonitoringExposesRuntimeObject)
+        XCTAssertFalse(viewModel.report.liveMonitoringExposesAdapterSurface)
+        XCTAssertFalse(viewModel.report.liveMonitoringOpensNetworkConnection)
+        XCTAssertFalse(viewModel.report.liveMonitoringUsesProductionTelemetry)
+        XCTAssertFalse(viewModel.report.liveMonitoringUsesExternalMetricsService)
+        XCTAssertFalse(viewModel.report.liveMonitoringProvidesAlertingCommand)
+        XCTAssertFalse(viewModel.report.liveMonitoringProvidesPagingCommand)
+        XCTAssertFalse(viewModel.report.liveMonitoringProvidesReconnectCommand)
+        XCTAssertFalse(viewModel.report.liveMonitoringProvidesStopControl)
+        XCTAssertFalse(viewModel.report.liveMonitoringProvidesLiveRiskControl)
+        XCTAssertFalse(viewModel.report.liveMonitoringTriggersIncidentCommand)
+        XCTAssertFalse(viewModel.report.liveMonitoringTriggersAutoRecovery)
+        XCTAssertFalse(viewModel.report.liveMonitoringReadsAPIKey)
+        XCTAssertFalse(viewModel.report.liveMonitoringReadsSecret)
+        XCTAssertFalse(viewModel.report.liveMonitoringCallsSignedEndpoint)
+        XCTAssertFalse(viewModel.report.liveMonitoringCallsAccountEndpoint)
+        XCTAssertFalse(viewModel.report.liveMonitoringCreatesListenKey)
+        XCTAssertFalse(viewModel.report.liveMonitoringReadsAccountPayload)
+        XCTAssertFalse(viewModel.report.liveMonitoringInstantiatesBrokerAdapter)
+        XCTAssertFalse(viewModel.report.liveMonitoringImplementsRealOrderStateMachine)
+        XCTAssertFalse(viewModel.report.liveMonitoringAuthorizesLiveTrading)
+        XCTAssertFalse(viewModel.report.liveMonitoringAuthorizesTradingExecution)
+        XCTAssertFalse(viewModel.report.liveMonitoringRequiredValidationDependsOnNetwork)
         XCTAssertEqual(viewModel.report.latestParityStatus, .matchedProjectionEvidence)
         XCTAssertEqual(viewModel.report.lastAppliedSequence, 16)
         XCTAssertFalse(viewModel.report.tradingValidationAuthorizesExecution)
@@ -648,6 +814,12 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(decoded.report.liveBlockedEvidenceCount, 6)
         XCTAssertTrue(decoded.report.liveReadinessReadModelOnlyBoundaryHeld)
         XCTAssertFalse(decoded.report.liveReadinessProvidesCommandSurface)
+        XCTAssertEqual(decoded.report.liveMonitoringHealthStatus, .blocked)
+        XCTAssertEqual(decoded.report.liveMonitoringStreamEvidenceCount, 4)
+        XCTAssertEqual(decoded.report.liveMonitoringErrorEvidenceCount, 3)
+        XCTAssertTrue(decoded.report.liveMonitoringReadModelOnlyBoundaryHeld)
+        XCTAssertFalse(decoded.report.liveMonitoringProvidesCommandSurface)
+        XCTAssertFalse(decoded.report.liveMonitoringProvidesTradingButton)
         XCTAssertTrue(decoded.report.paperExecutionWorkflowCoversDecisionOrderFillChain)
         XCTAssertTrue(decoded.report.paperRuntimePaperOnlyBoundaryHeld)
         XCTAssertFalse(decoded.report.authorizesTradingExecution)
@@ -764,6 +936,7 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(metricValue("Exec workflow", in: report), "1")
         XCTAssertEqual(metricValue("Replay ops", in: report), "1")
         XCTAssertEqual(metricValue("Live gates", in: report), "6")
+        XCTAssertEqual(metricValue("Monitoring", in: report), "4")
         XCTAssertTrue(report.details.contains("Report IDs: report-backtest-ema-fixture"))
         XCTAssertTrue(report.details.contains("Cost assumptions: mtp-27-fixed-cost-assumptions"))
         XCTAssertTrue(report.details.contains("Cost parity: consistent"))
@@ -803,6 +976,24 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(report.details.contains("Live blocked boundary: confirmed"))
         XCTAssertTrue(report.details.contains("Live command surface: none"))
         XCTAssertTrue(report.details.contains("Live trading authorization: none"))
+        XCTAssertTrue(report.details.contains("Monitoring health: blocked"))
+        XCTAssertTrue(report.details.contains("Monitoring connections: disconnected, blocked, unavailable"))
+        XCTAssertTrue(report.details.contains("Monitoring streams: 4"))
+        XCTAssertTrue(report.details.contains("Monitoring market streams: 1"))
+        XCTAssertTrue(report.details.contains("Monitoring order streams: 3"))
+        XCTAssertTrue(report.details.contains("Monitoring latency buckets: stale, degraded, nominal, unavailable"))
+        XCTAssertTrue(
+            report.details.contains(
+                "Monitoring errors: MTP71_PUBLIC_MARKET_STREAM_DISCONNECTED, MTP71_PRIVATE_USER_DATA_BLOCKED, MTP71_BROKER_SESSION_UNAVAILABLE"
+            )
+        )
+        XCTAssertTrue(report.details.contains("Monitoring degraded states: degraded, unavailable"))
+        XCTAssertTrue(report.details.contains("Monitoring boundary: confirmed"))
+        XCTAssertTrue(report.details.contains("Monitoring command surface: none"))
+        XCTAssertTrue(report.details.contains("Monitoring trading buttons: none"))
+        XCTAssertTrue(report.details.contains("Monitoring schema exposure: none"))
+        XCTAssertTrue(report.details.contains("Monitoring runtime exposure: none"))
+        XCTAssertTrue(report.details.contains("Monitoring adapter exposure: none"))
         XCTAssertTrue(report.details.contains("Trading validation execution: research-only"))
         XCTAssertTrue(report.details.contains("Execution: research-only"))
         XCTAssertTrue(report.details.contains("Latest parity: matched projection evidence"))
@@ -826,6 +1017,8 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(snapshot.smokeSummary.contains("controls=start,pause,close,reset"))
         XCTAssertTrue(snapshot.smokeSummary.contains("timelineItems=24"))
         XCTAssertTrue(snapshot.smokeSummary.contains("liveBlockedGates=6"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("liveMonitoringHealth=blocked"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("liveMonitoringErrors=3"))
     }
 
     func testDashboardShellWorkbenchSnapshotBindsControlsObservabilityAndExplorerReadOnly() throws {
@@ -900,11 +1093,35 @@ final class AppTests: XCTestCase {
                 "Live blocked boundary: confirmed"
             )
         )
+        XCTAssertEqual(metricValue("Health", in: workbench.liveMonitoringEvidenceMetrics), "blocked")
+        XCTAssertEqual(metricValue("Connections", in: workbench.liveMonitoringEvidenceMetrics), "3")
+        XCTAssertEqual(metricValue("Streams", in: workbench.liveMonitoringEvidenceMetrics), "4")
+        XCTAssertEqual(metricValue("Latency", in: workbench.liveMonitoringEvidenceMetrics), "5")
+        XCTAssertEqual(metricValue("Errors", in: workbench.liveMonitoringEvidenceMetrics), "3")
+        XCTAssertEqual(metricValue("Degraded", in: workbench.liveMonitoringEvidenceMetrics), "2")
+        XCTAssertTrue(workbench.liveMonitoringEvidenceDetails.contains("Monitoring health: blocked"))
+        XCTAssertTrue(
+            workbench.liveMonitoringEvidenceDetails.contains(
+                "Monitoring connections: disconnected, blocked, unavailable"
+            )
+        )
+        XCTAssertTrue(
+            workbench.liveMonitoringEvidenceDetails.contains(
+                "Monitoring latency: stale, degraded, nominal, unavailable"
+            )
+        )
+        XCTAssertTrue(workbench.liveMonitoringEvidenceDetails.contains("Monitoring command surface: none"))
+        XCTAssertTrue(workbench.liveMonitoringEvidenceDetails.contains("Monitoring trading buttons: none"))
+        XCTAssertTrue(workbench.liveMonitoringEvidenceDetails.contains("Monitoring schema exposure: none"))
+        XCTAssertTrue(workbench.liveMonitoringEvidenceDetails.contains("Monitoring runtime exposure: none"))
+        XCTAssertTrue(workbench.liveMonitoringEvidenceDetails.contains("Monitoring adapter exposure: none"))
+        XCTAssertTrue(workbench.liveMonitoringEvidenceDetails.contains("Monitoring boundary: confirmed"))
 
         XCTAssertTrue(workbench.source.isReadModelOnly)
         XCTAssertTrue(workbench.observabilitySource.isReadModelOnly)
         XCTAssertTrue(workbench.evidenceExplorerSource.isReadModelOnly)
         XCTAssertTrue(workbench.liveBlockedEvidenceSource.isReadModelOnly)
+        XCTAssertTrue(workbench.liveMonitoringEvidenceSource.isReadModelOnly)
         XCTAssertTrue(workbench.readModelOnlyBoundaryHeld)
         XCTAssertTrue(workbench.paperOnlyBoundaryHeld)
         XCTAssertFalse(workbench.providesCommandSurface)
@@ -940,6 +1157,7 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(report?.metrics.first { $0.label == "Replay facts" }?.value, "0")
         XCTAssertEqual(report?.metrics.first { $0.label == "Exec workflow" }?.value, "0")
         XCTAssertEqual(report?.metrics.first { $0.label == "Live gates" }?.value, "6")
+        XCTAssertEqual(report?.metrics.first { $0.label == "Monitoring" }?.value, "4")
 
         let events = snapshot.sections.first { $0.section == .events }
         XCTAssertEqual(events?.metrics.first { $0.label == "Events" }?.value, "0")
@@ -948,6 +1166,8 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(metricValue("Controls", in: snapshot.workbench.observabilityMetrics), "4")
         XCTAssertEqual(metricValue("Timeline items", in: snapshot.workbench.evidenceExplorerMetrics), "6")
         XCTAssertEqual(metricValue("Live gates", in: snapshot.workbench.liveBlockedEvidenceMetrics), "6")
+        XCTAssertEqual(metricValue("Health", in: snapshot.workbench.liveMonitoringEvidenceMetrics), "blocked")
+        XCTAssertEqual(metricValue("Errors", in: snapshot.workbench.liveMonitoringEvidenceMetrics), "3")
         XCTAssertTrue(snapshot.workbench.readModelOnlyBoundaryHeld)
         XCTAssertFalse(snapshot.workbench.providesOrderLevelCommand)
     }

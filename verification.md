@@ -7502,3 +7502,58 @@ Root docs 判断：
 | --- | --- | --- |
 | `swift test --filter MTP71` | pass | 3 个 focused XCTest 通过；覆盖 deterministic fixture、Codable round trip、latency / error / degraded source anchors、no production telemetry、no external metrics、no alerting / paging、no reconnect / stop control、no incident command、no auto recovery、no signed endpoint、no broker、no live risk control。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 144 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6`；最终输出 `MTPRO checks passed.`。 |
+
+## MTP-72 Dashboard / Report Live Monitoring Evidence
+
+日期：2026-05-21
+
+执行者：Codex
+
+目的：
+
+- 将 MTP-69 / MTP-70 / MTP-71 的 live monitoring evidence 接入 Dashboard / Report 的 read-model-only 展示面。
+- 让 Report 和 Dashboard 能展示 runtime health、connection、market stream、order stream、latency、error 和 degraded state summary。
+- 保持 Dashboard smoke，不新增 live command、交易按钮、完整实盘监控台 redesign、真实外部系统连接、execution control、risk control 或 stop control。
+
+文件范围：
+
+- `Sources/App/LiveMonitoringEvidence.swift`
+- `Sources/App/App.swift`
+- `Sources/App/DashboardShell.swift`
+- `Tests/AppTests/AppTests.swift`
+- `docs/contracts/live-monitoring-console-contract.md`
+- `docs/contracts/frontend-view-model-contract.md`
+- `docs/product/product-surface-map.md`
+- `docs/validation/validation-plan.md`
+- `docs/validation/trading-validation-matrix.md`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+更新重点：
+
+- 新增 `LiveMonitoringEvidenceReadModel`，只接收 Core 层 `LiveLatencyErrorDegradedMonitoringEvidenceReadModel` 稳定输入。
+- 新增 `LiveMonitoringEvidenceViewModel`，汇总 runtime health status、connection statuses、stream counts、latency buckets、error codes、degraded states、source anchors 和 forbidden capability flags。
+- `ReportReadModel` / `ReportViewModel` 新增 `liveMonitoringEvidence` 和 monitoring summary fields。
+- `DashboardShellSnapshot` Report section 新增 `Monitoring` 指标，Workbench 新增 `Live Monitoring` 只读组。
+- Dashboard smoke 新增 `liveMonitoringHealth=blocked` 和 `liveMonitoringErrors=3` evidence。
+- AppTests 新增 MTP-72 deterministic ViewModel 测试，并扩展 Report / Dashboard / Workbench / smoke snapshot assertions。
+
+边界确认：
+
+- 不新增 live command、交易按钮、order-level command、risk command、position command。
+- 不实现 production telemetry、runtime profiler、external metrics service、真实 runtime monitoring、真实网络连接、alerting / paging、reconnect、stop control、incident command 或 auto recovery。
+- 不接 signed endpoint、account endpoint、listenKey。
+- 不读取 API key、secret 或 account payload。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`、real order state machine、execution report、broker fill、OMS 或真实交易授权。
+- 不暴露 adapter surface、Runtime object、SQLite / DuckDB schema、SQL、ORM、table、column 或 persistence implementation。
+- 不修改 `checks/automation-readiness.sh`；MTP-74 才做 MTP-68 至 MTP-73 的统一机械收口。
+- 不提交 `.codex/*`。
+- 不提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter AppTests` | pass | 18 个 AppTests 通过；覆盖 MTP-72 ViewModel deterministic snapshot、Report / Dashboard / Workbench monitoring evidence、Dashboard smoke、no command / no button / no schema / no adapter / no runtime / no network / no production telemetry / no signed endpoint / no account endpoint / no listenKey / no broker / no real order state machine。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 145 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；最终输出 `MTPRO checks passed.`。 |

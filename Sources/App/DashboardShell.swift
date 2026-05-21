@@ -169,6 +169,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
     public let observabilitySource: ViewModelSourceContract
     public let evidenceExplorerSource: ViewModelSourceContract
     public let liveBlockedEvidenceSource: ViewModelSourceContract
+    public let liveMonitoringEvidenceSource: ViewModelSourceContract
     public let sessionControls: [DashboardShellControlSnapshot]
     public let observabilitySections: [PaperWorkflowObservabilitySection]
     public let observabilityMetrics: [DashboardShellMetric]
@@ -177,6 +178,8 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
     public let evidenceExplorerDetails: [String]
     public let liveBlockedEvidenceMetrics: [DashboardShellMetric]
     public let liveBlockedEvidenceDetails: [String]
+    public let liveMonitoringEvidenceMetrics: [DashboardShellMetric]
+    public let liveMonitoringEvidenceDetails: [String]
     public let timelinePreview: [String]
     public let readModelOnlyBoundaryHeld: Bool
     public let paperOnlyBoundaryHeld: Bool
@@ -196,6 +199,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         observabilitySource: ViewModelSourceContract,
         evidenceExplorerSource: ViewModelSourceContract,
         liveBlockedEvidenceSource: ViewModelSourceContract,
+        liveMonitoringEvidenceSource: ViewModelSourceContract,
         sessionControls: [DashboardShellControlSnapshot],
         observabilitySections: [PaperWorkflowObservabilitySection],
         observabilityMetrics: [DashboardShellMetric],
@@ -204,6 +208,8 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         evidenceExplorerDetails: [String],
         liveBlockedEvidenceMetrics: [DashboardShellMetric],
         liveBlockedEvidenceDetails: [String],
+        liveMonitoringEvidenceMetrics: [DashboardShellMetric],
+        liveMonitoringEvidenceDetails: [String],
         timelinePreview: [String],
         paperOnlyBoundaryHeld: Bool,
         providesCommandSurface: Bool,
@@ -221,6 +227,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         self.observabilitySource = observabilitySource
         self.evidenceExplorerSource = evidenceExplorerSource
         self.liveBlockedEvidenceSource = liveBlockedEvidenceSource
+        self.liveMonitoringEvidenceSource = liveMonitoringEvidenceSource
         self.sessionControls = sessionControls
         self.observabilitySections = observabilitySections
         self.observabilityMetrics = observabilityMetrics
@@ -229,6 +236,8 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         self.evidenceExplorerDetails = evidenceExplorerDetails
         self.liveBlockedEvidenceMetrics = liveBlockedEvidenceMetrics
         self.liveBlockedEvidenceDetails = liveBlockedEvidenceDetails
+        self.liveMonitoringEvidenceMetrics = liveMonitoringEvidenceMetrics
+        self.liveMonitoringEvidenceDetails = liveMonitoringEvidenceDetails
         self.timelinePreview = timelinePreview
         self.paperOnlyBoundaryHeld = paperOnlyBoundaryHeld
         self.providesCommandSurface = providesCommandSurface
@@ -243,6 +252,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
             && observabilitySource.isReadModelOnly
             && evidenceExplorerSource.isReadModelOnly
             && liveBlockedEvidenceSource.isReadModelOnly
+            && liveMonitoringEvidenceSource.isReadModelOnly
             && sessionControls.allSatisfy(\.paperOnlyBoundaryHeld)
             && paperOnlyBoundaryHeld
             && providesCommandSurface == false
@@ -256,7 +266,13 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
     }
 
     public var viewModelSources: [ViewModelSourceContract] {
-        [source, observabilitySource, evidenceExplorerSource, liveBlockedEvidenceSource]
+        [
+            source,
+            observabilitySource,
+            evidenceExplorerSource,
+            liveBlockedEvidenceSource,
+            liveMonitoringEvidenceSource
+        ]
     }
 
     public var controlLabels: [String] {
@@ -302,7 +318,15 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         let controls = workbench.controlLabels.joined(separator: ",")
         let timelineItems = Self.metricValue("Timeline items", in: workbench.evidenceExplorerMetrics)
         let liveBlockedGates = Self.metricValue("Live gates", in: workbench.liveBlockedEvidenceMetrics)
-        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); workbenchReadModelOnly=\(workbench.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); liveBlockedGates=\(liveBlockedGates); sections=\(sectionNames)"
+        let liveMonitoringHealth = Self.metricValue(
+            "Health",
+            in: workbench.liveMonitoringEvidenceMetrics
+        )
+        let liveMonitoringErrors = Self.metricValue(
+            "Errors",
+            in: workbench.liveMonitoringEvidenceMetrics
+        )
+        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); workbenchReadModelOnly=\(workbench.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); liveBlockedGates=\(liveBlockedGates); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
     }
 
     private static func makeSectionSnapshot(
@@ -336,6 +360,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         let observability = viewModel.paperWorkflowObservability
         let explorer = viewModel.paperWorkflowEvidenceExplorer
         let liveBlockedEvidence = viewModel.report.liveTradingBlockedEvidence
+        let liveMonitoringEvidence = viewModel.report.liveMonitoringEvidence
         let sessionControls = architecture.sessionLevelControls.map(DashboardShellControlSnapshot.init)
 
         return DashboardShellWorkbenchSnapshot(
@@ -343,6 +368,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             observabilitySource: observability.source,
             evidenceExplorerSource: explorer.source,
             liveBlockedEvidenceSource: liveBlockedEvidence.source,
+            liveMonitoringEvidenceSource: liveMonitoringEvidence.source,
             sessionControls: sessionControls,
             observabilitySections: architecture.observabilitySections,
             observabilityMetrics: [
@@ -395,33 +421,81 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 "Live trading authorization: \(formatForbiddenFlag(liveBlockedEvidence.authorizesLiveTrading))",
                 "Live blocked boundary: \(formatEvidenceFlag(liveBlockedEvidence.readModelOnlyBoundaryHeld))"
             ],
+            liveMonitoringEvidenceMetrics: [
+                DashboardShellMetric(
+                    label: "Health",
+                    value: liveMonitoringEvidence.runtimeHealthStatus.rawValue
+                ),
+                DashboardShellMetric(
+                    label: "Connections",
+                    value: "\(liveMonitoringEvidence.connectionCount)"
+                ),
+                DashboardShellMetric(
+                    label: "Streams",
+                    value: "\(liveMonitoringEvidence.streamEvidenceCount)"
+                ),
+                DashboardShellMetric(
+                    label: "Latency",
+                    value: "\(liveMonitoringEvidence.latencyEvidenceCount)"
+                ),
+                DashboardShellMetric(
+                    label: "Errors",
+                    value: "\(liveMonitoringEvidence.errorEvidenceCount)"
+                ),
+                DashboardShellMetric(
+                    label: "Degraded",
+                    value: "\(liveMonitoringEvidence.degradedStateEvidenceCount)"
+                )
+            ],
+            liveMonitoringEvidenceDetails: [
+                "Monitoring health: \(liveMonitoringEvidence.runtimeHealthStatus.rawValue)",
+                "Monitoring connections: \(joined(liveMonitoringEvidence.connectionStatusLabels))",
+                "Monitoring streams: \(joined(liveMonitoringEvidence.streamKinds))",
+                "Monitoring latency: \(joined(liveMonitoringEvidence.latencyBucketLabels))",
+                "Monitoring errors: \(joined(liveMonitoringEvidence.errorCodes))",
+                "Monitoring degraded states: \(joined(liveMonitoringEvidence.degradedStateStatusLabels))",
+                "Monitoring command surface: \(formatForbiddenFlag(liveMonitoringEvidence.providesCommandSurface))",
+                "Monitoring trading buttons: \(formatForbiddenFlag(liveMonitoringEvidence.providesTradingButton))",
+                "Monitoring schema exposure: \(formatForbiddenFlag(liveMonitoringEvidence.exposesDatabaseSchema))",
+                "Monitoring runtime exposure: \(formatForbiddenFlag(liveMonitoringEvidence.exposesRuntimeObject))",
+                "Monitoring adapter exposure: \(formatForbiddenFlag(liveMonitoringEvidence.exposesAdapterSurface))",
+                "Monitoring boundary: \(formatEvidenceFlag(liveMonitoringEvidence.readModelOnlyBoundaryHeld))"
+            ],
             timelinePreview: explorer.timelineItems.prefix(5).map {
                 "\($0.title): \($0.summary)"
             },
             paperOnlyBoundaryHeld: observability.paperOnlyBoundaryHeld,
-            providesCommandSurface: explorer.providesCommandSurface,
+            providesCommandSurface: explorer.providesCommandSurface
+                || liveMonitoringEvidence.providesCommandSurface,
             providesOrderLevelCommand: observability.providesOrderLevelCommand
                 || explorer.providesOrderLevelCommand
                 || liveBlockedEvidence.providesOrderLevelCommand
+                || liveMonitoringEvidence.providesOrderLevelCommand
                 || sessionControls.contains { $0.authorizesOrderLevelCommand },
             exposesDatabaseSchema: observability.exposesDatabaseSchema
                 || explorer.exposesDatabaseSchema
-                || liveBlockedEvidence.exposesDatabaseSchema,
+                || liveBlockedEvidence.exposesDatabaseSchema
+                || liveMonitoringEvidence.exposesDatabaseSchema,
             exposesRuntimeObject: observability.exposesRuntimeObject
                 || explorer.exposesRuntimeObject
-                || liveBlockedEvidence.exposesRuntimeObject,
+                || liveBlockedEvidence.exposesRuntimeObject
+                || liveMonitoringEvidence.exposesRuntimeObject,
             exposesAdapterRequest: observability.exposesAdapterRequest
                 || explorer.exposesAdapterRequest
-                || liveBlockedEvidence.exposesAdapterSurface,
+                || liveBlockedEvidence.exposesAdapterSurface
+                || liveMonitoringEvidence.exposesAdapterSurface,
             authorizesLiveTrading: observability.authorizesLiveTrading
                 || explorer.authorizesLiveTrading
-                || liveBlockedEvidence.authorizesLiveTrading,
+                || liveBlockedEvidence.authorizesLiveTrading
+                || liveMonitoringEvidence.authorizesLiveTrading,
             touchesBrokerAction: observability.touchesBrokerAction
                 || explorer.touchesBrokerAction
-                || liveBlockedEvidence.touchesBrokerAction,
+                || liveBlockedEvidence.touchesBrokerAction
+                || liveMonitoringEvidence.instantiatesBrokerAdapter,
             authorizesTradingExecution: observability.authorizesTradingExecution
                 || explorer.authorizesTradingExecution
                 || liveBlockedEvidence.authorizesTradingExecution
+                || liveMonitoringEvidence.authorizesTradingExecution
         )
     }
 
@@ -508,7 +582,11 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 DashboardShellMetric(label: "Replay facts", value: "\(viewModel.paperRuntimeReplaySequenceCount)"),
                 DashboardShellMetric(label: "Exec workflow", value: "\(viewModel.paperExecutionWorkflowEvidenceCount)"),
                 DashboardShellMetric(label: "Replay ops", value: "\(viewModel.marketDataReplayEvidenceCount)"),
-                DashboardShellMetric(label: "Live gates", value: "\(viewModel.liveBlockedEvidenceCount)")
+                DashboardShellMetric(label: "Live gates", value: "\(viewModel.liveBlockedEvidenceCount)"),
+                DashboardShellMetric(
+                    label: "Monitoring",
+                    value: "\(viewModel.liveMonitoringStreamEvidenceCount)"
+                )
             ],
             details: [
                 "Report IDs: \(joined(viewModel.artifacts.map(\.reportID)))",
@@ -547,6 +625,20 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 "Live blocked boundary: \(formatEvidenceFlag(viewModel.liveReadinessReadModelOnlyBoundaryHeld))",
                 "Live command surface: \(formatForbiddenFlag(viewModel.liveReadinessProvidesCommandSurface))",
                 "Live trading authorization: \(formatForbiddenFlag(viewModel.liveReadinessAuthorizesLiveTrading))",
+                "Monitoring health: \(viewModel.liveMonitoringHealthStatus.rawValue)",
+                "Monitoring connections: \(joined(viewModel.liveMonitoringConnectionStatusLabels))",
+                "Monitoring streams: \(viewModel.liveMonitoringStreamEvidenceCount)",
+                "Monitoring market streams: \(viewModel.liveMonitoringMarketStreamEvidenceCount)",
+                "Monitoring order streams: \(viewModel.liveMonitoringOrderStreamEvidenceCount)",
+                "Monitoring latency buckets: \(joined(viewModel.liveMonitoringLatencyBucketLabels))",
+                "Monitoring errors: \(joined(viewModel.liveMonitoringErrorCodes))",
+                "Monitoring degraded states: \(joined(viewModel.liveMonitoringDegradedStateStatusLabels))",
+                "Monitoring boundary: \(formatEvidenceFlag(viewModel.liveMonitoringReadModelOnlyBoundaryHeld))",
+                "Monitoring command surface: \(formatForbiddenFlag(viewModel.liveMonitoringProvidesCommandSurface))",
+                "Monitoring trading buttons: \(formatForbiddenFlag(viewModel.liveMonitoringProvidesTradingButton))",
+                "Monitoring schema exposure: \(formatForbiddenFlag(viewModel.liveMonitoringExposesDatabaseSchema))",
+                "Monitoring runtime exposure: \(formatForbiddenFlag(viewModel.liveMonitoringExposesRuntimeObject))",
+                "Monitoring adapter exposure: \(formatForbiddenFlag(viewModel.liveMonitoringExposesAdapterSurface))",
                 "Trading validation execution: \(format(viewModel.tradingValidationAuthorizesExecution))",
                 "Execution: \(format(viewModel.authorizesTradingExecution))",
                 "Latest parity: \(format(viewModel.latestParityStatus))",
@@ -861,6 +953,12 @@ private struct DashboardWorkbenchPanel: View {
                     systemImage: "lock.shield",
                     metrics: workbench.liveBlockedEvidenceMetrics,
                     details: workbench.liveBlockedEvidenceDetails
+                )
+                DashboardWorkbenchDetailGroup(
+                    title: "Live Monitoring",
+                    systemImage: "waveform.path.ecg",
+                    metrics: workbench.liveMonitoringEvidenceMetrics,
+                    details: workbench.liveMonitoringEvidenceDetails
                 )
             }
         }
