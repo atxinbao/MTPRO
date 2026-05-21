@@ -470,6 +470,30 @@ Shell 新增展示：
 - API key、secret storage、signed endpoint、account endpoint、listenKey、broker adapter、real order lifecycle、真实订单提交 / 撤销 / 替换或真实交易授权。
 - SQLite / DuckDB schema、SQL、ORM model、Runtime object、adapter request 或 persistence adapter direct read 暴露。
 
+## MTP-80 Execution-control blocked evidence Dashboard / Report / Event Timeline 展示面
+
+日期：2026-05-22
+
+执行者：Codex
+
+当前产品面把 Live Execution Control Contract 的 blocked evidence 接入 Report、Dashboard 和 Event Timeline 的只读展示层。该接入只消费 MTP-79 `LiveExecutionControlBlockedEvidence` 的 App read model / ViewModel，不做实盘执行控制台、order form、交易按钮或真实订单命令。
+
+新增观察面：
+
+- Report evidence：展示 execution-control blocked gate count、blocked gate labels、blocked reason labels、source anchors、deterministic snapshot、all-gates-blocked 和 read-model-only boundary。
+- Dashboard Report section：新增 `Execution control` 指标和 execution-control no command / no order form / no trading button / no schema / no runtime / no adapter details。
+- Dashboard Workbench：新增 `Live Execution Control` 只读 detail group，展示 execution gate count、unique blocked reason count、blocked confirmation 和 read-model-only boundary。
+- Event Timeline / Evidence Explorer：新增 `live execution control blocked evidence` 分区，为 submit、cancel、replace、execution report、broker fill、reconciliation 和 incident fallback 生成只读 timeline item / evidence link。
+- Dashboard smoke：新增 `liveExecutionControlGates=7` evidence，同时保留八个 Dashboard sections、readModelOnly=true、workbenchReadModelOnly=true、session-level controls、Live blocked gates 和 Live monitoring evidence。
+
+仍不包含：
+
+- API key、secret storage、signed endpoint、account endpoint、listenKey。
+- broker / exchange execution adapter、`LiveExecutionAdapter`、real order state machine、OMS。
+- 真实订单 submit / cancel / replace、signed command request、execution report ingestion、broker fill event fact、reconciliation runtime、incident fallback automation。
+- live command、交易按钮、order form、order-level command UI、risk control command 或 position management command。
+- SQLite / DuckDB schema、SQL、ORM model、Runtime object、adapter request 或 persistence adapter direct read 暴露。
+
 ## MTP-68 Live monitoring console information architecture
 
 日期：2026-05-21

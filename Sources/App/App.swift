@@ -682,6 +682,7 @@ public struct ReportReadModel: Equatable, Sendable {
     public let marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel
     public let liveMonitoringEvidence: LiveMonitoringEvidenceReadModel
+    public let liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel
     public let lastAppliedSequence: Int?
 
     public init(
@@ -689,6 +690,7 @@ public struct ReportReadModel: Equatable, Sendable {
         marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel = MarketDataReplayOperationsEvidenceReadModel(),
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel(),
         liveMonitoringEvidence: LiveMonitoringEvidenceReadModel = LiveMonitoringEvidenceReadModel(),
+        liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel = LiveExecutionControlBlockedEvidenceReadModel(),
         lastAppliedSequence: Int? = nil
     ) {
         self.artifacts = artifacts.sorted { left, right in
@@ -697,11 +699,13 @@ public struct ReportReadModel: Equatable, Sendable {
         self.marketDataReplayOperations = marketDataReplayOperations
         self.liveTradingBlockedEvidence = liveTradingBlockedEvidence
         self.liveMonitoringEvidence = liveMonitoringEvidence
+        self.liveExecutionControlBlockedEvidence = liveExecutionControlBlockedEvidence
         self.lastAppliedSequence = Self.maxSequence(
             lastAppliedSequence,
             marketDataReplayOperations.lastAppliedSequence,
             liveTradingBlockedEvidence.lastAppliedSequence,
-            liveMonitoringEvidence.lastAppliedSequence
+            liveMonitoringEvidence.lastAppliedSequence,
+            liveExecutionControlBlockedEvidence.lastAppliedSequence
         )
     }
 
@@ -711,7 +715,8 @@ public struct ReportReadModel: Equatable, Sendable {
         eventTimeline: [EventEnvelope],
         marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel = MarketDataReplayOperationsEvidenceReadModel(),
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel(),
-        liveMonitoringEvidence: LiveMonitoringEvidenceReadModel = LiveMonitoringEvidenceReadModel()
+        liveMonitoringEvidence: LiveMonitoringEvidenceReadModel = LiveMonitoringEvidenceReadModel(),
+        liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel = LiveExecutionControlBlockedEvidenceReadModel()
     ) {
         let sortedBacktests = analyticalProjection.backtestRuns.values.sorted {
             $0.runID.rawValue < $1.runID.rawValue
@@ -744,6 +749,7 @@ public struct ReportReadModel: Equatable, Sendable {
             marketDataReplayOperations: marketDataReplayOperations,
             liveTradingBlockedEvidence: liveTradingBlockedEvidence,
             liveMonitoringEvidence: liveMonitoringEvidence,
+            liveExecutionControlBlockedEvidence: liveExecutionControlBlockedEvidence,
             lastAppliedSequence: lastAppliedSequence
         )
     }
@@ -1036,7 +1042,8 @@ public struct DashboardReadModel: Equatable, Sendable {
         eventTimeline: [EventEnvelope],
         marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel = MarketDataReplayOperationsEvidenceReadModel(),
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel(),
-        liveMonitoringEvidence: LiveMonitoringEvidenceReadModel = LiveMonitoringEvidenceReadModel()
+        liveMonitoringEvidence: LiveMonitoringEvidenceReadModel = LiveMonitoringEvidenceReadModel(),
+        liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel = LiveExecutionControlBlockedEvidenceReadModel()
     ) {
         let report = ReportReadModel(
             analyticalProjection: analyticalProjection,
@@ -1044,7 +1051,8 @@ public struct DashboardReadModel: Equatable, Sendable {
             eventTimeline: eventTimeline,
             marketDataReplayOperations: marketDataReplayOperations,
             liveTradingBlockedEvidence: liveTradingBlockedEvidence,
-            liveMonitoringEvidence: liveMonitoringEvidence
+            liveMonitoringEvidence: liveMonitoringEvidence,
+            liveExecutionControlBlockedEvidence: liveExecutionControlBlockedEvidence
         )
         let paper = PaperReadModel(runtimeProjection: runtimeProjection)
         let risk = RiskReadModel(runtimeProjection: runtimeProjection)
@@ -1072,6 +1080,7 @@ public struct DashboardReadModel: Equatable, Sendable {
                 report: report,
                 liveTradingBlockedEvidence: report.liveTradingBlockedEvidence,
                 liveMonitoringEvidence: report.liveMonitoringEvidence,
+                liveExecutionControlBlockedEvidence: report.liveExecutionControlBlockedEvidence,
                 paperWorkflowObservability: paperWorkflowObservability,
                 events: events
             ),
@@ -1227,6 +1236,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
     public let marketDataReplayOperations: MarketDataReplayOperationsEvidenceViewModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceViewModel
     public let liveMonitoringEvidence: LiveMonitoringEvidenceViewModel
+    public let liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceViewModel
     public let artifactCount: Int
     public let completedBacktestCount: Int
     public let researchRunCount: Int
@@ -1350,6 +1360,40 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
     public let liveMonitoringAuthorizesLiveTrading: Bool
     public let liveMonitoringAuthorizesTradingExecution: Bool
     public let liveMonitoringRequiredValidationDependsOnNetwork: Bool
+    public let liveExecutionControlBlockedGateCount: Int
+    public let liveExecutionControlBlockedGateLabels: [String]
+    public let liveExecutionControlBlockedReasonLabels: [String]
+    public let liveExecutionControlSourceAnchors: [String]
+    public let liveExecutionControlDeterministicSnapshot: [String]
+    public let liveExecutionControlAllGatesBlocked: Bool
+    public let liveExecutionControlReadModelOnlyBoundaryHeld: Bool
+    public let liveExecutionControlExposesPersistenceSchema: Bool
+    public let liveExecutionControlReadsAdapter: Bool
+    public let liveExecutionControlInvokesRuntimeControl: Bool
+    public let liveExecutionControlProvidesCommandSurface: Bool
+    public let liveExecutionControlProvidesOrderLevelCommand: Bool
+    public let liveExecutionControlExposesOrderForm: Bool
+    public let liveExecutionControlExposesOrderLevelCommandUI: Bool
+    public let liveExecutionControlProvidesTradingButton: Bool
+    public let liveExecutionControlAuthorizesLiveExecution: Bool
+    public let liveExecutionControlAuthorizesTradingExecution: Bool
+    public let liveExecutionControlReadsAPIKey: Bool
+    public let liveExecutionControlUsesSignedEndpoint: Bool
+    public let liveExecutionControlCallsAccountEndpoint: Bool
+    public let liveExecutionControlCreatesListenKey: Bool
+    public let liveExecutionControlInstantiatesBrokerExecutionAdapter: Bool
+    public let liveExecutionControlInstantiatesExchangeExecutionAdapter: Bool
+    public let liveExecutionControlImplementsLiveExecutionAdapter: Bool
+    public let liveExecutionControlImplementsRealOrderStateMachine: Bool
+    public let liveExecutionControlImplementsOMS: Bool
+    public let liveExecutionControlSubmitsRealOrder: Bool
+    public let liveExecutionControlCancelsRealOrder: Bool
+    public let liveExecutionControlReplacesRealOrder: Bool
+    public let liveExecutionControlConsumesExecutionReport: Bool
+    public let liveExecutionControlRecordsBrokerFill: Bool
+    public let liveExecutionControlPerformsReconciliation: Bool
+    public let liveExecutionControlExecutesIncidentFallback: Bool
+    public let liveExecutionControlRequiredValidationDependsOnNetwork: Bool
     public let tradingValidationAuthorizesExecution: Bool
     public let authorizesTradingExecution: Bool
     public let latestParityStatus: ReportParityStatus?
@@ -1369,12 +1413,16 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
         let liveMonitoringEvidence = LiveMonitoringEvidenceViewModel(
             readModel: readModel.liveMonitoringEvidence
         )
+        let liveExecutionControlBlockedEvidence = LiveExecutionControlBlockedEvidenceViewModel(
+            readModel: readModel.liveExecutionControlBlockedEvidence
+        )
         self.section = .report
         self.source = ViewModelSourceContract()
         self.artifacts = readModel.artifacts.map(ReportArtifactViewModel.init)
         self.marketDataReplayOperations = replayOperations
         self.liveTradingBlockedEvidence = liveBlockedEvidence
         self.liveMonitoringEvidence = liveMonitoringEvidence
+        self.liveExecutionControlBlockedEvidence = liveExecutionControlBlockedEvidence
         self.artifactCount = readModel.artifacts.count
         self.completedBacktestCount = readModel.artifacts.filter { $0.backtestState == .completed }.count
         self.researchRunCount = readModel.artifacts
@@ -1596,6 +1644,70 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
             .authorizesTradingExecution
         self.liveMonitoringRequiredValidationDependsOnNetwork = liveMonitoringEvidence
             .requiredValidationDependsOnNetwork
+        self.liveExecutionControlBlockedGateCount = liveExecutionControlBlockedEvidence
+            .blockedGateCount
+        self.liveExecutionControlBlockedGateLabels = liveExecutionControlBlockedEvidence
+            .blockedGateLabels
+        self.liveExecutionControlBlockedReasonLabels = liveExecutionControlBlockedEvidence
+            .blockedReasonLabels
+        self.liveExecutionControlSourceAnchors = liveExecutionControlBlockedEvidence.sourceAnchors
+        self.liveExecutionControlDeterministicSnapshot = liveExecutionControlBlockedEvidence
+            .deterministicSnapshot
+        self.liveExecutionControlAllGatesBlocked = liveExecutionControlBlockedEvidence
+            .allExecutionControlGatesBlocked
+        self.liveExecutionControlReadModelOnlyBoundaryHeld = liveExecutionControlBlockedEvidence
+            .readModelOnlyBoundaryHeld
+        self.liveExecutionControlExposesPersistenceSchema = liveExecutionControlBlockedEvidence
+            .exposesPersistenceSchema
+        self.liveExecutionControlReadsAdapter = liveExecutionControlBlockedEvidence.readsAdapter
+        self.liveExecutionControlInvokesRuntimeControl = liveExecutionControlBlockedEvidence
+            .invokesRuntimeControl
+        self.liveExecutionControlProvidesCommandSurface = liveExecutionControlBlockedEvidence
+            .providesCommandSurface
+        self.liveExecutionControlProvidesOrderLevelCommand = liveExecutionControlBlockedEvidence
+            .providesOrderLevelCommand
+        self.liveExecutionControlExposesOrderForm = liveExecutionControlBlockedEvidence
+            .exposesOrderForm
+        self.liveExecutionControlExposesOrderLevelCommandUI = liveExecutionControlBlockedEvidence
+            .exposesOrderLevelCommandUI
+        self.liveExecutionControlProvidesTradingButton = liveExecutionControlBlockedEvidence
+            .providesTradingButton
+        self.liveExecutionControlAuthorizesLiveExecution = liveExecutionControlBlockedEvidence
+            .authorizesLiveExecution
+        self.liveExecutionControlAuthorizesTradingExecution = liveExecutionControlBlockedEvidence
+            .authorizesTradingExecution
+        self.liveExecutionControlReadsAPIKey = liveExecutionControlBlockedEvidence.readsAPIKey
+        self.liveExecutionControlUsesSignedEndpoint = liveExecutionControlBlockedEvidence
+            .usesSignedEndpoint
+        self.liveExecutionControlCallsAccountEndpoint = liveExecutionControlBlockedEvidence
+            .callsAccountEndpoint
+        self.liveExecutionControlCreatesListenKey = liveExecutionControlBlockedEvidence
+            .createsListenKey
+        self.liveExecutionControlInstantiatesBrokerExecutionAdapter = liveExecutionControlBlockedEvidence
+            .instantiatesBrokerExecutionAdapter
+        self.liveExecutionControlInstantiatesExchangeExecutionAdapter = liveExecutionControlBlockedEvidence
+            .instantiatesExchangeExecutionAdapter
+        self.liveExecutionControlImplementsLiveExecutionAdapter = liveExecutionControlBlockedEvidence
+            .implementsLiveExecutionAdapter
+        self.liveExecutionControlImplementsRealOrderStateMachine = liveExecutionControlBlockedEvidence
+            .implementsRealOrderStateMachine
+        self.liveExecutionControlImplementsOMS = liveExecutionControlBlockedEvidence.implementsOMS
+        self.liveExecutionControlSubmitsRealOrder = liveExecutionControlBlockedEvidence
+            .submitsRealOrder
+        self.liveExecutionControlCancelsRealOrder = liveExecutionControlBlockedEvidence
+            .cancelsRealOrder
+        self.liveExecutionControlReplacesRealOrder = liveExecutionControlBlockedEvidence
+            .replacesRealOrder
+        self.liveExecutionControlConsumesExecutionReport = liveExecutionControlBlockedEvidence
+            .consumesExecutionReport
+        self.liveExecutionControlRecordsBrokerFill = liveExecutionControlBlockedEvidence
+            .recordsBrokerFill
+        self.liveExecutionControlPerformsReconciliation = liveExecutionControlBlockedEvidence
+            .performsReconciliation
+        self.liveExecutionControlExecutesIncidentFallback = liveExecutionControlBlockedEvidence
+            .executesIncidentFallback
+        self.liveExecutionControlRequiredValidationDependsOnNetwork = liveExecutionControlBlockedEvidence
+            .requiredValidationDependsOnNetwork
         self.tradingValidationAuthorizesExecution = tradingEvidence.contains {
             $0.authorizesTradingExecution
         }
@@ -1603,6 +1715,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
             $0.authorizesTradingExecution
         } || liveBlockedEvidence.authorizesTradingExecution
             || liveMonitoringEvidence.authorizesTradingExecution
+            || liveExecutionControlBlockedEvidence.authorizesTradingExecution
         self.latestParityStatus = readModel.artifacts.last?.parityStatus
         self.lastAppliedSequence = readModel.lastAppliedSequence
     }
@@ -1801,6 +1914,7 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
             report.marketDataReplayOperations.source,
             report.liveTradingBlockedEvidence.source,
             report.liveMonitoringEvidence.source,
+            report.liveExecutionControlBlockedEvidence.source,
             paperWorkflowObservability.source,
             paperWorkflowEvidenceExplorer.source,
             paper.source,
