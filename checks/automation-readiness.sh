@@ -368,7 +368,7 @@ require_contains "docs/environment.md" "External System Capability Matrix / 外�
 require_contains "docs/environment.md" "Secrets / Local State Boundary"
 require_contains "docs/environment.md" "Automation Boundary / 自动化边界"
 require_contains "docs/validation/latest-verification-summary.md" "Current Foundation Progress: 4 / 4 (100%)"
-require_contains "docs/validation/latest-verification-summary.md" "Final Product Goal Progress: 5 / 9 (56%)"
+require_contains "docs/validation/latest-verification-summary.md" "Final Product Goal Progress: 6 / 9 (67%)"
 for planning_record in \
   "docs/planning/projects/mtpro-guidance-plan.md" \
   "docs/planning/projects/mtpro-runtime-research-workbench-v1-plan.md" \
@@ -849,6 +849,7 @@ require_contains "docs/audit/mtpro-live-trading-boundary-definition-v1-stage-cod
 require_contains "docs/audit/mtpro-live-trading-boundary-definition-v1-stage-code-audit.md" "Known CI Boundary / 临时失败说明"
 require_contains "docs/audit/mtpro-live-trading-boundary-definition-v1-stage-code-audit.md" "无当前遗留 failing PR run"
 require_contains "docs/audit/mtpro-live-trading-boundary-definition-v1-stage-code-audit.md" "Root Docs Refresh Gate closure：closed"
+require_contains "docs/audit/mtpro-live-monitoring-console-v1-stage-code-audit.md" "Root Docs Refresh Gate closure：closed"
 require_contains "Sources/Core/PaperSessionLocalControlCommand.swift" "PaperSessionLocalControlRejectedReason"
 require_contains "Sources/Core/PaperSessionLocalControlEventLog.swift" "PaperSessionLocalControlEventLogBoundary"
 require_contains "Sources/App/DashboardShell.swift" "DashboardShellWorkbenchSnapshot"

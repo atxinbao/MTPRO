@@ -116,17 +116,17 @@ Post-Issue Ledger 对 `MTP-74` 已执行，但持久仓 `/Users/mac/Documents/MT
 
 ## Root Docs Delta
 
-| Root doc | Root Docs Refresh Gate input |
+| Root doc | Root Docs Refresh Gate closure |
 | --- | --- |
-| `GOAL.md` | update expected：本 Project 完成后可将 Final Product Goal Slice #6 “实盘监控台” 从 Pending / gated 更新为 Complete / read-model-only monitoring evidence surface；必须明确这不代表真实 Live trading、live runtime、signed endpoint、broker 或真实订单已实现。 |
-| `BLUEPRINT.md` | no update expected：`BLUEPRINT.md` 已保持 Future Live execution / risk / audit / stop controls 为 Future Construction Zones / 未来建设区；本 Project 只固化 monitoring evidence surface 的已发生事实。 |
-| `docs/environment.md` | no update expected：本 Project 未新增 required validation 入口、secret 读取、broker credential、外部写能力、production telemetry 或网络必需验证；统一验证入口仍是 `bash checks/run.sh`。 |
-| `docs/architecture.md` | update expected：Root Docs Refresh Gate 应检查是否需要把 Live monitoring console read-model-only evidence chain、Core / App / Dashboard evidence flow 和 no adapter / runtime / schema leakage 边界同步为已完成事实。 |
-| `docs/roadmap.md` | update expected：Root Docs Refresh Gate 应新增 `MTPRO Live Monitoring Console v1` 为 Completed，并重新计算 Current Foundation Progress、Final Product Goal Progress 和 Project Closure Count。 |
+| `GOAL.md` | updated：Final Product Goal Progress 从 `5 / 9 (56%)` 更新为 `6 / 9 (67%)`，并明确第 6 项只完成 read-model-only monitoring evidence surface，不代表真实 live runtime、signed/account stream、broker stream 或交易控制。 |
+| `BLUEPRINT.md` | updated：Live Monitoring Console 从 In Progress 改为 Complete / read-model-only evidence surface；Future Live Execution、Future Live Risk、Future Incident Replay / Stop Controls 仍保持 Future Gated。 |
+| `docs/environment.md` | no update needed：本 Project 未新增 required validation 入口、secret 读取、broker credential、外部写能力、production telemetry 或网络必需验证；统一验证入口仍是 `bash checks/run.sh`。 |
+| `docs/architecture.md` | updated：Live monitoring console read-model-only evidence chain、Core / App / Dashboard evidence flow 和 no adapter / runtime / schema leakage 边界已同步为已完成事实。 |
+| `docs/roadmap.md` | updated：新增 `MTPRO Live Monitoring Console v1` 为 Completed，Project Closure Count 更新为 `9 / 9 (100%)`，Final Product Goal Progress 更新为 `6 / 9 (67%)`。 |
 
-Root Docs Refresh Gate status：pending。
+Root Docs Refresh Gate closure：closed。
 
-Stage Code Audit Report 合并后，`@002 / PAR` 必须单独执行 Root Docs Refresh Gate closure。该 closure 只允许同步已发生事实；方向、目标、架构路线和下一阶段优先级必须交给 Human + `@001 / PLN`。
+本轮 closure 只同步已发生事实；方向、目标、架构路线和下一阶段优先级仍交给 Human + `@001 / PLN`。
 
 ## Residual Notes For Human Planning
 
@@ -155,5 +155,5 @@ Handoff 结论：
 - 当前没有新的 authorized Project。
 - 当前没有新的 authorized issue。
 - 当前不得自动推进任何 issue 到 `Todo`。
-- Root Docs Refresh Gate 尚未 closure。
+- Root Docs Refresh Gate 已 closure。
 - 下一阶段必须由 Human + `@001 / PLN` 重新规划；`@002 / PAR` 只在 Project / Issue 已写入 Linear 且 gate 通过后接管自动调度。

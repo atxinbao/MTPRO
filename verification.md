@@ -7751,3 +7751,49 @@ Root docs 判断：
 - 不写业务代码。
 - 不修改 root docs factual state；Root Docs Refresh Gate 保持 pending。
 - 不授权下一阶段 planning 或 execution。
+
+## MTPRO Live Monitoring Console v1 Root Docs Refresh Gate Closure
+
+日期：2026-05-22
+
+执行者：Parent Codex Automation Supervision（`@002 / PAR`）
+
+目的：
+
+- 基于已合并的 `docs/audit/mtpro-live-monitoring-console-v1-stage-code-audit.md` 执行 Root Docs Refresh Gate closure。
+- 将 `MTPRO Live Monitoring Console v1` 从 In Progress / Pending 事实更新为 Completed / read-model-only evidence surface。
+- 将 Final Product Goal Progress 从 `5 / 9 (56%)` 更新为 `6 / 9 (67%)`。
+- 保持 Future Live Execution、Future Live Risk、Future Incident Replay / Stop Controls 为 Future Gated。
+
+Root docs 判断：
+
+| 文档 | 结论 | 原因 |
+| --- | --- | --- |
+| `GOAL.md` | updated | Final Product Goal Progress 更新为 `6 / 9 (67%)`，并明确 Live Monitoring 只完成 read-model-only evidence surface。 |
+| `BLUEPRINT.md` | updated | Live Monitoring Console 从 In Progress 改为 Completed / current evidence surface；真实 live runtime、signed/account stream、broker stream 和交易控制仍 gated。 |
+| `docs/environment.md` | no update needed | 本 Project 未新增 required validation 入口、secret、broker credential、外部写能力、production telemetry 或网络必需验证。 |
+| `docs/architecture.md` | updated | Live monitoring read-model-only evidence chain 已同步为已完成事实，并保持 no adapter / runtime / schema leakage 边界。 |
+| `docs/roadmap.md` | updated | 新增 completed Project，Project Closure Count 更新为 `9 / 9 (100%)`，Final Product Goal Progress 更新为 `6 / 9 (67%)`。 |
+| `docs/validation/latest-verification-summary.md` | updated | 当前基线、Root Docs Refresh Gate 状态、Progress baseline 和 evidence pointers 已同步。 |
+| `docs/audit/mtpro-live-monitoring-console-v1-stage-code-audit.md` | updated | Root Docs Delta 从 pending input 更新为 closure evidence。 |
+| `checks/automation-readiness.sh` | updated | Progress anchor 和 Live Monitoring Stage Audit Report closure anchor 已同步。 |
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear issue / status。
+- 不推进 Todo。
+- 不启动 Symphony。
+- 不运行 Graphify update。
+- 不写业务代码。
+- 不修改 Figma。
+- 不启动下一阶段 planning。
+- 不提交 `.codex/*`。
+- 不提交 `graphify-out/*`。
+
+Validation：
+
+| 验证项 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Root Docs Refresh Gate closure docs-only 变更无 whitespace error。 |
+| `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；146 个 XCTest 通过，0 failures。 |
