@@ -730,3 +730,43 @@ Shell 新增展示：
 - 高保真最终视觉稿、SwiftUI 实现或业务代码开发。
 - Linear Project / Issue、Todo 推进、Symphony 启动或 Future Live trading execution scope。
 - submit / cancel / replace、order form、broker action、signed endpoint、account endpoint / listenKey、reconnect / start live / stop live、live command、trading button、real order state machine、real account balance 或 real broker position。
+
+## MTPRO Workbench Visual Style Direction v1
+
+日期：2026-05-22
+
+执行者：Codex（`@000 / AIE`）
+
+当前设计层新增 `MTPRO Workbench Visual Style Direction v1`，路径为 `docs/design/mtpro-workbench-visual-style-direction-v1.md`。该文档记录 Figma canonical `64:2`，承接 Product User Flow Blueprint、Product Interaction Model、Screen Layout v1、UI/UX Design Rules v1 和 Component / Layout Specification v1，用于定义 macOS native 专业交易工作台的视觉方向、色彩语义、typography、density、核心组件视觉样例和关键页面视觉样例。
+
+该文档是设计层视觉方向依据，不是最终高保真 UI、组件库、SwiftUI 实现或 Linear execution 授权。
+
+视觉方向覆盖：
+
+- macOS native professional workstation。
+- evidence-first。
+- compact / dense but readable。
+- restrained visual language。
+- 中文优先，英文作为技术别名。
+- 不是 Web SaaS dashboard。
+
+设计语义覆盖：
+
+- 色彩语义：neutral surface、evidence emphasis、healthy、stale、blocked、degraded、error、Future Gated、read-model-only。
+- 状态不能只靠颜色，必须配合中文标签、原因和 source。
+- Typography hierarchy：page title、section title、evidence row title、metadata / trace id、status label、warning / blocked copy。
+- Density：sidebar density、top status density、evidence table density、inspector density、timeline preview density。
+- 核心组件视觉样例：evidence row、evidence card、evidence table、status label、blocked reason panel、detail inspector section、timeline preview row、Future Gated placeholder。
+- 关键页面视觉样例：Overview、Paper、Live Monitoring、Future Gated。
+
+`runtime health: blocked` 这类文案是 read-model evidence label，不是底层 Runtime object。
+
+`@005 / ARC` 复审结论：通过。P0 / P1 均未发现，P2 无阻断项。
+
+禁止 UI Surface 检查结果：无 API key / secret storage input、无 signed endpoint、无 account endpoint / listenKey、无 broker adapter / broker action、无 `LiveExecutionAdapter`、无 real order state machine / OMS、无 submit / cancel / replace、无 broker fill / execution report / reconciliation、无 real account balance / broker position、无 trading button / live command / order-level command UI、无 reconnect / start live / stop live。
+
+仍不包含：
+
+- 最终高保真 UI、组件库、SwiftUI 实现或业务代码开发。
+- Linear Project / Issue、Todo 推进、Symphony 启动或 Future Live trading execution scope。
+- submit / cancel / replace、order form、broker action、signed endpoint、account endpoint / listenKey、reconnect / start live / stop live、live command、trading button、real order state machine、real account balance 或 real broker position。

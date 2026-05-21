@@ -67,6 +67,7 @@
 | `docs/design/mtpro-workbench-screen-layout-v1.md` | 设计层 screen layout 依据，承接产品用户动线和交互模型，定义 macOS 工作台页面区域、信息优先级和禁止动作 |
 | `docs/design/mtpro-workbench-ui-ux-design-rules-v1.md` | 设计层 UI/UX rules 依据，承接 Screen Layout v1，定义 macOS native 工作台视觉方向、状态表达、evidence components 和禁止 UI 表面 |
 | `docs/design/mtpro-workbench-component-layout-specification-v1.md` | 设计层组件 / 布局规格依据，承接 UI/UX Design Rules v1，定义 layout primitives、evidence components、state components、partition components 和边界组件 |
+| `docs/design/mtpro-workbench-visual-style-direction-v1.md` | 设计层视觉方向依据，承接组件 / 布局规格，定义 macOS native 工作台视觉方向、色彩语义、typography、density 和关键视觉样例 |
 | `docs/audit/` | 已完成 Project 的 Stage Code Audit Reports |
 | `docs/validation/trading-validation-matrix.md` | 交易语义验证证据地图 |
 | `docs/planning/project-role-map.md` | MTPRO 角色编号、职责和边界 |
@@ -265,6 +266,8 @@ MTPRO Workbench 最终应包含：
 `docs/design/mtpro-workbench-ui-ux-design-rules-v1.md` 已记录 Figma canonical `51:2` 的 `MTPRO Workbench UI/UX Design Rules v1` 作为设计层依据。该文档承接 Product User Flow Blueprint、Product Interaction Model 和 Screen Layout v1，定义 macOS native 工作台的 UI/UX 规则、状态标签、evidence components、三态分区、Paper 本地控制、Live Monitoring 只读证据面、Future Gated placeholder 和 Forbidden UI Surface Checklist；它不是高保真最终视觉稿、组件规范、SwiftUI 实现稿或 Linear execution 授权。
 
 `docs/design/mtpro-workbench-component-layout-specification-v1.md` 已记录 Figma canonical `57:2` 的 `MTPRO Workbench Component / Layout Specification v1` 作为设计层组件 / 布局规格依据。该文档承接 UI/UX Design Rules v1，定义 layout primitives、evidence components、state components、partition components、Paper 本地 session controls、Live Monitoring 只读证据组件、Future Gated placeholder 和 sizing / spacing / density tokens；它不是高保真最终视觉稿、SwiftUI 实现稿、真实交易能力或 Linear execution 授权。
+
+`docs/design/mtpro-workbench-visual-style-direction-v1.md` 已记录 Figma canonical `64:2` 的 `MTPRO Workbench Visual Style Direction v1` 作为设计层视觉方向依据。该文档承接 Product User Flow Blueprint、Product Interaction Model、Screen Layout v1、UI/UX Design Rules v1 和 Component / Layout Specification v1，定义 macOS native professional workstation 的视觉方向、色彩语义、typography hierarchy、density、核心组件视觉样例和关键页面视觉样例；它不是最终高保真 UI、组件库、SwiftUI 实现稿、真实交易能力或 Linear execution 授权。
 
 ## Infrastructure Blueprint / 基础设施蓝图
 

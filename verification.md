@@ -8204,6 +8204,54 @@ Linear / scope evidence：
 - 不提交 `graphify-out/*`。
 - 不授权 SwiftUI 实现、Linear execution、Future Live trading 或业务代码开发。
 
+## MTPRO Workbench Visual Style Direction v1 Design Record
+
+日期：2026-05-22
+
+执行者：Codex
+
+目的：
+
+- 将已通过 `@005 / ARC` 复审的 `MTPRO Workbench Visual Style Direction v1` 落仓为设计层依据。
+- 记录 Figma canonical `64:2`，承接 Product User Flow Blueprint、Product Interaction Model、Screen Layout v1、UI/UX Design Rules v1 和 Component / Layout Specification v1。
+- 明确该文档只定义 macOS native 专业交易工作台的视觉方向、色彩语义、typography、density、核心组件视觉样例和关键页面视觉样例，不是最终高保真 UI、组件库、SwiftUI 实现稿、真实交易能力或 Linear execution 授权。
+
+文件范围：
+
+- `docs/design/mtpro-workbench-visual-style-direction-v1.md`
+- `docs/product/product-surface-map.md`
+- `BLUEPRINT.md`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+更新重点：
+
+- 记录 Figma canonical file `0MkTyZXHmfBaZ2K9fqddCm` 和主节点 `64:2`。
+- 记录关键节点 `64:4`、`64:47`、`64:95`、`64:398`、`64:460`、`64:523` 和 `64:567`。
+- 固化视觉方向：macOS native professional workstation、evidence-first、compact / dense but readable、restrained visual language、中文优先、不是 Web SaaS dashboard。
+- 固化色彩语义：neutral surface、evidence emphasis、healthy、stale、blocked、degraded、error、Future Gated、read-model-only；状态不能只靠颜色，必须配合中文标签、原因和 source。
+- 固化 typography hierarchy：page title、section title、evidence row title、metadata / trace id、status label、warning / blocked copy。
+- 固化 density：sidebar density、top status density、evidence table density、inspector density、timeline preview density。
+- 固化核心组件视觉样例：evidence row、evidence card、evidence table、status label、blocked reason panel、detail inspector section、timeline preview row、Future Gated placeholder。
+- 固化关键页面视觉样例：Overview、Paper、Live Monitoring、Future Gated。
+- 明确 `runtime health: blocked` 是 read-model evidence label，不是底层 Runtime object。
+- 记录 `@005 / ARC` 复审结论：通过，P0 / P1 均未发现，P2 无阻断项。
+
+边界确认：
+
+- 不修改 Figma。
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony。
+- 不运行 Graphify update。
+- 不写业务代码。
+- 不把 Future Live trading 写成当前 execution scope。
+- 不提交 `.codex/*`。
+- 不提交 `graphify-out/*`。
+- 不授权最终 UI、高保真实现、SwiftUI 实现、Linear execution、Future Live trading 或业务代码开发。
+
 ## MTP-77 Execution Report / Broker Fill / Reconciliation Future Gates
 
 日期：2026-05-22
