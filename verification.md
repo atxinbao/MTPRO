@@ -7154,6 +7154,47 @@ Commit：
 | `git diff --check` | pass | Stage Code Audit Report 落仓变更无 whitespace error。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 135 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6`；最终输出 `MTPRO checks passed.`。 |
 
+## MTPRO Live Monitoring Console v1 Planning Record
+
+日期：2026-05-21
+
+执行者：Codex（`@001 / PLN`）
+
+目的：
+
+- 将 Human 已确认的 `MTPRO Live Monitoring Console v1` Project-level planning record 落仓。
+- 承接 Final Product Goal Slice #6：实盘监控台。
+- 仓库只保存 Project 级计划摘要和格式门槛，不复制维护完整 Linear issue body。
+- 明确本阶段保持 read-model-only，订单流 / 订单事件流仅表示 blocked / simulated / future evidence，不表示真实订单状态机。
+
+文件范围：
+
+- `docs/planning/projects/mtpro-live-monitoring-console-v1-plan.md`
+- `docs/planning/linear-draft-plan.md`
+- `docs/validation/latest-verification-summary.md`
+- `checks/automation-readiness.sh`
+- `verification.md`
+
+边界确认：
+
+- docs / checks only。
+- 未创建 Linear Project / Issue。
+- 未修改 Linear status。
+- 未推进 Todo。
+- 未启动 `@002 / PAR`。
+- 未启动 Symphony / symphony-issue。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Live Monitoring Console planning record docs / checks 变更无 whitespace error。 |
+| `bash checks/run.sh` | pass | 首轮 `swift test` 出现一次 `xctest` signal 11；执行 `swift package clean` 后重跑通过，automation readiness、Dashboard build / smoke 和 135 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6`；最终输出 `MTPRO checks passed.`。 |
+
 ## MTPRO Live Trading Boundary Definition v1 Root Docs Refresh Gate Closure
 
 日期：2026-05-21
