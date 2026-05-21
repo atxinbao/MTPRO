@@ -891,3 +891,41 @@ MTP-74 必须收口的主要 anchors：
 - 不写业务功能扩展。
 - 不实现任何 Live trading、execution control、risk control、live audit、incident replay 或 stop control capability。
 - 不接 signed endpoint、account endpoint、listenKey、broker adapter、`LiveExecutionAdapter`、real order state machine 或真实订单行为。
+
+## MTP-75 Live Execution Control Terminology / Taxonomy Validation
+
+日期：2026-05-22
+
+执行者：Codex
+
+MTP-75 的 required validation：
+
+- `docs/contracts/live-execution-control-contract.md` 必须存在，并包含 `MTP-75-LIVE-EXECUTION-CONTROL-TERMINOLOGY`、`MTP-75-REAL-ORDER-COMMAND-TAXONOMY`、`MTP-75-PAPER-REAL-COMMAND-ISOLATION`、`MTP-75-NO-EXECUTABLE-COMMAND-SURFACE` 和 `MTP-75-LIVE-EXECUTION-CONTROL-VALIDATION` 锚点。
+- `Sources/Core/LiveExecutionControlContract.swift` 必须定义 `LiveExecutionControlTerm`、`FutureRealOrderCommandTaxonomyTerm`、`LiveExecutionControlFutureGate`、`LiveExecutionControlForbiddenCapability`、`LiveExecutionControlEvidenceKind` 和 `LiveExecutionControlTerminologyBoundary`。
+- `LiveExecutionControlTerminologyBoundary` 必须固定 execution-control terminology、real order command taxonomy、future gates、forbidden capability baseline、validation anchors 和 paper / real command isolation anchors。
+- Core tests 必须覆盖 deterministic fixture、Codable round trip、taxonomy drift rejection、command surface rejection、submit / cancel / replace / execution report / reconciliation / `LiveExecutionAdapter` / real order state machine / OMS bypass rejection，以及 `PaperOrderIntent` / `PaperExecutionDecision` / `PaperSimulatedFillEvidence` 不可升级为 real order command。
+- `docs/validation/trading-validation-matrix.md` 必须新增 `TVM-LIVE-EXECUTION-CONTROL` candidate entry，并回填 MTP-75 Core contract、deterministic tests、contract docs 和 validation-plan anchor。
+- MTP-75 只定义 validation anchor 名称 / 入口，不修改 `checks/automation-readiness.sh` 做最终机械收口；automation readiness 实际收口保留给 Issue 7。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不读取真实 API key，不新增 secret config，不实现 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、real order state machine、OMS、submit / cancel / replace、execution report、broker fill、reconciliation、incident fallback automation、live command、order-level command UI、order form 或交易按钮。
+
+MTP-75 必须建立的主要 anchors：
+
+- `TVM-LIVE-EXECUTION-CONTROL`
+- `MTP-75-LIVE-EXECUTION-CONTROL-TERMINOLOGY`
+- `MTP-75-REAL-ORDER-COMMAND-TAXONOMY`
+- `MTP-75-PAPER-REAL-COMMAND-ISOLATION`
+- `MTP-75-NO-EXECUTABLE-COMMAND-SURFACE`
+- `MTP-75-LIVE-EXECUTION-CONTROL-VALIDATION`
+
+## MTP-75 禁止
+
+- 不实现 API key / secret storage。
+- 不实现 signed endpoint / account endpoint / listenKey。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`。
+- 不实现 real order state machine / OMS。
+- 不提交、撤销、替换真实订单。
+- 不实现 broker fill、execution report、reconciliation。
+- 不实现 incident fallback automation、stop control、live audit 或 live risk。
+- 不新增交易按钮、order form、live command 或 order-level command UI。
+- 不把 paper order intent、paper execution decision 或 simulated fill 升级为 future real order command。

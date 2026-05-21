@@ -878,6 +878,217 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testLiveExecutionControlTerminologyDefinesMTP75FutureOnlyTaxonomy() throws {
+        // 测试场景：MTP-75 只定义 Future Live Execution 的 terminology、real order
+        // command taxonomy 和 validation anchors。所有字段都必须停留在 future-only /
+        // forbidden evidence，不能形成当前可调用的真实订单命令。
+        let boundary = LiveExecutionControlTerminologyBoundary.deterministicFixture
+
+        XCTAssertEqual(
+            boundary.contractID,
+            try Identifier("mtp-75-live-execution-control-terminology")
+        )
+        XCTAssertEqual(boundary.issueID, try Identifier("MTP-75"))
+        XCTAssertEqual(boundary.terms, LiveExecutionControlTerm.allCases)
+        XCTAssertEqual(boundary.commandTaxonomy, FutureRealOrderCommandTaxonomyTerm.allCases)
+        XCTAssertEqual(
+            boundary.commandTaxonomy,
+            [.submit, .cancel, .replace, .executionReport, .reconciliation, .incidentFallback]
+        )
+        XCTAssertEqual(
+            boundary.futureGates,
+            [
+                .humanLiveDecision,
+                .credentialEndpointBoundarySatisfied,
+                .adapterCapabilityIsolationSatisfied,
+                .realOrderLifecycleBoundarySatisfied,
+                .submitCancelReplaceContract,
+                .executionReportContract,
+                .brokerFillContract,
+                .reconciliationContract,
+                .incidentFallbackContract,
+                .liveRiskOperationsAuditEvidence
+            ]
+        )
+        XCTAssertEqual(boundary.forbiddenCapabilities, LiveExecutionControlForbiddenCapability.allCases)
+        XCTAssertEqual(
+            boundary.allowedEvidenceKinds,
+            [
+                .contractDocumentation,
+                .validationMatrixCandidate,
+                .validationPlanAnchor,
+                .deterministicForbiddenTest,
+                .paperRealIsolationEvidence,
+                .prBoundaryEvidence
+            ]
+        )
+        XCTAssertEqual(boundary.validationAnchors, [
+            "MTP-75-LIVE-EXECUTION-CONTROL-TERMINOLOGY",
+            "MTP-75-REAL-ORDER-COMMAND-TAXONOMY",
+            "MTP-75-PAPER-REAL-COMMAND-ISOLATION",
+            "MTP-75-NO-EXECUTABLE-COMMAND-SURFACE",
+            "MTP-75-LIVE-EXECUTION-CONTROL-VALIDATION",
+            "TVM-LIVE-EXECUTION-CONTROL"
+        ])
+        XCTAssertEqual(boundary.paperIsolationSourceAnchors, [
+            "TVM-PAPER-ORDER-LIFECYCLE",
+            "TVM-PAPER-EXECUTION-DECISION",
+            "TVM-PAPER-SIMULATED-FILL",
+            "MTP-64-PAPER-REAL-LIFECYCLE-ISOLATION",
+            "MTP-75-PAPER-REAL-COMMAND-ISOLATION"
+        ])
+        XCTAssertTrue(boundary.terminologyBoundaryHeld)
+        XCTAssertTrue(boundary.paperRealIsolationBoundaryHeld)
+        XCTAssertTrue(boundary.isFutureOnlyTerminology)
+        XCTAssertFalse(boundary.providesExecutableCommandSurface)
+        XCTAssertFalse(boundary.readsAPIKey)
+        XCTAssertFalse(boundary.usesSignedEndpoint)
+        XCTAssertFalse(boundary.callsAccountEndpoint)
+        XCTAssertFalse(boundary.createsListenKey)
+        XCTAssertFalse(boundary.implementsLiveExecutionAdapter)
+        XCTAssertFalse(boundary.implementsRealOrderStateMachine)
+        XCTAssertFalse(boundary.implementsOMS)
+        XCTAssertFalse(boundary.submitsRealOrder)
+        XCTAssertFalse(boundary.cancelsRealOrder)
+        XCTAssertFalse(boundary.replacesRealOrder)
+        XCTAssertFalse(boundary.consumesExecutionReport)
+        XCTAssertFalse(boundary.recordsBrokerFill)
+        XCTAssertFalse(boundary.performsReconciliation)
+        XCTAssertFalse(boundary.executesIncidentFallback)
+        XCTAssertFalse(boundary.exposesOrderLevelCommandUI)
+        XCTAssertFalse(boundary.providesTradingButton)
+        XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(
+            LiveExecutionControlTerminologyBoundary.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, boundary)
+    }
+
+    func testLiveExecutionControlTerminologyRejectsMTP75ExecutableCommandBypass() throws {
+        // 测试场景：MTP-75 taxonomy fixture 的初始化和 Codable 解码都必须拒绝
+        // command surface、submit / cancel / replace、execution report、reconciliation、
+        // broker adapter、LiveExecutionAdapter、real order state machine 和 OMS 绕过。
+        XCTAssertThrowsError(
+            try LiveExecutionControlTerminologyBoundary(providesExecutableCommandSurface: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("providesExecutableCommandSurface")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveExecutionControlTerminologyBoundary(submitsRealOrder: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("submitsRealOrder"))
+        }
+        XCTAssertThrowsError(
+            try LiveExecutionControlTerminologyBoundary(cancelsRealOrder: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("cancelsRealOrder"))
+        }
+        XCTAssertThrowsError(
+            try LiveExecutionControlTerminologyBoundary(replacesRealOrder: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("replacesRealOrder"))
+        }
+        XCTAssertThrowsError(
+            try LiveExecutionControlTerminologyBoundary(consumesExecutionReport: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("consumesExecutionReport")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveExecutionControlTerminologyBoundary(performsReconciliation: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("performsReconciliation")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveExecutionControlTerminologyBoundary(implementsLiveExecutionAdapter: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("implementsLiveExecutionAdapter")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveExecutionControlTerminologyBoundary(implementsRealOrderStateMachine: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("implementsRealOrderStateMachine")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveExecutionControlTerminologyBoundary(commandTaxonomy: [.submit])
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "commandTaxonomy",
+                    expected: LiveExecutionControlTerminologyBoundary
+                        .requiredCommandTaxonomy
+                        .map(\.rawValue)
+                        .joined(separator: ","),
+                    actual: "submit"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(LiveExecutionControlTerminologyBoundary.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["exposesOrderLevelCommandUI"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveExecutionControlTerminologyBoundary.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("exposesOrderLevelCommandUI")
+            )
+        }
+    }
+
+    func testLiveExecutionControlTerminologyKeepsMTP75PaperEvidenceIsolatedFromRealCommands() throws {
+        // 测试场景：MTP-75 把 paper order intent、paper execution decision 和 simulated fill
+        // 明确标为隔离证据来源，不能把既有 paper-only fixture 升级成 real order command。
+        let boundary = LiveExecutionControlTerminologyBoundary.deterministicFixture
+        let paperOrder = try PaperOrderIntentFixture.deterministicAllowed()
+        let executionDecision = try PaperExecutionDecisionFixture.deterministicAllowed()
+        let simulatedFill = try PaperSimulatedFillFixture.deterministicAllowed()
+
+        XCTAssertTrue(boundary.paperRealIsolationBoundaryHeld)
+        XCTAssertTrue(boundary.terms.contains(.paperOrderIntent))
+        XCTAssertTrue(boundary.terms.contains(.paperExecutionDecision))
+        XCTAssertTrue(boundary.terms.contains(.simulatedFillEvidence))
+        XCTAssertTrue(boundary.forbiddenCapabilities.contains(.paperOrderIntentUpgrade))
+        XCTAssertTrue(boundary.forbiddenCapabilities.contains(.paperExecutionDecisionUpgrade))
+        XCTAssertTrue(boundary.forbiddenCapabilities.contains(.simulatedFillUpgrade))
+
+        XCTAssertTrue(paperOrder.paperOnlyBoundaryHeld)
+        XCTAssertFalse(paperOrder.representsRealOrder)
+        XCTAssertFalse(paperOrder.authorizesLiveTrading)
+        XCTAssertFalse(paperOrder.isExecutableAsRealOrder)
+
+        XCTAssertTrue(executionDecision.paperOnlyBoundaryHeld)
+        XCTAssertFalse(executionDecision.representsRealOrder)
+        XCTAssertFalse(executionDecision.authorizesLiveTrading)
+        XCTAssertFalse(executionDecision.isExecutableAsRealOrder)
+
+        XCTAssertTrue(simulatedFill.paperOnlyBoundaryHeld)
+        XCTAssertFalse(simulatedFill.representsRealFill)
+        XCTAssertFalse(simulatedFill.representsBrokerFill)
+        XCTAssertFalse(simulatedFill.updatesRealAccountBalance)
+    }
+
     func testLiveRuntimeHealthDefinesMTP69ReadModelOnlyFixture() throws {
         // 测试场景：MTP-69 只新增 future live runtime health / connection status 的最小
         // read model。fixture 可以表达 healthy / blocked / disconnected / degraded /
