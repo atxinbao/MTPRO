@@ -7713,3 +7713,41 @@ Root docs 判断：
 | --- | --- | --- |
 | `bash checks/automation-readiness.sh` | pass | MTP-74 stage audit input、contract、matrix、validation plan、latest summary、source / test anchors 和 Dashboard smoke anchors 均可机械定位；输出 `MTPRO automation readiness checks passed.`。 |
 | `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=24; liveBlockedGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；146 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO Live Monitoring Console v1 Stage Code Audit Report
+
+日期：2026-05-22
+
+执行者：Parent Codex Automation Supervision（`@002 / PAR`）
+
+目的：
+
+- 将 `MTPRO Live Monitoring Console v1` 的 canonical Stage Code Audit Report 落仓。
+- 固化 MTP-68 至 MTP-74 的 Linear Done、PR merge、GitHub `checks`、validation、boundary 和 handoff evidence。
+- 记录 Root Docs Refresh Gate input，但不执行 root docs closure，不决定下一阶段方向。
+
+文件范围：
+
+- `docs/audit/mtpro-live-monitoring-console-v1-stage-code-audit.md`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+更新重点：
+
+- Linear Project closure 已完成：Project status `Completed`，`type=completed`，`completedAt=2026-05-21T16:22:45.521Z`。
+- `MTP-68` 至 `MTP-74` 全部 Linear `Done`。
+- PR #137、#138、#139、#140、#141、#143、#144 均通过 GitHub required check `checks` 并 merge。
+- Project 末端 merge commit 为 `378ca31f6de5d4bbead3c4c9bd3f96d9fa3875cb`。
+- 记录 MTP-68 / MTP-73 的 host-side Linear status fallback、MTP-74 Post-Issue Ledger `git_pull_ff_only` failed / `graphify_update` skipped，以及 Parent Codex 后续只修复持久仓同步的事实。
+- Stage Code Audit Report 明确 `graphify-out/*` 未提交，`.codex/*` 未提交，Parent Codex 未运行 Graphify update。
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 issue body。
+- 不推进任何 issue 到 `Todo`。
+- 不启动 Symphony。
+- 不运行 Graphify update。
+- 不写业务代码。
+- 不修改 root docs factual state；Root Docs Refresh Gate 保持 pending。
+- 不授权下一阶段 planning 或 execution。
