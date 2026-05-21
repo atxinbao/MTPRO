@@ -7206,3 +7206,49 @@ Root docs 判断：
 | --- | --- | --- |
 | `git diff --check` | pass | Root Docs Refresh Gate closure 变更无 whitespace error。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 135 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6`；最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO-native PR Evidence Fields
+
+日期：2026-05-21
+
+执行者：Codex（`@000 / AIE`）
+
+目的：
+
+- 将 `mattpocock/skills` 中已经吸收的方法论继续收敛为 MTPRO-native PR evidence fields。
+- 不安装、不调用、不复制外部 skill runtime，避免新增执行入口和 AEP / Linear / Parent Codex 流程冲突。
+- 通过 PR 模板和 automation readiness 机械化以下证据字段：
+  - `Feedback Loop Evidence`
+  - `Tracer Bullet / Fixture Evidence`
+  - `Diagnose Evidence`
+  - `Architecture Deepening Candidate`
+
+文件范围：
+
+- `.github/pull_request_template.md`
+- `docs/automation/agent-engineering-practices.md`
+- `checks/automation-readiness.sh`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+边界确认：
+
+- docs / checks only。
+- 未创建 Linear Project / Issue。
+- 未修改 Linear status。
+- 未推进 Todo。
+- 未启动 `@002 / PAR`。
+- 未启动 Symphony。
+- 未运行 Graphify update。
+- 未写业务代码。
+- 未安装外部 `mattpocock/skills` runtime。
+- 未提交 `.codex/*`。
+- 未提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | MTPRO-native PR evidence fields docs / checks 变更无 whitespace error。 |
+| `bash checks/automation-readiness.sh` | pass | PR 模板和工程实践文档中的 `Feedback Loop Evidence`、`Tracer Bullet / Fixture Evidence`、`Diagnose Evidence`、`Architecture Deepening Candidate` 锚点通过。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 135 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6`；最终输出 `MTPRO checks passed.`。 |

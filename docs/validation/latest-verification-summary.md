@@ -28,6 +28,8 @@ README.md
 
 `BLUEPRINT.md` 是 canonical Root / Complete Blueprint，统一承载项目总览和完整产品 / 系统 / 设计蓝图。`docs/domain/context.md` 是 shared language 入口；`docs/automation/agent-engineering-practices.md` 记录从 `mattpocock/skills` 吸收的 Feedback Loop First、TDD / Tracer Bullet、Diagnose Loop、Architecture Deepening Review 和 Handoff Discipline。
 
+MTPRO 不安装、不调用、不复制外部 `mattpocock/skills` runtime。已吸收的方法论通过 MTPRO-native PR evidence fields 机械化到 PR 模板和 automation readiness：`Feedback Loop Evidence`、`Tracer Bullet / Fixture Evidence`、`Diagnose Evidence`、`Architecture Deepening Candidate`。
+
 ## 当前基线
 
 | 项 | 当前事实 |
@@ -121,6 +123,22 @@ Planning record 入口：
 - `MTP-67`：Live Trading Boundary Definition v1 阶段收口。
 
 ## 最近验证
+
+MTPRO-native PR evidence fields 已加入 PR 模板和 automation readiness：
+
+```bash
+git diff --check
+bash checks/automation-readiness.sh
+bash checks/run.sh
+```
+
+结果：
+
+- `git diff --check`：pass。
+- `bash checks/automation-readiness.sh`：pass，已确认 PR 模板和工程实践文档包含 MTPRO-native evidence fields 锚点。
+- `bash checks/run.sh`：pass，Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6`，Swift tests `135 tests, 0 failures`。
+
+该更新仅改变 docs / checks，不创建 Linear Project / Issue，不修改 Linear status，不推进 Todo，不启动 Symphony，不写业务代码。
 
 `MTPRO Live Trading Boundary Definition v1` Stage Code Audit Report 已落仓：
 
