@@ -590,3 +590,28 @@ Shell 新增展示：
 - API key、secret storage、signed endpoint、account endpoint、listenKey、broker adapter 或 `LiveExecutionAdapter`。
 - real order state machine、OMS、submit / cancel / replace、broker fill、execution report 或 reconciliation。
 - Runtime、Adapter、SQLite / DuckDB schema、exchange payload 或 broker object 直连 UI。
+
+## MTPRO Product Interaction Model v1
+
+日期：2026-05-22
+
+执行者：Codex（`@000 / AIE`，基于 Human 提供的 `@003 / PRD` 草案落仓）
+
+当前产品层新增 `MTPRO Product Interaction Model v1`，路径为 `docs/product/mtpro-product-interaction-model-v1.md`。该文档承接 `MTPRO Workbench User Flow Blueprint v1`，用于定义用户在每个页面能看什么、判断什么、点什么、不能点什么，以及页面之间如何通过 evidence navigation 串联。
+
+该交互模型用于指导后续 `@004 / DSG` 的 `Workbench Screen Layout v1`，不是最终 UI/UX 规范、视觉稿、组件规范或 SwiftUI 实现稿。
+
+交互模型覆盖：
+
+- 全局交互原则：evidence navigation 优先、中文优先、页面只消费 ViewModel / Read Model / Command Model。
+- 状态语言：`empty`、`healthy`、`stale`、`blocked`、`degraded`、`error`。
+- 页面级交互模型：Overview、Market Replay、Research、Backtest、Report、Paper、Portfolio、Risk、Events / Audit、Live Readiness、Live Monitoring、Future Gated 和三类 Future placeholder。
+- 六条核心动线的交互规则：今日状态检查、策略研究到回测、回测到报告、Paper session 观察、异常追溯、Live readiness / monitoring 判断。
+- 控制面边界：read-only evidence interaction、local paper session-level control、blocked / unavailable future action、forbidden live trading action。
+- Live Monitoring 和 Future Gated 的交互边界。
+
+仍不包含：
+
+- 最终视觉风格、macOS 高保真 UI、组件规范或 SwiftUI 实现。
+- Linear Project / Issue、Todo 推进、Symphony 启动或业务代码 scope。
+- submit / cancel / replace、order form、broker action、signed endpoint、account endpoint / listenKey、reconnect / start live / stop live、live command、trading button、real order state machine、real account balance 或 real broker position。

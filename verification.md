@@ -7145,6 +7145,47 @@ Commit：
 - 不写业务代码。
 - 不提交 `.codex/*`。
 - 不提交 `graphify-out/*`。
+
+## MTPRO Product Interaction Model v1 Product Record
+
+日期：2026-05-22
+
+执行者：Codex（`@000 / AIE`）
+
+目的：
+
+- 将 Human 提供的 `@003 / PRD` `MTPRO Product Interaction Model v1` 草案落仓为产品层交互模型。
+- 承接 `docs/product/mtpro-workbench-user-flow-blueprint-v1.md`，补齐“用户能看什么、判断什么、点什么、不能点什么”的产品交互规则。
+- 明确该文档用于指导后续 `@004 / DSG` 的 `Workbench Screen Layout v1`，不是最终 UI/UX 视觉稿、组件规范或 SwiftUI 实现稿。
+
+文件范围：
+
+- `docs/product/mtpro-product-interaction-model-v1.md`
+- `docs/product/product-surface-map.md`
+- `BLUEPRINT.md`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+更新重点：
+
+- 新增全局交互原则、状态语言、页面级交互模型和六条核心动线交互规则。
+- 明确 read-only evidence interaction、local paper session-level control、blocked / unavailable future action 和 forbidden live trading action 的控制面边界。
+- 记录 Live Monitoring 已完成但仅为 read-model-only evidence surface；禁止 reconnect、start live、stop live、broker stream 操作或真实 order stream runtime。
+- 记录 Future Live Execution / Risk / Incident Replay 仍是 planning / boundary placeholder，不提供执行入口，不自动创建 Linear 或推进 Todo。
+
+边界确认：
+
+- 不修改 Figma。
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony。
+- 不运行 Graphify update。
+- 不写业务代码。
+- 不把 Future Live trading 写成当前 execution scope。
+- 不提交 `.codex/*`。
+- 不提交 `graphify-out/*`。
 - Root Docs Refresh Gate 仍需在本 Stage Code Audit Report 合并后单独执行。
 
 验证：
