@@ -63,6 +63,8 @@ MTP-68 的长期验证锚点候选为 `docs/contracts/live-monitoring-console-co
 
 MTP-69 的长期验证锚点仍为 `docs/contracts/live-monitoring-console-contract.md` 和 `TVM-LIVE-MONITORING-CONSOLE`。该锚点在 MTP-68 information architecture 基础上新增 `LiveRuntimeHealthReadModel` / `LiveConnectionStatusReadModel` 最小 Core read model：覆盖 `healthy`、`blocked`、`disconnected`、`degraded`、`unavailable` 状态分类，默认 fixture 只表达 runtime health `blocked`、public market data connection `disconnected`、future private user data connection `blocked` 和 future broker session `unavailable`；不实现 live runtime、真实网络连接、WebSocket、signed endpoint、account endpoint、listenKey、secret/account payload、broker adapter、`LiveExecutionAdapter`、Runtime object / persistence schema 暴露、live command 或交易按钮。
 
+MTP-70 的长期验证锚点仍为 `docs/contracts/live-monitoring-console-contract.md` 和 `TVM-LIVE-MONITORING-CONSOLE`。该锚点在 MTP-69 runtime health / connection status 基础上新增 `LiveStreamMonitoringEvidenceReadModel` / `LiveStreamMonitoringEvidenceItem` 最小 Core read model：默认 fixture 只表达 public market stream `disconnected`、blocked order stream `blocked`、simulated order stream `blocked` 和 future order stream `unavailable`；market stream 只允许 public read-only / fixture evidence，order stream / order flow 只允许 blocked / simulated / future-only evidence；不实现 market streaming runtime、account/order streaming runtime、WebSocket、signed endpoint、account endpoint、listenKey、execution report、broker fill、real order state machine、order command、broker adapter、`LiveExecutionAdapter`、Runtime object / persistence schema 暴露、live command 或交易按钮。
+
 `MTPRO Live Trading Boundary Definition v1` 的 canonical Stage Code Audit Report 已落仓到 `docs/audit/mtpro-live-trading-boundary-definition-v1-stage-code-audit.md`。该报告记录 PR #126 至 #132、merge commits、GitHub `checks` 成功证据、Linear Project `Completed` evidence、Live boundary validation evidence chain、Known CI Boundary、Post-Issue Ledger 持久仓同步阻塞说明、Boundary Audit、Root Docs Delta 和 Next Human Project Planning handoff。
 
 ## Goal / Roadmap Progress Baseline
@@ -130,6 +132,23 @@ Planning record 入口：
 - `MTP-67`：Live Trading Boundary Definition v1 阶段收口。
 
 ## 最近验证
+
+MTP-70 market stream / order stream blocked evidence read model 已完成：
+
+```bash
+swift test --filter MTP70
+bash checks/run.sh
+```
+
+当前收口证据：
+
+- `Sources/Core/LiveMonitoringConsole.swift`：新增 `LiveStreamMonitoringEvidenceKind`、`LiveStreamMonitoringKind`、`LiveStreamMonitoringEvidenceItem` 和 `LiveStreamMonitoringEvidenceReadModel`，所有 market/order streaming runtime、WebSocket、private user data stream、API key、secret、signed endpoint、account endpoint、listenKey、account payload、execution report、broker fill、real order state machine、order command、submit / cancel / replace、broker adapter、adapter surface、Runtime object、SQLite / DuckDB schema、Live trading authorization 和 trading execution flags 均保持 false。
+- `Tests/CoreTests/CoreTests.swift`：新增 `testLiveStreamMonitoringEvidenceDefinesMTP70MarketAndOrderStreamFixture`、`testLiveStreamMonitoringEvidenceRejectsMTP70ListenKeyAccountBrokerAndRealOrderBypass`、`testLiveOrderStreamEvidenceKeepsMTP70BlockedSimulatedFutureOnly`。
+- `docs/contracts/live-monitoring-console-contract.md`：新增 `MTP-70-MARKET-STREAM-ORDER-STREAM-READ-MODEL`、`MTP-70-MARKET-STREAM-PUBLIC-READ-ONLY-EVIDENCE`、`MTP-70-ORDER-STREAM-BLOCKED-SIMULATED-FUTURE-EVIDENCE`、`MTP-70-NO-LISTENKEY-ACCOUNT-ENDPOINT-REAL-ORDER-STATE` 和 `MTP-70-LIVE-STREAM-MONITORING-VALIDATION`。
+- `docs/validation/trading-validation-matrix.md` / `docs/validation/validation-plan.md`：回填 MTP-70 至 `TVM-LIVE-MONITORING-CONSOLE`，并明确 MTP-74 才做 automation readiness 机械收口。
+- `swift test --filter MTP70`：pass，3 tests, 0 failures。
+- `bash checks/run.sh`：pass，串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6`；141 个 XCTest 通过，最终输出 `MTPRO checks passed.`。
+- MTP-70 不修改 `checks/automation-readiness.sh`，机械收口仍保留给 MTP-74。
 
 MTP-69 live runtime health / connection status 最小 read model 已完成：
 

@@ -746,3 +746,30 @@ MTP-69 的 required validation：
 - 不读取 API key、secret 或 account payload。
 - 不连接 broker、broker session、exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不提供 reconnect、start / stop live command、交易按钮或真实交易授权。
+
+## MTP-70 Market Stream / Order Stream Blocked Evidence Read Model Validation
+
+日期：2026-05-21
+
+执行者：Codex
+
+MTP-70 的 required validation：
+
+- Core 层必须新增 `LiveStreamMonitoringEvidenceReadModel` 和 `LiveStreamMonitoringEvidenceItem`，并保持 Codable / Equatable / Sendable value model。
+- Market stream evidence 必须只表达 public read-only / fixture evidence；deterministic fixture 默认保持 public market stream `disconnected`，不得打开 market WebSocket、生产订阅控制、signed endpoint 或 execution venue。
+- Order stream evidence 必须固定为 blocked / simulated / future-only 三类：blocked order stream、simulated paper order evidence 和 future order stream gate。
+- Simulated order stream 只能引用 paper order / simulated fill evidence，不得升级为 execution report、broker fill、真实账户更新或 real order lifecycle。
+- Tests 必须覆盖 deterministic fixture、Codable round trip、source anchors、market stream public read-only boundary、order stream blocked / simulated / future-only boundary、listenKey / account endpoint / broker fill / execution report / real order state machine / order command rejection。
+- Focused validation：`swift test --filter MTP70`。
+- Required validation：`bash checks/run.sh`。
+- `checks/automation-readiness.sh` 在本 issue 中不得新增 MTP-70 机械收口；MTP-74 统一收口 MTP-68 至 MTP-73 anchors。
+
+## MTP-70 禁止
+
+- 不实现 market streaming runtime 或 production subscription control。
+- 不实现 account/order streaming runtime。
+- 不接 signed endpoint、account endpoint 或 listenKey。
+- 不读取 API key、secret 或 account payload。
+- 不连接 broker、broker session、exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不消费 execution report，不记录 broker fill，不实现 real order state machine、OMS 或 submit / cancel / replace。
+- 不提供 order command、live command、交易按钮或真实交易授权。

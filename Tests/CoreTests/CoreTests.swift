@@ -1065,6 +1065,175 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testLiveStreamMonitoringEvidenceDefinesMTP70MarketAndOrderStreamFixture() throws {
+        // 测试场景：MTP-70 只新增 market stream / order stream 的只读 evidence read model。
+        // market stream 只能是 public read-only / fixture evidence；order stream 只能是 blocked、
+        // simulated 或 future evidence，不能被解释成真实订单状态机。
+        let readModel = LiveStreamMonitoringEvidenceReadModel.deterministicFixture
+
+        XCTAssertEqual(readModel.readModelID, try Identifier("mtp-70-live-stream-monitoring-evidence"))
+        XCTAssertEqual(readModel.issueID, try Identifier("MTP-70"))
+        XCTAssertEqual(readModel.runtimeHealth, LiveRuntimeHealthReadModel.deterministicFixture)
+        XCTAssertEqual(readModel.sourceAnchors, LiveStreamMonitoringEvidenceReadModel.requiredSourceAnchors)
+        XCTAssertEqual(readModel.streamEvidence, LiveStreamMonitoringEvidenceReadModel.requiredStreamEvidence)
+        XCTAssertEqual(
+            readModel.streamEvidence.map(\.streamKind),
+            [.publicMarketStream, .blockedOrderStream, .simulatedOrderStream, .futureOrderStream]
+        )
+        XCTAssertEqual(
+            readModel.streamEvidence.map(\.status),
+            [.disconnected, .blocked, .blocked, .unavailable]
+        )
+        XCTAssertEqual(
+            readModel.streamEvidence.map(\.evidenceKind),
+            [
+                .publicReadOnlyMarketEvidence,
+                .blockedOrderStreamEvidence,
+                .simulatedPaperOrderEvidence,
+                .futureOrderStreamGate
+            ]
+        )
+        XCTAssertEqual(readModel.marketStreamEvidenceCount, 1)
+        XCTAssertEqual(readModel.orderStreamEvidenceCount, 3)
+        XCTAssertEqual(
+            readModel.orderStreamEvidenceKinds,
+            [
+                .blockedOrderStreamEvidence,
+                .simulatedPaperOrderEvidence,
+                .futureOrderStreamGate
+            ]
+        )
+        XCTAssertTrue(readModel.streamEvidenceBoundaryHeld)
+        XCTAssertTrue(readModel.orderStreamEvidenceBoundaryHeld)
+        XCTAssertTrue(readModel.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(readModel.opensMarketWebSocket)
+        XCTAssertFalse(readModel.opensPrivateUserDataStream)
+        XCTAssertFalse(readModel.callsAccountEndpoint)
+        XCTAssertFalse(readModel.createsListenKey)
+        XCTAssertFalse(readModel.consumesExecutionReport)
+        XCTAssertFalse(readModel.recordsBrokerFill)
+        XCTAssertFalse(readModel.implementsRealOrderStateMachine)
+        XCTAssertFalse(readModel.providesOrderCommand)
+        XCTAssertFalse(readModel.submitsRealOrder)
+        XCTAssertFalse(readModel.authorizesTradingExecution)
+
+        let encoded = try JSONEncoder().encode(readModel)
+        let decoded = try JSONDecoder().decode(LiveStreamMonitoringEvidenceReadModel.self, from: encoded)
+        XCTAssertEqual(decoded, readModel)
+    }
+
+    func testLiveStreamMonitoringEvidenceRejectsMTP70ListenKeyAccountBrokerAndRealOrderBypass() throws {
+        // 测试场景：MTP-70 fixture 的初始化和 Codable 解码必须拒绝 listenKey、
+        // account endpoint、broker fill、execution report、真实订单状态机和 order command。
+        XCTAssertThrowsError(
+            try LiveStreamMonitoringEvidenceReadModel(createsListenKey: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveMonitoringConsoleForbiddenCapability("createsListenKey"))
+        }
+        XCTAssertThrowsError(
+            try LiveStreamMonitoringEvidenceReadModel(consumesExecutionReport: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveMonitoringConsoleForbiddenCapability("consumesExecutionReport")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveStreamMonitoringEvidenceReadModel(implementsRealOrderStateMachine: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveMonitoringConsoleForbiddenCapability("implementsRealOrderStateMachine")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveStreamMonitoringEvidenceReadModel(
+                streamEvidence: Array(LiveStreamMonitoringEvidenceReadModel.requiredStreamEvidence.dropLast())
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveMonitoringConsoleContractMismatch(
+                    field: "streamEvidence",
+                    expected: LiveStreamMonitoringEvidenceReadModel.requiredStreamEvidence
+                        .map(\.streamKind.rawValue)
+                        .joined(separator: ","),
+                    actual: Array(LiveStreamMonitoringEvidenceReadModel.requiredStreamEvidence.dropLast())
+                        .map(\.streamKind.rawValue)
+                        .joined(separator: ",")
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(LiveStreamMonitoringEvidenceReadModel.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["callsAccountEndpoint"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveStreamMonitoringEvidenceReadModel.self, from: data)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveMonitoringConsoleForbiddenCapability("callsAccountEndpoint"))
+        }
+    }
+
+    func testLiveOrderStreamEvidenceKeepsMTP70BlockedSimulatedFutureOnly() throws {
+        // 测试场景：订单流 evidence 必须固定为 blocked / simulated / future-only。
+        // simulated 只能引用 paper order / simulated fill evidence，不得升级为 execution report、
+        // broker fill、真实账户更新或 real order lifecycle。
+        let readModel = LiveStreamMonitoringEvidenceReadModel.deterministicFixture
+        let orderStreamEvidence = readModel.streamEvidence.filter(\.isOrderStreamEvidence)
+        let simulated = try XCTUnwrap(
+            orderStreamEvidence.first { $0.streamKind == .simulatedOrderStream }
+        )
+
+        XCTAssertEqual(orderStreamEvidence.count, 3)
+        XCTAssertEqual(orderStreamEvidence.map(\.streamKind), [
+            .blockedOrderStream,
+            .simulatedOrderStream,
+            .futureOrderStream
+        ])
+        XCTAssertEqual(
+            simulated.paperEvidenceIDs,
+            [
+                try Identifier("paper-replay-order-allowed"),
+                try Identifier("paper-replay-fill-allowed")
+            ]
+        )
+        XCTAssertTrue(orderStreamEvidence.allSatisfy(\.streamBoundaryHeld))
+        XCTAssertTrue(orderStreamEvidence.allSatisfy { $0.isReadModelOnly })
+        XCTAssertTrue(orderStreamEvidence.allSatisfy { $0.hasActiveOrderStream == false })
+        XCTAssertTrue(orderStreamEvidence.allSatisfy { $0.opensPrivateUserDataStream == false })
+        XCTAssertTrue(orderStreamEvidence.allSatisfy { $0.createsListenKey == false })
+        XCTAssertTrue(orderStreamEvidence.allSatisfy { $0.callsAccountEndpoint == false })
+        XCTAssertTrue(orderStreamEvidence.allSatisfy { $0.consumesExecutionReport == false })
+        XCTAssertTrue(orderStreamEvidence.allSatisfy { $0.recordsBrokerFill == false })
+        XCTAssertTrue(orderStreamEvidence.allSatisfy { $0.implementsRealOrderStateMachine == false })
+        XCTAssertTrue(orderStreamEvidence.allSatisfy { $0.providesOrderCommand == false })
+        XCTAssertTrue(orderStreamEvidence.allSatisfy { $0.submitsRealOrder == false })
+        XCTAssertTrue(orderStreamEvidence.allSatisfy { $0.cancelsRealOrder == false })
+        XCTAssertTrue(orderStreamEvidence.allSatisfy { $0.replacesRealOrder == false })
+
+        XCTAssertThrowsError(
+            try LiveStreamMonitoringEvidenceItem(
+                streamID: try Identifier("mtp-70-order-stream-simulated-paper-evidence"),
+                streamKind: .simulatedOrderStream,
+                status: .blocked,
+                evidenceKind: .simulatedPaperOrderEvidence,
+                paperEvidenceIDs: []
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveMonitoringConsoleContractMismatch(
+                    field: "paperEvidenceIDs",
+                    expected: "paper-replay-order-allowed,paper-replay-fill-allowed",
+                    actual: ""
+                )
+            )
+        }
+    }
+
     func testPaperSessionLocalControlCommandModelSupportsSessionActionsDeterministically() throws {
         // 测试场景：MTP-48 只允许本地 Paper session-level control intent。
         // 四个 control 都必须保持 paper-only，且不能携带 order-level、broker 或真实订单能力。

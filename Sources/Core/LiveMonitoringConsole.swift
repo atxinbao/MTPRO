@@ -611,3 +611,893 @@ public struct LiveRuntimeHealthReadModel: Codable, Equatable, Sendable {
         }
     }
 }
+
+/// LiveStreamMonitoringEvidenceKind 定义 MTP-70 stream evidence 的允许类型。
+///
+/// 这些类型只服务 market stream / order stream 的只读 evidence；它们不创建真实 stream
+/// runtime，不订阅 public / private WebSocket，不消费 execution report，也不表示 broker fill。
+public enum LiveStreamMonitoringEvidenceKind: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case publicReadOnlyMarketEvidence = "public read-only market stream evidence"
+    case blockedOrderStreamEvidence = "blocked order stream evidence"
+    case simulatedPaperOrderEvidence = "simulated paper order evidence"
+    case futureOrderStreamGate = "future order stream gate evidence"
+}
+
+/// LiveStreamMonitoringKind 固定 MTP-70 read model 覆盖的 stream 分区。
+///
+/// `publicMarketStream` 只能对应 public read-only / fixture evidence；三个 order stream 分区只
+/// 表达 blocked、simulated 和 future-only evidence，不得被解释为 real order state machine、
+/// execution report、broker fill、OMS 或真实账户状态。
+public enum LiveStreamMonitoringKind: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case publicMarketStream = "public market stream"
+    case blockedOrderStream = "blocked order stream"
+    case simulatedOrderStream = "simulated order stream"
+    case futureOrderStream = "future order stream"
+}
+
+/// LiveStreamMonitoringEvidenceItem 是 MTP-70 的单项 stream evidence read model。
+///
+/// 该类型只保存 stream 分区、状态标签、source anchors 和禁区 flag。market stream 不能打开
+/// public WebSocket 或生产订阅控制；order stream 只能展示 blocked / simulated / future evidence，
+/// 不能创建 listenKey、account endpoint、execution report、broker fill 或真实订单状态机。
+public struct LiveStreamMonitoringEvidenceItem: Codable, Equatable, Sendable {
+    public let streamID: Identifier
+    public let issueID: Identifier
+    public let streamKind: LiveStreamMonitoringKind
+    public let status: LiveMonitoringStatus
+    public let evidenceKind: LiveStreamMonitoringEvidenceKind
+    public let sourceAnchors: [String]
+    public let paperEvidenceIDs: [Identifier]
+    public let observedAt: Date
+    public let isReadModelOnly: Bool
+    public let isPublicReadOnlyMarketEvidence: Bool
+    public let isBlockedEvidence: Bool
+    public let isSimulatedEvidence: Bool
+    public let isFutureEvidence: Bool
+    public let hasActiveMarketStream: Bool
+    public let hasActiveOrderStream: Bool
+    public let opensMarketWebSocket: Bool
+    public let opensPrivateUserDataStream: Bool
+    public let callsSignedEndpoint: Bool
+    public let callsAccountEndpoint: Bool
+    public let createsListenKey: Bool
+    public let readsAPIKey: Bool
+    public let readsSecret: Bool
+    public let readsAccountPayload: Bool
+    public let consumesExecutionReport: Bool
+    public let recordsBrokerFill: Bool
+    public let implementsRealOrderStateMachine: Bool
+    public let providesOrderCommand: Bool
+    public let submitsRealOrder: Bool
+    public let cancelsRealOrder: Bool
+    public let replacesRealOrder: Bool
+    public let instantiatesBrokerAdapter: Bool
+    public let exposesAdapterSurface: Bool
+    public let exposesRuntimeObject: Bool
+    public let exposesSQLiteSchema: Bool
+    public let exposesDuckDBSchema: Bool
+    public let authorizesLiveTrading: Bool
+    public let authorizesTradingExecution: Bool
+    public let requiredValidationDependsOnNetwork: Bool
+
+    public var isOrderStreamEvidence: Bool {
+        switch streamKind {
+        case .publicMarketStream:
+            false
+        case .blockedOrderStream, .simulatedOrderStream, .futureOrderStream:
+            true
+        }
+    }
+
+    public var streamBoundaryHeld: Bool {
+        sourceAnchors == Self.requiredSourceAnchors(for: streamKind)
+            && evidenceKind == Self.requiredEvidenceKind(for: streamKind)
+            && status == Self.requiredStatus(for: streamKind)
+            && paperEvidenceIDs == Self.requiredPaperEvidenceIDs(for: streamKind)
+            && Self.modeFlags(
+                isPublicReadOnlyMarketEvidence,
+                isBlockedEvidence,
+                isSimulatedEvidence,
+                isFutureEvidence
+            ) == Self.requiredModeFlags(for: streamKind)
+            && isReadModelOnly
+            && hasActiveMarketStream == false
+            && hasActiveOrderStream == false
+            && opensMarketWebSocket == false
+            && opensPrivateUserDataStream == false
+            && callsSignedEndpoint == false
+            && callsAccountEndpoint == false
+            && createsListenKey == false
+            && readsAPIKey == false
+            && readsSecret == false
+            && readsAccountPayload == false
+            && consumesExecutionReport == false
+            && recordsBrokerFill == false
+            && implementsRealOrderStateMachine == false
+            && providesOrderCommand == false
+            && submitsRealOrder == false
+            && cancelsRealOrder == false
+            && replacesRealOrder == false
+            && instantiatesBrokerAdapter == false
+            && exposesAdapterSurface == false
+            && exposesRuntimeObject == false
+            && exposesSQLiteSchema == false
+            && exposesDuckDBSchema == false
+            && authorizesLiveTrading == false
+            && authorizesTradingExecution == false
+            && requiredValidationDependsOnNetwork == false
+    }
+
+    public init(
+        streamID: Identifier,
+        issueID: Identifier = try! Identifier("MTP-70"),
+        streamKind: LiveStreamMonitoringKind,
+        status: LiveMonitoringStatus? = nil,
+        evidenceKind: LiveStreamMonitoringEvidenceKind? = nil,
+        sourceAnchors: [String]? = nil,
+        paperEvidenceIDs: [Identifier]? = nil,
+        observedAt: Date = Date(timeIntervalSince1970: 7_000),
+        isReadModelOnly: Bool = true,
+        isPublicReadOnlyMarketEvidence: Bool? = nil,
+        isBlockedEvidence: Bool? = nil,
+        isSimulatedEvidence: Bool? = nil,
+        isFutureEvidence: Bool? = nil,
+        hasActiveMarketStream: Bool = false,
+        hasActiveOrderStream: Bool = false,
+        opensMarketWebSocket: Bool = false,
+        opensPrivateUserDataStream: Bool = false,
+        callsSignedEndpoint: Bool = false,
+        callsAccountEndpoint: Bool = false,
+        createsListenKey: Bool = false,
+        readsAPIKey: Bool = false,
+        readsSecret: Bool = false,
+        readsAccountPayload: Bool = false,
+        consumesExecutionReport: Bool = false,
+        recordsBrokerFill: Bool = false,
+        implementsRealOrderStateMachine: Bool = false,
+        providesOrderCommand: Bool = false,
+        submitsRealOrder: Bool = false,
+        cancelsRealOrder: Bool = false,
+        replacesRealOrder: Bool = false,
+        instantiatesBrokerAdapter: Bool = false,
+        exposesAdapterSurface: Bool = false,
+        exposesRuntimeObject: Bool = false,
+        exposesSQLiteSchema: Bool = false,
+        exposesDuckDBSchema: Bool = false,
+        authorizesLiveTrading: Bool = false,
+        authorizesTradingExecution: Bool = false,
+        requiredValidationDependsOnNetwork: Bool = false
+    ) throws {
+        let requiredStatus = Self.requiredStatus(for: streamKind)
+        let requiredEvidenceKind = Self.requiredEvidenceKind(for: streamKind)
+        let anchors = sourceAnchors ?? Self.requiredSourceAnchors(for: streamKind)
+        let paperEvidenceIDs = paperEvidenceIDs ?? Self.requiredPaperEvidenceIDs(for: streamKind)
+        let requiredModeFlags = Self.requiredModeFlags(for: streamKind)
+        let actualModeFlags = Self.modeFlags(
+            isPublicReadOnlyMarketEvidence ?? requiredModeFlags[0],
+            isBlockedEvidence ?? requiredModeFlags[1],
+            isSimulatedEvidence ?? requiredModeFlags[2],
+            isFutureEvidence ?? requiredModeFlags[3]
+        )
+
+        guard status ?? requiredStatus == requiredStatus else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "status",
+                expected: requiredStatus.rawValue,
+                actual: (status ?? requiredStatus).rawValue
+            )
+        }
+        guard evidenceKind ?? requiredEvidenceKind == requiredEvidenceKind else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "evidenceKind",
+                expected: requiredEvidenceKind.rawValue,
+                actual: (evidenceKind ?? requiredEvidenceKind).rawValue
+            )
+        }
+        guard anchors == Self.requiredSourceAnchors(for: streamKind) else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "sourceAnchors",
+                expected: Self.requiredSourceAnchors(for: streamKind).joined(separator: ","),
+                actual: anchors.joined(separator: ",")
+            )
+        }
+        guard paperEvidenceIDs == Self.requiredPaperEvidenceIDs(for: streamKind) else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "paperEvidenceIDs",
+                expected: Self.requiredPaperEvidenceIDs(for: streamKind)
+                    .map(\.rawValue)
+                    .joined(separator: ","),
+                actual: paperEvidenceIDs.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard actualModeFlags == requiredModeFlags else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "evidenceMode",
+                expected: Self.describeModeFlags(requiredModeFlags),
+                actual: Self.describeModeFlags(actualModeFlags)
+            )
+        }
+        try Self.validateForbiddenFlags(
+            isReadModelOnly: isReadModelOnly,
+            hasActiveMarketStream: hasActiveMarketStream,
+            hasActiveOrderStream: hasActiveOrderStream,
+            opensMarketWebSocket: opensMarketWebSocket,
+            opensPrivateUserDataStream: opensPrivateUserDataStream,
+            callsSignedEndpoint: callsSignedEndpoint,
+            callsAccountEndpoint: callsAccountEndpoint,
+            createsListenKey: createsListenKey,
+            readsAPIKey: readsAPIKey,
+            readsSecret: readsSecret,
+            readsAccountPayload: readsAccountPayload,
+            consumesExecutionReport: consumesExecutionReport,
+            recordsBrokerFill: recordsBrokerFill,
+            implementsRealOrderStateMachine: implementsRealOrderStateMachine,
+            providesOrderCommand: providesOrderCommand,
+            submitsRealOrder: submitsRealOrder,
+            cancelsRealOrder: cancelsRealOrder,
+            replacesRealOrder: replacesRealOrder,
+            instantiatesBrokerAdapter: instantiatesBrokerAdapter,
+            exposesAdapterSurface: exposesAdapterSurface,
+            exposesRuntimeObject: exposesRuntimeObject,
+            exposesSQLiteSchema: exposesSQLiteSchema,
+            exposesDuckDBSchema: exposesDuckDBSchema,
+            authorizesLiveTrading: authorizesLiveTrading,
+            authorizesTradingExecution: authorizesTradingExecution,
+            requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork
+        )
+
+        self.streamID = streamID
+        self.issueID = issueID
+        self.streamKind = streamKind
+        self.status = requiredStatus
+        self.evidenceKind = requiredEvidenceKind
+        self.sourceAnchors = anchors
+        self.paperEvidenceIDs = paperEvidenceIDs
+        self.observedAt = observedAt
+        self.isReadModelOnly = isReadModelOnly
+        self.isPublicReadOnlyMarketEvidence = actualModeFlags[0]
+        self.isBlockedEvidence = actualModeFlags[1]
+        self.isSimulatedEvidence = actualModeFlags[2]
+        self.isFutureEvidence = actualModeFlags[3]
+        self.hasActiveMarketStream = hasActiveMarketStream
+        self.hasActiveOrderStream = hasActiveOrderStream
+        self.opensMarketWebSocket = opensMarketWebSocket
+        self.opensPrivateUserDataStream = opensPrivateUserDataStream
+        self.callsSignedEndpoint = callsSignedEndpoint
+        self.callsAccountEndpoint = callsAccountEndpoint
+        self.createsListenKey = createsListenKey
+        self.readsAPIKey = readsAPIKey
+        self.readsSecret = readsSecret
+        self.readsAccountPayload = readsAccountPayload
+        self.consumesExecutionReport = consumesExecutionReport
+        self.recordsBrokerFill = recordsBrokerFill
+        self.implementsRealOrderStateMachine = implementsRealOrderStateMachine
+        self.providesOrderCommand = providesOrderCommand
+        self.submitsRealOrder = submitsRealOrder
+        self.cancelsRealOrder = cancelsRealOrder
+        self.replacesRealOrder = replacesRealOrder
+        self.instantiatesBrokerAdapter = instantiatesBrokerAdapter
+        self.exposesAdapterSurface = exposesAdapterSurface
+        self.exposesRuntimeObject = exposesRuntimeObject
+        self.exposesSQLiteSchema = exposesSQLiteSchema
+        self.exposesDuckDBSchema = exposesDuckDBSchema
+        self.authorizesLiveTrading = authorizesLiveTrading
+        self.authorizesTradingExecution = authorizesTradingExecution
+        self.requiredValidationDependsOnNetwork = requiredValidationDependsOnNetwork
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            streamID: try container.decode(Identifier.self, forKey: .streamID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            streamKind: try container.decode(LiveStreamMonitoringKind.self, forKey: .streamKind),
+            status: try container.decode(LiveMonitoringStatus.self, forKey: .status),
+            evidenceKind: try container.decode(LiveStreamMonitoringEvidenceKind.self, forKey: .evidenceKind),
+            sourceAnchors: try container.decode([String].self, forKey: .sourceAnchors),
+            paperEvidenceIDs: try container.decode([Identifier].self, forKey: .paperEvidenceIDs),
+            observedAt: try container.decode(Date.self, forKey: .observedAt),
+            isReadModelOnly: try container.decode(Bool.self, forKey: .isReadModelOnly),
+            isPublicReadOnlyMarketEvidence: try container.decode(
+                Bool.self,
+                forKey: .isPublicReadOnlyMarketEvidence
+            ),
+            isBlockedEvidence: try container.decode(Bool.self, forKey: .isBlockedEvidence),
+            isSimulatedEvidence: try container.decode(Bool.self, forKey: .isSimulatedEvidence),
+            isFutureEvidence: try container.decode(Bool.self, forKey: .isFutureEvidence),
+            hasActiveMarketStream: try container.decode(Bool.self, forKey: .hasActiveMarketStream),
+            hasActiveOrderStream: try container.decode(Bool.self, forKey: .hasActiveOrderStream),
+            opensMarketWebSocket: try container.decode(Bool.self, forKey: .opensMarketWebSocket),
+            opensPrivateUserDataStream: try container.decode(Bool.self, forKey: .opensPrivateUserDataStream),
+            callsSignedEndpoint: try container.decode(Bool.self, forKey: .callsSignedEndpoint),
+            callsAccountEndpoint: try container.decode(Bool.self, forKey: .callsAccountEndpoint),
+            createsListenKey: try container.decode(Bool.self, forKey: .createsListenKey),
+            readsAPIKey: try container.decode(Bool.self, forKey: .readsAPIKey),
+            readsSecret: try container.decode(Bool.self, forKey: .readsSecret),
+            readsAccountPayload: try container.decode(Bool.self, forKey: .readsAccountPayload),
+            consumesExecutionReport: try container.decode(Bool.self, forKey: .consumesExecutionReport),
+            recordsBrokerFill: try container.decode(Bool.self, forKey: .recordsBrokerFill),
+            implementsRealOrderStateMachine: try container.decode(
+                Bool.self,
+                forKey: .implementsRealOrderStateMachine
+            ),
+            providesOrderCommand: try container.decode(Bool.self, forKey: .providesOrderCommand),
+            submitsRealOrder: try container.decode(Bool.self, forKey: .submitsRealOrder),
+            cancelsRealOrder: try container.decode(Bool.self, forKey: .cancelsRealOrder),
+            replacesRealOrder: try container.decode(Bool.self, forKey: .replacesRealOrder),
+            instantiatesBrokerAdapter: try container.decode(Bool.self, forKey: .instantiatesBrokerAdapter),
+            exposesAdapterSurface: try container.decode(Bool.self, forKey: .exposesAdapterSurface),
+            exposesRuntimeObject: try container.decode(Bool.self, forKey: .exposesRuntimeObject),
+            exposesSQLiteSchema: try container.decode(Bool.self, forKey: .exposesSQLiteSchema),
+            exposesDuckDBSchema: try container.decode(Bool.self, forKey: .exposesDuckDBSchema),
+            authorizesLiveTrading: try container.decode(Bool.self, forKey: .authorizesLiveTrading),
+            authorizesTradingExecution: try container.decode(Bool.self, forKey: .authorizesTradingExecution),
+            requiredValidationDependsOnNetwork: try container.decode(
+                Bool.self,
+                forKey: .requiredValidationDependsOnNetwork
+            )
+        )
+    }
+
+    public static func requiredStatus(for streamKind: LiveStreamMonitoringKind) -> LiveMonitoringStatus {
+        switch streamKind {
+        case .publicMarketStream:
+            .disconnected
+        case .blockedOrderStream, .simulatedOrderStream:
+            .blocked
+        case .futureOrderStream:
+            .unavailable
+        }
+    }
+
+    public static func requiredEvidenceKind(
+        for streamKind: LiveStreamMonitoringKind
+    ) -> LiveStreamMonitoringEvidenceKind {
+        switch streamKind {
+        case .publicMarketStream:
+            .publicReadOnlyMarketEvidence
+        case .blockedOrderStream:
+            .blockedOrderStreamEvidence
+        case .simulatedOrderStream:
+            .simulatedPaperOrderEvidence
+        case .futureOrderStream:
+            .futureOrderStreamGate
+        }
+    }
+
+    public static func requiredSourceAnchors(for streamKind: LiveStreamMonitoringKind) -> [String] {
+        switch streamKind {
+        case .publicMarketStream:
+            [
+                "MTP-68-LIVE-MONITORING-READ-MODEL-ONLY",
+                "MTP-70-MARKET-STREAM-PUBLIC-READ-ONLY-EVIDENCE",
+                "BinanceReadOnlyAdapterBoundary"
+            ]
+        case .blockedOrderStream:
+            [
+                "MTP-62-CREDENTIAL-ENDPOINT-BOUNDARY",
+                "MTP-63-ADAPTER-CAPABILITY-ISOLATION",
+                "MTP-64-REAL-ORDER-LIFECYCLE-TERMINOLOGY",
+                "MTP-68-ORDER-STREAM-EVIDENCE-NOT-REAL-ORDER-STATE",
+                "MTP-70-ORDER-STREAM-BLOCKED-SIMULATED-FUTURE-EVIDENCE"
+            ]
+        case .simulatedOrderStream:
+            [
+                "TVM-PAPER-EXECUTION-WORKFLOW",
+                "MTP-68-ORDER-STREAM-EVIDENCE-NOT-REAL-ORDER-STATE",
+                "MTP-70-ORDER-STREAM-BLOCKED-SIMULATED-FUTURE-EVIDENCE"
+            ]
+        case .futureOrderStream:
+            [
+                "MTP-64-REAL-ORDER-LIFECYCLE-TERMINOLOGY",
+                "MTP-68-ORDER-STREAM-EVIDENCE-NOT-REAL-ORDER-STATE",
+                "MTP-70-ORDER-STREAM-BLOCKED-SIMULATED-FUTURE-EVIDENCE"
+            ]
+        }
+    }
+
+    public static func requiredPaperEvidenceIDs(for streamKind: LiveStreamMonitoringKind) -> [Identifier] {
+        switch streamKind {
+        case .publicMarketStream, .blockedOrderStream, .futureOrderStream:
+            []
+        case .simulatedOrderStream:
+            [
+                try! Identifier("paper-replay-order-allowed"),
+                try! Identifier("paper-replay-fill-allowed")
+            ]
+        }
+    }
+
+    private static func requiredModeFlags(for streamKind: LiveStreamMonitoringKind) -> [Bool] {
+        switch streamKind {
+        case .publicMarketStream:
+            modeFlags(true, false, false, false)
+        case .blockedOrderStream:
+            modeFlags(false, true, false, false)
+        case .simulatedOrderStream:
+            modeFlags(false, false, true, false)
+        case .futureOrderStream:
+            modeFlags(false, false, false, true)
+        }
+    }
+
+    private static func modeFlags(
+        _ isPublicReadOnlyMarketEvidence: Bool,
+        _ isBlockedEvidence: Bool,
+        _ isSimulatedEvidence: Bool,
+        _ isFutureEvidence: Bool
+    ) -> [Bool] {
+        [
+            isPublicReadOnlyMarketEvidence,
+            isBlockedEvidence,
+            isSimulatedEvidence,
+            isFutureEvidence
+        ]
+    }
+
+    private static func describeModeFlags(_ values: [Bool]) -> String {
+        [
+            "publicMarket=\(values[0])",
+            "blocked=\(values[1])",
+            "simulated=\(values[2])",
+            "future=\(values[3])"
+        ].joined(separator: ",")
+    }
+
+    private static func validateForbiddenFlags(
+        isReadModelOnly: Bool,
+        hasActiveMarketStream: Bool,
+        hasActiveOrderStream: Bool,
+        opensMarketWebSocket: Bool,
+        opensPrivateUserDataStream: Bool,
+        callsSignedEndpoint: Bool,
+        callsAccountEndpoint: Bool,
+        createsListenKey: Bool,
+        readsAPIKey: Bool,
+        readsSecret: Bool,
+        readsAccountPayload: Bool,
+        consumesExecutionReport: Bool,
+        recordsBrokerFill: Bool,
+        implementsRealOrderStateMachine: Bool,
+        providesOrderCommand: Bool,
+        submitsRealOrder: Bool,
+        cancelsRealOrder: Bool,
+        replacesRealOrder: Bool,
+        instantiatesBrokerAdapter: Bool,
+        exposesAdapterSurface: Bool,
+        exposesRuntimeObject: Bool,
+        exposesSQLiteSchema: Bool,
+        exposesDuckDBSchema: Bool,
+        authorizesLiveTrading: Bool,
+        authorizesTradingExecution: Bool,
+        requiredValidationDependsOnNetwork: Bool
+    ) throws {
+        guard isReadModelOnly else {
+            throw CoreError.liveMonitoringConsoleForbiddenCapability("isReadModelOnly")
+        }
+
+        let forbiddenFlags = [
+            ("hasActiveMarketStream", hasActiveMarketStream),
+            ("hasActiveOrderStream", hasActiveOrderStream),
+            ("opensMarketWebSocket", opensMarketWebSocket),
+            ("opensPrivateUserDataStream", opensPrivateUserDataStream),
+            ("callsSignedEndpoint", callsSignedEndpoint),
+            ("callsAccountEndpoint", callsAccountEndpoint),
+            ("createsListenKey", createsListenKey),
+            ("readsAPIKey", readsAPIKey),
+            ("readsSecret", readsSecret),
+            ("readsAccountPayload", readsAccountPayload),
+            ("consumesExecutionReport", consumesExecutionReport),
+            ("recordsBrokerFill", recordsBrokerFill),
+            ("implementsRealOrderStateMachine", implementsRealOrderStateMachine),
+            ("providesOrderCommand", providesOrderCommand),
+            ("submitsRealOrder", submitsRealOrder),
+            ("cancelsRealOrder", cancelsRealOrder),
+            ("replacesRealOrder", replacesRealOrder),
+            ("instantiatesBrokerAdapter", instantiatesBrokerAdapter),
+            ("exposesAdapterSurface", exposesAdapterSurface),
+            ("exposesRuntimeObject", exposesRuntimeObject),
+            ("exposesSQLiteSchema", exposesSQLiteSchema),
+            ("exposesDuckDBSchema", exposesDuckDBSchema),
+            ("authorizesLiveTrading", authorizesLiveTrading),
+            ("authorizesTradingExecution", authorizesTradingExecution),
+            ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveMonitoringConsoleForbiddenCapability(capability.0)
+        }
+    }
+}
+
+/// LiveStreamMonitoringEvidenceReadModel 汇总 MTP-70 的 market stream / order stream evidence。
+///
+/// 该 read model 以 MTP-69 runtime health 为上游，只额外表达四类 stream evidence。它不接入
+/// 真实 market streaming runtime 或 account/order streaming runtime；订单流只保持 blocked、
+/// simulated、future-only 三种证据，不能形成 real order state machine 或 order command。
+public struct LiveStreamMonitoringEvidenceReadModel: Codable, Equatable, Sendable {
+    public let readModelID: Identifier
+    public let issueID: Identifier
+    public let runtimeHealth: LiveRuntimeHealthReadModel
+    public let sourceAnchors: [String]
+    public let streamEvidence: [LiveStreamMonitoringEvidenceItem]
+    public let updatedAt: Date
+    public let isReadModelOnly: Bool
+    public let providesCommandSurface: Bool
+    public let opensMarketWebSocket: Bool
+    public let opensPrivateUserDataStream: Bool
+    public let callsSignedEndpoint: Bool
+    public let callsAccountEndpoint: Bool
+    public let createsListenKey: Bool
+    public let readsAPIKey: Bool
+    public let readsSecret: Bool
+    public let readsAccountPayload: Bool
+    public let consumesExecutionReport: Bool
+    public let recordsBrokerFill: Bool
+    public let implementsRealOrderStateMachine: Bool
+    public let providesOrderCommand: Bool
+    public let submitsRealOrder: Bool
+    public let cancelsRealOrder: Bool
+    public let replacesRealOrder: Bool
+    public let instantiatesBrokerAdapter: Bool
+    public let exposesAdapterSurface: Bool
+    public let exposesRuntimeObject: Bool
+    public let exposesSQLiteSchema: Bool
+    public let exposesDuckDBSchema: Bool
+    public let authorizesLiveTrading: Bool
+    public let authorizesTradingExecution: Bool
+    public let requiredValidationDependsOnNetwork: Bool
+
+    public var marketStreamEvidenceCount: Int {
+        streamEvidence.filter { $0.streamKind == .publicMarketStream }.count
+    }
+
+    public var orderStreamEvidenceCount: Int {
+        streamEvidence.filter(\.isOrderStreamEvidence).count
+    }
+
+    public var orderStreamEvidenceKinds: [LiveStreamMonitoringEvidenceKind] {
+        streamEvidence
+            .filter(\.isOrderStreamEvidence)
+            .map(\.evidenceKind)
+    }
+
+    public var streamEvidenceBoundaryHeld: Bool {
+        sourceAnchors == Self.requiredSourceAnchors
+            && runtimeHealth == .deterministicFixture
+            && runtimeHealth.runtimeHealthBoundaryHeld
+            && streamEvidence == Self.requiredStreamEvidence
+            && streamEvidence.allSatisfy(\.streamBoundaryHeld)
+    }
+
+    public var orderStreamEvidenceBoundaryHeld: Bool {
+        let orderEvidence = streamEvidence.filter(\.isOrderStreamEvidence)
+        return orderEvidence.map(\.streamKind) == [
+            .blockedOrderStream,
+            .simulatedOrderStream,
+            .futureOrderStream
+        ]
+            && orderEvidence.map(\.evidenceKind) == [
+                .blockedOrderStreamEvidence,
+                .simulatedPaperOrderEvidence,
+                .futureOrderStreamGate
+            ]
+            && orderEvidence.allSatisfy(\.streamBoundaryHeld)
+            && orderEvidence.allSatisfy { $0.hasActiveOrderStream == false }
+            && orderEvidence.allSatisfy { $0.opensPrivateUserDataStream == false }
+            && orderEvidence.allSatisfy { $0.createsListenKey == false }
+            && orderEvidence.allSatisfy { $0.consumesExecutionReport == false }
+            && orderEvidence.allSatisfy { $0.recordsBrokerFill == false }
+            && orderEvidence.allSatisfy { $0.implementsRealOrderStateMachine == false }
+            && orderEvidence.allSatisfy { $0.providesOrderCommand == false }
+    }
+
+    public var readModelOnlyBoundaryHeld: Bool {
+        streamEvidenceBoundaryHeld
+            && orderStreamEvidenceBoundaryHeld
+            && isReadModelOnly
+            && providesCommandSurface == false
+            && opensMarketWebSocket == false
+            && opensPrivateUserDataStream == false
+            && callsSignedEndpoint == false
+            && callsAccountEndpoint == false
+            && createsListenKey == false
+            && readsAPIKey == false
+            && readsSecret == false
+            && readsAccountPayload == false
+            && consumesExecutionReport == false
+            && recordsBrokerFill == false
+            && implementsRealOrderStateMachine == false
+            && providesOrderCommand == false
+            && submitsRealOrder == false
+            && cancelsRealOrder == false
+            && replacesRealOrder == false
+            && instantiatesBrokerAdapter == false
+            && exposesAdapterSurface == false
+            && exposesRuntimeObject == false
+            && exposesSQLiteSchema == false
+            && exposesDuckDBSchema == false
+            && authorizesLiveTrading == false
+            && authorizesTradingExecution == false
+            && requiredValidationDependsOnNetwork == false
+    }
+
+    public init(
+        readModelID: Identifier = try! Identifier("mtp-70-live-stream-monitoring-evidence"),
+        issueID: Identifier = try! Identifier("MTP-70"),
+        runtimeHealth: LiveRuntimeHealthReadModel = .deterministicFixture,
+        sourceAnchors: [String] = Self.requiredSourceAnchors,
+        streamEvidence: [LiveStreamMonitoringEvidenceItem] = Self.requiredStreamEvidence,
+        updatedAt: Date = Date(timeIntervalSince1970: 7_001),
+        isReadModelOnly: Bool = true,
+        providesCommandSurface: Bool = false,
+        opensMarketWebSocket: Bool = false,
+        opensPrivateUserDataStream: Bool = false,
+        callsSignedEndpoint: Bool = false,
+        callsAccountEndpoint: Bool = false,
+        createsListenKey: Bool = false,
+        readsAPIKey: Bool = false,
+        readsSecret: Bool = false,
+        readsAccountPayload: Bool = false,
+        consumesExecutionReport: Bool = false,
+        recordsBrokerFill: Bool = false,
+        implementsRealOrderStateMachine: Bool = false,
+        providesOrderCommand: Bool = false,
+        submitsRealOrder: Bool = false,
+        cancelsRealOrder: Bool = false,
+        replacesRealOrder: Bool = false,
+        instantiatesBrokerAdapter: Bool = false,
+        exposesAdapterSurface: Bool = false,
+        exposesRuntimeObject: Bool = false,
+        exposesSQLiteSchema: Bool = false,
+        exposesDuckDBSchema: Bool = false,
+        authorizesLiveTrading: Bool = false,
+        authorizesTradingExecution: Bool = false,
+        requiredValidationDependsOnNetwork: Bool = false
+    ) throws {
+        guard runtimeHealth == .deterministicFixture else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "runtimeHealth",
+                expected: LiveRuntimeHealthReadModel.deterministicFixture.healthID.rawValue,
+                actual: runtimeHealth.healthID.rawValue
+            )
+        }
+        guard sourceAnchors == Self.requiredSourceAnchors else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "sourceAnchors",
+                expected: Self.requiredSourceAnchors.joined(separator: ","),
+                actual: sourceAnchors.joined(separator: ",")
+            )
+        }
+        try Self.validate(streamEvidence: streamEvidence)
+        try Self.validateForbiddenFlags(
+            isReadModelOnly: isReadModelOnly,
+            providesCommandSurface: providesCommandSurface,
+            opensMarketWebSocket: opensMarketWebSocket,
+            opensPrivateUserDataStream: opensPrivateUserDataStream,
+            callsSignedEndpoint: callsSignedEndpoint,
+            callsAccountEndpoint: callsAccountEndpoint,
+            createsListenKey: createsListenKey,
+            readsAPIKey: readsAPIKey,
+            readsSecret: readsSecret,
+            readsAccountPayload: readsAccountPayload,
+            consumesExecutionReport: consumesExecutionReport,
+            recordsBrokerFill: recordsBrokerFill,
+            implementsRealOrderStateMachine: implementsRealOrderStateMachine,
+            providesOrderCommand: providesOrderCommand,
+            submitsRealOrder: submitsRealOrder,
+            cancelsRealOrder: cancelsRealOrder,
+            replacesRealOrder: replacesRealOrder,
+            instantiatesBrokerAdapter: instantiatesBrokerAdapter,
+            exposesAdapterSurface: exposesAdapterSurface,
+            exposesRuntimeObject: exposesRuntimeObject,
+            exposesSQLiteSchema: exposesSQLiteSchema,
+            exposesDuckDBSchema: exposesDuckDBSchema,
+            authorizesLiveTrading: authorizesLiveTrading,
+            authorizesTradingExecution: authorizesTradingExecution,
+            requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork
+        )
+
+        self.readModelID = readModelID
+        self.issueID = issueID
+        self.runtimeHealth = runtimeHealth
+        self.sourceAnchors = sourceAnchors
+        self.streamEvidence = streamEvidence
+        self.updatedAt = updatedAt
+        self.isReadModelOnly = isReadModelOnly
+        self.providesCommandSurface = providesCommandSurface
+        self.opensMarketWebSocket = opensMarketWebSocket
+        self.opensPrivateUserDataStream = opensPrivateUserDataStream
+        self.callsSignedEndpoint = callsSignedEndpoint
+        self.callsAccountEndpoint = callsAccountEndpoint
+        self.createsListenKey = createsListenKey
+        self.readsAPIKey = readsAPIKey
+        self.readsSecret = readsSecret
+        self.readsAccountPayload = readsAccountPayload
+        self.consumesExecutionReport = consumesExecutionReport
+        self.recordsBrokerFill = recordsBrokerFill
+        self.implementsRealOrderStateMachine = implementsRealOrderStateMachine
+        self.providesOrderCommand = providesOrderCommand
+        self.submitsRealOrder = submitsRealOrder
+        self.cancelsRealOrder = cancelsRealOrder
+        self.replacesRealOrder = replacesRealOrder
+        self.instantiatesBrokerAdapter = instantiatesBrokerAdapter
+        self.exposesAdapterSurface = exposesAdapterSurface
+        self.exposesRuntimeObject = exposesRuntimeObject
+        self.exposesSQLiteSchema = exposesSQLiteSchema
+        self.exposesDuckDBSchema = exposesDuckDBSchema
+        self.authorizesLiveTrading = authorizesLiveTrading
+        self.authorizesTradingExecution = authorizesTradingExecution
+        self.requiredValidationDependsOnNetwork = requiredValidationDependsOnNetwork
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            readModelID: try container.decode(Identifier.self, forKey: .readModelID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            runtimeHealth: try container.decode(LiveRuntimeHealthReadModel.self, forKey: .runtimeHealth),
+            sourceAnchors: try container.decode([String].self, forKey: .sourceAnchors),
+            streamEvidence: try container.decode(
+                [LiveStreamMonitoringEvidenceItem].self,
+                forKey: .streamEvidence
+            ),
+            updatedAt: try container.decode(Date.self, forKey: .updatedAt),
+            isReadModelOnly: try container.decode(Bool.self, forKey: .isReadModelOnly),
+            providesCommandSurface: try container.decode(Bool.self, forKey: .providesCommandSurface),
+            opensMarketWebSocket: try container.decode(Bool.self, forKey: .opensMarketWebSocket),
+            opensPrivateUserDataStream: try container.decode(Bool.self, forKey: .opensPrivateUserDataStream),
+            callsSignedEndpoint: try container.decode(Bool.self, forKey: .callsSignedEndpoint),
+            callsAccountEndpoint: try container.decode(Bool.self, forKey: .callsAccountEndpoint),
+            createsListenKey: try container.decode(Bool.self, forKey: .createsListenKey),
+            readsAPIKey: try container.decode(Bool.self, forKey: .readsAPIKey),
+            readsSecret: try container.decode(Bool.self, forKey: .readsSecret),
+            readsAccountPayload: try container.decode(Bool.self, forKey: .readsAccountPayload),
+            consumesExecutionReport: try container.decode(Bool.self, forKey: .consumesExecutionReport),
+            recordsBrokerFill: try container.decode(Bool.self, forKey: .recordsBrokerFill),
+            implementsRealOrderStateMachine: try container.decode(
+                Bool.self,
+                forKey: .implementsRealOrderStateMachine
+            ),
+            providesOrderCommand: try container.decode(Bool.self, forKey: .providesOrderCommand),
+            submitsRealOrder: try container.decode(Bool.self, forKey: .submitsRealOrder),
+            cancelsRealOrder: try container.decode(Bool.self, forKey: .cancelsRealOrder),
+            replacesRealOrder: try container.decode(Bool.self, forKey: .replacesRealOrder),
+            instantiatesBrokerAdapter: try container.decode(Bool.self, forKey: .instantiatesBrokerAdapter),
+            exposesAdapterSurface: try container.decode(Bool.self, forKey: .exposesAdapterSurface),
+            exposesRuntimeObject: try container.decode(Bool.self, forKey: .exposesRuntimeObject),
+            exposesSQLiteSchema: try container.decode(Bool.self, forKey: .exposesSQLiteSchema),
+            exposesDuckDBSchema: try container.decode(Bool.self, forKey: .exposesDuckDBSchema),
+            authorizesLiveTrading: try container.decode(Bool.self, forKey: .authorizesLiveTrading),
+            authorizesTradingExecution: try container.decode(Bool.self, forKey: .authorizesTradingExecution),
+            requiredValidationDependsOnNetwork: try container.decode(
+                Bool.self,
+                forKey: .requiredValidationDependsOnNetwork
+            )
+        )
+    }
+
+    public static let requiredSourceAnchors: [String] = [
+        "MTP-68-LIVE-MONITORING-CONSOLE-IA",
+        "MTP-68-ORDER-STREAM-EVIDENCE-NOT-REAL-ORDER-STATE",
+        "MTP-69-LIVE-RUNTIME-HEALTH-READ-MODEL",
+        "MTP-70-MARKET-STREAM-ORDER-STREAM-READ-MODEL"
+    ]
+
+    public static let requiredStreamEvidence: [LiveStreamMonitoringEvidenceItem] = [
+        Self.makeStreamEvidence(
+            "mtp-70-public-market-stream-disconnected",
+            kind: .publicMarketStream
+        ),
+        Self.makeStreamEvidence(
+            "mtp-70-order-stream-blocked",
+            kind: .blockedOrderStream
+        ),
+        Self.makeStreamEvidence(
+            "mtp-70-order-stream-simulated-paper-evidence",
+            kind: .simulatedOrderStream
+        ),
+        Self.makeStreamEvidence(
+            "mtp-70-order-stream-future-gate",
+            kind: .futureOrderStream
+        )
+    ]
+
+    public static let deterministicFixture: LiveStreamMonitoringEvidenceReadModel = {
+        do {
+            return try LiveStreamMonitoringEvidenceReadModel()
+        } catch {
+            preconditionFailure("MTP-70 stream monitoring evidence fixture must be valid: \(error)")
+        }
+    }()
+
+    private static func makeStreamEvidence(
+        _ streamID: String,
+        kind: LiveStreamMonitoringKind
+    ) -> LiveStreamMonitoringEvidenceItem {
+        do {
+            return try LiveStreamMonitoringEvidenceItem(
+                streamID: try Identifier(streamID),
+                streamKind: kind
+            )
+        } catch {
+            preconditionFailure("MTP-70 stream evidence item fixture must be valid: \(error)")
+        }
+    }
+
+    private static func validate(streamEvidence: [LiveStreamMonitoringEvidenceItem]) throws {
+        guard streamEvidence == Self.requiredStreamEvidence else {
+            throw CoreError.liveMonitoringConsoleContractMismatch(
+                field: "streamEvidence",
+                expected: Self.requiredStreamEvidence.map(\.streamKind.rawValue).joined(separator: ","),
+                actual: streamEvidence.map(\.streamKind.rawValue).joined(separator: ",")
+            )
+        }
+        guard streamEvidence.allSatisfy(\.streamBoundaryHeld) else {
+            throw CoreError.liveMonitoringConsoleForbiddenCapability("streamEvidence")
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        isReadModelOnly: Bool,
+        providesCommandSurface: Bool,
+        opensMarketWebSocket: Bool,
+        opensPrivateUserDataStream: Bool,
+        callsSignedEndpoint: Bool,
+        callsAccountEndpoint: Bool,
+        createsListenKey: Bool,
+        readsAPIKey: Bool,
+        readsSecret: Bool,
+        readsAccountPayload: Bool,
+        consumesExecutionReport: Bool,
+        recordsBrokerFill: Bool,
+        implementsRealOrderStateMachine: Bool,
+        providesOrderCommand: Bool,
+        submitsRealOrder: Bool,
+        cancelsRealOrder: Bool,
+        replacesRealOrder: Bool,
+        instantiatesBrokerAdapter: Bool,
+        exposesAdapterSurface: Bool,
+        exposesRuntimeObject: Bool,
+        exposesSQLiteSchema: Bool,
+        exposesDuckDBSchema: Bool,
+        authorizesLiveTrading: Bool,
+        authorizesTradingExecution: Bool,
+        requiredValidationDependsOnNetwork: Bool
+    ) throws {
+        guard isReadModelOnly else {
+            throw CoreError.liveMonitoringConsoleForbiddenCapability("isReadModelOnly")
+        }
+
+        let forbiddenFlags = [
+            ("providesCommandSurface", providesCommandSurface),
+            ("opensMarketWebSocket", opensMarketWebSocket),
+            ("opensPrivateUserDataStream", opensPrivateUserDataStream),
+            ("callsSignedEndpoint", callsSignedEndpoint),
+            ("callsAccountEndpoint", callsAccountEndpoint),
+            ("createsListenKey", createsListenKey),
+            ("readsAPIKey", readsAPIKey),
+            ("readsSecret", readsSecret),
+            ("readsAccountPayload", readsAccountPayload),
+            ("consumesExecutionReport", consumesExecutionReport),
+            ("recordsBrokerFill", recordsBrokerFill),
+            ("implementsRealOrderStateMachine", implementsRealOrderStateMachine),
+            ("providesOrderCommand", providesOrderCommand),
+            ("submitsRealOrder", submitsRealOrder),
+            ("cancelsRealOrder", cancelsRealOrder),
+            ("replacesRealOrder", replacesRealOrder),
+            ("instantiatesBrokerAdapter", instantiatesBrokerAdapter),
+            ("exposesAdapterSurface", exposesAdapterSurface),
+            ("exposesRuntimeObject", exposesRuntimeObject),
+            ("exposesSQLiteSchema", exposesSQLiteSchema),
+            ("exposesDuckDBSchema", exposesDuckDBSchema),
+            ("authorizesLiveTrading", authorizesLiveTrading),
+            ("authorizesTradingExecution", authorizesTradingExecution),
+            ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveMonitoringConsoleForbiddenCapability(capability.0)
+        }
+    }
+}
