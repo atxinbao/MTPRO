@@ -479,3 +479,70 @@ MTP-79 建立以下 validation anchors：
 - `MTP-79-LIVE-EXECUTION-CONTROL-VALIDATION`
 
 本 issue 不修改 `checks/automation-readiness.sh` 做最终机械收口；`MTPRO Live Execution Control Contract v1` 的 automation readiness 收口保留给 Issue 7。
+
+## MTP-80 Dashboard / Report / Event Timeline execution-control blocked evidence
+
+`MTP-80-DASHBOARD-REPORT-TIMELINE-EXECUTION-CONTROL-BLOCKED-EVIDENCE`
+
+MTP-80 把 MTP-79 `LiveExecutionControlBlockedEvidence` 接入 App 层 Dashboard / Report / Event Timeline 只读展示面。该接入只复制 Core blocked evidence 到 `LiveExecutionControlBlockedEvidenceReadModel`、`LiveExecutionControlBlockedEvidenceViewModel`、`ReportViewModel`、`DashboardShellSnapshot` 和 `PaperWorkflowEvidenceExplorerViewModel`；不得把 blocked evidence 转换成 command surface、order form、交易按钮、adapter request、Runtime control 或 persistence schema。
+
+展示面必须覆盖以下 execution-control gates：
+
+- `submit`
+- `cancel`
+- `replace`
+- `execution report`
+- `broker fill`
+- `reconciliation`
+- `incident fallback`
+
+## MTP-80 execution-control read-model-only surface
+
+`MTP-80-EXECUTION-CONTROL-READ-MODEL-ONLY-SURFACE`
+
+MTP-80 的 App 层读模型必须保持以下边界：
+
+- Report 展示 blocked gate count、blocked gate labels、blocked reason labels、source anchors、deterministic snapshot 和 read-model-only boundary。
+- Dashboard Shell Report section 展示 `Execution control` 指标和 execution-control boundary details。
+- Dashboard Workbench 展示 `Live Execution Control` detail group，包含 gate count、reason count、blocked confirmation 和 no command / no order form / no trading button / no schema / no runtime / no adapter evidence。
+- Event Timeline / Evidence Explorer 新增 `live execution control blocked evidence` section，为七个 gate 生成只读 timeline item 和 evidence link。
+- Dashboard smoke summary 新增 `liveExecutionControlGates=7` evidence。
+
+## MTP-80 no live command or order form
+
+`MTP-80-NO-LIVE-COMMAND-OR-ORDER-FORM`
+
+MTP-80 必须证明展示层没有越界：
+
+- 不实现 API key / secret storage。
+- 不实现 signed endpoint / account endpoint / listenKey。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`。
+- 不实现 real order state machine / OMS。
+- 不提交、撤销、替换真实订单。
+- 不消费 execution report，不记录 broker fill，不执行 reconciliation 或 incident fallback automation。
+- 不读取真实账户余额，不执行 account sync，不执行 broker position sync。
+- 不暴露 persistence schema、adapter request 或 Runtime object。
+- 不新增交易按钮、order form、live command 或 order-level command UI。
+
+App tests：
+
+- `testLiveExecutionControlBlockedEvidenceViewModelAggregatesMTP80ReadOnlySurface`
+- `testLiveExecutionControlEvidenceExplorerPreviewDefinesMTP80ReadOnlyTimelineItems`
+- `testDashboardShellSnapshotBindsViewModelSectionsForReadOnlyMacOSShell`
+- `testDashboardShellWorkbenchSnapshotBindsControlsObservabilityAndExplorerReadOnly`
+- `testDashboardViewModelStateSnapshotIsCodableAndDeterministic`
+- `testReportDashboardAndTimelineRemainMTP78ReadModelOnly`
+
+## MTP-80 validation anchors
+
+`MTP-80-LIVE-EXECUTION-CONTROL-DASHBOARD-REPORT-TIMELINE-VALIDATION`
+
+MTP-80 建立以下 validation anchors：
+
+- `MTP-80-DASHBOARD-REPORT-TIMELINE-EXECUTION-CONTROL-BLOCKED-EVIDENCE`
+- `MTP-80-EXECUTION-CONTROL-READ-MODEL-ONLY-SURFACE`
+- `MTP-80-NO-LIVE-COMMAND-OR-ORDER-FORM`
+- `MTP-80-LIVE-EXECUTION-CONTROL-DASHBOARD-REPORT-TIMELINE-VALIDATION`
+
+本 issue 不修改 `checks/automation-readiness.sh` 做最终机械收口；`MTPRO Live Execution Control Contract v1` 的 automation readiness 收口保留给 Issue 7。

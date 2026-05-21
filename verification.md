@@ -8458,3 +8458,78 @@ Linear / scope evidence：
 | `swift test --filter MTP79` | pass | 初始 red run 因 MTP-79 类型尚未存在而失败；实现后 3 个 MTP-79 focused Core XCTest 通过，0 failures。 |
 | `swift test --filter MTP78` | pass | 4 个 MTP-78 regression Core / App XCTest 通过，0 failures。 |
 | `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=24; liveBlockedGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；162 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
+
+## MTP-80 Dashboard / Report / Event Timeline execution-control blocked evidence
+
+日期：2026-05-22
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear live-read 中当前唯一 active issue `MTP-80`：接入 Dashboard / Report / Event Timeline execution-control blocked evidence。
+- 将 MTP-79 `LiveExecutionControlBlockedEvidence` 复制成 App 层 read model / ViewModel，并接入 Report、Dashboard Shell 和 Event Timeline / Evidence Explorer。
+- 展示 submit / cancel / replace / execution report / broker fill / reconciliation / incident fallback blocked gates、blocked reasons、source anchors、deterministic snapshot 和 read-model-only boundary。
+- 保持本 issue 为 App read-model-only 展示面，不暴露 schema、adapter、Runtime control、command surface、order form、交易按钮或真实交易授权。
+
+Linear / scope evidence：
+
+- Linear read-only queue preview 确认 Project `MTPRO Live Execution Control Contract v1` 中 `MTP-80` 为唯一 active issue，状态 `In Progress`；`MTP-75` 至 `MTP-79` 为 `Done`；`MTP-81` 为 `Backlog`。
+- 当前 issue scope 只允许将 `LiveExecutionControlBlockedEvidence` 或等价 read model 接入 Dashboard / Report / Event Timeline，并展示 submit、cancel、replace、execution report、broker fill、reconciliation gates 仍被阻断。
+- Non-goals：不新增交易按钮、order form、live command、order-level UI、API key / secret、signed endpoint、account endpoint、listenKey、broker / exchange adapter、`LiveExecutionAdapter`、real order state machine / OMS 或真实订单行为。
+- MTP-80 不修改 `checks/automation-readiness.sh` 做最终机械收口；`MTPRO Live Execution Control Contract v1` 的 Issue 7 才允许统一机械化 MTP-75 至 MTP-80 anchors。
+
+文件范围：
+
+- `Sources/App/LiveExecutionControlBlockedEvidence.swift`
+- `Sources/App/App.swift`
+- `Sources/App/PaperWorkflowEvidenceExplorer.swift`
+- `Sources/App/DashboardShell.swift`
+- `Tests/AppTests/AppTests.swift`
+- `docs/contracts/live-execution-control-contract.md`
+- `docs/product/product-surface-map.md`
+- `docs/validation/validation-plan.md`
+- `docs/validation/trading-validation-matrix.md`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+更新重点：
+
+- 新增 `LiveExecutionControlBlockedEvidenceReadModel`、`LiveExecutionControlBlockedEvidenceViewModel` 和 App 层 view item，只复制 Core blocked evidence，不读取 secret / schema / adapter / Runtime。
+- `ReportViewModel` 新增 execution-control blocked gate / reason / source anchor / deterministic snapshot / forbidden flag 汇总，并保持 `authorizesTradingExecution=false`。
+- `PaperWorkflowEvidenceExplorerViewModel` 新增 `live execution control blocked evidence` section，七个 gate 各生成只读 timeline item 和 evidence link。
+- `DashboardShellSnapshot` 新增 `Execution control` report metric、Workbench `Live Execution Control` detail group 和 smoke `liveExecutionControlGates=7` evidence。
+- App tests 覆盖 MTP-80 ViewModel deterministic snapshot、Event Timeline preview、Dashboard Shell Report / Workbench binding、Codable round trip 和 MTP-78 read-model-only regression。
+- 在 contract docs、product surface map、validation plan、trading validation matrix 和 latest verification summary 回填 MTP-80 anchors。
+
+边界确认：
+
+- 不读取 secret / credential。
+- 不接真实 broker / exchange。
+- 不执行真实交易动作。
+- 不新增 Linear Project / Issue。
+- 不修改 Linear status。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify update。
+- 不提交 `.codex/*`。
+- 不提交 `graphify-out/*`。
+- 不实现 API key / secret storage。
+- 不实现 signed endpoint / account endpoint / listenKey。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`。
+- 不实现 real order state machine / OMS。
+- 不提交、撤销、替换真实订单。
+- 不消费、解析或 ingest execution report。
+- 不记录 broker fill，不写 broker fill event fact。
+- 不实现 reconciliation service / runtime 或 incident fallback automation。
+- 不读取真实账户余额，不执行 account sync，不执行 broker position sync。
+- 不暴露 persistence schema、adapter 或 runtime control。
+- 不实现 live command、order-level command UI、order form 或交易按钮。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter AppTests/testLiveExecutionControl` | pass | 2 个 MTP-80 focused App XCTest 通过，0 failures。 |
+| `swift test --filter AppTests` | pass | 22 个 App XCTest 通过，覆盖 Report、Dashboard Shell、Event Timeline / Evidence Explorer 和 Codable regression，0 failures。 |
+| `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=31; liveBlockedGates=6; liveExecutionControlGates=7; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；164 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |

@@ -11,6 +11,7 @@ import Persistence
 public enum PaperWorkflowEvidenceExplorerSection: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
     case marketEvent = "market event"
     case marketDataReplayOperation = "market data replay operation"
+    case liveExecutionControlBlockedEvidence = "live execution control blocked evidence"
     case liveTradingBlockedEvidence = "live trading blocked evidence"
     case liveMonitoringEvidence = "live monitoring evidence"
     case strategySignal = "strategy signal"
@@ -133,7 +134,8 @@ public struct PaperWorkflowEvidenceExplorerFilterSnapshot: Codable, Equatable, S
 /// PaperWorkflowEvidenceExplorerReadModel 汇总 Event Timeline / Evidence Explorer 的稳定输入。
 ///
 /// 该 read model 只组合 Dashboard 已有 App read models：market、strategy、report、
-/// Live blocked evidence、Live monitoring evidence、paper workflow observability 和 append-only event timeline。
+/// Live blocked evidence、Live monitoring evidence、execution-control blocked evidence、
+/// paper workflow observability 和 append-only event timeline。
 /// 它不新增 projection schema，不直接读取 Persistence adapter，不暴露 Runtime object，
 /// 也不提供交易、风控、live command、live audit、incident replay 或 stop control。
 public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
@@ -142,6 +144,7 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
     public let report: ReportReadModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel
     public let liveMonitoringEvidence: LiveMonitoringEvidenceReadModel
+    public let liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel
     public let paperWorkflowObservability: PaperWorkflowObservabilityReadModel
     public let events: EventTimelineReadModel
     public let lastAppliedSequence: Int?
@@ -152,6 +155,7 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
         report: ReportReadModel = ReportReadModel(),
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel? = nil,
         liveMonitoringEvidence: LiveMonitoringEvidenceReadModel? = nil,
+        liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel? = nil,
         paperWorkflowObservability: PaperWorkflowObservabilityReadModel = PaperWorkflowObservabilityReadModel(),
         events: EventTimelineReadModel = EventTimelineReadModel()
     ) {
@@ -162,6 +166,8 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
             ?? report.liveTradingBlockedEvidence
         self.liveMonitoringEvidence = liveMonitoringEvidence
             ?? report.liveMonitoringEvidence
+        self.liveExecutionControlBlockedEvidence = liveExecutionControlBlockedEvidence
+            ?? report.liveExecutionControlBlockedEvidence
         self.paperWorkflowObservability = paperWorkflowObservability
         self.events = events
         self.lastAppliedSequence = Self.maxSequence(
@@ -170,6 +176,7 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
             report.lastAppliedSequence,
             self.liveTradingBlockedEvidence.lastAppliedSequence,
             self.liveMonitoringEvidence.lastAppliedSequence,
+            self.liveExecutionControlBlockedEvidence.lastAppliedSequence,
             paperWorkflowObservability.lastAppliedSequence,
             events.envelopes.map(\.sequence).max()
         )
@@ -195,6 +202,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
     public let evidenceLinkCount: Int
     public let coversMarketEvents: Bool
     public let coversMarketDataReplayOperations: Bool
+    public let coversLiveExecutionControlBlockedEvidence: Bool
     public let coversLiveTradingBlockedEvidence: Bool
     public let coversLiveMonitoringEvidence: Bool
     public let coversStrategySignals: Bool
@@ -227,6 +235,9 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         let selectedSections = Self.normalizeSelectedSections(requestedSections)
         let selectedSectionSet = Set(selectedSections)
         let allTimelineItems = Self.makeTimelineItems(from: readModel)
+        let liveExecutionControl = LiveExecutionControlBlockedEvidenceViewModel(
+            readModel: readModel.liveExecutionControlBlockedEvidence
+        )
         let timelineItems = allTimelineItems
             .filter { selectedSectionSet.contains($0.section) }
             .sortedByTimelinePosition()
@@ -241,6 +252,9 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         let coversMarketDataReplayOperations = allTimelineItems.contains {
             $0.section == .marketDataReplayOperation
         }
+        let coversLiveExecutionControlBlockedEvidence = allTimelineItems.contains {
+            $0.section == .liveExecutionControlBlockedEvidence
+        }
         let coversLiveTradingBlockedEvidence = allTimelineItems.contains {
             $0.section == .liveTradingBlockedEvidence
         }
@@ -254,18 +268,23 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         let coversPortfolioProjections = allTimelineItems.contains { $0.section == .portfolioProjection }
         let coversReportArtifacts = allTimelineItems.contains { $0.section == .reportArtifact }
         let coversPaperWorkflowChainEvidence = Self.coversPaperWorkflowChainEvidence(allTimelineItems)
-        let exposesDatabaseSchema = source.exposesDatabaseTables || source.exposesORMModels
+        let exposesDatabaseSchema = source.exposesDatabaseTables
+            || source.exposesORMModels
+            || liveExecutionControl.exposesPersistenceSchema
         let exposesRuntimeObject = source.exposesRuntimeObjects
+            || liveExecutionControl.invokesRuntimeControl
         let exposesAdapterRequest = source.callsBinanceAdapter
-        let providesCommandSurface = false
-        let providesOrderLevelCommand = false
+            || liveExecutionControl.readsAdapter
+        let providesCommandSurface = liveExecutionControl.providesCommandSurface
+        let providesOrderLevelCommand = liveExecutionControl.providesOrderLevelCommand
         let supportsQueryLanguage = false
         let providesLiveAudit = false
         let providesIncidentReplay = false
         let providesStopControl = false
-        let authorizesLiveTrading = false
-        let touchesBrokerAction = false
-        let authorizesTradingExecution = false
+        let authorizesLiveTrading = liveExecutionControl.authorizesLiveTrading
+        let touchesBrokerAction = liveExecutionControl.instantiatesBrokerExecutionAdapter
+            || liveExecutionControl.instantiatesExchangeExecutionAdapter
+        let authorizesTradingExecution = liveExecutionControl.authorizesTradingExecution
 
         self.source = source
         self.timelineItems = timelineItems
@@ -280,6 +299,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         self.evidenceLinkCount = evidenceLinks.count
         self.coversMarketEvents = coversMarketEvents
         self.coversMarketDataReplayOperations = coversMarketDataReplayOperations
+        self.coversLiveExecutionControlBlockedEvidence = coversLiveExecutionControlBlockedEvidence
         self.coversLiveTradingBlockedEvidence = coversLiveTradingBlockedEvidence
         self.coversLiveMonitoringEvidence = coversLiveMonitoringEvidence
         self.coversStrategySignals = coversStrategySignals
@@ -299,6 +319,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             && providesLiveAudit == false
             && providesIncidentReplay == false
             && providesStopControl == false
+            && liveExecutionControl.readModelOnlyBoundaryHeld
             && authorizesLiveTrading == false
             && touchesBrokerAction == false
             && authorizesTradingExecution == false
@@ -335,6 +356,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         (
             makeMarketItems(readModel.market)
                 + makeMarketDataReplayOperationItems(readModel.report.marketDataReplayOperations)
+                + makeLiveExecutionControlBlockedEvidenceItems(readModel.liveExecutionControlBlockedEvidence)
                 + makeLiveTradingBlockedEvidenceItems(readModel.liveTradingBlockedEvidence)
                 + makeLiveMonitoringEvidenceItems(readModel.liveMonitoringEvidence)
                 + makeStrategyItems(readModel.strategy)
@@ -468,6 +490,28 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
                         section: .liveTradingBlockedEvidence,
                         evidenceID: item.evidenceID,
                         label: "live blocked capability",
+                        sourceSequence: readModel.lastAppliedSequence
+                    )
+                ]
+            )
+        }
+    }
+
+    private static func makeLiveExecutionControlBlockedEvidenceItems(
+        _ readModel: LiveExecutionControlBlockedEvidenceReadModel
+    ) -> [PaperWorkflowEventTimelineItem] {
+        readModel.items.map { item in
+            PaperWorkflowEventTimelineItem(
+                section: .liveExecutionControlBlockedEvidence,
+                sequence: readModel.lastAppliedSequence,
+                stream: "live execution control",
+                title: "Live execution control gate blocked",
+                summary: "\(item.gate.rawValue) blocked; reasons=\(item.blockedReasonLabels.joined(separator: ", "))",
+                evidenceLinks: [
+                    PaperWorkflowEvidenceLinkSummary(
+                        section: .liveExecutionControlBlockedEvidence,
+                        evidenceID: item.evidenceID,
+                        label: "execution-control blocked gate",
                         sourceSequence: readModel.lastAppliedSequence
                     )
                 ]

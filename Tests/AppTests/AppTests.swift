@@ -57,6 +57,15 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(viewModel.report.liveMonitoringEvidence.source.callsBinanceAdapter)
         XCTAssertFalse(viewModel.report.liveMonitoringEvidence.source.providesLiveOrderAction)
         XCTAssertEqual(
+            viewModel.report.liveExecutionControlBlockedEvidence.source.sourceKind,
+            .stableReadModelProjection
+        )
+        XCTAssertFalse(viewModel.report.liveExecutionControlBlockedEvidence.source.exposesDatabaseTables)
+        XCTAssertFalse(viewModel.report.liveExecutionControlBlockedEvidence.source.exposesORMModels)
+        XCTAssertFalse(viewModel.report.liveExecutionControlBlockedEvidence.source.exposesRuntimeObjects)
+        XCTAssertFalse(viewModel.report.liveExecutionControlBlockedEvidence.source.callsBinanceAdapter)
+        XCTAssertFalse(viewModel.report.liveExecutionControlBlockedEvidence.source.providesLiveOrderAction)
+        XCTAssertEqual(
             viewModel.paperWorkflowObservability.source.sourceKind,
             .stableReadModelProjection
         )
@@ -240,14 +249,16 @@ final class AppTests: XCTestCase {
 
     func testPaperWorkflowEvidenceExplorerTimelineSnapshotAggregatesReadModelOnlyEvidence() throws {
         // 测试场景：MTP-73 的 Event Timeline / Evidence Explorer 子集必须只从 read model
-        // 汇总 market event、Live blocked evidence、Live monitoring evidence、strategy signal、
-        // risk decision、paper order、simulated fill、portfolio projection 和 report artifact links。
+        // 汇总 market event、Live blocked evidence、Live monitoring evidence、execution-control
+        // blocked evidence、strategy signal、risk decision、paper order、simulated fill、
+        // portfolio projection 和 report artifact links。
         let explorer = try makeDashboardViewModel().paperWorkflowEvidenceExplorer
 
         XCTAssertTrue(explorer.source.isReadModelOnly)
-        XCTAssertEqual(explorer.timelineItemCount, 42)
+        XCTAssertEqual(explorer.timelineItemCount, 49)
         XCTAssertTrue(explorer.coversMarketEvents)
         XCTAssertTrue(explorer.coversMarketDataReplayOperations)
+        XCTAssertTrue(explorer.coversLiveExecutionControlBlockedEvidence)
         XCTAssertTrue(explorer.coversLiveTradingBlockedEvidence)
         XCTAssertTrue(explorer.coversLiveMonitoringEvidence)
         XCTAssertTrue(explorer.coversStrategySignals)
@@ -263,6 +274,7 @@ final class AppTests: XCTestCase {
         )
         XCTAssertEqual(itemCounts[.marketEvent], 6)
         XCTAssertEqual(itemCounts[.marketDataReplayOperation], 1)
+        XCTAssertEqual(itemCounts[.liveExecutionControlBlockedEvidence], 7)
         XCTAssertEqual(itemCounts[.liveTradingBlockedEvidence], 6)
         XCTAssertEqual(itemCounts[.liveMonitoringEvidence], 18)
         XCTAssertEqual(itemCounts[.strategySignal], 3)
@@ -289,6 +301,9 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(evidenceIDs.contains("replay-run-BTCUSDT-1m-20240101T000000Z"))
         XCTAssertTrue(evidenceIDs.contains("mtp-65-api-key-blocked"))
         XCTAssertTrue(evidenceIDs.contains("mtp-65-real-order-lifecycle-blocked"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-79-submit-blocked"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-79-execution-report-blocked"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-79-reconciliation-blocked"))
         XCTAssertTrue(evidenceIDs.contains("mtp-69-live-runtime-health"))
         XCTAssertTrue(evidenceIDs.contains("mtp-70-order-stream-future-gate"))
         XCTAssertTrue(evidenceIDs.contains("mtp-71-public-market-stream-error-disconnected"))
@@ -332,6 +347,107 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(evidenceIDs.contains("mtp-71-broker-session-error-unavailable"))
         XCTAssertTrue(evidenceIDs.contains("mtp-71-public-market-stream-degraded"))
         XCTAssertTrue(evidenceLinks.allSatisfy { $0.section == .liveMonitoringEvidence })
+
+        XCTAssertTrue(explorer.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(explorer.providesCommandSurface)
+        XCTAssertFalse(explorer.providesOrderLevelCommand)
+        XCTAssertFalse(explorer.supportsQueryLanguage)
+        XCTAssertFalse(explorer.providesLiveAudit)
+        XCTAssertFalse(explorer.providesIncidentReplay)
+        XCTAssertFalse(explorer.providesStopControl)
+        XCTAssertFalse(explorer.authorizesLiveTrading)
+        XCTAssertFalse(explorer.touchesBrokerAction)
+        XCTAssertFalse(explorer.authorizesTradingExecution)
+    }
+
+    func testLiveExecutionControlBlockedEvidenceViewModelAggregatesMTP80ReadOnlySurface() throws {
+        // 测试场景：MTP-80 只把 MTP-79 Core blocked evidence 复制成 App 层只读展示快照。
+        // ViewModel 必须覆盖 submit / cancel / replace / execution report / broker fill /
+        // reconciliation / incident fallback，但不能提供任何 live command、order form 或交易按钮。
+        let readModel = LiveExecutionControlBlockedEvidenceReadModel()
+        let viewModel = LiveExecutionControlBlockedEvidenceViewModel(readModel: readModel)
+
+        XCTAssertTrue(readModel.readModelOnlyBoundaryHeld)
+        XCTAssertEqual(viewModel.contractID, "mtp-79-live-execution-control-blocked-evidence")
+        XCTAssertEqual(viewModel.issueID, "MTP-79")
+        XCTAssertEqual(viewModel.blockedGateCount, 7)
+        XCTAssertEqual(
+            viewModel.blockedGateLabels,
+            [
+                "submit",
+                "cancel",
+                "replace",
+                "execution report",
+                "broker fill",
+                "reconciliation",
+                "incident fallback"
+            ]
+        )
+        XCTAssertTrue(viewModel.blockedReasonLabels.contains("signed command request forbidden"))
+        XCTAssertTrue(viewModel.blockedReasonLabels.contains("execution report implementation forbidden"))
+        XCTAssertTrue(viewModel.blockedReasonLabels.contains("broker fill implementation forbidden"))
+        XCTAssertTrue(viewModel.blockedReasonLabels.contains("reconciliation runtime forbidden"))
+        XCTAssertTrue(viewModel.blockedReasonLabels.contains("incident fallback automation forbidden"))
+        XCTAssertTrue(viewModel.sourceAnchors.contains("MTP-76-NO-REAL-SUBMIT-CANCEL-REPLACE"))
+        XCTAssertTrue(viewModel.sourceAnchors.contains("MTP-78-REPORT-DASHBOARD-TIMELINE-READ-MODEL-ONLY"))
+        XCTAssertTrue(viewModel.deterministicSnapshot.first?.hasPrefix("submit|blocked|") == true)
+        XCTAssertTrue(viewModel.allExecutionControlGatesBlocked)
+        XCTAssertTrue(viewModel.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(viewModel.exposesPersistenceSchema)
+        XCTAssertFalse(viewModel.readsAdapter)
+        XCTAssertFalse(viewModel.invokesRuntimeControl)
+        XCTAssertFalse(viewModel.providesCommandSurface)
+        XCTAssertFalse(viewModel.providesOrderLevelCommand)
+        XCTAssertFalse(viewModel.exposesOrderForm)
+        XCTAssertFalse(viewModel.exposesOrderLevelCommandUI)
+        XCTAssertFalse(viewModel.providesTradingButton)
+        XCTAssertFalse(viewModel.authorizesLiveExecution)
+        XCTAssertFalse(viewModel.authorizesLiveTrading)
+        XCTAssertFalse(viewModel.authorizesTradingExecution)
+        XCTAssertFalse(viewModel.readsAPIKey)
+        XCTAssertFalse(viewModel.usesSignedEndpoint)
+        XCTAssertFalse(viewModel.callsAccountEndpoint)
+        XCTAssertFalse(viewModel.createsListenKey)
+        XCTAssertFalse(viewModel.instantiatesBrokerExecutionAdapter)
+        XCTAssertFalse(viewModel.instantiatesExchangeExecutionAdapter)
+        XCTAssertFalse(viewModel.implementsLiveExecutionAdapter)
+        XCTAssertFalse(viewModel.implementsRealOrderStateMachine)
+        XCTAssertFalse(viewModel.implementsOMS)
+        XCTAssertFalse(viewModel.submitsRealOrder)
+        XCTAssertFalse(viewModel.cancelsRealOrder)
+        XCTAssertFalse(viewModel.replacesRealOrder)
+        XCTAssertFalse(viewModel.consumesExecutionReport)
+        XCTAssertFalse(viewModel.recordsBrokerFill)
+        XCTAssertFalse(viewModel.performsReconciliation)
+        XCTAssertFalse(viewModel.executesIncidentFallback)
+        XCTAssertFalse(viewModel.requiredValidationDependsOnNetwork)
+    }
+
+    func testLiveExecutionControlEvidenceExplorerPreviewDefinesMTP80ReadOnlyTimelineItems() throws {
+        // 测试场景：MTP-80 的 Event Timeline / Evidence Explorer 只展示 execution-control
+        // blocked evidence rows，不提供查询语言、live audit、incident replay、stop control 或 command。
+        let explorer = try makeDashboardViewModel().paperWorkflowEvidenceExplorer
+        let executionItems = explorer.timelineItems.filter {
+            $0.section == .liveExecutionControlBlockedEvidence
+        }
+        let evidenceLinks = executionItems.flatMap(\.evidenceLinks)
+        let evidenceIDs = evidenceLinks.map(\.evidenceID)
+
+        XCTAssertEqual(executionItems.count, 7)
+        XCTAssertTrue(explorer.coversLiveExecutionControlBlockedEvidence)
+        XCTAssertTrue(executionItems.allSatisfy { $0.title == "Live execution control gate blocked" })
+        XCTAssertTrue(executionItems.contains { $0.summary.contains("submit blocked") })
+        XCTAssertTrue(executionItems.contains { $0.summary.contains("execution report blocked") })
+        XCTAssertTrue(executionItems.contains { $0.summary.contains("broker fill blocked") })
+        XCTAssertTrue(executionItems.contains { $0.summary.contains("incident fallback blocked") })
+        XCTAssertTrue(evidenceIDs.contains("mtp-79-submit-blocked"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-79-cancel-blocked"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-79-replace-blocked"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-79-execution-report-blocked"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-79-broker-fill-blocked"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-79-reconciliation-blocked"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-79-incident-fallback-blocked"))
+        XCTAssertTrue(evidenceLinks.allSatisfy { $0.section == .liveExecutionControlBlockedEvidence })
 
         XCTAssertTrue(explorer.readModelOnlyBoundaryHeld)
         XCTAssertFalse(explorer.providesCommandSurface)
@@ -734,9 +850,10 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(viewModel.report.lastAppliedSequence, 16)
         XCTAssertFalse(viewModel.report.tradingValidationAuthorizesExecution)
         XCTAssertFalse(viewModel.report.authorizesTradingExecution)
-        XCTAssertEqual(viewModel.paperWorkflowEvidenceExplorer.timelineItemCount, 42)
+        XCTAssertEqual(viewModel.paperWorkflowEvidenceExplorer.timelineItemCount, 49)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversPaperWorkflowChainEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversMarketDataReplayOperations)
+        XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveExecutionControlBlockedEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveTradingBlockedEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveMonitoringEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.readModelOnlyBoundaryHeld)
@@ -861,9 +978,10 @@ final class AppTests: XCTestCase {
             decoded.report.artifacts.first?.paperExecutionWorkflowEvidence.paperOrderIDs,
             ["paper-replay-order-allowed"]
         )
-        XCTAssertEqual(decoded.paperWorkflowEvidenceExplorer.timelineItemCount, 42)
+        XCTAssertEqual(decoded.paperWorkflowEvidenceExplorer.timelineItemCount, 49)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversReportArtifacts)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversMarketDataReplayOperations)
+        XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveExecutionControlBlockedEvidence)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveTradingBlockedEvidence)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveMonitoringEvidence)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.readModelOnlyBoundaryHeld)
@@ -878,6 +996,18 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(decoded.report.liveMonitoringReadModelOnlyBoundaryHeld)
         XCTAssertFalse(decoded.report.liveMonitoringProvidesCommandSurface)
         XCTAssertFalse(decoded.report.liveMonitoringProvidesTradingButton)
+        XCTAssertEqual(decoded.report.liveExecutionControlBlockedGateCount, 7)
+        XCTAssertTrue(decoded.report.liveExecutionControlAllGatesBlocked)
+        XCTAssertTrue(decoded.report.liveExecutionControlReadModelOnlyBoundaryHeld)
+        XCTAssertFalse(decoded.report.liveExecutionControlProvidesCommandSurface)
+        XCTAssertFalse(decoded.report.liveExecutionControlProvidesOrderLevelCommand)
+        XCTAssertFalse(decoded.report.liveExecutionControlExposesOrderForm)
+        XCTAssertFalse(decoded.report.liveExecutionControlProvidesTradingButton)
+        XCTAssertFalse(decoded.report.liveExecutionControlAuthorizesLiveExecution)
+        XCTAssertFalse(decoded.report.liveExecutionControlAuthorizesTradingExecution)
+        XCTAssertFalse(decoded.report.liveExecutionControlConsumesExecutionReport)
+        XCTAssertFalse(decoded.report.liveExecutionControlRecordsBrokerFill)
+        XCTAssertFalse(decoded.report.liveExecutionControlPerformsReconciliation)
         XCTAssertTrue(decoded.report.paperExecutionWorkflowCoversDecisionOrderFillChain)
         XCTAssertTrue(decoded.report.paperRuntimePaperOnlyBoundaryHeld)
         XCTAssertFalse(decoded.report.authorizesTradingExecution)
@@ -995,6 +1125,7 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(metricValue("Replay ops", in: report), "1")
         XCTAssertEqual(metricValue("Live gates", in: report), "6")
         XCTAssertEqual(metricValue("Monitoring", in: report), "4")
+        XCTAssertEqual(metricValue("Execution control", in: report), "7")
         XCTAssertTrue(report.details.contains("Report IDs: report-backtest-ema-fixture"))
         XCTAssertTrue(report.details.contains("Cost assumptions: mtp-27-fixed-cost-assumptions"))
         XCTAssertTrue(report.details.contains("Cost parity: consistent"))
@@ -1052,6 +1183,18 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(report.details.contains("Monitoring schema exposure: none"))
         XCTAssertTrue(report.details.contains("Monitoring runtime exposure: none"))
         XCTAssertTrue(report.details.contains("Monitoring adapter exposure: none"))
+        XCTAssertTrue(
+            report.details.contains(
+                "Execution control gates: submit, cancel, replace, execution report, broker fill, reconciliation, incident fallback"
+            )
+        )
+        XCTAssertTrue(report.details.contains("Execution control boundary: confirmed"))
+        XCTAssertTrue(report.details.contains("Execution control command surface: none"))
+        XCTAssertTrue(report.details.contains("Execution control order form: none"))
+        XCTAssertTrue(report.details.contains("Execution control trading buttons: none"))
+        XCTAssertTrue(report.details.contains("Execution control schema exposure: none"))
+        XCTAssertTrue(report.details.contains("Execution control runtime exposure: none"))
+        XCTAssertTrue(report.details.contains("Execution control adapter exposure: none"))
         XCTAssertTrue(report.details.contains("Trading validation execution: research-only"))
         XCTAssertTrue(report.details.contains("Execution: research-only"))
         XCTAssertTrue(report.details.contains("Latest parity: matched projection evidence"))
@@ -1073,8 +1216,9 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(snapshot.smokeSummary.contains("readModelOnly=true"))
         XCTAssertTrue(snapshot.smokeSummary.contains("workbenchReadModelOnly=true"))
         XCTAssertTrue(snapshot.smokeSummary.contains("controls=start,pause,close,reset"))
-        XCTAssertTrue(snapshot.smokeSummary.contains("timelineItems=42"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("timelineItems=49"))
         XCTAssertTrue(snapshot.smokeSummary.contains("liveBlockedGates=6"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("liveExecutionControlGates=7"))
         XCTAssertTrue(snapshot.smokeSummary.contains("liveMonitoringHealth=blocked"))
         XCTAssertTrue(snapshot.smokeSummary.contains("liveMonitoringErrors=3"))
     }
@@ -1123,8 +1267,8 @@ final class AppTests: XCTestCase {
             )
         )
 
-        XCTAssertEqual(metricValue("Timeline items", in: workbench.evidenceExplorerMetrics), "42")
-        XCTAssertEqual(metricValue("Sections", in: workbench.evidenceExplorerMetrics), "10")
+        XCTAssertEqual(metricValue("Timeline items", in: workbench.evidenceExplorerMetrics), "49")
+        XCTAssertEqual(metricValue("Sections", in: workbench.evidenceExplorerMetrics), "11")
         XCTAssertTrue(
             workbench.evidenceExplorerDetails.contains(
                 "Filter: read-only"
@@ -1174,12 +1318,32 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(workbench.liveMonitoringEvidenceDetails.contains("Monitoring runtime exposure: none"))
         XCTAssertTrue(workbench.liveMonitoringEvidenceDetails.contains("Monitoring adapter exposure: none"))
         XCTAssertTrue(workbench.liveMonitoringEvidenceDetails.contains("Monitoring boundary: confirmed"))
+        XCTAssertEqual(metricValue("Execution gates", in: workbench.liveExecutionControlBlockedEvidenceMetrics), "7")
+        XCTAssertEqual(metricValue("Reasons", in: workbench.liveExecutionControlBlockedEvidenceMetrics), "15")
+        XCTAssertEqual(metricValue("Blocked", in: workbench.liveExecutionControlBlockedEvidenceMetrics), "confirmed")
+        XCTAssertTrue(
+            workbench.liveExecutionControlBlockedEvidenceDetails.contains(
+                "Execution gates: submit, cancel, replace, execution report, broker fill, reconciliation, incident fallback"
+            )
+        )
+        XCTAssertTrue(
+            workbench.liveExecutionControlBlockedEvidenceDetails.contains(
+                "Execution command surface: none"
+            )
+        )
+        XCTAssertTrue(workbench.liveExecutionControlBlockedEvidenceDetails.contains("Execution order form: none"))
+        XCTAssertTrue(workbench.liveExecutionControlBlockedEvidenceDetails.contains("Execution trading buttons: none"))
+        XCTAssertTrue(workbench.liveExecutionControlBlockedEvidenceDetails.contains("Execution schema exposure: none"))
+        XCTAssertTrue(workbench.liveExecutionControlBlockedEvidenceDetails.contains("Execution runtime exposure: none"))
+        XCTAssertTrue(workbench.liveExecutionControlBlockedEvidenceDetails.contains("Execution adapter exposure: none"))
+        XCTAssertTrue(workbench.liveExecutionControlBlockedEvidenceDetails.contains("Execution boundary: confirmed"))
 
         XCTAssertTrue(workbench.source.isReadModelOnly)
         XCTAssertTrue(workbench.observabilitySource.isReadModelOnly)
         XCTAssertTrue(workbench.evidenceExplorerSource.isReadModelOnly)
         XCTAssertTrue(workbench.liveBlockedEvidenceSource.isReadModelOnly)
         XCTAssertTrue(workbench.liveMonitoringEvidenceSource.isReadModelOnly)
+        XCTAssertTrue(workbench.liveExecutionControlBlockedEvidenceSource.isReadModelOnly)
         XCTAssertTrue(workbench.readModelOnlyBoundaryHeld)
         XCTAssertTrue(workbench.paperOnlyBoundaryHeld)
         XCTAssertFalse(workbench.providesCommandSurface)
@@ -1225,9 +1389,20 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(report.liveMonitoringProvidesTradingButton)
         XCTAssertFalse(report.liveMonitoringAuthorizesLiveTrading)
         XCTAssertFalse(report.liveMonitoringAuthorizesTradingExecution)
+        XCTAssertTrue(report.liveExecutionControlReadModelOnlyBoundaryHeld)
+        XCTAssertTrue(report.liveExecutionControlAllGatesBlocked)
+        XCTAssertFalse(report.liveExecutionControlProvidesCommandSurface)
+        XCTAssertFalse(report.liveExecutionControlProvidesOrderLevelCommand)
+        XCTAssertFalse(report.liveExecutionControlProvidesTradingButton)
+        XCTAssertFalse(report.liveExecutionControlAuthorizesLiveExecution)
+        XCTAssertFalse(report.liveExecutionControlAuthorizesTradingExecution)
+        XCTAssertFalse(report.liveExecutionControlConsumesExecutionReport)
+        XCTAssertFalse(report.liveExecutionControlRecordsBrokerFill)
+        XCTAssertFalse(report.liveExecutionControlPerformsReconciliation)
         XCTAssertFalse(report.authorizesTradingExecution)
 
         XCTAssertTrue(explorer.readModelOnlyBoundaryHeld)
+        XCTAssertTrue(explorer.coversLiveExecutionControlBlockedEvidence)
         XCTAssertTrue(explorer.coversPaperOrders)
         XCTAssertTrue(explorer.coversSimulatedFills)
         XCTAssertTrue(explorer.coversPortfolioProjections)
@@ -1260,8 +1435,6 @@ final class AppTests: XCTestCase {
             explorer.timelineItems.contains {
                 $0.title.localizedCaseInsensitiveContains("real order command")
                     || $0.summary.localizedCaseInsensitiveContains("real order command")
-                    || $0.title.localizedCaseInsensitiveContains("broker fill")
-                    || $0.summary.localizedCaseInsensitiveContains("broker fill")
             }
         )
 
@@ -1309,16 +1482,19 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(report?.metrics.first { $0.label == "Exec workflow" }?.value, "0")
         XCTAssertEqual(report?.metrics.first { $0.label == "Live gates" }?.value, "6")
         XCTAssertEqual(report?.metrics.first { $0.label == "Monitoring" }?.value, "4")
+        XCTAssertEqual(report?.metrics.first { $0.label == "Execution control" }?.value, "7")
 
         let events = snapshot.sections.first { $0.section == .events }
         XCTAssertEqual(events?.metrics.first { $0.label == "Events" }?.value, "0")
         XCTAssertEqual(events?.metrics.first { $0.label == "Last sequence" }?.value, "n/a")
 
         XCTAssertEqual(metricValue("Controls", in: snapshot.workbench.observabilityMetrics), "4")
-        XCTAssertEqual(metricValue("Timeline items", in: snapshot.workbench.evidenceExplorerMetrics), "24")
+        XCTAssertEqual(metricValue("Timeline items", in: snapshot.workbench.evidenceExplorerMetrics), "31")
         XCTAssertEqual(metricValue("Live gates", in: snapshot.workbench.liveBlockedEvidenceMetrics), "6")
         XCTAssertEqual(metricValue("Health", in: snapshot.workbench.liveMonitoringEvidenceMetrics), "blocked")
         XCTAssertEqual(metricValue("Errors", in: snapshot.workbench.liveMonitoringEvidenceMetrics), "3")
+        XCTAssertEqual(metricValue("Execution gates", in: snapshot.workbench.liveExecutionControlBlockedEvidenceMetrics), "7")
+        XCTAssertEqual(metricValue("Blocked", in: snapshot.workbench.liveExecutionControlBlockedEvidenceMetrics), "confirmed")
         XCTAssertTrue(snapshot.workbench.readModelOnlyBoundaryHeld)
         XCTAssertFalse(snapshot.workbench.providesOrderLevelCommand)
     }
