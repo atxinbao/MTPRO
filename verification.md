@@ -7345,3 +7345,55 @@ Root docs 判断：
 | docs anchor check | pass | `MTP-68-LIVE-MONITORING-CONSOLE-IA`、`MTP-68-LIVE-MONITORING-READ-MODEL-ONLY`、`MTP-68-ORDER-STREAM-EVIDENCE-NOT-REAL-ORDER-STATE`、`MTP-68-NO-AUTOMATION-READINESS-CLOSEOUT` 和 `TVM-LIVE-MONITORING-CONSOLE` 均可定位。 |
 | automation readiness boundary check | pass | `checks/automation-readiness.sh` 中没有 MTP-68 / `TVM-LIVE-MONITORING-CONSOLE` 收口项。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 135 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6`；最终输出 `MTPRO checks passed.`。 |
+
+## MTP-69 Live Runtime Health / Connection Status Read Model
+
+日期：2026-05-21
+
+执行者：Codex
+
+目的：
+
+- 新增 live runtime health / connection status 最小 read model。
+- 用只读 evidence 表达 future live runtime health 和 connection 状态分类。
+- 保持无真实 runtime、无真实连接、无 secret、无 account payload、无 broker、无 command surface。
+
+文件范围：
+
+- `Sources/Core/CoreError.swift`
+- `Sources/Core/LiveMonitoringConsole.swift`
+- `Tests/CoreTests/CoreTests.swift`
+- `docs/contracts/live-monitoring-console-contract.md`
+- `docs/validation/validation-plan.md`
+- `docs/validation/trading-validation-matrix.md`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+更新重点：
+
+- 新增 `LiveMonitoringStatus`，覆盖 `healthy`、`blocked`、`disconnected`、`degraded` 和 `unavailable`。
+- 新增 `LiveConnectionKind`，覆盖 public market data、future private user data 和 future broker session 三类 connection evidence。
+- 新增 `LiveConnectionStatusReadModel`，fixture 状态为 public market data `disconnected`、future private user data `blocked`、future broker session `unavailable`。
+- 新增 `LiveRuntimeHealthReadModel`，fixture 状态为 `blocked`，并聚合三类 connection status evidence。
+- 新增 constructor / Codable 解码校验，拒绝 command surface、runtime polling、真实网络连接、WebSocket、API key、secret、signed endpoint、account endpoint、listenKey、account payload、broker adapter、adapter surface、Runtime object、SQLite / DuckDB schema、Live trading authorization、trading execution authorization 和 network-dependent validation。
+
+边界确认：
+
+- 不实现 live runtime。
+- 不建立真实网络连接。
+- 不接 signed endpoint、account endpoint 或 listenKey。
+- 不读取 API key、secret 或 account payload。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`。
+- 不实现 real order state machine。
+- 不提供 reconnect、start / stop live command、交易按钮或真实交易授权。
+- 不修改 `checks/automation-readiness.sh`；MTP-74 才做 MTP-68 至 MTP-73 的统一机械收口。
+- 不提交 `.codex/*`。
+- 不提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP69` | pass | 3 个 focused XCTest 通过；覆盖 deterministic fixture、Codable round trip、connection source anchors、no command、no network、no secret、no account payload、no broker、no schema。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 138 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6`；最终输出 `MTPRO checks passed.`。 |

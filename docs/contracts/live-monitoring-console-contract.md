@@ -85,6 +85,45 @@ Dashboard、Report 和 Event Timeline 在 MTP-68 之后只能展示 read model /
 | `simulated order stream evidence` | paper order / simulated fill / paper portfolio 等本地模拟证据可被只读展示。 | broker fill、execution report、真实账户更新。 |
 | `future order stream evidence` | 后续 Project Definition 需要定义 order stream contract、reconciliation 和 incident/audit evidence。 | 当前实现 real order state machine、OMS 或 submit / cancel / replace。 |
 
+## MTP-69 live runtime health / connection status read model
+
+`MTP-69-LIVE-RUNTIME-HEALTH-READ-MODEL`
+
+MTP-69 在 Core 层新增最小 `LiveRuntimeHealthReadModel`。该 read model 只表达 future live runtime health 的状态证据、source anchors、deterministic fixture 和 connection status evidence；它不启动 runtime、不轮询生产 health、不读取 runtime actor、不建立网络连接、不读取 secret / account payload、不连接 broker，也不授权真实交易。
+
+`LiveRuntimeHealthReadModel` 必须满足：
+
+- `healthID = mtp-69-live-runtime-health`。
+- `issueID = MTP-69`。
+- `status = blocked` 作为当前 deterministic fixture 默认状态。
+- `allowedStatuses = healthy / blocked / disconnected / degraded / unavailable`，这些状态只是 read-model label，不代表当前 runtime 已启动或 connection 已建立。
+- `sourceAnchors` 固定包含 `MTP-68-LIVE-MONITORING-CONSOLE-IA`、`MTP-68-LIVE-MONITORING-STATUS-TAXONOMY`、`MTP-69-LIVE-RUNTIME-HEALTH-READ-MODEL` 和 `MTP-69-CONNECTION-STATUS-READ-MODEL`。
+- `connections` 必须等于 `LiveRuntimeHealthReadModel.requiredConnectionStatuses`，并通过每个 connection 的 read-model-only boundary。
+
+`MTP-69-CONNECTION-STATUS-READ-MODEL`
+
+MTP-69 同时新增 `LiveConnectionStatusReadModel`，只覆盖三类最小 connection evidence：
+
+| Connection kind | Fixture status | 含义 | 禁止解释 |
+| --- | --- | --- | --- |
+| `public market data connection` | `disconnected` | public read-only market data connection 当前没有真实 live connection evidence。 | 不等于生产 WebSocket 已连接或订阅控制。 |
+| `future private user data connection` | `blocked` | private account / listenKey 连接仍被 credential endpoint boundary 阻断。 | 不等于 account endpoint、listenKey 或 private WebSocket。 |
+| `future broker session` | `unavailable` | broker session 属于 future gated 能力，当前不可用。 | 不等于 broker adapter、execution venue connection 或真实订单通道。 |
+
+`MTP-69-NO-LIVE-CONNECTION-OR-COMMAND`
+
+MTP-69 的 Core read model 和 tests 必须拒绝以下能力：
+
+- command surface、reconnect command、start / stop live command。
+- 启动或停止 live runtime。
+- health polling production runtime。
+- active network connection、WebSocket、private WebSocket。
+- API key、secret、signed endpoint、account endpoint、listenKey、account payload。
+- broker adapter、execution venue connection、`LiveExecutionAdapter`。
+- Runtime object、adapter surface、SQLite / DuckDB schema。
+- live trading authorization 或 trading execution authorization。
+- required validation 依赖真实网络。
+
 ## MTP-68 validation anchors
 
 `MTP-68-LIVE-MONITORING-VALIDATION-ANCHORS`
@@ -118,3 +157,15 @@ MTP-68 验证入口：
 `MTP-68-NO-AUTOMATION-READINESS-CLOSEOUT`
 
 本 issue 只提供候选 anchor 和文档入口，不把这些 anchor 加入 `checks/automation-readiness.sh`。后续 MTP-74 收口 validation matrix、automation readiness 和 stage audit input material 时，才允许把 MTP-68 至 MTP-73 的 anchors 统一机械化。
+
+## MTP-69 validation anchors
+
+`MTP-69-LIVE-RUNTIME-HEALTH-VALIDATION`
+
+MTP-69 的验证入口：
+
+- `Sources/Core/LiveMonitoringConsole.swift` 必须包含 `LiveMonitoringStatus`、`LiveConnectionKind`、`LiveConnectionStatusReadModel` 和 `LiveRuntimeHealthReadModel`。
+- `Tests/CoreTests/CoreTests.swift` 必须覆盖 `testLiveRuntimeHealthDefinesMTP69ReadModelOnlyFixture`、`testLiveRuntimeHealthRejectsMTP69CommandNetworkSecretAndSchemaBypass` 和 `testLiveConnectionStatusKeepsMTP69ConnectionEvidenceNonExecutable`。
+- Focused validation：`swift test --filter MTP69`。
+- Required validation：`bash checks/run.sh`。
+- `checks/automation-readiness.sh` 仍不在 MTP-69 中收口 `TVM-LIVE-MONITORING-CONSOLE`；MTP-74 才允许统一机械化 MTP-68 至 MTP-73 anchors。
