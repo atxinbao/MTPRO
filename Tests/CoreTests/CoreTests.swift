@@ -1783,6 +1783,201 @@ final class CoreTests: XCTestCase {
         XCTAssertFalse(portfolioUpdate.syncsBrokerPosition)
     }
 
+    func testLiveExecutionControlBlockedEvidenceDefinesMTP79ReadModelOnlySnapshot() throws {
+        // 测试场景：MTP-79 只新增 execution-control blocked evidence read model。
+        // snapshot 供后续 Dashboard / Report / Event Timeline 消费，但当前不能生成任何真实命令。
+        let evidence = LiveExecutionControlBlockedEvidence.deterministicFixture
+
+        XCTAssertEqual(
+            evidence.contractID,
+            try Identifier("mtp-79-live-execution-control-blocked-evidence")
+        )
+        XCTAssertEqual(evidence.issueID, try Identifier("MTP-79"))
+        XCTAssertEqual(evidence.blockedItems.map(\.gate), LiveExecutionControlBlockedGate.allCases)
+        XCTAssertEqual(
+            evidence.allowedEvidenceKinds,
+            [
+                .contractDocumentation,
+                .validationMatrixCandidate,
+                .validationPlanAnchor,
+                .deterministicForbiddenTest,
+                .paperRealIsolationEvidence,
+                .readModelOnlyBlockedEvidence,
+                .prBoundaryEvidence
+            ]
+        )
+        XCTAssertEqual(evidence.validationAnchors, [
+            "MTP-79-LIVE-EXECUTION-CONTROL-BLOCKED-EVIDENCE",
+            "MTP-79-EXECUTION-CONTROL-GATES-BLOCKED-REASONS",
+            "MTP-79-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT",
+            "MTP-79-READ-MODEL-ONLY-NO-COMMAND-SURFACE",
+            "MTP-79-LIVE-EXECUTION-CONTROL-VALIDATION",
+            "TVM-LIVE-EXECUTION-CONTROL"
+        ])
+        XCTAssertEqual(evidence.sourceAnchors, [
+            "MTP-75-REAL-ORDER-COMMAND-TAXONOMY",
+            "MTP-76-SUBMIT-CANCEL-REPLACE-FUTURE-GATES",
+            "MTP-76-NO-REAL-SUBMIT-CANCEL-REPLACE",
+            "MTP-77-EXECUTION-REPORT-BROKER-FILL-RECONCILIATION-FUTURE-GATES",
+            "MTP-77-RECONCILIATION-BLOCKED-EVIDENCE-ONLY",
+            "MTP-78-PAPER-REAL-COMMAND-ISOLATION-CONTRACT",
+            "MTP-78-REPORT-DASHBOARD-TIMELINE-READ-MODEL-ONLY",
+            "TVM-LIVE-EXECUTION-CONTROL"
+        ])
+        XCTAssertEqual(evidence.deterministicSnapshot, [
+            "submit|blocked|human live decision missing;credential endpoint boundary unsatisfied;signed command request forbidden;broker execution adapter forbidden;live risk operations audit missing",
+            "cancel|blocked|human live decision missing;credential endpoint boundary unsatisfied;signed command request forbidden;broker execution adapter forbidden;live risk operations audit missing",
+            "replace|blocked|human live decision missing;credential endpoint boundary unsatisfied;signed command request forbidden;broker execution adapter forbidden;live risk operations audit missing",
+            "execution report|blocked|account endpoint forbidden;listenKey user data stream forbidden;execution report implementation forbidden;read model only boundary required",
+            "broker fill|blocked|broker execution adapter forbidden;broker fill implementation forbidden;real order state machine forbidden;paper / real command isolation required",
+            "reconciliation|blocked|account endpoint forbidden;reconciliation runtime forbidden;broker position sync forbidden;read model only boundary required",
+            "incident fallback|blocked|incident fallback automation forbidden;live risk operations audit missing;read model only boundary required"
+        ])
+
+        XCTAssertTrue(evidence.blockedEvidenceBoundaryHeld)
+        XCTAssertTrue(evidence.allExecutionControlGatesBlocked)
+        XCTAssertTrue(evidence.appSurfaceReadModelOnlyBoundaryHeld)
+        XCTAssertTrue(evidence.forbiddenImplementationBoundaryHeld)
+        XCTAssertTrue(evidence.isReadModelOnly)
+        XCTAssertTrue(evidence.reportConsumesReadModelOnly)
+        XCTAssertTrue(evidence.dashboardConsumesViewModelOnly)
+        XCTAssertTrue(evidence.eventTimelineConsumesReadModelOnly)
+        XCTAssertFalse(evidence.exposesPersistenceSchema)
+        XCTAssertFalse(evidence.readsAdapter)
+        XCTAssertFalse(evidence.invokesRuntimeControl)
+        XCTAssertFalse(evidence.providesCommandSurface)
+        XCTAssertFalse(evidence.providesTradingButton)
+        XCTAssertFalse(evidence.requiredValidationDependsOnNetwork)
+
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoded = try JSONDecoder().decode(
+            LiveExecutionControlBlockedEvidence.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, evidence)
+    }
+
+    func testLiveExecutionControlBlockedEvidenceRejectsMTP79CommandOrRuntimeBypass() throws {
+        // 测试场景：MTP-79 的 read model 初始化和 Codable 解码都必须拒绝 schema、
+        // adapter、runtime control、command surface、真实订单和交易按钮绕过。
+        XCTAssertThrowsError(
+            try LiveExecutionControlBlockedEvidence(providesCommandSurface: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("providesCommandSurface"))
+        }
+        XCTAssertThrowsError(
+            try LiveExecutionControlBlockedEvidence(exposesPersistenceSchema: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("exposesPersistenceSchema"))
+        }
+        XCTAssertThrowsError(
+            try LiveExecutionControlBlockedEvidence(readsAdapter: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("readsAdapter"))
+        }
+        XCTAssertThrowsError(
+            try LiveExecutionControlBlockedEvidence(invokesRuntimeControl: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("invokesRuntimeControl"))
+        }
+        XCTAssertThrowsError(
+            try LiveExecutionControlBlockedEvidence(submitsRealOrder: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("submitsRealOrder"))
+        }
+        XCTAssertThrowsError(
+            try LiveExecutionControlBlockedEvidence(consumesExecutionReport: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("consumesExecutionReport"))
+        }
+        XCTAssertThrowsError(
+            try LiveExecutionControlBlockedEvidence(providesTradingButton: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("providesTradingButton"))
+        }
+        XCTAssertThrowsError(
+            try LiveExecutionControlBlockedEvidence(
+                blockedItems: Array(LiveExecutionControlBlockedEvidence.requiredBlockedItems.dropLast())
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "blockedItems",
+                    expected: LiveExecutionControlBlockedEvidence
+                        .requiredBlockedItems
+                        .map(\.gate.rawValue)
+                        .joined(separator: ","),
+                    actual: Array(LiveExecutionControlBlockedEvidence.requiredBlockedItems.dropLast())
+                        .map(\.gate.rawValue)
+                        .joined(separator: ",")
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(LiveExecutionControlBlockedEvidence.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["providesCommandSurface"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveExecutionControlBlockedEvidence.self, from: data)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("providesCommandSurface"))
+        }
+    }
+
+    func testLiveExecutionControlBlockedEvidenceSummarizesMTP79GateReasonsWithoutExecution() throws {
+        // 测试场景：blocked evidence 必须逐项说明 submit / cancel / replace /
+        // execution report / broker fill / reconciliation / incident fallback 为何仍被阻断。
+        let evidence = LiveExecutionControlBlockedEvidence.deterministicFixture
+
+        let submit = try XCTUnwrap(evidence.item(for: .submit))
+        XCTAssertEqual(submit.blockedReasons, [
+            .humanLiveDecisionMissing,
+            .credentialEndpointBoundaryUnsatisfied,
+            .signedCommandRequestForbidden,
+            .brokerExecutionAdapterForbidden,
+            .liveRiskOperationsAuditMissing
+        ])
+        XCTAssertTrue(submit.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(submit.canExecute)
+        XCTAssertFalse(submit.emitsCommand)
+
+        let executionReport = try XCTUnwrap(evidence.item(for: .executionReport))
+        XCTAssertEqual(executionReport.blockedReasons, [
+            .accountEndpointForbidden,
+            .listenKeyUserDataStreamForbidden,
+            .executionReportImplementationForbidden,
+            .readModelOnlyBoundaryRequired
+        ])
+        XCTAssertFalse(executionReport.exposesSchema)
+        XCTAssertFalse(executionReport.readsAdapter)
+
+        let reconciliation = try XCTUnwrap(evidence.item(for: .reconciliation))
+        XCTAssertEqual(reconciliation.blockedReasons, [
+            .accountEndpointForbidden,
+            .reconciliationRuntimeForbidden,
+            .brokerPositionSyncForbidden,
+            .readModelOnlyBoundaryRequired
+        ])
+
+        XCTAssertTrue(LiveSubmitCancelReplaceCommandBoundary.deterministicFixture.allRealOrderCommandsBlocked)
+        XCTAssertTrue(
+            LiveExecutionReportBrokerFillReconciliationBoundary
+                .deterministicFixture
+                .reportFillReconciliationImplementationBlocked
+        )
+        XCTAssertTrue(LivePaperRealCommandIsolationBoundary.deterministicFixture.appSurfaceReadModelOnlyBoundaryHeld)
+        XCTAssertTrue(evidence.forbiddenImplementationBoundaryHeld)
+        XCTAssertFalse(evidence.submitsRealOrder)
+        XCTAssertFalse(evidence.cancelsRealOrder)
+        XCTAssertFalse(evidence.replacesRealOrder)
+        XCTAssertFalse(evidence.recordsBrokerFill)
+        XCTAssertFalse(evidence.performsReconciliation)
+        XCTAssertFalse(evidence.executesIncidentFallback)
+    }
+
     func testLiveRuntimeHealthDefinesMTP69ReadModelOnlyFixture() throws {
         // 测试场景：MTP-69 只新增 future live runtime health / connection status 的最小
         // read model。fixture 可以表达 healthy / blocked / disconnected / degraded /

@@ -89,6 +89,7 @@ public enum LiveExecutionControlEvidenceKind: String, Codable, CaseIterable, Equ
     case validationPlanAnchor = "validation plan anchor"
     case deterministicForbiddenTest = "deterministic forbidden capability test"
     case paperRealIsolationEvidence = "paper / real command isolation evidence"
+    case readModelOnlyBlockedEvidence = "read-model-only blocked evidence"
     case prBoundaryEvidence = "PR boundary evidence"
 }
 
@@ -529,6 +530,629 @@ public struct LiveExecutionControlTerminologyBoundary: Codable, Equatable, Senda
             ("upgradesPaperOrderIntent", upgradesPaperOrderIntent),
             ("upgradesPaperExecutionDecision", upgradesPaperExecutionDecision),
             ("upgradesSimulatedFillToBrokerFill", upgradesSimulatedFillToBrokerFill),
+            ("exposesOrderLevelCommandUI", exposesOrderLevelCommandUI),
+            ("providesTradingButton", providesTradingButton),
+            ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(capability.0)
+        }
+    }
+}
+
+/// LiveExecutionControlBlockedGate 固定 MTP-79 需要解释的 execution-control gate。
+///
+/// 这些 gate 只是 read-model-only blocked evidence 的分类键。它们不能被解释为当前
+/// submit / cancel / replace 命令、execution report parser、broker fill fact、reconciliation
+/// runtime、incident command 或 Dashboard 操作入口。
+public enum LiveExecutionControlBlockedGate: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case submit = "submit"
+    case cancel = "cancel"
+    case replace = "replace"
+    case executionReport = "execution report"
+    case brokerFill = "broker fill"
+    case reconciliation = "reconciliation"
+    case incidentFallback = "incident fallback"
+}
+
+/// LiveExecutionControlBlockedReason 描述 MTP-79 blocked evidence 可以输出的阻断原因。
+///
+/// reason 只用于 deterministic snapshot、Report / Dashboard / Event Timeline 的后续只读展示，
+/// 不携带 adapter request、database schema、runtime object、真实账户状态或交易命令参数。
+public enum LiveExecutionControlBlockedReason: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case humanLiveDecisionMissing = "human live decision missing"
+    case credentialEndpointBoundaryUnsatisfied = "credential endpoint boundary unsatisfied"
+    case signedCommandRequestForbidden = "signed command request forbidden"
+    case brokerExecutionAdapterForbidden = "broker execution adapter forbidden"
+    case liveRiskOperationsAuditMissing = "live risk operations audit missing"
+    case accountEndpointForbidden = "account endpoint forbidden"
+    case listenKeyUserDataStreamForbidden = "listenKey user data stream forbidden"
+    case executionReportImplementationForbidden = "execution report implementation forbidden"
+    case brokerFillImplementationForbidden = "broker fill implementation forbidden"
+    case realOrderStateMachineForbidden = "real order state machine forbidden"
+    case paperRealCommandIsolationRequired = "paper / real command isolation required"
+    case reconciliationRuntimeForbidden = "reconciliation runtime forbidden"
+    case brokerPositionSyncForbidden = "broker position sync forbidden"
+    case incidentFallbackAutomationForbidden = "incident fallback automation forbidden"
+    case readModelOnlyBoundaryRequired = "read model only boundary required"
+}
+
+/// LiveExecutionControlBlockedEvidenceItem 是单个 gate 的只读阻断证据。
+///
+/// item 只能说明某个 gate 仍被哪些合同和 future gate 阻断。所有执行、命令发射、
+/// adapter/schema/runtime 读取和真实交易授权旗标都必须为 false，避免 blocked evidence
+/// 反向变成 execution runtime 或 UI command surface。
+public struct LiveExecutionControlBlockedEvidenceItem: Codable, Equatable, Sendable {
+    public let gate: LiveExecutionControlBlockedGate
+    public let blockedReasons: [LiveExecutionControlBlockedReason]
+    public let sourceAnchors: [String]
+    public let isBlocked: Bool
+    public let canExecute: Bool
+    public let emitsCommand: Bool
+    public let exposesSchema: Bool
+    public let readsAdapter: Bool
+    public let invokesRuntimeControl: Bool
+    public let authorizesLiveExecution: Bool
+
+    public var readModelOnlyBoundaryHeld: Bool {
+        isBlocked
+            && canExecute == false
+            && emitsCommand == false
+            && exposesSchema == false
+            && readsAdapter == false
+            && invokesRuntimeControl == false
+            && authorizesLiveExecution == false
+    }
+
+    public init(
+        gate: LiveExecutionControlBlockedGate,
+        blockedReasons: [LiveExecutionControlBlockedReason],
+        sourceAnchors: [String],
+        isBlocked: Bool = true,
+        canExecute: Bool = false,
+        emitsCommand: Bool = false,
+        exposesSchema: Bool = false,
+        readsAdapter: Bool = false,
+        invokesRuntimeControl: Bool = false,
+        authorizesLiveExecution: Bool = false
+    ) {
+        self.gate = gate
+        self.blockedReasons = blockedReasons
+        self.sourceAnchors = sourceAnchors
+        self.isBlocked = isBlocked
+        self.canExecute = canExecute
+        self.emitsCommand = emitsCommand
+        self.exposesSchema = exposesSchema
+        self.readsAdapter = readsAdapter
+        self.invokesRuntimeControl = invokesRuntimeControl
+        self.authorizesLiveExecution = authorizesLiveExecution
+    }
+}
+
+/// LiveExecutionControlBlockedEvidence 是 MTP-79 的 read-model-only blocked evidence fixture。
+///
+/// 该 read model 汇总 submit / cancel / replace / execution report / broker fill /
+/// reconciliation / incident fallback 为什么仍被阻断，并输出稳定 snapshot 供 MTP-80 以后接入
+/// Dashboard、Report 和 Event Timeline。它不暴露 persistence schema，不读取 adapter，不调用 Runtime
+/// control，不提供 command surface，不读取 secret，不接 signed/account/listenKey，不连接 broker，
+/// 不实现 `LiveExecutionAdapter`、real order state machine、OMS 或真实订单行为。
+public struct LiveExecutionControlBlockedEvidence: Codable, Equatable, Sendable {
+    public let contractID: Identifier
+    public let issueID: Identifier
+    public let blockedItems: [LiveExecutionControlBlockedEvidenceItem]
+    public let allowedEvidenceKinds: [LiveExecutionControlEvidenceKind]
+    public let validationAnchors: [String]
+    public let sourceAnchors: [String]
+    public let isReadModelOnly: Bool
+    public let reportConsumesReadModelOnly: Bool
+    public let dashboardConsumesViewModelOnly: Bool
+    public let eventTimelineConsumesReadModelOnly: Bool
+    public let exposesPersistenceSchema: Bool
+    public let readsAdapter: Bool
+    public let invokesRuntimeControl: Bool
+    public let providesCommandSurface: Bool
+    public let readsAPIKey: Bool
+    public let storesSecret: Bool
+    public let usesSignedEndpoint: Bool
+    public let callsAccountEndpoint: Bool
+    public let createsListenKey: Bool
+    public let instantiatesBrokerExecutionAdapter: Bool
+    public let instantiatesExchangeExecutionAdapter: Bool
+    public let implementsLiveExecutionAdapter: Bool
+    public let implementsRealOrderStateMachine: Bool
+    public let implementsOMS: Bool
+    public let submitsRealOrder: Bool
+    public let cancelsRealOrder: Bool
+    public let replacesRealOrder: Bool
+    public let consumesExecutionReport: Bool
+    public let recordsBrokerFill: Bool
+    public let performsReconciliation: Bool
+    public let executesIncidentFallback: Bool
+    public let exposesOrderForm: Bool
+    public let exposesOrderLevelCommandUI: Bool
+    public let providesTradingButton: Bool
+    public let requiredValidationDependsOnNetwork: Bool
+
+    public var blockedEvidenceBoundaryHeld: Bool {
+        blockedItems == Self.requiredBlockedItems
+            && allowedEvidenceKinds == Self.allowedEvidenceKinds
+            && validationAnchors == Self.requiredValidationAnchors
+            && sourceAnchors == Self.requiredSourceAnchors
+            && allExecutionControlGatesBlocked
+            && appSurfaceReadModelOnlyBoundaryHeld
+            && forbiddenImplementationBoundaryHeld
+            && requiredValidationDependsOnNetwork == false
+    }
+
+    public var allExecutionControlGatesBlocked: Bool {
+        blockedItems.map(\.gate) == LiveExecutionControlBlockedGate.allCases
+            && blockedItems.allSatisfy(\.readModelOnlyBoundaryHeld)
+    }
+
+    public var appSurfaceReadModelOnlyBoundaryHeld: Bool {
+        isReadModelOnly
+            && reportConsumesReadModelOnly
+            && dashboardConsumesViewModelOnly
+            && eventTimelineConsumesReadModelOnly
+            && exposesPersistenceSchema == false
+            && readsAdapter == false
+            && invokesRuntimeControl == false
+            && providesCommandSurface == false
+            && exposesOrderForm == false
+            && exposesOrderLevelCommandUI == false
+            && providesTradingButton == false
+    }
+
+    public var forbiddenImplementationBoundaryHeld: Bool {
+        readsAPIKey == false
+            && storesSecret == false
+            && usesSignedEndpoint == false
+            && callsAccountEndpoint == false
+            && createsListenKey == false
+            && instantiatesBrokerExecutionAdapter == false
+            && instantiatesExchangeExecutionAdapter == false
+            && implementsLiveExecutionAdapter == false
+            && implementsRealOrderStateMachine == false
+            && implementsOMS == false
+            && submitsRealOrder == false
+            && cancelsRealOrder == false
+            && replacesRealOrder == false
+            && consumesExecutionReport == false
+            && recordsBrokerFill == false
+            && performsReconciliation == false
+            && executesIncidentFallback == false
+    }
+
+    public var deterministicSnapshot: [String] {
+        blockedItems.map { item in
+            let status = item.isBlocked ? "blocked" : "unblocked"
+            let reasons = item.blockedReasons.map(\.rawValue).joined(separator: ";")
+            return "\(item.gate.rawValue)|\(status)|\(reasons)"
+        }
+    }
+
+    public func item(for gate: LiveExecutionControlBlockedGate) -> LiveExecutionControlBlockedEvidenceItem? {
+        blockedItems.first { $0.gate == gate }
+    }
+
+    public init(
+        contractID: Identifier = try! Identifier("mtp-79-live-execution-control-blocked-evidence"),
+        issueID: Identifier = try! Identifier("MTP-79"),
+        blockedItems: [LiveExecutionControlBlockedEvidenceItem] = Self.requiredBlockedItems,
+        allowedEvidenceKinds: [LiveExecutionControlEvidenceKind] = Self.allowedEvidenceKinds,
+        validationAnchors: [String] = Self.requiredValidationAnchors,
+        sourceAnchors: [String] = Self.requiredSourceAnchors,
+        isReadModelOnly: Bool = true,
+        reportConsumesReadModelOnly: Bool = true,
+        dashboardConsumesViewModelOnly: Bool = true,
+        eventTimelineConsumesReadModelOnly: Bool = true,
+        exposesPersistenceSchema: Bool = false,
+        readsAdapter: Bool = false,
+        invokesRuntimeControl: Bool = false,
+        providesCommandSurface: Bool = false,
+        readsAPIKey: Bool = false,
+        storesSecret: Bool = false,
+        usesSignedEndpoint: Bool = false,
+        callsAccountEndpoint: Bool = false,
+        createsListenKey: Bool = false,
+        instantiatesBrokerExecutionAdapter: Bool = false,
+        instantiatesExchangeExecutionAdapter: Bool = false,
+        implementsLiveExecutionAdapter: Bool = false,
+        implementsRealOrderStateMachine: Bool = false,
+        implementsOMS: Bool = false,
+        submitsRealOrder: Bool = false,
+        cancelsRealOrder: Bool = false,
+        replacesRealOrder: Bool = false,
+        consumesExecutionReport: Bool = false,
+        recordsBrokerFill: Bool = false,
+        performsReconciliation: Bool = false,
+        executesIncidentFallback: Bool = false,
+        exposesOrderForm: Bool = false,
+        exposesOrderLevelCommandUI: Bool = false,
+        providesTradingButton: Bool = false,
+        requiredValidationDependsOnNetwork: Bool = false
+    ) throws {
+        try Self.validate(
+            blockedItems: blockedItems,
+            allowedEvidenceKinds: allowedEvidenceKinds,
+            validationAnchors: validationAnchors,
+            sourceAnchors: sourceAnchors
+        )
+        try Self.validateForbiddenFlags(
+            isReadModelOnly: isReadModelOnly,
+            reportConsumesReadModelOnly: reportConsumesReadModelOnly,
+            dashboardConsumesViewModelOnly: dashboardConsumesViewModelOnly,
+            eventTimelineConsumesReadModelOnly: eventTimelineConsumesReadModelOnly,
+            exposesPersistenceSchema: exposesPersistenceSchema,
+            readsAdapter: readsAdapter,
+            invokesRuntimeControl: invokesRuntimeControl,
+            providesCommandSurface: providesCommandSurface,
+            readsAPIKey: readsAPIKey,
+            storesSecret: storesSecret,
+            usesSignedEndpoint: usesSignedEndpoint,
+            callsAccountEndpoint: callsAccountEndpoint,
+            createsListenKey: createsListenKey,
+            instantiatesBrokerExecutionAdapter: instantiatesBrokerExecutionAdapter,
+            instantiatesExchangeExecutionAdapter: instantiatesExchangeExecutionAdapter,
+            implementsLiveExecutionAdapter: implementsLiveExecutionAdapter,
+            implementsRealOrderStateMachine: implementsRealOrderStateMachine,
+            implementsOMS: implementsOMS,
+            submitsRealOrder: submitsRealOrder,
+            cancelsRealOrder: cancelsRealOrder,
+            replacesRealOrder: replacesRealOrder,
+            consumesExecutionReport: consumesExecutionReport,
+            recordsBrokerFill: recordsBrokerFill,
+            performsReconciliation: performsReconciliation,
+            executesIncidentFallback: executesIncidentFallback,
+            exposesOrderForm: exposesOrderForm,
+            exposesOrderLevelCommandUI: exposesOrderLevelCommandUI,
+            providesTradingButton: providesTradingButton,
+            requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork
+        )
+
+        self.contractID = contractID
+        self.issueID = issueID
+        self.blockedItems = blockedItems
+        self.allowedEvidenceKinds = allowedEvidenceKinds
+        self.validationAnchors = validationAnchors
+        self.sourceAnchors = sourceAnchors
+        self.isReadModelOnly = isReadModelOnly
+        self.reportConsumesReadModelOnly = reportConsumesReadModelOnly
+        self.dashboardConsumesViewModelOnly = dashboardConsumesViewModelOnly
+        self.eventTimelineConsumesReadModelOnly = eventTimelineConsumesReadModelOnly
+        self.exposesPersistenceSchema = exposesPersistenceSchema
+        self.readsAdapter = readsAdapter
+        self.invokesRuntimeControl = invokesRuntimeControl
+        self.providesCommandSurface = providesCommandSurface
+        self.readsAPIKey = readsAPIKey
+        self.storesSecret = storesSecret
+        self.usesSignedEndpoint = usesSignedEndpoint
+        self.callsAccountEndpoint = callsAccountEndpoint
+        self.createsListenKey = createsListenKey
+        self.instantiatesBrokerExecutionAdapter = instantiatesBrokerExecutionAdapter
+        self.instantiatesExchangeExecutionAdapter = instantiatesExchangeExecutionAdapter
+        self.implementsLiveExecutionAdapter = implementsLiveExecutionAdapter
+        self.implementsRealOrderStateMachine = implementsRealOrderStateMachine
+        self.implementsOMS = implementsOMS
+        self.submitsRealOrder = submitsRealOrder
+        self.cancelsRealOrder = cancelsRealOrder
+        self.replacesRealOrder = replacesRealOrder
+        self.consumesExecutionReport = consumesExecutionReport
+        self.recordsBrokerFill = recordsBrokerFill
+        self.performsReconciliation = performsReconciliation
+        self.executesIncidentFallback = executesIncidentFallback
+        self.exposesOrderForm = exposesOrderForm
+        self.exposesOrderLevelCommandUI = exposesOrderLevelCommandUI
+        self.providesTradingButton = providesTradingButton
+        self.requiredValidationDependsOnNetwork = requiredValidationDependsOnNetwork
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            contractID: try container.decode(Identifier.self, forKey: .contractID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            blockedItems: try container.decode(
+                [LiveExecutionControlBlockedEvidenceItem].self,
+                forKey: .blockedItems
+            ),
+            allowedEvidenceKinds: try container.decode(
+                [LiveExecutionControlEvidenceKind].self,
+                forKey: .allowedEvidenceKinds
+            ),
+            validationAnchors: try container.decode([String].self, forKey: .validationAnchors),
+            sourceAnchors: try container.decode([String].self, forKey: .sourceAnchors),
+            isReadModelOnly: try container.decode(Bool.self, forKey: .isReadModelOnly),
+            reportConsumesReadModelOnly: try container.decode(Bool.self, forKey: .reportConsumesReadModelOnly),
+            dashboardConsumesViewModelOnly: try container.decode(Bool.self, forKey: .dashboardConsumesViewModelOnly),
+            eventTimelineConsumesReadModelOnly: try container.decode(
+                Bool.self,
+                forKey: .eventTimelineConsumesReadModelOnly
+            ),
+            exposesPersistenceSchema: try container.decode(Bool.self, forKey: .exposesPersistenceSchema),
+            readsAdapter: try container.decode(Bool.self, forKey: .readsAdapter),
+            invokesRuntimeControl: try container.decode(Bool.self, forKey: .invokesRuntimeControl),
+            providesCommandSurface: try container.decode(Bool.self, forKey: .providesCommandSurface),
+            readsAPIKey: try container.decode(Bool.self, forKey: .readsAPIKey),
+            storesSecret: try container.decode(Bool.self, forKey: .storesSecret),
+            usesSignedEndpoint: try container.decode(Bool.self, forKey: .usesSignedEndpoint),
+            callsAccountEndpoint: try container.decode(Bool.self, forKey: .callsAccountEndpoint),
+            createsListenKey: try container.decode(Bool.self, forKey: .createsListenKey),
+            instantiatesBrokerExecutionAdapter: try container.decode(
+                Bool.self,
+                forKey: .instantiatesBrokerExecutionAdapter
+            ),
+            instantiatesExchangeExecutionAdapter: try container.decode(
+                Bool.self,
+                forKey: .instantiatesExchangeExecutionAdapter
+            ),
+            implementsLiveExecutionAdapter: try container.decode(
+                Bool.self,
+                forKey: .implementsLiveExecutionAdapter
+            ),
+            implementsRealOrderStateMachine: try container.decode(
+                Bool.self,
+                forKey: .implementsRealOrderStateMachine
+            ),
+            implementsOMS: try container.decode(Bool.self, forKey: .implementsOMS),
+            submitsRealOrder: try container.decode(Bool.self, forKey: .submitsRealOrder),
+            cancelsRealOrder: try container.decode(Bool.self, forKey: .cancelsRealOrder),
+            replacesRealOrder: try container.decode(Bool.self, forKey: .replacesRealOrder),
+            consumesExecutionReport: try container.decode(Bool.self, forKey: .consumesExecutionReport),
+            recordsBrokerFill: try container.decode(Bool.self, forKey: .recordsBrokerFill),
+            performsReconciliation: try container.decode(Bool.self, forKey: .performsReconciliation),
+            executesIncidentFallback: try container.decode(Bool.self, forKey: .executesIncidentFallback),
+            exposesOrderForm: try container.decode(Bool.self, forKey: .exposesOrderForm),
+            exposesOrderLevelCommandUI: try container.decode(Bool.self, forKey: .exposesOrderLevelCommandUI),
+            providesTradingButton: try container.decode(Bool.self, forKey: .providesTradingButton),
+            requiredValidationDependsOnNetwork: try container.decode(
+                Bool.self,
+                forKey: .requiredValidationDependsOnNetwork
+            )
+        )
+    }
+
+    public static let requiredBlockedItems: [LiveExecutionControlBlockedEvidenceItem] = [
+        LiveExecutionControlBlockedEvidenceItem(
+            gate: .submit,
+            blockedReasons: [
+                .humanLiveDecisionMissing,
+                .credentialEndpointBoundaryUnsatisfied,
+                .signedCommandRequestForbidden,
+                .brokerExecutionAdapterForbidden,
+                .liveRiskOperationsAuditMissing
+            ],
+            sourceAnchors: [
+                "MTP-76-SUBMIT-CANCEL-REPLACE-FUTURE-GATES",
+                "MTP-76-NO-REAL-SUBMIT-CANCEL-REPLACE"
+            ]
+        ),
+        LiveExecutionControlBlockedEvidenceItem(
+            gate: .cancel,
+            blockedReasons: [
+                .humanLiveDecisionMissing,
+                .credentialEndpointBoundaryUnsatisfied,
+                .signedCommandRequestForbidden,
+                .brokerExecutionAdapterForbidden,
+                .liveRiskOperationsAuditMissing
+            ],
+            sourceAnchors: [
+                "MTP-76-SUBMIT-CANCEL-REPLACE-FUTURE-GATES",
+                "MTP-76-NO-REAL-SUBMIT-CANCEL-REPLACE"
+            ]
+        ),
+        LiveExecutionControlBlockedEvidenceItem(
+            gate: .replace,
+            blockedReasons: [
+                .humanLiveDecisionMissing,
+                .credentialEndpointBoundaryUnsatisfied,
+                .signedCommandRequestForbidden,
+                .brokerExecutionAdapterForbidden,
+                .liveRiskOperationsAuditMissing
+            ],
+            sourceAnchors: [
+                "MTP-76-SUBMIT-CANCEL-REPLACE-FUTURE-GATES",
+                "MTP-76-NO-REAL-SUBMIT-CANCEL-REPLACE"
+            ]
+        ),
+        LiveExecutionControlBlockedEvidenceItem(
+            gate: .executionReport,
+            blockedReasons: [
+                .accountEndpointForbidden,
+                .listenKeyUserDataStreamForbidden,
+                .executionReportImplementationForbidden,
+                .readModelOnlyBoundaryRequired
+            ],
+            sourceAnchors: [
+                "MTP-77-EXECUTION-REPORT-BROKER-FILL-RECONCILIATION-FUTURE-GATES",
+                "MTP-78-REPORT-DASHBOARD-TIMELINE-READ-MODEL-ONLY"
+            ]
+        ),
+        LiveExecutionControlBlockedEvidenceItem(
+            gate: .brokerFill,
+            blockedReasons: [
+                .brokerExecutionAdapterForbidden,
+                .brokerFillImplementationForbidden,
+                .realOrderStateMachineForbidden,
+                .paperRealCommandIsolationRequired
+            ],
+            sourceAnchors: [
+                "MTP-77-EXECUTION-REPORT-BROKER-FILL-RECONCILIATION-FUTURE-GATES",
+                "MTP-78-PAPER-REAL-COMMAND-ISOLATION-CONTRACT"
+            ]
+        ),
+        LiveExecutionControlBlockedEvidenceItem(
+            gate: .reconciliation,
+            blockedReasons: [
+                .accountEndpointForbidden,
+                .reconciliationRuntimeForbidden,
+                .brokerPositionSyncForbidden,
+                .readModelOnlyBoundaryRequired
+            ],
+            sourceAnchors: [
+                "MTP-77-RECONCILIATION-BLOCKED-EVIDENCE-ONLY",
+                "MTP-78-PAPER-REAL-COMMAND-ISOLATION-CONTRACT"
+            ]
+        ),
+        LiveExecutionControlBlockedEvidenceItem(
+            gate: .incidentFallback,
+            blockedReasons: [
+                .incidentFallbackAutomationForbidden,
+                .liveRiskOperationsAuditMissing,
+                .readModelOnlyBoundaryRequired
+            ],
+            sourceAnchors: [
+                "MTP-75-REAL-ORDER-COMMAND-TAXONOMY",
+                "MTP-78-REPORT-DASHBOARD-TIMELINE-READ-MODEL-ONLY"
+            ]
+        )
+    ]
+
+    public static let allowedEvidenceKinds: [LiveExecutionControlEvidenceKind] = [
+        .contractDocumentation,
+        .validationMatrixCandidate,
+        .validationPlanAnchor,
+        .deterministicForbiddenTest,
+        .paperRealIsolationEvidence,
+        .readModelOnlyBlockedEvidence,
+        .prBoundaryEvidence
+    ]
+
+    public static let requiredValidationAnchors: [String] = [
+        "MTP-79-LIVE-EXECUTION-CONTROL-BLOCKED-EVIDENCE",
+        "MTP-79-EXECUTION-CONTROL-GATES-BLOCKED-REASONS",
+        "MTP-79-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT",
+        "MTP-79-READ-MODEL-ONLY-NO-COMMAND-SURFACE",
+        "MTP-79-LIVE-EXECUTION-CONTROL-VALIDATION",
+        "TVM-LIVE-EXECUTION-CONTROL"
+    ]
+
+    public static let requiredSourceAnchors: [String] = [
+        "MTP-75-REAL-ORDER-COMMAND-TAXONOMY",
+        "MTP-76-SUBMIT-CANCEL-REPLACE-FUTURE-GATES",
+        "MTP-76-NO-REAL-SUBMIT-CANCEL-REPLACE",
+        "MTP-77-EXECUTION-REPORT-BROKER-FILL-RECONCILIATION-FUTURE-GATES",
+        "MTP-77-RECONCILIATION-BLOCKED-EVIDENCE-ONLY",
+        "MTP-78-PAPER-REAL-COMMAND-ISOLATION-CONTRACT",
+        "MTP-78-REPORT-DASHBOARD-TIMELINE-READ-MODEL-ONLY",
+        "TVM-LIVE-EXECUTION-CONTROL"
+    ]
+
+    public static let deterministicFixture: LiveExecutionControlBlockedEvidence = {
+        do {
+            return try LiveExecutionControlBlockedEvidence()
+        } catch {
+            preconditionFailure("MTP-79 execution-control blocked evidence fixture must be valid: \(error)")
+        }
+    }()
+
+    private static func validate(
+        blockedItems: [LiveExecutionControlBlockedEvidenceItem],
+        allowedEvidenceKinds: [LiveExecutionControlEvidenceKind],
+        validationAnchors: [String],
+        sourceAnchors: [String]
+    ) throws {
+        if let invalid = blockedItems.first(where: { $0.readModelOnlyBoundaryHeld == false }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("\(invalid.gate.rawValue).readModelOnlyBoundaryHeld")
+        }
+        guard blockedItems == Self.requiredBlockedItems else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "blockedItems",
+                expected: Self.requiredBlockedItems.map(\.gate.rawValue).joined(separator: ","),
+                actual: blockedItems.map(\.gate.rawValue).joined(separator: ",")
+            )
+        }
+        guard allowedEvidenceKinds == Self.allowedEvidenceKinds else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "allowedEvidenceKinds",
+                expected: Self.allowedEvidenceKinds.map(\.rawValue).joined(separator: ","),
+                actual: allowedEvidenceKinds.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard validationAnchors == Self.requiredValidationAnchors else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "validationAnchors",
+                expected: Self.requiredValidationAnchors.joined(separator: ","),
+                actual: validationAnchors.joined(separator: ",")
+            )
+        }
+        guard sourceAnchors == Self.requiredSourceAnchors else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "sourceAnchors",
+                expected: Self.requiredSourceAnchors.joined(separator: ","),
+                actual: sourceAnchors.joined(separator: ",")
+            )
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        isReadModelOnly: Bool,
+        reportConsumesReadModelOnly: Bool,
+        dashboardConsumesViewModelOnly: Bool,
+        eventTimelineConsumesReadModelOnly: Bool,
+        exposesPersistenceSchema: Bool,
+        readsAdapter: Bool,
+        invokesRuntimeControl: Bool,
+        providesCommandSurface: Bool,
+        readsAPIKey: Bool,
+        storesSecret: Bool,
+        usesSignedEndpoint: Bool,
+        callsAccountEndpoint: Bool,
+        createsListenKey: Bool,
+        instantiatesBrokerExecutionAdapter: Bool,
+        instantiatesExchangeExecutionAdapter: Bool,
+        implementsLiveExecutionAdapter: Bool,
+        implementsRealOrderStateMachine: Bool,
+        implementsOMS: Bool,
+        submitsRealOrder: Bool,
+        cancelsRealOrder: Bool,
+        replacesRealOrder: Bool,
+        consumesExecutionReport: Bool,
+        recordsBrokerFill: Bool,
+        performsReconciliation: Bool,
+        executesIncidentFallback: Bool,
+        exposesOrderForm: Bool,
+        exposesOrderLevelCommandUI: Bool,
+        providesTradingButton: Bool,
+        requiredValidationDependsOnNetwork: Bool
+    ) throws {
+        guard isReadModelOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("isReadModelOnly")
+        }
+        guard reportConsumesReadModelOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("reportConsumesReadModelOnly")
+        }
+        guard dashboardConsumesViewModelOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("dashboardConsumesViewModelOnly")
+        }
+        guard eventTimelineConsumesReadModelOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("eventTimelineConsumesReadModelOnly")
+        }
+
+        let forbiddenFlags = [
+            ("exposesPersistenceSchema", exposesPersistenceSchema),
+            ("readsAdapter", readsAdapter),
+            ("invokesRuntimeControl", invokesRuntimeControl),
+            ("providesCommandSurface", providesCommandSurface),
+            ("readsAPIKey", readsAPIKey),
+            ("storesSecret", storesSecret),
+            ("usesSignedEndpoint", usesSignedEndpoint),
+            ("callsAccountEndpoint", callsAccountEndpoint),
+            ("createsListenKey", createsListenKey),
+            ("instantiatesBrokerExecutionAdapter", instantiatesBrokerExecutionAdapter),
+            ("instantiatesExchangeExecutionAdapter", instantiatesExchangeExecutionAdapter),
+            ("implementsLiveExecutionAdapter", implementsLiveExecutionAdapter),
+            ("implementsRealOrderStateMachine", implementsRealOrderStateMachine),
+            ("implementsOMS", implementsOMS),
+            ("submitsRealOrder", submitsRealOrder),
+            ("cancelsRealOrder", cancelsRealOrder),
+            ("replacesRealOrder", replacesRealOrder),
+            ("consumesExecutionReport", consumesExecutionReport),
+            ("recordsBrokerFill", recordsBrokerFill),
+            ("performsReconciliation", performsReconciliation),
+            ("executesIncidentFallback", executesIncidentFallback),
+            ("exposesOrderForm", exposesOrderForm),
             ("exposesOrderLevelCommandUI", exposesOrderLevelCommandUI),
             ("providesTradingButton", providesTradingButton),
             ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)

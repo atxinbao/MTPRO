@@ -402,3 +402,80 @@ MTP-78 建立以下 validation anchors：
 - `MTP-78-LIVE-EXECUTION-CONTROL-VALIDATION`
 
 本 issue 不修改 `checks/automation-readiness.sh` 做最终机械收口；`MTPRO Live Execution Control Contract v1` 的 automation readiness 收口保留给 Issue 7。
+
+## MTP-79 live execution-control blocked evidence
+
+`MTP-79-LIVE-EXECUTION-CONTROL-BLOCKED-EVIDENCE`
+
+MTP-79 新增 `LiveExecutionControlBlockedEvidence` read model，用只读方式汇总 execution-control gates 为什么仍被阻断。该模型只作为后续 Dashboard / Report / Event Timeline 的 deterministic snapshot 输入，不实现任何 execution runtime、adapter、schema、command 或 UI control。
+
+Core fixture：`LiveExecutionControlBlockedEvidence` 固定以下 blocked gates：
+
+- `submit`
+- `cancel`
+- `replace`
+- `execution report`
+- `broker fill`
+- `reconciliation`
+- `incident fallback`
+
+## MTP-79 execution-control gates blocked reasons
+
+`MTP-79-EXECUTION-CONTROL-GATES-BLOCKED-REASONS`
+
+`LiveExecutionControlBlockedEvidence.blockedItems` 必须逐项说明 blocked reason：
+
+- `submit` / `cancel` / `replace`：Human live decision、credential endpoint boundary、signed command request、broker execution adapter、live risk / operations / audit evidence 仍未满足。
+- `execution report`：account endpoint、listenKey user data stream、execution report implementation 和 read-model-only boundary 仍阻断。
+- `broker fill`：broker execution adapter、broker fill implementation、real order state machine 和 paper / real command isolation 仍阻断。
+- `reconciliation`：account endpoint、reconciliation runtime、broker position sync 和 read-model-only boundary 仍阻断。
+- `incident fallback`：incident fallback automation、live risk / operations / audit evidence 和 read-model-only boundary 仍阻断。
+
+## MTP-79 deterministic blocked evidence snapshot
+
+`MTP-79-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT`
+
+`LiveExecutionControlBlockedEvidence.deterministicSnapshot` 必须保持稳定顺序和稳定文本，供后续展示面消费：
+
+```text
+submit|blocked|human live decision missing;credential endpoint boundary unsatisfied;signed command request forbidden;broker execution adapter forbidden;live risk operations audit missing
+cancel|blocked|human live decision missing;credential endpoint boundary unsatisfied;signed command request forbidden;broker execution adapter forbidden;live risk operations audit missing
+replace|blocked|human live decision missing;credential endpoint boundary unsatisfied;signed command request forbidden;broker execution adapter forbidden;live risk operations audit missing
+execution report|blocked|account endpoint forbidden;listenKey user data stream forbidden;execution report implementation forbidden;read model only boundary required
+broker fill|blocked|broker execution adapter forbidden;broker fill implementation forbidden;real order state machine forbidden;paper / real command isolation required
+reconciliation|blocked|account endpoint forbidden;reconciliation runtime forbidden;broker position sync forbidden;read model only boundary required
+incident fallback|blocked|incident fallback automation forbidden;live risk operations audit missing;read model only boundary required
+```
+
+## MTP-79 read-model-only no command surface
+
+`MTP-79-READ-MODEL-ONLY-NO-COMMAND-SURFACE`
+
+MTP-79 必须验证 `LiveExecutionControlBlockedEvidence` 保持只读边界：
+
+- `isReadModelOnly`、`reportConsumesReadModelOnly`、`dashboardConsumesViewModelOnly` 和 `eventTimelineConsumesReadModelOnly` 必须为 `true`。
+- `exposesPersistenceSchema`、`readsAdapter`、`invokesRuntimeControl` 和 `providesCommandSurface` 必须为 `false`。
+- `readsAPIKey`、`storesSecret`、`usesSignedEndpoint`、`callsAccountEndpoint` 和 `createsListenKey` 必须为 `false`。
+- `instantiatesBrokerExecutionAdapter`、`instantiatesExchangeExecutionAdapter`、`implementsLiveExecutionAdapter`、`implementsRealOrderStateMachine` 和 `implementsOMS` 必须为 `false`。
+- `submitsRealOrder`、`cancelsRealOrder`、`replacesRealOrder`、`consumesExecutionReport`、`recordsBrokerFill`、`performsReconciliation` 和 `executesIncidentFallback` 必须为 `false`。
+- `exposesOrderForm`、`exposesOrderLevelCommandUI`、`providesTradingButton` 和 `requiredValidationDependsOnNetwork` 必须为 `false`。
+
+Core tests：
+
+- `testLiveExecutionControlBlockedEvidenceDefinesMTP79ReadModelOnlySnapshot`
+- `testLiveExecutionControlBlockedEvidenceRejectsMTP79CommandOrRuntimeBypass`
+- `testLiveExecutionControlBlockedEvidenceSummarizesMTP79GateReasonsWithoutExecution`
+
+## MTP-79 validation anchors
+
+`MTP-79-LIVE-EXECUTION-CONTROL-VALIDATION`
+
+MTP-79 建立以下 validation anchors：
+
+- `MTP-79-LIVE-EXECUTION-CONTROL-BLOCKED-EVIDENCE`
+- `MTP-79-EXECUTION-CONTROL-GATES-BLOCKED-REASONS`
+- `MTP-79-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT`
+- `MTP-79-READ-MODEL-ONLY-NO-COMMAND-SURFACE`
+- `MTP-79-LIVE-EXECUTION-CONTROL-VALIDATION`
+
+本 issue 不修改 `checks/automation-readiness.sh` 做最终机械收口；`MTPRO Live Execution Control Contract v1` 的 automation readiness 收口保留给 Issue 7。
