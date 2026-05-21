@@ -62,6 +62,7 @@
 | `docs/automation/agent-engineering-practices.md` | Agent Engineering Practices：从 `mattpocock/skills` 吸收的 Agent 工程实践 |
 | `docs/reference/nautilus-trader/` | NautilusTrader 产品 / 设计 / 架构参考研究 |
 | `docs/reference/nautilus-trader/root-docs-delta-proposal.md` | Root Docs Delta Proposal，进入完整蓝图前的候选 root docs delta |
+| `docs/product/mtpro-workbench-user-flow-blueprint-v1.md` | Figma canonical `15:2` 的产品层用户动线蓝图，定义用户动线、页面角色和 Current / Future 边界 |
 | `docs/audit/` | 已完成 Project 的 Stage Code Audit Reports |
 | `docs/validation/trading-validation-matrix.md` | 交易语义验证证据地图 |
 | `docs/planning/project-role-map.md` | MTPRO 角色编号、职责和边界 |
@@ -143,7 +144,8 @@ Market Data
 -> Paper Execution Evidence
 -> Portfolio / Risk / Events
 -> Future gated Live trading foundation
--> Future live monitoring / execution control / risk control / audit
+-> Completed read-model-only Live monitoring
+-> Future gated live execution control / risk control / audit
 -> Stage Audit
 -> Future gated Live decision
 ```
@@ -169,8 +171,8 @@ flowchart LR
         LR["Live Readiness<br/>blocked gates / 禁区说明"]
     end
 
-    subgraph InProgress["In Progress / 当前建设"]
-        LM["Live Monitoring<br/>read-model-only health / connection / stream / latency / error evidence"]
+    subgraph CompletedEvidence["Completed read-model-only evidence surfaces<br/>已完成只读证据面"]
+        LM["Live Monitoring<br/>health / connection / stream / latency / error evidence"]
     end
 
     subgraph Future["Future Gated / 未来门禁区"]
@@ -186,7 +188,9 @@ flowchart LR
     LRisk -. gated handoff .-> IR
 ```
 
-`Live Monitoring` 当前只代表 read-model-only 的健康、连接、行情流 / 订单事件流、延迟和错误证据。订单流 / 订单事件流只表达 blocked / simulated / future evidence，不表示真实订单状态机，不提供 live command，不新增交易按钮。
+Figma canonical `15:2` 的 `MTPRO Workbench User Flow Blueprint v1` 已作为产品层用户动线蓝图记录在 `docs/product/mtpro-workbench-user-flow-blueprint-v1.md`。该蓝图用于确定用户动线、页面角色、状态边界和禁止动作，不是最终 UI/UX 设计稿、组件规范或 SwiftUI 实现稿。
+
+`Live Monitoring` 已完成，但只代表 read-model-only 的健康、连接、行情流 / 订单事件流、延迟和错误证据。订单流 / 订单事件流只表达 blocked / simulated / future evidence，不表示真实订单状态机，不提供 live command，不新增交易按钮。
 
 ## Architecture Blueprint / 架构蓝图
 
@@ -212,7 +216,7 @@ Adapters
 
 Target System Architecture 由三件事组成：
 
-- Product Workbench Map：说明用户看到哪些工作区，以及哪些是 Current / In Progress / Future Gated。
+- Product Workbench Map：说明用户看到哪些工作区，以及哪些是 Current completed / Completed read-model-only evidence surfaces / Future Gated。
 - Engineering Layer Map：由 `docs/architecture.md` 维护，说明 Workbench UI、App Interface、Evidence Read Model、Local Runtime / Eventing、Domain + Adapter Boundary 五层如何分工。
 - Evidence Data Flow：由 `docs/architecture.md` 维护，说明 input source 如何变成 event fact、replay、projection、read model、ViewModel 和 Workbench evidence surface。
 
@@ -243,7 +247,7 @@ MTPRO Workbench 最终应包含：
 | Events | 展示 append-only events、replay、projection freshness、audit trail |
 | Operations | 展示 local validation、automation readiness、Graphify / Symphony / GitHub 状态 |
 | Live Readiness | 展示实盘 gate、blocked capability、禁区说明和只读 evidence |
-| Live Monitoring | 当前建设 read-model-only health / connection / stream / latency / error evidence，不提供实盘控制 |
+| Live Monitoring | 已完成 read-model-only health / connection / stream / latency / error evidence，不提供实盘控制 |
 | Future Live | 只展示 gated readiness；未来覆盖实盘执行控制、风险控制、审计 / 事故回放 / 停机控制 |
 
 当前 UI 仍保持 read-model-only，不提供真实交易按钮，不直接读取 database schema、adapter request 或 runtime object。

@@ -542,3 +542,51 @@ Shell 新增展示：
 - production telemetry、runtime profiler、external metrics service、真实 runtime monitoring、真实网络连接或 WebSocket。
 - signed endpoint、account endpoint、listenKey、API key、secret、account payload、broker adapter、`LiveExecutionAdapter`、execution report、broker fill、real order state machine、OMS 或真实交易授权。
 - Runtime object、adapter request、SQLite / DuckDB schema、SQL、ORM model 或 persistence adapter direct read 暴露。
+
+## MTPRO Workbench User Flow Blueprint v1
+
+日期：2026-05-22
+
+执行者：Codex（`@000 / AIE`）
+
+当前产品层新增 `MTPRO Workbench User Flow Blueprint v1`，路径为 `docs/product/mtpro-workbench-user-flow-blueprint-v1.md`。该文档记录 Figma canonical `15:2` 的用户动线蓝图，作为后续 Workbench / Dashboard / UI planning 的产品层输入。
+
+该蓝图只定义：
+
+- 目标用户。
+- 六条用户动线。
+- 页面角色。
+- Current completed / Completed read-model-only evidence surfaces / Future Gated 分区。
+- 禁止动作和 read-model-only 边界。
+
+该蓝图不定义：
+
+- 最终视觉风格。
+- UI 组件规范。
+- macOS 高保真界面。
+- SwiftUI 实现方式。
+- Linear execution scope。
+
+产品层页面角色：
+
+| 页面 | 用户判断 |
+| --- | --- |
+| 总览 / Overview | 今天系统状态、latest evidence、blocker 和下一步路径是否清楚 |
+| 行情回放 / Market Replay | batch、retention、freshness 和 replay consistency 是否可信 |
+| 策略研究 / Research | 策略输入、配置、signal evidence 和研究 run 是否可信 |
+| 回测 / Backtest | parity、cost、risk、输入快照和 replay evidence 是否满足进入报告或 Paper 的条件 |
+| 报告 / Report | Research / Backtest / Paper / Risk / Portfolio evidence 是否能形成可追溯结论 |
+| Paper 模拟执行 / Paper | paper-only session、intent、simulated fill 和 session-level local control 语义是否一致 |
+| 组合 / Portfolio | paper exposure 和 portfolio projection 是否可解释 |
+| 风险 / Risk | blocker、rejection reason、paper-only risk evidence 和 future live gate 是否清楚 |
+| 事件与审计 / Events / Audit | 是否能沿 event timeline、replay、projection freshness 和 evidence links 回溯 |
+| 实盘准备度 / Live Readiness | API key、signed endpoint、account endpoint、listenKey、broker adapter、real order lifecycle 为什么 blocked |
+| 实盘监控台 / Live Monitoring | 已完成的 read-model-only health、connection、stream、latency、error、degraded evidence；不代表真实 live runtime |
+| 未来门禁区 / Future Gated | Future Live Execution / Risk / Incident Replay 的 planning / boundary placeholder，不授权执行 |
+
+仍不包含：
+
+- 真实交易按钮、order form、live command 或 order-level command UI。
+- API key、secret storage、signed endpoint、account endpoint、listenKey、broker adapter 或 `LiveExecutionAdapter`。
+- real order state machine、OMS、submit / cancel / replace、broker fill、execution report 或 reconciliation。
+- Runtime、Adapter、SQLite / DuckDB schema、exchange payload 或 broker object 直连 UI。
