@@ -647,3 +647,34 @@ Shell 新增展示：
 - 最终视觉风格、macOS 高保真 UI、组件规范或 SwiftUI 实现。
 - Linear Project / Issue、Todo 推进、Symphony 启动或业务代码 scope。
 - submit / cancel / replace、order form、broker action、signed endpoint、account endpoint / listenKey、reconnect / start live / stop live、live command、trading button、real order state machine、real account balance 或 real broker position。
+
+## MTPRO Workbench UI/UX Design Rules v1
+
+日期：2026-05-22
+
+执行者：Codex（`@000 / AIE`）
+
+当前设计层新增 `MTPRO Workbench UI/UX Design Rules v1`，路径为 `docs/design/mtpro-workbench-ui-ux-design-rules-v1.md`。该文档记录 Figma canonical `51:2`，承接 Product User Flow Blueprint、Product Interaction Model 和 Screen Layout v1，用于定义 macOS native 工作台的 UI/UX 设计规则。
+
+该文档是设计层 UI/UX rules 依据，不是高保真最终视觉稿、组件规范或 SwiftUI 实现。
+
+规则覆盖：
+
+- macOS native workstation 视觉方向：克制、紧凑、split-view、sidebar、detail inspector 和 timeline preview。
+- 统一布局规则：Sidebar、Top status、Main evidence workspace、Detail inspector、Events / Audit preview 和 Future placeholder area。
+- Typography / spacing / density：工作台密度、文字层级、状态标签和中文优先表达。
+- Evidence components：evidence row、card、table、inspector、source link 和 timeline preview。
+- 状态标签：`empty`、`healthy`、`stale`、`blocked`、`degraded`、`error`。
+- 三态分区：Current completed、Completed read-model-only evidence surface、Future Gated。
+- Paper 本地 session-level controls：只允许 `start` / `pause` / `close` / `reset`，且视觉权重必须弱于 evidence navigation。
+- Live Monitoring：Complete / read-model-only evidence surface，只展示 health / connection / stream / latency / error / degraded evidence，不表达外部运行时控制。
+- Future Gated：planning / boundary placeholder，不是执行授权，不创建规划或施工入口。
+- Forbidden UI Surface Checklist：API key / secret storage input、signed endpoint、account endpoint / listenKey、broker adapter / broker action、`LiveExecutionAdapter`、real order state machine / OMS、submit / cancel / replace、broker fill / execution report / reconciliation、real account balance / broker position、trading button / live command / order-level command UI 均禁止出现在当前 UI surface。
+
+`@005 / ARC` 审查结论：通过。P0 / P1 / P2 均未发现问题。
+
+仍不包含：
+
+- 高保真最终视觉稿、组件规范或 SwiftUI 实现。
+- Linear Project / Issue、Todo 推进、Symphony 启动或业务代码 scope。
+- submit / cancel / replace、order form、broker action、signed endpoint、account endpoint / listenKey、reconnect / start live / stop live、live command、trading button、real order state machine、real account balance 或 real broker position。
