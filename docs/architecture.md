@@ -59,7 +59,7 @@ flowchart TB
 | --- | --- | --- | --- | --- | --- |
 | Workbench UI Layer | SwiftUI / macOS shell、页面布局、只读展示、本地 Paper session-level control | 禁止 UI trading button、live command、DB schema、adapter / runtime direct access | App Interface | Human 用户 | Current |
 | App Interface Layer | ViewModel assembly、Command Model boundary、Report / Dashboard / Event Timeline app contract | 禁止领域规则、broker action、Binance direct call、持久化事实 | Evidence Read Model | Workbench UI | Current |
-| Evidence Read Model Layer | Report / Paper / Risk / Portfolio / Events / LiveReadiness / LiveMonitoring read models | 禁止保存事实源、执行命令、暴露 SQLite / DuckDB schema、读取 API key、signed endpoint、account endpoint、listenKey、broker state 或真实订单状态机 | Local Runtime / Eventing | App Interface | Current；`LiveMonitoring` 是 In Progress / read-model-only |
+| Evidence Read Model Layer | Report / Paper / Risk / Portfolio / Events / LiveReadiness / LiveMonitoring read models | 禁止保存事实源、执行命令、暴露 SQLite / DuckDB schema、读取 API key、signed endpoint、account endpoint、listenKey、broker state 或真实订单状态机 | Local Runtime / Eventing | App Interface | Current；`LiveMonitoring` 已完成 read-model-only evidence surface |
 | Local Runtime / Eventing Layer | append-only Event Log、Replay、Projection、local orchestration | 禁止成为 UI state、broker gateway、cloud OMS、生产调度平台 | Domain + Adapter Boundary | Evidence Read Model | Current |
 | Domain + Adapter Boundary Layer | Core domain semantics、Research、Backtest、Paper workflow、Risk / Portfolio evidence、Binance public read-only adapter、future live adapter gates | 禁止 signed / account endpoint 当前接入、broker adapter、`LiveExecutionAdapter`、real order lifecycle、OMS 或 live risk execution path | 无下层业务依赖；外部只接 public read-only data | Runtime / Eventing | Current；future live adapter 是 Future Gated / Forbidden now |
 
@@ -153,7 +153,7 @@ read-model-only live health / connection / stream / latency / error evidence
 -> Dashboard / Report / Event Timeline
 ```
 
-该流当前正在建设，但只允许 health、connection、market stream、订单事件流、latency、error 的 read-model-only evidence。订单流 / 订单事件流只表达 blocked / simulated / future evidence，不表示真实订单状态机，不提供 live command，不新增交易按钮。真实 live runtime source、signed / account stream、broker / exchange stream 仍是 Future Gated / Forbidden now。
+该流已完成 read-model-only evidence surface，只允许 health、connection、market stream、订单事件流、latency、error 的 evidence。订单流 / 订单事件流只表达 blocked / simulated / future evidence，不表示真实订单状态机，不提供 live command，不新增交易按钮。真实 live runtime source、signed / account stream、broker / exchange stream 仍是 Future Gated / Forbidden now。
 
 ## Evidence Data Flow / 证据数据流
 
@@ -217,7 +217,7 @@ Strategy signal
 
 ## Future Live Isolation / 未来实盘隔离
 
-Future Live 能力可以在 `BLUEPRINT.md` 中定义为最终产品目标，但在当前架构中必须保持隔离。当前已完成的是 Live trading foundation boundary、blocked evidence 和只读展示面；当前正在建设的是 Live monitoring read-model-only evidence。真实 live runtime source、signed / account stream、broker / exchange stream、execution control、risk control、audit / incident replay 和 stop controls 仍是 future gated 能力：
+Future Live 能力可以在 `BLUEPRINT.md` 中定义为最终产品目标，但在当前架构中必须保持隔离。当前已完成的是 Live trading foundation boundary、blocked evidence、只读展示面和 Live monitoring read-model-only evidence surface。真实 live runtime source、signed / account stream、broker / exchange stream、execution control、risk control、audit / incident replay 和 stop controls 仍是 future gated 能力：
 
 - future signed endpoint / account endpoint 需要独立 adapter capability。
 - future broker integration 需要独立 Project Definition、risk gate、operations gate 和 audit gate。
