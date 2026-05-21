@@ -1234,6 +1234,213 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testLiveLatencyErrorDegradedEvidenceDefinesMTP71DeterministicFixture() throws {
+        // 测试场景：MTP-71 只新增 latency / error / degraded state 的 deterministic
+        // monitoring evidence read model。该 fixture 只供后续 Dashboard / Report 消费，
+        // 不采集生产 telemetry，不触发 alert / reconnect / stop control。
+        let readModel = LiveLatencyErrorDegradedMonitoringEvidenceReadModel.deterministicFixture
+
+        XCTAssertEqual(readModel.readModelID, try Identifier("mtp-71-live-latency-error-degraded-evidence"))
+        XCTAssertEqual(readModel.issueID, try Identifier("MTP-71"))
+        XCTAssertEqual(readModel.streamEvidence, LiveStreamMonitoringEvidenceReadModel.deterministicFixture)
+        XCTAssertEqual(
+            readModel.sourceAnchors,
+            LiveLatencyErrorDegradedMonitoringEvidenceReadModel.requiredSourceAnchors
+        )
+        XCTAssertEqual(
+            readModel.latencyEvidence,
+            LiveLatencyErrorDegradedMonitoringEvidenceReadModel.requiredLatencyEvidence
+        )
+        XCTAssertEqual(
+            readModel.errorEvidence,
+            LiveLatencyErrorDegradedMonitoringEvidenceReadModel.requiredErrorEvidence
+        )
+        XCTAssertEqual(
+            readModel.degradedStateEvidence,
+            LiveLatencyErrorDegradedMonitoringEvidenceReadModel.requiredDegradedStateEvidence
+        )
+        XCTAssertEqual(readModel.latencyEvidence.map(\.scope), [
+            .runtimeHealth,
+            .publicMarketStream,
+            .simulatedOrderStream,
+            .futurePrivateUserData,
+            .futureBrokerSession
+        ])
+        XCTAssertEqual(readModel.latencyBuckets, [.stale, .degraded, .nominal, .unavailable, .unavailable])
+        XCTAssertEqual(readModel.errorEvidence.map(\.status), [.disconnected, .blocked, .unavailable])
+        XCTAssertEqual(readModel.degradedStateEvidence.map(\.scope), [.publicMarketStream, .futureBrokerSession])
+        XCTAssertEqual(readModel.degradedStateStatuses, [.degraded, .unavailable])
+        XCTAssertEqual(readModel.errorCodes, [
+            "MTP71_PUBLIC_MARKET_STREAM_DISCONNECTED",
+            "MTP71_PRIVATE_USER_DATA_BLOCKED",
+            "MTP71_BROKER_SESSION_UNAVAILABLE"
+        ])
+        XCTAssertTrue(readModel.latencyEvidenceBoundaryHeld)
+        XCTAssertTrue(readModel.errorEvidenceBoundaryHeld)
+        XCTAssertTrue(readModel.degradedStateBoundaryHeld)
+        XCTAssertTrue(readModel.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(readModel.usesProductionTelemetry)
+        XCTAssertFalse(readModel.usesExternalMetricsService)
+        XCTAssertFalse(readModel.startsRuntimeMonitor)
+        XCTAssertFalse(readModel.pollsProductionRuntime)
+        XCTAssertFalse(readModel.opensNetworkConnection)
+        XCTAssertFalse(readModel.providesAlertingCommand)
+        XCTAssertFalse(readModel.providesPagingCommand)
+        XCTAssertFalse(readModel.providesReconnectCommand)
+        XCTAssertFalse(readModel.providesStopControl)
+        XCTAssertFalse(readModel.providesLiveRiskControl)
+        XCTAssertFalse(readModel.triggersIncidentCommand)
+        XCTAssertFalse(readModel.triggersAutoRecovery)
+        XCTAssertFalse(readModel.callsSignedEndpoint)
+        XCTAssertFalse(readModel.callsAccountEndpoint)
+        XCTAssertFalse(readModel.createsListenKey)
+        XCTAssertFalse(readModel.authorizesLiveTrading)
+        XCTAssertFalse(readModel.authorizesTradingExecution)
+        XCTAssertFalse(readModel.requiredValidationDependsOnNetwork)
+
+        let encoded = try JSONEncoder().encode(readModel)
+        let decoded = try JSONDecoder().decode(
+            LiveLatencyErrorDegradedMonitoringEvidenceReadModel.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, readModel)
+    }
+
+    func testLiveLatencyErrorDegradedEvidenceRejectsMTP71ProductionTelemetryAndCommands() throws {
+        // 测试场景：MTP-71 聚合 read model 的初始化和 Codable 解码必须拒绝 production
+        // telemetry、external metrics、alert / paging、reconnect / stop control 和 signed endpoint。
+        XCTAssertThrowsError(
+            try LiveLatencyErrorDegradedMonitoringEvidenceReadModel(usesProductionTelemetry: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveMonitoringConsoleForbiddenCapability("usesProductionTelemetry")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveLatencyErrorDegradedMonitoringEvidenceReadModel(usesExternalMetricsService: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveMonitoringConsoleForbiddenCapability("usesExternalMetricsService")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveLatencyErrorDegradedMonitoringEvidenceReadModel(providesStopControl: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveMonitoringConsoleForbiddenCapability("providesStopControl"))
+        }
+        XCTAssertThrowsError(
+            try LiveLatencyErrorDegradedMonitoringEvidenceReadModel(providesReconnectCommand: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveMonitoringConsoleForbiddenCapability("providesReconnectCommand")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveLatencyErrorDegradedMonitoringEvidenceReadModel(
+                latencyEvidence: Array(
+                    LiveLatencyErrorDegradedMonitoringEvidenceReadModel.requiredLatencyEvidence.dropLast()
+                )
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveMonitoringConsoleContractMismatch(
+                    field: "latencyEvidence",
+                    expected: LiveLatencyErrorDegradedMonitoringEvidenceReadModel.requiredLatencyEvidence
+                        .map(\.scope.rawValue)
+                        .joined(separator: ","),
+                    actual: Array(
+                        LiveLatencyErrorDegradedMonitoringEvidenceReadModel.requiredLatencyEvidence.dropLast()
+                    )
+                        .map(\.scope.rawValue)
+                        .joined(separator: ",")
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(
+            LiveLatencyErrorDegradedMonitoringEvidenceReadModel.deterministicFixture
+        )
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["callsSignedEndpoint"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveLatencyErrorDegradedMonitoringEvidenceReadModel.self, from: data)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveMonitoringConsoleForbiddenCapability("callsSignedEndpoint"))
+        }
+    }
+
+    func testLiveMonitoringDegradedStateKeepsMTP71ReadModelOnlyNoRecoveryCommands() throws {
+        // 测试场景：degraded / unavailable state 只能把 latency 和 error evidence 串成只读摘要。
+        // 它不能绕过 risk gate、继续真实订单、触发 incident command、自动恢复或 stop control。
+        let readModel = LiveLatencyErrorDegradedMonitoringEvidenceReadModel.deterministicFixture
+        let marketDegraded = try XCTUnwrap(
+            readModel.degradedStateEvidence.first { $0.scope == .publicMarketStream }
+        )
+        let brokerUnavailable = try XCTUnwrap(
+            readModel.degradedStateEvidence.first { $0.scope == .futureBrokerSession }
+        )
+
+        XCTAssertTrue(marketDegraded.degradedStateBoundaryHeld)
+        XCTAssertEqual(marketDegraded.status, .degraded)
+        XCTAssertEqual(marketDegraded.contributingLatencyEvidenceIDs, [
+            try Identifier("mtp-71-public-market-stream-latency-degraded")
+        ])
+        XCTAssertEqual(marketDegraded.contributingErrorEvidenceIDs, [
+            try Identifier("mtp-71-public-market-stream-error-disconnected")
+        ])
+        XCTAssertTrue(brokerUnavailable.degradedStateBoundaryHeld)
+        XCTAssertEqual(brokerUnavailable.status, .unavailable)
+        XCTAssertEqual(brokerUnavailable.contributingLatencyEvidenceIDs, [
+            try Identifier("mtp-71-broker-session-latency-unavailable")
+        ])
+        XCTAssertEqual(brokerUnavailable.contributingErrorEvidenceIDs, [
+            try Identifier("mtp-71-broker-session-error-unavailable")
+        ])
+        XCTAssertTrue(readModel.degradedStateEvidence.allSatisfy { $0.isReadModelOnly })
+        XCTAssertTrue(readModel.degradedStateEvidence.allSatisfy { $0.bypassesRiskGate == false })
+        XCTAssertTrue(readModel.degradedStateEvidence.allSatisfy { $0.continuesRealOrders == false })
+        XCTAssertTrue(readModel.degradedStateEvidence.allSatisfy { $0.triggersIncidentCommand == false })
+        XCTAssertTrue(readModel.degradedStateEvidence.allSatisfy { $0.triggersAutoRecovery == false })
+        XCTAssertTrue(readModel.degradedStateEvidence.allSatisfy { $0.providesStopControl == false })
+        XCTAssertTrue(readModel.degradedStateEvidence.allSatisfy { $0.providesLiveRiskControl == false })
+        XCTAssertTrue(readModel.degradedStateEvidence.allSatisfy { $0.authorizesTradingExecution == false })
+
+        XCTAssertThrowsError(
+            try LiveMonitoringDegradedStateEvidenceItem(
+                stateID: try Identifier("mtp-71-public-market-stream-degraded"),
+                scope: .publicMarketStream,
+                sourceAnchors: ["wrong-anchor"]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveMonitoringConsoleContractMismatch(
+                    field: "sourceAnchors",
+                    expected: [
+                        "MTP-70-MARKET-STREAM-PUBLIC-READ-ONLY-EVIDENCE",
+                        "MTP-71-DEGRADED-STATE-READ-MODEL"
+                    ].joined(separator: ","),
+                    actual: "wrong-anchor"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveMonitoringDegradedStateEvidenceItem(
+                stateID: try Identifier("mtp-71-public-market-stream-degraded"),
+                scope: .publicMarketStream,
+                triggersAutoRecovery: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveMonitoringConsoleForbiddenCapability("triggersAutoRecovery"))
+        }
+    }
+
     func testPaperSessionLocalControlCommandModelSupportsSessionActionsDeterministically() throws {
         // 测试场景：MTP-48 只允许本地 Paper session-level control intent。
         // 四个 control 都必须保持 paper-only，且不能携带 order-level、broker 或真实订单能力。

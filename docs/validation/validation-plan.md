@@ -773,3 +773,30 @@ MTP-70 的 required validation：
 - 不连接 broker、broker session、exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不消费 execution report，不记录 broker fill，不实现 real order state machine、OMS 或 submit / cancel / replace。
 - 不提供 order command、live command、交易按钮或真实交易授权。
+
+## MTP-71 Latency / Error / Degraded State Monitoring Evidence Validation
+
+日期：2026-05-21
+
+执行者：Codex
+
+MTP-71 的 required validation：
+
+- Core 层必须新增 `LiveLatencyErrorDegradedMonitoringEvidenceReadModel`、`LiveMonitoringLatencyEvidenceItem`、`LiveMonitoringErrorEvidenceItem` 和 `LiveMonitoringDegradedStateEvidenceItem`，并保持 Codable / Equatable / Sendable value model。
+- Latency evidence 必须只表达本地 deterministic bucket / freshness evidence；fixture 覆盖 runtime health `stale`、public market stream `degraded`、simulated order stream `nominal`、future private user data `unavailable` 和 future broker session `unavailable`。
+- Error evidence 必须只表达 deterministic error summary；fixture 覆盖 public market stream disconnected、private user data blocked 和 broker session unavailable。
+- Degraded / unavailable state evidence 必须只把 latency 和 error evidence 串成只读状态摘要；fixture 覆盖 public market stream `degraded` 和 future broker session `unavailable`。
+- Tests 必须覆盖 deterministic fixture、Codable round trip、latency / error / degraded source anchors、production telemetry rejection、external metrics rejection、alert / paging / reconnect / stop control rejection、signed endpoint / account endpoint / listenKey rejection、broker adapter / Runtime object / SQLite / DuckDB schema rejection、no live risk control、no incident command、no auto recovery。
+- Focused validation：`swift test --filter MTP71`。
+- Required validation：`bash checks/run.sh`。
+- `checks/automation-readiness.sh` 在本 issue 中不得新增 MTP-71 机械收口；MTP-74 统一收口 MTP-68 至 MTP-73 anchors。
+
+## MTP-71 禁止
+
+- 不实现 production telemetry、runtime profiler 或 external metrics service。
+- 不实现真实 runtime monitoring、runtime polling 或 production monitor。
+- 不建立真实网络连接、WebSocket 或 private user data stream。
+- 不接 signed endpoint、account endpoint 或 listenKey。
+- 不读取 API key、secret 或 account payload。
+- 不连接 broker、broker session、exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不提供 alerting、paging、reconnect、stop control、incident command、auto recovery、live risk control、live command、交易按钮或真实交易授权。
