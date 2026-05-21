@@ -124,6 +124,76 @@ MTP-69 的 Core read model 和 tests 必须拒绝以下能力：
 - live trading authorization 或 trading execution authorization。
 - required validation 依赖真实网络。
 
+## MTP-70 market stream / order stream blocked evidence read model
+
+`MTP-70-MARKET-STREAM-ORDER-STREAM-READ-MODEL`
+
+MTP-70 在 Core 层新增 `LiveStreamMonitoringEvidenceReadModel` 和
+`LiveStreamMonitoringEvidenceItem`，只表达 market stream / order stream 的 read-model-only
+evidence。该 read model 以上一层 `LiveRuntimeHealthReadModel.deterministicFixture` 为输入证据，
+不会启动 market streaming runtime、private user data stream、account/order stream runtime、
+broker adapter 或任何真实交易通道。
+
+`LiveStreamMonitoringEvidenceReadModel` 必须满足：
+
+- `readModelID = mtp-70-live-stream-monitoring-evidence`。
+- `issueID = MTP-70`。
+- `runtimeHealth = LiveRuntimeHealthReadModel.deterministicFixture`。
+- `sourceAnchors` 固定包含 `MTP-68-LIVE-MONITORING-CONSOLE-IA`、
+  `MTP-68-ORDER-STREAM-EVIDENCE-NOT-REAL-ORDER-STATE`、
+  `MTP-69-LIVE-RUNTIME-HEALTH-READ-MODEL` 和
+  `MTP-70-MARKET-STREAM-ORDER-STREAM-READ-MODEL`。
+- `streamEvidence` 必须等于 `LiveStreamMonitoringEvidenceReadModel.requiredStreamEvidence`，
+  并覆盖 public market stream、blocked order stream、simulated order stream 和 future order
+  stream 四个稳定分区。
+
+`MTP-70-MARKET-STREAM-PUBLIC-READ-ONLY-EVIDENCE`
+
+Market stream evidence 只能表达 Binance public read-only / fixture evidence：
+
+| Stream kind | Fixture status | Evidence kind | Source anchors | 禁止解释 |
+| --- | --- | --- | --- | --- |
+| `public market stream` | `disconnected` | `public read-only market stream evidence` | `MTP-68-LIVE-MONITORING-READ-MODEL-ONLY`、`MTP-70-MARKET-STREAM-PUBLIC-READ-ONLY-EVIDENCE`、`BinanceReadOnlyAdapterBoundary` | 不等于生产 WebSocket 已连接、订阅控制、signed endpoint 或 execution venue。 |
+
+`MTP-70-ORDER-STREAM-BLOCKED-SIMULATED-FUTURE-EVIDENCE`
+
+Order stream / order flow evidence 只能表达 blocked、simulated、future-only 三类：
+
+| Stream kind | Fixture status | Evidence kind | 允许含义 | 禁止解释 |
+| --- | --- | --- | --- | --- |
+| `blocked order stream` | `blocked` | `blocked order stream evidence` | credential、adapter、real order lifecycle gates 仍阻断真实订单流。 | private user data stream、listenKey、account endpoint、broker stream。 |
+| `simulated order stream` | `blocked` | `simulated paper order evidence` | 只读引用 paper order / simulated fill evidence。 | execution report、broker fill、真实账户更新。 |
+| `future order stream` | `unavailable` | `future order stream gate evidence` | 后续 Project 需要独立定义 order stream contract、reconciliation 和 audit evidence。 | 当前实现 real order state machine、OMS、submit / cancel / replace。 |
+
+`MTP-70-NO-LISTENKEY-ACCOUNT-ENDPOINT-REAL-ORDER-STATE`
+
+MTP-70 的 Core read model 和 tests 必须拒绝以下能力：
+
+- active market stream / active order stream。
+- public market WebSocket、private user data stream、listenKey。
+- signed endpoint、account endpoint、API key、secret、account payload。
+- execution report、broker fill、real order state machine、OMS。
+- order command、submit / cancel / replace。
+- broker adapter、`LiveExecutionAdapter`、adapter surface、Runtime object、SQLite / DuckDB schema。
+- live trading authorization、trading execution authorization。
+- required validation 依赖真实网络。
+
+`MTP-70-LIVE-STREAM-MONITORING-VALIDATION`
+
+MTP-70 的验证入口：
+
+- `Sources/Core/LiveMonitoringConsole.swift` 必须包含 `LiveStreamMonitoringEvidenceKind`、
+  `LiveStreamMonitoringKind`、`LiveStreamMonitoringEvidenceItem` 和
+  `LiveStreamMonitoringEvidenceReadModel`。
+- `Tests/CoreTests/CoreTests.swift` 必须覆盖
+  `testLiveStreamMonitoringEvidenceDefinesMTP70MarketAndOrderStreamFixture`、
+  `testLiveStreamMonitoringEvidenceRejectsMTP70ListenKeyAccountBrokerAndRealOrderBypass` 和
+  `testLiveOrderStreamEvidenceKeepsMTP70BlockedSimulatedFutureOnly`。
+- Focused validation：`swift test --filter MTP70`。
+- Required validation：`bash checks/run.sh`。
+- `checks/automation-readiness.sh` 仍不在 MTP-70 中收口 `TVM-LIVE-MONITORING-CONSOLE`；
+  MTP-74 才允许统一机械化 MTP-68 至 MTP-73 anchors。
+
 ## MTP-68 validation anchors
 
 `MTP-68-LIVE-MONITORING-VALIDATION-ANCHORS`

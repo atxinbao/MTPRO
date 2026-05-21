@@ -7397,3 +7397,55 @@ Root docs 判断：
 | --- | --- | --- |
 | `swift test --filter MTP69` | pass | 3 个 focused XCTest 通过；覆盖 deterministic fixture、Codable round trip、connection source anchors、no command、no network、no secret、no account payload、no broker、no schema。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 138 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6`；最终输出 `MTPRO checks passed.`。 |
+
+## MTP-70 Market Stream / Order Stream Blocked Evidence Read Model
+
+日期：2026-05-21
+
+执行者：Codex
+
+目的：
+
+- 新增 market stream / order stream blocked evidence read model。
+- 用只读 evidence 表达 public market stream、blocked order stream、simulated order stream 和 future order stream。
+- 明确订单流 / 订单事件流仅表示 blocked / simulated / future evidence，不表示真实订单状态机。
+
+文件范围：
+
+- `Sources/Core/LiveMonitoringConsole.swift`
+- `Tests/CoreTests/CoreTests.swift`
+- `docs/contracts/live-monitoring-console-contract.md`
+- `docs/validation/validation-plan.md`
+- `docs/validation/trading-validation-matrix.md`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+更新重点：
+
+- 新增 `LiveStreamMonitoringEvidenceKind`，覆盖 public read-only market stream evidence、blocked order stream evidence、simulated paper order evidence 和 future order stream gate evidence。
+- 新增 `LiveStreamMonitoringKind`，覆盖 public market stream、blocked order stream、simulated order stream 和 future order stream。
+- 新增 `LiveStreamMonitoringEvidenceItem`，固定每个 stream evidence 的 source anchors、状态、paper evidence 引用和 forbidden capability flags。
+- 新增 `LiveStreamMonitoringEvidenceReadModel`，聚合 MTP-69 runtime health fixture 和四类 MTP-70 stream evidence。
+- 新增 constructor / Codable 解码校验，拒绝 active market/order stream、market WebSocket、private user data stream、signed endpoint、account endpoint、listenKey、API key、secret、account payload、execution report、broker fill、real order state machine、order command、submit / cancel / replace、broker adapter、adapter surface、Runtime object、SQLite / DuckDB schema、Live trading authorization、trading execution authorization 和 network-dependent validation。
+- 回填 `MTP-70-MARKET-STREAM-ORDER-STREAM-READ-MODEL`、`MTP-70-MARKET-STREAM-PUBLIC-READ-ONLY-EVIDENCE`、`MTP-70-ORDER-STREAM-BLOCKED-SIMULATED-FUTURE-EVIDENCE`、`MTP-70-NO-LISTENKEY-ACCOUNT-ENDPOINT-REAL-ORDER-STATE` 和 `MTP-70-LIVE-STREAM-MONITORING-VALIDATION`。
+
+边界确认：
+
+- 不实现 market streaming runtime 或 production subscription control。
+- 不实现 account/order streaming runtime。
+- 不接 signed endpoint、account endpoint 或 listenKey。
+- 不读取 API key、secret 或 account payload。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`。
+- 不消费 execution report，不记录 broker fill，不实现 real order state machine、OMS 或 submit / cancel / replace。
+- 不提供 order command、live command、交易按钮或真实交易授权。
+- 不修改 `checks/automation-readiness.sh`；MTP-74 才做 MTP-68 至 MTP-73 的统一机械收口。
+- 不提交 `.codex/*`。
+- 不提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP70` | pass | 3 个 focused XCTest 通过；覆盖 deterministic fixture、Codable round trip、market stream public read-only boundary、order stream blocked / simulated / future-only evidence、no listenKey、no account endpoint、no execution report、no broker fill、no real order state machine、no order command。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 141 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6`；最终输出 `MTPRO checks passed.`。 |
