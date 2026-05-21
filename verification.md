@@ -8533,3 +8533,72 @@ Linear / scope evidence：
 | `swift test --filter AppTests/testLiveExecutionControl` | pass | 2 个 MTP-80 focused App XCTest 通过，0 failures。 |
 | `swift test --filter AppTests` | pass | 22 个 App XCTest 通过，覆盖 Report、Dashboard Shell、Event Timeline / Evidence Explorer 和 Codable regression，0 failures。 |
 | `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=31; liveBlockedGates=6; liveExecutionControlGates=7; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；164 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
+
+## MTP-81 validation matrix、automation readiness 和 stage audit input material 收口
+
+日期：2026-05-22
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear live-read 中当前唯一 active issue `MTP-81`：收口 validation matrix、automation readiness 和 Stage Audit input material。
+- 汇总 MTP-75 至 MTP-80 的 PR evidence、merge commit、required check、Dashboard smoke、forbidden capability evidence 和 read-model-only boundary evidence。
+- 新增 `docs/audit/inputs/mtpro-live-execution-control-contract-v1-stage-audit-input.md`，作为 Parent Codex 后续 Stage Code Audit Report 输入。
+- 明确 MTP-81 不输出最终 Stage Code Audit Report，不推进下一阶段，不启动下一阶段 `symphony-issue`，不实现任何真实 execution-control capability。
+
+Linear / scope evidence：
+
+- Linear read-only queue preview 确认 Project `MTPRO Live Execution Control Contract v1` 中 `MTP-81` 为唯一 active issue，状态 `In Progress`；`MTP-75` 至 `MTP-80` 为 `Done`。
+- 当前 issue scope 只允许 validation / automation readiness / stage audit input closeout。
+- Non-goals：不实现 API key / secret storage，不实现 signed endpoint / account endpoint / listenKey，不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、real order state machine、OMS，不提交、撤销、替换真实订单，不实现 execution report ingestion、broker fill event fact、reconciliation runtime、incident fallback automation，不新增交易按钮、order form、live command 或 order-level command UI。
+
+文件范围：
+
+- `checks/automation-readiness.sh`
+- `docs/audit/inputs/mtpro-live-execution-control-contract-v1-stage-audit-input.md`
+- `docs/contracts/live-execution-control-contract.md`
+- `docs/validation/validation-plan.md`
+- `docs/validation/trading-validation-matrix.md`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+更新重点：
+
+- 在 `docs/contracts/live-execution-control-contract.md` 新增 `MTP-81-LIVE-EXECUTION-CONTROL-STAGE-CLOSEOUT`、`MTP-81-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-81-NO-FINAL-STAGE-CODE-AUDIT` 和 `MTP-81-LIVE-EXECUTION-CONTROL-VALIDATION-EVIDENCE-CHAIN`。
+- 在 `docs/validation/trading-validation-matrix.md` 把 `TVM-LIVE-EXECUTION-CONTROL` 纳入矩阵清单，并补充 MTP-81 stage closeout 审计输入说明。
+- 在 `docs/validation/validation-plan.md` 增加 MTP-81 Validation Docs / Stage Audit Input Validation。
+- 新增 `docs/audit/inputs/mtpro-live-execution-control-contract-v1-stage-audit-input.md`，记录 PR #150、#151、#153、#156、#158、#159 的 merge commit 和 `checks` success 链接、validation evidence chain、Dashboard smoke、forbidden capability evidence、read-model-only boundary evidence、automation readiness evidence、Root Docs Delta input 和 Stage Code Audit handoff checklist。
+- 在 `checks/automation-readiness.sh` 机械检查 MTP-75 至 MTP-81 contract、matrix、validation plan、latest summary、audit input、source / test anchors 和 Dashboard smoke evidence。
+
+边界确认：
+
+- 不读取 secret / credential。
+- 不接真实 broker / exchange。
+- 不执行真实交易动作。
+- 不新增 Linear Project / Issue。
+- 不修改 Linear status。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify update。
+- 不提交 `.codex/*`。
+- 不提交 `graphify-out/*`。
+- 不输出最终 Stage Code Audit Report。
+- 不实现 API key / secret storage。
+- 不实现 signed endpoint / account endpoint / listenKey。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`。
+- 不实现 real order state machine / OMS。
+- 不提交、撤销、替换真实订单。
+- 不消费、解析或 ingest execution report。
+- 不记录 broker fill，不写 broker fill event fact。
+- 不实现 reconciliation service / runtime 或 incident fallback automation。
+- 不读取真实账户余额，不执行 account sync，不执行 broker position sync。
+- 不暴露 persistence schema、adapter 或 runtime control。
+- 不实现 live command、order-level command UI、order form 或交易按钮。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/automation-readiness.sh` | pass | MTP-81 stage audit input、contract、matrix、validation plan、latest summary、source / test anchors 和 Dashboard smoke anchors 均可机械定位；输出 `MTPRO automation readiness checks passed.`。 |
+| `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=31; liveBlockedGates=6; liveExecutionControlGates=7; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；164 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |

@@ -546,3 +546,51 @@ MTP-80 建立以下 validation anchors：
 - `MTP-80-LIVE-EXECUTION-CONTROL-DASHBOARD-REPORT-TIMELINE-VALIDATION`
 
 本 issue 不修改 `checks/automation-readiness.sh` 做最终机械收口；`MTPRO Live Execution Control Contract v1` 的 automation readiness 收口保留给 Issue 7。
+
+## MTP-81 Live Execution Control stage closeout
+
+`MTP-81-LIVE-EXECUTION-CONTROL-STAGE-CLOSEOUT`
+
+MTP-81 只收口 `MTPRO Live Execution Control Contract v1` 的 validation matrix、automation readiness、Dashboard smoke、forbidden capability evidence、read-model-only boundary evidence 和 Stage Audit input material。它不输出最终 Stage Code Audit Report；最终报告必须由 Parent Codex 在 Project 全部有效 issues `Done` 且 Linear Project status `Completed`、`type=completed`、`completedAt` 非空后单独输出。
+
+MTP-81 收口范围：
+
+- MTP-75 至 MTP-80 的 contract / source / test / validation evidence chain。
+- `TVM-LIVE-EXECUTION-CONTROL` matrix entry。
+- Dashboard smoke `liveExecutionControlGates=7` evidence。
+- forbidden capability evidence：API key、secret storage、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、real order state machine、OMS、submit / cancel / replace、execution report parser / ingestion、broker fill recorder / event fact、reconciliation runtime、incident fallback automation、account sync、real account balance read、broker position sync、live command、order-level command UI、order form 和交易按钮均仍被禁止。
+- Stage Audit input material：`docs/audit/inputs/mtpro-live-execution-control-contract-v1-stage-audit-input.md`。
+
+## MTP-81 Stage Audit input material
+
+`MTP-81-STAGE-AUDIT-INPUT-MATERIAL`
+
+MTP-81 的 Stage Audit input material 必须服务 Parent Codex 后续审计，而不是替代审计报告本身。该材料必须包含：
+
+- Issue / PR evidence input。
+- Live execution control validation evidence chain。
+- Dashboard smoke evidence。
+- Forbidden capability evidence。
+- Read-model-only boundary evidence。
+- Automation readiness evidence。
+- Root Docs Delta input。
+- Stage Code Audit handoff checklist。
+
+## MTP-81 no final Stage Code Audit
+
+`MTP-81-NO-FINAL-STAGE-CODE-AUDIT`
+
+MTP-81 明确不输出最终 Stage Code Audit Report，不创建或推进下一 Project / Issue，不启动下一阶段 `symphony-issue`，不把 planning notes 当执行授权，不实现任何 real order command、signed command request、broker action、execution report ingestion、broker fill event fact、reconciliation runtime、incident fallback automation、live command、order form、order-level command UI 或交易按钮。
+
+## MTP-81 validation anchors
+
+`MTP-81-LIVE-EXECUTION-CONTROL-VALIDATION-EVIDENCE-CHAIN`
+
+MTP-81 建立以下 validation anchors：
+
+- `MTP-81-LIVE-EXECUTION-CONTROL-STAGE-CLOSEOUT`
+- `MTP-81-STAGE-AUDIT-INPUT-MATERIAL`
+- `MTP-81-NO-FINAL-STAGE-CODE-AUDIT`
+- `MTP-81-LIVE-EXECUTION-CONTROL-STAGE-AUDIT-INPUT`
+- `MTP-81-LIVE-EXECUTION-CONTROL-VALIDATION-EVIDENCE-CHAIN`
+- `MTP-81-AUTOMATION-READINESS-STAGE-CLOSEOUT`

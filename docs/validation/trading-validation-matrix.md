@@ -237,6 +237,7 @@ MTP-53 对 Paper Workflow Control Shell v1 的本地控制壳、可观察性、D
 - `TVM-MARKET-DATA-REPLAY-OPERATIONS`
 - `TVM-LIVE-TRADING-FOUNDATION`
 - `TVM-LIVE-MONITORING-CONSOLE`
+- `TVM-LIVE-EXECUTION-CONTROL`
 - `TVM-FUTURE-ISSUE-BACKFILL`
 
 ## MTP-75 Live Execution Control 候选矩阵入口
@@ -258,6 +259,25 @@ MTP-78 已把 paper order intent / paper execution decision / simulated fill / p
 MTP-79 已把 execution-control gates 的 read-model-only blocked evidence 回填到该 candidate entry：coverage 入口为 `LiveExecutionControlBlockedEvidence`、`LiveExecutionControlBlockedGate`、`LiveExecutionControlBlockedReason`、`LiveExecutionControlBlockedEvidenceItem`、`testLiveExecutionControlBlockedEvidenceDefinesMTP79ReadModelOnlySnapshot` / `testLiveExecutionControlBlockedEvidenceRejectsMTP79CommandOrRuntimeBypass` / `testLiveExecutionControlBlockedEvidenceSummarizesMTP79GateReasonsWithoutExecution`；后续 MTP-80 至 MTP-81 只能继续在 read-model-only 展示和 stage-closeout 边界内回填，不得实现 schema / adapter / runtime control、real order command、signed command request、execution report ingestion、broker fill event fact、reconciliation runtime、incident fallback automation、order form、order-level command UI 或交易按钮。
 
 MTP-80 已把 execution-control blocked evidence 接入 Dashboard / Report / Event Timeline 只读展示面：coverage 入口为 `LiveExecutionControlBlockedEvidenceReadModel`、`LiveExecutionControlBlockedEvidenceViewModel`、`ReportViewModel.liveExecutionControlBlockedEvidence`、`PaperWorkflowEvidenceExplorerSection.liveExecutionControlBlockedEvidence`、`DashboardShellWorkbenchSnapshot.liveExecutionControlBlockedEvidenceMetrics`、`testLiveExecutionControlBlockedEvidenceViewModelAggregatesMTP80ReadOnlySurface`、`testLiveExecutionControlEvidenceExplorerPreviewDefinesMTP80ReadOnlyTimelineItems`、`testDashboardShellSnapshotBindsViewModelSectionsForReadOnlyMacOSShell`、`testDashboardShellWorkbenchSnapshotBindsControlsObservabilityAndExplorerReadOnly` 和 `testDashboardViewModelStateSnapshotIsCodableAndDeterministic`；后续 MTP-81 只能做 stage closeout 和 automation readiness 收口，不得实现 schema / adapter / runtime control、real order command、signed command request、execution report ingestion、broker fill event fact、reconciliation runtime、incident fallback automation、order form、order-level command UI 或交易按钮。
+
+MTP-81 已把 Live Execution Control Contract v1 的 validation matrix、automation readiness 和 Stage Audit input material 收口到该 candidate entry：coverage 入口为 `docs/audit/inputs/mtpro-live-execution-control-contract-v1-stage-audit-input.md`、`MTP-81-LIVE-EXECUTION-CONTROL-STAGE-CLOSEOUT`、`MTP-81-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-81-NO-FINAL-STAGE-CODE-AUDIT`、`MTP-81-LIVE-EXECUTION-CONTROL-VALIDATION-EVIDENCE-CHAIN` 和 `MTP-81-AUTOMATION-READINESS-STAGE-CLOSEOUT`；该收口只准备 Parent Codex Stage Code Audit input material，不输出最终 Stage Code Audit Report，不创建下一 Project / Issue，不推进下一阶段，不启动下一阶段 `symphony-issue`，不实现 API key / secret storage、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、real order state machine、OMS、真实 submit / cancel / replace、execution report ingestion、broker fill event fact、reconciliation runtime、incident fallback automation、live command、order form、order-level command UI 或交易按钮。
+
+## MTP-81 Live Execution Control Contract 阶段收口
+
+日期：2026-05-22
+
+执行者：Codex
+
+MTP-81 对 Live Execution Control Contract v1 的 validation evidence、Dashboard smoke、automation readiness 和 Stage Code Audit 输入材料做阶段收口，不新增业务交易能力，不替代最终 Stage Code Audit Report。
+
+| 收口项 | Evidence location | 审计用途 |
+| --- | --- | --- |
+| Issue / PR evidence | `docs/audit/inputs/mtpro-live-execution-control-contract-v1-stage-audit-input.md` 的 `Issue / PR evidence input` | 为 Parent Codex 汇总 PR #150、#151、#153、#156、#158、#159 和 MTP-81 PR 提供输入。 |
+| Live execution control validation evidence chain | `docs/audit/inputs/mtpro-live-execution-control-contract-v1-stage-audit-input.md` 的 `Live execution control validation evidence chain` | 确认 terminology / taxonomy、submit / cancel / replace future gates、execution report / broker fill / reconciliation future gates、paper / real command isolation、blocked evidence 和 Dashboard / Report / Event Timeline 展示面均有 contract / source / test / smoke / PR evidence。 |
+| Dashboard smoke | `docs/audit/inputs/mtpro-live-execution-control-contract-v1-stage-audit-input.md` 的 `Dashboard smoke` evidence | 确认 `sections=8`、`readModelOnly=true`、`workbenchReadModelOnly=true`、`controls=start,pause,close,reset`、`timelineItems=31`、`liveBlockedGates=6`、`liveExecutionControlGates=7`、`liveMonitoringHealth=blocked` 和 `liveMonitoringErrors=3` 仍可定位。 |
+| Forbidden capability evidence | `docs/audit/inputs/mtpro-live-execution-control-contract-v1-stage-audit-input.md` 的 `Forbidden capability evidence` | 为 Stage Code Audit 的 no API key、no signed endpoint、no account endpoint、no listenKey、no broker adapter、no `LiveExecutionAdapter`、no real order state machine / OMS、no submit / cancel / replace、no execution report ingestion、no broker fill、no reconciliation、no incident fallback automation 和 no trading button 提供输入。 |
+| Automation readiness | `checks/automation-readiness.sh`、`docs/validation/validation-plan.md`、`docs/validation/latest-verification-summary.md` | 确认 MTP-81 audit input、contract anchors、matrix anchors、latest summary、validation plan、source / test anchors、Dashboard smoke evidence 和 PR Automation 证据链仍完整。 |
+| Root Docs Delta input | `docs/audit/inputs/mtpro-live-execution-control-contract-v1-stage-audit-input.md` 的 `Root Docs Delta input` | 提醒 Parent Codex 在最终 Stage Code Audit Report 中检查 root docs，只同步已发生事实，并在 Root Docs Refresh Gate closure 后输出当前阶段完成进度条。 |
 
 ## MTP-68 Live Monitoring Console 候选矩阵入口
 
