@@ -32,15 +32,16 @@
 | `MTPRO Paper Execution Workflow v1` | `docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md` | 已写入 Linear；canonical issues 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
 | `MTPRO Paper Workflow Control Shell v1` | `docs/planning/projects/mtpro-paper-workflow-control-shell-v1-plan.md` | 已写入 Linear；`MTP-47` 至 `MTP-53` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
 | `MTPRO Market Data Replay Operations v1` | `docs/planning/projects/mtpro-market-data-replay-operations-v1-plan.md` | 已写入 Linear；`MTP-54` 至 `MTP-60` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
-| `MTPRO Live Trading Boundary Definition v1` | `docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md` | 写入 Linear 前的当前 Project Planning Record；不授权执行。 |
+| `MTPRO Live Trading Boundary Definition v1` | `docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md` | 已写入 Linear；`MTP-61` 至 `MTP-67` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
+| `MTPRO Live Monitoring Console v1` | `docs/planning/projects/mtpro-live-monitoring-console-v1-plan.md` | 写入 Linear 前的当前 Project Planning Record；不授权执行。 |
 
 ## 当前 Project planning record
 
-- Project：`MTPRO Live Trading Boundary Definition v1`
-- Canonical record：`docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md`
-- 来源审计：`docs/audit/mtpro-market-data-replay-operations-v1-stage-code-audit.md`
+- Project：`MTPRO Live Monitoring Console v1`
+- Canonical record：`docs/planning/projects/mtpro-live-monitoring-console-v1-plan.md`
+- 来源审计：`docs/audit/mtpro-live-trading-boundary-definition-v1-stage-code-audit.md`
 - 当前状态：写入 Linear 前的 Project Planning Record。
-- First executable issue candidate：定义 Live trading foundation capability taxonomy 和 gate。
+- First executable issue candidate：定义 Live monitoring console information architecture 和 read-model-only 边界。
 - WIP=1：所有候选 issue 写入 Linear 后必须初始保持 `Backlog / non-executable`。
 
 ## Project Planning Record 命名规则
