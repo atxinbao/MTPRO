@@ -165,8 +165,26 @@ Planning record 入口：
 - `MTP-74`：Live Monitoring Console v1 阶段收口。
 - `MTP-75`：Live Execution Control terminology / taxonomy candidate anchor。
 - `MTP-76`：Submit / cancel / replace future gates and forbidden capability tests。
+- `MTP-77`：Execution report / broker fill / reconciliation future gates and forbidden capability tests。
 
 ## 最近验证
+
+MTP-77 execution report / broker fill / reconciliation future gates 和 forbidden capability tests 已完成当前 issue focused 本地验证：
+
+```bash
+swift test --filter MTP77
+swift test --filter MTP76
+bash checks/run.sh
+```
+
+当前收口证据：
+
+- `Sources/Core/LiveExecutionControlContract.swift`：新增 `LiveExecutionReportBrokerFillReconciliationFutureGate`、`LiveExecutionReportBrokerFillReconciliationForbiddenCapability` 和 `LiveExecutionReportBrokerFillReconciliationBoundary`；只输出 execution report / broker fill / reconciliation future gates、forbidden capability tests、validation anchors、source anchors、blocked evidence flags 和 simulated fill / paper portfolio isolation evidence。
+- `Tests/CoreTests/CoreTests.swift`：新增 `testExecutionReportBrokerFillReconciliationBoundaryDefinesMTP77FutureGates`、`testExecutionReportBrokerFillReconciliationBoundaryRejectsMTP77ImplementationBypass` 和 `testSimulatedFillAndPaperPortfolioCannotUpgradeToMTP77BrokerFillOrReconciliation`，覆盖 deterministic fixture、Codable round trip、terms drift rejection、execution report consumption / parser / ingestion、broker fill recorder / event fact、reconciliation runtime、real account balance read、broker position sync、broker / `LiveExecutionAdapter` bypass rejection，以及 simulated fill / paper portfolio 不升级为 broker fill、execution report、real account 或 broker position。
+- `docs/contracts/live-execution-control-contract.md`、`docs/validation/validation-plan.md` 和 `docs/validation/trading-validation-matrix.md`：回填 `MTP-77-EXECUTION-REPORT-BROKER-FILL-RECONCILIATION-FUTURE-GATES`、`MTP-77-FORBIDDEN-REPORT-FILL-RECONCILIATION-CAPABILITY-TESTS`、`MTP-77-SIMULATED-FILL-NO-BROKER-FILL-OR-EXECUTION-REPORT`、`MTP-77-RECONCILIATION-BLOCKED-EVIDENCE-ONLY`、`MTP-77-LIVE-EXECUTION-CONTROL-VALIDATION` 和 `TVM-LIVE-EXECUTION-CONTROL` anchors。
+- `swift test --filter MTP77`：pass，3 个 XCTest 通过，0 failures。
+- `bash checks/run.sh`：pass，串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=24; liveBlockedGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；155 个 XCTest 通过，最终输出 `MTPRO checks passed.`。
+- Boundary：不读取 secret，不接 signed endpoint / account endpoint / listenKey，不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、real order state machine、OMS、真实 submit / cancel / replace、execution report parser / ingestion、broker fill recorder / event fact、reconciliation service / runtime、account sync、real account balance read、broker position sync、live command、order-level command UI、order form 或交易按钮，不把 simulated fill 升级为 broker fill 或 execution report，不把 paper portfolio projection 升级为 broker position；不修改 `checks/automation-readiness.sh` 做最终机械收口。
 
 MTP-76 submit / cancel / replace future gates 和 forbidden capability tests 已完成当前 issue 本地验证：
 

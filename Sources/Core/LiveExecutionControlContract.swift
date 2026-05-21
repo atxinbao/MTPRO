@@ -1056,3 +1056,592 @@ public struct LiveSubmitCancelReplaceCommandBoundary: Codable, Equatable, Sendab
         }
     }
 }
+
+/// LiveExecutionReportBrokerFillReconciliationFutureGate 固定 MTP-77 的执行回报、broker fill 和对账未来门槛。
+///
+/// 这些 gate 只描述后续 Project Definition 前必须补齐的合同、账户读取边界、风险 / 运维 /
+/// 审计 handoff 条件；当前阶段不得把它们解释为 execution report parser、broker fill fact、
+/// reconciliation runtime、account sync 或 broker position sync。
+public enum LiveExecutionReportBrokerFillReconciliationFutureGate: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case humanLiveDecision = "Human independent Live execution decision"
+    case credentialEndpointBoundarySatisfied = "credential endpoint boundary satisfied"
+    case adapterCapabilityIsolationSatisfied = "adapter capability isolation satisfied"
+    case realOrderLifecycleBoundarySatisfied = "real order lifecycle boundary satisfied"
+    case submitCancelReplaceBoundarySatisfied = "submit / cancel / replace boundary satisfied"
+    case executionReportSchemaContractDefined = "future execution report schema contract defined"
+    case brokerFillFactContractDefined = "future broker fill fact contract defined"
+    case reconciliationContractDefined = "future reconciliation contract defined"
+    case accountStateReadBoundaryDefined = "future account state read boundary defined"
+    case liveRiskOperationsAuditHandoffDefined = "future live risk / operations / audit handoff defined"
+}
+
+/// LiveExecutionReportBrokerFillReconciliationForbiddenCapability 枚举 MTP-77 必须阻断的执行回报 / 成交 / 对账能力面。
+///
+/// 这些值只能进入 deterministic forbidden tests、合同文档和 PR evidence。它们不能出现在当前
+/// adapter、Runtime、Event Log fact、read model、账户同步、broker position sync 或 paper evidence
+/// 升级路径中。
+public enum LiveExecutionReportBrokerFillReconciliationForbiddenCapability: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case apiKey = "API key"
+    case secretStorage = "secret storage"
+    case signedEndpoint = "signed endpoint"
+    case accountEndpoint = "account endpoint"
+    case listenKeyUserDataStream = "listenKey user data stream"
+    case brokerExecutionAdapter = "broker execution adapter"
+    case exchangeExecutionAdapter = "exchange execution adapter"
+    case liveExecutionAdapter = "LiveExecutionAdapter"
+    case realOrderStateMachine = "real order state machine"
+    case oms = "OMS"
+    case realOrderSubmit = "real order submit"
+    case realOrderCancel = "real order cancel"
+    case realOrderReplace = "real order replace"
+    case executionReportParser = "execution report parser"
+    case executionReportIngestion = "execution report ingestion"
+    case brokerFillRecorder = "broker fill recorder"
+    case brokerFillEventFact = "broker fill event fact"
+    case reconciliationService = "reconciliation service"
+    case accountSync = "account sync"
+    case realAccountBalanceRead = "real account balance read"
+    case brokerPositionSync = "broker position sync"
+    case simulatedFillToBrokerFillUpgrade = "simulated fill to broker fill upgrade"
+    case simulatedFillToExecutionReportUpgrade = "simulated fill to execution report upgrade"
+    case paperPortfolioToBrokerPositionUpgrade = "paper portfolio to broker position upgrade"
+    case simulatedFillAccountUpdate = "simulated fill account update"
+    case currentBrokerFillReadModel = "current broker fill read model"
+    case liveCommandSurface = "live command surface"
+    case orderLevelCommandUI = "order-level command UI"
+    case tradingButton = "trading button"
+}
+
+/// LiveExecutionReportBrokerFillReconciliationBoundary 是 MTP-77 的 future gate / blocked evidence fixture。
+///
+/// 该 fixture 只定义 execution report、broker fill 和 reconciliation 的 future gates、forbidden
+/// capability tests 与 blocked evidence anchors。所有真实执行回报解析、broker fill 记录、账户对账、
+/// 真实账户余额读取、broker position sync、Event Log 真实成交 fact 和 simulated-fill-to-live
+/// 升级路径都必须保持关闭。
+public struct LiveExecutionReportBrokerFillReconciliationBoundary: Codable, Equatable, Sendable {
+    public let contractID: Identifier
+    public let issueID: Identifier
+    public let terms: [LiveExecutionControlTerm]
+    public let futureGates: [LiveExecutionReportBrokerFillReconciliationFutureGate]
+    public let forbiddenCapabilities: [LiveExecutionReportBrokerFillReconciliationForbiddenCapability]
+    public let allowedEvidenceKinds: [LiveExecutionControlEvidenceKind]
+    public let validationAnchors: [String]
+    public let sourceAnchors: [String]
+    public let isFutureGateOnly: Bool
+    public let isBlockedEvidenceOnly: Bool
+    public let providesExecutableCommandSurface: Bool
+    public let readsAPIKey: Bool
+    public let storesSecret: Bool
+    public let usesSignedEndpoint: Bool
+    public let callsAccountEndpoint: Bool
+    public let createsListenKey: Bool
+    public let instantiatesBrokerExecutionAdapter: Bool
+    public let instantiatesExchangeExecutionAdapter: Bool
+    public let implementsLiveExecutionAdapter: Bool
+    public let implementsRealOrderStateMachine: Bool
+    public let implementsOMS: Bool
+    public let submitsRealOrder: Bool
+    public let cancelsRealOrder: Bool
+    public let replacesRealOrder: Bool
+    public let consumesExecutionReport: Bool
+    public let parsesExecutionReport: Bool
+    public let ingestsExecutionReport: Bool
+    public let recordsBrokerFill: Bool
+    public let storesBrokerFillFact: Bool
+    public let performsReconciliation: Bool
+    public let implementsReconciliationRuntime: Bool
+    public let readsRealAccountBalance: Bool
+    public let syncsBrokerPosition: Bool
+    public let mapsSimulatedFillToBrokerFill: Bool
+    public let mapsSimulatedFillToExecutionReport: Bool
+    public let mapsPaperPortfolioToBrokerPosition: Bool
+    public let updatesRealAccountFromSimulatedFill: Bool
+    public let exposesBrokerFillAsCurrentReadModel: Bool
+    public let exposesOrderLevelCommandUI: Bool
+    public let providesTradingButton: Bool
+    public let requiredValidationDependsOnNetwork: Bool
+
+    public var reportFillReconciliationBoundaryHeld: Bool {
+        terms == Self.requiredTerms
+            && futureGates == Self.requiredFutureGates
+            && forbiddenCapabilities == Self.requiredForbiddenCapabilities
+            && allowedEvidenceKinds == Self.allowedEvidenceKinds
+            && validationAnchors == Self.requiredValidationAnchors
+            && sourceAnchors == Self.requiredSourceAnchors
+            && isFutureGateOnly
+            && isBlockedEvidenceOnly
+            && providesExecutableCommandSurface == false
+            && readsAPIKey == false
+            && storesSecret == false
+            && usesSignedEndpoint == false
+            && callsAccountEndpoint == false
+            && createsListenKey == false
+            && instantiatesBrokerExecutionAdapter == false
+            && instantiatesExchangeExecutionAdapter == false
+            && implementsLiveExecutionAdapter == false
+            && implementsRealOrderStateMachine == false
+            && implementsOMS == false
+            && submitsRealOrder == false
+            && cancelsRealOrder == false
+            && replacesRealOrder == false
+            && consumesExecutionReport == false
+            && parsesExecutionReport == false
+            && ingestsExecutionReport == false
+            && recordsBrokerFill == false
+            && storesBrokerFillFact == false
+            && performsReconciliation == false
+            && implementsReconciliationRuntime == false
+            && readsRealAccountBalance == false
+            && syncsBrokerPosition == false
+            && mapsSimulatedFillToBrokerFill == false
+            && mapsSimulatedFillToExecutionReport == false
+            && mapsPaperPortfolioToBrokerPosition == false
+            && updatesRealAccountFromSimulatedFill == false
+            && exposesBrokerFillAsCurrentReadModel == false
+            && exposesOrderLevelCommandUI == false
+            && providesTradingButton == false
+            && requiredValidationDependsOnNetwork == false
+    }
+
+    public var reportFillReconciliationImplementationBlocked: Bool {
+        consumesExecutionReport == false
+            && parsesExecutionReport == false
+            && ingestsExecutionReport == false
+            && recordsBrokerFill == false
+            && storesBrokerFillFact == false
+            && performsReconciliation == false
+            && implementsReconciliationRuntime == false
+    }
+
+    public var simulatedFillIsolationBoundaryHeld: Bool {
+        mapsSimulatedFillToBrokerFill == false
+            && mapsSimulatedFillToExecutionReport == false
+            && updatesRealAccountFromSimulatedFill == false
+    }
+
+    public var reconciliationBlockedEvidenceBoundaryHeld: Bool {
+        isBlockedEvidenceOnly
+            && performsReconciliation == false
+            && implementsReconciliationRuntime == false
+            && readsRealAccountBalance == false
+            && syncsBrokerPosition == false
+            && mapsPaperPortfolioToBrokerPosition == false
+    }
+
+    public func forbidsCapability(_ capability: LiveExecutionReportBrokerFillReconciliationForbiddenCapability) -> Bool {
+        forbiddenCapabilities.contains(capability)
+    }
+
+    public init(
+        contractID: Identifier = try! Identifier("mtp-77-execution-report-broker-fill-reconciliation-boundary"),
+        issueID: Identifier = try! Identifier("MTP-77"),
+        terms: [LiveExecutionControlTerm] = Self.requiredTerms,
+        futureGates: [LiveExecutionReportBrokerFillReconciliationFutureGate] = Self.requiredFutureGates,
+        forbiddenCapabilities: [LiveExecutionReportBrokerFillReconciliationForbiddenCapability] = Self.requiredForbiddenCapabilities,
+        allowedEvidenceKinds: [LiveExecutionControlEvidenceKind] = Self.allowedEvidenceKinds,
+        validationAnchors: [String] = Self.requiredValidationAnchors,
+        sourceAnchors: [String] = Self.requiredSourceAnchors,
+        isFutureGateOnly: Bool = true,
+        isBlockedEvidenceOnly: Bool = true,
+        providesExecutableCommandSurface: Bool = false,
+        readsAPIKey: Bool = false,
+        storesSecret: Bool = false,
+        usesSignedEndpoint: Bool = false,
+        callsAccountEndpoint: Bool = false,
+        createsListenKey: Bool = false,
+        instantiatesBrokerExecutionAdapter: Bool = false,
+        instantiatesExchangeExecutionAdapter: Bool = false,
+        implementsLiveExecutionAdapter: Bool = false,
+        implementsRealOrderStateMachine: Bool = false,
+        implementsOMS: Bool = false,
+        submitsRealOrder: Bool = false,
+        cancelsRealOrder: Bool = false,
+        replacesRealOrder: Bool = false,
+        consumesExecutionReport: Bool = false,
+        parsesExecutionReport: Bool = false,
+        ingestsExecutionReport: Bool = false,
+        recordsBrokerFill: Bool = false,
+        storesBrokerFillFact: Bool = false,
+        performsReconciliation: Bool = false,
+        implementsReconciliationRuntime: Bool = false,
+        readsRealAccountBalance: Bool = false,
+        syncsBrokerPosition: Bool = false,
+        mapsSimulatedFillToBrokerFill: Bool = false,
+        mapsSimulatedFillToExecutionReport: Bool = false,
+        mapsPaperPortfolioToBrokerPosition: Bool = false,
+        updatesRealAccountFromSimulatedFill: Bool = false,
+        exposesBrokerFillAsCurrentReadModel: Bool = false,
+        exposesOrderLevelCommandUI: Bool = false,
+        providesTradingButton: Bool = false,
+        requiredValidationDependsOnNetwork: Bool = false
+    ) throws {
+        try Self.validate(
+            terms: terms,
+            futureGates: futureGates,
+            forbiddenCapabilities: forbiddenCapabilities,
+            allowedEvidenceKinds: allowedEvidenceKinds,
+            validationAnchors: validationAnchors,
+            sourceAnchors: sourceAnchors
+        )
+        try Self.validateForbiddenFlags(
+            isFutureGateOnly: isFutureGateOnly,
+            isBlockedEvidenceOnly: isBlockedEvidenceOnly,
+            providesExecutableCommandSurface: providesExecutableCommandSurface,
+            readsAPIKey: readsAPIKey,
+            storesSecret: storesSecret,
+            usesSignedEndpoint: usesSignedEndpoint,
+            callsAccountEndpoint: callsAccountEndpoint,
+            createsListenKey: createsListenKey,
+            instantiatesBrokerExecutionAdapter: instantiatesBrokerExecutionAdapter,
+            instantiatesExchangeExecutionAdapter: instantiatesExchangeExecutionAdapter,
+            implementsLiveExecutionAdapter: implementsLiveExecutionAdapter,
+            implementsRealOrderStateMachine: implementsRealOrderStateMachine,
+            implementsOMS: implementsOMS,
+            submitsRealOrder: submitsRealOrder,
+            cancelsRealOrder: cancelsRealOrder,
+            replacesRealOrder: replacesRealOrder,
+            consumesExecutionReport: consumesExecutionReport,
+            parsesExecutionReport: parsesExecutionReport,
+            ingestsExecutionReport: ingestsExecutionReport,
+            recordsBrokerFill: recordsBrokerFill,
+            storesBrokerFillFact: storesBrokerFillFact,
+            performsReconciliation: performsReconciliation,
+            implementsReconciliationRuntime: implementsReconciliationRuntime,
+            readsRealAccountBalance: readsRealAccountBalance,
+            syncsBrokerPosition: syncsBrokerPosition,
+            mapsSimulatedFillToBrokerFill: mapsSimulatedFillToBrokerFill,
+            mapsSimulatedFillToExecutionReport: mapsSimulatedFillToExecutionReport,
+            mapsPaperPortfolioToBrokerPosition: mapsPaperPortfolioToBrokerPosition,
+            updatesRealAccountFromSimulatedFill: updatesRealAccountFromSimulatedFill,
+            exposesBrokerFillAsCurrentReadModel: exposesBrokerFillAsCurrentReadModel,
+            exposesOrderLevelCommandUI: exposesOrderLevelCommandUI,
+            providesTradingButton: providesTradingButton,
+            requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork
+        )
+
+        self.contractID = contractID
+        self.issueID = issueID
+        self.terms = terms
+        self.futureGates = futureGates
+        self.forbiddenCapabilities = forbiddenCapabilities
+        self.allowedEvidenceKinds = allowedEvidenceKinds
+        self.validationAnchors = validationAnchors
+        self.sourceAnchors = sourceAnchors
+        self.isFutureGateOnly = isFutureGateOnly
+        self.isBlockedEvidenceOnly = isBlockedEvidenceOnly
+        self.providesExecutableCommandSurface = providesExecutableCommandSurface
+        self.readsAPIKey = readsAPIKey
+        self.storesSecret = storesSecret
+        self.usesSignedEndpoint = usesSignedEndpoint
+        self.callsAccountEndpoint = callsAccountEndpoint
+        self.createsListenKey = createsListenKey
+        self.instantiatesBrokerExecutionAdapter = instantiatesBrokerExecutionAdapter
+        self.instantiatesExchangeExecutionAdapter = instantiatesExchangeExecutionAdapter
+        self.implementsLiveExecutionAdapter = implementsLiveExecutionAdapter
+        self.implementsRealOrderStateMachine = implementsRealOrderStateMachine
+        self.implementsOMS = implementsOMS
+        self.submitsRealOrder = submitsRealOrder
+        self.cancelsRealOrder = cancelsRealOrder
+        self.replacesRealOrder = replacesRealOrder
+        self.consumesExecutionReport = consumesExecutionReport
+        self.parsesExecutionReport = parsesExecutionReport
+        self.ingestsExecutionReport = ingestsExecutionReport
+        self.recordsBrokerFill = recordsBrokerFill
+        self.storesBrokerFillFact = storesBrokerFillFact
+        self.performsReconciliation = performsReconciliation
+        self.implementsReconciliationRuntime = implementsReconciliationRuntime
+        self.readsRealAccountBalance = readsRealAccountBalance
+        self.syncsBrokerPosition = syncsBrokerPosition
+        self.mapsSimulatedFillToBrokerFill = mapsSimulatedFillToBrokerFill
+        self.mapsSimulatedFillToExecutionReport = mapsSimulatedFillToExecutionReport
+        self.mapsPaperPortfolioToBrokerPosition = mapsPaperPortfolioToBrokerPosition
+        self.updatesRealAccountFromSimulatedFill = updatesRealAccountFromSimulatedFill
+        self.exposesBrokerFillAsCurrentReadModel = exposesBrokerFillAsCurrentReadModel
+        self.exposesOrderLevelCommandUI = exposesOrderLevelCommandUI
+        self.providesTradingButton = providesTradingButton
+        self.requiredValidationDependsOnNetwork = requiredValidationDependsOnNetwork
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            contractID: try container.decode(Identifier.self, forKey: .contractID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            terms: try container.decode([LiveExecutionControlTerm].self, forKey: .terms),
+            futureGates: try container.decode(
+                [LiveExecutionReportBrokerFillReconciliationFutureGate].self,
+                forKey: .futureGates
+            ),
+            forbiddenCapabilities: try container.decode(
+                [LiveExecutionReportBrokerFillReconciliationForbiddenCapability].self,
+                forKey: .forbiddenCapabilities
+            ),
+            allowedEvidenceKinds: try container.decode(
+                [LiveExecutionControlEvidenceKind].self,
+                forKey: .allowedEvidenceKinds
+            ),
+            validationAnchors: try container.decode([String].self, forKey: .validationAnchors),
+            sourceAnchors: try container.decode([String].self, forKey: .sourceAnchors),
+            isFutureGateOnly: try container.decode(Bool.self, forKey: .isFutureGateOnly),
+            isBlockedEvidenceOnly: try container.decode(Bool.self, forKey: .isBlockedEvidenceOnly),
+            providesExecutableCommandSurface: try container.decode(
+                Bool.self,
+                forKey: .providesExecutableCommandSurface
+            ),
+            readsAPIKey: try container.decode(Bool.self, forKey: .readsAPIKey),
+            storesSecret: try container.decode(Bool.self, forKey: .storesSecret),
+            usesSignedEndpoint: try container.decode(Bool.self, forKey: .usesSignedEndpoint),
+            callsAccountEndpoint: try container.decode(Bool.self, forKey: .callsAccountEndpoint),
+            createsListenKey: try container.decode(Bool.self, forKey: .createsListenKey),
+            instantiatesBrokerExecutionAdapter: try container.decode(
+                Bool.self,
+                forKey: .instantiatesBrokerExecutionAdapter
+            ),
+            instantiatesExchangeExecutionAdapter: try container.decode(
+                Bool.self,
+                forKey: .instantiatesExchangeExecutionAdapter
+            ),
+            implementsLiveExecutionAdapter: try container.decode(
+                Bool.self,
+                forKey: .implementsLiveExecutionAdapter
+            ),
+            implementsRealOrderStateMachine: try container.decode(
+                Bool.self,
+                forKey: .implementsRealOrderStateMachine
+            ),
+            implementsOMS: try container.decode(Bool.self, forKey: .implementsOMS),
+            submitsRealOrder: try container.decode(Bool.self, forKey: .submitsRealOrder),
+            cancelsRealOrder: try container.decode(Bool.self, forKey: .cancelsRealOrder),
+            replacesRealOrder: try container.decode(Bool.self, forKey: .replacesRealOrder),
+            consumesExecutionReport: try container.decode(Bool.self, forKey: .consumesExecutionReport),
+            parsesExecutionReport: try container.decode(Bool.self, forKey: .parsesExecutionReport),
+            ingestsExecutionReport: try container.decode(Bool.self, forKey: .ingestsExecutionReport),
+            recordsBrokerFill: try container.decode(Bool.self, forKey: .recordsBrokerFill),
+            storesBrokerFillFact: try container.decode(Bool.self, forKey: .storesBrokerFillFact),
+            performsReconciliation: try container.decode(Bool.self, forKey: .performsReconciliation),
+            implementsReconciliationRuntime: try container.decode(
+                Bool.self,
+                forKey: .implementsReconciliationRuntime
+            ),
+            readsRealAccountBalance: try container.decode(Bool.self, forKey: .readsRealAccountBalance),
+            syncsBrokerPosition: try container.decode(Bool.self, forKey: .syncsBrokerPosition),
+            mapsSimulatedFillToBrokerFill: try container.decode(
+                Bool.self,
+                forKey: .mapsSimulatedFillToBrokerFill
+            ),
+            mapsSimulatedFillToExecutionReport: try container.decode(
+                Bool.self,
+                forKey: .mapsSimulatedFillToExecutionReport
+            ),
+            mapsPaperPortfolioToBrokerPosition: try container.decode(
+                Bool.self,
+                forKey: .mapsPaperPortfolioToBrokerPosition
+            ),
+            updatesRealAccountFromSimulatedFill: try container.decode(
+                Bool.self,
+                forKey: .updatesRealAccountFromSimulatedFill
+            ),
+            exposesBrokerFillAsCurrentReadModel: try container.decode(
+                Bool.self,
+                forKey: .exposesBrokerFillAsCurrentReadModel
+            ),
+            exposesOrderLevelCommandUI: try container.decode(Bool.self, forKey: .exposesOrderLevelCommandUI),
+            providesTradingButton: try container.decode(Bool.self, forKey: .providesTradingButton),
+            requiredValidationDependsOnNetwork: try container.decode(
+                Bool.self,
+                forKey: .requiredValidationDependsOnNetwork
+            )
+        )
+    }
+
+    public static let requiredTerms: [LiveExecutionControlTerm] = [
+        .executionReport,
+        .brokerFill,
+        .orderReconciliation
+    ]
+
+    public static let requiredFutureGates: [LiveExecutionReportBrokerFillReconciliationFutureGate] = [
+        .humanLiveDecision,
+        .credentialEndpointBoundarySatisfied,
+        .adapterCapabilityIsolationSatisfied,
+        .realOrderLifecycleBoundarySatisfied,
+        .submitCancelReplaceBoundarySatisfied,
+        .executionReportSchemaContractDefined,
+        .brokerFillFactContractDefined,
+        .reconciliationContractDefined,
+        .accountStateReadBoundaryDefined,
+        .liveRiskOperationsAuditHandoffDefined
+    ]
+
+    public static let requiredForbiddenCapabilities: [LiveExecutionReportBrokerFillReconciliationForbiddenCapability] =
+        LiveExecutionReportBrokerFillReconciliationForbiddenCapability.allCases
+
+    public static let allowedEvidenceKinds: [LiveExecutionControlEvidenceKind] = [
+        .contractDocumentation,
+        .validationMatrixCandidate,
+        .validationPlanAnchor,
+        .deterministicForbiddenTest,
+        .paperRealIsolationEvidence,
+        .prBoundaryEvidence
+    ]
+
+    public static let requiredValidationAnchors: [String] = [
+        "MTP-77-EXECUTION-REPORT-BROKER-FILL-RECONCILIATION-FUTURE-GATES",
+        "MTP-77-FORBIDDEN-REPORT-FILL-RECONCILIATION-CAPABILITY-TESTS",
+        "MTP-77-SIMULATED-FILL-NO-BROKER-FILL-OR-EXECUTION-REPORT",
+        "MTP-77-RECONCILIATION-BLOCKED-EVIDENCE-ONLY",
+        "MTP-77-LIVE-EXECUTION-CONTROL-VALIDATION",
+        "TVM-LIVE-EXECUTION-CONTROL"
+    ]
+
+    public static let requiredSourceAnchors: [String] = [
+        "MTP-75-REAL-ORDER-COMMAND-TAXONOMY",
+        "MTP-76-SUBMIT-CANCEL-REPLACE-FUTURE-GATES",
+        "MTP-76-NO-REAL-SUBMIT-CANCEL-REPLACE",
+        "MTP-64-PAPER-REAL-LIFECYCLE-ISOLATION",
+        "TVM-PAPER-ORDER-LIFECYCLE",
+        "TVM-PAPER-SIMULATED-FILL",
+        "TVM-PAPER-EXECUTION-WORKFLOW"
+    ]
+
+    public static let deterministicFixture: LiveExecutionReportBrokerFillReconciliationBoundary = {
+        do {
+            return try LiveExecutionReportBrokerFillReconciliationBoundary()
+        } catch {
+            preconditionFailure("MTP-77 execution report / broker fill / reconciliation fixture must be valid: \(error)")
+        }
+    }()
+
+    private static func validate(
+        terms: [LiveExecutionControlTerm],
+        futureGates: [LiveExecutionReportBrokerFillReconciliationFutureGate],
+        forbiddenCapabilities: [LiveExecutionReportBrokerFillReconciliationForbiddenCapability],
+        allowedEvidenceKinds: [LiveExecutionControlEvidenceKind],
+        validationAnchors: [String],
+        sourceAnchors: [String]
+    ) throws {
+        guard terms == Self.requiredTerms else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "terms",
+                expected: Self.requiredTerms.map(\.rawValue).joined(separator: ","),
+                actual: terms.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard futureGates == Self.requiredFutureGates else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "futureGates",
+                expected: Self.requiredFutureGates.map(\.rawValue).joined(separator: ","),
+                actual: futureGates.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard forbiddenCapabilities == Self.requiredForbiddenCapabilities else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "forbiddenCapabilities",
+                expected: Self.requiredForbiddenCapabilities.map(\.rawValue).joined(separator: ","),
+                actual: forbiddenCapabilities.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard allowedEvidenceKinds == Self.allowedEvidenceKinds else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "allowedEvidenceKinds",
+                expected: Self.allowedEvidenceKinds.map(\.rawValue).joined(separator: ","),
+                actual: allowedEvidenceKinds.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard validationAnchors == Self.requiredValidationAnchors else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "validationAnchors",
+                expected: Self.requiredValidationAnchors.joined(separator: ","),
+                actual: validationAnchors.joined(separator: ",")
+            )
+        }
+        guard sourceAnchors == Self.requiredSourceAnchors else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "sourceAnchors",
+                expected: Self.requiredSourceAnchors.joined(separator: ","),
+                actual: sourceAnchors.joined(separator: ",")
+            )
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        isFutureGateOnly: Bool,
+        isBlockedEvidenceOnly: Bool,
+        providesExecutableCommandSurface: Bool,
+        readsAPIKey: Bool,
+        storesSecret: Bool,
+        usesSignedEndpoint: Bool,
+        callsAccountEndpoint: Bool,
+        createsListenKey: Bool,
+        instantiatesBrokerExecutionAdapter: Bool,
+        instantiatesExchangeExecutionAdapter: Bool,
+        implementsLiveExecutionAdapter: Bool,
+        implementsRealOrderStateMachine: Bool,
+        implementsOMS: Bool,
+        submitsRealOrder: Bool,
+        cancelsRealOrder: Bool,
+        replacesRealOrder: Bool,
+        consumesExecutionReport: Bool,
+        parsesExecutionReport: Bool,
+        ingestsExecutionReport: Bool,
+        recordsBrokerFill: Bool,
+        storesBrokerFillFact: Bool,
+        performsReconciliation: Bool,
+        implementsReconciliationRuntime: Bool,
+        readsRealAccountBalance: Bool,
+        syncsBrokerPosition: Bool,
+        mapsSimulatedFillToBrokerFill: Bool,
+        mapsSimulatedFillToExecutionReport: Bool,
+        mapsPaperPortfolioToBrokerPosition: Bool,
+        updatesRealAccountFromSimulatedFill: Bool,
+        exposesBrokerFillAsCurrentReadModel: Bool,
+        exposesOrderLevelCommandUI: Bool,
+        providesTradingButton: Bool,
+        requiredValidationDependsOnNetwork: Bool
+    ) throws {
+        guard isFutureGateOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("isFutureGateOnly")
+        }
+        guard isBlockedEvidenceOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("isBlockedEvidenceOnly")
+        }
+
+        let forbiddenFlags = [
+            ("providesExecutableCommandSurface", providesExecutableCommandSurface),
+            ("readsAPIKey", readsAPIKey),
+            ("storesSecret", storesSecret),
+            ("usesSignedEndpoint", usesSignedEndpoint),
+            ("callsAccountEndpoint", callsAccountEndpoint),
+            ("createsListenKey", createsListenKey),
+            ("instantiatesBrokerExecutionAdapter", instantiatesBrokerExecutionAdapter),
+            ("instantiatesExchangeExecutionAdapter", instantiatesExchangeExecutionAdapter),
+            ("implementsLiveExecutionAdapter", implementsLiveExecutionAdapter),
+            ("implementsRealOrderStateMachine", implementsRealOrderStateMachine),
+            ("implementsOMS", implementsOMS),
+            ("submitsRealOrder", submitsRealOrder),
+            ("cancelsRealOrder", cancelsRealOrder),
+            ("replacesRealOrder", replacesRealOrder),
+            ("consumesExecutionReport", consumesExecutionReport),
+            ("parsesExecutionReport", parsesExecutionReport),
+            ("ingestsExecutionReport", ingestsExecutionReport),
+            ("recordsBrokerFill", recordsBrokerFill),
+            ("storesBrokerFillFact", storesBrokerFillFact),
+            ("performsReconciliation", performsReconciliation),
+            ("implementsReconciliationRuntime", implementsReconciliationRuntime),
+            ("readsRealAccountBalance", readsRealAccountBalance),
+            ("syncsBrokerPosition", syncsBrokerPosition),
+            ("mapsSimulatedFillToBrokerFill", mapsSimulatedFillToBrokerFill),
+            ("mapsSimulatedFillToExecutionReport", mapsSimulatedFillToExecutionReport),
+            ("mapsPaperPortfolioToBrokerPosition", mapsPaperPortfolioToBrokerPosition),
+            ("updatesRealAccountFromSimulatedFill", updatesRealAccountFromSimulatedFill),
+            ("exposesBrokerFillAsCurrentReadModel", exposesBrokerFillAsCurrentReadModel),
+            ("exposesOrderLevelCommandUI", exposesOrderLevelCommandUI),
+            ("providesTradingButton", providesTradingButton),
+            ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(capability.0)
+        }
+    }
+}

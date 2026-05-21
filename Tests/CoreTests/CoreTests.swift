@@ -1291,6 +1291,249 @@ final class CoreTests: XCTestCase {
         XCTAssertFalse(simulatedFill.updatesRealAccountBalance)
     }
 
+    func testExecutionReportBrokerFillReconciliationBoundaryDefinesMTP77FutureGates() throws {
+        // 测试场景：MTP-77 只把 execution report、broker fill 和 reconciliation 固定为
+        // future gates / blocked evidence，不提供 parser、broker fill fact、account sync 或对账 runtime。
+        let boundary = LiveExecutionReportBrokerFillReconciliationBoundary.deterministicFixture
+
+        XCTAssertEqual(
+            boundary.contractID,
+            try Identifier("mtp-77-execution-report-broker-fill-reconciliation-boundary")
+        )
+        XCTAssertEqual(boundary.issueID, try Identifier("MTP-77"))
+        XCTAssertEqual(boundary.terms, [.executionReport, .brokerFill, .orderReconciliation])
+        XCTAssertEqual(
+            boundary.futureGates,
+            [
+                .humanLiveDecision,
+                .credentialEndpointBoundarySatisfied,
+                .adapterCapabilityIsolationSatisfied,
+                .realOrderLifecycleBoundarySatisfied,
+                .submitCancelReplaceBoundarySatisfied,
+                .executionReportSchemaContractDefined,
+                .brokerFillFactContractDefined,
+                .reconciliationContractDefined,
+                .accountStateReadBoundaryDefined,
+                .liveRiskOperationsAuditHandoffDefined
+            ]
+        )
+        XCTAssertEqual(
+            boundary.forbiddenCapabilities,
+            LiveExecutionReportBrokerFillReconciliationForbiddenCapability.allCases
+        )
+        XCTAssertTrue(boundary.forbidsCapability(.executionReportParser))
+        XCTAssertTrue(boundary.forbidsCapability(.executionReportIngestion))
+        XCTAssertTrue(boundary.forbidsCapability(.brokerFillRecorder))
+        XCTAssertTrue(boundary.forbidsCapability(.reconciliationService))
+        XCTAssertTrue(boundary.forbidsCapability(.accountSync))
+        XCTAssertTrue(boundary.forbidsCapability(.brokerPositionSync))
+        XCTAssertTrue(boundary.forbidsCapability(.simulatedFillToExecutionReportUpgrade))
+        XCTAssertEqual(
+            boundary.allowedEvidenceKinds,
+            [
+                .contractDocumentation,
+                .validationMatrixCandidate,
+                .validationPlanAnchor,
+                .deterministicForbiddenTest,
+                .paperRealIsolationEvidence,
+                .prBoundaryEvidence
+            ]
+        )
+        XCTAssertEqual(boundary.validationAnchors, [
+            "MTP-77-EXECUTION-REPORT-BROKER-FILL-RECONCILIATION-FUTURE-GATES",
+            "MTP-77-FORBIDDEN-REPORT-FILL-RECONCILIATION-CAPABILITY-TESTS",
+            "MTP-77-SIMULATED-FILL-NO-BROKER-FILL-OR-EXECUTION-REPORT",
+            "MTP-77-RECONCILIATION-BLOCKED-EVIDENCE-ONLY",
+            "MTP-77-LIVE-EXECUTION-CONTROL-VALIDATION",
+            "TVM-LIVE-EXECUTION-CONTROL"
+        ])
+        XCTAssertEqual(boundary.sourceAnchors, [
+            "MTP-75-REAL-ORDER-COMMAND-TAXONOMY",
+            "MTP-76-SUBMIT-CANCEL-REPLACE-FUTURE-GATES",
+            "MTP-76-NO-REAL-SUBMIT-CANCEL-REPLACE",
+            "MTP-64-PAPER-REAL-LIFECYCLE-ISOLATION",
+            "TVM-PAPER-ORDER-LIFECYCLE",
+            "TVM-PAPER-SIMULATED-FILL",
+            "TVM-PAPER-EXECUTION-WORKFLOW"
+        ])
+        XCTAssertTrue(boundary.reportFillReconciliationBoundaryHeld)
+        XCTAssertTrue(boundary.reportFillReconciliationImplementationBlocked)
+        XCTAssertTrue(boundary.simulatedFillIsolationBoundaryHeld)
+        XCTAssertTrue(boundary.reconciliationBlockedEvidenceBoundaryHeld)
+        XCTAssertTrue(boundary.isFutureGateOnly)
+        XCTAssertTrue(boundary.isBlockedEvidenceOnly)
+        XCTAssertFalse(boundary.providesExecutableCommandSurface)
+        XCTAssertFalse(boundary.readsAPIKey)
+        XCTAssertFalse(boundary.storesSecret)
+        XCTAssertFalse(boundary.usesSignedEndpoint)
+        XCTAssertFalse(boundary.callsAccountEndpoint)
+        XCTAssertFalse(boundary.createsListenKey)
+        XCTAssertFalse(boundary.instantiatesBrokerExecutionAdapter)
+        XCTAssertFalse(boundary.instantiatesExchangeExecutionAdapter)
+        XCTAssertFalse(boundary.implementsLiveExecutionAdapter)
+        XCTAssertFalse(boundary.implementsRealOrderStateMachine)
+        XCTAssertFalse(boundary.implementsOMS)
+        XCTAssertFalse(boundary.submitsRealOrder)
+        XCTAssertFalse(boundary.cancelsRealOrder)
+        XCTAssertFalse(boundary.replacesRealOrder)
+        XCTAssertFalse(boundary.consumesExecutionReport)
+        XCTAssertFalse(boundary.parsesExecutionReport)
+        XCTAssertFalse(boundary.ingestsExecutionReport)
+        XCTAssertFalse(boundary.recordsBrokerFill)
+        XCTAssertFalse(boundary.storesBrokerFillFact)
+        XCTAssertFalse(boundary.performsReconciliation)
+        XCTAssertFalse(boundary.implementsReconciliationRuntime)
+        XCTAssertFalse(boundary.readsRealAccountBalance)
+        XCTAssertFalse(boundary.syncsBrokerPosition)
+        XCTAssertFalse(boundary.mapsSimulatedFillToBrokerFill)
+        XCTAssertFalse(boundary.mapsSimulatedFillToExecutionReport)
+        XCTAssertFalse(boundary.mapsPaperPortfolioToBrokerPosition)
+        XCTAssertFalse(boundary.updatesRealAccountFromSimulatedFill)
+        XCTAssertFalse(boundary.exposesBrokerFillAsCurrentReadModel)
+        XCTAssertFalse(boundary.exposesOrderLevelCommandUI)
+        XCTAssertFalse(boundary.providesTradingButton)
+        XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(
+            LiveExecutionReportBrokerFillReconciliationBoundary.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, boundary)
+    }
+
+    func testExecutionReportBrokerFillReconciliationBoundaryRejectsMTP77ImplementationBypass() throws {
+        // 测试场景：MTP-77 fixture 的初始化和 Codable 解码必须拒绝 execution report
+        // ingestion、broker fill recording、reconciliation runtime、账户读取和 broker position sync。
+        XCTAssertThrowsError(
+            try LiveExecutionReportBrokerFillReconciliationBoundary(consumesExecutionReport: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("consumesExecutionReport")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveExecutionReportBrokerFillReconciliationBoundary(parsesExecutionReport: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("parsesExecutionReport"))
+        }
+        XCTAssertThrowsError(
+            try LiveExecutionReportBrokerFillReconciliationBoundary(ingestsExecutionReport: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("ingestsExecutionReport"))
+        }
+        XCTAssertThrowsError(
+            try LiveExecutionReportBrokerFillReconciliationBoundary(recordsBrokerFill: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("recordsBrokerFill"))
+        }
+        XCTAssertThrowsError(
+            try LiveExecutionReportBrokerFillReconciliationBoundary(storesBrokerFillFact: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("storesBrokerFillFact"))
+        }
+        XCTAssertThrowsError(
+            try LiveExecutionReportBrokerFillReconciliationBoundary(performsReconciliation: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("performsReconciliation"))
+        }
+        XCTAssertThrowsError(
+            try LiveExecutionReportBrokerFillReconciliationBoundary(implementsReconciliationRuntime: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("implementsReconciliationRuntime")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveExecutionReportBrokerFillReconciliationBoundary(readsRealAccountBalance: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("readsRealAccountBalance"))
+        }
+        XCTAssertThrowsError(
+            try LiveExecutionReportBrokerFillReconciliationBoundary(syncsBrokerPosition: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("syncsBrokerPosition"))
+        }
+        XCTAssertThrowsError(
+            try LiveExecutionReportBrokerFillReconciliationBoundary(instantiatesBrokerExecutionAdapter: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("instantiatesBrokerExecutionAdapter")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveExecutionReportBrokerFillReconciliationBoundary(terms: [.executionReport, .brokerFill])
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "terms",
+                    expected: LiveExecutionReportBrokerFillReconciliationBoundary
+                        .requiredTerms
+                        .map(\.rawValue)
+                        .joined(separator: ","),
+                    actual: "execution report,broker fill"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(
+            LiveExecutionReportBrokerFillReconciliationBoundary.deterministicFixture
+        )
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["mapsSimulatedFillToExecutionReport"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveExecutionReportBrokerFillReconciliationBoundary.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("mapsSimulatedFillToExecutionReport")
+            )
+        }
+    }
+
+    func testSimulatedFillAndPaperPortfolioCannotUpgradeToMTP77BrokerFillOrReconciliation() throws {
+        // 测试场景：MTP-77 明确 simulated fill 和 paper portfolio projection 只能作为
+        // paper-only evidence，不能升级为 broker fill、execution report、real account 或对账输入。
+        let boundary = LiveExecutionReportBrokerFillReconciliationBoundary.deterministicFixture
+        let simulatedFill = try PaperSimulatedFillFixture.deterministicAllowed()
+        let portfolioUpdate = try PaperPortfolioProjectionUpdate(
+            updateID: try Identifier("paper-portfolio-update-mtp-77"),
+            portfolioID: try Identifier("portfolio-main"),
+            simulatedFill: simulatedFill,
+            sourceSimulatedFillSequence: 10,
+            updatedAt: Date(timeIntervalSince1970: 1_900)
+        )
+
+        XCTAssertTrue(boundary.simulatedFillIsolationBoundaryHeld)
+        XCTAssertTrue(boundary.reconciliationBlockedEvidenceBoundaryHeld)
+        XCTAssertTrue(boundary.forbidsCapability(.simulatedFillToBrokerFillUpgrade))
+        XCTAssertTrue(boundary.forbidsCapability(.simulatedFillToExecutionReportUpgrade))
+        XCTAssertTrue(boundary.forbidsCapability(.paperPortfolioToBrokerPositionUpgrade))
+        XCTAssertTrue(boundary.forbidsCapability(.simulatedFillAccountUpdate))
+        XCTAssertFalse(boundary.mapsSimulatedFillToBrokerFill)
+        XCTAssertFalse(boundary.mapsSimulatedFillToExecutionReport)
+        XCTAssertFalse(boundary.mapsPaperPortfolioToBrokerPosition)
+        XCTAssertFalse(boundary.updatesRealAccountFromSimulatedFill)
+
+        XCTAssertTrue(simulatedFill.paperOnlyBoundaryHeld)
+        XCTAssertTrue(simulatedFill.isSimulatedFillEvidence)
+        XCTAssertFalse(simulatedFill.representsRealFill)
+        XCTAssertFalse(simulatedFill.representsBrokerFill)
+        XCTAssertFalse(simulatedFill.updatesRealAccountBalance)
+
+        XCTAssertTrue(portfolioUpdate.usesSimulatedFillEvidence)
+        XCTAssertEqual(portfolioUpdate.exposure.source, .paperProjection)
+        XCTAssertFalse(portfolioUpdate.authorizesTradingExecution)
+        XCTAssertFalse(portfolioUpdate.readsRealAccountBalance)
+        XCTAssertFalse(portfolioUpdate.syncsBrokerPosition)
+    }
+
     func testLiveRuntimeHealthDefinesMTP69ReadModelOnlyFixture() throws {
         // 测试场景：MTP-69 只新增 future live runtime health / connection status 的最小
         // read model。fixture 可以表达 healthy / blocked / disconnected / degraded /

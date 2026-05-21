@@ -205,3 +205,112 @@ MTP-76 建立以下 validation anchors：
 - `MTP-76-LIVE-EXECUTION-CONTROL-VALIDATION`
 
 本 issue 不修改 `checks/automation-readiness.sh` 做最终机械收口；`MTPRO Live Execution Control Contract v1` 的 automation readiness 收口保留给 Issue 7。
+
+## MTP-77 execution report / broker fill / reconciliation future gates
+
+`MTP-77-EXECUTION-REPORT-BROKER-FILL-RECONCILIATION-FUTURE-GATES`
+
+MTP-77 把 `execution report`、`broker fill` 和 `reconciliation` 从 MTP-75 terminology 进一步收窄为 future gate contract。当前系统仍不得消费执行回报、记录 broker fill 或执行账户 / broker position 对账；这些词只允许作为 future gate、blocked evidence 和 deterministic forbidden tests 出现。
+
+| Capability | Future gate 条件 | 当前状态 | 当前禁止输出 |
+| --- | --- | --- | --- |
+| `execution report` | Human 独立 Live decision、credential endpoint boundary、adapter capability isolation、real order lifecycle boundary、submit / cancel / replace boundary、future execution report schema contract、future live risk / operations / audit handoff。 | Forbidden now | execution report parser、execution report ingestion、真实订单状态更新、当前 read model 授权。 |
+| `broker fill` | Human 独立 Live decision、broker / exchange adapter capability、future broker fill fact contract、real account state read boundary、future reconciliation contract、future audit trail。 | Forbidden now | broker fill recorder、broker fill event fact、simulated fill 升级、真实账户更新。 |
+| `reconciliation` | Human 独立 Live decision、future account state read boundary、future broker position boundary、future local order state contract、future audit / incident handoff。 | Blocked evidence only | reconciliation service、account sync、broker position sync、real account balance read、OMS 状态修复。 |
+
+Core fixture：`LiveExecutionReportBrokerFillReconciliationBoundary` 固定以下 gates：
+
+- Human independent Live execution decision。
+- credential endpoint boundary satisfied。
+- adapter capability isolation satisfied。
+- real order lifecycle boundary satisfied。
+- submit / cancel / replace boundary satisfied。
+- future execution report schema contract defined。
+- future broker fill fact contract defined。
+- future reconciliation contract defined。
+- future account state read boundary defined。
+- future live risk / operations / audit handoff defined。
+
+## MTP-77 forbidden report / fill / reconciliation capability tests
+
+`MTP-77-FORBIDDEN-REPORT-FILL-RECONCILIATION-CAPABILITY-TESTS`
+
+MTP-77 的 forbidden capability tests 必须覆盖：
+
+- API key / secret storage。
+- signed endpoint / account endpoint / listenKey。
+- broker / exchange execution adapter 和 `LiveExecutionAdapter`。
+- real order state machine / OMS。
+- submit / cancel / replace 仍保持 false。
+- execution report parser / ingestion / current read model authorization。
+- broker fill recorder / broker fill event fact。
+- reconciliation service / reconciliation runtime。
+- account sync、real account balance read 和 broker position sync。
+- simulated fill 升级为 broker fill 或 execution report。
+- paper portfolio projection 升级为 broker position。
+- required validation 依赖真实网络。
+
+Core tests：
+
+- `testExecutionReportBrokerFillReconciliationBoundaryDefinesMTP77FutureGates`
+- `testExecutionReportBrokerFillReconciliationBoundaryRejectsMTP77ImplementationBypass`
+- `testSimulatedFillAndPaperPortfolioCannotUpgradeToMTP77BrokerFillOrReconciliation`
+
+## MTP-77 simulated fill no broker fill or execution report
+
+`MTP-77-SIMULATED-FILL-NO-BROKER-FILL-OR-EXECUTION-REPORT`
+
+MTP-77 必须保持 paper-only simulated fill 与 future broker fill / execution report 隔离：
+
+- `PaperSimulatedFillEvidence` 仍只是 deterministic simulated fill evidence。
+- simulated fill 不得映射为 broker fill。
+- simulated fill 不得映射为 execution report。
+- simulated fill 不得更新真实账户余额。
+- `PaperPortfolioProjectionUpdate` 仍只能来自 simulated fill evidence，不得映射为 broker position 或 real account state。
+
+Source anchors：
+
+- `MTP-75-REAL-ORDER-COMMAND-TAXONOMY`
+- `MTP-76-SUBMIT-CANCEL-REPLACE-FUTURE-GATES`
+- `MTP-76-NO-REAL-SUBMIT-CANCEL-REPLACE`
+- `MTP-64-PAPER-REAL-LIFECYCLE-ISOLATION`
+- `TVM-PAPER-ORDER-LIFECYCLE`
+- `TVM-PAPER-SIMULATED-FILL`
+- `TVM-PAPER-EXECUTION-WORKFLOW`
+
+## MTP-77 reconciliation blocked evidence only
+
+`MTP-77-RECONCILIATION-BLOCKED-EVIDENCE-ONLY`
+
+MTP-77 中 reconciliation 只能作为 future gate 和 blocked evidence 出现。当前系统不得读取真实账户、不读取 broker position、不做 account sync、不做 OMS 状态修复，也不得把 paper portfolio projection 当作 broker position。
+
+`LiveExecutionReportBrokerFillReconciliationBoundary` 的以下 flags 必须全部保持 `false`：
+
+- `consumesExecutionReport`
+- `parsesExecutionReport`
+- `ingestsExecutionReport`
+- `recordsBrokerFill`
+- `storesBrokerFillFact`
+- `performsReconciliation`
+- `implementsReconciliationRuntime`
+- `readsRealAccountBalance`
+- `syncsBrokerPosition`
+- `mapsSimulatedFillToBrokerFill`
+- `mapsSimulatedFillToExecutionReport`
+- `mapsPaperPortfolioToBrokerPosition`
+- `updatesRealAccountFromSimulatedFill`
+- `exposesBrokerFillAsCurrentReadModel`
+
+## MTP-77 validation anchors
+
+`MTP-77-LIVE-EXECUTION-CONTROL-VALIDATION`
+
+MTP-77 建立以下 validation anchors：
+
+- `MTP-77-EXECUTION-REPORT-BROKER-FILL-RECONCILIATION-FUTURE-GATES`
+- `MTP-77-FORBIDDEN-REPORT-FILL-RECONCILIATION-CAPABILITY-TESTS`
+- `MTP-77-SIMULATED-FILL-NO-BROKER-FILL-OR-EXECUTION-REPORT`
+- `MTP-77-RECONCILIATION-BLOCKED-EVIDENCE-ONLY`
+- `MTP-77-LIVE-EXECUTION-CONTROL-VALIDATION`
+
+本 issue 不修改 `checks/automation-readiness.sh` 做最终机械收口；`MTPRO Live Execution Control Contract v1` 的 automation readiness 收口保留给 Issue 7。
