@@ -8389,3 +8389,72 @@ Linear / scope evidence：
 | --- | --- | --- |
 | `swift test --filter MTP78` | pass | 4 个 MTP-78 focused Core / App XCTest 通过，0 failures。 |
 | `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=24; liveBlockedGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；159 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
+
+## MTP-79 Read-model-only LiveExecutionControlBlockedEvidence
+
+日期：2026-05-22
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear live-read 中当前唯一 active issue `MTP-79`：新增 read-model-only `LiveExecutionControlBlockedEvidence`。
+- 用只读模型汇总 submit / cancel / replace / execution report / broker fill / reconciliation / incident fallback 的 blocked reason。
+- 输出 deterministic snapshot，供后续 Dashboard / Report / Event Timeline 展示 issue 使用。
+- 保持本 issue 为 Core read-model-only blocked evidence，不暴露 schema、adapter、command 或 runtime control。
+
+Linear / scope evidence：
+
+- Linear read-only queue preview 确认 Project `MTPRO Live Execution Control Contract v1` 中 `MTP-79` 为唯一 active issue，状态 `In Progress`；`MTP-75` 至 `MTP-78` 为 `Done`；`MTP-80` 和 `MTP-81` 为 `Backlog`。
+- 当前 issue scope 只允许定义 `LiveExecutionControlBlockedEvidence` 或等价 read model、汇总 execution-control gates blocked reasons、输出 deterministic fixture / snapshot，并保持模型 read-model-only。
+- Non-goals：不实现 API key / secret storage，不实现 signed endpoint / account endpoint / listenKey，不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、real order state machine、OMS，不提交、撤销、替换真实订单，不实现 broker fill、execution report、reconciliation，不新增交易按钮、order form、live command 或 order-level command UI，不把数据库 schema 暴露给 UI。
+- MTP-79 不修改 `checks/automation-readiness.sh` 做最终机械收口；`MTPRO Live Execution Control Contract v1` 的 Issue 7 才允许统一机械化 MTP-75 至 MTP-80 anchors。
+
+文件范围：
+
+- `Sources/Core/LiveExecutionControlContract.swift`
+- `Tests/CoreTests/CoreTests.swift`
+- `docs/contracts/live-execution-control-contract.md`
+- `docs/domain/context.md`
+- `docs/validation/validation-plan.md`
+- `docs/validation/trading-validation-matrix.md`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+更新重点：
+
+- 新增 `LiveExecutionControlBlockedGate`、`LiveExecutionControlBlockedReason`、`LiveExecutionControlBlockedEvidenceItem` 和 `LiveExecutionControlBlockedEvidence`。
+- `LiveExecutionControlBlockedEvidence` 固定 `MTP-79-LIVE-EXECUTION-CONTROL-BLOCKED-EVIDENCE`、`MTP-79-EXECUTION-CONTROL-GATES-BLOCKED-REASONS`、`MTP-79-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT`、`MTP-79-READ-MODEL-ONLY-NO-COMMAND-SURFACE`、`MTP-79-LIVE-EXECUTION-CONTROL-VALIDATION` 和 `TVM-LIVE-EXECUTION-CONTROL`。
+- deterministic snapshot 覆盖 submit、cancel、replace、execution report、broker fill、reconciliation 和 incident fallback 的 blocked reason。
+- 新增三条 focused Core tests，覆盖 deterministic fixture、Codable round trip、blocked item drift rejection、schema / adapter / runtime / command bypass rejection、真实 submit / cancel / replace、execution report、broker fill、reconciliation、incident fallback、order form / trading button bypass rejection，以及 MTP-76 / MTP-77 / MTP-78 boundary regression。
+- 在 contract docs、domain context、validation plan、trading validation matrix 和 latest verification summary 回填 MTP-79 anchors。
+
+边界确认：
+
+- 不读取 secret / credential。
+- 不接真实 broker / exchange。
+- 不执行真实交易动作。
+- 不新增 Linear Project / Issue。
+- 不修改 Linear status。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify update。
+- 不提交 `.codex/*`。
+- 不提交 `graphify-out/*`。
+- 不实现 API key / secret storage。
+- 不实现 signed endpoint / account endpoint / listenKey。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`。
+- 不实现 real order state machine / OMS。
+- 不提交、撤销、替换真实订单。
+- 不实现 execution report parser / ingestion、broker fill recorder / event fact、reconciliation service / runtime 或 incident fallback automation。
+- 不读取真实账户余额，不执行 account sync，不执行 broker position sync。
+- 不暴露 persistence schema、adapter 或 runtime control。
+- 不实现 live command、order-level command UI、order form 或交易按钮。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP79` | pass | 初始 red run 因 MTP-79 类型尚未存在而失败；实现后 3 个 MTP-79 focused Core XCTest 通过，0 failures。 |
+| `swift test --filter MTP78` | pass | 4 个 MTP-78 regression Core / App XCTest 通过，0 failures。 |
+| `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=24; liveBlockedGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；162 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |

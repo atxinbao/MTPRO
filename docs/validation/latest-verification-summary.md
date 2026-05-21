@@ -59,6 +59,8 @@ MTP-77 的当前 issue execution evidence 已在 `docs/contracts/live-execution-
 
 MTP-78 的当前 issue execution evidence 已在 `docs/contracts/live-execution-control-contract.md`、`TVM-LIVE-EXECUTION-CONTROL`、`LivePaperRealCommandIsolationBoundary`、focused Core tests 和 App read-model-only test 中建立。该证据只定义 paper order intent / paper execution decision / simulated fill / paper portfolio projection 与 future real order command 的隔离合同、forbidden capability tests、Report / Dashboard / Event Timeline read-model-only evidence 和 validation anchors；不实现 API key / secret storage、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、real order state machine、OMS、真实 submit / cancel / replace、execution report parser / ingestion、broker fill recorder / event fact、reconciliation runtime、live command、order form、order-level command UI 或交易按钮。MTP-78 继续不修改 `checks/automation-readiness.sh` 做最终机械收口；`MTPRO Live Execution Control Contract v1` 的 Issue 7 才负责统一机械化 MTP-75 至 MTP-80 anchors。
 
+MTP-79 的当前 issue execution evidence 已在 `docs/contracts/live-execution-control-contract.md`、`TVM-LIVE-EXECUTION-CONTROL`、`LiveExecutionControlBlockedEvidence` 和 focused Core tests 中建立。该证据只定义 read-model-only execution-control blocked evidence、submit / cancel / replace / execution report / broker fill / reconciliation / incident fallback blocked reason summary、deterministic snapshot、schema / adapter / runtime / command non-exposure 和 validation anchors；不实现 API key / secret storage、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、real order state machine、OMS、真实 submit / cancel / replace、execution report parser / ingestion、broker fill recorder / event fact、reconciliation runtime、incident fallback automation、live command、order form、order-level command UI 或交易按钮。MTP-79 继续不修改 `checks/automation-readiness.sh` 做最终机械收口；`MTPRO Live Execution Control Contract v1` 的 Issue 7 才负责统一机械化 MTP-75 至 MTP-80 anchors。
+
 `MTPRO Workbench User Flow Blueprint v1` 已作为产品层用户动线蓝图落仓，路径为 `docs/product/mtpro-workbench-user-flow-blueprint-v1.md`。该文档记录 Figma canonical `15:2`、目标用户、六条用户动线、页面角色、Current completed / Completed read-model-only evidence surfaces / Future Gated 分区和禁止动作；它不是最终 UI/UX 设计稿、组件规范或 SwiftUI 实现稿，不创建 Linear Project / Issue，不修改 Linear status，不推进 Todo，不启动 Symphony，不授权 Future Live trading。
 
 `MTPRO Product Interaction Model v1` 已作为产品层交互模型落仓，路径为 `docs/product/mtpro-product-interaction-model-v1.md`。该文档承接 Figma canonical `15:2` 用户动线蓝图，定义用户在每个页面能看什么、判断什么、点什么、不能点什么，以及页面之间如何通过 evidence navigation 串联；它用于指导后续 `Workbench Screen Layout v1`，不是最终 UI/UX 视觉稿、组件规范或 SwiftUI 实现稿，不创建 Linear Project / Issue，不修改 Linear status，不推进 Todo，不启动 Symphony，不授权 Future Live trading。
@@ -106,6 +108,8 @@ MTP-76 的长期验证锚点候选仍为 `docs/contracts/live-execution-control-
 MTP-77 的长期验证锚点候选仍为 `docs/contracts/live-execution-control-contract.md` 和 `TVM-LIVE-EXECUTION-CONTROL`。该锚点在 MTP-75 / MTP-76 基础上新增 execution report / broker fill / reconciliation future gates、`LiveExecutionReportBrokerFillReconciliationBoundary`、forbidden capability tests、blocked evidence 和 simulated fill / paper portfolio isolation anchors；不实现 API key / secret storage、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、real order state machine、OMS、真实 submit / cancel / replace、execution report parser / ingestion、broker fill recorder / event fact、reconciliation runtime、account sync、real account balance read、broker position sync、live command、order-level command UI、order form 或交易按钮；也不把 `PaperSimulatedFillEvidence` 升级为 broker fill / execution report，不把 paper portfolio projection 升级为 broker position / real account state。
 
 MTP-78 的长期验证锚点候选仍为 `docs/contracts/live-execution-control-contract.md` 和 `TVM-LIVE-EXECUTION-CONTROL`。该锚点在 MTP-75 至 MTP-77 基础上新增 `LivePaperRealCommandIsolationBoundary`、paper evidence no real command upgrade anchors、Report / Dashboard / Event Timeline read-model-only anchors 和 forbidden capability tests；不实现 API key / secret storage、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、real order state machine、OMS、真实 submit / cancel / replace、execution report parser / ingestion、broker fill recorder / event fact、reconciliation runtime、live command、order form、order-level command UI 或交易按钮；也不把 `PaperOrderIntent`、`PaperExecutionDecision`、`PaperSimulatedFillEvidence` 或 `PaperPortfolioProjectionUpdate` 升级为 future real order command、broker fill、execution report 或 broker position。
+
+MTP-79 的长期验证锚点候选仍为 `docs/contracts/live-execution-control-contract.md` 和 `TVM-LIVE-EXECUTION-CONTROL`。该锚点在 MTP-75 至 MTP-78 基础上新增 `LiveExecutionControlBlockedEvidence`、`LiveExecutionControlBlockedGate`、`LiveExecutionControlBlockedReason`、`LiveExecutionControlBlockedEvidenceItem`、blocked reason deterministic snapshot 和 focused forbidden capability tests；不实现 API key / secret storage、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、real order state machine、OMS、真实 submit / cancel / replace、execution report parser / ingestion、broker fill recorder / event fact、reconciliation runtime、incident fallback automation、schema / adapter / runtime exposure、live command、order form、order-level command UI 或交易按钮。
 
 `MTPRO Live Trading Boundary Definition v1` 的 canonical Stage Code Audit Report 已落仓到 `docs/audit/mtpro-live-trading-boundary-definition-v1-stage-code-audit.md`。该报告记录 PR #126 至 #132、merge commits、GitHub `checks` 成功证据、Linear Project `Completed` evidence、Live boundary validation evidence chain、Known CI Boundary、Post-Issue Ledger 持久仓同步阻塞说明、Boundary Audit、Root Docs Delta 和 Next Human Project Planning handoff。
 
@@ -181,8 +185,27 @@ Planning record 入口：
 - `MTP-76`：Submit / cancel / replace future gates and forbidden capability tests。
 - `MTP-77`：Execution report / broker fill / reconciliation future gates and forbidden capability tests。
 - `MTP-78`：Paper evidence / simulated fill 与 future real order command isolation contract。
+- `MTP-79`：Read-model-only LiveExecutionControlBlockedEvidence。
 
 ## 最近验证
+
+MTP-79 read-model-only LiveExecutionControlBlockedEvidence 已完成当前 issue focused 本地验证：
+
+```bash
+swift test --filter MTP79
+swift test --filter MTP78
+bash checks/run.sh
+```
+
+当前收口证据：
+
+- `Sources/Core/LiveExecutionControlContract.swift`：新增 `LiveExecutionControlBlockedGate`、`LiveExecutionControlBlockedReason`、`LiveExecutionControlBlockedEvidenceItem` 和 `LiveExecutionControlBlockedEvidence`；只输出 submit / cancel / replace / execution report / broker fill / reconciliation / incident fallback blocked reason summary、deterministic snapshot、validation anchors、source anchors 和 read-model-only App surface flags。
+- `Tests/CoreTests/CoreTests.swift`：新增 `testLiveExecutionControlBlockedEvidenceDefinesMTP79ReadModelOnlySnapshot`、`testLiveExecutionControlBlockedEvidenceRejectsMTP79CommandOrRuntimeBypass` 和 `testLiveExecutionControlBlockedEvidenceSummarizesMTP79GateReasonsWithoutExecution`，覆盖 deterministic fixture、Codable round trip、blocked item drift rejection、schema / adapter / runtime / command bypass rejection、真实 submit / cancel / replace、execution report、broker fill、reconciliation、incident fallback、order form / trading button bypass rejection，以及 MTP-76 / MTP-77 / MTP-78 boundary regression。
+- `docs/contracts/live-execution-control-contract.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md` 和 `docs/domain/context.md`：回填 `MTP-79-LIVE-EXECUTION-CONTROL-BLOCKED-EVIDENCE`、`MTP-79-EXECUTION-CONTROL-GATES-BLOCKED-REASONS`、`MTP-79-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT`、`MTP-79-READ-MODEL-ONLY-NO-COMMAND-SURFACE`、`MTP-79-LIVE-EXECUTION-CONTROL-VALIDATION` 和 `TVM-LIVE-EXECUTION-CONTROL` anchors。
+- `swift test --filter MTP79`：pass，3 个 XCTest 通过，0 failures。
+- `swift test --filter MTP78`：pass，4 个 XCTest 通过，0 failures。
+- `bash checks/run.sh`：pass，串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=24; liveBlockedGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；162 个 XCTest 通过，最终输出 `MTPRO checks passed.`。
+- Boundary：不读取 secret，不接 signed endpoint / account endpoint / listenKey，不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、real order state machine、OMS、真实 submit / cancel / replace、execution report parser / ingestion、broker fill recorder / event fact、reconciliation service / runtime、incident fallback automation、schema / adapter / runtime exposure、live command、order-level command UI、order form 或交易按钮；不修改 `checks/automation-readiness.sh` 做最终机械收口。
 
 MTP-78 paper order intent / simulated fill 与 future real order command isolation contract 已完成当前 issue focused 本地验证：
 

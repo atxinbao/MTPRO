@@ -106,6 +106,10 @@ MTP-77 进一步固定 execution report、broker fill 和 reconciliation 的 fut
 
 MTP-78 进一步固定 paper order intent、paper execution decision、simulated fill 和 paper portfolio projection 与 future real order command 的隔离语义：paper evidence 可以进入 Report / Dashboard / Event Timeline 的 read model / ViewModel，但不等于 real order command、signed command request、execution report、broker fill、broker position、real account state、order form、order-level command UI 或交易按钮。
 
+`MTP-79-LIVE-EXECUTION-CONTROL-BLOCKED-EVIDENCE`
+
+MTP-79 进一步固定 execution-control blocked evidence 语义：`LiveExecutionControlBlockedEvidence` 只能用 read-model-only 方式说明 submit、cancel、replace、execution report、broker fill、reconciliation 和 incident fallback 为什么仍被阻断；它不等于 command model、adapter status、Runtime control、persistence schema、真实订单状态机、execution report parser、broker fill fact、reconciliation service、incident command 或交易按钮。
+
 ## Paper-only Terms
 
 | 术语 | MTPRO 含义 | 避免混用 |
