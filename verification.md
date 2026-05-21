@@ -7937,3 +7937,68 @@ Validation：
 - 不把 Future Live trading 写成当前 execution scope。
 - 不提交 `.codex/*`。
 - 不提交 `graphify-out/*`。
+
+## MTP-75 Live Execution Control Terminology / Taxonomy
+
+日期：2026-05-22
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear live-read 中当前唯一 active issue `MTP-75`：定义 Live execution control terminology 和 real order command taxonomy。
+- 建立 `MTPRO Live Execution Control Contract v1` 的 Future / gated execution-control language、real order command taxonomy、paper / real command isolation 和 validation anchor 候选入口。
+- 保持本 issue 为 terminology / taxonomy / deterministic forbidden evidence，不提供任何真实订单 command surface。
+
+Linear / scope evidence：
+
+- Linear read-only queue preview 确认 Project `MTPRO Live Execution Control Contract v1` 中 `MTP-75` 为唯一 active issue，状态 `In Progress`；`MTP-76` 至 `MTP-81` 均为 `Backlog`。
+- 当前 issue scope 只允许定义 terminology、taxonomy、validation anchors、contract docs、Core deterministic fixture 和 focused tests。
+- Non-goals：不实现 API key / secret storage，不实现 signed endpoint / account endpoint / listenKey，不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、real order state machine、OMS，不提交、撤销、替换真实订单，不实现 broker fill、execution report、reconciliation，不新增交易按钮、order form、live command 或 order-level command UI。
+- MTP-75 不修改 `checks/automation-readiness.sh` 做最终机械收口；`MTPRO Live Execution Control Contract v1` 的 Issue 7 才允许统一机械化 MTP-75 至 MTP-80 anchors。
+
+文件范围：
+
+- `Sources/Core/LiveExecutionControlContract.swift`
+- `Tests/CoreTests/CoreTests.swift`
+- `docs/contracts/live-execution-control-contract.md`
+- `docs/domain/context.md`
+- `docs/validation/validation-plan.md`
+- `docs/validation/trading-validation-matrix.md`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+更新重点：
+
+- 新增 `LiveExecutionControlTerm`、`FutureRealOrderCommandTaxonomyTerm`、`LiveExecutionControlFutureGate`、`LiveExecutionControlForbiddenCapability`、`LiveExecutionControlEvidenceKind` 和 `LiveExecutionControlTerminologyBoundary`。
+- `LiveExecutionControlTerminologyBoundary` 固定 `MTP-75-LIVE-EXECUTION-CONTROL-TERMINOLOGY`、`MTP-75-REAL-ORDER-COMMAND-TAXONOMY`、`MTP-75-PAPER-REAL-COMMAND-ISOLATION`、`MTP-75-NO-EXECUTABLE-COMMAND-SURFACE`、`MTP-75-LIVE-EXECUTION-CONTROL-VALIDATION` 和 `TVM-LIVE-EXECUTION-CONTROL`。
+- 新增三条 focused Core tests，覆盖 deterministic fixture、Codable round trip、taxonomy drift rejection、command surface / submit / cancel / replace / execution report / reconciliation / adapter / state machine / UI bypass rejection，以及 paper-only evidence 不升级为 real order command。
+- 新增 `docs/contracts/live-execution-control-contract.md`，并在 domain context、validation plan、trading validation matrix 和 latest verification summary 回填 MTP-75 anchors。
+
+边界确认：
+
+- 不读取 secret / credential。
+- 不接真实 broker / exchange。
+- 不执行真实交易动作。
+- 不新增 Linear Project / Issue。
+- 不修改 Linear status。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify update。
+- 不提交 `.codex/*`。
+- 不提交 `graphify-out/*`。
+- 不实现 API key / secret storage。
+- 不实现 signed endpoint / account endpoint / listenKey。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`。
+- 不实现 real order state machine / OMS。
+- 不提交、撤销、替换真实订单。
+- 不实现 broker fill、execution report、reconciliation。
+- 不实现 incident fallback automation、live command、order-level command UI、order form 或交易按钮。
+- 不把 `PaperOrderIntent`、`PaperExecutionDecision` 或 `PaperSimulatedFillEvidence` 升级为 real order command。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP75` | pass | 3 个 MTP-75 focused Core XCTest 通过，0 failures。 |
+| `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=24; liveBlockedGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；149 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
