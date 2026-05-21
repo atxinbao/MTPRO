@@ -1130,3 +1130,51 @@ MTP-80 必须建立的主要 anchors：
 - 不读取真实账户余额，不执行 account sync，不执行 broker position sync。
 - 不暴露 persistence schema、adapter 或 runtime control。
 - 不新增交易按钮、order form、live command 或 order-level command UI。
+
+## MTP-81 Validation Docs / Stage Audit Input Validation
+
+日期：2026-05-22
+
+执行者：Codex
+
+MTP-81 的 required validation：
+
+- `docs/validation/latest-verification-summary.md` 必须更新为 MTP-81 当前验证摘要，并引用 MTP-75 至 MTP-80 的 Project evidence。
+- `docs/contracts/live-execution-control-contract.md` 必须包含 `MTP-81-LIVE-EXECUTION-CONTROL-STAGE-CLOSEOUT`、`MTP-81-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-81-NO-FINAL-STAGE-CODE-AUDIT` 和 `MTP-81-LIVE-EXECUTION-CONTROL-VALIDATION-EVIDENCE-CHAIN` anchors。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-81 Live Execution Control Contract 阶段收口说明，并指向 MTP-81 Stage Code Audit 输入材料。
+- `docs/audit/inputs/mtpro-live-execution-control-contract-v1-stage-audit-input.md` 必须存在，并包含 Issue / PR evidence、Live execution control validation evidence chain、Dashboard smoke、Forbidden capability evidence、Read-model-only boundary evidence、Automation readiness evidence、Root Docs Delta input 和 Stage Code Audit handoff checklist。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-75 至 MTP-81 的 contract、matrix、validation plan、latest summary、source / test anchors、Dashboard smoke evidence 和 stage audit input material。
+- Stage Code Audit input 必须明确：最终 Stage Code Audit Report 仍由 Parent Codex 在有效 issue 全部 Done 且 Linear Project `Completed`、`type=completed`、`completedAt` 非空后单独输出。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`。
+
+MTP-81 必须收口的主要 anchors：
+
+- `MTP-81-LIVE-EXECUTION-CONTROL-STAGE-CLOSEOUT`
+- `MTP-81-STAGE-AUDIT-INPUT-MATERIAL`
+- `MTP-81-NO-FINAL-STAGE-CODE-AUDIT`
+- `MTP-81-LIVE-EXECUTION-CONTROL-STAGE-AUDIT-INPUT`
+- `MTP-81-LIVE-EXECUTION-CONTROL-VALIDATION-EVIDENCE-CHAIN`
+- `MTP-81-AUTOMATION-READINESS-STAGE-CLOSEOUT`
+
+## MTP-81 禁止
+
+- 不输出最终 Stage Code Audit Report。
+- 不创建下一 Project 或下一 Project issues。
+- 不推进下一 Project / Issue。
+- 不把 planning notes 当执行授权。
+- 不启动下一阶段 `symphony-issue`。
+- 不写业务功能扩展。
+- 不实现 API key / secret storage。
+- 不实现 signed endpoint / account endpoint / listenKey。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`。
+- 不实现 real order state machine / OMS。
+- 不提交、撤销、替换真实订单。
+- 不发送 signed command request。
+- 不消费、解析或 ingest execution report。
+- 不记录 broker fill，不写 broker fill event fact。
+- 不实现 reconciliation service / runtime。
+- 不实现 incident fallback automation 或 incident command。
+- 不读取真实账户余额，不执行 account sync，不执行 broker position sync。
+- 不暴露 persistence schema、adapter 或 runtime control。
+- 不新增交易按钮、order form、live command 或 order-level command UI。
