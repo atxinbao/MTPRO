@@ -7664,3 +7664,52 @@ Root docs 判断：
 | `swift test --filter AppTests/testLiveMonitoringEvidenceExplorerPreviewDefinesMTP73ReadOnlyTimelineItems` | pass | 1 个 AppTests 通过；覆盖 MTP-73 live monitoring evidence 分区 18 条 timeline item、runtime health / connection / stream / latency / error / degraded title、关键 evidence IDs、read-only filter 和 no command / no live audit / no incident replay / no stop control assertions。 |
 | `swift test --filter AppTests` | pass | 19 个 AppTests 通过；覆盖 MTP-73 Event Timeline preview、MTP-72 Dashboard / Report monitoring evidence、Dashboard smoke、Workbench snapshot、Codable deterministic snapshot 和 no schema / no adapter / no runtime / no broker / no trading execution。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 146 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=24; liveBlockedGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；最终输出 `MTPRO checks passed.`。 |
+
+## MTP-74 Live Monitoring Console Validation Closeout
+
+日期：2026-05-21
+
+执行者：Codex
+
+目的：
+
+- 收口 MTPRO Live Monitoring Console v1 的 validation matrix、automation readiness 和 Stage Audit input material。
+- 汇总 MTP-68 至 MTP-73 的 PR evidence、merge commit、required check、Dashboard smoke 和 read-model-only boundary evidence。
+- 明确最终 Stage Code Audit Report 仍由 Parent Codex 在 Project 全部 Done 且 Linear Project `Completed` 后单独输出。
+
+文件范围：
+
+- `docs/audit/inputs/mtpro-live-monitoring-console-v1-stage-audit-input.md`
+- `docs/contracts/live-monitoring-console-contract.md`
+- `docs/validation/validation-plan.md`
+- `docs/validation/trading-validation-matrix.md`
+- `docs/validation/latest-verification-summary.md`
+- `checks/automation-readiness.sh`
+- `verification.md`
+
+更新重点：
+
+- 新增 MTP-74 stage audit input，覆盖 MTP-68 至 MTP-73 的 PR #137、#138、#139、#140、#141、#143 evidence、merge commit 和 `checks` success URL。
+- 在 `TVM-LIVE-MONITORING-CONSOLE` 回填 MTP-74 阶段收口，并把该 Matrix ID 纳入 automation readiness anchors。
+- 新增 `MTP-74-LIVE-MONITORING-STAGE-CLOSEOUT`、`MTP-74-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-74-NO-FINAL-STAGE-CODE-AUDIT`、`MTP-74-LIVE-MONITORING-STAGE-AUDIT-INPUT`、`MTP-74-LIVE-MONITORING-VALIDATION-EVIDENCE-CHAIN` 和 `MTP-74-AUTOMATION-READINESS-STAGE-CLOSEOUT`。
+- `checks/automation-readiness.sh` 机械检查 MTP-68 至 MTP-74 的 contract、matrix、validation plan、latest summary、stage audit input、source / test anchors 和 Dashboard smoke evidence。
+
+边界确认：
+
+- 不输出最终 Stage Code Audit Report。
+- 不创建下一 Project 或下一 Project issues。
+- 不推进下一 Project / Issue。
+- 不把 planning notes 当执行授权。
+- 不启动下一阶段 `symphony-issue`。
+- 不写业务功能扩展。
+- 不实现 Live trading、execution control、risk control、live audit、incident replay 或 stop control capability。
+- 不接 signed endpoint、account endpoint、listenKey、broker adapter、`LiveExecutionAdapter`、real order state machine 或真实订单行为。
+- 不提交 `.codex/*`。
+- 不提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/automation-readiness.sh` | pass | MTP-74 stage audit input、contract、matrix、validation plan、latest summary、source / test anchors 和 Dashboard smoke anchors 均可机械定位；输出 `MTPRO automation readiness checks passed.`。 |
+| `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=24; liveBlockedGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；146 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |

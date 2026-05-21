@@ -231,6 +231,7 @@ MTP-53 对 Paper Workflow Control Shell v1 的本地控制壳、可观察性、D
 - `TVM-PAPER-WORKFLOW-CONTROL-SHELL`
 - `TVM-MARKET-DATA-REPLAY-OPERATIONS`
 - `TVM-LIVE-TRADING-FOUNDATION`
+- `TVM-LIVE-MONITORING-CONSOLE`
 - `TVM-FUTURE-ISSUE-BACKFILL`
 
 ## MTP-68 Live Monitoring Console 候选矩阵入口
@@ -255,3 +256,21 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | `MTP-71` | `TVM-LIVE-MONITORING-CONSOLE` | 新增 `LiveLatencyErrorDegradedMonitoringEvidenceReadModel`、`LiveMonitoringLatencyEvidenceItem`、`LiveMonitoringErrorEvidenceItem` 和 `LiveMonitoringDegradedStateEvidenceItem`，用 deterministic fixture 表达 runtime health stale latency、public market stream degraded latency / disconnected error、simulated order stream nominal latency、future private user data unavailable latency / blocked error、future broker session unavailable latency / error，以及 public market stream degraded state 和 future broker session unavailable state；tests 覆盖 Codable round trip、latency / error / degraded source anchors、无 production telemetry、无 external metrics、无 alerting / paging / reconnect / stop control、无 incident command / auto recovery、无 signed endpoint / account endpoint / listenKey、无 broker adapter、无 Runtime object / SQLite / DuckDB schema；不改 `checks/automation-readiness.sh`，机械收口仍留给 MTP-74。 |
 | `MTP-72` | `TVM-LIVE-MONITORING-CONSOLE`、`TVM-REPORT-EVIDENCE`、`TVM-PAPER-WORKFLOW-CONTROL-SHELL` | 新增 `LiveMonitoringEvidenceReadModel` / `LiveMonitoringEvidenceViewModel`，把 MTP-69 / MTP-70 / MTP-71 Core evidence 接入 `ReportReadModel.liveMonitoringEvidence`、`ReportViewModel.liveMonitoringEvidence` 和 `DashboardShellSnapshot`；Report 新增 `Monitoring` 指标，Workbench 新增 `Live Monitoring` 只读组，Dashboard smoke 新增 `liveMonitoringHealth=blocked` 和 `liveMonitoringErrors=3`；tests 覆盖 deterministic ViewModel、Report / Dashboard snapshot、no live command / no trading button / no schema / no adapter / no runtime / no network / no production telemetry / no signed endpoint / no account endpoint / no listenKey / no broker adapter / no real order state machine；不改 `checks/automation-readiness.sh`，完整机械收口仍留给 MTP-74。 |
 | `MTP-73` | `TVM-LIVE-MONITORING-CONSOLE`、`TVM-REPORT-EVIDENCE`、`TVM-PAPER-WORKFLOW-CONTROL-SHELL` | 新增 `PaperWorkflowEvidenceExplorerSection.liveMonitoringEvidence`、`PaperWorkflowEvidenceExplorerReadModel.liveMonitoringEvidence`、`coversLiveMonitoringEvidence` 和 live monitoring timeline item 生成逻辑，把 MTP-72 App read model 接入 Event Timeline / Evidence Explorer preview；fixture 生成 18 条 live monitoring timeline item，full dashboard `timelineItems=42`，empty snapshot `timelineItems=24`；tests 覆盖 timeline IDs、section count、read-model-only filter、no command / no order-level command / no query language / no live audit / no incident replay / no stop control / no broker action / no live trading / no trading execution；不改 `checks/automation-readiness.sh`，完整机械收口仍留给 MTP-74。 |
+| `MTP-74` | `TVM-LIVE-MONITORING-CONSOLE`、`TVM-REPORT-EVIDENCE`、`TVM-PAPER-WORKFLOW-CONTROL-SHELL` | 已新增 `docs/audit/inputs/mtpro-live-monitoring-console-v1-stage-audit-input.md`，集中记录 MTP-68 至 MTP-73 的 PR evidence、merge commit、required check、Live monitoring validation evidence chain、Dashboard smoke、known boundaries、automation readiness evidence 和 Stage Code Audit handoff checklist；`checks/automation-readiness.sh` 机械检查 MTP-68 至 MTP-74 anchors；最终 Stage Code Audit Report 仍由 Parent Codex 在有效 issue 全部 Done 且 Linear Project `Completed`、`type=completed`、`completedAt` 非空后单独输出。 |
+
+## MTP-74 Live Monitoring Console 阶段收口
+
+日期：2026-05-21
+
+执行者：Codex
+
+MTP-74 对 Live Monitoring Console v1 的 validation evidence、Dashboard smoke、automation readiness 和 Stage Code Audit 输入材料做阶段收口，不新增业务交易能力，不替代最终 Stage Code Audit Report。
+
+| 收口项 | Evidence location | 审计用途 |
+| --- | --- | --- |
+| Issue / PR evidence | `docs/audit/inputs/mtpro-live-monitoring-console-v1-stage-audit-input.md` 的 `Issue / PR evidence input` | 为 Parent Codex 汇总 PR #137、#138、#139、#140、#141、#143 和 MTP-74 PR 提供输入。 |
+| Live monitoring validation evidence chain | `docs/audit/inputs/mtpro-live-monitoring-console-v1-stage-audit-input.md` 的 `Live monitoring validation evidence chain` | 确认 IA / terminology、runtime health / connection、market / order stream evidence、latency / error / degraded evidence、Dashboard / Report evidence surface 和 Event Timeline preview 均有 contract / test / smoke / PR evidence。 |
+| Dashboard smoke | `docs/audit/inputs/mtpro-live-monitoring-console-v1-stage-audit-input.md` 的 `Dashboard smoke` evidence | 确认 `sections=8`、`readModelOnly=true`、`workbenchReadModelOnly=true`、`controls=start,pause,close,reset`、`timelineItems=24`、`liveBlockedGates=6`、`liveMonitoringHealth=blocked` 和 `liveMonitoringErrors=3` 仍可定位。 |
+| Known boundaries | `docs/audit/inputs/mtpro-live-monitoring-console-v1-stage-audit-input.md` 的 `Known boundaries` | 为 Stage Code Audit 的 no signed endpoint、no account endpoint、no listenKey、no broker adapter、no `LiveExecutionAdapter`、no real order state machine、no live command、no trading button、no live audit、no incident replay、no stop control、no schema / adapter / runtime exposure 提供输入。 |
+| Automation readiness | `checks/automation-readiness.sh`、`docs/validation/validation-plan.md`、`docs/validation/latest-verification-summary.md` | 确认 MTP-74 audit input、contract anchors、matrix anchors、latest summary、validation plan、source / test anchors、Dashboard smoke evidence 和 PR Automation 证据链仍完整。 |
+| Root Docs Delta input | `docs/audit/inputs/mtpro-live-monitoring-console-v1-stage-audit-input.md` 的 `Root Docs Delta input` | 提醒 Parent Codex 在最终 Stage Code Audit Report 中检查 root docs，只同步已发生事实，并在 Root Docs Refresh Gate closure 后输出当前阶段完成进度条。 |
