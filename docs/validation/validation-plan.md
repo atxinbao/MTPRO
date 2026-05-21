@@ -1006,3 +1006,44 @@ MTP-77 必须建立的主要 anchors：
 - 不新增交易按钮、order form、live command 或 order-level command UI。
 - 不把 simulated fill 升级为 broker fill 或 execution report。
 - 不把 paper portfolio projection 升级为 broker position 或 real account state。
+
+## MTP-78 Paper / Real Command Isolation Contract Validation
+
+日期：2026-05-22
+
+执行者：Codex
+
+MTP-78 的 required validation：
+
+- `docs/contracts/live-execution-control-contract.md` 必须包含 `MTP-78-PAPER-REAL-COMMAND-ISOLATION-CONTRACT`、`MTP-78-PAPER-EVIDENCE-NO-REAL-COMMAND-UPGRADE`、`MTP-78-PAPER-PROJECTION-READ-MODEL-ONLY`、`MTP-78-REPORT-DASHBOARD-TIMELINE-READ-MODEL-ONLY` 和 `MTP-78-LIVE-EXECUTION-CONTROL-VALIDATION` anchors。
+- `Sources/Core/LiveExecutionControlContract.swift` 必须定义 `LivePaperRealCommandIsolationEvidenceSource`、`LivePaperRealCommandIsolationForbiddenCapability` 和 `LivePaperRealCommandIsolationBoundary`。
+- `LivePaperRealCommandIsolationBoundary` 必须固定 paper order intent、paper execution decision、simulated fill evidence、paper portfolio projection、Report read model、Dashboard ViewModel 和 Event Timeline read model 的隔离证据来源。
+- Core tests 必须覆盖 deterministic fixture、Codable round trip、evidence source drift rejection、paper order intent / paper execution decision / simulated fill / paper portfolio projection upgrade rejection、real command / submit / execution report / broker fill / reconciliation bypass rejection，以及 paper-only fixture 不可升级为 future real order command。
+- App tests 必须覆盖 `ReportViewModel`、`DashboardShellSnapshot` 和 `PaperWorkflowEvidenceExplorerViewModel` 仍只消费 read model / ViewModel，并且没有 command surface、order-level command、order form、trading button、broker action 或真实交易授权。
+- `docs/validation/trading-validation-matrix.md` 必须继续把 MTP-78 回填到 `TVM-LIVE-EXECUTION-CONTROL` candidate entry。
+- MTP-78 只定义 validation anchor 名称 / 入口，不修改 `checks/automation-readiness.sh` 做最终机械收口；automation readiness 实际收口保留给 Issue 7。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不读取真实 API key，不新增 secret config，不实现 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、real order state machine、OMS、submit / cancel / replace、execution report ingestion、broker fill event fact、reconciliation runtime、account sync、real account balance read、broker position sync、live command、order-level command UI、order form 或交易按钮。
+
+MTP-78 必须建立的主要 anchors：
+
+- `MTP-78-PAPER-REAL-COMMAND-ISOLATION-CONTRACT`
+- `MTP-78-PAPER-EVIDENCE-NO-REAL-COMMAND-UPGRADE`
+- `MTP-78-PAPER-PROJECTION-READ-MODEL-ONLY`
+- `MTP-78-REPORT-DASHBOARD-TIMELINE-READ-MODEL-ONLY`
+- `MTP-78-LIVE-EXECUTION-CONTROL-VALIDATION`
+
+## MTP-78 禁止
+
+- 不实现 API key / secret storage。
+- 不实现 signed endpoint / account endpoint / listenKey。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`。
+- 不实现 real order state machine / OMS。
+- 不提交、撤销、替换真实订单。
+- 不发送 signed command request。
+- 不消费、解析或 ingest execution report。
+- 不记录 broker fill，不写 broker fill event fact。
+- 不实现 reconciliation service / runtime。
+- 不读取真实账户余额，不执行 account sync，不执行 broker position sync。
+- 不新增交易按钮、order form、live command 或 order-level command UI。
+- 不把 paper order intent、paper execution decision、simulated fill 或 paper portfolio projection 升级为 real order command、execution report、broker fill、broker position 或 real account state。
