@@ -7293,3 +7293,55 @@ Root docs 判断：
 | `git diff --check` | pass | MTPRO-native PR evidence fields docs / checks 变更无 whitespace error。 |
 | `bash checks/automation-readiness.sh` | pass | PR 模板和工程实践文档中的 `Feedback Loop Evidence`、`Tracer Bullet / Fixture Evidence`、`Diagnose Evidence`、`Architecture Deepening Candidate` 锚点通过。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 135 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6`；最终输出 `MTPRO checks passed.`。 |
+
+## MTP-68 Live Monitoring Console IA / Read-model-only Boundary
+
+日期：2026-05-21
+
+执行者：Codex
+
+目的：
+
+- 定义 Live monitoring console information architecture、术语、状态分类和 read-model-only 边界。
+- 为后续 runtime health、connection、market stream、order stream、latency、error、degraded state 和 operations evidence 提供统一合同。
+- 只定义 validation anchor 名称 / 入口，不在本 issue 实际修改 `checks/automation-readiness.sh`。
+
+文件范围：
+
+- `docs/contracts/live-monitoring-console-contract.md`
+- `docs/contracts/frontend-view-model-contract.md`
+- `docs/product/product-surface-map.md`
+- `docs/domain/context.md`
+- `docs/validation/validation-plan.md`
+- `docs/validation/trading-validation-matrix.md`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+更新重点：
+
+- 新增 `MTP-68-LIVE-MONITORING-CONSOLE-IA`，覆盖 Overview、Runtime Health、Connection、Market Stream、Order Stream Evidence、Latency、Error / Degraded State 和 Operations Evidence。
+- 新增 `MTP-68-LIVE-MONITORING-TERMS` 和 `MTP-68-LIVE-MONITORING-STATUS-TAXONOMY`，定义 live runtime health、connection status、market stream status、order stream evidence、latency evidence、error evidence、degraded state、operations evidence，以及 blocked / simulated / futureOnly / unknown / nominal / stale / degraded / error / recovered 状态分类。
+- 新增 `MTP-68-LIVE-MONITORING-READ-MODEL-ONLY`，明确 Dashboard / Report / Event Timeline 只能展示 Read Model / ViewModel。
+- 新增 `MTP-68-ORDER-STREAM-EVIDENCE-NOT-REAL-ORDER-STATE`，明确订单流 / 订单事件流只表示 blocked / simulated / future evidence，不表示真实订单状态机。
+- 新增 `TVM-LIVE-MONITORING-CONSOLE` 候选矩阵入口和 `MTP-68-NO-AUTOMATION-READINESS-CLOSEOUT`，确认 automation readiness 实际收口保留给 MTP-74。
+
+边界确认：
+
+- 不实现 live runtime。
+- 不接 signed endpoint、account endpoint 或 listenKey。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`。
+- 不实现 real order state machine、execution report、broker fill、order reconciliation、OMS、真实账户状态或 broker position sync。
+- 不提供 live command、交易按钮、表单、order-level command、risk control command、position management command、submit / cancel / replace 或自动恢复动作。
+- 不修改 `checks/automation-readiness.sh`。
+- 不提交 `.codex/*`。
+- 不提交 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | 新增合同文件和 docs 变更无 whitespace error。 |
+| docs anchor check | pass | `MTP-68-LIVE-MONITORING-CONSOLE-IA`、`MTP-68-LIVE-MONITORING-READ-MODEL-ONLY`、`MTP-68-ORDER-STREAM-EVIDENCE-NOT-REAL-ORDER-STATE`、`MTP-68-NO-AUTOMATION-READINESS-CLOSEOUT` 和 `TVM-LIVE-MONITORING-CONSOLE` 均可定位。 |
+| automation readiness boundary check | pass | `checks/automation-readiness.sh` 中没有 MTP-68 / `TVM-LIVE-MONITORING-CONSOLE` 收口项。 |
+| `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 135 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6`；最终输出 `MTPRO checks passed.`。 |
