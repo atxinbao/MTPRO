@@ -64,6 +64,30 @@ Graphify 边界：
 
 -
 
+# Feedback Loop Evidence
+
+- [ ] 已记录本 PR 使用的最快反馈环，例如 focused fixture / module test / Dashboard smoke / `bash checks/run.sh` / GitHub `checks`。
+- [ ] 已说明为什么该反馈环足以覆盖本 PR scope。
+- [ ] 未把真实 Binance 网络、signed endpoint、account endpoint、listenKey、broker 或真实订单作为 required validation。
+
+# Tracer Bullet / Fixture Evidence
+
+- [ ] 本 PR 触碰 production behavior，并已记录 deterministic fixture / vertical slice evidence。
+- [ ] 本 PR 为 docs-only / evidence-only，不需要 tracer bullet；原因：
+- [ ] 本 PR 未按 `Core / Persistence / App / UI` 横向扩大到无法独立验收的大块。
+
+# Diagnose Evidence
+
+- [ ] 本 PR 修复 bug / failing checks / replay mismatch / regression，并已记录 reproduce、minimise、hypothesis、fix 和 regression-test。
+- [ ] 本 PR 不是 failure-driven change；原因：
+- [ ] 如发生 host-side fallback、CI / 本地差异或临时平台边界，已记录归因和证据位置。
+
+# Architecture Deepening Candidate
+
+- [ ] `yes`：本 PR 发现模块深度、locality、leverage、术语漂移或边界泄漏问题，已记录为后续 planning 输入。
+- [ ] `no`：本 PR 未发现需要进入后续 planning 的 architecture deepening candidate。
+- [ ] 如选择 `yes`，本 PR 未顺手扩大 scope 做未授权重构。
+
 # Pre-PR Codex Code Review
 
 - [ ] 已执行 Pre-PR Codex Code Review。

@@ -1,6 +1,6 @@
 # Agent Engineering Practices
 
-日期：2026-05-20
+日期：2026-05-21
 
 执行者：Codex
 
@@ -9,6 +9,8 @@
 本文档把 `mattpocock/skills` 中适合 MTPRO 的工程方法论，收敛成 MTPRO 自己的 Agent engineering practices。
 
 它是流程约束和 review 依据，不是 Linear Project，不是 issue body，不授权执行，不推进 `Todo`，不启动 Symphony，不写业务代码。
+
+本文档只吸收 `mattpocock/skills` 的工程方法，不安装、不调用、不复制外部 skill runtime。MTPRO 的正式执行入口仍是 Linear live-read、Parent Codex queue preflight、唯一 configured executable issue、symphony-issue、GitHub PR Automation、Stage Code Audit 和 Root Docs Refresh Gate。
 
 ## 参考来源
 
@@ -139,6 +141,26 @@ Project closure 的交接材料必须落为：
 - Root Docs Refresh Gate closure。
 - Current Phase Progress Bar。
 - `docs/validation/latest-verification-summary.md` 更新。
+
+### MTPRO-native PR Evidence Fields
+
+MTPRO 把 `mattpocock/skills` 中的 feedback loop、tracer bullet、diagnose 和 architecture deepening 思路收敛为 PR 模板字段，而不是新增外部命令入口。
+
+每个 PR 必须填写：
+
+- `Feedback Loop Evidence`：说明本 PR 使用的最快反馈环，例如 focused fixture / module test / Dashboard smoke / `bash checks/run.sh` / GitHub `checks`。该字段证明验证不是只跑最终大检查，而是知道当前变更最短的可信反馈路径。
+- `Tracer Bullet / Fixture Evidence`：production behavior PR 必须说明 deterministic fixture 或 vertical slice evidence；docs-only / evidence-only PR 可以写明 `N/A` 和原因。该字段防止 issue 被横向扩大为无法独立验收的大块。
+- `Diagnose Evidence`：只在 bug、failing checks、replay mismatch 或 regression 修复时强制填写 reproduce、minimise、hypothesis、fix 和 regression-test。普通 feature / docs PR 可以写明不是 failure-driven change。
+- `Architecture Deepening Candidate`：每个 PR 都必须判断 `yes/no`。`yes` 只表示发现后续 planning 输入，不授权当前 PR 顺手做未授权重构。
+
+这些字段不改变既有执行权：
+
+- 不替代 Linear issue body。
+- 不替代 WIP=1。
+- 不替代 Parent Codex queue preflight。
+- 不替代 `bash checks/run.sh`。
+- 不授权 `Backlog -> Todo`。
+- 不授权 live trading、signed endpoint、broker action 或真实订单。
 
 ## 与 AEP 编号流程的关系
 
