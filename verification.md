@@ -8642,3 +8642,46 @@ Linear / scope evidence：
 | --- | --- | --- |
 | `git diff --check` | pass | Stage Code Audit Report docs-only PR 创建前执行，通过。 |
 | `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=31; liveBlockedGates=6; liveExecutionControlGates=7; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；164 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO Live Execution Control Contract v1 Root Docs Refresh Gate closure
+
+日期：2026-05-22
+
+执行者：Parent Codex Automation Supervision（`@002 / PAR`）
+
+目的：
+
+- 在 Stage Code Audit Report PR #161 合并后，关闭 `MTPRO Live Execution Control Contract v1` 的 Root Docs Refresh Gate。
+- 只同步已发生事实，把 Final Product Goal Progress 从 `6 / 9 (67%)` 更新为 `7 / 9 (78%)`。
+- 明确 Live Execution Control 只完成 contract、future gates、forbidden capability tests、blocked evidence 和 read-model-only evidence surface，不代表真实 execution runtime、真实订单命令、broker fill、execution report 或 reconciliation。
+
+文档结果：
+
+- `GOAL.md`：updated，Final Product Goal Progress 更新为 `7 / 9 (78%)`。
+- `BLUEPRINT.md`：updated，Live Execution Control 更新为 `Complete / contract + blocked evidence`，Future Live Risk 和 Future Incident Replay / Stop Controls 仍为 Future Gated。
+- `docs/environment.md`：no update needed，本 Project 未新增 secret、broker credential、外部写能力、signed endpoint、account endpoint、listenKey 或网络必需验证。
+- `docs/architecture.md`：updated，补充 `LiveExecutionControl` read-model-only blocked evidence flow 和真实 execution runtime / broker / command 禁区。
+- `docs/roadmap.md`：updated，Project Closure Count 更新为 `10 / 10 (100%)`，Final Product Goal Progress 更新为 `7 / 9 (78%)`。
+- `docs/validation/latest-verification-summary.md`：updated，记录 Root Docs Refresh Gate closure 和当前进度口径。
+- `checks/automation-readiness.sh`：updated，机械检查最新 `7 / 9 (78%)` 进度锚点。
+- `docs/audit/mtpro-live-execution-control-contract-v1-stage-code-audit.md`：updated，Root Docs Delta 改为 closure result。
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear issue body 或 Linear status。
+- 不推进任何 issue 到 `Todo`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify update。
+- 不写业务代码。
+- 不修改 Figma。
+- 不提交 `.codex/*`。
+- 不提交 `graphify-out/*`。
+- 不实现 API key / secret storage、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、real order state machine / OMS、真实 submit / cancel / replace、execution report ingestion、broker fill event fact、reconciliation runtime、incident fallback automation、live command、order form、order-level command UI 或交易按钮。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Root Docs Refresh Gate docs-only PR 创建前执行，通过。 |
+| `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=31; liveBlockedGates=6; liveExecutionControlGates=7; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；164 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
