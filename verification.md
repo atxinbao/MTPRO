@@ -8156,6 +8156,54 @@ Linear / scope evidence：
 - 不提交 `.codex/*`。
 - 不提交 `graphify-out/*`。
 
+## MTPRO Workbench Component / Layout Specification v1 Design Record
+
+日期：2026-05-22
+
+执行者：Codex
+
+目的：
+
+- 将已通过 `@005 / ARC` 审查的 `MTPRO Workbench Component / Layout Specification v1` 落仓为设计层依据。
+- 记录 Figma canonical `57:2`，承接 Product User Flow Blueprint、Product Interaction Model、Screen Layout v1 和 UI/UX Design Rules v1。
+- 明确该文档只定义 macOS native 工作台的组件 / 布局规格，不是高保真最终视觉稿、SwiftUI 实现稿、真实交易能力或 Linear execution 授权。
+
+文件范围：
+
+- `docs/design/mtpro-workbench-component-layout-specification-v1.md`
+- `docs/product/product-surface-map.md`
+- `BLUEPRINT.md`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+更新重点：
+
+- 记录 Figma canonical file `0MkTyZXHmfBaZ2K9fqddCm` 和主节点 `57:2`。
+- 记录 `57:*` frame node-id 清单和补充可见标签 `60:2`。
+- 固化 layout primitives：Sidebar、Top status、Main evidence workspace、Detail inspector、Events / Audit preview、Future placeholder area。
+- 固化 evidence components：evidence row、evidence card、evidence table、source link、blocked reason panel、inspector section、timeline preview row。
+- 固化 state components：`empty`、`healthy`、`stale`、`blocked`、`degraded`、`error`。
+- 固化 partition components：Current completed、Completed read-model-only evidence surface、Future Gated。
+- 固化 Paper local session controls 只允许 `start` / `pause` / `close` / `reset`，且视觉权重弱于 evidence navigation。
+- 固化 Live Monitoring read-only evidence components 只表达 health / connection / stream / latency / error / degraded。
+- 固化 Future Gated placeholder 只表达 planning / boundary placeholder、不是执行授权、不创建规划或施工入口。
+- 记录 `@005 / ARC` 审查结论：通过，P0 / P1 / P2 均未发现问题。
+
+边界确认：
+
+- 不修改 Figma。
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony。
+- 不运行 Graphify update。
+- 不写业务代码。
+- 不把 Future Live trading 写成当前 execution scope。
+- 不提交 `.codex/*`。
+- 不提交 `graphify-out/*`。
+- 不授权 SwiftUI 实现、Linear execution、Future Live trading 或业务代码开发。
+
 ## MTP-77 Execution Report / Broker Fill / Reconciliation Future Gates
 
 日期：2026-05-22
