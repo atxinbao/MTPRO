@@ -71,6 +71,8 @@ MTP-71 的长期验证锚点仍为 `docs/contracts/live-monitoring-console-contr
 
 MTP-72 的长期验证锚点仍为 `docs/contracts/live-monitoring-console-contract.md` 和 `TVM-LIVE-MONITORING-CONSOLE`，并同时回填 `TVM-REPORT-EVIDENCE` / `TVM-PAPER-WORKFLOW-CONTROL-SHELL`。该锚点在 MTP-69 / MTP-70 / MTP-71 Core evidence 基础上新增 `LiveMonitoringEvidenceReadModel` / `LiveMonitoringEvidenceViewModel` App 层 Dashboard / Report 展示面：Report 展示 monitoring health、connection、stream、latency、error 和 degraded evidence，Dashboard Report section 新增 `Monitoring` 指标，Workbench 新增 `Live Monitoring` 只读组，Dashboard smoke 新增 `liveMonitoringHealth=blocked` 和 `liveMonitoringErrors=3`；不实现 live command、交易按钮、order-level command、risk command、position command、production telemetry、external metrics service、真实网络连接、alert / paging / reconnect / stop control、incident command、auto recovery、signed endpoint、account endpoint、listenKey、broker adapter、`LiveExecutionAdapter`、real order state machine、Runtime object / persistence schema 暴露或真实交易授权。
 
+MTP-73 的长期验证锚点仍为 `docs/contracts/live-monitoring-console-contract.md` 和 `TVM-LIVE-MONITORING-CONSOLE`，并同时回填 `TVM-REPORT-EVIDENCE` / `TVM-PAPER-WORKFLOW-CONTROL-SHELL`。该锚点在 MTP-72 App read model 基础上新增 Event Timeline / Evidence Explorer live monitoring evidence preview：`PaperWorkflowEvidenceExplorerSection.liveMonitoringEvidence` 分区展示 runtime health、connection、stream、latency、error 和 degraded state evidence，full fixture `timelineItems=42`，empty Dashboard smoke `timelineItems=24`，live monitoring 分区 18 条；不实现 live command、交易按钮、query language、live audit、incident replay、stop control、production telemetry、external metrics service、真实网络连接、signed endpoint、account endpoint、listenKey、broker adapter、`LiveExecutionAdapter`、real order state machine、Runtime object / persistence schema 暴露或真实交易授权。
+
 `MTPRO Live Trading Boundary Definition v1` 的 canonical Stage Code Audit Report 已落仓到 `docs/audit/mtpro-live-trading-boundary-definition-v1-stage-code-audit.md`。该报告记录 PR #126 至 #132、merge commits、GitHub `checks` 成功证据、Linear Project `Completed` evidence、Live boundary validation evidence chain、Known CI Boundary、Post-Issue Ledger 持久仓同步阻塞说明、Boundary Audit、Root Docs Delta 和 Next Human Project Planning handoff。
 
 ## Goal / Roadmap Progress Baseline
@@ -138,6 +140,24 @@ Planning record 入口：
 - `MTP-67`：Live Trading Boundary Definition v1 阶段收口。
 
 ## 最近验证
+
+MTP-73 Event Timeline live monitoring evidence preview 已完成本地验证：
+
+```bash
+swift test --filter AppTests/testLiveMonitoringEvidenceExplorerPreviewDefinesMTP73ReadOnlyTimelineItems
+swift test --filter AppTests
+bash checks/run.sh
+```
+
+当前收口证据：
+
+- `Sources/App/PaperWorkflowEvidenceExplorer.swift`：新增 `PaperWorkflowEvidenceExplorerSection.liveMonitoringEvidence`、`PaperWorkflowEvidenceExplorerReadModel.liveMonitoringEvidence`、`coversLiveMonitoringEvidence`、`providesLiveAudit`、`providesIncidentReplay`、`providesStopControl` 和 live monitoring timeline item 生成逻辑；只消费 `LiveMonitoringEvidenceReadModel`，不读取 adapter、Runtime、schema、production telemetry、external metrics、真实网络连接或 broker 状态。
+- `Sources/App/App.swift`：把 `ReportReadModel.liveMonitoringEvidence` 传入 `PaperWorkflowEvidenceExplorerReadModel`，保持 Report / Dashboard / Event Timeline 共享同一 read-model-only evidence 输入。
+- `Tests/AppTests/AppTests.swift`：新增 `testLiveMonitoringEvidenceExplorerPreviewDefinesMTP73ReadOnlyTimelineItems`，并扩展 Event Timeline / Dashboard / Workbench / smoke snapshot assertions。
+- `docs/contracts/live-monitoring-console-contract.md`、`docs/contracts/frontend-view-model-contract.md`、`docs/product/product-surface-map.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/validation-plan.md`：回填 MTP-73 Event Timeline preview anchors，并明确 MTP-74 才做 MTP-68 至 MTP-73 automation readiness 机械收口。
+- `swift test --filter AppTests/testLiveMonitoringEvidenceExplorerPreviewDefinesMTP73ReadOnlyTimelineItems`：pass，1 test, 0 failures。
+- `swift test --filter AppTests`：pass，19 tests, 0 failures。
+- `bash checks/run.sh`：pass，automation readiness、Dashboard build / smoke 和 146 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=24; liveBlockedGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；最终输出 `MTPRO checks passed.`。
 
 Target System Architecture v3 docs-only 收口验证：
 

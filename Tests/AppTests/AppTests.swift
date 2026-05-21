@@ -239,16 +239,17 @@ final class AppTests: XCTestCase {
     }
 
     func testPaperWorkflowEvidenceExplorerTimelineSnapshotAggregatesReadModelOnlyEvidence() throws {
-        // 测试场景：MTP-51 的 Event Timeline / Evidence Explorer 子集必须只从 read model
-        // 汇总 market event、Live blocked evidence、strategy signal、risk decision、paper order、
-        // simulated fill、portfolio projection 和 report artifact evidence links。
+        // 测试场景：MTP-73 的 Event Timeline / Evidence Explorer 子集必须只从 read model
+        // 汇总 market event、Live blocked evidence、Live monitoring evidence、strategy signal、
+        // risk decision、paper order、simulated fill、portfolio projection 和 report artifact links。
         let explorer = try makeDashboardViewModel().paperWorkflowEvidenceExplorer
 
         XCTAssertTrue(explorer.source.isReadModelOnly)
-        XCTAssertEqual(explorer.timelineItemCount, 24)
+        XCTAssertEqual(explorer.timelineItemCount, 42)
         XCTAssertTrue(explorer.coversMarketEvents)
         XCTAssertTrue(explorer.coversMarketDataReplayOperations)
         XCTAssertTrue(explorer.coversLiveTradingBlockedEvidence)
+        XCTAssertTrue(explorer.coversLiveMonitoringEvidence)
         XCTAssertTrue(explorer.coversStrategySignals)
         XCTAssertTrue(explorer.coversRiskDecisions)
         XCTAssertTrue(explorer.coversPaperOrders)
@@ -263,6 +264,7 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(itemCounts[.marketEvent], 6)
         XCTAssertEqual(itemCounts[.marketDataReplayOperation], 1)
         XCTAssertEqual(itemCounts[.liveTradingBlockedEvidence], 6)
+        XCTAssertEqual(itemCounts[.liveMonitoringEvidence], 18)
         XCTAssertEqual(itemCounts[.strategySignal], 3)
         XCTAssertEqual(itemCounts[.riskDecision], 4)
         XCTAssertEqual(itemCounts[.paperOrder], 1)
@@ -287,9 +289,60 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(evidenceIDs.contains("replay-run-BTCUSDT-1m-20240101T000000Z"))
         XCTAssertTrue(evidenceIDs.contains("mtp-65-api-key-blocked"))
         XCTAssertTrue(evidenceIDs.contains("mtp-65-real-order-lifecycle-blocked"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-69-live-runtime-health"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-70-order-stream-future-gate"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-71-public-market-stream-error-disconnected"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-71-broker-session-unavailable"))
         XCTAssertEqual(explorer.timelineItems.first?.section, .marketEvent)
         XCTAssertEqual(explorer.timelineItems.last?.section, .liveTradingBlockedEvidence)
         XCTAssertEqual(explorer.lastAppliedSequence, 16)
+    }
+
+    func testLiveMonitoringEvidenceExplorerPreviewDefinesMTP73ReadOnlyTimelineItems() throws {
+        // 测试场景：MTP-73 只把 MTP-72 App 层 live monitoring evidence 接入 Event Timeline
+        // preview；preview 必须覆盖 health、connection、stream、latency、error、blocked/degraded/future
+        // evidence，并保持无 command、无 live audit、无 incident replay、无 stop control。
+        let explorer = try makeDashboardViewModel().paperWorkflowEvidenceExplorer
+        let liveItems = explorer.timelineItems.filter { $0.section == .liveMonitoringEvidence }
+        let titles = liveItems.map(\.title)
+        let summaries = liveItems.map(\.summary)
+        let evidenceLinks = liveItems.flatMap(\.evidenceLinks)
+        let evidenceIDs = evidenceLinks.map(\.evidenceID)
+
+        XCTAssertEqual(liveItems.count, 18)
+        XCTAssertTrue(explorer.coversLiveMonitoringEvidence)
+        XCTAssertTrue(titles.contains("Live monitoring runtime health"))
+        XCTAssertTrue(titles.contains("Live monitoring connection"))
+        XCTAssertTrue(titles.contains("Live monitoring stream"))
+        XCTAssertTrue(titles.contains("Live monitoring latency"))
+        XCTAssertTrue(titles.contains("Live monitoring error"))
+        XCTAssertTrue(titles.contains("Live monitoring degraded state"))
+        XCTAssertTrue(summaries.contains { $0.contains("health=blocked") })
+        XCTAssertTrue(summaries.contains { $0.contains("future private user data connection blocked") })
+        XCTAssertTrue(summaries.contains { $0.contains("future order stream unavailable") })
+        XCTAssertTrue(summaries.contains { $0.contains("future private user data unavailable") })
+        XCTAssertTrue(summaries.contains { $0.contains("public market stream degraded") })
+        XCTAssertTrue(summaries.contains { $0.contains("MTP71_PRIVATE_USER_DATA_BLOCKED") })
+
+        XCTAssertTrue(evidenceIDs.contains("mtp-69-live-runtime-health"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-69-private-user-data-blocked"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-70-public-market-stream-disconnected"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-70-order-stream-simulated-paper-evidence"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-71-private-user-data-latency-unavailable"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-71-broker-session-error-unavailable"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-71-public-market-stream-degraded"))
+        XCTAssertTrue(evidenceLinks.allSatisfy { $0.section == .liveMonitoringEvidence })
+
+        XCTAssertTrue(explorer.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(explorer.providesCommandSurface)
+        XCTAssertFalse(explorer.providesOrderLevelCommand)
+        XCTAssertFalse(explorer.supportsQueryLanguage)
+        XCTAssertFalse(explorer.providesLiveAudit)
+        XCTAssertFalse(explorer.providesIncidentReplay)
+        XCTAssertFalse(explorer.providesStopControl)
+        XCTAssertFalse(explorer.authorizesLiveTrading)
+        XCTAssertFalse(explorer.touchesBrokerAction)
+        XCTAssertFalse(explorer.authorizesTradingExecution)
     }
 
     func testPaperWorkflowEvidenceExplorerFilterIsReadOnlyAndKeepsBoundary() throws {
@@ -681,12 +734,16 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(viewModel.report.lastAppliedSequence, 16)
         XCTAssertFalse(viewModel.report.tradingValidationAuthorizesExecution)
         XCTAssertFalse(viewModel.report.authorizesTradingExecution)
-        XCTAssertEqual(viewModel.paperWorkflowEvidenceExplorer.timelineItemCount, 24)
+        XCTAssertEqual(viewModel.paperWorkflowEvidenceExplorer.timelineItemCount, 42)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversPaperWorkflowChainEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversMarketDataReplayOperations)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveTradingBlockedEvidence)
+        XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveMonitoringEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.readModelOnlyBoundaryHeld)
         XCTAssertFalse(viewModel.paperWorkflowEvidenceExplorer.providesCommandSurface)
+        XCTAssertFalse(viewModel.paperWorkflowEvidenceExplorer.providesLiveAudit)
+        XCTAssertFalse(viewModel.paperWorkflowEvidenceExplorer.providesIncidentReplay)
+        XCTAssertFalse(viewModel.paperWorkflowEvidenceExplorer.providesStopControl)
         XCTAssertFalse(viewModel.paperWorkflowEvidenceExplorer.exposesDatabaseSchema)
         let report = try XCTUnwrap(viewModel.report.artifacts.first)
         XCTAssertEqual(report.reportID, "report-backtest-ema-fixture")
@@ -804,10 +861,11 @@ final class AppTests: XCTestCase {
             decoded.report.artifacts.first?.paperExecutionWorkflowEvidence.paperOrderIDs,
             ["paper-replay-order-allowed"]
         )
-        XCTAssertEqual(decoded.paperWorkflowEvidenceExplorer.timelineItemCount, 24)
+        XCTAssertEqual(decoded.paperWorkflowEvidenceExplorer.timelineItemCount, 42)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversReportArtifacts)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversMarketDataReplayOperations)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveTradingBlockedEvidence)
+        XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveMonitoringEvidence)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.readModelOnlyBoundaryHeld)
         XCTAssertEqual(decoded.report.marketDataReplayEvidenceCount, 1)
         XCTAssertTrue(decoded.report.marketDataReplayReadModelOnlyBoundaryHeld)
@@ -1015,7 +1073,7 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(snapshot.smokeSummary.contains("readModelOnly=true"))
         XCTAssertTrue(snapshot.smokeSummary.contains("workbenchReadModelOnly=true"))
         XCTAssertTrue(snapshot.smokeSummary.contains("controls=start,pause,close,reset"))
-        XCTAssertTrue(snapshot.smokeSummary.contains("timelineItems=24"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("timelineItems=42"))
         XCTAssertTrue(snapshot.smokeSummary.contains("liveBlockedGates=6"))
         XCTAssertTrue(snapshot.smokeSummary.contains("liveMonitoringHealth=blocked"))
         XCTAssertTrue(snapshot.smokeSummary.contains("liveMonitoringErrors=3"))
@@ -1065,8 +1123,8 @@ final class AppTests: XCTestCase {
             )
         )
 
-        XCTAssertEqual(metricValue("Timeline items", in: workbench.evidenceExplorerMetrics), "24")
-        XCTAssertEqual(metricValue("Sections", in: workbench.evidenceExplorerMetrics), "9")
+        XCTAssertEqual(metricValue("Timeline items", in: workbench.evidenceExplorerMetrics), "42")
+        XCTAssertEqual(metricValue("Sections", in: workbench.evidenceExplorerMetrics), "10")
         XCTAssertTrue(
             workbench.evidenceExplorerDetails.contains(
                 "Filter: read-only"
@@ -1164,7 +1222,7 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(events?.metrics.first { $0.label == "Last sequence" }?.value, "n/a")
 
         XCTAssertEqual(metricValue("Controls", in: snapshot.workbench.observabilityMetrics), "4")
-        XCTAssertEqual(metricValue("Timeline items", in: snapshot.workbench.evidenceExplorerMetrics), "6")
+        XCTAssertEqual(metricValue("Timeline items", in: snapshot.workbench.evidenceExplorerMetrics), "24")
         XCTAssertEqual(metricValue("Live gates", in: snapshot.workbench.liveBlockedEvidenceMetrics), "6")
         XCTAssertEqual(metricValue("Health", in: snapshot.workbench.liveMonitoringEvidenceMetrics), "blocked")
         XCTAssertEqual(metricValue("Errors", in: snapshot.workbench.liveMonitoringEvidenceMetrics), "3")

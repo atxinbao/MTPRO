@@ -338,6 +338,47 @@ MTP-72 的验证入口：
 - Required validation：`bash checks/run.sh`。
 - `checks/automation-readiness.sh` 的完整 MTP-68 至 MTP-73 机械收口仍保留给 MTP-74；MTP-72 只回填 Dashboard / Report evidence anchors 和本地验证证据。
 
+## MTP-73 Event Timeline live monitoring evidence preview
+
+`MTP-73-EVENT-TIMELINE-LIVE-MONITORING-EVIDENCE-PREVIEW`
+
+MTP-73 把 MTP-69 / MTP-70 / MTP-71 的 live monitoring evidence 接入 App 层 Event Timeline / Evidence Explorer 只读预览。该接入只消费 `LiveMonitoringEvidenceReadModel`，把 runtime health、connection、market / order stream、latency、error 和 degraded state evidence 转成 timeline item / evidence link，不读取 adapter、Runtime、schema、production telemetry、external metrics、真实网络连接或 broker 状态。
+
+`MTP-73-LIVE-MONITORING-TIMELINE-ITEMS`
+
+Event Timeline 新增 `PaperWorkflowEvidenceExplorerSection.liveMonitoringEvidence` 分区：
+
+- `PaperWorkflowEvidenceExplorerReadModel.liveMonitoringEvidence` 只从 `ReportReadModel.liveMonitoringEvidence` 或显式注入的同形 read model 取数。
+- `PaperWorkflowEvidenceExplorerViewModel.coversLiveMonitoringEvidence` 在 deterministic fixture 中必须为 true。
+- `makeLiveMonitoringEvidenceItems` 必须生成 18 条 read-only timeline item：1 条 runtime health、3 条 connection、4 条 stream、5 条 latency、3 条 error 和 2 条 degraded state。
+- 每条 timeline item 必须保留 `stream = live monitoring`、source sequence、evidence ID 和 evidence label；不产生 query language、command surface、live audit、incident replay 或 stop control。
+- 全量 Dashboard fixture 的 Event Timeline item count 必须从 24 增至 42；空启动 snapshot 仍包含静态 Live blocked / Live monitoring evidence，`timelineItems=24`。
+
+`MTP-73-NO-LIVE-AUDIT-INCIDENT-REPLAY-STOP-CONTROL`
+
+MTP-73 必须保持以下 flags 为 false：
+
+- `providesCommandSurface`
+- `providesOrderLevelCommand`
+- `supportsQueryLanguage`
+- `providesLiveAudit`
+- `providesIncidentReplay`
+- `providesStopControl`
+- `authorizesLiveTrading`
+- `touchesBrokerAction`
+- `authorizesTradingExecution`
+
+`MTP-73-LIVE-MONITORING-EVENT-TIMELINE-VALIDATION`
+
+MTP-73 的验证入口：
+
+- `Sources/App/PaperWorkflowEvidenceExplorer.swift` 必须包含 `PaperWorkflowEvidenceExplorerSection.liveMonitoringEvidence`、`PaperWorkflowEvidenceExplorerReadModel.liveMonitoringEvidence`、`coversLiveMonitoringEvidence` 和 live monitoring timeline item 生成逻辑。
+- `Sources/App/App.swift` 必须把 `ReportReadModel.liveMonitoringEvidence` 传入 `PaperWorkflowEvidenceExplorerReadModel`。
+- `Tests/AppTests/AppTests.swift` 必须覆盖 `testLiveMonitoringEvidenceExplorerPreviewDefinesMTP73ReadOnlyTimelineItems`、全量 timeline item count、分区 item count、evidence IDs 和 no command / no live audit / no incident replay / no stop control assertions。
+- Focused validation：`swift test --filter AppTests/testLiveMonitoringEvidenceExplorerPreviewDefinesMTP73ReadOnlyTimelineItems`。
+- Required validation：`swift test --filter AppTests` 和 `bash checks/run.sh`。
+- `checks/automation-readiness.sh` 的完整 MTP-68 至 MTP-73 机械收口仍保留给 MTP-74；MTP-73 只回填 Event Timeline preview evidence 和本地验证证据。
+
 ## MTP-68 validation anchors
 
 `MTP-68-LIVE-MONITORING-VALIDATION-ANCHORS`

@@ -521,3 +521,24 @@ Shell 新增展示：
 - production telemetry、runtime profiler、external metrics service、真实 runtime monitoring 或真实网络连接。
 - signed endpoint、account endpoint、listenKey、API key、secret、account payload、broker adapter、`LiveExecutionAdapter`、execution report、broker fill、real order state machine、OMS 或真实交易授权。
 - Runtime object、adapter request、SQLite / DuckDB schema、SQL、ORM model 或 persistence adapter direct read 暴露。
+
+## MTP-73 Event Timeline live monitoring evidence preview
+
+日期：2026-05-21
+
+执行者：Codex
+
+当前产品面把 MTP-69 / MTP-70 / MTP-71 的 live monitoring evidence 接入 Event Timeline / Evidence Explorer 的只读预览。该接入复用 App 层 `LiveMonitoringEvidenceReadModel`，不做完整实盘监控台 redesign，不提供 live audit、incident replay 或 stop control。
+
+新增观察面：
+
+- Event Timeline / Evidence Explorer：新增 `live monitoring evidence` 分区，展示 runtime health、connection、market / order stream、latency、error 和 degraded state timeline rows。
+- Evidence links：每条 monitoring timeline row 只保留 evidence ID、label 和 source sequence，供 read-only navigation 使用。
+- Dashboard / Workbench preview：全量 fixture `timelineItems=42`，其中 live monitoring evidence 分区 18 条；空启动 snapshot 仍展示静态 Live blocked / Live monitoring evidence，`timelineItems=24`。
+
+仍不包含：
+
+- live command、交易按钮、表单、order-level command、risk command、position command、alert / paging / reconnect、incident command、auto recovery、live audit、incident replay 或 stop control。
+- production telemetry、runtime profiler、external metrics service、真实 runtime monitoring、真实网络连接或 WebSocket。
+- signed endpoint、account endpoint、listenKey、API key、secret、account payload、broker adapter、`LiveExecutionAdapter`、execution report、broker fill、real order state machine、OMS 或真实交易授权。
+- Runtime object、adapter request、SQLite / DuckDB schema、SQL、ORM model 或 persistence adapter direct read 暴露。

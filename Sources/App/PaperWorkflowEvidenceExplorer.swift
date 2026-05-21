@@ -6,12 +6,13 @@ import Persistence
 ///
 /// 分区只用于 App 层 read model / ViewModel 观察，不是查询语言、命令路由或 UI 控件配置。
 /// 每个分区都只能从稳定 read model 或 append-only event envelope 派生；Live 分区只能展示
-/// blocked evidence。禁止读取 SQLite / DuckDB schema、Runtime object、adapter request，
-/// 也禁止恢复任何真实交易能力。
+/// blocked / monitoring evidence。禁止读取 SQLite / DuckDB schema、Runtime object、adapter request，
+/// 也禁止恢复任何真实交易能力、live audit、incident replay 或 stop control。
 public enum PaperWorkflowEvidenceExplorerSection: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
     case marketEvent = "market event"
     case marketDataReplayOperation = "market data replay operation"
     case liveTradingBlockedEvidence = "live trading blocked evidence"
+    case liveMonitoringEvidence = "live monitoring evidence"
     case strategySignal = "strategy signal"
     case riskDecision = "risk decision"
     case paperOrder = "paper order"
@@ -132,14 +133,15 @@ public struct PaperWorkflowEvidenceExplorerFilterSnapshot: Codable, Equatable, S
 /// PaperWorkflowEvidenceExplorerReadModel 汇总 Event Timeline / Evidence Explorer 的稳定输入。
 ///
 /// 该 read model 只组合 Dashboard 已有 App read models：market、strategy、report、
-/// Live blocked evidence、paper workflow observability 和 append-only event timeline。
+/// Live blocked evidence、Live monitoring evidence、paper workflow observability 和 append-only event timeline。
 /// 它不新增 projection schema，不直接读取 Persistence adapter，不暴露 Runtime object，
-/// 也不提供交易、风控或 live command。
+/// 也不提供交易、风控、live command、live audit、incident replay 或 stop control。
 public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
     public let market: MarketReadModel
     public let strategy: StrategyReadModel
     public let report: ReportReadModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel
+    public let liveMonitoringEvidence: LiveMonitoringEvidenceReadModel
     public let paperWorkflowObservability: PaperWorkflowObservabilityReadModel
     public let events: EventTimelineReadModel
     public let lastAppliedSequence: Int?
@@ -149,6 +151,7 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
         strategy: StrategyReadModel = StrategyReadModel(),
         report: ReportReadModel = ReportReadModel(),
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel? = nil,
+        liveMonitoringEvidence: LiveMonitoringEvidenceReadModel? = nil,
         paperWorkflowObservability: PaperWorkflowObservabilityReadModel = PaperWorkflowObservabilityReadModel(),
         events: EventTimelineReadModel = EventTimelineReadModel()
     ) {
@@ -157,6 +160,8 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
         self.report = report
         self.liveTradingBlockedEvidence = liveTradingBlockedEvidence
             ?? report.liveTradingBlockedEvidence
+        self.liveMonitoringEvidence = liveMonitoringEvidence
+            ?? report.liveMonitoringEvidence
         self.paperWorkflowObservability = paperWorkflowObservability
         self.events = events
         self.lastAppliedSequence = Self.maxSequence(
@@ -164,6 +169,7 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
             strategy.lastAppliedSequence,
             report.lastAppliedSequence,
             self.liveTradingBlockedEvidence.lastAppliedSequence,
+            self.liveMonitoringEvidence.lastAppliedSequence,
             paperWorkflowObservability.lastAppliedSequence,
             events.envelopes.map(\.sequence).max()
         )
@@ -177,8 +183,8 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
 /// PaperWorkflowEvidenceExplorerViewModel 是 Dashboard / Workbench 可消费的只读 Explorer 快照。
 ///
 /// ViewModel 从 read model 派生 timeline rows、evidence links 和 section filter snapshot。
-/// 所有 boundary flags 必须保持 read-model-only / paper-only / Live blocked only；该类型不实现
-/// UI controls、Runtime command、order-level command、report archive/export 或任何 Live / broker 能力。
+/// 所有 boundary flags 必须保持 read-model-only / paper-only / Live blocked 与 monitoring evidence only；
+/// 该类型不实现 UI controls、Runtime command、order-level command、report archive/export 或任何 Live / broker 能力。
 public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendable {
     public let source: ViewModelSourceContract
     public let timelineItems: [PaperWorkflowEventTimelineItem]
@@ -190,6 +196,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
     public let coversMarketEvents: Bool
     public let coversMarketDataReplayOperations: Bool
     public let coversLiveTradingBlockedEvidence: Bool
+    public let coversLiveMonitoringEvidence: Bool
     public let coversStrategySignals: Bool
     public let coversRiskDecisions: Bool
     public let coversPaperOrders: Bool
@@ -204,6 +211,9 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
     public let providesCommandSurface: Bool
     public let providesOrderLevelCommand: Bool
     public let supportsQueryLanguage: Bool
+    public let providesLiveAudit: Bool
+    public let providesIncidentReplay: Bool
+    public let providesStopControl: Bool
     public let authorizesLiveTrading: Bool
     public let touchesBrokerAction: Bool
     public let authorizesTradingExecution: Bool
@@ -234,6 +244,9 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         let coversLiveTradingBlockedEvidence = allTimelineItems.contains {
             $0.section == .liveTradingBlockedEvidence
         }
+        let coversLiveMonitoringEvidence = allTimelineItems.contains {
+            $0.section == .liveMonitoringEvidence
+        }
         let coversStrategySignals = allTimelineItems.contains { $0.section == .strategySignal }
         let coversRiskDecisions = allTimelineItems.contains { $0.section == .riskDecision }
         let coversPaperOrders = allTimelineItems.contains { $0.section == .paperOrder }
@@ -247,6 +260,9 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         let providesCommandSurface = false
         let providesOrderLevelCommand = false
         let supportsQueryLanguage = false
+        let providesLiveAudit = false
+        let providesIncidentReplay = false
+        let providesStopControl = false
         let authorizesLiveTrading = false
         let touchesBrokerAction = false
         let authorizesTradingExecution = false
@@ -265,6 +281,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         self.coversMarketEvents = coversMarketEvents
         self.coversMarketDataReplayOperations = coversMarketDataReplayOperations
         self.coversLiveTradingBlockedEvidence = coversLiveTradingBlockedEvidence
+        self.coversLiveMonitoringEvidence = coversLiveMonitoringEvidence
         self.coversStrategySignals = coversStrategySignals
         self.coversRiskDecisions = coversRiskDecisions
         self.coversPaperOrders = coversPaperOrders
@@ -279,6 +296,9 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             && providesCommandSurface == false
             && providesOrderLevelCommand == false
             && supportsQueryLanguage == false
+            && providesLiveAudit == false
+            && providesIncidentReplay == false
+            && providesStopControl == false
             && authorizesLiveTrading == false
             && touchesBrokerAction == false
             && authorizesTradingExecution == false
@@ -288,6 +308,9 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         self.providesCommandSurface = providesCommandSurface
         self.providesOrderLevelCommand = providesOrderLevelCommand
         self.supportsQueryLanguage = supportsQueryLanguage
+        self.providesLiveAudit = providesLiveAudit
+        self.providesIncidentReplay = providesIncidentReplay
+        self.providesStopControl = providesStopControl
         self.authorizesLiveTrading = authorizesLiveTrading
         self.touchesBrokerAction = touchesBrokerAction
         self.authorizesTradingExecution = authorizesTradingExecution
@@ -313,6 +336,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             makeMarketItems(readModel.market)
                 + makeMarketDataReplayOperationItems(readModel.report.marketDataReplayOperations)
                 + makeLiveTradingBlockedEvidenceItems(readModel.liveTradingBlockedEvidence)
+                + makeLiveMonitoringEvidenceItems(readModel.liveMonitoringEvidence)
                 + makeStrategyItems(readModel.strategy)
                 + readModel.events.envelopes.compactMap(makeEnvelopeItem)
                 + makeReportItems(readModel.report)
@@ -449,6 +473,110 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
                 ]
             )
         }
+    }
+
+    private static func makeLiveMonitoringEvidenceItems(
+        _ readModel: LiveMonitoringEvidenceReadModel
+    ) -> [PaperWorkflowEventTimelineItem] {
+        let monitoring = readModel.monitoringEvidence
+        let streamEvidence = monitoring.streamEvidence
+        let runtimeHealth = streamEvidence.runtimeHealth
+        let sequence = readModel.lastAppliedSequence
+        let healthItem = PaperWorkflowEventTimelineItem(
+            section: .liveMonitoringEvidence,
+            sequence: sequence,
+            stream: "live monitoring",
+            title: "Live monitoring runtime health",
+            summary: "health=\(runtimeHealth.status.rawValue); connections=\(runtimeHealth.connections.count)",
+            evidenceLinks: [
+                liveMonitoringLink(
+                    id: runtimeHealth.healthID.rawValue,
+                    label: "runtime health",
+                    sequence: sequence
+                )
+            ]
+        )
+        let connectionItems = runtimeHealth.connections.map { connection in
+            PaperWorkflowEventTimelineItem(
+                section: .liveMonitoringEvidence,
+                sequence: sequence,
+                stream: "live monitoring",
+                title: "Live monitoring connection",
+                summary: "\(connection.connectionKind.rawValue) \(connection.status.rawValue)",
+                evidenceLinks: [
+                    liveMonitoringLink(
+                        id: connection.connectionID.rawValue,
+                        label: "connection status",
+                        sequence: sequence
+                    )
+                ]
+            )
+        }
+        let streamItems = streamEvidence.streamEvidence.map { item in
+            PaperWorkflowEventTimelineItem(
+                section: .liveMonitoringEvidence,
+                sequence: sequence,
+                stream: "live monitoring",
+                title: "Live monitoring stream",
+                summary: "\(item.streamKind.rawValue) \(item.status.rawValue); evidence=\(item.evidenceKind.rawValue)",
+                evidenceLinks: [
+                    liveMonitoringLink(
+                        id: item.streamID.rawValue,
+                        label: "stream evidence",
+                        sequence: sequence
+                    )
+                ]
+            )
+        }
+        let latencyItems = monitoring.latencyEvidence.map { item in
+            PaperWorkflowEventTimelineItem(
+                section: .liveMonitoringEvidence,
+                sequence: sequence,
+                stream: "live monitoring",
+                title: "Live monitoring latency",
+                summary: "\(item.scope.rawValue) \(item.bucket.rawValue); latency=\(formatMilliseconds(item.measuredLatencyMilliseconds)); freshness=\(formatMilliseconds(item.freshnessAgeMilliseconds))",
+                evidenceLinks: [
+                    liveMonitoringLink(
+                        id: item.latencyID.rawValue,
+                        label: "latency evidence",
+                        sequence: sequence
+                    )
+                ]
+            )
+        }
+        let errorItems = monitoring.errorEvidence.map { item in
+            PaperWorkflowEventTimelineItem(
+                section: .liveMonitoringEvidence,
+                sequence: sequence,
+                stream: "live monitoring",
+                title: "Live monitoring error",
+                summary: "\(item.scope.rawValue) \(item.status.rawValue); code=\(item.errorCode)",
+                evidenceLinks: [
+                    liveMonitoringLink(
+                        id: item.errorID.rawValue,
+                        label: "error evidence",
+                        sequence: sequence
+                    )
+                ]
+            )
+        }
+        let degradedStateItems = monitoring.degradedStateEvidence.map { item in
+            PaperWorkflowEventTimelineItem(
+                section: .liveMonitoringEvidence,
+                sequence: sequence,
+                stream: "live monitoring",
+                title: "Live monitoring degraded state",
+                summary: "\(item.scope.rawValue) \(item.status.rawValue); reason=\(item.reason)",
+                evidenceLinks: [
+                    liveMonitoringLink(
+                        id: item.stateID.rawValue,
+                        label: "degraded state evidence",
+                        sequence: sequence
+                    )
+                ]
+            )
+        }
+        return [healthItem] + connectionItems + streamItems + latencyItems + errorItems + degradedStateItems
     }
 
     private static func makeStrategyItems(_ readModel: StrategyReadModel) -> [PaperWorkflowEventTimelineItem] {
@@ -784,6 +912,23 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             label: label,
             sourceSequence: sequence
         )
+    }
+
+    private static func liveMonitoringLink(
+        id: String,
+        label: String,
+        sequence: Int? = nil
+    ) -> PaperWorkflowEvidenceLinkSummary {
+        PaperWorkflowEvidenceLinkSummary(
+            section: .liveMonitoringEvidence,
+            evidenceID: id,
+            label: label,
+            sourceSequence: sequence
+        )
+    }
+
+    private static func formatMilliseconds(_ value: Int?) -> String {
+        value.map { "\($0)ms" } ?? "n/a"
     }
 }
 
