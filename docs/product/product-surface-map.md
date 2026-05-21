@@ -469,3 +469,32 @@ Shell 新增展示：
 - live command、交易按钮、表单、order-level command、risk control command、position management command。
 - API key、secret storage、signed endpoint、account endpoint、listenKey、broker adapter、real order lifecycle、真实订单提交 / 撤销 / 替换或真实交易授权。
 - SQLite / DuckDB schema、SQL、ORM model、Runtime object、adapter request 或 persistence adapter direct read 暴露。
+
+## MTP-68 Live monitoring console information architecture
+
+日期：2026-05-21
+
+执行者：Codex
+
+当前产品面新增 Live monitoring console information architecture 合同，但不实现实盘 runtime、连接器、stream collector、UI redesign、交易按钮或 live command。主合同入口是 `docs/contracts/live-monitoring-console-contract.md`。
+
+`MTP-68-LIVE-MONITORING-CONSOLE-IA`
+
+后续实盘监控台的信息架构必须覆盖：
+
+- Overview：read-model-only readiness、blocked gates 和 operations evidence 总览。
+- Runtime Health：future live runtime health status、updatedAt、source anchor。
+- Connection：connection status、stale / error evidence、future private connection gate。
+- Market Stream：public read-only market stream status、freshness 和 latency evidence。
+- Order Stream Evidence：blocked / simulated / future order stream evidence，不表示真实订单状态机。
+- Latency：latency bucket、freshness、stale evidence。
+- Error / Degraded State：error summary、degraded scope、recovered evidence。
+- Operations Evidence：validation、handoff、Stage Audit input、known boundary 和 readiness evidence chain。
+
+仍不包含：
+
+- live runtime、signed endpoint、account endpoint、listenKey、private WebSocket、broker adapter、exchange execution adapter 或 `LiveExecutionAdapter`。
+- real order state machine、execution report、broker fill、order reconciliation、OMS、真实账户状态或 broker position sync。
+- Dashboard / Workbench UI redesign、按钮、表单、live command、order-level command、submit / cancel / replace、risk control command、position management command 或自动恢复动作。
+- Runtime object、adapter request、SQLite / DuckDB schema、SQL、ORM model 或 persistence adapter direct read 暴露。
+- `checks/automation-readiness.sh` 的 MTP-68 机械收口；该收口保留给 MTP-74。

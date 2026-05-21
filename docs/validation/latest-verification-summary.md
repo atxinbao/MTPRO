@@ -59,6 +59,8 @@ MTP-66 的长期验证锚点仍为 `docs/contracts/live-trading-boundary-contrac
 
 MTP-67 的长期验证锚点仍为 `docs/contracts/live-trading-boundary-contract.md` 和 `TVM-LIVE-TRADING-FOUNDATION`，并同时回填 `TVM-REPORT-EVIDENCE` / `TVM-PAPER-WORKFLOW-CONTROL-SHELL` 的阶段收口证据。该锚点新增 Gate 6 Stage validation closeout、`docs/audit/inputs/mtpro-live-trading-boundary-definition-v1-stage-audit-input.md`、`MTP-67-LIVE-BOUNDARY-STAGE-AUDIT-INPUT`、`MTP-67-LIVE-BOUNDARY-VALIDATION-EVIDENCE-CHAIN` 和 `MTP-67-AUTOMATION-READINESS-STAGE-CLOSEOUT`，只准备 Parent Codex Stage Code Audit input material；不输出最终 Stage Code Audit Report，不创建下一 Project / Issue，不推进下一阶段，不启动下一阶段 `symphony-issue`，不实现任何 Live capability。
 
+MTP-68 的长期验证锚点候选为 `docs/contracts/live-monitoring-console-contract.md` 和 `TVM-LIVE-MONITORING-CONSOLE`。该锚点只定义 Live monitoring console information architecture、live runtime health、connection status、market stream status、order stream evidence、latency evidence、error evidence、degraded state、operations evidence、status taxonomy、Dashboard / Report / Event Timeline read-model-only 边界和 candidate validation anchors；不实现 live runtime、signed endpoint、account endpoint、listenKey、broker adapter、`LiveExecutionAdapter`、real order state machine、live command、交易按钮或 automation-readiness 机械收口。MTP-68 明确 `MTP-68-NO-AUTOMATION-READINESS-CLOSEOUT`：automation readiness 实际收口保留给 MTP-74。
+
 `MTPRO Live Trading Boundary Definition v1` 的 canonical Stage Code Audit Report 已落仓到 `docs/audit/mtpro-live-trading-boundary-definition-v1-stage-code-audit.md`。该报告记录 PR #126 至 #132、merge commits、GitHub `checks` 成功证据、Linear Project `Completed` evidence、Live boundary validation evidence chain、Known CI Boundary、Post-Issue Ledger 持久仓同步阻塞说明、Boundary Audit、Root Docs Delta 和 Next Human Project Planning handoff。
 
 ## Goal / Roadmap Progress Baseline
@@ -126,6 +128,21 @@ Planning record 入口：
 - `MTP-67`：Live Trading Boundary Definition v1 阶段收口。
 
 ## 最近验证
+
+MTP-68 Live monitoring console information architecture 和 read-model-only 边界已完成 docs-only anchor 回填：
+
+```bash
+git diff --check
+bash checks/run.sh
+```
+
+结果：
+
+- docs anchor check：pass，`MTP-68-LIVE-MONITORING-CONSOLE-IA`、`MTP-68-LIVE-MONITORING-READ-MODEL-ONLY`、`MTP-68-ORDER-STREAM-EVIDENCE-NOT-REAL-ORDER-STATE`、`MTP-68-NO-AUTOMATION-READINESS-CLOSEOUT` 和 `TVM-LIVE-MONITORING-CONSOLE` 均可定位。
+- automation readiness boundary check：pass，`checks/automation-readiness.sh` 中没有 MTP-68 / `TVM-LIVE-MONITORING-CONSOLE` 收口项；MTP-74 才允许实际机械收口。
+- `bash checks/run.sh`：pass，Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6`，Swift tests `135 tests, 0 failures`。
+
+该更新只改变 docs / validation evidence，不创建 Linear Project / Issue，不修改 Linear status，不推进 Todo，不启动 Symphony，不写 production code，不实现 live runtime、signed endpoint、account endpoint、listenKey、broker adapter、`LiveExecutionAdapter`、real order state machine、live command 或交易按钮。
 
 MTPRO-native PR evidence fields 已加入 PR 模板和 automation readiness：
 

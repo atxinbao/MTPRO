@@ -335,3 +335,33 @@ MTP-66 新增 Live blocked evidence 的 App 层 read model / ViewModel，并把 
 - Dashboard shell 不新增按钮、表单、live command、order-level command、risk control command、position management command 或真实订单入口。
 - Event Timeline 的 `live trading blocked evidence` item 只做 blocked evidence navigation，不提供 query language、command surface、execution control 或实盘监控台。
 - `readModelOnlyBoundaryHeld` 和 `allLiveGatesBlocked` 必须为 true；`authorizesLiveTrading`、`touchesBrokerAction`、`authorizesTradingExecution`、`providesCommandSurface`、`providesOrderLevelCommand`、`readsAPIKey`、`usesSignedEndpoint`、`callsAccountEndpoint`、`createsListenKey`、`instantiatesBrokerAdapter` 和 `representsRealOrderLifecycle` 必须为 false。
+
+## MTP-68 Live Monitoring Console IA / ViewModel 边界契约
+
+日期：2026-05-21
+
+执行者：Codex
+
+MTP-68 只定义 Live monitoring console information architecture 和后续 ViewModel 边界，不新增 App 类型、Dashboard 字段或 SwiftUI 控件。主合同入口是 `docs/contracts/live-monitoring-console-contract.md`。
+
+`MTP-68-LIVE-MONITORING-CONSOLE-IA`
+
+后续 Live monitoring console 的 ViewModel 分区必须保持 read-model-only，并按以下信息架构组织：
+
+- Overview：汇总 monitoring readiness、blocked gates 和 operations evidence。
+- Runtime Health：展示 future live runtime health status，不读取 runtime actor。
+- Connection：展示 connection status evidence，不创建 listenKey 或 private WebSocket。
+- Market Stream：展示 public read-only market stream health / freshness / latency evidence。
+- Order Stream Evidence：只展示 blocked / simulated / future order-stream evidence，不表示真实订单状态机。
+- Latency：展示 read model 已计算的 latency bucket 和 stale evidence。
+- Error / Degraded State：展示 error / degraded evidence，不提供 incident command 或自动恢复动作。
+- Operations Evidence：展示 validation、handoff、audit input 和 readiness evidence chain。
+
+`MTP-68-LIVE-MONITORING-READ-MODEL-ONLY`
+
+边界确认：
+
+- Dashboard、Report 和 Event Timeline 只能消费 App 层 Read Model / ViewModel，不读取 adapter request、Runtime object、actor、workflow object、SQLite / DuckDB schema、SQL、ORM 或 persistence implementation。
+- 当前 issue 不新增 live command、交易按钮、表单、order-level command、risk control command、position management command、submit / cancel / replace 或自动恢复动作。
+- `order stream evidence` 只能表达 blocked / simulated / future evidence，不得解释为 execution report、broker fill、real order lifecycle、OMS 或真实账户状态。
+- `checks/automation-readiness.sh` 不在 MTP-68 中收口；后续 MTP-74 才能把 MTP-68 至 MTP-73 的 anchors 机械化。

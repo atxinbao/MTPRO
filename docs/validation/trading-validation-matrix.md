@@ -232,3 +232,21 @@ MTP-53 对 Paper Workflow Control Shell v1 的本地控制壳、可观察性、D
 - `TVM-MARKET-DATA-REPLAY-OPERATIONS`
 - `TVM-LIVE-TRADING-FOUNDATION`
 - `TVM-FUTURE-ISSUE-BACKFILL`
+
+## MTP-68 Live Monitoring Console 候选矩阵入口
+
+日期：2026-05-21
+
+执行者：Codex
+
+MTP-68 只定义 Live monitoring console information architecture 和 validation anchor 候选入口，不把新 anchor 加入 `checks/automation-readiness.sh`。MTP-74 收口 validation matrix、automation readiness 和 stage audit input material 时，才允许把 MTP-68 至 MTP-73 的 anchors 统一机械化。
+
+| Candidate Matrix ID | 验证域 | 当前 coverage 入口 | 验收证据边界 | 后续回填责任 |
+| --- | --- | --- | --- | --- |
+| `TVM-LIVE-MONITORING-CONSOLE` | Live monitoring console information architecture、status taxonomy、runtime health / connection / stream / latency / error / degraded / operations evidence read-model-only 边界 | `docs/contracts/live-monitoring-console-contract.md` 中的 `MTP-68-LIVE-MONITORING-CONSOLE-IA`、`MTP-68-LIVE-MONITORING-TERMS`、`MTP-68-LIVE-MONITORING-STATUS-TAXONOMY`、`MTP-68-LIVE-MONITORING-READ-MODEL-ONLY`、`MTP-68-ORDER-STREAM-EVIDENCE-NOT-REAL-ORDER-STATE`、`MTP-68-LIVE-MONITORING-VALIDATION-ANCHORS` 和 `MTP-68-NO-AUTOMATION-READINESS-CLOSEOUT`；`docs/product/product-surface-map.md`、`docs/contracts/frontend-view-model-contract.md`、`docs/domain/context.md` 和 `docs/validation/validation-plan.md` 的 MTP-68 sections。 | 证据只覆盖信息架构、术语、状态分类、read-model-only boundary 和 candidate validation anchor；Dashboard / Report / Event Timeline 只能展示 ViewModel / Read Model；订单流 / 订单事件流只表示 blocked / simulated / future evidence，不表示 real order state machine、execution report、broker fill、OMS 或真实账户状态；禁止 live runtime、signed endpoint、account endpoint、listenKey、broker adapter、`LiveExecutionAdapter`、live command、交易按钮、Runtime object exposure 和 persistence schema exposure。 | MTP-68 已回填 docs-only IA / terminology / validation anchor 候选入口；MTP-69 至 MTP-73 才能分别回填 runtime health / connection、market stream / order stream blocked evidence、latency / error / degraded evidence、Dashboard / Report evidence 和 Event Timeline preview；MTP-74 才能实际修改 automation readiness 并准备 stage audit input material。 |
+
+## MTP-68 issue backfill
+
+| Issue | Matrix ID | 回填说明 |
+| --- | --- | --- |
+| `MTP-68` | `TVM-LIVE-MONITORING-CONSOLE` | 已定义 Live monitoring console information architecture、live runtime health / connection / market stream / order stream / latency / error / degraded state / operations evidence 术语、status taxonomy、read-model-only Dashboard / Report / Event Timeline 边界、order stream evidence 不等于真实订单状态机的禁区，以及 `MTP-68-NO-AUTOMATION-READINESS-CLOSEOUT`；不实现 live runtime、signed endpoint、account endpoint、listenKey、broker adapter、`LiveExecutionAdapter`、real order state machine、live command、交易按钮或 automation-readiness 机械收口。 |
