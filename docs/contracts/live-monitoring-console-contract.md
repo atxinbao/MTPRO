@@ -283,6 +283,61 @@ MTP-71 的验证入口：
 - `checks/automation-readiness.sh` 仍不在 MTP-71 中收口 `TVM-LIVE-MONITORING-CONSOLE`；
   MTP-74 才允许统一机械化 MTP-68 至 MTP-73 anchors。
 
+## MTP-72 Dashboard / Report live monitoring evidence
+
+`MTP-72-DASHBOARD-REPORT-LIVE-MONITORING-EVIDENCE`
+
+MTP-72 把 MTP-69 / MTP-70 / MTP-71 已验证的 Core read model 接入 App 层 Dashboard / Report 展示面。该接入只复制 deterministic monitoring evidence，不新增 live runtime、生产 telemetry、外部 metrics、真实网络连接、adapter / Runtime / schema 读取、live command、交易按钮或真实交易授权。
+
+`MTP-72-LIVE-MONITORING-READ-MODEL-VIEWMODEL`
+
+App 层新增 `LiveMonitoringEvidenceReadModel` 和 `LiveMonitoringEvidenceViewModel`：
+
+- `LiveMonitoringEvidenceReadModel` 只接受 `LiveLatencyErrorDegradedMonitoringEvidenceReadModel.deterministicFixture` 或同形稳定 read model，默认 `source = ViewModelSourceContract()`。
+- `LiveMonitoringEvidenceViewModel` 汇总 runtime health status、connection status、market stream / order stream evidence、latency bucket、error code、degraded / unavailable state、source anchors 和 forbidden capability flags。
+- `ReportReadModel.liveMonitoringEvidence` 和 `ReportViewModel.liveMonitoringEvidence` 把 monitoring evidence 纳入 Report 快照。
+- `DashboardShellSnapshot` 的 Report section 新增 `Monitoring` 指标，Workbench 新增 `Live Monitoring` 只读组，Dashboard smoke 新增 `liveMonitoringHealth=blocked` 和 `liveMonitoringErrors=3` evidence。
+
+`MTP-72-NO-LIVE-COMMAND-OR-BUTTON`
+
+MTP-72 必须保持以下 flags 为 false：
+
+- `providesCommandSurface`
+- `providesOrderLevelCommand`
+- `providesTradingButton`
+- `providesRiskCommand`
+- `providesPositionCommand`
+- `providesAlertingCommand`
+- `providesPagingCommand`
+- `providesReconnectCommand`
+- `providesStopControl`
+- `providesLiveRiskControl`
+- `triggersIncidentCommand`
+- `triggersAutoRecovery`
+- `authorizesLiveTrading`
+- `authorizesTradingExecution`
+
+`MTP-72-SCHEMA-ADAPTER-RUNTIME-NON-EXPOSURE`
+
+MTP-72 Dashboard / Report surface 不得暴露：
+
+- adapter surface、adapter request、Binance signed/account endpoint、listenKey、broker adapter 或 `LiveExecutionAdapter`。
+- Runtime object、actor、workflow object、production telemetry、external metrics service 或真实网络连接。
+- SQLite / DuckDB schema、SQL、ORM、table、column 或 persistence implementation。
+- API key、secret、account payload、broker state、execution report、broker fill、real order state machine、OMS 或真实账户状态。
+
+`MTP-72-LIVE-MONITORING-DASHBOARD-REPORT-VALIDATION`
+
+MTP-72 的验证入口：
+
+- `Sources/App/LiveMonitoringEvidence.swift` 必须包含 `LiveMonitoringEvidenceReadModel` 和 `LiveMonitoringEvidenceViewModel`。
+- `Sources/App/App.swift` 必须包含 `ReportReadModel.liveMonitoringEvidence`、`ReportViewModel.liveMonitoringEvidence` 和 Report 层 monitoring summary fields。
+- `Sources/App/DashboardShell.swift` 必须包含 Report `Monitoring` 指标、Workbench `Live Monitoring` 组、`liveMonitoringHealth` / `liveMonitoringErrors` smoke evidence 和 no command / no schema / no adapter / no runtime boundary 聚合。
+- `Tests/AppTests/AppTests.swift` 必须覆盖 `testLiveMonitoringEvidenceViewModelAggregatesMTP72ReadModelOnlyEvidence`、Dashboard / Report deterministic assertions、Dashboard smoke 和 no command / no button / no schema / no adapter / no runtime assertions。
+- Focused validation：`swift test --filter AppTests`。
+- Required validation：`bash checks/run.sh`。
+- `checks/automation-readiness.sh` 的完整 MTP-68 至 MTP-73 机械收口仍保留给 MTP-74；MTP-72 只回填 Dashboard / Report evidence anchors 和本地验证证据。
+
 ## MTP-68 validation anchors
 
 `MTP-68-LIVE-MONITORING-VALIDATION-ANCHORS`

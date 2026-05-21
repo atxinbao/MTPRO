@@ -498,3 +498,26 @@ Shell 新增展示：
 - Dashboard / Workbench UI redesign、按钮、表单、live command、order-level command、submit / cancel / replace、risk control command、position management command 或自动恢复动作。
 - Runtime object、adapter request、SQLite / DuckDB schema、SQL、ORM model 或 persistence adapter direct read 暴露。
 - `checks/automation-readiness.sh` 的 MTP-68 机械收口；该收口保留给 MTP-74。
+
+## MTP-72 Dashboard / Report live monitoring evidence 区块
+
+日期：2026-05-21
+
+执行者：Codex
+
+当前产品面把 MTP-69 / MTP-70 / MTP-71 的 live monitoring evidence 接入 Report 和 Dashboard 的只读展示层。该接入只消费 App 层 read model，不做完整实盘监控台 redesign，不提供 live command 或交易按钮。
+
+新增观察面：
+
+- Report evidence：展示 runtime health status、connection statuses、market / order stream evidence count、latency buckets、error codes、degraded states 和 read-model-only boundary。
+- Dashboard Report section：新增 `Monitoring` 指标和 monitoring details。
+- Dashboard Workbench：新增 `Live Monitoring` 只读 detail group，展示 health、connections、streams、latency、errors、degraded counts 和 no command / no schema / no adapter / no runtime evidence。
+- Dashboard smoke：新增 `liveMonitoringHealth=blocked` 和 `liveMonitoringErrors=3` evidence，同时保留八个 Dashboard sections、readModelOnly=true、workbenchReadModelOnly=true、session-level controls、timelineItems 和 liveBlockedGates。
+
+仍不包含：
+
+- 完整实盘监控台页面重设计、实盘执行控制、实盘风险控制或停机控制。
+- live command、交易按钮、表单、order-level command、risk command、position command、alert / paging / reconnect / stop control、incident command 或自动恢复动作。
+- production telemetry、runtime profiler、external metrics service、真实 runtime monitoring 或真实网络连接。
+- signed endpoint、account endpoint、listenKey、API key、secret、account payload、broker adapter、`LiveExecutionAdapter`、execution report、broker fill、real order state machine、OMS 或真实交易授权。
+- Runtime object、adapter request、SQLite / DuckDB schema、SQL、ORM model 或 persistence adapter direct read 暴露。

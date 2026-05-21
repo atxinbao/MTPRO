@@ -67,6 +67,8 @@ MTP-70 的长期验证锚点仍为 `docs/contracts/live-monitoring-console-contr
 
 MTP-71 的长期验证锚点仍为 `docs/contracts/live-monitoring-console-contract.md` 和 `TVM-LIVE-MONITORING-CONSOLE`。该锚点在 MTP-70 stream evidence 基础上新增 `LiveLatencyErrorDegradedMonitoringEvidenceReadModel` / `LiveMonitoringLatencyEvidenceItem` / `LiveMonitoringErrorEvidenceItem` / `LiveMonitoringDegradedStateEvidenceItem` 最小 Core read model：默认 fixture 只表达 runtime health stale latency、public market stream degraded latency / disconnected error、simulated order stream nominal latency、future private user data unavailable latency / blocked error、future broker session unavailable latency / error、public market stream degraded state 和 future broker session unavailable state；不实现 production telemetry、runtime profiler、external metrics service、真实 runtime monitoring、真实网络连接、alerting / paging、reconnect / stop control、incident command、auto recovery、live risk control、signed endpoint、account endpoint、listenKey、broker adapter、`LiveExecutionAdapter`、Runtime object / persistence schema 暴露、live command 或交易按钮。
 
+MTP-72 的长期验证锚点仍为 `docs/contracts/live-monitoring-console-contract.md` 和 `TVM-LIVE-MONITORING-CONSOLE`，并同时回填 `TVM-REPORT-EVIDENCE` / `TVM-PAPER-WORKFLOW-CONTROL-SHELL`。该锚点在 MTP-69 / MTP-70 / MTP-71 Core evidence 基础上新增 `LiveMonitoringEvidenceReadModel` / `LiveMonitoringEvidenceViewModel` App 层 Dashboard / Report 展示面：Report 展示 monitoring health、connection、stream、latency、error 和 degraded evidence，Dashboard Report section 新增 `Monitoring` 指标，Workbench 新增 `Live Monitoring` 只读组，Dashboard smoke 新增 `liveMonitoringHealth=blocked` 和 `liveMonitoringErrors=3`；不实现 live command、交易按钮、order-level command、risk command、position command、production telemetry、external metrics service、真实网络连接、alert / paging / reconnect / stop control、incident command、auto recovery、signed endpoint、account endpoint、listenKey、broker adapter、`LiveExecutionAdapter`、real order state machine、Runtime object / persistence schema 暴露或真实交易授权。
+
 `MTPRO Live Trading Boundary Definition v1` 的 canonical Stage Code Audit Report 已落仓到 `docs/audit/mtpro-live-trading-boundary-definition-v1-stage-code-audit.md`。该报告记录 PR #126 至 #132、merge commits、GitHub `checks` 成功证据、Linear Project `Completed` evidence、Live boundary validation evidence chain、Known CI Boundary、Post-Issue Ledger 持久仓同步阻塞说明、Boundary Audit、Root Docs Delta 和 Next Human Project Planning handoff。
 
 ## Goal / Roadmap Progress Baseline
@@ -134,6 +136,23 @@ Planning record 入口：
 - `MTP-67`：Live Trading Boundary Definition v1 阶段收口。
 
 ## 最近验证
+
+MTP-72 Dashboard / Report live monitoring evidence 区块已完成本地验证：
+
+```bash
+swift test --filter AppTests
+bash checks/run.sh
+```
+
+当前收口证据：
+
+- `Sources/App/LiveMonitoringEvidence.swift`：新增 `LiveMonitoringEvidenceReadModel` 和 `LiveMonitoringEvidenceViewModel`，只复制 MTP-69 / MTP-70 / MTP-71 Core deterministic evidence；所有 live command、交易按钮、order-level command、risk command、position command、production telemetry、external metrics service、network connection、alert / paging / reconnect / stop control、incident command、auto recovery、API key、secret、signed endpoint、account endpoint、listenKey、account payload、broker adapter、adapter surface、Runtime object、SQLite / DuckDB schema、real order state machine、Live trading authorization 和 trading execution flags 均保持 false。
+- `Sources/App/App.swift`：新增 `ReportReadModel.liveMonitoringEvidence`、`ReportViewModel.liveMonitoringEvidence` 和 Report 层 monitoring summary / boundary flags。
+- `Sources/App/DashboardShell.swift`：Report section 新增 `Monitoring` 指标，Workbench 新增 `Live Monitoring` 只读组，Dashboard smoke 新增 `liveMonitoringHealth=blocked` 和 `liveMonitoringErrors=3` evidence。
+- `Tests/AppTests/AppTests.swift`：新增 `testLiveMonitoringEvidenceViewModelAggregatesMTP72ReadModelOnlyEvidence`，并扩展 Report / Dashboard / Workbench / smoke snapshot assertions。
+- `docs/contracts/live-monitoring-console-contract.md`、`docs/contracts/frontend-view-model-contract.md`、`docs/product/product-surface-map.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/validation-plan.md`：回填 MTP-72 Dashboard / Report evidence anchors，并明确 MTP-74 才做 MTP-68 至 MTP-73 automation readiness 机械收口。
+- `swift test --filter AppTests`：pass，18 tests, 0 failures。
+- `bash checks/run.sh`：pass，automation readiness、Dashboard build / smoke 和 145 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=6; liveBlockedGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；最终输出 `MTPRO checks passed.`。
 
 MTP-71 latency / error / degraded state monitoring evidence read model 已完成：
 

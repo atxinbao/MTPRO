@@ -673,19 +673,22 @@ public struct ResearchBacktestReportArtifact: Codable, Equatable, Sendable {
 
 /// ReportReadModel 从现有 projection snapshots 生成 Research -> Backtest -> Report 最小观察面。
 ///
-/// 它把订单簿研究投影、EMA 回测投影、Paper session 投影、事件流水和 Live blocked evidence
-/// 汇总成报告 artifact / boundary evidence；该 read model 不重跑策略、不读取数据库 schema、
-/// 不调用 Runtime / Adapters，也不把报告或 Live readiness blocked 状态解释为交易授权。
+/// 它把订单簿研究投影、EMA 回测投影、Paper session 投影、事件流水、Live blocked evidence
+/// 和 Live monitoring evidence 汇总成报告 artifact / boundary evidence；该 read model 不重跑策略、
+/// 不读取数据库 schema、不调用 Runtime / Adapters，也不把报告、Live readiness blocked 状态或
+/// monitoring 状态解释为交易授权。
 public struct ReportReadModel: Equatable, Sendable {
     public let artifacts: [ResearchBacktestReportArtifact]
     public let marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel
+    public let liveMonitoringEvidence: LiveMonitoringEvidenceReadModel
     public let lastAppliedSequence: Int?
 
     public init(
         artifacts: [ResearchBacktestReportArtifact] = [],
         marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel = MarketDataReplayOperationsEvidenceReadModel(),
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel(),
+        liveMonitoringEvidence: LiveMonitoringEvidenceReadModel = LiveMonitoringEvidenceReadModel(),
         lastAppliedSequence: Int? = nil
     ) {
         self.artifacts = artifacts.sorted { left, right in
@@ -693,10 +696,12 @@ public struct ReportReadModel: Equatable, Sendable {
         }
         self.marketDataReplayOperations = marketDataReplayOperations
         self.liveTradingBlockedEvidence = liveTradingBlockedEvidence
+        self.liveMonitoringEvidence = liveMonitoringEvidence
         self.lastAppliedSequence = Self.maxSequence(
             lastAppliedSequence,
             marketDataReplayOperations.lastAppliedSequence,
-            liveTradingBlockedEvidence.lastAppliedSequence
+            liveTradingBlockedEvidence.lastAppliedSequence,
+            liveMonitoringEvidence.lastAppliedSequence
         )
     }
 
@@ -705,7 +710,8 @@ public struct ReportReadModel: Equatable, Sendable {
         runtimeProjection: SQLiteRuntimeProjectionSnapshot,
         eventTimeline: [EventEnvelope],
         marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel = MarketDataReplayOperationsEvidenceReadModel(),
-        liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel()
+        liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel(),
+        liveMonitoringEvidence: LiveMonitoringEvidenceReadModel = LiveMonitoringEvidenceReadModel()
     ) {
         let sortedBacktests = analyticalProjection.backtestRuns.values.sorted {
             $0.runID.rawValue < $1.runID.rawValue
@@ -737,6 +743,7 @@ public struct ReportReadModel: Equatable, Sendable {
             artifacts: artifacts,
             marketDataReplayOperations: marketDataReplayOperations,
             liveTradingBlockedEvidence: liveTradingBlockedEvidence,
+            liveMonitoringEvidence: liveMonitoringEvidence,
             lastAppliedSequence: lastAppliedSequence
         )
     }
@@ -1027,14 +1034,16 @@ public struct DashboardReadModel: Equatable, Sendable {
         analyticalProjection: DuckDBAnalyticalProjectionSnapshot,
         eventTimeline: [EventEnvelope],
         marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel = MarketDataReplayOperationsEvidenceReadModel(),
-        liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel()
+        liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel(),
+        liveMonitoringEvidence: LiveMonitoringEvidenceReadModel = LiveMonitoringEvidenceReadModel()
     ) {
         let report = ReportReadModel(
             analyticalProjection: analyticalProjection,
             runtimeProjection: runtimeProjection,
             eventTimeline: eventTimeline,
             marketDataReplayOperations: marketDataReplayOperations,
-            liveTradingBlockedEvidence: liveTradingBlockedEvidence
+            liveTradingBlockedEvidence: liveTradingBlockedEvidence,
+            liveMonitoringEvidence: liveMonitoringEvidence
         )
         let paper = PaperReadModel(runtimeProjection: runtimeProjection)
         let risk = RiskReadModel(runtimeProjection: runtimeProjection)
@@ -1207,14 +1216,15 @@ public struct ReportArtifactViewModel: Codable, Equatable, Sendable {
 /// ReportViewModel 汇总 MTP-23 最小报告路径的只读指标。
 ///
 /// 指标来自 `ReportReadModel`，用于展示报告数、研究运行数、投影级 parity evidence 和
-/// Live trading foundation blocked gates；该 ViewModel 不调用 Runtime / Adapters，不暴露
-/// 数据库实现细节，也不提供 live command、交易按钮或真实交易控制。
+/// Live trading foundation blocked gates 和 Live monitoring evidence；该 ViewModel 不调用 Runtime /
+/// Adapters，不暴露数据库实现细节，也不提供 live command、交易按钮或真实交易控制。
 public struct ReportViewModel: Codable, Equatable, Sendable {
     public let section: DashboardSection
     public let source: ViewModelSourceContract
     public let artifacts: [ReportArtifactViewModel]
     public let marketDataReplayOperations: MarketDataReplayOperationsEvidenceViewModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceViewModel
+    public let liveMonitoringEvidence: LiveMonitoringEvidenceViewModel
     public let artifactCount: Int
     public let completedBacktestCount: Int
     public let researchRunCount: Int
@@ -1296,6 +1306,48 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
     public let liveReadinessCreatesListenKey: Bool
     public let liveReadinessInstantiatesBrokerAdapter: Bool
     public let liveReadinessRepresentsRealOrderLifecycle: Bool
+    public let liveMonitoringHealthStatus: LiveMonitoringStatus
+    public let liveMonitoringConnectionCount: Int
+    public let liveMonitoringConnectionStatusLabels: [String]
+    public let liveMonitoringStreamEvidenceCount: Int
+    public let liveMonitoringMarketStreamEvidenceCount: Int
+    public let liveMonitoringOrderStreamEvidenceCount: Int
+    public let liveMonitoringLatencyEvidenceCount: Int
+    public let liveMonitoringLatencyBucketLabels: [String]
+    public let liveMonitoringErrorEvidenceCount: Int
+    public let liveMonitoringErrorCodes: [String]
+    public let liveMonitoringDegradedStateEvidenceCount: Int
+    public let liveMonitoringDegradedStateStatusLabels: [String]
+    public let liveMonitoringReadModelOnlyBoundaryHeld: Bool
+    public let liveMonitoringProvidesCommandSurface: Bool
+    public let liveMonitoringProvidesOrderLevelCommand: Bool
+    public let liveMonitoringProvidesTradingButton: Bool
+    public let liveMonitoringProvidesRiskCommand: Bool
+    public let liveMonitoringProvidesPositionCommand: Bool
+    public let liveMonitoringExposesDatabaseSchema: Bool
+    public let liveMonitoringExposesRuntimeObject: Bool
+    public let liveMonitoringExposesAdapterSurface: Bool
+    public let liveMonitoringOpensNetworkConnection: Bool
+    public let liveMonitoringUsesProductionTelemetry: Bool
+    public let liveMonitoringUsesExternalMetricsService: Bool
+    public let liveMonitoringProvidesAlertingCommand: Bool
+    public let liveMonitoringProvidesPagingCommand: Bool
+    public let liveMonitoringProvidesReconnectCommand: Bool
+    public let liveMonitoringProvidesStopControl: Bool
+    public let liveMonitoringProvidesLiveRiskControl: Bool
+    public let liveMonitoringTriggersIncidentCommand: Bool
+    public let liveMonitoringTriggersAutoRecovery: Bool
+    public let liveMonitoringReadsAPIKey: Bool
+    public let liveMonitoringReadsSecret: Bool
+    public let liveMonitoringCallsSignedEndpoint: Bool
+    public let liveMonitoringCallsAccountEndpoint: Bool
+    public let liveMonitoringCreatesListenKey: Bool
+    public let liveMonitoringReadsAccountPayload: Bool
+    public let liveMonitoringInstantiatesBrokerAdapter: Bool
+    public let liveMonitoringImplementsRealOrderStateMachine: Bool
+    public let liveMonitoringAuthorizesLiveTrading: Bool
+    public let liveMonitoringAuthorizesTradingExecution: Bool
+    public let liveMonitoringRequiredValidationDependsOnNetwork: Bool
     public let tradingValidationAuthorizesExecution: Bool
     public let authorizesTradingExecution: Bool
     public let latestParityStatus: ReportParityStatus?
@@ -1312,11 +1364,15 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
         let liveBlockedEvidence = LiveTradingBlockedEvidenceViewModel(
             readModel: readModel.liveTradingBlockedEvidence
         )
+        let liveMonitoringEvidence = LiveMonitoringEvidenceViewModel(
+            readModel: readModel.liveMonitoringEvidence
+        )
         self.section = .report
         self.source = ViewModelSourceContract()
         self.artifacts = readModel.artifacts.map(ReportArtifactViewModel.init)
         self.marketDataReplayOperations = replayOperations
         self.liveTradingBlockedEvidence = liveBlockedEvidence
+        self.liveMonitoringEvidence = liveMonitoringEvidence
         self.artifactCount = readModel.artifacts.count
         self.completedBacktestCount = readModel.artifacts.filter { $0.backtestState == .completed }.count
         self.researchRunCount = readModel.artifacts
@@ -1488,12 +1544,63 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
         self.liveReadinessCreatesListenKey = liveBlockedEvidence.createsListenKey
         self.liveReadinessInstantiatesBrokerAdapter = liveBlockedEvidence.instantiatesBrokerAdapter
         self.liveReadinessRepresentsRealOrderLifecycle = liveBlockedEvidence.representsRealOrderLifecycle
+        self.liveMonitoringHealthStatus = liveMonitoringEvidence.runtimeHealthStatus
+        self.liveMonitoringConnectionCount = liveMonitoringEvidence.connectionCount
+        self.liveMonitoringConnectionStatusLabels = liveMonitoringEvidence.connectionStatusLabels
+        self.liveMonitoringStreamEvidenceCount = liveMonitoringEvidence.streamEvidenceCount
+        self.liveMonitoringMarketStreamEvidenceCount = liveMonitoringEvidence.marketStreamEvidenceCount
+        self.liveMonitoringOrderStreamEvidenceCount = liveMonitoringEvidence.orderStreamEvidenceCount
+        self.liveMonitoringLatencyEvidenceCount = liveMonitoringEvidence.latencyEvidenceCount
+        self.liveMonitoringLatencyBucketLabels = liveMonitoringEvidence.latencyBucketLabels
+        self.liveMonitoringErrorEvidenceCount = liveMonitoringEvidence.errorEvidenceCount
+        self.liveMonitoringErrorCodes = liveMonitoringEvidence.errorCodes
+        self.liveMonitoringDegradedStateEvidenceCount = liveMonitoringEvidence.degradedStateEvidenceCount
+        self.liveMonitoringDegradedStateStatusLabels = liveMonitoringEvidence
+            .degradedStateStatusLabels
+        self.liveMonitoringReadModelOnlyBoundaryHeld = liveMonitoringEvidence
+            .readModelOnlyBoundaryHeld
+        self.liveMonitoringProvidesCommandSurface = liveMonitoringEvidence.providesCommandSurface
+        self.liveMonitoringProvidesOrderLevelCommand = liveMonitoringEvidence
+            .providesOrderLevelCommand
+        self.liveMonitoringProvidesTradingButton = liveMonitoringEvidence.providesTradingButton
+        self.liveMonitoringProvidesRiskCommand = liveMonitoringEvidence.providesRiskCommand
+        self.liveMonitoringProvidesPositionCommand = liveMonitoringEvidence.providesPositionCommand
+        self.liveMonitoringExposesDatabaseSchema = liveMonitoringEvidence.exposesDatabaseSchema
+        self.liveMonitoringExposesRuntimeObject = liveMonitoringEvidence.exposesRuntimeObject
+        self.liveMonitoringExposesAdapterSurface = liveMonitoringEvidence.exposesAdapterSurface
+        self.liveMonitoringOpensNetworkConnection = liveMonitoringEvidence.opensNetworkConnection
+        self.liveMonitoringUsesProductionTelemetry = liveMonitoringEvidence.usesProductionTelemetry
+        self.liveMonitoringUsesExternalMetricsService = liveMonitoringEvidence
+            .usesExternalMetricsService
+        self.liveMonitoringProvidesAlertingCommand = liveMonitoringEvidence.providesAlertingCommand
+        self.liveMonitoringProvidesPagingCommand = liveMonitoringEvidence.providesPagingCommand
+        self.liveMonitoringProvidesReconnectCommand = liveMonitoringEvidence.providesReconnectCommand
+        self.liveMonitoringProvidesStopControl = liveMonitoringEvidence.providesStopControl
+        self.liveMonitoringProvidesLiveRiskControl = liveMonitoringEvidence.providesLiveRiskControl
+        self.liveMonitoringTriggersIncidentCommand = liveMonitoringEvidence.triggersIncidentCommand
+        self.liveMonitoringTriggersAutoRecovery = liveMonitoringEvidence.triggersAutoRecovery
+        self.liveMonitoringReadsAPIKey = liveMonitoringEvidence.readsAPIKey
+        self.liveMonitoringReadsSecret = liveMonitoringEvidence.readsSecret
+        self.liveMonitoringCallsSignedEndpoint = liveMonitoringEvidence.callsSignedEndpoint
+        self.liveMonitoringCallsAccountEndpoint = liveMonitoringEvidence.callsAccountEndpoint
+        self.liveMonitoringCreatesListenKey = liveMonitoringEvidence.createsListenKey
+        self.liveMonitoringReadsAccountPayload = liveMonitoringEvidence.readsAccountPayload
+        self.liveMonitoringInstantiatesBrokerAdapter = liveMonitoringEvidence
+            .instantiatesBrokerAdapter
+        self.liveMonitoringImplementsRealOrderStateMachine = liveMonitoringEvidence
+            .implementsRealOrderStateMachine
+        self.liveMonitoringAuthorizesLiveTrading = liveMonitoringEvidence.authorizesLiveTrading
+        self.liveMonitoringAuthorizesTradingExecution = liveMonitoringEvidence
+            .authorizesTradingExecution
+        self.liveMonitoringRequiredValidationDependsOnNetwork = liveMonitoringEvidence
+            .requiredValidationDependsOnNetwork
         self.tradingValidationAuthorizesExecution = tradingEvidence.contains {
             $0.authorizesTradingExecution
         }
         self.authorizesTradingExecution = readModel.artifacts.contains {
             $0.authorizesTradingExecution
         } || liveBlockedEvidence.authorizesTradingExecution
+            || liveMonitoringEvidence.authorizesTradingExecution
         self.latestParityStatus = readModel.artifacts.last?.parityStatus
         self.lastAppliedSequence = readModel.lastAppliedSequence
     }
@@ -1691,6 +1798,7 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
             report.source,
             report.marketDataReplayOperations.source,
             report.liveTradingBlockedEvidence.source,
+            report.liveMonitoringEvidence.source,
             paperWorkflowObservability.source,
             paperWorkflowEvidenceExplorer.source,
             paper.source,

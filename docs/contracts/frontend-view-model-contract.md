@@ -365,3 +365,24 @@ MTP-68 只定义 Live monitoring console information architecture 和后续 View
 - 当前 issue 不新增 live command、交易按钮、表单、order-level command、risk control command、position management command、submit / cancel / replace 或自动恢复动作。
 - `order stream evidence` 只能表达 blocked / simulated / future evidence，不得解释为 execution report、broker fill、real order lifecycle、OMS 或真实账户状态。
 - `checks/automation-readiness.sh` 不在 MTP-68 中收口；后续 MTP-74 才能把 MTP-68 至 MTP-73 的 anchors 机械化。
+
+## MTP-72 Live Monitoring Evidence Read Model / ViewModel 契约
+
+日期：2026-05-21
+
+执行者：Codex
+
+MTP-72 新增 Live monitoring evidence 的 App 层 read model / ViewModel，并把 MTP-69 / MTP-70 / MTP-71 的 Core evidence 接入 Report 和 Dashboard：
+
+- `LiveMonitoringEvidenceReadModel`：作为 Report / Dashboard 的稳定输入，只消费 `LiveLatencyErrorDegradedMonitoringEvidenceReadModel`，不触发 runtime、adapter、telemetry 或网络 side effect。
+- `LiveMonitoringEvidenceViewModel`：展示 runtime health status、connection statuses、stream counts、latency buckets、error codes、degraded states、source anchors 和 forbidden capability flags。
+- `ReportReadModel.liveMonitoringEvidence` 和 `ReportViewModel.liveMonitoringEvidence`：把 health、connection、stream、latency、error 和 degraded evidence 接入 Report 快照。
+- `DashboardShellSnapshot` 的 Report section：新增 `Monitoring` 指标和 monitoring details。
+- `DashboardShellWorkbenchSnapshot`：新增 `Live Monitoring` 只读组，展示 health、connections、streams、latency、errors、degraded counts 和 boundary details。
+- Dashboard smoke 新增 `liveMonitoringHealth=blocked` 和 `liveMonitoringErrors=3` evidence。
+
+边界确认：
+
+- App 层只消费复制后的 ViewModel / Read Model 字段，不直接依赖 adapter request、Runtime object、production telemetry、external metrics service、SQLite / DuckDB schema、API key、secret、account data 或 broker state。
+- Dashboard shell 不新增按钮、表单、live command、order-level command、risk command、position command、alert / paging / reconnect / stop control、incident command 或自动恢复动作。
+- `readModelOnlyBoundaryHeld` 必须为 true；`providesCommandSurface`、`providesOrderLevelCommand`、`providesTradingButton`、`providesRiskCommand`、`providesPositionCommand`、`exposesDatabaseSchema`、`exposesRuntimeObject`、`exposesAdapterSurface`、`opensNetworkConnection`、`usesProductionTelemetry`、`usesExternalMetricsService`、`callsSignedEndpoint`、`callsAccountEndpoint`、`createsListenKey`、`instantiatesBrokerAdapter`、`implementsRealOrderStateMachine`、`authorizesLiveTrading` 和 `authorizesTradingExecution` 必须为 false。

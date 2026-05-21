@@ -800,3 +800,31 @@ MTP-71 的 required validation：
 - 不读取 API key、secret 或 account payload。
 - 不连接 broker、broker session、exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不提供 alerting、paging、reconnect、stop control、incident command、auto recovery、live risk control、live command、交易按钮或真实交易授权。
+
+## MTP-72 Dashboard / Report Live Monitoring Evidence Validation
+
+日期：2026-05-21
+
+执行者：Codex
+
+MTP-72 的 required validation：
+
+- App 层必须新增 `LiveMonitoringEvidenceReadModel` 和 `LiveMonitoringEvidenceViewModel`，并保持 Codable / Equatable / Sendable ViewModel snapshot。
+- `ReportReadModel.liveMonitoringEvidence` 和 `ReportViewModel.liveMonitoringEvidence` 必须接入 MTP-69 / MTP-70 / MTP-71 Core evidence。
+- Report 必须展示 runtime health、connection statuses、stream evidence、latency buckets、error codes、degraded state 和 read-model-only boundary。
+- `DashboardShellSnapshot` 必须在 Report section 展示 `Monitoring` 指标，在 Workbench 展示 `Live Monitoring` 只读组，并在 Dashboard smoke 中记录 `liveMonitoringHealth=blocked` 和 `liveMonitoringErrors=3`。
+- Tests 必须验证 Dashboard / Report 只消费 ViewModel / Read Model，且不暴露 adapter、Runtime object、SQLite / DuckDB schema。
+- Tests 必须验证无 live command、无交易按钮、无 order-level command、无 risk command、无 position command、无 alert / paging / reconnect / stop control、无 incident command、无自动恢复、无 production telemetry、无 external metrics service、无真实网络连接。
+- Tests 必须验证无 signed endpoint、account endpoint、listenKey、API key、secret、account payload、broker adapter、`LiveExecutionAdapter`、real order state machine 或真实交易授权。
+- Focused validation：`swift test --filter AppTests`。
+- Required validation：`bash checks/run.sh`。
+- `checks/automation-readiness.sh` 的 MTP-68 至 MTP-73 机械收口仍保留给 MTP-74；MTP-72 只回填 Dashboard / Report evidence 和本地验证证据。
+
+## MTP-72 禁止
+
+- 不新增交易按钮。
+- 不新增 live command。
+- 不做完整实盘监控台页面重设计。
+- 不读取 adapter、Runtime object、SQLite / DuckDB schema。
+- 不连接真实外部系统。
+- 不实现 execution control、risk control、stop control、alerting、paging、reconnect、incident command 或自动恢复。
