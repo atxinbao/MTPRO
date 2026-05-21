@@ -615,3 +615,35 @@ Shell 新增展示：
 - 最终视觉风格、macOS 高保真 UI、组件规范或 SwiftUI 实现。
 - Linear Project / Issue、Todo 推进、Symphony 启动或业务代码 scope。
 - submit / cancel / replace、order form、broker action、signed endpoint、account endpoint / listenKey、reconnect / start live / stop live、live command、trading button、real order state machine、real account balance 或 real broker position。
+
+## MTPRO Workbench Screen Layout v1
+
+日期：2026-05-22
+
+执行者：Codex（`@000 / AIE`）
+
+当前设计层新增 `MTPRO Workbench Screen Layout v1`，路径为 `docs/design/mtpro-workbench-screen-layout-v1.md`。该文档记录 Figma canonical `40:2`，承接产品用户动线和产品交互模型，用于定义 macOS 工作台 screen layout、页面区域、信息优先级、状态表达和禁止动作。
+
+该文档是设计层 screen layout 依据，不是最终 UI / UX 规范、视觉稿、组件规范或 SwiftUI 实现。
+
+统一 screen layout 结构：
+
+- Sidebar / 主导航。
+- Top status / session summary。
+- Main evidence workspace。
+- Detail inspector。
+- Events / Audit timeline preview。
+- Status / blocked / degraded / error presentation。
+- Future Gated placeholder area。
+
+覆盖页面：
+
+- Overview、Market Replay、Research、Backtest、Report、Paper、Portfolio、Risk、Events / Audit、Live Readiness、Live Monitoring、Future Gated、Future Live Execution、Future Live Risk、Future Incident Replay / Stop Controls。
+
+`@005 / ARC` 复审结论：通过。P1 文案 `future gate opened` 已修正为 `future gate reviewed`，相关 `opened` 文案已统一改为 `linked` / `reviewed`，避免 Future Gated 被误读为已授权或已打开。
+
+仍不包含：
+
+- 最终视觉风格、macOS 高保真 UI、组件规范或 SwiftUI 实现。
+- Linear Project / Issue、Todo 推进、Symphony 启动或业务代码 scope。
+- submit / cancel / replace、order form、broker action、signed endpoint、account endpoint / listenKey、reconnect / start live / stop live、live command、trading button、real order state machine、real account balance 或 real broker position。
