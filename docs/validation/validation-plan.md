@@ -929,3 +929,40 @@ MTP-75 必须建立的主要 anchors：
 - 不实现 incident fallback automation、stop control、live audit 或 live risk。
 - 不新增交易按钮、order form、live command 或 order-level command UI。
 - 不把 paper order intent、paper execution decision 或 simulated fill 升级为 future real order command。
+
+## MTP-76 Submit / Cancel / Replace Future Gates Validation
+
+日期：2026-05-22
+
+执行者：Codex
+
+MTP-76 的 required validation：
+
+- `docs/contracts/live-execution-control-contract.md` 必须包含 `MTP-76-SUBMIT-CANCEL-REPLACE-FUTURE-GATES`、`MTP-76-FORBIDDEN-SUBMIT-CANCEL-REPLACE-CAPABILITY-TESTS`、`MTP-76-NO-REAL-SUBMIT-CANCEL-REPLACE`、`MTP-76-PAPER-INTENT-NO-REAL-COMMAND-UPGRADE` 和 `MTP-76-LIVE-EXECUTION-CONTROL-VALIDATION` anchors。
+- `Sources/Core/LiveExecutionControlContract.swift` 必须定义 `LiveSubmitCancelReplaceFutureGate`、`LiveSubmitCancelReplaceForbiddenCapability` 和 `LiveSubmitCancelReplaceCommandBoundary`。
+- `LiveSubmitCancelReplaceCommandBoundary` 必须固定 submit / cancel / replace command taxonomy subset、future gates、forbidden capability list、validation anchors、source anchors 和 paper intent isolation flags。
+- Core tests 必须覆盖 deterministic fixture、Codable round trip、command taxonomy drift rejection、真实 submit / cancel / replace rejection、signed submit / cancel / replace request rejection、broker / `LiveExecutionAdapter` / real order state machine / OMS / order form / trading button bypass rejection，以及 `PaperOrderIntent` / `PaperExecutionDecision` / `PaperSimulatedFillEvidence` 不可升级为 real submit / cancel / replace。
+- `docs/validation/trading-validation-matrix.md` 必须继续把 MTP-76 回填到 `TVM-LIVE-EXECUTION-CONTROL` candidate entry。
+- MTP-76 只定义 validation anchor 名称 / 入口，不修改 `checks/automation-readiness.sh` 做最终机械收口；automation readiness 实际收口保留给 Issue 7。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不读取真实 API key，不新增 secret config，不实现 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、real order state machine、OMS、submit / cancel / replace、execution report、broker fill、reconciliation、incident fallback automation、live command、order-level command UI、order form 或交易按钮。
+
+MTP-76 必须建立的主要 anchors：
+
+- `MTP-76-SUBMIT-CANCEL-REPLACE-FUTURE-GATES`
+- `MTP-76-FORBIDDEN-SUBMIT-CANCEL-REPLACE-CAPABILITY-TESTS`
+- `MTP-76-NO-REAL-SUBMIT-CANCEL-REPLACE`
+- `MTP-76-PAPER-INTENT-NO-REAL-COMMAND-UPGRADE`
+- `MTP-76-LIVE-EXECUTION-CONTROL-VALIDATION`
+
+## MTP-76 禁止
+
+- 不实现 API key / secret storage。
+- 不实现 signed endpoint / account endpoint / listenKey。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`。
+- 不实现 real order state machine / OMS。
+- 不提交、撤销、替换真实订单。
+- 不发送 signed submit / cancel / replace request。
+- 不实现 broker submit / cancel / replace action。
+- 不新增交易按钮、order form、live command 或 order-level command UI。
+- 不把 paper order intent、paper execution decision 或 simulated fill 升级为 real submit / cancel / replace。
