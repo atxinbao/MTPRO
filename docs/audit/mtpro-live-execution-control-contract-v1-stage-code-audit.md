@@ -111,17 +111,17 @@ Post-Issue Ledger 对 `MTP-81` 已执行，但持久仓 `/Users/mac/Documents/MT
 
 ## Root Docs Delta
 
-| Root doc | Stage Code Audit input |
+| Root doc | Root Docs Refresh Gate closure |
 | --- | --- |
-| `GOAL.md` | pending Root Docs Refresh Gate：本 Project 完成后只证明 Final Product Goal Slice #7 “实盘执行控制”的 contract / boundary / blocked evidence 已建立；不代表真实 Live trading、真实订单命令或 production execution runtime 已实现。 |
-| `BLUEPRINT.md` | pending Root Docs Refresh Gate：Future Live execution / risk / audit / stop controls 仍保持 Future Construction Zones / 未来建设区；本 Project 只增加 execution-control contract 和 blocked evidence 的事实证据。 |
-| `docs/environment.md` | pending Root Docs Refresh Gate：本 Project 未新增 required validation 入口、secret 读取、broker credential、外部写能力、signed endpoint、account endpoint、listenKey 或网络必需验证；统一验证入口仍是 `bash checks/run.sh`。 |
-| `docs/architecture.md` | pending Root Docs Refresh Gate：Core / App / Dashboard 边界继续成立；App / Dashboard 只消费 read model / ViewModel，不读取 adapter、Runtime object、SQLite / DuckDB schema 或真实账户 / broker state。 |
-| `docs/roadmap.md` | pending Root Docs Refresh Gate：Project 已完成，后续需要通过 Root Docs Refresh Gate 更新已发生事实和 Final Product Goal Progress；本报告不修改下一阶段路线，不创建下一 Project / Issue。 |
+| `GOAL.md` | updated：Final Product Goal Progress 从 `6 / 9 (67%)` 更新为 `7 / 9 (78%)`，并明确第 7 项只完成 execution-control contract、future gates、forbidden capability tests、blocked evidence 和 read-model-only evidence surface，不代表真实 execution runtime、真实订单命令、broker fill、execution report 或 reconciliation。 |
+| `BLUEPRINT.md` | updated：Live Execution Control 从 Pending / gated 改为 Complete / contract + blocked evidence；Future Live Risk 和 Future Incident Replay / Stop Controls 仍保持 Future Gated。 |
+| `docs/environment.md` | no update needed：本 Project 未新增 required validation 入口、secret 读取、broker credential、外部写能力、signed endpoint、account endpoint、listenKey 或网络必需验证；统一验证入口仍是 `bash checks/run.sh`。 |
+| `docs/architecture.md` | updated：同步 LiveExecutionControl read-model-only blocked evidence flow、Core / App / Dashboard evidence surface 和真实 execution runtime / broker / schema / command 禁区。 |
+| `docs/roadmap.md` | updated：新增 `MTPRO Live Execution Control Contract v1` 为 Completed，Project Closure Count 更新为 `10 / 10 (100%)`，Final Product Goal Progress 更新为 `7 / 9 (78%)`。 |
 
-Root Docs Refresh Gate closure：pending。
+Root Docs Refresh Gate closure：closed。
 
-本轮 Stage Code Audit 只固化已发生事实；方向、目标、架构路线和下一阶段优先级仍交给 Human + `@001 / PLN`。
+本轮 closure 只同步已发生事实；方向、目标、架构路线和下一阶段优先级仍交给 Human + `@001 / PLN`。
 
 ## Residual Notes For Human Planning
 
@@ -130,7 +130,7 @@ Root Docs Refresh Gate closure：pending。
 - `docs/validation/trading-validation-matrix.md` 可作为下一阶段交易语义验证参考，但不创建 Linear Project / Issue，不授权任何 issue 进入 `Todo`。
 - 当前 Project 已完成 Live execution control terminology / taxonomy、submit / cancel / replace future gates、execution report / broker fill / reconciliation future gates、paper / real command isolation、read-model-only blocked evidence、Dashboard / Report / Event Timeline blocked evidence surface、Dashboard smoke evidence 和 Stage Audit Input。
 - Live trading、signed endpoint、account endpoint、listenKey、broker action、真实订单、OMS、execution runtime、broker fill、execution report、reconciliation、incident fallback automation、schema leakage、command surface、order form、order-level command UI 和交易按钮仍保持禁止或 future gated。
-- Root Docs Refresh Gate 必须在本 audit PR 合并后单独执行；Final Product Goal Progress 从 `6 / 9 (67%)` 更新到 `7 / 9 (78%)` 只能发生在 Root Docs Refresh Gate docs-only PR 中。
+- Root Docs Refresh Gate 已 closure；Final Product Goal Progress 已从 `6 / 9 (67%)` 更新到 `7 / 9 (78%)`。
 - 如果 Human 进入下一阶段规划，应由 Human + `@001 / PLN` 先定义 Project / Issue plan，再由 `@002 / PAR` 做 queue preflight 和 active Project pointer 更新。
 
 ## Next Human Project Planning Handoff
@@ -151,5 +151,5 @@ Handoff 结论：
 - 当前没有新的 authorized Project。
 - 当前没有新的 authorized issue。
 - 当前不得自动推进任何 issue 到 `Todo`。
-- Root Docs Refresh Gate 尚未 closure，必须在本 audit PR 合并后单独执行。
+- Root Docs Refresh Gate 已 closure。
 - 下一阶段必须由 Human + `@001 / PLN` 重新规划；`@002 / PAR` 只在 Project / Issue 已写入 Linear 且 gate 通过后接管自动调度。

@@ -370,7 +370,7 @@ require_contains "docs/environment.md" "External System Capability Matrix / 外�
 require_contains "docs/environment.md" "Secrets / Local State Boundary"
 require_contains "docs/environment.md" "Automation Boundary / 自动化边界"
 require_contains "docs/validation/latest-verification-summary.md" "Current Foundation Progress: 4 / 4 (100%)"
-require_contains "docs/validation/latest-verification-summary.md" "Final Product Goal Progress: 6 / 9 (67%)"
+require_contains "docs/validation/latest-verification-summary.md" "Final Product Goal Progress: 7 / 9 (78%)"
 for planning_record in \
   "docs/planning/projects/mtpro-guidance-plan.md" \
   "docs/planning/projects/mtpro-runtime-research-workbench-v1-plan.md" \
