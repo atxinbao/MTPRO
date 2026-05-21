@@ -7797,3 +7797,60 @@ Validation：
 | --- | --- | --- |
 | `git diff --check` | pass | Root Docs Refresh Gate closure docs-only 变更无 whitespace error。 |
 | `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；146 个 XCTest 通过，0 failures。 |
+
+## MTPRO Live Execution Control Contract v1 Planning Record
+
+日期：2026-05-22
+
+执行者：Codex（`@001 / PLN`）
+
+目的：
+
+- 将 Human 已确认的 `MTPRO Live Execution Control Contract v1` Project planning draft 落仓为 repo-side Project Planning Record。
+- 承接 Final Product Goal Slice #7：实盘执行控制。
+- 只记录 Project 级 planning summary 和格式门槛，作为后续 Linear 写入前的仓库侧 planning record。
+- 明确该 planning record 不授权执行，完整 issue execution contract 以后以 Linear issue body 为准。
+
+文件范围：
+
+- `docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md`
+- `docs/planning/linear-draft-plan.md`
+- `docs/validation/latest-verification-summary.md`
+- `checks/automation-readiness.sh`
+- `verification.md`
+
+更新重点：
+
+- 新增 `MTPRO Live Execution Control Contract v1` canonical Project Planning Record。
+- 将 planning index 的当前 planning record 指向 `docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md`。
+- 在 latest verification summary 记录该 planning record 已落仓但未写入 Linear。
+- 在 automation readiness 中加入该 planning record 的命名、边界和 forbidden capability anchors。
+- 明确本阶段只定义 Future Live Execution 的 execution-control contract / boundary。
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify update。
+- 不写业务代码。
+- 不修改 Figma。
+- 不把 planning draft 当执行授权。
+- 不提交 `.codex/*`。
+- 不提交 `graphify-out/*`。
+- 不实现 API key / secret storage。
+- 不实现 signed endpoint / account endpoint / listenKey。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`。
+- 不实现 real order state machine / OMS。
+- 不提交、撤销、替换真实订单。
+- 不新增交易按钮、order form、live command 或 order-level command UI。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | docs-only planning record 变更无 whitespace error。 |
+| `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；146 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
