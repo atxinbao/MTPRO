@@ -19,6 +19,582 @@ public enum LiveRiskTerm: String, Codable, CaseIterable, Equatable, Hashable, Se
     case paperExposure = "paper exposure"
 }
 
+/// LivePaperRiskLiveDecisionIsolationEvidenceSource 固定 MTP-86 允许引用的 paper-only 证据来源。
+///
+/// 这些来源只能作为隔离合同、验证矩阵和 PR evidence 的输入；它们不能被解释为
+/// future live risk decision、真实账户 exposure、broker position、pre-trade allow / reject
+/// runtime、risk command surface 或 Dashboard 交易控制。
+public enum LivePaperRiskLiveDecisionIsolationEvidenceSource: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case riskBlockerEvidence = "risk blocker evidence"
+    case portfolioExposureSnapshot = "portfolio exposure snapshot"
+    case paperActionProposalRiskDecision = "paper action proposal risk decision"
+    case paperExecutionDecision = "paper execution decision"
+    case paperPortfolioProjection = "paper portfolio projection"
+    case reportReadModel = "report read model"
+    case dashboardViewModel = "dashboard ViewModel"
+    case eventTimelineReadModel = "event timeline read model"
+}
+
+/// LivePaperRiskLiveDecisionForbiddenCapability 枚举 MTP-86 必须阻断的 paper-to-live risk 升级面。
+///
+/// 这些值只用于 deterministic forbidden capability tests 和合同文档。当前阶段不得新增
+/// live risk engine、真实 pre-trade allow / reject、账户 / broker 来源、risk command、
+/// order form 或交易按钮。
+public enum LivePaperRiskLiveDecisionForbiddenCapability: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case futureRiskDecision = "future risk decision"
+    case realPreTradeAllow = "real pre-trade allow"
+    case realPreTradeReject = "real pre-trade reject"
+    case liveRiskEngine = "live risk engine"
+    case apiKey = "API key"
+    case secretStorage = "secret storage"
+    case signedEndpoint = "signed endpoint"
+    case accountEndpoint = "account endpoint"
+    case listenKeyUserDataStream = "listenKey user data stream"
+    case brokerExecutionAdapter = "broker execution adapter"
+    case exchangeExecutionAdapter = "exchange execution adapter"
+    case liveExecutionAdapter = "LiveExecutionAdapter"
+    case realAccountBalanceRead = "real account balance read"
+    case realAccountExposure = "real account exposure"
+    case brokerPositionSync = "broker position sync"
+    case marginRead = "margin read"
+    case leverageRead = "leverage read"
+    case realPnLRead = "real PnL read"
+    case realAccountEquityRead = "real account equity read"
+    case paperRiskBlockerToFutureRiskDecisionUpgrade = "paper risk blocker to future risk decision upgrade"
+    case paperExposureToFutureRiskDecisionUpgrade = "paper exposure to future risk decision upgrade"
+    case paperRiskDecisionToRealAllowRejectUpgrade = "paper risk decision to real allow / reject upgrade"
+    case paperExposureToRealAccountExposureUpgrade = "paper exposure to real account exposure upgrade"
+    case paperExposureToBrokerPositionUpgrade = "paper exposure to broker position upgrade"
+    case paperRiskBlockerToCircuitBreakerUpgrade = "paper risk blocker to circuit breaker upgrade"
+    case paperExposureToNoTradeStateUpgrade = "paper exposure to no-trade state upgrade"
+    case riskCommandSurface = "risk command surface"
+    case positionManagementCommand = "position management command"
+    case orderForm = "order form"
+    case tradingButton = "trading button"
+    case networkValidationDependency = "network validation dependency"
+}
+
+/// LivePaperRiskLiveDecisionIsolationBoundary 是 MTP-86 的 paper / future live risk 隔离合同。
+///
+/// 该 fixture 把既有 `RiskBlockerEvidence`、`PortfolioExposureSnapshot`、paper risk decision
+/// 和 App read-model surface 固定为不可升级证据。它只引用 MTP-82 至 MTP-85 已建立的
+/// Future Live Risk gates，不实现真实风控引擎、账户读取、broker position、pre-trade
+/// allow / reject runtime、risk command、order form 或交易按钮。
+public struct LivePaperRiskLiveDecisionIsolationBoundary: Codable, Equatable, Sendable {
+    public let contractID: Identifier
+    public let issueID: Identifier
+    public let evidenceSources: [LivePaperRiskLiveDecisionIsolationEvidenceSource]
+    public let forbiddenCapabilities: [LivePaperRiskLiveDecisionForbiddenCapability]
+    public let allowedEvidenceKinds: [LiveRiskEvidenceKind]
+    public let validationAnchors: [String]
+    public let sourceAnchors: [String]
+    public let isIsolationContractOnly: Bool
+    public let reportConsumesReadModelOnly: Bool
+    public let dashboardConsumesViewModelOnly: Bool
+    public let eventTimelineConsumesReadModelOnly: Bool
+    public let mapsPaperRiskBlockerToFutureRiskDecision: Bool
+    public let mapsPaperExposureToFutureRiskDecision: Bool
+    public let mapsPaperRiskDecisionToRealPreTradeAllow: Bool
+    public let mapsPaperRiskDecisionToRealPreTradeReject: Bool
+    public let mapsPaperExposureToRealAccountExposure: Bool
+    public let mapsPaperExposureToBrokerPosition: Bool
+    public let mapsPaperRiskBlockerToCircuitBreaker: Bool
+    public let mapsPaperExposureToNoTradeState: Bool
+    public let providesLiveRiskEngine: Bool
+    public let evaluatesRealPreTradeAllow: Bool
+    public let evaluatesRealPreTradeReject: Bool
+    public let authorizesLiveTrading: Bool
+    public let readsAPIKey: Bool
+    public let storesSecret: Bool
+    public let usesSignedEndpoint: Bool
+    public let callsAccountEndpoint: Bool
+    public let createsListenKey: Bool
+    public let instantiatesBrokerExecutionAdapter: Bool
+    public let instantiatesExchangeExecutionAdapter: Bool
+    public let implementsLiveExecutionAdapter: Bool
+    public let readsRealAccountBalance: Bool
+    public let syncsBrokerPosition: Bool
+    public let readsMargin: Bool
+    public let readsLeverage: Bool
+    public let readsRealPnL: Bool
+    public let readsRealAccountEquity: Bool
+    public let providesRiskCommandSurface: Bool
+    public let providesPositionManagementCommand: Bool
+    public let exposesOrderForm: Bool
+    public let providesTradingButton: Bool
+    public let requiredValidationDependsOnNetwork: Bool
+
+    public var isolationBoundaryHeld: Bool {
+        evidenceSources == Self.requiredEvidenceSources
+            && forbiddenCapabilities == Self.requiredForbiddenCapabilities
+            && allowedEvidenceKinds == Self.allowedEvidenceKinds
+            && validationAnchors == Self.requiredValidationAnchors
+            && sourceAnchors == Self.requiredSourceAnchors
+            && isIsolationContractOnly
+            && appSurfaceReadModelOnlyBoundaryHeld
+            && paperRiskEvidenceCannotUpgradeToFutureRiskDecision
+            && paperExposureCannotBecomeRealAccountRiskInput
+            && futureLiveRiskDecisionCapabilitiesBlocked
+            && requiredValidationDependsOnNetwork == false
+    }
+
+    public var paperRiskEvidenceCannotUpgradeToFutureRiskDecision: Bool {
+        mapsPaperRiskBlockerToFutureRiskDecision == false
+            && mapsPaperExposureToFutureRiskDecision == false
+            && mapsPaperRiskDecisionToRealPreTradeAllow == false
+            && mapsPaperRiskDecisionToRealPreTradeReject == false
+            && mapsPaperRiskBlockerToCircuitBreaker == false
+            && mapsPaperExposureToNoTradeState == false
+            && evaluatesRealPreTradeAllow == false
+            && evaluatesRealPreTradeReject == false
+            && authorizesLiveTrading == false
+    }
+
+    public var paperExposureCannotBecomeRealAccountRiskInput: Bool {
+        mapsPaperExposureToRealAccountExposure == false
+            && mapsPaperExposureToBrokerPosition == false
+            && readsRealAccountBalance == false
+            && syncsBrokerPosition == false
+            && readsMargin == false
+            && readsLeverage == false
+            && readsRealPnL == false
+            && readsRealAccountEquity == false
+    }
+
+    public var futureLiveRiskDecisionCapabilitiesBlocked: Bool {
+        providesLiveRiskEngine == false
+            && evaluatesRealPreTradeAllow == false
+            && evaluatesRealPreTradeReject == false
+            && authorizesLiveTrading == false
+            && readsAPIKey == false
+            && storesSecret == false
+            && usesSignedEndpoint == false
+            && callsAccountEndpoint == false
+            && createsListenKey == false
+            && instantiatesBrokerExecutionAdapter == false
+            && instantiatesExchangeExecutionAdapter == false
+            && implementsLiveExecutionAdapter == false
+    }
+
+    public var appSurfaceReadModelOnlyBoundaryHeld: Bool {
+        reportConsumesReadModelOnly
+            && dashboardConsumesViewModelOnly
+            && eventTimelineConsumesReadModelOnly
+            && providesRiskCommandSurface == false
+            && providesPositionManagementCommand == false
+            && exposesOrderForm == false
+            && providesTradingButton == false
+    }
+
+    public func forbidsCapability(_ capability: LivePaperRiskLiveDecisionForbiddenCapability) -> Bool {
+        forbiddenCapabilities.contains(capability)
+    }
+
+    public init(
+        contractID: Identifier = try! Identifier("mtp-86-paper-risk-live-decision-isolation-boundary"),
+        issueID: Identifier = try! Identifier("MTP-86"),
+        evidenceSources: [LivePaperRiskLiveDecisionIsolationEvidenceSource] = Self.requiredEvidenceSources,
+        forbiddenCapabilities: [LivePaperRiskLiveDecisionForbiddenCapability] = Self.requiredForbiddenCapabilities,
+        allowedEvidenceKinds: [LiveRiskEvidenceKind] = Self.allowedEvidenceKinds,
+        validationAnchors: [String] = Self.requiredValidationAnchors,
+        sourceAnchors: [String] = Self.requiredSourceAnchors,
+        isIsolationContractOnly: Bool = true,
+        reportConsumesReadModelOnly: Bool = true,
+        dashboardConsumesViewModelOnly: Bool = true,
+        eventTimelineConsumesReadModelOnly: Bool = true,
+        mapsPaperRiskBlockerToFutureRiskDecision: Bool = false,
+        mapsPaperExposureToFutureRiskDecision: Bool = false,
+        mapsPaperRiskDecisionToRealPreTradeAllow: Bool = false,
+        mapsPaperRiskDecisionToRealPreTradeReject: Bool = false,
+        mapsPaperExposureToRealAccountExposure: Bool = false,
+        mapsPaperExposureToBrokerPosition: Bool = false,
+        mapsPaperRiskBlockerToCircuitBreaker: Bool = false,
+        mapsPaperExposureToNoTradeState: Bool = false,
+        providesLiveRiskEngine: Bool = false,
+        evaluatesRealPreTradeAllow: Bool = false,
+        evaluatesRealPreTradeReject: Bool = false,
+        authorizesLiveTrading: Bool = false,
+        readsAPIKey: Bool = false,
+        storesSecret: Bool = false,
+        usesSignedEndpoint: Bool = false,
+        callsAccountEndpoint: Bool = false,
+        createsListenKey: Bool = false,
+        instantiatesBrokerExecutionAdapter: Bool = false,
+        instantiatesExchangeExecutionAdapter: Bool = false,
+        implementsLiveExecutionAdapter: Bool = false,
+        readsRealAccountBalance: Bool = false,
+        syncsBrokerPosition: Bool = false,
+        readsMargin: Bool = false,
+        readsLeverage: Bool = false,
+        readsRealPnL: Bool = false,
+        readsRealAccountEquity: Bool = false,
+        providesRiskCommandSurface: Bool = false,
+        providesPositionManagementCommand: Bool = false,
+        exposesOrderForm: Bool = false,
+        providesTradingButton: Bool = false,
+        requiredValidationDependsOnNetwork: Bool = false
+    ) throws {
+        try Self.validate(
+            evidenceSources: evidenceSources,
+            forbiddenCapabilities: forbiddenCapabilities,
+            allowedEvidenceKinds: allowedEvidenceKinds,
+            validationAnchors: validationAnchors,
+            sourceAnchors: sourceAnchors
+        )
+        try Self.validateForbiddenFlags(
+            isIsolationContractOnly: isIsolationContractOnly,
+            reportConsumesReadModelOnly: reportConsumesReadModelOnly,
+            dashboardConsumesViewModelOnly: dashboardConsumesViewModelOnly,
+            eventTimelineConsumesReadModelOnly: eventTimelineConsumesReadModelOnly,
+            mapsPaperRiskBlockerToFutureRiskDecision: mapsPaperRiskBlockerToFutureRiskDecision,
+            mapsPaperExposureToFutureRiskDecision: mapsPaperExposureToFutureRiskDecision,
+            mapsPaperRiskDecisionToRealPreTradeAllow: mapsPaperRiskDecisionToRealPreTradeAllow,
+            mapsPaperRiskDecisionToRealPreTradeReject: mapsPaperRiskDecisionToRealPreTradeReject,
+            mapsPaperExposureToRealAccountExposure: mapsPaperExposureToRealAccountExposure,
+            mapsPaperExposureToBrokerPosition: mapsPaperExposureToBrokerPosition,
+            mapsPaperRiskBlockerToCircuitBreaker: mapsPaperRiskBlockerToCircuitBreaker,
+            mapsPaperExposureToNoTradeState: mapsPaperExposureToNoTradeState,
+            providesLiveRiskEngine: providesLiveRiskEngine,
+            evaluatesRealPreTradeAllow: evaluatesRealPreTradeAllow,
+            evaluatesRealPreTradeReject: evaluatesRealPreTradeReject,
+            authorizesLiveTrading: authorizesLiveTrading,
+            readsAPIKey: readsAPIKey,
+            storesSecret: storesSecret,
+            usesSignedEndpoint: usesSignedEndpoint,
+            callsAccountEndpoint: callsAccountEndpoint,
+            createsListenKey: createsListenKey,
+            instantiatesBrokerExecutionAdapter: instantiatesBrokerExecutionAdapter,
+            instantiatesExchangeExecutionAdapter: instantiatesExchangeExecutionAdapter,
+            implementsLiveExecutionAdapter: implementsLiveExecutionAdapter,
+            readsRealAccountBalance: readsRealAccountBalance,
+            syncsBrokerPosition: syncsBrokerPosition,
+            readsMargin: readsMargin,
+            readsLeverage: readsLeverage,
+            readsRealPnL: readsRealPnL,
+            readsRealAccountEquity: readsRealAccountEquity,
+            providesRiskCommandSurface: providesRiskCommandSurface,
+            providesPositionManagementCommand: providesPositionManagementCommand,
+            exposesOrderForm: exposesOrderForm,
+            providesTradingButton: providesTradingButton,
+            requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork
+        )
+
+        self.contractID = contractID
+        self.issueID = issueID
+        self.evidenceSources = evidenceSources
+        self.forbiddenCapabilities = forbiddenCapabilities
+        self.allowedEvidenceKinds = allowedEvidenceKinds
+        self.validationAnchors = validationAnchors
+        self.sourceAnchors = sourceAnchors
+        self.isIsolationContractOnly = isIsolationContractOnly
+        self.reportConsumesReadModelOnly = reportConsumesReadModelOnly
+        self.dashboardConsumesViewModelOnly = dashboardConsumesViewModelOnly
+        self.eventTimelineConsumesReadModelOnly = eventTimelineConsumesReadModelOnly
+        self.mapsPaperRiskBlockerToFutureRiskDecision = mapsPaperRiskBlockerToFutureRiskDecision
+        self.mapsPaperExposureToFutureRiskDecision = mapsPaperExposureToFutureRiskDecision
+        self.mapsPaperRiskDecisionToRealPreTradeAllow = mapsPaperRiskDecisionToRealPreTradeAllow
+        self.mapsPaperRiskDecisionToRealPreTradeReject = mapsPaperRiskDecisionToRealPreTradeReject
+        self.mapsPaperExposureToRealAccountExposure = mapsPaperExposureToRealAccountExposure
+        self.mapsPaperExposureToBrokerPosition = mapsPaperExposureToBrokerPosition
+        self.mapsPaperRiskBlockerToCircuitBreaker = mapsPaperRiskBlockerToCircuitBreaker
+        self.mapsPaperExposureToNoTradeState = mapsPaperExposureToNoTradeState
+        self.providesLiveRiskEngine = providesLiveRiskEngine
+        self.evaluatesRealPreTradeAllow = evaluatesRealPreTradeAllow
+        self.evaluatesRealPreTradeReject = evaluatesRealPreTradeReject
+        self.authorizesLiveTrading = authorizesLiveTrading
+        self.readsAPIKey = readsAPIKey
+        self.storesSecret = storesSecret
+        self.usesSignedEndpoint = usesSignedEndpoint
+        self.callsAccountEndpoint = callsAccountEndpoint
+        self.createsListenKey = createsListenKey
+        self.instantiatesBrokerExecutionAdapter = instantiatesBrokerExecutionAdapter
+        self.instantiatesExchangeExecutionAdapter = instantiatesExchangeExecutionAdapter
+        self.implementsLiveExecutionAdapter = implementsLiveExecutionAdapter
+        self.readsRealAccountBalance = readsRealAccountBalance
+        self.syncsBrokerPosition = syncsBrokerPosition
+        self.readsMargin = readsMargin
+        self.readsLeverage = readsLeverage
+        self.readsRealPnL = readsRealPnL
+        self.readsRealAccountEquity = readsRealAccountEquity
+        self.providesRiskCommandSurface = providesRiskCommandSurface
+        self.providesPositionManagementCommand = providesPositionManagementCommand
+        self.exposesOrderForm = exposesOrderForm
+        self.providesTradingButton = providesTradingButton
+        self.requiredValidationDependsOnNetwork = requiredValidationDependsOnNetwork
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            contractID: try container.decode(Identifier.self, forKey: .contractID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            evidenceSources: try container.decode(
+                [LivePaperRiskLiveDecisionIsolationEvidenceSource].self,
+                forKey: .evidenceSources
+            ),
+            forbiddenCapabilities: try container.decode(
+                [LivePaperRiskLiveDecisionForbiddenCapability].self,
+                forKey: .forbiddenCapabilities
+            ),
+            allowedEvidenceKinds: try container.decode([LiveRiskEvidenceKind].self, forKey: .allowedEvidenceKinds),
+            validationAnchors: try container.decode([String].self, forKey: .validationAnchors),
+            sourceAnchors: try container.decode([String].self, forKey: .sourceAnchors),
+            isIsolationContractOnly: try container.decode(Bool.self, forKey: .isIsolationContractOnly),
+            reportConsumesReadModelOnly: try container.decode(Bool.self, forKey: .reportConsumesReadModelOnly),
+            dashboardConsumesViewModelOnly: try container.decode(Bool.self, forKey: .dashboardConsumesViewModelOnly),
+            eventTimelineConsumesReadModelOnly: try container.decode(
+                Bool.self,
+                forKey: .eventTimelineConsumesReadModelOnly
+            ),
+            mapsPaperRiskBlockerToFutureRiskDecision: try container.decode(
+                Bool.self,
+                forKey: .mapsPaperRiskBlockerToFutureRiskDecision
+            ),
+            mapsPaperExposureToFutureRiskDecision: try container.decode(
+                Bool.self,
+                forKey: .mapsPaperExposureToFutureRiskDecision
+            ),
+            mapsPaperRiskDecisionToRealPreTradeAllow: try container.decode(
+                Bool.self,
+                forKey: .mapsPaperRiskDecisionToRealPreTradeAllow
+            ),
+            mapsPaperRiskDecisionToRealPreTradeReject: try container.decode(
+                Bool.self,
+                forKey: .mapsPaperRiskDecisionToRealPreTradeReject
+            ),
+            mapsPaperExposureToRealAccountExposure: try container.decode(
+                Bool.self,
+                forKey: .mapsPaperExposureToRealAccountExposure
+            ),
+            mapsPaperExposureToBrokerPosition: try container.decode(
+                Bool.self,
+                forKey: .mapsPaperExposureToBrokerPosition
+            ),
+            mapsPaperRiskBlockerToCircuitBreaker: try container.decode(
+                Bool.self,
+                forKey: .mapsPaperRiskBlockerToCircuitBreaker
+            ),
+            mapsPaperExposureToNoTradeState: try container.decode(
+                Bool.self,
+                forKey: .mapsPaperExposureToNoTradeState
+            ),
+            providesLiveRiskEngine: try container.decode(Bool.self, forKey: .providesLiveRiskEngine),
+            evaluatesRealPreTradeAllow: try container.decode(Bool.self, forKey: .evaluatesRealPreTradeAllow),
+            evaluatesRealPreTradeReject: try container.decode(Bool.self, forKey: .evaluatesRealPreTradeReject),
+            authorizesLiveTrading: try container.decode(Bool.self, forKey: .authorizesLiveTrading),
+            readsAPIKey: try container.decode(Bool.self, forKey: .readsAPIKey),
+            storesSecret: try container.decode(Bool.self, forKey: .storesSecret),
+            usesSignedEndpoint: try container.decode(Bool.self, forKey: .usesSignedEndpoint),
+            callsAccountEndpoint: try container.decode(Bool.self, forKey: .callsAccountEndpoint),
+            createsListenKey: try container.decode(Bool.self, forKey: .createsListenKey),
+            instantiatesBrokerExecutionAdapter: try container.decode(
+                Bool.self,
+                forKey: .instantiatesBrokerExecutionAdapter
+            ),
+            instantiatesExchangeExecutionAdapter: try container.decode(
+                Bool.self,
+                forKey: .instantiatesExchangeExecutionAdapter
+            ),
+            implementsLiveExecutionAdapter: try container.decode(Bool.self, forKey: .implementsLiveExecutionAdapter),
+            readsRealAccountBalance: try container.decode(Bool.self, forKey: .readsRealAccountBalance),
+            syncsBrokerPosition: try container.decode(Bool.self, forKey: .syncsBrokerPosition),
+            readsMargin: try container.decode(Bool.self, forKey: .readsMargin),
+            readsLeverage: try container.decode(Bool.self, forKey: .readsLeverage),
+            readsRealPnL: try container.decode(Bool.self, forKey: .readsRealPnL),
+            readsRealAccountEquity: try container.decode(Bool.self, forKey: .readsRealAccountEquity),
+            providesRiskCommandSurface: try container.decode(Bool.self, forKey: .providesRiskCommandSurface),
+            providesPositionManagementCommand: try container.decode(
+                Bool.self,
+                forKey: .providesPositionManagementCommand
+            ),
+            exposesOrderForm: try container.decode(Bool.self, forKey: .exposesOrderForm),
+            providesTradingButton: try container.decode(Bool.self, forKey: .providesTradingButton),
+            requiredValidationDependsOnNetwork: try container.decode(
+                Bool.self,
+                forKey: .requiredValidationDependsOnNetwork
+            )
+        )
+    }
+
+    public static let requiredEvidenceSources: [LivePaperRiskLiveDecisionIsolationEvidenceSource] =
+        LivePaperRiskLiveDecisionIsolationEvidenceSource.allCases
+
+    public static let requiredForbiddenCapabilities: [LivePaperRiskLiveDecisionForbiddenCapability] =
+        LivePaperRiskLiveDecisionForbiddenCapability.allCases
+
+    public static let allowedEvidenceKinds: [LiveRiskEvidenceKind] = [
+        .contractDocumentation,
+        .validationMatrixCandidate,
+        .validationPlanAnchor,
+        .deterministicForbiddenTest,
+        .paperLiveRiskIsolationEvidence,
+        .prBoundaryEvidence
+    ]
+
+    public static let requiredValidationAnchors: [String] = [
+        "MTP-86-PAPER-RISK-LIVE-DECISION-ISOLATION-CONTRACT",
+        "MTP-86-PAPER-RISK-EVIDENCE-NO-FUTURE-LIVE-RISK-DECISION",
+        "MTP-86-PAPER-EXPOSURE-NO-REAL-ACCOUNT-RISK-INPUT",
+        "MTP-86-REPORT-DASHBOARD-TIMELINE-READ-MODEL-ONLY",
+        "MTP-86-LIVE-RISK-GATE-VALIDATION",
+        "TVM-LIVE-RISK-GATE"
+    ]
+
+    public static let requiredSourceAnchors: [String] = [
+        "MTP-82-LIVE-RISK-TERMINOLOGY",
+        "MTP-82-FUTURE-RISK-DECISION-TAXONOMY",
+        "MTP-83-EXPOSURE-ORDER-NOTIONAL-FUTURE-GATES",
+        "MTP-84-FREQUENCY-LOSS-DRAWDOWN-FUTURE-GATES",
+        "MTP-85-CIRCUIT-BREAKER-NO-TRADE-FUTURE-GATES",
+        "TVM-RISK-BLOCKER",
+        "TVM-PORTFOLIO-EXPOSURE",
+        "TVM-PAPER-EXECUTION-DECISION",
+        "TVM-REPORT-EVIDENCE",
+        "MTP-78-PAPER-EVIDENCE-NO-REAL-COMMAND-UPGRADE"
+    ]
+
+    public static let deterministicFixture: LivePaperRiskLiveDecisionIsolationBoundary = {
+        do {
+            return try LivePaperRiskLiveDecisionIsolationBoundary()
+        } catch {
+            preconditionFailure("MTP-86 paper risk / live decision isolation fixture must be valid: \(error)")
+        }
+    }()
+
+    private static func validate(
+        evidenceSources: [LivePaperRiskLiveDecisionIsolationEvidenceSource],
+        forbiddenCapabilities: [LivePaperRiskLiveDecisionForbiddenCapability],
+        allowedEvidenceKinds: [LiveRiskEvidenceKind],
+        validationAnchors: [String],
+        sourceAnchors: [String]
+    ) throws {
+        guard evidenceSources == Self.requiredEvidenceSources else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "evidenceSources",
+                expected: Self.requiredEvidenceSources.map(\.rawValue).joined(separator: ","),
+                actual: evidenceSources.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard forbiddenCapabilities == Self.requiredForbiddenCapabilities else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "forbiddenCapabilities",
+                expected: Self.requiredForbiddenCapabilities.map(\.rawValue).joined(separator: ","),
+                actual: forbiddenCapabilities.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard allowedEvidenceKinds == Self.allowedEvidenceKinds else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "allowedEvidenceKinds",
+                expected: Self.allowedEvidenceKinds.map(\.rawValue).joined(separator: ","),
+                actual: allowedEvidenceKinds.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard validationAnchors == Self.requiredValidationAnchors else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "validationAnchors",
+                expected: Self.requiredValidationAnchors.joined(separator: ","),
+                actual: validationAnchors.joined(separator: ",")
+            )
+        }
+        guard sourceAnchors == Self.requiredSourceAnchors else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "sourceAnchors",
+                expected: Self.requiredSourceAnchors.joined(separator: ","),
+                actual: sourceAnchors.joined(separator: ",")
+            )
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        isIsolationContractOnly: Bool,
+        reportConsumesReadModelOnly: Bool,
+        dashboardConsumesViewModelOnly: Bool,
+        eventTimelineConsumesReadModelOnly: Bool,
+        mapsPaperRiskBlockerToFutureRiskDecision: Bool,
+        mapsPaperExposureToFutureRiskDecision: Bool,
+        mapsPaperRiskDecisionToRealPreTradeAllow: Bool,
+        mapsPaperRiskDecisionToRealPreTradeReject: Bool,
+        mapsPaperExposureToRealAccountExposure: Bool,
+        mapsPaperExposureToBrokerPosition: Bool,
+        mapsPaperRiskBlockerToCircuitBreaker: Bool,
+        mapsPaperExposureToNoTradeState: Bool,
+        providesLiveRiskEngine: Bool,
+        evaluatesRealPreTradeAllow: Bool,
+        evaluatesRealPreTradeReject: Bool,
+        authorizesLiveTrading: Bool,
+        readsAPIKey: Bool,
+        storesSecret: Bool,
+        usesSignedEndpoint: Bool,
+        callsAccountEndpoint: Bool,
+        createsListenKey: Bool,
+        instantiatesBrokerExecutionAdapter: Bool,
+        instantiatesExchangeExecutionAdapter: Bool,
+        implementsLiveExecutionAdapter: Bool,
+        readsRealAccountBalance: Bool,
+        syncsBrokerPosition: Bool,
+        readsMargin: Bool,
+        readsLeverage: Bool,
+        readsRealPnL: Bool,
+        readsRealAccountEquity: Bool,
+        providesRiskCommandSurface: Bool,
+        providesPositionManagementCommand: Bool,
+        exposesOrderForm: Bool,
+        providesTradingButton: Bool,
+        requiredValidationDependsOnNetwork: Bool
+    ) throws {
+        guard isIsolationContractOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("isIsolationContractOnly")
+        }
+        guard reportConsumesReadModelOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("reportConsumesReadModelOnly")
+        }
+        guard dashboardConsumesViewModelOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("dashboardConsumesViewModelOnly")
+        }
+        guard eventTimelineConsumesReadModelOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("eventTimelineConsumesReadModelOnly")
+        }
+
+        let forbiddenFlags = [
+            ("mapsPaperRiskBlockerToFutureRiskDecision", mapsPaperRiskBlockerToFutureRiskDecision),
+            ("mapsPaperExposureToFutureRiskDecision", mapsPaperExposureToFutureRiskDecision),
+            ("mapsPaperRiskDecisionToRealPreTradeAllow", mapsPaperRiskDecisionToRealPreTradeAllow),
+            ("mapsPaperRiskDecisionToRealPreTradeReject", mapsPaperRiskDecisionToRealPreTradeReject),
+            ("mapsPaperExposureToRealAccountExposure", mapsPaperExposureToRealAccountExposure),
+            ("mapsPaperExposureToBrokerPosition", mapsPaperExposureToBrokerPosition),
+            ("mapsPaperRiskBlockerToCircuitBreaker", mapsPaperRiskBlockerToCircuitBreaker),
+            ("mapsPaperExposureToNoTradeState", mapsPaperExposureToNoTradeState),
+            ("providesLiveRiskEngine", providesLiveRiskEngine),
+            ("evaluatesRealPreTradeAllow", evaluatesRealPreTradeAllow),
+            ("evaluatesRealPreTradeReject", evaluatesRealPreTradeReject),
+            ("authorizesLiveTrading", authorizesLiveTrading),
+            ("readsAPIKey", readsAPIKey),
+            ("storesSecret", storesSecret),
+            ("usesSignedEndpoint", usesSignedEndpoint),
+            ("callsAccountEndpoint", callsAccountEndpoint),
+            ("createsListenKey", createsListenKey),
+            ("instantiatesBrokerExecutionAdapter", instantiatesBrokerExecutionAdapter),
+            ("instantiatesExchangeExecutionAdapter", instantiatesExchangeExecutionAdapter),
+            ("implementsLiveExecutionAdapter", implementsLiveExecutionAdapter),
+            ("readsRealAccountBalance", readsRealAccountBalance),
+            ("syncsBrokerPosition", syncsBrokerPosition),
+            ("readsMargin", readsMargin),
+            ("readsLeverage", readsLeverage),
+            ("readsRealPnL", readsRealPnL),
+            ("readsRealAccountEquity", readsRealAccountEquity),
+            ("providesRiskCommandSurface", providesRiskCommandSurface),
+            ("providesPositionManagementCommand", providesPositionManagementCommand),
+            ("exposesOrderForm", exposesOrderForm),
+            ("providesTradingButton", providesTradingButton),
+            ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(capability.0)
+        }
+    }
+}
+
 /// LiveFrequencyLossDrawdownFutureGate 固定 MTP-84 的 frequency / loss / drawdown 未来门槛。
 ///
 /// 这些 gate 只描述 Future Live Risk 在后续 Project Definition 前必须补齐的频率窗口、

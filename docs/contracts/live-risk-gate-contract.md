@@ -414,3 +414,81 @@ MTP-85 建立以下 validation anchors：
 - `MTP-85-NO-CIRCUIT-BREAKER-OR-NO-TRADE-STATE-RUNTIME`
 - `MTP-85-PAPER-RISK-EXPOSURE-NO-CIRCUIT-BREAKER-UPGRADE`
 - `MTP-85-LIVE-RISK-GATE-VALIDATION`
+
+## MTP-86 paper risk / future live risk decision isolation contract
+
+`MTP-86-PAPER-RISK-LIVE-DECISION-ISOLATION-CONTRACT`
+
+MTP-86 把既有 paper risk blocker、paper exposure、paper risk decision 和 read-model evidence 与 future live risk decision 明确隔离。当前系统可以继续在 Report / Dashboard / Event Timeline 展示 paper-only 风险证据，但这些 evidence 不能成为 `allowed` / `blocked` / `degraded` / `no-trade` future live risk decision、真实账户 exposure、broker position、pre-trade allow / reject runtime、circuit breaker trigger 或 no-trade state trigger 的输入。
+
+Core fixture：`LivePaperRiskLiveDecisionIsolationBoundary` 固定以下 evidence sources：
+
+- `risk blocker evidence`
+- `portfolio exposure snapshot`
+- `paper action proposal risk decision`
+- `paper execution decision`
+- `paper portfolio projection`
+- `report read model`
+- `dashboard ViewModel`
+- `event timeline read model`
+
+## MTP-86 paper risk evidence no future live risk decision
+
+`MTP-86-PAPER-RISK-EVIDENCE-NO-FUTURE-LIVE-RISK-DECISION`
+
+MTP-86 必须证明 paper risk evidence 不能升级为 future live risk decision：
+
+- `mapsPaperRiskBlockerToFutureRiskDecision == false`
+- `mapsPaperExposureToFutureRiskDecision == false`
+- `mapsPaperRiskDecisionToRealPreTradeAllow == false`
+- `mapsPaperRiskDecisionToRealPreTradeReject == false`
+- `mapsPaperRiskBlockerToCircuitBreaker == false`
+- `mapsPaperExposureToNoTradeState == false`
+- `providesLiveRiskEngine == false`
+- `evaluatesRealPreTradeAllow == false`
+- `evaluatesRealPreTradeReject == false`
+- `authorizesLiveTrading == false`
+
+## MTP-86 paper exposure no real account risk input
+
+`MTP-86-PAPER-EXPOSURE-NO-REAL-ACCOUNT-RISK-INPUT`
+
+当前 `PortfolioExposureSnapshot` 仍只能表示 paper projection 派生的只读 exposure evidence，不等于真实账户 exposure、broker position、margin、leverage、真实 PnL / equity 或 live risk input。MTP-86 必须保持：
+
+- `mapsPaperExposureToRealAccountExposure == false`
+- `mapsPaperExposureToBrokerPosition == false`
+- `readsRealAccountBalance == false`
+- `syncsBrokerPosition == false`
+- `readsMargin == false`
+- `readsLeverage == false`
+- `readsRealPnL == false`
+- `readsRealAccountEquity == false`
+
+## MTP-86 Report / Dashboard / Event Timeline read-model-only
+
+`MTP-86-REPORT-DASHBOARD-TIMELINE-READ-MODEL-ONLY`
+
+MTP-86 只允许展示面消费既有 read model / ViewModel 证据：
+
+- `reportConsumesReadModelOnly == true`
+- `dashboardConsumesViewModelOnly == true`
+- `eventTimelineConsumesReadModelOnly == true`
+- `providesRiskCommandSurface == false`
+- `providesPositionManagementCommand == false`
+- `exposesOrderForm == false`
+- `providesTradingButton == false`
+
+该 issue 不新增 `LiveRiskGateBlockedEvidence` read model；MTP-87 才允许在 read-model-only boundary 内定义 blocked evidence 展示前的 Core / App 只读证据。
+
+## MTP-86 validation anchors
+
+`MTP-86-LIVE-RISK-GATE-VALIDATION`
+
+MTP-86 建立以下 validation anchors：
+
+- `TVM-LIVE-RISK-GATE`
+- `MTP-86-PAPER-RISK-LIVE-DECISION-ISOLATION-CONTRACT`
+- `MTP-86-PAPER-RISK-EVIDENCE-NO-FUTURE-LIVE-RISK-DECISION`
+- `MTP-86-PAPER-EXPOSURE-NO-REAL-ACCOUNT-RISK-INPUT`
+- `MTP-86-REPORT-DASHBOARD-TIMELINE-READ-MODEL-ONLY`
+- `MTP-86-LIVE-RISK-GATE-VALIDATION`

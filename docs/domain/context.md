@@ -161,6 +161,22 @@ MTP-85 进一步固定 circuit breaker gate 和 no-trade state gate 只是 Futur
 
 当前 `RiskBlockerEvidence` 和 `PortfolioExposureSnapshot` 仍只能是 paper-only evidence。它们不能升级为 live circuit breaker trigger、no-trade state trigger、真实 PnL / equity、真实账户状态、pre-trade risk runtime 或 future live risk decision；`LiveCircuitBreakerNoTradeGateBoundary` 的 circuit breaker runtime、no-trade runtime、global trading lock、broker session mutation、stop / emergency / recovery command、production shutdown control 和 paper-upgrade flags 必须全部保持 `false`。
 
+`MTP-86-PAPER-RISK-LIVE-DECISION-ISOLATION-CONTRACT`
+
+MTP-86 进一步固定 paper risk blocker、paper exposure、paper risk decision 和 read-model evidence 与 future live risk decision 的隔离合同。当前 `RiskBlockerEvidence`、`PortfolioExposureSnapshot`、paper risk decision、Report read model、Dashboard ViewModel 和 Event Timeline read model 只能作为 paper-only / read-model-only 证据，不得升级为 `allowed` / `blocked` / `degraded` / `no-trade` future live risk decision、真实账户 exposure、broker position、pre-trade allow / reject runtime、circuit breaker trigger、no-trade state trigger、risk command surface、position management command、order form 或交易按钮。
+
+`MTP-86-PAPER-RISK-EVIDENCE-NO-FUTURE-LIVE-RISK-DECISION`
+
+当前 paper risk evidence 不能升级为 future live risk decision；`LivePaperRiskLiveDecisionIsolationBoundary` 的 paper risk blocker / exposure / risk decision upgrade flags、live risk engine flags、pre-trade allow / reject flags、live trading authorization flags 和 required network validation flag 必须全部保持 `false`。
+
+`MTP-86-PAPER-EXPOSURE-NO-REAL-ACCOUNT-RISK-INPUT`
+
+当前 paper exposure 不能升级为真实账户风险输入；`LivePaperRiskLiveDecisionIsolationBoundary` 的 real account balance、broker position sync、margin、leverage、real PnL、real account equity 和 paper exposure to account / broker position mapping flags 必须全部保持 `false`。
+
+`MTP-86-REPORT-DASHBOARD-TIMELINE-READ-MODEL-ONLY`
+
+MTP-86 只允许 Report / Dashboard / Event Timeline 展示既有 read model / ViewModel evidence，不新增 live risk command surface、position management command、order form、交易按钮或 `LiveRiskGateBlockedEvidence` 展示面；后者保留给 MTP-87。
+
 ## Paper-only Terms
 
 | 术语 | MTPRO 含义 | 避免混用 |
