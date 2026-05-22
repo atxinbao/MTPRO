@@ -9769,3 +9769,57 @@ Preflight：
 | `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
 | `DASHBOARD_SMOKE=1 swift run Dashboard` | pass | Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`。 |
 | `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；204 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
+
+## MTP-95 Live Audit Incident Stop Boundary stage closeout
+
+日期：2026-05-23
+
+执行者：Codex（`@002 / PAR` supervised issue execution）
+
+目的：
+
+- 执行 Linear `MTP-95 收口 validation matrix、automation readiness 和 stage audit input material`。
+- 只收口 validation matrix、automation readiness anchors、forbidden capability evidence、read-model-only boundary evidence、Dashboard smoke evidence 和 Stage Code Audit 输入材料。
+- 不输出最终 Stage Code Audit Report，不启动下一阶段，不推进下一 Project / Issue。
+
+Preflight：
+
+- Linear `MTP-95` 为唯一 `In Progress` active issue。
+- Linear `MTP-89`、`MTP-90`、`MTP-91`、`MTP-92`、`MTP-93`、`MTP-94` 为 `Done`。
+- WIP=1 satisfied。
+- Issue body 已作为唯一 execution contract 读取并执行。
+
+文件范围：
+
+- `docs/audit/inputs/mtpro-live-audit-incident-stop-boundary-v1-stage-audit-input.md`
+- `docs/contracts/live-audit-incident-stop-contract.md`
+- `docs/validation/trading-validation-matrix.md`
+- `docs/validation/validation-plan.md`
+- `docs/validation/latest-verification-summary.md`
+- `docs/automation/automation-readiness.md`
+- `checks/automation-readiness.sh`
+- `verification.md`
+
+关键证据：
+
+- 新增 `MTP-95-LIVE-AUDIT-INCIDENT-STOP-STAGE-AUDIT-INPUT` stage audit input material。
+- 新增 `MTP-95-LIVE-AUDIT-INCIDENT-STOP-STAGE-CLOSEOUT`、`MTP-95-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-95-NO-FINAL-STAGE-CODE-AUDIT`、`MTP-95-LIVE-AUDIT-INCIDENT-STOP-VALIDATION-EVIDENCE-CHAIN` 和 `MTP-95-AUTOMATION-READINESS-STAGE-CLOSEOUT` contract / validation anchors。
+- Stage audit input 汇总 PR #178 至 #183 的 merge commit、GitHub required check 和 Live audit incident stop evidence chain，并保留当前 MTP-95 PR / merge commit 待 GitHub PR Automation 产生。
+- Automation readiness 已机械检查 stage input、contract、matrix、validation plan、latest summary、Core/App source anchors、Core/App deterministic tests、Dashboard smoke `liveIncidentStopGates=5` 和 PR evidence chain。
+
+边界确认：
+
+- 不修改 Linear issue body 或 status。
+- 不创建下一 Project / Issue，不推进下一阶段，不启动下一阶段 `symphony-issue`。
+- 不运行 Graphify update。
+- 不修改 production code。
+- 不输出最终 Stage Code Audit Report。
+- 不实现 audit trail runtime、incident replay runtime、broker replay runtime、account replay runtime、production recovery runtime、stop control runtime、emergency stop command、shutdown command、restore command、production operations runtime、production shutdown control、global trading lock、broker session mutation、restore decision runtime、live runtime resume、Live PRO Console、live command、order-level command UI、stop button、order form、trading button、signed endpoint、account endpoint、listenKey、broker action、`LiveExecutionAdapter`、OMS 或 real order state machine。
+- `.codex/*` 和 `graphify-out/*` 未进入 PR scope。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
+| `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`；204 个 XCTest 通过、0 failures，最终输出 `MTPRO checks passed.`。 |

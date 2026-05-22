@@ -1675,3 +1675,37 @@ MTP-94 必须建立的主要 anchors：
 - 不实现 OMS、real order state machine、execution runtime、live risk engine、audit service、broker replay、account replay 或 production recovery。
 - 不把 Dashboard、Report、Workbench、Event Timeline 或 Evidence Explorer 升级为 Live PRO Console、operator workflow、command model、adapter status、runtime status 或 database schema browser。
 - 不新增 live command、order-level command UI、stop button、order form、交易按钮或真实交易授权。
+
+## MTP-95 Validation Docs / Stage Audit Input Validation
+
+日期：2026-05-23
+
+执行者：Codex
+
+MTP-95 的 required validation：
+
+- `docs/audit/inputs/mtpro-live-audit-incident-stop-boundary-v1-stage-audit-input.md` 必须包含 `MTP-95-LIVE-AUDIT-INCIDENT-STOP-STAGE-AUDIT-INPUT`、Linear queue evidence、Issue / PR evidence input、Live audit incident stop validation evidence chain、Forbidden capability evidence、Read-model-only boundary evidence、Automation readiness evidence、Validation evidence、Known boundaries、Root Docs Delta input 和 Stage Code Audit handoff checklist。
+- `docs/contracts/live-audit-incident-stop-contract.md` 必须包含 `MTP-95-LIVE-AUDIT-INCIDENT-STOP-STAGE-CLOSEOUT`、`MTP-95-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-95-NO-FINAL-STAGE-CODE-AUDIT`、`MTP-95-LIVE-AUDIT-INCIDENT-STOP-VALIDATION-EVIDENCE-CHAIN` 和 `MTP-95-AUTOMATION-READINESS-STAGE-CLOSEOUT` anchors。
+- `docs/validation/trading-validation-matrix.md` 必须把 MTP-95 回填到 `TVM-LIVE-AUDIT-INCIDENT-STOP` candidate entry，并新增 Project 级 stage closeout section。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-95 只做 Project 级 validation matrix、automation readiness 和 stage audit input material 收口，不输出最终 Stage Code Audit Report。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-89 至 MTP-95 的 contract、matrix、validation plan、latest summary、stage audit input、Core / App source anchors、Core / App deterministic test anchors、Dashboard smoke `liveIncidentStopGates=5` 和 PR evidence chain。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不实现 audit trail runtime、incident replay runtime、emergency stop、shutdown、restore、production operations、Live PRO Console、signed endpoint、account endpoint、listenKey、broker action、live command、stop button、order form 或交易按钮。
+- 必须验证 `.codex/*` 和 `graphify-out/*` 不进入 PR。
+
+MTP-95 必须建立的主要 anchors：
+
+- `TVM-LIVE-AUDIT-INCIDENT-STOP`
+- `MTP-95-LIVE-AUDIT-INCIDENT-STOP-STAGE-AUDIT-INPUT`
+- `MTP-95-LIVE-AUDIT-INCIDENT-STOP-STAGE-CLOSEOUT`
+- `MTP-95-STAGE-AUDIT-INPUT-MATERIAL`
+- `MTP-95-NO-FINAL-STAGE-CODE-AUDIT`
+- `MTP-95-LIVE-AUDIT-INCIDENT-STOP-VALIDATION-EVIDENCE-CHAIN`
+- `MTP-95-AUTOMATION-READINESS-STAGE-CLOSEOUT`
+
+## MTP-95 禁止
+
+- 不输出最终 Stage Code Audit Report。
+- 不创建下一 Project / Issue，不推进下一阶段，不启动下一阶段 `symphony-issue`。
+- 不读取 API key、secret、真实账户、broker state 或 production runtime state。
+- 不接 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 audit trail runtime、incident replay runtime、broker replay runtime、account replay runtime、production recovery runtime、stop control runtime、production operations runtime、Live PRO Console、live command、stop button、order form、交易按钮、emergency stop command、shutdown command 或 restore command。
