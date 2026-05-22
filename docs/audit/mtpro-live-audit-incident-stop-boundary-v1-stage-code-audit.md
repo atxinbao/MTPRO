@@ -108,20 +108,20 @@ Project 末端合并点为 `MTP-95` PR #184，merge commit 为 `fab605c24c9eb2a1
 
 ## Root Docs Delta
 
-| Root doc | Stage audit input 结论 |
+| Root doc | Root Docs Refresh Gate closure |
 | --- | --- |
-| `GOAL.md` | 需要 Root Docs Refresh Gate 单独判断：本 Project 完成后只证明 Final Product Goal Slice #9 的 audit / incident / stop contract、boundary、blocked evidence 和 read-model-only evidence surface 已建立；不代表真实 audit trail runtime、incident replay runtime、emergency stop、shutdown、restore、production operations、Live PRO Console、live command 或 trading button 已实现。 |
-| `BLUEPRINT.md` | 需要 Root Docs Refresh Gate 单独判断：Future Live audit / incident / stop controls 仍保持 Future Construction Zones / 未来建设区；本 Project 只增加 contract、forbidden capability tests 和 blocked evidence 的事实证据。 |
-| `docs/environment.md` | 初步判断 no update needed：本 Project 未新增 required validation 入口、secret 读取、broker credential、外部写能力、signed endpoint、account endpoint、listenKey、真实账户读取或网络必需验证；统一验证入口仍是 `bash checks/run.sh`。 |
-| `docs/architecture.md` | 需要 Root Docs Refresh Gate 单独判断：Core / App / Dashboard 边界继续成立；App / Dashboard 只消费 read model / ViewModel，不读取 adapter、Runtime object、SQLite / DuckDB schema、真实账户 / broker state 或 production operations state。 |
-| `docs/roadmap.md` | 需要 Root Docs Refresh Gate 单独判断：Project 完成后应由 Root Docs Refresh Gate 同步已发生事实、Project Closure Count、Current Foundation Progress 和 Final Product Goal Progress。 |
-| `docs/validation/latest-verification-summary.md` | 本 Stage Code Audit Report PR 已写入审计引用；Root Docs Refresh Gate closure 后需再次刷新当前基线。 |
-| `checks/automation-readiness.sh` | Root Docs Refresh Gate 如更新 Final Product Goal Progress，应同步 readiness anchor。 |
-| `verification.md` | 本 Stage Code Audit Report PR 已追加 compact record；Root Docs Refresh Gate closure 后需追加独立 record。 |
+| `GOAL.md` | updated：Final Product Goal Progress 更新为 `9 / 9 (100%)`，并明确 Slice #9 只完成 contract、future gates、blocked evidence 和 read-model-only evidence surface，不代表真实 audit trail runtime、incident replay runtime、emergency stop、shutdown、restore、production operations、Live PRO Console、live command 或 trading button。 |
+| `BLUEPRINT.md` | updated：Final Product Goal Slice #9 标记为 `Complete / contract + blocked evidence`，Current / Future Boundary 更新最近完成 Project 和 `9 / 9 (100%)` 事实；Future gated runtime / command 能力仍保持禁止。 |
+| `docs/environment.md` | no update needed：本 Project 未新增 required validation 入口、secret 读取、broker credential、外部写能力、signed endpoint、account endpoint、listenKey、真实账户读取或网络必需验证；统一验证入口仍是 `bash checks/run.sh`。 |
+| `docs/architecture.md` | updated：Evidence Read Model Layer、Module Boundary Contracts 和 Capability Flow Map 已补充 `LiveIncidentStop` / `LiveIncidentStopBlockedEvidence` read-model-only 边界。 |
+| `docs/roadmap.md` | updated：Completed Project Map 增加 `MTPRO Live Risk Gate Contract v1` 和 `MTPRO Live Audit Incident Stop Boundary v1`，Project Closure Count 更新为 `12 / 12 (100%)`，Final Product Goal Progress 更新为 `9 / 9 (100%)`。 |
+| `docs/validation/latest-verification-summary.md` | updated：当前基线、Stage Code Audit Report 引用和 Goal / Roadmap Progress Baseline 已同步 Root Docs Refresh Gate closure。 |
+| `checks/automation-readiness.sh` | updated：progress anchor 更新为 `9 / 9 (100%)`，并新增本报告 Root Docs Refresh Gate closure anchor。 |
+| `verification.md` | updated：追加 Root Docs Refresh Gate compact record。 |
 
-Root Docs Refresh Gate closure：pending。
+Root Docs Refresh Gate closure：closed。
 
-本报告已记录 Root Docs Delta input。Root docs 事实同步必须单独执行，只覆盖已发生事实；方向、目标、架构路线和下一阶段优先级仍交给 Human + `@001 / PLN`。
+本报告已记录 Root Docs Refresh Gate closure。Root docs 事实同步只覆盖已发生事实；方向、目标、架构路线和下一阶段优先级仍交给 Human + `@001 / PLN`。
 
 ## Residual Notes For Human Planning
 
@@ -130,7 +130,7 @@ Root Docs Refresh Gate closure：pending。
 - `docs/validation/trading-validation-matrix.md` 可作为下一阶段交易语义验证参考，但不创建 Linear Project / Issue，不授权任何 issue 进入 `Todo`。
 - 当前 Project 已完成 Live audit / incident / stop terminology、signal / order / risk decision / fill audit trail future gates、incident replay future gates、emergency stop / shutdown / restore future gates、blocked evidence isolation、read-model-only incident / stop blocked evidence、Dashboard / Report / Event Timeline blocked evidence surface、Dashboard smoke evidence 和 Stage Audit Input。
 - Live trading、signed endpoint、account endpoint、listenKey、broker action、OMS、real order state machine、execution report ingestion、broker fill fact、audit trail runtime、incident replay runtime、broker replay runtime、account replay runtime、production recovery runtime、emergency stop、shutdown、restore、production operations runtime、Live PRO Console、live command、order form、stop button 和 trading button 仍保持禁止或 future gated。
-- Root Docs Refresh Gate 尚未 closure；Final Product Goal Progress 仍等待该 gate 单独判断。
+- Root Docs Refresh Gate 已 closure；Final Product Goal Progress 当前为 `9 / 9 (100%)`。
 - 如果 Human 进入下一阶段规划，应由 Human + `@001 / PLN` 先定义 Project / Issue plan，再由 `@002 / PAR` 做 queue preflight 和 active Project pointer 更新。
 
 ## Next Human Project Planning Handoff
@@ -151,5 +151,5 @@ Handoff 结论：
 - 当前没有新的 authorized Project。
 - 当前没有新的 authorized issue。
 - 当前不得自动推进任何 issue 到 `Todo`。
-- Root Docs Refresh Gate 尚未单独 closure。
+- Root Docs Refresh Gate 已 closure。
 - 下一阶段必须由 Human + `@001 / PLN` 重新规划；`@002 / PAR` 只在 Project / Issue 已写入 Linear 且 gate 通过后接管自动调度。
