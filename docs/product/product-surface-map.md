@@ -873,6 +873,51 @@ v2 设计重点：
 - API key / secret storage input、signed endpoint、account endpoint / listenKey、broker adapter / broker action、`LiveExecutionAdapter`、real order state machine / OMS。
 - submit / cancel / replace、order form、broker fill、execution report、reconciliation、real account balance、broker position、trading button、live command、order-level command UI、reconnect / start live / stop live。
 
+## MTPRO Workbench User-Facing Dashboard High-Fidelity v3
+
+日期：2026-05-23
+
+执行者：Codex（`@000 / AIE`，基于 `@004 / DSG` Figma 输出、macOS native desktop refinement 和 `@005 / ARC` 复审结论落仓）
+
+当前设计层新增 `MTPRO Workbench User-Facing Dashboard High-Fidelity v3`，路径为 `docs/design/mtpro-workbench-user-facing-dashboard-high-fidelity-v3.md`。该文档记录 Figma canonical `91:2`，承接 `MTPRO Workbench Business Dashboard Content Model v2` 草案，用于定义更接近原生 macOS 专业桌面客户端的 Workbench business dashboard 高保真关键页面。
+
+该文档是设计层业务判断 dashboard 高保真关键页面依据，不是 Live PRO Console，不是实盘操作台，不是 SwiftUI 实现或 Linear execution 授权。
+
+Figma `91:*` 覆盖页面：
+
+- Overview。
+- Market Replay。
+- Research。
+- Backtest。
+- Report。
+- Paper。
+- Portfolio。
+- Risk。
+- Events / Audit。
+- Live Readiness。
+- Live Monitoring。
+- Future Gated。
+
+v3 设计重点：
+
+- 从 system health / evidence / gate dashboard 推进为 business decision dashboard。
+- 经 macOS native desktop refinement 后，采用 sidebar / toolbar / workspace / inspector 的原生桌面工作台结构。
+- Overview 覆盖今日数据、当前策略 / signal、最新回测、报告、Paper、Portfolio / Risk、Live readiness / monitoring summary。
+- Research -> Backtest -> Report -> Paper 形成业务判断链。
+- source / trace / validation 下沉到 Detail inspector / Events / Audit。
+- Paper / Portfolio 统一使用 simulated / paper-only 口径。
+- Live Readiness 主屏只保留 blocked gate summary / highest blocking reason。
+- Future Gated 仍是 boundary placeholder，不是 planning / execution / Linear 授权入口。
+
+`@005 / ARC` 初审结论为需修改，问题集中在状态 pill 错位和 Future Gated 底部叠层。`@004 / DSG` 修正后，`@005 / ARC` 复审结论为通过：P0 / P1 无；P2 为 hidden legacy layers 仍存在但均为 hidden，不进入最终截图，不阻塞落仓。
+
+仍不包含：
+
+- SwiftUI 实现、组件库实现或业务代码开发。
+- Live PRO Console、实盘操作台或真实 Live trading execution scope。
+- Linear Project / Issue、Todo 推进、Symphony 启动。
+- trading button、order form、submit / cancel / replace、broker action、signed endpoint、account endpoint / listenKey、real account balance、broker position、OMS、`LiveExecutionAdapter`、real order state machine、reconnect / start live / stop live、live command 或 emergency stop 当前可执行动作。
+
 ## MTPRO Product Surface Split v1
 
 日期：2026-05-22
