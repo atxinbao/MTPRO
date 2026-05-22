@@ -116,17 +116,20 @@ Project 末端合并点为 `MTP-88` PR #173，merge commit 为 `50ea5a897c990a6b
 
 ## Root Docs Delta
 
-| Root doc | Root Docs Refresh Gate input |
+| Root doc | Root Docs Refresh Gate closure |
 | --- | --- |
-| `GOAL.md` | 需要事实刷新：Final Product Goal Slice #8 可从 Pending / gated 更新为 Complete / contract + blocked evidence；必须说明这不代表真实 live risk engine、真实账户风控、real pre-trade allow / reject runtime、circuit breaker command、stop trading command 或 production runtime 已实现。 |
-| `BLUEPRINT.md` | 需要事实刷新：Live Risk Control 从 Pending / gated 改为 Complete / contract + blocked evidence；Future Incident Replay / Stop Controls 仍保持 Future Gated。 |
+| `GOAL.md` | updated：Final Product Goal Slice #8 已从 Pending / gated 更新为 Complete / contract + blocked evidence；已说明这不代表真实 live risk engine、真实账户风控、real pre-trade allow / reject runtime、circuit breaker command、stop trading command 或 production runtime 已实现。 |
+| `BLUEPRINT.md` | updated：Live Risk Control 已从 Pending / gated 改为 Complete / contract + blocked evidence；Future Incident Replay / Stop Controls 仍保持 Future Gated。 |
 | `docs/environment.md` | no update needed：本 Project 未新增 required validation 入口、secret 读取、broker credential、外部写能力、signed endpoint、account endpoint、listenKey、真实账户读取或网络必需验证；统一验证入口仍是 `bash checks/run.sh`。 |
-| `docs/architecture.md` | 需要事实刷新：同步 LiveRiskGate read-model-only blocked evidence flow、Core / App / Dashboard evidence surface 和真实 live risk runtime / broker / schema / command 禁区。 |
-| `docs/roadmap.md` | 需要事实刷新：新增 `MTPRO Live Risk Gate Contract v1` 为 Completed，并在 Root Docs Refresh Gate 中把 Final Product Goal Progress 更新为 `8 / 9 (89%)`。 |
+| `docs/architecture.md` | updated：已同步 LiveRiskGate read-model-only blocked evidence flow、Core / App / Dashboard evidence surface 和真实 live risk runtime / broker / schema / command 禁区。 |
+| `docs/roadmap.md` | updated：已新增 `MTPRO Live Risk Gate Contract v1` 为 Completed，并把 Final Product Goal Progress 更新为 `8 / 9 (89%)`。 |
+| `docs/validation/latest-verification-summary.md` | updated：已记录 Root Docs Refresh Gate closure、当前进度口径和 boundary evidence。 |
+| `checks/automation-readiness.sh` | updated：已将 Final Product Goal Progress readiness anchor 更新为 `8 / 9 (89%)`。 |
+| `verification.md` | updated：已追加 Root Docs Refresh Gate closure compact record。 |
 
-Root Docs Refresh Gate closure：pending。
+Root Docs Refresh Gate closure：closed。
 
-本报告只提供 Root Docs Refresh Gate input。Root docs 事实同步、Final Product Goal Progress `8 / 9 (89%)` 和 gate closure 必须在本 Stage Code Audit Report 合并后单独执行。
+本报告已记录 Root Docs Refresh Gate closure。Root docs 事实同步只覆盖已发生事实，Final Product Goal Progress 当前为 `8 / 9 (89%)`，不授权下一阶段 planning 或 execution。
 
 ## Residual Notes For Human Planning
 
@@ -135,7 +138,7 @@ Root Docs Refresh Gate closure：pending。
 - `docs/validation/trading-validation-matrix.md` 可作为下一阶段交易语义验证参考，但不创建 Linear Project / Issue，不授权任何 issue 进入 `Todo`。
 - 当前 Project 已完成 Live risk terminology / taxonomy、exposure / order notional future gates、frequency / loss / drawdown future gates、circuit breaker / no-trade state future gates、paper / live risk isolation、read-model-only blocked evidence、Dashboard / Report / Event Timeline blocked evidence surface、Dashboard smoke evidence 和 Stage Audit Input。
 - Live trading、signed endpoint、account endpoint、listenKey、broker action、真实账户读取、broker position sync、margin、leverage、PnL、equity、real pre-trade allow / reject runtime、circuit breaker runtime、no-trade state runtime、stop trading command、emergency stop、risk command surface、order form、order-level command UI 和交易按钮仍保持禁止或 future gated。
-- Root Docs Refresh Gate 尚未 closure；Final Product Goal Progress 在本报告合并前仍保持 `7 / 9 (78%)`，待独立 root docs refresh 后更新为 `8 / 9 (89%)`。
+- Root Docs Refresh Gate 已 closure；Final Product Goal Progress 已更新为 `8 / 9 (89%)`。
 - 如果 Human 进入下一阶段规划，应由 Human + `@001 / PLN` 先定义 Project / Issue plan，再由 `@002 / PAR` 做 queue preflight 和 active Project pointer 更新。
 
 ## Next Human Project Planning Handoff
@@ -156,5 +159,5 @@ Handoff 结论：
 - 当前没有新的 authorized Project。
 - 当前没有新的 authorized issue。
 - 当前不得自动推进任何 issue 到 `Todo`。
-- Root Docs Refresh Gate 仍待单独 closure。
+- Root Docs Refresh Gate 已单独 closure。
 - 下一阶段必须由 Human + `@001 / PLN` 重新规划；`@002 / PAR` 只在 Project / Issue 已写入 Linear 且 gate 通过后接管自动调度。

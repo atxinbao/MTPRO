@@ -48,7 +48,7 @@ Target System Architecture 的工程分层压缩为五层。依赖方向从 Work
 flowchart TB
     L1["Workbench UI Layer<br/>SwiftUI / macOS shell"]
     L2["App Interface Layer<br/>ViewModel assembly / Command Model boundary"]
-    L3["Evidence Read Model Layer<br/>Report / Paper / Risk / Portfolio / Events / LiveReadiness / LiveMonitoring / LiveExecutionControl"]
+    L3["Evidence Read Model Layer<br/>Report / Paper / Risk / Portfolio / Events / LiveReadiness / LiveMonitoring / LiveExecutionControl / LiveRiskGate"]
     L4["Local Runtime / Eventing Layer<br/>Event Log / Replay / Projection / local orchestration"]
     L5["Domain + Adapter Boundary Layer<br/>Core domain / Research / Backtest / Paper / Binance read-only / future live gates"]
 
@@ -59,22 +59,22 @@ flowchart TB
 | --- | --- | --- | --- | --- | --- |
 | Workbench UI Layer | SwiftUI / macOS shell、页面布局、只读展示、本地 Paper session-level control | 禁止 UI trading button、live command、DB schema、adapter / runtime direct access | App Interface | Human 用户 | Current |
 | App Interface Layer | ViewModel assembly、Command Model boundary、Report / Dashboard / Event Timeline app contract | 禁止领域规则、broker action、Binance direct call、持久化事实 | Evidence Read Model | Workbench UI | Current |
-| Evidence Read Model Layer | Report / Paper / Risk / Portfolio / Events / LiveReadiness / LiveMonitoring / LiveExecutionControl read models | 禁止保存事实源、执行命令、暴露 SQLite / DuckDB schema、读取 API key、signed endpoint、account endpoint、listenKey、broker state 或真实订单状态机 | Local Runtime / Eventing | App Interface | Current；`LiveMonitoring` 已完成 read-model-only evidence surface；`LiveExecutionControl` 已完成 contract + blocked evidence surface |
+| Evidence Read Model Layer | Report / Paper / Risk / Portfolio / Events / LiveReadiness / LiveMonitoring / LiveExecutionControl / LiveRiskGate read models | 禁止保存事实源、执行命令、暴露 SQLite / DuckDB schema、读取 API key、signed endpoint、account endpoint、listenKey、broker state、真实订单状态机或真实风控状态机 | Local Runtime / Eventing | App Interface | Current；`LiveMonitoring` 已完成 read-model-only evidence surface；`LiveExecutionControl` 已完成 contract + blocked evidence surface；`LiveRiskGate` 已完成 contract + blocked evidence surface |
 | Local Runtime / Eventing Layer | append-only Event Log、Replay、Projection、local orchestration | 禁止成为 UI state、broker gateway、cloud OMS、生产调度平台 | Domain + Adapter Boundary | Evidence Read Model | Current |
 | Domain + Adapter Boundary Layer | Core domain semantics、Research、Backtest、Paper workflow、Risk / Portfolio evidence、Binance public read-only adapter、future live adapter gates | 禁止 signed / account endpoint 当前接入、broker adapter、`LiveExecutionAdapter`、real order lifecycle、OMS 或 live risk execution path | 无下层业务依赖；外部只接 public read-only data | Runtime / Eventing | Current；future live adapter 是 Future Gated / Forbidden now |
 
-Real live runtime source、signed / account stream、broker / exchange stream 仍是 Future Gated / Forbidden now。当前 `LiveMonitoring` 只能消费被允许的 read-model-only evidence source，不代表真实 broker connection、listenKey user data stream 或 real order stream。当前 `LiveExecutionControl` 只能表达 execution-control contract、future gates、forbidden capability tests、blocked evidence 和 read-model-only evidence surface，不代表真实 execution runtime、真实订单命令、execution report、broker fill 或 reconciliation。
+Real live runtime source、signed / account stream、broker / exchange stream 仍是 Future Gated / Forbidden now。当前 `LiveMonitoring` 只能消费被允许的 read-model-only evidence source，不代表真实 broker connection、listenKey user data stream 或 real order stream。当前 `LiveExecutionControl` 只能表达 execution-control contract、future gates、forbidden capability tests、blocked evidence 和 read-model-only evidence surface，不代表真实 execution runtime、真实订单命令、execution report、broker fill 或 reconciliation。当前 `LiveRiskGate` 只能表达 risk gate contract、future gates、forbidden capability tests、paper / live risk isolation、blocked evidence 和 read-model-only evidence surface，不代表真实 live risk engine、真实账户风控、real pre-trade allow / reject runtime、circuit breaker command、stop trading command 或 production runtime。
 
 ## Module Boundary Contracts / 模块边界合同
 
 | 模块 | 职责 |
 | --- | --- |
-| `Core` | 领域模型、事件、命令、策略契约、MessageBus、Kernel / Engine 边界；当前包含 paper-only execution facts、本地 Paper session-level control command / event boundary、Live trading foundation taxonomy、real order lifecycle future gates、`LiveReadiness` / `LiveBlockedEvidence` blocked read model 和 Live execution control contract / blocked evidence |
+| `Core` | 领域模型、事件、命令、策略契约、MessageBus、Kernel / Engine 边界；当前包含 paper-only execution facts、本地 Paper session-level control command / event boundary、Live trading foundation taxonomy、real order lifecycle future gates、`LiveReadiness` / `LiveBlockedEvidence` blocked read model、Live execution control contract / blocked evidence 和 Live risk gate contract / blocked evidence |
 | `Adapters` | Binance public read-only market data adapter 边界；当前包含本地 batch / replay contract、metadata、retention / freshness、fixture parity evidence，以及 public read-only adapter 与 future live / broker / exchange execution adapter 的 capability isolation |
 | `Persistence` | Event Log、SQLite runtime projection、DuckDB analytical projection 边界 |
 | `Runtime` | Binance public read-only ingest、Core event log、replay 与 projection snapshot 的本地编排边界；当前包含 market data replay event log / projection consistency evidence |
-| `App` | Trader Workstation Dashboard 产品面和 ViewModel 边界；当前包含 Paper workflow observability、Event Timeline / Evidence Explorer read model、Market Data Replay Operations read model、Live blocked evidence read model、Live monitoring read-model-only evidence、Live execution control blocked evidence 和 Dashboard / Workbench shell snapshot |
-| `Dashboard` | SwiftPM 可构建 / smoke-run 的 macOS shell，只装载 App 层 ViewModel snapshot；当前展示 read-model-only Workbench、`start` / `pause` / `close` / `reset` session-level local controls、paper workflow evidence preview、market data replay operations evidence、Live blocked gates 只读证据、Live monitoring 只读证据和 Live execution control blocked evidence |
+| `App` | Trader Workstation Dashboard 产品面和 ViewModel 边界；当前包含 Paper workflow observability、Event Timeline / Evidence Explorer read model、Market Data Replay Operations read model、Live blocked evidence read model、Live monitoring read-model-only evidence、Live execution control blocked evidence、Live risk gate blocked evidence 和 Dashboard / Workbench shell snapshot |
+| `Dashboard` | SwiftPM 可构建 / smoke-run 的 macOS shell，只装载 App 层 ViewModel snapshot；当前展示 read-model-only Workbench、`start` / `pause` / `close` / `reset` session-level local controls、paper workflow evidence preview、market data replay operations evidence、Live blocked gates 只读证据、Live monitoring 只读证据、Live execution control blocked evidence 和 Live risk gate blocked evidence |
 
 ## Capability Flow Map / 能力流地图
 
@@ -168,6 +168,20 @@ execution-control terminology / taxonomy
 
 该流已完成 contract + blocked evidence surface，只允许表达 future gates、forbidden capability tests、blocked reason、source anchor 和 deterministic snapshot。它不实现真实 execution runtime、API key、secret storage、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、real order state machine、OMS、真实 submit / cancel / replace、execution report ingestion、broker fill event fact、reconciliation runtime、incident fallback automation、live command、order form、order-level command UI 或交易按钮。
 
+### Live Risk Gate / 实盘风险控制阻断证据
+
+```text
+live risk terminology / future risk decision taxonomy
+-> exposure / order notional future gates
+-> frequency / loss / drawdown future gates
+-> circuit breaker / no-trade future gates
+-> paper / live risk isolation
+-> LiveRiskGateBlockedEvidence
+-> Dashboard / Report / Event Timeline read model
+```
+
+该流已完成 contract + blocked evidence surface，只允许表达 live risk future gates、forbidden capability tests、paper / live risk isolation、blocked reason、source anchor 和 deterministic snapshot。它不实现真实 live risk engine、真实账户余额读取、broker position sync、margin、leverage、PnL、equity、real pre-trade allow / reject runtime、circuit breaker runtime、no-trade state runtime、circuit breaker command、stop trading command、emergency stop、risk command surface、position management command、order form、live command 或交易按钮。
+
 ## Evidence Data Flow / 证据数据流
 
 所有可展示证据必须能沿同一条标准数据流追溯：
@@ -223,6 +237,7 @@ Strategy signal
 - Live boundary evidence 只能以 `LiveReadiness` / `LiveBlockedEvidence` 的 blocked read model 进入 Report / Dashboard / Event Timeline，不得变成 command surface。
 - Live monitoring evidence 当前只能以 `LiveMonitoring` read-model-only 形态进入 Dashboard / Report / Event Timeline；real live runtime source、signed / account stream 和 broker / exchange stream 仍是 Future Gated / Forbidden now。
 - Live execution control evidence 当前只能以 `LiveExecutionControlBlockedEvidence` read-model-only 形态进入 Dashboard / Report / Event Timeline；真实 execution runtime、真实订单命令、execution report、broker fill、reconciliation 和 incident fallback automation 仍是 Future Gated / Forbidden now。
+- Live risk gate evidence 当前只能以 `LiveRiskGateBlockedEvidence` read-model-only 形态进入 Dashboard / Report / Event Timeline；真实 live risk engine、真实账户风控、real pre-trade allow / reject runtime、circuit breaker runtime、no-trade state runtime、risk command、stop trading command 和 emergency stop 仍是 Future Gated / Forbidden now。
 - Paper intent、paper order intent 和 simulated fill 不能升级为 real order lifecycle、broker fill、account update 或 `LiveExecutionAdapter` 输入。
 - Live trading、signed endpoint、account endpoint 和真实 broker action 在当前 scope 禁止。
 - `macos-trader` 只提供产品语义参考。
@@ -231,13 +246,13 @@ Strategy signal
 
 ## Future Live Isolation / 未来实盘隔离
 
-Future Live 能力可以在 `BLUEPRINT.md` 中定义为最终产品目标，但在当前架构中必须保持隔离。当前已完成的是 Live trading foundation boundary、blocked evidence、只读展示面、Live monitoring read-model-only evidence surface 和 Live execution control contract + blocked evidence surface。真实 live runtime source、signed / account stream、broker / exchange stream、真实 execution runtime、risk control、audit / incident replay 和 stop controls 仍是 future gated 能力：
+Future Live 能力可以在 `BLUEPRINT.md` 中定义为最终产品目标，但在当前架构中必须保持隔离。当前已完成的是 Live trading foundation boundary、blocked evidence、只读展示面、Live monitoring read-model-only evidence surface、Live execution control contract + blocked evidence surface 和 Live risk gate contract + blocked evidence surface。真实 live runtime source、signed / account stream、broker / exchange stream、真实 execution runtime、真实 live risk engine、audit / incident replay 和 stop controls 仍是 future gated 能力：
 
 - future signed endpoint / account endpoint 需要独立 adapter capability。
 - future broker integration 需要独立 Project Definition、risk gate、operations gate 和 audit gate。
 - future real order lifecycle 不得复用 paper order intent 作为真实订单授权。
-- future Live risk control 不能由当前 paper-only risk blocker 直接替代。
-- future execution control / incident replay 进入当前 scope 前，必须先更新 `BLUEPRINT.md`、`docs/architecture.md` 和 `docs/roadmap.md`，再由 Human + `@001 / PLN` 形成 Project plan。
+- future real Live risk runtime 不能由当前 paper-only risk blocker、paper exposure 或 `LiveRiskGateBlockedEvidence` 直接替代。
+- future incident replay / stop controls 进入当前 scope 前，必须先更新 `BLUEPRINT.md`、`docs/architecture.md` 和 `docs/roadmap.md`，再由 Human + `@001 / PLN` 形成 Project plan。
 
 ## Architecture Update Gate / 架构更新门槛
 

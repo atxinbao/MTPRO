@@ -56,14 +56,14 @@ MTPRO 采用两层进度口径：
 1. Current Foundation Progress：当前已批准 paper-only foundation 的完成度。
 2. Final Product Goal Progress：最终专业交易工作台产品目标的完成度。
 
-截至 2026-05-22：
+截至 2026-05-23：
 
 ```text
 Current Foundation Progress: 4 / 4 (100%)
 Foundation Progress: [##########] 100%
 
-Final Product Goal Progress: 7 / 9 (78%)
-Final Product Progress: [########--] 78%
+Final Product Goal Progress: 8 / 9 (89%)
+Final Product Progress: [#########-] 89%
 ```
 
 Current Foundation 已完成：
@@ -73,9 +73,8 @@ Current Foundation 已完成：
 3. Paper workflow 可观察性和本地控制壳。
 4. 更长周期 market data replay / operations。
 
-Final Product 已完成前 7 项；其中第 5 项只完成实盘交易基础边界、阻断证据和只读展示面，不代表真实 Live trading 已实现或获授权；第 6 项只完成实盘监控台的 read-model-only evidence surface，不代表真实 live runtime、signed/account stream、broker stream 或交易控制已实现或获授权；第 7 项只完成实盘执行控制的 contract、future gates、forbidden capability tests、blocked evidence 和 read-model-only evidence surface，不代表真实 execution runtime、真实订单命令、broker fill、execution report 或 reconciliation 已实现或获授权。
+Final Product 已完成前 8 项；其中第 5 项只完成实盘交易基础边界、阻断证据和只读展示面，不代表真实 Live trading 已实现或获授权；第 6 项只完成实盘监控台的 read-model-only evidence surface，不代表真实 live runtime、signed/account stream、broker stream 或交易控制已实现或获授权；第 7 项只完成实盘执行控制的 contract、future gates、forbidden capability tests、blocked evidence 和 read-model-only evidence surface，不代表真实 execution runtime、真实订单命令、broker fill、execution report 或 reconciliation 已实现或获授权；第 8 项只完成实盘风险控制的 risk gate contract、future gates、forbidden capability tests、paper / live risk isolation、blocked evidence 和 read-model-only evidence surface，不代表真实 live risk engine、真实账户风控、real pre-trade allow / reject runtime、circuit breaker command、stop trading command 或 production runtime 已实现或获授权。
 
-8. 实盘风险控制。
 9. 实盘审计 / 事故回放 / 停机控制。
 
 完整 9 项目标切片、状态和证据口径见 `docs/roadmap.md`。`GOAL.md` 不复制维护详细进度表。
