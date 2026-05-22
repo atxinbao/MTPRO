@@ -9325,3 +9325,49 @@ PR evidence input：
 | --- | --- | --- |
 | `git diff --check` | pass | docs-only diff 无空白错误；新 Stage Code Audit Report 通过 intent-to-add 纳入检查范围。 |
 | `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=37; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；184 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO Live Risk Gate Contract v1 Root Docs Refresh Gate closure
+
+日期：2026-05-23
+
+执行者：Parent Codex Automation Supervision（`@002 / PAR`）
+
+目的：
+
+- 在 Stage Code Audit Report PR #175 合并后，关闭 `MTPRO Live Risk Gate Contract v1` 的 Root Docs Refresh Gate。
+- 只同步已发生事实，把 Final Product Goal Progress 从 `7 / 9 (78%)` 更新为 `8 / 9 (89%)`。
+- 记录 Live Risk Gate Contract 已完成 contract + blocked evidence，但不代表真实 live risk engine、真实账户风控、real pre-trade allow / reject runtime、risk command、stop command、emergency stop 或 production runtime 已实现。
+
+Root docs refresh 逐项结论：
+
+| 文档 | 结论 | 原因 |
+| --- | --- | --- |
+| `GOAL.md` | updated | Final Product Goal Progress 更新为 `8 / 9 (89%)`，并明确 Live Risk Gate 只完成 contract + blocked evidence。 |
+| `BLUEPRINT.md` | updated | Live Risk Control 更新为 `Complete / contract + blocked evidence`，Future Incident Replay / Stop Controls 仍为 Future Gated。 |
+| `docs/environment.md` | no update needed | 本 Project 未新增 validation 入口、secret、broker credential、signed endpoint、account endpoint、listenKey、真实账户读取或网络必需验证。 |
+| `docs/architecture.md` | updated | 新增 LiveRiskGate read-model-only blocked evidence flow 和真实 live risk runtime / command 禁区。 |
+| `docs/roadmap.md` | updated | Project Closure Count 更新为 `11 / 11`，Final Product Goal Progress 更新为 `8 / 9 (89%)`。 |
+| `docs/validation/latest-verification-summary.md` | updated | 记录 Root Docs Refresh Gate closure、当前进度口径、Stage Code Audit Report 状态和 boundary evidence。 |
+| `checks/automation-readiness.sh` | updated | Final Product Goal Progress readiness anchor 更新为 `8 / 9 (89%)`，并检查 Live Risk Gate audit closure。 |
+| `docs/audit/mtpro-live-risk-gate-contract-v1-stage-code-audit.md` | updated | Root Docs Delta 从 pending input 更新为 closure evidence。 |
+| `verification.md` | updated | 追加本 compact record。 |
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear issue body 或 issue status。
+- 不推进 Todo。
+- 不启动 Symphony 或 `symphony-issue`。
+- 不运行 Graphify update。
+- 不修改 Figma。
+- 不写业务代码。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 API key、secret storage、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、真实 live risk engine、真实账户风控、real pre-trade allow / reject runtime、真实账户余额读取、broker position sync、margin、leverage、PnL、equity、circuit breaker command、stop trading command、emergency stop、risk command surface、order form、live command 或交易按钮。
+- 下一阶段方向、目标、架构路线和优先级仍交给 Human + `@001 / PLN`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Root Docs Refresh Gate docs-only PR 创建前执行，通过。 |
+| `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=37; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；184 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
