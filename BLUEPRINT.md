@@ -111,9 +111,9 @@ MTPRO 最终要成为一个 local-first 的 macOS 原生专业交易工作台。
 | 6 | 实盘监控台（Live monitoring console） | Complete / read-model-only evidence surface | 已完成 health、connection、stream、latency、error evidence 的 read-model-only 监控面，不接真实 live runtime。 |
 | 7 | 实盘执行控制（Live execution control） | Complete / contract + blocked evidence | 已完成 execution-control terminology、submit / cancel / replace future gates、execution report / broker fill / reconciliation future gates、paper / real command isolation、blocked evidence 和 read-model-only evidence surface；不代表真实执行能力已实现。 |
 | 8 | 实盘风险控制（Live risk control） | Complete / contract + blocked evidence | 已完成 risk gate terminology、exposure / notional / frequency / loss / drawdown / circuit breaker / no-trade future gates、paper / live risk isolation、blocked evidence 和 read-model-only evidence surface；不代表真实 live risk engine 已实现。 |
-| 9 | 实盘审计 / 事故回放 / 停机控制（Live audit / incident replay / stop controls） | Pending / gated | 能审计和回放每个 signal、order、risk decision、fill，并支持紧急停止、停机、恢复和事故复盘。 |
+| 9 | 实盘审计 / 事故回放 / 停机控制（Live audit / incident replay / stop controls） | Complete / contract + blocked evidence | 已完成 audit / incident / stop terminology、audit trail / incident replay / stop future gates、blocked evidence isolation、read-model-only evidence surface 和 forbidden capability tests；不代表真实 audit trail runtime、incident replay runtime、emergency stop、shutdown、restore、production operations、Live PRO Console、live command 或 trading button 已实现。 |
 
-Current Foundation Progress 已完成 4 / 4；Final Product Goal Progress 当前为 8 / 9。完整进度口径由 `docs/roadmap.md` 维护，蓝图只定义目标结构。
+Current Foundation Progress 已完成 4 / 4；Final Product Goal Progress 当前为 9 / 9。完整进度口径由 `docs/roadmap.md` 维护，蓝图只定义目标结构。
 
 ## Target Users / Jobs
 
@@ -138,6 +138,7 @@ Future / gated capability 必须独立规划：
 - 实盘监控台 / Live monitoring console：已完成 read-model-only health、connection、market stream、order stream、latency、error evidence surface；真实 live runtime、signed/account stream 和 broker stream 仍 gated。
 - 实盘执行控制 / Live execution control：已完成 contract + blocked evidence；真实 order submit / cancel / replace、execution reconciliation 和 incident fallback 仍 gated。
 - 实盘风险控制 / Live risk control：已完成 contract + blocked evidence；真实 pre-trade risk gate、熔断、禁交易状态和 operations readiness 仍 gated。
+- 实盘审计 / 事故回放 / 停机控制 / Live audit / incident replay / stop controls：已完成 contract + blocked evidence；真实 audit trail runtime、incident replay runtime、emergency stop、shutdown、restore、production operations、Live PRO Console、live command 和 trading button 仍 gated。
 - 实盘审计 / 事故回放 / 停机控制：audit trail、incident replay、emergency stop、停机 / 恢复策略。
 - OMS / broker integration：完整订单管理、broker reconciliation、adapter capability contract。
 
@@ -183,19 +184,25 @@ flowchart LR
 
     subgraph CompletedEvidence["Completed read-model-only evidence surfaces<br/>已完成只读证据面"]
         LM["Live Monitoring<br/>health / connection / stream / latency / error evidence"]
+        LEC["Live Execution Control<br/>contract / blocked evidence"]
+        LRG["Live Risk Gate<br/>contract / blocked evidence"]
+        LIS["Live Incident / Stop<br/>contract / blocked evidence"]
     end
 
     subgraph Future["Future Gated / 未来门禁区"]
-        LE["Future Live Execution<br/>真实订单执行控制"]
-        LRisk["Future Live Risk<br/>实盘风控 / 熔断 / 禁交易"]
-        IR["Future Incident Replay / Stop Controls<br/>事故回放 / 停机 / 恢复"]
+        LE["Future Live Execution Runtime<br/>真实订单执行控制"]
+        LRisk["Future Live Risk Runtime<br/>实盘风控 / 熔断 / 禁交易"]
+        IR["Future Incident Replay / Stop Runtime<br/>事故回放 / 停机 / 恢复"]
     end
 
     O --> MR --> RS --> BT --> RP --> PP --> PF --> RK --> EV --> LR
-    LR -. read-model-only next scope .-> LM
-    LM -. gated handoff .-> LE
-    LE -. gated handoff .-> LRisk
-    LRisk -. gated handoff .-> IR
+    LR -. read-model-only evidence .-> LM
+    LM -. blocked evidence .-> LEC
+    LEC -. blocked evidence .-> LRG
+    LRG -. blocked evidence .-> LIS
+    LIS -. future runtime gate .-> LE
+    LE -. future runtime gate .-> LRisk
+    LRisk -. future runtime gate .-> IR
 ```
 
 Figma canonical `15:2` 的 `MTPRO Workbench User Flow Blueprint v1` 已作为产品层用户动线蓝图记录在 `docs/product/mtpro-workbench-user-flow-blueprint-v1.md`。该蓝图用于确定用户动线、页面角色、状态边界和禁止动作，不是最终 UI/UX 设计稿、组件规范或 SwiftUI 实现稿。
@@ -249,7 +256,7 @@ Target System Architecture 由三件事组成：
 - SQLite / DuckDB 是 projection，不是 UI contract。
 - App / Dashboard 只消费 ViewModel / Read Model。
 - Future Live 必须有独立 adapter capability、risk gate、reconciliation evidence、operations readiness 和 audit trail。
-- Live Execution Control 已完成 contract + blocked evidence，但真实 execution runtime、order submit / cancel / replace、execution report、broker fill 和 reconciliation 仍是 gated；Live Risk Control 已完成 contract + blocked evidence，但真实 live risk engine、真实账户风控、real pre-trade allow / reject runtime、circuit breaker command、stop trading command 和 production runtime 仍是 gated；Future Incident Replay / Stop Controls 仍不属于当前 scope。
+- Live Execution Control 已完成 contract + blocked evidence，但真实 execution runtime、order submit / cancel / replace、execution report、broker fill 和 reconciliation 仍是 gated；Live Risk Control 已完成 contract + blocked evidence，但真实 live risk engine、真实账户风控、real pre-trade allow / reject runtime、circuit breaker command、stop trading command 和 production runtime 仍是 gated；Live Audit / Incident Stop 已完成 contract + blocked evidence，但真实 audit trail runtime、incident replay runtime、emergency stop、shutdown、restore、production operations、Live PRO Console、live command 和 trading button 仍是 gated。
 
 ## Design Blueprint / 工作台设计蓝图
 
@@ -371,15 +378,19 @@ Live trading 是最终产品目标的一部分，但不是当前 execution scope
 - Paper Workflow Control Shell v1。
 - Market Data Replay Operations v1。
 - Live Trading Boundary Definition v1。
+- Live Monitoring Console v1。
+- Live Execution Control Contract v1。
+- Live Risk Gate Contract v1。
+- Live Audit Incident Stop Boundary v1。
 - NautilusTrader reference study。
 - `mattpocock/skills` 方法论整合。
 
 当前 foundation / final product 采用两层进度口径：
 
 - Current Foundation Progress：4 / 4（100%）。
-- Final Product Goal Progress：8 / 9（89%）。
+- Final Product Goal Progress：9 / 9（100%）。
 
-最近完成的 construction scope 为 `MTPRO Live Risk Gate Contract v1`，但它只覆盖 risk gate contract、future gates、forbidden capability tests、paper / live risk isolation、blocked evidence 和 read-model-only evidence surface，不进入真实 live risk engine、真实账户风控、real pre-trade allow / reject runtime、risk command、stop command 或 production runtime。下一阶段方向仍必须由 Human + `@001 / PLN` 基于本文档、`GOAL.md`、`docs/roadmap.md`、Stage Code Audit Reports 和最新验证摘要确认。
+最近完成的 construction scope 为 `MTPRO Live Audit Incident Stop Boundary v1`，但它只覆盖 audit / incident / stop contract、future gates、forbidden capability tests、blocked evidence 和 read-model-only evidence surface，不进入真实 audit trail runtime、incident replay runtime、emergency stop、shutdown、restore、production operations、Live PRO Console、live command 或 trading button。下一阶段方向仍必须由 Human + `@001 / PLN` 基于本文档、`GOAL.md`、`docs/roadmap.md`、Stage Code Audit Reports 和最新验证摘要确认。
 
 `docs/planning/projects/mtpro-live-audit-incident-stop-boundary-v1-plan.md` 已记录 `MTPRO Live Audit Incident Stop Boundary v1` 的写入 Linear 前 planning record。该记录只保存 Project 级计划摘要、issue order、dependencies、validation、evidence、first executable issue candidate、WIP=1 和边界；它不创建 Linear Project / Issue，不推进 Todo，不启动 `@002 / PAR`、Symphony 或 Graphify，不授权 incident replay runtime、emergency stop、shutdown、restore、production operations、Live PRO Console、交易按钮或 live command。
 
