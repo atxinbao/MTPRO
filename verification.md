@@ -9280,3 +9280,48 @@ PR evidence input：
 | --- | --- | --- |
 | `git diff --check` | pass | docs-only diff 无空白错误。 |
 | `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=37; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；184 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO Live Risk Gate Contract v1 Stage Code Audit Report
+
+日期：2026-05-23
+
+执行者：Parent Codex Automation Supervision（`@002 / PAR`）
+
+目的：
+
+- 将 `MTPRO Live Risk Gate Contract v1` 的 Project-level Stage Code Audit Report 落仓为 canonical audit 文档。
+- 记录 `MTP-82` 至 `MTP-88` 全部 Linear `Done`、Linear Project state `completed`、PR / merge commit / GitHub `checks` evidence、validation evidence、MTP-87 临时 CI / readiness fallback 和 live risk boundary audit。
+- 为后续独立 Root Docs Refresh Gate 提供 input；本轮不更新 Final Product Goal Progress 到 `8 / 9 (89%)`。
+
+文件范围：
+
+- `docs/audit/mtpro-live-risk-gate-contract-v1-stage-code-audit.md`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+关键证据：
+
+- Linear Project ID：`645376a1-26eb-4be7-baec-f34e69a2413b`。
+- Linear Project state：`completed`，`completedAt=2026-05-22T16:50:07.087Z`。
+- Canonical issues：`MTP-82`、`MTP-83`、`MTP-84`、`MTP-85`、`MTP-86`、`MTP-87`、`MTP-88` 全部 `Done/type=completed`。
+- Project 末端 PR：`MTP-88` PR #173，merge commit `50ea5a897c990a6ba54ba0049d156b088a77d64f`，GitHub required check `checks` 成功 run `https://github.com/atxinbao/MTPRO/actions/runs/26300102977/job/77422757483`。
+- MTP-87 临时失败为 PR 过程中的 readiness exact-string anchor 缺失；后续 commit `effc4b6` 修复，PR #172 最终 checks 通过并 squash merge，merge commit `56e105f0855a182a93780a8beceaef9449d6db49`。
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear issue body 或 issue status。
+- 不推进 Todo。
+- 不启动 Symphony 或 `symphony-issue`。
+- 不运行 Graphify update。
+- 不写业务代码。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 API key、secret storage、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、真实 live risk engine、real pre-trade allow / reject runtime、真实账户读取、broker position sync、margin、leverage、PnL、equity、circuit breaker command、stop trading command、emergency stop、risk command surface、order form、live command 或交易按钮。
+- Root Docs Refresh Gate 仍为 pending；下一步只允许基于本报告做事实同步，不授权下一阶段 planning 或 execution。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | docs-only diff 无空白错误；新 Stage Code Audit Report 通过 intent-to-add 纳入检查范围。 |
+| `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=37; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；184 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
