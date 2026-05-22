@@ -298,6 +298,26 @@ MTP-93 的 validation anchor 由 `LiveBlockedEvidenceIncidentStopIsolationBounda
 
 MTP-93 的 required validation 仍是本地 `bash checks/run.sh`，不依赖真实 Binance 网络、secret、signed endpoint、account endpoint、listenKey、broker state、真实账户、production operations 或人工验收。
 
+`MTP-94-LIVE-INCIDENT-STOP-BLOCKED-EVIDENCE`
+
+MTP-94 固定 `LiveIncidentStopBlockedEvidence` 的 read-model-only 语义：audit trail、incident replay、emergency stop、shutdown 和 restore 只能以 blocked gate、blocked reason、source anchor、validation anchor 和 deterministic snapshot 进入 Report / Dashboard / Event Timeline。它不等于 audit trail runtime、incident replay runtime、emergency stop command、shutdown command、restore command、production operations、Live PRO Console、stop button、trading button、live command、adapter / runtime / database schema exposure 或 broker action。
+
+`MTP-94-AUDIT-INCIDENT-STOP-BLOCKED-REASONS`
+
+MTP-94 的 blocked reasons 必须明确说明 Human live audit / incident / stop decision 尚未形成，audit trail runtime、incident replay runtime、emergency stop command、shutdown command、restore command、production operations runtime、broker session mutation、live runtime resume、Live PRO Console、live command surface、stop button、trading button 和 command surface 仍被阻断。
+
+`MTP-94-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT`
+
+MTP-94 deterministic snapshot 是本地 fixture / read model evidence，不读取 secret、signed endpoint、account endpoint、listenKey、broker state、真实账户、adapter object、runtime object 或 persistence schema。它只保留 source anchors、blocked gates、blocked reasons、validation anchors 和 forbidden flags。
+
+`MTP-94-READ-MODEL-ONLY-NO-COMMAND-SURFACE`
+
+MTP-94 允许 Dashboard / Report / Event Timeline 展示 live incident / stop blocked evidence，但所有展示面必须保持只读：Dashboard metrics、Report details、Workbench detail 和 Event Timeline item 都不能带 stop action、restore action、operator workflow、order form、trading button、Live PRO Console 或 broker action。
+
+`MTP-94-LIVE-INCIDENT-STOP-VALIDATION`
+
+MTP-94 的 validation anchor 由 `LiveIncidentStopBlockedEvidence`、`LiveIncidentStopBlockedEvidenceReadModel`、`LiveIncidentStopBlockedEvidenceViewModel`、Dashboard / Report / Event Timeline integration 和 focused Core / App tests 固定；required validation 仍是本地 `bash checks/run.sh`，不依赖真实 Binance 网络、secret、signed endpoint、account endpoint、listenKey、broker state、真实账户、production operations 或人工验收。
+
 ## Paper-only Terms
 
 | 术语 | MTPRO 含义 | 避免混用 |

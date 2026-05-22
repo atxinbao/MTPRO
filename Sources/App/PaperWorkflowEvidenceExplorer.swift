@@ -13,6 +13,7 @@ public enum PaperWorkflowEvidenceExplorerSection: String, Codable, CaseIterable,
     case marketDataReplayOperation = "market data replay operation"
     case liveExecutionControlBlockedEvidence = "live execution control blocked evidence"
     case liveRiskGateBlockedEvidence = "live risk gate blocked evidence"
+    case liveIncidentStopBlockedEvidence = "live incident / stop blocked evidence"
     case liveTradingBlockedEvidence = "live trading blocked evidence"
     case liveMonitoringEvidence = "live monitoring evidence"
     case strategySignal = "strategy signal"
@@ -136,7 +137,7 @@ public struct PaperWorkflowEvidenceExplorerFilterSnapshot: Codable, Equatable, S
 ///
 /// 该 read model 只组合 Dashboard 已有 App read models：market、strategy、report、
 /// Live blocked evidence、Live monitoring evidence、execution-control blocked evidence、
-/// Live Risk gate blocked evidence、
+/// Live Risk gate blocked evidence、incident / stop blocked evidence、
 /// paper workflow observability 和 append-only event timeline。
 /// 它不新增 projection schema，不直接读取 Persistence adapter，不暴露 Runtime object，
 /// 也不提供交易、风控、live command、live audit、incident replay 或 stop control。
@@ -148,6 +149,7 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
     public let liveMonitoringEvidence: LiveMonitoringEvidenceReadModel
     public let liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel
     public let liveRiskGateBlockedEvidence: LiveRiskGateBlockedEvidenceReadModel
+    public let liveIncidentStopBlockedEvidence: LiveIncidentStopBlockedEvidenceReadModel
     public let paperWorkflowObservability: PaperWorkflowObservabilityReadModel
     public let events: EventTimelineReadModel
     public let lastAppliedSequence: Int?
@@ -160,6 +162,7 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
         liveMonitoringEvidence: LiveMonitoringEvidenceReadModel? = nil,
         liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel? = nil,
         liveRiskGateBlockedEvidence: LiveRiskGateBlockedEvidenceReadModel? = nil,
+        liveIncidentStopBlockedEvidence: LiveIncidentStopBlockedEvidenceReadModel? = nil,
         paperWorkflowObservability: PaperWorkflowObservabilityReadModel = PaperWorkflowObservabilityReadModel(),
         events: EventTimelineReadModel = EventTimelineReadModel()
     ) {
@@ -174,6 +177,8 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
             ?? report.liveExecutionControlBlockedEvidence
         self.liveRiskGateBlockedEvidence = liveRiskGateBlockedEvidence
             ?? report.liveRiskGateBlockedEvidence
+        self.liveIncidentStopBlockedEvidence = liveIncidentStopBlockedEvidence
+            ?? report.liveIncidentStopBlockedEvidence
         self.paperWorkflowObservability = paperWorkflowObservability
         self.events = events
         self.lastAppliedSequence = Self.maxSequence(
@@ -184,6 +189,7 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
             self.liveMonitoringEvidence.lastAppliedSequence,
             self.liveExecutionControlBlockedEvidence.lastAppliedSequence,
             self.liveRiskGateBlockedEvidence.lastAppliedSequence,
+            self.liveIncidentStopBlockedEvidence.lastAppliedSequence,
             paperWorkflowObservability.lastAppliedSequence,
             events.envelopes.map(\.sequence).max()
         )
@@ -211,6 +217,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
     public let coversMarketDataReplayOperations: Bool
     public let coversLiveExecutionControlBlockedEvidence: Bool
     public let coversLiveRiskGateBlockedEvidence: Bool
+    public let coversLiveIncidentStopBlockedEvidence: Bool
     public let coversLiveTradingBlockedEvidence: Bool
     public let coversLiveMonitoringEvidence: Bool
     public let coversStrategySignals: Bool
@@ -249,6 +256,9 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         let liveRiskGate = LiveRiskGateBlockedEvidenceViewModel(
             readModel: readModel.liveRiskGateBlockedEvidence
         )
+        let liveIncidentStop = LiveIncidentStopBlockedEvidenceViewModel(
+            readModel: readModel.liveIncidentStopBlockedEvidence
+        )
         let timelineItems = allTimelineItems
             .filter { selectedSectionSet.contains($0.section) }
             .sortedByTimelinePosition()
@@ -269,6 +279,9 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         let coversLiveRiskGateBlockedEvidence = allTimelineItems.contains {
             $0.section == .liveRiskGateBlockedEvidence
         }
+        let coversLiveIncidentStopBlockedEvidence = allTimelineItems.contains {
+            $0.section == .liveIncidentStopBlockedEvidence
+        }
         let coversLiveTradingBlockedEvidence = allTimelineItems.contains {
             $0.section == .liveTradingBlockedEvidence
         }
@@ -286,27 +299,34 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             || source.exposesORMModels
             || liveExecutionControl.exposesPersistenceSchema
             || liveRiskGate.exposesPersistenceSchema
+            || liveIncidentStop.exposesPersistenceSchema
         let exposesRuntimeObject = source.exposesRuntimeObjects
             || liveExecutionControl.invokesRuntimeControl
             || liveRiskGate.invokesRuntimeControl
+            || liveIncidentStop.invokesRuntimeControl
         let exposesAdapterRequest = source.callsBinanceAdapter
             || liveExecutionControl.readsAdapter
             || liveRiskGate.readsAdapter
+            || liveIncidentStop.readsAdapter
         let providesCommandSurface = liveExecutionControl.providesCommandSurface
             || liveRiskGate.providesCommandSurface
+            || liveIncidentStop.providesCommandSurface
         let providesOrderLevelCommand = liveExecutionControl.providesOrderLevelCommand
         let supportsQueryLanguage = false
         let providesLiveAudit = false
-        let providesIncidentReplay = false
-        let providesStopControl = false
+        let providesIncidentReplay = liveIncidentStop.providesIncidentReplay
+        let providesStopControl = liveIncidentStop.providesStopControl
         let authorizesLiveTrading = liveExecutionControl.authorizesLiveTrading
             || liveRiskGate.authorizesLiveTrading
+            || liveIncidentStop.authorizesLiveTrading
         let touchesBrokerAction = liveExecutionControl.instantiatesBrokerExecutionAdapter
             || liveExecutionControl.instantiatesExchangeExecutionAdapter
             || liveRiskGate.instantiatesBrokerExecutionAdapter
             || liveRiskGate.instantiatesExchangeExecutionAdapter
+            || liveIncidentStop.executesBrokerAction
         let authorizesTradingExecution = liveExecutionControl.authorizesTradingExecution
             || liveRiskGate.authorizesTradingExecution
+            || liveIncidentStop.authorizesTradingExecution
 
         self.source = source
         self.timelineItems = timelineItems
@@ -323,6 +343,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         self.coversMarketDataReplayOperations = coversMarketDataReplayOperations
         self.coversLiveExecutionControlBlockedEvidence = coversLiveExecutionControlBlockedEvidence
         self.coversLiveRiskGateBlockedEvidence = coversLiveRiskGateBlockedEvidence
+        self.coversLiveIncidentStopBlockedEvidence = coversLiveIncidentStopBlockedEvidence
         self.coversLiveTradingBlockedEvidence = coversLiveTradingBlockedEvidence
         self.coversLiveMonitoringEvidence = coversLiveMonitoringEvidence
         self.coversStrategySignals = coversStrategySignals
@@ -344,6 +365,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             && providesStopControl == false
             && liveExecutionControl.readModelOnlyBoundaryHeld
             && liveRiskGate.readModelOnlyBoundaryHeld
+            && liveIncidentStop.readModelOnlyBoundaryHeld
             && authorizesLiveTrading == false
             && touchesBrokerAction == false
             && authorizesTradingExecution == false
@@ -382,6 +404,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
                 + makeMarketDataReplayOperationItems(readModel.report.marketDataReplayOperations)
                 + makeLiveExecutionControlBlockedEvidenceItems(readModel.liveExecutionControlBlockedEvidence)
                 + makeLiveRiskGateBlockedEvidenceItems(readModel.liveRiskGateBlockedEvidence)
+                + makeLiveIncidentStopBlockedEvidenceItems(readModel.liveIncidentStopBlockedEvidence)
                 + makeLiveTradingBlockedEvidenceItems(readModel.liveTradingBlockedEvidence)
                 + makeLiveMonitoringEvidenceItems(readModel.liveMonitoringEvidence)
                 + makeStrategyItems(readModel.strategy)
@@ -559,6 +582,28 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
                         section: .liveRiskGateBlockedEvidence,
                         evidenceID: item.evidenceID,
                         label: "live risk blocked gate",
+                        sourceSequence: readModel.lastAppliedSequence
+                    )
+                ]
+            )
+        }
+    }
+
+    private static func makeLiveIncidentStopBlockedEvidenceItems(
+        _ readModel: LiveIncidentStopBlockedEvidenceReadModel
+    ) -> [PaperWorkflowEventTimelineItem] {
+        readModel.items.map { item in
+            PaperWorkflowEventTimelineItem(
+                section: .liveIncidentStopBlockedEvidence,
+                sequence: readModel.lastAppliedSequence,
+                stream: "live incident stop",
+                title: "Live incident / stop gate blocked",
+                summary: "\(item.gate.rawValue) blocked; reasons=\(item.blockedReasonLabels.joined(separator: ", "))",
+                evidenceLinks: [
+                    PaperWorkflowEvidenceLinkSummary(
+                        section: .liveIncidentStopBlockedEvidence,
+                        evidenceID: item.evidenceID,
+                        label: "incident-stop blocked gate",
                         sourceSequence: readModel.lastAppliedSequence
                     )
                 ]

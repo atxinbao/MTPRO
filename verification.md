@@ -9702,3 +9702,70 @@ Preflight：
 | `swift test --filter MTP93` | pass | 3 个 MTP-93 focused Core tests 通过，0 failures。 |
 | `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
 | `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=37; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；199 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
+
+## MTP-94 Live Incident / Stop Blocked Evidence
+
+日期：2026-05-23
+
+执行者：Codex（`@002 / PAR` supervised issue execution）
+
+目的：
+
+- 执行 Linear `MTP-94 新增 read-model-only LiveIncidentStopBlockedEvidence 或等价模型，并接入 Dashboard / Report / Event Timeline`。
+- 只新增 audit trail、incident replay、emergency stop、shutdown 和 restore 的 read-model-only blocked evidence、deterministic fixture / snapshot 和只读展示面。
+- 不启动 MTP-95，不推进下一 issue。
+
+Preflight：
+
+- Linear `MTP-94` 为唯一 `In Progress` active issue。
+- Linear `MTP-89`、`MTP-90`、`MTP-91`、`MTP-92`、`MTP-93` 为 `Done`。
+- `MTP-95` 仍为 `Backlog / non-executable`。
+- WIP=1 satisfied。
+- Issue body 已作为唯一 execution contract 读取并执行。
+
+文件范围：
+
+- `Sources/Core/LiveAuditIncidentStopContract.swift`
+- `Sources/App/LiveIncidentStopBlockedEvidence.swift`
+- `Sources/App/App.swift`
+- `Sources/App/PaperWorkflowEvidenceExplorer.swift`
+- `Sources/App/DashboardShell.swift`
+- `Tests/CoreTests/CoreTests.swift`
+- `Tests/AppTests/AppTests.swift`
+- `docs/contracts/live-audit-incident-stop-contract.md`
+- `docs/domain/context.md`
+- `docs/validation/trading-validation-matrix.md`
+- `docs/validation/validation-plan.md`
+- `docs/validation/latest-verification-summary.md`
+- `checks/automation-readiness.sh`
+- `verification.md`
+
+关键证据：
+
+- 新增 `LiveIncidentStopBlockedGate`、`LiveIncidentStopBlockedReason`、`LiveIncidentStopBlockedEvidenceItem` 和 `LiveIncidentStopBlockedEvidence`。
+- 新增 `LiveIncidentStopBlockedEvidenceReadModel`、`LiveIncidentStopBlockedEvidenceViewModel` 和 5 条 Event Timeline live incident / stop blocked evidence items。
+- Dashboard smoke 新增 `liveIncidentStopGates=5`，empty snapshot `timelineItems=42`。
+- 新增 anchors：`MTP-94-LIVE-INCIDENT-STOP-BLOCKED-EVIDENCE`、`MTP-94-AUDIT-INCIDENT-STOP-BLOCKED-REASONS`、`MTP-94-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT`、`MTP-94-READ-MODEL-ONLY-NO-COMMAND-SURFACE`、`MTP-94-LIVE-INCIDENT-STOP-VALIDATION` 和 `TVM-LIVE-AUDIT-INCIDENT-STOP`。
+- Focused tests：`testMTP94LiveIncidentStopBlockedEvidenceDefinesReadModelOnlySnapshot`、`testMTP94LiveIncidentStopBlockedEvidenceRejectsCommandRuntimeAndConsoleSurface`、`testMTP94LiveIncidentStopBlockedEvidenceReferencesPriorFutureGateBoundaries`、`testLiveIncidentStopBlockedEvidenceViewModelAggregatesMTP94ReadOnlySurface` 和 `testLiveIncidentStopEvidenceExplorerPreviewDefinesMTP94ReadOnlyTimelineItems`。
+- `checks/automation-readiness.sh` 已机械检查 MTP-94 contract、domain context、validation matrix、validation plan、latest summary、Core/App source、Dashboard / Event Timeline wiring 和 focused test anchors。
+
+边界确认：
+
+- 不修改 Linear issue body 或 status。
+- 不推进 MTP-95。
+- 不启动 Symphony 或 `symphony-issue`。
+- 不运行 Graphify update。
+- 不修改 Figma。
+- 不实现 audit trail runtime、incident replay runtime、stop control runtime、emergency stop command、shutdown command、restore command、production operations runtime、production shutdown control、broker session mutation、restore decision runtime、live runtime resume、signed endpoint、account endpoint、listenKey、broker action、`LiveExecutionAdapter`、OMS、real order state machine、execution runtime、live risk engine、audit service、broker replay、account replay 或 production recovery。
+- 不把 Dashboard、Report、Workbench、Event Timeline 或 Evidence Explorer 升级为 Live PRO Console、operator workflow、command model、adapter status、runtime status 或 database schema browser。
+- 不新增 live command、order-level command UI、stop button、order form、交易按钮或真实交易授权。
+- `.codex/*` 和 `graphify-out/*` 未进入 PR scope。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP94` | pass | 5 个 MTP-94 focused Core / App tests 通过，0 failures。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
+| `DASHBOARD_SMOKE=1 swift run Dashboard` | pass | Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`。 |
+| `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；204 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |

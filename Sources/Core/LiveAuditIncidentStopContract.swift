@@ -618,6 +618,624 @@ public struct LiveAuditTrailFutureGateBoundary: Codable, Equatable, Sendable {
     }
 }
 
+/// LiveIncidentStopBlockedGate 固定 MTP-94 当前允许展示的 audit / incident / stop 阻断 gate。
+///
+/// 这些 gate 只用于 read-model-only blocked evidence 和后续 Dashboard / Report / Event Timeline
+/// 展示，不是 incident replay runtime、stop control route、生产运维动作或 Live PRO Console 入口。
+public enum LiveIncidentStopBlockedGate: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case auditTrail = "audit trail"
+    case incidentReplay = "incident replay"
+    case emergencyStop = "emergency stop"
+    case shutdown
+    case restore
+}
+
+/// LiveIncidentStopBlockedReason 描述 MTP-94 可以公开展示的阻断原因。
+///
+/// reason 只说明 future audit / incident / stop 能力仍缺少独立 gate、授权和实现合同；
+/// 它不携带 broker payload、Runtime command、stop action、restore decision 或生产运维状态。
+public enum LiveIncidentStopBlockedReason: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case humanLiveAuditIncidentStopDecisionMissing = "human Live audit / incident / stop decision missing"
+    case auditTrailRuntimeForbidden = "audit trail runtime forbidden"
+    case incidentReplayRuntimeForbidden = "incident replay runtime forbidden"
+    case emergencyStopCommandForbidden = "emergency stop command forbidden"
+    case shutdownCommandForbidden = "shutdown command forbidden"
+    case restoreCommandForbidden = "restore command forbidden"
+    case productionOperationsRuntimeForbidden = "production operations runtime forbidden"
+    case brokerSessionMutationForbidden = "broker session mutation forbidden"
+    case liveRuntimeResumeForbidden = "live runtime resume forbidden"
+    case liveProConsoleForbidden = "Live PRO Console forbidden"
+    case liveCommandSurfaceForbidden = "live command surface forbidden"
+    case stopButtonForbidden = "stop button forbidden"
+    case tradingButtonForbidden = "trading button forbidden"
+    case readModelOnlyBoundaryRequired = "read model only boundary required"
+}
+
+/// LiveIncidentStopBlockedEvidenceItem 是单个 audit / incident / stop gate 的只读阻断证据。
+///
+/// item 只携带 gate、blocked reason 和 source anchor。所有 command、runtime、adapter、
+/// schema、broker action 和 Live PRO Console 旗标必须保持 false，避免展示层被误用为
+/// 当前事故回放、停机或恢复控制。
+public struct LiveIncidentStopBlockedEvidenceItem: Codable, Equatable, Sendable {
+    public let gate: LiveIncidentStopBlockedGate
+    public let blockedReasons: [LiveIncidentStopBlockedReason]
+    public let sourceAnchors: [String]
+    public let isBlocked: Bool
+    public let emitsCommand: Bool
+    public let exposesSchema: Bool
+    public let readsAdapter: Bool
+    public let invokesRuntimeControl: Bool
+    public let authorizesIncidentStopControl: Bool
+
+    public var readModelOnlyBoundaryHeld: Bool {
+        isBlocked
+            && emitsCommand == false
+            && exposesSchema == false
+            && readsAdapter == false
+            && invokesRuntimeControl == false
+            && authorizesIncidentStopControl == false
+    }
+
+    public init(
+        gate: LiveIncidentStopBlockedGate,
+        blockedReasons: [LiveIncidentStopBlockedReason],
+        sourceAnchors: [String],
+        isBlocked: Bool = true,
+        emitsCommand: Bool = false,
+        exposesSchema: Bool = false,
+        readsAdapter: Bool = false,
+        invokesRuntimeControl: Bool = false,
+        authorizesIncidentStopControl: Bool = false
+    ) {
+        self.gate = gate
+        self.blockedReasons = blockedReasons
+        self.sourceAnchors = sourceAnchors
+        self.isBlocked = isBlocked
+        self.emitsCommand = emitsCommand
+        self.exposesSchema = exposesSchema
+        self.readsAdapter = readsAdapter
+        self.invokesRuntimeControl = invokesRuntimeControl
+        self.authorizesIncidentStopControl = authorizesIncidentStopControl
+    }
+}
+
+/// LiveIncidentStopBlockedEvidence 是 MTP-94 的 read-model-only blocked evidence fixture。
+///
+/// 该 read model 汇总 audit trail、incident replay、emergency stop、shutdown 和 restore
+/// 为什么仍被阻断，并输出 deterministic snapshot 给 Dashboard / Report / Event Timeline。
+/// 它不实现事故回放 runtime、停机命令、恢复命令、生产运维、signed/account/listenKey、
+/// broker action、Live PRO Console、stop button、trading button 或 live command。
+public struct LiveIncidentStopBlockedEvidence: Codable, Equatable, Sendable {
+    public let contractID: Identifier
+    public let issueID: Identifier
+    public let blockedItems: [LiveIncidentStopBlockedEvidenceItem]
+    public let allowedEvidenceKinds: [LiveAuditIncidentStopEvidenceKind]
+    public let validationAnchors: [String]
+    public let sourceAnchors: [String]
+    public let isReadModelOnly: Bool
+    public let reportConsumesReadModelOnly: Bool
+    public let dashboardConsumesViewModelOnly: Bool
+    public let eventTimelineConsumesReadModelOnly: Bool
+    public let exposesPersistenceSchema: Bool
+    public let readsAdapter: Bool
+    public let invokesRuntimeControl: Bool
+    public let providesCommandSurface: Bool
+    public let providesIncidentReplay: Bool
+    public let providesStopControl: Bool
+    public let providesEmergencyStopCommand: Bool
+    public let providesShutdownCommand: Bool
+    public let providesRestoreCommand: Bool
+    public let exposesLiveProConsole: Bool
+    public let providesStopButton: Bool
+    public let providesTradingButton: Bool
+    public let authorizesLiveTrading: Bool
+    public let readsAPIKey: Bool
+    public let storesSecret: Bool
+    public let usesSignedEndpoint: Bool
+    public let callsAccountEndpoint: Bool
+    public let createsListenKey: Bool
+    public let executesBrokerAction: Bool
+    public let implementsLiveExecutionAdapter: Bool
+    public let implementsOMS: Bool
+    public let implementsRealOrderStateMachine: Bool
+    public let consumesExecutionReport: Bool
+    public let recordsBrokerFill: Bool
+    public let performsReconciliation: Bool
+    public let runsAuditTrailRuntime: Bool
+    public let runsIncidentReplayRuntime: Bool
+    public let runsProductionOperations: Bool
+    public let mutatesBrokerSessionState: Bool
+    public let resumesLiveRuntime: Bool
+    public let requiredValidationDependsOnNetwork: Bool
+
+    public var blockedEvidenceBoundaryHeld: Bool {
+        blockedItems == Self.requiredBlockedItems
+            && allowedEvidenceKinds == Self.allowedEvidenceKinds
+            && validationAnchors == Self.requiredValidationAnchors
+            && sourceAnchors == Self.requiredSourceAnchors
+            && allIncidentStopGatesBlocked
+            && appSurfaceReadModelOnlyBoundaryHeld
+            && forbiddenImplementationBoundaryHeld
+            && requiredValidationDependsOnNetwork == false
+    }
+
+    public var allIncidentStopGatesBlocked: Bool {
+        blockedItems.map(\.gate) == LiveIncidentStopBlockedGate.allCases
+            && blockedItems.allSatisfy(\.readModelOnlyBoundaryHeld)
+    }
+
+    public var appSurfaceReadModelOnlyBoundaryHeld: Bool {
+        isReadModelOnly
+            && reportConsumesReadModelOnly
+            && dashboardConsumesViewModelOnly
+            && eventTimelineConsumesReadModelOnly
+            && exposesPersistenceSchema == false
+            && readsAdapter == false
+            && invokesRuntimeControl == false
+            && providesCommandSurface == false
+            && providesIncidentReplay == false
+            && providesStopControl == false
+            && providesEmergencyStopCommand == false
+            && providesShutdownCommand == false
+            && providesRestoreCommand == false
+            && exposesLiveProConsole == false
+            && providesStopButton == false
+            && providesTradingButton == false
+            && authorizesLiveTrading == false
+    }
+
+    public var forbiddenImplementationBoundaryHeld: Bool {
+        readsAPIKey == false
+            && storesSecret == false
+            && usesSignedEndpoint == false
+            && callsAccountEndpoint == false
+            && createsListenKey == false
+            && executesBrokerAction == false
+            && implementsLiveExecutionAdapter == false
+            && implementsOMS == false
+            && implementsRealOrderStateMachine == false
+            && consumesExecutionReport == false
+            && recordsBrokerFill == false
+            && performsReconciliation == false
+            && runsAuditTrailRuntime == false
+            && runsIncidentReplayRuntime == false
+            && runsProductionOperations == false
+            && mutatesBrokerSessionState == false
+            && resumesLiveRuntime == false
+    }
+
+    public var deterministicSnapshot: [String] {
+        blockedItems.map { item in
+            let status = item.isBlocked ? "blocked" : "unblocked"
+            let reasons = item.blockedReasons.map(\.rawValue).joined(separator: ";")
+            return "\(item.gate.rawValue)|\(status)|\(reasons)"
+        }
+    }
+
+    public func item(for gate: LiveIncidentStopBlockedGate) -> LiveIncidentStopBlockedEvidenceItem? {
+        blockedItems.first { $0.gate == gate }
+    }
+
+    public init(
+        contractID: Identifier = try! Identifier("mtp-94-live-incident-stop-blocked-evidence"),
+        issueID: Identifier = try! Identifier("MTP-94"),
+        blockedItems: [LiveIncidentStopBlockedEvidenceItem] = Self.requiredBlockedItems,
+        allowedEvidenceKinds: [LiveAuditIncidentStopEvidenceKind] = Self.allowedEvidenceKinds,
+        validationAnchors: [String] = Self.requiredValidationAnchors,
+        sourceAnchors: [String] = Self.requiredSourceAnchors,
+        isReadModelOnly: Bool = true,
+        reportConsumesReadModelOnly: Bool = true,
+        dashboardConsumesViewModelOnly: Bool = true,
+        eventTimelineConsumesReadModelOnly: Bool = true,
+        exposesPersistenceSchema: Bool = false,
+        readsAdapter: Bool = false,
+        invokesRuntimeControl: Bool = false,
+        providesCommandSurface: Bool = false,
+        providesIncidentReplay: Bool = false,
+        providesStopControl: Bool = false,
+        providesEmergencyStopCommand: Bool = false,
+        providesShutdownCommand: Bool = false,
+        providesRestoreCommand: Bool = false,
+        exposesLiveProConsole: Bool = false,
+        providesStopButton: Bool = false,
+        providesTradingButton: Bool = false,
+        authorizesLiveTrading: Bool = false,
+        readsAPIKey: Bool = false,
+        storesSecret: Bool = false,
+        usesSignedEndpoint: Bool = false,
+        callsAccountEndpoint: Bool = false,
+        createsListenKey: Bool = false,
+        executesBrokerAction: Bool = false,
+        implementsLiveExecutionAdapter: Bool = false,
+        implementsOMS: Bool = false,
+        implementsRealOrderStateMachine: Bool = false,
+        consumesExecutionReport: Bool = false,
+        recordsBrokerFill: Bool = false,
+        performsReconciliation: Bool = false,
+        runsAuditTrailRuntime: Bool = false,
+        runsIncidentReplayRuntime: Bool = false,
+        runsProductionOperations: Bool = false,
+        mutatesBrokerSessionState: Bool = false,
+        resumesLiveRuntime: Bool = false,
+        requiredValidationDependsOnNetwork: Bool = false
+    ) throws {
+        try Self.validate(
+            blockedItems: blockedItems,
+            allowedEvidenceKinds: allowedEvidenceKinds,
+            validationAnchors: validationAnchors,
+            sourceAnchors: sourceAnchors
+        )
+        try Self.validateForbiddenFlags(
+            isReadModelOnly: isReadModelOnly,
+            reportConsumesReadModelOnly: reportConsumesReadModelOnly,
+            dashboardConsumesViewModelOnly: dashboardConsumesViewModelOnly,
+            eventTimelineConsumesReadModelOnly: eventTimelineConsumesReadModelOnly,
+            exposesPersistenceSchema: exposesPersistenceSchema,
+            readsAdapter: readsAdapter,
+            invokesRuntimeControl: invokesRuntimeControl,
+            providesCommandSurface: providesCommandSurface,
+            providesIncidentReplay: providesIncidentReplay,
+            providesStopControl: providesStopControl,
+            providesEmergencyStopCommand: providesEmergencyStopCommand,
+            providesShutdownCommand: providesShutdownCommand,
+            providesRestoreCommand: providesRestoreCommand,
+            exposesLiveProConsole: exposesLiveProConsole,
+            providesStopButton: providesStopButton,
+            providesTradingButton: providesTradingButton,
+            authorizesLiveTrading: authorizesLiveTrading,
+            readsAPIKey: readsAPIKey,
+            storesSecret: storesSecret,
+            usesSignedEndpoint: usesSignedEndpoint,
+            callsAccountEndpoint: callsAccountEndpoint,
+            createsListenKey: createsListenKey,
+            executesBrokerAction: executesBrokerAction,
+            implementsLiveExecutionAdapter: implementsLiveExecutionAdapter,
+            implementsOMS: implementsOMS,
+            implementsRealOrderStateMachine: implementsRealOrderStateMachine,
+            consumesExecutionReport: consumesExecutionReport,
+            recordsBrokerFill: recordsBrokerFill,
+            performsReconciliation: performsReconciliation,
+            runsAuditTrailRuntime: runsAuditTrailRuntime,
+            runsIncidentReplayRuntime: runsIncidentReplayRuntime,
+            runsProductionOperations: runsProductionOperations,
+            mutatesBrokerSessionState: mutatesBrokerSessionState,
+            resumesLiveRuntime: resumesLiveRuntime,
+            requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork
+        )
+
+        self.contractID = contractID
+        self.issueID = issueID
+        self.blockedItems = blockedItems
+        self.allowedEvidenceKinds = allowedEvidenceKinds
+        self.validationAnchors = validationAnchors
+        self.sourceAnchors = sourceAnchors
+        self.isReadModelOnly = isReadModelOnly
+        self.reportConsumesReadModelOnly = reportConsumesReadModelOnly
+        self.dashboardConsumesViewModelOnly = dashboardConsumesViewModelOnly
+        self.eventTimelineConsumesReadModelOnly = eventTimelineConsumesReadModelOnly
+        self.exposesPersistenceSchema = exposesPersistenceSchema
+        self.readsAdapter = readsAdapter
+        self.invokesRuntimeControl = invokesRuntimeControl
+        self.providesCommandSurface = providesCommandSurface
+        self.providesIncidentReplay = providesIncidentReplay
+        self.providesStopControl = providesStopControl
+        self.providesEmergencyStopCommand = providesEmergencyStopCommand
+        self.providesShutdownCommand = providesShutdownCommand
+        self.providesRestoreCommand = providesRestoreCommand
+        self.exposesLiveProConsole = exposesLiveProConsole
+        self.providesStopButton = providesStopButton
+        self.providesTradingButton = providesTradingButton
+        self.authorizesLiveTrading = authorizesLiveTrading
+        self.readsAPIKey = readsAPIKey
+        self.storesSecret = storesSecret
+        self.usesSignedEndpoint = usesSignedEndpoint
+        self.callsAccountEndpoint = callsAccountEndpoint
+        self.createsListenKey = createsListenKey
+        self.executesBrokerAction = executesBrokerAction
+        self.implementsLiveExecutionAdapter = implementsLiveExecutionAdapter
+        self.implementsOMS = implementsOMS
+        self.implementsRealOrderStateMachine = implementsRealOrderStateMachine
+        self.consumesExecutionReport = consumesExecutionReport
+        self.recordsBrokerFill = recordsBrokerFill
+        self.performsReconciliation = performsReconciliation
+        self.runsAuditTrailRuntime = runsAuditTrailRuntime
+        self.runsIncidentReplayRuntime = runsIncidentReplayRuntime
+        self.runsProductionOperations = runsProductionOperations
+        self.mutatesBrokerSessionState = mutatesBrokerSessionState
+        self.resumesLiveRuntime = resumesLiveRuntime
+        self.requiredValidationDependsOnNetwork = requiredValidationDependsOnNetwork
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            contractID: try container.decode(Identifier.self, forKey: .contractID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            blockedItems: try container.decode([LiveIncidentStopBlockedEvidenceItem].self, forKey: .blockedItems),
+            allowedEvidenceKinds: try container.decode(
+                [LiveAuditIncidentStopEvidenceKind].self,
+                forKey: .allowedEvidenceKinds
+            ),
+            validationAnchors: try container.decode([String].self, forKey: .validationAnchors),
+            sourceAnchors: try container.decode([String].self, forKey: .sourceAnchors),
+            isReadModelOnly: try container.decode(Bool.self, forKey: .isReadModelOnly),
+            reportConsumesReadModelOnly: try container.decode(Bool.self, forKey: .reportConsumesReadModelOnly),
+            dashboardConsumesViewModelOnly: try container.decode(Bool.self, forKey: .dashboardConsumesViewModelOnly),
+            eventTimelineConsumesReadModelOnly: try container.decode(
+                Bool.self,
+                forKey: .eventTimelineConsumesReadModelOnly
+            ),
+            exposesPersistenceSchema: try container.decode(Bool.self, forKey: .exposesPersistenceSchema),
+            readsAdapter: try container.decode(Bool.self, forKey: .readsAdapter),
+            invokesRuntimeControl: try container.decode(Bool.self, forKey: .invokesRuntimeControl),
+            providesCommandSurface: try container.decode(Bool.self, forKey: .providesCommandSurface),
+            providesIncidentReplay: try container.decode(Bool.self, forKey: .providesIncidentReplay),
+            providesStopControl: try container.decode(Bool.self, forKey: .providesStopControl),
+            providesEmergencyStopCommand: try container.decode(Bool.self, forKey: .providesEmergencyStopCommand),
+            providesShutdownCommand: try container.decode(Bool.self, forKey: .providesShutdownCommand),
+            providesRestoreCommand: try container.decode(Bool.self, forKey: .providesRestoreCommand),
+            exposesLiveProConsole: try container.decode(Bool.self, forKey: .exposesLiveProConsole),
+            providesStopButton: try container.decode(Bool.self, forKey: .providesStopButton),
+            providesTradingButton: try container.decode(Bool.self, forKey: .providesTradingButton),
+            authorizesLiveTrading: try container.decode(Bool.self, forKey: .authorizesLiveTrading),
+            readsAPIKey: try container.decode(Bool.self, forKey: .readsAPIKey),
+            storesSecret: try container.decode(Bool.self, forKey: .storesSecret),
+            usesSignedEndpoint: try container.decode(Bool.self, forKey: .usesSignedEndpoint),
+            callsAccountEndpoint: try container.decode(Bool.self, forKey: .callsAccountEndpoint),
+            createsListenKey: try container.decode(Bool.self, forKey: .createsListenKey),
+            executesBrokerAction: try container.decode(Bool.self, forKey: .executesBrokerAction),
+            implementsLiveExecutionAdapter: try container.decode(Bool.self, forKey: .implementsLiveExecutionAdapter),
+            implementsOMS: try container.decode(Bool.self, forKey: .implementsOMS),
+            implementsRealOrderStateMachine: try container.decode(Bool.self, forKey: .implementsRealOrderStateMachine),
+            consumesExecutionReport: try container.decode(Bool.self, forKey: .consumesExecutionReport),
+            recordsBrokerFill: try container.decode(Bool.self, forKey: .recordsBrokerFill),
+            performsReconciliation: try container.decode(Bool.self, forKey: .performsReconciliation),
+            runsAuditTrailRuntime: try container.decode(Bool.self, forKey: .runsAuditTrailRuntime),
+            runsIncidentReplayRuntime: try container.decode(Bool.self, forKey: .runsIncidentReplayRuntime),
+            runsProductionOperations: try container.decode(Bool.self, forKey: .runsProductionOperations),
+            mutatesBrokerSessionState: try container.decode(Bool.self, forKey: .mutatesBrokerSessionState),
+            resumesLiveRuntime: try container.decode(Bool.self, forKey: .resumesLiveRuntime),
+            requiredValidationDependsOnNetwork: try container.decode(
+                Bool.self,
+                forKey: .requiredValidationDependsOnNetwork
+            )
+        )
+    }
+
+    public static let requiredBlockedItems: [LiveIncidentStopBlockedEvidenceItem] = [
+        LiveIncidentStopBlockedEvidenceItem(
+            gate: .auditTrail,
+            blockedReasons: [
+                .humanLiveAuditIncidentStopDecisionMissing,
+                .auditTrailRuntimeForbidden,
+                .liveCommandSurfaceForbidden,
+                .readModelOnlyBoundaryRequired
+            ],
+            sourceAnchors: [
+                "MTP-90-SIGNAL-ORDER-RISK-FILL-AUDIT-TRAIL-FUTURE-GATES",
+                "MTP-90-FORBIDDEN-EXECUTION-REPORT-BROKER-FILL-OMS-TESTS"
+            ]
+        ),
+        LiveIncidentStopBlockedEvidenceItem(
+            gate: .incidentReplay,
+            blockedReasons: [
+                .incidentReplayRuntimeForbidden,
+                .productionOperationsRuntimeForbidden,
+                .liveRuntimeResumeForbidden,
+                .readModelOnlyBoundaryRequired
+            ],
+            sourceAnchors: [
+                "MTP-91-INCIDENT-REPLAY-FUTURE-GATES",
+                "MTP-91-FORBIDDEN-RECOVERY-BROKER-ACCOUNT-REPLAY-TESTS"
+            ]
+        ),
+        LiveIncidentStopBlockedEvidenceItem(
+            gate: .emergencyStop,
+            blockedReasons: [
+                .emergencyStopCommandForbidden,
+                .stopButtonForbidden,
+                .liveCommandSurfaceForbidden,
+                .readModelOnlyBoundaryRequired
+            ],
+            sourceAnchors: [
+                "MTP-92-EMERGENCY-STOP-SHUTDOWN-RESTORE-FUTURE-GATES",
+                "MTP-92-FORBIDDEN-STOP-SHUTDOWN-RESTORE-CAPABILITY-TESTS"
+            ]
+        ),
+        LiveIncidentStopBlockedEvidenceItem(
+            gate: .shutdown,
+            blockedReasons: [
+                .shutdownCommandForbidden,
+                .productionOperationsRuntimeForbidden,
+                .brokerSessionMutationForbidden,
+                .readModelOnlyBoundaryRequired
+            ],
+            sourceAnchors: [
+                "MTP-92-NO-BROKER-SESSION-MUTATION-OR-PRODUCTION-SHUTDOWN",
+                "MTP-93-NO-BLOCKED-EVIDENCE-TO-INCIDENT-OR-STOP-COMMAND-UPGRADE"
+            ]
+        ),
+        LiveIncidentStopBlockedEvidenceItem(
+            gate: .restore,
+            blockedReasons: [
+                .restoreCommandForbidden,
+                .liveRuntimeResumeForbidden,
+                .liveProConsoleForbidden,
+                .tradingButtonForbidden,
+                .readModelOnlyBoundaryRequired
+            ],
+            sourceAnchors: [
+                "MTP-91-REPLAY-SCOPE-EVIDENCE-OUTPUT-GATES",
+                "MTP-93-PAPER-EVIDENCE-NO-INCIDENT-STOP-UPGRADE"
+            ]
+        )
+    ]
+
+    public static let allowedEvidenceKinds: [LiveAuditIncidentStopEvidenceKind] = [
+        .contractDocumentation,
+        .validationMatrixCandidate,
+        .validationPlanAnchor,
+        .deterministicForbiddenTest,
+        .blockedEvidenceBoundary,
+        .prBoundaryEvidence
+    ]
+
+    public static let requiredValidationAnchors: [String] = [
+        "MTP-94-LIVE-INCIDENT-STOP-BLOCKED-EVIDENCE",
+        "MTP-94-AUDIT-INCIDENT-STOP-BLOCKED-REASONS",
+        "MTP-94-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT",
+        "MTP-94-READ-MODEL-ONLY-NO-COMMAND-SURFACE",
+        "MTP-94-LIVE-INCIDENT-STOP-VALIDATION",
+        "TVM-LIVE-AUDIT-INCIDENT-STOP"
+    ]
+
+    public static let requiredSourceAnchors: [String] = [
+        "MTP-89-LIVE-AUDIT-INCIDENT-STOP-TERMINOLOGY",
+        "MTP-90-SIGNAL-ORDER-RISK-FILL-AUDIT-TRAIL-FUTURE-GATES",
+        "MTP-91-INCIDENT-REPLAY-FUTURE-GATES",
+        "MTP-92-EMERGENCY-STOP-SHUTDOWN-RESTORE-FUTURE-GATES",
+        "MTP-93-LIVE-RISK-EXECUTION-BLOCKED-EVIDENCE-ISOLATION",
+        "MTP-93-NO-BLOCKED-EVIDENCE-TO-INCIDENT-OR-STOP-COMMAND-UPGRADE",
+        "TVM-LIVE-AUDIT-INCIDENT-STOP"
+    ]
+
+    public static let deterministicFixture: LiveIncidentStopBlockedEvidence = {
+        do {
+            return try LiveIncidentStopBlockedEvidence()
+        } catch {
+            preconditionFailure("MTP-94 Live incident / stop blocked evidence fixture must be valid: \(error)")
+        }
+    }()
+
+    private static func validate(
+        blockedItems: [LiveIncidentStopBlockedEvidenceItem],
+        allowedEvidenceKinds: [LiveAuditIncidentStopEvidenceKind],
+        validationAnchors: [String],
+        sourceAnchors: [String]
+    ) throws {
+        if let invalid = blockedItems.first(where: { $0.readModelOnlyBoundaryHeld == false }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("\(invalid.gate.rawValue).readModelOnlyBoundaryHeld")
+        }
+        guard blockedItems == Self.requiredBlockedItems else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "blockedItems",
+                expected: Self.requiredBlockedItems.map(\.gate.rawValue).joined(separator: ","),
+                actual: blockedItems.map(\.gate.rawValue).joined(separator: ",")
+            )
+        }
+        guard allowedEvidenceKinds == Self.allowedEvidenceKinds else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "allowedEvidenceKinds",
+                expected: Self.allowedEvidenceKinds.map(\.rawValue).joined(separator: ","),
+                actual: allowedEvidenceKinds.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard validationAnchors == Self.requiredValidationAnchors else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "validationAnchors",
+                expected: Self.requiredValidationAnchors.joined(separator: ","),
+                actual: validationAnchors.joined(separator: ",")
+            )
+        }
+        guard sourceAnchors == Self.requiredSourceAnchors else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "sourceAnchors",
+                expected: Self.requiredSourceAnchors.joined(separator: ","),
+                actual: sourceAnchors.joined(separator: ",")
+            )
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        isReadModelOnly: Bool,
+        reportConsumesReadModelOnly: Bool,
+        dashboardConsumesViewModelOnly: Bool,
+        eventTimelineConsumesReadModelOnly: Bool,
+        exposesPersistenceSchema: Bool,
+        readsAdapter: Bool,
+        invokesRuntimeControl: Bool,
+        providesCommandSurface: Bool,
+        providesIncidentReplay: Bool,
+        providesStopControl: Bool,
+        providesEmergencyStopCommand: Bool,
+        providesShutdownCommand: Bool,
+        providesRestoreCommand: Bool,
+        exposesLiveProConsole: Bool,
+        providesStopButton: Bool,
+        providesTradingButton: Bool,
+        authorizesLiveTrading: Bool,
+        readsAPIKey: Bool,
+        storesSecret: Bool,
+        usesSignedEndpoint: Bool,
+        callsAccountEndpoint: Bool,
+        createsListenKey: Bool,
+        executesBrokerAction: Bool,
+        implementsLiveExecutionAdapter: Bool,
+        implementsOMS: Bool,
+        implementsRealOrderStateMachine: Bool,
+        consumesExecutionReport: Bool,
+        recordsBrokerFill: Bool,
+        performsReconciliation: Bool,
+        runsAuditTrailRuntime: Bool,
+        runsIncidentReplayRuntime: Bool,
+        runsProductionOperations: Bool,
+        mutatesBrokerSessionState: Bool,
+        resumesLiveRuntime: Bool,
+        requiredValidationDependsOnNetwork: Bool
+    ) throws {
+        guard isReadModelOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("isReadModelOnly")
+        }
+        guard reportConsumesReadModelOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("reportConsumesReadModelOnly")
+        }
+        guard dashboardConsumesViewModelOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("dashboardConsumesViewModelOnly")
+        }
+        guard eventTimelineConsumesReadModelOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("eventTimelineConsumesReadModelOnly")
+        }
+
+        let forbiddenFlags = [
+            ("exposesPersistenceSchema", exposesPersistenceSchema),
+            ("readsAdapter", readsAdapter),
+            ("invokesRuntimeControl", invokesRuntimeControl),
+            ("providesCommandSurface", providesCommandSurface),
+            ("providesIncidentReplay", providesIncidentReplay),
+            ("providesStopControl", providesStopControl),
+            ("providesEmergencyStopCommand", providesEmergencyStopCommand),
+            ("providesShutdownCommand", providesShutdownCommand),
+            ("providesRestoreCommand", providesRestoreCommand),
+            ("exposesLiveProConsole", exposesLiveProConsole),
+            ("providesStopButton", providesStopButton),
+            ("providesTradingButton", providesTradingButton),
+            ("authorizesLiveTrading", authorizesLiveTrading),
+            ("readsAPIKey", readsAPIKey),
+            ("storesSecret", storesSecret),
+            ("usesSignedEndpoint", usesSignedEndpoint),
+            ("callsAccountEndpoint", callsAccountEndpoint),
+            ("createsListenKey", createsListenKey),
+            ("executesBrokerAction", executesBrokerAction),
+            ("implementsLiveExecutionAdapter", implementsLiveExecutionAdapter),
+            ("implementsOMS", implementsOMS),
+            ("implementsRealOrderStateMachine", implementsRealOrderStateMachine),
+            ("consumesExecutionReport", consumesExecutionReport),
+            ("recordsBrokerFill", recordsBrokerFill),
+            ("performsReconciliation", performsReconciliation),
+            ("runsAuditTrailRuntime", runsAuditTrailRuntime),
+            ("runsIncidentReplayRuntime", runsIncidentReplayRuntime),
+            ("runsProductionOperations", runsProductionOperations),
+            ("mutatesBrokerSessionState", mutatesBrokerSessionState),
+            ("resumesLiveRuntime", resumesLiveRuntime),
+            ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(capability.0)
+        }
+    }
+}
+
 /// LiveIncidentReplayFutureGate 定义 MTP-91 的 incident replay future gates。
 ///
 /// 这些 gate 只描述后续 Project Definition 前必须补齐的输入来源、回放范围、证据和输出合同。
