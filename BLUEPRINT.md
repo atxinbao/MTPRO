@@ -69,6 +69,7 @@
 | `docs/design/mtpro-workbench-ui-ux-design-rules-v1.md` | 设计层 UI/UX rules 依据，承接 Screen Layout v1，定义 macOS native 工作台视觉方向、状态表达、evidence components 和禁止 UI 表面 |
 | `docs/design/mtpro-workbench-component-layout-specification-v1.md` | 设计层组件 / 布局规格依据，承接 UI/UX Design Rules v1，定义 layout primitives、evidence components、state components、partition components 和边界组件 |
 | `docs/design/mtpro-workbench-visual-style-direction-v1.md` | 设计层视觉方向依据，承接组件 / 布局规格，定义 macOS native 工作台视觉方向、色彩语义、typography、density 和关键视觉样例 |
+| `docs/design/mtpro-workbench-user-facing-dashboard-high-fidelity-v2.md` | 设计层用户面 dashboard 高保真关键页面依据，承接 User Dashboard Content Model v1，定义 Figma canonical `85:2` 的 Workbench dashboard v2；不是 Live PRO Console 或实盘操作台 |
 | `docs/audit/` | 已完成 Project 的 Stage Code Audit Reports |
 | `docs/validation/trading-validation-matrix.md` | 交易语义验证证据地图 |
 | `docs/planning/project-role-map.md` | MTPRO 角色编号、职责和边界 |
@@ -199,6 +200,8 @@ Figma canonical `15:2` 的 `MTPRO Workbench User Flow Blueprint v1` 已作为产
 `docs/product/mtpro-product-interaction-model-v1.md` 承接用户动线蓝图，定义产品层交互模型：用户在每个页面能看什么、判断什么、点什么、不能点什么，以及页面之间如何通过 evidence navigation 串联。该文档用于指导后续 `Workbench Screen Layout v1`，不定义最终视觉风格、组件规范或 SwiftUI 实现。
 
 `docs/product/mtpro-workbench-user-dashboard-content-model-v1.md` 承接用户动线和交互模型，定义用户每天打开工作台时的 Dashboard 内容优先级：主屏先给用户可读 summary 和下一步建议，source / trace / timeline / validation anchor 下沉到 inspector、drill-down 或 Events / Audit。该文档用于指导后续 `User-Facing Dashboard High-Fidelity v2`，并明确 Figma `69:*` 只作为 architecture-safe draft 参考，不作为最终用户面板设计依据。
+
+`docs/design/mtpro-workbench-user-facing-dashboard-high-fidelity-v2.md` 记录 Figma canonical `85:2` 的用户面 dashboard 高保真关键页面。该设计依据把 Workbench 主屏从 evidence-heavy 调整为用户可读 dashboard，保留 source / trace / validation 的追溯入口但下沉到 inspector / Events / docs anchor。它不是 SwiftUI 实现稿，不是 Live PRO Console，不授权真实交易、Linear execution 或业务代码开发。
 
 `Live Monitoring` 已完成，但只代表 read-model-only 的健康、连接、行情流 / 订单事件流、延迟和错误证据。订单流 / 订单事件流只表达 blocked / simulated / future evidence，不表示真实订单状态机，不提供 live command，不新增交易按钮。
 
