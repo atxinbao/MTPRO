@@ -6774,6 +6774,191 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testMTP91IncidentReplayFutureGatesDefineInputScopeEvidenceOutputBoundary() throws {
+        // 测试场景：MTP-91 只定义 incident replay 的输入来源、回放范围、回放证据和输出 gates。
+        // 当前 Event Log / Replay 仍是 deterministic evidence path，不得被描述为生产事故回放或恢复系统。
+        let boundary = LiveIncidentReplayFutureGateBoundary.deterministicFixture
+
+        XCTAssertEqual(boundary.contractID, try Identifier("mtp-91-incident-replay-future-gates"))
+        XCTAssertEqual(boundary.issueID, try Identifier("MTP-91"))
+        XCTAssertEqual(
+            boundary.futureGates,
+            [
+                .incidentInputSourceContractDefined,
+                .auditTrailInputSourceGateDefined,
+                .eventLogEvidenceInputBoundaryDefined,
+                .brokerStateInputForbidden,
+                .accountStateInputForbidden,
+                .replayScopeContractDefined,
+                .replayTimeWindowScopeDefined,
+                .replayEvidenceSourceContractDefined,
+                .deterministicReplayEvidencePathDefined,
+                .replayOutputContractDefined,
+                .readModelOnlyReplayOutputGateDefined,
+                .productionRecoveryOutputForbidden
+            ]
+        )
+        XCTAssertEqual(boundary.forbiddenCapabilities, LiveIncidentReplayForbiddenCapability.allCases)
+        XCTAssertTrue(boundary.forbidsCapability(.incidentReplayRuntime))
+        XCTAssertTrue(boundary.forbidsCapability(.productionRecoveryRuntime))
+        XCTAssertTrue(boundary.forbidsCapability(.brokerReplayRuntime))
+        XCTAssertTrue(boundary.forbidsCapability(.accountReplayRuntime))
+        XCTAssertTrue(boundary.forbidsCapability(.signedEndpoint))
+        XCTAssertEqual(boundary.incidentReplaySourceAnchors, [
+            "MTP-89-LIVE-AUDIT-INCIDENT-STOP-TERMINOLOGY",
+            "MTP-90-SIGNAL-ORDER-RISK-FILL-AUDIT-TRAIL-FUTURE-GATES",
+            "MTP-90-LIVE-AUDIT-TRAIL-VALIDATION",
+            "Event Log",
+            "Replay",
+            "TVM-LIVE-AUDIT-INCIDENT-STOP"
+        ])
+        XCTAssertEqual(boundary.validationAnchors, [
+            "MTP-91-INCIDENT-REPLAY-FUTURE-GATES",
+            "MTP-91-INCIDENT-REPLAY-INPUT-SOURCE-GATES",
+            "MTP-91-REPLAY-SCOPE-EVIDENCE-OUTPUT-GATES",
+            "MTP-91-FORBIDDEN-RECOVERY-BROKER-ACCOUNT-REPLAY-TESTS",
+            "MTP-91-DETERMINISTIC-REPLAY-NO-PRODUCTION-RECOVERY",
+            "MTP-91-INCIDENT-REPLAY-VALIDATION",
+            "TVM-LIVE-AUDIT-INCIDENT-STOP"
+        ])
+        XCTAssertTrue(boundary.incidentReplayFutureGateBoundaryHeld)
+        XCTAssertTrue(boundary.deterministicReplayEvidenceBoundaryHeld)
+        XCTAssertTrue(boundary.forbiddenCapabilityBoundaryHeld)
+        XCTAssertTrue(boundary.isFutureOnlyIncidentReplayContract)
+        XCTAssertTrue(boundary.representsDeterministicEvidencePathOnly)
+        XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(
+            LiveIncidentReplayFutureGateBoundary.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, boundary)
+    }
+
+    func testMTP91IncidentReplayFutureGatesRejectRuntimeRecoveryBrokerAndAccountReplay() throws {
+        // 测试场景：MTP-91 的 forbidden capability tests 必须拒绝 incident replay runtime、
+        // production recovery、auto restore、broker replay、account replay 和 signed/account/listenKey 绕过。
+        XCTAssertThrowsError(
+            try LiveIncidentReplayFutureGateBoundary(implementsIncidentReplayRuntime: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("implementsIncidentReplayRuntime")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveIncidentReplayFutureGateBoundary(runsProductionRecovery: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("runsProductionRecovery"))
+        }
+        XCTAssertThrowsError(
+            try LiveIncidentReplayFutureGateBoundary(runsAutoRestore: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("runsAutoRestore"))
+        }
+        XCTAssertThrowsError(
+            try LiveIncidentReplayFutureGateBoundary(replaysBrokerEvents: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("replaysBrokerEvents"))
+        }
+        XCTAssertThrowsError(
+            try LiveIncidentReplayFutureGateBoundary(replaysAccountEvents: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("replaysAccountEvents"))
+        }
+        XCTAssertThrowsError(
+            try LiveIncidentReplayFutureGateBoundary(usesSignedEndpoint: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("usesSignedEndpoint"))
+        }
+        XCTAssertThrowsError(
+            try LiveIncidentReplayFutureGateBoundary(callsAccountEndpoint: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("callsAccountEndpoint"))
+        }
+        XCTAssertThrowsError(
+            try LiveIncidentReplayFutureGateBoundary(
+                futureGates: [.incidentInputSourceContractDefined, .productionRecoveryOutputForbidden]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "futureGates",
+                    expected: LiveIncidentReplayFutureGateBoundary
+                        .requiredFutureGates
+                        .map(\.rawValue)
+                        .joined(separator: ","),
+                    actual: "incident input source contract defined,production recovery output forbidden"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(LiveIncidentReplayFutureGateBoundary.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["readsRealAccountState"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveIncidentReplayFutureGateBoundary.self, from: data)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("readsRealAccountState"))
+        }
+    }
+
+    func testMTP91IncidentReplayFutureGatesKeepCurrentReplayDeterministicEvidenceOnly() throws {
+        // 测试场景：MTP-91 可以引用当前 Event Log / Replay 作为 deterministic evidence path，
+        // 但不能把它们升级为生产恢复、broker replay、account replay、Live PRO Console 或 live command。
+        let boundary = LiveIncidentReplayFutureGateBoundary.deterministicFixture
+        let auditTrailBoundary = LiveAuditTrailFutureGateBoundary.deterministicFixture
+
+        XCTAssertTrue(boundary.incidentReplaySourceAnchors.contains("Event Log"))
+        XCTAssertTrue(boundary.incidentReplaySourceAnchors.contains("Replay"))
+        XCTAssertTrue(boundary.incidentReplaySourceAnchors.contains("MTP-90-LIVE-AUDIT-TRAIL-VALIDATION"))
+        XCTAssertTrue(auditTrailBoundary.auditTrailFutureGateBoundaryHeld)
+        XCTAssertTrue(boundary.representsDeterministicEvidencePathOnly)
+
+        XCTAssertFalse(boundary.treatsCurrentReplayAsProductionIncidentReplay)
+        XCTAssertFalse(boundary.implementsIncidentReplayRuntime)
+        XCTAssertFalse(boundary.readsRealAccountState)
+        XCTAssertFalse(boundary.readsBrokerState)
+        XCTAssertFalse(boundary.replaysBrokerEvents)
+        XCTAssertFalse(boundary.replaysAccountEvents)
+        XCTAssertFalse(boundary.runsProductionRecovery)
+        XCTAssertFalse(boundary.runsAutoRestore)
+        XCTAssertFalse(boundary.performsAutoRollback)
+        XCTAssertFalse(boundary.mutatesProductionRuntime)
+        XCTAssertFalse(boundary.usesSignedEndpoint)
+        XCTAssertFalse(boundary.callsAccountEndpoint)
+        XCTAssertFalse(boundary.createsListenKey)
+        XCTAssertFalse(boundary.executesBrokerAction)
+        XCTAssertFalse(boundary.implementsLiveExecutionAdapter)
+        XCTAssertFalse(boundary.implementsOMS)
+        XCTAssertFalse(boundary.implementsRealOrderStateMachine)
+        XCTAssertFalse(boundary.ingestsExecutionReport)
+        XCTAssertFalse(boundary.recordsBrokerFillFact)
+        XCTAssertFalse(boundary.recordsAuditTrailRuntime)
+        XCTAssertFalse(boundary.runsProductionOperations)
+        XCTAssertFalse(boundary.providesLiveCommand)
+        XCTAssertFalse(boundary.exposesLiveProConsole)
+        XCTAssertFalse(boundary.providesTradingButton)
+
+        XCTAssertThrowsError(
+            try LiveIncidentReplayFutureGateBoundary(treatsCurrentReplayAsProductionIncidentReplay: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("treatsCurrentReplayAsProductionIncidentReplay")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveIncidentReplayFutureGateBoundary(mutatesProductionRuntime: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("mutatesProductionRuntime"))
+        }
+    }
+
     private func makeOrderBookImbalanceInputs() throws -> [OrderBookReadModelInput] {
         let symbol = try Symbol(rawValue: "BTCUSDT")
         let bidDominant = OrderBookReadModelInput(

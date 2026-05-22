@@ -1528,3 +1528,41 @@ MTP-90 必须建立的主要 anchors：
 - 不连接 broker，不执行 broker action。
 - 不把 strategy signal、`PaperOrderIntent`、`PaperExecutionDecision`、`RiskBlockerEvidence` 或 `PaperSimulatedFillEvidence` 升级为真实 audit fact。
 - 不新增 live command、order-level command UI、order form、交易按钮或真实交易授权。
+
+## MTP-91 Incident Replay Future Gates Validation
+
+日期：2026-05-23
+
+执行者：Codex
+
+MTP-91 的 required validation：
+
+- `docs/contracts/live-audit-incident-stop-contract.md` 必须包含 `MTP-91-INCIDENT-REPLAY-FUTURE-GATES`、`MTP-91-INCIDENT-REPLAY-INPUT-SOURCE-GATES`、`MTP-91-REPLAY-SCOPE-EVIDENCE-OUTPUT-GATES`、`MTP-91-FORBIDDEN-RECOVERY-BROKER-ACCOUNT-REPLAY-TESTS`、`MTP-91-DETERMINISTIC-REPLAY-NO-PRODUCTION-RECOVERY` 和 `MTP-91-INCIDENT-REPLAY-VALIDATION` anchors。
+- `Sources/Core/LiveAuditIncidentStopContract.swift` 必须定义 `LiveIncidentReplayFutureGate`、`LiveIncidentReplayForbiddenCapability` 和 `LiveIncidentReplayFutureGateBoundary`，并保持这些类型只表达 Future / gated incident replay contract。
+- Core deterministic tests 必须覆盖 `testMTP91IncidentReplayFutureGatesDefineInputScopeEvidenceOutputBoundary`、`testMTP91IncidentReplayFutureGatesRejectRuntimeRecoveryBrokerAndAccountReplay` 和 `testMTP91IncidentReplayFutureGatesKeepCurrentReplayDeterministicEvidenceOnly`。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-91 issue backfill。
+- `docs/domain/context.md` 必须包含 MTP-91 incident replay future gates、input source gates、scope / evidence / output gates、forbidden recovery / broker / account replay tests、deterministic replay no production recovery 和 validation anchors。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-91 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-91 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors；后续 MTP-95 仍负责 Project 级 stage closeout 和完整 automation readiness 收口。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不实现 incident replay runtime、production recovery、auto restore、auto rollback、broker replay、account replay、signed endpoint、account endpoint、listenKey、broker action、`LiveExecutionAdapter`、Live PRO Console、live command、order form 或交易按钮。
+
+MTP-91 必须建立的主要 anchors：
+
+- `TVM-LIVE-AUDIT-INCIDENT-STOP`
+- `MTP-91-INCIDENT-REPLAY-FUTURE-GATES`
+- `MTP-91-INCIDENT-REPLAY-INPUT-SOURCE-GATES`
+- `MTP-91-REPLAY-SCOPE-EVIDENCE-OUTPUT-GATES`
+- `MTP-91-FORBIDDEN-RECOVERY-BROKER-ACCOUNT-REPLAY-TESTS`
+- `MTP-91-DETERMINISTIC-REPLAY-NO-PRODUCTION-RECOVERY`
+- `MTP-91-INCIDENT-REPLAY-VALIDATION`
+
+## MTP-91 禁止
+
+- 不实现 incident replay runtime。
+- 不实现 production recovery、auto restore、auto rollback 或 live runtime resume。
+- 不实现 broker replay runtime、account replay runtime、broker state reader 或 real account state reader。
+- 不接 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不连接 broker，不执行 broker action。
+- 不实现 OMS、real order state machine、execution report ingestion、broker fill fact 或 audit trail runtime。
+- 不把当前 `Event Log` / `Replay` 升级为 production incident replay、production recovery、broker replay 或 account replay。
+- 不新增 Live PRO Console、live command、order-level command UI、order form、交易按钮或真实交易授权。

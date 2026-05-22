@@ -618,6 +618,475 @@ public struct LiveAuditTrailFutureGateBoundary: Codable, Equatable, Sendable {
     }
 }
 
+/// LiveIncidentReplayFutureGate 定义 MTP-91 的 incident replay future gates。
+///
+/// 这些 gate 只描述后续 Project Definition 前必须补齐的输入来源、回放范围、证据和输出合同。
+/// 当前实现不得把 Event Log / Replay 升级为生产事故回放、生产恢复、broker replay、account replay
+/// 或任何自动恢复系统。
+public enum LiveIncidentReplayFutureGate: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case incidentInputSourceContractDefined = "incident input source contract defined"
+    case auditTrailInputSourceGateDefined = "audit trail input source gate defined"
+    case eventLogEvidenceInputBoundaryDefined = "Event Log evidence input boundary defined"
+    case brokerStateInputForbidden = "broker state input forbidden"
+    case accountStateInputForbidden = "account state input forbidden"
+    case replayScopeContractDefined = "replay scope contract defined"
+    case replayTimeWindowScopeDefined = "replay time window scope defined"
+    case replayEvidenceSourceContractDefined = "replay evidence source contract defined"
+    case deterministicReplayEvidencePathDefined = "deterministic replay evidence path defined"
+    case replayOutputContractDefined = "replay output contract defined"
+    case readModelOnlyReplayOutputGateDefined = "read-model-only replay output gate defined"
+    case productionRecoveryOutputForbidden = "production recovery output forbidden"
+}
+
+/// LiveIncidentReplayForbiddenCapability 枚举 MTP-91 必须保持禁止的事故回放能力面。
+///
+/// 这些 capability 只能作为 forbidden tests 和 PR evidence 的字符串证据出现；不能被实现为
+/// runtime、adapter、broker/account state reader、production recovery、auto restore、Live PRO Console
+/// 或交易 UI。
+public enum LiveIncidentReplayForbiddenCapability: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case incidentReplayRuntime = "incident replay runtime"
+    case productionRecoveryRuntime = "production recovery runtime"
+    case autoRestoreRuntime = "auto restore runtime"
+    case autoRollbackRuntime = "auto rollback runtime"
+    case brokerReplayRuntime = "broker replay runtime"
+    case accountReplayRuntime = "account replay runtime"
+    case brokerStateReader = "broker state reader"
+    case realAccountStateReader = "real account state reader"
+    case signedEndpoint = "signed endpoint"
+    case accountEndpoint = "account endpoint"
+    case listenKeyUserDataStream = "listenKey user data stream"
+    case brokerAction = "broker action"
+    case liveExecutionAdapter = "LiveExecutionAdapter"
+    case oms = "OMS"
+    case realOrderStateMachine = "real order state machine"
+    case executionReportIngestion = "execution report ingestion"
+    case brokerFillFact = "broker fill fact"
+    case auditTrailRuntime = "audit trail runtime"
+    case productionOperationsRuntime = "production operations runtime"
+    case liveCommandSurface = "live command surface"
+    case liveProConsole = "Live PRO Console"
+    case tradingButton = "trading button"
+    case currentReplayProductionRecoveryUpgrade = "current replay to production recovery upgrade"
+    case eventLogBrokerReplayUpgrade = "Event Log to broker replay upgrade"
+}
+
+/// LiveIncidentReplayFutureGateBoundary 是 MTP-91 的 incident replay future gate fixture。
+///
+/// 该 fixture 固定 incident replay 只能是 Future / gated contract。当前 Event Log / Replay 仍是
+/// deterministic evidence path；它不能读取真实 account / broker state，不能调用 signed/account/listenKey，
+/// 不能执行 broker action，不能成为 production recovery、auto restore、broker replay 或 account replay。
+public struct LiveIncidentReplayFutureGateBoundary: Codable, Equatable, Sendable {
+    public let contractID: Identifier
+    public let issueID: Identifier
+    public let futureGates: [LiveIncidentReplayFutureGate]
+    public let forbiddenCapabilities: [LiveIncidentReplayForbiddenCapability]
+    public let allowedEvidenceKinds: [LiveAuditIncidentStopEvidenceKind]
+    public let incidentReplaySourceAnchors: [String]
+    public let validationAnchors: [String]
+    public let isFutureOnlyIncidentReplayContract: Bool
+    public let representsDeterministicEvidencePathOnly: Bool
+    public let treatsCurrentReplayAsProductionIncidentReplay: Bool
+    public let implementsIncidentReplayRuntime: Bool
+    public let readsRealAccountState: Bool
+    public let readsBrokerState: Bool
+    public let replaysBrokerEvents: Bool
+    public let replaysAccountEvents: Bool
+    public let runsProductionRecovery: Bool
+    public let runsAutoRestore: Bool
+    public let performsAutoRollback: Bool
+    public let mutatesProductionRuntime: Bool
+    public let usesSignedEndpoint: Bool
+    public let callsAccountEndpoint: Bool
+    public let createsListenKey: Bool
+    public let executesBrokerAction: Bool
+    public let implementsLiveExecutionAdapter: Bool
+    public let implementsOMS: Bool
+    public let implementsRealOrderStateMachine: Bool
+    public let ingestsExecutionReport: Bool
+    public let recordsBrokerFillFact: Bool
+    public let recordsAuditTrailRuntime: Bool
+    public let runsProductionOperations: Bool
+    public let providesLiveCommand: Bool
+    public let exposesLiveProConsole: Bool
+    public let providesTradingButton: Bool
+    public let requiredValidationDependsOnNetwork: Bool
+
+    public var incidentReplayFutureGateBoundaryHeld: Bool {
+        futureGates == Self.requiredFutureGates
+            && forbiddenCapabilities == Self.requiredForbiddenCapabilities
+            && allowedEvidenceKinds == Self.allowedEvidenceKinds
+            && incidentReplaySourceAnchors == Self.requiredIncidentReplaySourceAnchors
+            && validationAnchors == Self.requiredValidationAnchors
+            && deterministicReplayEvidenceBoundaryHeld
+            && forbiddenCapabilityBoundaryHeld
+    }
+
+    public var deterministicReplayEvidenceBoundaryHeld: Bool {
+        isFutureOnlyIncidentReplayContract
+            && representsDeterministicEvidencePathOnly
+            && treatsCurrentReplayAsProductionIncidentReplay == false
+            && implementsIncidentReplayRuntime == false
+            && runsProductionRecovery == false
+            && runsAutoRestore == false
+            && performsAutoRollback == false
+            && mutatesProductionRuntime == false
+    }
+
+    public var forbiddenCapabilityBoundaryHeld: Bool {
+        isFutureOnlyIncidentReplayContract
+            && representsDeterministicEvidencePathOnly
+            && readsRealAccountState == false
+            && readsBrokerState == false
+            && replaysBrokerEvents == false
+            && replaysAccountEvents == false
+            && usesSignedEndpoint == false
+            && callsAccountEndpoint == false
+            && createsListenKey == false
+            && executesBrokerAction == false
+            && implementsLiveExecutionAdapter == false
+            && implementsOMS == false
+            && implementsRealOrderStateMachine == false
+            && ingestsExecutionReport == false
+            && recordsBrokerFillFact == false
+            && recordsAuditTrailRuntime == false
+            && runsProductionOperations == false
+            && providesLiveCommand == false
+            && exposesLiveProConsole == false
+            && providesTradingButton == false
+            && requiredValidationDependsOnNetwork == false
+    }
+
+    public init(
+        contractID: Identifier = try! Identifier("mtp-91-incident-replay-future-gates"),
+        issueID: Identifier = try! Identifier("MTP-91"),
+        futureGates: [LiveIncidentReplayFutureGate] = Self.requiredFutureGates,
+        forbiddenCapabilities: [LiveIncidentReplayForbiddenCapability] = Self.requiredForbiddenCapabilities,
+        allowedEvidenceKinds: [LiveAuditIncidentStopEvidenceKind] = Self.allowedEvidenceKinds,
+        incidentReplaySourceAnchors: [String] = Self.requiredIncidentReplaySourceAnchors,
+        validationAnchors: [String] = Self.requiredValidationAnchors,
+        isFutureOnlyIncidentReplayContract: Bool = true,
+        representsDeterministicEvidencePathOnly: Bool = true,
+        treatsCurrentReplayAsProductionIncidentReplay: Bool = false,
+        implementsIncidentReplayRuntime: Bool = false,
+        readsRealAccountState: Bool = false,
+        readsBrokerState: Bool = false,
+        replaysBrokerEvents: Bool = false,
+        replaysAccountEvents: Bool = false,
+        runsProductionRecovery: Bool = false,
+        runsAutoRestore: Bool = false,
+        performsAutoRollback: Bool = false,
+        mutatesProductionRuntime: Bool = false,
+        usesSignedEndpoint: Bool = false,
+        callsAccountEndpoint: Bool = false,
+        createsListenKey: Bool = false,
+        executesBrokerAction: Bool = false,
+        implementsLiveExecutionAdapter: Bool = false,
+        implementsOMS: Bool = false,
+        implementsRealOrderStateMachine: Bool = false,
+        ingestsExecutionReport: Bool = false,
+        recordsBrokerFillFact: Bool = false,
+        recordsAuditTrailRuntime: Bool = false,
+        runsProductionOperations: Bool = false,
+        providesLiveCommand: Bool = false,
+        exposesLiveProConsole: Bool = false,
+        providesTradingButton: Bool = false,
+        requiredValidationDependsOnNetwork: Bool = false
+    ) throws {
+        try Self.validate(
+            futureGates: futureGates,
+            forbiddenCapabilities: forbiddenCapabilities,
+            allowedEvidenceKinds: allowedEvidenceKinds,
+            incidentReplaySourceAnchors: incidentReplaySourceAnchors,
+            validationAnchors: validationAnchors
+        )
+        try Self.validateForbiddenFlags(
+            isFutureOnlyIncidentReplayContract: isFutureOnlyIncidentReplayContract,
+            representsDeterministicEvidencePathOnly: representsDeterministicEvidencePathOnly,
+            treatsCurrentReplayAsProductionIncidentReplay: treatsCurrentReplayAsProductionIncidentReplay,
+            implementsIncidentReplayRuntime: implementsIncidentReplayRuntime,
+            readsRealAccountState: readsRealAccountState,
+            readsBrokerState: readsBrokerState,
+            replaysBrokerEvents: replaysBrokerEvents,
+            replaysAccountEvents: replaysAccountEvents,
+            runsProductionRecovery: runsProductionRecovery,
+            runsAutoRestore: runsAutoRestore,
+            performsAutoRollback: performsAutoRollback,
+            mutatesProductionRuntime: mutatesProductionRuntime,
+            usesSignedEndpoint: usesSignedEndpoint,
+            callsAccountEndpoint: callsAccountEndpoint,
+            createsListenKey: createsListenKey,
+            executesBrokerAction: executesBrokerAction,
+            implementsLiveExecutionAdapter: implementsLiveExecutionAdapter,
+            implementsOMS: implementsOMS,
+            implementsRealOrderStateMachine: implementsRealOrderStateMachine,
+            ingestsExecutionReport: ingestsExecutionReport,
+            recordsBrokerFillFact: recordsBrokerFillFact,
+            recordsAuditTrailRuntime: recordsAuditTrailRuntime,
+            runsProductionOperations: runsProductionOperations,
+            providesLiveCommand: providesLiveCommand,
+            exposesLiveProConsole: exposesLiveProConsole,
+            providesTradingButton: providesTradingButton,
+            requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork
+        )
+
+        self.contractID = contractID
+        self.issueID = issueID
+        self.futureGates = futureGates
+        self.forbiddenCapabilities = forbiddenCapabilities
+        self.allowedEvidenceKinds = allowedEvidenceKinds
+        self.incidentReplaySourceAnchors = incidentReplaySourceAnchors
+        self.validationAnchors = validationAnchors
+        self.isFutureOnlyIncidentReplayContract = isFutureOnlyIncidentReplayContract
+        self.representsDeterministicEvidencePathOnly = representsDeterministicEvidencePathOnly
+        self.treatsCurrentReplayAsProductionIncidentReplay = treatsCurrentReplayAsProductionIncidentReplay
+        self.implementsIncidentReplayRuntime = implementsIncidentReplayRuntime
+        self.readsRealAccountState = readsRealAccountState
+        self.readsBrokerState = readsBrokerState
+        self.replaysBrokerEvents = replaysBrokerEvents
+        self.replaysAccountEvents = replaysAccountEvents
+        self.runsProductionRecovery = runsProductionRecovery
+        self.runsAutoRestore = runsAutoRestore
+        self.performsAutoRollback = performsAutoRollback
+        self.mutatesProductionRuntime = mutatesProductionRuntime
+        self.usesSignedEndpoint = usesSignedEndpoint
+        self.callsAccountEndpoint = callsAccountEndpoint
+        self.createsListenKey = createsListenKey
+        self.executesBrokerAction = executesBrokerAction
+        self.implementsLiveExecutionAdapter = implementsLiveExecutionAdapter
+        self.implementsOMS = implementsOMS
+        self.implementsRealOrderStateMachine = implementsRealOrderStateMachine
+        self.ingestsExecutionReport = ingestsExecutionReport
+        self.recordsBrokerFillFact = recordsBrokerFillFact
+        self.recordsAuditTrailRuntime = recordsAuditTrailRuntime
+        self.runsProductionOperations = runsProductionOperations
+        self.providesLiveCommand = providesLiveCommand
+        self.exposesLiveProConsole = exposesLiveProConsole
+        self.providesTradingButton = providesTradingButton
+        self.requiredValidationDependsOnNetwork = requiredValidationDependsOnNetwork
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            contractID: try container.decode(Identifier.self, forKey: .contractID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            futureGates: try container.decode([LiveIncidentReplayFutureGate].self, forKey: .futureGates),
+            forbiddenCapabilities: try container.decode(
+                [LiveIncidentReplayForbiddenCapability].self,
+                forKey: .forbiddenCapabilities
+            ),
+            allowedEvidenceKinds: try container.decode(
+                [LiveAuditIncidentStopEvidenceKind].self,
+                forKey: .allowedEvidenceKinds
+            ),
+            incidentReplaySourceAnchors: try container.decode([String].self, forKey: .incidentReplaySourceAnchors),
+            validationAnchors: try container.decode([String].self, forKey: .validationAnchors),
+            isFutureOnlyIncidentReplayContract: try container.decode(
+                Bool.self,
+                forKey: .isFutureOnlyIncidentReplayContract
+            ),
+            representsDeterministicEvidencePathOnly: try container.decode(
+                Bool.self,
+                forKey: .representsDeterministicEvidencePathOnly
+            ),
+            treatsCurrentReplayAsProductionIncidentReplay: try container.decode(
+                Bool.self,
+                forKey: .treatsCurrentReplayAsProductionIncidentReplay
+            ),
+            implementsIncidentReplayRuntime: try container.decode(
+                Bool.self,
+                forKey: .implementsIncidentReplayRuntime
+            ),
+            readsRealAccountState: try container.decode(Bool.self, forKey: .readsRealAccountState),
+            readsBrokerState: try container.decode(Bool.self, forKey: .readsBrokerState),
+            replaysBrokerEvents: try container.decode(Bool.self, forKey: .replaysBrokerEvents),
+            replaysAccountEvents: try container.decode(Bool.self, forKey: .replaysAccountEvents),
+            runsProductionRecovery: try container.decode(Bool.self, forKey: .runsProductionRecovery),
+            runsAutoRestore: try container.decode(Bool.self, forKey: .runsAutoRestore),
+            performsAutoRollback: try container.decode(Bool.self, forKey: .performsAutoRollback),
+            mutatesProductionRuntime: try container.decode(Bool.self, forKey: .mutatesProductionRuntime),
+            usesSignedEndpoint: try container.decode(Bool.self, forKey: .usesSignedEndpoint),
+            callsAccountEndpoint: try container.decode(Bool.self, forKey: .callsAccountEndpoint),
+            createsListenKey: try container.decode(Bool.self, forKey: .createsListenKey),
+            executesBrokerAction: try container.decode(Bool.self, forKey: .executesBrokerAction),
+            implementsLiveExecutionAdapter: try container.decode(Bool.self, forKey: .implementsLiveExecutionAdapter),
+            implementsOMS: try container.decode(Bool.self, forKey: .implementsOMS),
+            implementsRealOrderStateMachine: try container.decode(Bool.self, forKey: .implementsRealOrderStateMachine),
+            ingestsExecutionReport: try container.decode(Bool.self, forKey: .ingestsExecutionReport),
+            recordsBrokerFillFact: try container.decode(Bool.self, forKey: .recordsBrokerFillFact),
+            recordsAuditTrailRuntime: try container.decode(Bool.self, forKey: .recordsAuditTrailRuntime),
+            runsProductionOperations: try container.decode(Bool.self, forKey: .runsProductionOperations),
+            providesLiveCommand: try container.decode(Bool.self, forKey: .providesLiveCommand),
+            exposesLiveProConsole: try container.decode(Bool.self, forKey: .exposesLiveProConsole),
+            providesTradingButton: try container.decode(Bool.self, forKey: .providesTradingButton),
+            requiredValidationDependsOnNetwork: try container.decode(
+                Bool.self,
+                forKey: .requiredValidationDependsOnNetwork
+            )
+        )
+    }
+
+    public func forbidsCapability(_ capability: LiveIncidentReplayForbiddenCapability) -> Bool {
+        forbiddenCapabilities.contains(capability)
+    }
+
+    public static let requiredFutureGates: [LiveIncidentReplayFutureGate] =
+        LiveIncidentReplayFutureGate.allCases
+
+    public static let requiredForbiddenCapabilities: [LiveIncidentReplayForbiddenCapability] =
+        LiveIncidentReplayForbiddenCapability.allCases
+
+    public static let allowedEvidenceKinds: [LiveAuditIncidentStopEvidenceKind] = [
+        .contractDocumentation,
+        .validationMatrixCandidate,
+        .validationPlanAnchor,
+        .deterministicForbiddenTest,
+        .futureGateTaxonomy,
+        .blockedEvidenceBoundary,
+        .prBoundaryEvidence
+    ]
+
+    public static let requiredIncidentReplaySourceAnchors: [String] = [
+        "MTP-89-LIVE-AUDIT-INCIDENT-STOP-TERMINOLOGY",
+        "MTP-90-SIGNAL-ORDER-RISK-FILL-AUDIT-TRAIL-FUTURE-GATES",
+        "MTP-90-LIVE-AUDIT-TRAIL-VALIDATION",
+        "Event Log",
+        "Replay",
+        "TVM-LIVE-AUDIT-INCIDENT-STOP"
+    ]
+
+    public static let requiredValidationAnchors: [String] = [
+        "MTP-91-INCIDENT-REPLAY-FUTURE-GATES",
+        "MTP-91-INCIDENT-REPLAY-INPUT-SOURCE-GATES",
+        "MTP-91-REPLAY-SCOPE-EVIDENCE-OUTPUT-GATES",
+        "MTP-91-FORBIDDEN-RECOVERY-BROKER-ACCOUNT-REPLAY-TESTS",
+        "MTP-91-DETERMINISTIC-REPLAY-NO-PRODUCTION-RECOVERY",
+        "MTP-91-INCIDENT-REPLAY-VALIDATION",
+        "TVM-LIVE-AUDIT-INCIDENT-STOP"
+    ]
+
+    public static let deterministicFixture: LiveIncidentReplayFutureGateBoundary = {
+        do {
+            return try LiveIncidentReplayFutureGateBoundary()
+        } catch {
+            preconditionFailure("MTP-91 incident replay future gate fixture must be valid: \(error)")
+        }
+    }()
+
+    private static func validate(
+        futureGates: [LiveIncidentReplayFutureGate],
+        forbiddenCapabilities: [LiveIncidentReplayForbiddenCapability],
+        allowedEvidenceKinds: [LiveAuditIncidentStopEvidenceKind],
+        incidentReplaySourceAnchors: [String],
+        validationAnchors: [String]
+    ) throws {
+        guard futureGates == Self.requiredFutureGates else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "futureGates",
+                expected: Self.requiredFutureGates.map(\.rawValue).joined(separator: ","),
+                actual: futureGates.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard forbiddenCapabilities == Self.requiredForbiddenCapabilities else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "forbiddenCapabilities",
+                expected: Self.requiredForbiddenCapabilities.map(\.rawValue).joined(separator: ","),
+                actual: forbiddenCapabilities.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard allowedEvidenceKinds == Self.allowedEvidenceKinds else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "allowedEvidenceKinds",
+                expected: Self.allowedEvidenceKinds.map(\.rawValue).joined(separator: ","),
+                actual: allowedEvidenceKinds.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard incidentReplaySourceAnchors == Self.requiredIncidentReplaySourceAnchors else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "incidentReplaySourceAnchors",
+                expected: Self.requiredIncidentReplaySourceAnchors.joined(separator: ","),
+                actual: incidentReplaySourceAnchors.joined(separator: ",")
+            )
+        }
+        guard validationAnchors == Self.requiredValidationAnchors else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "validationAnchors",
+                expected: Self.requiredValidationAnchors.joined(separator: ","),
+                actual: validationAnchors.joined(separator: ",")
+            )
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        isFutureOnlyIncidentReplayContract: Bool,
+        representsDeterministicEvidencePathOnly: Bool,
+        treatsCurrentReplayAsProductionIncidentReplay: Bool,
+        implementsIncidentReplayRuntime: Bool,
+        readsRealAccountState: Bool,
+        readsBrokerState: Bool,
+        replaysBrokerEvents: Bool,
+        replaysAccountEvents: Bool,
+        runsProductionRecovery: Bool,
+        runsAutoRestore: Bool,
+        performsAutoRollback: Bool,
+        mutatesProductionRuntime: Bool,
+        usesSignedEndpoint: Bool,
+        callsAccountEndpoint: Bool,
+        createsListenKey: Bool,
+        executesBrokerAction: Bool,
+        implementsLiveExecutionAdapter: Bool,
+        implementsOMS: Bool,
+        implementsRealOrderStateMachine: Bool,
+        ingestsExecutionReport: Bool,
+        recordsBrokerFillFact: Bool,
+        recordsAuditTrailRuntime: Bool,
+        runsProductionOperations: Bool,
+        providesLiveCommand: Bool,
+        exposesLiveProConsole: Bool,
+        providesTradingButton: Bool,
+        requiredValidationDependsOnNetwork: Bool
+    ) throws {
+        guard isFutureOnlyIncidentReplayContract else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("isFutureOnlyIncidentReplayContract")
+        }
+        guard representsDeterministicEvidencePathOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("representsDeterministicEvidencePathOnly")
+        }
+
+        let forbiddenFlags = [
+            ("treatsCurrentReplayAsProductionIncidentReplay", treatsCurrentReplayAsProductionIncidentReplay),
+            ("implementsIncidentReplayRuntime", implementsIncidentReplayRuntime),
+            ("readsRealAccountState", readsRealAccountState),
+            ("readsBrokerState", readsBrokerState),
+            ("replaysBrokerEvents", replaysBrokerEvents),
+            ("replaysAccountEvents", replaysAccountEvents),
+            ("runsProductionRecovery", runsProductionRecovery),
+            ("runsAutoRestore", runsAutoRestore),
+            ("performsAutoRollback", performsAutoRollback),
+            ("mutatesProductionRuntime", mutatesProductionRuntime),
+            ("usesSignedEndpoint", usesSignedEndpoint),
+            ("callsAccountEndpoint", callsAccountEndpoint),
+            ("createsListenKey", createsListenKey),
+            ("executesBrokerAction", executesBrokerAction),
+            ("implementsLiveExecutionAdapter", implementsLiveExecutionAdapter),
+            ("implementsOMS", implementsOMS),
+            ("implementsRealOrderStateMachine", implementsRealOrderStateMachine),
+            ("ingestsExecutionReport", ingestsExecutionReport),
+            ("recordsBrokerFillFact", recordsBrokerFillFact),
+            ("recordsAuditTrailRuntime", recordsAuditTrailRuntime),
+            ("runsProductionOperations", runsProductionOperations),
+            ("providesLiveCommand", providesLiveCommand),
+            ("exposesLiveProConsole", exposesLiveProConsole),
+            ("providesTradingButton", providesTradingButton),
+            ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(capability.0)
+        }
+    }
+}
+
 /// LiveAuditIncidentStopTerminologyBoundary 是 MTP-89 的 Future-only terminology / taxonomy fixture。
 ///
 /// 该 fixture 只把 live audit、audit trail、incident、incident replay、stop control、
