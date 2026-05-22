@@ -6959,6 +6959,206 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testMTP92StopShutdownRestoreFutureGatesDefineFutureOnlyBoundary() throws {
+        // 测试场景：MTP-92 只定义 emergency stop / shutdown / restore 的 Future gates。
+        // 这些 gates 只能作为合同、validation anchor 和 forbidden capability evidence，
+        // 不能成为当前停机、恢复、生产运维、Live PRO Console、live command 或交易按钮。
+        let boundary = LiveStopShutdownRestoreFutureGateBoundary.deterministicFixture
+
+        XCTAssertEqual(boundary.contractID, try Identifier("mtp-92-stop-shutdown-restore-future-gates"))
+        XCTAssertEqual(boundary.issueID, try Identifier("MTP-92"))
+        XCTAssertEqual(
+            boundary.futureGates,
+            [
+                .emergencyStopPolicyContractDefined,
+                .emergencyStopTriggerSourceGateDefined,
+                .emergencyStopAuthorizationGateDefined,
+                .emergencyStopReadModelOnlyBlockedEvidenceDefined,
+                .shutdownPolicyContractDefined,
+                .shutdownScopeContractDefined,
+                .shutdownProductionOperationsHandoffGateDefined,
+                .restorePolicyContractDefined,
+                .restoreReadinessEvidenceGateDefined,
+                .restoreAuthorizationGateDefined,
+                .circuitBreakerNoTradeSeparationDefined,
+                .liveRiskGateNoStopRuntimeSeparationDefined
+            ]
+        )
+        XCTAssertEqual(boundary.forbiddenCapabilities, LiveStopShutdownRestoreForbiddenCapability.allCases)
+        XCTAssertTrue(boundary.forbidsCapability(.emergencyStopCommand))
+        XCTAssertTrue(boundary.forbidsCapability(.shutdownCommand))
+        XCTAssertTrue(boundary.forbidsCapability(.restoreCommand))
+        XCTAssertTrue(boundary.forbidsCapability(.globalTradingLock))
+        XCTAssertTrue(boundary.forbidsCapability(.brokerSessionMutation))
+        XCTAssertTrue(boundary.forbidsCapability(.productionShutdownControl))
+        XCTAssertTrue(boundary.forbidsCapability(.liveProConsole))
+        XCTAssertEqual(boundary.stopControlSourceAnchors, [
+            "MTP-89-LIVE-AUDIT-INCIDENT-STOP-TERMINOLOGY",
+            "MTP-90-LIVE-AUDIT-TRAIL-VALIDATION",
+            "MTP-91-INCIDENT-REPLAY-VALIDATION",
+            "MTP-85-CIRCUIT-BREAKER-NO-TRADE-FUTURE-GATES",
+            "MTP-87-LIVE-RISK-GATE-BLOCKED-EVIDENCE",
+            "LiveCircuitBreakerNoTradeGateBoundary",
+            "TVM-LIVE-AUDIT-INCIDENT-STOP"
+        ])
+        XCTAssertEqual(boundary.validationAnchors, [
+            "MTP-92-EMERGENCY-STOP-SHUTDOWN-RESTORE-FUTURE-GATES",
+            "MTP-92-FORBIDDEN-STOP-SHUTDOWN-RESTORE-CAPABILITY-TESTS",
+            "MTP-92-NO-LIVE-RISK-CIRCUIT-BREAKER-OR-NO-TRADE-UPGRADE",
+            "MTP-92-NO-BROKER-SESSION-MUTATION-OR-PRODUCTION-SHUTDOWN",
+            "MTP-92-STOP-SHUTDOWN-RESTORE-VALIDATION",
+            "TVM-LIVE-AUDIT-INCIDENT-STOP"
+        ])
+        XCTAssertTrue(boundary.stopShutdownRestoreFutureGateBoundaryHeld)
+        XCTAssertTrue(boundary.riskGateSeparationBoundaryHeld)
+        XCTAssertTrue(boundary.forbiddenCapabilityBoundaryHeld)
+        XCTAssertTrue(boundary.isFutureOnlyStopShutdownRestoreContract)
+        XCTAssertTrue(boundary.representsBlockedEvidenceOnly)
+        XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(
+            LiveStopShutdownRestoreFutureGateBoundary.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, boundary)
+    }
+
+    func testMTP92StopShutdownRestoreFutureGatesRejectCommandsBrokerMutationAndProductionOperations() throws {
+        // 测试场景：MTP-92 的 forbidden capability tests 必须拒绝 stop / shutdown / restore command、
+        // global trading lock、broker session mutation、production shutdown control、signed endpoint
+        // 和 Live PRO Console 绕过。
+        XCTAssertThrowsError(
+            try LiveStopShutdownRestoreFutureGateBoundary(runsEmergencyStopCommand: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("runsEmergencyStopCommand"))
+        }
+        XCTAssertThrowsError(
+            try LiveStopShutdownRestoreFutureGateBoundary(runsShutdownCommand: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("runsShutdownCommand"))
+        }
+        XCTAssertThrowsError(
+            try LiveStopShutdownRestoreFutureGateBoundary(runsRestoreCommand: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("runsRestoreCommand"))
+        }
+        XCTAssertThrowsError(
+            try LiveStopShutdownRestoreFutureGateBoundary(createsGlobalTradingLock: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("createsGlobalTradingLock"))
+        }
+        XCTAssertThrowsError(
+            try LiveStopShutdownRestoreFutureGateBoundary(mutatesBrokerSession: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("mutatesBrokerSession"))
+        }
+        XCTAssertThrowsError(
+            try LiveStopShutdownRestoreFutureGateBoundary(runsProductionShutdownControl: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("runsProductionShutdownControl")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveStopShutdownRestoreFutureGateBoundary(usesSignedEndpoint: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("usesSignedEndpoint"))
+        }
+        XCTAssertThrowsError(
+            try LiveStopShutdownRestoreFutureGateBoundary(exposesLiveProConsole: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("exposesLiveProConsole"))
+        }
+        XCTAssertThrowsError(
+            try LiveStopShutdownRestoreFutureGateBoundary(
+                futureGates: [.emergencyStopPolicyContractDefined, .restorePolicyContractDefined]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "futureGates",
+                    expected: LiveStopShutdownRestoreFutureGateBoundary
+                        .requiredFutureGates
+                        .map(\.rawValue)
+                        .joined(separator: ","),
+                    actual: "emergency stop policy contract defined,restore policy contract defined"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(LiveStopShutdownRestoreFutureGateBoundary.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["mutatesBrokerSession"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveStopShutdownRestoreFutureGateBoundary.self, from: data)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("mutatesBrokerSession"))
+        }
+    }
+
+    func testMTP92StopShutdownRestoreFutureGatesKeepRiskCircuitBreakerAndNoTradeSeparate() throws {
+        // 测试场景：MTP-92 可以引用 MTP-85 risk gate evidence 作为 source anchor，
+        // 但不得把 circuit breaker / no-trade state 写成当前 emergency stop、shutdown、
+        // restore decision、live runtime resume 或生产停机控制能力。
+        let boundary = LiveStopShutdownRestoreFutureGateBoundary.deterministicFixture
+        let riskBoundary = LiveCircuitBreakerNoTradeGateBoundary.deterministicFixture
+
+        XCTAssertTrue(boundary.stopControlSourceAnchors.contains("MTP-85-CIRCUIT-BREAKER-NO-TRADE-FUTURE-GATES"))
+        XCTAssertTrue(boundary.stopControlSourceAnchors.contains("LiveCircuitBreakerNoTradeGateBoundary"))
+        XCTAssertTrue(riskBoundary.circuitBreakerNoTradeBoundaryHeld)
+        XCTAssertTrue(boundary.riskGateSeparationBoundaryHeld)
+
+        XCTAssertFalse(boundary.runsLiveRiskEngine)
+        XCTAssertFalse(boundary.runsCircuitBreakerRuntime)
+        XCTAssertFalse(boundary.entersNoTradeStateRuntime)
+        XCTAssertFalse(boundary.treatsCircuitBreakerAsEmergencyStop)
+        XCTAssertFalse(boundary.treatsNoTradeStateAsShutdown)
+        XCTAssertFalse(boundary.producesRestoreDecision)
+        XCTAssertFalse(boundary.resumesLiveRuntime)
+        XCTAssertFalse(boundary.providesLiveCommand)
+        XCTAssertFalse(boundary.providesStopButton)
+        XCTAssertFalse(boundary.providesTradingButton)
+
+        XCTAssertThrowsError(
+            try LiveStopShutdownRestoreFutureGateBoundary(runsCircuitBreakerRuntime: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("runsCircuitBreakerRuntime"))
+        }
+        XCTAssertThrowsError(
+            try LiveStopShutdownRestoreFutureGateBoundary(entersNoTradeStateRuntime: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("entersNoTradeStateRuntime"))
+        }
+        XCTAssertThrowsError(
+            try LiveStopShutdownRestoreFutureGateBoundary(treatsCircuitBreakerAsEmergencyStop: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("treatsCircuitBreakerAsEmergencyStop")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveStopShutdownRestoreFutureGateBoundary(treatsNoTradeStateAsShutdown: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("treatsNoTradeStateAsShutdown"))
+        }
+        XCTAssertThrowsError(
+            try LiveStopShutdownRestoreFutureGateBoundary(producesRestoreDecision: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("producesRestoreDecision"))
+        }
+        XCTAssertThrowsError(
+            try LiveStopShutdownRestoreFutureGateBoundary(resumesLiveRuntime: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("resumesLiveRuntime"))
+        }
+    }
+
     private func makeOrderBookImbalanceInputs() throws -> [OrderBookReadModelInput] {
         let symbol = try Symbol(rawValue: "BTCUSDT")
         let bidDominant = OrderBookReadModelInput(

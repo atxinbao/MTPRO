@@ -1087,6 +1087,500 @@ public struct LiveIncidentReplayFutureGateBoundary: Codable, Equatable, Sendable
     }
 }
 
+/// LiveStopShutdownRestoreFutureGate 定义 MTP-92 的 emergency stop / shutdown / restore future gates。
+///
+/// 这些 gate 只描述后续 Project Definition 前必须补齐的合同、授权和证据边界；当前实现不得把它们
+/// 变成 emergency stop command、shutdown command、restore command、production operation、
+/// broker session mutation、Live PRO Console、live command 或交易按钮。
+public enum LiveStopShutdownRestoreFutureGate: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case emergencyStopPolicyContractDefined = "emergency stop policy contract defined"
+    case emergencyStopTriggerSourceGateDefined = "emergency stop trigger source gate defined"
+    case emergencyStopAuthorizationGateDefined = "emergency stop authorization gate defined"
+    case emergencyStopReadModelOnlyBlockedEvidenceDefined = "emergency stop read-model-only blocked evidence defined"
+    case shutdownPolicyContractDefined = "shutdown policy contract defined"
+    case shutdownScopeContractDefined = "shutdown scope contract defined"
+    case shutdownProductionOperationsHandoffGateDefined = "shutdown production operations handoff gate defined"
+    case restorePolicyContractDefined = "restore policy contract defined"
+    case restoreReadinessEvidenceGateDefined = "restore readiness evidence gate defined"
+    case restoreAuthorizationGateDefined = "restore authorization gate defined"
+    case circuitBreakerNoTradeSeparationDefined = "circuit breaker / no-trade separation defined"
+    case liveRiskGateNoStopRuntimeSeparationDefined = "live risk gate no stop runtime separation defined"
+}
+
+/// LiveStopShutdownRestoreForbiddenCapability 枚举 MTP-92 必须保持禁止的停机 / 恢复能力面。
+///
+/// 这些 capability 只能作为 deterministic forbidden tests 和 PR evidence 出现；不能被实现为
+/// 当前 runtime、adapter、broker session mutation、production shutdown control、risk command、
+/// Live PRO Console、stop button、live command 或交易按钮。
+public enum LiveStopShutdownRestoreForbiddenCapability: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case emergencyStopCommand = "emergency stop command"
+    case shutdownCommand = "shutdown command"
+    case restoreCommand = "restore command"
+    case stopControlRuntime = "stop control runtime"
+    case productionShutdownControl = "production shutdown control"
+    case productionOperationsRuntime = "production operations runtime"
+    case globalTradingLock = "global trading lock"
+    case brokerSessionMutation = "broker session mutation"
+    case brokerAction = "broker action"
+    case signedEndpoint = "signed endpoint"
+    case accountEndpoint = "account endpoint"
+    case listenKeyUserDataStream = "listenKey user data stream"
+    case liveExecutionAdapter = "LiveExecutionAdapter"
+    case oms = "OMS"
+    case realOrderStateMachine = "real order state machine"
+    case liveRiskEngine = "live risk engine"
+    case circuitBreakerRuntime = "circuit breaker runtime"
+    case noTradeStateRuntime = "no-trade state runtime"
+    case circuitBreakerEmergencyStopUpgrade = "circuit breaker to emergency stop upgrade"
+    case noTradeShutdownUpgrade = "no-trade state to shutdown upgrade"
+    case restoreDecisionRuntime = "restore decision runtime"
+    case liveRuntimeResume = "live runtime resume"
+    case riskCommandSurface = "risk command surface"
+    case liveCommandSurface = "live command surface"
+    case liveProConsole = "Live PRO Console"
+    case stopButton = "stop button"
+    case tradingButton = "trading button"
+}
+
+/// LiveStopShutdownRestoreFutureGateBoundary 是 MTP-92 的 Future-only stop / shutdown / restore fixture。
+///
+/// 该 fixture 固定 emergency stop、shutdown 和 restore 只能是 Future / gated contract。它同时把
+/// MTP-85 的 circuit breaker / no-trade state 与 MTP-92 的停机 / 恢复语义隔离开：risk gate
+/// blocked evidence 可以作为 source anchor，但不能升级为当前 emergency stop、shutdown、restore、
+/// production shutdown control、global trading lock 或 broker session mutation。
+public struct LiveStopShutdownRestoreFutureGateBoundary: Codable, Equatable, Sendable {
+    public let contractID: Identifier
+    public let issueID: Identifier
+    public let futureGates: [LiveStopShutdownRestoreFutureGate]
+    public let forbiddenCapabilities: [LiveStopShutdownRestoreForbiddenCapability]
+    public let allowedEvidenceKinds: [LiveAuditIncidentStopEvidenceKind]
+    public let stopControlSourceAnchors: [String]
+    public let validationAnchors: [String]
+    public let isFutureOnlyStopShutdownRestoreContract: Bool
+    public let representsBlockedEvidenceOnly: Bool
+    public let treatsEmergencyStopAsCurrentCommand: Bool
+    public let runsEmergencyStopCommand: Bool
+    public let runsShutdownCommand: Bool
+    public let runsRestoreCommand: Bool
+    public let runsStopControlRuntime: Bool
+    public let runsProductionShutdownControl: Bool
+    public let runsProductionOperations: Bool
+    public let createsGlobalTradingLock: Bool
+    public let mutatesBrokerSession: Bool
+    public let executesBrokerAction: Bool
+    public let usesSignedEndpoint: Bool
+    public let callsAccountEndpoint: Bool
+    public let createsListenKey: Bool
+    public let implementsLiveExecutionAdapter: Bool
+    public let implementsOMS: Bool
+    public let implementsRealOrderStateMachine: Bool
+    public let runsLiveRiskEngine: Bool
+    public let runsCircuitBreakerRuntime: Bool
+    public let entersNoTradeStateRuntime: Bool
+    public let treatsCircuitBreakerAsEmergencyStop: Bool
+    public let treatsNoTradeStateAsShutdown: Bool
+    public let producesRestoreDecision: Bool
+    public let resumesLiveRuntime: Bool
+    public let providesLiveCommand: Bool
+    public let exposesLiveProConsole: Bool
+    public let providesStopButton: Bool
+    public let providesTradingButton: Bool
+    public let requiredValidationDependsOnNetwork: Bool
+
+    public var stopShutdownRestoreFutureGateBoundaryHeld: Bool {
+        futureGates == Self.requiredFutureGates
+            && forbiddenCapabilities == Self.requiredForbiddenCapabilities
+            && allowedEvidenceKinds == Self.allowedEvidenceKinds
+            && stopControlSourceAnchors == Self.requiredStopControlSourceAnchors
+            && validationAnchors == Self.requiredValidationAnchors
+            && riskGateSeparationBoundaryHeld
+            && forbiddenCapabilityBoundaryHeld
+    }
+
+    public var riskGateSeparationBoundaryHeld: Bool {
+        isFutureOnlyStopShutdownRestoreContract
+            && representsBlockedEvidenceOnly
+            && runsLiveRiskEngine == false
+            && runsCircuitBreakerRuntime == false
+            && entersNoTradeStateRuntime == false
+            && treatsCircuitBreakerAsEmergencyStop == false
+            && treatsNoTradeStateAsShutdown == false
+            && producesRestoreDecision == false
+            && resumesLiveRuntime == false
+    }
+
+    public var forbiddenCapabilityBoundaryHeld: Bool {
+        isFutureOnlyStopShutdownRestoreContract
+            && representsBlockedEvidenceOnly
+            && treatsEmergencyStopAsCurrentCommand == false
+            && runsEmergencyStopCommand == false
+            && runsShutdownCommand == false
+            && runsRestoreCommand == false
+            && runsStopControlRuntime == false
+            && runsProductionShutdownControl == false
+            && runsProductionOperations == false
+            && createsGlobalTradingLock == false
+            && mutatesBrokerSession == false
+            && executesBrokerAction == false
+            && usesSignedEndpoint == false
+            && callsAccountEndpoint == false
+            && createsListenKey == false
+            && implementsLiveExecutionAdapter == false
+            && implementsOMS == false
+            && implementsRealOrderStateMachine == false
+            && providesLiveCommand == false
+            && exposesLiveProConsole == false
+            && providesStopButton == false
+            && providesTradingButton == false
+            && requiredValidationDependsOnNetwork == false
+    }
+
+    public init(
+        contractID: Identifier = try! Identifier("mtp-92-stop-shutdown-restore-future-gates"),
+        issueID: Identifier = try! Identifier("MTP-92"),
+        futureGates: [LiveStopShutdownRestoreFutureGate] = Self.requiredFutureGates,
+        forbiddenCapabilities: [LiveStopShutdownRestoreForbiddenCapability] = Self.requiredForbiddenCapabilities,
+        allowedEvidenceKinds: [LiveAuditIncidentStopEvidenceKind] = Self.allowedEvidenceKinds,
+        stopControlSourceAnchors: [String] = Self.requiredStopControlSourceAnchors,
+        validationAnchors: [String] = Self.requiredValidationAnchors,
+        isFutureOnlyStopShutdownRestoreContract: Bool = true,
+        representsBlockedEvidenceOnly: Bool = true,
+        treatsEmergencyStopAsCurrentCommand: Bool = false,
+        runsEmergencyStopCommand: Bool = false,
+        runsShutdownCommand: Bool = false,
+        runsRestoreCommand: Bool = false,
+        runsStopControlRuntime: Bool = false,
+        runsProductionShutdownControl: Bool = false,
+        runsProductionOperations: Bool = false,
+        createsGlobalTradingLock: Bool = false,
+        mutatesBrokerSession: Bool = false,
+        executesBrokerAction: Bool = false,
+        usesSignedEndpoint: Bool = false,
+        callsAccountEndpoint: Bool = false,
+        createsListenKey: Bool = false,
+        implementsLiveExecutionAdapter: Bool = false,
+        implementsOMS: Bool = false,
+        implementsRealOrderStateMachine: Bool = false,
+        runsLiveRiskEngine: Bool = false,
+        runsCircuitBreakerRuntime: Bool = false,
+        entersNoTradeStateRuntime: Bool = false,
+        treatsCircuitBreakerAsEmergencyStop: Bool = false,
+        treatsNoTradeStateAsShutdown: Bool = false,
+        producesRestoreDecision: Bool = false,
+        resumesLiveRuntime: Bool = false,
+        providesLiveCommand: Bool = false,
+        exposesLiveProConsole: Bool = false,
+        providesStopButton: Bool = false,
+        providesTradingButton: Bool = false,
+        requiredValidationDependsOnNetwork: Bool = false
+    ) throws {
+        try Self.validate(
+            futureGates: futureGates,
+            forbiddenCapabilities: forbiddenCapabilities,
+            allowedEvidenceKinds: allowedEvidenceKinds,
+            stopControlSourceAnchors: stopControlSourceAnchors,
+            validationAnchors: validationAnchors
+        )
+        try Self.validateForbiddenFlags(
+            isFutureOnlyStopShutdownRestoreContract: isFutureOnlyStopShutdownRestoreContract,
+            representsBlockedEvidenceOnly: representsBlockedEvidenceOnly,
+            treatsEmergencyStopAsCurrentCommand: treatsEmergencyStopAsCurrentCommand,
+            runsEmergencyStopCommand: runsEmergencyStopCommand,
+            runsShutdownCommand: runsShutdownCommand,
+            runsRestoreCommand: runsRestoreCommand,
+            runsStopControlRuntime: runsStopControlRuntime,
+            runsProductionShutdownControl: runsProductionShutdownControl,
+            runsProductionOperations: runsProductionOperations,
+            createsGlobalTradingLock: createsGlobalTradingLock,
+            mutatesBrokerSession: mutatesBrokerSession,
+            executesBrokerAction: executesBrokerAction,
+            usesSignedEndpoint: usesSignedEndpoint,
+            callsAccountEndpoint: callsAccountEndpoint,
+            createsListenKey: createsListenKey,
+            implementsLiveExecutionAdapter: implementsLiveExecutionAdapter,
+            implementsOMS: implementsOMS,
+            implementsRealOrderStateMachine: implementsRealOrderStateMachine,
+            runsLiveRiskEngine: runsLiveRiskEngine,
+            runsCircuitBreakerRuntime: runsCircuitBreakerRuntime,
+            entersNoTradeStateRuntime: entersNoTradeStateRuntime,
+            treatsCircuitBreakerAsEmergencyStop: treatsCircuitBreakerAsEmergencyStop,
+            treatsNoTradeStateAsShutdown: treatsNoTradeStateAsShutdown,
+            producesRestoreDecision: producesRestoreDecision,
+            resumesLiveRuntime: resumesLiveRuntime,
+            providesLiveCommand: providesLiveCommand,
+            exposesLiveProConsole: exposesLiveProConsole,
+            providesStopButton: providesStopButton,
+            providesTradingButton: providesTradingButton,
+            requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork
+        )
+
+        self.contractID = contractID
+        self.issueID = issueID
+        self.futureGates = futureGates
+        self.forbiddenCapabilities = forbiddenCapabilities
+        self.allowedEvidenceKinds = allowedEvidenceKinds
+        self.stopControlSourceAnchors = stopControlSourceAnchors
+        self.validationAnchors = validationAnchors
+        self.isFutureOnlyStopShutdownRestoreContract = isFutureOnlyStopShutdownRestoreContract
+        self.representsBlockedEvidenceOnly = representsBlockedEvidenceOnly
+        self.treatsEmergencyStopAsCurrentCommand = treatsEmergencyStopAsCurrentCommand
+        self.runsEmergencyStopCommand = runsEmergencyStopCommand
+        self.runsShutdownCommand = runsShutdownCommand
+        self.runsRestoreCommand = runsRestoreCommand
+        self.runsStopControlRuntime = runsStopControlRuntime
+        self.runsProductionShutdownControl = runsProductionShutdownControl
+        self.runsProductionOperations = runsProductionOperations
+        self.createsGlobalTradingLock = createsGlobalTradingLock
+        self.mutatesBrokerSession = mutatesBrokerSession
+        self.executesBrokerAction = executesBrokerAction
+        self.usesSignedEndpoint = usesSignedEndpoint
+        self.callsAccountEndpoint = callsAccountEndpoint
+        self.createsListenKey = createsListenKey
+        self.implementsLiveExecutionAdapter = implementsLiveExecutionAdapter
+        self.implementsOMS = implementsOMS
+        self.implementsRealOrderStateMachine = implementsRealOrderStateMachine
+        self.runsLiveRiskEngine = runsLiveRiskEngine
+        self.runsCircuitBreakerRuntime = runsCircuitBreakerRuntime
+        self.entersNoTradeStateRuntime = entersNoTradeStateRuntime
+        self.treatsCircuitBreakerAsEmergencyStop = treatsCircuitBreakerAsEmergencyStop
+        self.treatsNoTradeStateAsShutdown = treatsNoTradeStateAsShutdown
+        self.producesRestoreDecision = producesRestoreDecision
+        self.resumesLiveRuntime = resumesLiveRuntime
+        self.providesLiveCommand = providesLiveCommand
+        self.exposesLiveProConsole = exposesLiveProConsole
+        self.providesStopButton = providesStopButton
+        self.providesTradingButton = providesTradingButton
+        self.requiredValidationDependsOnNetwork = requiredValidationDependsOnNetwork
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            contractID: try container.decode(Identifier.self, forKey: .contractID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            futureGates: try container.decode([LiveStopShutdownRestoreFutureGate].self, forKey: .futureGates),
+            forbiddenCapabilities: try container.decode(
+                [LiveStopShutdownRestoreForbiddenCapability].self,
+                forKey: .forbiddenCapabilities
+            ),
+            allowedEvidenceKinds: try container.decode(
+                [LiveAuditIncidentStopEvidenceKind].self,
+                forKey: .allowedEvidenceKinds
+            ),
+            stopControlSourceAnchors: try container.decode([String].self, forKey: .stopControlSourceAnchors),
+            validationAnchors: try container.decode([String].self, forKey: .validationAnchors),
+            isFutureOnlyStopShutdownRestoreContract: try container.decode(
+                Bool.self,
+                forKey: .isFutureOnlyStopShutdownRestoreContract
+            ),
+            representsBlockedEvidenceOnly: try container.decode(Bool.self, forKey: .representsBlockedEvidenceOnly),
+            treatsEmergencyStopAsCurrentCommand: try container.decode(
+                Bool.self,
+                forKey: .treatsEmergencyStopAsCurrentCommand
+            ),
+            runsEmergencyStopCommand: try container.decode(Bool.self, forKey: .runsEmergencyStopCommand),
+            runsShutdownCommand: try container.decode(Bool.self, forKey: .runsShutdownCommand),
+            runsRestoreCommand: try container.decode(Bool.self, forKey: .runsRestoreCommand),
+            runsStopControlRuntime: try container.decode(Bool.self, forKey: .runsStopControlRuntime),
+            runsProductionShutdownControl: try container.decode(Bool.self, forKey: .runsProductionShutdownControl),
+            runsProductionOperations: try container.decode(Bool.self, forKey: .runsProductionOperations),
+            createsGlobalTradingLock: try container.decode(Bool.self, forKey: .createsGlobalTradingLock),
+            mutatesBrokerSession: try container.decode(Bool.self, forKey: .mutatesBrokerSession),
+            executesBrokerAction: try container.decode(Bool.self, forKey: .executesBrokerAction),
+            usesSignedEndpoint: try container.decode(Bool.self, forKey: .usesSignedEndpoint),
+            callsAccountEndpoint: try container.decode(Bool.self, forKey: .callsAccountEndpoint),
+            createsListenKey: try container.decode(Bool.self, forKey: .createsListenKey),
+            implementsLiveExecutionAdapter: try container.decode(Bool.self, forKey: .implementsLiveExecutionAdapter),
+            implementsOMS: try container.decode(Bool.self, forKey: .implementsOMS),
+            implementsRealOrderStateMachine: try container.decode(Bool.self, forKey: .implementsRealOrderStateMachine),
+            runsLiveRiskEngine: try container.decode(Bool.self, forKey: .runsLiveRiskEngine),
+            runsCircuitBreakerRuntime: try container.decode(Bool.self, forKey: .runsCircuitBreakerRuntime),
+            entersNoTradeStateRuntime: try container.decode(Bool.self, forKey: .entersNoTradeStateRuntime),
+            treatsCircuitBreakerAsEmergencyStop: try container.decode(
+                Bool.self,
+                forKey: .treatsCircuitBreakerAsEmergencyStop
+            ),
+            treatsNoTradeStateAsShutdown: try container.decode(Bool.self, forKey: .treatsNoTradeStateAsShutdown),
+            producesRestoreDecision: try container.decode(Bool.self, forKey: .producesRestoreDecision),
+            resumesLiveRuntime: try container.decode(Bool.self, forKey: .resumesLiveRuntime),
+            providesLiveCommand: try container.decode(Bool.self, forKey: .providesLiveCommand),
+            exposesLiveProConsole: try container.decode(Bool.self, forKey: .exposesLiveProConsole),
+            providesStopButton: try container.decode(Bool.self, forKey: .providesStopButton),
+            providesTradingButton: try container.decode(Bool.self, forKey: .providesTradingButton),
+            requiredValidationDependsOnNetwork: try container.decode(
+                Bool.self,
+                forKey: .requiredValidationDependsOnNetwork
+            )
+        )
+    }
+
+    public func forbidsCapability(_ capability: LiveStopShutdownRestoreForbiddenCapability) -> Bool {
+        forbiddenCapabilities.contains(capability)
+    }
+
+    public static let requiredFutureGates: [LiveStopShutdownRestoreFutureGate] =
+        LiveStopShutdownRestoreFutureGate.allCases
+
+    public static let requiredForbiddenCapabilities: [LiveStopShutdownRestoreForbiddenCapability] =
+        LiveStopShutdownRestoreForbiddenCapability.allCases
+
+    public static let allowedEvidenceKinds: [LiveAuditIncidentStopEvidenceKind] = [
+        .contractDocumentation,
+        .validationMatrixCandidate,
+        .validationPlanAnchor,
+        .deterministicForbiddenTest,
+        .futureGateTaxonomy,
+        .blockedEvidenceBoundary,
+        .prBoundaryEvidence
+    ]
+
+    public static let requiredStopControlSourceAnchors: [String] = [
+        "MTP-89-LIVE-AUDIT-INCIDENT-STOP-TERMINOLOGY",
+        "MTP-90-LIVE-AUDIT-TRAIL-VALIDATION",
+        "MTP-91-INCIDENT-REPLAY-VALIDATION",
+        "MTP-85-CIRCUIT-BREAKER-NO-TRADE-FUTURE-GATES",
+        "MTP-87-LIVE-RISK-GATE-BLOCKED-EVIDENCE",
+        "LiveCircuitBreakerNoTradeGateBoundary",
+        "TVM-LIVE-AUDIT-INCIDENT-STOP"
+    ]
+
+    public static let requiredValidationAnchors: [String] = [
+        "MTP-92-EMERGENCY-STOP-SHUTDOWN-RESTORE-FUTURE-GATES",
+        "MTP-92-FORBIDDEN-STOP-SHUTDOWN-RESTORE-CAPABILITY-TESTS",
+        "MTP-92-NO-LIVE-RISK-CIRCUIT-BREAKER-OR-NO-TRADE-UPGRADE",
+        "MTP-92-NO-BROKER-SESSION-MUTATION-OR-PRODUCTION-SHUTDOWN",
+        "MTP-92-STOP-SHUTDOWN-RESTORE-VALIDATION",
+        "TVM-LIVE-AUDIT-INCIDENT-STOP"
+    ]
+
+    public static let deterministicFixture: LiveStopShutdownRestoreFutureGateBoundary = {
+        do {
+            return try LiveStopShutdownRestoreFutureGateBoundary()
+        } catch {
+            preconditionFailure("MTP-92 stop / shutdown / restore future gate fixture must be valid: \(error)")
+        }
+    }()
+
+    private static func validate(
+        futureGates: [LiveStopShutdownRestoreFutureGate],
+        forbiddenCapabilities: [LiveStopShutdownRestoreForbiddenCapability],
+        allowedEvidenceKinds: [LiveAuditIncidentStopEvidenceKind],
+        stopControlSourceAnchors: [String],
+        validationAnchors: [String]
+    ) throws {
+        guard futureGates == Self.requiredFutureGates else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "futureGates",
+                expected: Self.requiredFutureGates.map(\.rawValue).joined(separator: ","),
+                actual: futureGates.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard forbiddenCapabilities == Self.requiredForbiddenCapabilities else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "forbiddenCapabilities",
+                expected: Self.requiredForbiddenCapabilities.map(\.rawValue).joined(separator: ","),
+                actual: forbiddenCapabilities.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard allowedEvidenceKinds == Self.allowedEvidenceKinds else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "allowedEvidenceKinds",
+                expected: Self.allowedEvidenceKinds.map(\.rawValue).joined(separator: ","),
+                actual: allowedEvidenceKinds.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard stopControlSourceAnchors == Self.requiredStopControlSourceAnchors else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "stopControlSourceAnchors",
+                expected: Self.requiredStopControlSourceAnchors.joined(separator: ","),
+                actual: stopControlSourceAnchors.joined(separator: ",")
+            )
+        }
+        guard validationAnchors == Self.requiredValidationAnchors else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "validationAnchors",
+                expected: Self.requiredValidationAnchors.joined(separator: ","),
+                actual: validationAnchors.joined(separator: ",")
+            )
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        isFutureOnlyStopShutdownRestoreContract: Bool,
+        representsBlockedEvidenceOnly: Bool,
+        treatsEmergencyStopAsCurrentCommand: Bool,
+        runsEmergencyStopCommand: Bool,
+        runsShutdownCommand: Bool,
+        runsRestoreCommand: Bool,
+        runsStopControlRuntime: Bool,
+        runsProductionShutdownControl: Bool,
+        runsProductionOperations: Bool,
+        createsGlobalTradingLock: Bool,
+        mutatesBrokerSession: Bool,
+        executesBrokerAction: Bool,
+        usesSignedEndpoint: Bool,
+        callsAccountEndpoint: Bool,
+        createsListenKey: Bool,
+        implementsLiveExecutionAdapter: Bool,
+        implementsOMS: Bool,
+        implementsRealOrderStateMachine: Bool,
+        runsLiveRiskEngine: Bool,
+        runsCircuitBreakerRuntime: Bool,
+        entersNoTradeStateRuntime: Bool,
+        treatsCircuitBreakerAsEmergencyStop: Bool,
+        treatsNoTradeStateAsShutdown: Bool,
+        producesRestoreDecision: Bool,
+        resumesLiveRuntime: Bool,
+        providesLiveCommand: Bool,
+        exposesLiveProConsole: Bool,
+        providesStopButton: Bool,
+        providesTradingButton: Bool,
+        requiredValidationDependsOnNetwork: Bool
+    ) throws {
+        guard isFutureOnlyStopShutdownRestoreContract else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("isFutureOnlyStopShutdownRestoreContract")
+        }
+        guard representsBlockedEvidenceOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("representsBlockedEvidenceOnly")
+        }
+
+        let forbiddenFlags = [
+            ("treatsEmergencyStopAsCurrentCommand", treatsEmergencyStopAsCurrentCommand),
+            ("runsEmergencyStopCommand", runsEmergencyStopCommand),
+            ("runsShutdownCommand", runsShutdownCommand),
+            ("runsRestoreCommand", runsRestoreCommand),
+            ("runsStopControlRuntime", runsStopControlRuntime),
+            ("runsProductionShutdownControl", runsProductionShutdownControl),
+            ("runsProductionOperations", runsProductionOperations),
+            ("createsGlobalTradingLock", createsGlobalTradingLock),
+            ("mutatesBrokerSession", mutatesBrokerSession),
+            ("executesBrokerAction", executesBrokerAction),
+            ("usesSignedEndpoint", usesSignedEndpoint),
+            ("callsAccountEndpoint", callsAccountEndpoint),
+            ("createsListenKey", createsListenKey),
+            ("implementsLiveExecutionAdapter", implementsLiveExecutionAdapter),
+            ("implementsOMS", implementsOMS),
+            ("implementsRealOrderStateMachine", implementsRealOrderStateMachine),
+            ("runsLiveRiskEngine", runsLiveRiskEngine),
+            ("runsCircuitBreakerRuntime", runsCircuitBreakerRuntime),
+            ("entersNoTradeStateRuntime", entersNoTradeStateRuntime),
+            ("treatsCircuitBreakerAsEmergencyStop", treatsCircuitBreakerAsEmergencyStop),
+            ("treatsNoTradeStateAsShutdown", treatsNoTradeStateAsShutdown),
+            ("producesRestoreDecision", producesRestoreDecision),
+            ("resumesLiveRuntime", resumesLiveRuntime),
+            ("providesLiveCommand", providesLiveCommand),
+            ("exposesLiveProConsole", exposesLiveProConsole),
+            ("providesStopButton", providesStopButton),
+            ("providesTradingButton", providesTradingButton),
+            ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(capability.0)
+        }
+    }
+}
+
 /// LiveAuditIncidentStopTerminologyBoundary 是 MTP-89 的 Future-only terminology / taxonomy fixture。
 ///
 /// 该 fixture 只把 live audit、audit trail、incident、incident replay、stop control、

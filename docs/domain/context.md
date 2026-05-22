@@ -258,6 +258,26 @@ MTP-91 的 forbidden capability tests 必须继续阻断 incident replay runtime
 
 MTP-91 的 validation anchor 由 `LiveIncidentReplayFutureGateBoundary` 和 focused Core tests 固定；required validation 仍是本地 `bash checks/run.sh`，不依赖真实 Binance 网络、secret、signed endpoint、account endpoint、listenKey、broker state、真实账户、production operations 或人工验收。
 
+`MTP-92-EMERGENCY-STOP-SHUTDOWN-RESTORE-FUTURE-GATES`
+
+MTP-92 固定 emergency stop、shutdown 和 restore 只是 Future / gated stop control contract。emergency stop gate 只要求未来 policy / trigger / authorization / read-model-only blocked evidence；shutdown gate 只要求未来 policy / scope / operations handoff；restore gate 只要求未来 policy / readiness evidence / authorization。它们不授权当前 emergency stop command、shutdown command、restore command、production shutdown control、broker session mutation、global trading lock、Live PRO Console、live command、stop button 或交易按钮。
+
+`MTP-92-FORBIDDEN-STOP-SHUTDOWN-RESTORE-CAPABILITY-TESTS`
+
+MTP-92 的 forbidden capability tests 必须继续阻断 emergency stop command、shutdown command、restore command、stop control runtime、production shutdown control、production operations runtime、global trading lock、broker session mutation、broker action、signed endpoint、account endpoint、listenKey、`LiveExecutionAdapter`、OMS、real order state machine、live risk engine、restore decision runtime、live runtime resume、Live PRO Console、live command、stop button 和 trading button。
+
+`MTP-92-NO-LIVE-RISK-CIRCUIT-BREAKER-OR-NO-TRADE-UPGRADE`
+
+MTP-92 可以引用 `MTP-85-CIRCUIT-BREAKER-NO-TRADE-FUTURE-GATES`、`LiveCircuitBreakerNoTradeGateBoundary` 和 `MTP-87-LIVE-RISK-GATE-BLOCKED-EVIDENCE`，但这些 risk gate anchors 不能升级为当前 emergency stop、shutdown、restore、circuit breaker runtime、no-trade state runtime、risk command surface、global trading lock 或 broker session mutation。
+
+`MTP-92-NO-BROKER-SESSION-MUTATION-OR-PRODUCTION-SHUTDOWN`
+
+MTP-92 不实现 broker session mutation、production shutdown control、production operations runtime、restore decision runtime 或 live runtime resume。shutdown / restore 仍是 Future contract，不等于当前生产停机、自动恢复或实盘运行时恢复。
+
+`MTP-92-STOP-SHUTDOWN-RESTORE-VALIDATION`
+
+MTP-92 的 validation anchor 由 `LiveStopShutdownRestoreFutureGateBoundary` 和 focused Core tests 固定；required validation 仍是本地 `bash checks/run.sh`，不依赖真实 Binance 网络、secret、signed endpoint、account endpoint、listenKey、broker state、真实账户、production operations 或人工验收。
+
 ## Paper-only Terms
 
 | 术语 | MTPRO 含义 | 避免混用 |
