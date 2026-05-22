@@ -204,3 +204,106 @@ MTP-83 建立以下 validation anchors：
 - `MTP-83-NO-REAL-PRE-TRADE-ALLOW-REJECT`
 - `MTP-83-PAPER-EXPOSURE-NO-LIVE-EXPOSURE-UPGRADE`
 - `MTP-83-LIVE-RISK-GATE-VALIDATION`
+
+## MTP-84 frequency / loss / drawdown gates
+
+`MTP-84-FREQUENCY-LOSS-DRAWDOWN-FUTURE-GATES`
+
+MTP-84 只定义 frequency gate、loss gate 和 drawdown gate 的 Future Live Risk contract，不实现真实下单频率限制、真实亏损阈值执行、真实回撤控制 runtime、回撤熔断、停机命令或 live risk engine。
+
+| Gate | Future 条件 | 当前允许证据 | 当前禁止输出 |
+| --- | --- | --- | --- |
+| `frequency gate` | Future Live Risk 需要独立 Human decision、live trading foundation boundary、live execution control boundary、frequency window policy、order event source contract、paper risk / exposure isolation 和 operations / audit handoff。 | contract anchor、Core deterministic fixture、forbidden capability test、PR boundary evidence | live order frequency counter、production frequency throttling、broker-side throttling、real pre-trade allow / reject runtime |
+| `loss gate` | Future Live Risk 需要 PnL / equity source contract、loss limit policy、future account / position / margin / leverage source contracts、paper evidence isolation 和 audit handoff；当前只记录 gate 条件。 | contract anchor、Core deterministic fixture、forbidden capability test、PR boundary evidence | real PnL read、real account equity read、real loss limit evaluation、real pre-trade allow / reject runtime |
+| `drawdown gate` | Future Live Risk 需要 drawdown limit policy、PnL / equity source contract、operations / audit handoff 和后续 circuit breaker / no-trade state gate coordination；当前只记录 gate 条件。 | contract anchor、Core deterministic fixture、forbidden capability test、PR boundary evidence | real drawdown limit evaluation、drawdown circuit breaker runtime、circuit breaker command、stop trading command、emergency stop command |
+
+## MTP-84 forbidden frequency / loss / drawdown runtime tests
+
+`MTP-84-FORBIDDEN-FREQUENCY-LOSS-DRAWDOWN-RUNTIME-TESTS`
+
+MTP-84 的 forbidden capability tests 必须阻断：
+
+- API key / secret storage。
+- signed endpoint / account endpoint / listenKey。
+- broker / exchange execution adapter。
+- `LiveExecutionAdapter`。
+- real account balance read。
+- broker position sync。
+- margin read。
+- leverage read。
+- real PnL read。
+- real account equity read。
+- live order frequency counter。
+- production frequency throttling / broker-side throttling。
+- real loss limit evaluation。
+- real drawdown limit evaluation。
+- drawdown circuit breaker runtime。
+- real pre-trade risk engine。
+- real pre-trade allow / reject runtime。
+- circuit breaker command / stop trading command / emergency stop command。
+- live order submit / cancel / replace。
+- risk command surface、position management command、order form 和 trading button。
+
+Core deterministic fixture：`LiveFrequencyLossDrawdownGateBoundary`。
+
+Core deterministic tests：
+
+- `testLiveFrequencyLossDrawdownBoundaryDefinesMTP84FutureGatesAndForbiddenCapabilities`
+- `testLiveFrequencyLossDrawdownBoundaryRejectsMTP84RuntimeBypass`
+- `testPaperRiskAndExposureCannotUpgradeToMTP84FrequencyLossDrawdownGateDecision`
+
+Required validation：`bash checks/run.sh`；不得依赖真实 Binance 网络、API key、account endpoint、listenKey、broker state、真实账户、真实 PnL、真实 equity、真实下单频率计数或人工验收。
+
+## MTP-84 no real PnL / equity / drawdown enforcement
+
+`MTP-84-NO-REAL-PNL-EQUITY-OR-DRAWDOWN-ENFORCEMENT`
+
+MTP-84 的 frequency / loss / drawdown gate 只能作为 Future / gated contract 存在：
+
+- `LiveFrequencyLossDrawdownGateBoundary.providesLiveRiskEngine == false`
+- `LiveFrequencyLossDrawdownGateBoundary.countsLiveOrderFrequency == false`
+- `LiveFrequencyLossDrawdownGateBoundary.enforcesFrequencyThrottle == false`
+- `LiveFrequencyLossDrawdownGateBoundary.readsRealPnL == false`
+- `LiveFrequencyLossDrawdownGateBoundary.readsRealAccountEquity == false`
+- `LiveFrequencyLossDrawdownGateBoundary.evaluatesRealLossLimit == false`
+- `LiveFrequencyLossDrawdownGateBoundary.evaluatesRealDrawdownLimit == false`
+- `LiveFrequencyLossDrawdownGateBoundary.runsDrawdownCircuitBreaker == false`
+- `LiveFrequencyLossDrawdownGateBoundary.runsCircuitBreakerCommand == false`
+- `LiveFrequencyLossDrawdownGateBoundary.runsStopTradingCommand == false`
+- `LiveFrequencyLossDrawdownGateBoundary.runsEmergencyStopCommand == false`
+
+## MTP-84 paper risk / exposure isolation
+
+`MTP-84-PAPER-RISK-EXPOSURE-NO-LIVE-RISK-UPGRADE`
+
+当前 `RiskBlockerEvidence` 和 `PortfolioExposureSnapshot` 仍只能表示 paper-only read model / evidence，不等于 live frequency gate 输入、真实 loss / drawdown gate 输入、真实 PnL / equity、真实账户状态或 pre-trade risk runtime。MTP-84 必须保持：
+
+- `mapsPaperRiskBlockerToFrequencyLossDrawdownGate == false`
+- `mapsPaperExposureToLossDrawdownGate == false`
+- `readsRealPnL == false`
+- `readsRealAccountEquity == false`
+- `countsLiveOrderFrequency == false`
+- `evaluatesRealLossLimit == false`
+- `evaluatesRealDrawdownLimit == false`
+
+Source anchors：
+
+- `MTP-82-LIVE-RISK-TERMINOLOGY`
+- `MTP-82-FUTURE-RISK-DECISION-TAXONOMY`
+- `MTP-83-EXPOSURE-ORDER-NOTIONAL-FUTURE-GATES`
+- `TVM-RISK-BLOCKER`
+- `TVM-PORTFOLIO-EXPOSURE`
+- `MTP-78-PAPER-EVIDENCE-NO-REAL-COMMAND-UPGRADE`
+
+## MTP-84 validation anchors
+
+`MTP-84-LIVE-RISK-GATE-VALIDATION`
+
+MTP-84 建立以下 validation anchors：
+
+- `TVM-LIVE-RISK-GATE`
+- `MTP-84-FREQUENCY-LOSS-DRAWDOWN-FUTURE-GATES`
+- `MTP-84-FORBIDDEN-FREQUENCY-LOSS-DRAWDOWN-RUNTIME-TESTS`
+- `MTP-84-NO-REAL-PNL-EQUITY-OR-DRAWDOWN-ENFORCEMENT`
+- `MTP-84-PAPER-RISK-EXPOSURE-NO-LIVE-RISK-UPGRADE`
+- `MTP-84-LIVE-RISK-GATE-VALIDATION`

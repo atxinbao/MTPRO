@@ -1257,3 +1257,47 @@ MTP-83 必须建立的主要 anchors：
 - 不实现 real pre-trade allow / reject runtime。
 - 不新增 live command、risk command、position management command、order form 或交易按钮。
 - 不把 paper exposure 或 paper risk blocker 升级为 future live exposure gate、future live risk decision、real account state、broker position、margin 或 leverage。
+
+## MTP-84 Frequency / Loss / Drawdown Gates Validation
+
+日期：2026-05-22
+
+执行者：Codex
+
+MTP-84 的 required validation：
+
+- `docs/contracts/live-risk-gate-contract.md` 必须包含 `MTP-84-FREQUENCY-LOSS-DRAWDOWN-FUTURE-GATES`、`MTP-84-FORBIDDEN-FREQUENCY-LOSS-DRAWDOWN-RUNTIME-TESTS`、`MTP-84-NO-REAL-PNL-EQUITY-OR-DRAWDOWN-ENFORCEMENT`、`MTP-84-PAPER-RISK-EXPOSURE-NO-LIVE-RISK-UPGRADE` 和 `MTP-84-LIVE-RISK-GATE-VALIDATION` anchors。
+- `Sources/Core/LiveRiskGateContract.swift` 必须定义 `LiveFrequencyLossDrawdownFutureGate`、`LiveFrequencyLossDrawdownForbiddenCapability` 和 `LiveFrequencyLossDrawdownGateBoundary`。
+- `LiveFrequencyLossDrawdownGateBoundary` 必须固定 frequency / loss / drawdown future gates、forbidden capability list、validation anchors、source anchors、frequency runtime flags、loss / drawdown runtime flags 和 paper risk / exposure isolation flags。
+- Core tests 必须覆盖 deterministic fixture、Codable round trip、terms drift rejection、真实下单频率计数 rejection、production frequency throttling rejection、真实 PnL / equity 读取 rejection、real loss / drawdown limit evaluation rejection、drawdown circuit breaker rejection、stop / emergency command rejection，以及 `RiskBlockerEvidence` / `PortfolioExposureSnapshot` 不可升级为 future live frequency / loss / drawdown gate、真实 PnL / equity 或 pre-trade runtime。
+- `docs/validation/trading-validation-matrix.md` 必须把 MTP-84 回填到 `TVM-LIVE-RISK-GATE` candidate entry。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-84 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors；后续 MTP-88 仍负责 Project 级 stage closeout 和完整 automation readiness 收口。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不读取真实 API key，不新增 secret config，不实现 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、real account balance read、broker position sync、margin / leverage、real PnL read、real account equity read、live order frequency counter、production frequency throttling、real loss / drawdown allow / reject runtime、drawdown circuit breaker runtime、circuit breaker command、stop trading command、emergency stop command、live command、risk command、position management command、order form 或交易按钮。
+
+MTP-84 必须建立的主要 anchors：
+
+- `MTP-84-FREQUENCY-LOSS-DRAWDOWN-FUTURE-GATES`
+- `MTP-84-FORBIDDEN-FREQUENCY-LOSS-DRAWDOWN-RUNTIME-TESTS`
+- `MTP-84-NO-REAL-PNL-EQUITY-OR-DRAWDOWN-ENFORCEMENT`
+- `MTP-84-PAPER-RISK-EXPOSURE-NO-LIVE-RISK-UPGRADE`
+- `MTP-84-LIVE-RISK-GATE-VALIDATION`
+
+## MTP-84 禁止
+
+- 不实现 API key / secret storage。
+- 不实现 signed endpoint / account endpoint / listenKey。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`。
+- 不读取真实账户余额。
+- 不执行 broker position sync。
+- 不读取 margin / leverage。
+- 不读取真实 PnL 或真实账户权益。
+- 不统计真实下单频率。
+- 不执行生产限频或 broker-side throttling。
+- 不执行真实亏损阈值或回撤阈值 allow / reject。
+- 不实现 real pre-trade risk engine。
+- 不实现 real pre-trade allow / reject runtime。
+- 不实现 drawdown circuit breaker runtime。
+- 不实现 circuit breaker command、stop trading command 或 emergency stop command。
+- 不新增 live command、risk command、position management command、order form 或交易按钮。
+- 不把 paper risk blocker 或 paper exposure 升级为 future frequency / loss / drawdown gate、future live risk decision、real PnL、real account equity 或 pre-trade runtime。
