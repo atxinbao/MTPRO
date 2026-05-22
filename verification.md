@@ -8941,3 +8941,56 @@ Linear / scope evidence：
 | `swift test --filter MTP83` | pass | 3 个 focused Core tests 通过，0 failures。 |
 | `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.` |
 | `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=31; liveBlockedGates=6; liveExecutionControlGates=7; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；170 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO Product Surface Split v1 docs-only record
+
+日期：2026-05-22
+
+执行者：Codex（`@000 / AIE`）
+
+目的：
+
+- 将已通过 `@005 / ARC` 审查的 `MTPRO Product Surface Split v1` 落仓为产品层边界文档。
+- 明确当前 `MTPRO Workbench` 与未来 `MTPRO Live PRO Console` 是两个产品面。
+- 明确 Figma `85:*` 只代表 Workbench 用户面 dashboard，不代表 Live PRO Console 或实盘操作台。
+- 吸收 `@005 / ARC` 的 P2 小修：将 `Shared Evidence Layer` 收紧为 `Shared Evidence Semantics / Shared Evidence Contract`，并把 Live PRO Console 的 Human decision / 独立 Project Definition / signed / account / broker / risk / ops gates 前置写入定义段。
+
+文件范围：
+
+- `docs/product/mtpro-product-surface-split-v1.md`
+- `docs/product/product-surface-map.md`
+- `BLUEPRINT.md`
+- `docs/design/mtpro-workbench-user-facing-dashboard-high-fidelity-v2.md`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+更新重点：
+
+- 新增产品层 surface boundary 文档。
+- 记录 Workbench / Live PRO Console 定义、Shared Evidence Semantics / Shared Evidence Contract、用户与任务对比、Surface Boundary Matrix、`85:*` 当前定位、后续设计路线、禁止动作和审查重点。
+- 在 `BLUEPRINT.md` 和 `docs/product/product-surface-map.md` 增加轻量入口。
+- 在 `docs/design/mtpro-workbench-user-facing-dashboard-high-fidelity-v2.md` 增加该产品边界引用，解释 `85:*` 是 Workbench dashboard，不是 Live PRO Console。
+- 在 latest verification summary 中记录该文档已落仓且不授权 execution。
+
+边界确认：
+
+- 不修改 Figma。
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify update。
+- 不写业务代码。
+- 不把 Future Live trading 写成当前 execution scope。
+- 不把 Live PRO Console 写成当前可实现产品面。
+- 不提交 `.codex/*`。
+- 不提交 `graphify-out/*`。
+- 不实现 API key / secret storage、signed endpoint、account endpoint、listenKey、broker action、`LiveExecutionAdapter`、real order state machine、submit / cancel / replace、trading button、live command、emergency stop 或 order-level command UI。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | docs-only 产品层边界文档落仓无 whitespace error。 |
+| `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=31; liveBlockedGates=6; liveExecutionControlGates=7; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；170 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |

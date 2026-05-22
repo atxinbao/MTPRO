@@ -65,6 +65,7 @@
 | `docs/product/mtpro-workbench-user-flow-blueprint-v1.md` | Figma canonical `15:2` 的产品层用户动线蓝图，定义用户动线、页面角色和 Current / Future 边界 |
 | `docs/product/mtpro-product-interaction-model-v1.md` | 产品层交互模型，定义页面能看什么、判断什么、点什么、不能点什么，以及 evidence navigation 串联规则 |
 | `docs/product/mtpro-workbench-user-dashboard-content-model-v1.md` | 产品层 dashboard content model，定义最终用户每天使用的工作台主屏 summary、页面内容优先级和 `69:*` 高保真草案的用户面板修正方向 |
+| `docs/product/mtpro-product-surface-split-v1.md` | 产品层 surface boundary 文档，明确当前 Workbench 与未来 Live PRO Console 是两个产品面，`85:*` 只代表 Workbench dashboard |
 | `docs/design/mtpro-workbench-screen-layout-v1.md` | 设计层 screen layout 依据，承接产品用户动线和交互模型，定义 macOS 工作台页面区域、信息优先级和禁止动作 |
 | `docs/design/mtpro-workbench-ui-ux-design-rules-v1.md` | 设计层 UI/UX rules 依据，承接 Screen Layout v1，定义 macOS native 工作台视觉方向、状态表达、evidence components 和禁止 UI 表面 |
 | `docs/design/mtpro-workbench-component-layout-specification-v1.md` | 设计层组件 / 布局规格依据，承接 UI/UX Design Rules v1，定义 layout primitives、evidence components、state components、partition components 和边界组件 |
@@ -202,6 +203,8 @@ Figma canonical `15:2` 的 `MTPRO Workbench User Flow Blueprint v1` 已作为产
 `docs/product/mtpro-workbench-user-dashboard-content-model-v1.md` 承接用户动线和交互模型，定义用户每天打开工作台时的 Dashboard 内容优先级：主屏先给用户可读 summary 和下一步建议，source / trace / timeline / validation anchor 下沉到 inspector、drill-down 或 Events / Audit。该文档用于指导后续 `User-Facing Dashboard High-Fidelity v2`，并明确 Figma `69:*` 只作为 architecture-safe draft 参考，不作为最终用户面板设计依据。
 
 `docs/design/mtpro-workbench-user-facing-dashboard-high-fidelity-v2.md` 记录 Figma canonical `85:2` 的用户面 dashboard 高保真关键页面。该设计依据把 Workbench 主屏从 evidence-heavy 调整为用户可读 dashboard，保留 source / trace / validation 的追溯入口但下沉到 inspector / Events / docs anchor。它不是 SwiftUI 实现稿，不是 Live PRO Console，不授权真实交易、Linear execution 或业务代码开发。
+
+`docs/product/mtpro-product-surface-split-v1.md` 明确当前 `MTPRO Workbench` 与未来 `MTPRO Live PRO Console` 是两个产品面。Workbench 当前承载 Research、Backtest、Report、Paper、Portfolio、Risk、Events / Audit、Live Readiness 和 read-model-only Live Monitoring；Future Live PRO Console 必须经过 Human decision、独立 Project Definition、signed / account / broker / risk / ops gates 后，才允许进入 IA / UI / implementation。该文档不授权真实交易、Linear execution、SwiftUI 实现或业务代码开发。
 
 `Live Monitoring` 已完成，但只代表 read-model-only 的健康、连接、行情流 / 订单事件流、延迟和错误证据。订单流 / 订单事件流只表达 blocked / simulated / future evidence，不表示真实订单状态机，不提供 live command，不新增交易按钮。
 

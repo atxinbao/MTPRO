@@ -872,3 +872,31 @@ v2 设计重点：
 - Linear Project / Issue、Todo 推进、Symphony 启动。
 - API key / secret storage input、signed endpoint、account endpoint / listenKey、broker adapter / broker action、`LiveExecutionAdapter`、real order state machine / OMS。
 - submit / cancel / replace、order form、broker fill、execution report、reconciliation、real account balance、broker position、trading button、live command、order-level command UI、reconnect / start live / stop live。
+
+## MTPRO Product Surface Split v1
+
+日期：2026-05-22
+
+执行者：Codex（`@000 / AIE`，基于 `@003 / PRD` 草案和 `@005 / ARC` 审查结论落仓）
+
+当前产品层新增 `MTPRO Product Surface Split v1`，路径为 `docs/product/mtpro-product-surface-split-v1.md`。该文档是产品层 surface boundary 文档，用于明确当前 `MTPRO Workbench` 与未来 `MTPRO Live PRO Console` 是两个产品面。
+
+核心分界：
+
+- `MTPRO Workbench` 是当前产品面，承载 Research、Backtest、Report、Paper、Portfolio、Risk、Events / Audit、Live Readiness 和 read-model-only Live Monitoring。
+- `MTPRO Live PRO Console` 是未来产品面，只有经过 Human decision、独立 Project Definition、signed / account / broker / risk / ops gates 后，才允许进入 IA / UI / implementation。
+- Figma `85:*` 只代表 Workbench 用户面 dashboard，不代表 Live PRO Console 或实盘操作台。
+- 两个产品面可以共享 `Shared Evidence Semantics / Shared Evidence Contract`，包括 evidence semantics、read model contract、report artifact 和 audit route；不能共享 command surface、direct Event Log write access、live runtime、broker adapter、signed API、account stream、listenKey、OMS、real order state machine、real broker position 或 emergency stop command。
+
+该文档为后续产品 / 设计审查提供以下判断依据：
+
+- Workbench dashboard 不应被画成 trading terminal。
+- Paper / evidence UI 不能升级成实盘控制。
+- read-model-only monitoring 不能被解释成 live runtime 操作台。
+- Future Live PRO Console 必须另开产品面和独立 planning，不复用 Workbench 页面作为实盘控制台。
+
+仍不包含：
+
+- Figma 修改、SwiftUI 实现、组件库实现或业务代码开发。
+- Linear Project / Issue、Todo 推进、Symphony 启动或 Future Live trading execution scope。
+- Live PRO Console 当前可实现授权、实盘操作台授权、真实账户 / 真实订单 / broker / OMS / emergency stop 能力。
