@@ -6577,6 +6577,203 @@ final class CoreTests: XCTestCase {
         XCTAssertFalse(boundary.providesLiveCommand)
     }
 
+    func testMTP90LiveAuditTrailFutureGatesDefineSignalOrderRiskDecisionFillBoundary() throws {
+        // 测试场景：MTP-90 只定义 signal / order / risk decision / fill 的 Future audit trail gates。
+        // 这些 gates 只能作为 contract / validation evidence，不得实现 execution report ingestion、
+        // broker fill fact、real order state machine、OMS、broker action 或真实审计 runtime。
+        let boundary = LiveAuditTrailFutureGateBoundary.deterministicFixture
+
+        XCTAssertEqual(boundary.contractID, try Identifier("mtp-90-live-audit-trail-future-gates"))
+        XCTAssertEqual(boundary.issueID, try Identifier("MTP-90"))
+        XCTAssertEqual(boundary.subjects, [.signal, .order, .riskDecision, .fill])
+        XCTAssertEqual(
+            boundary.gates(for: .signal),
+            [
+                .signalSourceContractDefined,
+                .signalDecisionPathContractDefined,
+                .signalReplayCorrelationContractDefined
+            ]
+        )
+        XCTAssertEqual(
+            boundary.gates(for: .order),
+            [
+                .orderIntentSourceContractDefined,
+                .orderStateTransitionContractDefined,
+                .orderCommandAuthorizationGateDefined
+            ]
+        )
+        XCTAssertEqual(
+            boundary.gates(for: .riskDecision),
+            [
+                .riskDecisionSourceContractDefined,
+                .riskGateOutcomeContractDefined,
+                .riskBlockedReasonContractDefined
+            ]
+        )
+        XCTAssertEqual(
+            boundary.gates(for: .fill),
+            [
+                .fillSourceContractDefined,
+                .executionReportSourceGateDefined,
+                .brokerFillSourceGateDefined
+            ]
+        )
+        XCTAssertEqual(boundary.forbiddenCapabilities, LiveAuditTrailForbiddenCapability.allCases)
+        XCTAssertTrue(boundary.forbidsCapability(.executionReportIngestion))
+        XCTAssertTrue(boundary.forbidsCapability(.brokerFillFact))
+        XCTAssertTrue(boundary.forbidsCapability(.realOrderStateMachine))
+        XCTAssertTrue(boundary.forbidsCapability(.oms))
+        XCTAssertTrue(boundary.forbidsCapability(.brokerAction))
+        XCTAssertEqual(boundary.validationAnchors, [
+            "MTP-90-SIGNAL-ORDER-RISK-FILL-AUDIT-TRAIL-FUTURE-GATES",
+            "MTP-90-FORBIDDEN-EXECUTION-REPORT-BROKER-FILL-OMS-TESTS",
+            "MTP-90-NO-REAL-ORDER-STATE-MACHINE-OR-BROKER-ACTION",
+            "MTP-90-PAPER-EVIDENCE-NO-REAL-AUDIT-FACT-UPGRADE",
+            "MTP-90-LIVE-AUDIT-TRAIL-VALIDATION",
+            "TVM-LIVE-AUDIT-INCIDENT-STOP"
+        ])
+        XCTAssertTrue(boundary.auditTrailFutureGateBoundaryHeld)
+        XCTAssertTrue(boundary.forbiddenCapabilityBoundaryHeld)
+        XCTAssertTrue(boundary.paperEvidenceIsolationBoundaryHeld)
+        XCTAssertTrue(boundary.isFutureOnlyAuditTrailContract)
+        XCTAssertTrue(boundary.representsBlockedEvidenceOnly)
+        XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(
+            LiveAuditTrailFutureGateBoundary.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, boundary)
+    }
+
+    func testMTP90LiveAuditTrailFutureGatesRejectExecutionReportBrokerFillOMSAndBrokerAction() throws {
+        // 测试场景：MTP-90 的 forbidden capability tests 必须阻断真实 execution report ingestion、
+        // broker fill fact / recorder、real order state machine、OMS、broker reconciliation 和 broker action。
+        XCTAssertThrowsError(
+            try LiveAuditTrailFutureGateBoundary(ingestsExecutionReport: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("ingestsExecutionReport"))
+        }
+        XCTAssertThrowsError(
+            try LiveAuditTrailFutureGateBoundary(recordsBrokerFillFact: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("recordsBrokerFillFact"))
+        }
+        XCTAssertThrowsError(
+            try LiveAuditTrailFutureGateBoundary(recordsBrokerFillRuntime: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("recordsBrokerFillRuntime"))
+        }
+        XCTAssertThrowsError(
+            try LiveAuditTrailFutureGateBoundary(implementsRealOrderStateMachine: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("implementsRealOrderStateMachine")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveAuditTrailFutureGateBoundary(implementsOMS: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("implementsOMS"))
+        }
+        XCTAssertThrowsError(
+            try LiveAuditTrailFutureGateBoundary(performsBrokerReconciliation: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("performsBrokerReconciliation")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveAuditTrailFutureGateBoundary(executesBrokerAction: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("executesBrokerAction"))
+        }
+        XCTAssertThrowsError(
+            try LiveAuditTrailFutureGateBoundary(
+                futureGates: [.signalSourceContractDefined, .brokerFillSourceGateDefined]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "futureGates",
+                    expected: LiveAuditTrailFutureGateBoundary
+                        .requiredFutureGates
+                        .map(\.rawValue)
+                        .joined(separator: ","),
+                    actual: "signal source contract defined,broker fill source gate defined"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(LiveAuditTrailFutureGateBoundary.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["recordsBrokerFillFact"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveAuditTrailFutureGateBoundary.self, from: data)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("recordsBrokerFillFact"))
+        }
+    }
+
+    func testMTP90LiveAuditTrailFutureGatesKeepPaperEvidenceFromBecomingRealAuditFact() throws {
+        // 测试场景：MTP-90 可以引用 paper signal/order/risk/fill evidence 作为 source anchor，
+        // 但不能把它们升级为真实 audit fact、broker fill、future live risk decision、
+        // execution report runtime 或真实订单状态机。
+        let boundary = LiveAuditTrailFutureGateBoundary.deterministicFixture
+        let terminology = LiveAuditIncidentStopTerminologyBoundary.deterministicFixture
+
+        XCTAssertTrue(boundary.auditTrailSourceAnchors.contains("PaperOrderIntent"))
+        XCTAssertTrue(boundary.auditTrailSourceAnchors.contains("PaperExecutionDecision"))
+        XCTAssertTrue(boundary.auditTrailSourceAnchors.contains("RiskBlockerEvidence"))
+        XCTAssertTrue(boundary.auditTrailSourceAnchors.contains("PaperSimulatedFillEvidence"))
+        XCTAssertTrue(boundary.auditTrailSourceAnchors.contains("MTP-79-LIVE-EXECUTION-CONTROL-BLOCKED-EVIDENCE"))
+        XCTAssertTrue(boundary.auditTrailSourceAnchors.contains("MTP-87-LIVE-RISK-GATE-BLOCKED-EVIDENCE"))
+        XCTAssertTrue(terminology.terminologyBoundaryHeld)
+
+        XCTAssertFalse(boundary.upgradesSignalEvidenceToLiveAuditFact)
+        XCTAssertFalse(boundary.upgradesPaperOrderToRealOrderAuditFact)
+        XCTAssertFalse(boundary.upgradesPaperRiskToLiveRiskDecisionAuditFact)
+        XCTAssertFalse(boundary.upgradesSimulatedFillToBrokerFillAuditFact)
+        XCTAssertFalse(boundary.usesSignedEndpoint)
+        XCTAssertFalse(boundary.callsAccountEndpoint)
+        XCTAssertFalse(boundary.createsListenKey)
+        XCTAssertFalse(boundary.implementsLiveExecutionAdapter)
+        XCTAssertFalse(boundary.executesBrokerAction)
+        XCTAssertFalse(boundary.ingestsExecutionReport)
+        XCTAssertFalse(boundary.recordsBrokerFillFact)
+        XCTAssertFalse(boundary.implementsRealOrderStateMachine)
+        XCTAssertFalse(boundary.implementsOMS)
+        XCTAssertFalse(boundary.performsBrokerReconciliation)
+        XCTAssertFalse(boundary.recordsAuditTrailRuntime)
+        XCTAssertFalse(boundary.submitsCancelsOrReplacesRealOrder)
+        XCTAssertFalse(boundary.providesLiveCommand)
+        XCTAssertFalse(boundary.exposesOrderLevelCommandUI)
+        XCTAssertFalse(boundary.providesTradingButton)
+
+        XCTAssertThrowsError(
+            try LiveAuditTrailFutureGateBoundary(upgradesPaperOrderToRealOrderAuditFact: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("upgradesPaperOrderToRealOrderAuditFact")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveAuditTrailFutureGateBoundary(upgradesSimulatedFillToBrokerFillAuditFact: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("upgradesSimulatedFillToBrokerFillAuditFact")
+            )
+        }
+    }
+
     private func makeOrderBookImbalanceInputs() throws -> [OrderBookReadModelInput] {
         let symbol = try Symbol(rawValue: "BTCUSDT")
         let bidDominant = OrderBookReadModelInput(

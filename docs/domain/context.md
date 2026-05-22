@@ -214,6 +214,26 @@ MTP-89 不实现 incident replay runtime、stop control runtime、emergency stop
 
 Workbench 和 Dashboard 仍是当前 paper / research / validation / read-model-only evidence surface，不得被描述成当前 Live PRO Console。Live PRO Console 仍是 Future product surface，必须经过独立 Human decision、独立 Project Definition 和后续 signed / account / broker / risk / ops gates。
 
+`MTP-90-SIGNAL-ORDER-RISK-FILL-AUDIT-TRAIL-FUTURE-GATES`
+
+MTP-90 固定 signal audit trail、order audit trail、risk decision audit trail 和 fill audit trail 只是 Future audit trail gates。signal gate 只要求未来 signal source / decision path / replay correlation contract；order gate 只要求未来 order intent source / state transition / command authorization contract；risk decision gate 只要求未来 risk decision source / gate outcome / blocked reason contract；fill gate 只要求未来 fill source / execution report source / broker fill source gate。它们不授权当前 audit trail runtime、production audit log、execution report ingestion、broker fill fact、real order state machine、OMS、broker action、live command 或交易按钮。
+
+`MTP-90-FORBIDDEN-EXECUTION-REPORT-BROKER-FILL-OMS-TESTS`
+
+MTP-90 的 forbidden capability tests 必须继续阻断 execution report ingestion、broker fill fact / recorder、real order state machine、OMS、broker reconciliation、broker action、signed endpoint、account endpoint、listenKey 和 `LiveExecutionAdapter`。这些 forbidden capability 可以进入 Core deterministic fixture 和 PR evidence，但不能被实现为当前 parser、adapter、runtime、broker ledger、OMS log 或 UI command。
+
+`MTP-90-NO-REAL-ORDER-STATE-MACHINE-OR-BROKER-ACTION`
+
+MTP-90 不实现 real order state machine、real order submit / cancel / replace、broker session mutation、broker reconciliation、broker action、execution report runtime 或 broker fill runtime。order audit trail 仍是 Future contract，不等于当前 real order lifecycle。
+
+`MTP-90-PAPER-EVIDENCE-NO-REAL-AUDIT-FACT-UPGRADE`
+
+MTP-90 可以引用 paper-only / read-model-only source anchors，例如 `PaperOrderIntent`、`PaperExecutionDecision`、`RiskBlockerEvidence` 和 `PaperSimulatedFillEvidence`，但这些 evidence 不能升级为真实 audit fact、real order command、future live risk decision、execution report、broker fill、real account state 或 reconciliation input。
+
+`MTP-90-LIVE-AUDIT-TRAIL-VALIDATION`
+
+MTP-90 的 validation anchor 由 `LiveAuditTrailFutureGateBoundary` 和 focused Core tests 固定；required validation 仍是本地 `bash checks/run.sh`，不依赖真实 Binance 网络、secret、signed endpoint、account endpoint、listenKey、broker state、真实账户或人工验收。
+
 ## Paper-only Terms
 
 | 术语 | MTPRO 含义 | 避免混用 |

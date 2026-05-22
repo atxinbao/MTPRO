@@ -109,9 +109,67 @@ MTP-89 建立以下 validation anchors，供后续 issue 接入 forbidden capabi
 - `MTP-89-NO-LIVE-PRO-CONSOLE-SURFACE`
 - `MTP-89-LIVE-AUDIT-INCIDENT-STOP-VALIDATION`
 
+## MTP-90 signal / order / risk decision / fill audit trail future gates
+
+`MTP-90-SIGNAL-ORDER-RISK-FILL-AUDIT-TRAIL-FUTURE-GATES`
+
+MTP-90 只把 signal、order、risk decision 和 fill audit trail 定义为 Future gates。它们是后续 Project Definition 前必须补齐的合同和证据来源，不是当前 audit trail runtime、production audit log、execution report ingestion、broker fill fact、OMS log、broker ledger 或 broker action。
+
+| Audit trail subject | Future gates | 当前允许 source anchor | 当前禁止输出 |
+| --- | --- | --- | --- |
+| `signal` | signal source contract、signal decision path contract、signal replay correlation contract | `MTP-89-FUTURE-AUDIT-INCIDENT-STOP-TAXONOMY`、paper strategy / signal evidence | production audit service、live strategy command、真实交易授权 |
+| `order` | order intent source contract、order state transition contract、order command authorization gate | `PaperOrderIntent`、`MTP-79-LIVE-EXECUTION-CONTROL-BLOCKED-EVIDENCE` | real order state machine、OMS、submit / cancel / replace、broker action |
+| `risk decision` | risk decision source contract、risk gate outcome contract、risk blocked reason contract | `PaperExecutionDecision`、`RiskBlockerEvidence`、`MTP-87-LIVE-RISK-GATE-BLOCKED-EVIDENCE` | live risk decision runtime、real pre-trade allow / reject、circuit breaker command |
+| `fill` | fill source contract、execution report source gate、broker fill source gate | `PaperSimulatedFillEvidence`、execution-control blocked evidence source anchor | execution report ingestion、broker fill fact、broker fill recorder、reconciliation runtime |
+
+这些 gates 由 Core deterministic fixture `LiveAuditTrailFutureGateBoundary` 固定，fixture 只输出 contract / validation evidence。它不读取 secret，不接 signed endpoint / account endpoint / listenKey，不实例化 `LiveExecutionAdapter`，不连接 broker，不提供 live command、order-level command UI 或交易按钮。
+
+## MTP-90 forbidden execution report / broker fill / OMS tests
+
+`MTP-90-FORBIDDEN-EXECUTION-REPORT-BROKER-FILL-OMS-TESTS`
+
+MTP-90 的 forbidden capability tests 必须阻断：
+
+- execution report ingestion / runtime。
+- broker fill fact / broker fill recorder。
+- real order state machine。
+- OMS。
+- broker reconciliation。
+- broker action。
+- `LiveExecutionAdapter`。
+- signed endpoint、account endpoint 和 listenKey。
+
+`MTP-90-NO-REAL-ORDER-STATE-MACHINE-OR-BROKER-ACTION`
+
+任何 signal / order / risk decision / fill audit trail gate 都不得变成 real order lifecycle、submit / cancel / replace、broker action、broker session mutation、OMS repair、execution report parser、broker fill event fact 或 reconciliation runtime。
+
+## MTP-90 paper evidence no real audit fact upgrade
+
+`MTP-90-PAPER-EVIDENCE-NO-REAL-AUDIT-FACT-UPGRADE`
+
+MTP-90 可以引用 paper-only / read-model-only source anchors，但不能把它们升级为真实 audit fact：
+
+- strategy signal evidence 不等于 live signal audit fact。
+- `PaperOrderIntent` 不等于 real order audit fact、real order command 或 broker order state。
+- `PaperExecutionDecision` / `RiskBlockerEvidence` 不等于 future live risk decision、real pre-trade allow / reject 或 broker rejection。
+- `PaperSimulatedFillEvidence` 不等于 broker fill、execution report、real account state 或 reconciliation input。
+- `MTP-79-LIVE-EXECUTION-CONTROL-BLOCKED-EVIDENCE` 和 `MTP-87-LIVE-RISK-GATE-BLOCKED-EVIDENCE` 只能作为 blocked evidence source anchors，不得升级为 incident command、stop command、restore decision、production operations 或 Live PRO Console。
+
+## MTP-90 validation anchors
+
+`MTP-90-LIVE-AUDIT-TRAIL-VALIDATION`
+
+MTP-90 建立以下 validation anchors：
+
+- `TVM-LIVE-AUDIT-INCIDENT-STOP`
+- `MTP-90-SIGNAL-ORDER-RISK-FILL-AUDIT-TRAIL-FUTURE-GATES`
+- `MTP-90-FORBIDDEN-EXECUTION-REPORT-BROKER-FILL-OMS-TESTS`
+- `MTP-90-NO-REAL-ORDER-STATE-MACHINE-OR-BROKER-ACTION`
+- `MTP-90-PAPER-EVIDENCE-NO-REAL-AUDIT-FACT-UPGRADE`
+- `MTP-90-LIVE-AUDIT-TRAIL-VALIDATION`
+
 后续 issue 只能在该 Future / forbidden boundary 内继续细化：
 
-- `MTP-90`：signal / order / risk decision / fill audit trail future gates 和 forbidden capability tests。
 - `MTP-91`：incident replay future gates 和 forbidden capability tests。
 - `MTP-92`：emergency stop / shutdown / restore future gates 和 forbidden capability tests。
 - `MTP-93`：Live risk / execution blocked evidence 与 future incident / stop boundary 的隔离合同。
