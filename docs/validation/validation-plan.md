@@ -1178,3 +1178,42 @@ MTP-81 必须收口的主要 anchors：
 - 不读取真实账户余额，不执行 account sync，不执行 broker position sync。
 - 不暴露 persistence schema、adapter 或 runtime control。
 - 不新增交易按钮、order form、live command 或 order-level command UI。
+
+## MTP-82 Live Risk Terminology / Future Risk Decision Taxonomy Validation
+
+日期：2026-05-22
+
+执行者：Codex
+
+MTP-82 的 required validation：
+
+- `docs/contracts/live-risk-gate-contract.md` 必须包含 `MTP-82-LIVE-RISK-TERMINOLOGY`、`MTP-82-FUTURE-RISK-DECISION-TAXONOMY`、`MTP-82-PAPER-RISK-LIVE-RISK-SEPARATION`、`MTP-82-NO-LIVE-RISK-RUNTIME` 和 `MTP-82-LIVE-RISK-GATE-VALIDATION` anchors。
+- `Sources/Core/LiveRiskGateContract.swift` 必须定义 `LiveRiskTerm`、`FutureRiskDecisionTaxonomyTerm`、`LiveRiskGateFutureGate`、`LiveRiskForbiddenCapability`、`LiveRiskEvidenceKind` 和 `LiveRiskTerminologyBoundary`。
+- `LiveRiskTerminologyBoundary` 必须固定 live pre-trade risk terminology、future risk decision taxonomy、future gates、forbidden capability list、validation anchors 和 paper / live risk isolation source anchors。
+- Core tests 必须覆盖 deterministic fixture、Codable round trip、taxonomy drift rejection、真实账户 / broker position / margin / leverage 读取 rejection、real pre-trade allow / reject runtime rejection、signed endpoint / `LiveExecutionAdapter` bypass rejection、risk command / trading button rejection，以及 `RiskBlockerEvidence` / `PortfolioExposureSnapshot` 不可升级为 future live risk decision、real account state 或 broker position。
+- `docs/validation/trading-validation-matrix.md` 必须新增 `TVM-LIVE-RISK-GATE` candidate entry，并把 MTP-82 回填到该 entry。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-82 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors；后续 MTP-88 仍负责 Project 级 stage closeout 和完整 automation readiness 收口。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不读取真实 API key，不新增 secret config，不实现 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、real account balance read、broker position sync、margin / leverage、real pre-trade risk engine、real pre-trade allow / reject runtime、circuit breaker runtime、no-trade state runtime、live command、risk command、position management command、order form 或交易按钮。
+
+MTP-82 必须建立的主要 anchors：
+
+- `MTP-82-LIVE-RISK-TERMINOLOGY`
+- `MTP-82-FUTURE-RISK-DECISION-TAXONOMY`
+- `MTP-82-PAPER-RISK-LIVE-RISK-SEPARATION`
+- `MTP-82-NO-LIVE-RISK-RUNTIME`
+- `MTP-82-LIVE-RISK-GATE-VALIDATION`
+
+## MTP-82 禁止
+
+- 不实现 API key / secret storage。
+- 不实现 signed endpoint / account endpoint / listenKey。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`。
+- 不读取真实账户余额。
+- 不执行 broker position sync。
+- 不读取 margin / leverage。
+- 不实现 real pre-trade risk engine。
+- 不实现 real pre-trade allow / reject runtime。
+- 不实现 circuit breaker runtime 或 no-trade state runtime。
+- 不新增 live command、risk command、position management command、order form 或交易按钮。
+- 不把 paper risk blocker、paper exposure、paper execution decision 或 simulated fill 升级为 future live risk decision、real account state、broker position 或 live risk input。

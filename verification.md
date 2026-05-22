@@ -8747,6 +8747,45 @@ Linear / scope evidence：
 | `git diff --check` | pass | docs-only planning record 变更无 whitespace error。 |
 | `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `timelineItems=31`、`liveExecutionControlGates=7`；164 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
 
+## MTP-82 Live Risk terminology / future risk decision taxonomy
+
+日期：2026-05-22
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear issue `MTP-82 定义 Live risk terminology 和 future risk decision taxonomy`。
+- 定义 Future Live Risk 的 live pre-trade risk terminology、future risk decision taxonomy、future gates、forbidden capability baseline、paper / live risk isolation 和 validation anchors。
+- 只建立 contract / deterministic fixture / focused tests / validation anchors，不实现真实 live risk runtime。
+
+证据：
+
+- Linear read-only queue preview：`MTP-82` 为唯一 active issue（`In Progress/type=started`），`MTP-83` 至 `MTP-88` 均为 `Backlog/type=backlog`。
+- Contract：`docs/contracts/live-risk-gate-contract.md`，包含 `MTP-82-LIVE-RISK-TERMINOLOGY`、`MTP-82-FUTURE-RISK-DECISION-TAXONOMY`、`MTP-82-PAPER-RISK-LIVE-RISK-SEPARATION`、`MTP-82-NO-LIVE-RISK-RUNTIME` 和 `MTP-82-LIVE-RISK-GATE-VALIDATION`。
+- Core：`Sources/Core/LiveRiskGateContract.swift`，新增 `LiveRiskTerm`、`FutureRiskDecisionTaxonomyTerm`、`LiveRiskGateFutureGate`、`LiveRiskForbiddenCapability`、`LiveRiskEvidenceKind` 和 `LiveRiskTerminologyBoundary`。
+- Tests：`Tests/CoreTests/CoreTests.swift`，新增 `testLiveRiskTerminologyDefinesMTP82FutureOnlyTaxonomy`、`testLiveRiskTerminologyRejectsMTP82RuntimeAccountAndCommandBypass` 和 `testPaperRiskBlockerAndExposureCannotUpgradeToMTP82FutureLiveRiskDecision`。
+- Validation docs：`TVM-LIVE-RISK-GATE`、`docs/validation/validation-plan.md` MTP-82 section、`docs/validation/latest-verification-summary.md` MTP-82 evidence、`checks/automation-readiness.sh` MTP-82 anchors。
+
+边界确认：
+
+- 不实现 API key / secret storage。
+- 不实现 signed endpoint / account endpoint / listenKey。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`。
+- 不读取真实账户余额，不同步 broker position，不读取 margin / leverage。
+- 不实现 real pre-trade risk engine、real pre-trade allow / reject runtime、circuit breaker runtime 或 no-trade state runtime。
+- 不新增 live command、risk command surface、position management command、order form 或交易按钮。
+- 不把 paper risk blocker、paper exposure、paper execution decision 或 simulated fill 升级为 future live risk decision、real account state、broker position 或 live risk input。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP82` | pass | 3 个 focused Core tests 通过，0 failures。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.` |
+| `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=31; liveBlockedGates=6; liveExecutionControlGates=7; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；167 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
+
 ## MTPRO Workbench User Dashboard Content Model v1 docs-only record
 
 日期：2026-05-22
