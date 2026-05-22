@@ -9157,3 +9157,75 @@ Linear / scope evidence：
 | `swift test --filter MTP86` | pass | 3 个 focused Core tests 通过，0 failures。 |
 | `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
 | `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=31; liveBlockedGates=6; liveExecutionControlGates=7; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；179 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
+
+## MTP-88 Live Risk Gate Contract validation matrix、automation readiness 和 stage audit input material 收口
+
+日期：2026-05-22
+
+执行者：Codex
+
+目的：
+
+- 收口 `MTPRO Live Risk Gate Contract v1` 的 validation matrix、automation readiness anchors、forbidden capability evidence、read-model-only boundary evidence、Dashboard smoke evidence 和 Stage Code Audit input material。
+- 为 Project closure 后的 Parent Codex Stage Code Audit Report 提供输入材料。
+- 明确 MTP-88 不输出最终 Stage Code Audit Report，不推进下一阶段，不启动下一阶段 `symphony-issue`，不实现任何真实 live risk capability。
+
+Linear queue evidence：
+
+- Linear read-only queue preview 确认 Project `MTPRO Live Risk Gate Contract v1` 中 `MTP-88` 为唯一 active issue，状态 `In Progress/type=started`。
+- `MTP-82`、`MTP-83`、`MTP-84`、`MTP-85`、`MTP-86` 和 `MTP-87` 均为 `Done/type=completed`。
+- 当前 issue scope 只允许 validation / automation readiness / stage audit input closeout。
+
+文件范围：
+
+- `docs/audit/inputs/mtpro-live-risk-gate-contract-v1-stage-audit-input.md`
+- `docs/contracts/live-risk-gate-contract.md`
+- `docs/validation/trading-validation-matrix.md`
+- `docs/validation/validation-plan.md`
+- `docs/validation/latest-verification-summary.md`
+- `checks/automation-readiness.sh`
+- `verification.md`
+
+更新重点：
+
+- 新增 `docs/audit/inputs/mtpro-live-risk-gate-contract-v1-stage-audit-input.md`，汇总 MTP-82 至 MTP-87 PR evidence、merge commit、GitHub required check、Live risk gate validation evidence chain、Dashboard smoke、forbidden capability evidence、read-model-only boundary evidence、automation readiness evidence、Known boundaries、Root Docs Delta input 和 Stage Code Audit handoff checklist。
+- 在 `docs/contracts/live-risk-gate-contract.md` 新增 `MTP-88-LIVE-RISK-GATE-STAGE-CLOSEOUT`、`MTP-88-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-88-NO-FINAL-STAGE-CODE-AUDIT`、`MTP-88-LIVE-RISK-GATE-VALIDATION-EVIDENCE-CHAIN` 和 `MTP-88-AUTOMATION-READINESS-STAGE-CLOSEOUT`。
+- 在 `docs/validation/trading-validation-matrix.md` 新增 MTP-88 Live Risk Gate Contract 阶段收口说明。
+- 在 `docs/validation/validation-plan.md` 新增 MTP-88 Validation Docs / Stage Audit Input Validation。
+- 在 `checks/automation-readiness.sh` 机械检查 MTP-87 read-model-only surface 和 MTP-88 stage closeout anchors。
+- 在 `docs/validation/latest-verification-summary.md` 增加 MTP-88 当前验证摘要和本地验证结果。
+
+PR evidence input：
+
+| Issue | PR | Merge commit | GitHub required check |
+| --- | --- | --- | --- |
+| `MTP-82` | [#165](https://github.com/atxinbao/MTPRO/pull/165) | `643612a74d71f49d38f45bba657c8c6e35cbc510` | [checks success](https://github.com/atxinbao/MTPRO/actions/runs/26286848821/job/77376514320) |
+| `MTP-83` | [#167](https://github.com/atxinbao/MTPRO/pull/167) | `49ba28ffd8343c969ed37064000d30a635229fa0` | [checks success](https://github.com/atxinbao/MTPRO/actions/runs/26288214173/job/77381140111) |
+| `MTP-84` | [#169](https://github.com/atxinbao/MTPRO/pull/169) | `76a8f03971b0894e3d35fbe4e49563fda720434d` | [checks success](https://github.com/atxinbao/MTPRO/actions/runs/26291446322/job/77392466957) |
+| `MTP-85` | [#170](https://github.com/atxinbao/MTPRO/pull/170) | `262056accde123ef3f5a1a68c66727f7bc899929` | [checks success](https://github.com/atxinbao/MTPRO/actions/runs/26292762287/job/77397126541) |
+| `MTP-86` | [#171](https://github.com/atxinbao/MTPRO/pull/171) | `2e72938a15e76ec7f457148a2a3c055ecb0101e1` | [checks success](https://github.com/atxinbao/MTPRO/actions/runs/26294166908/job/77402101062) |
+| `MTP-87` | [#172](https://github.com/atxinbao/MTPRO/pull/172) | `56e105f0855a182a93780a8beceaef9449d6db49` | [checks success](https://github.com/atxinbao/MTPRO/actions/runs/26299370909/job/77420288078) |
+
+边界确认：
+
+- 不输出最终 Stage Code Audit Report。
+- 不创建下一 Project / Issue，不推进下一阶段，不启动下一阶段 `symphony-issue`。
+- 不实现 API key / secret storage。
+- 不实现 signed endpoint / account endpoint / listenKey。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`。
+- 不实现真实 live risk engine 或 real pre-trade allow / reject runtime。
+- 不读取真实账户余额、broker position、margin、leverage、PnL 或 equity。
+- 不实现真实 account exposure calculation、real order notional evaluation、live order frequency runtime、loss / drawdown runtime。
+- 不实现 circuit breaker runtime、no-trade state runtime、global trading lock 或 broker session state mutation。
+- 不实现 circuit breaker command、stop trading command、emergency stop、automatic recovery command 或 production shutdown control。
+- 不新增 live command、risk command surface、position management command、order form 或交易按钮。
+- 不把 `LiveRiskGateBlockedEvidence`、paper risk blocker 或 paper exposure 升级为真实风控输入或 future live risk decision runtime。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `DASHBOARD_SMOKE=1 swift run Dashboard` | pass | 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=37; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`。 |
+| `bash checks/automation-readiness.sh` | pass | MTP-88 stage audit input、contract、matrix、validation plan、latest summary、source / test anchors 和 Dashboard smoke anchors 均可机械定位；输出 `MTPRO automation readiness checks passed.`。 |
+| `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=37; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；184 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |

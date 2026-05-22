@@ -1421,3 +1421,36 @@ MTP-87 必须建立的主要 anchors：
 - 不实现 circuit breaker runtime、no-trade state runtime、broker session state mutation、stop trading command 或 emergency stop command。
 - 不新增 live command、risk command surface、position management command、order form 或交易按钮。
 - 不让 UI 消费 database schema、adapter、Runtime object 或 command model。
+
+## MTP-88 Validation Docs / Stage Audit Input Validation
+
+日期：2026-05-22
+
+执行者：Codex
+
+MTP-88 的 required validation：
+
+- `docs/audit/inputs/mtpro-live-risk-gate-contract-v1-stage-audit-input.md` 必须存在，并包含 `MTP-88-LIVE-RISK-GATE-STAGE-AUDIT-INPUT`、Issue / PR evidence input、Live risk gate validation evidence chain、Forbidden capability evidence、Read-model-only boundary evidence、Automation readiness evidence、Known boundaries、Root Docs Delta input 和 Stage Code Audit handoff checklist。
+- `docs/contracts/live-risk-gate-contract.md` 必须包含 `MTP-88-LIVE-RISK-GATE-STAGE-CLOSEOUT`、`MTP-88-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-88-NO-FINAL-STAGE-CODE-AUDIT`、`MTP-88-LIVE-RISK-GATE-VALIDATION-EVIDENCE-CHAIN` 和 `MTP-88-AUTOMATION-READINESS-STAGE-CLOSEOUT` anchors。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-88 Live Risk Gate Contract 阶段收口说明，并指向 MTP-88 Stage Code Audit 输入材料。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-88 只做 Project 级 validation matrix、automation readiness 和 stage audit input material 收口，不输出最终 Stage Code Audit Report。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-82 至 MTP-88 的 contract、matrix、validation plan、latest summary、stage audit input、Core / App source anchors、Core / App deterministic test anchors 和 Dashboard smoke `liveRiskGates=6`。
+- Stage Code Audit input 必须明确：最终 Stage Code Audit Report 仍由 Parent Codex 在 `MTP-82` 至 `MTP-88` 全部 Done、Linear Project status `Completed` 且 `completedAt` 非空后单独输出。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不实现真实 live risk runtime、真实账户读取、broker position sync、margin / leverage / PnL / equity read、circuit breaker command、stop trading command、emergency stop、risk command、order form 或交易按钮。
+
+MTP-88 必须建立的主要 anchors：
+
+- `MTP-88-LIVE-RISK-GATE-STAGE-CLOSEOUT`
+- `MTP-88-STAGE-AUDIT-INPUT-MATERIAL`
+- `MTP-88-NO-FINAL-STAGE-CODE-AUDIT`
+- `MTP-88-LIVE-RISK-GATE-STAGE-AUDIT-INPUT`
+- `MTP-88-LIVE-RISK-GATE-VALIDATION-EVIDENCE-CHAIN`
+- `MTP-88-AUTOMATION-READINESS-STAGE-CLOSEOUT`
+
+## MTP-88 禁止
+
+- 不输出最终 Stage Code Audit Report。
+- 不创建下一 Project / Issue，不推进下一阶段，不启动下一阶段 `symphony-issue`。
+- 不读取 API key、secret、真实账户余额、broker position、margin、leverage、PnL 或 equity。
+- 不接 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 real pre-trade risk engine、real pre-trade allow / reject runtime、circuit breaker runtime、no-trade state runtime、risk command surface、position management command、order form、交易按钮、stop trading command 或 emergency stop。

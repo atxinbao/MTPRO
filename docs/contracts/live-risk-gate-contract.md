@@ -545,3 +545,37 @@ MTP-87 建立以下 validation anchors：
 - `MTP-87-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT`
 - `MTP-87-READ-MODEL-ONLY-NO-COMMAND-SURFACE`
 - `MTP-87-LIVE-RISK-GATE-VALIDATION`
+
+## MTP-88 validation closeout / Stage Audit input
+
+`MTP-88-LIVE-RISK-GATE-STAGE-CLOSEOUT`
+
+MTP-88 只收口 `MTPRO Live Risk Gate Contract v1` 的 validation matrix、automation readiness anchors、forbidden capability evidence、read-model-only boundary evidence、Dashboard smoke evidence 和 Stage Audit input material。该收口不新增 production code，不扩展 Live risk runtime，不输出最终 Stage Code Audit Report，不授权下一 Project planning 或 execution。
+
+`MTP-88-STAGE-AUDIT-INPUT-MATERIAL`
+
+MTP-88 的阶段审计输入材料必须落到：
+
+```text
+docs/audit/inputs/mtpro-live-risk-gate-contract-v1-stage-audit-input.md
+```
+
+该输入材料必须覆盖 `MTP-82` 至 `MTP-87` 的 PR evidence、merge commit、required check、Live risk gate validation evidence chain、Dashboard smoke、forbidden capability evidence、read-model-only boundary evidence、automation readiness evidence、known boundaries、Root Docs Delta input 和 Stage Code Audit handoff checklist。
+
+`MTP-88-NO-FINAL-STAGE-CODE-AUDIT`
+
+MTP-88 不输出最终 Stage Code Audit Report。最终报告必须在 `MTP-82` 至 `MTP-88` 全部进入 Linear `Done`，且 Linear Project status 被设置或确认为 `Completed`、`type=completed`、`completedAt` 非空后，由 Parent Codex 单独输出到：
+
+```text
+docs/audit/mtpro-live-risk-gate-contract-v1-stage-code-audit.md
+```
+
+MTP-88 也不修改 Linear status、不创建下一 Project / Issue、不推进下一阶段、不启动下一阶段 `symphony-issue`。
+
+`MTP-88-LIVE-RISK-GATE-VALIDATION-EVIDENCE-CHAIN`
+
+MTP-88 的验证证据链必须能从 `TVM-LIVE-RISK-GATE` 追溯到 MTP-82 terminology / taxonomy、MTP-83 exposure / order notional gates、MTP-84 frequency / loss / drawdown gates、MTP-85 circuit breaker / no-trade state gates、MTP-86 paper / live risk isolation、MTP-87 read-model-only `LiveRiskGateBlockedEvidence` 展示面、Dashboard smoke `liveRiskGates=6` 和当前 MTP-88 automation readiness stage closeout。
+
+`MTP-88-AUTOMATION-READINESS-STAGE-CLOSEOUT`
+
+`checks/automation-readiness.sh` 必须检查 `MTP-88-LIVE-RISK-GATE-STAGE-CLOSEOUT`、`MTP-88-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-88-NO-FINAL-STAGE-CODE-AUDIT`、`MTP-88-LIVE-RISK-GATE-STAGE-AUDIT-INPUT`、`MTP-88-LIVE-RISK-GATE-VALIDATION-EVIDENCE-CHAIN` 和 `MTP-88-AUTOMATION-READINESS-STAGE-CLOSEOUT`。机械检查必须覆盖 stage audit input、contract anchors、matrix anchors、validation plan、latest summary、Core / App source anchors、Core / App deterministic tests、Dashboard smoke `liveRiskGates=6` 和 PR evidence chain。

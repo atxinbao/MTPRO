@@ -294,6 +294,23 @@ MTP-86 已定义 paper risk blocker / paper exposure 与 future live risk decisi
 
 MTP-87 已把 `LiveRiskGateBlockedEvidence` 接入 Dashboard / Report / Event Timeline 只读展示面；MTP-88 只能继续做 validation matrix、automation readiness 和 stage audit input material 收口，不得扩大到真实 live risk runtime。
 
+## MTP-88 Live Risk Gate Contract 阶段收口
+
+日期：2026-05-22
+
+执行者：Codex
+
+MTP-88 对 Live Risk Gate Contract v1 的 validation evidence、Dashboard smoke、automation readiness、forbidden capability evidence、read-model-only boundary evidence 和 Stage Code Audit 输入材料做阶段收口，不新增业务交易能力，不替代最终 Stage Code Audit Report。
+
+| 收口项 | Evidence location | 审计用途 |
+| --- | --- | --- |
+| Issue / PR evidence | `docs/audit/inputs/mtpro-live-risk-gate-contract-v1-stage-audit-input.md` 的 `Issue / PR evidence input` | 为 Parent Codex 汇总 PR #165、#167、#169、#170、#171、#172 和 MTP-88 PR 提供输入。 |
+| Live risk gate validation evidence chain | `docs/audit/inputs/mtpro-live-risk-gate-contract-v1-stage-audit-input.md` 的 `Live risk gate validation evidence chain` | 确认 terminology / taxonomy、exposure / order notional gates、frequency / loss / drawdown gates、circuit breaker / no-trade state gates、paper / live risk isolation、blocked evidence 和 Dashboard / Report / Event Timeline 展示面均有 contract / source / test / smoke / PR evidence。 |
+| Dashboard smoke | `docs/audit/inputs/mtpro-live-risk-gate-contract-v1-stage-audit-input.md` 的 `Dashboard smoke` evidence | 确认 `sections=8`、`readModelOnly=true`、`workbenchReadModelOnly=true`、`controls=start,pause,close,reset`、`timelineItems=37`、`liveBlockedGates=6`、`liveExecutionControlGates=7`、`liveRiskGates=6`、`liveMonitoringHealth=blocked` 和 `liveMonitoringErrors=3` 仍可定位。 |
+| Forbidden capability evidence | `docs/audit/inputs/mtpro-live-risk-gate-contract-v1-stage-audit-input.md` 的 `Forbidden capability evidence` | 为 Stage Code Audit 的 no API key、no signed endpoint、no account endpoint、no listenKey、no broker adapter、no `LiveExecutionAdapter`、no real risk engine、no real account balance、no broker position、no margin / leverage / PnL / equity、no circuit breaker command、no stop trading command、no emergency stop 和 no trading button 提供输入。 |
+| Automation readiness | `checks/automation-readiness.sh`、`docs/validation/validation-plan.md`、`docs/validation/latest-verification-summary.md` | 确认 MTP-88 audit input、contract anchors、matrix anchors、latest summary、validation plan、source / test anchors、Dashboard smoke evidence 和 PR Automation 证据链仍完整。 |
+| Root Docs Delta input | `docs/audit/inputs/mtpro-live-risk-gate-contract-v1-stage-audit-input.md` 的 `Root Docs Delta input` | 提醒 Parent Codex 在最终 Stage Code Audit Report 中检查 root docs，只同步已发生事实，并在 Root Docs Refresh Gate closure 后输出当前阶段完成进度条。 |
+
 ## MTP-81 Live Execution Control Contract 阶段收口
 
 日期：2026-05-22
