@@ -71,6 +71,7 @@
 | `docs/design/mtpro-workbench-component-layout-specification-v1.md` | 设计层组件 / 布局规格依据，承接 UI/UX Design Rules v1，定义 layout primitives、evidence components、state components、partition components 和边界组件 |
 | `docs/design/mtpro-workbench-visual-style-direction-v1.md` | 设计层视觉方向依据，承接组件 / 布局规格，定义 macOS native 工作台视觉方向、色彩语义、typography、density 和关键视觉样例 |
 | `docs/design/mtpro-workbench-user-facing-dashboard-high-fidelity-v2.md` | 设计层用户面 dashboard 高保真关键页面依据，承接 User Dashboard Content Model v1，定义 Figma canonical `85:2` 的 Workbench dashboard v2；不是 Live PRO Console 或实盘操作台 |
+| `docs/design/mtpro-workbench-user-facing-dashboard-high-fidelity-v3.md` | 设计层业务判断 dashboard 高保真关键页面依据，记录 Figma canonical `91:2` 的 macOS native refined Workbench dashboard v3；不是 Live PRO Console、实盘操作台或 SwiftUI 实现授权 |
 | `docs/audit/` | 已完成 Project 的 Stage Code Audit Reports |
 | `docs/validation/trading-validation-matrix.md` | 交易语义验证证据地图 |
 | `docs/planning/project-role-map.md` | MTPRO 角色编号、职责和边界 |
@@ -204,6 +205,8 @@ Figma canonical `15:2` 的 `MTPRO Workbench User Flow Blueprint v1` 已作为产
 
 `docs/design/mtpro-workbench-user-facing-dashboard-high-fidelity-v2.md` 记录 Figma canonical `85:2` 的用户面 dashboard 高保真关键页面。该设计依据把 Workbench 主屏从 evidence-heavy 调整为用户可读 dashboard，保留 source / trace / validation 的追溯入口但下沉到 inspector / Events / docs anchor。它不是 SwiftUI 实现稿，不是 Live PRO Console，不授权真实交易、Linear execution 或业务代码开发。
 
+`docs/design/mtpro-workbench-user-facing-dashboard-high-fidelity-v3.md` 记录 Figma canonical `91:2` 的业务判断 dashboard 高保真关键页面。该设计依据承接 `MTPRO Workbench Business Dashboard Content Model v2` 草案，并经过 macOS native desktop refinement，将 Workbench 从 system health / evidence / gate dashboard 推进为 sidebar / toolbar / workspace / inspector 结构的原生桌面工作台。它不是 SwiftUI 实现稿，不是组件库，不是 Live PRO Console，不授权真实交易、Linear execution 或业务代码开发。
+
 `docs/product/mtpro-product-surface-split-v1.md` 明确当前 `MTPRO Workbench` 与未来 `MTPRO Live PRO Console` 是两个产品面。Workbench 当前承载 Research、Backtest、Report、Paper、Portfolio、Risk、Events / Audit、Live Readiness 和 read-model-only Live Monitoring；Future Live PRO Console 必须经过 Human decision、独立 Project Definition、signed / account / broker / risk / ops gates 后，才允许进入 IA / UI / implementation。该文档不授权真实交易、Linear execution、SwiftUI 实现或业务代码开发。
 
 `Live Monitoring` 已完成，但只代表 read-model-only 的健康、连接、行情流 / 订单事件流、延迟和错误证据。订单流 / 订单事件流只表达 blocked / simulated / future evidence，不表示真实订单状态机，不提供 live command，不新增交易按钮。
@@ -277,6 +280,8 @@ MTPRO Workbench 最终应包含：
 `docs/design/mtpro-workbench-component-layout-specification-v1.md` 已记录 Figma canonical `57:2` 的 `MTPRO Workbench Component / Layout Specification v1` 作为设计层组件 / 布局规格依据。该文档承接 UI/UX Design Rules v1，定义 layout primitives、evidence components、state components、partition components、Paper 本地 session controls、Live Monitoring 只读证据组件、Future Gated placeholder 和 sizing / spacing / density tokens；它不是高保真最终视觉稿、SwiftUI 实现稿、真实交易能力或 Linear execution 授权。
 
 `docs/design/mtpro-workbench-visual-style-direction-v1.md` 已记录 Figma canonical `64:2` 的 `MTPRO Workbench Visual Style Direction v1` 作为设计层视觉方向依据。该文档承接 Product User Flow Blueprint、Product Interaction Model、Screen Layout v1、UI/UX Design Rules v1 和 Component / Layout Specification v1，定义 macOS native professional workstation 的视觉方向、色彩语义、typography hierarchy、density、核心组件视觉样例和关键页面视觉样例；它不是最终高保真 UI、组件库、SwiftUI 实现稿、真实交易能力或 Linear execution 授权。
+
+`docs/design/mtpro-workbench-user-facing-dashboard-high-fidelity-v3.md` 已记录 Figma canonical `91:2` 的 `MTPRO Workbench User-Facing Dashboard High-Fidelity v3` 作为设计层业务判断 dashboard 高保真关键页面依据。该文档承接 `MTPRO Workbench Business Dashboard Content Model v2` 草案，并经过 macOS native desktop refinement，定义 sidebar / toolbar / workspace / inspector 结构下的 Workbench business dashboard；它不是 SwiftUI 实现稿、组件库、Live PRO Console、实盘操作台或 Linear execution 授权。
 
 ## Infrastructure Blueprint / 基础设施蓝图
 

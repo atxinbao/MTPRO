@@ -9229,3 +9229,54 @@ PR evidence input：
 | `DASHBOARD_SMOKE=1 swift run Dashboard` | pass | 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=37; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`。 |
 | `bash checks/automation-readiness.sh` | pass | MTP-88 stage audit input、contract、matrix、validation plan、latest summary、source / test anchors 和 Dashboard smoke anchors 均可机械定位；输出 `MTPRO automation readiness checks passed.`。 |
 | `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=37; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；184 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO Workbench User-Facing Dashboard High-Fidelity v3 docs-only record
+
+日期：2026-05-23
+
+执行者：Codex（`@000 / AIE`）
+
+目的：
+
+- 将已通过 `@005 / ARC` 复审的 `MTPRO Workbench User-Facing Dashboard High-Fidelity v3` 落仓为设计层依据。
+- 记录 Figma canonical `91:2`，承接 `MTPRO Workbench Business Dashboard Content Model v2` 草案。
+- 明确 v3 是经过 macOS native desktop refinement 的 Workbench business dashboard 设计依据，不是 SwiftUI 实现稿、组件库、Live PRO Console、实盘操作台或 Linear execution 授权。
+
+文件范围：
+
+- `docs/design/mtpro-workbench-user-facing-dashboard-high-fidelity-v3.md`
+- `docs/product/product-surface-map.md`
+- `BLUEPRINT.md`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+更新重点：
+
+- 新增设计层文档，记录 Figma canonical URL、主节点 `91:2`、12 个 `91:*` frame node-id、v3 设计定位、每页内容摘要、Business Dashboard Content Model v2 映射、对 Figma `85:*` 的修正、macOS native refinement 记录和 Forbidden UI Surface Checklist。
+- 在 `docs/product/product-surface-map.md` 增加 `MTPRO Workbench User-Facing Dashboard High-Fidelity v3` 引用，明确它是设计层业务判断 dashboard 高保真关键页面依据，已经过 macOS native desktop refinement，不是 Live PRO Console、实盘操作台或 SwiftUI 实现授权。
+- 在 `BLUEPRINT.md` 增加 v3 设计依据入口，不复制完整设计内容，不更新进度条，不授权 execution。
+- 在 `docs/validation/latest-verification-summary.md` 记录 Figma canonical `91:2` 已通过 `@005 / ARC` 复审并完成 docs-only 落仓事实。
+
+`@005 / ARC` 审查结论：
+
+- 初审：需修改，问题为状态 pill 错位和 Future Gated 底部叠层。
+- 复审：通过，P0 / P1 无。
+- P2：hidden legacy layers 仍存在但均为 hidden，不进入最终截图，不阻塞落仓。
+
+边界确认：
+
+- 不修改 Figma。
+- 不创建 Linear Project / Issue，不修改 Linear status，不推进 Todo。
+- 不启动 `@002 / PAR`、Symphony 或 symphony-issue。
+- 不运行 Graphify update。
+- 不写业务代码。
+- 不把 Future Live trading 写成当前 execution scope。
+- 不把 Live PRO Console 写成当前可实现产品面。
+- 不新增 trading button、order form、submit / cancel / replace、broker action、signed endpoint、account endpoint / listenKey、real account balance、broker position、OMS、`LiveExecutionAdapter`、real order state machine、reconnect / start live / stop live、live command 或 emergency stop 当前可执行动作。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | docs-only diff 无空白错误。 |
+| `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=37; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；184 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
