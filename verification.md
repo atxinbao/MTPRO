@@ -9823,3 +9823,44 @@ Preflight：
 | --- | --- | --- |
 | `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
 | `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`；204 个 XCTest 通过、0 failures，最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO Live Audit Incident Stop Boundary v1 Stage Code Audit Report
+
+日期：2026-05-23
+
+执行者：Parent Codex Automation Supervision（`@002 / PAR`）
+
+目的：
+
+- 在 `MTP-89` 至 `MTP-95` 全部 Linear `Done` 且 Project 标记为 `Completed/type=completed` 后，落仓 canonical Stage Code Audit Report。
+- 输出 `docs/audit/mtpro-live-audit-incident-stop-boundary-v1-stage-code-audit.md`。
+- 更新 `docs/validation/latest-verification-summary.md`，指向 canonical Stage Code Audit Report。
+- 本轮只做 Stage Code Audit Report 落仓，不执行 Root Docs Refresh Gate，不更新 Final Product Goal Progress。
+
+关键证据：
+
+- Linear Project：`MTPRO Live Audit Incident Stop Boundary v1`。
+- Linear Project ID：`04cc5673-0eda-4ef1-aaa2-da55084be0ef`。
+- Linear Project status：`Completed/type=completed`，state `completed`，`completedAt=2026-05-22T22:20:10.884Z`。
+- Canonical issues：`MTP-89`、`MTP-90`、`MTP-91`、`MTP-92`、`MTP-93`、`MTP-94`、`MTP-95` 全部 `Done/type=completed`。
+- PR evidence：#178、#179、#180、#181、#182、#183、#184 均已通过 GitHub required check `checks` 后 squash merge。
+- Project 末端 merge commit：`fab605c24c9eb2a1381a484d930213baf8c38214`。
+- Post-Issue Ledger：MTP-95 `git_pull_ff_only` passed，`graphify_update` passed，`graphify-out/*` 未提交。
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear issue body。
+- 不推进任何 issue 到 `Todo`。
+- 不启动 Symphony 或 `symphony-issue`。
+- 不运行 Graphify update；Graphify evidence 只来自 Post-Issue Ledger。
+- 不写业务代码。
+- 不修改 root docs factual progress；Root Docs Refresh Gate 保持 pending。
+- 不实现 audit trail runtime、incident replay runtime、broker replay runtime、account replay runtime、production recovery runtime、stop control runtime、emergency stop command、shutdown command、restore command、production operations runtime、Live PRO Console、live command、order form、stop button、trading button、signed endpoint、account endpoint、listenKey、broker action、`LiveExecutionAdapter`、OMS 或 real order state machine。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Stage Code Audit Report docs-only PR 创建前执行；无 whitespace / patch error 输出。 |
+| `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`；204 个 XCTest 通过、0 failures，最终输出 `MTPRO checks passed.`。 |
