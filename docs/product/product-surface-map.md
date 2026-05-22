@@ -794,3 +794,37 @@ Shell 新增展示：
 - 最终高保真 UI、组件库、SwiftUI 实现或业务代码开发。
 - Linear Project / Issue、Todo 推进、Symphony 启动或 Future Live trading execution scope。
 - submit / cancel / replace、order form、broker action、signed endpoint、account endpoint / listenKey、reconnect / start live / stop live、live command、trading button、real order state machine、real account balance 或 real broker position。
+
+## MTPRO Workbench User Dashboard Content Model v1
+
+日期：2026-05-22
+
+执行者：Codex（`@000 / AIE`，基于 Human 提供的 `@003 / PRD` 草案落仓）
+
+当前产品层新增 `MTPRO Workbench User Dashboard Content Model v1`，路径为 `docs/product/mtpro-workbench-user-dashboard-content-model-v1.md`。该文档承接 Product User Flow Blueprint、Product Interaction Model 和已落仓的设计层依据，用于把 Workbench 从 evidence-heavy 页面校正为用户每天可用的专业交易工作台内容模型。
+
+该文档是产品层 dashboard content model，不是 UI 设计稿、组件规范、SwiftUI 实现稿或 Linear execution 授权。
+
+产品 / 设计依据链路：
+
+```text
+Product User Flow Blueprint v1
+-> Product Interaction Model v1
+-> User Dashboard Content Model v1
+-> User-Facing Dashboard High-Fidelity v2
+```
+
+Content Model 覆盖：
+
+- 用户面板原则：主屏先给结论，再给证据入口；主屏展示用户可读 summary；source / trace / timeline 下沉到 inspector、drill-down 或 Events / Audit。
+- Overview Content Model：今日工作台状态、数据新鲜度、最新研究结论、Paper 观察状态和 Live 状态五个核心状态。
+- 页面内容模型：Market Replay、Research、Backtest、Report、Paper、Portfolio、Risk、Events / Audit、Live Readiness、Live Monitoring、Future Gated 的主屏内容、主指标、inspector、timeline 和禁止动作。
+- Content Priority Matrix：区分主屏、inspector、timeline、docs / source anchor 和完全不展示的内容。
+- Figma `69:*` 修正建议：`69:*` 只作为 architecture-safe draft 参考，不作为最终用户面板设计依据；后续需要重画为 `User-Facing Dashboard High-Fidelity v2`。
+
+仍不包含：
+
+- Figma 修改或高保真重画本身。
+- 最终视觉稿、组件规范、SwiftUI 实现或业务代码开发。
+- Linear Project / Issue、Todo 推进、Symphony 启动或 Future Live trading execution scope。
+- submit / cancel / replace、order form、broker action、signed endpoint、account endpoint / listenKey、reconnect / start live / stop live、live command、trading button、real order state machine、real account balance 或 real broker position。
