@@ -8746,3 +8746,54 @@ Linear / scope evidence：
 | --- | --- | --- |
 | `git diff --check` | pass | docs-only planning record 变更无 whitespace error。 |
 | `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `timelineItems=31`、`liveExecutionControlGates=7`；164 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO Workbench User Dashboard Content Model v1 docs-only record
+
+日期：2026-05-22
+
+执行者：Codex（`@000 / AIE`）
+
+目的：
+
+- 将 Human 提供的 `MTPRO Workbench User Dashboard Content Model v1` 落仓为产品层文档。
+- 把 Workbench 从 evidence-heavy 页面校正为用户每天可用的专业交易工作台内容模型。
+- 明确 Figma High-Fidelity Key Screens v1 `69:*` 只作为 architecture-safe draft 参考，不作为最终用户面板设计依据。
+- 为后续 `@004 / DSG` 输出 `User-Facing Dashboard High-Fidelity v2` 提供产品层输入。
+
+文件范围：
+
+- `docs/product/mtpro-workbench-user-dashboard-content-model-v1.md`
+- `docs/product/product-surface-map.md`
+- `BLUEPRINT.md`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+更新重点：
+
+- 新增 `MTPRO Workbench User Dashboard Content Model v1`。
+- 记录用户面板原则、Overview Content Model、页面内容模型、Content Priority Matrix、Figma `69:*` 修正建议、`@004 / DSG` High-Fidelity v2 输入摘要和 `@005 / ARC` 后续审查重点。
+- 在 `docs/product/product-surface-map.md` 增加该产品层 dashboard content model 入口，并明确它处于 `Product User Flow Blueprint v1 -> Product Interaction Model v1 -> User Dashboard Content Model v1 -> User-Facing Dashboard High-Fidelity v2` 链路。
+- 在 `BLUEPRINT.md` 增加轻量入口，不复制完整内容，不更新进度条。
+- 在 `docs/validation/latest-verification-summary.md` 记录该文档已落仓且不授权 execution。
+
+边界确认：
+
+- 不修改 Figma。
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify update。
+- 不写业务代码。
+- 不把 Future Live trading 写成当前 execution scope。
+- 不提交 `.codex/*`。
+- 不提交 `graphify-out/*`。
+- 不实现 API key / secret storage、signed endpoint、account endpoint、listenKey、broker action、`LiveExecutionAdapter`、real order state machine、submit / cancel / replace、trading button、live command 或 order-level command UI。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | docs-only 产品层文档落仓无 whitespace error。 |
+| `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=31; liveBlockedGates=6; liveExecutionControlGates=7; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；164 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
