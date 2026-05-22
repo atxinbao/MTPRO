@@ -103,6 +103,521 @@ public enum LiveAuditIncidentStopEvidenceKind: String, Codable, CaseIterable, Eq
     case prBoundaryEvidence = "PR boundary evidence"
 }
 
+/// LiveAuditTrailSubject 固定 MTP-90 允许讨论的 Future audit trail 对象。
+///
+/// 这些对象只用于后续 Project Definition 前的审计链 gate 命名；当前代码不得把 signal、
+/// paper order、risk blocker 或 simulated fill 升级为真实 audit fact、broker ledger、OMS log
+/// 或 production audit runtime。
+public enum LiveAuditTrailSubject: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case signal = "signal"
+    case order = "order"
+    case riskDecision = "risk decision"
+    case fill = "fill"
+}
+
+/// LiveAuditTrailFutureGate 定义 MTP-90 的 signal / order / risk decision / fill future gates。
+///
+/// Gate 只描述 Future Live audit trail 进入实现前必须具备的合同和证据来源；它们不创建
+/// execution report ingestion、broker fill fact、real order state machine、OMS、broker action、
+/// reconciliation runtime 或任何 live command。
+public enum LiveAuditTrailFutureGate: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case signalSourceContractDefined = "signal source contract defined"
+    case signalDecisionPathContractDefined = "signal decision path contract defined"
+    case signalReplayCorrelationContractDefined = "signal replay correlation contract defined"
+    case orderIntentSourceContractDefined = "order intent source contract defined"
+    case orderStateTransitionContractDefined = "order state transition contract defined"
+    case orderCommandAuthorizationGateDefined = "order command authorization gate defined"
+    case riskDecisionSourceContractDefined = "risk decision source contract defined"
+    case riskGateOutcomeContractDefined = "risk gate outcome contract defined"
+    case riskBlockedReasonContractDefined = "risk blocked reason contract defined"
+    case fillSourceContractDefined = "fill source contract defined"
+    case executionReportSourceGateDefined = "execution report source gate defined"
+    case brokerFillSourceGateDefined = "broker fill source gate defined"
+    case auditTrailReplayCorrelationGateDefined = "audit trail replay correlation gate defined"
+    case readModelOnlyAuditEvidenceGateDefined = "read-model-only audit evidence gate defined"
+}
+
+/// LiveAuditTrailForbiddenCapability 枚举 MTP-90 必须保持禁止的 audit trail 能力面。
+///
+/// 这些 capability 可以作为 deterministic forbidden tests 和 PR evidence 出现，但不能被实现为
+/// 当前 adapter、runtime、parser、broker recorder、OMS、real order state machine、UI command
+/// 或真实交易行为。
+public enum LiveAuditTrailForbiddenCapability: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case signedEndpoint = "signed endpoint"
+    case accountEndpoint = "account endpoint"
+    case listenKeyUserDataStream = "listenKey user data stream"
+    case liveExecutionAdapter = "LiveExecutionAdapter"
+    case brokerAction = "broker action"
+    case executionReportIngestion = "execution report ingestion"
+    case brokerFillFact = "broker fill fact"
+    case brokerFillRecorder = "broker fill recorder"
+    case realOrderStateMachine = "real order state machine"
+    case oms = "OMS"
+    case brokerReconciliation = "broker reconciliation"
+    case auditTrailRuntime = "audit trail runtime"
+    case realOrderSubmitCancelReplace = "real order submit / cancel / replace"
+    case liveCommandSurface = "live command surface"
+    case orderLevelCommandUI = "order-level command UI"
+    case tradingButton = "trading button"
+    case paperOrderAuditFactUpgrade = "paper order to real audit fact upgrade"
+    case simulatedFillBrokerFillUpgrade = "simulated fill to broker fill upgrade"
+    case riskBlockerLiveRiskDecisionUpgrade = "risk blocker to live risk decision upgrade"
+}
+
+/// LiveAuditTrailFutureGateBoundary 是 MTP-90 的 Future audit trail gate fixture。
+///
+/// 该 fixture 只固定 signal、order、risk decision 和 fill 的 Future gate、source anchor、
+/// forbidden capability 和 validation anchor。它明确阻断 execution report ingestion、broker fill
+/// fact、real order state machine、OMS、broker action，以及 paper evidence 到真实 audit fact 的升级。
+public struct LiveAuditTrailFutureGateBoundary: Codable, Equatable, Sendable {
+    public let contractID: Identifier
+    public let issueID: Identifier
+    public let subjects: [LiveAuditTrailSubject]
+    public let futureGates: [LiveAuditTrailFutureGate]
+    public let forbiddenCapabilities: [LiveAuditTrailForbiddenCapability]
+    public let allowedEvidenceKinds: [LiveAuditIncidentStopEvidenceKind]
+    public let auditTrailSourceAnchors: [String]
+    public let validationAnchors: [String]
+    public let isFutureOnlyAuditTrailContract: Bool
+    public let representsBlockedEvidenceOnly: Bool
+    public let upgradesSignalEvidenceToLiveAuditFact: Bool
+    public let upgradesPaperOrderToRealOrderAuditFact: Bool
+    public let upgradesPaperRiskToLiveRiskDecisionAuditFact: Bool
+    public let upgradesSimulatedFillToBrokerFillAuditFact: Bool
+    public let usesSignedEndpoint: Bool
+    public let callsAccountEndpoint: Bool
+    public let createsListenKey: Bool
+    public let implementsLiveExecutionAdapter: Bool
+    public let executesBrokerAction: Bool
+    public let ingestsExecutionReport: Bool
+    public let recordsBrokerFillFact: Bool
+    public let recordsBrokerFillRuntime: Bool
+    public let implementsRealOrderStateMachine: Bool
+    public let implementsOMS: Bool
+    public let performsBrokerReconciliation: Bool
+    public let recordsAuditTrailRuntime: Bool
+    public let submitsCancelsOrReplacesRealOrder: Bool
+    public let providesLiveCommand: Bool
+    public let exposesOrderLevelCommandUI: Bool
+    public let providesTradingButton: Bool
+    public let requiredValidationDependsOnNetwork: Bool
+
+    public var auditTrailFutureGateBoundaryHeld: Bool {
+        subjects == Self.requiredSubjects
+            && futureGates == Self.requiredFutureGates
+            && forbiddenCapabilities == Self.requiredForbiddenCapabilities
+            && allowedEvidenceKinds == Self.allowedEvidenceKinds
+            && auditTrailSourceAnchors == Self.requiredAuditTrailSourceAnchors
+            && validationAnchors == Self.requiredValidationAnchors
+            && forbiddenCapabilityBoundaryHeld
+            && paperEvidenceIsolationBoundaryHeld
+    }
+
+    public var paperEvidenceIsolationBoundaryHeld: Bool {
+        isFutureOnlyAuditTrailContract
+            && representsBlockedEvidenceOnly
+            && upgradesSignalEvidenceToLiveAuditFact == false
+            && upgradesPaperOrderToRealOrderAuditFact == false
+            && upgradesPaperRiskToLiveRiskDecisionAuditFact == false
+            && upgradesSimulatedFillToBrokerFillAuditFact == false
+            && ingestsExecutionReport == false
+            && recordsBrokerFillFact == false
+            && implementsRealOrderStateMachine == false
+            && implementsOMS == false
+            && executesBrokerAction == false
+    }
+
+    public var forbiddenCapabilityBoundaryHeld: Bool {
+        isFutureOnlyAuditTrailContract
+            && representsBlockedEvidenceOnly
+            && usesSignedEndpoint == false
+            && callsAccountEndpoint == false
+            && createsListenKey == false
+            && implementsLiveExecutionAdapter == false
+            && executesBrokerAction == false
+            && ingestsExecutionReport == false
+            && recordsBrokerFillFact == false
+            && recordsBrokerFillRuntime == false
+            && implementsRealOrderStateMachine == false
+            && implementsOMS == false
+            && performsBrokerReconciliation == false
+            && recordsAuditTrailRuntime == false
+            && submitsCancelsOrReplacesRealOrder == false
+            && providesLiveCommand == false
+            && exposesOrderLevelCommandUI == false
+            && providesTradingButton == false
+            && requiredValidationDependsOnNetwork == false
+    }
+
+    public init(
+        contractID: Identifier = try! Identifier("mtp-90-live-audit-trail-future-gates"),
+        issueID: Identifier = try! Identifier("MTP-90"),
+        subjects: [LiveAuditTrailSubject] = Self.requiredSubjects,
+        futureGates: [LiveAuditTrailFutureGate] = Self.requiredFutureGates,
+        forbiddenCapabilities: [LiveAuditTrailForbiddenCapability] = Self.requiredForbiddenCapabilities,
+        allowedEvidenceKinds: [LiveAuditIncidentStopEvidenceKind] = Self.allowedEvidenceKinds,
+        auditTrailSourceAnchors: [String] = Self.requiredAuditTrailSourceAnchors,
+        validationAnchors: [String] = Self.requiredValidationAnchors,
+        isFutureOnlyAuditTrailContract: Bool = true,
+        representsBlockedEvidenceOnly: Bool = true,
+        upgradesSignalEvidenceToLiveAuditFact: Bool = false,
+        upgradesPaperOrderToRealOrderAuditFact: Bool = false,
+        upgradesPaperRiskToLiveRiskDecisionAuditFact: Bool = false,
+        upgradesSimulatedFillToBrokerFillAuditFact: Bool = false,
+        usesSignedEndpoint: Bool = false,
+        callsAccountEndpoint: Bool = false,
+        createsListenKey: Bool = false,
+        implementsLiveExecutionAdapter: Bool = false,
+        executesBrokerAction: Bool = false,
+        ingestsExecutionReport: Bool = false,
+        recordsBrokerFillFact: Bool = false,
+        recordsBrokerFillRuntime: Bool = false,
+        implementsRealOrderStateMachine: Bool = false,
+        implementsOMS: Bool = false,
+        performsBrokerReconciliation: Bool = false,
+        recordsAuditTrailRuntime: Bool = false,
+        submitsCancelsOrReplacesRealOrder: Bool = false,
+        providesLiveCommand: Bool = false,
+        exposesOrderLevelCommandUI: Bool = false,
+        providesTradingButton: Bool = false,
+        requiredValidationDependsOnNetwork: Bool = false
+    ) throws {
+        try Self.validate(
+            subjects: subjects,
+            futureGates: futureGates,
+            forbiddenCapabilities: forbiddenCapabilities,
+            allowedEvidenceKinds: allowedEvidenceKinds,
+            auditTrailSourceAnchors: auditTrailSourceAnchors,
+            validationAnchors: validationAnchors
+        )
+        try Self.validateForbiddenFlags(
+            isFutureOnlyAuditTrailContract: isFutureOnlyAuditTrailContract,
+            representsBlockedEvidenceOnly: representsBlockedEvidenceOnly,
+            upgradesSignalEvidenceToLiveAuditFact: upgradesSignalEvidenceToLiveAuditFact,
+            upgradesPaperOrderToRealOrderAuditFact: upgradesPaperOrderToRealOrderAuditFact,
+            upgradesPaperRiskToLiveRiskDecisionAuditFact: upgradesPaperRiskToLiveRiskDecisionAuditFact,
+            upgradesSimulatedFillToBrokerFillAuditFact: upgradesSimulatedFillToBrokerFillAuditFact,
+            usesSignedEndpoint: usesSignedEndpoint,
+            callsAccountEndpoint: callsAccountEndpoint,
+            createsListenKey: createsListenKey,
+            implementsLiveExecutionAdapter: implementsLiveExecutionAdapter,
+            executesBrokerAction: executesBrokerAction,
+            ingestsExecutionReport: ingestsExecutionReport,
+            recordsBrokerFillFact: recordsBrokerFillFact,
+            recordsBrokerFillRuntime: recordsBrokerFillRuntime,
+            implementsRealOrderStateMachine: implementsRealOrderStateMachine,
+            implementsOMS: implementsOMS,
+            performsBrokerReconciliation: performsBrokerReconciliation,
+            recordsAuditTrailRuntime: recordsAuditTrailRuntime,
+            submitsCancelsOrReplacesRealOrder: submitsCancelsOrReplacesRealOrder,
+            providesLiveCommand: providesLiveCommand,
+            exposesOrderLevelCommandUI: exposesOrderLevelCommandUI,
+            providesTradingButton: providesTradingButton,
+            requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork
+        )
+
+        self.contractID = contractID
+        self.issueID = issueID
+        self.subjects = subjects
+        self.futureGates = futureGates
+        self.forbiddenCapabilities = forbiddenCapabilities
+        self.allowedEvidenceKinds = allowedEvidenceKinds
+        self.auditTrailSourceAnchors = auditTrailSourceAnchors
+        self.validationAnchors = validationAnchors
+        self.isFutureOnlyAuditTrailContract = isFutureOnlyAuditTrailContract
+        self.representsBlockedEvidenceOnly = representsBlockedEvidenceOnly
+        self.upgradesSignalEvidenceToLiveAuditFact = upgradesSignalEvidenceToLiveAuditFact
+        self.upgradesPaperOrderToRealOrderAuditFact = upgradesPaperOrderToRealOrderAuditFact
+        self.upgradesPaperRiskToLiveRiskDecisionAuditFact = upgradesPaperRiskToLiveRiskDecisionAuditFact
+        self.upgradesSimulatedFillToBrokerFillAuditFact = upgradesSimulatedFillToBrokerFillAuditFact
+        self.usesSignedEndpoint = usesSignedEndpoint
+        self.callsAccountEndpoint = callsAccountEndpoint
+        self.createsListenKey = createsListenKey
+        self.implementsLiveExecutionAdapter = implementsLiveExecutionAdapter
+        self.executesBrokerAction = executesBrokerAction
+        self.ingestsExecutionReport = ingestsExecutionReport
+        self.recordsBrokerFillFact = recordsBrokerFillFact
+        self.recordsBrokerFillRuntime = recordsBrokerFillRuntime
+        self.implementsRealOrderStateMachine = implementsRealOrderStateMachine
+        self.implementsOMS = implementsOMS
+        self.performsBrokerReconciliation = performsBrokerReconciliation
+        self.recordsAuditTrailRuntime = recordsAuditTrailRuntime
+        self.submitsCancelsOrReplacesRealOrder = submitsCancelsOrReplacesRealOrder
+        self.providesLiveCommand = providesLiveCommand
+        self.exposesOrderLevelCommandUI = exposesOrderLevelCommandUI
+        self.providesTradingButton = providesTradingButton
+        self.requiredValidationDependsOnNetwork = requiredValidationDependsOnNetwork
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            contractID: try container.decode(Identifier.self, forKey: .contractID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            subjects: try container.decode([LiveAuditTrailSubject].self, forKey: .subjects),
+            futureGates: try container.decode([LiveAuditTrailFutureGate].self, forKey: .futureGates),
+            forbiddenCapabilities: try container.decode(
+                [LiveAuditTrailForbiddenCapability].self,
+                forKey: .forbiddenCapabilities
+            ),
+            allowedEvidenceKinds: try container.decode(
+                [LiveAuditIncidentStopEvidenceKind].self,
+                forKey: .allowedEvidenceKinds
+            ),
+            auditTrailSourceAnchors: try container.decode([String].self, forKey: .auditTrailSourceAnchors),
+            validationAnchors: try container.decode([String].self, forKey: .validationAnchors),
+            isFutureOnlyAuditTrailContract: try container.decode(
+                Bool.self,
+                forKey: .isFutureOnlyAuditTrailContract
+            ),
+            representsBlockedEvidenceOnly: try container.decode(Bool.self, forKey: .representsBlockedEvidenceOnly),
+            upgradesSignalEvidenceToLiveAuditFact: try container.decode(
+                Bool.self,
+                forKey: .upgradesSignalEvidenceToLiveAuditFact
+            ),
+            upgradesPaperOrderToRealOrderAuditFact: try container.decode(
+                Bool.self,
+                forKey: .upgradesPaperOrderToRealOrderAuditFact
+            ),
+            upgradesPaperRiskToLiveRiskDecisionAuditFact: try container.decode(
+                Bool.self,
+                forKey: .upgradesPaperRiskToLiveRiskDecisionAuditFact
+            ),
+            upgradesSimulatedFillToBrokerFillAuditFact: try container.decode(
+                Bool.self,
+                forKey: .upgradesSimulatedFillToBrokerFillAuditFact
+            ),
+            usesSignedEndpoint: try container.decode(Bool.self, forKey: .usesSignedEndpoint),
+            callsAccountEndpoint: try container.decode(Bool.self, forKey: .callsAccountEndpoint),
+            createsListenKey: try container.decode(Bool.self, forKey: .createsListenKey),
+            implementsLiveExecutionAdapter: try container.decode(Bool.self, forKey: .implementsLiveExecutionAdapter),
+            executesBrokerAction: try container.decode(Bool.self, forKey: .executesBrokerAction),
+            ingestsExecutionReport: try container.decode(Bool.self, forKey: .ingestsExecutionReport),
+            recordsBrokerFillFact: try container.decode(Bool.self, forKey: .recordsBrokerFillFact),
+            recordsBrokerFillRuntime: try container.decode(Bool.self, forKey: .recordsBrokerFillRuntime),
+            implementsRealOrderStateMachine: try container.decode(Bool.self, forKey: .implementsRealOrderStateMachine),
+            implementsOMS: try container.decode(Bool.self, forKey: .implementsOMS),
+            performsBrokerReconciliation: try container.decode(Bool.self, forKey: .performsBrokerReconciliation),
+            recordsAuditTrailRuntime: try container.decode(Bool.self, forKey: .recordsAuditTrailRuntime),
+            submitsCancelsOrReplacesRealOrder: try container.decode(
+                Bool.self,
+                forKey: .submitsCancelsOrReplacesRealOrder
+            ),
+            providesLiveCommand: try container.decode(Bool.self, forKey: .providesLiveCommand),
+            exposesOrderLevelCommandUI: try container.decode(Bool.self, forKey: .exposesOrderLevelCommandUI),
+            providesTradingButton: try container.decode(Bool.self, forKey: .providesTradingButton),
+            requiredValidationDependsOnNetwork: try container.decode(
+                Bool.self,
+                forKey: .requiredValidationDependsOnNetwork
+            )
+        )
+    }
+
+    public func gates(for subject: LiveAuditTrailSubject) -> [LiveAuditTrailFutureGate] {
+        Self.requiredFutureGatesBySubject[subject] ?? []
+    }
+
+    public func forbidsCapability(_ capability: LiveAuditTrailForbiddenCapability) -> Bool {
+        forbiddenCapabilities.contains(capability)
+    }
+
+    public static let requiredSubjects: [LiveAuditTrailSubject] = LiveAuditTrailSubject.allCases
+
+    public static let requiredFutureGatesBySubject: [LiveAuditTrailSubject: [LiveAuditTrailFutureGate]] = [
+        .signal: [
+            .signalSourceContractDefined,
+            .signalDecisionPathContractDefined,
+            .signalReplayCorrelationContractDefined
+        ],
+        .order: [
+            .orderIntentSourceContractDefined,
+            .orderStateTransitionContractDefined,
+            .orderCommandAuthorizationGateDefined
+        ],
+        .riskDecision: [
+            .riskDecisionSourceContractDefined,
+            .riskGateOutcomeContractDefined,
+            .riskBlockedReasonContractDefined
+        ],
+        .fill: [
+            .fillSourceContractDefined,
+            .executionReportSourceGateDefined,
+            .brokerFillSourceGateDefined
+        ]
+    ]
+
+    public static let requiredFutureGates: [LiveAuditTrailFutureGate] = [
+        .signalSourceContractDefined,
+        .signalDecisionPathContractDefined,
+        .signalReplayCorrelationContractDefined,
+        .orderIntentSourceContractDefined,
+        .orderStateTransitionContractDefined,
+        .orderCommandAuthorizationGateDefined,
+        .riskDecisionSourceContractDefined,
+        .riskGateOutcomeContractDefined,
+        .riskBlockedReasonContractDefined,
+        .fillSourceContractDefined,
+        .executionReportSourceGateDefined,
+        .brokerFillSourceGateDefined,
+        .auditTrailReplayCorrelationGateDefined,
+        .readModelOnlyAuditEvidenceGateDefined
+    ]
+
+    public static let requiredForbiddenCapabilities: [LiveAuditTrailForbiddenCapability] =
+        LiveAuditTrailForbiddenCapability.allCases
+
+    public static let allowedEvidenceKinds: [LiveAuditIncidentStopEvidenceKind] = [
+        .contractDocumentation,
+        .validationMatrixCandidate,
+        .validationPlanAnchor,
+        .deterministicForbiddenTest,
+        .futureGateTaxonomy,
+        .blockedEvidenceBoundary,
+        .prBoundaryEvidence
+    ]
+
+    public static let requiredAuditTrailSourceAnchors: [String] = [
+        "MTP-89-LIVE-AUDIT-INCIDENT-STOP-TERMINOLOGY",
+        "MTP-89-FUTURE-AUDIT-INCIDENT-STOP-TAXONOMY",
+        "MTP-79-LIVE-EXECUTION-CONTROL-BLOCKED-EVIDENCE",
+        "MTP-87-LIVE-RISK-GATE-BLOCKED-EVIDENCE",
+        "PaperOrderIntent",
+        "PaperExecutionDecision",
+        "RiskBlockerEvidence",
+        "PaperSimulatedFillEvidence"
+    ]
+
+    public static let requiredValidationAnchors: [String] = [
+        "MTP-90-SIGNAL-ORDER-RISK-FILL-AUDIT-TRAIL-FUTURE-GATES",
+        "MTP-90-FORBIDDEN-EXECUTION-REPORT-BROKER-FILL-OMS-TESTS",
+        "MTP-90-NO-REAL-ORDER-STATE-MACHINE-OR-BROKER-ACTION",
+        "MTP-90-PAPER-EVIDENCE-NO-REAL-AUDIT-FACT-UPGRADE",
+        "MTP-90-LIVE-AUDIT-TRAIL-VALIDATION",
+        "TVM-LIVE-AUDIT-INCIDENT-STOP"
+    ]
+
+    public static let deterministicFixture: LiveAuditTrailFutureGateBoundary = {
+        do {
+            return try LiveAuditTrailFutureGateBoundary()
+        } catch {
+            preconditionFailure("MTP-90 Live audit trail future gate fixture must be valid: \(error)")
+        }
+    }()
+
+    private static func validate(
+        subjects: [LiveAuditTrailSubject],
+        futureGates: [LiveAuditTrailFutureGate],
+        forbiddenCapabilities: [LiveAuditTrailForbiddenCapability],
+        allowedEvidenceKinds: [LiveAuditIncidentStopEvidenceKind],
+        auditTrailSourceAnchors: [String],
+        validationAnchors: [String]
+    ) throws {
+        guard subjects == Self.requiredSubjects else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "subjects",
+                expected: Self.requiredSubjects.map(\.rawValue).joined(separator: ","),
+                actual: subjects.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard futureGates == Self.requiredFutureGates else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "futureGates",
+                expected: Self.requiredFutureGates.map(\.rawValue).joined(separator: ","),
+                actual: futureGates.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard forbiddenCapabilities == Self.requiredForbiddenCapabilities else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "forbiddenCapabilities",
+                expected: Self.requiredForbiddenCapabilities.map(\.rawValue).joined(separator: ","),
+                actual: forbiddenCapabilities.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard allowedEvidenceKinds == Self.allowedEvidenceKinds else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "allowedEvidenceKinds",
+                expected: Self.allowedEvidenceKinds.map(\.rawValue).joined(separator: ","),
+                actual: allowedEvidenceKinds.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard auditTrailSourceAnchors == Self.requiredAuditTrailSourceAnchors else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "auditTrailSourceAnchors",
+                expected: Self.requiredAuditTrailSourceAnchors.joined(separator: ","),
+                actual: auditTrailSourceAnchors.joined(separator: ",")
+            )
+        }
+        guard validationAnchors == Self.requiredValidationAnchors else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "validationAnchors",
+                expected: Self.requiredValidationAnchors.joined(separator: ","),
+                actual: validationAnchors.joined(separator: ",")
+            )
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        isFutureOnlyAuditTrailContract: Bool,
+        representsBlockedEvidenceOnly: Bool,
+        upgradesSignalEvidenceToLiveAuditFact: Bool,
+        upgradesPaperOrderToRealOrderAuditFact: Bool,
+        upgradesPaperRiskToLiveRiskDecisionAuditFact: Bool,
+        upgradesSimulatedFillToBrokerFillAuditFact: Bool,
+        usesSignedEndpoint: Bool,
+        callsAccountEndpoint: Bool,
+        createsListenKey: Bool,
+        implementsLiveExecutionAdapter: Bool,
+        executesBrokerAction: Bool,
+        ingestsExecutionReport: Bool,
+        recordsBrokerFillFact: Bool,
+        recordsBrokerFillRuntime: Bool,
+        implementsRealOrderStateMachine: Bool,
+        implementsOMS: Bool,
+        performsBrokerReconciliation: Bool,
+        recordsAuditTrailRuntime: Bool,
+        submitsCancelsOrReplacesRealOrder: Bool,
+        providesLiveCommand: Bool,
+        exposesOrderLevelCommandUI: Bool,
+        providesTradingButton: Bool,
+        requiredValidationDependsOnNetwork: Bool
+    ) throws {
+        guard isFutureOnlyAuditTrailContract else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("isFutureOnlyAuditTrailContract")
+        }
+        guard representsBlockedEvidenceOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("representsBlockedEvidenceOnly")
+        }
+
+        let forbiddenFlags = [
+            ("upgradesSignalEvidenceToLiveAuditFact", upgradesSignalEvidenceToLiveAuditFact),
+            ("upgradesPaperOrderToRealOrderAuditFact", upgradesPaperOrderToRealOrderAuditFact),
+            ("upgradesPaperRiskToLiveRiskDecisionAuditFact", upgradesPaperRiskToLiveRiskDecisionAuditFact),
+            ("upgradesSimulatedFillToBrokerFillAuditFact", upgradesSimulatedFillToBrokerFillAuditFact),
+            ("usesSignedEndpoint", usesSignedEndpoint),
+            ("callsAccountEndpoint", callsAccountEndpoint),
+            ("createsListenKey", createsListenKey),
+            ("implementsLiveExecutionAdapter", implementsLiveExecutionAdapter),
+            ("executesBrokerAction", executesBrokerAction),
+            ("ingestsExecutionReport", ingestsExecutionReport),
+            ("recordsBrokerFillFact", recordsBrokerFillFact),
+            ("recordsBrokerFillRuntime", recordsBrokerFillRuntime),
+            ("implementsRealOrderStateMachine", implementsRealOrderStateMachine),
+            ("implementsOMS", implementsOMS),
+            ("performsBrokerReconciliation", performsBrokerReconciliation),
+            ("recordsAuditTrailRuntime", recordsAuditTrailRuntime),
+            ("submitsCancelsOrReplacesRealOrder", submitsCancelsOrReplacesRealOrder),
+            ("providesLiveCommand", providesLiveCommand),
+            ("exposesOrderLevelCommandUI", exposesOrderLevelCommandUI),
+            ("providesTradingButton", providesTradingButton),
+            ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(capability.0)
+        }
+    }
+}
+
 /// LiveAuditIncidentStopTerminologyBoundary 是 MTP-89 的 Future-only terminology / taxonomy fixture。
 ///
 /// 该 fixture 只把 live audit、audit trail、incident、incident replay、stop control、

@@ -1491,3 +1491,40 @@ MTP-89 必须建立的主要 anchors：
 - 不接 API key、secret storage、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不实现 OMS、real order state machine、real order submit / cancel / replace、execution report runtime、broker fill runtime 或 reconciliation runtime。
 - 不新增 live command、order-level command UI、order form、交易按钮、broker action 或真实交易授权。
+
+## MTP-90 Live Audit Trail Future Gates Validation
+
+日期：2026-05-23
+
+执行者：Codex
+
+MTP-90 的 required validation：
+
+- `docs/contracts/live-audit-incident-stop-contract.md` 必须包含 `MTP-90-SIGNAL-ORDER-RISK-FILL-AUDIT-TRAIL-FUTURE-GATES`、`MTP-90-FORBIDDEN-EXECUTION-REPORT-BROKER-FILL-OMS-TESTS`、`MTP-90-NO-REAL-ORDER-STATE-MACHINE-OR-BROKER-ACTION`、`MTP-90-PAPER-EVIDENCE-NO-REAL-AUDIT-FACT-UPGRADE` 和 `MTP-90-LIVE-AUDIT-TRAIL-VALIDATION` anchors。
+- `Sources/Core/LiveAuditIncidentStopContract.swift` 必须定义 `LiveAuditTrailSubject`、`LiveAuditTrailFutureGate`、`LiveAuditTrailForbiddenCapability` 和 `LiveAuditTrailFutureGateBoundary`，并保持这些类型只表达 Future / gated audit trail contract。
+- Core deterministic tests 必须覆盖 `testMTP90LiveAuditTrailFutureGatesDefineSignalOrderRiskDecisionFillBoundary`、`testMTP90LiveAuditTrailFutureGatesRejectExecutionReportBrokerFillOMSAndBrokerAction` 和 `testMTP90LiveAuditTrailFutureGatesKeepPaperEvidenceFromBecomingRealAuditFact`。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-90 issue backfill。
+- `docs/domain/context.md` 必须包含 MTP-90 audit trail future gates、forbidden execution report / broker fill / OMS tests、no real order state machine / broker action、paper evidence no real audit fact upgrade 和 validation anchors。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-90 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-90 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors；后续 MTP-95 仍负责 Project 级 stage closeout 和完整 automation readiness 收口。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不实现真实 audit trail runtime、execution report parser / ingestion、broker fill recorder、OMS、real order state machine、broker reconciliation、signed endpoint、account endpoint、listenKey、broker action、`LiveExecutionAdapter`、live command、order form 或交易按钮。
+
+MTP-90 必须建立的主要 anchors：
+
+- `TVM-LIVE-AUDIT-INCIDENT-STOP`
+- `MTP-90-SIGNAL-ORDER-RISK-FILL-AUDIT-TRAIL-FUTURE-GATES`
+- `MTP-90-FORBIDDEN-EXECUTION-REPORT-BROKER-FILL-OMS-TESTS`
+- `MTP-90-NO-REAL-ORDER-STATE-MACHINE-OR-BROKER-ACTION`
+- `MTP-90-PAPER-EVIDENCE-NO-REAL-AUDIT-FACT-UPGRADE`
+- `MTP-90-LIVE-AUDIT-TRAIL-VALIDATION`
+
+## MTP-90 禁止
+
+- 不实现真实 audit trail runtime。
+- 不实现 execution report parser / ingestion、execution report runtime 或 broker fill recorder。
+- 不记录 broker fill fact，不执行 broker reconciliation。
+- 不实现 OMS、real order state machine 或 real order submit / cancel / replace。
+- 不接 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不连接 broker，不执行 broker action。
+- 不把 strategy signal、`PaperOrderIntent`、`PaperExecutionDecision`、`RiskBlockerEvidence` 或 `PaperSimulatedFillEvidence` 升级为真实 audit fact。
+- 不新增 live command、order-level command UI、order form、交易按钮或真实交易授权。
