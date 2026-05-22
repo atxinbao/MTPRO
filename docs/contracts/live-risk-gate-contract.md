@@ -307,3 +307,110 @@ MTP-84 建立以下 validation anchors：
 - `MTP-84-NO-REAL-PNL-EQUITY-OR-DRAWDOWN-ENFORCEMENT`
 - `MTP-84-PAPER-RISK-EXPOSURE-NO-LIVE-RISK-UPGRADE`
 - `MTP-84-LIVE-RISK-GATE-VALIDATION`
+
+## MTP-85 circuit breaker / no-trade state gates
+
+`MTP-85-CIRCUIT-BREAKER-NO-TRADE-FUTURE-GATES`
+
+MTP-85 只定义 circuit breaker gate 和 no-trade state gate 的 Future Live Risk contract，不实现真实熔断服务、禁交易状态 runtime、全局交易锁、停机命令、自动恢复命令、live risk engine 或交易控制。
+
+| Gate | Future 条件 | 当前允许证据 | 当前禁止输出 |
+| --- | --- | --- | --- |
+| `circuit breaker gate` | Future Live Risk 需要独立 Human decision、live trading foundation boundary、live execution control boundary、exposure / order notional boundary、frequency / loss / drawdown boundary、circuit breaker policy、circuit breaker trigger source contract 和 operations / audit handoff。 | contract anchor、Core deterministic fixture、forbidden capability test、PR boundary evidence | circuit breaker runtime、drawdown circuit breaker runtime、circuit breaker command、stop trading command、emergency stop command、real pre-trade allow / reject runtime |
+| `no-trade state gate` | Future Live Risk 需要 no-trade state policy、no-trade state transition policy、trigger source contract、operations / audit handoff 和后续 incident / audit gate；当前只记录 gate 条件。 | contract anchor、Core deterministic fixture、forbidden capability test、PR boundary evidence | no-trade state runtime、global trading lock、broker session state mutation、production shutdown control、automatic recovery command、UI trading disable control |
+
+## MTP-85 forbidden circuit breaker / no-trade runtime tests
+
+`MTP-85-FORBIDDEN-CIRCUIT-BREAKER-NO-TRADE-RUNTIME-TESTS`
+
+MTP-85 的 forbidden capability tests 必须阻断：
+
+- API key / secret storage。
+- signed endpoint / account endpoint / listenKey。
+- broker / exchange execution adapter。
+- `LiveExecutionAdapter`。
+- real account balance read。
+- broker position sync。
+- margin read。
+- leverage read。
+- real PnL read。
+- real account equity read。
+- real loss / drawdown limit evaluation。
+- real pre-trade risk engine。
+- real pre-trade allow / reject runtime。
+- circuit breaker runtime。
+- no-trade state runtime。
+- no-trade state transition runtime。
+- global trading lock runtime。
+- broker session state mutation。
+- circuit breaker command / stop trading command / emergency stop command。
+- automatic recovery command。
+- production shutdown control。
+- live order submit / cancel / replace。
+- risk command surface、position management command、order form 和 trading button。
+
+Core deterministic fixture：`LiveCircuitBreakerNoTradeGateBoundary`。
+
+Core deterministic tests：
+
+- `testLiveCircuitBreakerNoTradeBoundaryDefinesMTP85FutureGatesAndForbiddenCapabilities`
+- `testLiveCircuitBreakerNoTradeBoundaryRejectsMTP85RuntimeCommandAndStateBypass`
+- `testPaperRiskAndExposureCannotUpgradeToMTP85CircuitBreakerNoTradeGateDecision`
+
+Required validation：`bash checks/run.sh`；不得依赖真实 Binance 网络、API key、account endpoint、listenKey、broker state、真实账户、真实 PnL、真实 equity、真实熔断服务、禁交易状态机、停机命令或人工验收。
+
+## MTP-85 no circuit breaker / no-trade state runtime
+
+`MTP-85-NO-CIRCUIT-BREAKER-OR-NO-TRADE-STATE-RUNTIME`
+
+MTP-85 的 circuit breaker / no-trade state gate 只能作为 Future / gated contract 存在：
+
+- `LiveCircuitBreakerNoTradeGateBoundary.providesLiveRiskEngine == false`
+- `LiveCircuitBreakerNoTradeGateBoundary.runsCircuitBreakerRuntime == false`
+- `LiveCircuitBreakerNoTradeGateBoundary.entersNoTradeStateRuntime == false`
+- `LiveCircuitBreakerNoTradeGateBoundary.mutatesNoTradeState == false`
+- `LiveCircuitBreakerNoTradeGateBoundary.runsGlobalTradingLock == false`
+- `LiveCircuitBreakerNoTradeGateBoundary.mutatesBrokerSessionState == false`
+- `LiveCircuitBreakerNoTradeGateBoundary.runsCircuitBreakerCommand == false`
+- `LiveCircuitBreakerNoTradeGateBoundary.runsStopTradingCommand == false`
+- `LiveCircuitBreakerNoTradeGateBoundary.runsEmergencyStopCommand == false`
+- `LiveCircuitBreakerNoTradeGateBoundary.runsAutomaticRecoveryCommand == false`
+- `LiveCircuitBreakerNoTradeGateBoundary.controlsProductionShutdown == false`
+
+## MTP-85 paper risk / exposure no circuit breaker upgrade
+
+`MTP-85-PAPER-RISK-EXPOSURE-NO-CIRCUIT-BREAKER-UPGRADE`
+
+当前 `RiskBlockerEvidence` 和 `PortfolioExposureSnapshot` 仍只能表示 paper-only read model / evidence，不等于 live circuit breaker trigger、no-trade state trigger、真实账户状态、真实 PnL / equity 或 pre-trade risk runtime。MTP-85 必须保持：
+
+- `mapsPaperRiskBlockerToCircuitBreakerNoTradeGate == false`
+- `mapsPaperExposureToCircuitBreakerNoTradeGate == false`
+- `readsRealPnL == false`
+- `readsRealAccountEquity == false`
+- `runsCircuitBreakerRuntime == false`
+- `entersNoTradeStateRuntime == false`
+- `evaluatesRealPreTradeAllow == false`
+- `evaluatesRealPreTradeReject == false`
+
+Source anchors：
+
+- `MTP-82-LIVE-RISK-TERMINOLOGY`
+- `MTP-82-FUTURE-RISK-DECISION-TAXONOMY`
+- `MTP-83-EXPOSURE-ORDER-NOTIONAL-FUTURE-GATES`
+- `MTP-84-FREQUENCY-LOSS-DRAWDOWN-FUTURE-GATES`
+- `TVM-RISK-BLOCKER`
+- `TVM-PORTFOLIO-EXPOSURE`
+- `MTP-78-PAPER-EVIDENCE-NO-REAL-COMMAND-UPGRADE`
+
+## MTP-85 validation anchors
+
+`MTP-85-LIVE-RISK-GATE-VALIDATION`
+
+MTP-85 建立以下 validation anchors：
+
+- `TVM-LIVE-RISK-GATE`
+- `MTP-85-CIRCUIT-BREAKER-NO-TRADE-FUTURE-GATES`
+- `MTP-85-FORBIDDEN-CIRCUIT-BREAKER-NO-TRADE-RUNTIME-TESTS`
+- `MTP-85-NO-CIRCUIT-BREAKER-OR-NO-TRADE-STATE-RUNTIME`
+- `MTP-85-PAPER-RISK-EXPOSURE-NO-CIRCUIT-BREAKER-UPGRADE`
+- `MTP-85-LIVE-RISK-GATE-VALIDATION`

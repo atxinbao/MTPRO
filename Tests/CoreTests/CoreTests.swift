@@ -2619,6 +2619,228 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(DomainEvent.portfolio(.exposureUpdated(exposure)), .portfolio(.exposureUpdated(exposure)))
     }
 
+    func testLiveCircuitBreakerNoTradeBoundaryDefinesMTP85FutureGatesAndForbiddenCapabilities() throws {
+        // 测试场景：MTP-85 只定义 circuit breaker / no-trade state 的 future gates 和
+        // forbidden capability evidence，不新增真实熔断 runtime、禁交易状态机、停机命令或 UI 交易控制。
+        let boundary = LiveCircuitBreakerNoTradeGateBoundary.deterministicFixture
+
+        XCTAssertEqual(boundary.contractID, try Identifier("mtp-85-circuit-breaker-no-trade-boundary"))
+        XCTAssertEqual(boundary.issueID, try Identifier("MTP-85"))
+        XCTAssertEqual(boundary.terms, [.circuitBreaker, .noTradeState])
+        XCTAssertEqual(
+            boundary.futureGates,
+            [
+                .humanLiveRiskDecision,
+                .liveTradingFoundationBoundarySatisfied,
+                .liveExecutionControlBoundarySatisfied,
+                .exposureOrderNotionalBoundarySatisfied,
+                .frequencyLossDrawdownBoundarySatisfied,
+                .circuitBreakerPolicyDefined,
+                .circuitBreakerTriggerSourceContractDefined,
+                .noTradeStatePolicyDefined,
+                .noTradeStateTransitionPolicyDefined,
+                .operationsAuditHandoffDefined
+            ]
+        )
+        XCTAssertEqual(
+            boundary.forbiddenCapabilities,
+            LiveCircuitBreakerNoTradeForbiddenCapability.allCases
+        )
+        XCTAssertTrue(boundary.forbidsCapability(.circuitBreakerRuntime))
+        XCTAssertTrue(boundary.forbidsCapability(.noTradeStateRuntime))
+        XCTAssertTrue(boundary.forbidsCapability(.globalTradingLockRuntime))
+        XCTAssertTrue(boundary.forbidsCapability(.circuitBreakerCommand))
+        XCTAssertTrue(boundary.forbidsCapability(.stopTradingCommand))
+        XCTAssertTrue(boundary.forbidsCapability(.automaticRecoveryCommand))
+        XCTAssertEqual(
+            boundary.allowedEvidenceKinds,
+            [
+                .contractDocumentation,
+                .validationMatrixCandidate,
+                .validationPlanAnchor,
+                .deterministicForbiddenTest,
+                .paperLiveRiskIsolationEvidence,
+                .prBoundaryEvidence
+            ]
+        )
+        XCTAssertEqual(boundary.validationAnchors, [
+            "MTP-85-CIRCUIT-BREAKER-NO-TRADE-FUTURE-GATES",
+            "MTP-85-FORBIDDEN-CIRCUIT-BREAKER-NO-TRADE-RUNTIME-TESTS",
+            "MTP-85-NO-CIRCUIT-BREAKER-OR-NO-TRADE-STATE-RUNTIME",
+            "MTP-85-PAPER-RISK-EXPOSURE-NO-CIRCUIT-BREAKER-UPGRADE",
+            "MTP-85-LIVE-RISK-GATE-VALIDATION",
+            "TVM-LIVE-RISK-GATE"
+        ])
+        XCTAssertEqual(boundary.sourceAnchors, [
+            "MTP-82-LIVE-RISK-TERMINOLOGY",
+            "MTP-82-FUTURE-RISK-DECISION-TAXONOMY",
+            "MTP-83-EXPOSURE-ORDER-NOTIONAL-FUTURE-GATES",
+            "MTP-84-FREQUENCY-LOSS-DRAWDOWN-FUTURE-GATES",
+            "TVM-RISK-BLOCKER",
+            "TVM-PORTFOLIO-EXPOSURE",
+            "MTP-78-PAPER-EVIDENCE-NO-REAL-COMMAND-UPGRADE"
+        ])
+        XCTAssertTrue(boundary.circuitBreakerNoTradeBoundaryHeld)
+        XCTAssertTrue(boundary.circuitBreakerRuntimeBoundaryHeld)
+        XCTAssertTrue(boundary.noTradeStateRuntimeBoundaryHeld)
+        XCTAssertTrue(boundary.operationsCommandBoundaryHeld)
+        XCTAssertTrue(boundary.paperRiskExposureIsolationBoundaryHeld)
+        XCTAssertTrue(boundary.allPreTradeDecisionsBlocked)
+        XCTAssertTrue(boundary.isFutureGateOnly)
+        XCTAssertFalse(boundary.providesLiveRiskEngine)
+        XCTAssertFalse(boundary.readsAPIKey)
+        XCTAssertFalse(boundary.storesSecret)
+        XCTAssertFalse(boundary.usesSignedEndpoint)
+        XCTAssertFalse(boundary.callsAccountEndpoint)
+        XCTAssertFalse(boundary.createsListenKey)
+        XCTAssertFalse(boundary.instantiatesBrokerExecutionAdapter)
+        XCTAssertFalse(boundary.implementsLiveExecutionAdapter)
+        XCTAssertFalse(boundary.readsRealAccountBalance)
+        XCTAssertFalse(boundary.syncsBrokerPosition)
+        XCTAssertFalse(boundary.readsMargin)
+        XCTAssertFalse(boundary.readsLeverage)
+        XCTAssertFalse(boundary.readsRealPnL)
+        XCTAssertFalse(boundary.readsRealAccountEquity)
+        XCTAssertFalse(boundary.evaluatesRealLossLimit)
+        XCTAssertFalse(boundary.evaluatesRealDrawdownLimit)
+        XCTAssertFalse(boundary.evaluatesRealPreTradeAllow)
+        XCTAssertFalse(boundary.evaluatesRealPreTradeReject)
+        XCTAssertFalse(boundary.runsCircuitBreakerRuntime)
+        XCTAssertFalse(boundary.entersNoTradeStateRuntime)
+        XCTAssertFalse(boundary.mutatesNoTradeState)
+        XCTAssertFalse(boundary.runsGlobalTradingLock)
+        XCTAssertFalse(boundary.mutatesBrokerSessionState)
+        XCTAssertFalse(boundary.runsCircuitBreakerCommand)
+        XCTAssertFalse(boundary.runsStopTradingCommand)
+        XCTAssertFalse(boundary.runsEmergencyStopCommand)
+        XCTAssertFalse(boundary.runsAutomaticRecoveryCommand)
+        XCTAssertFalse(boundary.controlsProductionShutdown)
+        XCTAssertFalse(boundary.authorizesLiveTrading)
+        XCTAssertFalse(boundary.submitsRealOrder)
+        XCTAssertFalse(boundary.cancelsRealOrder)
+        XCTAssertFalse(boundary.replacesRealOrder)
+        XCTAssertFalse(boundary.mapsPaperRiskBlockerToCircuitBreakerNoTradeGate)
+        XCTAssertFalse(boundary.mapsPaperExposureToCircuitBreakerNoTradeGate)
+        XCTAssertFalse(boundary.providesRiskCommandSurface)
+        XCTAssertFalse(boundary.providesPositionManagementCommand)
+        XCTAssertFalse(boundary.exposesOrderForm)
+        XCTAssertFalse(boundary.providesTradingButton)
+        XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(
+            LiveCircuitBreakerNoTradeGateBoundary.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, boundary)
+    }
+
+    func testLiveCircuitBreakerNoTradeBoundaryRejectsMTP85RuntimeCommandAndStateBypass() throws {
+        // 测试场景：MTP-85 fixture 的初始化和 Codable 解码必须拒绝真实熔断 runtime、
+        // no-trade 状态机、全局交易锁、broker session 变更、停机 / 恢复命令和 UI 命令绕过。
+        XCTAssertThrowsError(
+            try LiveCircuitBreakerNoTradeGateBoundary(runsCircuitBreakerRuntime: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("runsCircuitBreakerRuntime"))
+        }
+        XCTAssertThrowsError(
+            try LiveCircuitBreakerNoTradeGateBoundary(entersNoTradeStateRuntime: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("entersNoTradeStateRuntime"))
+        }
+        XCTAssertThrowsError(
+            try LiveCircuitBreakerNoTradeGateBoundary(runsGlobalTradingLock: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("runsGlobalTradingLock"))
+        }
+        XCTAssertThrowsError(
+            try LiveCircuitBreakerNoTradeGateBoundary(mutatesBrokerSessionState: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("mutatesBrokerSessionState"))
+        }
+        XCTAssertThrowsError(
+            try LiveCircuitBreakerNoTradeGateBoundary(runsStopTradingCommand: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("runsStopTradingCommand"))
+        }
+        XCTAssertThrowsError(
+            try LiveCircuitBreakerNoTradeGateBoundary(runsAutomaticRecoveryCommand: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("runsAutomaticRecoveryCommand"))
+        }
+        XCTAssertThrowsError(
+            try LiveCircuitBreakerNoTradeGateBoundary(terms: [.circuitBreaker])
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "terms",
+                    expected: LiveCircuitBreakerNoTradeGateBoundary.requiredTerms.map(\.rawValue).joined(separator: ","),
+                    actual: "circuit breaker"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(LiveCircuitBreakerNoTradeGateBoundary.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["controlsProductionShutdown"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveCircuitBreakerNoTradeGateBoundary.self, from: data)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("controlsProductionShutdown"))
+        }
+    }
+
+    func testPaperRiskAndExposureCannotUpgradeToMTP85CircuitBreakerNoTradeGateDecision() throws {
+        // 测试场景：MTP-85 明确当前 paper risk blocker 和 portfolio exposure 仍是本地 evidence，
+        // 不能升级为 live circuit breaker、no-trade 状态、真实账户状态或 pre-trade runtime。
+        let boundary = LiveCircuitBreakerNoTradeGateBoundary.deterministicFixture
+        let riskQuery = try RiskEvaluationQuery(
+            paperOrderID: try Identifier("paper-risk-order-mtp-85"),
+            symbol: try Symbol(rawValue: "BTCUSDT"),
+            timeframe: .oneMinute,
+            proposedQuantity: try Quantity(1.4),
+            riskProfileID: try Identifier("paper-risk"),
+            executionMode: .paper
+        )
+        let blocker = RiskBlockerEvidence(
+            evidenceID: try Identifier("risk-blocker-mtp-85"),
+            query: riskQuery,
+            reason: .maxPaperQuantityExceeded,
+            generatedAt: Date(timeIntervalSince1970: 2_500)
+        )
+        let exposure = PortfolioExposureSnapshot(
+            portfolioID: try Identifier("portfolio-main"),
+            symbol: try Symbol(rawValue: "BTCUSDT"),
+            timeframe: .oneMinute,
+            paperQuantity: try Quantity(0.5),
+            referencePrice: try Price(50_000),
+            source: .paperProjection,
+            observedAt: Date(timeIntervalSince1970: 2_501)
+        )
+
+        XCTAssertTrue(boundary.paperRiskExposureIsolationBoundaryHeld)
+        XCTAssertTrue(boundary.forbidsCapability(.paperRiskBlockerUpgrade))
+        XCTAssertTrue(boundary.forbidsCapability(.paperExposureUpgrade))
+        XCTAssertFalse(boundary.mapsPaperRiskBlockerToCircuitBreakerNoTradeGate)
+        XCTAssertFalse(boundary.mapsPaperExposureToCircuitBreakerNoTradeGate)
+        XCTAssertFalse(boundary.runsCircuitBreakerRuntime)
+        XCTAssertFalse(boundary.entersNoTradeStateRuntime)
+        XCTAssertFalse(boundary.evaluatesRealPreTradeAllow)
+        XCTAssertFalse(boundary.evaluatesRealPreTradeReject)
+        XCTAssertFalse(boundary.authorizesLiveTrading)
+
+        XCTAssertEqual(blocker.executionMode, .paper)
+        XCTAssertEqual(blocker.paperOrderID, riskQuery.paperOrderID)
+        XCTAssertEqual(blocker.reason, .maxPaperQuantityExceeded)
+        XCTAssertEqual(exposure.source, .paperProjection)
+        XCTAssertEqual(exposure.grossExposureNotional, 25_000, accuracy: 0.00000001)
+        XCTAssertEqual(DomainEvent.risk(.blocked(blocker)), .risk(.blocked(blocker)))
+        XCTAssertEqual(DomainEvent.portfolio(.exposureUpdated(exposure)), .portfolio(.exposureUpdated(exposure)))
+    }
+
     func testLiveRuntimeHealthDefinesMTP69ReadModelOnlyFixture() throws {
         // 测试场景：MTP-69 只新增 future live runtime health / connection status 的最小
         // read model。fixture 可以表达 healthy / blocked / disconnected / degraded /
