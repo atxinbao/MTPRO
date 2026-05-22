@@ -126,6 +126,8 @@ P0 / P1 / P2：
 
 当前 v2 是 Workbench 用户面 dashboard，不是 Live PRO Console。
 
+产品面分界以 `docs/product/mtpro-product-surface-split-v1.md` 为准：`MTPRO Workbench` 与未来 `MTPRO Live PRO Console` 是两个产品面，Figma `85:*` 只代表 Workbench dashboard，不代表 Live PRO Console 或实盘操作台。
+
 - Workbench 当前负责 Research、Backtest、Report、Paper、Portfolio、Risk、Events、Live Readiness 和 read-model-only Live Monitoring 的状态判断与证据导航。
 - Future Live PRO Console 若需要表达真实账户、真实订单控制、live risk、no-trade state、circuit breaker、emergency stop 或 incident replay，应作为独立 future product surface 单独规划。
 - Workbench 不能自然升级为实盘操作台，Paper / evidence UI 也不能升级为实盘控制面。
