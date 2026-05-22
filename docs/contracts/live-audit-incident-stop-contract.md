@@ -303,3 +303,60 @@ MTP-92 建立以下 validation anchors：
 - `MTP-92-NO-LIVE-RISK-CIRCUIT-BREAKER-OR-NO-TRADE-UPGRADE`
 - `MTP-92-NO-BROKER-SESSION-MUTATION-OR-PRODUCTION-SHUTDOWN`
 - `MTP-92-STOP-SHUTDOWN-RESTORE-VALIDATION`
+
+## MTP-93 live risk / execution blocked evidence isolation
+
+`MTP-93-LIVE-RISK-EXECUTION-BLOCKED-EVIDENCE-ISOLATION`
+
+MTP-93 只定义 `LiveExecutionControlBlockedEvidence`、`LiveRiskGateBlockedEvidence` 和 paper-only evidence 与 future incident / stop boundary 的隔离合同。Execution-control blocked evidence 只能说明 submit、cancel、replace、execution report、broker fill、reconciliation 和 incident fallback 为什么仍被阻断；risk gate blocked evidence 只能说明 exposure、notional、frequency、loss / drawdown、circuit breaker 和 no-trade state 为什么仍被阻断。两者都不能升级为 incident command、stop command、restore decision、execution runtime、live risk engine 或 production operations。
+
+| Source evidence | 当前允许用途 | 当前禁止升级 |
+| --- | --- | --- |
+| `LiveExecutionControlBlockedEvidence` | read-model-only blocked reason、deterministic snapshot、PR boundary evidence | incident command、stop command、restore decision、execution runtime、live command |
+| `LiveRiskGateBlockedEvidence` | read-model-only risk gate blocked reason、deterministic snapshot、PR boundary evidence | incident replay runtime、emergency stop、shutdown command、live risk engine、risk command |
+| `PaperOrderIntent` / `PaperSimulatedFillEvidence` / `PortfolioExposureSnapshot` | paper-only evidence source anchor、validation matrix evidence | production incident fact、stop decision、restore readiness、broker fill fact、real account state |
+
+这些 gates 由 Core deterministic fixture `LiveBlockedEvidenceIncidentStopIsolationBoundary` 固定。该 fixture 只输出 isolation contract、source anchors、validation anchors 和 forbidden capability flags，不读取 secret，不接 signed endpoint / account endpoint / listenKey，不读取真实 account / broker state，不实例化 `LiveExecutionAdapter`，不连接 broker，不提供 Live PRO Console、live command、stop button、order-level command UI 或交易按钮。
+
+## MTP-93 no blocked evidence to incident / stop command upgrade
+
+`MTP-93-NO-BLOCKED-EVIDENCE-TO-INCIDENT-OR-STOP-COMMAND-UPGRADE`
+
+MTP-93 的 forbidden capability tests 必须阻断：
+
+- execution-control blocked evidence -> incident command。
+- execution-control blocked evidence -> stop command。
+- execution-control blocked evidence -> restore decision。
+- risk gate blocked evidence -> incident replay runtime。
+- risk gate blocked evidence -> emergency stop。
+- risk gate blocked evidence -> shutdown command。
+- incident replay runtime、stop command、shutdown command、restore command。
+- execution runtime、live risk engine、production operations runtime。
+- signed endpoint、account endpoint、listenKey、broker action。
+- `LiveExecutionAdapter`、OMS、real order state machine。
+- Live PRO Console、live command surface、trading button。
+
+## MTP-93 paper evidence no incident / stop upgrade
+
+`MTP-93-PAPER-EVIDENCE-NO-INCIDENT-STOP-UPGRADE`
+
+MTP-93 可以引用 `PaperOrderIntent`、`PaperSimulatedFillEvidence`、`RiskBlockerEvidence` 和 `PortfolioExposureSnapshot` 作为 source anchors，但这些 paper-only evidence 不能变成 future incident command input、production incident fact、stop decision、restore readiness evidence、broker fill fact、real account state 或 production operations handoff。MTP-93 只允许把它们列为隔离证据，不允许写成当前事故回放、停机、恢复或实盘运维能力。
+
+## MTP-93 forbidden command / runtime upgrade tests
+
+`MTP-93-FORBIDDEN-COMMAND-RUNTIME-UPGRADE-TESTS`
+
+Core focused tests 必须覆盖 `LiveBlockedEvidenceIncidentStopIsolationBoundary` 的 deterministic fixture、command/runtime forbidden flags、Codable 解码拒绝绕过，以及 paper-only evidence / read-model-only evidence 的 source anchor 隔离。
+
+## MTP-93 validation anchors
+
+`MTP-93-BLOCKED-EVIDENCE-ISOLATION-VALIDATION`
+
+MTP-93 建立以下 validation anchors：
+
+- `TVM-LIVE-AUDIT-INCIDENT-STOP`
+- `MTP-93-LIVE-RISK-EXECUTION-BLOCKED-EVIDENCE-ISOLATION`
+- `MTP-93-NO-BLOCKED-EVIDENCE-TO-INCIDENT-OR-STOP-COMMAND-UPGRADE`
+- `MTP-93-PAPER-EVIDENCE-NO-INCIDENT-STOP-UPGRADE`
+- `MTP-93-FORBIDDEN-COMMAND-RUNTIME-UPGRADE-TESTS`
+- `MTP-93-BLOCKED-EVIDENCE-ISOLATION-VALIDATION`

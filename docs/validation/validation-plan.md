@@ -1601,3 +1601,39 @@ MTP-92 必须建立的主要 anchors：
 - 不实现 OMS、real order state machine、live risk engine、circuit breaker runtime、no-trade state runtime、restore decision runtime 或 live runtime resume。
 - 不把 `LiveCircuitBreakerNoTradeGateBoundary`、risk gate blocked evidence、circuit breaker 或 no-trade state 升级为当前 emergency stop、shutdown、restore 或 production shutdown control。
 - 不新增 Live PRO Console、live command、order-level command UI、stop button、order form、交易按钮或真实交易授权。
+
+## MTP-93 Blocked Evidence Incident / Stop Isolation Validation
+
+日期：2026-05-23
+
+执行者：Codex
+
+MTP-93 的 required validation：
+
+- `docs/contracts/live-audit-incident-stop-contract.md` 必须包含 `MTP-93-LIVE-RISK-EXECUTION-BLOCKED-EVIDENCE-ISOLATION`、`MTP-93-NO-BLOCKED-EVIDENCE-TO-INCIDENT-OR-STOP-COMMAND-UPGRADE`、`MTP-93-PAPER-EVIDENCE-NO-INCIDENT-STOP-UPGRADE`、`MTP-93-FORBIDDEN-COMMAND-RUNTIME-UPGRADE-TESTS` 和 `MTP-93-BLOCKED-EVIDENCE-ISOLATION-VALIDATION` anchors。
+- `Sources/Core/LiveAuditIncidentStopContract.swift` 必须包含 `LiveBlockedEvidenceIncidentStopIsolationGate`、`LiveBlockedEvidenceIncidentStopForbiddenCapability` 和 `LiveBlockedEvidenceIncidentStopIsolationBoundary`。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-93 focused tests，验证 Live execution / risk blocked evidence 不能升级为 incident replay runtime、stop command、shutdown command、restore command、production operation、live command、trading button 或 Live PRO Console。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-93 issue backfill。
+- `docs/domain/context.md` 必须包含 MTP-93 blocked evidence isolation、no blocked evidence to incident / stop command upgrade、paper evidence no incident / stop upgrade、forbidden command / runtime tests 和 validation anchors。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-93 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-93 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors；后续 MTP-95 仍负责 Project 级 stage closeout 和完整 automation readiness 收口。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不实现 incident command、stop / shutdown / restore command、live risk engine、execution runtime、production operations、Live PRO Console、signed endpoint、account endpoint、listenKey、broker action、live command、order form 或交易按钮。
+
+MTP-93 必须建立的主要 anchors：
+
+- `TVM-LIVE-AUDIT-INCIDENT-STOP`
+- `MTP-93-LIVE-RISK-EXECUTION-BLOCKED-EVIDENCE-ISOLATION`
+- `MTP-93-NO-BLOCKED-EVIDENCE-TO-INCIDENT-OR-STOP-COMMAND-UPGRADE`
+- `MTP-93-PAPER-EVIDENCE-NO-INCIDENT-STOP-UPGRADE`
+- `MTP-93-FORBIDDEN-COMMAND-RUNTIME-UPGRADE-TESTS`
+- `MTP-93-BLOCKED-EVIDENCE-ISOLATION-VALIDATION`
+
+## MTP-93 禁止
+
+- 不把 `LiveExecutionControlBlockedEvidence` 升级为 incident command、stop command、restore decision、execution runtime、live command 或交易按钮。
+- 不把 `LiveRiskGateBlockedEvidence` 升级为 incident replay runtime、emergency stop、shutdown command、live risk engine、risk command、stop command 或 production operations。
+- 不把 `PaperOrderIntent`、`PaperSimulatedFillEvidence`、`RiskBlockerEvidence` 或 `PortfolioExposureSnapshot` 升级为 production incident fact、stop decision、restore readiness、broker fill fact、real account state 或 future live risk decision。
+- 不接 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不连接 broker，不执行 broker action。
+- 不实现 OMS、real order state machine、execution runtime、live risk engine、incident replay runtime、stop command、shutdown command、restore command 或 production operations runtime。
+- 不新增 Live PRO Console、live command、order-level command UI、stop button、order form、交易按钮或真实交易授权。
