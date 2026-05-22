@@ -432,3 +432,37 @@ MTP-94 建立以下 validation anchors：
 - `MTP-94-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT`
 - `MTP-94-READ-MODEL-ONLY-NO-COMMAND-SURFACE`
 - `MTP-94-LIVE-INCIDENT-STOP-VALIDATION`
+
+## MTP-95 validation closeout / Stage Audit input
+
+`MTP-95-LIVE-AUDIT-INCIDENT-STOP-STAGE-CLOSEOUT`
+
+MTP-95 只收口 `MTPRO Live Audit Incident Stop Boundary v1` 的 validation matrix、automation readiness anchors、forbidden capability evidence、read-model-only boundary evidence、Dashboard smoke evidence 和 Stage Audit input material。该收口不新增 production code，不扩展 audit trail runtime、incident replay runtime、stop control runtime、production operations runtime、Live PRO Console、live command、stop button 或 trading button，不输出最终 Stage Code Audit Report，不授权下一 Project planning 或 execution。
+
+`MTP-95-STAGE-AUDIT-INPUT-MATERIAL`
+
+MTP-95 的阶段审计输入材料必须落到：
+
+```text
+docs/audit/inputs/mtpro-live-audit-incident-stop-boundary-v1-stage-audit-input.md
+```
+
+该输入材料必须覆盖 `MTP-89` 至 `MTP-94` 的 PR evidence、merge commit、required check、Live audit incident stop validation evidence chain、Dashboard smoke、forbidden capability evidence、read-model-only boundary evidence、automation readiness evidence、known boundaries、Root Docs Delta input 和 Stage Code Audit handoff checklist。
+
+`MTP-95-NO-FINAL-STAGE-CODE-AUDIT`
+
+MTP-95 不输出最终 Stage Code Audit Report。最终报告必须在 `MTP-89` 至 `MTP-95` 全部进入 Linear `Done`，且 Linear Project status 被设置或确认为 `Completed`、`type=completed`、`completedAt` 非空后，由 Parent Codex 单独输出到：
+
+```text
+docs/audit/mtpro-live-audit-incident-stop-boundary-v1-stage-code-audit.md
+```
+
+MTP-95 也不修改 Linear status、不创建下一 Project / Issue、不推进下一阶段、不启动下一阶段 `symphony-issue`。
+
+`MTP-95-LIVE-AUDIT-INCIDENT-STOP-VALIDATION-EVIDENCE-CHAIN`
+
+MTP-95 的验证证据链必须能从 `TVM-LIVE-AUDIT-INCIDENT-STOP` 追溯到 MTP-89 terminology / taxonomy、MTP-90 signal / order / risk decision / fill audit trail future gates、MTP-91 incident replay future gates、MTP-92 emergency stop / shutdown / restore future gates、MTP-93 blocked evidence isolation、MTP-94 read-model-only `LiveIncidentStopBlockedEvidence` 展示面、Dashboard smoke `liveIncidentStopGates=5` 和当前 MTP-95 automation readiness stage closeout。
+
+`MTP-95-AUTOMATION-READINESS-STAGE-CLOSEOUT`
+
+`checks/automation-readiness.sh` 必须检查 `MTP-95-LIVE-AUDIT-INCIDENT-STOP-STAGE-CLOSEOUT`、`MTP-95-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-95-NO-FINAL-STAGE-CODE-AUDIT`、`MTP-95-LIVE-AUDIT-INCIDENT-STOP-STAGE-AUDIT-INPUT`、`MTP-95-LIVE-AUDIT-INCIDENT-STOP-VALIDATION-EVIDENCE-CHAIN` 和 `MTP-95-AUTOMATION-READINESS-STAGE-CLOSEOUT`。机械检查必须覆盖 stage audit input、contract anchors、matrix anchors、validation plan、latest summary、Core / App source anchors、Core / App deterministic tests、Dashboard smoke `liveIncidentStopGates=5` 和 PR evidence chain。
