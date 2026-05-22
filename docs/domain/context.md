@@ -153,6 +153,14 @@ MTP-84 进一步固定 frequency gate、loss gate 和 drawdown gate 只是 Futur
 
 当前 `RiskBlockerEvidence` 和 `PortfolioExposureSnapshot` 仍只能是 paper-only evidence。它们不能升级为 live frequency gate 输入、真实 loss / drawdown gate 输入、真实 PnL / equity、pre-trade risk runtime 或 future live risk decision；`LiveFrequencyLossDrawdownGateBoundary` 的 frequency runtime、loss / drawdown runtime、PnL / equity read、drawdown circuit breaker、stop / emergency command 和 paper-upgrade flags 必须全部保持 `false`。
 
+`MTP-85-CIRCUIT-BREAKER-NO-TRADE-FUTURE-GATES`
+
+MTP-85 进一步固定 circuit breaker gate 和 no-trade state gate 只是 Future Live Risk contract。它们可以描述后续需要的 circuit breaker policy、trigger source contract、no-trade state policy、no-trade state transition policy 和 operations / audit handoff，但当前不得运行真实熔断服务，不得进入真实禁交易状态，不得实现全局交易锁，不得修改 broker session state，不得实现停机 / 恢复命令、production shutdown control、live risk engine、risk command surface、position management command、order form 或交易按钮。
+
+`MTP-85-PAPER-RISK-EXPOSURE-NO-CIRCUIT-BREAKER-UPGRADE`
+
+当前 `RiskBlockerEvidence` 和 `PortfolioExposureSnapshot` 仍只能是 paper-only evidence。它们不能升级为 live circuit breaker trigger、no-trade state trigger、真实 PnL / equity、真实账户状态、pre-trade risk runtime 或 future live risk decision；`LiveCircuitBreakerNoTradeGateBoundary` 的 circuit breaker runtime、no-trade runtime、global trading lock、broker session mutation、stop / emergency / recovery command、production shutdown control 和 paper-upgrade flags 必须全部保持 `false`。
+
 ## Paper-only Terms
 
 | 术语 | MTPRO 含义 | 避免混用 |

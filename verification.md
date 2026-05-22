@@ -9048,3 +9048,59 @@ Linear / scope evidence：
 | `swift test --filter MTP84` | pass | 3 个 focused Core tests 通过，0 failures。 |
 | `bash checks/automation-readiness.sh` | pass | 首次失败缺少 matrix exact anchor `MTP-84 已定义 frequency / loss / drawdown future gates`；补齐后通过并输出 `MTPRO automation readiness checks passed.`。 |
 | `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=31; liveBlockedGates=6; liveExecutionControlGates=7; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；173 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
+
+## MTP-85 circuit breaker / no-trade state future risk gates
+
+日期：2026-05-22
+
+执行者：Codex
+
+目的：
+
+- 定义 circuit breaker gate 和 no-trade state gate 的 Future Live Risk contract。
+- 用 deterministic Core fixture 和 forbidden capability tests 锁定当前系统不实现真实熔断 runtime、禁交易状态 runtime、全局交易锁、broker session state mutation、停机 / 恢复命令或 production shutdown control。
+- 将 MTP-85 anchors 回填到 contract、domain context、validation plan、trading validation matrix、latest verification summary 和 automation readiness。
+
+文件范围：
+
+- `Sources/Core/LiveRiskGateContract.swift`
+- `Tests/CoreTests/CoreTests.swift`
+- `docs/contracts/live-risk-gate-contract.md`
+- `docs/domain/context.md`
+- `docs/validation/validation-plan.md`
+- `docs/validation/trading-validation-matrix.md`
+- `docs/validation/latest-verification-summary.md`
+- `checks/automation-readiness.sh`
+- `verification.md`
+
+更新重点：
+
+- 新增 `LiveCircuitBreakerNoTradeFutureGate`、`LiveCircuitBreakerNoTradeForbiddenCapability` 和 `LiveCircuitBreakerNoTradeGateBoundary`。
+- 新增 `testLiveCircuitBreakerNoTradeBoundaryDefinesMTP85FutureGatesAndForbiddenCapabilities`、`testLiveCircuitBreakerNoTradeBoundaryRejectsMTP85RuntimeCommandAndStateBypass` 和 `testPaperRiskAndExposureCannotUpgradeToMTP85CircuitBreakerNoTradeGateDecision`。
+- 新增 anchors：`MTP-85-CIRCUIT-BREAKER-NO-TRADE-FUTURE-GATES`、`MTP-85-FORBIDDEN-CIRCUIT-BREAKER-NO-TRADE-RUNTIME-TESTS`、`MTP-85-NO-CIRCUIT-BREAKER-OR-NO-TRADE-STATE-RUNTIME`、`MTP-85-PAPER-RISK-EXPOSURE-NO-CIRCUIT-BREAKER-UPGRADE` 和 `MTP-85-LIVE-RISK-GATE-VALIDATION`。
+
+边界确认：
+
+- 不实现 API key / secret storage。
+- 不实现 signed endpoint / account endpoint / listenKey。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`。
+- 不读取真实账户余额，不同步 broker position，不读取 margin / leverage。
+- 不读取真实 PnL 或真实账户权益。
+- 不执行真实亏损阈值或回撤阈值 allow / reject。
+- 不实现 real pre-trade risk engine 或 real pre-trade allow / reject runtime。
+- 不实现 circuit breaker runtime。
+- 不实现 no-trade state runtime 或 no-trade state transition runtime。
+- 不实现 global trading lock 或 broker session state mutation。
+- 不实现 circuit breaker command、stop trading command、emergency stop command、automatic recovery command 或 production shutdown control。
+- 不提交、撤销、替换真实订单。
+- 不新增 live command、risk command surface、position management command、order form 或交易按钮。
+- 不把 paper risk blocker 或 paper exposure 升级为 future circuit breaker / no-trade state gate、future live risk decision、real PnL、real account equity、真实账户状态或 pre-trade runtime。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP85` | pass | 3 个 focused Core tests 通过，0 failures。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
+| `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=31; liveBlockedGates=6; liveExecutionControlGates=7; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；176 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
