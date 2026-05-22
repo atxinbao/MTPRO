@@ -116,3 +116,91 @@ MTP-82 建立以下 validation anchors，供后续 issue 接入 forbidden capabi
 - `MTP-86`：paper risk blocker / paper exposure 与 future live risk decision 隔离合同。
 - `MTP-87`：read-model-only `LiveRiskGateBlockedEvidence`。
 - `MTP-88`：validation matrix、automation readiness 和 stage audit input material 收口。
+
+## MTP-83 exposure / order notional gates
+
+`MTP-83-EXPOSURE-ORDER-NOTIONAL-FUTURE-GATES`
+
+MTP-83 只定义 exposure gate 和 order notional gate 的 Future Live Risk contract，不实现真实账户读取、真实订单金额 allow / reject、真实 pre-trade runtime 或 live risk engine。
+
+| Gate | Future 条件 | 当前允许证据 | 当前禁止输出 |
+| --- | --- | --- | --- |
+| `exposure gate` | Future Live Risk 需要独立 Human decision、live trading foundation boundary、live execution control boundary、account state source contract、broker position source contract、margin / leverage source contract、exposure limit policy、paper exposure isolation 和 operations / audit handoff。 | contract anchor、Core deterministic fixture、forbidden capability test、PR boundary evidence | real account balance read、broker position sync、margin / leverage read、real account exposure calculation |
+| `order notional gate` | Future Live Risk 需要 order notional limit policy、future account / position / margin / leverage source contracts、execution-control handoff 和 audit handoff；当前只记录 gate 条件。 | contract anchor、Core deterministic fixture、forbidden capability test、PR boundary evidence | real order notional allow / reject runtime、real pre-trade allow / reject、真实订单提交 / 撤销 / 替换 |
+
+## MTP-83 forbidden account / position / margin / leverage tests
+
+`MTP-83-FORBIDDEN-ACCOUNT-POSITION-MARGIN-LEVERAGE-TESTS`
+
+MTP-83 的 forbidden capability tests 必须阻断：
+
+- API key / secret storage。
+- signed endpoint / account endpoint / listenKey。
+- broker / exchange execution adapter。
+- `LiveExecutionAdapter`。
+- real account balance read。
+- broker position sync。
+- margin read。
+- leverage read。
+- real account exposure calculation。
+- real order notional limit evaluation。
+- real pre-trade risk engine。
+- real pre-trade allow / reject runtime。
+- live order submit / cancel / replace。
+- risk command surface、position management command、order form 和 trading button。
+
+Core deterministic fixture：`LiveExposureOrderNotionalGateBoundary`。
+
+Core deterministic tests：
+
+- `testLiveExposureOrderNotionalBoundaryDefinesMTP83FutureGatesAndForbiddenCapabilities`
+- `testLiveExposureOrderNotionalBoundaryRejectsMTP83AccountPositionMarginLeverageBypass`
+- `testPaperExposureCannotUpgradeToMTP83FutureLiveExposureGateDecision`
+
+Required validation：`bash checks/run.sh`；不得依赖真实 Binance 网络、API key、account endpoint、listenKey、broker state、真实账户或人工验收。
+
+## MTP-83 no real pre-trade allow / reject
+
+`MTP-83-NO-REAL-PRE-TRADE-ALLOW-REJECT`
+
+MTP-83 的 exposure / order notional gate 只能作为 Future / gated contract 存在：
+
+- `LiveExposureOrderNotionalGateBoundary.providesLiveRiskEngine == false`
+- `LiveExposureOrderNotionalGateBoundary.evaluatesRealOrderNotionalLimit == false`
+- `LiveExposureOrderNotionalGateBoundary.evaluatesRealPreTradeAllow == false`
+- `LiveExposureOrderNotionalGateBoundary.evaluatesRealPreTradeReject == false`
+- `LiveExposureOrderNotionalGateBoundary.authorizesLiveTrading == false`
+
+## MTP-83 paper exposure isolation
+
+`MTP-83-PAPER-EXPOSURE-NO-LIVE-EXPOSURE-UPGRADE`
+
+当前 `PortfolioExposureSnapshot` 仍只能表示 paper projection 派生的只读 exposure evidence，不等于 live exposure gate 输入、真实账户 exposure、broker position、margin 或 leverage。MTP-83 必须保持：
+
+- `mapsPaperExposureToLiveExposureGate == false`
+- `mapsPaperRiskBlockerToFutureRiskDecision == false`
+- `computesLiveExposureFromAccountState == false`
+- `readsRealAccountBalance == false`
+- `syncsBrokerPosition == false`
+
+Source anchors：
+
+- `MTP-82-LIVE-RISK-TERMINOLOGY`
+- `MTP-82-FUTURE-RISK-DECISION-TAXONOMY`
+- `MTP-82-PAPER-RISK-LIVE-RISK-SEPARATION`
+- `TVM-PORTFOLIO-EXPOSURE`
+- `TVM-RISK-BLOCKER`
+- `MTP-78-PAPER-EVIDENCE-NO-REAL-COMMAND-UPGRADE`
+
+## MTP-83 validation anchors
+
+`MTP-83-LIVE-RISK-GATE-VALIDATION`
+
+MTP-83 建立以下 validation anchors：
+
+- `TVM-LIVE-RISK-GATE`
+- `MTP-83-EXPOSURE-ORDER-NOTIONAL-FUTURE-GATES`
+- `MTP-83-FORBIDDEN-ACCOUNT-POSITION-MARGIN-LEVERAGE-TESTS`
+- `MTP-83-NO-REAL-PRE-TRADE-ALLOW-REJECT`
+- `MTP-83-PAPER-EXPOSURE-NO-LIVE-EXPOSURE-UPGRADE`
+- `MTP-83-LIVE-RISK-GATE-VALIDATION`
