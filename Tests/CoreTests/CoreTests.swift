@@ -6324,6 +6324,259 @@ final class CoreTests: XCTestCase {
         XCTAssertFalse(evidence.entersNoTradeStateRuntime)
     }
 
+    func testLiveAuditIncidentStopTerminologyDefinesMTP89FutureOnlyTaxonomy() throws {
+        // 测试场景：MTP-89 只定义 Live audit / incident / stop terminology、
+        // future taxonomy 和 validation anchors。所有 incident replay、stop command、
+        // production operations、Live PRO Console 和交易 UI 旗标都必须保持关闭。
+        let boundary = LiveAuditIncidentStopTerminologyBoundary.deterministicFixture
+
+        XCTAssertEqual(
+            boundary.contractID,
+            try Identifier("mtp-89-live-audit-incident-stop-terminology")
+        )
+        XCTAssertEqual(boundary.issueID, try Identifier("MTP-89"))
+        XCTAssertEqual(boundary.terms, LiveAuditIncidentStopTerm.allCases)
+        XCTAssertEqual(
+            boundary.taxonomy,
+            [
+                .signalAuditTrail,
+                .orderAuditTrail,
+                .riskDecisionAuditTrail,
+                .fillAuditTrail,
+                .incidentReplay,
+                .stopControl,
+                .emergencyStop,
+                .shutdown,
+                .restore,
+                .productionOperations
+            ]
+        )
+        XCTAssertEqual(
+            boundary.futureGates,
+            [
+                .humanLiveAuditIncidentStopDecision,
+                .liveTradingFoundationBoundarySatisfied,
+                .liveExecutionControlBoundarySatisfied,
+                .liveRiskGateBoundarySatisfied,
+                .auditTrailContractDefined,
+                .incidentReplayContractDefined,
+                .stopControlContractDefined,
+                .emergencyStopShutdownRestoreContractDefined,
+                .productionOperationsContractDefined,
+                .readModelOnlyBlockedEvidenceDefined,
+                .dashboardReportTimelineEvidenceBoundaryDefined,
+                .liveProConsoleIndependentProjectDefinition
+            ]
+        )
+        XCTAssertEqual(boundary.forbiddenCapabilities, LiveAuditIncidentStopForbiddenCapability.allCases)
+        XCTAssertTrue(boundary.forbidsCapability(.signedEndpoint))
+        XCTAssertTrue(boundary.forbidsCapability(.brokerAction))
+        XCTAssertTrue(boundary.forbidsCapability(.incidentReplayRuntime))
+        XCTAssertTrue(boundary.forbidsCapability(.emergencyStopCommand))
+        XCTAssertTrue(boundary.forbidsCapability(.shutdownCommand))
+        XCTAssertTrue(boundary.forbidsCapability(.restoreCommand))
+        XCTAssertTrue(boundary.forbidsCapability(.liveProConsole))
+        XCTAssertEqual(
+            boundary.allowedEvidenceKinds,
+            [
+                .contractDocumentation,
+                .validationMatrixCandidate,
+                .validationPlanAnchor,
+                .deterministicForbiddenTest,
+                .futureGateTaxonomy,
+                .blockedEvidenceBoundary,
+                .prBoundaryEvidence
+            ]
+        )
+        XCTAssertEqual(boundary.validationAnchors, [
+            "MTP-89-LIVE-AUDIT-INCIDENT-STOP-TERMINOLOGY",
+            "MTP-89-FUTURE-AUDIT-INCIDENT-STOP-TAXONOMY",
+            "MTP-89-BLOCKED-EVIDENCE-ONLY-FUTURE-GATES",
+            "MTP-89-NO-INCIDENT-REPLAY-OR-STOP-COMMAND",
+            "MTP-89-NO-LIVE-PRO-CONSOLE-SURFACE",
+            "MTP-89-LIVE-AUDIT-INCIDENT-STOP-VALIDATION",
+            "TVM-LIVE-AUDIT-INCIDENT-STOP"
+        ])
+        XCTAssertEqual(boundary.blockedEvidenceSourceAnchors, [
+            "TVM-LIVE-TRADING-FOUNDATION",
+            "TVM-LIVE-EXECUTION-CONTROL",
+            "TVM-LIVE-RISK-GATE",
+            "MTP-65-LIVE-BLOCKED-EVIDENCE",
+            "MTP-79-LIVE-EXECUTION-CONTROL-BLOCKED-EVIDENCE",
+            "MTP-87-LIVE-RISK-GATE-BLOCKED-EVIDENCE",
+            "MTP-89-LIVE-AUDIT-INCIDENT-STOP-TERMINOLOGY"
+        ])
+        XCTAssertTrue(boundary.terminologyBoundaryHeld)
+        XCTAssertTrue(boundary.taxonomyBoundaryHeld)
+        XCTAssertTrue(boundary.forbiddenCapabilityBoundaryHeld)
+        XCTAssertTrue(boundary.productSurfaceBoundaryHeld)
+        XCTAssertTrue(boundary.isFutureOnlyTerminology)
+        XCTAssertTrue(boundary.representsBlockedEvidenceOnly)
+        XCTAssertFalse(boundary.usesSignedEndpoint)
+        XCTAssertFalse(boundary.callsAccountEndpoint)
+        XCTAssertFalse(boundary.createsListenKey)
+        XCTAssertFalse(boundary.executesBrokerAction)
+        XCTAssertFalse(boundary.implementsLiveExecutionAdapter)
+        XCTAssertFalse(boundary.implementsOMS)
+        XCTAssertFalse(boundary.implementsRealOrderStateMachine)
+        XCTAssertFalse(boundary.providesIncidentReplayRuntime)
+        XCTAssertFalse(boundary.runsStopControlRuntime)
+        XCTAssertFalse(boundary.runsEmergencyStopCommand)
+        XCTAssertFalse(boundary.runsShutdownCommand)
+        XCTAssertFalse(boundary.runsRestoreCommand)
+        XCTAssertFalse(boundary.runsProductionOperations)
+        XCTAssertFalse(boundary.exposesLiveProConsole)
+        XCTAssertFalse(boundary.providesLiveCommand)
+        XCTAssertFalse(boundary.providesTradingButton)
+        XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(
+            LiveAuditIncidentStopTerminologyBoundary.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, boundary)
+    }
+
+    func testLiveAuditIncidentStopTerminologyRejectsMTP89RuntimeCommandAndConsoleBypass() throws {
+        // 测试场景：MTP-89 fixture 的初始化和 Codable 解码都必须拒绝
+        // signed/account/listenKey、broker action、incident replay runtime、stop commands、
+        // production operations、Live PRO Console、live command 和交易按钮绕过。
+        XCTAssertThrowsError(
+            try LiveAuditIncidentStopTerminologyBoundary(usesSignedEndpoint: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("usesSignedEndpoint"))
+        }
+        XCTAssertThrowsError(
+            try LiveAuditIncidentStopTerminologyBoundary(callsAccountEndpoint: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("callsAccountEndpoint"))
+        }
+        XCTAssertThrowsError(
+            try LiveAuditIncidentStopTerminologyBoundary(createsListenKey: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("createsListenKey"))
+        }
+        XCTAssertThrowsError(
+            try LiveAuditIncidentStopTerminologyBoundary(executesBrokerAction: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("executesBrokerAction"))
+        }
+        XCTAssertThrowsError(
+            try LiveAuditIncidentStopTerminologyBoundary(providesIncidentReplayRuntime: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("providesIncidentReplayRuntime")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveAuditIncidentStopTerminologyBoundary(runsEmergencyStopCommand: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("runsEmergencyStopCommand"))
+        }
+        XCTAssertThrowsError(
+            try LiveAuditIncidentStopTerminologyBoundary(runsShutdownCommand: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("runsShutdownCommand"))
+        }
+        XCTAssertThrowsError(
+            try LiveAuditIncidentStopTerminologyBoundary(runsRestoreCommand: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("runsRestoreCommand"))
+        }
+        XCTAssertThrowsError(
+            try LiveAuditIncidentStopTerminologyBoundary(runsProductionOperations: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("runsProductionOperations"))
+        }
+        XCTAssertThrowsError(
+            try LiveAuditIncidentStopTerminologyBoundary(exposesLiveProConsole: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("exposesLiveProConsole"))
+        }
+        XCTAssertThrowsError(
+            try LiveAuditIncidentStopTerminologyBoundary(providesLiveCommand: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("providesLiveCommand"))
+        }
+        XCTAssertThrowsError(
+            try LiveAuditIncidentStopTerminologyBoundary(providesTradingButton: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("providesTradingButton"))
+        }
+        XCTAssertThrowsError(
+            try LiveAuditIncidentStopTerminologyBoundary(
+                taxonomy: [.signalAuditTrail, .incidentReplay]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "taxonomy",
+                    expected: LiveAuditIncidentStopTerminologyBoundary
+                        .requiredTaxonomy
+                        .map(\.rawValue)
+                        .joined(separator: ","),
+                    actual: "signal audit trail,incident replay"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(LiveAuditIncidentStopTerminologyBoundary.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["treatsWorkbenchAsLiveProConsole"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveAuditIncidentStopTerminologyBoundary.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("treatsWorkbenchAsLiveProConsole")
+            )
+        }
+    }
+
+    func testLiveAuditIncidentStopTerminologyKeepsMTP89BlockedEvidenceFutureOnly() throws {
+        // 测试场景：MTP-89 只能引用既有 Live blocked / execution-control / risk gate evidence
+        // 作为 source anchor，不能把这些只读证据升级成 incident replay runtime、stop command、
+        // production operations、Live PRO Console 或 live command surface。
+        let boundary = LiveAuditIncidentStopTerminologyBoundary.deterministicFixture
+        let executionEvidence = LiveExecutionControlBlockedEvidence.deterministicFixture
+        let riskEvidence = LiveRiskGateBlockedEvidence.deterministicFixture
+
+        XCTAssertTrue(boundary.representsBlockedEvidenceOnly)
+        XCTAssertTrue(boundary.blockedEvidenceSourceAnchors.contains("MTP-79-LIVE-EXECUTION-CONTROL-BLOCKED-EVIDENCE"))
+        XCTAssertTrue(boundary.blockedEvidenceSourceAnchors.contains("MTP-87-LIVE-RISK-GATE-BLOCKED-EVIDENCE"))
+        XCTAssertTrue(boundary.forbidsCapability(.auditTrailRuntime))
+        XCTAssertTrue(boundary.forbidsCapability(.incidentReplayRuntime))
+        XCTAssertTrue(boundary.forbidsCapability(.stopControlRuntime))
+        XCTAssertTrue(boundary.forbidsCapability(.productionOperationsRuntime))
+        XCTAssertTrue(boundary.forbidsCapability(.workbenchLiveProConsoleUpgrade))
+        XCTAssertTrue(boundary.forbidsCapability(.dashboardLiveProConsoleUpgrade))
+
+        XCTAssertTrue(executionEvidence.blockedEvidenceBoundaryHeld)
+        XCTAssertTrue(executionEvidence.appSurfaceReadModelOnlyBoundaryHeld)
+        XCTAssertFalse(executionEvidence.providesCommandSurface)
+        XCTAssertFalse(executionEvidence.submitsRealOrder)
+
+        XCTAssertTrue(riskEvidence.blockedEvidenceBoundaryHeld)
+        XCTAssertTrue(riskEvidence.appSurfaceReadModelOnlyBoundaryHeld)
+        XCTAssertFalse(riskEvidence.providesCommandSurface)
+        XCTAssertFalse(riskEvidence.providesTradingButton)
+
+        XCTAssertFalse(boundary.recordsAuditTrailRuntime)
+        XCTAssertFalse(boundary.providesIncidentReplayRuntime)
+        XCTAssertFalse(boundary.runsStopControlRuntime)
+        XCTAssertFalse(boundary.runsEmergencyStopCommand)
+        XCTAssertFalse(boundary.runsShutdownCommand)
+        XCTAssertFalse(boundary.runsRestoreCommand)
+        XCTAssertFalse(boundary.runsProductionOperations)
+        XCTAssertFalse(boundary.exposesLiveProConsole)
+        XCTAssertFalse(boundary.providesLiveCommand)
+    }
+
     private func makeOrderBookImbalanceInputs() throws -> [OrderBookReadModelInput] {
         let symbol = try Symbol(rawValue: "BTCUSDT")
         let bidDominant = OrderBookReadModelInput(
