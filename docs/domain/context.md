@@ -177,6 +177,10 @@ MTP-86 进一步固定 paper risk blocker、paper exposure、paper risk decision
 
 MTP-86 只允许 Report / Dashboard / Event Timeline 展示既有 read model / ViewModel evidence，不新增 live risk command surface、position management command、order form、交易按钮或 `LiveRiskGateBlockedEvidence` 展示面；后者保留给 MTP-87。
 
+`MTP-87-LIVE-RISK-GATE-BLOCKED-EVIDENCE`
+
+MTP-87 进一步固定 `LiveRiskGateBlockedEvidence` 的 read-model-only 语义：exposure、order notional、frequency、loss / drawdown、circuit breaker 和 no-trade state 只能以 blocked gate、blocked reason、source anchor 和 deterministic snapshot 进入 Report / Dashboard / Event Timeline；它不等于 live risk engine、real pre-trade allow / reject runtime、真实账户 / broker state reader、circuit breaker / no-trade runtime、risk command、position command、order form 或交易按钮。
+
 ## Paper-only Terms
 
 | 术语 | MTPRO 含义 | 避免混用 |

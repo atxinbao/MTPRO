@@ -1388,3 +1388,36 @@ MTP-86 必须建立的主要 anchors：
 - 不提交、撤销、替换真实订单。
 - 不新增 live command、risk command surface、position management command、order form 或交易按钮。
 - 不把 paper risk blocker、paper exposure 或 paper risk decision 升级为 future live risk decision、real account exposure、broker position、real pre-trade allow / reject、circuit breaker trigger、no-trade state trigger 或 live risk runtime input。
+
+## MTP-87 Live Risk Gate Blocked Evidence Surface Validation
+
+日期：2026-05-22
+
+执行者：Codex
+
+MTP-87 的 required validation：
+
+- `docs/contracts/live-risk-gate-contract.md` 必须包含 `MTP-87-LIVE-RISK-GATE-BLOCKED-EVIDENCE`、`MTP-87-LIVE-RISK-GATES-BLOCKED-REASONS`、`MTP-87-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT`、`MTP-87-READ-MODEL-ONLY-NO-COMMAND-SURFACE` 和 `MTP-87-LIVE-RISK-GATE-VALIDATION` anchors。
+- `Sources/Core/LiveRiskGateContract.swift` 必须定义 `LiveRiskGateBlockedGate`、`LiveRiskGateBlockedReason`、`LiveRiskGateBlockedEvidenceItem` 和 `LiveRiskGateBlockedEvidence`。
+- `LiveRiskGateBlockedEvidence` 必须固定 exposure、order notional、frequency、loss / drawdown、circuit breaker、no-trade state 的 blocked reason、source anchors、validation anchors、deterministic snapshot、read-model-only App surface flags 和 forbidden live risk runtime flags。
+- `Sources/App/LiveRiskGateBlockedEvidence.swift` 必须把 Core fixture 复制成 `LiveRiskGateBlockedEvidenceReadModel` / `LiveRiskGateBlockedEvidenceViewModel`，并只通过 `ReportViewModel`、`DashboardShellSnapshot` 和 `PaperWorkflowEvidenceExplorerViewModel` 进入只读展示面。
+- Core tests 必须覆盖 deterministic fixture、Codable round trip、blocked items drift rejection、真实账户 / broker position / allow-reject runtime / circuit breaker runtime / command surface rejection，以及 MTP-83 至 MTP-86 boundary regression。
+- App tests 必须覆盖 Dashboard / Report / Event Timeline blocked evidence、ViewModel Codable boundary、`liveRiskGates=6` smoke anchor、无 risk command、无 order form、无交易按钮、无 schema / adapter / Runtime object 暴露。
+- `docs/validation/trading-validation-matrix.md` 必须把 MTP-87 回填到 `TVM-LIVE-RISK-GATE` candidate entry；MTP-88 仍负责 Project 级 automation readiness 和 stage audit input material 收口。
+- Required validation 仍是 `bash checks/run.sh`，不新增真实网络 smoke，不读取真实账户，不实现 live risk runtime。
+
+MTP-87 必须建立的主要 anchors：
+
+- `MTP-87-LIVE-RISK-GATE-BLOCKED-EVIDENCE`
+- `MTP-87-LIVE-RISK-GATES-BLOCKED-REASONS`
+- `MTP-87-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT`
+- `MTP-87-READ-MODEL-ONLY-NO-COMMAND-SURFACE`
+- `MTP-87-LIVE-RISK-GATE-VALIDATION`
+
+## MTP-87 禁止
+
+- 不读取真实账户余额、broker position、margin、leverage、PnL 或 equity。
+- 不实现 real pre-trade risk engine、real pre-trade allow / reject runtime、真实 order notional evaluation 或真实 frequency / loss / drawdown runtime。
+- 不实现 circuit breaker runtime、no-trade state runtime、broker session state mutation、stop trading command 或 emergency stop command。
+- 不新增 live command、risk command surface、position management command、order form 或交易按钮。
+- 不让 UI 消费 database schema、adapter、Runtime object 或 command model。

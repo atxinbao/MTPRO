@@ -66,6 +66,15 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(viewModel.report.liveExecutionControlBlockedEvidence.source.callsBinanceAdapter)
         XCTAssertFalse(viewModel.report.liveExecutionControlBlockedEvidence.source.providesLiveOrderAction)
         XCTAssertEqual(
+            viewModel.report.liveRiskGateBlockedEvidence.source.sourceKind,
+            .stableReadModelProjection
+        )
+        XCTAssertFalse(viewModel.report.liveRiskGateBlockedEvidence.source.exposesDatabaseTables)
+        XCTAssertFalse(viewModel.report.liveRiskGateBlockedEvidence.source.exposesORMModels)
+        XCTAssertFalse(viewModel.report.liveRiskGateBlockedEvidence.source.exposesRuntimeObjects)
+        XCTAssertFalse(viewModel.report.liveRiskGateBlockedEvidence.source.callsBinanceAdapter)
+        XCTAssertFalse(viewModel.report.liveRiskGateBlockedEvidence.source.providesLiveOrderAction)
+        XCTAssertEqual(
             viewModel.paperWorkflowObservability.source.sourceKind,
             .stableReadModelProjection
         )
@@ -250,15 +259,16 @@ final class AppTests: XCTestCase {
     func testPaperWorkflowEvidenceExplorerTimelineSnapshotAggregatesReadModelOnlyEvidence() throws {
         // 测试场景：MTP-73 的 Event Timeline / Evidence Explorer 子集必须只从 read model
         // 汇总 market event、Live blocked evidence、Live monitoring evidence、execution-control
-        // blocked evidence、strategy signal、risk decision、paper order、simulated fill、
+        // blocked evidence、Live Risk gate blocked evidence、strategy signal、risk decision、paper order、simulated fill、
         // portfolio projection 和 report artifact links。
         let explorer = try makeDashboardViewModel().paperWorkflowEvidenceExplorer
 
         XCTAssertTrue(explorer.source.isReadModelOnly)
-        XCTAssertEqual(explorer.timelineItemCount, 49)
+        XCTAssertEqual(explorer.timelineItemCount, 55)
         XCTAssertTrue(explorer.coversMarketEvents)
         XCTAssertTrue(explorer.coversMarketDataReplayOperations)
         XCTAssertTrue(explorer.coversLiveExecutionControlBlockedEvidence)
+        XCTAssertTrue(explorer.coversLiveRiskGateBlockedEvidence)
         XCTAssertTrue(explorer.coversLiveTradingBlockedEvidence)
         XCTAssertTrue(explorer.coversLiveMonitoringEvidence)
         XCTAssertTrue(explorer.coversStrategySignals)
@@ -275,6 +285,7 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(itemCounts[.marketEvent], 6)
         XCTAssertEqual(itemCounts[.marketDataReplayOperation], 1)
         XCTAssertEqual(itemCounts[.liveExecutionControlBlockedEvidence], 7)
+        XCTAssertEqual(itemCounts[.liveRiskGateBlockedEvidence], 6)
         XCTAssertEqual(itemCounts[.liveTradingBlockedEvidence], 6)
         XCTAssertEqual(itemCounts[.liveMonitoringEvidence], 18)
         XCTAssertEqual(itemCounts[.strategySignal], 3)
@@ -304,6 +315,8 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(evidenceIDs.contains("mtp-79-submit-blocked"))
         XCTAssertTrue(evidenceIDs.contains("mtp-79-execution-report-blocked"))
         XCTAssertTrue(evidenceIDs.contains("mtp-79-reconciliation-blocked"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-87-exposure-blocked"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-87-no-trade-state-blocked"))
         XCTAssertTrue(evidenceIDs.contains("mtp-69-live-runtime-health"))
         XCTAssertTrue(evidenceIDs.contains("mtp-70-order-stream-future-gate"))
         XCTAssertTrue(evidenceIDs.contains("mtp-71-public-market-stream-error-disconnected"))
@@ -850,10 +863,11 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(viewModel.report.lastAppliedSequence, 16)
         XCTAssertFalse(viewModel.report.tradingValidationAuthorizesExecution)
         XCTAssertFalse(viewModel.report.authorizesTradingExecution)
-        XCTAssertEqual(viewModel.paperWorkflowEvidenceExplorer.timelineItemCount, 49)
+        XCTAssertEqual(viewModel.paperWorkflowEvidenceExplorer.timelineItemCount, 55)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversPaperWorkflowChainEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversMarketDataReplayOperations)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveExecutionControlBlockedEvidence)
+        XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveRiskGateBlockedEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveTradingBlockedEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveMonitoringEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.readModelOnlyBoundaryHeld)
@@ -978,10 +992,11 @@ final class AppTests: XCTestCase {
             decoded.report.artifacts.first?.paperExecutionWorkflowEvidence.paperOrderIDs,
             ["paper-replay-order-allowed"]
         )
-        XCTAssertEqual(decoded.paperWorkflowEvidenceExplorer.timelineItemCount, 49)
+        XCTAssertEqual(decoded.paperWorkflowEvidenceExplorer.timelineItemCount, 55)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversReportArtifacts)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversMarketDataReplayOperations)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveExecutionControlBlockedEvidence)
+        XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveRiskGateBlockedEvidence)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveTradingBlockedEvidence)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveMonitoringEvidence)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.readModelOnlyBoundaryHeld)
@@ -998,6 +1013,9 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(decoded.report.liveMonitoringProvidesTradingButton)
         XCTAssertEqual(decoded.report.liveExecutionControlBlockedGateCount, 7)
         XCTAssertTrue(decoded.report.liveExecutionControlAllGatesBlocked)
+        XCTAssertEqual(decoded.report.liveRiskGateBlockedEvidence.blockedGateCount, 6)
+        XCTAssertTrue(decoded.report.liveRiskGateBlockedEvidence.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(decoded.report.liveRiskGateBlockedEvidence.providesCommandSurface)
         XCTAssertTrue(decoded.report.liveExecutionControlReadModelOnlyBoundaryHeld)
         XCTAssertFalse(decoded.report.liveExecutionControlProvidesCommandSurface)
         XCTAssertFalse(decoded.report.liveExecutionControlProvidesOrderLevelCommand)
@@ -1126,6 +1144,7 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(metricValue("Live gates", in: report), "6")
         XCTAssertEqual(metricValue("Monitoring", in: report), "4")
         XCTAssertEqual(metricValue("Execution control", in: report), "7")
+        XCTAssertEqual(metricValue("Live risk", in: report), "6")
         XCTAssertTrue(report.details.contains("Report IDs: report-backtest-ema-fixture"))
         XCTAssertTrue(report.details.contains("Cost assumptions: mtp-27-fixed-cost-assumptions"))
         XCTAssertTrue(report.details.contains("Cost parity: consistent"))
@@ -1195,6 +1214,15 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(report.details.contains("Execution control schema exposure: none"))
         XCTAssertTrue(report.details.contains("Execution control runtime exposure: none"))
         XCTAssertTrue(report.details.contains("Execution control adapter exposure: none"))
+        XCTAssertTrue(
+            report.details.contains(
+                "Live risk gates: exposure, order notional, frequency, loss / drawdown, circuit breaker, no-trade state"
+            )
+        )
+        XCTAssertTrue(report.details.contains("Live risk boundary: confirmed"))
+        XCTAssertTrue(report.details.contains("Live risk command surface: none"))
+        XCTAssertTrue(report.details.contains("Live risk order form: none"))
+        XCTAssertTrue(report.details.contains("Live risk trading buttons: none"))
         XCTAssertTrue(report.details.contains("Trading validation execution: research-only"))
         XCTAssertTrue(report.details.contains("Execution: research-only"))
         XCTAssertTrue(report.details.contains("Latest parity: matched projection evidence"))
@@ -1216,9 +1244,10 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(snapshot.smokeSummary.contains("readModelOnly=true"))
         XCTAssertTrue(snapshot.smokeSummary.contains("workbenchReadModelOnly=true"))
         XCTAssertTrue(snapshot.smokeSummary.contains("controls=start,pause,close,reset"))
-        XCTAssertTrue(snapshot.smokeSummary.contains("timelineItems=49"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("timelineItems=55"))
         XCTAssertTrue(snapshot.smokeSummary.contains("liveBlockedGates=6"))
         XCTAssertTrue(snapshot.smokeSummary.contains("liveExecutionControlGates=7"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("liveRiskGates=6"))
         XCTAssertTrue(snapshot.smokeSummary.contains("liveMonitoringHealth=blocked"))
         XCTAssertTrue(snapshot.smokeSummary.contains("liveMonitoringErrors=3"))
     }
@@ -1267,8 +1296,8 @@ final class AppTests: XCTestCase {
             )
         )
 
-        XCTAssertEqual(metricValue("Timeline items", in: workbench.evidenceExplorerMetrics), "49")
-        XCTAssertEqual(metricValue("Sections", in: workbench.evidenceExplorerMetrics), "11")
+        XCTAssertEqual(metricValue("Timeline items", in: workbench.evidenceExplorerMetrics), "55")
+        XCTAssertEqual(metricValue("Sections", in: workbench.evidenceExplorerMetrics), "12")
         XCTAssertTrue(
             workbench.evidenceExplorerDetails.contains(
                 "Filter: read-only"
@@ -1337,6 +1366,16 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(workbench.liveExecutionControlBlockedEvidenceDetails.contains("Execution runtime exposure: none"))
         XCTAssertTrue(workbench.liveExecutionControlBlockedEvidenceDetails.contains("Execution adapter exposure: none"))
         XCTAssertTrue(workbench.liveExecutionControlBlockedEvidenceDetails.contains("Execution boundary: confirmed"))
+        XCTAssertEqual(metricValue("Risk gates", in: workbench.liveRiskGateBlockedEvidenceMetrics), "6")
+        XCTAssertEqual(metricValue("Blocked", in: workbench.liveRiskGateBlockedEvidenceMetrics), "confirmed")
+        XCTAssertTrue(
+            workbench.liveRiskGateBlockedEvidenceDetails.contains(
+                "Risk gates: exposure, order notional, frequency, loss / drawdown, circuit breaker, no-trade state"
+            )
+        )
+        XCTAssertTrue(workbench.liveRiskGateBlockedEvidenceDetails.contains("Risk command surface: none"))
+        XCTAssertTrue(workbench.liveRiskGateBlockedEvidenceDetails.contains("Risk trading buttons: none"))
+        XCTAssertTrue(workbench.liveRiskGateBlockedEvidenceDetails.contains("Risk boundary: confirmed"))
 
         XCTAssertTrue(workbench.source.isReadModelOnly)
         XCTAssertTrue(workbench.observabilitySource.isReadModelOnly)
@@ -1344,6 +1383,7 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(workbench.liveBlockedEvidenceSource.isReadModelOnly)
         XCTAssertTrue(workbench.liveMonitoringEvidenceSource.isReadModelOnly)
         XCTAssertTrue(workbench.liveExecutionControlBlockedEvidenceSource.isReadModelOnly)
+        XCTAssertTrue(workbench.liveRiskGateBlockedEvidenceSource.isReadModelOnly)
         XCTAssertTrue(workbench.readModelOnlyBoundaryHeld)
         XCTAssertTrue(workbench.paperOnlyBoundaryHeld)
         XCTAssertFalse(workbench.providesCommandSurface)
@@ -1483,18 +1523,21 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(report?.metrics.first { $0.label == "Live gates" }?.value, "6")
         XCTAssertEqual(report?.metrics.first { $0.label == "Monitoring" }?.value, "4")
         XCTAssertEqual(report?.metrics.first { $0.label == "Execution control" }?.value, "7")
+        XCTAssertEqual(report?.metrics.first { $0.label == "Live risk" }?.value, "6")
 
         let events = snapshot.sections.first { $0.section == .events }
         XCTAssertEqual(events?.metrics.first { $0.label == "Events" }?.value, "0")
         XCTAssertEqual(events?.metrics.first { $0.label == "Last sequence" }?.value, "n/a")
 
         XCTAssertEqual(metricValue("Controls", in: snapshot.workbench.observabilityMetrics), "4")
-        XCTAssertEqual(metricValue("Timeline items", in: snapshot.workbench.evidenceExplorerMetrics), "31")
+        XCTAssertEqual(metricValue("Timeline items", in: snapshot.workbench.evidenceExplorerMetrics), "37")
         XCTAssertEqual(metricValue("Live gates", in: snapshot.workbench.liveBlockedEvidenceMetrics), "6")
         XCTAssertEqual(metricValue("Health", in: snapshot.workbench.liveMonitoringEvidenceMetrics), "blocked")
         XCTAssertEqual(metricValue("Errors", in: snapshot.workbench.liveMonitoringEvidenceMetrics), "3")
         XCTAssertEqual(metricValue("Execution gates", in: snapshot.workbench.liveExecutionControlBlockedEvidenceMetrics), "7")
         XCTAssertEqual(metricValue("Blocked", in: snapshot.workbench.liveExecutionControlBlockedEvidenceMetrics), "confirmed")
+        XCTAssertEqual(metricValue("Risk gates", in: snapshot.workbench.liveRiskGateBlockedEvidenceMetrics), "6")
+        XCTAssertEqual(metricValue("Blocked", in: snapshot.workbench.liveRiskGateBlockedEvidenceMetrics), "confirmed")
         XCTAssertTrue(snapshot.workbench.readModelOnlyBoundaryHeld)
         XCTAssertFalse(snapshot.workbench.providesOrderLevelCommand)
     }
@@ -1524,6 +1567,96 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(executableSource.contains("Button("))
         XCTAssertFalse(executableSource.contains("TextField("))
         XCTAssertFalse(executableSource.contains("Toggle("))
+    }
+
+    func testLiveRiskGateBlockedEvidenceViewModelAggregatesMTP87ReadOnlySurface() throws {
+        // 测试场景：MTP-87 只把 Core Live Risk blocked evidence 复制成 App 只读快照。
+        // Report / Dashboard / Event Timeline 可以展示 gate 和 reason，但不能提供风险命令或交易按钮。
+        let readModel = LiveRiskGateBlockedEvidenceReadModel()
+        let viewModel = LiveRiskGateBlockedEvidenceViewModel(readModel: readModel)
+
+        XCTAssertTrue(readModel.readModelOnlyBoundaryHeld)
+        XCTAssertEqual(viewModel.contractID, "mtp-87-live-risk-gate-blocked-evidence")
+        XCTAssertEqual(viewModel.issueID, "MTP-87")
+        XCTAssertEqual(viewModel.blockedGateCount, 6)
+        XCTAssertEqual(
+            viewModel.blockedGateLabels,
+            [
+                "exposure",
+                "order notional",
+                "frequency",
+                "loss / drawdown",
+                "circuit breaker",
+                "no-trade state"
+            ]
+        )
+        XCTAssertTrue(viewModel.blockedReasonLabels.contains("account state source forbidden"))
+        XCTAssertTrue(viewModel.blockedReasonLabels.contains("real order notional evaluation forbidden"))
+        XCTAssertTrue(viewModel.blockedReasonLabels.contains("real loss / drawdown runtime forbidden"))
+        XCTAssertTrue(viewModel.blockedReasonLabels.contains("circuit breaker runtime forbidden"))
+        XCTAssertTrue(viewModel.blockedReasonLabels.contains("no-trade state runtime forbidden"))
+        XCTAssertTrue(viewModel.sourceAnchors.contains("MTP-83-EXPOSURE-ORDER-NOTIONAL-FUTURE-GATES"))
+        XCTAssertTrue(viewModel.sourceAnchors.contains("MTP-86-REPORT-DASHBOARD-TIMELINE-READ-MODEL-ONLY"))
+        XCTAssertTrue(viewModel.deterministicSnapshot.first?.hasPrefix("exposure|blocked|") == true)
+        XCTAssertTrue(viewModel.allRiskGatesBlocked)
+        XCTAssertTrue(viewModel.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(viewModel.exposesPersistenceSchema)
+        XCTAssertFalse(viewModel.readsAdapter)
+        XCTAssertFalse(viewModel.invokesRuntimeControl)
+        XCTAssertFalse(viewModel.providesCommandSurface)
+        XCTAssertFalse(viewModel.providesRiskCommandSurface)
+        XCTAssertFalse(viewModel.providesPositionManagementCommand)
+        XCTAssertFalse(viewModel.exposesOrderForm)
+        XCTAssertFalse(viewModel.providesTradingButton)
+        XCTAssertFalse(viewModel.authorizesLiveRiskDecision)
+        XCTAssertFalse(viewModel.authorizesLiveTrading)
+        XCTAssertFalse(viewModel.authorizesTradingExecution)
+        XCTAssertFalse(viewModel.readsRealAccountBalance)
+        XCTAssertFalse(viewModel.syncsBrokerPosition)
+        XCTAssertFalse(viewModel.readsMargin)
+        XCTAssertFalse(viewModel.readsLeverage)
+        XCTAssertFalse(viewModel.evaluatesRealPreTradeAllow)
+        XCTAssertFalse(viewModel.evaluatesRealPreTradeReject)
+        XCTAssertFalse(viewModel.runsCircuitBreakerRuntime)
+        XCTAssertFalse(viewModel.entersNoTradeStateRuntime)
+        XCTAssertFalse(viewModel.requiredValidationDependsOnNetwork)
+    }
+
+    func testLiveRiskGateEvidenceExplorerPreviewDefinesMTP87ReadOnlyTimelineItems() throws {
+        // 测试场景：MTP-87 的 Event Timeline / Evidence Explorer 只展示 Live Risk
+        // gate blocked rows，不提供查询语言、risk command、incident replay 或 stop control。
+        let explorer = try makeDashboardViewModel().paperWorkflowEvidenceExplorer
+        let riskItems = explorer.timelineItems.filter {
+            $0.section == .liveRiskGateBlockedEvidence
+        }
+        let evidenceLinks = riskItems.flatMap(\.evidenceLinks)
+        let evidenceIDs = evidenceLinks.map(\.evidenceID)
+
+        XCTAssertEqual(riskItems.count, 6)
+        XCTAssertTrue(explorer.coversLiveRiskGateBlockedEvidence)
+        XCTAssertTrue(riskItems.allSatisfy { $0.title == "Live risk gate blocked" })
+        XCTAssertTrue(riskItems.contains { $0.summary.contains("exposure blocked") })
+        XCTAssertTrue(riskItems.contains { $0.summary.contains("order notional blocked") })
+        XCTAssertTrue(riskItems.contains { $0.summary.contains("loss / drawdown blocked") })
+        XCTAssertTrue(riskItems.contains { $0.summary.contains("no-trade state blocked") })
+        XCTAssertTrue(evidenceIDs.contains("mtp-87-exposure-blocked"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-87-order-notional-blocked"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-87-frequency-blocked"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-87-loss-drawdown-blocked"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-87-circuit-breaker-blocked"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-87-no-trade-state-blocked"))
+        XCTAssertTrue(evidenceLinks.allSatisfy { $0.section == .liveRiskGateBlockedEvidence })
+
+        XCTAssertTrue(explorer.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(explorer.providesCommandSurface)
+        XCTAssertFalse(explorer.providesOrderLevelCommand)
+        XCTAssertFalse(explorer.supportsQueryLanguage)
+        XCTAssertFalse(explorer.providesLiveAudit)
+        XCTAssertFalse(explorer.providesIncidentReplay)
+        XCTAssertFalse(explorer.providesStopControl)
+        XCTAssertFalse(explorer.authorizesLiveTrading)
+        XCTAssertFalse(explorer.touchesBrokerAction)
+        XCTAssertFalse(explorer.authorizesTradingExecution)
     }
 
     private func makeDashboardViewModel() throws -> DashboardViewModel {

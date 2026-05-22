@@ -6147,6 +6147,183 @@ final class CoreTests: XCTestCase {
         )
     }
 
+    func testLiveRiskGateBlockedEvidenceDefinesMTP87ReadModelOnlySnapshot() throws {
+        // 测试场景：MTP-87 只新增 Future Live Risk gate blocked evidence 的只读快照。
+        // exposure、notional、frequency、loss / drawdown、circuit breaker 和 no-trade
+        // gate 都必须保持 blocked，供 App 展示但不能生成真实风控决策或交易命令。
+        let evidence = LiveRiskGateBlockedEvidence.deterministicFixture
+
+        XCTAssertEqual(evidence.contractID, try Identifier("mtp-87-live-risk-gate-blocked-evidence"))
+        XCTAssertEqual(evidence.issueID, try Identifier("MTP-87"))
+        XCTAssertEqual(evidence.blockedItems.map(\.gate), LiveRiskGateBlockedGate.allCases)
+        XCTAssertEqual(
+            evidence.allowedEvidenceKinds,
+            [
+                .contractDocumentation,
+                .validationMatrixCandidate,
+                .validationPlanAnchor,
+                .deterministicForbiddenTest,
+                .paperLiveRiskIsolationEvidence,
+                .readModelOnlyBlockedEvidence,
+                .prBoundaryEvidence
+            ]
+        )
+        XCTAssertEqual(evidence.validationAnchors, [
+            "MTP-87-LIVE-RISK-GATE-BLOCKED-EVIDENCE",
+            "MTP-87-LIVE-RISK-GATES-BLOCKED-REASONS",
+            "MTP-87-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT",
+            "MTP-87-READ-MODEL-ONLY-NO-COMMAND-SURFACE",
+            "MTP-87-LIVE-RISK-GATE-VALIDATION",
+            "TVM-LIVE-RISK-GATE"
+        ])
+        XCTAssertEqual(evidence.sourceAnchors, [
+            "MTP-82-LIVE-RISK-TERMINOLOGY",
+            "MTP-83-EXPOSURE-ORDER-NOTIONAL-FUTURE-GATES",
+            "MTP-84-FREQUENCY-LOSS-DRAWDOWN-FUTURE-GATES",
+            "MTP-85-CIRCUIT-BREAKER-NO-TRADE-FUTURE-GATES",
+            "MTP-86-PAPER-RISK-LIVE-DECISION-ISOLATION-CONTRACT",
+            "MTP-86-REPORT-DASHBOARD-TIMELINE-READ-MODEL-ONLY",
+            "TVM-LIVE-RISK-GATE"
+        ])
+        XCTAssertEqual(evidence.deterministicSnapshot, [
+            "exposure|blocked|human live risk decision missing;account state source forbidden;broker position source forbidden;margin / leverage source forbidden;paper / live risk isolation required",
+            "order notional|blocked|human live risk decision missing;real order notional evaluation forbidden;real pre-trade allow / reject runtime forbidden;read model only boundary required",
+            "frequency|blocked|live order frequency runtime forbidden;real pre-trade allow / reject runtime forbidden;read model only boundary required",
+            "loss / drawdown|blocked|real PnL / equity source forbidden;real loss / drawdown runtime forbidden;paper / live risk isolation required;read model only boundary required",
+            "circuit breaker|blocked|circuit breaker runtime forbidden;stop / emergency command forbidden;risk command surface forbidden;read model only boundary required",
+            "no-trade state|blocked|no-trade state runtime forbidden;broker session state mutation forbidden;stop / emergency command forbidden;read model only boundary required"
+        ])
+
+        XCTAssertTrue(evidence.blockedEvidenceBoundaryHeld)
+        XCTAssertTrue(evidence.allRiskGatesBlocked)
+        XCTAssertTrue(evidence.appSurfaceReadModelOnlyBoundaryHeld)
+        XCTAssertTrue(evidence.forbiddenImplementationBoundaryHeld)
+        XCTAssertTrue(evidence.isReadModelOnly)
+        XCTAssertTrue(evidence.reportConsumesReadModelOnly)
+        XCTAssertTrue(evidence.dashboardConsumesViewModelOnly)
+        XCTAssertTrue(evidence.eventTimelineConsumesReadModelOnly)
+        XCTAssertFalse(evidence.exposesPersistenceSchema)
+        XCTAssertFalse(evidence.readsAdapter)
+        XCTAssertFalse(evidence.invokesRuntimeControl)
+        XCTAssertFalse(evidence.providesCommandSurface)
+        XCTAssertFalse(evidence.providesRiskCommandSurface)
+        XCTAssertFalse(evidence.providesTradingButton)
+        XCTAssertFalse(evidence.requiredValidationDependsOnNetwork)
+
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoded = try JSONDecoder().decode(LiveRiskGateBlockedEvidence.self, from: encoded)
+        XCTAssertEqual(decoded, evidence)
+    }
+
+    func testLiveRiskGateBlockedEvidenceRejectsMTP87RuntimeAccountAndCommandBypass() throws {
+        // 测试场景：MTP-87 的 blocked evidence 初始化和 Codable 解码必须拒绝
+        // schema、adapter、runtime、账户 / broker 来源、allow / reject runtime 和交易按钮绕过。
+        XCTAssertThrowsError(
+            try LiveRiskGateBlockedEvidence(providesCommandSurface: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("providesCommandSurface"))
+        }
+        XCTAssertThrowsError(
+            try LiveRiskGateBlockedEvidence(readsRealAccountBalance: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("readsRealAccountBalance"))
+        }
+        XCTAssertThrowsError(
+            try LiveRiskGateBlockedEvidence(syncsBrokerPosition: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("syncsBrokerPosition"))
+        }
+        XCTAssertThrowsError(
+            try LiveRiskGateBlockedEvidence(evaluatesRealPreTradeReject: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("evaluatesRealPreTradeReject"))
+        }
+        XCTAssertThrowsError(
+            try LiveRiskGateBlockedEvidence(runsCircuitBreakerRuntime: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("runsCircuitBreakerRuntime"))
+        }
+        XCTAssertThrowsError(
+            try LiveRiskGateBlockedEvidence(providesTradingButton: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("providesTradingButton"))
+        }
+        XCTAssertThrowsError(
+            try LiveRiskGateBlockedEvidence(
+                blockedItems: Array(LiveRiskGateBlockedEvidence.requiredBlockedItems.dropLast())
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "blockedItems",
+                    expected: LiveRiskGateBlockedEvidence
+                        .requiredBlockedItems
+                        .map(\.gate.rawValue)
+                        .joined(separator: ","),
+                    actual: Array(LiveRiskGateBlockedEvidence.requiredBlockedItems.dropLast())
+                        .map(\.gate.rawValue)
+                        .joined(separator: ",")
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(LiveRiskGateBlockedEvidence.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["providesRiskCommandSurface"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveRiskGateBlockedEvidence.self, from: data)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("providesRiskCommandSurface"))
+        }
+    }
+
+    func testLiveRiskGateBlockedEvidenceSummarizesMTP87GateReasonsWithoutRiskRuntime() throws {
+        // 测试场景：MTP-87 必须逐项解释 Live Risk gates 为什么仍被阻断，
+        // 并继续复用 MTP-83 至 MTP-86 的 Future / forbidden contracts。
+        let evidence = LiveRiskGateBlockedEvidence.deterministicFixture
+
+        let exposure = try XCTUnwrap(evidence.item(for: .exposure))
+        XCTAssertEqual(exposure.blockedReasons, [
+            .humanLiveRiskDecisionMissing,
+            .accountStateSourceForbidden,
+            .brokerPositionSourceForbidden,
+            .marginLeverageSourceForbidden,
+            .paperLiveRiskIsolationRequired
+        ])
+        XCTAssertTrue(exposure.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(exposure.evaluatesRisk)
+        XCTAssertFalse(exposure.readsAccountState)
+
+        let frequency = try XCTUnwrap(evidence.item(for: .frequency))
+        XCTAssertEqual(frequency.blockedReasons, [
+            .liveOrderFrequencyRuntimeForbidden,
+            .realPreTradeAllowRejectRuntimeForbidden,
+            .readModelOnlyBoundaryRequired
+        ])
+        XCTAssertFalse(frequency.invokesRuntimeControl)
+        XCTAssertFalse(frequency.authorizesLiveRiskDecision)
+
+        let circuitBreaker = try XCTUnwrap(evidence.item(for: .circuitBreaker))
+        XCTAssertEqual(circuitBreaker.blockedReasons, [
+            .circuitBreakerRuntimeForbidden,
+            .stopEmergencyCommandForbidden,
+            .riskCommandSurfaceForbidden,
+            .readModelOnlyBoundaryRequired
+        ])
+
+        XCTAssertTrue(LiveExposureOrderNotionalGateBoundary.deterministicFixture.allPreTradeDecisionsBlocked)
+        XCTAssertTrue(LiveFrequencyLossDrawdownGateBoundary.deterministicFixture.allPreTradeDecisionsBlocked)
+        XCTAssertTrue(LiveCircuitBreakerNoTradeGateBoundary.deterministicFixture.allPreTradeDecisionsBlocked)
+        XCTAssertTrue(LivePaperRiskLiveDecisionIsolationBoundary.deterministicFixture.appSurfaceReadModelOnlyBoundaryHeld)
+        XCTAssertFalse(evidence.evaluatesRealPreTradeAllow)
+        XCTAssertFalse(evidence.evaluatesRealPreTradeReject)
+        XCTAssertFalse(evidence.runsCircuitBreakerRuntime)
+        XCTAssertFalse(evidence.entersNoTradeStateRuntime)
+    }
+
     private func makeOrderBookImbalanceInputs() throws -> [OrderBookReadModelInput] {
         let symbol = try Symbol(rawValue: "BTCUSDT")
         let bidDominant = OrderBookReadModelInput(
