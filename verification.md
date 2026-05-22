@@ -9586,3 +9586,61 @@ Preflight：
 | `bash checks/automation-readiness.sh` | pass | 第一次因历史 literal anchor `MTP-90 issue backfill` 漂移失败；恢复该 anchor 后输出 `MTPRO automation readiness checks passed.`。 |
 | `git diff --check` | pass | 当前 diff whitespace 检查通过。 |
 | `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=37; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；193 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
+
+## MTP-92 Stop / Shutdown / Restore Future Gates
+
+日期：2026-05-23
+
+执行者：Codex（`@002 / PAR` supervised issue execution）
+
+目的：
+
+- 执行 Linear `MTP-92 定义 emergency stop / shutdown / restore future gates 和 forbidden capability tests`。
+- 只定义 emergency stop、shutdown、restore future gates、forbidden capability tests、risk circuit breaker / no-trade separation anchors 和 deterministic Core evidence。
+- 不启动 MTP-93..MTP-95，不推进下一 issue。
+
+Preflight：
+
+- Linear `MTP-92` 为唯一 `In Progress` active issue。
+- Linear `MTP-89`、`MTP-90`、`MTP-91` 为 `Done`。
+- `MTP-93` 至 `MTP-95` 仍为 `Backlog / non-executable`。
+- WIP=1 satisfied。
+- Issue body 已作为唯一 execution contract 读取并执行。
+
+文件范围：
+
+- `Sources/Core/LiveAuditIncidentStopContract.swift`
+- `Tests/CoreTests/CoreTests.swift`
+- `docs/contracts/live-audit-incident-stop-contract.md`
+- `docs/domain/context.md`
+- `docs/validation/trading-validation-matrix.md`
+- `docs/validation/validation-plan.md`
+- `docs/validation/latest-verification-summary.md`
+- `checks/automation-readiness.sh`
+- `verification.md`
+
+关键证据：
+
+- 新增 `LiveStopShutdownRestoreFutureGate`、`LiveStopShutdownRestoreForbiddenCapability` 和 `LiveStopShutdownRestoreFutureGateBoundary`。
+- 新增 anchors：`MTP-92-EMERGENCY-STOP-SHUTDOWN-RESTORE-FUTURE-GATES`、`MTP-92-FORBIDDEN-STOP-SHUTDOWN-RESTORE-CAPABILITY-TESTS`、`MTP-92-NO-LIVE-RISK-CIRCUIT-BREAKER-OR-NO-TRADE-UPGRADE`、`MTP-92-NO-BROKER-SESSION-MUTATION-OR-PRODUCTION-SHUTDOWN`、`MTP-92-STOP-SHUTDOWN-RESTORE-VALIDATION` 和 `TVM-LIVE-AUDIT-INCIDENT-STOP`。
+- Focused tests：`testMTP92StopShutdownRestoreFutureGatesDefineFutureOnlyBoundary`、`testMTP92StopShutdownRestoreFutureGatesRejectCommandsBrokerMutationAndProductionOperations` 和 `testMTP92StopShutdownRestoreFutureGatesKeepRiskCircuitBreakerAndNoTradeSeparate`。
+- `checks/automation-readiness.sh` 已机械检查 MTP-92 contract、domain context、validation matrix、validation plan、latest summary、Core source 和 focused test anchors。
+
+边界确认：
+
+- 不修改 Linear issue body 或 status。
+- 不推进 MTP-93..MTP-95。
+- 不启动 Symphony 或 `symphony-issue`。
+- 不运行 Graphify update。
+- 不修改 Figma。
+- 不实现 emergency stop command、shutdown command、restore command、stop control runtime、production shutdown control、production operations runtime、global trading lock、broker session mutation、broker action、signed endpoint、account endpoint、listenKey、`LiveExecutionAdapter`、OMS、real order state machine、live risk engine、circuit breaker runtime、no-trade state runtime、restore decision runtime、live runtime resume、Live PRO Console、live command、order-level command UI、stop button、order form 或 trading button。
+- 不把 `LiveCircuitBreakerNoTradeGateBoundary`、risk gate blocked evidence、circuit breaker 或 no-trade state 升级为当前 emergency stop、shutdown、restore、global trading lock、broker session mutation 或 production shutdown control。
+- `.codex/*` 和 `graphify-out/*` 未进入 PR scope。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP92` | pass | 第二次运行通过 3 个 MTP-92 focused Core tests，0 failures；第一次仅因测试引用既有属性名错误失败，修正后通过。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
+| `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=37; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；196 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |

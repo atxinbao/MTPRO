@@ -245,3 +245,61 @@ MTP-91 建立以下 validation anchors：
 - `MTP-91-FORBIDDEN-RECOVERY-BROKER-ACCOUNT-REPLAY-TESTS`
 - `MTP-91-DETERMINISTIC-REPLAY-NO-PRODUCTION-RECOVERY`
 - `MTP-91-INCIDENT-REPLAY-VALIDATION`
+
+## MTP-92 emergency stop / shutdown / restore future gates
+
+`MTP-92-EMERGENCY-STOP-SHUTDOWN-RESTORE-FUTURE-GATES`
+
+MTP-92 只定义 emergency stop、shutdown 和 restore 的 Future gates。它们是后续 Project Definition 前必须补齐的合同、授权、scope 和 evidence 条件，不是当前停机命令、恢复命令、生产运维控制、Live PRO Console 或交易入口。
+
+| Gate group | Future gates | 当前允许 source anchor | 当前禁止输出 |
+| --- | --- | --- | --- |
+| `emergency stop` | emergency stop policy contract、trigger source gate、authorization gate、read-model-only blocked evidence gate | `MTP-89-LIVE-AUDIT-INCIDENT-STOP-TERMINOLOGY`、`MTP-91-INCIDENT-REPLAY-VALIDATION` | emergency stop command、stop button、broker action、live command |
+| `shutdown` | shutdown policy contract、shutdown scope contract、production operations handoff gate | contract docs、validation plan、deterministic Core tests | shutdown command、global trading lock、broker session mutation、production shutdown control |
+| `restore` | restore policy contract、restore readiness evidence gate、restore authorization gate | incident replay future gates、blocked evidence source anchors | restore command、auto recovery、restore decision runtime、live runtime resume |
+| `risk gate separation` | circuit breaker / no-trade separation、live risk gate no stop runtime separation | `MTP-85-CIRCUIT-BREAKER-NO-TRADE-FUTURE-GATES`、`MTP-87-LIVE-RISK-GATE-BLOCKED-EVIDENCE` | circuit breaker runtime、no-trade state runtime、risk command surface |
+
+这些 gates 由 Core deterministic fixture `LiveStopShutdownRestoreFutureGateBoundary` 固定。该 fixture 只输出 contract / validation evidence，不读取 secret，不接 signed endpoint / account endpoint / listenKey，不读取真实 account / broker state，不实例化 `LiveExecutionAdapter`，不连接 broker，不提供 Live PRO Console、stop button、live command、order-level command UI 或交易按钮。
+
+## MTP-92 forbidden stop / shutdown / restore capability tests
+
+`MTP-92-FORBIDDEN-STOP-SHUTDOWN-RESTORE-CAPABILITY-TESTS`
+
+MTP-92 的 forbidden capability tests 必须阻断：
+
+- emergency stop command。
+- shutdown command。
+- restore command。
+- stop control runtime。
+- production shutdown control。
+- production operations runtime。
+- global trading lock。
+- broker session mutation。
+- broker action。
+- signed endpoint、account endpoint、listenKey。
+- `LiveExecutionAdapter`、OMS、real order state machine。
+- live risk engine、circuit breaker runtime、no-trade state runtime。
+- restore decision runtime、live runtime resume。
+- risk command surface、live command surface、Live PRO Console。
+- stop button 和 trading button。
+
+`MTP-92-NO-LIVE-RISK-CIRCUIT-BREAKER-OR-NO-TRADE-UPGRADE`
+
+MTP-92 可以引用 `LiveCircuitBreakerNoTradeGateBoundary`、`MTP-85-CIRCUIT-BREAKER-NO-TRADE-FUTURE-GATES` 和 `MTP-87-LIVE-RISK-GATE-BLOCKED-EVIDENCE` 作为 source anchors，但这些 anchors 不能被升级为当前 emergency stop、shutdown、restore、global trading lock、broker session mutation 或 production shutdown control。
+
+`MTP-92-NO-BROKER-SESSION-MUTATION-OR-PRODUCTION-SHUTDOWN`
+
+shutdown future gates 只描述后续必须定义的 policy、scope 和 operations handoff。它们不修改 broker session state，不创建全局交易锁，不执行 production shutdown，不产生 restore decision，也不恢复 live runtime。
+
+## MTP-92 validation anchors
+
+`MTP-92-STOP-SHUTDOWN-RESTORE-VALIDATION`
+
+MTP-92 建立以下 validation anchors：
+
+- `TVM-LIVE-AUDIT-INCIDENT-STOP`
+- `MTP-92-EMERGENCY-STOP-SHUTDOWN-RESTORE-FUTURE-GATES`
+- `MTP-92-FORBIDDEN-STOP-SHUTDOWN-RESTORE-CAPABILITY-TESTS`
+- `MTP-92-NO-LIVE-RISK-CIRCUIT-BREAKER-OR-NO-TRADE-UPGRADE`
+- `MTP-92-NO-BROKER-SESSION-MUTATION-OR-PRODUCTION-SHUTDOWN`
+- `MTP-92-STOP-SHUTDOWN-RESTORE-VALIDATION`

@@ -1566,3 +1566,38 @@ MTP-91 必须建立的主要 anchors：
 - 不实现 OMS、real order state machine、execution report ingestion、broker fill fact 或 audit trail runtime。
 - 不把当前 `Event Log` / `Replay` 升级为 production incident replay、production recovery、broker replay 或 account replay。
 - 不新增 Live PRO Console、live command、order-level command UI、order form、交易按钮或真实交易授权。
+
+## MTP-92 Stop / Shutdown / Restore Future Gates Validation
+
+日期：2026-05-23
+
+执行者：Codex
+
+MTP-92 的 required validation：
+
+- `docs/contracts/live-audit-incident-stop-contract.md` 必须包含 `MTP-92-EMERGENCY-STOP-SHUTDOWN-RESTORE-FUTURE-GATES`、`MTP-92-FORBIDDEN-STOP-SHUTDOWN-RESTORE-CAPABILITY-TESTS`、`MTP-92-NO-LIVE-RISK-CIRCUIT-BREAKER-OR-NO-TRADE-UPGRADE`、`MTP-92-NO-BROKER-SESSION-MUTATION-OR-PRODUCTION-SHUTDOWN` 和 `MTP-92-STOP-SHUTDOWN-RESTORE-VALIDATION` anchors。
+- `Sources/Core/LiveAuditIncidentStopContract.swift` 必须包含 `LiveStopShutdownRestoreFutureGate`、`LiveStopShutdownRestoreForbiddenCapability` 和 `LiveStopShutdownRestoreFutureGateBoundary`。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-92 focused tests，验证 no emergency stop、no shutdown、no restore command、no live command、no trading button、no broker session mutation、no production operations、no signed endpoint / account endpoint / listenKey / broker action。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-92 issue backfill。
+- `docs/domain/context.md` 必须包含 MTP-92 stop / shutdown / restore future gates、forbidden capability tests、risk circuit breaker / no-trade separation、broker session mutation / production shutdown boundary 和 validation anchors。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-92 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-92 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors；后续 MTP-95 仍负责 Project 级 stage closeout 和完整 automation readiness 收口。
+
+MTP-92 必须建立的主要 anchors：
+
+- `TVM-LIVE-AUDIT-INCIDENT-STOP`
+- `MTP-92-EMERGENCY-STOP-SHUTDOWN-RESTORE-FUTURE-GATES`
+- `MTP-92-FORBIDDEN-STOP-SHUTDOWN-RESTORE-CAPABILITY-TESTS`
+- `MTP-92-NO-LIVE-RISK-CIRCUIT-BREAKER-OR-NO-TRADE-UPGRADE`
+- `MTP-92-NO-BROKER-SESSION-MUTATION-OR-PRODUCTION-SHUTDOWN`
+- `MTP-92-STOP-SHUTDOWN-RESTORE-VALIDATION`
+
+## MTP-92 禁止
+
+- 不实现 emergency stop command、shutdown command 或 restore command。
+- 不实现 stop control runtime、production shutdown control、production operations runtime、global trading lock 或 broker session mutation。
+- 不接 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不连接 broker，不执行 broker action。
+- 不实现 OMS、real order state machine、live risk engine、circuit breaker runtime、no-trade state runtime、restore decision runtime 或 live runtime resume。
+- 不把 `LiveCircuitBreakerNoTradeGateBoundary`、risk gate blocked evidence、circuit breaker 或 no-trade state 升级为当前 emergency stop、shutdown、restore 或 production shutdown control。
+- 不新增 Live PRO Console、live command、order-level command UI、stop button、order form、交易按钮或真实交易授权。
