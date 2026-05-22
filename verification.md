@@ -9527,3 +9527,62 @@ Preflight：
 | `swift test --filter MTP90` | pass | 3 个 MTP-90 focused Core tests 通过，0 failures。 |
 | `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
 | `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=37; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；190 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
+
+## MTP-91 Incident Replay Future Gates
+
+日期：2026-05-23
+
+执行者：Codex（`@002 / PAR` supervised issue execution）
+
+目的：
+
+- 执行 Linear `MTP-91 定义 incident replay future gates 和 forbidden capability tests`。
+- 只定义 incident replay input source、replay scope、replay evidence、replay output future gates、forbidden capability tests 和 deterministic replay no production recovery anchors。
+- 不启动 MTP-92..MTP-95，不推进下一 issue。
+
+Preflight：
+
+- Linear `MTP-91` 为唯一 `In Progress` active issue。
+- Linear `MTP-89`、`MTP-90` 为 `Done`。
+- `MTP-92` 至 `MTP-95` 仍为 `Backlog / non-executable`。
+- WIP=1 satisfied。
+- Issue body 已作为唯一 execution contract 读取并执行。
+
+文件范围：
+
+- `Sources/Core/LiveAuditIncidentStopContract.swift`
+- `Tests/CoreTests/CoreTests.swift`
+- `docs/contracts/live-audit-incident-stop-contract.md`
+- `docs/domain/context.md`
+- `docs/validation/trading-validation-matrix.md`
+- `docs/validation/validation-plan.md`
+- `docs/validation/latest-verification-summary.md`
+- `checks/automation-readiness.sh`
+- `verification.md`
+
+关键证据：
+
+- 新增 `LiveIncidentReplayFutureGate`、`LiveIncidentReplayForbiddenCapability` 和 `LiveIncidentReplayFutureGateBoundary`。
+- 新增 anchors：`MTP-91-INCIDENT-REPLAY-FUTURE-GATES`、`MTP-91-INCIDENT-REPLAY-INPUT-SOURCE-GATES`、`MTP-91-REPLAY-SCOPE-EVIDENCE-OUTPUT-GATES`、`MTP-91-FORBIDDEN-RECOVERY-BROKER-ACCOUNT-REPLAY-TESTS`、`MTP-91-DETERMINISTIC-REPLAY-NO-PRODUCTION-RECOVERY`、`MTP-91-INCIDENT-REPLAY-VALIDATION` 和 `TVM-LIVE-AUDIT-INCIDENT-STOP`。
+- Focused tests：`testMTP91IncidentReplayFutureGatesDefineInputScopeEvidenceOutputBoundary`、`testMTP91IncidentReplayFutureGatesRejectRuntimeRecoveryBrokerAndAccountReplay` 和 `testMTP91IncidentReplayFutureGatesKeepCurrentReplayDeterministicEvidenceOnly`。
+- `checks/automation-readiness.sh` 已机械检查 MTP-91 contract、domain context、validation matrix、validation plan、latest summary、Core source 和 focused test anchors。
+
+边界确认：
+
+- 不修改 Linear issue body 或 status。
+- 不推进 MTP-92..MTP-95。
+- 不启动 Symphony 或 `symphony-issue`。
+- 不运行 Graphify update。
+- 不修改 Figma。
+- 不实现 incident replay runtime、production recovery runtime、auto restore / auto rollback runtime、broker replay runtime、account replay runtime、broker state reader、real account state reader、signed endpoint、account endpoint、listenKey、broker action、`LiveExecutionAdapter`、OMS、real order state machine、execution report ingestion、broker fill fact、audit trail runtime、production operations runtime、Live PRO Console、live command、order-level command UI、order form 或 trading button。
+- 不把当前 `Event Log` / `Replay` 升级为生产事故回放、生产恢复、broker replay、account replay、auto restore、auto rollback 或 live runtime resume。
+- `.codex/*` 和 `graphify-out/*` 未进入 PR scope。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP91` | pass | 3 个 MTP-91 focused Core tests 通过，0 failures。 |
+| `bash checks/automation-readiness.sh` | pass | 第一次因历史 literal anchor `MTP-90 issue backfill` 漂移失败；恢复该 anchor 后输出 `MTPRO automation readiness checks passed.`。 |
+| `git diff --check` | pass | 当前 diff whitespace 检查通过。 |
+| `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=37; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；193 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |

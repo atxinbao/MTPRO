@@ -175,3 +175,73 @@ MTP-90 建立以下 validation anchors：
 - `MTP-93`：Live risk / execution blocked evidence 与 future incident / stop boundary 的隔离合同。
 - `MTP-94`：read-model-only incident / stop blocked evidence 和 Dashboard / Report / Event Timeline 展示面。
 - `MTP-95`：validation matrix、automation readiness 和 stage audit input material 收口。
+
+## MTP-91 incident replay future gates
+
+`MTP-91-INCIDENT-REPLAY-FUTURE-GATES`
+
+MTP-91 只定义 incident replay 的 Future gates。`incident replay` 在当前 Project 中仍是受门禁保护的事故分析能力名称，不是当前 runtime、生产恢复系统、broker replay、account replay、auto restore 或 Live PRO Console。
+
+| Gate group | Future gates | 当前允许 source anchor | 当前禁止输出 |
+| --- | --- | --- | --- |
+| input source | incident input source contract、audit trail input source gate、Event Log evidence input boundary | `MTP-89-LIVE-AUDIT-INCIDENT-STOP-TERMINOLOGY`、`MTP-90-SIGNAL-ORDER-RISK-FILL-AUDIT-TRAIL-FUTURE-GATES`、`Event Log` | broker state reader、real account state reader、signed/account/listenKey |
+| replay scope | replay scope contract、replay time window scope | `Replay` deterministic evidence path | production incident replay runtime、broker replay runtime、account replay runtime |
+| replay evidence | replay evidence source contract、deterministic replay evidence path | `MTP-90-LIVE-AUDIT-TRAIL-VALIDATION`、`TVM-LIVE-AUDIT-INCIDENT-STOP` | execution report ingestion、broker fill fact、audit trail runtime |
+| replay output | replay output contract、read-model-only replay output gate、production recovery output forbidden | contract docs、validation plan、deterministic Core tests | production recovery、auto restore、auto rollback、production runtime mutation、live command |
+
+这些 gates 由 Core deterministic fixture `LiveIncidentReplayFutureGateBoundary` 固定。该 fixture 只输出 contract / validation evidence，不读取 secret，不接 signed endpoint / account endpoint / listenKey，不读取真实 account / broker state，不实例化 `LiveExecutionAdapter`，不连接 broker，不提供 Live PRO Console、live command、order-level command UI 或交易按钮。
+
+## MTP-91 incident replay input source gates
+
+`MTP-91-INCIDENT-REPLAY-INPUT-SOURCE-GATES`
+
+MTP-91 的 input source gates 必须把当前 Event Log / Replay 限定为 deterministic evidence path：
+
+- `Event Log` 只能作为 append-only facts source 的当前证据路径，不等于 production incident log、broker ledger、OMS log 或真实账户回放输入。
+- `Replay` 只能作为本地 deterministic replay / projection evidence，不等于 production recovery、auto restore、broker replay、account replay 或 live runtime resume。
+- `MTP-90` 的 signal / order / risk decision / fill audit trail gates 只是 future audit trail contract，不提供 execution report ingestion、broker fill source、real account state 或 reconciliation runtime。
+
+## MTP-91 replay scope / evidence / output gates
+
+`MTP-91-REPLAY-SCOPE-EVIDENCE-OUTPUT-GATES`
+
+MTP-91 固定 replay scope、replay evidence 和 replay output 的 Future / forbidden 边界：
+
+- replay scope 只描述后续 incident replay 必须有范围合同、时间窗口合同和证据边界，不实现生产事故回放 runtime。
+- replay evidence 只能引用 deterministic evidence path、contract docs、validation matrix 和 focused tests，不读取 broker state、account state、signed endpoint、account endpoint 或 listenKey。
+- replay output 只能是后续 read-model-only evidence gate，不得输出 production recovery、auto restore、auto rollback、production operations command、Live PRO Console、live command 或交易按钮。
+
+## MTP-91 forbidden recovery / broker / account replay tests
+
+`MTP-91-FORBIDDEN-RECOVERY-BROKER-ACCOUNT-REPLAY-TESTS`
+
+MTP-91 的 forbidden capability tests 必须阻断：
+
+- incident replay runtime。
+- production recovery runtime。
+- auto restore runtime / auto rollback runtime。
+- broker replay runtime / account replay runtime。
+- broker state reader / real account state reader。
+- signed endpoint、account endpoint、listenKey。
+- broker action、`LiveExecutionAdapter`、OMS、real order state machine。
+- execution report ingestion、broker fill fact、audit trail runtime。
+- production operations runtime、Live PRO Console、live command、trading button。
+- 当前 Event Log / Replay 升级为 production recovery 或 broker replay。
+
+`MTP-91-DETERMINISTIC-REPLAY-NO-PRODUCTION-RECOVERY`
+
+当前 replay 仍是 deterministic evidence path。它可以帮助 Research / Backtest / Paper / validation evidence 追溯事实和 projection，但不表示 production recovery、restore decision、broker replay、account replay、auto rollback、live runtime resume 或生产运维能力。
+
+## MTP-91 validation anchors
+
+`MTP-91-INCIDENT-REPLAY-VALIDATION`
+
+MTP-91 建立以下 validation anchors：
+
+- `TVM-LIVE-AUDIT-INCIDENT-STOP`
+- `MTP-91-INCIDENT-REPLAY-FUTURE-GATES`
+- `MTP-91-INCIDENT-REPLAY-INPUT-SOURCE-GATES`
+- `MTP-91-REPLAY-SCOPE-EVIDENCE-OUTPUT-GATES`
+- `MTP-91-FORBIDDEN-RECOVERY-BROKER-ACCOUNT-REPLAY-TESTS`
+- `MTP-91-DETERMINISTIC-REPLAY-NO-PRODUCTION-RECOVERY`
+- `MTP-91-INCIDENT-REPLAY-VALIDATION`

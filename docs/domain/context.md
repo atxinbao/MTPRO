@@ -234,6 +234,30 @@ MTP-90 可以引用 paper-only / read-model-only source anchors，例如 `PaperO
 
 MTP-90 的 validation anchor 由 `LiveAuditTrailFutureGateBoundary` 和 focused Core tests 固定；required validation 仍是本地 `bash checks/run.sh`，不依赖真实 Binance 网络、secret、signed endpoint、account endpoint、listenKey、broker state、真实账户或人工验收。
 
+`MTP-91-INCIDENT-REPLAY-FUTURE-GATES`
+
+MTP-91 固定 incident replay 只是 Future / gated incident analysis contract。它只定义 input source、replay scope、replay evidence 和 replay output gates，不授权当前 incident replay runtime、production recovery、broker replay、account replay、auto restore、auto rollback、production operations、Live PRO Console、live command 或交易按钮。
+
+`MTP-91-INCIDENT-REPLAY-INPUT-SOURCE-GATES`
+
+MTP-91 的 input source gates 只能引用 `MTP-89` terminology、`MTP-90` audit trail gates、`Event Log` 和 `Replay` 作为 deterministic evidence path。当前 `Event Log` 不等于 production incident log、broker ledger、OMS log 或 real account replay source；当前 `Replay` 不等于 production recovery、auto restore、broker replay、account replay 或 live runtime resume。
+
+`MTP-91-REPLAY-SCOPE-EVIDENCE-OUTPUT-GATES`
+
+MTP-91 的 replay scope / evidence / output gates 只说明后续 incident replay 进入实现前必须补齐范围合同、时间窗口、证据来源和 read-model-only output gate。它们不输出 production recovery、restore decision、broker replay、account replay、live command 或生产运维动作。
+
+`MTP-91-FORBIDDEN-RECOVERY-BROKER-ACCOUNT-REPLAY-TESTS`
+
+MTP-91 的 forbidden capability tests 必须继续阻断 incident replay runtime、production recovery runtime、auto restore / auto rollback runtime、broker replay runtime、account replay runtime、broker state reader、real account state reader、signed endpoint、account endpoint、listenKey、broker action、`LiveExecutionAdapter`、OMS、real order state machine、execution report ingestion、broker fill fact、audit trail runtime、production operations runtime、Live PRO Console、live command 和 trading button。
+
+`MTP-91-DETERMINISTIC-REPLAY-NO-PRODUCTION-RECOVERY`
+
+当前 replay 仍是 Research / Backtest / Paper / validation 的 deterministic evidence path，不得被写成生产事故回放系统、恢复系统、自动恢复、自动回滚、broker replay、account replay 或 live runtime resume。
+
+`MTP-91-INCIDENT-REPLAY-VALIDATION`
+
+MTP-91 的 validation anchor 由 `LiveIncidentReplayFutureGateBoundary` 和 focused Core tests 固定；required validation 仍是本地 `bash checks/run.sh`，不依赖真实 Binance 网络、secret、signed endpoint、account endpoint、listenKey、broker state、真实账户、production operations 或人工验收。
+
 ## Paper-only Terms
 
 | 术语 | MTPRO 含义 | 避免混用 |
