@@ -828,3 +828,47 @@ Content Model 覆盖：
 - 最终视觉稿、组件规范、SwiftUI 实现或业务代码开发。
 - Linear Project / Issue、Todo 推进、Symphony 启动或 Future Live trading execution scope。
 - submit / cancel / replace、order form、broker action、signed endpoint、account endpoint / listenKey、reconnect / start live / stop live、live command、trading button、real order state machine、real account balance 或 real broker position。
+
+## MTPRO Workbench User-Facing Dashboard High-Fidelity v2
+
+日期：2026-05-22
+
+执行者：Codex（`@000 / AIE`）
+
+当前设计层新增 `MTPRO Workbench User-Facing Dashboard High-Fidelity v2`，路径为 `docs/design/mtpro-workbench-user-facing-dashboard-high-fidelity-v2.md`。该文档记录 Figma canonical `85:2`，承接 `MTPRO Workbench User Dashboard Content Model v1`，用于定义更接近最终用户每天使用的 Workbench dashboard 高保真关键页面。
+
+该文档是设计层用户面 dashboard 高保真关键页面依据，不是 Live PRO Console，不是实盘操作台，不是 SwiftUI 实现或 Linear execution 授权。
+
+Figma `85:*` 覆盖页面：
+
+- Overview。
+- Market Replay。
+- Research。
+- Backtest。
+- Report。
+- Paper。
+- Portfolio。
+- Risk。
+- Events / Audit。
+- Live Readiness。
+- Live Monitoring。
+- Future Gated。
+
+v2 设计重点：
+
+- 从 evidence-heavy 改为用户可读 dashboard。
+- 主屏先给今日状态、下一步建议、最新报告、数据状态、Paper 状态、Live readiness / monitoring summary。
+- 每页主屏保留 3-5 个用户判断指标。
+- source、reason、trace id、validation anchor 下沉到 Detail inspector。
+- 完整 event sequence / route 由 Events / Audit 承担。
+- Future Gated 从 boundary list 改成边界解释面，不是执行授权、项目入口或施工入口。
+
+`@005 / ARC` 审查结论：通过。P0 / P1 均未发现；P2 仅建议后续 SwiftUI 实现时拉开底部状态语义 strip 与最近异常摘要的间距，避免小屏或字体缩放下拥挤。
+
+仍不包含：
+
+- SwiftUI 实现、组件库实现或业务代码开发。
+- Live PRO Console、实盘操作台或真实 Live trading execution scope。
+- Linear Project / Issue、Todo 推进、Symphony 启动。
+- API key / secret storage input、signed endpoint、account endpoint / listenKey、broker adapter / broker action、`LiveExecutionAdapter`、real order state machine / OMS。
+- submit / cancel / replace、order form、broker fill、execution report、reconciliation、real account balance、broker position、trading button、live command、order-level command UI、reconnect / start live / stop live。
