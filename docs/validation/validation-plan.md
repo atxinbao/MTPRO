@@ -1454,3 +1454,40 @@ MTP-88 必须建立的主要 anchors：
 - 不读取 API key、secret、真实账户余额、broker position、margin、leverage、PnL 或 equity。
 - 不接 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不实现 real pre-trade risk engine、real pre-trade allow / reject runtime、circuit breaker runtime、no-trade state runtime、risk command surface、position management command、order form、交易按钮、stop trading command 或 emergency stop。
+
+## MTP-89 Live Audit Incident Stop Terminology / Taxonomy Validation
+
+日期：2026-05-23
+
+执行者：Codex
+
+MTP-89 的 required validation：
+
+- `docs/contracts/live-audit-incident-stop-contract.md` 必须包含 `MTP-89-LIVE-AUDIT-INCIDENT-STOP-TERMINOLOGY`、`MTP-89-FUTURE-AUDIT-INCIDENT-STOP-TAXONOMY`、`MTP-89-BLOCKED-EVIDENCE-ONLY-FUTURE-GATES`、`MTP-89-NO-INCIDENT-REPLAY-OR-STOP-COMMAND`、`MTP-89-NO-LIVE-PRO-CONSOLE-SURFACE` 和 `MTP-89-LIVE-AUDIT-INCIDENT-STOP-VALIDATION` anchors。
+- `Sources/Core/LiveAuditIncidentStopContract.swift` 必须只定义 `LiveAuditIncidentStopTerm`、`FutureAuditIncidentStopTaxonomyTerm`、`LiveAuditIncidentStopFutureGate`、`LiveAuditIncidentStopForbiddenCapability`、`LiveAuditIncidentStopEvidenceKind` 和 `LiveAuditIncidentStopTerminologyBoundary`。
+- Core deterministic tests 必须覆盖 `testLiveAuditIncidentStopTerminologyDefinesMTP89FutureOnlyTaxonomy`、`testLiveAuditIncidentStopTerminologyRejectsMTP89RuntimeCommandAndConsoleBypass` 和 `testLiveAuditIncidentStopTerminologyKeepsMTP89BlockedEvidenceFutureOnly`。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-LIVE-AUDIT-INCIDENT-STOP` 和 MTP-89 issue backfill。
+- `docs/domain/context.md` 必须包含 Live Audit Incident Stop Terms 和 MTP-89 anchors。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-89 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-89 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors；后续 MTP-95 仍负责 Project 级 stage closeout 和完整 automation readiness 收口。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不实现 incident replay runtime、emergency stop、shutdown、restore、production operations、Live PRO Console、signed endpoint、account endpoint、listenKey、broker action、live command、order form 或交易按钮。
+
+MTP-89 必须建立的主要 anchors：
+
+- `TVM-LIVE-AUDIT-INCIDENT-STOP`
+- `MTP-89-LIVE-AUDIT-INCIDENT-STOP-TERMINOLOGY`
+- `MTP-89-FUTURE-AUDIT-INCIDENT-STOP-TAXONOMY`
+- `MTP-89-BLOCKED-EVIDENCE-ONLY-FUTURE-GATES`
+- `MTP-89-NO-INCIDENT-REPLAY-OR-STOP-COMMAND`
+- `MTP-89-NO-LIVE-PRO-CONSOLE-SURFACE`
+- `MTP-89-LIVE-AUDIT-INCIDENT-STOP-VALIDATION`
+
+## MTP-89 禁止
+
+- 不实现 incident replay runtime。
+- 不实现 emergency stop、shutdown、restore 或 stop control runtime。
+- 不实现 production operations、alerting / paging、auto recovery 或 broker session mutation。
+- 不把 Workbench、Dashboard、Report、Event Timeline 或 Evidence Explorer 描述成当前 Live PRO Console。
+- 不接 API key、secret storage、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order state machine、real order submit / cancel / replace、execution report runtime、broker fill runtime 或 reconciliation runtime。
+- 不新增 live command、order-level command UI、order form、交易按钮、broker action 或真实交易授权。

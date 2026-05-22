@@ -9412,3 +9412,60 @@ Root docs refresh 逐项结论：
 | --- | --- | --- |
 | `git diff --check` | pass | docs-only diff 无空白错误；新 planning record 已通过 intent-to-add 纳入检查范围。 |
 | `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=37; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；184 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
+
+## MTP-89 Live Audit / Incident / Stop Terminology and Taxonomy
+
+日期：2026-05-23
+
+执行者：Codex（`@002 / PAR` supervised issue execution）
+
+目的：
+
+- 执行 Linear `MTP-89 定义 Live audit / incident / stop terminology 和 taxonomy`。
+- 只定义 Future / gated terminology、future audit / incident / stop taxonomy、forbidden capability baseline、blocked evidence source anchors 和 validation anchors。
+- 为 MTP-90 至 MTP-95 提供可复用 validation anchors，不启动后续 issue，不推进 MTP-90..MTP-95。
+
+Preflight：
+
+- Linear `MTP-89` 为唯一 `Todo`。
+- `MTP-90` 至 `MTP-95` 仍为 `Backlog / non-executable`。
+- `In Progress = 0`，`In Review = 0`，WIP=1 satisfied。
+- Issue body 已作为唯一 execution contract 读取并执行。
+
+文件范围：
+
+- `Sources/Core/LiveAuditIncidentStopContract.swift`
+- `Tests/CoreTests/CoreTests.swift`
+- `docs/contracts/live-audit-incident-stop-contract.md`
+- `docs/domain/context.md`
+- `docs/validation/trading-validation-matrix.md`
+- `docs/validation/validation-plan.md`
+- `docs/validation/latest-verification-summary.md`
+- `checks/automation-readiness.sh`
+- `verification.md`
+
+关键证据：
+
+- 新增 `LiveAuditIncidentStopTerm`、`FutureAuditIncidentStopTaxonomyTerm`、`LiveAuditIncidentStopFutureGate`、`LiveAuditIncidentStopForbiddenCapability`、`LiveAuditIncidentStopEvidenceKind` 和 `LiveAuditIncidentStopTerminologyBoundary`。
+- 新增 anchors：`MTP-89-LIVE-AUDIT-INCIDENT-STOP-TERMINOLOGY`、`MTP-89-FUTURE-AUDIT-INCIDENT-STOP-TAXONOMY`、`MTP-89-BLOCKED-EVIDENCE-ONLY-FUTURE-GATES`、`MTP-89-NO-INCIDENT-REPLAY-OR-STOP-COMMAND`、`MTP-89-NO-LIVE-PRO-CONSOLE-SURFACE`、`MTP-89-LIVE-AUDIT-INCIDENT-STOP-VALIDATION` 和 `TVM-LIVE-AUDIT-INCIDENT-STOP`。
+- Focused tests：`testLiveAuditIncidentStopTerminologyDefinesMTP89FutureOnlyTaxonomy`、`testLiveAuditIncidentStopTerminologyRejectsMTP89RuntimeCommandAndConsoleBypass` 和 `testLiveAuditIncidentStopTerminologyKeepsMTP89BlockedEvidenceFutureOnly`。
+- `checks/automation-readiness.sh` 已机械检查 MTP-89 contract、domain context、validation matrix、validation plan、latest summary、Core source 和 focused test anchors。
+
+边界确认：
+
+- 不修改 Linear issue body 或 status。
+- 不推进 MTP-90..MTP-95。
+- 不启动 Symphony 或 `symphony-issue`。
+- 不运行 Graphify update。
+- 不修改 Figma。
+- 不实现 API key、secret storage、signed endpoint、account endpoint、listenKey、broker action、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order state machine、real order submit / cancel / replace、execution report runtime、broker fill runtime、reconciliation runtime、audit trail runtime、incident replay runtime、stop control runtime、emergency stop command、shutdown command、restore command、production operations runtime、Live PRO Console、live command、order-level command UI、order form、trading button 或 Workbench / Dashboard 到 Live PRO Console 的升级。
+- `.codex/*` 和 `graphify-out/*` 未进入 PR scope。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter LiveAuditIncidentStop` | pass | 3 个 MTP-89 focused Core tests 通过，0 failures。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
+| `git diff --check` | pass | 对新增文件执行 intent-to-add 后检查通过。 |
+| `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=37; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；187 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |

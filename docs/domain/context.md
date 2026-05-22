@@ -181,6 +181,39 @@ MTP-86 只允许 Report / Dashboard / Event Timeline 展示既有 read model / V
 
 MTP-87 进一步固定 `LiveRiskGateBlockedEvidence` 的 read-model-only 语义：exposure、order notional、frequency、loss / drawdown、circuit breaker 和 no-trade state 只能以 blocked gate、blocked reason、source anchor 和 deterministic snapshot 进入 Report / Dashboard / Event Timeline；它不等于 live risk engine、real pre-trade allow / reject runtime、真实账户 / broker state reader、circuit breaker / no-trade runtime、risk command、position command、order form 或交易按钮。
 
+## Live Audit Incident Stop Terms
+
+`MTP-89-LIVE-AUDIT-INCIDENT-STOP-TERMINOLOGY`
+
+以下术语由 MTP-89 定义为 `MTPRO Live Audit Incident Stop Boundary v1` 的 Future / gated language。它们只用于 live audit / incident / stop contract、future taxonomy、blocked evidence source anchors 和后续 forbidden capability tests，不授权当前 scope 实现 incident replay runtime、emergency stop、shutdown、restore、production operations、Live PRO Console、live command、broker action 或交易按钮。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `live audit` | Future Live 中对实盘边界、事件、命令、风险和恢复过程的审计概念 | 不等于当前 audit storage、production audit service 或 broker-side audit |
+| `audit trail` | Future Live 可能串联 signal、order、risk decision 和 fill 证据的审计轨迹 | 不等于当前 append-only production audit log、OMS log 或 broker ledger |
+| `incident` | Future Live 可能需要调查、回放或人工处理的事故语义 | 不等于当前 alerting / paging、production incident runtime 或自动恢复 |
+| `incident replay` | Future Live 可能用于事故分析的回放能力名称 | 不等于当前 incident replay runtime、broker event replay 或生产回放服务 |
+| `stop control` | Future Live 可能阻断交易或运维动作的控制类别 | 不等于当前 stop control runtime、risk command 或 live command |
+| `emergency stop` | Future Live 可能存在的紧急停止语义 | 不等于当前 emergency stop command、交易按钮或 broker action |
+| `shutdown` | Future Live 可能存在的生产停机语义 | 不等于当前 shutdown command、production operation 或 broker session mutation |
+| `restore` | Future Live 可能存在的恢复语义 | 不等于当前 restore command、auto recovery 或 live runtime resume |
+
+`MTP-89-FUTURE-AUDIT-INCIDENT-STOP-TAXONOMY`
+
+MTP-89 固定 `signal audit trail`、`order audit trail`、`risk decision audit trail`、`fill audit trail`、`incident replay`、`stop control`、`emergency stop`、`shutdown`、`restore` 和 `production operations` 只是 Future audit / incident / stop taxonomy。它们不授权当前 audit runtime、incident replay runtime、emergency stop command、shutdown / restore command、production operations、Live PRO Console、live command、broker action 或交易按钮。
+
+`MTP-89-BLOCKED-EVIDENCE-ONLY-FUTURE-GATES`
+
+MTP-89 只能引用 `TVM-LIVE-TRADING-FOUNDATION`、`TVM-LIVE-EXECUTION-CONTROL`、`TVM-LIVE-RISK-GATE`、`MTP-65-LIVE-BLOCKED-EVIDENCE`、`MTP-79-LIVE-EXECUTION-CONTROL-BLOCKED-EVIDENCE` 和 `MTP-87-LIVE-RISK-GATE-BLOCKED-EVIDENCE` 作为 blocked evidence source anchors。引用这些 anchors 不会把 Workbench、Dashboard、Report 或 Event Timeline 升级为 Live PRO Console。
+
+`MTP-89-NO-INCIDENT-REPLAY-OR-STOP-COMMAND`
+
+MTP-89 不实现 incident replay runtime、stop control runtime、emergency stop、shutdown、restore、production operations、signed endpoint、account endpoint、listenKey、broker action、`LiveExecutionAdapter`、OMS、real order state machine、live command、order-level command UI 或交易按钮；`LiveAuditIncidentStopTerminologyBoundary` 中对应 forbidden flags 必须全部保持 `false`。
+
+`MTP-89-NO-LIVE-PRO-CONSOLE-SURFACE`
+
+Workbench 和 Dashboard 仍是当前 paper / research / validation / read-model-only evidence surface，不得被描述成当前 Live PRO Console。Live PRO Console 仍是 Future product surface，必须经过独立 Human decision、独立 Project Definition 和后续 signed / account / broker / risk / ops gates。
+
 ## Paper-only Terms
 
 | 术语 | MTPRO 含义 | 避免混用 |
