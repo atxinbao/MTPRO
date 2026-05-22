@@ -9644,3 +9644,61 @@ Preflight：
 | `swift test --filter MTP92` | pass | 第二次运行通过 3 个 MTP-92 focused Core tests，0 failures；第一次仅因测试引用既有属性名错误失败，修正后通过。 |
 | `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
 | `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=37; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；196 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
+
+## MTP-93 Blocked Evidence Incident / Stop Isolation
+
+日期：2026-05-23
+
+执行者：Codex（`@002 / PAR` supervised issue execution）
+
+目的：
+
+- 执行 Linear `MTP-93 定义 Live risk / execution blocked evidence 与 future incident / stop boundary 的隔离合同`。
+- 只定义 `LiveExecutionControlBlockedEvidence`、`LiveRiskGateBlockedEvidence` 和 paper-only evidence 与 future incident / stop boundary 的隔离合同。
+- 不启动 MTP-94 或 MTP-95，不推进下一 issue。
+
+Preflight：
+
+- Linear `MTP-93` 为唯一 `In Progress` active issue。
+- Linear `MTP-89`、`MTP-90`、`MTP-91`、`MTP-92` 为 `Done`。
+- `MTP-94` 和 `MTP-95` 仍为 `Backlog / non-executable`。
+- WIP=1 satisfied。
+- Issue body 已作为唯一 execution contract 读取并执行。
+
+文件范围：
+
+- `Sources/Core/LiveAuditIncidentStopContract.swift`
+- `Tests/CoreTests/CoreTests.swift`
+- `docs/contracts/live-audit-incident-stop-contract.md`
+- `docs/domain/context.md`
+- `docs/validation/trading-validation-matrix.md`
+- `docs/validation/validation-plan.md`
+- `docs/validation/latest-verification-summary.md`
+- `checks/automation-readiness.sh`
+- `verification.md`
+
+关键证据：
+
+- 新增 `LiveBlockedEvidenceIncidentStopIsolationGate`、`LiveBlockedEvidenceIncidentStopForbiddenCapability` 和 `LiveBlockedEvidenceIncidentStopIsolationBoundary`。
+- 新增 anchors：`MTP-93-LIVE-RISK-EXECUTION-BLOCKED-EVIDENCE-ISOLATION`、`MTP-93-NO-BLOCKED-EVIDENCE-TO-INCIDENT-OR-STOP-COMMAND-UPGRADE`、`MTP-93-PAPER-EVIDENCE-NO-INCIDENT-STOP-UPGRADE`、`MTP-93-FORBIDDEN-COMMAND-RUNTIME-UPGRADE-TESTS`、`MTP-93-BLOCKED-EVIDENCE-ISOLATION-VALIDATION` 和 `TVM-LIVE-AUDIT-INCIDENT-STOP`。
+- Focused tests：`testMTP93BlockedEvidenceIsolationDefinesReadModelOnlyBoundary`、`testMTP93BlockedEvidenceIsolationRejectsCommandRuntimeAndConsoleUpgrade` 和 `testMTP93BlockedEvidenceIsolationKeepsPaperEvidenceAndReadModelsFromIncidentStopUpgrade`。
+- `checks/automation-readiness.sh` 已机械检查 MTP-93 contract、domain context、validation matrix、validation plan、latest summary、Core source 和 focused test anchors。
+
+边界确认：
+
+- 不修改 Linear issue body 或 status。
+- 不推进 MTP-94 或 MTP-95。
+- 不启动 Symphony 或 `symphony-issue`。
+- 不运行 Graphify update。
+- 不修改 Figma。
+- 不实现 incident command、stop command、shutdown command、restore command、incident replay runtime、execution runtime、live risk engine、production operations runtime、signed endpoint、account endpoint、listenKey、broker action、`LiveExecutionAdapter`、OMS、real order state machine、Live PRO Console、live command、order-level command UI、stop button、order form 或 trading button。
+- 不把 `LiveExecutionControlBlockedEvidence`、`LiveRiskGateBlockedEvidence`、`PaperOrderIntent`、`PaperSimulatedFillEvidence`、`RiskBlockerEvidence` 或 `PortfolioExposureSnapshot` 升级为 incident / stop command、restore decision、production incident fact、broker fill fact、real account state 或 future live risk decision。
+- `.codex/*` 和 `graphify-out/*` 未进入 PR scope。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP93` | pass | 3 个 MTP-93 focused Core tests 通过，0 failures。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
+| `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=37; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；199 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |

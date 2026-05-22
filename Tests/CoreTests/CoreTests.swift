@@ -7159,6 +7159,204 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testMTP93BlockedEvidenceIsolationDefinesReadModelOnlyBoundary() throws {
+        // 测试场景：MTP-93 只定义 Live execution / risk blocked evidence 与 future
+        // incident / stop boundary 的隔离合同。该 fixture 只能输出合同、source anchor
+        // 和 forbidden capability evidence，不能提供 runtime、command、Live PRO Console 或交易按钮。
+        let boundary = LiveBlockedEvidenceIncidentStopIsolationBoundary.deterministicFixture
+
+        XCTAssertEqual(boundary.contractID, try Identifier("mtp-93-blocked-evidence-incident-stop-isolation"))
+        XCTAssertEqual(boundary.issueID, try Identifier("MTP-93"))
+        XCTAssertEqual(boundary.isolationGates, [
+            .executionControlBlockedEvidenceStaysReadModelOnly,
+            .riskGateBlockedEvidenceStaysReadModelOnly,
+            .paperOrderIntentStaysPaperOnly,
+            .simulatedFillStaysPaperOnly,
+            .paperExposureStaysPaperOnly,
+            .incidentReplayRuntimeUpgradeForbidden,
+            .stopShutdownRestoreCommandUpgradeForbidden,
+            .liveConsoleCommandUpgradeForbidden
+        ])
+        XCTAssertEqual(
+            boundary.forbiddenCapabilities,
+            LiveBlockedEvidenceIncidentStopForbiddenCapability.allCases
+        )
+        XCTAssertTrue(boundary.forbidsCapability(.executionBlockedEvidenceToIncidentCommand))
+        XCTAssertTrue(boundary.forbidsCapability(.riskBlockedEvidenceToEmergencyStop))
+        XCTAssertTrue(boundary.forbidsCapability(.paperExposureToStopDecision))
+        XCTAssertTrue(boundary.forbidsCapability(.liveCommandSurface))
+        XCTAssertEqual(boundary.blockedEvidenceSourceAnchors, [
+            "MTP-79-LIVE-EXECUTION-CONTROL-BLOCKED-EVIDENCE",
+            "LiveExecutionControlBlockedEvidence",
+            "MTP-87-LIVE-RISK-GATE-BLOCKED-EVIDENCE",
+            "LiveRiskGateBlockedEvidence",
+            "RiskBlockerEvidence",
+            "PaperOrderIntent",
+            "PaperSimulatedFillEvidence",
+            "PortfolioExposureSnapshot",
+            "MTP-90-PAPER-EVIDENCE-NO-REAL-AUDIT-FACT-UPGRADE",
+            "MTP-91-INCIDENT-REPLAY-VALIDATION",
+            "MTP-92-STOP-SHUTDOWN-RESTORE-VALIDATION",
+            "TVM-LIVE-AUDIT-INCIDENT-STOP"
+        ])
+        XCTAssertEqual(boundary.validationAnchors, [
+            "MTP-93-LIVE-RISK-EXECUTION-BLOCKED-EVIDENCE-ISOLATION",
+            "MTP-93-NO-BLOCKED-EVIDENCE-TO-INCIDENT-OR-STOP-COMMAND-UPGRADE",
+            "MTP-93-PAPER-EVIDENCE-NO-INCIDENT-STOP-UPGRADE",
+            "MTP-93-FORBIDDEN-COMMAND-RUNTIME-UPGRADE-TESTS",
+            "MTP-93-BLOCKED-EVIDENCE-ISOLATION-VALIDATION",
+            "TVM-LIVE-AUDIT-INCIDENT-STOP"
+        ])
+        XCTAssertTrue(boundary.isolationBoundaryHeld)
+        XCTAssertTrue(boundary.executionRiskBlockedEvidenceIsolationHeld)
+        XCTAssertTrue(boundary.paperEvidenceIsolationHeld)
+        XCTAssertTrue(boundary.forbiddenCapabilityBoundaryHeld)
+        XCTAssertTrue(boundary.isIsolationContractOnly)
+        XCTAssertTrue(boundary.keepsExecutionControlBlockedEvidenceReadModelOnly)
+        XCTAssertTrue(boundary.keepsRiskGateBlockedEvidenceReadModelOnly)
+        XCTAssertTrue(boundary.keepsPaperEvidencePaperOnly)
+        XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(
+            LiveBlockedEvidenceIncidentStopIsolationBoundary.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, boundary)
+    }
+
+    func testMTP93BlockedEvidenceIsolationRejectsCommandRuntimeAndConsoleUpgrade() throws {
+        // 测试场景：MTP-93 的 forbidden capability tests 必须拒绝把 blocked evidence
+        // 升级成 incident command、stop command、restore decision、runtime、signed endpoint
+        // 或 Live PRO Console。
+        XCTAssertThrowsError(
+            try LiveBlockedEvidenceIncidentStopIsolationBoundary(
+                mapsExecutionBlockedEvidenceToIncidentCommand: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("mapsExecutionBlockedEvidenceToIncidentCommand")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveBlockedEvidenceIncidentStopIsolationBoundary(mapsExecutionBlockedEvidenceToStopCommand: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("mapsExecutionBlockedEvidenceToStopCommand")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveBlockedEvidenceIncidentStopIsolationBoundary(mapsRiskBlockedEvidenceToEmergencyStop: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("mapsRiskBlockedEvidenceToEmergencyStop")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveBlockedEvidenceIncidentStopIsolationBoundary(runsIncidentReplayRuntime: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("runsIncidentReplayRuntime"))
+        }
+        XCTAssertThrowsError(
+            try LiveBlockedEvidenceIncidentStopIsolationBoundary(runsStopCommand: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("runsStopCommand"))
+        }
+        XCTAssertThrowsError(
+            try LiveBlockedEvidenceIncidentStopIsolationBoundary(usesSignedEndpoint: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("usesSignedEndpoint"))
+        }
+        XCTAssertThrowsError(
+            try LiveBlockedEvidenceIncidentStopIsolationBoundary(exposesLiveProConsole: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("exposesLiveProConsole"))
+        }
+        XCTAssertThrowsError(
+            try LiveBlockedEvidenceIncidentStopIsolationBoundary(
+                isolationGates: [.executionControlBlockedEvidenceStaysReadModelOnly]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "isolationGates",
+                    expected: LiveBlockedEvidenceIncidentStopIsolationBoundary
+                        .requiredIsolationGates
+                        .map(\.rawValue)
+                        .joined(separator: ","),
+                    actual: "execution-control blocked evidence stays read-model-only"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(LiveBlockedEvidenceIncidentStopIsolationBoundary.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["mapsRiskBlockedEvidenceToIncidentReplayRuntime"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveBlockedEvidenceIncidentStopIsolationBoundary.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("mapsRiskBlockedEvidenceToIncidentReplayRuntime")
+            )
+        }
+    }
+
+    func testMTP93BlockedEvidenceIsolationKeepsPaperEvidenceAndReadModelsFromIncidentStopUpgrade() throws {
+        // 测试场景：MTP-93 可以引用 execution-control blocked evidence、risk gate blocked evidence
+        // 和 paper-only evidence 作为 source anchors，但不得把它们写成 incident runtime、
+        // stop decision、restore decision、production fact 或 live command。
+        let boundary = LiveBlockedEvidenceIncidentStopIsolationBoundary.deterministicFixture
+        let executionEvidence = LiveExecutionControlBlockedEvidence.deterministicFixture
+        let riskEvidence = LiveRiskGateBlockedEvidence.deterministicFixture
+        let paperOrder = try PaperOrderIntentFixture.deterministicAllowed()
+        let simulatedFill = try PaperSimulatedFillFixture.deterministicAllowed()
+
+        XCTAssertTrue(executionEvidence.blockedEvidenceBoundaryHeld)
+        XCTAssertTrue(riskEvidence.blockedEvidenceBoundaryHeld)
+        XCTAssertTrue(boundary.blockedEvidenceSourceAnchors.contains("LiveExecutionControlBlockedEvidence"))
+        XCTAssertTrue(boundary.blockedEvidenceSourceAnchors.contains("LiveRiskGateBlockedEvidence"))
+        XCTAssertTrue(boundary.blockedEvidenceSourceAnchors.contains("PaperOrderIntent"))
+        XCTAssertTrue(boundary.blockedEvidenceSourceAnchors.contains("PaperSimulatedFillEvidence"))
+        XCTAssertTrue(boundary.blockedEvidenceSourceAnchors.contains("PortfolioExposureSnapshot"))
+        XCTAssertTrue(paperOrder.paperOnlyBoundaryHeld)
+        XCTAssertTrue(simulatedFill.isSimulatedFillEvidence)
+        XCTAssertFalse(boundary.mapsPaperOrderIntentToIncidentCommand)
+        XCTAssertFalse(boundary.mapsSimulatedFillToProductionIncidentFact)
+        XCTAssertFalse(boundary.mapsPaperExposureToStopDecision)
+        XCTAssertFalse(boundary.runsProductionOperations)
+        XCTAssertFalse(boundary.providesLiveCommand)
+        XCTAssertFalse(boundary.providesTradingButton)
+
+        XCTAssertThrowsError(
+            try LiveBlockedEvidenceIncidentStopIsolationBoundary(mapsPaperOrderIntentToIncidentCommand: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("mapsPaperOrderIntentToIncidentCommand")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveBlockedEvidenceIncidentStopIsolationBoundary(mapsSimulatedFillToProductionIncidentFact: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("mapsSimulatedFillToProductionIncidentFact")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveBlockedEvidenceIncidentStopIsolationBoundary(mapsPaperExposureToStopDecision: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("mapsPaperExposureToStopDecision"))
+        }
+    }
+
     private func makeOrderBookImbalanceInputs() throws -> [OrderBookReadModelInput] {
         let symbol = try Symbol(rawValue: "BTCUSDT")
         let bidDominant = OrderBookReadModelInput(

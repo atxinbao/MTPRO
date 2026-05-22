@@ -278,6 +278,26 @@ MTP-92 不实现 broker session mutation、production shutdown control、product
 
 MTP-92 的 validation anchor 由 `LiveStopShutdownRestoreFutureGateBoundary` 和 focused Core tests 固定；required validation 仍是本地 `bash checks/run.sh`，不依赖真实 Binance 网络、secret、signed endpoint、account endpoint、listenKey、broker state、真实账户、production operations 或人工验收。
 
+`MTP-93-LIVE-RISK-EXECUTION-BLOCKED-EVIDENCE-ISOLATION`
+
+MTP-93 固定 `LiveExecutionControlBlockedEvidence`、`LiveRiskGateBlockedEvidence`、`RiskBlockerEvidence`、`PaperOrderIntent`、`PaperSimulatedFillEvidence` 和 `PortfolioExposureSnapshot` 只能作为 read-model-only / paper-only source anchors。它们可以解释 future audit / incident / stop boundary 为什么仍被阻断，但不能升级为 incident command、stop command、restore decision、execution runtime、live risk engine、production operations、Live PRO Console、live command 或交易按钮。
+
+`MTP-93-NO-BLOCKED-EVIDENCE-TO-INCIDENT-OR-STOP-COMMAND-UPGRADE`
+
+MTP-93 的 forbidden capability tests 必须继续阻断 execution-control blocked evidence -> incident command / stop command / restore decision、risk gate blocked evidence -> incident replay runtime / emergency stop / shutdown command，以及 incident replay runtime、stop command、shutdown command、restore command、execution runtime、live risk engine、signed endpoint、account endpoint、listenKey、broker action、`LiveExecutionAdapter`、OMS、real order state machine、Live PRO Console、live command 和 trading button。
+
+`MTP-93-PAPER-EVIDENCE-NO-INCIDENT-STOP-UPGRADE`
+
+MTP-93 可以引用 paper order、simulated fill、risk blocker 和 paper exposure 作为隔离证据，但这些 evidence 不能成为 production incident fact、stop decision、restore readiness、broker fill fact、real account state、future live risk decision、incident replay runtime 或 production operations handoff。
+
+`MTP-93-FORBIDDEN-COMMAND-RUNTIME-UPGRADE-TESTS`
+
+MTP-93 的 validation anchor 由 `LiveBlockedEvidenceIncidentStopIsolationBoundary` 和 focused Core tests 固定；Core tests 必须覆盖 deterministic fixture、forbidden command / runtime flags、Codable 解码拒绝绕过，以及 read-model-only / paper-only source anchors 的隔离。
+
+`MTP-93-BLOCKED-EVIDENCE-ISOLATION-VALIDATION`
+
+MTP-93 的 required validation 仍是本地 `bash checks/run.sh`，不依赖真实 Binance 网络、secret、signed endpoint、account endpoint、listenKey、broker state、真实账户、production operations 或人工验收。
+
 ## Paper-only Terms
 
 | 术语 | MTPRO 含义 | 避免混用 |

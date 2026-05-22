@@ -1581,6 +1581,547 @@ public struct LiveStopShutdownRestoreFutureGateBoundary: Codable, Equatable, Sen
     }
 }
 
+/// LiveBlockedEvidenceIncidentStopIsolationGate 定义 MTP-93 的 blocked evidence 隔离门禁。
+///
+/// 这些 gate 只说明 execution-control blocked evidence、risk gate blocked evidence 和 paper-only
+/// evidence 如何停留在只读证据层；它们不能被解释为 incident command、stop / shutdown /
+/// restore command、live risk engine、execution runtime 或 production operations。
+public enum LiveBlockedEvidenceIncidentStopIsolationGate: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case executionControlBlockedEvidenceStaysReadModelOnly = "execution-control blocked evidence stays read-model-only"
+    case riskGateBlockedEvidenceStaysReadModelOnly = "risk gate blocked evidence stays read-model-only"
+    case paperOrderIntentStaysPaperOnly = "paper order intent stays paper-only"
+    case simulatedFillStaysPaperOnly = "simulated fill stays paper-only"
+    case paperExposureStaysPaperOnly = "paper exposure stays paper-only"
+    case incidentReplayRuntimeUpgradeForbidden = "incident replay runtime upgrade forbidden"
+    case stopShutdownRestoreCommandUpgradeForbidden = "stop / shutdown / restore command upgrade forbidden"
+    case liveConsoleCommandUpgradeForbidden = "Live PRO Console / live command upgrade forbidden"
+}
+
+/// LiveBlockedEvidenceIncidentStopForbiddenCapability 枚举 MTP-93 必须拒绝的升级路径。
+///
+/// 每个 case 都是 deterministic forbidden test 的输入语义，不能在当前系统中落成 runtime、
+/// adapter、UI command 或真实交易能力。
+public enum LiveBlockedEvidenceIncidentStopForbiddenCapability: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case executionBlockedEvidenceToIncidentCommand = "execution blocked evidence to incident command"
+    case executionBlockedEvidenceToStopCommand = "execution blocked evidence to stop command"
+    case executionBlockedEvidenceToRestoreDecision = "execution blocked evidence to restore decision"
+    case riskBlockedEvidenceToIncidentReplayRuntime = "risk blocked evidence to incident replay runtime"
+    case riskBlockedEvidenceToEmergencyStop = "risk blocked evidence to emergency stop"
+    case riskBlockedEvidenceToShutdownCommand = "risk blocked evidence to shutdown command"
+    case paperOrderIntentToIncidentCommand = "paper order intent to incident command"
+    case simulatedFillToProductionIncidentFact = "simulated fill to production incident fact"
+    case paperExposureToStopDecision = "paper exposure to stop decision"
+    case incidentReplayRuntime = "incident replay runtime"
+    case stopCommand = "stop command"
+    case shutdownCommand = "shutdown command"
+    case restoreCommand = "restore command"
+    case executionRuntime = "execution runtime"
+    case liveRiskEngine = "live risk engine"
+    case productionOperationsRuntime = "production operations runtime"
+    case signedEndpoint = "signed endpoint"
+    case accountEndpoint = "account endpoint"
+    case listenKeyUserDataStream = "listenKey user data stream"
+    case brokerAction = "broker action"
+    case liveExecutionAdapter = "LiveExecutionAdapter"
+    case oms = "OMS"
+    case realOrderStateMachine = "real order state machine"
+    case liveProConsole = "Live PRO Console"
+    case liveCommandSurface = "live command surface"
+    case tradingButton = "trading button"
+}
+
+/// LiveBlockedEvidenceIncidentStopIsolationBoundary 是 MTP-93 的隔离合同 fixture。
+///
+/// 该 fixture 把 MTP-79 execution-control blocked evidence、MTP-87 risk gate blocked evidence
+/// 和 paper-only evidence 明确锁在 read-model-only / paper-only evidence 层。它允许这些证据作为
+/// source anchor 参与 future audit / incident / stop 规划，但拒绝把它们升级为事故命令、停机命令、
+/// 恢复决策、execution runtime、live risk engine、broker action 或 Live PRO Console。
+public struct LiveBlockedEvidenceIncidentStopIsolationBoundary: Codable, Equatable, Sendable {
+    public let contractID: Identifier
+    public let issueID: Identifier
+    public let isolationGates: [LiveBlockedEvidenceIncidentStopIsolationGate]
+    public let forbiddenCapabilities: [LiveBlockedEvidenceIncidentStopForbiddenCapability]
+    public let allowedEvidenceKinds: [LiveAuditIncidentStopEvidenceKind]
+    public let blockedEvidenceSourceAnchors: [String]
+    public let validationAnchors: [String]
+    public let isIsolationContractOnly: Bool
+    public let keepsExecutionControlBlockedEvidenceReadModelOnly: Bool
+    public let keepsRiskGateBlockedEvidenceReadModelOnly: Bool
+    public let keepsPaperEvidencePaperOnly: Bool
+    public let mapsExecutionBlockedEvidenceToIncidentCommand: Bool
+    public let mapsExecutionBlockedEvidenceToStopCommand: Bool
+    public let mapsExecutionBlockedEvidenceToRestoreDecision: Bool
+    public let mapsRiskBlockedEvidenceToIncidentReplayRuntime: Bool
+    public let mapsRiskBlockedEvidenceToEmergencyStop: Bool
+    public let mapsRiskBlockedEvidenceToShutdownCommand: Bool
+    public let mapsPaperOrderIntentToIncidentCommand: Bool
+    public let mapsSimulatedFillToProductionIncidentFact: Bool
+    public let mapsPaperExposureToStopDecision: Bool
+    public let runsIncidentReplayRuntime: Bool
+    public let runsStopCommand: Bool
+    public let runsShutdownCommand: Bool
+    public let runsRestoreCommand: Bool
+    public let runsExecutionRuntime: Bool
+    public let runsLiveRiskEngine: Bool
+    public let runsProductionOperations: Bool
+    public let usesSignedEndpoint: Bool
+    public let callsAccountEndpoint: Bool
+    public let createsListenKey: Bool
+    public let executesBrokerAction: Bool
+    public let implementsLiveExecutionAdapter: Bool
+    public let implementsOMS: Bool
+    public let implementsRealOrderStateMachine: Bool
+    public let exposesLiveProConsole: Bool
+    public let providesLiveCommand: Bool
+    public let providesTradingButton: Bool
+    public let requiredValidationDependsOnNetwork: Bool
+
+    public var isolationBoundaryHeld: Bool {
+        isolationGates == Self.requiredIsolationGates
+            && forbiddenCapabilities == Self.requiredForbiddenCapabilities
+            && allowedEvidenceKinds == Self.allowedEvidenceKinds
+            && blockedEvidenceSourceAnchors == Self.requiredBlockedEvidenceSourceAnchors
+            && validationAnchors == Self.requiredValidationAnchors
+            && executionRiskBlockedEvidenceIsolationHeld
+            && paperEvidenceIsolationHeld
+            && forbiddenCapabilityBoundaryHeld
+    }
+
+    public var executionRiskBlockedEvidenceIsolationHeld: Bool {
+        isIsolationContractOnly
+            && keepsExecutionControlBlockedEvidenceReadModelOnly
+            && keepsRiskGateBlockedEvidenceReadModelOnly
+            && mapsExecutionBlockedEvidenceToIncidentCommand == false
+            && mapsExecutionBlockedEvidenceToStopCommand == false
+            && mapsExecutionBlockedEvidenceToRestoreDecision == false
+            && mapsRiskBlockedEvidenceToIncidentReplayRuntime == false
+            && mapsRiskBlockedEvidenceToEmergencyStop == false
+            && mapsRiskBlockedEvidenceToShutdownCommand == false
+            && runsExecutionRuntime == false
+            && runsLiveRiskEngine == false
+    }
+
+    public var paperEvidenceIsolationHeld: Bool {
+        keepsPaperEvidencePaperOnly
+            && mapsPaperOrderIntentToIncidentCommand == false
+            && mapsSimulatedFillToProductionIncidentFact == false
+            && mapsPaperExposureToStopDecision == false
+    }
+
+    public var forbiddenCapabilityBoundaryHeld: Bool {
+        isIsolationContractOnly
+            && runsIncidentReplayRuntime == false
+            && runsStopCommand == false
+            && runsShutdownCommand == false
+            && runsRestoreCommand == false
+            && runsExecutionRuntime == false
+            && runsLiveRiskEngine == false
+            && runsProductionOperations == false
+            && usesSignedEndpoint == false
+            && callsAccountEndpoint == false
+            && createsListenKey == false
+            && executesBrokerAction == false
+            && implementsLiveExecutionAdapter == false
+            && implementsOMS == false
+            && implementsRealOrderStateMachine == false
+            && exposesLiveProConsole == false
+            && providesLiveCommand == false
+            && providesTradingButton == false
+            && requiredValidationDependsOnNetwork == false
+    }
+
+    public init(
+        contractID: Identifier = try! Identifier("mtp-93-blocked-evidence-incident-stop-isolation"),
+        issueID: Identifier = try! Identifier("MTP-93"),
+        isolationGates: [LiveBlockedEvidenceIncidentStopIsolationGate] = Self.requiredIsolationGates,
+        forbiddenCapabilities: [LiveBlockedEvidenceIncidentStopForbiddenCapability] =
+            Self.requiredForbiddenCapabilities,
+        allowedEvidenceKinds: [LiveAuditIncidentStopEvidenceKind] = Self.allowedEvidenceKinds,
+        blockedEvidenceSourceAnchors: [String] = Self.requiredBlockedEvidenceSourceAnchors,
+        validationAnchors: [String] = Self.requiredValidationAnchors,
+        isIsolationContractOnly: Bool = true,
+        keepsExecutionControlBlockedEvidenceReadModelOnly: Bool = true,
+        keepsRiskGateBlockedEvidenceReadModelOnly: Bool = true,
+        keepsPaperEvidencePaperOnly: Bool = true,
+        mapsExecutionBlockedEvidenceToIncidentCommand: Bool = false,
+        mapsExecutionBlockedEvidenceToStopCommand: Bool = false,
+        mapsExecutionBlockedEvidenceToRestoreDecision: Bool = false,
+        mapsRiskBlockedEvidenceToIncidentReplayRuntime: Bool = false,
+        mapsRiskBlockedEvidenceToEmergencyStop: Bool = false,
+        mapsRiskBlockedEvidenceToShutdownCommand: Bool = false,
+        mapsPaperOrderIntentToIncidentCommand: Bool = false,
+        mapsSimulatedFillToProductionIncidentFact: Bool = false,
+        mapsPaperExposureToStopDecision: Bool = false,
+        runsIncidentReplayRuntime: Bool = false,
+        runsStopCommand: Bool = false,
+        runsShutdownCommand: Bool = false,
+        runsRestoreCommand: Bool = false,
+        runsExecutionRuntime: Bool = false,
+        runsLiveRiskEngine: Bool = false,
+        runsProductionOperations: Bool = false,
+        usesSignedEndpoint: Bool = false,
+        callsAccountEndpoint: Bool = false,
+        createsListenKey: Bool = false,
+        executesBrokerAction: Bool = false,
+        implementsLiveExecutionAdapter: Bool = false,
+        implementsOMS: Bool = false,
+        implementsRealOrderStateMachine: Bool = false,
+        exposesLiveProConsole: Bool = false,
+        providesLiveCommand: Bool = false,
+        providesTradingButton: Bool = false,
+        requiredValidationDependsOnNetwork: Bool = false
+    ) throws {
+        try Self.validate(
+            isolationGates: isolationGates,
+            forbiddenCapabilities: forbiddenCapabilities,
+            allowedEvidenceKinds: allowedEvidenceKinds,
+            blockedEvidenceSourceAnchors: blockedEvidenceSourceAnchors,
+            validationAnchors: validationAnchors
+        )
+        try Self.validateForbiddenFlags(
+            isIsolationContractOnly: isIsolationContractOnly,
+            keepsExecutionControlBlockedEvidenceReadModelOnly: keepsExecutionControlBlockedEvidenceReadModelOnly,
+            keepsRiskGateBlockedEvidenceReadModelOnly: keepsRiskGateBlockedEvidenceReadModelOnly,
+            keepsPaperEvidencePaperOnly: keepsPaperEvidencePaperOnly,
+            mapsExecutionBlockedEvidenceToIncidentCommand: mapsExecutionBlockedEvidenceToIncidentCommand,
+            mapsExecutionBlockedEvidenceToStopCommand: mapsExecutionBlockedEvidenceToStopCommand,
+            mapsExecutionBlockedEvidenceToRestoreDecision: mapsExecutionBlockedEvidenceToRestoreDecision,
+            mapsRiskBlockedEvidenceToIncidentReplayRuntime: mapsRiskBlockedEvidenceToIncidentReplayRuntime,
+            mapsRiskBlockedEvidenceToEmergencyStop: mapsRiskBlockedEvidenceToEmergencyStop,
+            mapsRiskBlockedEvidenceToShutdownCommand: mapsRiskBlockedEvidenceToShutdownCommand,
+            mapsPaperOrderIntentToIncidentCommand: mapsPaperOrderIntentToIncidentCommand,
+            mapsSimulatedFillToProductionIncidentFact: mapsSimulatedFillToProductionIncidentFact,
+            mapsPaperExposureToStopDecision: mapsPaperExposureToStopDecision,
+            runsIncidentReplayRuntime: runsIncidentReplayRuntime,
+            runsStopCommand: runsStopCommand,
+            runsShutdownCommand: runsShutdownCommand,
+            runsRestoreCommand: runsRestoreCommand,
+            runsExecutionRuntime: runsExecutionRuntime,
+            runsLiveRiskEngine: runsLiveRiskEngine,
+            runsProductionOperations: runsProductionOperations,
+            usesSignedEndpoint: usesSignedEndpoint,
+            callsAccountEndpoint: callsAccountEndpoint,
+            createsListenKey: createsListenKey,
+            executesBrokerAction: executesBrokerAction,
+            implementsLiveExecutionAdapter: implementsLiveExecutionAdapter,
+            implementsOMS: implementsOMS,
+            implementsRealOrderStateMachine: implementsRealOrderStateMachine,
+            exposesLiveProConsole: exposesLiveProConsole,
+            providesLiveCommand: providesLiveCommand,
+            providesTradingButton: providesTradingButton,
+            requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork
+        )
+
+        self.contractID = contractID
+        self.issueID = issueID
+        self.isolationGates = isolationGates
+        self.forbiddenCapabilities = forbiddenCapabilities
+        self.allowedEvidenceKinds = allowedEvidenceKinds
+        self.blockedEvidenceSourceAnchors = blockedEvidenceSourceAnchors
+        self.validationAnchors = validationAnchors
+        self.isIsolationContractOnly = isIsolationContractOnly
+        self.keepsExecutionControlBlockedEvidenceReadModelOnly = keepsExecutionControlBlockedEvidenceReadModelOnly
+        self.keepsRiskGateBlockedEvidenceReadModelOnly = keepsRiskGateBlockedEvidenceReadModelOnly
+        self.keepsPaperEvidencePaperOnly = keepsPaperEvidencePaperOnly
+        self.mapsExecutionBlockedEvidenceToIncidentCommand = mapsExecutionBlockedEvidenceToIncidentCommand
+        self.mapsExecutionBlockedEvidenceToStopCommand = mapsExecutionBlockedEvidenceToStopCommand
+        self.mapsExecutionBlockedEvidenceToRestoreDecision = mapsExecutionBlockedEvidenceToRestoreDecision
+        self.mapsRiskBlockedEvidenceToIncidentReplayRuntime = mapsRiskBlockedEvidenceToIncidentReplayRuntime
+        self.mapsRiskBlockedEvidenceToEmergencyStop = mapsRiskBlockedEvidenceToEmergencyStop
+        self.mapsRiskBlockedEvidenceToShutdownCommand = mapsRiskBlockedEvidenceToShutdownCommand
+        self.mapsPaperOrderIntentToIncidentCommand = mapsPaperOrderIntentToIncidentCommand
+        self.mapsSimulatedFillToProductionIncidentFact = mapsSimulatedFillToProductionIncidentFact
+        self.mapsPaperExposureToStopDecision = mapsPaperExposureToStopDecision
+        self.runsIncidentReplayRuntime = runsIncidentReplayRuntime
+        self.runsStopCommand = runsStopCommand
+        self.runsShutdownCommand = runsShutdownCommand
+        self.runsRestoreCommand = runsRestoreCommand
+        self.runsExecutionRuntime = runsExecutionRuntime
+        self.runsLiveRiskEngine = runsLiveRiskEngine
+        self.runsProductionOperations = runsProductionOperations
+        self.usesSignedEndpoint = usesSignedEndpoint
+        self.callsAccountEndpoint = callsAccountEndpoint
+        self.createsListenKey = createsListenKey
+        self.executesBrokerAction = executesBrokerAction
+        self.implementsLiveExecutionAdapter = implementsLiveExecutionAdapter
+        self.implementsOMS = implementsOMS
+        self.implementsRealOrderStateMachine = implementsRealOrderStateMachine
+        self.exposesLiveProConsole = exposesLiveProConsole
+        self.providesLiveCommand = providesLiveCommand
+        self.providesTradingButton = providesTradingButton
+        self.requiredValidationDependsOnNetwork = requiredValidationDependsOnNetwork
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            contractID: try container.decode(Identifier.self, forKey: .contractID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            isolationGates: try container.decode(
+                [LiveBlockedEvidenceIncidentStopIsolationGate].self,
+                forKey: .isolationGates
+            ),
+            forbiddenCapabilities: try container.decode(
+                [LiveBlockedEvidenceIncidentStopForbiddenCapability].self,
+                forKey: .forbiddenCapabilities
+            ),
+            allowedEvidenceKinds: try container.decode(
+                [LiveAuditIncidentStopEvidenceKind].self,
+                forKey: .allowedEvidenceKinds
+            ),
+            blockedEvidenceSourceAnchors: try container.decode(
+                [String].self,
+                forKey: .blockedEvidenceSourceAnchors
+            ),
+            validationAnchors: try container.decode([String].self, forKey: .validationAnchors),
+            isIsolationContractOnly: try container.decode(Bool.self, forKey: .isIsolationContractOnly),
+            keepsExecutionControlBlockedEvidenceReadModelOnly: try container.decode(
+                Bool.self,
+                forKey: .keepsExecutionControlBlockedEvidenceReadModelOnly
+            ),
+            keepsRiskGateBlockedEvidenceReadModelOnly: try container.decode(
+                Bool.self,
+                forKey: .keepsRiskGateBlockedEvidenceReadModelOnly
+            ),
+            keepsPaperEvidencePaperOnly: try container.decode(Bool.self, forKey: .keepsPaperEvidencePaperOnly),
+            mapsExecutionBlockedEvidenceToIncidentCommand: try container.decode(
+                Bool.self,
+                forKey: .mapsExecutionBlockedEvidenceToIncidentCommand
+            ),
+            mapsExecutionBlockedEvidenceToStopCommand: try container.decode(
+                Bool.self,
+                forKey: .mapsExecutionBlockedEvidenceToStopCommand
+            ),
+            mapsExecutionBlockedEvidenceToRestoreDecision: try container.decode(
+                Bool.self,
+                forKey: .mapsExecutionBlockedEvidenceToRestoreDecision
+            ),
+            mapsRiskBlockedEvidenceToIncidentReplayRuntime: try container.decode(
+                Bool.self,
+                forKey: .mapsRiskBlockedEvidenceToIncidentReplayRuntime
+            ),
+            mapsRiskBlockedEvidenceToEmergencyStop: try container.decode(
+                Bool.self,
+                forKey: .mapsRiskBlockedEvidenceToEmergencyStop
+            ),
+            mapsRiskBlockedEvidenceToShutdownCommand: try container.decode(
+                Bool.self,
+                forKey: .mapsRiskBlockedEvidenceToShutdownCommand
+            ),
+            mapsPaperOrderIntentToIncidentCommand: try container.decode(
+                Bool.self,
+                forKey: .mapsPaperOrderIntentToIncidentCommand
+            ),
+            mapsSimulatedFillToProductionIncidentFact: try container.decode(
+                Bool.self,
+                forKey: .mapsSimulatedFillToProductionIncidentFact
+            ),
+            mapsPaperExposureToStopDecision: try container.decode(
+                Bool.self,
+                forKey: .mapsPaperExposureToStopDecision
+            ),
+            runsIncidentReplayRuntime: try container.decode(Bool.self, forKey: .runsIncidentReplayRuntime),
+            runsStopCommand: try container.decode(Bool.self, forKey: .runsStopCommand),
+            runsShutdownCommand: try container.decode(Bool.self, forKey: .runsShutdownCommand),
+            runsRestoreCommand: try container.decode(Bool.self, forKey: .runsRestoreCommand),
+            runsExecutionRuntime: try container.decode(Bool.self, forKey: .runsExecutionRuntime),
+            runsLiveRiskEngine: try container.decode(Bool.self, forKey: .runsLiveRiskEngine),
+            runsProductionOperations: try container.decode(Bool.self, forKey: .runsProductionOperations),
+            usesSignedEndpoint: try container.decode(Bool.self, forKey: .usesSignedEndpoint),
+            callsAccountEndpoint: try container.decode(Bool.self, forKey: .callsAccountEndpoint),
+            createsListenKey: try container.decode(Bool.self, forKey: .createsListenKey),
+            executesBrokerAction: try container.decode(Bool.self, forKey: .executesBrokerAction),
+            implementsLiveExecutionAdapter: try container.decode(Bool.self, forKey: .implementsLiveExecutionAdapter),
+            implementsOMS: try container.decode(Bool.self, forKey: .implementsOMS),
+            implementsRealOrderStateMachine: try container.decode(Bool.self, forKey: .implementsRealOrderStateMachine),
+            exposesLiveProConsole: try container.decode(Bool.self, forKey: .exposesLiveProConsole),
+            providesLiveCommand: try container.decode(Bool.self, forKey: .providesLiveCommand),
+            providesTradingButton: try container.decode(Bool.self, forKey: .providesTradingButton),
+            requiredValidationDependsOnNetwork: try container.decode(
+                Bool.self,
+                forKey: .requiredValidationDependsOnNetwork
+            )
+        )
+    }
+
+    public func forbidsCapability(_ capability: LiveBlockedEvidenceIncidentStopForbiddenCapability) -> Bool {
+        forbiddenCapabilities.contains(capability)
+    }
+
+    public static let requiredIsolationGates: [LiveBlockedEvidenceIncidentStopIsolationGate] =
+        LiveBlockedEvidenceIncidentStopIsolationGate.allCases
+
+    public static let requiredForbiddenCapabilities: [LiveBlockedEvidenceIncidentStopForbiddenCapability] =
+        LiveBlockedEvidenceIncidentStopForbiddenCapability.allCases
+
+    public static let allowedEvidenceKinds: [LiveAuditIncidentStopEvidenceKind] = [
+        .contractDocumentation,
+        .validationMatrixCandidate,
+        .validationPlanAnchor,
+        .deterministicForbiddenTest,
+        .futureGateTaxonomy,
+        .blockedEvidenceBoundary,
+        .prBoundaryEvidence
+    ]
+
+    public static let requiredBlockedEvidenceSourceAnchors: [String] = [
+        "MTP-79-LIVE-EXECUTION-CONTROL-BLOCKED-EVIDENCE",
+        "LiveExecutionControlBlockedEvidence",
+        "MTP-87-LIVE-RISK-GATE-BLOCKED-EVIDENCE",
+        "LiveRiskGateBlockedEvidence",
+        "RiskBlockerEvidence",
+        "PaperOrderIntent",
+        "PaperSimulatedFillEvidence",
+        "PortfolioExposureSnapshot",
+        "MTP-90-PAPER-EVIDENCE-NO-REAL-AUDIT-FACT-UPGRADE",
+        "MTP-91-INCIDENT-REPLAY-VALIDATION",
+        "MTP-92-STOP-SHUTDOWN-RESTORE-VALIDATION",
+        "TVM-LIVE-AUDIT-INCIDENT-STOP"
+    ]
+
+    public static let requiredValidationAnchors: [String] = [
+        "MTP-93-LIVE-RISK-EXECUTION-BLOCKED-EVIDENCE-ISOLATION",
+        "MTP-93-NO-BLOCKED-EVIDENCE-TO-INCIDENT-OR-STOP-COMMAND-UPGRADE",
+        "MTP-93-PAPER-EVIDENCE-NO-INCIDENT-STOP-UPGRADE",
+        "MTP-93-FORBIDDEN-COMMAND-RUNTIME-UPGRADE-TESTS",
+        "MTP-93-BLOCKED-EVIDENCE-ISOLATION-VALIDATION",
+        "TVM-LIVE-AUDIT-INCIDENT-STOP"
+    ]
+
+    public static let deterministicFixture: LiveBlockedEvidenceIncidentStopIsolationBoundary = {
+        do {
+            return try LiveBlockedEvidenceIncidentStopIsolationBoundary()
+        } catch {
+            preconditionFailure("MTP-93 blocked evidence isolation fixture must be valid: \(error)")
+        }
+    }()
+
+    private static func validate(
+        isolationGates: [LiveBlockedEvidenceIncidentStopIsolationGate],
+        forbiddenCapabilities: [LiveBlockedEvidenceIncidentStopForbiddenCapability],
+        allowedEvidenceKinds: [LiveAuditIncidentStopEvidenceKind],
+        blockedEvidenceSourceAnchors: [String],
+        validationAnchors: [String]
+    ) throws {
+        guard isolationGates == Self.requiredIsolationGates else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "isolationGates",
+                expected: Self.requiredIsolationGates.map(\.rawValue).joined(separator: ","),
+                actual: isolationGates.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard forbiddenCapabilities == Self.requiredForbiddenCapabilities else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "forbiddenCapabilities",
+                expected: Self.requiredForbiddenCapabilities.map(\.rawValue).joined(separator: ","),
+                actual: forbiddenCapabilities.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard allowedEvidenceKinds == Self.allowedEvidenceKinds else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "allowedEvidenceKinds",
+                expected: Self.allowedEvidenceKinds.map(\.rawValue).joined(separator: ","),
+                actual: allowedEvidenceKinds.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard blockedEvidenceSourceAnchors == Self.requiredBlockedEvidenceSourceAnchors else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "blockedEvidenceSourceAnchors",
+                expected: Self.requiredBlockedEvidenceSourceAnchors.joined(separator: ","),
+                actual: blockedEvidenceSourceAnchors.joined(separator: ",")
+            )
+        }
+        guard validationAnchors == Self.requiredValidationAnchors else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "validationAnchors",
+                expected: Self.requiredValidationAnchors.joined(separator: ","),
+                actual: validationAnchors.joined(separator: ",")
+            )
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        isIsolationContractOnly: Bool,
+        keepsExecutionControlBlockedEvidenceReadModelOnly: Bool,
+        keepsRiskGateBlockedEvidenceReadModelOnly: Bool,
+        keepsPaperEvidencePaperOnly: Bool,
+        mapsExecutionBlockedEvidenceToIncidentCommand: Bool,
+        mapsExecutionBlockedEvidenceToStopCommand: Bool,
+        mapsExecutionBlockedEvidenceToRestoreDecision: Bool,
+        mapsRiskBlockedEvidenceToIncidentReplayRuntime: Bool,
+        mapsRiskBlockedEvidenceToEmergencyStop: Bool,
+        mapsRiskBlockedEvidenceToShutdownCommand: Bool,
+        mapsPaperOrderIntentToIncidentCommand: Bool,
+        mapsSimulatedFillToProductionIncidentFact: Bool,
+        mapsPaperExposureToStopDecision: Bool,
+        runsIncidentReplayRuntime: Bool,
+        runsStopCommand: Bool,
+        runsShutdownCommand: Bool,
+        runsRestoreCommand: Bool,
+        runsExecutionRuntime: Bool,
+        runsLiveRiskEngine: Bool,
+        runsProductionOperations: Bool,
+        usesSignedEndpoint: Bool,
+        callsAccountEndpoint: Bool,
+        createsListenKey: Bool,
+        executesBrokerAction: Bool,
+        implementsLiveExecutionAdapter: Bool,
+        implementsOMS: Bool,
+        implementsRealOrderStateMachine: Bool,
+        exposesLiveProConsole: Bool,
+        providesLiveCommand: Bool,
+        providesTradingButton: Bool,
+        requiredValidationDependsOnNetwork: Bool
+    ) throws {
+        guard isIsolationContractOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("isIsolationContractOnly")
+        }
+        guard keepsExecutionControlBlockedEvidenceReadModelOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("keepsExecutionControlBlockedEvidenceReadModelOnly")
+        }
+        guard keepsRiskGateBlockedEvidenceReadModelOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("keepsRiskGateBlockedEvidenceReadModelOnly")
+        }
+        guard keepsPaperEvidencePaperOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("keepsPaperEvidencePaperOnly")
+        }
+
+        let forbiddenFlags = [
+            ("mapsExecutionBlockedEvidenceToIncidentCommand", mapsExecutionBlockedEvidenceToIncidentCommand),
+            ("mapsExecutionBlockedEvidenceToStopCommand", mapsExecutionBlockedEvidenceToStopCommand),
+            ("mapsExecutionBlockedEvidenceToRestoreDecision", mapsExecutionBlockedEvidenceToRestoreDecision),
+            ("mapsRiskBlockedEvidenceToIncidentReplayRuntime", mapsRiskBlockedEvidenceToIncidentReplayRuntime),
+            ("mapsRiskBlockedEvidenceToEmergencyStop", mapsRiskBlockedEvidenceToEmergencyStop),
+            ("mapsRiskBlockedEvidenceToShutdownCommand", mapsRiskBlockedEvidenceToShutdownCommand),
+            ("mapsPaperOrderIntentToIncidentCommand", mapsPaperOrderIntentToIncidentCommand),
+            ("mapsSimulatedFillToProductionIncidentFact", mapsSimulatedFillToProductionIncidentFact),
+            ("mapsPaperExposureToStopDecision", mapsPaperExposureToStopDecision),
+            ("runsIncidentReplayRuntime", runsIncidentReplayRuntime),
+            ("runsStopCommand", runsStopCommand),
+            ("runsShutdownCommand", runsShutdownCommand),
+            ("runsRestoreCommand", runsRestoreCommand),
+            ("runsExecutionRuntime", runsExecutionRuntime),
+            ("runsLiveRiskEngine", runsLiveRiskEngine),
+            ("runsProductionOperations", runsProductionOperations),
+            ("usesSignedEndpoint", usesSignedEndpoint),
+            ("callsAccountEndpoint", callsAccountEndpoint),
+            ("createsListenKey", createsListenKey),
+            ("executesBrokerAction", executesBrokerAction),
+            ("implementsLiveExecutionAdapter", implementsLiveExecutionAdapter),
+            ("implementsOMS", implementsOMS),
+            ("implementsRealOrderStateMachine", implementsRealOrderStateMachine),
+            ("exposesLiveProConsole", exposesLiveProConsole),
+            ("providesLiveCommand", providesLiveCommand),
+            ("providesTradingButton", providesTradingButton),
+            ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(capability.0)
+        }
+    }
+}
+
 /// LiveAuditIncidentStopTerminologyBoundary 是 MTP-89 的 Future-only terminology / taxonomy fixture。
 ///
 /// 该 fixture 只把 live audit、audit trail、incident、incident replay、stop control、
