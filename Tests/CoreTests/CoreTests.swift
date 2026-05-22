@@ -1978,6 +1978,219 @@ final class CoreTests: XCTestCase {
         XCTAssertFalse(evidence.executesIncidentFallback)
     }
 
+    func testLiveRiskTerminologyDefinesMTP82FutureOnlyTaxonomy() throws {
+        // 测试场景：MTP-82 只定义 Future Live Risk terminology 和 decision taxonomy。
+        // fixture 必须能被稳定编码，并且所有真实账户、broker state、pre-trade runtime 和 UI 命令旗标保持关闭。
+        let boundary = LiveRiskTerminologyBoundary.deterministicFixture
+
+        XCTAssertEqual(boundary.contractID, try Identifier("mtp-82-live-risk-terminology-boundary"))
+        XCTAssertEqual(boundary.issueID, try Identifier("MTP-82"))
+        XCTAssertEqual(boundary.terms, LiveRiskTerm.allCases)
+        XCTAssertEqual(boundary.decisionTaxonomy, [.allowed, .blocked, .degraded, .noTrade])
+        XCTAssertEqual(
+            boundary.futureGates,
+            [
+                .humanLiveRiskDecision,
+                .liveTradingFoundationBoundarySatisfied,
+                .liveExecutionControlBoundarySatisfied,
+                .exposureGateContractDefined,
+                .orderNotionalGateContractDefined,
+                .frequencyGateContractDefined,
+                .lossDrawdownGateContractDefined,
+                .circuitBreakerContractDefined,
+                .noTradeStateContractDefined,
+                .paperLiveRiskIsolationContractDefined,
+                .readModelOnlyBlockedEvidenceDefined,
+                .operationsAuditHandoffDefined
+            ]
+        )
+        XCTAssertEqual(boundary.forbiddenCapabilities, LiveRiskForbiddenCapability.allCases)
+        XCTAssertTrue(boundary.forbidsCapability(.realPreTradeRiskEngine))
+        XCTAssertTrue(boundary.forbidsCapability(.realAccountBalanceRead))
+        XCTAssertTrue(boundary.forbidsCapability(.brokerPositionSync))
+        XCTAssertTrue(boundary.forbidsCapability(.paperRiskBlockerUpgrade))
+        XCTAssertTrue(boundary.forbidsCapability(.paperExposureUpgrade))
+        XCTAssertEqual(
+            boundary.allowedEvidenceKinds,
+            [
+                .contractDocumentation,
+                .validationMatrixCandidate,
+                .validationPlanAnchor,
+                .deterministicForbiddenTest,
+                .paperLiveRiskIsolationEvidence,
+                .prBoundaryEvidence
+            ]
+        )
+        XCTAssertEqual(boundary.validationAnchors, [
+            "MTP-82-LIVE-RISK-TERMINOLOGY",
+            "MTP-82-FUTURE-RISK-DECISION-TAXONOMY",
+            "MTP-82-PAPER-RISK-LIVE-RISK-SEPARATION",
+            "MTP-82-NO-LIVE-RISK-RUNTIME",
+            "MTP-82-LIVE-RISK-GATE-VALIDATION",
+            "TVM-LIVE-RISK-GATE"
+        ])
+        XCTAssertEqual(boundary.paperIsolationSourceAnchors, [
+            "TVM-RISK-BLOCKER",
+            "TVM-PORTFOLIO-EXPOSURE",
+            "TVM-PAPER-EXECUTION-DECISION",
+            "TVM-PAPER-SIMULATED-FILL",
+            "MTP-78-PAPER-EVIDENCE-NO-REAL-COMMAND-UPGRADE",
+            "MTP-82-PAPER-RISK-LIVE-RISK-SEPARATION"
+        ])
+        XCTAssertTrue(boundary.terminologyBoundaryHeld)
+        XCTAssertTrue(boundary.futureRiskDecisionTaxonomyBoundaryHeld)
+        XCTAssertTrue(boundary.paperLiveRiskIsolationBoundaryHeld)
+        XCTAssertTrue(boundary.isFutureOnlyTerminology)
+        XCTAssertFalse(boundary.providesLiveRiskEngine)
+        XCTAssertFalse(boundary.readsAPIKey)
+        XCTAssertFalse(boundary.usesSignedEndpoint)
+        XCTAssertFalse(boundary.callsAccountEndpoint)
+        XCTAssertFalse(boundary.createsListenKey)
+        XCTAssertFalse(boundary.instantiatesBrokerExecutionAdapter)
+        XCTAssertFalse(boundary.implementsLiveExecutionAdapter)
+        XCTAssertFalse(boundary.readsRealAccountBalance)
+        XCTAssertFalse(boundary.syncsBrokerPosition)
+        XCTAssertFalse(boundary.readsMargin)
+        XCTAssertFalse(boundary.readsLeverage)
+        XCTAssertFalse(boundary.computesLiveExposureFromAccountState)
+        XCTAssertFalse(boundary.evaluatesRealPreTradeAllow)
+        XCTAssertFalse(boundary.evaluatesRealPreTradeReject)
+        XCTAssertFalse(boundary.runsCircuitBreaker)
+        XCTAssertFalse(boundary.entersNoTradeState)
+        XCTAssertFalse(boundary.authorizesLiveTrading)
+        XCTAssertFalse(boundary.providesRiskCommandSurface)
+        XCTAssertFalse(boundary.providesPositionManagementCommand)
+        XCTAssertFalse(boundary.exposesOrderForm)
+        XCTAssertFalse(boundary.providesTradingButton)
+        XCTAssertFalse(boundary.mapsPaperRiskBlockerToFutureRiskDecision)
+        XCTAssertFalse(boundary.mapsPaperExposureToRealAccountState)
+        XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(LiveRiskTerminologyBoundary.self, from: encoded)
+        XCTAssertEqual(decoded, boundary)
+    }
+
+    func testLiveRiskTerminologyRejectsMTP82RuntimeAccountAndCommandBypass() throws {
+        // 测试场景：MTP-82 fixture 的初始化和 Codable 解码必须拒绝真实风控引擎、
+        // 账户 / 仓位读取、margin / leverage、pre-trade allow / reject 和 UI 命令绕过。
+        XCTAssertThrowsError(
+            try LiveRiskTerminologyBoundary(readsRealAccountBalance: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("readsRealAccountBalance"))
+        }
+        XCTAssertThrowsError(
+            try LiveRiskTerminologyBoundary(syncsBrokerPosition: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("syncsBrokerPosition"))
+        }
+        XCTAssertThrowsError(
+            try LiveRiskTerminologyBoundary(readsMargin: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("readsMargin"))
+        }
+        XCTAssertThrowsError(
+            try LiveRiskTerminologyBoundary(evaluatesRealPreTradeAllow: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("evaluatesRealPreTradeAllow")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveRiskTerminologyBoundary(evaluatesRealPreTradeReject: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("evaluatesRealPreTradeReject")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveRiskTerminologyBoundary(providesRiskCommandSurface: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("providesRiskCommandSurface"))
+        }
+        XCTAssertThrowsError(
+            try LiveRiskTerminologyBoundary(usesSignedEndpoint: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("usesSignedEndpoint"))
+        }
+        XCTAssertThrowsError(
+            try LiveRiskTerminologyBoundary(implementsLiveExecutionAdapter: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("implementsLiveExecutionAdapter"))
+        }
+        XCTAssertThrowsError(
+            try LiveRiskTerminologyBoundary(terms: Array(LiveRiskTerm.allCases.dropLast()))
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "terms",
+                    expected: LiveRiskTerminologyBoundary.requiredTerms.map(\.rawValue).joined(separator: ","),
+                    actual: Array(LiveRiskTerm.allCases.dropLast()).map(\.rawValue).joined(separator: ",")
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(LiveRiskTerminologyBoundary.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["providesTradingButton"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveRiskTerminologyBoundary.self, from: data)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("providesTradingButton"))
+        }
+    }
+
+    func testPaperRiskBlockerAndExposureCannotUpgradeToMTP82FutureLiveRiskDecision() throws {
+        // 测试场景：MTP-82 明确 paper risk blocker 和 paper exposure 只是本地 evidence，
+        // 不能升级为 future live risk decision、真实账户状态、broker position 或 pre-trade runtime 输入。
+        let boundary = LiveRiskTerminologyBoundary.deterministicFixture
+        let riskQuery = try RiskEvaluationQuery(
+            paperOrderID: try Identifier("paper-risk-order-mtp-82"),
+            symbol: try Symbol(rawValue: "BTCUSDT"),
+            timeframe: .oneMinute,
+            proposedQuantity: try Quantity(1.25),
+            riskProfileID: try Identifier("paper-risk"),
+            executionMode: .paper
+        )
+        let blocker = RiskBlockerEvidence(
+            evidenceID: try Identifier("risk-blocker-mtp-82"),
+            query: riskQuery,
+            reason: .maxPaperQuantityExceeded,
+            generatedAt: Date(timeIntervalSince1970: 2_200)
+        )
+        let exposure = PortfolioExposureSnapshot(
+            portfolioID: try Identifier("portfolio-main"),
+            symbol: try Symbol(rawValue: "BTCUSDT"),
+            timeframe: .oneMinute,
+            paperQuantity: try Quantity(1.25),
+            referencePrice: try Price(42_000),
+            source: .paperProjection,
+            observedAt: Date(timeIntervalSince1970: 2_201)
+        )
+
+        XCTAssertTrue(boundary.paperLiveRiskIsolationBoundaryHeld)
+        XCTAssertTrue(boundary.forbidsCapability(.paperRiskBlockerUpgrade))
+        XCTAssertTrue(boundary.forbidsCapability(.paperExposureUpgrade))
+        XCTAssertFalse(boundary.mapsPaperRiskBlockerToFutureRiskDecision)
+        XCTAssertFalse(boundary.mapsPaperExposureToRealAccountState)
+        XCTAssertFalse(boundary.computesLiveExposureFromAccountState)
+        XCTAssertFalse(boundary.evaluatesRealPreTradeAllow)
+        XCTAssertFalse(boundary.evaluatesRealPreTradeReject)
+
+        XCTAssertEqual(blocker.executionMode, .paper)
+        XCTAssertEqual(blocker.paperOrderID, riskQuery.paperOrderID)
+        XCTAssertEqual(blocker.reason, .maxPaperQuantityExceeded)
+        XCTAssertEqual(exposure.source, .paperProjection)
+        XCTAssertEqual(exposure.grossExposureNotional, 52_500, accuracy: 0.00000001)
+        XCTAssertEqual(DomainEvent.risk(.blocked(blocker)), .risk(.blocked(blocker)))
+        XCTAssertEqual(DomainEvent.portfolio(.exposureUpdated(exposure)), .portfolio(.exposureUpdated(exposure)))
+    }
+
     func testLiveRuntimeHealthDefinesMTP69ReadModelOnlyFixture() throws {
         // 测试场景：MTP-69 只新增 future live runtime health / connection status 的最小
         // read model。fixture 可以表达 healthy / blocked / disconnected / degraded /
