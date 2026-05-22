@@ -58,6 +58,7 @@ require_file "docs/planning/projects/mtpro-market-data-replay-operations-v1-plan
 require_file "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md"
 require_file "docs/planning/projects/mtpro-live-monitoring-console-v1-plan.md"
 require_file "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md"
+require_file "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md"
 [[ -d "docs/audit/inputs" ]] || fail "missing required directory: docs/audit/inputs"
 require_file "docs/audit/inputs/mtpro-runtime-research-workbench-v1-stage-evidence.md"
 require_file "docs/audit/inputs/mtpro-trading-validation-and-parity-hardening-stage-audit-input.md"
@@ -381,7 +382,8 @@ for planning_record in \
   "docs/planning/projects/mtpro-market-data-replay-operations-v1-plan.md" \
   "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" \
   "docs/planning/projects/mtpro-live-monitoring-console-v1-plan.md" \
-  "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md"; do
+  "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" \
+  "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md"; do
   require_contains "$planning_record" "Project name"
   require_contains "$planning_record" "Project goal"
   require_contains "$planning_record" "Scope"
@@ -533,6 +535,34 @@ require_contains "docs/planning/linear-draft-plan.md" "MTPRO Live Execution Cont
 require_contains "docs/validation/latest-verification-summary.md" "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md"
 require_contains "docs/validation/latest-verification-summary.md" "MTPRO Live Execution Control Contract v1"
 require_contains "docs/validation/latest-verification-summary.md" "订单流 / 订单事件流，仅表示 blocked / simulated / future evidence，不表示真实订单状态机"
+require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "MTPRO Live Risk Gate Contract v1"
+require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "Final Product Goal Slice #8"
+require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "本阶段只定义 Future Live Risk 的 risk gate contract / boundary"
+require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "Parent Codex queue preflight rule"
+require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "本 draft 不创建 Linear Project"
+require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "本 draft 不创建 Linear Issues"
+require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "本 draft 不修改 Linear status"
+require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "本 draft 不推进 Todo"
+require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "完整 issue execution contract 以后以 Linear issue body 为准"
+require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" 'Project 写入 Linear 后，所有 issue 初始必须是 `Backlog / non-executable`'
+require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "First executable issue candidate"
+require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "只是 first executable issue candidate"
+require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "不复制维护完整 Linear issue body"
+require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "不启动 Symphony"
+require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" '不启动 `@002 / PAR`'
+require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "不实现真实 live risk engine"
+require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "不读取真实账户余额、broker position、margin、leverage"
+require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "不接 signed endpoint / account endpoint / listenKey"
+require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "不连接 broker / exchange execution adapter"
+require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "不实现 real pre-trade allow / reject runtime"
+require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "不实现 circuit breaker command"
+require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "不实现 stop trading command / emergency stop"
+require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "不新增交易按钮"
+require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "LiveRiskGateBlockedEvidence"
+require_contains "docs/planning/linear-draft-plan.md" "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md"
+require_contains "docs/planning/linear-draft-plan.md" "MTPRO Live Risk Gate Contract v1"
+require_contains "docs/validation/latest-verification-summary.md" "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md"
+require_contains "docs/validation/latest-verification-summary.md" "MTPRO Live Risk Gate Contract v1"
 
 require_contains "docs/validation/validation-plan.md" "Linear issue execution contract"
 require_contains "docs/validation/validation-plan.md" "bash checks/automation-readiness.sh"

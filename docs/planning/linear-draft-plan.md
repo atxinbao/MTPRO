@@ -34,15 +34,16 @@
 | `MTPRO Market Data Replay Operations v1` | `docs/planning/projects/mtpro-market-data-replay-operations-v1-plan.md` | 已写入 Linear；`MTP-54` 至 `MTP-60` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
 | `MTPRO Live Trading Boundary Definition v1` | `docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md` | 已写入 Linear；`MTP-61` 至 `MTP-67` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
 | `MTPRO Live Monitoring Console v1` | `docs/planning/projects/mtpro-live-monitoring-console-v1-plan.md` | 已写入 Linear；`MTP-68` 至 `MTP-74` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
-| `MTPRO Live Execution Control Contract v1` | `docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md` | 写入 Linear 前的当前 Project Planning Record；不授权执行。 |
+| `MTPRO Live Execution Control Contract v1` | `docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md` | 已写入 Linear；`MTP-75` 至 `MTP-81` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
+| `MTPRO Live Risk Gate Contract v1` | `docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md` | 写入 Linear 前的当前 Project Planning Record；不授权执行。 |
 
 ## 当前 Project planning record
 
-- Project：`MTPRO Live Execution Control Contract v1`
-- Canonical record：`docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md`
-- 来源审计：`docs/audit/mtpro-live-monitoring-console-v1-stage-code-audit.md`
+- Project：`MTPRO Live Risk Gate Contract v1`
+- Canonical record：`docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md`
+- 来源审计：`docs/audit/mtpro-live-execution-control-contract-v1-stage-code-audit.md`
 - 当前状态：写入 Linear 前的 Project Planning Record。
-- First executable issue candidate：定义 Live execution control terminology 和 real order command taxonomy。
+- First executable issue candidate：定义 Live risk terminology 和 future risk decision taxonomy。
 - WIP=1：所有候选 issue 写入 Linear 后必须初始保持 `Backlog / non-executable`。
 
 ## Project Planning Record 命名规则
