@@ -2395,6 +2395,230 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(DomainEvent.portfolio(.exposureUpdated(exposure)), .portfolio(.exposureUpdated(exposure)))
     }
 
+    func testLiveFrequencyLossDrawdownBoundaryDefinesMTP84FutureGatesAndForbiddenCapabilities() throws {
+        // 测试场景：MTP-84 只定义 frequency / loss / drawdown 的 future gates 和
+        // forbidden capability evidence，不新增真实限频器、PnL reader、回撤控制或停机命令。
+        let boundary = LiveFrequencyLossDrawdownGateBoundary.deterministicFixture
+
+        XCTAssertEqual(boundary.contractID, try Identifier("mtp-84-frequency-loss-drawdown-boundary"))
+        XCTAssertEqual(boundary.issueID, try Identifier("MTP-84"))
+        XCTAssertEqual(boundary.terms, [.frequencyGate, .lossGate])
+        XCTAssertEqual(
+            boundary.futureGates,
+            [
+                .humanLiveRiskDecision,
+                .liveTradingFoundationBoundarySatisfied,
+                .liveExecutionControlBoundarySatisfied,
+                .frequencyWindowPolicyDefined,
+                .orderEventSourceContractDefined,
+                .pnlEquitySourceContractDefined,
+                .lossLimitPolicyDefined,
+                .drawdownLimitPolicyDefined,
+                .paperRiskExposureIsolationDefined,
+                .operationsAuditHandoffDefined
+            ]
+        )
+        XCTAssertEqual(
+            boundary.forbiddenCapabilities,
+            LiveFrequencyLossDrawdownForbiddenCapability.allCases
+        )
+        XCTAssertTrue(boundary.forbidsCapability(.liveOrderFrequencyCounter))
+        XCTAssertTrue(boundary.forbidsCapability(.productionFrequencyThrottling))
+        XCTAssertTrue(boundary.forbidsCapability(.realPnLRead))
+        XCTAssertTrue(boundary.forbidsCapability(.realAccountEquityRead))
+        XCTAssertTrue(boundary.forbidsCapability(.realLossLimitEvaluation))
+        XCTAssertTrue(boundary.forbidsCapability(.realDrawdownLimitEvaluation))
+        XCTAssertTrue(boundary.forbidsCapability(.drawdownCircuitBreakerRuntime))
+        XCTAssertTrue(boundary.forbidsCapability(.stopTradingCommand))
+        XCTAssertEqual(
+            boundary.allowedEvidenceKinds,
+            [
+                .contractDocumentation,
+                .validationMatrixCandidate,
+                .validationPlanAnchor,
+                .deterministicForbiddenTest,
+                .paperLiveRiskIsolationEvidence,
+                .prBoundaryEvidence
+            ]
+        )
+        XCTAssertEqual(boundary.validationAnchors, [
+            "MTP-84-FREQUENCY-LOSS-DRAWDOWN-FUTURE-GATES",
+            "MTP-84-FORBIDDEN-FREQUENCY-LOSS-DRAWDOWN-RUNTIME-TESTS",
+            "MTP-84-NO-REAL-PNL-EQUITY-OR-DRAWDOWN-ENFORCEMENT",
+            "MTP-84-PAPER-RISK-EXPOSURE-NO-LIVE-RISK-UPGRADE",
+            "MTP-84-LIVE-RISK-GATE-VALIDATION",
+            "TVM-LIVE-RISK-GATE"
+        ])
+        XCTAssertEqual(boundary.sourceAnchors, [
+            "MTP-82-LIVE-RISK-TERMINOLOGY",
+            "MTP-82-FUTURE-RISK-DECISION-TAXONOMY",
+            "MTP-83-EXPOSURE-ORDER-NOTIONAL-FUTURE-GATES",
+            "TVM-RISK-BLOCKER",
+            "TVM-PORTFOLIO-EXPOSURE",
+            "MTP-78-PAPER-EVIDENCE-NO-REAL-COMMAND-UPGRADE"
+        ])
+        XCTAssertTrue(boundary.frequencyLossDrawdownBoundaryHeld)
+        XCTAssertTrue(boundary.frequencyRuntimeBoundaryHeld)
+        XCTAssertTrue(boundary.lossDrawdownRuntimeBoundaryHeld)
+        XCTAssertTrue(boundary.paperRiskExposureIsolationBoundaryHeld)
+        XCTAssertTrue(boundary.allPreTradeDecisionsBlocked)
+        XCTAssertTrue(boundary.isFutureGateOnly)
+        XCTAssertFalse(boundary.providesLiveRiskEngine)
+        XCTAssertFalse(boundary.readsAPIKey)
+        XCTAssertFalse(boundary.storesSecret)
+        XCTAssertFalse(boundary.usesSignedEndpoint)
+        XCTAssertFalse(boundary.callsAccountEndpoint)
+        XCTAssertFalse(boundary.createsListenKey)
+        XCTAssertFalse(boundary.instantiatesBrokerExecutionAdapter)
+        XCTAssertFalse(boundary.implementsLiveExecutionAdapter)
+        XCTAssertFalse(boundary.readsRealAccountBalance)
+        XCTAssertFalse(boundary.syncsBrokerPosition)
+        XCTAssertFalse(boundary.readsMargin)
+        XCTAssertFalse(boundary.readsLeverage)
+        XCTAssertFalse(boundary.readsRealPnL)
+        XCTAssertFalse(boundary.readsRealAccountEquity)
+        XCTAssertFalse(boundary.countsLiveOrderFrequency)
+        XCTAssertFalse(boundary.enforcesFrequencyThrottle)
+        XCTAssertFalse(boundary.evaluatesRealLossLimit)
+        XCTAssertFalse(boundary.evaluatesRealDrawdownLimit)
+        XCTAssertFalse(boundary.runsDrawdownCircuitBreaker)
+        XCTAssertFalse(boundary.evaluatesRealPreTradeAllow)
+        XCTAssertFalse(boundary.evaluatesRealPreTradeReject)
+        XCTAssertFalse(boundary.runsCircuitBreakerCommand)
+        XCTAssertFalse(boundary.runsStopTradingCommand)
+        XCTAssertFalse(boundary.runsEmergencyStopCommand)
+        XCTAssertFalse(boundary.mapsPaperRiskBlockerToFrequencyLossDrawdownGate)
+        XCTAssertFalse(boundary.mapsPaperExposureToLossDrawdownGate)
+        XCTAssertFalse(boundary.exposesOrderForm)
+        XCTAssertFalse(boundary.providesTradingButton)
+        XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(
+            LiveFrequencyLossDrawdownGateBoundary.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, boundary)
+    }
+
+    func testLiveFrequencyLossDrawdownBoundaryRejectsMTP84RuntimeBypass() throws {
+        // 测试场景：MTP-84 fixture 的初始化和 Codable 解码必须拒绝真实频率计数、
+        // 真实 PnL / equity 读取、loss / drawdown enforcement、熔断 / 停机命令和 UI 命令绕过。
+        XCTAssertThrowsError(
+            try LiveFrequencyLossDrawdownGateBoundary(countsLiveOrderFrequency: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("countsLiveOrderFrequency"))
+        }
+        XCTAssertThrowsError(
+            try LiveFrequencyLossDrawdownGateBoundary(enforcesFrequencyThrottle: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("enforcesFrequencyThrottle"))
+        }
+        XCTAssertThrowsError(
+            try LiveFrequencyLossDrawdownGateBoundary(readsRealPnL: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("readsRealPnL"))
+        }
+        XCTAssertThrowsError(
+            try LiveFrequencyLossDrawdownGateBoundary(readsRealAccountEquity: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("readsRealAccountEquity"))
+        }
+        XCTAssertThrowsError(
+            try LiveFrequencyLossDrawdownGateBoundary(evaluatesRealLossLimit: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("evaluatesRealLossLimit"))
+        }
+        XCTAssertThrowsError(
+            try LiveFrequencyLossDrawdownGateBoundary(evaluatesRealDrawdownLimit: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("evaluatesRealDrawdownLimit"))
+        }
+        XCTAssertThrowsError(
+            try LiveFrequencyLossDrawdownGateBoundary(runsDrawdownCircuitBreaker: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("runsDrawdownCircuitBreaker"))
+        }
+        XCTAssertThrowsError(
+            try LiveFrequencyLossDrawdownGateBoundary(runsStopTradingCommand: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("runsStopTradingCommand"))
+        }
+        XCTAssertThrowsError(
+            try LiveFrequencyLossDrawdownGateBoundary(terms: [.frequencyGate])
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "terms",
+                    expected: LiveFrequencyLossDrawdownGateBoundary.requiredTerms.map(\.rawValue).joined(separator: ","),
+                    actual: "frequency gate"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(LiveFrequencyLossDrawdownGateBoundary.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["runsEmergencyStopCommand"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveFrequencyLossDrawdownGateBoundary.self, from: data)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("runsEmergencyStopCommand"))
+        }
+    }
+
+    func testPaperRiskAndExposureCannotUpgradeToMTP84FrequencyLossDrawdownGateDecision() throws {
+        // 测试场景：MTP-84 明确当前 paper risk blocker 和 portfolio exposure 仍是本地 evidence，
+        // 不能升级为 live frequency gate、真实亏损 / 回撤 gate、PnL / equity 输入或 pre-trade runtime。
+        let boundary = LiveFrequencyLossDrawdownGateBoundary.deterministicFixture
+        let riskQuery = try RiskEvaluationQuery(
+            paperOrderID: try Identifier("paper-risk-order-mtp-84"),
+            symbol: try Symbol(rawValue: "BTCUSDT"),
+            timeframe: .oneMinute,
+            proposedQuantity: try Quantity(1.1),
+            riskProfileID: try Identifier("paper-risk"),
+            executionMode: .paper
+        )
+        let blocker = RiskBlockerEvidence(
+            evidenceID: try Identifier("risk-blocker-mtp-84"),
+            query: riskQuery,
+            reason: .maxPaperQuantityExceeded,
+            generatedAt: Date(timeIntervalSince1970: 2_400)
+        )
+        let exposure = PortfolioExposureSnapshot(
+            portfolioID: try Identifier("portfolio-main"),
+            symbol: try Symbol(rawValue: "BTCUSDT"),
+            timeframe: .oneMinute,
+            paperQuantity: try Quantity(0.75),
+            referencePrice: try Price(40_000),
+            source: .paperProjection,
+            observedAt: Date(timeIntervalSince1970: 2_401)
+        )
+
+        XCTAssertTrue(boundary.paperRiskExposureIsolationBoundaryHeld)
+        XCTAssertTrue(boundary.forbidsCapability(.paperRiskBlockerUpgrade))
+        XCTAssertTrue(boundary.forbidsCapability(.paperExposureUpgrade))
+        XCTAssertFalse(boundary.mapsPaperRiskBlockerToFrequencyLossDrawdownGate)
+        XCTAssertFalse(boundary.mapsPaperExposureToLossDrawdownGate)
+        XCTAssertFalse(boundary.readsRealPnL)
+        XCTAssertFalse(boundary.readsRealAccountEquity)
+        XCTAssertFalse(boundary.countsLiveOrderFrequency)
+        XCTAssertFalse(boundary.evaluatesRealLossLimit)
+        XCTAssertFalse(boundary.evaluatesRealDrawdownLimit)
+        XCTAssertFalse(boundary.evaluatesRealPreTradeAllow)
+        XCTAssertFalse(boundary.evaluatesRealPreTradeReject)
+
+        XCTAssertEqual(blocker.executionMode, .paper)
+        XCTAssertEqual(blocker.paperOrderID, riskQuery.paperOrderID)
+        XCTAssertEqual(blocker.reason, .maxPaperQuantityExceeded)
+        XCTAssertEqual(exposure.source, .paperProjection)
+        XCTAssertEqual(exposure.grossExposureNotional, 30_000, accuracy: 0.00000001)
+        XCTAssertEqual(DomainEvent.risk(.blocked(blocker)), .risk(.blocked(blocker)))
+        XCTAssertEqual(DomainEvent.portfolio(.exposureUpdated(exposure)), .portfolio(.exposureUpdated(exposure)))
+    }
+
     func testLiveRuntimeHealthDefinesMTP69ReadModelOnlyFixture() throws {
         // 测试场景：MTP-69 只新增 future live runtime health / connection status 的最小
         // read model。fixture 可以表达 healthy / blocked / disconnected / degraded /

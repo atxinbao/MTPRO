@@ -19,6 +19,623 @@ public enum LiveRiskTerm: String, Codable, CaseIterable, Equatable, Hashable, Se
     case paperExposure = "paper exposure"
 }
 
+/// LiveFrequencyLossDrawdownFutureGate 固定 MTP-84 的 frequency / loss / drawdown 未来门槛。
+///
+/// 这些 gate 只描述 Future Live Risk 在后续 Project Definition 前必须补齐的频率窗口、
+/// PnL / equity 来源、loss limit、drawdown limit 和审计条件；当前阶段不得把 gate
+/// 解释为真实限频器、真实亏损阈值执行、真实回撤控制 runtime 或停机 / 熔断命令。
+public enum LiveFrequencyLossDrawdownFutureGate: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case humanLiveRiskDecision = "Human independent Live risk decision"
+    case liveTradingFoundationBoundarySatisfied = "Live trading foundation boundary satisfied"
+    case liveExecutionControlBoundarySatisfied = "Live execution control boundary satisfied"
+    case frequencyWindowPolicyDefined = "future frequency window policy defined"
+    case orderEventSourceContractDefined = "future order event source contract defined"
+    case pnlEquitySourceContractDefined = "future PnL / equity source contract defined"
+    case lossLimitPolicyDefined = "future loss limit policy defined"
+    case drawdownLimitPolicyDefined = "future drawdown limit policy defined"
+    case paperRiskExposureIsolationDefined = "paper risk / exposure isolation defined"
+    case operationsAuditHandoffDefined = "future operations / audit handoff defined"
+}
+
+/// LiveFrequencyLossDrawdownForbiddenCapability 枚举 MTP-84 必须阻断的能力面。
+///
+/// 这些值只用于 deterministic forbidden capability tests 和 PR evidence；它们不能出现在
+/// 当前 API、adapter、Runtime、PnL reader、频率计数器、回撤控制、UI command 或网络请求中。
+public enum LiveFrequencyLossDrawdownForbiddenCapability: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case apiKey = "API key"
+    case secretStorage = "secret storage"
+    case signedEndpoint = "signed endpoint"
+    case accountEndpoint = "account endpoint"
+    case listenKeyUserDataStream = "listenKey user data stream"
+    case brokerExecutionAdapter = "broker execution adapter"
+    case exchangeExecutionAdapter = "exchange execution adapter"
+    case liveExecutionAdapter = "LiveExecutionAdapter"
+    case realAccountBalanceRead = "real account balance read"
+    case brokerPositionSync = "broker position sync"
+    case marginRead = "margin read"
+    case leverageRead = "leverage read"
+    case realPnLRead = "real PnL read"
+    case realAccountEquityRead = "real account equity read"
+    case liveOrderFrequencyCounter = "live order frequency counter"
+    case productionFrequencyThrottling = "production frequency throttling"
+    case brokerSideThrottling = "broker-side throttling"
+    case realLossLimitEvaluation = "real loss limit evaluation"
+    case realDrawdownLimitEvaluation = "real drawdown limit evaluation"
+    case drawdownCircuitBreakerRuntime = "drawdown circuit breaker runtime"
+    case realPreTradeRiskEngine = "real pre-trade risk engine"
+    case realPreTradeAllowRuntime = "real pre-trade allow runtime"
+    case realPreTradeRejectRuntime = "real pre-trade reject runtime"
+    case circuitBreakerCommand = "circuit breaker command"
+    case stopTradingCommand = "stop trading command"
+    case emergencyStopCommand = "emergency stop command"
+    case liveOrderSubmit = "live order submit"
+    case liveOrderCancel = "live order cancel"
+    case liveOrderReplace = "live order replace"
+    case paperRiskBlockerUpgrade = "paper risk blocker upgrade"
+    case paperExposureUpgrade = "paper exposure upgrade"
+    case riskCommandSurface = "risk command surface"
+    case positionManagementCommand = "position management command"
+    case orderForm = "order form"
+    case tradingButton = "trading button"
+}
+
+/// LiveFrequencyLossDrawdownGateBoundary 是 MTP-84 的 frequency / loss / drawdown gate fixture。
+///
+/// 该 fixture 只定义 frequency gate、loss / drawdown gate、future gate 条件、forbidden
+/// capability tests 和 paper risk / exposure 隔离证据。所有真实下单频率计数、生产限频、
+/// 真实 PnL / equity 读取、真实亏损 / 回撤阈值执行、回撤熔断、停机命令、交易命令和
+/// paper-to-live risk upgrade 路径都必须保持关闭。
+public struct LiveFrequencyLossDrawdownGateBoundary: Codable, Equatable, Sendable {
+    public let contractID: Identifier
+    public let issueID: Identifier
+    public let terms: [LiveRiskTerm]
+    public let futureGates: [LiveFrequencyLossDrawdownFutureGate]
+    public let forbiddenCapabilities: [LiveFrequencyLossDrawdownForbiddenCapability]
+    public let allowedEvidenceKinds: [LiveRiskEvidenceKind]
+    public let validationAnchors: [String]
+    public let sourceAnchors: [String]
+    public let isFutureGateOnly: Bool
+    public let providesLiveRiskEngine: Bool
+    public let readsAPIKey: Bool
+    public let storesSecret: Bool
+    public let usesSignedEndpoint: Bool
+    public let callsAccountEndpoint: Bool
+    public let createsListenKey: Bool
+    public let instantiatesBrokerExecutionAdapter: Bool
+    public let instantiatesExchangeExecutionAdapter: Bool
+    public let implementsLiveExecutionAdapter: Bool
+    public let readsRealAccountBalance: Bool
+    public let syncsBrokerPosition: Bool
+    public let readsMargin: Bool
+    public let readsLeverage: Bool
+    public let readsRealPnL: Bool
+    public let readsRealAccountEquity: Bool
+    public let countsLiveOrderFrequency: Bool
+    public let enforcesFrequencyThrottle: Bool
+    public let evaluatesRealLossLimit: Bool
+    public let evaluatesRealDrawdownLimit: Bool
+    public let runsDrawdownCircuitBreaker: Bool
+    public let evaluatesRealPreTradeAllow: Bool
+    public let evaluatesRealPreTradeReject: Bool
+    public let authorizesLiveTrading: Bool
+    public let submitsRealOrder: Bool
+    public let cancelsRealOrder: Bool
+    public let replacesRealOrder: Bool
+    public let runsCircuitBreakerCommand: Bool
+    public let runsStopTradingCommand: Bool
+    public let runsEmergencyStopCommand: Bool
+    public let mapsPaperRiskBlockerToFrequencyLossDrawdownGate: Bool
+    public let mapsPaperExposureToLossDrawdownGate: Bool
+    public let providesRiskCommandSurface: Bool
+    public let providesPositionManagementCommand: Bool
+    public let exposesOrderForm: Bool
+    public let providesTradingButton: Bool
+    public let requiredValidationDependsOnNetwork: Bool
+
+    public var frequencyLossDrawdownBoundaryHeld: Bool {
+        terms == Self.requiredTerms
+            && futureGates == Self.requiredFutureGates
+            && forbiddenCapabilities == Self.requiredForbiddenCapabilities
+            && allowedEvidenceKinds == Self.allowedEvidenceKinds
+            && validationAnchors == Self.requiredValidationAnchors
+            && sourceAnchors == Self.requiredSourceAnchors
+            && allForbiddenFlagsRemainFalse
+    }
+
+    public var frequencyRuntimeBoundaryHeld: Bool {
+        countsLiveOrderFrequency == false
+            && enforcesFrequencyThrottle == false
+            && evaluatesRealPreTradeAllow == false
+            && evaluatesRealPreTradeReject == false
+            && submitsRealOrder == false
+    }
+
+    public var lossDrawdownRuntimeBoundaryHeld: Bool {
+        readsRealAccountBalance == false
+            && readsRealPnL == false
+            && readsRealAccountEquity == false
+            && readsMargin == false
+            && readsLeverage == false
+            && evaluatesRealLossLimit == false
+            && evaluatesRealDrawdownLimit == false
+            && runsDrawdownCircuitBreaker == false
+    }
+
+    public var paperRiskExposureIsolationBoundaryHeld: Bool {
+        sourceAnchors == Self.requiredSourceAnchors
+            && mapsPaperRiskBlockerToFrequencyLossDrawdownGate == false
+            && mapsPaperExposureToLossDrawdownGate == false
+            && readsRealAccountBalance == false
+            && readsRealPnL == false
+            && readsRealAccountEquity == false
+    }
+
+    public var allPreTradeDecisionsBlocked: Bool {
+        providesLiveRiskEngine == false
+            && evaluatesRealLossLimit == false
+            && evaluatesRealDrawdownLimit == false
+            && evaluatesRealPreTradeAllow == false
+            && evaluatesRealPreTradeReject == false
+            && authorizesLiveTrading == false
+    }
+
+    private var allForbiddenFlagsRemainFalse: Bool {
+        isFutureGateOnly
+            && providesLiveRiskEngine == false
+            && readsAPIKey == false
+            && storesSecret == false
+            && usesSignedEndpoint == false
+            && callsAccountEndpoint == false
+            && createsListenKey == false
+            && instantiatesBrokerExecutionAdapter == false
+            && instantiatesExchangeExecutionAdapter == false
+            && implementsLiveExecutionAdapter == false
+            && readsRealAccountBalance == false
+            && syncsBrokerPosition == false
+            && readsMargin == false
+            && readsLeverage == false
+            && readsRealPnL == false
+            && readsRealAccountEquity == false
+            && countsLiveOrderFrequency == false
+            && enforcesFrequencyThrottle == false
+            && evaluatesRealLossLimit == false
+            && evaluatesRealDrawdownLimit == false
+            && runsDrawdownCircuitBreaker == false
+            && evaluatesRealPreTradeAllow == false
+            && evaluatesRealPreTradeReject == false
+            && authorizesLiveTrading == false
+            && submitsRealOrder == false
+            && cancelsRealOrder == false
+            && replacesRealOrder == false
+            && runsCircuitBreakerCommand == false
+            && runsStopTradingCommand == false
+            && runsEmergencyStopCommand == false
+            && mapsPaperRiskBlockerToFrequencyLossDrawdownGate == false
+            && mapsPaperExposureToLossDrawdownGate == false
+            && providesRiskCommandSurface == false
+            && providesPositionManagementCommand == false
+            && exposesOrderForm == false
+            && providesTradingButton == false
+            && requiredValidationDependsOnNetwork == false
+    }
+
+    public func forbidsCapability(_ capability: LiveFrequencyLossDrawdownForbiddenCapability) -> Bool {
+        forbiddenCapabilities.contains(capability)
+    }
+
+    public init(
+        contractID: Identifier = try! Identifier("mtp-84-frequency-loss-drawdown-boundary"),
+        issueID: Identifier = try! Identifier("MTP-84"),
+        terms: [LiveRiskTerm] = Self.requiredTerms,
+        futureGates: [LiveFrequencyLossDrawdownFutureGate] = Self.requiredFutureGates,
+        forbiddenCapabilities: [LiveFrequencyLossDrawdownForbiddenCapability] = Self.requiredForbiddenCapabilities,
+        allowedEvidenceKinds: [LiveRiskEvidenceKind] = Self.allowedEvidenceKinds,
+        validationAnchors: [String] = Self.requiredValidationAnchors,
+        sourceAnchors: [String] = Self.requiredSourceAnchors,
+        isFutureGateOnly: Bool = true,
+        providesLiveRiskEngine: Bool = false,
+        readsAPIKey: Bool = false,
+        storesSecret: Bool = false,
+        usesSignedEndpoint: Bool = false,
+        callsAccountEndpoint: Bool = false,
+        createsListenKey: Bool = false,
+        instantiatesBrokerExecutionAdapter: Bool = false,
+        instantiatesExchangeExecutionAdapter: Bool = false,
+        implementsLiveExecutionAdapter: Bool = false,
+        readsRealAccountBalance: Bool = false,
+        syncsBrokerPosition: Bool = false,
+        readsMargin: Bool = false,
+        readsLeverage: Bool = false,
+        readsRealPnL: Bool = false,
+        readsRealAccountEquity: Bool = false,
+        countsLiveOrderFrequency: Bool = false,
+        enforcesFrequencyThrottle: Bool = false,
+        evaluatesRealLossLimit: Bool = false,
+        evaluatesRealDrawdownLimit: Bool = false,
+        runsDrawdownCircuitBreaker: Bool = false,
+        evaluatesRealPreTradeAllow: Bool = false,
+        evaluatesRealPreTradeReject: Bool = false,
+        authorizesLiveTrading: Bool = false,
+        submitsRealOrder: Bool = false,
+        cancelsRealOrder: Bool = false,
+        replacesRealOrder: Bool = false,
+        runsCircuitBreakerCommand: Bool = false,
+        runsStopTradingCommand: Bool = false,
+        runsEmergencyStopCommand: Bool = false,
+        mapsPaperRiskBlockerToFrequencyLossDrawdownGate: Bool = false,
+        mapsPaperExposureToLossDrawdownGate: Bool = false,
+        providesRiskCommandSurface: Bool = false,
+        providesPositionManagementCommand: Bool = false,
+        exposesOrderForm: Bool = false,
+        providesTradingButton: Bool = false,
+        requiredValidationDependsOnNetwork: Bool = false
+    ) throws {
+        try Self.validate(
+            terms: terms,
+            futureGates: futureGates,
+            forbiddenCapabilities: forbiddenCapabilities,
+            allowedEvidenceKinds: allowedEvidenceKinds,
+            validationAnchors: validationAnchors,
+            sourceAnchors: sourceAnchors
+        )
+        try Self.validateForbiddenFlags(
+            isFutureGateOnly: isFutureGateOnly,
+            providesLiveRiskEngine: providesLiveRiskEngine,
+            readsAPIKey: readsAPIKey,
+            storesSecret: storesSecret,
+            usesSignedEndpoint: usesSignedEndpoint,
+            callsAccountEndpoint: callsAccountEndpoint,
+            createsListenKey: createsListenKey,
+            instantiatesBrokerExecutionAdapter: instantiatesBrokerExecutionAdapter,
+            instantiatesExchangeExecutionAdapter: instantiatesExchangeExecutionAdapter,
+            implementsLiveExecutionAdapter: implementsLiveExecutionAdapter,
+            readsRealAccountBalance: readsRealAccountBalance,
+            syncsBrokerPosition: syncsBrokerPosition,
+            readsMargin: readsMargin,
+            readsLeverage: readsLeverage,
+            readsRealPnL: readsRealPnL,
+            readsRealAccountEquity: readsRealAccountEquity,
+            countsLiveOrderFrequency: countsLiveOrderFrequency,
+            enforcesFrequencyThrottle: enforcesFrequencyThrottle,
+            evaluatesRealLossLimit: evaluatesRealLossLimit,
+            evaluatesRealDrawdownLimit: evaluatesRealDrawdownLimit,
+            runsDrawdownCircuitBreaker: runsDrawdownCircuitBreaker,
+            evaluatesRealPreTradeAllow: evaluatesRealPreTradeAllow,
+            evaluatesRealPreTradeReject: evaluatesRealPreTradeReject,
+            authorizesLiveTrading: authorizesLiveTrading,
+            submitsRealOrder: submitsRealOrder,
+            cancelsRealOrder: cancelsRealOrder,
+            replacesRealOrder: replacesRealOrder,
+            runsCircuitBreakerCommand: runsCircuitBreakerCommand,
+            runsStopTradingCommand: runsStopTradingCommand,
+            runsEmergencyStopCommand: runsEmergencyStopCommand,
+            mapsPaperRiskBlockerToFrequencyLossDrawdownGate: mapsPaperRiskBlockerToFrequencyLossDrawdownGate,
+            mapsPaperExposureToLossDrawdownGate: mapsPaperExposureToLossDrawdownGate,
+            providesRiskCommandSurface: providesRiskCommandSurface,
+            providesPositionManagementCommand: providesPositionManagementCommand,
+            exposesOrderForm: exposesOrderForm,
+            providesTradingButton: providesTradingButton,
+            requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork
+        )
+
+        self.contractID = contractID
+        self.issueID = issueID
+        self.terms = terms
+        self.futureGates = futureGates
+        self.forbiddenCapabilities = forbiddenCapabilities
+        self.allowedEvidenceKinds = allowedEvidenceKinds
+        self.validationAnchors = validationAnchors
+        self.sourceAnchors = sourceAnchors
+        self.isFutureGateOnly = isFutureGateOnly
+        self.providesLiveRiskEngine = providesLiveRiskEngine
+        self.readsAPIKey = readsAPIKey
+        self.storesSecret = storesSecret
+        self.usesSignedEndpoint = usesSignedEndpoint
+        self.callsAccountEndpoint = callsAccountEndpoint
+        self.createsListenKey = createsListenKey
+        self.instantiatesBrokerExecutionAdapter = instantiatesBrokerExecutionAdapter
+        self.instantiatesExchangeExecutionAdapter = instantiatesExchangeExecutionAdapter
+        self.implementsLiveExecutionAdapter = implementsLiveExecutionAdapter
+        self.readsRealAccountBalance = readsRealAccountBalance
+        self.syncsBrokerPosition = syncsBrokerPosition
+        self.readsMargin = readsMargin
+        self.readsLeverage = readsLeverage
+        self.readsRealPnL = readsRealPnL
+        self.readsRealAccountEquity = readsRealAccountEquity
+        self.countsLiveOrderFrequency = countsLiveOrderFrequency
+        self.enforcesFrequencyThrottle = enforcesFrequencyThrottle
+        self.evaluatesRealLossLimit = evaluatesRealLossLimit
+        self.evaluatesRealDrawdownLimit = evaluatesRealDrawdownLimit
+        self.runsDrawdownCircuitBreaker = runsDrawdownCircuitBreaker
+        self.evaluatesRealPreTradeAllow = evaluatesRealPreTradeAllow
+        self.evaluatesRealPreTradeReject = evaluatesRealPreTradeReject
+        self.authorizesLiveTrading = authorizesLiveTrading
+        self.submitsRealOrder = submitsRealOrder
+        self.cancelsRealOrder = cancelsRealOrder
+        self.replacesRealOrder = replacesRealOrder
+        self.runsCircuitBreakerCommand = runsCircuitBreakerCommand
+        self.runsStopTradingCommand = runsStopTradingCommand
+        self.runsEmergencyStopCommand = runsEmergencyStopCommand
+        self.mapsPaperRiskBlockerToFrequencyLossDrawdownGate = mapsPaperRiskBlockerToFrequencyLossDrawdownGate
+        self.mapsPaperExposureToLossDrawdownGate = mapsPaperExposureToLossDrawdownGate
+        self.providesRiskCommandSurface = providesRiskCommandSurface
+        self.providesPositionManagementCommand = providesPositionManagementCommand
+        self.exposesOrderForm = exposesOrderForm
+        self.providesTradingButton = providesTradingButton
+        self.requiredValidationDependsOnNetwork = requiredValidationDependsOnNetwork
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            contractID: try container.decode(Identifier.self, forKey: .contractID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            terms: try container.decode([LiveRiskTerm].self, forKey: .terms),
+            futureGates: try container.decode(
+                [LiveFrequencyLossDrawdownFutureGate].self,
+                forKey: .futureGates
+            ),
+            forbiddenCapabilities: try container.decode(
+                [LiveFrequencyLossDrawdownForbiddenCapability].self,
+                forKey: .forbiddenCapabilities
+            ),
+            allowedEvidenceKinds: try container.decode([LiveRiskEvidenceKind].self, forKey: .allowedEvidenceKinds),
+            validationAnchors: try container.decode([String].self, forKey: .validationAnchors),
+            sourceAnchors: try container.decode([String].self, forKey: .sourceAnchors),
+            isFutureGateOnly: try container.decode(Bool.self, forKey: .isFutureGateOnly),
+            providesLiveRiskEngine: try container.decode(Bool.self, forKey: .providesLiveRiskEngine),
+            readsAPIKey: try container.decode(Bool.self, forKey: .readsAPIKey),
+            storesSecret: try container.decode(Bool.self, forKey: .storesSecret),
+            usesSignedEndpoint: try container.decode(Bool.self, forKey: .usesSignedEndpoint),
+            callsAccountEndpoint: try container.decode(Bool.self, forKey: .callsAccountEndpoint),
+            createsListenKey: try container.decode(Bool.self, forKey: .createsListenKey),
+            instantiatesBrokerExecutionAdapter: try container.decode(
+                Bool.self,
+                forKey: .instantiatesBrokerExecutionAdapter
+            ),
+            instantiatesExchangeExecutionAdapter: try container.decode(
+                Bool.self,
+                forKey: .instantiatesExchangeExecutionAdapter
+            ),
+            implementsLiveExecutionAdapter: try container.decode(Bool.self, forKey: .implementsLiveExecutionAdapter),
+            readsRealAccountBalance: try container.decode(Bool.self, forKey: .readsRealAccountBalance),
+            syncsBrokerPosition: try container.decode(Bool.self, forKey: .syncsBrokerPosition),
+            readsMargin: try container.decode(Bool.self, forKey: .readsMargin),
+            readsLeverage: try container.decode(Bool.self, forKey: .readsLeverage),
+            readsRealPnL: try container.decode(Bool.self, forKey: .readsRealPnL),
+            readsRealAccountEquity: try container.decode(Bool.self, forKey: .readsRealAccountEquity),
+            countsLiveOrderFrequency: try container.decode(Bool.self, forKey: .countsLiveOrderFrequency),
+            enforcesFrequencyThrottle: try container.decode(Bool.self, forKey: .enforcesFrequencyThrottle),
+            evaluatesRealLossLimit: try container.decode(Bool.self, forKey: .evaluatesRealLossLimit),
+            evaluatesRealDrawdownLimit: try container.decode(Bool.self, forKey: .evaluatesRealDrawdownLimit),
+            runsDrawdownCircuitBreaker: try container.decode(Bool.self, forKey: .runsDrawdownCircuitBreaker),
+            evaluatesRealPreTradeAllow: try container.decode(Bool.self, forKey: .evaluatesRealPreTradeAllow),
+            evaluatesRealPreTradeReject: try container.decode(Bool.self, forKey: .evaluatesRealPreTradeReject),
+            authorizesLiveTrading: try container.decode(Bool.self, forKey: .authorizesLiveTrading),
+            submitsRealOrder: try container.decode(Bool.self, forKey: .submitsRealOrder),
+            cancelsRealOrder: try container.decode(Bool.self, forKey: .cancelsRealOrder),
+            replacesRealOrder: try container.decode(Bool.self, forKey: .replacesRealOrder),
+            runsCircuitBreakerCommand: try container.decode(Bool.self, forKey: .runsCircuitBreakerCommand),
+            runsStopTradingCommand: try container.decode(Bool.self, forKey: .runsStopTradingCommand),
+            runsEmergencyStopCommand: try container.decode(Bool.self, forKey: .runsEmergencyStopCommand),
+            mapsPaperRiskBlockerToFrequencyLossDrawdownGate: try container.decode(
+                Bool.self,
+                forKey: .mapsPaperRiskBlockerToFrequencyLossDrawdownGate
+            ),
+            mapsPaperExposureToLossDrawdownGate: try container.decode(
+                Bool.self,
+                forKey: .mapsPaperExposureToLossDrawdownGate
+            ),
+            providesRiskCommandSurface: try container.decode(Bool.self, forKey: .providesRiskCommandSurface),
+            providesPositionManagementCommand: try container.decode(
+                Bool.self,
+                forKey: .providesPositionManagementCommand
+            ),
+            exposesOrderForm: try container.decode(Bool.self, forKey: .exposesOrderForm),
+            providesTradingButton: try container.decode(Bool.self, forKey: .providesTradingButton),
+            requiredValidationDependsOnNetwork: try container.decode(
+                Bool.self,
+                forKey: .requiredValidationDependsOnNetwork
+            )
+        )
+    }
+
+    public static let requiredTerms: [LiveRiskTerm] = [
+        .frequencyGate,
+        .lossGate
+    ]
+
+    public static let requiredFutureGates: [LiveFrequencyLossDrawdownFutureGate] = [
+        .humanLiveRiskDecision,
+        .liveTradingFoundationBoundarySatisfied,
+        .liveExecutionControlBoundarySatisfied,
+        .frequencyWindowPolicyDefined,
+        .orderEventSourceContractDefined,
+        .pnlEquitySourceContractDefined,
+        .lossLimitPolicyDefined,
+        .drawdownLimitPolicyDefined,
+        .paperRiskExposureIsolationDefined,
+        .operationsAuditHandoffDefined
+    ]
+
+    public static let requiredForbiddenCapabilities: [LiveFrequencyLossDrawdownForbiddenCapability] =
+        LiveFrequencyLossDrawdownForbiddenCapability.allCases
+
+    public static let allowedEvidenceKinds: [LiveRiskEvidenceKind] = [
+        .contractDocumentation,
+        .validationMatrixCandidate,
+        .validationPlanAnchor,
+        .deterministicForbiddenTest,
+        .paperLiveRiskIsolationEvidence,
+        .prBoundaryEvidence
+    ]
+
+    public static let requiredValidationAnchors: [String] = [
+        "MTP-84-FREQUENCY-LOSS-DRAWDOWN-FUTURE-GATES",
+        "MTP-84-FORBIDDEN-FREQUENCY-LOSS-DRAWDOWN-RUNTIME-TESTS",
+        "MTP-84-NO-REAL-PNL-EQUITY-OR-DRAWDOWN-ENFORCEMENT",
+        "MTP-84-PAPER-RISK-EXPOSURE-NO-LIVE-RISK-UPGRADE",
+        "MTP-84-LIVE-RISK-GATE-VALIDATION",
+        "TVM-LIVE-RISK-GATE"
+    ]
+
+    public static let requiredSourceAnchors: [String] = [
+        "MTP-82-LIVE-RISK-TERMINOLOGY",
+        "MTP-82-FUTURE-RISK-DECISION-TAXONOMY",
+        "MTP-83-EXPOSURE-ORDER-NOTIONAL-FUTURE-GATES",
+        "TVM-RISK-BLOCKER",
+        "TVM-PORTFOLIO-EXPOSURE",
+        "MTP-78-PAPER-EVIDENCE-NO-REAL-COMMAND-UPGRADE"
+    ]
+
+    public static let deterministicFixture: LiveFrequencyLossDrawdownGateBoundary = {
+        do {
+            return try LiveFrequencyLossDrawdownGateBoundary()
+        } catch {
+            preconditionFailure("MTP-84 frequency / loss / drawdown fixture must be valid: \(error)")
+        }
+    }()
+
+    private static func validate(
+        terms: [LiveRiskTerm],
+        futureGates: [LiveFrequencyLossDrawdownFutureGate],
+        forbiddenCapabilities: [LiveFrequencyLossDrawdownForbiddenCapability],
+        allowedEvidenceKinds: [LiveRiskEvidenceKind],
+        validationAnchors: [String],
+        sourceAnchors: [String]
+    ) throws {
+        guard terms == Self.requiredTerms else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "terms",
+                expected: Self.requiredTerms.map(\.rawValue).joined(separator: ","),
+                actual: terms.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard futureGates == Self.requiredFutureGates else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "futureGates",
+                expected: Self.requiredFutureGates.map(\.rawValue).joined(separator: ","),
+                actual: futureGates.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard forbiddenCapabilities == Self.requiredForbiddenCapabilities else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "forbiddenCapabilities",
+                expected: Self.requiredForbiddenCapabilities.map(\.rawValue).joined(separator: ","),
+                actual: forbiddenCapabilities.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard allowedEvidenceKinds == Self.allowedEvidenceKinds else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "allowedEvidenceKinds",
+                expected: Self.allowedEvidenceKinds.map(\.rawValue).joined(separator: ","),
+                actual: allowedEvidenceKinds.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard validationAnchors == Self.requiredValidationAnchors else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "validationAnchors",
+                expected: Self.requiredValidationAnchors.joined(separator: ","),
+                actual: validationAnchors.joined(separator: ",")
+            )
+        }
+        guard sourceAnchors == Self.requiredSourceAnchors else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "sourceAnchors",
+                expected: Self.requiredSourceAnchors.joined(separator: ","),
+                actual: sourceAnchors.joined(separator: ",")
+            )
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        isFutureGateOnly: Bool,
+        providesLiveRiskEngine: Bool,
+        readsAPIKey: Bool,
+        storesSecret: Bool,
+        usesSignedEndpoint: Bool,
+        callsAccountEndpoint: Bool,
+        createsListenKey: Bool,
+        instantiatesBrokerExecutionAdapter: Bool,
+        instantiatesExchangeExecutionAdapter: Bool,
+        implementsLiveExecutionAdapter: Bool,
+        readsRealAccountBalance: Bool,
+        syncsBrokerPosition: Bool,
+        readsMargin: Bool,
+        readsLeverage: Bool,
+        readsRealPnL: Bool,
+        readsRealAccountEquity: Bool,
+        countsLiveOrderFrequency: Bool,
+        enforcesFrequencyThrottle: Bool,
+        evaluatesRealLossLimit: Bool,
+        evaluatesRealDrawdownLimit: Bool,
+        runsDrawdownCircuitBreaker: Bool,
+        evaluatesRealPreTradeAllow: Bool,
+        evaluatesRealPreTradeReject: Bool,
+        authorizesLiveTrading: Bool,
+        submitsRealOrder: Bool,
+        cancelsRealOrder: Bool,
+        replacesRealOrder: Bool,
+        runsCircuitBreakerCommand: Bool,
+        runsStopTradingCommand: Bool,
+        runsEmergencyStopCommand: Bool,
+        mapsPaperRiskBlockerToFrequencyLossDrawdownGate: Bool,
+        mapsPaperExposureToLossDrawdownGate: Bool,
+        providesRiskCommandSurface: Bool,
+        providesPositionManagementCommand: Bool,
+        exposesOrderForm: Bool,
+        providesTradingButton: Bool,
+        requiredValidationDependsOnNetwork: Bool
+    ) throws {
+        guard isFutureGateOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("isFutureGateOnly")
+        }
+
+        let forbiddenFlags = [
+            ("providesLiveRiskEngine", providesLiveRiskEngine),
+            ("readsAPIKey", readsAPIKey),
+            ("storesSecret", storesSecret),
+            ("usesSignedEndpoint", usesSignedEndpoint),
+            ("callsAccountEndpoint", callsAccountEndpoint),
+            ("createsListenKey", createsListenKey),
+            ("instantiatesBrokerExecutionAdapter", instantiatesBrokerExecutionAdapter),
+            ("instantiatesExchangeExecutionAdapter", instantiatesExchangeExecutionAdapter),
+            ("implementsLiveExecutionAdapter", implementsLiveExecutionAdapter),
+            ("readsRealAccountBalance", readsRealAccountBalance),
+            ("syncsBrokerPosition", syncsBrokerPosition),
+            ("readsMargin", readsMargin),
+            ("readsLeverage", readsLeverage),
+            ("readsRealPnL", readsRealPnL),
+            ("readsRealAccountEquity", readsRealAccountEquity),
+            ("countsLiveOrderFrequency", countsLiveOrderFrequency),
+            ("enforcesFrequencyThrottle", enforcesFrequencyThrottle),
+            ("evaluatesRealLossLimit", evaluatesRealLossLimit),
+            ("evaluatesRealDrawdownLimit", evaluatesRealDrawdownLimit),
+            ("runsDrawdownCircuitBreaker", runsDrawdownCircuitBreaker),
+            ("evaluatesRealPreTradeAllow", evaluatesRealPreTradeAllow),
+            ("evaluatesRealPreTradeReject", evaluatesRealPreTradeReject),
+            ("authorizesLiveTrading", authorizesLiveTrading),
+            ("submitsRealOrder", submitsRealOrder),
+            ("cancelsRealOrder", cancelsRealOrder),
+            ("replacesRealOrder", replacesRealOrder),
+            ("runsCircuitBreakerCommand", runsCircuitBreakerCommand),
+            ("runsStopTradingCommand", runsStopTradingCommand),
+            ("runsEmergencyStopCommand", runsEmergencyStopCommand),
+            ("mapsPaperRiskBlockerToFrequencyLossDrawdownGate", mapsPaperRiskBlockerToFrequencyLossDrawdownGate),
+            ("mapsPaperExposureToLossDrawdownGate", mapsPaperExposureToLossDrawdownGate),
+            ("providesRiskCommandSurface", providesRiskCommandSurface),
+            ("providesPositionManagementCommand", providesPositionManagementCommand),
+            ("exposesOrderForm", exposesOrderForm),
+            ("providesTradingButton", providesTradingButton),
+            ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(capability.0)
+        }
+    }
+}
+
 /// FutureRiskDecisionTaxonomyTerm 固定 MTP-82 的 future risk decision 分类。
 ///
 /// `allowed`、`blocked`、`degraded` 和 `no-trade` 只是 Future taxonomy label，不能被解释为
