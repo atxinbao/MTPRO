@@ -492,3 +492,56 @@ MTP-86 建立以下 validation anchors：
 - `MTP-86-PAPER-EXPOSURE-NO-REAL-ACCOUNT-RISK-INPUT`
 - `MTP-86-REPORT-DASHBOARD-TIMELINE-READ-MODEL-ONLY`
 - `MTP-86-LIVE-RISK-GATE-VALIDATION`
+
+## MTP-87 Live Risk gate blocked evidence
+
+`MTP-87-LIVE-RISK-GATE-BLOCKED-EVIDENCE`
+
+MTP-87 把 exposure、order notional、frequency、loss / drawdown、circuit breaker 和 no-trade state 六类 Future Live Risk gate 汇总为 read-model-only `LiveRiskGateBlockedEvidence`。该 evidence 只能解释为什么 gate 仍被阻断，并输出 deterministic snapshot、source anchors 和 blocked reason；它不读取真实账户、broker position、margin、leverage、PnL 或 equity，不实现 real pre-trade allow / reject runtime、live risk engine、circuit breaker runtime、no-trade runtime、risk command、order form 或交易按钮。
+
+## MTP-87 Live Risk gates blocked reasons
+
+`MTP-87-LIVE-RISK-GATES-BLOCKED-REASONS`
+
+| Blocked gate | 只读 blocked reason 摘要 | 禁止升级 |
+| --- | --- | --- |
+| `exposure` | Human Live Risk decision 缺失；account state、broker position、margin / leverage source forbidden；paper / live risk isolation required | 不读取真实账户 exposure，不把 paper exposure 升级为 live input |
+| `order notional` | real order notional evaluation forbidden；real pre-trade allow / reject runtime forbidden | 不实现真实订单金额 allow / reject |
+| `frequency` | live order frequency runtime forbidden；read-model-only boundary required | 不实现生产限频或 broker throttling |
+| `loss / drawdown` | real PnL / equity source forbidden；real loss / drawdown runtime forbidden；paper / live risk isolation required | 不读取真实 PnL / equity，不执行亏损或回撤阈值 |
+| `circuit breaker` | circuit breaker runtime forbidden；stop / emergency command forbidden；risk command surface forbidden | 不实现熔断服务、停机命令或 risk command |
+| `no-trade state` | no-trade state runtime forbidden；broker session state mutation forbidden；stop / emergency command forbidden | 不实现禁交易状态 runtime、broker session 变更或恢复控制 |
+
+## MTP-87 deterministic blocked evidence snapshot
+
+`MTP-87-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT`
+
+MTP-87 的 deterministic snapshot 必须由 Core fixture 和 App ViewModel 同步覆盖：
+
+- Core `LiveRiskGateBlockedEvidence` 固定 gate 顺序、blocked reasons、validation anchors、source anchors 和 forbidden capability flags。
+- App `LiveRiskGateBlockedEvidenceReadModel` / `LiveRiskGateBlockedEvidenceViewModel` 只复制 Core blocked evidence，并提供 Dashboard / Report / Event Timeline 可编码快照。
+- `DashboardShellSnapshot` 只展示 `Risk gates`、`Reasons`、`Blocked` 和只读 detail；Event Timeline 只新增 `live risk gate blocked evidence` rows。
+
+## MTP-87 read-model-only no command surface
+
+`MTP-87-READ-MODEL-ONLY-NO-COMMAND-SURFACE`
+
+MTP-87 的展示面必须保持：
+
+- `ReportViewModel.liveRiskGateBlockedEvidence`、`DashboardShellWorkbenchSnapshot.liveRiskGateBlockedEvidenceMetrics` 和 Event Timeline `liveRiskGateBlockedEvidence` section 只消费 read model / ViewModel。
+- 无 real pre-trade allow / reject、无 live risk engine、无 circuit breaker / no-trade runtime。
+- 无 risk command surface、position management command、order form、交易按钮、schema / adapter / Runtime object 暴露。
+- 无真实账户余额、broker position、margin、leverage、PnL、equity 或网络 required validation。
+
+## MTP-87 validation anchors
+
+`MTP-87-LIVE-RISK-GATE-VALIDATION`
+
+MTP-87 建立以下 validation anchors：
+
+- `TVM-LIVE-RISK-GATE`
+- `MTP-87-LIVE-RISK-GATE-BLOCKED-EVIDENCE`
+- `MTP-87-LIVE-RISK-GATES-BLOCKED-REASONS`
+- `MTP-87-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT`
+- `MTP-87-READ-MODEL-ONLY-NO-COMMAND-SURFACE`
+- `MTP-87-LIVE-RISK-GATE-VALIDATION`

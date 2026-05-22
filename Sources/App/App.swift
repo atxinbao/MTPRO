@@ -673,16 +673,17 @@ public struct ResearchBacktestReportArtifact: Codable, Equatable, Sendable {
 
 /// ReportReadModel 从现有 projection snapshots 生成 Research -> Backtest -> Report 最小观察面。
 ///
-/// 它把订单簿研究投影、EMA 回测投影、Paper session 投影、事件流水、Live blocked evidence
-/// 和 Live monitoring evidence 汇总成报告 artifact / boundary evidence；该 read model 不重跑策略、
-/// 不读取数据库 schema、不调用 Runtime / Adapters，也不把报告、Live readiness blocked 状态或
-/// monitoring 状态解释为交易授权。
+/// 它把订单簿研究投影、EMA 回测投影、Paper session 投影、事件流水、Live blocked evidence、
+/// Live monitoring evidence 和 Live Risk blocked evidence 汇总成报告 artifact / boundary evidence；
+/// 该 read model 不重跑策略、不读取数据库 schema、不调用 Runtime / Adapters，也不把报告、
+/// Live readiness blocked 状态、monitoring 状态或 risk blocked evidence 解释为交易授权。
 public struct ReportReadModel: Equatable, Sendable {
     public let artifacts: [ResearchBacktestReportArtifact]
     public let marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel
     public let liveMonitoringEvidence: LiveMonitoringEvidenceReadModel
     public let liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel
+    public let liveRiskGateBlockedEvidence: LiveRiskGateBlockedEvidenceReadModel
     public let lastAppliedSequence: Int?
 
     public init(
@@ -691,6 +692,7 @@ public struct ReportReadModel: Equatable, Sendable {
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel(),
         liveMonitoringEvidence: LiveMonitoringEvidenceReadModel = LiveMonitoringEvidenceReadModel(),
         liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel = LiveExecutionControlBlockedEvidenceReadModel(),
+        liveRiskGateBlockedEvidence: LiveRiskGateBlockedEvidenceReadModel = LiveRiskGateBlockedEvidenceReadModel(),
         lastAppliedSequence: Int? = nil
     ) {
         self.artifacts = artifacts.sorted { left, right in
@@ -700,12 +702,14 @@ public struct ReportReadModel: Equatable, Sendable {
         self.liveTradingBlockedEvidence = liveTradingBlockedEvidence
         self.liveMonitoringEvidence = liveMonitoringEvidence
         self.liveExecutionControlBlockedEvidence = liveExecutionControlBlockedEvidence
+        self.liveRiskGateBlockedEvidence = liveRiskGateBlockedEvidence
         self.lastAppliedSequence = Self.maxSequence(
             lastAppliedSequence,
             marketDataReplayOperations.lastAppliedSequence,
             liveTradingBlockedEvidence.lastAppliedSequence,
             liveMonitoringEvidence.lastAppliedSequence,
-            liveExecutionControlBlockedEvidence.lastAppliedSequence
+            liveExecutionControlBlockedEvidence.lastAppliedSequence,
+            liveRiskGateBlockedEvidence.lastAppliedSequence
         )
     }
 
@@ -716,7 +720,8 @@ public struct ReportReadModel: Equatable, Sendable {
         marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel = MarketDataReplayOperationsEvidenceReadModel(),
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel(),
         liveMonitoringEvidence: LiveMonitoringEvidenceReadModel = LiveMonitoringEvidenceReadModel(),
-        liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel = LiveExecutionControlBlockedEvidenceReadModel()
+        liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel = LiveExecutionControlBlockedEvidenceReadModel(),
+        liveRiskGateBlockedEvidence: LiveRiskGateBlockedEvidenceReadModel = LiveRiskGateBlockedEvidenceReadModel()
     ) {
         let sortedBacktests = analyticalProjection.backtestRuns.values.sorted {
             $0.runID.rawValue < $1.runID.rawValue
@@ -750,6 +755,7 @@ public struct ReportReadModel: Equatable, Sendable {
             liveTradingBlockedEvidence: liveTradingBlockedEvidence,
             liveMonitoringEvidence: liveMonitoringEvidence,
             liveExecutionControlBlockedEvidence: liveExecutionControlBlockedEvidence,
+            liveRiskGateBlockedEvidence: liveRiskGateBlockedEvidence,
             lastAppliedSequence: lastAppliedSequence
         )
     }
@@ -991,7 +997,8 @@ public struct ReportReadModel: Equatable, Sendable {
 ///
 /// 输入来自 Persistence projection snapshots、append-only event timeline 和 Core Live readiness
 /// blocked read model；新增 Report / Event Timeline evidence 也遵循同一来源边界，禁止 UI
-/// 直接读取数据库 schema、Runtime object、行情 adapter 或任何真实 Live trading capability。
+/// 直接读取数据库 schema、Runtime object、行情 adapter、真实 Live trading capability 或真实
+/// Live Risk runtime。
 public struct DashboardReadModel: Equatable, Sendable {
     public let market: MarketReadModel
     public let strategy: StrategyReadModel
@@ -1027,6 +1034,8 @@ public struct DashboardReadModel: Equatable, Sendable {
             report: report,
             liveTradingBlockedEvidence: report.liveTradingBlockedEvidence,
             liveMonitoringEvidence: report.liveMonitoringEvidence,
+            liveExecutionControlBlockedEvidence: report.liveExecutionControlBlockedEvidence,
+            liveRiskGateBlockedEvidence: report.liveRiskGateBlockedEvidence,
             paperWorkflowObservability: paperWorkflowObservability,
             events: events
         )
@@ -1043,7 +1052,8 @@ public struct DashboardReadModel: Equatable, Sendable {
         marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel = MarketDataReplayOperationsEvidenceReadModel(),
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel(),
         liveMonitoringEvidence: LiveMonitoringEvidenceReadModel = LiveMonitoringEvidenceReadModel(),
-        liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel = LiveExecutionControlBlockedEvidenceReadModel()
+        liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel = LiveExecutionControlBlockedEvidenceReadModel(),
+        liveRiskGateBlockedEvidence: LiveRiskGateBlockedEvidenceReadModel = LiveRiskGateBlockedEvidenceReadModel()
     ) {
         let report = ReportReadModel(
             analyticalProjection: analyticalProjection,
@@ -1052,7 +1062,8 @@ public struct DashboardReadModel: Equatable, Sendable {
             marketDataReplayOperations: marketDataReplayOperations,
             liveTradingBlockedEvidence: liveTradingBlockedEvidence,
             liveMonitoringEvidence: liveMonitoringEvidence,
-            liveExecutionControlBlockedEvidence: liveExecutionControlBlockedEvidence
+            liveExecutionControlBlockedEvidence: liveExecutionControlBlockedEvidence,
+            liveRiskGateBlockedEvidence: liveRiskGateBlockedEvidence
         )
         let paper = PaperReadModel(runtimeProjection: runtimeProjection)
         let risk = RiskReadModel(runtimeProjection: runtimeProjection)
@@ -1081,6 +1092,7 @@ public struct DashboardReadModel: Equatable, Sendable {
                 liveTradingBlockedEvidence: report.liveTradingBlockedEvidence,
                 liveMonitoringEvidence: report.liveMonitoringEvidence,
                 liveExecutionControlBlockedEvidence: report.liveExecutionControlBlockedEvidence,
+                liveRiskGateBlockedEvidence: report.liveRiskGateBlockedEvidence,
                 paperWorkflowObservability: paperWorkflowObservability,
                 events: events
             ),
@@ -1227,8 +1239,9 @@ public struct ReportArtifactViewModel: Codable, Equatable, Sendable {
 /// ReportViewModel 汇总 MTP-23 最小报告路径的只读指标。
 ///
 /// 指标来自 `ReportReadModel`，用于展示报告数、研究运行数、投影级 parity evidence 和
-/// Live trading foundation blocked gates 和 Live monitoring evidence；该 ViewModel 不调用 Runtime /
-/// Adapters，不暴露数据库实现细节，也不提供 live command、交易按钮或真实交易控制。
+/// Live trading foundation blocked gates、Live monitoring evidence 和 Live Risk blocked evidence；
+/// 该 ViewModel 不调用 Runtime / Adapters，不暴露数据库实现细节，也不提供 live command、
+/// risk command、交易按钮或真实交易控制。
 public struct ReportViewModel: Codable, Equatable, Sendable {
     public let section: DashboardSection
     public let source: ViewModelSourceContract
@@ -1237,6 +1250,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceViewModel
     public let liveMonitoringEvidence: LiveMonitoringEvidenceViewModel
     public let liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceViewModel
+    public let liveRiskGateBlockedEvidence: LiveRiskGateBlockedEvidenceViewModel
     public let artifactCount: Int
     public let completedBacktestCount: Int
     public let researchRunCount: Int
@@ -1416,6 +1430,9 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
         let liveExecutionControlBlockedEvidence = LiveExecutionControlBlockedEvidenceViewModel(
             readModel: readModel.liveExecutionControlBlockedEvidence
         )
+        let liveRiskGateBlockedEvidence = LiveRiskGateBlockedEvidenceViewModel(
+            readModel: readModel.liveRiskGateBlockedEvidence
+        )
         self.section = .report
         self.source = ViewModelSourceContract()
         self.artifacts = readModel.artifacts.map(ReportArtifactViewModel.init)
@@ -1423,6 +1440,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
         self.liveTradingBlockedEvidence = liveBlockedEvidence
         self.liveMonitoringEvidence = liveMonitoringEvidence
         self.liveExecutionControlBlockedEvidence = liveExecutionControlBlockedEvidence
+        self.liveRiskGateBlockedEvidence = liveRiskGateBlockedEvidence
         self.artifactCount = readModel.artifacts.count
         self.completedBacktestCount = readModel.artifacts.filter { $0.backtestState == .completed }.count
         self.researchRunCount = readModel.artifacts
@@ -1716,6 +1734,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
         } || liveBlockedEvidence.authorizesTradingExecution
             || liveMonitoringEvidence.authorizesTradingExecution
             || liveExecutionControlBlockedEvidence.authorizesTradingExecution
+            || liveRiskGateBlockedEvidence.authorizesTradingExecution
         self.latestParityStatus = readModel.artifacts.last?.parityStatus
         self.lastAppliedSequence = readModel.lastAppliedSequence
     }
@@ -1915,6 +1934,7 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
             report.liveTradingBlockedEvidence.source,
             report.liveMonitoringEvidence.source,
             report.liveExecutionControlBlockedEvidence.source,
+            report.liveRiskGateBlockedEvidence.source,
             paperWorkflowObservability.source,
             paperWorkflowEvidenceExplorer.source,
             paper.source,

@@ -19,6 +19,694 @@ public enum LiveRiskTerm: String, Codable, CaseIterable, Equatable, Hashable, Se
     case paperExposure = "paper exposure"
 }
 
+/// LiveRiskGateBlockedGate 固定 MTP-87 当前允许展示的 Future Live Risk gate。
+///
+/// 这些 gate 只用于 blocked evidence read model 和后续只读展示，不是可执行
+/// pre-trade evaluator、账户读取路径、熔断 runtime 或 UI command route。
+public enum LiveRiskGateBlockedGate: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case exposure
+    case orderNotional = "order notional"
+    case frequency
+    case lossDrawdown = "loss / drawdown"
+    case circuitBreaker = "circuit breaker"
+    case noTradeState = "no-trade state"
+}
+
+/// LiveRiskGateBlockedReason 描述 MTP-87 blocked evidence 可公开的阻断原因。
+///
+/// reason 只说明 gate 仍缺少哪些 Future / gated contract，不携带真实账户、
+/// broker position、margin、runtime decision、command 参数或交易授权。
+public enum LiveRiskGateBlockedReason: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case humanLiveRiskDecisionMissing = "human live risk decision missing"
+    case accountStateSourceForbidden = "account state source forbidden"
+    case brokerPositionSourceForbidden = "broker position source forbidden"
+    case marginLeverageSourceForbidden = "margin / leverage source forbidden"
+    case realOrderNotionalEvaluationForbidden = "real order notional evaluation forbidden"
+    case liveOrderFrequencyRuntimeForbidden = "live order frequency runtime forbidden"
+    case realPnLEquitySourceForbidden = "real PnL / equity source forbidden"
+    case realLossDrawdownRuntimeForbidden = "real loss / drawdown runtime forbidden"
+    case circuitBreakerRuntimeForbidden = "circuit breaker runtime forbidden"
+    case noTradeStateRuntimeForbidden = "no-trade state runtime forbidden"
+    case brokerSessionStateMutationForbidden = "broker session state mutation forbidden"
+    case realPreTradeAllowRejectRuntimeForbidden = "real pre-trade allow / reject runtime forbidden"
+    case stopEmergencyCommandForbidden = "stop / emergency command forbidden"
+    case riskCommandSurfaceForbidden = "risk command surface forbidden"
+    case paperLiveRiskIsolationRequired = "paper / live risk isolation required"
+    case readModelOnlyBoundaryRequired = "read model only boundary required"
+}
+
+/// LiveRiskGateBlockedEvidenceItem 是单个 Live Risk gate 的只读阻断证据。
+///
+/// item 只能把 gate、reason 和 source anchor 复制给 App 层。所有真实风险评估、
+/// 账户 / broker state 读取、Runtime 控制和 command surface 旗标都必须保持 false，
+/// 避免 blocked evidence 被误用为 live risk engine。
+public struct LiveRiskGateBlockedEvidenceItem: Codable, Equatable, Sendable {
+    public let gate: LiveRiskGateBlockedGate
+    public let blockedReasons: [LiveRiskGateBlockedReason]
+    public let sourceAnchors: [String]
+    public let isBlocked: Bool
+    public let evaluatesRisk: Bool
+    public let emitsCommand: Bool
+    public let readsAccountState: Bool
+    public let readsBrokerPosition: Bool
+    public let exposesSchema: Bool
+    public let readsAdapter: Bool
+    public let invokesRuntimeControl: Bool
+    public let authorizesLiveRiskDecision: Bool
+
+    public var readModelOnlyBoundaryHeld: Bool {
+        isBlocked
+            && evaluatesRisk == false
+            && emitsCommand == false
+            && readsAccountState == false
+            && readsBrokerPosition == false
+            && exposesSchema == false
+            && readsAdapter == false
+            && invokesRuntimeControl == false
+            && authorizesLiveRiskDecision == false
+    }
+
+    public init(
+        gate: LiveRiskGateBlockedGate,
+        blockedReasons: [LiveRiskGateBlockedReason],
+        sourceAnchors: [String],
+        isBlocked: Bool = true,
+        evaluatesRisk: Bool = false,
+        emitsCommand: Bool = false,
+        readsAccountState: Bool = false,
+        readsBrokerPosition: Bool = false,
+        exposesSchema: Bool = false,
+        readsAdapter: Bool = false,
+        invokesRuntimeControl: Bool = false,
+        authorizesLiveRiskDecision: Bool = false
+    ) {
+        self.gate = gate
+        self.blockedReasons = blockedReasons
+        self.sourceAnchors = sourceAnchors
+        self.isBlocked = isBlocked
+        self.evaluatesRisk = evaluatesRisk
+        self.emitsCommand = emitsCommand
+        self.readsAccountState = readsAccountState
+        self.readsBrokerPosition = readsBrokerPosition
+        self.exposesSchema = exposesSchema
+        self.readsAdapter = readsAdapter
+        self.invokesRuntimeControl = invokesRuntimeControl
+        self.authorizesLiveRiskDecision = authorizesLiveRiskDecision
+    }
+}
+
+/// LiveRiskGateBlockedEvidence 是 MTP-87 的 read-model-only blocked evidence fixture。
+///
+/// 该 read model 汇总 exposure、order notional、frequency、loss / drawdown、
+/// circuit breaker 和 no-trade state 为什么仍被阻断，并输出 deterministic snapshot
+/// 给 Dashboard、Report 和 Event Timeline 的只读展示面。它不读取真实账户、broker
+/// position、margin、PnL 或 equity，不实现 allow / reject runtime、熔断 / 禁交易 runtime、
+/// risk command、order form 或交易按钮。
+public struct LiveRiskGateBlockedEvidence: Codable, Equatable, Sendable {
+    public let contractID: Identifier
+    public let issueID: Identifier
+    public let blockedItems: [LiveRiskGateBlockedEvidenceItem]
+    public let allowedEvidenceKinds: [LiveRiskEvidenceKind]
+    public let validationAnchors: [String]
+    public let sourceAnchors: [String]
+    public let isReadModelOnly: Bool
+    public let reportConsumesReadModelOnly: Bool
+    public let dashboardConsumesViewModelOnly: Bool
+    public let eventTimelineConsumesReadModelOnly: Bool
+    public let exposesPersistenceSchema: Bool
+    public let readsAdapter: Bool
+    public let invokesRuntimeControl: Bool
+    public let providesCommandSurface: Bool
+    public let readsAPIKey: Bool
+    public let storesSecret: Bool
+    public let usesSignedEndpoint: Bool
+    public let callsAccountEndpoint: Bool
+    public let createsListenKey: Bool
+    public let instantiatesBrokerExecutionAdapter: Bool
+    public let instantiatesExchangeExecutionAdapter: Bool
+    public let implementsLiveExecutionAdapter: Bool
+    public let readsRealAccountBalance: Bool
+    public let syncsBrokerPosition: Bool
+    public let readsMargin: Bool
+    public let readsLeverage: Bool
+    public let readsRealPnL: Bool
+    public let readsRealAccountEquity: Bool
+    public let evaluatesRealOrderNotionalLimit: Bool
+    public let countsLiveOrderFrequency: Bool
+    public let evaluatesRealLossLimit: Bool
+    public let evaluatesRealDrawdownLimit: Bool
+    public let evaluatesRealPreTradeAllow: Bool
+    public let evaluatesRealPreTradeReject: Bool
+    public let runsCircuitBreakerRuntime: Bool
+    public let entersNoTradeStateRuntime: Bool
+    public let mutatesBrokerSessionState: Bool
+    public let runsStopTradingCommand: Bool
+    public let runsEmergencyStopCommand: Bool
+    public let providesRiskCommandSurface: Bool
+    public let providesPositionManagementCommand: Bool
+    public let exposesOrderForm: Bool
+    public let providesTradingButton: Bool
+    public let authorizesLiveTrading: Bool
+    public let requiredValidationDependsOnNetwork: Bool
+
+    public var blockedEvidenceBoundaryHeld: Bool {
+        blockedItems == Self.requiredBlockedItems
+            && allowedEvidenceKinds == Self.allowedEvidenceKinds
+            && validationAnchors == Self.requiredValidationAnchors
+            && sourceAnchors == Self.requiredSourceAnchors
+            && allRiskGatesBlocked
+            && appSurfaceReadModelOnlyBoundaryHeld
+            && forbiddenImplementationBoundaryHeld
+            && requiredValidationDependsOnNetwork == false
+    }
+
+    public var allRiskGatesBlocked: Bool {
+        blockedItems.map(\.gate) == LiveRiskGateBlockedGate.allCases
+            && blockedItems.allSatisfy(\.readModelOnlyBoundaryHeld)
+    }
+
+    public var appSurfaceReadModelOnlyBoundaryHeld: Bool {
+        isReadModelOnly
+            && reportConsumesReadModelOnly
+            && dashboardConsumesViewModelOnly
+            && eventTimelineConsumesReadModelOnly
+            && exposesPersistenceSchema == false
+            && readsAdapter == false
+            && invokesRuntimeControl == false
+            && providesCommandSurface == false
+            && providesRiskCommandSurface == false
+            && providesPositionManagementCommand == false
+            && exposesOrderForm == false
+            && providesTradingButton == false
+            && authorizesLiveTrading == false
+    }
+
+    public var forbiddenImplementationBoundaryHeld: Bool {
+        readsAPIKey == false
+            && storesSecret == false
+            && usesSignedEndpoint == false
+            && callsAccountEndpoint == false
+            && createsListenKey == false
+            && instantiatesBrokerExecutionAdapter == false
+            && instantiatesExchangeExecutionAdapter == false
+            && implementsLiveExecutionAdapter == false
+            && readsRealAccountBalance == false
+            && syncsBrokerPosition == false
+            && readsMargin == false
+            && readsLeverage == false
+            && readsRealPnL == false
+            && readsRealAccountEquity == false
+            && evaluatesRealOrderNotionalLimit == false
+            && countsLiveOrderFrequency == false
+            && evaluatesRealLossLimit == false
+            && evaluatesRealDrawdownLimit == false
+            && evaluatesRealPreTradeAllow == false
+            && evaluatesRealPreTradeReject == false
+            && runsCircuitBreakerRuntime == false
+            && entersNoTradeStateRuntime == false
+            && mutatesBrokerSessionState == false
+            && runsStopTradingCommand == false
+            && runsEmergencyStopCommand == false
+    }
+
+    public var deterministicSnapshot: [String] {
+        blockedItems.map { item in
+            let status = item.isBlocked ? "blocked" : "unblocked"
+            let reasons = item.blockedReasons.map(\.rawValue).joined(separator: ";")
+            return "\(item.gate.rawValue)|\(status)|\(reasons)"
+        }
+    }
+
+    public func item(for gate: LiveRiskGateBlockedGate) -> LiveRiskGateBlockedEvidenceItem? {
+        blockedItems.first { $0.gate == gate }
+    }
+
+    public init(
+        contractID: Identifier = try! Identifier("mtp-87-live-risk-gate-blocked-evidence"),
+        issueID: Identifier = try! Identifier("MTP-87"),
+        blockedItems: [LiveRiskGateBlockedEvidenceItem] = Self.requiredBlockedItems,
+        allowedEvidenceKinds: [LiveRiskEvidenceKind] = Self.allowedEvidenceKinds,
+        validationAnchors: [String] = Self.requiredValidationAnchors,
+        sourceAnchors: [String] = Self.requiredSourceAnchors,
+        isReadModelOnly: Bool = true,
+        reportConsumesReadModelOnly: Bool = true,
+        dashboardConsumesViewModelOnly: Bool = true,
+        eventTimelineConsumesReadModelOnly: Bool = true,
+        exposesPersistenceSchema: Bool = false,
+        readsAdapter: Bool = false,
+        invokesRuntimeControl: Bool = false,
+        providesCommandSurface: Bool = false,
+        readsAPIKey: Bool = false,
+        storesSecret: Bool = false,
+        usesSignedEndpoint: Bool = false,
+        callsAccountEndpoint: Bool = false,
+        createsListenKey: Bool = false,
+        instantiatesBrokerExecutionAdapter: Bool = false,
+        instantiatesExchangeExecutionAdapter: Bool = false,
+        implementsLiveExecutionAdapter: Bool = false,
+        readsRealAccountBalance: Bool = false,
+        syncsBrokerPosition: Bool = false,
+        readsMargin: Bool = false,
+        readsLeverage: Bool = false,
+        readsRealPnL: Bool = false,
+        readsRealAccountEquity: Bool = false,
+        evaluatesRealOrderNotionalLimit: Bool = false,
+        countsLiveOrderFrequency: Bool = false,
+        evaluatesRealLossLimit: Bool = false,
+        evaluatesRealDrawdownLimit: Bool = false,
+        evaluatesRealPreTradeAllow: Bool = false,
+        evaluatesRealPreTradeReject: Bool = false,
+        runsCircuitBreakerRuntime: Bool = false,
+        entersNoTradeStateRuntime: Bool = false,
+        mutatesBrokerSessionState: Bool = false,
+        runsStopTradingCommand: Bool = false,
+        runsEmergencyStopCommand: Bool = false,
+        providesRiskCommandSurface: Bool = false,
+        providesPositionManagementCommand: Bool = false,
+        exposesOrderForm: Bool = false,
+        providesTradingButton: Bool = false,
+        authorizesLiveTrading: Bool = false,
+        requiredValidationDependsOnNetwork: Bool = false
+    ) throws {
+        try Self.validate(
+            blockedItems: blockedItems,
+            allowedEvidenceKinds: allowedEvidenceKinds,
+            validationAnchors: validationAnchors,
+            sourceAnchors: sourceAnchors
+        )
+        try Self.validateForbiddenFlags(
+            isReadModelOnly: isReadModelOnly,
+            reportConsumesReadModelOnly: reportConsumesReadModelOnly,
+            dashboardConsumesViewModelOnly: dashboardConsumesViewModelOnly,
+            eventTimelineConsumesReadModelOnly: eventTimelineConsumesReadModelOnly,
+            exposesPersistenceSchema: exposesPersistenceSchema,
+            readsAdapter: readsAdapter,
+            invokesRuntimeControl: invokesRuntimeControl,
+            providesCommandSurface: providesCommandSurface,
+            readsAPIKey: readsAPIKey,
+            storesSecret: storesSecret,
+            usesSignedEndpoint: usesSignedEndpoint,
+            callsAccountEndpoint: callsAccountEndpoint,
+            createsListenKey: createsListenKey,
+            instantiatesBrokerExecutionAdapter: instantiatesBrokerExecutionAdapter,
+            instantiatesExchangeExecutionAdapter: instantiatesExchangeExecutionAdapter,
+            implementsLiveExecutionAdapter: implementsLiveExecutionAdapter,
+            readsRealAccountBalance: readsRealAccountBalance,
+            syncsBrokerPosition: syncsBrokerPosition,
+            readsMargin: readsMargin,
+            readsLeverage: readsLeverage,
+            readsRealPnL: readsRealPnL,
+            readsRealAccountEquity: readsRealAccountEquity,
+            evaluatesRealOrderNotionalLimit: evaluatesRealOrderNotionalLimit,
+            countsLiveOrderFrequency: countsLiveOrderFrequency,
+            evaluatesRealLossLimit: evaluatesRealLossLimit,
+            evaluatesRealDrawdownLimit: evaluatesRealDrawdownLimit,
+            evaluatesRealPreTradeAllow: evaluatesRealPreTradeAllow,
+            evaluatesRealPreTradeReject: evaluatesRealPreTradeReject,
+            runsCircuitBreakerRuntime: runsCircuitBreakerRuntime,
+            entersNoTradeStateRuntime: entersNoTradeStateRuntime,
+            mutatesBrokerSessionState: mutatesBrokerSessionState,
+            runsStopTradingCommand: runsStopTradingCommand,
+            runsEmergencyStopCommand: runsEmergencyStopCommand,
+            providesRiskCommandSurface: providesRiskCommandSurface,
+            providesPositionManagementCommand: providesPositionManagementCommand,
+            exposesOrderForm: exposesOrderForm,
+            providesTradingButton: providesTradingButton,
+            authorizesLiveTrading: authorizesLiveTrading,
+            requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork
+        )
+
+        self.contractID = contractID
+        self.issueID = issueID
+        self.blockedItems = blockedItems
+        self.allowedEvidenceKinds = allowedEvidenceKinds
+        self.validationAnchors = validationAnchors
+        self.sourceAnchors = sourceAnchors
+        self.isReadModelOnly = isReadModelOnly
+        self.reportConsumesReadModelOnly = reportConsumesReadModelOnly
+        self.dashboardConsumesViewModelOnly = dashboardConsumesViewModelOnly
+        self.eventTimelineConsumesReadModelOnly = eventTimelineConsumesReadModelOnly
+        self.exposesPersistenceSchema = exposesPersistenceSchema
+        self.readsAdapter = readsAdapter
+        self.invokesRuntimeControl = invokesRuntimeControl
+        self.providesCommandSurface = providesCommandSurface
+        self.readsAPIKey = readsAPIKey
+        self.storesSecret = storesSecret
+        self.usesSignedEndpoint = usesSignedEndpoint
+        self.callsAccountEndpoint = callsAccountEndpoint
+        self.createsListenKey = createsListenKey
+        self.instantiatesBrokerExecutionAdapter = instantiatesBrokerExecutionAdapter
+        self.instantiatesExchangeExecutionAdapter = instantiatesExchangeExecutionAdapter
+        self.implementsLiveExecutionAdapter = implementsLiveExecutionAdapter
+        self.readsRealAccountBalance = readsRealAccountBalance
+        self.syncsBrokerPosition = syncsBrokerPosition
+        self.readsMargin = readsMargin
+        self.readsLeverage = readsLeverage
+        self.readsRealPnL = readsRealPnL
+        self.readsRealAccountEquity = readsRealAccountEquity
+        self.evaluatesRealOrderNotionalLimit = evaluatesRealOrderNotionalLimit
+        self.countsLiveOrderFrequency = countsLiveOrderFrequency
+        self.evaluatesRealLossLimit = evaluatesRealLossLimit
+        self.evaluatesRealDrawdownLimit = evaluatesRealDrawdownLimit
+        self.evaluatesRealPreTradeAllow = evaluatesRealPreTradeAllow
+        self.evaluatesRealPreTradeReject = evaluatesRealPreTradeReject
+        self.runsCircuitBreakerRuntime = runsCircuitBreakerRuntime
+        self.entersNoTradeStateRuntime = entersNoTradeStateRuntime
+        self.mutatesBrokerSessionState = mutatesBrokerSessionState
+        self.runsStopTradingCommand = runsStopTradingCommand
+        self.runsEmergencyStopCommand = runsEmergencyStopCommand
+        self.providesRiskCommandSurface = providesRiskCommandSurface
+        self.providesPositionManagementCommand = providesPositionManagementCommand
+        self.exposesOrderForm = exposesOrderForm
+        self.providesTradingButton = providesTradingButton
+        self.authorizesLiveTrading = authorizesLiveTrading
+        self.requiredValidationDependsOnNetwork = requiredValidationDependsOnNetwork
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            contractID: try container.decode(Identifier.self, forKey: .contractID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            blockedItems: try container.decode([LiveRiskGateBlockedEvidenceItem].self, forKey: .blockedItems),
+            allowedEvidenceKinds: try container.decode([LiveRiskEvidenceKind].self, forKey: .allowedEvidenceKinds),
+            validationAnchors: try container.decode([String].self, forKey: .validationAnchors),
+            sourceAnchors: try container.decode([String].self, forKey: .sourceAnchors),
+            isReadModelOnly: try container.decode(Bool.self, forKey: .isReadModelOnly),
+            reportConsumesReadModelOnly: try container.decode(Bool.self, forKey: .reportConsumesReadModelOnly),
+            dashboardConsumesViewModelOnly: try container.decode(Bool.self, forKey: .dashboardConsumesViewModelOnly),
+            eventTimelineConsumesReadModelOnly: try container.decode(
+                Bool.self,
+                forKey: .eventTimelineConsumesReadModelOnly
+            ),
+            exposesPersistenceSchema: try container.decode(Bool.self, forKey: .exposesPersistenceSchema),
+            readsAdapter: try container.decode(Bool.self, forKey: .readsAdapter),
+            invokesRuntimeControl: try container.decode(Bool.self, forKey: .invokesRuntimeControl),
+            providesCommandSurface: try container.decode(Bool.self, forKey: .providesCommandSurface),
+            readsAPIKey: try container.decode(Bool.self, forKey: .readsAPIKey),
+            storesSecret: try container.decode(Bool.self, forKey: .storesSecret),
+            usesSignedEndpoint: try container.decode(Bool.self, forKey: .usesSignedEndpoint),
+            callsAccountEndpoint: try container.decode(Bool.self, forKey: .callsAccountEndpoint),
+            createsListenKey: try container.decode(Bool.self, forKey: .createsListenKey),
+            instantiatesBrokerExecutionAdapter: try container.decode(
+                Bool.self,
+                forKey: .instantiatesBrokerExecutionAdapter
+            ),
+            instantiatesExchangeExecutionAdapter: try container.decode(
+                Bool.self,
+                forKey: .instantiatesExchangeExecutionAdapter
+            ),
+            implementsLiveExecutionAdapter: try container.decode(Bool.self, forKey: .implementsLiveExecutionAdapter),
+            readsRealAccountBalance: try container.decode(Bool.self, forKey: .readsRealAccountBalance),
+            syncsBrokerPosition: try container.decode(Bool.self, forKey: .syncsBrokerPosition),
+            readsMargin: try container.decode(Bool.self, forKey: .readsMargin),
+            readsLeverage: try container.decode(Bool.self, forKey: .readsLeverage),
+            readsRealPnL: try container.decode(Bool.self, forKey: .readsRealPnL),
+            readsRealAccountEquity: try container.decode(Bool.self, forKey: .readsRealAccountEquity),
+            evaluatesRealOrderNotionalLimit: try container.decode(
+                Bool.self,
+                forKey: .evaluatesRealOrderNotionalLimit
+            ),
+            countsLiveOrderFrequency: try container.decode(Bool.self, forKey: .countsLiveOrderFrequency),
+            evaluatesRealLossLimit: try container.decode(Bool.self, forKey: .evaluatesRealLossLimit),
+            evaluatesRealDrawdownLimit: try container.decode(Bool.self, forKey: .evaluatesRealDrawdownLimit),
+            evaluatesRealPreTradeAllow: try container.decode(Bool.self, forKey: .evaluatesRealPreTradeAllow),
+            evaluatesRealPreTradeReject: try container.decode(Bool.self, forKey: .evaluatesRealPreTradeReject),
+            runsCircuitBreakerRuntime: try container.decode(Bool.self, forKey: .runsCircuitBreakerRuntime),
+            entersNoTradeStateRuntime: try container.decode(Bool.self, forKey: .entersNoTradeStateRuntime),
+            mutatesBrokerSessionState: try container.decode(Bool.self, forKey: .mutatesBrokerSessionState),
+            runsStopTradingCommand: try container.decode(Bool.self, forKey: .runsStopTradingCommand),
+            runsEmergencyStopCommand: try container.decode(Bool.self, forKey: .runsEmergencyStopCommand),
+            providesRiskCommandSurface: try container.decode(Bool.self, forKey: .providesRiskCommandSurface),
+            providesPositionManagementCommand: try container.decode(
+                Bool.self,
+                forKey: .providesPositionManagementCommand
+            ),
+            exposesOrderForm: try container.decode(Bool.self, forKey: .exposesOrderForm),
+            providesTradingButton: try container.decode(Bool.self, forKey: .providesTradingButton),
+            authorizesLiveTrading: try container.decode(Bool.self, forKey: .authorizesLiveTrading),
+            requiredValidationDependsOnNetwork: try container.decode(
+                Bool.self,
+                forKey: .requiredValidationDependsOnNetwork
+            )
+        )
+    }
+
+    public static let requiredBlockedItems: [LiveRiskGateBlockedEvidenceItem] = [
+        LiveRiskGateBlockedEvidenceItem(
+            gate: .exposure,
+            blockedReasons: [
+                .humanLiveRiskDecisionMissing,
+                .accountStateSourceForbidden,
+                .brokerPositionSourceForbidden,
+                .marginLeverageSourceForbidden,
+                .paperLiveRiskIsolationRequired
+            ],
+            sourceAnchors: [
+                "MTP-83-EXPOSURE-ORDER-NOTIONAL-FUTURE-GATES",
+                "MTP-86-PAPER-EXPOSURE-NO-REAL-ACCOUNT-RISK-INPUT"
+            ]
+        ),
+        LiveRiskGateBlockedEvidenceItem(
+            gate: .orderNotional,
+            blockedReasons: [
+                .humanLiveRiskDecisionMissing,
+                .realOrderNotionalEvaluationForbidden,
+                .realPreTradeAllowRejectRuntimeForbidden,
+                .readModelOnlyBoundaryRequired
+            ],
+            sourceAnchors: [
+                "MTP-83-EXPOSURE-ORDER-NOTIONAL-FUTURE-GATES",
+                "MTP-83-NO-REAL-PRE-TRADE-ALLOW-REJECT"
+            ]
+        ),
+        LiveRiskGateBlockedEvidenceItem(
+            gate: .frequency,
+            blockedReasons: [
+                .liveOrderFrequencyRuntimeForbidden,
+                .realPreTradeAllowRejectRuntimeForbidden,
+                .readModelOnlyBoundaryRequired
+            ],
+            sourceAnchors: [
+                "MTP-84-FREQUENCY-LOSS-DRAWDOWN-FUTURE-GATES",
+                "MTP-84-NO-REAL-PNL-EQUITY-OR-DRAWDOWN-ENFORCEMENT"
+            ]
+        ),
+        LiveRiskGateBlockedEvidenceItem(
+            gate: .lossDrawdown,
+            blockedReasons: [
+                .realPnLEquitySourceForbidden,
+                .realLossDrawdownRuntimeForbidden,
+                .paperLiveRiskIsolationRequired,
+                .readModelOnlyBoundaryRequired
+            ],
+            sourceAnchors: [
+                "MTP-84-FREQUENCY-LOSS-DRAWDOWN-FUTURE-GATES",
+                "MTP-86-PAPER-RISK-EVIDENCE-NO-FUTURE-LIVE-RISK-DECISION"
+            ]
+        ),
+        LiveRiskGateBlockedEvidenceItem(
+            gate: .circuitBreaker,
+            blockedReasons: [
+                .circuitBreakerRuntimeForbidden,
+                .stopEmergencyCommandForbidden,
+                .riskCommandSurfaceForbidden,
+                .readModelOnlyBoundaryRequired
+            ],
+            sourceAnchors: [
+                "MTP-85-CIRCUIT-BREAKER-NO-TRADE-FUTURE-GATES",
+                "MTP-85-NO-CIRCUIT-BREAKER-OR-NO-TRADE-STATE-RUNTIME"
+            ]
+        ),
+        LiveRiskGateBlockedEvidenceItem(
+            gate: .noTradeState,
+            blockedReasons: [
+                .noTradeStateRuntimeForbidden,
+                .brokerSessionStateMutationForbidden,
+                .stopEmergencyCommandForbidden,
+                .readModelOnlyBoundaryRequired
+            ],
+            sourceAnchors: [
+                "MTP-85-CIRCUIT-BREAKER-NO-TRADE-FUTURE-GATES",
+                "MTP-86-REPORT-DASHBOARD-TIMELINE-READ-MODEL-ONLY"
+            ]
+        )
+    ]
+
+    public static let allowedEvidenceKinds: [LiveRiskEvidenceKind] = [
+        .contractDocumentation,
+        .validationMatrixCandidate,
+        .validationPlanAnchor,
+        .deterministicForbiddenTest,
+        .paperLiveRiskIsolationEvidence,
+        .readModelOnlyBlockedEvidence,
+        .prBoundaryEvidence
+    ]
+
+    public static let requiredValidationAnchors: [String] = [
+        "MTP-87-LIVE-RISK-GATE-BLOCKED-EVIDENCE",
+        "MTP-87-LIVE-RISK-GATES-BLOCKED-REASONS",
+        "MTP-87-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT",
+        "MTP-87-READ-MODEL-ONLY-NO-COMMAND-SURFACE",
+        "MTP-87-LIVE-RISK-GATE-VALIDATION",
+        "TVM-LIVE-RISK-GATE"
+    ]
+
+    public static let requiredSourceAnchors: [String] = [
+        "MTP-82-LIVE-RISK-TERMINOLOGY",
+        "MTP-83-EXPOSURE-ORDER-NOTIONAL-FUTURE-GATES",
+        "MTP-84-FREQUENCY-LOSS-DRAWDOWN-FUTURE-GATES",
+        "MTP-85-CIRCUIT-BREAKER-NO-TRADE-FUTURE-GATES",
+        "MTP-86-PAPER-RISK-LIVE-DECISION-ISOLATION-CONTRACT",
+        "MTP-86-REPORT-DASHBOARD-TIMELINE-READ-MODEL-ONLY",
+        "TVM-LIVE-RISK-GATE"
+    ]
+
+    public static let deterministicFixture: LiveRiskGateBlockedEvidence = {
+        do {
+            return try LiveRiskGateBlockedEvidence()
+        } catch {
+            preconditionFailure("MTP-87 Live Risk gate blocked evidence fixture must be valid: \(error)")
+        }
+    }()
+
+    private static func validate(
+        blockedItems: [LiveRiskGateBlockedEvidenceItem],
+        allowedEvidenceKinds: [LiveRiskEvidenceKind],
+        validationAnchors: [String],
+        sourceAnchors: [String]
+    ) throws {
+        if let invalid = blockedItems.first(where: { $0.readModelOnlyBoundaryHeld == false }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("\(invalid.gate.rawValue).readModelOnlyBoundaryHeld")
+        }
+        guard blockedItems == Self.requiredBlockedItems else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "blockedItems",
+                expected: Self.requiredBlockedItems.map(\.gate.rawValue).joined(separator: ","),
+                actual: blockedItems.map(\.gate.rawValue).joined(separator: ",")
+            )
+        }
+        guard allowedEvidenceKinds == Self.allowedEvidenceKinds else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "allowedEvidenceKinds",
+                expected: Self.allowedEvidenceKinds.map(\.rawValue).joined(separator: ","),
+                actual: allowedEvidenceKinds.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard validationAnchors == Self.requiredValidationAnchors else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "validationAnchors",
+                expected: Self.requiredValidationAnchors.joined(separator: ","),
+                actual: validationAnchors.joined(separator: ",")
+            )
+        }
+        guard sourceAnchors == Self.requiredSourceAnchors else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "sourceAnchors",
+                expected: Self.requiredSourceAnchors.joined(separator: ","),
+                actual: sourceAnchors.joined(separator: ",")
+            )
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        isReadModelOnly: Bool,
+        reportConsumesReadModelOnly: Bool,
+        dashboardConsumesViewModelOnly: Bool,
+        eventTimelineConsumesReadModelOnly: Bool,
+        exposesPersistenceSchema: Bool,
+        readsAdapter: Bool,
+        invokesRuntimeControl: Bool,
+        providesCommandSurface: Bool,
+        readsAPIKey: Bool,
+        storesSecret: Bool,
+        usesSignedEndpoint: Bool,
+        callsAccountEndpoint: Bool,
+        createsListenKey: Bool,
+        instantiatesBrokerExecutionAdapter: Bool,
+        instantiatesExchangeExecutionAdapter: Bool,
+        implementsLiveExecutionAdapter: Bool,
+        readsRealAccountBalance: Bool,
+        syncsBrokerPosition: Bool,
+        readsMargin: Bool,
+        readsLeverage: Bool,
+        readsRealPnL: Bool,
+        readsRealAccountEquity: Bool,
+        evaluatesRealOrderNotionalLimit: Bool,
+        countsLiveOrderFrequency: Bool,
+        evaluatesRealLossLimit: Bool,
+        evaluatesRealDrawdownLimit: Bool,
+        evaluatesRealPreTradeAllow: Bool,
+        evaluatesRealPreTradeReject: Bool,
+        runsCircuitBreakerRuntime: Bool,
+        entersNoTradeStateRuntime: Bool,
+        mutatesBrokerSessionState: Bool,
+        runsStopTradingCommand: Bool,
+        runsEmergencyStopCommand: Bool,
+        providesRiskCommandSurface: Bool,
+        providesPositionManagementCommand: Bool,
+        exposesOrderForm: Bool,
+        providesTradingButton: Bool,
+        authorizesLiveTrading: Bool,
+        requiredValidationDependsOnNetwork: Bool
+    ) throws {
+        guard isReadModelOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("isReadModelOnly")
+        }
+        guard reportConsumesReadModelOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("reportConsumesReadModelOnly")
+        }
+        guard dashboardConsumesViewModelOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("dashboardConsumesViewModelOnly")
+        }
+        guard eventTimelineConsumesReadModelOnly else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("eventTimelineConsumesReadModelOnly")
+        }
+
+        let forbiddenFlags = [
+            ("exposesPersistenceSchema", exposesPersistenceSchema),
+            ("readsAdapter", readsAdapter),
+            ("invokesRuntimeControl", invokesRuntimeControl),
+            ("providesCommandSurface", providesCommandSurface),
+            ("readsAPIKey", readsAPIKey),
+            ("storesSecret", storesSecret),
+            ("usesSignedEndpoint", usesSignedEndpoint),
+            ("callsAccountEndpoint", callsAccountEndpoint),
+            ("createsListenKey", createsListenKey),
+            ("instantiatesBrokerExecutionAdapter", instantiatesBrokerExecutionAdapter),
+            ("instantiatesExchangeExecutionAdapter", instantiatesExchangeExecutionAdapter),
+            ("implementsLiveExecutionAdapter", implementsLiveExecutionAdapter),
+            ("readsRealAccountBalance", readsRealAccountBalance),
+            ("syncsBrokerPosition", syncsBrokerPosition),
+            ("readsMargin", readsMargin),
+            ("readsLeverage", readsLeverage),
+            ("readsRealPnL", readsRealPnL),
+            ("readsRealAccountEquity", readsRealAccountEquity),
+            ("evaluatesRealOrderNotionalLimit", evaluatesRealOrderNotionalLimit),
+            ("countsLiveOrderFrequency", countsLiveOrderFrequency),
+            ("evaluatesRealLossLimit", evaluatesRealLossLimit),
+            ("evaluatesRealDrawdownLimit", evaluatesRealDrawdownLimit),
+            ("evaluatesRealPreTradeAllow", evaluatesRealPreTradeAllow),
+            ("evaluatesRealPreTradeReject", evaluatesRealPreTradeReject),
+            ("runsCircuitBreakerRuntime", runsCircuitBreakerRuntime),
+            ("entersNoTradeStateRuntime", entersNoTradeStateRuntime),
+            ("mutatesBrokerSessionState", mutatesBrokerSessionState),
+            ("runsStopTradingCommand", runsStopTradingCommand),
+            ("runsEmergencyStopCommand", runsEmergencyStopCommand),
+            ("providesRiskCommandSurface", providesRiskCommandSurface),
+            ("providesPositionManagementCommand", providesPositionManagementCommand),
+            ("exposesOrderForm", exposesOrderForm),
+            ("providesTradingButton", providesTradingButton),
+            ("authorizesLiveTrading", authorizesLiveTrading),
+            ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(capability.0)
+        }
+    }
+}
+
 /// LivePaperRiskLiveDecisionIsolationEvidenceSource 固定 MTP-86 允许引用的 paper-only 证据来源。
 ///
 /// 这些来源只能作为隔离合同、验证矩阵和 PR evidence 的输入；它们不能被解释为
@@ -1283,6 +1971,7 @@ public enum LiveRiskEvidenceKind: String, Codable, CaseIterable, Equatable, Hash
     case validationPlanAnchor = "validation plan anchor"
     case deterministicForbiddenTest = "deterministic forbidden capability test"
     case paperLiveRiskIsolationEvidence = "paper / live risk isolation evidence"
+    case readModelOnlyBlockedEvidence = "read-model-only blocked evidence"
     case prBoundaryEvidence = "PR boundary evidence"
 }
 
