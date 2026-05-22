@@ -9371,3 +9371,44 @@ Root docs refresh 逐项结论：
 | --- | --- | --- |
 | `git diff --check` | pass | Root Docs Refresh Gate docs-only PR 创建前执行，通过。 |
 | `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=37; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；184 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO Live Audit Incident Stop Boundary v1 planning record
+
+日期：2026-05-23
+
+执行者：Codex（`@000 / AIE`）
+
+目的：
+
+- 将 Human 确认的 `MTPRO Live Audit Incident Stop Boundary v1` planning draft 落仓为 docs-only Project Planning Record。
+- 记录 Final Product Goal Slice #9 的写入 Linear 前计划摘要、issue order、dependencies、validation requirements、evidence requirements、first executable issue candidate、WIP=1 和边界。
+- 明确该 planning record 不授权执行，不创建 Linear Project / Issue，不推进 Todo，不启动 `@002 / PAR`、Symphony 或 Graphify。
+
+文件范围：
+
+- `docs/planning/projects/mtpro-live-audit-incident-stop-boundary-v1-plan.md`
+- `docs/planning/linear-draft-plan.md`
+- `docs/validation/latest-verification-summary.md`
+- `BLUEPRINT.md`
+- `verification.md`
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear issue body 或 issue status。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`、Symphony 或 `symphony-issue`。
+- 不运行 Graphify update。
+- 不修改 Figma。
+- 不写业务代码。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不把 Future Live trading 写成当前 execution scope。
+- 不把 Live PRO Console 写成当前可实现产品面。
+- 不实现 incident replay runtime、emergency stop、shutdown、restore、production operations、broker action、signed endpoint、account endpoint / listenKey、OMS、real order state machine、`LiveExecutionAdapter`、交易按钮或 live command。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | docs-only diff 无空白错误；新 planning record 已通过 intent-to-add 纳入检查范围。 |
+| `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=37; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；184 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |

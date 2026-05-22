@@ -74,6 +74,7 @@
 | `docs/design/mtpro-workbench-user-facing-dashboard-high-fidelity-v3.md` | 设计层业务判断 dashboard 高保真关键页面依据，记录 Figma canonical `91:2` 的 macOS native refined Workbench dashboard v3；不是 Live PRO Console、实盘操作台或 SwiftUI 实现授权 |
 | `docs/audit/` | 已完成 Project 的 Stage Code Audit Reports |
 | `docs/validation/trading-validation-matrix.md` | 交易语义验证证据地图 |
+| `docs/planning/projects/mtpro-live-audit-incident-stop-boundary-v1-plan.md` | 写入 Linear 前的 Project Planning Record，承接 Final Product Goal Slice #9，只记录 audit / incident / stop boundary 规划摘要和格式门槛，不授权执行 |
 | `docs/planning/project-role-map.md` | MTPRO 角色编号、职责和边界 |
 
 ## Blueprint Design Lenses / 蓝图设计视角
@@ -379,6 +380,8 @@ Live trading 是最终产品目标的一部分，但不是当前 execution scope
 - Final Product Goal Progress：8 / 9（89%）。
 
 最近完成的 construction scope 为 `MTPRO Live Risk Gate Contract v1`，但它只覆盖 risk gate contract、future gates、forbidden capability tests、paper / live risk isolation、blocked evidence 和 read-model-only evidence surface，不进入真实 live risk engine、真实账户风控、real pre-trade allow / reject runtime、risk command、stop command 或 production runtime。下一阶段方向仍必须由 Human + `@001 / PLN` 基于本文档、`GOAL.md`、`docs/roadmap.md`、Stage Code Audit Reports 和最新验证摘要确认。
+
+`docs/planning/projects/mtpro-live-audit-incident-stop-boundary-v1-plan.md` 已记录 `MTPRO Live Audit Incident Stop Boundary v1` 的写入 Linear 前 planning record。该记录只保存 Project 级计划摘要、issue order、dependencies、validation、evidence、first executable issue candidate、WIP=1 和边界；它不创建 Linear Project / Issue，不推进 Todo，不启动 `@002 / PAR`、Symphony 或 Graphify，不授权 incident replay runtime、emergency stop、shutdown、restore、production operations、Live PRO Console、交易按钮或 live command。
 
 ### Future Construction Zones / 未来建设区
 
