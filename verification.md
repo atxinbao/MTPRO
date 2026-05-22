@@ -9104,3 +9104,56 @@ Linear / scope evidence：
 | `swift test --filter MTP85` | pass | 3 个 focused Core tests 通过，0 failures。 |
 | `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
 | `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=31; liveBlockedGates=6; liveExecutionControlGates=7; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；176 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
+
+## MTP-86 paper risk / future live risk decision isolation contract
+
+日期：2026-05-22
+
+执行者：Codex
+
+目的：
+
+- 定义 paper risk blocker / paper exposure 与 future live risk decision 的隔离合同。
+- 用 deterministic Core fixture 和 forbidden capability tests 锁定当前系统不把 `RiskBlockerEvidence`、`PortfolioExposureSnapshot` 或 paper risk decision 升级为 future live risk decision、真实 pre-trade allow / reject、真实账户风险输入、circuit breaker trigger 或 no-trade state trigger。
+- 将 MTP-86 anchors 回填到 contract、domain context、validation plan、trading validation matrix、latest verification summary 和 automation readiness。
+
+文件范围：
+
+- `Sources/Core/LiveRiskGateContract.swift`
+- `Tests/CoreTests/CoreTests.swift`
+- `docs/contracts/live-risk-gate-contract.md`
+- `docs/domain/context.md`
+- `docs/validation/validation-plan.md`
+- `docs/validation/trading-validation-matrix.md`
+- `docs/validation/latest-verification-summary.md`
+- `checks/automation-readiness.sh`
+- `verification.md`
+
+更新重点：
+
+- 新增 `LivePaperRiskLiveDecisionIsolationEvidenceSource`、`LivePaperRiskLiveDecisionForbiddenCapability` 和 `LivePaperRiskLiveDecisionIsolationBoundary`。
+- 新增 `testPaperRiskLiveDecisionIsolationBoundaryDefinesMTP86Contract`、`testPaperRiskLiveDecisionIsolationBoundaryRejectsMTP86UpgradeAndRuntimeBypass` 和 `testPaperRiskBlockerAndExposureCannotUpgradeToMTP86FutureLiveRiskDecision`。
+- 新增 anchors：`MTP-86-PAPER-RISK-LIVE-DECISION-ISOLATION-CONTRACT`、`MTP-86-PAPER-RISK-EVIDENCE-NO-FUTURE-LIVE-RISK-DECISION`、`MTP-86-PAPER-EXPOSURE-NO-REAL-ACCOUNT-RISK-INPUT`、`MTP-86-REPORT-DASHBOARD-TIMELINE-READ-MODEL-ONLY` 和 `MTP-86-LIVE-RISK-GATE-VALIDATION`。
+
+边界确认：
+
+- 不实现 API key / secret storage。
+- 不实现 signed endpoint / account endpoint / listenKey。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`。
+- 不读取真实账户余额，不同步 broker position，不读取 margin / leverage。
+- 不读取真实 PnL 或真实账户权益。
+- 不实现 real pre-trade risk engine 或 real pre-trade allow / reject runtime。
+- 不实现 circuit breaker runtime。
+- 不实现 no-trade state runtime。
+- 不提交、撤销、替换真实订单。
+- 不新增 live command、risk command surface、position management command、order form 或交易按钮。
+- 不把 paper risk blocker、paper exposure 或 paper risk decision 升级为 future live risk decision、real account exposure、broker position、real pre-trade allow / reject、circuit breaker trigger、no-trade state trigger 或 live risk runtime input。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP86` | pass | 3 个 focused Core tests 通过，0 failures。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
+| `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=31; liveBlockedGates=6; liveExecutionControlGates=7; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；179 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
