@@ -8887,3 +8887,57 @@ Linear / scope evidence：
 | --- | --- | --- |
 | `git diff --check` | pass | docs-only 设计层文档落仓无 whitespace error。 |
 | `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=31; liveBlockedGates=6; liveExecutionControlGates=7; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；167 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
+
+## MTP-83 Live Risk exposure / order notional gates execution evidence
+
+日期：2026-05-22
+
+执行者：Codex
+
+目的：
+
+- 定义 exposure gate 和 order notional gate 的 Future Live Risk contract。
+- 建立 account / position / margin / leverage forbidden capability tests。
+- 证明当前 paper exposure 不能升级为 future live exposure gate、真实账户 exposure、broker position、margin 或 leverage。
+
+文件范围：
+
+- `Sources/Core/LiveRiskGateContract.swift`
+- `Tests/CoreTests/CoreTests.swift`
+- `docs/contracts/live-risk-gate-contract.md`
+- `docs/domain/context.md`
+- `docs/validation/validation-plan.md`
+- `docs/validation/trading-validation-matrix.md`
+- `docs/validation/latest-verification-summary.md`
+- `checks/automation-readiness.sh`
+- `verification.md`
+
+证据：
+
+- Linear live-read：`MTP-83` 为当前 `In Progress/type=started` issue；`MTP-82` 为 `Done/type=completed`；`MTP-84` 至 `MTP-88` 为 `Backlog/type=backlog`。
+- Contract：`docs/contracts/live-risk-gate-contract.md` 新增 `MTP-83-EXPOSURE-ORDER-NOTIONAL-FUTURE-GATES`、`MTP-83-FORBIDDEN-ACCOUNT-POSITION-MARGIN-LEVERAGE-TESTS`、`MTP-83-NO-REAL-PRE-TRADE-ALLOW-REJECT`、`MTP-83-PAPER-EXPOSURE-NO-LIVE-EXPOSURE-UPGRADE` 和 `MTP-83-LIVE-RISK-GATE-VALIDATION`。
+- Core：`Sources/Core/LiveRiskGateContract.swift` 新增 `LiveExposureOrderNotionalFutureGate`、`LiveExposureOrderNotionalForbiddenCapability` 和 `LiveExposureOrderNotionalGateBoundary`。
+- Tests：`Tests/CoreTests/CoreTests.swift` 新增 `testLiveExposureOrderNotionalBoundaryDefinesMTP83FutureGatesAndForbiddenCapabilities`、`testLiveExposureOrderNotionalBoundaryRejectsMTP83AccountPositionMarginLeverageBypass` 和 `testPaperExposureCannotUpgradeToMTP83FutureLiveExposureGateDecision`。
+- Validation docs：`TVM-LIVE-RISK-GATE`、`docs/validation/validation-plan.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh` 已回填 MTP-83 anchors。
+
+边界确认：
+
+- 不实现 API key / secret storage。
+- 不实现 signed endpoint / account endpoint / listenKey。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`。
+- 不读取真实账户余额，不同步 broker position，不读取 margin / leverage。
+- 不计算真实账户 exposure。
+- 不执行真实订单 notional allow / reject。
+- 不实现 real pre-trade risk engine 或 real pre-trade allow / reject runtime。
+- 不提交、撤销、替换真实订单。
+- 不新增 live command、risk command surface、position management command、order form 或交易按钮。
+- 不把 paper exposure 或 paper risk blocker 升级为 future live exposure gate、future live risk decision、real account state、broker position、margin 或 leverage。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP83` | pass | 3 个 focused Core tests 通过，0 failures。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.` |
+| `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=31; liveBlockedGates=6; liveExecutionControlGates=7; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；170 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |

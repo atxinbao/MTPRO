@@ -2191,6 +2191,210 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(DomainEvent.portfolio(.exposureUpdated(exposure)), .portfolio(.exposureUpdated(exposure)))
     }
 
+    func testLiveExposureOrderNotionalBoundaryDefinesMTP83FutureGatesAndForbiddenCapabilities() throws {
+        // 测试场景：MTP-83 只定义 exposure / order notional 的 future gates 和
+        // forbidden capability evidence，不读取真实账户、broker position、margin 或 leverage。
+        let boundary = LiveExposureOrderNotionalGateBoundary.deterministicFixture
+
+        XCTAssertEqual(boundary.contractID, try Identifier("mtp-83-exposure-order-notional-boundary"))
+        XCTAssertEqual(boundary.issueID, try Identifier("MTP-83"))
+        XCTAssertEqual(boundary.terms, [.exposureGate, .orderNotionalGate])
+        XCTAssertEqual(
+            boundary.futureGates,
+            [
+                .humanLiveRiskDecision,
+                .liveTradingFoundationBoundarySatisfied,
+                .liveExecutionControlBoundarySatisfied,
+                .accountStateSourceContractDefined,
+                .brokerPositionSourceContractDefined,
+                .marginLeverageSourceContractDefined,
+                .exposureLimitPolicyDefined,
+                .orderNotionalLimitPolicyDefined,
+                .paperExposureIsolationDefined,
+                .operationsAuditHandoffDefined
+            ]
+        )
+        XCTAssertEqual(
+            boundary.forbiddenCapabilities,
+            LiveExposureOrderNotionalForbiddenCapability.allCases
+        )
+        XCTAssertTrue(boundary.forbidsCapability(.realAccountBalanceRead))
+        XCTAssertTrue(boundary.forbidsCapability(.brokerPositionSync))
+        XCTAssertTrue(boundary.forbidsCapability(.marginRead))
+        XCTAssertTrue(boundary.forbidsCapability(.leverageRead))
+        XCTAssertTrue(boundary.forbidsCapability(.realOrderNotionalLimitEvaluation))
+        XCTAssertEqual(
+            boundary.allowedEvidenceKinds,
+            [
+                .contractDocumentation,
+                .validationMatrixCandidate,
+                .validationPlanAnchor,
+                .deterministicForbiddenTest,
+                .paperLiveRiskIsolationEvidence,
+                .prBoundaryEvidence
+            ]
+        )
+        XCTAssertEqual(boundary.validationAnchors, [
+            "MTP-83-EXPOSURE-ORDER-NOTIONAL-FUTURE-GATES",
+            "MTP-83-FORBIDDEN-ACCOUNT-POSITION-MARGIN-LEVERAGE-TESTS",
+            "MTP-83-NO-REAL-PRE-TRADE-ALLOW-REJECT",
+            "MTP-83-PAPER-EXPOSURE-NO-LIVE-EXPOSURE-UPGRADE",
+            "MTP-83-LIVE-RISK-GATE-VALIDATION",
+            "TVM-LIVE-RISK-GATE"
+        ])
+        XCTAssertEqual(boundary.sourceAnchors, [
+            "MTP-82-LIVE-RISK-TERMINOLOGY",
+            "MTP-82-FUTURE-RISK-DECISION-TAXONOMY",
+            "MTP-82-PAPER-RISK-LIVE-RISK-SEPARATION",
+            "TVM-PORTFOLIO-EXPOSURE",
+            "TVM-RISK-BLOCKER",
+            "MTP-78-PAPER-EVIDENCE-NO-REAL-COMMAND-UPGRADE"
+        ])
+        XCTAssertTrue(boundary.exposureOrderNotionalBoundaryHeld)
+        XCTAssertTrue(boundary.accountPositionMarginLeverageBoundaryHeld)
+        XCTAssertTrue(boundary.paperExposureIsolationBoundaryHeld)
+        XCTAssertTrue(boundary.allPreTradeDecisionsBlocked)
+        XCTAssertTrue(boundary.isFutureGateOnly)
+        XCTAssertFalse(boundary.providesLiveRiskEngine)
+        XCTAssertFalse(boundary.readsAPIKey)
+        XCTAssertFalse(boundary.storesSecret)
+        XCTAssertFalse(boundary.usesSignedEndpoint)
+        XCTAssertFalse(boundary.callsAccountEndpoint)
+        XCTAssertFalse(boundary.createsListenKey)
+        XCTAssertFalse(boundary.instantiatesBrokerExecutionAdapter)
+        XCTAssertFalse(boundary.instantiatesExchangeExecutionAdapter)
+        XCTAssertFalse(boundary.implementsLiveExecutionAdapter)
+        XCTAssertFalse(boundary.readsRealAccountBalance)
+        XCTAssertFalse(boundary.syncsBrokerPosition)
+        XCTAssertFalse(boundary.readsMargin)
+        XCTAssertFalse(boundary.readsLeverage)
+        XCTAssertFalse(boundary.computesLiveExposureFromAccountState)
+        XCTAssertFalse(boundary.evaluatesRealOrderNotionalLimit)
+        XCTAssertFalse(boundary.evaluatesRealPreTradeAllow)
+        XCTAssertFalse(boundary.evaluatesRealPreTradeReject)
+        XCTAssertFalse(boundary.authorizesLiveTrading)
+        XCTAssertFalse(boundary.submitsRealOrder)
+        XCTAssertFalse(boundary.cancelsRealOrder)
+        XCTAssertFalse(boundary.replacesRealOrder)
+        XCTAssertFalse(boundary.mapsPaperExposureToLiveExposureGate)
+        XCTAssertFalse(boundary.mapsPaperRiskBlockerToFutureRiskDecision)
+        XCTAssertFalse(boundary.providesRiskCommandSurface)
+        XCTAssertFalse(boundary.providesPositionManagementCommand)
+        XCTAssertFalse(boundary.exposesOrderForm)
+        XCTAssertFalse(boundary.providesTradingButton)
+        XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(
+            LiveExposureOrderNotionalGateBoundary.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, boundary)
+    }
+
+    func testLiveExposureOrderNotionalBoundaryRejectsMTP83AccountPositionMarginLeverageBypass() throws {
+        // 测试场景：MTP-83 fixture 的初始化和 Codable 解码必须拒绝真实账户、
+        // broker position、margin / leverage、真实订单 notional 决策和 UI 命令绕过。
+        XCTAssertThrowsError(
+            try LiveExposureOrderNotionalGateBoundary(readsRealAccountBalance: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("readsRealAccountBalance"))
+        }
+        XCTAssertThrowsError(
+            try LiveExposureOrderNotionalGateBoundary(syncsBrokerPosition: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("syncsBrokerPosition"))
+        }
+        XCTAssertThrowsError(
+            try LiveExposureOrderNotionalGateBoundary(readsMargin: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("readsMargin"))
+        }
+        XCTAssertThrowsError(
+            try LiveExposureOrderNotionalGateBoundary(readsLeverage: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("readsLeverage"))
+        }
+        XCTAssertThrowsError(
+            try LiveExposureOrderNotionalGateBoundary(computesLiveExposureFromAccountState: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("computesLiveExposureFromAccountState")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveExposureOrderNotionalGateBoundary(evaluatesRealOrderNotionalLimit: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("evaluatesRealOrderNotionalLimit")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveExposureOrderNotionalGateBoundary(evaluatesRealPreTradeAllow: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("evaluatesRealPreTradeAllow")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveExposureOrderNotionalGateBoundary(terms: [.exposureGate])
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "terms",
+                    expected: LiveExposureOrderNotionalGateBoundary.requiredTerms.map(\.rawValue).joined(separator: ","),
+                    actual: "exposure gate"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(LiveExposureOrderNotionalGateBoundary.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["callsAccountEndpoint"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveExposureOrderNotionalGateBoundary.self, from: data)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("callsAccountEndpoint"))
+        }
+    }
+
+    func testPaperExposureCannotUpgradeToMTP83FutureLiveExposureGateDecision() throws {
+        // 测试场景：MTP-83 明确当前 portfolio exposure 仍是 paper projection read model，
+        // 不能升级为 live exposure gate、真实账户 exposure、broker position 或 notional allow / reject。
+        let boundary = LiveExposureOrderNotionalGateBoundary.deterministicFixture
+        let exposure = PortfolioExposureSnapshot(
+            portfolioID: try Identifier("portfolio-main"),
+            symbol: try Symbol(rawValue: "BTCUSDT"),
+            timeframe: .oneMinute,
+            paperQuantity: try Quantity(1.5),
+            referencePrice: try Price(30_000),
+            source: .paperProjection,
+            observedAt: Date(timeIntervalSince1970: 2_300)
+        )
+
+        XCTAssertTrue(boundary.paperExposureIsolationBoundaryHeld)
+        XCTAssertTrue(boundary.forbidsCapability(.paperExposureUpgrade))
+        XCTAssertTrue(boundary.forbidsCapability(.paperRiskBlockerUpgrade))
+        XCTAssertFalse(boundary.mapsPaperExposureToLiveExposureGate)
+        XCTAssertFalse(boundary.mapsPaperRiskBlockerToFutureRiskDecision)
+        XCTAssertFalse(boundary.readsRealAccountBalance)
+        XCTAssertFalse(boundary.syncsBrokerPosition)
+        XCTAssertFalse(boundary.computesLiveExposureFromAccountState)
+        XCTAssertFalse(boundary.evaluatesRealOrderNotionalLimit)
+        XCTAssertFalse(boundary.evaluatesRealPreTradeAllow)
+        XCTAssertFalse(boundary.evaluatesRealPreTradeReject)
+
+        XCTAssertEqual(exposure.source, .paperProjection)
+        XCTAssertEqual(exposure.grossExposureNotional, 45_000, accuracy: 0.00000001)
+        XCTAssertEqual(DomainEvent.portfolio(.exposureUpdated(exposure)), .portfolio(.exposureUpdated(exposure)))
+    }
+
     func testLiveRuntimeHealthDefinesMTP69ReadModelOnlyFixture() throws {
         // 测试场景：MTP-69 只新增 future live runtime health / connection status 的最小
         // read model。fixture 可以表达 healthy / blocked / disconnected / degraded /
