@@ -1637,3 +1637,41 @@ MTP-93 必须建立的主要 anchors：
 - 不连接 broker，不执行 broker action。
 - 不实现 OMS、real order state machine、execution runtime、live risk engine、incident replay runtime、stop command、shutdown command、restore command 或 production operations runtime。
 - 不新增 Live PRO Console、live command、order-level command UI、stop button、order form、交易按钮或真实交易授权。
+
+## MTP-94 Live Incident / Stop Blocked Evidence Validation
+
+日期：2026-05-23
+
+执行者：Codex
+
+MTP-94 的 required validation：
+
+- `docs/contracts/live-audit-incident-stop-contract.md` 必须包含 `MTP-94-LIVE-INCIDENT-STOP-BLOCKED-EVIDENCE`、`MTP-94-AUDIT-INCIDENT-STOP-BLOCKED-REASONS`、`MTP-94-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT`、`MTP-94-READ-MODEL-ONLY-NO-COMMAND-SURFACE` 和 `MTP-94-LIVE-INCIDENT-STOP-VALIDATION` anchors。
+- `Sources/Core/LiveAuditIncidentStopContract.swift` 必须包含 `LiveIncidentStopBlockedGate`、`LiveIncidentStopBlockedReason`、`LiveIncidentStopBlockedEvidenceItem` 和 `LiveIncidentStopBlockedEvidence`。
+- `Sources/App/LiveIncidentStopBlockedEvidence.swift` 必须包含 `LiveIncidentStopBlockedEvidenceReadModel` 和 `LiveIncidentStopBlockedEvidenceViewModel`，并保持 Dashboard / Report / Event Timeline 只消费 read model。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-94 focused Core tests，验证 deterministic snapshot、forbidden command / runtime / console flags 和 prior future gate source anchors。
+- `Tests/AppTests/AppTests.swift` 必须包含 MTP-94 focused App tests，验证 ViewModel aggregation 和 Event Timeline read-only items。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-94 issue backfill。
+- `docs/domain/context.md` 必须包含 MTP-94 live incident / stop blocked evidence、blocked reasons、deterministic snapshot、read-model-only no command surface 和 validation anchors。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-94 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-94 contract、matrix、validation plan、domain context、latest summary、Core/App source、Dashboard / Event Timeline wiring 和 focused test anchors；后续 MTP-95 仍负责 Project 级 stage closeout 和完整 automation readiness 收口。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不实现 audit trail runtime、incident replay runtime、emergency stop / shutdown / restore command、production operations、Live PRO Console、signed endpoint、account endpoint、listenKey、broker action、live command、order form、stop button 或交易按钮。
+
+MTP-94 必须建立的主要 anchors：
+
+- `TVM-LIVE-AUDIT-INCIDENT-STOP`
+- `MTP-94-LIVE-INCIDENT-STOP-BLOCKED-EVIDENCE`
+- `MTP-94-AUDIT-INCIDENT-STOP-BLOCKED-REASONS`
+- `MTP-94-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT`
+- `MTP-94-READ-MODEL-ONLY-NO-COMMAND-SURFACE`
+- `MTP-94-LIVE-INCIDENT-STOP-VALIDATION`
+
+## MTP-94 禁止
+
+- 不实现 audit trail runtime、incident replay runtime、stop control runtime、emergency stop command、shutdown command 或 restore command。
+- 不实现 production operations runtime、production shutdown control、broker session mutation、restore decision runtime 或 live runtime resume。
+- 不接 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不连接 broker，不执行 broker action。
+- 不实现 OMS、real order state machine、execution runtime、live risk engine、audit service、broker replay、account replay 或 production recovery。
+- 不把 Dashboard、Report、Workbench、Event Timeline 或 Evidence Explorer 升级为 Live PRO Console、operator workflow、command model、adapter status、runtime status 或 database schema browser。
+- 不新增 live command、order-level command UI、stop button、order form、交易按钮或真实交易授权。

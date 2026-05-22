@@ -7357,6 +7357,178 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testMTP94LiveIncidentStopBlockedEvidenceDefinesReadModelOnlySnapshot() throws {
+        // 测试场景：MTP-94 只输出 Live audit / incident / stop 的 blocked evidence snapshot。
+        // 它可以列出 audit trail、incident replay、emergency stop、shutdown、restore 的阻断原因，
+        // 但不能提供停机、恢复、事故回放 runtime、Live PRO Console、live command 或交易按钮。
+        let evidence = LiveIncidentStopBlockedEvidence.deterministicFixture
+
+        XCTAssertEqual(evidence.contractID, try Identifier("mtp-94-live-incident-stop-blocked-evidence"))
+        XCTAssertEqual(evidence.issueID, try Identifier("MTP-94"))
+        XCTAssertEqual(evidence.blockedItems.map(\.gate), [
+            .auditTrail,
+            .incidentReplay,
+            .emergencyStop,
+            .shutdown,
+            .restore
+        ])
+        XCTAssertEqual(evidence.blockedItems.count, 5)
+        XCTAssertEqual(evidence.blockedItems.map(\.gate), LiveIncidentStopBlockedGate.allCases)
+        XCTAssertTrue(evidence.blockedItems.allSatisfy(\.isBlocked))
+        XCTAssertTrue(evidence.blockedItems.allSatisfy(\.readModelOnlyBoundaryHeld))
+        XCTAssertTrue(evidence.allIncidentStopGatesBlocked)
+        XCTAssertTrue(evidence.blockedEvidenceBoundaryHeld)
+        XCTAssertTrue(evidence.appSurfaceReadModelOnlyBoundaryHeld)
+        XCTAssertTrue(evidence.forbiddenImplementationBoundaryHeld)
+        XCTAssertEqual(evidence.validationAnchors, [
+            "MTP-94-LIVE-INCIDENT-STOP-BLOCKED-EVIDENCE",
+            "MTP-94-AUDIT-INCIDENT-STOP-BLOCKED-REASONS",
+            "MTP-94-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT",
+            "MTP-94-READ-MODEL-ONLY-NO-COMMAND-SURFACE",
+            "MTP-94-LIVE-INCIDENT-STOP-VALIDATION",
+            "TVM-LIVE-AUDIT-INCIDENT-STOP"
+        ])
+        XCTAssertTrue(evidence.sourceAnchors.contains("MTP-90-SIGNAL-ORDER-RISK-FILL-AUDIT-TRAIL-FUTURE-GATES"))
+        XCTAssertTrue(evidence.sourceAnchors.contains("MTP-91-INCIDENT-REPLAY-FUTURE-GATES"))
+        XCTAssertTrue(evidence.sourceAnchors.contains("MTP-92-EMERGENCY-STOP-SHUTDOWN-RESTORE-FUTURE-GATES"))
+        XCTAssertTrue(evidence.sourceAnchors.contains("MTP-93-LIVE-RISK-EXECUTION-BLOCKED-EVIDENCE-ISOLATION"))
+        XCTAssertTrue(evidence.deterministicSnapshot.first?.hasPrefix("audit trail|blocked|") == true)
+        XCTAssertTrue(
+            evidence.deterministicSnapshot.contains {
+                $0.contains("restore|blocked|") && $0.contains("Live PRO Console forbidden")
+            }
+        )
+
+        XCTAssertFalse(evidence.providesIncidentReplay)
+        XCTAssertFalse(evidence.providesStopControl)
+        XCTAssertFalse(evidence.providesEmergencyStopCommand)
+        XCTAssertFalse(evidence.providesShutdownCommand)
+        XCTAssertFalse(evidence.providesRestoreCommand)
+        XCTAssertFalse(evidence.exposesLiveProConsole)
+        XCTAssertFalse(evidence.providesStopButton)
+        XCTAssertFalse(evidence.providesTradingButton)
+        XCTAssertFalse(evidence.usesSignedEndpoint)
+        XCTAssertFalse(evidence.callsAccountEndpoint)
+        XCTAssertFalse(evidence.createsListenKey)
+        XCTAssertFalse(evidence.executesBrokerAction)
+        XCTAssertFalse(evidence.implementsLiveExecutionAdapter)
+        XCTAssertFalse(evidence.implementsOMS)
+        XCTAssertFalse(evidence.implementsRealOrderStateMachine)
+        XCTAssertFalse(evidence.runsAuditTrailRuntime)
+        XCTAssertFalse(evidence.runsIncidentReplayRuntime)
+        XCTAssertFalse(evidence.runsProductionOperations)
+        XCTAssertFalse(evidence.mutatesBrokerSessionState)
+        XCTAssertFalse(evidence.resumesLiveRuntime)
+        XCTAssertFalse(evidence.requiredValidationDependsOnNetwork)
+
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoded = try JSONDecoder().decode(LiveIncidentStopBlockedEvidence.self, from: encoded)
+        XCTAssertEqual(decoded, evidence)
+    }
+
+    func testMTP94LiveIncidentStopBlockedEvidenceRejectsCommandRuntimeAndConsoleSurface() throws {
+        // 测试场景：MTP-94 的 deterministic model 必须拒绝任何 stop / shutdown /
+        // restore command、incident replay runtime、production operations、Live PRO Console、
+        // signed/account/listenKey、broker action 或 stop button。
+        XCTAssertThrowsError(
+            try LiveIncidentStopBlockedEvidence(providesIncidentReplay: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("providesIncidentReplay"))
+        }
+        XCTAssertThrowsError(
+            try LiveIncidentStopBlockedEvidence(providesStopControl: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("providesStopControl"))
+        }
+        XCTAssertThrowsError(
+            try LiveIncidentStopBlockedEvidence(providesEmergencyStopCommand: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("providesEmergencyStopCommand")
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveIncidentStopBlockedEvidence(exposesLiveProConsole: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("exposesLiveProConsole"))
+        }
+        XCTAssertThrowsError(
+            try LiveIncidentStopBlockedEvidence(providesStopButton: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("providesStopButton"))
+        }
+        XCTAssertThrowsError(
+            try LiveIncidentStopBlockedEvidence(usesSignedEndpoint: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("usesSignedEndpoint"))
+        }
+        XCTAssertThrowsError(
+            try LiveIncidentStopBlockedEvidence(runsProductionOperations: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("runsProductionOperations"))
+        }
+
+        var blockedItems = LiveIncidentStopBlockedEvidence.requiredBlockedItems
+        blockedItems[0] = LiveIncidentStopBlockedEvidenceItem(
+            gate: .auditTrail,
+            blockedReasons: [.auditTrailRuntimeForbidden],
+            sourceAnchors: ["MTP-90-SIGNAL-ORDER-RISK-FILL-AUDIT-TRAIL-FUTURE-GATES"],
+            emitsCommand: true
+        )
+
+        XCTAssertThrowsError(
+            try LiveIncidentStopBlockedEvidence(blockedItems: blockedItems)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("audit trail.readModelOnlyBoundaryHeld")
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(LiveIncidentStopBlockedEvidence.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["runsIncidentReplayRuntime"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveIncidentStopBlockedEvidence.self, from: data)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("runsIncidentReplayRuntime"))
+        }
+    }
+
+    func testMTP94LiveIncidentStopBlockedEvidenceReferencesPriorFutureGateBoundaries() throws {
+        // 测试场景：MTP-94 只能引用 MTP-90 至 MTP-93 已建立的 future gates 和 isolation
+        // anchors 作为 blocked reason 来源，不能把这些 anchors 升级为当前 runtime 或 command。
+        let evidence = LiveIncidentStopBlockedEvidence.deterministicFixture
+        let auditTrail = try XCTUnwrap(evidence.item(for: .auditTrail))
+        let incidentReplay = try XCTUnwrap(evidence.item(for: .incidentReplay))
+        let emergencyStop = try XCTUnwrap(evidence.item(for: .emergencyStop))
+        let shutdown = try XCTUnwrap(evidence.item(for: .shutdown))
+        let restore = try XCTUnwrap(evidence.item(for: .restore))
+
+        XCTAssertTrue(auditTrail.sourceAnchors.contains("MTP-90-FORBIDDEN-EXECUTION-REPORT-BROKER-FILL-OMS-TESTS"))
+        XCTAssertTrue(incidentReplay.sourceAnchors.contains("MTP-91-FORBIDDEN-RECOVERY-BROKER-ACCOUNT-REPLAY-TESTS"))
+        XCTAssertTrue(emergencyStop.sourceAnchors.contains("MTP-92-FORBIDDEN-STOP-SHUTDOWN-RESTORE-CAPABILITY-TESTS"))
+        XCTAssertTrue(shutdown.sourceAnchors.contains("MTP-93-NO-BLOCKED-EVIDENCE-TO-INCIDENT-OR-STOP-COMMAND-UPGRADE"))
+        XCTAssertTrue(restore.sourceAnchors.contains("MTP-93-PAPER-EVIDENCE-NO-INCIDENT-STOP-UPGRADE"))
+        XCTAssertTrue(evidence.sourceAnchors.contains("TVM-LIVE-AUDIT-INCIDENT-STOP"))
+
+        XCTAssertTrue(auditTrail.blockedReasons.contains(.auditTrailRuntimeForbidden))
+        XCTAssertTrue(incidentReplay.blockedReasons.contains(.incidentReplayRuntimeForbidden))
+        XCTAssertTrue(emergencyStop.blockedReasons.contains(.emergencyStopCommandForbidden))
+        XCTAssertTrue(shutdown.blockedReasons.contains(.shutdownCommandForbidden))
+        XCTAssertTrue(restore.blockedReasons.contains(.restoreCommandForbidden))
+        XCTAssertTrue(restore.blockedReasons.contains(.liveProConsoleForbidden))
+
+        XCTAssertFalse(evidence.consumesExecutionReport)
+        XCTAssertFalse(evidence.recordsBrokerFill)
+        XCTAssertFalse(evidence.performsReconciliation)
+        XCTAssertFalse(evidence.providesCommandSurface)
+        XCTAssertFalse(evidence.authorizesLiveTrading)
+    }
+
     private func makeOrderBookImbalanceInputs() throws -> [OrderBookReadModelInput] {
         let symbol = try Symbol(rawValue: "BTCUSDT")
         let bidDominant = OrderBookReadModelInput(

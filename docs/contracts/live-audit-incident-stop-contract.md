@@ -360,3 +360,75 @@ MTP-93 建立以下 validation anchors：
 - `MTP-93-PAPER-EVIDENCE-NO-INCIDENT-STOP-UPGRADE`
 - `MTP-93-FORBIDDEN-COMMAND-RUNTIME-UPGRADE-TESTS`
 - `MTP-93-BLOCKED-EVIDENCE-ISOLATION-VALIDATION`
+
+## MTP-94 live incident / stop blocked evidence read model
+
+`MTP-94-LIVE-INCIDENT-STOP-BLOCKED-EVIDENCE`
+
+MTP-94 只新增 `LiveIncidentStopBlockedEvidence` deterministic fixture、`LiveIncidentStopBlockedEvidenceReadModel` / `LiveIncidentStopBlockedEvidenceViewModel` 和 Dashboard / Report / Event Timeline 的只读展示面。该 evidence 只能汇总 audit trail、incident replay、emergency stop、shutdown 和 restore 为什么仍被阻断；它不创建 incident replay runtime、emergency stop command、shutdown command、restore command、production operations runtime、Live PRO Console、stop button、trading button、live command surface、adapter / runtime / database schema exposure 或 broker action。
+
+| Blocked gate | 当前 allowed evidence | 当前 forbidden upgrade |
+| --- | --- | --- |
+| `audit trail` | blocked reason、source anchor、deterministic snapshot、Report / Dashboard / Event Timeline read model | audit trail runtime、production audit service、broker ledger、OMS log |
+| `incident replay` | blocked reason、source anchor、deterministic snapshot、Event Timeline item | incident replay runtime、production recovery、broker / account replay、auto restore |
+| `emergency stop` | blocked reason、source anchor、deterministic snapshot、Dashboard metric | emergency stop command、stop button、global trading lock、broker action |
+| `shutdown` | blocked reason、source anchor、deterministic snapshot、Report detail | shutdown command、production shutdown control、broker session mutation |
+| `restore` | blocked reason、source anchor、deterministic snapshot、Workbench detail | restore command、restore decision runtime、live runtime resume |
+
+`LiveIncidentStopBlockedEvidence` 必须引用 MTP-89 / MTP-90 / MTP-91 / MTP-92 / MTP-93 的 source anchors 和 `TVM-LIVE-AUDIT-INCIDENT-STOP`，保持 read-model-only source chain 可追溯。Dashboard / Report / Event Timeline 只消费 read model，不读取 adapter、runtime object、persistence schema、secret、signed endpoint、account endpoint、listenKey、broker state 或真实账户状态。
+
+## MTP-94 audit incident stop blocked reasons
+
+`MTP-94-AUDIT-INCIDENT-STOP-BLOCKED-REASONS`
+
+MTP-94 的 blocked reasons 必须覆盖：
+
+- Human live audit / incident / stop decision 尚未形成。
+- audit trail runtime 仍被禁止。
+- incident replay runtime 仍被禁止。
+- emergency stop command 仍被禁止。
+- shutdown command 仍被禁止。
+- restore command 仍被禁止。
+- production operations runtime 仍被禁止。
+- broker session mutation 仍被禁止。
+- live runtime resume 仍被禁止。
+- Live PRO Console、live command surface、stop button 和 trading button 仍被禁止。
+- 当前 surface 必须保持 read-model-only，不提供 command surface。
+
+这些 reasons 只能进入 Core deterministic fixture、App read model / ViewModel、Dashboard smoke、Report detail、Event Timeline item、validation matrix、validation plan 和 PR evidence。它们不授权任何后续 issue，也不修改 Linear status。
+
+## MTP-94 deterministic blocked evidence snapshot
+
+`MTP-94-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT`
+
+MTP-94 deterministic snapshot 必须稳定输出：
+
+- 5 个 blocked gates：audit trail、incident replay、emergency stop、shutdown、restore。
+- 每个 gate 的 blocked reasons、source anchors 和 validation anchors。
+- `MTP-94-LIVE-INCIDENT-STOP-BLOCKED-EVIDENCE`、`MTP-94-AUDIT-INCIDENT-STOP-BLOCKED-REASONS`、`MTP-94-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT`、`MTP-94-READ-MODEL-ONLY-NO-COMMAND-SURFACE`、`MTP-94-LIVE-INCIDENT-STOP-VALIDATION` 和 `TVM-LIVE-AUDIT-INCIDENT-STOP`。
+- schema / adapter / runtime exposure、command surface、incident replay runtime、stop control、emergency stop、shutdown / restore、Live PRO Console、stop button、trading button、signed endpoint、account endpoint、listenKey、broker action、OMS、real order state machine、production audit / incident runtime、production operations、broker session mutation、live runtime resume 和 network validation flags 全部保持 `false`。
+
+## MTP-94 read model only no command surface
+
+`MTP-94-READ-MODEL-ONLY-NO-COMMAND-SURFACE`
+
+MTP-94 允许 Dashboard / Report / Event Timeline 展示 `LiveIncidentStopBlockedEvidence`，但该 surface 必须继续满足：
+
+- Dashboard 只展示 metrics、details 和 read-model-only boundary flags。
+- Report 只展示 source、blocked gates、blocked reasons 和 source anchors。
+- Event Timeline 只追加 read-only evidence items，不新增 command action、stop action、restore action 或 operator workflow。
+- Workbench 不能升级为 Live PRO Console。
+- 所有 forbidden flags 必须由 Core Codable decoding 拒绝绕过。
+
+## MTP-94 validation anchors
+
+`MTP-94-LIVE-INCIDENT-STOP-VALIDATION`
+
+MTP-94 建立以下 validation anchors：
+
+- `TVM-LIVE-AUDIT-INCIDENT-STOP`
+- `MTP-94-LIVE-INCIDENT-STOP-BLOCKED-EVIDENCE`
+- `MTP-94-AUDIT-INCIDENT-STOP-BLOCKED-REASONS`
+- `MTP-94-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT`
+- `MTP-94-READ-MODEL-ONLY-NO-COMMAND-SURFACE`
+- `MTP-94-LIVE-INCIDENT-STOP-VALIDATION`
