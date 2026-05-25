@@ -1858,3 +1858,44 @@ MTP-99 必须建立的主要 anchors：
 - 不接 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不读取真实账户余额、broker position、margin、leverage、真实 PnL 或 equity。
 - 不把 `acceptedLocal` 写成 exchange accepted、broker submitted、broker accepted 或真实执行授权。
+
+## MTP-100 Simulated Fill / Fee / Slippage Deterministic Model Validation
+
+日期：2026-05-26
+
+执行者：Codex
+
+MTP-100 的 required validation：
+
+- `docs/contracts/paper-runtime-kernel-contract.md` 必须包含 `MTP-100-SIMULATED-FILL-MARKET-SNAPSHOT`、`MTP-100-PARTIAL-FULL-SIMULATED-FILL-EVIDENCE`、`MTP-100-FEE-SLIPPAGE-COST-IMPACT`、`MTP-100-SIMULATED-FILL-EVENTLOG-REPLAY`、`MTP-100-NO-BROKER-EXECUTION-REPORT-RECONCILIATION` 和 `MTP-100-SIMULATED-FILL-FEE-SLIPPAGE-VALIDATION` anchors。
+- `Sources/Core/PaperSimulatedFillEvidence.swift` 必须定义 `PaperSimulatedFillMarketSnapshot`、`PaperSimulatedFillCompletion`、`PaperSimulatedFillPriceSource`、`PaperSimulatedFillEventLogBoundary`、`PaperSimulatedFillPublication`、`PaperSimulatedFillReplayPath` 和 deterministic fixture。
+- simulated fill 输入必须包含 market snapshot、allowed paper order intent、MTP-99 `PaperOrderSimulatedFillPrecondition` 和 deterministic fill assumption。
+- fee / slippage 必须复用 MTP-27 `ExecutionCostAssumptions.deterministicFixture`，不得引入交易所费率表、真实 fee statement、dynamic slippage 或 execution optimizer。
+- partial / full fill evidence 必须可区分：full 的 remaining quantity 为 0；partial 的 remaining quantity 大于 0。
+- simulated fill result 必须通过 MTP-97 `PaperRuntimeMessageBusRouting` 写入 `.paper` stream，并可从 Event Log / Replay 重建 route evidence 和 fill facts。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-100 focused tests，验证 deterministic full / partial cost evidence、Event Log / Replay evidence，以及 broker fill / execution report / reconciliation / real account update bypass 均被拒绝。
+- `docs/domain/context.md` 必须包含 `MTP-100-SIMULATED-FILL-FEE-SLIPPAGE-TERMS`。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-100 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-100 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-100 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不实现 broker fill、execution report parser、真实 fee statement、真实成交质量分析、live reconciliation、signed endpoint、account endpoint、broker action 或 real account update。
+
+MTP-100 必须建立的主要 anchors：
+
+- `TVM-PAPER-RUNTIME-KERNEL`
+- `MTP-100-SIMULATED-FILL-MARKET-SNAPSHOT`
+- `MTP-100-PARTIAL-FULL-SIMULATED-FILL-EVIDENCE`
+- `MTP-100-FEE-SLIPPAGE-COST-IMPACT`
+- `MTP-100-SIMULATED-FILL-EVENTLOG-REPLAY`
+- `MTP-100-NO-BROKER-EXECUTION-REPORT-RECONCILIATION`
+- `MTP-100-SIMULATED-FILL-FEE-SLIPPAGE-VALIDATION`
+
+## MTP-100 禁止
+
+- 不实现 paper account / portfolio / position projection v2。
+- 不新增 App / Dashboard surface。
+- 不实现 broker fill、execution report parser、真实 fee statement、真实成交质量分析、live reconciliation 或 real account update。
+- 不实现 OMS、broker router、真实 order lifecycle、真实 submit / cancel / replace、Live PRO Console、live command、order form 或交易按钮。
+- 不接 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不读取真实账户余额、broker position、margin、leverage、真实 PnL 或 equity。
+- 不把 `PaperSimulatedFillEvidence` 写成真实成交、broker fill、execution report 或 account update。

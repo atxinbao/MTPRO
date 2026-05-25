@@ -10405,3 +10405,49 @@ Root docs 判断：
 | `swift test --filter MTP99` | pass | 3 个 MTP-99 focused Core tests 通过，0 failures；覆盖 deterministic accepted / rejected lifecycle、transition event facts / replay evidence、simulated fill precondition 和 OMS / broker / real cancel / order-level command UI bypass rejection。 |
 | `bash checks/automation-readiness.sh` | pass | MTP-99 contract / matrix / validation plan / domain context / latest summary / Core source / focused test anchors 均通过机械检查。 |
 | `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；Swift tests 216 个通过、0 failures；最终输出 `MTPRO checks passed.`。 |
+
+## MTP-100 Simulated Fill / Fee / Slippage Deterministic Model
+
+日期：2026-05-26
+
+执行者：Codex
+
+目的：
+
+- 建立 paper-only simulated fill / fee / slippage deterministic model，避免 paper runtime 出现零摩擦假象。
+- 让 simulated fill 输入显式包含 market snapshot、allowed paper order、MTP-99 accepted-local precondition 和 fill assumptions。
+- 支持 full / partial simulated fill evidence，并记录 fee assumption、slippage assumption、fill price assumption 和 cost impact。
+- 通过既有 MTP-97 `PaperRuntimeMessageBusRouting` 将 simulated fill result 写入 `.paper` Event Log，并从 replay 重建 partial / full fill facts。
+
+文件范围：
+
+- 更新 `Sources/Core/PaperSimulatedFillEvidence.swift`，新增 `PaperSimulatedFillMarketSnapshot`、`PaperSimulatedFillCompletion`、`PaperSimulatedFillPriceSource`、`PaperSimulatedFillEventLogBoundary`、`PaperSimulatedFillPublication`、`PaperSimulatedFillReplayPath` 和 MTP-100 fixtures。
+- 更新 `Tests/CoreTests/CoreTests.swift`，新增 MTP-100 focused tests。
+- 更新 `docs/contracts/paper-runtime-kernel-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh`。
+- 更新 `.codex/context-scan.json`、`.codex/context-question-1.json`、`.codex/context-question-2.json`、`.codex/context-sufficiency.json`、`.codex/operations-log.md`、`.codex/testing.md` 和 `.codex/review-report.md` 作为本地 handoff evidence，不进入 PR。
+
+关键结论：
+
+- `PaperSimulatedFillMarketSnapshot` 只保存本地 fixture / replay bid、ask、last price 和 source anchor，不暴露 Adapter payload 或 live stream。
+- `PaperSimulatedFillEvidence` 同时覆盖 full fill 和 partial fill；full remaining quantity 为 0，partial remaining quantity 大于 0。
+- fee / slippage 复用 MTP-27 `ExecutionCostAssumptions.deterministicFixture`，不引入真实交易所费率表、真实 fee statement、dynamic slippage 或 execution optimizer。
+- `PaperSimulatedFillEventLogBoundary` 只复用 MTP-97 routing 写入 `.paper` stream，不启动 Runtime actor，不新增 broker-like bus。
+- `PaperSimulatedFillPublication` 要求 route evidence、replay evidence 和 replayed fills 完全一致。
+
+边界确认：
+
+- 不修改 Linear status。
+- 不启动下一阶段 `symphony-issue`。
+- 不读取 secrets / credentials。
+- 不接 signed endpoint、account endpoint、listenKey。
+- 不连接 broker，不执行 broker action。
+- 不实现 paper account / portfolio / position projection v2、App / Dashboard surface、broker fill、execution report parser、真实 fee statement、真实成交质量分析、live reconciliation、real account update、OMS、broker router、真实 order lifecycle、真实 submit / cancel / replace、Live PRO Console、live command、order form 或交易按钮。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP100` | pass | 3 个 MTP-100 focused Core tests 通过，0 failures；覆盖 deterministic full / partial cost evidence、simulated fill Event Log / Replay evidence、broker fill / execution report / reconciliation / real account update bypass rejection。 |
+| `bash checks/automation-readiness.sh` | pass | MTP-100 contract / matrix / validation plan / domain context / latest summary / Core source / focused test anchors 均通过机械检查。 |
+| `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；Swift tests 219 个通过、0 failures；最终输出 `MTPRO checks passed.`。 |
