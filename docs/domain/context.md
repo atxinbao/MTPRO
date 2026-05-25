@@ -520,6 +520,26 @@ MTP-106 fixture freshness policy 只定义本地 freshness 阈值：stale after 
 
 MTP-106 replay evidence 必须保持 required validation network dependency、real network download、production retention engine、large-scale ingestion pipeline、production data platform、database schema exposure、adapter request exposure、secret read、signed endpoint、account endpoint、listenKey、broker integration、`LiveExecutionAdapter`、OMS、real order lifecycle、report input versioning runtime、data quality gate runtime、live runtime、live command 和 trading button flags 全部为 false；初始化和 Codable 解码都不能恢复这些能力。
 
+`MTP-107-DATA-QUALITY-GATE-TAXONOMY`
+
+MTP-107 把 MTP-106 replay evidence 推进为本地 data quality gate 和 report input versioning contract。Data quality gates 只服务 local scenario replay 与 report reproducibility，不等于 production data observability、automatic download / repair、broker/account reconciliation 或 Simulated Exchange / Backtest Parity runtime。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `ScenarioDataQualityGateKind` | record order、window coverage、checksum match、freshness status、missing data、duplicate data 六个最小 gate | 不等于生产监控规则、自动修复规则或外部数据平台策略 |
+| `ScenarioDataQualityGateEvaluation` | 基于 MTP-106 replay evidence 生成 deterministic quality verdict 的 Core 值对象 | 不启动 Runtime，不读取 schema，不自动下载 / 修复数据 |
+| `ScenarioDataQualityVerdict` | `accepted`、`marked`、`rejected` 三类 report input 质量结论 | 不等于 production SLA、broker reject 或 live risk decision |
+| `ScenarioReportInputVersion` | 把 scenario id、dataset version、fixture version、replay window、checksum、freshness 和 quality verdict 固定成 report input identity | 不暴露 SQLite / DuckDB schema、adapter request、Runtime object、broker payload 或真实账户资料 |
+| `ScenarioDataQualityReportInputEvidence` | 绑定 replay evidence、quality gates 和 report input version 的 MTP-107 聚合证据 | 只供后续 read-model evidence 消费，不实现 Workbench UI、不输出 stage audit input |
+
+`MTP-107-REPORT-INPUT-VERSIONING`
+
+MTP-107 report input versioning 必须可从 `ScenarioReplayEvidence` 追溯到同一 scenario id、dataset version、fixture version、replay window、checksum 和 freshness status；`versionIdentity` 必须包含 quality verdict。该 contract 是 stable Core value contract，不是 report runtime、database schema、adapter request 或 Runtime object。
+
+`MTP-107-NO-PRODUCTION-LIVE-BROKER-DATA-PLATFORM`
+
+MTP-107 quality / report input evidence 必须保持 required validation network dependency、production data platform、production data observability、automatic download、automatic repair、broker / account reconciliation、Simulated Exchange / Backtest Parity implementation、database schema exposure、adapter request exposure、Runtime object read、secret read、signed endpoint、account endpoint、listenKey、broker integration、`LiveExecutionAdapter`、OMS、real order lifecycle、live runtime、live command 和 trading button flags 全部为 false；初始化和 Codable 解码都不能恢复这些能力。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

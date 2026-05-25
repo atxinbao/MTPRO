@@ -6,7 +6,7 @@
 
 本文档定义 `MTPRO Data Catalog / Scenario Replay v1` 的 Data Catalog / Scenario Replay terminology、目标引擎职责、local-first deterministic versioned boundary、scenario manifest / scenario id / dataset version contract、single-symbol / single-timeframe deterministic scenario fixture、forbidden capability baseline、source docs anchors 和 validation anchors。
 
-本文档服务 `MTP-103` 的术语 / 边界合同、`MTP-104` 的 scenario manifest 输入身份合同、`MTP-105` 的 first deterministic scenario fixture 合同和 `MTP-106` 的 replay window / cursor / checksum / freshness evidence 合同；它不实现 manifest file parser，不实现 data quality gate runtime，不实现 report input versioning，不新增 production data platform，不做 large-scale ingestion pipeline，不接 signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、live runtime、live command、trading button，不运行 Graphify，不修改 Figma。
+本文档服务 `MTP-103` 的术语 / 边界合同、`MTP-104` 的 scenario manifest 输入身份合同、`MTP-105` 的 first deterministic scenario fixture 合同、`MTP-106` 的 replay window / cursor / checksum / freshness evidence 合同，以及 `MTP-107` 的 data quality gates / report input versioning 合同；它不实现 manifest file parser，不实现 production data quality platform，不实现 production data observability，不新增 production data platform，不做 large-scale ingestion pipeline，不接 signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、live runtime、live command、trading button，不运行 Graphify，不修改 Figma。
 
 ## MTP-103 Data Catalog / Scenario Replay terminology
 
@@ -497,3 +497,142 @@ Validation anchors：
 - `TVM-DATA-CATALOG-SCENARIO-REPLAY`
 
 MTP-106 不实现 data quality gate runtime、不实现 report input versioning runtime、不新增 App read model、不新增 Dashboard smoke handle、不新增 stage audit input；Project stage closeout 仍归属 `MTP-109`。
+
+## MTP-107 data quality gate taxonomy / report input versioning
+
+`MTP-107-DATA-QUALITY-GATE-TAXONOMY`
+
+MTP-107 在 MTP-106 replay evidence 基础上定义最小 data quality gate taxonomy。当前 taxonomy 只服务 local scenario replay 和 report reproducibility：
+
+| Gate | 当前含义 | 禁止混用 |
+| --- | --- | --- |
+| `record order` | 检查 observed record order identity 是否等于 MTP-106 replay window 的 `1:1704067200|2:1704067260|3:1704067320` | 不等于 exchange sequence、broker sequence、event log sequence 或 production ordering service |
+| `window coverage` | 检查 observed window 和 record count 是否覆盖 MTP-106 replay window `1704067200...1704067380` / `records=3` | 不等于 historical downloader coverage、production retention coverage 或 cloud data lake partition coverage |
+| `checksum match` | 检查 observed checksum 是否等于 MTP-106 final checksum `fnv1a64:3c6cd4ff13cd4062` | 不等于 production data quality platform、真实下载校验服务或 broker/account reconciliation |
+| `freshness status` | 检查 MTP-106 freshness status；`fresh` 通过，`stale` 标记，`expired` / `not retained` 拒绝 | 不执行 production retention engine、automatic download、cleanup 或 repair |
+| `missing data` | 检查 deterministic fixture record sequence 是否存在缺口 | 不触发自动回补、真实网络下载或 production repair |
+| `duplicate data` | 检查 deterministic fixture record sequence 是否存在重复 | 不触发 production dedupe pipeline 或 storage compaction |
+
+Core deterministic fixture：`ScenarioDataQualityReportInputEvidence.deterministicFixture`。
+
+Focused Core tests：
+
+- `testMTP107ScenarioDataQualityGatesDefineTaxonomyAndDeterministicVerdict`
+- `testMTP107ReportInputVersioningTracesScenarioReplayEvidence`
+- `testMTP107ScenarioDataQualityRejectsBadFixtureChecksumMissingAndDuplicateData`
+- `testMTP107ScenarioDataQualityMarksStaleEvidenceAndRejectsForbiddenBypass`
+
+## MTP-107 minimal data quality gates
+
+`MTP-107-MINIMAL-DATA-QUALITY-GATES`
+
+`ScenarioDataQualityGateEvaluation` 必须固定六个 gate 的顺序与判定：
+
+```text
+record order
+window coverage
+checksum match
+freshness status
+missing data
+duplicate data
+```
+
+默认 deterministic fixture 全部 `passed`，整体 `qualityVerdict == accepted`。bad fixture、checksum mismatch、missing data、duplicate data 必须产生 `qualityVerdict == rejected`；stale freshness 必须产生 `qualityVerdict == marked`；expired / not retained freshness 必须产生 `qualityVerdict == rejected`。
+
+该 evaluation 可以在 tests 中注入 observed checksum、record order、record count、freshness status、missing sequence 和 duplicate sequence，用于证明错误输入会被 rejected / marked；这些注入不是 runtime repair、自动下载、自动修复或 production observer。
+
+## MTP-107 report input versioning
+
+`MTP-107-REPORT-INPUT-VERSIONING`
+
+`ScenarioReportInputVersion` 是 stable report input versioning contract。Report / Backtest / future Simulated Exchange 只能通过该值对象追溯：
+
+- `scenarioID`
+- `datasetVersion`
+- `fixtureVersion`
+- `symbol`
+- `timeframe`
+- `replayWindowIdentity`
+- `replayWindowDescription`
+- `checksum`
+- `freshnessStatus`
+- `qualityVerdict`
+- `qualitySummary`
+
+Canonical field order 必须固定为：
+
+```text
+scenarioID
+datasetVersion
+fixtureVersion
+replayWindow
+checksum
+freshnessStatus
+qualityVerdict
+```
+
+`versionIdentity` 必须把 scenario id、dataset version、fixture version、replay window、checksum、freshness status 和 quality verdict 串成稳定 identity。该 contract 不暴露 SQLite / DuckDB schema、adapter request 或 Runtime object。
+
+## MTP-107 report reproducibility evidence
+
+`MTP-107-REPORT-REPRODUCIBILITY-EVIDENCE`
+
+`ScenarioDataQualityReportInputEvidence` 必须把 MTP-106 replay evidence、MTP-107 gate evaluation 和 report input version 绑定到同一个 deterministic identity：
+
+- `replayEvidence.dataQualityGateInputIdentity == qualityEvaluation.replayInputIdentity`。
+- `reportInputVersion.versionIdentity` 必须包含 MTP-106 checksum 和 MTP-107 quality verdict。
+- `reportReproducibilityEvidenceHeld == true`。
+- `reportInputVersion.sourceAnchors` 必须引用 MTP-104 manifest、MTP-105 fixture、MTP-106 replay evidence 和 MTP-107 report input versioning anchors。
+
+该 evidence 只作为后续 MTP-108 Workbench / Report / Events read-model surface 的输入，不新增 App read model，不新增 Dashboard smoke handle，不输出 stage audit input。
+
+## MTP-107 no production / live / broker / data platform
+
+`MTP-107-NO-PRODUCTION-LIVE-BROKER-DATA-PLATFORM`
+
+`ScenarioDataQualityGateEvaluation`、`ScenarioReportInputVersion` 和 `ScenarioDataQualityReportInputEvidence` 初始化与 Codable 解码必须拒绝以下绕过：
+
+- required validation network dependency。
+- production data platform。
+- production data observability。
+- automatic download。
+- automatic repair。
+- broker / account reconciliation。
+- Simulated Exchange / Backtest Parity implementation。
+- database schema exposure。
+- adapter request exposure。
+- Runtime object read。
+- secret read。
+- signed endpoint。
+- account endpoint。
+- listenKey。
+- broker integration。
+- `LiveExecutionAdapter`。
+- OMS。
+- real order lifecycle。
+- live runtime。
+- live command。
+- trading button。
+
+对应 Boolean flags 必须全部保持 `false`；任何初始化或 Codable payload 试图打开这些能力都必须抛出 `CoreError.dataCatalogScenarioReplayForbiddenCapability`。
+
+## MTP-107 validation anchors
+
+`MTP-107-DATA-QUALITY-REPORT-INPUT-VALIDATION`
+
+Required validation：
+
+- `swift test --filter MTP107`
+- `bash checks/run.sh`
+
+Validation anchors：
+
+- `MTP-107-DATA-QUALITY-GATE-TAXONOMY`
+- `MTP-107-MINIMAL-DATA-QUALITY-GATES`
+- `MTP-107-REPORT-INPUT-VERSIONING`
+- `MTP-107-REPORT-REPRODUCIBILITY-EVIDENCE`
+- `MTP-107-NO-PRODUCTION-LIVE-BROKER-DATA-PLATFORM`
+- `MTP-107-DATA-QUALITY-REPORT-INPUT-VALIDATION`
+- `TVM-DATA-CATALOG-SCENARIO-REPLAY`
+
+MTP-107 不实现 manifest file parser、不新增 production data quality platform、不实现 production data observability、不实现 automatic download / repair、不实现 broker / account reconciliation、不实现 Simulated Exchange / Backtest Parity runtime、不新增 App read model、不新增 Dashboard smoke handle、不新增 stage audit input；Project stage closeout 仍归属 `MTP-109`。

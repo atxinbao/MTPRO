@@ -9414,6 +9414,228 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testMTP107ScenarioDataQualityGatesDefineTaxonomyAndDeterministicVerdict() throws {
+        // 测试场景：MTP-107 必须在 MTP-106 replay evidence 之上固定最小 quality gate taxonomy，
+        // 并为 accepted report input 生成确定性的 gate summary，不引入 production data platform。
+        let evaluation = try ScenarioDataQualityGateEvaluation()
+
+        XCTAssertEqual(evaluation.contractID, try Identifier("mtp-107-data-quality-gate-evaluation"))
+        XCTAssertEqual(evaluation.issueID, try Identifier("MTP-107"))
+        XCTAssertEqual(evaluation.gates.map(\.kind), ScenarioDataQualityGateKind.allCases)
+        XCTAssertEqual(evaluation.gates.map(\.verdict), Array(repeating: .passed, count: 6))
+        XCTAssertEqual(evaluation.qualityVerdict, .accepted)
+        XCTAssertTrue(evaluation.acceptedForReportInput)
+        XCTAssertTrue(evaluation.gateTaxonomyHeld)
+        XCTAssertTrue(evaluation.allRequiredGatesEvaluated)
+        XCTAssertTrue(evaluation.qualityGateBoundaryHeld)
+        XCTAssertTrue(evaluation.qualitySummary.contains("record order=passed"))
+        XCTAssertTrue(evaluation.qualitySummary.contains("window coverage=passed"))
+        XCTAssertTrue(evaluation.qualitySummary.contains("checksum match=passed"))
+        XCTAssertTrue(evaluation.qualitySummary.contains("freshness status=passed"))
+        XCTAssertTrue(evaluation.qualitySummary.contains("missing data=passed"))
+        XCTAssertTrue(evaluation.qualitySummary.contains("duplicate data=passed"))
+        XCTAssertEqual(evaluation.validationAnchors, [
+            "MTP-107-DATA-QUALITY-GATE-TAXONOMY",
+            "MTP-107-MINIMAL-DATA-QUALITY-GATES",
+            "MTP-107-REPORT-INPUT-VERSIONING",
+            "MTP-107-REPORT-REPRODUCIBILITY-EVIDENCE",
+            "MTP-107-NO-PRODUCTION-LIVE-BROKER-DATA-PLATFORM",
+            "MTP-107-DATA-QUALITY-REPORT-INPUT-VALIDATION",
+            "TVM-DATA-CATALOG-SCENARIO-REPLAY"
+        ])
+
+        let encoded = try JSONEncoder().encode(evaluation)
+        let decoded = try JSONDecoder().decode(ScenarioDataQualityGateEvaluation.self, from: encoded)
+        XCTAssertEqual(decoded, evaluation)
+        XCTAssertFalse(decoded.requiredValidationDependsOnNetwork)
+        XCTAssertFalse(decoded.runsProductionDataObservability)
+        XCTAssertFalse(decoded.performsAutomaticDownload)
+        XCTAssertFalse(decoded.performsAutomaticRepair)
+        XCTAssertFalse(decoded.exposesDatabaseSchema)
+    }
+
+    func testMTP107ReportInputVersioningTracesScenarioReplayEvidence() throws {
+        // 测试场景：Report input versioning 必须复制 scenario id、dataset version、fixture version、
+        // replay window、checksum、freshness 和 quality verdict，且不暴露 SQLite / DuckDB schema。
+        let evidence = ScenarioDataQualityReportInputEvidence.deterministicFixture
+        let reportInput = evidence.reportInputVersion
+
+        XCTAssertEqual(evidence.contractID, try Identifier("mtp-107-data-quality-report-input-evidence"))
+        XCTAssertEqual(evidence.issueID, try Identifier("MTP-107"))
+        XCTAssertEqual(reportInput.contractID, try Identifier("mtp-107-report-input-versioning"))
+        XCTAssertEqual(reportInput.issueID, try Identifier("MTP-107"))
+        XCTAssertEqual(reportInput.scenarioID, try ScenarioID("mtp-104-btcusdt-1m-first-scenario"))
+        XCTAssertEqual(reportInput.datasetVersion, try DatasetVersion("dataset-v1"))
+        XCTAssertEqual(reportInput.fixtureVersion, try FixtureVersion("fixture-v1"))
+        XCTAssertEqual(reportInput.symbol, try Symbol(rawValue: "BTCUSDT"))
+        XCTAssertEqual(reportInput.timeframe, .oneMinute)
+        XCTAssertEqual(reportInput.replayWindowDescription, "1704067200...1704067380")
+        XCTAssertEqual(reportInput.checksum, "fnv1a64:3c6cd4ff13cd4062")
+        XCTAssertEqual(reportInput.freshnessStatus, .fresh)
+        XCTAssertEqual(reportInput.qualityVerdict, .accepted)
+        XCTAssertEqual(
+            reportInput.canonicalFieldOrder,
+            [
+                "scenarioID",
+                "datasetVersion",
+                "fixtureVersion",
+                "replayWindow",
+                "checksum",
+                "freshnessStatus",
+                "qualityVerdict"
+            ]
+        )
+        XCTAssertEqual(reportInput.sourceAnchors, [
+            "MTP-104-SCENARIO-MANIFEST-MINIMAL-FIELDS",
+            "MTP-105-SINGLE-SYMBOL-SINGLE-TIMEFRAME-FIXTURE",
+            "MTP-106-SCENARIO-REPLAY-EVIDENCE-VALIDATION",
+            "MTP-107-REPORT-INPUT-VERSIONING"
+        ])
+        XCTAssertTrue(reportInput.versionIdentity.contains("fnv1a64:3c6cd4ff13cd4062"))
+        XCTAssertTrue(reportInput.versionIdentity.contains("accepted"))
+        XCTAssertTrue(reportInput.reportInputBoundaryHeld)
+        XCTAssertTrue(evidence.reportReproducibilityEvidenceHeld)
+        XCTAssertTrue(evidence.evidenceBoundaryHeld)
+        XCTAssertFalse(evidence.containsForbiddenCapabilityText([
+            "signed endpoint",
+            "account endpoint",
+            "listenKey",
+            "broker fill",
+            "real order",
+            "live command",
+            "trading button",
+            "sqlite",
+            "duckdb"
+        ]))
+
+        let encodedReportInput = try JSONEncoder().encode(reportInput)
+        XCTAssertEqual(
+            try JSONDecoder().decode(ScenarioReportInputVersion.self, from: encodedReportInput),
+            reportInput
+        )
+        var tamperedReportInput = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encodedReportInput) as? [String: Any]
+        )
+        tamperedReportInput["scenarioID"] = "mtp-107-tampered-scenario"
+        let tamperedReportInputData = try JSONSerialization.data(withJSONObject: tamperedReportInput)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(ScenarioReportInputVersion.self, from: tamperedReportInputData)
+        ) { error in
+            guard case .dataCatalogScenarioReplayContractMismatch(
+                field: "scenarioReportInputVersion",
+                expected: _,
+                actual: _
+            ) = error as? CoreError else {
+                XCTFail("Expected scenarioReportInputVersion contract mismatch, got \(error)")
+                return
+            }
+        }
+    }
+
+    func testMTP107ScenarioDataQualityRejectsBadFixtureChecksumMissingAndDuplicateData() throws {
+        // 测试场景：MTP-107 的 bad fixture、checksum mismatch、missing data 和 duplicate data
+        // 只会被标记为 rejected quality verdict，不触发自动修复、真实网络下载或生产数据观测。
+        let badFixture = try ScenarioDataQualityGateEvaluation(
+            observedOrderedRecordStarts: [1_704_067_260, 1_704_067_200, 1_704_067_320],
+            observedRecordCount: 2,
+            observedChecksum: "fnv1a64:0000000000000000",
+            missingRecordSequences: [2],
+            duplicateRecordSequences: [3]
+        )
+
+        XCTAssertEqual(badFixture.qualityVerdict, .rejected)
+        XCTAssertFalse(badFixture.acceptedForReportInput)
+        XCTAssertEqual(
+            badFixture.gates.map { "\($0.kind.rawValue)=\($0.verdict.rawValue)" },
+            [
+                "record order=rejected",
+                "window coverage=rejected",
+                "checksum match=rejected",
+                "freshness status=passed",
+                "missing data=rejected",
+                "duplicate data=rejected"
+            ]
+        )
+        XCTAssertTrue(badFixture.qualitySummary.contains("checksum match=rejected"))
+        XCTAssertTrue(badFixture.qualitySummary.contains("missing data=rejected"))
+        XCTAssertTrue(badFixture.qualitySummary.contains("duplicate data=rejected"))
+
+        let rejectedReportInput = try ScenarioReportInputVersion(qualityEvaluation: badFixture)
+        XCTAssertEqual(rejectedReportInput.qualityVerdict, .rejected)
+        XCTAssertTrue(rejectedReportInput.versionIdentity.contains("rejected"))
+
+        XCTAssertThrowsError(
+            try ScenarioDataQualityGateEvaluation(missingRecordSequences: [2, 2])
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayContractMismatch(
+                    field: "scenarioDataQuality.missingRecordSequences",
+                    expected: "sorted unique sequence list",
+                    actual: "2,2"
+                )
+            )
+        }
+    }
+
+    func testMTP107ScenarioDataQualityMarksStaleEvidenceAndRejectsForbiddenBypass() throws {
+        // 测试场景：stale freshness 可以进入 marked report input version，expired / not retained 会 rejected；
+        // Codable 和初始化必须拒绝生产观测、自动下载修复、schema、broker、Live 和交易按钮绕过。
+        let staleEvaluation = try ScenarioDataQualityGateEvaluation(observedFreshnessStatus: .stale)
+        XCTAssertEqual(staleEvaluation.qualityVerdict, .marked)
+        XCTAssertTrue(staleEvaluation.qualitySummary.contains("freshness status=marked"))
+
+        let staleReportInput = try ScenarioReportInputVersion(qualityEvaluation: staleEvaluation)
+        XCTAssertEqual(staleReportInput.qualityVerdict, .marked)
+        XCTAssertTrue(staleReportInput.versionIdentity.contains("marked"))
+
+        let expiredEvaluation = try ScenarioDataQualityGateEvaluation(observedFreshnessStatus: .expired)
+        XCTAssertEqual(expiredEvaluation.qualityVerdict, .rejected)
+        XCTAssertTrue(expiredEvaluation.qualitySummary.contains("freshness status=rejected"))
+
+        XCTAssertThrowsError(
+            try ScenarioDataQualityGateEvaluation(performsAutomaticDownload: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability("scenarioDataQuality.performsAutomaticDownload")
+            )
+        }
+        XCTAssertThrowsError(
+            try ScenarioReportInputVersion(exposesDatabaseSchema: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability("scenarioReportInputVersion.exposesDatabaseSchema")
+            )
+        }
+        XCTAssertThrowsError(
+            try ScenarioDataQualityReportInputEvidence(connectsBroker: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability(
+                    "scenarioDataQualityReportInputEvidence.connectsBroker"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(ScenarioDataQualityReportInputEvidence.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["providesTradingButton"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(ScenarioDataQualityReportInputEvidence.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability(
+                    "scenarioDataQualityReportInputEvidence.providesTradingButton"
+                )
+            )
+        }
+    }
+
     private func makeOrderBookImbalanceInputs() throws -> [OrderBookReadModelInput] {
         let symbol = try Symbol(rawValue: "BTCUSDT")
         let bidDominant = OrderBookReadModelInput(
