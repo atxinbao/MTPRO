@@ -8507,6 +8507,120 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testMTP101PaperAccountPortfolioPositionProjectionDerivesDeterministicSnapshotFromReplay() throws {
+        // 测试场景：MTP-101 只能从 replayed simulated fill evidence 派生 paper account、
+        // portfolio、position、exposure 和 PnL snapshot，不能直接读取 risk decision 或真实账户。
+        let (messageBus, publication) = try PaperSimulatedFillFixture.publishedPartialAndFullFills()
+        let replay = messageBus.replay(
+            EventReplayCommand(
+                range: try EventSequenceRange(lowerBound: 1, upperBound: messageBus.envelopes.count),
+                streams: [.paper]
+            )
+        )
+        let snapshot = try PaperAccountPortfolioProjectionV2Path.project(
+            from: replay,
+            snapshotID: try Identifier("mtp-101-paper-account-portfolio-snapshot"),
+            accountID: try Identifier("mtp-101-paper-account"),
+            portfolioID: try Identifier("mtp-101-paper-portfolio"),
+            startingCashBalance: 10_000,
+            projectedAt: Date(timeIntervalSince1970: 6_100)
+        )
+        let expectedGross = publication.fills.reduce(0) { $0 + $1.grossNotional }
+        let expectedCost = publication.fills.reduce(0) { $0 + $1.costImpactAmount }
+        let expectedQuantity = publication.fills.reduce(0) { $0 + $1.filledQuantity.rawValue }
+        let lastFillPrice = try XCTUnwrap(publication.fills.last?.fillPrice.rawValue)
+        let expectedMarketValue = expectedQuantity * lastFillPrice
+        let expectedNetPnL = expectedMarketValue - expectedGross - expectedCost
+
+        XCTAssertEqual(snapshot.snapshotID, try Identifier("mtp-101-paper-account-portfolio-snapshot"))
+        XCTAssertEqual(snapshot.portfolioID, try Identifier("mtp-101-paper-portfolio"))
+        XCTAssertEqual(snapshot.sourceFillIDs, publication.fills.map(\.fillID))
+        XCTAssertEqual(snapshot.sourceSequences, [1, 2])
+        XCTAssertEqual(snapshot.positions.count, 1)
+        XCTAssertEqual(snapshot.exposures.count, 1)
+        XCTAssertTrue(snapshot.usesReplayedSimulatedFillEvidence)
+        XCTAssertTrue(snapshot.paperOnlyBoundaryHeld)
+        XCTAssertFalse(snapshot.readsRealAccountBalance)
+        XCTAssertFalse(snapshot.syncsBrokerPosition)
+        XCTAssertFalse(snapshot.usesMargin)
+        XCTAssertFalse(snapshot.usesLeverage)
+        XCTAssertFalse(snapshot.representsRealAccountState)
+        XCTAssertFalse(snapshot.updatesLiveRiskRuntime)
+
+        let account = snapshot.account
+        XCTAssertEqual(account.accountID, try Identifier("mtp-101-paper-account"))
+        XCTAssertEqual(account.startingCashBalance, 10_000, accuracy: 0.00000001)
+        XCTAssertEqual(account.cashBalance, 10_000 - expectedGross - expectedCost, accuracy: 0.00000001)
+        XCTAssertEqual(account.availablePaperBalance, account.cashBalance, accuracy: 0.00000001)
+        XCTAssertEqual(account.positionMarketValue, expectedMarketValue, accuracy: 0.00000001)
+        XCTAssertEqual(account.equity, account.cashBalance + expectedMarketValue, accuracy: 0.00000001)
+        XCTAssertEqual(account.pnlSummary.netPaperPnL, expectedNetPnL, accuracy: 0.00000001)
+
+        let position = try XCTUnwrap(snapshot.positions.first)
+        XCTAssertEqual(position.positionID, try Identifier("mtp-101-paper-portfolio-BTCUSDT-1m-paper-position"))
+        XCTAssertEqual(position.netQuantity.rawValue, expectedQuantity, accuracy: 0.00000001)
+        XCTAssertEqual(position.lastFillPrice.rawValue, lastFillPrice, accuracy: 0.00000001)
+        XCTAssertEqual(position.marketValue, expectedMarketValue, accuracy: 0.00000001)
+        XCTAssertEqual(position.costBasisNotional, expectedGross, accuracy: 0.00000001)
+        XCTAssertEqual(position.totalCostImpactAmount, expectedCost, accuracy: 0.00000001)
+        XCTAssertEqual(position.unrealizedPaperPnL, expectedNetPnL, accuracy: 0.00000001)
+        XCTAssertTrue(position.paperOnlyBoundaryHeld)
+
+        let encoded = try JSONEncoder().encode(snapshot)
+        let decoded = try JSONDecoder().decode(PaperAccountPortfolioProjectionV2Snapshot.self, from: encoded)
+        XCTAssertEqual(decoded, snapshot)
+    }
+
+    func testMTP101PaperAccountPortfolioProjectionRejectsRealAccountBrokerMarginLeverageBypass() throws {
+        // 测试场景：MTP-101 Codable payload 不能恢复真实账户余额、broker position、margin /
+        // leverage、real PnL 或 live risk runtime 语义。
+        let snapshot = try PaperAccountPortfolioProjectionV2Fixture.deterministicSnapshot()
+        let encoded = try JSONEncoder().encode(snapshot)
+        let decoder = JSONDecoder()
+
+        var accountBypassObject = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        var account = try XCTUnwrap(accountBypassObject["account"] as? [String: Any])
+        account["readsRealAccountBalance"] = true
+        accountBypassObject["account"] = account
+        let accountBypassData = try JSONSerialization.data(withJSONObject: accountBypassObject)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperAccountPortfolioProjectionV2Snapshot.self, from: accountBypassData)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .paperPortfolioProjectionForbiddenCapability("readsRealAccountBalance"))
+        }
+
+        var positionBypassObject = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        var positions = try XCTUnwrap(positionBypassObject["positions"] as? [[String: Any]])
+        positions[0]["syncsBrokerPosition"] = true
+        positionBypassObject["positions"] = positions
+        let positionBypassData = try JSONSerialization.data(withJSONObject: positionBypassObject)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperAccountPortfolioProjectionV2Snapshot.self, from: positionBypassData)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .paperPortfolioProjectionForbiddenCapability("syncsBrokerPosition"))
+        }
+
+        var pnlBypassObject = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        var pnlSummary = try XCTUnwrap(pnlBypassObject["pnlSummary"] as? [String: Any])
+        pnlSummary["representsRealPnL"] = true
+        pnlBypassObject["pnlSummary"] = pnlSummary
+        let pnlBypassData = try JSONSerialization.data(withJSONObject: pnlBypassObject)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperAccountPortfolioProjectionV2Snapshot.self, from: pnlBypassData)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .paperPortfolioProjectionForbiddenCapability("representsRealPnL"))
+        }
+
+        var liveRuntimeObject = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        liveRuntimeObject["updatesLiveRiskRuntime"] = true
+        let liveRuntimeData = try JSONSerialization.data(withJSONObject: liveRuntimeObject)
+        XCTAssertThrowsError(
+            try decoder.decode(PaperAccountPortfolioProjectionV2Snapshot.self, from: liveRuntimeData)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .paperPortfolioProjectionForbiddenCapability("updatesLiveRiskRuntime"))
+        }
+    }
+
     private func makeOrderBookImbalanceInputs() throws -> [OrderBookReadModelInput] {
         let symbol = try Symbol(rawValue: "BTCUSDT")
         let bidDominant = OrderBookReadModelInput(

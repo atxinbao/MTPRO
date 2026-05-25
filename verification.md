@@ -10451,3 +10451,51 @@ Root docs 判断：
 | `swift test --filter MTP100` | pass | 3 个 MTP-100 focused Core tests 通过，0 failures；覆盖 deterministic full / partial cost evidence、simulated fill Event Log / Replay evidence、broker fill / execution report / reconciliation / real account update bypass rejection。 |
 | `bash checks/automation-readiness.sh` | pass | MTP-100 contract / matrix / validation plan / domain context / latest summary / Core source / focused test anchors 均通过机械检查。 |
 | `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；Swift tests 219 个通过、0 failures；最终输出 `MTPRO checks passed.`。 |
+
+## MTP-101 Paper Account / Portfolio / Position Projection v2
+
+日期：2026-05-26
+
+执行者：Codex
+
+目的：
+
+- 从 replayed simulated fill、fee 和 slippage evidence 推导 paper account、portfolio、position、exposure 和 paper PnL projection v2。
+- 保持 projection 输入只来自 `.paper.simulatedFillRecorded` replay facts，不直接读取 risk decision、Runtime object、SQLite schema、adapter payload、真实账户或 broker state。
+- 将 account / position / PnL snapshot 通过 Persistence runtime projection 和 App read model 暴露给 Report / Dashboard / Risk / Portfolio。
+
+文件范围：
+
+- 新增 `Sources/Core/PaperAccountPortfolioProjectionV2.swift`，定义 `PaperAccountProjectionSnapshot`、`PaperPositionProjectionSnapshot`、`PaperPortfolioPnLSummary`、`PaperAccountPortfolioProjectionV2Snapshot`、`PaperAccountPortfolioProjectionV2Path` 和 MTP-101 fixture。
+- 更新 `Sources/Core/DomainEvents.swift` 和 `Sources/Core/PaperSessionReplay.swift`，新增 v2 portfolio projection event 和 replay summary support。
+- 更新 `Sources/Persistence/Persistence.swift`，新增 paper account / position / PnL runtime projection 字段。
+- 更新 `Sources/App/App.swift`、`Sources/App/DashboardShell.swift` 和 `Sources/App/PaperWorkflowEvidenceExplorer.swift`，让 Report / Dashboard / Risk / Portfolio 只通过 read model / ViewModel 消费 v2 snapshot。
+- 更新 `Tests/CoreTests/CoreTests.swift` 和 `Tests/AppTests/AppTests.swift`，新增 MTP-101 focused tests。
+- 更新 `docs/contracts/paper-runtime-kernel-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh`。
+- 更新 `.codex/context-scan.json`、`.codex/structured-request.json`、`.codex/operations-log.md`、`.codex/testing.md` 和 `.codex/review-report.md` 作为本地 handoff evidence，不进入 PR。
+
+关键结论：
+
+- `PaperAccountPortfolioProjectionV2Path` 只消费 replay result 中的 `.paper.simulatedFillRecorded` facts。
+- `PaperAccountProjectionSnapshot` 固定 cash、available paper balance、position market value 和 equity。
+- `PaperPositionProjectionSnapshot` 固定 net quantity、average entry、last fill price、market value、cost basis 和 unrealized paper PnL。
+- `PaperPortfolioPnLSummary` 固定 fee、slippage、cost impact、realized / unrealized / net paper PnL。
+- Persistence / App / Dashboard 只消费 read model / ViewModel，不暴露 schema、Runtime object、adapter request 或命令面。
+
+边界确认：
+
+- 不修改 Linear status。
+- 不启动下一阶段 `symphony-issue`。
+- 不读取 secrets / credentials。
+- 不接 signed endpoint、account endpoint、listenKey。
+- 不连接 broker，不执行 broker action。
+- 不实现真实账户余额读取、broker position sync、margin、leverage、real PnL、live risk runtime、real account update、OMS、broker router、真实 order lifecycle、真实 submit / cancel / replace、Live PRO Console、position command、live command、order form 或交易按钮。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP101` | pass | 3 个 MTP-101 focused tests 通过，0 failures；覆盖 replayed simulated fill -> account / portfolio / position / exposure / PnL projection deterministic、Codable forbidden capability bypass rejection，以及 Report / Dashboard / Risk / Portfolio read model consumption。 |
+| `bash checks/automation-readiness.sh` | pass | MTP-101 contract / matrix / validation plan / domain context / latest summary / Core/App source / focused test anchors 均通过机械检查。 |
+| `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；Swift tests 222 个通过、0 failures；最终输出 `MTPRO checks passed.`。 |

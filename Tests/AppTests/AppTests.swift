@@ -1154,6 +1154,74 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(viewModel.events.streams, ["portfolio"])
     }
 
+    func testMTP101PaperAccountPortfolioProjectionReadModelFeedsReportRiskPortfolioAndDashboard() throws {
+        // 测试场景：MTP-101 v2 projection 进入 App 层后，Report / Risk / Portfolio / Dashboard
+        // 都只能消费 runtime read model，不能读取 schema、Runtime object、broker 或真实账户。
+        let (messageBus, publication) = try PaperSimulatedFillFixture.publishedPartialAndFullFills()
+        let replay = messageBus.replay(
+            EventReplayCommand(
+                range: try EventSequenceRange(lowerBound: 1, upperBound: messageBus.envelopes.count),
+                streams: [.paper]
+            )
+        )
+        let snapshot = try PaperAccountPortfolioProjectionV2Path.project(
+            from: replay,
+            snapshotID: try Identifier("mtp-101-paper-account-portfolio-snapshot"),
+            accountID: try Identifier("mtp-101-paper-account"),
+            portfolioID: try Identifier("mtp-101-paper-portfolio"),
+            startingCashBalance: 10_000,
+            projectedAt: Date(timeIntervalSince1970: 6_100)
+        )
+        let portfolioEnvelope = try EventEnvelope(
+            sequence: 3,
+            stream: .portfolio,
+            recordedAt: Date(timeIntervalSince1970: 6_101),
+            event: .portfolio(.paperAccountPortfolioProjectionUpdated(snapshot))
+        )
+        let eventTimeline = messageBus.envelopes + [portfolioEnvelope]
+        let runtimeProjection = SQLiteRuntimeProjectionStore.project(eventTimeline)
+        let readModel = DashboardReadModel(
+            runtimeProjection: runtimeProjection,
+            analyticalProjection: try makeAnalyticalProjection(),
+            eventTimeline: eventTimeline
+        )
+        let viewModel = DashboardViewModel(readModel: readModel)
+        let expectedGross = publication.fills.reduce(0) { $0 + $1.grossNotional }
+        let expectedCost = publication.fills.reduce(0) { $0 + $1.costImpactAmount }
+        let expectedQuantity = publication.fills.reduce(0) { $0 + $1.filledQuantity.rawValue }
+        let expectedMarketValue = expectedQuantity * (try XCTUnwrap(publication.fills.last?.fillPrice.rawValue))
+        let expectedNetPnL = expectedMarketValue - expectedGross - expectedCost
+
+        XCTAssertTrue(viewModel.portfolio.source.isReadModelOnly)
+        XCTAssertEqual(viewModel.portfolio.portfolioIDs, ["mtp-101-paper-portfolio"])
+        XCTAssertEqual(viewModel.portfolio.paperAccountCount, 1)
+        XCTAssertEqual(viewModel.portfolio.paperPositionCount, 1)
+        XCTAssertEqual(viewModel.portfolio.exposureCount, 1)
+        XCTAssertEqual(viewModel.portfolio.totalPaperEquity, 10_000 + expectedNetPnL, accuracy: 0.00000001)
+        XCTAssertEqual(viewModel.portfolio.totalNetPaperPnL, expectedNetPnL, accuracy: 0.00000001)
+        XCTAssertEqual(viewModel.portfolio.totalGrossExposureNotional, expectedMarketValue, accuracy: 0.00000001)
+        XCTAssertEqual(viewModel.portfolio.paperAccounts.map(\.accountID), ["mtp-101-paper-account"])
+        XCTAssertEqual(viewModel.portfolio.paperPositions.map(\.positionID), [
+            "mtp-101-paper-portfolio-BTCUSDT-1m-paper-position"
+        ])
+
+        XCTAssertTrue(viewModel.risk.source.isReadModelOnly)
+        XCTAssertEqual(viewModel.risk.paperAccountIDs, ["mtp-101-paper-account"])
+        XCTAssertEqual(viewModel.risk.paperPositionCount, 1)
+        XCTAssertEqual(viewModel.risk.paperAvailableBalance, 10_000 - expectedGross - expectedCost, accuracy: 0.00000001)
+
+        XCTAssertEqual(viewModel.report.paperAccountIDs, ["mtp-101-paper-account"])
+        XCTAssertEqual(viewModel.report.paperPositionCount, 1)
+        XCTAssertEqual(viewModel.report.paperNetPnL, expectedNetPnL, accuracy: 0.00000001)
+        XCTAssertEqual(viewModel.report.portfolioExposureEvidenceCount, 1)
+        XCTAssertEqual(viewModel.report.portfolioExposureSymbols, ["BTCUSDT"])
+
+        let shell = DashboardShellSnapshot(viewModel: viewModel)
+        let portfolioSection = try XCTUnwrap(shell.sections.first { $0.section == .portfolio })
+        XCTAssertEqual(metricValue("Positions", in: portfolioSection), "1")
+        XCTAssertEqual(viewModel.events.streams, ["paper", "portfolio"])
+    }
+
     @MainActor
     func testDashboardShellSnapshotBindsViewModelSectionsForReadOnlyMacOSShell() throws {
         // 测试场景：macOS 看板壳必须把现有 DashboardViewModel 快照绑定到八个只读区域，

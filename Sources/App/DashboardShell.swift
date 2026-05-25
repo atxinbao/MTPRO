@@ -897,10 +897,13 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 DashboardShellMetric(label: "Portfolios", value: "\(viewModel.portfolioIDs.count)"),
                 DashboardShellMetric(label: "Updated", value: "\(viewModel.updatedPortfolioCount)"),
                 DashboardShellMetric(label: "Exposures", value: "\(viewModel.exposureCount)"),
+                DashboardShellMetric(label: "Positions", value: "\(viewModel.paperPositionCount)"),
+                DashboardShellMetric(label: "Paper PnL", value: format(viewModel.totalNetPaperPnL)),
                 DashboardShellMetric(label: "Gross exposure", value: format(viewModel.totalGrossExposureNotional))
             ],
             details: [
                 "Portfolio IDs: \(joined(viewModel.portfolioIDs))",
+                "Paper accounts: \(joined(viewModel.paperAccounts.map(\.accountID)))",
                 "Exposure symbols: \(joined(viewModel.exposures.map(\.symbol)))",
                 "Last sequence: \(format(viewModel.lastAppliedSequence))"
             ]

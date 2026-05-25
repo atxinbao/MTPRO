@@ -339,7 +339,7 @@ Matrix anchor：`TVM-PAPER-RUNTIME-KERNEL`。
 
 - 不实现 simulated fill / fee / slippage model。
 - 不实现 paper account / portfolio projection v2。
-- 不新增 App / Dashboard surface。
+- 不新增 order-level App / Dashboard command surface；只允许 MTP-101 read model / ViewModel evidence。
 - 不实现 OMS、broker router、真实 order lifecycle、真实 submit / cancel / replace、execution report、broker fill 或 reconciliation。
 - 不新增单笔 order cancel button、order-level command UI、live command、order form 或交易按钮。
 - 不读取 secret、API key、account endpoint、listenKey、broker state、真实账户或 production runtime。
@@ -434,9 +434,80 @@ Required validation：
 
 Matrix anchor：`TVM-PAPER-RUNTIME-KERNEL`。
 
-## MTP-100 后仍禁止
+## MTP-101 Paper Account / Portfolio / Position Projection v2
 
-- 不实现 paper account / portfolio / position projection v2。
+MTP-101 在 MTP-100 replayed simulated fill evidence 之后新增 paper account / portfolio /
+position projection v2：
+
+- `PaperAccountPortfolioProjectionV2Path` 只能从 `EventReplayResult` 中的
+  `.paper.simulatedFillRecorded` facts 派生 projection。
+- `PaperAccountProjectionSnapshot` 固定 cash、available paper balance、position market value、
+  equity 和 source fill sequence。
+- `PaperPositionProjectionSnapshot` 固定 symbol / timeframe、net quantity、average entry、last fill
+  price、market value、cost basis 和 unrealized paper PnL。
+- `PaperPortfolioPnLSummary` 固定 fee、slippage、cost impact、realized / unrealized / net paper PnL。
+- `PaperAccountPortfolioProjectionV2Snapshot` 是 Persistence / App / Dashboard 可消费的稳定 read model
+  source；Workbench 仍只消费 Read Model / ViewModel。
+
+## MTP-101-PAPER-ACCOUNT-PORTFOLIO-POSITION-PROJECTION
+
+Projection v2 必须同时输出 paper account、portfolio、position、exposure 和 PnL summary。所有数值
+只能来自 replayed simulated fills、fee / slippage cost impact 和本地 sandbox starting cash。
+
+## MTP-101-REPLAYED-SIMULATED-FILL-PROJECTION
+
+Projection v2 的输入必须是 replay result；不得直接从 risk decision、Runtime object、SQLite schema、
+adapter payload、broker state 或真实账户读取数据。source fill IDs 和 source sequences 必须进入 snapshot。
+
+## MTP-101-PAPER-PNL-SNAPSHOT
+
+Paper PnL 只表示本地 sandbox 账本：`netPaperPnL = realizedPaperPnL + unrealizedPaperPnL`，其中 unrealized
+paper PnL 基于本地 position market value、cost basis 和 simulated fill cost impact 推导。
+
+## MTP-101-READ-MODEL-CONSUMPTION
+
+Persistence 只能保存 Core snapshot 派生的 SQLite runtime projection；App / Dashboard / Report / Risk /
+Portfolio 只能消费 read model / ViewModel，不暴露 database schema、Runtime object、adapter request 或命令面。
+
+## MTP-101-NO-REAL-ACCOUNT-BROKER-MARGIN-LEVERAGE
+
+MTP-101 forbidden capability flags 必须全部保持 false：
+
+- `readsRealAccountBalance`
+- `syncsBrokerPosition`
+- `usesMargin`
+- `usesLeverage`
+- `representsRealAccountState`
+- `representsBrokerPosition`
+- `representsRealPnL`
+- `updatesLiveRiskRuntime`
+
+## MTP-101-PAPER-ACCOUNT-PORTFOLIO-VALIDATION
+
+Validation 必须覆盖：
+
+- replay -> projection deterministic。
+- account cash / equity / available paper balance 稳定 snapshot。
+- position quantity / average entry / market value / PnL summary 稳定 snapshot。
+- App read model 可被 Report / Dashboard / Risk / Portfolio 消费。
+- Codable decode 不能恢复真实账户、broker position、margin、leverage、real PnL 或 live risk runtime。
+- `bash checks/run.sh` 仍是最终 gate。
+
+Core anchors：
+
+- `Sources/Core/PaperAccountPortfolioProjectionV2.swift`
+  - `PaperAccountProjectionSnapshot`
+  - `PaperPositionProjectionSnapshot`
+  - `PaperPortfolioPnLSummary`
+  - `PaperAccountPortfolioProjectionV2Snapshot`
+  - `PaperAccountPortfolioProjectionV2Path`
+  - `PaperAccountPortfolioProjectionV2Fixture`
+
+Matrix anchor：`TVM-PAPER-RUNTIME-KERNEL`。
+
+## MTP-101 后仍禁止
+
+- 不实现 Event Log / Replay / Report / Dashboard evidence stage closeout。
 - 不新增 App / Dashboard surface。
 - 不实现 broker fill、execution report parser、真实 fee statement、真实成交质量分析、live reconciliation 或 real account update。
 - 不实现 OMS、broker router、真实 order lifecycle、真实 submit / cancel / replace、Live PRO Console、live command、order form 或交易按钮。

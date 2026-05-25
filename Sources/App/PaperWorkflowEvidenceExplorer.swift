@@ -916,6 +916,29 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
                     )
                 ]
             )
+        case let .portfolio(.paperAccountPortfolioProjectionUpdated(snapshot)):
+            return PaperWorkflowEventTimelineItem(
+                section: .portfolioProjection,
+                sequence: envelope.sequence,
+                occurredAt: envelope.recordedAt,
+                stream: envelope.stream.rawValue,
+                title: "Paper account portfolio projection",
+                summary: "\(snapshot.snapshotID.rawValue) positions=\(snapshot.positions.count)",
+                evidenceLinks: [
+                    PaperWorkflowEvidenceLinkSummary(
+                        section: .portfolioProjection,
+                        evidenceID: snapshot.snapshotID.rawValue,
+                        label: "account portfolio projection",
+                        sourceSequence: envelope.sequence
+                    ),
+                    PaperWorkflowEvidenceLinkSummary(
+                        section: .simulatedFill,
+                        evidenceID: snapshot.sourceFillIDs.map(\.rawValue).joined(separator: ","),
+                        label: "replayed simulated fills",
+                        sourceSequence: snapshot.sourceSequences.first ?? envelope.sequence
+                    )
+                ]
+            )
         case let .portfolio(.exposureUpdated(exposure)):
             return PaperWorkflowEventTimelineItem(
                 section: .portfolioProjection,

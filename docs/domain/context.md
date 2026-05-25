@@ -121,6 +121,28 @@ MTP-99 的 local lifecycle evidence 不得升级为 OMS、broker adapter、real 
 
 MTP-100 的 simulated fill evidence 不得升级为 broker fill、execution report、真实 fee statement、真实成交质量分析、live reconciliation、real account balance update、signed endpoint、account endpoint、broker action、Live PRO Console、live command、order form 或交易按钮。
 
+`MTP-101-PAPER-ACCOUNT-PORTFOLIO-PROJECTION-TERMS`
+
+以下术语由 MTP-101 定义为 `MTPRO Event-Driven Paper Trading Runtime v1` 的 paper account /
+portfolio / position projection v2 language。它们只用于 replayed simulated fill -> projection ->
+read model 的本地 sandbox 账本，不授权真实账户、broker position、margin、leverage、real PnL、
+live risk runtime、Live PRO Console、live command 或交易按钮。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `paper account projection v2` | 从 replayed simulated fill、fee / slippage cost impact 和 starting cash 推导的本地 sandbox account snapshot | 不等于 real account balance、account endpoint payload 或 broker statement |
+| `paper position projection v2` | 从 replayed simulated fills 聚合 symbol / timeframe net quantity、average entry、last fill price、market value 和 cost basis | 不等于 broker position、margin position、leverage position 或真实持仓同步 |
+| `paper portfolio projection v2` | 组合 account、positions、exposures 和 PnL summary 的 MTP-101 read model source | 不等于真实 portfolio、OMS state、broker sync 或 Live fallback |
+| `paper PnL summary` | 基于本地 simulated fill cost impact、position market value 和 cost basis 的 realized / unrealized / net paper PnL | 不等于 real PnL、fee statement、margin PnL 或税务 / 对账结果 |
+| `replayed simulated fill projection` | projection 只能从 Event Log replay result 中的 `.paper.simulatedFillRecorded` facts 派生 | 不直接读取 risk decision、Runtime object、SQLite schema、adapter payload、broker state 或真实账户 |
+| `MTP-101 read model consumption` | Persistence / App / Dashboard / Report / Risk / Portfolio 只能消费 read model / ViewModel | 不暴露 database schema、Runtime object、adapter request、position command 或交易按钮 |
+
+`MTP-101-NO-REAL-ACCOUNT-BROKER-MARGIN-LEVERAGE`
+
+MTP-101 的 paper account / portfolio / position projection v2 不得升级为真实账户余额、broker
+position sync、margin、leverage、real PnL、live risk runtime、account endpoint、signed endpoint、
+broker action、Live PRO Console、live command、order form、position command 或交易按钮。
+
 ## Live Boundary Terms
 
 以下术语只用于 Future / gated 实盘边界设计和当前 blocked evidence，不授权当前 scope 实现真实交易能力。

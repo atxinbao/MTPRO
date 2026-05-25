@@ -142,6 +142,8 @@ public enum PortfolioEvent: Codable, Equatable, Sendable {
     case projectionRequested(PortfolioQuery)
     /// MTP-34 paper-only update 来自 allowed risk decision，只驱动本地 projection，不同步真实账户。
     case paperProjectionUpdated(PaperPortfolioProjectionUpdate)
+    /// MTP-101 v2 snapshot 来自 replayed simulated fill evidence，只表达本地 sandbox 账本。
+    case paperAccountPortfolioProjectionUpdated(PaperAccountPortfolioProjectionV2Snapshot)
     case exposureUpdated(PortfolioExposureSnapshot)
 }
 
