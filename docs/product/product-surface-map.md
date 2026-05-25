@@ -945,3 +945,28 @@ v3 设计重点：
 - Figma 修改、SwiftUI 实现、组件库实现或业务代码开发。
 - Linear Project / Issue、Todo 推进、Symphony 启动或 Future Live trading execution scope。
 - Live PRO Console 当前可实现授权、实盘操作台授权、真实账户 / 真实订单 / broker / OMS / emergency stop 能力。
+
+## MTPRO Reference Alignment & Product Gap Map v1
+
+日期：2026-05-25
+
+执行者：Codex
+
+当前产品层新增 `MTPRO Reference Alignment & Product Gap Map v1`，路径为 `docs/product/mtpro-reference-alignment-gap-map-v1.md`。该文档在 Final Product Goal Progress 达到 `9 / 9 (100%)` 后，对齐参考项目 `atxinbao/nautilus_trader`，把 MTPRO 当前 Workbench baseline 与成熟交易系统参考之间的产品、架构、体验和发布差距画成 product gap map。
+
+该文档是产品层 reference alignment / gap map，不是 UI 设计稿、SwiftUI 实现稿、Linear execution 授权或 Live PRO Console planning。
+
+对标结论：
+
+- MTPRO v1 当前完成的是 local-first macOS Workbench 的 contract / evidence / design baseline，不是 NautilusTrader 级别的 production trading engine。
+- NautilusTrader 的主要参考价值在 engine runtime、research / simulation / live parity、多 venue adapters、OMS / risk / execution、reconciliation、release operations 和 examples。
+- MTPRO 的当前优势在 macOS native Workbench、business dashboard、read-model evidence、Paper-only controls、Future Live boundaries 和 Workbench / Live PRO Console 产品面分离。
+- 推荐下一阶段优先 `Workbench Productization v1`，其次才是 `Release / Beta Readiness v1` 和非 live-runtime 的 `Engine Parity Hardening v1`。
+- `Future Live PRO Console` 仍必须等待新的 Human decision、独立 Project Definition 和 signed / account / broker / risk / ops gates。
+
+仍不包含：
+
+- Linear Project / Issue 创建、Todo 推进或 Symphony 启动。
+- Graphify update、Figma 修改、SwiftUI implementation 或业务代码开发。
+- NautilusTrader runtime dependency 或整仓代码复制。
+- signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、submit / cancel / replace、live risk engine、reconciliation runtime、incident replay runtime、emergency stop、shutdown、restore、production operations、Live PRO Console 或实盘操作台授权。

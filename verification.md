@@ -9908,3 +9908,59 @@ Root docs 判断：
 | --- | --- | --- |
 | `git diff --check` | pass | Root Docs Refresh Gate docs-only PR 创建前执行；无 whitespace / patch error 输出。 |
 | `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`；204 个 XCTest 通过、0 failures，最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO Reference Alignment & Product Gap Map v1
+
+日期：2026-05-25
+
+执行者：Codex
+
+目的：
+
+- 在 Final Product Goal Progress 达到 `9 / 9 (100%)` 后，对齐参考项目 `atxinbao/nautilus_trader`，识别 MTPRO 当前 Workbench baseline 与成熟交易系统参考之间的产品、架构、体验和发布差距。
+- 画出 Workbench Productization、Release / Beta Readiness、Engine Parity Hardening 和 Future Live PRO Console 的依赖图和推进顺序。
+- 输出产品层 reference alignment / gap map，作为下一阶段 Human + `@001 / PLN` 规划输入。
+
+参考快照：
+
+- Reference project：`https://github.com/atxinbao/nautilus_trader`。
+- Clone path：`/tmp/mtpro-reference-nautilus`。
+- Snapshot：`develop` commit `6e059dc Improve Blockchain snapshot fail-closed path`。
+- 读取依据：`README.md`、`ROADMAP.md`、`ADAPTERS.md`、`RELEASES.md`、`docs/concepts/architecture.md`、`docs/concepts/backtesting.md`、`docs/concepts/execution.md`、`docs/concepts/live.md`、`docs/concepts/event_sourcing.md`、`examples/backtest/*` 和 `examples/live/*`。
+
+文件范围：
+
+- `docs/product/mtpro-reference-alignment-gap-map-v1.md`
+- `docs/product/product-surface-map.md`
+- `BLUEPRINT.md`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+关键结论：
+
+- MTPRO v1 当前完成的是 local-first macOS Workbench 的 contract / evidence / design baseline，不是 NautilusTrader 级别的 production trading engine。
+- NautilusTrader 的主要参考价值在 engine runtime、research / simulation / live parity、多 venue adapters、OMS / risk / execution、reconciliation、release operations 和 examples。
+- MTPRO 的当前优势在 macOS native Workbench、business dashboard、read-model evidence、Paper-only controls、Future Live boundaries 和 Workbench / Live PRO Console 产品面分离。
+- 推荐下一阶段优先 `Workbench Productization v1`，其次为 `Release / Beta Readiness v1` 和非 live-runtime 的 `Engine Parity Hardening v1`。
+- `Future Live PRO Console` 仍必须等待新的 Human decision、独立 Project Definition 和 signed / account / broker / risk / ops gates。
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 `Todo`。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / `symphony-issue`。
+- 不运行 Graphify update。
+- 不修改 Figma。
+- 不写业务代码。
+- 不引入 NautilusTrader 作为 runtime dependency。
+- 不复制 NautilusTrader 整仓代码。
+- 不授权 Future Live trading、Live PRO Console、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、submit / cancel / replace、live risk engine、reconciliation runtime、incident replay runtime、emergency stop、shutdown、restore 或 production operations。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Reference alignment gap map docs-only PR 创建前执行；无 whitespace / patch error 输出。 |
+| `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 保持 read-model-only / workbenchReadModelOnly；204 个 XCTest 通过、0 failures，最终输出 `MTPRO checks passed.`。 |
