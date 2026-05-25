@@ -10614,3 +10614,53 @@ L1 Paper Runtime maturity statement：
 - 不写业务代码。
 - 不提交 `.codex/*` 或 `graphify-out/*`。
 - 不授权 signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
+
+## MTPRO Data Catalog / Scenario Replay v1 planning record
+
+日期：2026-05-26
+
+执行者：Codex
+
+目的：
+
+- 将 Human 确认的 `MTPRO Data Catalog / Scenario Replay v1` planning draft 落仓为 docs-only Project Planning Record。
+- 记录 Target Engines、Target maturity、Project goal、scope、non-goals、Issue 4 / Issue 5 拆分判断、issue order、dependencies、validation requirements、evidence requirements、first executable issue candidate、WIP=1、Linear write boundary、repository record boundary 和 Parent Codex queue preflight rule。
+- 更新 planning index、latest verification summary 和 `BLUEPRINT.md` 的轻量引用。
+
+文件范围：
+
+- 新增 `docs/planning/projects/mtpro-data-catalog-scenario-replay-v1-plan.md`。
+- 更新 `docs/planning/linear-draft-plan.md`，增加 planning record 索引并切换当前 Project planning record 指向。
+- 更新 `docs/validation/latest-verification-summary.md`，记录该 planning record 已落仓但不授权 implementation。
+- 更新 `BLUEPRINT.md`，增加该 planning record 引用和当前 handoff 状态。
+- 更新 `verification.md`，追加本节。
+
+关键结论：
+
+- `MTPRO Data Catalog / Scenario Replay v1` 的 Target Engines 为 Data Engine、State & Persistence Engine 和 Workbench Interface。
+- Target maturity 为 `L1.5 -> L2 prerequisite`，只表示为后续 `Simulated Exchange / Backtest Parity v1`、Workbench beta demo path 和 report reproducibility 建立 local-first、deterministic、versioned scenario replay 数据地基。
+- Issue 4 replay window / cursor / checksum / freshness evidence 与 Issue 5 data quality gates / report input versioning 已明确拆分，避免单个 PR 同时扩张 Data Engine、Persistence 和 Report surface。
+- 该 planning record 只保存 Project 级计划摘要和格式门槛，不复制维护完整 Linear issue body 或完整 candidate issue 正文。
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / `symphony-issue`。
+- 不运行 Graphify update。
+- 不写业务代码。
+- 不修改 Figma。
+- 不实现 Data Catalog。
+- 不实现 Scenario Replay。
+- 不实现 Simulated Exchange / Backtest Parity。
+- 不实现 signed endpoint、account endpoint / listenKey、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position、Live PRO Console、trading button 或 live command。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Data Catalog / Scenario Replay planning record docs-only edits 后执行；新 planning record 已通过 intent-to-add 纳入检查范围，无 whitespace / patch error 输出。 |
+| `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 保持 read-model-only / workbenchReadModelOnly；223 个 XCTest 通过、0 failures，最终输出 `MTPRO checks passed.`。 |

@@ -71,6 +71,7 @@
 | `docs/product/mtpro-core-engine-architecture-module-maturity-map-v1.md` | 产品 / 架构层 Core Engine Architecture & Module Maturity Map，把 MTPRO 与 `nautilus_trader` 的模块成熟度差距归入 Domain Model、System Kernel、Connectivity / Adapter、Data、Strategy、Analysis / Research、Simulation / Backtest、Risk、Execution、Portfolio、State & Persistence、Workbench Interface 和 Future Live PRO Console；不授权执行 |
 | `docs/product/mtpro-paper-trading-runtime-foundation-blueprint-v1.md` | 产品 / 架构层 paper-only runtime foundation 蓝图，定义 Paper Order Lifecycle、Local Order Manager / paper lifecycle coordinator、Simulated Fill、Fee / Slippage、Paper Account / Portfolio、Paper Risk 和 replay / dashboard evidence 地图；包含非授权 Event-Driven Paper Trading Runtime 候选方向，不授权执行 |
 | `docs/planning/projects/mtpro-event-driven-paper-trading-runtime-v1-plan.md` | 写入 Linear 前的 Project Planning Record，承接 Paper Trading Runtime Foundation Blueprint，只记录 event-driven paper runtime 的 Project 级计划摘要和格式门槛，不授权执行 |
+| `docs/planning/projects/mtpro-data-catalog-scenario-replay-v1-plan.md` | 写入 Linear 前的 Project Planning Record，规划 Data Engine / State & Persistence Engine / Workbench Interface 的 local-first scenario replay 数据地基；不授权执行 |
 | `docs/audit/mtpro-event-driven-paper-trading-runtime-v1-stage-code-audit.md` | `MTPRO Event-Driven Paper Trading Runtime v1` 的 canonical Stage Code Audit Report，记录 `MTP-96` 至 `MTP-102` 已完成、Linear Project `Completed/type=completed`、L1 Paper Runtime evidence chain、validation、Root Docs Delta 和 forbidden capability audit |
 | `docs/design/mtpro-workbench-screen-layout-v1.md` | 设计层 screen layout 依据，承接产品用户动线和交互模型，定义 macOS 工作台页面区域、信息优先级和禁止动作 |
 | `docs/design/mtpro-workbench-ui-ux-design-rules-v1.md` | 设计层 UI/UX rules 依据，承接 Screen Layout v1，定义 macOS native 工作台视觉方向、状态表达、evidence components 和禁止 UI 表面 |
@@ -417,6 +418,8 @@ Live trading 是最终产品目标的一部分，但不是当前 execution scope
 
 后续所有 Project Draft 必须对齐 `MTPRO Core Engine Architecture & Module Maturity Map v1`：说明补的是哪个 Engine / Layer、目标 maturity level、当前 evidence、允许施工范围、forbidden capabilities 和 validation anchors。`MTPRO Event-Driven Paper Trading Runtime v1` 已完成 paper-only L1 起点，不等于完整交易系统，也不授权 Live PRO Console。
 
+`docs/planning/projects/mtpro-data-catalog-scenario-replay-v1-plan.md` 已记录 `MTPRO Data Catalog / Scenario Replay v1` 的写入 Linear 前 planning record。该记录只保存 Project 级计划摘要、issue order、dependencies、validation、evidence、first executable issue candidate、WIP=1 和边界；它不创建 Linear Project / Issue，不推进 Todo，不启动 `@002 / PAR`、Symphony 或 Graphify，不修改 Figma，不写业务代码，不实现 Data Catalog、Scenario Replay、Simulated Exchange / Backtest Parity、signed endpoint、account endpoint / listenKey、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position、Live PRO Console、trading button 或 live command。
+
 ### Future Construction Zones / 未来建设区
 
 Future Construction Zones / 未来建设区指完整产品蓝图里明确需要但当前不施工的长期能力区。它们可以被蓝图描述，但不能自动变成当前 Project、Linear issue 或执行授权。
@@ -485,7 +488,7 @@ Human confirms blueprint
 -> Todo
 ```
 
-当前 handoff 状态：Human confirmed next scope、Current Construction Scope selected for next Project、Next Project Planning、Linear write 和 `@002 / PAR` authorization 均为 pending / no。
+当前 handoff 状态：Human confirmed next scope 和 Project Planning Record 已完成到 `MTPRO Data Catalog / Scenario Replay v1`；Linear write、`@002 / PAR` authorization、Project execution 和 `Todo` promotion 均为 pending / no。
 
 ## Blueprint Update Rule
 
