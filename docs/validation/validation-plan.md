@@ -1709,3 +1709,40 @@ MTP-95 必须建立的主要 anchors：
 - 不读取 API key、secret、真实账户、broker state 或 production runtime state。
 - 不接 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不实现 audit trail runtime、incident replay runtime、broker replay runtime、account replay runtime、production recovery runtime、stop control runtime、production operations runtime、Live PRO Console、live command、stop button、order form、交易按钮、emergency stop command、shutdown command 或 restore command。
+
+## MTP-96 TradingClock / Paper Runtime Kernel Boundary Validation
+
+日期：2026-05-25
+
+执行者：Codex
+
+MTP-96 的 required validation：
+
+- `docs/contracts/paper-runtime-kernel-contract.md` 必须包含 `MTP-96-TRADING-CLOCK-DETERMINISTIC-TIME`、`MTP-96-PAPER-RUNTIME-KERNEL-BOUNDARY`、`MTP-96-PAPER-ONLY-KERNEL-EVENTS`、`MTP-96-NO-UI-STATE-OR-PERSISTENCE-SCHEMA`、`MTP-96-NO-LIVE-SIGNED-BROKER-RUNTIME` 和 `MTP-96-PAPER-RUNTIME-KERNEL-VALIDATION` anchors。
+- `Sources/Core/PaperRuntimeKernelBoundary.swift` 必须定义 `TradingClock`、`TradingClockTick`、`PaperRuntimeKernelBoundary`、`PaperRuntimeKernelLifecycleState`、`PaperRuntimeKernelInputKind` 和 `PaperRuntimeKernelOutputKind`，并保持这些类型只表达 Core paper-only boundary。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-96 focused tests，验证 deterministic TradingClock、paper-only kernel fixture、forbidden signed/account/listenKey/broker/LiveExecutionAdapter/OMS/live command/trading button、以及 no UI state / no persistence schema。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-PAPER-RUNTIME-KERNEL` 和 MTP-96 issue backfill。
+- `docs/domain/context.md` 必须包含 `MTP-96-PAPER-RUNTIME-KERNEL-TERMS`。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-96 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-96 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不实现 CommandBus / EventBus / MessageBus、Paper RiskEngine、paper lifecycle coordinator、simulated fill、paper account projection、signed endpoint、account endpoint、listenKey、broker action、`LiveExecutionAdapter`、OMS、real order lifecycle、live command 或交易按钮。
+
+MTP-96 必须建立的主要 anchors：
+
+- `TVM-PAPER-RUNTIME-KERNEL`
+- `MTP-96-TRADING-CLOCK-DETERMINISTIC-TIME`
+- `MTP-96-PAPER-RUNTIME-KERNEL-BOUNDARY`
+- `MTP-96-PAPER-ONLY-KERNEL-EVENTS`
+- `MTP-96-NO-UI-STATE-OR-PERSISTENCE-SCHEMA`
+- `MTP-96-NO-LIVE-SIGNED-BROKER-RUNTIME`
+- `MTP-96-PAPER-RUNTIME-KERNEL-VALIDATION`
+
+## MTP-96 禁止
+
+- 不实现真实 live runtime、production scheduler、exchange clock 或 broker session clock。
+- 不实现 CommandBus / EventBus / MessageBus routing。
+- 不实现 Paper Pre-trade RiskEngine runtime path、paper lifecycle coordinator、simulated fill / fee / slippage model 或 paper account / portfolio projection v2。
+- 不接 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、真实 submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不暴露 UI state、Runtime object、Adapter object、SQLite / DuckDB schema 或 broker object。
+- 不新增 Live PRO Console、live command、order-level command UI、order form、交易按钮或真实交易授权。

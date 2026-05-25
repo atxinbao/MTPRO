@@ -10162,3 +10162,50 @@ Root docs 判断：
 | --- | --- | --- |
 | `git diff --check` | pass | Module Maturity Development Plan docs-only edits 后执行；无 whitespace / patch error 输出。 |
 | `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 保持 read-model-only / workbenchReadModelOnly；204 个 XCTest 通过、0 failures，最终输出 `MTPRO checks passed.`。 |
+
+## MTP-96 TradingClock / Paper Runtime Kernel Boundary
+
+日期：2026-05-25
+
+执行者：Codex
+
+目的：
+
+- 建立 paper-only `TradingClock` 与 `PaperRuntimeKernelBoundary` 的 Core 合同。
+- 明确 paper runtime kernel 的 deterministic 时间来源、session / command intake、event emission、replay 和 module boundary 不变量。
+- 为后续 MTP-97 至 MTP-102 的 CommandBus / EventBus / MessageBus、Paper RiskEngine、paper lifecycle coordinator、simulated fill、paper account / portfolio projection 和 evidence closeout 提供基础 fixture / validation anchors。
+
+文件范围：
+
+- 新增 `Sources/Core/PaperRuntimeKernelBoundary.swift`。
+- 更新 `Sources/Core/CoreError.swift`。
+- 更新 `Tests/CoreTests/CoreTests.swift`，新增 MTP-96 focused tests。
+- 新增 `docs/contracts/paper-runtime-kernel-contract.md`。
+- 更新 `docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh`。
+- 更新 `.codex/context-scan.json`、`.codex/context-question-1.json`、`.codex/operations-log.md` 和 `.codex/testing.md` 作为本地 handoff evidence，不进入 PR。
+
+关键结论：
+
+- `TradingClock` 只接受 deterministic fixture / replay tick，拒绝 wall clock；tick sequence 必须从 1 开始连续，replay tick 必须绑定本地 event log source sequence。
+- `PaperRuntimeKernelBoundary` 只允许 paper / local / replay input，输出只允许 paper event envelope、replay result 和 paper projection trigger，event streams 固定为 `.paper` / `.replay`。
+- `PaperRuntimeKernelBoundary` 不暴露 UI state、persistence schema 或 adapter object。
+- forbidden capability flags 全部固定为 `false`，Codable 解码绕过会被拒绝。
+- 本 issue 只定义 Core boundary，不实现 Runtime target 编排，不实现 CommandBus / EventBus / Paper RiskEngine / lifecycle coordinator / simulated fill / account projection。
+
+边界确认：
+
+- 不修改 Linear status。
+- 不启动下一阶段 `symphony-issue`。
+- 不读取 secrets / credentials。
+- 不接 signed endpoint、account endpoint、listenKey。
+- 不连接 broker，不执行 broker action。
+- 不实现 `LiveExecutionAdapter`、OMS、real order lifecycle、真实 submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、live command 或交易按钮。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP96` | pass | 3 个 MTP-96 focused tests 通过，0 failures。 |
+| `bash checks/automation-readiness.sh` | pass | MTP-96 contract / matrix / validation plan / domain context / latest summary / Core source / focused test anchors 均通过机械检查。 |
+| `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；Swift tests 207 个通过、0 failures；最终输出 `MTPRO checks passed.`。 |

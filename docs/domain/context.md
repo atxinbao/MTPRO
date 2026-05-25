@@ -46,6 +46,21 @@
 | `Report Artifact` | 汇总 research / backtest / paper / risk / event evidence 的研究输出 | 不授权真实交易 |
 | `Event Timeline` | read-model-only 的 evidence 浏览视图 | 不做完整查询语言，不暴露 persistence |
 
+## Paper Runtime Kernel Terms
+
+`MTP-96-PAPER-RUNTIME-KERNEL-TERMS`
+
+以下术语由 MTP-96 定义为 `MTPRO Event-Driven Paper Trading Runtime v1` 的第一层 paper-only runtime foundation language。它们只用于 TradingClock、paper runtime kernel boundary、validation anchor 和后续 issue 的基础合同，不授权当前 scope 实现 CommandBus / EventBus / Paper RiskEngine / lifecycle coordinator / simulated fill / paper account projection。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `TradingClock` | paper runtime kernel 的 deterministic tick 来源，只允许 fixture / replay tick | 不等于 exchange clock、broker session clock、production scheduler 或 `Date()` wall clock |
+| `TradingClockTick` | 本地 paper runtime 可消费的 tick fact，带 monotonic sequence 和 deterministic instant | 不等于 market sequence、broker sequence 或真实调度游标 |
+| `paper runtime kernel boundary` | Core 层 value contract，固定 paper kernel 输入、输出、lifecycle、event stream 和 forbidden capability flags | 不等于 Runtime actor、生产调度服务、UI state 或 persistence schema |
+| `paper command intake` | 允许进入 kernel boundary 的 paper / local / replay 输入类别，例如 paper session command、session local control、paper action proposal、paper execution decision 和 replay command | 不等于 live command、order form、real submit / cancel / replace 或 broker request |
+| `paper event emission` | kernel boundary 允许输出的 `.paper` event envelope、replay result 或后续 projection trigger | 不等于 adapter payload、broker acknowledgement、database schema 或 Dashboard ViewModel |
+| `kernel replay invariant` | replay 只能从 append-only event log facts 重建 deterministic evidence | 不等于 production recovery、broker replay、account replay 或 incident replay runtime |
+
 ## Live Boundary Terms
 
 以下术语只用于 Future / gated 实盘边界设计和当前 blocked evidence，不授权当前 scope 实现真实交易能力。

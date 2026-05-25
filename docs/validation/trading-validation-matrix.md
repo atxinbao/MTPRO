@@ -239,7 +239,26 @@ MTP-53 对 Paper Workflow Control Shell v1 的本地控制壳、可观察性、D
 - `TVM-LIVE-MONITORING-CONSOLE`
 - `TVM-LIVE-EXECUTION-CONTROL`
 - `TVM-LIVE-RISK-GATE`
+- `TVM-PAPER-RUNTIME-KERNEL`
 - `TVM-FUTURE-ISSUE-BACKFILL`
+
+## MTP-96 Event-Driven Paper Runtime 候选矩阵入口
+
+日期：2026-05-25
+
+执行者：Codex
+
+MTP-96 定义 `TVM-PAPER-RUNTIME-KERNEL` 的第一层 coverage：TradingClock deterministic 时间来源、paper runtime kernel 输入输出、lifecycle、paper-only event streams、no UI state / no persistence schema 和 forbidden live / signed / broker runtime flags。MTP-97 至 MTP-102 后续只能在该 boundary 内回填 bus routing、paper risk、lifecycle、simulated fill、projection 和 stage closeout，不得把 kernel boundary 扩大为 live runtime 或真实交易入口。
+
+| Candidate Matrix ID | 验证域 | 当前 coverage 入口 | 验收证据边界 | 后续回填责任 |
+| --- | --- | --- | --- | --- |
+| `TVM-PAPER-RUNTIME-KERNEL` | TradingClock deterministic time、paper runtime kernel boundary、paper command intake、paper event emission、replay invariant、module boundary 和 forbidden capability baseline | `docs/contracts/paper-runtime-kernel-contract.md` 的 MTP-96 anchors；`Sources/Core/PaperRuntimeKernelBoundary.swift` 中的 `TradingClock`、`TradingClockTick`、`PaperRuntimeKernelBoundary`、`PaperRuntimeKernelLifecycleState`、`PaperRuntimeKernelInputKind`、`PaperRuntimeKernelOutputKind`；`Tests/CoreTests/CoreTests.swift` 中的 `testMTP96TradingClockDefinesDeterministicReplayTicks`、`testMTP96PaperRuntimeKernelBoundaryDefinesPaperOnlyFixture` 和 `testMTP96PaperRuntimeKernelBoundaryRejectsLiveSignedBrokerSchemaAndClockBypass`。 | 证据覆盖 deterministic fixture / replay tick、monotonic tick sequence、allowed inputs / outputs、`.paper` / `.replay` streams、lifecycle states、validation anchors、Codable decode forbidden capability rejection、no UI state、no persistence schema、no adapter object、no signed endpoint、no account endpoint、no listenKey、no broker、no `LiveExecutionAdapter`、no OMS、no real order lifecycle、no real submit / cancel / replace、no live command、no trading button。 | MTP-96 只定义 boundary。MTP-97 负责 CommandBus / EventBus / MessageBus routing；MTP-98 负责 Paper RiskEngine runtime path；MTP-99 负责 lifecycle coordinator；MTP-100 负责 simulated fill / fee / slippage；MTP-101 负责 paper account / portfolio projection；MTP-102 负责 Event Log / Replay / Report / Dashboard evidence 和 stage audit input material。 |
+
+## MTP-96 issue backfill
+
+| Issue | Matrix ID | 回填说明 |
+| --- | --- | --- |
+| `MTP-96` | `TVM-PAPER-RUNTIME-KERNEL` | 已定义 Core 层 `TradingClock` 与 `PaperRuntimeKernelBoundary` deterministic fixture，固定 paper runtime 的时间、session、command intake、event emission、replay 和 module boundary anchors；不实现 live runtime、CommandBus / EventBus / MessageBus、Paper RiskEngine、paper lifecycle coordinator、simulated fill、paper account projection、signed endpoint、account endpoint、listenKey、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、真实 submit / cancel / replace、Live PRO Console、live command 或交易按钮。 |
 
 ## MTP-75 Live Execution Control 候选矩阵入口
 
