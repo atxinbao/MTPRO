@@ -9918,8 +9918,8 @@ Root docs 判断：
 目的：
 
 - 在 Final Product Goal Progress 达到 `9 / 9 (100%)` 后，对齐参考项目 `atxinbao/nautilus_trader`，识别 MTPRO 当前 Workbench baseline 与成熟交易系统参考之间的产品、架构、体验和发布差距。
-- 画出 Workbench Productization、Release / Beta Readiness、Engine Parity Hardening 和 Future Live PRO Console 的依赖图和推进顺序。
-- 输出产品层 reference alignment / gap map，作为下一阶段 Human + `@001 / PLN` 规划输入。
+- 补充 Product Surface Map、Engineering Capability Map、Maturity Gap Map 和 Non-authorization Boundary Map。
+- 输出产品层 reference alignment / gap map，作为现有地图补充材料；本轮不生成下一阶段 Project Draft。
 
 参考快照：
 
@@ -9941,7 +9941,7 @@ Root docs 判断：
 - MTPRO v1 当前完成的是 local-first macOS Workbench 的 contract / evidence / design baseline，不是 NautilusTrader 级别的 production trading engine。
 - NautilusTrader 的主要参考价值在 engine runtime、research / simulation / live parity、多 venue adapters、OMS / risk / execution、reconciliation、release operations 和 examples。
 - MTPRO 的当前优势在 macOS native Workbench、business dashboard、read-model evidence、Paper-only controls、Future Live boundaries 和 Workbench / Live PRO Console 产品面分离。
-- 推荐下一阶段优先 `Workbench Productization v1`，其次为 `Release / Beta Readiness v1` 和非 live-runtime 的 `Engine Parity Hardening v1`。
+- 当前重点是补现有地图，不急于推进下一阶段任务；`Workbench Productization`、`Release / Beta Readiness` 和 `Engine Parity Hardening` 只作为差距地图分区标签。
 - `Future Live PRO Console` 仍必须等待新的 Human decision、独立 Project Definition 和 signed / account / broker / risk / ops gates。
 
 边界确认：

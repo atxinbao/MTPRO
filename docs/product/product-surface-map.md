@@ -961,7 +961,8 @@ v3 设计重点：
 - MTPRO v1 当前完成的是 local-first macOS Workbench 的 contract / evidence / design baseline，不是 NautilusTrader 级别的 production trading engine。
 - NautilusTrader 的主要参考价值在 engine runtime、research / simulation / live parity、多 venue adapters、OMS / risk / execution、reconciliation、release operations 和 examples。
 - MTPRO 的当前优势在 macOS native Workbench、business dashboard、read-model evidence、Paper-only controls、Future Live boundaries 和 Workbench / Live PRO Console 产品面分离。
-- 推荐下一阶段优先 `Workbench Productization v1`，其次才是 `Release / Beta Readiness v1` 和非 live-runtime 的 `Engine Parity Hardening v1`。
+- 当前重点是补现有地图：Product Surface Map Delta、Engineering Capability Map Delta、Maturity Gap Map Delta 和 Non-authorization Boundary Map。
+- `Workbench Productization`、`Release / Beta Readiness` 和 `Engine Parity Hardening` 只作为差距地图分区标签，不是当前 Project Draft。
 - `Future Live PRO Console` 仍必须等待新的 Human decision、独立 Project Definition 和 signed / account / broker / risk / ops gates。
 
 仍不包含：
