@@ -1818,3 +1818,43 @@ MTP-98 必须建立的主要 anchors：
 - 不实现 OMS、real order lifecycle、真实 submit / cancel / replace、execution report、broker fill 或 reconciliation。
 - 不实现 paper lifecycle coordinator、simulated fill / fee / slippage model 或 paper account / portfolio projection v2。
 - 不把 paper risk blocker、paper exposure 或 paper account snapshot 升级为 future live risk decision、真实账户 exposure、broker position、risk command、live command UI、order form、交易按钮或真实交易授权。
+
+## MTP-99 Paper-only Lifecycle Coordinator / Local Order Lifecycle Validation
+
+日期：2026-05-25
+
+执行者：Codex
+
+MTP-99 的 required validation：
+
+- `docs/contracts/paper-runtime-kernel-contract.md` 必须包含 `MTP-99-PAPER-ONLY-LIFECYCLE-COORDINATOR`、`MTP-99-LOCAL-ORDER-LIFECYCLE-STATES`、`MTP-99-LIFECYCLE-TRANSITION-EVENT-FACTS`、`MTP-99-SIMULATED-FILL-PRECONDITION`、`MTP-99-NO-OMS-BROKER-REAL-CANCEL` 和 `MTP-99-PAPER-LIFECYCLE-COORDINATOR-VALIDATION` anchors。
+- `Sources/Core/PaperOrderLifecycleCoordinator.swift` 必须定义 `PaperOrderLocalLifecycleState`、`PaperOrderLocalLifecycleTransition`、`PaperOrderLocalLifecycleCoordinator`、`PaperOrderLocalLifecyclePublication`、`PaperOrderSimulatedFillPrecondition` 和 deterministic fixture。
+- `PaperOrderLocalLifecycleCoordinator` 必须消费 MTP-98 `PaperPreTradeRiskEngineDecision`，accepted path 产生 `proposed -> submittedLocal -> acceptedLocal`，rejected path 产生 `proposed -> rejectedByPaperRisk`。
+- 每个 transition 必须通过 `PaperEvent.orderLocalLifecycleTransitionRecorded` 写入 `.paper` stream，并可由 Event Log / Replay 重建 route evidence。
+- `cancelledLocal` 只能来自 session close / reset、local expiry 或 deterministic local rule；不得新增单笔 order cancel button 或 real cancel command。
+- `PaperOrderSimulatedFillPrecondition` 只能从 `acceptedLocal` 生成，且不生成 simulated fill / fee / slippage。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-99 focused tests，验证 deterministic accepted / rejected lifecycle、transition event facts、replay evidence、simulated fill precondition，以及 OMS / broker / real order state machine / real cancel / order-level command UI bypass 均被拒绝。
+- `docs/domain/context.md` 必须包含 `MTP-99-PAPER-LOCAL-LIFECYCLE-TERMS`。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-99 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-99 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-99 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不实现 OMS、broker router、真实 order lifecycle、真实 submit / cancel / replace、execution report、broker fill、reconciliation、single-order cancel UI、order-level command UI、live command 或交易按钮。
+
+MTP-99 必须建立的主要 anchors：
+
+- `TVM-PAPER-RUNTIME-KERNEL`
+- `MTP-99-PAPER-ONLY-LIFECYCLE-COORDINATOR`
+- `MTP-99-LOCAL-ORDER-LIFECYCLE-STATES`
+- `MTP-99-LIFECYCLE-TRANSITION-EVENT-FACTS`
+- `MTP-99-SIMULATED-FILL-PRECONDITION`
+- `MTP-99-NO-OMS-BROKER-REAL-CANCEL`
+- `MTP-99-PAPER-LIFECYCLE-COORDINATOR-VALIDATION`
+
+## MTP-99 禁止
+
+- 不实现 simulated fill / fee / slippage model 或 paper account / portfolio projection v2。
+- 不实现 OMS、broker router、真实 order lifecycle、真实 submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不新增单笔 order cancel button、order-level command UI、order form、live command、Live PRO Console 或交易按钮。
+- 不接 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不读取真实账户余额、broker position、margin、leverage、真实 PnL 或 equity。
+- 不把 `acceptedLocal` 写成 exchange accepted、broker submitted、broker accepted 或真实执行授权。

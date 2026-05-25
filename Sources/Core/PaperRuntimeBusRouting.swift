@@ -41,6 +41,7 @@ public enum PaperRuntimeRoutePayloadKind: String, Codable, CaseIterable, Equatab
     case paperLifecycleStarted
     case paperLifecycleUpdated
     case paperLifecycleClosed
+    case paperOrderLocalLifecycleTransition
     case simulatedFillRecorded
 }
 
@@ -140,10 +141,12 @@ public enum PaperRuntimeRouteInput: Codable, Equatable, Sendable {
             .paperLifecycleUpdated
         case .sessionClosed:
             .paperLifecycleClosed
+        case .orderLocalLifecycleTransitionRecorded:
+            .paperOrderLocalLifecycleTransition
         default:
             throw CoreError.paperRuntimeBusRoutingMismatch(
                 field: "paperLifecycleEvent",
-                expected: "sessionStarted/sessionUpdated/sessionClosed",
+                expected: "sessionStarted/sessionUpdated/sessionClosed/orderLocalLifecycleTransitionRecorded",
                 actual: event.routeDebugName
             )
         }
@@ -863,6 +866,20 @@ private enum PaperRuntimeRouteClassifier {
                 stream: .paper,
                 event: .paper(event)
             )
+        case let .orderLocalLifecycleTransitionRecorded(transition):
+            guard transition.paperOnlyBoundaryHeld else {
+                throw CoreError.paperRuntimeBusRoutingMismatch(
+                    field: "paperOrderLocalLifecycleTransition.paperOnlyBoundaryHeld",
+                    expected: "true",
+                    actual: "false"
+                )
+            }
+            return PaperRuntimeRoutePayload(
+                source: .paperLifecycleEvent,
+                payloadKind: .paperOrderLocalLifecycleTransition,
+                stream: .paper,
+                event: .paper(event)
+            )
         case let .simulatedFillRecorded(fill):
             guard fill.paperOnlyBoundaryHeld else {
                 throw CoreError.paperRuntimeBusRoutingMismatch(
@@ -880,7 +897,7 @@ private enum PaperRuntimeRouteClassifier {
         default:
             throw CoreError.paperRuntimeBusRoutingMismatch(
                 field: "paperEvent",
-                expected: "sessionRequested/sessionStarted/sessionUpdated/sessionClosed/simulatedFillRecorded",
+                expected: "sessionRequested/sessionStarted/sessionUpdated/sessionClosed/orderLocalLifecycleTransitionRecorded/simulatedFillRecorded",
                 actual: event.routeDebugName
             )
         }
@@ -962,6 +979,8 @@ private extension PaperEvent {
             "executionDecisionRecorded"
         case .orderIntentRecorded:
             "orderIntentRecorded"
+        case .orderLocalLifecycleTransitionRecorded:
+            "orderLocalLifecycleTransitionRecorded"
         case .simulatedFillRecorded:
             "simulatedFillRecorded"
         case .sessionRequested:

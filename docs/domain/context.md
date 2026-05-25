@@ -87,6 +87,23 @@
 | `PaperPreTradeRiskEnginePublication` | MTP-98 rejected decision 经 MTP-97 routing 写入 `MessageBus` 后的 route evidence 与 replay evidence 对照 | 不暴露 Runtime object、Persistence schema、adapter object、broker acknowledgement 或 UI command |
 | `paper risk no live account / broker upgrade` | paper risk blocker、paper exposure 和 paper account snapshot 必须保持本地 sandbox 语义 | 不得升级为真实账户 exposure、broker position、margin / leverage、real pre-trade allow / reject、future live risk decision 或交易按钮 |
 
+`MTP-99-PAPER-LOCAL-LIFECYCLE-TERMS`
+
+以下术语由 MTP-99 定义为 `MTPRO Event-Driven Paper Trading Runtime v1` 的 paper-only local lifecycle language。它们只用于本地 lifecycle coordinator、local order transition fact、simulated fill 前置状态、Event Log / Replay evidence 和 validation anchors，不授权当前 scope 实现 OMS、broker router、真实 order lifecycle、真实 submit / cancel / replace、execution report、broker fill、reconciliation、单笔 order cancel button、order-level command UI、Live PRO Console、live command 或交易按钮。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `paper-only lifecycle coordinator` | Core 层本地 paper lifecycle value orchestration，消费 MTP-98 accepted / rejected paper risk decision 并输出 local lifecycle transition fact | 不叫 OMS，不等于 broker router、execution engine、真实订单状态机或 Runtime actor |
+| `PaperOrderLocalLifecycleState` | 本地 paper order lifecycle 状态集合：proposed、submitted local、accepted local、rejected by paper risk、cancelled local、expired local、failed local | 不等于 exchange accepted、broker submitted、broker filled、真实 cancel 或真实 rejected |
+| `PaperOrderLocalLifecycleTransition` | 写入 `.paper` stream 的 append-only local lifecycle transition fact，带 order、proposal、risk decision、from / to state、trigger 和 source sequence | 不暴露 broker acknowledgement、execution report、Persistence schema 或 UI command |
+| `cancelled local` | 只能来自 session close / reset、local expiry 或 deterministic local rule 的本地取消结果 | 不等于用户单笔撤单、broker cancel、exchange cancel 或 real cancel command |
+| `accepted local` | 本地 deterministic rule 下满足 simulated fill 前置条件的状态 | 不等于 exchange accepted、broker accepted、真实订单可成交或执行授权 |
+| `PaperOrderSimulatedFillPrecondition` | 证明 accepted local 已写入 event fact、后续 MTP-100 可以消费的 simulated fill 前置证据 | 不生成 simulated fill，不计算 fee / slippage，不表示 broker fill、execution report 或 reconciliation |
+
+`MTP-99-NO-OMS-BROKER-REAL-CANCEL`
+
+MTP-99 的 local lifecycle evidence 不得升级为 OMS、broker adapter、real order state machine、真实 submit / cancel / replace、execution report、broker fill、reconciliation、单笔 order cancel button、order-level command UI、live command、order form 或交易按钮。
+
 ## Live Boundary Terms
 
 以下术语只用于 Future / gated 实盘边界设计和当前 blocked evidence，不授权当前 scope 实现真实交易能力。

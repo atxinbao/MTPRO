@@ -242,11 +242,105 @@ Required validation：
 
 Matrix anchor：`TVM-PAPER-RUNTIME-KERNEL`。
 
-## MTP-98 后仍禁止
+## MTP-99 Paper-only Lifecycle Coordinator / Local Order Lifecycle
 
-- 不实现 paper lifecycle coordinator。
+MTP-99 在 MTP-96 kernel boundary、MTP-97 bus routing 和 MTP-98 paper risk decision 基础上新增 paper-only lifecycle coordinator：
+
+- `PaperOrderLocalLifecycleCoordinator` 只消费 accepted / rejected paper risk decision。
+- accepted path 产生 `proposed -> submittedLocal -> acceptedLocal` deterministic local lifecycle。
+- rejected path 产生 `proposed -> rejectedByPaperRisk` deterministic local lifecycle。
+- `cancelledLocal` 只能来自 session close / reset、local expiry 或 deterministic local rule。
+- `acceptedLocal` 只是 `PaperOrderSimulatedFillPrecondition` 的前置状态，不是 exchange accepted。
+- 每个 transition 都以 `PaperEvent.orderLocalLifecycleTransitionRecorded` 写入 `.paper` stream，并可由 Event Log / Replay 重建 route evidence。
+
+该 coordinator 不是 OMS，不连接 broker，不提交 / 撤销 / 替换真实订单，不提供单笔 order cancel button 或 order-level command UI。
+
+## MTP-99-PAPER-ONLY-LIFECYCLE-COORDINATOR
+
+`PaperOrderLocalLifecycleCoordinator` 必须保持 Core value orchestration：
+
+- 输入只来自 `PaperPreTradeRiskEngineDecision`。
+- 输出只包含 local lifecycle transition fact。
+- event publication 必须复用 MTP-97 `PaperRuntimeMessageBusRouting`。
+- 不启动 Runtime actor，不读取 Persistence schema，不读取 Adapter object。
+
+## MTP-99-LOCAL-ORDER-LIFECYCLE-STATES
+
+MTP-99 local lifecycle state 只允许：
+
+- `proposed`
+- `submittedLocal`
+- `acceptedLocal`
+- `rejectedByPaperRisk`
+- `cancelledLocal`
+- `expiredLocal`
+- `failedLocal`
+
+这些 state 都是 paper / local 语义，不是真实 exchange / broker order lifecycle。
+
+## MTP-99-LIFECYCLE-TRANSITION-EVENT-FACTS
+
+每个 lifecycle transition 必须有 append-only event fact：
+
+- `PaperOrderLocalLifecycleTransition` 保存 order、proposal、risk decision、from / to state、trigger、source sequence 和 validation anchors。
+- `PaperEvent.orderLocalLifecycleTransitionRecorded` 是 `.paper` stream fact。
+- `PaperOrderLocalLifecyclePublication.routeEvidence` 必须与 replay 后的 `replayEvidence` 完全一致。
+- route evidence 的 source 必须是 `.paperLifecycleEvent`，payload kind 必须是 `.paperOrderLocalLifecycleTransition`。
+
+## MTP-99-SIMULATED-FILL-PRECONDITION
+
+`PaperOrderSimulatedFillPrecondition` 只能在 local state 为 `acceptedLocal` 时生成：
+
+- 它只说明后续 MTP-100 simulated fill 可以消费该 local lifecycle evidence。
+- 它不生成 fill，不计算 fee / slippage，不读取 market snapshot。
+- 它不表示 broker fill、execution report 或 reconciliation。
+
+## MTP-99-NO-OMS-BROKER-REAL-CANCEL
+
+MTP-99 forbidden capability flags 必须全部保持 false：
+
+- `implementsOMS`
+- `connectsBroker`
+- `implementsRealOrderStateMachine`
+- `submitsRealOrder`
+- `cancelsRealOrder`
+- `replacesRealOrder`
+- `consumesExecutionReport`
+- `recordsBrokerFill`
+- `performsReconciliation`
+- `providesRealCancelCommand`
+- `providesOrderLevelCommandUI`
+- `providesLiveCommand`
+- `providesTradingButton`
+
+Codable 解码不得绕过这些不变量；任何 true flag 都必须被 `CoreError.paperOrderLocalLifecycleForbiddenCapability` 拒绝。
+
+## MTP-99-PAPER-LIFECYCLE-COORDINATOR-VALIDATION
+
+Required validation：
+
+- `bash checks/run.sh`
+- `swift test --filter MTP99`
+- `Tests/CoreTests/CoreTests.swift` 必须包含：
+  - `testMTP99PaperOrderLocalLifecycleCoordinatorProducesDeterministicAcceptedRejectedTransitions`
+  - `testMTP99LifecycleTransitionsPublishEventFactsAndReplayEvidence`
+  - `testMTP99LifecycleCoordinatorRejectsOMSBrokerRealOrderCancelAndInvalidTransitions`
+- `Sources/Core/PaperOrderLifecycleCoordinator.swift` 必须包含：
+  - `PaperOrderLocalLifecycleState`
+  - `PaperOrderLocalLifecycleTransition`
+  - `PaperOrderLocalLifecycleCoordinator`
+  - `PaperOrderLocalLifecyclePublication`
+  - `PaperOrderSimulatedFillPrecondition`
+  - `PaperOrderLocalLifecycleCoordinatorFixture`
+
+Matrix anchor：`TVM-PAPER-RUNTIME-KERNEL`。
+
+## MTP-99 后仍禁止
+
 - 不实现 simulated fill / fee / slippage model。
 - 不实现 paper account / portfolio projection v2。
 - 不新增 App / Dashboard surface。
+- 不实现 OMS、broker router、真实 order lifecycle、真实 submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不新增单笔 order cancel button、order-level command UI、live command、order form 或交易按钮。
 - 不读取 secret、API key、account endpoint、listenKey、broker state、真实账户或 production runtime。
 - 不修改 Linear status，不创建下一 Project / Issue，不启动下一阶段 `symphony-issue`。

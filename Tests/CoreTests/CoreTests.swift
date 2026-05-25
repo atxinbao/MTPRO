@@ -7707,6 +7707,7 @@ final class CoreTests: XCTestCase {
             .paperLifecycleStarted,
             .paperLifecycleUpdated,
             .paperLifecycleClosed,
+            .paperOrderLocalLifecycleTransition,
             .simulatedFillRecorded
         ])
         XCTAssertEqual(contract.eventStreams, [.paper, .risk])
@@ -7853,7 +7854,7 @@ final class CoreTests: XCTestCase {
                 error as? CoreError,
                 .paperRuntimeBusRoutingMismatch(
                     field: "paperLifecycleEvent",
-                    expected: "sessionStarted/sessionUpdated/sessionClosed",
+                    expected: "sessionStarted/sessionUpdated/sessionClosed/orderLocalLifecycleTransitionRecorded",
                     actual: "sessionRequested"
                 )
             )
@@ -8071,6 +8072,256 @@ final class CoreTests: XCTestCase {
             XCTAssertEqual(
                 error as? CoreError,
                 .paperPreTradeRiskEngineForbiddenCapability("mapsPaperRiskToFutureLiveRiskDecision")
+            )
+        }
+    }
+
+    func testMTP99PaperOrderLocalLifecycleCoordinatorProducesDeterministicAcceptedRejectedTransitions() throws {
+        // 测试场景：MTP-99 coordinator 必须把 MTP-98 accepted / rejected paper risk decision
+        // 映射成本地 paper order lifecycle，不产生 OMS、broker router 或真实订单状态。
+        let acceptedTrace = try PaperOrderLocalLifecycleCoordinatorFixture.acceptedTrace()
+        let rejectedTrace = try PaperOrderLocalLifecycleCoordinatorFixture.rejectedTrace()
+
+        XCTAssertEqual(acceptedTrace.orderID, PaperOrderLocalLifecycleCoordinatorFixture.orderID)
+        XCTAssertEqual(acceptedTrace.states, [.proposed, .submittedLocal, .acceptedLocal])
+        XCTAssertEqual(acceptedTrace.currentState, .acceptedLocal)
+        XCTAssertTrue(acceptedTrace.everyTransitionHasEventFact)
+        XCTAssertEqual(acceptedTrace.transitions.map(\.trigger), [
+            .paperProposalRecorded,
+            .submittedLocal,
+            .acceptedLocal
+        ])
+        XCTAssertEqual(acceptedTrace.transitions.map(\.sourceLifecycleSequence), [nil, 1, 2])
+        XCTAssertTrue(acceptedTrace.transitions[2].isSimulatedFillPrecondition)
+        XCTAssertEqual(
+            acceptedTrace.transitions[0].validationAnchors,
+            PaperOrderLocalLifecycleTransition.requiredValidationAnchors
+        )
+        XCTAssertTrue(acceptedTrace.transitions.allSatisfy(\.paperOnlyBoundaryHeld))
+        XCTAssertTrue(acceptedTrace.transitions.allSatisfy { $0.implementsOMS == false })
+        XCTAssertTrue(acceptedTrace.transitions.allSatisfy { $0.connectsBroker == false })
+        XCTAssertTrue(acceptedTrace.transitions.allSatisfy { $0.implementsRealOrderStateMachine == false })
+        XCTAssertTrue(acceptedTrace.transitions.allSatisfy { $0.providesRealCancelCommand == false })
+        XCTAssertTrue(acceptedTrace.transitions.allSatisfy { $0.providesOrderLevelCommandUI == false })
+
+        let precondition = try PaperOrderLocalLifecycleCoordinator().simulatedFillPrecondition(
+            from: acceptedTrace,
+            sourceLifecycleSequence: 3
+        )
+        XCTAssertEqual(precondition.orderID, acceptedTrace.orderID)
+        XCTAssertEqual(precondition.localState, .acceptedLocal)
+        XCTAssertEqual(precondition.readiness, .readyForSimulatedFill)
+        XCTAssertTrue(precondition.ready)
+        XCTAssertFalse(precondition.recordsBrokerFill)
+        XCTAssertFalse(precondition.consumesExecutionReport)
+        XCTAssertFalse(precondition.performsReconciliation)
+
+        XCTAssertEqual(rejectedTrace.orderID, PaperOrderLocalLifecycleCoordinatorFixture.rejectedOrderID)
+        XCTAssertEqual(rejectedTrace.states, [.proposed, .rejectedByPaperRisk])
+        XCTAssertEqual(rejectedTrace.currentState, .rejectedByPaperRisk)
+        XCTAssertTrue(rejectedTrace.transitions[1].toState.isTerminal)
+        XCTAssertEqual(rejectedTrace.transitions[1].riskDecisionStatus, .blocked)
+        XCTAssertNotNil(rejectedTrace.transitions[1].blockerEvidenceID)
+        XCTAssertFalse(rejectedTrace.transitions[1].isSimulatedFillPrecondition)
+
+        let encoded = try JSONEncoder().encode(acceptedTrace.transitions[2])
+        let decoded = try JSONDecoder().decode(PaperOrderLocalLifecycleTransition.self, from: encoded)
+        XCTAssertEqual(decoded, acceptedTrace.transitions[2])
+    }
+
+    func testMTP99LifecycleTransitionsPublishEventFactsAndReplayEvidence() throws {
+        // 测试场景：每个 local lifecycle transition 都必须通过 MTP-97 routing 写入 `.paper`
+        // append-only facts，并能从 MessageBus replay 重建同一批 route evidence。
+        let (messageBus, publication) = try PaperOrderLocalLifecycleCoordinatorFixture.publishedAcceptedTrace()
+
+        XCTAssertTrue(publication.replayMatchesRouteEvidence)
+        XCTAssertTrue(publication.everyTransitionHasEventFact)
+        XCTAssertEqual(messageBus.envelopes.map(\.sequence), [1, 2, 3])
+        XCTAssertEqual(messageBus.envelopes.map(\.id), PaperOrderLocalLifecycleCoordinatorFixture.acceptedEnvelopeIDs)
+        XCTAssertEqual(messageBus.envelopes.map(\.stream), [.paper, .paper, .paper])
+        XCTAssertEqual(publication.routeEvidence.map(\.eventSequence), [1, 2, 3])
+        XCTAssertEqual(publication.routeEvidence.map(\.source), [
+            .paperLifecycleEvent,
+            .paperLifecycleEvent,
+            .paperLifecycleEvent
+        ])
+        XCTAssertEqual(publication.routeEvidence.map(\.payloadKind), [
+            .paperOrderLocalLifecycleTransition,
+            .paperOrderLocalLifecycleTransition,
+            .paperOrderLocalLifecycleTransition
+        ])
+        XCTAssertEqual(
+            publication.routeEvidence.map(\.correlationID),
+            Array(repeating: PaperOrderLocalLifecycleCoordinatorFixture.correlationID, count: 3)
+        )
+        XCTAssertEqual(publication.routeEvidence.map(\.causationID), [
+            PaperOrderLocalLifecycleCoordinatorFixture.rootCausationID,
+            PaperOrderLocalLifecycleCoordinatorFixture.acceptedEnvelopeIDs[0],
+            PaperOrderLocalLifecycleCoordinatorFixture.acceptedEnvelopeIDs[1]
+        ])
+
+        let transitionStates = try messageBus.envelopes.map { envelope -> PaperOrderLocalLifecycleState in
+            guard case let .paper(.orderLocalLifecycleTransitionRecorded(transition)) = envelope.event else {
+                throw CoreError.paperOrderLocalLifecycleMismatch(
+                    field: "event",
+                    expected: "paper.orderLocalLifecycleTransitionRecorded",
+                    actual: "\(envelope.event)"
+                )
+            }
+            return transition.toState
+        }
+        XCTAssertEqual(transitionStates, [.proposed, .submittedLocal, .acceptedLocal])
+
+        var seededBus = try MessageBus()
+        let routeInputs = try PaperRuntimeBusRoutingFixture.routeInputs()
+        guard case let .paperSessionCommand(sessionCommand) = routeInputs[0] else {
+            return XCTFail("fixture first input must be paper session command")
+        }
+        try seededBus.publish(
+            .paper(.sessionRequested(sessionCommand)),
+            stream: .paper,
+            id: try XCTUnwrap(UUID(uuidString: "99000000-0000-4000-8000-000000000999")),
+            recordedAt: Date(timeIntervalSince1970: 4_999),
+            correlationID: PaperOrderLocalLifecycleCoordinatorFixture.correlationID,
+            causationID: nil
+        )
+        let seededPublication = try PaperOrderLocalLifecycleCoordinator().publish(
+            PaperOrderLocalLifecycleCoordinatorFixture.acceptedTrace(),
+            to: &seededBus,
+            clock: PaperOrderLocalLifecycleCoordinatorFixture.deterministicClock,
+            envelopeIDs: PaperOrderLocalLifecycleCoordinatorFixture.acceptedEnvelopeIDs,
+            correlationID: PaperOrderLocalLifecycleCoordinatorFixture.correlationID,
+            rootCausationID: PaperOrderLocalLifecycleCoordinatorFixture.rootCausationID
+        )
+        XCTAssertEqual(seededBus.envelopes.count, 4)
+        XCTAssertEqual(seededPublication.routeEvidence.map(\.eventSequence), [2, 3, 4])
+        XCTAssertEqual(seededPublication.replayEvidence, seededPublication.routeEvidence)
+
+        let encoded = try JSONEncoder().encode(publication)
+        let decoded = try JSONDecoder().decode(PaperOrderLocalLifecyclePublication.self, from: encoded)
+        XCTAssertEqual(decoded, publication)
+    }
+
+    func testMTP99LifecycleCoordinatorRejectsOMSBrokerRealOrderCancelAndInvalidTransitions() throws {
+        // 测试场景：MTP-99 lifecycle coordinator 必须拒绝 OMS、broker、真实订单状态机、
+        // real cancel command、order-level command UI，以及不合法的 local lifecycle transition。
+        let acceptedDecision = try PaperPreTradeRiskEngineFixture.acceptedDecision()
+        let rejectedDecision = try PaperPreTradeRiskEngineFixture.rejectedDecision()
+        let coordinator = PaperOrderLocalLifecycleCoordinator()
+
+        XCTAssertThrowsError(
+            try coordinator.acceptedLocalTrace(
+                orderID: PaperOrderLocalLifecycleCoordinatorFixture.orderID,
+                decision: rejectedDecision,
+                startedAt: Date(timeIntervalSince1970: 5_000)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperOrderLocalLifecycleMismatch(
+                    field: "decision.outcome",
+                    expected: PaperPreTradeRiskDecisionOutcome.accepted.rawValue,
+                    actual: PaperPreTradeRiskDecisionOutcome.rejected.rawValue
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try coordinator.cancelLocally(
+                orderID: PaperOrderLocalLifecycleCoordinatorFixture.orderID,
+                decision: acceptedDecision,
+                fromState: .submittedLocal,
+                trigger: .submittedLocal,
+                sourceLifecycleSequence: 2,
+                occurredAt: Date(timeIntervalSince1970: 5_030)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperOrderLocalLifecycleMismatch(
+                    field: "cancelledLocal.trigger",
+                    expected: "sessionClose/sessionReset/localExpiry/deterministicLocalRule",
+                    actual: PaperOrderLocalLifecycleTrigger.submittedLocal.rawValue
+                )
+            )
+        }
+
+        XCTAssertNoThrow(
+            try coordinator.cancelLocally(
+                orderID: PaperOrderLocalLifecycleCoordinatorFixture.orderID,
+                decision: acceptedDecision,
+                fromState: .acceptedLocal,
+                trigger: .sessionClose,
+                sourceLifecycleSequence: 3,
+                occurredAt: Date(timeIntervalSince1970: 5_031)
+            )
+        )
+        XCTAssertNoThrow(
+            try coordinator.expireLocally(
+                orderID: PaperOrderLocalLifecycleCoordinatorFixture.orderID,
+                decision: acceptedDecision,
+                fromState: .submittedLocal,
+                sourceLifecycleSequence: 2,
+                occurredAt: Date(timeIntervalSince1970: 5_032)
+            )
+        )
+        XCTAssertNoThrow(
+            try coordinator.failLocally(
+                orderID: PaperOrderLocalLifecycleCoordinatorFixture.orderID,
+                decision: acceptedDecision,
+                fromState: .acceptedLocal,
+                sourceLifecycleSequence: 3,
+                occurredAt: Date(timeIntervalSince1970: 5_033)
+            )
+        )
+
+        XCTAssertThrowsError(
+            try PaperOrderLocalLifecycleTransition(
+                transitionID: try Identifier("invalid-mtp-99-real-cancel"),
+                orderID: PaperOrderLocalLifecycleCoordinatorFixture.orderID,
+                riskDecision: acceptedDecision.riskDecision,
+                fromState: .acceptedLocal,
+                toState: .cancelledLocal,
+                trigger: .sessionClose,
+                sourceLifecycleSequence: 3,
+                occurredAt: Date(timeIntervalSince1970: 5_040),
+                providesRealCancelCommand: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperOrderLocalLifecycleForbiddenCapability("providesRealCancelCommand")
+            )
+        }
+
+        let encodedTransition = try JSONEncoder().encode(
+            PaperOrderLocalLifecycleCoordinatorFixture.acceptedTrace().transitions[2]
+        )
+        var transitionObject = try XCTUnwrap(JSONSerialization.jsonObject(with: encodedTransition) as? [String: Any])
+        transitionObject["implementsOMS"] = true
+        let omsData = try JSONSerialization.data(withJSONObject: transitionObject)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(PaperOrderLocalLifecycleTransition.self, from: omsData)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .paperOrderLocalLifecycleForbiddenCapability("implementsOMS"))
+        }
+
+        XCTAssertThrowsError(
+            try PaperOrderSimulatedFillPrecondition(
+                orderID: PaperOrderLocalLifecycleCoordinatorFixture.orderID,
+                sourceLifecycleSequence: 2,
+                localState: .submittedLocal,
+                readiness: .waitingForAcceptedLocal,
+                acceptedAt: Date(timeIntervalSince1970: 5_050)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperOrderLocalLifecycleMismatch(
+                    field: "simulatedFillPrecondition",
+                    expected: "acceptedLocal readyForSimulatedFill",
+                    actual: "submittedLocal waitingForAcceptedLocal"
+                )
             )
         }
     }
