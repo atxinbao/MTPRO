@@ -7529,6 +7529,168 @@ final class CoreTests: XCTestCase {
         XCTAssertFalse(evidence.authorizesLiveTrading)
     }
 
+    func testMTP96TradingClockDefinesDeterministicReplayTicks() throws {
+        // 测试场景：MTP-96 TradingClock 必须由 deterministic fixture / replay tick 驱动，
+        // 不能依赖 Date()、exchange clock、broker session clock 或生产调度器。
+        let clock = TradingClock.deterministicFixture
+
+        XCTAssertEqual(clock.clockID, try Identifier("mtp-96-trading-clock-deterministic-fixture"))
+        XCTAssertEqual(clock.issueID, try Identifier("MTP-96"))
+        XCTAssertEqual(clock.ticks.map(\.sequence), [1, 2, 3])
+        XCTAssertEqual(clock.instants.map(\.timeIntervalSince1970), [
+            1_700_000_000,
+            1_700_000_060,
+            1_700_000_120
+        ])
+        XCTAssertEqual(clock.ticks.map(\.source), [.deterministicFixture, .deterministicFixture, .replay])
+        XCTAssertNil(clock.ticks[0].replaySourceSequence)
+        XCTAssertEqual(clock.ticks[2].replaySourceSequence, 2)
+        XCTAssertEqual(clock.instant(for: 2), Date(timeIntervalSince1970: 1_700_000_060))
+        XCTAssertTrue(clock.isDeterministic)
+        XCTAssertTrue(clock.validationAnchors.contains("MTP-96-TRADING-CLOCK-DETERMINISTIC-TIME"))
+
+        let encoded = try JSONEncoder().encode(clock)
+        let decoded = try JSONDecoder().decode(TradingClock.self, from: encoded)
+        XCTAssertEqual(decoded, clock)
+    }
+
+    func testMTP96PaperRuntimeKernelBoundaryDefinesPaperOnlyFixture() throws {
+        // 测试场景：MTP-96 kernel boundary 只定义 paper / local / replay 输入输出、lifecycle 和
+        // validation anchors，不实现 MTP-97+ bus routing、Paper RiskEngine、lifecycle coordinator 或 UI。
+        let boundary = PaperRuntimeKernelBoundary.deterministicFixture
+
+        XCTAssertEqual(boundary.contractID, try Identifier("mtp-96-paper-runtime-kernel-boundary"))
+        XCTAssertEqual(boundary.issueID, try Identifier("MTP-96"))
+        XCTAssertEqual(boundary.lifecycleStates, PaperRuntimeKernelLifecycleState.allCases)
+        XCTAssertEqual(boundary.allowedInputs, PaperRuntimeKernelInputKind.allCases)
+        XCTAssertEqual(boundary.allowedOutputs, PaperRuntimeKernelOutputKind.allCases)
+        XCTAssertEqual(boundary.eventStreams, [.paper, .replay])
+        XCTAssertEqual(boundary.validationAnchors, [
+            "TVM-PAPER-RUNTIME-KERNEL",
+            "MTP-96-TRADING-CLOCK-DETERMINISTIC-TIME",
+            "MTP-96-PAPER-RUNTIME-KERNEL-BOUNDARY",
+            "MTP-96-PAPER-ONLY-KERNEL-EVENTS",
+            "MTP-96-NO-UI-STATE-OR-PERSISTENCE-SCHEMA",
+            "MTP-96-NO-LIVE-SIGNED-BROKER-RUNTIME",
+            "MTP-96-PAPER-RUNTIME-KERNEL-VALIDATION"
+        ])
+        XCTAssertTrue(boundary.accepts(.tradingClockTick))
+        XCTAssertTrue(boundary.accepts(.paperSessionCommand))
+        XCTAssertTrue(boundary.accepts(.eventReplayCommand))
+        XCTAssertTrue(boundary.emits(.paperEventEnvelope))
+        XCTAssertTrue(boundary.emits(.replayResult))
+        XCTAssertTrue(boundary.paperOnlyBoundaryHeld)
+        XCTAssertTrue(boundary.moduleBoundaryHeld)
+        XCTAssertTrue(boundary.deterministicFixtureBoundaryHeld)
+        XCTAssertFalse(boundary.exposesUIState)
+        XCTAssertFalse(boundary.exposesPersistenceSchema)
+        XCTAssertFalse(boundary.readsAdapterObject)
+        XCTAssertFalse(boundary.usesSignedEndpoint)
+        XCTAssertFalse(boundary.callsAccountEndpoint)
+        XCTAssertFalse(boundary.createsListenKey)
+        XCTAssertFalse(boundary.connectsBroker)
+        XCTAssertFalse(boundary.implementsLiveExecutionAdapter)
+        XCTAssertFalse(boundary.implementsOMS)
+        XCTAssertFalse(boundary.implementsRealOrderLifecycle)
+        XCTAssertFalse(boundary.submitsRealOrder)
+        XCTAssertFalse(boundary.cancelsRealOrder)
+        XCTAssertFalse(boundary.replacesRealOrder)
+        XCTAssertFalse(boundary.providesLiveCommand)
+        XCTAssertFalse(boundary.providesTradingButton)
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(PaperRuntimeKernelBoundary.self, from: encoded)
+        XCTAssertEqual(decoded, boundary)
+    }
+
+    func testMTP96PaperRuntimeKernelBoundaryRejectsLiveSignedBrokerSchemaAndClockBypass() throws {
+        // 测试场景：MTP-96 kernel boundary 的 Codable 和 initializer 都必须拒绝 wall-clock、
+        // signed/account/listenKey、broker、LiveExecutionAdapter、OMS、真实订单、UI state 和 schema 暴露。
+        XCTAssertThrowsError(
+            try TradingClockTick(
+                sequence: 1,
+                instant: Date(timeIntervalSince1970: 1),
+                source: .wallClock
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .tradingClockContractMismatch(
+                    field: "source",
+                    expected: "deterministicFixture or replay",
+                    actual: "wallClock"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try TradingClock(
+                clockID: try Identifier("invalid-clock"),
+                issueID: try Identifier("MTP-96"),
+                ticks: [
+                    TradingClockTick(
+                        sequence: 2,
+                        instant: Date(timeIntervalSince1970: 1),
+                        source: .deterministicFixture
+                    )
+                ]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .tradingClockContractMismatch(field: "tick.sequence", expected: "1", actual: "2")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try PaperRuntimeKernelBoundary(
+                contractID: try Identifier("invalid-kernel"),
+                issueID: try Identifier("MTP-96"),
+                clock: .deterministicFixture,
+                usesSignedEndpoint: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .paperRuntimeKernelForbiddenCapability("usesSignedEndpoint"))
+        }
+        XCTAssertThrowsError(
+            try PaperRuntimeKernelBoundary(
+                contractID: try Identifier("invalid-kernel"),
+                issueID: try Identifier("MTP-96"),
+                clock: .deterministicFixture,
+                exposesPersistenceSchema: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .paperRuntimeKernelForbiddenCapability("exposesPersistenceSchema"))
+        }
+        XCTAssertThrowsError(
+            try PaperRuntimeKernelBoundary(
+                contractID: try Identifier("invalid-kernel"),
+                issueID: try Identifier("MTP-96"),
+                clock: .deterministicFixture,
+                eventStreams: [.paper, .market]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperRuntimeKernelContractMismatch(
+                    field: "eventStreams",
+                    expected: "paper,replay",
+                    actual: "paper,market"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(PaperRuntimeKernelBoundary.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["providesLiveCommand"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(PaperRuntimeKernelBoundary.self, from: data)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .paperRuntimeKernelForbiddenCapability("providesLiveCommand"))
+        }
+    }
+
     private func makeOrderBookImbalanceInputs() throws -> [OrderBookReadModelInput] {
         let symbol = try Symbol(rawValue: "BTCUSDT")
         let bidDominant = OrderBookReadModelInput(

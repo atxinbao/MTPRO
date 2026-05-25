@@ -52,6 +52,9 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
     case paperExecutionDecisionRequiresPaperMode(ExecutionMode)
     case paperExecutionDecisionForbiddenCapability(String)
     case paperExecutionDecisionMismatch(field: String, expected: String, actual: String)
+    case tradingClockContractMismatch(field: String, expected: String, actual: String)
+    case paperRuntimeKernelForbiddenCapability(String)
+    case paperRuntimeKernelContractMismatch(field: String, expected: String, actual: String)
     case liveTradingBoundaryForbiddenCapability(String)
     case liveTradingBoundaryContractMismatch(field: String, expected: String, actual: String)
     case liveMonitoringConsoleForbiddenCapability(String)
@@ -155,6 +158,12 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
             "Paper execution decision forbids capability: \(field)"
         case let .paperExecutionDecisionMismatch(field, expected, actual):
             "Paper execution decision mismatch for \(field): expected \(expected), actual \(actual)"
+        case let .tradingClockContractMismatch(field, expected, actual):
+            "Trading clock contract mismatch for \(field): expected \(expected), actual \(actual)"
+        case let .paperRuntimeKernelForbiddenCapability(field):
+            "Paper runtime kernel forbids capability: \(field)"
+        case let .paperRuntimeKernelContractMismatch(field, expected, actual):
+            "Paper runtime kernel contract mismatch for \(field): expected \(expected), actual \(actual)"
         case let .liveTradingBoundaryForbiddenCapability(field):
             "Live trading boundary forbids capability: \(field)"
         case let .liveTradingBoundaryContractMismatch(field, expected, actual):
