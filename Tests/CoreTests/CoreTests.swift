@@ -7691,6 +7691,198 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testMTP97PaperRuntimeBusRoutingContractDefinesPaperOnlyDeterministicBoundary() throws {
+        // 测试场景：MTP-97 bus routing 合同必须显式列出 CommandBus / EventBus / MessageBus、
+        // 允许的 paper-only route source 和 validation anchors，且所有 live/signed/broker 能力保持关闭。
+        let contract = PaperRuntimeBusRoutingContract.deterministicFixture
+
+        XCTAssertEqual(contract.contractID, try Identifier("mtp-97-paper-runtime-bus-routing-contract"))
+        XCTAssertEqual(contract.issueID, try Identifier("MTP-97"))
+        XCTAssertEqual(contract.buses, [.commandBus, .eventBus, .messageBus])
+        XCTAssertEqual(contract.routeSources, [.paperSessionCommand, .paperRiskDecision, .paperLifecycleEvent, .simulatedFillEvent])
+        XCTAssertEqual(contract.payloadKinds, [
+            .paperSessionCommand,
+            .paperRiskEvaluationRequested,
+            .paperRiskBlocked,
+            .paperLifecycleStarted,
+            .paperLifecycleUpdated,
+            .paperLifecycleClosed,
+            .simulatedFillRecorded
+        ])
+        XCTAssertEqual(contract.eventStreams, [.paper, .risk])
+        XCTAssertEqual(contract.validationAnchors, [
+            "TVM-PAPER-RUNTIME-KERNEL",
+            "MTP-97-COMMANDBUS-EVENTBUS-MESSAGEBUS-ROUTING",
+            "MTP-97-DETERMINISTIC-PAPER-ROUTE-ORDER",
+            "MTP-97-REPLAYABLE-ROUTE-EVIDENCE",
+            "MTP-97-NO-LIVE-SIGNED-BROKER-ROUTING",
+            "MTP-97-PAPER-RUNTIME-BUS-VALIDATION"
+        ])
+        XCTAssertTrue(contract.paperOnlyBoundaryHeld)
+        XCTAssertTrue(contract.deterministicRoutingBoundaryHeld)
+        XCTAssertFalse(contract.usesLiveCommandBus)
+        XCTAssertFalse(contract.routesRealOrderCommand)
+        XCTAssertFalse(contract.connectsBroker)
+        XCTAssertFalse(contract.routesSignedRequest)
+        XCTAssertFalse(contract.callsAccountEndpoint)
+        XCTAssertFalse(contract.createsListenKey)
+        XCTAssertFalse(contract.routesExecutionReport)
+        XCTAssertFalse(contract.routesBrokerFill)
+        XCTAssertFalse(contract.routesReconciliation)
+
+        let encoded = try JSONEncoder().encode(contract)
+        let decoded = try JSONDecoder().decode(PaperRuntimeBusRoutingContract.self, from: encoded)
+        XCTAssertEqual(decoded, contract)
+    }
+
+    func testMTP97CommandEventMessageBusRoutesDeterministicallyAndReplaysEvidence() throws {
+        // 测试场景：CommandBus 必须按输入顺序确定性展开 paper session command、paper risk decision、
+        // lifecycle event 和 simulated fill event；EventBus 发布后，MessageBus replay 能重建同一批 route evidence。
+        let inputs = try PaperRuntimeBusRoutingFixture.routeInputs()
+        let commandBus = PaperRuntimeCommandBus()
+        let eventBus = PaperRuntimeEventBus()
+        let messages = try commandBus.route(
+            inputs,
+            clock: PaperRuntimeBusRoutingFixture.deterministicClock,
+            envelopeIDs: PaperRuntimeBusRoutingFixture.envelopeIDs,
+            correlationID: PaperRuntimeBusRoutingFixture.correlationID,
+            rootCausationID: PaperRuntimeBusRoutingFixture.rootCausationID
+        )
+
+        XCTAssertEqual(messages.map(\.routeSequence), [1, 2, 3, 4, 5])
+        XCTAssertEqual(messages.map(\.payloadKind), [
+            .paperSessionCommand,
+            .paperRiskEvaluationRequested,
+            .paperRiskBlocked,
+            .paperLifecycleStarted,
+            .simulatedFillRecorded
+        ])
+        XCTAssertEqual(messages.map(\.source), [
+            .paperSessionCommand,
+            .paperRiskDecision,
+            .paperRiskDecision,
+            .paperLifecycleEvent,
+            .simulatedFillEvent
+        ])
+        XCTAssertEqual(messages.map(\.stream), [.paper, .risk, .risk, .paper, .paper])
+        XCTAssertEqual(messages.map(\.recordedAt.timeIntervalSince1970), [3_000, 3_001, 3_002, 3_003, 3_004])
+        XCTAssertEqual(messages.map(\.envelopeID), PaperRuntimeBusRoutingFixture.envelopeIDs)
+        XCTAssertEqual(
+            messages.map(\.correlationID),
+            Array(repeating: PaperRuntimeBusRoutingFixture.correlationID, count: 5)
+        )
+        XCTAssertEqual(messages.map(\.causationID), [
+            PaperRuntimeBusRoutingFixture.rootCausationID,
+            PaperRuntimeBusRoutingFixture.envelopeIDs[0],
+            PaperRuntimeBusRoutingFixture.envelopeIDs[1],
+            PaperRuntimeBusRoutingFixture.envelopeIDs[2],
+            PaperRuntimeBusRoutingFixture.envelopeIDs[3]
+        ])
+
+        var messageBus = try MessageBus()
+        let evidence = try eventBus.publish(messages, to: &messageBus)
+
+        XCTAssertEqual(messageBus.envelopes.map(\.sequence), [1, 2, 3, 4, 5])
+        XCTAssertEqual(messageBus.envelopes.map(\.id), PaperRuntimeBusRoutingFixture.envelopeIDs)
+        XCTAssertEqual(messageBus.envelopes.map(\.stream), [.paper, .risk, .risk, .paper, .paper])
+        XCTAssertEqual(evidence.map(\.eventSequence), [1, 2, 3, 4, 5])
+        XCTAssertEqual(evidence.map(\.payloadKind), messages.map(\.payloadKind))
+        XCTAssertEqual(evidence.map(\.source), messages.map(\.source))
+        XCTAssertEqual(evidence.map(\.correlationID), Array(repeating: PaperRuntimeBusRoutingFixture.correlationID, count: 5))
+
+        let replay = messageBus.replay(
+            EventReplayCommand(
+                range: try EventSequenceRange(lowerBound: 1, upperBound: 5),
+                streams: [.paper, .risk]
+            )
+        )
+        let replayEvidence = try PaperRuntimeMessageBusRouting.replayEvidence(from: replay)
+        XCTAssertEqual(replay.envelopes, messageBus.envelopes)
+        XCTAssertEqual(replayEvidence, evidence)
+
+        var oneShotBus = try MessageBus()
+        let oneShotEvidence = try PaperRuntimeMessageBusRouting().publish(
+            inputs,
+            to: &oneShotBus,
+            clock: PaperRuntimeBusRoutingFixture.deterministicClock,
+            envelopeIDs: PaperRuntimeBusRoutingFixture.envelopeIDs,
+            correlationID: PaperRuntimeBusRoutingFixture.correlationID,
+            rootCausationID: PaperRuntimeBusRoutingFixture.rootCausationID
+        )
+        XCTAssertEqual(oneShotEvidence, evidence)
+        XCTAssertEqual(oneShotBus.envelopes, messageBus.envelopes)
+    }
+
+    func testMTP97PaperRuntimeBusRoutingRejectsLiveSignedBrokerAndInvalidRouteBypass() throws {
+        // 测试场景：MTP-97 routing 不能被配置成 live command bus、signed request routing、broker
+        // action 或错误 stream；非 lifecycle 的 PaperEvent 也不能伪装成 lifecycle route。
+        XCTAssertThrowsError(
+            try PaperRuntimeBusRoutingContract(
+                contractID: try Identifier("invalid-mtp-97-bus-routing"),
+                issueID: try Identifier("MTP-97"),
+                routesSignedRequest: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .paperRuntimeBusRoutingForbiddenCapability("routesSignedRequest"))
+        }
+        XCTAssertThrowsError(
+            try PaperRuntimeBusRoutingContract(
+                contractID: try Identifier("invalid-mtp-97-bus-routing"),
+                issueID: try Identifier("MTP-97"),
+                connectsBroker: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .paperRuntimeBusRoutingForbiddenCapability("connectsBroker"))
+        }
+
+        let inputs = try PaperRuntimeBusRoutingFixture.routeInputs()
+        guard case let .paperSessionCommand(command) = inputs[0] else {
+            return XCTFail("fixture first input must be paper session command")
+        }
+        let invalidLifecycleInput = PaperRuntimeRouteInput.paperLifecycleEvent(.sessionRequested(command))
+        XCTAssertThrowsError(
+            try PaperRuntimeCommandBus().route(
+                [invalidLifecycleInput],
+                clock: PaperRuntimeBusRoutingFixture.deterministicClock,
+                envelopeIDs: [PaperRuntimeBusRoutingFixture.envelopeIDs[0]],
+                correlationID: PaperRuntimeBusRoutingFixture.correlationID,
+                rootCausationID: PaperRuntimeBusRoutingFixture.rootCausationID
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperRuntimeBusRoutingMismatch(
+                    field: "paperLifecycleEvent",
+                    expected: "sessionStarted/sessionUpdated/sessionClosed",
+                    actual: "sessionRequested"
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try PaperRuntimeRoutedMessage(
+                routeSequence: 1,
+                envelopeID: PaperRuntimeBusRoutingFixture.envelopeIDs[0],
+                source: .paperSessionCommand,
+                payloadKind: .paperSessionCommand,
+                stream: .risk,
+                event: .paper(.sessionRequested(command)),
+                recordedAt: Date(timeIntervalSince1970: 3_000),
+                correlationID: PaperRuntimeBusRoutingFixture.correlationID,
+                causationID: PaperRuntimeBusRoutingFixture.rootCausationID
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperRuntimeBusRoutingMismatch(
+                    field: "stream",
+                    expected: EventStreamID.paper.rawValue,
+                    actual: EventStreamID.risk.rawValue
+                )
+            )
+        }
+    }
+
     private func makeOrderBookImbalanceInputs() throws -> [OrderBookReadModelInput] {
         let symbol = try Symbol(rawValue: "BTCUSDT")
         let bidDominant = OrderBookReadModelInput(

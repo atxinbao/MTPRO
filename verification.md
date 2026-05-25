@@ -10260,3 +10260,51 @@ Root docs 判断：
 | --- | --- | --- |
 | `git diff --check` | pass | Core Engine Architecture & Module Maturity Map docs-only edits 后执行；无 whitespace / patch error 输出。 |
 | `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 保持 read-model-only / workbenchReadModelOnly；207 个 XCTest 通过、0 failures，最终输出 `MTPRO checks passed.`。 |
+
+## MTP-97 CommandBus / EventBus / MessageBus Deterministic Routing
+
+日期：2026-05-25
+
+执行者：Codex
+
+目的：
+
+- 建立 paper runtime 内部 `CommandBus` / `EventBus` / `MessageBus` deterministic routing。
+- 支持 paper session command、paper risk decision、paper lifecycle event 和 simulated fill event 的 deterministic route。
+- 为 Event Log / Replay 提供可复现的 source、payload kind、stream、correlation 和 causation evidence。
+- 保持 routing 只服务 paper-only runtime，不升级为 live command bus、signed request routing、broker action 或真实订单行为。
+
+文件范围：
+
+- 新增 `Sources/Core/PaperRuntimeBusRouting.swift`。
+- 更新 `Sources/Core/EventLog.swift`，允许 `AppendOnlyEventLog.append` / `MessageBus.publish` 接收 deterministic envelope `id`，默认行为不变。
+- 更新 `Sources/Core/CoreError.swift`，新增 paper runtime bus routing 错误边界。
+- 更新 `Tests/CoreTests/CoreTests.swift`，新增 MTP-97 focused tests。
+- 更新 `docs/contracts/paper-runtime-kernel-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh`。
+- 更新 `.codex/context-scan.json`、`.codex/operations-log.md`、`.codex/testing.md` 和 `.codex/review-report.md` 作为本地 handoff evidence，不进入 PR。
+
+关键结论：
+
+- `PaperRuntimeCommandBus` 只把 paper-only route inputs 展开为 deterministic routed messages，不执行命令、不读取 adapter、不写 event log。
+- `PaperRuntimeEventBus` 只把 routed messages 发布到既有 `MessageBus` / append-only Event Log。
+- `PaperRuntimeMessageBusRouting.replayEvidence` 可从 replay result 重建 route evidence。
+- route evidence 保留 deterministic envelope ID、event sequence、source、payload kind、stream、recordedAt、correlationID 和 causationID。
+- `PaperRuntimeBusRoutingContract` 的 live / signed / broker / execution report / broker fill / reconciliation forbidden flags 全部固定为 `false`，Codable 绕过会被拒绝。
+
+边界确认：
+
+- 不修改 Linear status。
+- 不启动下一阶段 `symphony-issue`。
+- 不读取 secrets / credentials。
+- 不接 signed endpoint、account endpoint、listenKey。
+- 不连接 broker，不执行 broker action。
+- 不实现 `LiveExecutionAdapter`、OMS、real order lifecycle、真实 submit / cancel / replace、execution report、broker fill、reconciliation、Paper RiskEngine、paper lifecycle coordinator、paper account projection、Live PRO Console、live command 或交易按钮。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP97` | pass | 3 个 MTP-97 focused tests 通过，0 failures。 |
+| `bash checks/automation-readiness.sh` | pass | MTP-97 contract / matrix / validation plan / domain context / latest summary / Core source / focused test anchors 均通过机械检查。 |
+| `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；Swift tests 210 个通过、0 failures；最终输出 `MTPRO checks passed.`。 |

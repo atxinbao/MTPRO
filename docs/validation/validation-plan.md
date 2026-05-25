@@ -1746,3 +1746,39 @@ MTP-96 必须建立的主要 anchors：
 - 不实现 OMS、real order lifecycle、真实 submit / cancel / replace、execution report、broker fill 或 reconciliation。
 - 不暴露 UI state、Runtime object、Adapter object、SQLite / DuckDB schema 或 broker object。
 - 不新增 Live PRO Console、live command、order-level command UI、order form、交易按钮或真实交易授权。
+
+## MTP-97 CommandBus / EventBus / MessageBus Routing Validation
+
+日期：2026-05-25
+
+执行者：Codex
+
+MTP-97 的 required validation：
+
+- `docs/contracts/paper-runtime-kernel-contract.md` 必须包含 `MTP-97-COMMANDBUS-EVENTBUS-MESSAGEBUS-ROUTING`、`MTP-97-DETERMINISTIC-PAPER-ROUTE-ORDER`、`MTP-97-REPLAYABLE-ROUTE-EVIDENCE`、`MTP-97-NO-LIVE-SIGNED-BROKER-ROUTING` 和 `MTP-97-PAPER-RUNTIME-BUS-VALIDATION` anchors。
+- `Sources/Core/PaperRuntimeBusRouting.swift` 必须定义 `PaperRuntimeCommandBus`、`PaperRuntimeEventBus`、`PaperRuntimeMessageBusRouting`、`PaperRuntimeRouteEvidence`、`PaperRuntimeBusRoutingContract` 和 deterministic fixture，并保持 routing 只覆盖 paper session command、paper risk decision、paper lifecycle event 和 simulated fill event。
+- `Sources/Core/EventLog.swift` / `MessageBus.publish` 可接收 deterministic envelope `id`，用于 replay evidence 固定 source / correlation / causation；默认行为仍保持 append-only event log 分配 sequence。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-97 focused tests，验证 routing 顺序 deterministic、Event Log / Replay 后 route evidence 可复现、以及 live command bus / signed request / broker / invalid stream bypass 均被拒绝。
+- `docs/domain/context.md` 必须包含 `MTP-97-PAPER-RUNTIME-BUS-ROUTING-TERMS`。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-97 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-97 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-97 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不实现 Paper RiskEngine、paper lifecycle coordinator、simulated fill / fee / slippage model、paper account projection、signed endpoint、account endpoint、listenKey、broker action、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、live command 或交易按钮。
+
+MTP-97 必须建立的主要 anchors：
+
+- `TVM-PAPER-RUNTIME-KERNEL`
+- `MTP-97-COMMANDBUS-EVENTBUS-MESSAGEBUS-ROUTING`
+- `MTP-97-DETERMINISTIC-PAPER-ROUTE-ORDER`
+- `MTP-97-REPLAYABLE-ROUTE-EVIDENCE`
+- `MTP-97-NO-LIVE-SIGNED-BROKER-ROUTING`
+- `MTP-97-PAPER-RUNTIME-BUS-VALIDATION`
+
+## MTP-97 禁止
+
+- 不实现 live command bus、order-level real command 或真实 submit / cancel / replace。
+- 不接 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 execution report parser / ingestion、broker fill recorder、reconciliation service、OMS 或 real order lifecycle。
+- 不实现 Paper RiskEngine runtime path、paper lifecycle coordinator、simulated fill / fee / slippage model 或 paper account / portfolio projection v2。
+- 不暴露 Runtime object、Adapter object、SQLite / DuckDB schema、broker acknowledgement、UI state 或 Live PRO Console。
+- 不新增 live command、order-level command UI、order form、交易按钮或真实交易授权。

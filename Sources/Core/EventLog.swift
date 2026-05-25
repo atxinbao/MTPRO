@@ -19,11 +19,13 @@ public struct AppendOnlyEventLog: Equatable, Sendable {
     public mutating func append(
         _ event: DomainEvent,
         stream: EventStreamID,
+        id: UUID = UUID(),
         recordedAt: Date = Date(),
         correlationID: UUID? = nil,
         causationID: UUID? = nil
     ) throws -> EventEnvelope {
         let envelope = try EventEnvelope(
+            id: id,
             sequence: envelopes.count + 1,
             stream: stream,
             recordedAt: recordedAt,
@@ -60,6 +62,7 @@ public struct MessageBus: Equatable, Sendable {
     public mutating func publish(
         _ event: DomainEvent,
         stream: EventStreamID,
+        id: UUID = UUID(),
         recordedAt: Date = Date(),
         correlationID: UUID? = nil,
         causationID: UUID? = nil
@@ -67,6 +70,7 @@ public struct MessageBus: Equatable, Sendable {
         try eventLog.append(
             event,
             stream: stream,
+            id: id,
             recordedAt: recordedAt,
             correlationID: correlationID,
             causationID: causationID
