@@ -2093,3 +2093,44 @@ MTP-105 必须建立的主要 anchors：
 - 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position read、live runtime、live command、order form、Live PRO Console 或交易按钮。
 - 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进下一 issue。
+
+## MTP-106 Replay Window / Cursor / Checksum / Freshness Evidence Validation
+
+日期：2026-05-26
+
+执行者：Codex
+
+MTP-106 的 required validation：
+
+- `docs/contracts/data-catalog-scenario-replay-contract.md` 必须包含 `MTP-106-DETERMINISTIC-REPLAY-WINDOW`、`MTP-106-REPLAY-CURSOR-SUMMARY`、`MTP-106-CHECKSUM-PARITY-EVIDENCE`、`MTP-106-FIXTURE-FRESHNESS-EVIDENCE`、`MTP-106-NO-PRODUCTION-NETWORK-BROKER-LIVE` 和 `MTP-106-SCENARIO-REPLAY-EVIDENCE-VALIDATION` anchors。
+- `Sources/Core/ScenarioReplayEvidence.swift` 必须定义 `ScenarioReplayWindow`、`ScenarioReplayCursor`、`ScenarioReplayCursorSummary`、`ScenarioReplayChecksumEvidence`、`ScenarioReplayFreshnessPolicy`、`ScenarioReplayFreshnessEvidence` 和 `ScenarioReplayEvidence.deterministicFixture`。
+- `ScenarioReplayWindow` 必须复用 MTP-105 deterministic fixture 的 fixed window `1704067200...1704067380`、record sequence `1,2,3`、ordered starts 和 record order identity。
+- `ScenarioReplayCursor` 必须只表达本地 fixture record progress，支持 Codable round-trip 和 Comparable，并拒绝 `1...4` 之外的 next sequence。
+- `ScenarioReplayChecksumEvidence` 必须从 MTP-105 checksum preimage 生成 final checksum `fnv1a64:3c6cd4ff13cd4062`，并拒绝 checksum drift。
+- `ScenarioReplayFreshnessEvidence` 必须固定 local fixture freshness policy、evaluatedAt `1704067500`、age `120` seconds 和 status `fresh`，并拒绝 production retention / network / archive bypass。
+- `ScenarioReplayEvidence` 必须输出可被 MTP-107 data quality gates 消费的 `dataQualityGateInputIdentity`，但不得实现 data quality gate runtime 或 report input versioning runtime。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-106 focused tests，验证 replay window deterministic、cursor 可复现 / 可编码 / 可比较、checksum / freshness evidence 稳定、drift rejection、forbidden capability bypass rejection 和 forbidden text absence。
+- `docs/domain/context.md` 必须包含 `MTP-106-DETERMINISTIC-REPLAY-WINDOW`、`MTP-106-CHECKSUM-PARITY-EVIDENCE`、`MTP-106-FIXTURE-FRESHNESS-EVIDENCE` 和 `MTP-106-NO-PRODUCTION-NETWORK-BROKER-LIVE`。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-106 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-106 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-106 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不运行 Graphify，不修改 Figma，不实现 data quality gate runtime、report input versioning runtime、production retention engine、production dataset registry、large-scale ingestion pipeline、signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、live runtime、live command 或交易按钮。
+
+MTP-106 必须建立的主要 anchors：
+
+- `TVM-DATA-CATALOG-SCENARIO-REPLAY`
+- `MTP-106-DETERMINISTIC-REPLAY-WINDOW`
+- `MTP-106-REPLAY-CURSOR-SUMMARY`
+- `MTP-106-CHECKSUM-PARITY-EVIDENCE`
+- `MTP-106-FIXTURE-FRESHNESS-EVIDENCE`
+- `MTP-106-NO-PRODUCTION-NETWORK-BROKER-LIVE`
+- `MTP-106-SCENARIO-REPLAY-EVIDENCE-VALIDATION`
+
+## MTP-106 禁止
+
+- 不实现 manifest file parser、data quality gate runtime 或 report input versioning runtime。
+- 不新增 multi-symbol / multi-timeframe catalog、production dataset registry、production data platform、cloud data lake、large-scale ingestion pipeline、真实历史下载器、production scheduler、production retention cleanup、cloud archive 或 storage tiering。
+- 不暴露 SQLite / DuckDB schema、adapter request、Runtime object、database console 或 UI command surface。
+- 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position read、live runtime、live command、order form、Live PRO Console 或交易按钮。
+- 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进下一 issue。

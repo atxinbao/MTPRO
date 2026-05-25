@@ -495,6 +495,31 @@ MTP-105 把 MTP-104 manifest 绑定到第一个本地 deterministic scenario fix
 
 MTP-105 fixture 必须保持 required validation 不依赖网络，且 real network download、production ingestion pipeline、cloud data lake、adapter request exposure、secret read、signed endpoint、account endpoint、listenKey、broker integration、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、live command、trading button、multi-symbol catalog 和 multi-timeframe catalog flags 全部为 false；初始化和 Codable 解码都不能恢复这些能力。
 
+`MTP-106-DETERMINISTIC-REPLAY-WINDOW`
+
+MTP-106 把 MTP-105 fixture 推进为本地 scenario replay evidence。`ScenarioReplayWindow` 继承 MTP-105 fixed window `1704067200...1704067380`、record sequence `1,2,3`、record order identity 和 MTP-104 source identity；它只表达 historical replay window，不等于 historical downloader、production retention window、Runtime job 或 broker/account replay window。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `ScenarioReplayWindow` | 本地 deterministic scenario replay 的时间窗口和 record order identity | 不等于 downloader policy、production scheduler window 或 broker/account replay |
+| `ScenarioReplayCursor` | 本地 fixture record progress，默认 next sequence 为 `1`，completed 为 `4` | 不等于 event log sequence、exchange sequence、broker sequence、job offset 或 live resume token |
+| `ScenarioReplayCursorSummary` | cursor identity、window identity、next sequence、consumed count、total count 和 state 的稳定摘要 | 不暴露 Runtime object、adapter request、SQLite / DuckDB schema 或 UI command |
+| `ScenarioReplayChecksumEvidence` | MTP-105 checksum preimage 的 final FNV-1a checksum evidence | 不等于 production data quality platform、真实下载校验或 reconciliation |
+| `ScenarioReplayFreshnessEvidence` | 固定 evaluatedAt、age 和 freshness status 的本地 fixture freshness evidence | 不执行 retention cleanup、cloud archive、storage tiering 或 downloader |
+| `ScenarioReplayEvidence` | replay window、cursor、checksum、freshness 和 forbidden capability flags 的聚合证据 | 只供后续 quality gate / read model 消费，不实现 MTP-107 或 MTP-108 |
+
+`MTP-106-CHECKSUM-PARITY-EVIDENCE`
+
+MTP-106 final checksum 固定为 `fnv1a64:3c6cd4ff13cd4062`，算法为 `fnv1a64`，输入为 MTP-105 canonical checksum preimage。checksum evidence 必须保持 source identity、record order identity、canonical preimage 和 checksum 一致；初始化和 Codable 解码不能恢复 checksum drift、record order drift 或 parity flag drift。
+
+`MTP-106-FIXTURE-FRESHNESS-EVIDENCE`
+
+MTP-106 fixture freshness policy 只定义本地 freshness 阈值：stale after `300` seconds、expires after `900` seconds。默认 evaluatedAt 为 `1704067500`，相对 replay window end `1704067380` 的 age 为 `120` seconds，status 为 `fresh`。该 evidence 不执行 production retention engine，不授权 cloud archive，不暴露 storage tiering，不依赖真实网络。
+
+`MTP-106-NO-PRODUCTION-NETWORK-BROKER-LIVE`
+
+MTP-106 replay evidence 必须保持 required validation network dependency、real network download、production retention engine、large-scale ingestion pipeline、production data platform、database schema exposure、adapter request exposure、secret read、signed endpoint、account endpoint、listenKey、broker integration、`LiveExecutionAdapter`、OMS、real order lifecycle、report input versioning runtime、data quality gate runtime、live runtime、live command 和 trading button flags 全部为 false；初始化和 Codable 解码都不能恢复这些能力。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
