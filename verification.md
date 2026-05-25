@@ -10069,3 +10069,50 @@ Root docs 判断：
 | --- | --- | --- |
 | `git diff --check` | pass | Paper Trading Runtime Foundation Blueprint docs-only edits 后执行；无 whitespace / patch error 输出。 |
 | `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 保持 read-model-only / workbenchReadModelOnly；204 个 XCTest 通过、0 failures，最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO Event-Driven Paper Trading Runtime v1 planning record
+
+日期：2026-05-25
+
+执行者：Codex
+
+目的：
+
+- 将 `MTPRO Event-Driven Paper Trading Runtime v1` planning draft 落仓为 docs-only Project Planning Record。
+- 承接 `MTPRO Paper Trading Runtime Foundation Blueprint v1`，把 paper-only runtime foundation 转成写入 Linear 前的 Project 级计划摘要。
+- 保存 issue order、dependencies、validation requirements、evidence requirements、first executable issue candidate、WIP=1 / queue preflight rule、Linear write boundary 和 repository record boundary。
+
+文件范围：
+
+- 新增 `docs/planning/projects/mtpro-event-driven-paper-trading-runtime-v1-plan.md`。
+- 更新 `docs/planning/linear-draft-plan.md`，增加 planning record 索引并切换当前 Project planning record 指向。
+- 更新 `BLUEPRINT.md`，增加该 planning record 引用。
+- 更新 `docs/validation/latest-verification-summary.md`，记录该 Project-level planning record 已落仓且不授权 execution。
+- 更新 `verification.md`，追加本节。
+
+关键结论：
+
+- 该 planning record 只保存 Project 级计划摘要和格式门槛，不复制维护完整 Linear issue body。
+- First executable issue candidate 为 `定义 TradingClock 和 paper runtime kernel boundary`，但该 issue 仍必须保持 `Backlog / non-executable`，不构成执行授权。
+- 后续若 Human 确认写入 Linear，仍必须由 Parent Codex queue preflight 在 WIP=1、依赖满足、无 active conflict、execution contract 格式完整时推进唯一 eligible issue。
+- 本次不是 Project closure，不更新 Final Product Goal Progress，不更新 `GOAL.md` 或 `docs/roadmap.md`。
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 `Todo`。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / `symphony-issue`。
+- 不运行 Graphify update。
+- 不修改 Figma。
+- 不写业务代码。
+- 不实现 Paper runtime。
+- 不实现 signed endpoint、account endpoint / listenKey、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation runtime、Live PRO Console、trading button 或 live command。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Event-Driven Paper Trading Runtime planning record docs-only edits 后执行；无 whitespace / patch error 输出。 |
+| `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 保持 read-model-only / workbenchReadModelOnly；204 个 XCTest 通过、0 failures，最终输出 `MTPRO checks passed.`。 |
