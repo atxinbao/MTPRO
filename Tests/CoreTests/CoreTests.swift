@@ -7883,6 +7883,198 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testMTP98PaperPreTradeRiskEngineProducesDeterministicAcceptedRejectedDecisions() throws {
+        // 测试场景：MTP-98 Paper Pre-trade RiskEngine 只处理本地 paper proposal，并在同一组
+        // deterministic inputs 下稳定输出 accepted / rejected paper risk decision。
+        let accepted = try PaperPreTradeRiskEngineFixture.acceptedDecision()
+        let rejected = try PaperPreTradeRiskEngineFixture.rejectedDecision()
+
+        XCTAssertEqual(accepted.issueID, try Identifier("MTP-98"))
+        XCTAssertEqual(accepted.outcome, .accepted)
+        XCTAssertEqual(accepted.riskDecision.status, .allowed)
+        XCTAssertTrue(accepted.isAccepted)
+        XCTAssertFalse(accepted.isRejected)
+        XCTAssertNil(accepted.rejectedRule)
+        XCTAssertNil(accepted.riskDecision.blockerEvidence)
+        XCTAssertEqual(accepted.ruleEvaluations.count, 4)
+        XCTAssertTrue(accepted.ruleEvaluations.allSatisfy(\.passed))
+        XCTAssertEqual(accepted.riskDecision.riskEvents.count, 1)
+        XCTAssertTrue(accepted.paperOnlyBoundaryHeld)
+        XCTAssertFalse(accepted.providesLiveRiskEngine)
+        XCTAssertFalse(accepted.readsRealAccountBalance)
+        XCTAssertFalse(accepted.syncsBrokerPosition)
+        XCTAssertFalse(accepted.usesMargin)
+        XCTAssertFalse(accepted.usesLeverage)
+        XCTAssertFalse(accepted.runsRealPreTradeAllowReject)
+        XCTAssertFalse(accepted.mapsPaperRiskToFutureLiveRiskDecision)
+        XCTAssertEqual(accepted.validationAnchors, PaperPreTradeRiskEngineDecision.requiredValidationAnchors)
+
+        XCTAssertEqual(rejected.issueID, try Identifier("MTP-98"))
+        XCTAssertEqual(rejected.outcome, .rejected)
+        XCTAssertEqual(rejected.riskDecision.status, .blocked)
+        XCTAssertFalse(rejected.isAccepted)
+        XCTAssertTrue(rejected.isRejected)
+        XCTAssertEqual(rejected.rejectedRule?.kind, .maxPaperQuantity)
+        XCTAssertEqual(rejected.rejectedRule?.blockerReason, .maxPaperQuantityExceeded)
+        XCTAssertEqual(rejected.riskDecision.blockerEvidence?.reason, .maxPaperQuantityExceeded)
+        XCTAssertEqual(rejected.ruleEvaluations.count, 4)
+        XCTAssertEqual(rejected.ruleEvaluations.filter(\.rejected).count, 1)
+        XCTAssertEqual(rejected.riskDecision.riskEvents.count, 2)
+        XCTAssertTrue(rejected.paperOnlyBoundaryHeld)
+        XCTAssertTrue(rejected.input.sourceAnchors.contains("MTP-98-PAPER-PRETRADE-RISKENGINE-RUNTIME-PATH"))
+
+        let encoded = try JSONEncoder().encode(rejected)
+        let decoded = try JSONDecoder().decode(PaperPreTradeRiskEngineDecision.self, from: encoded)
+        XCTAssertEqual(decoded, rejected)
+    }
+
+    func testMTP98RejectedDecisionPublishesToEventLogAndReplaysRiskEvidence() throws {
+        // 测试场景：MTP-98 rejected decision 必须复用 MTP-97 routing 写入 append-only MessageBus，
+        // replay 后仍能重建 evaluation requested + blocked evidence。
+        let (messageBus, publication) = try PaperPreTradeRiskEngineFixture.publishedRejectedDecision()
+
+        XCTAssertTrue(publication.decision.isRejected)
+        XCTAssertTrue(publication.replayMatchesRouteEvidence)
+        XCTAssertTrue(publication.rejectedDecisionEnteredReplay)
+        XCTAssertEqual(messageBus.envelopes.map(\.sequence), [1, 2])
+        XCTAssertEqual(messageBus.envelopes.map(\.stream), [.risk, .risk])
+        XCTAssertEqual(publication.routeEvidence.map(\.payloadKind), [
+            .paperRiskEvaluationRequested,
+            .paperRiskBlocked
+        ])
+        XCTAssertEqual(publication.routeEvidence.map(\.source), [
+            .paperRiskDecision,
+            .paperRiskDecision
+        ])
+        XCTAssertEqual(publication.routeEvidence.map(\.envelopeID), PaperPreTradeRiskEngineFixture.rejectedEnvelopeIDs)
+        XCTAssertEqual(
+            publication.routeEvidence.map(\.correlationID),
+            [PaperPreTradeRiskEngineFixture.correlationID, PaperPreTradeRiskEngineFixture.correlationID]
+        )
+        XCTAssertEqual(publication.routeEvidence.map(\.causationID), [
+            PaperPreTradeRiskEngineFixture.rootCausationID,
+            PaperPreTradeRiskEngineFixture.rejectedEnvelopeIDs[0]
+        ])
+
+        let replay = messageBus.replay(
+            EventReplayCommand(
+                range: try EventSequenceRange(lowerBound: 1, upperBound: 2),
+                streams: [.risk]
+            )
+        )
+        let replayEvidence = try PaperRuntimeMessageBusRouting.replayEvidence(from: replay)
+        XCTAssertEqual(replayEvidence, publication.routeEvidence)
+
+        var seededBus = try MessageBus()
+        let seededDecision = try PaperActionProposalRiskFixture.deterministicAllowed()
+        try seededBus.publish(
+            .risk(seededDecision.riskEvents[0]),
+            stream: .risk,
+            id: try XCTUnwrap(UUID(uuidString: "98000000-0000-4000-8000-000000000999")),
+            recordedAt: Date(timeIntervalSince1970: 3_999),
+            correlationID: PaperPreTradeRiskEngineFixture.correlationID,
+            causationID: nil
+        )
+        let seededPublication = try PaperPreTradeRiskEngineRuntimePath().evaluateAndPublish(
+            decisionID: try Identifier("mtp-98-paper-risk-rejected"),
+            input: PaperPreTradeRiskEngineFixture.rejectedInput(),
+            to: &seededBus,
+            clock: PaperPreTradeRiskEngineFixture.deterministicClock,
+            envelopeIDs: PaperPreTradeRiskEngineFixture.rejectedEnvelopeIDs,
+            correlationID: PaperPreTradeRiskEngineFixture.correlationID,
+            rootCausationID: PaperPreTradeRiskEngineFixture.rootCausationID
+        )
+        XCTAssertEqual(seededBus.envelopes.count, 3)
+        XCTAssertEqual(seededPublication.routeEvidence.map(\.eventSequence), [2, 3])
+        XCTAssertEqual(seededPublication.replayEvidence, seededPublication.routeEvidence)
+
+        let encoded = try JSONEncoder().encode(publication)
+        let decoded = try JSONDecoder().decode(PaperPreTradeRiskEnginePublication.self, from: encoded)
+        XCTAssertEqual(decoded, publication)
+    }
+
+    func testMTP98PaperPreTradeRiskEngineRejectsLiveAccountBrokerAndDecodeBypass() throws {
+        // 测试场景：MTP-98 的初始化和 Codable 解码都必须拒绝真实账户、broker position、margin、
+        // leverage、live risk engine、real pre-trade allow/reject 或 paper -> future live risk decision 升级。
+        let input = try PaperPreTradeRiskEngineFixture.acceptedInput()
+
+        XCTAssertThrowsError(
+            try PaperPreTradeRiskAccountSnapshot(
+                snapshotID: try Identifier("invalid-mtp-98-account-snapshot"),
+                sessionID: input.proposal.sessionID,
+                availablePaperBalance: 10_000,
+                sourceAnchor: "MTP-98-PAPER-ACCOUNT-SNAPSHOT-PAPER-ONLY",
+                observedAt: Date(timeIntervalSince1970: 4_000),
+                readsRealAccountBalance: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .paperPreTradeRiskEngineForbiddenCapability("readsRealAccountBalance"))
+        }
+
+        XCTAssertThrowsError(
+            try PaperPreTradeRiskEngineDecision(
+                decisionID: try Identifier("invalid-mtp-98-paper-risk"),
+                issueID: try Identifier("MTP-98"),
+                input: input,
+                outcome: .accepted,
+                riskDecision: PaperPreTradeRiskEngineFixture.acceptedDecision().riskDecision,
+                ruleEvaluations: PaperPreTradeRiskEngineFixture.acceptedDecision().ruleEvaluations,
+                rejectedRule: nil,
+                providesLiveRiskEngine: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .paperPreTradeRiskEngineForbiddenCapability("providesLiveRiskEngine"))
+        }
+
+        let encodedInput = try JSONEncoder().encode(input)
+        var inputObject = try XCTUnwrap(JSONSerialization.jsonObject(with: encodedInput) as? [String: Any])
+        inputObject["sourceAnchors"] = ["TVM-PAPER-RUNTIME-KERNEL"]
+        let missingAnchorData = try JSONSerialization.data(withJSONObject: inputObject)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(PaperPreTradeRiskEngineInput.self, from: missingAnchorData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperPreTradeRiskEngineMismatch(
+                    field: "sourceAnchors",
+                    expected: "MTP-98-PAPER-PRETRADE-RISKENGINE-RUNTIME-PATH",
+                    actual: "TVM-PAPER-RUNTIME-KERNEL"
+                )
+            )
+        }
+
+        var invalidRuleObject = try XCTUnwrap(JSONSerialization.jsonObject(with: encodedInput) as? [String: Any])
+        var rules = try XCTUnwrap(invalidRuleObject["riskRules"] as? [[String: Any]])
+        rules[0]["limit"] = -1
+        invalidRuleObject["riskRules"] = rules
+        let invalidRuleData = try JSONSerialization.data(withJSONObject: invalidRuleObject)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(PaperPreTradeRiskEngineInput.self, from: invalidRuleData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperPreTradeRiskEngineMismatch(
+                    field: "rule.limit",
+                    expected: "finite non-negative limit",
+                    actual: "-1.0"
+                )
+            )
+        }
+
+        let encodedDecision = try JSONEncoder().encode(PaperPreTradeRiskEngineFixture.acceptedDecision())
+        var decisionObject = try XCTUnwrap(JSONSerialization.jsonObject(with: encodedDecision) as? [String: Any])
+        decisionObject["mapsPaperRiskToFutureLiveRiskDecision"] = true
+        let liveUpgradeData = try JSONSerialization.data(withJSONObject: decisionObject)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(PaperPreTradeRiskEngineDecision.self, from: liveUpgradeData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperPreTradeRiskEngineForbiddenCapability("mapsPaperRiskToFutureLiveRiskDecision")
+            )
+        }
+    }
+
     private func makeOrderBookImbalanceInputs() throws -> [OrderBookReadModelInput] {
         let symbol = try Symbol(rawValue: "BTCUSDT")
         let bidDominant = OrderBookReadModelInput(

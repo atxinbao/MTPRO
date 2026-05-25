@@ -164,9 +164,86 @@ Required validation：
 
 Matrix anchor：`TVM-PAPER-RUNTIME-KERNEL`。
 
-## MTP-97 后仍禁止
+## MTP-98 Paper Pre-trade RiskEngine Runtime Path
 
-- 不实现 Paper Pre-trade RiskEngine runtime path。
+MTP-98 在 MTP-96 kernel boundary 和 MTP-97 bus routing 内新增 paper-only pre-trade risk runtime path：
+
+- `PaperPreTradeRiskEngineInput` 聚合 paper proposal、paper account snapshot、paper exposure、risk profile、paper risk rules 和 source proposal sequence。
+- `PaperPreTradeRiskEngineRuntimePath.evaluate` 输出 accepted / rejected `PaperPreTradeRiskEngineDecision`。
+- accepted decision 只写入 `.risk` stream 的 `evaluationRequested` fact。
+- rejected decision 写入 `.risk` stream 的 `evaluationRequested` 和 `blocked` facts，并可由 Event Log / Replay 重建 route evidence。
+- `PaperPreTradeRiskEngineFixture` 固定 accepted / rejected deterministic tracer bullets。
+
+## MTP-98-PAPER-PRETRADE-RISKENGINE-RUNTIME-PATH
+
+Paper Pre-trade RiskEngine runtime path 只能处理本地 paper proposal：
+
+- proposal 必须是 `ExecutionMode.paper`，并保持 `paperIntentOnly` authorization。
+- account snapshot 只表达本地 sandbox available paper balance。
+- paper exposure 只能来自 `PortfolioExposureSource.paperProjection`。
+- risk rules 只覆盖 max paper quantity、max paper notional、max paper gross exposure 和 available paper balance。
+- source proposal sequence 必须指向本地 append-only Event Log 中的 proposal fact。
+
+该路径不是 live risk engine，不读取真实账户、broker position、margin、leverage、PnL 或 equity。
+
+## MTP-98-ACCEPTED-REJECTED-PAPER-RISK-DECISION
+
+MTP-98 的输出只允许 accepted / rejected paper risk decision：
+
+- accepted 等同于本地 deterministic paper risk rules 全部通过。
+- rejected 等同于第一条 deterministic paper risk rule 失败，并携带 paper-only `RiskBlockerEvidence`。
+- rejected blocker reason 必须来自 `RiskBlockerReason`，不能写成 broker rejection、future live risk decision 或真实 pre-trade result。
+- `PaperPreTradeRiskEngineDecision.paperOnlyBoundaryHeld` 必须为 true。
+
+## MTP-98-REJECTED-DECISION-EVENTLOG-REPLAY
+
+Rejected decision 必须进入 append-only Event Log 并可 replay：
+
+- `PaperPreTradeRiskEngineRuntimePath.evaluateAndPublish` 必须复用 MTP-97 `PaperRuntimeMessageBusRouting`。
+- rejected decision 必须产生 `paperRiskEvaluationRequested` 和 `paperRiskBlocked` route evidence。
+- replay evidence 必须与 publish route evidence 完全一致。
+- route evidence 必须保留 envelope ID、event sequence、source、payload kind、stream、recordedAt、correlationID 和 causationID。
+
+## MTP-98-PAPER-RISK-NO-LIVE-ACCOUNT-BROKER-UPGRADE
+
+Paper risk blocker、paper exposure 和 paper account snapshot 不得升级为 future live risk decision、真实账户风控或 broker state：
+
+- `providesLiveRiskEngine == false`
+- `readsRealAccountBalance == false`
+- `syncsBrokerPosition == false`
+- `usesMargin == false`
+- `usesLeverage == false`
+- `runsRealPreTradeAllowReject == false`
+- `runsCircuitBreakerCommand == false`
+- `runsStopTradingCommand == false`
+- `runsEmergencyStop == false`
+- `providesLiveCommandUI == false`
+- `providesTradingButton == false`
+- `mapsPaperRiskToFutureLiveRiskDecision == false`
+
+Codable 解码不得绕过这些不变量；任何 true flag 都必须被 `CoreError.paperPreTradeRiskEngineForbiddenCapability` 拒绝。
+
+## MTP-98-PAPER-RISKENGINE-VALIDATION
+
+Required validation：
+
+- `bash checks/run.sh`
+- `swift test --filter MTP98`
+- `Tests/CoreTests/CoreTests.swift` 必须包含：
+  - `testMTP98PaperPreTradeRiskEngineProducesDeterministicAcceptedRejectedDecisions`
+  - `testMTP98RejectedDecisionPublishesToEventLogAndReplaysRiskEvidence`
+  - `testMTP98PaperPreTradeRiskEngineRejectsLiveAccountBrokerAndDecodeBypass`
+- `Sources/Core/PaperPreTradeRiskEngine.swift` 必须包含：
+  - `PaperPreTradeRiskEngineInput`
+  - `PaperPreTradeRiskEngineDecision`
+  - `PaperPreTradeRiskEngineRuntimePath`
+  - `PaperPreTradeRiskEnginePublication`
+  - `PaperPreTradeRiskEngineFixture`
+
+Matrix anchor：`TVM-PAPER-RUNTIME-KERNEL`。
+
+## MTP-98 后仍禁止
+
 - 不实现 paper lifecycle coordinator。
 - 不实现 simulated fill / fee / slippage model。
 - 不实现 paper account / portfolio projection v2。

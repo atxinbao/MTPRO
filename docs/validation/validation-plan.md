@@ -1782,3 +1782,39 @@ MTP-97 必须建立的主要 anchors：
 - 不实现 Paper RiskEngine runtime path、paper lifecycle coordinator、simulated fill / fee / slippage model 或 paper account / portfolio projection v2。
 - 不暴露 Runtime object、Adapter object、SQLite / DuckDB schema、broker acknowledgement、UI state 或 Live PRO Console。
 - 不新增 live command、order-level command UI、order form、交易按钮或真实交易授权。
+
+## MTP-98 Paper Pre-trade RiskEngine Runtime Path Validation
+
+日期：2026-05-25
+
+执行者：Codex
+
+MTP-98 的 required validation：
+
+- `docs/contracts/paper-runtime-kernel-contract.md` 必须包含 `MTP-98-PAPER-PRETRADE-RISKENGINE-RUNTIME-PATH`、`MTP-98-ACCEPTED-REJECTED-PAPER-RISK-DECISION`、`MTP-98-REJECTED-DECISION-EVENTLOG-REPLAY`、`MTP-98-PAPER-RISK-NO-LIVE-ACCOUNT-BROKER-UPGRADE` 和 `MTP-98-PAPER-RISKENGINE-VALIDATION` anchors。
+- `Sources/Core/PaperPreTradeRiskEngine.swift` 必须定义 `PaperPreTradeRiskEngineInput`、`PaperPreTradeRiskEngineDecision`、`PaperPreTradeRiskEngineRuntimePath`、`PaperPreTradeRiskEnginePublication` 和 deterministic fixture，并保持输入只来自 paper proposal、paper account snapshot、paper exposure 和 deterministic paper risk rules。
+- MTP-98 必须复用 MTP-97 `PaperRuntimeMessageBusRouting`，让 rejected paper risk decision 进入 `.risk` stream 的 `evaluationRequested` / `blocked` facts，并可由 Event Log / Replay 重建 route evidence。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-98 focused tests，验证 accepted / rejected paper risk decision deterministic、rejected decision 进入 Event Log / Replay、以及真实账户、broker position、margin、leverage、live risk engine、real pre-trade allow / reject 和 paper -> future live risk decision decode bypass 均被拒绝。
+- `docs/domain/context.md` 必须包含 `MTP-98-PAPER-PRETRADE-RISKENGINE-TERMS`。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-98 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-98 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-98 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不实现 paper lifecycle coordinator、simulated fill / fee / slippage model、paper account / portfolio projection、signed endpoint、account endpoint、listenKey、broker action、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、live command 或交易按钮。
+
+MTP-98 必须建立的主要 anchors：
+
+- `TVM-PAPER-RUNTIME-KERNEL`
+- `MTP-98-PAPER-PRETRADE-RISKENGINE-RUNTIME-PATH`
+- `MTP-98-ACCEPTED-REJECTED-PAPER-RISK-DECISION`
+- `MTP-98-REJECTED-DECISION-EVENTLOG-REPLAY`
+- `MTP-98-PAPER-RISK-NO-LIVE-ACCOUNT-BROKER-UPGRADE`
+- `MTP-98-PAPER-RISKENGINE-VALIDATION`
+
+## MTP-98 禁止
+
+- 不实现 live risk engine、真实账户风控、real pre-trade allow / reject runtime、circuit breaker command、stop trading command 或 emergency stop。
+- 不读取真实账户余额、broker position、margin、leverage、真实 PnL 或 equity。
+- 不接 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、真实 submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不实现 paper lifecycle coordinator、simulated fill / fee / slippage model 或 paper account / portfolio projection v2。
+- 不把 paper risk blocker、paper exposure 或 paper account snapshot 升级为 future live risk decision、真实账户 exposure、broker position、risk command、live command UI、order form、交易按钮或真实交易授权。

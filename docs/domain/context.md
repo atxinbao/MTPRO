@@ -73,6 +73,20 @@
 | `PaperRuntimeRouteEvidence` | 从 `EventEnvelope` 或 replay result 重建的 route source / payload / stream / correlation / causation 摘要 | 不暴露 Runtime object、SQLite / DuckDB schema、adapter payload、broker acknowledgement 或 UI state |
 | `paper runtime bus routing contract` | `PaperRuntimeBusRoutingContract` 中的 allowed buses、route sources、payload kinds、`.paper` / `.risk` streams 和 forbidden capability flags | 不授权 signed request routing、account endpoint、listenKey、execution report、broker fill 或 reconciliation |
 
+`MTP-98-PAPER-PRETRADE-RISKENGINE-TERMS`
+
+以下术语由 MTP-98 定义为 `MTPRO Event-Driven Paper Trading Runtime v1` 的 paper-only pre-trade risk language。它们只用于本地 sandbox proposal risk decision、blocker evidence、Event Log / Replay evidence 和 validation anchors，不授权当前 scope 实现 live risk engine、真实账户读取、broker position sync、margin、leverage、real pre-trade allow / reject runtime、circuit breaker、stop trading、emergency stop、Live PRO Console、live command 或交易按钮。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `Paper Pre-trade RiskEngine` | Core 层本地 paper-only runtime path，把 paper proposal、paper account snapshot、paper exposure 和 deterministic paper risk rules 转成 accepted / rejected paper risk decision | 不等于 live risk engine、真实账户风控、broker rejection 或 future live risk decision |
+| `paper account snapshot` | 本地 sandbox available paper balance 证据，只用于 MTP-98 paper risk 输入 | 不读取 account endpoint、真实账户余额、broker position、margin 或 leverage |
+| `paper risk rule` | deterministic paper risk rule，例如 max paper quantity、max paper notional、max paper gross exposure 和 available paper balance | 不等于交易所风控、broker-side throttling、真实 pre-trade policy 或 production risk config |
+| `accepted paper risk decision` | 当前 paper proposal 在 deterministic rules 下通过，只允许作为 paper-only decision 写入 `.risk` event evidence | 不授权真实订单、real submit、future live risk allowed 或 broker action |
+| `rejected paper risk decision` | 当前 paper proposal 被 deterministic rules 阻断，并携带 paper-only `RiskBlockerEvidence` | 不等于 broker rejection、future live risk blocked、circuit breaker、no-trade state 或 stop control |
+| `PaperPreTradeRiskEnginePublication` | MTP-98 rejected decision 经 MTP-97 routing 写入 `MessageBus` 后的 route evidence 与 replay evidence 对照 | 不暴露 Runtime object、Persistence schema、adapter object、broker acknowledgement 或 UI command |
+| `paper risk no live account / broker upgrade` | paper risk blocker、paper exposure 和 paper account snapshot 必须保持本地 sandbox 语义 | 不得升级为真实账户 exposure、broker position、margin / leverage、real pre-trade allow / reject、future live risk decision 或交易按钮 |
+
 ## Live Boundary Terms
 
 以下术语只用于 Future / gated 实盘边界设计和当前 blocked evidence，不授权当前 scope 实现真实交易能力。

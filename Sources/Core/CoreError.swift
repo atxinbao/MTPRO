@@ -57,6 +57,8 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
     case paperRuntimeKernelContractMismatch(field: String, expected: String, actual: String)
     case paperRuntimeBusRoutingForbiddenCapability(String)
     case paperRuntimeBusRoutingMismatch(field: String, expected: String, actual: String)
+    case paperPreTradeRiskEngineForbiddenCapability(String)
+    case paperPreTradeRiskEngineMismatch(field: String, expected: String, actual: String)
     case liveTradingBoundaryForbiddenCapability(String)
     case liveTradingBoundaryContractMismatch(field: String, expected: String, actual: String)
     case liveMonitoringConsoleForbiddenCapability(String)
@@ -170,6 +172,10 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
             "Paper runtime bus routing forbids capability: \(field)"
         case let .paperRuntimeBusRoutingMismatch(field, expected, actual):
             "Paper runtime bus routing mismatch for \(field): expected \(expected), actual \(actual)"
+        case let .paperPreTradeRiskEngineForbiddenCapability(field):
+            "Paper pre-trade risk engine forbids capability: \(field)"
+        case let .paperPreTradeRiskEngineMismatch(field, expected, actual):
+            "Paper pre-trade risk engine mismatch for \(field): expected \(expected), actual \(actual)"
         case let .liveTradingBoundaryForbiddenCapability(field):
             "Live trading boundary forbids capability: \(field)"
         case let .liveTradingBoundaryContractMismatch(field, expected, actual):
