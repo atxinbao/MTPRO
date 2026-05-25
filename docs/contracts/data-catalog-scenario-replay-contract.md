@@ -748,3 +748,93 @@ Validation anchors：
 - `TVM-DATA-CATALOG-SCENARIO-REPLAY`
 
 MTP-108 不实现 manifest parser、不新增 Runtime / Adapter / Persistence schema、不新增 database console 或 query language、不新增 UI redesign 或 Figma change、不实现 production data platform / observability、不实现 automatic download / repair、不实现 broker / account reconciliation、不实现 Simulated Exchange / Backtest Parity runtime、不接 signed endpoint、account endpoint、listenKey、secret、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、live runtime、live command 或交易按钮；Project stage closeout 仍归属 `MTP-109`。
+
+## MTP-109 Data Catalog / Scenario Replay stage closeout
+
+`MTP-109-DATA-CATALOG-SCENARIO-REPLAY-STAGE-CLOSEOUT`
+
+MTP-109 只收口 `MTPRO Data Catalog / Scenario Replay v1` 的 Project 级验证证据和 Parent Codex Stage Code Audit 输入材料。它把 MTP-103 至 MTP-108 已落地的 terminology、manifest identity、deterministic fixture、replay window / cursor / checksum / freshness、data quality gates、report input versioning 和 Workbench / Report / Events read-model-only evidence 归入同一个审计输入链。
+
+MTP-109 不新增 production code，不新增 Swift API，不修改 runtime 行为，不实现 scenario manifest parser、Runtime replay job、production data platform、automatic download / repair、Simulated Exchange / Backtest Parity runtime、signed endpoint、account endpoint、listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、live runtime、live command 或交易按钮。
+
+## MTP-109 stage audit input material
+
+`MTP-109-STAGE-AUDIT-INPUT-MATERIAL`
+
+`docs/audit/inputs/mtpro-data-catalog-scenario-replay-v1-stage-audit-input.md` 是 MTP-109 的唯一阶段审计输入材料。该文件必须覆盖：
+
+- Linear queue evidence：`MTP-103` 至 `MTP-108` Done，`MTP-109` In Progress。
+- Issue / PR evidence：PR #201 至 #206，以及 MTP-109 当前 PR 占位。
+- `TVM-DATA-CATALOG-SCENARIO-REPLAY` evidence chain。
+- `TVM-REPORT-EVIDENCE` / `TVM-PAPER-WORKFLOW-CONTROL-SHELL` 的 read-model-only surface 交叉证据。
+- Dashboard smoke handles：`scenarioReplayEvidence`、`scenarioQualityGates`、`timelineItems=42`、`readModelOnly=true` 和 `workbenchReadModelOnly=true`。
+- MTP-103 至 MTP-108 forbidden capability evidence。
+- no Graphify update、no Figma modification、no unauthorized Linear mutation。
+- Parent Codex 最终 Stage Code Audit handoff checklist。
+
+## MTP-109 no final Stage Code Audit
+
+`MTP-109-NO-FINAL-STAGE-CODE-AUDIT`
+
+MTP-109 不能输出最终 Stage Code Audit Report，不能创建 `docs/audit/mtpro-data-catalog-scenario-replay-v1-stage-code-audit.md`，不能设置 Linear Project `Completed`，不能创建下一 Project / Issue，不能推进下一阶段，也不能启动下一阶段 `symphony-issue`。
+
+最终 Stage Code Audit Report 必须在 `MTP-103` 至 `MTP-109` 全部进入 Linear `Done`，且 Linear Project status 被设置或确认为 `Completed`、`type=completed`、`completedAt` 非空后，由 Parent Codex 单独输出。
+
+## MTP-109 validation evidence chain
+
+`MTP-109-DATA-CATALOG-SCENARIO-REPLAY-VALIDATION-EVIDENCE-CHAIN`
+
+MTP-109 的 validation evidence chain 必须确认：
+
+- MTP-103：terminology / target engine / local-first deterministic versioned boundary / forbidden capability baseline 已落地。
+- MTP-104：scenario manifest、scenario id、dataset version、single-symbol / single-timeframe identity 和 deterministic serialization 已落地。
+- MTP-105：first deterministic scenario fixture、fixture version、fixed window、fixed record order、checksum preimage 已落地。
+- MTP-106：replay window、cursor summary、checksum / parity evidence、freshness evidence 和 data quality gate input identity 已落地。
+- MTP-107：六个最小 data quality gates、accepted / marked / rejected verdict 和 stable report input versioning 已落地。
+- MTP-108：Workbench / Report / Events scenario replay read-model-only evidence surface、quality gate timeline 和 Dashboard smoke handles 已落地。
+
+## MTP-109 forbidden capability evidence chain
+
+`MTP-109-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN`
+
+MTP-103 至 MTP-108 的 forbidden capability evidence 必须保持：
+
+- no manifest parser / no Runtime replay job。
+- no production data platform / no large-scale ingestion pipeline / no cloud data lake。
+- no automatic download / no automatic repair / no production data observability。
+- no database schema exposure / no adapter request exposure / no Runtime object read。
+- no signed endpoint / no account endpoint / no listenKey / no secret read。
+- no broker / no broker or exchange execution adapter / no `LiveExecutionAdapter`。
+- no OMS / no real order lifecycle / no execution report / no broker fill / no reconciliation。
+- no real account / broker position read。
+- no Simulated Exchange / Backtest Parity runtime。
+- no Live PRO Console / no live command / no command surface / no trading button。
+- no Graphify update / no Figma change / no unauthorized Linear mutation。
+
+## MTP-109 stage audit input anchor
+
+`MTP-109-DATA-CATALOG-SCENARIO-REPLAY-STAGE-AUDIT-INPUT`
+
+该 anchor 只指向 MTP-109 stage audit input material，不代表最终 Stage Code Audit Report 已存在或 Project 已 Completed。
+
+## MTP-109 automation readiness stage closeout
+
+`MTP-109-AUTOMATION-READINESS-STAGE-CLOSEOUT`
+
+`checks/automation-readiness.sh` 必须机械检查 MTP-109 contract anchors、validation plan anchors、trading validation matrix 回填、latest verification summary、stage audit input material、automation readiness doc anchor、MTP-103 至 MTP-108 source / test anchors 和 Dashboard smoke handles。
+
+Required validation：
+
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+Validation anchors：
+
+- `MTP-109-DATA-CATALOG-SCENARIO-REPLAY-STAGE-CLOSEOUT`
+- `MTP-109-STAGE-AUDIT-INPUT-MATERIAL`
+- `MTP-109-NO-FINAL-STAGE-CODE-AUDIT`
+- `MTP-109-DATA-CATALOG-SCENARIO-REPLAY-STAGE-AUDIT-INPUT`
+- `MTP-109-DATA-CATALOG-SCENARIO-REPLAY-VALIDATION-EVIDENCE-CHAIN`
+- `MTP-109-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN`
+- `MTP-109-AUTOMATION-READINESS-STAGE-CLOSEOUT`
+- `TVM-DATA-CATALOG-SCENARIO-REPLAY`
