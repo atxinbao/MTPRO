@@ -10928,3 +10928,48 @@ L1 Paper Runtime maturity statement：
 - 不修改 Figma。
 - 不提交 `.codex/*` 或 `graphify-out/*`。
 - 不实现 manifest parser、Runtime replay job、Adapter request、Persistence schema、database console、query language、command model、multi-symbol / multi-timeframe production catalog、production dataset registry、production data platform、cloud data lake、large-scale ingestion pipeline、真实历史下载器、production scheduler、production retention cleanup、cloud archive、storage tiering、schema inspector、Runtime inspector、signed endpoint、account endpoint / listenKey、secret、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、real account / broker position read、live runtime、order command、live command、trading button 或 Live PRO Console。
+---
+
+## 2026-05-26 — MTP-109 Data Catalog / Scenario Replay stage closeout
+
+执行者：Codex
+
+目的：
+
+- 完成 Linear issue `MTP-109 Close validation matrix / automation readiness / stage audit input`。
+- 收口 `MTPRO Data Catalog / Scenario Replay v1` 的 validation matrix、automation readiness anchors、stage audit input material、Project evidence chain 和 forbidden capability evidence。
+- 准备 Parent Codex 后续输出 Stage Code Audit Report 的输入材料，但不输出最终 Stage Code Audit Report。
+
+文件范围：
+
+- 新增 `docs/audit/inputs/mtpro-data-catalog-scenario-replay-v1-stage-audit-input.md`。
+- 更新 `docs/contracts/data-catalog-scenario-replay-contract.md`，新增 MTP-109 closeout / stage audit input / no final audit / validation evidence chain / forbidden capability / automation readiness anchors。
+- 更新 `docs/validation/trading-validation-matrix.md`，补齐 `TVM-DATA-CATALOG-SCENARIO-REPLAY` MTP-109 issue backfill 和阶段收口说明。
+- 更新 `docs/validation/validation-plan.md`，新增 MTP-109 Validation Docs / Stage Audit Input Validation。
+- 更新 `docs/validation/latest-verification-summary.md`，记录 MTP-109 当前 issue execution evidence 和本地验证结果。
+- 更新 `docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，增加 Data Catalog / Scenario Replay stage audit input readiness anchor 和机械检查。
+- 更新本 append-only `verification.md`。
+
+关键证据：
+
+- Stage audit input 汇总 PR #201 至 #206 的 issue / PR evidence、merge commit、GitHub required check URL 和当前 MTP-109 PR 占位。
+- `MTP-109-DATA-CATALOG-SCENARIO-REPLAY-VALIDATION-EVIDENCE-CHAIN` 覆盖 MTP-103 terminology / boundary、MTP-104 manifest identity、MTP-105 deterministic fixture、MTP-106 replay evidence、MTP-107 quality gates / report input versioning、MTP-108 Workbench / Report / Events read-model evidence。
+- `MTP-109-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN` 确认 no manifest parser、no Runtime replay job、no production data platform、no automatic download / repair、no Simulated Exchange / Backtest Parity runtime、no schema / adapter / Runtime object exposure、no signed endpoint、no account endpoint / listenKey、no broker、no `LiveExecutionAdapter`、no OMS、no real order lifecycle、no live runtime、no live command、no trading button、no Graphify update、no Figma modification 和 no unauthorized Linear mutation。
+- MTP-109 明确不创建 `docs/audit/mtpro-data-catalog-scenario-replay-v1-stage-code-audit.md`，最终 Stage Code Audit Report 仍归 Parent Codex。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/automation-readiness.sh` | pass | 首次运行发现 stage input 缺少 literal `PR #206`；修正文案后重跑通过，输出 `MTPRO automation readiness checks passed.`。 |
+| `bash checks/run.sh` | pass | 通过 `git diff --check`、automation readiness、Dashboard build、Dashboard smoke 和 242 个 XCTest；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; scenarioReplayEvidence=0; scenarioQualityGates=0; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`，最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不修改 Linear status。
+- 不启动 Symphony / Graphify。
+- 不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不输出最终 Stage Code Audit Report。
+- 不创建下一 Project / Issue，不推进下一阶段。
+- 不实现 manifest parser、Runtime replay job、production data platform、production data observability、automatic download、automatic repair、broker / account reconciliation、Simulated Exchange / Backtest Parity runtime、multi-symbol / multi-timeframe production catalog、database schema exposure、adapter request exposure、Runtime object read、signed endpoint、account endpoint / listenKey、secret、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、real account / broker position read、live runtime、live command、trading button 或 Live PRO Console。

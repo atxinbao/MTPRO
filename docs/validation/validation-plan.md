@@ -2215,3 +2215,40 @@ MTP-108 必须建立的主要 anchors：
 - 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position read、live runtime、live command、order form、Live PRO Console 或交易按钮。
 - 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进下一 issue。
+
+## MTP-109 Validation Docs / Stage Audit Input Validation
+
+日期：2026-05-26
+
+执行者：Codex
+
+MTP-109 的 required validation：
+
+- `docs/contracts/data-catalog-scenario-replay-contract.md` 必须包含 `MTP-109-DATA-CATALOG-SCENARIO-REPLAY-STAGE-CLOSEOUT`、`MTP-109-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-109-NO-FINAL-STAGE-CODE-AUDIT`、`MTP-109-DATA-CATALOG-SCENARIO-REPLAY-STAGE-AUDIT-INPUT`、`MTP-109-DATA-CATALOG-SCENARIO-REPLAY-VALIDATION-EVIDENCE-CHAIN`、`MTP-109-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN` 和 `MTP-109-AUTOMATION-READINESS-STAGE-CLOSEOUT` anchors。
+- `docs/audit/inputs/mtpro-data-catalog-scenario-replay-v1-stage-audit-input.md` 必须存在，并包含 MTP-103 至 MTP-108 issue / PR evidence、Project validation evidence chain、forbidden capability evidence、read-model-only boundary evidence、automation readiness evidence、known boundaries、Root Docs Delta input 和 Stage Code Audit handoff checklist。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-109 的当前 issue execution evidence，并明确 MTP-109 只做 Project 级 validation matrix、automation readiness 和 stage audit input material 收口，不输出最终 Stage Code Audit Report。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-109 issue backfill 和 MTP-109 Data Catalog / Scenario Replay 阶段收口说明，并指向 MTP-109 Stage Code Audit 输入材料。
+- `docs/automation/automation-readiness.md` 必须包含 Data Catalog / Scenario Replay stage audit input anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-103 至 MTP-109 的 contract、matrix、validation plan、latest summary、stage audit input、Core / App source anchors、Core / App deterministic test anchors 和 Dashboard smoke `scenarioReplayEvidence` / `scenarioQualityGates` handles。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+MTP-109 必须收口的主要 anchors：
+
+- `TVM-DATA-CATALOG-SCENARIO-REPLAY`
+- `MTP-109-DATA-CATALOG-SCENARIO-REPLAY-STAGE-CLOSEOUT`
+- `MTP-109-STAGE-AUDIT-INPUT-MATERIAL`
+- `MTP-109-NO-FINAL-STAGE-CODE-AUDIT`
+- `MTP-109-DATA-CATALOG-SCENARIO-REPLAY-STAGE-AUDIT-INPUT`
+- `MTP-109-DATA-CATALOG-SCENARIO-REPLAY-VALIDATION-EVIDENCE-CHAIN`
+- `MTP-109-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN`
+- `MTP-109-AUTOMATION-READINESS-STAGE-CLOSEOUT`
+
+## MTP-109 禁止
+
+- 不输出最终 Stage Code Audit Report，不创建 `docs/audit/mtpro-data-catalog-scenario-replay-v1-stage-code-audit.md`，不设置 Linear Project `Completed`，不创建下一 Project / Issue，不推进下一 issue，不启动下一阶段 `symphony-issue`。
+- 不实现 Simulated Exchange / Backtest Parity、production data platform、production data observability、large-scale ingestion pipeline、cloud data lake、automatic download、automatic repair、production scheduler、retention cleanup、cloud archive 或 storage tiering。
+- 不实现 manifest parser、Runtime replay job、Adapter request、Persistence schema、database console、query language 或 command model。
+- 不暴露 SQLite / DuckDB schema、adapter request、Runtime object、database console、schema inspector、Runtime inspector 或 UI command surface。
+- 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position read、live runtime、live command、order form、Live PRO Console 或交易按钮。
+- 不运行 Graphify，不修改 Figma，不进行 unauthorized Linear mutation。
