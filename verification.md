@@ -10545,3 +10545,72 @@ Root docs 判断：
 | `swift test --filter MTP102` | pass | 1 个 App focused test 通过，0 failures；覆盖 risk -> local lifecycle -> simulated fill -> account portfolio projection deterministic replay chain、Report / Dashboard / Event Timeline read-model-only evidence 和 no live / broker / trading authorization flags。 |
 | `bash checks/automation-readiness.sh` | pass | MTP-102 stage audit input、contract、matrix、validation plan、latest summary、source / test anchors 和 Dashboard smoke handles 均通过机械检查，输出 `MTPRO automation readiness checks passed.`。 |
 | `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`；Swift tests 223 个通过、0 failures；最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO Event-Driven Paper Trading Runtime v1 Project Closure / Stage Code Audit / Root Docs Refresh Gate
+
+日期：2026-05-26
+
+执行者：Parent Codex Automation Supervision（`@002 / PAR`）
+
+目的：
+
+- 在 `MTP-96` 至 `MTP-102` 全部 Done、对应 PR 全部 merge 且 GitHub required check `checks` 全部 success 后，关闭 `MTPRO Event-Driven Paper Trading Runtime v1`。
+- 落仓 canonical Stage Code Audit Report：`docs/audit/mtpro-event-driven-paper-trading-runtime-v1-stage-code-audit.md`。
+- 执行 Root Docs Refresh Gate，只同步已发生事实，不决定下一阶段方向。
+
+Project closure evidence：
+
+- Linear Project status：`Completed` / `type=completed`。
+- `completedAt=2026-05-25T18:25:12.000Z`。
+- Canonical issues：`MTP-96`、`MTP-97`、`MTP-98`、`MTP-99`、`MTP-100`、`MTP-101`、`MTP-102` 全部 `Done`。
+- Active queue：`Todo=0`、`In Progress=0`、`In Review=0`，WIP=1 satisfied。
+- Stage Code Audit PR：#198，merge commit `40d3ac8906f1e6a0f2d671ffd2d686f6789a78d7`，GitHub `checks` success run `https://github.com/atxinbao/MTPRO/actions/runs/26414607799/job/77756238531`。
+
+Issue evidence chain：
+
+| Issue | PR | Merge commit | Required check |
+| --- | --- | --- | --- |
+| `MTP-96` | #190 | `fa2e0ef2d4457a093ef796d66b933068a9bd9bac` | `checks` success：`https://github.com/atxinbao/MTPRO/actions/runs/26404774215/job/77725406407` |
+| `MTP-97` | #192 | `1936791faf8484fda072ccfef03dc20c88572cd6` | `checks` success：`https://github.com/atxinbao/MTPRO/actions/runs/26406391227/job/77730618874` |
+| `MTP-98` | #193 | `1123faef15a52b0e1d40254e5650f4d85c77c8a9` | `checks` success：`https://github.com/atxinbao/MTPRO/actions/runs/26407878500/job/77735463504` |
+| `MTP-99` | #194 | `1700c21b1c5794c1ab6a70a527d5c5a86fcf10a3` | `checks` success：`https://github.com/atxinbao/MTPRO/actions/runs/26408949657/job/77738863221` |
+| `MTP-100` | #195 | `bd45a98d73b7422dded902e56a0e95374dd5729c` | `checks` success：`https://github.com/atxinbao/MTPRO/actions/runs/26411644898/job/77747183669` |
+| `MTP-101` | #196 | `18a715851852dd67d3deb33564c111c2d3fcf63a` | `checks` success：`https://github.com/atxinbao/MTPRO/actions/runs/26412976178/job/77751276011` |
+| `MTP-102` | #197 | `55122cc1170b5a0ac29207b1ff4b604e00e7510d` | `checks` success：`https://github.com/atxinbao/MTPRO/actions/runs/26414177091/job/77754931506` |
+
+Root Docs Refresh Gate：
+
+| 文档 | 结果 | 原因 |
+| --- | --- | --- |
+| `GOAL.md` | updated | 同步 `L1 Paper Runtime` 本阶段闭环已完成；Final Product Goal Progress 保持 `9 / 9 (100%)`。 |
+| `BLUEPRINT.md` | updated | 把 `MTPRO Event-Driven Paper Trading Runtime v1` 从 planning / candidate 事实刷新为已完成 Project，并保留 future gated 边界。 |
+| `docs/environment.md` | no update needed | 未新增 validation 入口、secret、broker credential、signed endpoint、account endpoint、listenKey、真实账户读取或网络必需验证。 |
+| `docs/architecture.md` | updated | 同步 L1 Paper Runtime 的 TradingClock、routing、paper risk、local lifecycle、simulated fill、paper portfolio projection 和 read-model-only evidence chain。 |
+| `docs/roadmap.md` | updated | Stage 1 Event-Driven Paper Trading Runtime 更新为 Completed；Project Closure Count 更新为 `13 / 13`。 |
+| `docs/validation/latest-verification-summary.md` | updated | 同步最近完成 Project、Stage Code Audit Report、Project closure evidence、validation baseline 和 Root Docs Refresh Gate closure。 |
+| `docs/automation/automation-readiness.md` / `checks/automation-readiness.sh` | updated | 新增 Stage Code Audit Report mechanical anchor。 |
+| `verification.md` | updated | 追加本 compact record。 |
+
+当前进度口径：
+
+```text
+Project Closure Count: 13 / 13 (100%)
+Current Foundation Progress: 4 / 4 (100%)
+Final Product Goal Progress: 9 / 9 (100%)
+```
+
+L1 Paper Runtime maturity statement：
+
+- TradingClock / paper runtime kernel、paper-only routing、Paper Pre-trade RiskEngine、paper-only local lifecycle、simulated fill / fee / slippage、paper account / portfolio / position projection v2、Event Log / Replay / Report / Dashboard / Event Timeline evidence 已完成本阶段闭环。
+- 该成熟度结论不是 Live trading completion，不表示 broker / OMS、signed endpoint、account endpoint / listenKey、real order lifecycle、Live PRO Console、trading button 或 live command 已实现或获授权。
+
+边界确认：
+
+- 不创建下一 Project / Issue。
+- 不修改 Linear queue 推进下一阶段。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify。
+- 不修改 Figma。
+- 不写业务代码。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不授权 signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
