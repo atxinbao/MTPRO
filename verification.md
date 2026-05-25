@@ -10209,3 +10209,54 @@ Root docs 判断：
 | `swift test --filter MTP96` | pass | 3 个 MTP-96 focused tests 通过，0 failures。 |
 | `bash checks/automation-readiness.sh` | pass | MTP-96 contract / matrix / validation plan / domain context / latest summary / Core source / focused test anchors 均通过机械检查。 |
 | `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；Swift tests 207 个通过、0 failures；最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO Core Engine Architecture & Module Maturity Map v1
+
+日期：2026-05-25
+
+执行者：Codex
+
+目的：
+
+- 将 Human 确认的 Engine 级规划落仓为产品 / 架构层蓝图。
+- 参考 Human 提供的 core engine data-flow 图和 `atxinbao/nautilus_trader` 的 engine / crate 组织，把 MTPRO 模块成熟度路线从零散模块表升级为 Engine 级架构地图。
+- 明确后续 Project Draft 必须声明目标 Engine / Layer、target maturity level、current evidence、allowed scope、forbidden capabilities 和 validation anchors。
+
+文件范围：
+
+- 新增 `docs/product/mtpro-core-engine-architecture-module-maturity-map-v1.md`。
+- 更新 `BLUEPRINT.md`，增加该 Engine map 入口和 Future Construction Zones 前的 Project Draft 对齐要求。
+- 更新 `docs/architecture.md`，增加 Core Engine Architecture Reference。
+- 更新 `docs/roadmap.md`，把 Module Maturity Development Plan 绑定到 Engine map。
+- 更新 `docs/product/product-surface-map.md`，增加产品 / 架构层 Engine map 引用。
+- 更新 `docs/validation/latest-verification-summary.md`，记录该 Engine map 已落仓且不授权 execution。
+- 更新 `verification.md`，追加本节。
+
+关键结论：
+
+- Core Engine 包含 Domain Model Foundation、System Kernel、Connectivity / Adapter Engine、Data Engine、Strategy Engine、Analysis / Research Engine、Simulation / Backtest Engine、Risk Engine、Execution Engine、Portfolio Engine、State & Persistence Engine 和 Workbench Interface。
+- Future Live PRO Console 是独立 Future product surface，不是当前 Workbench 的自然延伸。
+- `Strategy quoter` 和 `Strategy hedger` 属于 Strategy Engine 的 Strategy Instance，只能输出 paper intent / proposal，不得直连 Execution Client 或 broker。
+- `MTPRO Event-Driven Paper Trading Runtime v1` 只能解释为 paper-only L1 起点，不等于完整 trading engine maturity。
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 `Todo`。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / `symphony-issue`。
+- 不运行 Graphify update。
+- 不修改 Figma。
+- 不写业务代码。
+- 不实现 Paper runtime。
+- 不引入 NautilusTrader 作为 runtime dependency。
+- 不复制 NautilusTrader 整仓代码。
+- 不实现 signed endpoint、account endpoint / listenKey、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation runtime、Live PRO Console、trading button 或 live command。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Core Engine Architecture & Module Maturity Map docs-only edits 后执行；无 whitespace / patch error 输出。 |
+| `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 保持 read-model-only / workbenchReadModelOnly；207 个 XCTest 通过、0 failures，最终输出 `MTPRO checks passed.`。 |

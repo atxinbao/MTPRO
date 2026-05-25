@@ -123,6 +123,8 @@ Final Product Goal Progress `9 / 9 (100%)` 表示原定 contract / evidence / Wo
 
 该计划是开发路线地图，不授权执行，不创建 Linear Project / Issue，不推进 `Todo`。每个阶段都必须先由 Human 确认，再由 `@001 / PLN` 输出 Project Planning Record，经 Linear 写入和 Parent Codex queue preflight 后，才能让唯一 eligible issue 进入 `Todo`。
 
+Engine 级分层和成熟度门槛由 `docs/product/mtpro-core-engine-architecture-module-maturity-map-v1.md` 维护。后续任何 Project Planning Record 必须说明目标 Engine / Layer、目标 maturity level、当前 evidence、允许施工范围和 forbidden capabilities，避免把单个页面、证据面或零散模块误当成完整 trading engine maturity。
+
 | 顺序 | 阶段 | 目标 | 对标 `nautilus_trader` | 当前状态 |
 | --- | --- | --- | --- | --- |
 | 1 | Event-Driven Paper Trading Runtime | 建立 paper-only runtime kernel、CommandBus / EventBus / MessageBus、Paper RiskEngine、paper lifecycle coordinator、local / simulated order lifecycle、simulated fill / fee / slippage、paper account / portfolio projection 和 Event Log / Replay / Dashboard evidence 闭环。 | `core` / `common` / `trading` / `execution` / `portfolio` 的 paper-only 安全子集。 | Planning record 已落仓并写入 Linear；后续执行仍需 WIP=1 queue preflight。 |

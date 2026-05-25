@@ -994,6 +994,30 @@ v3 设计重点：
 - NautilusTrader runtime dependency 或整仓代码复制。
 - signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、submit / cancel / replace、live risk engine、reconciliation runtime、incident replay runtime、emergency stop、shutdown、restore、production operations、Live PRO Console 或实盘操作台授权。
 
+## MTPRO Core Engine Architecture & Module Maturity Map v1
+
+日期：2026-05-25
+
+执行者：Codex
+
+当前产品 / 架构层新增 `MTPRO Core Engine Architecture & Module Maturity Map v1`，路径为 `docs/product/mtpro-core-engine-architecture-module-maturity-map-v1.md`。该文档参考 Human 提供的 core engine data-flow 图和 `atxinbao/nautilus_trader` 的模块组织，把 MTPRO 后续路线从零散模块表升级为 Engine 级架构地图。
+
+该 Engine map 明确：
+
+- Core Engine 包含 Domain Model Foundation、System Kernel、Connectivity / Adapter Engine、Data Engine、Strategy Engine、Analysis / Research Engine、Simulation / Backtest Engine、Risk Engine、Execution Engine、Portfolio Engine、State & Persistence Engine 和 Workbench Interface。
+- Future Live PRO Console 是独立 Future product surface，不是当前 Workbench 的自然延伸。
+- `Strategy quoter` 和 `Strategy hedger` 属于 Strategy Engine 的 Strategy Instance，只能输出 paper intent / proposal，不得直连 Execution Client 或 broker。
+- `MTPRO Event-Driven Paper Trading Runtime v1` 只能解释为 paper-only L1 起点，不等于完整 trading engine maturity。
+- 后续 Project Draft 必须声明目标 Engine / Layer、target maturity level、current evidence、allowed scope、forbidden capabilities 和 validation anchors。
+
+仍不包含：
+
+- Linear Project / Issue 创建、Todo 推进或 Symphony 启动。
+- Graphify update、Figma 修改、SwiftUI implementation 或业务代码开发。
+- Paper runtime 实现。
+- NautilusTrader runtime dependency 或整仓代码复制。
+- signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation runtime、live risk engine、Live PRO Console、trading button、live command 或 emergency stop。
+
 ## MTPRO Paper Trading Runtime Foundation Blueprint v1
 
 日期：2026-05-25
