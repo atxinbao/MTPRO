@@ -57,6 +57,7 @@ public enum PaperSessionReplayPath {
         var riskEvaluationRequestedCount = 0
         var riskBlockerEvidence: [RiskBlockerEvidence] = []
         var portfolioUpdates: [PaperPortfolioProjectionUpdate] = []
+        var accountPortfolioSnapshots: [PaperAccountPortfolioProjectionV2Snapshot] = []
         var portfolioIDs: [Identifier] = []
 
         for envelope in replay.envelopes {
@@ -85,6 +86,7 @@ public enum PaperSessionReplayPath {
                     portfolioEvent: event,
                     sessionIDs: &sessionIDs,
                     portfolioUpdates: &portfolioUpdates,
+                    accountPortfolioSnapshots: &accountPortfolioSnapshots,
                     portfolioIDs: &portfolioIDs
                 )
 
@@ -111,7 +113,7 @@ public enum PaperSessionReplayPath {
                 && update.authorizesTradingExecution == false
                 && update.readsRealAccountBalance == false
                 && update.syncsBrokerPosition == false
-        }
+        } && accountPortfolioSnapshots.allSatisfy(\.paperOnlyBoundaryHeld)
 
         return PaperSessionReplayEvidenceSummary(
             factsSource: "append-only event log replay",
@@ -129,7 +131,9 @@ public enum PaperSessionReplayPath {
             riskEvaluationRequestedCount: riskEvaluationRequestedCount,
             riskBlockerEvidenceIDs: uniqueIdentifiers(riskBlockerEvidence.map(\.evidenceID)),
             rejectedPaperOrderIDs: uniqueIdentifiers(riskBlockerEvidence.map(\.paperOrderID)),
-            portfolioUpdateIDs: uniqueIdentifiers(portfolioUpdates.map(\.updateID)),
+            portfolioUpdateIDs: uniqueIdentifiers(
+                portfolioUpdates.map(\.updateID) + accountPortfolioSnapshots.map(\.snapshotID)
+            ),
             portfolioIDs: uniqueIdentifiers(portfolioIDs),
             coversSessionEvents: lifecycleStates.contains(.started)
                 && lifecycleStates.contains(.updated)
@@ -139,7 +143,8 @@ public enum PaperSessionReplayPath {
             coversPaperOrderEvents: paperOrders.isEmpty == false,
             coversSimulatedFillEvents: simulatedFills.isEmpty == false,
             coversRiskBlockerEvents: riskBlockerEvidence.isEmpty == false,
-            coversPortfolioProjectionEvents: portfolioUpdates.isEmpty == false,
+            coversPortfolioProjectionEvents: portfolioUpdates.isEmpty == false
+                || accountPortfolioSnapshots.isEmpty == false,
             appendOnlyFactsSourceIsReplaySource: true,
             replayResultIsDeterministic: replayedSequences == Array(Set(replayedSequences)).sorted(),
             paperOnlyBoundaryHeld: proposalPaperBoundary
@@ -233,6 +238,7 @@ public enum PaperSessionReplayPath {
         portfolioEvent: PortfolioEvent,
         sessionIDs: inout [Identifier],
         portfolioUpdates: inout [PaperPortfolioProjectionUpdate],
+        accountPortfolioSnapshots: inout [PaperAccountPortfolioProjectionV2Snapshot],
         portfolioIDs: inout [Identifier]
     ) {
         switch portfolioEvent {
@@ -242,6 +248,10 @@ public enum PaperSessionReplayPath {
             sessionIDs.append(update.sessionID)
             portfolioUpdates.append(update)
             portfolioIDs.append(update.portfolioID)
+        case let .paperAccountPortfolioProjectionUpdated(snapshot):
+            sessionIDs.append(snapshot.account.sessionID)
+            accountPortfolioSnapshots.append(snapshot)
+            portfolioIDs.append(snapshot.portfolioID)
         case let .exposureUpdated(exposure):
             portfolioIDs.append(exposure.portfolioID)
         }

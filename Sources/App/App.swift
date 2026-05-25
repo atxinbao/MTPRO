@@ -179,10 +179,14 @@ public struct PaperReadModel: Equatable, Sendable {
 
 public struct RiskReadModel: Equatable, Sendable {
     public let riskBlockerEvidence: [SQLiteRiskBlockerEvidenceProjection]
+    public let paperAccounts: [SQLitePaperAccountProjection]
+    public let paperPositions: [SQLitePaperPositionProjection]
     public let lastAppliedSequence: Int?
 
     public init(
         riskBlockerEvidence: [SQLiteRiskBlockerEvidenceProjection] = [],
+        paperAccounts: [SQLitePaperAccountProjection] = [],
+        paperPositions: [SQLitePaperPositionProjection] = [],
         lastAppliedSequence: Int? = nil
     ) {
         self.riskBlockerEvidence = riskBlockerEvidence.sorted { lhs, rhs in
@@ -190,12 +194,19 @@ public struct RiskReadModel: Equatable, Sendable {
                 ? lhs.evidenceID.rawValue < rhs.evidenceID.rawValue
                 : lhs.sourceSequence < rhs.sourceSequence
         }
+        self.paperAccounts = paperAccounts.sorted {
+            $0.accountID.rawValue < $1.accountID.rawValue
+        }
+        self.paperPositions = paperPositions.sortedByPaperPosition()
         self.lastAppliedSequence = lastAppliedSequence
     }
 
     public init(runtimeProjection: SQLiteRuntimeProjectionSnapshot) {
+        let portfolios = Array(runtimeProjection.portfolioProjections.values)
         self.init(
             riskBlockerEvidence: runtimeProjection.riskBlockerEvidence,
+            paperAccounts: portfolios.compactMap(\.paperAccount),
+            paperPositions: portfolios.flatMap(\.paperPositions),
             lastAppliedSequence: runtimeProjection.lastAppliedSequence
         )
     }
@@ -236,6 +247,24 @@ public struct PortfolioReadModel: Equatable, Sendable {
                 }
                 return lhs.timeframe.rawValue < rhs.timeframe.rawValue
             }
+    }
+
+    public var paperAccounts: [SQLitePaperAccountProjection] {
+        portfolios
+            .compactMap(\.paperAccount)
+            .sorted { $0.accountID.rawValue < $1.accountID.rawValue }
+    }
+
+    public var paperPositions: [SQLitePaperPositionProjection] {
+        portfolios
+            .flatMap(\.paperPositions)
+            .sortedByPaperPosition()
+    }
+
+    public var paperPnLSummaries: [SQLitePaperPortfolioPnLProjection] {
+        portfolios
+            .compactMap(\.paperPnLSummary)
+            .sorted { $0.sourceSequence < $1.sourceSequence }
     }
 }
 
@@ -341,6 +370,9 @@ public struct TradingValidationEvidenceSummary: Codable, Equatable, Sendable {
     public let portfolioExposureSymbols: [String]
     public let portfolioExposureCount: Int
     public let portfolioGrossExposureNotional: Double
+    public let paperAccountIDs: [String]
+    public let paperPositionCount: Int
+    public let paperNetPnL: Double
     public let sourceSequences: [Int]
     public let authorizesTradingExecution: Bool
 
@@ -348,7 +380,10 @@ public struct TradingValidationEvidenceSummary: Codable, Equatable, Sendable {
         parityStatus: ReportParityStatus,
         executionCostEvidence: [ReportExecutionCostEvidence] = [],
         riskBlockerEvidence: [SQLiteRiskBlockerEvidenceProjection] = [],
-        portfolioExposures: [SQLitePortfolioExposureProjection] = []
+        portfolioExposures: [SQLitePortfolioExposureProjection] = [],
+        paperAccounts: [SQLitePaperAccountProjection] = [],
+        paperPositions: [SQLitePaperPositionProjection] = [],
+        paperPnLSummaries: [SQLitePaperPortfolioPnLProjection] = []
     ) {
         self.parityStatus = parityStatus
         self.executionCostEvidence = executionCostEvidence.sortedByCostEvidence()
@@ -366,10 +401,18 @@ public struct TradingValidationEvidenceSummary: Codable, Equatable, Sendable {
         self.portfolioGrossExposureNotional = portfolioExposures.reduce(0) {
             $0 + $1.grossExposureNotional
         }
+        self.paperAccountIDs = paperAccounts.map(\.accountID.rawValue).uniqueSorted()
+        self.paperPositionCount = paperPositions.count
+        self.paperNetPnL = paperPnLSummaries.reduce(0) {
+            $0 + $1.netPaperPnL
+        }
         self.sourceSequences = (
             executionCostEvidence.map(\.sourceSequence)
                 + riskBlockerEvidence.map(\.sourceSequence)
                 + portfolioExposures.map(\.sourceSequence)
+                + paperAccounts.map(\.sourceSequence)
+                + paperPositions.map(\.sourceSequence)
+                + paperPnLSummaries.map(\.sourceSequence)
         ).uniqueSorted()
         self.authorizesTradingExecution = false
     }
@@ -593,7 +636,8 @@ public struct PaperExecutionWorkflowEvidenceSummary: Codable, Equatable, Sendabl
         case .paper(.executionDecisionRecorded),
              .paper(.orderIntentRecorded),
              .paper(.simulatedFillRecorded),
-             .portfolio(.paperProjectionUpdated):
+             .portfolio(.paperProjectionUpdated),
+             .portfolio(.paperAccountPortfolioProjectionUpdated):
             return true
         default:
             return false
@@ -734,7 +778,8 @@ public struct ReportReadModel: Equatable, Sendable {
         let researchRuns = Array(analyticalProjection.orderBookResearchRuns.values)
         let paperSessions = Array(runtimeProjection.paperSessions.values)
         let riskBlockerEvidence = runtimeProjection.riskBlockerEvidence
-        let portfolioExposures = runtimeProjection.portfolioProjections.values.flatMap(\.exposures)
+        let portfolioProjections = Array(runtimeProjection.portfolioProjections.values)
+        let portfolioExposures = portfolioProjections.flatMap(\.exposures)
         let lastAppliedSequence = Self.maxSequence(
             analyticalProjection.lastAppliedSequence,
             runtimeProjection.lastAppliedSequence,
@@ -749,6 +794,7 @@ public struct ReportReadModel: Equatable, Sendable {
                 paperSessions: paperSessions,
                 riskBlockerEvidence: riskBlockerEvidence,
                 portfolioExposures: portfolioExposures,
+                portfolioProjections: portfolioProjections,
                 eventTimeline: eventTimeline,
                 lastAppliedSequence: lastAppliedSequence
             )
@@ -773,6 +819,7 @@ public struct ReportReadModel: Equatable, Sendable {
         paperSessions: [SQLitePaperSessionProjection],
         riskBlockerEvidence: [SQLiteRiskBlockerEvidenceProjection],
         portfolioExposures: [SQLitePortfolioExposureProjection],
+        portfolioProjections: [SQLitePortfolioProjection],
         eventTimeline: [EventEnvelope],
         lastAppliedSequence: Int?
     ) -> ResearchBacktestReportArtifact {
@@ -795,6 +842,16 @@ public struct ReportReadModel: Equatable, Sendable {
         let matchingPortfolioExposures = portfolioExposures.filter {
             $0.symbol == backtest.symbol && $0.timeframe == backtest.timeframe
         }
+        let matchingPortfolioProjections = portfolioProjections.filter { projection in
+            projection.exposures.contains {
+                $0.symbol == backtest.symbol && $0.timeframe == backtest.timeframe
+            }
+        }
+        let matchingPaperAccounts = matchingPortfolioProjections.compactMap(\.paperAccount)
+        let matchingPaperPositions = matchingPortfolioProjections
+            .flatMap(\.paperPositions)
+            .filter { $0.symbol == backtest.symbol && $0.timeframe == backtest.timeframe }
+        let matchingPaperPnLSummaries = matchingPortfolioProjections.compactMap(\.paperPnLSummary)
         let parityEvidenceStatus = parityStatus(backtest: backtest, paperSessions: matchingPaperSessions)
         let executionCostEvidence = makeExecutionCostEvidence(from: matchingPortfolioExposures)
         let matchingReplayEnvelopes = matchingPaperRuntimeEnvelopes(
@@ -831,7 +888,10 @@ public struct ReportReadModel: Equatable, Sendable {
                 parityStatus: parityEvidenceStatus,
                 executionCostEvidence: executionCostEvidence,
                 riskBlockerEvidence: matchingRiskBlockers,
-                portfolioExposures: matchingPortfolioExposures
+                portfolioExposures: matchingPortfolioExposures,
+                paperAccounts: matchingPaperAccounts,
+                paperPositions: matchingPaperPositions,
+                paperPnLSummaries: matchingPaperPnLSummaries
             ),
             paperRuntimeEvidence: paperRuntimeEvidence,
             paperExecutionWorkflowEvidence: paperExecutionWorkflowEvidence,
@@ -964,6 +1024,10 @@ public struct ReportReadModel: Equatable, Sendable {
             return false
         case let .paperProjectionUpdated(update):
             return update.exposure.symbol == symbol && update.exposure.timeframe == timeframe
+        case let .paperAccountPortfolioProjectionUpdated(snapshot):
+            return snapshot.exposures.contains {
+                $0.symbol == symbol && $0.timeframe == timeframe
+            }
         case let .exposureUpdated(exposure):
             return exposure.symbol == symbol && exposure.timeframe == timeframe
         }
@@ -1281,6 +1345,9 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
     public let portfolioExposureEvidenceCount: Int
     public let portfolioExposureSymbols: [String]
     public let portfolioGrossExposureNotional: Double
+    public let paperAccountIDs: [String]
+    public let paperPositionCount: Int
+    public let paperNetPnL: Double
     public let paperRuntimeEvidenceCount: Int
     public let paperRuntimeSessionIDs: [String]
     public let paperRuntimeLifecycleStates: [String]
@@ -1495,6 +1562,15 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
             .uniqueSorted()
         self.portfolioGrossExposureNotional = tradingEvidence.reduce(0) {
             $0 + $1.portfolioGrossExposureNotional
+        }
+        self.paperAccountIDs = tradingEvidence
+            .flatMap(\.paperAccountIDs)
+            .uniqueSorted()
+        self.paperPositionCount = tradingEvidence.reduce(0) {
+            $0 + $1.paperPositionCount
+        }
+        self.paperNetPnL = tradingEvidence.reduce(0) {
+            $0 + $1.paperNetPnL
         }
         self.paperRuntimeEvidenceCount = runtimeEvidence.filter(\.hasEvidence).count
         self.paperRuntimeSessionIDs = runtimeEvidence
@@ -1834,6 +1910,9 @@ public struct RiskViewModel: Codable, Equatable, Sendable {
     public let rejectedPaperOrderIDs: [String]
     public let rejectionCount: Int
     public let blockerReasons: [RiskBlockerReason]
+    public let paperAccountIDs: [String]
+    public let paperAvailableBalance: Double
+    public let paperPositionCount: Int
     public let lastAppliedSequence: Int?
 
     public init(readModel: RiskReadModel) {
@@ -1844,7 +1923,80 @@ public struct RiskViewModel: Codable, Equatable, Sendable {
         self.rejectedPaperOrderIDs = readModel.rejectedPaperOrderIDs.map(\.rawValue)
         self.rejectionCount = evidence.count
         self.blockerReasons = evidence.map(\.reason)
+        self.paperAccountIDs = readModel.paperAccounts.map(\.accountID.rawValue)
+        self.paperAvailableBalance = readModel.paperAccounts.reduce(0) {
+            $0 + $1.availablePaperBalance
+        }
+        self.paperPositionCount = readModel.paperPositions.count
         self.lastAppliedSequence = readModel.lastAppliedSequence
+    }
+}
+
+public struct PaperAccountProjectionViewModel: Codable, Equatable, Sendable {
+    public let accountID: String
+    public let currency: String
+    public let cashBalance: Double
+    public let availablePaperBalance: Double
+    public let equity: Double
+    public let netPaperPnL: Double
+    public let sourceSequences: [Int]
+
+    public init(projection: SQLitePaperAccountProjection) {
+        self.accountID = projection.accountID.rawValue
+        self.currency = projection.currency
+        self.cashBalance = projection.cashBalance
+        self.availablePaperBalance = projection.availablePaperBalance
+        self.equity = projection.equity
+        self.netPaperPnL = projection.netPaperPnL
+        self.sourceSequences = projection.sourceSequences
+    }
+}
+
+public struct PaperPositionProjectionViewModel: Codable, Equatable, Sendable {
+    public let positionID: String
+    public let portfolioID: String
+    public let symbol: String
+    public let timeframe: String
+    public let netQuantity: Double
+    public let averageEntryPrice: Double
+    public let lastFillPrice: Double
+    public let marketValue: Double
+    public let costBasisNotional: Double
+    public let totalCostImpactAmount: Double
+    public let unrealizedPaperPnL: Double
+    public let sourceSequences: [Int]
+
+    public init(projection: SQLitePaperPositionProjection) {
+        self.positionID = projection.positionID.rawValue
+        self.portfolioID = projection.portfolioID.rawValue
+        self.symbol = projection.symbol.rawValue
+        self.timeframe = projection.timeframe.rawValue
+        self.netQuantity = projection.netQuantity.rawValue
+        self.averageEntryPrice = projection.averageEntryPrice.rawValue
+        self.lastFillPrice = projection.lastFillPrice.rawValue
+        self.marketValue = projection.marketValue
+        self.costBasisNotional = projection.costBasisNotional
+        self.totalCostImpactAmount = projection.totalCostImpactAmount
+        self.unrealizedPaperPnL = projection.unrealizedPaperPnL
+        self.sourceSequences = projection.sourceSequences
+    }
+}
+
+public struct PaperPortfolioPnLViewModel: Codable, Equatable, Sendable {
+    public let grossExposureNotional: Double
+    public let costBasisNotional: Double
+    public let totalCostImpactAmount: Double
+    public let unrealizedPaperPnL: Double
+    public let netPaperPnL: Double
+    public let sourceSequence: Int
+
+    public init(projection: SQLitePaperPortfolioPnLProjection) {
+        self.grossExposureNotional = projection.grossExposureNotional
+        self.costBasisNotional = projection.costBasisNotional
+        self.totalCostImpactAmount = projection.totalCostImpactAmount
+        self.unrealizedPaperPnL = projection.unrealizedPaperPnL
+        self.netPaperPnL = projection.netPaperPnL
+        self.sourceSequence = projection.sourceSequence
     }
 }
 
@@ -1876,20 +2028,41 @@ public struct PortfolioViewModel: Codable, Equatable, Sendable {
     public let portfolioIDs: [String]
     public let updatedPortfolioCount: Int
     public let exposures: [PortfolioExposureViewModel]
+    public let paperAccounts: [PaperAccountProjectionViewModel]
+    public let paperPositions: [PaperPositionProjectionViewModel]
+    public let paperPnLSummaries: [PaperPortfolioPnLViewModel]
     public let exposureCount: Int
+    public let paperAccountCount: Int
+    public let paperPositionCount: Int
     public let totalGrossExposureNotional: Double
+    public let totalPaperEquity: Double
+    public let totalNetPaperPnL: Double
     public let lastAppliedSequence: Int?
 
     public init(readModel: PortfolioReadModel) {
         let exposures = readModel.exposures.map(PortfolioExposureViewModel.init)
+        let paperAccounts = readModel.paperAccounts.map(PaperAccountProjectionViewModel.init)
+        let paperPositions = readModel.paperPositions.map(PaperPositionProjectionViewModel.init)
+        let paperPnLSummaries = readModel.paperPnLSummaries.map(PaperPortfolioPnLViewModel.init)
         self.section = .portfolio
         self.source = ViewModelSourceContract()
         self.portfolioIDs = readModel.portfolios.map(\.portfolioID.rawValue)
         self.updatedPortfolioCount = readModel.portfolios.filter { $0.state == .updated }.count
         self.exposures = exposures
+        self.paperAccounts = paperAccounts
+        self.paperPositions = paperPositions
+        self.paperPnLSummaries = paperPnLSummaries
         self.exposureCount = exposures.count
+        self.paperAccountCount = paperAccounts.count
+        self.paperPositionCount = paperPositions.count
         self.totalGrossExposureNotional = exposures.reduce(0) {
             $0 + $1.grossExposureNotional
+        }
+        self.totalPaperEquity = paperAccounts.reduce(0) {
+            $0 + $1.equity
+        }
+        self.totalNetPaperPnL = paperPnLSummaries.reduce(0) {
+            $0 + $1.netPaperPnL
         }
         self.lastAppliedSequence = readModel.lastAppliedSequence
     }
@@ -2004,6 +2177,20 @@ private extension Array where Element == ReportExecutionCostEvidence {
                 return lhs.sourceSequence < rhs.sourceSequence
             }
             return lhs.liquidityRole.rawValue < rhs.liquidityRole.rawValue
+        }
+    }
+}
+
+private extension Array where Element == SQLitePaperPositionProjection {
+    func sortedByPaperPosition() -> [SQLitePaperPositionProjection] {
+        sorted { lhs, rhs in
+            if lhs.portfolioID != rhs.portfolioID {
+                return lhs.portfolioID.rawValue < rhs.portfolioID.rawValue
+            }
+            if lhs.symbol != rhs.symbol {
+                return lhs.symbol.rawValue < rhs.symbol.rawValue
+            }
+            return lhs.timeframe.rawValue < rhs.timeframe.rawValue
         }
     }
 }

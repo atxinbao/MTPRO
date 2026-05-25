@@ -1899,3 +1899,42 @@ MTP-100 必须建立的主要 anchors：
 - 不接 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不读取真实账户余额、broker position、margin、leverage、真实 PnL 或 equity。
 - 不把 `PaperSimulatedFillEvidence` 写成真实成交、broker fill、execution report 或 account update。
+
+## MTP-101 Paper Account / Portfolio / Position Projection v2 Validation
+
+日期：2026-05-26
+
+执行者：Codex
+
+MTP-101 的 required validation：
+
+- `docs/contracts/paper-runtime-kernel-contract.md` 必须包含 `MTP-101-PAPER-ACCOUNT-PORTFOLIO-POSITION-PROJECTION`、`MTP-101-REPLAYED-SIMULATED-FILL-PROJECTION`、`MTP-101-PAPER-PNL-SNAPSHOT`、`MTP-101-READ-MODEL-CONSUMPTION`、`MTP-101-NO-REAL-ACCOUNT-BROKER-MARGIN-LEVERAGE` 和 `MTP-101-PAPER-ACCOUNT-PORTFOLIO-VALIDATION` anchors。
+- `Sources/Core/PaperAccountPortfolioProjectionV2.swift` 必须定义 `PaperAccountProjectionSnapshot`、`PaperPositionProjectionSnapshot`、`PaperPortfolioPnLSummary`、`PaperAccountPortfolioProjectionV2Snapshot`、`PaperAccountPortfolioProjectionV2Path` 和 deterministic fixture。
+- Projection v2 必须从 replayed `.paper.simulatedFillRecorded` facts 派生 account cash、available paper balance、equity、position quantity、average entry、exposure、cost basis 和 paper PnL summary。
+- Persistence 只能保存 Core snapshot 派生的 runtime projection；App / Dashboard / Report / Risk / Portfolio 只能消费 read model / ViewModel。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-101 focused tests，验证 replay -> projection deterministic 和 Codable forbidden capability bypass rejection。
+- `Tests/AppTests/AppTests.swift` 必须包含 MTP-101 focused test，验证 Report / Dashboard / Risk / Portfolio read model consumption。
+- `docs/domain/context.md` 必须包含 `MTP-101-PAPER-ACCOUNT-PORTFOLIO-PROJECTION-TERMS`。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-101 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-101 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-101 contract、matrix、validation plan、domain context、latest summary、Core/App source 和 focused test anchors。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不实现真实账户余额读取、broker position sync、margin、leverage、real PnL、live risk runtime、signed endpoint、account endpoint、broker action 或真实订单行为。
+
+MTP-101 必须建立的主要 anchors：
+
+- `TVM-PAPER-RUNTIME-KERNEL`
+- `MTP-101-PAPER-ACCOUNT-PORTFOLIO-POSITION-PROJECTION`
+- `MTP-101-REPLAYED-SIMULATED-FILL-PROJECTION`
+- `MTP-101-PAPER-PNL-SNAPSHOT`
+- `MTP-101-READ-MODEL-CONSUMPTION`
+- `MTP-101-NO-REAL-ACCOUNT-BROKER-MARGIN-LEVERAGE`
+- `MTP-101-PAPER-ACCOUNT-PORTFOLIO-VALIDATION`
+
+## MTP-101 禁止
+
+- 不实现 Event Log / Replay / Report / Dashboard evidence stage closeout；该收口留给 MTP-102。
+- 不新增 order-level App / Dashboard command surface，不新增 position command、order form、live command 或交易按钮。
+- 不实现 broker fill、execution report parser、真实 fee statement、真实成交质量分析、live reconciliation 或 real account update。
+- 不实现 OMS、broker router、真实 order lifecycle、真实 submit / cancel / replace、Live PRO Console、live command、order form 或交易按钮。
+- 不接 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不读取真实账户余额、broker position、margin、leverage、真实 PnL 或 equity。

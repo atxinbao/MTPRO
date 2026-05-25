@@ -368,6 +368,112 @@ public struct SQLitePortfolioExposureProjection: Codable, Equatable, Sendable {
     }
 }
 
+/// SQLitePaperAccountProjection 是 MTP-101 paper account v2 的 runtime read model。
+///
+/// 该投影只保存 Core snapshot 已经验证过的本地 sandbox account 字段和来源 sequence；
+/// SQLite schema 仍保持私有，App / Dashboard 只能消费该 read model，不读取真实账户、broker
+/// position、margin、leverage 或 Runtime object。
+public struct SQLitePaperAccountProjection: Codable, Equatable, Sendable {
+    public let accountID: Identifier
+    public let sessionID: Identifier
+    public let currency: String
+    public let startingCashBalance: Double
+    public let cashBalance: Double
+    public let availablePaperBalance: Double
+    public let positionMarketValue: Double
+    public let equity: Double
+    public let netPaperPnL: Double
+    public let sourceFillIDs: [Identifier]
+    public let sourceSequences: [Int]
+    public let projectedAt: Date
+    public let sourceSequence: Int
+
+    public init(snapshot: PaperAccountProjectionSnapshot, envelope: EventEnvelope) {
+        self.accountID = snapshot.accountID
+        self.sessionID = snapshot.sessionID
+        self.currency = snapshot.currency
+        self.startingCashBalance = snapshot.startingCashBalance
+        self.cashBalance = snapshot.cashBalance
+        self.availablePaperBalance = snapshot.availablePaperBalance
+        self.positionMarketValue = snapshot.positionMarketValue
+        self.equity = snapshot.equity
+        self.netPaperPnL = snapshot.pnlSummary.netPaperPnL
+        self.sourceFillIDs = snapshot.sourceFillIDs
+        self.sourceSequences = snapshot.sourceSequences
+        self.projectedAt = envelope.recordedAt
+        self.sourceSequence = envelope.sequence
+    }
+}
+
+/// SQLitePaperPositionProjection 是 MTP-101 paper position v2 的只读投影。
+///
+/// position 字段全部来自 replayed simulated fill 聚合后的 Core snapshot；这里不存 broker
+/// position、real account balance、margin 或 leverage，也不提供 position command surface。
+public struct SQLitePaperPositionProjection: Codable, Equatable, Sendable {
+    public let positionID: Identifier
+    public let portfolioID: Identifier
+    public let symbol: Symbol
+    public let timeframe: Timeframe
+    public let netQuantity: Quantity
+    public let averageEntryPrice: Price
+    public let lastFillPrice: Price
+    public let marketValue: Double
+    public let costBasisNotional: Double
+    public let totalCostImpactAmount: Double
+    public let unrealizedPaperPnL: Double
+    public let sourceFillIDs: [Identifier]
+    public let sourceSequences: [Int]
+    public let projectedAt: Date
+    public let sourceSequence: Int
+
+    public init(snapshot: PaperPositionProjectionSnapshot, envelope: EventEnvelope) {
+        self.positionID = snapshot.positionID
+        self.portfolioID = snapshot.portfolioID
+        self.symbol = snapshot.symbol
+        self.timeframe = snapshot.timeframe
+        self.netQuantity = snapshot.netQuantity
+        self.averageEntryPrice = snapshot.averageEntryPrice
+        self.lastFillPrice = snapshot.lastFillPrice
+        self.marketValue = snapshot.marketValue
+        self.costBasisNotional = snapshot.costBasisNotional
+        self.totalCostImpactAmount = snapshot.totalCostImpactAmount
+        self.unrealizedPaperPnL = snapshot.unrealizedPaperPnL
+        self.sourceFillIDs = snapshot.sourceFillIDs
+        self.sourceSequences = snapshot.sourceSequences
+        self.projectedAt = envelope.recordedAt
+        self.sourceSequence = envelope.sequence
+    }
+}
+
+/// SQLitePaperPortfolioPnLProjection 保存 MTP-101 paper PnL summary 的只读投影。
+///
+/// PnL 只代表本地 sandbox replay result，不是 real PnL、margin PnL 或 broker statement。
+public struct SQLitePaperPortfolioPnLProjection: Codable, Equatable, Sendable {
+    public let grossExposureNotional: Double
+    public let costBasisNotional: Double
+    public let totalFeeAmount: Double
+    public let totalSlippageAmount: Double
+    public let totalCostImpactAmount: Double
+    public let realizedPaperPnL: Double
+    public let unrealizedPaperPnL: Double
+    public let netPaperPnL: Double
+    public let sourceSequence: Int
+    public let projectedAt: Date
+
+    public init(summary: PaperPortfolioPnLSummary, envelope: EventEnvelope) {
+        self.grossExposureNotional = summary.grossExposureNotional
+        self.costBasisNotional = summary.costBasisNotional
+        self.totalFeeAmount = summary.totalFeeAmount
+        self.totalSlippageAmount = summary.totalSlippageAmount
+        self.totalCostImpactAmount = summary.totalCostImpactAmount
+        self.realizedPaperPnL = summary.realizedPaperPnL
+        self.unrealizedPaperPnL = summary.unrealizedPaperPnL
+        self.netPaperPnL = summary.netPaperPnL
+        self.sourceSequence = envelope.sequence
+        self.projectedAt = envelope.recordedAt
+    }
+}
+
 public struct SQLitePortfolioProjection: Codable, Equatable, Sendable {
     public let portfolioID: Identifier
     public let state: SQLitePortfolioProjectionState
@@ -375,6 +481,9 @@ public struct SQLitePortfolioProjection: Codable, Equatable, Sendable {
     public let updatedAt: Date?
     public let lastUpdatedAt: Date
     public let exposures: [SQLitePortfolioExposureProjection]
+    public let paperAccount: SQLitePaperAccountProjection?
+    public let paperPositions: [SQLitePaperPositionProjection]
+    public let paperPnLSummary: SQLitePaperPortfolioPnLProjection?
 
     public init(
         portfolioID: Identifier,
@@ -382,7 +491,10 @@ public struct SQLitePortfolioProjection: Codable, Equatable, Sendable {
         requestedAt: Date?,
         updatedAt: Date?,
         lastUpdatedAt: Date,
-        exposures: [SQLitePortfolioExposureProjection] = []
+        exposures: [SQLitePortfolioExposureProjection] = [],
+        paperAccount: SQLitePaperAccountProjection? = nil,
+        paperPositions: [SQLitePaperPositionProjection] = [],
+        paperPnLSummary: SQLitePaperPortfolioPnLProjection? = nil
     ) {
         self.portfolioID = portfolioID
         self.state = state
@@ -390,6 +502,9 @@ public struct SQLitePortfolioProjection: Codable, Equatable, Sendable {
         self.updatedAt = updatedAt
         self.lastUpdatedAt = lastUpdatedAt
         self.exposures = exposures.sortedByPortfolioExposure()
+        self.paperAccount = paperAccount
+        self.paperPositions = paperPositions.sortedByPaperPosition()
+        self.paperPnLSummary = paperPnLSummary
     }
 }
 
@@ -612,7 +727,10 @@ public struct SQLiteRuntimeProjectionStore: Equatable, Sendable {
                 requestedAt: existing?.requestedAt ?? envelope.recordedAt,
                 updatedAt: existing?.updatedAt,
                 lastUpdatedAt: envelope.recordedAt,
-                exposures: existing?.exposures ?? []
+                exposures: existing?.exposures ?? [],
+                paperAccount: existing?.paperAccount,
+                paperPositions: existing?.paperPositions ?? [],
+                paperPnLSummary: existing?.paperPnLSummary
             )
 
         case let .paperProjectionUpdated(update):
@@ -629,6 +747,36 @@ public struct SQLiteRuntimeProjectionStore: Equatable, Sendable {
                         update: update,
                         envelope: envelope
                     )
+                ),
+                paperAccount: existing?.paperAccount,
+                paperPositions: existing?.paperPositions ?? [],
+                paperPnLSummary: existing?.paperPnLSummary
+            )
+
+        case let .paperAccountPortfolioProjectionUpdated(snapshot):
+            let existing = portfolioProjections[snapshot.portfolioID]
+            portfolioProjections[snapshot.portfolioID] = SQLitePortfolioProjection(
+                portfolioID: snapshot.portfolioID,
+                state: .updated,
+                requestedAt: existing?.requestedAt,
+                updatedAt: envelope.recordedAt,
+                lastUpdatedAt: envelope.recordedAt,
+                exposures: replace(
+                    existing?.exposures ?? [],
+                    with: snapshot.exposures.map {
+                        SQLitePortfolioExposureProjection(exposure: $0, envelope: envelope)
+                    }
+                ),
+                paperAccount: SQLitePaperAccountProjection(snapshot: snapshot.account, envelope: envelope),
+                paperPositions: replace(
+                    existing?.paperPositions ?? [],
+                    with: snapshot.positions.map {
+                        SQLitePaperPositionProjection(snapshot: $0, envelope: envelope)
+                    }
+                ),
+                paperPnLSummary: SQLitePaperPortfolioPnLProjection(
+                    summary: snapshot.pnlSummary,
+                    envelope: envelope
                 )
             )
 
@@ -646,7 +794,10 @@ public struct SQLiteRuntimeProjectionStore: Equatable, Sendable {
                         exposure: exposure,
                         envelope: envelope
                     )
-                )
+                ),
+                paperAccount: existing?.paperAccount,
+                paperPositions: existing?.paperPositions ?? [],
+                paperPnLSummary: existing?.paperPnLSummary
             )
         }
     }
@@ -659,6 +810,38 @@ public struct SQLiteRuntimeProjectionStore: Equatable, Sendable {
             $0.symbol != replacement.symbol || $0.timeframe != replacement.timeframe
         }
         return (filtered + [replacement]).sortedByPortfolioExposure()
+    }
+
+    private static func replace(
+        _ exposures: [SQLitePortfolioExposureProjection],
+        with replacements: [SQLitePortfolioExposureProjection]
+    ) -> [SQLitePortfolioExposureProjection] {
+        var merged = exposures
+        for replacement in replacements {
+            merged = replacing(merged, with: replacement)
+        }
+        return merged.sortedByPortfolioExposure()
+    }
+
+    private static func replace(
+        _ positions: [SQLitePaperPositionProjection],
+        with replacements: [SQLitePaperPositionProjection]
+    ) -> [SQLitePaperPositionProjection] {
+        var merged = positions
+        for replacement in replacements {
+            merged = replacing(merged, with: replacement)
+        }
+        return merged.sortedByPaperPosition()
+    }
+
+    private static func replacing(
+        _ positions: [SQLitePaperPositionProjection],
+        with replacement: SQLitePaperPositionProjection
+    ) -> [SQLitePaperPositionProjection] {
+        let filtered = positions.filter {
+            $0.symbol != replacement.symbol || $0.timeframe != replacement.timeframe
+        }
+        return (filtered + [replacement]).sortedByPaperPosition()
     }
 }
 
@@ -1422,6 +1605,20 @@ private extension Array where Element == SQLiteRiskBlockerEvidenceProjection {
 
 private extension Array where Element == SQLitePortfolioExposureProjection {
     func sortedByPortfolioExposure() -> [SQLitePortfolioExposureProjection] {
+        sorted { lhs, rhs in
+            if lhs.portfolioID != rhs.portfolioID {
+                return lhs.portfolioID.rawValue < rhs.portfolioID.rawValue
+            }
+            if lhs.symbol != rhs.symbol {
+                return lhs.symbol.rawValue < rhs.symbol.rawValue
+            }
+            return lhs.timeframe.rawValue < rhs.timeframe.rawValue
+        }
+    }
+}
+
+private extension Array where Element == SQLitePaperPositionProjection {
+    func sortedByPaperPosition() -> [SQLitePaperPositionProjection] {
         sorted { lhs, rhs in
             if lhs.portfolioID != rhs.portfolioID {
                 return lhs.portfolioID.rawValue < rhs.portfolioID.rawValue
