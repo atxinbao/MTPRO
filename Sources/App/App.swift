@@ -549,18 +549,25 @@ public struct PaperSessionRuntimeEvidenceSummary: Codable, Equatable, Sendable {
 /// PaperExecutionWorkflowEvidenceSummary 汇总 paper execution workflow 的只读证据。
 ///
 /// 输入只来自 append-only replay summary 和同一批 replay envelope，用于把 decision -> order
-/// -> simulated fill -> portfolio projection 的本地 evidence 暴露给 Report / Dashboard。
+/// -> local lifecycle -> simulated fill -> portfolio projection 的本地 evidence 暴露给 Report / Dashboard。
 /// 该摘要不创建订单、不读取 SQLite / DuckDB schema、不调用 Runtime / Adapter，也不授权真实交易。
 public struct PaperExecutionWorkflowEvidenceSummary: Codable, Equatable, Sendable {
     public let factsSource: String
     public let replayAvailable: Bool
     public let workflowSequences: [Int]
     public let workflowStreams: [String]
+    public let localLifecycleTransitionIDs: [String]
     public let decisionIDs: [String]
     public let paperOrderIDs: [String]
     public let simulatedFillIDs: [String]
+    public let paperAccountPortfolioSnapshotIDs: [String]
     public let portfolioUpdateIDs: [String]
     public let portfolioIDs: [String]
+    public let simulatedFillGrossNotional: Double
+    public let simulatedFillFeeAmount: Double
+    public let simulatedFillSlippageAmount: Double
+    public let simulatedFillCostImpactAmount: Double
+    public let coversLocalLifecycleEvents: Bool
     public let coversDecisionEvents: Bool
     public let coversPaperOrderEvents: Bool
     public let coversSimulatedFillEvents: Bool
@@ -578,19 +585,38 @@ public struct PaperExecutionWorkflowEvidenceSummary: Codable, Equatable, Sendabl
         workflowEnvelopes: [EventEnvelope] = []
     ) {
         let paperExecutionEnvelopes = workflowEnvelopes.filter(Self.isPaperExecutionWorkflowEnvelope)
-        let decisionIDs = replaySummary?.paperExecutionDecisionIDs.map(\.rawValue) ?? []
-        let paperOrderIDs = replaySummary?.paperOrderIDs.map(\.rawValue) ?? []
-        let simulatedFillIDs = replaySummary?.simulatedFillIDs.map(\.rawValue) ?? []
+        let localLifecycleTransitions = paperExecutionEnvelopes.compactMap(Self.localLifecycleTransition)
+        let simulatedFillEvents = paperExecutionEnvelopes.compactMap(Self.simulatedFill)
+        let accountPortfolioSnapshots = paperExecutionEnvelopes.compactMap(Self.accountPortfolioSnapshot)
+        let replayDecisionIDs = replaySummary?.paperExecutionDecisionIDs.map(\.rawValue) ?? []
+        let localLifecycleDecisionIDs = localLifecycleTransitions.map(\.riskDecisionID.rawValue)
+        let replayPaperOrderIDs = replaySummary?.paperOrderIDs.map(\.rawValue) ?? []
+        let localLifecyclePaperOrderIDs = localLifecycleTransitions.map(\.orderID.rawValue)
+        let simulatedFillPaperOrderIDs = simulatedFillEvents.map(\.orderID.rawValue)
+        let simulatedFillIDs = (
+            replaySummary?.simulatedFillIDs.map(\.rawValue) ?? []
+        ) + simulatedFillEvents.map(\.fillID.rawValue)
         let portfolioUpdateIDs = replaySummary?.portfolioUpdateIDs.map(\.rawValue) ?? []
-        let coversDecisionEvents = replaySummary?.coversPaperExecutionDecisionEvents ?? false
-        let coversPaperOrderEvents = replaySummary?.coversPaperOrderEvents ?? false
-        let coversSimulatedFillEvents = replaySummary?.coversSimulatedFillEvents ?? false
+        let decisionIDs = (replayDecisionIDs + localLifecycleDecisionIDs).uniqueSorted()
+        let paperOrderIDs = (
+            replayPaperOrderIDs + localLifecyclePaperOrderIDs + simulatedFillPaperOrderIDs
+        ).uniqueSorted()
+        let coversDecisionEvents = (replaySummary?.coversPaperExecutionDecisionEvents ?? false)
+            || localLifecycleDecisionIDs.isEmpty == false
+        let coversPaperOrderEvents = (replaySummary?.coversPaperOrderEvents ?? false)
+            || localLifecyclePaperOrderIDs.isEmpty == false
+            || simulatedFillPaperOrderIDs.isEmpty == false
+        let coversSimulatedFillEvents = (replaySummary?.coversSimulatedFillEvents ?? false)
+            || simulatedFillEvents.isEmpty == false
         let coversDecisionOrderFillChain = coversDecisionEvents
             && coversPaperOrderEvents
             && coversSimulatedFillEvents
             && decisionIDs.isEmpty == false
             && paperOrderIDs.isEmpty == false
             && simulatedFillIDs.isEmpty == false
+        let workflowEnvelopeBoundaryHeld = localLifecycleTransitions.allSatisfy(\.paperOnlyBoundaryHeld)
+            && simulatedFillEvents.allSatisfy(\.paperOnlyBoundaryHeld)
+            && accountPortfolioSnapshots.allSatisfy(\.paperOnlyBoundaryHeld)
 
         self.factsSource = replaySummary?.factsSource ?? "no matching append-only paper execution workflow facts"
         self.replayAvailable = replaySummary != nil
@@ -600,21 +626,43 @@ public struct PaperExecutionWorkflowEvidenceSummary: Codable, Equatable, Sendabl
         self.workflowStreams = paperExecutionEnvelopes
             .map(\.stream.rawValue)
             .uniqueSorted()
-        self.decisionIDs = decisionIDs.uniqueSorted()
-        self.paperOrderIDs = paperOrderIDs.uniqueSorted()
+        self.localLifecycleTransitionIDs = localLifecycleTransitions
+            .map(\.transitionID.rawValue)
+            .uniqueSorted()
+        self.decisionIDs = decisionIDs
+        self.paperOrderIDs = paperOrderIDs
         self.simulatedFillIDs = simulatedFillIDs.uniqueSorted()
+        self.paperAccountPortfolioSnapshotIDs = accountPortfolioSnapshots
+            .map(\.snapshotID.rawValue)
+            .uniqueSorted()
         self.portfolioUpdateIDs = portfolioUpdateIDs.uniqueSorted()
         self.portfolioIDs = (replaySummary?.portfolioIDs.map(\.rawValue) ?? []).uniqueSorted()
+        self.simulatedFillGrossNotional = simulatedFillEvents.reduce(0) {
+            $0 + $1.grossNotional
+        }
+        self.simulatedFillFeeAmount = simulatedFillEvents.reduce(0) {
+            $0 + $1.costEstimate.feeAmount
+        }
+        self.simulatedFillSlippageAmount = simulatedFillEvents.reduce(0) {
+            $0 + $1.costEstimate.slippageAmount
+        }
+        self.simulatedFillCostImpactAmount = simulatedFillEvents.reduce(0) {
+            $0 + $1.costImpactAmount
+        }
+        self.coversLocalLifecycleEvents = localLifecycleTransitions.isEmpty == false
         self.coversDecisionEvents = coversDecisionEvents
         self.coversPaperOrderEvents = coversPaperOrderEvents
         self.coversSimulatedFillEvents = coversSimulatedFillEvents
         self.coversDecisionOrderFillChain = coversDecisionOrderFillChain
-        self.projectsPortfolioFromSimulatedFill = coversDecisionOrderFillChain
-            && (replaySummary?.coversPortfolioProjectionEvents ?? false)
-            && portfolioUpdateIDs.isEmpty == false
+        self.projectsPortfolioFromSimulatedFill = (
+            coversDecisionOrderFillChain
+                && (replaySummary?.coversPortfolioProjectionEvents ?? false)
+                && portfolioUpdateIDs.isEmpty == false
+        ) || (simulatedFillEvents.isEmpty == false && accountPortfolioSnapshots.isEmpty == false)
         self.appendOnlyFactsSourceIsReplaySource = replaySummary?.appendOnlyFactsSourceIsReplaySource ?? false
         self.replayResultIsDeterministic = replaySummary?.replayResultIsDeterministic ?? false
-        self.paperOnlyBoundaryHeld = replaySummary?.paperOnlyBoundaryHeld ?? true
+        self.paperOnlyBoundaryHeld = (replaySummary?.paperOnlyBoundaryHeld ?? true)
+            && workflowEnvelopeBoundaryHeld
         self.authorizesLiveTrading = replaySummary?.authorizesLiveTrading ?? false
         self.touchesBrokerAction = replaySummary?.touchesBrokerAction ?? false
         self.authorizesTradingExecution = false
@@ -622,8 +670,10 @@ public struct PaperExecutionWorkflowEvidenceSummary: Codable, Equatable, Sendabl
 
     public var hasEvidence: Bool {
         decisionIDs.isEmpty == false
+            || localLifecycleTransitionIDs.isEmpty == false
             || paperOrderIDs.isEmpty == false
             || simulatedFillIDs.isEmpty == false
+            || paperAccountPortfolioSnapshotIDs.isEmpty == false
             || portfolioUpdateIDs.isEmpty == false
     }
 
@@ -635,6 +685,7 @@ public struct PaperExecutionWorkflowEvidenceSummary: Codable, Equatable, Sendabl
         switch envelope.event {
         case .paper(.executionDecisionRecorded),
              .paper(.orderIntentRecorded),
+             .paper(.orderLocalLifecycleTransitionRecorded),
              .paper(.simulatedFillRecorded),
              .portfolio(.paperProjectionUpdated),
              .portfolio(.paperAccountPortfolioProjectionUpdated):
@@ -642,6 +693,31 @@ public struct PaperExecutionWorkflowEvidenceSummary: Codable, Equatable, Sendabl
         default:
             return false
         }
+    }
+
+    private static func localLifecycleTransition(
+        _ envelope: EventEnvelope
+    ) -> PaperOrderLocalLifecycleTransition? {
+        if case let .paper(.orderLocalLifecycleTransitionRecorded(transition)) = envelope.event {
+            return transition
+        }
+        return nil
+    }
+
+    private static func simulatedFill(_ envelope: EventEnvelope) -> PaperSimulatedFillEvidence? {
+        if case let .paper(.simulatedFillRecorded(fill)) = envelope.event {
+            return fill
+        }
+        return nil
+    }
+
+    private static func accountPortfolioSnapshot(
+        _ envelope: EventEnvelope
+    ) -> PaperAccountPortfolioProjectionV2Snapshot? {
+        if case let .portfolio(.paperAccountPortfolioProjectionUpdated(snapshot)) = envelope.event {
+            return snapshot
+        }
+        return nil
     }
 }
 
@@ -1367,13 +1443,20 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
     public let paperRuntimeTouchesBrokerAction: Bool
     public let paperRuntimeAuthorizesTradingExecution: Bool
     public let paperExecutionWorkflowEvidenceCount: Int
+    public let paperExecutionWorkflowLocalLifecycleTransitionIDs: [String]
     public let paperExecutionWorkflowDecisionIDs: [String]
     public let paperExecutionWorkflowOrderIDs: [String]
     public let paperExecutionWorkflowSimulatedFillIDs: [String]
+    public let paperExecutionWorkflowAccountPortfolioSnapshotIDs: [String]
     public let paperExecutionWorkflowPortfolioUpdateIDs: [String]
     public let paperExecutionWorkflowPortfolioIDs: [String]
+    public let paperExecutionWorkflowSimulatedFillGrossNotional: Double
+    public let paperExecutionWorkflowSimulatedFillFeeAmount: Double
+    public let paperExecutionWorkflowSimulatedFillSlippageAmount: Double
+    public let paperExecutionWorkflowSimulatedFillCostImpactAmount: Double
     public let paperExecutionWorkflowSequenceCount: Int
     public let paperExecutionWorkflowStreams: [String]
+    public let paperExecutionWorkflowCoversLocalLifecycleEvents: Bool
     public let paperExecutionWorkflowCoversDecisionEvents: Bool
     public let paperExecutionWorkflowCoversOrderEvents: Bool
     public let paperExecutionWorkflowCoversSimulatedFillEvents: Bool
@@ -1624,6 +1707,9 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
             $0.authorizesTradingExecution
         }
         self.paperExecutionWorkflowEvidenceCount = workflowEvidence.filter(\.hasEvidence).count
+        self.paperExecutionWorkflowLocalLifecycleTransitionIDs = workflowEvidence
+            .flatMap(\.localLifecycleTransitionIDs)
+            .uniqueSorted()
         self.paperExecutionWorkflowDecisionIDs = workflowEvidence
             .flatMap(\.decisionIDs)
             .uniqueSorted()
@@ -1633,18 +1719,36 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
         self.paperExecutionWorkflowSimulatedFillIDs = workflowEvidence
             .flatMap(\.simulatedFillIDs)
             .uniqueSorted()
+        self.paperExecutionWorkflowAccountPortfolioSnapshotIDs = workflowEvidence
+            .flatMap(\.paperAccountPortfolioSnapshotIDs)
+            .uniqueSorted()
         self.paperExecutionWorkflowPortfolioUpdateIDs = workflowEvidence
             .flatMap(\.portfolioUpdateIDs)
             .uniqueSorted()
         self.paperExecutionWorkflowPortfolioIDs = workflowEvidence
             .flatMap(\.portfolioIDs)
             .uniqueSorted()
+        self.paperExecutionWorkflowSimulatedFillGrossNotional = workflowEvidence.reduce(0) {
+            $0 + $1.simulatedFillGrossNotional
+        }
+        self.paperExecutionWorkflowSimulatedFillFeeAmount = workflowEvidence.reduce(0) {
+            $0 + $1.simulatedFillFeeAmount
+        }
+        self.paperExecutionWorkflowSimulatedFillSlippageAmount = workflowEvidence.reduce(0) {
+            $0 + $1.simulatedFillSlippageAmount
+        }
+        self.paperExecutionWorkflowSimulatedFillCostImpactAmount = workflowEvidence.reduce(0) {
+            $0 + $1.simulatedFillCostImpactAmount
+        }
         self.paperExecutionWorkflowSequenceCount = workflowEvidence.reduce(0) {
             $0 + $1.workflowSequenceCount
         }
         self.paperExecutionWorkflowStreams = workflowEvidence
             .flatMap(\.workflowStreams)
             .uniqueSorted()
+        self.paperExecutionWorkflowCoversLocalLifecycleEvents = workflowEvidence.contains {
+            $0.coversLocalLifecycleEvents
+        }
         self.paperExecutionWorkflowCoversDecisionEvents = workflowEvidence.contains {
             $0.coversDecisionEvents
         }

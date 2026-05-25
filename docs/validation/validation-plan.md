@@ -1938,3 +1938,41 @@ MTP-101 必须建立的主要 anchors：
 - 不实现 OMS、broker router、真实 order lifecycle、真实 submit / cancel / replace、Live PRO Console、live command、order form 或交易按钮。
 - 不接 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不读取真实账户余额、broker position、margin、leverage、真实 PnL 或 equity。
+
+## MTP-102 Event Log / Replay / Report / Dashboard Evidence Stage Closeout Validation
+
+日期：2026-05-26
+
+执行者：Codex
+
+MTP-102 的 required validation：
+
+- `docs/contracts/paper-runtime-kernel-contract.md` 必须包含 `MTP-102-EVENTLOG-REPLAY-PROJECTION-EVIDENCE-CLOSEOUT`、`MTP-102-REPORT-DASHBOARD-PAPER-RUNTIME-EVIDENCE`、`MTP-102-EVENT-TIMELINE-COMPLETE-SEQUENCE`、`MTP-102-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-102-NO-FINAL-STAGE-CODE-AUDIT` 和 `MTP-102-PAPER-RUNTIME-STAGE-CLOSEOUT-VALIDATION` anchors。
+- `Sources/App/App.swift` 必须把 local lifecycle transition IDs、paper risk decision IDs、paper order IDs、simulated fill IDs、account portfolio snapshot IDs、gross notional、fee、slippage、cost impact、paper account、position 和 paper PnL evidence 汇总到 `ReportViewModel`。
+- `Sources/App/PaperWorkflowEvidenceExplorer.swift` 必须把 `.paper.orderLocalLifecycleTransitionRecorded` 映射为 `Paper local lifecycle transition` Event Timeline item，并保留 risk decision / paper order evidence links。
+- `Sources/App/DashboardShell.swift` 必须在 Report metrics / details 和 `smokeSummary` 中输出 paper runtime evidence、paper workflow evidence 和 paper portfolio impact handles。
+- `Tests/AppTests/AppTests.swift` 必须包含 `testMTP102PaperRuntimeEvidenceChainFeedsReportDashboardAndEventTimeline`，验证 risk -> lifecycle -> simulated fill -> account portfolio projection 的 deterministic replay chain 被 Report / Dashboard / Event Timeline 只读消费。
+- `docs/audit/inputs/mtpro-event-driven-paper-trading-runtime-v1-stage-audit-input.md` 必须作为 Parent Codex Stage Code Audit 输入材料落仓；不得生成最终 Stage Code Audit Report。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-102 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-102 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-102 contract、matrix、validation plan、latest summary、stage audit input、App source 和 focused test anchors。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不实现 final Stage Code Audit Report、Project closure、Root Docs Refresh Gate、OMS、broker router、真实 order lifecycle、真实 submit / cancel / replace、execution report、broker fill、reconciliation、real account update、signed endpoint、account endpoint、broker action、Live PRO Console、live command、order form、position command 或交易按钮。
+
+MTP-102 必须建立的主要 anchors：
+
+- `TVM-PAPER-RUNTIME-KERNEL`
+- `MTP-102-EVENTLOG-REPLAY-PROJECTION-EVIDENCE-CLOSEOUT`
+- `MTP-102-REPORT-DASHBOARD-PAPER-RUNTIME-EVIDENCE`
+- `MTP-102-EVENT-TIMELINE-COMPLETE-SEQUENCE`
+- `MTP-102-STAGE-AUDIT-INPUT-MATERIAL`
+- `MTP-102-NO-FINAL-STAGE-CODE-AUDIT`
+- `MTP-102-PAPER-RUNTIME-STAGE-CLOSEOUT-VALIDATION`
+
+## MTP-102 禁止
+
+- 不输出最终 Stage Code Audit Report，不设置 Linear Project `Completed`，不创建下一 Project / Issue，不推进下一 issue，不启动下一阶段 `symphony-issue`。
+- 不新增 order-level App / Dashboard command surface，不新增 position command、order form、live command、Live PRO Console、stop button 或交易按钮。
+- 不实现 broker fill、execution report parser、真实 fee statement、真实成交质量分析、live reconciliation 或 real account update。
+- 不实现 OMS、broker router、真实 order lifecycle、真实 submit / cancel / replace、live risk runtime、production runtime 或真实交易授权。
+- 不接 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不读取真实账户余额、broker position、margin、leverage、真实 PnL、equity、secret 或 API key。

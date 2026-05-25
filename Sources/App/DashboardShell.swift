@@ -372,7 +372,11 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             "Errors",
             in: workbench.liveMonitoringEvidenceMetrics
         )
-        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); workbenchReadModelOnly=\(workbench.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
+        let reportMetrics = sections.first { $0.section == .report }?.metrics ?? []
+        let paperRuntimeEvidence = Self.metricValue("Runtime", in: reportMetrics)
+        let paperWorkflowEvidence = Self.metricValue("Exec workflow", in: reportMetrics)
+        let paperPortfolioImpact = Self.metricValue("Paper PnL", in: reportMetrics)
+        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); workbenchReadModelOnly=\(workbench.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); paperRuntimeEvidence=\(paperRuntimeEvidence); paperWorkflowEvidence=\(paperWorkflowEvidence); paperPortfolioImpact=\(paperPortfolioImpact); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
     }
 
     private static func makeSectionSnapshot(
@@ -740,6 +744,17 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 DashboardShellMetric(label: "Runtime", value: "\(viewModel.paperRuntimeEvidenceCount)"),
                 DashboardShellMetric(label: "Replay facts", value: "\(viewModel.paperRuntimeReplaySequenceCount)"),
                 DashboardShellMetric(label: "Exec workflow", value: "\(viewModel.paperExecutionWorkflowEvidenceCount)"),
+                DashboardShellMetric(
+                    label: "Lifecycle transitions",
+                    value: "\(viewModel.paperExecutionWorkflowLocalLifecycleTransitionIDs.count)"
+                ),
+                DashboardShellMetric(label: "Paper accounts", value: "\(viewModel.paperAccountIDs.count)"),
+                DashboardShellMetric(label: "Positions", value: "\(viewModel.paperPositionCount)"),
+                DashboardShellMetric(label: "Paper PnL", value: format(viewModel.paperNetPnL)),
+                DashboardShellMetric(
+                    label: "Fill cost",
+                    value: format(viewModel.paperExecutionWorkflowSimulatedFillCostImpactAmount)
+                ),
                 DashboardShellMetric(label: "Replay ops", value: "\(viewModel.marketDataReplayEvidenceCount)"),
                 DashboardShellMetric(label: "Live gates", value: "\(viewModel.liveBlockedEvidenceCount)"),
                 DashboardShellMetric(
@@ -778,8 +793,18 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 "Replay deterministic: \(formatEvidenceFlag(viewModel.paperRuntimeReplayDeterministic))",
                 "Execution decisions: \(joined(viewModel.paperExecutionWorkflowDecisionIDs))",
                 "Paper orders: \(joined(viewModel.paperExecutionWorkflowOrderIDs))",
+                "Lifecycle transitions: \(joined(viewModel.paperExecutionWorkflowLocalLifecycleTransitionIDs))",
                 "Simulated fills: \(joined(viewModel.paperExecutionWorkflowSimulatedFillIDs))",
+                "Account portfolio snapshots: \(joined(viewModel.paperExecutionWorkflowAccountPortfolioSnapshotIDs))",
+                "Paper accounts: \(joined(viewModel.paperAccountIDs))",
+                "Paper positions: \(viewModel.paperPositionCount)",
+                "Paper PnL: \(format(viewModel.paperNetPnL))",
+                "Simulated fill gross notional: \(format(viewModel.paperExecutionWorkflowSimulatedFillGrossNotional))",
+                "Simulated fill fee: \(format(viewModel.paperExecutionWorkflowSimulatedFillFeeAmount))",
+                "Simulated fill slippage: \(format(viewModel.paperExecutionWorkflowSimulatedFillSlippageAmount))",
+                "Simulated fill cost impact: \(format(viewModel.paperExecutionWorkflowSimulatedFillCostImpactAmount))",
                 "Execution workflow streams: \(joined(viewModel.paperExecutionWorkflowStreams))",
+                "Execution workflow lifecycle: \(formatEvidenceFlag(viewModel.paperExecutionWorkflowCoversLocalLifecycleEvents))",
                 "Execution workflow chain: \(formatEvidenceFlag(viewModel.paperExecutionWorkflowCoversDecisionOrderFillChain))",
                 "Execution workflow portfolio projection: \(formatEvidenceFlag(viewModel.paperExecutionWorkflowProjectsPortfolioFromSimulatedFill))",
                 "Execution workflow boundary: \(formatRuntimeBoundary(viewModel.paperExecutionWorkflowPaperOnlyBoundaryHeld))",

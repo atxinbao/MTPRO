@@ -1222,6 +1222,133 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(viewModel.events.streams, ["paper", "portfolio"])
     }
 
+    func testMTP102PaperRuntimeEvidenceChainFeedsReportDashboardAndEventTimeline() throws {
+        // 测试场景：MTP-102 将 risk -> local lifecycle -> simulated fill -> account portfolio projection
+        // 串成同一 append-only replay evidence，并只通过 Report / Dashboard / Event Timeline 只读展示。
+        var messageBus = try MessageBus()
+        let riskPublication = try PaperPreTradeRiskEngineRuntimePath().evaluateAndPublish(
+            decisionID: try Identifier("mtp-98-paper-risk-accepted"),
+            input: PaperPreTradeRiskEngineFixture.acceptedInput(),
+            to: &messageBus,
+            clock: PaperPreTradeRiskEngineFixture.deterministicClock,
+            envelopeIDs: PaperPreTradeRiskEngineFixture.acceptedEnvelopeIDs,
+            correlationID: PaperPreTradeRiskEngineFixture.correlationID,
+            rootCausationID: PaperPreTradeRiskEngineFixture.rootCausationID
+        )
+        let lifecyclePublication = try PaperOrderLocalLifecycleCoordinator().publish(
+            PaperOrderLocalLifecycleCoordinatorFixture.acceptedTrace(),
+            to: &messageBus,
+            clock: PaperOrderLocalLifecycleCoordinatorFixture.deterministicClock,
+            envelopeIDs: PaperOrderLocalLifecycleCoordinatorFixture.acceptedEnvelopeIDs,
+            correlationID: PaperOrderLocalLifecycleCoordinatorFixture.correlationID,
+            rootCausationID: PaperOrderLocalLifecycleCoordinatorFixture.rootCausationID
+        )
+        let fillPublication = try PaperSimulatedFillEventLogBoundary().publish(
+            [
+                PaperSimulatedFillFixture.deterministicFullFromLifecycle(),
+                PaperSimulatedFillFixture.deterministicPartialFromLifecycle()
+            ],
+            to: &messageBus,
+            clock: PaperSimulatedFillFixture.deterministicClock,
+            envelopeIDs: PaperSimulatedFillFixture.envelopeIDs,
+            correlationID: PaperSimulatedFillFixture.correlationID,
+            rootCausationID: PaperSimulatedFillFixture.rootCausationID
+        )
+        let replay = messageBus.replay(
+            EventReplayCommand(
+                range: try EventSequenceRange(lowerBound: 1, upperBound: messageBus.envelopes.count),
+                streams: [.paper, .risk]
+            )
+        )
+        let portfolioSnapshot = try PaperAccountPortfolioProjectionV2Path.project(
+            from: replay,
+            snapshotID: try Identifier("mtp-102-paper-runtime-closeout-snapshot"),
+            accountID: try Identifier("mtp-102-paper-account"),
+            portfolioID: try Identifier("mtp-102-paper-portfolio"),
+            startingCashBalance: 10_000,
+            projectedAt: Date(timeIntervalSince1970: 6_200)
+        )
+        let portfolioEnvelope = try EventEnvelope(
+            sequence: messageBus.envelopes.count + 1,
+            stream: .portfolio,
+            recordedAt: Date(timeIntervalSince1970: 6_201),
+            event: .portfolio(.paperAccountPortfolioProjectionUpdated(portfolioSnapshot))
+        )
+        let eventTimeline = messageBus.envelopes + [portfolioEnvelope]
+        let runtimeProjection = SQLiteRuntimeProjectionStore.project(eventTimeline)
+        let readModel = DashboardReadModel(
+            runtimeProjection: runtimeProjection,
+            analyticalProjection: try makeAnalyticalProjection(),
+            eventTimeline: eventTimeline
+        )
+        let viewModel = DashboardViewModel(readModel: readModel)
+        let expectedLifecycleTransitionIDs = lifecyclePublication.trace.transitions
+            .map { $0.transitionID.rawValue }
+            .sorted()
+        let expectedGross = fillPublication.fills.reduce(0) { $0 + $1.grossNotional }
+        let expectedFee = fillPublication.fills.reduce(0) { $0 + $1.costEstimate.feeAmount }
+        let expectedSlippage = fillPublication.fills.reduce(0) { $0 + $1.costEstimate.slippageAmount }
+        let expectedCost = fillPublication.fills.reduce(0) { $0 + $1.costImpactAmount }
+        let expectedQuantity = fillPublication.fills.reduce(0) { $0 + $1.filledQuantity.rawValue }
+        let expectedMarketValue = expectedQuantity * (try XCTUnwrap(fillPublication.fills.last?.fillPrice.rawValue))
+        let expectedNetPnL = expectedMarketValue - expectedGross - expectedCost
+
+        XCTAssertTrue(riskPublication.replayMatchesRouteEvidence)
+        XCTAssertTrue(lifecyclePublication.replayMatchesRouteEvidence)
+        XCTAssertTrue(lifecyclePublication.everyTransitionHasEventFact)
+        XCTAssertTrue(fillPublication.replayMatchesRouteEvidence)
+        XCTAssertTrue(fillPublication.coversPartialAndFullFills)
+
+        XCTAssertEqual(viewModel.report.paperRuntimeEvidenceCount, 1)
+        XCTAssertEqual(viewModel.report.paperRuntimeReplaySequenceCount, 7)
+        XCTAssertEqual(viewModel.report.paperRuntimeReplayStreams, ["paper", "portfolio", "risk"])
+        XCTAssertEqual(viewModel.report.paperExecutionWorkflowEvidenceCount, 1)
+        XCTAssertEqual(viewModel.report.paperExecutionWorkflowLocalLifecycleTransitionIDs, expectedLifecycleTransitionIDs)
+        XCTAssertEqual(viewModel.report.paperExecutionWorkflowDecisionIDs, ["mtp-98-paper-risk-accepted"])
+        XCTAssertEqual(viewModel.report.paperExecutionWorkflowOrderIDs, ["mtp-99-paper-order-local"])
+        XCTAssertEqual(viewModel.report.paperExecutionWorkflowSimulatedFillIDs, [
+            "mtp-100-full-simulated-fill",
+            "mtp-100-partial-simulated-fill"
+        ])
+        XCTAssertEqual(
+            viewModel.report.paperExecutionWorkflowAccountPortfolioSnapshotIDs,
+            ["mtp-102-paper-runtime-closeout-snapshot"]
+        )
+        XCTAssertEqual(viewModel.report.paperExecutionWorkflowSimulatedFillGrossNotional, expectedGross, accuracy: 0.00000001)
+        XCTAssertEqual(viewModel.report.paperExecutionWorkflowSimulatedFillFeeAmount, expectedFee, accuracy: 0.00000001)
+        XCTAssertEqual(viewModel.report.paperExecutionWorkflowSimulatedFillSlippageAmount, expectedSlippage, accuracy: 0.00000001)
+        XCTAssertEqual(viewModel.report.paperExecutionWorkflowSimulatedFillCostImpactAmount, expectedCost, accuracy: 0.00000001)
+        XCTAssertTrue(viewModel.report.paperExecutionWorkflowCoversLocalLifecycleEvents)
+        XCTAssertTrue(viewModel.report.paperExecutionWorkflowCoversDecisionOrderFillChain)
+        XCTAssertTrue(viewModel.report.paperExecutionWorkflowProjectsPortfolioFromSimulatedFill)
+        XCTAssertEqual(viewModel.report.paperAccountIDs, ["mtp-102-paper-account"])
+        XCTAssertEqual(viewModel.report.paperPositionCount, 1)
+        XCTAssertEqual(viewModel.report.paperNetPnL, expectedNetPnL, accuracy: 0.00000001)
+        XCTAssertFalse(viewModel.report.paperRuntimeAuthorizesLiveTrading)
+        XCTAssertFalse(viewModel.report.paperRuntimeTouchesBrokerAction)
+        XCTAssertFalse(viewModel.report.paperRuntimeAuthorizesTradingExecution)
+        XCTAssertFalse(viewModel.report.paperExecutionWorkflowAuthorizesTradingExecution)
+
+        let timelineTitles = viewModel.paperWorkflowEvidenceExplorer.timelineItems.map(\.title)
+        XCTAssertEqual(timelineTitles.filter { $0 == "Paper local lifecycle transition" }.count, 3)
+        XCTAssertTrue(timelineTitles.contains("Simulated fill evidence"))
+        XCTAssertTrue(timelineTitles.contains("Paper account portfolio projection"))
+        XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(viewModel.paperWorkflowEvidenceExplorer.providesCommandSurface)
+
+        let shell = DashboardShellSnapshot(viewModel: viewModel)
+        let reportSection = try XCTUnwrap(shell.sections.first { $0.section == .report })
+        XCTAssertEqual(metricValue("Lifecycle transitions", in: reportSection), "3")
+        XCTAssertEqual(metricValue("Paper accounts", in: reportSection), "1")
+        XCTAssertEqual(metricValue("Positions", in: reportSection), "1")
+        XCTAssertEqual(metricValue("Paper PnL", in: reportSection), String(format: "%.2f", expectedNetPnL))
+        XCTAssertEqual(metricValue("Fill cost", in: reportSection), String(format: "%.2f", expectedCost))
+        XCTAssertTrue(shell.isReadModelOnly)
+        XCTAssertTrue(shell.smokeSummary.contains("paperRuntimeEvidence=1"))
+        XCTAssertTrue(shell.smokeSummary.contains("paperWorkflowEvidence=1"))
+        XCTAssertTrue(shell.smokeSummary.contains("paperPortfolioImpact=\(String(format: "%.2f", expectedNetPnL))"))
+    }
+
     @MainActor
     func testDashboardShellSnapshotBindsViewModelSectionsForReadOnlyMacOSShell() throws {
         // 测试场景：macOS 看板壳必须把现有 DashboardViewModel 快照绑定到八个只读区域，

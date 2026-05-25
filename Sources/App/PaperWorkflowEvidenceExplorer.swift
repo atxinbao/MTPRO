@@ -830,6 +830,29 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
                     )
                 ]
             )
+        case let .paper(.orderLocalLifecycleTransitionRecorded(transition)):
+            return PaperWorkflowEventTimelineItem(
+                section: .paperOrder,
+                sequence: envelope.sequence,
+                occurredAt: envelope.recordedAt,
+                stream: envelope.stream.rawValue,
+                title: "Paper local lifecycle transition",
+                summary: "\(transition.transitionID.rawValue) \(transition.toState.rawValue)",
+                evidenceLinks: [
+                    PaperWorkflowEvidenceLinkSummary(
+                        section: .paperOrder,
+                        evidenceID: transition.transitionID.rawValue,
+                        label: "local lifecycle transition",
+                        sourceSequence: envelope.sequence
+                    ),
+                    PaperWorkflowEvidenceLinkSummary(
+                        section: .riskDecision,
+                        evidenceID: transition.riskDecisionID.rawValue,
+                        label: "paper risk decision",
+                        sourceSequence: transition.sourceRiskDecisionSequence
+                    )
+                ]
+            )
         case let .paper(.simulatedFillRecorded(fill)):
             return PaperWorkflowEventTimelineItem(
                 section: .simulatedFill,
