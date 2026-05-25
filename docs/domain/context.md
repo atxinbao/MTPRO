@@ -438,6 +438,31 @@ MTP-94 的 validation anchor 由 `LiveIncidentStopBlockedEvidence`、`LiveIncide
 | `Freshness Evidence` | Report / Dashboard / Event Timeline 可消费的 freshness read model | 不暴露 adapter 或 schema |
 | `Fixture Parity` | mock transport / fixture 与 decoder / replay contract 的一致性验证 | 不依赖真实 Binance 网络 |
 
+## Data Catalog / Scenario Replay Terms
+
+`MTP-103-DATA-CATALOG-SCENARIO-REPLAY-TERMINOLOGY`
+
+以下术语由 MTP-103 定义为 `MTPRO Data Catalog / Scenario Replay v1` 的 local-first、deterministic、versioned scenario replay 语言。它们只用于 Data Engine、State & Persistence Engine 和 Workbench Interface 的边界合同、source docs anchors、validation anchors 和后续 issue 的共同语言，不授权当前 scope 实现 manifest parser、fixture 数据、replay cursor、report input versioning、production data platform、large-scale ingestion pipeline、signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、live command 或交易按钮。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `local data catalog` | 本地 scenario replay 输入身份、版本和证据锚点目录语言 | 不等于 production data platform、cloud data lake 或大型 ingestion pipeline |
+| `scenario replay` | 从本地 versioned input 重建 deterministic evidence 的后续路径 | 不等于 production recovery、broker replay、account replay 或 live runtime resume |
+| `scenario manifest` | 后续 issue 的输入身份合同名称 | 当前不解析 manifest，不定义最终字段 parser |
+| `scenario id` | 后续 scenario replay 的稳定场景标识 | 不等于 database primary key、runtime job id、broker order id 或真实订单 id |
+| `dataset version` | 后续 replay 输入数据版本 | 不等于 production dataset registry 或云端数据湖版本 |
+| `fixture version` | 后续 deterministic fixture 的本地版本 | 当前不新增 fixture 数据 |
+| `replay window` | 后续 replay 的本地时间 / 序列窗口 | 当前不实现 cursor 或 historical downloader |
+| `replay cursor` | 后续回放位置证据 | 当前不实现 cursor runtime |
+| `checksum evidence` | 后续完整性 / parity 证据 | 当前不计算新 checksum |
+| `data quality gate` | 后续 scenario replay 数据质量判定分类 | 不等于 production data observability 或自动修复平台 |
+| `report input versioning` | 后续 Report / Backtest / future Simulated Exchange 输入追溯合同 | 当前不实现 report input versioning runtime |
+| `Workbench scenario replay evidence` | 后续 Workbench / Report / Events 只读展示面输入 | 不做 UI command、query language、schema exposure、adapter request 或 Runtime object exposure |
+
+`MTP-103-FORBIDDEN-CAPABILITY-BASELINE`
+
+MTP-103 的 forbidden baseline 必须覆盖 signed endpoint、account endpoint、listenKey、secret read、broker integration、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position read、live runtime、live command、trading button、production data platform、large-scale ingestion pipeline、real network download、Graphify update 和 Figma change。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

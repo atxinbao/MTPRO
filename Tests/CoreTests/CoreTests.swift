@@ -8621,6 +8621,206 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testMTP103DataCatalogScenarioReplayDefinesTerminologyAndBoundaryAnchors() throws {
+        // 测试场景：MTP-103 只定义 local data catalog / scenario replay 的共同语言、
+        // 目标引擎职责、source docs anchors 和 validation anchors，不实现后续 manifest 或 replay 行为。
+        let boundary = DataCatalogScenarioReplayBoundary.deterministicFixture
+
+        XCTAssertEqual(boundary.contractID, try Identifier("mtp-103-data-catalog-scenario-replay-boundary"))
+        XCTAssertEqual(boundary.issueID, try Identifier("MTP-103"))
+        XCTAssertEqual(boundary.terms, DataCatalogScenarioReplayTerm.allCases)
+        XCTAssertEqual(
+            boundary.targetEngines,
+            [.dataEngine, .statePersistenceEngine, .workbenchInterface]
+        )
+        XCTAssertEqual(
+            boundary.boundaryPrinciples,
+            [
+                .localFirst,
+                .deterministicReplay,
+                .versionedInputIdentity,
+                .readModelOnlySurface,
+                .noProductionDataPlatform,
+                .noLiveBrokerSignedBoundary
+            ]
+        )
+        XCTAssertEqual(boundary.forbiddenCapabilities, DataCatalogScenarioReplayForbiddenCapability.allCases)
+        XCTAssertTrue(boundary.forbidsCapability(.signedEndpoint))
+        XCTAssertTrue(boundary.forbidsCapability(.accountEndpoint))
+        XCTAssertTrue(boundary.forbidsCapability(.brokerIntegration))
+        XCTAssertTrue(boundary.forbidsCapability(.liveExecutionAdapter))
+        XCTAssertTrue(boundary.forbidsCapability(.oms))
+        XCTAssertTrue(boundary.forbidsCapability(.liveCommand))
+        XCTAssertTrue(boundary.forbidsCapability(.productionDataPlatform))
+        XCTAssertEqual(
+            boundary.allowedEvidenceKinds,
+            [
+                .contractDocumentation,
+                .sourceDocsAnchor,
+                .validationPlanAnchor,
+                .validationMatrixCandidate,
+                .deterministicBoundaryFixture,
+                .forbiddenCapabilityTest,
+                .prBoundaryEvidence
+            ]
+        )
+        XCTAssertEqual(boundary.sourceDocumentAnchors, [
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/architecture.md",
+            "docs/roadmap.md",
+            "docs/domain/context.md",
+            "docs/planning/projects/mtpro-data-catalog-scenario-replay-v1-plan.md",
+            "docs/validation/latest-verification-summary.md"
+        ])
+        XCTAssertEqual(boundary.validationAnchors, [
+            "MTP-103-DATA-CATALOG-SCENARIO-REPLAY-TERMINOLOGY",
+            "MTP-103-TARGET-ENGINE-RESPONSIBILITY-BOUNDARY",
+            "MTP-103-LOCAL-FIRST-DETERMINISTIC-VERSIONED-BOUNDARY",
+            "MTP-103-FORBIDDEN-CAPABILITY-BASELINE",
+            "MTP-103-DATA-CATALOG-SCENARIO-REPLAY-VALIDATION",
+            "TVM-DATA-CATALOG-SCENARIO-REPLAY"
+        ])
+        XCTAssertTrue(boundary.terminologyBoundaryHeld)
+        XCTAssertTrue(boundary.targetEngineBoundaryHeld)
+        XCTAssertTrue(boundary.localFirstDeterministicVersionedBoundaryHeld)
+        XCTAssertTrue(boundary.forbiddenCapabilityBoundaryHeld)
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(DataCatalogScenarioReplayBoundary.self, from: encoded)
+        XCTAssertEqual(decoded, boundary)
+    }
+
+    func testMTP103DataCatalogScenarioReplayRejectsImplementationAndLiveBypass() throws {
+        // 测试场景：MTP-103 fixture 的初始化和 Codable 解码必须拒绝 manifest parser、
+        // fixture data、replay cursor、report input versioning、signed/account/listenKey、broker、
+        // LiveExecutionAdapter、OMS、production data platform 和 Graphify / Figma 绕过。
+        XCTAssertThrowsError(
+            try DataCatalogScenarioReplayBoundary(parsesScenarioManifest: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability("parsesScenarioManifest")
+            )
+        }
+        XCTAssertThrowsError(
+            try DataCatalogScenarioReplayBoundary(addsFixtureData: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .dataCatalogScenarioReplayForbiddenCapability("addsFixtureData"))
+        }
+        XCTAssertThrowsError(
+            try DataCatalogScenarioReplayBoundary(implementsReplayCursor: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability("implementsReplayCursor")
+            )
+        }
+        XCTAssertThrowsError(
+            try DataCatalogScenarioReplayBoundary(implementsReportInputVersioning: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability("implementsReportInputVersioning")
+            )
+        }
+        XCTAssertThrowsError(
+            try DataCatalogScenarioReplayBoundary(usesSignedEndpoint: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .dataCatalogScenarioReplayForbiddenCapability("usesSignedEndpoint"))
+        }
+        XCTAssertThrowsError(
+            try DataCatalogScenarioReplayBoundary(callsAccountEndpoint: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .dataCatalogScenarioReplayForbiddenCapability("callsAccountEndpoint"))
+        }
+        XCTAssertThrowsError(
+            try DataCatalogScenarioReplayBoundary(createsListenKey: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .dataCatalogScenarioReplayForbiddenCapability("createsListenKey"))
+        }
+        XCTAssertThrowsError(
+            try DataCatalogScenarioReplayBoundary(connectsBroker: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .dataCatalogScenarioReplayForbiddenCapability("connectsBroker"))
+        }
+        XCTAssertThrowsError(
+            try DataCatalogScenarioReplayBoundary(implementsLiveExecutionAdapter: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability("implementsLiveExecutionAdapter")
+            )
+        }
+        XCTAssertThrowsError(
+            try DataCatalogScenarioReplayBoundary(implementsOMS: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .dataCatalogScenarioReplayForbiddenCapability("implementsOMS"))
+        }
+        XCTAssertThrowsError(
+            try DataCatalogScenarioReplayBoundary(buildsProductionDataPlatform: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability("buildsProductionDataPlatform")
+            )
+        }
+        XCTAssertThrowsError(
+            try DataCatalogScenarioReplayBoundary(terms: Array(DataCatalogScenarioReplayTerm.allCases.dropLast()))
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayContractMismatch(
+                    field: "terms",
+                    expected: DataCatalogScenarioReplayBoundary.requiredTerms.map(\.rawValue).joined(separator: ","),
+                    actual: Array(DataCatalogScenarioReplayTerm.allCases.dropLast())
+                        .map(\.rawValue)
+                        .joined(separator: ",")
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(DataCatalogScenarioReplayBoundary.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["buildsLargeScaleIngestionPipeline"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(DataCatalogScenarioReplayBoundary.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability("buildsLargeScaleIngestionPipeline")
+            )
+        }
+    }
+
+    func testMTP103DataCatalogScenarioReplayKeepsTargetEnginesLocalFirstAndReadModelOnly() throws {
+        // 测试场景：MTP-103 的 Data Engine、State & Persistence Engine 和 Workbench Interface
+        // 职责只能表达 source docs / validation evidence，不得升级为生产数据平台、真实网络下载或 live command。
+        let boundary = DataCatalogScenarioReplayBoundary.deterministicFixture
+
+        XCTAssertTrue(boundary.sourceDocumentAnchors.contains("docs/architecture.md"))
+        XCTAssertTrue(boundary.sourceDocumentAnchors.contains("docs/roadmap.md"))
+        XCTAssertTrue(
+            boundary.sourceDocumentAnchors.contains(
+                "docs/planning/projects/mtpro-data-catalog-scenario-replay-v1-plan.md"
+            )
+        )
+        XCTAssertTrue(boundary.validationAnchors.contains("MTP-103-FORBIDDEN-CAPABILITY-BASELINE"))
+        XCTAssertTrue(boundary.validationAnchors.contains("TVM-DATA-CATALOG-SCENARIO-REPLAY"))
+        XCTAssertTrue(boundary.isLocalFirst)
+        XCTAssertTrue(boundary.isDeterministic)
+        XCTAssertTrue(boundary.isVersioned)
+        XCTAssertTrue(boundary.exposesReadModelOnlySurface)
+        XCTAssertFalse(boundary.downloadsRealNetworkData)
+        XCTAssertFalse(boundary.buildsProductionDataPlatform)
+        XCTAssertFalse(boundary.buildsLargeScaleIngestionPipeline)
+        XCTAssertFalse(boundary.runsLiveRuntime)
+        XCTAssertFalse(boundary.providesLiveCommand)
+        XCTAssertFalse(boundary.providesTradingButton)
+        XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
+    }
+
     private func makeOrderBookImbalanceInputs() throws -> [OrderBookReadModelInput] {
         let symbol = try Symbol(rawValue: "BTCUSDT")
         let bidDominant = OrderBookReadModelInput(

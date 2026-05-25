@@ -60,6 +60,7 @@ require_file "docs/planning/projects/mtpro-live-monitoring-console-v1-plan.md"
 require_file "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md"
 require_file "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md"
 require_file "docs/planning/projects/mtpro-live-audit-incident-stop-boundary-v1-plan.md"
+require_file "docs/planning/projects/mtpro-data-catalog-scenario-replay-v1-plan.md"
 [[ -d "docs/audit/inputs" ]] || fail "missing required directory: docs/audit/inputs"
 require_file "docs/audit/inputs/mtpro-runtime-research-workbench-v1-stage-evidence.md"
 require_file "docs/audit/inputs/mtpro-trading-validation-and-parity-hardening-stage-audit-input.md"
@@ -80,6 +81,7 @@ require_file "docs/validation/trading-validation-matrix.md"
 require_file "docs/validation/validation-plan.md"
 require_file "docs/contracts/live-trading-boundary-contract.md"
 require_file "docs/contracts/live-audit-incident-stop-contract.md"
+require_file "docs/contracts/data-catalog-scenario-replay-contract.md"
 require_file "verification.md"
 
 for legacy_root_doc in "ARCHITECTURE.md" "ENVIRONMENT.md" "ROADMAP.md"; do
@@ -390,7 +392,8 @@ for planning_record in \
   "docs/planning/projects/mtpro-live-monitoring-console-v1-plan.md" \
   "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" \
   "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" \
-  "docs/planning/projects/mtpro-live-audit-incident-stop-boundary-v1-plan.md"; do
+  "docs/planning/projects/mtpro-live-audit-incident-stop-boundary-v1-plan.md" \
+  "docs/planning/projects/mtpro-data-catalog-scenario-replay-v1-plan.md"; do
   require_contains "$planning_record" "Project name"
   require_contains "$planning_record" "Project goal"
   require_contains "$planning_record" "Scope"
@@ -1596,6 +1599,25 @@ require_contains "Sources/App/DashboardShell.swift" "paperRuntimeEvidence"
 require_contains "Sources/App/DashboardShell.swift" "paperWorkflowEvidence"
 require_contains "Sources/App/DashboardShell.swift" "paperPortfolioImpact"
 require_contains "Tests/AppTests/AppTests.swift" "testMTP102PaperRuntimeEvidenceChainFeedsReportDashboardAndEventTimeline"
+require_contains "docs/contracts/data-catalog-scenario-replay-contract.md" "MTP-103-DATA-CATALOG-SCENARIO-REPLAY-TERMINOLOGY"
+require_contains "docs/contracts/data-catalog-scenario-replay-contract.md" "MTP-103-TARGET-ENGINE-RESPONSIBILITY-BOUNDARY"
+require_contains "docs/contracts/data-catalog-scenario-replay-contract.md" "MTP-103-LOCAL-FIRST-DETERMINISTIC-VERSIONED-BOUNDARY"
+require_contains "docs/contracts/data-catalog-scenario-replay-contract.md" "MTP-103-FORBIDDEN-CAPABILITY-BASELINE"
+require_contains "docs/contracts/data-catalog-scenario-replay-contract.md" "MTP-103-DATA-CATALOG-SCENARIO-REPLAY-VALIDATION"
+require_contains "docs/domain/context.md" "MTP-103-DATA-CATALOG-SCENARIO-REPLAY-TERMINOLOGY"
+require_contains "docs/domain/context.md" "MTP-103-FORBIDDEN-CAPABILITY-BASELINE"
+require_contains "docs/validation/validation-plan.md" "MTP-103 Data Catalog / Scenario Replay Terminology / Boundary Validation"
+require_contains "docs/validation/validation-plan.md" "MTP-103-DATA-CATALOG-SCENARIO-REPLAY-VALIDATION"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-DATA-CATALOG-SCENARIO-REPLAY"
+require_contains "docs/validation/trading-validation-matrix.md" "MTP-103 issue backfill"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-103 的当前 issue execution evidence"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-103-DATA-CATALOG-SCENARIO-REPLAY-VALIDATION"
+require_contains "Sources/Core/DataCatalogScenarioReplayBoundary.swift" "DataCatalogScenarioReplayBoundary"
+require_contains "Sources/Core/DataCatalogScenarioReplayBoundary.swift" "DataCatalogScenarioReplayForbiddenCapability"
+require_contains "Sources/Core/DataCatalogScenarioReplayBoundary.swift" "MTP-103-DATA-CATALOG-SCENARIO-REPLAY-VALIDATION"
+require_contains "Tests/CoreTests/CoreTests.swift" "testMTP103DataCatalogScenarioReplayDefinesTerminologyAndBoundaryAnchors"
+require_contains "Tests/CoreTests/CoreTests.swift" "testMTP103DataCatalogScenarioReplayRejectsImplementationAndLiveBypass"
+require_contains "Tests/CoreTests/CoreTests.swift" "testMTP103DataCatalogScenarioReplayKeepsTargetEnginesLocalFirstAndReadModelOnly"
 require_contains "docs/validation/latest-verification-summary.md" "Root Docs Refresh Gate"
 require_contains "docs/validation/latest-verification-summary.md" "Root Docs Delta"
 require_contains "docs/validation/latest-verification-summary.md" 'Linear Project status `Completed`'

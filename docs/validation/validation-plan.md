@@ -1976,3 +1976,41 @@ MTP-102 必须建立的主要 anchors：
 - 不实现 OMS、broker router、真实 order lifecycle、真实 submit / cancel / replace、live risk runtime、production runtime 或真实交易授权。
 - 不接 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不读取真实账户余额、broker position、margin、leverage、真实 PnL、equity、secret 或 API key。
+
+## MTP-103 Data Catalog / Scenario Replay Terminology / Boundary Validation
+
+日期：2026-05-26
+
+执行者：Codex
+
+MTP-103 的 required validation：
+
+- `docs/contracts/data-catalog-scenario-replay-contract.md` 必须包含 `MTP-103-DATA-CATALOG-SCENARIO-REPLAY-TERMINOLOGY`、`MTP-103-TARGET-ENGINE-RESPONSIBILITY-BOUNDARY`、`MTP-103-LOCAL-FIRST-DETERMINISTIC-VERSIONED-BOUNDARY`、`MTP-103-FORBIDDEN-CAPABILITY-BASELINE` 和 `MTP-103-DATA-CATALOG-SCENARIO-REPLAY-VALIDATION` anchors。
+- `Sources/Core/DataCatalogScenarioReplayBoundary.swift` 必须定义 `DataCatalogScenarioReplayTerm`、`DataCatalogScenarioReplayTargetEngine`、`DataCatalogScenarioReplayBoundaryPrinciple`、`DataCatalogScenarioReplayForbiddenCapability`、`DataCatalogScenarioReplayEvidenceKind` 和 `DataCatalogScenarioReplayBoundary.deterministicFixture`。
+- `DataCatalogScenarioReplayBoundary` 必须固定 Data Engine、State & Persistence Engine 和 Workbench Interface 三类目标引擎职责。
+- Boundary fixture 必须保持 `local-first`、`deterministic`、`versioned` 和 `read-model-only` flags 为 true。
+- Boundary fixture 必须保持 manifest parser、fixture data、replay cursor、report input versioning、production data platform、large-scale ingestion pipeline、real network download、signed endpoint、account endpoint、listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、live command、trading button、Graphify update 和 Figma change flags 全部为 false。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-103 focused tests，验证 terminology / boundary anchors、forbidden capability bypass rejection、Codable decode bypass rejection 和 local-first read-model-only target engine boundary。
+- `docs/domain/context.md` 必须包含 `MTP-103-DATA-CATALOG-SCENARIO-REPLAY-TERMINOLOGY` 和 `MTP-103-FORBIDDEN-CAPABILITY-BASELINE`。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-DATA-CATALOG-SCENARIO-REPLAY` 和 MTP-103 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-103 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-103 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不运行 Graphify，不修改 Figma，不实现 manifest parser、fixture data、replay cursor、report input versioning、production data platform、large-scale ingestion pipeline、signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、live runtime、live command 或交易按钮。
+
+MTP-103 必须建立的主要 anchors：
+
+- `TVM-DATA-CATALOG-SCENARIO-REPLAY`
+- `MTP-103-DATA-CATALOG-SCENARIO-REPLAY-TERMINOLOGY`
+- `MTP-103-TARGET-ENGINE-RESPONSIBILITY-BOUNDARY`
+- `MTP-103-LOCAL-FIRST-DETERMINISTIC-VERSIONED-BOUNDARY`
+- `MTP-103-FORBIDDEN-CAPABILITY-BASELINE`
+- `MTP-103-DATA-CATALOG-SCENARIO-REPLAY-VALIDATION`
+
+## MTP-103 禁止
+
+- 不实现 scenario manifest parser、scenario manifest 最终字段解析、fixture 数据、replay cursor、checksum 计算、freshness evidence runtime、data quality gate runtime 或 report input versioning runtime。
+- 不实现 Simulated Exchange / Backtest Parity runtime；该能力必须由后续独立 Project / issue 授权。
+- 不新增 production data platform、cloud data lake、large-scale ingestion pipeline、真实历史下载器、production retention cleanup 或数据修复平台。
+- 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position read、live runtime、live command、order form、Live PRO Console 或交易按钮。
+- 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进下一 issue。
