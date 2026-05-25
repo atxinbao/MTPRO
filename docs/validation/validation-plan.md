@@ -2053,3 +2053,43 @@ MTP-104 必须建立的主要 anchors：
 - 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position read、live runtime、live command、order form、Live PRO Console 或交易按钮。
 - 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进下一 issue。
+
+## MTP-105 Single-Symbol / Single-Timeframe Deterministic Scenario Fixture Validation
+
+日期：2026-05-26
+
+执行者：Codex
+
+MTP-105 的 required validation：
+
+- `docs/contracts/data-catalog-scenario-replay-contract.md` 必须包含 `MTP-105-SINGLE-SYMBOL-SINGLE-TIMEFRAME-FIXTURE`、`MTP-105-FIXTURE-VERSION-SOURCE-ANCHOR`、`MTP-105-FIXED-WINDOW-RECORD-ORDER`、`MTP-105-PUBLIC-READ-ONLY-LOCAL-FIXTURE-RELATIONSHIP`、`MTP-105-DETERMINISTIC-SUMMARY-PRESTRUCTURE`、`MTP-105-NO-NETWORK-SIGNED-BROKER-LIVE` 和 `MTP-105-SCENARIO-FIXTURE-VALIDATION` anchors。
+- `Sources/Core/ScenarioFixture.swift` 必须定义 `FixtureVersion`、`ScenarioFixtureSourceKind`、`ScenarioFixtureRecordOrderPolicy`、`ScenarioFixtureRecord`、`ScenarioFixtureDeterministicSummary` 和 `DeterministicScenarioFixture.deterministicFixture`。
+- `DeterministicScenarioFixture` 必须复用 `ScenarioManifest.deterministicFixture`，并固定 `fixture-v1`、BTCUSDT、1m、fixed window、record sequence `1,2,3`、strictly ascending interval starts 和 local public-read-only source relationship。
+- `ScenarioFixtureDeterministicSummary` 必须固定 record count、ordered starts、record order identity、canonical record summary、checksum preimage 和 MTP-104 source identity；`checksumEvidenceDeferredToMTP106` 必须为 `true`。
+- Fixture 必须保持 required validation network-independent，且 real network download、production ingestion pipeline、cloud data lake、adapter request exposure、secret、signed endpoint、account endpoint、listenKey、broker、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、live command、trading button、multi-symbol 和 multi-timeframe flags 全部为 false。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-105 focused tests，验证 first scenario records、fixture version / source anchor、fixed window / record order、deterministic summary pre-structure、forbidden capability bypass rejection、Codable decode bypass rejection 和 forbidden text absence。
+- `docs/domain/context.md` 必须包含 `MTP-105-SINGLE-SYMBOL-SINGLE-TIMEFRAME-FIXTURE` 和 `MTP-105-NO-NETWORK-SIGNED-BROKER-LIVE`。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-105 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-105 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-105 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不运行 Graphify，不修改 Figma，不实现 replay cursor、final checksum evidence、freshness evidence、data quality gate、report input versioning runtime、production dataset registry、large-scale ingestion pipeline、signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、live runtime、live command 或交易按钮。
+
+MTP-105 必须建立的主要 anchors：
+
+- `TVM-DATA-CATALOG-SCENARIO-REPLAY`
+- `MTP-105-SINGLE-SYMBOL-SINGLE-TIMEFRAME-FIXTURE`
+- `MTP-105-FIXTURE-VERSION-SOURCE-ANCHOR`
+- `MTP-105-FIXED-WINDOW-RECORD-ORDER`
+- `MTP-105-PUBLIC-READ-ONLY-LOCAL-FIXTURE-RELATIONSHIP`
+- `MTP-105-DETERMINISTIC-SUMMARY-PRESTRUCTURE`
+- `MTP-105-NO-NETWORK-SIGNED-BROKER-LIVE`
+- `MTP-105-SCENARIO-FIXTURE-VALIDATION`
+
+## MTP-105 禁止
+
+- 不实现 manifest file parser、replay cursor、final checksum evidence、freshness evidence runtime、data quality gate runtime 或 report input versioning runtime。
+- 不新增 multi-symbol / multi-timeframe catalog、production dataset registry、production data platform、cloud data lake、large-scale ingestion pipeline、真实历史下载器或 production retention cleanup。
+- 不暴露 SQLite / DuckDB schema、adapter request、Runtime object、database console 或 UI command surface。
+- 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position read、live runtime、live command、order form、Live PRO Console 或交易按钮。
+- 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进下一 issue。

@@ -4,9 +4,9 @@
 
 执行者：Codex
 
-本文档定义 `MTPRO Data Catalog / Scenario Replay v1` 的 Data Catalog / Scenario Replay terminology、目标引擎职责、local-first deterministic versioned boundary、scenario manifest / scenario id / dataset version contract、forbidden capability baseline、source docs anchors 和 validation anchors。
+本文档定义 `MTPRO Data Catalog / Scenario Replay v1` 的 Data Catalog / Scenario Replay terminology、目标引擎职责、local-first deterministic versioned boundary、scenario manifest / scenario id / dataset version contract、single-symbol / single-timeframe deterministic scenario fixture、forbidden capability baseline、source docs anchors 和 validation anchors。
 
-本文档服务 `MTP-103` 的术语 / 边界合同和 `MTP-104` 的 scenario manifest 输入身份合同；它不实现 manifest file parser，不新增 fixture 数据，不实现 replay cursor，不实现 report input versioning，不新增 production data platform，不做 large-scale ingestion pipeline，不接 signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、live runtime、live command、trading button，不运行 Graphify，不修改 Figma。
+本文档服务 `MTP-103` 的术语 / 边界合同、`MTP-104` 的 scenario manifest 输入身份合同和 `MTP-105` 的 first deterministic scenario fixture 合同；它不实现 manifest file parser，不实现 replay cursor / freshness runtime / final checksum evidence，不实现 report input versioning，不新增 production data platform，不做 large-scale ingestion pipeline，不接 signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、live runtime、live command、trading button，不运行 Graphify，不修改 Figma。
 
 ## MTP-103 Data Catalog / Scenario Replay terminology
 
@@ -241,3 +241,137 @@ Validation anchors：
 - `TVM-DATA-CATALOG-SCENARIO-REPLAY`
 
 MTP-104 不新增 fixture data、不实现 replay cursor、不实现 report input versioning runtime、不新增 App read model、不新增 Dashboard smoke handle、不新增 stage audit input；Project stage closeout 仍归属 `MTP-109`。
+
+## MTP-105 single-symbol / single-timeframe deterministic scenario fixture
+
+`MTP-105-SINGLE-SYMBOL-SINGLE-TIMEFRAME-FIXTURE`
+
+MTP-105 在 MTP-104 manifest 输入身份基础上建立 first scenario fixture。当前 fixture 只允许：
+
+| 字段 | 当前含义 | 禁止混用 |
+| --- | --- | --- |
+| `manifest` | `ScenarioManifest.deterministicFixture`，固定 scenario id、dataset version、BTCUSDT、1m 和 source identity | 不等于 manifest parser、file loader、production dataset registry 或 Runtime job |
+| `fixture version` | `fixture-v1`，标识当前仓库内 first deterministic records 版本 | 不等于 dataset version、cloud data lake version 或 external catalog version |
+| `source kind` | `Binance public read-only local fixture` | 不等于真实 Binance 网络下载、adapter request、signed endpoint、account endpoint / listenKey 或 broker feed |
+| `fixed window` | `1704067200...1704067380` 的本地固定 kline 窗口 | 不等于 historical downloader policy、production retention window 或 replay cursor |
+| `fixed record order` | sequence `1,2,3` 且 interval start 严格升序 | 不等于 exchange sequence、broker sequence、event log sequence 或 replay cursor |
+| `deterministic summary pre-structure` | canonical record summary、record order identity 和 checksum preimage | 不等于 MTP-106 final checksum evidence、freshness verdict、data quality gate 或 report input versioning |
+
+Core deterministic fixture：`DeterministicScenarioFixture.deterministicFixture`。
+
+Focused Core tests：
+
+- `testMTP105DeterministicScenarioFixtureDefinesSingleSymbolSingleTimeframeRecords`
+- `testMTP105ScenarioFixtureBuildsDeterministicSummaryPrestructure`
+- `testMTP105ScenarioFixtureRejectsNetworkLiveAndRecordOrderBypass`
+- `testMTP105ScenarioFixtureRoundTripsWithoutForbiddenCapabilityText`
+
+## MTP-105 fixture version / source anchor
+
+`MTP-105-FIXTURE-VERSION-SOURCE-ANCHOR`
+
+MTP-105 固定 `FixtureVersion("fixture-v1")` 和 source anchor `MTP-105-SINGLE-SYMBOL-SINGLE-TIMEFRAME-FIXTURE`。`FixtureVersion` 是 Core value object，只表达本地 fixture record set 的版本，不替代 `DatasetVersion`，不读取文件、不创建 registry、不接 production dataset catalog。
+
+`DeterministicScenarioFixture.sourceRelationshipAnchors` 必须固定为：
+
+- `MTP-104-SCENARIO-MANIFEST-MINIMAL-FIELDS`
+- `TVM-MARKET-DATA-REPLAY-OPERATIONS`
+- `TVM-DATA-CATALOG-SCENARIO-REPLAY`
+- `Binance public read-only local fixture`
+
+这些 anchors 只说明 first scenario fixture 与既有 Binance public read-only / local replay evidence 的关系，不建立 Core -> Adapters 依赖，不调用真实网络，不暴露 adapter request。
+
+## MTP-105 fixed window / record order
+
+`MTP-105-FIXED-WINDOW-RECORD-ORDER`
+
+`ScenarioFixtureRecord` 固定本地 record sequence 和 `MarketBar`。初始化与 Codable 解码必须拒绝：
+
+- 空 records。
+- 非 `1...N` 的 record sequence。
+- interval start 非严格升序。
+- symbol / timeframe 与 MTP-104 manifest 不一致。
+
+当前 first scenario records 为 BTCUSDT / 1m 三条本地 kline：
+
+```text
+1: 1704067200...1704067260
+2: 1704067260...1704067320
+3: 1704067320...1704067380
+```
+
+## MTP-105 public read-only local fixture relationship
+
+`MTP-105-PUBLIC-READ-ONLY-LOCAL-FIXTURE-RELATIONSHIP`
+
+MTP-105 只复用 Binance public read-only / local replay 的语义，不导入 `Adapters` target，不调用 `BinanceMarketDataBatchReplay*` runtime，不触发真实 Binance 网络，不读取 secret，不使用 signed/account/listenKey endpoint，也不生成 broker / exchange execution capability。
+
+`DeterministicScenarioFixture.publicReadOnlyLocalFixtureRelationshipHeld` 必须为 `true`，并且 `requiredValidationDependsOnNetwork`、`downloadsRealNetworkData`、`exposesAdapterRequest` 必须为 `false`。
+
+## MTP-105 deterministic summary pre-structure
+
+`MTP-105-DETERMINISTIC-SUMMARY-PRESTRUCTURE`
+
+`ScenarioFixtureDeterministicSummary` 固定以下前置结构：
+
+- `scenarioID`
+- `datasetVersion`
+- `fixtureVersion`
+- `symbol`
+- `timeframe`
+- `fixedWindow`
+- `recordCount`
+- `orderedRecordStarts`
+- `recordOrderIdentity`
+- `canonicalRecordSummary`
+- `checksumPreimage`
+- `sourceIdentity`
+
+`checksumEvidenceDeferredToMTP106 == true` 必须保持不变。MTP-105 不输出 final checksum evidence、不实现 replay cursor、不实现 freshness evidence、不实现 data quality gate、不实现 report input versioning。
+
+## MTP-105 no network / signed / broker / live capability
+
+`MTP-105-NO-NETWORK-SIGNED-BROKER-LIVE`
+
+`DeterministicScenarioFixture` 初始化和 Codable 解码必须拒绝以下绕过：
+
+- real network download。
+- production ingestion pipeline。
+- cloud data lake。
+- adapter request exposure。
+- secret read。
+- signed endpoint。
+- account endpoint。
+- listenKey。
+- broker integration。
+- broker / exchange execution adapter。
+- `LiveExecutionAdapter`。
+- OMS。
+- real order lifecycle。
+- live command。
+- trading button。
+- multi-symbol / multi-timeframe catalog。
+
+对应 Boolean flags 必须全部保持 `false`；任何初始化或 Codable payload 试图打开这些能力都必须抛出 `CoreError.dataCatalogScenarioReplayForbiddenCapability`。
+
+## MTP-105 validation anchors
+
+`MTP-105-SCENARIO-FIXTURE-VALIDATION`
+
+Required validation：
+
+- `swift test --filter MTP105`
+- `bash checks/run.sh`
+
+Validation anchors：
+
+- `MTP-105-SINGLE-SYMBOL-SINGLE-TIMEFRAME-FIXTURE`
+- `MTP-105-FIXTURE-VERSION-SOURCE-ANCHOR`
+- `MTP-105-FIXED-WINDOW-RECORD-ORDER`
+- `MTP-105-PUBLIC-READ-ONLY-LOCAL-FIXTURE-RELATIONSHIP`
+- `MTP-105-DETERMINISTIC-SUMMARY-PRESTRUCTURE`
+- `MTP-105-NO-NETWORK-SIGNED-BROKER-LIVE`
+- `MTP-105-SCENARIO-FIXTURE-VALIDATION`
+- `TVM-DATA-CATALOG-SCENARIO-REPLAY`
+
+MTP-105 不实现 replay cursor、不实现 final checksum evidence、不实现 freshness evidence、不实现 data quality gate、不实现 report input versioning runtime、不新增 App read model、不新增 Dashboard smoke handle、不新增 stage audit input；Project stage closeout 仍归属 `MTP-109`。

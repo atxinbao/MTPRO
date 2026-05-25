@@ -9023,6 +9023,180 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testMTP105DeterministicScenarioFixtureDefinesSingleSymbolSingleTimeframeRecords() throws {
+        // 测试场景：MTP-105 first scenario fixture 必须复用 MTP-104 manifest，
+        // 并固定 fixture version、single-symbol / single-timeframe records、fixed window 和 record order。
+        let fixture = DeterministicScenarioFixture.deterministicFixture
+
+        XCTAssertEqual(fixture.contractID, try Identifier("mtp-105-deterministic-scenario-fixture"))
+        XCTAssertEqual(fixture.issueID, try Identifier("MTP-105"))
+        XCTAssertEqual(fixture.manifest, ScenarioManifest.deterministicFixture)
+        XCTAssertEqual(fixture.fixtureVersion, try FixtureVersion("fixture-v1"))
+        XCTAssertEqual(fixture.sourceKind, .binancePublicReadOnlyLocalFixture)
+        XCTAssertEqual(fixture.sourceAnchor, "MTP-105-SINGLE-SYMBOL-SINGLE-TIMEFRAME-FIXTURE")
+        XCTAssertEqual(fixture.recordOrderPolicy, .fixedAscendingIntervalStart)
+        XCTAssertEqual(fixture.records.count, 3)
+        XCTAssertEqual(fixture.records.map(\.sequence), [1, 2, 3])
+        XCTAssertEqual(fixture.records.map(\.bar.symbol), Array(repeating: try Symbol(rawValue: "BTCUSDT"), count: 3))
+        XCTAssertEqual(fixture.records.map(\.bar.timeframe), Array(repeating: Timeframe.oneMinute, count: 3))
+        XCTAssertEqual(
+            fixture.records.map { Int($0.bar.interval.start.timeIntervalSince1970) },
+            [1_704_067_200, 1_704_067_260, 1_704_067_320]
+        )
+        XCTAssertEqual(Int(fixture.fixedWindow.start.timeIntervalSince1970), 1_704_067_200)
+        XCTAssertEqual(Int(fixture.fixedWindow.end.timeIntervalSince1970), 1_704_067_380)
+        XCTAssertTrue(fixture.fixtureIdentityAlignedWithManifest)
+        XCTAssertTrue(fixture.fixedRecordOrderHeld)
+        XCTAssertTrue(fixture.publicReadOnlyLocalFixtureRelationshipHeld)
+        XCTAssertTrue(fixture.forbiddenCapabilityBoundaryHeld)
+        XCTAssertTrue(fixture.fixtureBoundaryHeld)
+    }
+
+    func testMTP105ScenarioFixtureBuildsDeterministicSummaryPrestructure() throws {
+        // 测试场景：MTP-105 只建立 deterministic summary / checksum preimage 结构，
+        // 不计算 MTP-106 的最终 checksum、replay cursor 或 freshness evidence。
+        let fixture = DeterministicScenarioFixture.deterministicFixture
+        let summary = fixture.deterministicSummary
+
+        XCTAssertEqual(summary.scenarioID, try ScenarioID("mtp-104-btcusdt-1m-first-scenario"))
+        XCTAssertEqual(summary.datasetVersion, try DatasetVersion("dataset-v1"))
+        XCTAssertEqual(summary.fixtureVersion, try FixtureVersion("fixture-v1"))
+        XCTAssertEqual(summary.symbol, try Symbol(rawValue: "BTCUSDT"))
+        XCTAssertEqual(summary.timeframe, .oneMinute)
+        XCTAssertEqual(summary.recordCount, 3)
+        XCTAssertEqual(summary.orderedRecordStarts, [1_704_067_200, 1_704_067_260, 1_704_067_320])
+        XCTAssertEqual(summary.recordOrderIdentity, "1:1704067200|2:1704067260|3:1704067320")
+        XCTAssertEqual(summary.canonicalRecordSummary.count, 3)
+        XCTAssertEqual(
+            summary.canonicalRecordSummary.first,
+            "sequence=1|symbol=BTCUSDT|timeframe=1m|window=1704067200...1704067260|open=42000100000|high=42100200000|low=41900300000|close=42050400000|volume=12345000|sourceAnchor=MTP-105-FIXED-WINDOW-RECORD-ORDER"
+        )
+        XCTAssertTrue(summary.checksumPreimage.contains("sequence=1|symbol=BTCUSDT|timeframe=1m"))
+        XCTAssertTrue(summary.checksumPreimage.contains("sequence=3|symbol=BTCUSDT|timeframe=1m"))
+        XCTAssertTrue(summary.checksumEvidenceDeferredToMTP106)
+        XCTAssertEqual(
+            summary.sourceIdentity,
+            "mtp-104-btcusdt-1m-first-scenario|dataset-v1|BTCUSDT|1m|MTP-104-SCENARIO-MANIFEST-MINIMAL-FIELDS|single-symbol / single-timeframe"
+        )
+        XCTAssertTrue(summary.publicReadOnlyLocalFixtureRelationshipHeld)
+        XCTAssertFalse(summary.dependsOnNetwork)
+    }
+
+    func testMTP105ScenarioFixtureRejectsNetworkLiveAndRecordOrderBypass() throws {
+        // 测试场景：MTP-105 fixture 的初始化和 Codable 解码必须拒绝真实网络、
+        // production ingestion、signed/account/listenKey、broker、LiveExecutionAdapter、live command 和乱序记录。
+        XCTAssertThrowsError(
+            try DeterministicScenarioFixture(downloadsRealNetworkData: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability("scenarioFixture.downloadsRealNetworkData")
+            )
+        }
+        XCTAssertThrowsError(
+            try DeterministicScenarioFixture(usesSignedEndpoint: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability("scenarioFixture.usesSignedEndpoint")
+            )
+        }
+        XCTAssertThrowsError(
+            try DeterministicScenarioFixture(connectsBroker: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability("scenarioFixture.connectsBroker")
+            )
+        }
+        XCTAssertThrowsError(
+            try DeterministicScenarioFixture(implementsLiveExecutionAdapter: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability("scenarioFixture.implementsLiveExecutionAdapter")
+            )
+        }
+        XCTAssertThrowsError(
+            try DeterministicScenarioFixture(providesLiveCommand: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability("scenarioFixture.providesLiveCommand")
+            )
+        }
+
+        var outOfOrderRecords = DeterministicScenarioFixture.deterministicFixture.records
+        outOfOrderRecords.swapAt(1, 2)
+        XCTAssertThrowsError(
+            try DeterministicScenarioFixture(records: outOfOrderRecords)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayContractMismatch(
+                    field: "scenarioFixture.recordSequence",
+                    expected: "1,2,3",
+                    actual: "1,3,2"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(DeterministicScenarioFixture.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["callsAccountEndpoint"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(DeterministicScenarioFixture.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability("scenarioFixture.callsAccountEndpoint")
+            )
+        }
+    }
+
+    func testMTP105ScenarioFixtureRoundTripsWithoutForbiddenCapabilityText() throws {
+        // 测试场景：first scenario fixture 必须可编码、可比较、可作为后续 replay / report input 的稳定输入，
+        // 且 evidence 文本不能混入 signed/account/listenKey/broker/live command 等禁区能力。
+        let fixture = DeterministicScenarioFixture.deterministicFixture
+        let encoded = try JSONEncoder().encode(fixture)
+        let decoded = try JSONDecoder().decode(DeterministicScenarioFixture.self, from: encoded)
+
+        XCTAssertEqual(decoded, fixture)
+        XCTAssertEqual(decoded.deterministicSummary, fixture.deterministicSummary)
+        XCTAssertTrue(decoded.fixtureBoundaryHeld)
+        XCTAssertFalse(decoded.requiredValidationDependsOnNetwork)
+        XCTAssertFalse(decoded.downloadsRealNetworkData)
+        XCTAssertFalse(decoded.runsProductionIngestionPipeline)
+        XCTAssertFalse(decoded.buildsCloudDataLake)
+        XCTAssertFalse(decoded.exposesAdapterRequest)
+        XCTAssertFalse(decoded.readsSecret)
+        XCTAssertFalse(decoded.usesSignedEndpoint)
+        XCTAssertFalse(decoded.callsAccountEndpoint)
+        XCTAssertFalse(decoded.createsListenKey)
+        XCTAssertFalse(decoded.connectsBroker)
+        XCTAssertFalse(decoded.instantiatesBrokerExecutionAdapter)
+        XCTAssertFalse(decoded.instantiatesExchangeExecutionAdapter)
+        XCTAssertFalse(decoded.implementsLiveExecutionAdapter)
+        XCTAssertFalse(decoded.implementsOMS)
+        XCTAssertFalse(decoded.implementsRealOrderLifecycle)
+        XCTAssertFalse(decoded.providesLiveCommand)
+        XCTAssertFalse(decoded.providesTradingButton)
+        XCTAssertFalse(decoded.usesMultipleSymbols)
+        XCTAssertFalse(decoded.usesMultipleTimeframes)
+        XCTAssertFalse(
+            decoded.containsForbiddenCapabilityText([
+                "signed endpoint",
+                "account endpoint",
+                "listenKey",
+                "broker fill",
+                "real order",
+                "live command",
+                "trading button"
+            ])
+        )
+    }
+
     private func makeOrderBookImbalanceInputs() throws -> [OrderBookReadModelInput] {
         let symbol = try Symbol(rawValue: "BTCUSDT")
         let bidDominant = OrderBookReadModelInput(
