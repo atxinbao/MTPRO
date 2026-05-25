@@ -10883,3 +10883,48 @@ L1 Paper Runtime maturity statement：
 - 不修改 Figma。
 - 不提交 `.codex/*` 或 `graphify-out/*`。
 - 不实现 manifest file parser、production data quality platform、production data observability、automatic download、automatic repair、broker / account reconciliation、Simulated Exchange / Backtest Parity runtime、multi-symbol / multi-timeframe catalog、production dataset registry、production data platform、cloud data lake、large-scale ingestion pipeline、真实历史下载器、production scheduler、production retention cleanup、cloud archive、storage tiering、database schema exposure、adapter request exposure、Runtime object read、signed endpoint、account endpoint / listenKey、secret、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、real account / broker position read、live runtime、order command、live command、trading button 或 Live PRO Console。
+
+---
+
+## 2026-05-26 — MTP-108 Workbench / Report / Events Scenario Replay Evidence Surface
+
+执行者：Codex
+
+目的：
+
+- 完成 Linear issue `MTP-108 Add Workbench / Report / Events read-model evidence surface`。
+- 把 MTP-106 scenario replay evidence 与 MTP-107 quality gate / report input versioning evidence 接入 App 层 read-model-only surface。
+- 让 Report、Workbench 和 Events 能展示 scenario id、dataset version、fixture version、replay window、checksum、freshness status、quality verdict、report input version identity 和 quality gate timeline，但不新增 command surface、query language、Runtime / Adapter / Persistence schema、Live command、broker action 或交易按钮。
+
+文件范围：
+
+- 新增 `Sources/App/ScenarioReplayEvidenceSurface.swift`。
+- 更新 `Sources/App/App.swift`、`Sources/App/DashboardShell.swift` 和 `Sources/App/PaperWorkflowEvidenceExplorer.swift`。
+- 更新 `Tests/AppTests/AppTests.swift`，新增 `testMTP108ScenarioReplayEvidenceFeedsReportWorkbenchAndEventsReadOnly`，并调整已有 Workbench / Event Timeline regression expectations。
+- 更新 `docs/contracts/data-catalog-scenario-replay-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh`。
+- 更新本 append-only `verification.md`。
+
+关键证据：
+
+- `ScenarioReplayEvidenceReadModel` / `ScenarioReplayEvidenceViewModel` 只复制 stable fields：scenario id、dataset version、fixture version、symbol / timeframe、replay window、cursor、checksum、freshness status、quality verdict、report input version identity、drill-down entry 和 timeline entries。
+- `ReportViewModel` 输出 scenario replay evidence count、scenario ids、dataset / fixture versions、replay windows、checksums、freshness statuses、quality verdicts、report input version identities、drill-down entries、timeline count、quality gate timeline count 和 read-model-only boundary flags。
+- `DashboardShellWorkbenchSnapshot` 新增 scenario replay summary / drill-down metrics；Dashboard smoke 新增 `scenarioReplayEvidence` 和 `scenarioQualityGates` handles。
+- `PaperWorkflowEvidenceExplorer` 新增 `scenario replay evidence` section，输出 replay window、cursor、checksum、freshness 和六个 quality gate timeline rows；full deterministic fixture timeline count 从 60 增至 70。
+- required validation network dependency、production data platform / observability、automatic download / repair、broker / account reconciliation、Simulated Exchange / Backtest Parity implementation、database schema exposure、adapter request exposure、Runtime object read、secret、signed endpoint、account endpoint、listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、live runtime、command surface、order-level command、query language、live command、trading button、live trading authorization、broker action 和 trading execution authorization flags 全部保持 false。
+- `TVM-DATA-CATALOG-SCENARIO-REPLAY` 已回填 MTP-108 issue evidence。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP108` | pass | 执行 1 个 App test，0 failures；覆盖 Report、Workbench、Events、Dashboard smoke、Codable stable snapshot、read-model-only boundary、no command surface、no query language、no trading button、no live command 和 no broker action。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；机械检查 MTP-108 contract、domain context、validation plan、matrix、latest summary、App source、Dashboard / Events source 和 focused test anchors。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 242 个 XCTest；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; scenarioReplayEvidence=0; scenarioQualityGates=0; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`，最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不修改 Linear status。
+- 不启动 Symphony / Graphify。
+- 不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 manifest parser、Runtime replay job、Adapter request、Persistence schema、database console、query language、command model、multi-symbol / multi-timeframe production catalog、production dataset registry、production data platform、cloud data lake、large-scale ingestion pipeline、真实历史下载器、production scheduler、production retention cleanup、cloud archive、storage tiering、schema inspector、Runtime inspector、signed endpoint、account endpoint / listenKey、secret、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、real account / broker position read、live runtime、order command、live command、trading button 或 Live PRO Console。

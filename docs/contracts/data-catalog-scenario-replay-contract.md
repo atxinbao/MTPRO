@@ -636,3 +636,115 @@ Validation anchors：
 - `TVM-DATA-CATALOG-SCENARIO-REPLAY`
 
 MTP-107 不实现 manifest file parser、不新增 production data quality platform、不实现 production data observability、不实现 automatic download / repair、不实现 broker / account reconciliation、不实现 Simulated Exchange / Backtest Parity runtime、不新增 App read model、不新增 Dashboard smoke handle、不新增 stage audit input；Project stage closeout 仍归属 `MTP-109`。
+
+## MTP-108 scenario replay read-model evidence
+
+`MTP-108-SCENARIO-REPLAY-READ-MODEL-EVIDENCE`
+
+MTP-108 把 MTP-106 scenario replay evidence 与 MTP-107 quality gate / report input versioning evidence 接入 App 层 read model。`ScenarioReplayEvidenceReadModel` 和 `ScenarioReplayEvidenceViewModel` 只能复制 stable fields：
+
+- scenario id。
+- dataset version。
+- fixture version。
+- symbol / timeframe。
+- replay window。
+- replay cursor。
+- checksum。
+- freshness status。
+- quality verdict。
+- report input version identity。
+- drill-down entry。
+- quality gate timeline entry。
+
+该 read model 只供 Dashboard / Workbench / Report / Events 展示，不读取 Runtime object、不暴露 SQLite / DuckDB schema、不调用 Adapter request、不执行 replay、不提供 query language 或 command surface。
+
+## MTP-108 Report scenario replay evidence
+
+`MTP-108-REPORT-SCENARIO-REPLAY-EVIDENCE`
+
+`ReportReadModel` 必须持有 `scenarioReplayEvidence`；`ReportViewModel` 必须输出 scenario id、dataset version、fixture version、symbol、timeframe、replay window、checksum、freshness status、quality verdict、report input version identity、drill-down entry、timeline count 和 quality gate timeline count。Report 输出仍是可编码 read model / ViewModel snapshot，不新增 report runtime、database schema、adapter request、Runtime object 或 trading action。
+
+## MTP-108 Workbench summary and drill-down
+
+`MTP-108-WORKBENCH-SCENARIO-REPLAY-SUMMARY-DRILLDOWN`
+
+`DashboardShellWorkbenchSnapshot` 必须展示 scenario replay evidence summary 与 drill-down evidence：
+
+- scenarios count。
+- quality gate count。
+- report input count。
+- quality verdict。
+- scenario / dataset / fixture identities。
+- replay windows。
+- checksums。
+- freshness。
+- drill-down entries。
+- command surface / query language / read-model boundary flags。
+
+Workbench 只展示 summary / drill-down string，不新增 UI redesign、Figma change、database console、download console、query editor、command button、Live PRO Console 或交易按钮。
+
+## MTP-108 Events timeline evidence
+
+`MTP-108-EVENTS-REPLAY-WINDOW-CURSOR-CHECKSUM-FRESHNESS`
+
+`PaperWorkflowEvidenceExplorer` 必须新增 `scenario replay evidence` section，并把每个 scenario replay evidence item 展开为 replay window、replay cursor、checksum、freshness 和 quality gates timeline rows。Replay window / cursor / checksum / freshness timeline row 必须引用 MTP-108 Events anchor，quality gate timeline row 必须引用 `MTP-108-QUALITY-GATE-TIMELINE`。
+
+## MTP-108 quality gate timeline
+
+`MTP-108-QUALITY-GATE-TIMELINE`
+
+Events / Evidence Explorer 必须展示 MTP-107 六个最小 quality gates 的 verdict summary：record order、window coverage、checksum match、freshness status、missing data、duplicate data。当前 deterministic fixture 的 quality gates 必须全部 `passed`，整体 quality verdict 必须是 `accepted`。
+
+## MTP-108 read-model-only no command surface
+
+`MTP-108-READ-MODEL-ONLY-NO-COMMAND-SURFACE`
+
+MTP-108 App surface 必须保持以下 flags 为 false：
+
+- required validation network dependency。
+- production data platform / observability。
+- automatic download / repair。
+- broker / account reconciliation。
+- Simulated Exchange / Backtest Parity implementation。
+- database schema exposure。
+- adapter request exposure。
+- Runtime object read。
+- secret read。
+- signed endpoint。
+- account endpoint。
+- listenKey。
+- broker integration。
+- `LiveExecutionAdapter`。
+- OMS。
+- real order lifecycle。
+- live runtime。
+- command surface。
+- order-level command。
+- query language。
+- live command。
+- trading button。
+- live trading authorization。
+- broker action。
+- trading execution authorization。
+
+## MTP-108 validation anchors
+
+`MTP-108-SCENARIO-REPLAY-SURFACE-VALIDATION`
+
+Required validation：
+
+- `swift test --filter MTP108`
+- `bash checks/run.sh`
+
+Validation anchors：
+
+- `MTP-108-SCENARIO-REPLAY-READ-MODEL-EVIDENCE`
+- `MTP-108-REPORT-SCENARIO-REPLAY-EVIDENCE`
+- `MTP-108-WORKBENCH-SCENARIO-REPLAY-SUMMARY-DRILLDOWN`
+- `MTP-108-EVENTS-REPLAY-WINDOW-CURSOR-CHECKSUM-FRESHNESS`
+- `MTP-108-QUALITY-GATE-TIMELINE`
+- `MTP-108-READ-MODEL-ONLY-NO-COMMAND-SURFACE`
+- `MTP-108-SCENARIO-REPLAY-SURFACE-VALIDATION`
+- `TVM-DATA-CATALOG-SCENARIO-REPLAY`
+
+MTP-108 不实现 manifest parser、不新增 Runtime / Adapter / Persistence schema、不新增 database console 或 query language、不新增 UI redesign 或 Figma change、不实现 production data platform / observability、不实现 automatic download / repair、不实现 broker / account reconciliation、不实现 Simulated Exchange / Backtest Parity runtime、不接 signed endpoint、account endpoint、listenKey、secret、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、live runtime、live command 或交易按钮；Project stage closeout 仍归属 `MTP-109`。

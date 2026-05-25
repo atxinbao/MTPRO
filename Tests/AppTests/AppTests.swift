@@ -39,6 +39,15 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(viewModel.report.marketDataReplayOperations.source.callsBinanceAdapter)
         XCTAssertFalse(viewModel.report.marketDataReplayOperations.source.providesLiveOrderAction)
         XCTAssertEqual(
+            viewModel.report.scenarioReplayEvidence.source.sourceKind,
+            .stableReadModelProjection
+        )
+        XCTAssertFalse(viewModel.report.scenarioReplayEvidence.source.exposesDatabaseTables)
+        XCTAssertFalse(viewModel.report.scenarioReplayEvidence.source.exposesORMModels)
+        XCTAssertFalse(viewModel.report.scenarioReplayEvidence.source.exposesRuntimeObjects)
+        XCTAssertFalse(viewModel.report.scenarioReplayEvidence.source.callsBinanceAdapter)
+        XCTAssertFalse(viewModel.report.scenarioReplayEvidence.source.providesLiveOrderAction)
+        XCTAssertEqual(
             viewModel.report.liveTradingBlockedEvidence.source.sourceKind,
             .stableReadModelProjection
         )
@@ -273,9 +282,10 @@ final class AppTests: XCTestCase {
         let explorer = try makeDashboardViewModel().paperWorkflowEvidenceExplorer
 
         XCTAssertTrue(explorer.source.isReadModelOnly)
-        XCTAssertEqual(explorer.timelineItemCount, 60)
+        XCTAssertEqual(explorer.timelineItemCount, 70)
         XCTAssertTrue(explorer.coversMarketEvents)
         XCTAssertTrue(explorer.coversMarketDataReplayOperations)
+        XCTAssertTrue(explorer.coversScenarioReplayEvidence)
         XCTAssertTrue(explorer.coversLiveExecutionControlBlockedEvidence)
         XCTAssertTrue(explorer.coversLiveRiskGateBlockedEvidence)
         XCTAssertTrue(explorer.coversLiveIncidentStopBlockedEvidence)
@@ -294,6 +304,7 @@ final class AppTests: XCTestCase {
         )
         XCTAssertEqual(itemCounts[.marketEvent], 6)
         XCTAssertEqual(itemCounts[.marketDataReplayOperation], 1)
+        XCTAssertEqual(itemCounts[.scenarioReplayEvidence], 10)
         XCTAssertEqual(itemCounts[.liveExecutionControlBlockedEvidence], 7)
         XCTAssertEqual(itemCounts[.liveRiskGateBlockedEvidence], 6)
         XCTAssertEqual(itemCounts[.liveIncidentStopBlockedEvidence], 5)
@@ -321,6 +332,8 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(evidenceIDs.contains("risk-blocker-paper-replay-proposal-blocked"))
         XCTAssertTrue(evidenceIDs.contains("batch-BTCUSDT-1m-20240101"))
         XCTAssertTrue(evidenceIDs.contains("replay-run-BTCUSDT-1m-20240101T000000Z"))
+        XCTAssertTrue(evidenceIDs.contains("scenario-replay-mtp-104-btcusdt-1m-first-scenario-fixture-v1-window"))
+        XCTAssertTrue(evidenceIDs.contains("scenario-replay-mtp-104-btcusdt-1m-first-scenario-fixture-v1-gate-checksum-match"))
         XCTAssertTrue(evidenceIDs.contains("mtp-65-api-key-blocked"))
         XCTAssertTrue(evidenceIDs.contains("mtp-65-real-order-lifecycle-blocked"))
         XCTAssertTrue(evidenceIDs.contains("mtp-79-submit-blocked"))
@@ -338,7 +351,8 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(evidenceIDs.contains("mtp-71-public-market-stream-error-disconnected"))
         XCTAssertTrue(evidenceIDs.contains("mtp-71-broker-session-unavailable"))
         XCTAssertEqual(explorer.timelineItems.first?.section, .marketEvent)
-        XCTAssertEqual(explorer.timelineItems.last?.section, .liveTradingBlockedEvidence)
+        XCTAssertTrue(explorer.timelineItems.contains { $0.section == .liveTradingBlockedEvidence })
+        XCTAssertEqual(explorer.timelineItems.last?.section, .scenarioReplayEvidence)
         XCTAssertEqual(explorer.lastAppliedSequence, 16)
     }
 
@@ -789,6 +803,9 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(viewModel.report.marketDataReplayProjectionConsistencyHeld)
         XCTAssertTrue(viewModel.report.marketDataReplayReadModelOnlyBoundaryHeld)
         XCTAssertFalse(viewModel.report.marketDataReplayAuthorizesTradingExecution)
+        XCTAssertEqual(viewModel.report.scenarioReplayEvidenceCount, 1)
+        XCTAssertTrue(viewModel.report.scenarioReplayReadModelOnlyBoundaryHeld)
+        XCTAssertFalse(viewModel.report.scenarioReplayAuthorizesTradingExecution)
         XCTAssertEqual(viewModel.report.liveBlockedEvidenceCount, 6)
         XCTAssertEqual(
             viewModel.report.liveBlockedCapabilityLabels,
@@ -903,7 +920,7 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(viewModel.report.lastAppliedSequence, 16)
         XCTAssertFalse(viewModel.report.tradingValidationAuthorizesExecution)
         XCTAssertFalse(viewModel.report.authorizesTradingExecution)
-        XCTAssertEqual(viewModel.paperWorkflowEvidenceExplorer.timelineItemCount, 60)
+        XCTAssertEqual(viewModel.paperWorkflowEvidenceExplorer.timelineItemCount, 70)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversPaperWorkflowChainEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversMarketDataReplayOperations)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveExecutionControlBlockedEvidence)
@@ -1033,9 +1050,10 @@ final class AppTests: XCTestCase {
             decoded.report.artifacts.first?.paperExecutionWorkflowEvidence.paperOrderIDs,
             ["paper-replay-order-allowed"]
         )
-        XCTAssertEqual(decoded.paperWorkflowEvidenceExplorer.timelineItemCount, 60)
+        XCTAssertEqual(decoded.paperWorkflowEvidenceExplorer.timelineItemCount, 70)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversReportArtifacts)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversMarketDataReplayOperations)
+        XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversScenarioReplayEvidence)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveExecutionControlBlockedEvidence)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveRiskGateBlockedEvidence)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveIncidentStopBlockedEvidence)
@@ -1044,6 +1062,8 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.readModelOnlyBoundaryHeld)
         XCTAssertEqual(decoded.report.marketDataReplayEvidenceCount, 1)
         XCTAssertTrue(decoded.report.marketDataReplayReadModelOnlyBoundaryHeld)
+        XCTAssertEqual(decoded.report.scenarioReplayEvidenceCount, 1)
+        XCTAssertTrue(decoded.report.scenarioReplayReadModelOnlyBoundaryHeld)
         XCTAssertEqual(decoded.report.liveBlockedEvidenceCount, 6)
         XCTAssertTrue(decoded.report.liveReadinessReadModelOnlyBoundaryHeld)
         XCTAssertFalse(decoded.report.liveReadinessProvidesCommandSurface)
@@ -1383,6 +1403,8 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(metricValue("Replay facts", in: report), "16")
         XCTAssertEqual(metricValue("Exec workflow", in: report), "1")
         XCTAssertEqual(metricValue("Replay ops", in: report), "1")
+        XCTAssertEqual(metricValue("Scenario replay", in: report), "1")
+        XCTAssertEqual(metricValue("Scenario gates", in: report), "6")
         XCTAssertEqual(metricValue("Live gates", in: report), "6")
         XCTAssertEqual(metricValue("Monitoring", in: report), "4")
         XCTAssertEqual(metricValue("Execution control", in: report), "7")
@@ -1497,7 +1519,9 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(snapshot.smokeSummary.contains("readModelOnly=true"))
         XCTAssertTrue(snapshot.smokeSummary.contains("workbenchReadModelOnly=true"))
         XCTAssertTrue(snapshot.smokeSummary.contains("controls=start,pause,close,reset"))
-        XCTAssertTrue(snapshot.smokeSummary.contains("timelineItems=60"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("timelineItems=70"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("scenarioReplayEvidence=1"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("scenarioQualityGates=6"))
         XCTAssertTrue(snapshot.smokeSummary.contains("liveBlockedGates=6"))
         XCTAssertTrue(snapshot.smokeSummary.contains("liveExecutionControlGates=7"))
         XCTAssertTrue(snapshot.smokeSummary.contains("liveRiskGates=6"))
@@ -1550,8 +1574,8 @@ final class AppTests: XCTestCase {
             )
         )
 
-        XCTAssertEqual(metricValue("Timeline items", in: workbench.evidenceExplorerMetrics), "60")
-        XCTAssertEqual(metricValue("Sections", in: workbench.evidenceExplorerMetrics), "13")
+        XCTAssertEqual(metricValue("Timeline items", in: workbench.evidenceExplorerMetrics), "70")
+        XCTAssertEqual(metricValue("Sections", in: workbench.evidenceExplorerMetrics), "14")
         XCTAssertTrue(
             workbench.evidenceExplorerDetails.contains(
                 "Filter: read-only"
@@ -1694,6 +1718,10 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(report.paperExecutionWorkflowAuthorizesTradingExecution)
         XCTAssertTrue(report.marketDataReplayReadModelOnlyBoundaryHeld)
         XCTAssertFalse(report.marketDataReplayAuthorizesTradingExecution)
+        XCTAssertTrue(report.scenarioReplayReadModelOnlyBoundaryHeld)
+        XCTAssertFalse(report.scenarioReplayProvidesCommandSurface)
+        XCTAssertFalse(report.scenarioReplaySupportsQueryLanguage)
+        XCTAssertFalse(report.scenarioReplayAuthorizesTradingExecution)
         XCTAssertTrue(report.liveReadinessReadModelOnlyBoundaryHeld)
         XCTAssertFalse(report.liveReadinessProvidesCommandSurface)
         XCTAssertFalse(report.liveReadinessAuthorizesLiveTrading)
@@ -1795,6 +1823,8 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(report?.metrics.first { $0.label == "Runtime" }?.value, "0")
         XCTAssertEqual(report?.metrics.first { $0.label == "Replay facts" }?.value, "0")
         XCTAssertEqual(report?.metrics.first { $0.label == "Exec workflow" }?.value, "0")
+        XCTAssertEqual(report?.metrics.first { $0.label == "Scenario replay" }?.value, "0")
+        XCTAssertEqual(report?.metrics.first { $0.label == "Scenario gates" }?.value, "0")
         XCTAssertEqual(report?.metrics.first { $0.label == "Live gates" }?.value, "6")
         XCTAssertEqual(report?.metrics.first { $0.label == "Monitoring" }?.value, "4")
         XCTAssertEqual(report?.metrics.first { $0.label == "Execution control" }?.value, "7")
@@ -1807,6 +1837,8 @@ final class AppTests: XCTestCase {
 
         XCTAssertEqual(metricValue("Controls", in: snapshot.workbench.observabilityMetrics), "4")
         XCTAssertEqual(metricValue("Timeline items", in: snapshot.workbench.evidenceExplorerMetrics), "42")
+        XCTAssertEqual(metricValue("Scenarios", in: snapshot.workbench.scenarioReplayEvidenceMetrics), "0")
+        XCTAssertEqual(metricValue("Quality gates", in: snapshot.workbench.scenarioReplayEvidenceMetrics), "0")
         XCTAssertEqual(metricValue("Live gates", in: snapshot.workbench.liveBlockedEvidenceMetrics), "6")
         XCTAssertEqual(metricValue("Health", in: snapshot.workbench.liveMonitoringEvidenceMetrics), "blocked")
         XCTAssertEqual(metricValue("Errors", in: snapshot.workbench.liveMonitoringEvidenceMetrics), "3")
@@ -2029,16 +2061,102 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(explorer.authorizesTradingExecution)
     }
 
+    func testMTP108ScenarioReplayEvidenceFeedsReportWorkbenchAndEventsReadOnly() throws {
+        // 测试场景：MTP-108 把 MTP-106 replay evidence 与 MTP-107 quality / report input version
+        // 汇总到 Report、Workbench 和 Event Timeline。展示面只能消费 App read model / ViewModel，
+        // 不执行 replay、不暴露 schema / adapter / Runtime object，也不提供 command 或交易入口。
+        let viewModel = try makeDashboardViewModel()
+        let report = viewModel.report
+        let scenario = report.scenarioReplayEvidence
+        let explorer = viewModel.paperWorkflowEvidenceExplorer
+        let snapshot = DashboardShellSnapshot(viewModel: viewModel)
+        let workbench = snapshot.workbench
+
+        XCTAssertEqual(report.scenarioReplayEvidenceCount, 1)
+        XCTAssertEqual(report.scenarioReplayScenarioIDs, ["mtp-104-btcusdt-1m-first-scenario"])
+        XCTAssertEqual(report.scenarioReplayDatasetVersions, ["dataset-v1"])
+        XCTAssertEqual(report.scenarioReplayFixtureVersions, ["fixture-v1"])
+        XCTAssertEqual(report.scenarioReplaySymbols, ["BTCUSDT"])
+        XCTAssertEqual(report.scenarioReplayTimeframes, ["1m"])
+        XCTAssertEqual(report.scenarioReplayWindows, ["1704067200...1704067380"])
+        XCTAssertEqual(report.scenarioReplayChecksums, ["fnv1a64:3c6cd4ff13cd4062"])
+        XCTAssertEqual(report.scenarioReplayFreshnessStatuses, [.fresh])
+        XCTAssertEqual(report.scenarioReplayQualityVerdicts, [.accepted])
+        XCTAssertEqual(report.scenarioReplayQualityGateTimelineCount, 6)
+        XCTAssertEqual(report.scenarioReplayTimelineEntryCount, 10)
+        XCTAssertTrue(report.scenarioReplayReportReproducibilityEvidenceHeld)
+        XCTAssertTrue(report.scenarioReplayReadModelOnlyBoundaryHeld)
+        XCTAssertFalse(report.scenarioReplayExposesDatabaseSchema)
+        XCTAssertFalse(report.scenarioReplayExposesRuntimeObject)
+        XCTAssertFalse(report.scenarioReplayExposesAdapterRequest)
+        XCTAssertFalse(report.scenarioReplayProvidesCommandSurface)
+        XCTAssertFalse(report.scenarioReplaySupportsQueryLanguage)
+        XCTAssertFalse(report.scenarioReplayProvidesLiveCommand)
+        XCTAssertFalse(report.scenarioReplayProvidesTradingButton)
+        XCTAssertFalse(report.scenarioReplayAuthorizesLiveTrading)
+        XCTAssertFalse(report.scenarioReplayTouchesBrokerAction)
+        XCTAssertFalse(report.scenarioReplayAuthorizesTradingExecution)
+        XCTAssertFalse(report.scenarioReplayRequiredValidationDependsOnNetwork)
+
+        XCTAssertEqual(scenario.evidenceCount, 1)
+        XCTAssertEqual(scenario.qualityGateTimelineCount, 6)
+        XCTAssertEqual(scenario.timelineEntryCount, 10)
+        XCTAssertTrue(scenario.allQualityAccepted)
+        XCTAssertTrue(scenario.reportInputVersionIdentities.first?.contains("accepted") == true)
+        XCTAssertTrue(scenario.reportInputVersionIdentities.first?.contains("fnv1a64:3c6cd4ff13cd4062") == true)
+        XCTAssertEqual(scenario.drillDownEntries, [
+            "scenario replay / mtp-104-btcusdt-1m-first-scenario / accepted"
+        ])
+
+        let scenarioItems = explorer.timelineItems.filter { $0.section == .scenarioReplayEvidence }
+        let scenarioTitles = scenarioItems.map(\.title)
+        let scenarioEvidenceIDs = scenarioItems.flatMap(\.evidenceLinks).map(\.evidenceID)
+        XCTAssertEqual(scenarioItems.count, 10)
+        XCTAssertTrue(explorer.coversScenarioReplayEvidence)
+        XCTAssertTrue(scenarioTitles.contains("Scenario replay window"))
+        XCTAssertTrue(scenarioTitles.contains("Scenario replay cursor"))
+        XCTAssertTrue(scenarioTitles.contains("Scenario replay checksum"))
+        XCTAssertTrue(scenarioTitles.contains("Scenario replay freshness"))
+        XCTAssertEqual(scenarioTitles.filter { $0 == "Scenario data quality gate" }.count, 6)
+        XCTAssertTrue(scenarioEvidenceIDs.contains("scenario-replay-mtp-104-btcusdt-1m-first-scenario-fixture-v1-window"))
+        XCTAssertTrue(scenarioEvidenceIDs.contains("scenario-replay-mtp-104-btcusdt-1m-first-scenario-fixture-v1-cursor"))
+        XCTAssertTrue(scenarioEvidenceIDs.contains("scenario-replay-mtp-104-btcusdt-1m-first-scenario-fixture-v1-checksum"))
+        XCTAssertTrue(scenarioEvidenceIDs.contains("scenario-replay-mtp-104-btcusdt-1m-first-scenario-fixture-v1-freshness"))
+        XCTAssertTrue(scenarioEvidenceIDs.contains("scenario-replay-mtp-104-btcusdt-1m-first-scenario-fixture-v1-gate-record-order"))
+        XCTAssertTrue(scenarioEvidenceIDs.contains("scenario-replay-mtp-104-btcusdt-1m-first-scenario-fixture-v1-gate-duplicate-data"))
+
+        let reportSection = try XCTUnwrap(snapshot.sections.first { $0.section == .report })
+        XCTAssertEqual(metricValue("Scenario replay", in: reportSection), "1")
+        XCTAssertEqual(metricValue("Scenario gates", in: reportSection), "6")
+        XCTAssertTrue(reportSection.details.contains("Scenario replay quality: accepted"))
+        XCTAssertTrue(reportSection.details.contains("Scenario replay command surface: none"))
+        XCTAssertEqual(metricValue("Scenarios", in: workbench.scenarioReplayEvidenceMetrics), "1")
+        XCTAssertEqual(metricValue("Quality gates", in: workbench.scenarioReplayEvidenceMetrics), "6")
+        XCTAssertEqual(metricValue("Report inputs", in: workbench.scenarioReplayEvidenceMetrics), "1")
+        XCTAssertEqual(metricValue("Quality", in: workbench.scenarioReplayEvidenceMetrics), "accepted")
+        XCTAssertTrue(workbench.scenarioReplayEvidenceSource.isReadModelOnly)
+        XCTAssertTrue(workbench.scenarioReplayEvidenceDetails.contains("Quality verdicts: accepted"))
+        XCTAssertTrue(workbench.scenarioReplayEvidenceDetails.contains("Command surface: none"))
+        XCTAssertTrue(workbench.scenarioReplayEvidenceDetails.contains("Query language: none"))
+        XCTAssertTrue(workbench.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(workbench.providesCommandSurface)
+        XCTAssertFalse(workbench.authorizesTradingExecution)
+        XCTAssertTrue(snapshot.smokeSummary.contains("scenarioReplayEvidence=1"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("scenarioQualityGates=6"))
+    }
+
     private func makeDashboardViewModel() throws -> DashboardViewModel {
         let runtimeProjection = try makeRuntimeProjection()
         let analyticalProjection = try makeAnalyticalProjection()
         let eventTimeline = try makeEventTimeline()
         let marketDataReplayOperations = try makeMarketDataReplayOperationsReadModel()
+        let scenarioReplayEvidence = makeScenarioReplayEvidenceReadModel()
         let readModel = DashboardReadModel(
             runtimeProjection: runtimeProjection,
             analyticalProjection: analyticalProjection,
             eventTimeline: eventTimeline,
-            marketDataReplayOperations: marketDataReplayOperations
+            marketDataReplayOperations: marketDataReplayOperations,
+            scenarioReplayEvidence: scenarioReplayEvidence
         )
 
         return DashboardViewModel(readModel: readModel)
@@ -2049,11 +2167,13 @@ final class AppTests: XCTestCase {
         let analyticalProjection = try makeAnalyticalProjection()
         let eventTimeline = try makeEventTimeline()
         let marketDataReplayOperations = try makeMarketDataReplayOperationsReadModel()
+        let scenarioReplayEvidence = makeScenarioReplayEvidenceReadModel()
         let readModel = DashboardReadModel(
             runtimeProjection: runtimeProjection,
             analyticalProjection: analyticalProjection,
             eventTimeline: eventTimeline,
-            marketDataReplayOperations: marketDataReplayOperations
+            marketDataReplayOperations: marketDataReplayOperations,
+            scenarioReplayEvidence: scenarioReplayEvidence
         )
 
         return readModel.paperWorkflowEvidenceExplorer
@@ -2100,6 +2220,12 @@ final class AppTests: XCTestCase {
         )
 
         return MarketDataReplayOperationsEvidenceReadModel(items: [item])
+    }
+
+    private func makeScenarioReplayEvidenceReadModel() -> ScenarioReplayEvidenceReadModel {
+        // 测试场景：MTP-108 只把 MTP-107 Core 聚合证据复制成 App 层 read model。
+        // App / Dashboard 不执行 replay、不读取 schema、不调用 adapter，也不暴露 command / live surface。
+        ScenarioReplayEvidenceReadModel.deterministicFixture
     }
 
     private func metricValue(
