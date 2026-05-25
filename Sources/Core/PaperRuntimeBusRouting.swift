@@ -19,8 +19,9 @@ public enum PaperRuntimeBusName: String, Codable, CaseIterable, Equatable, Senda
 /// PaperRuntimeRouteSource 描述 MTP-97 允许进入 routing 的 paper-only 输入来源。
 ///
 /// 这些来源只覆盖当前 Linear issue 指定的 session command、paper risk decision、lifecycle event 和
-/// simulated fill event；后续 Paper RiskEngine、lifecycle coordinator、portfolio projection 仍由后续
-/// issue 单独实现，不能在本路由层扩大 scope。
+/// simulated fill event。MTP-98 可以把 Paper Pre-trade RiskEngine 产生的 paper-only decision 放入
+/// `.paperRiskDecision` route；lifecycle coordinator、portfolio projection 仍由后续 issue 单独实现，
+/// 不能在本路由层扩大 scope。
 public enum PaperRuntimeRouteSource: String, Codable, CaseIterable, Equatable, Sendable {
     case paperSessionCommand
     case paperRiskDecision
@@ -30,8 +31,9 @@ public enum PaperRuntimeRouteSource: String, Codable, CaseIterable, Equatable, S
 
 /// PaperRuntimeRoutePayloadKind 标记 route 后真正进入 event log 的 payload 类别。
 ///
-/// risk decision 会拆成既有 `.risk` stream 里的 evaluation requested / blocked evidence；这样能复用
-/// 当前 `RiskEvent` 合同，同时保持 replay 后的 route evidence 可由 envelope 反推。
+/// risk decision 会拆成既有 `.risk` stream 里的 evaluation requested / blocked evidence；MTP-98 的
+/// accepted decision 只写入 evaluation requested，rejected decision 额外写入 blocked evidence。这样能
+/// 复用当前 `RiskEvent` 合同，同时保持 replay 后的 route evidence 可由 envelope 反推。
 public enum PaperRuntimeRoutePayloadKind: String, Codable, CaseIterable, Equatable, Sendable {
     case paperSessionCommand
     case paperRiskEvaluationRequested

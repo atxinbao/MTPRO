@@ -10308,3 +10308,50 @@ Root docs 判断：
 | `swift test --filter MTP97` | pass | 3 个 MTP-97 focused tests 通过，0 failures。 |
 | `bash checks/automation-readiness.sh` | pass | MTP-97 contract / matrix / validation plan / domain context / latest summary / Core source / focused test anchors 均通过机械检查。 |
 | `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；Swift tests 210 个通过、0 failures；最终输出 `MTPRO checks passed.`。 |
+
+## MTP-98 Paper Pre-trade RiskEngine Runtime Path
+
+日期：2026-05-25
+
+执行者：Codex
+
+目的：
+
+- 建立 paper-only `PaperPreTradeRiskEngineRuntimePath`，对 `PaperActionProposal` 产生 accepted / rejected paper risk decision。
+- 把 rejected paper risk decision 复用 MTP-97 routing 写入 append-only `MessageBus` / Event Log，并从 replay 重建 route evidence。
+- 固定 paper account snapshot、paper exposure 和 deterministic paper risk rules 的本地 sandbox 边界，防止升级为 live risk engine、真实账户风控、broker rejection 或 future live risk decision。
+
+文件范围：
+
+- 新增 `Sources/Core/PaperPreTradeRiskEngine.swift`。
+- 更新 `Sources/Core/CoreError.swift`，新增 paper pre-trade risk engine forbidden capability / mismatch 错误边界。
+- 更新 `Sources/Core/PaperRuntimeBusRouting.swift` 注释，说明 MTP-98 paper-only risk decision 可进入既有 `.paperRiskDecision` route。
+- 更新 `Tests/CoreTests/CoreTests.swift`，新增 MTP-98 focused tests。
+- 更新 `docs/contracts/paper-runtime-kernel-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh`。
+- 更新 `.codex/context-scan.json`、`.codex/operations-log.md` 和 `.codex/testing.md` 作为本地 handoff evidence，不进入 PR。
+
+关键结论：
+
+- `PaperPreTradeRiskEngineInput` 只接受 paper proposal、paper account snapshot、paper exposure、risk profile、paper risk rules 和正数 source proposal sequence。
+- `PaperPreTradeRiskEngineDecision` 只输出 accepted / rejected paper risk decision；rejected decision 记录第一条 failed paper risk rule 和 `RiskBlockerEvidence`。
+- `PaperPreTradeRiskEngineRuntimePath.evaluateAndPublish` 复用 `PaperRuntimeMessageBusRouting`，使 rejected decision 产生 `paperRiskEvaluationRequested` 和 `paperRiskBlocked` route evidence。
+- `PaperPreTradeRiskEnginePublication` 要求 replay evidence 与 route evidence 完全一致。
+- account snapshot、risk rule、input、decision 和 publication 的 Codable decode path 会回到 initializer 校验，防止 decode bypass。
+
+边界确认：
+
+- 不修改 Linear status。
+- 不启动下一阶段 `symphony-issue`。
+- 不读取 secrets / credentials。
+- 不接 signed endpoint、account endpoint、listenKey。
+- 不连接 broker，不执行 broker action。
+- 不实现 live risk engine、real pre-trade allow / reject runtime、circuit breaker command、stop trading command、emergency stop、`LiveExecutionAdapter`、OMS、real order lifecycle、真实 submit / cancel / replace、execution report、broker fill、reconciliation、paper lifecycle coordinator、simulated fill / fee / slippage model、paper account projection、Live PRO Console、live command 或交易按钮。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP98` | pass | 3 个 MTP-98 focused tests 通过，0 failures；覆盖 accepted / rejected deterministic decision、rejected Event Log / Replay evidence、live/account/broker decode bypass rejection。 |
+| `bash checks/automation-readiness.sh` | pass | MTP-98 contract / matrix / validation plan / domain context / latest summary / Core source / focused test anchors 均通过机械检查。 |
+| `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；Swift tests 213 个通过、0 failures；最终输出 `MTPRO checks passed.`。 |
