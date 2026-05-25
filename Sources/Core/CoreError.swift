@@ -55,6 +55,8 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
     case tradingClockContractMismatch(field: String, expected: String, actual: String)
     case paperRuntimeKernelForbiddenCapability(String)
     case paperRuntimeKernelContractMismatch(field: String, expected: String, actual: String)
+    case paperRuntimeBusRoutingForbiddenCapability(String)
+    case paperRuntimeBusRoutingMismatch(field: String, expected: String, actual: String)
     case liveTradingBoundaryForbiddenCapability(String)
     case liveTradingBoundaryContractMismatch(field: String, expected: String, actual: String)
     case liveMonitoringConsoleForbiddenCapability(String)
@@ -164,6 +166,10 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
             "Paper runtime kernel forbids capability: \(field)"
         case let .paperRuntimeKernelContractMismatch(field, expected, actual):
             "Paper runtime kernel contract mismatch for \(field): expected \(expected), actual \(actual)"
+        case let .paperRuntimeBusRoutingForbiddenCapability(field):
+            "Paper runtime bus routing forbids capability: \(field)"
+        case let .paperRuntimeBusRoutingMismatch(field, expected, actual):
+            "Paper runtime bus routing mismatch for \(field): expected \(expected), actual \(actual)"
         case let .liveTradingBoundaryForbiddenCapability(field):
             "Live trading boundary forbids capability: \(field)"
         case let .liveTradingBoundaryContractMismatch(field, expected, actual):

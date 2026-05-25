@@ -61,6 +61,18 @@
 | `paper event emission` | kernel boundary 允许输出的 `.paper` event envelope、replay result 或后续 projection trigger | 不等于 adapter payload、broker acknowledgement、database schema 或 Dashboard ViewModel |
 | `kernel replay invariant` | replay 只能从 append-only event log facts 重建 deterministic evidence | 不等于 production recovery、broker replay、account replay 或 incident replay runtime |
 
+`MTP-97-PAPER-RUNTIME-BUS-ROUTING-TERMS`
+
+以下术语由 MTP-97 定义为 `MTPRO Event-Driven Paper Trading Runtime v1` 的 paper-only deterministic routing language。它们只用于 CommandBus / EventBus / MessageBus route evidence、correlation / causation tracing 和 Event Log / Replay 输入，不授权当前 scope 实现 Paper RiskEngine、paper lifecycle coordinator、真实 execution runtime、signed endpoint、broker action 或 live command。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `PaperRuntimeCommandBus` | Core 层 paper-only input classifier，把 paper session command、paper risk decision、paper lifecycle event 和 simulated fill event 展开为 deterministic routed messages | 不等于 live command bus、order submit bus、broker command plane 或 production scheduler |
+| `PaperRuntimeEventBus` | Core 层本地 publish 边界，只把 routed message 发布到既有 `MessageBus` / append-only facts source | 不等于 external pub/sub、broker stream、exchange adapter 或 Runtime actor |
+| `PaperRuntimeMessageBusRouting` | CommandBus -> EventBus -> MessageBus 的 MTP-97 便利编排入口，用 deterministic clock、envelope ID、correlation ID 和 causation ID 固定 route evidence | 不等于 live execution message bus、OMS bus 或真实订单状态机 |
+| `PaperRuntimeRouteEvidence` | 从 `EventEnvelope` 或 replay result 重建的 route source / payload / stream / correlation / causation 摘要 | 不暴露 Runtime object、SQLite / DuckDB schema、adapter payload、broker acknowledgement 或 UI state |
+| `paper runtime bus routing contract` | `PaperRuntimeBusRoutingContract` 中的 allowed buses、route sources、payload kinds、`.paper` / `.risk` streams 和 forbidden capability flags | 不授权 signed request routing、account endpoint、listenKey、execution report、broker fill 或 reconciliation |
+
 ## Live Boundary Terms
 
 以下术语只用于 Future / gated 实盘边界设计和当前 blocked evidence，不授权当前 scope 实现真实交易能力。

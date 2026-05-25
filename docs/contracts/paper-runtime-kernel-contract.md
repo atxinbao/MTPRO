@@ -94,9 +94,78 @@ Required validation：
 
 Matrix anchor：`TVM-PAPER-RUNTIME-KERNEL`。
 
-## 禁止
+## MTP-97 CommandBus / EventBus / MessageBus Deterministic Routing
 
-- 不实现 CommandBus / EventBus / MessageBus routing。
+MTP-97 在 MTP-96 kernel boundary 内新增 paper-only deterministic bus routing：
+
+- `PaperRuntimeCommandBus` 接收 `PaperRuntimeRouteInput`，只允许 `paperSessionCommand`、`paperRiskDecision`、`paperLifecycleEvent` 和 `simulatedFillEvent`。
+- `PaperRuntimeEventBus` 只把 `PaperRuntimeRoutedMessage` 发布到既有 `MessageBus`，不持有外部 runtime state。
+- `PaperRuntimeMessageBusRouting` 串联 CommandBus / EventBus / MessageBus，并提供 replay evidence 重建入口。
+- `PaperRuntimeBusRoutingContract` 固定 allowed buses、allowed route sources、payload kinds、`.paper` / `.risk` streams 和 forbidden capability flags。
+
+## MTP-97-COMMANDBUS-EVENTBUS-MESSAGEBUS-ROUTING
+
+CommandBus / EventBus / MessageBus routing 必须复用既有 `MessageBus` 和 append-only event log：
+
+- CommandBus 只做 paper-only input classification 和 route ordering，不执行真实命令。
+- EventBus 只做本地 publish，不连接 external broker / exchange 或外部 pub/sub。
+- MessageBus 仍只维护本地 append-only facts source，不成为 live command plane。
+- `MessageBus.publish` 可接收 deterministic `id`，用于 fixture / replay evidence 固定 envelope identity；默认调用仍保持既有行为。
+
+## MTP-97-DETERMINISTIC-PAPER-ROUTE-ORDER
+
+routing 顺序必须由显式输入顺序、deterministic `TradingClock` tick 和 deterministic envelope IDs 固定：
+
+- `routeSequence` 从 1 开始连续。
+- `recordedAt` 必须来自 `TradingClock` tick，不从 wall clock 读取。
+- risk decision 可确定性拆成 `paperRiskEvaluationRequested` 和 `paperRiskBlocked` payload。
+- causation chain 使用上一条 deterministic envelope ID；首条 route 使用显式 `rootCausationID`。
+
+## MTP-97-REPLAYABLE-ROUTE-EVIDENCE
+
+route evidence 必须能从 Event Log / Replay 重建：
+
+- `PaperRuntimeRouteEvidence` 从 `EventEnvelope` 反推 `source`、`payloadKind`、`stream`、`correlationID` 和 `causationID`。
+- replay 输入必须保持 append-only sequence 升序且唯一。
+- 当前 MTP-97 只把 paper session command、paper risk decision、paper lifecycle event 和 simulated fill event 作为稳定 event fact 输入。
+
+## MTP-97-NO-LIVE-SIGNED-BROKER-ROUTING
+
+`PaperRuntimeBusRoutingContract` 的 forbidden capability flags 必须全部保持 false：
+
+- `usesLiveCommandBus`
+- `routesRealOrderCommand`
+- `connectsBroker`
+- `routesSignedRequest`
+- `callsAccountEndpoint`
+- `createsListenKey`
+- `routesExecutionReport`
+- `routesBrokerFill`
+- `routesReconciliation`
+
+Codable 解码不得绕过这些不变量；任何 true flag 都必须被 `CoreError.paperRuntimeBusRoutingForbiddenCapability` 拒绝。
+
+## MTP-97-PAPER-RUNTIME-BUS-VALIDATION
+
+Required validation：
+
+- `bash checks/run.sh`
+- `swift test --filter MTP97`
+- `Tests/CoreTests/CoreTests.swift` 必须包含：
+  - `testMTP97PaperRuntimeBusRoutingContractDefinesPaperOnlyDeterministicBoundary`
+  - `testMTP97CommandEventMessageBusRoutesDeterministicallyAndReplaysEvidence`
+  - `testMTP97PaperRuntimeBusRoutingRejectsLiveSignedBrokerAndInvalidRouteBypass`
+- `Sources/Core/PaperRuntimeBusRouting.swift` 必须包含：
+  - `PaperRuntimeCommandBus`
+  - `PaperRuntimeEventBus`
+  - `PaperRuntimeMessageBusRouting`
+  - `PaperRuntimeRouteEvidence`
+  - `PaperRuntimeBusRoutingContract`
+
+Matrix anchor：`TVM-PAPER-RUNTIME-KERNEL`。
+
+## MTP-97 后仍禁止
+
 - 不实现 Paper Pre-trade RiskEngine runtime path。
 - 不实现 paper lifecycle coordinator。
 - 不实现 simulated fill / fee / slippage model。
