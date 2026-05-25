@@ -20,6 +20,7 @@
 | `docs/roadmap.md` | 确认 12 / 12 closure、9 / 9 完成、Next Handoff 仍交给 Human + `@001 / PLN`。 |
 | `docs/product/mtpro-product-surface-split-v1.md` | 确认 Workbench 与未来 Live PRO Console 是两个产品面。 |
 | `docs/design/mtpro-workbench-user-facing-dashboard-high-fidelity-v3.md` | 确认当前 Workbench dashboard v3 是 macOS native business dashboard 设计依据。 |
+| `docs/product/mtpro-codebase-reference-gap-map-v1.md` | 记录分别阅读 MTPRO 与 `nautilus_trader` 代码后的代码级差距地图，补充本文的产品层 reference alignment。 |
 | `docs/validation/latest-verification-summary.md` | 确认最近 Project closure、Root Docs Refresh Gate 和当前验证基线。 |
 | `https://github.com/atxinbao/nautilus_trader` | 参考项目。2026-05-25 分析快照 clone 自 `develop`，commit `6e059dc Improve Blockchain snapshot fail-closed path`。 |
 
@@ -36,6 +37,8 @@
 - `docs/concepts/event_sourcing.md`
 - `examples/backtest/*`
 - `examples/live/*`
+
+代码级补充读取见 `docs/product/mtpro-codebase-reference-gap-map-v1.md`。该文档记录 MTPRO 的 `Package.swift`、`Sources/Core/*`、`Sources/Runtime/*`、`Sources/Persistence/*`、`Sources/App/*`、`Sources/Dashboard/*`，以及参考项目的 Rust workspace、BacktestEngine、Kernel、LiveNode、ExecutionEngine、LiveExecutionEngine、RiskEngine、Portfolio、DataCatalog 和 Strategy command surface 读取结果。
 
 ## 3. 结论摘要
 
@@ -67,6 +70,8 @@ MTPRO 的成熟度集中在：
 4. **Non-authorization Boundary Map**：明确哪些差距只能进入 Future Construction Zones，不能被 9 / 9 完成状态误读为当前可实现能力。
 
 后续如果要进入 Project planning，应由 Human + `@001 / PLN` 基于这些地图另行确认；本文本身不生成 Project Draft，不推进 Linear，不启动执行。
+
+代码级补充结论见 `docs/product/mtpro-codebase-reference-gap-map-v1.md`：MTPRO 当前代码是 local-first SwiftPM macOS Workbench / evidence shell；`nautilus_trader` 参考项目代码是 production-grade event-driven trading engine。差距应先补成 Workbench Productization、Data / Backtest Maturity、Runtime / Engine Parity、Release / Beta Readiness 和 Future Live PRO Console Boundary 五类地图，而不是直接转写成下一阶段执行计划。
 
 ## 4. 产品面关系图
 
@@ -257,6 +262,8 @@ flowchart TD
 第二阅读：**Release / Beta Readiness Map**。
 
 它用于说明当前成果如果要被验收，需要哪些安装、启动、demo、release 和 docs 证据；它不增加业务能力。
+
+代码级阅读顺序建议补充为：先读 `docs/product/mtpro-product-surface-split-v1.md` 固定 Workbench / Live PRO Console 产品面分离，再读本文理解产品层差距，然后读 `docs/product/mtpro-codebase-reference-gap-map-v1.md` 理解代码级差距，最后回到 `docs/design/mtpro-workbench-user-facing-dashboard-high-fidelity-v3.md` 判断当前 Workbench dashboard 设计如何承接这些差距地图。
 
 第三阅读：**Engine Parity Hardening Map**。
 

@@ -67,6 +67,7 @@
 | `docs/product/mtpro-workbench-user-dashboard-content-model-v1.md` | 产品层 dashboard content model，定义最终用户每天使用的工作台主屏 summary、页面内容优先级和 `69:*` 高保真草案的用户面板修正方向 |
 | `docs/product/mtpro-product-surface-split-v1.md` | 产品层 surface boundary 文档，明确当前 Workbench 与未来 Live PRO Console 是两个产品面，`85:*` 只代表 Workbench dashboard |
 | `docs/product/mtpro-reference-alignment-gap-map-v1.md` | 产品层 reference alignment / gap map，对齐 `atxinbao/nautilus_trader` 后补充 Product Surface、Engineering Capability、Maturity Gap 和 Future Boundary 地图；不授权执行 |
+| `docs/product/mtpro-codebase-reference-gap-map-v1.md` | 产品层代码级 reference gap map，记录分别阅读 MTPRO 与 `nautilus_trader` 代码后的 Workbench productization、data / backtest maturity、runtime / engine parity、release readiness 和 Future Live Boundary 差距；不授权执行 |
 | `docs/design/mtpro-workbench-screen-layout-v1.md` | 设计层 screen layout 依据，承接产品用户动线和交互模型，定义 macOS 工作台页面区域、信息优先级和禁止动作 |
 | `docs/design/mtpro-workbench-ui-ux-design-rules-v1.md` | 设计层 UI/UX rules 依据，承接 Screen Layout v1，定义 macOS native 工作台视觉方向、状态表达、evidence components 和禁止 UI 表面 |
 | `docs/design/mtpro-workbench-component-layout-specification-v1.md` | 设计层组件 / 布局规格依据，承接 UI/UX Design Rules v1，定义 layout primitives、evidence components、state components、partition components 和边界组件 |
@@ -293,6 +294,8 @@ MTPRO Workbench 最终应包含：
 `docs/design/mtpro-workbench-user-facing-dashboard-high-fidelity-v3.md` 已记录 Figma canonical `91:2` 的 `MTPRO Workbench User-Facing Dashboard High-Fidelity v3` 作为设计层业务判断 dashboard 高保真关键页面依据。该文档承接 `MTPRO Workbench Business Dashboard Content Model v2` 草案，并经过 macOS native desktop refinement，定义 sidebar / toolbar / workspace / inspector 结构下的 Workbench business dashboard；它不是 SwiftUI 实现稿、组件库、Live PRO Console、实盘操作台或 Linear execution 授权。
 
 `docs/product/mtpro-reference-alignment-gap-map-v1.md` 已记录 9 / 9 后与 `atxinbao/nautilus_trader` 的产品层对标差距图。该文档把 MTPRO 当前 Workbench baseline 与参考项目的 engine runtime、adapters、OMS / risk / execution、reconciliation、release operations 和 examples 做对照，用于补充 Product Surface Map、Engineering Capability Map、Maturity Gap Map 和 Non-authorization Boundary Map；它不生成下一阶段 Project Draft，不授权 Linear execution、SwiftUI implementation、Live PRO Console 或真实 Live trading。
+
+`docs/product/mtpro-codebase-reference-gap-map-v1.md` 已记录分别阅读 MTPRO 与 `atxinbao/nautilus_trader` 代码后的代码级差距地图。该文档确认 MTPRO 当前代码是 local-first SwiftPM macOS Workbench / evidence shell，而参考项目是 production-grade event-driven trading engine；差距被归入 Workbench Productization、Data / Backtest Maturity、Runtime / Engine Parity、Release / Beta Readiness 和 Future Live PRO Console Boundary 五类地图。该文档只补现有地图，不创建下一阶段 Project Draft，不授权 SwiftUI implementation、Live PRO Console、broker adapter、OMS、real order lifecycle、live risk runtime、reconciliation runtime、incident replay runtime 或 production operations。
 
 ## Infrastructure Blueprint / 基础设施蓝图
 

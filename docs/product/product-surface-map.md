@@ -971,3 +971,25 @@ v3 设计重点：
 - Graphify update、Figma 修改、SwiftUI implementation 或业务代码开发。
 - NautilusTrader runtime dependency 或整仓代码复制。
 - signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、submit / cancel / replace、live risk engine、reconciliation runtime、incident replay runtime、emergency stop、shutdown、restore、production operations、Live PRO Console 或实盘操作台授权。
+
+## MTPRO Codebase Reference Gap Map v1
+
+日期：2026-05-25
+
+执行者：Codex
+
+当前产品层新增 `MTPRO Codebase Reference Gap Map v1`，路径为 `docs/product/mtpro-codebase-reference-gap-map-v1.md`。该文档在 `MTPRO Reference Alignment & Product Gap Map v1` 的产品层对标基础上，补充分别阅读 MTPRO 与 `atxinbao/nautilus_trader` 代码后的代码级差距地图。
+
+该文档确认：
+
+- MTPRO 当前代码是 local-first SwiftPM macOS Workbench / evidence shell，核心为 `Core`、`Adapters`、`Persistence`、`Runtime`、`App` 和 `Dashboard`，以 Event Log / Replay / Projection / Read Model / ViewModel、paper-only workflow 和 read-model-only live blocked surfaces 为主。
+- `nautilus_trader` 参考代码是 production-grade event-driven trading engine，覆盖 Rust workspace、Python package、BacktestEngine、Kernel、LiveNode、ExecutionEngine、LiveExecutionEngine、RiskEngine、Portfolio、DataCatalog、多 venue adapters、examples 和 release tooling。
+- 两者代码级差距应归入 Workbench Productization Map、Data / Backtest Maturity Map、Runtime / Engine Parity Map、Release / Beta Readiness Map 和 Future Live PRO Console Boundary Map。
+- 该地图用于补现有产品 / 架构 / 成熟度地图，不生成下一阶段 Project Draft。
+
+仍不包含：
+
+- Linear Project / Issue 创建、Todo 推进或 Symphony 启动。
+- Graphify update、Figma 修改、SwiftUI implementation 或业务代码开发。
+- NautilusTrader runtime dependency 或整仓代码复制。
+- signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、submit / cancel / replace、live risk engine、reconciliation runtime、incident replay runtime、emergency stop、shutdown、restore、production operations、Live PRO Console 或实盘操作台授权。

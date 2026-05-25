@@ -9964,3 +9964,58 @@ Root docs 判断：
 | --- | --- | --- |
 | `git diff --check` | pass | Reference alignment gap map docs-only PR 创建前执行；无 whitespace / patch error 输出。 |
 | `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 保持 read-model-only / workbenchReadModelOnly；204 个 XCTest 通过、0 failures，最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO Codebase Reference Gap Map v1
+
+日期：2026-05-25
+
+执行者：Codex
+
+目的：
+
+- 在 `MTPRO Reference Alignment & Product Gap Map v1` 的产品层对标基础上，分别阅读 MTPRO 与 `atxinbao/nautilus_trader` 代码，补充代码级差距地图。
+- 明确 MTPRO 当前代码是 local-first SwiftPM macOS Workbench / evidence shell，参考项目代码是 production-grade event-driven trading engine。
+- 将代码级差距归入 Workbench Productization、Data / Backtest Maturity、Runtime / Engine Parity、Release / Beta Readiness 和 Future Live PRO Console Boundary 五类地图。
+- 本轮仍只补现有地图，不生成下一阶段 Project Draft，不授权执行。
+
+代码读取范围：
+
+- MTPRO：`Package.swift`、`checks/run.sh`、`Sources/Core/TradingKernel.swift`、`Sources/Core/EventLog.swift`、`Sources/Core/CommandsAndQueries.swift`、`Sources/Core/PaperOrderIntent.swift`、`Sources/Adapters/Adapters.swift`、`Sources/Persistence/Persistence.swift`、`Sources/Runtime/Runtime.swift`、`Sources/App/DashboardShell.swift`、`Sources/App/LiveIncidentStopBlockedEvidence.swift`、`Sources/Dashboard/DashboardApplication.swift`。
+- Reference：`/tmp/mtpro-reference-nautilus` `develop` commit `6e059dc Improve Blockchain snapshot fail-closed path`；读取 `Cargo.toml`、`pyproject.toml`、`crates/backtest/src/engine.rs`、`nautilus_trader/backtest/node.py`、`nautilus_trader/system/kernel.py`、`nautilus_trader/live/node.py`、`crates/live/src/builder.rs`、`nautilus_trader/live/execution_client.py`、`nautilus_trader/execution/engine.pxd`、`nautilus_trader/execution/engine.pyx`、`nautilus_trader/live/execution_engine.py`、`nautilus_trader/risk/engine.pxd`、`nautilus_trader/risk/engine.pyx`、`nautilus_trader/portfolio/portfolio.pyx`、`nautilus_trader/persistence/catalog/parquet.py`、`crates/persistence/src/config.rs`、`nautilus_trader/trading/strategy.pxd`、`nautilus_trader/trading/strategy.pyx`。
+
+文件范围：
+
+- 新增 `docs/product/mtpro-codebase-reference-gap-map-v1.md`。
+- 更新 `docs/product/mtpro-reference-alignment-gap-map-v1.md`，补充代码级地图引用。
+- 更新 `docs/product/product-surface-map.md`，增加代码级 reference gap map 入口。
+- 更新 `BLUEPRINT.md`，增加代码级地图来源和 Design Blueprint 引用。
+- 更新 `docs/validation/latest-verification-summary.md`，记录代码级 reference gap map 当前事实。
+- 更新 `verification.md`，追加本节。
+
+关键结论：
+
+- MTPRO 代码当前完成的是 Workbench / evidence / read-model / paper-only / blocked-evidence baseline，不是 reference project 那种完整交易引擎。
+- `nautilus_trader` 参考价值主要在 kernel lifecycle、data / backtest maturity、adapters、execution / OMS、risk runtime、portfolio / accounting、reconciliation、release examples 和 package discipline。
+- MTPRO 当前最需要补的是地图：Workbench productization、Data / Backtest maturity、Runtime / Engine parity、Release / Beta readiness 和 Future Live boundary，而不是直接推进下一阶段任务。
+- Live execution、OMS、real account / broker position、signed/account/listenKey、live risk runtime、reconciliation runtime、incident replay runtime、emergency stop、shutdown、restore 和 Live PRO Console 仍属于 Future Construction Zones。
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 `Todo`。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / `symphony-issue`。
+- 不运行 Graphify update。
+- 不修改 Figma。
+- 不写业务代码。
+- 不引入 NautilusTrader 作为 runtime dependency。
+- 不复制 NautilusTrader 整仓代码。
+- 不授权 Future Live trading、Live PRO Console、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、submit / cancel / replace、live risk engine、reconciliation runtime、incident replay runtime、emergency stop、shutdown、restore 或 production operations。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | 代码级 reference gap map docs-only edits 后执行；无 whitespace / patch error 输出。 |
+| `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 保持 read-model-only / workbenchReadModelOnly；204 个 XCTest 通过、0 failures，最终输出 `MTPRO checks passed.`。 |
