@@ -56,7 +56,7 @@ MTPRO 采用两层进度口径：
 1. Current Foundation Progress：当前已批准 paper-only foundation 的完成度。
 2. Final Product Goal Progress：最终专业交易工作台产品目标的完成度。
 
-截至 2026-05-23：
+截至 2026-05-26：
 
 ```text
 Current Foundation Progress: 4 / 4 (100%)
@@ -74,6 +74,8 @@ Current Foundation 已完成：
 4. 更长周期 market data replay / operations。
 
 Final Product 已完成全部 9 项目标切片；其中第 5 项只完成实盘交易基础边界、阻断证据和只读展示面，不代表真实 Live trading 已实现或获授权；第 6 项只完成实盘监控台的 read-model-only evidence surface，不代表真实 live runtime、signed/account stream、broker stream 或交易控制已实现或获授权；第 7 项只完成实盘执行控制的 contract、future gates、forbidden capability tests、blocked evidence 和 read-model-only evidence surface，不代表真实 execution runtime、真实订单命令、broker fill、execution report 或 reconciliation 已实现或获授权；第 8 项只完成实盘风险控制的 risk gate contract、future gates、forbidden capability tests、paper / live risk isolation、blocked evidence 和 read-model-only evidence surface，不代表真实 live risk engine、真实账户风控、real pre-trade allow / reject runtime、circuit breaker command、stop trading command 或 production runtime 已实现或获授权；第 9 项只完成实盘审计 / 事故回放 / 停机控制的 contract、future gates、forbidden capability tests、blocked evidence 和 read-model-only evidence surface，不代表真实 audit trail runtime、incident replay runtime、emergency stop、shutdown、restore、production operations、Live PRO Console、live command 或 trading button 已实现或获授权。
+
+9 / 9 后的模块成熟度建设已完成 `MTPRO Event-Driven Paper Trading Runtime v1`：`L1 Paper Runtime` 的 TradingClock、paper-only routing、Paper Pre-trade RiskEngine、local lifecycle、simulated fill、paper account / portfolio projection、Event Log / Replay / Report / Dashboard evidence 已闭环。该事实不改变 Final Product Goal Progress `9 / 9 (100%)`，也不表示真实 Live trading、broker / OMS、Live PRO Console 或 production trading engine 已实现或获授权。
 
 完整 9 项目标切片、状态和证据口径见 `docs/roadmap.md`。`GOAL.md` 不复制维护详细进度表。
 
