@@ -8326,6 +8326,187 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testMTP100SimulatedFillModelCreatesDeterministicFullAndPartialCostEvidence() throws {
+        // 测试场景：MTP-100 simulated fill model 必须消费 MTP-99 accepted-local 前置条件、
+        // deterministic market snapshot 和 fixed fee / slippage assumptions，稳定生成 full 与 partial evidence。
+        let full = try PaperSimulatedFillFixture.deterministicFullFromLifecycle()
+        let partial = try PaperSimulatedFillFixture.deterministicPartialFromLifecycle()
+        let orderIntent = try PaperSimulatedFillFixture.lifecycleOrderIntent()
+        let marketSnapshot = PaperSimulatedFillMarketSnapshot.deterministicFixture
+
+        XCTAssertEqual(full.fillID, try Identifier("mtp-100-full-simulated-fill"))
+        XCTAssertEqual(full.orderID, orderIntent.orderID)
+        XCTAssertEqual(full.marketSnapshotID, marketSnapshot.snapshotID)
+        XCTAssertEqual(full.localLifecycleState, .acceptedLocal)
+        XCTAssertEqual(full.sourceLifecycleSequence, 3)
+        XCTAssertEqual(full.fillCompletion, .full)
+        XCTAssertEqual(full.fillPriceSource, .orderReference)
+        XCTAssertEqual(full.filledQuantity.rawValue, orderIntent.quantity.rawValue, accuracy: 0.00000001)
+        XCTAssertEqual(full.remainingQuantity.rawValue, 0, accuracy: 0.00000001)
+        XCTAssertEqual(full.feeAssumptionID, try Identifier("mtp-27-fixed-cost-assumptions"))
+        XCTAssertEqual(full.slippageAssumptionID, try Identifier("mtp-27-fixed-cost-assumptions"))
+        XCTAssertEqual(full.fillPriceAssumptionID, try Identifier("mtp-40-simulated-fill-assumption"))
+        XCTAssertEqual(full.costEstimate.feeAmount, 0.01, accuracy: 0.00000001)
+        XCTAssertEqual(full.costEstimate.slippageAmount, 0.0075, accuracy: 0.00000001)
+        XCTAssertEqual(full.costImpactAmount, full.costEstimate.totalCostAmount, accuracy: 0.00000001)
+        XCTAssertTrue(full.paperOnlyBoundaryHeld)
+        XCTAssertFalse(full.representsBrokerFill)
+        XCTAssertFalse(full.consumesExecutionReport)
+        XCTAssertFalse(full.performsReconciliation)
+        XCTAssertFalse(full.updatesRealAccountBalance)
+
+        let expectedPartialCost = ExecutionCostCalculator.estimate(
+            ExecutionCostEstimateRequest(
+                symbol: orderIntent.symbol,
+                timeframe: orderIntent.timeframe,
+                executionMode: .paper,
+                referencePrice: marketSnapshot.askPrice,
+                quantity: try Quantity(0.25, field: "test.mtp100.partialQuantity"),
+                liquidityRole: .taker
+            ),
+            assumptions: .deterministicFixture
+        )
+        XCTAssertEqual(partial.fillID, try Identifier("mtp-100-partial-simulated-fill"))
+        XCTAssertEqual(partial.orderID, orderIntent.orderID)
+        XCTAssertEqual(partial.localLifecycleState, .acceptedLocal)
+        XCTAssertEqual(partial.fillCompletion, .partial)
+        XCTAssertEqual(partial.fillPriceSource, .bestAsk)
+        XCTAssertEqual(partial.filledQuantity.rawValue, 0.25, accuracy: 0.00000001)
+        XCTAssertEqual(partial.remainingQuantity.rawValue, 0.25, accuracy: 0.00000001)
+        XCTAssertEqual(partial.fillPrice.rawValue, 100.25, accuracy: 0.00000001)
+        XCTAssertEqual(partial.costEstimate, expectedPartialCost)
+        XCTAssertEqual(partial.costEstimate.feeRateBps, 5, accuracy: 0.00000001)
+        XCTAssertEqual(partial.costEstimate.slippageRateBps, 1.5, accuracy: 0.00000001)
+        XCTAssertEqual(partial.costImpactAmount, expectedPartialCost.totalCostAmount, accuracy: 0.00000001)
+        XCTAssertTrue(partial.paperOnlyBoundaryHeld)
+
+        let encoded = try JSONEncoder().encode(partial)
+        let decoded = try JSONDecoder().decode(PaperSimulatedFillEvidence.self, from: encoded)
+        XCTAssertEqual(decoded, partial)
+    }
+
+    func testMTP100SimulatedFillEventLogPublishesPartialAndFullFillsAndReplaysEvidence() throws {
+        // 测试场景：MTP-100 fill evidence 必须通过既有 paper runtime routing 写入 `.paper` stream，
+        // replay 后能够重建同一组 partial / full fill facts 和 route evidence。
+        let (messageBus, publication) = try PaperSimulatedFillFixture.publishedPartialAndFullFills()
+
+        XCTAssertTrue(publication.replayMatchesRouteEvidence)
+        XCTAssertTrue(publication.coversPartialAndFullFills)
+        XCTAssertEqual(messageBus.envelopes.map(\.sequence), [1, 2])
+        XCTAssertEqual(messageBus.envelopes.map(\.id), PaperSimulatedFillFixture.envelopeIDs)
+        XCTAssertEqual(messageBus.envelopes.map(\.stream), [.paper, .paper])
+        XCTAssertEqual(publication.routeEvidence.map(\.source), [.simulatedFillEvent, .simulatedFillEvent])
+        XCTAssertEqual(publication.routeEvidence.map(\.payloadKind), [.simulatedFillRecorded, .simulatedFillRecorded])
+        XCTAssertEqual(publication.routeEvidence.map(\.eventSequence), [1, 2])
+        XCTAssertEqual(publication.routeEvidence.map(\.correlationID), [
+            PaperSimulatedFillFixture.correlationID,
+            PaperSimulatedFillFixture.correlationID
+        ])
+        XCTAssertEqual(publication.routeEvidence.map(\.causationID), [
+            PaperSimulatedFillFixture.rootCausationID,
+            PaperSimulatedFillFixture.envelopeIDs[0]
+        ])
+        XCTAssertEqual(publication.replayedFills.map(\.fillID), [
+            try Identifier("mtp-100-full-simulated-fill"),
+            try Identifier("mtp-100-partial-simulated-fill")
+        ])
+
+        let replay = messageBus.replay(
+            EventReplayCommand(
+                range: try EventSequenceRange(lowerBound: 1, upperBound: 2),
+                streams: [.paper]
+            )
+        )
+        let replayedFills = try PaperSimulatedFillReplayPath.simulatedFills(from: replay)
+        XCTAssertEqual(replayedFills, publication.fills)
+
+        let encoded = try JSONEncoder().encode(publication)
+        let decoded = try JSONDecoder().decode(PaperSimulatedFillPublication.self, from: encoded)
+        XCTAssertEqual(decoded, publication)
+    }
+
+    func testMTP100SimulatedFillRejectsBrokerExecutionReportReconciliationAndInvalidPartialBypass() throws {
+        // 测试场景：MTP-100 的 market snapshot、precondition、partial fill 和 Codable payload
+        // 都不能被伪造成 broker fill、execution report、reconciliation 或真实账户更新。
+        XCTAssertThrowsError(
+            try PaperSimulatedFillMarketSnapshot(
+                snapshotID: try Identifier("invalid-mtp-100-market-snapshot"),
+                symbol: try Symbol(rawValue: "BTCUSDT"),
+                timeframe: .oneMinute,
+                bidPrice: try Price(99.75, field: "test.bid"),
+                askPrice: try Price(100.25, field: "test.ask"),
+                lastPrice: try Price(100, field: "test.last"),
+                observedAt: Date(timeIntervalSince1970: 6_000),
+                sourceAnchor: "MTP-100-SIMULATED-FILL-MARKET-SNAPSHOT",
+                connectsBroker: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .paperSimulatedFillForbiddenCapability("marketSnapshot.connectsBroker"))
+        }
+
+        XCTAssertThrowsError(
+            try PaperSimulatedFillEvidence(
+                fillID: try Identifier("invalid-mtp-100-partial-full-quantity"),
+                orderIntent: PaperSimulatedFillFixture.lifecycleOrderIntent(),
+                lifecyclePrecondition: PaperSimulatedFillFixture.lifecyclePrecondition(),
+                marketSnapshot: .deterministicFixture,
+                assumption: try PaperSimulatedFillAssumption(
+                    assumptionID: try Identifier("invalid-mtp-100-partial-assumption"),
+                    filledQuantity: try Quantity(0.5, field: "test.invalidPartialQuantity"),
+                    fillPrice: try Price(100, field: "test.invalidPartialPrice"),
+                    liquidityRole: .maker,
+                    completion: .partial,
+                    fillPriceSource: .orderReference
+                ),
+                sourceOrderIntentSequence: 4,
+                filledAt: Date(timeIntervalSince1970: 6_030)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperSimulatedFillMismatch(field: "partialFill.filledQuantity", expected: "< 0.5", actual: "0.5")
+            )
+        }
+
+        let wrongOrderPrecondition = try PaperOrderSimulatedFillPrecondition(
+            orderID: try Identifier("wrong-mtp-100-order"),
+            sourceLifecycleSequence: 3,
+            localState: .acceptedLocal,
+            readiness: .readyForSimulatedFill,
+            acceptedAt: Date(timeIntervalSince1970: 6_010)
+        )
+        XCTAssertThrowsError(
+            try PaperSimulatedFillEvidence(
+                fillID: try Identifier("invalid-mtp-100-precondition-order"),
+                orderIntent: PaperSimulatedFillFixture.lifecycleOrderIntent(),
+                lifecyclePrecondition: wrongOrderPrecondition,
+                marketSnapshot: .deterministicFixture,
+                assumption: .deterministicFixture,
+                sourceOrderIntentSequence: 4,
+                filledAt: Date(timeIntervalSince1970: 6_031)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperSimulatedFillMismatch(
+                    field: "lifecyclePrecondition.orderID",
+                    expected: "mtp-99-paper-order-local",
+                    actual: "wrong-mtp-100-order"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(PaperSimulatedFillFixture.deterministicPartialFromLifecycle())
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["consumesExecutionReport"] = true
+        let executionReportData = try JSONSerialization.data(withJSONObject: object)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(PaperSimulatedFillEvidence.self, from: executionReportData)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .paperSimulatedFillForbiddenCapability("consumesExecutionReport"))
+        }
+    }
+
     private func makeOrderBookImbalanceInputs() throws -> [OrderBookReadModelInput] {
         let symbol = try Symbol(rawValue: "BTCUSDT")
         let bidDominant = OrderBookReadModelInput(

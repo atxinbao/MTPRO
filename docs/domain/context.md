@@ -104,6 +104,23 @@
 
 MTP-99 的 local lifecycle evidence 不得升级为 OMS、broker adapter、real order state machine、真实 submit / cancel / replace、execution report、broker fill、reconciliation、单笔 order cancel button、order-level command UI、live command、order form 或交易按钮。
 
+`MTP-100-SIMULATED-FILL-FEE-SLIPPAGE-TERMS`
+
+以下术语由 MTP-100 定义为 `MTPRO Event-Driven Paper Trading Runtime v1` 的 paper-only simulated fill / fee / slippage language。它们只用于 deterministic market snapshot、fill assumption、partial / full simulated fill evidence、Event Log / Replay evidence 和 validation anchors，不授权当前 scope 实现 broker fill、execution report parser、真实 fee statement、真实成交质量分析、live reconciliation、broker / signed endpoint / account endpoint 或真实账户更新。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `PaperSimulatedFillMarketSnapshot` | simulated fill model 的本地 market-side 输入，只保存 fixture / replay bid、ask、last price 和 source anchor | 不等于 Adapter payload、live market stream、signed endpoint、account endpoint、broker stream 或 execution report |
+| `PaperSimulatedFillCompletion` | simulated fill 的 deterministic completion 分类：`full` 或 `partial` | 不等于真实成交状态、broker partial fill 或交易所撮合结果 |
+| `PaperSimulatedFillPriceSource` | fill price assumption 的本地来源：order reference、market last price、best bid 或 best ask | 不等于真实成交价格发现、动态滑点模型或执行成本优化 |
+| `PaperSimulatedFillEvidence` | paper-only simulated fill、fee、slippage 和 cost impact 的可 replay 证据 | 不等于真实 fill、broker fill、execution report、account update 或 reconciliation |
+| `PaperSimulatedFillEventLogBoundary` | 复用 MTP-97 routing 将 simulated fill evidence 写入 `.paper` Event Log 的 Core 边界 | 不等于 Runtime actor、broker event bus、OMS 或外部 pub/sub |
+| `PaperSimulatedFillReplayPath` | 从 append-only replay result 重建 partial / full simulated fill facts | 不等于 broker replay、account replay、incident replay 或 production recovery |
+
+`MTP-100-NO-BROKER-EXECUTION-REPORT-RECONCILIATION`
+
+MTP-100 的 simulated fill evidence 不得升级为 broker fill、execution report、真实 fee statement、真实成交质量分析、live reconciliation、real account balance update、signed endpoint、account endpoint、broker action、Live PRO Console、live command、order form 或交易按钮。
+
 ## Live Boundary Terms
 
 以下术语只用于 Future / gated 实盘边界设计和当前 blocked evidence，不授权当前 scope 实现真实交易能力。

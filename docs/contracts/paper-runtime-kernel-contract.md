@@ -335,7 +335,7 @@ Required validation：
 
 Matrix anchor：`TVM-PAPER-RUNTIME-KERNEL`。
 
-## MTP-99 后仍禁止
+## MTP-99 issue 结束时仍禁止
 
 - 不实现 simulated fill / fee / slippage model。
 - 不实现 paper account / portfolio projection v2。
@@ -343,4 +343,102 @@ Matrix anchor：`TVM-PAPER-RUNTIME-KERNEL`。
 - 不实现 OMS、broker router、真实 order lifecycle、真实 submit / cancel / replace、execution report、broker fill 或 reconciliation。
 - 不新增单笔 order cancel button、order-level command UI、live command、order form 或交易按钮。
 - 不读取 secret、API key、account endpoint、listenKey、broker state、真实账户或 production runtime。
+- 不修改 Linear status，不创建下一 Project / Issue，不启动下一阶段 `symphony-issue`。
+
+## MTP-100 Simulated Fill / Fee / Slippage Deterministic Model
+
+MTP-100 在 MTP-99 `acceptedLocal` 前置条件之后新增 paper-only simulated fill / fee / slippage deterministic model：
+
+- `PaperSimulatedFillMarketSnapshot` 固定 simulated fill 的 market-side 输入，只能来自本地 fixture / replay snapshot。
+- `PaperSimulatedFillAssumption` 固定 fill completion、filled quantity、fill price source、maker / taker liquidity role 和 MTP-27 fixed execution cost assumptions。
+- `PaperSimulatedFillEvidence` 同时覆盖 full fill 与 partial fill，记录 remaining quantity、fee assumption、slippage assumption、fill price assumption 和 cost impact。
+- `PaperSimulatedFillEventLogBoundary` 复用 MTP-97 `PaperRuntimeMessageBusRouting`，把 `simulatedFillRecorded` 写入 `.paper` stream。
+- `PaperSimulatedFillReplayPath` 从 append-only replay result 重建 partial / full simulated fill facts。
+
+该模型只表达 paper execution assumption，不代表 broker fill、execution report、real fee statement、真实成交质量分析、reconciliation 或真实账户更新。
+
+## MTP-100-SIMULATED-FILL-MARKET-SNAPSHOT
+
+market snapshot 必须保持本地 paper-only 输入：
+
+- snapshot 只记录 `symbol`、`timeframe`、bid / ask / last price、observed time 和 source anchor。
+- bid price 必须小于或等于 ask price。
+- snapshot symbol / timeframe 必须与 paper order intent 对齐。
+- snapshot 不能包含 signed endpoint、account endpoint、broker、execution report 或 broker fill 能力。
+
+## MTP-100-PARTIAL-FULL-SIMULATED-FILL-EVIDENCE
+
+simulated fill evidence 必须区分 partial / full：
+
+- `full` 要求 filled quantity 等于 order intent quantity，remaining quantity 为 0。
+- `partial` 要求 filled quantity 大于 0 且小于 order intent quantity，remaining quantity 大于 0。
+- 所有 fill 都必须来自 allowed `PaperOrderIntent` 和 MTP-99 `PaperOrderSimulatedFillPrecondition`。
+- `localLifecycleState` 必须保持 `acceptedLocal`，只表示本地 paper fill 前置条件。
+
+## MTP-100-FEE-SLIPPAGE-COST-IMPACT
+
+fee / slippage 只使用 deterministic assumptions：
+
+- fee assumption 复用 MTP-27 `ExecutionCostAssumptions.deterministicFixture`。
+- slippage assumption 复用同一 fixed bps fixture。
+- fill price assumption 只能是 order reference、market last price、best bid 或 best ask。
+- cost impact 只等于 fixed fee amount + fixed slippage amount，不做真实交易所费率表、动态滑点、执行质量优化或 account tier 查询。
+
+## MTP-100-SIMULATED-FILL-EVENTLOG-REPLAY
+
+simulated fill result 必须进入 Event Log 并可 replay：
+
+- `PaperSimulatedFillEventLogBoundary.publish` 必须将 fill evidence 作为 `.simulatedFillEvent` route input。
+- route evidence 的 source 必须是 `simulatedFillEvent`。
+- payload kind 必须是 `simulatedFillRecorded`。
+- event stream 必须是 `.paper`。
+- replay evidence 必须与 route evidence 完全一致。
+- replayed fills 必须与发布的 fills 完全一致。
+
+## MTP-100-NO-BROKER-EXECUTION-REPORT-RECONCILIATION
+
+MTP-100 forbidden capability flags 必须全部保持 false：
+
+- `usesSignedEndpoint`
+- `callsAccountEndpoint`
+- `connectsBroker`
+- `recordsBrokerFill`
+- `consumesExecutionReport`
+- `performsReconciliation`
+- `representsRealFill`
+- `representsBrokerFill`
+- `updatesRealAccountBalance`
+- `authorizesLiveTrading`
+- `authorizesTradingExecution`
+
+Codable 解码不得绕过这些不变量；任何 true flag 都必须被 `CoreError.paperSimulatedFillForbiddenCapability` 拒绝。
+
+## MTP-100-SIMULATED-FILL-FEE-SLIPPAGE-VALIDATION
+
+Required validation：
+
+- `bash checks/run.sh`
+- `swift test --filter MTP100`
+- `Tests/CoreTests/CoreTests.swift` 必须包含：
+  - `testMTP100SimulatedFillModelCreatesDeterministicFullAndPartialCostEvidence`
+  - `testMTP100SimulatedFillEventLogPublishesPartialAndFullFillsAndReplaysEvidence`
+  - `testMTP100SimulatedFillRejectsBrokerExecutionReportReconciliationAndInvalidPartialBypass`
+- `Sources/Core/PaperSimulatedFillEvidence.swift` 必须包含：
+  - `PaperSimulatedFillMarketSnapshot`
+  - `PaperSimulatedFillCompletion`
+  - `PaperSimulatedFillPriceSource`
+  - `PaperSimulatedFillEventLogBoundary`
+  - `PaperSimulatedFillPublication`
+  - `PaperSimulatedFillReplayPath`
+  - `PaperSimulatedFillFixture`
+
+Matrix anchor：`TVM-PAPER-RUNTIME-KERNEL`。
+
+## MTP-100 后仍禁止
+
+- 不实现 paper account / portfolio / position projection v2。
+- 不新增 App / Dashboard surface。
+- 不实现 broker fill、execution report parser、真实 fee statement、真实成交质量分析、live reconciliation 或 real account update。
+- 不实现 OMS、broker router、真实 order lifecycle、真实 submit / cancel / replace、Live PRO Console、live command、order form 或交易按钮。
+- 不读取 secret、API key、signed endpoint、account endpoint、listenKey、broker state、真实账户或 production runtime。
 - 不修改 Linear status，不创建下一 Project / Issue，不启动下一阶段 `symphony-issue`。
