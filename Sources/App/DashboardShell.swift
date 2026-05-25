@@ -159,7 +159,7 @@ public struct DashboardShellControlSnapshot: Codable, Equatable, Identifiable, S
 /// DashboardShellWorkbenchSnapshot 汇总 MTP-52 需要渲染的 Paper workflow Workbench 壳输入。
 ///
 /// Workbench 壳只组合现有 App 层 ViewModel / Read Model / Command Model：session-level controls
-/// 来自固定合同，observability、Evidence Explorer、Live blocked evidence、execution-control
+/// 来自固定合同，observability、Evidence Explorer、scenario replay evidence、Live blocked evidence、execution-control
 /// blocked evidence、Live Risk gate blocked evidence 和 incident / stop blocked evidence 都来自
 /// `DashboardViewModel`。所有字段都是 read-only 展示材料，不访问运行时对象、adapter request、
 /// 数据库结构或真实账户能力，也不形成 live command、stop command、交易按钮或真实交易入口。
@@ -169,6 +169,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
     public let source: ViewModelSourceContract
     public let observabilitySource: ViewModelSourceContract
     public let evidenceExplorerSource: ViewModelSourceContract
+    public let scenarioReplayEvidenceSource: ViewModelSourceContract
     public let liveBlockedEvidenceSource: ViewModelSourceContract
     public let liveMonitoringEvidenceSource: ViewModelSourceContract
     public let liveExecutionControlBlockedEvidenceSource: ViewModelSourceContract
@@ -180,6 +181,8 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
     public let observabilityDetails: [String]
     public let evidenceExplorerMetrics: [DashboardShellMetric]
     public let evidenceExplorerDetails: [String]
+    public let scenarioReplayEvidenceMetrics: [DashboardShellMetric]
+    public let scenarioReplayEvidenceDetails: [String]
     public let liveBlockedEvidenceMetrics: [DashboardShellMetric]
     public let liveBlockedEvidenceDetails: [String]
     public let liveMonitoringEvidenceMetrics: [DashboardShellMetric]
@@ -208,6 +211,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         source: ViewModelSourceContract,
         observabilitySource: ViewModelSourceContract,
         evidenceExplorerSource: ViewModelSourceContract,
+        scenarioReplayEvidenceSource: ViewModelSourceContract,
         liveBlockedEvidenceSource: ViewModelSourceContract,
         liveMonitoringEvidenceSource: ViewModelSourceContract,
         liveExecutionControlBlockedEvidenceSource: ViewModelSourceContract,
@@ -219,6 +223,8 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         observabilityDetails: [String],
         evidenceExplorerMetrics: [DashboardShellMetric],
         evidenceExplorerDetails: [String],
+        scenarioReplayEvidenceMetrics: [DashboardShellMetric],
+        scenarioReplayEvidenceDetails: [String],
         liveBlockedEvidenceMetrics: [DashboardShellMetric],
         liveBlockedEvidenceDetails: [String],
         liveMonitoringEvidenceMetrics: [DashboardShellMetric],
@@ -245,6 +251,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         self.source = source
         self.observabilitySource = observabilitySource
         self.evidenceExplorerSource = evidenceExplorerSource
+        self.scenarioReplayEvidenceSource = scenarioReplayEvidenceSource
         self.liveBlockedEvidenceSource = liveBlockedEvidenceSource
         self.liveMonitoringEvidenceSource = liveMonitoringEvidenceSource
         self.liveExecutionControlBlockedEvidenceSource = liveExecutionControlBlockedEvidenceSource
@@ -256,6 +263,8 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         self.observabilityDetails = observabilityDetails
         self.evidenceExplorerMetrics = evidenceExplorerMetrics
         self.evidenceExplorerDetails = evidenceExplorerDetails
+        self.scenarioReplayEvidenceMetrics = scenarioReplayEvidenceMetrics
+        self.scenarioReplayEvidenceDetails = scenarioReplayEvidenceDetails
         self.liveBlockedEvidenceMetrics = liveBlockedEvidenceMetrics
         self.liveBlockedEvidenceDetails = liveBlockedEvidenceDetails
         self.liveMonitoringEvidenceMetrics = liveMonitoringEvidenceMetrics
@@ -279,6 +288,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         self.readModelOnlyBoundaryHeld = source.isReadModelOnly
             && observabilitySource.isReadModelOnly
             && evidenceExplorerSource.isReadModelOnly
+            && scenarioReplayEvidenceSource.isReadModelOnly
             && liveBlockedEvidenceSource.isReadModelOnly
             && liveMonitoringEvidenceSource.isReadModelOnly
             && liveExecutionControlBlockedEvidenceSource.isReadModelOnly
@@ -301,6 +311,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
             source,
             observabilitySource,
             evidenceExplorerSource,
+            scenarioReplayEvidenceSource,
             liveBlockedEvidenceSource,
             liveMonitoringEvidenceSource,
             liveExecutionControlBlockedEvidenceSource,
@@ -351,6 +362,14 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         let sectionNames = sections.map(\.title).joined(separator: ",")
         let controls = workbench.controlLabels.joined(separator: ",")
         let timelineItems = Self.metricValue("Timeline items", in: workbench.evidenceExplorerMetrics)
+        let scenarioReplayEvidence = Self.metricValue(
+            "Scenarios",
+            in: workbench.scenarioReplayEvidenceMetrics
+        )
+        let scenarioQualityGates = Self.metricValue(
+            "Quality gates",
+            in: workbench.scenarioReplayEvidenceMetrics
+        )
         let liveBlockedGates = Self.metricValue("Live gates", in: workbench.liveBlockedEvidenceMetrics)
         let liveExecutionControlGates = Self.metricValue(
             "Execution gates",
@@ -376,7 +395,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         let paperRuntimeEvidence = Self.metricValue("Runtime", in: reportMetrics)
         let paperWorkflowEvidence = Self.metricValue("Exec workflow", in: reportMetrics)
         let paperPortfolioImpact = Self.metricValue("Paper PnL", in: reportMetrics)
-        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); workbenchReadModelOnly=\(workbench.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); paperRuntimeEvidence=\(paperRuntimeEvidence); paperWorkflowEvidence=\(paperWorkflowEvidence); paperPortfolioImpact=\(paperPortfolioImpact); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
+        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); workbenchReadModelOnly=\(workbench.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); scenarioReplayEvidence=\(scenarioReplayEvidence); scenarioQualityGates=\(scenarioQualityGates); paperRuntimeEvidence=\(paperRuntimeEvidence); paperWorkflowEvidence=\(paperWorkflowEvidence); paperPortfolioImpact=\(paperPortfolioImpact); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
     }
 
     private static func makeSectionSnapshot(
@@ -409,6 +428,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         let architecture = PaperWorkflowWorkbenchInformationArchitecture.deterministicFixture
         let observability = viewModel.paperWorkflowObservability
         let explorer = viewModel.paperWorkflowEvidenceExplorer
+        let scenarioReplayEvidence = viewModel.report.scenarioReplayEvidence
         let liveBlockedEvidence = viewModel.report.liveTradingBlockedEvidence
         let liveMonitoringEvidence = viewModel.report.liveMonitoringEvidence
         let liveExecutionControlEvidence = viewModel.report.liveExecutionControlBlockedEvidence
@@ -420,6 +440,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             source: architecture.source,
             observabilitySource: observability.source,
             evidenceExplorerSource: explorer.source,
+            scenarioReplayEvidenceSource: scenarioReplayEvidence.source,
             liveBlockedEvidenceSource: liveBlockedEvidence.source,
             liveMonitoringEvidenceSource: liveMonitoringEvidence.source,
             liveExecutionControlBlockedEvidenceSource: liveExecutionControlEvidence.source,
@@ -462,6 +483,37 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 "Command surface: \(formatForbiddenFlag(explorer.providesCommandSurface))",
                 "Query language: \(formatForbiddenFlag(explorer.supportsQueryLanguage))",
                 "Read model boundary: \(formatEvidenceFlag(explorer.readModelOnlyBoundaryHeld))"
+            ],
+            scenarioReplayEvidenceMetrics: [
+                DashboardShellMetric(
+                    label: "Scenarios",
+                    value: "\(scenarioReplayEvidence.evidenceCount)"
+                ),
+                DashboardShellMetric(
+                    label: "Quality gates",
+                    value: "\(scenarioReplayEvidence.qualityGateTimelineCount)"
+                ),
+                DashboardShellMetric(
+                    label: "Report inputs",
+                    value: "\(scenarioReplayEvidence.reportInputVersionIdentities.count)"
+                ),
+                DashboardShellMetric(
+                    label: "Quality",
+                    value: scenarioReplayEvidence.qualityVerdicts.first?.rawValue ?? "n/a"
+                )
+            ],
+            scenarioReplayEvidenceDetails: [
+                "Scenario ids: \(joined(scenarioReplayEvidence.scenarioIDs))",
+                "Dataset versions: \(joined(scenarioReplayEvidence.datasetVersions))",
+                "Fixture versions: \(joined(scenarioReplayEvidence.fixtureVersions))",
+                "Replay windows: \(joined(scenarioReplayEvidence.replayWindows))",
+                "Checksums: \(joined(scenarioReplayEvidence.checksums))",
+                "Freshness: \(joined(scenarioReplayEvidence.freshnessStatuses.map(\.rawValue)))",
+                "Quality verdicts: \(joined(scenarioReplayEvidence.qualityVerdicts.map(\.rawValue)))",
+                "Drill-down entries: \(joined(scenarioReplayEvidence.drillDownEntries))",
+                "Command surface: \(formatForbiddenFlag(scenarioReplayEvidence.providesCommandSurface))",
+                "Query language: \(formatForbiddenFlag(scenarioReplayEvidence.supportsQueryLanguage))",
+                "Read model boundary: \(formatEvidenceFlag(scenarioReplayEvidence.readModelOnlyBoundaryHeld))"
             ],
             liveBlockedEvidenceMetrics: [
                 DashboardShellMetric(label: "Live gates", value: "\(liveBlockedEvidence.blockedEvidenceCount)"),
@@ -605,18 +657,21 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             },
             paperOnlyBoundaryHeld: observability.paperOnlyBoundaryHeld,
             providesCommandSurface: explorer.providesCommandSurface
+                || scenarioReplayEvidence.providesCommandSurface
                 || liveMonitoringEvidence.providesCommandSurface
                 || liveExecutionControlEvidence.providesCommandSurface
                 || liveRiskGateEvidence.providesCommandSurface
                 || liveIncidentStopEvidence.providesCommandSurface,
             providesOrderLevelCommand: observability.providesOrderLevelCommand
                 || explorer.providesOrderLevelCommand
+                || scenarioReplayEvidence.providesOrderLevelCommand
                 || liveBlockedEvidence.providesOrderLevelCommand
                 || liveMonitoringEvidence.providesOrderLevelCommand
                 || liveExecutionControlEvidence.providesOrderLevelCommand
                 || sessionControls.contains { $0.authorizesOrderLevelCommand },
             exposesDatabaseSchema: observability.exposesDatabaseSchema
                 || explorer.exposesDatabaseSchema
+                || scenarioReplayEvidence.exposesDatabaseSchema
                 || liveBlockedEvidence.exposesDatabaseSchema
                 || liveMonitoringEvidence.exposesDatabaseSchema
                 || liveExecutionControlEvidence.exposesPersistenceSchema
@@ -624,6 +679,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || liveIncidentStopEvidence.exposesPersistenceSchema,
             exposesRuntimeObject: observability.exposesRuntimeObject
                 || explorer.exposesRuntimeObject
+                || scenarioReplayEvidence.exposesRuntimeObject
                 || liveBlockedEvidence.exposesRuntimeObject
                 || liveMonitoringEvidence.exposesRuntimeObject
                 || liveExecutionControlEvidence.invokesRuntimeControl
@@ -631,6 +687,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || liveIncidentStopEvidence.invokesRuntimeControl,
             exposesAdapterRequest: observability.exposesAdapterRequest
                 || explorer.exposesAdapterRequest
+                || scenarioReplayEvidence.exposesAdapterRequest
                 || liveBlockedEvidence.exposesAdapterSurface
                 || liveMonitoringEvidence.exposesAdapterSurface
                 || liveExecutionControlEvidence.readsAdapter
@@ -638,6 +695,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || liveIncidentStopEvidence.readsAdapter,
             authorizesLiveTrading: observability.authorizesLiveTrading
                 || explorer.authorizesLiveTrading
+                || scenarioReplayEvidence.authorizesLiveTrading
                 || liveBlockedEvidence.authorizesLiveTrading
                 || liveMonitoringEvidence.authorizesLiveTrading
                 || liveExecutionControlEvidence.authorizesLiveTrading
@@ -645,6 +703,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || liveIncidentStopEvidence.authorizesLiveTrading,
             touchesBrokerAction: observability.touchesBrokerAction
                 || explorer.touchesBrokerAction
+                || scenarioReplayEvidence.touchesBrokerAction
                 || liveBlockedEvidence.touchesBrokerAction
                 || liveMonitoringEvidence.instantiatesBrokerAdapter
                 || liveExecutionControlEvidence.instantiatesBrokerExecutionAdapter
@@ -654,6 +713,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || liveIncidentStopEvidence.executesBrokerAction,
             authorizesTradingExecution: observability.authorizesTradingExecution
                 || explorer.authorizesTradingExecution
+                || scenarioReplayEvidence.authorizesTradingExecution
                 || liveBlockedEvidence.authorizesTradingExecution
                 || liveMonitoringEvidence.authorizesTradingExecution
                 || liveExecutionControlEvidence.authorizesTradingExecution
@@ -756,6 +816,11 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                     value: format(viewModel.paperExecutionWorkflowSimulatedFillCostImpactAmount)
                 ),
                 DashboardShellMetric(label: "Replay ops", value: "\(viewModel.marketDataReplayEvidenceCount)"),
+                DashboardShellMetric(label: "Scenario replay", value: "\(viewModel.scenarioReplayEvidenceCount)"),
+                DashboardShellMetric(
+                    label: "Scenario gates",
+                    value: "\(viewModel.scenarioReplayQualityGateTimelineCount)"
+                ),
                 DashboardShellMetric(label: "Live gates", value: "\(viewModel.liveBlockedEvidenceCount)"),
                 DashboardShellMetric(
                     label: "Execution control",
@@ -814,6 +879,18 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 "Replay operation retention: \(joined(viewModel.marketDataReplayRetentionStatuses.map(\.rawValue)))",
                 "Replay operation projections: \(joined(viewModel.marketDataReplayProjectionConsistencySummaries))",
                 "Replay operation boundary: \(formatEvidenceFlag(viewModel.marketDataReplayReadModelOnlyBoundaryHeld))",
+                "Scenario replay ids: \(joined(viewModel.scenarioReplayScenarioIDs))",
+                "Scenario replay dataset versions: \(joined(viewModel.scenarioReplayDatasetVersions))",
+                "Scenario replay fixture versions: \(joined(viewModel.scenarioReplayFixtureVersions))",
+                "Scenario replay windows: \(joined(viewModel.scenarioReplayWindows))",
+                "Scenario replay checksums: \(joined(viewModel.scenarioReplayChecksums))",
+                "Scenario replay freshness: \(joined(viewModel.scenarioReplayFreshnessStatuses.map(\.rawValue)))",
+                "Scenario replay quality: \(joined(viewModel.scenarioReplayQualityVerdicts.map(\.rawValue)))",
+                "Scenario replay report inputs: \(joined(viewModel.scenarioReplayReportInputVersionIdentities))",
+                "Scenario replay drill-down: \(joined(viewModel.scenarioReplayDrillDownEntries))",
+                "Scenario replay boundary: \(formatEvidenceFlag(viewModel.scenarioReplayReadModelOnlyBoundaryHeld))",
+                "Scenario replay command surface: \(formatForbiddenFlag(viewModel.scenarioReplayProvidesCommandSurface))",
+                "Scenario replay query language: \(formatForbiddenFlag(viewModel.scenarioReplaySupportsQueryLanguage))",
                 "Live readiness: \(viewModel.liveReadinessStatus.rawValue)",
                 "Live blocked capabilities: \(joined(viewModel.liveBlockedCapabilityLabels))",
                 "Live gates: \(joined(viewModel.liveBlockedGateLabels))",

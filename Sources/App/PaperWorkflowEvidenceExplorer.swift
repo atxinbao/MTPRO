@@ -11,6 +11,7 @@ import Persistence
 public enum PaperWorkflowEvidenceExplorerSection: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
     case marketEvent = "market event"
     case marketDataReplayOperation = "market data replay operation"
+    case scenarioReplayEvidence = "scenario replay evidence"
     case liveExecutionControlBlockedEvidence = "live execution control blocked evidence"
     case liveRiskGateBlockedEvidence = "live risk gate blocked evidence"
     case liveIncidentStopBlockedEvidence = "live incident / stop blocked evidence"
@@ -136,6 +137,7 @@ public struct PaperWorkflowEvidenceExplorerFilterSnapshot: Codable, Equatable, S
 /// PaperWorkflowEvidenceExplorerReadModel 汇总 Event Timeline / Evidence Explorer 的稳定输入。
 ///
 /// 该 read model 只组合 Dashboard 已有 App read models：market、strategy、report、
+/// scenario replay evidence、
 /// Live blocked evidence、Live monitoring evidence、execution-control blocked evidence、
 /// Live Risk gate blocked evidence、incident / stop blocked evidence、
 /// paper workflow observability 和 append-only event timeline。
@@ -145,6 +147,7 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
     public let market: MarketReadModel
     public let strategy: StrategyReadModel
     public let report: ReportReadModel
+    public let scenarioReplayEvidence: ScenarioReplayEvidenceReadModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel
     public let liveMonitoringEvidence: LiveMonitoringEvidenceReadModel
     public let liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel
@@ -158,6 +161,7 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
         market: MarketReadModel = MarketReadModel(),
         strategy: StrategyReadModel = StrategyReadModel(),
         report: ReportReadModel = ReportReadModel(),
+        scenarioReplayEvidence: ScenarioReplayEvidenceReadModel? = nil,
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel? = nil,
         liveMonitoringEvidence: LiveMonitoringEvidenceReadModel? = nil,
         liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel? = nil,
@@ -169,6 +173,8 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
         self.market = market
         self.strategy = strategy
         self.report = report
+        self.scenarioReplayEvidence = scenarioReplayEvidence
+            ?? report.scenarioReplayEvidence
         self.liveTradingBlockedEvidence = liveTradingBlockedEvidence
             ?? report.liveTradingBlockedEvidence
         self.liveMonitoringEvidence = liveMonitoringEvidence
@@ -185,6 +191,7 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
             market.lastAppliedSequence,
             strategy.lastAppliedSequence,
             report.lastAppliedSequence,
+            self.scenarioReplayEvidence.lastAppliedSequence,
             self.liveTradingBlockedEvidence.lastAppliedSequence,
             self.liveMonitoringEvidence.lastAppliedSequence,
             self.liveExecutionControlBlockedEvidence.lastAppliedSequence,
@@ -215,6 +222,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
     public let evidenceLinkCount: Int
     public let coversMarketEvents: Bool
     public let coversMarketDataReplayOperations: Bool
+    public let coversScenarioReplayEvidence: Bool
     public let coversLiveExecutionControlBlockedEvidence: Bool
     public let coversLiveRiskGateBlockedEvidence: Bool
     public let coversLiveIncidentStopBlockedEvidence: Bool
@@ -250,6 +258,9 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         let selectedSections = Self.normalizeSelectedSections(requestedSections)
         let selectedSectionSet = Set(selectedSections)
         let allTimelineItems = Self.makeTimelineItems(from: readModel)
+        let scenarioReplay = ScenarioReplayEvidenceViewModel(
+            readModel: readModel.scenarioReplayEvidence
+        )
         let liveExecutionControl = LiveExecutionControlBlockedEvidenceViewModel(
             readModel: readModel.liveExecutionControlBlockedEvidence
         )
@@ -272,6 +283,9 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         let coversMarketEvents = allTimelineItems.contains { $0.section == .marketEvent }
         let coversMarketDataReplayOperations = allTimelineItems.contains {
             $0.section == .marketDataReplayOperation
+        }
+        let coversScenarioReplayEvidence = allTimelineItems.contains {
+            $0.section == .scenarioReplayEvidence
         }
         let coversLiveExecutionControlBlockedEvidence = allTimelineItems.contains {
             $0.section == .liveExecutionControlBlockedEvidence
@@ -297,26 +311,32 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         let coversPaperWorkflowChainEvidence = Self.coversPaperWorkflowChainEvidence(allTimelineItems)
         let exposesDatabaseSchema = source.exposesDatabaseTables
             || source.exposesORMModels
+            || scenarioReplay.exposesDatabaseSchema
             || liveExecutionControl.exposesPersistenceSchema
             || liveRiskGate.exposesPersistenceSchema
             || liveIncidentStop.exposesPersistenceSchema
         let exposesRuntimeObject = source.exposesRuntimeObjects
+            || scenarioReplay.exposesRuntimeObject
             || liveExecutionControl.invokesRuntimeControl
             || liveRiskGate.invokesRuntimeControl
             || liveIncidentStop.invokesRuntimeControl
         let exposesAdapterRequest = source.callsBinanceAdapter
+            || scenarioReplay.exposesAdapterRequest
             || liveExecutionControl.readsAdapter
             || liveRiskGate.readsAdapter
             || liveIncidentStop.readsAdapter
-        let providesCommandSurface = liveExecutionControl.providesCommandSurface
+        let providesCommandSurface = scenarioReplay.providesCommandSurface
+            || liveExecutionControl.providesCommandSurface
             || liveRiskGate.providesCommandSurface
             || liveIncidentStop.providesCommandSurface
-        let providesOrderLevelCommand = liveExecutionControl.providesOrderLevelCommand
+        let providesOrderLevelCommand = scenarioReplay.providesOrderLevelCommand
+            || liveExecutionControl.providesOrderLevelCommand
         let supportsQueryLanguage = false
         let providesLiveAudit = false
         let providesIncidentReplay = liveIncidentStop.providesIncidentReplay
         let providesStopControl = liveIncidentStop.providesStopControl
-        let authorizesLiveTrading = liveExecutionControl.authorizesLiveTrading
+        let authorizesLiveTrading = scenarioReplay.authorizesLiveTrading
+            || liveExecutionControl.authorizesLiveTrading
             || liveRiskGate.authorizesLiveTrading
             || liveIncidentStop.authorizesLiveTrading
         let touchesBrokerAction = liveExecutionControl.instantiatesBrokerExecutionAdapter
@@ -324,7 +344,8 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             || liveRiskGate.instantiatesBrokerExecutionAdapter
             || liveRiskGate.instantiatesExchangeExecutionAdapter
             || liveIncidentStop.executesBrokerAction
-        let authorizesTradingExecution = liveExecutionControl.authorizesTradingExecution
+        let authorizesTradingExecution = scenarioReplay.authorizesTradingExecution
+            || liveExecutionControl.authorizesTradingExecution
             || liveRiskGate.authorizesTradingExecution
             || liveIncidentStop.authorizesTradingExecution
 
@@ -341,6 +362,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         self.evidenceLinkCount = evidenceLinks.count
         self.coversMarketEvents = coversMarketEvents
         self.coversMarketDataReplayOperations = coversMarketDataReplayOperations
+        self.coversScenarioReplayEvidence = coversScenarioReplayEvidence
         self.coversLiveExecutionControlBlockedEvidence = coversLiveExecutionControlBlockedEvidence
         self.coversLiveRiskGateBlockedEvidence = coversLiveRiskGateBlockedEvidence
         self.coversLiveIncidentStopBlockedEvidence = coversLiveIncidentStopBlockedEvidence
@@ -363,6 +385,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             && providesLiveAudit == false
             && providesIncidentReplay == false
             && providesStopControl == false
+            && scenarioReplay.readModelOnlyBoundaryHeld
             && liveExecutionControl.readModelOnlyBoundaryHeld
             && liveRiskGate.readModelOnlyBoundaryHeld
             && liveIncidentStop.readModelOnlyBoundaryHeld
@@ -402,6 +425,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         (
             makeMarketItems(readModel.market)
                 + makeMarketDataReplayOperationItems(readModel.report.marketDataReplayOperations)
+                + makeScenarioReplayEvidenceItems(readModel.scenarioReplayEvidence)
                 + makeLiveExecutionControlBlockedEvidenceItems(readModel.liveExecutionControlBlockedEvidence)
                 + makeLiveRiskGateBlockedEvidenceItems(readModel.liveRiskGateBlockedEvidence)
                 + makeLiveIncidentStopBlockedEvidenceItems(readModel.liveIncidentStopBlockedEvidence)
@@ -520,6 +544,36 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
                     )
                 ]
             )
+        }
+    }
+
+    private static func makeScenarioReplayEvidenceItems(
+        _ readModel: ScenarioReplayEvidenceReadModel
+    ) -> [PaperWorkflowEventTimelineItem] {
+        readModel.items.flatMap { item in
+            item.timelineEntries.map { entry in
+                PaperWorkflowEventTimelineItem(
+                    section: .scenarioReplayEvidence,
+                    sequence: readModel.lastAppliedSequence,
+                    stream: "scenario replay",
+                    title: entry.title,
+                    summary: entry.summary,
+                    evidenceLinks: [
+                        PaperWorkflowEvidenceLinkSummary(
+                            section: .scenarioReplayEvidence,
+                            evidenceID: entry.entryID,
+                            label: entry.kind,
+                            sourceSequence: readModel.lastAppliedSequence
+                        ),
+                        PaperWorkflowEvidenceLinkSummary(
+                            section: .scenarioReplayEvidence,
+                            evidenceID: item.reportInputVersionIdentity,
+                            label: "report input version",
+                            sourceSequence: readModel.lastAppliedSequence
+                        )
+                    ]
+                )
+            }
         }
     }
 

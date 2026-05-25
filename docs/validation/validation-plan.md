@@ -2175,3 +2175,43 @@ MTP-107 必须建立的主要 anchors：
 - 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position read、live runtime、live command、order form、Live PRO Console 或交易按钮。
 - 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进下一 issue。
+
+## MTP-108 Workbench / Report / Events Scenario Replay Evidence Surface Validation
+
+日期：2026-05-26
+
+执行者：Codex
+
+MTP-108 的 required validation：
+
+- `docs/contracts/data-catalog-scenario-replay-contract.md` 必须包含 `MTP-108-SCENARIO-REPLAY-READ-MODEL-EVIDENCE`、`MTP-108-REPORT-SCENARIO-REPLAY-EVIDENCE`、`MTP-108-WORKBENCH-SCENARIO-REPLAY-SUMMARY-DRILLDOWN`、`MTP-108-EVENTS-REPLAY-WINDOW-CURSOR-CHECKSUM-FRESHNESS`、`MTP-108-QUALITY-GATE-TIMELINE`、`MTP-108-READ-MODEL-ONLY-NO-COMMAND-SURFACE` 和 `MTP-108-SCENARIO-REPLAY-SURFACE-VALIDATION` anchors。
+- `Sources/App/ScenarioReplayEvidenceSurface.swift` 必须定义 `ScenarioReplayEvidenceReadModel`、`ScenarioReplayEvidenceViewModel` 和 MTP-108 validation anchors，并且只消费 MTP-107 `ScenarioDataQualityReportInputEvidence.deterministicFixture` 的 stable fields。
+- `ReportReadModel` / `ReportViewModel` 必须输出 scenario id、dataset version、fixture version、replay window、checksum、freshness status、quality verdict、report input version identity、drill-down entry、timeline count 和 quality gate timeline count。
+- `DashboardShellWorkbenchSnapshot` 必须输出 scenario replay summary、drill-down evidence、read-model-only source 和 Dashboard smoke handles `scenarioReplayEvidence` / `scenarioQualityGates`。
+- `PaperWorkflowEvidenceExplorer` 必须新增 `scenario replay evidence` section，并输出 replay window、cursor、checksum、freshness 和六个 quality gate timeline rows。
+- `Tests/AppTests/AppTests.swift` 必须包含 `testMTP108ScenarioReplayEvidenceFeedsReportWorkbenchAndEventsReadOnly`，覆盖 Report、Workbench、Events、Dashboard smoke、Codable stable snapshot、read-model-only boundary、no command surface、no query language、no trading button、no live command、no broker action。
+- `docs/domain/context.md` 必须包含 `MTP-108-SCENARIO-REPLAY-READ-MODEL-EVIDENCE` 和 `MTP-108-READ-MODEL-ONLY-NO-COMMAND-SURFACE`。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-108 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-108 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-108 contract、matrix、validation plan、domain context、latest summary、App source、Dashboard / Events source 和 focused test anchors。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不运行 Graphify，不修改 Figma，不实现 Runtime / Adapter / Persistence schema、不实现 database console、query language、command surface、production data platform、automatic download / repair、broker / account reconciliation、Simulated Exchange / Backtest Parity runtime、signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、live runtime、live command 或交易按钮。
+
+MTP-108 必须建立的主要 anchors：
+
+- `TVM-DATA-CATALOG-SCENARIO-REPLAY`
+- `MTP-108-SCENARIO-REPLAY-READ-MODEL-EVIDENCE`
+- `MTP-108-REPORT-SCENARIO-REPLAY-EVIDENCE`
+- `MTP-108-WORKBENCH-SCENARIO-REPLAY-SUMMARY-DRILLDOWN`
+- `MTP-108-EVENTS-REPLAY-WINDOW-CURSOR-CHECKSUM-FRESHNESS`
+- `MTP-108-QUALITY-GATE-TIMELINE`
+- `MTP-108-READ-MODEL-ONLY-NO-COMMAND-SURFACE`
+- `MTP-108-SCENARIO-REPLAY-SURFACE-VALIDATION`
+
+## MTP-108 禁止
+
+- 不实现 manifest parser、Runtime replay job、Adapter request、Persistence schema、database console、query language 或 command model。
+- 不新增 multi-symbol / multi-timeframe production catalog、production dataset registry、production data platform、cloud data lake、large-scale ingestion pipeline、真实历史下载器、production scheduler、production retention cleanup、cloud archive 或 storage tiering。
+- 不暴露 SQLite / DuckDB schema、adapter request、Runtime object、database console、schema inspector、Runtime inspector 或 UI command surface。
+- 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position read、live runtime、live command、order form、Live PRO Console 或交易按钮。
+- 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进下一 issue。
