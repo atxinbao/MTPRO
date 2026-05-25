@@ -408,6 +408,8 @@ Live trading 是最终产品目标的一部分，但不是当前 execution scope
 
 `docs/planning/projects/mtpro-event-driven-paper-trading-runtime-v1-plan.md` 已记录 `MTPRO Event-Driven Paper Trading Runtime v1` 的写入 Linear 前 planning record。该记录承接 `MTPRO Paper Trading Runtime Foundation Blueprint v1`，只保存 TradingClock / paper runtime kernel、CommandBus / EventBus / MessageBus、Paper Pre-trade RiskEngine、paper lifecycle coordinator、simulated fill / fee / slippage、paper account / portfolio / position projection 和 Event Log / Replay / Report / Dashboard evidence 的 Project 级计划摘要、issue order、dependencies、validation、evidence、first executable issue candidate、WIP=1 和边界；它不创建 Linear Project / Issue，不推进 Todo，不启动 `@002 / PAR`、Symphony 或 Graphify，不修改 Figma，不写业务代码，不实现 Paper runtime，不授权 signed endpoint、account endpoint / listenKey、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation runtime、Live PRO Console、trading button 或 live command。
 
+`docs/roadmap.md` 已补充 9 / 9 后的 Module Maturity Development Plan / 模块成熟度开发计划。该路线把 MTPRO 与 `atxinbao/nautilus_trader` 的成熟度差距拆成七个阶段：Event-Driven Paper Trading Runtime、Backtest / Paper Simulated Exchange Parity、Paper Account / Portfolio / Risk Runtime、Local Data Catalog / Scenario Replay、Workbench Productization / Beta Readiness、Live Read-Only Account Readiness、Live Execution / Risk / Reconciliation / PRO Console。该路线是开发地图，不更新进度条，不授权执行，不创建 Linear Project / Issue；每个阶段仍需 Human 确认、Project Planning Record、Linear 写入和 Parent Codex queue preflight。
+
 ### Future Construction Zones / 未来建设区
 
 Future Construction Zones / 未来建设区指完整产品蓝图里明确需要但当前不施工的长期能力区。它们可以被蓝图描述，但不能自动变成当前 Project、Linear issue 或执行授权。

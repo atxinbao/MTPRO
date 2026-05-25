@@ -10116,3 +10116,49 @@ Root docs 判断：
 | --- | --- | --- |
 | `git diff --check` | pass | Event-Driven Paper Trading Runtime planning record docs-only edits 后执行；无 whitespace / patch error 输出。 |
 | `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 保持 read-model-only / workbenchReadModelOnly；204 个 XCTest 通过、0 failures，最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO Module Maturity Development Plan roadmap record
+
+日期：2026-05-25
+
+执行者：Codex
+
+目的：
+
+- 将 9 / 9 后的模块成熟度路线纳入项目开发计划。
+- 基于 `MTPRO Reference Alignment & Product Gap Map v1`、`MTPRO Codebase Reference Gap Map v1`、`MTPRO Paper Trading Runtime Foundation Blueprint v1` 和 `MTPRO Event-Driven Paper Trading Runtime v1` planning record，明确 MTPRO 后续不是直接进入 Live PRO Console，而是先补自身模块成熟度。
+- 把与参考项目 `atxinbao/nautilus_trader` 的差距拆成阶段化开发地图。
+
+文件范围：
+
+- 更新 `docs/roadmap.md`，新增 `Module Maturity Development Plan / 模块成熟度开发计划`。
+- 更新 `BLUEPRINT.md`，增加该路线入口。
+- 更新 `docs/validation/latest-verification-summary.md`，记录该路线已纳入开发地图且不授权 execution。
+- 更新 `verification.md`，追加本节。
+
+关键结论：
+
+- Final Product Goal Progress `9 / 9 (100%)` 表示原定 contract / evidence / Workbench / Live boundary 切片完成，不表示 MTPRO 已达到 `nautilus_trader` 级别的 production trading engine 成熟度。
+- 模块成熟度路线拆成七阶段：Event-Driven Paper Trading Runtime、Backtest / Paper Simulated Exchange Parity、Paper Account / Portfolio / Risk Runtime、Local Data Catalog / Scenario Replay、Workbench Productization / Beta Readiness、Live Read-Only Account Readiness、Live Execution / Risk / Reconciliation / PRO Console。
+- 当前优先级仍是 Stage 1 `MTPRO Event-Driven Paper Trading Runtime v1`；Stage 1 完成前，不直接规划 Live PRO Console 或真实 signed / broker / OMS 能力。
+- 该路线是开发地图，不是 Project closure，不更新 Final Product Goal Progress，不创建 Linear Project / Issue，不推进 `Todo`。
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 `Todo`。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / `symphony-issue`。
+- 不运行 Graphify update。
+- 不修改 Figma。
+- 不写业务代码。
+- 不实现 Paper runtime。
+- 不实现 signed endpoint、account endpoint / listenKey、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation runtime、Live PRO Console、trading button 或 live command。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Module Maturity Development Plan docs-only edits 后执行；无 whitespace / patch error 输出。 |
+| `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 保持 read-model-only / workbenchReadModelOnly；204 个 XCTest 通过、0 failures，最终输出 `MTPRO checks passed.`。 |

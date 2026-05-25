@@ -117,6 +117,24 @@ Next Handoff：Human + `@001 / PLN`
 8. 实盘风险控制：Completed / contract + blocked evidence；不实现真实 live risk engine、真实账户风控、real pre-trade allow / reject runtime、risk command、stop command 或 emergency stop。
 9. 实盘审计 / 事故回放 / 停机控制：Completed / contract + blocked evidence；不实现真实 audit trail runtime、incident replay runtime、emergency stop、shutdown、restore、production operations、Live PRO Console、live command 或 trading button。
 
+## Module Maturity Development Plan / 模块成熟度开发计划
+
+Final Product Goal Progress `9 / 9 (100%)` 表示原定 contract / evidence / Workbench / Live boundary 切片已完成，不表示 MTPRO 已达到 `atxinbao/nautilus_trader` 级别的 production trading engine 成熟度。9 / 9 后的新开发路线以“模块成熟度”推进：先补 MTPRO 自身 paper-only event-driven runtime，再逐步补 backtest / paper parity、paper account / portfolio / risk、local data catalog、Workbench beta、live read-only account readiness，最后才进入 Live execution / risk / reconciliation / PRO Console。
+
+该计划是开发路线地图，不授权执行，不创建 Linear Project / Issue，不推进 `Todo`。每个阶段都必须先由 Human 确认，再由 `@001 / PLN` 输出 Project Planning Record，经 Linear 写入和 Parent Codex queue preflight 后，才能让唯一 eligible issue 进入 `Todo`。
+
+| 顺序 | 阶段 | 目标 | 对标 `nautilus_trader` | 当前状态 |
+| --- | --- | --- | --- | --- |
+| 1 | Event-Driven Paper Trading Runtime | 建立 paper-only runtime kernel、CommandBus / EventBus / MessageBus、Paper RiskEngine、paper lifecycle coordinator、local / simulated order lifecycle、simulated fill / fee / slippage、paper account / portfolio projection 和 Event Log / Replay / Dashboard evidence 闭环。 | `core` / `common` / `trading` / `execution` / `portfolio` 的 paper-only 安全子集。 | Planning record 已落仓并写入 Linear；后续执行仍需 WIP=1 queue preflight。 |
+| 2 | Backtest / Paper Simulated Exchange Parity | 让 backtest 与 paper 共用交易语义，补 simulated exchange、order type semantics、matching、partial fill、latency、fee / slippage parity 和 backtest-paper portfolio parity。 | `backtest` engine、simulated exchange、matching engine。 | Future planning candidate；Stage 1 完成后再规划。 |
+| 3 | Paper Account / Portfolio / Risk Runtime | 建立严肃 paper 账本、cash / equity、position、paper PnL、exposure、risk allow / reject 和本地 sandbox 风险 runtime。 | `portfolio`、`risk` 的 paper-only 子集。 | Future planning candidate。 |
+| 4 | Local Data Catalog / Scenario Replay | 建立本地数据目录、scenario fixture、historical replay、report input versioning、large fixture replay 和可重复 demo scenarios。 | `data` / `persistence` / data catalog。 | Future planning candidate。 |
+| 5 | Workbench Productization / Beta Readiness | 把 runtime 能力产品化为可用 macOS Workbench：安装、启动、demo dataset、daily workflow、docs index、validation matrix 和 beta acceptance。 | 参考项目 release discipline；同时保留 MTPRO 的 macOS native Workbench 差异化。 | Future planning candidate。 |
+| 6 | Live Read-Only Account Readiness | 只读进入真实账户准备：credential policy、adapter capability matrix、account snapshot、position snapshot、balance snapshot、private stream read-only boundary。 | adapters、account / position read model，但不进入交易。 | Future gated；不允许 submit / cancel / replace。 |
+| 7 | Live Execution / Risk / Reconciliation / PRO Console | 最后进入真实 execution adapter、OMS、execution report、broker fill、reconciliation、live risk runtime、ops / incident / stop 和独立 Live PRO Console 产品面。 | `live`、`execution`、`risk`、`portfolio`、`system`。 | Future gated；必须经过独立 Human decision、Project Definition、signed/account/broker/risk/ops gates。 |
+
+当前优先级：先完成 Stage 1 `MTPRO Event-Driven Paper Trading Runtime v1`。Stage 1 完成前，不应直接规划 Live PRO Console 或真实 signed / broker / OMS 能力。
+
 ## Construction Slice Selection / 施工切片选择
 
 下一阶段 planning 只能从 `BLUEPRINT.md` 的 Future Construction Zones / 未来建设区中选择一个清晰切片，并把它收敛为 Project Planning Record。选择切片时必须满足：
