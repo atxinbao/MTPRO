@@ -23,7 +23,9 @@ public enum BacktestEvent: Codable, Equatable, Sendable {
 /// stream。MTP-42 起新增 execution decision / paper order / simulated fill facts，用于把
 /// allowed 本地执行证据写入 append-only event log 后再 replay。MTP-49 起新增 session-level
 /// local control applied / rejected facts，用于把 Workbench 控制意图记录为本地 paper-only
-/// evidence；这些 facts 不创建订单、不连接 broker、不调用 signed endpoint。历史 `sessionRequested` /
+/// evidence；MTP-99 起新增 order local lifecycle transition fact，用于记录本地 lifecycle coordinator
+/// 的 proposed / submitted local / accepted local / rejected / cancelled / expired / failed 状态转换。
+/// 这些 facts 不创建真实订单、不连接 broker、不调用 signed endpoint。历史 `sessionRequested` /
 /// `sessionCompleted` 仍可被 replay，用于兼容既有本地事件日志；新事件流默认写入 started /
 /// updated / closed，不连接 broker、不提交订单、不调用 signed endpoint。
 public enum PaperEvent: Codable, Equatable, Sendable {
@@ -35,6 +37,7 @@ public enum PaperEvent: Codable, Equatable, Sendable {
     case actionProposed(PaperActionProposal)
     case executionDecisionRecorded(PaperExecutionDecision)
     case orderIntentRecorded(PaperOrderIntent)
+    case orderLocalLifecycleTransitionRecorded(PaperOrderLocalLifecycleTransition)
     case simulatedFillRecorded(PaperSimulatedFillEvidence)
     case sessionRequested(PaperSessionCommand)
     case signalGenerated(EMACrossSignalSample)

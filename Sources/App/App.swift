@@ -921,6 +921,10 @@ public struct ReportReadModel: Equatable, Sendable {
                 && decision.riskDecision.proposal.timeframe == timeframe
         case let .orderIntentRecorded(orderIntent):
             return orderIntent.symbol == symbol && orderIntent.timeframe == timeframe
+        case let .orderLocalLifecycleTransitionRecorded(transition):
+            // MTP-99 本地 order lifecycle transition 可作为 paper runtime evidence 被匹配，
+            // 但 App 层仍只消费 read model，不读取 coordinator、Runtime object 或 persistence schema。
+            return transition.symbol == symbol && transition.timeframe == timeframe
         case let .simulatedFillRecorded(fill):
             return fill.symbol == symbol && fill.timeframe == timeframe
         case .sessionControlApplied, .sessionControlRejected:

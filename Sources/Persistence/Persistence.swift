@@ -529,7 +529,13 @@ public struct SQLiteRuntimeProjectionStore: Equatable, Sendable {
                 lastUpdatedAt: envelope.recordedAt
             )
 
-        case .actionProposed, .executionDecisionRecorded, .orderIntentRecorded, .simulatedFillRecorded:
+        case .actionProposed,
+             .executionDecisionRecorded,
+             .orderIntentRecorded,
+             .orderLocalLifecycleTransitionRecorded,
+             .simulatedFillRecorded:
+            // MTP-99 本地订单生命周期 fact 只进入 append-only Event Log 供 replay / evidence 使用。
+            // 当前 SQLite projection 仍只维护 session-level projection，不暴露 local order lifecycle schema。
             break
 
         case .sessionControlApplied, .sessionControlRejected:

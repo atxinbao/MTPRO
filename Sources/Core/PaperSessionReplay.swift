@@ -189,6 +189,10 @@ public enum PaperSessionReplayPath {
         case let .orderIntentRecorded(orderIntent):
             sessionIDs.append(orderIntent.sessionID)
             paperOrders.append(orderIntent)
+        case let .orderLocalLifecycleTransitionRecorded(transition):
+            // MTP-99 local lifecycle transition 是 order-level paper evidence；既有 session replay
+            // summary 只保留 session identity，避免把 local accepted / cancelled 误解为真实订单状态。
+            sessionIDs.append(transition.sessionID)
         case let .simulatedFillRecorded(fill):
             sessionIDs.append(fill.sessionID)
             simulatedFills.append(fill)
