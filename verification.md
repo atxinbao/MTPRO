@@ -9908,3 +9908,164 @@ Root docs 判断：
 | --- | --- | --- |
 | `git diff --check` | pass | Root Docs Refresh Gate docs-only PR 创建前执行；无 whitespace / patch error 输出。 |
 | `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`；204 个 XCTest 通过、0 failures，最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO Reference Alignment & Product Gap Map v1
+
+日期：2026-05-25
+
+执行者：Codex
+
+目的：
+
+- 在 Final Product Goal Progress 达到 `9 / 9 (100%)` 后，对齐参考项目 `atxinbao/nautilus_trader`，识别 MTPRO 当前 Workbench baseline 与成熟交易系统参考之间的产品、架构、体验和发布差距。
+- 补充 Product Surface Map、Engineering Capability Map、Maturity Gap Map 和 Non-authorization Boundary Map。
+- 输出产品层 reference alignment / gap map，作为现有地图补充材料；本轮不生成下一阶段 Project Draft。
+
+参考快照：
+
+- Reference project：`https://github.com/atxinbao/nautilus_trader`。
+- Clone path：`/tmp/mtpro-reference-nautilus`。
+- Snapshot：`develop` commit `6e059dc Improve Blockchain snapshot fail-closed path`。
+- 读取依据：`README.md`、`ROADMAP.md`、`ADAPTERS.md`、`RELEASES.md`、`docs/concepts/architecture.md`、`docs/concepts/backtesting.md`、`docs/concepts/execution.md`、`docs/concepts/live.md`、`docs/concepts/event_sourcing.md`、`examples/backtest/*` 和 `examples/live/*`。
+
+文件范围：
+
+- `docs/product/mtpro-reference-alignment-gap-map-v1.md`
+- `docs/product/product-surface-map.md`
+- `BLUEPRINT.md`
+- `docs/validation/latest-verification-summary.md`
+- `verification.md`
+
+关键结论：
+
+- MTPRO v1 当前完成的是 local-first macOS Workbench 的 contract / evidence / design baseline，不是 NautilusTrader 级别的 production trading engine。
+- NautilusTrader 的主要参考价值在 engine runtime、research / simulation / live parity、多 venue adapters、OMS / risk / execution、reconciliation、release operations 和 examples。
+- MTPRO 的当前优势在 macOS native Workbench、business dashboard、read-model evidence、Paper-only controls、Future Live boundaries 和 Workbench / Live PRO Console 产品面分离。
+- 当前重点是补现有地图，不急于推进下一阶段任务；`Workbench Productization`、`Release / Beta Readiness` 和 `Engine Parity Hardening` 只作为差距地图分区标签。
+- `Future Live PRO Console` 仍必须等待新的 Human decision、独立 Project Definition 和 signed / account / broker / risk / ops gates。
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 `Todo`。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / `symphony-issue`。
+- 不运行 Graphify update。
+- 不修改 Figma。
+- 不写业务代码。
+- 不引入 NautilusTrader 作为 runtime dependency。
+- 不复制 NautilusTrader 整仓代码。
+- 不授权 Future Live trading、Live PRO Console、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、submit / cancel / replace、live risk engine、reconciliation runtime、incident replay runtime、emergency stop、shutdown、restore 或 production operations。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Reference alignment gap map docs-only PR 创建前执行；无 whitespace / patch error 输出。 |
+| `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 保持 read-model-only / workbenchReadModelOnly；204 个 XCTest 通过、0 failures，最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO Codebase Reference Gap Map v1
+
+日期：2026-05-25
+
+执行者：Codex
+
+目的：
+
+- 在 `MTPRO Reference Alignment & Product Gap Map v1` 的产品层对标基础上，分别阅读 MTPRO 与 `atxinbao/nautilus_trader` 代码，补充代码级差距地图。
+- 明确 MTPRO 当前代码是 local-first SwiftPM macOS Workbench / evidence shell，参考项目代码是 production-grade event-driven trading engine。
+- 将代码级差距归入 Workbench Productization、Data / Backtest Maturity、Runtime / Engine Parity、Release / Beta Readiness 和 Future Live PRO Console Boundary 五类地图。
+- 本轮仍只补现有地图，不生成下一阶段 Project Draft，不授权执行。
+
+代码读取范围：
+
+- MTPRO：`Package.swift`、`checks/run.sh`、`Sources/Core/TradingKernel.swift`、`Sources/Core/EventLog.swift`、`Sources/Core/CommandsAndQueries.swift`、`Sources/Core/PaperOrderIntent.swift`、`Sources/Adapters/Adapters.swift`、`Sources/Persistence/Persistence.swift`、`Sources/Runtime/Runtime.swift`、`Sources/App/DashboardShell.swift`、`Sources/App/LiveIncidentStopBlockedEvidence.swift`、`Sources/Dashboard/DashboardApplication.swift`。
+- Reference：`/tmp/mtpro-reference-nautilus` `develop` commit `6e059dc Improve Blockchain snapshot fail-closed path`；读取 `Cargo.toml`、`pyproject.toml`、`crates/backtest/src/engine.rs`、`nautilus_trader/backtest/node.py`、`nautilus_trader/system/kernel.py`、`nautilus_trader/live/node.py`、`crates/live/src/builder.rs`、`nautilus_trader/live/execution_client.py`、`nautilus_trader/execution/engine.pxd`、`nautilus_trader/execution/engine.pyx`、`nautilus_trader/live/execution_engine.py`、`nautilus_trader/risk/engine.pxd`、`nautilus_trader/risk/engine.pyx`、`nautilus_trader/portfolio/portfolio.pyx`、`nautilus_trader/persistence/catalog/parquet.py`、`crates/persistence/src/config.rs`、`nautilus_trader/trading/strategy.pxd`、`nautilus_trader/trading/strategy.pyx`。
+
+文件范围：
+
+- 新增 `docs/product/mtpro-codebase-reference-gap-map-v1.md`。
+- 更新 `docs/product/mtpro-reference-alignment-gap-map-v1.md`，补充代码级地图引用。
+- 更新 `docs/product/product-surface-map.md`，增加代码级 reference gap map 入口。
+- 更新 `BLUEPRINT.md`，增加代码级地图来源和 Design Blueprint 引用。
+- 更新 `docs/validation/latest-verification-summary.md`，记录代码级 reference gap map 当前事实。
+- 更新 `verification.md`，追加本节。
+
+关键结论：
+
+- MTPRO 代码当前完成的是 Workbench / evidence / read-model / paper-only / blocked-evidence baseline，不是 reference project 那种完整交易引擎。
+- `nautilus_trader` 参考价值主要在 kernel lifecycle、data / backtest maturity、adapters、execution / OMS、risk runtime、portfolio / accounting、reconciliation、release examples 和 package discipline。
+- MTPRO 当前最需要补的是地图：Workbench productization、Data / Backtest maturity、Runtime / Engine parity、Release / Beta readiness 和 Future Live boundary，而不是直接推进下一阶段任务。
+- Live execution、OMS、real account / broker position、signed/account/listenKey、live risk runtime、reconciliation runtime、incident replay runtime、emergency stop、shutdown、restore 和 Live PRO Console 仍属于 Future Construction Zones。
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 `Todo`。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / `symphony-issue`。
+- 不运行 Graphify update。
+- 不修改 Figma。
+- 不写业务代码。
+- 不引入 NautilusTrader 作为 runtime dependency。
+- 不复制 NautilusTrader 整仓代码。
+- 不授权 Future Live trading、Live PRO Console、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、submit / cancel / replace、live risk engine、reconciliation runtime、incident replay runtime、emergency stop、shutdown、restore 或 production operations。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | 代码级 reference gap map docs-only edits 后执行；无 whitespace / patch error 输出。 |
+| `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 保持 read-model-only / workbenchReadModelOnly；204 个 XCTest 通过、0 failures，最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO Paper Trading Runtime Foundation Blueprint v1
+
+日期：2026-05-25
+
+执行者：Codex
+
+目的：
+
+- 将 `MTPRO Paper Trading Runtime Foundation Blueprint v1` 落仓为产品 / 架构层蓝图文档。
+- 将 MTPRO 与 NautilusTrader 的代码级交易运行时差距收敛为 paper-only runtime foundation 地图。
+- 吸收 `MTPRO Event-Driven Paper Trading Runtime v1` 计划中的非授权候选方向，但不生成 Linear Project Draft。
+
+文件范围：
+
+- 新增 `docs/product/mtpro-paper-trading-runtime-foundation-blueprint-v1.md`。
+- 更新 `docs/product/product-surface-map.md`，增加 paper-only runtime foundation 地图引用。
+- 更新 `BLUEPRINT.md`，增加该蓝图来源和 Trading Capability Blueprint 引用。
+- 更新 `docs/validation/latest-verification-summary.md`，记录该蓝图已落仓且不授权 execution。
+- 更新 `verification.md`，追加本节。
+
+关键结论：
+
+- 该蓝图只定义 paper / sandbox runtime foundation，不实现 Paper runtime。
+- `Local Order Manager / paper lifecycle coordinator` 只协调本地 paper lifecycle，不是 OMS、broker router 或真实订单执行器。
+- `cancelled locally` 只能由 session close / reset、local expiry 或 deterministic local rule 派生；Workbench UI 不提供单笔 paper order cancel button，也不得解释为真实 cancel command。
+- Paper event 命名建议使用 `Paper*Local` / `Paper*Simulated` 前缀，只用于后续 contract / validation 可机械检查，不表示当前授权实现。
+- `MTPRO Event-Driven Paper Trading Runtime v1` 只作为 Potential Next Project Candidate；若 Human 后续确认，仍需由 `@001 / PLN` 单独输出 Project Draft，并经 Linear 写入和 Parent Codex queue preflight 才能进入执行。
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 `Todo`。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / `symphony-issue`。
+- 不运行 Graphify update。
+- 不修改 Figma。
+- 不写业务代码。
+- 不实现 Paper runtime。
+- 不引入 NautilusTrader 作为 runtime dependency。
+- 不复制 NautilusTrader 整仓代码。
+- 不授权 Future Live trading、Live PRO Console、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation runtime、live risk engine、trading button、live command、emergency stop、shutdown、restore 或 production operations。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Paper Trading Runtime Foundation Blueprint docs-only edits 后执行；无 whitespace / patch error 输出。 |
+| `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 保持 read-model-only / workbenchReadModelOnly；204 个 XCTest 通过、0 failures，最终输出 `MTPRO checks passed.`。 |

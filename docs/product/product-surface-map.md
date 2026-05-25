@@ -945,3 +945,80 @@ v3 设计重点：
 - Figma 修改、SwiftUI 实现、组件库实现或业务代码开发。
 - Linear Project / Issue、Todo 推进、Symphony 启动或 Future Live trading execution scope。
 - Live PRO Console 当前可实现授权、实盘操作台授权、真实账户 / 真实订单 / broker / OMS / emergency stop 能力。
+
+## MTPRO Reference Alignment & Product Gap Map v1
+
+日期：2026-05-25
+
+执行者：Codex
+
+当前产品层新增 `MTPRO Reference Alignment & Product Gap Map v1`，路径为 `docs/product/mtpro-reference-alignment-gap-map-v1.md`。该文档在 Final Product Goal Progress 达到 `9 / 9 (100%)` 后，对齐参考项目 `atxinbao/nautilus_trader`，把 MTPRO 当前 Workbench baseline 与成熟交易系统参考之间的产品、架构、体验和发布差距画成 product gap map。
+
+该文档是产品层 reference alignment / gap map，不是 UI 设计稿、SwiftUI 实现稿、Linear execution 授权或 Live PRO Console planning。
+
+对标结论：
+
+- MTPRO v1 当前完成的是 local-first macOS Workbench 的 contract / evidence / design baseline，不是 NautilusTrader 级别的 production trading engine。
+- NautilusTrader 的主要参考价值在 engine runtime、research / simulation / live parity、多 venue adapters、OMS / risk / execution、reconciliation、release operations 和 examples。
+- MTPRO 的当前优势在 macOS native Workbench、business dashboard、read-model evidence、Paper-only controls、Future Live boundaries 和 Workbench / Live PRO Console 产品面分离。
+- 当前重点是补现有地图：Product Surface Map Delta、Engineering Capability Map Delta、Maturity Gap Map Delta 和 Non-authorization Boundary Map。
+- `Workbench Productization`、`Release / Beta Readiness` 和 `Engine Parity Hardening` 只作为差距地图分区标签，不是当前 Project Draft。
+- `Future Live PRO Console` 仍必须等待新的 Human decision、独立 Project Definition 和 signed / account / broker / risk / ops gates。
+
+仍不包含：
+
+- Linear Project / Issue 创建、Todo 推进或 Symphony 启动。
+- Graphify update、Figma 修改、SwiftUI implementation 或业务代码开发。
+- NautilusTrader runtime dependency 或整仓代码复制。
+- signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、submit / cancel / replace、live risk engine、reconciliation runtime、incident replay runtime、emergency stop、shutdown、restore、production operations、Live PRO Console 或实盘操作台授权。
+
+## MTPRO Codebase Reference Gap Map v1
+
+日期：2026-05-25
+
+执行者：Codex
+
+当前产品层新增 `MTPRO Codebase Reference Gap Map v1`，路径为 `docs/product/mtpro-codebase-reference-gap-map-v1.md`。该文档在 `MTPRO Reference Alignment & Product Gap Map v1` 的产品层对标基础上，补充分别阅读 MTPRO 与 `atxinbao/nautilus_trader` 代码后的代码级差距地图。
+
+该文档确认：
+
+- MTPRO 当前代码是 local-first SwiftPM macOS Workbench / evidence shell，核心为 `Core`、`Adapters`、`Persistence`、`Runtime`、`App` 和 `Dashboard`，以 Event Log / Replay / Projection / Read Model / ViewModel、paper-only workflow 和 read-model-only live blocked surfaces 为主。
+- `nautilus_trader` 参考代码是 production-grade event-driven trading engine，覆盖 Rust workspace、Python package、BacktestEngine、Kernel、LiveNode、ExecutionEngine、LiveExecutionEngine、RiskEngine、Portfolio、DataCatalog、多 venue adapters、examples 和 release tooling。
+- 两者代码级差距应归入 Workbench Productization Map、Data / Backtest Maturity Map、Runtime / Engine Parity Map、Release / Beta Readiness Map 和 Future Live PRO Console Boundary Map。
+- 该地图用于补现有产品 / 架构 / 成熟度地图，不生成下一阶段 Project Draft。
+
+仍不包含：
+
+- Linear Project / Issue 创建、Todo 推进或 Symphony 启动。
+- Graphify update、Figma 修改、SwiftUI implementation 或业务代码开发。
+- NautilusTrader runtime dependency 或整仓代码复制。
+- signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、submit / cancel / replace、live risk engine、reconciliation runtime、incident replay runtime、emergency stop、shutdown、restore、production operations、Live PRO Console 或实盘操作台授权。
+
+## MTPRO Paper Trading Runtime Foundation Blueprint v1
+
+日期：2026-05-25
+
+执行者：Codex
+
+当前产品 / 架构层新增 `MTPRO Paper Trading Runtime Foundation Blueprint v1`，路径为 `docs/product/mtpro-paper-trading-runtime-foundation-blueprint-v1.md`。该文档把 MTPRO 与 NautilusTrader 的代码级“交易运行时差距”收敛为 MTPRO 自己的 paper-only runtime foundation 地图。
+
+该蓝图定义：
+
+- Paper Order Lifecycle。
+- Local Order Manager / paper lifecycle coordinator。
+- Simulated Fill Model。
+- Fee / Slippage Model。
+- Paper Account Model。
+- Paper Portfolio / Position Projection。
+- Paper Pre-trade RiskEngine。
+- Deterministic Replay / Projection / Report / Dashboard Evidence。
+
+该文档包含一个非授权候选方向：`Potential Next Project Candidate: MTPRO Event-Driven Paper Trading Runtime v1`。该候选方向只说明未来可能由 `@001 / PLN` 单独输出 Project Draft 的主线，包括 TradingClock / paper runtime kernel boundary、CommandBus / EventBus deterministic routing、Paper RiskEngine runtime、Paper Order Manager / Lifecycle、Simulated Fill / Fee / Slippage model、Portfolio Projection v2 和 validation closeout。它不是 Linear Project Draft，不生成 Linear issue body，不推进 Todo，不授权 execution。
+
+仍不包含：
+
+- Linear Project / Issue 创建、Todo 推进或 Symphony 启动。
+- Graphify update、Figma 修改、SwiftUI implementation 或业务代码开发。
+- Paper runtime 实现。
+- NautilusTrader runtime dependency 或整仓代码复制。
+- signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation runtime、live risk engine、Live PRO Console、trading button、live command 或 emergency stop。
