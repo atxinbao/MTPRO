@@ -68,6 +68,7 @@
 | `docs/product/mtpro-product-surface-split-v1.md` | 产品层 surface boundary 文档，明确当前 Workbench 与未来 Live PRO Console 是两个产品面，`85:*` 只代表 Workbench dashboard |
 | `docs/product/mtpro-reference-alignment-gap-map-v1.md` | 产品层 reference alignment / gap map，对齐 `atxinbao/nautilus_trader` 后补充 Product Surface、Engineering Capability、Maturity Gap 和 Future Boundary 地图；不授权执行 |
 | `docs/product/mtpro-codebase-reference-gap-map-v1.md` | 产品层代码级 reference gap map，记录分别阅读 MTPRO 与 `nautilus_trader` 代码后的 Workbench productization、data / backtest maturity、runtime / engine parity、release readiness 和 Future Live Boundary 差距；不授权执行 |
+| `docs/product/mtpro-paper-trading-runtime-foundation-blueprint-v1.md` | 产品 / 架构层 paper-only runtime foundation 蓝图，定义 Paper Order Lifecycle、Local Order Manager / paper lifecycle coordinator、Simulated Fill、Fee / Slippage、Paper Account / Portfolio、Paper Risk 和 replay / dashboard evidence 地图；包含非授权 Event-Driven Paper Trading Runtime 候选方向，不授权执行 |
 | `docs/design/mtpro-workbench-screen-layout-v1.md` | 设计层 screen layout 依据，承接产品用户动线和交互模型，定义 macOS 工作台页面区域、信息优先级和禁止动作 |
 | `docs/design/mtpro-workbench-ui-ux-design-rules-v1.md` | 设计层 UI/UX rules 依据，承接 Screen Layout v1，定义 macOS native 工作台视觉方向、状态表达、evidence components 和禁止 UI 表面 |
 | `docs/design/mtpro-workbench-component-layout-specification-v1.md` | 设计层组件 / 布局规格依据，承接 UI/UX Design Rules v1，定义 layout primitives、evidence components、state components、partition components 和边界组件 |
@@ -297,6 +298,8 @@ MTPRO Workbench 最终应包含：
 
 `docs/product/mtpro-codebase-reference-gap-map-v1.md` 已记录分别阅读 MTPRO 与 `atxinbao/nautilus_trader` 代码后的代码级差距地图。该文档确认 MTPRO 当前代码是 local-first SwiftPM macOS Workbench / evidence shell，而参考项目是 production-grade event-driven trading engine；差距被归入 Workbench Productization、Data / Backtest Maturity、Runtime / Engine Parity、Release / Beta Readiness 和 Future Live PRO Console Boundary 五类地图。该文档只补现有地图，不创建下一阶段 Project Draft，不授权 SwiftUI implementation、Live PRO Console、broker adapter、OMS、real order lifecycle、live risk runtime、reconciliation runtime、incident replay runtime 或 production operations。
 
+`docs/product/mtpro-paper-trading-runtime-foundation-blueprint-v1.md` 已记录 `MTPRO Paper Trading Runtime Foundation Blueprint v1`。该文档把代码级交易运行时差距收敛为 paper-only runtime foundation 地图，定义 Paper Order Lifecycle、Local Order Manager / paper lifecycle coordinator、Simulated Fill Model、Fee / Slippage Model、Paper Account Model、Paper Portfolio / Position Projection、Paper Pre-trade RiskEngine、Deterministic Replay / Projection / Report / Dashboard Evidence 的产品 / 架构关系。它包含 `MTPRO Event-Driven Paper Trading Runtime v1` 的非授权候选方向，但不是 Linear Project Draft，不创建 Project / Issue，不推进 Todo，不授权 SwiftUI implementation、Live PRO Console、真实交易、signed endpoint、account endpoint / listenKey、broker adapter、`LiveExecutionAdapter`、OMS、real submit / cancel / replace、execution report、broker fill、reconciliation runtime、live risk engine、trading button 或 live command。
+
 ## Infrastructure Blueprint / 基础设施蓝图
 
 基础设施蓝图定义“地基承重和市政管线”：数据、事件、回放、投影、读模型、命令模型、审计和自动化如何支撑最终专业交易工作台。
@@ -340,6 +343,8 @@ Strategy signal
 ```
 
 当前 paper-only 能力不能被解释为真实订单、真实成交、broker fill、account update 或 Live fallback。
+
+Paper Trading Runtime Foundation 的下一层蓝图见 `docs/product/mtpro-paper-trading-runtime-foundation-blueprint-v1.md`。该蓝图只描述 paper / sandbox runtime foundation：所有本地 paper lifecycle、simulated fill、fee / slippage、paper account / portfolio / position projection 和 paper risk evidence 都必须进入 append-only Event Log，并通过 replay / projection / read model / ViewModel 进入 Report / Dashboard / Events；它不授权单笔 order-level UI 操作，不授权真实订单或 live runtime。
 
 Future live 能力：
 

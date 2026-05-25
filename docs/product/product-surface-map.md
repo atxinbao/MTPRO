@@ -993,3 +993,32 @@ v3 设计重点：
 - Graphify update、Figma 修改、SwiftUI implementation 或业务代码开发。
 - NautilusTrader runtime dependency 或整仓代码复制。
 - signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、submit / cancel / replace、live risk engine、reconciliation runtime、incident replay runtime、emergency stop、shutdown、restore、production operations、Live PRO Console 或实盘操作台授权。
+
+## MTPRO Paper Trading Runtime Foundation Blueprint v1
+
+日期：2026-05-25
+
+执行者：Codex
+
+当前产品 / 架构层新增 `MTPRO Paper Trading Runtime Foundation Blueprint v1`，路径为 `docs/product/mtpro-paper-trading-runtime-foundation-blueprint-v1.md`。该文档把 MTPRO 与 NautilusTrader 的代码级“交易运行时差距”收敛为 MTPRO 自己的 paper-only runtime foundation 地图。
+
+该蓝图定义：
+
+- Paper Order Lifecycle。
+- Local Order Manager / paper lifecycle coordinator。
+- Simulated Fill Model。
+- Fee / Slippage Model。
+- Paper Account Model。
+- Paper Portfolio / Position Projection。
+- Paper Pre-trade RiskEngine。
+- Deterministic Replay / Projection / Report / Dashboard Evidence。
+
+该文档包含一个非授权候选方向：`Potential Next Project Candidate: MTPRO Event-Driven Paper Trading Runtime v1`。该候选方向只说明未来可能由 `@001 / PLN` 单独输出 Project Draft 的主线，包括 TradingClock / paper runtime kernel boundary、CommandBus / EventBus deterministic routing、Paper RiskEngine runtime、Paper Order Manager / Lifecycle、Simulated Fill / Fee / Slippage model、Portfolio Projection v2 和 validation closeout。它不是 Linear Project Draft，不生成 Linear issue body，不推进 Todo，不授权 execution。
+
+仍不包含：
+
+- Linear Project / Issue 创建、Todo 推进或 Symphony 启动。
+- Graphify update、Figma 修改、SwiftUI implementation 或业务代码开发。
+- Paper runtime 实现。
+- NautilusTrader runtime dependency 或整仓代码复制。
+- signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation runtime、live risk engine、Live PRO Console、trading button、live command 或 emergency stop。

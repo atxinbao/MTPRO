@@ -10019,3 +10019,53 @@ Root docs 判断：
 | --- | --- | --- |
 | `git diff --check` | pass | 代码级 reference gap map docs-only edits 后执行；无 whitespace / patch error 输出。 |
 | `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 保持 read-model-only / workbenchReadModelOnly；204 个 XCTest 通过、0 failures，最终输出 `MTPRO checks passed.`。 |
+
+## MTPRO Paper Trading Runtime Foundation Blueprint v1
+
+日期：2026-05-25
+
+执行者：Codex
+
+目的：
+
+- 将 `MTPRO Paper Trading Runtime Foundation Blueprint v1` 落仓为产品 / 架构层蓝图文档。
+- 将 MTPRO 与 NautilusTrader 的代码级交易运行时差距收敛为 paper-only runtime foundation 地图。
+- 吸收 `MTPRO Event-Driven Paper Trading Runtime v1` 计划中的非授权候选方向，但不生成 Linear Project Draft。
+
+文件范围：
+
+- 新增 `docs/product/mtpro-paper-trading-runtime-foundation-blueprint-v1.md`。
+- 更新 `docs/product/product-surface-map.md`，增加 paper-only runtime foundation 地图引用。
+- 更新 `BLUEPRINT.md`，增加该蓝图来源和 Trading Capability Blueprint 引用。
+- 更新 `docs/validation/latest-verification-summary.md`，记录该蓝图已落仓且不授权 execution。
+- 更新 `verification.md`，追加本节。
+
+关键结论：
+
+- 该蓝图只定义 paper / sandbox runtime foundation，不实现 Paper runtime。
+- `Local Order Manager / paper lifecycle coordinator` 只协调本地 paper lifecycle，不是 OMS、broker router 或真实订单执行器。
+- `cancelled locally` 只能由 session close / reset、local expiry 或 deterministic local rule 派生；Workbench UI 不提供单笔 paper order cancel button，也不得解释为真实 cancel command。
+- Paper event 命名建议使用 `Paper*Local` / `Paper*Simulated` 前缀，只用于后续 contract / validation 可机械检查，不表示当前授权实现。
+- `MTPRO Event-Driven Paper Trading Runtime v1` 只作为 Potential Next Project Candidate；若 Human 后续确认，仍需由 `@001 / PLN` 单独输出 Project Draft，并经 Linear 写入和 Parent Codex queue preflight 才能进入执行。
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 `Todo`。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / `symphony-issue`。
+- 不运行 Graphify update。
+- 不修改 Figma。
+- 不写业务代码。
+- 不实现 Paper runtime。
+- 不引入 NautilusTrader 作为 runtime dependency。
+- 不复制 NautilusTrader 整仓代码。
+- 不授权 Future Live trading、Live PRO Console、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation runtime、live risk engine、trading button、live command、emergency stop、shutdown、restore 或 production operations。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Paper Trading Runtime Foundation Blueprint docs-only edits 后执行；无 whitespace / patch error 输出。 |
+| `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 保持 read-model-only / workbenchReadModelOnly；204 个 XCTest 通过、0 failures，最终输出 `MTPRO checks passed.`。 |
