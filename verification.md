@@ -10664,3 +10664,46 @@ L1 Paper Runtime maturity statement：
 | --- | --- | --- |
 | `git diff --check` | pass | Data Catalog / Scenario Replay planning record docs-only edits 后执行；新 planning record 已通过 intent-to-add 纳入检查范围，无 whitespace / patch error 输出。 |
 | `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 保持 read-model-only / workbenchReadModelOnly；223 个 XCTest 通过、0 failures，最终输出 `MTPRO checks passed.`。 |
+## MTP-103 Data Catalog / Scenario Replay terminology and boundary
+
+日期：2026-05-26
+
+执行者：Codex
+
+目的：
+
+- 完成 Linear issue `MTP-103 Define Data Catalog / Scenario Replay terminology and boundary`。
+- 定义 local data catalog / scenario replay terminology、Data Engine / State & Persistence Engine / Workbench Interface target engine boundary、local-first deterministic versioned boundary、forbidden capability baseline、source docs anchors 和 validation anchors。
+- 保持当前 issue 在术语和边界层，不实现 manifest parser、fixture data、replay cursor、report input versioning、production data platform、large-scale ingestion pipeline、signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、live runtime、live command、Graphify 或 Figma 变更。
+
+文件范围：
+
+- 新增 `Sources/Core/DataCatalogScenarioReplayBoundary.swift`。
+- 更新 `Sources/Core/CoreError.swift`，新增 Data Catalog / Scenario Replay contract mismatch 和 forbidden capability error case。
+- 更新 `Tests/CoreTests/CoreTests.swift`，新增 3 个 MTP-103 focused Core tests。
+- 新增 `docs/contracts/data-catalog-scenario-replay-contract.md`。
+- 更新 `docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh`。
+- 更新本 append-only `verification.md`。
+
+关键证据：
+
+- `DataCatalogScenarioReplayBoundary.deterministicFixture` 固定 MTP-103 terminology、target engines、boundary principles、forbidden capabilities、allowed evidence kinds、source docs anchors 和 validation anchors。
+- `DataCatalogScenarioReplayBoundary` 保持 `isLocalFirst`、`isDeterministic`、`isVersioned` 和 `exposesReadModelOnlySurface` 为 true。
+- `DataCatalogScenarioReplayBoundary` 对 manifest parser、fixture data、replay cursor、report input versioning、Simulated Exchange / Backtest Parity runtime、secret、signed endpoint、account endpoint、listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、live runtime、live command、trading button、production data platform、large-scale ingestion pipeline、real network download、Graphify update 和 Figma change 的 flags 全部为 false，并通过初始化和 Codable 解码拒绝绕过。
+- `TVM-DATA-CATALOG-SCENARIO-REPLAY` 已回填到 trading validation matrix。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP103` | pass | 执行 3 个 Core tests，0 failures；覆盖 terminology / boundary anchors、forbidden capability bypass rejection、Codable decode bypass rejection 和 local-first read-model-only target engine boundary。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；机械检查 MTP-103 contract、domain context、validation plan、matrix、latest summary、Core source 和 focused tests anchors。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 226 个 XCTest；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`，最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不修改 Linear status。
+- 不启动 Symphony / Graphify。
+- 不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 manifest parser、fixture data、replay cursor、report input versioning、production data platform、large-scale ingestion pipeline、signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、real account / broker position read、live runtime、live command、trading button 或 Live PRO Console。
