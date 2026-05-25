@@ -10838,3 +10838,48 @@ L1 Paper Runtime maturity statement：
 - 不修改 Figma。
 - 不提交 `.codex/*` 或 `graphify-out/*`。
 - 不实现 manifest file parser、data quality gate runtime、report input versioning runtime、multi-symbol / multi-timeframe catalog、production dataset registry、production data platform、cloud data lake、large-scale ingestion pipeline、真实历史下载器、production scheduler、production retention cleanup、cloud archive、storage tiering、database schema exposure、adapter request exposure、signed endpoint、account endpoint / listenKey、secret、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、real account / broker position read、live runtime、order command、live command、trading button 或 Live PRO Console。
+
+---
+
+## 2026-05-26 — MTP-107 Data Quality Gates / Report Input Versioning
+
+执行者：Codex
+
+目的：
+
+- 完成 Linear issue `MTP-107 Add data quality gates and report input versioning`。
+- 基于 MTP-106 replay evidence 定义 scenario replay data quality gates 和 stable report input versioning。
+- 让 Report / Backtest / future Simulated Exchange 能追溯 scenario id、dataset version、fixture version、replay window、checksum、freshness status 和 quality verdict，但不实现 Simulated Exchange / Backtest Parity runtime。
+
+文件范围：
+
+- 新增 `Sources/Core/ScenarioDataQualityReportInput.swift`。
+- 更新 `Tests/CoreTests/CoreTests.swift`，新增 4 个 MTP-107 focused Core tests。
+- 更新 `docs/contracts/data-catalog-scenario-replay-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh`。
+- 更新本 append-only `verification.md`。
+
+关键证据：
+
+- `ScenarioDataQualityGateKind` 固定 record order、window coverage、checksum match、freshness status、missing data、duplicate data 六个最小 gate。
+- `ScenarioDataQualityGateEvaluation` 默认消费 `ScenarioReplayEvidence.deterministicFixture`，默认全部 gates `passed` 且整体 `qualityVerdict == accepted`。
+- bad record order、checksum mismatch、missing data、duplicate data 会产生 `qualityVerdict == rejected`；stale freshness 会产生 `qualityVerdict == marked`；expired freshness 会产生 `qualityVerdict == rejected`。
+- `ScenarioReportInputVersion` 固定 scenario id、dataset version、fixture version、symbol、timeframe、replay window、checksum、freshness status、quality verdict、quality summary 和 canonical field order。
+- `ScenarioDataQualityReportInputEvidence` 把 MTP-106 replay evidence、MTP-107 quality evaluation 和 report input version 绑定到同一 deterministic identity，并保持 `reportReproducibilityEvidenceHeld == true`。
+- required validation network dependency、production data platform、production data observability、automatic download、automatic repair、broker / account reconciliation、Simulated Exchange / Backtest Parity implementation、database schema exposure、adapter request exposure、Runtime object read、secret、signed endpoint、account endpoint、listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、live runtime、live command 和 trading button flags 全部为 false，并通过初始化和 Codable 解码拒绝绕过。
+- `TVM-DATA-CATALOG-SCENARIO-REPLAY` 已回填 MTP-107 issue evidence。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP107` | pass | 执行 4 个 Core tests，0 failures；覆盖 gate taxonomy、accepted verdict、report input version tracing、bad fixture / checksum mismatch / missing / duplicate data rejection、stale marking、expired rejection、forbidden capability bypass rejection 和 Codable decode bypass rejection。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；机械检查 MTP-107 contract、domain context、validation plan、matrix、latest summary、Core source 和 focused test anchors。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 241 个 XCTest；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`，最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不修改 Linear status。
+- 不启动 Symphony / Graphify。
+- 不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 manifest file parser、production data quality platform、production data observability、automatic download、automatic repair、broker / account reconciliation、Simulated Exchange / Backtest Parity runtime、multi-symbol / multi-timeframe catalog、production dataset registry、production data platform、cloud data lake、large-scale ingestion pipeline、真实历史下载器、production scheduler、production retention cleanup、cloud archive、storage tiering、database schema exposure、adapter request exposure、Runtime object read、signed endpoint、account endpoint / listenKey、secret、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、real account / broker position read、live runtime、order command、live command、trading button 或 Live PRO Console。

@@ -2134,3 +2134,44 @@ MTP-106 必须建立的主要 anchors：
 - 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position read、live runtime、live command、order form、Live PRO Console 或交易按钮。
 - 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进下一 issue。
+
+## MTP-107 Data Quality Gates / Report Input Versioning Validation
+
+日期：2026-05-26
+
+执行者：Codex
+
+MTP-107 的 required validation：
+
+- `docs/contracts/data-catalog-scenario-replay-contract.md` 必须包含 `MTP-107-DATA-QUALITY-GATE-TAXONOMY`、`MTP-107-MINIMAL-DATA-QUALITY-GATES`、`MTP-107-REPORT-INPUT-VERSIONING`、`MTP-107-REPORT-REPRODUCIBILITY-EVIDENCE`、`MTP-107-NO-PRODUCTION-LIVE-BROKER-DATA-PLATFORM` 和 `MTP-107-DATA-QUALITY-REPORT-INPUT-VALIDATION` anchors。
+- `Sources/Core/ScenarioDataQualityReportInput.swift` 必须定义 `ScenarioDataQualityGateKind`、`ScenarioDataQualityGateVerdict`、`ScenarioDataQualityVerdict`、`ScenarioDataQualityGateEvaluation`、`ScenarioReportInputVersion` 和 `ScenarioDataQualityReportInputEvidence.deterministicFixture`。
+- `ScenarioDataQualityGateEvaluation` 必须消费 MTP-106 `ScenarioReplayEvidence`，并固定 record order、window coverage、checksum match、freshness status、missing data 和 duplicate data 六个最小 gates。
+- 默认 deterministic fixture 必须全部 passed，整体 `qualityVerdict == accepted`；checksum mismatch、bad record order、missing data 和 duplicate data 必须 rejected；stale freshness 必须 marked；expired freshness 必须 rejected。
+- `ScenarioReportInputVersion` 必须复制 scenario id、dataset version、fixture version、symbol、timeframe、replay window、checksum、freshness status、quality verdict 和 quality summary，并固定 canonical field order。
+- Report input versioning 必须保持 stable contract，不暴露 SQLite / DuckDB schema、adapter request 或 Runtime object。
+- `ScenarioDataQualityReportInputEvidence` 必须把 replay evidence、quality evaluation 和 report input version 绑定到同一 deterministic identity，并保持 `reportReproducibilityEvidenceHeld == true`。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-107 focused tests，验证 gate taxonomy、deterministic accepted verdict、report input version tracing、bad fixture / checksum mismatch / missing / duplicate data rejection、stale marking、expired rejection、forbidden capability bypass rejection 和 Codable decode bypass rejection。
+- `docs/domain/context.md` 必须包含 `MTP-107-DATA-QUALITY-GATE-TAXONOMY`、`MTP-107-REPORT-INPUT-VERSIONING` 和 `MTP-107-NO-PRODUCTION-LIVE-BROKER-DATA-PLATFORM`。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-107 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-107 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-107 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不运行 Graphify，不修改 Figma，不实现 production data platform、production data observability、automatic download / repair、broker / account reconciliation、Simulated Exchange / Backtest Parity runtime、signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、live runtime、live command 或交易按钮。
+
+MTP-107 必须建立的主要 anchors：
+
+- `TVM-DATA-CATALOG-SCENARIO-REPLAY`
+- `MTP-107-DATA-QUALITY-GATE-TAXONOMY`
+- `MTP-107-MINIMAL-DATA-QUALITY-GATES`
+- `MTP-107-REPORT-INPUT-VERSIONING`
+- `MTP-107-REPORT-REPRODUCIBILITY-EVIDENCE`
+- `MTP-107-NO-PRODUCTION-LIVE-BROKER-DATA-PLATFORM`
+- `MTP-107-DATA-QUALITY-REPORT-INPUT-VALIDATION`
+
+## MTP-107 禁止
+
+- 不实现 manifest file parser、production data quality platform、production data observability、automatic download、automatic repair、broker / account reconciliation 或 Simulated Exchange / Backtest Parity runtime。
+- 不新增 multi-symbol / multi-timeframe catalog、production dataset registry、production data platform、cloud data lake、large-scale ingestion pipeline、真实历史下载器、production scheduler、production retention cleanup、cloud archive 或 storage tiering。
+- 不暴露 SQLite / DuckDB schema、adapter request、Runtime object、database console 或 UI command surface。
+- 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position read、live runtime、live command、order form、Live PRO Console 或交易按钮。
+- 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进下一 issue。
