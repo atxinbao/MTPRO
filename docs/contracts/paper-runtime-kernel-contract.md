@@ -513,3 +513,87 @@ Matrix anchor：`TVM-PAPER-RUNTIME-KERNEL`。
 - 不实现 OMS、broker router、真实 order lifecycle、真实 submit / cancel / replace、Live PRO Console、live command、order form 或交易按钮。
 - 不读取 secret、API key、signed endpoint、account endpoint、listenKey、broker state、真实账户或 production runtime。
 - 不修改 Linear status，不创建下一 Project / Issue，不启动下一阶段 `symphony-issue`。
+
+## MTP-102 Event Log / Replay / Report / Dashboard Evidence Stage Closeout
+
+MTP-102 在 MTP-96 至 MTP-101 已落地的 paper runtime kernel、routing、paper risk、local lifecycle、
+simulated fill、fee / slippage 和 paper account / portfolio / position projection v2 之上，只做 evidence
+chain 收口：
+
+- Event Log / Replay 必须能串联 `.risk.evaluationRequested`、`.paper.orderLocalLifecycleTransitionRecorded`、
+  `.paper.simulatedFillRecorded` 和 `.portfolio.paperAccountPortfolioProjectionUpdated` facts。
+- `ReportViewModel` 必须展示 paper runtime replay、local lifecycle transition、paper risk decision、
+  simulated fill、fee / slippage / cost impact、paper account、position、paper PnL 和 portfolio projection evidence。
+- `DashboardShellSnapshot.smokeSummary` 必须包含 paper runtime evidence、paper workflow evidence 和 paper
+  portfolio impact 的稳定 smoke handles。
+- `PaperWorkflowEvidenceExplorerViewModel` / Event Timeline 必须展示 local lifecycle transition、simulated fill
+  和 paper account portfolio projection 的完整 sequence。
+- Stage closeout 只生成 Parent Codex Stage Code Audit 输入材料，不生成最终 Stage Code Audit Report。
+
+## MTP-102-EVENTLOG-REPLAY-PROJECTION-EVIDENCE-CLOSEOUT
+
+Closeout evidence 必须从 append-only replay facts 派生：risk evaluation、local lifecycle transition、simulated
+fill 和 account portfolio projection 均保留 source sequence / source fill ID / snapshot ID。不得从 Runtime
+object、Persistence schema、adapter request、broker state、真实账户或外部系统补齐链路。
+
+## MTP-102-REPORT-DASHBOARD-PAPER-RUNTIME-EVIDENCE
+
+Report / Dashboard 只能消费 `DashboardReadModel`、`ReportReadModel` 和 ViewModel。允许展示的新增字段仅限
+paper evidence：lifecycle transition IDs、decision IDs、paper order IDs、simulated fill IDs、account portfolio
+snapshot IDs、gross notional、fee、slippage、cost impact、paper account IDs、position count 和 paper PnL。
+
+## MTP-102-EVENT-TIMELINE-COMPLETE-SEQUENCE
+
+Event Timeline 必须把 local lifecycle transition 作为 `Paper local lifecycle transition` 只读 item 显示，
+并继续显示 `Simulated fill evidence` 和 `Paper account portfolio projection`。这些 item 只提供 evidence
+link，不提供 command、order form、cancel / replace、position command、Live PRO Console 或 trading button。
+
+## MTP-102-STAGE-AUDIT-INPUT-MATERIAL
+
+MTP-102 必须新增 `docs/audit/inputs/mtpro-event-driven-paper-trading-runtime-v1-stage-audit-input.md`，记录：
+
+- Linear queue evidence。
+- MTP-96 至 MTP-101 已合并 PR / required checks evidence。
+- `TVM-PAPER-RUNTIME-KERNEL`、`TVM-REPORT-EVIDENCE` 和 `TVM-PAPER-WORKFLOW-CONTROL-SHELL` evidence chain。
+- forbidden capability evidence。
+- read-model-only boundary evidence。
+- validation evidence 和 Parent Codex Stage Code Audit handoff checklist。
+
+## MTP-102-NO-FINAL-STAGE-CODE-AUDIT
+
+MTP-102 不输出最终 Stage Code Audit Report，不设置 Linear Project `Completed`，不创建下一 Project / Issue，
+不推进下一 issue，不启动下一阶段 `symphony-issue`，不修改 Linear status，不运行 Graphify full rebuild。
+
+## MTP-102-PAPER-RUNTIME-STAGE-CLOSEOUT-VALIDATION
+
+Validation 必须覆盖：
+
+- `Tests/AppTests/AppTests.swift` 中的 `testMTP102PaperRuntimeEvidenceChainFeedsReportDashboardAndEventTimeline`。
+- Report / Dashboard / Event Timeline 的 paper runtime evidence chain。
+- Dashboard smoke 中的 `paperRuntimeEvidence`、`paperWorkflowEvidence` 和 `paperPortfolioImpact`。
+- `docs/validation/trading-validation-matrix.md` 的 MTP-102 issue backfill。
+- `docs/validation/validation-plan.md`、`docs/validation/latest-verification-summary.md` 和 automation readiness anchors。
+- `bash checks/run.sh` 仍是最终 gate。
+
+Core / App anchors：
+
+- `Sources/App/App.swift`
+  - `paperExecutionWorkflowLocalLifecycleTransitionIDs`
+  - `paperExecutionWorkflowAccountPortfolioSnapshotIDs`
+  - `paperExecutionWorkflowSimulatedFillCostImpactAmount`
+- `Sources/App/PaperWorkflowEvidenceExplorer.swift`
+  - `Paper local lifecycle transition`
+- `Sources/App/DashboardShell.swift`
+  - `paperRuntimeEvidence`
+  - `paperWorkflowEvidence`
+  - `paperPortfolioImpact`
+
+Matrix anchor：`TVM-PAPER-RUNTIME-KERNEL`。
+
+## MTP-102 后仍禁止
+
+- 不实现 final Stage Code Audit Report、Project closure、Root Docs Refresh Gate 或下一阶段计划。
+- 不新增 live command、order form、order-level command UI、position command、Live PRO Console、stop button 或交易按钮。
+- 不实现 OMS、broker router、真实 order lifecycle、真实 submit / cancel / replace、execution report、broker fill、reconciliation、real account update、live risk runtime 或 production runtime。
+- 不读取 secret、API key、signed endpoint、account endpoint、listenKey、broker state、真实账户、broker position、margin、leverage、真实 PnL 或 equity。
+- 不修改 Linear status，不创建下一 Project / Issue，不启动下一阶段 `symphony-issue`。

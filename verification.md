@@ -10499,3 +10499,49 @@ Root docs 判断：
 | `swift test --filter MTP101` | pass | 3 个 MTP-101 focused tests 通过，0 failures；覆盖 replayed simulated fill -> account / portfolio / position / exposure / PnL projection deterministic、Codable forbidden capability bypass rejection，以及 Report / Dashboard / Risk / Portfolio read model consumption。 |
 | `bash checks/automation-readiness.sh` | pass | MTP-101 contract / matrix / validation plan / domain context / latest summary / Core/App source / focused test anchors 均通过机械检查。 |
 | `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；Swift tests 222 个通过、0 failures；最终输出 `MTPRO checks passed.`。 |
+
+## MTP-102 Event Log / Replay / Report / Dashboard Evidence Stage Closeout
+
+日期：2026-05-26
+
+执行者：Codex
+
+目的：
+
+- 串联 MTP-96 至 MTP-101 已落地的 paper runtime kernel、bus routing、paper risk、local lifecycle、simulated fill、fee / slippage 和 paper account / portfolio / position projection v2 evidence。
+- 将 risk -> local lifecycle -> simulated fill -> account portfolio projection 的 append-only replay chain 暴露给 Report / Dashboard / Event Timeline 只读 surfaces。
+- 生成 Parent Codex Stage Code Audit 输入材料；不输出最终 Stage Code Audit Report，不推进下一 Project / Issue。
+
+文件范围：
+
+- 更新 `Sources/App/App.swift`，让 `PaperExecutionWorkflowEvidenceSummary` / `ReportViewModel` 汇总 local lifecycle transition IDs、paper risk decision IDs、paper order IDs、simulated fill IDs、account portfolio snapshot IDs、gross notional、fee、slippage、cost impact、paper account、position 和 paper PnL evidence。
+- 更新 `Sources/App/PaperWorkflowEvidenceExplorer.swift`，将 `.paper.orderLocalLifecycleTransitionRecorded` 映射为 `Paper local lifecycle transition` Event Timeline item。
+- 更新 `Sources/App/DashboardShell.swift`，在 Report metrics / details 和 Dashboard smoke 中输出 `paperRuntimeEvidence`、`paperWorkflowEvidence` 和 `paperPortfolioImpact` handles。
+- 更新 `Tests/AppTests/AppTests.swift`，新增 `testMTP102PaperRuntimeEvidenceChainFeedsReportDashboardAndEventTimeline`。
+- 新增 `docs/audit/inputs/mtpro-event-driven-paper-trading-runtime-v1-stage-audit-input.md`。
+- 更新 `docs/contracts/paper-runtime-kernel-contract.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`。
+- 更新 `.codex/*` 作为本地 handoff evidence，不进入 PR。
+
+关键结论：
+
+- MTP-102 evidence 全部来自 append-only Event Log / Replay 和 read model / ViewModel。
+- Report / Dashboard / Event Timeline 可以展示 local lifecycle、simulated fill、fee / slippage / cost impact、account portfolio snapshot 和 paper PnL evidence，但不提供 command surface。
+- Stage audit input 只准备 Parent Codex 审计材料，不替代最终 Stage Code Audit Report。
+
+边界确认：
+
+- 不修改 Linear status。
+- 不启动下一阶段 `symphony-issue`。
+- 不读取 secrets / credentials。
+- 不接 signed endpoint、account endpoint、listenKey。
+- 不连接 broker，不执行 broker action。
+- 不实现 final Stage Code Audit Report、Project closure、Root Docs Refresh Gate、OMS、broker router、真实 order lifecycle、真实 submit / cancel / replace、execution report、broker fill、reconciliation、real account update、Live PRO Console、live command、order form、position command、stop button 或交易按钮。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP102` | pass | 1 个 App focused test 通过，0 failures；覆盖 risk -> local lifecycle -> simulated fill -> account portfolio projection deterministic replay chain、Report / Dashboard / Event Timeline read-model-only evidence 和 no live / broker / trading authorization flags。 |
+| `bash checks/automation-readiness.sh` | pass | MTP-102 stage audit input、contract、matrix、validation plan、latest summary、source / test anchors 和 Dashboard smoke handles 均通过机械检查，输出 `MTPRO automation readiness checks passed.`。 |
+| `bash checks/run.sh` | pass | 串联 `git diff --check`、automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`；Swift tests 223 个通过、0 failures；最终输出 `MTPRO checks passed.`。 |
