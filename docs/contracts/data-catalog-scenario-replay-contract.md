@@ -4,9 +4,9 @@
 
 执行者：Codex
 
-本文档定义 `MTPRO Data Catalog / Scenario Replay v1` 的 Data Catalog / Scenario Replay terminology、目标引擎职责、local-first deterministic versioned boundary、forbidden capability baseline、source docs anchors 和 validation anchors。
+本文档定义 `MTPRO Data Catalog / Scenario Replay v1` 的 Data Catalog / Scenario Replay terminology、目标引擎职责、local-first deterministic versioned boundary、scenario manifest / scenario id / dataset version contract、forbidden capability baseline、source docs anchors 和 validation anchors。
 
-本文档只服务当前 Linear issue `MTP-103` 的术语和边界合同；它不实现 scenario manifest parser，不新增 fixture 数据，不实现 replay cursor，不实现 report input versioning，不新增 production data platform，不做 large-scale ingestion pipeline，不接 signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、live runtime、live command、trading button，不运行 Graphify，不修改 Figma。
+本文档服务 `MTP-103` 的术语 / 边界合同和 `MTP-104` 的 scenario manifest 输入身份合同；它不实现 manifest file parser，不新增 fixture 数据，不实现 replay cursor，不实现 report input versioning，不新增 production data platform，不做 large-scale ingestion pipeline，不接 signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、live runtime、live command、trading button，不运行 Graphify，不修改 Figma。
 
 ## MTP-103 Data Catalog / Scenario Replay terminology
 
@@ -137,3 +137,107 @@ Validation anchors：
 - `TVM-DATA-CATALOG-SCENARIO-REPLAY`
 
 MTP-103 不新增 Dashboard smoke handle，不新增 App read model，不新增 stage audit input；Project stage closeout 仍归属 `MTP-109`。
+
+## MTP-104 scenario manifest / scenario id / dataset version contract
+
+`MTP-104-SCENARIO-MANIFEST-MINIMAL-FIELDS`
+
+MTP-104 在 MTP-103 terminology / boundary 基础上建立最小 scenario manifest 输入身份合同。当前 manifest 只允许以下字段：
+
+| 字段 | 当前含义 | 禁止混用 |
+| --- | --- | --- |
+| `scenario id` | local-first scenario replay 的稳定场景标识 | 不等于 database primary key、runtime job id、broker order id 或真实订单 id |
+| `dataset version` | 本地 replay 输入数据版本 | 不等于 production dataset registry、cloud data lake version 或外部 catalog service version |
+| `symbol` | first scenario 的单一 Core `Symbol` | 不等于 multi-symbol catalog 或 production market universe |
+| `timeframe` | first scenario 的单一 Core `Timeframe` | 不等于 multi-timeframe catalog 或 historical downloader policy |
+| `source anchor` | contract / fixture / report input 可追溯锚点 | 不等于 database schema、adapter request、Runtime object 或 broker payload |
+| `scope` | `single-symbol / single-timeframe` | 不授权多 symbol / 多 timeframe catalog |
+
+Core deterministic fixture：`ScenarioManifest.deterministicFixture`。
+
+Focused Core tests：
+
+- `testMTP104ScenarioManifestDefinesIdentityVersionAndSerialization`
+- `testMTP104ScenarioManifestRejectsMultiSymbolAndLiveBypass`
+- `testMTP104ScenarioManifestRoundTripsAsStableSourceIdentity`
+
+## MTP-104 scenario id / dataset version stable identity
+
+`MTP-104-SCENARIO-ID-DATASET-VERSION-STABLE-IDENTITY`
+
+MTP-104 固定 `ScenarioID` 和 `DatasetVersion` 为独立 Core value object。二者复用 `Identifier` 的非空校验，但用不同类型表达语义边界：
+
+- `ScenarioID` 只标识本地 replay scenario，不代表 database primary key、runtime job id、broker order id 或真实订单 id。
+- `DatasetVersion` 只标识本地 replay 输入版本，不代表 production dataset registry、cloud data lake version 或外部 catalog service version。
+- `ScenarioManifest` 必须同时携带 `scenarioID`、`datasetVersion`、`symbol`、`timeframe` 和 `sourceAnchor`，使后续 fixture / replay / report input 能引用同一稳定 source。
+
+## MTP-104 single-symbol / single-timeframe manifest
+
+`MTP-104-SINGLE-SYMBOL-SINGLE-TIMEFRAME-MANIFEST`
+
+MTP-104 的 first scenario manifest scope 只能是 `single-symbol / single-timeframe`：
+
+- `ScenarioManifest.scope == .singleSymbolSingleTimeframe`。
+- `ScenarioManifest.usesMultipleSymbols == false`。
+- `ScenarioManifest.usesMultipleTimeframes == false`。
+- 多 symbol / 多 timeframe catalog 仍归后续独立 issue 或 Project，不得从 manifest 合同偷渡。
+
+## MTP-104 manifest deterministic serialization
+
+`MTP-104-MANIFEST-DETERMINISTIC-SERIALIZATION`
+
+`ScenarioManifest.deterministicSerialization` 固定以下 canonical field order：
+
+```text
+scenarioID
+datasetVersion
+symbol
+timeframe
+sourceAnchor
+scope
+```
+
+`ScenarioManifestDeterministicSerialization.sourceIdentity` 以 deterministic field order 生成稳定 identity string，供后续 fixture、replay、quality gate、report input versioning 和 read-model evidence 消费。该 serialization evidence 不读取文件、不计算 checksum、不解析 manifest 文件、不暴露 persistence schema、adapter request 或 Runtime object。
+
+## MTP-104 manifest no schema / adapter / live capability
+
+`MTP-104-MANIFEST-NO-SCHEMA-ADAPTER-LIVE-CAPABILITY`
+
+`ScenarioManifest` 初始化和 Codable 解码必须拒绝以下绕过：
+
+- database schema exposure。
+- adapter request exposure。
+- secret read。
+- signed endpoint。
+- account endpoint。
+- listenKey。
+- broker integration。
+- order command。
+- live runtime。
+- production dataset registry。
+- real network download。
+- multi-symbol catalog。
+- multi-timeframe catalog。
+
+对应 Boolean flags 必须全部保持 `false`；任何初始化或 Codable payload 试图打开这些能力都必须抛出 `CoreError.dataCatalogScenarioReplayForbiddenCapability`。
+
+## MTP-104 validation anchors
+
+`MTP-104-SCENARIO-MANIFEST-VALIDATION`
+
+Required validation：
+
+- `swift test --filter MTP104`
+- `bash checks/run.sh`
+
+Validation anchors：
+
+- `MTP-104-SCENARIO-MANIFEST-MINIMAL-FIELDS`
+- `MTP-104-SCENARIO-ID-DATASET-VERSION-STABLE-IDENTITY`
+- `MTP-104-SINGLE-SYMBOL-SINGLE-TIMEFRAME-MANIFEST`
+- `MTP-104-MANIFEST-DETERMINISTIC-SERIALIZATION`
+- `MTP-104-MANIFEST-NO-SCHEMA-ADAPTER-LIVE-CAPABILITY`
+- `MTP-104-SCENARIO-MANIFEST-VALIDATION`
+- `TVM-DATA-CATALOG-SCENARIO-REPLAY`
+
+MTP-104 不新增 fixture data、不实现 replay cursor、不实现 report input versioning runtime、不新增 App read model、不新增 Dashboard smoke handle、不新增 stage audit input；Project stage closeout 仍归属 `MTP-109`。

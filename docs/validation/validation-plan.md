@@ -2014,3 +2014,42 @@ MTP-103 必须建立的主要 anchors：
 - 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position read、live runtime、live command、order form、Live PRO Console 或交易按钮。
 - 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进下一 issue。
+
+## MTP-104 Scenario Manifest / Scenario ID / Dataset Version Contract Validation
+
+日期：2026-05-26
+
+执行者：Codex
+
+MTP-104 的 required validation：
+
+- `docs/contracts/data-catalog-scenario-replay-contract.md` 必须包含 `MTP-104-SCENARIO-MANIFEST-MINIMAL-FIELDS`、`MTP-104-SCENARIO-ID-DATASET-VERSION-STABLE-IDENTITY`、`MTP-104-SINGLE-SYMBOL-SINGLE-TIMEFRAME-MANIFEST`、`MTP-104-MANIFEST-DETERMINISTIC-SERIALIZATION`、`MTP-104-MANIFEST-NO-SCHEMA-ADAPTER-LIVE-CAPABILITY` 和 `MTP-104-SCENARIO-MANIFEST-VALIDATION` anchors。
+- `Sources/Core/ScenarioManifest.swift` 必须定义 `ScenarioID`、`DatasetVersion`、`ScenarioManifestScope`、`ScenarioManifestDeterministicSerialization` 和 `ScenarioManifest.deterministicFixture`。
+- `ScenarioManifest` 必须固定 `scenarioID`、`datasetVersion`、`symbol`、`timeframe`、`sourceAnchor` 和 `single-symbol / single-timeframe` scope。
+- `ScenarioManifest.deterministicSerialization` 必须固定 canonical field order，并生成可比较的 stable source identity。
+- Manifest fixture 必须保持 database schema exposure、adapter request exposure、secret、signed endpoint、account endpoint、listenKey、broker、order command、live runtime、production dataset registry、real network download、multi-symbol catalog 和 multi-timeframe catalog flags 全部为 false。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-104 focused tests，验证 manifest 最小字段、scenario id / dataset version stable identity、single-symbol / single-timeframe scope、deterministic serialization / equality evidence、forbidden capability bypass rejection 和 Codable decode bypass rejection。
+- `docs/domain/context.md` 必须包含 `MTP-104-SCENARIO-MANIFEST-MINIMAL-FIELDS` 和 `MTP-104-MANIFEST-NO-SCHEMA-ADAPTER-LIVE-CAPABILITY`。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-104 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-104 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-104 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不运行 Graphify，不修改 Figma，不实现 fixture data、replay cursor、report input versioning runtime、production dataset registry、large-scale ingestion pipeline、signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、live runtime、live command 或交易按钮。
+
+MTP-104 必须建立的主要 anchors：
+
+- `TVM-DATA-CATALOG-SCENARIO-REPLAY`
+- `MTP-104-SCENARIO-MANIFEST-MINIMAL-FIELDS`
+- `MTP-104-SCENARIO-ID-DATASET-VERSION-STABLE-IDENTITY`
+- `MTP-104-SINGLE-SYMBOL-SINGLE-TIMEFRAME-MANIFEST`
+- `MTP-104-MANIFEST-DETERMINISTIC-SERIALIZATION`
+- `MTP-104-MANIFEST-NO-SCHEMA-ADAPTER-LIVE-CAPABILITY`
+- `MTP-104-SCENARIO-MANIFEST-VALIDATION`
+
+## MTP-104 禁止
+
+- 不实现 manifest file parser、fixture data、replay cursor、checksum calculation runtime、freshness evidence runtime、data quality gate runtime 或 report input versioning runtime。
+- 不新增 multi-symbol / multi-timeframe catalog、production dataset registry、production data platform、cloud data lake、large-scale ingestion pipeline、真实历史下载器或 production retention cleanup。
+- 不暴露 SQLite / DuckDB schema、adapter request、Runtime object、database console 或 UI command surface。
+- 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position read、live runtime、live command、order form、Live PRO Console 或交易按钮。
+- 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进下一 issue。

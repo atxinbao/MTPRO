@@ -10707,3 +10707,46 @@ L1 Paper Runtime maturity statement：
 - 不修改 Figma。
 - 不提交 `.codex/*` 或 `graphify-out/*`。
 - 不实现 manifest parser、fixture data、replay cursor、report input versioning、production data platform、large-scale ingestion pipeline、signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、real account / broker position read、live runtime、live command、trading button 或 Live PRO Console。
+
+---
+
+## 2026-05-26 — MTP-104 Scenario Manifest / Scenario ID / Dataset Version Contract
+
+执行者：Codex
+
+目的：
+
+- 完成 Linear issue `MTP-104 Add scenario manifest / scenario id / dataset version contract`。
+- 定义 scenario manifest 最小字段、scenario id / dataset version stable identity、single-symbol / single-timeframe first scenario manifest、deterministic serialization / equality evidence 和 manifest forbidden capability boundary。
+- 保持当前 issue 在 Core contract 层，不实现 manifest file parser、fixture data、replay cursor、report input versioning runtime、production dataset registry、large-scale ingestion pipeline、signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、live runtime、order command、Graphify 或 Figma 变更。
+
+文件范围：
+
+- 新增 `Sources/Core/ScenarioManifest.swift`。
+- 更新 `Tests/CoreTests/CoreTests.swift`，新增 3 个 MTP-104 focused Core tests。
+- 更新 `docs/contracts/data-catalog-scenario-replay-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh`。
+- 更新本 append-only `verification.md`。
+
+关键证据：
+
+- `ScenarioID` 和 `DatasetVersion` 复用 `Identifier` 非空校验，但用独立类型表达本地 scenario replay 输入身份，避免混用 database primary key、runtime job id、broker order id、production dataset registry 或 cloud data lake version。
+- `ScenarioManifest.deterministicFixture` 固定 `scenarioID=mtp-104-btcusdt-1m-first-scenario`、`datasetVersion=dataset-v1`、`symbol=BTCUSDT`、`timeframe=1m`、`sourceAnchor=MTP-104-SCENARIO-MANIFEST-MINIMAL-FIELDS` 和 `scope=single-symbol / single-timeframe`。
+- `ScenarioManifestDeterministicSerialization` 固定 canonical field order：`scenarioID`、`datasetVersion`、`symbol`、`timeframe`、`sourceAnchor`、`scope`，并生成 stable `sourceIdentity`。
+- `ScenarioManifest` 对 database schema exposure、adapter request exposure、secret、signed endpoint、account endpoint、listenKey、broker、order command、live runtime、production dataset registry、real network download、multi-symbol catalog 和 multi-timeframe catalog flags 全部保持 false，并通过初始化和 Codable 解码拒绝绕过。
+- `TVM-DATA-CATALOG-SCENARIO-REPLAY` 已回填 MTP-104 issue evidence。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP104` | pass | 执行 3 个 Core tests，0 failures；覆盖 manifest 最小字段、scenario id / dataset version stable identity、single-symbol / single-timeframe scope、deterministic serialization / equality evidence、forbidden capability bypass rejection 和 Codable decode bypass rejection。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；机械检查 MTP-104 contract、domain context、validation plan、matrix、latest summary、Core source 和 focused test anchors。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 229 个 XCTest；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`，最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不修改 Linear status。
+- 不启动 Symphony / Graphify。
+- 不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 manifest file parser、fixture data、replay cursor、report input versioning runtime、multi-symbol / multi-timeframe catalog、production dataset registry、production data platform、large-scale ingestion pipeline、真实历史下载器、database schema exposure、adapter request exposure、signed endpoint、account endpoint / listenKey、secret、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、real account / broker position read、live runtime、order command、live command、trading button 或 Live PRO Console。

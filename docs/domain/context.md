@@ -463,6 +463,22 @@ MTP-94 的 validation anchor 由 `LiveIncidentStopBlockedEvidence`、`LiveIncide
 
 MTP-103 的 forbidden baseline 必须覆盖 signed endpoint、account endpoint、listenKey、secret read、broker integration、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position read、live runtime、live command、trading button、production data platform、large-scale ingestion pipeline、real network download、Graphify update 和 Figma change。
 
+`MTP-104-SCENARIO-MANIFEST-MINIMAL-FIELDS`
+
+MTP-104 把 `scenario manifest` 从术语推进为 Core value contract，但仍只表达本地输入身份，不解析 manifest 文件，不新增 fixture data，也不实现 replay cursor。最小字段为 `scenario id`、`dataset version`、`symbol`、`timeframe`、`source anchor` 和 `single-symbol / single-timeframe` scope。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `ScenarioID` | 本地 scenario replay 的稳定场景标识 | 不等于 database primary key、runtime job id、broker order id 或真实订单 id |
+| `DatasetVersion` | 本地 replay 输入数据版本 | 不等于 production dataset registry、cloud data lake version 或外部 catalog service version |
+| `ScenarioManifest` | 绑定 scenario id、dataset version、symbol、timeframe、source anchor 和 scope 的 Core 输入身份合同 | 不等于 manifest parser、fixture data、production catalog service 或 report UI |
+| `ScenarioManifestDeterministicSerialization` | 固定字段顺序的 deterministic serialization evidence | 不计算 checksum，不暴露 SQLite / DuckDB schema、adapter payload 或 Runtime object |
+| `single-symbol / single-timeframe` | MTP-104 first scenario 的唯一允许 scope | 不授权 multi-symbol / multi-timeframe catalog |
+
+`MTP-104-MANIFEST-NO-SCHEMA-ADAPTER-LIVE-CAPABILITY`
+
+MTP-104 manifest 必须保持 database schema exposure、adapter request exposure、secret read、signed endpoint、account endpoint、listenKey、broker integration、order command、live runtime、production dataset registry、real network download、multi-symbol catalog 和 multi-timeframe catalog flags 全部为 false；初始化和 Codable 解码都不能恢复这些能力。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

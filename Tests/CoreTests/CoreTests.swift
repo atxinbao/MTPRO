@@ -8821,6 +8821,208 @@ final class CoreTests: XCTestCase {
         XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
     }
 
+    func testMTP104ScenarioManifestDefinesIdentityVersionAndSerialization() throws {
+        // 测试场景：MTP-104 manifest 必须固定 scenario id、dataset version、symbol、timeframe、
+        // source anchor 和 deterministic serialization evidence，作为后续 fixture / replay / report input 的稳定来源。
+        let manifest = ScenarioManifest.deterministicFixture
+
+        XCTAssertEqual(manifest.contractID, try Identifier("mtp-104-scenario-manifest-contract"))
+        XCTAssertEqual(manifest.issueID, try Identifier("MTP-104"))
+        XCTAssertEqual(manifest.scenarioID, try ScenarioID("mtp-104-btcusdt-1m-first-scenario"))
+        XCTAssertEqual(manifest.datasetVersion, try DatasetVersion("dataset-v1"))
+        XCTAssertEqual(manifest.symbol, try Symbol(rawValue: "BTCUSDT"))
+        XCTAssertEqual(manifest.timeframe, .oneMinute)
+        XCTAssertEqual(manifest.sourceAnchor, "MTP-104-SCENARIO-MANIFEST-MINIMAL-FIELDS")
+        XCTAssertEqual(manifest.scope, .singleSymbolSingleTimeframe)
+        XCTAssertEqual(manifest.validationAnchors, [
+            "MTP-104-SCENARIO-MANIFEST-MINIMAL-FIELDS",
+            "MTP-104-SCENARIO-ID-DATASET-VERSION-STABLE-IDENTITY",
+            "MTP-104-SINGLE-SYMBOL-SINGLE-TIMEFRAME-MANIFEST",
+            "MTP-104-MANIFEST-DETERMINISTIC-SERIALIZATION",
+            "MTP-104-MANIFEST-NO-SCHEMA-ADAPTER-LIVE-CAPABILITY",
+            "MTP-104-SCENARIO-MANIFEST-VALIDATION",
+            "TVM-DATA-CATALOG-SCENARIO-REPLAY"
+        ])
+        XCTAssertTrue(manifest.singleSymbolSingleTimeframeBoundaryHeld)
+        XCTAssertTrue(manifest.manifestBoundaryHeld)
+        XCTAssertTrue(manifest.forbiddenCapabilityBoundaryHeld)
+
+        let serialization = manifest.deterministicSerialization
+        XCTAssertEqual(serialization.scenarioID, manifest.scenarioID)
+        XCTAssertEqual(serialization.datasetVersion, manifest.datasetVersion)
+        XCTAssertEqual(serialization.symbol, manifest.symbol)
+        XCTAssertEqual(serialization.timeframe, manifest.timeframe)
+        XCTAssertEqual(serialization.sourceAnchor, manifest.sourceAnchor)
+        XCTAssertEqual(serialization.scope, manifest.scope)
+        XCTAssertEqual(serialization.canonicalFieldOrder, ScenarioManifest.canonicalSerializationFieldOrder)
+        XCTAssertEqual(
+            serialization.sourceIdentity,
+            "mtp-104-btcusdt-1m-first-scenario|dataset-v1|BTCUSDT|1m|MTP-104-SCENARIO-MANIFEST-MINIMAL-FIELDS|single-symbol / single-timeframe"
+        )
+    }
+
+    func testMTP104ScenarioManifestRejectsMultiSymbolAndLiveBypass() throws {
+        // 测试场景：MTP-104 manifest 的初始化与 Codable 解码必须拒绝多 symbol / 多 timeframe catalog、
+        // database schema、adapter request、secret、signed/account/listenKey、broker、order command 和 live runtime 绕过。
+        XCTAssertThrowsError(
+            try ScenarioManifest(
+                scenarioID: try ScenarioID("mtp-104-btcusdt-1m-first-scenario"),
+                datasetVersion: try DatasetVersion("dataset-v1"),
+                symbol: try Symbol(rawValue: "BTCUSDT"),
+                timeframe: .oneMinute,
+                sourceAnchor: "MTP-104-SCENARIO-MANIFEST-MINIMAL-FIELDS",
+                exposesDatabaseSchema: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability("scenarioManifest.exposesDatabaseSchema")
+            )
+        }
+        XCTAssertThrowsError(
+            try ScenarioManifest(
+                scenarioID: try ScenarioID("mtp-104-btcusdt-1m-first-scenario"),
+                datasetVersion: try DatasetVersion("dataset-v1"),
+                symbol: try Symbol(rawValue: "BTCUSDT"),
+                timeframe: .oneMinute,
+                sourceAnchor: "MTP-104-SCENARIO-MANIFEST-MINIMAL-FIELDS",
+                exposesAdapterRequest: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability("scenarioManifest.exposesAdapterRequest")
+            )
+        }
+        XCTAssertThrowsError(
+            try ScenarioManifest(
+                scenarioID: try ScenarioID("mtp-104-btcusdt-1m-first-scenario"),
+                datasetVersion: try DatasetVersion("dataset-v1"),
+                symbol: try Symbol(rawValue: "BTCUSDT"),
+                timeframe: .oneMinute,
+                sourceAnchor: "MTP-104-SCENARIO-MANIFEST-MINIMAL-FIELDS",
+                usesSignedEndpoint: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability("scenarioManifest.usesSignedEndpoint")
+            )
+        }
+        XCTAssertThrowsError(
+            try ScenarioManifest(
+                scenarioID: try ScenarioID("mtp-104-btcusdt-1m-first-scenario"),
+                datasetVersion: try DatasetVersion("dataset-v1"),
+                symbol: try Symbol(rawValue: "BTCUSDT"),
+                timeframe: .oneMinute,
+                sourceAnchor: "MTP-104-SCENARIO-MANIFEST-MINIMAL-FIELDS",
+                connectsBroker: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability("scenarioManifest.connectsBroker")
+            )
+        }
+        XCTAssertThrowsError(
+            try ScenarioManifest(
+                scenarioID: try ScenarioID("mtp-104-btcusdt-1m-first-scenario"),
+                datasetVersion: try DatasetVersion("dataset-v1"),
+                symbol: try Symbol(rawValue: "BTCUSDT"),
+                timeframe: .oneMinute,
+                sourceAnchor: "MTP-104-SCENARIO-MANIFEST-MINIMAL-FIELDS",
+                providesOrderCommand: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability("scenarioManifest.providesOrderCommand")
+            )
+        }
+        XCTAssertThrowsError(
+            try ScenarioManifest(
+                scenarioID: try ScenarioID("mtp-104-btcusdt-1m-first-scenario"),
+                datasetVersion: try DatasetVersion("dataset-v1"),
+                symbol: try Symbol(rawValue: "BTCUSDT"),
+                timeframe: .oneMinute,
+                sourceAnchor: "MTP-104-SCENARIO-MANIFEST-MINIMAL-FIELDS",
+                usesMultipleSymbols: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability("scenarioManifest.usesMultipleSymbols")
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(ScenarioManifest.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["createsListenKey"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(ScenarioManifest.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability("scenarioManifest.createsListenKey")
+            )
+        }
+    }
+
+    func testMTP104ScenarioManifestRoundTripsAsStableSourceIdentity() throws {
+        // 测试场景：同一 scenario manifest 经 Codable round-trip 后必须保持相同 deterministic serialization，
+        // 且仍不包含 secret、signed/account/listenKey、broker、production registry、真实网络或 live runtime 能力。
+        let manifest = ScenarioManifest.deterministicFixture
+        let encodedManifest = try JSONEncoder().encode(manifest)
+        let decodedManifest = try JSONDecoder().decode(ScenarioManifest.self, from: encodedManifest)
+
+        XCTAssertEqual(decodedManifest, manifest)
+        XCTAssertEqual(decodedManifest.deterministicSerialization, manifest.deterministicSerialization)
+        XCTAssertEqual(
+            decodedManifest.deterministicSerialization.sourceIdentity,
+            manifest.deterministicSerialization.sourceIdentity
+        )
+        XCTAssertFalse(manifest.exposesDatabaseSchema)
+        XCTAssertFalse(manifest.exposesAdapterRequest)
+        XCTAssertFalse(manifest.readsSecret)
+        XCTAssertFalse(manifest.usesSignedEndpoint)
+        XCTAssertFalse(manifest.callsAccountEndpoint)
+        XCTAssertFalse(manifest.createsListenKey)
+        XCTAssertFalse(manifest.connectsBroker)
+        XCTAssertFalse(manifest.providesOrderCommand)
+        XCTAssertFalse(manifest.runsLiveRuntime)
+        XCTAssertFalse(manifest.registersProductionDataset)
+        XCTAssertFalse(manifest.downloadsRealNetworkData)
+        XCTAssertFalse(manifest.usesMultipleTimeframes)
+
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        let encodedSerialization = try encoder.encode(manifest.deterministicSerialization)
+        let decodedSerialization = try JSONDecoder().decode(
+            ScenarioManifestDeterministicSerialization.self,
+            from: encodedSerialization
+        )
+        XCTAssertEqual(decodedSerialization, manifest.deterministicSerialization)
+
+        var serializationObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encodedSerialization) as? [String: Any]
+        )
+        serializationObject["canonicalFieldOrder"] = ["scenarioID", "datasetVersion"]
+        let serializationBypassData = try JSONSerialization.data(withJSONObject: serializationObject)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(ScenarioManifestDeterministicSerialization.self, from: serializationBypassData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayContractMismatch(
+                    field: "serialization.canonicalFieldOrder",
+                    expected: ScenarioManifest.canonicalSerializationFieldOrder.joined(separator: ","),
+                    actual: "scenarioID,datasetVersion"
+                )
+            )
+        }
+    }
+
     private func makeOrderBookImbalanceInputs() throws -> [OrderBookReadModelInput] {
         let symbol = try Symbol(rawValue: "BTCUSDT")
         let bidDominant = OrderBookReadModelInput(
