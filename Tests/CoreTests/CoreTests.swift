@@ -9197,6 +9197,223 @@ final class CoreTests: XCTestCase {
         )
     }
 
+    func testMTP106ScenarioReplayEvidenceDefinesWindowCursorChecksumAndFreshness() throws {
+        // 测试场景：MTP-106 必须把 MTP-105 fixture 推进为 replay window、cursor summary、
+        // final checksum / parity evidence 和本地 freshness evidence，供后续 data quality gate 消费。
+        let evidence = ScenarioReplayEvidence.deterministicFixture
+        let replayWindow = evidence.replayWindow
+
+        XCTAssertEqual(evidence.contractID, try Identifier("mtp-106-scenario-replay-evidence"))
+        XCTAssertEqual(evidence.issueID, try Identifier("MTP-106"))
+        XCTAssertEqual(replayWindow.scenarioID, try ScenarioID("mtp-104-btcusdt-1m-first-scenario"))
+        XCTAssertEqual(replayWindow.datasetVersion, try DatasetVersion("dataset-v1"))
+        XCTAssertEqual(replayWindow.fixtureVersion, try FixtureVersion("fixture-v1"))
+        XCTAssertEqual(replayWindow.symbol, try Symbol(rawValue: "BTCUSDT"))
+        XCTAssertEqual(replayWindow.timeframe, .oneMinute)
+        XCTAssertEqual(replayWindow.windowDescription, "1704067200...1704067380")
+        XCTAssertEqual(replayWindow.recordCount, 3)
+        XCTAssertEqual(replayWindow.firstRecordSequence, 1)
+        XCTAssertEqual(replayWindow.lastRecordSequence, 3)
+        XCTAssertEqual(replayWindow.orderedRecordStarts, [1_704_067_200, 1_704_067_260, 1_704_067_320])
+        XCTAssertEqual(replayWindow.recordOrderIdentity, "1:1704067200|2:1704067260|3:1704067320")
+        XCTAssertTrue(
+            replayWindow.deterministicWindowIdentity.contains(
+                "mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|BTCUSDT|1m"
+            )
+        )
+
+        XCTAssertEqual(evidence.cursorSummary.nextRecordSequence, 1)
+        XCTAssertEqual(evidence.cursorSummary.consumedRecordCount, 0)
+        XCTAssertEqual(evidence.cursorSummary.totalRecordCount, 3)
+        XCTAssertEqual(evidence.cursorSummary.state, .atStart)
+        XCTAssertEqual(evidence.cursorSummary.summaryLine, "cursor=at start; next=1; consumed=0; total=3")
+
+        XCTAssertEqual(evidence.checksumEvidence.algorithm, "fnv1a64")
+        XCTAssertEqual(evidence.checksumEvidence.checksum, "fnv1a64:3c6cd4ff13cd4062")
+        XCTAssertEqual(evidence.checksumEvidence.recordOrderIdentity, "1:1704067200|2:1704067260|3:1704067320")
+        XCTAssertTrue(evidence.checksumEvidence.checksumMatchedCanonicalPreimage)
+        XCTAssertTrue(evidence.checksumEvidence.parityEvidenceStable)
+
+        XCTAssertEqual(evidence.freshnessEvidence.policy.policyID, try Identifier("mtp-106-local-fixture-freshness-policy"))
+        XCTAssertEqual(evidence.freshnessEvidence.windowDescription, "1704067200...1704067380")
+        XCTAssertEqual(Int(evidence.freshnessEvidence.evaluatedAt.timeIntervalSince1970), 1_704_067_500)
+        XCTAssertEqual(evidence.freshnessEvidence.ageSeconds, 120)
+        XCTAssertEqual(evidence.freshnessEvidence.status, .fresh)
+        XCTAssertTrue(evidence.freshnessEvidence.freshnessSummary.contains("localFixtureOnly=true"))
+
+        XCTAssertEqual(evidence.validationAnchors, [
+            "MTP-106-DETERMINISTIC-REPLAY-WINDOW",
+            "MTP-106-REPLAY-CURSOR-SUMMARY",
+            "MTP-106-CHECKSUM-PARITY-EVIDENCE",
+            "MTP-106-FIXTURE-FRESHNESS-EVIDENCE",
+            "MTP-106-NO-PRODUCTION-NETWORK-BROKER-LIVE",
+            "MTP-106-SCENARIO-REPLAY-EVIDENCE-VALIDATION",
+            "TVM-DATA-CATALOG-SCENARIO-REPLAY"
+        ])
+        XCTAssertTrue(evidence.evidenceBoundaryHeld)
+        XCTAssertTrue(evidence.dataQualityGateInputIdentity.contains("fnv1a64:3c6cd4ff13cd4062"))
+        XCTAssertTrue(evidence.dataQualityGateInputIdentity.contains("fresh"))
+    }
+
+    func testMTP106ScenarioReplayCursorIsCodableReproducibleAndComparable() throws {
+        // 测试场景：replay cursor 只能表示本地 deterministic fixture 的 progress，
+        // 并且必须可编码、可复现、可比较，不得变成 production scheduler 或 event log sequence。
+        let replayWindow = try ScenarioReplayWindow()
+        let startCursor = try ScenarioReplayCursor(replayWindow: replayWindow, nextRecordSequence: 1)
+        let middleCursor = try ScenarioReplayCursor(replayWindow: replayWindow, nextRecordSequence: 2)
+        let completedCursor = try ScenarioReplayCursor(replayWindow: replayWindow, nextRecordSequence: 4)
+
+        XCTAssertEqual(startCursor.state, .atStart)
+        XCTAssertEqual(middleCursor.state, .inProgress)
+        XCTAssertEqual(completedCursor.state, .completed)
+        XCTAssertLessThan(startCursor, middleCursor)
+        XCTAssertLessThan(middleCursor, completedCursor)
+
+        let encoded = try JSONEncoder().encode(middleCursor)
+        let decoded = try JSONDecoder().decode(ScenarioReplayCursor.self, from: encoded)
+        XCTAssertEqual(decoded, middleCursor)
+        XCTAssertEqual(decoded.cursorIdentity, middleCursor.cursorIdentity)
+
+        XCTAssertThrowsError(
+            try ScenarioReplayCursor(replayWindow: replayWindow, nextRecordSequence: 5)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayContractMismatch(
+                    field: "scenarioReplayCursor.nextRecordSequence",
+                    expected: "1...4",
+                    actual: "5"
+                )
+            )
+        }
+
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["consumedRecordCount"] = 99
+        let data = try JSONSerialization.data(withJSONObject: object)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(ScenarioReplayCursor.self, from: data)
+        ) { error in
+            XCTAssertTrue("\(error)".contains("scenarioReplayCursor"))
+        }
+    }
+
+    func testMTP106ScenarioReplayChecksumAndFreshnessRejectDrift() throws {
+        // 测试场景：checksum / freshness evidence 必须由 fixture summary 和本地 policy 确定性派生；
+        // checksum drift、非法 freshness window 和 production retention 能力都必须被拒绝。
+        let summary = DeterministicScenarioFixture.deterministicFixture.deterministicSummary
+
+        XCTAssertThrowsError(
+            try ScenarioReplayChecksumEvidence(summary: summary, checksum: "fnv1a64:0000000000000000")
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayContractMismatch(
+                    field: "scenarioReplayChecksum.checksum",
+                    expected: "fnv1a64:3c6cd4ff13cd4062",
+                    actual: "fnv1a64:0000000000000000"
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try ScenarioReplayFreshnessPolicy(staleAfterSeconds: 900, expiresAfterSeconds: 300)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayContractMismatch(
+                    field: "scenarioReplayFreshnessPolicy.windowOrder",
+                    expected: "staleAfterSeconds < expiresAfterSeconds",
+                    actual: "900 >= 300"
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try ScenarioReplayFreshnessPolicy(authorizesProductionRetentionEngine: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability(
+                    "scenarioReplayFreshnessPolicy.authorizesProductionRetentionEngine"
+                )
+            )
+        }
+
+        let staleEvidence = try ScenarioReplayFreshnessEvidence(
+            evaluatedAt: Date(timeIntervalSince1970: 1_704_067_800)
+        )
+        XCTAssertEqual(staleEvidence.ageSeconds, 420)
+        XCTAssertEqual(staleEvidence.status, .stale)
+        XCTAssertFalse(staleEvidence.requiredValidationDependsOnNetwork)
+
+        XCTAssertThrowsError(
+            try ScenarioReplayFreshnessEvidence(requiredValidationDependsOnNetwork: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability(
+                    "scenarioReplayFreshness.requiredValidationDependsOnNetwork"
+                )
+            )
+        }
+    }
+
+    func testMTP106ScenarioReplayEvidenceKeepsForbiddenBoundaryAndNoForbiddenText() throws {
+        // 测试场景：MTP-106 aggregate 必须保持 local-first / deterministic evidence，不得恢复
+        // network、production platform、schema exposure、signed/account/listenKey、broker、Live 或 report consumer。
+        let evidence = ScenarioReplayEvidence.deterministicFixture
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoded = try JSONDecoder().decode(ScenarioReplayEvidence.self, from: encoded)
+
+        XCTAssertEqual(decoded, evidence)
+        XCTAssertTrue(decoded.evidenceBoundaryHeld)
+        XCTAssertTrue(decoded.forbiddenCapabilityBoundaryHeld)
+        XCTAssertFalse(decoded.requiredValidationDependsOnNetwork)
+        XCTAssertFalse(decoded.downloadsRealNetworkData)
+        XCTAssertFalse(decoded.runsProductionRetentionEngine)
+        XCTAssertFalse(decoded.runsLargeScaleIngestionPipeline)
+        XCTAssertFalse(decoded.buildsProductionDataPlatform)
+        XCTAssertFalse(decoded.exposesDatabaseSchema)
+        XCTAssertFalse(decoded.exposesAdapterRequest)
+        XCTAssertFalse(decoded.readsSecret)
+        XCTAssertFalse(decoded.usesSignedEndpoint)
+        XCTAssertFalse(decoded.callsAccountEndpoint)
+        XCTAssertFalse(decoded.createsListenKey)
+        XCTAssertFalse(decoded.connectsBroker)
+        XCTAssertFalse(decoded.implementsLiveExecutionAdapter)
+        XCTAssertFalse(decoded.implementsOMS)
+        XCTAssertFalse(decoded.implementsRealOrderLifecycle)
+        XCTAssertFalse(decoded.implementsReportInputVersioning)
+        XCTAssertFalse(decoded.runsDataQualityGate)
+        XCTAssertFalse(decoded.runsLiveRuntime)
+        XCTAssertFalse(decoded.providesLiveCommand)
+        XCTAssertFalse(decoded.providesTradingButton)
+        XCTAssertFalse(
+            decoded.containsForbiddenCapabilityText([
+                "signed endpoint",
+                "account endpoint",
+                "listenKey",
+                "broker fill",
+                "real order",
+                "live command",
+                "trading button",
+                "production retention engine"
+            ])
+        )
+
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["usesSignedEndpoint"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(ScenarioReplayEvidence.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .dataCatalogScenarioReplayForbiddenCapability("scenarioReplayEvidence.usesSignedEndpoint")
+            )
+        }
+    }
+
     private func makeOrderBookImbalanceInputs() throws -> [OrderBookReadModelInput] {
         let symbol = try Symbol(rawValue: "BTCUSDT")
         let bidDominant = OrderBookReadModelInput(

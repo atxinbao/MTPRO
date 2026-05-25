@@ -10794,3 +10794,47 @@ L1 Paper Runtime maturity statement：
 - 不修改 Figma。
 - 不提交 `.codex/*` 或 `graphify-out/*`。
 - 不实现 manifest file parser、replay cursor、final checksum evidence、freshness evidence runtime、data quality gate、report input versioning runtime、multi-symbol / multi-timeframe catalog、production dataset registry、production data platform、cloud data lake、large-scale ingestion pipeline、真实历史下载器、database schema exposure、adapter request exposure、signed endpoint、account endpoint / listenKey、secret、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、real account / broker position read、live runtime、order command、live command、trading button 或 Live PRO Console。
+
+---
+
+## 2026-05-26 — MTP-106 Replay Window / Cursor / Checksum / Freshness Evidence
+
+执行者：Codex
+
+目的：
+
+- 完成 Linear issue `MTP-106 Add replay window / cursor / checksum / freshness evidence`。
+- 基于 MTP-104 manifest 和 MTP-105 deterministic fixture 建立 local scenario replay 的 replay window、cursor summary、checksum / parity evidence 和 fixture freshness evidence。
+- 输出可被 MTP-107 data quality gates 消费的稳定 `dataQualityGateInputIdentity`，但不实现 data quality gate runtime 或 report input versioning runtime。
+
+文件范围：
+
+- 新增 `Sources/Core/ScenarioReplayEvidence.swift`。
+- 更新 `Tests/CoreTests/CoreTests.swift`，新增 4 个 MTP-106 focused Core tests。
+- 更新 `docs/contracts/data-catalog-scenario-replay-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh`。
+- 更新本 append-only `verification.md`。
+
+关键证据：
+
+- `ScenarioReplayWindow` 复用 MTP-105 deterministic fixture，固定 replay window `1704067200...1704067380`、record sequence `1,2,3`、ordered starts 和 record order identity。
+- `ScenarioReplayCursor` 只表达本地 fixture record progress；默认 next sequence 为 `1`，completed sequence 为 `4`，Codable round-trip 后保持相等，并可按 sequence 稳定比较。
+- `ScenarioReplayChecksumEvidence` 从 MTP-105 canonical checksum preimage 计算 final checksum `fnv1a64:3c6cd4ff13cd4062`，并拒绝 checksum drift。
+- `ScenarioReplayFreshnessEvidence` 固定 local fixture freshness policy、evaluatedAt `1704067500`、age `120s` 和 status `fresh`，并拒绝 production retention / network / archive bypass。
+- `ScenarioReplayEvidence` 保持 required validation network dependency、real network download、production retention engine、production data platform、database schema exposure、adapter request exposure、signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、report input versioning runtime、data quality gate runtime、live runtime、live command 和 trading button flags 全部为 false。
+- `TVM-DATA-CATALOG-SCENARIO-REPLAY` 已回填 MTP-106 issue evidence。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP106` | pass | 执行 4 个 Core tests，0 failures；覆盖 replay window deterministic、cursor 可复现 / 可编码 / 可比较、checksum / freshness evidence 稳定、drift rejection、forbidden capability bypass rejection 和 forbidden text absence。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；机械检查 MTP-106 contract、domain context、validation plan、matrix、latest summary、Core source 和 focused test anchors。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 237 个 XCTest；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`，最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不修改 Linear status。
+- 不启动 Symphony / Graphify。
+- 不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 manifest file parser、data quality gate runtime、report input versioning runtime、multi-symbol / multi-timeframe catalog、production dataset registry、production data platform、cloud data lake、large-scale ingestion pipeline、真实历史下载器、production scheduler、production retention cleanup、cloud archive、storage tiering、database schema exposure、adapter request exposure、signed endpoint、account endpoint / listenKey、secret、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、real account / broker position read、live runtime、order command、live command、trading button 或 Live PRO Console。

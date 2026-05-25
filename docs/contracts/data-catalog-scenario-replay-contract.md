@@ -6,7 +6,7 @@
 
 本文档定义 `MTPRO Data Catalog / Scenario Replay v1` 的 Data Catalog / Scenario Replay terminology、目标引擎职责、local-first deterministic versioned boundary、scenario manifest / scenario id / dataset version contract、single-symbol / single-timeframe deterministic scenario fixture、forbidden capability baseline、source docs anchors 和 validation anchors。
 
-本文档服务 `MTP-103` 的术语 / 边界合同、`MTP-104` 的 scenario manifest 输入身份合同和 `MTP-105` 的 first deterministic scenario fixture 合同；它不实现 manifest file parser，不实现 replay cursor / freshness runtime / final checksum evidence，不实现 report input versioning，不新增 production data platform，不做 large-scale ingestion pipeline，不接 signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、live runtime、live command、trading button，不运行 Graphify，不修改 Figma。
+本文档服务 `MTP-103` 的术语 / 边界合同、`MTP-104` 的 scenario manifest 输入身份合同、`MTP-105` 的 first deterministic scenario fixture 合同和 `MTP-106` 的 replay window / cursor / checksum / freshness evidence 合同；它不实现 manifest file parser，不实现 data quality gate runtime，不实现 report input versioning，不新增 production data platform，不做 large-scale ingestion pipeline，不接 signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、live runtime、live command、trading button，不运行 Graphify，不修改 Figma。
 
 ## MTP-103 Data Catalog / Scenario Replay terminology
 
@@ -375,3 +375,125 @@ Validation anchors：
 - `TVM-DATA-CATALOG-SCENARIO-REPLAY`
 
 MTP-105 不实现 replay cursor、不实现 final checksum evidence、不实现 freshness evidence、不实现 data quality gate、不实现 report input versioning runtime、不新增 App read model、不新增 Dashboard smoke handle、不新增 stage audit input；Project stage closeout 仍归属 `MTP-109`。
+
+## MTP-106 replay window / cursor / checksum / freshness evidence
+
+`MTP-106-DETERMINISTIC-REPLAY-WINDOW`
+
+MTP-106 在 MTP-104 manifest 和 MTP-105 deterministic fixture 基础上建立 scenario replay evidence。当前 evidence 只允许：
+
+| 字段 | 当前含义 | 禁止混用 |
+| --- | --- | --- |
+| `replay window` | `1704067200...1704067380` 的 deterministic historical replay window，继承 MTP-105 fixed window | 不等于 historical downloader policy、production retention window、runtime job window 或 broker/account replay window |
+| `replay cursor` | 本地 fixture record progress，默认 next sequence 为 `1`，completed cursor 为 `4` | 不等于 production scheduler、downloader offset、event log sequence、exchange sequence、broker sequence 或 live runtime resume token |
+| `cursor summary` | cursor identity、window identity、next sequence、consumed count、total count 和 state 的稳定摘要 | 不暴露 Runtime object、adapter request、SQLite / DuckDB schema 或 UI command |
+| `checksum / parity evidence` | MTP-105 checksum preimage 的 final FNV-1a checksum：`fnv1a64:3c6cd4ff13cd4062` | 不等于 production data quality platform、真实历史下载校验或 broker/account reconciliation |
+| `fixture freshness evidence` | 固定 evaluatedAt `1704067500`、age `120s`、status `fresh` 的本地 fixture freshness evidence | 不执行 production retention engine、cloud archive、storage tiering、cleanup job 或 downloader |
+| `data quality gate input identity` | replay window、cursor identity、checksum 和 freshness status 的稳定组合 | 只为 MTP-107 后续消费，不在 MTP-106 实现 data quality gate 或 report input versioning |
+
+Core deterministic fixture：`ScenarioReplayEvidence.deterministicFixture`。
+
+Focused Core tests：
+
+- `testMTP106ScenarioReplayEvidenceDefinesWindowCursorChecksumAndFreshness`
+- `testMTP106ScenarioReplayCursorIsCodableReproducibleAndComparable`
+- `testMTP106ScenarioReplayChecksumAndFreshnessRejectDrift`
+- `testMTP106ScenarioReplayEvidenceKeepsForbiddenBoundaryAndNoForbiddenText`
+
+## MTP-106 replay cursor summary
+
+`MTP-106-REPLAY-CURSOR-SUMMARY`
+
+`ScenarioReplayCursor` 必须满足：
+
+- `nextRecordSequence` 只能位于 `1...4`。
+- `state` 只能由 fixture sequence 推导为 `at start`、`in progress` 或 `completed`。
+- `consumedRecordCount` 必须等于 `nextRecordSequence - 1`。
+- Cursor 必须 Codable round-trip 后保持相等，并可通过 `Comparable` 按同一 window 的 sequence 稳定比较。
+- Cursor 不得表达 production scheduler、downloader offset、event log sequence、broker/account replay 或 live runtime resume。
+
+`ScenarioReplayCursorSummary` 只复制 cursor 的必要 read-model-like 字段，供后续 MTP-107 quality gate 或 MTP-108 read-model evidence 消费。
+
+## MTP-106 checksum / parity evidence
+
+`MTP-106-CHECKSUM-PARITY-EVIDENCE`
+
+`ScenarioReplayChecksumEvidence` 必须从 `DeterministicScenarioFixture.deterministicSummary.checksumPreimage` 计算 final checksum：
+
+```text
+fnv1a64:3c6cd4ff13cd4062
+```
+
+Checksum evidence 固定：
+
+- algorithm：`fnv1a64`。
+- source identity：MTP-104 manifest deterministic source identity。
+- record order identity：`1:1704067200|2:1704067260|3:1704067320`。
+- canonical preimage：MTP-105 canonical record summary joined by newline。
+- `checksumMatchedCanonicalPreimage == true`。
+- `parityEvidenceStable == true`。
+
+初始化和 Codable 解码必须拒绝 checksum drift、canonical preimage drift、record order drift 或 parity flag drift。
+
+## MTP-106 fixture freshness evidence
+
+`MTP-106-FIXTURE-FRESHNESS-EVIDENCE`
+
+`ScenarioReplayFreshnessPolicy` 只定义本地 fixture freshness 阈值：
+
+- policy id：`mtp-106-local-fixture-freshness-policy`。
+- stale after：`300` seconds。
+- expires after：`900` seconds。
+- retain fixture locally：`true`。
+
+`ScenarioReplayFreshnessEvidence` 默认 evaluatedAt 为 `1704067500`，相对 replay window end `1704067380` 的 age 为 `120` seconds，status 为 `fresh`。该 evidence 不执行 production retention engine、不授权 cloud archive、不暴露 storage tiering、不依赖网络。
+
+## MTP-106 no production / network / broker / live capability
+
+`MTP-106-NO-PRODUCTION-NETWORK-BROKER-LIVE`
+
+`ScenarioReplayEvidence` 初始化和 Codable 解码必须拒绝以下绕过：
+
+- required validation network dependency。
+- real network download。
+- production retention engine。
+- large-scale ingestion pipeline。
+- production data platform。
+- database schema exposure。
+- adapter request exposure。
+- secret read。
+- signed endpoint。
+- account endpoint。
+- listenKey。
+- broker integration。
+- `LiveExecutionAdapter`。
+- OMS。
+- real order lifecycle。
+- report input versioning runtime。
+- data quality gate runtime。
+- live runtime。
+- live command。
+- trading button。
+
+对应 Boolean flags 必须全部保持 `false`；任何初始化或 Codable payload 试图打开这些能力都必须抛出 `CoreError.dataCatalogScenarioReplayForbiddenCapability`。
+
+## MTP-106 validation anchors
+
+`MTP-106-SCENARIO-REPLAY-EVIDENCE-VALIDATION`
+
+Required validation：
+
+- `swift test --filter MTP106`
+- `bash checks/run.sh`
+
+Validation anchors：
+
+- `MTP-106-DETERMINISTIC-REPLAY-WINDOW`
+- `MTP-106-REPLAY-CURSOR-SUMMARY`
+- `MTP-106-CHECKSUM-PARITY-EVIDENCE`
+- `MTP-106-FIXTURE-FRESHNESS-EVIDENCE`
+- `MTP-106-NO-PRODUCTION-NETWORK-BROKER-LIVE`
+- `MTP-106-SCENARIO-REPLAY-EVIDENCE-VALIDATION`
+- `TVM-DATA-CATALOG-SCENARIO-REPLAY`
+
+MTP-106 不实现 data quality gate runtime、不实现 report input versioning runtime、不新增 App read model、不新增 Dashboard smoke handle、不新增 stage audit input；Project stage closeout 仍归属 `MTP-109`。
