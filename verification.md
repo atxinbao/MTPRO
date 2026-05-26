@@ -11295,3 +11295,44 @@ L1 Paper Runtime maturity statement：
 - 不直接 merge PR。
 - 不创建或绕过 required status check。
 - 不提交 `.codex/*` 或 `graphify-out/*`。
+
+---
+
+## 2026-05-26 — MTP-114 partial fill / latency / fee / slippage parity evidence
+
+执行者：Codex
+
+目的：
+
+- 完成 `MTP-114` Add partial fill / latency / fee / slippage parity 的当前 issue scope。
+- 保持 MTP-114 只输出 deterministic simulated exchange event / report evidence，不扩大到 portfolio projection、Report / Dashboard / Events surface、broker fill、execution report、reconciliation 或 live readiness。
+
+实现摘要：
+
+- 新增 `Sources/Core/PartialFillLatencyFeeSlippageParity.swift`。
+- `PartialFillLatencyFeeSlippageParityContract` 固定 MTP-114 rules、fill completions、validation anchors 和 forbidden capability baseline。
+- `PartialFillLatencyFeeSlippageParityInput` 复用 MTP-113 market / limit simulated execution input，绑定 deterministic available liquidity、MTP-114 latency assumption、liquidity role 和 MTP-27 fixed cost assumptions。
+- `PartialFillLatencyFeeSlippageParityModel.evaluate` 复用 MTP-113 full-fill source output；partial fixture 使用 available liquidity `0.25` 输出 `partial` / `partially filled simulated` / `simulated order partially filled`，filled `0.25`、remaining `0.25`；full fixture 使用 available liquidity `0.5` 输出 `full` / `filled simulated` / `simulated order filled`，remaining `0`。
+- Latency fixture 固定 replay record sequence `2 -> 3` 和 `250ms`，不使用 wall clock、randomness 或外部网络。
+- Fee / slippage parity 复用 MTP-27 fixed assumptions `mtp-27-fixed-cost-assumptions`，taker fee `5 bps`、slippage `1.5 bps`、rounding scale `8`，并用 `ExecutionCostParity.verify` 证明 Backtest / Paper cost estimates 一致。
+- Partial deterministic report identity 固定为 `mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|1704067200...1704067380|cursor=2|record=2|order=paper-order-intent-allowed|orderType=market order simulated execution|limit=none|initialState=accepted simulated|availableLiquidity=250000|latencyAssumption=mtp-114-deterministic-latency-assumption|latencySource=2|latencyOutput=3|liquidityRole=taker|costAssumption=mtp-27-fixed-cost-assumptions|fill=partial|latencyMs=25000000000|latencyRecord=3|filled=250000|remaining=250000|fee=526508750|slippage=157952625|totalCost=684461375`。
+- 更新 `docs/contracts/simulated-exchange-backtest-parity-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh` 的 MTP-114 anchors / evidence chain。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP114` | pass | 执行 3 个 Core tests，0 failures，验证 contract anchors、partial fill evidence、full fill evidence、latency evidence、fee / slippage parity、deterministic identity、Codable round-trip 和 forbidden capability rejection。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；机械检查 MTP-114 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 257 个 XCTest；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; scenarioReplayEvidence=0; scenarioQualityGates=0; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`，最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不修改 Linear status。
+- 不创建下一 Project / Issue。
+- 不推进下一 issue。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify update。
+- 不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现完整交易所费率表、动态滑点模型、真实流动性消耗、执行成本优化、portfolio projection runtime、Report / Dashboard / Events evidence surface、UI implementation、order form、command model、Runtime replay job、database console、signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、order-level command UI、trading button、live command、emergency stop、shutdown 或 restore。

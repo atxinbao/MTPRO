@@ -4,9 +4,9 @@
 
 执行者：Codex
 
-本文档定义 `MTPRO Simulated Exchange / Backtest Parity v1` 的 L2 simulated exchange / backtest parity terminology、目标引擎职责、L1 Paper Runtime 与 L1.5 Data Catalog / Scenario Replay 到 L2 的 handoff boundary、shared backtest-paper order semantics、scenario replay deterministic matching model、market / limit order simulated execution semantics、forbidden capability baseline、source docs anchors 和 validation anchors。
+本文档定义 `MTPRO Simulated Exchange / Backtest Parity v1` 的 L2 simulated exchange / backtest parity terminology、目标引擎职责、L1 Paper Runtime 与 L1.5 Data Catalog / Scenario Replay 到 L2 的 handoff boundary、shared backtest-paper order semantics、scenario replay deterministic matching model、market / limit order simulated execution semantics、partial fill / latency / fee / slippage parity、forbidden capability baseline、source docs anchors 和 validation anchors。
 
-本文档服务 `MTP-110` 至 `MTP-113` 的术语 / 边界合同；它不实现真实撮合引擎、不实现真实订单执行 runtime、不实现 portfolio projection、不实现 UI，不接 signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、live command、trading button，不运行 Graphify，不修改 Figma。
+本文档服务 `MTP-110` 至 `MTP-114` 的术语 / 边界合同；它不实现真实撮合引擎、不实现真实订单执行 runtime、不实现 portfolio projection、不实现 UI，不接 signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、live command、trading button，不运行 Graphify，不修改 Figma。
 
 ## MTP-110 Simulated Exchange / Backtest Parity terminology
 
@@ -411,3 +411,79 @@ Validation anchors：
 - `TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY`
 
 MTP-113 不实现 stop / OCO / advanced order types、partial fill、latency、fee / slippage parity、portfolio projection parity、Report / Dashboard / Events evidence surface、order form、command model、真实订单提交 / 撤销 / 替换、OMS、execution report、broker fill、reconciliation、signed endpoint、account endpoint / listenKey、Live PRO Console、live command、order-level command UI、trading button 或 stage audit input；这些仍归属后续 `MTP-114` 至 `MTP-117` 或 Future Gated scope。
+
+## MTP-114 partial fill / latency / fee / slippage parity
+
+`MTP-114-PARTIAL-FULL-FILL-PARITY`
+
+MTP-114 在 MTP-113 market / limit simulated execution 输入之上定义 partial / full fill parity evidence。输入使用 deterministic simulated liquidity cap，不读取真实盘口深度、不消耗真实流动性、不访问账户 / margin / broker state。
+
+| 语义 | 当前含义 | 禁止混用 |
+| --- | --- | --- |
+| `partial fill parity` | 当 deterministic available simulated liquidity 小于 order quantity 时，输出 `partial` fill、`partially filled simulated` state、`simulated order partially filled` event kind，并保留 remaining quantity | 不等于 broker partial fill、真实成交质量、真实 order book depth 或 liquidity consumption |
+| `full fill parity` | 当 deterministic available simulated liquidity 等于 order quantity 时，输出 `full` fill、`filled simulated` state、`simulated order filled` event kind，remaining quantity 为 `0` | 不等于 exchange fill、broker fill、execution report 或 real account update |
+| `simulated liquidity cap` | fixture 字段 `availableSimulatedLiquidity`，partial fixture 固定 `0.25`，full fixture 固定 `0.5` | 不等于真实可成交量、账户持仓、margin、leverage 或 broker quote |
+
+Core deterministic fixtures：
+
+- `PartialFillLatencyFeeSlippageParityInput.deterministicPartialFixture`，available liquidity `0.25` -> partial fill。
+- `PartialFillLatencyFeeSlippageParityInput.deterministicFullFixture`，available liquidity `0.5` -> full fill。
+- `PartialFillLatencyFeeSlippageParityModel.evaluate`。
+
+`MTP-114-DETERMINISTIC-LATENCY-MODEL`
+
+MTP-114 的 latency model 只使用 replay record sequence 和固定 tick offset。默认 latency assumption 固定：
+
+| 字段 | 值 | 含义 |
+| --- | --- | --- |
+| `sourceRecordSequence` | `2` | 与 MTP-112 matched record sequence 对齐 |
+| `fixedDelayTicks` | `1` | deterministic replay tick offset |
+| `outputRecordSequence` | `3` | `sourceRecordSequence + fixedDelayTicks` |
+| `fixedDelayMilliseconds` | `250` | 本地 fixture latency evidence，不代表真实网络或 broker SLA |
+
+该模型不得使用 wall clock、randomness、production telemetry、exchange latency、broker latency 或外部网络。
+
+`MTP-114-FEE-SLIPPAGE-PARITY-ASSUMPTIONS`
+
+MTP-114 复用 MTP-27 fixed execution cost assumptions：
+
+- assumption id：`mtp-27-fixed-cost-assumptions`
+- maker fee：`2 bps`
+- taker fee：`5 bps`
+- slippage：`1.5 bps`
+- rounding scale：`8`
+
+Backtest 与 Paper 两侧分别用同一 matched price、filled quantity、liquidity role 和 fixed assumptions 生成 `ExecutionCostEstimate`，再用 `ExecutionCostParity.verify` 证明 assumption、输入和 fee / slippage breakdown 完全一致。该证据不表示真实费率表、VIP tier、symbol-specific fee、broker fee statement、动态滑点、真实成交质量或执行成本优化。
+
+`MTP-114-REPEATABLE-FILL-LATENCY-COST-EVIDENCE`
+
+相同 MTP-113 execution input、available simulated liquidity、latency assumption、liquidity role 和 MTP-27 cost assumption 必须输出相同 deterministic report identity。partial fixture 的 identity 固定为：
+
+```text
+mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|1704067200...1704067380|cursor=2|record=2|order=paper-order-intent-allowed|orderType=market order simulated execution|limit=none|initialState=accepted simulated|availableLiquidity=250000|latencyAssumption=mtp-114-deterministic-latency-assumption|latencySource=2|latencyOutput=3|liquidityRole=taker|costAssumption=mtp-27-fixed-cost-assumptions|fill=partial|latencyMs=25000000000|latencyRecord=3|filled=250000|remaining=250000|fee=526508750|slippage=157952625|totalCost=684461375
+```
+
+`MTP-114-NO-REAL-FEE-SCHEDULE-BROKER-RECONCILIATION`
+
+MTP-114 必须保持 real fee schedule、dynamic slippage model、real liquidity consumption、execution cost optimization、signed endpoint、account endpoint、listenKey、broker integration、broker fill、execution report、reconciliation、`LiveExecutionAdapter`、OMS、real submit / cancel / replace、portfolio projection runtime、live command、order-level command UI、trading button、wall clock、randomness 和 required network validation flags 全部为 false；初始化和 Codable 解码都不能恢复这些能力。
+
+## MTP-114 validation anchors
+
+`MTP-114-PARTIAL-FILL-LATENCY-FEE-SLIPPAGE-VALIDATION`
+
+Required validation：
+
+- `swift test --filter MTP114`
+- `bash checks/run.sh`
+
+Validation anchors：
+
+- `MTP-114-PARTIAL-FULL-FILL-PARITY`
+- `MTP-114-DETERMINISTIC-LATENCY-MODEL`
+- `MTP-114-FEE-SLIPPAGE-PARITY-ASSUMPTIONS`
+- `MTP-114-REPEATABLE-FILL-LATENCY-COST-EVIDENCE`
+- `MTP-114-NO-REAL-FEE-SCHEDULE-BROKER-RECONCILIATION`
+- `MTP-114-PARTIAL-FILL-LATENCY-FEE-SLIPPAGE-VALIDATION`
+- `TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY`
+
+MTP-114 不实现完整交易所费率表、动态滑点模型、真实流动性消耗、执行成本优化、portfolio projection runtime、Report / Dashboard / Events evidence surface、order form、command model、真实订单提交 / 撤销 / 替换、OMS、execution report、broker fill、reconciliation、signed endpoint、account endpoint / listenKey、Live PRO Console、live command、order-level command UI、trading button 或 stage audit input；这些仍归属后续 `MTP-115` 至 `MTP-117` 或 Future Gated scope。

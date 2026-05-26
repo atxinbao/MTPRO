@@ -642,6 +642,26 @@ MTP-113 必须保证相同 scenario id / dataset version / fixture version / rep
 
 MTP-113 market / limit simulated execution semantics 不得升级为真实 order execution runtime、matching runtime、portfolio projection runtime、advanced order types、真实 submit / cancel / replace、OMS、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、live runtime、Live PRO Console、live command、order-level command UI 或交易按钮。
 
+`MTP-114-PARTIAL-FULL-FILL-PARITY`
+
+MTP-114 partial / full fill parity 只表示 deterministic simulated exchange evidence：当 `availableSimulatedLiquidity` 小于 order quantity 时输出 `partial` / `partially filled simulated` / `simulated order partially filled`，并显式保留 remaining quantity；当 available liquidity 等于 order quantity 时输出 `full` / `filled simulated` / `simulated order filled`。`availableSimulatedLiquidity` 是 fixture cap，不是真实盘口深度、真实流动性消耗、broker quote、account position、margin 或 leverage。
+
+`MTP-114-DETERMINISTIC-LATENCY-MODEL`
+
+MTP-114 latency model 只使用 replay record sequence 和固定 tick offset。默认 fixture 从 matched record sequence `2` 延迟 `1` 个 deterministic tick 到 output sequence `3`，并记录 `250ms` 的本地 evidence。它不等于 wall clock、真实网络延迟、exchange latency、broker SLA、production telemetry 或自动优化信号。
+
+`MTP-114-FEE-SLIPPAGE-PARITY-ASSUMPTIONS`
+
+MTP-114 fee / slippage parity 复用 MTP-27 fixed cost assumptions：maker fee `2 bps`、taker fee `5 bps`、slippage `1.5 bps`、rounding scale `8`。Backtest 与 Paper 用同一 matched price、filled quantity、liquidity role 和 fixed assumptions 生成一致 `ExecutionCostEstimate`，再用 `ExecutionCostParity.verify` 验证一致。它不是真实费率表、VIP tier、symbol-specific fee、broker fee statement、动态滑点模型、真实成交质量或执行成本优化。
+
+`MTP-114-REPEATABLE-FILL-LATENCY-COST-EVIDENCE`
+
+MTP-114 必须保证相同 MTP-113 execution input、available simulated liquidity、latency assumption、liquidity role 和 MTP-27 cost assumption 输出同一个 deterministic report identity。默认 partial fixture identity 固定为 `mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|1704067200...1704067380|cursor=2|record=2|order=paper-order-intent-allowed|orderType=market order simulated execution|limit=none|initialState=accepted simulated|availableLiquidity=250000|latencyAssumption=mtp-114-deterministic-latency-assumption|latencySource=2|latencyOutput=3|liquidityRole=taker|costAssumption=mtp-27-fixed-cost-assumptions|fill=partial|latencyMs=25000000000|latencyRecord=3|filled=250000|remaining=250000|fee=526508750|slippage=157952625|totalCost=684461375`。
+
+`MTP-114-NO-REAL-FEE-SCHEDULE-BROKER-RECONCILIATION`
+
+MTP-114 partial fill / latency / fee / slippage parity 不得升级为 real fee schedule、dynamic slippage model、real liquidity consumption、execution cost optimization、signed endpoint、account endpoint、listenKey、broker integration、broker fill、execution report、reconciliation、`LiveExecutionAdapter`、OMS、real submit / cancel / replace、portfolio projection runtime、Live PRO Console、live command、order-level command UI 或交易按钮。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
