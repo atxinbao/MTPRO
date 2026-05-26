@@ -2668,3 +2668,42 @@ MTP-120 的验收要求：
 - 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、live readiness、live runtime、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
 - 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进 MTP-121。
+
+## MTP-121 Workbench First-Run / Default Demo State Validation
+
+日期：2026-05-27
+
+执行者：Codex
+
+MTP-121 的 required validation：
+
+- `swift test --filter MTP121`
+- `DASHBOARD_SMOKE=1 swift run Dashboard`
+- `bash checks/run.sh`
+
+MTP-121 必须建立的主要 anchors：
+
+- `MTP-121-DEFAULT-SELECTED-SCENARIO`
+- `MTP-121-READ-MODEL-ONLY-DASHBOARD-STATE`
+- `MTP-121-FIRST-RUN-FALLBACK-STATES`
+- `MTP-121-FIRST-RUN-EVIDENCE-SUMMARY`
+- `MTP-121-DEMO-FIXTURE-ALIGNMENT`
+- `MTP-121-NO-LIVE-PRO-CONSOLE-TRADING-COMMAND`
+- `MTP-121-DASHBOARD-SMOKE-DEFAULT-DEMO-VALIDATION`
+
+MTP-121 的验收要求：
+
+- `Sources/App/WorkbenchBetaFirstRunState.swift` 必须定义 `WorkbenchBetaFirstRunReadModel`、`WorkbenchBetaFirstRunViewModel`、`WorkbenchBetaFirstRunEvidenceSummary` 和 `WorkbenchBetaFirstRunFallbackState`。
+- First-run 默认状态必须选择 `mtp-104-btcusdt-1m-first-scenario`、`dataset-v1`、`fixture-v1`、`BTCUSDT` / `1m`，并输出 checksum `fnv1a64:3c6cd4ff13cd4062`、freshness `fresh`、quality `accepted` 和 report input version identity。
+- `DashboardReadModel.defaultWorkbenchBetaDemo` 和 `DashboardViewModel.defaultWorkbenchBetaDemo` 必须通过 App Read Model / ViewModel 提供 first-run state，不直接暴露 Core fixture、Persistence schema、Runtime object 或 Adapter request。
+- `Sources/Dashboard/DashboardApplication.swift` 必须使用 `DashboardViewModel.defaultWorkbenchBetaDemo`，使 `DASHBOARD_SMOKE=1 swift run Dashboard` 输出 `defaultDemoState=default demo`、`defaultDemoScenario=mtp-104-btcusdt-1m-first-scenario`、`betaFirstRunFallbacks=3`、`scenarioReplayEvidence=1` 和 `simulatedParityEvidence=1`。
+- `Tests/AppTests/AppTests.swift` 必须包含 MTP-121 focused tests，覆盖 default selected scenario、read-model-only Dashboard state、empty / loading / error fallback、first-run evidence summary、Dashboard smoke handles 和 forbidden capability flags。
+- `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-121 mechanical anchors。
+
+## MTP-121 禁止
+
+- 不重设计 UI、不新增完整页面 redesign、不新增 MTP-122 Report / Dashboard / Events acceptance path、不新增 stage audit input。
+- 不新增 fixture records、不新增大规模 ingestion、不自动下载真实历史数据、不实现 production data platform、production dataset registry、production data quality monitor 或 Runtime replay scheduler。
+- 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、live readiness、live runtime、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
+- 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进 MTP-122。
