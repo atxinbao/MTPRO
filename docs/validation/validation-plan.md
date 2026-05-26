@@ -2406,3 +2406,44 @@ MTP-113 必须建立的主要 anchors：
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、live runtime、Live PRO Console、live command、order-level command UI 或交易按钮。
 - 不实现 partial fill、latency、fee / slippage parity、portfolio projection parity、emergency stop、shutdown、restore、production operations、production data platform、large-scale ingestion pipeline、真实交易所接入或 live readiness。
 - 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进下一 issue。
+
+## MTP-114 Partial Fill / Latency / Fee / Slippage Parity Validation
+
+日期：2026-05-26
+
+执行者：Codex
+
+MTP-114 的 required validation：
+
+- `docs/contracts/simulated-exchange-backtest-parity-contract.md` 必须包含 `MTP-114-PARTIAL-FULL-FILL-PARITY`、`MTP-114-DETERMINISTIC-LATENCY-MODEL`、`MTP-114-FEE-SLIPPAGE-PARITY-ASSUMPTIONS`、`MTP-114-REPEATABLE-FILL-LATENCY-COST-EVIDENCE`、`MTP-114-NO-REAL-FEE-SCHEDULE-BROKER-RECONCILIATION` 和 `MTP-114-PARTIAL-FILL-LATENCY-FEE-SLIPPAGE-VALIDATION` anchors。
+- `Sources/Core/PartialFillLatencyFeeSlippageParity.swift` 必须定义 `PartialFillLatencyFeeSlippageParityContract`、`PartialFillLatencyFeeSlippageParityInput`、`PartialFillLatencyFeeSlippageLatencyAssumption`、`PartialFillLatencyFeeSlippageParityEvent`、`PartialFillLatencyFeeSlippageParityReportEvidence`、`PartialFillLatencyFeeSlippageParityModel`、`PartialFillLatencyFeeSlippageParityRule` 和 `PartialFillLatencyFeeSlippageForbiddenCapability`。
+- `PartialFillLatencyFeeSlippageParityInput` 必须绑定 MTP-113 market / limit simulated execution input、deterministic simulated liquidity cap、fixed latency assumption、liquidity role 和 MTP-27 fixed execution cost assumptions。
+- `PartialFillLatencyFeeSlippageParityModel.evaluate` 必须在 available simulated liquidity 小于 order quantity 时输出 partial fill / remaining quantity evidence，在 available simulated liquidity 等于 order quantity 时输出 full fill evidence。
+- Latency evidence 必须由 replay record sequence 和 fixed tick offset 推导，默认 `2 -> 3`、`250ms`；不得使用 wall clock、randomness、真实网络、exchange latency 或 broker SLA。
+- Fee / slippage evidence 必须复用 `ExecutionCostAssumptions.deterministicFixture` 和 `ExecutionCostParity.verify`，证明 Backtest / Paper 两侧 assumption、输入、fee amount、slippage amount、total cost 和 rounding scale 一致。
+- `PartialFillLatencyFeeSlippageParityReportEvidence.deterministicResultIdentity` 必须固定 scenario id、dataset version、fixture version、window、cursor sequence、record sequence、order id、order type、available liquidity、latency assumption、liquidity role、cost assumption、fill completion、latency output、filled quantity、remaining quantity、fee、slippage 和 total cost。
+- Core fixture 和 Codable decode 必须拒绝真实费率表、动态滑点模型、真实流动性消耗、执行成本优化、signed endpoint、account endpoint、listenKey、broker fill、execution report、reconciliation、`LiveExecutionAdapter`、OMS、portfolio projection runtime、live command、order-level command UI 和交易按钮绕过。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-114 focused tests，验证 contract anchors、partial fill evidence、full fill evidence、latency evidence、fee / slippage parity、deterministic identity、Codable round-trip 和 forbidden capability rejection。
+- `docs/domain/context.md` 必须包含 `MTP-114-PARTIAL-FULL-FILL-PARITY`、`MTP-114-DETERMINISTIC-LATENCY-MODEL`、`MTP-114-FEE-SLIPPAGE-PARITY-ASSUMPTIONS`、`MTP-114-REPEATABLE-FILL-LATENCY-COST-EVIDENCE` 和 `MTP-114-NO-REAL-FEE-SCHEDULE-BROKER-RECONCILIATION`。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-114 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-114 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-114 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不运行 Graphify，不修改 Figma，不实现完整交易所费率表、动态滑点模型、真实流动性消耗、执行成本优化、portfolio projection runtime、Report / Dashboard / Events evidence surface、signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、live runtime、live command、Live PRO Console 或交易按钮。
+
+MTP-114 必须建立的主要 anchors：
+
+- `TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY`
+- `MTP-114-PARTIAL-FULL-FILL-PARITY`
+- `MTP-114-DETERMINISTIC-LATENCY-MODEL`
+- `MTP-114-FEE-SLIPPAGE-PARITY-ASSUMPTIONS`
+- `MTP-114-REPEATABLE-FILL-LATENCY-COST-EVIDENCE`
+- `MTP-114-NO-REAL-FEE-SCHEDULE-BROKER-RECONCILIATION`
+- `MTP-114-PARTIAL-FILL-LATENCY-FEE-SLIPPAGE-VALIDATION`
+
+## MTP-114 禁止
+
+- 不实现完整交易所费率表、动态滑点模型、真实流动性消耗、执行成本优化、真实 order execution runtime、matching runtime、portfolio projection runtime、UI implementation、Report / Dashboard / Events evidence surface、order form、command model、Runtime replay job 或 database console。
+- 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、live runtime、Live PRO Console、live command、order-level command UI 或交易按钮。
+- 不把 fee / slippage parity 写成 live fee schedule、真实成交成本、真实成交质量分析、broker fee statement、live readiness 或 production execution optimizer。
+- 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进下一 issue。

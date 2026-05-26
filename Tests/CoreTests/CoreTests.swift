@@ -9601,6 +9601,206 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testMTP114PartialFillLatencyFeeSlippageParityDefinesContractAndAnchors() throws {
+        // 测试场景：MTP-114 必须定义 partial / full fill、deterministic latency、
+        // MTP-27 fixed fee / slippage parity 和 simulated report evidence 边界，不实现真实费率或 broker 对账。
+        let contract = PartialFillLatencyFeeSlippageParityContract.deterministicFixture
+        let partialReport = try PartialFillLatencyFeeSlippageParityModel.evaluate(.deterministicPartialFixture)
+
+        XCTAssertEqual(contract.contractID, try Identifier("mtp-114-partial-fill-latency-fee-slippage-parity"))
+        XCTAssertEqual(contract.issueID, try Identifier("MTP-114"))
+        XCTAssertEqual(contract.rules, PartialFillLatencyFeeSlippageParityRule.allCases)
+        XCTAssertEqual(contract.fillCompletions, [.full, .partial])
+        XCTAssertTrue(contract.rules.contains(.capsFillByDeterministicLiquidity))
+        XCTAssertTrue(contract.rules.contains(.latencyUsesReplaySequenceOffset))
+        XCTAssertTrue(contract.rules.contains(.reusesFixedExecutionCostAssumptions))
+        XCTAssertTrue(contract.rules.contains(.backtestPaperCostParityMustMatch))
+        XCTAssertTrue(contract.forbidsCapability(.realFeeSchedule))
+        XCTAssertTrue(contract.forbidsCapability(.dynamicSlippageModel))
+        XCTAssertTrue(contract.forbidsCapability(.brokerFill))
+        XCTAssertTrue(contract.forbidsCapability(.reconciliation))
+        XCTAssertTrue(contract.contractBoundaryHeld)
+
+        XCTAssertEqual(contract.validationAnchors, [
+            "MTP-114-PARTIAL-FULL-FILL-PARITY",
+            "MTP-114-DETERMINISTIC-LATENCY-MODEL",
+            "MTP-114-FEE-SLIPPAGE-PARITY-ASSUMPTIONS",
+            "MTP-114-REPEATABLE-FILL-LATENCY-COST-EVIDENCE",
+            "MTP-114-NO-REAL-FEE-SCHEDULE-BROKER-RECONCILIATION",
+            "MTP-114-PARTIAL-FILL-LATENCY-FEE-SLIPPAGE-VALIDATION",
+            "TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY"
+        ])
+
+        XCTAssertEqual(partialReport.parityEvent.fillCompletion, .partial)
+        XCTAssertEqual(partialReport.parityEvent.sharedOrderState, .partiallyFilledSimulated)
+        XCTAssertEqual(partialReport.parityEvent.sharedOrderEventKind, .simulatedOrderPartiallyFilled)
+        XCTAssertEqual(partialReport.parityEvent.matchedPrice.rawValue, 42_120.70)
+        XCTAssertEqual(partialReport.parityEvent.orderQuantity.rawValue, 0.5)
+        XCTAssertEqual(partialReport.parityEvent.availableSimulatedLiquidity.rawValue, 0.25)
+        XCTAssertEqual(partialReport.parityEvent.filledQuantity.rawValue, 0.25)
+        XCTAssertEqual(partialReport.parityEvent.remainingQuantity.rawValue, 0.25)
+        XCTAssertEqual(partialReport.parityEvent.latencyInputRecordSequence, 2)
+        XCTAssertEqual(partialReport.parityEvent.latencyOutputRecordSequence, 3)
+        XCTAssertEqual(partialReport.parityEvent.latencyMilliseconds, 250)
+        XCTAssertEqual(partialReport.parityEvent.backtestCostEstimate.assumptionID, try Identifier("mtp-27-fixed-cost-assumptions"))
+        XCTAssertEqual(partialReport.parityEvent.backtestCostEstimate.feeRateBps, 5)
+        XCTAssertEqual(partialReport.parityEvent.backtestCostEstimate.slippageRateBps, 1.5)
+        XCTAssertEqual(partialReport.parityEvent.backtestCostEstimate.feeAmount, 5.2650875, accuracy: 0.000_000_001)
+        XCTAssertEqual(partialReport.parityEvent.backtestCostEstimate.slippageAmount, 1.57952625, accuracy: 0.000_000_001)
+        XCTAssertTrue(partialReport.parityEvent.costParityResult.isConsistent)
+        XCTAssertTrue(partialReport.parityEvent.parityEventBoundaryHeld)
+        XCTAssertTrue(partialReport.reportEvidenceBoundaryHeld)
+    }
+
+    func testMTP114PartialFillLatencyFeeSlippageParityProducesStableFullAndPartialEvidence() throws {
+        // 测试场景：相同 deterministic input 必须稳定输出相同 partial fill evidence；
+        // full fill fixture 只在 deterministic liquidity 等于 order quantity 时出现。
+        let partial = try PartialFillLatencyFeeSlippageParityModel.evaluate(.deterministicPartialFixture)
+        let partialRepeat = try PartialFillLatencyFeeSlippageParityModel.evaluate(.deterministicPartialFixture)
+        let full = try PartialFillLatencyFeeSlippageParityModel.evaluate(.deterministicFullFixture)
+
+        XCTAssertEqual(partial, partialRepeat)
+        XCTAssertEqual(partial.deterministicResultIdentity, [
+            "mtp-104-btcusdt-1m-first-scenario",
+            "dataset-v1",
+            "fixture-v1",
+            "1704067200...1704067380",
+            "cursor=2",
+            "record=2",
+            "order=paper-order-intent-allowed",
+            "orderType=market order simulated execution",
+            "limit=none",
+            "initialState=accepted simulated",
+            "availableLiquidity=250000",
+            "latencyAssumption=mtp-114-deterministic-latency-assumption",
+            "latencySource=2",
+            "latencyOutput=3",
+            "liquidityRole=taker",
+            "costAssumption=mtp-27-fixed-cost-assumptions",
+            "fill=partial",
+            "latencyMs=25000000000",
+            "latencyRecord=3",
+            "filled=250000",
+            "remaining=250000",
+            "fee=526508750",
+            "slippage=157952625",
+            "totalCost=684461375"
+        ].joined(separator: "|"))
+
+        XCTAssertEqual(full.parityEvent.fillCompletion, .full)
+        XCTAssertEqual(full.parityEvent.sharedOrderState, .filledSimulated)
+        XCTAssertEqual(full.parityEvent.sharedOrderEventKind, .simulatedOrderFilled)
+        XCTAssertEqual(full.parityEvent.filledQuantity.rawValue, 0.5)
+        XCTAssertEqual(full.parityEvent.remainingQuantity.rawValue, 0)
+        XCTAssertEqual(full.parityEvent.backtestCostEstimate.feeAmount, 10.530175, accuracy: 0.000_000_001)
+        XCTAssertEqual(full.parityEvent.backtestCostEstimate.slippageAmount, 3.1590525, accuracy: 0.000_000_001)
+        XCTAssertTrue(full.parityEvent.costParityResult.isConsistent)
+        XCTAssertTrue(full.reportEvidenceBoundaryHeld)
+
+        let encoded = try JSONEncoder().encode(partial)
+        let decoded = try JSONDecoder().decode(PartialFillLatencyFeeSlippageParityReportEvidence.self, from: encoded)
+        XCTAssertEqual(decoded, partial)
+        XCTAssertEqual(decoded.deterministicResultIdentity, partial.deterministicResultIdentity)
+    }
+
+    func testMTP114PartialFillLatencyFeeSlippageParityRejectsRealFeeBrokerAndLiveBypass() throws {
+        // 测试场景：MTP-114 初始化、模型执行和 Codable 解码必须拒绝真实费率表、动态滑点、
+        // 真实流动性、signed/account/listenKey、broker fill、reconciliation、live command 和交易按钮绕过。
+        XCTAssertThrowsError(
+            try PartialFillLatencyFeeSlippageParityContract(usesRealFeeSchedule: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability("usesRealFeeSchedule")
+            )
+        }
+        XCTAssertThrowsError(
+            try PartialFillLatencyFeeSlippageLatencyAssumption(usesWallClockTime: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability(
+                    "partialFillLatencyFeeSlippageLatencyAssumption.usesWallClockTime"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try PartialFillLatencyFeeSlippageParityInput(
+                availableSimulatedLiquidity: try Quantity(0, field: "partialFillLatencyFeeSlippage.availableLiquidity")
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityContractMismatch(
+                    field: "partialFillLatencyFeeSlippageParityInput.availableSimulatedLiquidity",
+                    expected: "0 < liquidity <= order quantity 0.5",
+                    actual: "0.0"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try PartialFillLatencyFeeSlippageParityInput(
+                availableSimulatedLiquidity: try Quantity(0.25),
+                usesDynamicSlippageModel: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability(
+                    "partialFillLatencyFeeSlippageParityInput.usesDynamicSlippageModel"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try PartialFillLatencyFeeSlippageParityModel.evaluate(
+                try PartialFillLatencyFeeSlippageParityInput(
+                    marketLimitExecutionInput: .deterministicLimitExpireFixture,
+                    availableSimulatedLiquidity: try Quantity(0.25)
+                )
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityContractMismatch(
+                    field: "partialFillLatencyFeeSlippageParityModel.sourceExecutionOutput",
+                    expected: "MTP-113 full fill output with deterministic matching output",
+                    actual: "expired simulated"
+                )
+            )
+        }
+
+        let inputEncoded = try JSONEncoder().encode(PartialFillLatencyFeeSlippageParityInput.deterministicPartialFixture)
+        var inputObject = try XCTUnwrap(JSONSerialization.jsonObject(with: inputEncoded) as? [String: Any])
+        inputObject["recordsBrokerFill"] = true
+        let inputData = try JSONSerialization.data(withJSONObject: inputObject)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(PartialFillLatencyFeeSlippageParityInput.self, from: inputData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability(
+                    "partialFillLatencyFeeSlippageParityInput.recordsBrokerFill"
+                )
+            )
+        }
+
+        let report = try PartialFillLatencyFeeSlippageParityModel.evaluate(.deterministicPartialFixture)
+        let reportEncoded = try JSONEncoder().encode(report)
+        var reportObject = try XCTUnwrap(JSONSerialization.jsonObject(with: reportEncoded) as? [String: Any])
+        reportObject["providesTradingButton"] = true
+        let reportData = try JSONSerialization.data(withJSONObject: reportObject)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(PartialFillLatencyFeeSlippageParityReportEvidence.self, from: reportData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability(
+                    "partialFillLatencyFeeSlippageParityReportEvidence.providesTradingButton"
+                )
+            )
+        }
+    }
+
     func testMTP104ScenarioManifestDefinesIdentityVersionAndSerialization() throws {
         // 测试场景：MTP-104 manifest 必须固定 scenario id、dataset version、symbol、timeframe、
         // source anchor 和 deterministic serialization evidence，作为后续 fixture / replay / report input 的稳定来源。
