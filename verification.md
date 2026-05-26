@@ -11074,3 +11074,50 @@ L1 Paper Runtime maturity statement：
 - 不更新 `Final Product Goal Progress`。
 - 不更新 `Engine Maturity Roadmap Progress`。
 - 不实现 signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
+
+---
+
+## 2026-05-26 — MTP-110 Simulated Exchange / Backtest Parity terminology and boundary
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear live-read 中唯一 active issue `MTP-110 Define simulated exchange / backtest parity terminology and boundary`。
+- 定义 L2 `MTPRO Simulated Exchange / Backtest Parity v1` 的 terminology、target engine boundary、L1 Paper Runtime + L1.5 Data Catalog / Scenario Replay handoff boundary、forbidden capability baseline 和 validation anchors。
+- 保持 contract-first，只建立 deterministic boundary fixture、docs anchors、validation matrix anchor 和 focused tests；不实现 runtime。
+
+文件范围：
+
+- 新增 `Sources/Core/SimulatedExchangeBacktestParityBoundary.swift`。
+- 更新 `Sources/Core/CoreError.swift`，增加 simulated exchange / backtest parity contract mismatch 和 forbidden capability error。
+- 更新 `Tests/CoreTests/CoreTests.swift`，新增 MTP-110 focused tests。
+- 新增 `docs/contracts/simulated-exchange-backtest-parity-contract.md`。
+- 更新 `docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh`。
+- 更新本 append-only `verification.md`。
+
+关键证据：
+
+- `SimulatedExchangeBacktestParityBoundary` 固定 `simulated exchange`、`backtest parity`、`matching model`、`fill model`、`latency model`、`fee / slippage parity`、`portfolio projection parity`、`scenario replay integration`、`deterministic simulation` 和 `shared backtest-paper order semantics`。
+- Target Engines 固定为 Simulation / Backtest Engine、Execution Engine（paper-only / simulated）、Portfolio Engine、Data Engine、State & Persistence Engine 和 Workbench Interface。
+- Validation anchors 为 `MTP-110-SIMULATED-EXCHANGE-BACKTEST-PARITY-TERMINOLOGY`、`MTP-110-TARGET-ENGINE-RESPONSIBILITY-BOUNDARY`、`MTP-110-L1-L15-L2-HANDOFF-BOUNDARY`、`MTP-110-FORBIDDEN-CAPABILITY-BASELINE`、`MTP-110-SIMULATED-EXCHANGE-BACKTEST-PARITY-VALIDATION` 和 `TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY`。
+- Forbidden flags 全部保持 false：matching runtime、order execution runtime、portfolio projection runtime、UI implementation、signed endpoint、account endpoint、listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、live runtime、Live PRO Console、live command、trading button、emergency stop / shutdown / restore、Graphify update 和 Figma change。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP110` | pass | 执行 3 个 Core tests，0 failures，验证 terminology / boundary anchors、runtime/live forbidden bypass rejection、Codable decode bypass rejection 和 L1 / L1.5 / L2 deterministic handoff boundary。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；机械检查 MTP-110 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 245 个 XCTest；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; scenarioReplayEvidence=0; scenarioQualityGates=0; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3`，最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不修改 Linear status。
+- 不创建下一 Project / Issue。
+- 不推进下一 issue。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify update。
+- 不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 matching runtime、order execution runtime、portfolio projection runtime、UI implementation、signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
