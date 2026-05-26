@@ -4,9 +4,9 @@
 
 执行者：Codex
 
-本文档定义 `MTPRO Simulated Exchange / Backtest Parity v1` 的 L2 simulated exchange / backtest parity terminology、目标引擎职责、L1 Paper Runtime 与 L1.5 Data Catalog / Scenario Replay 到 L2 的 handoff boundary、shared backtest-paper order semantics、scenario replay deterministic matching model、market / limit order simulated execution semantics、partial fill / latency / fee / slippage parity、forbidden capability baseline、source docs anchors 和 validation anchors。
+本文档定义 `MTPRO Simulated Exchange / Backtest Parity v1` 的 L2 simulated exchange / backtest parity terminology、目标引擎职责、L1 Paper Runtime 与 L1.5 Data Catalog / Scenario Replay 到 L2 的 handoff boundary、shared backtest-paper order semantics、scenario replay deterministic matching model、market / limit order simulated execution semantics、partial fill / latency / fee / slippage parity、simulated exchange event 到 portfolio projection parity、forbidden capability baseline、source docs anchors 和 validation anchors。
 
-本文档服务 `MTP-110` 至 `MTP-114` 的术语 / 边界合同；它不实现真实撮合引擎、不实现真实订单执行 runtime、不实现 portfolio projection、不实现 UI，不接 signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、live command、trading button，不运行 Graphify，不修改 Figma。
+本文档服务 `MTP-110` 至 `MTP-115` 的术语 / 边界合同；它不实现真实撮合引擎、不实现真实订单执行 runtime、不实现 portfolio projection runtime、不实现 UI，不接 signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、Live PRO Console、live command、trading button，不运行 Graphify，不修改 Figma。
 
 ## MTP-110 Simulated Exchange / Backtest Parity terminology
 
@@ -487,3 +487,80 @@ Validation anchors：
 - `TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY`
 
 MTP-114 不实现完整交易所费率表、动态滑点模型、真实流动性消耗、执行成本优化、portfolio projection runtime、Report / Dashboard / Events evidence surface、order form、command model、真实订单提交 / 撤销 / 替换、OMS、execution report、broker fill、reconciliation、signed endpoint、account endpoint / listenKey、Live PRO Console、live command、order-level command UI、trading button 或 stage audit input；这些仍归属后续 `MTP-115` 至 `MTP-117` 或 Future Gated scope。
+
+## MTP-115 simulated exchange event to portfolio projection parity
+
+`MTP-115-SIMULATED-EVENT-TO-PORTFOLIO-PROJECTION`
+
+MTP-115 在 MTP-114 partial fill / latency / fee / slippage report evidence 之上定义纯 Core portfolio projection parity。输入必须来自同一个 deterministic simulated exchange parity event、同一个 MTP-107 report input version 和同一个 replay evidence sequence；不得读取真实账户余额、broker position、margin、leverage、Runtime object 或 persistence schema。
+
+| 语义 | 当前含义 | 禁止混用 |
+| --- | --- | --- |
+| `simulated event to portfolio projection` | 由 MTP-114 report evidence 的 filled quantity、matched price、fee、slippage 和 latency output sequence 派生 position / cash / PnL / exposure | 不等于 portfolio runtime、real account sync、broker reconciliation 或 account endpoint read |
+| `backtest portfolio projection` | backtest 观察口径的单侧模拟组合快照，使用同一 source event 和 report input identity | 不等于独立回测账户、真实资产、margin 或 leverage |
+| `paper portfolio projection` | paper 观察口径的单侧模拟组合快照，必须与 backtest 快照在 quantity、cash、PnL、exposure 上完全一致 | 不等于 broker position、paper broker state、listenKey stream 或 live account |
+
+Core deterministic fixtures：
+
+- `SimulatedExchangePortfolioProjectionParityContract.deterministicFixture`。
+- `SimulatedExchangePortfolioProjectionParityInput()` 默认消费 `PartialFillLatencyFeeSlippageParityInput.deterministicPartialFixture` 的 report evidence。
+- `SimulatedExchangePortfolioProjectionParityModel.project`。
+- `SimulatedExchangePortfolioProjectionParityFixture.deterministicEvidence()`。
+
+`MTP-115-BACKTEST-PAPER-PORTFOLIO-PARITY`
+
+Backtest 与 Paper projection 必须由同一个 source event 生成相同的 `parityComparableIdentity`。默认 partial fixture 固定：
+
+| 字段 | 值 |
+| --- | --- |
+| source replay sequence | `3` |
+| filled quantity | `0.25` |
+| average / last fill price | `42120.70` |
+| position market value / cost basis / gross exposure | `10530.175` |
+| total fee | `5.2650875` |
+| total slippage | `1.57952625` |
+| total cost impact | `6.84461375` |
+| starting cash | `50000` |
+| cash / available simulated cash | `39462.98038625` |
+| equity | `49993.15538625` |
+| realized simulated PnL | `0` |
+| unrealized / net simulated PnL | `-6.84461375` |
+
+`MTP-115-POSITION-CASH-PNL-EXPOSURE-SUMMARY`
+
+MTP-115 只输出 value-object summary：net quantity、average entry price、last fill price、position market value、cost basis、cash、available simulated cash、equity、gross exposure、realized / unrealized / net simulated PnL 和 `PortfolioExposureSnapshot`。这些值只用于 parity evidence，不落地为账户 runtime、不写 broker state、不打开 order-level command UI。
+
+`MTP-115-REPORT-INPUT-REPLAY-EVIDENCE`
+
+Projection evidence 必须绑定 MTP-107 report input version identity：
+
+```text
+mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|1704067200...1704067380|fnv1a64:3c6cd4ff13cd4062|fresh|accepted
+```
+
+Projection input identity 必须包含 MTP-114 deterministic report identity、`reportInput=mtp-104-btcusdt-1m-first-scenario...`、`startingCash=5000000000000` 和 `sourceReplaySequence=3`，保证 replay evidence 可追溯。
+
+`MTP-115-NO-REAL-ACCOUNT-BROKER-MARGIN-LEVERAGE`
+
+MTP-115 必须保持 real account balance read / sync、broker position read、margin read、leverage read、broker reconciliation、signed endpoint、account endpoint、listenKey、broker integration、`LiveExecutionAdapter`、OMS、live runtime、live command、order-level command UI、trading button、database schema exposure、runtime object read 和 required network validation flags 全部为 false；初始化和 Codable 解码都不能恢复这些能力。
+
+## MTP-115 validation anchors
+
+`MTP-115-SIMULATED-EXCHANGE-PORTFOLIO-PROJECTION-VALIDATION`
+
+Required validation：
+
+- `swift test --filter MTP115`
+- `bash checks/run.sh`
+
+Validation anchors：
+
+- `MTP-115-SIMULATED-EVENT-TO-PORTFOLIO-PROJECTION`
+- `MTP-115-BACKTEST-PAPER-PORTFOLIO-PARITY`
+- `MTP-115-POSITION-CASH-PNL-EXPOSURE-SUMMARY`
+- `MTP-115-REPORT-INPUT-REPLAY-EVIDENCE`
+- `MTP-115-NO-REAL-ACCOUNT-BROKER-MARGIN-LEVERAGE`
+- `MTP-115-SIMULATED-EXCHANGE-PORTFOLIO-PROJECTION-VALIDATION`
+- `TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY`
+
+MTP-115 不实现 portfolio projection runtime、Report / Dashboard / Events evidence surface、stage audit input、order form、command model、真实订单提交 / 撤销 / 替换、OMS、execution report、broker fill、reconciliation、signed endpoint、account endpoint / listenKey、Live PRO Console、live command、order-level command UI 或 trading button；这些仍归属后续 `MTP-116` 至 `MTP-117` 或 Future Gated scope。

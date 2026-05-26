@@ -9801,6 +9801,177 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testMTP115SimulatedExchangePortfolioProjectionDefinesContractAndAnchors() throws {
+        // 测试场景：MTP-115 必须定义 simulated exchange event 到 backtest / paper
+        // portfolio projection 的合同边界，并固定 report input / replay evidence anchor。
+        let contract = SimulatedExchangePortfolioProjectionParityContract.deterministicFixture
+        let evidence = try SimulatedExchangePortfolioProjectionParityFixture.deterministicEvidence()
+
+        XCTAssertEqual(
+            contract.contractID,
+            try Identifier("mtp-115-simulated-exchange-portfolio-projection-parity")
+        )
+        XCTAssertEqual(contract.issueID, try Identifier("MTP-115"))
+        XCTAssertEqual(contract.rules, SimulatedExchangePortfolioProjectionRule.allCases)
+        XCTAssertEqual(contract.projectionModes, SimulatedExchangePortfolioProjectionMode.allCases)
+        XCTAssertTrue(contract.rules.contains(.consumesSimulatedExchangeParityEvent))
+        XCTAssertTrue(contract.rules.contains(.derivesBacktestAndPaperFromSameEvent))
+        XCTAssertTrue(contract.rules.contains(.computesPositionCashPnLExposure))
+        XCTAssertTrue(contract.rules.contains(.bindsReportInputVersion))
+        XCTAssertTrue(contract.rules.contains(.preservesReplayEvidenceIdentity))
+        XCTAssertTrue(contract.forbidsCapability(.realAccountBalanceRead))
+        XCTAssertTrue(contract.forbidsCapability(.brokerPositionRead))
+        XCTAssertTrue(contract.forbidsCapability(.marginRead))
+        XCTAssertTrue(contract.forbidsCapability(.leverageRead))
+        XCTAssertTrue(contract.forbidsCapability(.brokerReconciliation))
+        XCTAssertTrue(contract.contractBoundaryHeld)
+        XCTAssertEqual(contract.validationAnchors, [
+            "MTP-115-SIMULATED-EVENT-TO-PORTFOLIO-PROJECTION",
+            "MTP-115-BACKTEST-PAPER-PORTFOLIO-PARITY",
+            "MTP-115-POSITION-CASH-PNL-EXPOSURE-SUMMARY",
+            "MTP-115-REPORT-INPUT-REPLAY-EVIDENCE",
+            "MTP-115-NO-REAL-ACCOUNT-BROKER-MARGIN-LEVERAGE",
+            "MTP-115-SIMULATED-EXCHANGE-PORTFOLIO-PROJECTION-VALIDATION",
+            "TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY"
+        ])
+
+        XCTAssertTrue(evidence.parityEvidenceBoundaryHeld)
+        XCTAssertTrue(evidence.projectionParityHeld)
+        XCTAssertEqual(evidence.backtestProjection.mode, .backtest)
+        XCTAssertEqual(evidence.paperProjection.mode, .paper)
+        XCTAssertEqual(
+            evidence.reportInputVersion.versionIdentity,
+            "mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|1704067200...1704067380|fnv1a64:3c6cd4ff13cd4062|fresh|accepted"
+        )
+        XCTAssertTrue(evidence.deterministicResultIdentity.contains("sourceReplaySequence=3"))
+        XCTAssertTrue(evidence.deterministicResultIdentity.contains("reportInput=mtp-104-btcusdt-1m-first-scenario"))
+    }
+
+    func testMTP115SimulatedExchangePortfolioProjectionProducesBacktestPaperParity() throws {
+        // 测试场景：同一 MTP-114 simulated exchange event 必须为 backtest 与 paper
+        // 生成一致的 quantity、cash、PnL、exposure 和 report input identity。
+        let partialEvidence = try SimulatedExchangePortfolioProjectionParityFixture.deterministicEvidence()
+        let partialBacktest = partialEvidence.backtestProjection
+        let partialPaper = partialEvidence.paperProjection
+
+        XCTAssertEqual(partialBacktest.parityComparableIdentity, partialPaper.parityComparableIdentity)
+        XCTAssertEqual(partialBacktest.netQuantity.rawValue, 0.25, accuracy: 0.000_000_001)
+        XCTAssertEqual(partialBacktest.averageEntryPrice.rawValue, 42_120.70, accuracy: 0.000_000_001)
+        XCTAssertEqual(partialBacktest.positionMarketValue, 10_530.175, accuracy: 0.000_000_001)
+        XCTAssertEqual(partialBacktest.costBasisNotional, 10_530.175, accuracy: 0.000_000_001)
+        XCTAssertEqual(partialBacktest.totalFeeAmount, 5.2650875, accuracy: 0.000_000_001)
+        XCTAssertEqual(partialBacktest.totalSlippageAmount, 1.57952625, accuracy: 0.000_000_001)
+        XCTAssertEqual(partialBacktest.totalCostImpactAmount, 6.84461375, accuracy: 0.000_000_001)
+        XCTAssertEqual(partialBacktest.cashBalance, 39_462.98038625, accuracy: 0.000_000_001)
+        XCTAssertEqual(partialBacktest.availableSimulatedCash, partialBacktest.cashBalance, accuracy: 0.000_000_001)
+        XCTAssertEqual(partialBacktest.equity, 49_993.15538625, accuracy: 0.000_000_001)
+        XCTAssertEqual(partialBacktest.grossExposureNotional, 10_530.175, accuracy: 0.000_000_001)
+        XCTAssertEqual(partialBacktest.realizedSimulatedPnL, 0, accuracy: 0.000_000_001)
+        XCTAssertEqual(partialBacktest.unrealizedSimulatedPnL, -6.84461375, accuracy: 0.000_000_001)
+        XCTAssertEqual(partialBacktest.netSimulatedPnL, -6.84461375, accuracy: 0.000_000_001)
+        XCTAssertEqual(partialBacktest.exposure.grossExposureNotional, 10_530.175, accuracy: 0.000_000_001)
+        XCTAssertTrue(partialBacktest.projectionBoundaryHeld)
+        XCTAssertTrue(partialPaper.projectionBoundaryHeld)
+
+        let fullReport = try PartialFillLatencyFeeSlippageParityModel.evaluate(.deterministicFullFixture)
+        let fullEvidence = try SimulatedExchangePortfolioProjectionParityModel.project(
+            try SimulatedExchangePortfolioProjectionParityInput(sourceReportEvidence: fullReport)
+        )
+        XCTAssertTrue(fullEvidence.projectionParityHeld)
+        XCTAssertEqual(fullEvidence.backtestProjection.netQuantity.rawValue, 0.5, accuracy: 0.000_000_001)
+        XCTAssertEqual(fullEvidence.backtestProjection.positionMarketValue, 21_060.35, accuracy: 0.000_000_001)
+        XCTAssertEqual(fullEvidence.backtestProjection.totalCostImpactAmount, 13.6892275, accuracy: 0.000_000_001)
+        XCTAssertEqual(fullEvidence.backtestProjection.cashBalance, 28_925.9607725, accuracy: 0.000_000_001)
+        XCTAssertEqual(fullEvidence.backtestProjection.netSimulatedPnL, -13.6892275, accuracy: 0.000_000_001)
+
+        let encoded = try JSONEncoder().encode(partialEvidence)
+        let decoded = try JSONDecoder().decode(SimulatedExchangePortfolioProjectionParityEvidence.self, from: encoded)
+        XCTAssertEqual(decoded, partialEvidence)
+        XCTAssertEqual(decoded.deterministicResultIdentity, partialEvidence.deterministicResultIdentity)
+    }
+
+    func testMTP115SimulatedExchangePortfolioProjectionRejectsRealAccountBrokerBypass() throws {
+        // 测试场景：MTP-115 初始化、模型执行和 Codable 解码必须拒绝真实账户、
+        // broker position、margin、leverage、reconciliation、schema / runtime 暴露和 live command 绕过。
+        XCTAssertThrowsError(
+            try SimulatedExchangePortfolioProjectionParityContract(readsBrokerPosition: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability("readsBrokerPosition")
+            )
+        }
+        XCTAssertThrowsError(
+            try SimulatedExchangePortfolioProjectionParityInput(readsRealAccountBalance: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability(
+                    "simulatedExchangePortfolioProjectionParityInput.readsRealAccountBalance"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try SimulatedExchangePortfolioProjectionParityInput(sourceReplaySequence: 99)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityContractMismatch(
+                    field: "simulatedExchangePortfolioProjectionParityInput",
+                    expected: "MTP-114 report evidence, report input version, positive cash, matching replay sequence",
+                    actual: "invalid"
+                )
+            )
+        }
+
+        let encodedInput = try JSONEncoder().encode(try SimulatedExchangePortfolioProjectionParityInput())
+        var inputObject = try XCTUnwrap(JSONSerialization.jsonObject(with: encodedInput) as? [String: Any])
+        inputObject["exposesDatabaseSchema"] = true
+        let inputData = try JSONSerialization.data(withJSONObject: inputObject)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(SimulatedExchangePortfolioProjectionParityInput.self, from: inputData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability(
+                    "simulatedExchangePortfolioProjectionParityInput.exposesDatabaseSchema"
+                )
+            )
+        }
+
+        let evidence = try SimulatedExchangePortfolioProjectionParityFixture.deterministicEvidence()
+        let encodedEvidence = try JSONEncoder().encode(evidence)
+        var evidenceObject = try XCTUnwrap(JSONSerialization.jsonObject(with: encodedEvidence) as? [String: Any])
+        var backtestProjection = try XCTUnwrap(evidenceObject["backtestProjection"] as? [String: Any])
+        backtestProjection["readsMargin"] = true
+        evidenceObject["backtestProjection"] = backtestProjection
+        let projectionBypassData = try JSONSerialization.data(withJSONObject: evidenceObject)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(SimulatedExchangePortfolioProjectionParityEvidence.self, from: projectionBypassData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability(
+                    "simulatedExchangePortfolioProjectionSnapshot.readsMargin"
+                )
+            )
+        }
+
+        var commandEvidenceObject = try XCTUnwrap(JSONSerialization.jsonObject(with: encodedEvidence) as? [String: Any])
+        commandEvidenceObject["providesTradingButton"] = true
+        let commandBypassData = try JSONSerialization.data(withJSONObject: commandEvidenceObject)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(SimulatedExchangePortfolioProjectionParityEvidence.self, from: commandBypassData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability(
+                    "simulatedExchangePortfolioProjectionParityEvidence.providesTradingButton"
+                )
+            )
+        }
+    }
+
     func testMTP104ScenarioManifestDefinesIdentityVersionAndSerialization() throws {
         // 测试场景：MTP-104 manifest 必须固定 scenario id、dataset version、symbol、timeframe、
         // source anchor 和 deterministic serialization evidence，作为后续 fixture / replay / report input 的稳定来源。

@@ -2447,3 +2447,42 @@ MTP-114 必须建立的主要 anchors：
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、live runtime、Live PRO Console、live command、order-level command UI 或交易按钮。
 - 不把 fee / slippage parity 写成 live fee schedule、真实成交成本、真实成交质量分析、broker fee statement、live readiness 或 production execution optimizer。
 - 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进下一 issue。
+
+## MTP-115 Simulated Exchange Portfolio Projection Parity Validation
+
+日期：2026-05-26
+
+执行者：Codex
+
+MTP-115 的 required validation：
+
+- `docs/contracts/simulated-exchange-backtest-parity-contract.md` 必须包含 `MTP-115-SIMULATED-EVENT-TO-PORTFOLIO-PROJECTION`、`MTP-115-BACKTEST-PAPER-PORTFOLIO-PARITY`、`MTP-115-POSITION-CASH-PNL-EXPOSURE-SUMMARY`、`MTP-115-REPORT-INPUT-REPLAY-EVIDENCE`、`MTP-115-NO-REAL-ACCOUNT-BROKER-MARGIN-LEVERAGE` 和 `MTP-115-SIMULATED-EXCHANGE-PORTFOLIO-PROJECTION-VALIDATION` anchors。
+- `Sources/Core/SimulatedExchangePortfolioProjectionParity.swift` 必须定义 `SimulatedExchangePortfolioProjectionParityContract`、`SimulatedExchangePortfolioProjectionParityInput`、`SimulatedExchangePortfolioProjectionSnapshot`、`SimulatedExchangePortfolioProjectionParityEvidence`、`SimulatedExchangePortfolioProjectionParityModel`、`SimulatedExchangePortfolioProjectionRule`、`SimulatedExchangePortfolioProjectionMode`、`SimulatedExchangePortfolioProjectionForbiddenCapability` 和 `SimulatedExchangePortfolioProjectionParityFixture`。
+- `SimulatedExchangePortfolioProjectionParityInput` 必须消费 MTP-114 `PartialFillLatencyFeeSlippageParityReportEvidence`，绑定 MTP-107 `ScenarioReportInputVersion` 和 source replay sequence `3`；不得读取真实账户、broker position、margin、leverage、Runtime object 或 persistence schema。
+- `SimulatedExchangePortfolioProjectionParityModel.project` 必须从同一个 simulated exchange parity event 同时生成 backtest 与 paper projection，并保证两侧 `parityComparableIdentity` 一致。
+- Projection snapshot 必须输出 position、cash、available simulated cash、equity、gross exposure、realized / unrealized / net simulated PnL 和 `PortfolioExposureSnapshot`；默认 partial fixture 必须固定 cash `39462.98038625`、equity `49993.15538625`、gross exposure `10530.175` 和 net simulated PnL `-6.84461375`。
+- Core fixture 和 Codable decode 必须拒绝 real account balance read / sync、broker position read、margin read、leverage read、broker reconciliation、signed endpoint、account endpoint、listenKey、broker integration、`LiveExecutionAdapter`、OMS、live runtime、live command、order-level command UI、trading button、database schema exposure、runtime object read 和 network validation 绕过。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-115 focused tests，验证 contract anchors、report input / replay evidence、backtest / paper portfolio parity、position / cash / PnL / exposure numeric summary、full / partial fixtures、Codable round-trip 和 forbidden capability rejection。
+- `docs/domain/context.md` 必须包含 `MTP-115-SIMULATED-EVENT-TO-PORTFOLIO-PROJECTION`、`MTP-115-BACKTEST-PAPER-PORTFOLIO-PARITY`、`MTP-115-POSITION-CASH-PNL-EXPOSURE-SUMMARY`、`MTP-115-REPORT-INPUT-REPLAY-EVIDENCE` 和 `MTP-115-NO-REAL-ACCOUNT-BROKER-MARGIN-LEVERAGE`。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-115 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-115 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-115 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不运行 Graphify，不修改 Figma，不实现 portfolio projection runtime、Report / Dashboard / Events evidence surface、signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、live runtime、live command、Live PRO Console 或交易按钮。
+
+MTP-115 必须建立的主要 anchors：
+
+- `TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY`
+- `MTP-115-SIMULATED-EVENT-TO-PORTFOLIO-PROJECTION`
+- `MTP-115-BACKTEST-PAPER-PORTFOLIO-PARITY`
+- `MTP-115-POSITION-CASH-PNL-EXPOSURE-SUMMARY`
+- `MTP-115-REPORT-INPUT-REPLAY-EVIDENCE`
+- `MTP-115-NO-REAL-ACCOUNT-BROKER-MARGIN-LEVERAGE`
+- `MTP-115-SIMULATED-EXCHANGE-PORTFOLIO-PROJECTION-VALIDATION`
+
+## MTP-115 禁止
+
+- 不实现 portfolio projection runtime、真实 order execution runtime、matching runtime、UI implementation、Report / Dashboard / Events evidence surface、order form、command model、Runtime replay job 或 database console。
+- 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、real account balance sync、live runtime、Live PRO Console、live command、order-level command UI 或交易按钮。
+- 不把 simulated portfolio projection 写成真实账户资产、broker statement、margin / leverage、live readiness、production account reconciliation 或 trading command state。
+- 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进下一 issue。
