@@ -11261,3 +11261,37 @@ L1 Paper Runtime maturity statement：
 - 不修改 Figma。
 - 不提交 `.codex/*` 或 `graphify-out/*`。
 - 不实现 stop / OCO / advanced order types、真实 order execution runtime、matching runtime、partial fill、latency、fee / slippage parity、portfolio projection runtime、Report / Dashboard / Events evidence surface、UI implementation、order form、command model、Runtime replay job、database console、signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、order-level command UI、trading button、live command、emergency stop、shutdown 或 restore。
+
+---
+
+## 2026-05-26 — MTP-113 continuation handoff evidence
+
+执行者：Codex
+
+目的：
+
+- 记录 `MTP-113` ready-for-review PR handoff 后的 continuation 状态，避免后续 agent 重复排查 GitHub / Symphony 状态。
+- 保持 append-only evidence chain；不修改 Linear status，不绕过 GitHub required checks。
+
+观察：
+
+- PR `https://github.com/atxinbao/MTPRO/pull/214` 已创建为 ready-for-review，PR body 包含 `Fixes MTP-113`。
+- Squash auto-merge 已启用。
+- GitHub repository ruleset `protect-main` 要求 `checks` status check；截至 continuation turn #3，PR head `2bc09c0f827144513a800c886fde98fe43718ea0` 没有 status contexts，也没有 check runs。
+- 已尝试 empty synchronize commit、close / reopen PR、重新启用 auto-merge；GitHub 仍报告 `mergeStateStatus=BLOCKED` 且 `statusCheckRollup=[]`。
+- `.codex/symphony-issue-handoff.json` 已通过 Symphony `handoff_marker_for_test` parser，返回 `{:ready, marker}`；该文件不进入 PR。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `gh pr view 214 --json url,state,isDraft,mergeStateStatus,autoMergeRequest,mergedAt,statusCheckRollup,headRefOid` | pass | PR open、not draft、auto-merge enabled、`mergeStateStatus=BLOCKED`、`statusCheckRollup=[]`。 |
+| `gh api repos/atxinbao/MTPRO/rulesets/16463304` | pass | `protect-main` ruleset 要求 GitHub Actions integration `15368` 的 `checks` required status check。 |
+| `mix run -e 'SymphonyElixir.Orchestrator.handoff_marker_for_test(...)'` | pass | 本地 handoff marker 被 Symphony parser 判定为 `{:ready, marker}`。 |
+
+边界确认：
+
+- 不修改 Linear status。
+- 不直接 merge PR。
+- 不创建或绕过 required status check。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
