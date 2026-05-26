@@ -73,6 +73,7 @@
 | `docs/planning/projects/mtpro-event-driven-paper-trading-runtime-v1-plan.md` | 写入 Linear 前的 Project Planning Record，承接 Paper Trading Runtime Foundation Blueprint，只记录 event-driven paper runtime 的 Project 级计划摘要和格式门槛，不授权执行 |
 | `docs/planning/projects/mtpro-data-catalog-scenario-replay-v1-plan.md` | 写入 Linear 前的 Project Planning Record，规划 Data Engine / State & Persistence Engine / Workbench Interface 的 local-first scenario replay 数据地基；不授权执行 |
 | `docs/planning/projects/mtpro-simulated-exchange-backtest-parity-v1-plan.md` | 写入 Linear 前的 Project Planning Record，规划 Simulation / Backtest、paper-only Execution、Portfolio、Data、State & Persistence 和 Workbench Interface 的 L2 Backtest / Simulation Parity；不授权执行 |
+| `docs/planning/projects/mtpro-workbench-beta-readiness-v1-plan.md` | 写入 Linear 前的 Project Planning Record，规划 L2+ Workbench Beta Readiness 的 local macOS launch / install / demo / acceptance path；不授权执行 |
 | `docs/audit/mtpro-event-driven-paper-trading-runtime-v1-stage-code-audit.md` | `MTPRO Event-Driven Paper Trading Runtime v1` 的 canonical Stage Code Audit Report，记录 `MTP-96` 至 `MTP-102` 已完成、Linear Project `Completed/type=completed`、L1 Paper Runtime evidence chain、validation、Root Docs Delta 和 forbidden capability audit |
 | `docs/audit/mtpro-data-catalog-scenario-replay-v1-stage-code-audit.md` | `MTPRO Data Catalog / Scenario Replay v1` 的 canonical Stage Code Audit Report，记录 `MTP-103` 至 `MTP-109` 已完成、Linear Project `Completed/type=completed`、L1.5 Data Catalog / Scenario Replay evidence chain、validation、Root Docs Delta 和 forbidden capability audit |
 | `docs/design/mtpro-workbench-screen-layout-v1.md` | 设计层 screen layout 依据，承接产品用户动线和交互模型，定义 macOS 工作台页面区域、信息优先级和禁止动作 |
@@ -425,7 +426,9 @@ Live trading 是最终产品目标的一部分，但不是当前 execution scope
 
 后续所有 Project Draft 必须对齐 `MTPRO Core Engine Architecture & Module Maturity Map v1`：说明补的是哪个 Engine / Layer、目标 maturity level、当前 evidence、允许施工范围、forbidden capabilities 和 validation anchors。`MTPRO Event-Driven Paper Trading Runtime v1` 已完成 paper-only L1 起点，不等于完整交易系统，也不授权 Live PRO Console。
 
-`docs/planning/projects/mtpro-simulated-exchange-backtest-parity-v1-plan.md` 已完成执行和 closure。该记录仍只作为 Project Planning Record evidence，不作为下一阶段授权；Simulated Exchange / Backtest Parity stage closure 的 canonical 事实以 `docs/audit/mtpro-simulated-exchange-backtest-parity-v1-stage-code-audit.md`、Root Docs Refresh Gate 和 Linear live-read 为准。当前不创建下一 Project / Issue，不推进 Todo，不启动 `@002 / PAR`、Symphony 或 Graphify，不修改 Figma，不写业务代码，不授权 Workbench Beta、Live read-only、Live Production、signed endpoint、account endpoint / listenKey、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position、Live PRO Console、trading button 或 live command。
+`docs/planning/projects/mtpro-simulated-exchange-backtest-parity-v1-plan.md` 已完成执行和 closure。该记录仍只作为 Project Planning Record evidence，不作为下一阶段授权；Simulated Exchange / Backtest Parity stage closure 的 canonical 事实以 `docs/audit/mtpro-simulated-exchange-backtest-parity-v1-stage-code-audit.md`、Root Docs Refresh Gate 和 Linear live-read 为准。当前不创建下一 Project / Issue，不推进 Todo，不启动 `@002 / PAR`、Symphony 或 Graphify，不修改 Figma，不写业务代码，不授权 Workbench Beta implementation、Live read-only、Live Production、signed endpoint、account endpoint / listenKey、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position、Live PRO Console、trading button 或 live command。
+
+`docs/planning/projects/mtpro-workbench-beta-readiness-v1-plan.md` 已记录 `MTPRO Workbench Beta Readiness v1` 的写入 Linear 前 planning record。该记录只保存 Project 级计划摘要、issue order、dependencies、validation、evidence、first executable issue candidate、WIP=1 和边界；它不创建 Linear Project / Issue，不推进 Todo，不启动 `@002 / PAR`、Symphony 或 Graphify，不修改 Figma，不实现 Workbench Beta Readiness，不新增 engine core capability，不授权 production release、notarization、App Store distribution、auto-update、production operations、Live PRO Console、trading button、live command、signed endpoint、account endpoint / listenKey、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle 或 real submit / cancel / replace。
 
 ### Future Construction Zones / 未来建设区
 
@@ -495,7 +498,7 @@ Human confirms blueprint
 -> Todo
 ```
 
-当前 handoff 状态：`MTPRO Simulated Exchange / Backtest Parity v1` 已完成 Project closure。下一推荐 maturity slice 为 `L2+ Workbench Beta Readiness v1`，但尚未授权 Project Planning、Linear write、`@002 / PAR` startup、Symphony 或 `Todo` promotion。
+当前 handoff 状态：`MTPRO Simulated Exchange / Backtest Parity v1` 已完成 Project closure。`MTPRO Workbench Beta Readiness v1` 已完成 docs-only planning record 落仓，但尚未授权 Linear write、`@002 / PAR` startup、Symphony 或 `Todo` promotion。
 
 ## Blueprint Update Rule
 
