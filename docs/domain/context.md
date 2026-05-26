@@ -662,6 +662,26 @@ MTP-114 必须保证相同 MTP-113 execution input、available simulated liquidi
 
 MTP-114 partial fill / latency / fee / slippage parity 不得升级为 real fee schedule、dynamic slippage model、real liquidity consumption、execution cost optimization、signed endpoint、account endpoint、listenKey、broker integration、broker fill、execution report、reconciliation、`LiveExecutionAdapter`、OMS、real submit / cancel / replace、portfolio projection runtime、Live PRO Console、live command、order-level command UI 或交易按钮。
 
+`MTP-115-SIMULATED-EVENT-TO-PORTFOLIO-PROJECTION`
+
+MTP-115 simulated event to portfolio projection 只表示 deterministic simulated exchange parity event 到 value-object portfolio projection 的映射：输入来自 MTP-114 report evidence、MTP-107 report input version 和 replay latency output sequence `3`，输出 backtest / paper 两侧的 position、cash、PnL 和 exposure summary。它不等于 portfolio projection runtime、real account sync、broker position sync、account endpoint read 或 persistence schema read。
+
+`MTP-115-BACKTEST-PAPER-PORTFOLIO-PARITY`
+
+MTP-115 backtest / paper portfolio parity 要求两侧 projection 共享同一个 source event、report input identity、source replay sequence、filled quantity、matched price、fee、slippage 和 starting cash，并输出完全相同的 `parityComparableIdentity`。默认 partial fixture 固定 filled quantity `0.25`、matched price `42120.70`、gross exposure `10530.175`、cash `39462.98038625`、equity `49993.15538625`、net simulated PnL `-6.84461375`。
+
+`MTP-115-POSITION-CASH-PNL-EXPOSURE-SUMMARY`
+
+MTP-115 position / cash / PnL / exposure summary 只包含 net quantity、average entry price、last fill price、position market value、cost basis、fee、slippage、cost impact、cash、available simulated cash、equity、gross exposure、realized / unrealized / net simulated PnL 和 `PortfolioExposureSnapshot`。这些字段是 report / validation evidence，不是真实账户资产、broker statement、margin、leverage、risk limit 或 trading command state。
+
+`MTP-115-REPORT-INPUT-REPLAY-EVIDENCE`
+
+MTP-115 report input / replay evidence 必须绑定 `mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|1704067200...1704067380|fnv1a64:3c6cd4ff13cd4062|fresh|accepted`，并在 deterministic identity 中保留 MTP-114 report identity、`startingCash=5000000000000` 和 `sourceReplaySequence=3`。该 evidence 证明 projection 从 replayed simulated fill fact 派生，而不是从 live state、database console 或 Runtime object 派生。
+
+`MTP-115-NO-REAL-ACCOUNT-BROKER-MARGIN-LEVERAGE`
+
+MTP-115 simulated exchange portfolio projection parity 不得升级为 real account balance read / sync、broker position read、margin read、leverage read、broker reconciliation、signed endpoint、account endpoint、listenKey、broker integration、`LiveExecutionAdapter`、OMS、live runtime、live command、order-level command UI、交易按钮、database schema exposure、runtime object read 或 network-dependent validation。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

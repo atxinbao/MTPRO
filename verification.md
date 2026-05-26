@@ -11336,3 +11336,43 @@ L1 Paper Runtime maturity statement：
 - 不修改 Figma。
 - 不提交 `.codex/*` 或 `graphify-out/*`。
 - 不实现完整交易所费率表、动态滑点模型、真实流动性消耗、执行成本优化、portfolio projection runtime、Report / Dashboard / Events evidence surface、UI implementation、order form、command model、Runtime replay job、database console、signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、order-level command UI、trading button、live command、emergency stop、shutdown 或 restore。
+
+---
+
+## 2026-05-26 — MTP-115 simulated exchange portfolio projection parity evidence
+
+执行者：Codex
+
+目的：
+
+- 完成 `MTP-115` Add simulated exchange events to portfolio projection parity 的当前 issue scope。
+- 保持 MTP-115 只输出 deterministic simulated exchange event -> backtest / paper portfolio projection parity value evidence，不扩大到 portfolio runtime、Report / Dashboard / Events surface、真实账户、broker position、margin、leverage、broker reconciliation 或 live command。
+
+实现摘要：
+
+- 新增 `Sources/Core/SimulatedExchangePortfolioProjectionParity.swift`。
+- `SimulatedExchangePortfolioProjectionParityContract` 固定 MTP-115 rules、projection modes、validation anchors 和 forbidden capability baseline。
+- `SimulatedExchangePortfolioProjectionParityInput` 消费 MTP-114 `PartialFillLatencyFeeSlippageParityReportEvidence`，绑定 MTP-107 `ScenarioReportInputVersion` 和 source replay sequence `3`。
+- `SimulatedExchangePortfolioProjectionParityModel.project` 用同一个 simulated exchange parity event 生成 backtest / paper projection，并用 `parityComparableIdentity` 证明两侧 quantity、cash、PnL 和 exposure 一致。
+- 默认 partial fixture 固定 net quantity `0.25`、matched price `42120.70`、gross exposure `10530.175`、cash `39462.98038625`、equity `49993.15538625`、net simulated PnL `-6.84461375`。
+- Full fixture 固定 net quantity `0.5`、gross exposure `21060.35`、cash `28925.9607725`、net simulated PnL `-13.6892275`。
+- 更新 `docs/contracts/simulated-exchange-backtest-parity-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh` 的 MTP-115 anchors / evidence chain。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP115` | pass | 执行 3 个 Core tests，0 failures，验证 contract anchors、report input / replay evidence、backtest / paper projection parity、position / cash / PnL / exposure numeric summary、full / partial fixtures、Codable round-trip 和 forbidden capability rejection。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；机械检查 MTP-115 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 260 个 XCTest；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; scenarioReplayEvidence=0; scenarioQualityGates=0; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`，最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不修改 Linear status。
+- 不创建下一 Project / Issue。
+- 不推进下一 issue。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify update。
+- 不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 portfolio projection runtime、Report / Dashboard / Events evidence surface、UI implementation、order form、command model、Runtime replay job、database console、signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、database schema read、Runtime object read、Live PRO Console、order-level command UI、trading button、live command、emergency stop、shutdown 或 restore。
