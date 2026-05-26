@@ -2595,3 +2595,40 @@ MTP-118 必须建立的主要 anchors：
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、live readiness、live runtime、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
 - 不把 Workbench beta readiness 写成 production release、live readiness、production trading engine、production data platform、production matching runtime、真实 exchange runtime、broker / OMS readiness 或真实交易授权。
 - 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进 MTP-119。
+
+## MTP-119 Local Launch / Install / Environment Verification Validation
+
+日期：2026-05-27
+
+执行者：Codex
+
+MTP-119 的 required validation：
+
+- `docs/contracts/workbench-beta-readiness-contract.md` 必须包含 `MTP-119-LOCAL-LAUNCH-INSTALL-ENVIRONMENT-PATH`、`MTP-119-LOCAL-ENVIRONMENT-VERIFICATION`、`MTP-119-LOCAL-INSTALL-RUN-NOTES`、`MTP-119-LAUNCH-COMMAND-RUNBOOK`、`MTP-119-DASHBOARD-SMOKE-EXPECTATION`、`MTP-119-REPRODUCIBLE-LAUNCH-EVIDENCE`、`MTP-119-TROUBLESHOOTING-BOUNDARY` 和 `MTP-119-LOCAL-LAUNCH-VALIDATION` anchors。
+- `docs/domain/context.md` 必须包含 MTP-119 local launch / install terms，明确 local install 只表示 SwiftPM dependency resolution 和本地 `.build` artifact。
+- `docs/validation/macos-build-run-loop.md` 必须包含 MTP-119 local beta launch / install / environment verification path、Dashboard smoke expectation 和 troubleshooting boundary。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `MTP-119` issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-119 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须包含 Workbench Beta Readiness local launch / install anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-119 contract、domain context、macOS run-loop、validation plan、matrix、latest summary、automation readiness doc 和 forbidden capability boundary strings。
+- Required validation 仍是 `bash checks/run.sh`，并补充 focused local smoke `DASHBOARD_SMOKE=1 swift run Dashboard` 作为 MTP-119 launch path evidence。
+
+MTP-119 必须建立的主要 anchors：
+
+- `MTP-119-LOCAL-LAUNCH-INSTALL-ENVIRONMENT-PATH`
+- `MTP-119-LOCAL-ENVIRONMENT-VERIFICATION`
+- `MTP-119-LOCAL-INSTALL-RUN-NOTES`
+- `MTP-119-LAUNCH-COMMAND-RUNBOOK`
+- `MTP-119-DASHBOARD-SMOKE-EXPECTATION`
+- `MTP-119-REPRODUCIBLE-LAUNCH-EVIDENCE`
+- `MTP-119-TROUBLESHOOTING-BOUNDARY`
+- `MTP-119-LOCAL-LAUNCH-VALIDATION`
+
+## MTP-119 禁止
+
+- 不创建 production installer、release package、notarized artifact、App Store build、auto-update channel、production deployment 或 cloud operations workflow。
+- 不新增 Dashboard smoke handle、不新增 App read model、不新增 Core / Runtime / Dashboard behavior、不新增 engine core capability、不新增 stage audit input。
+- 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、live readiness、live runtime、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
+- 不把 local launch / install path 写成 production release pipeline、notarization readiness、App Store distribution readiness、cloud operations readiness、live readiness 或真实交易授权。
+- 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进 MTP-120。

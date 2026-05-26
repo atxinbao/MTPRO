@@ -11027,6 +11027,45 @@ L1 Paper Runtime maturity statement：
 
 ---
 
+## 2026-05-27 — MTP-119 local launch / install / environment verification path
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear live-read 中唯一 active issue `MTP-119 Add local launch / install / environment verification path`。
+- 定义 Workbench beta 的本地 environment verification、SwiftPM local install / run notes、Dashboard launch command / runbook、Dashboard smoke expectation、reproducible launch evidence 和 troubleshooting boundary。
+- 明确 local launch / install path 是 beta acceptance evidence，不是 production release pipeline、notarization、App Store distribution、auto-update、production deployment、cloud operations 或 live readiness。
+
+实现摘要：
+
+- 更新 `docs/contracts/workbench-beta-readiness-contract.md`，新增 `MTP-119-LOCAL-LAUNCH-INSTALL-ENVIRONMENT-PATH`、`MTP-119-LOCAL-ENVIRONMENT-VERIFICATION`、`MTP-119-LOCAL-INSTALL-RUN-NOTES`、`MTP-119-LAUNCH-COMMAND-RUNBOOK`、`MTP-119-DASHBOARD-SMOKE-EXPECTATION`、`MTP-119-REPRODUCIBLE-LAUNCH-EVIDENCE`、`MTP-119-TROUBLESHOOTING-BOUNDARY` 和 `MTP-119-LOCAL-LAUNCH-VALIDATION` anchors。
+- 更新 `docs/domain/context.md`，新增 MTP-119 local launch / install shared language，固定 local install 只表示 SwiftPM dependency resolution 和本地 `.build` artifact。
+- 更新 `docs/validation/macos-build-run-loop.md`，记录 `swift package resolve`、`swift build --product Dashboard`、`swift run Dashboard`、`DASHBOARD_SMOKE=1 swift run Dashboard` 和 `bash checks/run.sh` 的本地 runbook。
+- 更新 `docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md` 和 `docs/automation/automation-readiness.md`，把 MTP-119 接入 validation / readiness spine。
+- 更新 `checks/automation-readiness.sh`，机械检查 MTP-119 contract、domain context、macOS run-loop、validation plan、matrix、latest summary 和 automation readiness anchors。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `uname -s && swift --version && DASHBOARD_SMOKE=1 swift run Dashboard` | pass | `uname -s` 输出 `Darwin`；Swift 为 Apple Swift 6.3；Dashboard product build 成功；smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; scenarioReplayEvidence=0; scenarioQualityGates=0; simulatedParityEvidence=0; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；一次 exact-string 缺口修正后通过 MTP-119 mechanical anchors。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 261 个 XCTest；最终执行 261 tests、0 failures，并输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不修改 `Sources/` 或 `Tests/`。
+- 不新增 Dashboard smoke handle、App read model、Core / Runtime / Dashboard behavior 或 engine core capability。
+- 不创建 production installer、release package、notarized artifact、App Store build、auto-update channel、production deployment 或 cloud operations workflow。
+- 不新增 stage audit input；Project stage closeout 仍归属 `MTP-125`。
+- 不运行 Graphify。
+- 不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
+
+---
+
 ## 2026-05-26 — MTPRO Simulated Exchange / Backtest Parity v1 planning record
 
 执行者：Codex
