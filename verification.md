@@ -11024,3 +11024,53 @@ L1 Paper Runtime maturity statement：
 - 不修改 Figma。
 - 不提交 `.codex/*` 或 `graphify-out/*`。
 - 不实现 signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
+
+---
+
+## 2026-05-26 — MTPRO Simulated Exchange / Backtest Parity v1 planning record
+
+执行者：Codex
+
+目的：
+
+- 将 Human 确认的 `MTPRO Simulated Exchange / Backtest Parity v1` Project Draft 落仓为 docs-only planning record。
+- 记录 Target Engines、Target maturity、Project goal、scope、non-goals、issue order、dependencies、validation requirements、evidence requirements、first executable issue candidate、WIP=1、Linear write boundary 和 repository record boundary。
+- 为后续 Linear 写入和 Parent Codex queue preflight 提供 Project-level planning record；不授权执行。
+
+文件范围：
+
+- 新增 `docs/planning/projects/mtpro-simulated-exchange-backtest-parity-v1-plan.md`。
+- 更新 `docs/planning/linear-draft-plan.md`，增加 planning record 索引并把当前 planning record 指向 `MTPRO Simulated Exchange / Backtest Parity v1`。
+- 更新 `docs/validation/latest-verification-summary.md`，记录该 Project-level planning record 已落仓，且不属于 Project closure。
+- 更新 `BLUEPRINT.md`，增加该 planning record 的蓝图入口。
+- 更新本 append-only `verification.md`。
+
+关键证据：
+
+- planning record 明确 `Target maturity: L2 Backtest / Simulation Parity`。
+- planning record 覆盖 8 个候选 issue 摘要：terminology / boundary、shared backtest-paper order semantics、scenario replay deterministic matching、market / limit simulated execution、partial fill / latency / fee / slippage parity、portfolio projection parity、Report / Dashboard / Events evidence surface、validation / readiness / audit input。
+- planning record 明确仓库不复制维护完整 Linear issue body，后续 issue scope、Codex instructions、validation、boundary 和 PR requirements 以 Linear issue body 为准。
+- latest summary 明确该 planning record 不更新 `Final Product Goal Progress`，不更新 `Engine Maturity Roadmap Progress`，后续执行必须经 Linear 写入和 Parent Codex queue preflight。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | 无 whitespace error。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build / smoke 和 242 个 XCTest；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify update。
+- 不写业务代码。
+- 不修改 Figma。
+- 不实现 Simulated Exchange。
+- 不实现 Backtest Parity。
+- 不更新 `Final Product Goal Progress`。
+- 不更新 `Engine Maturity Roadmap Progress`。
+- 不实现 signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
