@@ -702,6 +702,41 @@ MTP-116 read-model-only boundary 要求所有 Report / Dashboard / Events parity
 
 MTP-116 parity evidence surface 必须保持 signed endpoint、account endpoint、listenKey、broker integration、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、database schema exposure、Runtime object exposure、adapter request exposure、live runtime 和 network-dependent validation 全部为 false。
 
+## Workbench Beta Readiness Terms
+
+`MTP-118-WORKBENCH-BETA-READINESS-TERMINOLOGY`
+
+以下术语由 MTP-118 定义为 `MTPRO Workbench Beta Readiness v1` 的 L2+ local Workbench beta language。它们只用于 Workbench beta readiness contract、acceptance boundary、local-only beta demo path、L1 / L1.5 / L2 / L2+ handoff boundary、forbidden capability baseline 和 validation anchors，不授权当前 scope 实现 install / run 逻辑、engine core capability、release package、production release、notarization、App Store distribution、auto-update、production operations、signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、Live PRO Console、trading button 或 live command。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `Workbench beta readiness` | L2+ maturity slice 的本地 macOS Workbench demo / acceptance 准备度 | 不等于 production release、live readiness、notarization、App Store release 或 production operations |
+| `beta acceptance path` | operator 后续按固定本地路径验收 Workbench demo 的证据链 | 当前不实现 launch / install / run 逻辑，不替代 `bash checks/run.sh` |
+| `local macOS Workbench demo` | 只在本机 macOS Workbench 展示 L1 / L1.5 / L2 已完成 evidence 的 demo 目标 | 不等于 cloud service、Live PRO Console、production deployment 或真实交易工作台 |
+| `demo workflow` | 后续 issue 逐步固定 demo scenario、first-run state、Report / Dashboard / Events evidence 和 checklist 的流程语言 | 当前不选择 fixture、不写启动脚本、不新增 UI 或 runtime behavior |
+| `acceptance boundary` | beta readiness 验收必须保持 local-only、read-model-only、no live / broker / signed / account / OMS / trading button | 不授权下一 issue 自动执行，不授权 live / broker / production release |
+| `local-only beta definition` | beta readiness 只代表本地可演示 / 可验收，不代表生产发布或 live 准入 | 不等于 production installer、auto-update、notarized build 或 real account readiness |
+
+`MTP-118-BETA-ACCEPTANCE-BOUNDARY`
+
+MTP-118 beta acceptance boundary 要求 Workbench beta readiness 只表示 local macOS Workbench demo / acceptance path。它必须保持 evidence-first、read-model-only 和 local-only，不得变成 production release、live readiness、cloud deployment、Runtime command surface、order form、trading button、Live PRO Console、signed endpoint、account endpoint、listenKey、broker payload、OMS 或真实交易授权。
+
+`MTP-118-LOCAL-ONLY-BETA-DEMO-PATH`
+
+MTP-118 只定义 local-only beta demo path 的验收语言。MTP-119 至 MTP-125 后续 issue 才能分别处理 local launch / install / environment verification、demo scenario / fixture wiring、first-run default demo state、Report / Dashboard / Events acceptance path、reproducible beta checklist / script、docs index / operator guide 和 stage audit input material；MTP-118 不提前实现这些后续 issue。
+
+`MTP-118-L1-L15-L2-L2PLUS-HANDOFF`
+
+MTP-118 把 L1 Paper Runtime、L1.5 Data Catalog / Scenario Replay 和 L2 Simulated Exchange / Backtest Parity 的已完成 deterministic evidence 连接到 L2+ Workbench Beta Readiness 的 local demo / acceptance boundary。该 handoff 不表示 production trading engine、production data platform、production matching runtime、真实 exchange runtime、broker / OMS、signed endpoint、account endpoint / listenKey、execution report、broker fill、reconciliation、Live PRO Console、trading button 或 live command 已进入当前 scope。
+
+`MTP-118-FORBIDDEN-CAPABILITY-BASELINE`
+
+MTP-118 的 forbidden baseline 必须覆盖 engine core capability expansion、install / run implementation、release package creation、production release、notarization、App Store distribution、auto-update、production operations、API key / secret read、signed endpoint、account endpoint、listenKey、broker integration、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、live readiness、live runtime、Live PRO Console、trading button、live command、emergency stop / shutdown / restore、Graphify update 和 Figma change。
+
+`MTP-118-FIRST-EXECUTABLE-CANDIDATE-NON-AUTHORIZATION`
+
+Project Planning Record 中的 first executable issue candidate 只是候选。只有 Linear live-read 中经 Parent Codex queue preflight 确认为唯一 Todo / configured executable issue 的 MTP-118 才能执行；MTP-119 至 MTP-125 仍必须保持 Backlog / blocked，直到 MTP-118 独立完成 PR、required check、merge 和 Linear Done evidence 后再由 Parent Codex queue preflight 单独判断。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

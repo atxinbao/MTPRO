@@ -11572,3 +11572,44 @@ L1 Paper Runtime maturity statement：
 - 不实现 production release、notarization、App Store distribution、auto-update 或 production operations。
 - 不提交 `.codex/*` 或 `graphify-out/*`。
 - 不实现 signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
+
+---
+
+## 2026-05-27 — MTP-118 Workbench beta readiness contract and acceptance boundary
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear live-read 中唯一 active issue `MTP-118 Define Workbench beta readiness contract and acceptance boundary`。
+- 只定义 Workbench beta readiness contract、acceptance boundary、local-only beta demo path、L1 / L1.5 / L2 / L2+ handoff boundary、forbidden capability baseline 和 first executable candidate non-authorization。
+- 明确 L2+ Workbench Beta Readiness 是 local macOS Workbench demo / acceptance path，不是 production release 或 live readiness。
+
+实现摘要：
+
+- 新增 `docs/contracts/workbench-beta-readiness-contract.md`，建立 `MTP-118-WORKBENCH-BETA-READINESS-TERMINOLOGY`、`MTP-118-BETA-ACCEPTANCE-BOUNDARY`、`MTP-118-LOCAL-ONLY-BETA-DEMO-PATH`、`MTP-118-L1-L15-L2-L2PLUS-HANDOFF`、`MTP-118-FORBIDDEN-CAPABILITY-BASELINE`、`MTP-118-FIRST-EXECUTABLE-CANDIDATE-NON-AUTHORIZATION`、`MTP-118-WORKBENCH-BETA-READINESS-VALIDATION` 和 `TVM-WORKBENCH-BETA-READINESS` anchors。
+- 更新 `docs/domain/context.md`，新增 Workbench Beta Readiness Terms。
+- 更新 `docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md` 和 `docs/automation/automation-readiness.md`，把 MTP-118 接入 validation / readiness spine。
+- 更新 `checks/automation-readiness.sh`，机械检查 MTP-118 contract、matrix、validation plan、domain context、latest summary、automation readiness doc、planning record 和 forbidden capability boundary strings。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；机械检查 MTP-118 contract / matrix / validation / domain / latest summary / automation readiness anchors。 |
+| `git diff --check` | pass | 无 whitespace / patch error 输出。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 261 个 XCTest；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; scenarioReplayEvidence=0; scenarioQualityGates=0; simulatedParityEvidence=0; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`，最终执行 261 tests、0 failures，并输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不修改 `Sources/` 或 `Tests/`。
+- 不实现 install / run 逻辑。
+- 不新增 engine core capability。
+- 不创建 release package。
+- 不实现 production release、notarization、App Store distribution、auto-update 或 production operations。
+- 不启动下一 issue，不推进 MTP-119。
+- 不启动新的 Project。
+- 不运行 Graphify。
+- 不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。

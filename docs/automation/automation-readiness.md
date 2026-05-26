@@ -38,6 +38,7 @@
 | Simulated Exchange / Backtest Parity stage audit input anchor | ready | `docs/audit/inputs/mtpro-simulated-exchange-backtest-parity-v1-stage-audit-input.md` |
 | Simulated Exchange / Backtest Parity stage code audit report anchor | ready | `docs/audit/mtpro-simulated-exchange-backtest-parity-v1-stage-code-audit.md` |
 | Simulated Exchange / Backtest Parity root docs refresh anchor | ready | Engine Maturity Roadmap Progress `3 / 4 (75%)`；current maturity statement `L2 Simulated Exchange / Backtest Parity complete` |
+| Workbench Beta Readiness contract anchor | ready | `docs/contracts/workbench-beta-readiness-contract.md`；MTP-118 只定义 local macOS Workbench demo / acceptance path，不实现 install / run、engine core、production release 或 live readiness |
 
 ## Project 切换规则
 
