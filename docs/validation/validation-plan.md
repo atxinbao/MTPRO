@@ -2560,3 +2560,38 @@ MTP-117 必须收口的主要 anchors：
 - 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、live runtime、Live PRO Console、live command、order-level command UI 或交易按钮。
 - 不运行 Graphify，不修改 Figma。
+
+## MTP-118 Workbench Beta Readiness Contract / Acceptance Boundary Validation
+
+日期：2026-05-27
+
+执行者：Codex
+
+MTP-118 的 required validation：
+
+- `docs/contracts/workbench-beta-readiness-contract.md` 必须包含 `MTP-118-WORKBENCH-BETA-READINESS-TERMINOLOGY`、`MTP-118-BETA-ACCEPTANCE-BOUNDARY`、`MTP-118-LOCAL-ONLY-BETA-DEMO-PATH`、`MTP-118-L1-L15-L2-L2PLUS-HANDOFF`、`MTP-118-FORBIDDEN-CAPABILITY-BASELINE`、`MTP-118-FIRST-EXECUTABLE-CANDIDATE-NON-AUTHORIZATION` 和 `MTP-118-WORKBENCH-BETA-READINESS-VALIDATION` anchors。
+- `docs/domain/context.md` 必须包含 Workbench Beta Readiness Terms 和 MTP-118 anchors，明确 beta readiness 是 local macOS Workbench demo / acceptance path，不是 production release 或 live readiness。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-WORKBENCH-BETA-READINESS` 和 MTP-118 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-118 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Workbench Beta Readiness contract anchor，确认 MTP-118 只是合同 / 边界入口，不实现 install / run、engine core、production release 或 live readiness。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-118 contract、matrix、validation plan、domain context、latest summary、automation readiness doc、planning record 和 forbidden capability boundary strings。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不启动下一 issue，不运行 Graphify，不修改 Figma，不实现 install / run 逻辑，不新增 engine core capability，不实现 production release、notarization、App Store distribution、auto-update、production operations、signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、Live PRO Console、trading button 或 live command。
+
+MTP-118 必须建立的主要 anchors：
+
+- `TVM-WORKBENCH-BETA-READINESS`
+- `MTP-118-WORKBENCH-BETA-READINESS-TERMINOLOGY`
+- `MTP-118-BETA-ACCEPTANCE-BOUNDARY`
+- `MTP-118-LOCAL-ONLY-BETA-DEMO-PATH`
+- `MTP-118-L1-L15-L2-L2PLUS-HANDOFF`
+- `MTP-118-FORBIDDEN-CAPABILITY-BASELINE`
+- `MTP-118-FIRST-EXECUTABLE-CANDIDATE-NON-AUTHORIZATION`
+- `MTP-118-WORKBENCH-BETA-READINESS-VALIDATION`
+
+## MTP-118 禁止
+
+- 不实现 install / run 逻辑、release package、production release、notarization、App Store distribution、auto-update、production operations、Core / Runtime / App / Dashboard behavior、Dashboard smoke handle、App read model 或 stage audit input。
+- 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、live readiness、live runtime、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
+- 不把 Workbench beta readiness 写成 production release、live readiness、production trading engine、production data platform、production matching runtime、真实 exchange runtime、broker / OMS readiness 或真实交易授权。
+- 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进 MTP-119。

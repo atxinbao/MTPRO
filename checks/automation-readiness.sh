@@ -62,6 +62,7 @@ require_file "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md"
 require_file "docs/planning/projects/mtpro-live-audit-incident-stop-boundary-v1-plan.md"
 require_file "docs/planning/projects/mtpro-data-catalog-scenario-replay-v1-plan.md"
 require_file "docs/planning/projects/mtpro-simulated-exchange-backtest-parity-v1-plan.md"
+require_file "docs/planning/projects/mtpro-workbench-beta-readiness-v1-plan.md"
 [[ -d "docs/audit/inputs" ]] || fail "missing required directory: docs/audit/inputs"
 require_file "docs/audit/inputs/mtpro-runtime-research-workbench-v1-stage-evidence.md"
 require_file "docs/audit/inputs/mtpro-trading-validation-and-parity-hardening-stage-audit-input.md"
@@ -84,6 +85,7 @@ require_file "docs/validation/validation-plan.md"
 require_file "docs/contracts/live-trading-boundary-contract.md"
 require_file "docs/contracts/live-audit-incident-stop-contract.md"
 require_file "docs/contracts/data-catalog-scenario-replay-contract.md"
+require_file "docs/contracts/workbench-beta-readiness-contract.md"
 require_file "verification.md"
 
 for legacy_root_doc in "ARCHITECTURE.md" "ENVIRONMENT.md" "ROADMAP.md"; do
@@ -406,7 +408,8 @@ for planning_record in \
   "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" \
   "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" \
   "docs/planning/projects/mtpro-live-audit-incident-stop-boundary-v1-plan.md" \
-  "docs/planning/projects/mtpro-data-catalog-scenario-replay-v1-plan.md"; do
+  "docs/planning/projects/mtpro-data-catalog-scenario-replay-v1-plan.md" \
+  "docs/planning/projects/mtpro-workbench-beta-readiness-v1-plan.md"; do
   require_contains "$planning_record" "Project name"
   require_contains "$planning_record" "Project goal"
   require_contains "$planning_record" "Scope"
@@ -1603,6 +1606,7 @@ require_contains "docs/automation/automation-readiness.md" "Event-Driven Paper T
 require_contains "docs/automation/automation-readiness.md" "Event-Driven Paper Trading Runtime stage code audit report anchor"
 require_contains "docs/automation/automation-readiness.md" "Data Catalog / Scenario Replay stage code audit report anchor"
 require_contains "docs/automation/automation-readiness.md" "Simulated Exchange / Backtest Parity root docs refresh anchor"
+require_contains "docs/automation/automation-readiness.md" "Workbench Beta Readiness contract anchor"
 require_contains "docs/audit/mtpro-data-catalog-scenario-replay-v1-stage-code-audit.md" "MTPRO Data Catalog / Scenario Replay v1 Stage Code Audit Report"
 require_contains "docs/audit/mtpro-data-catalog-scenario-replay-v1-stage-code-audit.md" 'Linear Project closure 已完成'
 require_contains "docs/audit/mtpro-data-catalog-scenario-replay-v1-stage-code-audit.md" "Project goal 已达成"
@@ -1982,6 +1986,43 @@ require_contains "docs/audit/inputs/mtpro-simulated-exchange-backtest-parity-v1-
 require_contains "docs/audit/inputs/mtpro-simulated-exchange-backtest-parity-v1-stage-audit-input.md" "no Graphify update"
 require_contains "docs/audit/inputs/mtpro-simulated-exchange-backtest-parity-v1-stage-audit-input.md" "no Figma modification"
 require_contains "docs/audit/inputs/mtpro-simulated-exchange-backtest-parity-v1-stage-audit-input.md" "no unauthorized Linear mutation"
+
+require_contains "docs/contracts/workbench-beta-readiness-contract.md" "MTP-118-WORKBENCH-BETA-READINESS-TERMINOLOGY"
+require_contains "docs/contracts/workbench-beta-readiness-contract.md" "MTP-118-BETA-ACCEPTANCE-BOUNDARY"
+require_contains "docs/contracts/workbench-beta-readiness-contract.md" "MTP-118-LOCAL-ONLY-BETA-DEMO-PATH"
+require_contains "docs/contracts/workbench-beta-readiness-contract.md" "MTP-118-L1-L15-L2-L2PLUS-HANDOFF"
+require_contains "docs/contracts/workbench-beta-readiness-contract.md" "MTP-118-FORBIDDEN-CAPABILITY-BASELINE"
+require_contains "docs/contracts/workbench-beta-readiness-contract.md" "MTP-118-FIRST-EXECUTABLE-CANDIDATE-NON-AUTHORIZATION"
+require_contains "docs/contracts/workbench-beta-readiness-contract.md" "MTP-118-WORKBENCH-BETA-READINESS-VALIDATION"
+require_contains "docs/contracts/workbench-beta-readiness-contract.md" "local macOS Workbench demo / acceptance path"
+require_contains "docs/contracts/workbench-beta-readiness-contract.md" "不实现 install / run 逻辑"
+require_contains "docs/contracts/workbench-beta-readiness-contract.md" "不新增 engine core capability"
+require_contains "docs/contracts/workbench-beta-readiness-contract.md" "不是 production release 或 live readiness"
+require_contains "docs/contracts/workbench-beta-readiness-contract.md" "MTP-119 至 MTP-125 仍必须保持 Backlog / blocked"
+require_contains "docs/contracts/workbench-beta-readiness-contract.md" "MTP-118 完成后不得自动推进 MTP-119"
+require_contains "docs/contracts/workbench-beta-readiness-contract.md" "TVM-WORKBENCH-BETA-READINESS"
+require_contains "docs/domain/context.md" "Workbench Beta Readiness Terms"
+require_contains "docs/domain/context.md" "MTP-118-WORKBENCH-BETA-READINESS-TERMINOLOGY"
+require_contains "docs/domain/context.md" "MTP-118-BETA-ACCEPTANCE-BOUNDARY"
+require_contains "docs/domain/context.md" "MTP-118-LOCAL-ONLY-BETA-DEMO-PATH"
+require_contains "docs/domain/context.md" "MTP-118-L1-L15-L2-L2PLUS-HANDOFF"
+require_contains "docs/domain/context.md" "MTP-118-FORBIDDEN-CAPABILITY-BASELINE"
+require_contains "docs/domain/context.md" "MTP-118-FIRST-EXECUTABLE-CANDIDATE-NON-AUTHORIZATION"
+require_contains "docs/validation/validation-plan.md" "MTP-118 Workbench Beta Readiness Contract / Acceptance Boundary Validation"
+require_contains "docs/validation/validation-plan.md" "MTP-118-WORKBENCH-BETA-READINESS-VALIDATION"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-WORKBENCH-BETA-READINESS"
+require_contains "docs/validation/trading-validation-matrix.md" "MTP-118 issue backfill"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-118 的当前 issue execution evidence"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-118-WORKBENCH-BETA-READINESS-VALIDATION"
+require_contains "docs/automation/automation-readiness.md" "Workbench Beta Readiness contract anchor"
+require_contains "docs/planning/projects/mtpro-workbench-beta-readiness-v1-plan.md" "MTPRO Workbench Beta Readiness v1"
+require_contains "docs/planning/projects/mtpro-workbench-beta-readiness-v1-plan.md" "local macOS Workbench demo / acceptance path"
+require_contains "docs/planning/projects/mtpro-workbench-beta-readiness-v1-plan.md" "不实现 install / run 逻辑"
+require_contains "docs/planning/projects/mtpro-workbench-beta-readiness-v1-plan.md" "不新增 engine core capability"
+require_contains "docs/planning/projects/mtpro-workbench-beta-readiness-v1-plan.md" "不把 beta readiness 写成 live readiness"
+require_contains "docs/planning/projects/mtpro-workbench-beta-readiness-v1-plan.md" "Define Workbench beta readiness contract and acceptance boundary"
+require_contains "docs/validation/trading-validation-matrix.md" "production release、notarization、App Store distribution、auto-update、production operations"
+require_contains "docs/validation/trading-validation-matrix.md" "Live PRO Console、trading button 或 live command"
 
 require_absent ".github/workflows/checks.yml" "pull_request_target"
 
