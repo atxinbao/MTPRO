@@ -555,6 +555,37 @@ MTP-108 scenario replay read-model evidence 指 App 层只读聚合：它把 MTP
 
 MTP-108 App surface 必须保持 read-model-only：Dashboard、Workbench、Report 和 Events 只能消费 `ScenarioReplayEvidenceReadModel` / `ScenarioReplayEvidenceViewModel`，不能提供 command surface、order-level command、query language、live command、trading button、broker action、live trading authorization 或 trading execution authorization。
 
+## Simulated Exchange / Backtest Parity Terms
+
+`MTP-110-SIMULATED-EXCHANGE-BACKTEST-PARITY-TERMINOLOGY`
+
+以下术语由 MTP-110 定义为 `MTPRO Simulated Exchange / Backtest Parity v1` 的 L2 deterministic simulation 语言。它们只用于 Simulation / Backtest Engine、paper-only / simulated Execution Engine、Portfolio Engine、Data Engine、State & Persistence Engine 和 Workbench Interface 的边界合同、source docs anchors、validation anchors 和后续 issue 的共同语言，不授权当前 scope 实现 matching runtime、order execution runtime、portfolio projection runtime、UI、signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、Live PRO Console、live command、trading button、emergency stop、shutdown 或 restore。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `simulated exchange` | 本地 deterministic simulation 的术语入口，用于后续模拟撮合和回测 / Paper 共享语义 | 不等于真实交易所、broker、execution venue 或 live readiness |
+| `backtest parity` | backtest 与 paper runtime 共享同一模拟交易语义和证据口径 | 不等于 live parity、broker reconciliation 或生产一致性声明 |
+| `matching model` | 后续 deterministic matching contract 的名称 | 当前不实现撮合 runtime、不读取真实 order book 或 broker feed |
+| `fill model` | 后续 simulated fill / full fill / partial fill 语义入口 | 不等于 broker fill、execution report 或真实成交质量 |
+| `latency model` | 后续 deterministic latency assumption 语义入口 | 不等于 production telemetry、exchange latency 或 broker SLA |
+| `fee / slippage parity` | backtest 与 paper runtime 共享交易摩擦假设 | 不等于真实费率表、broker fee statement 或 live execution cost optimization |
+| `portfolio projection parity` | 后续 simulated exchange event 到 paper / backtest portfolio projection 的一致语义 | 不等于真实账户、broker position、margin、leverage 或 reconciliation |
+| `scenario replay integration` | L1.5 scenario replay 作为 L2 deterministic input 的 handoff 语言 | 不等于 production data platform、network downloader 或 Runtime replay job |
+| `deterministic simulation` | 所有 L2 parity evidence 必须可由本地 fixture / scenario replay 重放 | 不等于真实交易所模拟环境或 live runtime |
+| `shared backtest-paper order semantics` | 后续 MTP-111 定义的 backtest / paper 共享订单语义入口 | 当前不实现 order semantics runtime、order form 或 command model |
+
+`MTP-110-TARGET-ENGINE-RESPONSIBILITY-BOUNDARY`
+
+MTP-110 固定六类目标引擎职责：`Simulation / Backtest Engine`、`Execution Engine (paper-only / simulated)`、`Portfolio Engine`、`Data Engine`、`State & Persistence Engine` 和 `Workbench Interface`。这些职责只表达 L2 parity 共同语言，不实现 matching runtime、order execution runtime、portfolio projection runtime 或 UI。
+
+`MTP-110-L1-L15-L2-HANDOFF-BOUNDARY`
+
+MTP-110 handoff boundary 只把 L1 Paper Runtime 的 paper-only execution evidence 和 L1.5 Data Catalog / Scenario Replay 的 deterministic scenario input identity 连接到 L2 terminology。它不表示真实交易所、live readiness、production trading engine、broker / OMS、signed endpoint、account endpoint / listenKey 或 Live PRO Console 已进入当前 scope。
+
+`MTP-110-FORBIDDEN-CAPABILITY-BASELINE`
+
+MTP-110 的 forbidden baseline 必须覆盖 matching runtime、order execution runtime、portfolio projection runtime、UI implementation、secret read、signed endpoint、account endpoint、listenKey、broker integration、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、live runtime、Live PRO Console、live command、trading button、emergency stop / shutdown / restore、Graphify update 和 Figma change。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

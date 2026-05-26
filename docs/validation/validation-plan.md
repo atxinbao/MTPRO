@@ -2252,3 +2252,40 @@ MTP-109 必须收口的主要 anchors：
 - 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position read、live runtime、live command、order form、Live PRO Console 或交易按钮。
 - 不运行 Graphify，不修改 Figma，不进行 unauthorized Linear mutation。
+
+## MTP-110 Simulated Exchange / Backtest Parity Terminology / Boundary Validation
+
+日期：2026-05-26
+
+执行者：Codex
+
+MTP-110 的 required validation：
+
+- `docs/contracts/simulated-exchange-backtest-parity-contract.md` 必须包含 `MTP-110-SIMULATED-EXCHANGE-BACKTEST-PARITY-TERMINOLOGY`、`MTP-110-TARGET-ENGINE-RESPONSIBILITY-BOUNDARY`、`MTP-110-L1-L15-L2-HANDOFF-BOUNDARY`、`MTP-110-FORBIDDEN-CAPABILITY-BASELINE` 和 `MTP-110-SIMULATED-EXCHANGE-BACKTEST-PARITY-VALIDATION` anchors。
+- `Sources/Core/SimulatedExchangeBacktestParityBoundary.swift` 必须定义 `SimulatedExchangeBacktestParityTerm`、`SimulatedExchangeBacktestParityTargetEngine`、`SimulatedExchangeBacktestParityBoundaryPrinciple`、`SimulatedExchangeBacktestParityForbiddenCapability`、`SimulatedExchangeBacktestParityEvidenceKind` 和 `SimulatedExchangeBacktestParityBoundary.deterministicFixture`。
+- `SimulatedExchangeBacktestParityBoundary` 必须固定 Simulation / Backtest Engine、Execution Engine（paper-only / simulated）、Portfolio Engine、Data Engine、State & Persistence Engine 和 Workbench Interface 六类目标引擎职责。
+- Boundary fixture 必须保持 deterministic simulation、backtest-paper shared simulation semantics、L1 Paper Runtime handoff、L1.5 Data Catalog / Scenario Replay handoff 和 read-model-only parity evidence flags 为 true。
+- Boundary fixture 必须保持 matching runtime、order execution runtime、portfolio projection runtime、UI implementation、signed endpoint、account endpoint、listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、live runtime、Live PRO Console、live command、trading button、emergency stop / shutdown / restore、Graphify update 和 Figma change flags 全部为 false。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-110 focused tests，验证 terminology / boundary anchors、forbidden capability bypass rejection、Codable decode bypass rejection 和 L1 / L1.5 / L2 deterministic handoff boundary。
+- `docs/domain/context.md` 必须包含 `MTP-110-SIMULATED-EXCHANGE-BACKTEST-PARITY-TERMINOLOGY` 和 `MTP-110-FORBIDDEN-CAPABILITY-BASELINE`。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY` 和 MTP-110 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-110 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-110 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不运行 Graphify，不修改 Figma，不实现撮合、订单执行、portfolio projection、UI、signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、live runtime、live command、Live PRO Console 或交易按钮。
+
+MTP-110 必须建立的主要 anchors：
+
+- `TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY`
+- `MTP-110-SIMULATED-EXCHANGE-BACKTEST-PARITY-TERMINOLOGY`
+- `MTP-110-TARGET-ENGINE-RESPONSIBILITY-BOUNDARY`
+- `MTP-110-L1-L15-L2-HANDOFF-BOUNDARY`
+- `MTP-110-FORBIDDEN-CAPABILITY-BASELINE`
+- `MTP-110-SIMULATED-EXCHANGE-BACKTEST-PARITY-VALIDATION`
+
+## MTP-110 禁止
+
+- 不实现 matching runtime、order execution runtime、portfolio projection runtime、UI implementation、order form、command model、Runtime replay job 或 database console。
+- 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、live runtime、Live PRO Console、live command 或交易按钮。
+- 不实现 emergency stop、shutdown、restore、production operations、production data platform、large-scale ingestion pipeline、真实交易所接入或 live readiness。
+- 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进下一 issue。

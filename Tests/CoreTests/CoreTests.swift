@@ -8821,6 +8821,269 @@ final class CoreTests: XCTestCase {
         XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
     }
 
+    func testMTP110SimulatedExchangeBacktestParityDefinesTerminologyAndBoundaryAnchors() throws {
+        // 测试场景：MTP-110 只定义 L2 simulated exchange / backtest parity 的共同语言、
+        // 目标引擎职责、source docs anchors 和 validation anchors，不实现撮合或执行行为。
+        let boundary = SimulatedExchangeBacktestParityBoundary.deterministicFixture
+
+        XCTAssertEqual(boundary.contractID, try Identifier("mtp-110-simulated-exchange-backtest-parity-boundary"))
+        XCTAssertEqual(boundary.issueID, try Identifier("MTP-110"))
+        XCTAssertEqual(boundary.terms, SimulatedExchangeBacktestParityTerm.allCases)
+        XCTAssertEqual(
+            boundary.targetEngines,
+            [
+                .simulationBacktestEngine,
+                .executionEnginePaperOnlySimulated,
+                .portfolioEngine,
+                .dataEngine,
+                .statePersistenceEngine,
+                .workbenchInterface
+            ]
+        )
+        XCTAssertEqual(
+            boundary.boundaryPrinciples,
+            [
+                .deterministicSimulationOnly,
+                .backtestPaperSharedSimulationSemantics,
+                .l1PaperRuntimeHandoff,
+                .l15ScenarioReplayHandoff,
+                .readModelOnlyParityEvidenceSurface,
+                .noLiveBrokerSignedAccountOMS
+            ]
+        )
+        XCTAssertEqual(
+            boundary.forbiddenCapabilities,
+            SimulatedExchangeBacktestParityForbiddenCapability.allCases
+        )
+        XCTAssertTrue(boundary.forbidsCapability(.matchingRuntime))
+        XCTAssertTrue(boundary.forbidsCapability(.signedEndpoint))
+        XCTAssertTrue(boundary.forbidsCapability(.accountEndpoint))
+        XCTAssertTrue(boundary.forbidsCapability(.brokerIntegration))
+        XCTAssertTrue(boundary.forbidsCapability(.liveExecutionAdapter))
+        XCTAssertTrue(boundary.forbidsCapability(.oms))
+        XCTAssertTrue(boundary.forbidsCapability(.liveProConsole))
+        XCTAssertTrue(boundary.forbidsCapability(.tradingButton))
+        XCTAssertEqual(
+            boundary.allowedEvidenceKinds,
+            [
+                .contractDocumentation,
+                .sourceDocsAnchor,
+                .validationPlanAnchor,
+                .validationMatrixCandidate,
+                .deterministicBoundaryFixture,
+                .forbiddenCapabilityTest,
+                .prBoundaryEvidence
+            ]
+        )
+        XCTAssertEqual(boundary.sourceDocumentAnchors, [
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/architecture.md",
+            "docs/roadmap.md",
+            "docs/domain/context.md",
+            "docs/product/mtpro-core-engine-architecture-module-maturity-map-v1.md",
+            "docs/product/mtpro-paper-trading-runtime-foundation-blueprint-v1.md",
+            "docs/planning/projects/mtpro-data-catalog-scenario-replay-v1-plan.md",
+            "docs/planning/projects/mtpro-simulated-exchange-backtest-parity-v1-plan.md",
+            "docs/validation/latest-verification-summary.md"
+        ])
+        XCTAssertEqual(boundary.validationAnchors, [
+            "MTP-110-SIMULATED-EXCHANGE-BACKTEST-PARITY-TERMINOLOGY",
+            "MTP-110-TARGET-ENGINE-RESPONSIBILITY-BOUNDARY",
+            "MTP-110-L1-L15-L2-HANDOFF-BOUNDARY",
+            "MTP-110-FORBIDDEN-CAPABILITY-BASELINE",
+            "MTP-110-SIMULATED-EXCHANGE-BACKTEST-PARITY-VALIDATION",
+            "TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY"
+        ])
+        XCTAssertTrue(boundary.terminologyBoundaryHeld)
+        XCTAssertTrue(boundary.targetEngineBoundaryHeld)
+        XCTAssertTrue(boundary.deterministicSimulationBoundaryHeld)
+        XCTAssertTrue(boundary.forbiddenCapabilityBoundaryHeld)
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(SimulatedExchangeBacktestParityBoundary.self, from: encoded)
+        XCTAssertEqual(decoded, boundary)
+    }
+
+    func testMTP110SimulatedExchangeBacktestParityRejectsRuntimeAndLiveBypass() throws {
+        // 测试场景：MTP-110 fixture 的初始化和 Codable 解码必须拒绝 matching runtime、
+        // order execution、portfolio projection、UI、signed/account/listenKey、broker、
+        // LiveExecutionAdapter、OMS、Live PRO Console、Graphify / Figma 和网络依赖绕过。
+        XCTAssertThrowsError(
+            try SimulatedExchangeBacktestParityBoundary(implementsMatchingRuntime: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability("implementsMatchingRuntime")
+            )
+        }
+        XCTAssertThrowsError(
+            try SimulatedExchangeBacktestParityBoundary(implementsOrderExecutionRuntime: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability("implementsOrderExecutionRuntime")
+            )
+        }
+        XCTAssertThrowsError(
+            try SimulatedExchangeBacktestParityBoundary(implementsPortfolioProjectionRuntime: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability("implementsPortfolioProjectionRuntime")
+            )
+        }
+        XCTAssertThrowsError(
+            try SimulatedExchangeBacktestParityBoundary(implementsUI: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .simulatedExchangeBacktestParityForbiddenCapability("implementsUI"))
+        }
+        XCTAssertThrowsError(
+            try SimulatedExchangeBacktestParityBoundary(usesSignedEndpoint: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability("usesSignedEndpoint")
+            )
+        }
+        XCTAssertThrowsError(
+            try SimulatedExchangeBacktestParityBoundary(callsAccountEndpoint: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability("callsAccountEndpoint")
+            )
+        }
+        XCTAssertThrowsError(
+            try SimulatedExchangeBacktestParityBoundary(createsListenKey: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability("createsListenKey")
+            )
+        }
+        XCTAssertThrowsError(
+            try SimulatedExchangeBacktestParityBoundary(connectsBroker: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .simulatedExchangeBacktestParityForbiddenCapability("connectsBroker"))
+        }
+        XCTAssertThrowsError(
+            try SimulatedExchangeBacktestParityBoundary(implementsLiveExecutionAdapter: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability("implementsLiveExecutionAdapter")
+            )
+        }
+        XCTAssertThrowsError(
+            try SimulatedExchangeBacktestParityBoundary(implementsOMS: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .simulatedExchangeBacktestParityForbiddenCapability("implementsOMS"))
+        }
+        XCTAssertThrowsError(
+            try SimulatedExchangeBacktestParityBoundary(submitsRealOrder: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability("submitsRealOrder")
+            )
+        }
+        XCTAssertThrowsError(
+            try SimulatedExchangeBacktestParityBoundary(readsRealAccountBrokerPositionMarginLeverage: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability("readsRealAccountBrokerPositionMarginLeverage")
+            )
+        }
+        XCTAssertThrowsError(
+            try SimulatedExchangeBacktestParityBoundary(providesLiveProConsole: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability("providesLiveProConsole")
+            )
+        }
+        XCTAssertThrowsError(
+            try SimulatedExchangeBacktestParityBoundary(implementsEmergencyStopShutdownRestore: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability("implementsEmergencyStopShutdownRestore")
+            )
+        }
+        XCTAssertThrowsError(
+            try SimulatedExchangeBacktestParityBoundary(
+                terms: Array(SimulatedExchangeBacktestParityTerm.allCases.dropLast())
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityContractMismatch(
+                    field: "terms",
+                    expected: SimulatedExchangeBacktestParityBoundary.requiredTerms.map(\.rawValue)
+                        .joined(separator: ","),
+                    actual: Array(SimulatedExchangeBacktestParityTerm.allCases.dropLast())
+                        .map(\.rawValue)
+                        .joined(separator: ",")
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(SimulatedExchangeBacktestParityBoundary.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["requiredValidationDependsOnNetwork"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(SimulatedExchangeBacktestParityBoundary.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability("requiredValidationDependsOnNetwork")
+            )
+        }
+    }
+
+    func testMTP110SimulatedExchangeBacktestParityKeepsL2HandoffDeterministic() throws {
+        // 测试场景：MTP-110 必须把 L1 Paper Runtime 和 L1.5 Data Catalog / Scenario Replay
+        // 连接为 L2 terminology handoff，同时保持 deterministic simulation 和 read-model-only 边界。
+        let boundary = SimulatedExchangeBacktestParityBoundary.deterministicFixture
+
+        XCTAssertTrue(boundary.sourceDocumentAnchors.contains("docs/architecture.md"))
+        XCTAssertTrue(boundary.sourceDocumentAnchors.contains("docs/roadmap.md"))
+        XCTAssertTrue(
+            boundary.sourceDocumentAnchors.contains(
+                "docs/product/mtpro-paper-trading-runtime-foundation-blueprint-v1.md"
+            )
+        )
+        XCTAssertTrue(
+            boundary.sourceDocumentAnchors.contains(
+                "docs/planning/projects/mtpro-data-catalog-scenario-replay-v1-plan.md"
+            )
+        )
+        XCTAssertTrue(
+            boundary.sourceDocumentAnchors.contains(
+                "docs/planning/projects/mtpro-simulated-exchange-backtest-parity-v1-plan.md"
+            )
+        )
+        XCTAssertTrue(boundary.validationAnchors.contains("MTP-110-FORBIDDEN-CAPABILITY-BASELINE"))
+        XCTAssertTrue(boundary.validationAnchors.contains("TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY"))
+        XCTAssertTrue(boundary.isDeterministicSimulation)
+        XCTAssertTrue(boundary.sharesBacktestPaperSimulationSemantics)
+        XCTAssertTrue(boundary.linksL1PaperRuntime)
+        XCTAssertTrue(boundary.linksL15ScenarioReplay)
+        XCTAssertTrue(boundary.exposesReadModelOnlyParityEvidence)
+        XCTAssertFalse(boundary.implementsMatchingRuntime)
+        XCTAssertFalse(boundary.implementsOrderExecutionRuntime)
+        XCTAssertFalse(boundary.implementsPortfolioProjectionRuntime)
+        XCTAssertFalse(boundary.implementsUI)
+        XCTAssertFalse(boundary.runsLiveRuntime)
+        XCTAssertFalse(boundary.providesLiveProConsole)
+        XCTAssertFalse(boundary.providesLiveCommand)
+        XCTAssertFalse(boundary.providesTradingButton)
+        XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
+    }
+
     func testMTP104ScenarioManifestDefinesIdentityVersionAndSerialization() throws {
         // 测试场景：MTP-104 manifest 必须固定 scenario id、dataset version、symbol、timeframe、
         // source anchor 和 deterministic serialization evidence，作为后续 fixture / replay / report input 的稳定来源。
