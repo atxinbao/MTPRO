@@ -11652,3 +11652,40 @@ L1 Paper Runtime maturity statement：
 - 不修改 Figma。
 - 不提交 `.codex/*` 或 `graphify-out/*`。
 - 不实现 signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
+---
+
+## 2026-05-27 — MTP-120 Workbench beta demo scenario selection and fixture wiring
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear live-read 中唯一 active issue `MTP-120 Add demo scenario selection and fixture wiring`。
+- 固定 Workbench beta demo scenario、dataset version 和 fixture version。
+- 复用本地 deterministic L1.5 Scenario Replay evidence 与 L2 Simulated Exchange / Backtest Parity evidence，输出 checksum / freshness / relationship evidence。
+- 保持 local-only / read-model handoff boundary，不新增网络下载、production data platform、Runtime replay job、Workbench first-run state、Report / Dashboard / Events acceptance path 或任何 live / broker / signed / account / OMS / trading capability。
+
+实现摘要：
+
+- 新增 `Sources/Core/WorkbenchBetaDemoScenario.swift`，定义 `WorkbenchBetaDemoScenarioSelection` 和 `WorkbenchBetaDemoFixtureEvidence`。
+- `WorkbenchBetaDemoScenarioSelection` 固定 `mtp-104-btcusdt-1m-first-scenario`、`dataset-v1`、`fixture-v1`、`BTCUSDT` / `1m` 和 MTP-120 validation anchors。
+- `WorkbenchBetaDemoFixtureEvidence` 复用 `ScenarioDataQualityReportInputEvidence.deterministicFixture` 与 `SimulatedExchangePortfolioProjectionParityFixture.deterministicEvidence()`，固定 checksum `fnv1a64:3c6cd4ff13cd4062`、freshness `fresh`、quality `accepted`、report input version identity 和 L1.5 / L2 relationship summary。
+- 更新 `Tests/CoreTests/CoreTests.swift`，新增 3 个 MTP-120 focused Core tests，覆盖 deterministic selection、fixture wiring、Codable round-trip、scenario mismatch rejection 和 forbidden capability bypass rejection。
+- 更新 `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，接入 MTP-120 anchors。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP120` | first run failed | 3 focused tests build completed；`testMTP120WorkbenchBetaDemoFixtureRoundTripsAndRejectsBypass` 暴露 synthesized Codable decoding 会绕过 top-level fixture flags。 |
+| `swift test --filter MTP120` | pass | 3 focused Core tests, 0 failures；验证 demo selection、fixture wiring、checksum / freshness、L1.5 / L2 relationship、Codable round-trip 和 bypass rejection。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；机械检查 MTP-120 contract、domain context、validation plan、matrix、latest summary、automation readiness、Core source 和 focused tests anchors。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 264 个 XCTest；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; scenarioReplayEvidence=0; scenarioQualityGates=0; simulatedParityEvidence=0; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`；最终执行 264 tests、0 failures，并输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不新增 fixture records、大规模 ingestion、automatic downloader、production data platform、production dataset registry 或 Runtime replay scheduler。
+- 不提前实现 Workbench first-run state、Report / Dashboard / Events acceptance path、Dashboard smoke handle、App read model、Runtime / Dashboard behavior 或 stage audit input。
+- 不读取 secret，不接 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、live readiness、live runtime、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
+- 不运行 Graphify，不修改 Figma，不修改 Linear status，不推进下一 issue。

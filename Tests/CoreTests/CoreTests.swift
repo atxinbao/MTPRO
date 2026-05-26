@@ -10787,6 +10787,181 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testMTP120WorkbenchBetaDemoScenarioSelectionLocksFixtureIdentity() throws {
+        // 测试场景：MTP-120 beta demo scenario 必须固定到既有 L1.5 deterministic fixture，
+        // 后续 Workbench first-run 和 acceptance path 只能消费该本地选择，不得隐式换数据源。
+        let selection = WorkbenchBetaDemoScenarioSelection.deterministicFixture
+
+        XCTAssertEqual(selection.contractID, try Identifier("mtp-120-workbench-beta-demo-scenario-selection"))
+        XCTAssertEqual(selection.issueID, try Identifier("MTP-120"))
+        XCTAssertEqual(selection.scenarioID, try ScenarioID("mtp-104-btcusdt-1m-first-scenario"))
+        XCTAssertEqual(selection.datasetVersion, try DatasetVersion("dataset-v1"))
+        XCTAssertEqual(selection.fixtureVersion, try FixtureVersion("fixture-v1"))
+        XCTAssertEqual(selection.symbol, try Symbol(rawValue: "BTCUSDT"))
+        XCTAssertEqual(selection.timeframe, .oneMinute)
+        XCTAssertEqual(
+            selection.demoScenarioIdentity,
+            "mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|BTCUSDT|1m"
+        )
+        XCTAssertEqual(selection.validationAnchors, [
+            "MTP-120-DEMO-SCENARIO-SELECTION",
+            "MTP-120-DATASET-FIXTURE-VERSION-LOCK",
+            "MTP-120-SCENARIO-REPLAY-FIXTURE-WIRING",
+            "MTP-120-CHECKSUM-FRESHNESS-EVIDENCE",
+            "MTP-120-L15-L2-EVIDENCE-RELATIONSHIP",
+            "MTP-120-NO-NETWORK-DOWNLOAD-LIVE-BROKER",
+            "MTP-120-DEMO-SCENARIO-FIXTURE-VALIDATION",
+            "TVM-WORKBENCH-BETA-READINESS"
+        ])
+        XCTAssertTrue(selection.selectedForLocalBetaDemo)
+        XCTAssertTrue(selection.usesLocalDeterministicFixture)
+        XCTAssertTrue(selection.bindsScenarioReplayEvidence)
+        XCTAssertTrue(selection.bindsSimulatedExchangeParityEvidence)
+        XCTAssertTrue(selection.outputsChecksumFreshnessEvidence)
+        XCTAssertTrue(selection.recordsL15L2Relationship)
+        XCTAssertTrue(selection.selectionBoundaryHeld)
+        XCTAssertFalse(selection.requiredValidationDependsOnNetwork)
+        XCTAssertFalse(selection.downloadsRealNetworkData)
+        XCTAssertFalse(selection.performsAutomaticDownload)
+        XCTAssertFalse(selection.usesSignedEndpoint)
+        XCTAssertFalse(selection.callsAccountEndpoint)
+        XCTAssertFalse(selection.createsListenKey)
+        XCTAssertFalse(selection.connectsBroker)
+        XCTAssertFalse(selection.implementsLiveExecutionAdapter)
+        XCTAssertFalse(selection.implementsOMS)
+        XCTAssertFalse(selection.implementsRealOrderLifecycle)
+        XCTAssertFalse(selection.providesLiveCommand)
+        XCTAssertFalse(selection.providesTradingButton)
+        XCTAssertFalse(selection.modifiesFigma)
+        XCTAssertFalse(selection.runsGraphify)
+    }
+
+    func testMTP120WorkbenchBetaDemoFixtureWiresScenarioReplayAndParityEvidence() throws {
+        // 测试场景：MTP-120 fixture evidence 必须把 L1.5 Scenario Replay 的 checksum / freshness
+        // 与 L2 Simulated Exchange / Backtest Parity 的 deterministic identity 绑定到同一 demo scenario。
+        let evidence = WorkbenchBetaDemoFixtureEvidence.deterministicFixture
+
+        XCTAssertEqual(evidence.evidenceID, try Identifier("mtp-120-workbench-beta-demo-fixture-evidence"))
+        XCTAssertEqual(evidence.issueID, try Identifier("MTP-120"))
+        XCTAssertEqual(evidence.selection, .deterministicFixture)
+        XCTAssertEqual(evidence.checksum, "fnv1a64:3c6cd4ff13cd4062")
+        XCTAssertEqual(evidence.freshnessStatus, .fresh)
+        XCTAssertEqual(evidence.qualityVerdict, .accepted)
+        XCTAssertEqual(
+            evidence.reportInputVersionIdentity,
+            "mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|1704067200...1704067380|fnv1a64:3c6cd4ff13cd4062|fresh|accepted"
+        )
+        XCTAssertTrue(evidence.simulatedParityEvidenceIdentity.contains("paper-order-intent-allowed"))
+        XCTAssertTrue(evidence.deterministicDemoIdentity.contains(evidence.reportInputVersionIdentity))
+        XCTAssertTrue(evidence.deterministicDemoIdentity.contains(evidence.simulatedParityEvidenceIdentity))
+        XCTAssertTrue(evidence.relationshipSummary.contains("l15=Scenario Replay"))
+        XCTAssertTrue(evidence.relationshipSummary.contains("l2=Simulated Exchange Backtest Parity"))
+        XCTAssertEqual(evidence.validationAnchors, WorkbenchBetaDemoScenarioSelection.requiredValidationAnchors)
+        XCTAssertTrue(evidence.scenarioReplayWiringHeld)
+        XCTAssertTrue(evidence.simulatedParityWiringHeld)
+        XCTAssertTrue(evidence.localDeterministicFixtureOnly)
+        XCTAssertTrue(evidence.readModelOnlyHandoff)
+        XCTAssertTrue(evidence.fixtureWiringBoundaryHeld)
+        XCTAssertFalse(evidence.requiredValidationDependsOnNetwork)
+        XCTAssertFalse(evidence.downloadsRealNetworkData)
+        XCTAssertFalse(evidence.runsLargeScaleIngestionPipeline)
+        XCTAssertFalse(evidence.buildsProductionDataPlatform)
+        XCTAssertFalse(evidence.performsAutomaticDownload)
+        XCTAssertFalse(evidence.readsSecret)
+        XCTAssertFalse(evidence.usesSignedEndpoint)
+        XCTAssertFalse(evidence.callsAccountEndpoint)
+        XCTAssertFalse(evidence.createsListenKey)
+        XCTAssertFalse(evidence.connectsBroker)
+        XCTAssertFalse(evidence.instantiatesBrokerExecutionAdapter)
+        XCTAssertFalse(evidence.instantiatesExchangeExecutionAdapter)
+        XCTAssertFalse(evidence.implementsLiveExecutionAdapter)
+        XCTAssertFalse(evidence.implementsOMS)
+        XCTAssertFalse(evidence.implementsRealOrderLifecycle)
+        XCTAssertFalse(evidence.runsLiveRuntime)
+        XCTAssertFalse(evidence.providesLiveCommand)
+        XCTAssertFalse(evidence.providesTradingButton)
+        XCTAssertFalse(evidence.modifiesFigma)
+        XCTAssertFalse(evidence.runsGraphify)
+        XCTAssertFalse(evidence.containsForbiddenCapabilityText([
+            "signed endpoint",
+            "account endpoint",
+            "listenKey",
+            "broker fill",
+            "real order",
+            "live command",
+            "trading button"
+        ]))
+    }
+
+    func testMTP120WorkbenchBetaDemoFixtureRoundTripsAndRejectsBypass() throws {
+        // 测试场景：MTP-120 demo fixture evidence 必须可 Codable round-trip，并在初始化或解码时
+        // 拒绝换 scenario、网络依赖、自动下载、signed/account/broker 和 Live capability 绕过。
+        let evidence = WorkbenchBetaDemoFixtureEvidence.deterministicFixture
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoded = try JSONDecoder().decode(WorkbenchBetaDemoFixtureEvidence.self, from: encoded)
+
+        XCTAssertEqual(decoded, evidence)
+        XCTAssertEqual(decoded.deterministicDemoIdentity, evidence.deterministicDemoIdentity)
+        XCTAssertTrue(decoded.fixtureWiringBoundaryHeld)
+
+        XCTAssertThrowsError(
+            try WorkbenchBetaDemoScenarioSelection(scenarioID: try ScenarioID("mtp-120-other-scenario"))
+        ) { error in
+            guard case .workbenchBetaReadinessContractMismatch(
+                field: "workbenchBetaDemoScenarioSelection.identity",
+                expected: _,
+                actual: _
+            ) = error as? CoreError else {
+                XCTFail("Expected beta demo scenario identity mismatch, got \(error)")
+                return
+            }
+        }
+        XCTAssertThrowsError(
+            try WorkbenchBetaDemoScenarioSelection(usesSignedEndpoint: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .workbenchBetaReadinessForbiddenCapability(
+                    "workbenchBetaDemoScenarioSelection.usesSignedEndpoint"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try WorkbenchBetaDemoFixtureEvidence(performsAutomaticDownload: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .workbenchBetaReadinessForbiddenCapability(
+                    "workbenchBetaDemoFixtureEvidence.performsAutomaticDownload"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try WorkbenchBetaDemoFixtureEvidence(scenarioReplayWiringHeld: false)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .workbenchBetaReadinessContractMismatch(
+                    field: "workbenchBetaDemoFixtureEvidence.scenarioReplayWiringHeld",
+                    expected: "true",
+                    actual: "false"
+                )
+            )
+        }
+
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["connectsBroker"] = true
+        let tampered = try JSONSerialization.data(withJSONObject: object)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(WorkbenchBetaDemoFixtureEvidence.self, from: tampered)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .workbenchBetaReadinessForbiddenCapability("workbenchBetaDemoFixtureEvidence.connectsBroker")
+            )
+        }
+    }
+
     private func makeOrderBookImbalanceInputs() throws -> [OrderBookReadModelInput] {
         let symbol = try Symbol(rawValue: "BTCUSDT")
         let bidDominant = OrderBookReadModelInput(

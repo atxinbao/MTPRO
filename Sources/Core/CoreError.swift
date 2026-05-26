@@ -65,6 +65,8 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
     case dataCatalogScenarioReplayContractMismatch(field: String, expected: String, actual: String)
     case simulatedExchangeBacktestParityForbiddenCapability(String)
     case simulatedExchangeBacktestParityContractMismatch(field: String, expected: String, actual: String)
+    case workbenchBetaReadinessForbiddenCapability(String)
+    case workbenchBetaReadinessContractMismatch(field: String, expected: String, actual: String)
     case liveTradingBoundaryForbiddenCapability(String)
     case liveTradingBoundaryContractMismatch(field: String, expected: String, actual: String)
     case liveMonitoringConsoleForbiddenCapability(String)
@@ -194,6 +196,10 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
             "Simulated exchange backtest parity forbids capability: \(field)"
         case let .simulatedExchangeBacktestParityContractMismatch(field, expected, actual):
             "Simulated exchange backtest parity contract mismatch for \(field): expected \(expected), actual \(actual)"
+        case let .workbenchBetaReadinessForbiddenCapability(field):
+            "Workbench beta readiness forbids capability: \(field)"
+        case let .workbenchBetaReadinessContractMismatch(field, expected, actual):
+            "Workbench beta readiness contract mismatch for \(field): expected \(expected), actual \(actual)"
         case let .liveTradingBoundaryForbiddenCapability(field):
             "Live trading boundary forbids capability: \(field)"
         case let .liveTradingBoundaryContractMismatch(field, expected, actual):

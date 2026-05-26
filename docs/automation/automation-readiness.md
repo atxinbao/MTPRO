@@ -40,6 +40,7 @@
 | Simulated Exchange / Backtest Parity root docs refresh anchor | ready | Engine Maturity Roadmap Progress `3 / 4 (75%)`；current maturity statement `L2 Simulated Exchange / Backtest Parity complete` |
 | Workbench Beta Readiness contract anchor | ready | `docs/contracts/workbench-beta-readiness-contract.md`；MTP-118 只定义 local macOS Workbench demo / acceptance path，不实现 install / run、engine core、production release 或 live readiness |
 | Workbench Beta Readiness local launch / install anchor | ready | `docs/validation/macos-build-run-loop.md`；MTP-119 只定义 SwiftPM local install、Dashboard launch / smoke、environment verification 和 troubleshooting path，不创建 production installer、notarization、App Store、auto-update、production deployment、cloud operations 或 live readiness |
+| Workbench Beta Readiness demo scenario / fixture wiring anchor | ready | `Sources/Core/WorkbenchBetaDemoScenario.swift`；MTP-120 只固定 local deterministic demo scenario、dataset / fixture version、checksum / freshness evidence 和 L1.5 / L2 relationship，不新增网络下载、production data platform、Runtime replay job、first-run UI、Report / Dashboard / Events acceptance path、live readiness 或真实交易能力 |
 
 ## Project 切换规则
 

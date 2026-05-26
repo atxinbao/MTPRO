@@ -756,6 +756,36 @@ MTP-119 required validation 是 `DASHBOARD_SMOKE=1 swift run Dashboard` 和 `bas
 
 MTP-119 的英文锚点表述中，local install 只表示 SwiftPM dependency resolution 和本地 `.build` artifact，不表示发布安装或生产分发。
 
+`MTP-120-DEMO-SCENARIO-SELECTION`
+
+MTP-120 在 local-only beta demo path 内固定唯一 demo scenario：`mtp-104-btcusdt-1m-first-scenario`、`dataset-v1`、`fixture-v1`、`BTCUSDT` / `1m`。该选择只表示 Workbench beta demo 输入，不等于 production data catalog、production dataset registry、automatic downloader、Runtime replay job 或真实市场数据平台。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `beta demo scenario` | MTP-120 固定的本地 deterministic scenario id / dataset version / fixture version | 不等于 production dataset、remote catalog、真实历史数据下载任务或 live readiness |
+| `demo fixture wiring` | 把 L1.5 Scenario Replay report input evidence 与 L2 Simulated Exchange / Backtest Parity evidence 绑定到同一 demo scenario | 不等于 Runtime replay job、production matching runtime、App first-run state 或 Dashboard acceptance surface |
+| `demo checksum / freshness evidence` | `fnv1a64:3c6cd4ff13cd4062`、`fresh` 和 `accepted` 作为 beta demo 输入追踪证据 | 不等于 production data quality monitor、retention engine、自动修复或真实网络校验 |
+
+`MTP-120-DATASET-FIXTURE-VERSION-LOCK`
+
+MTP-120 固定 `dataset-v1` 和 `fixture-v1`，使后续 MTP-121 / MTP-122 / MTP-123 只能消费同一 deterministic beta fixture。该 version lock 不表示 remote sync、dataset registry、production release version 或 production operations readiness。
+
+`MTP-120-SCENARIO-REPLAY-FIXTURE-WIRING`
+
+MTP-120 的 wiring 由 Core 值对象 `WorkbenchBetaDemoScenarioSelection` 和 `WorkbenchBetaDemoFixtureEvidence` 表达：前者固定 selection，后者复用 `ScenarioDataQualityReportInputEvidence.deterministicFixture` 和 `SimulatedExchangePortfolioProjectionParityFixture.deterministicEvidence()`。该 wiring 不新增 fixture records、不触发 replay scheduler、不读取 Persistence schema、不调用 Adapter、不新增 App read model 或 Dashboard first-run state。
+
+`MTP-120-CHECKSUM-FRESHNESS-EVIDENCE`
+
+MTP-120 demo fixture 的 checksum / freshness / quality evidence 固定为 `fnv1a64:3c6cd4ff13cd4062`、`fresh`、`accepted`，report input version 固定为 `mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|1704067200...1704067380|fnv1a64:3c6cd4ff13cd4062|fresh|accepted`。
+
+`MTP-120-L15-L2-EVIDENCE-RELATIONSHIP`
+
+MTP-120 只记录 L1.5 Scenario Replay evidence 与 L2 Simulated Exchange / Backtest Parity evidence 的 relationship：二者共享同一 scenario / dataset / fixture / report input version，后续 L2+ Workbench Beta Readiness issue 可在 read-model-only 路径中消费。它不授权 production matching runtime、真实 exchange runtime、broker adapter、execution report、broker fill、reconciliation、Live PRO Console、trading button 或 live command。
+
+`MTP-120-NO-NETWORK-DOWNLOAD-LIVE-BROKER`
+
+MTP-120 validation 必须证明 demo path 不依赖真实网络或自动下载，不接 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、Live PRO Console、live command、trading button、Graphify 或 Figma。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
