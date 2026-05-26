@@ -4,9 +4,9 @@
 
 执行者：Codex
 
-本文档定义 `MTPRO Simulated Exchange / Backtest Parity v1` 的 L2 simulated exchange / backtest parity terminology、目标引擎职责、L1 Paper Runtime 与 L1.5 Data Catalog / Scenario Replay 到 L2 的 handoff boundary、shared backtest-paper order semantics、scenario replay deterministic matching model、forbidden capability baseline、source docs anchors 和 validation anchors。
+本文档定义 `MTPRO Simulated Exchange / Backtest Parity v1` 的 L2 simulated exchange / backtest parity terminology、目标引擎职责、L1 Paper Runtime 与 L1.5 Data Catalog / Scenario Replay 到 L2 的 handoff boundary、shared backtest-paper order semantics、scenario replay deterministic matching model、market / limit order simulated execution semantics、forbidden capability baseline、source docs anchors 和 validation anchors。
 
-本文档服务 `MTP-110` 至 `MTP-112` 的术语 / 边界合同；它不实现真实撮合引擎、不实现订单执行 runtime、不实现 portfolio projection、不实现 UI，不接 signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、live command、trading button，不运行 Graphify，不修改 Figma。
+本文档服务 `MTP-110` 至 `MTP-113` 的术语 / 边界合同；它不实现真实撮合引擎、不实现真实订单执行 runtime、不实现 portfolio projection、不实现 UI，不接 signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、live command、trading button，不运行 Graphify，不修改 Figma。
 
 ## MTP-110 Simulated Exchange / Backtest Parity terminology
 
@@ -334,3 +334,80 @@ Validation anchors：
 - `TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY`
 
 MTP-112 不实现 market / limit order simulated execution semantics、partial fill、latency、fee / slippage parity、portfolio projection parity、Report / Dashboard / Events evidence surface 或 stage audit input；这些仍归属后续 `MTP-113` 至 `MTP-117`。
+
+## MTP-113 market / limit order simulated execution semantics
+
+`MTP-113-MARKET-ORDER-SIMULATED-EXECUTION`
+
+MTP-113 定义 market order 的最小 simulated execution 语义：
+
+| 语义 | 当前含义 | 禁止混用 |
+| --- | --- | --- |
+| `market order simulated execution` | accepted simulated shared order input 使用 MTP-112 deterministic matching output 的 matched price 立即 full fill | 不等于真实 market order、exchange order book execution、broker route 或 live order |
+| `matched price source` | `ScenarioReplayDeterministicMatchingModel.match` 输出的 matched price `42120.70` | 不等于 live market price、broker quote、exchange last trade 或 wall clock price |
+| `matched quantity source` | MTP-111 shared order input 的 quantity `0.5` | 不等于 partial fill、available liquidity、account position 或 margin rule |
+
+Core deterministic fixture：
+
+- `MarketLimitSimulatedExecutionInput.deterministicMarketFixture`
+- `MarketLimitSimulatedExecutionModel.execute`
+
+`MTP-113-LIMIT-ORDER-SIMULATED-EXECUTION`
+
+MTP-113 定义 buy-side limit order 的最小 simulated execution 语义。当前 shared order side 只允许 `buy` / `hold`，因此 limit execution 只固定 buy-side rule：
+
+| 语义 | 当前含义 | 禁止混用 |
+| --- | --- | --- |
+| `limit order simulated execution` | 必须提供 explicit limit price，并与 deterministic matched price 比较 | 不等于真实交易所 price-time priority、post-only、maker/taker routing 或 stop / OCO |
+| `buy limit fill` | buy limit price 大于等于 matched price 时 full fill | 不等于真实盘口可成交量、broker fill 或 execution quality |
+| `buy limit expire` | buy limit price 小于 matched price 时输出 expired simulated evidence | 不等于真实交易所 order expiry、cancel command 或 broker rejection |
+
+Core deterministic fixtures：
+
+- `MarketLimitSimulatedExecutionInput.deterministicLimitFillFixture`，limit price `42150.00` -> full fill。
+- `MarketLimitSimulatedExecutionInput.deterministicLimitExpireFixture`，limit price `42100.00` -> expired simulated。
+
+`MTP-113-FULL-FILL-REJECT-EXPIRE-SEMANTICS`
+
+MTP-113 固定最小 execution outcomes：
+
+| Outcome | Shared state | Shared event kind | 当前含义 |
+| --- | --- | --- | --- |
+| `full fill simulated` | `filled simulated` | `simulated order filled` | market / favorable buy limit 使用 deterministic matched price 和完整 shared quantity 输出 full fill |
+| `rejected simulated` | `rejected simulated` | `simulated order rejected` | rejected initial state 或 non-executable hold side 在 fill 前停止 |
+| `expired simulated` | `expired simulated` | `simulated order expired` | buy limit price 未穿越 deterministic matched price 时输出 expired evidence |
+
+MTP-113 明确不输出 partial fill。partial fill、latency、fee / slippage parity 仍归属 `MTP-114`。
+
+`MTP-113-DETERMINISTIC-EXECUTION-REPLAY`
+
+相同 scenario id / dataset version / fixture version / replay window / cursor / shared order input / order type / limit price / initial state 必须输出相同 deterministic result identity。limit expire fixture 的 identity 固定为：
+
+```text
+mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|1704067200...1704067380|cursor=2|record=2|order=paper-order-intent-allowed|orderType=limit order simulated execution|limit=42100000000|initialState=accepted simulated|outcome=expired simulated|matchedPrice=42120700000|filled=0|remaining=500000
+```
+
+`MTP-113-NO-REAL-ORDER-LIVE-COMMAND`
+
+MTP-113 必须保持 order execution runtime、matching runtime、portfolio projection runtime、advanced order types、wall clock、randomness、signed endpoint、account endpoint、listenKey、secret、broker integration、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、live runtime、Live PRO Console、live command、order-level command UI、trading button 和 required network validation flags 全部为 false；初始化和 Codable 解码都不能恢复这些能力。
+
+## MTP-113 validation anchors
+
+`MTP-113-MARKET-LIMIT-SIMULATED-EXECUTION-VALIDATION`
+
+Required validation：
+
+- `swift test --filter MTP113`
+- `bash checks/run.sh`
+
+Validation anchors：
+
+- `MTP-113-MARKET-ORDER-SIMULATED-EXECUTION`
+- `MTP-113-LIMIT-ORDER-SIMULATED-EXECUTION`
+- `MTP-113-FULL-FILL-REJECT-EXPIRE-SEMANTICS`
+- `MTP-113-DETERMINISTIC-EXECUTION-REPLAY`
+- `MTP-113-NO-REAL-ORDER-LIVE-COMMAND`
+- `MTP-113-MARKET-LIMIT-SIMULATED-EXECUTION-VALIDATION`
+- `TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY`
+
+MTP-113 不实现 stop / OCO / advanced order types、partial fill、latency、fee / slippage parity、portfolio projection parity、Report / Dashboard / Events evidence surface、order form、command model、真实订单提交 / 撤销 / 替换、OMS、execution report、broker fill、reconciliation、signed endpoint、account endpoint / listenKey、Live PRO Console、live command、order-level command UI、trading button 或 stage audit input；这些仍归属后续 `MTP-114` 至 `MTP-117` 或 Future Gated scope。

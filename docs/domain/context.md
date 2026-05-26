@@ -622,6 +622,26 @@ MTP-112 必须保证相同 scenario id / dataset version / fixture version / rep
 
 MTP-112 deterministic matching model 不得升级为真实 matching runtime、market / limit execution runtime、partial fill / latency / fee / slippage runtime、portfolio projection runtime、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、live command、order-level command UI 或交易按钮。
 
+`MTP-113-MARKET-ORDER-SIMULATED-EXECUTION`
+
+MTP-113 market order simulated execution 只表示 accepted simulated shared order input 使用 MTP-112 deterministic matching output 的 matched price 立即 full fill。默认 fixture 使用 matched price `42120.70`、quantity `0.5`、shared state `filled simulated` 和 event kind `simulated order filled`。它不等于真实 market order、exchange order book execution、broker route、execution report、broker fill、account update 或 live order。
+
+`MTP-113-LIMIT-ORDER-SIMULATED-EXECUTION`
+
+MTP-113 limit order simulated execution 只定义当前 shared order side 中 buy-side 的最小 limit rule：explicit limit price 大于等于 deterministic matched price 时 full fill，低于 matched price 时输出 `expired simulated` evidence。默认 fill fixture 的 limit price 为 `42150.00`；expire fixture 的 limit price 为 `42100.00`。它不实现 sell / short、stop、OCO、post-only、maker/taker routing、price-time priority 或真实交易所订单过期。
+
+`MTP-113-FULL-FILL-REJECT-EXPIRE-SEMANTICS`
+
+MTP-113 固定三种最小 simulated execution outcome：`full fill simulated` 映射到 `filled simulated` / `simulated order filled`；`rejected simulated` 映射到 `rejected simulated` / `simulated order rejected`，用于 rejected initial state 或 non-executable hold side 在 fill 前停止；`expired simulated` 映射到 `expired simulated` / `simulated order expired`，用于 buy limit 未穿越 deterministic matched price。MTP-113 不输出 partial fill，partial fill、latency、fee / slippage parity 仍归属 MTP-114。
+
+`MTP-113-DETERMINISTIC-EXECUTION-REPLAY`
+
+MTP-113 必须保证相同 scenario id / dataset version / fixture version / replay window / cursor / shared order input / order type / limit price / initial state 输出同一个 deterministic execution result identity。limit expire fixture 的 identity 固定为 `mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|1704067200...1704067380|cursor=2|record=2|order=paper-order-intent-allowed|orderType=limit order simulated execution|limit=42100000000|initialState=accepted simulated|outcome=expired simulated|matchedPrice=42120700000|filled=0|remaining=500000`。
+
+`MTP-113-NO-REAL-ORDER-LIVE-COMMAND`
+
+MTP-113 market / limit simulated execution semantics 不得升级为真实 order execution runtime、matching runtime、portfolio projection runtime、advanced order types、真实 submit / cancel / replace、OMS、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、live runtime、Live PRO Console、live command、order-level command UI 或交易按钮。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

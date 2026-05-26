@@ -11214,3 +11214,84 @@ L1 Paper Runtime maturity statement：
 - 不修改 Figma。
 - 不提交 `.codex/*` 或 `graphify-out/*`。
 - 不实现真实 matching runtime、market / limit execution runtime、partial fill / latency / fee / slippage parity、portfolio projection runtime、Report / Dashboard / Events evidence surface、UI implementation、order form、command model、Runtime replay job、database console、signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、order-level command UI、trading button、live command、emergency stop、shutdown 或 restore。
+
+---
+
+## 2026-05-26 — MTP-113 Market / limit order simulated execution semantics
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear live-read 中唯一 active issue `MTP-113 Add market / limit order simulated execution semantics`。
+- 基于 MTP-112 deterministic matching output 和 MTP-111 shared order input 建立 market / limit order 的最小 simulated execution 语义。
+- 保持 deterministic first：相同 scenario id / dataset version / fixture version / replay window / cursor / shared order input / order type / limit price / initial state 必须输出相同 full fill、reject 或 expire evidence。
+
+文件范围：
+
+- 新增 `Sources/Core/MarketLimitSimulatedExecutionSemantics.swift`。
+- 更新 `Tests/CoreTests/CoreTests.swift`，新增 MTP-113 focused tests。
+- 更新 `docs/contracts/simulated-exchange-backtest-parity-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh`。
+- 更新本 append-only `verification.md`。
+
+关键证据：
+
+- `MarketLimitSimulatedExecutionContract` 固定 order types、outcomes、execution rules、validation anchors 和 forbidden capability baseline。
+- `MarketLimitSimulatedExecutionInput` 绑定 MTP-112 deterministic matching input 和 MTP-111 shared order input；market order 拒绝 limit price，limit order 要求 explicit limit price。
+- `MarketLimitSimulatedExecutionModel.execute` 输出 market full fill、buy limit full fill、buy limit expire 和 rejected initial state evidence。
+- `MarketLimitSimulatedExecutionEvent` 固定 `full fill simulated` -> `filled simulated` / `simulated order filled`，`rejected simulated` -> `rejected simulated` / `simulated order rejected`，`expired simulated` -> `expired simulated` / `simulated order expired`。
+- Limit expire deterministic result identity 固定为 `mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|1704067200...1704067380|cursor=2|record=2|order=paper-order-intent-allowed|orderType=limit order simulated execution|limit=42100000000|initialState=accepted simulated|outcome=expired simulated|matchedPrice=42120700000|filled=0|remaining=500000`。
+- Validation anchors 为 `MTP-113-MARKET-ORDER-SIMULATED-EXECUTION`、`MTP-113-LIMIT-ORDER-SIMULATED-EXECUTION`、`MTP-113-FULL-FILL-REJECT-EXPIRE-SEMANTICS`、`MTP-113-DETERMINISTIC-EXECUTION-REPLAY`、`MTP-113-NO-REAL-ORDER-LIVE-COMMAND`、`MTP-113-MARKET-LIMIT-SIMULATED-EXECUTION-VALIDATION` 和 `TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP113` | pass | 执行 3 个 Core tests，0 failures，验证 market / limit semantics anchors、market full fill、limit full fill、limit expire、reject evidence、deterministic replay identity、Codable round-trip 和 forbidden capability rejection。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；机械检查 MTP-113 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 254 个 XCTest；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; scenarioReplayEvidence=0; scenarioQualityGates=0; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3`，最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不修改 Linear status。
+- 不创建下一 Project / Issue。
+- 不推进下一 issue。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify update。
+- 不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 stop / OCO / advanced order types、真实 order execution runtime、matching runtime、partial fill、latency、fee / slippage parity、portfolio projection runtime、Report / Dashboard / Events evidence surface、UI implementation、order form、command model、Runtime replay job、database console、signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、order-level command UI、trading button、live command、emergency stop、shutdown 或 restore。
+
+---
+
+## 2026-05-26 — MTP-113 continuation handoff evidence
+
+执行者：Codex
+
+目的：
+
+- 记录 `MTP-113` ready-for-review PR handoff 后的 continuation 状态，避免后续 agent 重复排查 GitHub / Symphony 状态。
+- 保持 append-only evidence chain；不修改 Linear status，不绕过 GitHub required checks。
+
+观察：
+
+- PR `https://github.com/atxinbao/MTPRO/pull/214` 已创建为 ready-for-review，PR body 包含 `Fixes MTP-113`。
+- Squash auto-merge 已启用。
+- GitHub repository ruleset `protect-main` 要求 `checks` status check；截至 continuation turn #3，PR head `2bc09c0f827144513a800c886fde98fe43718ea0` 没有 status contexts，也没有 check runs。
+- 已尝试 empty synchronize commit、close / reopen PR、重新启用 auto-merge；GitHub 仍报告 `mergeStateStatus=BLOCKED` 且 `statusCheckRollup=[]`。
+- `.codex/symphony-issue-handoff.json` 已通过 Symphony `handoff_marker_for_test` parser，返回 `{:ready, marker}`；该文件不进入 PR。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `gh pr view 214 --json url,state,isDraft,mergeStateStatus,autoMergeRequest,mergedAt,statusCheckRollup,headRefOid` | pass | PR open、not draft、auto-merge enabled、`mergeStateStatus=BLOCKED`、`statusCheckRollup=[]`。 |
+| `gh api repos/atxinbao/MTPRO/rulesets/16463304` | pass | `protect-main` ruleset 要求 GitHub Actions integration `15368` 的 `checks` required status check。 |
+| `mix run -e 'SymphonyElixir.Orchestrator.handoff_marker_for_test(...)'` | pass | 本地 handoff marker 被 Symphony parser 判定为 `{:ready, marker}`。 |
+
+边界确认：
+
+- 不修改 Linear status。
+- 不直接 merge PR。
+- 不创建或绕过 required status check。
+- 不提交 `.codex/*` 或 `graphify-out/*`。

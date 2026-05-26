@@ -2367,3 +2367,42 @@ MTP-112 必须建立的主要 anchors：
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、live runtime、Live PRO Console、live command、order-level command UI 或交易按钮。
 - 不实现 market / limit order execution semantics、partial fill、latency、fee / slippage parity、portfolio projection parity、emergency stop、shutdown、restore、production operations、production data platform、large-scale ingestion pipeline、真实交易所接入或 live readiness。
 - 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进下一 issue。
+
+## MTP-113 Market / Limit Simulated Execution Validation
+
+日期：2026-05-26
+
+执行者：Codex
+
+MTP-113 的 required validation：
+
+- `docs/contracts/simulated-exchange-backtest-parity-contract.md` 必须包含 `MTP-113-MARKET-ORDER-SIMULATED-EXECUTION`、`MTP-113-LIMIT-ORDER-SIMULATED-EXECUTION`、`MTP-113-FULL-FILL-REJECT-EXPIRE-SEMANTICS`、`MTP-113-DETERMINISTIC-EXECUTION-REPLAY`、`MTP-113-NO-REAL-ORDER-LIVE-COMMAND` 和 `MTP-113-MARKET-LIMIT-SIMULATED-EXECUTION-VALIDATION` anchors。
+- `Sources/Core/MarketLimitSimulatedExecutionSemantics.swift` 必须定义 `MarketLimitSimulatedExecutionContract`、`MarketLimitSimulatedExecutionInput`、`MarketLimitSimulatedExecutionEvent`、`MarketLimitSimulatedExecutionOutput`、`MarketLimitSimulatedExecutionModel`、`MarketLimitSimulatedOrderType`、`MarketLimitSimulatedExecutionOutcome`、`MarketLimitSimulatedExecutionRule` 和 `MarketLimitSimulatedExecutionRejectReason`。
+- `MarketLimitSimulatedExecutionInput` 必须绑定 MTP-112 deterministic matching input 和 MTP-111 shared order input；market order 不能带 limit price，limit order 必须带 explicit limit price。
+- `MarketLimitSimulatedExecutionModel.execute` 必须对 market order 输出 deterministic full fill；对 buy limit price 大于等于 matched price 输出 full fill；对 buy limit price 低于 matched price 输出 expired simulated；对 rejected initial state 输出 rejected simulated。
+- `MarketLimitSimulatedExecutionOutput.deterministicResultIdentity` 必须固定 scenario id、dataset version、fixture version、window、cursor sequence、record sequence、order id、order type、limit price、initial state、outcome、matched price、filled quantity 和 remaining quantity。
+- Core fixture 和 Codable decode 必须拒绝 advanced order types、真实 order execution runtime、matching runtime、portfolio projection runtime、partial fill bypass、signed endpoint、account endpoint、listenKey、broker / exchange adapter、`LiveExecutionAdapter`、OMS、real submit / cancel / replace、execution report、broker fill、reconciliation、live command、order-level command UI 和交易按钮绕过。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-113 focused tests，验证 market / limit semantics anchors、market full fill、limit full fill、limit expire、reject evidence、deterministic replay identity、Codable round-trip 和 forbidden capability rejection。
+- `docs/domain/context.md` 必须包含 `MTP-113-MARKET-ORDER-SIMULATED-EXECUTION`、`MTP-113-LIMIT-ORDER-SIMULATED-EXECUTION`、`MTP-113-FULL-FILL-REJECT-EXPIRE-SEMANTICS`、`MTP-113-DETERMINISTIC-EXECUTION-REPLAY` 和 `MTP-113-NO-REAL-ORDER-LIVE-COMMAND`。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-113 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-113 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-113 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不运行 Graphify，不修改 Figma，不实现 stop / OCO / advanced order types、partial fill、latency、fee / slippage parity、portfolio projection parity、Report / Dashboard / Events evidence surface、signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、live runtime、live command、Live PRO Console 或交易按钮。
+
+MTP-113 必须建立的主要 anchors：
+
+- `TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY`
+- `MTP-113-MARKET-ORDER-SIMULATED-EXECUTION`
+- `MTP-113-LIMIT-ORDER-SIMULATED-EXECUTION`
+- `MTP-113-FULL-FILL-REJECT-EXPIRE-SEMANTICS`
+- `MTP-113-DETERMINISTIC-EXECUTION-REPLAY`
+- `MTP-113-NO-REAL-ORDER-LIVE-COMMAND`
+- `MTP-113-MARKET-LIMIT-SIMULATED-EXECUTION-VALIDATION`
+
+## MTP-113 禁止
+
+- 不实现 stop / OCO / advanced order types、真实 order execution runtime、matching runtime、portfolio projection runtime、UI implementation、Report / Dashboard / Events evidence surface、order form、command model、Runtime replay job 或 database console。
+- 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、live runtime、Live PRO Console、live command、order-level command UI 或交易按钮。
+- 不实现 partial fill、latency、fee / slippage parity、portfolio projection parity、emergency stop、shutdown、restore、production operations、production data platform、large-scale ingestion pipeline、真实交易所接入或 live readiness。
+- 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进下一 issue。
