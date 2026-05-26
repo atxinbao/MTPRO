@@ -2632,3 +2632,39 @@ MTP-119 必须建立的主要 anchors：
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、live readiness、live runtime、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
 - 不把 local launch / install path 写成 production release pipeline、notarization readiness、App Store distribution readiness、cloud operations readiness、live readiness 或真实交易授权。
 - 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进 MTP-120。
+
+## MTP-120 Demo Scenario Selection / Fixture Wiring Validation
+
+日期：2026-05-27
+
+执行者：Codex
+
+MTP-120 的 required validation：
+
+- `swift test --filter MTP120`
+- `bash checks/run.sh`
+
+MTP-120 必须建立的主要 anchors：
+
+- `MTP-120-DEMO-SCENARIO-SELECTION`
+- `MTP-120-DATASET-FIXTURE-VERSION-LOCK`
+- `MTP-120-SCENARIO-REPLAY-FIXTURE-WIRING`
+- `MTP-120-CHECKSUM-FRESHNESS-EVIDENCE`
+- `MTP-120-L15-L2-EVIDENCE-RELATIONSHIP`
+- `MTP-120-NO-NETWORK-DOWNLOAD-LIVE-BROKER`
+- `MTP-120-DEMO-SCENARIO-FIXTURE-VALIDATION`
+
+MTP-120 的验收要求：
+
+- `Sources/Core/WorkbenchBetaDemoScenario.swift` 必须定义 `WorkbenchBetaDemoScenarioSelection` 和 `WorkbenchBetaDemoFixtureEvidence`，固定 `mtp-104-btcusdt-1m-first-scenario`、`dataset-v1`、`fixture-v1`、`BTCUSDT` / `1m`。
+- `WorkbenchBetaDemoFixtureEvidence` 必须复用 `ScenarioDataQualityReportInputEvidence.deterministicFixture` 和 `SimulatedExchangePortfolioProjectionParityFixture.deterministicEvidence()`，并输出 checksum `fnv1a64:3c6cd4ff13cd4062`、freshness `fresh`、quality `accepted`、report input version identity 和 simulated parity deterministic identity。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-120 focused tests，覆盖 deterministic selection、fixture wiring、L1.5 / L2 relationship、Codable round-trip、scenario mismatch rejection、automatic download / signed endpoint / broker bypass rejection。
+- `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-120 mechanical anchors。
+
+## MTP-120 禁止
+
+- 不新增 fixture records、不新增大规模 ingestion、不自动下载真实历史数据、不实现 production data platform、production dataset registry、production data quality monitor 或 Runtime replay scheduler。
+- 不提前实现 Workbench first-run state、Report / Dashboard / Events acceptance path、Dashboard smoke handle、App read model、Runtime / Dashboard behavior 或 stage audit input。
+- 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、live readiness、live runtime、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
+- 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进 MTP-121。

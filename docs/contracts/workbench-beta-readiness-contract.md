@@ -261,3 +261,102 @@ Focused validation anchors：
 - `checks/automation-readiness.sh` 必须机械检查 MTP-119 contract、domain context、macOS run-loop、validation plan、matrix、latest summary 和 automation readiness doc anchors。
 
 MTP-119 不新增 Dashboard smoke handle、不新增 App read model、不新增 Core / Runtime / Dashboard behavior、不创建 release package、不新增 stage audit input；Project stage closeout 仍归属 `MTP-125`。
+
+## MTP-120 demo scenario selection and fixture wiring
+
+`MTP-120-DEMO-SCENARIO-SELECTION`
+
+MTP-120 只在 MTP-118 的 local-only beta demo path 内选择并固定一个本地 deterministic beta demo scenario：
+
+| 字段 | 固定值 | 验收含义 |
+| --- | --- | --- |
+| scenario id | `mtp-104-btcusdt-1m-first-scenario` | 复用 L1.5 Scenario Replay 已完成的 first scenario identity |
+| dataset version | `dataset-v1` | 复用本仓库内 deterministic report input version |
+| fixture version | `fixture-v1` | 复用本仓库内 local deterministic fixture records |
+| symbol / timeframe | `BTCUSDT` / `1m` | 保持 single-symbol / single-timeframe demo path |
+
+该选择只服务 Workbench beta demo / acceptance path，不代表 production data catalog、production dataset registry、large-scale ingestion pipeline、automatic downloader、Runtime replay job 或真实 market data platform。
+
+### MTP-120 dataset / fixture version lock
+
+`MTP-120-DATASET-FIXTURE-VERSION-LOCK`
+
+MTP-120 固定 dataset / fixture version 的原因是让 MTP-121 first-run state、MTP-122 Report / Dashboard / Events acceptance path 和 MTP-123 beta checklist 能消费同一稳定输入：
+
+- `dataset-v1` 继续表示 scenario replay 输入版本。
+- `fixture-v1` 继续表示当前仓库内的本地 fixture records 版本。
+- 版本锁必须保持 deterministic、local-only、read-model handoff friendly；不得写成 production versioning service、dataset registry、remote sync 或自动下载策略。
+
+### MTP-120 scenario replay fixture wiring
+
+`MTP-120-SCENARIO-REPLAY-FIXTURE-WIRING`
+
+MTP-120 的 Core tracer bullet 为 `WorkbenchBetaDemoScenarioSelection` 与 `WorkbenchBetaDemoFixtureEvidence`：
+
+- `WorkbenchBetaDemoScenarioSelection` 固定 demo scenario identity、source anchors 和 MTP-120 validation anchors。
+- `WorkbenchBetaDemoFixtureEvidence` 复用 `ScenarioDataQualityReportInputEvidence.deterministicFixture`，把 MTP-106 replay window / cursor / checksum / freshness、MTP-107 quality verdict / report input version 绑定到同一 demo scenario。
+- `WorkbenchBetaDemoFixtureEvidence` 同时复用 `SimulatedExchangePortfolioProjectionParityFixture.deterministicEvidence()`，把 L2 simulated exchange / backtest parity evidence 绑定到同一 report input version。
+
+该 wiring 不新增 fixture records，不实现 replay scheduler，不读取 Persistence schema，不调用 Adapter，不接真实网络，不新增 App read model 或 Dashboard first-run state。
+
+### MTP-120 checksum / freshness evidence
+
+`MTP-120-CHECKSUM-FRESHNESS-EVIDENCE`
+
+MTP-120 固定 beta demo fixture 的 checksum / freshness evidence：
+
+```text
+checksum=fnv1a64:3c6cd4ff13cd4062
+freshness=fresh
+quality=accepted
+replayWindow=1704067200...1704067380
+reportInputVersion=mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|1704067200...1704067380|fnv1a64:3c6cd4ff13cd4062|fresh|accepted
+```
+
+这些字段来自本地 deterministic fixture，不依赖 wall clock、真实网络、自动下载、production retention engine、signed endpoint、account endpoint、listenKey、broker 或 live runtime。
+
+### MTP-120 L1.5 / L2 evidence relationship
+
+`MTP-120-L15-L2-EVIDENCE-RELATIONSHIP`
+
+MTP-120 明确 demo fixture 与已完成 evidence chain 的关系：
+
+- L1.5 Scenario Replay：提供 scenario id、dataset version、fixture version、replay window、cursor、checksum、freshness、quality verdict 和 report input version。
+- L2 Simulated Exchange / Backtest Parity：消费同一 report input version，提供 deterministic matching、market / limit simulated execution、partial / full / reject / expire evidence、latency、fee / slippage 和 backtest / paper portfolio parity。
+- L2+ Workbench Beta Readiness：只把上述 evidence 选择为 local macOS Workbench beta demo 输入，等待后续 MTP-121 / MTP-122 / MTP-123 消费。
+
+MTP-120 不把该 relationship 写成 production matching runtime、真实 exchange runtime、broker adapter、execution report、broker fill、reconciliation、Live PRO Console、trading button 或 live command。
+
+### MTP-120 forbidden boundary
+
+`MTP-120-NO-NETWORK-DOWNLOAD-LIVE-BROKER`
+
+MTP-120 必须持续禁止：
+
+- real network download / automatic downloader
+- production data platform / production dataset registry / large-scale ingestion pipeline
+- Runtime replay job / production scheduler
+- signed endpoint / account endpoint / listenKey / API key / secret read
+- broker / exchange execution adapter / `LiveExecutionAdapter`
+- OMS / real order lifecycle / real submit / cancel / replace
+- execution report / broker fill / reconciliation
+- real account / broker position / margin / leverage read
+- Live PRO Console / live command / trading button
+- Graphify update / Figma change
+
+### MTP-120 validation anchors
+
+`MTP-120-DEMO-SCENARIO-FIXTURE-VALIDATION`
+
+Required validation：
+
+- `swift test --filter MTP120`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `Sources/Core/WorkbenchBetaDemoScenario.swift` 必须定义 `WorkbenchBetaDemoScenarioSelection` 和 `WorkbenchBetaDemoFixtureEvidence`。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-120 focused tests，验证 demo scenario selection、dataset / fixture version lock、scenario replay fixture wiring、checksum / freshness evidence、L1.5 / L2 relationship、Codable round-trip 和 forbidden capability bypass rejection。
+- `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-120 anchors。
+
+MTP-120 不新增 Dashboard smoke handle、不新增 App read model、不新增 Runtime / Dashboard behavior、不新增 stage audit input；Project stage closeout 仍归属 `MTP-125`。
