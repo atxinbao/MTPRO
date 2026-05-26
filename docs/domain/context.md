@@ -848,6 +848,37 @@ MTP-122 scenario / parity / portfolio trace 必须同时展示 Scenario Replay e
 
 MTP-122 validation 必须证明 acceptance path 不新增 engine core capability、Runtime replay job、matching runtime、order execution runtime、portfolio projection runtime、Persistence schema exposure、database console、Runtime object inspector、Adapter request exposure、signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、live command、trading button、order-level command UI、Graphify 或 Figma。
 
+`MTP-123-REPRODUCIBLE-BETA-ACCEPTANCE-WORKFLOW`
+
+MTP-123 把 local macOS Workbench beta acceptance 固定为 operator 可复现 workflow：`checks/workbench-beta-acceptance.sh` 只运行本地环境验证、SwiftPM dependency resolution、Dashboard smoke 和 `bash checks/run.sh`。该 workflow 不等于 CI replacement、production release、notarization、App Store distribution、auto-update、production operations 或 live readiness。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `beta acceptance checklist` | operator 按固定步骤检查 local Workbench demo、demo scenario、Report / Dashboard / Events evidence 和 boundary handles | 不等于 release checklist、production ops runbook、CI replacement 或 live readiness checklist |
+| `beta acceptance script` | `checks/workbench-beta-acceptance.sh` 对既有 local commands 的薄编排和 smoke handle 校验 | 不等于 installer、deployment script、Graphify job、Figma automation 或 production operations script |
+| `operator reproducibility evidence` | `.codex/beta-acceptance/<run-id>/` 下的本地 transcript | 不进入 PR，不作为 secret / account / broker evidence |
+| `failure triage hints` | 只沿 SwiftPM、Dashboard smoke、automation readiness 和 `swift test` 收窄失败 | 不通过 signed endpoint、broker、LiveExecutionAdapter、OMS、Live PRO Console、trading button 或 live command 绕过失败 |
+
+`MTP-123-BETA-ACCEPTANCE-CHECKLIST`
+
+MTP-123 checklist 必须同时覆盖 MTP-119 launch path、MTP-120 deterministic fixture、MTP-121 first-run default demo state 和 MTP-122 Report / Dashboard / Events acceptance path。关键 handles 是 `defaultDemoScenario=mtp-104-btcusdt-1m-first-scenario`、`betaAcceptancePaths=1`、`betaAcceptanceScenario=mtp-104-btcusdt-1m-first-scenario`、`betaAcceptanceTrace=5`、`readModelOnly=true` 和 `workbenchReadModelOnly=true`。
+
+`MTP-123-LOCAL-COMMANDS-EXPECTED-OUTPUTS`
+
+MTP-123 expected outputs 只锁定 operator acceptance 所需的稳定 smoke handles 和 `MTPRO checks passed.`；它不把 SwiftPM build noise、timing 或完整 stdout 当成领域 contract。
+
+`MTP-123-OPERATOR-REPRODUCIBILITY-EVIDENCE`
+
+MTP-123 operator reproducibility evidence 只保存在 `.codex/beta-acceptance/<run-id>/`，用于本地 handoff 和 debug。它不得进入 PR，不得包含 secret、API key、account endpoint、listenKey、broker credential、signed request 或 production operations state。
+
+`MTP-123-FAILURE-TRIAGE-HINTS`
+
+MTP-123 failure triage 只能沿 `uname -s`、`swift --version`、`swift package resolve`、Dashboard smoke、`checks/automation-readiness.sh` 和 `swift test` 收窄；不得把失败升级成 Graphify refresh、Figma update、release automation、broker action、live command 或 trading button。
+
+`MTP-123-NO-GRAPHIFY-FIGMA-PRODUCTION-OPS`
+
+MTP-123 validation 必须证明 checklist / script 不运行 Graphify、不修改 Figma、不新增 production ops、不新增 release automation、不接 signed endpoint、account endpoint / listenKey、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、Live PRO Console、trading button 或 live command。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

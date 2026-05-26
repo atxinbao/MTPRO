@@ -11027,6 +11027,52 @@ L1 Paper Runtime maturity statement：
 
 ---
 
+## 2026-05-27 — MTP-123 reproducible beta acceptance checklist / script
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear live-read 中唯一 active issue `MTP-123 Add reproducible beta acceptance checklist / script`。
+- 提供 operator 可复现的 local macOS Workbench beta acceptance workflow，覆盖本地环境、Dashboard smoke、demo scenario、Report / Dashboard / Events acceptance path、failure triage 和 boundary evidence。
+- 复用 `bash checks/run.sh` 和现有 readiness pattern，不替代 CI，不进入 production ops，不运行 Graphify，不修改 Figma。
+
+实现摘要：
+
+- 新增 `checks/workbench-beta-acceptance.sh`，薄编排 `uname -s`、`swift --version`、`swift package resolve`、`DASHBOARD_SMOKE=1 swift run Dashboard` 和 `bash checks/run.sh`。
+- 脚本校验稳定 Dashboard smoke handles：`sections=8`、`readModelOnly=true`、`workbenchReadModelOnly=true`、`defaultDemoScenario=mtp-104-btcusdt-1m-first-scenario`、`betaAcceptancePaths=1`、`betaAcceptanceScenario=mtp-104-btcusdt-1m-first-scenario`、`betaAcceptanceTrace=5` 和 blocked live evidence。
+- 新增 `docs/validation/workbench-beta-acceptance-checklist.md`，记录 operator checklist、local commands / expected outputs、operator reproducibility evidence、failure triage hints 和 forbidden boundary。
+- 更新 `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，接入 MTP-123 anchors。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash -n checks/workbench-beta-acceptance.sh` | pass | shell syntax check 无输出。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；机械检查 MTP-123 contract、domain context、checklist、validation plan、matrix、latest summary、automation readiness 和 script anchors。 |
+| `bash checks/workbench-beta-acceptance.sh` | pass | 输出 Swift 6.3 toolchain；`swift package resolve` 成功；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=64; scenarioReplayEvidence=1; scenarioQualityGates=6; simulatedParityEvidence=1; defaultDemoState=default demo; defaultDemoScenario=mtp-104-btcusdt-1m-first-scenario; betaFirstRunFallbacks=3; betaAcceptancePaths=1; betaAcceptanceScenario=mtp-104-btcusdt-1m-first-scenario; betaAcceptanceTrace=5; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`；内部 `bash checks/run.sh` 通过 automation readiness、Dashboard build、Dashboard smoke 和 267 个 XCTest，最终输出 `MTPRO checks passed.`。 |
+| `git diff --check` | pass | MTP-123 diff 无 whitespace / patch error 输出。 |
+| `bash checks/run.sh` | pass | 更新 validation ledger 后最终重跑；通过 automation readiness、Dashboard build、Dashboard smoke 和 267 个 XCTest；Dashboard smoke 继续输出 `betaAcceptancePaths=1`、`betaAcceptanceScenario=mtp-104-btcusdt-1m-first-scenario`、`betaAcceptanceTrace=5`、`readModelOnly=true` 和 `workbenchReadModelOnly=true`；最终输出 `MTPRO checks passed.`。 |
+
+Operator evidence：
+
+- `.codex/beta-acceptance/20260526T230034Z/summary.log`
+- `.codex/beta-acceptance/20260526T230034Z/uname.log`
+- `.codex/beta-acceptance/20260526T230034Z/swift-version.log`
+- `.codex/beta-acceptance/20260526T230034Z/swift-package-resolve.log`
+- `.codex/beta-acceptance/20260526T230034Z/dashboard-smoke.log`
+- `.codex/beta-acceptance/20260526T230034Z/mtpro-checks.log`
+
+边界确认：
+
+- 不新增 engine core capability、Runtime replay job、App read model、Dashboard behavior 或 stage audit input。
+- 不运行 Graphify，不修改 Figma，不创建 release package、notarized artifact、App Store build、auto-update channel、production deployment 或 cloud operations workflow。
+- 不读取 API key、secret、account endpoint、listenKey、broker credential 或 production config。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
+
+---
+
 ## 2026-05-27 — MTP-119 local launch / install / environment verification path
 
 执行者：Codex

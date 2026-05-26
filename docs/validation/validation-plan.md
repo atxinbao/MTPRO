@@ -2747,3 +2747,41 @@ MTP-122 的验收要求：
 - 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、live readiness、live runtime、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
 - 不新增 stage audit input，不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进 MTP-123。
+
+## MTP-123 Reproducible Beta Acceptance Checklist / Script Validation
+
+日期：2026-05-27
+
+执行者：Codex
+
+MTP-123 的 required validation：
+
+- `bash checks/workbench-beta-acceptance.sh`
+- `bash checks/run.sh`
+
+MTP-123 必须建立的主要 anchors：
+
+- `MTP-123-REPRODUCIBLE-BETA-ACCEPTANCE-WORKFLOW`
+- `MTP-123-BETA-ACCEPTANCE-CHECKLIST`
+- `MTP-123-LOCAL-COMMANDS-EXPECTED-OUTPUTS`
+- `MTP-123-OPERATOR-REPRODUCIBILITY-EVIDENCE`
+- `MTP-123-FAILURE-TRIAGE-HINTS`
+- `MTP-123-NO-GRAPHIFY-FIGMA-PRODUCTION-OPS`
+- `MTP-123-BETA-ACCEPTANCE-SCRIPT-VALIDATION`
+
+MTP-123 的验收要求：
+
+- `checks/workbench-beta-acceptance.sh` 必须复用现有 local commands：`uname -s`、`swift --version`、`swift package resolve`、`DASHBOARD_SMOKE=1 swift run Dashboard` 和 `bash checks/run.sh`。
+- `docs/validation/workbench-beta-acceptance-checklist.md` 必须记录 operator checklist、local commands、expected outputs、operator reproducibility evidence、failure triage hints 和 boundary evidence。
+- Script 必须校验 `sections=8`、`readModelOnly=true`、`workbenchReadModelOnly=true`、`defaultDemoScenario=mtp-104-btcusdt-1m-first-scenario`、`betaAcceptancePaths=1`、`betaAcceptanceScenario=mtp-104-btcusdt-1m-first-scenario` 和 `betaAcceptanceTrace=5`。
+- Script 必须把 transcript 写入 `.codex/beta-acceptance/<run-id>/`，且这些本地 evidence 不进入 PR。
+- `bash checks/run.sh` 仍是 PR 前最终 gate；MTP-123 script 不替代 CI 或 GitHub required check。
+- `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-123 mechanical anchors。
+
+## MTP-123 禁止
+
+- 不新增 engine core capability、Runtime replay job、matching runtime、order execution runtime、portfolio projection runtime、App read model 或 Dashboard behavior。
+- 不暴露 Persistence schema、database console、Runtime object inspector、Adapter request、Core object inspector 或 query surface。
+- 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、live readiness、live runtime、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
+- 不新增 stage audit input，不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进 MTP-124。
