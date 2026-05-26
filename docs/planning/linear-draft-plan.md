@@ -39,15 +39,16 @@
 | `MTPRO Live Audit Incident Stop Boundary v1` | `docs/planning/projects/mtpro-live-audit-incident-stop-boundary-v1-plan.md` | 已写入 Linear；`MTP-89` 至 `MTP-95` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
 | `MTPRO Event-Driven Paper Trading Runtime v1` | `docs/planning/projects/mtpro-event-driven-paper-trading-runtime-v1-plan.md` | 已写入 Linear；`MTP-96` 至 `MTP-102` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
 | `MTPRO Data Catalog / Scenario Replay v1` | `docs/planning/projects/mtpro-data-catalog-scenario-replay-v1-plan.md` | 已写入 Linear；`MTP-103` 至 `MTP-109` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
-| `MTPRO Simulated Exchange / Backtest Parity v1` | `docs/planning/projects/mtpro-simulated-exchange-backtest-parity-v1-plan.md` | 写入 Linear 前的当前 Project Planning Record；不授权执行。 |
+| `MTPRO Simulated Exchange / Backtest Parity v1` | `docs/planning/projects/mtpro-simulated-exchange-backtest-parity-v1-plan.md` | 已写入 Linear；`MTP-110` 至 `MTP-117` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
+| `MTPRO Workbench Beta Readiness v1` | `docs/planning/projects/mtpro-workbench-beta-readiness-v1-plan.md` | 写入 Linear 前的当前 Project Planning Record；docs-only / non-executable；不授权执行。 |
 
 ## 当前 Project planning record
 
-- Project：`MTPRO Simulated Exchange / Backtest Parity v1`
-- Canonical record：`docs/planning/projects/mtpro-simulated-exchange-backtest-parity-v1-plan.md`
-- 来源蓝图：`docs/product/mtpro-core-engine-architecture-module-maturity-map-v1.md`、`docs/product/mtpro-paper-trading-runtime-foundation-blueprint-v1.md`、`docs/planning/projects/mtpro-data-catalog-scenario-replay-v1-plan.md`
+- Project：`MTPRO Workbench Beta Readiness v1`
+- Canonical record：`docs/planning/projects/mtpro-workbench-beta-readiness-v1-plan.md`
+- 来源蓝图：`docs/product/mtpro-core-engine-architecture-module-maturity-map-v1.md`、`docs/design/mtpro-workbench-user-facing-dashboard-high-fidelity-v3.md`、`docs/product/mtpro-paper-trading-runtime-foundation-blueprint-v1.md`、`docs/planning/projects/mtpro-data-catalog-scenario-replay-v1-plan.md`、`docs/planning/projects/mtpro-simulated-exchange-backtest-parity-v1-plan.md`
 - 当前状态：写入 Linear 前的 Project Planning Record。
-- First executable issue candidate：Define simulated exchange / backtest parity terminology and boundary。
+- First executable issue candidate：Define Workbench beta readiness contract and acceptance boundary。
 - WIP=1：所有候选 issue 写入 Linear 后必须初始保持 `Backlog / non-executable`。
 
 ## Project Planning Record 命名规则

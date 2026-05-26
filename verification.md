@@ -11531,3 +11531,44 @@ L1 Paper Runtime maturity statement：
 - L3 / L4 仍为 Future Gated，不计入当前 progress denominator。
 - 不把 Live read-only 或 Live production 写成当前 execution scope。
 - 不授权 signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
+
+---
+
+## 2026-05-27 — MTPRO Workbench Beta Readiness v1 docs-only planning record
+
+执行者：Codex
+
+目的：
+
+- 将 Human 确认的 `MTPRO Workbench Beta Readiness v1` planning draft 落仓为 docs-only Project Planning Record。
+- 只记录 L2+ Workbench Beta Readiness 的 Project 级计划摘要、issue order、dependencies、validation requirements、evidence requirements、first executable issue candidate、WIP=1 / queue preflight rule、Linear write boundary 和 repository record boundary。
+- 明确该 planning record 不授权执行，不创建 Linear Project / Issue，不推进 Todo，不启动 `@002 / PAR`、Symphony 或 Graphify，不实现 Workbench Beta Readiness 或任何真实交易能力。
+
+实现摘要：
+
+- 新增 `docs/planning/projects/mtpro-workbench-beta-readiness-v1-plan.md`，记录 `MTPRO Workbench Beta Readiness v1` 的 target engines / layers、target maturity `L2+ Workbench Beta Readiness`、baseline、scope、non-goals、8 个候选 issue 摘要、dependencies、validation / evidence requirements 和 queue preflight boundary。
+- 更新 `docs/planning/linear-draft-plan.md`，把 `MTPRO Simulated Exchange / Backtest Parity v1` 标记为已完成并新增 `MTPRO Workbench Beta Readiness v1` 当前 docs-only / non-executable planning record 入口。
+- 轻量更新 `BLUEPRINT.md` 和 `docs/validation/latest-verification-summary.md`，增加 Workbench Beta Readiness planning record 引用，并明确不更新 `Final Product Goal Progress` 或 `Engine Maturity Roadmap Progress`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | docs-only planning diff 无 whitespace / patch error 输出。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 261 个 XCTest；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; scenarioReplayEvidence=0; scenarioQualityGates=0; simulatedParityEvidence=0; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`，最终执行 261 tests、0 failures，并输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify update。
+- 不写业务代码。
+- 不修改 Figma。
+- 不实现 Workbench Beta Readiness。
+- 不新增 engine core capability。
+- 不实现 production release、notarization、App Store distribution、auto-update 或 production operations。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
