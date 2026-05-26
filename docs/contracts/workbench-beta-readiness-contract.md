@@ -457,3 +457,58 @@ Focused validation anchors：
 - `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-121 anchors。
 
 MTP-121 不新增 engine core capability、不新增 Runtime replay job、不新增 Report / Dashboard / Events acceptance path、不新增 stage audit input；Project stage closeout 仍归属 `MTP-125`。
+
+## MTP-122 Report / Dashboard / Events beta acceptance path
+
+执行记录：2026-05-27，Codex。
+
+`MTP-122-REPORT-BETA-ACCEPTANCE-SUMMARY`
+
+MTP-122 在 MTP-120 demo fixture 与 MTP-121 first-run default demo state 之上建立 Report beta acceptance summary。该 summary 只能消费 `ReportReadModel.scenarioReplayEvidence`、`ReportReadModel.simulatedExchangeParityEvidence` 和 `WorkbenchBetaFirstRunReadModel.defaultDemo`，必须保留同一 scenario、dataset version、fixture version、report input version、checksum、freshness、quality、simulated parity evidence、portfolio projection evidence 和 validation anchors。它不新增 Runtime replay job，不读取 Persistence schema，不暴露 Core object inspector，不接 Adapter request。
+
+`MTP-122-DASHBOARD-BETA-EVIDENCE-PANELS`
+
+MTP-122 的 Dashboard beta evidence panels 只通过 `DashboardViewModel.workbenchBetaAcceptancePath` 和 `DashboardShellSnapshot.workbench.workbenchBetaAcceptancePath*` 输出 acceptance path 计数、scenario、event trace 数量、portfolio confirmation、report summaries、dashboard panel summaries、portfolio exposure / PnL 和 forbidden boundary flags。Dashboard 不新增完整页面 redesign，不新增交易按钮，不提供 order-level command、live command 或 Runtime command surface。
+
+`MTP-122-EVENTS-BETA-ACCEPTANCE-TRACE`
+
+MTP-122 的 Events / Event Timeline evidence trace 必须通过 `PaperWorkflowEvidenceExplorerSection.workbenchBetaAcceptancePath` 输出 read-model-only trace rows：Report summary、Scenario Replay evidence、Simulated Exchange / Backtest Parity evidence、Portfolio evidence 和 forbidden boundary summary。该 trace 只链接既有 evidence identity，不运行 matching runtime、portfolio runtime、broker runtime 或 live execution runtime。
+
+`MTP-122-SAME-DEMO-SCENARIO-EVIDENCE`
+
+MTP-122 必须证明 Report、Dashboard 和 Events 使用同一 demo scenario：`mtp-104-btcusdt-1m-first-scenario`、`dataset-v1`、`fixture-v1`、report input version `mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|1704067200...1704067380|fnv1a64:3c6cd4ff13cd4062|fresh|accepted`。如果 scenario replay evidence、simulated parity evidence 或 first-run default demo state 任一方不匹配，则 acceptance path 必须为空。
+
+`MTP-122-SCENARIO-PARITY-PORTFOLIO-TRACE`
+
+MTP-122 acceptance path 必须同时展示 Scenario Replay evidence、Simulated Exchange / Backtest Parity evidence 和 portfolio projection parity evidence。默认 deterministic path 的 portfolio evidence id 为 `mtp-115-simulated-exchange-portfolio-projection-parity-portfolio-parity`，gross exposure 为 `10530.175`，net simulated PnL 为 `-6.84461375`。该数值只作为 read model evidence，不表示真实 account balance、broker position、margin、leverage、broker fill 或 reconciliation。
+
+`MTP-122-READ-MODEL-ONLY-NO-RUNTIME-COMMAND`
+
+MTP-122 必须持续禁止：
+
+- engine capability、Runtime replay job、matching runtime、order execution runtime、portfolio projection runtime
+- Persistence schema exposure、database console、Runtime object inspector、Adapter request exposure
+- signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter、`LiveExecutionAdapter`
+- OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation
+- real account balance、broker position、margin、leverage、Live PRO Console、live command、trading button、order-level command UI
+- stage audit input、Graphify update、Figma change
+
+### MTP-122 validation anchors
+
+`MTP-122-BETA-ACCEPTANCE-PATH-VALIDATION`
+
+Required validation：
+
+- `swift test --filter MTP122`
+- `DASHBOARD_SMOKE=1 swift run Dashboard`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `Sources/App/WorkbenchBetaAcceptancePath.swift` 必须定义 `WorkbenchBetaAcceptancePathReadModel` 和 `WorkbenchBetaAcceptancePathViewModel`。
+- `Sources/App/PaperWorkflowEvidenceExplorer.swift` 必须包含 `workbenchBetaAcceptancePath` timeline section。
+- `Sources/App/DashboardShell.swift` 必须输出 `betaAcceptancePaths`、`betaAcceptanceScenario` 和 `betaAcceptanceTrace` Dashboard smoke handles。
+- `Tests/AppTests/AppTests.swift` 必须包含 MTP-122 focused test，验证 Report summary、Dashboard panels、Events trace、same demo scenario、portfolio evidence 和 forbidden capability boundary。
+- `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-122 anchors。
+
+MTP-122 不新增 engine core capability、不新增 Runtime replay job、不新增 stage audit input；Project stage closeout 仍归属 `MTP-125`。

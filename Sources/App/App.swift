@@ -1161,7 +1161,7 @@ public struct ReportReadModel: Equatable, Sendable {
 ///
 /// 输入来自 Persistence projection snapshots、append-only event timeline 和 Core Live readiness
 /// blocked read model；新增 Report / Event Timeline / simulated exchange parity evidence 和
-/// Workbench beta first-run state 也遵循同一来源边界，禁止 UI 直接读取数据库 schema、Runtime
+/// Workbench beta first-run state / beta acceptance path 也遵循同一来源边界，禁止 UI 直接读取数据库 schema、Runtime
 /// object、行情 adapter、真实 Live trading capability 或真实 Live Risk / incident stop runtime。
 public struct DashboardReadModel: Equatable, Sendable {
     public let market: MarketReadModel
@@ -1169,6 +1169,7 @@ public struct DashboardReadModel: Equatable, Sendable {
     public let backtest: BacktestReadModel
     public let report: ReportReadModel
     public let workbenchBetaFirstRun: WorkbenchBetaFirstRunReadModel
+    public let workbenchBetaAcceptancePath: WorkbenchBetaAcceptancePathReadModel
     public let paperWorkflowObservability: PaperWorkflowObservabilityReadModel
     public let paperWorkflowEvidenceExplorer: PaperWorkflowEvidenceExplorerReadModel
     public let paper: PaperReadModel
@@ -1182,6 +1183,7 @@ public struct DashboardReadModel: Equatable, Sendable {
         backtest: BacktestReadModel,
         report: ReportReadModel,
         workbenchBetaFirstRun: WorkbenchBetaFirstRunReadModel = .empty,
+        workbenchBetaAcceptancePath: WorkbenchBetaAcceptancePathReadModel? = nil,
         paperWorkflowObservability: PaperWorkflowObservabilityReadModel = PaperWorkflowObservabilityReadModel(),
         paperWorkflowEvidenceExplorer: PaperWorkflowEvidenceExplorerReadModel? = nil,
         paper: PaperReadModel,
@@ -1194,6 +1196,11 @@ public struct DashboardReadModel: Equatable, Sendable {
         self.backtest = backtest
         self.report = report
         self.workbenchBetaFirstRun = workbenchBetaFirstRun
+        let acceptancePath = workbenchBetaAcceptancePath ?? WorkbenchBetaAcceptancePathReadModel(
+            report: report,
+            firstRun: workbenchBetaFirstRun
+        )
+        self.workbenchBetaAcceptancePath = acceptancePath
         self.paperWorkflowObservability = paperWorkflowObservability
         self.paperWorkflowEvidenceExplorer = paperWorkflowEvidenceExplorer ?? PaperWorkflowEvidenceExplorerReadModel(
             market: market,
@@ -1201,6 +1208,7 @@ public struct DashboardReadModel: Equatable, Sendable {
             report: report,
             scenarioReplayEvidence: report.scenarioReplayEvidence,
             simulatedExchangeParityEvidence: report.simulatedExchangeParityEvidence,
+            workbenchBetaAcceptancePath: acceptancePath,
             liveTradingBlockedEvidence: report.liveTradingBlockedEvidence,
             liveMonitoringEvidence: report.liveMonitoringEvidence,
             liveExecutionControlBlockedEvidence: report.liveExecutionControlBlockedEvidence,
@@ -1256,12 +1264,17 @@ public struct DashboardReadModel: Equatable, Sendable {
             portfolio: portfolio,
             events: events
         )
+        let workbenchBetaAcceptancePath = WorkbenchBetaAcceptancePathReadModel(
+            report: report,
+            firstRun: workbenchBetaFirstRun
+        )
         self.init(
             market: market,
             strategy: strategy,
             backtest: backtest,
             report: report,
             workbenchBetaFirstRun: workbenchBetaFirstRun,
+            workbenchBetaAcceptancePath: workbenchBetaAcceptancePath,
             paperWorkflowObservability: paperWorkflowObservability,
             paperWorkflowEvidenceExplorer: PaperWorkflowEvidenceExplorerReadModel(
                 market: market,
@@ -1269,6 +1282,7 @@ public struct DashboardReadModel: Equatable, Sendable {
                 report: report,
                 scenarioReplayEvidence: report.scenarioReplayEvidence,
                 simulatedExchangeParityEvidence: report.simulatedExchangeParityEvidence,
+                workbenchBetaAcceptancePath: workbenchBetaAcceptancePath,
                 liveTradingBlockedEvidence: report.liveTradingBlockedEvidence,
                 liveMonitoringEvidence: report.liveMonitoringEvidence,
                 liveExecutionControlBlockedEvidence: report.liveExecutionControlBlockedEvidence,
@@ -2396,6 +2410,7 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
     public let backtest: BacktestViewModel
     public let report: ReportViewModel
     public let workbenchBetaFirstRun: WorkbenchBetaFirstRunViewModel
+    public let workbenchBetaAcceptancePath: WorkbenchBetaAcceptancePathViewModel
     public let paperWorkflowObservability: PaperWorkflowObservabilityViewModel
     public let paperWorkflowEvidenceExplorer: PaperWorkflowEvidenceExplorerViewModel
     public let paper: PaperViewModel
@@ -2414,6 +2429,9 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
         self.report = ReportViewModel(readModel: readModel.report)
         self.workbenchBetaFirstRun = WorkbenchBetaFirstRunViewModel(
             readModel: readModel.workbenchBetaFirstRun
+        )
+        self.workbenchBetaAcceptancePath = WorkbenchBetaAcceptancePathViewModel(
+            readModel: readModel.workbenchBetaAcceptancePath
         )
         self.paperWorkflowObservability = PaperWorkflowObservabilityViewModel(
             readModel: readModel.paperWorkflowObservability
@@ -2442,6 +2460,7 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
             report.liveRiskGateBlockedEvidence.source,
             report.liveIncidentStopBlockedEvidence.source,
             workbenchBetaFirstRun.source,
+            workbenchBetaAcceptancePath.source,
             paperWorkflowObservability.source,
             paperWorkflowEvidenceExplorer.source,
             paper.source,

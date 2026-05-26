@@ -11733,3 +11733,47 @@ L1 Paper Runtime maturity statement：
 - 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进 MTP-122。
 - 不提交 `.codex/*` 或 `graphify-out/*`。
 - 不实现 signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
+
+---
+
+## 2026-05-27 — MTP-122 Report / Dashboard / Events beta acceptance path
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear live-read 中唯一 active issue `MTP-122 Add Report / Dashboard / Events beta acceptance path`。
+- 把 MTP-120 deterministic demo fixture 和 MTP-121 first-run default demo state 串成 Report summary、Dashboard panels 和 Events trace 的同一 beta acceptance path。
+- 只通过 App Read Model / ViewModel 和 Dashboard smoke 展示 acceptance evidence，不暴露 database schema、Runtime object、Adapter request 或交易命令。
+- 保持 MTP-122 不新增 Runtime replay job、engine capability、stage audit input、Live PRO Console、trading button 或 live command。
+
+实现摘要：
+
+- 新增 `Sources/App/WorkbenchBetaAcceptancePath.swift`，定义 `WorkbenchBetaAcceptancePathReadModel`、`WorkbenchBetaAcceptancePathViewModel`、acceptance item 和 trace item。
+- 将 `DashboardReadModel` / `DashboardViewModel` 扩展为消费 `workbenchBetaAcceptancePath`，并从 `ReportReadModel` + `WorkbenchBetaFirstRunReadModel.defaultDemo` 生成 default beta acceptance path。
+- 更新 `Sources/App/PaperWorkflowEvidenceExplorer.swift`，新增 `workbench beta acceptance path` timeline section，输出 Report summary、Scenario Replay evidence、Simulated Exchange / Backtest Parity evidence、Portfolio evidence 和 boundary summary 五条 trace rows。
+- 更新 `Sources/App/DashboardShell.swift`，在 Workbench snapshot 和 Dashboard smoke 中输出 `betaAcceptancePaths=1`、`betaAcceptanceScenario=mtp-104-btcusdt-1m-first-scenario` 和 `betaAcceptanceTrace=5`。
+- 更新 `Tests/AppTests/AppTests.swift`，新增 MTP-122 focused App test，覆盖 same demo scenario、Report summary、Dashboard panels、Events trace、portfolio evidence、validation anchors 和 forbidden capability flags。
+- 更新 `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，接入 MTP-122 anchors。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP122` | first run failed | App target compile failed；`WorkbenchBetaAcceptancePath.swift` 的 Swift string interpolation separator 被错误转义。已修正并重跑。 |
+| `swift test --filter MTP122` | second run failed | 1 focused App test 编译并运行；expected portfolio evidence id 使用旧字面量。已修正为 `mtp-115-simulated-exchange-portfolio-projection-parity-portfolio-parity`。 |
+| `swift test --filter MTP122` | pass | 1 个 App test、0 failures；验证 Report summary、Dashboard panels、Events trace、same demo scenario、portfolio evidence 和 forbidden capability flags。 |
+| `swift test --filter AppTests` | pass | 33 个 App tests、0 failures；验证 MTP-122 未破坏既有 App read-model-only surfaces。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；机械检查 MTP-122 contract、domain context、validation plan、matrix、latest summary、automation readiness、App source 和 focused tests anchors。 |
+| `DASHBOARD_SMOKE=1 swift run Dashboard` | pass | Dashboard product build 成功；smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=64; scenarioReplayEvidence=1; scenarioQualityGates=6; simulatedParityEvidence=1; defaultDemoState=default demo; defaultDemoScenario=mtp-104-btcusdt-1m-first-scenario; betaFirstRunFallbacks=3; betaAcceptancePaths=1; betaAcceptanceScenario=mtp-104-btcusdt-1m-first-scenario; betaAcceptanceTrace=5; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`。 |
+| `git diff --check` | pass | MTP-122 diff 无 whitespace / patch error 输出。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 267 个 XCTest；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不新增 engine core capability、Runtime replay job、matching runtime、order execution runtime、portfolio projection runtime 或 production report engine。
+- 不暴露 database schema、Runtime object inspector、Adapter request、Core object inspector 或 query surface。
+- 不新增 stage audit input。
+- 不运行 Graphify，不修改 Figma，不修改 Linear status，不推进 MTP-123。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。

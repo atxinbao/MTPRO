@@ -13,6 +13,7 @@ public enum PaperWorkflowEvidenceExplorerSection: String, Codable, CaseIterable,
     case marketDataReplayOperation = "market data replay operation"
     case scenarioReplayEvidence = "scenario replay evidence"
     case simulatedExchangeParityEvidence = "simulated exchange parity evidence"
+    case workbenchBetaAcceptancePath = "workbench beta acceptance path"
     case liveExecutionControlBlockedEvidence = "live execution control blocked evidence"
     case liveRiskGateBlockedEvidence = "live risk gate blocked evidence"
     case liveIncidentStopBlockedEvidence = "live incident / stop blocked evidence"
@@ -138,7 +139,7 @@ public struct PaperWorkflowEvidenceExplorerFilterSnapshot: Codable, Equatable, S
 /// PaperWorkflowEvidenceExplorerReadModel 汇总 Event Timeline / Evidence Explorer 的稳定输入。
 ///
 /// 该 read model 只组合 Dashboard 已有 App read models：market、strategy、report、
-/// scenario replay evidence、simulated exchange parity evidence、
+/// scenario replay evidence、simulated exchange parity evidence、Workbench beta acceptance path、
 /// Live blocked evidence、Live monitoring evidence、execution-control blocked evidence、
 /// Live Risk gate blocked evidence、incident / stop blocked evidence、
 /// paper workflow observability 和 append-only event timeline。
@@ -150,6 +151,7 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
     public let report: ReportReadModel
     public let scenarioReplayEvidence: ScenarioReplayEvidenceReadModel
     public let simulatedExchangeParityEvidence: SimulatedExchangeParityEvidenceReadModel
+    public let workbenchBetaAcceptancePath: WorkbenchBetaAcceptancePathReadModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel
     public let liveMonitoringEvidence: LiveMonitoringEvidenceReadModel
     public let liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel
@@ -165,6 +167,7 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
         report: ReportReadModel = ReportReadModel(),
         scenarioReplayEvidence: ScenarioReplayEvidenceReadModel? = nil,
         simulatedExchangeParityEvidence: SimulatedExchangeParityEvidenceReadModel? = nil,
+        workbenchBetaAcceptancePath: WorkbenchBetaAcceptancePathReadModel? = nil,
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel? = nil,
         liveMonitoringEvidence: LiveMonitoringEvidenceReadModel? = nil,
         liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel? = nil,
@@ -180,6 +183,8 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
             ?? report.scenarioReplayEvidence
         self.simulatedExchangeParityEvidence = simulatedExchangeParityEvidence
             ?? report.simulatedExchangeParityEvidence
+        self.workbenchBetaAcceptancePath = workbenchBetaAcceptancePath
+            ?? WorkbenchBetaAcceptancePathReadModel()
         self.liveTradingBlockedEvidence = liveTradingBlockedEvidence
             ?? report.liveTradingBlockedEvidence
         self.liveMonitoringEvidence = liveMonitoringEvidence
@@ -198,6 +203,7 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
             report.lastAppliedSequence,
             self.scenarioReplayEvidence.lastAppliedSequence,
             self.simulatedExchangeParityEvidence.lastAppliedSequence,
+            self.workbenchBetaAcceptancePath.lastAppliedSequence,
             self.liveTradingBlockedEvidence.lastAppliedSequence,
             self.liveMonitoringEvidence.lastAppliedSequence,
             self.liveExecutionControlBlockedEvidence.lastAppliedSequence,
@@ -230,6 +236,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
     public let coversMarketDataReplayOperations: Bool
     public let coversScenarioReplayEvidence: Bool
     public let coversSimulatedExchangeParityEvidence: Bool
+    public let coversWorkbenchBetaAcceptancePath: Bool
     public let coversLiveExecutionControlBlockedEvidence: Bool
     public let coversLiveRiskGateBlockedEvidence: Bool
     public let coversLiveIncidentStopBlockedEvidence: Bool
@@ -271,6 +278,9 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         let simulatedExchangeParity = SimulatedExchangeParityEvidenceViewModel(
             readModel: readModel.simulatedExchangeParityEvidence
         )
+        let workbenchBetaAcceptancePath = WorkbenchBetaAcceptancePathViewModel(
+            readModel: readModel.workbenchBetaAcceptancePath
+        )
         let liveExecutionControl = LiveExecutionControlBlockedEvidenceViewModel(
             readModel: readModel.liveExecutionControlBlockedEvidence
         )
@@ -300,6 +310,9 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         let coversSimulatedExchangeParityEvidence = allTimelineItems.contains {
             $0.section == .simulatedExchangeParityEvidence
         }
+        let coversWorkbenchBetaAcceptancePath = allTimelineItems.contains {
+            $0.section == .workbenchBetaAcceptancePath
+        }
         let coversLiveExecutionControlBlockedEvidence = allTimelineItems.contains {
             $0.section == .liveExecutionControlBlockedEvidence
         }
@@ -326,28 +339,33 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             || source.exposesORMModels
             || scenarioReplay.exposesDatabaseSchema
             || simulatedExchangeParity.exposesDatabaseSchema
+            || workbenchBetaAcceptancePath.exposesDatabaseSchema
             || liveExecutionControl.exposesPersistenceSchema
             || liveRiskGate.exposesPersistenceSchema
             || liveIncidentStop.exposesPersistenceSchema
         let exposesRuntimeObject = source.exposesRuntimeObjects
             || scenarioReplay.exposesRuntimeObject
             || simulatedExchangeParity.exposesRuntimeObject
+            || workbenchBetaAcceptancePath.exposesRuntimeObject
             || liveExecutionControl.invokesRuntimeControl
             || liveRiskGate.invokesRuntimeControl
             || liveIncidentStop.invokesRuntimeControl
         let exposesAdapterRequest = source.callsBinanceAdapter
             || scenarioReplay.exposesAdapterRequest
             || simulatedExchangeParity.exposesAdapterRequest
+            || workbenchBetaAcceptancePath.exposesAdapterRequest
             || liveExecutionControl.readsAdapter
             || liveRiskGate.readsAdapter
             || liveIncidentStop.readsAdapter
         let providesCommandSurface = scenarioReplay.providesCommandSurface
             || simulatedExchangeParity.providesCommandSurface
+            || workbenchBetaAcceptancePath.providesCommandSurface
             || liveExecutionControl.providesCommandSurface
             || liveRiskGate.providesCommandSurface
             || liveIncidentStop.providesCommandSurface
         let providesOrderLevelCommand = scenarioReplay.providesOrderLevelCommand
             || simulatedExchangeParity.providesOrderLevelCommand
+            || workbenchBetaAcceptancePath.providesOrderLevelCommand
             || liveExecutionControl.providesOrderLevelCommand
         let supportsQueryLanguage = false
         let providesLiveAudit = false
@@ -355,10 +373,12 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         let providesStopControl = liveIncidentStop.providesStopControl
         let authorizesLiveTrading = scenarioReplay.authorizesLiveTrading
             || simulatedExchangeParity.authorizesLiveTrading
+            || workbenchBetaAcceptancePath.authorizesLiveTrading
             || liveExecutionControl.authorizesLiveTrading
             || liveRiskGate.authorizesLiveTrading
             || liveIncidentStop.authorizesLiveTrading
         let touchesBrokerAction = simulatedExchangeParity.touchesBrokerAction
+            || workbenchBetaAcceptancePath.touchesBrokerAction
             || liveExecutionControl.instantiatesBrokerExecutionAdapter
             || liveExecutionControl.instantiatesExchangeExecutionAdapter
             || liveRiskGate.instantiatesBrokerExecutionAdapter
@@ -366,6 +386,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             || liveIncidentStop.executesBrokerAction
         let authorizesTradingExecution = scenarioReplay.authorizesTradingExecution
             || simulatedExchangeParity.authorizesTradingExecution
+            || workbenchBetaAcceptancePath.authorizesTradingExecution
             || liveExecutionControl.authorizesTradingExecution
             || liveRiskGate.authorizesTradingExecution
             || liveIncidentStop.authorizesTradingExecution
@@ -385,6 +406,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         self.coversMarketDataReplayOperations = coversMarketDataReplayOperations
         self.coversScenarioReplayEvidence = coversScenarioReplayEvidence
         self.coversSimulatedExchangeParityEvidence = coversSimulatedExchangeParityEvidence
+        self.coversWorkbenchBetaAcceptancePath = coversWorkbenchBetaAcceptancePath
         self.coversLiveExecutionControlBlockedEvidence = coversLiveExecutionControlBlockedEvidence
         self.coversLiveRiskGateBlockedEvidence = coversLiveRiskGateBlockedEvidence
         self.coversLiveIncidentStopBlockedEvidence = coversLiveIncidentStopBlockedEvidence
@@ -409,6 +431,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             && providesStopControl == false
             && scenarioReplay.readModelOnlyBoundaryHeld
             && simulatedExchangeParity.readModelOnlyBoundaryHeld
+            && workbenchBetaAcceptancePath.readModelOnlyBoundaryHeld
             && liveExecutionControl.readModelOnlyBoundaryHeld
             && liveRiskGate.readModelOnlyBoundaryHeld
             && liveIncidentStop.readModelOnlyBoundaryHeld
@@ -450,6 +473,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
                 + makeMarketDataReplayOperationItems(readModel.report.marketDataReplayOperations)
                 + makeScenarioReplayEvidenceItems(readModel.scenarioReplayEvidence)
                 + makeSimulatedExchangeParityEvidenceItems(readModel.simulatedExchangeParityEvidence)
+                + makeWorkbenchBetaAcceptancePathItems(readModel.workbenchBetaAcceptancePath)
                 + makeLiveExecutionControlBlockedEvidenceItems(readModel.liveExecutionControlBlockedEvidence)
                 + makeLiveRiskGateBlockedEvidenceItems(readModel.liveRiskGateBlockedEvidence)
                 + makeLiveIncidentStopBlockedEvidenceItems(readModel.liveIncidentStopBlockedEvidence)
@@ -630,6 +654,36 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
                             evidenceID: item.reportInputVersionIdentity,
                             label: "report input version",
                             sourceSequence: item.sourceReplaySequence
+                        )
+                    ]
+                )
+            }
+        }
+    }
+
+    private static func makeWorkbenchBetaAcceptancePathItems(
+        _ readModel: WorkbenchBetaAcceptancePathReadModel
+    ) -> [PaperWorkflowEventTimelineItem] {
+        readModel.items.flatMap { item in
+            item.eventTraceItems.map { trace in
+                PaperWorkflowEventTimelineItem(
+                    section: .workbenchBetaAcceptancePath,
+                    sequence: readModel.lastAppliedSequence,
+                    stream: "workbench beta acceptance",
+                    title: trace.title,
+                    summary: trace.summary,
+                    evidenceLinks: [
+                        PaperWorkflowEvidenceLinkSummary(
+                            section: .workbenchBetaAcceptancePath,
+                            evidenceID: trace.evidenceID,
+                            label: trace.surface,
+                            sourceSequence: readModel.lastAppliedSequence
+                        ),
+                        PaperWorkflowEvidenceLinkSummary(
+                            section: .workbenchBetaAcceptancePath,
+                            evidenceID: item.reportInputVersionIdentity,
+                            label: "report input version",
+                            sourceSequence: readModel.lastAppliedSequence
                         )
                     ]
                 )
