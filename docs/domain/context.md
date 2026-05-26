@@ -737,6 +737,25 @@ MTP-118 的 forbidden baseline 必须覆盖 engine core capability expansion、i
 
 Project Planning Record 中的 first executable issue candidate 只是候选。只有 Linear live-read 中经 Parent Codex queue preflight 确认为唯一 Todo / configured executable issue 的 MTP-118 才能执行；MTP-119 至 MTP-125 仍必须保持 Backlog / blocked，直到 MTP-118 独立完成 PR、required check、merge 和 Linear Done evidence 后再由 Parent Codex queue preflight 单独判断。
 
+`MTP-119-LOCAL-LAUNCH-INSTALL-ENVIRONMENT-PATH`
+
+MTP-119 在 MTP-118 的 local-only beta demo path 边界内定义本地 launch / install / environment verification path。这里的 install 只表示 SwiftPM 本地依赖解析和 `.build` 构建产物，不等于 production installer、notarized artifact、App Store distribution、auto-update、production deployment 或 cloud operations。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `local environment verification` | operator 在仓库根目录用 `uname -s`、`swift --version` 和 `swift package resolve` 确认 Darwin / Swift 6+ / SwiftPM dependency resolution | 不读取 API key、secret、account endpoint、listenKey、broker credential 或生产配置 |
+| `local install path` | `swift build --product Dashboard` 生成本地 SwiftPM build artifact | 不等于 `.app` installer、`.pkg`、`.dmg`、notarization、App Store build、auto-update channel 或 production release |
+| `local launch command` | `swift run Dashboard` 或自动 smoke 的 `DASHBOARD_SMOKE=1 swift run Dashboard` | 不等于 production deployment、cloud operations、Live PRO Console 或 live runtime |
+| `Dashboard smoke expectation` | Dashboard smoke summary 必须输出 `sections=8`、`readModelOnly=true`、`workbenchReadModelOnly=true`、`controls=start,pause,close,reset` 和 blocked live evidence | 不等于 UI acceptance checklist 完成，不等于 demo scenario 已选择，不等于 live readiness |
+| `reproducible launch evidence` | `swift build --product Dashboard`、`DASHBOARD_SMOKE=1 swift run Dashboard` 和 `bash checks/run.sh` 的本地输出证据 | 不替代 GitHub required check，不替代后续 MTP-123 beta acceptance checklist / script |
+| `launch troubleshooting boundary` | 失败排查只沿 SwiftPM dependency、Dashboard build、Dashboard smoke、`checks/run.sh` 最小失败点定位 | 不引入 signed endpoint、account endpoint、broker、OMS、real order lifecycle、Live PRO Console、live command 或 trading button |
+
+`MTP-119-LOCAL-LAUNCH-VALIDATION`
+
+MTP-119 required validation 是 `DASHBOARD_SMOKE=1 swift run Dashboard` 和 `bash checks/run.sh`。该 validation 只证明 local macOS Workbench beta launch path 可复现；它不表示 production release、notarization、App Store distribution、auto-update、production operations、signed endpoint、account endpoint / listenKey、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、Live PRO Console、trading button 或 live command 已实现或获授权。
+
+MTP-119 的英文锚点表述中，local install 只表示 SwiftPM dependency resolution 和本地 `.build` artifact，不表示发布安装或生产分发。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
