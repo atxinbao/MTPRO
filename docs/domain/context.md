@@ -879,6 +879,46 @@ MTP-123 failure triage 只能沿 `uname -s`、`swift --version`、`swift package
 
 MTP-123 validation 必须证明 checklist / script 不运行 Graphify、不修改 Figma、不新增 production ops、不新增 release automation、不接 signed endpoint、account endpoint / listenKey、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、Live PRO Console、trading button 或 live command。
 
+`MTP-124-DOCS-INDEX`
+
+MTP-124 把 docs index 固定为 operator 的文档入口：`docs/index.md` 只帮助 Human / operator 找到 root docs、Workbench Beta Readiness docs、acceptance checklist、operator guide、demo workflow guide 和 required validation。docs index 不替代 Linear issue execution contract，不授权下一阶段 execution，不创建 production release，不表示 live readiness。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `docs index` | 仓库内正式中文文档导航，指向 root docs、operator guide、demo workflow guide、acceptance checklist 和 boundary docs | 不等于 marketing landing page、release portal、production runbook 或 Linear execution contract |
+| `operator guide` | local macOS Workbench beta 的本机操作手册，说明环境确认、Dashboard smoke、acceptance script、expected handles 和 failure triage | 不等于 production deployment guide、Live PRO Console docs、notarization guide 或 App Store guide |
+| `demo workflow guide` | 解释 MTP-119 至 MTP-123 如何串成同一 deterministic acceptance evidence chain | 不等于 Runtime replay job、scenario selector、remote catalog、download action 或 repair command |
+| `known limitations` | 明确 local Workbench beta 的限制，例如 single deterministic fixture、SwiftPM local artifact、command-line smoke summary 和 `.codex` local transcript | 不等于 roadmap promise、release blocker bypass 或 production readiness claim |
+| `troubleshooting pointers` | 只沿 SwiftPM、Dashboard smoke、acceptance script、automation readiness 和 Swift tests 收窄失败 | 不通过 signed endpoint、broker、Graphify、Figma、Live PRO Console、trading button 或 live command 绕过失败 |
+
+`MTP-124-OPERATOR-GUIDE`
+
+MTP-124 operator guide 只服务 local Workbench beta operator。它允许 operator 运行 `bash checks/workbench-beta-acceptance.sh`、查看 stable smoke handles、阅读 `.codex/beta-acceptance/<run-id>/` 本地 transcript 和按 `bash checks/run.sh` 失败顺序排查。它不创建 release artifact，不读取 secret，不接 broker，不提供交易操作入口。
+
+`MTP-124-DEMO-WORKFLOW-GUIDE`
+
+MTP-124 demo workflow guide 只解释以下 evidence chain：MTP-119 local launch / install、MTP-120 deterministic fixture、MTP-121 first-run state、MTP-122 Report / Dashboard / Events acceptance path、MTP-123 reproducible checklist / script。该 workflow 不新增 Runtime job、App read model、Dashboard behavior、production data platform、Graphify update 或 Figma change。
+
+`MTP-124-KNOWN-LIMITATIONS`
+
+MTP-124 known limitations 必须说明 local install 只是 SwiftPM dependency resolution / `.build` artifact，Dashboard smoke 是 command-line summary，demo scenario 固定为 `mtp-104-btcusdt-1m-first-scenario`，operator transcript 只在 `.codex/beta-acceptance/<run-id>/`，stage closeout 仍归属 MTP-125。
+
+`MTP-124-FORBIDDEN-CAPABILITY-BOUNDARY`
+
+MTP-124 docs 必须保持 production release、notarization、App Store distribution、auto-update、production deployment、cloud operations、signed endpoint、account endpoint / listenKey、API key / secret read、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、live readiness、Live PRO Console、trading button、live command、emergency stop / shutdown / restore、Graphify update 和 Figma change 仍为 forbidden / Future Gated。
+
+`MTP-124-TROUBLESHOOTING-POINTERS`
+
+MTP-124 troubleshooting 只允许沿 `uname -s`、`swift --version`、`swift package resolve`、`swift build --product Dashboard`、`DASHBOARD_SMOKE=1 swift run Dashboard`、`bash checks/workbench-beta-acceptance.sh` 和 `bash checks/run.sh` 收窄失败。
+
+`MTP-124-BETA-NOT-LIVE-READINESS`
+
+MTP-124 必须明确 Workbench beta readiness 不等于 live readiness。它只表示 local macOS Workbench demo / acceptance path 可复现，不表示真实账户、broker readiness、Live PRO Console readiness、live runtime readiness、真实交易授权、production release 或下一阶段 execution 授权。
+
+`MTP-124-DOCS-OPERATOR-GUIDE-VALIDATION`
+
+MTP-124 validation 必须证明 docs index、operator guide、demo workflow guide、known limitations、forbidden capabilities、troubleshooting pointers 和 acceptance workflow references 均存在，并且 `bash checks/run.sh` 通过。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

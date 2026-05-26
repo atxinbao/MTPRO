@@ -11823,3 +11823,37 @@ Operator evidence：
 - 不运行 Graphify，不修改 Figma，不修改 Linear status，不推进 MTP-123。
 - 不提交 `.codex/*` 或 `graphify-out/*`。
 - 不实现 signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
+---
+
+## 2026-05-27 — MTP-124 Docs index and operator guide
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear live-read 中唯一 active issue `MTP-124 Add docs index and operator guide`。
+- 让 Human / operator 能按正式文档完成 local Workbench beta 的环境确认、启动、demo、验收和边界理解。
+- 保持 MTP-124 只服务 local macOS Workbench beta，不写 marketing landing page、Live PRO Console docs、production deployment guide、notarization / App Store / auto-update guide。
+- 不授权下一阶段执行，不运行 Graphify，不修改 Figma。
+
+实现摘要：
+
+- 新增 `docs/index.md`，作为 root docs、Workbench Beta Readiness docs、operator guide、demo workflow guide、acceptance checklist 和 required validation 的中文文档入口。
+- 新增 `docs/validation/workbench-beta-operator-guide.md`，记录 operator quick path、manual runbook、expected smoke handles、known limitations、forbidden capabilities、troubleshooting pointers 和 evidence handoff。
+- 新增 `docs/validation/workbench-beta-demo-workflow-guide.md`，串联 MTP-119 local launch / install、MTP-120 deterministic fixture、MTP-121 first-run default demo state、MTP-122 Report / Dashboard / Events acceptance path 和 MTP-123 reproducible checklist / script。
+- 更新 `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，接入 MTP-124 anchors。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；机械检查 MTP-124 docs index、operator guide、demo workflow guide、contract、domain context、validation plan、matrix、latest summary 和 automation readiness anchors。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 267 个 XCTest；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=64; scenarioReplayEvidence=1; scenarioQualityGates=6; simulatedParityEvidence=1; defaultDemoState=default demo; defaultDemoScenario=mtp-104-btcusdt-1m-first-scenario; betaFirstRunFallbacks=3; betaAcceptancePaths=1; betaAcceptanceScenario=mtp-104-btcusdt-1m-first-scenario; betaAcceptanceTrace=5; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`；最终执行 267 tests、0 failures，并输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不新增 production code、engine core capability、Runtime replay job、App read model、Dashboard behavior 或 stage audit input。
+- 不创建 production release、notarization、App Store distribution、auto-update、production deployment 或 cloud operations。
+- 不运行 Graphify，不修改 Figma，不修改 Linear status，不推进 MTP-125。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 signed endpoint、account endpoint / listenKey、API key / secret read、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、live readiness、live runtime、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
