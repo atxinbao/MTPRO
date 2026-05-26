@@ -11416,3 +11416,41 @@ L1 Paper Runtime maturity statement：
 - 不修改 Figma。
 - 不提交 `.codex/*` 或 `graphify-out/*`。
 - 不实现 matching runtime、order execution runtime、portfolio projection runtime、UI implementation、order form、command model、Runtime replay job、database console、signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、database schema read、Runtime object read、Live PRO Console、order-level command UI、trading button、live command、emergency stop、shutdown 或 restore。
+
+---
+
+## 2026-05-27 — MTP-117 validation matrix / automation readiness / stage audit input closeout
+
+执行者：Codex
+
+目的：
+
+- 完成 `MTP-117` Close validation matrix / automation readiness / stage audit input 的当前 issue scope。
+- 将 Simulated Exchange / Backtest Parity v1 的 MTP-110 至 MTP-116 evidence chain 收口到 validation matrix、automation readiness 和 stage-audit-input 材料。
+- 保持 MTP-117 只产出 Stage Code Audit input，不输出最终 Stage Code Audit Report，不修改 Linear status，不运行 Graphify / Figma，不扩大到 live trading、signed/account endpoint、broker、OMS、order-level command UI 或真实交易动作。
+
+实现摘要：
+
+- 更新 `docs/contracts/simulated-exchange-backtest-parity-contract.md`，新增 `MTP-117-SIMULATED-EXCHANGE-BACKTEST-PARITY-STAGE-CLOSEOUT`、`MTP-117-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-117-NO-FINAL-STAGE-CODE-AUDIT`、`MTP-117-SIMULATED-EXCHANGE-BACKTEST-PARITY-STAGE-AUDIT-INPUT`、`MTP-117-SIMULATED-EXCHANGE-BACKTEST-PARITY-VALIDATION-EVIDENCE-CHAIN`、`MTP-117-FORBIDDEN-LIVE-CAPABILITY-EVIDENCE-CHAIN`、`MTP-117-L2-PARITY-EVIDENCE-COMPLETE` 和 `MTP-117-AUTOMATION-READINESS-STAGE-CLOSEOUT` anchors。
+- 新增 `docs/audit/inputs/mtpro-simulated-exchange-backtest-parity-v1-stage-audit-input.md`，记录 Linear queue、PR #211 至 PR #217 merge evidence、local validation、forbidden live capability boundary 和 Root Docs Delta input。
+- 更新 `docs/validation/trading-validation-matrix.md`、`docs/validation/validation-plan.md`、`docs/validation/latest-verification-summary.md` 和 `docs/automation/automation-readiness.md`，把 MTP-117 closeout 接入现有 validation / readiness spine。
+- 更新 `checks/automation-readiness.sh`，用 exact-string anchors 机械检查 MTP-117 contract、matrix、latest summary、stage-audit-input、readiness doc、forbidden live capability evidence、Graphify/Figma/Linear mutation non-goals 和 Dashboard smoke `simulatedParityEvidence=0` handle。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；覆盖 MTP-117 closeout anchors、stage audit input anchors、PR evidence anchors、forbidden live capability anchors、Graphify / Figma / Linear mutation non-goal anchors 和 Dashboard smoke handle。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 261 个 XCTest；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; scenarioReplayEvidence=0; scenarioQualityGates=0; simulatedParityEvidence=0; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`，最终执行 261 tests、0 failures，并输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不修改 Linear status。
+- 不创建下一 Project / Issue。
+- 不推进下一 issue。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify update。
+- 不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不输出最终 Stage Code Audit Report；只输出 `docs/audit/inputs/mtpro-simulated-exchange-backtest-parity-v1-stage-audit-input.md` 作为 audit input。
+- 不实现 live trading、signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、database schema read、Runtime object read、Live PRO Console、order-level command UI、trading button、live command、emergency stop、shutdown 或 restore。

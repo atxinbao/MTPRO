@@ -607,3 +607,82 @@ Validation anchors：
 - `TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY`
 
 MTP-116 不实现 stage audit input、matching runtime、order execution runtime、portfolio projection runtime、order form、command model、真实订单提交 / 撤销 / 替换、OMS、execution report、broker fill、reconciliation、signed endpoint、account endpoint / listenKey、Live PRO Console、live command、order-level command UI 或 trading button；这些仍归属 `MTP-117` 或 Future Gated scope。
+
+## MTP-117 Simulated Exchange / Backtest Parity stage closeout
+
+`MTP-117-SIMULATED-EXCHANGE-BACKTEST-PARITY-STAGE-CLOSEOUT`
+
+MTP-117 只收口 `MTPRO Simulated Exchange / Backtest Parity v1` 的 Project 级 validation matrix、automation readiness anchors 和 Parent Codex Stage Code Audit 输入材料。它把 MTP-110 至 MTP-116 已落地的 terminology / boundary、shared order semantics、deterministic matching、market / limit simulated execution、partial fill / latency / fee / slippage parity、portfolio projection parity 和 Report / Dashboard / Events read-model-only evidence 归入同一个审计输入链。
+
+MTP-117 不新增 production code，不新增 Swift API，不修改 runtime 行为，不实现 matching runtime、order execution runtime、portfolio projection runtime、order form、command model、Runtime replay job、database console、signed endpoint、account endpoint、listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、Live PRO Console、live command、order-level command UI 或 trading button。
+
+## MTP-117 stage audit input material
+
+`MTP-117-STAGE-AUDIT-INPUT-MATERIAL`
+
+`docs/audit/inputs/mtpro-simulated-exchange-backtest-parity-v1-stage-audit-input.md` 是 MTP-117 的唯一阶段审计输入材料。该文件必须覆盖：
+
+- Linear queue evidence：`MTP-110` 至 `MTP-116` Done，`MTP-117` In Progress。
+- Issue / PR evidence：PR #211 至 #217，以及 MTP-117 当前 PR 占位。
+- L2 parity validation evidence chain：MTP-110 至 MTP-116 的 Core / App / Dashboard / Events deterministic evidence。
+- forbidden live capability evidence chain：确认 forbidden capabilities 没有被恢复。
+- read-model-only boundary evidence：Report / Dashboard / Events 只消费 read model / ViewModel，不提供 command surface。
+- automation readiness evidence：`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、validation plan、matrix 和 latest summary anchors。
+- Root Docs Delta input：供 Parent Codex 后续 Stage Code Audit Report 和 Root Docs Refresh Gate 使用。
+
+## MTP-117 no final Stage Code Audit
+
+`MTP-117-NO-FINAL-STAGE-CODE-AUDIT`
+
+MTP-117 不能输出最终 Stage Code Audit Report，不能创建 `docs/audit/mtpro-simulated-exchange-backtest-parity-v1-stage-code-audit.md`，不能设置 Linear Project `Completed`，不能创建下一 Project / Issue，不能推进下一阶段，也不能启动下一阶段 `symphony-issue`。
+
+最终 Stage Code Audit Report 必须在 `MTP-110` 至 `MTP-117` 全部进入 Linear `Done`，且 Linear Project status 被设置或确认为 `Completed`、`type=completed`、`completedAt` 非空后，由 Parent Codex 单独输出。
+
+## MTP-117 validation evidence chain
+
+`MTP-117-SIMULATED-EXCHANGE-BACKTEST-PARITY-VALIDATION-EVIDENCE-CHAIN`
+
+MTP-117 的 validation evidence chain 必须确认：
+
+- MTP-110 的 terminology / target engine / L1 + L1.5 handoff / forbidden capability baseline 仍在合同、Core fixture、tests、matrix 和 latest summary 中可追溯。
+- MTP-111 的 shared backtest-paper order fields、simulated order state、paper lifecycle replay alignment 和 no real order command upgrade 仍可追溯。
+- MTP-112 的 scenario replay matching input、ordering、matching event、repeatable output 和 no network / broker / live boundary 仍可追溯。
+- MTP-113 的 market / limit simulated execution、full fill / reject / expire、deterministic execution replay 和 no real order / live command boundary 仍可追溯。
+- MTP-114 的 partial / full fill parity、deterministic latency、fee / slippage assumptions、repeatable cost evidence 和 no real fee schedule / broker reconciliation boundary 仍可追溯。
+- MTP-115 的 simulated event -> portfolio projection、backtest / paper portfolio parity、position / cash / PnL / exposure summary、report input replay evidence 和 no real account / broker / margin / leverage boundary 仍可追溯。
+- MTP-116 的 Report / Dashboard / Events parity evidence surface、scenario / matching / fill / cost / portfolio snapshot、read-model-only boundary 和 no signed / account / broker / live boundary 仍可追溯。
+
+## MTP-117 forbidden live capability evidence chain
+
+`MTP-117-FORBIDDEN-LIVE-CAPABILITY-EVIDENCE-CHAIN`
+
+MTP-117 必须确认以下能力在 L2 parity Project 中继续被禁止：signed endpoint、account endpoint、listenKey、secret read、broker integration、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、matching runtime、order execution runtime、portfolio projection runtime、Runtime replay job、database schema exposure、Runtime object exposure、adapter request exposure、Live PRO Console、live command、order-level command UI、trading button、emergency stop、shutdown、restore、Graphify update、Figma change 和 unauthorized Linear mutation。
+
+## MTP-117 L2 parity evidence completeness
+
+`MTP-117-L2-PARITY-EVIDENCE-COMPLETE`
+
+MTP-117 的 completeness evidence 只表示 `MTPRO Simulated Exchange / Backtest Parity v1` 已具备 Stage Code Audit 输入所需的 L2 parity evidence chain：术语边界、shared order semantics、deterministic matching、market / limit execution semantics、partial fill / latency / fee / slippage parity、portfolio projection parity 和 Report / Dashboard / Events read-model-only surface。它不表示 production backtest engine、真实 matching engine、真实 execution runtime、broker reconciliation、Live readiness、Live PRO Console 或真实交易能力已经实现。
+
+## MTP-117 stage audit input anchor
+
+`MTP-117-SIMULATED-EXCHANGE-BACKTEST-PARITY-STAGE-AUDIT-INPUT`
+
+该 anchor 只指向 MTP-117 stage audit input material，不代表最终 Stage Code Audit Report 已存在或 Project 已 Completed。
+
+## MTP-117 automation readiness stage closeout
+
+`MTP-117-AUTOMATION-READINESS-STAGE-CLOSEOUT`
+
+`checks/automation-readiness.sh` 必须机械检查 MTP-117 contract anchors、validation plan anchors、trading validation matrix 回填、latest verification summary、stage audit input material、automation readiness doc anchor、MTP-110 至 MTP-116 source / test anchors、Dashboard smoke `simulatedParityEvidence` handle 和 forbidden capability boundary strings。
+
+MTP-117 validation anchors：
+
+- `MTP-117-SIMULATED-EXCHANGE-BACKTEST-PARITY-STAGE-CLOSEOUT`
+- `MTP-117-STAGE-AUDIT-INPUT-MATERIAL`
+- `MTP-117-NO-FINAL-STAGE-CODE-AUDIT`
+- `MTP-117-SIMULATED-EXCHANGE-BACKTEST-PARITY-STAGE-AUDIT-INPUT`
+- `MTP-117-SIMULATED-EXCHANGE-BACKTEST-PARITY-VALIDATION-EVIDENCE-CHAIN`
+- `MTP-117-FORBIDDEN-LIVE-CAPABILITY-EVIDENCE-CHAIN`
+- `MTP-117-L2-PARITY-EVIDENCE-COMPLETE`
+- `MTP-117-AUTOMATION-READINESS-STAGE-CLOSEOUT`
