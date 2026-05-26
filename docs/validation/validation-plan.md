@@ -2707,3 +2707,43 @@ MTP-121 的验收要求：
 - 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、live readiness、live runtime、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
 - 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进 MTP-122。
+
+## MTP-122 Report / Dashboard / Events Beta Acceptance Path Validation
+
+日期：2026-05-27
+
+执行者：Codex
+
+MTP-122 的 required validation：
+
+- `swift test --filter MTP122`
+- `DASHBOARD_SMOKE=1 swift run Dashboard`
+- `bash checks/run.sh`
+
+MTP-122 必须建立的主要 anchors：
+
+- `MTP-122-REPORT-BETA-ACCEPTANCE-SUMMARY`
+- `MTP-122-DASHBOARD-BETA-EVIDENCE-PANELS`
+- `MTP-122-EVENTS-BETA-ACCEPTANCE-TRACE`
+- `MTP-122-SAME-DEMO-SCENARIO-EVIDENCE`
+- `MTP-122-SCENARIO-PARITY-PORTFOLIO-TRACE`
+- `MTP-122-READ-MODEL-ONLY-NO-RUNTIME-COMMAND`
+- `MTP-122-BETA-ACCEPTANCE-PATH-VALIDATION`
+
+MTP-122 的验收要求：
+
+- `Sources/App/WorkbenchBetaAcceptancePath.swift` 必须定义 `WorkbenchBetaAcceptancePathReadModel` 和 `WorkbenchBetaAcceptancePathViewModel`，只从 `ReportReadModel` 与 `WorkbenchBetaFirstRunReadModel.defaultDemo` 生成 acceptance path。
+- Acceptance path 必须证明 Report、Dashboard 和 Events 使用同一 scenario `mtp-104-btcusdt-1m-first-scenario`、dataset `dataset-v1`、fixture `fixture-v1`、report input version `mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|1704067200...1704067380|fnv1a64:3c6cd4ff13cd4062|fresh|accepted`。
+- `DashboardViewModel.defaultWorkbenchBetaDemo` 必须输出 `workbenchBetaAcceptancePath.acceptancePathCount=1`、Report summary、Dashboard panel summaries、Events trace 和 portfolio projection parity evidence。
+- `Sources/App/PaperWorkflowEvidenceExplorer.swift` 必须新增 `workbench beta acceptance path` section，输出 Report summary、Scenario Replay evidence、Simulated Exchange / Backtest Parity evidence、Portfolio evidence 和 boundary summary 五条 timeline rows。
+- `Sources/App/DashboardShell.swift` 必须输出 Dashboard smoke handles `betaAcceptancePaths=1`、`betaAcceptanceScenario=mtp-104-btcusdt-1m-first-scenario` 和 `betaAcceptanceTrace=5`。
+- `Tests/AppTests/AppTests.swift` 必须包含 MTP-122 focused test，覆盖 Report summary、Dashboard panels、Events trace、same demo scenario、portfolio evidence、validation anchors 和 forbidden capability flags。
+- `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-122 mechanical anchors。
+
+## MTP-122 禁止
+
+- 不新增 engine core capability、Runtime replay job、matching runtime、order execution runtime、portfolio projection runtime 或 production report engine。
+- 不暴露 Persistence schema、database console、Runtime object inspector、Adapter request、Core object inspector 或 query surface。
+- 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、live readiness、live runtime、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
+- 不新增 stage audit input，不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进 MTP-123。

@@ -172,6 +172,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
     public let scenarioReplayEvidenceSource: ViewModelSourceContract
     public let simulatedExchangeParityEvidenceSource: ViewModelSourceContract
     public let workbenchBetaFirstRunSource: ViewModelSourceContract
+    public let workbenchBetaAcceptancePathSource: ViewModelSourceContract
     public let liveBlockedEvidenceSource: ViewModelSourceContract
     public let liveMonitoringEvidenceSource: ViewModelSourceContract
     public let liveExecutionControlBlockedEvidenceSource: ViewModelSourceContract
@@ -189,6 +190,8 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
     public let simulatedExchangeParityEvidenceDetails: [String]
     public let workbenchBetaFirstRunMetrics: [DashboardShellMetric]
     public let workbenchBetaFirstRunDetails: [String]
+    public let workbenchBetaAcceptancePathMetrics: [DashboardShellMetric]
+    public let workbenchBetaAcceptancePathDetails: [String]
     public let liveBlockedEvidenceMetrics: [DashboardShellMetric]
     public let liveBlockedEvidenceDetails: [String]
     public let liveMonitoringEvidenceMetrics: [DashboardShellMetric]
@@ -211,6 +214,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
     public let touchesBrokerAction: Bool
     public let authorizesTradingExecution: Bool
     public let workbenchBetaFirstRunReadModelOnlyBoundaryHeld: Bool
+    public let workbenchBetaAcceptancePathReadModelOnlyBoundaryHeld: Bool
 
     public init(
         title: String = "Paper Workflow Control Shell",
@@ -221,6 +225,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         scenarioReplayEvidenceSource: ViewModelSourceContract,
         simulatedExchangeParityEvidenceSource: ViewModelSourceContract,
         workbenchBetaFirstRunSource: ViewModelSourceContract,
+        workbenchBetaAcceptancePathSource: ViewModelSourceContract,
         liveBlockedEvidenceSource: ViewModelSourceContract,
         liveMonitoringEvidenceSource: ViewModelSourceContract,
         liveExecutionControlBlockedEvidenceSource: ViewModelSourceContract,
@@ -238,6 +243,8 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         simulatedExchangeParityEvidenceDetails: [String],
         workbenchBetaFirstRunMetrics: [DashboardShellMetric],
         workbenchBetaFirstRunDetails: [String],
+        workbenchBetaAcceptancePathMetrics: [DashboardShellMetric],
+        workbenchBetaAcceptancePathDetails: [String],
         liveBlockedEvidenceMetrics: [DashboardShellMetric],
         liveBlockedEvidenceDetails: [String],
         liveMonitoringEvidenceMetrics: [DashboardShellMetric],
@@ -258,7 +265,8 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         authorizesLiveTrading: Bool,
         touchesBrokerAction: Bool,
         authorizesTradingExecution: Bool,
-        workbenchBetaFirstRunReadModelOnlyBoundaryHeld: Bool
+        workbenchBetaFirstRunReadModelOnlyBoundaryHeld: Bool,
+        workbenchBetaAcceptancePathReadModelOnlyBoundaryHeld: Bool
     ) {
         self.title = title
         self.subtitle = subtitle
@@ -268,6 +276,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         self.scenarioReplayEvidenceSource = scenarioReplayEvidenceSource
         self.simulatedExchangeParityEvidenceSource = simulatedExchangeParityEvidenceSource
         self.workbenchBetaFirstRunSource = workbenchBetaFirstRunSource
+        self.workbenchBetaAcceptancePathSource = workbenchBetaAcceptancePathSource
         self.liveBlockedEvidenceSource = liveBlockedEvidenceSource
         self.liveMonitoringEvidenceSource = liveMonitoringEvidenceSource
         self.liveExecutionControlBlockedEvidenceSource = liveExecutionControlBlockedEvidenceSource
@@ -285,6 +294,8 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         self.simulatedExchangeParityEvidenceDetails = simulatedExchangeParityEvidenceDetails
         self.workbenchBetaFirstRunMetrics = workbenchBetaFirstRunMetrics
         self.workbenchBetaFirstRunDetails = workbenchBetaFirstRunDetails
+        self.workbenchBetaAcceptancePathMetrics = workbenchBetaAcceptancePathMetrics
+        self.workbenchBetaAcceptancePathDetails = workbenchBetaAcceptancePathDetails
         self.liveBlockedEvidenceMetrics = liveBlockedEvidenceMetrics
         self.liveBlockedEvidenceDetails = liveBlockedEvidenceDetails
         self.liveMonitoringEvidenceMetrics = liveMonitoringEvidenceMetrics
@@ -307,12 +318,15 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         self.authorizesTradingExecution = authorizesTradingExecution
         self.workbenchBetaFirstRunReadModelOnlyBoundaryHeld =
             workbenchBetaFirstRunReadModelOnlyBoundaryHeld
+        self.workbenchBetaAcceptancePathReadModelOnlyBoundaryHeld =
+            workbenchBetaAcceptancePathReadModelOnlyBoundaryHeld
         self.readModelOnlyBoundaryHeld = source.isReadModelOnly
             && observabilitySource.isReadModelOnly
             && evidenceExplorerSource.isReadModelOnly
             && scenarioReplayEvidenceSource.isReadModelOnly
             && simulatedExchangeParityEvidenceSource.isReadModelOnly
             && workbenchBetaFirstRunSource.isReadModelOnly
+            && workbenchBetaAcceptancePathSource.isReadModelOnly
             && liveBlockedEvidenceSource.isReadModelOnly
             && liveMonitoringEvidenceSource.isReadModelOnly
             && liveExecutionControlBlockedEvidenceSource.isReadModelOnly
@@ -320,6 +334,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
             && liveIncidentStopBlockedEvidenceSource.isReadModelOnly
             && sessionControls.allSatisfy(\.paperOnlyBoundaryHeld)
             && workbenchBetaFirstRunReadModelOnlyBoundaryHeld
+            && workbenchBetaAcceptancePathReadModelOnlyBoundaryHeld
             && paperOnlyBoundaryHeld
             && providesCommandSurface == false
             && providesOrderLevelCommand == false
@@ -339,6 +354,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
             scenarioReplayEvidenceSource,
             simulatedExchangeParityEvidenceSource,
             workbenchBetaFirstRunSource,
+            workbenchBetaAcceptancePathSource,
             liveBlockedEvidenceSource,
             liveMonitoringEvidenceSource,
             liveExecutionControlBlockedEvidenceSource,
@@ -413,6 +429,18 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             "Fallbacks",
             in: workbench.workbenchBetaFirstRunMetrics
         )
+        let betaAcceptancePaths = Self.metricValue(
+            "Acceptance paths",
+            in: workbench.workbenchBetaAcceptancePathMetrics
+        )
+        let betaAcceptanceScenario = Self.metricValue(
+            "Acceptance scenario",
+            in: workbench.workbenchBetaAcceptancePathMetrics
+        )
+        let betaAcceptanceTrace = Self.metricValue(
+            "Event trace",
+            in: workbench.workbenchBetaAcceptancePathMetrics
+        )
         let liveBlockedGates = Self.metricValue("Live gates", in: workbench.liveBlockedEvidenceMetrics)
         let liveExecutionControlGates = Self.metricValue(
             "Execution gates",
@@ -438,7 +466,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         let paperRuntimeEvidence = Self.metricValue("Runtime", in: reportMetrics)
         let paperWorkflowEvidence = Self.metricValue("Exec workflow", in: reportMetrics)
         let paperPortfolioImpact = Self.metricValue("Paper PnL", in: reportMetrics)
-        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); workbenchReadModelOnly=\(workbench.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); scenarioReplayEvidence=\(scenarioReplayEvidence); scenarioQualityGates=\(scenarioQualityGates); simulatedParityEvidence=\(simulatedParityEvidence); defaultDemoState=\(defaultDemoState); defaultDemoScenario=\(defaultDemoScenario); betaFirstRunFallbacks=\(betaFallbacks); paperRuntimeEvidence=\(paperRuntimeEvidence); paperWorkflowEvidence=\(paperWorkflowEvidence); paperPortfolioImpact=\(paperPortfolioImpact); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
+        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); workbenchReadModelOnly=\(workbench.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); scenarioReplayEvidence=\(scenarioReplayEvidence); scenarioQualityGates=\(scenarioQualityGates); simulatedParityEvidence=\(simulatedParityEvidence); defaultDemoState=\(defaultDemoState); defaultDemoScenario=\(defaultDemoScenario); betaFirstRunFallbacks=\(betaFallbacks); betaAcceptancePaths=\(betaAcceptancePaths); betaAcceptanceScenario=\(betaAcceptanceScenario); betaAcceptanceTrace=\(betaAcceptanceTrace); paperRuntimeEvidence=\(paperRuntimeEvidence); paperWorkflowEvidence=\(paperWorkflowEvidence); paperPortfolioImpact=\(paperPortfolioImpact); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
     }
 
     private static func makeSectionSnapshot(
@@ -474,6 +502,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         let scenarioReplayEvidence = viewModel.report.scenarioReplayEvidence
         let simulatedExchangeParityEvidence = viewModel.report.simulatedExchangeParityEvidence
         let workbenchBetaFirstRun = viewModel.workbenchBetaFirstRun
+        let workbenchBetaAcceptancePath = viewModel.workbenchBetaAcceptancePath
         let liveBlockedEvidence = viewModel.report.liveTradingBlockedEvidence
         let liveMonitoringEvidence = viewModel.report.liveMonitoringEvidence
         let liveExecutionControlEvidence = viewModel.report.liveExecutionControlBlockedEvidence
@@ -488,6 +517,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             scenarioReplayEvidenceSource: scenarioReplayEvidence.source,
             simulatedExchangeParityEvidenceSource: simulatedExchangeParityEvidence.source,
             workbenchBetaFirstRunSource: workbenchBetaFirstRun.source,
+            workbenchBetaAcceptancePathSource: workbenchBetaAcceptancePath.source,
             liveBlockedEvidenceSource: liveBlockedEvidence.source,
             liveMonitoringEvidenceSource: liveMonitoringEvidence.source,
             liveExecutionControlBlockedEvidenceSource: liveExecutionControlEvidence.source,
@@ -644,6 +674,44 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 "Trading button: \(formatForbiddenFlag(workbenchBetaFirstRun.providesTradingButton))",
                 "Live command: \(formatForbiddenFlag(workbenchBetaFirstRun.providesLiveCommand))"
             ],
+            workbenchBetaAcceptancePathMetrics: [
+                DashboardShellMetric(
+                    label: "Acceptance paths",
+                    value: "\(workbenchBetaAcceptancePath.acceptancePathCount)"
+                ),
+                DashboardShellMetric(
+                    label: "Acceptance scenario",
+                    value: workbenchBetaAcceptancePath.scenarioIDs.first ?? "n/a"
+                ),
+                DashboardShellMetric(
+                    label: "Event trace",
+                    value: "\(workbenchBetaAcceptancePath.eventTraceItemCount)"
+                ),
+                DashboardShellMetric(
+                    label: "Portfolio",
+                    value: formatEvidenceFlag(workbenchBetaAcceptancePath.portfolioEvidenceHeld)
+                ),
+                DashboardShellMetric(
+                    label: "Boundary",
+                    value: formatEvidenceFlag(workbenchBetaAcceptancePath.readModelOnlyBoundaryHeld)
+                )
+            ],
+            workbenchBetaAcceptancePathDetails: [
+                "Report summaries: \(joined(workbenchBetaAcceptancePath.reportSummaries))",
+                "Dashboard panels: \(joined(workbenchBetaAcceptancePath.dashboardPanelSummaries))",
+                "Event trace: \(joined(workbenchBetaAcceptancePath.eventTraceItems.map(\.title)))",
+                "Report inputs: \(joined(workbenchBetaAcceptancePath.reportInputVersionIdentities))",
+                "Portfolio evidence: \(joined(workbenchBetaAcceptancePath.portfolioEvidenceIDs))",
+                "Gross exposure: \(format(workbenchBetaAcceptancePath.grossExposureNotional))",
+                "Net simulated PnL: \(format(workbenchBetaAcceptancePath.netSimulatedPnL))",
+                "Same demo scenario: \(formatEvidenceFlag(workbenchBetaAcceptancePath.sameDemoScenarioHeld))",
+                "Report surface: \(formatEvidenceFlag(workbenchBetaAcceptancePath.reportSurfaceReady))",
+                "Dashboard panels ready: \(formatEvidenceFlag(workbenchBetaAcceptancePath.dashboardPanelsReady))",
+                "Events trace ready: \(formatEvidenceFlag(workbenchBetaAcceptancePath.eventsTraceReady))",
+                "Command surface: \(formatForbiddenFlag(workbenchBetaAcceptancePath.providesCommandSurface))",
+                "Trading button: \(formatForbiddenFlag(workbenchBetaAcceptancePath.providesTradingButton))",
+                "Live command: \(formatForbiddenFlag(workbenchBetaAcceptancePath.providesLiveCommand))"
+            ],
             liveBlockedEvidenceMetrics: [
                 DashboardShellMetric(label: "Live gates", value: "\(liveBlockedEvidence.blockedEvidenceCount)"),
                 DashboardShellMetric(label: "Blocked", value: "\(liveBlockedEvidence.blockedCapabilityLabels.count)"),
@@ -789,6 +857,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || scenarioReplayEvidence.providesCommandSurface
                 || simulatedExchangeParityEvidence.providesCommandSurface
                 || workbenchBetaFirstRun.providesCommandSurface
+                || workbenchBetaAcceptancePath.providesCommandSurface
                 || liveMonitoringEvidence.providesCommandSurface
                 || liveExecutionControlEvidence.providesCommandSurface
                 || liveRiskGateEvidence.providesCommandSurface
@@ -798,6 +867,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || scenarioReplayEvidence.providesOrderLevelCommand
                 || simulatedExchangeParityEvidence.providesOrderLevelCommand
                 || workbenchBetaFirstRun.providesOrderLevelCommand
+                || workbenchBetaAcceptancePath.providesOrderLevelCommand
                 || liveBlockedEvidence.providesOrderLevelCommand
                 || liveMonitoringEvidence.providesOrderLevelCommand
                 || liveExecutionControlEvidence.providesOrderLevelCommand
@@ -807,6 +877,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || scenarioReplayEvidence.exposesDatabaseSchema
                 || simulatedExchangeParityEvidence.exposesDatabaseSchema
                 || workbenchBetaFirstRun.exposesDatabaseSchema
+                || workbenchBetaAcceptancePath.exposesDatabaseSchema
                 || liveBlockedEvidence.exposesDatabaseSchema
                 || liveMonitoringEvidence.exposesDatabaseSchema
                 || liveExecutionControlEvidence.exposesPersistenceSchema
@@ -817,6 +888,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || scenarioReplayEvidence.exposesRuntimeObject
                 || simulatedExchangeParityEvidence.exposesRuntimeObject
                 || workbenchBetaFirstRun.exposesRuntimeObject
+                || workbenchBetaAcceptancePath.exposesRuntimeObject
                 || liveBlockedEvidence.exposesRuntimeObject
                 || liveMonitoringEvidence.exposesRuntimeObject
                 || liveExecutionControlEvidence.invokesRuntimeControl
@@ -827,6 +899,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || scenarioReplayEvidence.exposesAdapterRequest
                 || simulatedExchangeParityEvidence.exposesAdapterRequest
                 || workbenchBetaFirstRun.exposesAdapterRequest
+                || workbenchBetaAcceptancePath.exposesAdapterRequest
                 || liveBlockedEvidence.exposesAdapterSurface
                 || liveMonitoringEvidence.exposesAdapterSurface
                 || liveExecutionControlEvidence.readsAdapter
@@ -837,6 +910,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || scenarioReplayEvidence.authorizesLiveTrading
                 || simulatedExchangeParityEvidence.authorizesLiveTrading
                 || workbenchBetaFirstRun.authorizesLiveTrading
+                || workbenchBetaAcceptancePath.authorizesLiveTrading
                 || liveBlockedEvidence.authorizesLiveTrading
                 || liveMonitoringEvidence.authorizesLiveTrading
                 || liveExecutionControlEvidence.authorizesLiveTrading
@@ -847,6 +921,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || scenarioReplayEvidence.touchesBrokerAction
                 || simulatedExchangeParityEvidence.touchesBrokerAction
                 || workbenchBetaFirstRun.touchesBrokerAction
+                || workbenchBetaAcceptancePath.touchesBrokerAction
                 || liveBlockedEvidence.touchesBrokerAction
                 || liveMonitoringEvidence.instantiatesBrokerAdapter
                 || liveExecutionControlEvidence.instantiatesBrokerExecutionAdapter
@@ -859,12 +934,15 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || scenarioReplayEvidence.authorizesTradingExecution
                 || simulatedExchangeParityEvidence.authorizesTradingExecution
                 || workbenchBetaFirstRun.authorizesTradingExecution
+                || workbenchBetaAcceptancePath.authorizesTradingExecution
                 || liveBlockedEvidence.authorizesTradingExecution
                 || liveMonitoringEvidence.authorizesTradingExecution
                 || liveExecutionControlEvidence.authorizesTradingExecution
                 || liveRiskGateEvidence.authorizesTradingExecution
                 || liveIncidentStopEvidence.authorizesTradingExecution,
             workbenchBetaFirstRunReadModelOnlyBoundaryHeld: workbenchBetaFirstRun
+                .readModelOnlyBoundaryHeld,
+            workbenchBetaAcceptancePathReadModelOnlyBoundaryHeld: workbenchBetaAcceptancePath
                 .readModelOnlyBoundaryHeld
         )
     }
@@ -1446,6 +1524,12 @@ private struct DashboardWorkbenchPanel: View {
                     systemImage: "sparkle.magnifyingglass",
                     metrics: workbench.workbenchBetaFirstRunMetrics,
                     details: workbench.workbenchBetaFirstRunDetails
+                )
+                DashboardWorkbenchDetailGroup(
+                    title: "Beta Acceptance",
+                    systemImage: "checkmark.seal",
+                    metrics: workbench.workbenchBetaAcceptancePathMetrics,
+                    details: workbench.workbenchBetaAcceptancePathDetails
                 )
                 DashboardWorkbenchDetailGroup(
                     title: "Observability",

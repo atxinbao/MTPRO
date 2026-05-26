@@ -119,6 +119,15 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(viewModel.paperWorkflowEvidenceExplorer.source.exposesRuntimeObjects)
         XCTAssertFalse(viewModel.paperWorkflowEvidenceExplorer.source.callsBinanceAdapter)
         XCTAssertFalse(viewModel.paperWorkflowEvidenceExplorer.source.providesLiveOrderAction)
+        XCTAssertEqual(
+            viewModel.workbenchBetaAcceptancePath.source.sourceKind,
+            .stableReadModelProjection
+        )
+        XCTAssertFalse(viewModel.workbenchBetaAcceptancePath.source.exposesDatabaseTables)
+        XCTAssertFalse(viewModel.workbenchBetaAcceptancePath.source.exposesORMModels)
+        XCTAssertFalse(viewModel.workbenchBetaAcceptancePath.source.exposesRuntimeObjects)
+        XCTAssertFalse(viewModel.workbenchBetaAcceptancePath.source.callsBinanceAdapter)
+        XCTAssertFalse(viewModel.workbenchBetaAcceptancePath.source.providesLiveOrderAction)
         XCTAssertEqual(viewModel.events.source.sourceKind, .stableReadModelProjection)
         XCTAssertFalse(viewModel.events.source.exposesDatabaseTables)
         XCTAssertFalse(viewModel.events.source.exposesORMModels)
@@ -1694,7 +1703,7 @@ final class AppTests: XCTestCase {
         )
 
         XCTAssertEqual(metricValue("Timeline items", in: workbench.evidenceExplorerMetrics), "77")
-        XCTAssertEqual(metricValue("Sections", in: workbench.evidenceExplorerMetrics), "15")
+        XCTAssertEqual(metricValue("Sections", in: workbench.evidenceExplorerMetrics), "16")
         XCTAssertTrue(
             workbench.evidenceExplorerDetails.contains(
                 "Filter: read-only"
@@ -2061,6 +2070,113 @@ final class AppTests: XCTestCase {
             XCTAssertFalse(viewModel.touchesBrokerAction)
             XCTAssertFalse(viewModel.authorizesTradingExecution)
         }
+    }
+
+    func testMTP122WorkbenchBetaAcceptancePathFeedsReportDashboardAndEventsReadOnly() throws {
+        // 测试场景：MTP-122 只把 MTP-120 / MTP-121 的同一 deterministic demo fixture
+        // 串成 Report summary、Dashboard panels 和 Events trace；不得新增 Runtime command、
+        // broker action、signed endpoint、schema exposure、live command 或交易按钮。
+        let viewModel = DashboardViewModel.defaultWorkbenchBetaDemo
+        let acceptance = viewModel.workbenchBetaAcceptancePath
+        let snapshot = DashboardShellSnapshot(viewModel: viewModel)
+        let workbench = snapshot.workbench
+        let acceptanceItems = viewModel.paperWorkflowEvidenceExplorer.timelineItems.filter {
+            $0.section == .workbenchBetaAcceptancePath
+        }
+        let sectionCounts = Dictionary(
+            uniqueKeysWithValues: viewModel.paperWorkflowEvidenceExplorer.sectionSnapshots.map {
+                ($0.section, $0.itemCount)
+            }
+        )
+
+        XCTAssertEqual(acceptance.acceptancePathCount, 1)
+        XCTAssertEqual(acceptance.scenarioIDs, ["mtp-104-btcusdt-1m-first-scenario"])
+        XCTAssertEqual(acceptance.datasetVersions, ["dataset-v1"])
+        XCTAssertEqual(acceptance.fixtureVersions, ["fixture-v1"])
+        XCTAssertEqual(
+            acceptance.reportInputVersionIdentities,
+            [
+                "mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|1704067200...1704067380|fnv1a64:3c6cd4ff13cd4062|fresh|accepted"
+            ]
+        )
+        XCTAssertTrue(
+            acceptance.reportSummaries.first?.contains(
+                "Report acceptance scenario=mtp-104-btcusdt-1m-first-scenario"
+            ) == true
+        )
+        XCTAssertEqual(acceptance.dashboardPanelSummaries.count, 4)
+        XCTAssertEqual(acceptance.eventTraceItemCount, 5)
+        XCTAssertEqual(
+            acceptance.portfolioEvidenceIDs,
+            ["mtp-115-simulated-exchange-portfolio-projection-parity-portfolio-parity"]
+        )
+        XCTAssertEqual(acceptance.grossExposureNotional, 10_530.175, accuracy: 0.00000001)
+        XCTAssertEqual(acceptance.netSimulatedPnL, -6.84461375, accuracy: 0.00000001)
+        XCTAssertEqual(acceptance.validationAnchors, WorkbenchBetaAcceptancePathReadModel.validationAnchors)
+        XCTAssertTrue(acceptance.sameDemoScenarioHeld)
+        XCTAssertTrue(acceptance.reportSurfaceReady)
+        XCTAssertTrue(acceptance.dashboardPanelsReady)
+        XCTAssertTrue(acceptance.eventsTraceReady)
+        XCTAssertTrue(acceptance.scenarioReplayEvidenceHeld)
+        XCTAssertTrue(acceptance.simulatedParityEvidenceHeld)
+        XCTAssertTrue(acceptance.portfolioEvidenceHeld)
+        XCTAssertTrue(acceptance.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(acceptance.requiredValidationDependsOnNetwork)
+        XCTAssertFalse(acceptance.exposesDatabaseSchema)
+        XCTAssertFalse(acceptance.exposesRuntimeObject)
+        XCTAssertFalse(acceptance.exposesAdapterRequest)
+        XCTAssertFalse(acceptance.usesSignedEndpoint)
+        XCTAssertFalse(acceptance.callsAccountEndpoint)
+        XCTAssertFalse(acceptance.createsListenKey)
+        XCTAssertFalse(acceptance.connectsBroker)
+        XCTAssertFalse(acceptance.implementsLiveExecutionAdapter)
+        XCTAssertFalse(acceptance.implementsOMS)
+        XCTAssertFalse(acceptance.implementsRealOrderLifecycle)
+        XCTAssertFalse(acceptance.providesCommandSurface)
+        XCTAssertFalse(acceptance.providesOrderLevelCommand)
+        XCTAssertFalse(acceptance.providesLiveCommand)
+        XCTAssertFalse(acceptance.providesTradingButton)
+        XCTAssertFalse(acceptance.authorizesLiveTrading)
+        XCTAssertFalse(acceptance.touchesBrokerAction)
+        XCTAssertFalse(acceptance.authorizesTradingExecution)
+
+        XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversWorkbenchBetaAcceptancePath)
+        XCTAssertEqual(acceptanceItems.count, 5)
+        XCTAssertEqual(sectionCounts[.workbenchBetaAcceptancePath], 5)
+        XCTAssertTrue(
+            acceptanceItems.contains {
+                $0.title == "Report beta acceptance summary"
+                    && $0.summary.contains("mtp-104-btcusdt-1m-first-scenario")
+            }
+        )
+        XCTAssertTrue(
+            acceptanceItems.contains {
+                $0.title == "Portfolio acceptance evidence"
+                    && $0.summary.contains("grossExposure=10530.175")
+            }
+        )
+        XCTAssertTrue(
+            acceptanceItems.flatMap(\.evidenceLinks).contains {
+                $0.evidenceID == acceptance.reportInputVersionIdentities.first
+            }
+        )
+        XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(viewModel.paperWorkflowEvidenceExplorer.providesCommandSurface)
+        XCTAssertFalse(viewModel.paperWorkflowEvidenceExplorer.providesOrderLevelCommand)
+
+        XCTAssertEqual(metricValue("Acceptance paths", in: workbench.workbenchBetaAcceptancePathMetrics), "1")
+        XCTAssertEqual(
+            metricValue("Acceptance scenario", in: workbench.workbenchBetaAcceptancePathMetrics),
+            "mtp-104-btcusdt-1m-first-scenario"
+        )
+        XCTAssertEqual(metricValue("Event trace", in: workbench.workbenchBetaAcceptancePathMetrics), "5")
+        XCTAssertEqual(metricValue("Portfolio", in: workbench.workbenchBetaAcceptancePathMetrics), "confirmed")
+        XCTAssertTrue(workbench.workbenchBetaAcceptancePathReadModelOnlyBoundaryHeld)
+        XCTAssertTrue(workbench.readModelOnlyBoundaryHeld)
+        XCTAssertTrue(snapshot.isReadModelOnly)
+        XCTAssertTrue(snapshot.smokeSummary.contains("betaAcceptancePaths=1"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("betaAcceptanceScenario=mtp-104-btcusdt-1m-first-scenario"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("betaAcceptanceTrace=5"))
     }
 
     func testDashboardShellSourceDoesNotImportForbiddenIntegrationLayers() throws {
