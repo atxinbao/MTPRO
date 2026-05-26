@@ -9402,6 +9402,205 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testMTP113MarketLimitSimulatedExecutionDefinesSemanticsAndAnchors() throws {
+        // 测试场景：MTP-113 必须定义 market / limit 的最小 simulated execution semantics，
+        // 并复用 MTP-112 deterministic matching output 和 MTP-111 shared order semantics，不实现真实执行 runtime。
+        let contract = MarketLimitSimulatedExecutionContract.deterministicFixture
+        let marketOutput = try MarketLimitSimulatedExecutionModel.execute(.deterministicMarketFixture)
+        let limitFillOutput = try MarketLimitSimulatedExecutionModel.execute(.deterministicLimitFillFixture)
+
+        XCTAssertEqual(contract.contractID, try Identifier("mtp-113-market-limit-simulated-execution-semantics"))
+        XCTAssertEqual(contract.issueID, try Identifier("MTP-113"))
+        XCTAssertEqual(contract.orderTypes, MarketLimitSimulatedOrderType.allCases)
+        XCTAssertEqual(contract.outcomes, MarketLimitSimulatedExecutionOutcome.allCases)
+        XCTAssertEqual(contract.executionRules, MarketLimitSimulatedExecutionRule.allCases)
+        XCTAssertTrue(contract.executionRules.contains(.marketConsumesDeterministicMatchPrice))
+        XCTAssertTrue(contract.executionRules.contains(.limitRequiresExplicitLimitPrice))
+        XCTAssertTrue(contract.executionRules.contains(.buyLimitFillsAtOrBelowLimit))
+        XCTAssertTrue(contract.executionRules.contains(.buyLimitExpiresAboveLimit))
+        XCTAssertTrue(contract.executionRules.contains(.noPartialFillBeforeMTP114))
+        XCTAssertTrue(contract.forbidsCapability(.orderExecutionRuntime))
+        XCTAssertTrue(contract.forbidsCapability(.signedEndpoint))
+        XCTAssertTrue(contract.forbidsCapability(.brokerIntegration))
+        XCTAssertTrue(contract.forbidsCapability(.liveExecutionAdapter))
+        XCTAssertTrue(contract.forbidsCapability(.realSubmitCancelReplace))
+        XCTAssertTrue(contract.contractBoundaryHeld)
+
+        XCTAssertEqual(contract.validationAnchors, [
+            "MTP-113-MARKET-ORDER-SIMULATED-EXECUTION",
+            "MTP-113-LIMIT-ORDER-SIMULATED-EXECUTION",
+            "MTP-113-FULL-FILL-REJECT-EXPIRE-SEMANTICS",
+            "MTP-113-DETERMINISTIC-EXECUTION-REPLAY",
+            "MTP-113-NO-REAL-ORDER-LIVE-COMMAND",
+            "MTP-113-MARKET-LIMIT-SIMULATED-EXECUTION-VALIDATION",
+            "TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY"
+        ])
+
+        XCTAssertEqual(marketOutput.executionEvent.orderType, .market)
+        XCTAssertEqual(marketOutput.executionEvent.outcome, .fullFill)
+        XCTAssertEqual(marketOutput.executionEvent.sharedOrderState, .filledSimulated)
+        XCTAssertEqual(marketOutput.executionEvent.sharedOrderEventKind, .simulatedOrderFilled)
+        XCTAssertEqual(marketOutput.executionEvent.matchedPrice?.rawValue, 42_120.70)
+        XCTAssertEqual(marketOutput.executionEvent.filledQuantity.rawValue, 0.5)
+        XCTAssertEqual(marketOutput.executionEvent.remainingQuantity.rawValue, 0)
+        XCTAssertTrue(marketOutput.executionOutputBoundaryHeld)
+
+        XCTAssertEqual(limitFillOutput.executionEvent.orderType, .limit)
+        XCTAssertEqual(limitFillOutput.executionEvent.outcome, .fullFill)
+        XCTAssertEqual(limitFillOutput.executionEvent.limitPrice?.rawValue, 42_150)
+        XCTAssertEqual(limitFillOutput.executionEvent.matchedPrice?.rawValue, 42_120.70)
+        XCTAssertEqual(limitFillOutput.matchingOutput?.deterministicResultIdentity, marketOutput.matchingOutput?.deterministicResultIdentity)
+        XCTAssertTrue(limitFillOutput.executionOutputBoundaryHeld)
+    }
+
+    func testMTP113MarketLimitSimulatedExecutionProducesReplayableExpireAndRejectEvidence() throws {
+        // 测试场景：相同 deterministic fixture 必须稳定输出可重放的 limit expire 和 reject evidence；
+        // expire 仍引用 matching output，reject 在 fill 前停止且不产生 matching output。
+        let limitExpire = try MarketLimitSimulatedExecutionModel.execute(.deterministicLimitExpireFixture)
+        let limitExpireRepeat = try MarketLimitSimulatedExecutionModel.execute(.deterministicLimitExpireFixture)
+        let rejected = try MarketLimitSimulatedExecutionModel.execute(.deterministicRejectedFixture)
+
+        XCTAssertEqual(limitExpire, limitExpireRepeat)
+        XCTAssertEqual(limitExpire.executionEvent.outcome, .expired)
+        XCTAssertEqual(limitExpire.executionEvent.sharedOrderState, .expiredSimulated)
+        XCTAssertEqual(limitExpire.executionEvent.sharedOrderEventKind, .simulatedOrderExpired)
+        XCTAssertEqual(limitExpire.executionEvent.limitPrice?.rawValue, 42_100)
+        XCTAssertEqual(limitExpire.executionEvent.matchedPrice?.rawValue, 42_120.70)
+        XCTAssertEqual(limitExpire.executionEvent.filledQuantity.rawValue, 0)
+        XCTAssertEqual(limitExpire.executionEvent.remainingQuantity.rawValue, 0.5)
+        XCTAssertEqual(
+            limitExpire.deterministicResultIdentity,
+            [
+                "mtp-104-btcusdt-1m-first-scenario",
+                "dataset-v1",
+                "fixture-v1",
+                "1704067200...1704067380",
+                "cursor=2",
+                "record=2",
+                "order=paper-order-intent-allowed",
+                "orderType=limit order simulated execution",
+                "limit=42100000000",
+                "initialState=accepted simulated",
+                "outcome=expired simulated",
+                "matchedPrice=42120700000",
+                "filled=0",
+                "remaining=500000"
+            ].joined(separator: "|")
+        )
+
+        XCTAssertEqual(rejected.executionEvent.outcome, .rejected)
+        XCTAssertEqual(rejected.executionEvent.sharedOrderState, .rejectedSimulated)
+        XCTAssertEqual(rejected.executionEvent.sharedOrderEventKind, .simulatedOrderRejected)
+        XCTAssertEqual(rejected.executionEvent.rejectReason, .rejectedSharedOrderState)
+        XCTAssertNil(rejected.matchingOutput)
+        XCTAssertTrue(rejected.executionOutputBoundaryHeld)
+
+        let encoded = try JSONEncoder().encode(limitExpire)
+        let decoded = try JSONDecoder().decode(MarketLimitSimulatedExecutionOutput.self, from: encoded)
+        XCTAssertEqual(decoded, limitExpire)
+        XCTAssertEqual(decoded.deterministicResultIdentity, limitExpire.deterministicResultIdentity)
+    }
+
+    func testMTP113MarketLimitSimulatedExecutionRejectsLiveAdvancedAndPartialBypass() throws {
+        // 测试场景：MTP-113 初始化和 Codable 解码必须拒绝 advanced order、真实执行 runtime、
+        // signed/account/listenKey、broker、OMS、execution report、partial fill、live command 和交易按钮绕过。
+        XCTAssertThrowsError(
+            try MarketLimitSimulatedExecutionContract(implementsAdvancedOrderTypes: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability("implementsAdvancedOrderTypes")
+            )
+        }
+        XCTAssertThrowsError(
+            try MarketLimitSimulatedExecutionContract(implementsOrderExecutionRuntime: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability("implementsOrderExecutionRuntime")
+            )
+        }
+        XCTAssertThrowsError(
+            try MarketLimitSimulatedExecutionInput(
+                orderType: .market,
+                limitPrice: try Price(42_150, field: "marketLimitSimulatedExecution.limitPrice")
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityContractMismatch(
+                    field: "marketLimitSimulatedExecutionInput.limitPrice",
+                    expected: "nil for market order",
+                    actual: "non-nil"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try MarketLimitSimulatedExecutionInput(orderType: .limit)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityContractMismatch(
+                    field: "marketLimitSimulatedExecutionInput.limitPrice",
+                    expected: "non-nil for limit order",
+                    actual: "nil"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try MarketLimitSimulatedExecutionInput(orderType: .market, usesSignedEndpoint: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability(
+                    "marketLimitSimulatedExecutionInput.usesSignedEndpoint"
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try MarketLimitSimulatedExecutionEvent(
+                eventID: try Identifier("mtp-113-partial-bypass"),
+                orderType: .market,
+                outcome: .fullFill,
+                orderID: try Identifier("paper-order-intent-allowed"),
+                sharedOrderState: .filledSimulated,
+                sharedOrderEventKind: .simulatedOrderFilled,
+                matchedPrice: try Price(42_120.70),
+                limitPrice: nil,
+                orderQuantity: try Quantity(0.5),
+                filledQuantity: try Quantity(0.25),
+                remainingQuantity: try Quantity(0.25),
+                rejectReason: nil,
+                sourceAnchor: "MTP-113-FULL-FILL-REJECT-EXPIRE-SEMANTICS"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityContractMismatch(
+                    field: "marketLimitSimulatedExecutionEvent.fullFill",
+                    expected: "filled simulated event with full order quantity",
+                    actual: "filled simulated"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(MarketLimitSimulatedExecutionInput.deterministicMarketFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["providesTradingButton"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(MarketLimitSimulatedExecutionInput.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability(
+                    "marketLimitSimulatedExecutionInput.providesTradingButton"
+                )
+            )
+        }
+    }
+
     func testMTP104ScenarioManifestDefinesIdentityVersionAndSerialization() throws {
         // 测试场景：MTP-104 manifest 必须固定 scenario id、dataset version、symbol、timeframe、
         // source anchor 和 deterministic serialization evidence，作为后续 fixture / replay / report input 的稳定来源。
