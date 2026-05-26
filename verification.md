@@ -10973,3 +10973,54 @@ L1 Paper Runtime maturity statement：
 - 不输出最终 Stage Code Audit Report。
 - 不创建下一 Project / Issue，不推进下一阶段。
 - 不实现 manifest parser、Runtime replay job、production data platform、production data observability、automatic download、automatic repair、broker / account reconciliation、Simulated Exchange / Backtest Parity runtime、multi-symbol / multi-timeframe production catalog、database schema exposure、adapter request exposure、Runtime object read、signed endpoint、account endpoint / listenKey、secret、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、real account / broker position read、live runtime、live command、trading button 或 Live PRO Console。
+
+---
+
+## 2026-05-26 — MTPRO Data Catalog / Scenario Replay Project closure root docs refresh
+
+执行者：Parent Codex Automation Supervision（`@002 / PAR`）
+
+目的：
+
+- 完成 `MTPRO Data Catalog / Scenario Replay v1` 的 Project closure 后 root docs refresh gate。
+- 同步 `MTP-103` 至 `MTP-109` 全部 Done、PR #201 至 #207 全部 merged、Stage Code Audit Report 已落仓和 Linear Project `Completed/type=completed` 的已发生事实。
+- 新增 Engine Maturity Roadmap 口径：`L1 Paper Runtime` Done、`L1.5 Data Catalog / Scenario Replay` Done、`L2 Simulated Exchange / Backtest Parity` Next candidate、`L2+ Workbench Beta Readiness` Future、`L3 Live Read-only Readiness` Future Gated、`L4 Live Production` Future Gated。
+- 保持旧的 Final Product Goal Progress `9 / 9 (100%)` 不变。
+
+文件范围：
+
+- 更新 `GOAL.md`、`BLUEPRINT.md`、`docs/architecture.md`、`docs/roadmap.md` 和 `docs/validation/latest-verification-summary.md`，同步 L1.5 closure、Project Closure Count `14 / 14 (100%)`、Engine Maturity Roadmap Progress `2 / 4 (50%)`、current maturity statement 和 next recommended maturity slice。
+- 更新 `docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，新增 Data Catalog / Scenario Replay stage code audit report anchor 和 roadmap progress mechanical checks。
+- 更新本 append-only `verification.md`。
+
+关键证据：
+
+- `docs/audit/mtpro-data-catalog-scenario-replay-v1-stage-code-audit.md` 已记录 Project goal achieved、Linear Project Completed evidence、MTP-103..MTP-109 issue / PR / merge / checks evidence、Engine Map Alignment、Scenario Replay Evidence Consistency、Boundary Audit、Root Docs Delta input 和 forbidden capability audit。
+- Stage Code Audit PR #208 已通过 GitHub required check `checks` 并 squash merge，merge commit 为 `7cf641cd7124476d11f568289f87b153e92c80f9`，check run 为 `https://github.com/atxinbao/MTPRO/actions/runs/26424535064/job/77785448327`。
+- Root Docs Refresh Gate 只同步已发生事实，不创建下一 Project / Issue，不推进下一阶段，不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma，不写业务代码。
+
+当前成熟度：
+
+- Engine Maturity Roadmap Progress：`2 / 4 (50%)`。
+- Current maturity statement：`L1.5 Data Catalog / Scenario Replay complete`。
+- Next recommended maturity slice：`L2 Simulated Exchange / Backtest Parity v1`。
+- L3 Live Read-only Readiness 和 L4 Live Production 仍为 Future Gated，不计入当前 progress denominator。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Root Docs Refresh Gate 文档补丁完成后执行，无 whitespace error。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；机械检查 Data Catalog stage code audit report anchor、Engine Maturity Roadmap Progress、latest summary closure facts 和 forbidden boundary anchors。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 242 个 XCTest；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; scenarioReplayEvidence=0; scenarioQualityGates=0; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3`，最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不修改旧 `Final Product Goal Progress: 9 / 9 (100%)`。
+- 不创建下一 Project / Issue。
+- 不推进 Linear queue。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify update。
+- 不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。

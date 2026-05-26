@@ -34,6 +34,7 @@
 | Event-Driven Paper Trading Runtime stage audit input anchor | ready | `docs/audit/inputs/mtpro-event-driven-paper-trading-runtime-v1-stage-audit-input.md` |
 | Event-Driven Paper Trading Runtime stage code audit report anchor | ready | `docs/audit/mtpro-event-driven-paper-trading-runtime-v1-stage-code-audit.md` |
 | Data Catalog / Scenario Replay stage audit input anchor | ready | `docs/audit/inputs/mtpro-data-catalog-scenario-replay-v1-stage-audit-input.md` |
+| Data Catalog / Scenario Replay stage code audit report anchor | ready | `docs/audit/mtpro-data-catalog-scenario-replay-v1-stage-code-audit.md` |
 
 ## Project 切换规则
 
