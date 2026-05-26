@@ -2785,3 +2785,42 @@ MTP-123 的验收要求：
 - 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、live readiness、live runtime、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
 - 不新增 stage audit input，不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进 MTP-124。
+
+## MTP-124 Docs Index / Operator Guide Validation
+
+日期：2026-05-27
+
+执行者：Codex
+
+MTP-124 的 required validation：
+
+- `bash checks/run.sh`
+
+MTP-124 必须建立的主要 anchors：
+
+- `MTP-124-DOCS-INDEX`
+- `MTP-124-OPERATOR-GUIDE`
+- `MTP-124-DEMO-WORKFLOW-GUIDE`
+- `MTP-124-KNOWN-LIMITATIONS`
+- `MTP-124-FORBIDDEN-CAPABILITY-BOUNDARY`
+- `MTP-124-TROUBLESHOOTING-POINTERS`
+- `MTP-124-BETA-NOT-LIVE-READINESS`
+- `MTP-124-ACCEPTANCE-WORKFLOW-REFERENCE`
+- `MTP-124-DOCS-OPERATOR-GUIDE-VALIDATION`
+
+MTP-124 的验收要求：
+
+- `docs/index.md` 必须作为 docs index，指向 root docs、Workbench Beta Readiness operator guide、demo workflow guide、MTP-123 acceptance checklist / script 和 required validation。
+- `docs/validation/workbench-beta-operator-guide.md` 必须记录 operator quick path、manual runbook、expected smoke handles、known limitations、forbidden capabilities、troubleshooting pointers 和 handoff evidence。
+- `docs/validation/workbench-beta-demo-workflow-guide.md` 必须记录 MTP-119 至 MTP-123 demo workflow map、stable demo identity、evidence chain、operator demo steps、known limitations、forbidden boundary 和 troubleshooting pointers。
+- `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-124 mechanical anchors。
+- Validation 必须证明 docs anchor、boundary text 和 acceptance workflow 引用完整，且文档不授权 production release、Live PRO Console、signed endpoint、account endpoint / listenKey、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、trading button 或 live command。
+
+## MTP-124 禁止
+
+- 不写 marketing landing page、不写 Live PRO Console docs、不写 production deployment guide、不写 notarization / App Store / auto-update guide。
+- 不新增 production code、不新增 engine core capability、不新增 Runtime replay job、不新增 App read model、不新增 Dashboard behavior。
+- 不新增 stage audit input；Project stage closeout 仍归属 MTP-125。
+- 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、live readiness、live runtime、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
+- 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进 MTP-125。

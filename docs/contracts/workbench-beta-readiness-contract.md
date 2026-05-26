@@ -565,3 +565,67 @@ Focused validation anchors：
 - `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-123 anchors。
 
 MTP-123 不新增 engine core capability、不新增 Runtime replay job、不新增 App read model、不新增 stage audit input；Project stage closeout 仍归属 `MTP-125`。
+
+## MTP-124 docs index / operator guide / demo workflow guide
+
+执行记录：2026-05-27，Codex。
+
+`MTP-124-DOCS-INDEX`
+
+MTP-124 增加 `docs/index.md` 作为 MTPRO docs index。该 index 只帮助 Human / operator 找到 root docs、Workbench Beta Readiness docs、operator guide、demo workflow guide、acceptance checklist 和 required validation，不替代 Linear issue body，不授权下一阶段执行，不创建 production release，不表示 live readiness。
+
+`MTP-124-OPERATOR-GUIDE`
+
+MTP-124 增加 `docs/validation/workbench-beta-operator-guide.md` 作为 local Workbench beta operator guide。该 guide 只服务本机 macOS operator：确认 Darwin / SwiftPM 环境、运行 Dashboard smoke、执行 `bash checks/workbench-beta-acceptance.sh` 和 `bash checks/run.sh`、阅读 stable smoke handles、定位失败原因。它不是 marketing landing page、Live PRO Console docs、production deployment guide、notarization guide、App Store guide 或 auto-update guide。
+
+`MTP-124-DEMO-WORKFLOW-GUIDE`
+
+MTP-124 增加 `docs/validation/workbench-beta-demo-workflow-guide.md`，把 MTP-119 local launch / install path、MTP-120 deterministic demo fixture、MTP-121 first-run default demo state、MTP-122 Report / Dashboard / Events acceptance path 和 MTP-123 reproducible checklist / script 串成 operator 可读 demo workflow。该 guide 只解释已完成 evidence chain，不新增 Runtime job、App read model、Dashboard behavior、scenario selector、download action、repair command、Graphify update 或 Figma change。
+
+`MTP-124-KNOWN-LIMITATIONS`
+
+MTP-124 必须记录 known limitations：
+
+- local install 只表示 SwiftPM dependency resolution 和 `.build` 本地 artifact。
+- Dashboard smoke 是 command-line smoke summary，不是 notarized app、screenshot review 或 UI click automation。
+- Demo scenario 固定为 `mtp-104-btcusdt-1m-first-scenario`、`dataset-v1`、`fixture-v1`、`BTCUSDT` / `1m`。
+- Acceptance transcript 只写入 `.codex/beta-acceptance/<run-id>/`，不进入 PR。
+- MTP-125 才能收口 automation readiness / validation evidence / stage audit input，MTP-124 不输出最终 Stage Code Audit Report。
+
+`MTP-124-FORBIDDEN-CAPABILITY-BOUNDARY`
+
+MTP-124 docs 必须持续禁止把以下能力写成当前支持、beta preview、behind flag 或 partially supported：
+
+- production release、notarization、App Store distribution、auto-update、production deployment、cloud operations。
+- API key / secret read、signed endpoint、account endpoint、listenKey。
+- broker / exchange execution adapter、`LiveExecutionAdapter`、OMS。
+- real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation。
+- real account balance、broker position sync、margin、leverage、real PnL。
+- live readiness、live runtime、Live PRO Console、trading button、live command、order-level command UI。
+- emergency stop、shutdown、restore、production operations command。
+- Graphify update、Figma change。
+
+`MTP-124-TROUBLESHOOTING-POINTERS`
+
+MTP-124 troubleshooting 只允许沿 `uname -s`、`swift --version`、`swift package resolve`、`swift build --product Dashboard`、`DASHBOARD_SMOKE=1 swift run Dashboard`、`bash checks/workbench-beta-acceptance.sh` 和 `bash checks/run.sh` 收窄失败。不得通过读取 secret、连接 signed endpoint / account endpoint / listenKey、接入 broker、实现 `LiveExecutionAdapter`、新增 OMS、启用 Live PRO Console、添加 trading button、运行 Graphify 或修改 Figma 来绕过 local beta failure。
+
+`MTP-124-BETA-NOT-LIVE-READINESS`
+
+MTP-124 必须明确 beta readiness 不等于 live readiness。Workbench beta readiness 只表示 local macOS Workbench demo / acceptance path 可被 operator 复现；不表示 production release、真实账户准备、broker readiness、Live PRO Console readiness、live runtime readiness、真实交易授权或下一阶段 execution 授权。
+
+### MTP-124 validation anchors
+
+`MTP-124-DOCS-OPERATOR-GUIDE-VALIDATION`
+
+Required validation：
+
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `docs/index.md` 必须包含 docs index、Workbench Beta Readiness docs entry、operator guide / demo workflow / acceptance checklist references 和 beta-not-live-readiness boundary。
+- `docs/validation/workbench-beta-operator-guide.md` 必须包含 operator quick path、manual runbook、expected smoke handles、known limitations、forbidden capabilities、troubleshooting pointers 和 evidence handoff。
+- `docs/validation/workbench-beta-demo-workflow-guide.md` 必须包含 MTP-119 至 MTP-123 demo workflow map、stable demo identity、evidence chain、operator demo steps、known limitations、forbidden boundary 和 troubleshooting pointers。
+- `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-124 anchors。
+
+MTP-124 不新增 production code、不新增 engine core capability、不新增 Runtime replay job、不新增 App read model、不新增 Dashboard behavior、不新增 stage audit input；Project stage closeout 仍归属 `MTP-125`。

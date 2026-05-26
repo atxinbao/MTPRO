@@ -44,6 +44,7 @@
 | Workbench Beta Readiness first-run default demo anchor | ready | `Sources/App/WorkbenchBetaFirstRunState.swift`；MTP-121 只把 MTP-120 demo fixture 接入 App Read Model / ViewModel 和 Dashboard smoke default demo state，保留 empty / loading / error fallback，不新增 Live PRO Console、trading button、live command、Runtime replay job、Report / Dashboard / Events acceptance path 或真实交易能力 |
 | Workbench Beta Readiness Report / Dashboard / Events beta acceptance path anchor | ready | `Sources/App/WorkbenchBetaAcceptancePath.swift`；MTP-122 只把同一 MTP-120 / MTP-121 demo fixture 串成 Report summary、Dashboard panels、Events trace 和 portfolio evidence 的 read-model-only acceptance path，不新增 Runtime replay job、stage audit input、Live PRO Console、trading button、live command 或真实交易能力 |
 | Workbench Beta Readiness reproducible beta acceptance anchor | ready | `checks/workbench-beta-acceptance.sh` 和 `docs/validation/workbench-beta-acceptance-checklist.md`；MTP-123 只把既有 local commands、Dashboard smoke handles 和 `bash checks/run.sh` 串成 operator checklist / script，不新增 Graphify、Figma、production ops、release automation、Live PRO Console、trading button、live command 或真实交易能力 |
+| Workbench Beta Readiness docs index / operator guide anchor | ready | `docs/index.md`、`docs/validation/workbench-beta-operator-guide.md` 和 `docs/validation/workbench-beta-demo-workflow-guide.md`；MTP-124 只把 MTP-119 至 MTP-123 的 local Workbench beta path 组织成 operator 可读文档，不新增 production code、stage audit input、production release、Live PRO Console、trading button、live command、Graphify 或 Figma |
 
 ## Project 切换规则
 
