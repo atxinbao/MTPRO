@@ -228,6 +228,6 @@ local scenario replay identity
 
 ## Root Docs Refresh Gate
 
-Root Docs Refresh Gate：pending。
+Root Docs Refresh Gate：closed。
 
-本报告先落仓 Stage Code Audit evidence。Root Docs Refresh Gate 必须在本报告 PR 合并后单独执行，只同步已发生事实，不创建下一 Project / Issue，不推进 `Todo`，不启动 Symphony，不运行 Graphify，不修改 Figma，不写业务 runtime，不授权下一阶段 planning 或 execution。
+Root Docs Refresh Gate 已在本报告 PR merge 后由 `@002 / PAR` 单独执行，只同步已发生事实：`GOAL.md`、`BLUEPRINT.md`、`docs/architecture.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md`、`checks/automation-readiness.sh` 和 `verification.md` 已同步 `L2 Simulated Exchange / Backtest Parity complete`、`Engine Maturity Roadmap Progress: 3 / 4 (75%)` 和 `Next recommended maturity slice: L2+ Workbench Beta Readiness v1`。本 Gate 不创建下一 Project / Issue，不推进 `Todo`，不启动 Symphony，不运行 Graphify，不修改 Figma，不写业务 runtime，不授权下一阶段 planning 或 execution。
