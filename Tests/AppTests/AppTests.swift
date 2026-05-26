@@ -1971,6 +1971,98 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(snapshot.workbench.providesOrderLevelCommand)
     }
 
+    func testMTP121WorkbenchFirstRunDefaultDemoStateFeedsDashboardSmokeReadOnly() throws {
+        // 测试场景：MTP-121 Dashboard 启动默认状态必须选择 MTP-120 的 deterministic beta demo
+        // fixture，并把 first-run evidence 作为 App ViewModel / Dashboard smoke 只读证据输出。
+        let viewModel = DashboardViewModel.defaultWorkbenchBetaDemo
+        let firstRun = viewModel.workbenchBetaFirstRun
+        let summary = try XCTUnwrap(firstRun.evidenceSummary)
+        let snapshot = DashboardShellSnapshot(viewModel: viewModel)
+        let workbench = snapshot.workbench
+
+        XCTAssertEqual(firstRun.state, .defaultDemo)
+        XCTAssertEqual(firstRun.selectedScenarioID, "mtp-104-btcusdt-1m-first-scenario")
+        XCTAssertEqual(firstRun.defaultSelectedScenarioID, "mtp-104-btcusdt-1m-first-scenario")
+        XCTAssertTrue(firstRun.isDefaultSelectedScenario)
+        XCTAssertEqual(firstRun.fallbackStateLabels, ["empty", "loading", "error"])
+        XCTAssertEqual(summary.evidenceID, "mtp-120-workbench-beta-demo-fixture-evidence")
+        XCTAssertEqual(summary.scenarioID, "mtp-104-btcusdt-1m-first-scenario")
+        XCTAssertEqual(summary.datasetVersion, "dataset-v1")
+        XCTAssertEqual(summary.fixtureVersion, "fixture-v1")
+        XCTAssertEqual(summary.symbol, "BTCUSDT")
+        XCTAssertEqual(summary.timeframe, "1m")
+        XCTAssertEqual(summary.checksum, "fnv1a64:3c6cd4ff13cd4062")
+        XCTAssertEqual(summary.freshnessStatus, .fresh)
+        XCTAssertEqual(summary.qualityVerdict, .accepted)
+        XCTAssertEqual(
+            summary.reportInputVersionIdentity,
+            "mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|1704067200...1704067380|fnv1a64:3c6cd4ff13cd4062|fresh|accepted"
+        )
+        XCTAssertTrue(summary.simulatedParityEvidenceIdentity.contains("paper-order-intent-allowed"))
+        XCTAssertEqual(summary.validationAnchors, WorkbenchBetaFirstRunEvidenceSummary.validationAnchors)
+        XCTAssertTrue(summary.scenarioReplayWiringHeld)
+        XCTAssertTrue(summary.simulatedParityWiringHeld)
+        XCTAssertTrue(summary.localDeterministicFixtureOnly)
+        XCTAssertTrue(summary.readModelOnlyHandoff)
+
+        XCTAssertEqual(viewModel.report.scenarioReplayEvidenceCount, 1)
+        XCTAssertEqual(viewModel.report.simulatedExchangeParityEvidenceCount, 1)
+        XCTAssertEqual(metricValue("First run", in: workbench.workbenchBetaFirstRunMetrics), "default demo")
+        XCTAssertEqual(
+            metricValue("Demo scenario", in: workbench.workbenchBetaFirstRunMetrics),
+            "mtp-104-btcusdt-1m-first-scenario"
+        )
+        XCTAssertEqual(metricValue("Fallbacks", in: workbench.workbenchBetaFirstRunMetrics), "3")
+        XCTAssertTrue(workbench.workbenchBetaFirstRunReadModelOnlyBoundaryHeld)
+        XCTAssertTrue(workbench.readModelOnlyBoundaryHeld)
+        XCTAssertTrue(snapshot.isReadModelOnly)
+        XCTAssertTrue(snapshot.smokeSummary.contains("scenarioReplayEvidence=1"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("simulatedParityEvidence=1"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("defaultDemoState=default demo"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("defaultDemoScenario=mtp-104-btcusdt-1m-first-scenario"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("betaFirstRunFallbacks=3"))
+
+        XCTAssertFalse(firstRun.requiredValidationDependsOnNetwork)
+        XCTAssertFalse(firstRun.exposesDatabaseSchema)
+        XCTAssertFalse(firstRun.exposesRuntimeObject)
+        XCTAssertFalse(firstRun.exposesAdapterRequest)
+        XCTAssertFalse(firstRun.providesCommandSurface)
+        XCTAssertFalse(firstRun.providesOrderLevelCommand)
+        XCTAssertFalse(firstRun.providesLiveCommand)
+        XCTAssertFalse(firstRun.providesTradingButton)
+        XCTAssertFalse(firstRun.authorizesLiveTrading)
+        XCTAssertFalse(firstRun.touchesBrokerAction)
+        XCTAssertFalse(firstRun.authorizesTradingExecution)
+    }
+
+    func testMTP121WorkbenchFirstRunFallbackStatesRemainReadModelOnly() {
+        // 测试场景：MTP-121 的 empty / loading / error fallback 只解释 first-run 展示状态，
+        // 不携带下载、重试、Runtime mutation、broker action、live command 或交易按钮。
+        for state in [WorkbenchBetaFirstRunStateKind.empty, .loading, .error] {
+            let viewModel = WorkbenchBetaFirstRunViewModel(
+                readModel: WorkbenchBetaFirstRunReadModel.fallback(state)
+            )
+
+            XCTAssertEqual(viewModel.state, state)
+            XCTAssertNil(viewModel.selectedScenarioID)
+            XCTAssertNil(viewModel.evidenceSummary)
+            XCTAssertEqual(viewModel.fallbackStateLabels, ["empty", "loading", "error"])
+            XCTAssertTrue(viewModel.fallbackStates.allSatisfy(\.boundaryHeld))
+            XCTAssertTrue(viewModel.readModelOnlyBoundaryHeld)
+            XCTAssertFalse(viewModel.requiredValidationDependsOnNetwork)
+            XCTAssertFalse(viewModel.exposesDatabaseSchema)
+            XCTAssertFalse(viewModel.exposesRuntimeObject)
+            XCTAssertFalse(viewModel.exposesAdapterRequest)
+            XCTAssertFalse(viewModel.providesCommandSurface)
+            XCTAssertFalse(viewModel.providesOrderLevelCommand)
+            XCTAssertFalse(viewModel.providesLiveCommand)
+            XCTAssertFalse(viewModel.providesTradingButton)
+            XCTAssertFalse(viewModel.authorizesLiveTrading)
+            XCTAssertFalse(viewModel.touchesBrokerAction)
+            XCTAssertFalse(viewModel.authorizesTradingExecution)
+        }
+    }
+
     func testDashboardShellSourceDoesNotImportForbiddenIntegrationLayers() throws {
         // 测试场景：SwiftUI shell 文件只能消费 App 层 ViewModel，不能导入 Runtime / Adapters，
         // 也不能直接引用数据库实现名或 public market data client 类型。

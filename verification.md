@@ -11689,3 +11689,47 @@ L1 Paper Runtime maturity statement：
 - 不读取 secret，不接 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、live readiness、live runtime、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
 - 不运行 Graphify，不修改 Figma，不修改 Linear status，不推进下一 issue。
+
+---
+
+## 2026-05-27 — MTP-121 Workbench first-run / default demo state
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear live-read 中唯一 active issue `MTP-121 Add Workbench first-run / default demo state`。
+- 让 Workbench 本地启动后默认进入可理解的 beta demo state。
+- 只通过 App Read Model / ViewModel 和 Dashboard smoke 展示 local beta evidence，不暴露 database schema、Runtime object、adapter request 或交易命令。
+- 保持 MTP-121 只消费 MTP-120 deterministic fixture wiring，不提前实现 MTP-122 Report / Dashboard / Events acceptance path 或 stage audit input。
+
+实现摘要：
+
+- 新增 `Sources/App/WorkbenchBetaFirstRunState.swift`，定义 `WorkbenchBetaFirstRunReadModel`、`WorkbenchBetaFirstRunViewModel`、`WorkbenchBetaFirstRunEvidenceSummary` 和 `WorkbenchBetaFirstRunFallbackState`。
+- 将 `DashboardReadModel` / `DashboardViewModel` 扩展为消费 `workbenchBetaFirstRun` read model，默认状态固定为 `default demo`。
+- 更新 `Sources/App/DashboardShell.swift`，在 Dashboard smoke 中输出 `defaultDemoState=default demo`、`defaultDemoScenario=mtp-104-btcusdt-1m-first-scenario`、`betaFirstRunFallbacks=3`、`scenarioReplayEvidence=1` 和 `simulatedParityEvidence=1`。
+- 更新 `Sources/Dashboard/DashboardApplication.swift`，让本地 Dashboard smoke / launch snapshot 使用 `DashboardViewModel.defaultWorkbenchBetaDemo`。
+- 更新 `Tests/AppTests/AppTests.swift`，新增 2 个 MTP-121 focused App tests，覆盖 default selected scenario、read-model-only Dashboard state、empty / loading / error fallback、first-run evidence summary、Dashboard smoke handles 和 forbidden capability flags。
+- 更新 `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，接入 MTP-121 anchors。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP121` | pass | 2 个 App tests、0 failures；验证 first-run default demo state、fallback states、read-model-only boundary 和 forbidden capability flags。 |
+| `DASHBOARD_SMOKE=1 swift run Dashboard` | pass | Dashboard product build 成功；smoke 输出 `scenarioReplayEvidence=1`、`simulatedParityEvidence=1`、`defaultDemoState=default demo`、`defaultDemoScenario=mtp-104-btcusdt-1m-first-scenario`、`betaFirstRunFallbacks=3`、`readModelOnly=true` 和 `workbenchReadModelOnly=true`。 |
+| `git diff --check` | pass | MTP-121 diff 无 whitespace / patch error 输出。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；机械检查 MTP-121 contract、domain context、validation plan、matrix、latest summary、automation readiness、App source、Dashboard source 和 focused tests anchors。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 266 个 XCTest；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=59; scenarioReplayEvidence=1; scenarioQualityGates=6; simulatedParityEvidence=1; defaultDemoState=default demo; defaultDemoScenario=mtp-104-btcusdt-1m-first-scenario; betaFirstRunFallbacks=3; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`；最终执行 266 tests、0 failures，并输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不重设计 UI，不新增完整页面 redesign。
+- 不新增 engine core capability。
+- 不暴露 database schema，不引入 Runtime object inspector，不暴露 adapter request。
+- 不提前实现 MTP-122 Report / Dashboard / Events acceptance path。
+- 不新增 stage audit input。
+- 不实现 production release、notarization、App Store distribution、auto-update 或 production operations。
+- 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进 MTP-122。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。

@@ -360,3 +360,100 @@ Focused validation anchors：
 - `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-120 anchors。
 
 MTP-120 不新增 Dashboard smoke handle、不新增 App read model、不新增 Runtime / Dashboard behavior、不新增 stage audit input；Project stage closeout 仍归属 `MTP-125`。
+
+## MTP-121 Workbench first-run / default demo state
+
+`MTP-121-DEFAULT-SELECTED-SCENARIO`
+
+MTP-121 在 MTP-120 固定的 local deterministic beta demo fixture 之上定义 Workbench first-run 默认选择：
+
+| 字段 | 默认值 | 验收含义 |
+| --- | --- | --- |
+| first-run state | `default demo` | Dashboard 启动后默认展示可解释 beta evidence，不停留在空白状态 |
+| selected scenario | `mtp-104-btcusdt-1m-first-scenario` | 只消费 MTP-120 选定 scenario |
+| dataset / fixture version | `dataset-v1` / `fixture-v1` | 与 MTP-120 version lock 对齐 |
+| checksum / freshness / quality | `fnv1a64:3c6cd4ff13cd4062` / `fresh` / `accepted` | 与 Scenario Replay report input evidence 对齐 |
+
+该默认选择只服务 local macOS Workbench beta first-run，不表示 production dataset、remote catalog、download job、live readiness、Live PRO Console 或真实交易授权。
+
+### MTP-121 read-model-only dashboard state
+
+`MTP-121-READ-MODEL-ONLY-DASHBOARD-STATE`
+
+MTP-121 的 App tracer bullet 是 `WorkbenchBetaFirstRunReadModel` 与 `WorkbenchBetaFirstRunViewModel`：
+
+- `WorkbenchBetaFirstRunReadModel.defaultDemoState` 只复制 `WorkbenchBetaDemoFixtureEvidence.deterministicFixture` 的 scenario、dataset / fixture version、checksum、freshness、quality、report input version 和 L1.5 / L2 relationship。
+- `DashboardReadModel.defaultWorkbenchBetaDemo` 把 first-run read model 与 `ScenarioReplayEvidenceReadModel.deterministicFixture`、`SimulatedExchangeParityEvidenceReadModel.deterministicFixture` 组合为启动 snapshot。
+- `DashboardViewModel.defaultWorkbenchBetaDemo` 和 `DashboardShellSnapshot.smokeSummary` 输出 `defaultDemoState=default demo`、`defaultDemoScenario=mtp-104-btcusdt-1m-first-scenario`、`scenarioReplayEvidence=1`、`simulatedParityEvidence=1` 和 `betaFirstRunFallbacks=3`。
+
+Dashboard 只能消费 App ViewModel / Read Model，不直接读取 Core fixture、Persistence schema、Runtime object 或 Adapter request。
+
+### MTP-121 first-run fallback states
+
+`MTP-121-FIRST-RUN-FALLBACK-STATES`
+
+MTP-121 固定三个 fallback 状态：
+
+- `empty`：没有 beta evidence read model 时的只读空状态。
+- `loading`：本地 read model 正在组装时的只读加载状态。
+- `error`：read model 校验失败时的只读错误状态。
+
+Fallback 不携带 retry / download / repair command，不启动 Runtime mutation，不读 secret，不接 signed endpoint、account endpoint、listenKey、broker、`LiveExecutionAdapter`、OMS、Live PRO Console、live command 或 trading button。
+
+### MTP-121 first-run evidence summary
+
+`MTP-121-FIRST-RUN-EVIDENCE-SUMMARY`
+
+First-run summary 必须包含：
+
+```text
+state=default demo
+scenario=mtp-104-btcusdt-1m-first-scenario
+dataset=dataset-v1
+fixture=fixture-v1
+checksum=fnv1a64:3c6cd4ff13cd4062
+freshness=fresh
+quality=accepted
+reportInputVersion=mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|1704067200...1704067380|fnv1a64:3c6cd4ff13cd4062|fresh|accepted
+fallbacks=empty,loading,error
+```
+
+`MTP-121-DEMO-FIXTURE-ALIGNMENT`
+
+MTP-121 first-run state 必须与 MTP-120 fixture wiring 对齐：同一 scenario、同一 dataset / fixture version、同一 report input version，并同时展示 Scenario Replay 和 Simulated Exchange / Backtest Parity evidence。它不新建 fixture records，不提前实现 MTP-122 Report / Dashboard / Events acceptance path，不新增 stage audit input。
+
+### MTP-121 forbidden boundary
+
+`MTP-121-NO-LIVE-PRO-CONSOLE-TRADING-COMMAND`
+
+MTP-121 必须持续禁止：
+
+- UI redesign / full page redesign
+- database schema / Runtime object / Adapter request exposure
+- retry / download / repair / Runtime mutation command
+- signed endpoint / account endpoint / listenKey / API key / secret read
+- broker / exchange execution adapter / `LiveExecutionAdapter`
+- OMS / real order lifecycle / real submit / cancel / replace
+- execution report / broker fill / reconciliation
+- real account / broker position / margin / leverage read
+- Live PRO Console / live command / trading button
+- Graphify update / Figma change
+
+### MTP-121 validation anchors
+
+`MTP-121-DASHBOARD-SMOKE-DEFAULT-DEMO-VALIDATION`
+
+Required validation：
+
+- `swift test --filter MTP121`
+- `DASHBOARD_SMOKE=1 swift run Dashboard`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `Sources/App/WorkbenchBetaFirstRunState.swift` 必须定义 `WorkbenchBetaFirstRunReadModel` 和 `WorkbenchBetaFirstRunViewModel`。
+- `Sources/Dashboard/DashboardApplication.swift` 必须使用 `DashboardViewModel.defaultWorkbenchBetaDemo`。
+- `Tests/AppTests/AppTests.swift` 必须包含 MTP-121 focused tests，验证 default selected scenario、read-model-only Dashboard state、empty / loading / error fallback、first-run evidence summary、Dashboard smoke handles 和 forbidden capability boundary。
+- `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-121 anchors。
+
+MTP-121 不新增 engine core capability、不新增 Runtime replay job、不新增 Report / Dashboard / Events acceptance path、不新增 stage audit input；Project stage closeout 仍归属 `MTP-125`。

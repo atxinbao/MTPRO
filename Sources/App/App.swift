@@ -1160,14 +1160,15 @@ public struct ReportReadModel: Equatable, Sendable {
 /// DashboardReadModel 聚合 Dashboard 所需的稳定 read model。
 ///
 /// 输入来自 Persistence projection snapshots、append-only event timeline 和 Core Live readiness
-/// blocked read model；新增 Report / Event Timeline / simulated exchange parity evidence 也遵循同一来源边界，禁止 UI
-/// 直接读取数据库 schema、Runtime object、行情 adapter、真实 Live trading capability 或真实
-/// Live Risk / incident stop runtime。
+/// blocked read model；新增 Report / Event Timeline / simulated exchange parity evidence 和
+/// Workbench beta first-run state 也遵循同一来源边界，禁止 UI 直接读取数据库 schema、Runtime
+/// object、行情 adapter、真实 Live trading capability 或真实 Live Risk / incident stop runtime。
 public struct DashboardReadModel: Equatable, Sendable {
     public let market: MarketReadModel
     public let strategy: StrategyReadModel
     public let backtest: BacktestReadModel
     public let report: ReportReadModel
+    public let workbenchBetaFirstRun: WorkbenchBetaFirstRunReadModel
     public let paperWorkflowObservability: PaperWorkflowObservabilityReadModel
     public let paperWorkflowEvidenceExplorer: PaperWorkflowEvidenceExplorerReadModel
     public let paper: PaperReadModel
@@ -1180,6 +1181,7 @@ public struct DashboardReadModel: Equatable, Sendable {
         strategy: StrategyReadModel,
         backtest: BacktestReadModel,
         report: ReportReadModel,
+        workbenchBetaFirstRun: WorkbenchBetaFirstRunReadModel = .empty,
         paperWorkflowObservability: PaperWorkflowObservabilityReadModel = PaperWorkflowObservabilityReadModel(),
         paperWorkflowEvidenceExplorer: PaperWorkflowEvidenceExplorerReadModel? = nil,
         paper: PaperReadModel,
@@ -1191,6 +1193,7 @@ public struct DashboardReadModel: Equatable, Sendable {
         self.strategy = strategy
         self.backtest = backtest
         self.report = report
+        self.workbenchBetaFirstRun = workbenchBetaFirstRun
         self.paperWorkflowObservability = paperWorkflowObservability
         self.paperWorkflowEvidenceExplorer = paperWorkflowEvidenceExplorer ?? PaperWorkflowEvidenceExplorerReadModel(
             market: market,
@@ -1223,7 +1226,8 @@ public struct DashboardReadModel: Equatable, Sendable {
         liveMonitoringEvidence: LiveMonitoringEvidenceReadModel = LiveMonitoringEvidenceReadModel(),
         liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel = LiveExecutionControlBlockedEvidenceReadModel(),
         liveRiskGateBlockedEvidence: LiveRiskGateBlockedEvidenceReadModel = LiveRiskGateBlockedEvidenceReadModel(),
-        liveIncidentStopBlockedEvidence: LiveIncidentStopBlockedEvidenceReadModel = LiveIncidentStopBlockedEvidenceReadModel()
+        liveIncidentStopBlockedEvidence: LiveIncidentStopBlockedEvidenceReadModel = LiveIncidentStopBlockedEvidenceReadModel(),
+        workbenchBetaFirstRun: WorkbenchBetaFirstRunReadModel = .empty
     ) {
         let report = ReportReadModel(
             analyticalProjection: analyticalProjection,
@@ -1257,6 +1261,7 @@ public struct DashboardReadModel: Equatable, Sendable {
             strategy: strategy,
             backtest: backtest,
             report: report,
+            workbenchBetaFirstRun: workbenchBetaFirstRun,
             paperWorkflowObservability: paperWorkflowObservability,
             paperWorkflowEvidenceExplorer: PaperWorkflowEvidenceExplorerReadModel(
                 market: market,
@@ -2390,6 +2395,7 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
     public let strategy: StrategyViewModel
     public let backtest: BacktestViewModel
     public let report: ReportViewModel
+    public let workbenchBetaFirstRun: WorkbenchBetaFirstRunViewModel
     public let paperWorkflowObservability: PaperWorkflowObservabilityViewModel
     public let paperWorkflowEvidenceExplorer: PaperWorkflowEvidenceExplorerViewModel
     public let paper: PaperViewModel
@@ -2406,6 +2412,9 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
         self.strategy = StrategyViewModel(readModel: readModel.strategy)
         self.backtest = BacktestViewModel(readModel: readModel.backtest)
         self.report = ReportViewModel(readModel: readModel.report)
+        self.workbenchBetaFirstRun = WorkbenchBetaFirstRunViewModel(
+            readModel: readModel.workbenchBetaFirstRun
+        )
         self.paperWorkflowObservability = PaperWorkflowObservabilityViewModel(
             readModel: readModel.paperWorkflowObservability
         )
@@ -2432,6 +2441,7 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
             report.liveExecutionControlBlockedEvidence.source,
             report.liveRiskGateBlockedEvidence.source,
             report.liveIncidentStopBlockedEvidence.source,
+            workbenchBetaFirstRun.source,
             paperWorkflowObservability.source,
             paperWorkflowEvidenceExplorer.source,
             paper.source,

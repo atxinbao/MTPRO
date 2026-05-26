@@ -786,6 +786,37 @@ MTP-120 只记录 L1.5 Scenario Replay evidence 与 L2 Simulated Exchange / Back
 
 MTP-120 validation 必须证明 demo path 不依赖真实网络或自动下载，不接 signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、Live PRO Console、live command、trading button、Graphify 或 Figma。
 
+`MTP-121-DEFAULT-SELECTED-SCENARIO`
+
+MTP-121 把 Workbench first-run 默认选择固定为 MTP-120 的 local deterministic beta demo scenario：`mtp-104-btcusdt-1m-first-scenario`、`dataset-v1`、`fixture-v1`、`BTCUSDT` / `1m`。该默认选择只表示本地 Workbench beta demo 启动状态，不等于 production dataset、remote catalog、Runtime replay job、live readiness 或真实交易授权。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `first-run default demo state` | Dashboard 启动后默认展示的 local beta evidence state | 不等于 UI redesign、Live PRO Console、production release 或 live readiness |
+| `default selected scenario` | MTP-121 启动 snapshot 中选择的 MTP-120 deterministic scenario | 不等于用户可切换 scenario selector、remote catalog 或下载任务 |
+| `first-run evidence summary` | App ViewModel 复制 scenario、dataset / fixture version、checksum、freshness、quality、report input version 和 L1.5 / L2 relationship 的只读摘要 | 不等于 Runtime replay result、Persistence schema、Core object inspector 或执行入口 |
+| `first-run fallback state` | `empty` / `loading` / `error` 三个只读 fallback | 不等于 retry command、download command、repair command 或 Runtime mutation |
+
+`MTP-121-READ-MODEL-ONLY-DASHBOARD-STATE`
+
+MTP-121 的 first-run state 只能通过 `WorkbenchBetaFirstRunReadModel`、`WorkbenchBetaFirstRunViewModel`、`DashboardReadModel.defaultWorkbenchBetaDemo` 和 `DashboardViewModel.defaultWorkbenchBetaDemo` 进入 Dashboard。Dashboard 不直接读取 Core fixture、Persistence schema、Runtime object 或 Adapter request。
+
+`MTP-121-FIRST-RUN-FALLBACK-STATES`
+
+MTP-121 固定 fallback states 为 `empty`、`loading`、`error`。这些 fallback 只解释展示状态，不提供 retry / download / repair command，不读取 secret，不接 signed endpoint、account endpoint、listenKey、broker、`LiveExecutionAdapter`、OMS、Live PRO Console、live command 或 trading button。
+
+`MTP-121-FIRST-RUN-EVIDENCE-SUMMARY`
+
+MTP-121 first-run summary 必须保留 `checksum=fnv1a64:3c6cd4ff13cd4062`、`freshness=fresh`、`quality=accepted`、`scenarioReplayEvidence=1`、`simulatedParityEvidence=1` 和 `defaultDemoScenario=mtp-104-btcusdt-1m-first-scenario`。它只消费 MTP-120 fixture wiring，不新建 fixture records，不实现 MTP-122 Report / Dashboard / Events acceptance path。
+
+`MTP-121-DEMO-FIXTURE-ALIGNMENT`
+
+MTP-121 必须证明 first-run state 与 MTP-120 demo fixture wiring 使用同一 scenario、dataset version、fixture version、report input version 和 parity evidence identity；不得换数据源或把 demo state 写成 production data readiness。
+
+`MTP-121-NO-LIVE-PRO-CONSOLE-TRADING-COMMAND`
+
+MTP-121 validation 必须证明 first-run state 不新增 Live PRO Console、live command、trading button、order-level command、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、Graphify 或 Figma。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

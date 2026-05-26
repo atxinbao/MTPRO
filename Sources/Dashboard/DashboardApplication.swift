@@ -6,16 +6,16 @@ import SwiftUI
 
 /// DashboardApplication 是 SwiftPM 可构建和可 smoke-run 的 macOS 看板入口。
 ///
-/// 入口只装载 App 模块提供的 `DashboardViewModel.emptyResearchWorkbench`，用于验证
-/// Dashboard shell 能从稳定 ViewModel snapshot 启动；它不读取 secret、不连接外部系统、
-/// 不触发真实交易行为，也不绕过后续 runtime / projection issue 的边界。
+/// 入口只装载 App 模块提供的 `DashboardViewModel.defaultWorkbenchBetaDemo`，用于验证
+/// Dashboard shell 能从稳定 ViewModel snapshot 启动并展示 MTP-121 first-run demo evidence；
+/// 它不读取 secret、不连接外部系统、不触发真实交易行为，也不绕过 Runtime / projection 边界。
 @main
 struct DashboardApplication: SwiftUI.App {
     private let viewModel: DashboardViewModel
     private let logger = Logger(subsystem: "Dashboard", category: "launch")
 
     init() {
-        let viewModel = DashboardViewModel.emptyResearchWorkbench
+        let viewModel = DashboardViewModel.defaultWorkbenchBetaDemo
         self.viewModel = viewModel
 
         logger.info("Dashboard app launch")
@@ -53,7 +53,7 @@ private enum DashboardSmokeRun {
 @main
 struct DashboardApplication {
     static func main() {
-        let snapshot = DashboardShellSnapshot(viewModel: .emptyResearchWorkbench)
+        let snapshot = DashboardShellSnapshot(viewModel: .defaultWorkbenchBetaDemo)
         print(snapshot.smokeSummary)
     }
 }
