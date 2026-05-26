@@ -9084,6 +9084,209 @@ final class CoreTests: XCTestCase {
         XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
     }
 
+    func testMTP111SharedBacktestPaperOrderSemanticsDefinesFieldsStatesAndAnchors() throws {
+        // 测试场景：MTP-111 只定义 backtest 与 paper runtime 共用的订单字段、simulated state、
+        // simulated event、lifecycle replay 对齐规则和 validation anchors，不实现撮合或订单执行 runtime。
+        let contract = BacktestPaperSharedOrderSemanticsContract.deterministicFixture
+
+        XCTAssertEqual(contract.contractID, try Identifier("mtp-111-shared-backtest-paper-order-semantics"))
+        XCTAssertEqual(contract.issueID, try Identifier("MTP-111"))
+        XCTAssertEqual(contract.inputSources, BacktestPaperSharedOrderInputSource.allCases)
+        XCTAssertEqual(contract.sharedFields, BacktestPaperSharedOrderField.allCases)
+        XCTAssertTrue(contract.sharedFields.contains(.scenarioID))
+        XCTAssertTrue(contract.sharedFields.contains(.datasetVersion))
+        XCTAssertTrue(contract.sharedFields.contains(.fixtureVersion))
+        XCTAssertTrue(contract.sharedFields.contains(.sourceRiskDecisionSequence))
+        XCTAssertTrue(contract.sharedFields.contains(.sourceReplaySequence))
+        XCTAssertEqual(contract.orderStates, BacktestPaperSharedOrderState.allCases)
+        XCTAssertTrue(contract.orderStates.contains(.acceptedSimulated))
+        XCTAssertTrue(contract.orderStates.contains(.rejectedSimulated))
+        XCTAssertTrue(contract.orderStates.contains(.expiredSimulated))
+        XCTAssertTrue(contract.orderStates.contains(.filledSimulated))
+        XCTAssertTrue(contract.orderStates.contains(.partiallyFilledSimulated))
+        XCTAssertEqual(contract.simulatedEventKinds, BacktestPaperSharedOrderEventKind.allCases)
+        XCTAssertEqual(contract.alignmentRules, BacktestPaperLifecycleReplayAlignmentRule.allCases)
+        XCTAssertTrue(contract.alignmentRules.contains(.paperIntentCreatesBacktestReplayInput))
+        XCTAssertTrue(contract.alignmentRules.contains(.acceptedLocalMapsToSimulatedAccepted))
+        XCTAssertTrue(contract.alignmentRules.contains(.partialSimulatedFillMapsToPartiallyFilled))
+        XCTAssertTrue(contract.alignmentRules.contains(.noRealOrderCommandUpgrade))
+        XCTAssertTrue(contract.forbidsCapability(.realOrderCommand))
+        XCTAssertTrue(contract.forbidsCapability(.realSubmitCancelReplace))
+        XCTAssertTrue(contract.forbidsCapability(.signedEndpoint))
+        XCTAssertTrue(contract.forbidsCapability(.accountEndpoint))
+        XCTAssertTrue(contract.forbidsCapability(.brokerIntegration))
+        XCTAssertTrue(contract.forbidsCapability(.liveExecutionAdapter))
+        XCTAssertTrue(contract.forbidsCapability(.oms))
+        XCTAssertTrue(contract.forbidsCapability(.executionReport))
+        XCTAssertTrue(contract.forbidsCapability(.brokerFill))
+        XCTAssertTrue(contract.forbidsCapability(.reconciliation))
+        XCTAssertTrue(contract.forbidsCapability(.orderLevelCommandUI))
+        XCTAssertTrue(contract.forbidsCapability(.tradingButton))
+        XCTAssertEqual(contract.validationAnchors, [
+            "MTP-111-SHARED-BACKTEST-PAPER-ORDER-FIELDS",
+            "MTP-111-SIMULATED-ORDER-STATE-SEMANTICS",
+            "MTP-111-PAPER-LIFECYCLE-BACKTEST-REPLAY-ALIGNMENT",
+            "MTP-111-NO-REAL-ORDER-COMMAND-UPGRADE",
+            "MTP-111-SHARED-ORDER-SEMANTICS-VALIDATION",
+            "TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY"
+        ])
+        XCTAssertTrue(contract.sharedOrderSemanticsBoundaryHeld)
+        XCTAssertTrue(contract.sharedFieldBoundaryHeld)
+        XCTAssertTrue(contract.lifecycleReplayAlignmentHeld)
+        XCTAssertTrue(contract.forbiddenCapabilityBoundaryHeld)
+
+        let encoded = try JSONEncoder().encode(contract)
+        let decoded = try JSONDecoder().decode(BacktestPaperSharedOrderSemanticsContract.self, from: encoded)
+        XCTAssertEqual(decoded, contract)
+    }
+
+    func testMTP111SharedBacktestPaperOrderInputAlignsPaperIntentWithScenarioReplay() throws {
+        // 测试场景：MTP-111 的 shared order input 必须从既有 paper order intent 复制稳定字段，
+        // 并绑定 L1.5 scenario replay identity，供后续 backtest replay 使用同一 simulated order 语义。
+        let paperIntent = try PaperOrderIntentFixture.deterministicAllowed()
+        let scenarioFixture = DeterministicScenarioFixture.deterministicFixture
+        let input = try BacktestPaperSharedOrderInput.fromPaperOrderIntent(
+            inputID: try Identifier("mtp-111-test-shared-order-input"),
+            orderIntent: paperIntent,
+            scenarioFixture: scenarioFixture,
+            sourceReplaySequence: 4,
+            recordedAt: Date(timeIntervalSince1970: 7_010)
+        )
+
+        XCTAssertEqual(input.source, .backtestReplayOrderInput)
+        XCTAssertEqual(input.orderID, paperIntent.orderID)
+        XCTAssertEqual(input.sourcePaperOrderIntentID, paperIntent.orderID)
+        XCTAssertEqual(input.proposalID, paperIntent.proposalID)
+        XCTAssertEqual(input.sessionID, paperIntent.sessionID)
+        XCTAssertEqual(input.scenarioID, scenarioFixture.manifest.scenarioID)
+        XCTAssertEqual(input.datasetVersion, scenarioFixture.manifest.datasetVersion)
+        XCTAssertEqual(input.fixtureVersion, scenarioFixture.fixtureVersion)
+        XCTAssertEqual(input.symbol, paperIntent.symbol)
+        XCTAssertEqual(input.timeframe, paperIntent.timeframe)
+        XCTAssertEqual(input.side, paperIntent.side)
+        XCTAssertEqual(input.quantity, paperIntent.quantity)
+        XCTAssertEqual(input.referencePrice, paperIntent.referencePrice)
+        XCTAssertEqual(input.notionalAmount, paperIntent.notionalAmount)
+        XCTAssertEqual(input.sourceRiskDecisionSequence, paperIntent.sourceRiskDecisionSequence)
+        XCTAssertEqual(input.sourceReplaySequence, 4)
+        XCTAssertEqual(input.executionMode, .paper)
+        XCTAssertEqual(input.eventStream, .paper)
+        XCTAssertTrue(input.sharedFieldBoundaryHeld)
+
+        XCTAssertEqual(
+            BacktestPaperSharedOrderSemanticsContract.sharedState(for: PaperOrderLifecycleState.intentCreated),
+            .intentRecorded
+        )
+        XCTAssertEqual(
+            BacktestPaperSharedOrderSemanticsContract.sharedState(for: PaperOrderLifecycleState.rejectedByRisk),
+            .rejectedSimulated
+        )
+        XCTAssertEqual(
+            BacktestPaperSharedOrderSemanticsContract.sharedState(for: PaperOrderLocalLifecycleState.acceptedLocal),
+            .acceptedSimulated
+        )
+        XCTAssertEqual(
+            BacktestPaperSharedOrderSemanticsContract.sharedState(for: PaperOrderLocalLifecycleState.expiredLocal),
+            .expiredSimulated
+        )
+        XCTAssertEqual(
+            BacktestPaperSharedOrderSemanticsContract.sharedState(for: PaperSimulatedFillCompletion.full),
+            .filledSimulated
+        )
+        XCTAssertEqual(
+            BacktestPaperSharedOrderSemanticsContract.sharedState(for: PaperSimulatedFillCompletion.partial),
+            .partiallyFilledSimulated
+        )
+        XCTAssertEqual(
+            BacktestPaperSharedOrderSemanticsContract.simulatedEventKind(for: .acceptedSimulated),
+            .simulatedOrderAccepted
+        )
+        XCTAssertEqual(
+            BacktestPaperSharedOrderSemanticsContract.simulatedEventKind(for: .partiallyFilledSimulated),
+            .simulatedOrderPartiallyFilled
+        )
+
+        let encoded = try JSONEncoder().encode(input)
+        let decoded = try JSONDecoder().decode(BacktestPaperSharedOrderInput.self, from: encoded)
+        XCTAssertEqual(decoded, input)
+    }
+
+    func testMTP111SharedBacktestPaperOrderSemanticsRejectsRealCommandBypass() throws {
+        // 测试场景：MTP-111 初始化和 Codable 解码必须拒绝 real order command、真实 submit/cancel/replace、
+        // signed/account/listenKey、broker、OMS、execution report、broker fill、live command 和交易按钮绕过。
+        XCTAssertThrowsError(
+            try BacktestPaperSharedOrderSemanticsContract(representsRealOrderCommand: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability("representsRealOrderCommand")
+            )
+        }
+        XCTAssertThrowsError(
+            try BacktestPaperSharedOrderSemanticsContract(submitsRealOrder: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability("submitsRealOrder")
+            )
+        }
+        XCTAssertThrowsError(
+            try BacktestPaperSharedOrderSemanticsContract(ingestsExecutionReport: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability("ingestsExecutionReport")
+            )
+        }
+        XCTAssertThrowsError(
+            try BacktestPaperSharedOrderSemanticsContract(
+                validationAnchors: Array(BacktestPaperSharedOrderSemanticsContract.requiredValidationAnchors.dropLast())
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityContractMismatch(
+                    field: "validationAnchors",
+                    expected: BacktestPaperSharedOrderSemanticsContract.requiredValidationAnchors
+                        .joined(separator: ","),
+                    actual: Array(BacktestPaperSharedOrderSemanticsContract.requiredValidationAnchors.dropLast())
+                        .joined(separator: ",")
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try BacktestPaperSharedOrderInput.fromPaperOrderIntent(
+                inputID: try Identifier("mtp-111-real-command-bypass"),
+                orderIntent: PaperOrderIntentFixture.deterministicAllowed(),
+                scenarioFixture: .deterministicFixture,
+                sourceReplaySequence: 4,
+                recordedAt: Date(timeIntervalSince1970: 7_020),
+                authorizesRealSubmitCancelReplace: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability(
+                    "sharedOrderInput.authorizesRealSubmitCancelReplace"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(BacktestPaperSharedOrderInput.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["usesSignedEndpoint"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(BacktestPaperSharedOrderInput.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability("sharedOrderInput.usesSignedEndpoint")
+            )
+        }
+    }
+
     func testMTP104ScenarioManifestDefinesIdentityVersionAndSerialization() throws {
         // 测试场景：MTP-104 manifest 必须固定 scenario id、dataset version、symbol、timeframe、
         // source anchor 和 deterministic serialization evidence，作为后续 fixture / replay / report input 的稳定来源。

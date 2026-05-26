@@ -6,7 +6,7 @@
 
 本文档定义 `MTPRO Simulated Exchange / Backtest Parity v1` 的 L2 simulated exchange / backtest parity terminology、目标引擎职责、L1 Paper Runtime 与 L1.5 Data Catalog / Scenario Replay 到 L2 的 handoff boundary、forbidden capability baseline、source docs anchors 和 validation anchors。
 
-本文档服务 `MTP-110` 的术语 / 边界合同；它不实现撮合、不实现订单执行、不实现 portfolio projection、不实现 UI，不接 signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、live command、trading button，不运行 Graphify，不修改 Figma。
+本文档服务 `MTP-110` 至 `MTP-111` 的术语 / 边界合同；它不实现撮合、不实现订单执行、不实现 portfolio projection、不实现 UI，不接 signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、live command、trading button，不运行 Graphify，不修改 Figma。
 
 ## MTP-110 Simulated Exchange / Backtest Parity terminology
 
@@ -136,3 +136,115 @@ Validation anchors：
 - `TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY`
 
 MTP-110 不新增 Dashboard smoke handle，不新增 App read model，不新增 stage audit input；Project stage closeout 仍归属 `MTP-117`。
+
+## MTP-111 shared backtest-paper order semantics contract
+
+`MTP-111-SHARED-BACKTEST-PAPER-ORDER-FIELDS`
+
+MTP-111 定义 backtest 与 paper runtime 共用的 shared order input 字段。字段只服务 deterministic simulation / backtest replay，不表达真实订单命令：
+
+| 字段组 | 当前含义 | 禁止混用 |
+| --- | --- | --- |
+| `input id` / `order id` / `source paper order intent id` | backtest replay order input 与既有 `PaperOrderIntent` 的稳定身份映射 | 不等于 broker order id、exchange order id、OMS id 或 UI order form id |
+| `proposal id` / `session id` | 复用 paper runtime proposal / session evidence | 不授权 order-level command 或真实 session control |
+| `scenario id` / `dataset version` / `fixture version` | 绑定 L1.5 scenario replay deterministic input identity | 不等于 production dataset registry、network download job 或 broker feed |
+| `symbol` / `timeframe` / `side` / `quantity` / `reference price` / `notional amount` | 复用 paper-only order intent 的最小订单语义字段 | 不定义 market / limit order execution；MTP-113 才能继续定义 market / limit simulated execution semantics |
+| `source risk decision sequence` / `source replay sequence` / `recorded at` | 对齐 paper risk decision 与 backtest replay 的 append-only sequence evidence | 不等于 exchange sequence、broker sequence、execution report sequence 或 production scheduler |
+
+Core deterministic fixtures：
+
+- `BacktestPaperSharedOrderSemanticsContract.deterministicFixture`
+- `BacktestPaperSharedOrderInput.deterministicFixture`
+
+Focused Core tests：
+
+- `testMTP111SharedBacktestPaperOrderSemanticsDefinesFieldsStatesAndAnchors`
+- `testMTP111SharedBacktestPaperOrderInputAlignsPaperIntentWithScenarioReplay`
+- `testMTP111SharedBacktestPaperOrderSemanticsRejectsRealCommandBypass`
+
+`MTP-111-SIMULATED-ORDER-STATE-SEMANTICS`
+
+MTP-111 固定 shared simulated order state taxonomy：
+
+| 状态 | 当前含义 | 禁止混用 |
+| --- | --- | --- |
+| `intent recorded` | paper order intent 已记录，可映射为 backtest replay order input | 不等于 real submit intent |
+| `submitted simulated` | 本地 submitted local 可重放为 simulated submitted evidence | 不等于 broker submitted |
+| `accepted simulated` | MTP-99 `acceptedLocal` 可重放为 simulated accepted evidence | 不等于 exchange accepted 或真实订单可成交 |
+| `rejected simulated` | paper risk rejected / rejected local 可重放为 simulated rejected evidence | 不等于 broker rejection 或 exchange reject |
+| `expired simulated` | local expiry 可重放为 simulated expired evidence | 不等于 broker expiry 或 exchange order expiry |
+| `cancelled local only` | session close / reset / local rule 的本地取消证据 | 不等于用户单笔撤单、broker cancel 或 real cancel command |
+| `failed local only` | 本地 deterministic failure evidence | 不等于 production incident、broker failure 或 live recovery |
+| `filled simulated` | full simulated fill completion 的 shared state | 不等于 broker fill、execution report 或真实成交 |
+| `partially filled simulated` | partial simulated fill completion 的 shared state | 不等于 broker partial fill 或真实成交质量 |
+
+对应 simulated event kind 只允许进入 append-only replay facts：`order intent recorded`、`simulated order submitted`、`simulated order accepted`、`simulated order rejected`、`simulated order expired`、`simulated order cancelled local`、`simulated order failed local`、`simulated order filled` 和 `simulated order partially filled`。
+
+`MTP-111-PAPER-LIFECYCLE-BACKTEST-REPLAY-ALIGNMENT`
+
+MTP-111 固定 paper runtime lifecycle 与 backtest replay 的对齐规则：
+
+- `PaperOrderLifecycleState.intentCreated` -> `intent recorded`。
+- `PaperOrderLifecycleState.rejectedByRisk` -> `rejected simulated`。
+- `PaperOrderLocalLifecycleState.submittedLocal` -> `submitted simulated`。
+- `PaperOrderLocalLifecycleState.acceptedLocal` -> `accepted simulated`。
+- `PaperOrderLocalLifecycleState.rejectedByPaperRisk` -> `rejected simulated`。
+- `PaperOrderLocalLifecycleState.expiredLocal` -> `expired simulated`。
+- `PaperOrderLocalLifecycleState.cancelledLocal` -> `cancelled local only`。
+- `PaperOrderLocalLifecycleState.failedLocal` -> `failed local only`。
+- `PaperSimulatedFillCompletion.full` -> `filled simulated`。
+- `PaperSimulatedFillCompletion.partial` -> `partially filled simulated`。
+- scenario identity 必须匹配 replay input：`scenario id`、`dataset version`、`fixture version`、`symbol` 和 `timeframe` 不能漂移。
+- order event 只能作为 append-only replay fact，不实现 matching runtime、execution runtime、portfolio runtime 或 UI。
+
+`MTP-111-NO-REAL-ORDER-COMMAND-UPGRADE`
+
+MTP-111 必须保持以下 forbidden capabilities 全部为 false：
+
+- matching runtime
+- order execution runtime
+- portfolio projection runtime
+- real order command
+- real order lifecycle
+- real submit / cancel / replace
+- secret read
+- signed endpoint
+- account endpoint
+- listenKey
+- broker integration
+- broker execution adapter
+- exchange execution adapter
+- `LiveExecutionAdapter`
+- OMS
+- execution report
+- broker fill
+- reconciliation
+- real account / broker position / margin / leverage read
+- live runtime
+- Live PRO Console
+- live command
+- order-level command UI
+- trading button
+- emergency stop / shutdown / restore
+
+`BacktestPaperSharedOrderSemanticsContract` 和 `BacktestPaperSharedOrderInput` 初始化与 Codable 解码都必须拒绝 real command、signed/account/listenKey、broker、OMS、execution report、broker fill、reconciliation、live command 或 trading button 绕过。
+
+## MTP-111 validation anchors
+
+`MTP-111-SHARED-ORDER-SEMANTICS-VALIDATION`
+
+Required validation：
+
+- `swift test --filter MTP111`
+- `bash checks/run.sh`
+
+Validation anchors：
+
+- `MTP-111-SHARED-BACKTEST-PAPER-ORDER-FIELDS`
+- `MTP-111-SIMULATED-ORDER-STATE-SEMANTICS`
+- `MTP-111-PAPER-LIFECYCLE-BACKTEST-REPLAY-ALIGNMENT`
+- `MTP-111-NO-REAL-ORDER-COMMAND-UPGRADE`
+- `MTP-111-SHARED-ORDER-SEMANTICS-VALIDATION`
+- `TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY`
+
+MTP-111 不实现 matching model、market / limit execution、partial fill / latency / fee / slippage parity runtime、portfolio projection parity、Report / Dashboard / Events evidence surface 或 stage audit input；这些仍归属后续 `MTP-112` 至 `MTP-117`。

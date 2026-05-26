@@ -2289,3 +2289,42 @@ MTP-110 必须建立的主要 anchors：
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、live runtime、Live PRO Console、live command 或交易按钮。
 - 不实现 emergency stop、shutdown、restore、production operations、production data platform、large-scale ingestion pipeline、真实交易所接入或 live readiness。
 - 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进下一 issue。
+
+## MTP-111 Shared Backtest-Paper Order Semantics Validation
+
+日期：2026-05-26
+
+执行者：Codex
+
+MTP-111 的 required validation：
+
+- `docs/contracts/simulated-exchange-backtest-parity-contract.md` 必须包含 `MTP-111-SHARED-BACKTEST-PAPER-ORDER-FIELDS`、`MTP-111-SIMULATED-ORDER-STATE-SEMANTICS`、`MTP-111-PAPER-LIFECYCLE-BACKTEST-REPLAY-ALIGNMENT`、`MTP-111-NO-REAL-ORDER-COMMAND-UPGRADE` 和 `MTP-111-SHARED-ORDER-SEMANTICS-VALIDATION` anchors。
+- `Sources/Core/BacktestPaperSharedOrderSemantics.swift` 必须定义 `BacktestPaperSharedOrderInputSource`、`BacktestPaperSharedOrderField`、`BacktestPaperSharedOrderState`、`BacktestPaperSharedOrderEventKind`、`BacktestPaperLifecycleReplayAlignmentRule`、`BacktestPaperSharedOrderForbiddenCapability`、`BacktestPaperSharedOrderSemanticsContract.deterministicFixture` 和 `BacktestPaperSharedOrderInput.deterministicFixture`。
+- `BacktestPaperSharedOrderSemanticsContract` 必须固定 paper order intent 与 backtest replay order input 的共享字段、simulated order state taxonomy、simulated event kind taxonomy、paper lifecycle / fill completion 到 backtest replay 的 alignment rules、source docs anchors 和 validation anchors。
+- `BacktestPaperSharedOrderInput` 必须从既有 `PaperOrderIntent` 复制 order / proposal / session / symbol / timeframe / side / quantity / reference price / notional / risk decision sequence，并绑定 `DeterministicScenarioFixture` 的 scenario id、dataset version 和 fixture version。
+- `BacktestPaperSharedOrderSemanticsContract.sharedState(...)` 必须固定 `PaperOrderLifecycleState`、`PaperOrderLocalLifecycleState` 和 `PaperSimulatedFillCompletion` 到 shared simulated order state 的映射。
+- Core fixture 必须保持 shared field、lifecycle replay alignment 和 append-only replay facts flags 为 true。
+- Core fixture 和 shared input 必须保持 matching runtime、order execution runtime、portfolio projection runtime、real order command、real order lifecycle、real submit / cancel / replace、signed endpoint、account endpoint、listenKey、broker、`LiveExecutionAdapter`、OMS、execution report、broker fill、reconciliation、live command、order-level command UI、trading button 和 required network validation flags 全部为 false。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-111 focused tests，验证 shared fields / states / anchors、paper intent 到 scenario replay input 对齐、state / event 映射、forbidden capability bypass rejection 和 Codable decode bypass rejection。
+- `docs/domain/context.md` 必须包含 `MTP-111-SHARED-BACKTEST-PAPER-ORDER-FIELDS`、`MTP-111-SIMULATED-ORDER-STATE-SEMANTICS`、`MTP-111-PAPER-LIFECYCLE-BACKTEST-REPLAY-ALIGNMENT` 和 `MTP-111-NO-REAL-ORDER-COMMAND-UPGRADE`。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-111 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-111 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-111 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不运行 Graphify，不修改 Figma，不实现 matching runtime、order execution runtime、portfolio projection runtime、Report / Dashboard / Events surface、signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、live runtime、live command、order-level command UI、Live PRO Console 或交易按钮。
+
+MTP-111 必须建立的主要 anchors：
+
+- `TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY`
+- `MTP-111-SHARED-BACKTEST-PAPER-ORDER-FIELDS`
+- `MTP-111-SIMULATED-ORDER-STATE-SEMANTICS`
+- `MTP-111-PAPER-LIFECYCLE-BACKTEST-REPLAY-ALIGNMENT`
+- `MTP-111-NO-REAL-ORDER-COMMAND-UPGRADE`
+- `MTP-111-SHARED-ORDER-SEMANTICS-VALIDATION`
+
+## MTP-111 禁止
+
+- 不实现 matching runtime、order execution runtime、portfolio projection runtime、UI implementation、Report / Dashboard / Events evidence surface、order form、command model、Runtime replay job 或 database console。
+- 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、live runtime、Live PRO Console、live command、order-level command UI 或交易按钮。
+- 不实现 emergency stop、shutdown、restore、production operations、production data platform、large-scale ingestion pipeline、真实交易所接入或 live readiness。
+- 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进下一 issue。

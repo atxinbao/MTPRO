@@ -586,6 +586,22 @@ MTP-110 handoff boundary 只把 L1 Paper Runtime 的 paper-only execution eviden
 
 MTP-110 的 forbidden baseline 必须覆盖 matching runtime、order execution runtime、portfolio projection runtime、UI implementation、secret read、signed endpoint、account endpoint、listenKey、broker integration、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、live runtime、Live PRO Console、live command、trading button、emergency stop / shutdown / restore、Graphify update 和 Figma change。
 
+`MTP-111-SHARED-BACKTEST-PAPER-ORDER-FIELDS`
+
+MTP-111 把 `shared backtest-paper order semantics` 从 MTP-110 的术语入口推进为 Core value contract。它只定义 paper order intent 与 backtest replay order input 的共享字段：input id、order id、source paper order intent id、proposal id、session id、scenario id、dataset version、fixture version、symbol、timeframe、side、quantity、reference price、notional amount、source risk decision sequence、source replay sequence 和 recorded at。这些字段只服务 deterministic simulation / backtest replay，不等于 broker order id、exchange order id、real order command、order form、OMS state 或真实订单生命周期。
+
+`MTP-111-SIMULATED-ORDER-STATE-SEMANTICS`
+
+MTP-111 固定 shared simulated order state taxonomy：`intent recorded`、`submitted simulated`、`accepted simulated`、`rejected simulated`、`expired simulated`、`cancelled local only`、`failed local only`、`filled simulated` 和 `partially filled simulated`。这些状态只能表达 paper-only / simulated evidence；`accepted simulated` 不等于 exchange accepted，`rejected simulated` 不等于 broker rejection，`filled simulated` / `partially filled simulated` 不等于 broker fill、execution report 或真实成交质量，`cancelled local only` 不等于 real cancel command。
+
+`MTP-111-PAPER-LIFECYCLE-BACKTEST-REPLAY-ALIGNMENT`
+
+MTP-111 固定 paper lifecycle 与 backtest replay 的对齐：`PaperOrderLifecycleState.intentCreated` 映射为 `intent recorded`，`PaperOrderLifecycleState.rejectedByRisk` 映射为 `rejected simulated`，`PaperOrderLocalLifecycleState.submittedLocal` / `acceptedLocal` / `rejectedByPaperRisk` / `expiredLocal` / `cancelledLocal` / `failedLocal` 分别映射为 submitted / accepted / rejected / expired / local-cancelled / local-failed simulated evidence，`PaperSimulatedFillCompletion.full` 映射为 `filled simulated`，`partial` 映射为 `partially filled simulated`。scenario id、dataset version、fixture version、symbol 和 timeframe 必须与 L1.5 scenario replay input identity 对齐。
+
+`MTP-111-NO-REAL-ORDER-COMMAND-UPGRADE`
+
+MTP-111 shared order semantics 不得升级为 matching runtime、order execution runtime、portfolio projection runtime、real order command、real order lifecycle、real submit / cancel / replace、signed endpoint、account endpoint、listenKey、broker integration、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、live runtime、Live PRO Console、live command、order-level command UI、trading button 或 emergency stop / shutdown / restore。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
