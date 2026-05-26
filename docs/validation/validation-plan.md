@@ -2328,3 +2328,42 @@ MTP-111 必须建立的主要 anchors：
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、live runtime、Live PRO Console、live command、order-level command UI 或交易按钮。
 - 不实现 emergency stop、shutdown、restore、production operations、production data platform、large-scale ingestion pipeline、真实交易所接入或 live readiness。
 - 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进下一 issue。
+
+## MTP-112 Scenario Replay Deterministic Matching Validation
+
+日期：2026-05-26
+
+执行者：Codex
+
+MTP-112 的 required validation：
+
+- `docs/contracts/simulated-exchange-backtest-parity-contract.md` 必须包含 `MTP-112-SCENARIO-REPLAY-MATCHING-INPUT`、`MTP-112-DETERMINISTIC-MATCHING-ORDERING`、`MTP-112-SIMULATED-EXCHANGE-MATCHING-EVENT`、`MTP-112-REPEATABLE-MATCHING-OUTPUT`、`MTP-112-NO-NETWORK-BROKER-LIVE` 和 `MTP-112-SCENARIO-REPLAY-MATCHING-VALIDATION` anchors。
+- `Sources/Core/ScenarioReplayDeterministicMatching.swift` 必须定义 `ScenarioReplayDeterministicMatchingContract`、`ScenarioReplayDeterministicMatchingInput`、`ScenarioReplayMatchingMarketState`、`ScenarioReplaySimulatedExchangeEvent`、`ScenarioReplayDeterministicMatchingOutput`、`ScenarioReplayDeterministicMatchingModel`、`ScenarioReplayMatchingOrderingRule` 和 `ScenarioReplayMatchingOutputKind`。
+- `ScenarioReplayDeterministicMatchingInput` 必须绑定 MTP-111 shared order input、MTP-106 replay window / cursor / checksum / freshness evidence 和 MTP-105 deterministic fixture record sequence `2`。
+- `ScenarioReplayDeterministicMatchingModel.match` 必须对相同 scenario id / dataset version / fixture version / replay window / cursor / shared order input 输出相同 `ScenarioReplayDeterministicMatchingOutput`。
+- Deterministic result identity 必须固定 scenario id、dataset version、fixture version、window、cursor sequence、record sequence、order id、scaled price 和 scaled quantity。
+- Core fixture 和 Codable decode 必须拒绝 required validation network dependency、wall clock、randomness、signed endpoint、account endpoint、listenKey、broker / exchange adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、live command 和交易按钮绕过。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-112 focused tests，验证 input / output anchors、repeatable output identity、Codable round-trip 和 forbidden capability / cursor mismatch rejection。
+- `docs/domain/context.md` 必须包含 `MTP-112-SCENARIO-REPLAY-MATCHING-INPUT`、`MTP-112-DETERMINISTIC-MATCHING-ORDERING`、`MTP-112-SIMULATED-EXCHANGE-MATCHING-EVENT`、`MTP-112-REPEATABLE-MATCHING-OUTPUT` 和 `MTP-112-NO-NETWORK-BROKER-LIVE`。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-112 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-112 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-112 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不运行 Graphify，不修改 Figma，不实现真实撮合引擎、market / limit execution、partial fill / latency / fee / slippage parity、portfolio projection parity、Report / Dashboard / Events evidence surface、signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、live runtime、live command、Live PRO Console 或交易按钮。
+
+MTP-112 必须建立的主要 anchors：
+
+- `TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY`
+- `MTP-112-SCENARIO-REPLAY-MATCHING-INPUT`
+- `MTP-112-DETERMINISTIC-MATCHING-ORDERING`
+- `MTP-112-SIMULATED-EXCHANGE-MATCHING-EVENT`
+- `MTP-112-REPEATABLE-MATCHING-OUTPUT`
+- `MTP-112-NO-NETWORK-BROKER-LIVE`
+- `MTP-112-SCENARIO-REPLAY-MATCHING-VALIDATION`
+
+## MTP-112 禁止
+
+- 不实现真实 matching runtime、order execution runtime、portfolio projection runtime、UI implementation、Report / Dashboard / Events evidence surface、order form、command model、Runtime replay job 或 database console。
+- 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、live runtime、Live PRO Console、live command、order-level command UI 或交易按钮。
+- 不实现 market / limit order execution semantics、partial fill、latency、fee / slippage parity、portfolio projection parity、emergency stop、shutdown、restore、production operations、production data platform、large-scale ingestion pipeline、真实交易所接入或 live readiness。
+- 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进下一 issue。

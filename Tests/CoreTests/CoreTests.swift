@@ -9287,6 +9287,121 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testMTP112ScenarioReplayDeterministicMatchingModelDefinesInputOutputAndAnchors() throws {
+        // 测试场景：MTP-112 必须把 scenario replay window / cursor、dataset version、
+        // local market state 和 MTP-111 shared order input 串成 deterministic matching model 合同。
+        let contract = ScenarioReplayDeterministicMatchingContract.deterministicFixture
+        let input = ScenarioReplayDeterministicMatchingInput.deterministicFixture
+        let output = try ScenarioReplayDeterministicMatchingModel.match(input)
+
+        XCTAssertEqual(contract.contractID, try Identifier("mtp-112-scenario-replay-deterministic-matching"))
+        XCTAssertEqual(contract.issueID, try Identifier("MTP-112"))
+        XCTAssertEqual(contract.orderingRules, ScenarioReplayMatchingOrderingRule.allCases)
+        XCTAssertEqual(contract.outputKinds, ScenarioReplayMatchingOutputKind.allCases)
+        XCTAssertTrue(contract.forbidsCapability(.signedEndpoint))
+        XCTAssertTrue(contract.forbidsCapability(.brokerIntegration))
+        XCTAssertTrue(contract.forbidsCapability(.liveExecutionAdapter))
+        XCTAssertTrue(contract.forbidsCapability(.realSubmitCancelReplace))
+        XCTAssertTrue(contract.contractBoundaryHeld)
+
+        XCTAssertEqual(input.sharedOrderInput, BacktestPaperSharedOrderInput.deterministicFixture)
+        XCTAssertEqual(input.marketState.record.sequence, 2)
+        XCTAssertEqual(input.marketState.cursor.nextRecordSequence, 2)
+        XCTAssertEqual(input.marketState.replayWindow.windowDescription, "1704067200...1704067380")
+        XCTAssertEqual(input.checksumEvidence.checksum, "fnv1a64:3c6cd4ff13cd4062")
+        XCTAssertEqual(input.freshnessEvidence.status, .fresh)
+        XCTAssertTrue(input.matchingInputBoundaryHeld)
+
+        XCTAssertEqual(output.outputID, try Identifier("mtp-112-deterministic-matching-output"))
+        XCTAssertEqual(output.simulatedExchangeEvent.eventKind, .simulatedExchangeOrderMatched)
+        XCTAssertEqual(output.simulatedExchangeEvent.sharedOrderState, .filledSimulated)
+        XCTAssertEqual(output.simulatedExchangeEvent.sharedOrderEventKind, .simulatedOrderFilled)
+        XCTAssertEqual(output.simulatedExchangeEvent.matchedRecordSequence, 2)
+        XCTAssertEqual(output.simulatedExchangeEvent.matchedPrice.rawValue, 42_120.70)
+        XCTAssertEqual(output.simulatedExchangeEvent.matchedQuantity.rawValue, 0.5)
+        XCTAssertTrue(output.matchingOutputBoundaryHeld)
+    }
+
+    func testMTP112ScenarioReplayMatchingProducesStableOutputForSameScenarioInput() throws {
+        // 测试场景：相同 scenario id / dataset version / replay window / order input 必须重复输出
+        // 完全一致的 simulated exchange matching event，且 Codable 往返不能改变 deterministic identity。
+        let input = ScenarioReplayDeterministicMatchingInput.deterministicFixture
+        let first = try ScenarioReplayDeterministicMatchingModel.match(input)
+        let second = try ScenarioReplayDeterministicMatchingModel.match(input)
+
+        XCTAssertEqual(first, second)
+        XCTAssertEqual(first.deterministicResultIdentity, second.deterministicResultIdentity)
+        XCTAssertEqual(
+            first.deterministicResultIdentity,
+            [
+                "mtp-104-btcusdt-1m-first-scenario",
+                "dataset-v1",
+                "fixture-v1",
+                "1704067200...1704067380",
+                "cursor=2",
+                "record=2",
+                "order=paper-order-intent-allowed",
+                "price=42120700000",
+                "quantity=500000"
+            ].joined(separator: "|")
+        )
+
+        let encoded = try JSONEncoder().encode(first)
+        let decoded = try JSONDecoder().decode(ScenarioReplayDeterministicMatchingOutput.self, from: encoded)
+        XCTAssertEqual(decoded, first)
+    }
+
+    func testMTP112ScenarioReplayMatchingRejectsNetworkLiveAndIdentityBypass() throws {
+        // 测试场景：MTP-112 初始化和 Codable 解码必须拒绝真实网络、signed/account/listenKey、
+        // broker/exchange adapter、OMS、execution report、broker fill、reconciliation、live command 和交易按钮绕过。
+        XCTAssertThrowsError(
+            try ScenarioReplayDeterministicMatchingContract(implementsMatchingRuntime: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability("implementsMatchingRuntime")
+            )
+        }
+        XCTAssertThrowsError(
+            try ScenarioReplayDeterministicMatchingInput(requiredValidationDependsOnNetwork: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability(
+                    "scenarioReplayMatchingInput.requiredValidationDependsOnNetwork"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try ScenarioReplayMatchingMarketState(
+                cursor: ScenarioReplayCursor(nextRecordSequence: 3),
+                record: DeterministicScenarioFixture.deterministicRecords[1]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityContractMismatch(
+                    field: "scenarioReplayMatchingMarketState.cursorRecordSequence",
+                    expected: "3",
+                    actual: "2"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(ScenarioReplayDeterministicMatchingInput.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["usesSignedEndpoint"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(ScenarioReplayDeterministicMatchingInput.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .simulatedExchangeBacktestParityForbiddenCapability("scenarioReplayMatchingInput.usesSignedEndpoint")
+            )
+        }
+    }
+
     func testMTP104ScenarioManifestDefinesIdentityVersionAndSerialization() throws {
         // 测试场景：MTP-104 manifest 必须固定 scenario id、dataset version、symbol、timeframe、
         // source anchor 和 deterministic serialization evidence，作为后续 fixture / replay / report input 的稳定来源。
