@@ -170,6 +170,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
     public let observabilitySource: ViewModelSourceContract
     public let evidenceExplorerSource: ViewModelSourceContract
     public let scenarioReplayEvidenceSource: ViewModelSourceContract
+    public let simulatedExchangeParityEvidenceSource: ViewModelSourceContract
     public let liveBlockedEvidenceSource: ViewModelSourceContract
     public let liveMonitoringEvidenceSource: ViewModelSourceContract
     public let liveExecutionControlBlockedEvidenceSource: ViewModelSourceContract
@@ -183,6 +184,8 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
     public let evidenceExplorerDetails: [String]
     public let scenarioReplayEvidenceMetrics: [DashboardShellMetric]
     public let scenarioReplayEvidenceDetails: [String]
+    public let simulatedExchangeParityEvidenceMetrics: [DashboardShellMetric]
+    public let simulatedExchangeParityEvidenceDetails: [String]
     public let liveBlockedEvidenceMetrics: [DashboardShellMetric]
     public let liveBlockedEvidenceDetails: [String]
     public let liveMonitoringEvidenceMetrics: [DashboardShellMetric]
@@ -212,6 +215,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         observabilitySource: ViewModelSourceContract,
         evidenceExplorerSource: ViewModelSourceContract,
         scenarioReplayEvidenceSource: ViewModelSourceContract,
+        simulatedExchangeParityEvidenceSource: ViewModelSourceContract,
         liveBlockedEvidenceSource: ViewModelSourceContract,
         liveMonitoringEvidenceSource: ViewModelSourceContract,
         liveExecutionControlBlockedEvidenceSource: ViewModelSourceContract,
@@ -225,6 +229,8 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         evidenceExplorerDetails: [String],
         scenarioReplayEvidenceMetrics: [DashboardShellMetric],
         scenarioReplayEvidenceDetails: [String],
+        simulatedExchangeParityEvidenceMetrics: [DashboardShellMetric],
+        simulatedExchangeParityEvidenceDetails: [String],
         liveBlockedEvidenceMetrics: [DashboardShellMetric],
         liveBlockedEvidenceDetails: [String],
         liveMonitoringEvidenceMetrics: [DashboardShellMetric],
@@ -252,6 +258,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         self.observabilitySource = observabilitySource
         self.evidenceExplorerSource = evidenceExplorerSource
         self.scenarioReplayEvidenceSource = scenarioReplayEvidenceSource
+        self.simulatedExchangeParityEvidenceSource = simulatedExchangeParityEvidenceSource
         self.liveBlockedEvidenceSource = liveBlockedEvidenceSource
         self.liveMonitoringEvidenceSource = liveMonitoringEvidenceSource
         self.liveExecutionControlBlockedEvidenceSource = liveExecutionControlBlockedEvidenceSource
@@ -265,6 +272,8 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         self.evidenceExplorerDetails = evidenceExplorerDetails
         self.scenarioReplayEvidenceMetrics = scenarioReplayEvidenceMetrics
         self.scenarioReplayEvidenceDetails = scenarioReplayEvidenceDetails
+        self.simulatedExchangeParityEvidenceMetrics = simulatedExchangeParityEvidenceMetrics
+        self.simulatedExchangeParityEvidenceDetails = simulatedExchangeParityEvidenceDetails
         self.liveBlockedEvidenceMetrics = liveBlockedEvidenceMetrics
         self.liveBlockedEvidenceDetails = liveBlockedEvidenceDetails
         self.liveMonitoringEvidenceMetrics = liveMonitoringEvidenceMetrics
@@ -289,6 +298,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
             && observabilitySource.isReadModelOnly
             && evidenceExplorerSource.isReadModelOnly
             && scenarioReplayEvidenceSource.isReadModelOnly
+            && simulatedExchangeParityEvidenceSource.isReadModelOnly
             && liveBlockedEvidenceSource.isReadModelOnly
             && liveMonitoringEvidenceSource.isReadModelOnly
             && liveExecutionControlBlockedEvidenceSource.isReadModelOnly
@@ -312,6 +322,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
             observabilitySource,
             evidenceExplorerSource,
             scenarioReplayEvidenceSource,
+            simulatedExchangeParityEvidenceSource,
             liveBlockedEvidenceSource,
             liveMonitoringEvidenceSource,
             liveExecutionControlBlockedEvidenceSource,
@@ -370,6 +381,10 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             "Quality gates",
             in: workbench.scenarioReplayEvidenceMetrics
         )
+        let simulatedParityEvidence = Self.metricValue(
+            "Parity evidence",
+            in: workbench.simulatedExchangeParityEvidenceMetrics
+        )
         let liveBlockedGates = Self.metricValue("Live gates", in: workbench.liveBlockedEvidenceMetrics)
         let liveExecutionControlGates = Self.metricValue(
             "Execution gates",
@@ -395,7 +410,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         let paperRuntimeEvidence = Self.metricValue("Runtime", in: reportMetrics)
         let paperWorkflowEvidence = Self.metricValue("Exec workflow", in: reportMetrics)
         let paperPortfolioImpact = Self.metricValue("Paper PnL", in: reportMetrics)
-        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); workbenchReadModelOnly=\(workbench.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); scenarioReplayEvidence=\(scenarioReplayEvidence); scenarioQualityGates=\(scenarioQualityGates); paperRuntimeEvidence=\(paperRuntimeEvidence); paperWorkflowEvidence=\(paperWorkflowEvidence); paperPortfolioImpact=\(paperPortfolioImpact); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
+        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); workbenchReadModelOnly=\(workbench.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); scenarioReplayEvidence=\(scenarioReplayEvidence); scenarioQualityGates=\(scenarioQualityGates); simulatedParityEvidence=\(simulatedParityEvidence); paperRuntimeEvidence=\(paperRuntimeEvidence); paperWorkflowEvidence=\(paperWorkflowEvidence); paperPortfolioImpact=\(paperPortfolioImpact); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
     }
 
     private static func makeSectionSnapshot(
@@ -429,6 +444,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         let observability = viewModel.paperWorkflowObservability
         let explorer = viewModel.paperWorkflowEvidenceExplorer
         let scenarioReplayEvidence = viewModel.report.scenarioReplayEvidence
+        let simulatedExchangeParityEvidence = viewModel.report.simulatedExchangeParityEvidence
         let liveBlockedEvidence = viewModel.report.liveTradingBlockedEvidence
         let liveMonitoringEvidence = viewModel.report.liveMonitoringEvidence
         let liveExecutionControlEvidence = viewModel.report.liveExecutionControlBlockedEvidence
@@ -441,6 +457,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             observabilitySource: observability.source,
             evidenceExplorerSource: explorer.source,
             scenarioReplayEvidenceSource: scenarioReplayEvidence.source,
+            simulatedExchangeParityEvidenceSource: simulatedExchangeParityEvidence.source,
             liveBlockedEvidenceSource: liveBlockedEvidence.source,
             liveMonitoringEvidenceSource: liveMonitoringEvidence.source,
             liveExecutionControlBlockedEvidenceSource: liveExecutionControlEvidence.source,
@@ -514,6 +531,49 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 "Command surface: \(formatForbiddenFlag(scenarioReplayEvidence.providesCommandSurface))",
                 "Query language: \(formatForbiddenFlag(scenarioReplayEvidence.supportsQueryLanguage))",
                 "Read model boundary: \(formatEvidenceFlag(scenarioReplayEvidence.readModelOnlyBoundaryHeld))"
+            ],
+            simulatedExchangeParityEvidenceMetrics: [
+                DashboardShellMetric(
+                    label: "Parity evidence",
+                    value: "\(simulatedExchangeParityEvidence.evidenceCount)"
+                ),
+                DashboardShellMetric(
+                    label: "Outcomes",
+                    value: "\(simulatedExchangeParityEvidence.outcomeLabels.count)"
+                ),
+                DashboardShellMetric(
+                    label: "Timeline",
+                    value: "\(simulatedExchangeParityEvidence.timelineEntryCount)"
+                ),
+                DashboardShellMetric(
+                    label: "Portfolio parity",
+                    value: formatEvidenceFlag(simulatedExchangeParityEvidence.projectionParityHeld)
+                ),
+                DashboardShellMetric(
+                    label: "Cost parity",
+                    value: formatEvidenceFlag(simulatedExchangeParityEvidence.costParityConsistent)
+                )
+            ],
+            simulatedExchangeParityEvidenceDetails: [
+                "Parity scenario ids: \(joined(simulatedExchangeParityEvidence.scenarioIDs))",
+                "Parity dataset versions: \(joined(simulatedExchangeParityEvidence.datasetVersions))",
+                "Parity fixture versions: \(joined(simulatedExchangeParityEvidence.fixtureVersions))",
+                "Parity replay windows: \(joined(simulatedExchangeParityEvidence.replayWindows))",
+                "Parity matching results: \(joined(simulatedExchangeParityEvidence.matchingResults))",
+                "Parity matching events: \(joined(simulatedExchangeParityEvidence.matchingEventIDs))",
+                "Parity order ids: \(joined(simulatedExchangeParityEvidence.orderIDs))",
+                "Parity outcomes: \(joined(simulatedExchangeParityEvidence.outcomeLabels))",
+                "Parity report inputs: \(joined(simulatedExchangeParityEvidence.reportInputVersionIdentities))",
+                "Parity replay sequences: \(joined(simulatedExchangeParityEvidence.sourceReplaySequences.map(String.init)))",
+                "Parity portfolio: \(formatEvidenceFlag(simulatedExchangeParityEvidence.projectionParityHeld))",
+                "Parity cost: \(formatEvidenceFlag(simulatedExchangeParityEvidence.costParityConsistent))",
+                "Parity boundary: \(formatEvidenceFlag(simulatedExchangeParityEvidence.readModelOnlyBoundaryHeld))",
+                "Parity command surface: \(formatForbiddenFlag(simulatedExchangeParityEvidence.providesCommandSurface))",
+                "Parity order-level command: \(formatForbiddenFlag(simulatedExchangeParityEvidence.providesOrderLevelCommand))",
+                "Parity trading buttons: \(formatForbiddenFlag(simulatedExchangeParityEvidence.providesTradingButton))",
+                "Parity schema exposure: \(formatForbiddenFlag(simulatedExchangeParityEvidence.exposesDatabaseSchema))",
+                "Parity runtime exposure: \(formatForbiddenFlag(simulatedExchangeParityEvidence.exposesRuntimeObject))",
+                "Parity adapter exposure: \(formatForbiddenFlag(simulatedExchangeParityEvidence.exposesAdapterRequest))"
             ],
             liveBlockedEvidenceMetrics: [
                 DashboardShellMetric(label: "Live gates", value: "\(liveBlockedEvidence.blockedEvidenceCount)"),
@@ -658,6 +718,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             paperOnlyBoundaryHeld: observability.paperOnlyBoundaryHeld,
             providesCommandSurface: explorer.providesCommandSurface
                 || scenarioReplayEvidence.providesCommandSurface
+                || simulatedExchangeParityEvidence.providesCommandSurface
                 || liveMonitoringEvidence.providesCommandSurface
                 || liveExecutionControlEvidence.providesCommandSurface
                 || liveRiskGateEvidence.providesCommandSurface
@@ -665,6 +726,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             providesOrderLevelCommand: observability.providesOrderLevelCommand
                 || explorer.providesOrderLevelCommand
                 || scenarioReplayEvidence.providesOrderLevelCommand
+                || simulatedExchangeParityEvidence.providesOrderLevelCommand
                 || liveBlockedEvidence.providesOrderLevelCommand
                 || liveMonitoringEvidence.providesOrderLevelCommand
                 || liveExecutionControlEvidence.providesOrderLevelCommand
@@ -672,6 +734,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             exposesDatabaseSchema: observability.exposesDatabaseSchema
                 || explorer.exposesDatabaseSchema
                 || scenarioReplayEvidence.exposesDatabaseSchema
+                || simulatedExchangeParityEvidence.exposesDatabaseSchema
                 || liveBlockedEvidence.exposesDatabaseSchema
                 || liveMonitoringEvidence.exposesDatabaseSchema
                 || liveExecutionControlEvidence.exposesPersistenceSchema
@@ -680,6 +743,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             exposesRuntimeObject: observability.exposesRuntimeObject
                 || explorer.exposesRuntimeObject
                 || scenarioReplayEvidence.exposesRuntimeObject
+                || simulatedExchangeParityEvidence.exposesRuntimeObject
                 || liveBlockedEvidence.exposesRuntimeObject
                 || liveMonitoringEvidence.exposesRuntimeObject
                 || liveExecutionControlEvidence.invokesRuntimeControl
@@ -688,6 +752,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             exposesAdapterRequest: observability.exposesAdapterRequest
                 || explorer.exposesAdapterRequest
                 || scenarioReplayEvidence.exposesAdapterRequest
+                || simulatedExchangeParityEvidence.exposesAdapterRequest
                 || liveBlockedEvidence.exposesAdapterSurface
                 || liveMonitoringEvidence.exposesAdapterSurface
                 || liveExecutionControlEvidence.readsAdapter
@@ -696,6 +761,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             authorizesLiveTrading: observability.authorizesLiveTrading
                 || explorer.authorizesLiveTrading
                 || scenarioReplayEvidence.authorizesLiveTrading
+                || simulatedExchangeParityEvidence.authorizesLiveTrading
                 || liveBlockedEvidence.authorizesLiveTrading
                 || liveMonitoringEvidence.authorizesLiveTrading
                 || liveExecutionControlEvidence.authorizesLiveTrading
@@ -704,6 +770,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             touchesBrokerAction: observability.touchesBrokerAction
                 || explorer.touchesBrokerAction
                 || scenarioReplayEvidence.touchesBrokerAction
+                || simulatedExchangeParityEvidence.touchesBrokerAction
                 || liveBlockedEvidence.touchesBrokerAction
                 || liveMonitoringEvidence.instantiatesBrokerAdapter
                 || liveExecutionControlEvidence.instantiatesBrokerExecutionAdapter
@@ -714,6 +781,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             authorizesTradingExecution: observability.authorizesTradingExecution
                 || explorer.authorizesTradingExecution
                 || scenarioReplayEvidence.authorizesTradingExecution
+                || simulatedExchangeParityEvidence.authorizesTradingExecution
                 || liveBlockedEvidence.authorizesTradingExecution
                 || liveMonitoringEvidence.authorizesTradingExecution
                 || liveExecutionControlEvidence.authorizesTradingExecution
@@ -821,6 +889,10 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                     label: "Scenario gates",
                     value: "\(viewModel.scenarioReplayQualityGateTimelineCount)"
                 ),
+                DashboardShellMetric(
+                    label: "Sim parity",
+                    value: "\(viewModel.simulatedExchangeParityEvidenceCount)"
+                ),
                 DashboardShellMetric(label: "Live gates", value: "\(viewModel.liveBlockedEvidenceCount)"),
                 DashboardShellMetric(
                     label: "Execution control",
@@ -891,6 +963,24 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 "Scenario replay boundary: \(formatEvidenceFlag(viewModel.scenarioReplayReadModelOnlyBoundaryHeld))",
                 "Scenario replay command surface: \(formatForbiddenFlag(viewModel.scenarioReplayProvidesCommandSurface))",
                 "Scenario replay query language: \(formatForbiddenFlag(viewModel.scenarioReplaySupportsQueryLanguage))",
+                "Simulated parity scenarios: \(joined(viewModel.simulatedExchangeParityScenarioIDs))",
+                "Simulated parity datasets: \(joined(viewModel.simulatedExchangeParityDatasetVersions))",
+                "Simulated parity fixtures: \(joined(viewModel.simulatedExchangeParityFixtureVersions))",
+                "Simulated parity windows: \(joined(viewModel.simulatedExchangeParityReplayWindows))",
+                "Simulated parity matching: \(joined(viewModel.simulatedExchangeParityMatchingResults))",
+                "Simulated parity orders: \(joined(viewModel.simulatedExchangeParityOrderIDs))",
+                "Simulated parity outcomes: \(joined(viewModel.simulatedExchangeParityOutcomeLabels))",
+                "Simulated parity report inputs: \(joined(viewModel.simulatedExchangeParityReportInputVersionIdentities))",
+                "Simulated parity replay sequences: \(joined(viewModel.simulatedExchangeParitySourceReplaySequences.map(String.init)))",
+                "Simulated parity portfolio: \(formatEvidenceFlag(viewModel.simulatedExchangeParityProjectionParityHeld))",
+                "Simulated parity cost: \(formatEvidenceFlag(viewModel.simulatedExchangeParityCostParityConsistent))",
+                "Simulated parity boundary: \(formatEvidenceFlag(viewModel.simulatedExchangeParityReadModelOnlyBoundaryHeld))",
+                "Simulated parity command surface: \(formatForbiddenFlag(viewModel.simulatedExchangeParityProvidesCommandSurface))",
+                "Simulated parity order command: \(formatForbiddenFlag(viewModel.simulatedExchangeParityProvidesOrderLevelCommand))",
+                "Simulated parity trading buttons: \(formatForbiddenFlag(viewModel.simulatedExchangeParityProvidesTradingButton))",
+                "Simulated parity schema exposure: \(formatForbiddenFlag(viewModel.simulatedExchangeParityExposesDatabaseSchema))",
+                "Simulated parity runtime exposure: \(formatForbiddenFlag(viewModel.simulatedExchangeParityExposesRuntimeObject))",
+                "Simulated parity adapter exposure: \(formatForbiddenFlag(viewModel.simulatedExchangeParityExposesAdapterRequest))",
                 "Live readiness: \(viewModel.liveReadinessStatus.rawValue)",
                 "Live blocked capabilities: \(joined(viewModel.liveBlockedCapabilityLabels))",
                 "Live gates: \(joined(viewModel.liveBlockedGateLabels))",
@@ -1251,6 +1341,12 @@ private struct DashboardWorkbenchPanel: View {
                     systemImage: "timeline.selection",
                     metrics: workbench.evidenceExplorerMetrics,
                     details: workbench.evidenceExplorerDetails + workbench.timelinePreview
+                )
+                DashboardWorkbenchDetailGroup(
+                    title: "Simulated Exchange Parity",
+                    systemImage: "equal.square",
+                    metrics: workbench.simulatedExchangeParityEvidenceMetrics,
+                    details: workbench.simulatedExchangeParityEvidenceDetails
                 )
                 DashboardWorkbenchDetailGroup(
                     title: "Live Blocked Gates",

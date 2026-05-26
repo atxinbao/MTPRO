@@ -2486,3 +2486,40 @@ MTP-115 必须建立的主要 anchors：
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、real account balance sync、live runtime、Live PRO Console、live command、order-level command UI 或交易按钮。
 - 不把 simulated portfolio projection 写成真实账户资产、broker statement、margin / leverage、live readiness、production account reconciliation 或 trading command state。
 - 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进下一 issue。
+
+## MTP-116 Report / Dashboard / Events Parity Evidence Surface Validation
+
+日期：2026-05-26
+
+执行者：Codex
+
+MTP-116 的 required validation：
+
+- `docs/contracts/simulated-exchange-backtest-parity-contract.md` 必须包含 `MTP-116-PARITY-EVIDENCE-READ-MODEL`、`MTP-116-REPORT-DASHBOARD-EVENTS-PARITY-SURFACE`、`MTP-116-SCENARIO-MATCHING-FILL-COST-PORTFOLIO-SNAPSHOT`、`MTP-116-READ-MODEL-ONLY-NO-COMMAND-SURFACE`、`MTP-116-NO-LIVE-BROKER-SIGNED-ENDPOINT` 和 `MTP-116-SIMULATED-EXCHANGE-PARITY-SURFACE-VALIDATION` anchors。
+- `Sources/App/SimulatedExchangeParityEvidenceSurface.swift` 必须定义 `SimulatedExchangeParityEvidenceItem`、`SimulatedExchangeParityEvidenceReadModel`、`SimulatedExchangeParityEvidenceViewModel` 和 timeline entry，且只消费 MTP-112 至 MTP-115 deterministic Core evidence。
+- Report ViewModel 必须展示 scenario id、dataset / fixture version、replay window、matching result、matching event、order id / type、partial / full / reject / expire outcomes、latency、fee、slippage、portfolio projection parity、report input version identity、source replay sequence 和 read-model-only boundary flags。
+- Dashboard / Workbench 必须展示 parity evidence、outcomes、timeline、portfolio parity、cost parity metrics 和 no-command/no-trading/no-schema/no-runtime/no-adapter details。
+- Events / Evidence Explorer 必须新增 `simulated exchange parity evidence` 只读 section，并输出 scenario、matching、fill summary、reject / expire、latency / cost、portfolio parity、report input / replay consistency timeline rows。
+- App tests 必须覆盖 Report / Dashboard / Events wiring、Dashboard smoke `simulatedParityEvidence=1`、focused MTP-116 deterministic field snapshot、Codable round-trip、read-model-only boundary、无 command surface、无 order-level command UI、无交易按钮、无 signed endpoint / account endpoint / listenKey / broker / live capability。
+- `docs/domain/context.md` 必须包含 `MTP-116-PARITY-EVIDENCE-READ-MODEL`、`MTP-116-REPORT-DASHBOARD-EVENTS-PARITY-SURFACE`、`MTP-116-SCENARIO-MATCHING-FILL-COST-PORTFOLIO-SNAPSHOT`、`MTP-116-READ-MODEL-ONLY-NO-COMMAND-SURFACE` 和 `MTP-116-NO-LIVE-BROKER-SIGNED-ENDPOINT`。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-116 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-116 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-116 contract、matrix、validation plan、domain context、latest summary、App source、Dashboard / Events source 和 focused test anchors。
+- Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`，不运行 Graphify，不修改 Figma，不实现 matching runtime、order execution runtime、portfolio projection runtime、signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、live runtime、live command、Live PRO Console、order-level command UI 或交易按钮。
+
+MTP-116 必须建立的主要 anchors：
+
+- `TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY`
+- `MTP-116-PARITY-EVIDENCE-READ-MODEL`
+- `MTP-116-REPORT-DASHBOARD-EVENTS-PARITY-SURFACE`
+- `MTP-116-SCENARIO-MATCHING-FILL-COST-PORTFOLIO-SNAPSHOT`
+- `MTP-116-READ-MODEL-ONLY-NO-COMMAND-SURFACE`
+- `MTP-116-NO-LIVE-BROKER-SIGNED-ENDPOINT`
+- `MTP-116-SIMULATED-EXCHANGE-PARITY-SURFACE-VALIDATION`
+
+## MTP-116 禁止
+
+- 不实现 matching runtime、order execution runtime、portfolio projection runtime、真实 order command、order form、command model、Runtime replay job、database console 或 schema browser。
+- 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、live runtime、Live PRO Console、live command、order-level command UI 或交易按钮。
+- 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进下一 issue。
