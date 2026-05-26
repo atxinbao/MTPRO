@@ -512,3 +512,56 @@ Focused validation anchors：
 - `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-122 anchors。
 
 MTP-122 不新增 engine core capability、不新增 Runtime replay job、不新增 stage audit input；Project stage closeout 仍归属 `MTP-125`。
+
+## MTP-123 reproducible beta acceptance checklist / script
+
+执行记录：2026-05-27，Codex。
+
+`MTP-123-REPRODUCIBLE-BETA-ACCEPTANCE-WORKFLOW`
+
+MTP-123 把 MTP-119 local launch / install path、MTP-120 deterministic demo fixture、MTP-121 first-run default demo state 和 MTP-122 Report / Dashboard / Events beta acceptance path 串成 operator 可复现 workflow。该 workflow 入口是 `checks/workbench-beta-acceptance.sh`，只编排 `uname -s`、`swift --version`、`swift package resolve`、`DASHBOARD_SMOKE=1 swift run Dashboard` 和 `bash checks/run.sh`，不新增 release tooling、Runtime job、App surface 或 production operations。
+
+`MTP-123-BETA-ACCEPTANCE-CHECKLIST`
+
+MTP-123 checklist 必须验证：
+
+- 本地环境是 `Darwin`。
+- SwiftPM dependency resolution 可运行，不需要 secret、API key、account endpoint、listenKey 或 broker credential。
+- Dashboard smoke 保持 `sections=8`、`readModelOnly=true`、`workbenchReadModelOnly=true` 和 `controls=start,pause,close,reset`。
+- Demo scenario 保持 `mtp-104-btcusdt-1m-first-scenario`、`dataset-v1`、`fixture-v1` 和同一 report input version。
+- First-run default demo 保持 `defaultDemoState=default demo`、`scenarioReplayEvidence=1`、`scenarioQualityGates=6`、`simulatedParityEvidence=1` 和 `betaFirstRunFallbacks=3`。
+- Report / Dashboard / Events beta acceptance path 保持 `betaAcceptancePaths=1`、`betaAcceptanceScenario=mtp-104-btcusdt-1m-first-scenario` 和 `betaAcceptanceTrace=5`。
+- Live boundary evidence 保持 blocked / read-model-only，不出现 Live PRO Console、trading button、live command 或 order-level command UI。
+
+`MTP-123-LOCAL-COMMANDS-EXPECTED-OUTPUTS`
+
+MTP-123 的 expected outputs 以 `docs/validation/workbench-beta-acceptance-checklist.md` 为 operator checklist，以 `checks/workbench-beta-acceptance.sh` 的 Dashboard smoke handle assertions 为机械校验。脚本不硬编码完整 stdout，只校验 beta acceptance path 必需的稳定 handles，避免把无关 build log 变成 contract。
+
+`MTP-123-OPERATOR-REPRODUCIBILITY-EVIDENCE`
+
+脚本把 operator transcript 写入 `.codex/beta-acceptance/<run-id>/`，包含 `uname.log`、`swift-version.log`、`swift-package-resolve.log`、`dashboard-smoke.log`、`mtpro-checks.log` 和 `summary.log`。这些 evidence 只用于本地 handoff、debug 和 PR evidence 摘要，不进入 GitHub PR。
+
+`MTP-123-FAILURE-TRIAGE-HINTS`
+
+MTP-123 triage 只沿现有本地验证链收窄：环境 / SwiftPM dependency、Dashboard build、Dashboard smoke handles、`checks/automation-readiness.sh`、`swift test`。任何失败都不得通过 Graphify、Figma、signed endpoint、account endpoint / listenKey、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、Live PRO Console、live command 或 trading button 绕过。
+
+`MTP-123-NO-GRAPHIFY-FIGMA-PRODUCTION-OPS`
+
+MTP-123 checklist / script 不运行 Graphify，不修改 Figma，不创建 production installer、release package、notarized artifact、App Store build、auto-update channel、production deployment 或 cloud operations workflow；不读取 API key / secret；不接 signed endpoint、account endpoint / listenKey、broker adapter、`LiveExecutionAdapter`、OMS；不实现 real submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button 或 live command。
+
+### MTP-123 validation anchors
+
+`MTP-123-BETA-ACCEPTANCE-SCRIPT-VALIDATION`
+
+Required validation：
+
+- `bash checks/workbench-beta-acceptance.sh`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `checks/workbench-beta-acceptance.sh` 必须运行 Dashboard smoke、校验 `betaAcceptancePaths=1`、`betaAcceptanceScenario=mtp-104-btcusdt-1m-first-scenario` 和 `betaAcceptanceTrace=5`，并最终调用 `bash checks/run.sh`。
+- `docs/validation/workbench-beta-acceptance-checklist.md` 必须记录 checklist、local commands、expected outputs、operator reproducibility evidence、failure triage hints 和 forbidden boundary。
+- `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-123 anchors。
+
+MTP-123 不新增 engine core capability、不新增 Runtime replay job、不新增 App read model、不新增 stage audit input；Project stage closeout 仍归属 `MTP-125`。
