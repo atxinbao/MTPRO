@@ -682,6 +682,26 @@ MTP-115 report input / replay evidence 必须绑定 `mtp-104-btcusdt-1m-first-sc
 
 MTP-115 simulated exchange portfolio projection parity 不得升级为 real account balance read / sync、broker position read、margin read、leverage read、broker reconciliation、signed endpoint、account endpoint、listenKey、broker integration、`LiveExecutionAdapter`、OMS、live runtime、live command、order-level command UI、交易按钮、database schema exposure、runtime object read 或 network-dependent validation。
 
+`MTP-116-PARITY-EVIDENCE-READ-MODEL`
+
+MTP-116 parity evidence read model 指 App 层对 MTP-112 至 MTP-115 deterministic parity facts 的只读复制：scenario id、dataset version、fixture version、replay window、matching result、fill summary、reject / expire outcome、latency、fee / slippage、portfolio projection parity、report input version identity 和 replay sequence。它不等于 matching runtime、order execution runtime、portfolio projection runtime、database console 或 command model。
+
+`MTP-116-REPORT-DASHBOARD-EVENTS-PARITY-SURFACE`
+
+MTP-116 Report / Dashboard / Events parity surface 指 Report、Dashboard Shell、Workbench 和 Evidence Explorer 对 `SimulatedExchangeParityEvidenceReadModel` 的只读展示：Report 显示 evidence count 和 deterministic fields，Dashboard / Workbench 显示 parity evidence / outcomes / timeline / portfolio parity / cost parity metrics，Events 新增 `simulated exchange parity evidence` timeline section。该 surface 不提供 order form、query language、order-level command UI、live command、trading button 或 trading execution authorization。
+
+`MTP-116-SCENARIO-MATCHING-FILL-COST-PORTFOLIO-SNAPSHOT`
+
+MTP-116 默认 snapshot 必须把同一个 scenario `mtp-104-btcusdt-1m-first-scenario`、dataset `dataset-v1`、fixture `fixture-v1`、replay window `1704067200...1704067380`、matching event `mtp-112-simulated-exchange-order-matched`、partial / full / rejected / expired simulated outcomes、latency `250ms`、fee `5.2650875`、slippage `1.57952625`、gross exposure `10530.175` 和 net simulated PnL `-6.84461375` 作为 read-model evidence 呈现，证明 projection 从 replayed simulated fill fact 派生。
+
+`MTP-116-READ-MODEL-ONLY-NO-COMMAND-SURFACE`
+
+MTP-116 read-model-only boundary 要求所有 Report / Dashboard / Events parity evidence 只消费 App ViewModel，不读取 Runtime object、Persistence schema、Adapter request、secret、signed endpoint、account endpoint、listenKey、broker payload 或 live state；Codable decode 也不能恢复 command surface、order-level command、Live PRO Console、交易按钮或真实交易授权。
+
+`MTP-116-NO-LIVE-BROKER-SIGNED-ENDPOINT`
+
+MTP-116 parity evidence surface 必须保持 signed endpoint、account endpoint、listenKey、broker integration、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、database schema exposure、Runtime object exposure、adapter request exposure、live runtime 和 network-dependent validation 全部为 false。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

@@ -11376,3 +11376,43 @@ L1 Paper Runtime maturity statement：
 - 不修改 Figma。
 - 不提交 `.codex/*` 或 `graphify-out/*`。
 - 不实现 portfolio projection runtime、Report / Dashboard / Events evidence surface、UI implementation、order form、command model、Runtime replay job、database console、signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、database schema read、Runtime object read、Live PRO Console、order-level command UI、trading button、live command、emergency stop、shutdown 或 restore。
+
+---
+
+## 2026-05-27 — MTP-116 Report / Dashboard / Events parity evidence surface
+
+执行者：Codex
+
+目的：
+
+- 完成 `MTP-116` Add Report / Dashboard / Events parity evidence surface 的当前 issue scope。
+- 保持 MTP-116 只复制 MTP-112 至 MTP-115 deterministic simulated exchange parity facts 到 App read model，不扩大到 matching runtime、order execution runtime、portfolio projection runtime、signed endpoint、account endpoint / listenKey、broker、Live PRO Console、live command、order-level command UI 或交易按钮。
+
+实现摘要：
+
+- 新增 `Sources/App/SimulatedExchangeParityEvidenceSurface.swift`。
+- `SimulatedExchangeParityEvidenceReadModel` / `SimulatedExchangeParityEvidenceViewModel` 汇总 scenario id、dataset / fixture version、replay window、matching result、partial / full / reject / expire outcomes、latency、fee / slippage、portfolio projection parity、report input version identity 和 source replay sequence。
+- `ReportViewModel` 新增 simulated exchange parity evidence fields，并保持 no schema / no runtime / no adapter / no command / no trading authorization boundary。
+- `DashboardShellSnapshot` 新增 Report metric `Sim parity`、Workbench `Simulated Exchange Parity` details 和 Dashboard smoke `simulatedParityEvidence` handle。
+- `PaperWorkflowEvidenceExplorerViewModel` 新增 `simulated exchange parity evidence` section，输出 scenario、matching、fill summary、reject / expire、latency / cost、portfolio parity、report input / replay consistency timeline rows。
+- 更新 `docs/contracts/simulated-exchange-backtest-parity-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh` 的 MTP-116 anchors / evidence chain。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter AppTests.testMTP116SimulatedExchangeParityReadModelFeedsReportDashboardAndEvents` | pass | 执行 1 个 App test，0 failures，验证 Report / Dashboard / Events read-model-only parity surface、deterministic fields、timeline section、Dashboard smoke `simulatedParityEvidence=1` 和 forbidden capability boundary。 |
+| `swift test --filter AppTests` | pass | 执行 30 个 App tests，0 failures，验证 App / Dashboard / Events snapshots 和 Codable round-trip。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；机械检查 MTP-116 contract、matrix、validation plan、domain context、latest summary、App source、Dashboard / Events source 和 focused test anchors。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 261 个 XCTest；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; scenarioReplayEvidence=0; scenarioQualityGates=0; simulatedParityEvidence=0; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`，最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不修改 Linear status。
+- 不创建下一 Project / Issue。
+- 不推进下一 issue。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify update。
+- 不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 matching runtime、order execution runtime、portfolio projection runtime、UI implementation、order form、command model、Runtime replay job、database console、signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、database schema read、Runtime object read、Live PRO Console、order-level command UI、trading button、live command、emergency stop、shutdown 或 restore。

@@ -12,6 +12,7 @@ public enum PaperWorkflowEvidenceExplorerSection: String, Codable, CaseIterable,
     case marketEvent = "market event"
     case marketDataReplayOperation = "market data replay operation"
     case scenarioReplayEvidence = "scenario replay evidence"
+    case simulatedExchangeParityEvidence = "simulated exchange parity evidence"
     case liveExecutionControlBlockedEvidence = "live execution control blocked evidence"
     case liveRiskGateBlockedEvidence = "live risk gate blocked evidence"
     case liveIncidentStopBlockedEvidence = "live incident / stop blocked evidence"
@@ -137,7 +138,7 @@ public struct PaperWorkflowEvidenceExplorerFilterSnapshot: Codable, Equatable, S
 /// PaperWorkflowEvidenceExplorerReadModel 汇总 Event Timeline / Evidence Explorer 的稳定输入。
 ///
 /// 该 read model 只组合 Dashboard 已有 App read models：market、strategy、report、
-/// scenario replay evidence、
+/// scenario replay evidence、simulated exchange parity evidence、
 /// Live blocked evidence、Live monitoring evidence、execution-control blocked evidence、
 /// Live Risk gate blocked evidence、incident / stop blocked evidence、
 /// paper workflow observability 和 append-only event timeline。
@@ -148,6 +149,7 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
     public let strategy: StrategyReadModel
     public let report: ReportReadModel
     public let scenarioReplayEvidence: ScenarioReplayEvidenceReadModel
+    public let simulatedExchangeParityEvidence: SimulatedExchangeParityEvidenceReadModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel
     public let liveMonitoringEvidence: LiveMonitoringEvidenceReadModel
     public let liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel
@@ -162,6 +164,7 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
         strategy: StrategyReadModel = StrategyReadModel(),
         report: ReportReadModel = ReportReadModel(),
         scenarioReplayEvidence: ScenarioReplayEvidenceReadModel? = nil,
+        simulatedExchangeParityEvidence: SimulatedExchangeParityEvidenceReadModel? = nil,
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel? = nil,
         liveMonitoringEvidence: LiveMonitoringEvidenceReadModel? = nil,
         liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel? = nil,
@@ -175,6 +178,8 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
         self.report = report
         self.scenarioReplayEvidence = scenarioReplayEvidence
             ?? report.scenarioReplayEvidence
+        self.simulatedExchangeParityEvidence = simulatedExchangeParityEvidence
+            ?? report.simulatedExchangeParityEvidence
         self.liveTradingBlockedEvidence = liveTradingBlockedEvidence
             ?? report.liveTradingBlockedEvidence
         self.liveMonitoringEvidence = liveMonitoringEvidence
@@ -192,6 +197,7 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
             strategy.lastAppliedSequence,
             report.lastAppliedSequence,
             self.scenarioReplayEvidence.lastAppliedSequence,
+            self.simulatedExchangeParityEvidence.lastAppliedSequence,
             self.liveTradingBlockedEvidence.lastAppliedSequence,
             self.liveMonitoringEvidence.lastAppliedSequence,
             self.liveExecutionControlBlockedEvidence.lastAppliedSequence,
@@ -223,6 +229,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
     public let coversMarketEvents: Bool
     public let coversMarketDataReplayOperations: Bool
     public let coversScenarioReplayEvidence: Bool
+    public let coversSimulatedExchangeParityEvidence: Bool
     public let coversLiveExecutionControlBlockedEvidence: Bool
     public let coversLiveRiskGateBlockedEvidence: Bool
     public let coversLiveIncidentStopBlockedEvidence: Bool
@@ -261,6 +268,9 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         let scenarioReplay = ScenarioReplayEvidenceViewModel(
             readModel: readModel.scenarioReplayEvidence
         )
+        let simulatedExchangeParity = SimulatedExchangeParityEvidenceViewModel(
+            readModel: readModel.simulatedExchangeParityEvidence
+        )
         let liveExecutionControl = LiveExecutionControlBlockedEvidenceViewModel(
             readModel: readModel.liveExecutionControlBlockedEvidence
         )
@@ -287,6 +297,9 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         let coversScenarioReplayEvidence = allTimelineItems.contains {
             $0.section == .scenarioReplayEvidence
         }
+        let coversSimulatedExchangeParityEvidence = allTimelineItems.contains {
+            $0.section == .simulatedExchangeParityEvidence
+        }
         let coversLiveExecutionControlBlockedEvidence = allTimelineItems.contains {
             $0.section == .liveExecutionControlBlockedEvidence
         }
@@ -312,39 +325,47 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         let exposesDatabaseSchema = source.exposesDatabaseTables
             || source.exposesORMModels
             || scenarioReplay.exposesDatabaseSchema
+            || simulatedExchangeParity.exposesDatabaseSchema
             || liveExecutionControl.exposesPersistenceSchema
             || liveRiskGate.exposesPersistenceSchema
             || liveIncidentStop.exposesPersistenceSchema
         let exposesRuntimeObject = source.exposesRuntimeObjects
             || scenarioReplay.exposesRuntimeObject
+            || simulatedExchangeParity.exposesRuntimeObject
             || liveExecutionControl.invokesRuntimeControl
             || liveRiskGate.invokesRuntimeControl
             || liveIncidentStop.invokesRuntimeControl
         let exposesAdapterRequest = source.callsBinanceAdapter
             || scenarioReplay.exposesAdapterRequest
+            || simulatedExchangeParity.exposesAdapterRequest
             || liveExecutionControl.readsAdapter
             || liveRiskGate.readsAdapter
             || liveIncidentStop.readsAdapter
         let providesCommandSurface = scenarioReplay.providesCommandSurface
+            || simulatedExchangeParity.providesCommandSurface
             || liveExecutionControl.providesCommandSurface
             || liveRiskGate.providesCommandSurface
             || liveIncidentStop.providesCommandSurface
         let providesOrderLevelCommand = scenarioReplay.providesOrderLevelCommand
+            || simulatedExchangeParity.providesOrderLevelCommand
             || liveExecutionControl.providesOrderLevelCommand
         let supportsQueryLanguage = false
         let providesLiveAudit = false
         let providesIncidentReplay = liveIncidentStop.providesIncidentReplay
         let providesStopControl = liveIncidentStop.providesStopControl
         let authorizesLiveTrading = scenarioReplay.authorizesLiveTrading
+            || simulatedExchangeParity.authorizesLiveTrading
             || liveExecutionControl.authorizesLiveTrading
             || liveRiskGate.authorizesLiveTrading
             || liveIncidentStop.authorizesLiveTrading
-        let touchesBrokerAction = liveExecutionControl.instantiatesBrokerExecutionAdapter
+        let touchesBrokerAction = simulatedExchangeParity.touchesBrokerAction
+            || liveExecutionControl.instantiatesBrokerExecutionAdapter
             || liveExecutionControl.instantiatesExchangeExecutionAdapter
             || liveRiskGate.instantiatesBrokerExecutionAdapter
             || liveRiskGate.instantiatesExchangeExecutionAdapter
             || liveIncidentStop.executesBrokerAction
         let authorizesTradingExecution = scenarioReplay.authorizesTradingExecution
+            || simulatedExchangeParity.authorizesTradingExecution
             || liveExecutionControl.authorizesTradingExecution
             || liveRiskGate.authorizesTradingExecution
             || liveIncidentStop.authorizesTradingExecution
@@ -363,6 +384,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         self.coversMarketEvents = coversMarketEvents
         self.coversMarketDataReplayOperations = coversMarketDataReplayOperations
         self.coversScenarioReplayEvidence = coversScenarioReplayEvidence
+        self.coversSimulatedExchangeParityEvidence = coversSimulatedExchangeParityEvidence
         self.coversLiveExecutionControlBlockedEvidence = coversLiveExecutionControlBlockedEvidence
         self.coversLiveRiskGateBlockedEvidence = coversLiveRiskGateBlockedEvidence
         self.coversLiveIncidentStopBlockedEvidence = coversLiveIncidentStopBlockedEvidence
@@ -386,6 +408,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             && providesIncidentReplay == false
             && providesStopControl == false
             && scenarioReplay.readModelOnlyBoundaryHeld
+            && simulatedExchangeParity.readModelOnlyBoundaryHeld
             && liveExecutionControl.readModelOnlyBoundaryHeld
             && liveRiskGate.readModelOnlyBoundaryHeld
             && liveIncidentStop.readModelOnlyBoundaryHeld
@@ -426,6 +449,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             makeMarketItems(readModel.market)
                 + makeMarketDataReplayOperationItems(readModel.report.marketDataReplayOperations)
                 + makeScenarioReplayEvidenceItems(readModel.scenarioReplayEvidence)
+                + makeSimulatedExchangeParityEvidenceItems(readModel.simulatedExchangeParityEvidence)
                 + makeLiveExecutionControlBlockedEvidenceItems(readModel.liveExecutionControlBlockedEvidence)
                 + makeLiveRiskGateBlockedEvidenceItems(readModel.liveRiskGateBlockedEvidence)
                 + makeLiveIncidentStopBlockedEvidenceItems(readModel.liveIncidentStopBlockedEvidence)
@@ -570,6 +594,42 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
                             evidenceID: item.reportInputVersionIdentity,
                             label: "report input version",
                             sourceSequence: readModel.lastAppliedSequence
+                        )
+                    ]
+                )
+            }
+        }
+    }
+
+    private static func makeSimulatedExchangeParityEvidenceItems(
+        _ readModel: SimulatedExchangeParityEvidenceReadModel
+    ) -> [PaperWorkflowEventTimelineItem] {
+        readModel.items.flatMap { item in
+            item.timelineEntries.map { entry in
+                PaperWorkflowEventTimelineItem(
+                    section: .simulatedExchangeParityEvidence,
+                    sequence: readModel.lastAppliedSequence ?? item.sourceReplaySequence,
+                    stream: "simulated exchange parity",
+                    title: entry.title,
+                    summary: entry.summary,
+                    evidenceLinks: [
+                        PaperWorkflowEvidenceLinkSummary(
+                            section: .simulatedExchangeParityEvidence,
+                            evidenceID: entry.entryID,
+                            label: entry.kind,
+                            sourceSequence: readModel.lastAppliedSequence ?? item.sourceReplaySequence
+                        ),
+                        PaperWorkflowEvidenceLinkSummary(
+                            section: .simulatedExchangeParityEvidence,
+                            evidenceID: item.evidenceID,
+                            label: "parity evidence",
+                            sourceSequence: item.sourceReplaySequence
+                        ),
+                        PaperWorkflowEvidenceLinkSummary(
+                            section: .simulatedExchangeParityEvidence,
+                            evidenceID: item.reportInputVersionIdentity,
+                            label: "report input version",
+                            sourceSequence: item.sourceReplaySequence
                         )
                     ]
                 )

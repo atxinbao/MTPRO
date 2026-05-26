@@ -48,6 +48,15 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(viewModel.report.scenarioReplayEvidence.source.callsBinanceAdapter)
         XCTAssertFalse(viewModel.report.scenarioReplayEvidence.source.providesLiveOrderAction)
         XCTAssertEqual(
+            viewModel.report.simulatedExchangeParityEvidence.source.sourceKind,
+            .stableReadModelProjection
+        )
+        XCTAssertFalse(viewModel.report.simulatedExchangeParityEvidence.source.exposesDatabaseTables)
+        XCTAssertFalse(viewModel.report.simulatedExchangeParityEvidence.source.exposesORMModels)
+        XCTAssertFalse(viewModel.report.simulatedExchangeParityEvidence.source.exposesRuntimeObjects)
+        XCTAssertFalse(viewModel.report.simulatedExchangeParityEvidence.source.callsBinanceAdapter)
+        XCTAssertFalse(viewModel.report.simulatedExchangeParityEvidence.source.providesLiveOrderAction)
+        XCTAssertEqual(
             viewModel.report.liveTradingBlockedEvidence.source.sourceKind,
             .stableReadModelProjection
         )
@@ -282,10 +291,11 @@ final class AppTests: XCTestCase {
         let explorer = try makeDashboardViewModel().paperWorkflowEvidenceExplorer
 
         XCTAssertTrue(explorer.source.isReadModelOnly)
-        XCTAssertEqual(explorer.timelineItemCount, 70)
+        XCTAssertEqual(explorer.timelineItemCount, 77)
         XCTAssertTrue(explorer.coversMarketEvents)
         XCTAssertTrue(explorer.coversMarketDataReplayOperations)
         XCTAssertTrue(explorer.coversScenarioReplayEvidence)
+        XCTAssertTrue(explorer.coversSimulatedExchangeParityEvidence)
         XCTAssertTrue(explorer.coversLiveExecutionControlBlockedEvidence)
         XCTAssertTrue(explorer.coversLiveRiskGateBlockedEvidence)
         XCTAssertTrue(explorer.coversLiveIncidentStopBlockedEvidence)
@@ -305,6 +315,7 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(itemCounts[.marketEvent], 6)
         XCTAssertEqual(itemCounts[.marketDataReplayOperation], 1)
         XCTAssertEqual(itemCounts[.scenarioReplayEvidence], 10)
+        XCTAssertEqual(itemCounts[.simulatedExchangeParityEvidence], 7)
         XCTAssertEqual(itemCounts[.liveExecutionControlBlockedEvidence], 7)
         XCTAssertEqual(itemCounts[.liveRiskGateBlockedEvidence], 6)
         XCTAssertEqual(itemCounts[.liveIncidentStopBlockedEvidence], 5)
@@ -325,6 +336,7 @@ final class AppTests: XCTestCase {
 
         let evidenceIDs = explorer.evidenceLinks.map(\.evidenceID)
         XCTAssertTrue(evidenceIDs.contains("report-backtest-ema-fixture"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-115-simulated-exchange-portfolio-projection-parity"))
         XCTAssertTrue(evidenceIDs.contains("paper-replay-execution-decision-allowed"))
         XCTAssertTrue(evidenceIDs.contains("paper-replay-order-allowed"))
         XCTAssertTrue(evidenceIDs.contains("paper-replay-fill-allowed"))
@@ -806,6 +818,30 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(viewModel.report.scenarioReplayEvidenceCount, 1)
         XCTAssertTrue(viewModel.report.scenarioReplayReadModelOnlyBoundaryHeld)
         XCTAssertFalse(viewModel.report.scenarioReplayAuthorizesTradingExecution)
+        XCTAssertEqual(viewModel.report.simulatedExchangeParityEvidenceCount, 1)
+        XCTAssertEqual(
+            viewModel.report.simulatedExchangeParityScenarioIDs,
+            ["mtp-104-btcusdt-1m-first-scenario"]
+        )
+        XCTAssertEqual(viewModel.report.simulatedExchangeParityDatasetVersions, ["dataset-v1"])
+        XCTAssertEqual(viewModel.report.simulatedExchangeParityFixtureVersions, ["fixture-v1"])
+        XCTAssertEqual(
+            viewModel.report.simulatedExchangeParityMatchingResults,
+            ["simulated exchange order matched"]
+        )
+        XCTAssertEqual(
+            viewModel.report.simulatedExchangeParityOutcomeLabels,
+            ["partial", "full", "rejected simulated", "expired simulated"]
+        )
+        XCTAssertEqual(viewModel.report.simulatedExchangeParityTimelineEntryCount, 7)
+        XCTAssertTrue(viewModel.report.simulatedExchangeParityProjectionParityHeld)
+        XCTAssertTrue(viewModel.report.simulatedExchangeParityCostParityConsistent)
+        XCTAssertTrue(viewModel.report.simulatedExchangeParityReadModelOnlyBoundaryHeld)
+        XCTAssertFalse(viewModel.report.simulatedExchangeParityExposesDatabaseSchema)
+        XCTAssertFalse(viewModel.report.simulatedExchangeParityProvidesCommandSurface)
+        XCTAssertFalse(viewModel.report.simulatedExchangeParityProvidesOrderLevelCommand)
+        XCTAssertFalse(viewModel.report.simulatedExchangeParityProvidesTradingButton)
+        XCTAssertFalse(viewModel.report.simulatedExchangeParityAuthorizesTradingExecution)
         XCTAssertEqual(viewModel.report.liveBlockedEvidenceCount, 6)
         XCTAssertEqual(
             viewModel.report.liveBlockedCapabilityLabels,
@@ -920,9 +956,10 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(viewModel.report.lastAppliedSequence, 16)
         XCTAssertFalse(viewModel.report.tradingValidationAuthorizesExecution)
         XCTAssertFalse(viewModel.report.authorizesTradingExecution)
-        XCTAssertEqual(viewModel.paperWorkflowEvidenceExplorer.timelineItemCount, 70)
+        XCTAssertEqual(viewModel.paperWorkflowEvidenceExplorer.timelineItemCount, 77)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversPaperWorkflowChainEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversMarketDataReplayOperations)
+        XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversSimulatedExchangeParityEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveExecutionControlBlockedEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveRiskGateBlockedEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveIncidentStopBlockedEvidence)
@@ -1035,6 +1072,88 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(viewModel.events.lastSequence, 16)
     }
 
+    func testMTP116SimulatedExchangeParityReadModelFeedsReportDashboardAndEvents() throws {
+        // 测试场景：MTP-116 只把 MTP-112 至 MTP-115 的 deterministic parity evidence
+        // 复制为 Report / Dashboard / Events 可消费的只读 ViewModel，不新增 Runtime command、schema
+        // 暴露、broker action、live command、order-level command UI 或交易按钮。
+        let viewModel = try makeDashboardViewModel()
+        let parity = viewModel.report.simulatedExchangeParityEvidence
+        let explorer = viewModel.paperWorkflowEvidenceExplorer
+        let shell = DashboardShellSnapshot(viewModel: viewModel)
+
+        XCTAssertEqual(parity.evidenceCount, 1)
+        XCTAssertEqual(parity.scenarioIDs, ["mtp-104-btcusdt-1m-first-scenario"])
+        XCTAssertEqual(parity.datasetVersions, ["dataset-v1"])
+        XCTAssertEqual(parity.fixtureVersions, ["fixture-v1"])
+        XCTAssertEqual(parity.replayWindows, ["1704067200...1704067380"])
+        XCTAssertEqual(parity.matchingResults, ["simulated exchange order matched"])
+        XCTAssertEqual(parity.matchingEventIDs, ["mtp-112-simulated-exchange-order-matched"])
+        XCTAssertEqual(parity.orderIDs, ["paper-order-intent-allowed"])
+        XCTAssertEqual(parity.orderTypes, ["market order simulated execution"])
+        XCTAssertEqual(
+            parity.outcomeLabels,
+            ["partial", "full", "rejected simulated", "expired simulated"]
+        )
+        XCTAssertEqual(parity.sourceReplaySequences, [3])
+        XCTAssertEqual(parity.timelineEntryCount, 7)
+        XCTAssertEqual(parity.validationAnchorCount, 7)
+        XCTAssertEqual(try XCTUnwrap(parity.matchedPrice), 42_120.70, accuracy: 0.00000001)
+        XCTAssertEqual(try XCTUnwrap(parity.matchedQuantity), 0.5, accuracy: 0.00000001)
+        XCTAssertEqual(parity.netQuantity, 0.25, accuracy: 0.00000001)
+        XCTAssertEqual(parity.grossExposureNotional, 10_530.175, accuracy: 0.00000001)
+        XCTAssertEqual(parity.netSimulatedPnL, -6.84461375, accuracy: 0.00000001)
+        XCTAssertEqual(parity.feeAmount, 5.2650875, accuracy: 0.00000001)
+        XCTAssertEqual(parity.slippageAmount, 1.57952625, accuracy: 0.00000001)
+        XCTAssertEqual(try XCTUnwrap(parity.latencyMilliseconds), 250, accuracy: 0.00000001)
+        XCTAssertTrue(parity.projectionParityHeld)
+        XCTAssertTrue(parity.costParityConsistent)
+        XCTAssertTrue(parity.reportReproducibilityEvidenceHeld)
+        XCTAssertTrue(parity.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(parity.exposesDatabaseSchema)
+        XCTAssertFalse(parity.exposesRuntimeObject)
+        XCTAssertFalse(parity.exposesAdapterRequest)
+        XCTAssertFalse(parity.providesCommandSurface)
+        XCTAssertFalse(parity.providesOrderLevelCommand)
+        XCTAssertFalse(parity.providesLiveCommand)
+        XCTAssertFalse(parity.providesTradingButton)
+        XCTAssertFalse(parity.authorizesLiveTrading)
+        XCTAssertFalse(parity.touchesBrokerAction)
+        XCTAssertFalse(parity.authorizesTradingExecution)
+        XCTAssertFalse(parity.requiredValidationDependsOnNetwork)
+
+        XCTAssertEqual(viewModel.report.simulatedExchangeParityEvidenceCount, 1)
+        XCTAssertEqual(viewModel.report.simulatedExchangeParityTimelineEntryCount, 7)
+        XCTAssertTrue(viewModel.report.simulatedExchangeParityProjectionParityHeld)
+        XCTAssertTrue(viewModel.report.simulatedExchangeParityCostParityConsistent)
+        XCTAssertTrue(viewModel.report.simulatedExchangeParityReadModelOnlyBoundaryHeld)
+        XCTAssertFalse(viewModel.report.simulatedExchangeParityProvidesCommandSurface)
+        XCTAssertFalse(viewModel.report.simulatedExchangeParityProvidesOrderLevelCommand)
+        XCTAssertFalse(viewModel.report.simulatedExchangeParityProvidesTradingButton)
+        XCTAssertFalse(viewModel.report.simulatedExchangeParityAuthorizesTradingExecution)
+
+        XCTAssertTrue(explorer.coversSimulatedExchangeParityEvidence)
+        XCTAssertTrue(
+            explorer.timelineItems.contains {
+                $0.section == .simulatedExchangeParityEvidence
+                    && $0.title == "Backtest / paper portfolio parity"
+                    && $0.summary.contains("netPnL=-6.84461375")
+            }
+        )
+        XCTAssertTrue(explorer.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(explorer.providesCommandSurface)
+        XCTAssertFalse(explorer.providesOrderLevelCommand)
+
+        let reportSection = try XCTUnwrap(shell.sections.first { $0.section == .report })
+        XCTAssertEqual(metricValue("Sim parity", in: reportSection), "1")
+        XCTAssertTrue(reportSection.details.contains("Simulated parity portfolio: confirmed"))
+        XCTAssertTrue(reportSection.details.contains("Simulated parity command surface: none"))
+        XCTAssertTrue(reportSection.details.contains("Simulated parity trading buttons: none"))
+        XCTAssertEqual(metricValue("Parity evidence", in: shell.workbench.simulatedExchangeParityEvidenceMetrics), "1")
+        XCTAssertEqual(metricValue("Timeline", in: shell.workbench.simulatedExchangeParityEvidenceMetrics), "7")
+        XCTAssertTrue(shell.workbench.simulatedExchangeParityEvidenceDetails.contains("Parity boundary: confirmed"))
+        XCTAssertTrue(shell.smokeSummary.contains("simulatedParityEvidence=1"))
+    }
+
     func testDashboardViewModelStateSnapshotIsCodableAndDeterministic() throws {
         let viewModel = try makeDashboardViewModel()
 
@@ -1050,7 +1169,7 @@ final class AppTests: XCTestCase {
             decoded.report.artifacts.first?.paperExecutionWorkflowEvidence.paperOrderIDs,
             ["paper-replay-order-allowed"]
         )
-        XCTAssertEqual(decoded.paperWorkflowEvidenceExplorer.timelineItemCount, 70)
+        XCTAssertEqual(decoded.paperWorkflowEvidenceExplorer.timelineItemCount, 77)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversReportArtifacts)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversMarketDataReplayOperations)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversScenarioReplayEvidence)
@@ -1519,7 +1638,7 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(snapshot.smokeSummary.contains("readModelOnly=true"))
         XCTAssertTrue(snapshot.smokeSummary.contains("workbenchReadModelOnly=true"))
         XCTAssertTrue(snapshot.smokeSummary.contains("controls=start,pause,close,reset"))
-        XCTAssertTrue(snapshot.smokeSummary.contains("timelineItems=70"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("timelineItems=77"))
         XCTAssertTrue(snapshot.smokeSummary.contains("scenarioReplayEvidence=1"))
         XCTAssertTrue(snapshot.smokeSummary.contains("scenarioQualityGates=6"))
         XCTAssertTrue(snapshot.smokeSummary.contains("liveBlockedGates=6"))
@@ -1574,8 +1693,8 @@ final class AppTests: XCTestCase {
             )
         )
 
-        XCTAssertEqual(metricValue("Timeline items", in: workbench.evidenceExplorerMetrics), "70")
-        XCTAssertEqual(metricValue("Sections", in: workbench.evidenceExplorerMetrics), "14")
+        XCTAssertEqual(metricValue("Timeline items", in: workbench.evidenceExplorerMetrics), "77")
+        XCTAssertEqual(metricValue("Sections", in: workbench.evidenceExplorerMetrics), "15")
         XCTAssertTrue(
             workbench.evidenceExplorerDetails.contains(
                 "Filter: read-only"
@@ -2151,12 +2270,14 @@ final class AppTests: XCTestCase {
         let eventTimeline = try makeEventTimeline()
         let marketDataReplayOperations = try makeMarketDataReplayOperationsReadModel()
         let scenarioReplayEvidence = makeScenarioReplayEvidenceReadModel()
+        let simulatedExchangeParityEvidence = makeSimulatedExchangeParityEvidenceReadModel()
         let readModel = DashboardReadModel(
             runtimeProjection: runtimeProjection,
             analyticalProjection: analyticalProjection,
             eventTimeline: eventTimeline,
             marketDataReplayOperations: marketDataReplayOperations,
-            scenarioReplayEvidence: scenarioReplayEvidence
+            scenarioReplayEvidence: scenarioReplayEvidence,
+            simulatedExchangeParityEvidence: simulatedExchangeParityEvidence
         )
 
         return DashboardViewModel(readModel: readModel)
@@ -2168,12 +2289,14 @@ final class AppTests: XCTestCase {
         let eventTimeline = try makeEventTimeline()
         let marketDataReplayOperations = try makeMarketDataReplayOperationsReadModel()
         let scenarioReplayEvidence = makeScenarioReplayEvidenceReadModel()
+        let simulatedExchangeParityEvidence = makeSimulatedExchangeParityEvidenceReadModel()
         let readModel = DashboardReadModel(
             runtimeProjection: runtimeProjection,
             analyticalProjection: analyticalProjection,
             eventTimeline: eventTimeline,
             marketDataReplayOperations: marketDataReplayOperations,
-            scenarioReplayEvidence: scenarioReplayEvidence
+            scenarioReplayEvidence: scenarioReplayEvidence,
+            simulatedExchangeParityEvidence: simulatedExchangeParityEvidence
         )
 
         return readModel.paperWorkflowEvidenceExplorer
@@ -2226,6 +2349,12 @@ final class AppTests: XCTestCase {
         // 测试场景：MTP-108 只把 MTP-107 Core 聚合证据复制成 App 层 read model。
         // App / Dashboard 不执行 replay、不读取 schema、不调用 adapter，也不暴露 command / live surface。
         ScenarioReplayEvidenceReadModel.deterministicFixture
+    }
+
+    private func makeSimulatedExchangeParityEvidenceReadModel() -> SimulatedExchangeParityEvidenceReadModel {
+        // 测试场景：MTP-116 只把 Core deterministic parity value objects 复制成 App 层 read model。
+        // App / Dashboard 不运行撮合、执行或 portfolio runtime，不暴露 schema，也不新增交易入口。
+        SimulatedExchangeParityEvidenceReadModel.deterministicFixture
     }
 
     private func metricValue(

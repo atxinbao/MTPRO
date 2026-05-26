@@ -4,9 +4,9 @@
 
 执行者：Codex
 
-本文档定义 `MTPRO Simulated Exchange / Backtest Parity v1` 的 L2 simulated exchange / backtest parity terminology、目标引擎职责、L1 Paper Runtime 与 L1.5 Data Catalog / Scenario Replay 到 L2 的 handoff boundary、shared backtest-paper order semantics、scenario replay deterministic matching model、market / limit order simulated execution semantics、partial fill / latency / fee / slippage parity、simulated exchange event 到 portfolio projection parity、forbidden capability baseline、source docs anchors 和 validation anchors。
+本文档定义 `MTPRO Simulated Exchange / Backtest Parity v1` 的 L2 simulated exchange / backtest parity terminology、目标引擎职责、L1 Paper Runtime 与 L1.5 Data Catalog / Scenario Replay 到 L2 的 handoff boundary、shared backtest-paper order semantics、scenario replay deterministic matching model、market / limit order simulated execution semantics、partial fill / latency / fee / slippage parity、simulated exchange event 到 portfolio projection parity、Report / Dashboard / Events parity evidence surface、forbidden capability baseline、source docs anchors 和 validation anchors。
 
-本文档服务 `MTP-110` 至 `MTP-115` 的术语 / 边界合同；它不实现真实撮合引擎、不实现真实订单执行 runtime、不实现 portfolio projection runtime、不实现 UI，不接 signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、Live PRO Console、live command、trading button，不运行 Graphify，不修改 Figma。
+本文档服务 `MTP-110` 至 `MTP-116` 的术语 / 边界合同；它不实现真实撮合引擎、不实现真实订单执行 runtime、不实现 portfolio projection runtime、不实现 order form / command UI，不接 signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、Live PRO Console、live command、trading button，不运行 Graphify，不修改 Figma。
 
 ## MTP-110 Simulated Exchange / Backtest Parity terminology
 
@@ -564,3 +564,46 @@ Validation anchors：
 - `TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY`
 
 MTP-115 不实现 portfolio projection runtime、Report / Dashboard / Events evidence surface、stage audit input、order form、command model、真实订单提交 / 撤销 / 替换、OMS、execution report、broker fill、reconciliation、signed endpoint、account endpoint / listenKey、Live PRO Console、live command、order-level command UI 或 trading button；这些仍归属后续 `MTP-116` 至 `MTP-117` 或 Future Gated scope。
+
+## MTP-116 Report / Dashboard / Events parity evidence surface
+
+`MTP-116-PARITY-EVIDENCE-READ-MODEL`
+
+MTP-116 只在 App 层复制 MTP-112 至 MTP-115 已验证的 deterministic parity facts，形成 `SimulatedExchangeParityEvidenceReadModel` / `SimulatedExchangeParityEvidenceViewModel`。该 read model 必须携带 scenario id、dataset version、fixture version、replay window、matching result、matching event id、order id、order type、partial / full / reject / expire outcomes、latency、fee、slippage、portfolio projection parity、report input version identity、source replay sequence 和 validation anchors；不得重新运行 matching / execution / portfolio runtime。
+
+`MTP-116-REPORT-DASHBOARD-EVENTS-PARITY-SURFACE`
+
+Report 必须展示 parity evidence count、scenario / dataset / fixture / replay window、matching / fill / cost / portfolio summary、report input versioning、source replay sequence 和 read-model-only boundary flags。Dashboard / Workbench 必须展示 parity evidence、outcomes、timeline、portfolio parity 和 cost parity metrics。Events / Evidence Explorer 必须新增 `simulated exchange parity evidence` 只读分区，并为 scenario、matching、fill summary、reject / expire、latency / cost、portfolio parity、report input / replay consistency 输出 deterministic timeline rows。
+
+`MTP-116-SCENARIO-MATCHING-FILL-COST-PORTFOLIO-SNAPSHOT`
+
+默认 surface snapshot 必须来自同一个 deterministic source chain：scenario `mtp-104-btcusdt-1m-first-scenario`、dataset `dataset-v1`、fixture `fixture-v1`、replay window `1704067200...1704067380`、matching result `simulated exchange order matched`、matched price `42120.70`、matched quantity `0.5`、partial filled quantity `0.25`、latency `250ms`、fee `5.2650875`、slippage `1.57952625`、gross exposure `10530.175`、net simulated PnL `-6.84461375`、report input version identity `mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|1704067200...1704067380|fnv1a64:3c6cd4ff13cd4062|fresh|accepted` 和 source replay sequence `3`。
+
+`MTP-116-READ-MODEL-ONLY-NO-COMMAND-SURFACE`
+
+MTP-116 的 Report / Dashboard / Events surface 必须保持 read-model-only：不提供 order form、command model、order-level command UI、live command、query language、Runtime action、database console、交易按钮或 trading execution authorization。Codable decode 不能恢复这些能力。
+
+`MTP-116-NO-LIVE-BROKER-SIGNED-ENDPOINT`
+
+MTP-116 必须保持 signed endpoint、account endpoint、listenKey、secret read、broker integration、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、database schema exposure、Runtime object exposure、adapter request exposure、live runtime 和 network-dependent required validation flags 全部为 false。
+
+## MTP-116 validation anchors
+
+`MTP-116-SIMULATED-EXCHANGE-PARITY-SURFACE-VALIDATION`
+
+Required validation：
+
+- `swift test --filter MTP116`
+- `bash checks/run.sh`
+
+Validation anchors：
+
+- `MTP-116-PARITY-EVIDENCE-READ-MODEL`
+- `MTP-116-REPORT-DASHBOARD-EVENTS-PARITY-SURFACE`
+- `MTP-116-SCENARIO-MATCHING-FILL-COST-PORTFOLIO-SNAPSHOT`
+- `MTP-116-READ-MODEL-ONLY-NO-COMMAND-SURFACE`
+- `MTP-116-NO-LIVE-BROKER-SIGNED-ENDPOINT`
+- `MTP-116-SIMULATED-EXCHANGE-PARITY-SURFACE-VALIDATION`
+- `TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY`
+
+MTP-116 不实现 stage audit input、matching runtime、order execution runtime、portfolio projection runtime、order form、command model、真实订单提交 / 撤销 / 替换、OMS、execution report、broker fill、reconciliation、signed endpoint、account endpoint / listenKey、Live PRO Console、live command、order-level command UI 或 trading button；这些仍归属 `MTP-117` 或 Future Gated scope。

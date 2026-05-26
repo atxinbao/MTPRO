@@ -794,13 +794,16 @@ public struct ResearchBacktestReportArtifact: Codable, Equatable, Sendable {
 /// ReportReadModel 从现有 projection snapshots 生成 Research -> Backtest -> Report 最小观察面。
 ///
 /// 它把订单簿研究投影、EMA 回测投影、Paper session 投影、事件流水、Live blocked evidence、
-/// Live monitoring evidence、Scenario replay evidence、Live Risk blocked evidence 和 incident / stop blocked evidence 汇总成报告 artifact / boundary evidence；
+/// Live monitoring evidence、Scenario replay evidence、simulated exchange parity evidence、
+/// Live Risk blocked evidence 和 incident / stop blocked evidence 汇总成报告 artifact / boundary evidence；
 /// 该 read model 不重跑策略、不读取数据库 schema、不调用 Runtime / Adapters，也不把报告、
-/// scenario replay、Live readiness blocked 状态、monitoring 状态、risk blocked evidence 或 incident / stop evidence 解释为交易授权。
+/// scenario replay、simulated exchange parity、Live readiness blocked 状态、monitoring 状态、
+/// risk blocked evidence 或 incident / stop evidence 解释为交易授权。
 public struct ReportReadModel: Equatable, Sendable {
     public let artifacts: [ResearchBacktestReportArtifact]
     public let marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel
     public let scenarioReplayEvidence: ScenarioReplayEvidenceReadModel
+    public let simulatedExchangeParityEvidence: SimulatedExchangeParityEvidenceReadModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel
     public let liveMonitoringEvidence: LiveMonitoringEvidenceReadModel
     public let liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel
@@ -812,6 +815,7 @@ public struct ReportReadModel: Equatable, Sendable {
         artifacts: [ResearchBacktestReportArtifact] = [],
         marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel = MarketDataReplayOperationsEvidenceReadModel(),
         scenarioReplayEvidence: ScenarioReplayEvidenceReadModel = ScenarioReplayEvidenceReadModel(),
+        simulatedExchangeParityEvidence: SimulatedExchangeParityEvidenceReadModel = SimulatedExchangeParityEvidenceReadModel(),
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel(),
         liveMonitoringEvidence: LiveMonitoringEvidenceReadModel = LiveMonitoringEvidenceReadModel(),
         liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel = LiveExecutionControlBlockedEvidenceReadModel(),
@@ -824,6 +828,7 @@ public struct ReportReadModel: Equatable, Sendable {
         }
         self.marketDataReplayOperations = marketDataReplayOperations
         self.scenarioReplayEvidence = scenarioReplayEvidence
+        self.simulatedExchangeParityEvidence = simulatedExchangeParityEvidence
         self.liveTradingBlockedEvidence = liveTradingBlockedEvidence
         self.liveMonitoringEvidence = liveMonitoringEvidence
         self.liveExecutionControlBlockedEvidence = liveExecutionControlBlockedEvidence
@@ -833,6 +838,7 @@ public struct ReportReadModel: Equatable, Sendable {
             lastAppliedSequence,
             marketDataReplayOperations.lastAppliedSequence,
             scenarioReplayEvidence.lastAppliedSequence,
+            simulatedExchangeParityEvidence.lastAppliedSequence,
             liveTradingBlockedEvidence.lastAppliedSequence,
             liveMonitoringEvidence.lastAppliedSequence,
             liveExecutionControlBlockedEvidence.lastAppliedSequence,
@@ -847,6 +853,7 @@ public struct ReportReadModel: Equatable, Sendable {
         eventTimeline: [EventEnvelope],
         marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel = MarketDataReplayOperationsEvidenceReadModel(),
         scenarioReplayEvidence: ScenarioReplayEvidenceReadModel = ScenarioReplayEvidenceReadModel(),
+        simulatedExchangeParityEvidence: SimulatedExchangeParityEvidenceReadModel = SimulatedExchangeParityEvidenceReadModel(),
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel(),
         liveMonitoringEvidence: LiveMonitoringEvidenceReadModel = LiveMonitoringEvidenceReadModel(),
         liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel = LiveExecutionControlBlockedEvidenceReadModel(),
@@ -885,6 +892,7 @@ public struct ReportReadModel: Equatable, Sendable {
             artifacts: artifacts,
             marketDataReplayOperations: marketDataReplayOperations,
             scenarioReplayEvidence: scenarioReplayEvidence,
+            simulatedExchangeParityEvidence: simulatedExchangeParityEvidence,
             liveTradingBlockedEvidence: liveTradingBlockedEvidence,
             liveMonitoringEvidence: liveMonitoringEvidence,
             liveExecutionControlBlockedEvidence: liveExecutionControlBlockedEvidence,
@@ -1152,7 +1160,7 @@ public struct ReportReadModel: Equatable, Sendable {
 /// DashboardReadModel 聚合 Dashboard 所需的稳定 read model。
 ///
 /// 输入来自 Persistence projection snapshots、append-only event timeline 和 Core Live readiness
-/// blocked read model；新增 Report / Event Timeline evidence 也遵循同一来源边界，禁止 UI
+/// blocked read model；新增 Report / Event Timeline / simulated exchange parity evidence 也遵循同一来源边界，禁止 UI
 /// 直接读取数据库 schema、Runtime object、行情 adapter、真实 Live trading capability 或真实
 /// Live Risk / incident stop runtime。
 public struct DashboardReadModel: Equatable, Sendable {
@@ -1189,6 +1197,7 @@ public struct DashboardReadModel: Equatable, Sendable {
             strategy: strategy,
             report: report,
             scenarioReplayEvidence: report.scenarioReplayEvidence,
+            simulatedExchangeParityEvidence: report.simulatedExchangeParityEvidence,
             liveTradingBlockedEvidence: report.liveTradingBlockedEvidence,
             liveMonitoringEvidence: report.liveMonitoringEvidence,
             liveExecutionControlBlockedEvidence: report.liveExecutionControlBlockedEvidence,
@@ -1209,6 +1218,7 @@ public struct DashboardReadModel: Equatable, Sendable {
         eventTimeline: [EventEnvelope],
         marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel = MarketDataReplayOperationsEvidenceReadModel(),
         scenarioReplayEvidence: ScenarioReplayEvidenceReadModel = ScenarioReplayEvidenceReadModel(),
+        simulatedExchangeParityEvidence: SimulatedExchangeParityEvidenceReadModel = SimulatedExchangeParityEvidenceReadModel(),
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel(),
         liveMonitoringEvidence: LiveMonitoringEvidenceReadModel = LiveMonitoringEvidenceReadModel(),
         liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel = LiveExecutionControlBlockedEvidenceReadModel(),
@@ -1221,6 +1231,7 @@ public struct DashboardReadModel: Equatable, Sendable {
             eventTimeline: eventTimeline,
             marketDataReplayOperations: marketDataReplayOperations,
             scenarioReplayEvidence: scenarioReplayEvidence,
+            simulatedExchangeParityEvidence: simulatedExchangeParityEvidence,
             liveTradingBlockedEvidence: liveTradingBlockedEvidence,
             liveMonitoringEvidence: liveMonitoringEvidence,
             liveExecutionControlBlockedEvidence: liveExecutionControlBlockedEvidence,
@@ -1252,6 +1263,7 @@ public struct DashboardReadModel: Equatable, Sendable {
                 strategy: strategy,
                 report: report,
                 scenarioReplayEvidence: report.scenarioReplayEvidence,
+                simulatedExchangeParityEvidence: report.simulatedExchangeParityEvidence,
                 liveTradingBlockedEvidence: report.liveTradingBlockedEvidence,
                 liveMonitoringEvidence: report.liveMonitoringEvidence,
                 liveExecutionControlBlockedEvidence: report.liveExecutionControlBlockedEvidence,
@@ -1413,6 +1425,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
     public let artifacts: [ReportArtifactViewModel]
     public let marketDataReplayOperations: MarketDataReplayOperationsEvidenceViewModel
     public let scenarioReplayEvidence: ScenarioReplayEvidenceViewModel
+    public let simulatedExchangeParityEvidence: SimulatedExchangeParityEvidenceViewModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceViewModel
     public let liveMonitoringEvidence: LiveMonitoringEvidenceViewModel
     public let liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceViewModel
@@ -1518,6 +1531,46 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
     public let scenarioReplayTouchesBrokerAction: Bool
     public let scenarioReplayAuthorizesTradingExecution: Bool
     public let scenarioReplayRequiredValidationDependsOnNetwork: Bool
+    public let simulatedExchangeParityEvidenceCount: Int
+    public let simulatedExchangeParityScenarioIDs: [String]
+    public let simulatedExchangeParityDatasetVersions: [String]
+    public let simulatedExchangeParityFixtureVersions: [String]
+    public let simulatedExchangeParityReplayWindows: [String]
+    public let simulatedExchangeParityMatchingResults: [String]
+    public let simulatedExchangeParityMatchingEventIDs: [String]
+    public let simulatedExchangeParityOrderIDs: [String]
+    public let simulatedExchangeParityOrderTypes: [String]
+    public let simulatedExchangeParityOutcomeLabels: [String]
+    public let simulatedExchangeParityReportInputVersionIdentities: [String]
+    public let simulatedExchangeParitySourceReplaySequences: [Int]
+    public let simulatedExchangeParityTimelineEntryCount: Int
+    public let simulatedExchangeParityValidationAnchorCount: Int
+    public let simulatedExchangeParityMatchedPrice: Double?
+    public let simulatedExchangeParityMatchedQuantity: Double?
+    public let simulatedExchangeParityNetQuantity: Double
+    public let simulatedExchangeParityCashBalance: Double
+    public let simulatedExchangeParityEquity: Double
+    public let simulatedExchangeParityGrossExposureNotional: Double
+    public let simulatedExchangeParityNetPnL: Double
+    public let simulatedExchangeParityFeeAmount: Double
+    public let simulatedExchangeParitySlippageAmount: Double
+    public let simulatedExchangeParityTotalCostImpactAmount: Double
+    public let simulatedExchangeParityLatencyMilliseconds: Double?
+    public let simulatedExchangeParityProjectionParityHeld: Bool
+    public let simulatedExchangeParityCostParityConsistent: Bool
+    public let simulatedExchangeParityReportReproducibilityEvidenceHeld: Bool
+    public let simulatedExchangeParityReadModelOnlyBoundaryHeld: Bool
+    public let simulatedExchangeParityExposesDatabaseSchema: Bool
+    public let simulatedExchangeParityExposesRuntimeObject: Bool
+    public let simulatedExchangeParityExposesAdapterRequest: Bool
+    public let simulatedExchangeParityProvidesCommandSurface: Bool
+    public let simulatedExchangeParityProvidesOrderLevelCommand: Bool
+    public let simulatedExchangeParityProvidesLiveCommand: Bool
+    public let simulatedExchangeParityProvidesTradingButton: Bool
+    public let simulatedExchangeParityAuthorizesLiveTrading: Bool
+    public let simulatedExchangeParityTouchesBrokerAction: Bool
+    public let simulatedExchangeParityAuthorizesTradingExecution: Bool
+    public let simulatedExchangeParityRequiredValidationDependsOnNetwork: Bool
     public let liveBlockedEvidenceCount: Int
     public let liveBlockedCapabilityLabels: [String]
     public let liveBlockedGateLabels: [String]
@@ -1630,6 +1683,9 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
         let scenarioReplayEvidence = ScenarioReplayEvidenceViewModel(
             readModel: readModel.scenarioReplayEvidence
         )
+        let simulatedExchangeParityEvidence = SimulatedExchangeParityEvidenceViewModel(
+            readModel: readModel.simulatedExchangeParityEvidence
+        )
         let liveBlockedEvidence = LiveTradingBlockedEvidenceViewModel(
             readModel: readModel.liveTradingBlockedEvidence
         )
@@ -1650,6 +1706,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
         self.artifacts = readModel.artifacts.map(ReportArtifactViewModel.init)
         self.marketDataReplayOperations = replayOperations
         self.scenarioReplayEvidence = scenarioReplayEvidence
+        self.simulatedExchangeParityEvidence = simulatedExchangeParityEvidence
         self.liveTradingBlockedEvidence = liveBlockedEvidence
         self.liveMonitoringEvidence = liveMonitoringEvidence
         self.liveExecutionControlBlockedEvidence = liveExecutionControlBlockedEvidence
@@ -1870,6 +1927,65 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
         self.scenarioReplayAuthorizesTradingExecution = scenarioReplayEvidence.authorizesTradingExecution
         self.scenarioReplayRequiredValidationDependsOnNetwork = scenarioReplayEvidence
             .requiredValidationDependsOnNetwork
+        self.simulatedExchangeParityEvidenceCount = simulatedExchangeParityEvidence.evidenceCount
+        self.simulatedExchangeParityScenarioIDs = simulatedExchangeParityEvidence.scenarioIDs
+        self.simulatedExchangeParityDatasetVersions = simulatedExchangeParityEvidence.datasetVersions
+        self.simulatedExchangeParityFixtureVersions = simulatedExchangeParityEvidence.fixtureVersions
+        self.simulatedExchangeParityReplayWindows = simulatedExchangeParityEvidence.replayWindows
+        self.simulatedExchangeParityMatchingResults = simulatedExchangeParityEvidence.matchingResults
+        self.simulatedExchangeParityMatchingEventIDs = simulatedExchangeParityEvidence.matchingEventIDs
+        self.simulatedExchangeParityOrderIDs = simulatedExchangeParityEvidence.orderIDs
+        self.simulatedExchangeParityOrderTypes = simulatedExchangeParityEvidence.orderTypes
+        self.simulatedExchangeParityOutcomeLabels = simulatedExchangeParityEvidence.outcomeLabels
+        self.simulatedExchangeParityReportInputVersionIdentities = simulatedExchangeParityEvidence
+            .reportInputVersionIdentities
+        self.simulatedExchangeParitySourceReplaySequences = simulatedExchangeParityEvidence
+            .sourceReplaySequences
+        self.simulatedExchangeParityTimelineEntryCount = simulatedExchangeParityEvidence
+            .timelineEntryCount
+        self.simulatedExchangeParityValidationAnchorCount = simulatedExchangeParityEvidence
+            .validationAnchorCount
+        self.simulatedExchangeParityMatchedPrice = simulatedExchangeParityEvidence.matchedPrice
+        self.simulatedExchangeParityMatchedQuantity = simulatedExchangeParityEvidence.matchedQuantity
+        self.simulatedExchangeParityNetQuantity = simulatedExchangeParityEvidence.netQuantity
+        self.simulatedExchangeParityCashBalance = simulatedExchangeParityEvidence.cashBalance
+        self.simulatedExchangeParityEquity = simulatedExchangeParityEvidence.equity
+        self.simulatedExchangeParityGrossExposureNotional = simulatedExchangeParityEvidence
+            .grossExposureNotional
+        self.simulatedExchangeParityNetPnL = simulatedExchangeParityEvidence.netSimulatedPnL
+        self.simulatedExchangeParityFeeAmount = simulatedExchangeParityEvidence.feeAmount
+        self.simulatedExchangeParitySlippageAmount = simulatedExchangeParityEvidence.slippageAmount
+        self.simulatedExchangeParityTotalCostImpactAmount = simulatedExchangeParityEvidence
+            .totalCostImpactAmount
+        self.simulatedExchangeParityLatencyMilliseconds = simulatedExchangeParityEvidence
+            .latencyMilliseconds
+        self.simulatedExchangeParityProjectionParityHeld = simulatedExchangeParityEvidence
+            .projectionParityHeld
+        self.simulatedExchangeParityCostParityConsistent = simulatedExchangeParityEvidence
+            .costParityConsistent
+        self.simulatedExchangeParityReportReproducibilityEvidenceHeld = simulatedExchangeParityEvidence
+            .reportReproducibilityEvidenceHeld
+        self.simulatedExchangeParityReadModelOnlyBoundaryHeld = simulatedExchangeParityEvidence
+            .readModelOnlyBoundaryHeld
+        self.simulatedExchangeParityExposesDatabaseSchema = simulatedExchangeParityEvidence
+            .exposesDatabaseSchema
+        self.simulatedExchangeParityExposesRuntimeObject = simulatedExchangeParityEvidence.exposesRuntimeObject
+        self.simulatedExchangeParityExposesAdapterRequest = simulatedExchangeParityEvidence
+            .exposesAdapterRequest
+        self.simulatedExchangeParityProvidesCommandSurface = simulatedExchangeParityEvidence
+            .providesCommandSurface
+        self.simulatedExchangeParityProvidesOrderLevelCommand = simulatedExchangeParityEvidence
+            .providesOrderLevelCommand
+        self.simulatedExchangeParityProvidesLiveCommand = simulatedExchangeParityEvidence.providesLiveCommand
+        self.simulatedExchangeParityProvidesTradingButton = simulatedExchangeParityEvidence
+            .providesTradingButton
+        self.simulatedExchangeParityAuthorizesLiveTrading = simulatedExchangeParityEvidence
+            .authorizesLiveTrading
+        self.simulatedExchangeParityTouchesBrokerAction = simulatedExchangeParityEvidence.touchesBrokerAction
+        self.simulatedExchangeParityAuthorizesTradingExecution = simulatedExchangeParityEvidence
+            .authorizesTradingExecution
+        self.simulatedExchangeParityRequiredValidationDependsOnNetwork = simulatedExchangeParityEvidence
+            .requiredValidationDependsOnNetwork
         self.liveBlockedEvidenceCount = liveBlockedEvidence.blockedEvidenceCount
         self.liveBlockedCapabilityLabels = liveBlockedEvidence.blockedCapabilityLabels
         self.liveBlockedGateLabels = liveBlockedEvidence.blockedGateLabels
@@ -2010,6 +2126,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
         self.authorizesTradingExecution = readModel.artifacts.contains {
             $0.authorizesTradingExecution
         } || scenarioReplayEvidence.authorizesTradingExecution
+            || simulatedExchangeParityEvidence.authorizesTradingExecution
             || liveBlockedEvidence.authorizesTradingExecution
             || liveMonitoringEvidence.authorizesTradingExecution
             || liveExecutionControlBlockedEvidence.authorizesTradingExecution
@@ -2309,6 +2426,7 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
             report.source,
             report.marketDataReplayOperations.source,
             report.scenarioReplayEvidence.source,
+            report.simulatedExchangeParityEvidence.source,
             report.liveTradingBlockedEvidence.source,
             report.liveMonitoringEvidence.source,
             report.liveExecutionControlBlockedEvidence.source,
