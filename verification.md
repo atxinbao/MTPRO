@@ -11167,3 +11167,50 @@ L1 Paper Runtime maturity statement：
 - 不修改 Figma。
 - 不提交 `.codex/*` 或 `graphify-out/*`。
 - 不实现 matching runtime、order execution runtime、portfolio projection runtime、Report / Dashboard / Events evidence surface、UI implementation、order form、command model、signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、order-level command UI、trading button、live command、emergency stop、shutdown 或 restore。
+
+---
+
+## 2026-05-26 — MTP-112 Scenario replay deterministic matching model
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear live-read 中唯一 active issue `MTP-112 Add scenario replay deterministic matching model`。
+- 基于 MTP-106 scenario replay evidence 和 MTP-111 shared order input 建立 deterministic matching model 的 Core value 闭环。
+- 保持 deterministic first：相同 scenario id / dataset version / fixture version / replay window / cursor / shared order input 必须输出相同 simulated exchange matching event。
+
+文件范围：
+
+- 新增 `Sources/Core/ScenarioReplayDeterministicMatching.swift`。
+- 更新 `Tests/CoreTests/CoreTests.swift`，新增 MTP-112 focused tests。
+- 更新 `docs/contracts/simulated-exchange-backtest-parity-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh`。
+- 更新本 append-only `verification.md`。
+
+关键证据：
+
+- `ScenarioReplayDeterministicMatchingContract` 固定 ordering rules、output kinds、validation anchors 和 forbidden capability baseline。
+- `ScenarioReplayDeterministicMatchingInput` 绑定 `BacktestPaperSharedOrderInput.deterministicFixture`、MTP-106 replay window / cursor / checksum / freshness evidence 和 MTP-105 fixture record sequence `2`。
+- `ScenarioReplayMatchingMarketState` 要求 cursor `nextRecordSequence` 与 market record sequence 相等，避免环境状态或真实行情绕过本地 replay。
+- `ScenarioReplayDeterministicMatchingModel.match` 输出 `ScenarioReplayDeterministicMatchingOutput`，其中 `ScenarioReplaySimulatedExchangeEvent` 固定 event kind `simulated exchange order matched`、shared state `filled simulated`、shared event kind `simulated order filled`、matched price `42120.70` 和 matched quantity `0.5`。
+- Deterministic result identity 固定为 `mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|1704067200...1704067380|cursor=2|record=2|order=paper-order-intent-allowed|price=42120700000|quantity=500000`。
+- Validation anchors 为 `MTP-112-SCENARIO-REPLAY-MATCHING-INPUT`、`MTP-112-DETERMINISTIC-MATCHING-ORDERING`、`MTP-112-SIMULATED-EXCHANGE-MATCHING-EVENT`、`MTP-112-REPEATABLE-MATCHING-OUTPUT`、`MTP-112-NO-NETWORK-BROKER-LIVE`、`MTP-112-SCENARIO-REPLAY-MATCHING-VALIDATION` 和 `TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter MTP112` | pass | 执行 3 个 Core tests，0 failures，验证 input / output anchors、repeatable output identity、Codable round-trip、forbidden capability bypass rejection 和 cursor / record mismatch rejection。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；机械检查 MTP-112 contract、matrix、validation plan、domain context、latest summary、Core source 和 focused test anchors。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 251 个 XCTest；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=42; scenarioReplayEvidence=0; scenarioQualityGates=0; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3`，最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不修改 Linear status。
+- 不创建下一 Project / Issue。
+- 不推进下一 issue。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify update。
+- 不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现真实 matching runtime、market / limit execution runtime、partial fill / latency / fee / slippage parity、portfolio projection runtime、Report / Dashboard / Events evidence surface、UI implementation、order form、command model、Runtime replay job、database console、signed endpoint、account endpoint / listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、order-level command UI、trading button、live command、emergency stop、shutdown 或 restore。

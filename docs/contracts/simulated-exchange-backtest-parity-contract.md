@@ -4,9 +4,9 @@
 
 执行者：Codex
 
-本文档定义 `MTPRO Simulated Exchange / Backtest Parity v1` 的 L2 simulated exchange / backtest parity terminology、目标引擎职责、L1 Paper Runtime 与 L1.5 Data Catalog / Scenario Replay 到 L2 的 handoff boundary、forbidden capability baseline、source docs anchors 和 validation anchors。
+本文档定义 `MTPRO Simulated Exchange / Backtest Parity v1` 的 L2 simulated exchange / backtest parity terminology、目标引擎职责、L1 Paper Runtime 与 L1.5 Data Catalog / Scenario Replay 到 L2 的 handoff boundary、shared backtest-paper order semantics、scenario replay deterministic matching model、forbidden capability baseline、source docs anchors 和 validation anchors。
 
-本文档服务 `MTP-110` 至 `MTP-111` 的术语 / 边界合同；它不实现撮合、不实现订单执行、不实现 portfolio projection、不实现 UI，不接 signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、live command、trading button，不运行 Graphify，不修改 Figma。
+本文档服务 `MTP-110` 至 `MTP-112` 的术语 / 边界合同；它不实现真实撮合引擎、不实现订单执行 runtime、不实现 portfolio projection、不实现 UI，不接 signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、live command、trading button，不运行 Graphify，不修改 Figma。
 
 ## MTP-110 Simulated Exchange / Backtest Parity terminology
 
@@ -248,3 +248,89 @@ Validation anchors：
 - `TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY`
 
 MTP-111 不实现 matching model、market / limit execution、partial fill / latency / fee / slippage parity runtime、portfolio projection parity、Report / Dashboard / Events evidence surface 或 stage audit input；这些仍归属后续 `MTP-112` 至 `MTP-117`。
+
+## MTP-112 scenario replay deterministic matching model
+
+`MTP-112-SCENARIO-REPLAY-MATCHING-INPUT`
+
+MTP-112 把 MTP-106 scenario replay evidence 和 MTP-111 shared order input 串成 deterministic matching input。输入必须同时包含：
+
+| 输入字段 | 当前含义 | 禁止混用 |
+| --- | --- | --- |
+| `shared order input` | 复用 MTP-111 `BacktestPaperSharedOrderInput.deterministicFixture` | 不等于 real order command、broker request 或 order form |
+| `replay window` | 复用 MTP-106 fixed window `1704067200...1704067380` | 不等于 production replay job、downloader window 或 live market stream |
+| `cursor` | 本地 replay cursor，MTP-112 deterministic fixture 固定 `nextRecordSequence = 2` | 不等于 exchange sequence、broker sequence、scheduler offset 或 runtime resume token |
+| `market state record` | MTP-105 deterministic fixture record sequence `2`，close price `42120.70` | 不等于真实 order book、broker feed 或 live market state |
+| `checksum / freshness evidence` | MTP-106 checksum `fnv1a64:3c6cd4ff13cd4062` 和 freshness `fresh` | 不等于 production data quality platform 或 network validation |
+
+Core deterministic fixtures：
+
+- `ScenarioReplayDeterministicMatchingContract.deterministicFixture`
+- `ScenarioReplayDeterministicMatchingInput.deterministicFixture`
+
+Focused Core tests：
+
+- `testMTP112ScenarioReplayDeterministicMatchingModelDefinesInputOutputAndAnchors`
+- `testMTP112ScenarioReplayMatchingProducesStableOutputForSameScenarioInput`
+- `testMTP112ScenarioReplayMatchingRejectsNetworkLiveAndIdentityBypass`
+
+`MTP-112-DETERMINISTIC-MATCHING-ORDERING`
+
+MTP-112 固定 deterministic matching ordering rules：
+
+- scenario identity first。
+- dataset version / fixture version must match。
+- replay window locks market state。
+- cursor sequence selects fixture record。
+- fixture record order ascending。
+- shared order input tie-break。
+- no wall clock or randomness。
+- append-only simulated event output。
+
+这些规则只服务本地 deterministic fixture matching，不代表真实 matching engine、交易所 order book priority、broker routing 或 production execution scheduler。
+
+`MTP-112-SIMULATED-EXCHANGE-MATCHING-EVENT`
+
+MTP-112 输出 `ScenarioReplaySimulatedExchangeEvent`，当前只允许 `simulated exchange order matched` event kind。deterministic fixture 输出：
+
+- shared order state：`filled simulated`。
+- shared order event kind：`simulated order filled`。
+- matched record sequence：`2`。
+- matched price：`42120.70`。
+- matched quantity：`0.5`。
+- event stream：`.paper`。
+
+该 event 只表达 simulated exchange matching output，不等于 broker fill、execution report、真实成交、account update、portfolio projection 或 reconciliation 输入。
+
+`MTP-112-REPEATABLE-MATCHING-OUTPUT`
+
+MTP-112 必须证明相同 scenario id / dataset version / fixture version / replay window / cursor / shared order input 可重复输出相同 `ScenarioReplayDeterministicMatchingOutput`。deterministic result identity 固定为：
+
+```text
+mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|1704067200...1704067380|cursor=2|record=2|order=paper-order-intent-allowed|price=42120700000|quantity=500000
+```
+
+`MTP-112-NO-NETWORK-BROKER-LIVE`
+
+MTP-112 必须保持 signed endpoint、account endpoint、listenKey、secret、broker integration、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、live runtime、Live PRO Console、live command、trading button、wall clock、randomness 和 required network validation flags 全部为 false；初始化和 Codable 解码都不能恢复这些能力。
+
+## MTP-112 validation anchors
+
+`MTP-112-SCENARIO-REPLAY-MATCHING-VALIDATION`
+
+Required validation：
+
+- `swift test --filter MTP112`
+- `bash checks/run.sh`
+
+Validation anchors：
+
+- `MTP-112-SCENARIO-REPLAY-MATCHING-INPUT`
+- `MTP-112-DETERMINISTIC-MATCHING-ORDERING`
+- `MTP-112-SIMULATED-EXCHANGE-MATCHING-EVENT`
+- `MTP-112-REPEATABLE-MATCHING-OUTPUT`
+- `MTP-112-NO-NETWORK-BROKER-LIVE`
+- `MTP-112-SCENARIO-REPLAY-MATCHING-VALIDATION`
+- `TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY`
+
+MTP-112 不实现 market / limit order simulated execution semantics、partial fill、latency、fee / slippage parity、portfolio projection parity、Report / Dashboard / Events evidence surface 或 stage audit input；这些仍归属后续 `MTP-113` 至 `MTP-117`。

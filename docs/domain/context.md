@@ -602,6 +602,26 @@ MTP-111 固定 paper lifecycle 与 backtest replay 的对齐：`PaperOrderLifecy
 
 MTP-111 shared order semantics 不得升级为 matching runtime、order execution runtime、portfolio projection runtime、real order command、real order lifecycle、real submit / cancel / replace、signed endpoint、account endpoint、listenKey、broker integration、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、live runtime、Live PRO Console、live command、order-level command UI、trading button 或 emergency stop / shutdown / restore。
 
+`MTP-112-SCENARIO-REPLAY-MATCHING-INPUT`
+
+MTP-112 把 scenario replay window / cursor、dataset version、fixture version、local market state、checksum / freshness evidence 和 MTP-111 shared order input 串成 deterministic matching input。默认 fixture 固定 scenario id `mtp-104-btcusdt-1m-first-scenario`、dataset version `dataset-v1`、fixture version `fixture-v1`、window `1704067200...1704067380`、cursor / record sequence `2`、freshness `fresh` 和 checksum `fnv1a64:3c6cd4ff13cd4062`。这些输入只来自本地 deterministic fixture / scenario replay，不等于真实 order book、broker feed、live stream 或 production replay job。
+
+`MTP-112-DETERMINISTIC-MATCHING-ORDERING`
+
+MTP-112 matching ordering 只使用 scenario identity、dataset / fixture version、replay window、cursor sequence、fixture record order、shared order input tie-break 和 append-only simulated event output；不得使用 wall clock、randomness、真实网络、exchange priority、broker routing 或 production scheduler。
+
+`MTP-112-SIMULATED-EXCHANGE-MATCHING-EVENT`
+
+MTP-112 输出 `simulated exchange order matched` event，默认 matched record sequence 为 `2`、matched price 为 `42120.70`、matched quantity 为 `0.5`，shared order state 为 `filled simulated`，shared event kind 为 `simulated order filled`。该 event 只表达 simulated exchange matching output，不等于 broker fill、execution report、真实成交、account update、portfolio projection 或 reconciliation 输入。
+
+`MTP-112-REPEATABLE-MATCHING-OUTPUT`
+
+MTP-112 必须保证相同 scenario id / dataset version / fixture version / replay window / cursor / shared order input 可重复输出同一个 deterministic result identity：`mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|1704067200...1704067380|cursor=2|record=2|order=paper-order-intent-allowed|price=42120700000|quantity=500000`。
+
+`MTP-112-NO-NETWORK-BROKER-LIVE`
+
+MTP-112 deterministic matching model 不得升级为真实 matching runtime、market / limit execution runtime、partial fill / latency / fee / slippage runtime、portfolio projection runtime、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、live command、order-level command UI 或交易按钮。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
