@@ -3333,3 +3333,50 @@ MTP-136 必须建立的主要 anchors：
 - 不新增 Live PRO Console、trading button、live command、order form、emergency stop、shutdown 或 restore。
 - 不新增 balance fixture payload、不新增 App surface、不新增 Dashboard smoke handle；fixture contract 仍归属 MTP-137，Workbench / Report / Events surface 仍归属 MTP-138。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+## MTP-137 Fixture / Forbidden Real Account Tests Validation
+
+日期：2026-05-28
+
+执行者：Codex
+
+MTP-137 的 required validation：
+
+- `swift test --filter AccountPositionBalanceReadModelOnlyFixture`
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-137 的验收要求：
+
+- `Sources/Core/LiveTradingBoundary.swift` 必须包含 `AccountPositionBalanceReadModelOnlyFixtureContract`、`AccountPositionBalanceReadModelOnlyFixtureRecord`、`AccountPositionBalanceReadModelOnlyForbiddenCapability` 和 deterministic fixture checksum / freshness / source identity validation。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-137 deterministic fixture contract、forbidden real account bypass 和 payload / schema / runtime mapping isolation tests。
+- `docs/contracts/account-position-balance-read-model-only-contract.md` 必须包含 `MTP-137-DETERMINISTIC-FIXTURE-SHAPE`、`MTP-137-FIXTURE-CHECKSUM-FRESHNESS-SOURCE`、`MTP-137-FORBIDDEN-REAL-ACCOUNT-TESTS`、`MTP-137-FIXTURE-TO-READ-MODEL-MAPPING-ISOLATION`、`MTP-137-REAL-ACCOUNT-PAYLOAD-ISOLATION` 和 `MTP-137-FIXTURE-FORBIDDEN-REAL-ACCOUNT-VALIDATION` anchors。
+- `docs/domain/context.md` 必须包含 MTP-137 fixture / forbidden real account tests shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-137 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-137 当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Account / Position / Balance fixture / forbidden real account tests anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-137 source、test、contract、domain context、validation plan、trading matrix、latest summary、automation readiness doc 和 forbidden capability boundary strings。
+- PR 前必须确认 `.codex/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-137 必须建立的主要 anchors：
+
+- `MTP-137-DETERMINISTIC-FIXTURE-SHAPE`
+- `MTP-137-FIXTURE-CHECKSUM-FRESHNESS-SOURCE`
+- `MTP-137-FORBIDDEN-REAL-ACCOUNT-TESTS`
+- `MTP-137-FIXTURE-TO-READ-MODEL-MAPPING-ISOLATION`
+- `MTP-137-REAL-ACCOUNT-PAYLOAD-ISOLATION`
+- `MTP-137-FIXTURE-FORBIDDEN-REAL-ACCOUNT-VALIDATION`
+
+## MTP-137 禁止
+
+- 不实现真实账户 fixture importer。
+- 不导入 broker payload。
+- 不调用 signed endpoint、account endpoint 或 listenKey。
+- 不连接 private WebSocket。
+- 不实现 account snapshot runtime。
+- 不实现 broker adapter、`LiveExecutionAdapter`、OMS 或 real order lifecycle。
+- 不读取真实账户、broker position、real PnL、margin 或 leverage。
+- 不暴露 payload、schema、Runtime object、adapter request 或 account endpoint response。
+- 不新增 App surface、不新增 Dashboard smoke handle；Workbench / Report / Events surface 仍归属 MTP-138。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
