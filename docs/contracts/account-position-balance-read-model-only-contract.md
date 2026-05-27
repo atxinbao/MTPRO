@@ -129,3 +129,97 @@ Focused validation anchors：
 - `checks/automation-readiness.sh` 必须机械检查 MTP-133 contract、matrix、validation plan、domain context、latest summary、automation readiness doc、planning record 和 forbidden capability boundary strings。
 
 MTP-133 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard smoke handle、不新增 App read model、不新增 Core / Runtime / Dashboard behavior、不新增 stage audit input；Project stage closeout 仍归属 MTP-139。
+
+## MTP-134 account snapshot identity
+
+`MTP-134-ACCOUNT-SNAPSHOT-IDENTITY`
+
+MTP-134 只定义 account snapshot identity 和 account evidence identity 的只读字段合同，不创建 account snapshot runtime。Identity 必须能被后续 Workbench / Report / Events 作为 Read Model / ViewModel 输入引用，但不得被解释为真实 account endpoint response、broker account object 或可交易账户状态。
+
+| 字段 | 含义 | 禁止解释 |
+| --- | --- | --- |
+| `accountSnapshotId` | 稳定 account snapshot identity，由 source identity、observedAt、freshness status 和 deterministic fixture / paper / simulated identity 组合生成 | 不等于真实 account id、broker account id、account endpoint payload id 或 account snapshot runtime handle |
+| `accountEvidenceId` | 可追溯 evidence identity，用于连接 snapshot identity、source identity、freshness evidence 和 stale / blocked reason | 不等于 execution report、broker fill、reconciliation id 或真实账户流水 |
+| `accountSourceIdentity` | 允许值只能是 `fixture`、`paper`、`simulated`、`future-gated-real` | 不等于 signed endpoint、account endpoint、listenKey、private WebSocket、secret storage、credential provider 或 broker connection |
+| `observedAt` | 本地 evidence observation timestamp，可来自 deterministic fixture / paper / simulated run metadata | 不等于实时账户订阅时间、broker server time 或 private stream update time |
+| `sourceWatermark` | source freshness watermark，用于判断 fresh / stale / missing / blocked | 不等于 listenKey keepalive、private stream cursor 或 broker reconciliation watermark |
+
+Canonical identity example 只能作为 deterministic string shape 使用：
+
+`account-snapshot|fixture|mtp-134-local-account-evidence|1704067500|fresh`
+
+该 example 不包含真实账户余额、margin、leverage、buying power、real PnL、account endpoint payload 或 broker account identifier。
+
+## MTP-134 source identity / freshness evidence
+
+`MTP-134-SOURCE-IDENTITY-FRESHNESS-EVIDENCE`
+
+MTP-134 固定 account source identity 和 freshness evidence 的解释层：
+
+1. `fixture` source 必须绑定 deterministic local fixture identity、fixture version、checksum / source watermark 和 observedAt；它不是真实 account payload。
+2. `paper` source 只能引用 paper runtime / paper portfolio 本地 evidence identity；它不是真实账户余额、margin、leverage 或 broker statement。
+3. `simulated` source 只能引用 scenario replay / simulated exchange / backtest parity evidence identity；它不是真实 broker position、execution report、broker fill 或 reconciliation。
+4. `future-gated-real` source 只能作为未来门禁标签，不包含 endpoint URL、API key、secret、listenKey、private stream cursor、broker account id 或 account payload。
+
+Freshness evidence 必须至少表达 `observedAt`、`sourceWatermark`、`freshnessStatus`、`freshnessReason` 和 `sourceBoundary`。`freshnessStatus` 只允许 `fresh`、`stale`、`missing`、`blocked`；`blocked` 必须说明 blocked reason 来自 forbidden capability boundary，而不是尝试连接真实账户。
+
+## MTP-134 stale / missing / blocked account evidence
+
+`MTP-134-STALE-MISSING-BLOCKED-ACCOUNT-EVIDENCE`
+
+MTP-134 的 stale / missing / blocked 语义只描述 evidence 可用性：
+
+- `stale` 表示本地 evidence 超出当前 read-model-only freshness expectation，但仍不触发网络刷新。
+- `missing` 表示当前没有可展示的 deterministic account evidence，但仍不触发 account endpoint、listenKey 或 broker fallback。
+- `blocked` 表示 evidence 因 forbidden capability boundary 被拒绝，例如 real account endpoint、private WebSocket、broker adapter、secret storage 或 signed request。
+
+任何 stale / missing / blocked state 都不得自动升级为 recovery action、refresh command、private stream reconnect、broker sync、Live PRO Console action、trading button 或 live command。
+
+## MTP-134 adapter capability bypass guard
+
+`MTP-134-ADAPTER-CAPABILITY-MATRIX-BYPASS-GUARD`
+
+Account source identity 不能绕过 adapter capability matrix。MTP-134 不允许通过以下方式把 source label 写成 runtime connector：
+
+- 把 `future-gated-real` source 写成 account endpoint path、signed request descriptor、listenKey lease 或 private WebSocket channel。
+- 把 fixture / paper / simulated source 写成 broker account payload、Runtime object、Adapter request 或 exchange private payload。
+- 让 App / UI 直接消费 adapter request、exchange payload、broker payload、secret config 或 Runtime object。
+
+后续 MTP-138 只能消费 Read Model / ViewModel evidence；MTP-134 不新增 App surface。
+
+## MTP-134 account snapshot is not runtime
+
+`MTP-134-ACCOUNT-SNAPSHOT-NOT-RUNTIME`
+
+MTP-134 的 account snapshot identity 是 evidence identity，不是 runtime snapshot。它不授权：
+
+- account snapshot runtime
+- account endpoint / listenKey
+- signed endpoint 或 signed request
+- private WebSocket runtime
+- secret storage / credential provider
+- broker / exchange execution adapter
+- real account balance、margin、leverage、buying power 或 real PnL
+- OMS、real order lifecycle、real submit / cancel / replace
+- Live PRO Console、trading button、live command 或 order form
+
+## MTP-134 validation anchors
+
+`MTP-134-ACCOUNT-SNAPSHOT-IDENTITY-VALIDATION`
+
+Required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- Contract 必须包含 account snapshot identity、source identity / freshness evidence、stale / missing / blocked account evidence、adapter capability bypass guard、account snapshot not runtime 和 validation anchors。
+- Domain context 必须包含 MTP-134 account snapshot identity shared language。
+- Trading validation matrix 必须回填 MTP-134 issue evidence。
+- Latest verification summary 必须记录 MTP-134 当前 issue evidence。
+- Automation readiness 必须新增 MTP-134 account snapshot identity anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-134 anchors。
+
+MTP-134 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard smoke handle、不新增 account fixture payload、不新增 App read model、不新增 Core / Runtime / Dashboard behavior；deterministic fixture contract 仍归属 MTP-137，Workbench / Report / Events surface 仍归属 MTP-138。

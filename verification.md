@@ -12463,3 +12463,43 @@ Closure evidence：
 - 不实现 Live read-only runtime。
 - 不实现 signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、real PnL、Live PRO Console、trading button、live command 或 order form。
 - 不提交 `.codex/*` 或 `graphify-out/*`。
+
+---
+
+## 2026-05-28 — MTP-134 Account Snapshot Identity / Freshness Evidence
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear issue `MTP-134 Define account snapshot identity and source / freshness evidence`。
+- 建立 account snapshot identity、account evidence id、source identity、observedAt、source watermark、freshness evidence、stale / missing / blocked account evidence、adapter capability bypass guard 和 account snapshot not runtime anchors。
+- 明确 MTP-134 是 evidence identity / freshness boundary 层，不实现 account snapshot runtime，不调用 account endpoint，不创建 listenKey。
+
+更新内容：
+
+- 更新 `docs/contracts/account-position-balance-read-model-only-contract.md`，新增 MTP-134 account snapshot identity / source freshness evidence anchors。
+- 更新 `docs/domain/context.md`，新增 MTP-134 account snapshot identity shared language。
+- 更新 `docs/validation/trading-validation-matrix.md`，新增 MTP-134 issue backfill。
+- 更新 `docs/validation/validation-plan.md`，新增 MTP-134 required validation 与禁止项。
+- 更新 `docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，新增 MTP-134 mechanical anchors。
+- 更新 `docs/validation/latest-verification-summary.md`，记录 MTP-134 当前 issue execution evidence。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
+| `git diff --check` | pass | 无输出。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 278 个 XCTest；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不推进 MTP-135。
+- 不创建下一 Project / Issue。
+- 不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 account snapshot runtime、Live read-only runtime、private stream runtime 或 account endpoint runtime。
+- 不调用 account endpoint，不创建 listenKey，不读取 secret，不连接 private WebSocket。
+- 不读取真实账户余额、margin、leverage、buying power 或 real PnL。
+- 不新增 secret storage、credential provider、signed request、signed endpoint、broker connection、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、Live PRO Console、trading button、live command 或 order form。

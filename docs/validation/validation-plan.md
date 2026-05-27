@@ -3205,3 +3205,46 @@ MTP-133 必须建立的主要 anchors：
 - 不新增 Live PRO Console、trading button、live command、order form、emergency stop、shutdown 或 restore。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
 - 不推进 MTP-134，不创建下一 Project / Issue。
+
+## MTP-134 Account Snapshot Identity / Freshness Evidence Validation
+
+日期：2026-05-28
+
+执行者：Codex
+
+MTP-134 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-134 的验收要求：
+
+- `docs/contracts/account-position-balance-read-model-only-contract.md` 必须包含 `MTP-134-ACCOUNT-SNAPSHOT-IDENTITY`、`MTP-134-SOURCE-IDENTITY-FRESHNESS-EVIDENCE`、`MTP-134-STALE-MISSING-BLOCKED-ACCOUNT-EVIDENCE`、`MTP-134-ADAPTER-CAPABILITY-MATRIX-BYPASS-GUARD`、`MTP-134-ACCOUNT-SNAPSHOT-NOT-RUNTIME` 和 `MTP-134-ACCOUNT-SNAPSHOT-IDENTITY-VALIDATION` anchors。
+- `docs/domain/context.md` 必须包含 MTP-134 account snapshot identity shared language，明确 account snapshot identity 是 evidence identity，不是 runtime snapshot。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-134 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-134 当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Account snapshot identity / freshness evidence anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-134 contract、domain context、validation plan、trading matrix、latest summary、automation readiness doc 和 forbidden capability boundary strings。
+- PR 前必须确认 `.codex/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-134 必须建立的主要 anchors：
+
+- `MTP-134-ACCOUNT-SNAPSHOT-IDENTITY`
+- `MTP-134-SOURCE-IDENTITY-FRESHNESS-EVIDENCE`
+- `MTP-134-STALE-MISSING-BLOCKED-ACCOUNT-EVIDENCE`
+- `MTP-134-ADAPTER-CAPABILITY-MATRIX-BYPASS-GUARD`
+- `MTP-134-ACCOUNT-SNAPSHOT-NOT-RUNTIME`
+- `MTP-134-ACCOUNT-SNAPSHOT-IDENTITY-VALIDATION`
+
+## MTP-134 禁止
+
+- 不实现 account snapshot runtime、Live read-only runtime、private stream runtime 或 account endpoint runtime。
+- 不调用 account endpoint，不创建 listenKey，不读取 secret，不连接 private WebSocket。
+- 不读取真实账户余额、margin、leverage、buying power 或 real PnL。
+- 不新增 secret storage、credential provider、signed request、signed endpoint、broker connection、broker adapter 或 `LiveExecutionAdapter`。
+- 不暴露 exchange payload、broker payload、Runtime object 或 Adapter request 给 UI。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不新增 Live PRO Console、trading button、live command、order form、emergency stop、shutdown 或 restore。
+- 不新增 account fixture payload、不新增 App surface、不新增 Dashboard smoke handle；fixture contract 仍归属 MTP-137，Workbench / Report / Events surface 仍归属 MTP-138。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
