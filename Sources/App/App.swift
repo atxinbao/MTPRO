@@ -795,6 +795,7 @@ public struct ResearchBacktestReportArtifact: Codable, Equatable, Sendable {
 ///
 /// 它把订单簿研究投影、EMA 回测投影、Paper session 投影、事件流水、Live blocked evidence、
 /// Live monitoring evidence、Scenario replay evidence、simulated exchange parity evidence、
+/// Live read-only Workbench boundary、
 /// Live Risk blocked evidence 和 incident / stop blocked evidence 汇总成报告 artifact / boundary evidence；
 /// 该 read model 不重跑策略、不读取数据库 schema、不调用 Runtime / Adapters，也不把报告、
 /// scenario replay、simulated exchange parity、Live readiness blocked 状态、monitoring 状态、
@@ -804,6 +805,7 @@ public struct ReportReadModel: Equatable, Sendable {
     public let marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel
     public let scenarioReplayEvidence: ScenarioReplayEvidenceReadModel
     public let simulatedExchangeParityEvidence: SimulatedExchangeParityEvidenceReadModel
+    public let liveReadOnlyWorkbenchBoundary: LiveReadOnlyWorkbenchBoundaryReadModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel
     public let liveMonitoringEvidence: LiveMonitoringEvidenceReadModel
     public let liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel
@@ -816,6 +818,7 @@ public struct ReportReadModel: Equatable, Sendable {
         marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel = MarketDataReplayOperationsEvidenceReadModel(),
         scenarioReplayEvidence: ScenarioReplayEvidenceReadModel = ScenarioReplayEvidenceReadModel(),
         simulatedExchangeParityEvidence: SimulatedExchangeParityEvidenceReadModel = SimulatedExchangeParityEvidenceReadModel(),
+        liveReadOnlyWorkbenchBoundary: LiveReadOnlyWorkbenchBoundaryReadModel = LiveReadOnlyWorkbenchBoundaryReadModel(),
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel(),
         liveMonitoringEvidence: LiveMonitoringEvidenceReadModel = LiveMonitoringEvidenceReadModel(),
         liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel = LiveExecutionControlBlockedEvidenceReadModel(),
@@ -829,6 +832,7 @@ public struct ReportReadModel: Equatable, Sendable {
         self.marketDataReplayOperations = marketDataReplayOperations
         self.scenarioReplayEvidence = scenarioReplayEvidence
         self.simulatedExchangeParityEvidence = simulatedExchangeParityEvidence
+        self.liveReadOnlyWorkbenchBoundary = liveReadOnlyWorkbenchBoundary
         self.liveTradingBlockedEvidence = liveTradingBlockedEvidence
         self.liveMonitoringEvidence = liveMonitoringEvidence
         self.liveExecutionControlBlockedEvidence = liveExecutionControlBlockedEvidence
@@ -839,6 +843,7 @@ public struct ReportReadModel: Equatable, Sendable {
             marketDataReplayOperations.lastAppliedSequence,
             scenarioReplayEvidence.lastAppliedSequence,
             simulatedExchangeParityEvidence.lastAppliedSequence,
+            liveReadOnlyWorkbenchBoundary.lastAppliedSequence,
             liveTradingBlockedEvidence.lastAppliedSequence,
             liveMonitoringEvidence.lastAppliedSequence,
             liveExecutionControlBlockedEvidence.lastAppliedSequence,
@@ -854,6 +859,7 @@ public struct ReportReadModel: Equatable, Sendable {
         marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel = MarketDataReplayOperationsEvidenceReadModel(),
         scenarioReplayEvidence: ScenarioReplayEvidenceReadModel = ScenarioReplayEvidenceReadModel(),
         simulatedExchangeParityEvidence: SimulatedExchangeParityEvidenceReadModel = SimulatedExchangeParityEvidenceReadModel(),
+        liveReadOnlyWorkbenchBoundary: LiveReadOnlyWorkbenchBoundaryReadModel = LiveReadOnlyWorkbenchBoundaryReadModel(),
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel(),
         liveMonitoringEvidence: LiveMonitoringEvidenceReadModel = LiveMonitoringEvidenceReadModel(),
         liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel = LiveExecutionControlBlockedEvidenceReadModel(),
@@ -893,6 +899,7 @@ public struct ReportReadModel: Equatable, Sendable {
             marketDataReplayOperations: marketDataReplayOperations,
             scenarioReplayEvidence: scenarioReplayEvidence,
             simulatedExchangeParityEvidence: simulatedExchangeParityEvidence,
+            liveReadOnlyWorkbenchBoundary: liveReadOnlyWorkbenchBoundary,
             liveTradingBlockedEvidence: liveTradingBlockedEvidence,
             liveMonitoringEvidence: liveMonitoringEvidence,
             liveExecutionControlBlockedEvidence: liveExecutionControlBlockedEvidence,
@@ -1209,6 +1216,7 @@ public struct DashboardReadModel: Equatable, Sendable {
             scenarioReplayEvidence: report.scenarioReplayEvidence,
             simulatedExchangeParityEvidence: report.simulatedExchangeParityEvidence,
             workbenchBetaAcceptancePath: acceptancePath,
+            liveReadOnlyWorkbenchBoundary: report.liveReadOnlyWorkbenchBoundary,
             liveTradingBlockedEvidence: report.liveTradingBlockedEvidence,
             liveMonitoringEvidence: report.liveMonitoringEvidence,
             liveExecutionControlBlockedEvidence: report.liveExecutionControlBlockedEvidence,
@@ -1230,6 +1238,7 @@ public struct DashboardReadModel: Equatable, Sendable {
         marketDataReplayOperations: MarketDataReplayOperationsEvidenceReadModel = MarketDataReplayOperationsEvidenceReadModel(),
         scenarioReplayEvidence: ScenarioReplayEvidenceReadModel = ScenarioReplayEvidenceReadModel(),
         simulatedExchangeParityEvidence: SimulatedExchangeParityEvidenceReadModel = SimulatedExchangeParityEvidenceReadModel(),
+        liveReadOnlyWorkbenchBoundary: LiveReadOnlyWorkbenchBoundaryReadModel = LiveReadOnlyWorkbenchBoundaryReadModel(),
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel(),
         liveMonitoringEvidence: LiveMonitoringEvidenceReadModel = LiveMonitoringEvidenceReadModel(),
         liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel = LiveExecutionControlBlockedEvidenceReadModel(),
@@ -1244,6 +1253,7 @@ public struct DashboardReadModel: Equatable, Sendable {
             marketDataReplayOperations: marketDataReplayOperations,
             scenarioReplayEvidence: scenarioReplayEvidence,
             simulatedExchangeParityEvidence: simulatedExchangeParityEvidence,
+            liveReadOnlyWorkbenchBoundary: liveReadOnlyWorkbenchBoundary,
             liveTradingBlockedEvidence: liveTradingBlockedEvidence,
             liveMonitoringEvidence: liveMonitoringEvidence,
             liveExecutionControlBlockedEvidence: liveExecutionControlBlockedEvidence,
@@ -1283,6 +1293,7 @@ public struct DashboardReadModel: Equatable, Sendable {
                 scenarioReplayEvidence: report.scenarioReplayEvidence,
                 simulatedExchangeParityEvidence: report.simulatedExchangeParityEvidence,
                 workbenchBetaAcceptancePath: workbenchBetaAcceptancePath,
+                liveReadOnlyWorkbenchBoundary: report.liveReadOnlyWorkbenchBoundary,
                 liveTradingBlockedEvidence: report.liveTradingBlockedEvidence,
                 liveMonitoringEvidence: report.liveMonitoringEvidence,
                 liveExecutionControlBlockedEvidence: report.liveExecutionControlBlockedEvidence,
@@ -1445,6 +1456,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
     public let marketDataReplayOperations: MarketDataReplayOperationsEvidenceViewModel
     public let scenarioReplayEvidence: ScenarioReplayEvidenceViewModel
     public let simulatedExchangeParityEvidence: SimulatedExchangeParityEvidenceViewModel
+    public let liveReadOnlyWorkbenchBoundary: LiveReadOnlyWorkbenchBoundaryViewModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceViewModel
     public let liveMonitoringEvidence: LiveMonitoringEvidenceViewModel
     public let liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceViewModel
@@ -1705,6 +1717,9 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
         let simulatedExchangeParityEvidence = SimulatedExchangeParityEvidenceViewModel(
             readModel: readModel.simulatedExchangeParityEvidence
         )
+        let liveReadOnlyWorkbenchBoundary = LiveReadOnlyWorkbenchBoundaryViewModel(
+            readModel: readModel.liveReadOnlyWorkbenchBoundary
+        )
         let liveBlockedEvidence = LiveTradingBlockedEvidenceViewModel(
             readModel: readModel.liveTradingBlockedEvidence
         )
@@ -1726,6 +1741,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
         self.marketDataReplayOperations = replayOperations
         self.scenarioReplayEvidence = scenarioReplayEvidence
         self.simulatedExchangeParityEvidence = simulatedExchangeParityEvidence
+        self.liveReadOnlyWorkbenchBoundary = liveReadOnlyWorkbenchBoundary
         self.liveTradingBlockedEvidence = liveBlockedEvidence
         self.liveMonitoringEvidence = liveMonitoringEvidence
         self.liveExecutionControlBlockedEvidence = liveExecutionControlBlockedEvidence
@@ -2146,6 +2162,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
             $0.authorizesTradingExecution
         } || scenarioReplayEvidence.authorizesTradingExecution
             || simulatedExchangeParityEvidence.authorizesTradingExecution
+            || liveReadOnlyWorkbenchBoundary.authorizesTradingExecution
             || liveBlockedEvidence.authorizesTradingExecution
             || liveMonitoringEvidence.authorizesTradingExecution
             || liveExecutionControlBlockedEvidence.authorizesTradingExecution
@@ -2454,6 +2471,7 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
             report.marketDataReplayOperations.source,
             report.scenarioReplayEvidence.source,
             report.simulatedExchangeParityEvidence.source,
+            report.liveReadOnlyWorkbenchBoundary.source,
             report.liveTradingBlockedEvidence.source,
             report.liveMonitoringEvidence.source,
             report.liveExecutionControlBlockedEvidence.source,

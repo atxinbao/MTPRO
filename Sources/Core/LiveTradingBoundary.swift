@@ -291,6 +291,101 @@ public enum LiveReadOnlyPrivateStreamAccountSnapshotEvidenceKind: String, Codabl
     case prBoundaryEvidence = "PR boundary evidence"
 }
 
+/// LiveReadOnlyWorkbenchBoundarySurface 固定 MTP-131 允许 Workbench 展示的只读 surface。
+///
+/// 这些 surface 只能表达 Live readiness boundary evidence、detail / audit route 和后续 L3.x handoff。
+/// 它们不等于 API key 表单、broker/account connect、Live PRO Console、order form 或 live command。
+public enum LiveReadOnlyWorkbenchBoundarySurface: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case workbenchLiveReadinessEvidence = "Workbench Live readiness evidence"
+    case dashboardLiveReadinessSummary = "Dashboard Live readiness summary"
+    case reportLiveReadinessBoundaryEvidence = "Report Live readiness boundary evidence"
+    case eventTimelineAuditRoute = "Event Timeline audit route"
+    case detailInspectorBoundaryEvidence = "detail inspector boundary evidence"
+}
+
+/// LiveReadOnlyWorkbenchInputBoundary 固定 MTP-131 UI 可以消费的输入来源。
+///
+/// 输入必须是 Core deterministic fixture 或 App ReadModel / ViewModel。Workbench / Dashboard 不允许
+/// 直接读取 Persistence schema、Runtime object、adapter request、secret、account payload 或 broker state。
+public enum LiveReadOnlyWorkbenchInputBoundary: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case liveReadinessReadModel = "Live readiness read model"
+    case credentialEndpointTaxonomyFixture = "credential / endpoint taxonomy fixture"
+    case adapterCapabilityMatrixFixture = "adapter capability matrix fixture"
+    case accountPositionBalanceFutureGateFixture = "account / position / balance future gate fixture"
+    case privateStreamAccountSnapshotSimulationGateFixture =
+        "private stream / account snapshot simulation gate fixture"
+    case appReadModelProjection = "App read model projection"
+    case appViewModelSnapshot = "App ViewModel snapshot"
+    case dashboardShellSnapshot = "Dashboard shell snapshot"
+    case evidenceExplorerTimelineRoute = "Evidence Explorer timeline route"
+}
+
+/// LiveReadOnlyWorkbenchForbiddenUISurface 列出 MTP-131 必须拒绝的 UI surface。
+///
+/// 这些值只能进入 forbidden tests、contract docs、validation matrix 和 PR boundary evidence，不能作为
+/// Dashboard / Workbench 的可见交互能力、连接向导、命令入口或真实账户展示。
+public enum LiveReadOnlyWorkbenchForbiddenUISurface: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case apiKeyInput = "API key input"
+    case secretStorage = "secret storage"
+    case brokerConnect = "broker connect"
+    case accountConnect = "account connect"
+    case livePROConsole = "Live PRO Console"
+    case tradingButton = "trading button"
+    case liveCommand = "live command"
+    case orderForm = "order form"
+    case realAccountBalance = "real account balance"
+    case brokerPosition = "broker position"
+    case runtimeObject = "Runtime object"
+    case databaseSchema = "database schema"
+    case signedEndpoint = "signed endpoint"
+    case accountEndpointListenKey = "account endpoint / listenKey"
+    case brokerAdapter = "broker adapter"
+    case liveExecutionAdapter = "LiveExecutionAdapter"
+    case oms = "OMS"
+    case realOrderLifecycle = "real order lifecycle"
+    case realSubmitCancelReplace = "real submit / cancel / replace"
+}
+
+/// LiveReadOnlyWorkbenchDetailAuditRoute 固定 MTP-131 的 detail / audit routing。
+///
+/// route 只用于解释证据来源和后续 handoff，不能下推为查询语言、Runtime replay command、
+/// incident replay、stop control、broker operation 或 live audit runtime。
+public enum LiveReadOnlyWorkbenchDetailAuditRoute: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case dashboardSummaryToReportEvidence = "Dashboard summary -> Report evidence"
+    case reportEvidenceToEventTimeline = "Report evidence -> Event Timeline"
+    case eventTimelineToContractAnchor = "Event Timeline -> contract anchor"
+    case detailInspectorToValidationAnchor = "detail inspector -> validation anchor"
+}
+
+/// LiveReadOnlyWorkbenchHandoffTarget 固定 MTP-131 对后续 L3.x 的非执行交接。
+///
+/// 这些 target 只说明 UI boundary 已为后续 planning 保留只读输入位置；它们不授权 L3.1、L3.2、
+/// L3.3 或 L4 自动进入实现。
+public enum LiveReadOnlyWorkbenchHandoffTarget: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case l31AccountPositionBalanceReadModelOnly = "L3.1 account / position / balance read-model-only"
+    case l32PrivateStreamAccountSnapshotSimulationGate =
+        "L3.2 private stream / account snapshot simulation gate"
+    case l33LiveMonitoringReadOnlyConsoleV2 = "L3.3 Live Monitoring read-only console v2"
+}
+
+/// LiveReadOnlyWorkbenchEvidenceKind 限定 MTP-131 可以产生的 evidence。
+///
+/// Evidence 只用于合同、Core fixture、App ReadModel / ViewModel、Dashboard shell snapshot、Event Timeline
+/// audit route、validation anchors 和 PR boundary evidence；它不创建任何 live UI command 或 broker surface。
+public enum LiveReadOnlyWorkbenchEvidenceKind: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case contractDocumentation = "contract documentation"
+    case coreDeterministicFixture = "Core deterministic fixture"
+    case appReadModel = "App ReadModel"
+    case appViewModel = "App ViewModel"
+    case dashboardShellSnapshot = "Dashboard shell snapshot"
+    case eventTimelineAuditRoute = "Event Timeline audit route"
+    case validationMatrixAnchor = "validation matrix anchor"
+    case automationReadinessAnchor = "automation readiness anchor"
+    case deterministicForbiddenTest = "deterministic forbidden capability test"
+    case l31l32l33HandoffMaterial = "L3.1 / L3.2 / L3.3 handoff material"
+    case prBoundaryEvidence = "PR boundary evidence"
+}
+
 /// LiveAdapterIsolationForbiddenCapability 枚举 MTP-63 Gate 2 必须阻断的 adapter 能力。
 ///
 /// 这些值只描述 future / gated adapter capability，不能被解释为当前 `Adapters` target
@@ -2604,6 +2699,412 @@ public struct LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary: Co
             ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
         ]
 
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(capability.0)
+        }
+    }
+}
+
+/// LiveReadOnlyWorkbenchReadModelBoundary 是 MTP-131 的 Workbench / Dashboard 只读边界 fixture。
+///
+/// 该合同固定 UI 只能消费 ReadModel / ViewModel，并且只能展示 Live readiness boundary evidence。
+/// 所有 API key 输入、secret storage、broker/account connect、Live PRO Console、交易按钮、live command、
+/// order form、signed/account endpoint、listenKey、adapter、Runtime、schema、OMS 和真实订单能力都必须保持
+/// `false`；Codable 解码也会重复校验，避免后续 UI payload 被反序列化成可执行 surface。
+public struct LiveReadOnlyWorkbenchReadModelBoundary: Codable, Equatable, Sendable {
+    public let contractID: Identifier
+    public let issueID: Identifier
+    public let matrixID: String
+    public let boundarySurfaces: [LiveReadOnlyWorkbenchBoundarySurface]
+    public let inputBoundaries: [LiveReadOnlyWorkbenchInputBoundary]
+    public let forbiddenUISurfaces: [LiveReadOnlyWorkbenchForbiddenUISurface]
+    public let detailAuditRoutes: [LiveReadOnlyWorkbenchDetailAuditRoute]
+    public let handoffTargets: [LiveReadOnlyWorkbenchHandoffTarget]
+    public let allowedEvidenceKinds: [LiveReadOnlyWorkbenchEvidenceKind]
+    public let sourceAnchors: [String]
+    public let validationAnchors: [String]
+    public let consumesOnlyReadModelViewModel: Bool
+    public let exposesAPIKeyInput: Bool
+    public let storesSecret: Bool
+    public let providesBrokerConnect: Bool
+    public let providesAccountConnect: Bool
+    public let exposesLivePROConsole: Bool
+    public let providesTradingButton: Bool
+    public let providesLiveCommand: Bool
+    public let exposesOrderForm: Bool
+    public let exposesRealAccountBalance: Bool
+    public let exposesBrokerPosition: Bool
+    public let exposesRuntimeObject: Bool
+    public let exposesDatabaseSchema: Bool
+    public let callsSignedEndpoint: Bool
+    public let callsAccountEndpoint: Bool
+    public let createsListenKey: Bool
+    public let instantiatesBrokerAdapter: Bool
+    public let implementsLiveExecutionAdapter: Bool
+    public let implementsOMS: Bool
+    public let implementsRealOrderLifecycle: Bool
+    public let submitsRealOrder: Bool
+    public let cancelsRealOrder: Bool
+    public let replacesRealOrder: Bool
+    public let requiredValidationDependsOnNetwork: Bool
+
+    public var workbenchReadModelOnlyBoundaryHeld: Bool {
+        matrixID == Self.requiredMatrixID
+            && boundarySurfaces == Self.requiredBoundarySurfaces
+            && inputBoundaries == Self.requiredInputBoundaries
+            && forbiddenUISurfaces == Self.requiredForbiddenUISurfaces
+            && detailAuditRoutes == Self.requiredDetailAuditRoutes
+            && handoffTargets == Self.requiredHandoffTargets
+            && allowedEvidenceKinds == Self.allowedEvidenceKinds
+            && sourceAnchors == Self.requiredSourceAnchors
+            && validationAnchors == Self.requiredValidationAnchors
+            && consumesOnlyReadModelViewModel
+            && exposesAPIKeyInput == false
+            && storesSecret == false
+            && providesBrokerConnect == false
+            && providesAccountConnect == false
+            && exposesLivePROConsole == false
+            && providesTradingButton == false
+            && providesLiveCommand == false
+            && exposesOrderForm == false
+            && exposesRealAccountBalance == false
+            && exposesBrokerPosition == false
+            && exposesRuntimeObject == false
+            && exposesDatabaseSchema == false
+            && callsSignedEndpoint == false
+            && callsAccountEndpoint == false
+            && createsListenKey == false
+            && instantiatesBrokerAdapter == false
+            && implementsLiveExecutionAdapter == false
+            && implementsOMS == false
+            && implementsRealOrderLifecycle == false
+            && submitsRealOrder == false
+            && cancelsRealOrder == false
+            && replacesRealOrder == false
+            && requiredValidationDependsOnNetwork == false
+    }
+
+    public init(
+        contractID: Identifier = try! Identifier("mtp-131-live-read-only-workbench-read-model-boundary"),
+        issueID: Identifier = try! Identifier("MTP-131"),
+        matrixID: String = Self.requiredMatrixID,
+        boundarySurfaces: [LiveReadOnlyWorkbenchBoundarySurface] = Self.requiredBoundarySurfaces,
+        inputBoundaries: [LiveReadOnlyWorkbenchInputBoundary] = Self.requiredInputBoundaries,
+        forbiddenUISurfaces: [LiveReadOnlyWorkbenchForbiddenUISurface] = Self.requiredForbiddenUISurfaces,
+        detailAuditRoutes: [LiveReadOnlyWorkbenchDetailAuditRoute] = Self.requiredDetailAuditRoutes,
+        handoffTargets: [LiveReadOnlyWorkbenchHandoffTarget] = Self.requiredHandoffTargets,
+        allowedEvidenceKinds: [LiveReadOnlyWorkbenchEvidenceKind] = Self.allowedEvidenceKinds,
+        sourceAnchors: [String] = Self.requiredSourceAnchors,
+        validationAnchors: [String] = Self.requiredValidationAnchors,
+        consumesOnlyReadModelViewModel: Bool = true,
+        exposesAPIKeyInput: Bool = false,
+        storesSecret: Bool = false,
+        providesBrokerConnect: Bool = false,
+        providesAccountConnect: Bool = false,
+        exposesLivePROConsole: Bool = false,
+        providesTradingButton: Bool = false,
+        providesLiveCommand: Bool = false,
+        exposesOrderForm: Bool = false,
+        exposesRealAccountBalance: Bool = false,
+        exposesBrokerPosition: Bool = false,
+        exposesRuntimeObject: Bool = false,
+        exposesDatabaseSchema: Bool = false,
+        callsSignedEndpoint: Bool = false,
+        callsAccountEndpoint: Bool = false,
+        createsListenKey: Bool = false,
+        instantiatesBrokerAdapter: Bool = false,
+        implementsLiveExecutionAdapter: Bool = false,
+        implementsOMS: Bool = false,
+        implementsRealOrderLifecycle: Bool = false,
+        submitsRealOrder: Bool = false,
+        cancelsRealOrder: Bool = false,
+        replacesRealOrder: Bool = false,
+        requiredValidationDependsOnNetwork: Bool = false
+    ) throws {
+        try Self.validate(
+            matrixID: matrixID,
+            boundarySurfaces: boundarySurfaces,
+            inputBoundaries: inputBoundaries,
+            forbiddenUISurfaces: forbiddenUISurfaces,
+            detailAuditRoutes: detailAuditRoutes,
+            handoffTargets: handoffTargets,
+            allowedEvidenceKinds: allowedEvidenceKinds,
+            sourceAnchors: sourceAnchors,
+            validationAnchors: validationAnchors
+        )
+        try Self.validateForbiddenFlags(
+            consumesOnlyReadModelViewModel: consumesOnlyReadModelViewModel,
+            exposesAPIKeyInput: exposesAPIKeyInput,
+            storesSecret: storesSecret,
+            providesBrokerConnect: providesBrokerConnect,
+            providesAccountConnect: providesAccountConnect,
+            exposesLivePROConsole: exposesLivePROConsole,
+            providesTradingButton: providesTradingButton,
+            providesLiveCommand: providesLiveCommand,
+            exposesOrderForm: exposesOrderForm,
+            exposesRealAccountBalance: exposesRealAccountBalance,
+            exposesBrokerPosition: exposesBrokerPosition,
+            exposesRuntimeObject: exposesRuntimeObject,
+            exposesDatabaseSchema: exposesDatabaseSchema,
+            callsSignedEndpoint: callsSignedEndpoint,
+            callsAccountEndpoint: callsAccountEndpoint,
+            createsListenKey: createsListenKey,
+            instantiatesBrokerAdapter: instantiatesBrokerAdapter,
+            implementsLiveExecutionAdapter: implementsLiveExecutionAdapter,
+            implementsOMS: implementsOMS,
+            implementsRealOrderLifecycle: implementsRealOrderLifecycle,
+            submitsRealOrder: submitsRealOrder,
+            cancelsRealOrder: cancelsRealOrder,
+            replacesRealOrder: replacesRealOrder,
+            requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork
+        )
+
+        self.contractID = contractID
+        self.issueID = issueID
+        self.matrixID = matrixID
+        self.boundarySurfaces = boundarySurfaces
+        self.inputBoundaries = inputBoundaries
+        self.forbiddenUISurfaces = forbiddenUISurfaces
+        self.detailAuditRoutes = detailAuditRoutes
+        self.handoffTargets = handoffTargets
+        self.allowedEvidenceKinds = allowedEvidenceKinds
+        self.sourceAnchors = sourceAnchors
+        self.validationAnchors = validationAnchors
+        self.consumesOnlyReadModelViewModel = consumesOnlyReadModelViewModel
+        self.exposesAPIKeyInput = exposesAPIKeyInput
+        self.storesSecret = storesSecret
+        self.providesBrokerConnect = providesBrokerConnect
+        self.providesAccountConnect = providesAccountConnect
+        self.exposesLivePROConsole = exposesLivePROConsole
+        self.providesTradingButton = providesTradingButton
+        self.providesLiveCommand = providesLiveCommand
+        self.exposesOrderForm = exposesOrderForm
+        self.exposesRealAccountBalance = exposesRealAccountBalance
+        self.exposesBrokerPosition = exposesBrokerPosition
+        self.exposesRuntimeObject = exposesRuntimeObject
+        self.exposesDatabaseSchema = exposesDatabaseSchema
+        self.callsSignedEndpoint = callsSignedEndpoint
+        self.callsAccountEndpoint = callsAccountEndpoint
+        self.createsListenKey = createsListenKey
+        self.instantiatesBrokerAdapter = instantiatesBrokerAdapter
+        self.implementsLiveExecutionAdapter = implementsLiveExecutionAdapter
+        self.implementsOMS = implementsOMS
+        self.implementsRealOrderLifecycle = implementsRealOrderLifecycle
+        self.submitsRealOrder = submitsRealOrder
+        self.cancelsRealOrder = cancelsRealOrder
+        self.replacesRealOrder = replacesRealOrder
+        self.requiredValidationDependsOnNetwork = requiredValidationDependsOnNetwork
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            contractID: try container.decode(Identifier.self, forKey: .contractID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            matrixID: try container.decode(String.self, forKey: .matrixID),
+            boundarySurfaces: try container.decode(
+                [LiveReadOnlyWorkbenchBoundarySurface].self,
+                forKey: .boundarySurfaces
+            ),
+            inputBoundaries: try container.decode(
+                [LiveReadOnlyWorkbenchInputBoundary].self,
+                forKey: .inputBoundaries
+            ),
+            forbiddenUISurfaces: try container.decode(
+                [LiveReadOnlyWorkbenchForbiddenUISurface].self,
+                forKey: .forbiddenUISurfaces
+            ),
+            detailAuditRoutes: try container.decode(
+                [LiveReadOnlyWorkbenchDetailAuditRoute].self,
+                forKey: .detailAuditRoutes
+            ),
+            handoffTargets: try container.decode(
+                [LiveReadOnlyWorkbenchHandoffTarget].self,
+                forKey: .handoffTargets
+            ),
+            allowedEvidenceKinds: try container.decode(
+                [LiveReadOnlyWorkbenchEvidenceKind].self,
+                forKey: .allowedEvidenceKinds
+            ),
+            sourceAnchors: try container.decode([String].self, forKey: .sourceAnchors),
+            validationAnchors: try container.decode([String].self, forKey: .validationAnchors),
+            consumesOnlyReadModelViewModel: try container.decode(
+                Bool.self,
+                forKey: .consumesOnlyReadModelViewModel
+            ),
+            exposesAPIKeyInput: try container.decode(Bool.self, forKey: .exposesAPIKeyInput),
+            storesSecret: try container.decode(Bool.self, forKey: .storesSecret),
+            providesBrokerConnect: try container.decode(Bool.self, forKey: .providesBrokerConnect),
+            providesAccountConnect: try container.decode(Bool.self, forKey: .providesAccountConnect),
+            exposesLivePROConsole: try container.decode(Bool.self, forKey: .exposesLivePROConsole),
+            providesTradingButton: try container.decode(Bool.self, forKey: .providesTradingButton),
+            providesLiveCommand: try container.decode(Bool.self, forKey: .providesLiveCommand),
+            exposesOrderForm: try container.decode(Bool.self, forKey: .exposesOrderForm),
+            exposesRealAccountBalance: try container.decode(Bool.self, forKey: .exposesRealAccountBalance),
+            exposesBrokerPosition: try container.decode(Bool.self, forKey: .exposesBrokerPosition),
+            exposesRuntimeObject: try container.decode(Bool.self, forKey: .exposesRuntimeObject),
+            exposesDatabaseSchema: try container.decode(Bool.self, forKey: .exposesDatabaseSchema),
+            callsSignedEndpoint: try container.decode(Bool.self, forKey: .callsSignedEndpoint),
+            callsAccountEndpoint: try container.decode(Bool.self, forKey: .callsAccountEndpoint),
+            createsListenKey: try container.decode(Bool.self, forKey: .createsListenKey),
+            instantiatesBrokerAdapter: try container.decode(Bool.self, forKey: .instantiatesBrokerAdapter),
+            implementsLiveExecutionAdapter: try container.decode(Bool.self, forKey: .implementsLiveExecutionAdapter),
+            implementsOMS: try container.decode(Bool.self, forKey: .implementsOMS),
+            implementsRealOrderLifecycle: try container.decode(Bool.self, forKey: .implementsRealOrderLifecycle),
+            submitsRealOrder: try container.decode(Bool.self, forKey: .submitsRealOrder),
+            cancelsRealOrder: try container.decode(Bool.self, forKey: .cancelsRealOrder),
+            replacesRealOrder: try container.decode(Bool.self, forKey: .replacesRealOrder),
+            requiredValidationDependsOnNetwork: try container.decode(
+                Bool.self,
+                forKey: .requiredValidationDependsOnNetwork
+            )
+        )
+    }
+
+    public static let requiredMatrixID = "TVM-LIVE-READ-ONLY-READINESS"
+    public static let requiredBoundarySurfaces = LiveReadOnlyWorkbenchBoundarySurface.allCases
+    public static let requiredInputBoundaries = LiveReadOnlyWorkbenchInputBoundary.allCases
+    public static let requiredForbiddenUISurfaces = LiveReadOnlyWorkbenchForbiddenUISurface.allCases
+    public static let requiredDetailAuditRoutes = LiveReadOnlyWorkbenchDetailAuditRoute.allCases
+    public static let requiredHandoffTargets = LiveReadOnlyWorkbenchHandoffTarget.allCases
+
+    public static let allowedEvidenceKinds: [LiveReadOnlyWorkbenchEvidenceKind] = [
+        .contractDocumentation,
+        .coreDeterministicFixture,
+        .appReadModel,
+        .appViewModel,
+        .dashboardShellSnapshot,
+        .eventTimelineAuditRoute,
+        .validationMatrixAnchor,
+        .automationReadinessAnchor,
+        .deterministicForbiddenTest,
+        .l31l32l33HandoffMaterial,
+        .prBoundaryEvidence
+    ]
+
+    public static let requiredSourceAnchors: [String] = [
+        "MTP-126-LIVE-READ-ONLY-READINESS-TERMINOLOGY",
+        "MTP-127-ENDPOINT-CAPABILITY-TAXONOMY",
+        "MTP-128-ADAPTER-CAPABILITY-MATRIX",
+        "MTP-129-ACCOUNT-POSITION-BALANCE-FUTURE-GATES",
+        "MTP-130-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-SIMULATION-GATE",
+        "MTP-131-WORKBENCH-LIVE-READINESS-READ-MODEL-ONLY-BOUNDARY"
+    ]
+
+    public static let requiredValidationAnchors: [String] = [
+        "MTP-131-WORKBENCH-LIVE-READINESS-READ-MODEL-ONLY-BOUNDARY",
+        "MTP-131-READ-MODEL-VIEWMODEL-INPUT-BOUNDARY",
+        "MTP-131-FORBIDDEN-UI-SURFACE",
+        "MTP-131-DETAIL-AUDIT-ROUTING",
+        "MTP-131-L31-L32-L33-HANDOFF",
+        "MTP-131-LIVE-READ-ONLY-WORKBENCH-VALIDATION"
+    ]
+
+    public static let deterministicFixture: LiveReadOnlyWorkbenchReadModelBoundary = {
+        do {
+            return try LiveReadOnlyWorkbenchReadModelBoundary()
+        } catch {
+            preconditionFailure(
+                "MTP-131 Live read-only Workbench read-model boundary fixture must be valid: \(error)"
+            )
+        }
+    }()
+
+    private static func validate(
+        matrixID: String,
+        boundarySurfaces: [LiveReadOnlyWorkbenchBoundarySurface],
+        inputBoundaries: [LiveReadOnlyWorkbenchInputBoundary],
+        forbiddenUISurfaces: [LiveReadOnlyWorkbenchForbiddenUISurface],
+        detailAuditRoutes: [LiveReadOnlyWorkbenchDetailAuditRoute],
+        handoffTargets: [LiveReadOnlyWorkbenchHandoffTarget],
+        allowedEvidenceKinds: [LiveReadOnlyWorkbenchEvidenceKind],
+        sourceAnchors: [String],
+        validationAnchors: [String]
+    ) throws {
+        let checks: [(field: String, expected: [String], actual: [String])] = [
+            ("boundarySurfaces", Self.requiredBoundarySurfaces.map(\.rawValue), boundarySurfaces.map(\.rawValue)),
+            ("inputBoundaries", Self.requiredInputBoundaries.map(\.rawValue), inputBoundaries.map(\.rawValue)),
+            ("forbiddenUISurfaces", Self.requiredForbiddenUISurfaces.map(\.rawValue), forbiddenUISurfaces.map(\.rawValue)),
+            ("detailAuditRoutes", Self.requiredDetailAuditRoutes.map(\.rawValue), detailAuditRoutes.map(\.rawValue)),
+            ("handoffTargets", Self.requiredHandoffTargets.map(\.rawValue), handoffTargets.map(\.rawValue)),
+            ("allowedEvidenceKinds", Self.allowedEvidenceKinds.map(\.rawValue), allowedEvidenceKinds.map(\.rawValue)),
+            ("sourceAnchors", Self.requiredSourceAnchors, sourceAnchors),
+            ("validationAnchors", Self.requiredValidationAnchors, validationAnchors)
+        ]
+        guard matrixID == Self.requiredMatrixID else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "matrixID",
+                expected: Self.requiredMatrixID,
+                actual: matrixID
+            )
+        }
+        for check in checks where check.expected != check.actual {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: check.field,
+                expected: check.expected.joined(separator: ","),
+                actual: check.actual.joined(separator: ",")
+            )
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        consumesOnlyReadModelViewModel: Bool,
+        exposesAPIKeyInput: Bool,
+        storesSecret: Bool,
+        providesBrokerConnect: Bool,
+        providesAccountConnect: Bool,
+        exposesLivePROConsole: Bool,
+        providesTradingButton: Bool,
+        providesLiveCommand: Bool,
+        exposesOrderForm: Bool,
+        exposesRealAccountBalance: Bool,
+        exposesBrokerPosition: Bool,
+        exposesRuntimeObject: Bool,
+        exposesDatabaseSchema: Bool,
+        callsSignedEndpoint: Bool,
+        callsAccountEndpoint: Bool,
+        createsListenKey: Bool,
+        instantiatesBrokerAdapter: Bool,
+        implementsLiveExecutionAdapter: Bool,
+        implementsOMS: Bool,
+        implementsRealOrderLifecycle: Bool,
+        submitsRealOrder: Bool,
+        cancelsRealOrder: Bool,
+        replacesRealOrder: Bool,
+        requiredValidationDependsOnNetwork: Bool
+    ) throws {
+        guard consumesOnlyReadModelViewModel else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "consumesOnlyReadModelViewModel",
+                expected: "true",
+                actual: "false"
+            )
+        }
+        let forbiddenFlags = [
+            ("exposesAPIKeyInput", exposesAPIKeyInput),
+            ("storesSecret", storesSecret),
+            ("providesBrokerConnect", providesBrokerConnect),
+            ("providesAccountConnect", providesAccountConnect),
+            ("exposesLivePROConsole", exposesLivePROConsole),
+            ("providesTradingButton", providesTradingButton),
+            ("providesLiveCommand", providesLiveCommand),
+            ("exposesOrderForm", exposesOrderForm),
+            ("exposesRealAccountBalance", exposesRealAccountBalance),
+            ("exposesBrokerPosition", exposesBrokerPosition),
+            ("exposesRuntimeObject", exposesRuntimeObject),
+            ("exposesDatabaseSchema", exposesDatabaseSchema),
+            ("callsSignedEndpoint", callsSignedEndpoint),
+            ("callsAccountEndpoint", callsAccountEndpoint),
+            ("createsListenKey", createsListenKey),
+            ("instantiatesBrokerAdapter", instantiatesBrokerAdapter),
+            ("implementsLiveExecutionAdapter", implementsLiveExecutionAdapter),
+            ("implementsOMS", implementsOMS),
+            ("implementsRealOrderLifecycle", implementsRealOrderLifecycle),
+            ("submitsRealOrder", submitsRealOrder),
+            ("cancelsRealOrder", cancelsRealOrder),
+            ("replacesRealOrder", replacesRealOrder),
+            ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
+        ]
         if let capability = forbiddenFlags.first(where: { $0.1 }) {
             throw CoreError.liveTradingBoundaryForbiddenCapability(capability.0)
         }

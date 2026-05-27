@@ -1203,6 +1203,176 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testLiveReadOnlyWorkbenchReadModelBoundaryDefinesMTP131Surface() throws {
+        // 测试场景：MTP-131 只定义 Workbench / Dashboard 可展示的 Live readiness 只读边界，
+        // 并把 forbidden UI surface、detail audit route 和 L3.x handoff 固定为可回放 fixture。
+        let boundary = LiveReadOnlyWorkbenchReadModelBoundary.deterministicFixture
+
+        XCTAssertEqual(
+            boundary.contractID,
+            try Identifier("mtp-131-live-read-only-workbench-read-model-boundary")
+        )
+        XCTAssertEqual(boundary.issueID, try Identifier("MTP-131"))
+        XCTAssertEqual(boundary.matrixID, "TVM-LIVE-READ-ONLY-READINESS")
+        XCTAssertEqual(boundary.boundarySurfaces, LiveReadOnlyWorkbenchBoundarySurface.allCases)
+        XCTAssertEqual(boundary.inputBoundaries, LiveReadOnlyWorkbenchInputBoundary.allCases)
+        XCTAssertEqual(boundary.forbiddenUISurfaces, LiveReadOnlyWorkbenchForbiddenUISurface.allCases)
+        XCTAssertEqual(boundary.detailAuditRoutes, LiveReadOnlyWorkbenchDetailAuditRoute.allCases)
+        XCTAssertEqual(boundary.handoffTargets, LiveReadOnlyWorkbenchHandoffTarget.allCases)
+        XCTAssertEqual(boundary.boundarySurfaces.count, 5)
+        XCTAssertEqual(boundary.inputBoundaries.count, 9)
+        XCTAssertEqual(boundary.forbiddenUISurfaces.count, 19)
+        XCTAssertEqual(boundary.detailAuditRoutes.count, 4)
+        XCTAssertEqual(boundary.handoffTargets.count, 3)
+        XCTAssertEqual(boundary.allowedEvidenceKinds.count, 11)
+        XCTAssertTrue(
+            boundary.sourceAnchors.contains(
+                "MTP-131-WORKBENCH-LIVE-READINESS-READ-MODEL-ONLY-BOUNDARY"
+            )
+        )
+        XCTAssertEqual(
+            boundary.validationAnchors,
+            [
+                "MTP-131-WORKBENCH-LIVE-READINESS-READ-MODEL-ONLY-BOUNDARY",
+                "MTP-131-READ-MODEL-VIEWMODEL-INPUT-BOUNDARY",
+                "MTP-131-FORBIDDEN-UI-SURFACE",
+                "MTP-131-DETAIL-AUDIT-ROUTING",
+                "MTP-131-L31-L32-L33-HANDOFF",
+                "MTP-131-LIVE-READ-ONLY-WORKBENCH-VALIDATION"
+            ]
+        )
+        XCTAssertTrue(boundary.consumesOnlyReadModelViewModel)
+        XCTAssertTrue(boundary.workbenchReadModelOnlyBoundaryHeld)
+        XCTAssertFalse(boundary.exposesAPIKeyInput)
+        XCTAssertFalse(boundary.storesSecret)
+        XCTAssertFalse(boundary.providesBrokerConnect)
+        XCTAssertFalse(boundary.providesAccountConnect)
+        XCTAssertFalse(boundary.exposesLivePROConsole)
+        XCTAssertFalse(boundary.providesTradingButton)
+        XCTAssertFalse(boundary.providesLiveCommand)
+        XCTAssertFalse(boundary.exposesOrderForm)
+        XCTAssertFalse(boundary.exposesRealAccountBalance)
+        XCTAssertFalse(boundary.exposesBrokerPosition)
+        XCTAssertFalse(boundary.exposesRuntimeObject)
+        XCTAssertFalse(boundary.exposesDatabaseSchema)
+        XCTAssertFalse(boundary.callsSignedEndpoint)
+        XCTAssertFalse(boundary.callsAccountEndpoint)
+        XCTAssertFalse(boundary.createsListenKey)
+        XCTAssertFalse(boundary.instantiatesBrokerAdapter)
+        XCTAssertFalse(boundary.implementsLiveExecutionAdapter)
+        XCTAssertFalse(boundary.implementsOMS)
+        XCTAssertFalse(boundary.implementsRealOrderLifecycle)
+        XCTAssertFalse(boundary.submitsRealOrder)
+        XCTAssertFalse(boundary.cancelsRealOrder)
+        XCTAssertFalse(boundary.replacesRealOrder)
+        XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(
+            LiveReadOnlyWorkbenchReadModelBoundary.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, boundary)
+        XCTAssertTrue(decoded.workbenchReadModelOnlyBoundaryHeld)
+    }
+
+    func testLiveReadOnlyWorkbenchReadModelBoundaryRejectsForbiddenUISurfaceBypass() throws {
+        // 测试场景：MTP-131 fixture 的初始化和 Codable 解码都必须拒绝把只读 Workbench
+        // 边界反序列化成 API key、broker/account connect、Live PRO Console、order form、
+        // signed/account endpoint、listenKey、adapter、Runtime、schema、OMS 或真实订单能力。
+        let forbiddenFlagCases: [
+            (field: String, build: () throws -> LiveReadOnlyWorkbenchReadModelBoundary)
+        ] = [
+            ("exposesAPIKeyInput", { try LiveReadOnlyWorkbenchReadModelBoundary(exposesAPIKeyInput: true) }),
+            ("storesSecret", { try LiveReadOnlyWorkbenchReadModelBoundary(storesSecret: true) }),
+            ("providesBrokerConnect", { try LiveReadOnlyWorkbenchReadModelBoundary(providesBrokerConnect: true) }),
+            ("providesAccountConnect", { try LiveReadOnlyWorkbenchReadModelBoundary(providesAccountConnect: true) }),
+            ("exposesLivePROConsole", { try LiveReadOnlyWorkbenchReadModelBoundary(exposesLivePROConsole: true) }),
+            ("providesTradingButton", { try LiveReadOnlyWorkbenchReadModelBoundary(providesTradingButton: true) }),
+            ("providesLiveCommand", { try LiveReadOnlyWorkbenchReadModelBoundary(providesLiveCommand: true) }),
+            ("exposesOrderForm", { try LiveReadOnlyWorkbenchReadModelBoundary(exposesOrderForm: true) }),
+            ("exposesRealAccountBalance", {
+                try LiveReadOnlyWorkbenchReadModelBoundary(exposesRealAccountBalance: true)
+            }),
+            ("exposesBrokerPosition", {
+                try LiveReadOnlyWorkbenchReadModelBoundary(exposesBrokerPosition: true)
+            }),
+            ("exposesRuntimeObject", { try LiveReadOnlyWorkbenchReadModelBoundary(exposesRuntimeObject: true) }),
+            ("exposesDatabaseSchema", { try LiveReadOnlyWorkbenchReadModelBoundary(exposesDatabaseSchema: true) }),
+            ("callsSignedEndpoint", { try LiveReadOnlyWorkbenchReadModelBoundary(callsSignedEndpoint: true) }),
+            ("callsAccountEndpoint", { try LiveReadOnlyWorkbenchReadModelBoundary(callsAccountEndpoint: true) }),
+            ("createsListenKey", { try LiveReadOnlyWorkbenchReadModelBoundary(createsListenKey: true) }),
+            ("instantiatesBrokerAdapter", {
+                try LiveReadOnlyWorkbenchReadModelBoundary(instantiatesBrokerAdapter: true)
+            }),
+            ("implementsLiveExecutionAdapter", {
+                try LiveReadOnlyWorkbenchReadModelBoundary(implementsLiveExecutionAdapter: true)
+            }),
+            ("implementsOMS", { try LiveReadOnlyWorkbenchReadModelBoundary(implementsOMS: true) }),
+            ("implementsRealOrderLifecycle", {
+                try LiveReadOnlyWorkbenchReadModelBoundary(implementsRealOrderLifecycle: true)
+            }),
+            ("submitsRealOrder", { try LiveReadOnlyWorkbenchReadModelBoundary(submitsRealOrder: true) }),
+            ("cancelsRealOrder", { try LiveReadOnlyWorkbenchReadModelBoundary(cancelsRealOrder: true) }),
+            ("replacesRealOrder", { try LiveReadOnlyWorkbenchReadModelBoundary(replacesRealOrder: true) }),
+            ("requiredValidationDependsOnNetwork", {
+                try LiveReadOnlyWorkbenchReadModelBoundary(requiredValidationDependsOnNetwork: true)
+            })
+        ]
+
+        for flagCase in forbiddenFlagCases {
+            XCTAssertThrowsError(try flagCase.build()) { error in
+                XCTAssertEqual(
+                    error as? CoreError,
+                    .liveTradingBoundaryForbiddenCapability(flagCase.field)
+                )
+            }
+        }
+        XCTAssertThrowsError(
+            try LiveReadOnlyWorkbenchReadModelBoundary(consumesOnlyReadModelViewModel: false)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "consumesOnlyReadModelViewModel",
+                    expected: "true",
+                    actual: "false"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try LiveReadOnlyWorkbenchReadModelBoundary(boundarySurfaces: [.workbenchLiveReadinessEvidence])
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "boundarySurfaces",
+                    expected: LiveReadOnlyWorkbenchReadModelBoundary
+                        .requiredBoundarySurfaces
+                        .map(\.rawValue)
+                        .joined(separator: ","),
+                    actual: "Workbench Live readiness evidence"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(
+            LiveReadOnlyWorkbenchReadModelBoundary.deterministicFixture
+        )
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["providesTradingButton"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveReadOnlyWorkbenchReadModelBoundary.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("providesTradingButton")
+            )
+        }
+    }
+
     func testLiveAdapterCapabilityIsolationBoundaryDefinesMTP63GateTwoAsFutureOnly() throws {
         // 测试场景：MTP-63 只定义 current public read-only adapter 与 future live adapter
         // capability 的隔离合同；LiveExecutionAdapter 和 broker / exchange execution adapter

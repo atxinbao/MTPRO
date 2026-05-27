@@ -12172,3 +12172,46 @@ Root Docs Refresh Gate 更新：
 - 不新增 Live PRO Console、trading button 或 live command。
 - 不修改 Linear status、不创建 Linear Project / Issue、不推进 MTP-131。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+---
+
+## 2026-05-27 — MTP-131 Workbench Live readiness read-model-only boundary
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear live-read 中唯一 active issue `MTP-131 Define Workbench Live readiness read-model-only boundary`。
+- 定义 Workbench / Dashboard / Report / Event Timeline 可展示的 Live readiness read-model-only UI boundary、ReadModel / ViewModel input boundary、forbidden UI surface、detail / audit route 和 L3.1 / L3.2 / L3.3 handoff。
+- 只建立 Core deterministic fixture、App read model / ViewModel、Dashboard shell / Event Timeline read-only evidence、focused tests、contract / domain / validation / automation anchors；不实现 API key input、broker connect、account connect、Live PRO Console、trading button、live command、order form、signed/account/listenKey endpoint、Runtime object、database schema、adapter request 或真实订单能力。
+
+实现摘要：
+
+- 在 `Sources/Core/LiveTradingBoundary.swift` 新增 `LiveReadOnlyWorkbenchBoundarySurface`、`LiveReadOnlyWorkbenchInputBoundary`、`LiveReadOnlyWorkbenchForbiddenUISurface`、`LiveReadOnlyWorkbenchDetailAuditRoute`、`LiveReadOnlyWorkbenchHandoffTarget`、`LiveReadOnlyWorkbenchEvidenceKind` 和 `LiveReadOnlyWorkbenchReadModelBoundary`。
+- 新增 `Sources/App/LiveReadOnlyWorkbenchBoundary.swift`，提供 `LiveReadOnlyWorkbenchBoundaryReadModel` 和 `LiveReadOnlyWorkbenchBoundaryViewModel`。
+- 更新 `Sources/App/App.swift`、`Sources/App/DashboardShell.swift` 和 `Sources/App/PaperWorkflowEvidenceExplorer.swift`，把 MTP-131 read-model-only boundary 接入 Report / Dashboard / Workbench / Event Timeline。
+- 在 `Tests/CoreTests/CoreTests.swift` 新增 `testLiveReadOnlyWorkbenchReadModelBoundaryDefinesMTP131Surface` 和 `testLiveReadOnlyWorkbenchReadModelBoundaryRejectsForbiddenUISurfaceBypass`。
+- 在 `Tests/AppTests/AppTests.swift` 新增 `testLiveReadOnlyWorkbenchBoundaryViewModelAggregatesMTP131ReadOnlySurface`，并更新 Dashboard shell、Report snapshot 和 Evidence Explorer integration assertions。
+- 更新 `docs/contracts/live-read-only-readiness-boundary-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，接入 MTP-131 exact anchors。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter LiveReadOnlyWorkbench` | pass | 3 tests、0 failures；覆盖 MTP-131 Core fixture、forbidden UI flags、Codable bypass rejection 和 App ViewModel aggregation。 |
+| `swift test --filter AppTests/testLiveReadOnlyWorkbenchBoundaryViewModelAggregatesMTP131ReadOnlySurface` | pass | 1 test、0 failures；覆盖 App read-model-only ViewModel surface 和禁止 command / endpoint / adapter / runtime flags。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；机械检查 MTP-131 contract、domain context、validation plan、trading matrix、latest summary、automation readiness doc、Core fixture、App read model / ViewModel、Dashboard shell、Event Timeline 和 focused test anchors。 |
+| `git diff --check` | pass | 无输出。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 278 个 XCTest；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=65; scenarioReplayEvidence=1; scenarioQualityGates=6; simulatedParityEvidence=1; defaultDemoState=default demo; defaultDemoScenario=mtp-104-btcusdt-1m-first-scenario; betaFirstRunFallbacks=3; betaAcceptancePaths=1; betaAcceptanceScenario=mtp-104-btcusdt-1m-first-scenario; betaAcceptanceTrace=5; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveReadOnlyWorkbenchBoundary=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不新增 API key input、secret storage、local secret read 或 credential provider。
+- 不新增 broker connect、account connect、Live PRO Console、trading button、live command 或 order form。
+- 不调用 signed endpoint、account endpoint / listenKey，不创建 private WebSocket。
+- 不读取 real account balance、broker position、margin、leverage、real PnL 或 account payload。
+- 不暴露 Runtime object、database schema、Persistence schema、ORM model 或 adapter request。
+- 不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、OMS 或 real order lifecycle。
+- 不提交、取消或替换真实订单，不授权 broker action 或 production operation。
+- 不修改 Linear status、不创建 Linear Project / Issue、不推进 MTP-132。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
