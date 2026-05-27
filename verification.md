@@ -9315,7 +9315,6 @@ PR evidence input：
 - 不启动 Symphony 或 `symphony-issue`。
 - 不运行 Graphify update。
 - 不写业务代码。
-- 不提交 `.codex/*` 或 `graphify-out/*`。
 - 不实现 API key、secret storage、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、真实 live risk engine、real pre-trade allow / reject runtime、真实账户读取、broker position sync、margin、leverage、PnL、equity、circuit breaker command、stop trading command、emergency stop、risk command surface、order form、live command 或交易按钮。
 - Root Docs Refresh Gate 仍为 pending；下一步只允许基于本报告做事实同步，不授权下一阶段 planning 或 execution。
 
@@ -9325,6 +9324,45 @@ PR evidence input：
 | --- | --- | --- |
 | `git diff --check` | pass | docs-only diff 无空白错误；新 Stage Code Audit Report 通过 intent-to-add 纳入检查范围。 |
 | `bash checks/run.sh` | pass | 串联 automation readiness、Dashboard build / smoke 和 Swift tests；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=37; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveMonitoringHealth=blocked; liveMonitoringErrors=3`；184 个 XCTest 通过，最终输出 `MTPRO checks passed.`。 |
+
+---
+
+## 2026-05-28 — MTP-133 Account / Position / Balance Read-model-only Terminology Boundary
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear issue `MTP-133 Define account / position / balance read-model-only terminology and boundary`。
+- 建立 L3.1 account / position / balance read-model-only terminology、source semantics boundary、evidence interpretation boundary、L3.1 / L3.2 handoff、forbidden capability baseline、first executable candidate non-authorization 和 validation anchors。
+- 明确 MTP-133 是 terminology / contract / validation anchor 层，不实现 account / position / balance runtime。
+
+更新内容：
+
+- 新增 `docs/contracts/account-position-balance-read-model-only-contract.md`。
+- 更新 `docs/domain/context.md`，新增 Account / Position / Balance Read-model-only Terms。
+- 更新 `docs/validation/trading-validation-matrix.md`，新增 `TVM-ACCOUNT-POSITION-BALANCE-READ-MODEL-ONLY` 和 MTP-133 issue backfill。
+- 更新 `docs/validation/validation-plan.md`，新增 MTP-133 required validation 与禁止项。
+- 更新 `docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，新增 MTP-133 mechanical anchors。
+- 更新 `docs/validation/latest-verification-summary.md`，记录 MTP-133 当前 issue execution evidence。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
+| `git diff --check` | pass | 无输出。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 278 个 XCTest；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不推进 MTP-134。
+- 不创建下一 Project / Issue。
+- 不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 account / position / balance runtime、Live read-only runtime、private stream runtime 或 account snapshot runtime。
+- 不读取真实账户、真实持仓、真实余额、margin、leverage、buying power 或 real PnL。
+- 不实现 signed endpoint、account endpoint / listenKey、private WebSocket、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form、emergency stop、shutdown 或 restore。
 
 ## MTPRO Live Risk Gate Contract v1 Root Docs Refresh Gate closure
 

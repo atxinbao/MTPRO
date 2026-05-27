@@ -1048,6 +1048,44 @@ MTP-131 L3.1 / L3.2 / L3.3 handoff 只说明 Workbench UI 已保留后续只读 
 
 MTP-131 validation 必须证明 contract、domain context、validation plan、trading validation matrix、latest summary、automation readiness doc、Core fixture、App ReadModel / ViewModel、Dashboard shell、Event Timeline 和 focused tests 均固定 Workbench read-model-only boundary，并且 required validation 不读取 secret、不依赖真实 Binance 网络、不连接 broker、不触发真实交易行为、不创建 live command 或 trading button。
 
+## Account / Position / Balance Read-model-only Terms
+
+`MTP-133-ACCOUNT-POSITION-BALANCE-READ-MODEL-ONLY-TERMINOLOGY`
+
+以下术语由 MTP-133 定义为 `MTPRO Account / Position / Balance Read-model-only v1` 的 L3.1 boundary language。它们只用于 terminology、contract、validation anchors 和后续 issue handoff，不授权当前 scope 实现 account runtime、position runtime、balance runtime、signed endpoint、account endpoint / listenKey、private WebSocket、broker adapter、Live PRO Console、trading button、live command 或 order form。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `account read-model-only evidence` | 本地 / fixture / paper / simulated 来源的账户证据解释层 | 不等于真实 account endpoint payload、account snapshot runtime、broker account sync 或可交易账户状态 |
+| `position read-model-only evidence` | 本地 / fixture / paper / simulated 来源的仓位证据解释层 | 不等于 broker position、margin position、leverage position、real portfolio sync 或 broker risk input |
+| `balance read-model-only evidence` | 本地 / fixture / paper / simulated 来源的余额证据解释层 | 不等于真实账户余额、buying power、margin、leverage、real PnL 或可下单资金 |
+| `read-model-only source` | 当前只允许 fixture / paper / simulated / future-gated real label 的证据来源标签 | 不等于 account endpoint、listenKey、private stream、broker adapter 或真实账户连接 |
+| `future real source` | 未来可能接入真实账户只读能力前的门禁标签 | 不等于当前已实现真实账户读取、secret storage、signed request 或 private WebSocket |
+
+`MTP-133-SOURCE-SEMANTICS-BOUNDARY`
+
+MTP-133 source semantics 只允许表达 fixture source、paper source、simulated source 和 future-gated real source。fixture source 是 deterministic local fixture，不是真实 account payload；paper source 是 paper runtime / paper portfolio 本地证据，不是真实账户；simulated source 是 scenario replay / simulated exchange / backtest parity 本地证据，不是 broker fill、execution report 或 reconciliation；future-gated real source 只是门禁标签，不授权当前读取 real account、调用 signed endpoint、创建 listenKey 或运行 account snapshot runtime。
+
+`MTP-133-EVIDENCE-INTERPRETATION-BOUNDARY`
+
+MTP-133 evidence interpretation boundary 固定 account evidence 只能说明 evidence identity、source identity、freshness / stale 状态和 blocked reason；position evidence 只能说明 symbol / side / quantity / exposure 的 read-model-only interpretation；balance evidence 只能说明 paper / simulated / fixture balance interpretation。任何 evidence 都不得被解释为真实账户资产、broker position sync、buying power、margin、leverage 或 real PnL。
+
+`MTP-133-L31-L32-HANDOFF-BOUNDARY`
+
+MTP-133 只交付 L3.1 terminology / contract input。MTP-134 才能定义 account snapshot identity，MTP-135 才能定义 position snapshot identity，MTP-136 才能定义 balance snapshot identity，MTP-137 才能定义 deterministic fixture contract，MTP-138 才能定义 Workbench / Report / Events read-model-only evidence surface，MTP-139 才能做 validation / automation / stage audit input closeout。L3.2 Private Stream / Account Snapshot Simulation Gate 仍是 future gate；MTP-133 不创建 listenKey、不连接 private WebSocket、不运行 account snapshot runtime。
+
+`MTP-133-FORBIDDEN-CAPABILITY-BASELINE`
+
+MTP-133 的 forbidden baseline 必须覆盖 signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、real PnL runtime、Live PRO Console、trading button、live command、order form、emergency stop / shutdown / restore executable action、Graphify update 和 Figma change。
+
+`MTP-133-FIRST-EXECUTABLE-CANDIDATE-NON-AUTHORIZATION`
+
+Project Planning Record 中的 first executable candidate 只是候选，不构成执行授权。MTP-133 只有在 Linear live-read 中经 Parent Codex queue preflight 推进为唯一 active issue 后才可执行；MTP-133 完成后不得自动推进 MTP-134。
+
+`MTP-133-ACCOUNT-POSITION-BALANCE-READ-MODEL-ONLY-VALIDATION`
+
+MTP-133 validation 必须证明 contract、domain context、validation plan、trading validation matrix、latest summary、automation readiness doc 和 mechanical anchors 均固定 L3.1 read-model-only terminology / boundary，并且 `bash checks/run.sh` 通过。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
