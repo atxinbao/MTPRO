@@ -534,6 +534,210 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testLiveReadOnlyAdapterCapabilityMatrixDefinesMTP128ReadOnlyBoundary() throws {
+        // 测试场景：MTP-128 只定义 adapter capability matrix；当前唯一 allowed capability
+        // 是 public market data，future private account read-only 只能保持 gated，order write
+        // 和 broker / exchange execution adapter 只能作为 forbidden evidence。
+        let boundary = LiveReadOnlyAdapterCapabilityMatrixBoundary.deterministicFixture
+
+        XCTAssertEqual(
+            boundary.contractID,
+            try Identifier("mtp-128-live-read-only-adapter-capability-matrix")
+        )
+        XCTAssertEqual(boundary.issueID, try Identifier("MTP-128"))
+        XCTAssertEqual(boundary.matrixID, "TVM-LIVE-READ-ONLY-READINESS")
+        XCTAssertEqual(boundary.capabilityMatrix, LiveReadOnlyAdapterCapabilityMatrixEntry.allCases)
+        XCTAssertEqual(boundary.currentAllowedCapabilities, [.publicMarketDataAllowed])
+        XCTAssertEqual(boundary.futureGatedCapabilities, [.futurePrivateAccountReadOnlyGated])
+        XCTAssertEqual(
+            boundary.forbiddenCapabilities,
+            [
+                .signedEndpointForbidden,
+                .orderWriteForbidden,
+                .brokerActionForbidden,
+                .brokerExecutionAdapterForbidden,
+                .exchangeExecutionAdapterForbidden,
+                .liveExecutionAdapterForbidden,
+                .accountEndpointListenKeyForbidden,
+                .executionReportBrokerFillReconciliationForbidden,
+                .realAccountPositionMarginLeverageForbidden
+            ]
+        )
+        XCTAssertEqual(
+            boundary.futureGates,
+            [
+                .credentialEndpointTaxonomySatisfied,
+                .publicReadOnlyAdapterStaysReadOnly,
+                .futurePrivateReadOnlyContract,
+                .adapterImplementationIndependentProject,
+                .orderWriteForbiddenValidation,
+                .brokerExecutionAdapterFutureGate
+            ]
+        )
+        XCTAssertEqual(
+            boundary.allowedEvidenceKinds,
+            [
+                .contractDocumentation,
+                .domainContextTerms,
+                .validationMatrixAnchor,
+                .automationReadinessAnchor,
+                .deterministicForbiddenTest,
+                .prBoundaryEvidence
+            ]
+        )
+        XCTAssertTrue(boundary.adapterCapabilityMatrixBoundaryHeld)
+        XCTAssertFalse(boundary.createsBrokerAdapter)
+        XCTAssertFalse(boundary.createsExchangeExecutionAdapter)
+        XCTAssertFalse(boundary.implementsLiveExecutionAdapter)
+        XCTAssertFalse(boundary.upgradesPublicReadOnlyAdapterToExecutionAdapter)
+        XCTAssertFalse(boundary.callsSignedEndpoint)
+        XCTAssertFalse(boundary.callsAccountEndpoint)
+        XCTAssertFalse(boundary.createsListenKey)
+        XCTAssertFalse(boundary.exposesOrderWriteCapability)
+        XCTAssertFalse(boundary.submitsRealOrder)
+        XCTAssertFalse(boundary.cancelsRealOrder)
+        XCTAssertFalse(boundary.replacesRealOrder)
+        XCTAssertFalse(boundary.readsExecutionReport)
+        XCTAssertFalse(boundary.recordsBrokerFill)
+        XCTAssertFalse(boundary.runsReconciliation)
+        XCTAssertFalse(boundary.readsRealAccountPositionMarginLeverage)
+        XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(
+            LiveReadOnlyAdapterCapabilityMatrixBoundary.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, boundary)
+    }
+
+    func testLiveReadOnlyAdapterCapabilityMatrixRejectsWriteAndExecutionAdapterBypass() throws {
+        // 测试场景：MTP-128 adapter matrix fixture 的初始化和 Codable 解码都必须拒绝
+        // signed/account/listenKey、order write、broker adapter、LiveExecutionAdapter、
+        // execution report、broker fill、reconciliation 和真实账户读写绕过。
+        let forbiddenFlagCases: [
+            (field: String, build: () throws -> LiveReadOnlyAdapterCapabilityMatrixBoundary)
+        ] = [
+            (
+                "createsBrokerAdapter",
+                { try LiveReadOnlyAdapterCapabilityMatrixBoundary(createsBrokerAdapter: true) }
+            ),
+            (
+                "createsExchangeExecutionAdapter",
+                { try LiveReadOnlyAdapterCapabilityMatrixBoundary(createsExchangeExecutionAdapter: true) }
+            ),
+            (
+                "implementsLiveExecutionAdapter",
+                { try LiveReadOnlyAdapterCapabilityMatrixBoundary(implementsLiveExecutionAdapter: true) }
+            ),
+            (
+                "upgradesPublicReadOnlyAdapterToExecutionAdapter",
+                {
+                    try LiveReadOnlyAdapterCapabilityMatrixBoundary(
+                        upgradesPublicReadOnlyAdapterToExecutionAdapter: true
+                    )
+                }
+            ),
+            (
+                "callsSignedEndpoint",
+                { try LiveReadOnlyAdapterCapabilityMatrixBoundary(callsSignedEndpoint: true) }
+            ),
+            (
+                "callsAccountEndpoint",
+                { try LiveReadOnlyAdapterCapabilityMatrixBoundary(callsAccountEndpoint: true) }
+            ),
+            (
+                "createsListenKey",
+                { try LiveReadOnlyAdapterCapabilityMatrixBoundary(createsListenKey: true) }
+            ),
+            (
+                "exposesOrderWriteCapability",
+                { try LiveReadOnlyAdapterCapabilityMatrixBoundary(exposesOrderWriteCapability: true) }
+            ),
+            (
+                "submitsRealOrder",
+                { try LiveReadOnlyAdapterCapabilityMatrixBoundary(submitsRealOrder: true) }
+            ),
+            (
+                "cancelsRealOrder",
+                { try LiveReadOnlyAdapterCapabilityMatrixBoundary(cancelsRealOrder: true) }
+            ),
+            (
+                "replacesRealOrder",
+                { try LiveReadOnlyAdapterCapabilityMatrixBoundary(replacesRealOrder: true) }
+            ),
+            (
+                "readsExecutionReport",
+                { try LiveReadOnlyAdapterCapabilityMatrixBoundary(readsExecutionReport: true) }
+            ),
+            (
+                "recordsBrokerFill",
+                { try LiveReadOnlyAdapterCapabilityMatrixBoundary(recordsBrokerFill: true) }
+            ),
+            (
+                "runsReconciliation",
+                { try LiveReadOnlyAdapterCapabilityMatrixBoundary(runsReconciliation: true) }
+            ),
+            (
+                "readsRealAccountPositionMarginLeverage",
+                {
+                    try LiveReadOnlyAdapterCapabilityMatrixBoundary(
+                        readsRealAccountPositionMarginLeverage: true
+                    )
+                }
+            ),
+            (
+                "requiredValidationDependsOnNetwork",
+                { try LiveReadOnlyAdapterCapabilityMatrixBoundary(requiredValidationDependsOnNetwork: true) }
+            )
+        ]
+
+        for flagCase in forbiddenFlagCases {
+            XCTAssertThrowsError(try flagCase.build()) { error in
+                XCTAssertEqual(
+                    error as? CoreError,
+                    .liveTradingBoundaryForbiddenCapability(flagCase.field)
+                )
+            }
+        }
+        XCTAssertThrowsError(
+            try LiveReadOnlyAdapterCapabilityMatrixBoundary(
+                forbiddenCapabilities: [.signedEndpointForbidden]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "forbiddenCapabilities",
+                    expected: LiveReadOnlyAdapterCapabilityMatrixBoundary
+                        .requiredForbiddenCapabilities
+                        .map(\.rawValue)
+                        .joined(separator: ","),
+                    actual: "signed endpoint forbidden"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(
+            LiveReadOnlyAdapterCapabilityMatrixBoundary.deterministicFixture
+        )
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["createsBrokerAdapter"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(
+                LiveReadOnlyAdapterCapabilityMatrixBoundary.self,
+                from: data
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("createsBrokerAdapter")
+            )
+        }
+    }
+
     func testLiveAdapterCapabilityIsolationBoundaryDefinesMTP63GateTwoAsFutureOnly() throws {
         // 测试场景：MTP-63 只定义 current public read-only adapter 与 future live adapter
         // capability 的隔离合同；LiveExecutionAdapter 和 broker / exchange execution adapter

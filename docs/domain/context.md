@@ -972,6 +972,22 @@ MTP-127 forbidden capability tests 必须证明 `LiveReadOnlyCredentialEndpointT
 
 MTP-127 validation 必须证明 contract、domain context、validation plan、trading validation matrix、latest summary、automation readiness doc、Core fixture 和 focused tests 均固定 credential / endpoint taxonomy boundary，并且 required validation 不读取 secret、不依赖真实 Binance 网络、不连接 broker、不触发真实交易行为。
 
+`MTP-128-ADAPTER-CAPABILITY-MATRIX`
+
+MTP-128 adapter capability matrix 固定 `public market data allowed` 是唯一 current allowed adapter capability；`future private account read-only gated` 只能作为 future gated capability；`signed endpoint forbidden`、`order write forbidden`、`broker action forbidden`、`broker execution adapter forbidden`、`exchange execution adapter forbidden`、`LiveExecutionAdapter forbidden`、`account endpoint / listenKey forbidden`、`execution report / broker fill / reconciliation forbidden` 和 `real account / broker position / margin / leverage forbidden` 只能作为 forbidden evidence。
+
+`MTP-128-PUBLIC-READ-ONLY-ADAPTER-PRIVATE-GATE-ISOLATION`
+
+MTP-128 public read-only adapter / future private gate isolation 表示当前 public market data adapter 不能升级为 private account read runtime、signed endpoint、account endpoint、listenKey、broker / exchange execution adapter、`LiveExecutionAdapter`、order write、execution report、broker fill、reconciliation 或真实账户 / 仓位 / 保证金 / 杠杆读取。MTP-128 不实现 adapter runtime，不新增 Adapters target 类型，不实现 MTP-129 account / position / balance read model，不实现 MTP-130 private stream / account snapshot simulation gate。
+
+`MTP-128-FORBIDDEN-ADAPTER-CAPABILITY-TESTS`
+
+MTP-128 forbidden adapter capability tests 必须证明 `LiveReadOnlyAdapterCapabilityMatrixBoundary` 的 broker adapter、exchange execution adapter、`LiveExecutionAdapter`、public adapter execution upgrade、signed endpoint、account endpoint、listenKey、order write、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage 和 network dependency flags 全部为 `false`，并且 Codable 解码不能恢复这些 forbidden capability。
+
+`MTP-128-LIVE-READ-ONLY-ADAPTER-CAPABILITY-VALIDATION`
+
+MTP-128 validation 必须证明 contract、domain context、validation plan、trading validation matrix、latest summary、automation readiness doc、Core fixture 和 focused tests 均固定 adapter capability matrix boundary，并且 required validation 不读取 secret、不依赖真实 Binance 网络、不连接 broker、不触发真实交易行为。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
