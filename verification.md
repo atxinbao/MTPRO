@@ -12132,3 +12132,43 @@ Root Docs Refresh Gate 更新：
 - 不把 paper portfolio、simulated fill、fixture evidence、Report read model 或 Dashboard ViewModel 解释为真实 account / position / balance data。
 - 不修改 Linear status、不创建 Linear Project / Issue、不推进 MTP-130。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+---
+
+## 2026-05-27 — MTP-130 Private stream / account snapshot simulation gate input material
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear live-read 中唯一 active issue `MTP-130 Define private stream / account snapshot simulation gate input material`。
+- 定义后续 L3.2 所需 private stream / account snapshot simulation gate input material、future fixture requirements、listenKey forbidden tests 和 simulation gate / live stream isolation。
+- 只建立 Core deterministic fixture、focused tests、contract / domain / validation / automation anchors；不实现 listenKey、private WebSocket、account snapshot runtime、private stream runtime、signed/account endpoint、broker adapter 或交易能力。
+
+实现摘要：
+
+- 在 `Sources/Core/LiveTradingBoundary.swift` 新增 `LiveReadOnlyPrivateStreamAccountSnapshotSimulationInputMaterial`、`LiveReadOnlyPrivateStreamAccountSnapshotFutureFixtureRequirement`、`LiveReadOnlyPrivateStreamAccountSnapshotForbiddenCapability`、`LiveReadOnlyPrivateStreamAccountSnapshotEvidenceKind` 和 `LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary`。
+- 在 `Tests/CoreTests/CoreTests.swift` 新增 `testLiveReadOnlyPrivateStreamAccountSnapshotDefinesMTP130SimulationGateInput` 和 `testLiveReadOnlyPrivateStreamAccountSnapshotRejectsListenKeyAndRuntimeBypass`。
+- 更新 `docs/contracts/live-read-only-readiness-boundary-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，接入 MTP-130 exact anchors。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter LiveReadOnlyPrivateStreamAccountSnapshot` | pass | 2 tests、0 failures；覆盖 MTP-130 private stream / account snapshot simulation gate input material、future fixture requirements、listenKey forbidden flags、simulation gate / live stream isolation 和 Codable bypass rejection。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；机械检查 MTP-130 contract、domain context、validation plan、trading matrix、latest summary、automation readiness doc、Core fixture 和 focused test anchors。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 275 个 XCTest；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=64; scenarioReplayEvidence=1; scenarioQualityGates=6; simulatedParityEvidence=1; defaultDemoState=default demo; defaultDemoScenario=mtp-104-btcusdt-1m-first-scenario; betaFirstRunFallbacks=3; betaAcceptancePaths=1; betaAcceptanceScenario=mtp-104-btcusdt-1m-first-scenario; betaAcceptanceTrace=5; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不创建 listenKey，不执行 listenKey keepalive。
+- 不连接 private WebSocket，不实现 private stream runtime。
+- 不运行 account snapshot runtime，不读取 real account 或 consumes real account payload。
+- 不调用 signed endpoint、account endpoint / listenKey。
+- 不同步 broker position，不读取 margin / leverage。
+- 不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、OMS 或 real order write。
+- 不把 simulation gate input material 写成 live private stream implementation。
+- 不把 fixture account snapshot 写成真实 account snapshot。
+- 不新增 Live PRO Console、trading button 或 live command。
+- 不修改 Linear status、不创建 Linear Project / Issue、不推进 MTP-131。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。

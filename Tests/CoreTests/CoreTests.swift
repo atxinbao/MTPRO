@@ -969,6 +969,240 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testLiveReadOnlyPrivateStreamAccountSnapshotDefinesMTP130SimulationGateInput() throws {
+        // 测试场景：MTP-130 只定义 private stream / account snapshot simulation gate
+        // 的输入材料和 future fixture requirements；这些 evidence 是 L3.2 handoff material，
+        // 不能创建 listenKey、private WebSocket 或 account snapshot runtime。
+        let boundary = LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary.deterministicFixture
+
+        XCTAssertEqual(
+            boundary.contractID,
+            try Identifier("mtp-130-live-read-only-private-stream-account-snapshot-simulation-gate")
+        )
+        XCTAssertEqual(boundary.issueID, try Identifier("MTP-130"))
+        XCTAssertEqual(boundary.matrixID, "TVM-LIVE-READ-ONLY-READINESS")
+        XCTAssertEqual(
+            boundary.simulationInputMaterial,
+            LiveReadOnlyPrivateStreamAccountSnapshotSimulationInputMaterial.allCases
+        )
+        XCTAssertEqual(
+            boundary.futureFixtureRequirements,
+            LiveReadOnlyPrivateStreamAccountSnapshotFutureFixtureRequirement.allCases
+        )
+        XCTAssertEqual(
+            boundary.forbiddenCapabilities,
+            LiveReadOnlyPrivateStreamAccountSnapshotForbiddenCapability.allCases
+        )
+        XCTAssertEqual(
+            boundary.allowedEvidenceKinds,
+            [
+                .contractDocumentation,
+                .domainContextTerms,
+                .validationMatrixAnchor,
+                .automationReadinessAnchor,
+                .deterministicForbiddenTest,
+                .l32HandoffMaterial,
+                .prBoundaryEvidence
+            ]
+        )
+        XCTAssertTrue(boundary.privateStreamAccountSnapshotSimulationGateBoundaryHeld)
+        XCTAssertFalse(boundary.createsListenKey)
+        XCTAssertFalse(boundary.keepsListenKeyAlive)
+        XCTAssertFalse(boundary.opensPrivateWebSocket)
+        XCTAssertFalse(boundary.runsPrivateStreamRuntime)
+        XCTAssertFalse(boundary.runsAccountSnapshotRuntime)
+        XCTAssertFalse(boundary.callsSignedEndpoint)
+        XCTAssertFalse(boundary.callsAccountEndpoint)
+        XCTAssertFalse(boundary.readsRealAccount)
+        XCTAssertFalse(boundary.consumesRealAccountPayload)
+        XCTAssertFalse(boundary.syncsBrokerPosition)
+        XCTAssertFalse(boundary.readsMargin)
+        XCTAssertFalse(boundary.readsLeverage)
+        XCTAssertFalse(boundary.connectsBrokerAdapter)
+        XCTAssertFalse(boundary.implementsLiveExecutionAdapter)
+        XCTAssertFalse(boundary.implementsOMS)
+        XCTAssertFalse(boundary.writesRealOrder)
+        XCTAssertFalse(boundary.representsSimulationGateAsLiveStreamImplementation)
+        XCTAssertFalse(boundary.representsFixtureSnapshotAsRealAccountSnapshot)
+        XCTAssertFalse(boundary.exposesTradingButton)
+        XCTAssertFalse(boundary.exposesLiveCommand)
+        XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(
+            LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, boundary)
+    }
+
+    func testLiveReadOnlyPrivateStreamAccountSnapshotRejectsListenKeyAndRuntimeBypass() throws {
+        // 测试场景：MTP-130 fixture 的初始化和 Codable 解码都必须拒绝 listenKey、
+        // private WebSocket、account snapshot runtime、真实账户读取、broker adapter、
+        // LiveExecutionAdapter、真实订单写入、trading button 和 live command 绕过。
+        let forbiddenFlagCases: [
+            (field: String, build: () throws -> LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary)
+        ] = [
+            (
+                "createsListenKey",
+                { try LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary(createsListenKey: true) }
+            ),
+            (
+                "keepsListenKeyAlive",
+                { try LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary(keepsListenKeyAlive: true) }
+            ),
+            (
+                "opensPrivateWebSocket",
+                { try LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary(opensPrivateWebSocket: true) }
+            ),
+            (
+                "runsPrivateStreamRuntime",
+                {
+                    try LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary(
+                        runsPrivateStreamRuntime: true
+                    )
+                }
+            ),
+            (
+                "runsAccountSnapshotRuntime",
+                {
+                    try LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary(
+                        runsAccountSnapshotRuntime: true
+                    )
+                }
+            ),
+            (
+                "callsSignedEndpoint",
+                { try LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary(callsSignedEndpoint: true) }
+            ),
+            (
+                "callsAccountEndpoint",
+                { try LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary(callsAccountEndpoint: true) }
+            ),
+            (
+                "readsRealAccount",
+                { try LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary(readsRealAccount: true) }
+            ),
+            (
+                "consumesRealAccountPayload",
+                {
+                    try LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary(
+                        consumesRealAccountPayload: true
+                    )
+                }
+            ),
+            (
+                "syncsBrokerPosition",
+                { try LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary(syncsBrokerPosition: true) }
+            ),
+            (
+                "readsMargin",
+                { try LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary(readsMargin: true) }
+            ),
+            (
+                "readsLeverage",
+                { try LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary(readsLeverage: true) }
+            ),
+            (
+                "connectsBrokerAdapter",
+                { try LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary(connectsBrokerAdapter: true) }
+            ),
+            (
+                "implementsLiveExecutionAdapter",
+                {
+                    try LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary(
+                        implementsLiveExecutionAdapter: true
+                    )
+                }
+            ),
+            (
+                "implementsOMS",
+                { try LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary(implementsOMS: true) }
+            ),
+            (
+                "writesRealOrder",
+                { try LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary(writesRealOrder: true) }
+            ),
+            (
+                "representsSimulationGateAsLiveStreamImplementation",
+                {
+                    try LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary(
+                        representsSimulationGateAsLiveStreamImplementation: true
+                    )
+                }
+            ),
+            (
+                "representsFixtureSnapshotAsRealAccountSnapshot",
+                {
+                    try LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary(
+                        representsFixtureSnapshotAsRealAccountSnapshot: true
+                    )
+                }
+            ),
+            (
+                "exposesTradingButton",
+                { try LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary(exposesTradingButton: true) }
+            ),
+            (
+                "exposesLiveCommand",
+                { try LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary(exposesLiveCommand: true) }
+            ),
+            (
+                "requiredValidationDependsOnNetwork",
+                {
+                    try LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary(
+                        requiredValidationDependsOnNetwork: true
+                    )
+                }
+            )
+        ]
+
+        for flagCase in forbiddenFlagCases {
+            XCTAssertThrowsError(try flagCase.build()) { error in
+                XCTAssertEqual(
+                    error as? CoreError,
+                    .liveTradingBoundaryForbiddenCapability(flagCase.field)
+                )
+            }
+        }
+        XCTAssertThrowsError(
+            try LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary(
+                simulationInputMaterial: [.privateStreamSourceIdentity]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "simulationInputMaterial",
+                    expected: LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary
+                        .requiredSimulationInputMaterial
+                        .map(\.rawValue)
+                        .joined(separator: ","),
+                    actual: "private stream source identity"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(
+            LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary.deterministicFixture
+        )
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["createsListenKey"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(
+                LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary.self,
+                from: data
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("createsListenKey")
+            )
+        }
+    }
+
     func testLiveAdapterCapabilityIsolationBoundaryDefinesMTP63GateTwoAsFutureOnly() throws {
         // 测试场景：MTP-63 只定义 current public read-only adapter 与 future live adapter
         // capability 的隔离合同；LiveExecutionAdapter 和 broker / exchange execution adapter

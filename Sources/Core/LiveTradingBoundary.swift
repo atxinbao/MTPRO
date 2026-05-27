@@ -218,6 +218,79 @@ public enum LiveReadOnlyAccountPositionBalanceForbiddenInterpretation: String, C
     case dashboardViewModelAsLiveAccountRuntime = "Dashboard ViewModel as live account runtime"
 }
 
+/// LiveReadOnlyPrivateStreamAccountSnapshotSimulationInputMaterial 固定 MTP-130 的 L3.2 输入材料。
+///
+/// 这些材料只描述后续 private stream / account snapshot simulation gate 需要的字段、身份、
+/// freshness 和 event shape；当前 Core 不创建 listenKey、不打开 private WebSocket、不运行
+/// account snapshot runtime，也不把 fixture 或 simulation evidence 解释为真实账户数据流。
+public enum LiveReadOnlyPrivateStreamAccountSnapshotSimulationInputMaterial: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case privateStreamSourceIdentity = "private stream source identity"
+    case accountSnapshotFixtureIdentity = "account snapshot fixture identity"
+    case snapshotObservedAt = "snapshot observedAt"
+    case sourceWatermark = "source watermark"
+    case freshnessBoundary = "freshness boundary"
+    case accountEventShape = "account event shape"
+    case positionEventShape = "position event shape"
+    case balanceEventShape = "balance event shape"
+    case fixtureReplayCursor = "fixture replay cursor"
+    case simulationGateBoundary = "simulation gate boundary"
+}
+
+/// LiveReadOnlyPrivateStreamAccountSnapshotFutureFixtureRequirement 定义 MTP-130 的 future fixture 门槛。
+///
+/// Requirement 只为后续 L3.2 独立 Project 提供测试输入说明；它不实现 private stream runtime、
+/// 不连接账户 endpoint / listenKey，也不要求本地验证依赖外部网络或真实 Binance 账户。
+public enum LiveReadOnlyPrivateStreamAccountSnapshotFutureFixtureRequirement: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case deterministicAccountSnapshotFixture = "deterministic account snapshot fixture"
+    case privateStreamEventFixture = "private stream event fixture"
+    case fixtureSourceIdentityDeclared = "fixture source identity declared"
+    case fixtureFreshnessDeclared = "fixture freshness declared"
+    case replayCursorDeclared = "replay cursor declared"
+    case liveStreamImplementationSeparated = "live stream implementation separated"
+    case listenKeyForbiddenValidation = "listenKey forbidden validation"
+    case networkIndependentValidation = "network independent validation"
+}
+
+/// LiveReadOnlyPrivateStreamAccountSnapshotForbiddenCapability 列出 MTP-130 必须拒绝的能力。
+///
+/// 这些能力只能作为 forbidden capability tests 和 L3.2 handoff evidence 出现；任何 init 或
+/// Codable 解码都不能把它们恢复成 listenKey、private WebSocket、account snapshot runtime、
+/// signed/account endpoint、broker adapter、真实订单或 UI command surface。
+public enum LiveReadOnlyPrivateStreamAccountSnapshotForbiddenCapability: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case listenKeyCreation = "listenKey creation"
+    case listenKeyKeepalive = "listenKey keepalive"
+    case privateWebSocketRuntime = "private WebSocket runtime"
+    case accountSnapshotRuntime = "account snapshot runtime"
+    case signedEndpointCall = "signed endpoint call"
+    case accountEndpointCall = "account endpoint call"
+    case realAccountRead = "real account read"
+    case realAccountPayloadConsumption = "real account payload consumption"
+    case brokerPositionSync = "broker position sync"
+    case marginLeverageRead = "margin / leverage read"
+    case brokerAdapterConnection = "broker adapter connection"
+    case liveExecutionAdapterImplementation = "LiveExecutionAdapter implementation"
+    case omsImplementation = "OMS implementation"
+    case realOrderWrite = "real order write"
+    case simulationGateAsLiveStreamImplementation = "simulation gate as live stream implementation"
+    case fixtureSnapshotAsRealAccountSnapshot = "fixture snapshot as real account snapshot"
+    case tradingButton = "trading button"
+    case liveCommand = "live command"
+}
+
+/// LiveReadOnlyPrivateStreamAccountSnapshotEvidenceKind 限定 MTP-130 可以产生的非执行证据。
+///
+/// Evidence 只用于合同、shared language、validation matrix、automation readiness、focused tests
+/// 和 PR boundary evidence；它不创建 endpoint、adapter、runtime、ViewModel 或 Dashboard 行为。
+public enum LiveReadOnlyPrivateStreamAccountSnapshotEvidenceKind: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case contractDocumentation = "contract documentation"
+    case domainContextTerms = "domain context terms"
+    case validationMatrixAnchor = "validation matrix anchor"
+    case automationReadinessAnchor = "automation readiness anchor"
+    case deterministicForbiddenTest = "deterministic forbidden capability test"
+    case l32HandoffMaterial = "L3.2 handoff material"
+    case prBoundaryEvidence = "PR boundary evidence"
+}
+
 /// LiveAdapterIsolationForbiddenCapability 枚举 MTP-63 Gate 2 必须阻断的 adapter 能力。
 ///
 /// 这些值只描述 future / gated adapter capability，不能被解释为当前 `Adapters` target
@@ -2173,6 +2246,359 @@ public struct LiveReadOnlyAccountPositionBalanceFutureGateBoundary: Codable, Equ
             ("representsPaperEvidenceAsRealAccountData", representsPaperEvidenceAsRealAccountData),
             ("representsSimulatedFillAsBrokerPosition", representsSimulatedFillAsBrokerPosition),
             ("representsFixtureEvidenceAsRealAccountSnapshot", representsFixtureEvidenceAsRealAccountSnapshot),
+            ("exposesTradingButton", exposesTradingButton),
+            ("exposesLiveCommand", exposesLiveCommand),
+            ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(capability.0)
+        }
+    }
+}
+
+/// LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary 是 MTP-130 的 L3.2 simulation gate input fixture。
+///
+/// 该合同只定义 private stream / account snapshot simulation gate 的输入材料、future fixture
+/// requirements、listenKey forbidden tests 和 simulation gate 与 live private stream implementation
+/// 的隔离。它不创建 listenKey，不连接 private WebSocket，不运行 account snapshot runtime，
+/// 不读取真实账户或 broker position，也不暴露 trading button / live command。
+public struct LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary: Codable, Equatable, Sendable {
+    public let contractID: Identifier
+    public let issueID: Identifier
+    public let matrixID: String
+    public let simulationInputMaterial: [LiveReadOnlyPrivateStreamAccountSnapshotSimulationInputMaterial]
+    public let futureFixtureRequirements: [LiveReadOnlyPrivateStreamAccountSnapshotFutureFixtureRequirement]
+    public let forbiddenCapabilities: [LiveReadOnlyPrivateStreamAccountSnapshotForbiddenCapability]
+    public let allowedEvidenceKinds: [LiveReadOnlyPrivateStreamAccountSnapshotEvidenceKind]
+    public let createsListenKey: Bool
+    public let keepsListenKeyAlive: Bool
+    public let opensPrivateWebSocket: Bool
+    public let runsPrivateStreamRuntime: Bool
+    public let runsAccountSnapshotRuntime: Bool
+    public let callsSignedEndpoint: Bool
+    public let callsAccountEndpoint: Bool
+    public let readsRealAccount: Bool
+    public let consumesRealAccountPayload: Bool
+    public let syncsBrokerPosition: Bool
+    public let readsMargin: Bool
+    public let readsLeverage: Bool
+    public let connectsBrokerAdapter: Bool
+    public let implementsLiveExecutionAdapter: Bool
+    public let implementsOMS: Bool
+    public let writesRealOrder: Bool
+    public let representsSimulationGateAsLiveStreamImplementation: Bool
+    public let representsFixtureSnapshotAsRealAccountSnapshot: Bool
+    public let exposesTradingButton: Bool
+    public let exposesLiveCommand: Bool
+    public let requiredValidationDependsOnNetwork: Bool
+
+    public var privateStreamAccountSnapshotSimulationGateBoundaryHeld: Bool {
+        matrixID == Self.requiredMatrixID
+            && simulationInputMaterial == Self.requiredSimulationInputMaterial
+            && futureFixtureRequirements == Self.requiredFutureFixtureRequirements
+            && forbiddenCapabilities == Self.requiredForbiddenCapabilities
+            && allowedEvidenceKinds == Self.allowedEvidenceKinds
+            && createsListenKey == false
+            && keepsListenKeyAlive == false
+            && opensPrivateWebSocket == false
+            && runsPrivateStreamRuntime == false
+            && runsAccountSnapshotRuntime == false
+            && callsSignedEndpoint == false
+            && callsAccountEndpoint == false
+            && readsRealAccount == false
+            && consumesRealAccountPayload == false
+            && syncsBrokerPosition == false
+            && readsMargin == false
+            && readsLeverage == false
+            && connectsBrokerAdapter == false
+            && implementsLiveExecutionAdapter == false
+            && implementsOMS == false
+            && writesRealOrder == false
+            && representsSimulationGateAsLiveStreamImplementation == false
+            && representsFixtureSnapshotAsRealAccountSnapshot == false
+            && exposesTradingButton == false
+            && exposesLiveCommand == false
+            && requiredValidationDependsOnNetwork == false
+    }
+
+    public init(
+        contractID: Identifier = try! Identifier(
+            "mtp-130-live-read-only-private-stream-account-snapshot-simulation-gate"
+        ),
+        issueID: Identifier = try! Identifier("MTP-130"),
+        matrixID: String = Self.requiredMatrixID,
+        simulationInputMaterial: [LiveReadOnlyPrivateStreamAccountSnapshotSimulationInputMaterial] =
+            Self.requiredSimulationInputMaterial,
+        futureFixtureRequirements: [LiveReadOnlyPrivateStreamAccountSnapshotFutureFixtureRequirement] =
+            Self.requiredFutureFixtureRequirements,
+        forbiddenCapabilities: [LiveReadOnlyPrivateStreamAccountSnapshotForbiddenCapability] =
+            Self.requiredForbiddenCapabilities,
+        allowedEvidenceKinds: [LiveReadOnlyPrivateStreamAccountSnapshotEvidenceKind] = Self.allowedEvidenceKinds,
+        createsListenKey: Bool = false,
+        keepsListenKeyAlive: Bool = false,
+        opensPrivateWebSocket: Bool = false,
+        runsPrivateStreamRuntime: Bool = false,
+        runsAccountSnapshotRuntime: Bool = false,
+        callsSignedEndpoint: Bool = false,
+        callsAccountEndpoint: Bool = false,
+        readsRealAccount: Bool = false,
+        consumesRealAccountPayload: Bool = false,
+        syncsBrokerPosition: Bool = false,
+        readsMargin: Bool = false,
+        readsLeverage: Bool = false,
+        connectsBrokerAdapter: Bool = false,
+        implementsLiveExecutionAdapter: Bool = false,
+        implementsOMS: Bool = false,
+        writesRealOrder: Bool = false,
+        representsSimulationGateAsLiveStreamImplementation: Bool = false,
+        representsFixtureSnapshotAsRealAccountSnapshot: Bool = false,
+        exposesTradingButton: Bool = false,
+        exposesLiveCommand: Bool = false,
+        requiredValidationDependsOnNetwork: Bool = false
+    ) throws {
+        try Self.validate(
+            matrixID: matrixID,
+            simulationInputMaterial: simulationInputMaterial,
+            futureFixtureRequirements: futureFixtureRequirements,
+            forbiddenCapabilities: forbiddenCapabilities,
+            allowedEvidenceKinds: allowedEvidenceKinds
+        )
+        try Self.validateForbiddenFlags(
+            createsListenKey: createsListenKey,
+            keepsListenKeyAlive: keepsListenKeyAlive,
+            opensPrivateWebSocket: opensPrivateWebSocket,
+            runsPrivateStreamRuntime: runsPrivateStreamRuntime,
+            runsAccountSnapshotRuntime: runsAccountSnapshotRuntime,
+            callsSignedEndpoint: callsSignedEndpoint,
+            callsAccountEndpoint: callsAccountEndpoint,
+            readsRealAccount: readsRealAccount,
+            consumesRealAccountPayload: consumesRealAccountPayload,
+            syncsBrokerPosition: syncsBrokerPosition,
+            readsMargin: readsMargin,
+            readsLeverage: readsLeverage,
+            connectsBrokerAdapter: connectsBrokerAdapter,
+            implementsLiveExecutionAdapter: implementsLiveExecutionAdapter,
+            implementsOMS: implementsOMS,
+            writesRealOrder: writesRealOrder,
+            representsSimulationGateAsLiveStreamImplementation:
+                representsSimulationGateAsLiveStreamImplementation,
+            representsFixtureSnapshotAsRealAccountSnapshot: representsFixtureSnapshotAsRealAccountSnapshot,
+            exposesTradingButton: exposesTradingButton,
+            exposesLiveCommand: exposesLiveCommand,
+            requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork
+        )
+
+        self.contractID = contractID
+        self.issueID = issueID
+        self.matrixID = matrixID
+        self.simulationInputMaterial = simulationInputMaterial
+        self.futureFixtureRequirements = futureFixtureRequirements
+        self.forbiddenCapabilities = forbiddenCapabilities
+        self.allowedEvidenceKinds = allowedEvidenceKinds
+        self.createsListenKey = createsListenKey
+        self.keepsListenKeyAlive = keepsListenKeyAlive
+        self.opensPrivateWebSocket = opensPrivateWebSocket
+        self.runsPrivateStreamRuntime = runsPrivateStreamRuntime
+        self.runsAccountSnapshotRuntime = runsAccountSnapshotRuntime
+        self.callsSignedEndpoint = callsSignedEndpoint
+        self.callsAccountEndpoint = callsAccountEndpoint
+        self.readsRealAccount = readsRealAccount
+        self.consumesRealAccountPayload = consumesRealAccountPayload
+        self.syncsBrokerPosition = syncsBrokerPosition
+        self.readsMargin = readsMargin
+        self.readsLeverage = readsLeverage
+        self.connectsBrokerAdapter = connectsBrokerAdapter
+        self.implementsLiveExecutionAdapter = implementsLiveExecutionAdapter
+        self.implementsOMS = implementsOMS
+        self.writesRealOrder = writesRealOrder
+        self.representsSimulationGateAsLiveStreamImplementation =
+            representsSimulationGateAsLiveStreamImplementation
+        self.representsFixtureSnapshotAsRealAccountSnapshot = representsFixtureSnapshotAsRealAccountSnapshot
+        self.exposesTradingButton = exposesTradingButton
+        self.exposesLiveCommand = exposesLiveCommand
+        self.requiredValidationDependsOnNetwork = requiredValidationDependsOnNetwork
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            contractID: try container.decode(Identifier.self, forKey: .contractID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            matrixID: try container.decode(String.self, forKey: .matrixID),
+            simulationInputMaterial: try container.decode(
+                [LiveReadOnlyPrivateStreamAccountSnapshotSimulationInputMaterial].self,
+                forKey: .simulationInputMaterial
+            ),
+            futureFixtureRequirements: try container.decode(
+                [LiveReadOnlyPrivateStreamAccountSnapshotFutureFixtureRequirement].self,
+                forKey: .futureFixtureRequirements
+            ),
+            forbiddenCapabilities: try container.decode(
+                [LiveReadOnlyPrivateStreamAccountSnapshotForbiddenCapability].self,
+                forKey: .forbiddenCapabilities
+            ),
+            allowedEvidenceKinds: try container.decode(
+                [LiveReadOnlyPrivateStreamAccountSnapshotEvidenceKind].self,
+                forKey: .allowedEvidenceKinds
+            ),
+            createsListenKey: try container.decode(Bool.self, forKey: .createsListenKey),
+            keepsListenKeyAlive: try container.decode(Bool.self, forKey: .keepsListenKeyAlive),
+            opensPrivateWebSocket: try container.decode(Bool.self, forKey: .opensPrivateWebSocket),
+            runsPrivateStreamRuntime: try container.decode(Bool.self, forKey: .runsPrivateStreamRuntime),
+            runsAccountSnapshotRuntime: try container.decode(
+                Bool.self,
+                forKey: .runsAccountSnapshotRuntime
+            ),
+            callsSignedEndpoint: try container.decode(Bool.self, forKey: .callsSignedEndpoint),
+            callsAccountEndpoint: try container.decode(Bool.self, forKey: .callsAccountEndpoint),
+            readsRealAccount: try container.decode(Bool.self, forKey: .readsRealAccount),
+            consumesRealAccountPayload: try container.decode(Bool.self, forKey: .consumesRealAccountPayload),
+            syncsBrokerPosition: try container.decode(Bool.self, forKey: .syncsBrokerPosition),
+            readsMargin: try container.decode(Bool.self, forKey: .readsMargin),
+            readsLeverage: try container.decode(Bool.self, forKey: .readsLeverage),
+            connectsBrokerAdapter: try container.decode(Bool.self, forKey: .connectsBrokerAdapter),
+            implementsLiveExecutionAdapter: try container.decode(Bool.self, forKey: .implementsLiveExecutionAdapter),
+            implementsOMS: try container.decode(Bool.self, forKey: .implementsOMS),
+            writesRealOrder: try container.decode(Bool.self, forKey: .writesRealOrder),
+            representsSimulationGateAsLiveStreamImplementation: try container.decode(
+                Bool.self,
+                forKey: .representsSimulationGateAsLiveStreamImplementation
+            ),
+            representsFixtureSnapshotAsRealAccountSnapshot: try container.decode(
+                Bool.self,
+                forKey: .representsFixtureSnapshotAsRealAccountSnapshot
+            ),
+            exposesTradingButton: try container.decode(Bool.self, forKey: .exposesTradingButton),
+            exposesLiveCommand: try container.decode(Bool.self, forKey: .exposesLiveCommand),
+            requiredValidationDependsOnNetwork: try container.decode(
+                Bool.self,
+                forKey: .requiredValidationDependsOnNetwork
+            )
+        )
+    }
+
+    public static let requiredMatrixID = "TVM-LIVE-READ-ONLY-READINESS"
+    public static let requiredSimulationInputMaterial =
+        LiveReadOnlyPrivateStreamAccountSnapshotSimulationInputMaterial.allCases
+    public static let requiredFutureFixtureRequirements =
+        LiveReadOnlyPrivateStreamAccountSnapshotFutureFixtureRequirement.allCases
+    public static let requiredForbiddenCapabilities =
+        LiveReadOnlyPrivateStreamAccountSnapshotForbiddenCapability.allCases
+
+    public static let allowedEvidenceKinds: [LiveReadOnlyPrivateStreamAccountSnapshotEvidenceKind] = [
+        .contractDocumentation,
+        .domainContextTerms,
+        .validationMatrixAnchor,
+        .automationReadinessAnchor,
+        .deterministicForbiddenTest,
+        .l32HandoffMaterial,
+        .prBoundaryEvidence
+    ]
+
+    public static let deterministicFixture: LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary = {
+        do {
+            return try LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary()
+        } catch {
+            preconditionFailure(
+                "MTP-130 Live read-only private stream / account snapshot simulation gate fixture "
+                    + "must be valid: \(error)"
+            )
+        }
+    }()
+
+    private static func validate(
+        matrixID: String,
+        simulationInputMaterial: [LiveReadOnlyPrivateStreamAccountSnapshotSimulationInputMaterial],
+        futureFixtureRequirements: [LiveReadOnlyPrivateStreamAccountSnapshotFutureFixtureRequirement],
+        forbiddenCapabilities: [LiveReadOnlyPrivateStreamAccountSnapshotForbiddenCapability],
+        allowedEvidenceKinds: [LiveReadOnlyPrivateStreamAccountSnapshotEvidenceKind]
+    ) throws {
+        guard matrixID == Self.requiredMatrixID else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "matrixID",
+                expected: Self.requiredMatrixID,
+                actual: matrixID
+            )
+        }
+        guard simulationInputMaterial == Self.requiredSimulationInputMaterial else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "simulationInputMaterial",
+                expected: Self.requiredSimulationInputMaterial.map(\.rawValue).joined(separator: ","),
+                actual: simulationInputMaterial.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard futureFixtureRequirements == Self.requiredFutureFixtureRequirements else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "futureFixtureRequirements",
+                expected: Self.requiredFutureFixtureRequirements.map(\.rawValue).joined(separator: ","),
+                actual: futureFixtureRequirements.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard forbiddenCapabilities == Self.requiredForbiddenCapabilities else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "forbiddenCapabilities",
+                expected: Self.requiredForbiddenCapabilities.map(\.rawValue).joined(separator: ","),
+                actual: forbiddenCapabilities.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard allowedEvidenceKinds == Self.allowedEvidenceKinds else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "allowedEvidenceKinds",
+                expected: Self.allowedEvidenceKinds.map(\.rawValue).joined(separator: ","),
+                actual: allowedEvidenceKinds.map(\.rawValue).joined(separator: ",")
+            )
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        createsListenKey: Bool,
+        keepsListenKeyAlive: Bool,
+        opensPrivateWebSocket: Bool,
+        runsPrivateStreamRuntime: Bool,
+        runsAccountSnapshotRuntime: Bool,
+        callsSignedEndpoint: Bool,
+        callsAccountEndpoint: Bool,
+        readsRealAccount: Bool,
+        consumesRealAccountPayload: Bool,
+        syncsBrokerPosition: Bool,
+        readsMargin: Bool,
+        readsLeverage: Bool,
+        connectsBrokerAdapter: Bool,
+        implementsLiveExecutionAdapter: Bool,
+        implementsOMS: Bool,
+        writesRealOrder: Bool,
+        representsSimulationGateAsLiveStreamImplementation: Bool,
+        representsFixtureSnapshotAsRealAccountSnapshot: Bool,
+        exposesTradingButton: Bool,
+        exposesLiveCommand: Bool,
+        requiredValidationDependsOnNetwork: Bool
+    ) throws {
+        let forbiddenFlags = [
+            ("createsListenKey", createsListenKey),
+            ("keepsListenKeyAlive", keepsListenKeyAlive),
+            ("opensPrivateWebSocket", opensPrivateWebSocket),
+            ("runsPrivateStreamRuntime", runsPrivateStreamRuntime),
+            ("runsAccountSnapshotRuntime", runsAccountSnapshotRuntime),
+            ("callsSignedEndpoint", callsSignedEndpoint),
+            ("callsAccountEndpoint", callsAccountEndpoint),
+            ("readsRealAccount", readsRealAccount),
+            ("consumesRealAccountPayload", consumesRealAccountPayload),
+            ("syncsBrokerPosition", syncsBrokerPosition),
+            ("readsMargin", readsMargin),
+            ("readsLeverage", readsLeverage),
+            ("connectsBrokerAdapter", connectsBrokerAdapter),
+            ("implementsLiveExecutionAdapter", implementsLiveExecutionAdapter),
+            ("implementsOMS", implementsOMS),
+            ("writesRealOrder", writesRealOrder),
+            (
+                "representsSimulationGateAsLiveStreamImplementation",
+                representsSimulationGateAsLiveStreamImplementation
+            ),
+            (
+                "representsFixtureSnapshotAsRealAccountSnapshot",
+                representsFixtureSnapshotAsRealAccountSnapshot
+            ),
             ("exposesTradingButton", exposesTradingButton),
             ("exposesLiveCommand", exposesLiveCommand),
             ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
