@@ -206,3 +206,72 @@ Focused validation anchors：
 - `checks/automation-readiness.sh` 必须机械检查 MTP-127 contract、domain context、matrix、validation plan、latest summary、automation readiness doc、Core fixture 和 focused test anchors。
 
 MTP-127 不新增 Adapters、Runtime、App、Dashboard behavior，不新增 Dashboard smoke handle，不新增 stage audit input；Project stage closeout 仍归属 MTP-132。
+
+## MTP-128 adapter capability matrix
+
+`MTP-128-ADAPTER-CAPABILITY-MATRIX`
+
+MTP-128 固定 L3.0 adapter capability matrix，只定义能力分类和验证锚点，不写成 implementation plan：
+
+| Capability | 当前状态 | 当前允许证据 | 当前禁止输出 |
+| --- | --- | --- | --- |
+| `public market data allowed` | Current allowed | public read-only market data adapter boundary、Core fixture、focused test、contract evidence | 升级为 signed / account / broker / execution adapter |
+| `future private account read-only gated` | Future gated | L3.1 / L3.2 输入边界、read-model-only handoff | private account runtime、account endpoint call、listenKey 或 private WebSocket |
+| `signed endpoint forbidden` | Forbidden | signed endpoint capability contract 输入 | signing helper、HMAC request、signed REST endpoint |
+| `order write forbidden` | Forbidden | order write forbidden validation | real submit / cancel / replace、order form、live command |
+| `broker action forbidden` | Forbidden | broker action non-execution audit | broker action、broker session mutation |
+| `broker execution adapter forbidden` | Forbidden | broker / exchange adapter future gate | broker execution adapter |
+| `exchange execution adapter forbidden` | Forbidden | broker / exchange adapter future gate | exchange execution adapter |
+| `LiveExecutionAdapter forbidden` | Forbidden | Core deterministic forbidden test | `LiveExecutionAdapter` implementation |
+| `account endpoint / listenKey forbidden` | Forbidden | account / private stream future gate input | account endpoint、listenKey create / keepalive、user data stream |
+| `execution report / broker fill / reconciliation forbidden` | Forbidden | future audit / reconciliation gate input | execution report parser、broker fill recorder、reconciliation runtime |
+| `real account / broker position / margin / leverage forbidden` | Forbidden | future read-model-only source boundary | real account read、broker position sync、margin / leverage runtime |
+
+`public market data allowed` 是 MTP-128 唯一 current allowed adapter capability；`future private account read-only gated` 只能作为 future gated capability，其余能力必须保持 forbidden。
+
+## MTP-128 public read-only adapter / future private gate isolation
+
+`MTP-128-PUBLIC-READ-ONLY-ADAPTER-PRIVATE-GATE-ISOLATION`
+
+MTP-128 将当前 public read-only adapter 与 future private read-only / broker execution capability 明确隔离：
+
+- `currentAllowedCapabilities == [.publicMarketDataAllowed]`。
+- `futureGatedCapabilities == [.futurePrivateAccountReadOnlyGated]`。
+- `forbiddenCapabilities == [.signedEndpointForbidden, .orderWriteForbidden, .brokerActionForbidden, .brokerExecutionAdapterForbidden, .exchangeExecutionAdapterForbidden, .liveExecutionAdapterForbidden, .accountEndpointListenKeyForbidden, .executionReportBrokerFillReconciliationForbidden, .realAccountPositionMarginLeverageForbidden]`。
+- `createsBrokerAdapter`、`createsExchangeExecutionAdapter`、`implementsLiveExecutionAdapter`、`upgradesPublicReadOnlyAdapterToExecutionAdapter`、`callsSignedEndpoint`、`callsAccountEndpoint`、`createsListenKey`、`exposesOrderWriteCapability`、`submitsRealOrder`、`cancelsRealOrder`、`replacesRealOrder`、`readsExecutionReport`、`recordsBrokerFill`、`runsReconciliation`、`readsRealAccountPositionMarginLeverage` 和 `requiredValidationDependsOnNetwork` 必须全部为 `false`。
+
+该隔离只定义 adapter capability matrix，不新增 Adapters target 类型，不实例化 broker / exchange execution adapter，不实现 private account read runtime，不把 public read-only adapter 升级为 execution adapter。
+
+## MTP-128 forbidden adapter capability tests
+
+`MTP-128-FORBIDDEN-ADAPTER-CAPABILITY-TESTS`
+
+MTP-128 的 forbidden adapter capability evidence 来自本地 deterministic tests：
+
+- `Sources/Core/LiveTradingBoundary.swift` 中的 `LiveReadOnlyAdapterCapabilityMatrixEntry`、`LiveReadOnlyAdapterCapabilityFutureGate`、`LiveReadOnlyAdapterCapabilityEvidenceKind` 和 `LiveReadOnlyAdapterCapabilityMatrixBoundary`。
+- `Tests/CoreTests/CoreTests.swift` 中的 `testLiveReadOnlyAdapterCapabilityMatrixDefinesMTP128ReadOnlyBoundary`。
+- `Tests/CoreTests/CoreTests.swift` 中的 `testLiveReadOnlyAdapterCapabilityMatrixRejectsWriteAndExecutionAdapterBypass`。
+
+Focused tests 必须证明 fixture 可 Codable 稳定 round-trip，并且初始化或 Codable 解码都不能恢复 signed/account/listenKey、order write、broker adapter、exchange execution adapter、`LiveExecutionAdapter`、execution report、broker fill、reconciliation、real account / broker position / margin / leverage 或 network dependency。
+
+## MTP-128 validation anchors
+
+`MTP-128-LIVE-READ-ONLY-ADAPTER-CAPABILITY-VALIDATION`
+
+Required validation：
+
+- `swift test --filter LiveReadOnlyAdapterCapabilityMatrix`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `docs/contracts/live-read-only-readiness-boundary-contract.md` 必须包含 MTP-128 adapter capability matrix、public read-only adapter / future private gate isolation、forbidden adapter capability tests 和 validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-128 adapter matrix shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-128 issue backfill。
+- `docs/validation/validation-plan.md` 必须包含 MTP-128 required validation。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-128 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 MTP-128 Live Read-only adapter capability matrix anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-128 contract、domain context、matrix、validation plan、latest summary、automation readiness doc、Core fixture 和 focused test anchors。
+
+MTP-128 不新增 Adapters、Runtime、App、Dashboard behavior，不新增 Dashboard smoke handle，不新增 stage audit input；Project stage closeout 仍归属 MTP-132。

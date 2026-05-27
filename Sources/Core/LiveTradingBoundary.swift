@@ -107,6 +107,54 @@ public enum LiveReadOnlyCredentialEndpointEvidenceKind: String, Codable, CaseIte
     case prBoundaryEvidence = "PR boundary evidence"
 }
 
+/// LiveReadOnlyAdapterCapabilityMatrixEntry 固定 MTP-128 的 adapter capability matrix 行。
+///
+/// `publicMarketDataAllowed` 是当前唯一可表达的 adapter capability；future private account
+/// read-only 只能作为 gated 输入，其余 signed、account/listenKey、order write、broker /
+/// exchange execution adapter、`LiveExecutionAdapter`、execution report、broker fill、
+/// reconciliation 和真实账户能力都只能作为 forbidden evidence。
+public enum LiveReadOnlyAdapterCapabilityMatrixEntry: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case publicMarketDataAllowed = "public market data allowed"
+    case futurePrivateAccountReadOnlyGated = "future private account read-only gated"
+    case signedEndpointForbidden = "signed endpoint forbidden"
+    case orderWriteForbidden = "order write forbidden"
+    case brokerActionForbidden = "broker action forbidden"
+    case brokerExecutionAdapterForbidden = "broker execution adapter forbidden"
+    case exchangeExecutionAdapterForbidden = "exchange execution adapter forbidden"
+    case liveExecutionAdapterForbidden = "LiveExecutionAdapter forbidden"
+    case accountEndpointListenKeyForbidden = "account endpoint / listenKey forbidden"
+    case executionReportBrokerFillReconciliationForbidden =
+        "execution report / broker fill / reconciliation forbidden"
+    case realAccountPositionMarginLeverageForbidden =
+        "real account / broker position / margin / leverage forbidden"
+}
+
+/// LiveReadOnlyAdapterCapabilityFutureGate 定义 MTP-128 后续 adapter 工作进入实现前的 gate。
+///
+/// 这些 gate 只描述 contract / validation 前置条件；当前类型不创建 broker adapter、
+/// exchange execution adapter 或 private account runtime。
+public enum LiveReadOnlyAdapterCapabilityFutureGate: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case credentialEndpointTaxonomySatisfied = "credential / endpoint taxonomy satisfied"
+    case publicReadOnlyAdapterStaysReadOnly = "public read-only adapter stays read-only"
+    case futurePrivateReadOnlyContract = "future private read-only contract"
+    case adapterImplementationIndependentProject = "adapter implementation independent Project"
+    case orderWriteForbiddenValidation = "order write forbidden validation"
+    case brokerExecutionAdapterFutureGate = "broker / exchange execution adapter future gate"
+}
+
+/// LiveReadOnlyAdapterCapabilityEvidenceKind 限定 MTP-128 可以产生的非执行证据。
+///
+/// Evidence 只用于合同、shared language、validation matrix、automation readiness、
+/// deterministic tests 和 PR boundary evidence；它不实例化 adapter 或连接外部系统。
+public enum LiveReadOnlyAdapterCapabilityEvidenceKind: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case contractDocumentation = "contract documentation"
+    case domainContextTerms = "domain context terms"
+    case validationMatrixAnchor = "validation matrix anchor"
+    case automationReadinessAnchor = "automation readiness anchor"
+    case deterministicForbiddenTest = "deterministic forbidden capability test"
+    case prBoundaryEvidence = "PR boundary evidence"
+}
+
 /// LiveAdapterIsolationForbiddenCapability 枚举 MTP-63 Gate 2 必须阻断的 adapter 能力。
 ///
 /// 这些值只描述 future / gated adapter capability，不能被解释为当前 `Adapters` target
@@ -1337,6 +1385,363 @@ public struct LiveReadOnlyCredentialEndpointTaxonomyBoundary: Codable, Equatable
             ("implementsLiveExecutionAdapter", implementsLiveExecutionAdapter),
             ("exposesPrivateReadRuntime", exposesPrivateReadRuntime),
             ("upgradesPublicReadOnlyAdapter", upgradesPublicReadOnlyAdapter),
+            ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(capability.0)
+        }
+    }
+}
+
+/// LiveReadOnlyAdapterCapabilityMatrixBoundary 是 MTP-128 的 L3.0 adapter capability matrix fixture。
+///
+/// 该合同只把 public market data allowed、future private account read-only gated 和
+/// forbidden write / broker / execution capability 固定为 deterministic evidence。当前 public
+/// adapter 不能升级为 broker / exchange execution adapter，Codable 解码同样会拒绝任何
+/// signed endpoint、account endpoint、listenKey、order write、execution report、broker fill、
+/// reconciliation 或真实账户能力。
+public struct LiveReadOnlyAdapterCapabilityMatrixBoundary: Codable, Equatable, Sendable {
+    public let contractID: Identifier
+    public let issueID: Identifier
+    public let matrixID: String
+    public let capabilityMatrix: [LiveReadOnlyAdapterCapabilityMatrixEntry]
+    public let currentAllowedCapabilities: [LiveReadOnlyAdapterCapabilityMatrixEntry]
+    public let futureGatedCapabilities: [LiveReadOnlyAdapterCapabilityMatrixEntry]
+    public let forbiddenCapabilities: [LiveReadOnlyAdapterCapabilityMatrixEntry]
+    public let futureGates: [LiveReadOnlyAdapterCapabilityFutureGate]
+    public let allowedEvidenceKinds: [LiveReadOnlyAdapterCapabilityEvidenceKind]
+    public let createsBrokerAdapter: Bool
+    public let createsExchangeExecutionAdapter: Bool
+    public let implementsLiveExecutionAdapter: Bool
+    public let upgradesPublicReadOnlyAdapterToExecutionAdapter: Bool
+    public let callsSignedEndpoint: Bool
+    public let callsAccountEndpoint: Bool
+    public let createsListenKey: Bool
+    public let exposesOrderWriteCapability: Bool
+    public let submitsRealOrder: Bool
+    public let cancelsRealOrder: Bool
+    public let replacesRealOrder: Bool
+    public let readsExecutionReport: Bool
+    public let recordsBrokerFill: Bool
+    public let runsReconciliation: Bool
+    public let readsRealAccountPositionMarginLeverage: Bool
+    public let requiredValidationDependsOnNetwork: Bool
+
+    public var adapterCapabilityMatrixBoundaryHeld: Bool {
+        matrixID == Self.requiredMatrixID
+            && capabilityMatrix == Self.requiredCapabilityMatrix
+            && currentAllowedCapabilities == Self.requiredCurrentAllowedCapabilities
+            && futureGatedCapabilities == Self.requiredFutureGatedCapabilities
+            && forbiddenCapabilities == Self.requiredForbiddenCapabilities
+            && futureGates == Self.requiredFutureGates
+            && allowedEvidenceKinds == Self.allowedEvidenceKinds
+            && createsBrokerAdapter == false
+            && createsExchangeExecutionAdapter == false
+            && implementsLiveExecutionAdapter == false
+            && upgradesPublicReadOnlyAdapterToExecutionAdapter == false
+            && callsSignedEndpoint == false
+            && callsAccountEndpoint == false
+            && createsListenKey == false
+            && exposesOrderWriteCapability == false
+            && submitsRealOrder == false
+            && cancelsRealOrder == false
+            && replacesRealOrder == false
+            && readsExecutionReport == false
+            && recordsBrokerFill == false
+            && runsReconciliation == false
+            && readsRealAccountPositionMarginLeverage == false
+            && requiredValidationDependsOnNetwork == false
+    }
+
+    public init(
+        contractID: Identifier = try! Identifier("mtp-128-live-read-only-adapter-capability-matrix"),
+        issueID: Identifier = try! Identifier("MTP-128"),
+        matrixID: String = Self.requiredMatrixID,
+        capabilityMatrix: [LiveReadOnlyAdapterCapabilityMatrixEntry] = Self.requiredCapabilityMatrix,
+        currentAllowedCapabilities: [LiveReadOnlyAdapterCapabilityMatrixEntry] =
+            Self.requiredCurrentAllowedCapabilities,
+        futureGatedCapabilities: [LiveReadOnlyAdapterCapabilityMatrixEntry] =
+            Self.requiredFutureGatedCapabilities,
+        forbiddenCapabilities: [LiveReadOnlyAdapterCapabilityMatrixEntry] = Self.requiredForbiddenCapabilities,
+        futureGates: [LiveReadOnlyAdapterCapabilityFutureGate] = Self.requiredFutureGates,
+        allowedEvidenceKinds: [LiveReadOnlyAdapterCapabilityEvidenceKind] = Self.allowedEvidenceKinds,
+        createsBrokerAdapter: Bool = false,
+        createsExchangeExecutionAdapter: Bool = false,
+        implementsLiveExecutionAdapter: Bool = false,
+        upgradesPublicReadOnlyAdapterToExecutionAdapter: Bool = false,
+        callsSignedEndpoint: Bool = false,
+        callsAccountEndpoint: Bool = false,
+        createsListenKey: Bool = false,
+        exposesOrderWriteCapability: Bool = false,
+        submitsRealOrder: Bool = false,
+        cancelsRealOrder: Bool = false,
+        replacesRealOrder: Bool = false,
+        readsExecutionReport: Bool = false,
+        recordsBrokerFill: Bool = false,
+        runsReconciliation: Bool = false,
+        readsRealAccountPositionMarginLeverage: Bool = false,
+        requiredValidationDependsOnNetwork: Bool = false
+    ) throws {
+        try Self.validate(
+            matrixID: matrixID,
+            capabilityMatrix: capabilityMatrix,
+            currentAllowedCapabilities: currentAllowedCapabilities,
+            futureGatedCapabilities: futureGatedCapabilities,
+            forbiddenCapabilities: forbiddenCapabilities,
+            futureGates: futureGates,
+            allowedEvidenceKinds: allowedEvidenceKinds
+        )
+        try Self.validateForbiddenFlags(
+            createsBrokerAdapter: createsBrokerAdapter,
+            createsExchangeExecutionAdapter: createsExchangeExecutionAdapter,
+            implementsLiveExecutionAdapter: implementsLiveExecutionAdapter,
+            upgradesPublicReadOnlyAdapterToExecutionAdapter: upgradesPublicReadOnlyAdapterToExecutionAdapter,
+            callsSignedEndpoint: callsSignedEndpoint,
+            callsAccountEndpoint: callsAccountEndpoint,
+            createsListenKey: createsListenKey,
+            exposesOrderWriteCapability: exposesOrderWriteCapability,
+            submitsRealOrder: submitsRealOrder,
+            cancelsRealOrder: cancelsRealOrder,
+            replacesRealOrder: replacesRealOrder,
+            readsExecutionReport: readsExecutionReport,
+            recordsBrokerFill: recordsBrokerFill,
+            runsReconciliation: runsReconciliation,
+            readsRealAccountPositionMarginLeverage: readsRealAccountPositionMarginLeverage,
+            requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork
+        )
+
+        self.contractID = contractID
+        self.issueID = issueID
+        self.matrixID = matrixID
+        self.capabilityMatrix = capabilityMatrix
+        self.currentAllowedCapabilities = currentAllowedCapabilities
+        self.futureGatedCapabilities = futureGatedCapabilities
+        self.forbiddenCapabilities = forbiddenCapabilities
+        self.futureGates = futureGates
+        self.allowedEvidenceKinds = allowedEvidenceKinds
+        self.createsBrokerAdapter = createsBrokerAdapter
+        self.createsExchangeExecutionAdapter = createsExchangeExecutionAdapter
+        self.implementsLiveExecutionAdapter = implementsLiveExecutionAdapter
+        self.upgradesPublicReadOnlyAdapterToExecutionAdapter = upgradesPublicReadOnlyAdapterToExecutionAdapter
+        self.callsSignedEndpoint = callsSignedEndpoint
+        self.callsAccountEndpoint = callsAccountEndpoint
+        self.createsListenKey = createsListenKey
+        self.exposesOrderWriteCapability = exposesOrderWriteCapability
+        self.submitsRealOrder = submitsRealOrder
+        self.cancelsRealOrder = cancelsRealOrder
+        self.replacesRealOrder = replacesRealOrder
+        self.readsExecutionReport = readsExecutionReport
+        self.recordsBrokerFill = recordsBrokerFill
+        self.runsReconciliation = runsReconciliation
+        self.readsRealAccountPositionMarginLeverage = readsRealAccountPositionMarginLeverage
+        self.requiredValidationDependsOnNetwork = requiredValidationDependsOnNetwork
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            contractID: try container.decode(Identifier.self, forKey: .contractID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            matrixID: try container.decode(String.self, forKey: .matrixID),
+            capabilityMatrix: try container.decode(
+                [LiveReadOnlyAdapterCapabilityMatrixEntry].self,
+                forKey: .capabilityMatrix
+            ),
+            currentAllowedCapabilities: try container.decode(
+                [LiveReadOnlyAdapterCapabilityMatrixEntry].self,
+                forKey: .currentAllowedCapabilities
+            ),
+            futureGatedCapabilities: try container.decode(
+                [LiveReadOnlyAdapterCapabilityMatrixEntry].self,
+                forKey: .futureGatedCapabilities
+            ),
+            forbiddenCapabilities: try container.decode(
+                [LiveReadOnlyAdapterCapabilityMatrixEntry].self,
+                forKey: .forbiddenCapabilities
+            ),
+            futureGates: try container.decode([LiveReadOnlyAdapterCapabilityFutureGate].self, forKey: .futureGates),
+            allowedEvidenceKinds: try container.decode(
+                [LiveReadOnlyAdapterCapabilityEvidenceKind].self,
+                forKey: .allowedEvidenceKinds
+            ),
+            createsBrokerAdapter: try container.decode(Bool.self, forKey: .createsBrokerAdapter),
+            createsExchangeExecutionAdapter: try container.decode(
+                Bool.self,
+                forKey: .createsExchangeExecutionAdapter
+            ),
+            implementsLiveExecutionAdapter: try container.decode(Bool.self, forKey: .implementsLiveExecutionAdapter),
+            upgradesPublicReadOnlyAdapterToExecutionAdapter: try container.decode(
+                Bool.self,
+                forKey: .upgradesPublicReadOnlyAdapterToExecutionAdapter
+            ),
+            callsSignedEndpoint: try container.decode(Bool.self, forKey: .callsSignedEndpoint),
+            callsAccountEndpoint: try container.decode(Bool.self, forKey: .callsAccountEndpoint),
+            createsListenKey: try container.decode(Bool.self, forKey: .createsListenKey),
+            exposesOrderWriteCapability: try container.decode(Bool.self, forKey: .exposesOrderWriteCapability),
+            submitsRealOrder: try container.decode(Bool.self, forKey: .submitsRealOrder),
+            cancelsRealOrder: try container.decode(Bool.self, forKey: .cancelsRealOrder),
+            replacesRealOrder: try container.decode(Bool.self, forKey: .replacesRealOrder),
+            readsExecutionReport: try container.decode(Bool.self, forKey: .readsExecutionReport),
+            recordsBrokerFill: try container.decode(Bool.self, forKey: .recordsBrokerFill),
+            runsReconciliation: try container.decode(Bool.self, forKey: .runsReconciliation),
+            readsRealAccountPositionMarginLeverage: try container.decode(
+                Bool.self,
+                forKey: .readsRealAccountPositionMarginLeverage
+            ),
+            requiredValidationDependsOnNetwork: try container.decode(
+                Bool.self,
+                forKey: .requiredValidationDependsOnNetwork
+            )
+        )
+    }
+
+    public static let requiredMatrixID = "TVM-LIVE-READ-ONLY-READINESS"
+    public static let requiredCapabilityMatrix = LiveReadOnlyAdapterCapabilityMatrixEntry.allCases
+
+    public static let requiredCurrentAllowedCapabilities: [LiveReadOnlyAdapterCapabilityMatrixEntry] = [
+        .publicMarketDataAllowed
+    ]
+
+    public static let requiredFutureGatedCapabilities: [LiveReadOnlyAdapterCapabilityMatrixEntry] = [
+        .futurePrivateAccountReadOnlyGated
+    ]
+
+    public static let requiredForbiddenCapabilities: [LiveReadOnlyAdapterCapabilityMatrixEntry] = [
+        .signedEndpointForbidden,
+        .orderWriteForbidden,
+        .brokerActionForbidden,
+        .brokerExecutionAdapterForbidden,
+        .exchangeExecutionAdapterForbidden,
+        .liveExecutionAdapterForbidden,
+        .accountEndpointListenKeyForbidden,
+        .executionReportBrokerFillReconciliationForbidden,
+        .realAccountPositionMarginLeverageForbidden
+    ]
+
+    public static let requiredFutureGates: [LiveReadOnlyAdapterCapabilityFutureGate] = [
+        .credentialEndpointTaxonomySatisfied,
+        .publicReadOnlyAdapterStaysReadOnly,
+        .futurePrivateReadOnlyContract,
+        .adapterImplementationIndependentProject,
+        .orderWriteForbiddenValidation,
+        .brokerExecutionAdapterFutureGate
+    ]
+
+    public static let allowedEvidenceKinds: [LiveReadOnlyAdapterCapabilityEvidenceKind] = [
+        .contractDocumentation,
+        .domainContextTerms,
+        .validationMatrixAnchor,
+        .automationReadinessAnchor,
+        .deterministicForbiddenTest,
+        .prBoundaryEvidence
+    ]
+
+    public static let deterministicFixture: LiveReadOnlyAdapterCapabilityMatrixBoundary = {
+        do {
+            return try LiveReadOnlyAdapterCapabilityMatrixBoundary()
+        } catch {
+            preconditionFailure("MTP-128 Live read-only adapter capability matrix fixture must be valid: \(error)")
+        }
+    }()
+
+    private static func validate(
+        matrixID: String,
+        capabilityMatrix: [LiveReadOnlyAdapterCapabilityMatrixEntry],
+        currentAllowedCapabilities: [LiveReadOnlyAdapterCapabilityMatrixEntry],
+        futureGatedCapabilities: [LiveReadOnlyAdapterCapabilityMatrixEntry],
+        forbiddenCapabilities: [LiveReadOnlyAdapterCapabilityMatrixEntry],
+        futureGates: [LiveReadOnlyAdapterCapabilityFutureGate],
+        allowedEvidenceKinds: [LiveReadOnlyAdapterCapabilityEvidenceKind]
+    ) throws {
+        guard matrixID == Self.requiredMatrixID else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "matrixID",
+                expected: Self.requiredMatrixID,
+                actual: matrixID
+            )
+        }
+        guard capabilityMatrix == Self.requiredCapabilityMatrix else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "capabilityMatrix",
+                expected: Self.requiredCapabilityMatrix.map(\.rawValue).joined(separator: ","),
+                actual: capabilityMatrix.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard currentAllowedCapabilities == Self.requiredCurrentAllowedCapabilities else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "currentAllowedCapabilities",
+                expected: Self.requiredCurrentAllowedCapabilities.map(\.rawValue).joined(separator: ","),
+                actual: currentAllowedCapabilities.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard futureGatedCapabilities == Self.requiredFutureGatedCapabilities else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "futureGatedCapabilities",
+                expected: Self.requiredFutureGatedCapabilities.map(\.rawValue).joined(separator: ","),
+                actual: futureGatedCapabilities.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard forbiddenCapabilities == Self.requiredForbiddenCapabilities else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "forbiddenCapabilities",
+                expected: Self.requiredForbiddenCapabilities.map(\.rawValue).joined(separator: ","),
+                actual: forbiddenCapabilities.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard futureGates == Self.requiredFutureGates else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "futureGates",
+                expected: Self.requiredFutureGates.map(\.rawValue).joined(separator: ","),
+                actual: futureGates.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard allowedEvidenceKinds == Self.allowedEvidenceKinds else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "allowedEvidenceKinds",
+                expected: Self.allowedEvidenceKinds.map(\.rawValue).joined(separator: ","),
+                actual: allowedEvidenceKinds.map(\.rawValue).joined(separator: ",")
+            )
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        createsBrokerAdapter: Bool,
+        createsExchangeExecutionAdapter: Bool,
+        implementsLiveExecutionAdapter: Bool,
+        upgradesPublicReadOnlyAdapterToExecutionAdapter: Bool,
+        callsSignedEndpoint: Bool,
+        callsAccountEndpoint: Bool,
+        createsListenKey: Bool,
+        exposesOrderWriteCapability: Bool,
+        submitsRealOrder: Bool,
+        cancelsRealOrder: Bool,
+        replacesRealOrder: Bool,
+        readsExecutionReport: Bool,
+        recordsBrokerFill: Bool,
+        runsReconciliation: Bool,
+        readsRealAccountPositionMarginLeverage: Bool,
+        requiredValidationDependsOnNetwork: Bool
+    ) throws {
+        let forbiddenFlags = [
+            ("createsBrokerAdapter", createsBrokerAdapter),
+            ("createsExchangeExecutionAdapter", createsExchangeExecutionAdapter),
+            ("implementsLiveExecutionAdapter", implementsLiveExecutionAdapter),
+            (
+                "upgradesPublicReadOnlyAdapterToExecutionAdapter",
+                upgradesPublicReadOnlyAdapterToExecutionAdapter
+            ),
+            ("callsSignedEndpoint", callsSignedEndpoint),
+            ("callsAccountEndpoint", callsAccountEndpoint),
+            ("createsListenKey", createsListenKey),
+            ("exposesOrderWriteCapability", exposesOrderWriteCapability),
+            ("submitsRealOrder", submitsRealOrder),
+            ("cancelsRealOrder", cancelsRealOrder),
+            ("replacesRealOrder", replacesRealOrder),
+            ("readsExecutionReport", readsExecutionReport),
+            ("recordsBrokerFill", recordsBrokerFill),
+            ("runsReconciliation", runsReconciliation),
+            ("readsRealAccountPositionMarginLeverage", readsRealAccountPositionMarginLeverage),
             ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
         ]
 

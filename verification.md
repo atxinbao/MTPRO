@@ -12059,3 +12059,39 @@ Root Docs Refresh Gate 更新：
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
 - 不修改 Linear status、不创建 Linear Project / Issue、不推进 MTP-128。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+---
+
+## 2026-05-27 — MTP-128 Adapter capability matrix for read-only readiness
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear live-read 中唯一 active issue `MTP-128 Define adapter capability matrix for read-only readiness`。
+- 定义 L3.0 adapter capability matrix、public read-only adapter / future private gate isolation 和 forbidden adapter capability tests。
+- 只建立 Core deterministic fixture、focused tests、contract / domain / validation / automation anchors；不实现 adapter runtime、broker connection、signed/account endpoint 或交易能力。
+
+实现摘要：
+
+- 在 `Sources/Core/LiveTradingBoundary.swift` 新增 `LiveReadOnlyAdapterCapabilityMatrixEntry`、`LiveReadOnlyAdapterCapabilityFutureGate`、`LiveReadOnlyAdapterCapabilityEvidenceKind` 和 `LiveReadOnlyAdapterCapabilityMatrixBoundary`。
+- 在 `Tests/CoreTests/CoreTests.swift` 新增 `testLiveReadOnlyAdapterCapabilityMatrixDefinesMTP128ReadOnlyBoundary` 和 `testLiveReadOnlyAdapterCapabilityMatrixRejectsWriteAndExecutionAdapterBypass`。
+- 更新 `docs/contracts/live-read-only-readiness-boundary-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，接入 MTP-128 exact anchors。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter LiveReadOnlyAdapterCapabilityMatrix` | pass | 2 tests、0 failures；覆盖 MTP-128 adapter capability matrix、public market data 唯一 allowed capability、future private account read-only gated capability、forbidden adapter flags 和 Codable bypass rejection。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；机械检查 MTP-128 contract、domain context、validation plan、trading matrix、latest summary、automation readiness doc、Core fixture 和 focused test anchors。 |
+| `git diff --check` | pass | 无输出。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 271 个 XCTest；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=64; scenarioReplayEvidence=1; scenarioQualityGates=6; simulatedParityEvidence=1; defaultDemoState=default demo; defaultDemoScenario=mtp-104-btcusdt-1m-first-scenario; betaFirstRunFallbacks=3; betaAcceptancePaths=1; betaAcceptanceScenario=mtp-104-btcusdt-1m-first-scenario; betaAcceptanceTrace=5; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不创建 broker adapter、exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不把 public adapter 升级为 execution adapter。
+- 不实现 signed endpoint、account endpoint / listenKey、private account read runtime、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不实现 real account / broker position / margin / leverage runtime。
+- 不修改 Linear status、不创建 Linear Project / Issue、不推进 MTP-129。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。

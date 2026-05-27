@@ -2949,3 +2949,42 @@ MTP-127 必须建立的主要 anchors：
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
 - 不实现 account / position / balance read model、Live Monitoring Console v2、Live PRO Console、trading button、live command、order form、emergency stop、shutdown 或 restore。
 - 不运行 Graphify，不修改 Figma，不修改 Linear status，不推进 MTP-128。
+
+## MTP-128 Adapter Capability Matrix Validation
+
+日期：2026-05-27
+
+执行者：Codex
+
+MTP-128 的 required validation：
+
+- `swift test --filter LiveReadOnlyAdapterCapabilityMatrix`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-128 的验收要求：
+
+- `docs/contracts/live-read-only-readiness-boundary-contract.md` 必须包含 `MTP-128-ADAPTER-CAPABILITY-MATRIX`、`MTP-128-PUBLIC-READ-ONLY-ADAPTER-PRIVATE-GATE-ISOLATION`、`MTP-128-FORBIDDEN-ADAPTER-CAPABILITY-TESTS` 和 `MTP-128-LIVE-READ-ONLY-ADAPTER-CAPABILITY-VALIDATION` anchors。
+- `Sources/Core/LiveTradingBoundary.swift` 必须包含 `LiveReadOnlyAdapterCapabilityMatrixBoundary` deterministic fixture，并固定 `TVM-LIVE-READ-ONLY-READINESS`、public market data 唯一 allowed capability、future private account read-only gated capability 和 forbidden adapter capability matrix。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 `testLiveReadOnlyAdapterCapabilityMatrixDefinesMTP128ReadOnlyBoundary` 和 `testLiveReadOnlyAdapterCapabilityMatrixRejectsWriteAndExecutionAdapterBypass`。
+- `docs/domain/context.md` 必须包含 MTP-128 adapter matrix terms，明确 public read-only adapter 不能升级为 broker / exchange execution adapter。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-128 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-128 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Live Read-only adapter capability matrix anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-128 contract、domain context、validation plan、trading matrix、latest summary、automation readiness doc、Core fixture 和 focused test anchors。
+
+MTP-128 必须建立的主要 anchors：
+
+- `MTP-128-ADAPTER-CAPABILITY-MATRIX`
+- `MTP-128-PUBLIC-READ-ONLY-ADAPTER-PRIVATE-GATE-ISOLATION`
+- `MTP-128-FORBIDDEN-ADAPTER-CAPABILITY-TESTS`
+- `MTP-128-LIVE-READ-ONLY-ADAPTER-CAPABILITY-VALIDATION`
+
+## MTP-128 禁止
+
+- 不创建 broker adapter、exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不把 public adapter 升级为 execution adapter。
+- 不实现 signed endpoint、account endpoint / listenKey 或 private account read runtime。
+- 不实现 real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不实现 real account / broker position / margin / leverage runtime。
+- 不运行 Graphify，不修改 Figma，不修改 Linear status，不推进 MTP-129。
