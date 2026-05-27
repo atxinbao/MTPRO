@@ -2988,3 +2988,42 @@ MTP-128 必须建立的主要 anchors：
 - 不实现 real submit / cancel / replace、execution report、broker fill 或 reconciliation。
 - 不实现 real account / broker position / margin / leverage runtime。
 - 不运行 Graphify，不修改 Figma，不修改 Linear status，不推进 MTP-129。
+
+## MTP-129 Account / Position / Balance Read-model-only Future Gates Validation
+
+日期：2026-05-27
+
+执行者：Codex
+
+MTP-129 的 required validation：
+
+- `swift test --filter LiveReadOnlyAccountPositionBalance`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-129 的验收要求：
+
+- `docs/contracts/live-read-only-readiness-boundary-contract.md` 必须包含 `MTP-129-ACCOUNT-POSITION-BALANCE-FUTURE-GATES`、`MTP-129-SOURCE-FRESHNESS-EVIDENCE-IDENTITY-BOUNDARY`、`MTP-129-FORBIDDEN-ACCOUNT-DATA-INTERPRETATION-TESTS` 和 `MTP-129-LIVE-READ-ONLY-ACCOUNT-POSITION-BALANCE-VALIDATION` anchors。
+- `Sources/Core/LiveTradingBoundary.swift` 必须包含 `LiveReadOnlyAccountPositionBalanceFutureGateBoundary` deterministic fixture，并固定 `TVM-LIVE-READ-ONLY-READINESS`、account / position / balance read-model-only future gates、source identity、snapshot freshness、evidence identity 和 forbidden account-data interpretation tests。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 `testLiveReadOnlyAccountPositionBalanceFutureGatesDefineMTP129Boundary` 和 `testLiveReadOnlyAccountPositionBalanceFutureGatesRejectRealAccountAndFixtureBypass`。
+- `docs/domain/context.md` 必须包含 MTP-129 account / position / balance shared language，明确 paper / simulated / fixture evidence 不能被解释为 real account data。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-129 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-129 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Live Read-only account / position / balance future gate anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-129 contract、domain context、validation plan、trading matrix、latest summary、automation readiness doc、Core fixture 和 focused test anchors。
+
+MTP-129 必须建立的主要 anchors：
+
+- `MTP-129-ACCOUNT-POSITION-BALANCE-FUTURE-GATES`
+- `MTP-129-SOURCE-FRESHNESS-EVIDENCE-IDENTITY-BOUNDARY`
+- `MTP-129-FORBIDDEN-ACCOUNT-DATA-INTERPRETATION-TESTS`
+- `MTP-129-LIVE-READ-ONLY-ACCOUNT-POSITION-BALANCE-VALIDATION`
+
+## MTP-129 禁止
+
+- 不实现 account / position / balance read model runtime。
+- 不读取 real account，不同步 broker position，不读取 real account balance、margin、leverage 或 real PnL。
+- 不实现 signed endpoint、account endpoint / listenKey、private WebSocket 或 account snapshot runtime。
+- 不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、OMS、real order lifecycle、trading button 或 live command。
+- 不把 paper portfolio、simulated fill、fixture evidence、Report read model 或 Dashboard ViewModel 解释为真实 account / position / balance data。
+- 不运行 Graphify，不修改 Figma，不修改 Linear status，不推进 MTP-130。
