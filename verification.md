@@ -12251,3 +12251,103 @@ Root Docs Refresh Gate 更新：
 - 不实现 API key / secret storage，不读取本地 secret，不新增 env / keychain / config secret path。
 - 不接 signed endpoint、account endpoint、listenKey、private WebSocket、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、real PnL、Live Monitoring Console v2 runtime、Live PRO Console、trading button、live command、order form、emergency stop、shutdown 或 restore。
+
+---
+
+## 2026-05-28 — MTPRO Live Read-only Readiness Boundary v1 Project Closure / Stage Code Audit / Root Docs Refresh Gate
+
+执行者：Codex（`@002 / PAR`）
+
+目的：
+
+- 完成 `MTPRO Live Read-only Readiness Boundary v1` Project closure。
+- 固化 MTP-126 至 MTP-132 的 PR / merge / checks evidence chain。
+- 落仓 Stage Code Audit Report，并执行 Root Docs Refresh Gate。
+- 只同步已发生事实：`L3.0 Live Read-only Readiness Boundary complete`、Project Closure Count、Stage Code Audit evidence、Root Docs Refresh Gate evidence 和边界事实。
+
+Project / issue evidence：
+
+| Issue | PR | Merge commit | Required check |
+| --- | --- | --- | --- |
+| MTP-126 | #234 | `a2a7bf59f8dbccf0f4ec23b0dc53253ebf19d654` | `checks` success: `https://github.com/atxinbao/MTPRO/actions/runs/26494168992/job/78018287376` |
+| MTP-127 | #235 | `b101989e766c864edae3ea84d306f8b22be797d7` | `checks` success: `https://github.com/atxinbao/MTPRO/actions/runs/26501735905/job/78043651703` |
+| MTP-128 | #236 | `c3b93254b592099287e29ba1f7cf5de25ccc8bb3` | `checks` success: `https://github.com/atxinbao/MTPRO/actions/runs/26509160542/job/78069249264` |
+| MTP-129 | #237 | `19eaa4e9715319ecd0d843a2e71e795b433aee2a` | `checks` success: `https://github.com/atxinbao/MTPRO/actions/runs/26512993370/job/78082139238` |
+| MTP-130 | #238 | `a5d7b0c4b80f188a529d3bad8ed1fa8a0475fb12` | `checks` success: `https://github.com/atxinbao/MTPRO/actions/runs/26515047655/job/78089706999` |
+| MTP-131 | #239 | `4412fd9270d5333825d69062db4a51c8c18cd6ac` | `checks` success: `https://github.com/atxinbao/MTPRO/actions/runs/26518731599/job/78103297704` |
+| MTP-132 | #240 | `80b8b674ccfbbbfb9d3ecd8a57a343cf20c0fc7c` | `checks` success: `https://github.com/atxinbao/MTPRO/actions/runs/26520265788/job/78108965737` |
+
+Closure evidence：
+
+- Linear Project status：`Completed/type=completed`。
+- Linear Project `completedAt`：`2026-05-27T15:18:46.875Z`。
+- Stage Code Audit Report：`docs/audit/mtpro-live-read-only-readiness-boundary-v1-stage-code-audit.md`。
+- Stage Code Audit PR：#241。
+- Stage Code Audit merge commit：`e7bd3bb90807fabf21c91008c9000b517b25ae4d`。
+- Stage Code Audit required check：`checks` success, `https://github.com/atxinbao/MTPRO/actions/runs/26521055453/job/78111900502`。
+- Root Docs Refresh Gate：当前分支同步 `GOAL.md`、`BLUEPRINT.md`、`docs/environment.md`、`docs/architecture.md`、`docs/roadmap.md`、`docs/product/mtpro-live-readiness-roadmap-v1.md`、`docs/automation/automation-readiness.md`、`checks/automation-readiness.sh`、`docs/validation/latest-verification-summary.md`、Stage Code Audit Report 和本 append-only verification entry。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；mechanical anchors 已覆盖 L3.0 stage code audit report、root docs refresh anchor、Project Closure Count `17 / 17` 和 maturity statement `L3.0 Live Read-only Readiness Boundary complete`。 |
+| `git diff --check` | pass | 无输出。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 278 个 XCTest；Dashboard smoke 输出 `liveReadOnlyWorkbenchBoundary=5`，最终输出 `MTPRO checks passed.`。 |
+
+成熟度结论：
+
+- Current Foundation Progress 保持 `4 / 4 (100%)`。
+- Final Product Goal Progress 保持 `9 / 9 (100%)`。
+- Engine Maturity Roadmap Progress 保持 `4 / 4 (100%)`，不扩大旧分母。
+- Current maturity statement：`L3.0 Live Read-only Readiness Boundary complete`。
+- Next maturity planning candidate：`L3.1 Account / Position / Balance Read-model-only`，仍为 Future Gated / non-executable。
+
+边界确认：
+
+- 不创建下一 Linear Project / Issue。
+- 不推进下一 issue 到 `Todo`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 production release、notarization、App Store distribution、auto-update 或 production operations。
+- 不实现 signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
+
+---
+
+## 2026-05-28 — MTPRO Live Readiness Roadmap L3.4 Strategy / Trader Instance Candidate Docs Update
+
+执行者：Codex
+
+目的：
+
+- 将 `L3.4 Strategy / Trader Instance Readiness v1` 写入 Live Readiness 路线。
+- 明确 L3.4 只是 Future Gated / Planning Candidate，不改变当前 next candidate `L3.1 Account / Position / Balance Read-model-only`。
+- 明确 L3.4 只记录 L4 前的 Strategy / Trader structural readiness gap，不授权任何 execution。
+
+更新内容：
+
+- 更新 `docs/product/mtpro-live-readiness-roadmap-v1.md`，在 L3.3 与 L4 之间新增 `L3.4 Strategy / Trader Instance Readiness v1`。
+- 更新 `docs/product/mtpro-core-engine-architecture-module-maturity-map-v1.md`，把 L3.4 映射到 Strategy Engine、Portfolio Engine、Risk Engine 和 Evidence Read Model Layer。
+- 更新 `docs/roadmap.md`、`BLUEPRINT.md`、`GOAL.md`、`docs/architecture.md`、`docs/automation/automation-readiness.md` 和 `docs/validation/latest-verification-summary.md` 的路线引用。
+- 不更新 `Final Product Goal Progress`，不扩大旧 `Engine Maturity Roadmap Progress: 4 / 4 (100%)` 分母。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | 无输出。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 278 个 XCTest；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify，不修改 Figma。
+- 不实现 Strategy / Trader runtime。
+- 不实现 signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
+- 不允许 Strategy Instance 直接调用 Execution Client，不允许输出 broker command。

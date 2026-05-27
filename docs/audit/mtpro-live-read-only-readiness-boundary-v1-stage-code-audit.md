@@ -209,9 +209,9 @@ L3.0 terminology / target engines
 
 ## Root Docs Refresh Gate Closure
 
-Root Docs Refresh Gate：pending。
+Root Docs Refresh Gate：closed by Root Docs Refresh Gate。
 
-Root Docs Refresh Gate 必须在本报告 PR merge 后由 `@002 / PAR` 单独执行，只同步已发生事实：`L3.0 Live Read-only Readiness Boundary complete`、Project Closure Count、Stage Code Audit PR evidence、Root Docs Refresh PR evidence、最终 main commit、`git diff --check` 和 `bash checks/run.sh` 结果。
+Root Docs Refresh Gate 已由 `@002 / PAR` 单独执行，只同步已发生事实：`L3.0 Live Read-only Readiness Boundary complete`、Project Closure Count、Stage Code Audit PR evidence、Root Docs Refresh PR evidence、最终 main commit、`git diff --check` 和 `bash checks/run.sh` 结果。
 
 本 Gate 不创建下一 Project / Issue，不推进 `Todo`，不启动 Symphony，不运行 Graphify，不修改 Figma，不写业务 runtime，不授权 L3.1 / L3.2 / L3.3 / L4 execution、signed endpoint、account endpoint / listenKey、private WebSocket、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button 或 live command。
 
