@@ -41,14 +41,15 @@
 | `MTPRO Data Catalog / Scenario Replay v1` | `docs/planning/projects/mtpro-data-catalog-scenario-replay-v1-plan.md` | 已写入 Linear；`MTP-103` 至 `MTP-109` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
 | `MTPRO Simulated Exchange / Backtest Parity v1` | `docs/planning/projects/mtpro-simulated-exchange-backtest-parity-v1-plan.md` | 已写入 Linear；`MTP-110` 至 `MTP-117` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
 | `MTPRO Workbench Beta Readiness v1` | `docs/planning/projects/mtpro-workbench-beta-readiness-v1-plan.md` | 已写入 Linear；`MTP-118` 至 `MTP-125` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
-| `MTPRO Live Read-only Readiness Boundary v1` | `docs/planning/projects/mtpro-live-read-only-readiness-boundary-v1-plan.md` | 当前 L3.0 docs-only planning record / non-executable；未写入 Linear；不授权 endpoint、account、broker、Live PRO Console 或 trading command。 |
+| `MTPRO Live Read-only Readiness Boundary v1` | `docs/planning/projects/mtpro-live-read-only-readiness-boundary-v1-plan.md` | 已写入 Linear；`MTP-126` 至 `MTP-132` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
+| `MTPRO Account / Position / Balance Read-model-only v1` | `docs/planning/projects/mtpro-account-position-balance-read-model-only-v1-plan.md` | 当前 L3.1 docs-only planning record / non-executable；未写入 Linear；不授权 account endpoint、listenKey、real account、broker position、Live PRO Console 或 trading command。 |
 
 ## 当前 Project planning record
 
-- Project：`MTPRO Live Read-only Readiness Boundary v1`，仅为 L3.0 docs-only planning candidate。
-- Canonical record：`docs/planning/projects/mtpro-live-read-only-readiness-boundary-v1-plan.md`。
+- Project：`MTPRO Account / Position / Balance Read-model-only v1`，仅为 L3.1 docs-only planning candidate。
+- Canonical record：`docs/planning/projects/mtpro-account-position-balance-read-model-only-v1-plan.md`。
 - 当前状态：未写入 Linear；不创建 Linear Project / Issue，不推进 Todo，不启动 `@002 / PAR`、Symphony 或 Graphify，不授权 implementation。后续必须由 Human 确认是否写入 Linear，并由 Parent Codex queue preflight 验证 WIP=1、依赖、active conflict 和 execution contract 后才可推进唯一 eligible issue。
-- First executable issue candidate：`Define Live read-only readiness terminology and boundary`，仅为 candidate，不授权执行。
+- First executable issue candidate：`Define account / position / balance read-model-only terminology and boundary`，仅为 candidate，不授权执行。
 - WIP=1：所有候选 issue 写入 Linear 后必须初始保持 `Backlog / non-executable`。
 
 ## Project Planning Record 命名规则
