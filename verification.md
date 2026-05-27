@@ -12543,3 +12543,44 @@ Closure evidence：
 - 不读取 real position、margin、leverage、real account balance、broker portfolio 或 real PnL。
 - 不实现 broker adapter、account endpoint、listenKey、private stream、`LiveExecutionAdapter`、OMS、real order lifecycle、Live PRO Console、trading button、live command 或 order form。
 - 不把 paper portfolio projection、simulated fill 或 simulated exchange exposure 升级为 real position、broker fill、execution report 或 reconciliation。
+
+---
+
+## 2026-05-28 — MTP-136 Balance Snapshot Identity / Paper-vs-real Boundary
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear issue `MTP-136 Define balance snapshot identity and paper-vs-real interpretation boundary`。
+- 建立 balance snapshot identity、balance evidence id、balance source identity、balance kind、paper cash、paper equity、simulated balance、fixture balance、future-gated real balance、paper-vs-real interpretation boundary、real PnL / margin / leverage / buying power forbidden baseline 和 balance stale / blocked evidence anchors。
+- 明确 MTP-136 是 read-model-only balance evidence 层，不读取真实账户余额，不实现 real PnL runtime，不读取 margin、leverage 或 buying power。
+
+更新内容：
+
+- 更新 `docs/contracts/account-position-balance-read-model-only-contract.md`，新增 MTP-136 balance snapshot identity / paper-vs-real boundary anchors。
+- 更新 `docs/domain/context.md`，新增 MTP-136 balance snapshot identity shared language。
+- 更新 `docs/validation/trading-validation-matrix.md`，新增 MTP-136 issue backfill。
+- 更新 `docs/validation/validation-plan.md`，新增 MTP-136 required validation 与禁止项。
+- 更新 `docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，新增 MTP-136 mechanical anchors。
+- 更新 `docs/validation/latest-verification-summary.md`，记录 MTP-136 当前 issue execution evidence。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
+| `git diff --check` | pass | 无输出。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 278 个 XCTest；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不推进 MTP-137。
+- 不创建下一 Project / Issue。
+- 不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不读取真实账户余额。
+- 不实现 real PnL runtime。
+- 不读取 margin、leverage、buying power 或 broker cash statement。
+- 不接 signed endpoint、account endpoint、listenKey、private stream 或 private WebSocket runtime。
+- 不连接 broker，不实现 account snapshot runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、Live PRO Console、trading button、live command 或 order form。

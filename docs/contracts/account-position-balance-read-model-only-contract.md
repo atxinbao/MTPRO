@@ -313,3 +313,104 @@ Focused validation anchors：
 - `checks/automation-readiness.sh` 必须机械检查 MTP-135 anchors。
 
 MTP-135 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard smoke handle、不新增 position fixture payload、不新增 App read model、不新增 Core / Runtime / Dashboard behavior；deterministic fixture contract 仍归属 MTP-137，Workbench / Report / Events surface 仍归属 MTP-138。
+
+## MTP-136 balance snapshot identity
+
+`MTP-136-BALANCE-SNAPSHOT-IDENTITY`
+
+MTP-136 只定义 balance snapshot identity 和 balance evidence identity 的只读字段合同，不创建 live account balance runtime、real PnL runtime 或 broker cash sync。Identity 必须能被后续 Workbench / Report / Events 作为 Read Model / ViewModel 输入引用，但不得被解释为真实账户资金、broker cash statement、buying power、margin availability 或可交易余额。
+
+| 字段 | 含义 | 禁止解释 |
+| --- | --- | --- |
+| `balanceSnapshotId` | 稳定 balance snapshot identity，由 source identity、balance kind、scenario / fixture version、observedAt 和 freshness status 组合生成 | 不等于 real account balance id、broker cash statement id、buying power id 或 account endpoint payload id |
+| `balanceEvidenceId` | 可追溯 evidence identity，用于连接 balance snapshot、source identity、paper-vs-real interpretation 和 stale / blocked reason | 不等于 ledger statement、execution report、broker fill、reconciliation id 或真实资金流水 |
+| `balanceSourceIdentity` | 允许值只能是 `fixture`、`paper`、`simulated`、`future-gated-real` | 不等于 signed endpoint、account endpoint、listenKey、private stream、broker adapter 或 account snapshot runtime |
+| `balanceKind` | 只允许 `paper-cash`、`paper-equity`、`simulated-balance`、`fixture-balance`、`future-gated-real-balance` | 不等于 real cash、broker equity、margin balance、leverage balance、buying power 或 real PnL |
+| `observedAt` / `sourceWatermark` | 本地 evidence timestamp 和 freshness watermark | 不等于 broker server balance timestamp、private stream update time 或 reconciliation watermark |
+
+Canonical identity example 只能作为 deterministic string shape 使用：
+
+`balance-snapshot|paper-cash|mtp-136-local-balance-evidence|1704067500|fresh`
+
+该 example 不包含真实账户余额、broker cash statement、margin、leverage、buying power、real PnL、account endpoint payload 或 private stream update。
+
+## MTP-136 paper / simulated / future real balance terminology
+
+`MTP-136-PAPER-SIMULATED-FUTURE-REAL-BALANCE-TERMINOLOGY`
+
+MTP-136 固定以下 balance terminology：
+
+- `paper cash`：paper runtime / paper portfolio 的本地 sandbox cash interpretation，不是真实账户 cash。
+- `paper equity`：paper-only equity interpretation，不是 broker equity、margin equity 或 buying power。
+- `simulated balance`：simulated exchange / scenario replay / backtest parity 的本地 balance interpretation，不是 broker cash statement。
+- `fixture balance`：deterministic local fixture 的 balance evidence shape，不是真实 account payload。
+- `future-gated real balance`：未来门禁标签，不包含 account endpoint、listenKey、private stream、broker cash statement 或真实资金字段。
+
+命名必须保留 `paper`、`simulated`、`fixture` 或 `future-gated` source label，不得使用会暗示真实资金可用性的字段名或 UI 文案。
+
+## MTP-136 paper-vs-real interpretation boundary
+
+`MTP-136-PAPER-VS-REAL-INTERPRETATION-BOUNDARY`
+
+MTP-136 的 paper-vs-real boundary 固定如下：
+
+1. Paper account model 输出只能解释为 paper balance evidence，不是 live account balance。
+2. Simulated exchange balance 只能解释为 simulated balance evidence，不是 broker cash、broker margin 或 real PnL。
+3. Fixture balance 只能解释为 deterministic local evidence，不是真实账户资金。
+4. Future-gated real balance 只能作为未来门禁标签，不表示当前已读取真实账户资金。
+
+Balance evidence 不得驱动 order sizing、buying power check、live risk engine、OMS decision、trading button、live command、emergency stop 或 broker sync。
+
+## MTP-136 real PnL / margin / leverage / buying power forbidden baseline
+
+`MTP-136-REAL-PNL-MARGIN-LEVERAGE-BUYING-POWER-FORBIDDEN`
+
+MTP-136 必须固定以下 forbidden baseline：
+
+- no real PnL runtime
+- no margin read
+- no leverage read
+- no buying power read
+- no real account balance read
+- no broker cash statement
+- no signed endpoint / account endpoint / listenKey
+- no private WebSocket runtime
+- no account snapshot runtime
+- no broker / exchange execution adapter
+- no `LiveExecutionAdapter`
+- no OMS / real order lifecycle
+- no Live PRO Console / trading button / live command / order form
+
+这些能力只能作为 forbidden / Future Gated boundary 出现，不能写成 current preview、fallback、behind flag、local beta 或 partial implementation。
+
+## MTP-136 balance stale / blocked evidence
+
+`MTP-136-BALANCE-STALE-BLOCKED-EVIDENCE`
+
+MTP-136 balance evidence status 只描述 evidence 可用性：
+
+- `stale` 表示本地 paper / simulated / fixture balance evidence 超出 freshness expectation，但不触发 account endpoint refresh。
+- `blocked` 表示 evidence 因 forbidden real balance interpretation 被拒绝，例如 real account balance、margin、leverage、buying power、real PnL、signed endpoint、account endpoint、listenKey、private stream 或 broker cash statement。
+
+Stale / blocked state 不得自动升级为 balance refresh command、private stream reconnect、broker sync、buying power check、Live PRO Console action、trading button、live command 或 order form。
+
+## MTP-136 validation anchors
+
+`MTP-136-BALANCE-SNAPSHOT-IDENTITY-VALIDATION`
+
+Required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- Contract 必须包含 balance snapshot identity、paper / simulated / future real balance terminology、paper-vs-real interpretation boundary、real PnL / margin / leverage / buying power forbidden baseline、balance stale / blocked evidence 和 validation anchors。
+- Domain context 必须包含 MTP-136 balance snapshot identity shared language。
+- Trading validation matrix 必须回填 MTP-136 issue evidence。
+- Latest verification summary 必须记录 MTP-136 当前 issue evidence。
+- Automation readiness 必须新增 MTP-136 balance snapshot identity / paper-vs-real boundary anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-136 anchors。
+
+MTP-136 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard smoke handle、不新增 balance fixture payload、不新增 App read model、不新增 Core / Runtime / Dashboard behavior；deterministic fixture contract 仍归属 MTP-137，Workbench / Report / Events surface 仍归属 MTP-138。
