@@ -205,10 +205,11 @@ Strategy instance 不能直接调用 Execution Client，也不能直接写 broke
 
 | 阶段 | Engine / Layer 重点 | 状态 | 当前边界 |
 | --- | --- | --- | --- |
-| `L3.0 Live Read-only Readiness Boundary` | Connectivity / Adapter Engine、Evidence Read Model Layer、Workbench Interface、Docs / Validation | Planning Candidate / Non-executable | 只定义 credential、endpoint、adapter capability、account / private stream future gates 和 forbidden baseline；不实现 endpoint、listenKey、broker 或 account runtime |
+| `L3.0 Live Read-only Readiness Boundary` | Connectivity / Adapter Engine、Evidence Read Model Layer、Workbench Interface、Docs / Validation | Done / not counted in old denominator | 已完成 credential、endpoint、adapter capability、account / private stream future gates 和 forbidden baseline；不实现 endpoint、listenKey、broker 或 account runtime |
 | `L3.1 Account / Position / Balance Read-model-only` | Evidence Read Model Layer、Portfolio Engine、Workbench Interface | Future Gated | 只允许后续规划 read-model-only evidence；不读取真实账户或 broker position |
 | `L3.2 Private Stream / Account Snapshot Simulation Gate` | Data Engine、Connectivity / Adapter Engine、State & Persistence boundary | Future Gated | 只允许后续规划 simulation gate；不创建 listenKey，不连接 private stream |
 | `L3.3 Live Monitoring Read-only Console v2` | Workbench Interface、Live Monitoring read-model-only surface | Future Gated | 只允许后续规划只读 evidence surface；不提供 Live PRO Console、交易按钮或 live command |
+| `L3.4 Strategy / Trader Instance Readiness v1` | Strategy Engine、Portfolio Engine、Risk Engine、Evidence Read Model Layer | Future Gated / Planning Candidate | 只允许后续规划 Strategy Instance / Trader Instance lifecycle、quoter / hedger role、account / portfolio / risk read-model input 和 paper/live-neutral proposal contract；不允许 strategy 直连 Execution Client 或 broker command |
 | `L4 Live Production / Trading Commands` | Live、Execution、Risk、Portfolio、System / Ops | Future Gated | 必须另经独立 Human decision、Project Definition、signed/account/broker/risk/ops gates |
 
 ## 9. 当前 Engine 成熟度矩阵
@@ -219,7 +220,7 @@ Strategy instance 不能直接调用 Execution Client，也不能直接写 broke
 | System Kernel | `L1 partial` | `TradingKernel`、Event Log、MTP-96 `TradingClock` / kernel boundary | MTP-97 deterministic routing |
 | Connectivity / Adapter Engine | `L1 public-read-only` | Binance public read-only boundary、adapter isolation gates | adapter capability matrix / sandbox-read-only boundary |
 | Data Engine | `L1 partial` | batch replay、freshness、fixture parity、projection consistency | local data catalog / scenario replay |
-| Strategy Engine | `L1 partial` | EMA、order book signal、Research event flows | strategy lifecycle、quoter / hedger instances |
+| Strategy Engine | `L1 partial` | EMA、order book signal、Research event flows | L3.4 Strategy / Trader Instance readiness：strategy lifecycle、quoter / hedger role、account / portfolio / risk read-model inputs 和 paper/live-neutral proposal contract |
 | Analysis / Research Engine | `L1 partial` | report / backtest / research evidence | indicators、analytics、performance metrics |
 | Simulation / Backtest Engine | `L0-L1 partial` | replay、execution cost assumptions、parity evidence | simulated exchange / matching / latency |
 | Risk Engine | `L0-L1 partial` | paper risk blocker、Live Risk Gate blocked evidence | Paper Pre-trade RiskEngine runtime |
