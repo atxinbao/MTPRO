@@ -3290,3 +3290,46 @@ MTP-135 必须建立的主要 anchors：
 - 不新增 Live PRO Console、trading button、live command、order form、emergency stop、shutdown 或 restore。
 - 不新增 position fixture payload、不新增 App surface、不新增 Dashboard smoke handle；fixture contract 仍归属 MTP-137，Workbench / Report / Events surface 仍归属 MTP-138。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+## MTP-136 Balance Snapshot Identity / Paper-vs-real Boundary Validation
+
+日期：2026-05-28
+
+执行者：Codex
+
+MTP-136 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-136 的验收要求：
+
+- `docs/contracts/account-position-balance-read-model-only-contract.md` 必须包含 `MTP-136-BALANCE-SNAPSHOT-IDENTITY`、`MTP-136-PAPER-SIMULATED-FUTURE-REAL-BALANCE-TERMINOLOGY`、`MTP-136-PAPER-VS-REAL-INTERPRETATION-BOUNDARY`、`MTP-136-REAL-PNL-MARGIN-LEVERAGE-BUYING-POWER-FORBIDDEN`、`MTP-136-BALANCE-STALE-BLOCKED-EVIDENCE` 和 `MTP-136-BALANCE-SNAPSHOT-IDENTITY-VALIDATION` anchors。
+- `docs/domain/context.md` 必须包含 MTP-136 balance snapshot identity shared language，明确 balance evidence 是 read-model-only evidence，不是 live account balance。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-136 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-136 当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Balance snapshot identity / paper-vs-real boundary anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-136 contract、domain context、validation plan、trading matrix、latest summary、automation readiness doc 和 forbidden capability boundary strings。
+- PR 前必须确认 `.codex/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-136 必须建立的主要 anchors：
+
+- `MTP-136-BALANCE-SNAPSHOT-IDENTITY`
+- `MTP-136-PAPER-SIMULATED-FUTURE-REAL-BALANCE-TERMINOLOGY`
+- `MTP-136-PAPER-VS-REAL-INTERPRETATION-BOUNDARY`
+- `MTP-136-REAL-PNL-MARGIN-LEVERAGE-BUYING-POWER-FORBIDDEN`
+- `MTP-136-BALANCE-STALE-BLOCKED-EVIDENCE`
+- `MTP-136-BALANCE-SNAPSHOT-IDENTITY-VALIDATION`
+
+## MTP-136 禁止
+
+- 不读取真实账户余额。
+- 不实现 real PnL runtime。
+- 不读取 margin、leverage、buying power 或 broker cash statement。
+- 不接 signed endpoint、account endpoint、listenKey、private stream 或 private WebSocket runtime。
+- 不连接 broker，不实现 account snapshot runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不把 paper account model 输出解释为真实账户余额、可交易资金、broker equity、margin equity 或 buying power。
+- 不新增 Live PRO Console、trading button、live command、order form、emergency stop、shutdown 或 restore。
+- 不新增 balance fixture payload、不新增 App surface、不新增 Dashboard smoke handle；fixture contract 仍归属 MTP-137，Workbench / Report / Events surface 仍归属 MTP-138。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
