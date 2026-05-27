@@ -360,3 +360,101 @@ Focused validation anchors：
 - `checks/automation-readiness.sh` 必须机械检查 MTP-129 contract、domain context、matrix、validation plan、latest summary、automation readiness doc、Core fixture 和 focused test anchors。
 
 MTP-129 不新增 Adapters、Runtime、App、Dashboard behavior，不新增 Dashboard smoke handle，不实现 L3.1，不新增 stage audit input；Project stage closeout 仍归属 MTP-132。
+
+## MTP-130 private stream / account snapshot simulation gate input material
+
+`MTP-130-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-SIMULATION-GATE`
+
+MTP-130 固定后续 L3.2 所需的 private stream / account snapshot simulation gate input material。当前只定义进入后续 L3.2 planning 前必须补齐的 simulation 输入，不实现 listenKey、private WebSocket 或 account snapshot runtime：
+
+| Input Material | 当前含义 | 当前禁止 |
+| --- | --- | --- |
+| `private stream source identity` | 后续 L3.2 必须声明 private stream simulation source identity | 不创建 listenKey，不连接 private WebSocket |
+| `account snapshot fixture identity` | 后续 fixture 必须声明 account snapshot fixture identity | 不读取真实 account endpoint 或 broker account payload |
+| `snapshot observedAt` | 后续 simulation snapshot 必须包含 observedAt 时间 | 不运行 account snapshot runtime |
+| `source watermark` | 后续 fixture 必须声明 source watermark / replay watermark | 不消费 live private stream watermark |
+| `freshness boundary` | 后续 simulation gate 必须声明 stale / freshness 边界 | 不依赖真实网络 freshness |
+| `account event shape` | 后续 fixture 可描述 account event shape | 不解析真实 account endpoint payload |
+| `position event shape` | 后续 fixture 可描述 position event shape | 不同步 broker position |
+| `balance event shape` | 后续 fixture 可描述 balance event shape | 不读取 real account balance、margin、leverage 或 real PnL |
+| `fixture replay cursor` | 后续 simulation gate 必须可用本地 fixture replay cursor 复现 | 不运行 production stream |
+| `simulation gate boundary` | 后续只允许验证 simulation input 与 live stream implementation 隔离 | 不实现 live stream implementation |
+
+## MTP-130 future fixture requirements
+
+`MTP-130-FUTURE-FIXTURE-REQUIREMENTS`
+
+MTP-130 将 L3.2 future fixture requirements 固定为 contract 输入：
+
+- `deterministic account snapshot fixture`：后续 L3.2 必须使用 deterministic fixture，不读取真实账户。
+- `private stream event fixture`：后续 L3.2 可定义 private stream event fixture shape，但不得创建 private WebSocket。
+- `fixture source identity declared`：fixture 必须声明 source identity，不能伪装成真实 exchange / broker payload。
+- `fixture freshness declared`：fixture 必须声明 observedAt、watermark 和 stale boundary。
+- `replay cursor declared`：fixture 必须声明本地 replay cursor，不能依赖 production stream。
+- `live stream implementation separated`：simulation gate input 与 live private stream implementation 必须保持隔离。
+- `listenKey forbidden validation`：focused tests 必须证明 listenKey create / keepalive 均被拒绝。
+- `network independent validation`：required validation 不依赖真实 Binance 网络、account endpoint、listenKey 或 broker。
+
+## MTP-130 simulation gate / live stream isolation
+
+`MTP-130-SIMULATION-GATE-LIVE-STREAM-ISOLATION`
+
+当前 `LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary` 中以下 flags 必须全部为 `false`：
+
+- `createsListenKey`
+- `keepsListenKeyAlive`
+- `opensPrivateWebSocket`
+- `runsPrivateStreamRuntime`
+- `runsAccountSnapshotRuntime`
+- `callsSignedEndpoint`
+- `callsAccountEndpoint`
+- `readsRealAccount`
+- `consumesRealAccountPayload`
+- `syncsBrokerPosition`
+- `readsMargin`
+- `readsLeverage`
+- `connectsBrokerAdapter`
+- `implementsLiveExecutionAdapter`
+- `implementsOMS`
+- `writesRealOrder`
+- `representsSimulationGateAsLiveStreamImplementation`
+- `representsFixtureSnapshotAsRealAccountSnapshot`
+- `exposesTradingButton`
+- `exposesLiveCommand`
+- `requiredValidationDependsOnNetwork`
+
+该隔离只定义 L3.2 handoff material，不新增 Adapters、Runtime、App 或 Dashboard behavior，不把 simulation gate 写成 private stream implementation，也不把 fixture account snapshot 写成真实 account snapshot。
+
+## MTP-130 listenKey forbidden tests
+
+`MTP-130-LISTENKEY-FORBIDDEN-TESTS`
+
+MTP-130 的 forbidden capability evidence 来自本地 deterministic tests：
+
+- `Sources/Core/LiveTradingBoundary.swift` 中的 `LiveReadOnlyPrivateStreamAccountSnapshotSimulationInputMaterial`、`LiveReadOnlyPrivateStreamAccountSnapshotFutureFixtureRequirement`、`LiveReadOnlyPrivateStreamAccountSnapshotForbiddenCapability`、`LiveReadOnlyPrivateStreamAccountSnapshotEvidenceKind` 和 `LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary`。
+- `Tests/CoreTests/CoreTests.swift` 中的 `testLiveReadOnlyPrivateStreamAccountSnapshotDefinesMTP130SimulationGateInput`。
+- `Tests/CoreTests/CoreTests.swift` 中的 `testLiveReadOnlyPrivateStreamAccountSnapshotRejectsListenKeyAndRuntimeBypass`。
+
+Focused tests 必须证明 fixture 可 Codable 稳定 round-trip，并且初始化或 Codable 解码都不能恢复 listenKey create / keepalive、private WebSocket、private stream runtime、account snapshot runtime、signed/account endpoint、real account read、broker position sync、margin / leverage、broker adapter、`LiveExecutionAdapter`、OMS、real order write、simulation gate -> live stream implementation、fixture snapshot -> real account snapshot、trading button、live command 或 network dependency。
+
+## MTP-130 validation anchors
+
+`MTP-130-LIVE-READ-ONLY-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-VALIDATION`
+
+Required validation：
+
+- `swift test --filter LiveReadOnlyPrivateStreamAccountSnapshot`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `docs/contracts/live-read-only-readiness-boundary-contract.md` 必须包含 MTP-130 private stream / account snapshot simulation gate input material、future fixture requirements、simulation gate / live stream isolation、listenKey forbidden tests 和 validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-130 private stream / account snapshot simulation gate shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-130 issue backfill。
+- `docs/validation/validation-plan.md` 必须包含 MTP-130 required validation。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-130 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 MTP-130 Live Read-only private stream / account snapshot simulation gate anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-130 contract、domain context、matrix、validation plan、latest summary、automation readiness doc、Core fixture 和 focused test anchors。
+
+MTP-130 不新增 Adapters、Runtime、App、Dashboard behavior，不新增 Dashboard smoke handle，不实现 L3.2，不新增 stage audit input；Project stage closeout 仍归属 MTP-132。

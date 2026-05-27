@@ -1004,6 +1004,26 @@ MTP-129 forbidden interpretation tests 必须证明 `LiveReadOnlyAccountPosition
 
 MTP-129 validation 必须证明 contract、domain context、validation plan、trading validation matrix、latest summary、automation readiness doc、Core fixture 和 focused tests 均固定 account / position / balance read-model-only future gate boundary，并且 required validation 不读取 secret、不依赖真实 Binance 网络、不读取真实账户、不连接 broker、不触发真实交易行为。
 
+`MTP-130-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-SIMULATION-GATE`
+
+MTP-130 private stream / account snapshot simulation gate input material 只能作为 L3.2 handoff material 出现。`LiveReadOnlyPrivateStreamAccountSnapshotSimulationInputMaterial` 只允许命名 private stream source identity、account snapshot fixture identity、snapshot observedAt、source watermark、freshness boundary、account / position / balance event shape、fixture replay cursor 和 simulation gate boundary；它不授权当前创建 listenKey、连接 private WebSocket、运行 account snapshot runtime 或读取真实账户。
+
+`MTP-130-FUTURE-FIXTURE-REQUIREMENTS`
+
+MTP-130 future fixture requirements 表示后续 L3.2 必须使用 deterministic account snapshot fixture、private stream event fixture、fixture source identity、fixture freshness、replay cursor、live stream implementation separation、listenKey forbidden validation 和 network independent validation。MTP-130 不实现 fixture runtime、不调用 account endpoint、不创建 private stream runtime，也不依赖真实 Binance 网络。
+
+`MTP-130-SIMULATION-GATE-LIVE-STREAM-ISOLATION`
+
+MTP-130 simulation gate / live stream isolation 表示 simulation gate input material 不能被解释为 live private stream implementation，fixture account snapshot 不能被解释为真实 account snapshot。MTP-130 不新增 Adapters、Runtime、App、Dashboard behavior，不实现 L3.2，不把 public read-only adapter 或 MTP-129 account / position / balance future gate 升级为 private stream runtime。
+
+`MTP-130-LISTENKEY-FORBIDDEN-TESTS`
+
+MTP-130 listenKey forbidden tests 必须证明 `LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary` 的 listenKey create / keepalive、private WebSocket、private stream runtime、account snapshot runtime、signed/account endpoint、real account read、real account payload consumption、broker position sync、margin / leverage、broker adapter、`LiveExecutionAdapter`、OMS、real order write、simulation gate -> live stream implementation、fixture snapshot -> real account snapshot、trading button、live command 和 network dependency flags 全部为 `false`，并且 Codable 解码不能恢复这些 forbidden capability。
+
+`MTP-130-LIVE-READ-ONLY-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-VALIDATION`
+
+MTP-130 validation 必须证明 contract、domain context、validation plan、trading validation matrix、latest summary、automation readiness doc、Core fixture 和 focused tests 均固定 private stream / account snapshot simulation gate input boundary，并且 required validation 不读取 secret、不依赖真实 Binance 网络、不创建 listenKey、不连接 private WebSocket、不读取真实账户、不连接 broker、不触发真实交易行为。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

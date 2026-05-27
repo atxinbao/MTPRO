@@ -3027,3 +3027,47 @@ MTP-129 必须建立的主要 anchors：
 - 不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、OMS、real order lifecycle、trading button 或 live command。
 - 不把 paper portfolio、simulated fill、fixture evidence、Report read model 或 Dashboard ViewModel 解释为真实 account / position / balance data。
 - 不运行 Graphify，不修改 Figma，不修改 Linear status，不推进 MTP-130。
+
+## MTP-130 Private Stream / Account Snapshot Simulation Gate Input Validation
+
+日期：2026-05-27
+
+执行者：Codex
+
+MTP-130 的 required validation：
+
+- `swift test --filter LiveReadOnlyPrivateStreamAccountSnapshot`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-130 的验收要求：
+
+- `docs/contracts/live-read-only-readiness-boundary-contract.md` 必须包含 `MTP-130-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-SIMULATION-GATE`、`MTP-130-FUTURE-FIXTURE-REQUIREMENTS`、`MTP-130-SIMULATION-GATE-LIVE-STREAM-ISOLATION`、`MTP-130-LISTENKEY-FORBIDDEN-TESTS` 和 `MTP-130-LIVE-READ-ONLY-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-VALIDATION` anchors。
+- `Sources/Core/LiveTradingBoundary.swift` 必须包含 `LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary` deterministic fixture，并固定 `TVM-LIVE-READ-ONLY-READINESS`、private stream / account snapshot simulation gate input material、future fixture requirements、listenKey forbidden tests 和 simulation gate / live stream isolation。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 `testLiveReadOnlyPrivateStreamAccountSnapshotDefinesMTP130SimulationGateInput` 和 `testLiveReadOnlyPrivateStreamAccountSnapshotRejectsListenKeyAndRuntimeBypass`。
+- `docs/domain/context.md` 必须包含 MTP-130 private stream / account snapshot simulation gate shared language，明确 simulation gate input material 不能被解释为 live private stream implementation。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-130 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-130 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Live Read-only private stream / account snapshot simulation gate anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-130 contract、domain context、validation plan、trading matrix、latest summary、automation readiness doc、Core fixture 和 focused test anchors。
+
+MTP-130 必须建立的主要 anchors：
+
+- `MTP-130-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-SIMULATION-GATE`
+- `MTP-130-FUTURE-FIXTURE-REQUIREMENTS`
+- `MTP-130-SIMULATION-GATE-LIVE-STREAM-ISOLATION`
+- `MTP-130-LISTENKEY-FORBIDDEN-TESTS`
+- `MTP-130-LIVE-READ-ONLY-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-VALIDATION`
+
+## MTP-130 禁止
+
+- 不创建 listenKey，不执行 listenKey keepalive。
+- 不连接 private WebSocket，不实现 private stream runtime。
+- 不运行 account snapshot runtime，不读取 real account 或 consumes real account payload。
+- 不调用 signed endpoint、account endpoint / listenKey。
+- 不同步 broker position，不读取 margin / leverage。
+- 不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、OMS 或 real order write。
+- 不把 simulation gate input material 写成 live private stream implementation。
+- 不把 fixture account snapshot 写成真实 account snapshot。
+- 不新增 Live PRO Console、trading button 或 live command。
+- 不运行 Graphify，不修改 Figma，不修改 Linear status，不推进 MTP-131。
