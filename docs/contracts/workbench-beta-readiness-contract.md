@@ -629,3 +629,75 @@ Focused validation anchors：
 - `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-124 anchors。
 
 MTP-124 不新增 production code、不新增 engine core capability、不新增 Runtime replay job、不新增 App read model、不新增 Dashboard behavior、不新增 stage audit input；Project stage closeout 仍归属 `MTP-125`。
+
+## MTP-125 automation readiness / validation evidence / stage audit input
+
+执行记录：2026-05-27，Codex。
+
+`MTP-125-WORKBENCH-BETA-READINESS-STAGE-CLOSEOUT`
+
+MTP-125 只收口 `MTPRO Workbench Beta Readiness v1` 的 validation evidence、automation readiness 和 stage audit input material。该收口把 MTP-118 至 MTP-124 的 local Workbench beta evidence chain 汇总为 Parent Codex Stage Code Audit 输入，不输出最终 Stage Code Audit Report，不修改 Linear status，不推进下一阶段，不启动 `@002 / PAR`、Symphony、Graphify 或 Figma。
+
+`MTP-125-STAGE-AUDIT-INPUT-MATERIAL`
+
+MTP-125 必须新增 `docs/audit/inputs/mtpro-workbench-beta-readiness-v1-stage-audit-input.md`，集中记录 Linear queue evidence、PR #222 至 #228 evidence、merge commit、required check、Workbench Beta Readiness validation evidence chain、forbidden capability evidence chain、read-model-only boundary evidence、automation readiness evidence、Root Docs Delta input 和 Stage Code Audit handoff checklist。
+
+`MTP-125-NO-FINAL-STAGE-CODE-AUDIT`
+
+MTP-125 的 closeout material 不是最终 Stage Code Audit Report。最终报告必须在 `MTP-118` 至 `MTP-125` 全部 Linear `Done`，且 Linear Project status 被设置或确认为 `Completed`、`type=completed`、`completedAt` 非空后，由 Parent Codex 单独输出。MTP-125 不创建 `docs/audit/mtpro-workbench-beta-readiness-v1-stage-code-audit.md`。
+
+`MTP-125-WORKBENCH-BETA-READINESS-STAGE-AUDIT-INPUT`
+
+MTP-125 stage audit input 必须明确 Workbench beta readiness 只表示 local macOS Workbench demo / acceptance path 已可复现：MTP-119 launch path、MTP-120 deterministic fixture、MTP-121 first-run default demo、MTP-122 Report / Dashboard / Events acceptance path、MTP-123 checklist / script 和 MTP-124 docs handoff 已串成同一 evidence chain。该 input 不授权 production release、live readiness、Live PRO Console、signed endpoint、broker、OMS 或真实交易能力。
+
+`MTP-125-WORKBENCH-BETA-READINESS-VALIDATION-EVIDENCE-CHAIN`
+
+MTP-125 validation evidence chain 必须覆盖：
+
+- `TVM-WORKBENCH-BETA-READINESS`：MTP-118 至 MTP-125 的 Project-level beta readiness spine。
+- `TVM-REPORT-EVIDENCE`：MTP-122 的 Report beta acceptance summary 只消费 App read model / ViewModel。
+- `TVM-PAPER-WORKFLOW-CONTROL-SHELL`：Dashboard / Events / checklist / docs handoff 只读，不提供 command surface。
+- Dashboard smoke handles：`defaultDemoState=default demo`、`defaultDemoScenario=mtp-104-btcusdt-1m-first-scenario`、`betaAcceptancePaths=1`、`betaAcceptanceScenario=mtp-104-btcusdt-1m-first-scenario` 和 `betaAcceptanceTrace=5`。
+- Deterministic local validation：MTP-120 focused Core tests、MTP-121 / MTP-122 App tests、MTP-123 beta acceptance script、MTP-124 docs validation 和最终 `bash checks/run.sh`。
+
+`MTP-125-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN`
+
+MTP-125 必须证明以下能力仍为 forbidden / Future Gated，不得写成当前支持、beta preview、behind flag 或 partially supported：
+
+- production release、release package、notarization、App Store distribution、auto-update、production deployment、cloud operations、production operations command。
+- engine core capability expansion、Runtime replay job、production scheduler、production data platform、remote catalog、automatic downloader、repair command。
+- Persistence schema exposure、database console、query language、Runtime object exposure、Core object inspector、Adapter request exposure。
+- API key / secret read、signed endpoint、account endpoint、listenKey。
+- broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation。
+- real account balance、broker position sync、margin、leverage、real PnL。
+- live readiness、live runtime、Live PRO Console、trading button、live command、order-level command UI、order form。
+- emergency stop、shutdown、restore、Graphify update、Figma change 和 unauthorized Linear mutation。
+
+`MTP-125-BETA-READINESS-EVIDENCE-COMPLETE`
+
+MTP-125 只确认 evidence chain 完整：local launch path、fixed demo scenario、first-run default demo、Report / Dashboard / Events acceptance path、reproducible checklist / script、docs index / operator guide 和 stage audit input material 已在当前 Project 内可追溯。该完整性不表示 Project 已完成 closure；Project `Completed`、最终 Stage Code Audit Report、Root Docs Refresh Gate 和 progress bar 仍归 Parent Codex。
+
+`MTP-125-AUTOMATION-READINESS-STAGE-CLOSEOUT`
+
+MTP-125 必须更新 `docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，机械检查 MTP-125 stage audit input、contract、validation plan、trading validation matrix、latest verification summary、PR #222 至 #228 evidence、MTP-118 至 MTP-124 anchors 和 Dashboard smoke handles。`.codex/*` 与 `graphify-out/*` 不进入 PR。
+
+`MTP-125-NO-GRAPHIFY-FIGMA-LINEAR-MUTATION`
+
+MTP-125 不运行 Graphify，不修改 Figma，不修改 Linear status，不创建 Linear Project / Issue，不启动 Symphony，不推进下一阶段，不把 closeout material 写成下一阶段执行授权。
+
+### MTP-125 validation anchors
+
+`MTP-125-WORKBENCH-BETA-READINESS-CLOSEOUT-VALIDATION`
+
+Required validation：
+
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `docs/audit/inputs/mtpro-workbench-beta-readiness-v1-stage-audit-input.md` 必须包含 MTP-125 stage closeout、validation evidence chain、forbidden capability evidence chain、automation readiness stage closeout、no Graphify / Figma / Linear mutation 和 Stage Code Audit handoff checklist。
+- `docs/contracts/workbench-beta-readiness-contract.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-125 anchors。
+- `verification.md` 必须 append-only 记录 MTP-125 local validation result。
+
+MTP-125 不新增 production code、不新增 engine core capability、不新增 Runtime replay job、不新增 App read model、不新增 Dashboard behavior、不输出最终 Stage Code Audit Report、不运行 Graphify、不修改 Figma、不创建下一 Project / Issue、不推进下一阶段。
