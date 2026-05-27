@@ -2868,3 +2868,43 @@ MTP-125 的验收要求：
 - 不创建 production release、release package、notarization、App Store distribution、auto-update、production deployment、cloud operations 或 production operations command。
 - 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、real PnL、live readiness、live runtime、Live PRO Console、trading button、live command、order-level command UI、order form、emergency stop、shutdown 或 restore。
+
+## MTP-126 Live Read-only Readiness Terminology / Boundary Validation
+
+日期：2026-05-27
+
+执行者：Codex
+
+MTP-126 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-126 的验收要求：
+
+- `docs/contracts/live-read-only-readiness-boundary-contract.md` 必须包含 `MTP-126-LIVE-READ-ONLY-READINESS-TERMINOLOGY`、`MTP-126-TARGET-ENGINE-LAYER-BOUNDARY`、`MTP-126-L30-L31-L32-L33-HANDOFF`、`MTP-126-FORBIDDEN-CAPABILITY-BASELINE`、`MTP-126-FIRST-EXECUTABLE-CANDIDATE-NON-AUTHORIZATION` 和 `MTP-126-LIVE-READ-ONLY-READINESS-VALIDATION` anchors。
+- `docs/domain/context.md` 必须包含 Live read-only readiness terms 和 MTP-126 anchors，明确 L3.0 只定义 boundary，不实现 endpoint、secret、adapter、account read model、UI 或 live runtime。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-LIVE-READ-ONLY-READINESS` 和 MTP-126 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-126 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Live Read-only Readiness contract anchor，确认 MTP-126 只是合同 / 边界入口，不实现 L3.1 / L3.2 / L3.3 内容。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-126 contract、matrix、validation plan、domain context、latest summary、automation readiness doc、planning record 和 forbidden capability boundary strings。
+
+MTP-126 必须建立的主要 anchors：
+
+- `TVM-LIVE-READ-ONLY-READINESS`
+- `MTP-126-LIVE-READ-ONLY-READINESS-TERMINOLOGY`
+- `MTP-126-TARGET-ENGINE-LAYER-BOUNDARY`
+- `MTP-126-L30-L31-L32-L33-HANDOFF`
+- `MTP-126-FORBIDDEN-CAPABILITY-BASELINE`
+- `MTP-126-FIRST-EXECUTABLE-CANDIDATE-NON-AUTHORIZATION`
+- `MTP-126-LIVE-READ-ONLY-READINESS-VALIDATION`
+
+## MTP-126 禁止
+
+- 不实现 API key / secret storage，不读取本地 secret。
+- 不实现 signed endpoint、account endpoint、listenKey、private WebSocket runtime 或 account snapshot runtime。
+- 不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不读取 real account、broker position、margin、leverage、real PnL 或 equity。
+- 不实现 account / position / balance read model、Live Monitoring Console v2、Live PRO Console、trading button、live command、order form、emergency stop、shutdown 或 restore。
+- 不运行 Graphify，不修改 Figma，不修改 Linear status，不推进 MTP-127。
