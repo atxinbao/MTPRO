@@ -199,6 +199,18 @@ Strategy instance 不能直接调用 Execution Client，也不能直接写 broke
 | `L3 Live Read-only Readiness` | 可规划真实账户只读、private stream read-only、adapter capability split | 仍然不 submit / cancel / replace |
 | `L4 Live Production` | 真实 execution、risk、reconciliation、ops、Live PRO Console | 必须另经 Human decision 和独立 live gates |
 
+### L3 Live Readiness 细分路线
+
+`L2+ Workbench Beta Readiness` 完成后，旧 Engine Maturity Roadmap Progress 保持 `4 / 4 (100%)`，不继续扩分母。Live Readiness 作为新路线单独记录在 `docs/product/mtpro-live-readiness-roadmap-v1.md`，当前细分为：
+
+| 阶段 | Engine / Layer 重点 | 状态 | 当前边界 |
+| --- | --- | --- | --- |
+| `L3.0 Live Read-only Readiness Boundary` | Connectivity / Adapter Engine、Evidence Read Model Layer、Workbench Interface、Docs / Validation | Planning Candidate / Non-executable | 只定义 credential、endpoint、adapter capability、account / private stream future gates 和 forbidden baseline；不实现 endpoint、listenKey、broker 或 account runtime |
+| `L3.1 Account / Position / Balance Read-model-only` | Evidence Read Model Layer、Portfolio Engine、Workbench Interface | Future Gated | 只允许后续规划 read-model-only evidence；不读取真实账户或 broker position |
+| `L3.2 Private Stream / Account Snapshot Simulation Gate` | Data Engine、Connectivity / Adapter Engine、State & Persistence boundary | Future Gated | 只允许后续规划 simulation gate；不创建 listenKey，不连接 private stream |
+| `L3.3 Live Monitoring Read-only Console v2` | Workbench Interface、Live Monitoring read-model-only surface | Future Gated | 只允许后续规划只读 evidence surface；不提供 Live PRO Console、交易按钮或 live command |
+| `L4 Live Production / Trading Commands` | Live、Execution、Risk、Portfolio、System / Ops | Future Gated | 必须另经独立 Human decision、Project Definition、signed/account/broker/risk/ops gates |
+
 ## 9. 当前 Engine 成熟度矩阵
 
 | Engine / Layer | 当前成熟度 | 当前证据 | 下一步目标 |
