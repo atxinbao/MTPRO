@@ -11992,3 +11992,34 @@ Root Docs Refresh Gate 更新：
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
 - 不新增 production code、engine core capability、Runtime replay job、App read model、Dashboard behavior、production release、notarization、App Store distribution、auto-update、production deployment 或 cloud operations。
 - 不实现 signed endpoint、account endpoint / listenKey、API key / secret read、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、live readiness、live runtime、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
+
+---
+
+## 2026-05-27 — MTP-126 Live read-only readiness terminology / boundary contract
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear live-read 中唯一 active issue `MTP-126 Define Live read-only readiness terminology and boundary`。
+- 定义 `Live read-only readiness`、`target engine layer`、`L3.0 -> L3.1 -> L3.2 -> L3.3` handoff、forbidden capability baseline 和 first executable candidate non-authorization 术语。
+- 只建立 terminology / boundary / validation anchors；不实现 endpoint、secret、adapter、account read model、UI 或 live runtime。
+
+实现摘要：
+
+- 新增 `docs/contracts/live-read-only-readiness-boundary-contract.md`，记录 `MTP-126-LIVE-READ-ONLY-READINESS-TERMINOLOGY`、`MTP-126-TARGET-ENGINE-LAYER-BOUNDARY`、`MTP-126-L30-L31-L32-L33-HANDOFF`、`MTP-126-FORBIDDEN-CAPABILITY-BASELINE`、`MTP-126-FIRST-EXECUTABLE-CANDIDATE-NON-AUTHORIZATION` 和 `MTP-126-LIVE-READ-ONLY-READINESS-VALIDATION`。
+- 更新 `docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，将 MTP-126 terminology、boundary、TVM 和 readiness exact anchors 纳入本地机械检查。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；机械检查 MTP-126 contract、domain terms、validation plan、trading matrix、latest summary 和 automation readiness anchors。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 267 个 XCTest；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=64; scenarioReplayEvidence=1; scenarioQualityGates=6; simulatedParityEvidence=1; defaultDemoState=default demo; defaultDemoScenario=mtp-104-btcusdt-1m-first-scenario; betaFirstRunFallbacks=3; betaAcceptancePaths=1; betaAcceptanceScenario=mtp-104-btcusdt-1m-first-scenario; betaAcceptanceTrace=5; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`；最终执行 267 tests、0 failures，并输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不修改 Linear status、不创建 Linear Project / Issue、不启动 `@002 / PAR`、不启动 Symphony / symphony-issue、不推进 MTP-127。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+- 不新增 Swift production code、Runtime job、App read model、Dashboard UI、endpoint、secret、adapter、account read model 或 live runtime。
+- 不实现 signed endpoint、account endpoint / listenKey、API key / secret read、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。

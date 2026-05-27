@@ -48,6 +48,7 @@
 | Workbench Beta Readiness stage audit input anchor | ready | `docs/audit/inputs/mtpro-workbench-beta-readiness-v1-stage-audit-input.md`；MTP-125 只收口 MTP-118 至 MTP-124 validation evidence、automation readiness、forbidden capability audit 和 Stage Code Audit 输入材料，不输出最终 Stage Code Audit Report、不修改 Linear status、不运行 Graphify、不修改 Figma、不授权下一阶段或 live readiness |
 | Workbench Beta Readiness stage code audit report anchor | ready | `docs/audit/mtpro-workbench-beta-readiness-v1-stage-code-audit.md`；记录 MTP-118 至 MTP-125 Project closure、Linear Project `Completed/type=completed`、PR / merge / checks evidence、validation、Root Docs Delta 和 forbidden capability audit |
 | Workbench Beta Readiness root docs refresh anchor | ready | Engine Maturity Roadmap Progress `4 / 4 (100%)`；current maturity statement `L2+ Workbench Beta Readiness complete`；L3 / L4 仍为 Future Gated，不计入当前 progress denominator，不授权下一 Project |
+| Live Read-only Readiness contract anchor | ready | `docs/contracts/live-read-only-readiness-boundary-contract.md`；MTP-126 只定义 L3.0 terminology、target engines / layers、handoff boundary、forbidden capability baseline 和 validation anchors，不实现 endpoint、secret、adapter、account read model、UI、live runtime、Graphify 或 Figma |
 
 ## Project 切换规则
 
