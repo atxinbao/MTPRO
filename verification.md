@@ -12503,3 +12503,43 @@ Closure evidence：
 - 不调用 account endpoint，不创建 listenKey，不读取 secret，不连接 private WebSocket。
 - 不读取真实账户余额、margin、leverage、buying power 或 real PnL。
 - 不新增 secret storage、credential provider、signed request、signed endpoint、broker connection、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、Live PRO Console、trading button、live command 或 order form。
+
+---
+
+## 2026-05-28 — MTP-135 Position Snapshot Identity / Exposure Evidence
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear issue `MTP-135 Define position snapshot identity and exposure evidence`。
+- 建立 position snapshot identity、position evidence id、source identity、symbol / side / quantity、exposure evidence、scenario version、paper / simulated / future real position isolation、stale / blocked / simulated evidence 和 forbidden broker position interpretation anchors。
+- 明确 MTP-135 是 read-model-only position evidence 层，不同步 broker position，不读取 real position / margin / leverage。
+
+更新内容：
+
+- 更新 `docs/contracts/account-position-balance-read-model-only-contract.md`，新增 MTP-135 position snapshot identity / exposure evidence anchors。
+- 更新 `docs/domain/context.md`，新增 MTP-135 position snapshot identity shared language。
+- 更新 `docs/validation/trading-validation-matrix.md`，新增 MTP-135 issue backfill。
+- 更新 `docs/validation/validation-plan.md`，新增 MTP-135 required validation 与禁止项。
+- 更新 `docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，新增 MTP-135 mechanical anchors。
+- 更新 `docs/validation/latest-verification-summary.md`，记录 MTP-135 当前 issue execution evidence。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
+| `git diff --check` | pass | 无输出。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 278 个 XCTest；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不推进 MTP-136。
+- 不创建下一 Project / Issue。
+- 不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不同步 broker position。
+- 不读取 real position、margin、leverage、real account balance、broker portfolio 或 real PnL。
+- 不实现 broker adapter、account endpoint、listenKey、private stream、`LiveExecutionAdapter`、OMS、real order lifecycle、Live PRO Console、trading button、live command 或 order form。
+- 不把 paper portfolio projection、simulated fill 或 simulated exchange exposure 升级为 real position、broker fill、execution report 或 reconciliation。

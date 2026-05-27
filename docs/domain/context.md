@@ -1110,6 +1110,30 @@ MTP-134 account snapshot identity 是 evidence identity，不是 runtime snapsho
 
 MTP-134 validation 必须证明 contract、domain context、validation plan、trading validation matrix、latest summary、automation readiness doc 和 mechanical anchors 均固定 account snapshot identity / source freshness evidence boundary，并且 `bash checks/run.sh` 通过。MTP-134 不新增 account fixture payload、不新增 Swift production code、不新增 App surface、不新增 Dashboard smoke handle。
 
+`MTP-135-POSITION-SNAPSHOT-IDENTITY`
+
+MTP-135 position snapshot identity 只表示 position evidence 的稳定身份。`positionSnapshotId`、`positionEvidenceId`、`positionSourceIdentity`、`symbol`、`side`、`quantity` 和 `scenarioVersion` 都是 read-model-only evidence 字段，不是 broker position id、exchange position id、margin account position、leverage position、live portfolio handle 或 live risk input。Canonical identity example 为 `position-snapshot|simulated|mtp-135-local-position-evidence|BTCUSDT|long|1704067500|simulated`，只表达 deterministic string shape，不包含 broker position id、real account id、margin、leverage、real PnL、execution report、broker fill 或 reconciliation data。
+
+`MTP-135-POSITION-EXPOSURE-EVIDENCE`
+
+MTP-135 exposure evidence 只表示 fixture / paper / simulated position 的 read-model-only interpretation。`symbol`、`side`、`quantity`、`exposureNotional` / `exposureQuoteValue` 和 `scenarioVersion` 只能说明本地证据，不等于 broker quantity、margin exposure、leverage exposure、broker risk input、order sizing input 或 real PnL source。Exposure evidence 不能驱动 live risk engine、OMS decision、trading command、emergency stop 或 broker sync。
+
+`MTP-135-PAPER-SIMULATED-FUTURE-REAL-POSITION-ISOLATION`
+
+MTP-135 paper exposure、simulated exposure 和 future-gated real position 必须隔离：paper exposure 可以引用 paper portfolio projection 但不得升级为 real position；simulated exposure 可以引用 simulated fill / simulated exchange / scenario replay evidence 但不得升级为 broker fill、execution report 或 broker position；future-gated real position 只是未来门禁标签，不包含 broker account id、position id、margin mode、leverage、private stream cursor 或 account endpoint payload。
+
+`MTP-135-STALE-BLOCKED-SIMULATED-POSITION-EVIDENCE`
+
+MTP-135 position evidence status 只描述 evidence 可用性：`simulated` 表示本地 simulated exchange / scenario replay / deterministic fixture evidence，`stale` 不触发 broker refresh，`blocked` 表示 forbidden broker position interpretation 拒绝 broker adapter、account endpoint、listenKey、private stream、real account position、margin、leverage 或 real PnL。任何状态都不得升级为 broker position sync、private stream reconnect、margin refresh、live risk engine input、trading button、live command 或 order form。
+
+`MTP-135-FORBIDDEN-BROKER-POSITION-INTERPRETATION`
+
+MTP-135 forbidden broker position interpretation 固定：position evidence 不是 broker position；paper portfolio projection 不是 real position；simulated fill / simulated exchange exposure 不是 broker fill、execution report 或 reconciliation；fixture position evidence 不是真实 account snapshot、broker portfolio、margin position 或 leverage position；App / UI 只能消费 Read Model / ViewModel evidence，不得展示 broker connect、account connect、Live PRO Console、trading button、live command 或 order form。
+
+`MTP-135-POSITION-SNAPSHOT-IDENTITY-VALIDATION`
+
+MTP-135 validation 必须证明 contract、domain context、validation plan、trading validation matrix、latest summary、automation readiness doc 和 mechanical anchors 均固定 position snapshot identity / exposure evidence boundary，并且 `bash checks/run.sh` 通过。MTP-135 不新增 position fixture payload、不新增 Swift production code、不新增 App surface、不新增 Dashboard smoke handle。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

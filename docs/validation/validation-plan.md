@@ -3248,3 +3248,45 @@ MTP-134 必须建立的主要 anchors：
 - 不新增 Live PRO Console、trading button、live command、order form、emergency stop、shutdown 或 restore。
 - 不新增 account fixture payload、不新增 App surface、不新增 Dashboard smoke handle；fixture contract 仍归属 MTP-137，Workbench / Report / Events surface 仍归属 MTP-138。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+## MTP-135 Position Snapshot Identity / Exposure Evidence Validation
+
+日期：2026-05-28
+
+执行者：Codex
+
+MTP-135 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-135 的验收要求：
+
+- `docs/contracts/account-position-balance-read-model-only-contract.md` 必须包含 `MTP-135-POSITION-SNAPSHOT-IDENTITY`、`MTP-135-POSITION-EXPOSURE-EVIDENCE`、`MTP-135-PAPER-SIMULATED-FUTURE-REAL-POSITION-ISOLATION`、`MTP-135-STALE-BLOCKED-SIMULATED-POSITION-EVIDENCE`、`MTP-135-FORBIDDEN-BROKER-POSITION-INTERPRETATION` 和 `MTP-135-POSITION-SNAPSHOT-IDENTITY-VALIDATION` anchors。
+- `docs/domain/context.md` 必须包含 MTP-135 position snapshot identity shared language，明确 position evidence 不能表示 broker position。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-135 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-135 当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Position snapshot identity / exposure evidence anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-135 contract、domain context、validation plan、trading matrix、latest summary、automation readiness doc 和 forbidden capability boundary strings。
+- PR 前必须确认 `.codex/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-135 必须建立的主要 anchors：
+
+- `MTP-135-POSITION-SNAPSHOT-IDENTITY`
+- `MTP-135-POSITION-EXPOSURE-EVIDENCE`
+- `MTP-135-PAPER-SIMULATED-FUTURE-REAL-POSITION-ISOLATION`
+- `MTP-135-STALE-BLOCKED-SIMULATED-POSITION-EVIDENCE`
+- `MTP-135-FORBIDDEN-BROKER-POSITION-INTERPRETATION`
+- `MTP-135-POSITION-SNAPSHOT-IDENTITY-VALIDATION`
+
+## MTP-135 禁止
+
+- 不同步 broker position。
+- 不读取 real position、margin、leverage、real account balance、broker portfolio 或 real PnL。
+- 不实现 broker adapter、account endpoint、listenKey、private stream、private WebSocket runtime、account snapshot runtime 或 live risk engine。
+- 不把 paper portfolio projection、simulated fill 或 simulated exchange exposure 升级为 real position、broker fill、execution report 或 reconciliation。
+- 不实现 broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace。
+- 不新增 Live PRO Console、trading button、live command、order form、emergency stop、shutdown 或 restore。
+- 不新增 position fixture payload、不新增 App surface、不新增 Dashboard smoke handle；fixture contract 仍归属 MTP-137，Workbench / Report / Events surface 仍归属 MTP-138。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
