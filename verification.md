@@ -12352,8 +12352,6 @@ Closure evidence：
 - 不实现 signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
 - 不允许 Strategy Instance 直接调用 Execution Client，不允许输出 broker command。
 
----
-
 ## 2026-05-28 — MTPRO L3.4 Core Engine Map Consistency Repair
 
 执行者：Codex
@@ -12387,3 +12385,43 @@ Closure evidence：
 - 不实现 Strategy / Trader runtime。
 - 不实现 signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
 - 不允许 Strategy Instance 直接调用 Execution Client，不允许输出 broker command。
+
+---
+
+## 2026-05-28 — MTPRO Account / Position / Balance Read-model-only v1 Planning Record
+
+执行者：Codex
+
+目的：
+
+- 将 `MTPRO Account / Position / Balance Read-model-only v1` 写入 docs-only Project Planning Record。
+- 明确该记录只规划 L3.1 account / position / balance read-model-only evidence、snapshot identity、source / freshness、fixture contract、forbidden real account tests 和 Workbench / Report / Events 只读 evidence surface。
+- 明确该记录不是 Project closure，不创建 Linear Project / Issue，不推进 Todo，不授权 implementation。
+
+更新内容：
+
+- 新增 `docs/planning/projects/mtpro-account-position-balance-read-model-only-v1-plan.md`。
+- 更新 `docs/planning/linear-draft-plan.md` 的 planning record index 和当前 planning record 指向。
+- 更新 `docs/validation/latest-verification-summary.md` 的 current planning record 和 planning record 入口。
+- 更新 `BLUEPRINT.md` 的来源引用。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | 无输出。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 278 个 XCTest；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify，不修改 Figma。
+- 不写业务代码。
+- 不实现 Account / Position / Balance runtime。
+- 不实现 Live read-only runtime。
+- 不实现 signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、real PnL、Live PRO Console、trading button、live command 或 order form。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
