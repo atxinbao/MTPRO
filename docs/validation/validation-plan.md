@@ -3071,3 +3071,50 @@ MTP-130 必须建立的主要 anchors：
 - 不把 fixture account snapshot 写成真实 account snapshot。
 - 不新增 Live PRO Console、trading button 或 live command。
 - 不运行 Graphify，不修改 Figma，不修改 Linear status，不推进 MTP-131。
+
+## MTP-131 Workbench Live Readiness Read-model-only Boundary Validation
+
+日期：2026-05-27
+
+执行者：Codex
+
+MTP-131 的 required validation：
+
+- `swift test --filter LiveReadOnlyWorkbench`
+- `swift test --filter AppTests/testLiveReadOnlyWorkbenchBoundaryViewModelAggregatesMTP131ReadOnlySurface`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-131 的验收要求：
+
+- `docs/contracts/live-read-only-readiness-boundary-contract.md` 必须包含 `MTP-131-WORKBENCH-LIVE-READINESS-READ-MODEL-ONLY-BOUNDARY`、`MTP-131-READ-MODEL-VIEWMODEL-INPUT-BOUNDARY`、`MTP-131-FORBIDDEN-UI-SURFACE`、`MTP-131-DETAIL-AUDIT-ROUTING`、`MTP-131-L31-L32-L33-HANDOFF` 和 `MTP-131-LIVE-READ-ONLY-WORKBENCH-VALIDATION` anchors。
+- `Sources/Core/LiveTradingBoundary.swift` 必须包含 `LiveReadOnlyWorkbenchReadModelBoundary` deterministic fixture，并固定 `TVM-LIVE-READ-ONLY-READINESS`、Workbench boundary surfaces、ReadModel / ViewModel input boundary、forbidden UI surface、detail / audit route、L3 handoff 和 forbidden flags。
+- `Sources/App/LiveReadOnlyWorkbenchBoundary.swift` 必须包含 `LiveReadOnlyWorkbenchBoundaryReadModel` 和 `LiveReadOnlyWorkbenchBoundaryViewModel`，只输出 read-model-only Dashboard / Report / Event Timeline evidence。
+- `Sources/App/App.swift`、`Sources/App/DashboardShell.swift` 和 `Sources/App/PaperWorkflowEvidenceExplorer.swift` 必须接入 MTP-131 read model / ViewModel、Dashboard shell metrics / details / smoke handle 和 Event Timeline evidence item。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 `testLiveReadOnlyWorkbenchReadModelBoundaryDefinesMTP131Surface` 和 `testLiveReadOnlyWorkbenchReadModelBoundaryRejectsForbiddenUISurfaceBypass`。
+- `Tests/AppTests/AppTests.swift` 必须包含 `testLiveReadOnlyWorkbenchBoundaryViewModelAggregatesMTP131ReadOnlySurface`，并覆盖 Dashboard shell、Report snapshot 和 Evidence Explorer read-only integration。
+- `docs/domain/context.md` 必须包含 MTP-131 Workbench Live readiness shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-131 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-131 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Live Read-only Workbench read-model-only boundary anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-131 contract、domain context、validation plan、trading matrix、latest summary、automation readiness doc、Core fixture、App read model / ViewModel、Dashboard shell、Event Timeline 和 focused test anchors。
+
+MTP-131 必须建立的主要 anchors：
+
+- `MTP-131-WORKBENCH-LIVE-READINESS-READ-MODEL-ONLY-BOUNDARY`
+- `MTP-131-READ-MODEL-VIEWMODEL-INPUT-BOUNDARY`
+- `MTP-131-FORBIDDEN-UI-SURFACE`
+- `MTP-131-DETAIL-AUDIT-ROUTING`
+- `MTP-131-L31-L32-L33-HANDOFF`
+- `MTP-131-LIVE-READ-ONLY-WORKBENCH-VALIDATION`
+
+## MTP-131 禁止
+
+- 不新增 API key input、secret storage、local secret read 或 credential provider。
+- 不新增 broker connect、account connect、Live PRO Console、trading button、live command 或 order form。
+- 不调用 signed endpoint、account endpoint / listenKey，不创建 private WebSocket。
+- 不读取 real account balance、broker position、margin、leverage、real PnL 或 account payload。
+- 不暴露 Runtime object、database schema、Persistence schema、ORM model 或 adapter request。
+- 不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、OMS 或 real order lifecycle。
+- 不提交、取消或替换真实订单，不授权 broker action 或 production operation。
+- 不运行 Graphify，不修改 Figma，不修改 Linear status，不推进 MTP-132。

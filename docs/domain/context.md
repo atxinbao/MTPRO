@@ -1024,6 +1024,30 @@ MTP-130 listenKey forbidden tests 必须证明 `LiveReadOnlyPrivateStreamAccount
 
 MTP-130 validation 必须证明 contract、domain context、validation plan、trading validation matrix、latest summary、automation readiness doc、Core fixture 和 focused tests 均固定 private stream / account snapshot simulation gate input boundary，并且 required validation 不读取 secret、不依赖真实 Binance 网络、不创建 listenKey、不连接 private WebSocket、不读取真实账户、不连接 broker、不触发真实交易行为。
 
+`MTP-131-WORKBENCH-LIVE-READINESS-READ-MODEL-ONLY-BOUNDARY`
+
+MTP-131 Workbench Live readiness read-model-only boundary 表示 Workbench、Dashboard、Report 和 Event Timeline 只能展示 Live readiness boundary evidence。`LiveReadOnlyWorkbenchReadModelBoundary`、`LiveReadOnlyWorkbenchBoundaryReadModel` 和 `LiveReadOnlyWorkbenchBoundaryViewModel` 只允许携带 surface labels、ReadModel / ViewModel input boundary、forbidden UI labels、detail / audit route、L3.1 / L3.2 / L3.3 handoff target、source anchors 和 validation anchors；它们不等于 API key 表单、broker connect、account connect、Live PRO Console、trading button、live command、order form、real account balance 或 broker position。
+
+`MTP-131-READ-MODEL-VIEWMODEL-INPUT-BOUNDARY`
+
+MTP-131 ReadModel / ViewModel input boundary 表示 UI 输入只能来自 Core deterministic fixture、App read model projection、App ViewModel snapshot、Dashboard shell snapshot 和 Evidence Explorer timeline route。Workbench / Dashboard 不允许直接读取 secret、Persistence schema、Runtime object、adapter request、signed endpoint、account endpoint、listenKey、private WebSocket、broker state、account payload 或真实账户数据。
+
+`MTP-131-FORBIDDEN-UI-SURFACE`
+
+MTP-131 forbidden UI surface 必须覆盖 API key input、secret storage、broker connect、account connect、Live PRO Console、trading button、live command、order form、real account balance、broker position、Runtime object、database schema、signed endpoint、account endpoint / listenKey、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle 和 real submit / cancel / replace。这些词只能作为 forbidden evidence、validation matrix 和 PR boundary evidence 出现，不能作为可见交互、连接向导、命令入口或真实账户展示。
+
+`MTP-131-DETAIL-AUDIT-ROUTING`
+
+MTP-131 detail / audit routing 只允许 Dashboard summary -> Report evidence、Report evidence -> Event Timeline、Event Timeline -> contract anchor 和 detail inspector -> validation anchor。它不授权查询语言、Runtime replay command、incident replay、stop control、broker operation、live audit runtime 或任何 production operation。
+
+`MTP-131-L31-L32-L33-HANDOFF`
+
+MTP-131 L3.1 / L3.2 / L3.3 handoff 只说明 Workbench UI 已保留后续只读 evidence 位置：account / position / balance read-model-only、private stream / account snapshot simulation gate 和 Live Monitoring read-only console v2。该 handoff 不授权后续 issue 自动执行，也不授权 signed/account/broker capability。
+
+`MTP-131-LIVE-READ-ONLY-WORKBENCH-VALIDATION`
+
+MTP-131 validation 必须证明 contract、domain context、validation plan、trading validation matrix、latest summary、automation readiness doc、Core fixture、App ReadModel / ViewModel、Dashboard shell、Event Timeline 和 focused tests 均固定 Workbench read-model-only boundary，并且 required validation 不读取 secret、不依赖真实 Binance 网络、不连接 broker、不触发真实交易行为、不创建 live command 或 trading button。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
