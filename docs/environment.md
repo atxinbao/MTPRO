@@ -94,6 +94,7 @@ bash checks/run.sh
 - `.codex/*`、`graphify-out/*` 和本地编辑器目录不得进入 PR。
 - 本地 Symphony active Project pointer 是运行时配置，不写成仓库永久事实。
 - `MTPRO Workbench Beta Readiness v1` 已完成的 local launch / install / environment verification path 只代表 SwiftPM local build、Dashboard smoke、deterministic demo scenario 和本地 operator acceptance 可复现；不代表 production release、notarization、App Store distribution、auto-update、production operations、Live read-only readiness、Live Production、signed endpoint、account endpoint / listenKey、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、Live PRO Console、trading button 或 live command。
+- `MTPRO Live Read-only Readiness Boundary v1` 已完成的 L3.0 boundary evidence 只代表 terminology、credential / secret policy、endpoint taxonomy、adapter capability matrix、account / position / balance future gates、private stream / account snapshot simulation gate、Workbench read-model-only boundary 和 validation anchors 已闭环；不代表 required validation 需要 secret，不代表真实 Live read-only runtime、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、broker position sync、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、Live PRO Console、trading button 或 live command 已实现或获授权。
 
 ## Automation Boundary / 自动化边界
 

@@ -284,7 +284,7 @@ require_contains "GOAL.md" "Evidence chain first"
 require_contains "GOAL.md" "Current Foundation Progress"
 require_contains "GOAL.md" "Final Product Goal Progress"
 require_contains "GOAL.md" "Engine Maturity Roadmap Progress: 4 / 4 (100%)"
-require_contains "GOAL.md" "L2+ Workbench Beta Readiness complete"
+require_contains "GOAL.md" "L3.0 Live Read-only Readiness Boundary complete"
 require_contains "GOAL.md" "无当前可执行推荐"
 require_contains "GOAL.md" "实盘交易基础边界"
 require_contains "GOAL.md" "实盘监控台"
@@ -333,6 +333,7 @@ require_contains "BLUEPRINT.md" "Engine Maturity Roadmap Progress：4 / 4（100%
 require_contains "BLUEPRINT.md" 'MTPRO Data Catalog / Scenario Replay v1` 已由 Parent Codex 完成 Project closure'
 require_contains "BLUEPRINT.md" 'MTPRO Simulated Exchange / Backtest Parity v1` 已由 Parent Codex 完成 Project closure'
 require_contains "BLUEPRINT.md" 'MTPRO Workbench Beta Readiness v1` 已由 Parent Codex 完成 Project closure'
+require_contains "BLUEPRINT.md" 'MTPRO Live Read-only Readiness Boundary v1'
 require_contains "BLUEPRINT.md" "Gated / Forbidden Capabilities / 受门禁保护或当前禁止的能力"
 require_contains "BLUEPRINT.md" "可以被蓝图描述，但不能自动变成当前 Project、Linear issue 或执行授权"
 require_contains "BLUEPRINT.md" "未来可能需要，但当前必须被门禁或禁止的能力"
@@ -366,10 +367,10 @@ require_contains "AGENTS.md" "Future Construction Zones / 未来建设区"
 require_contains "AGENTS.md" '不启动 `@002 / PAR`'
 require_contains "docs/roadmap.md" "Current Foundation Progress"
 require_contains "docs/roadmap.md" "Final Product Goal Progress"
-require_contains "docs/roadmap.md" "Project Closure Count: 16 / 16 (100%)"
+require_contains "docs/roadmap.md" "Project Closure Count: 17 / 17 (100%)"
 require_contains "docs/roadmap.md" "Engine Maturity Roadmap Progress: 4 / 4 (100%)"
 require_contains "docs/roadmap.md" "Final Product Progress"
-require_contains "docs/roadmap.md" 'Current maturity statement：`L2+ Workbench Beta Readiness complete`'
+require_contains "docs/roadmap.md" 'Current maturity statement：`L3.0 Live Read-only Readiness Boundary complete`'
 require_contains "docs/roadmap.md" 'Next recommended maturity slice：无当前可执行推荐'
 require_contains "docs/roadmap.md" "根据蓝图和工程模块定义施工顺序"
 require_contains "docs/roadmap.md" "Roadmap Responsibility / 路线职责"
@@ -398,7 +399,7 @@ require_contains "docs/environment.md" "Secrets / Local State Boundary"
 require_contains "docs/environment.md" "Automation Boundary / 自动化边界"
 require_contains "docs/validation/latest-verification-summary.md" "Current Foundation Progress: 4 / 4 (100%)"
 require_contains "docs/validation/latest-verification-summary.md" "Final Product Goal Progress: 9 / 9 (100%)"
-require_contains "docs/validation/latest-verification-summary.md" "Project Closure Count: 16 / 16 (100%)"
+require_contains "docs/validation/latest-verification-summary.md" "Project Closure Count: 17 / 17 (100%)"
 require_contains "docs/validation/latest-verification-summary.md" "Engine Maturity Roadmap Progress"
 require_contains "docs/validation/latest-verification-summary.md" "4 / 4（100%）"
 for planning_record in \
@@ -1615,6 +1616,8 @@ require_contains "docs/automation/automation-readiness.md" "Simulated Exchange /
 require_contains "docs/automation/automation-readiness.md" "Workbench Beta Readiness contract anchor"
 require_contains "docs/automation/automation-readiness.md" "Workbench Beta Readiness stage code audit report anchor"
 require_contains "docs/automation/automation-readiness.md" "Workbench Beta Readiness root docs refresh anchor"
+require_contains "docs/automation/automation-readiness.md" "Live Read-only Readiness stage code audit report anchor"
+require_contains "docs/automation/automation-readiness.md" "Live Read-only Readiness root docs refresh anchor"
 require_contains "docs/audit/mtpro-data-catalog-scenario-replay-v1-stage-code-audit.md" "MTPRO Data Catalog / Scenario Replay v1 Stage Code Audit Report"
 require_contains "docs/audit/mtpro-data-catalog-scenario-replay-v1-stage-code-audit.md" 'Linear Project closure 已完成'
 require_contains "docs/audit/mtpro-data-catalog-scenario-replay-v1-stage-code-audit.md" "Project goal 已达成"
@@ -1629,6 +1632,11 @@ require_contains "docs/audit/mtpro-workbench-beta-readiness-v1-stage-code-audit.
 require_contains "docs/audit/mtpro-workbench-beta-readiness-v1-stage-code-audit.md" "Project goal 已达成"
 require_contains "docs/audit/mtpro-workbench-beta-readiness-v1-stage-code-audit.md" "L2+ Workbench Beta Readiness"
 require_contains "docs/audit/mtpro-workbench-beta-readiness-v1-stage-code-audit.md" "Root Docs Refresh Gate：closed"
+require_contains "docs/audit/mtpro-live-read-only-readiness-boundary-v1-stage-code-audit.md" "MTPRO Live Read-only Readiness Boundary v1 Stage Code Audit Report"
+require_contains "docs/audit/mtpro-live-read-only-readiness-boundary-v1-stage-code-audit.md" "Linear Project closure 已完成"
+require_contains "docs/audit/mtpro-live-read-only-readiness-boundary-v1-stage-code-audit.md" "Project goal 已达成"
+require_contains "docs/audit/mtpro-live-read-only-readiness-boundary-v1-stage-code-audit.md" "L3.0 Live Read-only Readiness Boundary"
+require_contains "docs/audit/mtpro-live-read-only-readiness-boundary-v1-stage-code-audit.md" "Root Docs Refresh Gate：closed"
 require_contains "docs/validation/validation-plan.md" "MTP-102 Event Log / Replay / Report / Dashboard Evidence Stage Closeout Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-102 issue backfill"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-102 的当前 issue execution evidence"
@@ -1791,8 +1799,10 @@ require_contains "docs/validation/latest-verification-summary.md" "Stage Code Au
 require_contains "docs/validation/latest-verification-summary.md" "4ca2904592b5e13d32caac1ffbcb0ea0c4a19a58"
 require_contains "docs/validation/latest-verification-summary.md" "Stage Code Audit PR #230"
 require_contains "docs/validation/latest-verification-summary.md" "8ee5d0ab2ffa6e7d3916b72f5ed7834cedefdca8"
-require_contains "docs/validation/latest-verification-summary.md" "L2+ Workbench Beta Readiness 当前成熟度结论"
-require_contains "docs/validation/latest-verification-summary.md" "L2+ Workbench Beta Readiness complete"
+require_contains "docs/validation/latest-verification-summary.md" "Stage Code Audit PR #241"
+require_contains "docs/validation/latest-verification-summary.md" "e7bd3bb90807fabf21c91008c9000b517b25ae4d"
+require_contains "docs/validation/latest-verification-summary.md" "L3.0 Live Read-only Readiness Boundary 当前成熟度结论"
+require_contains "docs/validation/latest-verification-summary.md" "L3.0 Live Read-only Readiness Boundary complete"
 require_contains "docs/audit/inputs/mtpro-data-catalog-scenario-replay-v1-stage-audit-input.md" "MTP-109-DATA-CATALOG-SCENARIO-REPLAY-STAGE-AUDIT-INPUT"
 require_contains "docs/audit/inputs/mtpro-data-catalog-scenario-replay-v1-stage-audit-input.md" "MTP-109-DATA-CATALOG-SCENARIO-REPLAY-VALIDATION-EVIDENCE-CHAIN"
 require_contains "docs/audit/inputs/mtpro-data-catalog-scenario-replay-v1-stage-audit-input.md" "MTP-109-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN"
