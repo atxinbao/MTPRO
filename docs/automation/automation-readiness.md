@@ -49,6 +49,7 @@
 | Workbench Beta Readiness stage code audit report anchor | ready | `docs/audit/mtpro-workbench-beta-readiness-v1-stage-code-audit.md`；记录 MTP-118 至 MTP-125 Project closure、Linear Project `Completed/type=completed`、PR / merge / checks evidence、validation、Root Docs Delta 和 forbidden capability audit |
 | Workbench Beta Readiness root docs refresh anchor | ready | Engine Maturity Roadmap Progress `4 / 4 (100%)`；current maturity statement `L2+ Workbench Beta Readiness complete`；L3 / L4 仍为 Future Gated，不计入当前 progress denominator，不授权下一 Project |
 | Live Read-only Readiness contract anchor | ready | `docs/contracts/live-read-only-readiness-boundary-contract.md`；MTP-126 只定义 L3.0 terminology、target engines / layers、handoff boundary、forbidden capability baseline 和 validation anchors，不实现 endpoint、secret、adapter、account read model、UI、live runtime、Graphify 或 Figma |
+| Live Read-only credential / endpoint taxonomy anchor | ready | `Sources/Core/LiveTradingBoundary.swift` 中的 `LiveReadOnlyCredentialEndpointTaxonomyBoundary`、`Tests/CoreTests/CoreTests.swift` focused tests 和 `docs/contracts/live-read-only-readiness-boundary-contract.md`；MTP-127 只定义 credential / secret policy future gate、endpoint capability taxonomy、public read-only / private endpoint isolation 和 forbidden capability tests，不实现 API key / secret storage、不读取本地 secret、不实现 signed/account/listenKey/private WebSocket/broker action/runtime |
 
 ## Project 切换规则
 

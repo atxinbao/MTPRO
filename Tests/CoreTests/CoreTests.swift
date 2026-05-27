@@ -348,6 +348,192 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testLiveReadOnlyCredentialEndpointTaxonomyDefinesMTP127FutureGates() throws {
+        // 测试场景：MTP-127 只定义 L3.0 credential / secret policy future gate
+        // 和 endpoint capability taxonomy；public market data 是唯一当前允许能力，其余
+        // signed / account / listenKey / private stream / broker action 都必须保持 forbidden。
+        let boundary = LiveReadOnlyCredentialEndpointTaxonomyBoundary.deterministicFixture
+
+        XCTAssertEqual(
+            boundary.contractID,
+            try Identifier("mtp-127-live-read-only-credential-endpoint-taxonomy")
+        )
+        XCTAssertEqual(boundary.issueID, try Identifier("MTP-127"))
+        XCTAssertEqual(boundary.matrixID, "TVM-LIVE-READ-ONLY-READINESS")
+        XCTAssertEqual(boundary.credentialPolicyTerms, LiveReadOnlyCredentialPolicyTerm.allCases)
+        XCTAssertEqual(boundary.endpointTaxonomy, LiveReadOnlyEndpointCapabilityTaxonomy.allCases)
+        XCTAssertEqual(
+            boundary.allowedCurrentEndpointCapabilities,
+            [.publicReadOnlyMarketData]
+        )
+        XCTAssertEqual(
+            boundary.forbiddenEndpointCapabilities,
+            [
+                .signedEndpointForbidden,
+                .accountEndpointForbidden,
+                .listenKeyForbidden,
+                .privateWebSocketForbidden,
+                .brokerActionForbidden
+            ]
+        )
+        XCTAssertEqual(
+            boundary.futureGates,
+            [
+                .humanIndependentLiveDecision,
+                .credentialSecretPolicy,
+                .signedEndpointCapabilityContract,
+                .accountEndpointCapabilityContract,
+                .listenKeyPrivateStreamSimulationGate,
+                .adapterCapabilityMatrix,
+                .brokerActionNonExecutionAudit
+            ]
+        )
+        XCTAssertEqual(
+            boundary.allowedEvidenceKinds,
+            [
+                .contractDocumentation,
+                .domainContextTerms,
+                .validationMatrixAnchor,
+                .automationReadinessAnchor,
+                .deterministicForbiddenTest,
+                .prBoundaryEvidence
+            ]
+        )
+        XCTAssertTrue(boundary.credentialEndpointTaxonomyBoundaryHeld)
+        XCTAssertFalse(boundary.readsLocalSecret)
+        XCTAssertFalse(boundary.implementsAPIKeyStorage)
+        XCTAssertFalse(boundary.createsSecretConfigurationPath)
+        XCTAssertFalse(boundary.signsRequest)
+        XCTAssertFalse(boundary.callsSignedEndpoint)
+        XCTAssertFalse(boundary.callsAccountEndpoint)
+        XCTAssertFalse(boundary.createsListenKey)
+        XCTAssertFalse(boundary.opensPrivateWebSocket)
+        XCTAssertFalse(boundary.connectsBrokerAdapter)
+        XCTAssertFalse(boundary.performsBrokerAction)
+        XCTAssertFalse(boundary.implementsLiveExecutionAdapter)
+        XCTAssertFalse(boundary.exposesPrivateReadRuntime)
+        XCTAssertFalse(boundary.upgradesPublicReadOnlyAdapter)
+        XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(
+            LiveReadOnlyCredentialEndpointTaxonomyBoundary.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, boundary)
+    }
+
+    func testLiveReadOnlyCredentialEndpointTaxonomyRejectsSecretEndpointAndBrokerBypass() throws {
+        // 测试场景：MTP-127 taxonomy fixture 的初始化和 Codable 解码都必须拒绝
+        // secret read、secret storage、signed/account endpoint、listenKey、private WebSocket、
+        // broker action、LiveExecutionAdapter 和 public adapter 升级。
+        let forbiddenFlagCases: [
+            (field: String, build: () throws -> LiveReadOnlyCredentialEndpointTaxonomyBoundary)
+        ] = [
+            (
+                "readsLocalSecret",
+                { try LiveReadOnlyCredentialEndpointTaxonomyBoundary(readsLocalSecret: true) }
+            ),
+            (
+                "implementsAPIKeyStorage",
+                { try LiveReadOnlyCredentialEndpointTaxonomyBoundary(implementsAPIKeyStorage: true) }
+            ),
+            (
+                "createsSecretConfigurationPath",
+                { try LiveReadOnlyCredentialEndpointTaxonomyBoundary(createsSecretConfigurationPath: true) }
+            ),
+            (
+                "signsRequest",
+                { try LiveReadOnlyCredentialEndpointTaxonomyBoundary(signsRequest: true) }
+            ),
+            (
+                "callsSignedEndpoint",
+                { try LiveReadOnlyCredentialEndpointTaxonomyBoundary(callsSignedEndpoint: true) }
+            ),
+            (
+                "callsAccountEndpoint",
+                { try LiveReadOnlyCredentialEndpointTaxonomyBoundary(callsAccountEndpoint: true) }
+            ),
+            (
+                "createsListenKey",
+                { try LiveReadOnlyCredentialEndpointTaxonomyBoundary(createsListenKey: true) }
+            ),
+            (
+                "opensPrivateWebSocket",
+                { try LiveReadOnlyCredentialEndpointTaxonomyBoundary(opensPrivateWebSocket: true) }
+            ),
+            (
+                "connectsBrokerAdapter",
+                { try LiveReadOnlyCredentialEndpointTaxonomyBoundary(connectsBrokerAdapter: true) }
+            ),
+            (
+                "performsBrokerAction",
+                { try LiveReadOnlyCredentialEndpointTaxonomyBoundary(performsBrokerAction: true) }
+            ),
+            (
+                "implementsLiveExecutionAdapter",
+                { try LiveReadOnlyCredentialEndpointTaxonomyBoundary(implementsLiveExecutionAdapter: true) }
+            ),
+            (
+                "exposesPrivateReadRuntime",
+                { try LiveReadOnlyCredentialEndpointTaxonomyBoundary(exposesPrivateReadRuntime: true) }
+            ),
+            (
+                "upgradesPublicReadOnlyAdapter",
+                { try LiveReadOnlyCredentialEndpointTaxonomyBoundary(upgradesPublicReadOnlyAdapter: true) }
+            ),
+            (
+                "requiredValidationDependsOnNetwork",
+                { try LiveReadOnlyCredentialEndpointTaxonomyBoundary(requiredValidationDependsOnNetwork: true) }
+            )
+        ]
+
+        for flagCase in forbiddenFlagCases {
+            XCTAssertThrowsError(try flagCase.build()) { error in
+                XCTAssertEqual(
+                    error as? CoreError,
+                    .liveTradingBoundaryForbiddenCapability(flagCase.field)
+                )
+            }
+        }
+        XCTAssertThrowsError(
+            try LiveReadOnlyCredentialEndpointTaxonomyBoundary(
+                endpointTaxonomy: [.publicReadOnlyMarketData]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "endpointTaxonomy",
+                    expected: LiveReadOnlyCredentialEndpointTaxonomyBoundary
+                        .requiredEndpointTaxonomy
+                        .map(\.rawValue)
+                        .joined(separator: ","),
+                    actual: "public read-only market data"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(
+            LiveReadOnlyCredentialEndpointTaxonomyBoundary.deterministicFixture
+        )
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["createsListenKey"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(
+                LiveReadOnlyCredentialEndpointTaxonomyBoundary.self,
+                from: data
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("createsListenKey")
+            )
+        }
+    }
+
     func testLiveAdapterCapabilityIsolationBoundaryDefinesMTP63GateTwoAsFutureOnly() throws {
         // 测试场景：MTP-63 只定义 current public read-only adapter 与 future live adapter
         // capability 的隔离合同；LiveExecutionAdapter 和 broker / exchange execution adapter

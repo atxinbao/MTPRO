@@ -12023,3 +12023,39 @@ Root Docs Refresh Gate 更新：
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
 - 不新增 Swift production code、Runtime job、App read model、Dashboard UI、endpoint、secret、adapter、account read model 或 live runtime。
 - 不实现 signed endpoint、account endpoint / listenKey、API key / secret read、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
+
+---
+
+## 2026-05-27 — MTP-127 Credential / secret policy and endpoint capability taxonomy
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear live-read 中唯一 active issue `MTP-127 Define credential / secret policy and endpoint capability taxonomy`。
+- 定义 L3.0 credential / secret policy future gate、endpoint capability taxonomy、public read-only / private endpoint isolation 和 forbidden capability tests。
+- 只建立 Core deterministic fixture、focused tests、contract / domain / validation / automation anchors；不实现 secret、endpoint、adapter、runtime、UI 或交易能力。
+
+实现摘要：
+
+- 在 `Sources/Core/LiveTradingBoundary.swift` 新增 `LiveReadOnlyCredentialPolicyTerm`、`LiveReadOnlyEndpointCapabilityTaxonomy`、`LiveReadOnlyCredentialEndpointFutureGate`、`LiveReadOnlyCredentialEndpointEvidenceKind` 和 `LiveReadOnlyCredentialEndpointTaxonomyBoundary`。
+- 在 `Tests/CoreTests/CoreTests.swift` 新增 `testLiveReadOnlyCredentialEndpointTaxonomyDefinesMTP127FutureGates` 和 `testLiveReadOnlyCredentialEndpointTaxonomyRejectsSecretEndpointAndBrokerBypass`。
+- 更新 `docs/contracts/live-read-only-readiness-boundary-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，接入 MTP-127 exact anchors。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter LiveReadOnlyCredentialEndpointTaxonomy` | first run failed | TDD 红灯：`LiveReadOnlyCredentialEndpointTaxonomyBoundary` 和相关 enum 尚未实现；随后补 Core contract。 |
+| `swift test --filter LiveReadOnlyCredentialEndpointTaxonomy` | pass | 2 tests、0 failures；覆盖 MTP-127 future gates、endpoint taxonomy、public read-only 唯一 allowed capability、forbidden flags 和 Codable bypass rejection。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；机械检查 MTP-127 contract、domain context、validation plan、trading matrix、latest summary、automation readiness doc、Core fixture 和 focused test anchors。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 269 个 XCTest；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=64; scenarioReplayEvidence=1; scenarioQualityGates=6; simulatedParityEvidence=1; defaultDemoState=default demo; defaultDemoScenario=mtp-104-btcusdt-1m-first-scenario; betaFirstRunFallbacks=3; betaAcceptancePaths=1; betaAcceptanceScenario=mtp-104-btcusdt-1m-first-scenario; betaAcceptanceTrace=5; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不读取本地 secret，不实现 API key / secret storage，不新增 env / keychain / config secret path。
+- 不实现 signed request、signed endpoint、account endpoint、listenKey、private WebSocket、account snapshot runtime 或 private read runtime。
+- 不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`，不执行 broker action。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
+- 不修改 Linear status、不创建 Linear Project / Issue、不推进 MTP-128。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。

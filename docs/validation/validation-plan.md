@@ -2908,3 +2908,44 @@ MTP-126 必须建立的主要 anchors：
 - 不读取 real account、broker position、margin、leverage、real PnL 或 equity。
 - 不实现 account / position / balance read model、Live Monitoring Console v2、Live PRO Console、trading button、live command、order form、emergency stop、shutdown 或 restore。
 - 不运行 Graphify，不修改 Figma，不修改 Linear status，不推进 MTP-127。
+
+## MTP-127 Credential / Secret Policy and Endpoint Capability Taxonomy Validation
+
+日期：2026-05-27
+
+执行者：Codex
+
+MTP-127 的 required validation：
+
+- `swift test --filter LiveReadOnlyCredentialEndpointTaxonomy`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-127 的验收要求：
+
+- `docs/contracts/live-read-only-readiness-boundary-contract.md` 必须包含 `MTP-127-CREDENTIAL-SECRET-POLICY-FUTURE-GATE`、`MTP-127-ENDPOINT-CAPABILITY-TAXONOMY`、`MTP-127-PUBLIC-READ-ONLY-PRIVATE-ENDPOINT-ISOLATION`、`MTP-127-FORBIDDEN-CAPABILITY-TESTS` 和 `MTP-127-LIVE-READ-ONLY-CREDENTIAL-ENDPOINT-VALIDATION` anchors。
+- `Sources/Core/LiveTradingBoundary.swift` 必须包含 `LiveReadOnlyCredentialEndpointTaxonomyBoundary` deterministic fixture，并固定 `TVM-LIVE-READ-ONLY-READINESS`、public read-only 唯一 allowed capability 和 forbidden endpoint taxonomy。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 `testLiveReadOnlyCredentialEndpointTaxonomyDefinesMTP127FutureGates` 和 `testLiveReadOnlyCredentialEndpointTaxonomyRejectsSecretEndpointAndBrokerBypass`。
+- `docs/domain/context.md` 必须包含 MTP-127 credential / endpoint taxonomy terms，明确 no secret read、no API key / secret storage、no signed/account/listenKey/private websocket/broker action。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-127 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-127 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Live Read-only credential / endpoint taxonomy anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-127 contract、domain context、validation plan、trading matrix、latest summary、automation readiness doc、Core fixture 和 focused test anchors。
+
+MTP-127 必须建立的主要 anchors：
+
+- `MTP-127-CREDENTIAL-SECRET-POLICY-FUTURE-GATE`
+- `MTP-127-ENDPOINT-CAPABILITY-TAXONOMY`
+- `MTP-127-PUBLIC-READ-ONLY-PRIVATE-ENDPOINT-ISOLATION`
+- `MTP-127-FORBIDDEN-CAPABILITY-TESTS`
+- `MTP-127-LIVE-READ-ONLY-CREDENTIAL-ENDPOINT-VALIDATION`
+
+## MTP-127 禁止
+
+- 不实现 API key / secret storage，不读取本地 secret。
+- 不新增 env / keychain / config secret path，不实现 credential provider runtime。
+- 不实现 signed request、signed endpoint、account endpoint、listenKey、private WebSocket runtime 或 account snapshot runtime。
+- 不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`，不执行 broker action。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不实现 account / position / balance read model、Live Monitoring Console v2、Live PRO Console、trading button、live command、order form、emergency stop、shutdown 或 restore。
+- 不运行 Graphify，不修改 Figma，不修改 Linear status，不推进 MTP-128。

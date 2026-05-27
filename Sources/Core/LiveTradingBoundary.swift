@@ -54,6 +54,59 @@ public enum LiveTradingCredentialEndpointEvidenceKind: String, Codable, CaseIter
     case prBoundaryEvidence = "PR boundary evidence"
 }
 
+/// LiveReadOnlyCredentialPolicyTerm 固定 MTP-127 的 credential / secret policy 边界词汇。
+///
+/// 这些术语只描述后续 L3.x 进入真实只读账户能力前必须补齐的 policy gate；当前 Core
+/// 不读取本地 secret，不新增 env / Keychain / config secret path，也不实现 credential provider。
+public enum LiveReadOnlyCredentialPolicyTerm: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case credentialSecretPolicyFutureGate = "credential / secret policy future gate"
+    case noLocalSecretRead = "no local secret read"
+    case noAPIKeySecretStorageImplementation = "no API key / secret storage implementation"
+    case noSecretConfigurationPath = "no env / keychain / config secret path"
+    case noCredentialProviderRuntime = "no credential provider runtime"
+}
+
+/// LiveReadOnlyEndpointCapabilityTaxonomy 固定 MTP-127 的 endpoint capability taxonomy。
+///
+/// `publicReadOnlyMarketData` 是当前唯一允许的 endpoint capability；其余值只能作为
+/// forbidden / future gate evidence 出现，不能被解释为当前 signed、account、listenKey、
+/// private stream、broker action 或 execution runtime。
+public enum LiveReadOnlyEndpointCapabilityTaxonomy: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case publicReadOnlyMarketData = "public read-only market data"
+    case signedEndpointForbidden = "signed endpoint forbidden"
+    case accountEndpointForbidden = "account endpoint forbidden"
+    case listenKeyForbidden = "listenKey forbidden"
+    case privateWebSocketForbidden = "private WebSocket forbidden"
+    case brokerActionForbidden = "broker action forbidden"
+}
+
+/// LiveReadOnlyCredentialEndpointFutureGate 定义 MTP-127 后续才能进入规划的 gate。
+///
+/// Gate 只描述 policy、contract、simulation input、adapter matrix 和 audit prerequisites；
+/// 当前类型不实现 endpoint runtime，也不授权 L3.1、L3.2、L3.3 或 L4 自动施工。
+public enum LiveReadOnlyCredentialEndpointFutureGate: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case humanIndependentLiveDecision = "Human independent Live decision"
+    case credentialSecretPolicy = "credential / secret policy"
+    case signedEndpointCapabilityContract = "signed endpoint capability contract"
+    case accountEndpointCapabilityContract = "account endpoint capability contract"
+    case listenKeyPrivateStreamSimulationGate = "listenKey / private stream simulation gate"
+    case adapterCapabilityMatrix = "adapter capability matrix"
+    case brokerActionNonExecutionAudit = "broker action non-execution audit"
+}
+
+/// LiveReadOnlyCredentialEndpointEvidenceKind 限定 MTP-127 可以产生的非执行证据。
+///
+/// Evidence 只用于合同、shared language、validation matrix、automation readiness、focused tests
+/// 和 PR boundary evidence；它不创建 secret、endpoint、adapter、runtime 或 UI surface。
+public enum LiveReadOnlyCredentialEndpointEvidenceKind: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case contractDocumentation = "contract documentation"
+    case domainContextTerms = "domain context terms"
+    case validationMatrixAnchor = "validation matrix anchor"
+    case automationReadinessAnchor = "automation readiness anchor"
+    case deterministicForbiddenTest = "deterministic forbidden capability test"
+    case prBoundaryEvidence = "PR boundary evidence"
+}
+
 /// LiveAdapterIsolationForbiddenCapability 枚举 MTP-63 Gate 2 必须阻断的 adapter 能力。
 ///
 /// 这些值只描述 future / gated adapter capability，不能被解释为当前 `Adapters` target
@@ -953,6 +1006,336 @@ public struct LiveTradingCredentialEndpointBoundary: Codable, Equatable, Sendabl
             ("callsAccountEndpoint", callsAccountEndpoint),
             ("createsListenKey", createsListenKey),
             ("consumesRealAccountPayload", consumesRealAccountPayload),
+            ("upgradesPublicReadOnlyAdapter", upgradesPublicReadOnlyAdapter),
+            ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(capability.0)
+        }
+    }
+}
+
+/// LiveReadOnlyCredentialEndpointTaxonomyBoundary 是 MTP-127 的 L3.0 credential / endpoint taxonomy fixture。
+///
+/// 该合同只把 credential / secret policy、endpoint capability taxonomy 和 public read-only
+/// 隔离关系固定为 deterministic evidence。当前唯一允许能力是 public read-only market data；
+/// API key / secret storage、本地 secret read、signed endpoint、account endpoint、listenKey、
+/// private WebSocket、broker action、`LiveExecutionAdapter` 和 private read runtime flag 必须
+/// 全部保持 false。Codable 解码会重复执行同一校验，防止测试 payload 或后续 read model
+/// 把 L3.0 readiness taxonomy 反序列化成真实 endpoint runtime。
+public struct LiveReadOnlyCredentialEndpointTaxonomyBoundary: Codable, Equatable, Sendable {
+    public let contractID: Identifier
+    public let issueID: Identifier
+    public let matrixID: String
+    public let credentialPolicyTerms: [LiveReadOnlyCredentialPolicyTerm]
+    public let endpointTaxonomy: [LiveReadOnlyEndpointCapabilityTaxonomy]
+    public let allowedCurrentEndpointCapabilities: [LiveReadOnlyEndpointCapabilityTaxonomy]
+    public let forbiddenEndpointCapabilities: [LiveReadOnlyEndpointCapabilityTaxonomy]
+    public let futureGates: [LiveReadOnlyCredentialEndpointFutureGate]
+    public let allowedEvidenceKinds: [LiveReadOnlyCredentialEndpointEvidenceKind]
+    public let readsLocalSecret: Bool
+    public let implementsAPIKeyStorage: Bool
+    public let createsSecretConfigurationPath: Bool
+    public let signsRequest: Bool
+    public let callsSignedEndpoint: Bool
+    public let callsAccountEndpoint: Bool
+    public let createsListenKey: Bool
+    public let opensPrivateWebSocket: Bool
+    public let connectsBrokerAdapter: Bool
+    public let performsBrokerAction: Bool
+    public let implementsLiveExecutionAdapter: Bool
+    public let exposesPrivateReadRuntime: Bool
+    public let upgradesPublicReadOnlyAdapter: Bool
+    public let requiredValidationDependsOnNetwork: Bool
+
+    public var credentialEndpointTaxonomyBoundaryHeld: Bool {
+        matrixID == Self.requiredMatrixID
+            && credentialPolicyTerms == Self.requiredCredentialPolicyTerms
+            && endpointTaxonomy == Self.requiredEndpointTaxonomy
+            && allowedCurrentEndpointCapabilities == Self.requiredAllowedCurrentEndpointCapabilities
+            && forbiddenEndpointCapabilities == Self.requiredForbiddenEndpointCapabilities
+            && futureGates == Self.requiredFutureGates
+            && allowedEvidenceKinds == Self.allowedEvidenceKinds
+            && readsLocalSecret == false
+            && implementsAPIKeyStorage == false
+            && createsSecretConfigurationPath == false
+            && signsRequest == false
+            && callsSignedEndpoint == false
+            && callsAccountEndpoint == false
+            && createsListenKey == false
+            && opensPrivateWebSocket == false
+            && connectsBrokerAdapter == false
+            && performsBrokerAction == false
+            && implementsLiveExecutionAdapter == false
+            && exposesPrivateReadRuntime == false
+            && upgradesPublicReadOnlyAdapter == false
+            && requiredValidationDependsOnNetwork == false
+    }
+
+    public init(
+        contractID: Identifier = try! Identifier("mtp-127-live-read-only-credential-endpoint-taxonomy"),
+        issueID: Identifier = try! Identifier("MTP-127"),
+        matrixID: String = Self.requiredMatrixID,
+        credentialPolicyTerms: [LiveReadOnlyCredentialPolicyTerm] = Self.requiredCredentialPolicyTerms,
+        endpointTaxonomy: [LiveReadOnlyEndpointCapabilityTaxonomy] = Self.requiredEndpointTaxonomy,
+        allowedCurrentEndpointCapabilities: [LiveReadOnlyEndpointCapabilityTaxonomy] =
+            Self.requiredAllowedCurrentEndpointCapabilities,
+        forbiddenEndpointCapabilities: [LiveReadOnlyEndpointCapabilityTaxonomy] =
+            Self.requiredForbiddenEndpointCapabilities,
+        futureGates: [LiveReadOnlyCredentialEndpointFutureGate] = Self.requiredFutureGates,
+        allowedEvidenceKinds: [LiveReadOnlyCredentialEndpointEvidenceKind] = Self.allowedEvidenceKinds,
+        readsLocalSecret: Bool = false,
+        implementsAPIKeyStorage: Bool = false,
+        createsSecretConfigurationPath: Bool = false,
+        signsRequest: Bool = false,
+        callsSignedEndpoint: Bool = false,
+        callsAccountEndpoint: Bool = false,
+        createsListenKey: Bool = false,
+        opensPrivateWebSocket: Bool = false,
+        connectsBrokerAdapter: Bool = false,
+        performsBrokerAction: Bool = false,
+        implementsLiveExecutionAdapter: Bool = false,
+        exposesPrivateReadRuntime: Bool = false,
+        upgradesPublicReadOnlyAdapter: Bool = false,
+        requiredValidationDependsOnNetwork: Bool = false
+    ) throws {
+        try Self.validate(
+            matrixID: matrixID,
+            credentialPolicyTerms: credentialPolicyTerms,
+            endpointTaxonomy: endpointTaxonomy,
+            allowedCurrentEndpointCapabilities: allowedCurrentEndpointCapabilities,
+            forbiddenEndpointCapabilities: forbiddenEndpointCapabilities,
+            futureGates: futureGates,
+            allowedEvidenceKinds: allowedEvidenceKinds
+        )
+        try Self.validateForbiddenFlags(
+            readsLocalSecret: readsLocalSecret,
+            implementsAPIKeyStorage: implementsAPIKeyStorage,
+            createsSecretConfigurationPath: createsSecretConfigurationPath,
+            signsRequest: signsRequest,
+            callsSignedEndpoint: callsSignedEndpoint,
+            callsAccountEndpoint: callsAccountEndpoint,
+            createsListenKey: createsListenKey,
+            opensPrivateWebSocket: opensPrivateWebSocket,
+            connectsBrokerAdapter: connectsBrokerAdapter,
+            performsBrokerAction: performsBrokerAction,
+            implementsLiveExecutionAdapter: implementsLiveExecutionAdapter,
+            exposesPrivateReadRuntime: exposesPrivateReadRuntime,
+            upgradesPublicReadOnlyAdapter: upgradesPublicReadOnlyAdapter,
+            requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork
+        )
+
+        self.contractID = contractID
+        self.issueID = issueID
+        self.matrixID = matrixID
+        self.credentialPolicyTerms = credentialPolicyTerms
+        self.endpointTaxonomy = endpointTaxonomy
+        self.allowedCurrentEndpointCapabilities = allowedCurrentEndpointCapabilities
+        self.forbiddenEndpointCapabilities = forbiddenEndpointCapabilities
+        self.futureGates = futureGates
+        self.allowedEvidenceKinds = allowedEvidenceKinds
+        self.readsLocalSecret = readsLocalSecret
+        self.implementsAPIKeyStorage = implementsAPIKeyStorage
+        self.createsSecretConfigurationPath = createsSecretConfigurationPath
+        self.signsRequest = signsRequest
+        self.callsSignedEndpoint = callsSignedEndpoint
+        self.callsAccountEndpoint = callsAccountEndpoint
+        self.createsListenKey = createsListenKey
+        self.opensPrivateWebSocket = opensPrivateWebSocket
+        self.connectsBrokerAdapter = connectsBrokerAdapter
+        self.performsBrokerAction = performsBrokerAction
+        self.implementsLiveExecutionAdapter = implementsLiveExecutionAdapter
+        self.exposesPrivateReadRuntime = exposesPrivateReadRuntime
+        self.upgradesPublicReadOnlyAdapter = upgradesPublicReadOnlyAdapter
+        self.requiredValidationDependsOnNetwork = requiredValidationDependsOnNetwork
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            contractID: try container.decode(Identifier.self, forKey: .contractID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            matrixID: try container.decode(String.self, forKey: .matrixID),
+            credentialPolicyTerms: try container.decode(
+                [LiveReadOnlyCredentialPolicyTerm].self,
+                forKey: .credentialPolicyTerms
+            ),
+            endpointTaxonomy: try container.decode(
+                [LiveReadOnlyEndpointCapabilityTaxonomy].self,
+                forKey: .endpointTaxonomy
+            ),
+            allowedCurrentEndpointCapabilities: try container.decode(
+                [LiveReadOnlyEndpointCapabilityTaxonomy].self,
+                forKey: .allowedCurrentEndpointCapabilities
+            ),
+            forbiddenEndpointCapabilities: try container.decode(
+                [LiveReadOnlyEndpointCapabilityTaxonomy].self,
+                forKey: .forbiddenEndpointCapabilities
+            ),
+            futureGates: try container.decode(
+                [LiveReadOnlyCredentialEndpointFutureGate].self,
+                forKey: .futureGates
+            ),
+            allowedEvidenceKinds: try container.decode(
+                [LiveReadOnlyCredentialEndpointEvidenceKind].self,
+                forKey: .allowedEvidenceKinds
+            ),
+            readsLocalSecret: try container.decode(Bool.self, forKey: .readsLocalSecret),
+            implementsAPIKeyStorage: try container.decode(Bool.self, forKey: .implementsAPIKeyStorage),
+            createsSecretConfigurationPath: try container.decode(
+                Bool.self,
+                forKey: .createsSecretConfigurationPath
+            ),
+            signsRequest: try container.decode(Bool.self, forKey: .signsRequest),
+            callsSignedEndpoint: try container.decode(Bool.self, forKey: .callsSignedEndpoint),
+            callsAccountEndpoint: try container.decode(Bool.self, forKey: .callsAccountEndpoint),
+            createsListenKey: try container.decode(Bool.self, forKey: .createsListenKey),
+            opensPrivateWebSocket: try container.decode(Bool.self, forKey: .opensPrivateWebSocket),
+            connectsBrokerAdapter: try container.decode(Bool.self, forKey: .connectsBrokerAdapter),
+            performsBrokerAction: try container.decode(Bool.self, forKey: .performsBrokerAction),
+            implementsLiveExecutionAdapter: try container.decode(Bool.self, forKey: .implementsLiveExecutionAdapter),
+            exposesPrivateReadRuntime: try container.decode(Bool.self, forKey: .exposesPrivateReadRuntime),
+            upgradesPublicReadOnlyAdapter: try container.decode(Bool.self, forKey: .upgradesPublicReadOnlyAdapter),
+            requiredValidationDependsOnNetwork: try container.decode(
+                Bool.self,
+                forKey: .requiredValidationDependsOnNetwork
+            )
+        )
+    }
+
+    public static let requiredMatrixID = "TVM-LIVE-READ-ONLY-READINESS"
+    public static let requiredCredentialPolicyTerms = LiveReadOnlyCredentialPolicyTerm.allCases
+    public static let requiredEndpointTaxonomy = LiveReadOnlyEndpointCapabilityTaxonomy.allCases
+
+    public static let requiredAllowedCurrentEndpointCapabilities: [LiveReadOnlyEndpointCapabilityTaxonomy] = [
+        .publicReadOnlyMarketData
+    ]
+
+    public static let requiredForbiddenEndpointCapabilities: [LiveReadOnlyEndpointCapabilityTaxonomy] = [
+        .signedEndpointForbidden,
+        .accountEndpointForbidden,
+        .listenKeyForbidden,
+        .privateWebSocketForbidden,
+        .brokerActionForbidden
+    ]
+
+    public static let requiredFutureGates: [LiveReadOnlyCredentialEndpointFutureGate] = [
+        .humanIndependentLiveDecision,
+        .credentialSecretPolicy,
+        .signedEndpointCapabilityContract,
+        .accountEndpointCapabilityContract,
+        .listenKeyPrivateStreamSimulationGate,
+        .adapterCapabilityMatrix,
+        .brokerActionNonExecutionAudit
+    ]
+
+    public static let allowedEvidenceKinds: [LiveReadOnlyCredentialEndpointEvidenceKind] = [
+        .contractDocumentation,
+        .domainContextTerms,
+        .validationMatrixAnchor,
+        .automationReadinessAnchor,
+        .deterministicForbiddenTest,
+        .prBoundaryEvidence
+    ]
+
+    public static let deterministicFixture: LiveReadOnlyCredentialEndpointTaxonomyBoundary = {
+        do {
+            return try LiveReadOnlyCredentialEndpointTaxonomyBoundary()
+        } catch {
+            preconditionFailure("MTP-127 Live read-only credential endpoint taxonomy fixture must be valid: \(error)")
+        }
+    }()
+
+    private static func validate(
+        matrixID: String,
+        credentialPolicyTerms: [LiveReadOnlyCredentialPolicyTerm],
+        endpointTaxonomy: [LiveReadOnlyEndpointCapabilityTaxonomy],
+        allowedCurrentEndpointCapabilities: [LiveReadOnlyEndpointCapabilityTaxonomy],
+        forbiddenEndpointCapabilities: [LiveReadOnlyEndpointCapabilityTaxonomy],
+        futureGates: [LiveReadOnlyCredentialEndpointFutureGate],
+        allowedEvidenceKinds: [LiveReadOnlyCredentialEndpointEvidenceKind]
+    ) throws {
+        guard matrixID == Self.requiredMatrixID else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "matrixID",
+                expected: Self.requiredMatrixID,
+                actual: matrixID
+            )
+        }
+        guard credentialPolicyTerms == Self.requiredCredentialPolicyTerms else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "credentialPolicyTerms",
+                expected: Self.requiredCredentialPolicyTerms.map(\.rawValue).joined(separator: ","),
+                actual: credentialPolicyTerms.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard endpointTaxonomy == Self.requiredEndpointTaxonomy else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "endpointTaxonomy",
+                expected: Self.requiredEndpointTaxonomy.map(\.rawValue).joined(separator: ","),
+                actual: endpointTaxonomy.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard allowedCurrentEndpointCapabilities == Self.requiredAllowedCurrentEndpointCapabilities else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "allowedCurrentEndpointCapabilities",
+                expected: Self.requiredAllowedCurrentEndpointCapabilities.map(\.rawValue).joined(separator: ","),
+                actual: allowedCurrentEndpointCapabilities.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard forbiddenEndpointCapabilities == Self.requiredForbiddenEndpointCapabilities else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "forbiddenEndpointCapabilities",
+                expected: Self.requiredForbiddenEndpointCapabilities.map(\.rawValue).joined(separator: ","),
+                actual: forbiddenEndpointCapabilities.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard futureGates == Self.requiredFutureGates else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "futureGates",
+                expected: Self.requiredFutureGates.map(\.rawValue).joined(separator: ","),
+                actual: futureGates.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard allowedEvidenceKinds == Self.allowedEvidenceKinds else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "allowedEvidenceKinds",
+                expected: Self.allowedEvidenceKinds.map(\.rawValue).joined(separator: ","),
+                actual: allowedEvidenceKinds.map(\.rawValue).joined(separator: ",")
+            )
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        readsLocalSecret: Bool,
+        implementsAPIKeyStorage: Bool,
+        createsSecretConfigurationPath: Bool,
+        signsRequest: Bool,
+        callsSignedEndpoint: Bool,
+        callsAccountEndpoint: Bool,
+        createsListenKey: Bool,
+        opensPrivateWebSocket: Bool,
+        connectsBrokerAdapter: Bool,
+        performsBrokerAction: Bool,
+        implementsLiveExecutionAdapter: Bool,
+        exposesPrivateReadRuntime: Bool,
+        upgradesPublicReadOnlyAdapter: Bool,
+        requiredValidationDependsOnNetwork: Bool
+    ) throws {
+        let forbiddenFlags = [
+            ("readsLocalSecret", readsLocalSecret),
+            ("implementsAPIKeyStorage", implementsAPIKeyStorage),
+            ("createsSecretConfigurationPath", createsSecretConfigurationPath),
+            ("signsRequest", signsRequest),
+            ("callsSignedEndpoint", callsSignedEndpoint),
+            ("callsAccountEndpoint", callsAccountEndpoint),
+            ("createsListenKey", createsListenKey),
+            ("opensPrivateWebSocket", opensPrivateWebSocket),
+            ("connectsBrokerAdapter", connectsBrokerAdapter),
+            ("performsBrokerAction", performsBrokerAction),
+            ("implementsLiveExecutionAdapter", implementsLiveExecutionAdapter),
+            ("exposesPrivateReadRuntime", exposesPrivateReadRuntime),
             ("upgradesPublicReadOnlyAdapter", upgradesPublicReadOnlyAdapter),
             ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
         ]

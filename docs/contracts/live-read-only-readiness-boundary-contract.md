@@ -121,3 +121,88 @@ Focused validation anchors：
 - `checks/automation-readiness.sh` 必须机械检查 MTP-126 contract、matrix、validation plan、domain context、latest summary、automation readiness doc、planning record 和 forbidden capability boundary strings。
 
 MTP-126 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard smoke handle、不新增 App read model、不新增 Core / Runtime / Dashboard behavior、不新增 stage audit input；Project stage closeout 仍归属 MTP-132。
+
+## MTP-127 credential / secret policy future gate
+
+`MTP-127-CREDENTIAL-SECRET-POLICY-FUTURE-GATE`
+
+MTP-127 固定 L3.0 credential / secret policy 只能作为 future gate 和 forbidden baseline 出现。当前允许输出：
+
+- `LiveReadOnlyCredentialPolicyTerm` 术语。
+- `LiveReadOnlyCredentialEndpointTaxonomyBoundary` deterministic fixture。
+- contract / domain context / validation matrix / automation readiness / focused XCTest / PR boundary evidence。
+
+当前禁止输出：
+
+- API key / secret storage implementation。
+- local secret read。
+- env / keychain / config secret path。
+- credential provider runtime。
+- signed request helper。
+- account endpoint runtime。
+- listenKey 或 private WebSocket runtime。
+
+该 gate 只定义后续 Project Definition 需要的 policy 输入，不实现任何 secret handling，也不读取本机 secret。
+
+## MTP-127 endpoint capability taxonomy
+
+`MTP-127-ENDPOINT-CAPABILITY-TAXONOMY`
+
+MTP-127 的 endpoint capability taxonomy 必须固定为：
+
+| Taxonomy | 当前状态 | 当前允许证据 | 当前禁止输出 |
+| --- | --- | --- | --- |
+| `public read-only market data` | Current allowed | contract、Core fixture、focused test、public read-only boundary evidence | 升级为 signed / account / broker capability |
+| `signed endpoint forbidden` | Forbidden / future gate | signed endpoint capability contract 输入 | HMAC/signature、timestamp signing、signed REST request |
+| `account endpoint forbidden` | Forbidden / future gate | account endpoint capability contract 输入 | `/api/v3/account`、balance / position payload、account sync |
+| `listenKey forbidden` | Forbidden / future gate | private stream simulation gate 输入 | listenKey create / keepalive、user data stream |
+| `private WebSocket forbidden` | Forbidden / future gate | L3.2 simulation input boundary | private WebSocket runtime、account stream runtime |
+| `broker action forbidden` | Forbidden / future gate | broker action non-execution audit 输入 | broker / exchange execution adapter、submit / cancel / replace |
+
+`public read-only market data` 是 MTP-127 唯一当前允许 endpoint capability；其它 taxonomy 值必须保持 forbidden / future gate，不得写成 partially supported、preview enabled、behind flag available 或 local fallback。
+
+## MTP-127 public read-only / private endpoint isolation
+
+`MTP-127-PUBLIC-READ-ONLY-PRIVATE-ENDPOINT-ISOLATION`
+
+MTP-127 将 public read-only market data 与 private / signed / account capability 明确隔离：
+
+- `allowedCurrentEndpointCapabilities == [.publicReadOnlyMarketData]`。
+- `forbiddenEndpointCapabilities == [.signedEndpointForbidden, .accountEndpointForbidden, .listenKeyForbidden, .privateWebSocketForbidden, .brokerActionForbidden]`。
+- `readsLocalSecret`、`implementsAPIKeyStorage`、`createsSecretConfigurationPath`、`signsRequest`、`callsSignedEndpoint`、`callsAccountEndpoint`、`createsListenKey`、`opensPrivateWebSocket`、`connectsBrokerAdapter`、`performsBrokerAction`、`implementsLiveExecutionAdapter`、`exposesPrivateReadRuntime`、`upgradesPublicReadOnlyAdapter` 和 `requiredValidationDependsOnNetwork` 必须全部为 `false`。
+
+该隔离只定义 L3.0 readiness taxonomy，不实现 MTP-128 adapter capability matrix，不实现 MTP-129 account / position / balance read model，不实现 MTP-130 private stream / account snapshot simulation gate，不实现 MTP-131 Workbench Live readiness surface。
+
+## MTP-127 forbidden capability tests
+
+`MTP-127-FORBIDDEN-CAPABILITY-TESTS`
+
+MTP-127 的 forbidden capability evidence 来自本地 deterministic tests：
+
+- `Sources/Core/LiveTradingBoundary.swift` 中的 `LiveReadOnlyCredentialPolicyTerm`、`LiveReadOnlyEndpointCapabilityTaxonomy`、`LiveReadOnlyCredentialEndpointFutureGate`、`LiveReadOnlyCredentialEndpointEvidenceKind` 和 `LiveReadOnlyCredentialEndpointTaxonomyBoundary`。
+- `Tests/CoreTests/CoreTests.swift` 中的 `testLiveReadOnlyCredentialEndpointTaxonomyDefinesMTP127FutureGates`。
+- `Tests/CoreTests/CoreTests.swift` 中的 `testLiveReadOnlyCredentialEndpointTaxonomyRejectsSecretEndpointAndBrokerBypass`。
+
+Focused tests 必须证明 fixture 可 Codable 稳定 round-trip，并且初始化或 Codable 解码都不能恢复 secret read、API key storage、signed/account endpoint、listenKey、private WebSocket、broker action、`LiveExecutionAdapter`、private read runtime 或 public adapter upgrade。
+
+## MTP-127 validation anchors
+
+`MTP-127-LIVE-READ-ONLY-CREDENTIAL-ENDPOINT-VALIDATION`
+
+Required validation：
+
+- `swift test --filter LiveReadOnlyCredentialEndpointTaxonomy`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `docs/contracts/live-read-only-readiness-boundary-contract.md` 必须包含 MTP-127 credential / secret policy future gate、endpoint capability taxonomy、public read-only / private endpoint isolation、forbidden capability tests 和 validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-127 credential / endpoint taxonomy terms。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-127 issue backfill。
+- `docs/validation/validation-plan.md` 必须包含 MTP-127 required validation。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-127 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 MTP-127 Live Read-only credential / endpoint taxonomy anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-127 contract、domain context、matrix、validation plan、latest summary、automation readiness doc、Core fixture 和 focused test anchors。
+
+MTP-127 不新增 Adapters、Runtime、App、Dashboard behavior，不新增 Dashboard smoke handle，不新增 stage audit input；Project stage closeout 仍归属 MTP-132。
