@@ -555,3 +555,67 @@ Focused validation anchors：
 - `checks/automation-readiness.sh` 必须机械检查 MTP-131 contract、domain context、matrix、validation plan、latest summary、automation readiness doc、Core fixture、App read model / ViewModel、Dashboard shell、Event Timeline 和 focused test anchors。
 
 MTP-131 不新增 signed/account/listenKey/broker endpoint，不新增 API key 输入、secret storage、broker connect、account connect、Live PRO Console、trading button、live command、order form、真实账户余额、broker position、Runtime object、database schema、adapter request、`LiveExecutionAdapter`、OMS、real order lifecycle 或真实订单 submit / cancel / replace；不运行 Graphify，不修改 Figma，不修改 Linear status，不推进 MTP-132。
+
+## MTP-132 Live Read-only Readiness stage closeout
+
+`MTP-132-LIVE-READ-ONLY-READINESS-STAGE-CLOSEOUT`
+
+MTP-132 只收口 `MTPRO Live Read-only Readiness Boundary v1` 的 validation matrix、automation readiness、forbidden capability evidence chain 和 Stage Code Audit 输入材料。它不输出最终 Stage Code Audit Report，不设置 Linear Project `Completed`，不启动下一阶段，不把 L3.0 closeout 写成 L3.1 / L3.2 / L3.3 execution authorization。
+
+`MTP-132-STAGE-AUDIT-INPUT-MATERIAL`
+
+MTP-132 的 Stage Audit input material 必须落到 `docs/audit/inputs/mtpro-live-read-only-readiness-boundary-v1-stage-audit-input.md`，并覆盖：
+
+- `MTP-126` 至 `MTP-131` 的 issue / PR evidence input。
+- `TVM-LIVE-READ-ONLY-READINESS` validation evidence chain。
+- forbidden capability evidence chain。
+- read-model-only boundary evidence。
+- automation readiness evidence。
+- no `.codex/*` / no `graphify-out/*` PR boundary。
+- Root Docs Delta input。
+- Parent Codex 最终 Stage Code Audit handoff checklist。
+
+`MTP-132-NO-FINAL-STAGE-CODE-AUDIT`
+
+MTP-132 明确不是最终 Stage Code Audit Report。最终报告必须在 `MTP-126`、`MTP-127`、`MTP-128`、`MTP-129`、`MTP-130`、`MTP-131`、`MTP-132` 全部进入 Linear `Done`，且 Linear Project status 被设置或确认为 `Completed`、`completedAt` 非空后，由 Parent Codex 单独输出到：
+
+```text
+docs/audit/mtpro-live-read-only-readiness-boundary-v1-stage-code-audit.md
+```
+
+## MTP-132 validation evidence chain
+
+`MTP-132-LIVE-READ-ONLY-READINESS-VALIDATION-EVIDENCE-CHAIN`
+
+MTP-132 必须确认本 Project 的 L3.0 evidence chain 已完整回填：
+
+- MTP-126：Live read-only readiness terminology、target engines / layers、L3.0 -> L3.1 / L3.2 / L3.3 handoff、forbidden capability baseline。
+- MTP-127：credential / secret policy future gate、endpoint capability taxonomy、public read-only / private endpoint isolation。
+- MTP-128：adapter capability matrix、public read-only adapter / future private gate isolation。
+- MTP-129：account / position / balance read-model-only future gates、source / freshness / evidence identity boundary。
+- MTP-130：private stream / account snapshot simulation gate input、future fixture requirements、listenKey forbidden tests。
+- MTP-131：Workbench / Dashboard / Report / Event Timeline read-model-only boundary、forbidden UI surface 和 L3 handoff。
+
+`MTP-132-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN`
+
+MTP-132 必须保持并汇总以下 forbidden capabilities：API key / secret storage、local secret read、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、broker adapter、exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、real PnL、Live Monitoring Console v2 runtime、Live PRO Console、trading button、live command、order form、emergency stop / shutdown / restore、Graphify update、Figma change 和 unauthorized Linear mutation。
+
+`MTP-132-AUTOMATION-READINESS-STAGE-CLOSEOUT`
+
+MTP-132 的 automation readiness 必须由 `checks/automation-readiness.sh` 机械检查以下内容：
+
+- MTP-126 至 MTP-131 的既有 contract / source / test / doc anchors。
+- MTP-132 contract closeout anchors。
+- `docs/audit/inputs/mtpro-live-read-only-readiness-boundary-v1-stage-audit-input.md` stage audit input anchors。
+- `docs/validation/trading-validation-matrix.md` 的 MTP-132 issue backfill。
+- `docs/validation/validation-plan.md` 的 MTP-132 required validation。
+- `docs/validation/latest-verification-summary.md` 的 MTP-132 current issue execution evidence。
+- `docs/automation/automation-readiness.md` 的 Live Read-only Readiness stage audit input anchor。
+
+Required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-132 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard behavior、不运行 Graphify、不修改 Figma、不修改 Linear status、不提交 `.codex/*` 或 `graphify-out/*`。最终 Stage Code Audit Report、Root Docs Refresh Gate、Linear Project `Completed` evidence 和下一阶段 planning 仍归 Parent Codex / Human + `@001 / PLN` 边界。
