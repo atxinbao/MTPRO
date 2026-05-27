@@ -2824,3 +2824,47 @@ MTP-124 的验收要求：
 - 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、live readiness、live runtime、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
 - 不运行 Graphify，不修改 Figma，不创建下一 Project / Issue，不推进 MTP-125。
+
+## MTP-125 Automation Readiness / Validation Evidence / Stage Audit Input Validation
+
+日期：2026-05-27
+
+执行者：Codex
+
+MTP-125 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-125 必须建立的主要 anchors：
+
+- `MTP-125-WORKBENCH-BETA-READINESS-STAGE-CLOSEOUT`
+- `MTP-125-STAGE-AUDIT-INPUT-MATERIAL`
+- `MTP-125-NO-FINAL-STAGE-CODE-AUDIT`
+- `MTP-125-WORKBENCH-BETA-READINESS-STAGE-AUDIT-INPUT`
+- `MTP-125-WORKBENCH-BETA-READINESS-VALIDATION-EVIDENCE-CHAIN`
+- `MTP-125-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN`
+- `MTP-125-BETA-READINESS-EVIDENCE-COMPLETE`
+- `MTP-125-AUTOMATION-READINESS-STAGE-CLOSEOUT`
+- `MTP-125-NO-GRAPHIFY-FIGMA-LINEAR-MUTATION`
+- `MTP-125-WORKBENCH-BETA-READINESS-CLOSEOUT-VALIDATION`
+
+MTP-125 的验收要求：
+
+- `docs/audit/inputs/mtpro-workbench-beta-readiness-v1-stage-audit-input.md` 必须存在，并包含 Linear queue evidence、PR #222 至 #228 evidence、merge commit、required check、Workbench Beta Readiness validation evidence chain、forbidden capability evidence chain、read-model-only boundary evidence、automation readiness evidence、Root Docs Delta input 和 Stage Code Audit handoff checklist。
+- `docs/contracts/workbench-beta-readiness-contract.md` 必须包含 MTP-125 closeout anchors，并明确 MTP-125 只准备 stage audit input material，不输出最终 Stage Code Audit Report。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-125 issue backfill，指向 `TVM-WORKBENCH-BETA-READINESS` 并说明 MTP-125 收口 validation matrix、automation readiness 和 stage audit input material。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-125 当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Workbench Beta Readiness stage audit input anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-125 stage audit input、contract、validation plan、matrix、latest summary、automation readiness doc、PR evidence、Dashboard smoke handles 和 no Graphify / Figma / Linear mutation boundary。
+- `verification.md` 必须 append-only 记录本地 validation result。
+
+## MTP-125 禁止
+
+- 不输出最终 Stage Code Audit Report；最终报告仍由 Parent Codex 在 Project 全部 Done 且 Linear Project `Completed` 后单独输出。
+- 不修改 Linear status、不创建 Linear Project / Issue、不启动 `@002 / PAR`、不启动 Symphony / symphony-issue、不推进下一阶段。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+- 不新增 production code、不新增 engine core capability、不新增 Runtime replay job、不新增 App read model、不新增 Dashboard behavior。
+- 不创建 production release、release package、notarization、App Store distribution、auto-update、production deployment、cloud operations 或 production operations command。
+- 不接 signed endpoint、account endpoint、listenKey、secret、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、real PnL、live readiness、live runtime、Live PRO Console、trading button、live command、order-level command UI、order form、emergency stop、shutdown 或 restore。
