@@ -3118,3 +3118,48 @@ MTP-131 必须建立的主要 anchors：
 - 不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、OMS 或 real order lifecycle。
 - 不提交、取消或替换真实订单，不授权 broker action 或 production operation。
 - 不运行 Graphify，不修改 Figma，不修改 Linear status，不推进 MTP-132。
+
+## MTP-132 Automation Readiness / Validation Matrix / Stage Audit Input Validation
+
+日期：2026-05-27
+
+执行者：Codex
+
+MTP-132 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-132 的验收要求：
+
+- `docs/audit/inputs/mtpro-live-read-only-readiness-boundary-v1-stage-audit-input.md` 必须存在，并包含 `MTP-132-LIVE-READ-ONLY-READINESS-STAGE-CLOSEOUT`、`MTP-132-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-132-NO-FINAL-STAGE-CODE-AUDIT`、`MTP-132-LIVE-READ-ONLY-READINESS-STAGE-AUDIT-INPUT`、`MTP-132-LIVE-READ-ONLY-READINESS-VALIDATION-EVIDENCE-CHAIN`、`MTP-132-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN`、`MTP-132-READ-MODEL-ONLY-BOUNDARY-EVIDENCE`、`MTP-132-AUTOMATION-READINESS-STAGE-CLOSEOUT` 和 `MTP-132-NO-GRAPHIFY-FIGMA-LINEAR-MUTATION` anchors。
+- `docs/contracts/live-read-only-readiness-boundary-contract.md` 必须包含 `MTP-132-LIVE-READ-ONLY-READINESS-STAGE-CLOSEOUT`、`MTP-132-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-132-NO-FINAL-STAGE-CODE-AUDIT`、`MTP-132-LIVE-READ-ONLY-READINESS-VALIDATION-EVIDENCE-CHAIN`、`MTP-132-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN` 和 `MTP-132-AUTOMATION-READINESS-STAGE-CLOSEOUT` anchors。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-132 issue backfill，并指向 MTP-132 Stage Code Audit 输入材料。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-132 的当前 issue execution evidence，明确只做 Project 级 validation matrix、automation readiness 和 stage audit input material 收口。
+- `docs/automation/automation-readiness.md` 必须新增 Live Read-only Readiness stage audit input anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-126 至 MTP-132 的 contract、matrix、validation plan、latest summary、automation readiness doc、stage audit input、Core / App source anchors、Core / App deterministic test anchors 和 Dashboard smoke `liveReadOnlyWorkbenchBoundary`。
+- Stage Audit input 必须明确：最终 Stage Code Audit Report 仍由 Parent Codex 在 `MTP-126` 至 `MTP-132` 全部 Done、Linear Project status `Completed` 且 `completedAt` 非空后单独输出。
+- PR 前必须确认 `.codex/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-132 必须建立的主要 anchors：
+
+- `MTP-132-LIVE-READ-ONLY-READINESS-STAGE-CLOSEOUT`
+- `MTP-132-STAGE-AUDIT-INPUT-MATERIAL`
+- `MTP-132-NO-FINAL-STAGE-CODE-AUDIT`
+- `MTP-132-LIVE-READ-ONLY-READINESS-STAGE-AUDIT-INPUT`
+- `MTP-132-LIVE-READ-ONLY-READINESS-VALIDATION-EVIDENCE-CHAIN`
+- `MTP-132-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN`
+- `MTP-132-READ-MODEL-ONLY-BOUNDARY-EVIDENCE`
+- `MTP-132-AUTOMATION-READINESS-STAGE-CLOSEOUT`
+- `MTP-132-NO-GRAPHIFY-FIGMA-LINEAR-MUTATION`
+
+## MTP-132 禁止
+
+- 不输出最终 Stage Code Audit Report；最终报告仍由 Parent Codex 在 Project 全部 Done 且 Linear Project `Completed` 后单独输出。
+- 不修改 Linear status、不创建 Linear Project / Issue、不启动 `@002 / PAR`、不启动 Symphony / symphony-issue、不推进下一阶段。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+- 不新增 production code、不新增 Live read-only runtime、不新增 account / position / balance runtime、不新增 private stream runtime、不新增 Dashboard command surface。
+- 不实现 API key / secret storage，不读取本地 secret，不新增 env / keychain / config secret path。
+- 不接 signed endpoint、account endpoint、listenKey、private WebSocket、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、real PnL、Live Monitoring Console v2 runtime、Live PRO Console、trading button、live command、order form、emergency stop、shutdown 或 restore。

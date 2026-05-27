@@ -12215,3 +12215,39 @@ Root Docs Refresh Gate 更新：
 - 不提交、取消或替换真实订单，不授权 broker action 或 production operation。
 - 不修改 Linear status、不创建 Linear Project / Issue、不推进 MTP-132。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+---
+
+## 2026-05-27 — MTP-132 Live Read-only Readiness stage closeout input
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear live-read 中唯一 active issue `MTP-132 Close validation matrix / automation readiness / stage audit input`。
+- 收口 `MTPRO Live Read-only Readiness Boundary v1` 的 validation matrix、automation readiness anchors、forbidden capability evidence chain、read-model-only boundary evidence 和 Stage Code Audit 输入材料。
+- 只准备 Parent Codex 后续 Stage Code Audit Report 的输入材料；不输出最终 Stage Code Audit Report，不修改 Linear status，不运行 Graphify，不修改 Figma，不授权下一阶段或 live runtime。
+
+实现摘要：
+
+- 新增 `docs/audit/inputs/mtpro-live-read-only-readiness-boundary-v1-stage-audit-input.md`，汇总 MTP-126 至 MTP-131 的 PR / checks evidence、L3.0 validation evidence chain、forbidden capability evidence、read-model-only boundary evidence、Root Docs Delta input 和 Stage Code Audit handoff checklist。
+- 更新 `docs/contracts/live-read-only-readiness-boundary-contract.md`，新增 MTP-132 stage closeout、stage audit input material、no final Stage Code Audit、validation evidence chain、forbidden capability evidence chain 和 automation readiness stage closeout anchors。
+- 更新 `docs/validation/trading-validation-matrix.md`、`docs/validation/validation-plan.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，接入 MTP-132 exact anchors 和 mechanical readiness gate。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；机械检查 MTP-132 stage audit input、contract、matrix、validation plan、latest summary、automation readiness doc、MTP-126 至 MTP-131 anchors、PR evidence 和 Dashboard smoke handles。 |
+| `git diff --check` | pass | 无输出。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 278 个 XCTest；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=65; scenarioReplayEvidence=1; scenarioQualityGates=6; simulatedParityEvidence=1; defaultDemoState=default demo; defaultDemoScenario=mtp-104-btcusdt-1m-first-scenario; betaFirstRunFallbacks=3; betaAcceptancePaths=1; betaAcceptanceScenario=mtp-104-btcusdt-1m-first-scenario; betaAcceptanceTrace=5; paperRuntimeEvidence=0; paperWorkflowEvidence=0; paperPortfolioImpact=0.00; liveBlockedGates=6; liveExecutionControlGates=7; liveRiskGates=6; liveIncidentStopGates=5; liveReadOnlyWorkbenchBoundary=5; liveMonitoringHealth=blocked; liveMonitoringErrors=3; sections=Market,Strategy,Backtest,Report,Paper,Risk,Portfolio,Events`；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不输出最终 Stage Code Audit Report；最终报告仍由 Parent Codex 在 Project 全部 Done 且 Linear Project `Completed` 后单独输出。
+- 不修改 Linear status、不创建 Linear Project / Issue、不启动 `@002 / PAR`、不启动 Symphony / symphony-issue、不推进下一阶段。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+- 不新增 production code、不新增 Live read-only runtime、不新增 account / position / balance runtime、不新增 private stream runtime、不新增 Dashboard command surface。
+- 不实现 API key / secret storage，不读取本地 secret，不新增 env / keychain / config secret path。
+- 不接 signed endpoint、account endpoint、listenKey、private WebSocket、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、real PnL、Live Monitoring Console v2 runtime、Live PRO Console、trading button、live command、order form、emergency stop、shutdown 或 restore。
