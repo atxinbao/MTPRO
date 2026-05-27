@@ -40,15 +40,14 @@
 | `MTPRO Event-Driven Paper Trading Runtime v1` | `docs/planning/projects/mtpro-event-driven-paper-trading-runtime-v1-plan.md` | 已写入 Linear；`MTP-96` 至 `MTP-102` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
 | `MTPRO Data Catalog / Scenario Replay v1` | `docs/planning/projects/mtpro-data-catalog-scenario-replay-v1-plan.md` | 已写入 Linear；`MTP-103` 至 `MTP-109` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
 | `MTPRO Simulated Exchange / Backtest Parity v1` | `docs/planning/projects/mtpro-simulated-exchange-backtest-parity-v1-plan.md` | 已写入 Linear；`MTP-110` 至 `MTP-117` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
-| `MTPRO Workbench Beta Readiness v1` | `docs/planning/projects/mtpro-workbench-beta-readiness-v1-plan.md` | 写入 Linear 前的当前 Project Planning Record；docs-only / non-executable；不授权执行。 |
+| `MTPRO Workbench Beta Readiness v1` | `docs/planning/projects/mtpro-workbench-beta-readiness-v1-plan.md` | 已写入 Linear；`MTP-118` 至 `MTP-125` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
 
 ## 当前 Project planning record
 
-- Project：`MTPRO Workbench Beta Readiness v1`
-- Canonical record：`docs/planning/projects/mtpro-workbench-beta-readiness-v1-plan.md`
-- 来源蓝图：`docs/product/mtpro-core-engine-architecture-module-maturity-map-v1.md`、`docs/design/mtpro-workbench-user-facing-dashboard-high-fidelity-v3.md`、`docs/product/mtpro-paper-trading-runtime-foundation-blueprint-v1.md`、`docs/planning/projects/mtpro-data-catalog-scenario-replay-v1-plan.md`、`docs/planning/projects/mtpro-simulated-exchange-backtest-parity-v1-plan.md`
-- 当前状态：写入 Linear 前的 Project Planning Record。
-- First executable issue candidate：Define Workbench beta readiness contract and acceptance boundary。
+- Project：无当前已授权下一 Project。
+- Canonical record：无；`docs/planning/projects/mtpro-workbench-beta-readiness-v1-plan.md` 已完成执行和 closure，只作为历史 Project Planning Record evidence。
+- 当前状态：Project closure 已收口；下一 Project 必须由 Human + `@001 / PLN` 另行确认、写入 Linear，并由 Parent Codex queue preflight 验证 WIP=1、依赖、active conflict 和 execution contract 后才可推进唯一 eligible issue。
+- First executable issue candidate：无当前可执行推荐。
 - WIP=1：所有候选 issue 写入 Linear 后必须初始保持 `Backlog / non-executable`。
 
 ## Project Planning Record 命名规则
