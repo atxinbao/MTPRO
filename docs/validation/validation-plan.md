@@ -3163,3 +3163,45 @@ MTP-132 必须建立的主要 anchors：
 - 不实现 API key / secret storage，不读取本地 secret，不新增 env / keychain / config secret path。
 - 不接 signed endpoint、account endpoint、listenKey、private WebSocket、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
 - 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account balance、broker position、margin、leverage、real PnL、Live Monitoring Console v2 runtime、Live PRO Console、trading button、live command、order form、emergency stop、shutdown 或 restore。
+
+## MTP-133 Account / Position / Balance Read-model-only Terminology Validation
+
+日期：2026-05-28
+
+执行者：Codex
+
+MTP-133 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-133 的验收要求：
+
+- `docs/contracts/account-position-balance-read-model-only-contract.md` 必须存在，并包含 `MTP-133-ACCOUNT-POSITION-BALANCE-READ-MODEL-ONLY-TERMINOLOGY`、`MTP-133-SOURCE-SEMANTICS-BOUNDARY`、`MTP-133-EVIDENCE-INTERPRETATION-BOUNDARY`、`MTP-133-L31-L32-HANDOFF-BOUNDARY`、`MTP-133-FORBIDDEN-CAPABILITY-BASELINE`、`MTP-133-FIRST-EXECUTABLE-CANDIDATE-NON-AUTHORIZATION` 和 `MTP-133-ACCOUNT-POSITION-BALANCE-READ-MODEL-ONLY-VALIDATION` anchors。
+- `docs/domain/context.md` 必须包含 MTP-133 account / position / balance read-model-only shared language，明确 fixture / paper / simulated evidence 不等于真实账户、broker position、margin、leverage 或 real PnL。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-ACCOUNT-POSITION-BALANCE-READ-MODEL-ONLY` 和 MTP-133 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-133 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Account / Position / Balance read-model-only terminology anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-133 contract、domain context、validation plan、trading matrix、latest summary、automation readiness doc、planning record 和 forbidden capability boundary strings。
+- PR 前必须确认 `.codex/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-133 必须建立的主要 anchors：
+
+- `MTP-133-ACCOUNT-POSITION-BALANCE-READ-MODEL-ONLY-TERMINOLOGY`
+- `MTP-133-SOURCE-SEMANTICS-BOUNDARY`
+- `MTP-133-EVIDENCE-INTERPRETATION-BOUNDARY`
+- `MTP-133-L31-L32-HANDOFF-BOUNDARY`
+- `MTP-133-FORBIDDEN-CAPABILITY-BASELINE`
+- `MTP-133-FIRST-EXECUTABLE-CANDIDATE-NON-AUTHORIZATION`
+- `MTP-133-ACCOUNT-POSITION-BALANCE-READ-MODEL-ONLY-VALIDATION`
+
+## MTP-133 禁止
+
+- 不实现 account / position / balance runtime、Live read-only runtime、private stream runtime 或 account snapshot runtime。
+- 不读取真实账户、真实持仓、真实余额、margin、leverage、buying power 或 real PnL。
+- 不接 signed endpoint、account endpoint / listenKey、private WebSocket、broker / exchange execution adapter 或 `LiveExecutionAdapter`。
+- 不实现 OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不新增 Live PRO Console、trading button、live command、order form、emergency stop、shutdown 或 restore。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+- 不推进 MTP-134，不创建下一 Project / Issue。
