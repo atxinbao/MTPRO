@@ -109,7 +109,9 @@ Latest Completed Project：`MTPRO Workbench Beta Readiness v1`
 
 Current maturity statement：`L2+ Workbench Beta Readiness complete`
 
-Next recommended maturity slice：无当前可执行推荐；`L3 Live Read-only Readiness` 和 `L4 Live Production` 仍为 Future Gated。
+Next recommended maturity slice：无当前可执行推荐。
+
+Next maturity planning candidate：`L3.0 Live Read-only Readiness Boundary`；当前只作为 docs-only planning candidate，不授权 execution。
 
 Next Handoff：Human + `@001 / PLN`
 
@@ -141,10 +143,13 @@ Engine 级分层和成熟度门槛由 `docs/product/mtpro-core-engine-architectu
 | L1.5 Data Catalog / Scenario Replay | Done | 建立 local scenario manifest、deterministic fixture、replay window / cursor、checksum / freshness evidence、quality gates、report input versioning 和 Workbench / Report / Events read-model evidence。 | `data` / `persistence` / local catalog / replay evidence。 | `docs/audit/mtpro-data-catalog-scenario-replay-v1-stage-code-audit.md` 已记录 L1.5 Data Catalog / Scenario Replay evidence chain、validation 和 forbidden capability audit。 |
 | L2 Simulated Exchange / Backtest Parity | Done | 让 backtest 与 paper 共用交易语义，补 simulated exchange、order type semantics、matching、partial fill、latency、fee / slippage parity 和 backtest-paper portfolio parity。 | `backtest` engine、simulated exchange、matching engine。 | `docs/audit/mtpro-simulated-exchange-backtest-parity-v1-stage-code-audit.md` 已记录 L2 deterministic parity evidence chain、validation 和 forbidden capability audit。 |
 | L2+ Workbench Beta Readiness | Done | 把 runtime / data / replay 能力产品化为可用 macOS Workbench：安装、启动、demo dataset、daily workflow、docs index、validation matrix 和 beta acceptance。 | 参考项目 release discipline；同时保留 MTPRO 的 macOS native Workbench 差异化。 | `docs/audit/mtpro-workbench-beta-readiness-v1-stage-code-audit.md` 已记录 L2+ local Workbench beta acceptance evidence chain、validation 和 forbidden capability audit；不代表 production release、notarization、App Store distribution、auto-update、production operations 或 live readiness。 |
-| L3 Live Read-only Readiness | Future Gated | 只读进入真实账户准备：credential policy、adapter capability matrix、account snapshot、position snapshot、balance snapshot、private stream read-only boundary。 | adapters、account / position read model，但不进入交易。 | Future Gated；不计入当前 `4 / 4` 分母；不允许 submit / cancel / replace。 |
-| L4 Live Production | Future Gated | 最后进入真实 execution adapter、OMS、execution report、broker fill、reconciliation、live risk runtime、ops / incident / stop 和独立 Live PRO Console 产品面。 | `live`、`execution`、`risk`、`portfolio`、`system`。 | Future Gated；不计入当前 `4 / 4` 分母；必须经过独立 Human decision、Project Definition、signed/account/broker/risk/ops gates。 |
+| L3.0 Live Read-only Readiness Boundary | Planning Candidate / Non-executable | 定义只读接近真实账户前的术语、凭证策略、endpoint 分类、adapter capability matrix、forbidden write capability baseline 和验证门槛。 | adapters / account boundary / capability matrix，但不实现 endpoint 或 runtime。 | `docs/product/mtpro-live-readiness-roadmap-v1.md` 和 `docs/planning/projects/mtpro-live-read-only-readiness-boundary-v1-plan.md` 已记录；不计入旧 `4 / 4` 分母；不授权 signed / account / broker / listenKey。 |
+| L3.1 Account / Position / Balance Read-model-only | Future Gated | 定义 account / position / balance 的只读模型和 evidence surface。 | account / position read model，但不进入真实同步。 | Future Gated；必须等 L3.0 完成并重新规划；不读取 real account 或 broker position。 |
+| L3.2 Private Stream / Account Snapshot Simulation Gate | Future Gated | 用 simulation / fixture gate 证明 private stream 与 account snapshot 只能在受控边界内表达。 | private stream gate / snapshot contract，但不创建 listenKey。 | Future Gated；不连接 private WebSocket，不运行 production stream。 |
+| L3.3 Live Monitoring Read-only Console v2 | Future Gated | 在 L3.0-L3.2 gate 后，升级 Live Monitoring 的只读证据面。 | live monitoring read-model-only surface。 | Future Gated；不提供交易控制、Live PRO Console 或 order-level command UI。 |
+| L4 Live Production / Trading Commands | Future Gated | 最后进入真实 execution adapter、OMS、execution report、broker fill、reconciliation、live risk runtime、ops / incident / stop 和独立 Live PRO Console 产品面。 | `live`、`execution`、`risk`、`portfolio`、`system`。 | Future Gated；不计入旧 `4 / 4` 分母；必须经过独立 Human decision、Project Definition、signed/account/broker/risk/ops gates。 |
 
-L1 `MTPRO Event-Driven Paper Trading Runtime v1`、L1.5 `MTPRO Data Catalog / Scenario Replay v1`、L2 `MTPRO Simulated Exchange / Backtest Parity v1` 和 L2+ `MTPRO Workbench Beta Readiness v1` 已完成。当前可计数 Engine Maturity Roadmap Progress 已达到 `4 / 4 (100%)`。下一阶段方向、目标、架构路线和优先级仍交给 Human + `@001 / PLN`；不得从 L2+ completion 自动规划 Live PRO Console、真实 signed / broker / OMS 能力或任何下一 Project。
+L1 `MTPRO Event-Driven Paper Trading Runtime v1`、L1.5 `MTPRO Data Catalog / Scenario Replay v1`、L2 `MTPRO Simulated Exchange / Backtest Parity v1` 和 L2+ `MTPRO Workbench Beta Readiness v1` 已完成。当前可计数 Engine Maturity Roadmap Progress 已达到 `4 / 4 (100%)`。Live Readiness 作为新路线单独记录，不继续修改旧分母；L3.0 只是下一阶段 planning candidate，必须经过 Human 确认、Linear 写入和 Parent Codex queue preflight 后才可能进入唯一 eligible issue execution。不得从 L2+ completion 自动规划 Live PRO Console、真实 signed / broker / OMS 能力或任何 execution。
 
 ## Construction Slice Selection / 施工切片选择
 

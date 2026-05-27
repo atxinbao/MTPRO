@@ -11860,6 +11860,33 @@ Operator evidence：
 
 ---
 
+## 2026-05-27 — MTPRO Live Readiness Roadmap v1 / L3.0 planning candidate docs-only record
+
+执行者：Codex
+
+目的：
+
+- 将 Human 确认的 L3 细分路线写入仓库文档。
+- 将 `L3.0 Live Read-only Readiness Boundary` 推进到 docs-only planning candidate。
+- 保持旧 `Engine Maturity Roadmap Progress: 4 / 4 (100%)` 不变，不继续扩旧分母。
+
+实现摘要：
+
+- 新增 `docs/product/mtpro-live-readiness-roadmap-v1.md`，记录 `L3.0 Live Read-only Readiness Boundary`、`L3.1 Account / Position / Balance Read-model-only`、`L3.2 Private Stream / Account Snapshot Simulation Gate`、`L3.3 Live Monitoring Read-only Console v2` 和 `L4 Live Production / Trading Commands`。
+- 新增 `docs/planning/projects/mtpro-live-read-only-readiness-boundary-v1-plan.md`，记录 L3.0 Project-level planning candidate、Target Engines / Layers、Target maturity、scope、non-goals、issue order、dependencies、validation requirements、evidence requirements、first executable issue candidate、WIP=1、Linear write boundary、repository record boundary 和 Parent Codex queue preflight rule。
+- 更新 `GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/architecture.md`、`docs/product/mtpro-core-engine-architecture-module-maturity-map-v1.md`、`docs/planning/linear-draft-plan.md` 和 `docs/validation/latest-verification-summary.md`，增加 Live Readiness Roadmap 和 L3.0 planning candidate 引用。
+
+边界确认：
+
+- 本记录不是 Project closure。
+- 不更新 `Final Product Goal Progress`。
+- 不更新旧 `Engine Maturity Roadmap Progress`。
+- 不创建 Linear Project / Issue，不修改 Linear status，不推进 Todo。
+- 不启动 `@002 / PAR`，不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不实现 Live read-only runtime、signed endpoint、account endpoint / listenKey、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position、Live PRO Console、trading button、live command、emergency stop、shutdown 或 restore。
+
+---
+
 ## 2026-05-27 — MTPRO Workbench Beta Readiness v1 Stage Code Audit
 
 执行者：Parent Codex Automation Supervision（`@002 / PAR`）
