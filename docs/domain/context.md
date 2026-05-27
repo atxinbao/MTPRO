@@ -988,6 +988,22 @@ MTP-128 forbidden adapter capability tests 必须证明 `LiveReadOnlyAdapterCapa
 
 MTP-128 validation 必须证明 contract、domain context、validation plan、trading validation matrix、latest summary、automation readiness doc、Core fixture 和 focused tests 均固定 adapter capability matrix boundary，并且 required validation 不读取 secret、不依赖真实 Binance 网络、不连接 broker、不触发真实交易行为。
 
+`MTP-129-ACCOUNT-POSITION-BALANCE-FUTURE-GATES`
+
+MTP-129 account / position / balance future gates 只能作为 L3.1 read-model-only handoff material 出现。`LiveReadOnlyAccountPositionBalanceFutureGate` 只允许命名 account read-model-only contract、position read-model-only contract、balance read-model-only contract、source identity required、snapshot freshness required、evidence identity required、Workbench / Dashboard ViewModel boundary 和 paper / simulated / fixture evidence isolation；它不授权当前读取 real account、broker position、margin、leverage 或 real PnL。
+
+`MTP-129-SOURCE-FRESHNESS-EVIDENCE-IDENTITY-BOUNDARY`
+
+MTP-129 source identity / freshness / evidence identity boundary 表示后续 L3.1 必须区分 future account source identity、future position source identity、future balance source identity 和 fixture source identity isolation，并在 snapshot 上记录 observedAt、source watermark 和 stale boundary。MTP-129 不实现 account snapshot runtime、不连接 private stream、不调用 signed endpoint、account endpoint 或 listenKey。
+
+`MTP-129-FORBIDDEN-ACCOUNT-DATA-INTERPRETATION-TESTS`
+
+MTP-129 forbidden interpretation tests 必须证明 `LiveReadOnlyAccountPositionBalanceFutureGateBoundary` 的 account / position / balance runtime、real account read、broker position sync、real account balance、margin、leverage、real PnL、signed/account endpoint、listenKey、broker adapter、`LiveExecutionAdapter`、OMS、paper evidence -> real account data、simulated fill -> broker position、fixture evidence -> real account snapshot、trading button、live command 和 network dependency flags 全部为 `false`，并且 Codable 解码不能恢复这些 forbidden capability。
+
+`MTP-129-LIVE-READ-ONLY-ACCOUNT-POSITION-BALANCE-VALIDATION`
+
+MTP-129 validation 必须证明 contract、domain context、validation plan、trading validation matrix、latest summary、automation readiness doc、Core fixture 和 focused tests 均固定 account / position / balance read-model-only future gate boundary，并且 required validation 不读取 secret、不依赖真实 Binance 网络、不读取真实账户、不连接 broker、不触发真实交易行为。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

@@ -275,3 +275,88 @@ Focused validation anchors：
 - `checks/automation-readiness.sh` 必须机械检查 MTP-128 contract、domain context、matrix、validation plan、latest summary、automation readiness doc、Core fixture 和 focused test anchors。
 
 MTP-128 不新增 Adapters、Runtime、App、Dashboard behavior，不新增 Dashboard smoke handle，不新增 stage audit input；Project stage closeout 仍归属 MTP-132。
+
+## MTP-129 account / position / balance read-model-only future gates
+
+`MTP-129-ACCOUNT-POSITION-BALANCE-FUTURE-GATES`
+
+MTP-129 固定 L3.1 所需的 account / position / balance read-model-only future gates。当前只定义进入后续 L3.1 planning 前必须补齐的合同输入，不实现 read model runtime：
+
+| Future Gate | 当前含义 | 当前禁止 |
+| --- | --- | --- |
+| `account read-model-only contract` | 后续 L3.1 必须独立定义 account read-model-only 的输入、字段、source identity 和 validation | 不读取 real account，不调用 account endpoint |
+| `position read-model-only contract` | 后续 L3.1 必须独立定义 position read-model-only 的输入、broker position source identity 和 isolation | 不同步 broker position，不把 paper portfolio projection 升级为 broker position |
+| `balance read-model-only contract` | 后续 L3.1 必须独立定义 balance read-model-only 的 freshness、evidence identity 和 stale boundary | 不读取 real account balance、margin、leverage 或 real PnL |
+| `source identity required` | 后续 evidence 必须声明 future account / position / balance source identity，并保留 fixture source identity isolation | 不允许 paper / simulated / fixture evidence 伪装成真实账户数据 |
+| `snapshot freshness required` | 后续 snapshot 必须声明 observedAt、source watermark 和 stale boundary | 不运行 account snapshot runtime 或 private stream runtime |
+| `evidence identity required` | 后续 evidence 必须可追溯到 read-model-only source，不得复用 broker payload identity | 不创建 signed/account/listenKey payload |
+| `Workbench / Dashboard ViewModel boundary` | 后续 Workbench / Dashboard 只能消费 ViewModel/read model evidence | 不新增 Live PRO Console、trading button、live command 或 order form |
+| `paper / simulated / fixture evidence isolation` | paper portfolio、simulated fill 和 fixture evidence 必须保持非真实账户语义 | 不解释为 broker fill、broker position、real account balance 或 real PnL |
+
+## MTP-129 source identity / freshness / evidence identity boundary
+
+`MTP-129-SOURCE-FRESHNESS-EVIDENCE-IDENTITY-BOUNDARY`
+
+MTP-129 将未来只读账户证据拆成三个不可省略的 identity 层：
+
+- `source identity`：后续 L3.1 必须区分 future account source identity、future position source identity、future balance source identity 和 fixture source identity isolation。
+- `snapshot freshness`：后续 L3.1 必须声明 snapshot observedAt、source watermark 和 stale boundary；MTP-129 不运行 snapshot runtime。
+- `evidence identity`：后续 L3.1 必须证明 evidence identity 来自 read-model-only boundary，而不是 broker payload、signed endpoint response、listenKey stream 或 private WebSocket runtime。
+
+当前 `LiveReadOnlyAccountPositionBalanceFutureGateBoundary` 中以下 flags 必须全部为 `false`：
+
+- `implementsAccountReadModelRuntime`
+- `implementsPositionReadModelRuntime`
+- `implementsBalanceReadModelRuntime`
+- `readsRealAccount`
+- `syncsBrokerPosition`
+- `readsRealAccountBalance`
+- `readsMargin`
+- `readsLeverage`
+- `readsRealPnL`
+- `callsSignedEndpoint`
+- `callsAccountEndpoint`
+- `createsListenKey`
+- `connectsBrokerAdapter`
+- `implementsLiveExecutionAdapter`
+- `implementsOMS`
+- `representsPaperEvidenceAsRealAccountData`
+- `representsSimulatedFillAsBrokerPosition`
+- `representsFixtureEvidenceAsRealAccountSnapshot`
+- `exposesTradingButton`
+- `exposesLiveCommand`
+- `requiredValidationDependsOnNetwork`
+
+## MTP-129 paper / simulated / fixture evidence forbidden interpretation tests
+
+`MTP-129-FORBIDDEN-ACCOUNT-DATA-INTERPRETATION-TESTS`
+
+MTP-129 的 forbidden interpretation evidence 来自本地 deterministic tests：
+
+- `Sources/Core/LiveTradingBoundary.swift` 中的 `LiveReadOnlyAccountPositionBalanceFutureGate`、`LiveReadOnlyAccountPositionBalanceSourceIdentity`、`LiveReadOnlyAccountPositionBalanceFreshnessBoundary`、`LiveReadOnlyAccountPositionBalanceEvidenceKind`、`LiveReadOnlyAccountPositionBalanceForbiddenInterpretation` 和 `LiveReadOnlyAccountPositionBalanceFutureGateBoundary`。
+- `Tests/CoreTests/CoreTests.swift` 中的 `testLiveReadOnlyAccountPositionBalanceFutureGatesDefineMTP129Boundary`。
+- `Tests/CoreTests/CoreTests.swift` 中的 `testLiveReadOnlyAccountPositionBalanceFutureGatesRejectRealAccountAndFixtureBypass`。
+
+Focused tests 必须证明 fixture 可 Codable 稳定 round-trip，并且初始化或 Codable 解码都不能恢复 real account read、broker position sync、margin / leverage / real PnL read、signed/account/listenKey、broker adapter、`LiveExecutionAdapter`、OMS、paper evidence -> real account data、simulated fill -> broker position、fixture evidence -> real account snapshot、trading button、live command 或 network dependency。
+
+## MTP-129 validation anchors
+
+`MTP-129-LIVE-READ-ONLY-ACCOUNT-POSITION-BALANCE-VALIDATION`
+
+Required validation：
+
+- `swift test --filter LiveReadOnlyAccountPositionBalance`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `docs/contracts/live-read-only-readiness-boundary-contract.md` 必须包含 MTP-129 account / position / balance future gates、source identity / freshness / evidence identity boundary、forbidden account-data interpretation tests 和 validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-129 account / position / balance shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-129 issue backfill。
+- `docs/validation/validation-plan.md` 必须包含 MTP-129 required validation。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-129 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 MTP-129 Live Read-only account / position / balance future gate anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-129 contract、domain context、matrix、validation plan、latest summary、automation readiness doc、Core fixture 和 focused test anchors。
+
+MTP-129 不新增 Adapters、Runtime、App、Dashboard behavior，不新增 Dashboard smoke handle，不实现 L3.1，不新增 stage audit input；Project stage closeout 仍归属 MTP-132。

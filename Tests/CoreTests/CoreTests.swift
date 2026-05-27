@@ -738,6 +738,237 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testLiveReadOnlyAccountPositionBalanceFutureGatesDefineMTP129Boundary() throws {
+        // 测试场景：MTP-129 只定义 account / position / balance read-model-only future gates，
+        // source identity、snapshot freshness、evidence identity 和 ViewModel boundary 都只是
+        // L3.1 handoff evidence，不读取真实账户或 broker position。
+        let boundary = LiveReadOnlyAccountPositionBalanceFutureGateBoundary.deterministicFixture
+
+        XCTAssertEqual(
+            boundary.contractID,
+            try Identifier("mtp-129-live-read-only-account-position-balance-future-gates")
+        )
+        XCTAssertEqual(boundary.issueID, try Identifier("MTP-129"))
+        XCTAssertEqual(boundary.matrixID, "TVM-LIVE-READ-ONLY-READINESS")
+        XCTAssertEqual(boundary.futureGates, LiveReadOnlyAccountPositionBalanceFutureGate.allCases)
+        XCTAssertEqual(
+            boundary.sourceIdentityBoundaries,
+            LiveReadOnlyAccountPositionBalanceSourceIdentity.allCases
+        )
+        XCTAssertEqual(
+            boundary.freshnessBoundaries,
+            LiveReadOnlyAccountPositionBalanceFreshnessBoundary.allCases
+        )
+        XCTAssertEqual(
+            boundary.forbiddenInterpretations,
+            LiveReadOnlyAccountPositionBalanceForbiddenInterpretation.allCases
+        )
+        XCTAssertEqual(
+            boundary.allowedEvidenceKinds,
+            [
+                .contractDocumentation,
+                .domainContextTerms,
+                .validationMatrixAnchor,
+                .automationReadinessAnchor,
+                .deterministicForbiddenTest,
+                .l31HandoffMaterial,
+                .prBoundaryEvidence
+            ]
+        )
+        XCTAssertTrue(boundary.accountPositionBalanceFutureGateBoundaryHeld)
+        XCTAssertFalse(boundary.implementsAccountReadModelRuntime)
+        XCTAssertFalse(boundary.implementsPositionReadModelRuntime)
+        XCTAssertFalse(boundary.implementsBalanceReadModelRuntime)
+        XCTAssertFalse(boundary.readsRealAccount)
+        XCTAssertFalse(boundary.syncsBrokerPosition)
+        XCTAssertFalse(boundary.readsRealAccountBalance)
+        XCTAssertFalse(boundary.readsMargin)
+        XCTAssertFalse(boundary.readsLeverage)
+        XCTAssertFalse(boundary.readsRealPnL)
+        XCTAssertFalse(boundary.callsSignedEndpoint)
+        XCTAssertFalse(boundary.callsAccountEndpoint)
+        XCTAssertFalse(boundary.createsListenKey)
+        XCTAssertFalse(boundary.connectsBrokerAdapter)
+        XCTAssertFalse(boundary.implementsLiveExecutionAdapter)
+        XCTAssertFalse(boundary.implementsOMS)
+        XCTAssertFalse(boundary.representsPaperEvidenceAsRealAccountData)
+        XCTAssertFalse(boundary.representsSimulatedFillAsBrokerPosition)
+        XCTAssertFalse(boundary.representsFixtureEvidenceAsRealAccountSnapshot)
+        XCTAssertFalse(boundary.exposesTradingButton)
+        XCTAssertFalse(boundary.exposesLiveCommand)
+        XCTAssertFalse(boundary.requiredValidationDependsOnNetwork)
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(
+            LiveReadOnlyAccountPositionBalanceFutureGateBoundary.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, boundary)
+    }
+
+    func testLiveReadOnlyAccountPositionBalanceFutureGatesRejectRealAccountAndFixtureBypass() throws {
+        // 测试场景：MTP-129 fixture 的初始化和 Codable 解码都必须拒绝真实账户读取、
+        // broker position sync、margin / leverage / real PnL、signed/account/listenKey 以及
+        // paper / simulated / fixture evidence 被解释成真实账户数据。
+        let forbiddenFlagCases: [
+            (field: String, build: () throws -> LiveReadOnlyAccountPositionBalanceFutureGateBoundary)
+        ] = [
+            (
+                "implementsAccountReadModelRuntime",
+                {
+                    try LiveReadOnlyAccountPositionBalanceFutureGateBoundary(
+                        implementsAccountReadModelRuntime: true
+                    )
+                }
+            ),
+            (
+                "implementsPositionReadModelRuntime",
+                {
+                    try LiveReadOnlyAccountPositionBalanceFutureGateBoundary(
+                        implementsPositionReadModelRuntime: true
+                    )
+                }
+            ),
+            (
+                "implementsBalanceReadModelRuntime",
+                {
+                    try LiveReadOnlyAccountPositionBalanceFutureGateBoundary(
+                        implementsBalanceReadModelRuntime: true
+                    )
+                }
+            ),
+            (
+                "readsRealAccount",
+                { try LiveReadOnlyAccountPositionBalanceFutureGateBoundary(readsRealAccount: true) }
+            ),
+            (
+                "syncsBrokerPosition",
+                { try LiveReadOnlyAccountPositionBalanceFutureGateBoundary(syncsBrokerPosition: true) }
+            ),
+            (
+                "readsRealAccountBalance",
+                { try LiveReadOnlyAccountPositionBalanceFutureGateBoundary(readsRealAccountBalance: true) }
+            ),
+            (
+                "readsMargin",
+                { try LiveReadOnlyAccountPositionBalanceFutureGateBoundary(readsMargin: true) }
+            ),
+            (
+                "readsLeverage",
+                { try LiveReadOnlyAccountPositionBalanceFutureGateBoundary(readsLeverage: true) }
+            ),
+            (
+                "readsRealPnL",
+                { try LiveReadOnlyAccountPositionBalanceFutureGateBoundary(readsRealPnL: true) }
+            ),
+            (
+                "callsSignedEndpoint",
+                { try LiveReadOnlyAccountPositionBalanceFutureGateBoundary(callsSignedEndpoint: true) }
+            ),
+            (
+                "callsAccountEndpoint",
+                { try LiveReadOnlyAccountPositionBalanceFutureGateBoundary(callsAccountEndpoint: true) }
+            ),
+            (
+                "createsListenKey",
+                { try LiveReadOnlyAccountPositionBalanceFutureGateBoundary(createsListenKey: true) }
+            ),
+            (
+                "connectsBrokerAdapter",
+                { try LiveReadOnlyAccountPositionBalanceFutureGateBoundary(connectsBrokerAdapter: true) }
+            ),
+            (
+                "implementsLiveExecutionAdapter",
+                { try LiveReadOnlyAccountPositionBalanceFutureGateBoundary(implementsLiveExecutionAdapter: true) }
+            ),
+            (
+                "implementsOMS",
+                { try LiveReadOnlyAccountPositionBalanceFutureGateBoundary(implementsOMS: true) }
+            ),
+            (
+                "representsPaperEvidenceAsRealAccountData",
+                {
+                    try LiveReadOnlyAccountPositionBalanceFutureGateBoundary(
+                        representsPaperEvidenceAsRealAccountData: true
+                    )
+                }
+            ),
+            (
+                "representsSimulatedFillAsBrokerPosition",
+                {
+                    try LiveReadOnlyAccountPositionBalanceFutureGateBoundary(
+                        representsSimulatedFillAsBrokerPosition: true
+                    )
+                }
+            ),
+            (
+                "representsFixtureEvidenceAsRealAccountSnapshot",
+                {
+                    try LiveReadOnlyAccountPositionBalanceFutureGateBoundary(
+                        representsFixtureEvidenceAsRealAccountSnapshot: true
+                    )
+                }
+            ),
+            (
+                "exposesTradingButton",
+                { try LiveReadOnlyAccountPositionBalanceFutureGateBoundary(exposesTradingButton: true) }
+            ),
+            (
+                "exposesLiveCommand",
+                { try LiveReadOnlyAccountPositionBalanceFutureGateBoundary(exposesLiveCommand: true) }
+            ),
+            (
+                "requiredValidationDependsOnNetwork",
+                { try LiveReadOnlyAccountPositionBalanceFutureGateBoundary(requiredValidationDependsOnNetwork: true) }
+            )
+        ]
+
+        for flagCase in forbiddenFlagCases {
+            XCTAssertThrowsError(try flagCase.build()) { error in
+                XCTAssertEqual(
+                    error as? CoreError,
+                    .liveTradingBoundaryForbiddenCapability(flagCase.field)
+                )
+            }
+        }
+        XCTAssertThrowsError(
+            try LiveReadOnlyAccountPositionBalanceFutureGateBoundary(
+                futureGates: [.accountReadModelOnlyContract]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "futureGates",
+                    expected: LiveReadOnlyAccountPositionBalanceFutureGateBoundary
+                        .requiredFutureGates
+                        .map(\.rawValue)
+                        .joined(separator: ","),
+                    actual: "account read-model-only contract"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(
+            LiveReadOnlyAccountPositionBalanceFutureGateBoundary.deterministicFixture
+        )
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["representsFixtureEvidenceAsRealAccountSnapshot"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(
+                LiveReadOnlyAccountPositionBalanceFutureGateBoundary.self,
+                from: data
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("representsFixtureEvidenceAsRealAccountSnapshot")
+            )
+        }
+    }
+
     func testLiveAdapterCapabilityIsolationBoundaryDefinesMTP63GateTwoAsFutureOnly() throws {
         // 测试场景：MTP-63 只定义 current public read-only adapter 与 future live adapter
         // capability 的隔离合同；LiveExecutionAdapter 和 broker / exchange execution adapter

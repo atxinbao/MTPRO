@@ -155,6 +155,69 @@ public enum LiveReadOnlyAdapterCapabilityEvidenceKind: String, Codable, CaseIter
     case prBoundaryEvidence = "PR boundary evidence"
 }
 
+/// LiveReadOnlyAccountPositionBalanceFutureGate 固定 MTP-129 的 L3.1 输入门槛。
+///
+/// 这些 gate 只描述未来 account / position / balance read-model-only 工作进入规划前必须补齐的
+/// source identity、snapshot freshness、evidence identity 和 ViewModel boundary；当前 Core 不实现
+/// 真实账户读取、broker position 同步、margin / leverage / real PnL runtime 或任何 private endpoint。
+public enum LiveReadOnlyAccountPositionBalanceFutureGate: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case accountReadModelOnlyContract = "account read-model-only contract"
+    case positionReadModelOnlyContract = "position read-model-only contract"
+    case balanceReadModelOnlyContract = "balance read-model-only contract"
+    case sourceIdentityRequired = "source identity required"
+    case snapshotFreshnessRequired = "snapshot freshness required"
+    case evidenceIdentityRequired = "evidence identity required"
+    case workbenchDashboardViewModelBoundary = "Workbench / Dashboard ViewModel boundary"
+    case paperSimulatedFixtureIsolation = "paper / simulated / fixture evidence isolation"
+}
+
+/// LiveReadOnlyAccountPositionBalanceSourceIdentity 定义 MTP-129 未来只读 evidence 的来源身份。
+///
+/// 当前值只作为合同和测试证据出现；`fixtureSourceIdentityIsolation` 明确 paper / simulated / fixture
+/// 证据不能伪装成真实 account、broker position、balance、margin、leverage 或 PnL payload。
+public enum LiveReadOnlyAccountPositionBalanceSourceIdentity: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case futureAccountSourceIdentity = "future account source identity"
+    case futurePositionSourceIdentity = "future position source identity"
+    case futureBalanceSourceIdentity = "future balance source identity"
+    case fixtureSourceIdentityIsolation = "fixture source identity isolation"
+}
+
+/// LiveReadOnlyAccountPositionBalanceFreshnessBoundary 固定 MTP-129 的 freshness 语义。
+///
+/// 这些值只要求后续 L3.1 规划必须声明 snapshot 时间、水位线和 stale 状态；当前不创建
+/// account snapshot runtime，不连接 private stream，也不从 broker 或 exchange 同步任何账户状态。
+public enum LiveReadOnlyAccountPositionBalanceFreshnessBoundary: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case snapshotObservedAtRequired = "snapshot observedAt required"
+    case sourceWatermarkRequired = "source watermark required"
+    case staleBoundaryRequired = "stale boundary required"
+}
+
+/// LiveReadOnlyAccountPositionBalanceEvidenceKind 限定 MTP-129 可以产生的非执行证据。
+///
+/// Evidence 只用于合同、shared language、validation matrix、automation readiness、focused tests
+/// 和 PR boundary evidence；它不创建 read model runtime、ViewModel runtime 或真实账户数据流。
+public enum LiveReadOnlyAccountPositionBalanceEvidenceKind: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case contractDocumentation = "contract documentation"
+    case domainContextTerms = "domain context terms"
+    case validationMatrixAnchor = "validation matrix anchor"
+    case automationReadinessAnchor = "automation readiness anchor"
+    case deterministicForbiddenTest = "deterministic forbidden capability test"
+    case l31HandoffMaterial = "L3.1 handoff material"
+    case prBoundaryEvidence = "PR boundary evidence"
+}
+
+/// LiveReadOnlyAccountPositionBalanceForbiddenInterpretation 列出 MTP-129 必须拒绝的证据误读。
+///
+/// 这些值防止 paper portfolio、simulated fill、fixture snapshot 或 report evidence 被解释为真实
+/// account / position / balance data；它们只能作为 forbidden tests 和 future-gated handoff 证据。
+public enum LiveReadOnlyAccountPositionBalanceForbiddenInterpretation: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case paperPortfolioAsRealAccount = "paper portfolio as real account"
+    case simulatedFillAsBrokerPosition = "simulated fill as broker position"
+    case fixtureEvidenceAsRealBalance = "fixture evidence as real balance"
+    case reportReadModelAsBrokerAccount = "report read model as broker account"
+    case dashboardViewModelAsLiveAccountRuntime = "Dashboard ViewModel as live account runtime"
+}
+
 /// LiveAdapterIsolationForbiddenCapability 枚举 MTP-63 Gate 2 必须阻断的 adapter 能力。
 ///
 /// 这些值只描述 future / gated adapter capability，不能被解释为当前 `Adapters` target
@@ -1742,6 +1805,376 @@ public struct LiveReadOnlyAdapterCapabilityMatrixBoundary: Codable, Equatable, S
             ("recordsBrokerFill", recordsBrokerFill),
             ("runsReconciliation", runsReconciliation),
             ("readsRealAccountPositionMarginLeverage", readsRealAccountPositionMarginLeverage),
+            ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(capability.0)
+        }
+    }
+}
+
+/// LiveReadOnlyAccountPositionBalanceFutureGateBoundary 是 MTP-129 的 L3.1 read-model-only future gate fixture。
+///
+/// 该合同只定义 account / position / balance 未来只读模型进入后续 Project 前需要的 source
+/// identity、snapshot freshness、evidence identity 和 Workbench / Dashboard ViewModel 边界。
+/// 它不实现 account read model runtime，不读取真实账户，不同步 broker position，不读取 margin /
+/// leverage / real PnL，不调用 signed 或 account endpoint，也不允许 paper / simulated / fixture
+/// evidence 被反序列化成真实账户数据。
+public struct LiveReadOnlyAccountPositionBalanceFutureGateBoundary: Codable, Equatable, Sendable {
+    public let contractID: Identifier
+    public let issueID: Identifier
+    public let matrixID: String
+    public let futureGates: [LiveReadOnlyAccountPositionBalanceFutureGate]
+    public let sourceIdentityBoundaries: [LiveReadOnlyAccountPositionBalanceSourceIdentity]
+    public let freshnessBoundaries: [LiveReadOnlyAccountPositionBalanceFreshnessBoundary]
+    public let forbiddenInterpretations: [LiveReadOnlyAccountPositionBalanceForbiddenInterpretation]
+    public let allowedEvidenceKinds: [LiveReadOnlyAccountPositionBalanceEvidenceKind]
+    public let implementsAccountReadModelRuntime: Bool
+    public let implementsPositionReadModelRuntime: Bool
+    public let implementsBalanceReadModelRuntime: Bool
+    public let readsRealAccount: Bool
+    public let syncsBrokerPosition: Bool
+    public let readsRealAccountBalance: Bool
+    public let readsMargin: Bool
+    public let readsLeverage: Bool
+    public let readsRealPnL: Bool
+    public let callsSignedEndpoint: Bool
+    public let callsAccountEndpoint: Bool
+    public let createsListenKey: Bool
+    public let connectsBrokerAdapter: Bool
+    public let implementsLiveExecutionAdapter: Bool
+    public let implementsOMS: Bool
+    public let representsPaperEvidenceAsRealAccountData: Bool
+    public let representsSimulatedFillAsBrokerPosition: Bool
+    public let representsFixtureEvidenceAsRealAccountSnapshot: Bool
+    public let exposesTradingButton: Bool
+    public let exposesLiveCommand: Bool
+    public let requiredValidationDependsOnNetwork: Bool
+
+    public var accountPositionBalanceFutureGateBoundaryHeld: Bool {
+        matrixID == Self.requiredMatrixID
+            && futureGates == Self.requiredFutureGates
+            && sourceIdentityBoundaries == Self.requiredSourceIdentityBoundaries
+            && freshnessBoundaries == Self.requiredFreshnessBoundaries
+            && forbiddenInterpretations == Self.requiredForbiddenInterpretations
+            && allowedEvidenceKinds == Self.allowedEvidenceKinds
+            && implementsAccountReadModelRuntime == false
+            && implementsPositionReadModelRuntime == false
+            && implementsBalanceReadModelRuntime == false
+            && readsRealAccount == false
+            && syncsBrokerPosition == false
+            && readsRealAccountBalance == false
+            && readsMargin == false
+            && readsLeverage == false
+            && readsRealPnL == false
+            && callsSignedEndpoint == false
+            && callsAccountEndpoint == false
+            && createsListenKey == false
+            && connectsBrokerAdapter == false
+            && implementsLiveExecutionAdapter == false
+            && implementsOMS == false
+            && representsPaperEvidenceAsRealAccountData == false
+            && representsSimulatedFillAsBrokerPosition == false
+            && representsFixtureEvidenceAsRealAccountSnapshot == false
+            && exposesTradingButton == false
+            && exposesLiveCommand == false
+            && requiredValidationDependsOnNetwork == false
+    }
+
+    public init(
+        contractID: Identifier = try! Identifier("mtp-129-live-read-only-account-position-balance-future-gates"),
+        issueID: Identifier = try! Identifier("MTP-129"),
+        matrixID: String = Self.requiredMatrixID,
+        futureGates: [LiveReadOnlyAccountPositionBalanceFutureGate] = Self.requiredFutureGates,
+        sourceIdentityBoundaries: [LiveReadOnlyAccountPositionBalanceSourceIdentity] =
+            Self.requiredSourceIdentityBoundaries,
+        freshnessBoundaries: [LiveReadOnlyAccountPositionBalanceFreshnessBoundary] =
+            Self.requiredFreshnessBoundaries,
+        forbiddenInterpretations: [LiveReadOnlyAccountPositionBalanceForbiddenInterpretation] =
+            Self.requiredForbiddenInterpretations,
+        allowedEvidenceKinds: [LiveReadOnlyAccountPositionBalanceEvidenceKind] = Self.allowedEvidenceKinds,
+        implementsAccountReadModelRuntime: Bool = false,
+        implementsPositionReadModelRuntime: Bool = false,
+        implementsBalanceReadModelRuntime: Bool = false,
+        readsRealAccount: Bool = false,
+        syncsBrokerPosition: Bool = false,
+        readsRealAccountBalance: Bool = false,
+        readsMargin: Bool = false,
+        readsLeverage: Bool = false,
+        readsRealPnL: Bool = false,
+        callsSignedEndpoint: Bool = false,
+        callsAccountEndpoint: Bool = false,
+        createsListenKey: Bool = false,
+        connectsBrokerAdapter: Bool = false,
+        implementsLiveExecutionAdapter: Bool = false,
+        implementsOMS: Bool = false,
+        representsPaperEvidenceAsRealAccountData: Bool = false,
+        representsSimulatedFillAsBrokerPosition: Bool = false,
+        representsFixtureEvidenceAsRealAccountSnapshot: Bool = false,
+        exposesTradingButton: Bool = false,
+        exposesLiveCommand: Bool = false,
+        requiredValidationDependsOnNetwork: Bool = false
+    ) throws {
+        try Self.validate(
+            matrixID: matrixID,
+            futureGates: futureGates,
+            sourceIdentityBoundaries: sourceIdentityBoundaries,
+            freshnessBoundaries: freshnessBoundaries,
+            forbiddenInterpretations: forbiddenInterpretations,
+            allowedEvidenceKinds: allowedEvidenceKinds
+        )
+        try Self.validateForbiddenFlags(
+            implementsAccountReadModelRuntime: implementsAccountReadModelRuntime,
+            implementsPositionReadModelRuntime: implementsPositionReadModelRuntime,
+            implementsBalanceReadModelRuntime: implementsBalanceReadModelRuntime,
+            readsRealAccount: readsRealAccount,
+            syncsBrokerPosition: syncsBrokerPosition,
+            readsRealAccountBalance: readsRealAccountBalance,
+            readsMargin: readsMargin,
+            readsLeverage: readsLeverage,
+            readsRealPnL: readsRealPnL,
+            callsSignedEndpoint: callsSignedEndpoint,
+            callsAccountEndpoint: callsAccountEndpoint,
+            createsListenKey: createsListenKey,
+            connectsBrokerAdapter: connectsBrokerAdapter,
+            implementsLiveExecutionAdapter: implementsLiveExecutionAdapter,
+            implementsOMS: implementsOMS,
+            representsPaperEvidenceAsRealAccountData: representsPaperEvidenceAsRealAccountData,
+            representsSimulatedFillAsBrokerPosition: representsSimulatedFillAsBrokerPosition,
+            representsFixtureEvidenceAsRealAccountSnapshot: representsFixtureEvidenceAsRealAccountSnapshot,
+            exposesTradingButton: exposesTradingButton,
+            exposesLiveCommand: exposesLiveCommand,
+            requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork
+        )
+
+        self.contractID = contractID
+        self.issueID = issueID
+        self.matrixID = matrixID
+        self.futureGates = futureGates
+        self.sourceIdentityBoundaries = sourceIdentityBoundaries
+        self.freshnessBoundaries = freshnessBoundaries
+        self.forbiddenInterpretations = forbiddenInterpretations
+        self.allowedEvidenceKinds = allowedEvidenceKinds
+        self.implementsAccountReadModelRuntime = implementsAccountReadModelRuntime
+        self.implementsPositionReadModelRuntime = implementsPositionReadModelRuntime
+        self.implementsBalanceReadModelRuntime = implementsBalanceReadModelRuntime
+        self.readsRealAccount = readsRealAccount
+        self.syncsBrokerPosition = syncsBrokerPosition
+        self.readsRealAccountBalance = readsRealAccountBalance
+        self.readsMargin = readsMargin
+        self.readsLeverage = readsLeverage
+        self.readsRealPnL = readsRealPnL
+        self.callsSignedEndpoint = callsSignedEndpoint
+        self.callsAccountEndpoint = callsAccountEndpoint
+        self.createsListenKey = createsListenKey
+        self.connectsBrokerAdapter = connectsBrokerAdapter
+        self.implementsLiveExecutionAdapter = implementsLiveExecutionAdapter
+        self.implementsOMS = implementsOMS
+        self.representsPaperEvidenceAsRealAccountData = representsPaperEvidenceAsRealAccountData
+        self.representsSimulatedFillAsBrokerPosition = representsSimulatedFillAsBrokerPosition
+        self.representsFixtureEvidenceAsRealAccountSnapshot = representsFixtureEvidenceAsRealAccountSnapshot
+        self.exposesTradingButton = exposesTradingButton
+        self.exposesLiveCommand = exposesLiveCommand
+        self.requiredValidationDependsOnNetwork = requiredValidationDependsOnNetwork
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            contractID: try container.decode(Identifier.self, forKey: .contractID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            matrixID: try container.decode(String.self, forKey: .matrixID),
+            futureGates: try container.decode(
+                [LiveReadOnlyAccountPositionBalanceFutureGate].self,
+                forKey: .futureGates
+            ),
+            sourceIdentityBoundaries: try container.decode(
+                [LiveReadOnlyAccountPositionBalanceSourceIdentity].self,
+                forKey: .sourceIdentityBoundaries
+            ),
+            freshnessBoundaries: try container.decode(
+                [LiveReadOnlyAccountPositionBalanceFreshnessBoundary].self,
+                forKey: .freshnessBoundaries
+            ),
+            forbiddenInterpretations: try container.decode(
+                [LiveReadOnlyAccountPositionBalanceForbiddenInterpretation].self,
+                forKey: .forbiddenInterpretations
+            ),
+            allowedEvidenceKinds: try container.decode(
+                [LiveReadOnlyAccountPositionBalanceEvidenceKind].self,
+                forKey: .allowedEvidenceKinds
+            ),
+            implementsAccountReadModelRuntime: try container.decode(
+                Bool.self,
+                forKey: .implementsAccountReadModelRuntime
+            ),
+            implementsPositionReadModelRuntime: try container.decode(
+                Bool.self,
+                forKey: .implementsPositionReadModelRuntime
+            ),
+            implementsBalanceReadModelRuntime: try container.decode(
+                Bool.self,
+                forKey: .implementsBalanceReadModelRuntime
+            ),
+            readsRealAccount: try container.decode(Bool.self, forKey: .readsRealAccount),
+            syncsBrokerPosition: try container.decode(Bool.self, forKey: .syncsBrokerPosition),
+            readsRealAccountBalance: try container.decode(Bool.self, forKey: .readsRealAccountBalance),
+            readsMargin: try container.decode(Bool.self, forKey: .readsMargin),
+            readsLeverage: try container.decode(Bool.self, forKey: .readsLeverage),
+            readsRealPnL: try container.decode(Bool.self, forKey: .readsRealPnL),
+            callsSignedEndpoint: try container.decode(Bool.self, forKey: .callsSignedEndpoint),
+            callsAccountEndpoint: try container.decode(Bool.self, forKey: .callsAccountEndpoint),
+            createsListenKey: try container.decode(Bool.self, forKey: .createsListenKey),
+            connectsBrokerAdapter: try container.decode(Bool.self, forKey: .connectsBrokerAdapter),
+            implementsLiveExecutionAdapter: try container.decode(Bool.self, forKey: .implementsLiveExecutionAdapter),
+            implementsOMS: try container.decode(Bool.self, forKey: .implementsOMS),
+            representsPaperEvidenceAsRealAccountData: try container.decode(
+                Bool.self,
+                forKey: .representsPaperEvidenceAsRealAccountData
+            ),
+            representsSimulatedFillAsBrokerPosition: try container.decode(
+                Bool.self,
+                forKey: .representsSimulatedFillAsBrokerPosition
+            ),
+            representsFixtureEvidenceAsRealAccountSnapshot: try container.decode(
+                Bool.self,
+                forKey: .representsFixtureEvidenceAsRealAccountSnapshot
+            ),
+            exposesTradingButton: try container.decode(Bool.self, forKey: .exposesTradingButton),
+            exposesLiveCommand: try container.decode(Bool.self, forKey: .exposesLiveCommand),
+            requiredValidationDependsOnNetwork: try container.decode(
+                Bool.self,
+                forKey: .requiredValidationDependsOnNetwork
+            )
+        )
+    }
+
+    public static let requiredMatrixID = "TVM-LIVE-READ-ONLY-READINESS"
+    public static let requiredFutureGates = LiveReadOnlyAccountPositionBalanceFutureGate.allCases
+    public static let requiredSourceIdentityBoundaries =
+        LiveReadOnlyAccountPositionBalanceSourceIdentity.allCases
+    public static let requiredFreshnessBoundaries =
+        LiveReadOnlyAccountPositionBalanceFreshnessBoundary.allCases
+    public static let requiredForbiddenInterpretations =
+        LiveReadOnlyAccountPositionBalanceForbiddenInterpretation.allCases
+
+    public static let allowedEvidenceKinds: [LiveReadOnlyAccountPositionBalanceEvidenceKind] = [
+        .contractDocumentation,
+        .domainContextTerms,
+        .validationMatrixAnchor,
+        .automationReadinessAnchor,
+        .deterministicForbiddenTest,
+        .l31HandoffMaterial,
+        .prBoundaryEvidence
+    ]
+
+    public static let deterministicFixture: LiveReadOnlyAccountPositionBalanceFutureGateBoundary = {
+        do {
+            return try LiveReadOnlyAccountPositionBalanceFutureGateBoundary()
+        } catch {
+            preconditionFailure(
+                "MTP-129 Live read-only account / position / balance future gate fixture must be valid: \(error)"
+            )
+        }
+    }()
+
+    private static func validate(
+        matrixID: String,
+        futureGates: [LiveReadOnlyAccountPositionBalanceFutureGate],
+        sourceIdentityBoundaries: [LiveReadOnlyAccountPositionBalanceSourceIdentity],
+        freshnessBoundaries: [LiveReadOnlyAccountPositionBalanceFreshnessBoundary],
+        forbiddenInterpretations: [LiveReadOnlyAccountPositionBalanceForbiddenInterpretation],
+        allowedEvidenceKinds: [LiveReadOnlyAccountPositionBalanceEvidenceKind]
+    ) throws {
+        guard matrixID == Self.requiredMatrixID else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "matrixID",
+                expected: Self.requiredMatrixID,
+                actual: matrixID
+            )
+        }
+        guard futureGates == Self.requiredFutureGates else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "futureGates",
+                expected: Self.requiredFutureGates.map(\.rawValue).joined(separator: ","),
+                actual: futureGates.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard sourceIdentityBoundaries == Self.requiredSourceIdentityBoundaries else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "sourceIdentityBoundaries",
+                expected: Self.requiredSourceIdentityBoundaries.map(\.rawValue).joined(separator: ","),
+                actual: sourceIdentityBoundaries.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard freshnessBoundaries == Self.requiredFreshnessBoundaries else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "freshnessBoundaries",
+                expected: Self.requiredFreshnessBoundaries.map(\.rawValue).joined(separator: ","),
+                actual: freshnessBoundaries.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard forbiddenInterpretations == Self.requiredForbiddenInterpretations else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "forbiddenInterpretations",
+                expected: Self.requiredForbiddenInterpretations.map(\.rawValue).joined(separator: ","),
+                actual: forbiddenInterpretations.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard allowedEvidenceKinds == Self.allowedEvidenceKinds else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "allowedEvidenceKinds",
+                expected: Self.allowedEvidenceKinds.map(\.rawValue).joined(separator: ","),
+                actual: allowedEvidenceKinds.map(\.rawValue).joined(separator: ",")
+            )
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        implementsAccountReadModelRuntime: Bool,
+        implementsPositionReadModelRuntime: Bool,
+        implementsBalanceReadModelRuntime: Bool,
+        readsRealAccount: Bool,
+        syncsBrokerPosition: Bool,
+        readsRealAccountBalance: Bool,
+        readsMargin: Bool,
+        readsLeverage: Bool,
+        readsRealPnL: Bool,
+        callsSignedEndpoint: Bool,
+        callsAccountEndpoint: Bool,
+        createsListenKey: Bool,
+        connectsBrokerAdapter: Bool,
+        implementsLiveExecutionAdapter: Bool,
+        implementsOMS: Bool,
+        representsPaperEvidenceAsRealAccountData: Bool,
+        representsSimulatedFillAsBrokerPosition: Bool,
+        representsFixtureEvidenceAsRealAccountSnapshot: Bool,
+        exposesTradingButton: Bool,
+        exposesLiveCommand: Bool,
+        requiredValidationDependsOnNetwork: Bool
+    ) throws {
+        let forbiddenFlags = [
+            ("implementsAccountReadModelRuntime", implementsAccountReadModelRuntime),
+            ("implementsPositionReadModelRuntime", implementsPositionReadModelRuntime),
+            ("implementsBalanceReadModelRuntime", implementsBalanceReadModelRuntime),
+            ("readsRealAccount", readsRealAccount),
+            ("syncsBrokerPosition", syncsBrokerPosition),
+            ("readsRealAccountBalance", readsRealAccountBalance),
+            ("readsMargin", readsMargin),
+            ("readsLeverage", readsLeverage),
+            ("readsRealPnL", readsRealPnL),
+            ("callsSignedEndpoint", callsSignedEndpoint),
+            ("callsAccountEndpoint", callsAccountEndpoint),
+            ("createsListenKey", createsListenKey),
+            ("connectsBrokerAdapter", connectsBrokerAdapter),
+            ("implementsLiveExecutionAdapter", implementsLiveExecutionAdapter),
+            ("implementsOMS", implementsOMS),
+            ("representsPaperEvidenceAsRealAccountData", representsPaperEvidenceAsRealAccountData),
+            ("representsSimulatedFillAsBrokerPosition", representsSimulatedFillAsBrokerPosition),
+            ("representsFixtureEvidenceAsRealAccountSnapshot", representsFixtureEvidenceAsRealAccountSnapshot),
+            ("exposesTradingButton", exposesTradingButton),
+            ("exposesLiveCommand", exposesLiveCommand),
             ("requiredValidationDependsOnNetwork", requiredValidationDependsOnNetwork)
         ]
 
