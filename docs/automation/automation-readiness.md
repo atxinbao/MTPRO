@@ -37,7 +37,7 @@
 | Data Catalog / Scenario Replay stage code audit report anchor | ready | `docs/audit/mtpro-data-catalog-scenario-replay-v1-stage-code-audit.md` |
 | Simulated Exchange / Backtest Parity stage audit input anchor | ready | `docs/audit/inputs/mtpro-simulated-exchange-backtest-parity-v1-stage-audit-input.md` |
 | Simulated Exchange / Backtest Parity stage code audit report anchor | ready | `docs/audit/mtpro-simulated-exchange-backtest-parity-v1-stage-code-audit.md` |
-| Simulated Exchange / Backtest Parity root docs refresh anchor | ready | Engine Maturity Roadmap Progress `3 / 4 (75%)`；current maturity statement `L2 Simulated Exchange / Backtest Parity complete` |
+| Simulated Exchange / Backtest Parity root docs refresh anchor | ready | Historical Engine Maturity Roadmap Progress `3 / 4 (75%)`；historical maturity statement `L2 Simulated Exchange / Backtest Parity complete` |
 | Workbench Beta Readiness contract anchor | ready | `docs/contracts/workbench-beta-readiness-contract.md`；MTP-118 只定义 local macOS Workbench demo / acceptance path，不实现 install / run、engine core、production release 或 live readiness |
 | Workbench Beta Readiness local launch / install anchor | ready | `docs/validation/macos-build-run-loop.md`；MTP-119 只定义 SwiftPM local install、Dashboard launch / smoke、environment verification 和 troubleshooting path，不创建 production installer、notarization、App Store、auto-update、production deployment、cloud operations 或 live readiness |
 | Workbench Beta Readiness demo scenario / fixture wiring anchor | ready | `Sources/Core/WorkbenchBetaDemoScenario.swift`；MTP-120 只固定 local deterministic demo scenario、dataset / fixture version、checksum / freshness evidence 和 L1.5 / L2 relationship，不新增网络下载、production data platform、Runtime replay job、first-run UI、Report / Dashboard / Events acceptance path、live readiness 或真实交易能力 |
@@ -46,6 +46,8 @@
 | Workbench Beta Readiness reproducible beta acceptance anchor | ready | `checks/workbench-beta-acceptance.sh` 和 `docs/validation/workbench-beta-acceptance-checklist.md`；MTP-123 只把既有 local commands、Dashboard smoke handles 和 `bash checks/run.sh` 串成 operator checklist / script，不新增 Graphify、Figma、production ops、release automation、Live PRO Console、trading button、live command 或真实交易能力 |
 | Workbench Beta Readiness docs index / operator guide anchor | ready | `docs/index.md`、`docs/validation/workbench-beta-operator-guide.md` 和 `docs/validation/workbench-beta-demo-workflow-guide.md`；MTP-124 只把 MTP-119 至 MTP-123 的 local Workbench beta path 组织成 operator 可读文档，不新增 production code、stage audit input、production release、Live PRO Console、trading button、live command、Graphify 或 Figma |
 | Workbench Beta Readiness stage audit input anchor | ready | `docs/audit/inputs/mtpro-workbench-beta-readiness-v1-stage-audit-input.md`；MTP-125 只收口 MTP-118 至 MTP-124 validation evidence、automation readiness、forbidden capability audit 和 Stage Code Audit 输入材料，不输出最终 Stage Code Audit Report、不修改 Linear status、不运行 Graphify、不修改 Figma、不授权下一阶段或 live readiness |
+| Workbench Beta Readiness stage code audit report anchor | ready | `docs/audit/mtpro-workbench-beta-readiness-v1-stage-code-audit.md`；记录 MTP-118 至 MTP-125 Project closure、Linear Project `Completed/type=completed`、PR / merge / checks evidence、validation、Root Docs Delta 和 forbidden capability audit |
+| Workbench Beta Readiness root docs refresh anchor | ready | Engine Maturity Roadmap Progress `4 / 4 (100%)`；current maturity statement `L2+ Workbench Beta Readiness complete`；L3 / L4 仍为 Future Gated，不计入当前 progress denominator，不授权下一 Project |
 
 ## Project 切换规则
 

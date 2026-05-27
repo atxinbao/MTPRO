@@ -93,6 +93,7 @@ bash checks/run.sh
 - 若任务需要检查本地 secret 配置，只能报告路径、存在性和脱敏状态，不能打印 secret。
 - `.codex/*`、`graphify-out/*` 和本地编辑器目录不得进入 PR。
 - 本地 Symphony active Project pointer 是运行时配置，不写成仓库永久事实。
+- `MTPRO Workbench Beta Readiness v1` 已完成的 local launch / install / environment verification path 只代表 SwiftPM local build、Dashboard smoke、deterministic demo scenario 和本地 operator acceptance 可复现；不代表 production release、notarization、App Store distribution、auto-update、production operations、Live read-only readiness、Live Production、signed endpoint、account endpoint / listenKey、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、Live PRO Console、trading button 或 live command。
 
 ## Automation Boundary / 自动化边界
 
