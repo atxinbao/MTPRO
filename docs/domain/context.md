@@ -1264,6 +1264,30 @@ MTP-140 的 forbidden baseline 必须覆盖 signed endpoint、account endpoint /
 
 MTP-140 validation 必须证明 contract、domain context、validation plan、trading validation matrix、latest summary、automation readiness doc 和 mechanical anchors 均固定 L3.2 terminology / boundary，并且 `bash checks/run.sh` 通过。MTP-140 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard smoke handle、不新增 stage audit input；Project stage closeout 仍归属 MTP-146。
 
+`MTP-141-SIMULATED-PRIVATE-ACCOUNT-EVENT-SOURCE-IDENTITY`
+
+MTP-141 定义 simulated private account event 的 source identity，只允许以下三类 source kind：`fixture private stream source`、`simulated private stream source` 和 `future real private stream label`。固定 source identity 分别为 `fixture:private-stream:mtp-141-local-private-account-event`、`simulated:private-stream:mtp-141-scenario-replay-private-account-event` 和 `future-gated:private-stream:label-only`。这些 source identity 只说明本地 fixture / simulated / future-gated label，不等于真实 Binance private stream、listenKey user data stream、signed request、account endpoint payload、broker stream 或 execution report。
+
+`MTP-141-FIXTURE-SCENARIO-VERSION-CHECKSUM-FRESHNESS-LINKAGE`
+
+MTP-141 source identity 必须绑定 `scenarioID=mtp-141-private-account-event-source-scenario`、`datasetVersion=dataset-v1`、`fixtureVersion=fixture-v1`、`fixtureReplayCursor=fixture-replay-cursor:mtp-141:private-account-event:001`、`sourceWatermark=fixture-watermark:mtp-141:2024-01-01T00:06:00Z`、`freshnessStatus=fresh` 和 deterministic checksum。该 checksum 只用于本地 source identity 可重复验证，不是 exchange checksum、listenKey checkpoint、broker watermark 或 production stream offset。
+
+`MTP-141-FUTURE-REAL-PRIVATE-STREAM-LABEL-GATE`
+
+MTP-141 允许 future real private stream 只作为 `future-gated:private-stream:label-only` 出现。该 label 说明未来真实 private stream 需要独立 Human decision、Project Definition、credential / endpoint / adapter / operations gates 和 forbidden capability audit；它不授权当前 issue 创建 listenKey、打开 private WebSocket、调用 signed/account endpoint、运行 private stream runtime 或 account snapshot runtime。
+
+`MTP-141-FORBIDDEN-LIVE-STREAM-SOURCE-TESTS`
+
+MTP-141 的 forbidden live stream source tests 必须拒绝 signed endpoint call、account endpoint call、listenKey creation、private WebSocket runtime、private stream runtime、account snapshot runtime、secret read、real account payload consumption、broker payload import、adapter request exposure、adapter capability matrix bypass、broker / exchange execution adapter connection、`LiveExecutionAdapter` implementation、OMS implementation 和 real order write。
+
+`MTP-141-ADAPTER-CAPABILITY-MATRIX-BYPASS-GUARD`
+
+MTP-141 source identity 不能绕过 adapter capability matrix。任何 source identity 都不能被写成 adapter request、private endpoint capability、broker connection、exchange execution adapter、`LiveExecutionAdapter`、OMS、account payload importer、Live PRO Console、trading button、live command 或 order form。
+
+`MTP-141-SOURCE-IDENTITY-VALIDATION`
+
+MTP-141 validation 必须证明 `SimulatedPrivateAccountEventSourceIdentityContract`、`SimulatedPrivateAccountEventSourceIdentityRecord`、focused XCTest、contract docs、domain context、validation matrix、validation plan、latest summary、automation readiness doc 和 mechanical anchors 均固定 source identity / forbidden source boundary，并且 `bash checks/run.sh` 通过。MTP-141 不实现 simulated account snapshot input contract，不新增 Dashboard smoke handle；MTP-142 才能深化 snapshot input shape。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

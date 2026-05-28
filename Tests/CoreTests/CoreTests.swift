@@ -1406,6 +1406,211 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testSimulatedPrivateAccountEventSourceIdentityDefinesMTP141DeterministicSource() throws {
+        // 测试场景：MTP-141 只定义 simulated private account event 的本地 source identity。
+        // source kind、scenario、dataset / fixture version、checksum 和 freshness 必须稳定，
+        // 且 future real private stream 只能以 future-gated label 出现，不能成为 runtime source。
+        let contract = SimulatedPrivateAccountEventSourceIdentityContract.deterministicFixture
+
+        XCTAssertEqual(
+            contract.contractID,
+            try Identifier("mtp-141-simulated-private-account-event-source-identity")
+        )
+        XCTAssertEqual(contract.issueID, try Identifier("MTP-141"))
+        XCTAssertEqual(contract.matrixID, "TVM-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-SIMULATION-GATE")
+        XCTAssertEqual(
+            contract.sourceRecords.map(\.sourceKind),
+            SimulatedPrivateAccountEventSourceKind.allCases
+        )
+        XCTAssertEqual(
+            contract.sourceRecords.map(\.sourceIdentity),
+            SimulatedPrivateAccountEventSourceKind.allCases.map {
+                SimulatedPrivateAccountEventSourceIdentityRecord.requiredSourceIdentity(for: $0)
+            }
+        )
+        XCTAssertTrue(
+            contract.sourceRecords.allSatisfy {
+                $0.scenarioID == SimulatedPrivateAccountEventSourceIdentityRecord.requiredScenarioID
+                    && $0.datasetVersion == SimulatedPrivateAccountEventSourceIdentityRecord.requiredDatasetVersion
+                    && $0.fixtureVersion == SimulatedPrivateAccountEventSourceIdentityRecord.requiredFixtureVersion
+                    && $0.fixtureReplayCursor
+                        == SimulatedPrivateAccountEventSourceIdentityRecord.requiredFixtureReplayCursor
+                    && $0.sourceWatermark == SimulatedPrivateAccountEventSourceIdentityRecord.requiredSourceWatermark
+                    && $0.freshnessStatus == .fresh
+                    && $0.sourceIdentityBoundaryHeld
+            }
+        )
+        XCTAssertEqual(
+            contract.checksum,
+            SimulatedPrivateAccountEventSourceIdentityContract.checksum(for: contract.sourceRecords)
+        )
+        XCTAssertEqual(contract.checksum, SimulatedPrivateAccountEventSourceIdentityContract.requiredChecksum)
+        XCTAssertTrue(contract.checksumMatchedCanonicalPreimage)
+        XCTAssertEqual(contract.freshnessStatus, .fresh)
+        XCTAssertEqual(
+            contract.forbiddenCapabilities,
+            SimulatedPrivateAccountEventSourceForbiddenCapability.allCases
+        )
+        XCTAssertTrue(contract.sourceIdentityBoundaryHeld)
+        XCTAssertFalse(contract.callsSignedEndpoint)
+        XCTAssertFalse(contract.callsAccountEndpoint)
+        XCTAssertFalse(contract.createsListenKey)
+        XCTAssertFalse(contract.opensPrivateWebSocket)
+        XCTAssertFalse(contract.runsPrivateStreamRuntime)
+        XCTAssertFalse(contract.runsAccountSnapshotRuntime)
+        XCTAssertFalse(contract.readsSecret)
+        XCTAssertFalse(contract.consumesRealAccountPayload)
+        XCTAssertFalse(contract.importsBrokerPayload)
+        XCTAssertFalse(contract.exposesAdapterRequest)
+        XCTAssertFalse(contract.bypassesAdapterCapabilityMatrix)
+        XCTAssertFalse(contract.connectsBrokerAdapter)
+        XCTAssertFalse(contract.connectsExchangeExecutionAdapter)
+        XCTAssertFalse(contract.implementsLiveExecutionAdapter)
+        XCTAssertFalse(contract.implementsOMS)
+        XCTAssertFalse(contract.writesRealOrder)
+        XCTAssertFalse(
+            contract.containsForbiddenPayloadText([
+                "listenKey",
+                "accountEndpoint",
+                "adapterRequest",
+                "accountPayload",
+                "brokerPayload",
+                "LiveExecutionAdapter",
+                "tradingButton",
+                "liveCommand"
+            ])
+        )
+
+        let encoded = try JSONEncoder().encode(contract)
+        let decoded = try JSONDecoder().decode(
+            SimulatedPrivateAccountEventSourceIdentityContract.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, contract)
+    }
+
+    func testSimulatedPrivateAccountEventSourceIdentityRejectsMTP141ForbiddenLiveSourceBypass() throws {
+        // 测试场景：MTP-141 source identity 的初始化和 Codable 解码都必须拒绝 signed endpoint、
+        // account endpoint / listenKey、private WebSocket/runtime、真实 account/broker payload、
+        // adapter request 暴露和 adapter capability matrix bypass。
+        let forbiddenFlagCases: [
+            (field: String, build: () throws -> SimulatedPrivateAccountEventSourceIdentityContract)
+        ] = [
+            (
+                "callsSignedEndpoint",
+                { try SimulatedPrivateAccountEventSourceIdentityContract(callsSignedEndpoint: true) }
+            ),
+            (
+                "callsAccountEndpoint",
+                { try SimulatedPrivateAccountEventSourceIdentityContract(callsAccountEndpoint: true) }
+            ),
+            (
+                "createsListenKey",
+                { try SimulatedPrivateAccountEventSourceIdentityContract(createsListenKey: true) }
+            ),
+            (
+                "opensPrivateWebSocket",
+                { try SimulatedPrivateAccountEventSourceIdentityContract(opensPrivateWebSocket: true) }
+            ),
+            (
+                "runsPrivateStreamRuntime",
+                { try SimulatedPrivateAccountEventSourceIdentityContract(runsPrivateStreamRuntime: true) }
+            ),
+            (
+                "runsAccountSnapshotRuntime",
+                { try SimulatedPrivateAccountEventSourceIdentityContract(runsAccountSnapshotRuntime: true) }
+            ),
+            (
+                "readsSecret",
+                { try SimulatedPrivateAccountEventSourceIdentityContract(readsSecret: true) }
+            ),
+            (
+                "consumesRealAccountPayload",
+                { try SimulatedPrivateAccountEventSourceIdentityContract(consumesRealAccountPayload: true) }
+            ),
+            (
+                "importsBrokerPayload",
+                { try SimulatedPrivateAccountEventSourceIdentityContract(importsBrokerPayload: true) }
+            ),
+            (
+                "exposesAdapterRequest",
+                { try SimulatedPrivateAccountEventSourceIdentityContract(exposesAdapterRequest: true) }
+            ),
+            (
+                "bypassesAdapterCapabilityMatrix",
+                {
+                    try SimulatedPrivateAccountEventSourceIdentityContract(
+                        bypassesAdapterCapabilityMatrix: true
+                    )
+                }
+            ),
+            (
+                "connectsBrokerAdapter",
+                { try SimulatedPrivateAccountEventSourceIdentityContract(connectsBrokerAdapter: true) }
+            ),
+            (
+                "connectsExchangeExecutionAdapter",
+                { try SimulatedPrivateAccountEventSourceIdentityContract(connectsExchangeExecutionAdapter: true) }
+            ),
+            (
+                "implementsLiveExecutionAdapter",
+                { try SimulatedPrivateAccountEventSourceIdentityContract(implementsLiveExecutionAdapter: true) }
+            ),
+            (
+                "implementsOMS",
+                { try SimulatedPrivateAccountEventSourceIdentityContract(implementsOMS: true) }
+            ),
+            (
+                "writesRealOrder",
+                { try SimulatedPrivateAccountEventSourceIdentityContract(writesRealOrder: true) }
+            )
+        ]
+
+        for flagCase in forbiddenFlagCases {
+            XCTAssertThrowsError(try flagCase.build()) { error in
+                XCTAssertEqual(
+                    error as? CoreError,
+                    .liveTradingBoundaryForbiddenCapability(flagCase.field)
+                )
+            }
+        }
+
+        XCTAssertThrowsError(
+            try SimulatedPrivateAccountEventSourceIdentityRecord(
+                sourceKind: .fixturePrivateStreamSource,
+                sourceIdentity: "listenKey:private-stream:accountEndpointPayload"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "fixture private stream source.sourceIdentity",
+                    expected: "fixture:private-stream:mtp-141-local-private-account-event",
+                    actual: "listenKey:private-stream:accountEndpointPayload"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(
+            SimulatedPrivateAccountEventSourceIdentityContract.deterministicFixture
+        )
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["bypassesAdapterCapabilityMatrix"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(
+                SimulatedPrivateAccountEventSourceIdentityContract.self,
+                from: data
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("bypassesAdapterCapabilityMatrix")
+            )
+        }
+    }
+
     func testLiveReadOnlyWorkbenchReadModelBoundaryDefinesMTP131Surface() throws {
         // 测试场景：MTP-131 只定义 Workbench / Dashboard 可展示的 Live readiness 只读边界，
         // 并把 forbidden UI surface、detail audit route 和 L3.x handoff 固定为可回放 fixture。

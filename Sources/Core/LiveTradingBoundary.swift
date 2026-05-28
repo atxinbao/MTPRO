@@ -3285,6 +3285,634 @@ public struct LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary: Co
     }
 }
 
+/// SimulatedPrivateAccountEventSourceKind 固定 MTP-141 允许出现的 source identity 分类。
+///
+/// 这些分类只服务 L3.2 simulation gate 的本地 fixture / simulated evidence。`futureRealPrivateStreamLabel`
+/// 只能作为 future-gated label 出现，不能被解释为当前已实现的 listenKey、private WebSocket、
+/// signed/account endpoint、broker stream 或 account snapshot runtime。
+public enum SimulatedPrivateAccountEventSourceKind: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case fixturePrivateStreamSource = "fixture private stream source"
+    case simulatedPrivateStreamSource = "simulated private stream source"
+    case futureRealPrivateStreamLabel = "future real private stream label"
+}
+
+/// SimulatedPrivateAccountEventSourceForbiddenCapability 列出 MTP-141 source identity 必须拒绝的能力。
+///
+/// 这些值只作为 deterministic forbidden source tests 和 PR boundary evidence。它们不能出现在
+/// 当前可调用 adapter、Runtime、payload importer、credential provider、broker connector 或 UI command surface。
+public enum SimulatedPrivateAccountEventSourceForbiddenCapability: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case listenKeyCreation = "listenKey creation"
+    case privateWebSocketRuntime = "private WebSocket runtime"
+    case privateStreamRuntime = "private stream runtime"
+    case accountSnapshotRuntime = "account snapshot runtime"
+    case signedEndpointCall = "signed endpoint call"
+    case accountEndpointCall = "account endpoint call"
+    case secretRead = "secret read"
+    case realAccountPayloadConsumption = "real account payload consumption"
+    case brokerPayloadImport = "broker payload import"
+    case adapterRequestExposure = "adapter request exposure"
+    case adapterCapabilityMatrixBypass = "adapter capability matrix bypass"
+    case brokerAdapterConnection = "broker adapter connection"
+    case exchangeExecutionAdapterConnection = "exchange execution adapter connection"
+    case liveExecutionAdapterImplementation = "LiveExecutionAdapter implementation"
+    case omsImplementation = "OMS implementation"
+    case realOrderWrite = "real order write"
+}
+
+/// SimulatedPrivateAccountEventSourceIdentityRecord 是 MTP-141 的单条 source identity 记录。
+///
+/// Record 只保存 source kind、source identity、scenario / dataset / fixture version、fixture replay
+/// cursor、source watermark 和 freshness linkage。它故意不保存真实 account payload、broker payload、
+/// adapter request、schema 或 Runtime object，防止 source identity 被误用为真实 private stream source。
+public struct SimulatedPrivateAccountEventSourceIdentityRecord: Codable, Equatable, Sendable {
+    public let sourceKind: SimulatedPrivateAccountEventSourceKind
+    public let sourceIdentity: String
+    public let scenarioID: ScenarioID
+    public let datasetVersion: DatasetVersion
+    public let fixtureVersion: FixtureVersion
+    public let fixtureReplayCursor: String
+    public let sourceWatermark: String
+    public let freshnessStatus: ScenarioReplayFreshnessStatus
+
+    public var canonicalLine: String {
+        [
+            sourceKind.rawValue,
+            sourceIdentity,
+            scenarioID.rawValue,
+            datasetVersion.rawValue,
+            fixtureVersion.rawValue,
+            fixtureReplayCursor,
+            sourceWatermark,
+            freshnessStatus.rawValue
+        ].joined(separator: "|")
+    }
+
+    public var sourceIdentityBoundaryHeld: Bool {
+        sourceIdentity == Self.requiredSourceIdentity(for: sourceKind)
+            && scenarioID == Self.requiredScenarioID
+            && datasetVersion == Self.requiredDatasetVersion
+            && fixtureVersion == Self.requiredFixtureVersion
+            && fixtureReplayCursor == Self.requiredFixtureReplayCursor
+            && sourceWatermark == Self.requiredSourceWatermark
+            && freshnessStatus == .fresh
+            && containsForbiddenSourceText(Self.forbiddenSourceIdentityTokens) == false
+    }
+
+    public init(
+        sourceKind: SimulatedPrivateAccountEventSourceKind,
+        sourceIdentity: String? = nil,
+        scenarioID: ScenarioID = Self.requiredScenarioID,
+        datasetVersion: DatasetVersion = Self.requiredDatasetVersion,
+        fixtureVersion: FixtureVersion = Self.requiredFixtureVersion,
+        fixtureReplayCursor: String = Self.requiredFixtureReplayCursor,
+        sourceWatermark: String = Self.requiredSourceWatermark,
+        freshnessStatus: ScenarioReplayFreshnessStatus = .fresh
+    ) throws {
+        let resolvedSourceIdentity = sourceIdentity ?? Self.requiredSourceIdentity(for: sourceKind)
+        try Self.validate(
+            sourceKind: sourceKind,
+            sourceIdentity: resolvedSourceIdentity,
+            scenarioID: scenarioID,
+            datasetVersion: datasetVersion,
+            fixtureVersion: fixtureVersion,
+            fixtureReplayCursor: fixtureReplayCursor,
+            sourceWatermark: sourceWatermark,
+            freshnessStatus: freshnessStatus
+        )
+
+        self.sourceKind = sourceKind
+        self.sourceIdentity = resolvedSourceIdentity
+        self.scenarioID = scenarioID
+        self.datasetVersion = datasetVersion
+        self.fixtureVersion = fixtureVersion
+        self.fixtureReplayCursor = fixtureReplayCursor
+        self.sourceWatermark = sourceWatermark
+        self.freshnessStatus = freshnessStatus
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            sourceKind: try container.decode(SimulatedPrivateAccountEventSourceKind.self, forKey: .sourceKind),
+            sourceIdentity: try container.decode(String.self, forKey: .sourceIdentity),
+            scenarioID: try container.decode(ScenarioID.self, forKey: .scenarioID),
+            datasetVersion: try container.decode(DatasetVersion.self, forKey: .datasetVersion),
+            fixtureVersion: try container.decode(FixtureVersion.self, forKey: .fixtureVersion),
+            fixtureReplayCursor: try container.decode(String.self, forKey: .fixtureReplayCursor),
+            sourceWatermark: try container.decode(String.self, forKey: .sourceWatermark),
+            freshnessStatus: try container.decode(ScenarioReplayFreshnessStatus.self, forKey: .freshnessStatus)
+        )
+    }
+
+    public func containsForbiddenSourceText(_ forbiddenTokens: [String]) -> Bool {
+        let searchable = [
+            sourceIdentity,
+            scenarioID.rawValue,
+            datasetVersion.rawValue,
+            fixtureVersion.rawValue,
+            fixtureReplayCursor,
+            sourceWatermark
+        ]
+            .joined(separator: "|")
+            .lowercased()
+
+        return forbiddenTokens.contains { token in
+            searchable.contains(token.lowercased())
+        }
+    }
+
+    public static let requiredScenarioID = try! ScenarioID("mtp-141-private-account-event-source-scenario")
+    public static let requiredDatasetVersion = try! DatasetVersion("dataset-v1")
+    public static let requiredFixtureVersion = try! FixtureVersion("fixture-v1")
+    public static let requiredFixtureReplayCursor = "fixture-replay-cursor:mtp-141:private-account-event:001"
+    public static let requiredSourceWatermark = "fixture-watermark:mtp-141:2024-01-01T00:06:00Z"
+    public static let forbiddenSourceIdentityTokens = [
+        "apikey",
+        "api-key",
+        "secret",
+        "signedendpoint",
+        "signed-endpoint",
+        "accountendpoint",
+        "account-endpoint",
+        "listenkey",
+        "privatewebsocket",
+        "private-websocket",
+        "adapterrequest",
+        "adapter-request",
+        "accountpayload",
+        "account-payload",
+        "brokerpayload",
+        "broker-payload",
+        "schema",
+        "runtimeobject",
+        "runtime-object",
+        "executionreport",
+        "execution-report",
+        "brokerfill",
+        "broker-fill",
+        "reconciliation",
+        "liveexecutionadapter",
+        "live-execution-adapter",
+        "tradingbutton",
+        "trading-button",
+        "livecommand",
+        "live-command"
+    ]
+
+    public static func requiredSourceIdentity(
+        for sourceKind: SimulatedPrivateAccountEventSourceKind
+    ) -> String {
+        switch sourceKind {
+        case .fixturePrivateStreamSource:
+            return "fixture:private-stream:mtp-141-local-private-account-event"
+        case .simulatedPrivateStreamSource:
+            return "simulated:private-stream:mtp-141-scenario-replay-private-account-event"
+        case .futureRealPrivateStreamLabel:
+            return "future-gated:private-stream:label-only"
+        }
+    }
+
+    private static func validate(
+        sourceKind: SimulatedPrivateAccountEventSourceKind,
+        sourceIdentity: String,
+        scenarioID: ScenarioID,
+        datasetVersion: DatasetVersion,
+        fixtureVersion: FixtureVersion,
+        fixtureReplayCursor: String,
+        sourceWatermark: String,
+        freshnessStatus: ScenarioReplayFreshnessStatus
+    ) throws {
+        let requiredSourceIdentity = Self.requiredSourceIdentity(for: sourceKind)
+        guard sourceIdentity == requiredSourceIdentity else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "\(sourceKind.rawValue).sourceIdentity",
+                expected: requiredSourceIdentity,
+                actual: sourceIdentity
+            )
+        }
+        guard scenarioID == Self.requiredScenarioID else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "\(sourceKind.rawValue).scenarioID",
+                expected: Self.requiredScenarioID.rawValue,
+                actual: scenarioID.rawValue
+            )
+        }
+        guard datasetVersion == Self.requiredDatasetVersion else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "\(sourceKind.rawValue).datasetVersion",
+                expected: Self.requiredDatasetVersion.rawValue,
+                actual: datasetVersion.rawValue
+            )
+        }
+        guard fixtureVersion == Self.requiredFixtureVersion else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "\(sourceKind.rawValue).fixtureVersion",
+                expected: Self.requiredFixtureVersion.rawValue,
+                actual: fixtureVersion.rawValue
+            )
+        }
+        guard fixtureReplayCursor == Self.requiredFixtureReplayCursor else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "\(sourceKind.rawValue).fixtureReplayCursor",
+                expected: Self.requiredFixtureReplayCursor,
+                actual: fixtureReplayCursor
+            )
+        }
+        guard sourceWatermark == Self.requiredSourceWatermark else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "\(sourceKind.rawValue).sourceWatermark",
+                expected: Self.requiredSourceWatermark,
+                actual: sourceWatermark
+            )
+        }
+        guard freshnessStatus == .fresh else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "\(sourceKind.rawValue).freshnessStatus",
+                expected: ScenarioReplayFreshnessStatus.fresh.rawValue,
+                actual: freshnessStatus.rawValue
+            )
+        }
+
+        let probe = SimulatedPrivateAccountEventSourceIdentityRecord(
+            uncheckedSourceKind: sourceKind,
+            uncheckedSourceIdentity: sourceIdentity,
+            uncheckedScenarioID: scenarioID,
+            uncheckedDatasetVersion: datasetVersion,
+            uncheckedFixtureVersion: fixtureVersion,
+            uncheckedFixtureReplayCursor: fixtureReplayCursor,
+            uncheckedSourceWatermark: sourceWatermark,
+            uncheckedFreshnessStatus: freshnessStatus
+        )
+        if let forbiddenToken = Self.forbiddenSourceIdentityTokens.first(where: { token in
+            probe.containsForbiddenSourceText([token])
+        }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("sourceIdentity.\(forbiddenToken)")
+        }
+    }
+
+    private init(
+        uncheckedSourceKind: SimulatedPrivateAccountEventSourceKind,
+        uncheckedSourceIdentity: String,
+        uncheckedScenarioID: ScenarioID,
+        uncheckedDatasetVersion: DatasetVersion,
+        uncheckedFixtureVersion: FixtureVersion,
+        uncheckedFixtureReplayCursor: String,
+        uncheckedSourceWatermark: String,
+        uncheckedFreshnessStatus: ScenarioReplayFreshnessStatus
+    ) {
+        sourceKind = uncheckedSourceKind
+        sourceIdentity = uncheckedSourceIdentity
+        scenarioID = uncheckedScenarioID
+        datasetVersion = uncheckedDatasetVersion
+        fixtureVersion = uncheckedFixtureVersion
+        fixtureReplayCursor = uncheckedFixtureReplayCursor
+        sourceWatermark = uncheckedSourceWatermark
+        freshnessStatus = uncheckedFreshnessStatus
+    }
+}
+
+/// SimulatedPrivateAccountEventSourceIdentityContract 是 MTP-141 的 deterministic source identity 合同。
+///
+/// 合同固定 simulated private account event 的三类来源身份、scenario / dataset / fixture version、
+/// checksum、freshness 和 forbidden live stream source tests。它不创建 listenKey，不连接 private WebSocket，
+/// 不调用 signed/account endpoint，不读取真实 account/broker payload，也不绕过 adapter capability matrix。
+public struct SimulatedPrivateAccountEventSourceIdentityContract: Codable, Equatable, Sendable {
+    public let contractID: Identifier
+    public let issueID: Identifier
+    public let matrixID: String
+    public let sourceRecords: [SimulatedPrivateAccountEventSourceIdentityRecord]
+    public let checksum: String
+    public let checksumMatchedCanonicalPreimage: Bool
+    public let freshnessStatus: ScenarioReplayFreshnessStatus
+    public let forbiddenCapabilities: [SimulatedPrivateAccountEventSourceForbiddenCapability]
+    public let callsSignedEndpoint: Bool
+    public let callsAccountEndpoint: Bool
+    public let createsListenKey: Bool
+    public let opensPrivateWebSocket: Bool
+    public let runsPrivateStreamRuntime: Bool
+    public let runsAccountSnapshotRuntime: Bool
+    public let readsSecret: Bool
+    public let consumesRealAccountPayload: Bool
+    public let importsBrokerPayload: Bool
+    public let exposesAdapterRequest: Bool
+    public let bypassesAdapterCapabilityMatrix: Bool
+    public let connectsBrokerAdapter: Bool
+    public let connectsExchangeExecutionAdapter: Bool
+    public let implementsLiveExecutionAdapter: Bool
+    public let implementsOMS: Bool
+    public let writesRealOrder: Bool
+
+    public var sourceIdentityBoundaryHeld: Bool {
+        matrixID == Self.requiredMatrixID
+            && sourceRecords == Self.requiredSourceRecords
+            && sourceRecords.allSatisfy(\.sourceIdentityBoundaryHeld)
+            && checksum == Self.requiredChecksum
+            && checksumMatchedCanonicalPreimage
+            && freshnessStatus == .fresh
+            && forbiddenCapabilities == Self.requiredForbiddenCapabilities
+            && callsSignedEndpoint == false
+            && callsAccountEndpoint == false
+            && createsListenKey == false
+            && opensPrivateWebSocket == false
+            && runsPrivateStreamRuntime == false
+            && runsAccountSnapshotRuntime == false
+            && readsSecret == false
+            && consumesRealAccountPayload == false
+            && importsBrokerPayload == false
+            && exposesAdapterRequest == false
+            && bypassesAdapterCapabilityMatrix == false
+            && connectsBrokerAdapter == false
+            && connectsExchangeExecutionAdapter == false
+            && implementsLiveExecutionAdapter == false
+            && implementsOMS == false
+            && writesRealOrder == false
+    }
+
+    public var canonicalPreimage: String {
+        Self.canonicalPreimage(for: sourceRecords)
+    }
+
+    public init(
+        contractID: Identifier = try! Identifier("mtp-141-simulated-private-account-event-source-identity"),
+        issueID: Identifier = try! Identifier("MTP-141"),
+        matrixID: String = Self.requiredMatrixID,
+        sourceRecords: [SimulatedPrivateAccountEventSourceIdentityRecord] = Self.requiredSourceRecords,
+        checksum: String? = nil,
+        checksumMatchedCanonicalPreimage: Bool = true,
+        freshnessStatus: ScenarioReplayFreshnessStatus = .fresh,
+        forbiddenCapabilities: [SimulatedPrivateAccountEventSourceForbiddenCapability] =
+            Self.requiredForbiddenCapabilities,
+        callsSignedEndpoint: Bool = false,
+        callsAccountEndpoint: Bool = false,
+        createsListenKey: Bool = false,
+        opensPrivateWebSocket: Bool = false,
+        runsPrivateStreamRuntime: Bool = false,
+        runsAccountSnapshotRuntime: Bool = false,
+        readsSecret: Bool = false,
+        consumesRealAccountPayload: Bool = false,
+        importsBrokerPayload: Bool = false,
+        exposesAdapterRequest: Bool = false,
+        bypassesAdapterCapabilityMatrix: Bool = false,
+        connectsBrokerAdapter: Bool = false,
+        connectsExchangeExecutionAdapter: Bool = false,
+        implementsLiveExecutionAdapter: Bool = false,
+        implementsOMS: Bool = false,
+        writesRealOrder: Bool = false
+    ) throws {
+        let expectedChecksum = Self.checksum(for: sourceRecords)
+        let providedChecksum = checksum ?? expectedChecksum
+        try Self.validate(
+            matrixID: matrixID,
+            sourceRecords: sourceRecords,
+            checksum: providedChecksum,
+            checksumMatchedCanonicalPreimage: checksumMatchedCanonicalPreimage,
+            freshnessStatus: freshnessStatus,
+            forbiddenCapabilities: forbiddenCapabilities
+        )
+        try Self.validateForbiddenFlags(
+            callsSignedEndpoint: callsSignedEndpoint,
+            callsAccountEndpoint: callsAccountEndpoint,
+            createsListenKey: createsListenKey,
+            opensPrivateWebSocket: opensPrivateWebSocket,
+            runsPrivateStreamRuntime: runsPrivateStreamRuntime,
+            runsAccountSnapshotRuntime: runsAccountSnapshotRuntime,
+            readsSecret: readsSecret,
+            consumesRealAccountPayload: consumesRealAccountPayload,
+            importsBrokerPayload: importsBrokerPayload,
+            exposesAdapterRequest: exposesAdapterRequest,
+            bypassesAdapterCapabilityMatrix: bypassesAdapterCapabilityMatrix,
+            connectsBrokerAdapter: connectsBrokerAdapter,
+            connectsExchangeExecutionAdapter: connectsExchangeExecutionAdapter,
+            implementsLiveExecutionAdapter: implementsLiveExecutionAdapter,
+            implementsOMS: implementsOMS,
+            writesRealOrder: writesRealOrder
+        )
+
+        self.contractID = contractID
+        self.issueID = issueID
+        self.matrixID = matrixID
+        self.sourceRecords = sourceRecords
+        self.checksum = providedChecksum
+        self.checksumMatchedCanonicalPreimage = checksumMatchedCanonicalPreimage
+        self.freshnessStatus = freshnessStatus
+        self.forbiddenCapabilities = forbiddenCapabilities
+        self.callsSignedEndpoint = callsSignedEndpoint
+        self.callsAccountEndpoint = callsAccountEndpoint
+        self.createsListenKey = createsListenKey
+        self.opensPrivateWebSocket = opensPrivateWebSocket
+        self.runsPrivateStreamRuntime = runsPrivateStreamRuntime
+        self.runsAccountSnapshotRuntime = runsAccountSnapshotRuntime
+        self.readsSecret = readsSecret
+        self.consumesRealAccountPayload = consumesRealAccountPayload
+        self.importsBrokerPayload = importsBrokerPayload
+        self.exposesAdapterRequest = exposesAdapterRequest
+        self.bypassesAdapterCapabilityMatrix = bypassesAdapterCapabilityMatrix
+        self.connectsBrokerAdapter = connectsBrokerAdapter
+        self.connectsExchangeExecutionAdapter = connectsExchangeExecutionAdapter
+        self.implementsLiveExecutionAdapter = implementsLiveExecutionAdapter
+        self.implementsOMS = implementsOMS
+        self.writesRealOrder = writesRealOrder
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            contractID: try container.decode(Identifier.self, forKey: .contractID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            matrixID: try container.decode(String.self, forKey: .matrixID),
+            sourceRecords: try container.decode(
+                [SimulatedPrivateAccountEventSourceIdentityRecord].self,
+                forKey: .sourceRecords
+            ),
+            checksum: try container.decode(String.self, forKey: .checksum),
+            checksumMatchedCanonicalPreimage: try container.decode(
+                Bool.self,
+                forKey: .checksumMatchedCanonicalPreimage
+            ),
+            freshnessStatus: try container.decode(ScenarioReplayFreshnessStatus.self, forKey: .freshnessStatus),
+            forbiddenCapabilities: try container.decode(
+                [SimulatedPrivateAccountEventSourceForbiddenCapability].self,
+                forKey: .forbiddenCapabilities
+            ),
+            callsSignedEndpoint: try container.decode(Bool.self, forKey: .callsSignedEndpoint),
+            callsAccountEndpoint: try container.decode(Bool.self, forKey: .callsAccountEndpoint),
+            createsListenKey: try container.decode(Bool.self, forKey: .createsListenKey),
+            opensPrivateWebSocket: try container.decode(Bool.self, forKey: .opensPrivateWebSocket),
+            runsPrivateStreamRuntime: try container.decode(Bool.self, forKey: .runsPrivateStreamRuntime),
+            runsAccountSnapshotRuntime: try container.decode(
+                Bool.self,
+                forKey: .runsAccountSnapshotRuntime
+            ),
+            readsSecret: try container.decode(Bool.self, forKey: .readsSecret),
+            consumesRealAccountPayload: try container.decode(Bool.self, forKey: .consumesRealAccountPayload),
+            importsBrokerPayload: try container.decode(Bool.self, forKey: .importsBrokerPayload),
+            exposesAdapterRequest: try container.decode(Bool.self, forKey: .exposesAdapterRequest),
+            bypassesAdapterCapabilityMatrix: try container.decode(
+                Bool.self,
+                forKey: .bypassesAdapterCapabilityMatrix
+            ),
+            connectsBrokerAdapter: try container.decode(Bool.self, forKey: .connectsBrokerAdapter),
+            connectsExchangeExecutionAdapter: try container.decode(
+                Bool.self,
+                forKey: .connectsExchangeExecutionAdapter
+            ),
+            implementsLiveExecutionAdapter: try container.decode(Bool.self, forKey: .implementsLiveExecutionAdapter),
+            implementsOMS: try container.decode(Bool.self, forKey: .implementsOMS),
+            writesRealOrder: try container.decode(Bool.self, forKey: .writesRealOrder)
+        )
+    }
+
+    public func containsForbiddenPayloadText(_ forbiddenTokens: [String]) -> Bool {
+        let searchable = [
+            matrixID,
+            checksum,
+            freshnessStatus.rawValue,
+            sourceRecords.map(\.canonicalLine).joined(separator: "|")
+        ]
+            .joined(separator: "|")
+            .lowercased()
+
+        return forbiddenTokens.contains { token in
+            searchable.contains(token.lowercased())
+        }
+    }
+
+    public static let requiredMatrixID = "TVM-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-SIMULATION-GATE"
+    public static let requiredForbiddenCapabilities =
+        SimulatedPrivateAccountEventSourceForbiddenCapability.allCases
+
+    public static let requiredSourceRecords: [SimulatedPrivateAccountEventSourceIdentityRecord] = {
+        do {
+            return try SimulatedPrivateAccountEventSourceKind.allCases.map { kind in
+                try SimulatedPrivateAccountEventSourceIdentityRecord(sourceKind: kind)
+            }
+        } catch {
+            preconditionFailure("MTP-141 simulated private account event source records must be valid: \(error)")
+        }
+    }()
+
+    public static let requiredChecksum = checksum(for: requiredSourceRecords)
+
+    public static let deterministicFixture: SimulatedPrivateAccountEventSourceIdentityContract = {
+        do {
+            return try SimulatedPrivateAccountEventSourceIdentityContract()
+        } catch {
+            preconditionFailure(
+                "MTP-141 simulated private account event source identity contract must be valid: \(error)"
+            )
+        }
+    }()
+
+    public static func canonicalPreimage(
+        for sourceRecords: [SimulatedPrivateAccountEventSourceIdentityRecord]
+    ) -> String {
+        sourceRecords.map(\.canonicalLine).joined(separator: "\n")
+    }
+
+    public static func checksum(
+        for sourceRecords: [SimulatedPrivateAccountEventSourceIdentityRecord]
+    ) -> String {
+        ScenarioReplayChecksumEvidence.checksum(forCanonicalPreimage: canonicalPreimage(for: sourceRecords))
+    }
+
+    private static func validate(
+        matrixID: String,
+        sourceRecords: [SimulatedPrivateAccountEventSourceIdentityRecord],
+        checksum: String,
+        checksumMatchedCanonicalPreimage: Bool,
+        freshnessStatus: ScenarioReplayFreshnessStatus,
+        forbiddenCapabilities: [SimulatedPrivateAccountEventSourceForbiddenCapability]
+    ) throws {
+        guard matrixID == Self.requiredMatrixID else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "matrixID",
+                expected: Self.requiredMatrixID,
+                actual: matrixID
+            )
+        }
+        guard sourceRecords == Self.requiredSourceRecords else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "sourceRecords",
+                expected: Self.requiredSourceRecords.map(\.sourceKind.rawValue).joined(separator: ","),
+                actual: sourceRecords.map(\.sourceKind.rawValue).joined(separator: ",")
+            )
+        }
+        guard sourceRecords.allSatisfy(\.sourceIdentityBoundaryHeld) else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("sourceIdentityBoundaryHeld")
+        }
+        guard checksum == Self.requiredChecksum else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "checksum",
+                expected: Self.requiredChecksum,
+                actual: checksum
+            )
+        }
+        guard checksumMatchedCanonicalPreimage else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "checksumMatchedCanonicalPreimage",
+                expected: "true",
+                actual: "false"
+            )
+        }
+        guard freshnessStatus == .fresh else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "freshnessStatus",
+                expected: ScenarioReplayFreshnessStatus.fresh.rawValue,
+                actual: freshnessStatus.rawValue
+            )
+        }
+        guard forbiddenCapabilities == Self.requiredForbiddenCapabilities else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "forbiddenCapabilities",
+                expected: Self.requiredForbiddenCapabilities.map(\.rawValue).joined(separator: ","),
+                actual: forbiddenCapabilities.map(\.rawValue).joined(separator: ",")
+            )
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        callsSignedEndpoint: Bool,
+        callsAccountEndpoint: Bool,
+        createsListenKey: Bool,
+        opensPrivateWebSocket: Bool,
+        runsPrivateStreamRuntime: Bool,
+        runsAccountSnapshotRuntime: Bool,
+        readsSecret: Bool,
+        consumesRealAccountPayload: Bool,
+        importsBrokerPayload: Bool,
+        exposesAdapterRequest: Bool,
+        bypassesAdapterCapabilityMatrix: Bool,
+        connectsBrokerAdapter: Bool,
+        connectsExchangeExecutionAdapter: Bool,
+        implementsLiveExecutionAdapter: Bool,
+        implementsOMS: Bool,
+        writesRealOrder: Bool
+    ) throws {
+        let forbiddenFlags = [
+            ("callsSignedEndpoint", callsSignedEndpoint),
+            ("callsAccountEndpoint", callsAccountEndpoint),
+            ("createsListenKey", createsListenKey),
+            ("opensPrivateWebSocket", opensPrivateWebSocket),
+            ("runsPrivateStreamRuntime", runsPrivateStreamRuntime),
+            ("runsAccountSnapshotRuntime", runsAccountSnapshotRuntime),
+            ("readsSecret", readsSecret),
+            ("consumesRealAccountPayload", consumesRealAccountPayload),
+            ("importsBrokerPayload", importsBrokerPayload),
+            ("exposesAdapterRequest", exposesAdapterRequest),
+            ("bypassesAdapterCapabilityMatrix", bypassesAdapterCapabilityMatrix),
+            ("connectsBrokerAdapter", connectsBrokerAdapter),
+            ("connectsExchangeExecutionAdapter", connectsExchangeExecutionAdapter),
+            ("implementsLiveExecutionAdapter", implementsLiveExecutionAdapter),
+            ("implementsOMS", implementsOMS),
+            ("writesRealOrder", writesRealOrder)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(capability.0)
+        }
+    }
+}
+
 /// LiveReadOnlyWorkbenchReadModelBoundary 是 MTP-131 的 Workbench / Dashboard 只读边界 fixture。
 ///
 /// 该合同固定 UI 只能消费 ReadModel / ViewModel，并且只能展示 Live readiness boundary evidence。
