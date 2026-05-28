@@ -3428,3 +3428,54 @@ MTP-138 必须建立的主要 anchors：
 - 不新增 API key input、secret storage、broker connect、account connect、Live PRO Console、trading button、live command 或 order form。
 - 不推进 MTP-139。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+## MTP-139 Validation Matrix / Automation Readiness / Stage Audit Input Validation
+
+日期：2026-05-28
+
+执行者：Codex
+
+MTP-139 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-139 的验收要求：
+
+- `docs/audit/inputs/mtpro-account-position-balance-read-model-only-v1-stage-audit-input.md` 必须存在，并包含 `MTP-139-ACCOUNT-POSITION-BALANCE-STAGE-CLOSEOUT`、`MTP-139-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-139-NO-FINAL-STAGE-CODE-AUDIT`、`MTP-139-ACCOUNT-POSITION-BALANCE-STAGE-AUDIT-INPUT`、`MTP-139-VALIDATION-EVIDENCE-CHAIN`、`MTP-139-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN`、`MTP-139-READ-MODEL-ONLY-BOUNDARY-EVIDENCE` 和 `MTP-139-AUTOMATION-READINESS-STAGE-CLOSEOUT` anchors。
+- `docs/contracts/account-position-balance-read-model-only-contract.md` 必须包含 MTP-139 stage closeout、stage audit input material、no final Stage Code Audit、validation evidence chain、forbidden capability evidence chain、automation readiness stage closeout 和 validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-139 stage closeout shared language。
+- `docs/validation/trading-validation-matrix.md` 必须把 MTP-139 回填到 `TVM-ACCOUNT-POSITION-BALANCE-READ-MODEL-ONLY`。
+- `docs/automation/automation-readiness.md` 必须新增 Account / Position / Balance stage audit input anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-139 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-139 input、contract、domain context、validation plan、trading matrix、latest summary、automation readiness doc、MTP-133 至 MTP-138 PR evidence 和 Dashboard smoke `accountPositionBalanceEvidence=3` handle。
+- PR 前必须确认 `.codex/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-139 必须建立的主要 anchors：
+
+- `MTP-139-ACCOUNT-POSITION-BALANCE-STAGE-CLOSEOUT`
+- `MTP-139-STAGE-AUDIT-INPUT-MATERIAL`
+- `MTP-139-NO-FINAL-STAGE-CODE-AUDIT`
+- `MTP-139-ACCOUNT-POSITION-BALANCE-STAGE-AUDIT-INPUT`
+- `MTP-139-VALIDATION-EVIDENCE-CHAIN`
+- `MTP-139-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN`
+- `MTP-139-READ-MODEL-ONLY-BOUNDARY-EVIDENCE`
+- `MTP-139-AUTOMATION-READINESS-STAGE-CLOSEOUT`
+- `MTP-139-ACCOUNT-POSITION-BALANCE-STAGE-CLOSEOUT-VALIDATION`
+
+## MTP-139 禁止
+
+- 不输出最终 Stage Code Audit Report。
+- 不创建 `docs/audit/mtpro-account-position-balance-read-model-only-v1-stage-code-audit.md`。
+- 不设置 Linear Project `Completed`，不写 Root Docs Refresh Gate。
+- 不创建下一 Project / Issue，不推进下一阶段，不启动下一阶段 `symphony-issue`。
+- 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard behavior。
+- 不实现 account / position / balance runtime。
+- 不读取真实账户、broker position、real PnL、margin 或 leverage。
+- 不调用 signed endpoint、account endpoint 或 listenKey。
+- 不连接 private WebSocket。
+- 不实现 account snapshot runtime。
+- 不实现 broker adapter、`LiveExecutionAdapter`、OMS 或 real order lifecycle。
+- 不新增 API key input、secret storage、broker connect、account connect、Live PRO Console、trading button、live command 或 order form。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。

@@ -12679,3 +12679,49 @@ Closure evidence：
 - 不实现 broker adapter、`LiveExecutionAdapter`、OMS 或 real order lifecycle。
 - 不暴露 account endpoint payload、broker payload、schema、Runtime object、adapter request 或 broker state。
 - 不新增 API key input、secret storage、broker connect、account connect、Live PRO Console、trading button、live command 或 order form。
+
+---
+
+## 2026-05-28 — MTP-139 Account / Position / Balance Validation Matrix / Automation Readiness / Stage Audit Input
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear issue `MTP-139 Close validation matrix / automation readiness / stage audit input`。
+- 收口 `MTPRO Account / Position / Balance Read-model-only v1` 的 validation matrix、automation readiness anchors、forbidden capability evidence chain、read-model-only boundary evidence 和 Stage Code Audit 输入材料。
+- 明确当前 issue 只准备 Parent Codex closure 输入，不输出最终 Stage Code Audit Report，不设置 Linear Project `Completed`，不创建下一 Project / Issue。
+
+更新内容：
+
+- 新增 `docs/audit/inputs/mtpro-account-position-balance-read-model-only-v1-stage-audit-input.md`，汇总 MTP-133 至 MTP-138 的 PR / merge / checks evidence、APB validation evidence chain、forbidden capability evidence chain、read-model-only boundary evidence、Root Docs Delta input 和 Stage Code Audit handoff checklist。
+- 更新 `docs/contracts/account-position-balance-read-model-only-contract.md`，新增 MTP-139 stage closeout、stage audit input material、no final Stage Code Audit、validation evidence chain、forbidden capability evidence chain、automation readiness stage closeout 和 validation anchors。
+- 更新 `docs/domain/context.md`，新增 MTP-139 stage closeout shared language。
+- 更新 `docs/validation/trading-validation-matrix.md`，新增 `TVM-ACCOUNT-POSITION-BALANCE-READ-MODEL-ONLY` MTP-139 issue backfill 和阶段收口表。
+- 更新 `docs/validation/validation-plan.md`，新增 MTP-139 required validation 与禁止项。
+- 更新 `docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，新增 MTP-139 stage audit input anchor 与 mechanical checks。
+- 更新 `docs/validation/latest-verification-summary.md`，记录 MTP-139 当前 issue execution evidence。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
+| `git diff --check` | pass | 无输出。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 282 个 XCTest；Dashboard smoke 输出包含 `accountPositionBalanceEvidence=3`；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不输出最终 Stage Code Audit Report。
+- 不创建 `docs/audit/mtpro-account-position-balance-read-model-only-v1-stage-code-audit.md`。
+- 不设置 Linear Project `Completed`，不写 Root Docs Refresh Gate。
+- 不创建下一 Project / Issue，不推进下一阶段，不启动下一阶段 `symphony-issue`。
+- 不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 account / position / balance runtime。
+- 不读取真实账户、broker position、real PnL、margin 或 leverage。
+- 不调用 signed endpoint、account endpoint 或 listenKey。
+- 不连接 private WebSocket。
+- 不实现 account snapshot runtime。
+- 不实现 broker adapter、`LiveExecutionAdapter`、OMS 或 real order lifecycle。
+- 不新增 API key input、secret storage、broker connect、account connect、Live PRO Console、trading button、live command 或 order form。
