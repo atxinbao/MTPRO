@@ -611,3 +611,115 @@ Focused validation anchors：
 - Contract、Domain context、Trading validation matrix、Validation plan、Latest verification summary、Automation readiness doc 和 `checks/automation-readiness.sh` 必须包含 MTP-138 anchors。
 
 MTP-138 不推进 MTP-139、不创建下一 Project / Issue、不运行 Graphify、不修改 Figma、不提交 `.codex/*` 或 `graphify-out/*`，也不实现 signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、Live PRO Console、trading button、live command 或 order form。
+
+## MTP-139 stage closeout input
+
+`MTP-139-ACCOUNT-POSITION-BALANCE-STAGE-CLOSEOUT`
+
+MTP-139 只收口 `MTPRO Account / Position / Balance Read-model-only v1` 的 validation matrix、automation readiness anchors、forbidden capability evidence chain、read-model-only boundary evidence 和 Parent Codex Stage Code Audit input material。它汇总 MTP-133 至 MTP-138 的已落地 evidence，不输出最终 Stage Code Audit Report，不设置 Linear Project `Completed`，不创建下一 Project / Issue，不推进下一阶段，也不启动下一阶段 `symphony-issue`。
+
+## MTP-139 stage audit input material
+
+`MTP-139-STAGE-AUDIT-INPUT-MATERIAL`
+
+MTP-139 的 stage audit input material 必须落仓到：
+
+```text
+docs/audit/inputs/mtpro-account-position-balance-read-model-only-v1-stage-audit-input.md
+```
+
+该输入材料必须覆盖：
+
+1. MTP-133 至 MTP-138 的 issue / PR / merge / required check evidence。
+2. `TVM-ACCOUNT-POSITION-BALANCE-READ-MODEL-ONLY` 的 validation evidence chain。
+3. account / position / balance terminology、snapshot identity、freshness、exposure、balance interpretation、fixture、forbidden real account tests 和 Workbench / Report / Events read-model-only surface。
+4. signed endpoint、account endpoint / listenKey、private WebSocket、account snapshot runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real account / broker position / margin / leverage、real PnL、Live PRO Console、trading button、live command 和 order form 的 forbidden evidence chain。
+5. Parent Codex final Stage Code Audit handoff checklist。
+
+## MTP-139 no final Stage Code Audit
+
+`MTP-139-NO-FINAL-STAGE-CODE-AUDIT`
+
+MTP-139 不能输出最终 Stage Code Audit Report，不能创建 `docs/audit/mtpro-account-position-balance-read-model-only-v1-stage-code-audit.md`，不能把 Linear Project 标记为 `Completed`，不能写 Root Docs Refresh Gate，不能创建下一 Project / Issue，也不能把 L3.2 / L3.3 / L3.4 / L4 写成当前 execution scope。
+
+最终 Stage Code Audit Report 必须在 `MTP-133`、`MTP-134`、`MTP-135`、`MTP-136`、`MTP-137`、`MTP-138` 和 `MTP-139` 全部进入 Linear `Done`，且 Linear Project status 被设置或确认为 `Completed`、`type=completed`、`completedAt` 非空后，由 Parent Codex 单独输出。
+
+## MTP-139 validation evidence chain
+
+`MTP-139-VALIDATION-EVIDENCE-CHAIN`
+
+MTP-139 必须把以下 evidence chain 固定为 Project closure 输入：
+
+- MTP-133：L3.1 terminology、source semantics、evidence interpretation、L3.1 / L3.2 handoff、forbidden capability baseline 和 first executable candidate non-authorization。
+- MTP-134：account snapshot identity、source identity、freshness evidence、stale / missing / blocked account evidence、adapter capability bypass guard 和 account snapshot not runtime。
+- MTP-135：position snapshot identity、exposure evidence、paper / simulated / future real position isolation、stale / blocked / simulated position evidence 和 forbidden broker position interpretation。
+- MTP-136：balance snapshot identity、paper / simulated / future real balance terminology、paper-vs-real interpretation boundary、real PnL / margin / leverage / buying power forbidden baseline 和 balance stale / blocked evidence。
+- MTP-137：deterministic fixture shape、fixture checksum / freshness / source identity、forbidden real account tests、fixture-to-read-model mapping isolation 和 real account payload isolation。
+- MTP-138：Workbench / Report / Events APB read-model-only surface、Dashboard smoke `accountPositionBalanceEvidence=3` handle、Event Timeline APB section 和 forbidden UI / runtime flags。
+
+该 chain 只能作为 Stage Code Audit input，不授权真实账户读取、private stream、account snapshot runtime、broker runtime、Live PRO Console 或 trading command。
+
+## MTP-139 forbidden capability evidence chain
+
+`MTP-139-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN`
+
+MTP-139 必须继续证明以下能力在本 Project 中全部保持 forbidden / future gated：
+
+- signed endpoint
+- account endpoint / listenKey
+- private WebSocket runtime
+- account snapshot runtime
+- account / position / balance runtime
+- real account read
+- broker position sync
+- real account balance
+- margin
+- leverage
+- real PnL runtime
+- broker / exchange execution adapter
+- `LiveExecutionAdapter`
+- OMS
+- real order lifecycle
+- real submit / cancel / replace
+- execution report
+- broker fill
+- reconciliation
+- API key input / secret storage
+- broker connect / account connect
+- Live PRO Console
+- trading button
+- live command
+- order form
+- emergency stop / shutdown / restore executable action
+- Graphify update
+- Figma change
+
+## MTP-139 automation readiness stage closeout
+
+`MTP-139-AUTOMATION-READINESS-STAGE-CLOSEOUT`
+
+MTP-139 必须让 `checks/automation-readiness.sh` 机械检查 MTP-139 stage audit input、contract anchors、domain context anchors、validation plan anchors、trading validation matrix backfill、latest verification summary、automation readiness doc anchor、MTP-133 至 MTP-138 source / test / surface anchors、PR #245 至 PR #250 evidence 和 Dashboard smoke `accountPositionBalanceEvidence=3` handle。
+
+MTP-139 不修改 active Project pointer。Project closure、Linear Project `Completed` status、最终 Stage Code Audit Report、Root Docs Refresh Gate 和 final closure summary 仍归 Parent Codex closure flow。
+
+## MTP-139 validation anchors
+
+`MTP-139-ACCOUNT-POSITION-BALANCE-STAGE-CLOSEOUT-VALIDATION`
+
+Required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- Contract 必须包含 MTP-139 stage closeout、stage audit input material、no final Stage Code Audit、validation evidence chain、forbidden capability evidence chain、automation readiness stage closeout 和 validation anchors。
+- Domain context 必须包含 MTP-139 stage closeout shared language。
+- Trading validation matrix 必须把 MTP-139 回填到 `TVM-ACCOUNT-POSITION-BALANCE-READ-MODEL-ONLY`。
+- Validation plan 必须包含 MTP-139 required validation 和禁止项。
+- Latest verification summary 必须记录 MTP-139 当前 issue execution evidence。
+- Automation readiness 必须新增 Account / Position / Balance stage audit input anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-139 anchors。
+
+MTP-139 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard behavior、不输出最终 Stage Code Audit Report、不运行 Graphify、不修改 Figma、不提交 `.codex/*` 或 `graphify-out/*`，也不实现 signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、Live PRO Console、trading button、live command 或 order form。

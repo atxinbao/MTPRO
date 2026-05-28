@@ -1198,6 +1198,34 @@ MTP-138 明确禁止 API key input、secret storage、broker connect、account c
 
 MTP-138 validation 必须证明 App surface 只消费 ReadModel / ViewModel，Event Timeline 只链接 evidence id 与 validation anchor，Workbench / Report / Dashboard smoke 都不暴露 connect、credential、broker、runtime、schema、order 或 command surface。Focused tests 必须覆盖 `AccountPositionBalanceReadModelOnlySurfaceViewModel`、`PaperWorkflowEvidenceExplorerSection.accountPositionBalanceReadModelOnlySurface` 和 DashboardShell Workbench / Report APB details。
 
+`MTP-139-ACCOUNT-POSITION-BALANCE-STAGE-CLOSEOUT`
+
+MTP-139 stage closeout 只把 `MTPRO Account / Position / Balance Read-model-only v1` 的 validation matrix、automation readiness anchors、forbidden capability evidence chain、read-model-only boundary evidence、Workbench / Report / Events APB surface evidence 和 Stage Code Audit input material 收口为 Parent Codex 审计输入。该 closeout 不是最终 Stage Code Audit Report，不设置 Linear Project `Completed`，不创建下一 Project / Issue，不推进 L3.2 / L3.3 / L3.4 / L4，也不启动下一阶段 `symphony-issue`。
+
+`MTP-139-STAGE-AUDIT-INPUT-MATERIAL`
+
+MTP-139 stage audit input material 落仓于 `docs/audit/inputs/mtpro-account-position-balance-read-model-only-v1-stage-audit-input.md`，用于汇总 MTP-133 至 MTP-138 的 issue / PR / merge / required check evidence、`TVM-ACCOUNT-POSITION-BALANCE-READ-MODEL-ONLY` evidence chain、forbidden capability evidence chain、Dashboard smoke `accountPositionBalanceEvidence=3` handle 和 Parent Codex final Stage Code Audit handoff checklist。
+
+`MTP-139-NO-FINAL-STAGE-CODE-AUDIT`
+
+MTP-139 不输出最终 Stage Code Audit Report，不创建 `docs/audit/mtpro-account-position-balance-read-model-only-v1-stage-code-audit.md`，不写 Root Docs Refresh Gate，不把 L3.1 complete 写成 root docs 已发生事实。最终报告必须在 MTP-139 独立 PR、checks、merge 和 Linear `Done` 后，由 Parent Codex closure flow 单独执行。
+
+`MTP-139-VALIDATION-EVIDENCE-CHAIN`
+
+MTP-139 validation evidence chain 必须覆盖 MTP-133 terminology / boundary、MTP-134 account snapshot identity / freshness、MTP-135 position snapshot identity / exposure、MTP-136 balance snapshot identity / paper-vs-real boundary、MTP-137 deterministic fixture / forbidden real account tests、MTP-138 Workbench / Report / Events read-model-only surface，以及 MTP-139 自身的 stage audit input、automation readiness 和 matrix backfill。
+
+`MTP-139-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN`
+
+MTP-139 forbidden capability evidence chain 必须继续证明 signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、account / position / balance runtime、real account read、broker position sync、real account balance、margin、leverage、real PnL runtime、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、API key input、secret storage、account connect、broker connect、Live PRO Console、trading button、live command、order form、emergency stop / shutdown / restore executable action、Graphify update 和 Figma change 全部保持 forbidden / future gated。
+
+`MTP-139-AUTOMATION-READINESS-STAGE-CLOSEOUT`
+
+MTP-139 automation readiness stage closeout 要求 `checks/automation-readiness.sh` 机械检查 stage audit input、contract anchors、domain context anchors、validation plan anchors、Trading Validation Matrix backfill、latest verification summary、automation readiness doc anchor、MTP-133 至 MTP-138 source / test / surface anchors、PR #245 至 PR #250 evidence 和 Dashboard smoke `accountPositionBalanceEvidence=3` handle。
+
+`MTP-139-ACCOUNT-POSITION-BALANCE-STAGE-CLOSEOUT-VALIDATION`
+
+MTP-139 validation 必须通过 `bash checks/automation-readiness.sh`、`git diff --check` 和 `bash checks/run.sh`。该 validation 只证明 L3.1 read-model-only evidence boundary 和 closeout input 完整，不授权真实账户读取、account snapshot runtime、private stream runtime、broker runtime、Live PRO Console、trading button、live command 或 order form。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
