@@ -12632,3 +12632,50 @@ Closure evidence：
 - 不读取真实账户、broker position、real PnL、margin 或 leverage。
 - 不暴露 payload、schema、Runtime object、adapter request 或 account endpoint response。
 - 不新增 App surface、不新增 Dashboard smoke handle；Workbench / Report / Events surface 仍归属 MTP-138。
+
+---
+
+## 2026-05-28 — MTP-138 Account / Position / Balance Workbench / Report / Events Read-model-only Surface
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear issue `MTP-138 Add Workbench / Report / Events read-model-only evidence surface`。
+- 将 MTP-137 deterministic fixture evidence 接入 App 层 ReadModel / ViewModel。
+- 在 Workbench、Report 和 Event Timeline 展示 account / position / balance read-model-only evidence，并保留 no live / broker / signed / account / OMS / trading command boundary。
+
+更新内容：
+
+- 新增 `Sources/App/AccountPositionBalanceReadModelOnlySurface.swift`，定义 `AccountPositionBalanceReadModelOnlySurfaceReadModel`、`AccountPositionBalanceReadModelOnlySurfaceViewModel` 和 `AccountPositionBalanceReadModelOnlySurfaceTraceItem`。
+- 更新 `Sources/App/App.swift`，将 APB surface 接入 `ReportReadModel`、`ReportViewModel` 和 `DashboardViewModel` read-model-only source chain。
+- 更新 `Sources/App/PaperWorkflowEvidenceExplorer.swift`，新增 `accountPositionBalanceReadModelOnlySurface` section、coverage flag 和三条 APB timeline items。
+- 更新 `Sources/App/DashboardShell.swift`，新增 Workbench APB metrics / details、Report APB details 和 Dashboard smoke `accountPositionBalanceEvidence=3` handle。
+- 更新 `Tests/AppTests/AppTests.swift`，新增 MTP-138 ViewModel focused tests，并更新 DashboardShell、Report、Event Timeline 和 read-model projection assertions。
+- 更新 `docs/contracts/account-position-balance-read-model-only-contract.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/validation-plan.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh`，新增 MTP-138 anchors。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter AccountPositionBalanceReadModelOnlySurface` | pass | 1 test, 0 failures。 |
+| `swift test --filter 'AccountPositionBalanceReadModelOnlySurface|PaperWorkflowEvidenceExplorerTimelineSnapshotAggregatesReadModelOnlyEvidence|DashboardViewModelStateSnapshotIsCodableAndDeterministic|DashboardShellSnapshotBindsViewModelSectionsForReadOnlyMacOSShell|DashboardShellWorkbenchSnapshotBindsControlsObservabilityAndExplorerReadOnly|EmptyResearchWorkbench'` | pass | 5 tests, 0 failures。 |
+| `swift test --filter ReadModelProjectionMapsAllDashboardSections` | pass | 1 test, 0 failures。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
+| `git diff --check` | pass | 无输出。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 282 个 XCTest；Dashboard smoke 输出包含 `accountPositionBalanceEvidence=3`；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不推进 MTP-139。
+- 不创建下一 Project / Issue。
+- 不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 account / position / balance runtime。
+- 不读取真实账户、broker position、real PnL、margin 或 leverage。
+- 不调用 signed endpoint、account endpoint 或 listenKey。
+- 不连接 private WebSocket。
+- 不实现 account snapshot runtime。
+- 不实现 broker adapter、`LiveExecutionAdapter`、OMS 或 real order lifecycle。
+- 不暴露 account endpoint payload、broker payload、schema、Runtime object、adapter request 或 broker state。
+- 不新增 API key input、secret storage、broker connect、account connect、Live PRO Console、trading button、live command 或 order form。

@@ -523,3 +523,91 @@ Focused validation anchors：
 - `checks/automation-readiness.sh` 必须机械检查 MTP-137 source、test、contract、domain context、validation plan、trading matrix、latest summary 和 automation readiness anchors。
 
 MTP-137 不新增 App surface、不新增 Dashboard smoke handle、不新增 account snapshot runtime、不导入真实账户 payload、不实现 signed endpoint、account endpoint、listenKey、private WebSocket、broker adapter、`LiveExecutionAdapter`、OMS、real PnL、margin、leverage、Live PRO Console、trading button、live command 或 order form；Workbench / Report / Events surface 仍归属 MTP-138。
+
+## MTP-138 Workbench / Report / Events read-model-only surface
+
+`MTP-138-WORKBENCH-REPORT-EVENTS-READ-MODEL-ONLY-SURFACE`
+
+MTP-138 只把 MTP-137 deterministic fixture contract 接入 App 层 `AccountPositionBalanceReadModelOnlySurfaceReadModel` / `AccountPositionBalanceReadModelOnlySurfaceViewModel`，并通过 Workbench、Report 和 Event Timeline 展示 read-model-only evidence。该 surface 只展示：
+
+- `fixtureVersion`
+- `checksum`
+- `sourceIdentity`
+- `sourceWatermark`
+- `snapshotID`
+- `evidenceID`
+- `freshnessStatus`
+- `readModelFields`
+- blocked / stale / simulated state labels
+
+MTP-138 不新增真实账户读取、不新增 Runtime / Adapter / DB schema、不解析 account endpoint payload、不同步 broker position、不读取 margin / leverage / real PnL，也不提供 account connect、broker connect、Live PRO Console、trading button、live command 或 order form。
+
+## MTP-138 dashboard report events evidence
+
+`MTP-138-DASHBOARD-REPORT-EVENTS-EVIDENCE`
+
+MTP-138 的展示面必须同时覆盖三条只读路径：
+
+1. Workbench：`DashboardShellWorkbenchSnapshot.accountPositionBalanceReadModelOnlySurfaceMetrics` 和 details 展示 APB records、fixture、freshness、Event trace、boundary、blocked states、stale states 和 simulated states。
+2. Report：Report section 必须展示 `APB surface` 指标和 APB summary / components / evidence / freshness / forbidden flags / boundary details。
+3. Events：`PaperWorkflowEvidenceExplorerSection.accountPositionBalanceReadModelOnlySurface` 必须生成三条 timeline item，分别对应 account snapshot、position snapshot 和 balance snapshot evidence，并只链接 evidence id 与 validation anchor。
+
+Dashboard smoke 只能输出 `accountPositionBalanceEvidence=<record count>` 这类可定位 handle；不得输出 API key、secret、account endpoint response、broker payload、Runtime object、adapter request、order form 或 trading command。
+
+## MTP-138 forbidden UI and runtime surface
+
+`MTP-138-FORBIDDEN-UI-RUNTIME-SURFACE`
+
+MTP-138 必须证明以下能力均为 `none` / `false`：
+
+- API key input
+- secret storage
+- broker connect
+- account connect
+- Live PRO Console
+- trading button
+- live command
+- order form
+- signed endpoint
+- account endpoint
+- listenKey
+- database schema
+- Runtime object
+- adapter request
+- account payload
+- broker state
+- broker adapter
+- `LiveExecutionAdapter`
+- OMS
+- real order lifecycle
+- real account read
+- broker position sync
+- real PnL runtime
+- margin / leverage read
+- order-level command
+- live trading authorization
+
+MTP-138 的 forbidden UI / runtime surface 只用于 acceptance evidence，不代表 future live scope 被允许。
+
+## MTP-138 validation anchors
+
+`MTP-138-WORKBENCH-REPORT-EVENTS-READ-MODEL-ONLY-VALIDATION`
+
+Required validation：
+
+- `swift test --filter AccountPositionBalanceReadModelOnlySurface`
+- `swift test --filter PaperWorkflowEvidenceExplorerTimelineSnapshotAggregatesReadModelOnlyEvidence`
+- `swift test --filter DashboardShellWorkbenchSnapshotBindsControlsObservabilityAndExplorerReadOnly`
+- `git diff --check`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `Sources/App/AccountPositionBalanceReadModelOnlySurface.swift` 必须包含 `AccountPositionBalanceReadModelOnlySurfaceReadModel`、`AccountPositionBalanceReadModelOnlySurfaceViewModel` 和 `AccountPositionBalanceReadModelOnlySurfaceTraceItem`。
+- `Sources/App/App.swift` 必须把 APB surface 接入 `ReportReadModel` / `ReportViewModel` / `DashboardViewModel` 的 read-model-only source chain。
+- `Sources/App/PaperWorkflowEvidenceExplorer.swift` 必须包含 `accountPositionBalanceReadModelOnlySurface` section、coverage flag 和三条 read-model-only timeline items。
+- `Sources/App/DashboardShell.swift` 必须包含 Workbench metrics / details、Report APB surface details 和 smoke summary handle。
+- `Tests/AppTests/AppTests.swift` 必须包含 MTP-138 ViewModel、DashboardShell、Report 和 Event Timeline focused assertions。
+- Contract、Domain context、Trading validation matrix、Validation plan、Latest verification summary、Automation readiness doc 和 `checks/automation-readiness.sh` 必须包含 MTP-138 anchors。
+
+MTP-138 不推进 MTP-139、不创建下一 Project / Issue、不运行 Graphify、不修改 Figma、不提交 `.codex/*` 或 `graphify-out/*`，也不实现 signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、Live PRO Console、trading button、live command 或 order form。
