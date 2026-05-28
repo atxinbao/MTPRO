@@ -171,6 +171,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
     public let evidenceExplorerSource: ViewModelSourceContract
     public let scenarioReplayEvidenceSource: ViewModelSourceContract
     public let simulatedExchangeParityEvidenceSource: ViewModelSourceContract
+    public let accountPositionBalanceReadModelOnlySurfaceSource: ViewModelSourceContract
     public let workbenchBetaFirstRunSource: ViewModelSourceContract
     public let workbenchBetaAcceptancePathSource: ViewModelSourceContract
     public let liveReadOnlyWorkbenchBoundarySource: ViewModelSourceContract
@@ -189,6 +190,8 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
     public let scenarioReplayEvidenceDetails: [String]
     public let simulatedExchangeParityEvidenceMetrics: [DashboardShellMetric]
     public let simulatedExchangeParityEvidenceDetails: [String]
+    public let accountPositionBalanceReadModelOnlySurfaceMetrics: [DashboardShellMetric]
+    public let accountPositionBalanceReadModelOnlySurfaceDetails: [String]
     public let workbenchBetaFirstRunMetrics: [DashboardShellMetric]
     public let workbenchBetaFirstRunDetails: [String]
     public let workbenchBetaAcceptancePathMetrics: [DashboardShellMetric]
@@ -216,6 +219,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
     public let authorizesLiveTrading: Bool
     public let touchesBrokerAction: Bool
     public let authorizesTradingExecution: Bool
+    public let accountPositionBalanceReadModelOnlySurfaceBoundaryHeld: Bool
     public let workbenchBetaFirstRunReadModelOnlyBoundaryHeld: Bool
     public let workbenchBetaAcceptancePathReadModelOnlyBoundaryHeld: Bool
     public let liveReadOnlyWorkbenchBoundaryReadModelOnlyBoundaryHeld: Bool
@@ -228,6 +232,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         evidenceExplorerSource: ViewModelSourceContract,
         scenarioReplayEvidenceSource: ViewModelSourceContract,
         simulatedExchangeParityEvidenceSource: ViewModelSourceContract,
+        accountPositionBalanceReadModelOnlySurfaceSource: ViewModelSourceContract,
         workbenchBetaFirstRunSource: ViewModelSourceContract,
         workbenchBetaAcceptancePathSource: ViewModelSourceContract,
         liveReadOnlyWorkbenchBoundarySource: ViewModelSourceContract,
@@ -246,6 +251,8 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         scenarioReplayEvidenceDetails: [String],
         simulatedExchangeParityEvidenceMetrics: [DashboardShellMetric],
         simulatedExchangeParityEvidenceDetails: [String],
+        accountPositionBalanceReadModelOnlySurfaceMetrics: [DashboardShellMetric],
+        accountPositionBalanceReadModelOnlySurfaceDetails: [String],
         workbenchBetaFirstRunMetrics: [DashboardShellMetric],
         workbenchBetaFirstRunDetails: [String],
         workbenchBetaAcceptancePathMetrics: [DashboardShellMetric],
@@ -272,6 +279,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         authorizesLiveTrading: Bool,
         touchesBrokerAction: Bool,
         authorizesTradingExecution: Bool,
+        accountPositionBalanceReadModelOnlySurfaceBoundaryHeld: Bool,
         workbenchBetaFirstRunReadModelOnlyBoundaryHeld: Bool,
         workbenchBetaAcceptancePathReadModelOnlyBoundaryHeld: Bool,
         liveReadOnlyWorkbenchBoundaryReadModelOnlyBoundaryHeld: Bool
@@ -283,6 +291,8 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         self.evidenceExplorerSource = evidenceExplorerSource
         self.scenarioReplayEvidenceSource = scenarioReplayEvidenceSource
         self.simulatedExchangeParityEvidenceSource = simulatedExchangeParityEvidenceSource
+        self.accountPositionBalanceReadModelOnlySurfaceSource =
+            accountPositionBalanceReadModelOnlySurfaceSource
         self.workbenchBetaFirstRunSource = workbenchBetaFirstRunSource
         self.workbenchBetaAcceptancePathSource = workbenchBetaAcceptancePathSource
         self.liveReadOnlyWorkbenchBoundarySource = liveReadOnlyWorkbenchBoundarySource
@@ -301,6 +311,10 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         self.scenarioReplayEvidenceDetails = scenarioReplayEvidenceDetails
         self.simulatedExchangeParityEvidenceMetrics = simulatedExchangeParityEvidenceMetrics
         self.simulatedExchangeParityEvidenceDetails = simulatedExchangeParityEvidenceDetails
+        self.accountPositionBalanceReadModelOnlySurfaceMetrics =
+            accountPositionBalanceReadModelOnlySurfaceMetrics
+        self.accountPositionBalanceReadModelOnlySurfaceDetails =
+            accountPositionBalanceReadModelOnlySurfaceDetails
         self.workbenchBetaFirstRunMetrics = workbenchBetaFirstRunMetrics
         self.workbenchBetaFirstRunDetails = workbenchBetaFirstRunDetails
         self.workbenchBetaAcceptancePathMetrics = workbenchBetaAcceptancePathMetrics
@@ -327,6 +341,8 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         self.authorizesLiveTrading = authorizesLiveTrading
         self.touchesBrokerAction = touchesBrokerAction
         self.authorizesTradingExecution = authorizesTradingExecution
+        self.accountPositionBalanceReadModelOnlySurfaceBoundaryHeld =
+            accountPositionBalanceReadModelOnlySurfaceBoundaryHeld
         self.workbenchBetaFirstRunReadModelOnlyBoundaryHeld =
             workbenchBetaFirstRunReadModelOnlyBoundaryHeld
         self.workbenchBetaAcceptancePathReadModelOnlyBoundaryHeld =
@@ -338,6 +354,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
             && evidenceExplorerSource.isReadModelOnly
             && scenarioReplayEvidenceSource.isReadModelOnly
             && simulatedExchangeParityEvidenceSource.isReadModelOnly
+            && accountPositionBalanceReadModelOnlySurfaceSource.isReadModelOnly
             && workbenchBetaFirstRunSource.isReadModelOnly
             && workbenchBetaAcceptancePathSource.isReadModelOnly
             && liveReadOnlyWorkbenchBoundarySource.isReadModelOnly
@@ -347,6 +364,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
             && liveRiskGateBlockedEvidenceSource.isReadModelOnly
             && liveIncidentStopBlockedEvidenceSource.isReadModelOnly
             && sessionControls.allSatisfy(\.paperOnlyBoundaryHeld)
+            && accountPositionBalanceReadModelOnlySurfaceBoundaryHeld
             && workbenchBetaFirstRunReadModelOnlyBoundaryHeld
             && workbenchBetaAcceptancePathReadModelOnlyBoundaryHeld
             && liveReadOnlyWorkbenchBoundaryReadModelOnlyBoundaryHeld
@@ -368,6 +386,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
             evidenceExplorerSource,
             scenarioReplayEvidenceSource,
             simulatedExchangeParityEvidenceSource,
+            accountPositionBalanceReadModelOnlySurfaceSource,
             workbenchBetaFirstRunSource,
             workbenchBetaAcceptancePathSource,
             liveReadOnlyWorkbenchBoundarySource,
@@ -433,6 +452,10 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             "Parity evidence",
             in: workbench.simulatedExchangeParityEvidenceMetrics
         )
+        let accountPositionBalanceEvidence = Self.metricValue(
+            "APB records",
+            in: workbench.accountPositionBalanceReadModelOnlySurfaceMetrics
+        )
         let defaultDemoState = Self.metricValue(
             "First run",
             in: workbench.workbenchBetaFirstRunMetrics
@@ -486,7 +509,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         let paperRuntimeEvidence = Self.metricValue("Runtime", in: reportMetrics)
         let paperWorkflowEvidence = Self.metricValue("Exec workflow", in: reportMetrics)
         let paperPortfolioImpact = Self.metricValue("Paper PnL", in: reportMetrics)
-        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); workbenchReadModelOnly=\(workbench.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); scenarioReplayEvidence=\(scenarioReplayEvidence); scenarioQualityGates=\(scenarioQualityGates); simulatedParityEvidence=\(simulatedParityEvidence); defaultDemoState=\(defaultDemoState); defaultDemoScenario=\(defaultDemoScenario); betaFirstRunFallbacks=\(betaFallbacks); betaAcceptancePaths=\(betaAcceptancePaths); betaAcceptanceScenario=\(betaAcceptanceScenario); betaAcceptanceTrace=\(betaAcceptanceTrace); paperRuntimeEvidence=\(paperRuntimeEvidence); paperWorkflowEvidence=\(paperWorkflowEvidence); paperPortfolioImpact=\(paperPortfolioImpact); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveReadOnlyWorkbenchBoundary=\(liveReadOnlyWorkbenchBoundary); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
+        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); workbenchReadModelOnly=\(workbench.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); scenarioReplayEvidence=\(scenarioReplayEvidence); scenarioQualityGates=\(scenarioQualityGates); simulatedParityEvidence=\(simulatedParityEvidence); accountPositionBalanceEvidence=\(accountPositionBalanceEvidence); defaultDemoState=\(defaultDemoState); defaultDemoScenario=\(defaultDemoScenario); betaFirstRunFallbacks=\(betaFallbacks); betaAcceptancePaths=\(betaAcceptancePaths); betaAcceptanceScenario=\(betaAcceptanceScenario); betaAcceptanceTrace=\(betaAcceptanceTrace); paperRuntimeEvidence=\(paperRuntimeEvidence); paperWorkflowEvidence=\(paperWorkflowEvidence); paperPortfolioImpact=\(paperPortfolioImpact); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveReadOnlyWorkbenchBoundary=\(liveReadOnlyWorkbenchBoundary); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
     }
 
     private static func makeSectionSnapshot(
@@ -521,6 +544,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         let explorer = viewModel.paperWorkflowEvidenceExplorer
         let scenarioReplayEvidence = viewModel.report.scenarioReplayEvidence
         let simulatedExchangeParityEvidence = viewModel.report.simulatedExchangeParityEvidence
+        let accountPositionBalanceSurface = viewModel.report.accountPositionBalanceReadModelOnlySurface
         let workbenchBetaFirstRun = viewModel.workbenchBetaFirstRun
         let workbenchBetaAcceptancePath = viewModel.workbenchBetaAcceptancePath
         let liveReadOnlyWorkbenchBoundary = viewModel.report.liveReadOnlyWorkbenchBoundary
@@ -537,6 +561,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             evidenceExplorerSource: explorer.source,
             scenarioReplayEvidenceSource: scenarioReplayEvidence.source,
             simulatedExchangeParityEvidenceSource: simulatedExchangeParityEvidence.source,
+            accountPositionBalanceReadModelOnlySurfaceSource: accountPositionBalanceSurface.source,
             workbenchBetaFirstRunSource: workbenchBetaFirstRun.source,
             workbenchBetaAcceptancePathSource: workbenchBetaAcceptancePath.source,
             liveReadOnlyWorkbenchBoundarySource: liveReadOnlyWorkbenchBoundary.source,
@@ -656,6 +681,56 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 "Parity schema exposure: \(formatForbiddenFlag(simulatedExchangeParityEvidence.exposesDatabaseSchema))",
                 "Parity runtime exposure: \(formatForbiddenFlag(simulatedExchangeParityEvidence.exposesRuntimeObject))",
                 "Parity adapter exposure: \(formatForbiddenFlag(simulatedExchangeParityEvidence.exposesAdapterRequest))"
+            ],
+            accountPositionBalanceReadModelOnlySurfaceMetrics: [
+                DashboardShellMetric(
+                    label: "APB records",
+                    value: "\(accountPositionBalanceSurface.recordCount)"
+                ),
+                DashboardShellMetric(
+                    label: "Fixture",
+                    value: accountPositionBalanceSurface.fixtureVersion
+                ),
+                DashboardShellMetric(
+                    label: "Freshness",
+                    value: joined(accountPositionBalanceSurface.freshnessStatuses.map(\.rawValue))
+                ),
+                DashboardShellMetric(
+                    label: "Event trace",
+                    value: "\(accountPositionBalanceSurface.eventTraceItemCount)"
+                ),
+                DashboardShellMetric(
+                    label: "Boundary",
+                    value: formatEvidenceFlag(accountPositionBalanceSurface.readModelOnlyBoundaryHeld)
+                )
+            ],
+            accountPositionBalanceReadModelOnlySurfaceDetails: [
+                "APB report summary: \(accountPositionBalanceSurface.reportSummary)",
+                "APB components: \(joined(accountPositionBalanceSurface.componentLabels))",
+                "APB snapshots: \(joined(accountPositionBalanceSurface.snapshotIDs))",
+                "APB evidence ids: \(joined(accountPositionBalanceSurface.evidenceIDs))",
+                "APB source identity: \(accountPositionBalanceSurface.sourceIdentity)",
+                "APB source watermark: \(accountPositionBalanceSurface.sourceWatermark)",
+                "APB read model fields: \(joined(accountPositionBalanceSurface.readModelFieldNames))",
+                "APB dashboard panels: \(joined(accountPositionBalanceSurface.dashboardPanelSummaries))",
+                "APB event trace: \(joined(accountPositionBalanceSurface.eventTraceItems.map(\.title)))",
+                "APB blocked states: \(joined(accountPositionBalanceSurface.blockedStateLabels))",
+                "APB stale states: \(joined(accountPositionBalanceSurface.staleStateLabels))",
+                "APB simulated states: \(joined(accountPositionBalanceSurface.simulatedStateLabels))",
+                "APB API key input: \(formatForbiddenFlag(accountPositionBalanceSurface.exposesAPIKeyInput))",
+                "APB secret storage: \(formatForbiddenFlag(accountPositionBalanceSurface.storesSecret))",
+                "APB broker connect: \(formatForbiddenFlag(accountPositionBalanceSurface.providesBrokerConnect))",
+                "APB account connect: \(formatForbiddenFlag(accountPositionBalanceSurface.providesAccountConnect))",
+                "APB Live PRO Console: \(formatForbiddenFlag(accountPositionBalanceSurface.exposesLivePROConsole))",
+                "APB trading button: \(formatForbiddenFlag(accountPositionBalanceSurface.providesTradingButton))",
+                "APB live command: \(formatForbiddenFlag(accountPositionBalanceSurface.providesLiveCommand))",
+                "APB order form: \(formatForbiddenFlag(accountPositionBalanceSurface.exposesOrderForm))",
+                "APB signed endpoint: \(formatForbiddenFlag(accountPositionBalanceSurface.callsSignedEndpoint))",
+                "APB account endpoint: \(formatForbiddenFlag(accountPositionBalanceSurface.callsAccountEndpoint))",
+                "APB listenKey: \(formatForbiddenFlag(accountPositionBalanceSurface.createsListenKey))",
+                "APB runtime object: \(formatForbiddenFlag(accountPositionBalanceSurface.exposesRuntimeObject))",
+                "APB adapter request: \(formatForbiddenFlag(accountPositionBalanceSurface.exposesAdapterRequest))",
+                "APB boundary: \(formatEvidenceFlag(accountPositionBalanceSurface.readModelOnlyBoundaryHeld))"
             ],
             workbenchBetaFirstRunMetrics: [
                 DashboardShellMetric(
@@ -916,6 +991,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             providesCommandSurface: explorer.providesCommandSurface
                 || scenarioReplayEvidence.providesCommandSurface
                 || simulatedExchangeParityEvidence.providesCommandSurface
+                || accountPositionBalanceSurface.providesCommandSurface
                 || workbenchBetaFirstRun.providesCommandSurface
                 || workbenchBetaAcceptancePath.providesCommandSurface
                 || liveReadOnlyWorkbenchBoundary.providesCommandSurface
@@ -927,6 +1003,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || explorer.providesOrderLevelCommand
                 || scenarioReplayEvidence.providesOrderLevelCommand
                 || simulatedExchangeParityEvidence.providesOrderLevelCommand
+                || accountPositionBalanceSurface.providesOrderLevelCommand
                 || workbenchBetaFirstRun.providesOrderLevelCommand
                 || workbenchBetaAcceptancePath.providesOrderLevelCommand
                 || liveBlockedEvidence.providesOrderLevelCommand
@@ -940,6 +1017,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || explorer.exposesDatabaseSchema
                 || scenarioReplayEvidence.exposesDatabaseSchema
                 || simulatedExchangeParityEvidence.exposesDatabaseSchema
+                || accountPositionBalanceSurface.exposesDatabaseSchema
                 || workbenchBetaFirstRun.exposesDatabaseSchema
                 || workbenchBetaAcceptancePath.exposesDatabaseSchema
                 || liveBlockedEvidence.exposesDatabaseSchema
@@ -952,6 +1030,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || explorer.exposesRuntimeObject
                 || scenarioReplayEvidence.exposesRuntimeObject
                 || simulatedExchangeParityEvidence.exposesRuntimeObject
+                || accountPositionBalanceSurface.exposesRuntimeObject
                 || workbenchBetaFirstRun.exposesRuntimeObject
                 || workbenchBetaAcceptancePath.exposesRuntimeObject
                 || liveBlockedEvidence.exposesRuntimeObject
@@ -964,6 +1043,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || explorer.exposesAdapterRequest
                 || scenarioReplayEvidence.exposesAdapterRequest
                 || simulatedExchangeParityEvidence.exposesAdapterRequest
+                || accountPositionBalanceSurface.exposesAdapterRequest
                 || workbenchBetaFirstRun.exposesAdapterRequest
                 || workbenchBetaAcceptancePath.exposesAdapterRequest
                 || liveBlockedEvidence.exposesAdapterSurface
@@ -976,6 +1056,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || explorer.authorizesLiveTrading
                 || scenarioReplayEvidence.authorizesLiveTrading
                 || simulatedExchangeParityEvidence.authorizesLiveTrading
+                || accountPositionBalanceSurface.authorizesLiveTrading
                 || workbenchBetaFirstRun.authorizesLiveTrading
                 || workbenchBetaAcceptancePath.authorizesLiveTrading
                 || liveBlockedEvidence.authorizesLiveTrading
@@ -988,6 +1069,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || explorer.touchesBrokerAction
                 || scenarioReplayEvidence.touchesBrokerAction
                 || simulatedExchangeParityEvidence.touchesBrokerAction
+                || accountPositionBalanceSurface.connectsBroker
                 || workbenchBetaFirstRun.touchesBrokerAction
                 || workbenchBetaAcceptancePath.touchesBrokerAction
                 || liveBlockedEvidence.touchesBrokerAction
@@ -1002,6 +1084,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || explorer.authorizesTradingExecution
                 || scenarioReplayEvidence.authorizesTradingExecution
                 || simulatedExchangeParityEvidence.authorizesTradingExecution
+                || accountPositionBalanceSurface.authorizesTradingExecution
                 || workbenchBetaFirstRun.authorizesTradingExecution
                 || workbenchBetaAcceptancePath.authorizesTradingExecution
                 || liveBlockedEvidence.authorizesTradingExecution
@@ -1010,6 +1093,8 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || liveExecutionControlEvidence.authorizesTradingExecution
                 || liveRiskGateEvidence.authorizesTradingExecution
                 || liveIncidentStopEvidence.authorizesTradingExecution,
+            accountPositionBalanceReadModelOnlySurfaceBoundaryHeld: accountPositionBalanceSurface
+                .readModelOnlyBoundaryHeld,
             workbenchBetaFirstRunReadModelOnlyBoundaryHeld: workbenchBetaFirstRun
                 .readModelOnlyBoundaryHeld,
             workbenchBetaAcceptancePathReadModelOnlyBoundaryHeld: workbenchBetaAcceptancePath
@@ -1122,6 +1207,10 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                     label: "Sim parity",
                     value: "\(viewModel.simulatedExchangeParityEvidenceCount)"
                 ),
+                DashboardShellMetric(
+                    label: "APB surface",
+                    value: "\(viewModel.accountPositionBalanceReadModelOnlySurface.recordCount)"
+                ),
                 DashboardShellMetric(label: "Live gates", value: "\(viewModel.liveBlockedEvidenceCount)"),
                 DashboardShellMetric(
                     label: "Execution control",
@@ -1214,6 +1303,17 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 "Simulated parity schema exposure: \(formatForbiddenFlag(viewModel.simulatedExchangeParityExposesDatabaseSchema))",
                 "Simulated parity runtime exposure: \(formatForbiddenFlag(viewModel.simulatedExchangeParityExposesRuntimeObject))",
                 "Simulated parity adapter exposure: \(formatForbiddenFlag(viewModel.simulatedExchangeParityExposesAdapterRequest))",
+                "APB surface summary: \(viewModel.accountPositionBalanceReadModelOnlySurface.reportSummary)",
+                "APB surface components: \(joined(viewModel.accountPositionBalanceReadModelOnlySurface.componentLabels))",
+                "APB surface evidence: \(joined(viewModel.accountPositionBalanceReadModelOnlySurface.evidenceIDs))",
+                "APB surface freshness: \(joined(viewModel.accountPositionBalanceReadModelOnlySurface.freshnessStatuses.map(\.rawValue)))",
+                "APB surface blocked states: \(joined(viewModel.accountPositionBalanceReadModelOnlySurface.blockedStateLabels))",
+                "APB surface command surface: \(formatForbiddenFlag(viewModel.accountPositionBalanceReadModelOnlySurface.providesCommandSurface))",
+                "APB surface trading button: \(formatForbiddenFlag(viewModel.accountPositionBalanceReadModelOnlySurface.providesTradingButton))",
+                "APB surface live command: \(formatForbiddenFlag(viewModel.accountPositionBalanceReadModelOnlySurface.providesLiveCommand))",
+                "APB surface account connect: \(formatForbiddenFlag(viewModel.accountPositionBalanceReadModelOnlySurface.providesAccountConnect))",
+                "APB surface broker connect: \(formatForbiddenFlag(viewModel.accountPositionBalanceReadModelOnlySurface.providesBrokerConnect))",
+                "APB surface boundary: \(formatEvidenceFlag(viewModel.accountPositionBalanceReadModelOnlySurface.readModelOnlyBoundaryHeld))",
                 "Live readiness: \(viewModel.liveReadinessStatus.rawValue)",
                 "Live blocked capabilities: \(joined(viewModel.liveBlockedCapabilityLabels))",
                 "Live gates: \(joined(viewModel.liveBlockedGateLabels))",
@@ -1640,6 +1740,12 @@ private struct DashboardWorkbenchPanel: View {
                     systemImage: "equal.square",
                     metrics: workbench.simulatedExchangeParityEvidenceMetrics,
                     details: workbench.simulatedExchangeParityEvidenceDetails
+                )
+                DashboardWorkbenchDetailGroup(
+                    title: "Account Position Balance",
+                    systemImage: "rectangle.stack.badge.person.crop",
+                    metrics: workbench.accountPositionBalanceReadModelOnlySurfaceMetrics,
+                    details: workbench.accountPositionBalanceReadModelOnlySurfaceDetails
                 )
                 DashboardWorkbenchDetailGroup(
                     title: "Live Read-only Workbench",
