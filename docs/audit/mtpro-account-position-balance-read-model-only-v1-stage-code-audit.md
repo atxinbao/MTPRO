@@ -201,9 +201,9 @@ Mechanical boundary phrases for automation readiness:
 
 ## Root Docs Refresh Gate Closure
 
-Root Docs Refresh Gate：pending。
+Root Docs Refresh Gate：closed。
 
-本报告 PR merge 后，`@002 / PAR` 必须单独执行 Root Docs Refresh Gate，只同步已发生事实：`L3.1 Account / Position / Balance Read-model-only complete`、Project Closure Count、Stage Code Audit PR evidence、Root Docs Refresh PR evidence、最终 main commit、`git diff --check` 和 `bash checks/run.sh` 结果。
+本 Root Docs Refresh Gate PR 只同步已发生事实：`L3.1 Account / Position / Balance Read-model-only complete`、Project Closure Count `18 / 18 (100%)`、Stage Code Audit PR #252 evidence、Root Docs Refresh local validation evidence、最终 main fast-forward evidence、`git diff --check` 和 `bash checks/run.sh` 结果。
 
 本 Gate 不创建下一 Project / Issue，不推进 `Todo`，不启动 Symphony，不运行 Graphify，不修改 Figma，不写业务 runtime，不授权 L3.2 / L3.3 / L3.4 / L4 execution、signed endpoint、account endpoint / listenKey、private WebSocket、account snapshot runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button 或 live command。
 

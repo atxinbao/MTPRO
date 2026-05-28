@@ -12770,3 +12770,45 @@ Project closure evidence：
 - 不实现 broker adapter、exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real PnL、margin 或 leverage。
 - 不新增 API key input、secret storage、broker connect、account connect、Live PRO Console、trading button、live command 或 order form。
 - Root Docs Refresh Gate 仍为 pending，必须由后续独立 closure PR 同步已发生事实。
+
+---
+
+## 2026-05-28 — Account / Position / Balance Read-model-only Root Docs Refresh Gate
+
+执行者：Parent Codex Automation Supervision（@002 / PAR）
+
+目的：
+
+- 在 Stage Code Audit PR #252 merge 后，关闭 `MTPRO Account / Position / Balance Read-model-only v1` 的 Root Docs Refresh Gate。
+- 只同步已发生事实：`L3.1 Account / Position / Balance Read-model-only complete`、Project Closure Count `18 / 18 (100%)`、Stage Code Audit evidence、Root Docs Refresh validation evidence 和边界事实。
+- 保持旧 `Final Product Goal Progress: 9 / 9 (100%)` 和旧 `Engine Maturity Roadmap Progress: 4 / 4 (100%)` 不变，不扩大旧 denominator。
+
+Root Docs Refresh Gate 更新：
+
+- `GOAL.md`：同步 L3.1 APB read-model-only evidence chain 已完成，下一 candidate 改为 L3.2 Future Gated。
+- `BLUEPRINT.md`：同步最近完成 construction scope、Live Readiness Roadmap handoff 和 Future Gated 边界。
+- `docs/environment.md`：补充 L3.1 APB environment / secret / runtime boundary。
+- `docs/architecture.md`：补充 Evidence Read Model Layer 和 Domain + Adapter Boundary Layer 的 L3.1 APB evidence chain。
+- `docs/roadmap.md`：Project Closure Count 更新为 `18 / 18 (100%)`，当前 maturity statement 更新为 `L3.1 Account / Position / Balance Read-model-only complete`。
+- `docs/product/mtpro-live-readiness-roadmap-v1.md`：L3.1 标记为 Done / not counted in old denominator，L3.2 保持 Future Gated planning candidate。
+- `docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`：新增 Root Docs Refresh mechanical anchors。
+- `docs/validation/latest-verification-summary.md` 和 `verification.md`：追加 closure evidence。
+- `docs/audit/mtpro-account-position-balance-read-model-only-v1-stage-code-audit.md`：Root Docs Refresh Gate 标记为 closed。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Root Docs Refresh docs/checks-only diff 无 whitespace error。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；mechanical anchors 已覆盖 L3.1 APB Root Docs Refresh、Project Closure Count `18 / 18`、current maturity statement 和 forbidden scope。 |
+| `bash checks/run.sh` | pass | Dashboard smoke 输出 `accountPositionBalanceEvidence=3`；Swift 测试 `282 tests, 0 failures`；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不创建下一 Project / Issue，不推进 `Todo`，不启动下一阶段 `symphony-issue`。
+- 不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 private stream runtime、account snapshot runtime、account / position / balance runtime 或 real account read。
+- 不调用 signed endpoint、account endpoint 或 listenKey。
+- 不实现 broker adapter、exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real PnL、margin 或 leverage。
+- 不新增 API key input、secret storage、broker connect、account connect、Live PRO Console、trading button、live command 或 order form。
