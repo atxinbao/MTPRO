@@ -12725,3 +12725,48 @@ Closure evidence：
 - 不实现 account snapshot runtime。
 - 不实现 broker adapter、`LiveExecutionAdapter`、OMS 或 real order lifecycle。
 - 不新增 API key input、secret storage、broker connect、account connect、Live PRO Console、trading button、live command 或 order form。
+
+---
+
+## 2026-05-28 — Account / Position / Balance Read-model-only Stage Code Audit Report
+
+执行者：Parent Codex Automation Supervision（@002 / PAR）
+
+目的：
+
+- 在 `MTP-133` 至 `MTP-139` 全部 Linear `Done/type=completed` 且 Linear Project `MTPRO Account / Position / Balance Read-model-only v1` 已设置为 `Completed/type=completed` 后，输出独立 Stage Code Audit Report。
+- 固化 PR #245 至 PR #251 的 required check / merge evidence、Project closure evidence、read-model-only boundary、forbidden capability audit 和 Root Docs Delta input。
+- 明确 Root Docs Refresh Gate 仍需后续独立 PR 关闭，不启动下一 Project / Issue。
+
+更新内容：
+
+- 新增 `docs/audit/mtpro-account-position-balance-read-model-only-v1-stage-code-audit.md`。
+- 更新 `docs/automation/automation-readiness.md`，新增 Account / Position / Balance stage code audit report anchor。
+- 更新 `checks/automation-readiness.sh`，新增 Stage Code Audit Report file / content mechanical checks。
+
+Project closure evidence：
+
+- Linear Project ID：`c1838a71-afbe-4f55-977c-f192a07b2e41`。
+- Linear Project status：`Completed/type=completed`。
+- Linear Project completedAt：`2026-05-28T13:34:31.374Z`。
+- Canonical issues：`MTP-133`、`MTP-134`、`MTP-135`、`MTP-136`、`MTP-137`、`MTP-138`、`MTP-139` 全部 `Done/type=completed`。
+- Terminal Project merge point：PR #251 merge commit `c41a83387ef53cba8c2eda3b1f951eb4273291ed`。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | 无输出。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 282 个 XCTest；Dashboard smoke 输出包含 `accountPositionBalanceEvidence=3`；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不创建下一 Project / Issue，不推进 `Todo`，不启动下一阶段 `symphony-issue`。
+- 不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 account / position / balance runtime、account snapshot runtime、private WebSocket runtime 或 real account read。
+- 不调用 signed endpoint、account endpoint 或 listenKey。
+- 不实现 broker adapter、exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real PnL、margin 或 leverage。
+- 不新增 API key input、secret storage、broker connect、account connect、Live PRO Console、trading button、live command 或 order form。
+- Root Docs Refresh Gate 仍为 pending，必须由后续独立 closure PR 同步已发生事实。
