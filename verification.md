@@ -12812,3 +12812,39 @@ Root Docs Refresh Gate 更新：
 - 不调用 signed endpoint、account endpoint 或 listenKey。
 - 不实现 broker adapter、exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real PnL、margin 或 leverage。
 - 不新增 API key input、secret storage、broker connect、account connect、Live PRO Console、trading button、live command 或 order form。
+
+---
+
+## 2026-05-29 — Private Stream / Account Snapshot Simulation Gate Docs-only Planning Record
+
+执行者：Codex
+
+目的：
+
+- 将 Human 确认的 `MTPRO Private Stream / Account Snapshot Simulation Gate v1` planning draft 落仓为 docs-only planning record。
+- 只记录 L3.2 Project 级计划摘要、issue order、dependencies、validation requirements、evidence requirements、first executable issue candidate、WIP=1、Linear write boundary 和 repository record boundary。
+- 明确该 planning record 不是 Project closure，不更新 `Final Product Goal Progress`，不更新旧 `Engine Maturity Roadmap Progress`，不授权 implementation。
+
+更新内容：
+
+- 新增 `docs/planning/projects/mtpro-private-stream-account-snapshot-simulation-gate-v1-plan.md`。
+- 更新 `docs/planning/linear-draft-plan.md`，将 `MTPRO Account / Position / Balance Read-model-only v1` 标记为已完成，并新增当前 L3.2 docs-only planning record / non-executable 入口。
+- 更新 `docs/validation/latest-verification-summary.md`，记录 L3.2 Project-level planning record 已落仓且仍需 Linear 写入和 Parent Codex queue preflight 后才可执行。
+- 更新 `BLUEPRINT.md`，只增加 planning record 引用，不复制完整 issue body，不更新进度条，不授权 execution。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | 无输出；包含新 planning record 的 whitespace 检查。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 282 个 XCTest；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status，不推进 Todo。
+- 不启动 `@002 / PAR`、Symphony 或 `symphony-issue`。
+- 不运行 Graphify，不修改 Figma。
+- 不写业务代码，不实现 Private Stream runtime、Account Snapshot runtime 或 Live read-only runtime。
+- 不实现 signed endpoint、account endpoint / listenKey、private WebSocket runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、real PnL、Live PRO Console、trading button、live command、order form、emergency stop、shutdown 或 restore。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
