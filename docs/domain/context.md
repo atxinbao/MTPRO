@@ -1226,6 +1226,44 @@ MTP-139 automation readiness stage closeout 要求 `checks/automation-readiness.
 
 MTP-139 validation 必须通过 `bash checks/automation-readiness.sh`、`git diff --check` 和 `bash checks/run.sh`。该 validation 只证明 L3.1 read-model-only evidence boundary 和 closeout input 完整，不授权真实账户读取、account snapshot runtime、private stream runtime、broker runtime、Live PRO Console、trading button、live command 或 order form。
 
+## Private Stream / Account Snapshot Simulation Gate Terms
+
+`MTP-140-PRIVATE-STREAM-SIMULATION-GATE-TERMINOLOGY`
+
+以下术语由 MTP-140 定义为 `MTPRO Private Stream / Account Snapshot Simulation Gate v1` 的 L3.2 boundary language。它们只用于 terminology、contract、validation anchors 和后续 issue handoff，不授权当前 scope 实现 private stream runtime、account snapshot runtime、signed endpoint、account endpoint / listenKey、private WebSocket、broker adapter、Live PRO Console、trading button、live command 或 order form。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `private stream simulation gate` | 本地 deterministic fixture / simulated event 进入 L3.2 evidence chain 前的语义门禁 | 不等于 listenKey、private WebSocket、user data stream runtime 或 broker stream |
+| `simulated private account event` | 本地 fixture 描述的账户相关事件语义 | 不等于真实 Binance user data event、account endpoint payload、execution report 或 broker account event |
+| `private stream fixture source` | 只读 fixture source label，说明 event 来自本地模拟输入 | 不等于 exchange connection、broker connection、secret-backed session 或 private account stream |
+| `fixture replay cursor` | 本地 fixture / scenario replay 可复现 cursor，用于说明 deterministic ordering | 不等于 live stream offset、listenKey lifecycle、production stream watermark 或 network checkpoint |
+| `future real private stream label` | 未来真实 private stream 进入独立 Project 前的门禁标签 | 不等于当前已实现真实 private stream、secret storage、signed request 或 account stream |
+
+`MTP-140-ACCOUNT-SNAPSHOT-SIMULATION-GATE-TERMINOLOGY`
+
+MTP-140 account snapshot simulation gate 只定义本地模拟快照输入的术语边界：`account snapshot simulation gate` 是 simulation input 进入 evidence chain 前的语义门禁；`simulated account snapshot input` 是后续 MTP-142 才能深化的本地模拟快照输入 shape；`account snapshot fixture` 是 deterministic local fixture 中的 account snapshot evidence；`snapshot observedAt`、`source watermark`、`freshness / stale / blocked / missing evidence` 都是 fixture / replay 语义，不是真实 account endpoint response、broker account payload、Runtime object、schema、真实账户余额、margin、leverage、buying power 或 real PnL。
+
+`MTP-140-FIXTURE-SIMULATED-FUTURE-REAL-PRIVATE-STREAM-BOUNDARY`
+
+MTP-140 source semantics 只允许表达 fixture private stream source、simulated private stream source 和 future real private stream label。fixture source 是 deterministic local fixture，不是真实 private stream payload；simulated source 是 scenario replay / simulated input 的本地事件语义，不是 listenKey user data stream、execution report、broker fill 或 reconciliation；future real private stream label 只是门禁标签，不授权读取 secret、创建 listenKey、调用 signed endpoint、打开 private WebSocket 或运行 account snapshot runtime。
+
+`MTP-140-L31-APB-L32-SIMULATION-GATE-RELATIONSHIP`
+
+MTP-140 固定 L3.1 APB read-model-only evidence 与 L3.2 simulation gate 的关系：L3.2 可以复用 L3.1 APB 的 read-model-only vocabulary，例如 evidence id、source identity、freshness / stale / blocked / missing 状态和 fixture-to-read-model mapping boundary；L3.2 不得把 L3.1 APB evidence 反向升级为 account snapshot runtime、private stream runtime、real account read、broker position sync、real balance、margin、leverage 或 real PnL，也不得把 Workbench / Report / Events APB surface 写成 account connect、broker connect、Live PRO Console、trading button、live command 或 order form。
+
+`MTP-140-FIRST-EXECUTABLE-CANDIDATE-NON-AUTHORIZATION`
+
+Project Planning Record、Linear Project issue order、next eligible candidate、Backlog issue、label、priority、assignee 或 estimate 都不构成执行授权。MTP-140 只有在 Linear live-read 中经 Parent Codex queue preflight 推进为唯一 active issue 后才可执行；MTP-140 完成后不得自动推进 MTP-141。
+
+`MTP-140-FORBIDDEN-CAPABILITY-BASELINE`
+
+MTP-140 的 forbidden baseline 必须覆盖 signed endpoint、account endpoint / listenKey、listenKey create / keepalive、private WebSocket runtime、private stream runtime、account snapshot runtime、account / position / balance runtime、real account read、broker position sync、real account balance、margin / leverage、real PnL runtime、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form、emergency stop / shutdown / restore executable action、Graphify update 和 Figma change。
+
+`MTP-140-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-SIMULATION-GATE-VALIDATION`
+
+MTP-140 validation 必须证明 contract、domain context、validation plan、trading validation matrix、latest summary、automation readiness doc 和 mechanical anchors 均固定 L3.2 terminology / boundary，并且 `bash checks/run.sh` 通过。MTP-140 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard smoke handle、不新增 stage audit input；Project stage closeout 仍归属 MTP-146。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

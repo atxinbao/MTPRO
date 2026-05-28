@@ -12848,3 +12848,45 @@ Root Docs Refresh Gate 更新：
 - 不写业务代码，不实现 Private Stream runtime、Account Snapshot runtime 或 Live read-only runtime。
 - 不实现 signed endpoint、account endpoint / listenKey、private WebSocket runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、real PnL、Live PRO Console、trading button、live command、order form、emergency stop、shutdown 或 restore。
 - 不提交 `.codex/*` 或 `graphify-out/*`。
+
+---
+
+## 2026-05-29 — MTP-140 Private Stream / Account Snapshot Simulation Gate Terminology and Boundary
+
+执行者：Codex
+
+目的：
+
+- 定义 `MTPRO Private Stream / Account Snapshot Simulation Gate v1` 的首个 executable issue：L3.2 private stream / account snapshot simulation gate terminology、fixture / simulated / future real private stream boundary、L3.1 APB read-model-only evidence relationship、forbidden capability baseline 和 first executable candidate non-authorization。
+- 保持当前 scope 为 terminology / contract / validation anchor 层，不实现 private stream runtime、account snapshot runtime、listenKey、signed/account endpoint、broker adapter、Live PRO Console 或 UI command。
+
+更新内容：
+
+- 新增 `docs/contracts/private-stream-account-snapshot-simulation-gate-contract.md`。
+- 更新 `docs/domain/context.md`，新增 Private Stream / Account Snapshot Simulation Gate shared language。
+- 更新 `docs/validation/trading-validation-matrix.md`，新增 `TVM-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-SIMULATION-GATE` 和 MTP-140 issue backfill。
+- 更新 `docs/validation/validation-plan.md`，新增 MTP-140 required validation。
+- 更新 `docs/validation/latest-verification-summary.md`，记录 MTP-140 current issue evidence。
+- 更新 `docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，新增 MTP-140 readiness anchors。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
+| `git diff --check` | pass | 无输出。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 282 个 XCTest；Dashboard smoke 输出包含 `timelineItems=68`、`accountPositionBalanceEvidence=3` 和 `liveReadOnlyWorkbenchBoundary=5`；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard behavior。
+- 不创建 listenKey，不执行 listenKey keepalive。
+- 不连接 private WebSocket，不实现 private stream runtime。
+- 不实现 account snapshot runtime 或 account / position / balance runtime。
+- 不调用 signed endpoint 或 account endpoint。
+- 不读取真实账户、真实持仓、真实余额、margin、leverage 或 real PnL。
+- 不实现 broker adapter、exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不新增 API key input、secret storage、broker connect、account connect、Live PRO Console、trading button、live command 或 order form。
+- 不运行 Graphify，不修改 Figma。
+- `.codex/*` 和 `graphify-out/*` 不进入 PR。
+- 不推进 MTP-141，不输出 stage audit input；Project stage closeout 仍归属 MTP-146。
