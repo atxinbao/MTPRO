@@ -2352,6 +2352,586 @@ public struct LiveReadOnlyAccountPositionBalanceFutureGateBoundary: Codable, Equ
     }
 }
 
+/// AccountPositionBalanceReadModelOnlyFixtureComponent 固定 MTP-137 fixture 的三类记录。
+///
+/// 每个 component 都只能表示本地 deterministic read-model-only evidence，不映射到真实
+/// account payload、broker position、margin balance、runtime object 或 adapter response。
+public enum AccountPositionBalanceReadModelOnlyFixtureComponent: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case accountSnapshot = "account snapshot"
+    case positionSnapshot = "position snapshot"
+    case balanceSnapshot = "balance snapshot"
+}
+
+/// AccountPositionBalanceReadModelOnlyForbiddenCapability 列出 MTP-137 fixture tests 必须拒绝的能力。
+///
+/// 这些值只作为 deterministic forbidden test evidence 出现。它们不能被解释为 signed endpoint、
+/// account endpoint、listenKey、broker adapter、真实账户读取或真实 PnL / margin / leverage 支持。
+public enum AccountPositionBalanceReadModelOnlyForbiddenCapability: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case signedEndpoint = "signed endpoint"
+    case accountEndpoint = "account endpoint"
+    case listenKey = "listenKey"
+    case privateWebSocket = "private WebSocket"
+    case secretRead = "secret read"
+    case brokerAdapter = "broker adapter"
+    case realAccountRead = "real account read"
+    case realAccountPayload = "real account payload"
+    case brokerPayloadImport = "broker payload import"
+    case brokerPositionSync = "broker position sync"
+    case realPnLRuntime = "real PnL runtime"
+    case marginRead = "margin read"
+    case leverageRead = "leverage read"
+    case accountSnapshotRuntime = "account snapshot runtime"
+    case payloadSchemaRuntimeObjectExposure = "payload / schema / runtime object exposure"
+}
+
+/// AccountPositionBalanceReadModelOnlyFixtureRecord 是 MTP-137 的单条 fixture shape。
+///
+/// Record 只保存 snapshot identity、evidence identity、source / freshness identity 和允许映射到
+/// Read Model 的字段名。它故意不保存真实 payload、schema、runtime object、broker state 或 endpoint
+/// descriptor，避免 fixture 被误用为真实账户导入器。
+public struct AccountPositionBalanceReadModelOnlyFixtureRecord: Codable, Equatable, Sendable {
+    public let component: AccountPositionBalanceReadModelOnlyFixtureComponent
+    public let snapshotID: String
+    public let evidenceID: String
+    public let sourceIdentity: String
+    public let observedAt: Int
+    public let sourceWatermark: String
+    public let freshnessStatus: ScenarioReplayFreshnessStatus
+    public let readModelFields: [String]
+
+    public var canonicalLine: String {
+        [
+            component.rawValue,
+            snapshotID,
+            evidenceID,
+            sourceIdentity,
+            String(observedAt),
+            sourceWatermark,
+            freshnessStatus.rawValue,
+            readModelFields.joined(separator: "+")
+        ].joined(separator: "|")
+    }
+
+    public var readModelMappingIsolated: Bool {
+        sourceIdentity == Self.requiredSourceIdentity
+            && freshnessStatus == .fresh
+            && containsForbiddenPayloadText(Self.forbiddenReadModelFieldTokens) == false
+    }
+
+    public init(
+        component: AccountPositionBalanceReadModelOnlyFixtureComponent,
+        snapshotID: String,
+        evidenceID: String,
+        sourceIdentity: String = Self.requiredSourceIdentity,
+        observedAt: Int = Self.requiredObservedAt,
+        sourceWatermark: String = Self.requiredSourceWatermark,
+        freshnessStatus: ScenarioReplayFreshnessStatus = .fresh,
+        readModelFields: [String]
+    ) throws {
+        try Self.validate(
+            component: component,
+            snapshotID: snapshotID,
+            evidenceID: evidenceID,
+            sourceIdentity: sourceIdentity,
+            observedAt: observedAt,
+            sourceWatermark: sourceWatermark,
+            freshnessStatus: freshnessStatus,
+            readModelFields: readModelFields
+        )
+
+        self.component = component
+        self.snapshotID = snapshotID
+        self.evidenceID = evidenceID
+        self.sourceIdentity = sourceIdentity
+        self.observedAt = observedAt
+        self.sourceWatermark = sourceWatermark
+        self.freshnessStatus = freshnessStatus
+        self.readModelFields = readModelFields
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            component: try container.decode(
+                AccountPositionBalanceReadModelOnlyFixtureComponent.self,
+                forKey: .component
+            ),
+            snapshotID: try container.decode(String.self, forKey: .snapshotID),
+            evidenceID: try container.decode(String.self, forKey: .evidenceID),
+            sourceIdentity: try container.decode(String.self, forKey: .sourceIdentity),
+            observedAt: try container.decode(Int.self, forKey: .observedAt),
+            sourceWatermark: try container.decode(String.self, forKey: .sourceWatermark),
+            freshnessStatus: try container.decode(ScenarioReplayFreshnessStatus.self, forKey: .freshnessStatus),
+            readModelFields: try container.decode([String].self, forKey: .readModelFields)
+        )
+    }
+
+    public func containsForbiddenPayloadText(_ forbiddenTokens: [String]) -> Bool {
+        let searchable = [
+            snapshotID,
+            evidenceID,
+            sourceIdentity,
+            sourceWatermark,
+            readModelFields.joined(separator: "|")
+        ]
+            .joined(separator: "|")
+            .lowercased()
+
+        return forbiddenTokens.contains { token in
+            searchable.contains(token.lowercased())
+        }
+    }
+
+    public static let requiredSourceIdentity = "fixture:mtp-137-account-position-balance-read-model-only"
+    public static let requiredObservedAt = 1_704_067_500
+    public static let requiredSourceWatermark = "fixture-watermark:mtp-137:2024-01-01T00:05:00Z"
+    public static let forbiddenReadModelFieldTokens = [
+        "payload",
+        "schema",
+        "runtime",
+        "endpoint",
+        "listenkey",
+        "secret",
+        "broker",
+        "margin",
+        "leverage",
+        "realpnl",
+        "real-pnl",
+        "real_pnl"
+    ]
+
+    private static func validate(
+        component: AccountPositionBalanceReadModelOnlyFixtureComponent,
+        snapshotID: String,
+        evidenceID: String,
+        sourceIdentity: String,
+        observedAt: Int,
+        sourceWatermark: String,
+        freshnessStatus: ScenarioReplayFreshnessStatus,
+        readModelFields: [String]
+    ) throws {
+        guard snapshotID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "\(component.rawValue).snapshotID",
+                expected: "non-empty snapshot identity",
+                actual: "empty"
+            )
+        }
+        guard evidenceID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "\(component.rawValue).evidenceID",
+                expected: "non-empty evidence identity",
+                actual: "empty"
+            )
+        }
+        guard sourceIdentity == Self.requiredSourceIdentity else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "\(component.rawValue).sourceIdentity",
+                expected: Self.requiredSourceIdentity,
+                actual: sourceIdentity
+            )
+        }
+        guard observedAt == Self.requiredObservedAt else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "\(component.rawValue).observedAt",
+                expected: String(Self.requiredObservedAt),
+                actual: String(observedAt)
+            )
+        }
+        guard sourceWatermark == Self.requiredSourceWatermark else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "\(component.rawValue).sourceWatermark",
+                expected: Self.requiredSourceWatermark,
+                actual: sourceWatermark
+            )
+        }
+        guard freshnessStatus == .fresh else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "\(component.rawValue).freshnessStatus",
+                expected: ScenarioReplayFreshnessStatus.fresh.rawValue,
+                actual: freshnessStatus.rawValue
+            )
+        }
+        guard readModelFields.isEmpty == false else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "\(component.rawValue).readModelFields",
+                expected: "non-empty read model field list",
+                actual: "empty"
+            )
+        }
+        if let forbiddenField = readModelFields.first(where: { field in
+            Self.forbiddenReadModelFieldTokens.contains { token in
+                field.lowercased().contains(token.lowercased())
+            }
+        }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("readModelFields.\(forbiddenField)")
+        }
+    }
+}
+
+/// AccountPositionBalanceReadModelOnlyFixtureContract 是 MTP-137 的 deterministic fixture 合同。
+///
+/// 该合同把 account / position / balance 的 fixture shape、fixture version、checksum、freshness
+/// 和 source identity 固定为本地证据，并用 init / Codable validation 拒绝真实 endpoint、
+/// secret、listenKey、broker adapter、real account payload、real PnL、margin、leverage 以及
+/// payload / schema / runtime object 暴露。它不是 account snapshot runtime，也不是 broker payload importer。
+public struct AccountPositionBalanceReadModelOnlyFixtureContract: Codable, Equatable, Sendable {
+    public let contractID: Identifier
+    public let issueID: Identifier
+    public let fixtureVersion: FixtureVersion
+    public let records: [AccountPositionBalanceReadModelOnlyFixtureRecord]
+    public let checksum: String
+    public let checksumMatchedCanonicalPreimage: Bool
+    public let freshnessStatus: ScenarioReplayFreshnessStatus
+    public let forbiddenCapabilities: [AccountPositionBalanceReadModelOnlyForbiddenCapability]
+    public let callsSignedEndpoint: Bool
+    public let callsAccountEndpoint: Bool
+    public let createsListenKey: Bool
+    public let opensPrivateWebSocket: Bool
+    public let readsSecret: Bool
+    public let importsBrokerPayload: Bool
+    public let readsRealAccount: Bool
+    public let consumesRealAccountPayload: Bool
+    public let syncsBrokerPosition: Bool
+    public let readsRealPnL: Bool
+    public let readsMargin: Bool
+    public let readsLeverage: Bool
+    public let runsAccountSnapshotRuntime: Bool
+    public let exposesPayloadSchemaRuntimeObject: Bool
+
+    public var fixtureContractBoundaryHeld: Bool {
+        fixtureVersion == Self.requiredFixtureVersion
+            && records == Self.requiredRecords
+            && checksum == Self.requiredChecksum
+            && checksumMatchedCanonicalPreimage
+            && freshnessStatus == .fresh
+            && forbiddenCapabilities == Self.requiredForbiddenCapabilities
+            && records.allSatisfy(\.readModelMappingIsolated)
+            && callsSignedEndpoint == false
+            && callsAccountEndpoint == false
+            && createsListenKey == false
+            && opensPrivateWebSocket == false
+            && readsSecret == false
+            && importsBrokerPayload == false
+            && readsRealAccount == false
+            && consumesRealAccountPayload == false
+            && syncsBrokerPosition == false
+            && readsRealPnL == false
+            && readsMargin == false
+            && readsLeverage == false
+            && runsAccountSnapshotRuntime == false
+            && exposesPayloadSchemaRuntimeObject == false
+    }
+
+    public var canonicalPreimage: String {
+        Self.canonicalPreimage(for: records)
+    }
+
+    public init(
+        contractID: Identifier = try! Identifier("mtp-137-account-position-balance-read-model-only-fixture"),
+        issueID: Identifier = try! Identifier("MTP-137"),
+        fixtureVersion: FixtureVersion = Self.requiredFixtureVersion,
+        records: [AccountPositionBalanceReadModelOnlyFixtureRecord] = Self.requiredRecords,
+        checksum: String? = nil,
+        checksumMatchedCanonicalPreimage: Bool = true,
+        freshnessStatus: ScenarioReplayFreshnessStatus = .fresh,
+        forbiddenCapabilities: [AccountPositionBalanceReadModelOnlyForbiddenCapability] =
+            Self.requiredForbiddenCapabilities,
+        callsSignedEndpoint: Bool = false,
+        callsAccountEndpoint: Bool = false,
+        createsListenKey: Bool = false,
+        opensPrivateWebSocket: Bool = false,
+        readsSecret: Bool = false,
+        importsBrokerPayload: Bool = false,
+        readsRealAccount: Bool = false,
+        consumesRealAccountPayload: Bool = false,
+        syncsBrokerPosition: Bool = false,
+        readsRealPnL: Bool = false,
+        readsMargin: Bool = false,
+        readsLeverage: Bool = false,
+        runsAccountSnapshotRuntime: Bool = false,
+        exposesPayloadSchemaRuntimeObject: Bool = false
+    ) throws {
+        let expectedChecksum = Self.checksum(for: records)
+        let providedChecksum = checksum ?? expectedChecksum
+        try Self.validate(
+            fixtureVersion: fixtureVersion,
+            records: records,
+            checksum: providedChecksum,
+            checksumMatchedCanonicalPreimage: checksumMatchedCanonicalPreimage,
+            freshnessStatus: freshnessStatus,
+            forbiddenCapabilities: forbiddenCapabilities
+        )
+        try Self.validateForbiddenFlags(
+            callsSignedEndpoint: callsSignedEndpoint,
+            callsAccountEndpoint: callsAccountEndpoint,
+            createsListenKey: createsListenKey,
+            opensPrivateWebSocket: opensPrivateWebSocket,
+            readsSecret: readsSecret,
+            importsBrokerPayload: importsBrokerPayload,
+            readsRealAccount: readsRealAccount,
+            consumesRealAccountPayload: consumesRealAccountPayload,
+            syncsBrokerPosition: syncsBrokerPosition,
+            readsRealPnL: readsRealPnL,
+            readsMargin: readsMargin,
+            readsLeverage: readsLeverage,
+            runsAccountSnapshotRuntime: runsAccountSnapshotRuntime,
+            exposesPayloadSchemaRuntimeObject: exposesPayloadSchemaRuntimeObject
+        )
+
+        self.contractID = contractID
+        self.issueID = issueID
+        self.fixtureVersion = fixtureVersion
+        self.records = records
+        self.checksum = providedChecksum
+        self.checksumMatchedCanonicalPreimage = checksumMatchedCanonicalPreimage
+        self.freshnessStatus = freshnessStatus
+        self.forbiddenCapabilities = forbiddenCapabilities
+        self.callsSignedEndpoint = callsSignedEndpoint
+        self.callsAccountEndpoint = callsAccountEndpoint
+        self.createsListenKey = createsListenKey
+        self.opensPrivateWebSocket = opensPrivateWebSocket
+        self.readsSecret = readsSecret
+        self.importsBrokerPayload = importsBrokerPayload
+        self.readsRealAccount = readsRealAccount
+        self.consumesRealAccountPayload = consumesRealAccountPayload
+        self.syncsBrokerPosition = syncsBrokerPosition
+        self.readsRealPnL = readsRealPnL
+        self.readsMargin = readsMargin
+        self.readsLeverage = readsLeverage
+        self.runsAccountSnapshotRuntime = runsAccountSnapshotRuntime
+        self.exposesPayloadSchemaRuntimeObject = exposesPayloadSchemaRuntimeObject
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            contractID: try container.decode(Identifier.self, forKey: .contractID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            fixtureVersion: try container.decode(FixtureVersion.self, forKey: .fixtureVersion),
+            records: try container.decode(
+                [AccountPositionBalanceReadModelOnlyFixtureRecord].self,
+                forKey: .records
+            ),
+            checksum: try container.decode(String.self, forKey: .checksum),
+            checksumMatchedCanonicalPreimage: try container.decode(
+                Bool.self,
+                forKey: .checksumMatchedCanonicalPreimage
+            ),
+            freshnessStatus: try container.decode(ScenarioReplayFreshnessStatus.self, forKey: .freshnessStatus),
+            forbiddenCapabilities: try container.decode(
+                [AccountPositionBalanceReadModelOnlyForbiddenCapability].self,
+                forKey: .forbiddenCapabilities
+            ),
+            callsSignedEndpoint: try container.decode(Bool.self, forKey: .callsSignedEndpoint),
+            callsAccountEndpoint: try container.decode(Bool.self, forKey: .callsAccountEndpoint),
+            createsListenKey: try container.decode(Bool.self, forKey: .createsListenKey),
+            opensPrivateWebSocket: try container.decode(Bool.self, forKey: .opensPrivateWebSocket),
+            readsSecret: try container.decode(Bool.self, forKey: .readsSecret),
+            importsBrokerPayload: try container.decode(Bool.self, forKey: .importsBrokerPayload),
+            readsRealAccount: try container.decode(Bool.self, forKey: .readsRealAccount),
+            consumesRealAccountPayload: try container.decode(Bool.self, forKey: .consumesRealAccountPayload),
+            syncsBrokerPosition: try container.decode(Bool.self, forKey: .syncsBrokerPosition),
+            readsRealPnL: try container.decode(Bool.self, forKey: .readsRealPnL),
+            readsMargin: try container.decode(Bool.self, forKey: .readsMargin),
+            readsLeverage: try container.decode(Bool.self, forKey: .readsLeverage),
+            runsAccountSnapshotRuntime: try container.decode(Bool.self, forKey: .runsAccountSnapshotRuntime),
+            exposesPayloadSchemaRuntimeObject: try container.decode(
+                Bool.self,
+                forKey: .exposesPayloadSchemaRuntimeObject
+            )
+        )
+    }
+
+    public func containsForbiddenPayloadText(_ forbiddenTokens: [String]) -> Bool {
+        let searchable = [
+            fixtureVersion.rawValue,
+            checksum,
+            freshnessStatus.rawValue,
+            records.map(\.canonicalLine).joined(separator: "|")
+        ]
+            .joined(separator: "|")
+            .lowercased()
+
+        return forbiddenTokens.contains { token in
+            searchable.contains(token.lowercased())
+        }
+    }
+
+    public static let requiredFixtureVersion = try! FixtureVersion("fixture-v1")
+    public static let requiredForbiddenCapabilities =
+        AccountPositionBalanceReadModelOnlyForbiddenCapability.allCases
+
+    public static let requiredRecords: [AccountPositionBalanceReadModelOnlyFixtureRecord] = {
+        do {
+            return [
+                try AccountPositionBalanceReadModelOnlyFixtureRecord(
+                    component: .accountSnapshot,
+                    snapshotID: "account-snapshot|fixture|mtp-137-local-account-evidence|1704067500|fresh",
+                    evidenceID: "account-evidence|fixture|mtp-137|1704067500|fresh",
+                    readModelFields: [
+                        "accountSnapshotId",
+                        "accountEvidenceId",
+                        "sourceIdentity",
+                        "observedAt",
+                        "sourceWatermark",
+                        "freshnessStatus"
+                    ]
+                ),
+                try AccountPositionBalanceReadModelOnlyFixtureRecord(
+                    component: .positionSnapshot,
+                    snapshotID: "position-snapshot|fixture|mtp-137-local-position-evidence|BTCUSDT|1704067500|fresh",
+                    evidenceID: "position-evidence|fixture|mtp-137|BTCUSDT|long|1704067500|fresh",
+                    readModelFields: [
+                        "positionSnapshotId",
+                        "positionEvidenceId",
+                        "symbol",
+                        "side",
+                        "quantity",
+                        "exposureNotional",
+                        "sourceIdentity",
+                        "freshnessStatus"
+                    ]
+                ),
+                try AccountPositionBalanceReadModelOnlyFixtureRecord(
+                    component: .balanceSnapshot,
+                    snapshotID: "balance-snapshot|fixture|mtp-137-local-balance-evidence|USD|1704067500|fresh",
+                    evidenceID: "balance-evidence|fixture|mtp-137|paper-simulated|1704067500|fresh",
+                    readModelFields: [
+                        "balanceSnapshotId",
+                        "balanceEvidenceId",
+                        "currency",
+                        "paperCash",
+                        "paperEquity",
+                        "simulatedBalance",
+                        "sourceIdentity",
+                        "freshnessStatus"
+                    ]
+                )
+            ]
+        } catch {
+            preconditionFailure("MTP-137 account / position / balance fixture records must be valid: \(error)")
+        }
+    }()
+
+    public static let requiredChecksum = checksum(for: requiredRecords)
+
+    public static let deterministicFixture: AccountPositionBalanceReadModelOnlyFixtureContract = {
+        do {
+            return try AccountPositionBalanceReadModelOnlyFixtureContract()
+        } catch {
+            preconditionFailure(
+                "MTP-137 account / position / balance read-model-only fixture contract must be valid: \(error)"
+            )
+        }
+    }()
+
+    public static func canonicalPreimage(
+        for records: [AccountPositionBalanceReadModelOnlyFixtureRecord]
+    ) -> String {
+        records.map(\.canonicalLine).joined(separator: "\n")
+    }
+
+    public static func checksum(
+        for records: [AccountPositionBalanceReadModelOnlyFixtureRecord]
+    ) -> String {
+        ScenarioReplayChecksumEvidence.checksum(forCanonicalPreimage: canonicalPreimage(for: records))
+    }
+
+    private static func validate(
+        fixtureVersion: FixtureVersion,
+        records: [AccountPositionBalanceReadModelOnlyFixtureRecord],
+        checksum: String,
+        checksumMatchedCanonicalPreimage: Bool,
+        freshnessStatus: ScenarioReplayFreshnessStatus,
+        forbiddenCapabilities: [AccountPositionBalanceReadModelOnlyForbiddenCapability]
+    ) throws {
+        guard fixtureVersion == Self.requiredFixtureVersion else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "fixtureVersion",
+                expected: Self.requiredFixtureVersion.rawValue,
+                actual: fixtureVersion.rawValue
+            )
+        }
+        guard records == Self.requiredRecords else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "records",
+                expected: Self.requiredRecords.map(\.component.rawValue).joined(separator: ","),
+                actual: records.map(\.component.rawValue).joined(separator: ",")
+            )
+        }
+        guard records.allSatisfy(\.readModelMappingIsolated) else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("readModelMappingIsolated")
+        }
+        guard checksum == Self.requiredChecksum else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "checksum",
+                expected: Self.requiredChecksum,
+                actual: checksum
+            )
+        }
+        guard checksumMatchedCanonicalPreimage else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "checksumMatchedCanonicalPreimage",
+                expected: "true",
+                actual: "false"
+            )
+        }
+        guard freshnessStatus == .fresh else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "freshnessStatus",
+                expected: ScenarioReplayFreshnessStatus.fresh.rawValue,
+                actual: freshnessStatus.rawValue
+            )
+        }
+        guard forbiddenCapabilities == Self.requiredForbiddenCapabilities else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "forbiddenCapabilities",
+                expected: Self.requiredForbiddenCapabilities.map(\.rawValue).joined(separator: ","),
+                actual: forbiddenCapabilities.map(\.rawValue).joined(separator: ",")
+            )
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        callsSignedEndpoint: Bool,
+        callsAccountEndpoint: Bool,
+        createsListenKey: Bool,
+        opensPrivateWebSocket: Bool,
+        readsSecret: Bool,
+        importsBrokerPayload: Bool,
+        readsRealAccount: Bool,
+        consumesRealAccountPayload: Bool,
+        syncsBrokerPosition: Bool,
+        readsRealPnL: Bool,
+        readsMargin: Bool,
+        readsLeverage: Bool,
+        runsAccountSnapshotRuntime: Bool,
+        exposesPayloadSchemaRuntimeObject: Bool
+    ) throws {
+        let forbiddenFlags = [
+            ("callsSignedEndpoint", callsSignedEndpoint),
+            ("callsAccountEndpoint", callsAccountEndpoint),
+            ("createsListenKey", createsListenKey),
+            ("opensPrivateWebSocket", opensPrivateWebSocket),
+            ("readsSecret", readsSecret),
+            ("importsBrokerPayload", importsBrokerPayload),
+            ("readsRealAccount", readsRealAccount),
+            ("consumesRealAccountPayload", consumesRealAccountPayload),
+            ("syncsBrokerPosition", syncsBrokerPosition),
+            ("readsRealPnL", readsRealPnL),
+            ("readsMargin", readsMargin),
+            ("readsLeverage", readsLeverage),
+            ("runsAccountSnapshotRuntime", runsAccountSnapshotRuntime),
+            ("exposesPayloadSchemaRuntimeObject", exposesPayloadSchemaRuntimeObject)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(capability.0)
+        }
+    }
+}
+
 /// LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary 是 MTP-130 的 L3.2 simulation gate input fixture。
 ///
 /// 该合同只定义 private stream / account snapshot simulation gate 的输入材料、future fixture

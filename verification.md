@@ -12584,3 +12584,51 @@ Closure evidence：
 - 不读取 margin、leverage、buying power 或 broker cash statement。
 - 不接 signed endpoint、account endpoint、listenKey、private stream 或 private WebSocket runtime。
 - 不连接 broker，不实现 account snapshot runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、Live PRO Console、trading button、live command 或 order form。
+
+---
+
+## 2026-05-28 — MTP-137 Account / Position / Balance Fixture / Forbidden Real Account Tests
+
+执行者：Codex
+
+目的：
+
+- 执行 Linear issue `MTP-137 Define account / position / balance fixture and forbidden real account tests`。
+- 建立 account / position / balance deterministic local fixture shape、fixture version、checksum、freshness、source identity、forbidden real account tests、fixture-to-read-model mapping isolation 和 real account payload isolation。
+- 明确 MTP-137 fixture 只能作为 read-model-only local evidence，不是真实账户 fixture importer，不导入 broker payload，不调用 account endpoint 或 listenKey。
+
+更新内容：
+
+- 更新 `Sources/Core/LiveTradingBoundary.swift`，新增 `AccountPositionBalanceReadModelOnlyFixtureContract`、`AccountPositionBalanceReadModelOnlyFixtureRecord` 和 `AccountPositionBalanceReadModelOnlyForbiddenCapability`。
+- 更新 `Tests/CoreTests/CoreTests.swift`，新增 deterministic fixture contract、forbidden real account bypass 和 payload / schema / runtime mapping isolation tests。
+- 更新 `docs/contracts/account-position-balance-read-model-only-contract.md`，新增 MTP-137 fixture / forbidden real account tests anchors。
+- 更新 `docs/domain/context.md`，新增 MTP-137 fixture shared language。
+- 更新 `docs/validation/trading-validation-matrix.md`，新增 MTP-137 issue backfill。
+- 更新 `docs/validation/validation-plan.md`，新增 MTP-137 required validation 与禁止项。
+- 更新 `docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，新增 MTP-137 mechanical anchors。
+- 更新 `docs/validation/latest-verification-summary.md`，记录 MTP-137 当前 issue execution evidence。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter AccountPositionBalanceReadModelOnlyFixture` | pass | 3 tests, 0 failures。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
+| `git diff --check` | pass | 无输出。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 281 个 XCTest；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不推进 MTP-138。
+- 不创建下一 Project / Issue。
+- 不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现真实账户 fixture importer。
+- 不导入 broker payload。
+- 不调用 signed endpoint、account endpoint 或 listenKey。
+- 不连接 private WebSocket。
+- 不实现 account snapshot runtime。
+- 不实现 broker adapter、`LiveExecutionAdapter`、OMS 或 real order lifecycle。
+- 不读取真实账户、broker position、real PnL、margin 或 leverage。
+- 不暴露 payload、schema、Runtime object、adapter request 或 account endpoint response。
+- 不新增 App surface、不新增 Dashboard smoke handle；Workbench / Report / Events surface 仍归属 MTP-138。

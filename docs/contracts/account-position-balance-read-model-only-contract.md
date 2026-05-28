@@ -414,3 +414,112 @@ Focused validation anchors：
 - `checks/automation-readiness.sh` 必须机械检查 MTP-136 anchors。
 
 MTP-136 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard smoke handle、不新增 balance fixture payload、不新增 App read model、不新增 Core / Runtime / Dashboard behavior；deterministic fixture contract 仍归属 MTP-137，Workbench / Report / Events surface 仍归属 MTP-138。
+
+## MTP-137 deterministic fixture shape
+
+`MTP-137-DETERMINISTIC-FIXTURE-SHAPE`
+
+MTP-137 定义 account / position / balance 的 deterministic local fixture shape。该 fixture 只用于 L3.1 read-model-only evidence，不是真实账户导入器，不导入 broker payload，不读取 account endpoint，不创建 listenKey，不运行 private WebSocket 或 account snapshot runtime。
+
+Fixture 必须包含以下三类 component：
+
+| Component | Snapshot identity | Evidence identity | Read Model mapping |
+| --- | --- | --- | --- |
+| `account snapshot` | `account-snapshot|fixture|mtp-137-local-account-evidence|1704067500|fresh` | `account-evidence|fixture|mtp-137|1704067500|fresh` | `accountSnapshotId`、`accountEvidenceId`、`sourceIdentity`、`observedAt`、`sourceWatermark`、`freshnessStatus` |
+| `position snapshot` | `position-snapshot|fixture|mtp-137-local-position-evidence|BTCUSDT|1704067500|fresh` | `position-evidence|fixture|mtp-137|BTCUSDT|long|1704067500|fresh` | `positionSnapshotId`、`positionEvidenceId`、`symbol`、`side`、`quantity`、`exposureNotional`、`sourceIdentity`、`freshnessStatus` |
+| `balance snapshot` | `balance-snapshot|fixture|mtp-137-local-balance-evidence|USD|1704067500|fresh` | `balance-evidence|fixture|mtp-137|paper-simulated|1704067500|fresh` | `balanceSnapshotId`、`balanceEvidenceId`、`currency`、`paperCash`、`paperEquity`、`simulatedBalance`、`sourceIdentity`、`freshnessStatus` |
+
+这些字段只表达 read-model-only mapping，不包含真实 payload、schema、Runtime object、adapter request、broker state、account endpoint payload、listenKey 或 secret。
+
+## MTP-137 fixture version / checksum / freshness / source identity
+
+`MTP-137-FIXTURE-CHECKSUM-FRESHNESS-SOURCE`
+
+MTP-137 的 fixture identity 固定为：
+
+- `fixtureVersion`: `fixture-v1`
+- `sourceIdentity`: `fixture:mtp-137-account-position-balance-read-model-only`
+- `observedAt`: `1704067500`
+- `sourceWatermark`: `fixture-watermark:mtp-137:2024-01-01T00:05:00Z`
+- `freshnessStatus`: `fresh`
+- `checksum`: 由 `AccountPositionBalanceReadModelOnlyFixtureContract.requiredChecksum` 对 canonical preimage 计算，算法复用 `ScenarioReplayChecksumEvidence.checksum(forCanonicalPreimage:)`
+
+Checksum / freshness 只能证明本地 deterministic fixture parity，不代表真实账户 freshness、broker server timestamp、private stream cursor、listenKey keepalive 或 reconciliation watermark。
+
+## MTP-137 forbidden real account tests
+
+`MTP-137-FORBIDDEN-REAL-ACCOUNT-TESTS`
+
+MTP-137 必须建立 deterministic forbidden tests，覆盖以下能力：
+
+- signed endpoint
+- account endpoint
+- listenKey
+- private WebSocket
+- secret read
+- broker adapter
+- real account read
+- real account payload
+- broker payload import
+- broker position sync
+- real PnL runtime
+- margin read
+- leverage read
+- account snapshot runtime
+- payload / schema / runtime object exposure
+
+Tests 必须证明 init 和 Codable decode 都拒绝这些 capability flags；测试不得依赖真实网络、真实 Binance private API、真实 credential、account endpoint、listenKey 或 broker account。
+
+## MTP-137 fixture-to-read-model mapping isolation
+
+`MTP-137-FIXTURE-TO-READ-MODEL-MAPPING-ISOLATION`
+
+Fixture-to-read-model mapping 只能输出稳定 read model 字段。以下 token 不得进入 mapping 字段、summary 或 record identity：
+
+- `payload`
+- `schema`
+- `runtime`
+- `endpoint`
+- `listenKey`
+- `secret`
+- `broker`
+- `margin`
+- `leverage`
+- `realPnL`
+
+任何尝试把 account endpoint payload、broker payload、schema、Runtime object 或 private stream object 放入 fixture mapping 的行为都必须被 deterministic tests 拒绝。MTP-137 不新增 App surface；Workbench / Report / Events 展示仍归属 MTP-138。
+
+## MTP-137 real account payload isolation
+
+`MTP-137-REAL-ACCOUNT-PAYLOAD-ISOLATION`
+
+MTP-137 的 real account payload isolation 规则：
+
+1. Fixture 只保存 snapshot identity、evidence identity、source identity、freshness identity 和 read model field names。
+2. Fixture 不保存原始 account endpoint response、broker payload、private stream event、schema object、adapter request、Runtime object 或 account snapshot runtime handle。
+3. Fixture 不提供 importer、parser、refresh、connect、sync、reconcile、submit、cancel、replace 或 live command。
+4. Fixture 的 `future-gated` 语义只表示后续门禁，不表示当前已经连接真实账户。
+
+## MTP-137 validation anchors
+
+`MTP-137-FIXTURE-FORBIDDEN-REAL-ACCOUNT-VALIDATION`
+
+Required validation：
+
+- `swift test --filter AccountPositionBalanceReadModelOnlyFixture`
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `Sources/Core/LiveTradingBoundary.swift` 必须包含 `AccountPositionBalanceReadModelOnlyFixtureContract`、`AccountPositionBalanceReadModelOnlyFixtureRecord` 和 `AccountPositionBalanceReadModelOnlyForbiddenCapability`。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-137 deterministic fixture、forbidden real account bypass 和 payload / schema / runtime mapping isolation tests。
+- Contract 必须包含 deterministic fixture shape、fixture version / checksum / freshness / source identity、forbidden real account tests、fixture-to-read-model mapping isolation、real account payload isolation 和 validation anchors。
+- Domain context 必须包含 MTP-137 fixture / forbidden real account tests shared language。
+- Trading validation matrix 必须回填 MTP-137 issue evidence。
+- Latest verification summary 必须记录 MTP-137 当前 issue evidence。
+- Automation readiness 必须新增 Account / Position / Balance fixture / forbidden real account tests anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-137 source、test、contract、domain context、validation plan、trading matrix、latest summary 和 automation readiness anchors。
+
+MTP-137 不新增 App surface、不新增 Dashboard smoke handle、不新增 account snapshot runtime、不导入真实账户 payload、不实现 signed endpoint、account endpoint、listenKey、private WebSocket、broker adapter、`LiveExecutionAdapter`、OMS、real PnL、margin、leverage、Live PRO Console、trading button、live command 或 order form；Workbench / Report / Events surface 仍归属 MTP-138。

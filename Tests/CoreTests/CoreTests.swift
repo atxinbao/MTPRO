@@ -969,6 +969,209 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testAccountPositionBalanceReadModelOnlyFixtureDefinesMTP137DeterministicContract() throws {
+        // 测试场景：MTP-137 的 account / position / balance fixture 只能作为 deterministic local
+        // read-model-only evidence。checksum、freshness、source identity 和 component shape 必须可重复，
+        // 不能暴露真实账户 payload、schema、runtime object 或 broker / endpoint 语义。
+        let contract = AccountPositionBalanceReadModelOnlyFixtureContract.deterministicFixture
+
+        XCTAssertEqual(
+            contract.contractID,
+            try Identifier("mtp-137-account-position-balance-read-model-only-fixture")
+        )
+        XCTAssertEqual(contract.issueID, try Identifier("MTP-137"))
+        XCTAssertEqual(contract.fixtureVersion, try FixtureVersion("fixture-v1"))
+        XCTAssertEqual(contract.records.map(\.component), AccountPositionBalanceReadModelOnlyFixtureComponent.allCases)
+        XCTAssertEqual(contract.records.count, 3)
+        XCTAssertEqual(
+            contract.records.map(\.sourceIdentity),
+            Array(
+                repeating: AccountPositionBalanceReadModelOnlyFixtureRecord.requiredSourceIdentity,
+                count: 3
+            )
+        )
+        XCTAssertEqual(
+            contract.checksum,
+            AccountPositionBalanceReadModelOnlyFixtureContract.checksum(for: contract.records)
+        )
+        XCTAssertEqual(contract.checksum, AccountPositionBalanceReadModelOnlyFixtureContract.requiredChecksum)
+        XCTAssertTrue(contract.checksumMatchedCanonicalPreimage)
+        XCTAssertEqual(contract.freshnessStatus, .fresh)
+        XCTAssertTrue(contract.records.allSatisfy(\.readModelMappingIsolated))
+        XCTAssertEqual(
+            contract.forbiddenCapabilities,
+            AccountPositionBalanceReadModelOnlyForbiddenCapability.allCases
+        )
+        XCTAssertTrue(contract.fixtureContractBoundaryHeld)
+        XCTAssertFalse(contract.callsSignedEndpoint)
+        XCTAssertFalse(contract.callsAccountEndpoint)
+        XCTAssertFalse(contract.createsListenKey)
+        XCTAssertFalse(contract.opensPrivateWebSocket)
+        XCTAssertFalse(contract.readsSecret)
+        XCTAssertFalse(contract.importsBrokerPayload)
+        XCTAssertFalse(contract.readsRealAccount)
+        XCTAssertFalse(contract.consumesRealAccountPayload)
+        XCTAssertFalse(contract.syncsBrokerPosition)
+        XCTAssertFalse(contract.readsRealPnL)
+        XCTAssertFalse(contract.readsMargin)
+        XCTAssertFalse(contract.readsLeverage)
+        XCTAssertFalse(contract.runsAccountSnapshotRuntime)
+        XCTAssertFalse(contract.exposesPayloadSchemaRuntimeObject)
+        XCTAssertFalse(
+            contract.containsForbiddenPayloadText([
+                "accountEndpointPayload",
+                "listenKey",
+                "brokerAdapter",
+                "realAccountPayload",
+                "runtimeObject"
+            ])
+        )
+
+        let encoded = try JSONEncoder().encode(contract)
+        let decoded = try JSONDecoder().decode(
+            AccountPositionBalanceReadModelOnlyFixtureContract.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, contract)
+    }
+
+    func testAccountPositionBalanceReadModelOnlyFixtureRejectsMTP137RealAccountBypass() throws {
+        // 测试场景：MTP-137 fixture 的 init 和 Codable 恢复都必须拒绝真实 endpoint、secret、
+        // listenKey、broker adapter、真实账户读取、broker position sync、real PnL、margin / leverage
+        // 以及 payload / schema / runtime object 暴露。
+        let forbiddenFlagCases: [
+            (field: String, build: () throws -> AccountPositionBalanceReadModelOnlyFixtureContract)
+        ] = [
+            (
+                "callsSignedEndpoint",
+                { try AccountPositionBalanceReadModelOnlyFixtureContract(callsSignedEndpoint: true) }
+            ),
+            (
+                "callsAccountEndpoint",
+                { try AccountPositionBalanceReadModelOnlyFixtureContract(callsAccountEndpoint: true) }
+            ),
+            (
+                "createsListenKey",
+                { try AccountPositionBalanceReadModelOnlyFixtureContract(createsListenKey: true) }
+            ),
+            (
+                "opensPrivateWebSocket",
+                { try AccountPositionBalanceReadModelOnlyFixtureContract(opensPrivateWebSocket: true) }
+            ),
+            (
+                "readsSecret",
+                { try AccountPositionBalanceReadModelOnlyFixtureContract(readsSecret: true) }
+            ),
+            (
+                "importsBrokerPayload",
+                { try AccountPositionBalanceReadModelOnlyFixtureContract(importsBrokerPayload: true) }
+            ),
+            (
+                "readsRealAccount",
+                { try AccountPositionBalanceReadModelOnlyFixtureContract(readsRealAccount: true) }
+            ),
+            (
+                "consumesRealAccountPayload",
+                { try AccountPositionBalanceReadModelOnlyFixtureContract(consumesRealAccountPayload: true) }
+            ),
+            (
+                "syncsBrokerPosition",
+                { try AccountPositionBalanceReadModelOnlyFixtureContract(syncsBrokerPosition: true) }
+            ),
+            (
+                "readsRealPnL",
+                { try AccountPositionBalanceReadModelOnlyFixtureContract(readsRealPnL: true) }
+            ),
+            (
+                "readsMargin",
+                { try AccountPositionBalanceReadModelOnlyFixtureContract(readsMargin: true) }
+            ),
+            (
+                "readsLeverage",
+                { try AccountPositionBalanceReadModelOnlyFixtureContract(readsLeverage: true) }
+            ),
+            (
+                "runsAccountSnapshotRuntime",
+                { try AccountPositionBalanceReadModelOnlyFixtureContract(runsAccountSnapshotRuntime: true) }
+            ),
+            (
+                "exposesPayloadSchemaRuntimeObject",
+                { try AccountPositionBalanceReadModelOnlyFixtureContract(exposesPayloadSchemaRuntimeObject: true) }
+            )
+        ]
+
+        for flagCase in forbiddenFlagCases {
+            XCTAssertThrowsError(try flagCase.build()) { error in
+                XCTAssertEqual(
+                    error as? CoreError,
+                    .liveTradingBoundaryForbiddenCapability(flagCase.field)
+                )
+            }
+        }
+
+        let encoded = try JSONEncoder().encode(
+            AccountPositionBalanceReadModelOnlyFixtureContract.deterministicFixture
+        )
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["consumesRealAccountPayload"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(
+                AccountPositionBalanceReadModelOnlyFixtureContract.self,
+                from: data
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("consumesRealAccountPayload")
+            )
+        }
+    }
+
+    func testAccountPositionBalanceReadModelOnlyFixtureRejectsMTP137PayloadSchemaRuntimeMapping() throws {
+        // 测试场景：fixture-to-read-model mapping 只能输出稳定 read model 字段。任何尝试把
+        // account endpoint payload、schema 或 runtime object 放入 mapping，都会在 record / contract
+        // 构造阶段被拒绝，且不依赖真实网络或真实凭证。
+        XCTAssertThrowsError(
+            try AccountPositionBalanceReadModelOnlyFixtureRecord(
+                component: .accountSnapshot,
+                snapshotID: "account-snapshot|fixture|mtp-137-local-account-evidence|1704067500|fresh",
+                evidenceID: "account-evidence|fixture|mtp-137|1704067500|fresh",
+                readModelFields: ["accountEndpointPayload"]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("readModelFields.accountEndpointPayload")
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(
+            AccountPositionBalanceReadModelOnlyFixtureContract.deterministicFixture
+        )
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        var records = try XCTUnwrap(object["records"] as? [[String: Any]])
+        records[0]["readModelFields"] = [
+            "accountSnapshotId",
+            "accountEvidenceId",
+            "runtimeObject"
+        ]
+        object["records"] = records
+        let data = try JSONSerialization.data(withJSONObject: object)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(
+                AccountPositionBalanceReadModelOnlyFixtureContract.self,
+                from: data
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("readModelFields.runtimeObject")
+            )
+        }
+    }
+
     func testLiveReadOnlyPrivateStreamAccountSnapshotDefinesMTP130SimulationGateInput() throws {
         // 测试场景：MTP-130 只定义 private stream / account snapshot simulation gate
         // 的输入材料和 future fixture requirements；这些 evidence 是 L3.2 handoff material，

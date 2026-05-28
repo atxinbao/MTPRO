@@ -1158,6 +1158,30 @@ MTP-136 balance evidence status 只描述 evidence 可用性：`stale` 表示本
 
 MTP-136 validation 必须证明 contract、domain context、validation plan、trading validation matrix、latest summary、automation readiness doc 和 mechanical anchors 均固定 balance snapshot identity / paper-vs-real interpretation boundary，并且 `bash checks/run.sh` 通过。MTP-136 不新增 balance fixture payload、不新增 Swift production code、不新增 App surface、不新增 Dashboard smoke handle。
 
+`MTP-137-DETERMINISTIC-FIXTURE-SHAPE`
+
+MTP-137 deterministic fixture shape 固定三类本地证据：`account snapshot`、`position snapshot` 和 `balance snapshot`。每类记录只包含 snapshot identity、evidence identity、source identity、observedAt、sourceWatermark、freshnessStatus 和 read model field names；它不是真实 account endpoint payload、broker payload、private stream event、schema object、adapter request、Runtime object 或 account snapshot runtime handle。
+
+`MTP-137-FIXTURE-CHECKSUM-FRESHNESS-SOURCE`
+
+MTP-137 fixture identity 固定为 `fixture-v1`、`fixture:mtp-137-account-position-balance-read-model-only`、`1704067500`、`fixture-watermark:mtp-137:2024-01-01T00:05:00Z` 和 `fresh`。Checksum 只能证明本地 deterministic fixture parity，不代表真实账户 freshness、broker server timestamp、private stream cursor、listenKey keepalive 或 reconciliation watermark。
+
+`MTP-137-FORBIDDEN-REAL-ACCOUNT-TESTS`
+
+MTP-137 forbidden real account tests 必须覆盖 signed endpoint、account endpoint、listenKey、private WebSocket、secret read、broker adapter、real account read、real account payload、broker payload import、broker position sync、real PnL runtime、margin read、leverage read、account snapshot runtime 和 payload / schema / runtime object exposure。测试必须由本地 deterministic fixture 完成，不依赖真实网络、真实 Binance private API 或真实 credential。
+
+`MTP-137-FIXTURE-TO-READ-MODEL-MAPPING-ISOLATION`
+
+MTP-137 fixture-to-read-model mapping 只能输出稳定 Read Model 字段，不能包含 `payload`、`schema`、`runtime`、`endpoint`、`listenKey`、`secret`、`broker`、`margin`、`leverage` 或 `realPnL`。任何尝试把 account endpoint payload、broker payload、schema、Runtime object 或 private stream object 放入 mapping 的行为都必须被拒绝。
+
+`MTP-137-REAL-ACCOUNT-PAYLOAD-ISOLATION`
+
+MTP-137 real account payload isolation 规则要求 fixture 不提供 importer、parser、refresh、connect、sync、reconcile、submit、cancel、replace 或 live command。`future-gated` 只能表示后续门禁，不表示当前已连接真实账户。
+
+`MTP-137-FIXTURE-FORBIDDEN-REAL-ACCOUNT-VALIDATION`
+
+MTP-137 validation 必须证明 `AccountPositionBalanceReadModelOnlyFixtureContract`、`AccountPositionBalanceReadModelOnlyFixtureRecord`、`AccountPositionBalanceReadModelOnlyForbiddenCapability` 和 focused Core tests 均固定 fixture / forbidden real account boundary，并且 `bash checks/run.sh` 通过。MTP-137 不新增 App surface、不新增 Dashboard smoke handle；Workbench / Report / Events surface 仍归属 MTP-138。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
