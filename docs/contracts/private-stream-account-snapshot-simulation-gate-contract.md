@@ -50,6 +50,72 @@ MTP-140 将 L3.2 source semantics 固定为术语层：
 
 后续 MTP-141 / MTP-142 / MTP-143 / MTP-144 可以分别深化 source identity、snapshot input contract、balance / position update fixture semantics 和 freshness / blocked / forbidden tests，但必须继续保持 fixture / simulated / future real label 与 live runtime implementation 隔离。
 
+## MTP-141 simulated private account event source identity
+
+`MTP-141-SIMULATED-PRIVATE-ACCOUNT-EVENT-SOURCE-IDENTITY`
+
+MTP-141 固定 simulated private account event 的 source identity 只能来自三类本地 / 模拟 / future-gated label：
+
+| source kind | source identity | 当前含义 | 禁止混用 |
+| --- | --- | --- | --- |
+| `fixture private stream source` | `fixture:private-stream:mtp-141-local-private-account-event` | 本地 fixture source label，说明 event 来自仓库内 deterministic fixture | 不等于 exchange private stream、listenKey session、secret-backed session 或真实 account stream |
+| `simulated private stream source` | `simulated:private-stream:mtp-141-scenario-replay-private-account-event` | scenario replay / simulated input 产生的本地事件 source label | 不等于 Binance user data stream、execution report、broker fill 或 reconciliation |
+| `future real private stream label` | `future-gated:private-stream:label-only` | 未来真实 private stream 进入独立 Project 前的门禁标签 | 不等于当前可用真实 private stream、private WebSocket runtime、signed request 或 account endpoint |
+
+MTP-141 的 Core evidence 入口是 `SimulatedPrivateAccountEventSourceIdentityContract` 和 `SimulatedPrivateAccountEventSourceIdentityRecord`。这些类型只保存 source kind、source identity、scenario / dataset / fixture version、fixture replay cursor、source watermark、freshness status 和 checksum；它们不保存 account payload、broker payload、adapter request、schema 或 Runtime object。
+
+## MTP-141 fixture scenario version checksum freshness linkage
+
+`MTP-141-FIXTURE-SCENARIO-VERSION-CHECKSUM-FRESHNESS-LINKAGE`
+
+MTP-141 source identity 必须绑定 deterministic linkage：
+
+- `scenarioID`: `mtp-141-private-account-event-source-scenario`
+- `datasetVersion`: `dataset-v1`
+- `fixtureVersion`: `fixture-v1`
+- `fixtureReplayCursor`: `fixture-replay-cursor:mtp-141:private-account-event:001`
+- `sourceWatermark`: `fixture-watermark:mtp-141:2024-01-01T00:06:00Z`
+- `freshnessStatus`: `fresh`
+- `checksum`: 由三条 source identity record 的 canonical preimage 计算，作为 deterministic evidence，不代表 exchange checksum、broker checkpoint 或 private stream watermark。
+
+这些字段只证明 source identity 可重复、可测试、可追溯，不授权读取真实账户、不连接 private stream、不运行 account snapshot runtime。
+
+## MTP-141 future real private stream label gate
+
+`MTP-141-FUTURE-REAL-PRIVATE-STREAM-LABEL-GATE`
+
+`future-gated:private-stream:label-only` 只能用于说明未来真实 private stream source 需要独立 Human decision、独立 Project Definition、credential / endpoint / adapter / operations gates 和 forbidden capability audit。它不能作为当前 issue 的 source implementation、fallback path、behind-flag runtime、beta preview、adapter capability 或 endpoint descriptor。
+
+## MTP-141 forbidden live stream source tests
+
+`MTP-141-FORBIDDEN-LIVE-STREAM-SOURCE-TESTS`
+
+MTP-141 的 forbidden live stream source tests 必须拒绝：
+
+- signed endpoint call
+- account endpoint call
+- listenKey creation
+- private WebSocket runtime
+- private stream runtime
+- account snapshot runtime
+- secret read
+- real account payload consumption
+- broker payload import
+- adapter request exposure
+- adapter capability matrix bypass
+- broker / exchange execution adapter connection
+- `LiveExecutionAdapter` implementation
+- OMS implementation
+- real order write
+
+这些 forbidden tests 来自本地 focused XCTest：`testSimulatedPrivateAccountEventSourceIdentityDefinesMTP141DeterministicSource` 和 `testSimulatedPrivateAccountEventSourceIdentityRejectsMTP141ForbiddenLiveSourceBypass`。
+
+## MTP-141 adapter capability matrix bypass guard
+
+`MTP-141-ADAPTER-CAPABILITY-MATRIX-BYPASS-GUARD`
+
+MTP-141 source identity 不能绕过 `LiveReadOnlyAdapterCapabilityMatrixBoundary` 已固定的 adapter capability matrix。Source identity 只说明 local fixture / simulated / future-gated label，不得表达 adapter request、private endpoint capability、broker connection、execution adapter 或 account payload importer。
+
 ## MTP-140 L3.1 APB / L3.2 simulation gate relationship
 
 `MTP-140-L31-APB-L32-SIMULATION-GATE-RELATIONSHIP`
@@ -131,3 +197,28 @@ Focused validation anchors：
 - `checks/automation-readiness.sh` 必须机械检查 MTP-140 contract、matrix、validation plan、domain context、latest summary、automation readiness doc 和 forbidden capability boundary strings。
 
 MTP-140 不新增 Swift production code，不新增 focused XCTest，不新增 Dashboard smoke handle，不新增 stage audit input；Project stage closeout 仍归属 MTP-146。
+
+## MTP-141 validation anchors
+
+`MTP-141-SOURCE-IDENTITY-VALIDATION`
+
+Required validation：
+
+- `swift test --filter SimulatedPrivateAccountEventSourceIdentity`
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `Sources/Core/LiveTradingBoundary.swift` 必须包含 `SimulatedPrivateAccountEventSourceIdentityContract`、`SimulatedPrivateAccountEventSourceIdentityRecord`、`SimulatedPrivateAccountEventSourceKind` 和 `SimulatedPrivateAccountEventSourceForbiddenCapability`。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-141 focused tests。
+- `docs/contracts/private-stream-account-snapshot-simulation-gate-contract.md` 必须包含 MTP-141 source identity、fixture scenario version checksum freshness linkage、future real private stream label gate、forbidden live stream source tests、adapter capability matrix bypass guard 和 validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-141 source identity shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-141 issue backfill。
+- `docs/validation/validation-plan.md` 必须包含 MTP-141 required validation。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-141 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Private Stream / Account Snapshot Simulation Gate source identity anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-141 source / test / docs / validation anchors。
+
+MTP-141 不新增 Adapters、Runtime、App、Dashboard behavior，不新增 Dashboard smoke handle，不实现 simulated account snapshot input contract；MTP-142 才能深化 snapshot input shape。Project stage closeout 仍归属 MTP-146。

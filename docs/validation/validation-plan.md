@@ -3524,3 +3524,51 @@ MTP-140 必须建立的主要 anchors：
 - 不新增 Live PRO Console、trading button、live command、order form、account connect 或 broker connect。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
 - 不推进 MTP-141，不输出 stage audit input。
+
+## MTP-141 Simulated Private Account Event Source Identity Validation
+
+日期：2026-05-29
+
+执行者：Codex
+
+MTP-141 的 required validation：
+
+- `swift test --filter SimulatedPrivateAccountEventSourceIdentity`
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-141 的验收要求：
+
+- `Sources/Core/LiveTradingBoundary.swift` 必须包含 `SimulatedPrivateAccountEventSourceIdentityContract`、`SimulatedPrivateAccountEventSourceIdentityRecord`、`SimulatedPrivateAccountEventSourceKind` 和 `SimulatedPrivateAccountEventSourceForbiddenCapability`。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 `testSimulatedPrivateAccountEventSourceIdentityDefinesMTP141DeterministicSource` 和 `testSimulatedPrivateAccountEventSourceIdentityRejectsMTP141ForbiddenLiveSourceBypass`。
+- `docs/contracts/private-stream-account-snapshot-simulation-gate-contract.md` 必须包含 `MTP-141-SIMULATED-PRIVATE-ACCOUNT-EVENT-SOURCE-IDENTITY`、`MTP-141-FIXTURE-SCENARIO-VERSION-CHECKSUM-FRESHNESS-LINKAGE`、`MTP-141-FUTURE-REAL-PRIVATE-STREAM-LABEL-GATE`、`MTP-141-FORBIDDEN-LIVE-STREAM-SOURCE-TESTS`、`MTP-141-ADAPTER-CAPABILITY-MATRIX-BYPASS-GUARD` 和 `MTP-141-SOURCE-IDENTITY-VALIDATION` anchors。
+- `docs/domain/context.md` 必须包含 MTP-141 source identity shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-141 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 Private Stream / Account Snapshot Simulation Gate source identity anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-141 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-141 Core source、focused tests、contract、domain context、validation plan、trading matrix、latest summary 和 automation readiness doc anchors。
+- PR 前必须确认 `.codex/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-141 必须建立的主要 anchors：
+
+- `MTP-141-SIMULATED-PRIVATE-ACCOUNT-EVENT-SOURCE-IDENTITY`
+- `MTP-141-FIXTURE-SCENARIO-VERSION-CHECKSUM-FRESHNESS-LINKAGE`
+- `MTP-141-FUTURE-REAL-PRIVATE-STREAM-LABEL-GATE`
+- `MTP-141-FORBIDDEN-LIVE-STREAM-SOURCE-TESTS`
+- `MTP-141-ADAPTER-CAPABILITY-MATRIX-BYPASS-GUARD`
+- `MTP-141-SOURCE-IDENTITY-VALIDATION`
+
+## MTP-141 禁止
+
+- 不创建 listenKey，不执行 listenKey keepalive。
+- 不连接 private WebSocket，不实现 private stream runtime。
+- 不调用 signed endpoint 或 account endpoint。
+- 不实现 account snapshot runtime 或 simulated account snapshot input contract；MTP-142 才能深化 snapshot input shape。
+- 不读取真实 account payload 或 broker payload。
+- 不暴露 Adapter request、SQLite / DuckDB schema 或 Runtime object。
+- 不绕过 adapter capability matrix。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill 或 reconciliation。
+- 不新增 Live PRO Console、trading button、live command、order form、account connect 或 broker connect。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
