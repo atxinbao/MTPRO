@@ -3479,3 +3479,48 @@ MTP-139 必须建立的主要 anchors：
 - 不实现 broker adapter、`LiveExecutionAdapter`、OMS 或 real order lifecycle。
 - 不新增 API key input、secret storage、broker connect、account connect、Live PRO Console、trading button、live command 或 order form。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+## MTP-140 Private Stream / Account Snapshot Simulation Gate Terminology Validation
+
+日期：2026-05-29
+
+执行者：Codex
+
+MTP-140 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-140 的验收要求：
+
+- `docs/contracts/private-stream-account-snapshot-simulation-gate-contract.md` 必须包含 `MTP-140-PRIVATE-STREAM-SIMULATION-GATE-TERMINOLOGY`、`MTP-140-ACCOUNT-SNAPSHOT-SIMULATION-GATE-TERMINOLOGY`、`MTP-140-FIXTURE-SIMULATED-FUTURE-REAL-PRIVATE-STREAM-BOUNDARY`、`MTP-140-L31-APB-L32-SIMULATION-GATE-RELATIONSHIP`、`MTP-140-FIRST-EXECUTABLE-CANDIDATE-NON-AUTHORIZATION`、`MTP-140-FORBIDDEN-CAPABILITY-BASELINE` 和 `MTP-140-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-SIMULATION-GATE-VALIDATION` anchors。
+- `docs/domain/context.md` 必须包含 MTP-140 private stream / account snapshot simulation gate shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-SIMULATION-GATE` 和 MTP-140 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 Private Stream / Account Snapshot Simulation Gate terminology anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-140 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-140 contract、domain context、validation plan、trading matrix、latest summary、automation readiness doc 和 forbidden capability boundary strings。
+- PR 前必须确认 `.codex/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-140 必须建立的主要 anchors：
+
+- `MTP-140-PRIVATE-STREAM-SIMULATION-GATE-TERMINOLOGY`
+- `MTP-140-ACCOUNT-SNAPSHOT-SIMULATION-GATE-TERMINOLOGY`
+- `MTP-140-FIXTURE-SIMULATED-FUTURE-REAL-PRIVATE-STREAM-BOUNDARY`
+- `MTP-140-L31-APB-L32-SIMULATION-GATE-RELATIONSHIP`
+- `MTP-140-FIRST-EXECUTABLE-CANDIDATE-NON-AUTHORIZATION`
+- `MTP-140-FORBIDDEN-CAPABILITY-BASELINE`
+- `MTP-140-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-SIMULATION-GATE-VALIDATION`
+
+## MTP-140 禁止
+
+- 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard behavior。
+- 不实现 private WebSocket runtime 或 private stream runtime。
+- 不实现 account snapshot runtime 或 account / position / balance runtime。
+- 不创建 listenKey，不执行 listenKey keepalive。
+- 不调用 signed endpoint 或 account endpoint。
+- 不读取真实账户、真实持仓、真实余额、margin、leverage 或 real PnL。
+- 不实现 broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill 或 reconciliation。
+- 不新增 Live PRO Console、trading button、live command、order form、account connect 或 broker connect。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+- 不推进 MTP-141，不输出 stage audit input。
