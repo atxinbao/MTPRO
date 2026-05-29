@@ -1833,6 +1833,183 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testSimulatedAccountSnapshotUpdateFixtureDefinesMTP143DeterministicContract() throws {
+        // 测试场景：MTP-143 只定义 fixture-only 的 account snapshot event、balance update
+        // 和 position update 语义。每条 update 必须绑定 MTP-141 source identity 与 MTP-142
+        // snapshot input，并且不能被解释为真实账户、broker position 或 real PnL。
+        let fixture = SimulatedAccountSnapshotUpdateFixture.deterministicFixture
+
+        XCTAssertEqual(
+            fixture.contractID,
+            try Identifier("mtp-143-simulated-account-snapshot-update-fixture")
+        )
+        XCTAssertEqual(fixture.issueID, try Identifier("MTP-143"))
+        XCTAssertEqual(fixture.matrixID, "TVM-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-SIMULATION-GATE")
+        XCTAssertEqual(
+            fixture.sourceIdentityLinkage,
+            "MTP-141-SIMULATED-PRIVATE-ACCOUNT-EVENT-SOURCE-IDENTITY"
+        )
+        XCTAssertEqual(fixture.snapshotInputID, SimulatedAccountSnapshotInputRecord.requiredSnapshotID)
+        XCTAssertEqual(fixture.fixtureVersion, try FixtureVersion("fixture-v1"))
+        XCTAssertEqual(
+            fixture.updateRecords.map(\.updateKind),
+            SimulatedAccountSnapshotUpdateFixtureKind.allCases
+        )
+        XCTAssertEqual(
+            fixture.interpretationBoundaries,
+            SimulatedAccountSnapshotUpdateInterpretationBoundary.allCases
+        )
+        XCTAssertTrue(
+            fixture.updateRecords.allSatisfy {
+                $0.fixtureOnlySourceSemantics
+                    == SimulatedAccountSnapshotUpdateFixtureRecord.requiredFixtureOnlySourceSemantics
+                    && $0.sourceKind == .fixturePrivateStreamSource
+                    && $0.sourceIdentity == SimulatedAccountSnapshotInputRecord.requiredSourceIdentity
+                    && $0.snapshotInputID == SimulatedAccountSnapshotInputRecord.requiredSnapshotID
+                    && $0.fixtureVersion == SimulatedAccountSnapshotInputContract.requiredFixtureVersion
+                    && $0.deterministicSummaryLinkage.contains("MTP-141-SIMULATED-PRIVATE-ACCOUNT-EVENT-SOURCE-IDENTITY")
+                    && $0.deterministicSummaryLinkage.contains("MTP-142-SIMULATED-ACCOUNT-SNAPSHOT-INPUT-SHAPE")
+                    && $0.updateFixtureBoundaryHeld
+            }
+        )
+        XCTAssertEqual(
+            fixture.checksum,
+            SimulatedAccountSnapshotUpdateFixture.checksum(for: fixture.updateRecords)
+        )
+        XCTAssertEqual(fixture.checksum, SimulatedAccountSnapshotUpdateFixture.requiredChecksum)
+        XCTAssertTrue(fixture.checksumMatchedCanonicalPreimage)
+        XCTAssertEqual(
+            fixture.forbiddenCapabilities,
+            SimulatedAccountSnapshotUpdateFixtureForbiddenCapability.allCases
+        )
+        XCTAssertTrue(fixture.updateFixtureBoundaryHeld)
+        XCTAssertFalse(fixture.callsSignedEndpoint)
+        XCTAssertFalse(fixture.callsAccountEndpoint)
+        XCTAssertFalse(fixture.createsListenKey)
+        XCTAssertFalse(fixture.opensPrivateWebSocket)
+        XCTAssertFalse(fixture.runsPrivateStreamRuntime)
+        XCTAssertFalse(fixture.runsAccountSnapshotRuntime)
+        XCTAssertFalse(fixture.readsRealAccount)
+        XCTAssertFalse(fixture.updatesRealAccount)
+        XCTAssertFalse(fixture.syncsBrokerPosition)
+        XCTAssertFalse(fixture.readsRealBalance)
+        XCTAssertFalse(fixture.readsMargin)
+        XCTAssertFalse(fixture.readsLeverage)
+        XCTAssertFalse(fixture.readsRealPnL)
+        XCTAssertFalse(fixture.connectsBrokerAdapter)
+        XCTAssertFalse(fixture.connectsExchangeExecutionAdapter)
+        XCTAssertFalse(fixture.implementsLiveExecutionAdapter)
+        XCTAssertFalse(fixture.consumesExecutionReport)
+        XCTAssertFalse(fixture.consumesBrokerFill)
+        XCTAssertFalse(fixture.runsReconciliation)
+        XCTAssertFalse(fixture.implementsOMS)
+        XCTAssertFalse(fixture.writesRealOrder)
+        XCTAssertFalse(fixture.exposesLivePROConsole)
+        XCTAssertFalse(fixture.exposesTradingButton)
+        XCTAssertFalse(fixture.exposesLiveCommand)
+        XCTAssertFalse(fixture.exposesOrderForm)
+        XCTAssertFalse(
+            fixture.containsForbiddenUpdateText([
+                "accountEndpoint",
+                "listenKey",
+                "brokerPosition",
+                "realBalance",
+                "realPnL",
+                "LiveExecutionAdapter",
+                "executionReport",
+                "brokerFill",
+                "tradingButton",
+                "liveCommand"
+            ])
+        )
+
+        let encoded = try JSONEncoder().encode(fixture)
+        let decoded = try JSONDecoder().decode(SimulatedAccountSnapshotUpdateFixture.self, from: encoded)
+        XCTAssertEqual(decoded, fixture)
+    }
+
+    func testSimulatedAccountSnapshotUpdateFixtureRejectsMTP143RealAccountBrokerPnLBypass() throws {
+        // 测试场景：MTP-143 update fixture 的初始化和 Codable 解码必须拒绝真实账户更新、
+        // broker position sync、margin / leverage / real PnL、execution report、broker fill、
+        // reconciliation、OMS、真实订单和 Live command surface。
+        let forbiddenFlagCases: [
+            (field: String, build: () throws -> SimulatedAccountSnapshotUpdateFixture)
+        ] = [
+            ("callsSignedEndpoint", { try SimulatedAccountSnapshotUpdateFixture(callsSignedEndpoint: true) }),
+            ("callsAccountEndpoint", { try SimulatedAccountSnapshotUpdateFixture(callsAccountEndpoint: true) }),
+            ("createsListenKey", { try SimulatedAccountSnapshotUpdateFixture(createsListenKey: true) }),
+            ("opensPrivateWebSocket", { try SimulatedAccountSnapshotUpdateFixture(opensPrivateWebSocket: true) }),
+            ("runsPrivateStreamRuntime", { try SimulatedAccountSnapshotUpdateFixture(runsPrivateStreamRuntime: true) }),
+            (
+                "runsAccountSnapshotRuntime",
+                { try SimulatedAccountSnapshotUpdateFixture(runsAccountSnapshotRuntime: true) }
+            ),
+            ("readsRealAccount", { try SimulatedAccountSnapshotUpdateFixture(readsRealAccount: true) }),
+            ("updatesRealAccount", { try SimulatedAccountSnapshotUpdateFixture(updatesRealAccount: true) }),
+            ("syncsBrokerPosition", { try SimulatedAccountSnapshotUpdateFixture(syncsBrokerPosition: true) }),
+            ("readsRealBalance", { try SimulatedAccountSnapshotUpdateFixture(readsRealBalance: true) }),
+            ("readsMargin", { try SimulatedAccountSnapshotUpdateFixture(readsMargin: true) }),
+            ("readsLeverage", { try SimulatedAccountSnapshotUpdateFixture(readsLeverage: true) }),
+            ("readsRealPnL", { try SimulatedAccountSnapshotUpdateFixture(readsRealPnL: true) }),
+            ("connectsBrokerAdapter", { try SimulatedAccountSnapshotUpdateFixture(connectsBrokerAdapter: true) }),
+            (
+                "connectsExchangeExecutionAdapter",
+                { try SimulatedAccountSnapshotUpdateFixture(connectsExchangeExecutionAdapter: true) }
+            ),
+            (
+                "implementsLiveExecutionAdapter",
+                { try SimulatedAccountSnapshotUpdateFixture(implementsLiveExecutionAdapter: true) }
+            ),
+            (
+                "consumesExecutionReport",
+                { try SimulatedAccountSnapshotUpdateFixture(consumesExecutionReport: true) }
+            ),
+            ("consumesBrokerFill", { try SimulatedAccountSnapshotUpdateFixture(consumesBrokerFill: true) }),
+            ("runsReconciliation", { try SimulatedAccountSnapshotUpdateFixture(runsReconciliation: true) }),
+            ("implementsOMS", { try SimulatedAccountSnapshotUpdateFixture(implementsOMS: true) }),
+            ("writesRealOrder", { try SimulatedAccountSnapshotUpdateFixture(writesRealOrder: true) }),
+            ("exposesLivePROConsole", { try SimulatedAccountSnapshotUpdateFixture(exposesLivePROConsole: true) }),
+            ("exposesTradingButton", { try SimulatedAccountSnapshotUpdateFixture(exposesTradingButton: true) }),
+            ("exposesLiveCommand", { try SimulatedAccountSnapshotUpdateFixture(exposesLiveCommand: true) }),
+            ("exposesOrderForm", { try SimulatedAccountSnapshotUpdateFixture(exposesOrderForm: true) })
+        ]
+
+        for flagCase in forbiddenFlagCases {
+            XCTAssertThrowsError(try flagCase.build()) { error in
+                XCTAssertEqual(
+                    error as? CoreError,
+                    .liveTradingBoundaryForbiddenCapability(flagCase.field)
+                )
+            }
+        }
+
+        XCTAssertThrowsError(
+            try SimulatedAccountSnapshotUpdateFixtureRecord(
+                updateKind: .balanceUpdateFixture,
+                readModelFields: ["balanceUpdateFixtureId", "realPnL"]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("snapshotUpdate.realpnl")
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(SimulatedAccountSnapshotUpdateFixture.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["syncsBrokerPosition"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(SimulatedAccountSnapshotUpdateFixture.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("syncsBrokerPosition")
+            )
+        }
+    }
+
     func testLiveReadOnlyWorkbenchReadModelBoundaryDefinesMTP131Surface() throws {
         // 测试场景：MTP-131 只定义 Workbench / Dashboard 可展示的 Live readiness 只读边界，
         // 并把 forbidden UI surface、detail audit route 和 L3.x handoff 固定为可回放 fixture。

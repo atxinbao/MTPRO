@@ -3621,3 +3621,51 @@ MTP-142 必须建立的主要 anchors：
 - 不定义 balance / position update fixture semantics；MTP-143 才能深化该 scope。
 - 不深化 freshness / stale / blocked forbidden endpoint tests；MTP-144 才能深化该 scope。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+## MTP-143 Simulated Account Snapshot Update Fixture Validation
+
+日期：2026-05-29
+
+执行者：Codex
+
+MTP-143 的 required validation：
+
+- `swift test --filter SimulatedAccountSnapshotUpdateFixture`
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-143 的验收要求：
+
+- `Sources/Core/LiveTradingBoundary.swift` 必须包含 `SimulatedAccountSnapshotUpdateFixture`、`SimulatedAccountSnapshotUpdateFixtureRecord`、`SimulatedAccountSnapshotUpdateFixtureKind`、`SimulatedAccountSnapshotUpdateInterpretationBoundary` 和 `SimulatedAccountSnapshotUpdateFixtureForbiddenCapability`。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 `testSimulatedAccountSnapshotUpdateFixtureDefinesMTP143DeterministicContract` 和 `testSimulatedAccountSnapshotUpdateFixtureRejectsMTP143RealAccountBrokerPnLBypass`。
+- `docs/contracts/private-stream-account-snapshot-simulation-gate-contract.md` 必须包含 `MTP-143-SIMULATED-ACCOUNT-SNAPSHOT-UPDATE-FIXTURE-SEMANTICS`、`MTP-143-MTP141-MTP142-LINKAGE-CHECKSUM-BOUNDARY`、`MTP-143-BALANCE-POSITION-UPDATE-READ-MODEL-ONLY-BOUNDARY`、`MTP-143-UPDATE-FIXTURE-INTERPRETATION-ISOLATION-TESTS` 和 `MTP-143-SIMULATED-ACCOUNT-SNAPSHOT-UPDATE-FIXTURE-VALIDATION` anchors。
+- `docs/domain/context.md` 必须包含 MTP-143 simulated account snapshot update fixture shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-143 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 Private Stream / Account Snapshot Simulation Gate update fixture anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-143 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-143 Core source、focused tests、contract、domain context、validation plan、trading matrix、latest summary 和 automation readiness doc anchors。
+- PR 前必须确认 `.codex/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-143 必须建立的主要 anchors：
+
+- `MTP-143-SIMULATED-ACCOUNT-SNAPSHOT-UPDATE-FIXTURE-SEMANTICS`
+- `MTP-143-MTP141-MTP142-LINKAGE-CHECKSUM-BOUNDARY`
+- `MTP-143-BALANCE-POSITION-UPDATE-READ-MODEL-ONLY-BOUNDARY`
+- `MTP-143-UPDATE-FIXTURE-INTERPRETATION-ISOLATION-TESTS`
+- `MTP-143-SIMULATED-ACCOUNT-SNAPSHOT-UPDATE-FIXTURE-VALIDATION`
+
+## MTP-143 禁止
+
+- 不实现 account snapshot runtime 或 private stream runtime。
+- 不创建 listenKey，不执行 listenKey keepalive。
+- 不调用 signed endpoint 或 account endpoint。
+- 不读取真实账户、真实余额、真实持仓、broker position、margin、leverage 或 real PnL。
+- 不把 balance update fixture 或 position update fixture 解释为真实余额更新、真实持仓更新、broker position sync、execution report、broker fill 或 reconciliation。
+- 不暴露 account endpoint payload、broker payload、Adapter request、Runtime object、SQLite / DuckDB schema 或 broker state。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不新增 App、Dashboard、Workbench、Report 或 Events behavior；MTP-145 才能深化 read-model-only surface。
+- 不深化 freshness / stale / blocked forbidden endpoint tests；MTP-144 才能深化该 scope。
+- 不新增 Live PRO Console、trading button、live command、order form、account connect 或 broker connect。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。

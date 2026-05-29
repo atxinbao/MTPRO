@@ -12933,6 +12933,47 @@ Root Docs Refresh Gate 更新：
 - 不运行 Graphify，不修改 Figma。
 - `.codex/*` 和 `graphify-out/*` 不进入 PR。
 
+## 2026-05-29 — MTP-143 Simulated Account Snapshot Update Fixture
+
+执行者：Codex
+
+目的：
+
+- 定义 `simulated account snapshot update fixture` 的 deterministic Core contract，固定 account snapshot event fixture、balance update fixture 和 position update fixture 的 fixture-only update semantics。
+- 串联 MTP-141 source identity 与 MTP-142 simulated account snapshot input，确保 update fixture 只作为 read-model-only evidence 和 checksum evidence，不升级为真实账户更新、broker position sync、execution report、broker fill、reconciliation 或 real PnL。
+
+更新内容：
+
+- 在 `Sources/Core/LiveTradingBoundary.swift` 新增 `SimulatedAccountSnapshotUpdateFixture`、`SimulatedAccountSnapshotUpdateFixtureRecord`、`SimulatedAccountSnapshotUpdateFixtureKind`、`SimulatedAccountSnapshotUpdateInterpretationBoundary` 和 `SimulatedAccountSnapshotUpdateFixtureForbiddenCapability`。
+- 在 `Tests/CoreTests/CoreTests.swift` 新增 MTP-143 focused tests：deterministic update fixture contract，以及 real account / broker position / margin / leverage / real PnL / execution report / broker fill / UI command bypass 拒绝。
+- 更新 `docs/contracts/private-stream-account-snapshot-simulation-gate-contract.md`，新增 MTP-143 update fixture semantics、MTP-141 / MTP-142 linkage checksum boundary、balance / position update read-model-only boundary、update fixture interpretation isolation tests 和 validation anchors。
+- 更新 `docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/validation-plan.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，补齐 MTP-143 evidence chain 与 mechanical anchors。
+
+验证锚点：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --stat` | pass | 接管前 MTP-143 workspace diff 为空；后续只在 MTP-143 allowed scope 内产生 Core / focused test / docs / validation anchor diff。 |
+| `swift test --filter SimulatedAccountSnapshotUpdateFixture` | pass | 2 tests，0 failures；覆盖 deterministic update fixture、MTP-141 / MTP-142 linkage、read-model-only boundary 和 forbidden real account / broker / PnL bypass。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
+| `git diff --check` | pass | 无输出。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 289 个 XCTest；Dashboard smoke 输出包含 `timelineItems=68`、`accountPositionBalanceEvidence=3` 和 `liveReadOnlyWorkbenchBoundary=5`；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不创建 listenKey，不执行 listenKey keepalive。
+- 不连接 private WebSocket，不实现 private stream runtime。
+- 不调用 signed endpoint 或 account endpoint。
+- 不实现 account snapshot runtime、freshness runtime 或 Workbench / Report / Events surface。
+- 不读取真实账户、真实余额、真实持仓、broker position、margin、leverage 或 real PnL。
+- 不暴露 account endpoint payload、broker payload、Adapter request、Runtime object、SQLite / DuckDB schema。
+- 不把 balance update fixture 或 position update fixture 解释为真实余额更新、真实持仓更新、broker position sync、execution report、broker fill 或 reconciliation。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不新增 Live PRO Console、trading button、live command、order form、account connect 或 broker connect。
+- 不运行 Graphify，不修改 Figma。
+- `.codex/*` 和 `graphify-out/*` 不进入 PR。
+
 ---
 
 ## 2026-05-29 — MTP-142 Simulated Account Snapshot Input Contract
