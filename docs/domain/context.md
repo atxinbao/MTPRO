@@ -1332,6 +1332,26 @@ MTP-143 update fixture interpretation isolation tests 必须拒绝 signed endpoi
 
 MTP-143 validation 必须证明 `SimulatedAccountSnapshotUpdateFixture`、`SimulatedAccountSnapshotUpdateFixtureRecord`、focused XCTest、contract docs、domain context、validation matrix、validation plan、latest summary、automation readiness doc 和 mechanical anchors 均固定 fixture-only update semantics / read-model-only boundary，并且 `bash checks/run.sh` 通过。MTP-143 不实现 private stream runtime、account snapshot runtime、freshness runtime 或 Workbench / Report / Events surface。
 
+`MTP-144-FRESHNESS-STALE-BLOCKED-MISSING-EVIDENCE`
+
+MTP-144 定义 `simulated account snapshot freshness evidence` 的 Core deterministic value contract。`SimulatedAccountSnapshotFreshnessEvidenceContract` 和 `SimulatedAccountSnapshotFreshnessEvidenceItem` 只保存 fresh / stale / blocked / missing 四种本地 fixture evidence、ageSeconds、staleAfterSeconds、inputState、boundary reason、MTP-141 source identity、MTP-142 snapshot input id、MTP-143 update fixture checksum 和 read-model-only fields；不保存真实 account endpoint payload、broker payload、Adapter request、Runtime object、SQLite / DuckDB schema 或 broker state。
+
+`MTP-144-MTP141-MTP142-MTP143-FRESHNESS-CHECKSUM-BOUNDARY`
+
+MTP-144 freshness evidence 必须串回 `MTP-141-SIMULATED-PRIVATE-ACCOUNT-EVENT-SOURCE-IDENTITY`、`MTP-142-SIMULATED-ACCOUNT-SNAPSHOT-INPUT-SHAPE` 和 `SimulatedAccountSnapshotUpdateFixture.requiredChecksum`。Checksum 只证明四条 freshness evidence item 的 canonical preimage 可重复，不是 exchange checksum、listenKey checkpoint、private stream watermark、broker reconciliation marker 或 production health status。
+
+`MTP-144-FORBIDDEN-ENDPOINT-RUNTIME-TESTS`
+
+MTP-144 forbidden endpoint/runtime tests 必须拒绝 signed endpoint call、account endpoint call、listenKey creation / keepalive、private WebSocket runtime、private stream runtime、account snapshot runtime、broker / exchange execution adapter connection、`LiveExecutionAdapter`、OMS implementation 和 real order write。
+
+`MTP-144-PAYLOAD-SCHEMA-RUNTIME-NON-EXPOSURE-TESTS`
+
+MTP-144 payload/schema/runtime non-exposure tests 必须拒绝 account endpoint payload、real account payload、broker payload、Adapter request、Runtime object、SQLite / DuckDB schema 和 broker state 出现在 read-model-only freshness evidence 中。
+
+`MTP-144-SIMULATED-ACCOUNT-SNAPSHOT-FRESHNESS-EVIDENCE-VALIDATION`
+
+MTP-144 validation 必须证明 `SimulatedAccountSnapshotFreshnessEvidenceContract`、`SimulatedAccountSnapshotFreshnessEvidenceItem`、focused XCTest、contract docs、domain context、validation matrix、validation plan、latest summary、automation readiness doc 和 mechanical anchors 均固定 freshness evidence / forbidden endpoint boundary，并且 `bash checks/run.sh` 通过。MTP-144 不实现 private stream runtime、account snapshot runtime、freshness runtime 或 Workbench / Report / Events surface。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

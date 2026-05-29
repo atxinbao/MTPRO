@@ -4,7 +4,7 @@
 
 执行者：Codex
 
-本文档定义 `MTPRO Private Stream / Account Snapshot Simulation Gate v1` 的合同入口：L3.2 private stream / account snapshot simulation gate terminology、account snapshot simulation gate terminology、fixture / simulated / future real private stream 语义分界、simulated private account event source identity、simulated account snapshot input contract、simulated account snapshot update fixture semantics、L3.1 APB read-model-only evidence 与 L3.2 simulation gate 的关系、first executable candidate non-authorization、forbidden capability baseline 和 validation anchors。
+本文档定义 `MTPRO Private Stream / Account Snapshot Simulation Gate v1` 的合同入口：L3.2 private stream / account snapshot simulation gate terminology、account snapshot simulation gate terminology、fixture / simulated / future real private stream 语义分界、simulated private account event source identity、simulated account snapshot input contract、simulated account snapshot update fixture semantics、freshness / stale / blocked / missing evidence、L3.1 APB read-model-only evidence 与 L3.2 simulation gate 的关系、first executable candidate non-authorization、forbidden capability baseline 和 validation anchors。
 
 本文档只服务当前 L3.2 issue chain 的术语 / 边界 / 验证锚点。它不实现 private WebSocket runtime，不实现 private stream runtime，不实现 account snapshot runtime，不创建 listenKey，不调用 signed endpoint 或 account endpoint，不读取真实账户、真实持仓、真实余额、margin、leverage 或 real PnL；不实现 broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、Live PRO Console、trading button、live command 或 order form；不运行 Graphify，不修改 Figma。
 
@@ -285,6 +285,81 @@ MTP-143 的 interpretation isolation tests 必须拒绝：
 - Live PRO Console / trading button / live command / order form surface
 
 这些 forbidden tests 来自本地 focused XCTest：`testSimulatedAccountSnapshotUpdateFixtureDefinesMTP143DeterministicContract` 和 `testSimulatedAccountSnapshotUpdateFixtureRejectsMTP143RealAccountBrokerPnLBypass`。
+
+## MTP-144 freshness stale blocked missing evidence
+
+`MTP-144-FRESHNESS-STALE-BLOCKED-MISSING-EVIDENCE`
+
+MTP-144 固定 `SimulatedAccountSnapshotFreshnessEvidenceContract` 和 `SimulatedAccountSnapshotFreshnessEvidenceItem` 为 Core 层 deterministic value contract。该 freshness evidence 只允许表达四类本地 fixture evidence：
+
+| status | ageSeconds | inputState | boundaryReasonCode | 禁止混用 |
+| --- | ---: | --- | --- | --- |
+| `fresh simulated freshness evidence` | 60 | `available fixture input` | `fixture-freshness-within-threshold` | 不等于真实账户健康、live stream heartbeat 或 broker connectivity |
+| `stale simulated freshness evidence` | 960 | `available fixture input` | `fixture-freshness-threshold-exceeded` | 不等于 exchange delay、listenKey expiry、broker outage 或 production incident |
+| `blocked simulated freshness evidence` | 0 | `blocked fixture input` | `forbidden-capability-boundary-held` | 不等于真实 account endpoint blocked、broker risk block 或 OMS reject |
+| `missing simulated freshness evidence` | 0 | `missing fixture input` | `fixture-input-absent` | 不等于真实账户缺失、broker payload missing 或 persistence corruption |
+
+## MTP-144 MTP141 MTP142 MTP143 freshness checksum boundary
+
+`MTP-144-MTP141-MTP142-MTP143-FRESHNESS-CHECKSUM-BOUNDARY`
+
+MTP-144 freshness evidence 必须同时绑定：
+
+- `sourceIdentityLinkage`: `MTP-141-SIMULATED-PRIVATE-ACCOUNT-EVENT-SOURCE-IDENTITY`
+- `snapshotInputID`: `simulated-account-snapshot|fixture|mtp-142-local-account-snapshot|1704067620|fresh`
+- `updateFixtureChecksum`: `SimulatedAccountSnapshotUpdateFixture.requiredChecksum`
+- `matrixID`: `TVM-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-SIMULATION-GATE`
+- `checksum`: 由四条 freshness evidence item 的 canonical preimage 计算。
+
+该 checksum 只服务本地 deterministic freshness evidence；它不是 exchange checksum、listenKey checkpoint、private stream watermark、broker reconciliation marker、account endpoint payload hash 或 production health status。
+
+## MTP-144 forbidden endpoint runtime tests
+
+`MTP-144-FORBIDDEN-ENDPOINT-RUNTIME-TESTS`
+
+MTP-144 的 forbidden endpoint/runtime tests 必须拒绝：
+
+- signed endpoint call
+- account endpoint call
+- listenKey creation / keepalive
+- private WebSocket runtime
+- private stream runtime
+- account snapshot runtime
+- broker / exchange execution adapter connection
+- `LiveExecutionAdapter` implementation
+- OMS implementation
+- real order write
+
+## MTP-144 payload schema runtime non-exposure tests
+
+`MTP-144-PAYLOAD-SCHEMA-RUNTIME-NON-EXPOSURE-TESTS`
+
+MTP-144 的 read-model-only evidence 只允许输出 `freshnessEvidenceId`、`sourceIdentity`、`snapshotInputId`、`updateFixtureChecksum`、`freshnessStatus`、`inputState`、`ageSeconds`、`staleAfterSeconds`、`boundaryReasonCode` 和 `checksum`。它必须拒绝 account endpoint payload、real account payload、broker payload、Adapter request、Runtime object、SQLite / DuckDB schema 和 broker state 暴露。
+
+## MTP-144 validation anchors
+
+`MTP-144-SIMULATED-ACCOUNT-SNAPSHOT-FRESHNESS-EVIDENCE-VALIDATION`
+
+Required validation：
+
+- `swift test --filter SimulatedAccountSnapshotFreshnessEvidence`
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `Sources/Core/LiveTradingBoundary.swift` 必须包含 `SimulatedAccountSnapshotFreshnessEvidenceContract`、`SimulatedAccountSnapshotFreshnessEvidenceItem`、`SimulatedAccountSnapshotFreshnessEvidenceStatus` 和 `SimulatedAccountSnapshotFreshnessEvidenceForbiddenCapability`。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-144 focused tests。
+- `docs/contracts/private-stream-account-snapshot-simulation-gate-contract.md` 必须包含 MTP-144 freshness / stale / blocked / missing evidence、MTP-141 / MTP-142 / MTP-143 freshness checksum boundary、forbidden endpoint/runtime tests、payload/schema/runtime non-exposure tests 和 validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-144 simulated account snapshot freshness evidence shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-144 issue backfill。
+- `docs/validation/validation-plan.md` 必须包含 MTP-144 required validation。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-144 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Private Stream / Account Snapshot Simulation Gate freshness evidence anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-144 Core source、focused tests、contract、domain context、validation plan、trading matrix、latest summary 和 automation readiness doc anchors。
+
+MTP-144 不新增 Adapters、Runtime、App、Dashboard behavior，不新增 Dashboard smoke handle，不实现 private WebSocket runtime、private stream runtime、account snapshot runtime、freshness runtime 或 Workbench / Report / Events surface；MTP-145 才能深化 read-model-only surface。Project stage closeout 仍归属 MTP-146。
 
 ## MTP-140 L3.1 APB / L3.2 simulation gate relationship
 

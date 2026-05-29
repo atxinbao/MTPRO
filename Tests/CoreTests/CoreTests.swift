@@ -2010,6 +2010,254 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testSimulatedAccountSnapshotFreshnessEvidenceDefinesMTP144DeterministicStates() throws {
+        // 测试场景：MTP-144 只定义 local fixture / simulated evidence 的 freshness 状态。
+        // fresh、stale、blocked、missing 必须绑定 MTP-141 source identity、MTP-142 snapshot input
+        // 和 MTP-143 update fixture checksum，且不能被解释为真实账户健康、broker connectivity
+        // 或 live monitoring runtime。
+        let contract = SimulatedAccountSnapshotFreshnessEvidenceContract.deterministicFixture
+
+        XCTAssertEqual(
+            contract.contractID,
+            try Identifier("mtp-144-simulated-account-snapshot-freshness-evidence")
+        )
+        XCTAssertEqual(contract.issueID, try Identifier("MTP-144"))
+        XCTAssertEqual(contract.matrixID, "TVM-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-SIMULATION-GATE")
+        XCTAssertEqual(
+            contract.sourceIdentityLinkage,
+            "MTP-141-SIMULATED-PRIVATE-ACCOUNT-EVENT-SOURCE-IDENTITY"
+        )
+        XCTAssertEqual(contract.snapshotInputID, SimulatedAccountSnapshotInputRecord.requiredSnapshotID)
+        XCTAssertEqual(contract.updateFixtureChecksum, SimulatedAccountSnapshotUpdateFixture.requiredChecksum)
+        XCTAssertEqual(
+            contract.evidenceItems.map(\.status),
+            SimulatedAccountSnapshotFreshnessEvidenceStatus.allCases
+        )
+        XCTAssertEqual(
+            contract.allowedStatuses,
+            SimulatedAccountSnapshotFreshnessEvidenceStatus.allCases
+        )
+        XCTAssertEqual(contract.evidenceItems.count, 4)
+        XCTAssertTrue(contract.evidenceItems.allSatisfy(\.freshnessEvidenceBoundaryHeld))
+        XCTAssertTrue(contract.evidenceItems.allSatisfy(\.localFixtureOnly))
+        XCTAssertTrue(contract.evidenceItems.allSatisfy(\.simulatedEvidenceOnly))
+
+        let fresh = try XCTUnwrap(
+            contract.evidenceItems.first { $0.status == .fresh }
+        )
+        XCTAssertEqual(fresh.ageSeconds, 60)
+        XCTAssertLessThanOrEqual(fresh.ageSeconds, fresh.staleAfterSeconds)
+        XCTAssertEqual(fresh.inputState, .available)
+
+        let stale = try XCTUnwrap(
+            contract.evidenceItems.first { $0.status == .stale }
+        )
+        XCTAssertEqual(stale.ageSeconds, 960)
+        XCTAssertGreaterThan(stale.ageSeconds, stale.staleAfterSeconds)
+        XCTAssertEqual(stale.inputState, .available)
+
+        let blocked = try XCTUnwrap(
+            contract.evidenceItems.first { $0.status == .blocked }
+        )
+        XCTAssertEqual(blocked.inputState, .blocked)
+        XCTAssertEqual(blocked.boundaryReasonCode, "forbidden-capability-boundary-held")
+
+        let missing = try XCTUnwrap(
+            contract.evidenceItems.first { $0.status == .missing }
+        )
+        XCTAssertEqual(missing.inputState, .missing)
+        XCTAssertEqual(missing.boundaryReasonCode, "fixture-input-absent")
+
+        XCTAssertEqual(
+            contract.checksum,
+            SimulatedAccountSnapshotFreshnessEvidenceContract.checksum(for: contract.evidenceItems)
+        )
+        XCTAssertEqual(contract.checksum, SimulatedAccountSnapshotFreshnessEvidenceContract.requiredChecksum)
+        XCTAssertTrue(contract.checksumMatchedCanonicalPreimage)
+        XCTAssertTrue(contract.readModelOnlyBoundaryHeld)
+        XCTAssertEqual(
+            contract.forbiddenCapabilities,
+            SimulatedAccountSnapshotFreshnessEvidenceForbiddenCapability.allCases
+        )
+        XCTAssertTrue(contract.freshnessEvidenceBoundaryHeld)
+        XCTAssertFalse(contract.callsSignedEndpoint)
+        XCTAssertFalse(contract.callsAccountEndpoint)
+        XCTAssertFalse(contract.createsListenKey)
+        XCTAssertFalse(contract.performsListenKeyKeepalive)
+        XCTAssertFalse(contract.opensPrivateWebSocket)
+        XCTAssertFalse(contract.runsPrivateStreamRuntime)
+        XCTAssertFalse(contract.runsAccountSnapshotRuntime)
+        XCTAssertFalse(contract.connectsBrokerAdapter)
+        XCTAssertFalse(contract.exposesAdapterRequest)
+        XCTAssertFalse(contract.exposesRuntimeObject)
+        XCTAssertFalse(contract.exposesPersistenceSchema)
+        XCTAssertFalse(contract.exposesAccountEndpointPayload)
+        XCTAssertFalse(contract.consumesRealAccountPayload)
+        XCTAssertFalse(contract.importsBrokerPayload)
+        XCTAssertFalse(contract.exposesBrokerState)
+        XCTAssertFalse(
+            contract.containsForbiddenExposureText([
+                "accountEndpointPayload",
+                "adapterRequest",
+                "runtimeObject",
+                "sqliteSchema",
+                "brokerState",
+                "listenKey",
+                "privateWebSocket"
+            ])
+        )
+
+        let encoded = try JSONEncoder().encode(contract)
+        let decoded = try JSONDecoder().decode(
+            SimulatedAccountSnapshotFreshnessEvidenceContract.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, contract)
+    }
+
+    func testSimulatedAccountSnapshotFreshnessEvidenceRejectsMTP144EndpointRuntimeAndBrokerBypass() throws {
+        // 测试场景：MTP-144 的 forbidden endpoint tests 必须覆盖 signed endpoint、account endpoint、
+        // listenKey、private WebSocket、account snapshot runtime、private stream runtime 和 broker adapter。
+        // 这些能力只能作为 forbidden capability evidence 出现，不能被初始化或 Codable 解码恢复。
+        let forbiddenFlagCases: [
+            (field: String, build: () throws -> SimulatedAccountSnapshotFreshnessEvidenceContract)
+        ] = [
+            ("callsSignedEndpoint", { try SimulatedAccountSnapshotFreshnessEvidenceContract(callsSignedEndpoint: true) }),
+            ("callsAccountEndpoint", { try SimulatedAccountSnapshotFreshnessEvidenceContract(callsAccountEndpoint: true) }),
+            ("createsListenKey", { try SimulatedAccountSnapshotFreshnessEvidenceContract(createsListenKey: true) }),
+            (
+                "performsListenKeyKeepalive",
+                { try SimulatedAccountSnapshotFreshnessEvidenceContract(performsListenKeyKeepalive: true) }
+            ),
+            (
+                "opensPrivateWebSocket",
+                { try SimulatedAccountSnapshotFreshnessEvidenceContract(opensPrivateWebSocket: true) }
+            ),
+            (
+                "runsPrivateStreamRuntime",
+                { try SimulatedAccountSnapshotFreshnessEvidenceContract(runsPrivateStreamRuntime: true) }
+            ),
+            (
+                "runsAccountSnapshotRuntime",
+                { try SimulatedAccountSnapshotFreshnessEvidenceContract(runsAccountSnapshotRuntime: true) }
+            ),
+            (
+                "connectsBrokerAdapter",
+                { try SimulatedAccountSnapshotFreshnessEvidenceContract(connectsBrokerAdapter: true) }
+            ),
+            (
+                "connectsExchangeExecutionAdapter",
+                { try SimulatedAccountSnapshotFreshnessEvidenceContract(connectsExchangeExecutionAdapter: true) }
+            ),
+            (
+                "implementsLiveExecutionAdapter",
+                { try SimulatedAccountSnapshotFreshnessEvidenceContract(implementsLiveExecutionAdapter: true) }
+            ),
+            ("implementsOMS", { try SimulatedAccountSnapshotFreshnessEvidenceContract(implementsOMS: true) }),
+            ("writesRealOrder", { try SimulatedAccountSnapshotFreshnessEvidenceContract(writesRealOrder: true) })
+        ]
+
+        for flagCase in forbiddenFlagCases {
+            XCTAssertThrowsError(try flagCase.build()) { error in
+                XCTAssertEqual(
+                    error as? CoreError,
+                    .liveTradingBoundaryForbiddenCapability(flagCase.field)
+                )
+            }
+        }
+
+        let encoded = try JSONEncoder().encode(
+            SimulatedAccountSnapshotFreshnessEvidenceContract.deterministicFixture
+        )
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["runsAccountSnapshotRuntime"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(SimulatedAccountSnapshotFreshnessEvidenceContract.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("runsAccountSnapshotRuntime")
+            )
+        }
+    }
+
+    func testSimulatedAccountSnapshotFreshnessEvidenceRejectsMTP144PayloadSchemaRuntimeExposure() throws {
+        // 测试场景：MTP-144 的 read-model-only evidence 只能暴露稳定 evidence 字段。
+        // Codable payload 或 read model 字段不能恢复 account endpoint payload、Adapter request、
+        // Runtime object、SQLite / DuckDB schema、broker state 或真实账户 payload。
+        let forbiddenFlagCases: [
+            (field: String, build: () throws -> SimulatedAccountSnapshotFreshnessEvidenceContract)
+        ] = [
+            (
+                "exposesAdapterRequest",
+                { try SimulatedAccountSnapshotFreshnessEvidenceContract(exposesAdapterRequest: true) }
+            ),
+            (
+                "exposesRuntimeObject",
+                { try SimulatedAccountSnapshotFreshnessEvidenceContract(exposesRuntimeObject: true) }
+            ),
+            (
+                "exposesPersistenceSchema",
+                { try SimulatedAccountSnapshotFreshnessEvidenceContract(exposesPersistenceSchema: true) }
+            ),
+            (
+                "exposesAccountEndpointPayload",
+                { try SimulatedAccountSnapshotFreshnessEvidenceContract(exposesAccountEndpointPayload: true) }
+            ),
+            (
+                "consumesRealAccountPayload",
+                { try SimulatedAccountSnapshotFreshnessEvidenceContract(consumesRealAccountPayload: true) }
+            ),
+            (
+                "importsBrokerPayload",
+                { try SimulatedAccountSnapshotFreshnessEvidenceContract(importsBrokerPayload: true) }
+            ),
+            (
+                "exposesBrokerState",
+                { try SimulatedAccountSnapshotFreshnessEvidenceContract(exposesBrokerState: true) }
+            )
+        ]
+
+        for flagCase in forbiddenFlagCases {
+            XCTAssertThrowsError(try flagCase.build()) { error in
+                XCTAssertEqual(
+                    error as? CoreError,
+                    .liveTradingBoundaryForbiddenCapability(flagCase.field)
+                )
+            }
+        }
+
+        XCTAssertThrowsError(
+            try SimulatedAccountSnapshotFreshnessEvidenceItem(
+                status: .fresh,
+                readModelFields: ["freshnessEvidenceId", "accountEndpointPayload"]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("snapshotFreshnessEvidence.payload")
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(
+            SimulatedAccountSnapshotFreshnessEvidenceContract.deterministicFixture
+        )
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["exposesPersistenceSchema"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(SimulatedAccountSnapshotFreshnessEvidenceContract.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("exposesPersistenceSchema")
+            )
+        }
+    }
+
     func testLiveReadOnlyWorkbenchReadModelBoundaryDefinesMTP131Surface() throws {
         // 测试场景：MTP-131 只定义 Workbench / Dashboard 可展示的 Live readiness 只读边界，
         // 并把 forbidden UI surface、detail audit route 和 L3.x handoff 固定为可回放 fixture。
