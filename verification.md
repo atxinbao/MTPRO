@@ -12892,6 +12892,44 @@ Root Docs Refresh Gate 更新：
 
 ---
 
+## 2026-05-30 — MTP-147 Live Monitoring Read-only Console v2 Terminology / Boundary
+
+执行者：Codex
+
+目的：
+
+- 定义 `L3.3 Live Monitoring Read-only Console v2` 的 terminology / boundary contract。
+- 固定 monitoring evidence 只能来自 L3.0 Live Read-only Readiness、L3.1 Account / Position / Balance Read-model-only 和 L3.2 Private Stream / Account Snapshot Simulation Gate 的 read-model-only / fixture / simulated / future-gated evidence。
+- 固定 Workbench / Report / Events 后续只能消费 Read Model / ViewModel，不授权 runtime connection、endpoint、broker、Live PRO Console 或 live command。
+
+更新内容：
+
+- 新增 `docs/contracts/live-monitoring-read-only-console-v2-contract.md`，包含 `MTP-147-LIVE-MONITORING-READ-ONLY-CONSOLE-V2-TERMINOLOGY`、`MTP-147-MONITORING-EVIDENCE-SOURCE-BOUNDARY`、`MTP-147-READ-MODEL-VIEWMODEL-CONSUMPTION-BOUNDARY`、`MTP-147-L33-HANDOFF-BOUNDARY`、`MTP-147-FIRST-EXECUTABLE-CANDIDATE-NON-AUTHORIZATION`、`MTP-147-FORBIDDEN-CAPABILITY-BASELINE` 和 `MTP-147-LIVE-MONITORING-READ-ONLY-CONSOLE-V2-VALIDATION`。
+- 更新 `docs/domain/context.md`，新增 Live Monitoring Read-only Console v2 shared language。
+- 更新 `docs/validation/trading-validation-matrix.md`，新增 `TVM-LIVE-MONITORING-READ-ONLY-CONSOLE-V2` 和 MTP-147 issue backfill。
+- 更新 `docs/validation/validation-plan.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，补齐 MTP-147 validation 与 mechanical anchors。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；MTP-147 contract、domain、matrix、validation plan、latest summary、automation readiness doc 和 planning anchor 均通过机械检查。 |
+| `bash checks/run.sh` | pass | 通过 `git diff --check`、automation readiness、Dashboard build、Dashboard smoke 和 `swift test`；Dashboard smoke 输出包含 `readModelOnly=true`、`workbenchReadModelOnly=true`、`privateStreamSimulationGateEvidence=4`、`liveReadOnlyWorkbenchBoundary=5`、`liveMonitoringHealth=blocked`；293 个 XCTest，0 failures；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard smoke handle、不新增 App read model、不新增 Core / Runtime / Dashboard behavior、不新增 stage audit input。
+- 不实现 monitoring evidence surface；MTP-152 才能接入 Workbench / Report / Events read-model-only surface。
+- 不实现 live readiness runtime、Live Monitoring runtime、private WebSocket runtime、private stream runtime 或 account snapshot runtime。
+- 不接 signed endpoint、account endpoint / listenKey，不创建 listenKey，不执行 listenKey keepalive。
+- 不读取真实账户、真实持仓、真实余额、margin、leverage 或 real PnL。
+- 不实现 broker adapter、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不新增 API key input、secret storage、account connect、broker connect、Live PRO Console、trading button、live command、order form、emergency stop、shutdown 或 restore command。
+- 不运行 Graphify，不修改 Figma。
+- `.codex/*` 和 `graphify-out/*` 不进入 PR。
+
+---
+
 ## 2026-05-30 — Live Monitoring Read-only Console v2 Docs-only Planning Record
 
 执行者：Codex
