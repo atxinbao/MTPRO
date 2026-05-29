@@ -43,14 +43,15 @@
 | `MTPRO Workbench Beta Readiness v1` | `docs/planning/projects/mtpro-workbench-beta-readiness-v1-plan.md` | 已写入 Linear；`MTP-118` 至 `MTP-125` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
 | `MTPRO Live Read-only Readiness Boundary v1` | `docs/planning/projects/mtpro-live-read-only-readiness-boundary-v1-plan.md` | 已写入 Linear；`MTP-126` 至 `MTP-132` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
 | `MTPRO Account / Position / Balance Read-model-only v1` | `docs/planning/projects/mtpro-account-position-balance-read-model-only-v1-plan.md` | 已写入 Linear；`MTP-133` 至 `MTP-139` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
-| `MTPRO Private Stream / Account Snapshot Simulation Gate v1` | `docs/planning/projects/mtpro-private-stream-account-snapshot-simulation-gate-v1-plan.md` | 当前 L3.2 docs-only planning record / non-executable；未写入 Linear；不授权 private stream runtime、account snapshot runtime、account endpoint、listenKey、broker、Live PRO Console 或 trading command。 |
+| `MTPRO Private Stream / Account Snapshot Simulation Gate v1` | `docs/planning/projects/mtpro-private-stream-account-snapshot-simulation-gate-v1-plan.md` | 已写入 Linear；`MTP-140` 至 `MTP-146` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
+| `MTPRO Live Monitoring Read-only Console v2` | `docs/planning/projects/mtpro-live-monitoring-read-only-console-v2-plan.md` | 当前 L3.3 docs-only planning record / non-executable；未写入 Linear；不授权 Live Monitoring runtime、Live readiness runtime、Live PRO Console、endpoint、broker 或 live command。 |
 
 ## 当前 Project planning record
 
-- Project：`MTPRO Private Stream / Account Snapshot Simulation Gate v1`，仅为 L3.2 docs-only planning candidate。
-- Canonical record：`docs/planning/projects/mtpro-private-stream-account-snapshot-simulation-gate-v1-plan.md`。
+- Project：`MTPRO Live Monitoring Read-only Console v2`，仅为 L3.3 docs-only planning candidate。
+- Canonical record：`docs/planning/projects/mtpro-live-monitoring-read-only-console-v2-plan.md`。
 - 当前状态：未写入 Linear；不创建 Linear Project / Issue，不推进 Todo，不启动 `@002 / PAR`、Symphony 或 Graphify，不授权 implementation。后续必须由 Human 确认是否写入 Linear，并由 Parent Codex queue preflight 验证 WIP=1、依赖、active conflict 和 execution contract 后才可推进唯一 eligible issue。
-- First executable issue candidate：`Define private stream / account snapshot simulation gate terminology and boundary`，仅为 candidate，不授权执行。
+- First executable issue candidate：`Define Live Monitoring Read-only Console v2 terminology and boundary`，仅为 candidate，不授权执行。
 - WIP=1：所有候选 issue 写入 Linear 后必须初始保持 `Backlog / non-executable`。
 
 ## Project Planning Record 命名规则
