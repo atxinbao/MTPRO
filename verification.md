@@ -12889,6 +12889,52 @@ Root Docs Refresh Gate 更新：
 - 不新增 API key input、secret storage、broker connect、account connect、Live PRO Console、trading button、live command 或 order form。
 - 不运行 Graphify，不修改 Figma。
 - `.codex/*` 和 `graphify-out/*` 不进入 PR。
+
+---
+
+## 2026-05-30 — MTP-145 Workbench / Report / Events Read-model-only Simulation Gate Evidence Surface
+
+执行者：Codex
+
+目的：
+
+- 把 MTP-141 至 MTP-144 已完成的 deterministic Core evidence 接入 App 层 Workbench / Report / Events read-model-only surface。
+- 固定 `PrivateStreamSimulationGateEvidenceSurfaceReadModel`、`PrivateStreamSimulationGateEvidenceSurfaceViewModel` 和 `PrivateStreamSimulationGateEvidenceTraceItem`，确保 source identity、snapshot input、update fixture、freshness evidence 与 Event Timeline trace 只作为 simulation gate evidence 展示。
+- 阻断 API key input、secret storage、account connect、broker connect、Live PRO Console、trading button、live command、order form、signed/account endpoint、listenKey、private stream runtime、account snapshot runtime、Runtime object、adapter request、schema、account payload 和 broker state 暴露。
+
+更新内容：
+
+- 新增 `Sources/App/PrivateStreamSimulationGateEvidenceSurface.swift`，提供 MTP-145 App read model、view model、freshness row view model 和 Event Timeline trace item。
+- 更新 `Sources/App/App.swift`，将 MTP-145 surface 接入 `ReportReadModel`、`ReportViewModel` 和 `DashboardViewModel` source chain。
+- 更新 `Sources/App/PaperWorkflowEvidenceExplorer.swift`，新增 `privateStreamSimulationGateEvidenceSurface` section 和四条 read-model-only timeline items。
+- 更新 `Sources/App/DashboardShell.swift`，新增 Workbench / Report metrics、details 和 Dashboard smoke handle `privateStreamSimulationGateEvidence=4`。
+- 更新 `Tests/AppTests/AppTests.swift`，新增 focused App test 并回填 timeline / snapshot count baseline。
+- 更新 contract、validation plan、trading validation matrix、latest verification summary、automation readiness doc 和 `checks/automation-readiness.sh` 的 MTP-145 anchors。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter PrivateStreamSimulationGateEvidenceSurface` | pass | 执行 1 test，0 failures；覆盖 Report / Workbench / Events surface、forbidden UI/runtime flags、Dashboard smoke handle 和 Codable deterministic snapshot。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
+| `git diff --check` | pass | 无输出。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 293 个 XCTest；Dashboard smoke 输出包含 `privateStreamSimulationGateEvidence=4`、`timelineItems=72` 和 `liveReadOnlyWorkbenchBoundary=5`；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不新增或修改 Core semantics；只消费 MTP-141 至 MTP-144 deterministic Core evidence。
+- 不新增 Adapters、Persistence、Runtime、broker / exchange adapter implementation、secret / credential / endpoint code。
+- 不创建 listenKey，不执行 listenKey keepalive。
+- 不连接 private WebSocket，不实现 private stream runtime。
+- 不调用 signed endpoint 或 account endpoint。
+- 不实现 account snapshot runtime、freshness runtime 或任何真实账户读取。
+- 不读取真实账户、真实余额、真实持仓、broker position、margin、leverage 或 real PnL。
+- 不暴露 account endpoint payload、real account payload、broker payload、Adapter request、Runtime object、SQLite / DuckDB schema 或 broker state。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不新增 API key input、secret storage、account connect、broker connect、Live PRO Console、trading button、live command、order form、command surface 或 order-level command。
+- 不运行 Graphify，不修改 Figma。
+- `.codex/*` 和 `graphify-out/*` 不进入 PR。
 - 不推进 MTP-141，不输出 stage audit input；Project stage closeout 仍归属 MTP-146。
 
 ---

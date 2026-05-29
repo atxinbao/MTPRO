@@ -3715,3 +3715,47 @@ MTP-144 必须建立的主要 anchors：
 - 不新增 App、Dashboard、Workbench、Report 或 Events behavior；MTP-145 才能深化 read-model-only surface。
 - 不新增 Live PRO Console、trading button、live command、order form、account connect 或 broker connect。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+## MTP-145 Workbench / Report / Events Read-model-only Simulation Gate Evidence Surface Validation
+
+日期：2026-05-30
+
+执行者：Codex
+
+MTP-145 的 required validation：
+
+- `swift test --filter PrivateStreamSimulationGateEvidenceSurface`
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-145 的验收要求：
+
+- `Sources/App/PrivateStreamSimulationGateEvidenceSurface.swift` 必须包含 `PrivateStreamSimulationGateEvidenceSurfaceReadModel`、`PrivateStreamSimulationGateEvidenceSurfaceViewModel`、`PrivateStreamSimulationGateFreshnessRecordViewModel` 和 `PrivateStreamSimulationGateEvidenceTraceItem`。
+- `Sources/App/App.swift` 必须把 MTP-145 surface 接入 `ReportReadModel`、`ReportViewModel` 和 `DashboardViewModel` source chain。
+- `Sources/App/PaperWorkflowEvidenceExplorer.swift` 必须包含 `privateStreamSimulationGateEvidenceSurface` section，并输出 MTP-145 Event Timeline read-model-only evidence item。
+- `Sources/App/DashboardShell.swift` 必须包含 Workbench / Report simulation gate metrics、details 和 Dashboard smoke handle `privateStreamSimulationGateEvidence=4`。
+- `Tests/AppTests/AppTests.swift` 必须包含 `testPrivateStreamSimulationGateEvidenceSurfaceAggregatesMTP145ReadOnlySurface`，覆盖 Report / Workbench / Events surface、forbidden UI/runtime flags 和 Codable deterministic snapshot。
+- `docs/contracts/private-stream-account-snapshot-simulation-gate-contract.md` 必须包含 MTP-145 read-model-only surface、Dashboard / Report / Events evidence、forbidden UI/runtime surface 和 validation anchors。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-145 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 Private Stream / Account Snapshot Simulation Gate Workbench / Report / Events surface anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-145 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-145 App source、focused tests、contract、validation plan、trading matrix、latest summary 和 automation readiness doc anchors。
+- PR 前必须确认 `.codex/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-145 必须建立的主要 anchors：
+
+- `MTP-145-WORKBENCH-REPORT-EVENTS-READ-MODEL-ONLY-SIMULATION-GATE-SURFACE`
+- `MTP-145-DASHBOARD-REPORT-EVENTS-SIMULATION-GATE-EVIDENCE`
+- `MTP-145-FORBIDDEN-UI-RUNTIME-SURFACE`
+- `MTP-145-PRIVATE-STREAM-SIMULATION-GATE-SURFACE-VALIDATION`
+
+## MTP-145 禁止
+
+- 不新增或修改 Core semantics；MTP-145 只消费 MTP-141 至 MTP-144 deterministic Core evidence。
+- 不新增 Adapters、Persistence、Runtime、broker / exchange adapter implementation、secret / credential / endpoint code。
+- 不实现 private WebSocket runtime、private stream runtime、account snapshot runtime、signed endpoint、account endpoint、listenKey、real account read、broker position sync、real balance、real position、margin、leverage、real PnL、execution report、broker fill 或 reconciliation。
+- 不暴露 account endpoint payload、real account payload、broker payload、Adapter request、Runtime object、SQLite / DuckDB schema 或 broker state。
+- 不新增 API key input、secret storage、account connect、broker connect、Live PRO Console、trading button、live command、order form、command surface 或 order-level command。
+- 不输出 Stage Code Audit Report，不执行 Project closeout；MTP-146 才能收口 stage closeout。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。

@@ -14,6 +14,7 @@ public enum PaperWorkflowEvidenceExplorerSection: String, Codable, CaseIterable,
     case scenarioReplayEvidence = "scenario replay evidence"
     case simulatedExchangeParityEvidence = "simulated exchange parity evidence"
     case accountPositionBalanceReadModelOnlySurface = "account / position / balance read-model-only surface"
+    case privateStreamSimulationGateEvidenceSurface = "private stream simulation gate evidence surface"
     case workbenchBetaAcceptancePath = "workbench beta acceptance path"
     case liveReadOnlyWorkbenchBoundary = "live read-only Workbench boundary"
     case liveExecutionControlBlockedEvidence = "live execution control blocked evidence"
@@ -142,7 +143,8 @@ public struct PaperWorkflowEvidenceExplorerFilterSnapshot: Codable, Equatable, S
 ///
 /// 该 read model 只组合 Dashboard 已有 App read models：market、strategy、report、
 /// scenario replay evidence、simulated exchange parity evidence、Workbench beta acceptance path、
-/// account / position / balance read-model-only surface、Live read-only Workbench boundary、
+/// account / position / balance read-model-only surface、private stream simulation gate evidence surface、
+/// Live read-only Workbench boundary、
 /// Live blocked evidence、Live monitoring evidence、execution-control blocked evidence、
 /// Live Risk gate blocked evidence、incident / stop blocked evidence、
 /// paper workflow observability 和 append-only event timeline。
@@ -155,6 +157,7 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
     public let scenarioReplayEvidence: ScenarioReplayEvidenceReadModel
     public let simulatedExchangeParityEvidence: SimulatedExchangeParityEvidenceReadModel
     public let accountPositionBalanceReadModelOnlySurface: AccountPositionBalanceReadModelOnlySurfaceReadModel
+    public let privateStreamSimulationGateEvidenceSurface: PrivateStreamSimulationGateEvidenceSurfaceReadModel
     public let workbenchBetaAcceptancePath: WorkbenchBetaAcceptancePathReadModel
     public let liveReadOnlyWorkbenchBoundary: LiveReadOnlyWorkbenchBoundaryReadModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel
@@ -173,6 +176,7 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
         scenarioReplayEvidence: ScenarioReplayEvidenceReadModel? = nil,
         simulatedExchangeParityEvidence: SimulatedExchangeParityEvidenceReadModel? = nil,
         accountPositionBalanceReadModelOnlySurface: AccountPositionBalanceReadModelOnlySurfaceReadModel? = nil,
+        privateStreamSimulationGateEvidenceSurface: PrivateStreamSimulationGateEvidenceSurfaceReadModel? = nil,
         workbenchBetaAcceptancePath: WorkbenchBetaAcceptancePathReadModel? = nil,
         liveReadOnlyWorkbenchBoundary: LiveReadOnlyWorkbenchBoundaryReadModel? = nil,
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel? = nil,
@@ -192,6 +196,8 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
             ?? report.simulatedExchangeParityEvidence
         self.accountPositionBalanceReadModelOnlySurface = accountPositionBalanceReadModelOnlySurface
             ?? report.accountPositionBalanceReadModelOnlySurface
+        self.privateStreamSimulationGateEvidenceSurface = privateStreamSimulationGateEvidenceSurface
+            ?? report.privateStreamSimulationGateEvidenceSurface
         self.workbenchBetaAcceptancePath = workbenchBetaAcceptancePath
             ?? WorkbenchBetaAcceptancePathReadModel()
         self.liveReadOnlyWorkbenchBoundary = liveReadOnlyWorkbenchBoundary
@@ -215,6 +221,7 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
             self.scenarioReplayEvidence.lastAppliedSequence,
             self.simulatedExchangeParityEvidence.lastAppliedSequence,
             self.accountPositionBalanceReadModelOnlySurface.lastAppliedSequence,
+            self.privateStreamSimulationGateEvidenceSurface.lastAppliedSequence,
             self.workbenchBetaAcceptancePath.lastAppliedSequence,
             self.liveReadOnlyWorkbenchBoundary.lastAppliedSequence,
             self.liveTradingBlockedEvidence.lastAppliedSequence,
@@ -250,6 +257,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
     public let coversScenarioReplayEvidence: Bool
     public let coversSimulatedExchangeParityEvidence: Bool
     public let coversAccountPositionBalanceReadModelOnlySurface: Bool
+    public let coversPrivateStreamSimulationGateEvidenceSurface: Bool
     public let coversWorkbenchBetaAcceptancePath: Bool
     public let coversLiveReadOnlyWorkbenchBoundary: Bool
     public let coversLiveExecutionControlBlockedEvidence: Bool
@@ -297,6 +305,10 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             AccountPositionBalanceReadModelOnlySurfaceViewModel(
                 readModel: readModel.accountPositionBalanceReadModelOnlySurface
             )
+        let privateStreamSimulationGateEvidenceSurface =
+            PrivateStreamSimulationGateEvidenceSurfaceViewModel(
+                readModel: readModel.privateStreamSimulationGateEvidenceSurface
+            )
         let workbenchBetaAcceptancePath = WorkbenchBetaAcceptancePathViewModel(
             readModel: readModel.workbenchBetaAcceptancePath
         )
@@ -335,6 +347,9 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         let coversAccountPositionBalanceReadModelOnlySurface = allTimelineItems.contains {
             $0.section == .accountPositionBalanceReadModelOnlySurface
         }
+        let coversPrivateStreamSimulationGateEvidenceSurface = allTimelineItems.contains {
+            $0.section == .privateStreamSimulationGateEvidenceSurface
+        }
         let coversWorkbenchBetaAcceptancePath = allTimelineItems.contains {
             $0.section == .workbenchBetaAcceptancePath
         }
@@ -368,6 +383,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             || scenarioReplay.exposesDatabaseSchema
             || simulatedExchangeParity.exposesDatabaseSchema
             || accountPositionBalanceReadModelOnlySurface.exposesDatabaseSchema
+            || privateStreamSimulationGateEvidenceSurface.exposesDatabaseSchema
             || workbenchBetaAcceptancePath.exposesDatabaseSchema
             || liveReadOnlyWorkbenchBoundary.exposesDatabaseSchema
             || liveExecutionControl.exposesPersistenceSchema
@@ -377,6 +393,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             || scenarioReplay.exposesRuntimeObject
             || simulatedExchangeParity.exposesRuntimeObject
             || accountPositionBalanceReadModelOnlySurface.exposesRuntimeObject
+            || privateStreamSimulationGateEvidenceSurface.exposesRuntimeObject
             || workbenchBetaAcceptancePath.exposesRuntimeObject
             || liveReadOnlyWorkbenchBoundary.exposesRuntimeObject
             || liveExecutionControl.invokesRuntimeControl
@@ -386,6 +403,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             || scenarioReplay.exposesAdapterRequest
             || simulatedExchangeParity.exposesAdapterRequest
             || accountPositionBalanceReadModelOnlySurface.exposesAdapterRequest
+            || privateStreamSimulationGateEvidenceSurface.exposesAdapterRequest
             || workbenchBetaAcceptancePath.exposesAdapterRequest
             || liveReadOnlyWorkbenchBoundary.exposesAdapterSurface
             || liveExecutionControl.readsAdapter
@@ -394,6 +412,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         let providesCommandSurface = scenarioReplay.providesCommandSurface
             || simulatedExchangeParity.providesCommandSurface
             || accountPositionBalanceReadModelOnlySurface.providesCommandSurface
+            || privateStreamSimulationGateEvidenceSurface.providesCommandSurface
             || workbenchBetaAcceptancePath.providesCommandSurface
             || liveReadOnlyWorkbenchBoundary.providesCommandSurface
             || liveExecutionControl.providesCommandSurface
@@ -402,6 +421,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         let providesOrderLevelCommand = scenarioReplay.providesOrderLevelCommand
             || simulatedExchangeParity.providesOrderLevelCommand
             || accountPositionBalanceReadModelOnlySurface.providesOrderLevelCommand
+            || privateStreamSimulationGateEvidenceSurface.providesOrderLevelCommand
             || workbenchBetaAcceptancePath.providesOrderLevelCommand
             || liveReadOnlyWorkbenchBoundary.submitsRealOrder
             || liveReadOnlyWorkbenchBoundary.cancelsRealOrder
@@ -414,6 +434,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         let authorizesLiveTrading = scenarioReplay.authorizesLiveTrading
             || simulatedExchangeParity.authorizesLiveTrading
             || accountPositionBalanceReadModelOnlySurface.authorizesLiveTrading
+            || privateStreamSimulationGateEvidenceSurface.authorizesLiveTrading
             || workbenchBetaAcceptancePath.authorizesLiveTrading
             || liveReadOnlyWorkbenchBoundary.authorizesLiveTrading
             || liveExecutionControl.authorizesLiveTrading
@@ -421,6 +442,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             || liveIncidentStop.authorizesLiveTrading
         let touchesBrokerAction = simulatedExchangeParity.touchesBrokerAction
             || accountPositionBalanceReadModelOnlySurface.connectsBroker
+            || privateStreamSimulationGateEvidenceSurface.connectsBroker
             || workbenchBetaAcceptancePath.touchesBrokerAction
             || liveReadOnlyWorkbenchBoundary.instantiatesBrokerAdapter
             || liveExecutionControl.instantiatesBrokerExecutionAdapter
@@ -431,6 +453,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         let authorizesTradingExecution = scenarioReplay.authorizesTradingExecution
             || simulatedExchangeParity.authorizesTradingExecution
             || accountPositionBalanceReadModelOnlySurface.authorizesTradingExecution
+            || privateStreamSimulationGateEvidenceSurface.authorizesTradingExecution
             || workbenchBetaAcceptancePath.authorizesTradingExecution
             || liveReadOnlyWorkbenchBoundary.authorizesTradingExecution
             || liveExecutionControl.authorizesTradingExecution
@@ -454,6 +477,8 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         self.coversSimulatedExchangeParityEvidence = coversSimulatedExchangeParityEvidence
         self.coversAccountPositionBalanceReadModelOnlySurface =
             coversAccountPositionBalanceReadModelOnlySurface
+        self.coversPrivateStreamSimulationGateEvidenceSurface =
+            coversPrivateStreamSimulationGateEvidenceSurface
         self.coversWorkbenchBetaAcceptancePath = coversWorkbenchBetaAcceptancePath
         self.coversLiveReadOnlyWorkbenchBoundary = coversLiveReadOnlyWorkbenchBoundary
         self.coversLiveExecutionControlBlockedEvidence = coversLiveExecutionControlBlockedEvidence
@@ -481,6 +506,7 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             && scenarioReplay.readModelOnlyBoundaryHeld
             && simulatedExchangeParity.readModelOnlyBoundaryHeld
             && accountPositionBalanceReadModelOnlySurface.readModelOnlyBoundaryHeld
+            && privateStreamSimulationGateEvidenceSurface.readModelOnlyBoundaryHeld
             && workbenchBetaAcceptancePath.readModelOnlyBoundaryHeld
             && liveReadOnlyWorkbenchBoundary.readModelOnlyBoundaryHeld
             && liveExecutionControl.readModelOnlyBoundaryHeld
@@ -526,6 +552,9 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
                 + makeSimulatedExchangeParityEvidenceItems(readModel.simulatedExchangeParityEvidence)
                 + makeAccountPositionBalanceReadModelOnlySurfaceItems(
                     readModel.accountPositionBalanceReadModelOnlySurface
+                )
+                + makePrivateStreamSimulationGateEvidenceSurfaceItems(
+                    readModel.privateStreamSimulationGateEvidenceSurface
                 )
                 + makeWorkbenchBetaAcceptancePathItems(readModel.workbenchBetaAcceptancePath)
                 + makeLiveReadOnlyWorkbenchBoundaryItems(readModel.liveReadOnlyWorkbenchBoundary)
@@ -736,6 +765,35 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
                     ),
                     PaperWorkflowEvidenceLinkSummary(
                         section: .accountPositionBalanceReadModelOnlySurface,
+                        evidenceID: trace.sourceAnchor,
+                        label: "validation anchor",
+                        sourceSequence: readModel.lastAppliedSequence
+                    )
+                ]
+            )
+        }
+    }
+
+    private static func makePrivateStreamSimulationGateEvidenceSurfaceItems(
+        _ readModel: PrivateStreamSimulationGateEvidenceSurfaceReadModel
+    ) -> [PaperWorkflowEventTimelineItem] {
+        let viewModel = PrivateStreamSimulationGateEvidenceSurfaceViewModel(readModel: readModel)
+        return viewModel.eventTraceItems.map { trace in
+            PaperWorkflowEventTimelineItem(
+                section: .privateStreamSimulationGateEvidenceSurface,
+                sequence: readModel.lastAppliedSequence,
+                stream: "private stream simulation gate read model",
+                title: trace.title,
+                summary: trace.summary,
+                evidenceLinks: [
+                    PaperWorkflowEvidenceLinkSummary(
+                        section: .privateStreamSimulationGateEvidenceSurface,
+                        evidenceID: trace.evidenceID,
+                        label: trace.surface,
+                        sourceSequence: readModel.lastAppliedSequence
+                    ),
+                    PaperWorkflowEvidenceLinkSummary(
+                        section: .privateStreamSimulationGateEvidenceSurface,
                         evidenceID: trace.sourceAnchor,
                         label: "validation anchor",
                         sourceSequence: readModel.lastAppliedSequence

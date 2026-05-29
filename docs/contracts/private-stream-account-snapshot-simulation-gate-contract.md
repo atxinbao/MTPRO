@@ -361,6 +361,87 @@ Focused validation anchors：
 
 MTP-144 不新增 Adapters、Runtime、App、Dashboard behavior，不新增 Dashboard smoke handle，不实现 private WebSocket runtime、private stream runtime、account snapshot runtime、freshness runtime 或 Workbench / Report / Events surface；MTP-145 才能深化 read-model-only surface。Project stage closeout 仍归属 MTP-146。
 
+## MTP-145 Workbench Report Events read-model-only simulation gate surface
+
+`MTP-145-WORKBENCH-REPORT-EVENTS-READ-MODEL-ONLY-SIMULATION-GATE-SURFACE`
+
+MTP-145 只允许 App 层消费 MTP-141 至 MTP-144 已完成的 deterministic Core evidence，并输出 Workbench / Report / Events 的 read-model-only surface：
+
+- `PrivateStreamSimulationGateEvidenceSurfaceReadModel` 只组合 `SimulatedPrivateAccountEventSourceIdentityContract`、`SimulatedAccountSnapshotInputContract`、`SimulatedAccountSnapshotUpdateFixture` 和 `SimulatedAccountSnapshotFreshnessEvidenceContract`。
+- `PrivateStreamSimulationGateEvidenceSurfaceViewModel` 只展示 source identity、snapshot input、update fixture semantics、fresh / stale / blocked / missing summary、checksum、Dashboard panels 和 Event Timeline trace。
+- `PaperWorkflowEvidenceExplorerSection.privateStreamSimulationGateEvidenceSurface` 只能生成 read-model-only evidence item，不能下钻 Runtime、Adapter request、SQLite / DuckDB schema、account payload 或 broker state。
+- `DashboardShell` 只能展示 simulation gate metrics / details / smoke summary，不提供 API key input、secret storage、account connect、broker connect、Live PRO Console、trading button、live command 或 order form。
+
+该 surface 只能使用 `simulated`、`fixture` 和 `read-model-only` 语义，不得把 private stream / account snapshot simulation gate 写成 private WebSocket runtime、account snapshot runtime、listenKey、signed endpoint、account endpoint、real account read、broker position sync、margin、leverage、real PnL、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill 或 reconciliation。
+
+## MTP-145 Dashboard Report Events simulation gate evidence
+
+`MTP-145-DASHBOARD-REPORT-EVENTS-SIMULATION-GATE-EVIDENCE`
+
+MTP-145 的 Dashboard / Report / Events evidence 只能暴露 read-model-only trace：
+
+- Report summary 必须汇总 MTP-141 source identities、MTP-142 snapshot input、MTP-143 update fixtures、MTP-144 freshness evidence 和 MTP-145 boundary reasons。
+- Workbench metrics / details 必须只显示 source count、snapshot input count、update fixture count、freshness evidence count、Event Timeline trace count 和 boundary confirmed / blocked 状态。
+- Event Timeline 必须只输出 read-model-only evidence item，且每条 item 必须回链到 MTP-141 / MTP-142 / MTP-143 / MTP-144 source evidence 以及 `MTP-145-WORKBENCH-REPORT-EVENTS-READ-MODEL-ONLY-SIMULATION-GATE-SURFACE`。
+- Dashboard smoke handle 只能记录 evidence count，例如 `privateStreamSimulationGateEvidence=4`，不得引入 command surface、trading surface、runtime status、adapter request 或 schema view。
+
+## MTP-145 forbidden UI runtime surface
+
+`MTP-145-FORBIDDEN-UI-RUNTIME-SURFACE`
+
+MTP-145 的 App / Dashboard / Events surface 必须拒绝：
+
+- API key input
+- secret storage
+- account connect
+- broker connect
+- Live PRO Console
+- trading button
+- live command
+- order form
+- signed endpoint call
+- account endpoint call
+- listenKey creation / keepalive
+- private WebSocket runtime
+- private stream runtime
+- account snapshot runtime
+- Runtime object exposure
+- Adapter request exposure
+- SQLite / DuckDB schema exposure
+- account payload exposure
+- broker state exposure
+- broker / exchange execution adapter connection
+- `LiveExecutionAdapter` implementation
+- OMS implementation
+- real order write
+
+## MTP-145 validation anchors
+
+`MTP-145-PRIVATE-STREAM-SIMULATION-GATE-SURFACE-VALIDATION`
+
+Required validation：
+
+- `swift test --filter PrivateStreamSimulationGateEvidenceSurface`
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `Sources/App/PrivateStreamSimulationGateEvidenceSurface.swift` 必须包含 `PrivateStreamSimulationGateEvidenceSurfaceReadModel`、`PrivateStreamSimulationGateEvidenceSurfaceViewModel`、`PrivateStreamSimulationGateFreshnessRecordViewModel` 和 `PrivateStreamSimulationGateEvidenceTraceItem`。
+- `Sources/App/App.swift` 必须把 MTP-145 surface 接入 `ReportReadModel`、`ReportViewModel` 和 `DashboardViewModel` source chain。
+- `Sources/App/PaperWorkflowEvidenceExplorer.swift` 必须包含 `privateStreamSimulationGateEvidenceSurface` section，并输出 MTP-145 Event Timeline read-model-only evidence item。
+- `Sources/App/DashboardShell.swift` 必须包含 Workbench / Report simulation gate metrics、details 和 Dashboard smoke handle `privateStreamSimulationGateEvidence=4`。
+- `Tests/AppTests/AppTests.swift` 必须包含 `testPrivateStreamSimulationGateEvidenceSurfaceAggregatesMTP145ReadOnlySurface`，覆盖 Report / Workbench / Events surface、forbidden UI/runtime flags 和 Codable deterministic snapshot。
+- `docs/contracts/private-stream-account-snapshot-simulation-gate-contract.md` 必须包含 MTP-145 read-model-only surface、forbidden UI/runtime surface 和 validation anchors。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-145 issue backfill。
+- `docs/validation/validation-plan.md` 必须包含 MTP-145 required validation。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-145 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Private Stream / Account Snapshot Simulation Gate Workbench / Report / Events read-model-only surface anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-145 App source、focused tests、contract、validation plan、trading matrix、latest summary 和 automation readiness doc anchors。
+
+MTP-145 不新增或修改 Core semantics，不新增 Adapters、Persistence、Runtime、broker / exchange adapter implementation、secret / credential / endpoint code，不实现 private WebSocket runtime、private stream runtime、account snapshot runtime、signed endpoint、account endpoint、listenKey、real account read、broker position sync、real balance、margin、leverage、real PnL、Live PRO Console、trading button、live command 或 order form。Project stage closeout 仍归属 MTP-146。
+
 ## MTP-140 L3.1 APB / L3.2 simulation gate relationship
 
 `MTP-140-L31-APB-L32-SIMULATION-GATE-RELATIONSHIP`
