@@ -3804,3 +3804,46 @@ MTP-146 必须建立的主要 anchors：
 - 不实现 private WebSocket runtime、private stream runtime、account snapshot runtime、Live read-only runtime、signed endpoint、account endpoint、listenKey、real account read、broker position sync、real balance、real position、margin、leverage、real PnL、execution report、broker fill 或 reconciliation。
 - 不实现 broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace。
 - 不新增 API key input、secret storage、account connect、broker connect、Live PRO Console、trading button、live command、order form、command surface 或 order-level command。
+
+## MTP-147 Live Monitoring Read-only Console v2 Terminology Validation
+
+日期：2026-05-30
+
+执行者：Codex
+
+MTP-147 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-147 的验收要求：
+
+- `docs/contracts/live-monitoring-read-only-console-v2-contract.md` 必须包含 `MTP-147-LIVE-MONITORING-READ-ONLY-CONSOLE-V2-TERMINOLOGY`、`MTP-147-MONITORING-EVIDENCE-SOURCE-BOUNDARY`、`MTP-147-READ-MODEL-VIEWMODEL-CONSUMPTION-BOUNDARY`、`MTP-147-L33-HANDOFF-BOUNDARY`、`MTP-147-FIRST-EXECUTABLE-CANDIDATE-NON-AUTHORIZATION`、`MTP-147-FORBIDDEN-CAPABILITY-BASELINE` 和 `MTP-147-LIVE-MONITORING-READ-ONLY-CONSOLE-V2-VALIDATION` anchors。
+- `docs/domain/context.md` 必须包含 MTP-147 Live Monitoring Read-only Console v2 shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-LIVE-MONITORING-READ-ONLY-CONSOLE-V2` 和 MTP-147 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-147 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Live Monitoring Read-only Console v2 terminology anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-147 contract、matrix、validation plan、domain context、latest summary、automation readiness doc、planning record 和 forbidden capability boundary strings。
+- PR 前必须确认 `.codex/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-147 必须建立的主要 anchors：
+
+- `MTP-147-LIVE-MONITORING-READ-ONLY-CONSOLE-V2-TERMINOLOGY`
+- `MTP-147-MONITORING-EVIDENCE-SOURCE-BOUNDARY`
+- `MTP-147-READ-MODEL-VIEWMODEL-CONSUMPTION-BOUNDARY`
+- `MTP-147-L33-HANDOFF-BOUNDARY`
+- `MTP-147-FIRST-EXECUTABLE-CANDIDATE-NON-AUTHORIZATION`
+- `MTP-147-FORBIDDEN-CAPABILITY-BASELINE`
+- `MTP-147-LIVE-MONITORING-READ-ONLY-CONSOLE-V2-VALIDATION`
+
+## MTP-147 禁止
+
+- 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard smoke handle、不新增 App read model、不新增 Core / Runtime / Dashboard behavior、不新增 stage audit input。
+- 不实现 monitoring evidence surface；MTP-152 才能接入 Workbench / Report / Events read-model-only surface。
+- 不实现 live readiness runtime、Live Monitoring runtime、private WebSocket runtime、private stream runtime 或 account snapshot runtime。
+- 不接 signed endpoint、account endpoint / listenKey，不创建 listenKey，不执行 listenKey keepalive。
+- 不读取真实账户、真实持仓、真实余额、margin、leverage 或 real PnL。
+- 不实现 broker adapter、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不新增 API key input、secret storage、account connect、broker connect、Live PRO Console、trading button、live command、order form、emergency stop、shutdown 或 restore command。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。

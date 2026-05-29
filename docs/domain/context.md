@@ -177,6 +177,45 @@ broker action、Live PRO Console、live command、order form、position command 
 | `degraded state` | health / connection / stream / latency / error evidence 显示降级，但仍只作为可观察事实 | 不等于允许绕过 risk gate 或继续执行真实订单 |
 | `operations evidence` | validation、handoff、Stage Audit input、known boundary 和 readiness evidence chain | 不等于 production operations command、部署或远程运维 |
 
+## Live Monitoring Read-only Console v2 Terms
+
+`MTP-147-LIVE-MONITORING-READ-ONLY-CONSOLE-V2-TERMINOLOGY`
+
+以下术语由 MTP-147 定义为 `L3.3 Live Monitoring Read-only Console v2` 的 terminology / boundary language。它们只用于把 L3.0 / L3.1 / L3.2 已完成 evidence 组织成后续 read-model-only monitoring evidence，不授权 live readiness runtime、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、broker adapter、Live PRO Console、trading button、live command 或 order form。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `Live Monitoring Read-only Console v2` | L3.3 只读 monitoring evidence console 的合同名称，组织 L3.0 readiness boundary、L3.1 APB read-model-only evidence 和 L3.2 simulation gate evidence | 不等于 Live Monitoring runtime、Live readiness runtime、Live PRO Console、broker console 或交易控制台 |
+| `monitoring evidence` | 来自 read-model-only、fixture、paper、simulated 或 future-gated source label 的只读观察证据 | 不等于 runtime telemetry、account endpoint payload、private stream event、broker state 或 production monitoring agent |
+| `monitoring source boundary` | monitoring evidence 只能来自 L3.0 / L3.1 / L3.2 已完成证据链的来源边界 | 不等于 source adapter、connection manager、private stream runtime 或 account snapshot runtime |
+| `read-only monitoring state` | blocked、stale、missing、simulated、fixture、future-gated 等只读状态解释 | 不等于实时连接状态、自动恢复动作、交易授权或 live command enablement |
+| `monitoring boundary entry` | Workbench / Report / Events 后续可引用的 boundary anchor、source anchor 和 validation anchor | 不等于 Dashboard surface、Swift ViewModel implementation 或 Event Timeline item implementation |
+| `L3.3 monitoring handoff` | MTP-147 把 terminology / boundary 交给 MTP-148 至 MTP-153 的范围边界 | 不自动推进后续 issue，不授权 monitoring source identity、health evidence、connection explanation、forbidden tests、surface 或 stage closeout |
+
+`MTP-147-MONITORING-EVIDENCE-SOURCE-BOUNDARY`
+
+MTP-147 固定 monitoring evidence source boundary：L3.0 只提供 readiness / endpoint / adapter capability baseline，L3.1 只提供 account / position / balance read-model-only vocabulary input，L3.2 只提供 private stream / account snapshot simulation input。MTP-147 不新增 source implementation、fixture payload、Swift production code、focused XCTest 或 Dashboard smoke handle。
+
+`MTP-147-READ-MODEL-VIEWMODEL-CONSUMPTION-BOUNDARY`
+
+Workbench / Report / Events 后续只能消费 Read Model / ViewModel，不得直接读取 adapter request、Runtime object、SQLite / DuckDB schema、account payload、broker payload、secret config 或 broker state，也不得提供 API key input、account connect、broker connect、private stream connect、Live PRO Console、trading button、live command、order form、emergency stop、shutdown 或 restore command。
+
+`MTP-147-L33-HANDOFF-BOUNDARY`
+
+MTP-147 只交付 terminology / boundary input。MTP-148 才能定义 monitoring source identity；MTP-149 才能定义 health / freshness evidence；MTP-150 才能定义 connection readiness explanation；MTP-151 才能定义 forbidden runtime / endpoint / UI command tests；MTP-152 才能接入 Workbench / Report / Events read-model-only surface；MTP-153 才能收口 validation matrix / automation readiness / stage audit input。
+
+`MTP-147-FIRST-EXECUTABLE-CANDIDATE-NON-AUTHORIZATION`
+
+Project Planning Record、Linear Project issue order、next eligible candidate、Backlog issue、label、priority、assignee 或 estimate 都不构成执行授权。MTP-147 完成后不得自动推进 MTP-148；MTP-148 至 MTP-153 必须继续等待 Linear live-read 中唯一 eligible issue 授权。
+
+`MTP-147-FORBIDDEN-CAPABILITY-BASELINE`
+
+MTP-147 禁止 signed endpoint、account endpoint / listenKey、private WebSocket runtime、private stream runtime、account snapshot runtime、live readiness runtime、Live Monitoring runtime、account / position / balance runtime、real account read、broker position sync、margin / leverage、real PnL runtime、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form、emergency stop / shutdown / restore executable action、Graphify update 和 Figma change。
+
+`MTP-147-LIVE-MONITORING-READ-ONLY-CONSOLE-V2-VALIDATION`
+
+MTP-147 required validation 是 `bash checks/run.sh`，并通过 contract、domain context、trading validation matrix、validation plan、latest verification summary、automation readiness doc 和 `checks/automation-readiness.sh` 机械固定 terminology、boundary、forbidden capability baseline 和 no runtime authorization。MTP-147 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard smoke handle、不新增 stage audit input；Project stage closeout 仍归属 MTP-153。
+
 ## Live Execution Control Terms
 
 `MTP-75-LIVE-EXECUTION-CONTROL-TERMINOLOGY`
