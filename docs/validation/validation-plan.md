@@ -3759,3 +3759,48 @@ MTP-145 必须建立的主要 anchors：
 - 不新增 API key input、secret storage、account connect、broker connect、Live PRO Console、trading button、live command、order form、command surface 或 order-level command。
 - 不输出 Stage Code Audit Report，不执行 Project closeout；MTP-146 才能收口 stage closeout。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+## MTP-146 Validation Matrix / Automation Readiness / Stage Audit Input Validation
+
+日期：2026-05-30
+
+执行者：Codex
+
+MTP-146 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-146 的验收要求：
+
+- `docs/audit/inputs/mtpro-private-stream-account-snapshot-simulation-gate-v1-stage-audit-input.md` 必须包含 `MTP-146-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-STAGE-CLOSEOUT`、`MTP-146-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-146-NO-FINAL-STAGE-CODE-AUDIT`、`MTP-146-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-STAGE-AUDIT-INPUT`、`MTP-146-VALIDATION-EVIDENCE-CHAIN`、`MTP-146-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN`、`MTP-146-READ-MODEL-ONLY-BOUNDARY-EVIDENCE`、`MTP-146-AUTOMATION-READINESS-STAGE-CLOSEOUT`、`MTP-146-STAGE-CLOSEOUT-VALIDATION` 和 `MTP-146-NO-GRAPHIFY-FIGMA-LINEAR-MUTATION` anchors。
+- `docs/contracts/private-stream-account-snapshot-simulation-gate-contract.md` 必须包含 MTP-146 stage closeout、stage audit input material、no final Stage Code Audit、validation evidence chain、forbidden capability evidence chain、read-model-only boundary evidence、automation readiness stage closeout 和 validation anchors。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-SIMULATION-GATE` 的 MTP-146 issue backfill 和 `MTP-146 Private Stream / Account Snapshot 阶段收口`。
+- `docs/automation/automation-readiness.md` 必须新增 Private Stream / Account Snapshot Simulation Gate stage audit input anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-146 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-146 stage audit input、contract、validation matrix、validation plan、latest summary、automation readiness doc、MTP-140 至 MTP-145 PR evidence、Dashboard smoke handle 和 forbidden capability boundary strings。
+- PR 前必须确认 `.codex/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-146 必须建立的主要 anchors：
+
+- `MTP-146-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-STAGE-CLOSEOUT`
+- `MTP-146-STAGE-AUDIT-INPUT-MATERIAL`
+- `MTP-146-NO-FINAL-STAGE-CODE-AUDIT`
+- `MTP-146-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-STAGE-AUDIT-INPUT`
+- `MTP-146-VALIDATION-EVIDENCE-CHAIN`
+- `MTP-146-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN`
+- `MTP-146-READ-MODEL-ONLY-BOUNDARY-EVIDENCE`
+- `MTP-146-AUTOMATION-READINESS-STAGE-CLOSEOUT`
+- `MTP-146-STAGE-CLOSEOUT-VALIDATION`
+- `MTP-146-NO-GRAPHIFY-FIGMA-LINEAR-MUTATION`
+
+## MTP-146 禁止
+
+- 不输出最终 Stage Code Audit Report；最终报告仍由 Parent Codex 在 Project 全部 Done 且 Linear Project `Completed/type=completed` 后单独输出。
+- 不创建下一 Project / Issue，不推进下一阶段，不启动下一阶段 `symphony-issue`。
+- 不修改 production code，不新增 Core / App business capability。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 private WebSocket runtime、private stream runtime、account snapshot runtime、Live read-only runtime、signed endpoint、account endpoint、listenKey、real account read、broker position sync、real balance、real position、margin、leverage、real PnL、execution report、broker fill 或 reconciliation。
+- 不实现 broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace。
+- 不新增 API key input、secret storage、account connect、broker connect、Live PRO Console、trading button、live command、order form、command surface 或 order-level command。
