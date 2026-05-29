@@ -12937,6 +12937,63 @@ Root Docs Refresh Gate 更新：
 
 ---
 
+## 2026-05-30 — MTPRO Private Stream / Account Snapshot Simulation Gate v1 Project Closure / Stage Code Audit / Root Docs Refresh Gate
+
+执行者：Codex
+
+目的：
+
+- 完成 `MTPRO Private Stream / Account Snapshot Simulation Gate v1` 的 @002 / PAR Project closure。
+- 确认 Linear Project `Completed/type=completed`、MTP-140 至 MTP-146 全部 Done、PR #255 至 #261 required check evidence、root main fast-forward evidence 和 post-issue ledger evidence。
+- 落仓 Stage Code Audit Report，并执行 Root Docs Refresh Gate。
+- 只同步已发生事实：`L3.2 Private Stream / Account Snapshot Simulation Gate complete`、Project Closure Count `19 / 19 (100%)`、Stage Code Audit evidence、Root Docs Refresh validation evidence 和边界事实。
+
+证据：
+
+- Linear Project：`MTPRO Private Stream / Account Snapshot Simulation Gate v1`。
+- Linear Project ID：`f93e42bc-3cf7-48c1-b4ad-4a7364e28693`。
+- Linear Project status：`Completed/type=completed`，`completedAt=2026-05-29T20:21:02.281Z`。
+- Issues：`MTP-140`、`MTP-141`、`MTP-142`、`MTP-143`、`MTP-144`、`MTP-145`、`MTP-146` 全部 `Done/type=completed`。
+- Project 末端 PR：#261。
+- PR #261 merge commit：`ae69ecb9d73d2af7b22e9d45770d43c2a691414d`。
+- PR #261 required check：`checks` success，`https://github.com/atxinbao/MTPRO/actions/runs/26659457988/job/78578013730`。
+- Root main / origin/main / HEAD 已 fast-forward 到 `ae69ecb9d73d2af7b22e9d45770d43c2a691414d`。
+- Post-Issue Ledger：MTP-146 ledger 记录 root fast-forward；ledger hook 自动执行 `graphify update .`，输出仍为 ignored `graphify-out/*`，未提交到 Git。
+
+Root Docs Refresh Gate 更新：
+
+- `GOAL.md`：同步 L3.2 Private Stream / Account Snapshot Simulation Gate evidence chain 已完成，下一 candidate 改为 L3.3 Future Gated。
+- `BLUEPRINT.md`：同步最近完成 construction scope、Stage Code Audit Report 引用和 handoff 状态。
+- `docs/environment.md`：同步 L3.2 未新增 secret、private endpoint、broker credential、production operations 或新 validation entry。
+- `docs/architecture.md`：同步 L3.2 evidence chain 沿 contract / deterministic fixture -> App read model / ViewModel -> Dashboard / Report / Event Timeline 流动。
+- `docs/roadmap.md`：Project Closure Count 更新为 `19 / 19 (100%)`，当前 maturity statement 更新为 `L3.2 Private Stream / Account Snapshot Simulation Gate complete`。
+- `docs/product/mtpro-live-readiness-roadmap-v1.md`：L3.2 标记为 Done / not counted in old denominator，L3.3 保持 Future Gated planning candidate。
+- `docs/validation/latest-verification-summary.md`：同步最近完成 Project、Stage Code Audit Report、Project closure evidence、validation baseline 和 Root Docs Refresh Gate closure。
+- `docs/automation/automation-readiness.md` 与 `checks/automation-readiness.sh`：新增 L3.2 Stage Code Audit Report 和 Root Docs Refresh mechanical anchors。
+- `docs/audit/mtpro-private-stream-account-snapshot-simulation-gate-v1-stage-code-audit.md`：新增 canonical Stage Code Audit Report，并标记 Root Docs Refresh Gate：closed。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | Root Docs Refresh Gate docs-only diff 无 whitespace error。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；mechanical anchors 已覆盖 L3.2 Stage Code Audit Report、Root Docs Refresh、Project Closure Count `19 / 19` 和 current maturity statement。 |
+| `bash checks/run.sh` | pass | 通过 `git diff --check`、automation readiness、Dashboard build、Dashboard smoke 和 293 个 XCTest；Dashboard smoke 输出包含 `privateStreamSimulationGateEvidence=4`、`timelineItems=72` 和 `liveReadOnlyWorkbenchBoundary=5`；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不创建下一 Project / Issue。
+- 不推进 `Todo`。
+- 不启动 Symphony / `symphony-issue`。
+- 不手动运行 Graphify update；MTP-146 post-issue ledger hook 的 `graphify update .` 只生成 ignored `graphify-out/*`，未提交。
+- 不修改 Figma。
+- 不写业务 runtime。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不授权 L3.3 / L3.4 / L4 execution。
+- 不实现 signed endpoint、account endpoint / listenKey、private WebSocket runtime、private stream runtime、account snapshot runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、real PnL、Live PRO Console、trading button、live command 或 order form。
+
+---
+
 ## 2026-05-30 — MTP-145 Workbench / Report / Events Read-model-only Simulation Gate Evidence Surface
 
 执行者：Codex
