@@ -4,9 +4,9 @@
 
 执行者：Codex
 
-本文档定义 `MTPRO Private Stream / Account Snapshot Simulation Gate v1` 的 MTP-140 合同入口：L3.2 private stream / account snapshot simulation gate terminology、account snapshot simulation gate terminology、fixture / simulated / future real private stream 语义分界、L3.1 APB read-model-only evidence 与 L3.2 simulation gate 的关系、first executable candidate non-authorization、forbidden capability baseline 和 validation anchors。
+本文档定义 `MTPRO Private Stream / Account Snapshot Simulation Gate v1` 的合同入口：L3.2 private stream / account snapshot simulation gate terminology、account snapshot simulation gate terminology、fixture / simulated / future real private stream 语义分界、simulated private account event source identity、simulated account snapshot input contract、L3.1 APB read-model-only evidence 与 L3.2 simulation gate 的关系、first executable candidate non-authorization、forbidden capability baseline 和 validation anchors。
 
-本文档只服务 `MTP-140 Define private stream / account snapshot simulation gate terminology and boundary` 的术语 / 边界 / 验证锚点。它不实现 private WebSocket runtime，不实现 account snapshot runtime，不创建 listenKey，不调用 signed endpoint 或 account endpoint，不读取真实账户、真实持仓、真实余额、margin、leverage 或 real PnL；不实现 broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、Live PRO Console、trading button、live command 或 order form；不运行 Graphify，不修改 Figma。
+本文档只服务当前 L3.2 issue chain 的术语 / 边界 / 验证锚点。它不实现 private WebSocket runtime，不实现 private stream runtime，不实现 account snapshot runtime，不创建 listenKey，不调用 signed endpoint 或 account endpoint，不读取真实账户、真实持仓、真实余额、margin、leverage 或 real PnL；不实现 broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、Live PRO Console、trading button、live command 或 order form；不运行 Graphify，不修改 Figma。
 
 ## MTP-140 private stream simulation gate terminology
 
@@ -116,6 +116,104 @@ MTP-141 的 forbidden live stream source tests 必须拒绝：
 
 MTP-141 source identity 不能绕过 `LiveReadOnlyAdapterCapabilityMatrixBoundary` 已固定的 adapter capability matrix。Source identity 只说明 local fixture / simulated / future-gated label，不得表达 adapter request、private endpoint capability、broker connection、execution adapter 或 account payload importer。
 
+## MTP-142 simulated account snapshot input shape
+
+`MTP-142-SIMULATED-ACCOUNT-SNAPSHOT-INPUT-SHAPE`
+
+MTP-142 固定 `SimulatedAccountSnapshotInputContract` 和 `SimulatedAccountSnapshotInputRecord` 为 Core 层 deterministic value contract。该 input shape 只包含：
+
+- `snapshotID`
+- `sourceKind`
+- `sourceIdentity`
+- `observedAt`
+- `sourceWatermark`
+- `freshnessStatus`
+- `inputState`
+- `fixtureReplayCursor`
+- `deterministicReplayLinkage`
+- `readModelFields`
+- `checksum`
+
+这些字段只描述 local fixture / simulated source 的 account snapshot input，不是 account endpoint response、broker account payload、SQLite / DuckDB schema、Adapter request 或 Runtime object。
+
+## MTP-142 snapshot id source observedAt freshness state
+
+`MTP-142-SNAPSHOT-ID-SOURCE-OBSERVEDAT-FRESHNESS-STATE`
+
+MTP-142 的 deterministic fixture 固定：
+
+- `snapshotID`: `simulated-account-snapshot|fixture|mtp-142-local-account-snapshot|1704067620|fresh`
+- `sourceKind`: `fixture private stream source`
+- `sourceIdentity`: `fixture:private-stream:mtp-141-local-private-account-event`
+- `observedAt`: `1704067620`
+- `sourceWatermark`: `fixture-watermark:mtp-142:2024-01-01T00:07:00Z`
+- `freshnessStatus`: `fresh`
+- `inputState`: `available fixture input`
+
+`SimulatedAccountSnapshotInputState` 只允许 `available fixture input`、`missing fixture input` 和 `blocked fixture input` 三类状态。`missing` / `blocked` 是 input contract 状态分类，后续 MTP-144 才能深化 stale / blocked / forbidden endpoint evidence；它们不等于真实账户健康状态、broker connectivity 或 live monitoring runtime。
+
+## MTP-142 fixture version checksum deterministic replay linkage
+
+`MTP-142-FIXTURE-VERSION-CHECKSUM-DETERMINISTIC-REPLAY-LINKAGE`
+
+MTP-142 snapshot input 复用 `fixture-v1`，并把 deterministic linkage 固定到 MTP-141 source identity：
+
+- `sourceIdentityLinkage`: `MTP-141-SIMULATED-PRIVATE-ACCOUNT-EVENT-SOURCE-IDENTITY`
+- `fixtureReplayCursor`: `fixture-replay-cursor:mtp-142:simulated-account-snapshot:001`
+- `deterministicReplayLinkage`: `mtp-141-private-account-event-source-scenario|dataset-v1|fixture-v1|fixture-replay-cursor:mtp-142:simulated-account-snapshot:001|MTP-141-source-identity|MTP-142-snapshot-input`
+- `checksum`: 由 `SimulatedAccountSnapshotInputRecord.canonicalLine` 的 FNV-1a canonical preimage 计算。
+
+该 checksum 只证明本地 fixture input 可重复、可测试、可追溯，不是 exchange checksum、listenKey checkpoint、broker watermark 或 production stream offset。
+
+## MTP-142 fixture-to-read-model mapping boundary
+
+`MTP-142-FIXTURE-TO-READ-MODEL-MAPPING-BOUNDARY`
+
+MTP-142 只允许 snapshot input 映射到稳定 Read Model 字段：
+
+- `accountSnapshotId`
+- `sourceIdentity`
+- `observedAt`
+- `sourceWatermark`
+- `freshnessStatus`
+- `inputState`
+- `fixtureReplayCursor`
+- `deterministicReplayLinkage`
+- `checksum`
+
+Mapping 不得包含 account endpoint payload、broker payload、Adapter request、Runtime object、SQLite / DuckDB schema、listenKey、secret、margin、leverage、real PnL、Live PRO Console、trading button、live command 或 order form。
+
+## MTP-142 account payload isolation tests
+
+`MTP-142-ACCOUNT-PAYLOAD-ISOLATION-TESTS`
+
+MTP-142 的 account payload isolation tests 必须拒绝：
+
+- signed endpoint call
+- account endpoint call
+- listenKey creation
+- private WebSocket runtime
+- private stream runtime
+- account snapshot runtime
+- real account read
+- real balance read
+- margin / leverage read
+- real PnL read
+- real account payload exposure
+- broker payload import
+- adapter request exposure
+- Runtime object exposure
+- SQLite / DuckDB schema exposure
+- account endpoint payload exposure
+- fixture-to-read-model mapping bypass
+- broker / exchange execution adapter connection
+- `LiveExecutionAdapter` implementation
+- OMS implementation
+- real order write
+- Live PRO Console / trading button / live command / order form surface
+
+这些 forbidden tests 来自本地 focused XCTest：`testSimulatedAccountSnapshotInputDefinesMTP142DeterministicContract`、`testSimulatedAccountSnapshotInputRejectsMTP142EndpointRuntimeAndPayloadBypass` 和 `testSimulatedAccountSnapshotInputRejectsMTP142PayloadSchemaRuntimeMapping`。
+
 ## MTP-140 L3.1 APB / L3.2 simulation gate relationship
 
 `MTP-140-L31-APB-L32-SIMULATION-GATE-RELATIONSHIP`
@@ -222,3 +320,28 @@ Focused validation anchors：
 - `checks/automation-readiness.sh` 必须机械检查 MTP-141 source / test / docs / validation anchors。
 
 MTP-141 不新增 Adapters、Runtime、App、Dashboard behavior，不新增 Dashboard smoke handle，不实现 simulated account snapshot input contract；MTP-142 才能深化 snapshot input shape。Project stage closeout 仍归属 MTP-146。
+
+## MTP-142 validation anchors
+
+`MTP-142-SIMULATED-ACCOUNT-SNAPSHOT-INPUT-VALIDATION`
+
+Required validation：
+
+- `swift test --filter SimulatedAccountSnapshotInput`
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `Sources/Core/LiveTradingBoundary.swift` 必须包含 `SimulatedAccountSnapshotInputContract`、`SimulatedAccountSnapshotInputRecord`、`SimulatedAccountSnapshotInputState` 和 `SimulatedAccountSnapshotInputForbiddenCapability`。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-142 focused tests。
+- `docs/contracts/private-stream-account-snapshot-simulation-gate-contract.md` 必须包含 MTP-142 snapshot input shape、snapshot id / source / observedAt / freshness / state、fixture version / checksum / replay linkage、fixture-to-read-model mapping boundary、account payload isolation tests 和 validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-142 simulated account snapshot input shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-142 issue backfill。
+- `docs/validation/validation-plan.md` 必须包含 MTP-142 required validation。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-142 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Private Stream / Account Snapshot Simulation Gate snapshot input anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-142 Core source、focused tests、contract、domain context、validation plan、trading matrix、latest summary 和 automation readiness doc anchors。
+
+MTP-142 不新增 Adapters、Runtime、App、Dashboard behavior，不新增 Dashboard smoke handle，不实现 account snapshot runtime、private stream runtime、balance / position update fixture semantics、freshness runtime 或 Workbench / Report / Events surface；MTP-143 至 MTP-145 才能分别深化这些后续 scope。Project stage closeout 仍归属 MTP-146。

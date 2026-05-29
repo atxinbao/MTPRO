@@ -12932,3 +12932,45 @@ Root Docs Refresh Gate 更新：
 - 不新增 Live PRO Console、trading button、live command、order form、account connect 或 broker connect。
 - 不运行 Graphify，不修改 Figma。
 - `.codex/*` 和 `graphify-out/*` 不进入 PR。
+
+---
+
+## 2026-05-29 — MTP-142 Simulated Account Snapshot Input Contract
+
+执行者：Codex
+
+目的：
+
+- 定义 `simulated account snapshot input` 的 deterministic input contract，固定 snapshot id、MTP-141 source identity、observedAt、source watermark、freshness status、missing / blocked state、fixture version、checksum 和 deterministic replay linkage。
+- 确保 fixture-to-read-model mapping 只暴露稳定 read model fields，并通过 focused tests 阻断 signed/account endpoint、listenKey、private WebSocket、runtime、real account payload、broker payload、schema、Adapter request 和 UI command bypass。
+
+更新内容：
+
+- 在 `Sources/Core/LiveTradingBoundary.swift` 新增 `SimulatedAccountSnapshotInputContract`、`SimulatedAccountSnapshotInputRecord`、`SimulatedAccountSnapshotInputState` 和 `SimulatedAccountSnapshotInputForbiddenCapability`。
+- 在 `Tests/CoreTests/CoreTests.swift` 新增 MTP-142 focused tests：deterministic snapshot input contract、endpoint/runtime/payload bypass 拒绝，以及 payload/schema/runtime mapping 拒绝。
+- 更新 `docs/contracts/private-stream-account-snapshot-simulation-gate-contract.md`，新增 MTP-142 snapshot input shape、snapshot id / source / observedAt / freshness / state、fixture version / checksum / deterministic replay linkage、fixture-to-read-model mapping boundary、account payload isolation tests 和 validation anchors。
+- 更新 `docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/validation-plan.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，补齐 MTP-142 evidence chain 与 mechanical anchors。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `swift test --filter SimulatedAccountSnapshotInput` | pass | 3 tests，0 failures；覆盖 deterministic input、forbidden endpoint/runtime/payload bypass 和 fixture-to-read-model mapping boundary。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
+| `git diff --check` | pass | 无输出。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 287 个 XCTest；Dashboard smoke 输出包含 `timelineItems=68`、`accountPositionBalanceEvidence=3` 和 `liveReadOnlyWorkbenchBoundary=5`；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不创建 listenKey，不执行 listenKey keepalive。
+- 不连接 private WebSocket，不实现 private stream runtime。
+- 不调用 signed endpoint 或 account endpoint。
+- 不实现 account snapshot runtime、balance / position update fixture semantics、freshness runtime 或 Workbench / Report / Events surface。
+- 不读取真实账户、真实余额、margin、leverage 或 real PnL。
+- 不暴露 account endpoint payload、broker payload、Adapter request、Runtime object、SQLite / DuckDB schema。
+- 不绕过 fixture-to-read-model mapping boundary。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不新增 Live PRO Console、trading button、live command、order form、account connect 或 broker connect。
+- 不运行 Graphify，不修改 Figma。
+- `.codex/*` 和 `graphify-out/*` 不进入 PR。
