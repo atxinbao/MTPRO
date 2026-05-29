@@ -120,6 +120,15 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(viewModel.report.accountPositionBalanceReadModelOnlySurface.source.callsBinanceAdapter)
         XCTAssertFalse(viewModel.report.accountPositionBalanceReadModelOnlySurface.source.providesLiveOrderAction)
         XCTAssertEqual(
+            viewModel.report.privateStreamSimulationGateEvidenceSurface.source.sourceKind,
+            .stableReadModelProjection
+        )
+        XCTAssertFalse(viewModel.report.privateStreamSimulationGateEvidenceSurface.source.exposesDatabaseTables)
+        XCTAssertFalse(viewModel.report.privateStreamSimulationGateEvidenceSurface.source.exposesORMModels)
+        XCTAssertFalse(viewModel.report.privateStreamSimulationGateEvidenceSurface.source.exposesRuntimeObjects)
+        XCTAssertFalse(viewModel.report.privateStreamSimulationGateEvidenceSurface.source.callsBinanceAdapter)
+        XCTAssertFalse(viewModel.report.privateStreamSimulationGateEvidenceSurface.source.providesLiveOrderAction)
+        XCTAssertEqual(
             viewModel.paperWorkflowObservability.source.sourceKind,
             .stableReadModelProjection
         )
@@ -455,12 +464,13 @@ final class AppTests: XCTestCase {
         let explorer = try makeDashboardViewModel().paperWorkflowEvidenceExplorer
 
         XCTAssertTrue(explorer.source.isReadModelOnly)
-        XCTAssertEqual(explorer.timelineItemCount, 81)
+        XCTAssertEqual(explorer.timelineItemCount, 85)
         XCTAssertTrue(explorer.coversMarketEvents)
         XCTAssertTrue(explorer.coversMarketDataReplayOperations)
         XCTAssertTrue(explorer.coversScenarioReplayEvidence)
         XCTAssertTrue(explorer.coversSimulatedExchangeParityEvidence)
         XCTAssertTrue(explorer.coversAccountPositionBalanceReadModelOnlySurface)
+        XCTAssertTrue(explorer.coversPrivateStreamSimulationGateEvidenceSurface)
         XCTAssertTrue(explorer.coversLiveExecutionControlBlockedEvidence)
         XCTAssertTrue(explorer.coversLiveRiskGateBlockedEvidence)
         XCTAssertTrue(explorer.coversLiveIncidentStopBlockedEvidence)
@@ -483,6 +493,7 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(itemCounts[.scenarioReplayEvidence], 10)
         XCTAssertEqual(itemCounts[.simulatedExchangeParityEvidence], 7)
         XCTAssertEqual(itemCounts[.accountPositionBalanceReadModelOnlySurface], 3)
+        XCTAssertEqual(itemCounts[.privateStreamSimulationGateEvidenceSurface], 4)
         XCTAssertEqual(itemCounts[.liveExecutionControlBlockedEvidence], 7)
         XCTAssertEqual(itemCounts[.liveRiskGateBlockedEvidence], 6)
         XCTAssertEqual(itemCounts[.liveIncidentStopBlockedEvidence], 5)
@@ -511,6 +522,12 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(evidenceIDs.contains("position-evidence|fixture|mtp-137|BTCUSDT|long|1704067500|fresh"))
         XCTAssertTrue(evidenceIDs.contains("balance-evidence|fixture|mtp-137|paper-simulated|1704067500|fresh"))
         XCTAssertTrue(evidenceIDs.contains("MTP-138-WORKBENCH-REPORT-EVENTS-READ-MODEL-ONLY-SURFACE"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-144-simulated-account-snapshot-freshness-evidence"))
+        XCTAssertTrue(
+            evidenceIDs.contains(
+                "MTP-145-WORKBENCH-REPORT-EVENTS-READ-MODEL-ONLY-SIMULATION-GATE-SURFACE"
+            )
+        )
         XCTAssertTrue(evidenceIDs.contains("paper-replay-execution-decision-allowed"))
         XCTAssertTrue(evidenceIDs.contains("paper-replay-order-allowed"))
         XCTAssertTrue(evidenceIDs.contains("paper-replay-fill-allowed"))
@@ -1148,15 +1165,41 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(viewModel.report.accountPositionBalanceReadModelOnlySurface.providesLiveCommand)
         XCTAssertFalse(viewModel.report.accountPositionBalanceReadModelOnlySurface.exposesOrderForm)
         XCTAssertFalse(viewModel.report.accountPositionBalanceReadModelOnlySurface.authorizesTradingExecution)
+        XCTAssertEqual(viewModel.report.privateStreamSimulationGateEvidenceSurface.sourceIdentityRecordCount, 3)
+        XCTAssertEqual(viewModel.report.privateStreamSimulationGateEvidenceSurface.snapshotInputCount, 1)
+        XCTAssertEqual(viewModel.report.privateStreamSimulationGateEvidenceSurface.updateFixtureRecordCount, 3)
+        XCTAssertEqual(viewModel.report.privateStreamSimulationGateEvidenceSurface.freshnessEvidenceCount, 4)
+        XCTAssertEqual(viewModel.report.privateStreamSimulationGateEvidenceSurface.eventTraceItemCount, 4)
+        XCTAssertTrue(viewModel.report.privateStreamSimulationGateEvidenceSurface.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(viewModel.report.privateStreamSimulationGateEvidenceSurface.exposesAPIKeyInput)
+        XCTAssertFalse(viewModel.report.privateStreamSimulationGateEvidenceSurface.storesSecret)
+        XCTAssertFalse(viewModel.report.privateStreamSimulationGateEvidenceSurface.providesAccountConnect)
+        XCTAssertFalse(viewModel.report.privateStreamSimulationGateEvidenceSurface.providesBrokerConnect)
+        XCTAssertFalse(viewModel.report.privateStreamSimulationGateEvidenceSurface.exposesLivePROConsole)
+        XCTAssertFalse(viewModel.report.privateStreamSimulationGateEvidenceSurface.providesTradingButton)
+        XCTAssertFalse(viewModel.report.privateStreamSimulationGateEvidenceSurface.providesLiveCommand)
+        XCTAssertFalse(viewModel.report.privateStreamSimulationGateEvidenceSurface.exposesOrderForm)
+        XCTAssertFalse(viewModel.report.privateStreamSimulationGateEvidenceSurface.callsSignedEndpoint)
+        XCTAssertFalse(viewModel.report.privateStreamSimulationGateEvidenceSurface.callsAccountEndpoint)
+        XCTAssertFalse(viewModel.report.privateStreamSimulationGateEvidenceSurface.createsListenKey)
+        XCTAssertFalse(viewModel.report.privateStreamSimulationGateEvidenceSurface.runsPrivateStreamRuntime)
+        XCTAssertFalse(viewModel.report.privateStreamSimulationGateEvidenceSurface.runsAccountSnapshotRuntime)
+        XCTAssertFalse(viewModel.report.privateStreamSimulationGateEvidenceSurface.exposesRuntimeObject)
+        XCTAssertFalse(viewModel.report.privateStreamSimulationGateEvidenceSurface.exposesAdapterRequest)
+        XCTAssertFalse(viewModel.report.privateStreamSimulationGateEvidenceSurface.exposesDatabaseSchema)
+        XCTAssertFalse(viewModel.report.privateStreamSimulationGateEvidenceSurface.exposesAccountPayload)
+        XCTAssertFalse(viewModel.report.privateStreamSimulationGateEvidenceSurface.exposesBrokerState)
+        XCTAssertFalse(viewModel.report.privateStreamSimulationGateEvidenceSurface.authorizesTradingExecution)
         XCTAssertEqual(viewModel.report.latestParityStatus, .matchedProjectionEvidence)
         XCTAssertEqual(viewModel.report.lastAppliedSequence, 16)
         XCTAssertFalse(viewModel.report.tradingValidationAuthorizesExecution)
         XCTAssertFalse(viewModel.report.authorizesTradingExecution)
-        XCTAssertEqual(viewModel.paperWorkflowEvidenceExplorer.timelineItemCount, 81)
+        XCTAssertEqual(viewModel.paperWorkflowEvidenceExplorer.timelineItemCount, 85)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversPaperWorkflowChainEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversMarketDataReplayOperations)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversSimulatedExchangeParityEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversAccountPositionBalanceReadModelOnlySurface)
+        XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversPrivateStreamSimulationGateEvidenceSurface)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveExecutionControlBlockedEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveRiskGateBlockedEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveIncidentStopBlockedEvidence)
@@ -1352,6 +1395,121 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(shell.smokeSummary.contains("simulatedParityEvidence=1"))
     }
 
+    func testPrivateStreamSimulationGateEvidenceSurfaceAggregatesMTP145ReadOnlySurface() throws {
+        // 测试场景：MTP-145 只能把 MTP-141..144 deterministic Core evidence 汇总成
+        // Workbench / Report / Events 的 App read-model-only surface，不能暴露 endpoint、
+        // adapter、Runtime、schema、account payload、broker state 或任何真实交易入口。
+        let viewModel = try makeDashboardViewModel()
+        let surface = viewModel.report.privateStreamSimulationGateEvidenceSurface
+        let explorer = viewModel.paperWorkflowEvidenceExplorer
+        let shell = DashboardShellSnapshot(viewModel: viewModel)
+
+        XCTAssertEqual(surface.issueID, "MTP-145")
+        XCTAssertEqual(surface.matrixID, "TVM-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-SIMULATION-GATE")
+        XCTAssertEqual(surface.sourceIdentityRecordCount, 3)
+        XCTAssertEqual(surface.snapshotInputCount, 1)
+        XCTAssertEqual(surface.updateFixtureRecordCount, 3)
+        XCTAssertEqual(surface.freshnessEvidenceCount, 4)
+        XCTAssertEqual(surface.eventTraceItemCount, 4)
+        XCTAssertEqual(
+            surface.sourceIdentities.first,
+            "fixture:private-stream:mtp-141-local-private-account-event"
+        )
+        XCTAssertEqual(
+            surface.snapshotInputIDs,
+            ["simulated-account-snapshot|fixture|mtp-142-local-account-snapshot|1704067620|fresh"]
+        )
+        XCTAssertEqual(
+            surface.freshnessStatuses,
+            [.fresh, .stale, .blocked, .missing]
+        )
+        XCTAssertEqual(
+            surface.boundaryReasonCodes,
+            [
+                "fixture-freshness-within-threshold",
+                "fixture-freshness-threshold-exceeded",
+                "forbidden-capability-boundary-held",
+                "fixture-input-absent"
+            ]
+        )
+        XCTAssertTrue(surface.reportSummary.contains("read-model-only surface"))
+        XCTAssertTrue(surface.dashboardPanelSummaries.contains { $0.contains("Forbidden UI") })
+        XCTAssertTrue(surface.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(surface.exposesAPIKeyInput)
+        XCTAssertFalse(surface.storesSecret)
+        XCTAssertFalse(surface.providesAccountConnect)
+        XCTAssertFalse(surface.providesBrokerConnect)
+        XCTAssertFalse(surface.exposesLivePROConsole)
+        XCTAssertFalse(surface.providesTradingButton)
+        XCTAssertFalse(surface.providesLiveCommand)
+        XCTAssertFalse(surface.exposesOrderForm)
+        XCTAssertFalse(surface.callsSignedEndpoint)
+        XCTAssertFalse(surface.callsAccountEndpoint)
+        XCTAssertFalse(surface.createsListenKey)
+        XCTAssertFalse(surface.opensPrivateWebSocket)
+        XCTAssertFalse(surface.runsPrivateStreamRuntime)
+        XCTAssertFalse(surface.runsAccountSnapshotRuntime)
+        XCTAssertFalse(surface.exposesRuntimeObject)
+        XCTAssertFalse(surface.exposesAdapterRequest)
+        XCTAssertFalse(surface.exposesDatabaseSchema)
+        XCTAssertFalse(surface.exposesAccountPayload)
+        XCTAssertFalse(surface.exposesBrokerState)
+        XCTAssertFalse(surface.connectsBroker)
+        XCTAssertFalse(surface.implementsLiveExecutionAdapter)
+        XCTAssertFalse(surface.implementsOMS)
+        XCTAssertFalse(surface.writesRealOrder)
+        XCTAssertFalse(surface.authorizesLiveTrading)
+        XCTAssertFalse(surface.authorizesTradingExecution)
+        XCTAssertFalse(surface.requiredValidationDependsOnNetwork)
+
+        XCTAssertTrue(explorer.coversPrivateStreamSimulationGateEvidenceSurface)
+        XCTAssertEqual(
+            explorer.sectionSnapshots.first {
+                $0.section == .privateStreamSimulationGateEvidenceSurface
+            }?.itemCount,
+            4
+        )
+        XCTAssertTrue(
+            explorer.timelineItems.contains {
+                $0.section == .privateStreamSimulationGateEvidenceSurface
+                    && $0.title == "Simulated account snapshot freshness read-model-only evidence"
+            }
+        )
+        XCTAssertTrue(
+            explorer.evidenceLinks.contains {
+                $0.evidenceID == "MTP-145-WORKBENCH-REPORT-EVENTS-READ-MODEL-ONLY-SIMULATION-GATE-SURFACE"
+            }
+        )
+
+        let reportSection = try XCTUnwrap(shell.sections.first { $0.section == .report })
+        XCTAssertEqual(metricValue("Simulation gate", in: reportSection), "4")
+        XCTAssertTrue(reportSection.details.contains("Simulation gate boundary: confirmed"))
+        XCTAssertTrue(reportSection.details.contains("Simulation gate account connect: none"))
+        XCTAssertTrue(reportSection.details.contains("Simulation gate broker connect: none"))
+        XCTAssertTrue(reportSection.details.contains("Simulation gate trading button: none"))
+        XCTAssertEqual(
+            metricValue("Simulation gate", in: shell.workbench.privateStreamSimulationGateEvidenceSurfaceMetrics),
+            "4"
+        )
+        XCTAssertEqual(
+            metricValue("Boundary", in: shell.workbench.privateStreamSimulationGateEvidenceSurfaceMetrics),
+            "confirmed"
+        )
+        XCTAssertTrue(
+            shell.workbench.privateStreamSimulationGateEvidenceSurfaceDetails.contains(
+                "Simulation gate account snapshot runtime: none"
+            )
+        )
+        XCTAssertTrue(shell.smokeSummary.contains("privateStreamSimulationGateEvidence=4"))
+
+        let encoded = try JSONEncoder().encode(surface)
+        let decoded = try JSONDecoder().decode(
+            PrivateStreamSimulationGateEvidenceSurfaceViewModel.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, surface)
+    }
+
     func testDashboardViewModelStateSnapshotIsCodableAndDeterministic() throws {
         let viewModel = try makeDashboardViewModel()
 
@@ -1367,11 +1525,12 @@ final class AppTests: XCTestCase {
             decoded.report.artifacts.first?.paperExecutionWorkflowEvidence.paperOrderIDs,
             ["paper-replay-order-allowed"]
         )
-        XCTAssertEqual(decoded.paperWorkflowEvidenceExplorer.timelineItemCount, 81)
+        XCTAssertEqual(decoded.paperWorkflowEvidenceExplorer.timelineItemCount, 85)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversReportArtifacts)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversMarketDataReplayOperations)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversScenarioReplayEvidence)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversAccountPositionBalanceReadModelOnlySurface)
+        XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversPrivateStreamSimulationGateEvidenceSurface)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveExecutionControlBlockedEvidence)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveRiskGateBlockedEvidence)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveIncidentStopBlockedEvidence)
@@ -1383,6 +1542,8 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(decoded.report.marketDataReplayReadModelOnlyBoundaryHeld)
         XCTAssertEqual(decoded.report.scenarioReplayEvidenceCount, 1)
         XCTAssertTrue(decoded.report.scenarioReplayReadModelOnlyBoundaryHeld)
+        XCTAssertEqual(decoded.report.privateStreamSimulationGateEvidenceSurface.freshnessEvidenceCount, 4)
+        XCTAssertTrue(decoded.report.privateStreamSimulationGateEvidenceSurface.readModelOnlyBoundaryHeld)
         XCTAssertEqual(decoded.report.liveBlockedEvidenceCount, 6)
         XCTAssertTrue(decoded.report.liveReadinessReadModelOnlyBoundaryHeld)
         XCTAssertFalse(decoded.report.liveReadinessProvidesCommandSurface)
@@ -1879,9 +2040,10 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(snapshot.smokeSummary.contains("readModelOnly=true"))
         XCTAssertTrue(snapshot.smokeSummary.contains("workbenchReadModelOnly=true"))
         XCTAssertTrue(snapshot.smokeSummary.contains("controls=start,pause,close,reset"))
-        XCTAssertTrue(snapshot.smokeSummary.contains("timelineItems=81"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("timelineItems=85"))
         XCTAssertTrue(snapshot.smokeSummary.contains("scenarioReplayEvidence=1"))
         XCTAssertTrue(snapshot.smokeSummary.contains("accountPositionBalanceEvidence=3"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("privateStreamSimulationGateEvidence=4"))
         XCTAssertTrue(snapshot.smokeSummary.contains("scenarioQualityGates=6"))
         XCTAssertTrue(snapshot.smokeSummary.contains("liveBlockedGates=6"))
         XCTAssertTrue(snapshot.smokeSummary.contains("liveExecutionControlGates=7"))
@@ -1936,8 +2098,8 @@ final class AppTests: XCTestCase {
             )
         )
 
-        XCTAssertEqual(metricValue("Timeline items", in: workbench.evidenceExplorerMetrics), "81")
-        XCTAssertEqual(metricValue("Sections", in: workbench.evidenceExplorerMetrics), "18")
+        XCTAssertEqual(metricValue("Timeline items", in: workbench.evidenceExplorerMetrics), "85")
+        XCTAssertEqual(metricValue("Sections", in: workbench.evidenceExplorerMetrics), "19")
         XCTAssertTrue(
             workbench.evidenceExplorerDetails.contains(
                 "Filter: read-only"
@@ -1971,6 +2133,50 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(
             workbench.accountPositionBalanceReadModelOnlySurfaceDetails.contains(
                 "APB live command: none"
+            )
+        )
+        XCTAssertEqual(
+            metricValue("Simulation gate", in: workbench.privateStreamSimulationGateEvidenceSurfaceMetrics),
+            "4"
+        )
+        XCTAssertEqual(
+            metricValue("Sources", in: workbench.privateStreamSimulationGateEvidenceSurfaceMetrics),
+            "3"
+        )
+        XCTAssertEqual(
+            metricValue("Snapshot inputs", in: workbench.privateStreamSimulationGateEvidenceSurfaceMetrics),
+            "1"
+        )
+        XCTAssertEqual(
+            metricValue("Update fixtures", in: workbench.privateStreamSimulationGateEvidenceSurfaceMetrics),
+            "3"
+        )
+        XCTAssertEqual(
+            metricValue("Event trace", in: workbench.privateStreamSimulationGateEvidenceSurfaceMetrics),
+            "4"
+        )
+        XCTAssertEqual(
+            metricValue("Boundary", in: workbench.privateStreamSimulationGateEvidenceSurfaceMetrics),
+            "confirmed"
+        )
+        XCTAssertTrue(
+            workbench.privateStreamSimulationGateEvidenceSurfaceDetails.contains(
+                "Simulation gate account connect: none"
+            )
+        )
+        XCTAssertTrue(
+            workbench.privateStreamSimulationGateEvidenceSurfaceDetails.contains(
+                "Simulation gate broker connect: none"
+            )
+        )
+        XCTAssertTrue(
+            workbench.privateStreamSimulationGateEvidenceSurfaceDetails.contains(
+                "Simulation gate trading button: none"
+            )
+        )
+        XCTAssertTrue(
+            workbench.privateStreamSimulationGateEvidenceSurfaceDetails.contains(
+                "Simulation gate account snapshot runtime: none"
             )
         )
         XCTAssertEqual(
@@ -2261,7 +2467,7 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(events?.metrics.first { $0.label == "Last sequence" }?.value, "n/a")
 
         XCTAssertEqual(metricValue("Controls", in: snapshot.workbench.observabilityMetrics), "4")
-        XCTAssertEqual(metricValue("Timeline items", in: snapshot.workbench.evidenceExplorerMetrics), "46")
+        XCTAssertEqual(metricValue("Timeline items", in: snapshot.workbench.evidenceExplorerMetrics), "50")
         XCTAssertEqual(metricValue("Scenarios", in: snapshot.workbench.scenarioReplayEvidenceMetrics), "0")
         XCTAssertEqual(metricValue("Quality gates", in: snapshot.workbench.scenarioReplayEvidenceMetrics), "0")
         XCTAssertEqual(
