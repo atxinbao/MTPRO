@@ -22,15 +22,16 @@
 - `L2+ Workbench Beta Readiness`：Done。
 - `L3.0 Live Read-only Readiness Boundary`：Done / not counted in old denominator。
 - `L3.1 Account / Position / Balance Read-model-only`：Done / not counted in old denominator。
+- `L3.2 Private Stream / Account Snapshot Simulation Gate`：Done / not counted in old denominator。
 
 当前旧路线进度保持：
 
 ```text
 Engine Maturity Roadmap Progress: 4 / 4 (100%)
-Current maturity statement: L3.1 Account / Position / Balance Read-model-only complete
+Current maturity statement: L3.2 Private Stream / Account Snapshot Simulation Gate complete
 ```
 
-该 `4 / 4` 路线已经闭合。L3.0 和 L3.1 作为 Live Readiness 路线的 boundary / read-model-only evidence 追加，不继续改旧分母，不把旧路线回滚成未完成状态。
+该 `4 / 4` 路线已经闭合。L3.0、L3.1 和 L3.2 作为 Live Readiness 路线的 boundary / read-model-only / simulation gate evidence 追加，不继续改旧分母，不把旧路线回滚成未完成状态。
 
 ## 3. 为什么需要新路线口径
 
@@ -56,21 +57,22 @@ L3 / L4 进入的是完全不同的风险域：
 | `L2+ Workbench Beta Readiness` | 本地 macOS Workbench 可安装、可启动、可演示、可验收 | Done | 作为进入 Live Readiness 讨论的基线 | 不代表 production release 或 live readiness |
 | `L3.0 Live Read-only Readiness Boundary` | 定义只读接近真实账户前的术语、凭证策略、endpoint 分类、adapter capability matrix、forbidden write capability baseline 和验证门槛 | Done | Stage Code Audit Report、contract、forbidden tests、readiness anchors 已闭环 | 不实现任何真实 endpoint、secret storage、listenKey、broker connection 或账户读取 |
 | `L3.1 Account / Position / Balance Read-model-only` | 定义 account / position / balance 的 read-model-only 语义和 evidence surface | Done | Stage Code Audit Report、contract、deterministic fixture、forbidden tests、Workbench / Report / Events read-model-only surface 已闭环 | 不读取真实账户，不同步 broker position，不实现 margin / leverage / real PnL |
-| `L3.2 Private Stream / Account Snapshot Simulation Gate` | 通过 simulation / fixture gate 证明 private stream 与 account snapshot 只能在受控边界内被表达 | Planning candidate / Future Gated | 模拟输入、forbidden live stream tests、snapshot contract，需重新 planning | 不创建 listenKey，不连接 private WebSocket，不运行 production stream |
-| `L3.3 Live Monitoring Read-only Console v2` | 在 L3.0-L3.2 gate 通过后，升级 Live Monitoring 的只读证据面 | 后续 | read-model-only health、account snapshot evidence、connection gate explanation | 不提供交易控制，不提供 Live PRO Console，不提供 order-level command UI |
+| `L3.2 Private Stream / Account Snapshot Simulation Gate` | 通过 simulation / fixture gate 证明 private stream 与 account snapshot 只能在受控边界内被表达 | Done | Stage Code Audit Report、contract、deterministic fixture、forbidden endpoint/runtime tests、Workbench / Report / Events read-model-only simulation gate surface 已闭环 | 不创建 listenKey，不连接 private WebSocket，不运行 production stream |
+| `L3.3 Live Monitoring Read-only Console v2` | 在 L3.0-L3.2 gate 通过后，升级 Live Monitoring 的只读证据面 | Future Gated / Planning Candidate | read-model-only health、account snapshot evidence、connection gate explanation，需重新 planning | 不提供交易控制，不提供 Live PRO Console，不提供 order-level command UI |
 | `L3.4 Strategy / Trader Instance Readiness v1` | 定义 Strategy Instance / Trader Instance 的只读上下文、生命周期、quoter / hedger role、account / portfolio / risk read-model 输入和 paper/live-neutral proposal contract | Future Gated / Planning Candidate | 只能作为 L4 前的 strategy/trader 结构性补口，需重新 planning | 不让 strategy 直接调用 Execution Client，不输出 broker command，不实现 OMS、trading button、Live PRO Console 或 live command |
 | `L4 Live Production / Trading Commands` | 真实 execution、OMS、broker fill、reconciliation、live risk、ops / incident / stop 和独立 Live PRO Console | Future Gated | 只能作为 future gated map | 当前不进入 planning / Linear / implementation |
 
-## 5. L3.0 / L3.1 完成事实与下一候选
+## 5. L3.0 / L3.1 / L3.2 完成事实与下一候选
 
-已完成的 L3.0 / L3.1 Project：
+已完成的 L3.0 / L3.1 / L3.2 Project：
 
 ```text
 MTPRO Live Read-only Readiness Boundary v1
 MTPRO Account / Position / Balance Read-model-only v1
+MTPRO Private Stream / Account Snapshot Simulation Gate v1
 ```
 
-这些 Project 已完成 Live read-only readiness 的边界定义和 APB read-model-only evidence surface，而不是实现 read-only account runtime。
+这些 Project 已完成 Live read-only readiness 的边界定义、APB read-model-only evidence surface 和 private stream / account snapshot simulation gate evidence boundary，而不是实现 read-only account runtime、private stream runtime 或 account snapshot runtime。
 
 L3.0 已回答：
 
@@ -78,7 +80,7 @@ L3.0 已回答：
 - 哪些只读 capability 可以被定义为 future gate。
 - credential / secret / endpoint / adapter capability 如何分类。
 - account endpoint、listenKey、private stream 和 broker action 为什么仍不能进入当前 implementation。
-- 后续 L3.1 / L3.2 / L3.3 / L3.4 需要哪些 validation anchors。
+- 后续 L3.3 / L3.4 需要哪些 validation anchors。
 
 L3.1 已回答：
 
@@ -88,13 +90,21 @@ L3.1 已回答：
 - Workbench / Report / Events 如何展示 APB read-model-only evidence。
 - real account tests、account endpoint payload、broker state、schema、Runtime object 和 adapter request 为什么仍必须被隔离。
 
-L3.0 / L3.1 未做且仍不授权：
+L3.2 已回答：
+
+- simulated private account event source identity 如何固定 fixture / simulated / future-gated source labels。
+- simulated account snapshot input、account snapshot update fixture 和 freshness evidence 如何通过 checksum、fixture version、observedAt、source watermark 串联。
+- fresh / stale / blocked / missing evidence 如何只作为 local fixture evidence，不表示真实 account endpoint、private stream runtime 或 broker connectivity。
+- Workbench / Report / Events 如何展示 private stream / account snapshot simulation gate read-model-only evidence。
+- signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、broker adapter、Runtime object、schema、account payload 和 broker state 为什么仍必须被隔离。
+
+L3.0 / L3.1 / L3.2 未做且仍不授权：
 
 - secret storage。
 - signed request。
 - account endpoint call。
 - listenKey。
-- private stream。
+- private stream runtime。
 - broker adapter。
 - account / position / balance runtime。
 - real account read。
@@ -110,7 +120,7 @@ Workbench 在 L3 路线中仍然只消费 Read Model / ViewModel：
 
 - L3.0 已定义 Live read-only readiness boundary，并以 read-model-only evidence 接入 Dashboard / Report / Event Timeline boundary；不改变 Workbench 为真实 broker / account runtime。
 - L3.1 已定义 account / position / balance 的 read-model-only evidence surface，并以 deterministic fixture / ViewModel / Dashboard smoke 保持本地只读证据链。
-- L3.2 才可能定义 private stream / account snapshot 的 simulation gate。
+- L3.2 已定义 private stream / account snapshot 的 simulation gate，并以 deterministic fixture / ViewModel / Dashboard smoke 保持本地只读证据链。
 - L3.3 才可能规划 Live Monitoring read-only Console v2。
 - L3.4 才可能定义 Strategy Instance / Trader Instance readiness、quoter / hedger role 和 paper/live-neutral proposal contract。
 
@@ -136,7 +146,7 @@ Workbench 不展示 API key 输入、secret storage、broker connect、account c
 
 ## 8. 后续推进规则
 
-L3.1 或任何后续 L3 / L4 slice 继续推进时，必须先落仓 Project Planning Record，再由 Human 确认是否写入 Linear。
+L3.3 或任何后续 L3 / L4 slice 继续推进时，必须先落仓 Project Planning Record，再由 Human 确认是否写入 Linear。
 
 执行链路仍然是：
 
