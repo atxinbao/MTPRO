@@ -3572,3 +3572,52 @@ MTP-141 必须建立的主要 anchors：
 - 不实现 `LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill 或 reconciliation。
 - 不新增 Live PRO Console、trading button、live command、order form、account connect 或 broker connect。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+## MTP-142 Simulated Account Snapshot Input Contract Validation
+
+日期：2026-05-29
+
+执行者：Codex
+
+MTP-142 的 required validation：
+
+- `swift test --filter SimulatedAccountSnapshotInput`
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-142 的验收要求：
+
+- `Sources/Core/LiveTradingBoundary.swift` 必须包含 `SimulatedAccountSnapshotInputContract`、`SimulatedAccountSnapshotInputRecord`、`SimulatedAccountSnapshotInputState` 和 `SimulatedAccountSnapshotInputForbiddenCapability`。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 `testSimulatedAccountSnapshotInputDefinesMTP142DeterministicContract`、`testSimulatedAccountSnapshotInputRejectsMTP142EndpointRuntimeAndPayloadBypass` 和 `testSimulatedAccountSnapshotInputRejectsMTP142PayloadSchemaRuntimeMapping`。
+- `docs/contracts/private-stream-account-snapshot-simulation-gate-contract.md` 必须包含 `MTP-142-SIMULATED-ACCOUNT-SNAPSHOT-INPUT-SHAPE`、`MTP-142-SNAPSHOT-ID-SOURCE-OBSERVEDAT-FRESHNESS-STATE`、`MTP-142-FIXTURE-VERSION-CHECKSUM-DETERMINISTIC-REPLAY-LINKAGE`、`MTP-142-FIXTURE-TO-READ-MODEL-MAPPING-BOUNDARY`、`MTP-142-ACCOUNT-PAYLOAD-ISOLATION-TESTS` 和 `MTP-142-SIMULATED-ACCOUNT-SNAPSHOT-INPUT-VALIDATION` anchors。
+- `docs/domain/context.md` 必须包含 MTP-142 simulated account snapshot input shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-142 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 Private Stream / Account Snapshot Simulation Gate snapshot input anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-142 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-142 Core source、focused tests、contract、domain context、validation plan、trading matrix、latest summary 和 automation readiness doc anchors。
+- PR 前必须确认 `.codex/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-142 必须建立的主要 anchors：
+
+- `MTP-142-SIMULATED-ACCOUNT-SNAPSHOT-INPUT-SHAPE`
+- `MTP-142-SNAPSHOT-ID-SOURCE-OBSERVEDAT-FRESHNESS-STATE`
+- `MTP-142-FIXTURE-VERSION-CHECKSUM-DETERMINISTIC-REPLAY-LINKAGE`
+- `MTP-142-FIXTURE-TO-READ-MODEL-MAPPING-BOUNDARY`
+- `MTP-142-ACCOUNT-PAYLOAD-ISOLATION-TESTS`
+- `MTP-142-SIMULATED-ACCOUNT-SNAPSHOT-INPUT-VALIDATION`
+
+## MTP-142 禁止
+
+- 不实现 account snapshot runtime 或 private stream runtime。
+- 不创建 listenKey，不执行 listenKey keepalive。
+- 不调用 signed endpoint 或 account endpoint。
+- 不读取真实账户、真实余额、margin、leverage 或 real PnL。
+- 不暴露 account endpoint payload、broker payload、Adapter request、Runtime object、SQLite / DuckDB schema 或 broker state。
+- 不连接 broker / exchange execution adapter。
+- 不实现 `LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill 或 reconciliation。
+- 不新增 Live PRO Console、trading button、live command、order form、account connect 或 broker connect。
+- 不新增 App、Dashboard、Workbench、Report 或 Events behavior；MTP-145 才能深化 read-model-only surface。
+- 不定义 balance / position update fixture semantics；MTP-143 才能深化该 scope。
+- 不深化 freshness / stale / blocked forbidden endpoint tests；MTP-144 才能深化该 scope。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。

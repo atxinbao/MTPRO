@@ -2932,6 +2932,800 @@ public struct AccountPositionBalanceReadModelOnlyFixtureContract: Codable, Equat
     }
 }
 
+/// SimulatedAccountSnapshotInputState 固定 MTP-142 允许表达的 snapshot input 状态。
+///
+/// `available` 只代表本地 fixture 中存在可验证的 simulated account snapshot input；
+/// `missing` 和 `blocked` 只是 input contract 的状态分类，供后续 MTP-144 深化 freshness /
+/// blocked evidence。它们不能被解释为真实账户健康状态、broker connectivity 或 live monitoring runtime。
+public enum SimulatedAccountSnapshotInputState: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case available = "available fixture input"
+    case missing = "missing fixture input"
+    case blocked = "blocked fixture input"
+}
+
+/// SimulatedAccountSnapshotInputForbiddenCapability 列出 MTP-142 snapshot input contract 必须拒绝的能力。
+///
+/// 这些值只作为 deterministic account payload isolation tests 和 PR boundary evidence。它们不能
+/// 被实现成 signed/account endpoint、listenKey、private stream runtime、account snapshot runtime、
+/// adapter request、Runtime object、SQLite / DuckDB schema、Live PRO Console 或交易命令。
+public enum SimulatedAccountSnapshotInputForbiddenCapability: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case signedEndpointCall = "signed endpoint call"
+    case accountEndpointCall = "account endpoint call"
+    case listenKeyCreation = "listenKey creation"
+    case privateWebSocketRuntime = "private WebSocket runtime"
+    case privateStreamRuntime = "private stream runtime"
+    case accountSnapshotRuntime = "account snapshot runtime"
+    case realAccountRead = "real account read"
+    case realBalanceRead = "real balance read"
+    case marginRead = "margin read"
+    case leverageRead = "leverage read"
+    case realPnLRead = "real PnL read"
+    case realAccountPayloadExposure = "real account payload exposure"
+    case brokerPayloadImport = "broker payload import"
+    case adapterRequestExposure = "adapter request exposure"
+    case runtimeObjectExposure = "Runtime object exposure"
+    case persistenceSchemaExposure = "SQLite / DuckDB schema exposure"
+    case accountEndpointPayloadExposure = "account endpoint payload exposure"
+    case fixtureToReadModelMappingBypass = "fixture-to-read-model mapping bypass"
+    case brokerAdapterConnection = "broker adapter connection"
+    case exchangeExecutionAdapterConnection = "exchange execution adapter connection"
+    case liveExecutionAdapterImplementation = "LiveExecutionAdapter implementation"
+    case omsImplementation = "OMS implementation"
+    case realOrderWrite = "real order write"
+    case livePROConsoleSurface = "Live PRO Console surface"
+    case tradingButtonSurface = "trading button surface"
+    case liveCommandSurface = "live command surface"
+    case orderFormSurface = "order form surface"
+}
+
+/// SimulatedAccountSnapshotInputRecord 是 MTP-142 的单条 simulated account snapshot input shape。
+///
+/// Record 只保存本地 fixture 的 snapshot id、MTP-141 source identity、observedAt、source watermark、
+/// freshness、fixture replay cursor、deterministic replay linkage 和允许映射到 Read Model 的字段名。
+/// 它故意不保存 account endpoint payload、broker payload、adapter request、Runtime object 或
+/// SQLite / DuckDB schema，防止 simulated snapshot input 被误用为真实账户同步入口。
+public struct SimulatedAccountSnapshotInputRecord: Codable, Equatable, Sendable {
+    public let snapshotID: String
+    public let sourceKind: SimulatedPrivateAccountEventSourceKind
+    public let sourceIdentity: String
+    public let observedAt: Int
+    public let sourceWatermark: String
+    public let freshnessStatus: ScenarioReplayFreshnessStatus
+    public let inputState: SimulatedAccountSnapshotInputState
+    public let fixtureReplayCursor: String
+    public let deterministicReplayLinkage: String
+    public let readModelFields: [String]
+
+    public var canonicalLine: String {
+        [
+            snapshotID,
+            sourceKind.rawValue,
+            sourceIdentity,
+            String(observedAt),
+            sourceWatermark,
+            freshnessStatus.rawValue,
+            inputState.rawValue,
+            fixtureReplayCursor,
+            deterministicReplayLinkage,
+            readModelFields.joined(separator: "+")
+        ].joined(separator: "|")
+    }
+
+    public var fixtureToReadModelMappingBoundaryHeld: Bool {
+        snapshotID == Self.requiredSnapshotID
+            && sourceKind == Self.requiredSourceKind
+            && sourceIdentity == Self.requiredSourceIdentity
+            && observedAt == Self.requiredObservedAt
+            && sourceWatermark == Self.requiredSourceWatermark
+            && freshnessStatus == .fresh
+            && inputState == .available
+            && fixtureReplayCursor == Self.requiredFixtureReplayCursor
+            && deterministicReplayLinkage == Self.requiredDeterministicReplayLinkage
+            && readModelFields == Self.requiredReadModelFields
+            && containsForbiddenPayloadText(Self.forbiddenReadModelFieldTokens) == false
+    }
+
+    public init(
+        snapshotID: String = Self.requiredSnapshotID,
+        sourceKind: SimulatedPrivateAccountEventSourceKind = Self.requiredSourceKind,
+        sourceIdentity: String = Self.requiredSourceIdentity,
+        observedAt: Int = Self.requiredObservedAt,
+        sourceWatermark: String = Self.requiredSourceWatermark,
+        freshnessStatus: ScenarioReplayFreshnessStatus = .fresh,
+        inputState: SimulatedAccountSnapshotInputState = .available,
+        fixtureReplayCursor: String = Self.requiredFixtureReplayCursor,
+        deterministicReplayLinkage: String = Self.requiredDeterministicReplayLinkage,
+        readModelFields: [String] = Self.requiredReadModelFields
+    ) throws {
+        try Self.validate(
+            snapshotID: snapshotID,
+            sourceKind: sourceKind,
+            sourceIdentity: sourceIdentity,
+            observedAt: observedAt,
+            sourceWatermark: sourceWatermark,
+            freshnessStatus: freshnessStatus,
+            inputState: inputState,
+            fixtureReplayCursor: fixtureReplayCursor,
+            deterministicReplayLinkage: deterministicReplayLinkage,
+            readModelFields: readModelFields
+        )
+
+        self.snapshotID = snapshotID
+        self.sourceKind = sourceKind
+        self.sourceIdentity = sourceIdentity
+        self.observedAt = observedAt
+        self.sourceWatermark = sourceWatermark
+        self.freshnessStatus = freshnessStatus
+        self.inputState = inputState
+        self.fixtureReplayCursor = fixtureReplayCursor
+        self.deterministicReplayLinkage = deterministicReplayLinkage
+        self.readModelFields = readModelFields
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            snapshotID: try container.decode(String.self, forKey: .snapshotID),
+            sourceKind: try container.decode(SimulatedPrivateAccountEventSourceKind.self, forKey: .sourceKind),
+            sourceIdentity: try container.decode(String.self, forKey: .sourceIdentity),
+            observedAt: try container.decode(Int.self, forKey: .observedAt),
+            sourceWatermark: try container.decode(String.self, forKey: .sourceWatermark),
+            freshnessStatus: try container.decode(ScenarioReplayFreshnessStatus.self, forKey: .freshnessStatus),
+            inputState: try container.decode(SimulatedAccountSnapshotInputState.self, forKey: .inputState),
+            fixtureReplayCursor: try container.decode(String.self, forKey: .fixtureReplayCursor),
+            deterministicReplayLinkage: try container.decode(
+                String.self,
+                forKey: .deterministicReplayLinkage
+            ),
+            readModelFields: try container.decode([String].self, forKey: .readModelFields)
+        )
+    }
+
+    public func containsForbiddenPayloadText(_ forbiddenTokens: [String]) -> Bool {
+        let searchable = [
+            snapshotID,
+            sourceKind.rawValue,
+            sourceIdentity,
+            sourceWatermark,
+            freshnessStatus.rawValue,
+            inputState.rawValue,
+            fixtureReplayCursor,
+            deterministicReplayLinkage,
+            readModelFields.joined(separator: "|")
+        ]
+            .joined(separator: "|")
+            .lowercased()
+
+        return forbiddenTokens.contains { token in
+            searchable.contains(token.lowercased())
+        }
+    }
+
+    public static let requiredSnapshotID =
+        "simulated-account-snapshot|fixture|mtp-142-local-account-snapshot|1704067620|fresh"
+    public static let requiredSourceKind: SimulatedPrivateAccountEventSourceKind = .fixturePrivateStreamSource
+    public static let requiredSourceIdentity =
+        SimulatedPrivateAccountEventSourceIdentityRecord.requiredSourceIdentity(for: requiredSourceKind)
+    public static let requiredObservedAt = 1_704_067_620
+    public static let requiredSourceWatermark = "fixture-watermark:mtp-142:2024-01-01T00:07:00Z"
+    public static let requiredFixtureReplayCursor =
+        "fixture-replay-cursor:mtp-142:simulated-account-snapshot:001"
+    public static let requiredDeterministicReplayLinkage =
+        [
+            SimulatedPrivateAccountEventSourceIdentityRecord.requiredScenarioID.rawValue,
+            SimulatedPrivateAccountEventSourceIdentityRecord.requiredDatasetVersion.rawValue,
+            SimulatedPrivateAccountEventSourceIdentityRecord.requiredFixtureVersion.rawValue,
+            requiredFixtureReplayCursor,
+            "MTP-141-source-identity",
+            "MTP-142-snapshot-input"
+        ].joined(separator: "|")
+    public static let requiredReadModelFields = [
+        "accountSnapshotId",
+        "sourceIdentity",
+        "observedAt",
+        "sourceWatermark",
+        "freshnessStatus",
+        "inputState",
+        "fixtureReplayCursor",
+        "deterministicReplayLinkage",
+        "checksum"
+    ]
+    public static let forbiddenReadModelFieldTokens = [
+        "payload",
+        "schema",
+        "runtime",
+        "endpoint",
+        "listenkey",
+        "secret",
+        "broker",
+        "adapterrequest",
+        "adapter-request",
+        "accountendpoint",
+        "account-endpoint",
+        "accountpayload",
+        "account-payload",
+        "privatewebsocket",
+        "private-websocket",
+        "margin",
+        "leverage",
+        "realpnl",
+        "real-pnl",
+        "real_pnl",
+        "livecommand",
+        "live-command",
+        "tradingbutton",
+        "trading-button",
+        "orderform",
+        "order-form"
+    ]
+
+    private static func validate(
+        snapshotID: String,
+        sourceKind: SimulatedPrivateAccountEventSourceKind,
+        sourceIdentity: String,
+        observedAt: Int,
+        sourceWatermark: String,
+        freshnessStatus: ScenarioReplayFreshnessStatus,
+        inputState: SimulatedAccountSnapshotInputState,
+        fixtureReplayCursor: String,
+        deterministicReplayLinkage: String,
+        readModelFields: [String]
+    ) throws {
+        guard snapshotID == Self.requiredSnapshotID else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "snapshotID",
+                expected: Self.requiredSnapshotID,
+                actual: snapshotID
+            )
+        }
+        guard sourceKind == Self.requiredSourceKind else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "sourceKind",
+                expected: Self.requiredSourceKind.rawValue,
+                actual: sourceKind.rawValue
+            )
+        }
+        guard sourceIdentity == Self.requiredSourceIdentity else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "sourceIdentity",
+                expected: Self.requiredSourceIdentity,
+                actual: sourceIdentity
+            )
+        }
+        guard observedAt == Self.requiredObservedAt else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "observedAt",
+                expected: String(Self.requiredObservedAt),
+                actual: String(observedAt)
+            )
+        }
+        guard sourceWatermark == Self.requiredSourceWatermark else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "sourceWatermark",
+                expected: Self.requiredSourceWatermark,
+                actual: sourceWatermark
+            )
+        }
+        guard freshnessStatus == .fresh else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "freshnessStatus",
+                expected: ScenarioReplayFreshnessStatus.fresh.rawValue,
+                actual: freshnessStatus.rawValue
+            )
+        }
+        guard inputState == .available else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "inputState",
+                expected: SimulatedAccountSnapshotInputState.available.rawValue,
+                actual: inputState.rawValue
+            )
+        }
+        guard fixtureReplayCursor == Self.requiredFixtureReplayCursor else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "fixtureReplayCursor",
+                expected: Self.requiredFixtureReplayCursor,
+                actual: fixtureReplayCursor
+            )
+        }
+        guard deterministicReplayLinkage == Self.requiredDeterministicReplayLinkage else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "deterministicReplayLinkage",
+                expected: Self.requiredDeterministicReplayLinkage,
+                actual: deterministicReplayLinkage
+            )
+        }
+        if let forbiddenToken = Self.forbiddenReadModelFieldTokens.first(where: { token in
+            [
+                snapshotID,
+                sourceIdentity,
+                sourceWatermark,
+                fixtureReplayCursor,
+                deterministicReplayLinkage,
+                readModelFields.joined(separator: "|")
+            ].joined(separator: "|").lowercased().contains(token.lowercased())
+        }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("snapshotInput.\(forbiddenToken)")
+        }
+        guard readModelFields == Self.requiredReadModelFields else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "readModelFields",
+                expected: Self.requiredReadModelFields.joined(separator: ","),
+                actual: readModelFields.joined(separator: ",")
+            )
+        }
+    }
+}
+
+/// SimulatedAccountSnapshotInputContract 是 MTP-142 的 deterministic account snapshot input 合同。
+///
+/// 合同固定 simulated account snapshot input 的 shape、snapshot id、MTP-141 source identity、
+/// observedAt、freshness、missing / blocked 状态分类、fixture version、checksum、deterministic
+/// replay linkage 和 fixture-to-read-model mapping boundary。它不实现 account snapshot runtime，
+/// 不调用 account endpoint，不创建 listenKey，也不暴露 account endpoint payload、Runtime object、
+/// Adapter request、SQLite / DuckDB schema 或任何 UI trading surface。
+public struct SimulatedAccountSnapshotInputContract: Codable, Equatable, Sendable {
+    public let contractID: Identifier
+    public let issueID: Identifier
+    public let matrixID: String
+    public let fixtureVersion: FixtureVersion
+    public let sourceIdentityLinkage: String
+    public let snapshotInputs: [SimulatedAccountSnapshotInputRecord]
+    public let allowedInputStates: [SimulatedAccountSnapshotInputState]
+    public let checksum: String
+    public let checksumMatchedCanonicalPreimage: Bool
+    public let fixtureToReadModelMappingBoundaryHeld: Bool
+    public let forbiddenCapabilities: [SimulatedAccountSnapshotInputForbiddenCapability]
+    public let callsSignedEndpoint: Bool
+    public let callsAccountEndpoint: Bool
+    public let createsListenKey: Bool
+    public let opensPrivateWebSocket: Bool
+    public let runsPrivateStreamRuntime: Bool
+    public let runsAccountSnapshotRuntime: Bool
+    public let readsRealAccount: Bool
+    public let readsRealBalance: Bool
+    public let readsMargin: Bool
+    public let readsLeverage: Bool
+    public let readsRealPnL: Bool
+    public let consumesRealAccountPayload: Bool
+    public let importsBrokerPayload: Bool
+    public let exposesAdapterRequest: Bool
+    public let exposesRuntimeObject: Bool
+    public let exposesPersistenceSchema: Bool
+    public let exposesAccountEndpointPayload: Bool
+    public let bypassesFixtureToReadModelMapping: Bool
+    public let connectsBrokerAdapter: Bool
+    public let connectsExchangeExecutionAdapter: Bool
+    public let implementsLiveExecutionAdapter: Bool
+    public let implementsOMS: Bool
+    public let writesRealOrder: Bool
+    public let exposesLivePROConsole: Bool
+    public let exposesTradingButton: Bool
+    public let exposesLiveCommand: Bool
+    public let exposesOrderForm: Bool
+
+    public var snapshotInputBoundaryHeld: Bool {
+        matrixID == Self.requiredMatrixID
+            && fixtureVersion == Self.requiredFixtureVersion
+            && sourceIdentityLinkage == Self.requiredSourceIdentityLinkage
+            && snapshotInputs == Self.requiredSnapshotInputs
+            && snapshotInputs.allSatisfy(\.fixtureToReadModelMappingBoundaryHeld)
+            && allowedInputStates == Self.requiredAllowedInputStates
+            && checksum == Self.requiredChecksum
+            && checksumMatchedCanonicalPreimage
+            && fixtureToReadModelMappingBoundaryHeld
+            && forbiddenCapabilities == Self.requiredForbiddenCapabilities
+            && callsSignedEndpoint == false
+            && callsAccountEndpoint == false
+            && createsListenKey == false
+            && opensPrivateWebSocket == false
+            && runsPrivateStreamRuntime == false
+            && runsAccountSnapshotRuntime == false
+            && readsRealAccount == false
+            && readsRealBalance == false
+            && readsMargin == false
+            && readsLeverage == false
+            && readsRealPnL == false
+            && consumesRealAccountPayload == false
+            && importsBrokerPayload == false
+            && exposesAdapterRequest == false
+            && exposesRuntimeObject == false
+            && exposesPersistenceSchema == false
+            && exposesAccountEndpointPayload == false
+            && bypassesFixtureToReadModelMapping == false
+            && connectsBrokerAdapter == false
+            && connectsExchangeExecutionAdapter == false
+            && implementsLiveExecutionAdapter == false
+            && implementsOMS == false
+            && writesRealOrder == false
+            && exposesLivePROConsole == false
+            && exposesTradingButton == false
+            && exposesLiveCommand == false
+            && exposesOrderForm == false
+    }
+
+    public var canonicalPreimage: String {
+        Self.canonicalPreimage(for: snapshotInputs)
+    }
+
+    public init(
+        contractID: Identifier = try! Identifier("mtp-142-simulated-account-snapshot-input"),
+        issueID: Identifier = try! Identifier("MTP-142"),
+        matrixID: String = Self.requiredMatrixID,
+        fixtureVersion: FixtureVersion = Self.requiredFixtureVersion,
+        sourceIdentityLinkage: String = Self.requiredSourceIdentityLinkage,
+        snapshotInputs: [SimulatedAccountSnapshotInputRecord] = Self.requiredSnapshotInputs,
+        allowedInputStates: [SimulatedAccountSnapshotInputState] = Self.requiredAllowedInputStates,
+        checksum: String? = nil,
+        checksumMatchedCanonicalPreimage: Bool = true,
+        fixtureToReadModelMappingBoundaryHeld: Bool = true,
+        forbiddenCapabilities: [SimulatedAccountSnapshotInputForbiddenCapability] =
+            Self.requiredForbiddenCapabilities,
+        callsSignedEndpoint: Bool = false,
+        callsAccountEndpoint: Bool = false,
+        createsListenKey: Bool = false,
+        opensPrivateWebSocket: Bool = false,
+        runsPrivateStreamRuntime: Bool = false,
+        runsAccountSnapshotRuntime: Bool = false,
+        readsRealAccount: Bool = false,
+        readsRealBalance: Bool = false,
+        readsMargin: Bool = false,
+        readsLeverage: Bool = false,
+        readsRealPnL: Bool = false,
+        consumesRealAccountPayload: Bool = false,
+        importsBrokerPayload: Bool = false,
+        exposesAdapterRequest: Bool = false,
+        exposesRuntimeObject: Bool = false,
+        exposesPersistenceSchema: Bool = false,
+        exposesAccountEndpointPayload: Bool = false,
+        bypassesFixtureToReadModelMapping: Bool = false,
+        connectsBrokerAdapter: Bool = false,
+        connectsExchangeExecutionAdapter: Bool = false,
+        implementsLiveExecutionAdapter: Bool = false,
+        implementsOMS: Bool = false,
+        writesRealOrder: Bool = false,
+        exposesLivePROConsole: Bool = false,
+        exposesTradingButton: Bool = false,
+        exposesLiveCommand: Bool = false,
+        exposesOrderForm: Bool = false
+    ) throws {
+        let expectedChecksum = Self.checksum(for: snapshotInputs)
+        let providedChecksum = checksum ?? expectedChecksum
+        try Self.validate(
+            matrixID: matrixID,
+            fixtureVersion: fixtureVersion,
+            sourceIdentityLinkage: sourceIdentityLinkage,
+            snapshotInputs: snapshotInputs,
+            allowedInputStates: allowedInputStates,
+            checksum: providedChecksum,
+            checksumMatchedCanonicalPreimage: checksumMatchedCanonicalPreimage,
+            fixtureToReadModelMappingBoundaryHeld: fixtureToReadModelMappingBoundaryHeld,
+            forbiddenCapabilities: forbiddenCapabilities
+        )
+        try Self.validateForbiddenFlags(
+            callsSignedEndpoint: callsSignedEndpoint,
+            callsAccountEndpoint: callsAccountEndpoint,
+            createsListenKey: createsListenKey,
+            opensPrivateWebSocket: opensPrivateWebSocket,
+            runsPrivateStreamRuntime: runsPrivateStreamRuntime,
+            runsAccountSnapshotRuntime: runsAccountSnapshotRuntime,
+            readsRealAccount: readsRealAccount,
+            readsRealBalance: readsRealBalance,
+            readsMargin: readsMargin,
+            readsLeverage: readsLeverage,
+            readsRealPnL: readsRealPnL,
+            consumesRealAccountPayload: consumesRealAccountPayload,
+            importsBrokerPayload: importsBrokerPayload,
+            exposesAdapterRequest: exposesAdapterRequest,
+            exposesRuntimeObject: exposesRuntimeObject,
+            exposesPersistenceSchema: exposesPersistenceSchema,
+            exposesAccountEndpointPayload: exposesAccountEndpointPayload,
+            bypassesFixtureToReadModelMapping: bypassesFixtureToReadModelMapping,
+            connectsBrokerAdapter: connectsBrokerAdapter,
+            connectsExchangeExecutionAdapter: connectsExchangeExecutionAdapter,
+            implementsLiveExecutionAdapter: implementsLiveExecutionAdapter,
+            implementsOMS: implementsOMS,
+            writesRealOrder: writesRealOrder,
+            exposesLivePROConsole: exposesLivePROConsole,
+            exposesTradingButton: exposesTradingButton,
+            exposesLiveCommand: exposesLiveCommand,
+            exposesOrderForm: exposesOrderForm
+        )
+
+        self.contractID = contractID
+        self.issueID = issueID
+        self.matrixID = matrixID
+        self.fixtureVersion = fixtureVersion
+        self.sourceIdentityLinkage = sourceIdentityLinkage
+        self.snapshotInputs = snapshotInputs
+        self.allowedInputStates = allowedInputStates
+        self.checksum = providedChecksum
+        self.checksumMatchedCanonicalPreimage = checksumMatchedCanonicalPreimage
+        self.fixtureToReadModelMappingBoundaryHeld = fixtureToReadModelMappingBoundaryHeld
+        self.forbiddenCapabilities = forbiddenCapabilities
+        self.callsSignedEndpoint = callsSignedEndpoint
+        self.callsAccountEndpoint = callsAccountEndpoint
+        self.createsListenKey = createsListenKey
+        self.opensPrivateWebSocket = opensPrivateWebSocket
+        self.runsPrivateStreamRuntime = runsPrivateStreamRuntime
+        self.runsAccountSnapshotRuntime = runsAccountSnapshotRuntime
+        self.readsRealAccount = readsRealAccount
+        self.readsRealBalance = readsRealBalance
+        self.readsMargin = readsMargin
+        self.readsLeverage = readsLeverage
+        self.readsRealPnL = readsRealPnL
+        self.consumesRealAccountPayload = consumesRealAccountPayload
+        self.importsBrokerPayload = importsBrokerPayload
+        self.exposesAdapterRequest = exposesAdapterRequest
+        self.exposesRuntimeObject = exposesRuntimeObject
+        self.exposesPersistenceSchema = exposesPersistenceSchema
+        self.exposesAccountEndpointPayload = exposesAccountEndpointPayload
+        self.bypassesFixtureToReadModelMapping = bypassesFixtureToReadModelMapping
+        self.connectsBrokerAdapter = connectsBrokerAdapter
+        self.connectsExchangeExecutionAdapter = connectsExchangeExecutionAdapter
+        self.implementsLiveExecutionAdapter = implementsLiveExecutionAdapter
+        self.implementsOMS = implementsOMS
+        self.writesRealOrder = writesRealOrder
+        self.exposesLivePROConsole = exposesLivePROConsole
+        self.exposesTradingButton = exposesTradingButton
+        self.exposesLiveCommand = exposesLiveCommand
+        self.exposesOrderForm = exposesOrderForm
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            contractID: try container.decode(Identifier.self, forKey: .contractID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            matrixID: try container.decode(String.self, forKey: .matrixID),
+            fixtureVersion: try container.decode(FixtureVersion.self, forKey: .fixtureVersion),
+            sourceIdentityLinkage: try container.decode(String.self, forKey: .sourceIdentityLinkage),
+            snapshotInputs: try container.decode([SimulatedAccountSnapshotInputRecord].self, forKey: .snapshotInputs),
+            allowedInputStates: try container.decode(
+                [SimulatedAccountSnapshotInputState].self,
+                forKey: .allowedInputStates
+            ),
+            checksum: try container.decode(String.self, forKey: .checksum),
+            checksumMatchedCanonicalPreimage: try container.decode(
+                Bool.self,
+                forKey: .checksumMatchedCanonicalPreimage
+            ),
+            fixtureToReadModelMappingBoundaryHeld: try container.decode(
+                Bool.self,
+                forKey: .fixtureToReadModelMappingBoundaryHeld
+            ),
+            forbiddenCapabilities: try container.decode(
+                [SimulatedAccountSnapshotInputForbiddenCapability].self,
+                forKey: .forbiddenCapabilities
+            ),
+            callsSignedEndpoint: try container.decode(Bool.self, forKey: .callsSignedEndpoint),
+            callsAccountEndpoint: try container.decode(Bool.self, forKey: .callsAccountEndpoint),
+            createsListenKey: try container.decode(Bool.self, forKey: .createsListenKey),
+            opensPrivateWebSocket: try container.decode(Bool.self, forKey: .opensPrivateWebSocket),
+            runsPrivateStreamRuntime: try container.decode(Bool.self, forKey: .runsPrivateStreamRuntime),
+            runsAccountSnapshotRuntime: try container.decode(Bool.self, forKey: .runsAccountSnapshotRuntime),
+            readsRealAccount: try container.decode(Bool.self, forKey: .readsRealAccount),
+            readsRealBalance: try container.decode(Bool.self, forKey: .readsRealBalance),
+            readsMargin: try container.decode(Bool.self, forKey: .readsMargin),
+            readsLeverage: try container.decode(Bool.self, forKey: .readsLeverage),
+            readsRealPnL: try container.decode(Bool.self, forKey: .readsRealPnL),
+            consumesRealAccountPayload: try container.decode(Bool.self, forKey: .consumesRealAccountPayload),
+            importsBrokerPayload: try container.decode(Bool.self, forKey: .importsBrokerPayload),
+            exposesAdapterRequest: try container.decode(Bool.self, forKey: .exposesAdapterRequest),
+            exposesRuntimeObject: try container.decode(Bool.self, forKey: .exposesRuntimeObject),
+            exposesPersistenceSchema: try container.decode(Bool.self, forKey: .exposesPersistenceSchema),
+            exposesAccountEndpointPayload: try container.decode(
+                Bool.self,
+                forKey: .exposesAccountEndpointPayload
+            ),
+            bypassesFixtureToReadModelMapping: try container.decode(
+                Bool.self,
+                forKey: .bypassesFixtureToReadModelMapping
+            ),
+            connectsBrokerAdapter: try container.decode(Bool.self, forKey: .connectsBrokerAdapter),
+            connectsExchangeExecutionAdapter: try container.decode(
+                Bool.self,
+                forKey: .connectsExchangeExecutionAdapter
+            ),
+            implementsLiveExecutionAdapter: try container.decode(Bool.self, forKey: .implementsLiveExecutionAdapter),
+            implementsOMS: try container.decode(Bool.self, forKey: .implementsOMS),
+            writesRealOrder: try container.decode(Bool.self, forKey: .writesRealOrder),
+            exposesLivePROConsole: try container.decode(Bool.self, forKey: .exposesLivePROConsole),
+            exposesTradingButton: try container.decode(Bool.self, forKey: .exposesTradingButton),
+            exposesLiveCommand: try container.decode(Bool.self, forKey: .exposesLiveCommand),
+            exposesOrderForm: try container.decode(Bool.self, forKey: .exposesOrderForm)
+        )
+    }
+
+    public func containsForbiddenPayloadText(_ forbiddenTokens: [String]) -> Bool {
+        let searchable = [
+            matrixID,
+            fixtureVersion.rawValue,
+            sourceIdentityLinkage,
+            checksum,
+            allowedInputStates.map(\.rawValue).joined(separator: "|"),
+            snapshotInputs.map(\.canonicalLine).joined(separator: "|")
+        ]
+            .joined(separator: "|")
+            .lowercased()
+
+        return forbiddenTokens.contains { token in
+            searchable.contains(token.lowercased())
+        }
+    }
+
+    public static let requiredMatrixID = "TVM-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-SIMULATION-GATE"
+    public static let requiredFixtureVersion = try! FixtureVersion("fixture-v1")
+    public static let requiredSourceIdentityLinkage =
+        "MTP-141-SIMULATED-PRIVATE-ACCOUNT-EVENT-SOURCE-IDENTITY"
+    public static let requiredAllowedInputStates = SimulatedAccountSnapshotInputState.allCases
+    public static let requiredForbiddenCapabilities = SimulatedAccountSnapshotInputForbiddenCapability.allCases
+
+    public static let requiredSnapshotInputs: [SimulatedAccountSnapshotInputRecord] = {
+        do {
+            return [try SimulatedAccountSnapshotInputRecord()]
+        } catch {
+            preconditionFailure("MTP-142 simulated account snapshot input records must be valid: \(error)")
+        }
+    }()
+
+    public static let requiredChecksum = checksum(for: requiredSnapshotInputs)
+
+    public static let deterministicFixture: SimulatedAccountSnapshotInputContract = {
+        do {
+            return try SimulatedAccountSnapshotInputContract()
+        } catch {
+            preconditionFailure("MTP-142 simulated account snapshot input contract must be valid: \(error)")
+        }
+    }()
+
+    public static func canonicalPreimage(for snapshotInputs: [SimulatedAccountSnapshotInputRecord]) -> String {
+        snapshotInputs.map(\.canonicalLine).joined(separator: "\n")
+    }
+
+    public static func checksum(for snapshotInputs: [SimulatedAccountSnapshotInputRecord]) -> String {
+        ScenarioReplayChecksumEvidence.checksum(forCanonicalPreimage: canonicalPreimage(for: snapshotInputs))
+    }
+
+    private static func validate(
+        matrixID: String,
+        fixtureVersion: FixtureVersion,
+        sourceIdentityLinkage: String,
+        snapshotInputs: [SimulatedAccountSnapshotInputRecord],
+        allowedInputStates: [SimulatedAccountSnapshotInputState],
+        checksum: String,
+        checksumMatchedCanonicalPreimage: Bool,
+        fixtureToReadModelMappingBoundaryHeld: Bool,
+        forbiddenCapabilities: [SimulatedAccountSnapshotInputForbiddenCapability]
+    ) throws {
+        guard matrixID == Self.requiredMatrixID else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "matrixID",
+                expected: Self.requiredMatrixID,
+                actual: matrixID
+            )
+        }
+        guard fixtureVersion == Self.requiredFixtureVersion else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "fixtureVersion",
+                expected: Self.requiredFixtureVersion.rawValue,
+                actual: fixtureVersion.rawValue
+            )
+        }
+        guard sourceIdentityLinkage == Self.requiredSourceIdentityLinkage else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "sourceIdentityLinkage",
+                expected: Self.requiredSourceIdentityLinkage,
+                actual: sourceIdentityLinkage
+            )
+        }
+        guard snapshotInputs == Self.requiredSnapshotInputs else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "snapshotInputs",
+                expected: Self.requiredSnapshotInputs.map(\.snapshotID).joined(separator: ","),
+                actual: snapshotInputs.map(\.snapshotID).joined(separator: ",")
+            )
+        }
+        guard snapshotInputs.allSatisfy(\.fixtureToReadModelMappingBoundaryHeld) else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("snapshotInputs.fixtureToReadModelMapping")
+        }
+        guard allowedInputStates == Self.requiredAllowedInputStates else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "allowedInputStates",
+                expected: Self.requiredAllowedInputStates.map(\.rawValue).joined(separator: ","),
+                actual: allowedInputStates.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard checksum == Self.requiredChecksum else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "checksum",
+                expected: Self.requiredChecksum,
+                actual: checksum
+            )
+        }
+        guard checksumMatchedCanonicalPreimage else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "checksumMatchedCanonicalPreimage",
+                expected: "true",
+                actual: "false"
+            )
+        }
+        guard fixtureToReadModelMappingBoundaryHeld else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("fixtureToReadModelMappingBoundaryHeld")
+        }
+        guard forbiddenCapabilities == Self.requiredForbiddenCapabilities else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "forbiddenCapabilities",
+                expected: Self.requiredForbiddenCapabilities.map(\.rawValue).joined(separator: ","),
+                actual: forbiddenCapabilities.map(\.rawValue).joined(separator: ",")
+            )
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        callsSignedEndpoint: Bool,
+        callsAccountEndpoint: Bool,
+        createsListenKey: Bool,
+        opensPrivateWebSocket: Bool,
+        runsPrivateStreamRuntime: Bool,
+        runsAccountSnapshotRuntime: Bool,
+        readsRealAccount: Bool,
+        readsRealBalance: Bool,
+        readsMargin: Bool,
+        readsLeverage: Bool,
+        readsRealPnL: Bool,
+        consumesRealAccountPayload: Bool,
+        importsBrokerPayload: Bool,
+        exposesAdapterRequest: Bool,
+        exposesRuntimeObject: Bool,
+        exposesPersistenceSchema: Bool,
+        exposesAccountEndpointPayload: Bool,
+        bypassesFixtureToReadModelMapping: Bool,
+        connectsBrokerAdapter: Bool,
+        connectsExchangeExecutionAdapter: Bool,
+        implementsLiveExecutionAdapter: Bool,
+        implementsOMS: Bool,
+        writesRealOrder: Bool,
+        exposesLivePROConsole: Bool,
+        exposesTradingButton: Bool,
+        exposesLiveCommand: Bool,
+        exposesOrderForm: Bool
+    ) throws {
+        let forbiddenFlags = [
+            ("callsSignedEndpoint", callsSignedEndpoint),
+            ("callsAccountEndpoint", callsAccountEndpoint),
+            ("createsListenKey", createsListenKey),
+            ("opensPrivateWebSocket", opensPrivateWebSocket),
+            ("runsPrivateStreamRuntime", runsPrivateStreamRuntime),
+            ("runsAccountSnapshotRuntime", runsAccountSnapshotRuntime),
+            ("readsRealAccount", readsRealAccount),
+            ("readsRealBalance", readsRealBalance),
+            ("readsMargin", readsMargin),
+            ("readsLeverage", readsLeverage),
+            ("readsRealPnL", readsRealPnL),
+            ("consumesRealAccountPayload", consumesRealAccountPayload),
+            ("importsBrokerPayload", importsBrokerPayload),
+            ("exposesAdapterRequest", exposesAdapterRequest),
+            ("exposesRuntimeObject", exposesRuntimeObject),
+            ("exposesPersistenceSchema", exposesPersistenceSchema),
+            ("exposesAccountEndpointPayload", exposesAccountEndpointPayload),
+            ("bypassesFixtureToReadModelMapping", bypassesFixtureToReadModelMapping),
+            ("connectsBrokerAdapter", connectsBrokerAdapter),
+            ("connectsExchangeExecutionAdapter", connectsExchangeExecutionAdapter),
+            ("implementsLiveExecutionAdapter", implementsLiveExecutionAdapter),
+            ("implementsOMS", implementsOMS),
+            ("writesRealOrder", writesRealOrder),
+            ("exposesLivePROConsole", exposesLivePROConsole),
+            ("exposesTradingButton", exposesTradingButton),
+            ("exposesLiveCommand", exposesLiveCommand),
+            ("exposesOrderForm", exposesOrderForm)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(capability.0)
+        }
+    }
+}
+
 /// LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary 是 MTP-130 的 L3.2 simulation gate input fixture。
 ///
 /// 该合同只定义 private stream / account snapshot simulation gate 的输入材料、future fixture

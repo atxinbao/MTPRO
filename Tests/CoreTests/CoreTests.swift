@@ -1611,6 +1611,228 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testSimulatedAccountSnapshotInputDefinesMTP142DeterministicContract() throws {
+        // 测试场景：MTP-142 只定义本地 simulated account snapshot input contract。
+        // snapshot id、MTP-141 source identity、observedAt、freshness、fixture replay linkage、
+        // checksum 和 read-model mapping 必须可重复，且 missing / blocked 只能作为状态分类出现。
+        let contract = SimulatedAccountSnapshotInputContract.deterministicFixture
+
+        XCTAssertEqual(
+            contract.contractID,
+            try Identifier("mtp-142-simulated-account-snapshot-input")
+        )
+        XCTAssertEqual(contract.issueID, try Identifier("MTP-142"))
+        XCTAssertEqual(contract.matrixID, "TVM-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-SIMULATION-GATE")
+        XCTAssertEqual(contract.fixtureVersion, try FixtureVersion("fixture-v1"))
+        XCTAssertEqual(
+            contract.sourceIdentityLinkage,
+            "MTP-141-SIMULATED-PRIVATE-ACCOUNT-EVENT-SOURCE-IDENTITY"
+        )
+        XCTAssertEqual(contract.allowedInputStates, SimulatedAccountSnapshotInputState.allCases)
+        XCTAssertEqual(contract.snapshotInputs.count, 1)
+        let input = try XCTUnwrap(contract.snapshotInputs.first)
+        XCTAssertEqual(input.snapshotID, SimulatedAccountSnapshotInputRecord.requiredSnapshotID)
+        XCTAssertEqual(input.sourceKind, .fixturePrivateStreamSource)
+        XCTAssertEqual(
+            input.sourceIdentity,
+            SimulatedPrivateAccountEventSourceIdentityRecord.requiredSourceIdentity(
+                for: .fixturePrivateStreamSource
+            )
+        )
+        XCTAssertEqual(input.observedAt, 1_704_067_620)
+        XCTAssertEqual(input.sourceWatermark, "fixture-watermark:mtp-142:2024-01-01T00:07:00Z")
+        XCTAssertEqual(input.freshnessStatus, .fresh)
+        XCTAssertEqual(input.inputState, .available)
+        XCTAssertEqual(
+            input.fixtureReplayCursor,
+            "fixture-replay-cursor:mtp-142:simulated-account-snapshot:001"
+        )
+        XCTAssertTrue(input.deterministicReplayLinkage.contains("MTP-141-source-identity"))
+        XCTAssertEqual(input.readModelFields, SimulatedAccountSnapshotInputRecord.requiredReadModelFields)
+        XCTAssertTrue(input.fixtureToReadModelMappingBoundaryHeld)
+        XCTAssertEqual(
+            contract.checksum,
+            SimulatedAccountSnapshotInputContract.checksum(for: contract.snapshotInputs)
+        )
+        XCTAssertEqual(contract.checksum, SimulatedAccountSnapshotInputContract.requiredChecksum)
+        XCTAssertTrue(contract.checksumMatchedCanonicalPreimage)
+        XCTAssertTrue(contract.fixtureToReadModelMappingBoundaryHeld)
+        XCTAssertEqual(
+            contract.forbiddenCapabilities,
+            SimulatedAccountSnapshotInputForbiddenCapability.allCases
+        )
+        XCTAssertTrue(contract.snapshotInputBoundaryHeld)
+        XCTAssertFalse(contract.callsSignedEndpoint)
+        XCTAssertFalse(contract.callsAccountEndpoint)
+        XCTAssertFalse(contract.createsListenKey)
+        XCTAssertFalse(contract.opensPrivateWebSocket)
+        XCTAssertFalse(contract.runsPrivateStreamRuntime)
+        XCTAssertFalse(contract.runsAccountSnapshotRuntime)
+        XCTAssertFalse(contract.readsRealAccount)
+        XCTAssertFalse(contract.readsRealBalance)
+        XCTAssertFalse(contract.readsMargin)
+        XCTAssertFalse(contract.readsLeverage)
+        XCTAssertFalse(contract.readsRealPnL)
+        XCTAssertFalse(contract.consumesRealAccountPayload)
+        XCTAssertFalse(contract.importsBrokerPayload)
+        XCTAssertFalse(contract.exposesAdapterRequest)
+        XCTAssertFalse(contract.exposesRuntimeObject)
+        XCTAssertFalse(contract.exposesPersistenceSchema)
+        XCTAssertFalse(contract.exposesAccountEndpointPayload)
+        XCTAssertFalse(contract.bypassesFixtureToReadModelMapping)
+        XCTAssertFalse(contract.connectsBrokerAdapter)
+        XCTAssertFalse(contract.connectsExchangeExecutionAdapter)
+        XCTAssertFalse(contract.implementsLiveExecutionAdapter)
+        XCTAssertFalse(contract.implementsOMS)
+        XCTAssertFalse(contract.writesRealOrder)
+        XCTAssertFalse(contract.exposesLivePROConsole)
+        XCTAssertFalse(contract.exposesTradingButton)
+        XCTAssertFalse(contract.exposesLiveCommand)
+        XCTAssertFalse(contract.exposesOrderForm)
+        XCTAssertFalse(
+            contract.containsForbiddenPayloadText([
+                "accountEndpointPayload",
+                "adapterRequest",
+                "runtimeObject",
+                "sqliteSchema",
+                "brokerPayload",
+                "tradingButton",
+                "liveCommand"
+            ])
+        )
+
+        let encoded = try JSONEncoder().encode(contract)
+        let decoded = try JSONDecoder().decode(SimulatedAccountSnapshotInputContract.self, from: encoded)
+        XCTAssertEqual(decoded, contract)
+    }
+
+    func testSimulatedAccountSnapshotInputRejectsMTP142EndpointRuntimeAndPayloadBypass() throws {
+        // 测试场景：MTP-142 snapshot input 的初始化和 Codable 解码都必须拒绝 signed/account
+        // endpoint、listenKey、private stream runtime、account snapshot runtime、真实账户读取、
+        // payload / schema / Runtime object 暴露和 Live command surface。
+        let forbiddenFlagCases: [
+            (field: String, build: () throws -> SimulatedAccountSnapshotInputContract)
+        ] = [
+            ("callsSignedEndpoint", { try SimulatedAccountSnapshotInputContract(callsSignedEndpoint: true) }),
+            ("callsAccountEndpoint", { try SimulatedAccountSnapshotInputContract(callsAccountEndpoint: true) }),
+            ("createsListenKey", { try SimulatedAccountSnapshotInputContract(createsListenKey: true) }),
+            ("opensPrivateWebSocket", { try SimulatedAccountSnapshotInputContract(opensPrivateWebSocket: true) }),
+            ("runsPrivateStreamRuntime", { try SimulatedAccountSnapshotInputContract(runsPrivateStreamRuntime: true) }),
+            (
+                "runsAccountSnapshotRuntime",
+                { try SimulatedAccountSnapshotInputContract(runsAccountSnapshotRuntime: true) }
+            ),
+            ("readsRealAccount", { try SimulatedAccountSnapshotInputContract(readsRealAccount: true) }),
+            ("readsRealBalance", { try SimulatedAccountSnapshotInputContract(readsRealBalance: true) }),
+            ("readsMargin", { try SimulatedAccountSnapshotInputContract(readsMargin: true) }),
+            ("readsLeverage", { try SimulatedAccountSnapshotInputContract(readsLeverage: true) }),
+            ("readsRealPnL", { try SimulatedAccountSnapshotInputContract(readsRealPnL: true) }),
+            (
+                "consumesRealAccountPayload",
+                { try SimulatedAccountSnapshotInputContract(consumesRealAccountPayload: true) }
+            ),
+            ("importsBrokerPayload", { try SimulatedAccountSnapshotInputContract(importsBrokerPayload: true) }),
+            ("exposesAdapterRequest", { try SimulatedAccountSnapshotInputContract(exposesAdapterRequest: true) }),
+            ("exposesRuntimeObject", { try SimulatedAccountSnapshotInputContract(exposesRuntimeObject: true) }),
+            ("exposesPersistenceSchema", { try SimulatedAccountSnapshotInputContract(exposesPersistenceSchema: true) }),
+            (
+                "exposesAccountEndpointPayload",
+                { try SimulatedAccountSnapshotInputContract(exposesAccountEndpointPayload: true) }
+            ),
+            (
+                "bypassesFixtureToReadModelMapping",
+                { try SimulatedAccountSnapshotInputContract(bypassesFixtureToReadModelMapping: true) }
+            ),
+            ("connectsBrokerAdapter", { try SimulatedAccountSnapshotInputContract(connectsBrokerAdapter: true) }),
+            (
+                "connectsExchangeExecutionAdapter",
+                { try SimulatedAccountSnapshotInputContract(connectsExchangeExecutionAdapter: true) }
+            ),
+            (
+                "implementsLiveExecutionAdapter",
+                { try SimulatedAccountSnapshotInputContract(implementsLiveExecutionAdapter: true) }
+            ),
+            ("implementsOMS", { try SimulatedAccountSnapshotInputContract(implementsOMS: true) }),
+            ("writesRealOrder", { try SimulatedAccountSnapshotInputContract(writesRealOrder: true) }),
+            ("exposesLivePROConsole", { try SimulatedAccountSnapshotInputContract(exposesLivePROConsole: true) }),
+            ("exposesTradingButton", { try SimulatedAccountSnapshotInputContract(exposesTradingButton: true) }),
+            ("exposesLiveCommand", { try SimulatedAccountSnapshotInputContract(exposesLiveCommand: true) }),
+            ("exposesOrderForm", { try SimulatedAccountSnapshotInputContract(exposesOrderForm: true) })
+        ]
+
+        for flagCase in forbiddenFlagCases {
+            XCTAssertThrowsError(try flagCase.build()) { error in
+                XCTAssertEqual(
+                    error as? CoreError,
+                    .liveTradingBoundaryForbiddenCapability(flagCase.field)
+                )
+            }
+        }
+
+        let encoded = try JSONEncoder().encode(SimulatedAccountSnapshotInputContract.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["exposesAccountEndpointPayload"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(SimulatedAccountSnapshotInputContract.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("exposesAccountEndpointPayload")
+            )
+        }
+    }
+
+    func testSimulatedAccountSnapshotInputRejectsMTP142PayloadSchemaRuntimeMapping() throws {
+        // 测试场景：MTP-142 的 fixture-to-read-model mapping 只能列出稳定 Read Model 字段。
+        // 如果 input record 或 Codable payload 暴露 account endpoint payload、adapter request、
+        // schema 或 Runtime object，Core contract 必须在本地 deterministic validation 中拒绝。
+        XCTAssertThrowsError(
+            try SimulatedAccountSnapshotInputRecord(readModelFields: ["accountSnapshotId", "runtimeObject"])
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("snapshotInput.runtime")
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(SimulatedAccountSnapshotInputContract.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        var inputs = try XCTUnwrap(object["snapshotInputs"] as? [[String: Any]])
+        inputs[0]["readModelFields"] = [
+            "accountSnapshotId",
+            "accountEndpointPayload"
+        ]
+        object["snapshotInputs"] = inputs
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(SimulatedAccountSnapshotInputContract.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("snapshotInput.payload")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try SimulatedAccountSnapshotInputContract(allowedInputStates: [.available, .missing])
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "allowedInputStates",
+                    expected: SimulatedAccountSnapshotInputState.allCases.map(\.rawValue).joined(separator: ","),
+                    actual: [
+                        SimulatedAccountSnapshotInputState.available.rawValue,
+                        SimulatedAccountSnapshotInputState.missing.rawValue
+                    ].joined(separator: ",")
+                )
+            )
+        }
+    }
+
     func testLiveReadOnlyWorkbenchReadModelBoundaryDefinesMTP131Surface() throws {
         // 测试场景：MTP-131 只定义 Workbench / Dashboard 可展示的 Live readiness 只读边界，
         // 并把 forbidden UI surface、detail audit route 和 L3.x handoff 固定为可回放 fixture。

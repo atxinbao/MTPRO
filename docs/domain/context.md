@@ -1288,6 +1288,30 @@ MTP-141 source identity 不能绕过 adapter capability matrix。任何 source i
 
 MTP-141 validation 必须证明 `SimulatedPrivateAccountEventSourceIdentityContract`、`SimulatedPrivateAccountEventSourceIdentityRecord`、focused XCTest、contract docs、domain context、validation matrix、validation plan、latest summary、automation readiness doc 和 mechanical anchors 均固定 source identity / forbidden source boundary，并且 `bash checks/run.sh` 通过。MTP-141 不实现 simulated account snapshot input contract，不新增 Dashboard smoke handle；MTP-142 才能深化 snapshot input shape。
 
+`MTP-142-SIMULATED-ACCOUNT-SNAPSHOT-INPUT-SHAPE`
+
+MTP-142 定义 `simulated account snapshot input` 的 Core deterministic value contract。`SimulatedAccountSnapshotInputContract` 和 `SimulatedAccountSnapshotInputRecord` 只保存 `snapshotID`、MTP-141 `sourceIdentity`、`observedAt`、`sourceWatermark`、`freshnessStatus`、`inputState`、`fixtureReplayCursor`、`deterministicReplayLinkage`、`readModelFields` 和 checksum；不保存 account endpoint payload、broker payload、Adapter request、Runtime object 或 SQLite / DuckDB schema。
+
+`MTP-142-SNAPSHOT-ID-SOURCE-OBSERVEDAT-FRESHNESS-STATE`
+
+MTP-142 snapshot input 固定 `snapshotID=simulated-account-snapshot|fixture|mtp-142-local-account-snapshot|1704067620|fresh`、`sourceIdentity=fixture:private-stream:mtp-141-local-private-account-event`、`observedAt=1704067620`、`sourceWatermark=fixture-watermark:mtp-142:2024-01-01T00:07:00Z`、`freshnessStatus=fresh` 和 `inputState=available fixture input`。`missing fixture input` 与 `blocked fixture input` 只是状态分类，不是真实账户健康状态、broker connectivity 或 live monitoring runtime。
+
+`MTP-142-FIXTURE-VERSION-CHECKSUM-DETERMINISTIC-REPLAY-LINKAGE`
+
+MTP-142 snapshot input 复用 `fixture-v1`，并通过 `sourceIdentityLinkage=MTP-141-SIMULATED-PRIVATE-ACCOUNT-EVENT-SOURCE-IDENTITY`、`fixtureReplayCursor=fixture-replay-cursor:mtp-142:simulated-account-snapshot:001` 和 deterministic replay linkage 串回 MTP-141 source identity。Checksum 只用于本地 fixture input 的可重复验证，不是 exchange checksum、listenKey checkpoint、broker watermark 或 production stream offset。
+
+`MTP-142-FIXTURE-TO-READ-MODEL-MAPPING-BOUNDARY`
+
+MTP-142 fixture-to-read-model mapping 只允许输出 `accountSnapshotId`、`sourceIdentity`、`observedAt`、`sourceWatermark`、`freshnessStatus`、`inputState`、`fixtureReplayCursor`、`deterministicReplayLinkage` 和 `checksum`。Mapping 不得包含 account endpoint payload、broker payload、Adapter request、Runtime object、SQLite / DuckDB schema、secret、listenKey、margin、leverage、real PnL、Live PRO Console、trading button、live command 或 order form。
+
+`MTP-142-ACCOUNT-PAYLOAD-ISOLATION-TESTS`
+
+MTP-142 account payload isolation tests 必须拒绝 signed endpoint call、account endpoint call、listenKey creation、private WebSocket runtime、private stream runtime、account snapshot runtime、real account / balance / margin / leverage / PnL reads、real account payload exposure、broker payload import、Adapter request exposure、Runtime object exposure、SQLite / DuckDB schema exposure、account endpoint payload exposure、fixture-to-read-model mapping bypass、broker / exchange execution adapter connection、`LiveExecutionAdapter`、OMS、real order write、Live PRO Console、trading button、live command 和 order form。
+
+`MTP-142-SIMULATED-ACCOUNT-SNAPSHOT-INPUT-VALIDATION`
+
+MTP-142 validation 必须证明 `SimulatedAccountSnapshotInputContract`、`SimulatedAccountSnapshotInputRecord`、focused XCTest、contract docs、domain context、validation matrix、validation plan、latest summary、automation readiness doc 和 mechanical anchors 均固定 snapshot input / payload isolation boundary，并且 `bash checks/run.sh` 通过。MTP-142 不实现 account snapshot runtime、private stream runtime、balance / position update fixture semantics、freshness runtime 或 Workbench / Report / Events surface。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
