@@ -598,3 +598,70 @@ Focused validation anchors：
 - `checks/automation-readiness.sh` 必须机械检查 MTP-143 Core source、focused tests、contract、domain context、validation plan、trading matrix、latest summary 和 automation readiness doc anchors。
 
 MTP-143 不新增 Adapters、Runtime、App、Dashboard behavior，不新增 Dashboard smoke handle，不实现 private WebSocket runtime、private stream runtime、account snapshot runtime、freshness runtime 或 Workbench / Report / Events surface；MTP-144 / MTP-145 才能分别深化后续 freshness / forbidden tests 和 read-model-only surface。Project stage closeout 仍归属 MTP-146。
+
+## MTP-146 stage closeout
+
+`MTP-146-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-STAGE-CLOSEOUT`
+
+MTP-146 只收口 `MTPRO Private Stream / Account Snapshot Simulation Gate v1` 的 validation matrix、automation readiness anchors、forbidden capability evidence chain、read-model-only boundary evidence、Workbench / Report / Events simulation gate evidence、no Graphify / no Figma / no `.codex/*` / no `graphify-out/*` PR boundary 和 Stage Code Audit input material。它不新增 Core / App business capability，不修改 runtime，不实现 private stream runtime、account snapshot runtime、Live read-only runtime 或真实账户读取。
+
+`MTP-146-STAGE-AUDIT-INPUT-MATERIAL`
+
+MTP-146 的 stage audit input material 只落到：
+
+```text
+docs/audit/inputs/mtpro-private-stream-account-snapshot-simulation-gate-v1-stage-audit-input.md
+```
+
+该材料汇总 MTP-140 至 MTP-145 的 PR evidence、merge commit、GitHub required check、validation evidence chain、forbidden capability evidence、read-model-only boundary evidence、automation readiness evidence、known boundaries、Root Docs Delta input 和 Parent Codex handoff checklist。
+
+`MTP-146-NO-FINAL-STAGE-CODE-AUDIT`
+
+MTP-146 不输出最终 Stage Code Audit Report。最终报告必须在 MTP-140 至 MTP-146 全部 `Done` 且 Linear Project status 被设置或确认为 `Completed`、`type=completed`、`completedAt` 非空后，由 Parent Codex 单独输出到：
+
+```text
+docs/audit/mtpro-private-stream-account-snapshot-simulation-gate-v1-stage-code-audit.md
+```
+
+`MTP-146-VALIDATION-EVIDENCE-CHAIN`
+
+MTP-146 收口以下 evidence chain：
+
+- MTP-140：private stream / account snapshot simulation gate terminology、fixture / simulated / future real private stream boundary、L3.1 APB relationship、forbidden baseline 和 no auto-authorization。
+- MTP-141：simulated private account event source identity、fixture / simulated / future-gated labels、checksum / freshness linkage、forbidden live stream source tests 和 adapter capability matrix bypass guard。
+- MTP-142：simulated account snapshot input shape、snapshot id、source identity、observedAt、freshness status、input state、fixture version、checksum、deterministic replay linkage、fixture-to-read-model mapping boundary 和 account payload isolation tests。
+- MTP-143：simulated account snapshot update fixture semantics、account snapshot event fixture、balance update fixture、position update fixture、MTP-141 / MTP-142 linkage checksum boundary、read-model-only boundary 和 interpretation isolation tests。
+- MTP-144：simulated account snapshot freshness evidence、fresh / stale / blocked / missing evidence、MTP-141 / MTP-142 / MTP-143 freshness checksum boundary、forbidden endpoint/runtime tests 和 payload/schema/runtime non-exposure tests。
+- MTP-145：Workbench / Report / Events read-model-only simulation gate surface、Dashboard smoke handle `privateStreamSimulationGateEvidence=4`、Event Timeline trace 和 forbidden UI/runtime surface。
+
+`MTP-146-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN`
+
+MTP-146 必须确认以下 forbidden capabilities 仍被阻断：signed endpoint、account endpoint、listenKey、listenKey create / keepalive、private WebSocket runtime、private stream runtime、account snapshot runtime、account / position / balance runtime、real account read、broker position sync、real account balance、real position、margin、leverage、real PnL runtime、execution report runtime / ingestion、broker fill runtime / recorder / fact、reconciliation runtime、broker action、broker integration、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、API key input、secret storage、account connect、broker connect、Live PRO Console、live command、order form、trading button、emergency stop / shutdown / restore executable action、Graphify update、Figma modification 和 unauthorized next Project planning / Linear creation。
+
+`MTP-146-READ-MODEL-ONLY-BOUNDARY-EVIDENCE`
+
+MTP-146 必须确认 Workbench / Dashboard / Report / Event Timeline 只消费 `PrivateStreamSimulationGateEvidenceSurfaceReadModel` / `PrivateStreamSimulationGateEvidenceSurfaceViewModel` 的 read-model-only evidence，不读取 Adapter request、Runtime object、SQLite / DuckDB schema、account endpoint payload、real account payload、broker payload、broker state、secret、signed endpoint、account endpoint、listenKey 或 private WebSocket。
+
+`MTP-146-AUTOMATION-READINESS-STAGE-CLOSEOUT`
+
+MTP-146 必须在 `checks/automation-readiness.sh` 中机械检查 stage audit input、contract anchors、validation matrix、validation plan、latest summary、automation readiness doc、MTP-140 至 MTP-145 source / test / surface anchors、PR #255 至 PR #260 evidence、Dashboard smoke handle 和 no final Stage Code Audit boundary。
+
+`MTP-146-STAGE-CLOSEOUT-VALIDATION`
+
+Required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `docs/audit/inputs/mtpro-private-stream-account-snapshot-simulation-gate-v1-stage-audit-input.md` 必须包含 MTP-146 stage closeout、stage audit input material、no final Stage Code Audit、validation evidence chain、forbidden capability evidence chain、read-model-only boundary evidence、automation readiness evidence、known boundaries 和 Stage Code Audit handoff checklist。
+- `docs/contracts/private-stream-account-snapshot-simulation-gate-contract.md` 必须包含 MTP-146 stage closeout anchors。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-146 issue backfill 和 MTP-146 stage closeout section。
+- `docs/validation/validation-plan.md` 必须包含 MTP-146 required validation。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-146 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Private Stream / Account Snapshot Simulation Gate stage audit input anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-146 audit input、contract、matrix、validation plan、latest summary、automation readiness doc、PR evidence 和 forbidden capability boundary strings。
+
+MTP-146 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`，不修改 Linear status，不创建下一 Project / Issue，不推进下一阶段，不启动下一阶段 `symphony-issue`。

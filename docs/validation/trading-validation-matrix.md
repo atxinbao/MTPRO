@@ -381,6 +381,27 @@ MTP-53 对 Paper Workflow Control Shell v1 的本地控制壳、可观察性、D
 - `TVM-PAPER-RUNTIME-KERNEL`
 - `TVM-FUTURE-ISSUE-BACKFILL`
 
+## MTP-146 Private Stream / Account Snapshot 阶段收口
+
+日期：2026-05-30
+
+执行者：Codex
+
+`MTP-146 issue backfill`
+
+MTP-146 issue backfill 已新增 `docs/audit/inputs/mtpro-private-stream-account-snapshot-simulation-gate-v1-stage-audit-input.md`，集中记录 MTP-140 至 MTP-145 的 PR evidence、merge commit、required check、validation evidence chain、forbidden capability evidence chain、read-model-only boundary evidence、Dashboard smoke evidence、automation readiness evidence、known boundaries、Root Docs Delta input 和 Stage Code Audit handoff checklist；anchors 为 `MTP-146-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-STAGE-CLOSEOUT`、`MTP-146-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-146-NO-FINAL-STAGE-CODE-AUDIT`、`MTP-146-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-STAGE-AUDIT-INPUT`、`MTP-146-VALIDATION-EVIDENCE-CHAIN`、`MTP-146-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN`、`MTP-146-READ-MODEL-ONLY-BOUNDARY-EVIDENCE`、`MTP-146-AUTOMATION-READINESS-STAGE-CLOSEOUT`、`MTP-146-STAGE-CLOSEOUT-VALIDATION` 和 `MTP-146-NO-GRAPHIFY-FIGMA-LINEAR-MUTATION`。
+
+MTP-146 只准备 Parent Codex Stage Code Audit input material，不输出最终 Stage Code Audit Report，不创建下一 Project / Issue，不推进下一阶段，不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`，不实现 private stream runtime、account snapshot runtime、signed endpoint、account endpoint / listenKey、private WebSocket runtime、broker adapter、`LiveExecutionAdapter`、OMS、Live PRO Console、trading button、live command 或 order form。
+
+| 收口项 | Evidence location | 审计用途 |
+| --- | --- | --- |
+| Issue / PR evidence | `docs/audit/inputs/mtpro-private-stream-account-snapshot-simulation-gate-v1-stage-audit-input.md` 的 `Issue / PR evidence input` | 为 Parent Codex 汇总 PR #255、#256、#257、#258、#259、#260 和 MTP-146 PR 提供输入。 |
+| Private stream / account snapshot validation evidence chain | `docs/audit/inputs/mtpro-private-stream-account-snapshot-simulation-gate-v1-stage-audit-input.md` 的 `Private stream / account snapshot validation evidence chain` | 确认 terminology、source identity、snapshot input、update fixture、freshness evidence、Workbench / Report / Events surface 和 Dashboard smoke 均有 contract / source / test / smoke / PR evidence。 |
+| Dashboard smoke | `docs/audit/inputs/mtpro-private-stream-account-snapshot-simulation-gate-v1-stage-audit-input.md` 的 Dashboard smoke evidence | 确认 `privateStreamSimulationGateEvidence=4`、`timelineItems=72`、`readModelOnly=true` 和 `workbenchReadModelOnly=true` 仍可定位。 |
+| Forbidden capability evidence | `docs/audit/inputs/mtpro-private-stream-account-snapshot-simulation-gate-v1-stage-audit-input.md` 的 `Forbidden capability evidence` | 为 Stage Code Audit 的 no signed endpoint、no account endpoint / listenKey、no private WebSocket runtime、no account snapshot runtime、no broker adapter、no `LiveExecutionAdapter`、no OMS、no live command、no Graphify 和 no Figma 提供输入。 |
+| Automation readiness | `checks/automation-readiness.sh`、`docs/validation/validation-plan.md`、`docs/validation/latest-verification-summary.md` | 确认 MTP-146 audit input、contract anchors、matrix anchors、latest summary、validation plan、source / test / surface anchors、Dashboard smoke evidence 和 PR Automation 证据链仍完整。 |
+| Root Docs Delta input | `docs/audit/inputs/mtpro-private-stream-account-snapshot-simulation-gate-v1-stage-audit-input.md` 的 `Root Docs Delta input` | 提醒 Parent Codex 在最终 Stage Code Audit Report 中检查 root docs，只同步已发生事实，并在 Root Docs Refresh Gate closure 后输出当前阶段完成进度条。 |
+
 ## MTP-96 Event-Driven Paper Runtime 候选矩阵入口
 
 日期：2026-05-25
