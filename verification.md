@@ -12892,6 +12892,42 @@ Root Docs Refresh Gate 更新：
 
 ---
 
+## 2026-05-30 — Live Monitoring Read-only Console v2 Docs-only Planning Record
+
+执行者：Codex
+
+目的：
+
+- 将 Human 确认的 `MTPRO Live Monitoring Read-only Console v2` planning draft 落仓为 docs-only Project Planning Record。
+- 记录 L3.3 Project name、Target maturity、Target Engines / Layers、goal、scope、non-goals、issue order、dependencies、validation requirements、evidence requirements、first executable issue candidate、WIP=1 / queue preflight rule、Linear write boundary 和 repository record boundary。
+- 明确该 planning record 不是 Project closure，不更新 `Final Product Goal Progress`，不更新旧 `Engine Maturity Roadmap Progress`，不授权 implementation。
+
+更新内容：
+
+- 新增 `docs/planning/projects/mtpro-live-monitoring-read-only-console-v2-plan.md`。
+- 更新 `docs/planning/linear-draft-plan.md`，新增 L3.3 docs-only planning record / non-executable 入口，并将当前 planning record 指向 L3.3。
+- 更新 `docs/validation/latest-verification-summary.md`，记录 L3.3 Project-level planning record 已落仓且仍需 Linear 写入和 Parent Codex queue preflight 后才可执行。
+- 更新 `BLUEPRINT.md`，只增加 L3.3 planning record 引用，不复制完整 issue body，不更新进度条，不授权 execution。
+- 追加本验证记录。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | docs-only planning record diff 无 whitespace error。 |
+| `bash checks/run.sh` | pass | 通过项目完整 checks；该 planning record 不写业务代码、不创建 Linear、不推进 Todo。 |
+
+边界确认：
+
+- 不创建 Linear Project / Issue，不修改 Linear status，不推进 Todo。
+- 不启动 `@002 / PAR`，不启动 Symphony / symphony-issue。
+- 不运行 Graphify，不修改 Figma。
+- 不写业务代码，不实现 Live Monitoring runtime、Live readiness runtime 或 Live PRO Console。
+- 不实现 signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、real PnL、trading button、live command、order form、emergency stop、shutdown 或 restore。
+- `.codex/*` 和 `graphify-out/*` 不进入 PR。
+
+---
+
 ## 2026-05-30 — MTP-146 Private Stream / Account Snapshot Simulation Gate Stage Closeout
 
 执行者：Codex
