@@ -1312,6 +1312,26 @@ MTP-142 account payload isolation tests 必须拒绝 signed endpoint call、acco
 
 MTP-142 validation 必须证明 `SimulatedAccountSnapshotInputContract`、`SimulatedAccountSnapshotInputRecord`、focused XCTest、contract docs、domain context、validation matrix、validation plan、latest summary、automation readiness doc 和 mechanical anchors 均固定 snapshot input / payload isolation boundary，并且 `bash checks/run.sh` 通过。MTP-142 不实现 account snapshot runtime、private stream runtime、balance / position update fixture semantics、freshness runtime 或 Workbench / Report / Events surface。
 
+`MTP-143-SIMULATED-ACCOUNT-SNAPSHOT-UPDATE-FIXTURE-SEMANTICS`
+
+MTP-143 定义 `simulated account snapshot update fixture` 的 Core deterministic value contract。`SimulatedAccountSnapshotUpdateFixture` 和 `SimulatedAccountSnapshotUpdateFixtureRecord` 只保存 account snapshot event fixture、balance update fixture 和 position update fixture 的本地 update identity、fixture-only source semantics、MTP-141 source identity、MTP-142 snapshot input id、fixture version、deterministic summary linkage、read-model field names 和 checksum；不保存真实 account payload、broker payload、Adapter request、Runtime object、SQLite / DuckDB schema、execution report、broker fill、reconciliation 或真实账户状态。
+
+`MTP-143-MTP141-MTP142-LINKAGE-CHECKSUM-BOUNDARY`
+
+MTP-143 update fixture 必须串回 `MTP-141-SIMULATED-PRIVATE-ACCOUNT-EVENT-SOURCE-IDENTITY` 和 `MTP-142-SIMULATED-ACCOUNT-SNAPSHOT-INPUT-SHAPE`。固定 `snapshotInputID=simulated-account-snapshot|fixture|mtp-142-local-account-snapshot|1704067620|fresh`、`sourceIdentity=fixture:private-stream:mtp-141-local-private-account-event` 和 `fixtureVersion=fixture-v1`。Checksum 只证明三条 update fixture record 的 canonical preimage 可重复，不是 exchange checksum、listenKey checkpoint、private stream watermark 或 broker reconciliation marker。
+
+`MTP-143-BALANCE-POSITION-UPDATE-READ-MODEL-ONLY-BOUNDARY`
+
+MTP-143 的 balance update fixture 和 position update fixture 只能作为 read-model-only 字段命名与 deterministic summary evidence。允许字段只包括 `accountSnapshotUpdateFixtureId`、`balanceUpdateFixtureId`、`positionUpdateFixtureId`、`sourceIdentity`、`snapshotInputId`、`fixtureVersion`、`fixtureOnlySourceSemantics`、`deterministicSummaryLinkage` 和 `checksum`；不得升级为真实余额、真实持仓、broker position sync、margin、leverage、buying power、real PnL、account endpoint payload 或 broker portfolio。
+
+`MTP-143-UPDATE-FIXTURE-INTERPRETATION-ISOLATION-TESTS`
+
+MTP-143 update fixture interpretation isolation tests 必须拒绝 signed endpoint call、account endpoint call、listenKey creation、private WebSocket runtime、private stream runtime、account snapshot runtime、real account read / update、broker position sync、real balance / margin / leverage / real PnL read、broker / exchange execution adapter connection、`LiveExecutionAdapter`、execution report、broker fill、reconciliation、OMS、real order lifecycle、Live PRO Console、trading button、live command 和 order form。
+
+`MTP-143-SIMULATED-ACCOUNT-SNAPSHOT-UPDATE-FIXTURE-VALIDATION`
+
+MTP-143 validation 必须证明 `SimulatedAccountSnapshotUpdateFixture`、`SimulatedAccountSnapshotUpdateFixtureRecord`、focused XCTest、contract docs、domain context、validation matrix、validation plan、latest summary、automation readiness doc 和 mechanical anchors 均固定 fixture-only update semantics / read-model-only boundary，并且 `bash checks/run.sh` 通过。MTP-143 不实现 private stream runtime、account snapshot runtime、freshness runtime 或 Workbench / Report / Events surface。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

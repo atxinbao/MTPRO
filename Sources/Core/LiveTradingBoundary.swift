@@ -2932,6 +2932,839 @@ public struct AccountPositionBalanceReadModelOnlyFixtureContract: Codable, Equat
     }
 }
 
+/// SimulatedAccountSnapshotUpdateFixtureKind 固定 MTP-143 允许表达的 update fixture 类型。
+///
+/// 这些类型只描述本地 deterministic fixture 里的 account snapshot event、balance update 和
+/// position update 语义；它们不能被解释为真实账户事件、broker position sync、real PnL
+/// 或 private stream runtime。
+public enum SimulatedAccountSnapshotUpdateFixtureKind: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case accountSnapshotEventFixture = "account snapshot event fixture"
+    case balanceUpdateFixture = "balance update fixture"
+    case positionUpdateFixture = "position update fixture"
+}
+
+/// SimulatedAccountSnapshotUpdateInterpretationBoundary 固定 MTP-143 的解释边界。
+///
+/// `fixtureOnly` 和 `simulatedReadModelOnly` 是当前唯一可验证语义；`paperInterpretationOnly`
+/// 只允许作为 paper / simulated evidence 的只读解释边界；`futureRealInterpretationGated`
+/// 只能作为未来真实 private stream 独立 Project 的门禁标签，不能在当前代码里恢复为 runtime。
+public enum SimulatedAccountSnapshotUpdateInterpretationBoundary:
+    String,
+    Codable,
+    CaseIterable,
+    Equatable,
+    Hashable,
+    Sendable
+{
+    case fixtureOnly = "fixture-only update semantics"
+    case simulatedReadModelOnly = "simulated read-model-only update semantics"
+    case paperInterpretationOnly = "paper interpretation only"
+    case futureRealInterpretationGated = "future-gated real interpretation label"
+}
+
+/// SimulatedAccountSnapshotUpdateFixtureForbiddenCapability 列出 MTP-143 update fixture 必须拒绝的能力。
+///
+/// 这些值只服务 deterministic forbidden tests 和 PR boundary evidence。当前 issue 不创建 signed /
+/// account endpoint、listenKey、private WebSocket、account snapshot runtime、broker adapter、
+/// execution report、broker fill、reconciliation、OMS、真实订单或任何交易 UI surface。
+public enum SimulatedAccountSnapshotUpdateFixtureForbiddenCapability:
+    String,
+    Codable,
+    CaseIterable,
+    Equatable,
+    Hashable,
+    Sendable
+{
+    case signedEndpointCall = "signed endpoint call"
+    case accountEndpointCall = "account endpoint call"
+    case listenKeyCreation = "listenKey creation"
+    case privateWebSocketRuntime = "private WebSocket runtime"
+    case privateStreamRuntime = "private stream runtime"
+    case accountSnapshotRuntime = "account snapshot runtime"
+    case realAccountUpdate = "real account update"
+    case realAccountRead = "real account read"
+    case brokerPositionSync = "broker position sync"
+    case realBalanceRead = "real balance read"
+    case marginRead = "margin read"
+    case leverageRead = "leverage read"
+    case realPnLRead = "real PnL read"
+    case brokerAdapterConnection = "broker adapter connection"
+    case exchangeExecutionAdapterConnection = "exchange execution adapter connection"
+    case liveExecutionAdapterImplementation = "LiveExecutionAdapter implementation"
+    case executionReportConsumption = "execution report consumption"
+    case brokerFillConsumption = "broker fill consumption"
+    case reconciliationRuntime = "reconciliation runtime"
+    case omsImplementation = "OMS implementation"
+    case realOrderLifecycle = "real order lifecycle"
+    case realOrderWrite = "real order write"
+    case livePROConsoleSurface = "Live PRO Console surface"
+    case tradingButtonSurface = "trading button surface"
+    case liveCommandSurface = "live command surface"
+    case orderFormSurface = "order form surface"
+}
+
+/// SimulatedAccountSnapshotUpdateFixtureRecord 是 MTP-143 的单条 update fixture 记录。
+///
+/// Record 只把 MTP-141 source identity 与 MTP-142 simulated account snapshot input 串成
+/// 本地 fixture-only update summary。它不保存真实余额、真实持仓、margin、leverage、real PnL、
+/// broker payload、execution report 或 Runtime object，避免 balance / position update fixture
+/// 被误读为真实账户或 broker position 更新。
+public struct SimulatedAccountSnapshotUpdateFixtureRecord: Codable, Equatable, Sendable {
+    public let updateKind: SimulatedAccountSnapshotUpdateFixtureKind
+    public let updateID: String
+    public let fixtureOnlySourceSemantics: String
+    public let sourceKind: SimulatedPrivateAccountEventSourceKind
+    public let sourceIdentity: String
+    public let snapshotInputID: String
+    public let fixtureVersion: FixtureVersion
+    public let deterministicSummaryLinkage: String
+    public let readModelFields: [String]
+
+    public var canonicalLine: String {
+        [
+            updateKind.rawValue,
+            updateID,
+            fixtureOnlySourceSemantics,
+            sourceKind.rawValue,
+            sourceIdentity,
+            snapshotInputID,
+            fixtureVersion.rawValue,
+            deterministicSummaryLinkage,
+            readModelFields.joined(separator: "+")
+        ].joined(separator: "|")
+    }
+
+    public var updateFixtureBoundaryHeld: Bool {
+        updateID == Self.requiredUpdateID(for: updateKind)
+            && fixtureOnlySourceSemantics == Self.requiredFixtureOnlySourceSemantics
+            && sourceKind == Self.requiredSourceKind
+            && sourceIdentity == Self.requiredSourceIdentity
+            && snapshotInputID == Self.requiredSnapshotInputID
+            && fixtureVersion == Self.requiredFixtureVersion
+            && deterministicSummaryLinkage == Self.requiredDeterministicSummaryLinkage(for: updateKind)
+            && readModelFields == Self.requiredReadModelFields(for: updateKind)
+            && containsForbiddenUpdateText(Self.forbiddenUpdateFieldTokens) == false
+    }
+
+    public init(
+        updateKind: SimulatedAccountSnapshotUpdateFixtureKind,
+        updateID: String? = nil,
+        fixtureOnlySourceSemantics: String = Self.requiredFixtureOnlySourceSemantics,
+        sourceKind: SimulatedPrivateAccountEventSourceKind = Self.requiredSourceKind,
+        sourceIdentity: String = Self.requiredSourceIdentity,
+        snapshotInputID: String = Self.requiredSnapshotInputID,
+        fixtureVersion: FixtureVersion = Self.requiredFixtureVersion,
+        deterministicSummaryLinkage: String? = nil,
+        readModelFields: [String]? = nil
+    ) throws {
+        let resolvedUpdateID = updateID ?? Self.requiredUpdateID(for: updateKind)
+        let resolvedSummaryLinkage =
+            deterministicSummaryLinkage ?? Self.requiredDeterministicSummaryLinkage(for: updateKind)
+        let resolvedReadModelFields = readModelFields ?? Self.requiredReadModelFields(for: updateKind)
+        try Self.validate(
+            updateKind: updateKind,
+            updateID: resolvedUpdateID,
+            fixtureOnlySourceSemantics: fixtureOnlySourceSemantics,
+            sourceKind: sourceKind,
+            sourceIdentity: sourceIdentity,
+            snapshotInputID: snapshotInputID,
+            fixtureVersion: fixtureVersion,
+            deterministicSummaryLinkage: resolvedSummaryLinkage,
+            readModelFields: resolvedReadModelFields
+        )
+
+        self.updateKind = updateKind
+        self.updateID = resolvedUpdateID
+        self.fixtureOnlySourceSemantics = fixtureOnlySourceSemantics
+        self.sourceKind = sourceKind
+        self.sourceIdentity = sourceIdentity
+        self.snapshotInputID = snapshotInputID
+        self.fixtureVersion = fixtureVersion
+        self.deterministicSummaryLinkage = resolvedSummaryLinkage
+        self.readModelFields = resolvedReadModelFields
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            updateKind: try container.decode(SimulatedAccountSnapshotUpdateFixtureKind.self, forKey: .updateKind),
+            updateID: try container.decode(String.self, forKey: .updateID),
+            fixtureOnlySourceSemantics: try container.decode(String.self, forKey: .fixtureOnlySourceSemantics),
+            sourceKind: try container.decode(SimulatedPrivateAccountEventSourceKind.self, forKey: .sourceKind),
+            sourceIdentity: try container.decode(String.self, forKey: .sourceIdentity),
+            snapshotInputID: try container.decode(String.self, forKey: .snapshotInputID),
+            fixtureVersion: try container.decode(FixtureVersion.self, forKey: .fixtureVersion),
+            deterministicSummaryLinkage: try container.decode(String.self, forKey: .deterministicSummaryLinkage),
+            readModelFields: try container.decode([String].self, forKey: .readModelFields)
+        )
+    }
+
+    public func containsForbiddenUpdateText(_ forbiddenTokens: [String]) -> Bool {
+        let searchable = [
+            updateKind.rawValue,
+            updateID,
+            fixtureOnlySourceSemantics,
+            sourceKind.rawValue,
+            sourceIdentity,
+            snapshotInputID,
+            fixtureVersion.rawValue,
+            deterministicSummaryLinkage,
+            readModelFields.joined(separator: "|")
+        ]
+            .joined(separator: "|")
+            .lowercased()
+
+        return forbiddenTokens.contains { token in
+            searchable.contains(token.lowercased())
+        }
+    }
+
+    public static let requiredFixtureOnlySourceSemantics =
+        "fixture-only simulated account snapshot update"
+    public static let requiredSourceKind: SimulatedPrivateAccountEventSourceKind = .fixturePrivateStreamSource
+    public static let requiredSourceIdentity = SimulatedAccountSnapshotInputRecord.requiredSourceIdentity
+    public static let requiredSnapshotInputID = SimulatedAccountSnapshotInputRecord.requiredSnapshotID
+    public static let requiredFixtureVersion = SimulatedAccountSnapshotInputContract.requiredFixtureVersion
+    public static let forbiddenUpdateFieldTokens = [
+        "accountendpoint",
+        "account-endpoint",
+        "listenkey",
+        "privatewebsocket",
+        "private-websocket",
+        "runtime",
+        "broker",
+        "executionreport",
+        "execution-report",
+        "brokerfill",
+        "broker-fill",
+        "reconciliation",
+        "oms",
+        "realaccount",
+        "real-account",
+        "realbalance",
+        "real-balance",
+        "margin",
+        "leverage",
+        "realpnl",
+        "real-pnl",
+        "real_pnl",
+        "liveexecutionadapter",
+        "live-execution-adapter",
+        "tradingbutton",
+        "trading-button",
+        "livecommand",
+        "live-command",
+        "orderform",
+        "order-form"
+    ]
+
+    public static func requiredUpdateID(
+        for updateKind: SimulatedAccountSnapshotUpdateFixtureKind
+    ) -> String {
+        switch updateKind {
+        case .accountSnapshotEventFixture:
+            return "simulated-account-snapshot-update|fixture|mtp-143-account-event|001"
+        case .balanceUpdateFixture:
+            return "simulated-account-snapshot-update|fixture|mtp-143-balance-update|001"
+        case .positionUpdateFixture:
+            return "simulated-account-snapshot-update|fixture|mtp-143-position-update|001"
+        }
+    }
+
+    public static func requiredDeterministicSummaryLinkage(
+        for updateKind: SimulatedAccountSnapshotUpdateFixtureKind
+    ) -> String {
+        [
+            "MTP-141-SIMULATED-PRIVATE-ACCOUNT-EVENT-SOURCE-IDENTITY",
+            "MTP-142-SIMULATED-ACCOUNT-SNAPSHOT-INPUT-SHAPE",
+            requiredSnapshotInputID,
+            requiredSourceIdentity,
+            requiredFixtureVersion.rawValue,
+            updateKind.rawValue,
+            requiredUpdateID(for: updateKind)
+        ].joined(separator: "|")
+    }
+
+    public static func requiredReadModelFields(
+        for updateKind: SimulatedAccountSnapshotUpdateFixtureKind
+    ) -> [String] {
+        switch updateKind {
+        case .accountSnapshotEventFixture:
+            return [
+                "accountSnapshotUpdateFixtureId",
+                "sourceIdentity",
+                "snapshotInputId",
+                "fixtureVersion",
+                "fixtureOnlySourceSemantics",
+                "deterministicSummaryLinkage",
+                "checksum"
+            ]
+        case .balanceUpdateFixture:
+            return [
+                "balanceUpdateFixtureId",
+                "sourceIdentity",
+                "snapshotInputId",
+                "fixtureVersion",
+                "fixtureOnlySourceSemantics",
+                "deterministicSummaryLinkage",
+                "checksum"
+            ]
+        case .positionUpdateFixture:
+            return [
+                "positionUpdateFixtureId",
+                "sourceIdentity",
+                "snapshotInputId",
+                "fixtureVersion",
+                "fixtureOnlySourceSemantics",
+                "deterministicSummaryLinkage",
+                "checksum"
+            ]
+        }
+    }
+
+    private static func validate(
+        updateKind: SimulatedAccountSnapshotUpdateFixtureKind,
+        updateID: String,
+        fixtureOnlySourceSemantics: String,
+        sourceKind: SimulatedPrivateAccountEventSourceKind,
+        sourceIdentity: String,
+        snapshotInputID: String,
+        fixtureVersion: FixtureVersion,
+        deterministicSummaryLinkage: String,
+        readModelFields: [String]
+    ) throws {
+        guard updateID == Self.requiredUpdateID(for: updateKind) else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "\(updateKind.rawValue).updateID",
+                expected: Self.requiredUpdateID(for: updateKind),
+                actual: updateID
+            )
+        }
+        guard fixtureOnlySourceSemantics == Self.requiredFixtureOnlySourceSemantics else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "\(updateKind.rawValue).fixtureOnlySourceSemantics",
+                expected: Self.requiredFixtureOnlySourceSemantics,
+                actual: fixtureOnlySourceSemantics
+            )
+        }
+        guard sourceKind == Self.requiredSourceKind else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "\(updateKind.rawValue).sourceKind",
+                expected: Self.requiredSourceKind.rawValue,
+                actual: sourceKind.rawValue
+            )
+        }
+        guard sourceIdentity == Self.requiredSourceIdentity else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "\(updateKind.rawValue).sourceIdentity",
+                expected: Self.requiredSourceIdentity,
+                actual: sourceIdentity
+            )
+        }
+        guard snapshotInputID == Self.requiredSnapshotInputID else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "\(updateKind.rawValue).snapshotInputID",
+                expected: Self.requiredSnapshotInputID,
+                actual: snapshotInputID
+            )
+        }
+        guard fixtureVersion == Self.requiredFixtureVersion else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "\(updateKind.rawValue).fixtureVersion",
+                expected: Self.requiredFixtureVersion.rawValue,
+                actual: fixtureVersion.rawValue
+            )
+        }
+        guard deterministicSummaryLinkage == Self.requiredDeterministicSummaryLinkage(for: updateKind) else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "\(updateKind.rawValue).deterministicSummaryLinkage",
+                expected: Self.requiredDeterministicSummaryLinkage(for: updateKind),
+                actual: deterministicSummaryLinkage
+            )
+        }
+        let searchable = [
+            updateID,
+            fixtureOnlySourceSemantics,
+            sourceIdentity,
+            snapshotInputID,
+            deterministicSummaryLinkage,
+            readModelFields.joined(separator: "|")
+        ].joined(separator: "|").lowercased()
+        if let forbiddenToken = Self.forbiddenUpdateFieldTokens.first(where: { searchable.contains($0.lowercased()) }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("snapshotUpdate.\(forbiddenToken)")
+        }
+        guard readModelFields == Self.requiredReadModelFields(for: updateKind) else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "\(updateKind.rawValue).readModelFields",
+                expected: Self.requiredReadModelFields(for: updateKind).joined(separator: ","),
+                actual: readModelFields.joined(separator: ",")
+            )
+        }
+    }
+}
+
+/// SimulatedAccountSnapshotUpdateFixture 是 MTP-143 的 fixture-only update 合同。
+///
+/// 合同只定义 account snapshot event fixture、balance update fixture 和 position update fixture
+/// 的 deterministic summary linkage。所有 update 都必须携带 fixture-only / simulated source 语义，
+/// 并绑定 MTP-141 source identity 与 MTP-142 simulated snapshot input；它不授权真实账户更新、
+/// broker position sync、real PnL、private stream runtime 或 account snapshot runtime。
+public struct SimulatedAccountSnapshotUpdateFixture: Codable, Equatable, Sendable {
+    public let contractID: Identifier
+    public let issueID: Identifier
+    public let matrixID: String
+    public let sourceIdentityLinkage: String
+    public let snapshotInputID: String
+    public let fixtureVersion: FixtureVersion
+    public let updateRecords: [SimulatedAccountSnapshotUpdateFixtureRecord]
+    public let interpretationBoundaries: [SimulatedAccountSnapshotUpdateInterpretationBoundary]
+    public let checksum: String
+    public let checksumMatchedCanonicalPreimage: Bool
+    public let forbiddenCapabilities: [SimulatedAccountSnapshotUpdateFixtureForbiddenCapability]
+    public let callsSignedEndpoint: Bool
+    public let callsAccountEndpoint: Bool
+    public let createsListenKey: Bool
+    public let opensPrivateWebSocket: Bool
+    public let runsPrivateStreamRuntime: Bool
+    public let runsAccountSnapshotRuntime: Bool
+    public let readsRealAccount: Bool
+    public let updatesRealAccount: Bool
+    public let syncsBrokerPosition: Bool
+    public let readsRealBalance: Bool
+    public let readsMargin: Bool
+    public let readsLeverage: Bool
+    public let readsRealPnL: Bool
+    public let connectsBrokerAdapter: Bool
+    public let connectsExchangeExecutionAdapter: Bool
+    public let implementsLiveExecutionAdapter: Bool
+    public let consumesExecutionReport: Bool
+    public let consumesBrokerFill: Bool
+    public let runsReconciliation: Bool
+    public let implementsOMS: Bool
+    public let writesRealOrder: Bool
+    public let exposesLivePROConsole: Bool
+    public let exposesTradingButton: Bool
+    public let exposesLiveCommand: Bool
+    public let exposesOrderForm: Bool
+
+    public var updateFixtureBoundaryHeld: Bool {
+        matrixID == Self.requiredMatrixID
+            && sourceIdentityLinkage == Self.requiredSourceIdentityLinkage
+            && snapshotInputID == Self.requiredSnapshotInputID
+            && fixtureVersion == Self.requiredFixtureVersion
+            && updateRecords == Self.requiredUpdateRecords
+            && updateRecords.allSatisfy(\.updateFixtureBoundaryHeld)
+            && interpretationBoundaries == Self.requiredInterpretationBoundaries
+            && checksum == Self.requiredChecksum
+            && checksumMatchedCanonicalPreimage
+            && forbiddenCapabilities == Self.requiredForbiddenCapabilities
+            && callsSignedEndpoint == false
+            && callsAccountEndpoint == false
+            && createsListenKey == false
+            && opensPrivateWebSocket == false
+            && runsPrivateStreamRuntime == false
+            && runsAccountSnapshotRuntime == false
+            && readsRealAccount == false
+            && updatesRealAccount == false
+            && syncsBrokerPosition == false
+            && readsRealBalance == false
+            && readsMargin == false
+            && readsLeverage == false
+            && readsRealPnL == false
+            && connectsBrokerAdapter == false
+            && connectsExchangeExecutionAdapter == false
+            && implementsLiveExecutionAdapter == false
+            && consumesExecutionReport == false
+            && consumesBrokerFill == false
+            && runsReconciliation == false
+            && implementsOMS == false
+            && writesRealOrder == false
+            && exposesLivePROConsole == false
+            && exposesTradingButton == false
+            && exposesLiveCommand == false
+            && exposesOrderForm == false
+    }
+
+    public var canonicalPreimage: String {
+        Self.canonicalPreimage(for: updateRecords)
+    }
+
+    public init(
+        contractID: Identifier = try! Identifier("mtp-143-simulated-account-snapshot-update-fixture"),
+        issueID: Identifier = try! Identifier("MTP-143"),
+        matrixID: String = Self.requiredMatrixID,
+        sourceIdentityLinkage: String = Self.requiredSourceIdentityLinkage,
+        snapshotInputID: String = Self.requiredSnapshotInputID,
+        fixtureVersion: FixtureVersion = Self.requiredFixtureVersion,
+        updateRecords: [SimulatedAccountSnapshotUpdateFixtureRecord] = Self.requiredUpdateRecords,
+        interpretationBoundaries: [SimulatedAccountSnapshotUpdateInterpretationBoundary] =
+            Self.requiredInterpretationBoundaries,
+        checksum: String? = nil,
+        checksumMatchedCanonicalPreimage: Bool = true,
+        forbiddenCapabilities: [SimulatedAccountSnapshotUpdateFixtureForbiddenCapability] =
+            Self.requiredForbiddenCapabilities,
+        callsSignedEndpoint: Bool = false,
+        callsAccountEndpoint: Bool = false,
+        createsListenKey: Bool = false,
+        opensPrivateWebSocket: Bool = false,
+        runsPrivateStreamRuntime: Bool = false,
+        runsAccountSnapshotRuntime: Bool = false,
+        readsRealAccount: Bool = false,
+        updatesRealAccount: Bool = false,
+        syncsBrokerPosition: Bool = false,
+        readsRealBalance: Bool = false,
+        readsMargin: Bool = false,
+        readsLeverage: Bool = false,
+        readsRealPnL: Bool = false,
+        connectsBrokerAdapter: Bool = false,
+        connectsExchangeExecutionAdapter: Bool = false,
+        implementsLiveExecutionAdapter: Bool = false,
+        consumesExecutionReport: Bool = false,
+        consumesBrokerFill: Bool = false,
+        runsReconciliation: Bool = false,
+        implementsOMS: Bool = false,
+        writesRealOrder: Bool = false,
+        exposesLivePROConsole: Bool = false,
+        exposesTradingButton: Bool = false,
+        exposesLiveCommand: Bool = false,
+        exposesOrderForm: Bool = false
+    ) throws {
+        let expectedChecksum = Self.checksum(for: updateRecords)
+        let providedChecksum = checksum ?? expectedChecksum
+        try Self.validate(
+            matrixID: matrixID,
+            sourceIdentityLinkage: sourceIdentityLinkage,
+            snapshotInputID: snapshotInputID,
+            fixtureVersion: fixtureVersion,
+            updateRecords: updateRecords,
+            interpretationBoundaries: interpretationBoundaries,
+            checksum: providedChecksum,
+            checksumMatchedCanonicalPreimage: checksumMatchedCanonicalPreimage,
+            forbiddenCapabilities: forbiddenCapabilities
+        )
+        try Self.validateForbiddenFlags(
+            callsSignedEndpoint: callsSignedEndpoint,
+            callsAccountEndpoint: callsAccountEndpoint,
+            createsListenKey: createsListenKey,
+            opensPrivateWebSocket: opensPrivateWebSocket,
+            runsPrivateStreamRuntime: runsPrivateStreamRuntime,
+            runsAccountSnapshotRuntime: runsAccountSnapshotRuntime,
+            readsRealAccount: readsRealAccount,
+            updatesRealAccount: updatesRealAccount,
+            syncsBrokerPosition: syncsBrokerPosition,
+            readsRealBalance: readsRealBalance,
+            readsMargin: readsMargin,
+            readsLeverage: readsLeverage,
+            readsRealPnL: readsRealPnL,
+            connectsBrokerAdapter: connectsBrokerAdapter,
+            connectsExchangeExecutionAdapter: connectsExchangeExecutionAdapter,
+            implementsLiveExecutionAdapter: implementsLiveExecutionAdapter,
+            consumesExecutionReport: consumesExecutionReport,
+            consumesBrokerFill: consumesBrokerFill,
+            runsReconciliation: runsReconciliation,
+            implementsOMS: implementsOMS,
+            writesRealOrder: writesRealOrder,
+            exposesLivePROConsole: exposesLivePROConsole,
+            exposesTradingButton: exposesTradingButton,
+            exposesLiveCommand: exposesLiveCommand,
+            exposesOrderForm: exposesOrderForm
+        )
+
+        self.contractID = contractID
+        self.issueID = issueID
+        self.matrixID = matrixID
+        self.sourceIdentityLinkage = sourceIdentityLinkage
+        self.snapshotInputID = snapshotInputID
+        self.fixtureVersion = fixtureVersion
+        self.updateRecords = updateRecords
+        self.interpretationBoundaries = interpretationBoundaries
+        self.checksum = providedChecksum
+        self.checksumMatchedCanonicalPreimage = checksumMatchedCanonicalPreimage
+        self.forbiddenCapabilities = forbiddenCapabilities
+        self.callsSignedEndpoint = callsSignedEndpoint
+        self.callsAccountEndpoint = callsAccountEndpoint
+        self.createsListenKey = createsListenKey
+        self.opensPrivateWebSocket = opensPrivateWebSocket
+        self.runsPrivateStreamRuntime = runsPrivateStreamRuntime
+        self.runsAccountSnapshotRuntime = runsAccountSnapshotRuntime
+        self.readsRealAccount = readsRealAccount
+        self.updatesRealAccount = updatesRealAccount
+        self.syncsBrokerPosition = syncsBrokerPosition
+        self.readsRealBalance = readsRealBalance
+        self.readsMargin = readsMargin
+        self.readsLeverage = readsLeverage
+        self.readsRealPnL = readsRealPnL
+        self.connectsBrokerAdapter = connectsBrokerAdapter
+        self.connectsExchangeExecutionAdapter = connectsExchangeExecutionAdapter
+        self.implementsLiveExecutionAdapter = implementsLiveExecutionAdapter
+        self.consumesExecutionReport = consumesExecutionReport
+        self.consumesBrokerFill = consumesBrokerFill
+        self.runsReconciliation = runsReconciliation
+        self.implementsOMS = implementsOMS
+        self.writesRealOrder = writesRealOrder
+        self.exposesLivePROConsole = exposesLivePROConsole
+        self.exposesTradingButton = exposesTradingButton
+        self.exposesLiveCommand = exposesLiveCommand
+        self.exposesOrderForm = exposesOrderForm
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            contractID: try container.decode(Identifier.self, forKey: .contractID),
+            issueID: try container.decode(Identifier.self, forKey: .issueID),
+            matrixID: try container.decode(String.self, forKey: .matrixID),
+            sourceIdentityLinkage: try container.decode(String.self, forKey: .sourceIdentityLinkage),
+            snapshotInputID: try container.decode(String.self, forKey: .snapshotInputID),
+            fixtureVersion: try container.decode(FixtureVersion.self, forKey: .fixtureVersion),
+            updateRecords: try container.decode(
+                [SimulatedAccountSnapshotUpdateFixtureRecord].self,
+                forKey: .updateRecords
+            ),
+            interpretationBoundaries: try container.decode(
+                [SimulatedAccountSnapshotUpdateInterpretationBoundary].self,
+                forKey: .interpretationBoundaries
+            ),
+            checksum: try container.decode(String.self, forKey: .checksum),
+            checksumMatchedCanonicalPreimage: try container.decode(
+                Bool.self,
+                forKey: .checksumMatchedCanonicalPreimage
+            ),
+            forbiddenCapabilities: try container.decode(
+                [SimulatedAccountSnapshotUpdateFixtureForbiddenCapability].self,
+                forKey: .forbiddenCapabilities
+            ),
+            callsSignedEndpoint: try container.decode(Bool.self, forKey: .callsSignedEndpoint),
+            callsAccountEndpoint: try container.decode(Bool.self, forKey: .callsAccountEndpoint),
+            createsListenKey: try container.decode(Bool.self, forKey: .createsListenKey),
+            opensPrivateWebSocket: try container.decode(Bool.self, forKey: .opensPrivateWebSocket),
+            runsPrivateStreamRuntime: try container.decode(Bool.self, forKey: .runsPrivateStreamRuntime),
+            runsAccountSnapshotRuntime: try container.decode(Bool.self, forKey: .runsAccountSnapshotRuntime),
+            readsRealAccount: try container.decode(Bool.self, forKey: .readsRealAccount),
+            updatesRealAccount: try container.decode(Bool.self, forKey: .updatesRealAccount),
+            syncsBrokerPosition: try container.decode(Bool.self, forKey: .syncsBrokerPosition),
+            readsRealBalance: try container.decode(Bool.self, forKey: .readsRealBalance),
+            readsMargin: try container.decode(Bool.self, forKey: .readsMargin),
+            readsLeverage: try container.decode(Bool.self, forKey: .readsLeverage),
+            readsRealPnL: try container.decode(Bool.self, forKey: .readsRealPnL),
+            connectsBrokerAdapter: try container.decode(Bool.self, forKey: .connectsBrokerAdapter),
+            connectsExchangeExecutionAdapter: try container.decode(
+                Bool.self,
+                forKey: .connectsExchangeExecutionAdapter
+            ),
+            implementsLiveExecutionAdapter: try container.decode(Bool.self, forKey: .implementsLiveExecutionAdapter),
+            consumesExecutionReport: try container.decode(Bool.self, forKey: .consumesExecutionReport),
+            consumesBrokerFill: try container.decode(Bool.self, forKey: .consumesBrokerFill),
+            runsReconciliation: try container.decode(Bool.self, forKey: .runsReconciliation),
+            implementsOMS: try container.decode(Bool.self, forKey: .implementsOMS),
+            writesRealOrder: try container.decode(Bool.self, forKey: .writesRealOrder),
+            exposesLivePROConsole: try container.decode(Bool.self, forKey: .exposesLivePROConsole),
+            exposesTradingButton: try container.decode(Bool.self, forKey: .exposesTradingButton),
+            exposesLiveCommand: try container.decode(Bool.self, forKey: .exposesLiveCommand),
+            exposesOrderForm: try container.decode(Bool.self, forKey: .exposesOrderForm)
+        )
+    }
+
+    public func containsForbiddenUpdateText(_ forbiddenTokens: [String]) -> Bool {
+        let searchable = [
+            matrixID,
+            sourceIdentityLinkage,
+            snapshotInputID,
+            fixtureVersion.rawValue,
+            checksum,
+            interpretationBoundaries.map(\.rawValue).joined(separator: "|"),
+            updateRecords.map(\.canonicalLine).joined(separator: "|")
+        ]
+            .joined(separator: "|")
+            .lowercased()
+
+        return forbiddenTokens.contains { token in
+            searchable.contains(token.lowercased())
+        }
+    }
+
+    public static let requiredMatrixID = "TVM-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-SIMULATION-GATE"
+    public static let requiredSourceIdentityLinkage =
+        "MTP-141-SIMULATED-PRIVATE-ACCOUNT-EVENT-SOURCE-IDENTITY"
+    public static let requiredSnapshotInputID = SimulatedAccountSnapshotInputRecord.requiredSnapshotID
+    public static let requiredFixtureVersion = SimulatedAccountSnapshotInputContract.requiredFixtureVersion
+    public static let requiredInterpretationBoundaries =
+        SimulatedAccountSnapshotUpdateInterpretationBoundary.allCases
+    public static let requiredForbiddenCapabilities =
+        SimulatedAccountSnapshotUpdateFixtureForbiddenCapability.allCases
+
+    public static let requiredUpdateRecords: [SimulatedAccountSnapshotUpdateFixtureRecord] = {
+        do {
+            return try SimulatedAccountSnapshotUpdateFixtureKind.allCases.map { kind in
+                try SimulatedAccountSnapshotUpdateFixtureRecord(updateKind: kind)
+            }
+        } catch {
+            preconditionFailure("MTP-143 simulated account snapshot update fixture records must be valid: \(error)")
+        }
+    }()
+
+    public static let requiredChecksum = checksum(for: requiredUpdateRecords)
+
+    public static let deterministicFixture: SimulatedAccountSnapshotUpdateFixture = {
+        do {
+            return try SimulatedAccountSnapshotUpdateFixture()
+        } catch {
+            preconditionFailure("MTP-143 simulated account snapshot update fixture must be valid: \(error)")
+        }
+    }()
+
+    public static func canonicalPreimage(
+        for updateRecords: [SimulatedAccountSnapshotUpdateFixtureRecord]
+    ) -> String {
+        updateRecords.map(\.canonicalLine).joined(separator: "\n")
+    }
+
+    public static func checksum(
+        for updateRecords: [SimulatedAccountSnapshotUpdateFixtureRecord]
+    ) -> String {
+        ScenarioReplayChecksumEvidence.checksum(forCanonicalPreimage: canonicalPreimage(for: updateRecords))
+    }
+
+    private static func validate(
+        matrixID: String,
+        sourceIdentityLinkage: String,
+        snapshotInputID: String,
+        fixtureVersion: FixtureVersion,
+        updateRecords: [SimulatedAccountSnapshotUpdateFixtureRecord],
+        interpretationBoundaries: [SimulatedAccountSnapshotUpdateInterpretationBoundary],
+        checksum: String,
+        checksumMatchedCanonicalPreimage: Bool,
+        forbiddenCapabilities: [SimulatedAccountSnapshotUpdateFixtureForbiddenCapability]
+    ) throws {
+        guard matrixID == Self.requiredMatrixID else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "matrixID",
+                expected: Self.requiredMatrixID,
+                actual: matrixID
+            )
+        }
+        guard sourceIdentityLinkage == Self.requiredSourceIdentityLinkage else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "sourceIdentityLinkage",
+                expected: Self.requiredSourceIdentityLinkage,
+                actual: sourceIdentityLinkage
+            )
+        }
+        guard snapshotInputID == Self.requiredSnapshotInputID else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "snapshotInputID",
+                expected: Self.requiredSnapshotInputID,
+                actual: snapshotInputID
+            )
+        }
+        guard fixtureVersion == Self.requiredFixtureVersion else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "fixtureVersion",
+                expected: Self.requiredFixtureVersion.rawValue,
+                actual: fixtureVersion.rawValue
+            )
+        }
+        guard updateRecords == Self.requiredUpdateRecords else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "updateRecords",
+                expected: Self.requiredUpdateRecords.map(\.updateKind.rawValue).joined(separator: ","),
+                actual: updateRecords.map(\.updateKind.rawValue).joined(separator: ",")
+            )
+        }
+        guard updateRecords.allSatisfy(\.updateFixtureBoundaryHeld) else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("snapshotUpdate.updateFixtureBoundaryHeld")
+        }
+        guard interpretationBoundaries == Self.requiredInterpretationBoundaries else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "interpretationBoundaries",
+                expected: Self.requiredInterpretationBoundaries.map(\.rawValue).joined(separator: ","),
+                actual: interpretationBoundaries.map(\.rawValue).joined(separator: ",")
+            )
+        }
+        guard checksum == Self.requiredChecksum else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "checksum",
+                expected: Self.requiredChecksum,
+                actual: checksum
+            )
+        }
+        guard checksumMatchedCanonicalPreimage else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "checksumMatchedCanonicalPreimage",
+                expected: "true",
+                actual: "false"
+            )
+        }
+        guard forbiddenCapabilities == Self.requiredForbiddenCapabilities else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "forbiddenCapabilities",
+                expected: Self.requiredForbiddenCapabilities.map(\.rawValue).joined(separator: ","),
+                actual: forbiddenCapabilities.map(\.rawValue).joined(separator: ",")
+            )
+        }
+    }
+
+    private static func validateForbiddenFlags(
+        callsSignedEndpoint: Bool,
+        callsAccountEndpoint: Bool,
+        createsListenKey: Bool,
+        opensPrivateWebSocket: Bool,
+        runsPrivateStreamRuntime: Bool,
+        runsAccountSnapshotRuntime: Bool,
+        readsRealAccount: Bool,
+        updatesRealAccount: Bool,
+        syncsBrokerPosition: Bool,
+        readsRealBalance: Bool,
+        readsMargin: Bool,
+        readsLeverage: Bool,
+        readsRealPnL: Bool,
+        connectsBrokerAdapter: Bool,
+        connectsExchangeExecutionAdapter: Bool,
+        implementsLiveExecutionAdapter: Bool,
+        consumesExecutionReport: Bool,
+        consumesBrokerFill: Bool,
+        runsReconciliation: Bool,
+        implementsOMS: Bool,
+        writesRealOrder: Bool,
+        exposesLivePROConsole: Bool,
+        exposesTradingButton: Bool,
+        exposesLiveCommand: Bool,
+        exposesOrderForm: Bool
+    ) throws {
+        let forbiddenFlags = [
+            ("callsSignedEndpoint", callsSignedEndpoint),
+            ("callsAccountEndpoint", callsAccountEndpoint),
+            ("createsListenKey", createsListenKey),
+            ("opensPrivateWebSocket", opensPrivateWebSocket),
+            ("runsPrivateStreamRuntime", runsPrivateStreamRuntime),
+            ("runsAccountSnapshotRuntime", runsAccountSnapshotRuntime),
+            ("readsRealAccount", readsRealAccount),
+            ("updatesRealAccount", updatesRealAccount),
+            ("syncsBrokerPosition", syncsBrokerPosition),
+            ("readsRealBalance", readsRealBalance),
+            ("readsMargin", readsMargin),
+            ("readsLeverage", readsLeverage),
+            ("readsRealPnL", readsRealPnL),
+            ("connectsBrokerAdapter", connectsBrokerAdapter),
+            ("connectsExchangeExecutionAdapter", connectsExchangeExecutionAdapter),
+            ("implementsLiveExecutionAdapter", implementsLiveExecutionAdapter),
+            ("consumesExecutionReport", consumesExecutionReport),
+            ("consumesBrokerFill", consumesBrokerFill),
+            ("runsReconciliation", runsReconciliation),
+            ("implementsOMS", implementsOMS),
+            ("writesRealOrder", writesRealOrder),
+            ("exposesLivePROConsole", exposesLivePROConsole),
+            ("exposesTradingButton", exposesTradingButton),
+            ("exposesLiveCommand", exposesLiveCommand),
+            ("exposesOrderForm", exposesOrderForm)
+        ]
+
+        if let capability = forbiddenFlags.first(where: { $0.1 }) {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(capability.0)
+        }
+    }
+}
+
 /// SimulatedAccountSnapshotInputState 固定 MTP-142 允许表达的 snapshot input 状态。
 ///
 /// `available` 只代表本地 fixture 中存在可验证的 simulated account snapshot input；
