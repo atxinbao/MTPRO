@@ -1040,6 +1040,14 @@ MTP-153 不实现 Live Monitoring runtime、live readiness runtime、connection 
 
 MTP-153-STAGE-CLOSEOUT-VALIDATION 的本地验证已通过：`bash checks/automation-readiness.sh` 输出 `MTPRO automation readiness checks passed.`；`git diff --check` 无输出；`bash checks/run.sh` 通过 automation readiness、Dashboard build、Dashboard smoke 和 302 个 XCTest，Dashboard smoke 输出包含 `liveMonitoringReadOnlyConsoleV2Surface=4`，最终输出 `MTPRO checks passed.`。完整验证仍以 GitHub required check `checks` 为准。
 
+## 当前 issue execution evidence：MTP-154
+
+MTP-154 的当前 issue execution evidence 已建立 `docs/contracts/strategy-trader-instance-readiness-contract.md`、`TVM-STRATEGY-TRADER-INSTANCE-READINESS`、`docs/domain/context.md` 的 MTP-154 shared language、`docs/validation/validation-plan.md` 的 MTP-154 required validation、`docs/automation/automation-readiness.md` 的 Strategy / Trader Instance readiness terminology anchor 和 `checks/automation-readiness.sh` 的 MTP-154 mechanical anchors。
+
+该证据只定义 `L3.4 Strategy / Trader Instance Readiness v1` 的 terminology / boundary：Strategy Instance、Trader Instance、strategy / trader readiness、proposal、readiness evidence、paper/live-neutral proposal、non-execution baseline、readiness-only boundary、proposal / readiness evidence baseline、L3.4 handoff、first executable candidate non-authorization 和 forbidden capability baseline。MTP-154 不实现 Strategy runtime、Trader runtime、strategy scheduler、trader process manager、direct Strategy Instance -> Execution Client path、broker command、executable order command、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、signed endpoint、account endpoint / listenKey、listenKey create / keepalive、private WebSocket runtime、private stream runtime、account snapshot runtime、broker adapter、`LiveExecutionAdapter`、Live PRO Console、trading button、live command、order form、stop / shutdown / restore；不读取真实账户、真实持仓、真实余额、broker position、margin、leverage 或 real PnL；不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+MTP-154-STRATEGY-TRADER-INSTANCE-READINESS-VALIDATION 的本地验证已通过：`bash checks/automation-readiness.sh` 输出 `MTPRO automation readiness checks passed.`；`git diff --check` 无输出；`bash checks/run.sh` 通过 automation readiness、Dashboard build、Dashboard smoke 和 302 个 XCTest，Dashboard smoke 输出包含 `liveMonitoringReadOnlyConsoleV2Surface=4`，最终输出 `MTPRO checks passed.`。完整验收仍以 GitHub required check `checks` 为准。MTP-154 完成后不得自动推进 MTP-155；MTP-155 至 MTP-161 必须继续等待 Linear live-read 中唯一 eligible issue 授权。
+
 ## Known CI Boundary
 
 临时 CI 平台边界：
