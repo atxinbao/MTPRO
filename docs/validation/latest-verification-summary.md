@@ -1096,6 +1096,14 @@ MTP-160 的当前 issue execution evidence 已建立 `docs/contracts/strategy-tr
 
 MTP-160-STRATEGY-TRADER-READINESS-SURFACE-VALIDATION 的本地验证已通过：`swift test` 通过 303 个 XCTest；`bash checks/automation-readiness.sh` 输出 `MTPRO automation readiness checks passed.`；`git diff --check` 无输出；`bash checks/run.sh` 通过 automation readiness、Dashboard build、Dashboard smoke 和 303 个 XCTest，Dashboard smoke 输出包含 `strategyTraderReadinessSurface=6`，最终输出 `MTPRO checks passed.`。完整验收仍以本次 PR 前本地验证和 GitHub required check `checks` 为准。MTP-160 完成后不得自动推进 MTP-161；MTP-161 必须继续等待 Linear live-read 中唯一 eligible issue 授权。
 
+## 当前 issue execution evidence：MTP-161
+
+MTP-161 的当前 issue execution evidence 已建立 `docs/audit/inputs/mtpro-strategy-trader-instance-readiness-v1-stage-audit-input.md`、`docs/contracts/strategy-trader-instance-readiness-contract.md` 的 MTP-161 stage closeout anchors、`TVM-STRATEGY-TRADER-INSTANCE-READINESS` MTP-161 issue backfill、`docs/domain/context.md` 的 MTP-161 shared language、`docs/validation/validation-plan.md` 的 MTP-161 required validation、`docs/automation/automation-readiness.md` 的 Strategy / Trader Instance readiness stage audit input anchor 和 `checks/automation-readiness.sh` 的 MTP-161 mechanical closeout。
+
+该证据只收口 `L3.4 Strategy / Trader Instance Readiness v1` 的 validation matrix、automation readiness anchors、forbidden capability evidence chain、read-model-only boundary evidence 和 stage audit input material。MTP-161 不输出最终 Stage Code Audit Report，不设置 Linear Project `Completed`，不启动 Root Docs Refresh Gate，不创建下一 Project / Issue，不推进下一阶段；不新增或修改 production code，不实现 Strategy runtime、Trader runtime、lifecycle runtime、quoter runtime、hedger runtime、Execution Client、broker command、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、private WebSocket runtime、private stream runtime、account snapshot runtime、Strategy Console、Live PRO Console、trading button、live command、order form、stop / shutdown / restore；不读取真实账户、真实网络、credential、secret、API key、account endpoint payload、broker payload、broker state、Runtime object、Adapter request、SQLite / DuckDB schema、real account、real position、real balance、margin、leverage、real PnL 或 listenKey；不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+MTP-161-STAGE-CLOSEOUT-VALIDATION 的本地验证已通过：`bash checks/automation-readiness.sh` 输出 `MTPRO automation readiness checks passed.`；`git diff --check` 无输出；`bash checks/run.sh` 通过 automation readiness、Dashboard build、Dashboard smoke 和 303 个 XCTest，Dashboard smoke 输出包含 `strategyTraderReadinessSurface=6`，最终输出 `MTPRO checks passed.`。完整验收仍以本次 PR 前本地验证和 GitHub required check `checks` 为准。MTP-161 完成后不得自动推进下一 Project；Project closure、Linear Project `Completed` status、最终 Stage Code Audit Report、Root Docs Refresh Gate 和 final closure summary 仍归 Parent Codex closure flow。
+
 ## Known CI Boundary
 
 临时 CI 平台边界：
