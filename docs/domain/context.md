@@ -407,6 +407,34 @@ MTP-154 禁止 Strategy runtime、Trader runtime、strategy scheduler、trader p
 
 MTP-154 required validation 是 `bash checks/run.sh`，并通过 contract、domain context、trading validation matrix、validation plan、latest verification summary、automation readiness doc 和 `checks/automation-readiness.sh` 机械固定 terminology、boundary、forbidden capability baseline 和 no execution authorization。MTP-154 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard smoke handle、不新增 stage audit input；Project stage closeout 仍归属 MTP-161。
 
+`MTP-155-STRATEGY-TRADER-LIFECYCLE-IDENTITY`
+
+MTP-155 定义 Strategy Instance / Trader Instance 的 lifecycle、identity 和只读状态语义。`strategy instance identity` 与 `trader instance identity` 只由 local deterministic readiness fields 组成，用于 contract anchor、instance label、role reference、read-model reference、proposal boundary reference 和 evidence trace reference；不等于 runtime object id、broker account id、API key、secret、listenKey、adapter request id、OMS order id、trader process id、broker session id、account session id、private stream cursor、`LiveExecutionAdapter` handle 或 live command actor id。
+
+`MTP-155-INSTANCE-IDENTITY-BOUNDARY`
+
+Strategy / Trader identity 只能记录 `contractAnchor`、`instanceLabel`、`roleReference`、`readModelReference`、`proposalBoundaryReference` 和 `evidenceTraceReference`。这些字段只服务 read-model-only display、validation trace 和后续 issue handoff；不得承载 credential、secret、account id、broker account id、account payload、broker payload、Runtime object、Adapter request、SQLite / DuckDB schema、private stream cursor 或 executable order command field。
+
+`MTP-155-LIFECYCLE-READINESS-STATE-SEMANTICS`
+
+MTP-155 的 lifecycle state 只能表达 readiness evidence：`configured` 表示 identity contract 和 source anchors 已存在；`ready` 表示 terminology、identity、lifecycle 和 forbidden boundary anchors 已满足；`blocked` 表示 forbidden capability、future-gated dependency 或 missing read-model reference 仍阻断；`inactive` 表示 readiness shell 不参与当前 evidence surface；`simulation-only` 表示只能消费 deterministic local / simulated / fixture evidence。这些状态不等于 live runtime state、account connection state、broker session state、strategy scheduler state、trader process state、OMS state、order lifecycle state 或 UI command state。
+
+`MTP-155-READ-MODEL-REFERENCE-BOUNDARY`
+
+MTP-155 只定义 identity 与后续 account / portfolio / risk read-model input 的引用边界。Identity 可以记录 read-model reference placeholder、freshness / blocked / simulated / future-gated semantics 和 evidence trace reference，但不得读取真实 balance、position、margin、leverage、real PnL、broker position、account endpoint payload、broker state 或 adapter payload。
+
+`MTP-155-NO-LIFECYCLE-RUNTIME-BOUNDARY`
+
+MTP-155 不实现 lifecycle runtime、strategy scheduler、trader process manager、Strategy runtime、Trader runtime、broker connection、account session、private WebSocket runtime、private stream runtime、account snapshot runtime、OMS、Execution Client caller、broker command producer、Live PRO Console、trading button、live command 或 order form。
+
+`MTP-155-IDENTITY-SENSITIVE-FIELD-GUARD`
+
+Strategy / Trader identity 不得包含 credential、secret、API key、listenKey、account id、broker account id、private stream cursor、adapter request、Runtime object、broker payload、account endpoint payload、SQLite / DuckDB schema、OMS order id、order form payload、executable order command field、real account balance、real position、margin、leverage 或 real PnL。
+
+`MTP-155-STRATEGY-TRADER-LIFECYCLE-VALIDATION`
+
+MTP-155 required validation 是 `bash checks/run.sh`，并通过 contract、domain context、trading validation matrix、validation plan、latest verification summary、automation readiness doc 和 `checks/automation-readiness.sh` 机械固定 lifecycle / identity、read-model reference boundary、no lifecycle runtime boundary 和 sensitive field guard。MTP-155 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard smoke handle、不新增 stage audit input；Project stage closeout 仍归属 MTP-161。
+
 ## Live Execution Control Terms
 
 `MTP-75-LIVE-EXECUTION-CONTROL-TERMINOLOGY`

@@ -1048,6 +1048,14 @@ MTP-154 的当前 issue execution evidence 已建立 `docs/contracts/strategy-tr
 
 MTP-154-STRATEGY-TRADER-INSTANCE-READINESS-VALIDATION 的本地验证已通过：`bash checks/automation-readiness.sh` 输出 `MTPRO automation readiness checks passed.`；`git diff --check` 无输出；`bash checks/run.sh` 通过 automation readiness、Dashboard build、Dashboard smoke 和 302 个 XCTest，Dashboard smoke 输出包含 `liveMonitoringReadOnlyConsoleV2Surface=4`，最终输出 `MTPRO checks passed.`。完整验收仍以 GitHub required check `checks` 为准。MTP-154 完成后不得自动推进 MTP-155；MTP-155 至 MTP-161 必须继续等待 Linear live-read 中唯一 eligible issue 授权。
 
+## 当前 issue execution evidence：MTP-155
+
+MTP-155 的当前 issue execution evidence 已建立 `docs/contracts/strategy-trader-instance-readiness-contract.md` 的 lifecycle / identity anchors、`TVM-STRATEGY-TRADER-INSTANCE-READINESS` MTP-155 issue backfill、`docs/domain/context.md` 的 MTP-155 shared language、`docs/validation/validation-plan.md` 的 MTP-155 required validation、`docs/automation/automation-readiness.md` 的 Strategy / Trader lifecycle identity anchor 和 `checks/automation-readiness.sh` 的 MTP-155 mechanical anchors。
+
+该证据只定义 `L3.4 Strategy / Trader Instance Readiness v1` 的 lifecycle / identity readiness：strategy instance identity、trader instance identity、configured / ready / blocked / inactive / simulation-only 状态语义、instance identity boundary、read-model reference boundary、no lifecycle runtime boundary 和 identity sensitive field guard。MTP-155 不实现 lifecycle runtime、Strategy runtime、Trader runtime、strategy scheduler、trader process manager、broker connection、account session、Execution Client direct path、broker command、executable order command、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、signed endpoint、account endpoint / listenKey、listenKey create / keepalive、private WebSocket runtime、private stream runtime、account snapshot runtime、broker adapter、`LiveExecutionAdapter`、Live PRO Console、trading button、live command、order form、stop / shutdown / restore；identity 不包含 credential、secret、API key、listenKey、account id、broker account id、private stream cursor、Runtime object、Adapter request、SQLite / DuckDB schema、broker payload、account endpoint payload、real account balance、real position、margin、leverage 或 real PnL；不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+MTP-155-STRATEGY-TRADER-LIFECYCLE-VALIDATION 的本地验证已通过：`bash checks/automation-readiness.sh` 输出 `MTPRO automation readiness checks passed.`；`git diff --check` 无输出；`bash checks/run.sh` 通过 automation readiness、Dashboard build、Dashboard smoke 和 302 个 XCTest，Dashboard smoke 输出包含 `liveMonitoringReadOnlyConsoleV2Surface=4`，最终输出 `MTPRO checks passed.`。完整验收仍以 GitHub required check `checks` 为准。MTP-155 完成后不得自动推进 MTP-156；MTP-156 至 MTP-161 必须继续等待 Linear live-read 中唯一 eligible issue 授权。
+
 ## Known CI Boundary
 
 临时 CI 平台边界：
