@@ -4,7 +4,7 @@
 
 执行者：Codex
 
-本文档累计定义 `MTPRO Strategy / Trader Instance Readiness v1` 的 MTP-154 至 MTP-160 合同入口：L3.4 Strategy / Trader Instance readiness terminology、lifecycle / identity、quoter / hedger role taxonomy、account / portfolio / risk read-model input、paper/live-neutral proposal isolation、forbidden Strategy -> Execution / broker / UI command tests、Workbench / Report / Events strategy readiness read-model-only evidence surface 和 validation anchors。
+本文档累计定义 `MTPRO Strategy / Trader Instance Readiness v1` 的 MTP-154 至 MTP-161 合同入口：L3.4 Strategy / Trader Instance readiness terminology、lifecycle / identity、quoter / hedger role taxonomy、account / portfolio / risk read-model input、paper/live-neutral proposal isolation、forbidden Strategy -> Execution / broker / UI command tests、Workbench / Report / Events strategy readiness read-model-only evidence surface、validation matrix / automation readiness / stage audit input closeout 和 validation anchors。
 
 本文档只服务当前 Project 的 readiness / forbidden capability 合同证据。它不实现 Strategy runtime，不实现 Trader runtime，不允许 strategy 直连 Execution Client，不输出 broker command，不实现 OMS、Live PRO Console、trading button、live command 或 order form；不接 signed endpoint、account endpoint / listenKey，不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation；不读取真实账户、真实持仓、真实余额、margin、leverage 或 real PnL；不运行 Graphify，不修改 Figma。
 
@@ -725,3 +725,67 @@ Focused validation anchors：
 - `checks/automation-readiness.sh` 必须机械检查 MTP-160 contract、matrix、validation plan、domain context、latest summary、automation readiness doc、source / test anchors、Dashboard smoke handle 和 no command/runtime/schema/account boundary strings。
 
 MTP-160 不新增或修改 Core semantics，不实现 Strategy runtime、Trader runtime、Execution Client、broker command、broker adapter、`LiveExecutionAdapter`、OMS、signed endpoint、account endpoint / listenKey、private stream runtime、account snapshot runtime、Live PRO Console、trading button、live command 或 order form；不读取真实账户、真实持仓、真实余额、margin、leverage 或 real PnL；不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。Project stage closeout 仍归属 MTP-161。
+
+## MTP-161 validation matrix / automation readiness / stage audit input closeout
+
+`MTP-161-STRATEGY-TRADER-READINESS-STAGE-CLOSEOUT`
+
+MTP-161 只收口 `MTPRO Strategy / Trader Instance Readiness v1` 的 validation matrix、automation readiness anchors、forbidden capability evidence chain、read-model-only boundary evidence 和 stage audit input material。MTP-161 不输出最终 Stage Code Audit Report，不设置 Linear Project `Completed`，不创建下一 Project / Issue，不推进下一阶段，不运行 Graphify，不修改 Figma。
+
+`MTP-161-STAGE-AUDIT-INPUT-MATERIAL`
+
+MTP-161 stage audit input material 必须集中记录：
+
+1. MTP-154 至 MTP-160 的 issue / PR / merge commit / required check evidence。
+2. `TVM-STRATEGY-TRADER-INSTANCE-READINESS` validation evidence chain。
+3. Strategy / Trader readiness forbidden capability evidence chain。
+4. Workbench / Report / Events read-model-only boundary evidence。
+5. Dashboard smoke handle `strategyTraderReadinessSurface=6`。
+6. no Graphify / no Figma / no `.codex/*` / no `graphify-out/*` PR boundary。
+7. Parent Codex Stage Code Audit handoff checklist。
+
+`MTP-161-NO-FINAL-STAGE-CODE-AUDIT`
+
+MTP-161 的文档只作为最终 Stage Code Audit Report 的输入。最终报告必须在 MTP-154 至 MTP-161 全部进入 Linear `Done`，且 Linear Project status 被设置或确认为 `Completed`、`type=completed`、`completedAt` 非空后，由 Parent Codex 单独输出到：
+
+```text
+docs/audit/mtpro-strategy-trader-instance-readiness-v1-stage-code-audit.md
+```
+
+`MTP-161-STRATEGY-TRADER-READINESS-STAGE-AUDIT-INPUT`
+
+MTP-161 的 stage audit input file 是：
+
+```text
+docs/audit/inputs/mtpro-strategy-trader-instance-readiness-v1-stage-audit-input.md
+```
+
+该文件不授权下一 Project planning，不授权下一阶段 execution，不授权 Symphony 消费者启动，不授权 Strategy runtime、Trader runtime、Execution Client、broker command、OMS、Live PRO Console、trading button、live command 或 order form。
+
+`MTP-161-VALIDATION-EVIDENCE-CHAIN`
+
+MTP-161 validation evidence chain 必须串联 MTP-154 terminology / boundary、MTP-155 lifecycle / identity、MTP-156 quoter / hedger role taxonomy、MTP-157 account / portfolio / risk read-model input、MTP-158 paper/live-neutral proposal isolation、MTP-159 forbidden command tests、MTP-160 Workbench / Report / Events surface 和 MTP-161 stage closeout。
+
+`MTP-161-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN`
+
+MTP-161 forbidden capability evidence chain 必须继续确认 no Strategy runtime、no Trader runtime、no lifecycle runtime、no quoter runtime、no hedger runtime、no order generation engine、no Execution Client、no broker command、no broker adapter、no `LiveExecutionAdapter`、no OMS、no real order lifecycle、no signed endpoint、no account endpoint / listenKey、no private stream runtime、no account snapshot runtime、no real account read、no Strategy Console、no Live PRO Console、no trading button、no live command 和 no order form。
+
+`MTP-161-READ-MODEL-ONLY-BOUNDARY-EVIDENCE`
+
+MTP-161 read-model-only boundary evidence 必须说明 Strategy / Trader readiness evidence 只来自 contract anchors、deterministic evidence 和 App read-model-only surface，不读取 Runtime object、Adapter request、SQLite / DuckDB schema、account endpoint payload、broker payload、broker state、credential、secret、API key、listenKey、real account、real position、real balance、margin、leverage 或 real PnL。
+
+`MTP-161-AUTOMATION-READINESS-STAGE-CLOSEOUT`
+
+MTP-161 automation readiness closeout 必须由 `checks/automation-readiness.sh` 机械检查 stage audit input、contract、domain context、validation matrix、validation plan、latest verification summary、automation readiness doc、MTP-154 至 MTP-160 PR evidence、Dashboard smoke handle 和 forbidden capability boundary strings。
+
+`MTP-161-STAGE-CLOSEOUT-VALIDATION`
+
+Required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+`MTP-161-NO-GRAPHIFY-FIGMA-LINEAR-MUTATION`
+
+MTP-161 不运行 Graphify，不修改 Figma，不创建 Linear Project / Issue，不修改 issue body，不输出最终 Stage Code Audit Report，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。Project closure、Linear Project `Completed` status、最终 Stage Code Audit Report、Root Docs Refresh Gate 和 final closure summary 仍归 Parent Codex closure flow。

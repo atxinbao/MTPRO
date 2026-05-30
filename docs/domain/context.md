@@ -1732,6 +1732,42 @@ MTP-144 validation 必须证明 `SimulatedAccountSnapshotFreshnessEvidenceContra
 
 MTP-160 validation 必须证明 Workbench / Report / Events 只展示 MTP-154 至 MTP-159 的 readiness / forbidden capability evidence，Event Timeline 只新增六条 strategy readiness read-model-only items，Dashboard smoke 只新增 `strategyTraderReadinessSurface=6`，并且 `swift test`、`bash checks/automation-readiness.sh`、`git diff --check` 和 `bash checks/run.sh` 均通过。MTP-160 不新增或修改 Core semantics，不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+`MTP-161-STRATEGY-TRADER-READINESS-STAGE-CLOSEOUT`
+
+MTP-161 stage closeout 只表示 `MTPRO Strategy / Trader Instance Readiness v1` 的 validation matrix、automation readiness、forbidden capability evidence chain、read-model-only boundary evidence 和 stage audit input material 已被收口。它不表示最终 Stage Code Audit Report 已输出，不表示 Linear Project `Completed` 已设置，不授权下一 Project planning / execution，也不授权 Strategy runtime、Trader runtime、Execution Client、broker command、OMS、Strategy Console、Live PRO Console、trading button、live command 或 order form。
+
+`MTP-161-STAGE-AUDIT-INPUT-MATERIAL`
+
+MTP-161 stage audit input material 指 `docs/audit/inputs/mtpro-strategy-trader-instance-readiness-v1-stage-audit-input.md`。该材料只为 Parent Codex 后续 Stage Code Audit Report 提供输入，必须包含 MTP-154 至 MTP-160 issue / PR / merge / checks evidence、`TVM-STRATEGY-TRADER-INSTANCE-READINESS` evidence chain、forbidden capability evidence chain、read-model-only boundary evidence、automation readiness evidence、Root Docs Delta input 和 handoff checklist。
+
+`MTP-161-NO-FINAL-STAGE-CODE-AUDIT`
+
+MTP-161 不输出最终 Stage Code Audit Report。最终 Stage Code Audit Report 必须等 MTP-154 至 MTP-161 全部 Linear `Done`，且 Linear Project status 为 `Completed`、`type=completed`、`completedAt` 非空后，由 Parent Codex 单独输出。
+
+`MTP-161-VALIDATION-EVIDENCE-CHAIN`
+
+MTP-161 validation evidence chain 必须串联 terminology / boundary、lifecycle / identity、role taxonomy、read-model input、proposal isolation、forbidden capability tests、Workbench / Report / Events surface 和 stage closeout，不得把任何 evidence 解读为 runtime readiness、broker readiness、live trading readiness 或 trading authorization。
+
+`MTP-161-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN`
+
+MTP-161 forbidden capability evidence chain 继续固定 no Strategy runtime、no Trader runtime、no lifecycle runtime、no quoter / hedger runtime、no Execution Client、no broker command、no broker adapter、no `LiveExecutionAdapter`、no OMS、no real order lifecycle、no signed endpoint、no account endpoint / listenKey、no private stream runtime、no account snapshot runtime、no real account read、no Strategy Console、no Live PRO Console、no trading button、no live command 和 no order form。
+
+`MTP-161-READ-MODEL-ONLY-BOUNDARY-EVIDENCE`
+
+MTP-161 read-model-only boundary evidence 指 Strategy / Trader readiness evidence 仍只来自 contract anchors、deterministic evidence 和 App read-model-only surface，不读取 Runtime object、Adapter request、SQLite / DuckDB schema、account endpoint payload、broker payload、broker state、credential、secret、API key、listenKey、real account、real position、real balance、margin、leverage 或 real PnL。
+
+`MTP-161-AUTOMATION-READINESS-STAGE-CLOSEOUT`
+
+MTP-161 automation readiness closeout 必须由 `checks/automation-readiness.sh` 机械检查 stage audit input、contract、domain context、validation matrix、validation plan、latest verification summary、automation readiness doc、PR evidence、Dashboard smoke handle `strategyTraderReadinessSurface=6` 和 forbidden capability strings。
+
+`MTP-161-STAGE-CLOSEOUT-VALIDATION`
+
+MTP-161 validation 必须通过 `bash checks/automation-readiness.sh`、`git diff --check` 和 `bash checks/run.sh`，并确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+`MTP-161-NO-GRAPHIFY-FIGMA-LINEAR-MUTATION`
+
+MTP-161 不运行 Graphify，不修改 Figma，不创建 Linear Project / Issue，不修改 issue body，不输出最终 Stage Code Audit Report，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

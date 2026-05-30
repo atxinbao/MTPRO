@@ -4411,3 +4411,49 @@ MTP-160 的 App evidence：
 - 不暴露 Runtime object、Adapter request、SQLite / DuckDB schema、account endpoint payload、broker payload、broker state、credential、secret、API key 或 listenKey。
 - 不新增 Strategy Console、Live PRO Console、trading button、live command、order form、order-level command UI、position command、emergency stop、shutdown、restore 或 production operations command。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-161 Validation Matrix / Automation Readiness / Stage Audit Input Validation
+
+日期：2026-05-31
+
+执行者：Codex
+
+MTP-161 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-161 的验收要求：
+
+- `docs/audit/inputs/mtpro-strategy-trader-instance-readiness-v1-stage-audit-input.md` 必须包含 `MTP-161-STRATEGY-TRADER-READINESS-STAGE-CLOSEOUT`、`MTP-161-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-161-NO-FINAL-STAGE-CODE-AUDIT`、`MTP-161-STRATEGY-TRADER-READINESS-STAGE-AUDIT-INPUT`、`MTP-161-VALIDATION-EVIDENCE-CHAIN`、`MTP-161-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN`、`MTP-161-READ-MODEL-ONLY-BOUNDARY-EVIDENCE`、`MTP-161-AUTOMATION-READINESS-STAGE-CLOSEOUT`、`MTP-161-STAGE-CLOSEOUT-VALIDATION` 和 `MTP-161-NO-GRAPHIFY-FIGMA-LINEAR-MUTATION` anchors。
+- `docs/contracts/strategy-trader-instance-readiness-contract.md` 必须包含 MTP-161 stage closeout、stage audit input material、no final Stage Code Audit、validation evidence chain、forbidden capability evidence chain、read-model-only boundary evidence、automation readiness stage closeout 和 validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-161 Strategy / Trader readiness stage closeout shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-STRATEGY-TRADER-INSTANCE-READINESS` 的 MTP-161 issue backfill 和 `MTP-161 Strategy / Trader Readiness 阶段收口`。
+- `docs/automation/automation-readiness.md` 必须新增 Strategy / Trader Instance readiness stage audit input anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-161 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-161 stage audit input、contract、validation matrix、validation plan、latest summary、automation readiness doc、MTP-154 至 MTP-160 PR evidence、Dashboard smoke handle 和 forbidden capability boundary strings。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-161 必须建立的主要 anchors：
+
+- `MTP-161-STRATEGY-TRADER-READINESS-STAGE-CLOSEOUT`
+- `MTP-161-STAGE-AUDIT-INPUT-MATERIAL`
+- `MTP-161-NO-FINAL-STAGE-CODE-AUDIT`
+- `MTP-161-STRATEGY-TRADER-READINESS-STAGE-AUDIT-INPUT`
+- `MTP-161-VALIDATION-EVIDENCE-CHAIN`
+- `MTP-161-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN`
+- `MTP-161-READ-MODEL-ONLY-BOUNDARY-EVIDENCE`
+- `MTP-161-AUTOMATION-READINESS-STAGE-CLOSEOUT`
+- `MTP-161-STAGE-CLOSEOUT-VALIDATION`
+- `MTP-161-NO-GRAPHIFY-FIGMA-LINEAR-MUTATION`
+
+## MTP-161 禁止
+
+- 不输出最终 Stage Code Audit Report，不设置 Linear Project `Completed`，不启动 Root Docs Refresh Gate，不启动下一阶段 planning 或 execution。
+- 不新增或修改 production code，不实现 Strategy runtime、Trader runtime、lifecycle runtime、quoter runtime、hedger runtime、Execution Client、broker command、broker adapter、`LiveExecutionAdapter`、OMS、order command、submit / cancel / replace、real order lifecycle、execution report、broker fill 或 reconciliation。
+- 不调用 signed endpoint、account endpoint / listenKey，不创建或 keepalive listenKey，不连接 private WebSocket，不启动 private stream runtime 或 account snapshot runtime。
+- 不读取真实账户、真实持仓、真实余额、broker position、margin、leverage、real PnL、account endpoint payload、broker payload 或 broker state。
+- 不暴露 Runtime object、Adapter request、SQLite / DuckDB schema、account endpoint payload、broker payload、broker state、credential、secret、API key 或 listenKey。
+- 不新增 Strategy Console、Live PRO Console、trading button、live command、order form、order-level command UI、position command、emergency stop、shutdown、restore 或 production operations command。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
