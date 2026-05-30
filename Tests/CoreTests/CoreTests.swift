@@ -2921,6 +2921,219 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testLiveMonitoringForbiddenCapabilityTestsDefineMTP151CoverageMatrix() throws {
+        // 测试场景：MTP-151 只定义 forbidden capability test matrix，覆盖 endpoint、private stream、
+        // broker / execution、Live Monitoring runtime 和 UI command 禁区；它不是 runtime 实现。
+        let contract = LiveMonitoringForbiddenCapabilityTestContract.deterministicFixture
+
+        XCTAssertEqual(
+            contract.contractID,
+            try Identifier("mtp-151-live-monitoring-forbidden-capability-tests")
+        )
+        XCTAssertEqual(contract.issueID, try Identifier("MTP-151"))
+        XCTAssertEqual(contract.matrixID, "TVM-LIVE-MONITORING-READ-ONLY-CONSOLE-V2")
+        XCTAssertEqual(contract.sourceIdentityChecksum, LiveMonitoringSourceIdentityContract.requiredChecksum)
+        XCTAssertEqual(
+            contract.simulationGateHealthChecksum,
+            LiveMonitoringSimulationGateHealthContract.requiredChecksum
+        )
+        XCTAssertEqual(
+            contract.connectionReadinessChecksum,
+            LiveMonitoringConnectionReadinessExplanationContract.requiredChecksum
+        )
+        XCTAssertEqual(contract.coveredDomains, LiveMonitoringForbiddenCapabilityTestDomain.allCases)
+        XCTAssertEqual(contract.coveredAssertions, LiveMonitoringForbiddenCapabilityTestAssertion.allCases)
+        XCTAssertEqual(contract.testCases.map(\.assertion), LiveMonitoringForbiddenCapabilityTestAssertion.allCases)
+        XCTAssertTrue(contract.testCases.allSatisfy(\.forbiddenCapabilityTestBoundaryHeld))
+
+        let endpointAssertions = contract.testCases
+            .filter { $0.domain == .endpoint }
+            .map(\.assertion)
+        XCTAssertEqual(endpointAssertions, [.signedEndpoint, .accountEndpoint, .listenKey])
+
+        let streamRuntimeAssertions = contract.testCases
+            .filter { $0.domain == .streamRuntime }
+            .map(\.assertion)
+        XCTAssertEqual(streamRuntimeAssertions, [
+            .privateWebSocketRuntime,
+            .privateStreamRuntime,
+            .accountSnapshotRuntime
+        ])
+
+        let liveRuntimeAssertions = contract.testCases
+            .filter { $0.domain == .liveRuntime }
+            .map(\.assertion)
+        XCTAssertEqual(liveRuntimeAssertions, [
+            .connectionManager,
+            .runtimeConnection,
+            .liveReadinessRuntime,
+            .liveMonitoringRuntime
+        ])
+
+        let brokerAssertions = contract.testCases
+            .filter { $0.domain == .brokerExecution }
+            .map(\.assertion)
+        XCTAssertEqual(brokerAssertions, [.brokerAdapter, .exchangeExecutionAdapter, .liveExecutionAdapter, .oms])
+
+        let uiCommandAssertions = contract.testCases
+            .filter { $0.domain == .uiCommand }
+            .map(\.assertion)
+        XCTAssertEqual(uiCommandAssertions, [
+            .livePROConsole,
+            .tradingButton,
+            .liveCommand,
+            .orderForm,
+            .stopShutdownRestore
+        ])
+
+        XCTAssertEqual(
+            contract.checksum,
+            LiveMonitoringForbiddenCapabilityTestContract.checksum(for: contract.testCases)
+        )
+        XCTAssertEqual(contract.checksum, LiveMonitoringForbiddenCapabilityTestContract.requiredChecksum)
+        XCTAssertTrue(contract.checksumMatchedCanonicalPreimage)
+        XCTAssertTrue(contract.deterministicLocalOnly)
+        XCTAssertTrue(contract.readModelOnly)
+        XCTAssertTrue(contract.noNetworkDependency)
+        XCTAssertTrue(contract.forbiddenEndpointCoverageHeld)
+        XCTAssertTrue(contract.forbiddenRuntimeCoverageHeld)
+        XCTAssertTrue(contract.forbiddenBrokerCoverageHeld)
+        XCTAssertTrue(contract.forbiddenUICommandCoverageHeld)
+        XCTAssertTrue(contract.forbiddenCapabilityTestBoundaryHeld)
+        XCTAssertFalse(contract.callsSignedEndpoint)
+        XCTAssertFalse(contract.callsAccountEndpoint)
+        XCTAssertFalse(contract.createsListenKey)
+        XCTAssertFalse(contract.opensPrivateWebSocket)
+        XCTAssertFalse(contract.runsPrivateStreamRuntime)
+        XCTAssertFalse(contract.runsAccountSnapshotRuntime)
+        XCTAssertFalse(contract.createsConnectionManager)
+        XCTAssertFalse(contract.opensRuntimeConnection)
+        XCTAssertFalse(contract.implementsLiveReadiness)
+        XCTAssertFalse(contract.runsLiveMonitoringRuntime)
+        XCTAssertFalse(contract.connectsBrokerAdapter)
+        XCTAssertFalse(contract.connectsExchangeExecutionAdapter)
+        XCTAssertFalse(contract.implementsLiveExecutionAdapter)
+        XCTAssertFalse(contract.implementsOMS)
+        XCTAssertFalse(contract.exposesLivePROConsole)
+        XCTAssertFalse(contract.exposesTradingButton)
+        XCTAssertFalse(contract.exposesLiveCommand)
+        XCTAssertFalse(contract.exposesOrderForm)
+        XCTAssertFalse(contract.exposesStopShutdownRestoreCommand)
+        XCTAssertFalse(contract.readsRealAccount)
+        XCTAssertFalse(contract.dependsOnRealBroker)
+
+        let encoded = try JSONEncoder().encode(contract)
+        let decoded = try JSONDecoder().decode(
+            LiveMonitoringForbiddenCapabilityTestContract.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, contract)
+    }
+
+    func testLiveMonitoringForbiddenCapabilityTestsRejectMTP151RuntimeEndpointAndUIBypass() throws {
+        // 测试场景：MTP-151 的 forbidden test matrix 本身必须保持 deterministic local-only。
+        // Codable payload 不能把检查合同恢复成 endpoint、runtime、broker、Live PRO Console 或 UI command。
+        let forbiddenFlagCases: [
+            (field: String, build: () throws -> LiveMonitoringForbiddenCapabilityTestContract)
+        ] = [
+            ("callsSignedEndpoint", { try LiveMonitoringForbiddenCapabilityTestContract(callsSignedEndpoint: true) }),
+            ("callsAccountEndpoint", { try LiveMonitoringForbiddenCapabilityTestContract(callsAccountEndpoint: true) }),
+            ("createsListenKey", { try LiveMonitoringForbiddenCapabilityTestContract(createsListenKey: true) }),
+            ("opensPrivateWebSocket", { try LiveMonitoringForbiddenCapabilityTestContract(opensPrivateWebSocket: true) }),
+            (
+                "runsPrivateStreamRuntime",
+                { try LiveMonitoringForbiddenCapabilityTestContract(runsPrivateStreamRuntime: true) }
+            ),
+            (
+                "runsAccountSnapshotRuntime",
+                { try LiveMonitoringForbiddenCapabilityTestContract(runsAccountSnapshotRuntime: true) }
+            ),
+            (
+                "createsConnectionManager",
+                { try LiveMonitoringForbiddenCapabilityTestContract(createsConnectionManager: true) }
+            ),
+            (
+                "opensRuntimeConnection",
+                { try LiveMonitoringForbiddenCapabilityTestContract(opensRuntimeConnection: true) }
+            ),
+            (
+                "implementsLiveReadiness",
+                { try LiveMonitoringForbiddenCapabilityTestContract(implementsLiveReadiness: true) }
+            ),
+            (
+                "runsLiveMonitoringRuntime",
+                { try LiveMonitoringForbiddenCapabilityTestContract(runsLiveMonitoringRuntime: true) }
+            ),
+            ("connectsBrokerAdapter", { try LiveMonitoringForbiddenCapabilityTestContract(connectsBrokerAdapter: true) }),
+            (
+                "connectsExchangeExecutionAdapter",
+                { try LiveMonitoringForbiddenCapabilityTestContract(connectsExchangeExecutionAdapter: true) }
+            ),
+            (
+                "implementsLiveExecutionAdapter",
+                { try LiveMonitoringForbiddenCapabilityTestContract(implementsLiveExecutionAdapter: true) }
+            ),
+            ("implementsOMS", { try LiveMonitoringForbiddenCapabilityTestContract(implementsOMS: true) }),
+            ("exposesLivePROConsole", { try LiveMonitoringForbiddenCapabilityTestContract(exposesLivePROConsole: true) }),
+            ("exposesTradingButton", { try LiveMonitoringForbiddenCapabilityTestContract(exposesTradingButton: true) }),
+            ("exposesLiveCommand", { try LiveMonitoringForbiddenCapabilityTestContract(exposesLiveCommand: true) }),
+            ("exposesOrderForm", { try LiveMonitoringForbiddenCapabilityTestContract(exposesOrderForm: true) }),
+            (
+                "exposesStopShutdownRestoreCommand",
+                { try LiveMonitoringForbiddenCapabilityTestContract(exposesStopShutdownRestoreCommand: true) }
+            ),
+            ("readsRealAccount", { try LiveMonitoringForbiddenCapabilityTestContract(readsRealAccount: true) }),
+            ("dependsOnRealBroker", { try LiveMonitoringForbiddenCapabilityTestContract(dependsOnRealBroker: true) })
+        ]
+
+        for flagCase in forbiddenFlagCases {
+            XCTAssertThrowsError(try flagCase.build()) { error in
+                XCTAssertEqual(
+                    error as? CoreError,
+                    .liveMonitoringConsoleForbiddenCapability(flagCase.field)
+                )
+            }
+        }
+
+        XCTAssertThrowsError(
+            try LiveMonitoringForbiddenCapabilityTestCase(
+                assertion: .signedEndpoint,
+                noNetworkDependency: false
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveMonitoringConsoleForbiddenCapability("noNetworkDependency"))
+        }
+
+        XCTAssertThrowsError(
+            try LiveMonitoringForbiddenCapabilityTestCase(
+                domain: .uiCommand,
+                assertion: .signedEndpoint
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveMonitoringConsoleContractMismatch(
+                    field: "signed endpoint must be rejected.domain",
+                    expected: "endpoint forbidden tests",
+                    actual: "ui command forbidden tests"
+                )
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(
+            LiveMonitoringForbiddenCapabilityTestContract.deterministicFixture
+        )
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["exposesLiveCommand"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveMonitoringForbiddenCapabilityTestContract.self, from: data)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveMonitoringConsoleForbiddenCapability("exposesLiveCommand"))
+        }
+    }
+
     func testLiveReadOnlyWorkbenchReadModelBoundaryDefinesMTP131Surface() throws {
         // 测试场景：MTP-131 只定义 Workbench / Dashboard 可展示的 Live readiness 只读边界，
         // 并把 forbidden UI surface、detail audit route 和 L3.x handoff 固定为可回放 fixture。
