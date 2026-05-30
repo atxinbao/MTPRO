@@ -459,6 +459,34 @@ Quoter / hedger role 不得暴露 broker command、order-level live command、ex
 
 MTP-156 required validation 是 `bash checks/run.sh`，并通过 contract、domain context、trading validation matrix、validation plan、latest verification summary、automation readiness doc 和 `checks/automation-readiness.sh` 机械固定 quoter / hedger role taxonomy、role responsibility boundary、proposal / read-model / blocked evidence relationship、forbidden role command surface 和 no role execution behavior。MTP-156 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard smoke handle、不新增 stage audit input；Project stage closeout 仍归属 MTP-161。
 
+`MTP-157-ACCOUNT-PORTFOLIO-RISK-READ-MODEL-INPUT`
+
+MTP-157 定义 Strategy / Trader readiness 可以消费的 account / portfolio / risk read-model input contract。`account read-model input` 只能表示既有 Read Model / ViewModel 或 deterministic fixture evidence 中的账户证据摘要；`portfolio read-model input` 只能表示 paper / simulated / fixture portfolio evidence；`risk read-model input` 只能表示 blocked / simulated / future-gated readiness 的风险证据摘要。这些 input 不等于真实账户输入、broker state、live risk runtime input、order command precondition、account endpoint response、listenKey stream、broker statement、real margin / leverage 或 real PnL。
+
+`MTP-157-INPUT-PROVENANCE-EVIDENCE-TRACE`
+
+MTP-157 的每条 input 必须保留 source layer、source anchor、scenario / fixture reference、observedAt / watermark 和 evidence trace。source layer 只能指向 L3.1 account / position / balance read-model-only evidence、L3.2 private stream / account snapshot simulation gate evidence、L3.3 monitoring read-model-only evidence 或本 Project 合同锚点；source anchor 不得指向 signed endpoint route、account endpoint route、listenKey、private WebSocket cursor、adapter request、Runtime object 或 database schema；evidence trace 只服务 Report / audit / validation trace，不等于 execution id、broker fill id、reconciliation id 或 executable command id。
+
+`MTP-157-FRESHNESS-BLOCKED-SIMULATED-FUTURE-GATED-SEMANTICS`
+
+MTP-157 固定 `fresh`、`stale`、`missing`、`blocked`、`simulated` 和 `future-gated` input semantics。它们只解释 read-model-only evidence 的 freshness、缺失、阻断、模拟来源或 Future Gated 状态，不解释 real account health、broker position health、private stream status、live risk status、pre-trade allow / reject result、order lifecycle state 或 UI command state。
+
+`MTP-157-READ-MODEL-VIEWMODEL-BOUNDARY`
+
+Strategy / Trader readiness 只能通过 Read Model / ViewModel 消费 account / portfolio / risk input。允许引用既有 APB read-model-only evidence、paper portfolio projection evidence、private stream / account snapshot simulation gate evidence、Live Monitoring v2 read-model-only evidence 和 contract anchors；不允许读取 real account payload、broker state、account endpoint payload、private stream payload、Runtime object、Adapter request、SQLite / DuckDB schema、credential、secret、API key 或 listenKey；不允许绕过 Read Model / ViewModel 直接访问 Persistence schema、Runtime actor、Adapter boundary、Execution Client、broker connector、private WebSocket 或 signed endpoint。
+
+`MTP-157-NO-REAL-ACCOUNT-RISK-RUNTIME`
+
+MTP-157 不读取真实账户，不同步 broker position，不读取真实 balance、real position、margin、leverage、buying power 或 real PnL；不实现 live risk engine、real pre-trade allow / reject runtime、circuit breaker runtime、stop trading command、account snapshot runtime、private stream runtime、signed endpoint、account endpoint / listenKey、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、Live PRO Console、trading button、live command 或 order form。
+
+`MTP-157-BROKER-STATE-PAYLOAD-SCHEMA-EXPOSURE-GUARD`
+
+MTP-157 input contract 不得暴露 real account payload、account endpoint payload、broker payload、broker state、broker position、Runtime object、Adapter request、SQLite / DuckDB schema、API key、secret、credential、listenKey、private WebSocket cursor、execution report、broker fill、reconciliation record、executable order command、broker command、OMS order 或 UI order form payload。
+
+`MTP-157-READ-MODEL-INPUT-VALIDATION`
+
+MTP-157 required validation 是 `bash checks/run.sh`，并通过 contract、domain context、trading validation matrix、validation plan、latest verification summary、automation readiness doc 和 `checks/automation-readiness.sh` 机械固定 account / portfolio / risk read-model input contract、provenance / evidence trace、freshness / blocked / simulated / future-gated semantics、Read Model / ViewModel boundary、no real account / live risk runtime boundary 和 broker state / payload / schema exposure guard。MTP-157 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard smoke handle、不新增 stage audit input；Project stage closeout 仍归属 MTP-161。
+
 ## Live Execution Control Terms
 
 `MTP-75-LIVE-EXECUTION-CONTROL-TERMINOLOGY`

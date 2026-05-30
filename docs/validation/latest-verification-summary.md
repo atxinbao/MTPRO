@@ -1064,6 +1064,14 @@ MTP-156 的当前 issue execution evidence 已建立 `docs/contracts/strategy-tr
 
 MTP-156-ROLE-TAXONOMY-VALIDATION 的本地验证已通过：`bash checks/automation-readiness.sh` 输出 `MTPRO automation readiness checks passed.`；`git diff --check` 无输出；`bash checks/run.sh` 通过 automation readiness、Dashboard build、Dashboard smoke 和 302 个 XCTest，Dashboard smoke 输出包含 `liveMonitoringReadOnlyConsoleV2Surface=4`，最终输出 `MTPRO checks passed.`。完整验收仍以 GitHub required check `checks` 为准。MTP-156 完成后不得自动推进 MTP-157；MTP-157 至 MTP-161 必须继续等待 Linear live-read 中唯一 eligible issue 授权。
 
+## 当前 issue execution evidence：MTP-157
+
+MTP-157 的当前 issue execution evidence 已建立 `docs/contracts/strategy-trader-instance-readiness-contract.md` 的 account / portfolio / risk read-model input anchors、`TVM-STRATEGY-TRADER-INSTANCE-READINESS` MTP-157 issue backfill、`docs/domain/context.md` 的 MTP-157 shared language、`docs/validation/validation-plan.md` 的 MTP-157 required validation、`docs/automation/automation-readiness.md` 的 account / portfolio / risk read-model input anchor 和 `checks/automation-readiness.sh` 的 MTP-157 mechanical anchors。
+
+该证据只定义 `L3.4 Strategy / Trader Instance Readiness v1` 的 read-model input readiness：account read-model input、portfolio read-model input、risk read-model input、input provenance、evidence trace、fresh / stale / missing / blocked / simulated / future-gated semantics、Read Model / ViewModel boundary、no real account / live risk runtime boundary 和 broker state / payload / schema exposure guard。MTP-157 不读取真实账户，不同步 broker position，不读取 real balance、real position、margin、leverage、buying power 或 real PnL；不实现 live risk engine、real pre-trade allow / reject runtime、circuit breaker runtime、stop trading command、account snapshot runtime、private stream runtime、signed endpoint、account endpoint / listenKey、listenKey create / keepalive、private WebSocket runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form、stop / shutdown / restore；input 不暴露 real account payload、account endpoint payload、broker payload、broker state、Runtime object、Adapter request、SQLite / DuckDB schema、credential、secret、API key、listenKey、private WebSocket cursor、execution report、broker fill 或 executable order command；不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+MTP-157-READ-MODEL-INPUT-VALIDATION 的本地验证已通过：`bash checks/automation-readiness.sh` 输出 `MTPRO automation readiness checks passed.`；`git diff --check` 无输出；`bash checks/run.sh` 通过 automation readiness、Dashboard build、Dashboard smoke 和 302 个 XCTest，Dashboard smoke 输出包含 `liveMonitoringReadOnlyConsoleV2Surface=4`，最终输出 `MTPRO checks passed.`。完整验收仍以 GitHub required check `checks` 为准。MTP-157 完成后不得自动推进 MTP-158；MTP-158 至 MTP-161 必须继续等待 Linear live-read 中唯一 eligible issue 授权。
+
 ## Known CI Boundary
 
 临时 CI 平台边界：
