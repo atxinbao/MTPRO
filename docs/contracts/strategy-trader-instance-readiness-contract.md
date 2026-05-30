@@ -326,3 +326,111 @@ Focused validation anchors：
 - `checks/automation-readiness.sh` 必须机械检查 MTP-156 contract、domain context、matrix、validation plan、latest summary、automation readiness doc、forbidden role command surface 和 no execution behavior boundary strings。
 
 MTP-156 不新增 Swift production code，不新增 focused XCTest，不新增 Dashboard smoke handle，不新增 App read model，不新增 Core / Runtime / Dashboard behavior，不新增 stage audit input；Project stage closeout 仍归属 MTP-161。
+
+## MTP-157 account / portfolio / risk read-model input contract
+
+`MTP-157-ACCOUNT-PORTFOLIO-RISK-READ-MODEL-INPUT`
+
+MTP-157 只定义 Strategy / Trader Instance 可以消费的 account / portfolio / risk read-model input contract。Input 是 readiness evidence 的只读输入，不是真实账户输入、broker state、live risk runtime input 或 order command precondition。
+
+| Input | 当前含义 | 禁止混用 |
+| --- | --- | --- |
+| `account read-model input` | Strategy / Trader readiness 可以引用的 account evidence summary，只能来自既有 Read Model / ViewModel 或 deterministic fixture evidence | 不等于 real account payload、account endpoint response、listenKey stream、broker account statement、account session 或 credential-bound account state |
+| `portfolio read-model input` | Strategy / Trader readiness 可以引用的 paper / simulated / fixture portfolio evidence，用于解释 role rationale 和 proposal boundary | 不等于 broker position sync、real position, margin / leverage state、real PnL、portfolio rebalance command 或 hedge order command |
+| `risk read-model input` | Strategy / Trader readiness 可以引用的 risk evidence summary，用于解释 blocked / simulated / future-gated readiness | 不等于 live risk engine input、real pre-trade allow / reject runtime、circuit breaker command、stop trading command 或 execution gate |
+| `input provenance` | 每条 input 必须携带 source layer、source anchor、scenario / fixture reference、observedAt / watermark 和 evidence trace | 不等于 broker audit event、execution report、broker fill、reconciliation record 或 production monitoring telemetry |
+| `read-model input freshness` | `fresh` / `stale` / `missing` / `blocked` / `simulated` / `future-gated` 只解释 evidence freshness 和可用性 | 不等于 account connection health、private stream health、live readiness implementation 或 broker connectivity |
+
+## MTP-157 input provenance and evidence trace
+
+`MTP-157-INPUT-PROVENANCE-EVIDENCE-TRACE`
+
+Account / portfolio / risk input 必须保持可追溯但不可执行：
+
+1. `sourceLayer` 只能指向 existing read-model-only evidence layer，例如 L3.1 account / position / balance read-model-only evidence、L3.2 private stream / account snapshot simulation gate evidence、L3.3 monitoring read-model-only evidence 或本 Project 内合同锚点。
+2. `sourceAnchor` 只能指向 contract / validation / automation readiness anchor，不得指向 signed endpoint route、account endpoint route、listenKey、private WebSocket cursor、adapter request、Runtime object 或 database schema。
+3. `scenarioReference` 只能解释 deterministic local / paper / simulated / fixture evidence，不得解释为真实账户、真实持仓、真实余额或 broker portfolio snapshot。
+4. `evidenceTrace` 只能用于 Report / audit / validation trace，不得成为 OMS order id、execution id、broker fill id、reconciliation id、order form payload 或 executable command id。
+
+## MTP-157 freshness / blocked / simulated / future-gated input semantics
+
+`MTP-157-FRESHNESS-BLOCKED-SIMULATED-FUTURE-GATED-SEMANTICS`
+
+MTP-157 固定 input status semantics：
+
+- `fresh` 表示 read-model-only evidence 在当前 deterministic validation window 内可解释。
+- `stale` 表示 read-model evidence 已超过 source watermark 或 validation window，只能展示为 stale evidence。
+- `missing` 表示当前 Strategy / Trader readiness 没有所需 input evidence。
+- `blocked` 表示 input 被 forbidden capability、missing upstream evidence、future gated source 或 no-real-account boundary 阻断。
+- `simulated` 表示 input 只来自 deterministic local / fixture / simulated evidence。
+- `future-gated` 表示真实账户、真实 portfolio 或 live risk input 仍在 Future Gated scope，当前不可读取、不可连接、不可执行。
+
+这些状态不得写成 real account health、broker position health、private stream status、live risk status、pre-trade allow / reject result、order lifecycle state 或 UI command state。
+
+## MTP-157 read-model / ViewModel boundary
+
+`MTP-157-READ-MODEL-VIEWMODEL-BOUNDARY`
+
+Strategy / Trader readiness 只能通过 Read Model / ViewModel 消费 account / portfolio / risk input：
+
+- 允许引用既有 account / position / balance read-model-only evidence、paper portfolio projection evidence、private stream / account snapshot simulation gate evidence、Live Monitoring v2 read-model-only evidence 和 contract anchors。
+- 不允许读取 real account payload、broker state、account endpoint payload、private stream payload、Runtime object、Adapter request、SQLite / DuckDB schema、credential、secret、API key 或 listenKey。
+- 不允许绕过 Read Model / ViewModel 直接访问 Persistence schema、Runtime actor、Adapter boundary、Execution Client、broker connector、private WebSocket 或 signed endpoint。
+- Workbench / Report / Events surface 只能在 MTP-160 scope 内展示该 input evidence；MTP-157 不新增 App read model、Dashboard surface 或 Dashboard smoke handle。
+
+## MTP-157 no real account / live risk runtime boundary
+
+`MTP-157-NO-REAL-ACCOUNT-RISK-RUNTIME`
+
+MTP-157 不读取真实账户，不同步 broker position，不读取真实 balance、real position、margin、leverage、buying power 或 real PnL；不实现 live risk engine、real pre-trade allow / reject runtime、circuit breaker runtime、stop trading command、account snapshot runtime、private stream runtime、signed endpoint、account endpoint / listenKey、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、Live PRO Console、trading button、live command 或 order form。
+
+Account / portfolio / risk input 只能进入 contract、domain context、validation matrix、validation plan、latest summary、automation readiness 和 mechanical checks；Project stage closeout 仍归属 MTP-161。
+
+## MTP-157 broker state / payload / schema exposure guard
+
+`MTP-157-BROKER-STATE-PAYLOAD-SCHEMA-EXPOSURE-GUARD`
+
+MTP-157 input contract 不得暴露以下内容：
+
+- real account payload
+- account endpoint payload
+- broker payload
+- broker state
+- broker position
+- real balance / real position / margin / leverage / buying power / real PnL
+- Runtime object
+- Adapter request
+- SQLite / DuckDB schema
+- API key / secret / credential / listenKey
+- private WebSocket cursor
+- execution report
+- broker fill
+- reconciliation record
+- executable order command
+- broker command
+- OMS order
+- UI order form payload
+
+这些内容只能作为 forbidden boundary string 出现，不能写成 current support、beta preview、local fallback、behind flag、partially implemented 或后续 issue自动授权。
+
+## MTP-157 validation anchors
+
+`MTP-157-READ-MODEL-INPUT-VALIDATION`
+
+Required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `docs/contracts/strategy-trader-instance-readiness-contract.md` 必须包含 MTP-157 account / portfolio / risk read-model input contract、input provenance / evidence trace、freshness / blocked / simulated / future-gated semantics、Read Model / ViewModel boundary、no real account / live risk runtime boundary、broker state / payload / schema exposure guard 和 validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-157 account / portfolio / risk read-model input shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-157 issue backfill。
+- `docs/validation/validation-plan.md` 必须包含 MTP-157 required validation。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-157 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 account / portfolio / risk read-model input anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-157 contract、domain context、matrix、validation plan、latest summary、automation readiness doc、Read Model / ViewModel boundary、no real account / live risk runtime boundary 和 broker state / payload / schema exposure guard。
+
+MTP-157 不新增 Swift production code，不新增 focused XCTest，不新增 Dashboard smoke handle，不新增 App read model，不新增 Core / Runtime / Dashboard behavior，不新增 stage audit input；Project stage closeout 仍归属 MTP-161。

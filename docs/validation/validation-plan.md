@@ -4238,3 +4238,46 @@ MTP-155 必须建立的主要 anchors：
 - 不新增 broker adapter、broker / exchange execution adapter、`LiveExecutionAdapter`、Live PRO Console、trading button、live command、order form、stop / shutdown / restore 或 production operations command。
 - 不新增 Swift production code、focused XCTest、App read model、Dashboard surface、Dashboard smoke handle 或 stage audit input；Project stage closeout 仍归属 MTP-161。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+## MTP-157 Account / Portfolio / Risk Read-model Input Validation
+
+日期：2026-05-31
+
+执行者：Codex
+
+MTP-157 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-157 的验收要求：
+
+- `docs/contracts/strategy-trader-instance-readiness-contract.md` 必须包含 MTP-157 account / portfolio / risk read-model input contract、input provenance / evidence trace、freshness / blocked / simulated / future-gated semantics、Read Model / ViewModel boundary、no real account / live risk runtime boundary、broker state / payload / schema exposure guard 和 validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-157 account / portfolio / risk read-model input shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-STRATEGY-TRADER-INSTANCE-READINESS` 的 MTP-157 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 account / portfolio / risk read-model input anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-157 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-157 contract、matrix、validation plan、domain context、latest summary、automation readiness doc、Read Model / ViewModel boundary、no real account / live risk runtime boundary 和 broker state / payload / schema exposure guard。
+- PR 前必须确认 `.codex/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-157 必须建立的主要 anchors：
+
+- `MTP-157-ACCOUNT-PORTFOLIO-RISK-READ-MODEL-INPUT`
+- `MTP-157-INPUT-PROVENANCE-EVIDENCE-TRACE`
+- `MTP-157-FRESHNESS-BLOCKED-SIMULATED-FUTURE-GATED-SEMANTICS`
+- `MTP-157-READ-MODEL-VIEWMODEL-BOUNDARY`
+- `MTP-157-NO-REAL-ACCOUNT-RISK-RUNTIME`
+- `MTP-157-BROKER-STATE-PAYLOAD-SCHEMA-EXPOSURE-GUARD`
+- `MTP-157-READ-MODEL-INPUT-VALIDATION`
+
+## MTP-157 禁止
+
+- 不读取真实账户，不同步 broker position，不读取真实 balance、real position、margin、leverage、buying power 或 real PnL。
+- 不实现 live risk engine、real pre-trade allow / reject runtime、circuit breaker runtime、stop trading command、account snapshot runtime、private stream runtime 或 Strategy / Trader runtime input。
+- 不接 signed endpoint、account endpoint / listenKey，不创建 listenKey，不连接 private WebSocket，不连接 broker。
+- 不暴露 real account payload、account endpoint payload、broker payload、broker state、Runtime object、Adapter request、SQLite / DuckDB schema、credential、secret、API key、listenKey 或 private WebSocket cursor。
+- 不输出 broker command、executable order command、OMS order、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不新增 broker adapter、broker / exchange execution adapter、`LiveExecutionAdapter`、Live PRO Console、trading button、live command、order form、stop / shutdown / restore 或 production operations command。
+- 不新增 Swift production code、focused XCTest、App read model、Dashboard surface、Dashboard smoke handle 或 stage audit input；Project stage closeout 仍归属 MTP-161。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
