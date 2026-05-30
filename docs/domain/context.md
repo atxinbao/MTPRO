@@ -435,6 +435,30 @@ Strategy / Trader identity 不得包含 credential、secret、API key、listenKe
 
 MTP-155 required validation 是 `bash checks/run.sh`，并通过 contract、domain context、trading validation matrix、validation plan、latest verification summary、automation readiness doc 和 `checks/automation-readiness.sh` 机械固定 lifecycle / identity、read-model reference boundary、no lifecycle runtime boundary 和 sensitive field guard。MTP-155 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard smoke handle、不新增 stage audit input；Project stage closeout 仍归属 MTP-161。
 
+`MTP-156-QUOTER-HEDGER-ROLE-TAXONOMY`
+
+MTP-156 定义 quoter / hedger role taxonomy 和 responsibility boundary。`quoter` 只表示后续 strategy / trader readiness 可能需要解释 quote intent、market reference、spread rationale、proposal candidate 和 blocked evidence 的结构性角色；不等于 market making runtime、quote engine、order generation engine、Execution Client caller、broker command producer、live quote stream 或 order form actor。`hedger` 只表示后续 readiness 可能需要解释 hedge intent、risk offset rationale、portfolio / risk read-model reference、proposal candidate 和 blocked evidence 的结构性角色；不等于 hedge runtime、position sync、broker hedge order、portfolio rebalancer、risk engine runtime、OMS actor 或 live command actor。
+
+`MTP-156-ROLE-RESPONSIBILITY-BOUNDARY`
+
+Role responsibility 只能记录 `roleName`、`responsibilitySummary`、`allowedReadModelReferences`、`allowedProposalReferences`、`blockedEvidenceReferences` 和 `forbiddenOutputs`。这些字段只描述 structural readiness，不表达 permission、authorization、capability flag、execution mode、broker entitlement 或 trading role assignment。
+
+`MTP-156-ROLE-PROPOSAL-READ-MODEL-BLOCKED-EVIDENCE`
+
+Quoter / hedger role 与 proposal、read-model input 和 blocked evidence 的关系只能是 handoff reference。Role 可以解释 `missingReadModelInput`、`proposalContractPending`、`executionForbidden`、`brokerForbidden`、`uiCommandForbidden` 等 blocked evidence，但不得提前定义 MTP-157 account / portfolio / risk input shape，不定义 MTP-158 proposal attributes，不输出 executable order command。
+
+`MTP-156-NO-ROLE-EXECUTION-BEHAVIOR`
+
+Role taxonomy 不实现 quoter runtime、hedger runtime、strategy marketplace、strategy manager、strategy scheduler、trader process manager、order generation engine、Execution Client direct path、broker connection、signed endpoint、account endpoint / listenKey、private WebSocket runtime、private stream runtime、account snapshot runtime、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、broker adapter、`LiveExecutionAdapter`、Live PRO Console、trading button、live command 或 order form。
+
+`MTP-156-FORBIDDEN-ROLE-COMMAND-SURFACE`
+
+Quoter / hedger role 不得暴露 broker command、order-level live command、executable order command、Execution Client request、OMS order、quote order request、hedge order request、submit / cancel / replace command、trading button action、live command、order form payload、broker adapter request、account endpoint payload、signed request、listenKey create / keepalive、Runtime object、Adapter request、SQLite / DuckDB schema、credential、secret 或 API key。
+
+`MTP-156-ROLE-TAXONOMY-VALIDATION`
+
+MTP-156 required validation 是 `bash checks/run.sh`，并通过 contract、domain context、trading validation matrix、validation plan、latest verification summary、automation readiness doc 和 `checks/automation-readiness.sh` 机械固定 quoter / hedger role taxonomy、role responsibility boundary、proposal / read-model / blocked evidence relationship、forbidden role command surface 和 no role execution behavior。MTP-156 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard smoke handle、不新增 stage audit input；Project stage closeout 仍归属 MTP-161。
+
 ## Live Execution Control Terms
 
 `MTP-75-LIVE-EXECUTION-CONTROL-TERMINOLOGY`

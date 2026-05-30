@@ -1056,6 +1056,14 @@ MTP-155 的当前 issue execution evidence 已建立 `docs/contracts/strategy-tr
 
 MTP-155-STRATEGY-TRADER-LIFECYCLE-VALIDATION 的本地验证已通过：`bash checks/automation-readiness.sh` 输出 `MTPRO automation readiness checks passed.`；`git diff --check` 无输出；`bash checks/run.sh` 通过 automation readiness、Dashboard build、Dashboard smoke 和 302 个 XCTest，Dashboard smoke 输出包含 `liveMonitoringReadOnlyConsoleV2Surface=4`，最终输出 `MTPRO checks passed.`。完整验收仍以 GitHub required check `checks` 为准。MTP-155 完成后不得自动推进 MTP-156；MTP-156 至 MTP-161 必须继续等待 Linear live-read 中唯一 eligible issue 授权。
 
+## 当前 issue execution evidence：MTP-156
+
+MTP-156 的当前 issue execution evidence 已建立 `docs/contracts/strategy-trader-instance-readiness-contract.md` 的 quoter / hedger role taxonomy anchors、`TVM-STRATEGY-TRADER-INSTANCE-READINESS` MTP-156 issue backfill、`docs/domain/context.md` 的 MTP-156 shared language、`docs/validation/validation-plan.md` 的 MTP-156 required validation、`docs/automation/automation-readiness.md` 的 quoter / hedger role taxonomy anchor 和 `checks/automation-readiness.sh` 的 MTP-156 mechanical anchors。
+
+该证据只定义 `L3.4 Strategy / Trader Instance Readiness v1` 的 role taxonomy readiness：quoter role、hedger role、role responsibility boundary、role proposal / read-model / blocked evidence relationship、no role execution behavior 和 forbidden role command surface。MTP-156 不实现 quoter runtime、hedger runtime、strategy marketplace、strategy manager、strategy scheduler、trader process manager、order generation engine、Execution Client direct path、broker connection、broker command、order-level live command、executable order command、OMS、quote order request、hedge order request、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、signed endpoint、account endpoint / listenKey、listenKey create / keepalive、private WebSocket runtime、private stream runtime、account snapshot runtime、broker adapter、`LiveExecutionAdapter`、Live PRO Console、trading button、live command、order form、stop / shutdown / restore；role 不暴露 Runtime object、Adapter request、SQLite / DuckDB schema、broker payload、account endpoint payload、credential、secret 或 API key；不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+MTP-156-ROLE-TAXONOMY-VALIDATION 的本地验证已通过：`bash checks/automation-readiness.sh` 输出 `MTPRO automation readiness checks passed.`；`git diff --check` 无输出；`bash checks/run.sh` 通过 automation readiness、Dashboard build、Dashboard smoke 和 302 个 XCTest，Dashboard smoke 输出包含 `liveMonitoringReadOnlyConsoleV2Surface=4`，最终输出 `MTPRO checks passed.`。完整验收仍以 GitHub required check `checks` 为准。MTP-156 完成后不得自动推进 MTP-157；MTP-157 至 MTP-161 必须继续等待 Linear live-read 中唯一 eligible issue 授权。
+
 ## Known CI Boundary
 
 临时 CI 平台边界：
