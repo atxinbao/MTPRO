@@ -23,15 +23,16 @@
 - `L3.0 Live Read-only Readiness Boundary`：Done / not counted in old denominator。
 - `L3.1 Account / Position / Balance Read-model-only`：Done / not counted in old denominator。
 - `L3.2 Private Stream / Account Snapshot Simulation Gate`：Done / not counted in old denominator。
+- `L3.3 Live Monitoring Read-only Console v2`：Done / not counted in old denominator。
 
 当前旧路线进度保持：
 
 ```text
 Engine Maturity Roadmap Progress: 4 / 4 (100%)
-Current maturity statement: L3.2 Private Stream / Account Snapshot Simulation Gate complete
+Current maturity statement: L3.3 Live Monitoring Read-only Console v2 complete
 ```
 
-该 `4 / 4` 路线已经闭合。L3.0、L3.1 和 L3.2 作为 Live Readiness 路线的 boundary / read-model-only / simulation gate evidence 追加，不继续改旧分母，不把旧路线回滚成未完成状态。
+该 `4 / 4` 路线已经闭合。L3.0、L3.1、L3.2 和 L3.3 作为 Live Readiness 路线的 boundary / read-model-only / simulation gate / monitoring evidence 追加，不继续改旧分母，不把旧路线回滚成未完成状态。
 
 ## 3. 为什么需要新路线口径
 
@@ -58,21 +59,22 @@ L3 / L4 进入的是完全不同的风险域：
 | `L3.0 Live Read-only Readiness Boundary` | 定义只读接近真实账户前的术语、凭证策略、endpoint 分类、adapter capability matrix、forbidden write capability baseline 和验证门槛 | Done | Stage Code Audit Report、contract、forbidden tests、readiness anchors 已闭环 | 不实现任何真实 endpoint、secret storage、listenKey、broker connection 或账户读取 |
 | `L3.1 Account / Position / Balance Read-model-only` | 定义 account / position / balance 的 read-model-only 语义和 evidence surface | Done | Stage Code Audit Report、contract、deterministic fixture、forbidden tests、Workbench / Report / Events read-model-only surface 已闭环 | 不读取真实账户，不同步 broker position，不实现 margin / leverage / real PnL |
 | `L3.2 Private Stream / Account Snapshot Simulation Gate` | 通过 simulation / fixture gate 证明 private stream 与 account snapshot 只能在受控边界内被表达 | Done | Stage Code Audit Report、contract、deterministic fixture、forbidden endpoint/runtime tests、Workbench / Report / Events read-model-only simulation gate surface 已闭环 | 不创建 listenKey，不连接 private WebSocket，不运行 production stream |
-| `L3.3 Live Monitoring Read-only Console v2` | 在 L3.0-L3.2 gate 通过后，升级 Live Monitoring 的只读证据面 | Future Gated / Planning Candidate | read-model-only health、account snapshot evidence、connection gate explanation，需重新 planning | 不提供交易控制，不提供 Live PRO Console，不提供 order-level command UI |
+| `L3.3 Live Monitoring Read-only Console v2` | 在 L3.0-L3.2 gate 通过后，升级 Live Monitoring 的只读证据面 | Done | Stage Code Audit Report、Core deterministic evidence、Workbench / Report / Events read-model-only surface、forbidden tests 和 automation readiness 已闭环 | 不提供交易控制，不提供 Live PRO Console，不提供 order-level command UI |
 | `L3.4 Strategy / Trader Instance Readiness v1` | 定义 Strategy Instance / Trader Instance 的只读上下文、生命周期、quoter / hedger role、account / portfolio / risk read-model 输入和 paper/live-neutral proposal contract | Future Gated / Planning Candidate | 只能作为 L4 前的 strategy/trader 结构性补口，需重新 planning | 不让 strategy 直接调用 Execution Client，不输出 broker command，不实现 OMS、trading button、Live PRO Console 或 live command |
 | `L4 Live Production / Trading Commands` | 真实 execution、OMS、broker fill、reconciliation、live risk、ops / incident / stop 和独立 Live PRO Console | Future Gated | 只能作为 future gated map | 当前不进入 planning / Linear / implementation |
 
-## 5. L3.0 / L3.1 / L3.2 完成事实与下一候选
+## 5. L3.0 / L3.1 / L3.2 / L3.3 完成事实与下一候选
 
-已完成的 L3.0 / L3.1 / L3.2 Project：
+已完成的 L3.0 / L3.1 / L3.2 / L3.3 Project：
 
 ```text
 MTPRO Live Read-only Readiness Boundary v1
 MTPRO Account / Position / Balance Read-model-only v1
 MTPRO Private Stream / Account Snapshot Simulation Gate v1
+MTPRO Live Monitoring Read-only Console v2
 ```
 
-这些 Project 已完成 Live read-only readiness 的边界定义、APB read-model-only evidence surface 和 private stream / account snapshot simulation gate evidence boundary，而不是实现 read-only account runtime、private stream runtime 或 account snapshot runtime。
+这些 Project 已完成 Live read-only readiness 的边界定义、APB read-model-only evidence surface、private stream / account snapshot simulation gate evidence boundary 和 Live Monitoring v2 read-model-only evidence surface，而不是实现 read-only account runtime、private stream runtime、account snapshot runtime、Live Monitoring runtime 或 Live PRO Console。
 
 L3.0 已回答：
 
