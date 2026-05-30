@@ -241,6 +241,27 @@ MTP-148 必须防止 simulated / fixture evidence 被解释为真实账户或真
 
 MTP-147 required validation 是 `bash checks/run.sh`，并通过 contract、domain context、trading validation matrix、validation plan、latest verification summary、automation readiness doc 和 `checks/automation-readiness.sh` 机械固定 terminology、boundary、forbidden capability baseline 和 no runtime authorization。MTP-147 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard smoke handle、不新增 stage audit input；Project stage closeout 仍归属 MTP-153。
 
+`MTP-149-SIMULATION-GATE-HEALTH-FRESHNESS-EVIDENCE`
+
+MTP-149 把 MTP-148 monitoring source identity 与 MTP-144 simulated account snapshot freshness evidence 组合成 Core deterministic health evidence 合同：`LiveMonitoringSimulationGateHealthContract`、`LiveMonitoringSimulationGateHealthEvidenceItem`、`LiveMonitoringSimulationGateHealthStatus`、`LiveMonitoringSimulationGateFreshnessExplanation` 和 `LiveMonitoringSimulationGateHealthForbiddenCapability`。这些 evidence 只解释 L3.2 simulation gate 的 read-model-only 展示状态，不代表真实账户健康、真实 broker 连接、private stream 状态或 live connection status。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `simulation gate health evidence` | 从 MTP-144 fresh / stale / blocked / missing fixture 派生的只读 health evidence | 不等于 real account health、broker connectivity、private stream health 或 live monitoring runtime |
+| `freshness explanation` | within threshold / threshold exceeded / boundary-held / input absent 的本地解释 | 不触发 endpoint call、listenKey、private WebSocket、refresh、reconnect 或 recovery action |
+| `blocked display semantics` | blocked evidence 只能展示 boundary-held read-only evidence | 不等于连接失败、自动修复、broker outage、account endpoint down 或 incident action |
+| `fixture simulated read-model-only source` | health evidence 只能来自 fixture + simulated + read-model-only source identity 和 MTP-144 checksum | 不读取 Runtime object、Adapter request、SQLite / DuckDB schema、account payload 或 broker state |
+
+`MTP-149-HEALTH-FRESHNESS-NOT-REAL-ACCOUNT-HEALTH`
+
+MTP-149 的 health / freshness 只解释 simulated gate evidence：fresh 显示 nominal simulated gate health，stale 显示 stale simulated gate health，blocked 显示 boundary-held evidence，missing 显示 fixture input absent evidence。任何状态都不得升级为真实账户健康、真实 broker 连接健康、private stream runtime 状态、account snapshot runtime 状态或 live connection status。
+
+`MTP-149-READ-MODEL-ONLY-NON-EXPOSURE`
+
+MTP-149 必须保持 read-model-only non-exposure：不调用 signed endpoint / account endpoint，不创建 listenKey，不打开 private WebSocket，不运行 private stream runtime 或 account snapshot runtime，不读取真实 account / position / balance，不消费或暴露 account payload，不暴露 broker state、Adapter request、Runtime object 或 SQLite / DuckDB schema，不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、OMS、live command、trading button、order form 或 real order write。
+
+`MTP-149-LIVE-MONITORING-SIMULATION-GATE-HEALTH-VALIDATION`
+
 ## Live Execution Control Terms
 
 `MTP-75-LIVE-EXECUTION-CONTROL-TERMINOLOGY`
