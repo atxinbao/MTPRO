@@ -1010,6 +1010,16 @@ MTP-152 的当前 issue execution evidence 已建立 `Sources/App/LiveMonitoring
 
 MTP-152-LIVE-MONITORING-V2-SURFACE-VALIDATION 的 focused validation 已通过：`swift test --filter LiveMonitoringReadOnlyConsoleV2` 通过 1 个 App test，0 failures；`swift test --filter AppTests` 通过 37 个 App tests，0 failures。完整验证仍以本次 PR 前 `bash checks/run.sh` 和 GitHub required check `checks` 为准。
 
+## 当前 issue execution evidence：MTP-153
+
+MTP-153 的当前 issue execution evidence 已建立 `docs/audit/inputs/mtpro-live-monitoring-read-only-console-v2-stage-audit-input.md`、`docs/contracts/live-monitoring-read-only-console-v2-contract.md` 的 MTP-153 closeout anchors、`TVM-LIVE-MONITORING-READ-ONLY-CONSOLE-V2` MTP-153 issue backfill、`docs/domain/context.md` 的 MTP-153 shared language、`docs/validation/validation-plan.md` 的 MTP-153 required validation、`docs/automation/automation-readiness.md` 的 Live Monitoring Read-only Console v2 stage audit input anchor 和 `checks/automation-readiness.sh` 的 MTP-153 mechanical closeout。
+
+该证据只收口 `MTPRO Live Monitoring Read-only Console v2` 的 validation matrix、automation readiness anchors、forbidden capability evidence chain、read-model-only boundary evidence、Workbench / Report / Events Live Monitoring v2 surface evidence、Dashboard smoke evidence 和 Stage Code Audit 输入材料；不输出最终 Stage Code Audit Report，不创建 `docs/audit/mtpro-live-monitoring-read-only-console-v2-stage-code-audit.md`，不设置 Linear Project `Completed`，不创建下一 Project / Issue，不推进下一阶段，不启动下一阶段 `symphony-issue`。validation anchors 为 `MTP-153-LIVE-MONITORING-V2-STAGE-CLOSEOUT`、`MTP-153-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-153-NO-FINAL-STAGE-CODE-AUDIT`、`MTP-153-LIVE-MONITORING-V2-STAGE-AUDIT-INPUT`、`MTP-153-VALIDATION-EVIDENCE-CHAIN`、`MTP-153-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN`、`MTP-153-READ-MODEL-ONLY-BOUNDARY-EVIDENCE`、`MTP-153-AUTOMATION-READINESS-STAGE-CLOSEOUT`、`MTP-153-STAGE-CLOSEOUT-VALIDATION` 和 `MTP-153-NO-GRAPHIFY-FIGMA-LINEAR-MUTATION`。
+
+MTP-153 不实现 Live Monitoring runtime、live readiness runtime、connection manager、runtime connection、private WebSocket runtime、private stream runtime、account snapshot runtime、signed endpoint、account endpoint、listenKey、listenKey keepalive、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real order write、Live PRO Console、trading button、live command、order form、stop / shutdown / restore；不读取真实 account / position / balance、margin、leverage、real PnL；不暴露 Runtime object、Adapter request、SQLite / DuckDB schema、account payload、account endpoint payload、broker payload 或 broker state；不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+MTP-153-STAGE-CLOSEOUT-VALIDATION 的本地验证已通过：`bash checks/automation-readiness.sh` 输出 `MTPRO automation readiness checks passed.`；`git diff --check` 无输出；`bash checks/run.sh` 通过 automation readiness、Dashboard build、Dashboard smoke 和 302 个 XCTest，Dashboard smoke 输出包含 `liveMonitoringReadOnlyConsoleV2Surface=4`，最终输出 `MTPRO checks passed.`。完整验证仍以 GitHub required check `checks` 为准。
+
 ## Known CI Boundary
 
 临时 CI 平台边界：
