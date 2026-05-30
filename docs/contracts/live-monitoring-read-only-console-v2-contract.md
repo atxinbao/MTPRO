@@ -375,3 +375,61 @@ Focused validation anchors：
 - `checks/automation-readiness.sh` 必须机械检查 MTP-151 Core source、focused tests、contract、domain context、validation plan、trading matrix、latest summary 和 automation readiness doc anchors。
 
 MTP-151 不新增 Adapters、Runtime、App、Dashboard behavior，不新增 Dashboard smoke handle，不实现 monitoring surface 或完整实盘监控台页面重设计；MTP-152 才能接入 Workbench / Report / Events read-model-only surface。Project stage closeout 仍归属 MTP-153。
+
+## MTP-152 Workbench / Report / Events read-model-only surface
+
+`MTP-152-WORKBENCH-REPORT-EVENTS-READ-MODEL-ONLY-SURFACE`
+
+MTP-152 固定 `LiveMonitoringReadOnlyConsoleV2SurfaceReadModel`、`LiveMonitoringReadOnlyConsoleV2SurfaceViewModel` 和 `LiveMonitoringReadOnlyConsoleV2TraceItem` 为 App 层 read-model-only surface。该 surface 只消费 MTP-148 `LiveMonitoringSourceIdentityContract`、MTP-149 `LiveMonitoringSimulationGateHealthContract`、MTP-150 `LiveMonitoringConnectionReadinessExplanationContract` 和 MTP-151 `LiveMonitoringForbiddenCapabilityTestContract` 的 deterministic evidence。
+
+Workbench / Report / Events 只能展示 source identity、source freshness、health / freshness evidence、readiness / stale / blocked / missing explanation、forbidden capability test coverage、dashboard panel summary 和 Event Timeline trace。该 surface 不新增或修改 Core semantics，不读取 Persistence adapter，不暴露 Runtime object、Adapter request、SQLite / DuckDB schema、account payload、broker payload 或 broker state。
+
+## MTP-152 monitoring source freshness explanation surface
+
+`MTP-152-MONITORING-SOURCE-FRESHNESS-EXPLANATION-SURFACE`
+
+MTP-152 的 Report / Workbench 文案只能把 MTP-148 至 MTP-151 的 source freshness、health freshness、readiness explanation 和 forbidden capability coverage 表达为只读 evidence summary：
+
+| Evidence input | MTP-152 surface output | Boundary |
+| --- | --- | --- |
+| MTP-148 source identity | source identities、source layers、source status、source freshness、evidence origins | 不创建 real source adapter，不读取真实 account / position / balance |
+| MTP-149 simulation gate health | health evidence IDs、health status、freshness status、freshness explanation | 不表示真实账户健康、broker connectivity 或 production monitoring runtime |
+| MTP-150 readiness explanation | readiness / stale / blocked / missing state、display semantics、explanation rows | 不表示真实连接已建立，不实现 live readiness |
+| MTP-151 forbidden capability tests | forbidden test IDs、domains、assertions、no-network guard | 不实现 endpoint、runtime、broker adapter 或 UI command |
+
+## MTP-152 no runtime / adapter / schema / payload / broker state surface
+
+`MTP-152-NO-RUNTIME-ADAPTER-SCHEMA-PAYLOAD-BROKER-STATE-SURFACE`
+
+MTP-152 必须证明 Workbench / Report / Events surface 的 forbidden flags 全部保持 false：不暴露 Live PRO Console、trading button、live command、order form、Runtime object、Adapter request、SQLite / DuckDB schema、account payload、broker state、signed endpoint、account endpoint、listenKey、private WebSocket runtime、private stream runtime、account snapshot runtime、connection manager、runtime connection、live readiness runtime、Live Monitoring runtime、broker adapter、exchange execution adapter、`LiveExecutionAdapter`、OMS、real account、real position、real balance 或 real order command。
+
+`DashboardShellSnapshot.smokeSummary` 可以新增 `liveMonitoringReadOnlyConsoleV2Surface=4` 作为 read-model-only evidence handle；该 handle 不是 Dashboard command、Live PRO Console、connection control、order form 或 trading button。
+
+## MTP-152 validation anchors
+
+`MTP-152-LIVE-MONITORING-V2-SURFACE-VALIDATION`
+
+Required validation：
+
+- `swift test --filter LiveMonitoringReadOnlyConsoleV2`
+- `swift test --filter AppTests`
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `Sources/App/LiveMonitoringReadOnlyConsoleV2Surface.swift` 必须包含 `LiveMonitoringReadOnlyConsoleV2SurfaceReadModel`、`LiveMonitoringReadOnlyConsoleV2SurfaceViewModel` 和 `LiveMonitoringReadOnlyConsoleV2TraceItem`。
+- `Sources/App/App.swift` 必须把 `liveMonitoringReadOnlyConsoleV2Surface` 接入 Report / Dashboard read model 和 view model。
+- `Sources/App/PaperWorkflowEvidenceExplorer.swift` 必须包含 `liveMonitoringReadOnlyConsoleV2Surface` section，并输出 MTP-152 Event Timeline read-model-only evidence item。
+- `Sources/App/DashboardShell.swift` 必须包含 Workbench / Report metrics、details 和 smoke handle `liveMonitoringReadOnlyConsoleV2Surface=4`。
+- `Tests/AppTests/AppTests.swift` 必须包含 `testLiveMonitoringReadOnlyConsoleV2SurfaceAggregatesMTP152WorkbenchReportEventsEvidence`。
+- `docs/contracts/live-monitoring-read-only-console-v2-contract.md` 必须包含 MTP-152 Workbench / Report / Events surface、source freshness explanation surface、no runtime / adapter / schema / payload / broker state surface 和 validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-152 Workbench / Report / Events shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-152 issue backfill。
+- `docs/validation/validation-plan.md` 必须包含 MTP-152 required validation。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-152 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Live Monitoring Workbench / Report / Events read-model-only surface anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-152 App source、focused tests、contract、domain context、validation plan、trading matrix、latest summary 和 automation readiness doc anchors。
+
+MTP-152 不新增 Adapters、Runtime、Core semantics、Persistence schema、真实 endpoint、真实 network validation、完整实盘监控台页面重设计或任何 trading command。Project stage closeout 仍归属 MTP-153。
