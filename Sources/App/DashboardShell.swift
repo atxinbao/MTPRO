@@ -160,7 +160,7 @@ public struct DashboardShellControlSnapshot: Codable, Equatable, Identifiable, S
 ///
 /// Workbench 壳只组合现有 App 层 ViewModel / Read Model / Command Model：session-level controls
 /// 来自固定合同，observability、Evidence Explorer、scenario replay evidence、Live blocked evidence、execution-control
-/// blocked evidence、Live Risk gate blocked evidence 和 incident / stop blocked evidence 都来自
+/// blocked evidence、Strategy / Trader readiness evidence、Live Risk gate blocked evidence 和 incident / stop blocked evidence 都来自
 /// `DashboardViewModel`。所有字段都是 read-only 展示材料，不访问运行时对象、adapter request、
 /// 数据库结构或真实账户能力，也不形成 live command、stop command、交易按钮或真实交易入口。
 public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
@@ -174,6 +174,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
     public let accountPositionBalanceReadModelOnlySurfaceSource: ViewModelSourceContract
     public let privateStreamSimulationGateEvidenceSurfaceSource: ViewModelSourceContract
     public let liveMonitoringReadOnlyConsoleV2SurfaceSource: ViewModelSourceContract
+    public let strategyTraderReadinessEvidenceSurfaceSource: ViewModelSourceContract
     public let workbenchBetaFirstRunSource: ViewModelSourceContract
     public let workbenchBetaAcceptancePathSource: ViewModelSourceContract
     public let liveReadOnlyWorkbenchBoundarySource: ViewModelSourceContract
@@ -198,6 +199,8 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
     public let privateStreamSimulationGateEvidenceSurfaceDetails: [String]
     public let liveMonitoringReadOnlyConsoleV2SurfaceMetrics: [DashboardShellMetric]
     public let liveMonitoringReadOnlyConsoleV2SurfaceDetails: [String]
+    public let strategyTraderReadinessEvidenceSurfaceMetrics: [DashboardShellMetric]
+    public let strategyTraderReadinessEvidenceSurfaceDetails: [String]
     public let workbenchBetaFirstRunMetrics: [DashboardShellMetric]
     public let workbenchBetaFirstRunDetails: [String]
     public let workbenchBetaAcceptancePathMetrics: [DashboardShellMetric]
@@ -228,6 +231,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
     public let accountPositionBalanceReadModelOnlySurfaceBoundaryHeld: Bool
     public let privateStreamSimulationGateEvidenceSurfaceBoundaryHeld: Bool
     public let liveMonitoringReadOnlyConsoleV2SurfaceBoundaryHeld: Bool
+    public let strategyTraderReadinessEvidenceSurfaceBoundaryHeld: Bool
     public let workbenchBetaFirstRunReadModelOnlyBoundaryHeld: Bool
     public let workbenchBetaAcceptancePathReadModelOnlyBoundaryHeld: Bool
     public let liveReadOnlyWorkbenchBoundaryReadModelOnlyBoundaryHeld: Bool
@@ -243,6 +247,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         accountPositionBalanceReadModelOnlySurfaceSource: ViewModelSourceContract,
         privateStreamSimulationGateEvidenceSurfaceSource: ViewModelSourceContract,
         liveMonitoringReadOnlyConsoleV2SurfaceSource: ViewModelSourceContract,
+        strategyTraderReadinessEvidenceSurfaceSource: ViewModelSourceContract,
         workbenchBetaFirstRunSource: ViewModelSourceContract,
         workbenchBetaAcceptancePathSource: ViewModelSourceContract,
         liveReadOnlyWorkbenchBoundarySource: ViewModelSourceContract,
@@ -267,6 +272,8 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         privateStreamSimulationGateEvidenceSurfaceDetails: [String],
         liveMonitoringReadOnlyConsoleV2SurfaceMetrics: [DashboardShellMetric],
         liveMonitoringReadOnlyConsoleV2SurfaceDetails: [String],
+        strategyTraderReadinessEvidenceSurfaceMetrics: [DashboardShellMetric],
+        strategyTraderReadinessEvidenceSurfaceDetails: [String],
         workbenchBetaFirstRunMetrics: [DashboardShellMetric],
         workbenchBetaFirstRunDetails: [String],
         workbenchBetaAcceptancePathMetrics: [DashboardShellMetric],
@@ -296,6 +303,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         accountPositionBalanceReadModelOnlySurfaceBoundaryHeld: Bool,
         privateStreamSimulationGateEvidenceSurfaceBoundaryHeld: Bool,
         liveMonitoringReadOnlyConsoleV2SurfaceBoundaryHeld: Bool,
+        strategyTraderReadinessEvidenceSurfaceBoundaryHeld: Bool,
         workbenchBetaFirstRunReadModelOnlyBoundaryHeld: Bool,
         workbenchBetaAcceptancePathReadModelOnlyBoundaryHeld: Bool,
         liveReadOnlyWorkbenchBoundaryReadModelOnlyBoundaryHeld: Bool
@@ -313,6 +321,8 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
             privateStreamSimulationGateEvidenceSurfaceSource
         self.liveMonitoringReadOnlyConsoleV2SurfaceSource =
             liveMonitoringReadOnlyConsoleV2SurfaceSource
+        self.strategyTraderReadinessEvidenceSurfaceSource =
+            strategyTraderReadinessEvidenceSurfaceSource
         self.workbenchBetaFirstRunSource = workbenchBetaFirstRunSource
         self.workbenchBetaAcceptancePathSource = workbenchBetaAcceptancePathSource
         self.liveReadOnlyWorkbenchBoundarySource = liveReadOnlyWorkbenchBoundarySource
@@ -343,6 +353,10 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
             liveMonitoringReadOnlyConsoleV2SurfaceMetrics
         self.liveMonitoringReadOnlyConsoleV2SurfaceDetails =
             liveMonitoringReadOnlyConsoleV2SurfaceDetails
+        self.strategyTraderReadinessEvidenceSurfaceMetrics =
+            strategyTraderReadinessEvidenceSurfaceMetrics
+        self.strategyTraderReadinessEvidenceSurfaceDetails =
+            strategyTraderReadinessEvidenceSurfaceDetails
         self.workbenchBetaFirstRunMetrics = workbenchBetaFirstRunMetrics
         self.workbenchBetaFirstRunDetails = workbenchBetaFirstRunDetails
         self.workbenchBetaAcceptancePathMetrics = workbenchBetaAcceptancePathMetrics
@@ -375,6 +389,8 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
             privateStreamSimulationGateEvidenceSurfaceBoundaryHeld
         self.liveMonitoringReadOnlyConsoleV2SurfaceBoundaryHeld =
             liveMonitoringReadOnlyConsoleV2SurfaceBoundaryHeld
+        self.strategyTraderReadinessEvidenceSurfaceBoundaryHeld =
+            strategyTraderReadinessEvidenceSurfaceBoundaryHeld
         self.workbenchBetaFirstRunReadModelOnlyBoundaryHeld =
             workbenchBetaFirstRunReadModelOnlyBoundaryHeld
         self.workbenchBetaAcceptancePathReadModelOnlyBoundaryHeld =
@@ -389,6 +405,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
             && accountPositionBalanceReadModelOnlySurfaceSource.isReadModelOnly
             && privateStreamSimulationGateEvidenceSurfaceSource.isReadModelOnly
             && liveMonitoringReadOnlyConsoleV2SurfaceSource.isReadModelOnly
+            && strategyTraderReadinessEvidenceSurfaceSource.isReadModelOnly
             && workbenchBetaFirstRunSource.isReadModelOnly
             && workbenchBetaAcceptancePathSource.isReadModelOnly
             && liveReadOnlyWorkbenchBoundarySource.isReadModelOnly
@@ -401,6 +418,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
             && accountPositionBalanceReadModelOnlySurfaceBoundaryHeld
             && privateStreamSimulationGateEvidenceSurfaceBoundaryHeld
             && liveMonitoringReadOnlyConsoleV2SurfaceBoundaryHeld
+            && strategyTraderReadinessEvidenceSurfaceBoundaryHeld
             && workbenchBetaFirstRunReadModelOnlyBoundaryHeld
             && workbenchBetaAcceptancePathReadModelOnlyBoundaryHeld
             && liveReadOnlyWorkbenchBoundaryReadModelOnlyBoundaryHeld
@@ -425,6 +443,7 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
             accountPositionBalanceReadModelOnlySurfaceSource,
             privateStreamSimulationGateEvidenceSurfaceSource,
             liveMonitoringReadOnlyConsoleV2SurfaceSource,
+            strategyTraderReadinessEvidenceSurfaceSource,
             workbenchBetaFirstRunSource,
             workbenchBetaAcceptancePathSource,
             liveReadOnlyWorkbenchBoundarySource,
@@ -502,6 +521,10 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             "Live monitoring v2",
             in: workbench.liveMonitoringReadOnlyConsoleV2SurfaceMetrics
         )
+        let strategyTraderReadinessSurface = Self.metricValue(
+            "Strategy readiness",
+            in: workbench.strategyTraderReadinessEvidenceSurfaceMetrics
+        )
         let defaultDemoState = Self.metricValue(
             "First run",
             in: workbench.workbenchBetaFirstRunMetrics
@@ -555,7 +578,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         let paperRuntimeEvidence = Self.metricValue("Runtime", in: reportMetrics)
         let paperWorkflowEvidence = Self.metricValue("Exec workflow", in: reportMetrics)
         let paperPortfolioImpact = Self.metricValue("Paper PnL", in: reportMetrics)
-        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); workbenchReadModelOnly=\(workbench.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); scenarioReplayEvidence=\(scenarioReplayEvidence); scenarioQualityGates=\(scenarioQualityGates); simulatedParityEvidence=\(simulatedParityEvidence); accountPositionBalanceEvidence=\(accountPositionBalanceEvidence); privateStreamSimulationGateEvidence=\(privateStreamSimulationGateEvidence); liveMonitoringReadOnlyConsoleV2Surface=\(liveMonitoringReadOnlyConsoleV2Surface); defaultDemoState=\(defaultDemoState); defaultDemoScenario=\(defaultDemoScenario); betaFirstRunFallbacks=\(betaFallbacks); betaAcceptancePaths=\(betaAcceptancePaths); betaAcceptanceScenario=\(betaAcceptanceScenario); betaAcceptanceTrace=\(betaAcceptanceTrace); paperRuntimeEvidence=\(paperRuntimeEvidence); paperWorkflowEvidence=\(paperWorkflowEvidence); paperPortfolioImpact=\(paperPortfolioImpact); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveReadOnlyWorkbenchBoundary=\(liveReadOnlyWorkbenchBoundary); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
+        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); workbenchReadModelOnly=\(workbench.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); scenarioReplayEvidence=\(scenarioReplayEvidence); scenarioQualityGates=\(scenarioQualityGates); simulatedParityEvidence=\(simulatedParityEvidence); accountPositionBalanceEvidence=\(accountPositionBalanceEvidence); privateStreamSimulationGateEvidence=\(privateStreamSimulationGateEvidence); liveMonitoringReadOnlyConsoleV2Surface=\(liveMonitoringReadOnlyConsoleV2Surface); strategyTraderReadinessSurface=\(strategyTraderReadinessSurface); defaultDemoState=\(defaultDemoState); defaultDemoScenario=\(defaultDemoScenario); betaFirstRunFallbacks=\(betaFallbacks); betaAcceptancePaths=\(betaAcceptancePaths); betaAcceptanceScenario=\(betaAcceptanceScenario); betaAcceptanceTrace=\(betaAcceptanceTrace); paperRuntimeEvidence=\(paperRuntimeEvidence); paperWorkflowEvidence=\(paperWorkflowEvidence); paperPortfolioImpact=\(paperPortfolioImpact); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveReadOnlyWorkbenchBoundary=\(liveReadOnlyWorkbenchBoundary); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
     }
 
     private static func makeSectionSnapshot(
@@ -593,6 +616,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         let accountPositionBalanceSurface = viewModel.report.accountPositionBalanceReadModelOnlySurface
         let privateStreamSimulationGateSurface = viewModel.report.privateStreamSimulationGateEvidenceSurface
         let liveMonitoringReadOnlyConsoleV2Surface = viewModel.report.liveMonitoringReadOnlyConsoleV2Surface
+        let strategyTraderReadinessSurface = viewModel.report.strategyTraderReadinessEvidenceSurface
         let workbenchBetaFirstRun = viewModel.workbenchBetaFirstRun
         let workbenchBetaAcceptancePath = viewModel.workbenchBetaAcceptancePath
         let liveReadOnlyWorkbenchBoundary = viewModel.report.liveReadOnlyWorkbenchBoundary
@@ -612,6 +636,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             accountPositionBalanceReadModelOnlySurfaceSource: accountPositionBalanceSurface.source,
             privateStreamSimulationGateEvidenceSurfaceSource: privateStreamSimulationGateSurface.source,
             liveMonitoringReadOnlyConsoleV2SurfaceSource: liveMonitoringReadOnlyConsoleV2Surface.source,
+            strategyTraderReadinessEvidenceSurfaceSource: strategyTraderReadinessSurface.source,
             workbenchBetaFirstRunSource: workbenchBetaFirstRun.source,
             workbenchBetaAcceptancePathSource: workbenchBetaAcceptancePath.source,
             liveReadOnlyWorkbenchBoundarySource: liveReadOnlyWorkbenchBoundary.source,
@@ -905,6 +930,68 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 "Live Monitoring v2 real balance: \(formatForbiddenFlag(liveMonitoringReadOnlyConsoleV2Surface.readsRealBalance))",
                 "Live Monitoring v2 boundary: \(formatEvidenceFlag(liveMonitoringReadOnlyConsoleV2Surface.readModelOnlyBoundaryHeld))"
             ],
+            strategyTraderReadinessEvidenceSurfaceMetrics: [
+                DashboardShellMetric(
+                    label: "Strategy readiness",
+                    value: "\(strategyTraderReadinessSurface.recordCount)"
+                ),
+                DashboardShellMetric(
+                    label: "Roles",
+                    value: "\(strategyTraderReadinessSurface.roleLabels.count)"
+                ),
+                DashboardShellMetric(
+                    label: "Inputs",
+                    value: "\(strategyTraderReadinessSurface.readModelInputLabels.count)"
+                ),
+                DashboardShellMetric(
+                    label: "Forbidden",
+                    value: "\(strategyTraderReadinessSurface.forbiddenCapabilityLabels.count)"
+                ),
+                DashboardShellMetric(
+                    label: "Event trace",
+                    value: "\(strategyTraderReadinessSurface.eventTraceItemCount)"
+                ),
+                DashboardShellMetric(
+                    label: "Boundary",
+                    value: formatEvidenceFlag(strategyTraderReadinessSurface.readModelOnlyBoundaryHeld)
+                )
+            ],
+            strategyTraderReadinessEvidenceSurfaceDetails: [
+                "Strategy readiness summary: \(strategyTraderReadinessSurface.reportSummary)",
+                "Strategy readiness categories: \(joined(strategyTraderReadinessSurface.categories))",
+                "Strategy readiness evidence: \(joined(strategyTraderReadinessSurface.evidenceIDs))",
+                "Strategy readiness source anchors: \(joined(strategyTraderReadinessSurface.sourceAnchors))",
+                "Strategy readiness instance identity: \(joined(strategyTraderReadinessSurface.instanceIdentityLabels))",
+                "Strategy readiness lifecycle: \(joined(strategyTraderReadinessSurface.lifecycleStateLabels))",
+                "Strategy readiness roles: \(joined(strategyTraderReadinessSurface.roleLabels))",
+                "Strategy readiness read-model inputs: \(joined(strategyTraderReadinessSurface.readModelInputLabels))",
+                "Strategy readiness proposal isolation: \(joined(strategyTraderReadinessSurface.proposalIsolationLabels))",
+                "Strategy readiness forbidden capabilities: \(joined(strategyTraderReadinessSurface.forbiddenCapabilityLabels))",
+                "Strategy readiness panels: \(joined(strategyTraderReadinessSurface.dashboardPanelSummaries))",
+                "Strategy readiness event trace: \(joined(strategyTraderReadinessSurface.eventTraceItems.map(\.title)))",
+                "Strategy readiness Strategy Console: \(formatForbiddenFlag(strategyTraderReadinessSurface.exposesStrategyConsole))",
+                "Strategy readiness Live PRO Console: \(formatForbiddenFlag(strategyTraderReadinessSurface.exposesLivePROConsole))",
+                "Strategy readiness trading button: \(formatForbiddenFlag(strategyTraderReadinessSurface.providesTradingButton))",
+                "Strategy readiness live command: \(formatForbiddenFlag(strategyTraderReadinessSurface.providesLiveCommand))",
+                "Strategy readiness order form: \(formatForbiddenFlag(strategyTraderReadinessSurface.exposesOrderForm))",
+                "Strategy readiness signed endpoint: \(formatForbiddenFlag(strategyTraderReadinessSurface.callsSignedEndpoint))",
+                "Strategy readiness account endpoint: \(formatForbiddenFlag(strategyTraderReadinessSurface.callsAccountEndpoint))",
+                "Strategy readiness listenKey: \(formatForbiddenFlag(strategyTraderReadinessSurface.createsListenKey))",
+                "Strategy readiness strategy runtime: \(formatForbiddenFlag(strategyTraderReadinessSurface.runsStrategyRuntime))",
+                "Strategy readiness trader runtime: \(formatForbiddenFlag(strategyTraderReadinessSurface.runsTraderRuntime))",
+                "Strategy readiness execution runtime: \(formatForbiddenFlag(strategyTraderReadinessSurface.runsExecutionRuntime))",
+                "Strategy readiness broker connect: \(formatForbiddenFlag(strategyTraderReadinessSurface.connectsBroker))",
+                "Strategy readiness execution adapter: \(formatForbiddenFlag(strategyTraderReadinessSurface.implementsLiveExecutionAdapter))",
+                "Strategy readiness OMS: \(formatForbiddenFlag(strategyTraderReadinessSurface.implementsOMS))",
+                "Strategy readiness runtime object: \(formatForbiddenFlag(strategyTraderReadinessSurface.exposesRuntimeObject))",
+                "Strategy readiness adapter request: \(formatForbiddenFlag(strategyTraderReadinessSurface.exposesAdapterRequest))",
+                "Strategy readiness database schema: \(formatForbiddenFlag(strategyTraderReadinessSurface.exposesDatabaseSchema))",
+                "Strategy readiness account payload: \(formatForbiddenFlag(strategyTraderReadinessSurface.exposesAccountPayload))",
+                "Strategy readiness broker state: \(formatForbiddenFlag(strategyTraderReadinessSurface.exposesBrokerState))",
+                "Strategy readiness real account: \(formatForbiddenFlag(strategyTraderReadinessSurface.readsRealAccount))",
+                "Strategy readiness command surface: \(formatForbiddenFlag(strategyTraderReadinessSurface.providesCommandSurface))",
+                "Strategy readiness boundary: \(formatEvidenceFlag(strategyTraderReadinessSurface.readModelOnlyBoundaryHeld))"
+            ],
             workbenchBetaFirstRunMetrics: [
                 DashboardShellMetric(
                     label: "First run",
@@ -1167,6 +1254,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || accountPositionBalanceSurface.providesCommandSurface
                 || privateStreamSimulationGateSurface.providesCommandSurface
                 || liveMonitoringReadOnlyConsoleV2Surface.providesCommandSurface
+                || strategyTraderReadinessSurface.providesCommandSurface
                 || workbenchBetaFirstRun.providesCommandSurface
                 || workbenchBetaAcceptancePath.providesCommandSurface
                 || liveReadOnlyWorkbenchBoundary.providesCommandSurface
@@ -1181,6 +1269,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || accountPositionBalanceSurface.providesOrderLevelCommand
                 || privateStreamSimulationGateSurface.providesOrderLevelCommand
                 || liveMonitoringReadOnlyConsoleV2Surface.providesOrderLevelCommand
+                || strategyTraderReadinessSurface.providesOrderLevelCommand
                 || workbenchBetaFirstRun.providesOrderLevelCommand
                 || workbenchBetaAcceptancePath.providesOrderLevelCommand
                 || liveBlockedEvidence.providesOrderLevelCommand
@@ -1197,6 +1286,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || accountPositionBalanceSurface.exposesDatabaseSchema
                 || privateStreamSimulationGateSurface.exposesDatabaseSchema
                 || liveMonitoringReadOnlyConsoleV2Surface.exposesDatabaseSchema
+                || strategyTraderReadinessSurface.exposesDatabaseSchema
                 || workbenchBetaFirstRun.exposesDatabaseSchema
                 || workbenchBetaAcceptancePath.exposesDatabaseSchema
                 || liveBlockedEvidence.exposesDatabaseSchema
@@ -1212,6 +1302,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || accountPositionBalanceSurface.exposesRuntimeObject
                 || privateStreamSimulationGateSurface.exposesRuntimeObject
                 || liveMonitoringReadOnlyConsoleV2Surface.exposesRuntimeObject
+                || strategyTraderReadinessSurface.exposesRuntimeObject
                 || workbenchBetaFirstRun.exposesRuntimeObject
                 || workbenchBetaAcceptancePath.exposesRuntimeObject
                 || liveBlockedEvidence.exposesRuntimeObject
@@ -1227,6 +1318,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || accountPositionBalanceSurface.exposesAdapterRequest
                 || privateStreamSimulationGateSurface.exposesAdapterRequest
                 || liveMonitoringReadOnlyConsoleV2Surface.exposesAdapterRequest
+                || strategyTraderReadinessSurface.exposesAdapterRequest
                 || workbenchBetaFirstRun.exposesAdapterRequest
                 || workbenchBetaAcceptancePath.exposesAdapterRequest
                 || liveBlockedEvidence.exposesAdapterSurface
@@ -1242,6 +1334,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || accountPositionBalanceSurface.authorizesLiveTrading
                 || privateStreamSimulationGateSurface.authorizesLiveTrading
                 || liveMonitoringReadOnlyConsoleV2Surface.authorizesLiveTrading
+                || strategyTraderReadinessSurface.authorizesLiveTrading
                 || workbenchBetaFirstRun.authorizesLiveTrading
                 || workbenchBetaAcceptancePath.authorizesLiveTrading
                 || liveBlockedEvidence.authorizesLiveTrading
@@ -1257,6 +1350,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || accountPositionBalanceSurface.connectsBroker
                 || privateStreamSimulationGateSurface.connectsBroker
                 || liveMonitoringReadOnlyConsoleV2Surface.connectsBroker
+                || strategyTraderReadinessSurface.connectsBroker
                 || workbenchBetaFirstRun.touchesBrokerAction
                 || workbenchBetaAcceptancePath.touchesBrokerAction
                 || liveBlockedEvidence.touchesBrokerAction
@@ -1274,6 +1368,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || accountPositionBalanceSurface.authorizesTradingExecution
                 || privateStreamSimulationGateSurface.authorizesTradingExecution
                 || liveMonitoringReadOnlyConsoleV2Surface.authorizesTradingExecution
+                || strategyTraderReadinessSurface.authorizesTradingExecution
                 || workbenchBetaFirstRun.authorizesTradingExecution
                 || workbenchBetaAcceptancePath.authorizesTradingExecution
                 || liveBlockedEvidence.authorizesTradingExecution
@@ -1287,6 +1382,8 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             privateStreamSimulationGateEvidenceSurfaceBoundaryHeld: privateStreamSimulationGateSurface
                 .readModelOnlyBoundaryHeld,
             liveMonitoringReadOnlyConsoleV2SurfaceBoundaryHeld: liveMonitoringReadOnlyConsoleV2Surface
+                .readModelOnlyBoundaryHeld,
+            strategyTraderReadinessEvidenceSurfaceBoundaryHeld: strategyTraderReadinessSurface
                 .readModelOnlyBoundaryHeld,
             workbenchBetaFirstRunReadModelOnlyBoundaryHeld: workbenchBetaFirstRun
                 .readModelOnlyBoundaryHeld,
@@ -1411,6 +1508,10 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 DashboardShellMetric(
                     label: "Live monitoring v2",
                     value: "\(viewModel.liveMonitoringReadOnlyConsoleV2Surface.eventTraceItemCount)"
+                ),
+                DashboardShellMetric(
+                    label: "Strategy readiness",
+                    value: "\(viewModel.strategyTraderReadinessEvidenceSurface.recordCount)"
                 ),
                 DashboardShellMetric(label: "Live gates", value: "\(viewModel.liveBlockedEvidenceCount)"),
                 DashboardShellMetric(
@@ -1550,6 +1651,24 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 "Live Monitoring v2 account payload: \(formatForbiddenFlag(viewModel.liveMonitoringReadOnlyConsoleV2Surface.exposesAccountPayload))",
                 "Live Monitoring v2 broker state: \(formatForbiddenFlag(viewModel.liveMonitoringReadOnlyConsoleV2Surface.exposesBrokerState))",
                 "Live Monitoring v2 boundary: \(formatEvidenceFlag(viewModel.liveMonitoringReadOnlyConsoleV2Surface.readModelOnlyBoundaryHeld))",
+                "Strategy readiness summary: \(viewModel.strategyTraderReadinessEvidenceSurface.reportSummary)",
+                "Strategy readiness categories: \(joined(viewModel.strategyTraderReadinessEvidenceSurface.categories))",
+                "Strategy readiness evidence: \(joined(viewModel.strategyTraderReadinessEvidenceSurface.evidenceIDs))",
+                "Strategy readiness anchors: \(joined(viewModel.strategyTraderReadinessEvidenceSurface.sourceAnchors))",
+                "Strategy readiness identities: \(joined(viewModel.strategyTraderReadinessEvidenceSurface.instanceIdentityLabels))",
+                "Strategy readiness roles: \(joined(viewModel.strategyTraderReadinessEvidenceSurface.roleLabels))",
+                "Strategy readiness inputs: \(joined(viewModel.strategyTraderReadinessEvidenceSurface.readModelInputLabels))",
+                "Strategy readiness proposal isolation: \(joined(viewModel.strategyTraderReadinessEvidenceSurface.proposalIsolationLabels))",
+                "Strategy readiness forbidden capabilities: \(joined(viewModel.strategyTraderReadinessEvidenceSurface.forbiddenCapabilityLabels))",
+                "Strategy readiness command surface: \(formatForbiddenFlag(viewModel.strategyTraderReadinessEvidenceSurface.providesCommandSurface))",
+                "Strategy readiness order command: \(formatForbiddenFlag(viewModel.strategyTraderReadinessEvidenceSurface.providesOrderLevelCommand))",
+                "Strategy readiness trading button: \(formatForbiddenFlag(viewModel.strategyTraderReadinessEvidenceSurface.providesTradingButton))",
+                "Strategy readiness live command: \(formatForbiddenFlag(viewModel.strategyTraderReadinessEvidenceSurface.providesLiveCommand))",
+                "Strategy readiness order form: \(formatForbiddenFlag(viewModel.strategyTraderReadinessEvidenceSurface.exposesOrderForm))",
+                "Strategy readiness runtime object: \(formatForbiddenFlag(viewModel.strategyTraderReadinessEvidenceSurface.exposesRuntimeObject))",
+                "Strategy readiness adapter request: \(formatForbiddenFlag(viewModel.strategyTraderReadinessEvidenceSurface.exposesAdapterRequest))",
+                "Strategy readiness database schema: \(formatForbiddenFlag(viewModel.strategyTraderReadinessEvidenceSurface.exposesDatabaseSchema))",
+                "Strategy readiness boundary: \(formatEvidenceFlag(viewModel.strategyTraderReadinessEvidenceSurface.readModelOnlyBoundaryHeld))",
                 "Live readiness: \(viewModel.liveReadinessStatus.rawValue)",
                 "Live blocked capabilities: \(joined(viewModel.liveBlockedCapabilityLabels))",
                 "Live gates: \(joined(viewModel.liveBlockedGateLabels))",
