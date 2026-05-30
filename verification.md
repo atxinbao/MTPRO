@@ -13277,6 +13277,48 @@ Root Docs Refresh Gate 更新：
 
 ---
 
+## 2026-05-31 — MTPRO Strategy / Trader Instance Readiness Planning Record
+
+执行者：Codex
+
+目的：
+
+- 将 Human 确认的 `MTPRO Strategy / Trader Instance Readiness v1` planning draft 落仓为 docs-only Project Planning Record。
+- 记录 L3.4 Strategy / Trader structural readiness 的 Project 级计划摘要、issue order、dependencies、validation requirements、evidence requirements、first executable issue candidate、WIP=1、Linear write boundary、Repository record boundary 和 Parent Codex queue preflight rule。
+- 同步 planning index、latest verification summary 和 automation readiness anchors，明确仓库不复制维护完整 Linear issue body，完整 issue execution contract 后续以 Linear issue body 为准。
+
+更新内容：
+
+- 新增 `docs/planning/projects/mtpro-strategy-trader-instance-readiness-v1-plan.md`。
+- 更新 `docs/planning/linear-draft-plan.md`，将 L3.3 `MTPRO Live Monitoring Read-only Console v2` 标记为已完成，并把当前 planning record 指向 L3.4。
+- 更新 `docs/validation/latest-verification-summary.md`，记录 L3.4 planning record 已落仓但未写入 Linear、不授权执行。
+- 更新 `checks/automation-readiness.sh`，加入 L3.4 planning record、边界和 no-execution anchors。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | 无输出。 |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 302 个 XCTest；Dashboard smoke 输出包含 `liveMonitoringReadOnlyConsoleV2Surface=4`、`readModelOnly=true` 和 `workbenchReadModelOnly=true`；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不创建 Linear Project。
+- 不创建 Linear Issues。
+- 不修改 Linear status。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify。
+- 不修改 Figma。
+- 不写业务代码。
+- 不实现 Strategy runtime、Trader runtime、Execution Client、broker command、OMS、Live PRO Console、trading button、live command 或 order form。
+- 不授权 signed endpoint、account endpoint / listenKey、broker adapter、`LiveExecutionAdapter`、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position、margin、leverage 或 real PnL。
+- `.codex/*` 和 `graphify-out/*` 不进入 PR。
+
+---
+
 ## 2026-05-29 — MTP-142 Simulated Account Snapshot Input Contract
 
 执行者：Codex
