@@ -4153,3 +4153,46 @@ MTP-154 必须建立的主要 anchors：
 - 不新增 broker adapter、broker / exchange execution adapter、`LiveExecutionAdapter`、Live PRO Console、trading button、live command、order form、stop / shutdown / restore 或 production operations command。
 - 不新增 Swift production code、focused XCTest、App read model、Dashboard surface、Dashboard smoke handle 或 stage audit input；Project stage closeout 仍归属 MTP-161。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+## MTP-155 Strategy / Trader Lifecycle Identity Validation
+
+日期：2026-05-31
+
+执行者：Codex
+
+MTP-155 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-155 的验收要求：
+
+- `docs/contracts/strategy-trader-instance-readiness-contract.md` 必须包含 MTP-155 lifecycle / identity、instance identity boundary、lifecycle readiness state semantics、read-model reference boundary、no lifecycle runtime boundary、identity sensitive field guard 和 validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-155 Strategy / Trader lifecycle / identity shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-STRATEGY-TRADER-INSTANCE-READINESS` 的 MTP-155 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 Strategy / Trader lifecycle identity anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-155 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-155 contract、matrix、validation plan、domain context、latest summary、automation readiness doc、no lifecycle runtime boundary 和 identity sensitive field guard。
+- PR 前必须确认 `.codex/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-155 必须建立的主要 anchors：
+
+- `MTP-155-STRATEGY-TRADER-LIFECYCLE-IDENTITY`
+- `MTP-155-INSTANCE-IDENTITY-BOUNDARY`
+- `MTP-155-LIFECYCLE-READINESS-STATE-SEMANTICS`
+- `MTP-155-READ-MODEL-REFERENCE-BOUNDARY`
+- `MTP-155-NO-LIFECYCLE-RUNTIME-BOUNDARY`
+- `MTP-155-IDENTITY-SENSITIVE-FIELD-GUARD`
+- `MTP-155-STRATEGY-TRADER-LIFECYCLE-VALIDATION`
+
+## MTP-155 禁止
+
+- 不实现 lifecycle runtime、Strategy runtime、Trader runtime、strategy scheduler、trader process manager、broker connection、account session 或 direct Strategy Instance -> Execution Client path。
+- 不输出 broker command、executable order command、OMS order、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不实现 signed endpoint、account endpoint / listenKey、listenKey create / keepalive、private WebSocket runtime、private stream runtime 或 account snapshot runtime。
+- 不读取真实账户、真实持仓、真实余额、broker position、margin、leverage 或 real PnL。
+- 不暴露 credential、secret、API key、listenKey、account id、broker account id、private stream cursor、Runtime object、Adapter request、SQLite / DuckDB schema、broker payload 或 account endpoint payload。
+- 不新增 broker adapter、broker / exchange execution adapter、`LiveExecutionAdapter`、Live PRO Console、trading button、live command、order form、stop / shutdown / restore 或 production operations command。
+- 不新增 Swift production code、focused XCTest、App read model、Dashboard surface、Dashboard smoke handle 或 stage audit input；Project stage closeout 仍归属 MTP-161。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
