@@ -288,6 +288,28 @@ MTP-150 的 readiness wording 必须避免暗示真实连接已建立。`readine
 
 `MTP-150-LIVE-MONITORING-CONNECTION-READINESS-VALIDATION`
 
+`MTP-151-FORBIDDEN-LIVE-MONITORING-CAPABILITY-TESTS`
+
+MTP-151 把 Live Monitoring v2 的 forbidden capability tests 固定成 Core deterministic test matrix：`LiveMonitoringForbiddenCapabilityTestContract`、`LiveMonitoringForbiddenCapabilityTestCase`、`LiveMonitoringForbiddenCapabilityTestDomain` 和 `LiveMonitoringForbiddenCapabilityTestAssertion`。这些 tests 只描述本地检查覆盖，不实现 endpoint、runtime、broker adapter、Live PRO Console 或 UI command。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `forbidden capability test matrix` | MTP-151 对 endpoint、private stream runtime、broker / execution、Live Monitoring runtime 和 UI command 禁区的本地确定性检查矩阵 | 不等于 runtime implementation、adapter、UI command 或完整监控台页面 |
+| `endpoint forbidden tests` | signed endpoint、account endpoint、listenKey 必须被拒绝的检查入口 | 不调用真实 endpoint，不读取 secret，不创建 listenKey |
+| `private stream runtime forbidden tests` | private WebSocket runtime、private stream runtime、account snapshot runtime 必须被拒绝的检查入口 | 不打开 WebSocket，不运行私有流或账户快照 runtime |
+| `broker execution forbidden tests` | broker adapter、exchange execution adapter、`LiveExecutionAdapter`、OMS 必须被拒绝的检查入口 | 不连接 broker / exchange，不实现 OMS 或 real order lifecycle |
+| `UI command forbidden tests` | Live PRO Console、trading button、live command、order form、stop / shutdown / restore command 必须被拒绝的检查入口 | 不新增 UI command，不实现 stop / shutdown / restore |
+
+`MTP-151-FORBIDDEN-ENDPOINT-RUNTIME-BROKER-UI-COVERAGE`
+
+MTP-151 的 coverage 必须覆盖 endpoint、listenKey、private WebSocket runtime、private stream runtime、account snapshot runtime、connection manager、runtime connection、live readiness runtime、Live Monitoring runtime、broker adapter、exchange execution adapter、`LiveExecutionAdapter`、OMS、Live PRO Console、trading button、live command、order form 和 stop / shutdown / restore command。
+
+`MTP-151-MONITORING-EVIDENCE-NOT-LIVE-RUNTIME-GUARD`
+
+MTP-151 必须防止 MTP-147 至 MTP-150 的 monitoring evidence 被解释为 live readiness runtime 或 Live Monitoring runtime。检查本身必须 deterministic local-only、read-model-only、no-network，不依赖真实账户、真实 broker、真实 endpoint 或真实 WebSocket。
+
+`MTP-151-LIVE-MONITORING-FORBIDDEN-CAPABILITY-VALIDATION`
+
 ## Live Execution Control Terms
 
 `MTP-75-LIVE-EXECUTION-CONTROL-TERMINOLOGY`

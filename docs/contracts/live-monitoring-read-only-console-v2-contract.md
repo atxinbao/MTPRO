@@ -322,3 +322,56 @@ Focused validation anchors：
 - `checks/automation-readiness.sh` 必须机械检查 MTP-150 Core source、focused tests、contract、domain context、validation plan、trading matrix、latest summary 和 automation readiness doc anchors。
 
 MTP-150 不新增 Adapters、Runtime、App、Dashboard behavior，不新增 Dashboard smoke handle，不实现 monitoring surface；MTP-152 才能接入 Workbench / Report / Events read-model-only surface。Project stage closeout 仍归属 MTP-153。
+
+## MTP-151 forbidden Live Monitoring capability tests
+
+`MTP-151-FORBIDDEN-LIVE-MONITORING-CAPABILITY-TESTS`
+
+MTP-151 固定 `LiveMonitoringForbiddenCapabilityTestContract`、`LiveMonitoringForbiddenCapabilityTestCase`、`LiveMonitoringForbiddenCapabilityTestDomain` 和 `LiveMonitoringForbiddenCapabilityTestAssertion` 为 Core 层 deterministic forbidden test matrix。
+
+该合同只从 MTP-148 source identity、MTP-149 simulation gate health evidence 和 MTP-150 connection readiness explanation 派生检查覆盖：
+
+| Test domain | Required assertions |
+| --- | --- |
+| `endpoint` | signed endpoint、account endpoint、listenKey |
+| `streamRuntime` | private WebSocket runtime、private stream runtime、account snapshot runtime |
+| `liveRuntime` | connection manager、runtime connection、live readiness runtime、Live Monitoring runtime |
+| `brokerExecution` | broker adapter、exchange execution adapter、`LiveExecutionAdapter`、OMS |
+| `uiCommand` | Live PRO Console、trading button、live command、order form、stop / shutdown / restore command |
+
+## MTP-151 forbidden endpoint / runtime / broker / UI coverage
+
+`MTP-151-FORBIDDEN-ENDPOINT-RUNTIME-BROKER-UI-COVERAGE`
+
+MTP-151 的 coverage 必须通过 focused Core tests 证明 forbidden matrix 覆盖 endpoint、listenKey、private stream、broker、Live PRO Console、trading button、live command、order form 和 stop / shutdown / restore command。检查必须保持 deterministic local-only、read-model-only、no-network，不依赖真实网络、真实账户或真实 broker。
+
+## MTP-151 monitoring evidence not live runtime guard
+
+`MTP-151-MONITORING-EVIDENCE-NOT-LIVE-RUNTIME-GUARD`
+
+MTP-151 必须防止 MTP-147 至 MTP-150 的 monitoring evidence 被升级为 live readiness runtime、Live Monitoring runtime、connection manager 或 runtime connection。`LiveMonitoringForbiddenCapabilityTestContract` 的 runtime / endpoint / broker / UI command flags 必须全部为 false，且 Codable payload 不能绕过。
+
+## MTP-151 validation anchors
+
+`MTP-151-LIVE-MONITORING-FORBIDDEN-CAPABILITY-VALIDATION`
+
+Required validation：
+
+- `swift test --filter LiveMonitoringForbiddenCapability`
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `Sources/Core/LiveMonitoringForbiddenCapabilityTests.swift` 必须包含 `LiveMonitoringForbiddenCapabilityTestContract`、`LiveMonitoringForbiddenCapabilityTestCase`、`LiveMonitoringForbiddenCapabilityTestDomain` 和 `LiveMonitoringForbiddenCapabilityTestAssertion`。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 `testLiveMonitoringForbiddenCapabilityTestsDefineMTP151CoverageMatrix` 和 `testLiveMonitoringForbiddenCapabilityTestsRejectMTP151RuntimeEndpointAndUIBypass`。
+- `docs/contracts/live-monitoring-read-only-console-v2-contract.md` 必须包含 MTP-151 forbidden capability tests、endpoint / runtime / broker / UI coverage、monitoring evidence not live runtime guard 和 validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-151 forbidden capability tests shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-151 issue backfill。
+- `docs/validation/validation-plan.md` 必须包含 MTP-151 required validation。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-151 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Live Monitoring forbidden capability tests anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-151 Core source、focused tests、contract、domain context、validation plan、trading matrix、latest summary 和 automation readiness doc anchors。
+
+MTP-151 不新增 Adapters、Runtime、App、Dashboard behavior，不新增 Dashboard smoke handle，不实现 monitoring surface 或完整实盘监控台页面重设计；MTP-152 才能接入 Workbench / Report / Events read-model-only surface。Project stage closeout 仍归属 MTP-153。

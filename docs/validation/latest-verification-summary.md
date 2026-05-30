@@ -994,6 +994,14 @@ MTP-150 的当前 issue execution evidence 已建立 `Sources/Core/LiveMonitorin
 
 MTP-150-LIVE-MONITORING-CONNECTION-READINESS-VALIDATION 的 focused validation 已通过：`swift test --filter LiveMonitoringConnectionReadiness` 通过 2 个 Core tests，0 failures。完整验证仍以本次 PR 前 `bash checks/run.sh` 和 GitHub required check `checks` 为准。
 
+## 当前 issue execution evidence：MTP-151
+
+MTP-151 的当前 issue execution evidence 已建立 `Sources/Core/LiveMonitoringForbiddenCapabilityTests.swift`、`LiveMonitoringForbiddenCapabilityTestContract`、`LiveMonitoringForbiddenCapabilityTestCase`、`LiveMonitoringForbiddenCapabilityTestDomain`、`LiveMonitoringForbiddenCapabilityTestAssertion`、`Tests/CoreTests/CoreTests.swift` 的 `testLiveMonitoringForbiddenCapabilityTestsDefineMTP151CoverageMatrix` / `testLiveMonitoringForbiddenCapabilityTestsRejectMTP151RuntimeEndpointAndUIBypass`、`docs/contracts/live-monitoring-read-only-console-v2-contract.md` 的 MTP-151 anchors、`TVM-LIVE-MONITORING-READ-ONLY-CONSOLE-V2` MTP-151 issue backfill、`docs/domain/context.md` 的 MTP-151 shared language、`docs/validation/validation-plan.md` 的 MTP-151 required validation 和 `docs/automation/automation-readiness.md` 的 Live Monitoring forbidden capability tests anchor。
+
+该证据只定义 endpoint、private stream runtime、Live Monitoring runtime、broker / execution 和 UI command 的 deterministic local-only / read-model-only / no-network forbidden test matrix；不实现真实 endpoint、真实 adapter、真实 UI command、完整实盘监控台页面重设计、stop / shutdown / restore、Live Monitoring runtime、live readiness runtime、connection manager、runtime connection、private WebSocket runtime、private stream runtime、account snapshot runtime、signed endpoint、account endpoint、listenKey、listenKey keepalive、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real order write、Live PRO Console、trading button、live command 或 order form；不读取真实 account / position / balance、margin、leverage、real PnL；不暴露 Runtime object、Adapter request、SQLite / DuckDB schema、account payload、account endpoint payload、broker payload 或 broker state；不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+MTP-151-LIVE-MONITORING-FORBIDDEN-CAPABILITY-VALIDATION 的 focused validation 已通过：`swift test --filter LiveMonitoringForbiddenCapability` 通过 2 个 Core tests，0 failures。完整验证仍以本次 PR 前 `bash checks/run.sh` 和 GitHub required check `checks` 为准。
+
 ## Known CI Boundary
 
 临时 CI 平台边界：
