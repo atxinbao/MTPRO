@@ -487,6 +487,30 @@ MTP-157 input contract 不得暴露 real account payload、account endpoint payl
 
 MTP-157 required validation 是 `bash checks/run.sh`，并通过 contract、domain context、trading validation matrix、validation plan、latest verification summary、automation readiness doc 和 `checks/automation-readiness.sh` 机械固定 account / portfolio / risk read-model input contract、provenance / evidence trace、freshness / blocked / simulated / future-gated semantics、Read Model / ViewModel boundary、no real account / live risk runtime boundary 和 broker state / payload / schema exposure guard。MTP-157 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard smoke handle、不新增 stage audit input；Project stage closeout 仍归属 MTP-161。
 
+`MTP-158-PAPER-LIVE-NEUTRAL-PROPOSAL-CONTRACT`
+
+MTP-158 定义 Strategy / Trader readiness 中的 paper/live-neutral proposal contract。`strategy proposal`、`trader proposal` 和 `paper/live-neutral proposal` 只能作为 read-model-only / evidence-only intent evidence，解释 strategy / trader structure、role rationale、read-model input reference、blocked / simulated / future-gated decision trace 和 validation trace；不等于 executable order command、Execution Client request、broker command、OMS order、live command 或 UI order form payload。
+
+`MTP-158-PROPOSAL-ATTRIBUTES-STATUS-SEMANTICS`
+
+MTP-158 只允许 proposal 包含 local deterministic evidence id、proposal kind、source instance reference、role reference、read-model input reference、intent summary、proposal status、blocked reason 和 evidence trace。`proposalStatus` 只能是 `draft`、`blocked`、`simulated`、`future-gated` 或 `rejected-by-boundary`。`intentSummary` 不得包含 price、quantity、side、timeInForce、orderType、venue、account id、broker account id 或 execution destination；`blockedReason` 不等于 broker reject、risk reject、exchange reject 或 runtime failure。
+
+`MTP-158-PROPOSAL-TO-COMMAND-ISOLATION`
+
+Proposal 与 command 必须机械隔离。Proposal 不得包含 submit、cancel、replace、amend、route、execute、sendOrder、placeOrder、closePosition 或 rebalance 等 command verb；不得包含可直接执行订单所需的完整字段组合；不得被 Execution Client、broker adapter、OMS、Runtime actor、UI button、order form、live command handler 或 production operations command 直接消费。Proposal 只能由 MTP-160 read-model-only surface 展示，或由 MTP-159 forbidden tests 作为 non-executable evidence 检查。
+
+`MTP-158-NO-EXECUTION-CLIENT-BROKER-OMS`
+
+MTP-158 不实现 Execution Client、broker command、OMS、order generation engine、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation；不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`，不调用 signed endpoint、account endpoint / listenKey，不读取真实账户、broker position、margin、leverage、real PnL，不新增 Live PRO Console、trading button、live command 或 order form。
+
+`MTP-158-PROPOSAL-FORBIDDEN-COMMAND-FIELD-GUARD`
+
+MTP-158 proposal contract 不得暴露 executable order command、broker command、Execution Client request、OMS order、submit / cancel / replace command、order id、client order id、broker order id、account id、broker account id、account endpoint payload、signed request、listenKey、Runtime object、Adapter request、broker adapter request、SQLite / DuckDB schema、price / quantity / side / timeInForce / orderType / venue as executable order tuple、trading button action、live command、order form payload、execution report、broker fill 或 reconciliation record。
+
+`MTP-158-PROPOSAL-CONTRACT-VALIDATION`
+
+MTP-158 required validation 是 `bash checks/run.sh`，并通过 contract、domain context、trading validation matrix、validation plan、latest verification summary、automation readiness doc 和 `checks/automation-readiness.sh` 机械固定 paper/live-neutral proposal contract、proposal attributes / status semantics、proposal-to-command isolation、no Execution Client / broker / OMS boundary 和 forbidden command field guard。MTP-158 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard smoke handle、不新增 stage audit input；Project stage closeout 仍归属 MTP-161。
+
 ## Live Execution Control Terms
 
 `MTP-75-LIVE-EXECUTION-CONTROL-TERMINOLOGY`
