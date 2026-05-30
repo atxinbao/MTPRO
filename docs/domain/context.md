@@ -367,6 +367,46 @@ MTP-153 automation readiness stage closeout 只机械固定 MTP-153 input、cont
 
 `MTP-153-STAGE-CLOSEOUT-VALIDATION`
 
+## Strategy / Trader Instance Readiness Terms
+
+`MTP-154-STRATEGY-TRADER-INSTANCE-READINESS-TERMINOLOGY`
+
+以下术语由 MTP-154 定义为 `L3.4 Strategy / Trader Instance Readiness v1` 的 terminology / boundary language。它们只用于 Strategy / Trader structural readiness、readiness evidence、paper/live-neutral proposal boundary 和后续 issue handoff，不授权 Strategy runtime、Trader runtime、Execution Client direct path、broker command、OMS、Live PRO Console、trading button、live command、order form、signed endpoint、account endpoint / listenKey 或 broker / exchange execution adapter。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `Strategy Instance` | 可被识别、审查和追溯的策略结构实例，只代表配置、角色、输入引用、proposal boundary 和 readiness evidence identity | 不等于 Strategy runtime、scheduler、order generation engine、Execution Client caller 或 broker command producer |
+| `Trader Instance` | 可被识别、审查和追溯的交易者结构实例，只代表 future trader context 的只读 readiness shell | 不等于 Trader runtime、process manager、account session、broker session、OMS 或 live command actor |
+| `strategy / trader readiness` | Strategy Instance / Trader Instance 是否具备后续合同深化所需的 terminology、identity、role、input、proposal isolation 和 forbidden capability evidence | 不等于运行中、可交易、可连接 broker、可提交订单或可进入 Live Production |
+| `proposal` | Strategy / Trader 后续可能输出的 paper/live-neutral intent evidence，用来连接 read-model input、role responsibility 和 blocked / simulated / future-gated decision trace | 不等于 executable order command、broker command、Execution Client request、OMS order 或 UI order form payload |
+| `readiness evidence` | 用于证明 Strategy / Trader Instance 仍停留在只读 readiness contract 内的 evidence anchor、source anchor、blocked reason 和 validation anchor | 不等于 runtime telemetry、broker acknowledgement、execution report、broker fill、reconciliation fact 或 production audit event |
+| `paper/live-neutral proposal` | 不绑定真实账户、真实 broker、signed endpoint、account endpoint / listenKey 或 live venue 的 proposal 解释层 | 不等于 paper order execution path 的自动授权，也不等于 live order command 的预览或 beta |
+| `non-execution baseline` | MTP-154 固定的基础约束：所有 Strategy / Trader 术语只能表达 readiness，不得创建执行路径 | 不等于 feature flag、local fallback、mock broker、behind flag execution 或 partial live support |
+
+`MTP-154-READINESS-ONLY-BOUNDARY`
+
+MTP-154 固定 Strategy / Trader Instance 只能进入 readiness contract。Strategy Instance / Trader Instance 是结构性 readiness vocabulary，不是运行时对象；readiness 只描述 identity、role、read-model input、proposal isolation、blocked evidence 和 validation anchors，不描述 strategy scheduler、trader process manager、live session 或 broker connection。MTP-154 不新增 Swift production code、focused XCTest、App read model、Dashboard surface 或 Dashboard smoke handle。
+
+`MTP-154-PROPOSAL-READINESS-EVIDENCE-BASELINE`
+
+MTP-154 的 proposal / readiness evidence 只停留在术语层。`strategy proposal`、`trader proposal` 和 `paper/live-neutral proposal` 不得包含 account id、broker account id、API key、secret、listenKey、private stream cursor、adapter request、Runtime object、OMS order id、order form payload 或 executable order command field；后续 MTP-158 才能定义 proposal contract。
+
+`MTP-154-L34-HANDOFF-BOUNDARY`
+
+MTP-154 只交付 terminology / boundary input。MTP-155 才能定义 lifecycle / instance identity；MTP-156 才能定义 quoter / hedger role taxonomy；MTP-157 才能定义 account / portfolio / risk read-model input；MTP-158 才能定义 paper/live-neutral proposal contract 和 execution command isolation；MTP-159 才能定义 forbidden Strategy -> Execution / broker / UI command tests；MTP-160 才能接入 Workbench / Report / Events read-model-only surface；MTP-161 才能收口 validation matrix / automation readiness / stage audit input。
+
+`MTP-154-FIRST-EXECUTABLE-CANDIDATE-NON-AUTHORIZATION`
+
+Project Planning Record、Linear Project issue order、next eligible candidate、Backlog issue、label、priority、assignee 或 estimate 都不构成执行授权。MTP-154 完成后不得自动推进 MTP-155；MTP-155 至 MTP-161 必须继续等待 Linear live-read 中唯一 eligible issue 授权。
+
+`MTP-154-FORBIDDEN-CAPABILITY-BASELINE`
+
+MTP-154 禁止 Strategy runtime、Trader runtime、strategy scheduler、trader process manager、direct Strategy Instance -> Execution Client path、broker command、executable order command、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、signed endpoint、account endpoint / listenKey、private WebSocket runtime、private stream runtime、account snapshot runtime、real account read、broker position sync、margin / leverage、real PnL runtime、broker / exchange execution adapter、`LiveExecutionAdapter`、Live PRO Console、trading button、live command、order form、emergency stop / shutdown / restore executable action、Graphify update 和 Figma change。
+
+`MTP-154-STRATEGY-TRADER-INSTANCE-READINESS-VALIDATION`
+
+MTP-154 required validation 是 `bash checks/run.sh`，并通过 contract、domain context、trading validation matrix、validation plan、latest verification summary、automation readiness doc 和 `checks/automation-readiness.sh` 机械固定 terminology、boundary、forbidden capability baseline 和 no execution authorization。MTP-154 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard smoke handle、不新增 stage audit input；Project stage closeout 仍归属 MTP-161。
+
 ## Live Execution Control Terms
 
 `MTP-75-LIVE-EXECUTION-CONTROL-TERMINOLOGY`

@@ -4111,3 +4111,45 @@ MTP-153 必须建立的主要 anchors：
 - 不实现 Live Monitoring runtime、live readiness runtime、connection manager、runtime connection、private WebSocket runtime、private stream runtime、account snapshot runtime、signed endpoint、account endpoint、listenKey、listenKey keepalive、real account read、broker position sync、real balance、real position、margin、leverage 或 real PnL。
 - 不实现 broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
 - 不新增 API key input、secret storage、account connect、broker connect、Live PRO Console、trading button、live command、order form、stop / shutdown / restore、command surface 或 order-level command。
+
+## MTP-154 Strategy / Trader Instance Readiness Terminology Validation
+
+日期：2026-05-31
+
+执行者：Codex
+
+MTP-154 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-154 的验收要求：
+
+- `docs/contracts/strategy-trader-instance-readiness-contract.md` 必须包含 MTP-154 terminology、readiness-only boundary、proposal / readiness evidence baseline、L3.4 handoff boundary、first executable candidate non-authorization、forbidden capability baseline 和 validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-154 Strategy / Trader Instance Readiness shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-STRATEGY-TRADER-INSTANCE-READINESS` 和 MTP-154 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 Strategy / Trader Instance readiness terminology anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-154 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-154 contract、matrix、validation plan、domain context、latest summary、automation readiness doc、planning record、Linear write evidence 和 forbidden capability boundary strings。
+- PR 前必须确认 `.codex/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-154 必须建立的主要 anchors：
+
+- `MTP-154-STRATEGY-TRADER-INSTANCE-READINESS-TERMINOLOGY`
+- `MTP-154-READINESS-ONLY-BOUNDARY`
+- `MTP-154-PROPOSAL-READINESS-EVIDENCE-BASELINE`
+- `MTP-154-L34-HANDOFF-BOUNDARY`
+- `MTP-154-FIRST-EXECUTABLE-CANDIDATE-NON-AUTHORIZATION`
+- `MTP-154-FORBIDDEN-CAPABILITY-BASELINE`
+- `MTP-154-STRATEGY-TRADER-INSTANCE-READINESS-VALIDATION`
+
+## MTP-154 禁止
+
+- 不实现 Strategy runtime、Trader runtime、strategy scheduler、trader process manager 或 direct Strategy Instance -> Execution Client path。
+- 不输出 broker command、executable order command、OMS order、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不实现 signed endpoint、account endpoint / listenKey、listenKey create / keepalive、private WebSocket runtime、private stream runtime 或 account snapshot runtime。
+- 不读取真实账户、真实持仓、真实余额、broker position、margin、leverage 或 real PnL。
+- 不新增 broker adapter、broker / exchange execution adapter、`LiveExecutionAdapter`、Live PRO Console、trading button、live command、order form、stop / shutdown / restore 或 production operations command。
+- 不新增 Swift production code、focused XCTest、App read model、Dashboard surface、Dashboard smoke handle 或 stage audit input；Project stage closeout 仍归属 MTP-161。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
