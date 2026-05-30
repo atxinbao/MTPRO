@@ -459,12 +459,12 @@ final class AppTests: XCTestCase {
     func testPaperWorkflowEvidenceExplorerTimelineSnapshotAggregatesReadModelOnlyEvidence() throws {
         // 测试场景：MTP-73 的 Event Timeline / Evidence Explorer 子集必须只从 read model
         // 汇总 market event、account / position / balance 只读 evidence、Live blocked evidence、Live monitoring evidence、execution-control
-        // blocked evidence、Live Risk gate blocked evidence、incident / stop blocked evidence、
+        // blocked evidence、Strategy / Trader readiness evidence、Live Risk gate blocked evidence、incident / stop blocked evidence、
         // strategy signal、risk decision、paper order、simulated fill、portfolio projection 和 report artifact links。
         let explorer = try makeDashboardViewModel().paperWorkflowEvidenceExplorer
 
         XCTAssertTrue(explorer.source.isReadModelOnly)
-        XCTAssertEqual(explorer.timelineItemCount, 89)
+        XCTAssertEqual(explorer.timelineItemCount, 95)
         XCTAssertTrue(explorer.coversMarketEvents)
         XCTAssertTrue(explorer.coversMarketDataReplayOperations)
         XCTAssertTrue(explorer.coversScenarioReplayEvidence)
@@ -472,6 +472,7 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(explorer.coversAccountPositionBalanceReadModelOnlySurface)
         XCTAssertTrue(explorer.coversPrivateStreamSimulationGateEvidenceSurface)
         XCTAssertTrue(explorer.coversLiveMonitoringReadOnlyConsoleV2Surface)
+        XCTAssertTrue(explorer.coversStrategyTraderReadinessEvidenceSurface)
         XCTAssertTrue(explorer.coversLiveExecutionControlBlockedEvidence)
         XCTAssertTrue(explorer.coversLiveRiskGateBlockedEvidence)
         XCTAssertTrue(explorer.coversLiveIncidentStopBlockedEvidence)
@@ -496,6 +497,7 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(itemCounts[.accountPositionBalanceReadModelOnlySurface], 3)
         XCTAssertEqual(itemCounts[.privateStreamSimulationGateEvidenceSurface], 4)
         XCTAssertEqual(itemCounts[.liveMonitoringReadOnlyConsoleV2Surface], 4)
+        XCTAssertEqual(itemCounts[.strategyTraderReadinessEvidenceSurface], 6)
         XCTAssertEqual(itemCounts[.liveExecutionControlBlockedEvidence], 7)
         XCTAssertEqual(itemCounts[.liveRiskGateBlockedEvidence], 6)
         XCTAssertEqual(itemCounts[.liveIncidentStopBlockedEvidence], 5)
@@ -539,6 +541,13 @@ final class AppTests: XCTestCase {
                 "MTP-152-WORKBENCH-REPORT-EVENTS-READ-MODEL-ONLY-SURFACE"
             )
         )
+        XCTAssertTrue(evidenceIDs.contains("mtp-154-strategy-trader-readiness-terminology"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-155-strategy-trader-lifecycle-identity"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-156-quoter-hedger-role-taxonomy"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-157-account-portfolio-risk-read-model-input"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-158-paper-live-neutral-proposal-isolation"))
+        XCTAssertTrue(evidenceIDs.contains("mtp-159-forbidden-command-capability-tests"))
+        XCTAssertTrue(evidenceIDs.contains("MTP-159-FORBIDDEN-CAPABILITY-TESTS-VALIDATION"))
         XCTAssertTrue(evidenceIDs.contains("paper-replay-execution-decision-allowed"))
         XCTAssertTrue(evidenceIDs.contains("paper-replay-order-allowed"))
         XCTAssertTrue(evidenceIDs.contains("paper-replay-fill-allowed"))
@@ -566,7 +575,7 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(evidenceIDs.contains("mtp-71-broker-session-unavailable"))
         XCTAssertEqual(explorer.timelineItems.first?.section, .marketEvent)
         XCTAssertTrue(explorer.timelineItems.contains { $0.section == .liveTradingBlockedEvidence })
-        XCTAssertEqual(explorer.timelineItems.last?.section, .scenarioReplayEvidence)
+        XCTAssertEqual(explorer.timelineItems.last?.section, .strategyTraderReadinessEvidenceSurface)
         XCTAssertEqual(explorer.lastAppliedSequence, 16)
     }
 
@@ -1213,17 +1222,30 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(viewModel.report.liveMonitoringReadOnlyConsoleV2Surface.exposesAccountPayload)
         XCTAssertFalse(viewModel.report.liveMonitoringReadOnlyConsoleV2Surface.exposesBrokerState)
         XCTAssertFalse(viewModel.report.liveMonitoringReadOnlyConsoleV2Surface.authorizesTradingExecution)
+        XCTAssertEqual(viewModel.report.strategyTraderReadinessEvidenceSurface.recordCount, 6)
+        XCTAssertEqual(viewModel.report.strategyTraderReadinessEvidenceSurface.eventTraceItemCount, 6)
+        XCTAssertTrue(viewModel.report.strategyTraderReadinessEvidenceSurface.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(viewModel.report.strategyTraderReadinessEvidenceSurface.providesCommandSurface)
+        XCTAssertFalse(viewModel.report.strategyTraderReadinessEvidenceSurface.providesOrderLevelCommand)
+        XCTAssertFalse(viewModel.report.strategyTraderReadinessEvidenceSurface.providesTradingButton)
+        XCTAssertFalse(viewModel.report.strategyTraderReadinessEvidenceSurface.providesLiveCommand)
+        XCTAssertFalse(viewModel.report.strategyTraderReadinessEvidenceSurface.exposesOrderForm)
+        XCTAssertFalse(viewModel.report.strategyTraderReadinessEvidenceSurface.exposesRuntimeObject)
+        XCTAssertFalse(viewModel.report.strategyTraderReadinessEvidenceSurface.exposesAdapterRequest)
+        XCTAssertFalse(viewModel.report.strategyTraderReadinessEvidenceSurface.exposesDatabaseSchema)
+        XCTAssertFalse(viewModel.report.strategyTraderReadinessEvidenceSurface.authorizesTradingExecution)
         XCTAssertEqual(viewModel.report.latestParityStatus, .matchedProjectionEvidence)
         XCTAssertEqual(viewModel.report.lastAppliedSequence, 16)
         XCTAssertFalse(viewModel.report.tradingValidationAuthorizesExecution)
         XCTAssertFalse(viewModel.report.authorizesTradingExecution)
-        XCTAssertEqual(viewModel.paperWorkflowEvidenceExplorer.timelineItemCount, 89)
+        XCTAssertEqual(viewModel.paperWorkflowEvidenceExplorer.timelineItemCount, 95)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversPaperWorkflowChainEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversMarketDataReplayOperations)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversSimulatedExchangeParityEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversAccountPositionBalanceReadModelOnlySurface)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversPrivateStreamSimulationGateEvidenceSurface)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveMonitoringReadOnlyConsoleV2Surface)
+        XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversStrategyTraderReadinessEvidenceSurface)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveExecutionControlBlockedEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveRiskGateBlockedEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveIncidentStopBlockedEvidence)
@@ -1645,6 +1667,111 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(decoded, surface)
     }
 
+    func testStrategyTraderReadinessSurfaceAggregatesMTP160WorkbenchReportEventsEvidence() throws {
+        // 测试场景：MTP-160 只把 MTP-154..159 readiness / forbidden capability 合同证据接入
+        // Workbench / Report / Events read-model-only surface；不得创建 Strategy Console、Runtime、
+        // Execution Client、broker command、OMS、Live PRO Console、trading button、live command 或 order form。
+        let viewModel = try makeDashboardViewModel()
+        let surface = viewModel.report.strategyTraderReadinessEvidenceSurface
+        let explorer = viewModel.paperWorkflowEvidenceExplorer
+        let shell = DashboardShellSnapshot(viewModel: viewModel)
+
+        XCTAssertEqual(surface.issueID, "MTP-160")
+        XCTAssertEqual(surface.matrixID, "TVM-STRATEGY-TRADER-INSTANCE-READINESS")
+        XCTAssertEqual(surface.recordCount, 6)
+        XCTAssertEqual(surface.eventTraceItemCount, 6)
+        XCTAssertEqual(surface.roleLabels, ["quoter readiness role", "hedger readiness role"])
+        XCTAssertEqual(
+            surface.readModelInputLabels,
+            ["account read-model input", "portfolio read-model input", "risk read-model input"]
+        )
+        XCTAssertTrue(surface.proposalIsolationLabels.contains("proposal-to-command isolation"))
+        XCTAssertTrue(surface.forbiddenCapabilityLabels.contains("Strategy -> Execution Client blocked"))
+        XCTAssertTrue(surface.forbiddenCapabilityLabels.contains("Live PRO Console blocked"))
+        XCTAssertTrue(surface.forbiddenCapabilityLabels.contains("signed/account endpoint and listenKey blocked"))
+        XCTAssertTrue(surface.reportSummary.contains("Strategy / Trader readiness read-model-only surface"))
+        XCTAssertTrue(surface.dashboardPanelSummaries.contains { $0.contains("Forbidden capabilities") })
+        XCTAssertTrue(surface.consumesOnlyReadModelViewModel)
+        XCTAssertTrue(surface.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(surface.exposesStrategyConsole)
+        XCTAssertFalse(surface.exposesLivePROConsole)
+        XCTAssertFalse(surface.providesTradingButton)
+        XCTAssertFalse(surface.providesLiveCommand)
+        XCTAssertFalse(surface.exposesOrderForm)
+        XCTAssertFalse(surface.exposesRuntimeObject)
+        XCTAssertFalse(surface.exposesDatabaseSchema)
+        XCTAssertFalse(surface.exposesAdapterRequest)
+        XCTAssertFalse(surface.exposesAccountPayload)
+        XCTAssertFalse(surface.exposesBrokerState)
+        XCTAssertFalse(surface.callsSignedEndpoint)
+        XCTAssertFalse(surface.callsAccountEndpoint)
+        XCTAssertFalse(surface.createsListenKey)
+        XCTAssertFalse(surface.runsStrategyRuntime)
+        XCTAssertFalse(surface.runsTraderRuntime)
+        XCTAssertFalse(surface.runsExecutionRuntime)
+        XCTAssertFalse(surface.connectsBroker)
+        XCTAssertFalse(surface.implementsLiveExecutionAdapter)
+        XCTAssertFalse(surface.implementsOMS)
+        XCTAssertFalse(surface.readsRealAccount)
+        XCTAssertFalse(surface.readsRealPosition)
+        XCTAssertFalse(surface.readsRealBalance)
+        XCTAssertFalse(surface.readsMargin)
+        XCTAssertFalse(surface.readsLeverage)
+        XCTAssertFalse(surface.readsRealPnL)
+        XCTAssertFalse(surface.providesCommandSurface)
+        XCTAssertFalse(surface.providesOrderLevelCommand)
+        XCTAssertFalse(surface.authorizesLiveTrading)
+        XCTAssertFalse(surface.authorizesTradingExecution)
+        XCTAssertFalse(surface.requiredValidationDependsOnNetwork)
+
+        XCTAssertTrue(explorer.coversStrategyTraderReadinessEvidenceSurface)
+        XCTAssertEqual(
+            explorer.sectionSnapshots.first {
+                $0.section == .strategyTraderReadinessEvidenceSurface
+            }?.itemCount,
+            6
+        )
+        XCTAssertTrue(
+            explorer.timelineItems.contains {
+                $0.section == .strategyTraderReadinessEvidenceSurface
+                    && $0.title == "MTP-158 proposal isolation readiness evidence"
+            }
+        )
+        XCTAssertTrue(
+            explorer.evidenceLinks.contains {
+                $0.evidenceID == "MTP-159-FORBIDDEN-CAPABILITY-TESTS-VALIDATION"
+            }
+        )
+
+        let reportSection = try XCTUnwrap(shell.sections.first { $0.section == .report })
+        XCTAssertEqual(metricValue("Strategy readiness", in: reportSection), "6")
+        XCTAssertTrue(reportSection.details.contains("Strategy readiness command surface: none"))
+        XCTAssertTrue(reportSection.details.contains("Strategy readiness runtime object: none"))
+        XCTAssertTrue(reportSection.details.contains("Strategy readiness database schema: none"))
+        XCTAssertTrue(reportSection.details.contains("Strategy readiness boundary: confirmed"))
+        XCTAssertEqual(
+            metricValue("Strategy readiness", in: shell.workbench.strategyTraderReadinessEvidenceSurfaceMetrics),
+            "6"
+        )
+        XCTAssertEqual(
+            metricValue("Boundary", in: shell.workbench.strategyTraderReadinessEvidenceSurfaceMetrics),
+            "confirmed"
+        )
+        XCTAssertTrue(
+            shell.workbench.strategyTraderReadinessEvidenceSurfaceDetails.contains(
+                "Strategy readiness broker connect: none"
+            )
+        )
+        XCTAssertTrue(shell.smokeSummary.contains("strategyTraderReadinessSurface=6"))
+
+        let encoded = try JSONEncoder().encode(surface)
+        let decoded = try JSONDecoder().decode(
+            StrategyTraderReadinessEvidenceSurfaceViewModel.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, surface)
+    }
+
     func testDashboardViewModelStateSnapshotIsCodableAndDeterministic() throws {
         let viewModel = try makeDashboardViewModel()
 
@@ -1660,13 +1787,14 @@ final class AppTests: XCTestCase {
             decoded.report.artifacts.first?.paperExecutionWorkflowEvidence.paperOrderIDs,
             ["paper-replay-order-allowed"]
         )
-        XCTAssertEqual(decoded.paperWorkflowEvidenceExplorer.timelineItemCount, 89)
+        XCTAssertEqual(decoded.paperWorkflowEvidenceExplorer.timelineItemCount, 95)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversReportArtifacts)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversMarketDataReplayOperations)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversScenarioReplayEvidence)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversAccountPositionBalanceReadModelOnlySurface)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversPrivateStreamSimulationGateEvidenceSurface)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveMonitoringReadOnlyConsoleV2Surface)
+        XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversStrategyTraderReadinessEvidenceSurface)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveExecutionControlBlockedEvidence)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveRiskGateBlockedEvidence)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveIncidentStopBlockedEvidence)
@@ -2184,11 +2312,12 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(snapshot.smokeSummary.contains("readModelOnly=true"))
         XCTAssertTrue(snapshot.smokeSummary.contains("workbenchReadModelOnly=true"))
         XCTAssertTrue(snapshot.smokeSummary.contains("controls=start,pause,close,reset"))
-        XCTAssertTrue(snapshot.smokeSummary.contains("timelineItems=89"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("timelineItems=95"))
         XCTAssertTrue(snapshot.smokeSummary.contains("scenarioReplayEvidence=1"))
         XCTAssertTrue(snapshot.smokeSummary.contains("accountPositionBalanceEvidence=3"))
         XCTAssertTrue(snapshot.smokeSummary.contains("privateStreamSimulationGateEvidence=4"))
         XCTAssertTrue(snapshot.smokeSummary.contains("liveMonitoringReadOnlyConsoleV2Surface=4"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("strategyTraderReadinessSurface=6"))
         XCTAssertTrue(snapshot.smokeSummary.contains("scenarioQualityGates=6"))
         XCTAssertTrue(snapshot.smokeSummary.contains("liveBlockedGates=6"))
         XCTAssertTrue(snapshot.smokeSummary.contains("liveExecutionControlGates=7"))
@@ -2243,8 +2372,8 @@ final class AppTests: XCTestCase {
             )
         )
 
-        XCTAssertEqual(metricValue("Timeline items", in: workbench.evidenceExplorerMetrics), "89")
-        XCTAssertEqual(metricValue("Sections", in: workbench.evidenceExplorerMetrics), "20")
+        XCTAssertEqual(metricValue("Timeline items", in: workbench.evidenceExplorerMetrics), "95")
+        XCTAssertEqual(metricValue("Sections", in: workbench.evidenceExplorerMetrics), "21")
         XCTAssertTrue(
             workbench.evidenceExplorerDetails.contains(
                 "Filter: read-only"
@@ -2639,6 +2768,7 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(report?.metrics.first { $0.label == "Exec workflow" }?.value, "0")
         XCTAssertEqual(report?.metrics.first { $0.label == "Scenario replay" }?.value, "0")
         XCTAssertEqual(report?.metrics.first { $0.label == "Scenario gates" }?.value, "0")
+        XCTAssertEqual(report?.metrics.first { $0.label == "Strategy readiness" }?.value, "6")
         XCTAssertEqual(report?.metrics.first { $0.label == "Live gates" }?.value, "6")
         XCTAssertEqual(report?.metrics.first { $0.label == "Monitoring" }?.value, "4")
         XCTAssertEqual(report?.metrics.first { $0.label == "Execution control" }?.value, "7")
@@ -2651,9 +2781,13 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(events?.metrics.first { $0.label == "Last sequence" }?.value, "n/a")
 
         XCTAssertEqual(metricValue("Controls", in: snapshot.workbench.observabilityMetrics), "4")
-        XCTAssertEqual(metricValue("Timeline items", in: snapshot.workbench.evidenceExplorerMetrics), "54")
+        XCTAssertEqual(metricValue("Timeline items", in: snapshot.workbench.evidenceExplorerMetrics), "60")
         XCTAssertEqual(metricValue("Scenarios", in: snapshot.workbench.scenarioReplayEvidenceMetrics), "0")
         XCTAssertEqual(metricValue("Quality gates", in: snapshot.workbench.scenarioReplayEvidenceMetrics), "0")
+        XCTAssertEqual(
+            metricValue("Strategy readiness", in: snapshot.workbench.strategyTraderReadinessEvidenceSurfaceMetrics),
+            "6"
+        )
         XCTAssertEqual(
             metricValue("Workbench boundary", in: snapshot.workbench.liveReadOnlyWorkbenchBoundaryMetrics),
             "5"

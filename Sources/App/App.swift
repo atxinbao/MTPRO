@@ -797,11 +797,13 @@ public struct ResearchBacktestReportArtifact: Codable, Equatable, Sendable {
 /// Live monitoring evidence、Scenario replay evidence、simulated exchange parity evidence、
 /// account / position / balance read-model-only surface、private stream simulation gate evidence surface、
 /// Live Monitoring Read-only Console v2 surface、
+/// Strategy / Trader readiness read-model-only surface、
 /// Live read-only Workbench boundary、Live Risk blocked evidence 和 incident / stop blocked evidence 汇总成报告 artifact / boundary evidence；
 /// 该 read model 不重跑策略、不读取数据库 schema、不调用 Runtime / Adapters，也不把报告、
 /// scenario replay、simulated exchange parity、account / position / balance evidence、
 /// private stream / account snapshot simulation gate evidence、
 /// Live Monitoring Read-only Console v2 evidence、
+/// Strategy / Trader readiness evidence、
 /// Live readiness blocked 状态、monitoring 状态、risk blocked evidence 或 incident / stop evidence
 /// 解释为交易授权。
 public struct ReportReadModel: Equatable, Sendable {
@@ -812,6 +814,7 @@ public struct ReportReadModel: Equatable, Sendable {
     public let accountPositionBalanceReadModelOnlySurface: AccountPositionBalanceReadModelOnlySurfaceReadModel
     public let privateStreamSimulationGateEvidenceSurface: PrivateStreamSimulationGateEvidenceSurfaceReadModel
     public let liveMonitoringReadOnlyConsoleV2Surface: LiveMonitoringReadOnlyConsoleV2SurfaceReadModel
+    public let strategyTraderReadinessEvidenceSurface: StrategyTraderReadinessEvidenceSurfaceReadModel
     public let liveReadOnlyWorkbenchBoundary: LiveReadOnlyWorkbenchBoundaryReadModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel
     public let liveMonitoringEvidence: LiveMonitoringEvidenceReadModel
@@ -831,6 +834,8 @@ public struct ReportReadModel: Equatable, Sendable {
             PrivateStreamSimulationGateEvidenceSurfaceReadModel(),
         liveMonitoringReadOnlyConsoleV2Surface: LiveMonitoringReadOnlyConsoleV2SurfaceReadModel =
             LiveMonitoringReadOnlyConsoleV2SurfaceReadModel(),
+        strategyTraderReadinessEvidenceSurface: StrategyTraderReadinessEvidenceSurfaceReadModel =
+            StrategyTraderReadinessEvidenceSurfaceReadModel(),
         liveReadOnlyWorkbenchBoundary: LiveReadOnlyWorkbenchBoundaryReadModel = LiveReadOnlyWorkbenchBoundaryReadModel(),
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel(),
         liveMonitoringEvidence: LiveMonitoringEvidenceReadModel = LiveMonitoringEvidenceReadModel(),
@@ -848,6 +853,7 @@ public struct ReportReadModel: Equatable, Sendable {
         self.accountPositionBalanceReadModelOnlySurface = accountPositionBalanceReadModelOnlySurface
         self.privateStreamSimulationGateEvidenceSurface = privateStreamSimulationGateEvidenceSurface
         self.liveMonitoringReadOnlyConsoleV2Surface = liveMonitoringReadOnlyConsoleV2Surface
+        self.strategyTraderReadinessEvidenceSurface = strategyTraderReadinessEvidenceSurface
         self.liveReadOnlyWorkbenchBoundary = liveReadOnlyWorkbenchBoundary
         self.liveTradingBlockedEvidence = liveTradingBlockedEvidence
         self.liveMonitoringEvidence = liveMonitoringEvidence
@@ -862,6 +868,7 @@ public struct ReportReadModel: Equatable, Sendable {
             accountPositionBalanceReadModelOnlySurface.lastAppliedSequence,
             privateStreamSimulationGateEvidenceSurface.lastAppliedSequence,
             liveMonitoringReadOnlyConsoleV2Surface.lastAppliedSequence,
+            strategyTraderReadinessEvidenceSurface.lastAppliedSequence,
             liveReadOnlyWorkbenchBoundary.lastAppliedSequence,
             liveTradingBlockedEvidence.lastAppliedSequence,
             liveMonitoringEvidence.lastAppliedSequence,
@@ -884,6 +891,8 @@ public struct ReportReadModel: Equatable, Sendable {
             PrivateStreamSimulationGateEvidenceSurfaceReadModel(),
         liveMonitoringReadOnlyConsoleV2Surface: LiveMonitoringReadOnlyConsoleV2SurfaceReadModel =
             LiveMonitoringReadOnlyConsoleV2SurfaceReadModel(),
+        strategyTraderReadinessEvidenceSurface: StrategyTraderReadinessEvidenceSurfaceReadModel =
+            StrategyTraderReadinessEvidenceSurfaceReadModel(),
         liveReadOnlyWorkbenchBoundary: LiveReadOnlyWorkbenchBoundaryReadModel = LiveReadOnlyWorkbenchBoundaryReadModel(),
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel(),
         liveMonitoringEvidence: LiveMonitoringEvidenceReadModel = LiveMonitoringEvidenceReadModel(),
@@ -927,6 +936,7 @@ public struct ReportReadModel: Equatable, Sendable {
             accountPositionBalanceReadModelOnlySurface: accountPositionBalanceReadModelOnlySurface,
             privateStreamSimulationGateEvidenceSurface: privateStreamSimulationGateEvidenceSurface,
             liveMonitoringReadOnlyConsoleV2Surface: liveMonitoringReadOnlyConsoleV2Surface,
+            strategyTraderReadinessEvidenceSurface: strategyTraderReadinessEvidenceSurface,
             liveReadOnlyWorkbenchBoundary: liveReadOnlyWorkbenchBoundary,
             liveTradingBlockedEvidence: liveTradingBlockedEvidence,
             liveMonitoringEvidence: liveMonitoringEvidence,
@@ -1197,7 +1207,7 @@ public struct ReportReadModel: Equatable, Sendable {
 /// 输入来自 Persistence projection snapshots、append-only event timeline 和 Core Live readiness
 /// blocked read model；新增 Report / Event Timeline / simulated exchange parity evidence 和
 /// account / position / balance read-model-only surface、Workbench beta first-run state /
-/// beta acceptance path 也遵循同一来源边界，禁止 UI 直接读取数据库 schema、Runtime object、
+/// beta acceptance path、Strategy / Trader readiness surface 也遵循同一来源边界，禁止 UI 直接读取数据库 schema、Runtime object、
 /// 行情 adapter、真实 Live trading capability 或真实 Live Risk / incident stop runtime。
 public struct DashboardReadModel: Equatable, Sendable {
     public let market: MarketReadModel
@@ -1245,6 +1255,7 @@ public struct DashboardReadModel: Equatable, Sendable {
             scenarioReplayEvidence: report.scenarioReplayEvidence,
             simulatedExchangeParityEvidence: report.simulatedExchangeParityEvidence,
             liveMonitoringReadOnlyConsoleV2Surface: report.liveMonitoringReadOnlyConsoleV2Surface,
+            strategyTraderReadinessEvidenceSurface: report.strategyTraderReadinessEvidenceSurface,
             workbenchBetaAcceptancePath: acceptancePath,
             liveReadOnlyWorkbenchBoundary: report.liveReadOnlyWorkbenchBoundary,
             liveTradingBlockedEvidence: report.liveTradingBlockedEvidence,
@@ -1274,6 +1285,8 @@ public struct DashboardReadModel: Equatable, Sendable {
             PrivateStreamSimulationGateEvidenceSurfaceReadModel(),
         liveMonitoringReadOnlyConsoleV2Surface: LiveMonitoringReadOnlyConsoleV2SurfaceReadModel =
             LiveMonitoringReadOnlyConsoleV2SurfaceReadModel(),
+        strategyTraderReadinessEvidenceSurface: StrategyTraderReadinessEvidenceSurfaceReadModel =
+            StrategyTraderReadinessEvidenceSurfaceReadModel(),
         liveReadOnlyWorkbenchBoundary: LiveReadOnlyWorkbenchBoundaryReadModel = LiveReadOnlyWorkbenchBoundaryReadModel(),
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel(),
         liveMonitoringEvidence: LiveMonitoringEvidenceReadModel = LiveMonitoringEvidenceReadModel(),
@@ -1292,6 +1305,7 @@ public struct DashboardReadModel: Equatable, Sendable {
             accountPositionBalanceReadModelOnlySurface: accountPositionBalanceReadModelOnlySurface,
             privateStreamSimulationGateEvidenceSurface: privateStreamSimulationGateEvidenceSurface,
             liveMonitoringReadOnlyConsoleV2Surface: liveMonitoringReadOnlyConsoleV2Surface,
+            strategyTraderReadinessEvidenceSurface: strategyTraderReadinessEvidenceSurface,
             liveReadOnlyWorkbenchBoundary: liveReadOnlyWorkbenchBoundary,
             liveTradingBlockedEvidence: liveTradingBlockedEvidence,
             liveMonitoringEvidence: liveMonitoringEvidence,
@@ -1332,6 +1346,7 @@ public struct DashboardReadModel: Equatable, Sendable {
                 scenarioReplayEvidence: report.scenarioReplayEvidence,
                 simulatedExchangeParityEvidence: report.simulatedExchangeParityEvidence,
                 liveMonitoringReadOnlyConsoleV2Surface: report.liveMonitoringReadOnlyConsoleV2Surface,
+                strategyTraderReadinessEvidenceSurface: report.strategyTraderReadinessEvidenceSurface,
                 workbenchBetaAcceptancePath: workbenchBetaAcceptancePath,
                 liveReadOnlyWorkbenchBoundary: report.liveReadOnlyWorkbenchBoundary,
                 liveTradingBlockedEvidence: report.liveTradingBlockedEvidence,
@@ -1488,6 +1503,7 @@ public struct ReportArtifactViewModel: Codable, Equatable, Sendable {
 /// scenario replay evidence、account / position / balance read-model-only evidence、
 /// private stream / account snapshot simulation gate read-model-only evidence、
 /// Live Monitoring Read-only Console v2 evidence surface、
+/// Strategy / Trader readiness read-model-only evidence surface、
 /// Live trading foundation blocked gates、Live monitoring evidence、Live Risk blocked evidence 和
 /// incident / stop blocked evidence；
 /// 该 ViewModel 不调用 Runtime / Adapters，不暴露数据库实现细节，也不提供 live command、
@@ -1502,6 +1518,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
     public let accountPositionBalanceReadModelOnlySurface: AccountPositionBalanceReadModelOnlySurfaceViewModel
     public let privateStreamSimulationGateEvidenceSurface: PrivateStreamSimulationGateEvidenceSurfaceViewModel
     public let liveMonitoringReadOnlyConsoleV2Surface: LiveMonitoringReadOnlyConsoleV2SurfaceViewModel
+    public let strategyTraderReadinessEvidenceSurface: StrategyTraderReadinessEvidenceSurfaceViewModel
     public let liveReadOnlyWorkbenchBoundary: LiveReadOnlyWorkbenchBoundaryViewModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceViewModel
     public let liveMonitoringEvidence: LiveMonitoringEvidenceViewModel
@@ -1775,6 +1792,10 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
             LiveMonitoringReadOnlyConsoleV2SurfaceViewModel(
                 readModel: readModel.liveMonitoringReadOnlyConsoleV2Surface
             )
+        let strategyTraderReadinessEvidenceSurface =
+            StrategyTraderReadinessEvidenceSurfaceViewModel(
+                readModel: readModel.strategyTraderReadinessEvidenceSurface
+            )
         let liveReadOnlyWorkbenchBoundary = LiveReadOnlyWorkbenchBoundaryViewModel(
             readModel: readModel.liveReadOnlyWorkbenchBoundary
         )
@@ -1805,6 +1826,8 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
             privateStreamSimulationGateEvidenceSurface
         self.liveMonitoringReadOnlyConsoleV2Surface =
             liveMonitoringReadOnlyConsoleV2Surface
+        self.strategyTraderReadinessEvidenceSurface =
+            strategyTraderReadinessEvidenceSurface
         self.liveReadOnlyWorkbenchBoundary = liveReadOnlyWorkbenchBoundary
         self.liveTradingBlockedEvidence = liveBlockedEvidence
         self.liveMonitoringEvidence = liveMonitoringEvidence
@@ -2229,6 +2252,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
             || accountPositionBalanceReadModelOnlySurface.authorizesTradingExecution
             || privateStreamSimulationGateEvidenceSurface.authorizesTradingExecution
             || liveMonitoringReadOnlyConsoleV2Surface.authorizesTradingExecution
+            || strategyTraderReadinessEvidenceSurface.authorizesTradingExecution
             || liveReadOnlyWorkbenchBoundary.authorizesTradingExecution
             || liveBlockedEvidence.authorizesTradingExecution
             || liveMonitoringEvidence.authorizesTradingExecution
@@ -2541,6 +2565,7 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
             report.accountPositionBalanceReadModelOnlySurface.source,
             report.privateStreamSimulationGateEvidenceSurface.source,
             report.liveMonitoringReadOnlyConsoleV2Surface.source,
+            report.strategyTraderReadinessEvidenceSurface.source,
             report.liveReadOnlyWorkbenchBoundary.source,
             report.liveTradingBlockedEvidence.source,
             report.liveMonitoringEvidence.source,

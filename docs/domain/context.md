@@ -1714,6 +1714,24 @@ MTP-144 payload/schema/runtime non-exposure tests 必须拒绝 account endpoint 
 
 MTP-144 validation 必须证明 `SimulatedAccountSnapshotFreshnessEvidenceContract`、`SimulatedAccountSnapshotFreshnessEvidenceItem`、focused XCTest、contract docs、domain context、validation matrix、validation plan、latest summary、automation readiness doc 和 mechanical anchors 均固定 freshness evidence / forbidden endpoint boundary，并且 `bash checks/run.sh` 通过。MTP-144 不实现 private stream runtime、account snapshot runtime、freshness runtime 或 Workbench / Report / Events surface。
 
+## Strategy / Trader Readiness Surface Terms
+
+`MTP-160-WORKBENCH-REPORT-EVENTS-READ-MODEL-ONLY-SURFACE`
+
+`strategy readiness evidence surface` 指 MTP-160 在 Workbench、Report 和 Events 中展示 MTP-154 至 MTP-159 evidence chain 的 read-model-only surface。它只说明 Strategy / Trader Instance readiness terminology、lifecycle / identity、quoter / hedger role taxonomy、account / portfolio / risk input、paper/live-neutral proposal isolation 和 forbidden capability tests 已有可追溯证据；不表示 Strategy Console、Live PRO Console、trading button、live command、order form、Strategy runtime、Trader runtime、Execution Client、broker adapter、`LiveExecutionAdapter`、OMS、signed endpoint、account endpoint / listenKey、private stream runtime、account snapshot runtime 或真实交易能力。
+
+`MTP-160-STRATEGY-READINESS-SOURCE-CHAIN`
+
+`strategy readiness surface source chain` 指 `StrategyTraderReadinessEvidenceSurfaceReadModel`、`StrategyTraderReadinessEvidenceSurfaceViewModel`、`ReportReadModel.strategyTraderReadinessEvidenceSurface`、`PaperWorkflowEvidenceExplorerReadModel.strategyTraderReadinessEvidenceSurface` 和 `DashboardShellWorkbenchSnapshot.strategyTraderReadinessEvidenceSurfaceMetrics` 组成的 App 层只读链路。该链路只能消费 deterministic evidence anchors 和 source anchors，不读取 Runtime object、Adapter request、SQLite / DuckDB schema、account endpoint payload、broker payload、broker state、credential、secret、API key、listenKey、real account、real position、real balance、margin、leverage 或 real PnL。
+
+`MTP-160-NO-COMMAND-RUNTIME-SCHEMA-ACCOUNT-BOUNDARY`
+
+`strategy readiness boundary evidence` 指 MTP-160 surface 必须持续输出的 negative capability evidence：no command surface、no order-level command、no Strategy runtime、no Trader runtime、no Execution runtime、no broker connection、no broker adapter、no `LiveExecutionAdapter`、no OMS、no signed endpoint call、no account endpoint call、no listenKey create / keepalive、no private WebSocket runtime、no private stream runtime、no account snapshot runtime、no Runtime object exposure、no Adapter request exposure、no schema exposure、no account / broker payload exposure、no real account read、no live trading authorization 和 no trading execution authorization。
+
+`MTP-160-STRATEGY-TRADER-READINESS-SURFACE-VALIDATION`
+
+MTP-160 validation 必须证明 Workbench / Report / Events 只展示 MTP-154 至 MTP-159 的 readiness / forbidden capability evidence，Event Timeline 只新增六条 strategy readiness read-model-only items，Dashboard smoke 只新增 `strategyTraderReadinessSurface=6`，并且 `swift test`、`bash checks/automation-readiness.sh`、`git diff --check` 和 `bash checks/run.sh` 均通过。MTP-160 不新增或修改 Core semantics，不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

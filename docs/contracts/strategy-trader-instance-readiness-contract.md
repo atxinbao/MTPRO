@@ -4,7 +4,7 @@
 
 执行者：Codex
 
-本文档累计定义 `MTPRO Strategy / Trader Instance Readiness v1` 的 MTP-154 至 MTP-159 合同入口：L3.4 Strategy / Trader Instance readiness terminology、lifecycle / identity、quoter / hedger role taxonomy、account / portfolio / risk read-model input、paper/live-neutral proposal isolation、forbidden Strategy -> Execution / broker / UI command tests 和 validation anchors。
+本文档累计定义 `MTPRO Strategy / Trader Instance Readiness v1` 的 MTP-154 至 MTP-160 合同入口：L3.4 Strategy / Trader Instance readiness terminology、lifecycle / identity、quoter / hedger role taxonomy、account / portfolio / risk read-model input、paper/live-neutral proposal isolation、forbidden Strategy -> Execution / broker / UI command tests、Workbench / Report / Events strategy readiness read-model-only evidence surface 和 validation anchors。
 
 本文档只服务当前 Project 的 readiness / forbidden capability 合同证据。它不实现 Strategy runtime，不实现 Trader runtime，不允许 strategy 直连 Execution Client，不输出 broker command，不实现 OMS、Live PRO Console、trading button、live command 或 order form；不接 signed endpoint、account endpoint / listenKey，不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation；不读取真实账户、真实持仓、真实余额、margin、leverage 或 real PnL；不运行 Graphify，不修改 Figma。
 
@@ -630,3 +630,98 @@ Focused validation anchors：
 - `checks/automation-readiness.sh` 必须机械检查 MTP-159 contract、domain context、matrix、validation plan、latest summary、automation readiness doc、proposal-to-command bypass guard、no endpoint / listenKey guard 和 local no-network boundary。
 
 MTP-159 不新增 Swift production code，不新增 focused XCTest，不新增 Dashboard smoke handle，不新增 App read model，不新增 Core / Runtime / Dashboard behavior，不新增 stage audit input；Project stage closeout 仍归属 MTP-161。
+
+## MTP-160 Workbench / Report / Events strategy readiness read-model-only evidence surface
+
+`MTP-160-WORKBENCH-REPORT-EVENTS-READ-MODEL-ONLY-SURFACE`
+
+MTP-160 只把 MTP-154 至 MTP-159 的 readiness / forbidden capability 合同证据接入 Workbench、Report 和 Events 的 read-model-only evidence surface。该 surface 的职责是把已经完成的 terminology、lifecycle / identity、role taxonomy、account / portfolio / risk input、paper/live-neutral proposal isolation 和 forbidden capability tests 汇总成可审计的只读证据，不创建 Strategy Console、Live PRO Console、trading button、live command、order form 或任何 order-level command。
+
+MTP-160 surface 必须保持以下记录：
+
+| Evidence record | Source anchor | 当前含义 |
+| --- | --- | --- |
+| `mtp-154-strategy-trader-readiness-terminology` | `MTP-154-STRATEGY-TRADER-INSTANCE-READINESS-VALIDATION` | Strategy / Trader readiness terminology 和 readiness-only boundary 已存在，只能作为 read-model-only evidence。 |
+| `mtp-155-strategy-trader-lifecycle-identity` | `MTP-155-STRATEGY-TRADER-LIFECYCLE-VALIDATION` | Lifecycle / identity 只用于 configured / ready / blocked / inactive / simulation-only readiness 解释，不创建 lifecycle runtime。 |
+| `mtp-156-quoter-hedger-role-taxonomy` | `MTP-156-ROLE-TAXONOMY-VALIDATION` | Quoter / hedger 只作为 role readiness taxonomy，不输出 quote / hedge order command。 |
+| `mtp-157-account-portfolio-risk-read-model-input` | `MTP-157-READ-MODEL-INPUT-VALIDATION` | Account / portfolio / risk input 只来自 read-model contract，不读取真实账户、真实持仓、真实余额、margin、leverage 或 real PnL。 |
+| `mtp-158-paper-live-neutral-proposal-isolation` | `MTP-158-PROPOSAL-CONTRACT-VALIDATION` | Proposal 只作为 paper/live-neutral evidence，不升级为 executable order command、Execution Client request、OMS order 或 broker command。 |
+| `mtp-159-forbidden-command-capability-tests` | `MTP-159-FORBIDDEN-CAPABILITY-TESTS-VALIDATION` | Forbidden tests 证明 Strategy / Trader readiness 不能越界到 Execution Client、broker、OMS、UI command、signed/account endpoint 或 listenKey。 |
+
+## MTP-160 strategy readiness surface source chain
+
+`MTP-160-STRATEGY-READINESS-SOURCE-CHAIN`
+
+MTP-160 的 source chain 只允许以下 App 层读模型和视图模型参与：
+
+1. `StrategyTraderReadinessEvidenceSurfaceReadModel`
+2. `StrategyTraderReadinessEvidenceSurfaceViewModel`
+3. `ReportReadModel.strategyTraderReadinessEvidenceSurface`
+4. `ReportViewModel.strategyTraderReadinessEvidenceSurface`
+5. `PaperWorkflowEvidenceExplorerReadModel.strategyTraderReadinessEvidenceSurface`
+6. `DashboardShellWorkbenchSnapshot.strategyTraderReadinessEvidenceSurfaceMetrics`
+
+这些对象只能消费 MTP-154 至 MTP-159 的 deterministic evidence anchors 和 source anchors。它们不得调用 Core runtime、Runtime module、Adapters module、Persistence schema、broker adapter、Execution Client、OMS、signed endpoint、account endpoint、listenKey 或 private stream runtime。
+
+## MTP-160 no command / runtime / schema / account boundary
+
+`MTP-160-NO-COMMAND-RUNTIME-SCHEMA-ACCOUNT-BOUNDARY`
+
+MTP-160 必须同时保持以下 false / none 边界：
+
+- no Strategy Console
+- no Live PRO Console
+- no trading button
+- no live command
+- no order form
+- no command surface
+- no order-level command
+- no Strategy runtime
+- no Trader runtime
+- no Execution runtime
+- no broker connection
+- no broker adapter
+- no `LiveExecutionAdapter`
+- no OMS
+- no Runtime object exposure
+- no Adapter request exposure
+- no SQLite / DuckDB schema exposure
+- no signed endpoint call
+- no account endpoint call
+- no listenKey create / keepalive
+- no private WebSocket runtime
+- no private stream runtime
+- no account snapshot runtime
+- no real account read
+- no real position / balance / margin / leverage / real PnL read
+- no account endpoint payload、broker payload 或 broker state exposure
+- no live trading authorization
+- no trading execution authorization
+- no network-dependent validation
+
+## MTP-160 validation anchors
+
+`MTP-160-STRATEGY-TRADER-READINESS-SURFACE-VALIDATION`
+
+Required validation：
+
+- `swift test`
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `Sources/App/StrategyTraderReadinessEvidenceSurface.swift` 必须定义 MTP-160 read-model-only evidence surface，且每条 record 均指向 MTP-154 至 MTP-159 的已存在 source anchor。
+- `Sources/App/App.swift` 必须把 Strategy / Trader readiness surface 接入 Report / Dashboard read model 和 ViewModel，并保持 `authorizesTradingExecution == false`。
+- `Sources/App/PaperWorkflowEvidenceExplorer.swift` 必须新增 strategy readiness timeline section，且只生成 read-model-only event trace / evidence link。
+- `Sources/App/DashboardShell.swift` 必须把 strategy readiness evidence 汇总到 Workbench / Report smoke surface，且只输出 metrics / details / boundary evidence；Dashboard smoke handle 必须包含 `strategyTraderReadinessSurface=6`。
+- `Tests/AppTests/AppTests.swift` 必须包含 `testStrategyTraderReadinessSurfaceAggregatesMTP160WorkbenchReportEventsEvidence`，覆盖 record count、Event Timeline items、Dashboard smoke handle、forbidden command/runtime/schema/account flags 和 Codable round trip。
+- `docs/domain/context.md` 必须包含 MTP-160 strategy readiness surface shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-160 issue backfill。
+- `docs/validation/validation-plan.md` 必须包含 MTP-160 required validation。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-160 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Strategy readiness Workbench / Report / Events surface anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-160 contract、matrix、validation plan、domain context、latest summary、automation readiness doc、source / test anchors、Dashboard smoke handle 和 no command/runtime/schema/account boundary strings。
+
+MTP-160 不新增或修改 Core semantics，不实现 Strategy runtime、Trader runtime、Execution Client、broker command、broker adapter、`LiveExecutionAdapter`、OMS、signed endpoint、account endpoint / listenKey、private stream runtime、account snapshot runtime、Live PRO Console、trading button、live command 或 order form；不读取真实账户、真实持仓、真实余额、margin、leverage 或 real PnL；不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。Project stage closeout 仍归属 MTP-161。
