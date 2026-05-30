@@ -331,6 +331,42 @@ MTP-152 的 Workbench / Report / Events surface 必须保持 no runtime / adapte
 
 `MTP-152-LIVE-MONITORING-V2-SURFACE-VALIDATION`
 
+`MTP-153-LIVE-MONITORING-V2-STAGE-CLOSEOUT`
+
+MTP-153 stage closeout 只把 `MTPRO Live Monitoring Read-only Console v2` 的 validation matrix、automation readiness anchors、forbidden capability evidence chain、read-model-only boundary evidence、Workbench / Report / Events Live Monitoring v2 surface evidence 和 Stage Code Audit input material 收口为 Parent Codex 审计输入。该 closeout 不是最终 Stage Code Audit Report，不设置 Linear Project `Completed`，不创建下一 Project / Issue，不推进 L3.4 / L4，也不启动下一阶段 `symphony-issue`。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `Live Monitoring v2 stage audit input` | MTP-153 为 Parent Codex Stage Code Audit 准备的 Project 级审计输入材料 | 不等于最终 Stage Code Audit Report、Project closure、Root Docs Refresh Gate 或下一阶段授权 |
+| `Live Monitoring v2 closeout evidence chain` | MTP-147 至 MTP-152 的 terminology、source identity、health、readiness explanation、forbidden tests 和 read-model-only surface 汇总 | 不等于 runtime telemetry、account endpoint payload、broker state 或 production monitoring agent |
+| `Live Monitoring v2 automation readiness closeout` | MTP-153 将 stage audit input、matrix、validation plan、latest summary 和 automation readiness doc 接入机械检查 | 不等于启动 Symphony、修改 active Project pointer、运行 Graphify 或创建下一 issue |
+
+`MTP-153-STAGE-AUDIT-INPUT-MATERIAL`
+
+MTP-153 stage audit input material 落仓于 `docs/audit/inputs/mtpro-live-monitoring-read-only-console-v2-stage-audit-input.md`，用于汇总 MTP-147 至 MTP-152 的 issue / PR / merge / required check evidence、`TVM-LIVE-MONITORING-READ-ONLY-CONSOLE-V2` evidence chain、forbidden capability evidence chain、Dashboard smoke `liveMonitoringReadOnlyConsoleV2Surface=4` handle 和 Parent Codex final Stage Code Audit handoff checklist。
+
+`MTP-153-NO-FINAL-STAGE-CODE-AUDIT`
+
+MTP-153 不输出最终 Stage Code Audit Report。最终报告必须在 MTP-147 至 MTP-153 全部 Linear `Done`，且 Linear Project `Completed/type=completed/completedAt` evidence 齐备后，由 Parent Codex 单独输出。
+
+`MTP-153-VALIDATION-EVIDENCE-CHAIN`
+
+MTP-153 validation evidence chain 必须覆盖 MTP-147 terminology / boundary、MTP-148 monitoring source identity、MTP-149 simulation gate health / freshness、MTP-150 connection readiness explanation、MTP-151 forbidden capability tests、MTP-152 Workbench / Report / Events read-model-only surface，以及 MTP-153 自身的 stage audit input、automation readiness 和 matrix backfill。
+
+`MTP-153-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN`
+
+MTP-153 继续确认 signed endpoint、account endpoint / listenKey、private WebSocket runtime、private stream runtime、account snapshot runtime、live readiness runtime、Live Monitoring runtime、source adapter、connection manager、runtime connection、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、Live PRO Console、trading button、live command、order form、stop / shutdown / restore、Graphify update 和 Figma change 在当前 Project 中全部禁止。
+
+`MTP-153-READ-MODEL-ONLY-BOUNDARY-EVIDENCE`
+
+MTP-153 必须确认 Live Monitoring v2 的 Workbench / Report / Events evidence 只来自 deterministic Core contract 和 App Read Model / ViewModel，不读取 Runtime object、Adapter request、SQLite / DuckDB schema、account payload、broker payload、broker state、signed endpoint、account endpoint、listenKey、private WebSocket 或 real account state。
+
+`MTP-153-AUTOMATION-READINESS-STAGE-CLOSEOUT`
+
+MTP-153 automation readiness stage closeout 只机械固定 MTP-153 input、contract、domain context、validation plan、Trading Validation Matrix、latest summary、automation readiness doc、MTP-147 至 MTP-152 evidence anchors、PR evidence 和 Dashboard smoke handle，不运行 Graphify、不修改 Figma、不创建下一 Project / Issue。
+
+`MTP-153-STAGE-CLOSEOUT-VALIDATION`
+
 ## Live Execution Control Terms
 
 `MTP-75-LIVE-EXECUTION-CONTROL-TERMINOLOGY`

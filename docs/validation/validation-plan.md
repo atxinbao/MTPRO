@@ -4065,3 +4065,49 @@ MTP-152 必须建立的主要 anchors：
 - 不连接 broker adapter、broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill 或 reconciliation。
 - 不新增 API key input、secret storage、account connect、broker connect、Live PRO Console、trading button、live command、order form、reconnect、recovery 或 fallback action。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+## MTP-153 Validation Matrix / Automation Readiness / Stage Audit Input Validation
+
+日期：2026-05-31
+
+执行者：Codex
+
+MTP-153 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-153 的验收要求：
+
+- `docs/audit/inputs/mtpro-live-monitoring-read-only-console-v2-stage-audit-input.md` 必须包含 `MTP-153-LIVE-MONITORING-V2-STAGE-CLOSEOUT`、`MTP-153-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-153-NO-FINAL-STAGE-CODE-AUDIT`、`MTP-153-LIVE-MONITORING-V2-STAGE-AUDIT-INPUT`、`MTP-153-VALIDATION-EVIDENCE-CHAIN`、`MTP-153-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN`、`MTP-153-READ-MODEL-ONLY-BOUNDARY-EVIDENCE`、`MTP-153-AUTOMATION-READINESS-STAGE-CLOSEOUT`、`MTP-153-STAGE-CLOSEOUT-VALIDATION` 和 `MTP-153-NO-GRAPHIFY-FIGMA-LINEAR-MUTATION` anchors。
+- `docs/contracts/live-monitoring-read-only-console-v2-contract.md` 必须包含 MTP-153 stage closeout、stage audit input material、no final Stage Code Audit、validation evidence chain、forbidden capability evidence chain、read-model-only boundary evidence、automation readiness stage closeout 和 validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-153 Live Monitoring v2 stage closeout shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-LIVE-MONITORING-READ-ONLY-CONSOLE-V2` 的 MTP-153 issue backfill 和 `MTP-153 Live Monitoring v2 阶段收口`。
+- `docs/automation/automation-readiness.md` 必须新增 Live Monitoring Read-only Console v2 stage audit input anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-153 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-153 stage audit input、contract、validation matrix、validation plan、latest summary、automation readiness doc、MTP-147 至 MTP-152 PR evidence、Dashboard smoke handle 和 forbidden capability boundary strings。
+- PR 前必须确认 `.codex/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-153 必须建立的主要 anchors：
+
+- `MTP-153-LIVE-MONITORING-V2-STAGE-CLOSEOUT`
+- `MTP-153-STAGE-AUDIT-INPUT-MATERIAL`
+- `MTP-153-NO-FINAL-STAGE-CODE-AUDIT`
+- `MTP-153-LIVE-MONITORING-V2-STAGE-AUDIT-INPUT`
+- `MTP-153-VALIDATION-EVIDENCE-CHAIN`
+- `MTP-153-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN`
+- `MTP-153-READ-MODEL-ONLY-BOUNDARY-EVIDENCE`
+- `MTP-153-AUTOMATION-READINESS-STAGE-CLOSEOUT`
+- `MTP-153-STAGE-CLOSEOUT-VALIDATION`
+- `MTP-153-NO-GRAPHIFY-FIGMA-LINEAR-MUTATION`
+
+## MTP-153 禁止
+
+- 不输出最终 Stage Code Audit Report；最终报告仍由 Parent Codex 在 Project 全部 Done 且 Linear Project `Completed/type=completed` 后单独输出。
+- 不创建下一 Project / Issue，不推进下一阶段，不启动下一阶段 `symphony-issue`。
+- 不修改 production code，不新增 Core / App business capability。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+- 不实现 Live Monitoring runtime、live readiness runtime、connection manager、runtime connection、private WebSocket runtime、private stream runtime、account snapshot runtime、signed endpoint、account endpoint、listenKey、listenKey keepalive、real account read、broker position sync、real balance、real position、margin、leverage 或 real PnL。
+- 不实现 broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不新增 API key input、secret storage、account connect、broker connect、Live PRO Console、trading button、live command、order form、stop / shutdown / restore、command surface 或 order-level command。
