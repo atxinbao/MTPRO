@@ -310,6 +310,27 @@ MTP-151 必须防止 MTP-147 至 MTP-150 的 monitoring evidence 被解释为 li
 
 `MTP-151-LIVE-MONITORING-FORBIDDEN-CAPABILITY-VALIDATION`
 
+`MTP-152-WORKBENCH-REPORT-EVENTS-READ-MODEL-ONLY-SURFACE`
+
+MTP-152 把 MTP-148 source identity、MTP-149 simulation gate health、MTP-150 readiness explanation 和 MTP-151 forbidden capability tests 接入 App 层 `LiveMonitoringReadOnlyConsoleV2SurfaceReadModel` / `LiveMonitoringReadOnlyConsoleV2SurfaceViewModel`，供 Workbench / Report / Events 只读展示。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `Live Monitoring v2 surface` | MTP-152 的 Workbench / Report / Events read-model-only evidence surface | 不等于 Live PRO Console、Live Monitoring runtime、connection manager 或 broker console |
+| `monitoring source freshness explanation surface` | 将 source freshness、health freshness、readiness / stale / blocked / missing explanation 汇总成只读 summary | 不等于真实连接状态、account endpoint health、private stream health 或 production monitoring runtime |
+| `forbidden capability surface evidence` | 展示 MTP-151 forbidden test coverage 的 evidence rows | 不等于 endpoint test runner、runtime implementation、adapter 或 UI command |
+| `liveMonitoringReadOnlyConsoleV2Surface` | Dashboard smoke / Workbench metrics 中的 read-model-only handle | 不是 trading button、live command、order form 或 connection control |
+
+`MTP-152-MONITORING-SOURCE-FRESHNESS-EXPLANATION-SURFACE`
+
+MTP-152 只能把 source identity、source freshness、health freshness、readiness / stale / blocked / missing explanation 和 forbidden capability test coverage 表达为 Read Model / ViewModel evidence。它不能暴露 Runtime object、Adapter request、SQLite / DuckDB schema、account payload、broker state、endpoint payload、connection object 或 private stream object。
+
+`MTP-152-NO-RUNTIME-ADAPTER-SCHEMA-PAYLOAD-BROKER-STATE-SURFACE`
+
+MTP-152 的 Workbench / Report / Events surface 必须保持 no runtime / adapter / schema / payload / broker state boundary：不创建 signed endpoint、account endpoint、listenKey、private WebSocket runtime、private stream runtime、account snapshot runtime、connection manager、runtime connection、live readiness runtime、Live Monitoring runtime、broker adapter、exchange execution adapter、`LiveExecutionAdapter`、OMS、Live PRO Console、trading button、live command、order form 或 real order command。
+
+`MTP-152-LIVE-MONITORING-V2-SURFACE-VALIDATION`
+
 ## Live Execution Control Terms
 
 `MTP-75-LIVE-EXECUTION-CONTROL-TERMINOLOGY`

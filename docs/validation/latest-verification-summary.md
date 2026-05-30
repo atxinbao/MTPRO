@@ -1002,6 +1002,14 @@ MTP-151 的当前 issue execution evidence 已建立 `Sources/Core/LiveMonitorin
 
 MTP-151-LIVE-MONITORING-FORBIDDEN-CAPABILITY-VALIDATION 的 focused validation 已通过：`swift test --filter LiveMonitoringForbiddenCapability` 通过 2 个 Core tests，0 failures。完整验证仍以本次 PR 前 `bash checks/run.sh` 和 GitHub required check `checks` 为准。
 
+## 当前 issue execution evidence：MTP-152
+
+MTP-152 的当前 issue execution evidence 已建立 `Sources/App/LiveMonitoringReadOnlyConsoleV2Surface.swift`、`LiveMonitoringReadOnlyConsoleV2SurfaceReadModel`、`LiveMonitoringReadOnlyConsoleV2SurfaceViewModel`、`LiveMonitoringReadOnlyConsoleV2TraceItem`、`Sources/App/App.swift` 的 Report / Dashboard source chain、`Sources/App/PaperWorkflowEvidenceExplorer.swift` 的 `liveMonitoringReadOnlyConsoleV2Surface` section、`Sources/App/DashboardShell.swift` 的 Workbench / Report metrics / details / smoke handle、`Tests/AppTests/AppTests.swift` 的 `testLiveMonitoringReadOnlyConsoleV2SurfaceAggregatesMTP152WorkbenchReportEventsEvidence`、`docs/contracts/live-monitoring-read-only-console-v2-contract.md` 的 MTP-152 anchors、`TVM-LIVE-MONITORING-READ-ONLY-CONSOLE-V2` MTP-152 issue backfill、`docs/domain/context.md` 的 MTP-152 shared language、`docs/validation/validation-plan.md` 的 MTP-152 required validation 和 `docs/automation/automation-readiness.md` 的 Live Monitoring Workbench / Report / Events read-model-only surface anchor。
+
+该证据只把 MTP-148 source identity、MTP-149 simulation gate health、MTP-150 readiness explanation 和 MTP-151 forbidden capability tests 接入 Workbench / Report / Events read-model-only surface；展示 source identities、source freshness、health / freshness evidence、readiness / stale / blocked / missing explanation、forbidden capability coverage、Dashboard smoke handle `liveMonitoringReadOnlyConsoleV2Surface=4` 和四条 Event Timeline trace。MTP-152 不新增或修改 Core semantics，不实现真实 endpoint、真实 adapter、真实 network validation、完整实盘监控台页面重设计、Live Monitoring runtime、live readiness runtime、connection manager、runtime connection、private WebSocket runtime、private stream runtime、account snapshot runtime、signed endpoint、account endpoint、listenKey、listenKey keepalive、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real order write、Live PRO Console、trading button、live command 或 order form；不读取真实 account / position / balance、margin、leverage、real PnL；不暴露 Runtime object、Adapter request、SQLite / DuckDB schema、account payload、account endpoint payload、broker payload 或 broker state；不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+MTP-152-LIVE-MONITORING-V2-SURFACE-VALIDATION 的 focused validation 已通过：`swift test --filter LiveMonitoringReadOnlyConsoleV2` 通过 1 个 App test，0 failures；`swift test --filter AppTests` 通过 37 个 App tests，0 failures。完整验证仍以本次 PR 前 `bash checks/run.sh` 和 GitHub required check `checks` 为准。
+
 ## Known CI Boundary
 
 临时 CI 平台边界：
