@@ -1611,6 +1611,168 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testLiveMonitoringSourceIdentityDefinesMTP148DeterministicSource() throws {
+        // 测试场景：MTP-148 只把 L3.0 / L3.1 / L3.2 已完成 evidence 解释成 monitoring
+        // source identity。boundary / fixture / simulated / read-model-only 来源必须稳定，
+        // future real account 只能表现为 unavailable label，不能升级为真实账户连接。
+        let contract = LiveMonitoringSourceIdentityContract.deterministicFixture
+
+        XCTAssertEqual(contract.contractID, try Identifier("mtp-148-live-monitoring-source-identity"))
+        XCTAssertEqual(contract.issueID, try Identifier("MTP-148"))
+        XCTAssertEqual(contract.matrixID, "TVM-LIVE-MONITORING-READ-ONLY-CONSOLE-V2")
+        XCTAssertEqual(contract.sourceRecords.map(\.layer), LiveMonitoringSourceEvidenceLayer.allCases)
+        XCTAssertTrue(contract.sourceRecords.allSatisfy(\.sourceIdentityBoundaryHeld))
+        XCTAssertEqual(contract.checksum, LiveMonitoringSourceIdentityContract.requiredChecksum)
+        XCTAssertEqual(
+            contract.checksum,
+            LiveMonitoringSourceIdentityContract.checksum(for: contract.sourceRecords)
+        )
+        XCTAssertTrue(contract.checksumMatchedCanonicalPreimage)
+        XCTAssertEqual(
+            contract.forbiddenCapabilities,
+            LiveMonitoringSourceIdentityForbiddenCapability.allCases
+        )
+        XCTAssertTrue(contract.sourceIdentityBoundaryHeld)
+
+        let origins = Set(contract.sourceRecords.flatMap(\.evidenceOrigins))
+        XCTAssertEqual(origins, Set([.boundary, .fixture, .simulated, .readModelOnly]))
+        XCTAssertEqual(
+            try XCTUnwrap(
+                contract.sourceRecords.first { $0.layer == .l31AccountPositionBalanceReadModelOnly }
+            ).sourceIdentity,
+            AccountPositionBalanceReadModelOnlyFixtureRecord.requiredSourceIdentity
+        )
+        XCTAssertEqual(
+            try XCTUnwrap(
+                contract.sourceRecords.first { $0.layer == .l32PrivateStreamAccountSnapshotSimulationGate }
+            ).sourceIdentity,
+            SimulatedPrivateAccountEventSourceIdentityRecord.requiredSourceIdentity(for: .simulatedPrivateStreamSource)
+        )
+
+        let unavailable = try XCTUnwrap(
+            contract.sourceRecords.first { $0.layer == .futureRealAccountUnavailable }
+        )
+        XCTAssertEqual(unavailable.sourceStatus, .unavailable)
+        XCTAssertEqual(unavailable.freshnessSemantics, .unavailable)
+        XCTAssertNotNil(unavailable.sourceUnavailableReason)
+
+        XCTAssertFalse(contract.createsRealSourceAdapter)
+        XCTAssertFalse(contract.readsRealAccount)
+        XCTAssertFalse(contract.readsRealPosition)
+        XCTAssertFalse(contract.readsRealBalance)
+        XCTAssertFalse(contract.callsSignedEndpoint)
+        XCTAssertFalse(contract.callsAccountEndpoint)
+        XCTAssertFalse(contract.createsListenKey)
+        XCTAssertFalse(contract.opensPrivateWebSocket)
+        XCTAssertFalse(contract.runsPrivateStreamRuntime)
+        XCTAssertFalse(contract.runsAccountSnapshotRuntime)
+        XCTAssertFalse(contract.readsAPIKey)
+        XCTAssertFalse(contract.readsSecret)
+        XCTAssertFalse(contract.exposesAccountPayload)
+        XCTAssertFalse(contract.exposesBrokerPayload)
+        XCTAssertFalse(contract.exposesBrokerState)
+        XCTAssertFalse(contract.exposesAdapterRequest)
+        XCTAssertFalse(contract.exposesRuntimeObject)
+        XCTAssertFalse(contract.exposesDatabaseSchema)
+        XCTAssertFalse(contract.connectsBrokerAdapter)
+        XCTAssertFalse(contract.connectsExchangeExecutionAdapter)
+        XCTAssertFalse(contract.implementsLiveExecutionAdapter)
+        XCTAssertFalse(contract.implementsOMS)
+        XCTAssertFalse(contract.exposesLiveCommand)
+        XCTAssertFalse(contract.exposesTradingButton)
+        XCTAssertFalse(contract.exposesOrderForm)
+        XCTAssertFalse(
+            contract.containsForbiddenPayloadText([
+                "listenKey",
+                "accountEndpoint",
+                "adapterRequest",
+                "accountPayload",
+                "brokerPayload",
+                "runtimeObject",
+                "LiveExecutionAdapter",
+                "tradingButton",
+                "liveCommand"
+            ])
+        )
+
+        let encoded = try JSONEncoder().encode(contract)
+        let decoded = try JSONDecoder().decode(LiveMonitoringSourceIdentityContract.self, from: encoded)
+        XCTAssertEqual(decoded, contract)
+    }
+
+    func testLiveMonitoringSourceIdentityRejectsMTP148RealSourceEndpointAndPayloadBypass() throws {
+        // 测试场景：MTP-148 source identity 的初始化和 Codable 解码都必须拒绝真实 source
+        // adapter、API key / secret、listenKey、signed/account endpoint、broker adapter、
+        // account payload、broker state、Runtime object、Live command 和交易 UI 误用。
+        let forbiddenFlagCases: [
+            (field: String, build: () throws -> LiveMonitoringSourceIdentityContract)
+        ] = [
+            ("createsRealSourceAdapter", { try LiveMonitoringSourceIdentityContract(createsRealSourceAdapter: true) }),
+            ("readsRealAccount", { try LiveMonitoringSourceIdentityContract(readsRealAccount: true) }),
+            ("readsRealPosition", { try LiveMonitoringSourceIdentityContract(readsRealPosition: true) }),
+            ("readsRealBalance", { try LiveMonitoringSourceIdentityContract(readsRealBalance: true) }),
+            ("callsSignedEndpoint", { try LiveMonitoringSourceIdentityContract(callsSignedEndpoint: true) }),
+            ("callsAccountEndpoint", { try LiveMonitoringSourceIdentityContract(callsAccountEndpoint: true) }),
+            ("createsListenKey", { try LiveMonitoringSourceIdentityContract(createsListenKey: true) }),
+            ("opensPrivateWebSocket", { try LiveMonitoringSourceIdentityContract(opensPrivateWebSocket: true) }),
+            ("runsPrivateStreamRuntime", { try LiveMonitoringSourceIdentityContract(runsPrivateStreamRuntime: true) }),
+            (
+                "runsAccountSnapshotRuntime",
+                { try LiveMonitoringSourceIdentityContract(runsAccountSnapshotRuntime: true) }
+            ),
+            ("readsAPIKey", { try LiveMonitoringSourceIdentityContract(readsAPIKey: true) }),
+            ("readsSecret", { try LiveMonitoringSourceIdentityContract(readsSecret: true) }),
+            ("exposesAccountPayload", { try LiveMonitoringSourceIdentityContract(exposesAccountPayload: true) }),
+            ("exposesBrokerPayload", { try LiveMonitoringSourceIdentityContract(exposesBrokerPayload: true) }),
+            ("exposesBrokerState", { try LiveMonitoringSourceIdentityContract(exposesBrokerState: true) }),
+            ("exposesAdapterRequest", { try LiveMonitoringSourceIdentityContract(exposesAdapterRequest: true) }),
+            ("exposesRuntimeObject", { try LiveMonitoringSourceIdentityContract(exposesRuntimeObject: true) }),
+            ("exposesDatabaseSchema", { try LiveMonitoringSourceIdentityContract(exposesDatabaseSchema: true) }),
+            ("connectsBrokerAdapter", { try LiveMonitoringSourceIdentityContract(connectsBrokerAdapter: true) }),
+            (
+                "connectsExchangeExecutionAdapter",
+                { try LiveMonitoringSourceIdentityContract(connectsExchangeExecutionAdapter: true) }
+            ),
+            (
+                "implementsLiveExecutionAdapter",
+                { try LiveMonitoringSourceIdentityContract(implementsLiveExecutionAdapter: true) }
+            ),
+            ("implementsOMS", { try LiveMonitoringSourceIdentityContract(implementsOMS: true) }),
+            ("exposesLiveCommand", { try LiveMonitoringSourceIdentityContract(exposesLiveCommand: true) }),
+            ("exposesTradingButton", { try LiveMonitoringSourceIdentityContract(exposesTradingButton: true) }),
+            ("exposesOrderForm", { try LiveMonitoringSourceIdentityContract(exposesOrderForm: true) })
+        ]
+
+        for flagCase in forbiddenFlagCases {
+            XCTAssertThrowsError(try flagCase.build()) { error in
+                XCTAssertEqual(
+                    error as? CoreError,
+                    .liveMonitoringConsoleForbiddenCapability(flagCase.field)
+                )
+            }
+        }
+
+        XCTAssertThrowsError(
+            try LiveMonitoringSourceIdentityRecord(
+                layer: .l31AccountPositionBalanceReadModelOnly,
+                sourceIdentity: "account-endpoint:/api/v3/account"
+            )
+        )
+
+        let encoded = try JSONEncoder().encode(LiveMonitoringSourceIdentityContract.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["createsListenKey"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveMonitoringSourceIdentityContract.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveMonitoringConsoleForbiddenCapability("createsListenKey")
+            )
+        }
+    }
+
     func testSimulatedAccountSnapshotInputDefinesMTP142DeterministicContract() throws {
         // 测试场景：MTP-142 只定义本地 simulated account snapshot input contract。
         // snapshot id、MTP-141 source identity、observedAt、freshness、fixture replay linkage、

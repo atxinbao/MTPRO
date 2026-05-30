@@ -140,3 +140,67 @@ Focused validation anchors：
 - `checks/automation-readiness.sh` 必须机械检查 MTP-147 contract、matrix、validation plan、domain context、latest summary、automation readiness doc、planning record 和 forbidden capability boundary strings。
 
 MTP-147 不新增 Swift production code，不新增 focused XCTest，不新增 Dashboard smoke handle，不新增 App read model，不新增 Core / Runtime / Dashboard behavior，不新增 stage audit input；Project stage closeout 仍归属 MTP-153。
+
+## MTP-148 monitoring source identity
+
+`MTP-148-MONITORING-SOURCE-IDENTITY`
+
+MTP-148 固定 `LiveMonitoringSourceIdentityContract`、`LiveMonitoringSourceIdentityRecord`、`LiveMonitoringSourceEvidenceLayer`、`LiveMonitoringSourceEvidenceOrigin`、`LiveMonitoringSourceStatus`、`LiveMonitoringSourceFreshnessSemantics` 和 `LiveMonitoringSourceIdentityForbiddenCapability` 为 Core 层 deterministic source identity 合同。
+
+该合同只把 L3.0 / L3.1 / L3.2 已完成 evidence 解释为 monitoring source identity：
+
+| Evidence layer | Source identity | Evidence origin | Status / freshness |
+| --- | --- | --- | --- |
+| L3.0 Live read-only readiness boundary | `boundary:l3.0:live-read-only-readiness` | boundary | blocked / blocked |
+| L3.1 account / position / balance read-model-only | `fixture:mtp-137-account-position-balance-read-model-only` | fixture + read-model-only | available / fresh |
+| L3.2 private stream / account snapshot simulation gate | `simulated:private-stream:mtp-141-scenario-replay-private-account-event` | fixture + simulated + read-model-only | available / fresh |
+| future real account unavailable label | `unavailable:future-real-account-source-label-only` | boundary | unavailable / unavailable |
+
+## MTP-148 evidence origin boundary
+
+`MTP-148-EVIDENCE-ORIGIN-BOUNDARY-FIXTURE-SIMULATED-READ-MODEL-ONLY`
+
+MTP-148 只允许 `boundary evidence`、`fixture evidence`、`simulated evidence` 和 `read-model-only evidence` 四类 origin。任何 source identity 都不得包含 API key、secret、listenKey、signed endpoint、account endpoint、private WebSocket、adapter request、Runtime object、account payload、broker payload、broker state、Live PRO Console、trading button、live command 或 order form。
+
+## MTP-148 source freshness status unavailable semantics
+
+`MTP-148-SOURCE-FRESHNESS-STATUS-UNAVAILABLE-SEMANTICS`
+
+MTP-148 的 source freshness / status 只描述 evidence 解释层：
+
+- `available` / `fresh` 表示 deterministic fixture、simulated 或 read-model-only evidence 当前可用于展示。
+- `blocked` 表示 source 被 L3.0 / L3.3 forbidden capability boundary 阻断。
+- `unavailable` 表示 future real account source 当前不可用，不触发 endpoint call、listenKey、private stream、broker sync 或 reconnect action。
+
+这些状态不等于 live connection state、broker connectivity、private stream health、account snapshot runtime health 或 production monitoring agent 状态。
+
+## MTP-148 simulated fixture not real account guard
+
+`MTP-148-SIMULATED-FIXTURE-NOT-REAL-ACCOUNT-GUARD`
+
+MTP-148 必须防止 simulated / fixture evidence 被解释为真实账户或真实 broker state。`LiveMonitoringSourceIdentityContract` 的 forbidden flags 必须全部为 false：不创建 real source adapter，不读取 real account / position / balance，不调用 signed endpoint / account endpoint，不创建 listenKey，不打开 private WebSocket，不运行 private stream runtime 或 account snapshot runtime，不读取 API key / secret，不暴露 account payload、broker payload、broker state、adapter request、Runtime object 或 database schema，不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、OMS、live command、trading button 或 order form。
+
+## MTP-148 validation anchors
+
+`MTP-148-LIVE-MONITORING-SOURCE-IDENTITY-VALIDATION`
+
+Required validation：
+
+- `swift test --filter LiveMonitoringSourceIdentity`
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `Sources/Core/LiveMonitoringSourceIdentity.swift` 必须包含 `LiveMonitoringSourceIdentityContract`、`LiveMonitoringSourceIdentityRecord`、`LiveMonitoringSourceEvidenceLayer`、`LiveMonitoringSourceEvidenceOrigin`、`LiveMonitoringSourceStatus`、`LiveMonitoringSourceFreshnessSemantics` 和 `LiveMonitoringSourceIdentityForbiddenCapability`。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 `testLiveMonitoringSourceIdentityDefinesMTP148DeterministicSource` 和 `testLiveMonitoringSourceIdentityRejectsMTP148RealSourceEndpointAndPayloadBypass`。
+- `docs/contracts/live-monitoring-read-only-console-v2-contract.md` 必须包含 MTP-148 source identity、origin boundary、freshness / status / unavailable semantics、simulated / fixture not real account guard 和 validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-148 monitoring source identity shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-148 issue backfill。
+- `docs/validation/validation-plan.md` 必须包含 MTP-148 required validation。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-148 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Live Monitoring source identity anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-148 Core source、focused tests、contract、domain context、validation plan、trading matrix、latest summary 和 automation readiness doc anchors。
+
+MTP-148 不新增 Adapters、Runtime、App、Dashboard behavior，不新增 Dashboard smoke handle，不实现 monitoring surface；MTP-152 才能接入 Workbench / Report / Events read-model-only surface。Project stage closeout 仍归属 MTP-153。

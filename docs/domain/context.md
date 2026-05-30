@@ -214,6 +214,31 @@ MTP-147 禁止 signed endpoint、account endpoint / listenKey、private WebSocke
 
 `MTP-147-LIVE-MONITORING-READ-ONLY-CONSOLE-V2-VALIDATION`
 
+`MTP-148-MONITORING-SOURCE-IDENTITY`
+
+MTP-148 把 monitoring source identity 固定为 Core deterministic source identity 合同：`LiveMonitoringSourceIdentityContract` 只引用 L3.0 readiness boundary、L3.1 account / position / balance read-model-only fixture、L3.2 private stream / account snapshot simulation gate 和 future real account unavailable label。它不等于 source adapter、connection manager、private stream runtime、account snapshot runtime、broker connector 或真实账户身份。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `monitoring source identity` | 用于解释 monitoring evidence 来源的只读身份，当前来自 boundary / fixture / simulated / read-model-only evidence | 不等于 API key、secret、listenKey、account endpoint、private WebSocket、broker account id 或 connection identity |
+| `evidence origin boundary` | source identity 必须标明来源属于 boundary、fixture、simulated 或 read-model-only | 不等于 adapter capability、Runtime object、database schema 或 broker payload |
+| `monitoring source status` | available、stale、blocked、unavailable 的只读 source 解释状态 | 不等于 live connection state、broker connectivity、automatic reconnect 或 recovery action |
+| `source unavailable semantics` | future real account source 当前不可用且只作为 label 出现 | 不等于真实 account endpoint down、broker outage、listenKey expired 或 private stream disconnected |
+
+`MTP-148-EVIDENCE-ORIGIN-BOUNDARY-FIXTURE-SIMULATED-READ-MODEL-ONLY`
+
+MTP-148 只允许 boundary / fixture / simulated / read-model-only 四类 evidence origin。L3.1 fixture source identity 固定为 `fixture:mtp-137-account-position-balance-read-model-only`；L3.2 simulated source identity 固定为 `simulated:private-stream:mtp-141-scenario-replay-private-account-event`；future real account 只能是 `unavailable:future-real-account-source-label-only`。
+
+`MTP-148-SOURCE-FRESHNESS-STATUS-UNAVAILABLE-SEMANTICS`
+
+MTP-148 的 freshness / status 只解释本地 evidence 是否可展示：fresh / available 表示 deterministic evidence 可用，blocked 表示被 forbidden boundary 阻断，unavailable 表示 future real account source 当前不可用且不会触发 endpoint、listenKey、private stream、broker sync 或 reconnect。
+
+`MTP-148-SIMULATED-FIXTURE-NOT-REAL-ACCOUNT-GUARD`
+
+MTP-148 必须防止 simulated / fixture evidence 被解释为真实账户或真实 broker state。它禁止 API key、secret、listenKey、signed endpoint、account endpoint、private WebSocket runtime、private stream runtime、account snapshot runtime、real account read、account payload、broker payload、broker state、adapter request、Runtime object、database schema、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、Live PRO Console、trading button、live command 和 order form。
+
+`MTP-148-LIVE-MONITORING-SOURCE-IDENTITY-VALIDATION`
+
 MTP-147 required validation 是 `bash checks/run.sh`，并通过 contract、domain context、trading validation matrix、validation plan、latest verification summary、automation readiness doc 和 `checks/automation-readiness.sh` 机械固定 terminology、boundary、forbidden capability baseline 和 no runtime authorization。MTP-147 不新增 Swift production code、不新增 focused XCTest、不新增 Dashboard smoke handle、不新增 stage audit input；Project stage closeout 仍归属 MTP-153。
 
 ## Live Execution Control Terms
