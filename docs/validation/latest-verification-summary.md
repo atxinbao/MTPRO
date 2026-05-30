@@ -1072,6 +1072,14 @@ MTP-157 的当前 issue execution evidence 已建立 `docs/contracts/strategy-tr
 
 MTP-157-READ-MODEL-INPUT-VALIDATION 的本地验证已通过：`bash checks/automation-readiness.sh` 输出 `MTPRO automation readiness checks passed.`；`git diff --check` 无输出；`bash checks/run.sh` 通过 automation readiness、Dashboard build、Dashboard smoke 和 302 个 XCTest，Dashboard smoke 输出包含 `liveMonitoringReadOnlyConsoleV2Surface=4`，最终输出 `MTPRO checks passed.`。完整验收仍以 GitHub required check `checks` 为准。MTP-157 完成后不得自动推进 MTP-158；MTP-158 至 MTP-161 必须继续等待 Linear live-read 中唯一 eligible issue 授权。
 
+## 当前 issue execution evidence：MTP-158
+
+MTP-158 的当前 issue execution evidence 已建立 `docs/contracts/strategy-trader-instance-readiness-contract.md` 的 paper/live-neutral proposal contract anchors、`TVM-STRATEGY-TRADER-INSTANCE-READINESS` MTP-158 issue backfill、`docs/domain/context.md` 的 MTP-158 shared language、`docs/validation/validation-plan.md` 的 MTP-158 required validation、`docs/automation/automation-readiness.md` 的 paper/live-neutral proposal command isolation anchor 和 `checks/automation-readiness.sh` 的 MTP-158 mechanical anchors。
+
+该证据只定义 `L3.4 Strategy / Trader Instance Readiness v1` 的 proposal readiness：strategy proposal、trader proposal、paper/live-neutral proposal、proposal evidence、proposal attributes、proposal status、blocked reason、proposal-to-command isolation、no Execution Client / broker / OMS boundary 和 proposal forbidden command field guard。MTP-158 不实现 order command、submit / cancel / replace、broker command、Execution Client、OMS、order generation engine、real order lifecycle、execution report、broker fill、reconciliation、broker adapter、`LiveExecutionAdapter`、signed endpoint、account endpoint / listenKey、real account read、broker position sync、Live PRO Console、trading button、live command、order form、stop / shutdown / restore；proposal 不暴露 executable order command、Execution Client request、OMS order、order id、client order id、broker order id、account id、broker account id、account endpoint payload、signed request、listenKey、Runtime object、Adapter request、broker adapter request、SQLite / DuckDB schema、price / quantity / side / timeInForce / orderType / venue as executable order tuple、execution report、broker fill 或 reconciliation record；不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+MTP-158-PROPOSAL-CONTRACT-VALIDATION 的本地验证已通过：`bash checks/automation-readiness.sh` 输出 `MTPRO automation readiness checks passed.`；`git diff --check` 无输出；`bash checks/run.sh` 通过 automation readiness、Dashboard build、Dashboard smoke 和 302 个 XCTest，Dashboard smoke 输出包含 `liveMonitoringReadOnlyConsoleV2Surface=4`，最终输出 `MTPRO checks passed.`。完整验收仍以 GitHub required check `checks` 为准。MTP-158 完成后不得自动推进 MTP-159；MTP-159 至 MTP-161 必须继续等待 Linear live-read 中唯一 eligible issue 授权。
+
 ## Known CI Boundary
 
 临时 CI 平台边界：

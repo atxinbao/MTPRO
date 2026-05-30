@@ -4281,3 +4281,44 @@ MTP-157 必须建立的主要 anchors：
 - 不新增 broker adapter、broker / exchange execution adapter、`LiveExecutionAdapter`、Live PRO Console、trading button、live command、order form、stop / shutdown / restore 或 production operations command。
 - 不新增 Swift production code、focused XCTest、App read model、Dashboard surface、Dashboard smoke handle 或 stage audit input；Project stage closeout 仍归属 MTP-161。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+## MTP-158 Paper / Live-neutral Proposal Command Isolation Validation
+
+日期：2026-05-31
+
+执行者：Codex
+
+MTP-158 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-158 的验收要求：
+
+- `docs/contracts/strategy-trader-instance-readiness-contract.md` 必须包含 MTP-158 paper/live-neutral proposal contract、proposal attributes / status semantics、proposal-to-command isolation、no Execution Client / broker / OMS boundary、proposal forbidden command field guard 和 validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-158 paper/live-neutral proposal shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-STRATEGY-TRADER-INSTANCE-READINESS` 的 MTP-158 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 paper/live-neutral proposal command isolation anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-158 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-158 contract、matrix、validation plan、domain context、latest summary、automation readiness doc、proposal-to-command isolation、no Execution Client / broker / OMS boundary 和 forbidden command field guard。
+- PR 前必须确认 `.codex/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-158 必须建立的主要 anchors：
+
+- `MTP-158-PAPER-LIVE-NEUTRAL-PROPOSAL-CONTRACT`
+- `MTP-158-PROPOSAL-ATTRIBUTES-STATUS-SEMANTICS`
+- `MTP-158-PROPOSAL-TO-COMMAND-ISOLATION`
+- `MTP-158-NO-EXECUTION-CLIENT-BROKER-OMS`
+- `MTP-158-PROPOSAL-FORBIDDEN-COMMAND-FIELD-GUARD`
+- `MTP-158-PROPOSAL-CONTRACT-VALIDATION`
+
+## MTP-158 禁止
+
+- 不实现 order command、submit / cancel / replace、broker command、Execution Client、OMS、order generation engine、real order lifecycle、execution report、broker fill 或 reconciliation。
+- 不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`，不调用 signed endpoint、account endpoint / listenKey，不读取真实账户、broker position、margin、leverage、real PnL。
+- 不新增 Live PRO Console、trading button、live command、order form、order-level command UI、stop / shutdown / restore 或 production operations command。
+- 不暴露 executable order command、Execution Client request、OMS order、order id、client order id、broker order id、account id、broker account id、account endpoint payload、signed request、listenKey、Runtime object、Adapter request、broker adapter request 或 SQLite / DuckDB schema。
+- 不把 price / quantity / side / timeInForce / orderType / venue 写成 executable order tuple。
+- 不新增 Swift production code、focused XCTest、App read model、Dashboard surface、Dashboard smoke handle 或 stage audit input；Project stage closeout 仍归属 MTP-161。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
