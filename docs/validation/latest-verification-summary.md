@@ -986,6 +986,14 @@ MTP-149 的当前 issue execution evidence 已建立 `Sources/Core/LiveMonitorin
 
 MTP-149-LIVE-MONITORING-SIMULATION-GATE-HEALTH-VALIDATION 的 focused validation 已通过：`swift test --filter LiveMonitoringSimulationGateHealth` 通过 2 个 Core tests，0 failures。完整验证仍以本次 PR 前 `bash checks/run.sh` 和 GitHub required check `checks` 为准。
 
+## 当前 issue execution evidence：MTP-150
+
+MTP-150 的当前 issue execution evidence 已建立 `Sources/Core/LiveMonitoringConnectionReadinessExplanation.swift`、`LiveMonitoringConnectionReadinessExplanationContract`、`LiveMonitoringConnectionReadinessExplanationItem`、`LiveMonitoringConnectionReadinessExplanationState`、`LiveMonitoringConnectionReadinessDisplaySemantics`、`LiveMonitoringConnectionReadinessForbiddenCapability`、`Tests/CoreTests/CoreTests.swift` 的 `testLiveMonitoringConnectionReadinessExplanationDefinesMTP150DeterministicEvidence` / `testLiveMonitoringConnectionReadinessExplanationRejectsMTP150RuntimeEndpointAndCommandBypass`、`docs/contracts/live-monitoring-read-only-console-v2-contract.md` 的 MTP-150 anchors、`TVM-LIVE-MONITORING-READ-ONLY-CONSOLE-V2` MTP-150 issue backfill、`docs/domain/context.md` 的 MTP-150 shared language、`docs/validation/validation-plan.md` 的 MTP-150 required validation 和 `docs/automation/automation-readiness.md` 的 Live Monitoring connection readiness explanation anchor。
+
+该证据只把 MTP-148 source identity 与 MTP-149 simulation gate health evidence 派生成 readiness / stale / blocked / missing 的 read-model-only connection readiness explanation；不代表真实连接状态、live readiness implementation、broker connectivity、private stream health、account endpoint health 或 production monitoring runtime。MTP-150 不实现 connection manager、runtime connection、private WebSocket runtime、private stream runtime、account snapshot runtime、signed endpoint、account endpoint、listenKey、listenKey keepalive、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real order write、Live PRO Console、trading button、live command 或 order form；不读取真实 account / position / balance、margin、leverage、real PnL；不暴露 Runtime object、Adapter request、SQLite / DuckDB schema、account payload、account endpoint payload、broker payload 或 broker state；不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+MTP-150-LIVE-MONITORING-CONNECTION-READINESS-VALIDATION 的 focused validation 已通过：`swift test --filter LiveMonitoringConnectionReadiness` 通过 2 个 Core tests，0 failures。完整验证仍以本次 PR 前 `bash checks/run.sh` 和 GitHub required check `checks` 为准。
+
 ## Known CI Boundary
 
 临时 CI 平台边界：

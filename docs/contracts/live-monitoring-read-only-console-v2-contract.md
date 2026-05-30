@@ -256,3 +256,69 @@ Focused validation anchors：
 - `checks/automation-readiness.sh` 必须机械检查 MTP-149 Core source、focused tests、contract、domain context、validation plan、trading matrix、latest summary 和 automation readiness doc anchors。
 
 MTP-149 不新增 Adapters、Runtime、App、Dashboard behavior，不新增 Dashboard smoke handle，不实现 monitoring surface；MTP-152 才能接入 Workbench / Report / Events read-model-only surface。Project stage closeout 仍归属 MTP-153。
+
+## MTP-150 connection readiness explanation
+
+`MTP-150-CONNECTION-READINESS-EXPLANATION`
+
+MTP-150 固定 `LiveMonitoringConnectionReadinessExplanationContract`、`LiveMonitoringConnectionReadinessExplanationItem`、`LiveMonitoringConnectionReadinessExplanationState`、`LiveMonitoringConnectionReadinessDisplaySemantics` 和 `LiveMonitoringConnectionReadinessForbiddenCapability` 为 Core 层 deterministic explanation 合同。
+
+该合同只从 MTP-148 source identity 和 MTP-149 simulation gate health evidence 派生 readiness / stale / blocked / missing explanation：
+
+| MTP-149 health status | MTP-150 readiness state | UI display semantics | Report semantics |
+| --- | --- | --- | --- |
+| `nominal` | `readiness` | readiness read-only explanation | readiness explanation derived from simulated evidence |
+| `stale` | `stale` | stale read-only explanation | stale readiness explanation derived from simulated evidence |
+| `blocked` | `blocked` | blocked boundary-held explanation | blocked readiness explanation from boundary evidence |
+| `missing` | `missing` | missing absent-evidence explanation | missing readiness explanation from absent evidence |
+
+## MTP-150 stale / blocked / missing UI / report semantics
+
+`MTP-150-STALE-BLOCKED-MISSING-UI-REPORT-SEMANTICS`
+
+MTP-150 的 stale / blocked / missing 语义只服务后续 MTP-152 Workbench / Report / Events read-model-only surface：
+
+- Workbench 只能展示 readiness explanation、health evidence id、readiness state、display semantics、report semantics、boundary semantics 和 checksum。
+- Report 只能把 readiness / stale / blocked / missing 作为 issue evidence chain 的解释字段汇总。
+- Events 只能展示 read-model-only trace，不打开 runtime inspector、connection debugger、reconnect、recovery、fallback source、account connect、broker connect 或 private stream connect。
+
+这些语义不得写成真实 live readiness、真实 connection status、broker connectivity、private stream health、account endpoint health、production monitoring runtime 或 incident action。
+
+## MTP-150 no runtime connection boundary
+
+`MTP-150-NO-RUNTIME-CONNECTION-BOUNDARY`
+
+MTP-150 必须保持 no-runtime-connection boundary：`LiveMonitoringConnectionReadinessExplanationContract` 的 forbidden flags 必须全部为 false，不调用 signed endpoint / account endpoint，不创建 listenKey，不打开 private WebSocket，不运行 private stream runtime 或 account snapshot runtime，不实现 connection manager，不打开 runtime connection，不实现 live readiness implementation 或 Live Monitoring runtime。
+
+MTP-150 不读取真实 account / position / balance，不消费或暴露 account payload、account endpoint payload、broker payload、broker state、Adapter request、Runtime object 或 SQLite / DuckDB schema；不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 real order write。
+
+## MTP-150 readiness explanation not live readiness
+
+`MTP-150-READINESS-EXPLANATION-NOT-LIVE-READINESS`
+
+MTP-150 中的 `readiness` 只表示 deterministic simulated evidence 可被解释并展示。它不是 live readiness implementation，不表示真实连接已建立，不授权 source adapter、private stream runtime、account snapshot runtime、broker connector、Live PRO Console、trading button、live command 或 order form。
+
+## MTP-150 validation anchors
+
+`MTP-150-LIVE-MONITORING-CONNECTION-READINESS-VALIDATION`
+
+Required validation：
+
+- `swift test --filter LiveMonitoringConnectionReadiness`
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `Sources/Core/LiveMonitoringConnectionReadinessExplanation.swift` 必须包含 `LiveMonitoringConnectionReadinessExplanationContract`、`LiveMonitoringConnectionReadinessExplanationItem`、`LiveMonitoringConnectionReadinessExplanationState`、`LiveMonitoringConnectionReadinessDisplaySemantics` 和 `LiveMonitoringConnectionReadinessForbiddenCapability`。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 `testLiveMonitoringConnectionReadinessExplanationDefinesMTP150DeterministicEvidence` 和 `testLiveMonitoringConnectionReadinessExplanationRejectsMTP150RuntimeEndpointAndCommandBypass`。
+- `docs/contracts/live-monitoring-read-only-console-v2-contract.md` 必须包含 MTP-150 connection readiness explanation、stale / blocked / missing UI / report semantics、no runtime connection boundary、not live readiness 和 validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-150 connection readiness explanation shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-150 issue backfill。
+- `docs/validation/validation-plan.md` 必须包含 MTP-150 required validation。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-150 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Live Monitoring connection readiness explanation anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-150 Core source、focused tests、contract、domain context、validation plan、trading matrix、latest summary 和 automation readiness doc anchors。
+
+MTP-150 不新增 Adapters、Runtime、App、Dashboard behavior，不新增 Dashboard smoke handle，不实现 monitoring surface；MTP-152 才能接入 Workbench / Report / Events read-model-only surface。Project stage closeout 仍归属 MTP-153。

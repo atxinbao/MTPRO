@@ -2635,6 +2635,292 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testLiveMonitoringConnectionReadinessExplanationDefinesMTP150DeterministicEvidence() throws {
+        // 测试场景：MTP-150 只把 MTP-148 source identity 与 MTP-149 health evidence
+        // 派生为 readiness / stale / blocked / missing 解释。readiness explanation 不是连接状态机，
+        // 也不表示真实连接已建立。
+        let contract = LiveMonitoringConnectionReadinessExplanationContract.deterministicFixture
+
+        XCTAssertEqual(
+            contract.contractID,
+            try Identifier("mtp-150-live-monitoring-connection-readiness-explanation")
+        )
+        XCTAssertEqual(contract.issueID, try Identifier("MTP-150"))
+        XCTAssertEqual(contract.matrixID, "TVM-LIVE-MONITORING-READ-ONLY-CONSOLE-V2")
+        XCTAssertEqual(
+            contract.sourceIdentityContractID,
+            LiveMonitoringSourceIdentityContract.deterministicFixture.contractID
+        )
+        XCTAssertEqual(contract.sourceIdentityChecksum, LiveMonitoringSourceIdentityContract.requiredChecksum)
+        XCTAssertEqual(
+            contract.simulationGateHealthContractID,
+            LiveMonitoringSimulationGateHealthContract.deterministicFixture.contractID
+        )
+        XCTAssertEqual(
+            contract.simulationGateHealthChecksum,
+            LiveMonitoringSimulationGateHealthContract.requiredChecksum
+        )
+        XCTAssertEqual(contract.explanationItems.map(\.healthStatus), LiveMonitoringSimulationGateHealthStatus.allCases)
+        XCTAssertEqual(
+            contract.explanationItems.map(\.readinessState),
+            [.readiness, .stale, .blocked, .missing]
+        )
+        XCTAssertEqual(contract.allowedHealthStatuses, LiveMonitoringSimulationGateHealthStatus.allCases)
+        XCTAssertEqual(
+            contract.allowedReadinessStates,
+            LiveMonitoringConnectionReadinessExplanationState.allCases
+        )
+        XCTAssertEqual(
+            contract.allowedDisplaySemantics,
+            LiveMonitoringConnectionReadinessDisplaySemantics.allCases
+        )
+        XCTAssertTrue(contract.explanationItems.allSatisfy(\.connectionReadinessExplanationBoundaryHeld))
+        XCTAssertTrue(contract.explanationItems.allSatisfy(\.derivedFromSimulationGateHealth))
+
+        let readiness = try XCTUnwrap(contract.explanationItems.first { $0.healthStatus == .nominal })
+        XCTAssertEqual(readiness.readinessState, .readiness)
+        XCTAssertEqual(readiness.displaySemantics, .readinessReadOnly)
+        XCTAssertEqual(
+            readiness.boundarySemantics,
+            "show explanation only and keep live session closed"
+        )
+
+        let stale = try XCTUnwrap(contract.explanationItems.first { $0.healthStatus == .stale })
+        XCTAssertEqual(stale.readinessState, .stale)
+        XCTAssertEqual(stale.displaySemantics, .staleReadOnly)
+        XCTAssertEqual(
+            stale.boundarySemantics,
+            "show stale explanation only and do not refresh from a live source"
+        )
+
+        let blocked = try XCTUnwrap(contract.explanationItems.first { $0.healthStatus == .blocked })
+        XCTAssertEqual(blocked.readinessState, .blocked)
+        XCTAssertEqual(blocked.displaySemantics, .blockedReadOnly)
+
+        let missing = try XCTUnwrap(contract.explanationItems.first { $0.healthStatus == .missing })
+        XCTAssertEqual(missing.readinessState, .missing)
+        XCTAssertEqual(missing.displaySemantics, .missingReadOnly)
+
+        XCTAssertEqual(
+            contract.checksum,
+            LiveMonitoringConnectionReadinessExplanationContract.checksum(for: contract.explanationItems)
+        )
+        XCTAssertEqual(contract.checksum, LiveMonitoringConnectionReadinessExplanationContract.requiredChecksum)
+        XCTAssertTrue(contract.checksumMatchedCanonicalPreimage)
+        XCTAssertTrue(contract.readModelOnlyNoRuntimeConnectionBoundaryHeld)
+        XCTAssertTrue(contract.connectionReadinessExplanationBoundaryHeld)
+        XCTAssertEqual(
+            contract.forbiddenCapabilities,
+            LiveMonitoringConnectionReadinessForbiddenCapability.allCases
+        )
+        XCTAssertFalse(contract.callsSignedEndpoint)
+        XCTAssertFalse(contract.callsAccountEndpoint)
+        XCTAssertFalse(contract.createsListenKey)
+        XCTAssertFalse(contract.opensPrivateWebSocket)
+        XCTAssertFalse(contract.runsPrivateStreamRuntime)
+        XCTAssertFalse(contract.runsAccountSnapshotRuntime)
+        XCTAssertFalse(contract.createsConnectionManager)
+        XCTAssertFalse(contract.opensRuntimeConnection)
+        XCTAssertFalse(contract.implementsLiveReadiness)
+        XCTAssertFalse(contract.runsLiveMonitoringRuntime)
+        XCTAssertFalse(contract.readsRealAccount)
+        XCTAssertFalse(contract.readsRealPosition)
+        XCTAssertFalse(contract.readsRealBalance)
+        XCTAssertFalse(contract.consumesRealAccountPayload)
+        XCTAssertFalse(contract.exposesAccountPayload)
+        XCTAssertFalse(contract.exposesBrokerState)
+        XCTAssertFalse(contract.exposesAdapterRequest)
+        XCTAssertFalse(contract.exposesRuntimeObject)
+        XCTAssertFalse(contract.exposesPersistenceSchema)
+        XCTAssertFalse(contract.connectsBrokerAdapter)
+        XCTAssertFalse(contract.connectsExchangeExecutionAdapter)
+        XCTAssertFalse(contract.implementsLiveExecutionAdapter)
+        XCTAssertFalse(contract.implementsOMS)
+        XCTAssertFalse(contract.exposesLiveCommand)
+        XCTAssertFalse(contract.exposesTradingButton)
+        XCTAssertFalse(contract.exposesOrderForm)
+        XCTAssertFalse(contract.writesRealOrder)
+        XCTAssertFalse(
+            contract.containsForbiddenExposureText([
+                "accountEndpointPayload",
+                "runtimeConnection",
+                "connected",
+                "listenKey",
+                "adapterRequest",
+                "brokerState",
+                "liveCommand",
+                "tradingButton"
+            ])
+        )
+
+        let encoded = try JSONEncoder().encode(contract)
+        let decoded = try JSONDecoder().decode(
+            LiveMonitoringConnectionReadinessExplanationContract.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, contract)
+    }
+
+    func testLiveMonitoringConnectionReadinessExplanationRejectsMTP150RuntimeEndpointAndCommandBypass() throws {
+        // 测试场景：MTP-150 的 readiness explanation 不能通过初始化或 Codable 解码恢复
+        // runtime connection、connection manager、endpoint、private stream、broker adapter 或交易 UI 能力。
+        let forbiddenFlagCases: [
+            (field: String, build: () throws -> LiveMonitoringConnectionReadinessExplanationContract)
+        ] = [
+            (
+                "callsSignedEndpoint",
+                { try LiveMonitoringConnectionReadinessExplanationContract(callsSignedEndpoint: true) }
+            ),
+            (
+                "callsAccountEndpoint",
+                { try LiveMonitoringConnectionReadinessExplanationContract(callsAccountEndpoint: true) }
+            ),
+            (
+                "createsListenKey",
+                { try LiveMonitoringConnectionReadinessExplanationContract(createsListenKey: true) }
+            ),
+            (
+                "opensPrivateWebSocket",
+                { try LiveMonitoringConnectionReadinessExplanationContract(opensPrivateWebSocket: true) }
+            ),
+            (
+                "runsPrivateStreamRuntime",
+                { try LiveMonitoringConnectionReadinessExplanationContract(runsPrivateStreamRuntime: true) }
+            ),
+            (
+                "runsAccountSnapshotRuntime",
+                { try LiveMonitoringConnectionReadinessExplanationContract(runsAccountSnapshotRuntime: true) }
+            ),
+            (
+                "createsConnectionManager",
+                { try LiveMonitoringConnectionReadinessExplanationContract(createsConnectionManager: true) }
+            ),
+            (
+                "opensRuntimeConnection",
+                { try LiveMonitoringConnectionReadinessExplanationContract(opensRuntimeConnection: true) }
+            ),
+            (
+                "implementsLiveReadiness",
+                { try LiveMonitoringConnectionReadinessExplanationContract(implementsLiveReadiness: true) }
+            ),
+            (
+                "runsLiveMonitoringRuntime",
+                { try LiveMonitoringConnectionReadinessExplanationContract(runsLiveMonitoringRuntime: true) }
+            ),
+            (
+                "readsRealAccount",
+                { try LiveMonitoringConnectionReadinessExplanationContract(readsRealAccount: true) }
+            ),
+            (
+                "readsRealPosition",
+                { try LiveMonitoringConnectionReadinessExplanationContract(readsRealPosition: true) }
+            ),
+            (
+                "readsRealBalance",
+                { try LiveMonitoringConnectionReadinessExplanationContract(readsRealBalance: true) }
+            ),
+            (
+                "consumesRealAccountPayload",
+                { try LiveMonitoringConnectionReadinessExplanationContract(consumesRealAccountPayload: true) }
+            ),
+            (
+                "exposesAccountPayload",
+                { try LiveMonitoringConnectionReadinessExplanationContract(exposesAccountPayload: true) }
+            ),
+            (
+                "exposesBrokerState",
+                { try LiveMonitoringConnectionReadinessExplanationContract(exposesBrokerState: true) }
+            ),
+            (
+                "exposesAdapterRequest",
+                { try LiveMonitoringConnectionReadinessExplanationContract(exposesAdapterRequest: true) }
+            ),
+            (
+                "exposesRuntimeObject",
+                { try LiveMonitoringConnectionReadinessExplanationContract(exposesRuntimeObject: true) }
+            ),
+            (
+                "exposesPersistenceSchema",
+                { try LiveMonitoringConnectionReadinessExplanationContract(exposesPersistenceSchema: true) }
+            ),
+            (
+                "connectsBrokerAdapter",
+                { try LiveMonitoringConnectionReadinessExplanationContract(connectsBrokerAdapter: true) }
+            ),
+            (
+                "connectsExchangeExecutionAdapter",
+                { try LiveMonitoringConnectionReadinessExplanationContract(connectsExchangeExecutionAdapter: true) }
+            ),
+            (
+                "implementsLiveExecutionAdapter",
+                { try LiveMonitoringConnectionReadinessExplanationContract(implementsLiveExecutionAdapter: true) }
+            ),
+            ("implementsOMS", { try LiveMonitoringConnectionReadinessExplanationContract(implementsOMS: true) }),
+            (
+                "exposesLiveCommand",
+                { try LiveMonitoringConnectionReadinessExplanationContract(exposesLiveCommand: true) }
+            ),
+            (
+                "exposesTradingButton",
+                { try LiveMonitoringConnectionReadinessExplanationContract(exposesTradingButton: true) }
+            ),
+            (
+                "exposesOrderForm",
+                { try LiveMonitoringConnectionReadinessExplanationContract(exposesOrderForm: true) }
+            ),
+            ("writesRealOrder", { try LiveMonitoringConnectionReadinessExplanationContract(writesRealOrder: true) })
+        ]
+
+        for flagCase in forbiddenFlagCases {
+            XCTAssertThrowsError(try flagCase.build()) { error in
+                XCTAssertEqual(
+                    error as? CoreError,
+                    .liveMonitoringConsoleForbiddenCapability(flagCase.field)
+                )
+            }
+        }
+
+        XCTAssertThrowsError(
+            try LiveMonitoringConnectionReadinessExplanationItem(
+                healthStatus: .nominal,
+                readModelFields: ["connectionReadinessExplanationId", "accountEndpointPayload"]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveMonitoringConsoleForbiddenCapability("connectionReadinessExplanation.payload")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try LiveMonitoringConnectionReadinessExplanationItem(
+                healthStatus: .nominal,
+                explanation: "connection established"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveMonitoringConsoleForbiddenCapability("connectionReadinessExplanation.payload")
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(
+            LiveMonitoringConnectionReadinessExplanationContract.deterministicFixture
+        )
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["opensRuntimeConnection"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveMonitoringConnectionReadinessExplanationContract.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveMonitoringConsoleForbiddenCapability("opensRuntimeConnection")
+            )
+        }
+    }
+
     func testLiveReadOnlyWorkbenchReadModelBoundaryDefinesMTP131Surface() throws {
         // 测试场景：MTP-131 只定义 Workbench / Dashboard 可展示的 Live readiness 只读边界，
         // 并把 forbidden UI surface、detail audit route 和 L3.x handoff 固定为可回放 fixture。

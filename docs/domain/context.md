@@ -262,6 +262,32 @@ MTP-149 必须保持 read-model-only non-exposure：不调用 signed endpoint / 
 
 `MTP-149-LIVE-MONITORING-SIMULATION-GATE-HEALTH-VALIDATION`
 
+`MTP-150-CONNECTION-READINESS-EXPLANATION`
+
+MTP-150 把 MTP-148 monitoring source identity 与 MTP-149 simulation gate health evidence 派生成 Core deterministic connection readiness explanation 合同：`LiveMonitoringConnectionReadinessExplanationContract`、`LiveMonitoringConnectionReadinessExplanationItem`、`LiveMonitoringConnectionReadinessExplanationState`、`LiveMonitoringConnectionReadinessDisplaySemantics` 和 `LiveMonitoringConnectionReadinessForbiddenCapability`。这些 explanation 只表达 readiness / stale / blocked / missing 的只读展示含义，不是连接状态机，不表示真实连接已建立，不创建 connection manager、endpoint、private stream、broker adapter 或 live command。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `connection readiness explanation` | 从 MTP-149 health evidence 派生的只读 readiness 解释 | 不等于 live readiness implementation、connection manager、broker connectivity 或 private stream state |
+| `readiness explanation` | simulated gate evidence 当前足以展示 readiness 解释 | 不等于真实连接成功、account endpoint 可用或 broker session 可用 |
+| `stale readiness explanation` | simulated gate evidence stale，只能展示 stale 解释 | 不触发 refresh、reconnect、listenKey、endpoint call 或 recovery action |
+| `blocked readiness explanation` | boundary-held evidence 只能展示 blocked 解释 | 不等于连接失败、broker outage、incident command 或自动修复 |
+| `missing readiness explanation` | required simulated evidence absent，只能展示 missing 解释 | 不使用 fallback source，不读取真实 account payload 或 broker state |
+
+`MTP-150-STALE-BLOCKED-MISSING-UI-REPORT-SEMANTICS`
+
+MTP-150 的 UI / report 语义只给后续 MTP-152 read-model-only surface 提供稳定输入：readiness、stale、blocked、missing 四类 explanation 都必须以 Read Model / ViewModel 方式展示，不能暴露 Runtime object、Adapter request、SQLite / DuckDB schema、account payload、broker state、endpoint payload、connection object 或 private stream object。
+
+`MTP-150-NO-RUNTIME-CONNECTION-BOUNDARY`
+
+MTP-150 必须保持 no-runtime-connection boundary：不实现 connection manager，不打开 runtime connection，不实现 live readiness implementation 或 Live Monitoring runtime，不调用 signed endpoint / account endpoint，不创建 listenKey，不连接 private WebSocket，不运行 private stream runtime 或 account snapshot runtime，不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、OMS、Live PRO Console、trading button、live command 或 order form。
+
+`MTP-150-READINESS-EXPLANATION-NOT-LIVE-READINESS`
+
+MTP-150 的 readiness wording 必须避免暗示真实连接已建立。`readiness` 只表示 deterministic simulated evidence 可被解释和展示，不表示 live readiness、broker connectivity、private stream health、account endpoint health、real account state 或 production monitoring runtime。
+
+`MTP-150-LIVE-MONITORING-CONNECTION-READINESS-VALIDATION`
+
 ## Live Execution Control Terms
 
 `MTP-75-LIVE-EXECUTION-CONTROL-TERMINOLOGY`
