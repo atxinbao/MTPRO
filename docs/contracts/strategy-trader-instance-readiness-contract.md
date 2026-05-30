@@ -233,3 +233,96 @@ Focused validation anchors：
 - `checks/automation-readiness.sh` 必须机械检查 MTP-155 contract、domain context、matrix、validation plan、latest summary、automation readiness doc 和 forbidden runtime / sensitive field boundary strings。
 
 MTP-155 不新增 Swift production code，不新增 focused XCTest，不新增 Dashboard smoke handle，不新增 App read model，不新增 Core / Runtime / Dashboard behavior，不新增 stage audit input；Project stage closeout 仍归属 MTP-161。
+
+## MTP-156 quoter / hedger role taxonomy
+
+`MTP-156-QUOTER-HEDGER-ROLE-TAXONOMY`
+
+MTP-156 只定义 Strategy / Trader readiness 内的 role taxonomy 和 responsibility boundary。Role 是 structural readiness language，不是 execution behavior、live strategy process、order generation engine、broker actor 或 UI command actor。
+
+| Role | 当前职责语言 | 禁止混用 |
+| --- | --- | --- |
+| `quoter` | 只表示后续 strategy / trader readiness 可能需要解释 quote intent、market reference、spread rationale、proposal candidate 和 blocked evidence 的结构性角色 | 不等于 market making runtime、quote engine、order generation engine、Execution Client caller、broker command producer、live quote stream 或 order form actor |
+| `hedger` | 只表示后续 strategy / trader readiness 可能需要解释 hedge intent、risk offset rationale、portfolio / risk read-model reference、proposal candidate 和 blocked evidence 的结构性角色 | 不等于 hedge runtime、position sync、broker hedge order、portfolio rebalancer、risk engine runtime、OMS actor 或 live command actor |
+| `role responsibility` | 角色可以声明只读职责、allowed evidence references、blocked evidence 和 forbidden output boundary | 不等于 permission、authorization、capability flag、execution mode、broker entitlement 或 trading role assignment |
+| `role readiness evidence` | 用于证明 role taxonomy 仍停留在 structural readiness 内的 contract anchor、source anchor、read-model reference、proposal boundary reference 和 validation anchor | 不等于 runtime telemetry、quote update、hedge execution report、broker fill、reconciliation fact 或 production audit event |
+
+## MTP-156 role responsibility boundary
+
+`MTP-156-ROLE-RESPONSIBILITY-BOUNDARY`
+
+Role responsibility 只能包含以下 deterministic / local / read-model-only fields：
+
+1. `roleName`：`quoter`、`hedger` 或后续 issue 明确允许的 readiness role label。
+2. `responsibilitySummary`：只描述结构性职责，不描述 runtime behavior。
+3. `allowedReadModelReferences`：只引用后续 MTP-157 account / portfolio / risk read-model input contract，不读取真实 account、position、balance、margin、leverage、real PnL、broker state 或 schema。
+4. `allowedProposalReferences`：只引用后续 MTP-158 paper/live-neutral proposal contract，不输出 executable order command。
+5. `blockedEvidenceReferences`：只解释 role 为什么仍被 forbidden capability、future-gated dependency、missing read-model input 或 missing proposal contract 阻断。
+6. `forbiddenOutputs`：必须明确 role 不能输出 broker command、order-level live command、OMS order、Execution Client request、trading button action、live command 或 order form payload。
+
+## MTP-156 role proposal / read-model / blocked evidence relationship
+
+`MTP-156-ROLE-PROPOSAL-READ-MODEL-BLOCKED-EVIDENCE`
+
+MTP-156 将 role 与 proposal、read-model input 和 blocked evidence 的关系固定为只读引用：
+
+- Quoter role 可以引用 market / quote rationale placeholder、read-model reference placeholder 和 proposal boundary reference；不得创建 quote runtime、live quote stream、order book writer、Execution Client request 或 broker command。
+- Hedger role 可以引用 portfolio / risk rationale placeholder、read-model reference placeholder 和 proposal boundary reference；不得创建 hedge runtime、broker hedge order、position sync、risk engine runtime 或 live command。
+- Role 可以输出 blocked evidence language，例如 `missingReadModelInput`、`proposalContractPending`、`executionForbidden`、`brokerForbidden`、`uiCommandForbidden`；这些只是解释，不是 runtime state、broker reject、risk reject、incident 或 command result。
+- Role 与 MTP-157 / MTP-158 的关系只能是 handoff reference；MTP-156 不提前定义 account / portfolio / risk input shape，不定义 proposal attributes，不定义 proposal status。
+
+## MTP-156 no role execution behavior
+
+`MTP-156-NO-ROLE-EXECUTION-BEHAVIOR`
+
+Role taxonomy 不得实现或暗示 quoter runtime、hedger runtime、strategy marketplace、strategy manager、strategy scheduler、trader process manager、order generation engine、Execution Client direct path、broker connection、signed endpoint、account endpoint / listenKey、private WebSocket runtime、private stream runtime、account snapshot runtime、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、broker adapter、`LiveExecutionAdapter`、Live PRO Console、trading button、live command 或 order form。
+
+## MTP-156 forbidden role command surface
+
+`MTP-156-FORBIDDEN-ROLE-COMMAND-SURFACE`
+
+Quoter / hedger role 不得暴露以下 output / action / command surfaces：
+
+- broker command
+- order-level live command
+- executable order command
+- Execution Client request
+- OMS order
+- quote order request
+- hedge order request
+- submit / cancel / replace command
+- trading button action
+- live command
+- order form payload
+- broker adapter request
+- account endpoint payload
+- signed request
+- listenKey create / keepalive
+- Runtime object
+- Adapter request
+- SQLite / DuckDB schema
+- credential / secret / API key
+
+这些 surface 只能作为 forbidden boundary string 出现，不能写成 current support、beta preview、local fallback、behind flag、partially implemented 或后续 issue自动授权。
+
+## MTP-156 validation anchors
+
+`MTP-156-ROLE-TAXONOMY-VALIDATION`
+
+Required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `docs/contracts/strategy-trader-instance-readiness-contract.md` 必须包含 MTP-156 quoter / hedger role taxonomy、role responsibility boundary、role proposal / read-model / blocked evidence relationship、no role execution behavior、forbidden role command surface 和 validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-156 role taxonomy shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-156 issue backfill。
+- `docs/validation/validation-plan.md` 必须包含 MTP-156 required validation。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-156 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 quoter / hedger role taxonomy anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-156 contract、domain context、matrix、validation plan、latest summary、automation readiness doc、forbidden role command surface 和 no execution behavior boundary strings。
+
+MTP-156 不新增 Swift production code，不新增 focused XCTest，不新增 Dashboard smoke handle，不新增 App read model，不新增 Core / Runtime / Dashboard behavior，不新增 stage audit input；Project stage closeout 仍归属 MTP-161。

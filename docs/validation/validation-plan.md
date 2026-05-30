@@ -4154,6 +4154,48 @@ MTP-154 必须建立的主要 anchors：
 - 不新增 Swift production code、focused XCTest、App read model、Dashboard surface、Dashboard smoke handle 或 stage audit input；Project stage closeout 仍归属 MTP-161。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
 
+## MTP-156 Quoter / Hedger Role Taxonomy Validation
+
+日期：2026-05-31
+
+执行者：Codex
+
+MTP-156 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-156 的验收要求：
+
+- `docs/contracts/strategy-trader-instance-readiness-contract.md` 必须包含 MTP-156 quoter / hedger role taxonomy、role responsibility boundary、role proposal / read-model / blocked evidence relationship、no role execution behavior、forbidden role command surface 和 validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-156 quoter / hedger role taxonomy shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-STRATEGY-TRADER-INSTANCE-READINESS` 的 MTP-156 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 quoter / hedger role taxonomy anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-156 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-156 contract、matrix、validation plan、domain context、latest summary、automation readiness doc、forbidden role command surface 和 no role execution behavior。
+- PR 前必须确认 `.codex/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-156 必须建立的主要 anchors：
+
+- `MTP-156-QUOTER-HEDGER-ROLE-TAXONOMY`
+- `MTP-156-ROLE-RESPONSIBILITY-BOUNDARY`
+- `MTP-156-ROLE-PROPOSAL-READ-MODEL-BLOCKED-EVIDENCE`
+- `MTP-156-NO-ROLE-EXECUTION-BEHAVIOR`
+- `MTP-156-FORBIDDEN-ROLE-COMMAND-SURFACE`
+- `MTP-156-ROLE-TAXONOMY-VALIDATION`
+
+## MTP-156 禁止
+
+- 不实现 quoter runtime、hedger runtime、strategy marketplace、strategy manager、strategy scheduler、trader process manager、order generation engine 或 direct Strategy Instance -> Execution Client path。
+- 不输出 broker command、order-level live command、executable order command、Execution Client request、OMS order、quote order request、hedge order request、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不实现 signed endpoint、account endpoint / listenKey、listenKey create / keepalive、private WebSocket runtime、private stream runtime 或 account snapshot runtime。
+- 不读取真实账户、真实持仓、真实余额、broker position、margin、leverage 或 real PnL。
+- 不暴露 Runtime object、Adapter request、SQLite / DuckDB schema、broker payload、account endpoint payload、credential、secret 或 API key。
+- 不新增 broker adapter、broker / exchange execution adapter、`LiveExecutionAdapter`、Live PRO Console、trading button、live command、order form、stop / shutdown / restore 或 production operations command。
+- 不新增 Swift production code、focused XCTest、App read model、Dashboard surface、Dashboard smoke handle 或 stage audit input；Project stage closeout 仍归属 MTP-161。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
 ## MTP-155 Strategy / Trader Lifecycle Identity Validation
 
 日期：2026-05-31
