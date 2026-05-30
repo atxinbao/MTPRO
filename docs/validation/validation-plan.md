@@ -3932,3 +3932,47 @@ MTP-149 必须建立的主要 anchors：
 - 不连接 broker adapter、broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill 或 reconciliation。
 - 不新增 App / Dashboard behavior、Workbench / Report / Events surface、Dashboard smoke handle、API key input、secret storage、account connect、broker connect、Live PRO Console、trading button、live command、order form、reconnect、recovery 或 fallback action。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+## MTP-150 Live Monitoring Connection Readiness Explanation Validation
+
+日期：2026-05-30
+
+执行者：Codex
+
+MTP-150 的 required validation：
+
+- `swift test --filter LiveMonitoringConnectionReadiness`
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-150 的验收要求：
+
+- `Sources/Core/LiveMonitoringConnectionReadinessExplanation.swift` 必须包含 `LiveMonitoringConnectionReadinessExplanationContract`、`LiveMonitoringConnectionReadinessExplanationItem`、`LiveMonitoringConnectionReadinessExplanationState`、`LiveMonitoringConnectionReadinessDisplaySemantics` 和 `LiveMonitoringConnectionReadinessForbiddenCapability`。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 `testLiveMonitoringConnectionReadinessExplanationDefinesMTP150DeterministicEvidence` 和 `testLiveMonitoringConnectionReadinessExplanationRejectsMTP150RuntimeEndpointAndCommandBypass`。
+- `docs/contracts/live-monitoring-read-only-console-v2-contract.md` 必须包含 `MTP-150-CONNECTION-READINESS-EXPLANATION`、`MTP-150-STALE-BLOCKED-MISSING-UI-REPORT-SEMANTICS`、`MTP-150-NO-RUNTIME-CONNECTION-BOUNDARY`、`MTP-150-READINESS-EXPLANATION-NOT-LIVE-READINESS` 和 `MTP-150-LIVE-MONITORING-CONNECTION-READINESS-VALIDATION` anchors。
+- `docs/domain/context.md` 必须包含 MTP-150 connection readiness explanation shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-150 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-150 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Live Monitoring connection readiness explanation anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-150 Core source、focused tests、contract、domain context、validation plan、trading matrix、latest summary 和 automation readiness doc anchors。
+- PR 前必须确认 `.codex/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-150 必须建立的主要 anchors：
+
+- `MTP-150-CONNECTION-READINESS-EXPLANATION`
+- `MTP-150-STALE-BLOCKED-MISSING-UI-REPORT-SEMANTICS`
+- `MTP-150-NO-RUNTIME-CONNECTION-BOUNDARY`
+- `MTP-150-READINESS-EXPLANATION-NOT-LIVE-READINESS`
+- `MTP-150-LIVE-MONITORING-CONNECTION-READINESS-VALIDATION`
+
+## MTP-150 禁止
+
+- 不把 readiness explanation 写成真实连接状态、live readiness implementation、broker connectivity、private stream health、account endpoint health 或 production monitoring runtime。
+- 不实现 connection manager，不打开 runtime connection，不实现 Live Monitoring runtime 或 live readiness runtime。
+- 不实现 private WebSocket runtime、private stream runtime、account snapshot runtime、signed endpoint、account endpoint、listenKey 或 listenKey keepalive。
+- 不读取真实账户、真实持仓、真实余额、margin、leverage 或 real PnL。
+- 不暴露 Runtime object、Adapter request、SQLite / DuckDB schema、account payload、broker state、broker payload 或 account endpoint payload。
+- 不连接 broker adapter、broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill 或 reconciliation。
+- 不新增 App / Dashboard behavior、Workbench / Report / Events surface、Dashboard smoke handle、API key input、secret storage、account connect、broker connect、Live PRO Console、trading button、live command、order form、reconnect、recovery 或 fallback action。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
