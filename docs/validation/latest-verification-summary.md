@@ -1080,6 +1080,14 @@ MTP-158 的当前 issue execution evidence 已建立 `docs/contracts/strategy-tr
 
 MTP-158-PROPOSAL-CONTRACT-VALIDATION 的本地验证已通过：`bash checks/automation-readiness.sh` 输出 `MTPRO automation readiness checks passed.`；`git diff --check` 无输出；`bash checks/run.sh` 通过 automation readiness、Dashboard build、Dashboard smoke 和 302 个 XCTest，Dashboard smoke 输出包含 `liveMonitoringReadOnlyConsoleV2Surface=4`，最终输出 `MTPRO checks passed.`。完整验收仍以 GitHub required check `checks` 为准。MTP-158 完成后不得自动推进 MTP-159；MTP-159 至 MTP-161 必须继续等待 Linear live-read 中唯一 eligible issue 授权。
 
+## 当前 issue execution evidence：MTP-159
+
+MTP-159 的当前 issue execution evidence 已建立 `docs/contracts/strategy-trader-instance-readiness-contract.md` 的 forbidden Strategy -> Execution Client tests、forbidden broker command / OMS tests、forbidden UI command surface tests、proposal-to-command bypass guard、no signed/account endpoint / listenKey guard、deterministic local no-network test boundary、`TVM-STRATEGY-TRADER-INSTANCE-READINESS` MTP-159 issue backfill、`docs/domain/context.md` 的 MTP-159 shared language、`docs/validation/validation-plan.md` 的 MTP-159 required validation、`docs/automation/automation-readiness.md` 的 forbidden Strategy / Execution / broker / UI command tests anchor 和 `checks/automation-readiness.sh` 的 MTP-159 mechanical anchors。
+
+该证据只定义 `L3.4 Strategy / Trader Instance Readiness v1` 的 forbidden capability tests：Strategy / Trader readiness、role、input 和 proposal 不能升级为 Execution Client request、execution route、broker command、OMS order、real order lifecycle、UI command surface、signed/account endpoint access 或 listenKey lifecycle。MTP-159 不实现 Strategy runtime、Trader runtime、order generation engine、Execution Client、broker adapter、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、private WebSocket runtime、private stream runtime、account snapshot runtime、Live PRO Console、trading button、live command、order form、stop / shutdown / restore；不读取真实账户、真实网络、credential、secret、API key、account endpoint payload、broker payload、broker state、Runtime object、Adapter request 或 SQLite / DuckDB schema；不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+MTP-159-FORBIDDEN-CAPABILITY-TESTS-VALIDATION 的本地验证范围为：`bash checks/automation-readiness.sh`、`git diff --check` 和 `bash checks/run.sh`。完整验收仍以本次 PR 前本地验证和 GitHub required check `checks` 为准。MTP-159 完成后不得自动推进 MTP-160；MTP-160 至 MTP-161 必须继续等待 Linear live-read 中唯一 eligible issue 授权。
+
 ## Known CI Boundary
 
 临时 CI 平台边界：
