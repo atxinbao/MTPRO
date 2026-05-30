@@ -978,6 +978,14 @@ bash checks/run.sh
 
 Root Docs Refresh Gate 不创建下一 Project / Issue，不推进 `Todo`，不启动 Symphony，不手动运行 Graphify，不修改 Figma，不实现 signed endpoint、account endpoint / listenKey、private WebSocket runtime、private stream runtime、account snapshot runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、real PnL、Live PRO Console、trading button、live command 或 order form。
 
+## 当前 issue execution evidence：MTP-149
+
+MTP-149 的当前 issue execution evidence 已建立 `Sources/Core/LiveMonitoringSimulationGateHealth.swift`、`LiveMonitoringSimulationGateHealthContract`、`LiveMonitoringSimulationGateHealthEvidenceItem`、`LiveMonitoringSimulationGateHealthStatus`、`LiveMonitoringSimulationGateFreshnessExplanation`、`LiveMonitoringSimulationGateHealthForbiddenCapability`、`Tests/CoreTests/CoreTests.swift` 的 `testLiveMonitoringSimulationGateHealthDefinesMTP149DeterministicEvidence` / `testLiveMonitoringSimulationGateHealthRejectsMTP149RuntimeEndpointPayloadAndSchemaBypass`、`docs/contracts/live-monitoring-read-only-console-v2-contract.md` 的 MTP-149 anchors、`TVM-LIVE-MONITORING-READ-ONLY-CONSOLE-V2` MTP-149 issue backfill、`docs/domain/context.md` 的 MTP-149 shared language、`docs/validation/validation-plan.md` 的 MTP-149 required validation 和 `docs/automation/automation-readiness.md` 的 Live Monitoring simulation gate health evidence anchor。
+
+该证据只把 MTP-148 source identity 与 MTP-144 simulated freshness fixture 组合成 fresh / stale / blocked / missing 的 read-model-only health / freshness evidence；不代表真实账户健康、真实 broker 连接、private stream health、live connection status 或 production monitoring runtime。MTP-149 不实现 private WebSocket runtime、private stream runtime、account snapshot runtime、signed endpoint、account endpoint、listenKey、listenKey keepalive、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real order write、Live PRO Console、trading button、live command 或 order form；不读取真实 account / position / balance、margin、leverage、real PnL；不暴露 Runtime object、Adapter request、SQLite / DuckDB schema、account payload、account endpoint payload、broker payload 或 broker state；不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+MTP-149-LIVE-MONITORING-SIMULATION-GATE-HEALTH-VALIDATION 的 focused validation 已通过：`swift test --filter LiveMonitoringSimulationGateHealth` 通过 2 个 Core tests，0 failures。完整验证仍以本次 PR 前 `bash checks/run.sh` 和 GitHub required check `checks` 为准。
+
 ## Known CI Boundary
 
 临时 CI 平台边界：

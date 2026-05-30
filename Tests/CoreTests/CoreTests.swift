@@ -2420,6 +2420,221 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testLiveMonitoringSimulationGateHealthDefinesMTP149DeterministicEvidence() throws {
+        // 测试场景：MTP-149 只把 MTP-148 source identity 和 MTP-144 freshness fixture
+        // 组合成 simulation gate health / freshness 展示证据。health 不代表真实账户健康、
+        // broker 连接健康、private stream 状态或 live connection status。
+        let contract = LiveMonitoringSimulationGateHealthContract.deterministicFixture
+
+        XCTAssertEqual(
+            contract.contractID,
+            try Identifier("mtp-149-live-monitoring-simulation-gate-health")
+        )
+        XCTAssertEqual(contract.issueID, try Identifier("MTP-149"))
+        XCTAssertEqual(contract.matrixID, "TVM-LIVE-MONITORING-READ-ONLY-CONSOLE-V2")
+        XCTAssertEqual(
+            contract.sourceIdentityContractID,
+            LiveMonitoringSourceIdentityContract.deterministicFixture.contractID
+        )
+        XCTAssertEqual(contract.sourceIdentityChecksum, LiveMonitoringSourceIdentityContract.requiredChecksum)
+        XCTAssertEqual(
+            contract.freshnessEvidenceContractID,
+            SimulatedAccountSnapshotFreshnessEvidenceContract.deterministicFixture.contractID
+        )
+        XCTAssertEqual(
+            contract.freshnessEvidenceChecksum,
+            SimulatedAccountSnapshotFreshnessEvidenceContract.requiredChecksum
+        )
+        XCTAssertEqual(
+            contract.healthEvidenceItems.map(\.freshnessStatus),
+            SimulatedAccountSnapshotFreshnessEvidenceStatus.allCases
+        )
+        XCTAssertEqual(
+            contract.healthEvidenceItems.map(\.healthStatus),
+            [.nominal, .stale, .blocked, .missing]
+        )
+        XCTAssertEqual(
+            contract.allowedFreshnessStatuses,
+            SimulatedAccountSnapshotFreshnessEvidenceStatus.allCases
+        )
+        XCTAssertEqual(contract.allowedHealthStatuses, LiveMonitoringSimulationGateHealthStatus.allCases)
+        XCTAssertEqual(contract.healthEvidenceItems.count, 4)
+        XCTAssertTrue(contract.healthEvidenceItems.allSatisfy(\.simulationGateHealthBoundaryHeld))
+        XCTAssertTrue(contract.healthEvidenceItems.allSatisfy(\.fixtureSimulatedReadModelOnly))
+
+        let fresh = try XCTUnwrap(contract.healthEvidenceItems.first { $0.freshnessStatus == .fresh })
+        XCTAssertEqual(fresh.healthStatus, .nominal)
+        XCTAssertEqual(fresh.freshnessExplanation, .withinThreshold)
+        XCTAssertEqual(
+            fresh.monitoringSourceIdentity,
+            LiveMonitoringSimulationGateHealthEvidenceItem.requiredMonitoringSourceIdentity
+        )
+        XCTAssertEqual(fresh.sourceEvidenceOrigins, [.fixture, .simulated, .readModelOnly])
+
+        let stale = try XCTUnwrap(contract.healthEvidenceItems.first { $0.freshnessStatus == .stale })
+        XCTAssertEqual(stale.healthStatus, .stale)
+        XCTAssertEqual(stale.freshnessExplanation, .thresholdExceeded)
+
+        let blocked = try XCTUnwrap(contract.healthEvidenceItems.first { $0.freshnessStatus == .blocked })
+        XCTAssertEqual(blocked.healthStatus, .blocked)
+        XCTAssertEqual(blocked.freshnessExplanation, .blockedByBoundary)
+        XCTAssertEqual(
+            blocked.blockedDisplaySemantics,
+            "display boundary-held read-only evidence without reconnect or recovery action"
+        )
+
+        let missing = try XCTUnwrap(contract.healthEvidenceItems.first { $0.freshnessStatus == .missing })
+        XCTAssertEqual(missing.healthStatus, .missing)
+        XCTAssertEqual(missing.freshnessExplanation, .fixtureInputMissing)
+        XCTAssertEqual(
+            missing.blockedDisplaySemantics,
+            "display absent read-only evidence without fallback action"
+        )
+
+        XCTAssertEqual(
+            contract.checksum,
+            LiveMonitoringSimulationGateHealthContract.checksum(for: contract.healthEvidenceItems)
+        )
+        XCTAssertEqual(contract.checksum, LiveMonitoringSimulationGateHealthContract.requiredChecksum)
+        XCTAssertTrue(contract.checksumMatchedCanonicalPreimage)
+        XCTAssertTrue(contract.fixtureSimulatedReadModelOnly)
+        XCTAssertEqual(
+            contract.forbiddenCapabilities,
+            LiveMonitoringSimulationGateHealthForbiddenCapability.allCases
+        )
+        XCTAssertTrue(contract.simulationGateHealthBoundaryHeld)
+        XCTAssertFalse(contract.callsSignedEndpoint)
+        XCTAssertFalse(contract.callsAccountEndpoint)
+        XCTAssertFalse(contract.createsListenKey)
+        XCTAssertFalse(contract.opensPrivateWebSocket)
+        XCTAssertFalse(contract.runsPrivateStreamRuntime)
+        XCTAssertFalse(contract.runsAccountSnapshotRuntime)
+        XCTAssertFalse(contract.readsRealAccount)
+        XCTAssertFalse(contract.readsRealPosition)
+        XCTAssertFalse(contract.readsRealBalance)
+        XCTAssertFalse(contract.consumesRealAccountPayload)
+        XCTAssertFalse(contract.exposesAccountPayload)
+        XCTAssertFalse(contract.exposesBrokerState)
+        XCTAssertFalse(contract.exposesAdapterRequest)
+        XCTAssertFalse(contract.exposesRuntimeObject)
+        XCTAssertFalse(contract.exposesPersistenceSchema)
+        XCTAssertFalse(contract.connectsBrokerAdapter)
+        XCTAssertFalse(contract.connectsExchangeExecutionAdapter)
+        XCTAssertFalse(contract.implementsLiveExecutionAdapter)
+        XCTAssertFalse(contract.implementsOMS)
+        XCTAssertFalse(contract.exposesLiveCommand)
+        XCTAssertFalse(contract.exposesTradingButton)
+        XCTAssertFalse(contract.exposesOrderForm)
+        XCTAssertFalse(contract.writesRealOrder)
+        XCTAssertFalse(
+            contract.containsForbiddenExposureText([
+                "accountEndpointPayload",
+                "adapterRequest",
+                "runtimeObject",
+                "sqliteSchema",
+                "brokerState",
+                "realAccount",
+                "tradingButton",
+                "liveCommand"
+            ])
+        )
+
+        let encoded = try JSONEncoder().encode(contract)
+        let decoded = try JSONDecoder().decode(
+            LiveMonitoringSimulationGateHealthContract.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, contract)
+    }
+
+    func testLiveMonitoringSimulationGateHealthRejectsMTP149RuntimeEndpointPayloadAndSchemaBypass() throws {
+        // 测试场景：MTP-149 的 health / freshness evidence 不能通过初始化或 Codable 解码恢复
+        // private stream runtime、account snapshot runtime、endpoint、payload、schema、broker state、
+        // live command 或交易 UI 能力。
+        let forbiddenFlagCases: [
+            (field: String, build: () throws -> LiveMonitoringSimulationGateHealthContract)
+        ] = [
+            ("callsSignedEndpoint", { try LiveMonitoringSimulationGateHealthContract(callsSignedEndpoint: true) }),
+            ("callsAccountEndpoint", { try LiveMonitoringSimulationGateHealthContract(callsAccountEndpoint: true) }),
+            ("createsListenKey", { try LiveMonitoringSimulationGateHealthContract(createsListenKey: true) }),
+            ("opensPrivateWebSocket", { try LiveMonitoringSimulationGateHealthContract(opensPrivateWebSocket: true) }),
+            (
+                "runsPrivateStreamRuntime",
+                { try LiveMonitoringSimulationGateHealthContract(runsPrivateStreamRuntime: true) }
+            ),
+            (
+                "runsAccountSnapshotRuntime",
+                { try LiveMonitoringSimulationGateHealthContract(runsAccountSnapshotRuntime: true) }
+            ),
+            ("readsRealAccount", { try LiveMonitoringSimulationGateHealthContract(readsRealAccount: true) }),
+            ("readsRealPosition", { try LiveMonitoringSimulationGateHealthContract(readsRealPosition: true) }),
+            ("readsRealBalance", { try LiveMonitoringSimulationGateHealthContract(readsRealBalance: true) }),
+            (
+                "consumesRealAccountPayload",
+                { try LiveMonitoringSimulationGateHealthContract(consumesRealAccountPayload: true) }
+            ),
+            ("exposesAccountPayload", { try LiveMonitoringSimulationGateHealthContract(exposesAccountPayload: true) }),
+            ("exposesBrokerState", { try LiveMonitoringSimulationGateHealthContract(exposesBrokerState: true) }),
+            ("exposesAdapterRequest", { try LiveMonitoringSimulationGateHealthContract(exposesAdapterRequest: true) }),
+            ("exposesRuntimeObject", { try LiveMonitoringSimulationGateHealthContract(exposesRuntimeObject: true) }),
+            (
+                "exposesPersistenceSchema",
+                { try LiveMonitoringSimulationGateHealthContract(exposesPersistenceSchema: true) }
+            ),
+            ("connectsBrokerAdapter", { try LiveMonitoringSimulationGateHealthContract(connectsBrokerAdapter: true) }),
+            (
+                "connectsExchangeExecutionAdapter",
+                { try LiveMonitoringSimulationGateHealthContract(connectsExchangeExecutionAdapter: true) }
+            ),
+            (
+                "implementsLiveExecutionAdapter",
+                { try LiveMonitoringSimulationGateHealthContract(implementsLiveExecutionAdapter: true) }
+            ),
+            ("implementsOMS", { try LiveMonitoringSimulationGateHealthContract(implementsOMS: true) }),
+            ("exposesLiveCommand", { try LiveMonitoringSimulationGateHealthContract(exposesLiveCommand: true) }),
+            ("exposesTradingButton", { try LiveMonitoringSimulationGateHealthContract(exposesTradingButton: true) }),
+            ("exposesOrderForm", { try LiveMonitoringSimulationGateHealthContract(exposesOrderForm: true) }),
+            ("writesRealOrder", { try LiveMonitoringSimulationGateHealthContract(writesRealOrder: true) })
+        ]
+
+        for flagCase in forbiddenFlagCases {
+            XCTAssertThrowsError(try flagCase.build()) { error in
+                XCTAssertEqual(
+                    error as? CoreError,
+                    .liveMonitoringConsoleForbiddenCapability(flagCase.field)
+                )
+            }
+        }
+
+        XCTAssertThrowsError(
+            try LiveMonitoringSimulationGateHealthEvidenceItem(
+                freshnessStatus: .fresh,
+                readModelFields: ["simulationGateHealthEvidenceId", "accountEndpointPayload"]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveMonitoringConsoleForbiddenCapability("simulationGateHealthEvidence.payload")
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(
+            LiveMonitoringSimulationGateHealthContract.deterministicFixture
+        )
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["runsPrivateStreamRuntime"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(LiveMonitoringSimulationGateHealthContract.self, from: data)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveMonitoringConsoleForbiddenCapability("runsPrivateStreamRuntime")
+            )
+        }
+    }
+
     func testLiveReadOnlyWorkbenchReadModelBoundaryDefinesMTP131Surface() throws {
         // 测试场景：MTP-131 只定义 Workbench / Dashboard 可展示的 Live readiness 只读边界，
         // 并把 forbidden UI surface、detail audit route 和 L3.x handoff 固定为可回放 fixture。

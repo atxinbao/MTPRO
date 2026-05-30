@@ -3890,3 +3890,45 @@ MTP-148 必须建立的主要 anchors：
 - 不连接 broker adapter、broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill 或 reconciliation。
 - 不新增 App / Dashboard behavior、Workbench / Report / Events surface、Dashboard smoke handle、API key input、secret storage、account connect、broker connect、Live PRO Console、trading button、live command 或 order form。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+## MTP-149 Live Monitoring Simulation Gate Health Validation
+
+日期：2026-05-30
+
+执行者：Codex
+
+MTP-149 的 required validation：
+
+- `swift test --filter LiveMonitoringSimulationGateHealth`
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-149 的验收要求：
+
+- `Sources/Core/LiveMonitoringSimulationGateHealth.swift` 必须包含 `LiveMonitoringSimulationGateHealthContract`、`LiveMonitoringSimulationGateHealthEvidenceItem`、`LiveMonitoringSimulationGateHealthStatus`、`LiveMonitoringSimulationGateFreshnessExplanation` 和 `LiveMonitoringSimulationGateHealthForbiddenCapability`。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 `testLiveMonitoringSimulationGateHealthDefinesMTP149DeterministicEvidence` 和 `testLiveMonitoringSimulationGateHealthRejectsMTP149RuntimeEndpointPayloadAndSchemaBypass`。
+- `docs/contracts/live-monitoring-read-only-console-v2-contract.md` 必须包含 `MTP-149-SIMULATION-GATE-HEALTH-FRESHNESS-EVIDENCE`、`MTP-149-HEALTH-FRESHNESS-NOT-REAL-ACCOUNT-HEALTH`、`MTP-149-READ-MODEL-ONLY-NON-EXPOSURE` 和 `MTP-149-LIVE-MONITORING-SIMULATION-GATE-HEALTH-VALIDATION` anchors。
+- `docs/domain/context.md` 必须包含 MTP-149 simulation gate health shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-149 issue backfill。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-149 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Live Monitoring simulation gate health evidence anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-149 Core source、focused tests、contract、domain context、validation plan、trading matrix、latest summary 和 automation readiness doc anchors。
+- PR 前必须确认 `.codex/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-149 必须建立的主要 anchors：
+
+- `MTP-149-SIMULATION-GATE-HEALTH-FRESHNESS-EVIDENCE`
+- `MTP-149-HEALTH-FRESHNESS-NOT-REAL-ACCOUNT-HEALTH`
+- `MTP-149-READ-MODEL-ONLY-NON-EXPOSURE`
+- `MTP-149-LIVE-MONITORING-SIMULATION-GATE-HEALTH-VALIDATION`
+
+## MTP-149 禁止
+
+- 不把 health / freshness evidence 写成 real account health、broker connectivity、private stream health、live connection status 或 production monitoring runtime。
+- 不实现 private WebSocket runtime、private stream runtime、account snapshot runtime、signed endpoint、account endpoint、listenKey 或 listenKey keepalive。
+- 不读取真实账户、真实持仓、真实余额、margin、leverage 或 real PnL。
+- 不暴露 Runtime object、Adapter request、SQLite / DuckDB schema、account payload、broker state、broker payload 或 account endpoint payload。
+- 不连接 broker adapter、broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill 或 reconciliation。
+- 不新增 App / Dashboard behavior、Workbench / Report / Events surface、Dashboard smoke handle、API key input、secret storage、account connect、broker connect、Live PRO Console、trading button、live command、order form、reconnect、recovery 或 fallback action。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。

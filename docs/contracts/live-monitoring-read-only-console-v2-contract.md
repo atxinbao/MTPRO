@@ -204,3 +204,55 @@ Focused validation anchors：
 - `checks/automation-readiness.sh` 必须机械检查 MTP-148 Core source、focused tests、contract、domain context、validation plan、trading matrix、latest summary 和 automation readiness doc anchors。
 
 MTP-148 不新增 Adapters、Runtime、App、Dashboard behavior，不新增 Dashboard smoke handle，不实现 monitoring surface；MTP-152 才能接入 Workbench / Report / Events read-model-only surface。Project stage closeout 仍归属 MTP-153。
+
+## MTP-149 simulation gate health / freshness evidence
+
+`MTP-149-SIMULATION-GATE-HEALTH-FRESHNESS-EVIDENCE`
+
+MTP-149 固定 `LiveMonitoringSimulationGateHealthContract`、`LiveMonitoringSimulationGateHealthEvidenceItem`、`LiveMonitoringSimulationGateHealthStatus`、`LiveMonitoringSimulationGateFreshnessExplanation` 和 `LiveMonitoringSimulationGateHealthForbiddenCapability` 为 Core 层 deterministic health evidence 合同。
+
+该合同只复用 MTP-148 monitoring source identity 和 MTP-144 simulated freshness fixture：
+
+| MTP-144 freshness status | MTP-149 health status | Freshness explanation | Display semantics |
+| --- | --- | --- | --- |
+| `fresh` | `nominal` | `withinThreshold` | nominal read-only evidence |
+| `stale` | `stale` | `thresholdExceeded` | stale read-only evidence |
+| `blocked` | `blocked` | `blockedByBoundary` | boundary-held read-only evidence without reconnect or recovery action |
+| `missing` | `missing` | `fixtureInputMissing` | absent read-only evidence without fallback action |
+
+## MTP-149 health / freshness not real account health
+
+`MTP-149-HEALTH-FRESHNESS-NOT-REAL-ACCOUNT-HEALTH`
+
+MTP-149 的 health / freshness 只解释 simulated gate 状态，不代表真实账户、真实 broker 连接或真实私有流状态。`LiveMonitoringSimulationGateHealthContract` 不创建 source adapter，不读取真实 account / position / balance，不调用 signed endpoint / account endpoint，不创建 listenKey，不打开 private WebSocket，不运行 private stream runtime 或 account snapshot runtime。
+
+## MTP-149 read-model-only non-exposure
+
+`MTP-149-READ-MODEL-ONLY-NON-EXPOSURE`
+
+MTP-149 evidence 只允许 fixture / simulated / read-model-only source，且不得暴露 Runtime object、Adapter request、SQLite / DuckDB schema、account payload、broker state、broker payload 或 account endpoint payload。blocked evidence 只能作为展示语义，不触发 reconnect、recovery、incident command、live command、trading button、order form 或 real order write。
+
+## MTP-149 validation anchors
+
+`MTP-149-LIVE-MONITORING-SIMULATION-GATE-HEALTH-VALIDATION`
+
+Required validation：
+
+- `swift test --filter LiveMonitoringSimulationGateHealth`
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `Sources/Core/LiveMonitoringSimulationGateHealth.swift` 必须包含 `LiveMonitoringSimulationGateHealthContract`、`LiveMonitoringSimulationGateHealthEvidenceItem`、`LiveMonitoringSimulationGateHealthStatus`、`LiveMonitoringSimulationGateFreshnessExplanation` 和 `LiveMonitoringSimulationGateHealthForbiddenCapability`。
+- `Tests/CoreTests/CoreTests.swift` 必须包含 `testLiveMonitoringSimulationGateHealthDefinesMTP149DeterministicEvidence` 和 `testLiveMonitoringSimulationGateHealthRejectsMTP149RuntimeEndpointPayloadAndSchemaBypass`。
+- `docs/contracts/live-monitoring-read-only-console-v2-contract.md` 必须包含 MTP-149 health / freshness evidence、not real account health、read-model-only non-exposure 和 validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-149 simulation gate health shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-149 issue backfill。
+- `docs/validation/validation-plan.md` 必须包含 MTP-149 required validation。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-149 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 Live Monitoring simulation gate health evidence anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-149 Core source、focused tests、contract、domain context、validation plan、trading matrix、latest summary 和 automation readiness doc anchors。
+
+MTP-149 不新增 Adapters、Runtime、App、Dashboard behavior，不新增 Dashboard smoke handle，不实现 monitoring surface；MTP-152 才能接入 Workbench / Report / Events read-model-only surface。Project stage closeout 仍归属 MTP-153。
