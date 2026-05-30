@@ -4322,3 +4322,45 @@ MTP-158 必须建立的主要 anchors：
 - 不把 price / quantity / side / timeInForce / orderType / venue 写成 executable order tuple。
 - 不新增 Swift production code、focused XCTest、App read model、Dashboard surface、Dashboard smoke handle 或 stage audit input；Project stage closeout 仍归属 MTP-161。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+## MTP-159 Forbidden Strategy / Execution / Broker / UI Command Tests Validation
+
+日期：2026-05-31
+
+执行者：Codex
+
+MTP-159 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-159 的验收要求：
+
+- `docs/contracts/strategy-trader-instance-readiness-contract.md` 必须包含 MTP-159 forbidden Strategy -> Execution Client tests、forbidden broker command / OMS tests、forbidden UI command surface tests、proposal-to-command bypass guard、no signed/account endpoint / listenKey guard、deterministic local no-network test boundary 和 validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-159 forbidden capability tests shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-STRATEGY-TRADER-INSTANCE-READINESS` 的 MTP-159 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 forbidden Strategy / Execution / broker / UI command tests anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-159 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-159 contract、matrix、validation plan、domain context、latest summary、automation readiness doc、proposal-to-command bypass guard、no endpoint / listenKey guard 和 local no-network boundary。
+- PR 前必须确认 `.codex/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-159 必须建立的主要 anchors：
+
+- `MTP-159-FORBIDDEN-STRATEGY-EXECUTION-CLIENT-TESTS`
+- `MTP-159-FORBIDDEN-BROKER-COMMAND-OMS-TESTS`
+- `MTP-159-FORBIDDEN-UI-COMMAND-SURFACE-TESTS`
+- `MTP-159-PROPOSAL-TO-COMMAND-BYPASS-GUARD`
+- `MTP-159-NO-SIGNED-ACCOUNT-ENDPOINT-LISTENKEY-GUARD`
+- `MTP-159-DETERMINISTIC-LOCAL-NO-NETWORK-TEST-BOUNDARY`
+- `MTP-159-FORBIDDEN-CAPABILITY-TESTS-VALIDATION`
+
+## MTP-159 禁止
+
+- 不实现 Strategy runtime、Trader runtime、order generation engine、Execution Client、broker command、OMS、order command、submit / cancel / replace、real order lifecycle、execution report、broker fill 或 reconciliation。
+- 不创建 broker adapter、broker / exchange execution adapter、`LiveExecutionAdapter`、adapter request、Runtime object、OMS facade、Execution Client stub、command bus、mock broker 或 hidden live fallback。
+- 不调用 signed endpoint、account endpoint / listenKey，不创建或 keepalive listenKey，不连接 private WebSocket，不启动 private stream runtime 或 account snapshot runtime。
+- 不读取真实账户、真实持仓、真实余额、broker position、margin、leverage、real PnL、account endpoint payload、broker payload 或 broker state。
+- 不新增 Live PRO Console、trading button、live command、order form、order-level command UI、position command、emergency stop、shutdown、restore 或 production operations command。
+- 不新增 Swift production code、focused XCTest、App read model、Dashboard surface、Dashboard smoke handle 或 stage audit input；Project stage closeout 仍归属 MTP-161。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。

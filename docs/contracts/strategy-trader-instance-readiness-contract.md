@@ -4,9 +4,9 @@
 
 执行者：Codex
 
-本文档定义 `MTPRO Strategy / Trader Instance Readiness v1` 的 MTP-154 合同入口：L3.4 Strategy / Trader Instance readiness terminology、readiness-only boundary、proposal / readiness evidence baseline、L3.4 handoff boundary、first executable candidate non-authorization、forbidden capability baseline 和 validation anchors。
+本文档累计定义 `MTPRO Strategy / Trader Instance Readiness v1` 的 MTP-154 至 MTP-159 合同入口：L3.4 Strategy / Trader Instance readiness terminology、lifecycle / identity、quoter / hedger role taxonomy、account / portfolio / risk read-model input、paper/live-neutral proposal isolation、forbidden Strategy -> Execution / broker / UI command tests 和 validation anchors。
 
-本文档只服务 `MTP-154 Define Strategy / Trader Instance readiness terminology and boundary` 的术语 / 边界 / 验证锚点。它不实现 Strategy runtime，不实现 Trader runtime，不允许 strategy 直连 Execution Client，不输出 broker command，不实现 OMS、Live PRO Console、trading button、live command 或 order form；不接 signed endpoint、account endpoint / listenKey，不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation；不读取真实账户、真实持仓、真实余额、margin、leverage 或 real PnL；不运行 Graphify，不修改 Figma。
+本文档只服务当前 Project 的 readiness / forbidden capability 合同证据。它不实现 Strategy runtime，不实现 Trader runtime，不允许 strategy 直连 Execution Client，不输出 broker command，不实现 OMS、Live PRO Console、trading button、live command 或 order form；不接 signed endpoint、account endpoint / listenKey，不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation；不读取真实账户、真实持仓、真实余额、margin、leverage 或 real PnL；不运行 Graphify，不修改 Figma。
 
 ## MTP-154 Strategy / Trader Instance readiness terminology
 
@@ -536,3 +536,97 @@ Focused validation anchors：
 - `checks/automation-readiness.sh` 必须机械检查 MTP-158 contract、domain context、matrix、validation plan、latest summary、automation readiness doc、proposal-to-command isolation、no Execution Client / broker / OMS boundary 和 forbidden command field guard。
 
 MTP-158 不新增 Swift production code，不新增 focused XCTest，不新增 Dashboard smoke handle，不新增 App read model，不新增 Core / Runtime / Dashboard behavior，不新增 stage audit input；Project stage closeout 仍归属 MTP-161。
+
+## MTP-159 forbidden Strategy -> Execution Client tests
+
+`MTP-159-FORBIDDEN-STRATEGY-EXECUTION-CLIENT-TESTS`
+
+MTP-159 定义 deterministic / local-only forbidden capability tests，用于机械阻止 Strategy / Trader readiness 越界进入 Execution Client、order command 或 runtime execution。这里的 tests 是 contract / automation readiness 层的 required checks，不创建新的 Swift runtime test target，不实现 execution path。
+
+| Test domain | 必须拒绝 | 允许的当前输出 |
+| --- | --- | --- |
+| Strategy -> Execution Client | direct Strategy Instance -> Execution Client path、Execution Client request、Execution Client dependency、execution route、sendOrder / placeOrder / execute verb | forbidden evidence string、blocked reason、validation anchor |
+| Trader -> Execution Client | trader process command、trader runtime action、account session action、broker session action | read-model-only blocked evidence |
+| Proposal -> command | proposal 被解释为 executable order command、submit / cancel / replace command、OMS order 或 broker command | proposal-to-command isolation evidence |
+
+## MTP-159 forbidden broker command / OMS / real order lifecycle tests
+
+`MTP-159-FORBIDDEN-BROKER-COMMAND-OMS-TESTS`
+
+MTP-159 forbidden tests 必须覆盖：
+
+- broker command
+- broker adapter request
+- broker / exchange execution adapter
+- `LiveExecutionAdapter`
+- OMS
+- real order lifecycle
+- real submit / cancel / replace
+- execution report
+- broker fill
+- reconciliation
+- broker position sync
+- real account / broker account routing
+
+这些 tests 只能验证 forbidden boundary strings 是否存在，不能创建 adapter、mock broker、OMS facade、command bus、execution client stub 或 hidden live fallback。
+
+## MTP-159 forbidden UI command surface tests
+
+`MTP-159-FORBIDDEN-UI-COMMAND-SURFACE-TESTS`
+
+MTP-159 forbidden UI tests 必须覆盖 Live PRO Console、trading button、live command、order form、order-level command UI、position command、emergency stop、shutdown、restore 和 production operations command。
+
+Workbench / Report / Events 后续只能在 MTP-160 以 read-model-only 方式展示 forbidden evidence；MTP-159 不新增 UI surface、不新增 button、不新增 command handler、不新增 Dashboard smoke handle。
+
+## MTP-159 proposal-to-command bypass guard
+
+`MTP-159-PROPOSAL-TO-COMMAND-BYPASS-GUARD`
+
+MTP-159 固定 proposal-to-command bypass guard：
+
+1. MTP-158 proposal contract 中的 `proposalId` 不得被当成 order id、client order id、broker order id 或 OMS id。
+2. `intentSummary` 不得与 price / quantity / side / timeInForce / orderType / venue 组合成 executable order tuple。
+3. `proposalStatus` 不得被当成 order lifecycle state、execution state、broker acknowledgement 或 risk decision result。
+4. `blockedReason` 不得被当成 broker reject、exchange reject、execution failure、incident action 或 stop command result。
+5. Proposal 不得被任何 execution, broker, OMS, UI command 或 production operations path 直接消费。
+
+## MTP-159 no signed/account endpoint / listenKey guard
+
+`MTP-159-NO-SIGNED-ACCOUNT-ENDPOINT-LISTENKEY-GUARD`
+
+MTP-159 forbidden tests 必须覆盖 signed endpoint、account endpoint、listenKey create / keepalive、private WebSocket runtime、private stream runtime、account snapshot runtime、real account payload、account endpoint payload、broker payload、broker state、Runtime object、Adapter request、SQLite / DuckDB schema、credential、secret 和 API key。
+
+这些 guard 不读取真实网络、不读取真实账户、不连接 broker、不创建 listenKey、不启动 private stream、不运行 account snapshot runtime。
+
+## MTP-159 deterministic local no-network test boundary
+
+`MTP-159-DETERMINISTIC-LOCAL-NO-NETWORK-TEST-BOUNDARY`
+
+MTP-159 checks 必须是 deterministic、local-only、no-network、no-account、no-broker：
+
+- 只检查 repository text anchors、validation matrix、validation plan、latest summary、automation readiness doc 和 contract docs。
+- 不调用 external endpoint，不读取 secrets，不创建 credential provider，不访问 broker / exchange adapter，不访问 Figma，不运行 Graphify。
+- 不修改 production code，不新增 Core / App / Runtime behavior。
+- `.codex/*`、`graphify-out/*` 和 `.build/*` 不进入 PR。
+
+## MTP-159 validation anchors
+
+`MTP-159-FORBIDDEN-CAPABILITY-TESTS-VALIDATION`
+
+Required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+Focused validation anchors：
+
+- `docs/contracts/strategy-trader-instance-readiness-contract.md` 必须包含 MTP-159 forbidden Strategy -> Execution Client tests、forbidden broker command / OMS tests、forbidden UI command surface tests、proposal-to-command bypass guard、no signed/account endpoint / listenKey guard、deterministic local no-network test boundary 和 validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-159 forbidden capability tests shared language。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-159 issue backfill。
+- `docs/validation/validation-plan.md` 必须包含 MTP-159 required validation。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-159 的当前 issue execution evidence。
+- `docs/automation/automation-readiness.md` 必须新增 forbidden Strategy / Execution / broker / UI command tests anchor。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-159 contract、domain context、matrix、validation plan、latest summary、automation readiness doc、proposal-to-command bypass guard、no endpoint / listenKey guard 和 local no-network boundary。
+
+MTP-159 不新增 Swift production code，不新增 focused XCTest，不新增 Dashboard smoke handle，不新增 App read model，不新增 Core / Runtime / Dashboard behavior，不新增 stage audit input；Project stage closeout 仍归属 MTP-161。
