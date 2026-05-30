@@ -13157,6 +13157,42 @@ Root Docs Refresh Gate 更新：
 
 ---
 
+## 2026-05-31 — MTPRO Live Monitoring Read-only Console v2 Project Closure / Stage Code Audit
+
+执行者：Codex
+
+目的：
+
+- 收口 `MTPRO Live Monitoring Read-only Console v2` 的 Parent Codex Project closure、Stage Code Audit Report 和 Root Docs Refresh Gate。
+- 同步已完成事实：`MTP-147` 至 `MTP-153` 全部 Linear `Done/type=completed`，Linear Project 为 `Completed/type=completed`，`completedAt=2026-05-30T17:30:30.417Z`。
+- 将当前成熟度结论更新为 `L3.3 Live Monitoring Read-only Console v2 complete`，Project Closure Count 更新为 `20 / 20 (100%)`，并保留 `L3.4 Strategy / Trader Instance Readiness v1` 为 Future Gated / planning candidate。
+
+更新内容：
+
+- 新增 `docs/audit/mtpro-live-monitoring-read-only-console-v2-stage-code-audit.md`，记录 PR #264、#265、#266、#267、#268、#269、#270、merge commits、GitHub `checks` evidence、Linear Project completion evidence、forbidden capability audit、validation 和 Root Docs Delta input。
+- 更新 `GOAL.md`、`BLUEPRINT.md`、`docs/architecture.md`、`docs/roadmap.md`、`docs/product/mtpro-live-readiness-roadmap-v1.md` 和 `docs/validation/latest-verification-summary.md`，只同步 L3.3 已发生闭环事实，不授权下一阶段。
+- 更新 `docs/automation/automation-readiness.md` 与 `checks/automation-readiness.sh`，新增 Live Monitoring Read-only Console v2 stage code audit report anchor、root docs refresh anchor 和 mechanical gate。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/automation-readiness.sh` | pass | 输出 `MTPRO automation readiness checks passed.`；L3.3 Stage Code Audit Report、Root Docs Refresh、Project Closure Count `20 / 20 (100%)` 和 mechanical boundary anchors 均可检索。 |
+| `git diff --check` | pass | 无输出。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build、Dashboard smoke 和 302 个 XCTest；Dashboard smoke 输出包含 `liveMonitoringReadOnlyConsoleV2Surface=4`、`readModelOnly=true` 和 `workbenchReadModelOnly=true`；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不创建下一 Linear Project / Issue。
+- 不推进任何 issue 到 `Todo`。
+- 不启动 Symphony。
+- 不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不写 Live Monitoring runtime、live readiness runtime、private stream runtime、account snapshot runtime 或 broker / OMS runtime。
+- 不授权 signed endpoint、account endpoint / listenKey、private WebSocket runtime、broker adapter、`LiveExecutionAdapter`、Live PRO Console、trading button、live command、order form、stop、shutdown 或 restore。
+
+---
+
 ## 2026-05-30 — MTP-144 Simulated Account Snapshot Freshness Evidence
 
 执行者：Codex
