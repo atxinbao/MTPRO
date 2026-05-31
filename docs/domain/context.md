@@ -46,6 +46,45 @@
 | `Report Artifact` | 汇总 research / backtest / paper / risk / event evidence 的研究输出 | 不授权真实交易 |
 | `Event Timeline` | read-model-only 的 evidence 浏览视图 | 不做完整查询语言，不暴露 persistence |
 
+## Architecture-Graph-Aligned Module Boundary Terms
+
+`MTP-162-ARCHITECTURE-GRAPH-ALIGNED-MODULE-BOUNDARY-TERMS`
+
+以下术语由 MTP-162 定义为 `MTPRO Engine Module Boundary Consolidation v1` 的第一层 architecture-graph-aligned module boundary language。它们只用于把架构图模块翻译成 MTPRO target boundary、source layout 输入和 validation anchors，不授权移动业务代码，不授权 Strategy runtime / Trader runtime / Live runtime，不授权 ExecutionClient implementation、OMS implementation、signed endpoint、account endpoint / listenKey、private WebSocket runtime、broker adapter、real order lifecycle、Live PRO Console、trading button、live command 或 order form。
+
+| 术语 | MTPRO 含义 | 避免混用 |
+| --- | --- | --- |
+| `architecture-graph-aligned module boundary` | 架构图模块和 MTPRO 目标目录 / 目标职责之间的 canonical translation layer | 不等于当前 SwiftPM target，不授权立即迁移代码 |
+| `target module name` | 可以进入 `docs/architecture/module-boundary.md`、规划记录和后续 issue contract 的目标模块名 | 不表示模块已存在运行时实现 |
+| `migration source / compatibility shell` | 当前 `Core / Adapters / Persistence / Runtime / App / Dashboard / CSQLite` 只作为迁移来源和兼容壳 | 不作为新增能力落点，不作为最终架构名 |
+| `DomainModel` | symbol、instrument、time、price、quantity、order / account / position value object 的 pure domain boundary | 不依赖 adapter、persistence、Runtime actor 或 UI |
+| `DataClient` | exchange-scoped client boundary；当前只允许 Binance public read-only market data，future private stream / signed / account source 只能 gated | 不等于 execution adapter，不调用 account endpoint 或 listenKey |
+| `DataEngine` | ingest、request / response、scenario replay、data quality 和 catalog 的 engine boundary | 不承担 broker connection、execution routing 或 UI state |
+| `MessageBus` | facts、events、commands、request / response、engine routing 和 replay invariant 的边界 | 不绕过 RiskEngine / ExecutionEngine，不表示 live command bus |
+| `Cache` | instruments、market data、orders、positions、portfolio summary 的 in-memory / runtime-derived read state boundary | 不负责 durability、schema、DB adapter 或真实 account cache |
+| `Database` | append-only event log、snapshot、projection database 和 replay backing store 的 local durable boundary | 不暴露 SQLite / DuckDB schema 给 UI，不复制 Redis |
+| `Strategies` | strategy lifecycle、quoter / hedger、signals 和 paper/live-neutral proposals 的 strategy-scoped boundary | 不直连 Trader、ExecutionClient、broker command 或 OMS |
+| `Trader` | account context、strategy binding、risk / execution coordination 的 orchestration boundary | 不表示当前 Trader runtime、process manager 或 broker session |
+| `Account context` | `Trader/Accounts` 内的 account identity、source identity 和 future real account gate | 不拥有 cash、positions、PnL、margin、leverage 或真实账户 payload |
+| `Portfolio` | positions、net positions、cash / equity、margin、open value、paper projection 和 exposure read model boundary | 不读取 broker portfolio，不等于 Trader 子状态 |
+| `RiskEngine` | paper pre-trade risk、blocked evidence 和 future live risk gates 的 risk boundary | 不调用 broker / ExecutionClient，不实现 live risk runtime |
+| `ExecutionEngine` | paper lifecycle、simulated lifecycle、future OMS boundary 和 future execution routing 的 internal execution boundary | 不等于 broker client，不提交 / 取消 / 替换真实订单 |
+| `ExecutionClient` | future exchange / broker execution client capability boundary | 当前只允许 module name / future gate，不实现 broker / exchange execution adapter |
+| `Workbench` | ReadModel / ViewModel / Dashboard / Report / Events 的 read-model-only consumption boundary | 不读取 runtime object、adapter request、Database schema 或 broker payload |
+| `Future Live PRO Console` | 完整蓝图中的 future product surface，用于后续 Human + `@001 / PLN` 决策和独立 Project planning | 不等于当前 Workbench，不提供交易按钮、live command 或 order form |
+
+`MTP-162-OLD-TO-TARGET-MODULE-MAPPING`
+
+旧 target 到目标模块只能按迁移来源解释：`Core` 拆向 `DomainModel` / `MessageBus` / `RiskEngine` / `ExecutionEngine` / `Portfolio` / `Strategies` / `Trader`；`Adapters` 拆向 `DataClient`；`Runtime` 拆向 `DataEngine` / `MessageBus` / `Cache`；`Persistence` 拆向 `Database` / `Cache`；`App` 和 `Dashboard` 拆向 `Workbench` / `Dashboard`；`CSQLite` 只保留为 `Database` implementation detail。该 mapping 不授权新增 runtime，不授权把旧 target 继续当作最终模块。
+
+`MTP-162-FUTURE-GATED-MODULE-NAME-NON-AUTHORIZATION`
+
+`ExecutionClient`、`OMSFutureGate`、`FuturePrivateStreamGate`、`FutureLiveProConsole`、`Strategy runtime`、`Trader runtime`、`Portfolio runtime`、`Risk runtime` 和完整 `MessageBus` 可以作为目标架构词出现，但出现本身不表示当前 runtime implementation。后续实现必须重新满足 Human decision、Linear issue contract、Parent Codex queue preflight、PR evidence 和 validation gate。
+
+`MTP-162-ARCHITECTURE-MODULE-TERMINOLOGY-VALIDATION`
+
+MTP-162 的验证只证明目标模块术语、旧术语映射、future-gated module non-authorization 和 forbidden capability baseline 已落仓；不证明任何 source move、SwiftPM target move、runtime actor、signed/account/listenKey endpoint、broker / exchange execution adapter、OMS、real order lifecycle、Live PRO Console、trading button、live command 或 order form 已实现。
+
 ## Paper Runtime Kernel Terms
 
 `MTP-96-PAPER-RUNTIME-KERNEL-TERMS`

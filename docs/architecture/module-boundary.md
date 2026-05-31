@@ -17,6 +17,23 @@
 
 大白话：不是“目标架构里不能有 Execution Client / OMS / Trader runtime”，而是“现在只能把它们作为 future-gated module boundary 画清楚，不能把它们实现成真实交易路径”。
 
+## MTP-162 Terminology Contract
+
+`MTP-162-TERMINOLOGY-CONTRACT`
+
+MTP-162 固定 architecture graph module 到 MTPRO target boundary 的术语合同。该合同只约束名称、职责边界、旧 target 映射和 validation anchors，不迁移业务代码，不新增 Swift production code，不把目标模块名解释为当前 runtime implementation。
+
+合同要求：
+
+1. `DomainModel`、`DataClient`、`DataEngine`、`MessageBus`、`Cache`、`Database`、`Strategies`、`Trader`、`Account`、`Portfolio`、`RiskEngine`、`ExecutionEngine`、`ExecutionClient`、`Workbench` 和 `Future Live PRO Console` 必须都有 MTPRO canonical term。
+2. `Core / Adapters / Persistence / Runtime / App / Dashboard / CSQLite` 必须只作为 migration source / compatibility shell，不得继续作为新增能力落点。
+3. future-gated module name 可以出现在目标架构、目标目录和后续 issue contract 中，但不得被写成当前可运行 runtime、endpoint、broker adapter、OMS、真实订单生命周期或 UI command surface。
+4. 后续 M1 source layout / validation anchors issue 必须消费本合同的术语，不得重新发明平行模块名。
+
+`MTP-162-CURRENT-RUNTIME-NON-AUTHORIZATION`
+
+MTP-162 不授权 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、broker adapter、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form、Graphify 或 Figma。
+
 ## 目标 Engine 边界
 
 | Engine / Layer | 目标职责 | 当前允许状态 |
