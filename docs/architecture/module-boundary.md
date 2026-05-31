@@ -759,6 +759,36 @@ UI 文案和 docs evidence 必须把 Workbench / Report / Events 描述为 read-
 
 MTP-179 只证明 Workbench read-model-only consumption boundary anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不移动 production source、不创建 SwiftPM target、不修改 `Package.swift` target graph、不实现 Workbench runtime、不创建 Live PRO Console、不运行 Graphify、不修改 Figma。
 
+## MTP-180 Future Live PRO Console Product-Surface Split
+
+`MTP-180-FUTURE-LIVE-PRO-CONSOLE-PRODUCT-SURFACE-SPLIT`
+
+MTP-180 将 Future Live PRO Console 固定为独立 future product surface。它不是 current Workbench 的自然扩展，也不是 `Sources/Workbench/` read-model-only boundary 的当前子功能；当前只能作为未来建设区和 product-surface split 证据出现。
+
+`MTP-180-FUTURELIVEPROCONSOLE-BOUNDARY-LABEL`
+
+`Sources/Workbench/FutureLiveProConsole/` 只能作为 future boundary label 写入架构文档，用来说明后续 L4 / Human decision 可能规划独立 command-capable surface。当前 issue 不创建该目录、不创建 SwiftPM target、不声明 FutureLiveProConsole 类型、不添加 App route 或 Dashboard control。
+
+`MTP-180-CURRENT-WORKBENCH-VS-FUTURE-COMMAND-SURFACE`
+
+Current Workbench 继续只消费 ReadModel / ViewModel / evidence surface；Future Live PRO Console 未来才可能承载 command-capable product surface。二者的输入、状态和验证证据必须分离：Workbench 不读取 Runtime object、Adapter request、SQLite / DuckDB schema、account payload、broker payload、broker state 或 live command payload；Future Live PRO Console label 也不能反向授权这些 current exposure。
+
+`MTP-180-LIVE-COMMAND-CONTROLS-FUTURE-ONLY`
+
+Live PRO Console、trading button、live command、order form、position command、emergency stop、shutdown、restore、broker connect UI、account connect UI、signed endpoint trigger 和 ExecutionClient trigger 均为 future-only controls。当前只能在 forbidden / future-gated evidence 中命名，不能成为 UI、ViewModel、command handler、route、menu item 或 runtime capability。
+
+`MTP-180-NO-CURRENT-LIVE-PRO-CONSOLE-IMPLEMENTATION`
+
+禁止在当前 scope 创建 Live PRO Console implementation、FutureLiveProConsole implementation、trading button handler、live command handler、order form model、emergency stop command、shutdown command、restore command、production operations command、broker session control、ExecutionClient request UI 或 OMS command UI。
+
+`MTP-180-NEXT-STAGE-PRODUCT-SURFACE-READINESS-INPUT`
+
+MTP-180 只为后续 L4 planning 提供 product-surface readiness input：当前已知 Workbench 是 read-model-only surface，Future Live PRO Console 是 future-gated command-capable candidate，二者之间需要独立 Project Definition、Human decision、signed / account / broker / execution / ops gates、validation matrix 和 forbidden capability audit。
+
+`MTP-180-FUTURE-LIVE-PRO-CONSOLE-VALIDATION`
+
+MTP-180 只证明 Future Live PRO Console product-surface split anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不移动 production source、不创建 SwiftPM target、不修改 `Package.swift` target graph、不实现 Live PRO Console、不运行 Graphify、不修改 Figma。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |
