@@ -4585,3 +4585,45 @@ MTP-164 必须建立的主要 anchors：
 - 不读取真实账户、真实持仓、真实余额、broker position、margin、leverage、real PnL、account endpoint payload、broker payload 或 broker state。
 - 不新增 Live PRO Console、trading button、live command、order form、order-level command UI、position command、emergency stop、shutdown、restore 或 production operations command。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-165 MessageBus / Command / Event Boundary Validation
+
+日期：2026-06-01
+
+执行者：Codex
+
+MTP-165 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-165 的验收要求：
+
+- `docs/architecture/module-boundary.md` 必须包含 MessageBus facts / commands / events / request-response / paper routing / replay invariant 和 risk / execution bypass guard anchors。
+- `docs/domain/context.md` 必须包含 MTP-165 MessageBus shared language anchors。
+- `docs/validation/trading-validation-matrix.md` 必须把 `TVM-ARCHITECTURE-MODULE-BOUNDARY` 扩展到 MTP-165 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 MessageBus command event boundary anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-165 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-165 architecture boundary、domain context、validation plan、validation matrix、latest summary、automation readiness doc、facts / commands / events、request-response、paper routing / replay invariant、engine dependency bridge 和 risk / execution bypass guard strings。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-165 必须建立的主要 anchors：
+
+- `MTP-165-MESSAGEBUS-FACTS-COMMANDS-EVENTS-CONTRACT`
+- `MTP-165-REQUEST-RESPONSE-CONTRACT`
+- `MTP-165-PAPER-ROUTING-REPLAY-INVARIANT`
+- `MTP-165-ENGINE-DEPENDENCY-BRIDGE`
+- `MTP-165-RISK-EXECUTION-BYPASS-GUARD`
+- `MTP-165-MESSAGEBUS-BOUNDARY-VALIDATION`
+
+## MTP-165 禁止
+
+- 不实现完整 runtime MessageBus，不新增或修改 Swift production code，不修改 `Package.swift` target graph，不创建 SwiftPM target。
+- 不把 MessageBus 写成 external message broker、live command bus、OMS bus、ExecutionClient request queue 或 UI command surface。
+- 不通过 MessageBus 绕过 RiskEngine / ExecutionEngine boundary。
+- 不实现 broker / exchange execution adapter、`LiveExecutionAdapter`、OMS implementation、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不调用 signed endpoint、account endpoint / listenKey，不创建或 keepalive listenKey，不连接 private WebSocket，不启动 private stream runtime 或 account snapshot runtime。
+- 不读取真实账户、真实持仓、真实余额、broker position、margin、leverage、real PnL、account endpoint payload、broker payload 或 broker state。
+- 不新增 Live PRO Console、trading button、live command、order form、order-level command UI、position command、emergency stop、shutdown、restore 或 production operations command。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
