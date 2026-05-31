@@ -378,6 +378,44 @@ Database 禁止持久化 real account payload、broker payload、broker state、
 
 MTP-167 只证明 Database boundary anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不实现 Database migration、schema exposure、broker/account payload persistence、Redis clone、UI command surface、runtime object exposure、live command path、signed/account/listenKey endpoint、private WebSocket runtime 或 source migration。
 
+## MTP-168 DataClient Exchange Adapter Boundary
+
+`MTP-168-DATACLIENT-VENUE-ADAPTER-BOUNDARY-CONTRACT`
+
+MTP-168 将 `Sources/DataClient/<venue>/` 固定为 venue-scoped exchange adapter boundary。一个交易所只能进入一个 venue 目录；当前 Binance 只能作为 `Sources/DataClient/Binance/` 的示例边界出现。DataClient 负责 source identity、provider client / exchange client capability taxonomy、public market data request contract 和 future private stream gate label；它不依赖 DataEngine、Trader、ExecutionEngine、ExecutionClient、Workbench 或 Database。
+
+| DataClient surface | 当前含义 | 禁止升级 |
+| --- | --- | --- |
+| Venue directory | `Sources/DataClient/<venue>/`，例如 `Binance/`。 | 不把 `Adapters/`、`Runtime/` 或 per-endpoint 临时目录写成目标结构。 |
+| PublicMarketData | public read-only market data source boundary。 | 不带 API key、signature、account、order、listenKey 或 private stream runtime。 |
+| FuturePrivateStreamGate | future-gated private stream label。 | 不创建 listenKey，不连接 private WebSocket，不运行 account snapshot runtime。 |
+| Provider client | provider / SDK facade taxonomy。 | 不等于 broker adapter、ExecutionClient 或 OMS client。 |
+| Exchange client | venue-specific request / response capability taxonomy。 | 不等于 signed execution client、account endpoint client 或 real broker gateway。 |
+
+`MTP-168-BINANCE-PUBLIC-MARKET-DATA-BOUNDARY`
+
+Binance 在当前 scope 只能表达 public market data boundary：symbols、klines、trades、depth、book ticker 和其他 public read-only evidence 可以作为 DataClient source contract；account、order、signed request、listenKey、private stream、execution report、broker fill、reconciliation、margin、leverage、buying power 和 real PnL 不能进入 current DataClient implementation。
+
+`MTP-168-FUTURE-PRIVATE-STREAM-GATE-CONTRACT`
+
+`FuturePrivateStreamGate` 只能是 future-gated label，用于说明未来 private stream 需要 Human decision、独立 Project Definition、credential / endpoint / adapter / operations gates 和 forbidden capability audit。该 label 不授权当前 issue 创建 listenKey、keepalive listenKey、连接 private WebSocket、运行 account snapshot runtime、读取 account endpoint payload 或保存 broker state。
+
+`MTP-168-PROVIDER-EXCHANGE-CAPABILITY-TAXONOMY`
+
+Provider client / exchange client taxonomy 只描述 capability classification：`public-market-data`、`future-private-stream-gated`、`forbidden-signed-account` 和 `forbidden-execution`. Capability taxonomy 不能被 DataEngine、Trader、ExecutionEngine、Workbench 或 Cache 当成 runtime object、Adapter request、Database schema、broker payload 或 UI command contract。
+
+`MTP-168-DATACLIENT-DEPENDENCY-ISOLATION-GUARD`
+
+DataClient 不依赖 DataEngine、Trader、ExecutionEngine、ExecutionClient、Workbench、Cache、Database 或 Portfolio。依赖方向只能是 DataEngine 在后续 issue 通过 request / ingest boundary 消费 DataClient public market data capability；DataClient 不能 publish MessageBus facts、不能写 Database、不能驱动 Workbench，也不能绕过 DataEngine 直接服务 Trader / Strategy / UI。
+
+`MTP-168-SIGNED-ACCOUNT-LISTENKEY-FORBIDDEN-GUARD`
+
+禁止 `DataClient -> signed endpoint`、`DataClient -> account endpoint`、`DataClient -> listenKey create / keepalive`、`DataClient -> private WebSocket runtime`、`DataClient -> account snapshot runtime`、`DataClient -> broker adapter`、`DataClient -> ExecutionClient`、`DataClient -> OMS`、`DataClient -> real order lifecycle`、`DataClient -> broker fill / reconciliation` 或 `DataClient -> Database account payload archive`。
+
+`MTP-168-DATACLIENT-BOUNDARY-VALIDATION`
+
+MTP-168 只证明 DataClient exchange adapter boundary anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不实现 source move、SwiftPM target split、Binance runtime migration、signed/account/listenKey endpoint、private WebSocket runtime、account snapshot runtime、broker / exchange execution adapter、ExecutionClient、OMS、UI command surface、Graphify 或 Figma。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |
