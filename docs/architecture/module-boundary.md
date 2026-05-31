@@ -669,6 +669,36 @@ OMSFutureGate 只能作为 future-gated boundary label，说明未来 OMS 与 Ex
 
 MTP-176 只证明 ExecutionEngine paper / simulated lifecycle boundary anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不移动 production source、不创建 SwiftPM target、不修改 `Package.swift` target graph、不实现 ExecutionEngine runtime、不实现 OMS / broker adapter / ExecutionClient、不运行 Graphify、不修改 Figma。
 
+## MTP-177 ExecutionClient / OMS Future Gate Boundary
+
+`MTP-177-EXECUTIONCLIENT-FUTURE-GATED-BOUNDARY-CONTRACT`
+
+MTP-177 将 `Sources/ExecutionClient/` 固定为 future-gated venue API client boundary。ExecutionClient 只代表未来把内部已通过 RiskEngine 和 ExecutionEngine 的 order intent 翻译成 broker / exchange API request 的外部电话线；当前仓库不得实现 broker client、exchange execution adapter、signed request、account endpoint / listenKey、private WebSocket runtime 或 order submit / cancel / replace。
+
+`MTP-177-BROKER-CAPABILITY-MATRIX-FUTURE-GATE`
+
+BrokerCapabilityMatrix 只能作为 future gate taxonomy，用于列出未来 venue capability、signed endpoint capability、account endpoint capability、execution report capability、broker fill capability 和 reconciliation capability。当前 MTP-177 不授权 capability discovery runtime、credential check、network probe、private endpoint test、API key input、secret storage、credential provider 或 keychain storage。
+
+`MTP-177-OMS-FUTURE-GATE-EXECUTIONENGINE-SPLIT`
+
+OMSFutureGate 只说明未来 OMS 与 ExecutionEngine 的分界：ExecutionEngine 负责 paper / simulated lifecycle evidence，OMS 未来才可能负责 live order orchestration、order state machine 和 venue routing。当前 MTP-177 不实现 OMS、order router、order state store、order amendment engine、real submit / cancel / replace、execution report parser、broker fill parser 或 reconciliation runtime。
+
+`MTP-177-EXECUTIONENGINE-VS-EXECUTIONCLIENT-PLAIN-LANGUAGE`
+
+大白话：ExecutionEngine 是内部执行大脑，负责本地 paper / simulated lifecycle、simulated fill、fee / slippage 和 Portfolio projection evidence；ExecutionClient 是未来外部电话线，只在未来 approved live gate 后才可能拨 broker / exchange API。当前 ExecutionEngine 不能拿起这条电话线，ExecutionClient 也不能作为当前 runtime 存在。
+
+`MTP-177-NO-BROKER-CLIENT-SIGNED-REQUEST-GUARD`
+
+禁止 `ExecutionClient -> broker client`、`ExecutionClient -> signed request`、`ExecutionClient -> order submit`、`ExecutionClient -> order cancel`、`ExecutionClient -> order replace`、`ExecutionClient -> account endpoint / listenKey`、`ExecutionClient -> private WebSocket runtime`、`ExecutionEngine -> ExecutionClient request` 和 `OMSFutureGate -> current OMS implementation`。
+
+`MTP-177-NO-EXECUTION-REPORT-FILL-RECONCILIATION-RUNTIME`
+
+ExecutionClient / OMS future gate 不能绕成 real execution evidence pipeline：不创建 execution report parser、broker fill parser、broker acknowledgement decoder、order status poller、fill reconciliation job、position reconciliation job、settlement importer、broker statement reader 或 production execution audit trail。
+
+`MTP-177-EXECUTIONCLIENT-OMS-FUTURE-GATE-VALIDATION`
+
+MTP-177 只证明 ExecutionClient / OMS future gate boundary anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不移动 production source、不创建 SwiftPM target、不修改 `Package.swift` target graph、不实现 ExecutionClient、不实现 OMS、不运行 Graphify、不修改 Figma。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |

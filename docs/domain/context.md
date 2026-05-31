@@ -461,6 +461,34 @@ MTP-176 的 forbidden path 包括 `ExecutionEngine -> broker submit`、`Executio
 
 MTP-176 的验证只证明 ExecutionEngine paper / simulated lifecycle boundary、paper lifecycle state contract、simulated fill / fee / slippage contract、Portfolio projection evidence output、OMS future gate boundary 和 no real order lifecycle / broker path guard 已落仓；不证明 source move、Package.swift target graph change、ExecutionEngine runtime、ExecutionClient、OMS、broker adapter 或 real order lifecycle 已实现。
 
+`MTP-177-EXECUTIONCLIENT-FUTURE-GATED-BOUNDARY-CONTRACT`
+
+MTP-177 固定 `Sources/ExecutionClient/` 为 future-gated venue API client boundary。ExecutionClient 只表示未来把已通过 RiskEngine 和 ExecutionEngine 的 order intent 翻译成 broker / exchange API request 的外部电话线；当前不表示 broker client、exchange execution adapter、signed request runtime、account endpoint / listenKey runtime、private WebSocket runtime 或 order submit / cancel / replace capability。
+
+`MTP-177-BROKER-CAPABILITY-MATRIX-FUTURE-GATE`
+
+BrokerCapabilityMatrix 只是 future gate taxonomy。它可以列出 future venue capability、signed endpoint capability、account endpoint capability、execution report capability、broker fill capability、reconciliation capability 和 credential requirement label；不得升级为 capability discovery runtime、credential check、network probe、private endpoint test、API key input、secret storage、credential provider 或 keychain storage。
+
+`MTP-177-OMS-FUTURE-GATE-EXECUTIONENGINE-SPLIT`
+
+OMSFutureGate 只说明未来 OMS 与 ExecutionEngine 的分界：ExecutionEngine 负责 current paper / simulated lifecycle evidence、simulated fill、fee / slippage 和 Portfolio projection trigger；OMS 未来才可能负责 live order orchestration、order state machine、venue routing、order amendment 和 production execution audit trail。当前不得实现 OMS、order router、order state store、real submit / cancel / replace、execution report parser、broker fill parser 或 reconciliation runtime。
+
+`MTP-177-EXECUTIONENGINE-VS-EXECUTIONCLIENT-PLAIN-LANGUAGE`
+
+大白话：ExecutionEngine 是内部执行大脑，负责本地 paper / simulated lifecycle；ExecutionClient 是未来外部电话线，只在 future approved live gate 后才可能拨 broker / exchange API。当前 ExecutionEngine 不能直连这条电话线，ExecutionClient 不能作为当前 runtime、adapter、client wrapper 或 broker session 存在。
+
+`MTP-177-NO-BROKER-CLIENT-SIGNED-REQUEST-GUARD`
+
+MTP-177 的 forbidden path 包括 `ExecutionClient -> broker client`、`ExecutionClient -> signed request`、`ExecutionClient -> order submit`、`ExecutionClient -> order cancel`、`ExecutionClient -> order replace`、`ExecutionClient -> account endpoint / listenKey`、`ExecutionClient -> private WebSocket runtime`、`ExecutionEngine -> ExecutionClient request` 和 `OMSFutureGate -> current OMS implementation`。
+
+`MTP-177-NO-EXECUTION-REPORT-FILL-RECONCILIATION-RUNTIME`
+
+ExecutionClient / OMS future gate 不得产生 real execution evidence pipeline。MTP-177 不创建 execution report parser、broker fill parser、broker acknowledgement decoder、order status poller、fill reconciliation job、position reconciliation job、settlement importer、broker statement reader、production execution audit trail 或 production recovery hook。
+
+`MTP-177-EXECUTIONCLIENT-OMS-FUTURE-GATE-VALIDATION`
+
+MTP-177 的验证只证明 ExecutionClient future-gated boundary、BrokerCapabilityMatrix future gate、OMS future gate / ExecutionEngine split、ExecutionEngine vs ExecutionClient plain-language boundary、no broker client / signed request guard 和 no execution report / fill / reconciliation runtime guard 已落仓；不证明 source move、Package.swift target graph change、ExecutionClient、OMS、broker adapter 或 live execution runtime 已实现。
+
 ## Paper Runtime Kernel Terms
 
 `MTP-96-PAPER-RUNTIME-KERNEL-TERMS`

@@ -5098,3 +5098,45 @@ MTP-176 必须建立的主要 anchors：
 - 不把 paper lifecycle state、simulated fill、fee、slippage、Portfolio projection trigger 或 OMSFutureGate 升级为 broker order、ExecutionClient request、OMS order、order form payload、live command、position command、trading button 或 Live PRO Console。
 - 不新增 API key input、secret storage、credential provider、keychain storage 或 broker connect UI。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-177 ExecutionClient / OMS Future Gate Boundary Validation
+
+日期：2026-06-01
+
+执行者：Codex
+
+MTP-177 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-177 的验收要求：
+
+- `docs/architecture/module-boundary.md` 必须包含 ExecutionClient future-gated boundary、BrokerCapabilityMatrix future gate、OMS future gate / ExecutionEngine split、ExecutionEngine vs ExecutionClient plain-language boundary、no broker client / signed request guard、no execution report / fill / reconciliation runtime guard 和 ExecutionClient / OMS future gate validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-177 ExecutionClient / OMS shared language anchors。
+- `docs/validation/trading-validation-matrix.md` 必须把 `TVM-ARCHITECTURE-MODULE-BOUNDARY` 扩展到 MTP-177 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 ExecutionClient / OMS future gate boundary anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-177 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-177 architecture boundary、domain context、validation plan、validation matrix、latest summary、automation readiness doc、`Sources/ExecutionClient/`、BrokerCapabilityMatrix、OMSFutureGate、ExecutionEngine vs ExecutionClient plain-language boundary、no broker client、no signed request、no order submit / cancel / replace、no execution report parser、no broker fill parser 和 no reconciliation runtime strings。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-177 必须建立的主要 anchors：
+
+- `MTP-177-EXECUTIONCLIENT-FUTURE-GATED-BOUNDARY-CONTRACT`
+- `MTP-177-BROKER-CAPABILITY-MATRIX-FUTURE-GATE`
+- `MTP-177-OMS-FUTURE-GATE-EXECUTIONENGINE-SPLIT`
+- `MTP-177-EXECUTIONENGINE-VS-EXECUTIONCLIENT-PLAIN-LANGUAGE`
+- `MTP-177-NO-BROKER-CLIENT-SIGNED-REQUEST-GUARD`
+- `MTP-177-NO-EXECUTION-REPORT-FILL-RECONCILIATION-RUNTIME`
+- `MTP-177-EXECUTIONCLIENT-OMS-FUTURE-GATE-VALIDATION`
+
+## MTP-177 禁止
+
+- 不移动 production source，不新增或修改 Swift production code，不修改 `Package.swift` target graph，不创建 SwiftPM target。
+- 不实现 ExecutionClient、OMS、broker adapter、broker / exchange execution adapter、order router、order state store、order amendment engine、execution venue routing 或 live execution runtime。
+- 不实现 signed request、account endpoint / listenKey、private WebSocket runtime、broker client、order submit / cancel / replace、execution report parser、broker fill parser、broker acknowledgement decoder、order status poller、fill / position reconciliation job、settlement importer 或 broker statement reader。
+- 不新增 capability discovery runtime、credential check、network probe、private endpoint test、API key input、secret storage、credential provider、keychain storage 或 broker connect UI。
+- 不把 ExecutionClient、BrokerCapabilityMatrix、OMSFutureGate、ExecutionEngine vs ExecutionClient plain-language boundary 或 future venue API client boundary 升级为 current runtime implementation。
+- 不新增 Live PRO Console、trading button、live command、order form、position command、emergency stop、shutdown、restore 或 production operations command。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
