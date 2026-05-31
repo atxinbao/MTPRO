@@ -416,6 +416,49 @@ DataClient 不依赖 DataEngine、Trader、ExecutionEngine、ExecutionClient、W
 
 MTP-168 只证明 DataClient exchange adapter boundary anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不实现 source move、SwiftPM target split、Binance runtime migration、signed/account/listenKey endpoint、private WebSocket runtime、account snapshot runtime、broker / exchange execution adapter、ExecutionClient、OMS、UI command surface、Graphify 或 Figma。
 
+## MTP-169 DataEngine Ingest / Replay / Quality Boundary
+
+`MTP-169-DATAENGINE-INGEST-REPLAY-QUALITY-CONTRACT`
+
+MTP-169 将 `Sources/DataEngine/` 固定为 market data ingest、request / response、scenario replay、catalog、freshness 和 quality gates 的本地数据引擎边界。DataEngine 只把 local deterministic、public read-only 和 scenario replay evidence 转换成可追溯 facts / evidence；它不直接服务 Workbench UI、Trader、Strategy、RiskEngine 或 ExecutionEngine。
+
+| DataEngine surface | 当前含义 | 禁止升级 |
+| --- | --- | --- |
+| Ingest | 消费 DataClient public market data capability 或本地 fixture。 | 不直连 signed/account/listenKey/private stream runtime。 |
+| Request / response | engine-local deterministic request / response evidence。 | 不暴露 Adapter request、Runtime object、HTTP API 或 UI command surface。 |
+| Scenario replay | 固定 replay window、dataset / fixture version 和 source identity。 | 不等于 live recovery、broker replay、private stream replay 或 account replay。 |
+| Catalog | source identity、dataset、symbol/timeframe、fixture version 和 replay window registry。 | 不包含 credential、secret、account id、broker state 或 endpoint lease。 |
+| Freshness | observedAt、source watermark、fresh / stale / missing / blocked evidence。 | 不触发 network refresh、listenKey keepalive、broker sync 或 live command。 |
+| Quality gates | completeness、ordering、checksum、schema-free read evidence。 | 不暴露 SQLite / DuckDB schema，不生成 executable order command。 |
+
+`MTP-169-MARKET-DATA-INGEST-REQUEST-RESPONSE-CONTRACT`
+
+DataEngine 只能通过 request / ingest boundary 消费 DataClient public market data capability，并把 result 解释为 market data facts / evidence input。Request / response 必须保留 source identity、dataset / fixture version、replay window、freshness 和 quality evidence；不能携带 API key、signature、account endpoint payload、listenKey、private stream message、broker payload、Runtime object 或 Adapter request。
+
+`MTP-169-SCENARIO-REPLAY-CATALOG-FRESHNESS-QUALITY-GATES`
+
+Scenario replay、catalog、freshness 和 quality gates 必须保持 local deterministic / public read-only / scenario replay allowed。fresh / stale / missing / blocked 只描述 evidence 可用性；stale 不触发 network refresh，missing 不回退到 signed/account endpoint，blocked 表示 forbidden capability boundary 拒绝 private stream、broker adapter 或 account payload。
+
+`MTP-169-DATAENGINE-MESSAGEBUS-PUBLISHING-CONTRACT`
+
+DataEngine 到 MessageBus 的唯一输出是 market ingest facts、scenario replay facts、catalog facts、freshness evidence 和 quality gate evidence。DataEngine 不能 publish order command、risk decision、execution decision、broker command、OMS request、UI command 或 Workbench event handler。
+
+`MTP-169-DATACLIENT-MESSAGEBUS-CACHE-RELATIONSHIP`
+
+DataClient 只提供 public market data capability；DataEngine 负责 ingest / replay / quality interpretation；MessageBus 承载 facts / evidence；Cache 只能消费 MessageBus facts 和 Database projection snapshot 形成 runtime-derived read state。DataEngine 不写 Cache，不写 Database schema，不直接驱动 Workbench，也不直接服务 Trader。
+
+`MTP-169-UI-TRADER-DIRECT-SERVICE-FORBIDDEN-GUARD`
+
+禁止 `Workbench -> DataEngine`、`Trader -> DataEngine`、`Strategy -> DataEngine`、`RiskEngine -> DataEngine`、`ExecutionEngine -> DataEngine`、`DataEngine -> UI command` 或 `DataEngine -> Trader coordination`。所有 DataEngine evidence 必须先进入 MessageBus / Cache / ReadModel / ViewModel 或 report input contract。
+
+`MTP-169-SIGNED-ACCOUNT-BROKER-PATH-FORBIDDEN-GUARD`
+
+禁止 `DataEngine -> signed endpoint`、`DataEngine -> account endpoint`、`DataEngine -> listenKey create / keepalive`、`DataEngine -> private WebSocket runtime`、`DataEngine -> account snapshot runtime`、`DataEngine -> broker adapter`、`DataEngine -> ExecutionClient`、`DataEngine -> OMS`、`DataEngine -> real order lifecycle`、`DataEngine -> broker fill / reconciliation`、`DataEngine -> real account payload` 或 `DataEngine -> Database account payload archive`。
+
+`MTP-169-DATAENGINE-BOUNDARY-VALIDATION`
+
+MTP-169 只证明 DataEngine ingest / replay / quality boundary anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不实现完整 streaming DataEngine runtime、source move、SwiftPM target split、signed/account/listenKey endpoint、private WebSocket runtime、account snapshot runtime、broker / exchange execution adapter、ExecutionClient、OMS、UI command surface、Graphify 或 Figma。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |
