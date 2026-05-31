@@ -5140,3 +5140,45 @@ MTP-177 必须建立的主要 anchors：
 - 不把 ExecutionClient、BrokerCapabilityMatrix、OMSFutureGate、ExecutionEngine vs ExecutionClient plain-language boundary 或 future venue API client boundary 升级为 current runtime implementation。
 - 不新增 Live PRO Console、trading button、live command、order form、position command、emergency stop、shutdown、restore 或 production operations command。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-178 Broker / Real Order Forbidden Guard Evidence Validation
+
+日期：2026-06-01
+
+执行者：Codex
+
+MTP-178 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-178 的验收要求：
+
+- `docs/architecture/module-boundary.md` 必须包含 broker / real order forbidden guard、signed / account / listenKey endpoint blocklist、broker / exchange execution adapter blocklist、real submit / cancel / replace forbidden、execution report / broker fill / reconciliation blocklist、LiveExecutionAdapter future gate 和 broker / real order guard validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-178 broker / real order forbidden guard shared language anchors。
+- `docs/validation/trading-validation-matrix.md` 必须把 `TVM-ARCHITECTURE-MODULE-BOUNDARY` 扩展到 MTP-178 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 Broker / real order forbidden guard evidence anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-178 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-178 architecture boundary、domain context、validation plan、validation matrix、latest summary、automation readiness doc、broker / real order forbidden guard、signed / account / listenKey endpoint blocklist、broker / exchange execution adapter blocklist、real submit / cancel / replace forbidden、execution report / broker fill / reconciliation blocklist、LiveExecutionAdapter future gate、no source target creation、no broker adapter type declarations 和 no real order lifecycle implementation declarations。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-178 必须建立的主要 anchors：
+
+- `MTP-178-BROKER-REAL-ORDER-FORBIDDEN-GUARD`
+- `MTP-178-SIGNED-ACCOUNT-LISTENKEY-ENDPOINT-BLOCKLIST`
+- `MTP-178-BROKER-EXCHANGE-EXECUTION-ADAPTER-BLOCKLIST`
+- `MTP-178-REAL-SUBMIT-CANCEL-REPLACE-FORBIDDEN`
+- `MTP-178-EXECUTION-REPORT-BROKER-FILL-RECONCILIATION-BLOCKLIST`
+- `MTP-178-LIVEEXECUTIONADAPTER-FUTURE-GATE`
+- `MTP-178-BROKER-REAL-ORDER-GUARD-VALIDATION`
+
+## MTP-178 禁止
+
+- 不移动 production source，不新增或修改 Swift production code，不修改 `Package.swift` target graph，不创建 SwiftPM target。
+- 不实现 broker adapter、broker client、broker SDK wrapper、exchange execution adapter、exchange venue client、ExecutionClient、OMS、LiveExecutionAdapter、broker gateway、OMS gateway、order router、execution venue routing、broker session manager 或 broker connect UI。
+- 不实现 signed request builder、API key input、secret storage、credential provider、keychain storage、account endpoint client、listenKey lifecycle、private WebSocket runtime、account snapshot runtime、private endpoint network test、broker account payload 或 broker state payload。
+- 不实现真实 submit / cancel / replace、order amendment、order status poll、broker acknowledgement、exchange order id、client order id、broker order id、real order state machine 或 production execution audit trail。
+- 不实现 execution report parser、broker fill parser、broker fill fact、fill reconciliation job、position reconciliation job、settlement importer、broker statement reader、real PnL source、broker portfolio sync、account position sync 或 broker evidence pipeline。
+- 不把 paper lifecycle、simulated fill、RiskEngine blocked evidence、Strategy proposal、ExecutionClient future gate、BrokerCapabilityMatrix、OMSFutureGate 或 LiveExecutionAdapter future gate 升级为 executable order command、order form payload、live command、trading button、Live PRO Console action 或真实订单能力。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
