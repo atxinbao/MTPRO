@@ -233,6 +233,38 @@ DataClient 禁止 signed endpoint、account endpoint、listenKey create / keepal
 
 MTP-168 的验证只证明 DataClient venue adapter boundary、Binance public market data boundary、FuturePrivateStreamGate、provider / exchange capability taxonomy、dependency isolation guard 和 signed/account/listenKey forbidden guard 已落仓；不证明 source move、SwiftPM target split、Binance runtime migration、private stream runtime、account snapshot runtime、ExecutionClient、OMS、broker adapter、UI command surface 或 source migration 已实现。
 
+`MTP-169-DATAENGINE-INGEST-REPLAY-QUALITY-CONTRACT`
+
+MTP-169 固定 `DataEngine` 为 `Sources/DataEngine/` ingest / replay / quality boundary：market data ingest、request / response、scenario replay、catalog、freshness 和 quality gates 都必须保留 source identity、dataset / fixture version、replay window、freshness 和 quality evidence。DataEngine 只解释 local deterministic、public read-only 和 scenario replay evidence，不直接服务 Workbench UI、Trader、Strategy、RiskEngine 或 ExecutionEngine。
+
+`MTP-169-MARKET-DATA-INGEST-REQUEST-RESPONSE-CONTRACT`
+
+DataEngine 只能通过 request / ingest boundary 消费 DataClient public market data capability。request / response 是 engine-local deterministic evidence，不是 Runtime object、Adapter request、HTTP API、Workbench ViewModel 或 UI command contract；它不能携带 API key、secret、signature、account endpoint payload、listenKey、private stream message、broker payload、order payload 或 real account state。
+
+`MTP-169-SCENARIO-REPLAY-CATALOG-FRESHNESS-QUALITY-GATES`
+
+Scenario replay、catalog、freshness 和 quality gates 只允许表达 deterministic replay window、dataset / fixture version、source watermark、observedAt、fresh / stale / missing / blocked evidence、completeness、ordering 和 checksum。stale 不触发 network refresh，missing 不回退到 signed/account endpoint，blocked 只表示 forbidden capability boundary 拒绝 private stream、broker adapter 或 account payload。
+
+`MTP-169-DATAENGINE-MESSAGEBUS-PUBLISHING-CONTRACT`
+
+DataEngine 向 MessageBus publish 的内容只能是 market ingest facts、scenario replay facts、catalog facts、freshness evidence 和 quality gate evidence。DataEngine 不 publish order command、risk decision、execution decision、broker command、OMS request、UI command、live command 或 Workbench event handler。
+
+`MTP-169-DATACLIENT-MESSAGEBUS-CACHE-RELATIONSHIP`
+
+DataClient 提供 public market data capability；DataEngine 负责 ingest / replay / quality interpretation；MessageBus 承载 facts / evidence；Cache 从 MessageBus facts 和 Database projection snapshot 形成 runtime-derived read state。DataEngine 不写 Cache，不写 Database schema，不绕过 MessageBus，不直接驱动 Workbench，也不直接服务 Trader。
+
+`MTP-169-UI-TRADER-DIRECT-SERVICE-FORBIDDEN-GUARD`
+
+Workbench、Report、Dashboard、Events、Trader、Strategy、RiskEngine 和 ExecutionEngine 禁止直接调用 DataEngine。所有 DataEngine evidence 必须先进入 MessageBus / Cache / ReadModel / ViewModel 或 report input contract，不能成为 UI command、Trader coordination、Strategy runtime input 或 executable order path。
+
+`MTP-169-SIGNED-ACCOUNT-BROKER-PATH-FORBIDDEN-GUARD`
+
+DataEngine 禁止 signed endpoint、account endpoint、listenKey create / keepalive、private WebSocket runtime、private stream runtime、account snapshot runtime、broker / exchange execution adapter、ExecutionClient、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account payload、broker payload、broker state、real balance、real position、margin、leverage、buying power 和 real PnL。
+
+`MTP-169-DATAENGINE-BOUNDARY-VALIDATION`
+
+MTP-169 的验证只证明 DataEngine ingest / replay / quality boundary、request / response contract、scenario replay / catalog / freshness / quality gates、MessageBus publishing contract、DataClient / MessageBus / Cache relationship、UI / Trader direct service guard 和 signed/account/broker path forbidden guard 已落仓；不证明完整 streaming DataEngine runtime、source move、SwiftPM target split、private stream runtime、account snapshot runtime、ExecutionClient、OMS、broker adapter、UI command surface 或 source migration 已实现。
+
 ## Paper Runtime Kernel Terms
 
 `MTP-96-PAPER-RUNTIME-KERNEL-TERMS`

@@ -4755,3 +4755,48 @@ MTP-168 必须建立的主要 anchors：
 - 不读取真实账户、真实持仓、真实余额、broker position、margin、leverage、buying power、real PnL、account endpoint payload、broker payload 或 broker state。
 - 不新增 Live PRO Console、trading button、live command、order form、order-level command UI、position command、emergency stop、shutdown、restore 或 production operations command。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-169 DataEngine Ingest / Replay / Quality Boundary Validation
+
+日期：2026-06-01
+
+执行者：Codex
+
+MTP-169 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-169 的验收要求：
+
+- `docs/architecture/module-boundary.md` 必须包含 DataEngine ingest / replay / quality boundary、market data ingest request-response、scenario replay / catalog / freshness / quality gates、MessageBus publishing contract、DataClient / MessageBus / Cache relationship、UI / Trader direct service guard 和 signed/account/broker path forbidden guard anchors。
+- `docs/domain/context.md` 必须包含 MTP-169 DataEngine shared language anchors。
+- `docs/validation/trading-validation-matrix.md` 必须把 `TVM-ARCHITECTURE-MODULE-BOUNDARY` 扩展到 MTP-169 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 DataEngine ingest replay quality boundary anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-169 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-169 architecture boundary、domain context、validation plan、validation matrix、latest summary、automation readiness doc、`Sources/DataEngine/`、ingest、request / response、scenario replay、catalog、freshness、quality gates、MessageBus publishing、DataClient / MessageBus / Cache relationship、UI / Trader direct service guard 和 signed/account/broker forbidden path strings。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-169 必须建立的主要 anchors：
+
+- `MTP-169-DATAENGINE-INGEST-REPLAY-QUALITY-CONTRACT`
+- `MTP-169-MARKET-DATA-INGEST-REQUEST-RESPONSE-CONTRACT`
+- `MTP-169-SCENARIO-REPLAY-CATALOG-FRESHNESS-QUALITY-GATES`
+- `MTP-169-DATAENGINE-MESSAGEBUS-PUBLISHING-CONTRACT`
+- `MTP-169-DATACLIENT-MESSAGEBUS-CACHE-RELATIONSHIP`
+- `MTP-169-UI-TRADER-DIRECT-SERVICE-FORBIDDEN-GUARD`
+- `MTP-169-SIGNED-ACCOUNT-BROKER-PATH-FORBIDDEN-GUARD`
+- `MTP-169-DATAENGINE-BOUNDARY-VALIDATION`
+
+## MTP-169 禁止
+
+- 不实现完整 streaming DataEngine runtime，不新增或修改 Swift production code，不修改 `Package.swift` target graph，不创建 SwiftPM target。
+- 不把 DataEngine 写成 UI / Trader / Strategy / RiskEngine / ExecutionEngine 直接服务层，不绕过 MessageBus / Cache / ReadModel / ViewModel / report input contract。
+- 不把 request / response 写成 Runtime object、Adapter request、HTTP API、Workbench ViewModel、UI command contract、broker payload 或 account payload。
+- 不通过 DataEngine 触发 network refresh、listenKey keepalive、broker sync、private stream reconnect、live command 或 executable order path。
+- 不实现 broker / exchange execution adapter、`LiveExecutionAdapter`、OMS implementation、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不调用 signed endpoint、account endpoint / listenKey，不创建或 keepalive listenKey，不连接 private WebSocket，不启动 private stream runtime 或 account snapshot runtime。
+- 不读取真实账户、真实持仓、真实余额、broker position、margin、leverage、buying power、real PnL、account endpoint payload、broker payload 或 broker state。
+- 不新增 Live PRO Console、trading button、live command、order form、order-level command UI、position command、emergency stop、shutdown、restore 或 production operations command。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
