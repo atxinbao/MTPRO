@@ -4929,3 +4929,45 @@ MTP-172 必须建立的主要 anchors：
 - 不调用 signed endpoint、account endpoint / listenKey，不连接 private WebSocket，不启动 private stream runtime 或 account snapshot runtime。
 - 不新增 Live PRO Console backend、trading button handler、live command、order form、order-level command UI、emergency stop、shutdown、restore 或 production operations command。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-173 Account / Portfolio Context Read-model Boundary Validation
+
+日期：2026-06-01
+
+执行者：Codex
+
+MTP-173 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-173 的验收要求：
+
+- `docs/architecture/module-boundary.md` 必须包含 Account / Portfolio read-model boundary、Trader account context identity contract、Portfolio financial state ownership、cash / position / PnL / exposure / projection split、real account broker portfolio future gate 和 no broker account state read guard anchors。
+- `docs/domain/context.md` 必须包含 MTP-173 Account / Portfolio shared language anchors。
+- `docs/validation/trading-validation-matrix.md` 必须把 `TVM-ARCHITECTURE-MODULE-BOUNDARY` 扩展到 MTP-173 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 Account / Portfolio context read-model boundary anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-173 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-173 architecture boundary、domain context、validation plan、validation matrix、latest summary、automation readiness doc、`Sources/Trader/Accounts/`、`Sources/Portfolio/`、account context、account identity、source identity、Portfolio financial state、cash、positions、PnL、exposure、paper projection、future-gated real account 和 no broker account state read guard strings。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-173 必须建立的主要 anchors：
+
+- `MTP-173-ACCOUNT-PORTFOLIO-READMODEL-BOUNDARY-CONTRACT`
+- `MTP-173-TRADER-ACCOUNT-CONTEXT-IDENTITY-CONTRACT`
+- `MTP-173-PORTFOLIO-FINANCIAL-STATE-OWNERSHIP`
+- `MTP-173-CASH-POSITION-PNL-EXPOSURE-PROJECTION-SPLIT`
+- `MTP-173-REAL-ACCOUNT-BROKER-PORTFOLIO-FUTURE-GATE`
+- `MTP-173-NO-BROKER-ACCOUNT-STATE-READ-GUARD`
+- `MTP-173-ACCOUNT-PORTFOLIO-BOUNDARY-VALIDATION`
+
+## MTP-173 禁止
+
+- 不移动 production source，不新增或修改 Swift production code，不修改 `Package.swift` target graph，不创建 SwiftPM target。
+- 不实现 Portfolio runtime、real account runtime、broker position sync、Portfolio live reconciliation、private stream runtime 或 account snapshot runtime。
+- 不读取真实 account、真实持仓、真实余额、broker position、broker portfolio、broker account state、account endpoint payload、broker payload、margin、leverage、buying power 或 real PnL。
+- 不把 cash、positions、PnL、exposure、margin、open value 或 paper projection 放进 Trader/Accounts。
+- 不调用 signed endpoint、account endpoint / listenKey，不连接 private WebSocket，不启动 private stream runtime 或 account snapshot runtime。
+- 不新增 broker reconciliation、execution report、broker fill、real order lifecycle、Live PRO Console、trading button、live command、order form、emergency stop、shutdown、restore 或 production operations command。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

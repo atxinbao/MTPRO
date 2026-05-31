@@ -549,6 +549,36 @@ Trader/Accounts 的 account context 只表达 account identity、source identity
 
 MTP-172 只证明 Trader coordination boundary anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不移动 production source、不创建 SwiftPM target、不修改 `Package.swift` target graph、不实现 Trader runtime、不实现 live coordinator / OMS / broker gateway、不读取真实 account / broker position、不运行 Graphify、不修改 Figma。
 
+## MTP-173 Account / Portfolio Read-model Boundary
+
+`MTP-173-ACCOUNT-PORTFOLIO-READMODEL-BOUNDARY-CONTRACT`
+
+MTP-173 将 `Sources/Trader/Accounts/` 与 `Sources/Portfolio/` 的职责分层固定为 account context / identity 与 portfolio financial state 的 read-model boundary。Account 只作为 Trader coordination 的本地 context；Portfolio 是独立 financial state 模块，负责 positions、net positions、cash/equity、margin、open value、PnL、exposure 和 paper projection。
+
+`MTP-173-TRADER-ACCOUNT-CONTEXT-IDENTITY-CONTRACT`
+
+`Sources/Trader/Accounts/` 只能保存 account context、account identity、source identity、simulated / paper / future-gated source label 和 readiness evidence。它不拥有 cash、positions、net positions、PnL、exposure、margin、open value、paper projection、broker position、broker account state、account endpoint payload 或 broker payload。
+
+`MTP-173-PORTFOLIO-FINANCIAL-STATE-OWNERSHIP`
+
+`Sources/Portfolio/` 独立拥有 paper / simulated financial state read models：positions、net positions、cash/equity、PnL、exposure、margin、open value 和 paper projection。Portfolio 可以消费 DomainModel、MessageBus facts、Cache read state 和 Database projection input；不得依赖 Trader runtime、ExecutionClient、broker adapter、account endpoint payload 或 broker state。
+
+`MTP-173-CASH-POSITION-PNL-EXPOSURE-PROJECTION-SPLIT`
+
+cash、positions、PnL、exposure、margin、open value 和 projection 必须归 Portfolio；Trader 只能引用 Portfolio read model 形成 coordination context；Workbench / Report / Events 只能消费 ReadModel / ViewModel export。任何 docs、checks 或后续 PR 都不得把这些 financial state 字段放回 Trader/Accounts。
+
+`MTP-173-REAL-ACCOUNT-BROKER-PORTFOLIO-FUTURE-GATE`
+
+真实账户 source、broker portfolio、broker position、real balance、real position、margin / leverage、buying power、real PnL、account endpoint payload、broker payload 和 broker state 只能作为 future-gated forbidden label 出现。MTP-173 不授权 real account runtime、broker position sync、Portfolio live reconciliation、account snapshot runtime 或 private stream runtime。
+
+`MTP-173-NO-BROKER-ACCOUNT-STATE-READ-GUARD`
+
+禁止 `Portfolio -> broker account state`、`Portfolio -> account endpoint payload`、`Portfolio -> broker payload`、`Portfolio -> signed endpoint`、`Portfolio -> account endpoint / listenKey`、`Portfolio -> private WebSocket runtime`、`Portfolio -> broker position sync`、`Trader/Accounts -> broker portfolio` 和 `Workbench -> Portfolio broker state`。
+
+`MTP-173-ACCOUNT-PORTFOLIO-BOUNDARY-VALIDATION`
+
+MTP-173 只证明 Account / Portfolio read-model boundary anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不移动 production source、不创建 SwiftPM target、不修改 `Package.swift` target graph、不实现 Portfolio runtime、不读取真实 account / broker portfolio、不运行 Graphify、不修改 Figma。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |
