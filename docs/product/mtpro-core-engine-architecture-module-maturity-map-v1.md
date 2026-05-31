@@ -12,6 +12,19 @@
 
 本文不授权真实交易、signed endpoint、account endpoint / listenKey、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation runtime、live risk engine、Live PRO Console、trading button 或 live command。
 
+### 2026-05-31 架构图对齐校准
+
+本文早期的禁止边界用于防止 current scope 越界，不表示目标架构中不能出现 `ExecutionClient`、`OMS`、`Trader runtime`、`Strategy runtime`、`Portfolio runtime`、`Risk runtime`、`Cache` 或完整 `MessageBus` 这些模块名。
+
+从 `MTPRO Engine Module Boundary Consolidation v1` 开始，边界口径调整为：
+
+- 目标架构模块可以被正式纳入 Engine map。
+- 当前 Project 可以定义这些模块的职责、输入输出、依赖方向、allowed source、forbidden source 和 validation anchors。
+- 当前仍不授权 live runtime、broker / exchange execution adapter、signed endpoint、account endpoint / listenKey、real order lifecycle、OMS implementation、Live PRO Console、trading button 或 live command。
+- L3.0 到 L3.4 已完成的是 readiness / read-model / simulation gate / strategy-trader structural evidence，不等于 live runtime implementation。
+- L4 仍是 Future Gated；L4 planning 前建议先完成 Engine Module Boundary Consolidation。
+- 最终目标代码结构以 `docs/architecture/module-boundary.md` 固定的 `Sources/DataClient/<venue>/`、`Sources/DataEngine/`、`Sources/MessageBus/`、`Sources/Cache/`、`Sources/Database/`、`Sources/Strategies/<strategy>/`、`Sources/Trader/`、`Sources/Portfolio/`、`Sources/RiskEngine/`、`Sources/ExecutionEngine/`、`Sources/ExecutionClient/`、`Sources/Workbench/`、`Sources/Dashboard/` 为准；早期 `Core / Adapters / Persistence / Runtime / App` 只作为迁移来源。
+
 ## 2. 输入依据
 
 - `README.md`
@@ -206,10 +219,10 @@ Strategy instance 不能直接调用 Execution Client，也不能直接写 broke
 | 阶段 | Engine / Layer 重点 | 状态 | 当前边界 |
 | --- | --- | --- | --- |
 | `L3.0 Live Read-only Readiness Boundary` | Connectivity / Adapter Engine、Evidence Read Model Layer、Workbench Interface、Docs / Validation | Done / not counted in old denominator | 已完成 credential、endpoint、adapter capability、account / private stream future gates 和 forbidden baseline；不实现 endpoint、listenKey、broker 或 account runtime |
-| `L3.1 Account / Position / Balance Read-model-only` | Evidence Read Model Layer、Portfolio Engine、Workbench Interface | Future Gated | 只允许后续规划 read-model-only evidence；不读取真实账户或 broker position |
-| `L3.2 Private Stream / Account Snapshot Simulation Gate` | Data Engine、Connectivity / Adapter Engine、State & Persistence boundary | Future Gated | 只允许后续规划 simulation gate；不创建 listenKey，不连接 private stream |
-| `L3.3 Live Monitoring Read-only Console v2` | Workbench Interface、Live Monitoring read-model-only surface | Future Gated | 只允许后续规划只读 evidence surface；不提供 Live PRO Console、交易按钮或 live command |
-| `L3.4 Strategy / Trader Instance Readiness v1` | Strategy Engine、Portfolio Engine、Risk Engine、Evidence Read Model Layer | Future Gated / Planning Candidate | 只允许后续规划 Strategy Instance / Trader Instance lifecycle、quoter / hedger role、account / portfolio / risk read-model input 和 paper/live-neutral proposal contract；不允许 strategy 直连 Execution Client 或 broker command |
+| `L3.1 Account / Position / Balance Read-model-only` | Evidence Read Model Layer、Portfolio Engine、Workbench Interface | Done / not counted in old denominator | 已完成 account / position / balance read-model-only evidence；不读取真实账户或 broker position |
+| `L3.2 Private Stream / Account Snapshot Simulation Gate` | Data Engine、Connectivity / Adapter Engine、State & Persistence boundary | Done / not counted in old denominator | 已完成 local fixture / simulated gate evidence；不创建 listenKey，不连接 private stream |
+| `L3.3 Live Monitoring Read-only Console v2` | Workbench Interface、Live Monitoring read-model-only surface | Done / not counted in old denominator | 已完成只读 evidence surface；不提供 Live PRO Console、交易按钮或 live command |
+| `L3.4 Strategy / Trader Instance Readiness v1` | Strategy Engine、Portfolio Engine、Risk Engine、Evidence Read Model Layer | Done / not counted in old denominator | 已完成 Strategy Instance / Trader Instance lifecycle、quoter / hedger role、account / portfolio / risk read-model input 和 paper/live-neutral proposal contract evidence；不允许 strategy 直连 Execution Client 或 broker command |
 | `L4 Live Production / Trading Commands` | Live、Execution、Risk、Portfolio、System / Ops | Future Gated | 必须另经独立 Human decision、Project Definition、signed/account/broker/risk/ops gates |
 
 ## 9. 当前 Engine 成熟度矩阵
