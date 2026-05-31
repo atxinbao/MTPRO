@@ -313,6 +313,36 @@ MessageBus 不允许绕过 risk / execution boundary。禁止 `Strategies -> Mes
 
 MTP-165 只证明 MessageBus contract anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不实现完整 runtime MessageBus，不修改 UI command surface，不实现 broker、OMS、ExecutionClient、live command path、signed/account/listenKey endpoint、private WebSocket runtime 或 source migration。
 
+## MTP-166 Cache Boundary
+
+`MTP-166-CACHE-RUNTIME-DERIVED-STATE-CONTRACT`
+
+MTP-166 将 `Sources/Cache/` 固定为 runtime-derived state boundary。Cache 只能保存可从 MessageBus facts、Database projection snapshot、local replay output、paper lifecycle 和 simulated lifecycle 重建的本地运行期状态，不是 durable store、schema owner、DB adapter、UI contract 或 broker/account cache。
+
+| Cache surface | 当前含义 | 禁止升级 |
+| --- | --- | --- |
+| Instruments | 当前运行期可用 symbol、venue、timeframe 和 metadata read state。 | 不等于 exchange source of truth、signed exchange info 或 broker instrument master。 |
+| Market data | DataEngine ingest / replay 后的 latest bar、quote、depth summary 和 freshness state。 | 不直连 DataClient，不发起 network request，不替代 Event Log。 |
+| Orders | paper / simulated order lifecycle read state。 | 不等于 executable order command、OMS order、ExecutionClient request 或 broker order cache。 |
+| Positions | paper / simulated position read state。 | 不等于 broker position、real account position、margin 或 leverage source。 |
+| Account / portfolio summary | paper account / portfolio projection summary。 | 不等于 real balance、real PnL、buying power、account endpoint payload 或 broker state。 |
+
+`MTP-166-CACHE-DURABILITY-SCHEMA-SEPARATION`
+
+Cache 不负责 durability、schema ownership、DB adapter、SQLite / DuckDB projection、append-only Event Log、snapshot lifecycle 或 replay persistence。durable facts 继续归 MessageBus / Event Log，persistent projections 归 Database，Cache 只承载运行期可重建 read state。
+
+`MTP-166-CACHE-DATABASE-MESSAGEBUS-RELATIONSHIP`
+
+Cache 只能消费 MessageBus facts、Database projection snapshot 和 local replay output；不得替代 MessageBus publish / replay invariant，不得向 Database 写 schema，不得暴露 SQLite / DuckDB schema 给 Workbench，不得绕过 DataEngine、Portfolio、RiskEngine 或 ExecutionEngine。Cache miss / stale 必须表现为 read-model unavailable evidence，不得触发 broker call、signed request、account endpoint request 或 live command。
+
+`MTP-166-REAL-ACCOUNT-CACHE-FORBIDDEN-GUARD`
+
+禁止把 Cache 扩展为 real account cache、broker position cache、broker state mirror、ExecutionClient request cache、OMS order cache 或 Live PRO Console command state。禁止 `DataClient -> Cache -> account endpoint`、`Cache -> signed request`、`Cache -> private WebSocket runtime`、`Workbench -> Cache -> live command`、`Portfolio -> Cache -> broker state` 和 `ExecutionEngine -> Cache -> OMS order`。
+
+`MTP-166-CACHE-BOUNDARY-VALIDATION`
+
+MTP-166 只证明 Cache boundary anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不实现 Redis、external cache service、real account / broker state cache、Database implementation、UI command surface、runtime object exposure、live command path、signed/account/listenKey endpoint、private WebSocket runtime 或 source migration。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |
