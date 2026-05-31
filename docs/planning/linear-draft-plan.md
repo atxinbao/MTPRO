@@ -45,14 +45,15 @@
 | `MTPRO Account / Position / Balance Read-model-only v1` | `docs/planning/projects/mtpro-account-position-balance-read-model-only-v1-plan.md` | 已写入 Linear；`MTP-133` 至 `MTP-139` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
 | `MTPRO Private Stream / Account Snapshot Simulation Gate v1` | `docs/planning/projects/mtpro-private-stream-account-snapshot-simulation-gate-v1-plan.md` | 已写入 Linear；`MTP-140` 至 `MTP-146` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
 | `MTPRO Live Monitoring Read-only Console v2` | `docs/planning/projects/mtpro-live-monitoring-read-only-console-v2-plan.md` | 已写入 Linear；`MTP-147` 至 `MTP-153` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
-| `MTPRO Strategy / Trader Instance Readiness v1` | `docs/planning/projects/mtpro-strategy-trader-instance-readiness-v1-plan.md` | 当前 L3.4 docs-only planning record / non-executable；未写入 Linear；不授权 Strategy runtime、Trader runtime、Execution Client、broker command、OMS、Live PRO Console 或 live command。 |
+| `MTPRO Strategy / Trader Instance Readiness v1` | `docs/planning/projects/mtpro-strategy-trader-instance-readiness-v1-plan.md` | 已写入 Linear；`MTP-154` 至 `MTP-161` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
+| `MTPRO Engine Module Boundary Consolidation v1` | `docs/planning/projects/mtpro-engine-module-boundary-consolidation-v1-plan.md` | 当前 architecture boundary consolidation docs-only planning record / non-executable；未写入 Linear；不授权 Strategy runtime、Trader runtime、ExecutionClient implementation、broker command、OMS implementation、Live PRO Console 或 live command。 |
 
 ## 当前 Project planning record
 
-- Project：`MTPRO Strategy / Trader Instance Readiness v1`，仅为 L3.4 docs-only planning candidate。
-- Canonical record：`docs/planning/projects/mtpro-strategy-trader-instance-readiness-v1-plan.md`。
+- Project：`MTPRO Engine Module Boundary Consolidation v1`，仅为 architecture boundary consolidation docs-only planning candidate。
+- Canonical record：`docs/planning/projects/mtpro-engine-module-boundary-consolidation-v1-plan.md`。
 - 当前状态：未写入 Linear；不创建 Linear Project / Issue，不推进 Todo，不启动 `@002 / PAR`、Symphony 或 Graphify，不授权 implementation。后续必须由 Human 确认是否写入 Linear，并由 Parent Codex queue preflight 验证 WIP=1、依赖、active conflict 和 execution contract 后才可推进唯一 eligible issue。
-- First executable issue candidate：`Define Strategy / Trader Instance readiness terminology and boundary`，仅为 candidate，不授权执行。
+- First executable issue candidate：`Define architecture-graph-aligned module boundary terminology`，仅为 candidate，不授权执行。
 - WIP=1：所有候选 issue 写入 Linear 后必须初始保持 `Backlog / non-executable`。
 
 ## Project Planning Record 命名规则
