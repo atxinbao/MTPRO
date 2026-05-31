@@ -172,6 +172,73 @@ DomainModel
 - `Portfolio` 可依赖 `DomainModel`、`MessageBus`、`Cache`、`Database` projection，不得读取 broker account state。
 - `Workbench` 只能依赖 read model / view model exports，不得读取 runtime object、adapter request、Database schema 或 broker payload。
 
+## MTP-163 Fixed Layout / Dependency / Forbidden Path Contract
+
+`MTP-163-FIXED-TARGET-SOURCE-MODULE-LAYOUT`
+
+MTP-163 固定后续 issue 的唯一目标 source layout。后续迁移、namespace 收口、validation guard 和 stage closeout 只能引用下表中的目标目录，不得临时新增平行 Engine 目录，不得继续把 `Core / Adapters / Persistence / Runtime / App` 写成最终目标结构。
+
+| Target module | 固定目录 | 目录规则 |
+| --- | --- | --- |
+| DomainModel | `Sources/DomainModel/` | pure domain value object；不携带 adapter / persistence / UI 依赖。 |
+| DataClient | `Sources/DataClient/<venue>/` | 一个交易所 / venue 一个目录；Binance 下区分 `PublicMarketData` 与 `FuturePrivateStreamGate`。 |
+| DataEngine | `Sources/DataEngine/` | `Ingest`、`ScenarioReplay`、`DataQuality` 只服务 ingest / replay / quality boundary。 |
+| MessageBus | `Sources/MessageBus/` | `Events`、`Commands`、`Requests`、`Replay` 只承载 facts / routing / replay invariant。 |
+| Cache | `Sources/Cache/` | runtime-derived state；不负责 durability、schema ownership 或 DB adapter。 |
+| Database | `Sources/Database/` | append-only event log、snapshots、SQLite / DuckDB projections 和 replay projection。 |
+| Strategies | `Sources/Strategies/<strategy>/` | 一个策略一个目录；EMA 是首个示例，不直连 Trader 或 ExecutionClient。 |
+| Trader | `Sources/Trader/` | `Accounts`、`Coordination`、`StrategyBindings`；只做 coordination / context。 |
+| Portfolio | `Sources/Portfolio/` | positions、net positions、margin、open value、paper projection 和 financial read models。 |
+| RiskEngine | `Sources/RiskEngine/` | commands / events / pre-trade / live gate；不调用 broker 或 execution client。 |
+| ExecutionEngine | `Sources/ExecutionEngine/` | paper lifecycle、simulated exchange 和 `OMSFutureGate`；不提交真实订单。 |
+| ExecutionClient | `Sources/ExecutionClient/` | `FutureGate` / `BrokerCapabilityMatrix`；只表达 future venue API client gate。 |
+| Workbench | `Sources/Workbench/` | ReadModels / Report / Dashboard / Events / FutureLiveProConsole label；current surface remains read-model-only。 |
+| Dashboard | `Sources/Dashboard/` | macOS shell / smoke / presentation surface；不形成 broker command path。 |
+
+`MTP-163-DEPENDENCY-DIRECTION-CONTRACT`
+
+依赖方向固定为：
+
+- `DataClient -> DomainModel` only；不能依赖 `DataEngine`、`Trader`、`ExecutionEngine`、`ExecutionClient`、`Workbench` 或 `Dashboard`。
+- `DataEngine -> DomainModel / DataClient / MessageBus / Cache`；不能直接服务 Trader、Workbench 或 broker。
+- `Strategies -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine read-model inputs`；不能直连 Trader、ExecutionEngine、ExecutionClient、broker 或 OMS。
+- `Trader -> DomainModel / MessageBus / Cache / Strategies / Portfolio / RiskEngine / ExecutionEngine`；不能直连 ExecutionClient、broker command 或 account endpoint。
+- `Portfolio -> DomainModel / MessageBus / Cache / Database projection`；不能读取 broker account state、account endpoint payload 或 Runtime object。
+- `RiskEngine -> DomainModel / MessageBus / Cache / Portfolio`；不能调用 broker、ExecutionClient 或 live risk runtime。
+- `ExecutionEngine -> DomainModel / MessageBus / Cache / RiskEngine / ExecutionClient future gate`；不能实现 current broker client、OMS implementation 或 real order lifecycle。
+- `Workbench -> ReadModel / ViewModel exports`；不能读取 runtime object、adapter request、Database schema、account payload 或 broker state。
+
+`MTP-163-FORBIDDEN-PATH-TAXONOMY`
+
+MTP-163 把 forbidden path taxonomy 固定为 validation 输入：
+
+| Forbidden path | 阻断原因 |
+| --- | --- |
+| `Strategies -> ExecutionClient` | Strategy proposal 不能升级为 executable order command。 |
+| `Trader -> ExecutionClient` | Trader 是 coordination context，不是 broker gateway。 |
+| `Workbench -> Runtime object / Adapter request / Database schema` | Workbench 只能消费 ReadModel / ViewModel。 |
+| `DataClient -> signed/account/listenKey/private runtime` | 当前 DataClient 只允许 public read-only / fixture / future gate labels。 |
+| `RiskEngine -> broker / ExecutionClient` | RiskEngine 只输出 risk evidence，不执行 broker action。 |
+| `Portfolio -> broker account state` | Portfolio 当前只持有 paper / simulated / read-model financial state。 |
+| `ExecutionEngine -> current OMS / broker adapter` | ExecutionEngine 当前只允许 paper / simulated lifecycle。 |
+| `FutureLiveProConsole -> current Workbench command surface` | Future Live PRO Console 是独立 future product surface。 |
+
+`MTP-163-DATACLIENT-VENUE-STRATEGIES-STRATEGY-DIRECTORY-RULE`
+
+`DataClient/<venue>/` 和 `Strategies/<strategy>/` 是目录命名不变量。后续不得把 venue-specific adapter 散落到 `DataEngine`、`Runtime` 或 `Workbench`，也不得把 strategy-specific lifecycle / quoter / hedger / proposal 逻辑散落到 `Trader`、`ExecutionEngine` 或 `ExecutionClient`。
+
+`MTP-163-TRADER-ACCOUNT-PORTFOLIO-SPLIT`
+
+`Trader/Accounts` 只负责 account context / identity / source identity；`Portfolio` 独立负责 cash、positions、PnL、exposure、margin、open value 和 paper projection。后续不得把 Portfolio financial state 塞回 Trader，也不得让 Trader 读取真实账户 payload 或 broker state。
+
+`MTP-163-EXECUTIONENGINE-EXECUTIONCLIENT-SPLIT`
+
+`ExecutionEngine` 是内部 paper / simulated lifecycle module；`ExecutionClient` 是 future venue API client gate。MTP-163 不授权 `Package.swift` target graph change，不实现 current ExecutionClient，不实现 OMS implementation，不连接 broker / exchange execution adapter。
+
+`MTP-163-FIXED-LAYOUT-VALIDATION`
+
+MTP-163 只验证 fixed layout、dependency direction 和 forbidden path taxonomy 已落仓。任何 source move、SwiftPM target 拆分、runtime actor、private stream runtime、account snapshot runtime、signed/account/listenKey endpoint、broker adapter、OMS、Live PRO Console、trading button、live command 或 order form 仍必须由后续独立 Linear issue 明确授权。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |
