@@ -4541,3 +4541,47 @@ MTP-163 必须建立的主要 anchors：
 - 不读取真实账户、真实持仓、真实余额、broker position、margin、leverage、real PnL、account endpoint payload、broker payload 或 broker state。
 - 不新增 Live PRO Console、trading button、live command、order form、order-level command UI、position command、emergency stop、shutdown、restore 或 production operations command。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-164 Architecture Boundary Validation Anchors
+
+日期：2026-06-01
+
+执行者：Codex
+
+MTP-164 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-164 的验收要求：
+
+- `docs/architecture/module-boundary.md` 必须包含 architecture boundary validation anchors、old path drift guard、future-gated implementation drift guard、forbidden capability drift guard、cross-milestone validation input 和 validation non-authorization。
+- `docs/domain/context.md` 必须包含 MTP-164 shared language anchors。
+- `docs/validation/trading-validation-matrix.md` 必须把 `TVM-ARCHITECTURE-MODULE-BOUNDARY` 扩展到 MTP-164 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 Architecture boundary validation anchors row。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-164 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-164 architecture boundary、domain context、validation plan、validation matrix、latest summary、automation readiness doc、old path drift guard、future-gated implementation drift guard 和 forbidden capability drift guard strings。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-164 必须建立的主要 anchors：
+
+- `MTP-164-ARCHITECTURE-BOUNDARY-VALIDATION-ANCHORS`
+- `MTP-164-OLD-PATH-DRIFT-GUARD`
+- `MTP-164-FUTURE-GATED-IMPLEMENTATION-DRIFT-GUARD`
+- `MTP-164-FORBIDDEN-CAPABILITY-DRIFT-GUARD`
+- `MTP-164-CROSS-MILESTONE-VALIDATION-INPUT`
+- `MTP-164-ARCHITECTURE-BOUNDARY-VALIDATION`
+
+## MTP-164 禁止
+
+- 不执行业务代码迁移，不新增或修改 Swift production code，不修改 `Package.swift` target graph，不创建 SwiftPM target。
+- 不推进 M2-M6 后续 issue，不创建 L4 Project / Issue，不设置 Linear Project Completed。
+- 不把 `Core / Adapters / Persistence / Runtime / App / Dashboard / CSQLite` 继续作为最终目标结构、长期新增能力落点或新 architecture module name。
+- 不把 `ExecutionClient`、`OMSFutureGate`、`FuturePrivateStreamGate`、`FutureLiveProConsole`、`Strategy runtime`、`Trader runtime`、`Portfolio runtime`、`Risk runtime` 或完整 `MessageBus` 写成 current runtime implementation。
+- 不实现 Strategy runtime、Trader runtime、Live runtime、Portfolio runtime、Risk runtime、MessageBus runtime 或 current ExecutionClient implementation。
+- 不实现 OMS implementation、broker / exchange execution adapter、`LiveExecutionAdapter`、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不调用 signed endpoint、account endpoint / listenKey，不创建或 keepalive listenKey，不连接 private WebSocket，不启动 private stream runtime 或 account snapshot runtime。
+- 不读取真实账户、真实持仓、真实余额、broker position、margin、leverage、real PnL、account endpoint payload、broker payload 或 broker state。
+- 不新增 Live PRO Console、trading button、live command、order form、order-level command UI、position command、emergency stop、shutdown、restore 或 production operations command。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

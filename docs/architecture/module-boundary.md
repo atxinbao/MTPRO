@@ -239,6 +239,39 @@ MTP-163 把 forbidden path taxonomy 固定为 validation 输入：
 
 MTP-163 只验证 fixed layout、dependency direction 和 forbidden path taxonomy 已落仓。任何 source move、SwiftPM target 拆分、runtime actor、private stream runtime、account snapshot runtime、signed/account/listenKey endpoint、broker adapter、OMS、Live PRO Console、trading button、live command 或 order form 仍必须由后续独立 Linear issue 明确授权。
 
+## MTP-164 Architecture Boundary Validation Anchors
+
+`MTP-164-ARCHITECTURE-BOUNDARY-VALIDATION-ANCHORS`
+
+MTP-164 把 MTP-162 terminology contract 和 MTP-163 fixed layout contract 固定成后续 milestone 的 validation anchor layer。该 layer 只服务 docs/checks-focused validation，不移动业务代码、不修改 `Package.swift` target graph、不把 future-gated module name 写成 current runtime implementation。
+
+| Validation anchor | 必须阻断的漂移 | 证明方式 |
+| --- | --- | --- |
+| `MTP-164-OLD-PATH-DRIFT-GUARD` | `Core / Adapters / Persistence / Runtime / App / Dashboard / CSQLite` 被继续写成最终目标结构、长期新增能力落点或新 architecture module name。 | 后续 issue 必须把新增边界映射回 MTP-163 固定 `Sources/*` 目标目录。 |
+| `MTP-164-FUTURE-GATED-IMPLEMENTATION-DRIFT-GUARD` | `ExecutionClient`、`OMSFutureGate`、`FuturePrivateStreamGate`、`FutureLiveProConsole`、`Strategy runtime`、`Trader runtime`、`Portfolio runtime`、`Risk runtime` 或完整 `MessageBus` 被写成 current runtime implementation。 | 后续 issue 必须把这些词限定为 target boundary / future gate / validation label。 |
+| `MTP-164-FORBIDDEN-CAPABILITY-DRIFT-GUARD` | Strategy / Trader / Workbench / DataClient / ExecutionClient forbidden path 被绕开。 | 后续 issue 必须继续证明 no signed/account/listenKey、no broker adapter、no OMS implementation、no live command surface。 |
+| `MTP-164-CROSS-MILESTONE-VALIDATION-INPUT` | M2-M6 各 milestone 重新发明平行模块名、平行目录或局部例外。 | MessageBus / Cache / Database、DataClient / DataEngine、Strategies / Trader / Portfolio、Risk / Execution 和 Workbench issue 必须复用同一 anchor。 |
+
+`MTP-164-OLD-PATH-DRIFT-GUARD`
+
+Old target names 只能作为迁移来源解释。`Core` 不得继续承载新增 engine boundary；`Adapters` 不得继续承载 venue-specific final target；`Persistence` 不得继续被写成 Database 的外部同义词；`Runtime` 不得继续承载 DataEngine / MessageBus / Cache 的最终结构；`App`、`Dashboard` 和 `CSQLite` 只能按 Workbench / Dashboard / Database implementation detail 解释。
+
+`MTP-164-FUTURE-GATED-IMPLEMENTATION-DRIFT-GUARD`
+
+Future-gated target module 可以出现在目标架构，但 current scope 仍禁止 Strategy runtime、Trader runtime、Live runtime、current ExecutionClient implementation、OMS implementation、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、broker adapter、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command 或 order form。
+
+`MTP-164-FORBIDDEN-CAPABILITY-DRIFT-GUARD`
+
+Forbidden path taxonomy 继续固定为 validation input：`Strategies -> ExecutionClient`、`Trader -> ExecutionClient`、`Workbench -> Runtime object / Adapter request / Database schema`、`DataClient -> signed/account/listenKey/private runtime`、`RiskEngine -> broker / ExecutionClient`、`Portfolio -> broker account state`、`ExecutionEngine -> current OMS / broker adapter` 和 `FutureLiveProConsole -> current Workbench command surface` 都不能被后续 docs、checks 或 PR evidence 弱化。
+
+`MTP-164-CROSS-MILESTONE-VALIDATION-INPUT`
+
+MTP-164 anchors 必须被 M2 MessageBus / Cache / Database、M3 DataClient / DataEngine、M4 Strategies / Trader / Portfolio、M5 Risk / Execution 和 M6 Workbench / stage closeout 继续消费。后续 issue 可以细化模块输入输出，但不能绕过 MTP-164 anchors 放宽 old path、future gate 或 forbidden capability boundary。
+
+`MTP-164-ARCHITECTURE-BOUNDARY-VALIDATION`
+
+MTP-164 只证明 validation anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不证明任何 source move、SwiftPM target split、runtime actor、private stream runtime、account snapshot runtime、signed/account/listenKey endpoint、broker adapter、OMS、Live PRO Console、trading button、live command 或 order form 已实现。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |
