@@ -85,6 +85,34 @@
 
 MTP-162 的验证只证明目标模块术语、旧术语映射、future-gated module non-authorization 和 forbidden capability baseline 已落仓；不证明任何 source move、SwiftPM target move、runtime actor、signed/account/listenKey endpoint、broker / exchange execution adapter、OMS、real order lifecycle、Live PRO Console、trading button、live command 或 order form 已实现。
 
+`MTP-163-FIXED-TARGET-SOURCE-MODULE-LAYOUT`
+
+MTP-163 把 MTP-162 的术语固定成唯一 source layout contract：后续模块迁移只能落到 `Sources/DomainModel/`、`Sources/DataClient/<venue>/`、`Sources/DataEngine/`、`Sources/MessageBus/`、`Sources/Cache/`、`Sources/Database/`、`Sources/Strategies/<strategy>/`、`Sources/Trader/`、`Sources/Portfolio/`、`Sources/RiskEngine/`、`Sources/ExecutionEngine/`、`Sources/ExecutionClient/`、`Sources/Workbench/` 和 `Sources/Dashboard/`。该 layout 是后续 issue 的目标地形，不表示本 issue 已移动文件、修改 `Package.swift` 或创建 SwiftPM target。
+
+`MTP-163-DEPENDENCY-DIRECTION-CONTRACT`
+
+MTP-163 固定依赖方向：`DataClient` 只依赖 `DomainModel`；`DataEngine` 通过 `DataClient` / `MessageBus` / `Cache` 处理 ingest 和 replay；`Strategies` 只能消费 domain / bus / cache / Portfolio / RiskEngine read-model inputs；`Trader` 可以协调 Strategies / Portfolio / RiskEngine / ExecutionEngine，但不得直连 `ExecutionClient`；`Workbench` 只能消费 ReadModel / ViewModel export。
+
+`MTP-163-FORBIDDEN-PATH-TAXONOMY`
+
+MTP-163 的 forbidden path taxonomy 包括：Strategies -> ExecutionClient、Trader -> ExecutionClient、Workbench -> Runtime object、Workbench -> Adapter request、Workbench -> Database schema、DataClient -> signed/account/listenKey endpoint、RiskEngine -> broker / execution client、Portfolio -> broker account state、ExecutionEngine -> current broker / OMS implementation，以及任何 Live PRO Console / trading button / live command / order form 路径。该 taxonomy 只用于 validation 和后续 migration guard。
+
+`MTP-163-DATACLIENT-VENUE-STRATEGIES-STRATEGY-DIRECTORY-RULE`
+
+`DataClient/<venue>/` 是 exchange / venue scoped rule，一个交易所一个目录；`Strategies/<strategy>/` 是 strategy scoped rule，一个策略一个目录。当前示例只能表达 `DataClient/Binance/PublicMarketData`、`DataClient/Binance/FuturePrivateStreamGate` 和 `Strategies/EMA/` 目录语义，不授权 private stream runtime、signed/account endpoint、strategy runtime 或 trader process manager。
+
+`MTP-163-TRADER-ACCOUNT-PORTFOLIO-SPLIT`
+
+`Trader/Accounts` 只保存 account context、account identity、source identity 和 future real account gate；cash、positions、PnL、exposure、margin、open value、paper projection 和 future real account read-model boundary 属于独立 `Portfolio`。这条 split 防止后续把 Trader 变成账户账本、broker gateway 或 live coordinator。
+
+`MTP-163-EXECUTIONENGINE-EXECUTIONCLIENT-SPLIT`
+
+`ExecutionEngine` 只表达内部 paper / simulated lifecycle、simulated fill、fee / slippage、portfolio projection 和 future OMS boundary；`ExecutionClient` 只表达 future venue API client gate。MTP-163 不实现 broker / exchange execution adapter、signed request、order submit / cancel / replace、execution report parser、broker fill 或 reconciliation runtime。
+
+`MTP-163-FIXED-LAYOUT-VALIDATION`
+
+MTP-163 的验证只证明 fixed layout、dependency direction、forbidden path taxonomy 和 source layout anchors 已落仓；不证明任何 source move、Package.swift target graph change、runtime implementation、live broker path、OMS 或 command-capable product surface 已实现。
+
 ## Paper Runtime Kernel Terms
 
 `MTP-96-PAPER-RUNTIME-KERNEL-TERMS`
