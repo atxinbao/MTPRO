@@ -113,6 +113,30 @@ MTP-163 的 forbidden path taxonomy 包括：Strategies -> ExecutionClient、Tra
 
 MTP-163 的验证只证明 fixed layout、dependency direction、forbidden path taxonomy 和 source layout anchors 已落仓；不证明任何 source move、Package.swift target graph change、runtime implementation、live broker path、OMS 或 command-capable product surface 已实现。
 
+`MTP-164-ARCHITECTURE-BOUNDARY-VALIDATION-ANCHORS`
+
+MTP-164 把 MTP-162 terminology 与 MTP-163 fixed layout 转成 cross-milestone validation anchors。后续 M2-M6 issue 必须继续证明 target module name、fixed target source layout、dependency direction 和 forbidden path taxonomy 被保留，不得把 validation anchor 解读成 runtime implementation、source move 或 SwiftPM target graph change。
+
+`MTP-164-OLD-PATH-DRIFT-GUARD`
+
+Old path drift guard 固定 `Core / Adapters / Persistence / Runtime / App / Dashboard / CSQLite` 只能作为 migration source / compatibility shell。后续 issue 不得把这些旧路径写成最终目标结构、长期新增能力落点或新的 architecture module name；任何新增 module boundary 必须映射到 MTP-163 的固定 `Sources/*` 目标目录。
+
+`MTP-164-FUTURE-GATED-IMPLEMENTATION-DRIFT-GUARD`
+
+Future-gated implementation drift guard 固定 `ExecutionClient`、`OMSFutureGate`、`FuturePrivateStreamGate`、`FutureLiveProConsole`、`Strategy runtime`、`Trader runtime`、`Portfolio runtime`、`Risk runtime` 和完整 `MessageBus` 只能作为 target boundary / future gate / validation label 出现。它们不得被写成 current runtime implementation、broker adapter、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle 或 command-capable UI。
+
+`MTP-164-FORBIDDEN-CAPABILITY-DRIFT-GUARD`
+
+Forbidden capability drift guard 固定 Strategy / Trader / Workbench / DataClient / ExecutionClient 的禁止路径：`Strategies -> ExecutionClient`、`Trader -> ExecutionClient`、`Workbench -> Runtime object / Adapter request / Database schema`、`DataClient -> signed/account/listenKey/private runtime`、`RiskEngine -> broker / ExecutionClient`、`Portfolio -> broker account state`、`ExecutionEngine -> current OMS / broker adapter` 和 `FutureLiveProConsole -> current Workbench command surface`。这些 guard 是 local docs/checks validation 输入，不授权 live runtime、broker path、Graphify 或 Figma。
+
+`MTP-164-CROSS-MILESTONE-VALIDATION-INPUT`
+
+MTP-164 的 anchors 是后续 MessageBus / Cache / Database、DataClient / DataEngine、Strategies / Trader / Portfolio、RiskEngine / ExecutionEngine / ExecutionClient、Workbench / Future Live PRO Console 和 stage closeout 的共同 validation input。每个后续 issue 都必须复用这些 anchors 证明 no old path drift、no future-gated implementation drift 和 no forbidden capability drift。
+
+`MTP-164-ARCHITECTURE-BOUNDARY-VALIDATION`
+
+MTP-164 的验证只证明 architecture boundary validation anchors 已落仓，并由 `checks/automation-readiness.sh` 机械检查；不证明 source move、business code migration、Package.swift target graph change、runtime actor、live broker path、OMS、ExecutionClient implementation 或 command-capable product surface 已实现。
+
 ## Paper Runtime Kernel Terms
 
 `MTP-96-PAPER-RUNTIME-KERNEL-TERMS`
