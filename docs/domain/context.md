@@ -161,6 +161,26 @@ MessageBus 禁止承载 executable order command、broker command、ExecutionCli
 
 MTP-165 的验证只证明 MessageBus facts / commands / events / request-response / paper routing / replay invariant 与 bypass guards 已落仓；不证明完整 runtime MessageBus、broker integration、OMS、ExecutionClient implementation、live command path、UI command surface 或 source migration 已实现。
 
+`MTP-166-CACHE-RUNTIME-DERIVED-STATE-CONTRACT`
+
+MTP-166 固定 `Cache` 为 runtime-derived state 边界：instruments、market data、paper orders、paper positions、account summary 和 portfolio summary 只能来自 MessageBus facts、local replay、paper / simulated lifecycle 或 read-model projection。Cache 是可重建的本地状态视图，不是 durable source of truth、Database schema、UI contract、broker account cache 或 external cache service。
+
+`MTP-166-CACHE-DURABILITY-SCHEMA-SEPARATION`
+
+Cache 不拥有 durability、schema ownership、DB adapter、SQLite / DuckDB projection、append-only Event Log 或 snapshot lifecycle。durable facts 归 MessageBus / Event Log，持久化和 projection 归 Database，Cache 只保存当前运行期可从 facts / replay / projection 重建的派生状态。
+
+`MTP-166-CACHE-DATABASE-MESSAGEBUS-RELATIONSHIP`
+
+Cache 只能消费 MessageBus facts、Database projection snapshot 和 local replay output 来形成 runtime read state；它不能向 Database 写 schema，不能替代 MessageBus publish / replay invariant，也不能绕过 DataEngine、Portfolio、RiskEngine 或 ExecutionEngine 的边界。Cache miss 必须表现为 stale / missing / unavailable read-model state，不得触发 broker call、signed request、account endpoint request 或 live command。
+
+`MTP-166-REAL-ACCOUNT-CACHE-FORBIDDEN-GUARD`
+
+Cache 禁止承载 real account cache、broker position cache、real balance、real position、margin、leverage、buying power、real PnL、account endpoint payload、broker payload、broker state、listenKey state、private WebSocket runtime message、ExecutionClient request、OMS order、Live PRO Console command、trading button command 或 order form payload。任何 account summary / portfolio summary 都必须保持 paper / simulated / read-model-only evidence 语义。
+
+`MTP-166-CACHE-BOUNDARY-VALIDATION`
+
+MTP-166 的验证只证明 Cache runtime-derived state、durability / schema separation、Database / MessageBus relationship 和 real account cache forbidden guard 已落仓；不证明 Redis、external cache service、real account / broker state cache、Database implementation、runtime object exposure、UI command surface 或 source migration 已实现。
+
 ## Paper Runtime Kernel Terms
 
 `MTP-96-PAPER-RUNTIME-KERNEL-TERMS`
