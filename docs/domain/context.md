@@ -205,6 +205,34 @@ Database 禁止持久化 real account payload、broker payload、broker state、
 
 MTP-167 的验证只证明 Database durable facts / snapshots / projections、SQLite / DuckDB schema/version separation、Database / MessageBus / Cache / Portfolio relationship、Workbench schema bypass guard 和 account / broker persistence forbidden guard 已落仓；不证明 Database implementation migration、schema exposure、broker/account payload persistence、Redis clone、UI command surface 或 source migration 已实现。
 
+`MTP-168-DATACLIENT-VENUE-ADAPTER-BOUNDARY-CONTRACT`
+
+MTP-168 固定 `DataClient` 为 `Sources/DataClient/<venue>/` venue-scoped exchange adapter boundary。一个交易所一个目录；Binance 只能作为 `Sources/DataClient/Binance/` 示例边界出现。DataClient 只表达 source identity、provider client / exchange client capability taxonomy、public market data request contract 和 future private stream gate label，不直接依赖 DataEngine、Trader、ExecutionEngine、ExecutionClient、Workbench、Cache 或 Database。
+
+`MTP-168-BINANCE-PUBLIC-MARKET-DATA-BOUNDARY`
+
+Binance DataClient 当前只允许 public read-only market data source：symbols、klines、trades、depth、book ticker、public ticker 和 deterministic fixture / replay evidence。它不得包含 API key、secret、signature、signed request、account endpoint payload、order endpoint payload、listenKey、private stream message、execution report、broker fill、reconciliation、margin、leverage、buying power 或 real PnL。
+
+`MTP-168-FUTURE-PRIVATE-STREAM-GATE-CONTRACT`
+
+FuturePrivateStreamGate 是 future-gated label，不是 current runtime。该 label 只说明未来 private stream 需要 Human decision、独立 Project Definition、credential / endpoint / adapter / operations gates 和 forbidden capability audit；它不授权创建 listenKey、keepalive listenKey、连接 private WebSocket、运行 account snapshot runtime、读取 account endpoint payload 或保存 broker state。
+
+`MTP-168-PROVIDER-EXCHANGE-CAPABILITY-TAXONOMY`
+
+Provider client / exchange client capability taxonomy 只能分类为 `public-market-data`、`future-private-stream-gated`、`forbidden-signed-account` 和 `forbidden-execution`。该 taxonomy 不是 Runtime object、Adapter request、Database schema、broker payload、account payload、ExecutionClient request、OMS command、Workbench ViewModel 或 UI command contract。
+
+`MTP-168-DATACLIENT-DEPENDENCY-ISOLATION-GUARD`
+
+DataClient 不 publish MessageBus facts，不写 Database，不驱动 Workbench，不读取 Cache，不协调 Trader，也不提交 ExecutionEngine / ExecutionClient request。后续 DataEngine 可以通过 request / ingest boundary 消费 DataClient public market data capability；DataClient 不能反向依赖 DataEngine，也不能直接服务 Trader、Strategy、RiskEngine、ExecutionEngine 或 UI。
+
+`MTP-168-SIGNED-ACCOUNT-LISTENKEY-FORBIDDEN-GUARD`
+
+DataClient 禁止 signed endpoint、account endpoint、listenKey create / keepalive、private WebSocket runtime、private stream runtime、account snapshot runtime、broker / exchange execution adapter、ExecutionClient、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account payload、broker payload、broker state、real balance、real position、margin、leverage、buying power 和 real PnL。
+
+`MTP-168-DATACLIENT-BOUNDARY-VALIDATION`
+
+MTP-168 的验证只证明 DataClient venue adapter boundary、Binance public market data boundary、FuturePrivateStreamGate、provider / exchange capability taxonomy、dependency isolation guard 和 signed/account/listenKey forbidden guard 已落仓；不证明 source move、SwiftPM target split、Binance runtime migration、private stream runtime、account snapshot runtime、ExecutionClient、OMS、broker adapter、UI command surface 或 source migration 已实现。
+
 ## Paper Runtime Kernel Terms
 
 `MTP-96-PAPER-RUNTIME-KERNEL-TERMS`

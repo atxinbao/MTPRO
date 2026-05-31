@@ -4711,3 +4711,47 @@ MTP-167 必须建立的主要 anchors：
 - 不持久化真实账户、真实持仓、真实余额、broker position、margin、leverage、buying power、real PnL、account endpoint payload、broker payload、broker state、signed request、listenKey state 或 private WebSocket runtime message。
 - 不新增 Live PRO Console、trading button、live command、order form、order-level command UI、position command、emergency stop、shutdown、restore 或 production operations command。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-168 DataClient Exchange Adapter Boundary Validation
+
+日期：2026-06-01
+
+执行者：Codex
+
+MTP-168 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-168 的验收要求：
+
+- `docs/architecture/module-boundary.md` 必须包含 DataClient venue adapter boundary、Binance public market data boundary、FuturePrivateStreamGate、provider / exchange capability taxonomy、dependency isolation guard 和 signed/account/listenKey forbidden guard anchors。
+- `docs/domain/context.md` 必须包含 MTP-168 DataClient shared language anchors。
+- `docs/validation/trading-validation-matrix.md` 必须把 `TVM-ARCHITECTURE-MODULE-BOUNDARY` 扩展到 MTP-168 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 DataClient exchange adapter boundary anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-168 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-168 architecture boundary、domain context、validation plan、validation matrix、latest summary、automation readiness doc、`Sources/DataClient/<venue>/`、Binance、PublicMarketData、FuturePrivateStreamGate、provider / exchange capability taxonomy、dependency isolation 和 signed/account/listenKey forbidden guard strings。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-168 必须建立的主要 anchors：
+
+- `MTP-168-DATACLIENT-VENUE-ADAPTER-BOUNDARY-CONTRACT`
+- `MTP-168-BINANCE-PUBLIC-MARKET-DATA-BOUNDARY`
+- `MTP-168-FUTURE-PRIVATE-STREAM-GATE-CONTRACT`
+- `MTP-168-PROVIDER-EXCHANGE-CAPABILITY-TAXONOMY`
+- `MTP-168-DATACLIENT-DEPENDENCY-ISOLATION-GUARD`
+- `MTP-168-SIGNED-ACCOUNT-LISTENKEY-FORBIDDEN-GUARD`
+- `MTP-168-DATACLIENT-BOUNDARY-VALIDATION`
+
+## MTP-168 禁止
+
+- 不实现 source move，不新增或修改 Swift production code，不修改 `Package.swift` target graph，不创建 SwiftPM target。
+- 不把 DataClient 写成 DataEngine、Trader、ExecutionEngine、ExecutionClient、Workbench、Cache、Database、Portfolio 或 MessageBus 的 runtime dependency owner。
+- 不把 Binance DataClient 写成 signed client、account client、listenKey client、private WebSocket runtime、account snapshot runtime、broker adapter、ExecutionClient 或 OMS。
+- 不通过 DataClient 绕过 DataEngine ingest / request boundary，不 publish MessageBus facts，不写 Database，不驱动 Workbench，不服务 Trader / Strategy / UI。
+- 不实现 broker / exchange execution adapter、`LiveExecutionAdapter`、OMS implementation、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不调用 signed endpoint、account endpoint / listenKey，不创建或 keepalive listenKey，不连接 private WebSocket，不启动 private stream runtime 或 account snapshot runtime。
+- 不读取真实账户、真实持仓、真实余额、broker position、margin、leverage、buying power、real PnL、account endpoint payload、broker payload 或 broker state。
+- 不新增 Live PRO Console、trading button、live command、order form、order-level command UI、position command、emergency stop、shutdown、restore 或 production operations command。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
