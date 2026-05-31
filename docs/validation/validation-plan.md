@@ -4887,3 +4887,45 @@ MTP-171 必须建立的主要 anchors：
 - 不读取真实账户、真实持仓、真实余额、broker position、margin、leverage、buying power、real PnL、account endpoint payload、broker payload 或 broker state。
 - 不新增 Live PRO Console、trading button、live command、order form、order-level command UI、position command、emergency stop、shutdown、restore 或 production operations command。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-172 Trader Coordination Boundary Validation
+
+日期：2026-06-01
+
+执行者：Codex
+
+MTP-172 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-172 的验收要求：
+
+- `docs/architecture/module-boundary.md` 必须包含 Trader coordination boundary、Accounts / Coordination / StrategyBindings split、strategy / account / risk / execution context coordination、Trader account context identity-only guard、no live coordinator / OMS / broker gateway guard 和 no direct ExecutionClient / broker command path anchors。
+- `docs/domain/context.md` 必须包含 MTP-172 Trader shared language anchors。
+- `docs/validation/trading-validation-matrix.md` 必须把 `TVM-ARCHITECTURE-MODULE-BOUNDARY` 扩展到 MTP-172 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 Trader coordination boundary anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-172 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-172 architecture boundary、domain context、validation plan、validation matrix、latest summary、automation readiness doc、`Sources/Trader/`、`Accounts/`、`Coordination/`、`StrategyBindings/`、strategy / account / risk / execution context、Trader/Accounts identity-only guard、no direct ExecutionClient path、no broker command、no OMS、no order form、no live coordinator 和 no real account / broker position strings。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-172 必须建立的主要 anchors：
+
+- `MTP-172-TRADER-COORDINATION-BOUNDARY-CONTRACT`
+- `MTP-172-ACCOUNTS-COORDINATION-STRATEGYBINDINGS-SPLIT`
+- `MTP-172-STRATEGY-ACCOUNT-RISK-EXECUTION-CONTEXT-COORDINATION`
+- `MTP-172-TRADER-ACCOUNT-CONTEXT-IDENTITY-ONLY-GUARD`
+- `MTP-172-NO-LIVE-COORDINATOR-OMS-BROKER-GATEWAY-GUARD`
+- `MTP-172-NO-DIRECT-EXECUTIONCLIENT-BROKER-COMMAND-PATH`
+- `MTP-172-TRADER-BOUNDARY-VALIDATION`
+
+## MTP-172 禁止
+
+- 不移动 production source，不新增或修改 Swift production code，不修改 `Package.swift` target graph，不创建 SwiftPM target。
+- 不实现 Trader runtime、live coordinator、OMS、broker gateway、broker session manager、private stream coordinator、account snapshot runtime 或 real account synchronizer。
+- 不读取真实 account、真实持仓、真实余额、broker position、broker account id、broker payload、broker state、margin、leverage、buying power 或 real PnL。
+- 不输出 broker command、executable order command、ExecutionClient request、OMS order、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不调用 signed endpoint、account endpoint / listenKey，不连接 private WebSocket，不启动 private stream runtime 或 account snapshot runtime。
+- 不新增 Live PRO Console backend、trading button handler、live command、order form、order-level command UI、emergency stop、shutdown、restore 或 production operations command。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
