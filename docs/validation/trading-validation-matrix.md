@@ -188,6 +188,18 @@ MTP-161 issue backfill 已新增 `docs/audit/inputs/mtpro-strategy-trader-instan
 
 MTP-161 只准备 Parent Codex Stage Code Audit input material，不输出最终 Stage Code Audit Report，不设置 Linear Project `Completed`，不创建下一 Project / Issue，不推进下一阶段，不运行 Graphify，不修改 Figma，不实现 Strategy runtime、Trader runtime、Execution Client、broker command、OMS、Strategy Console、Live PRO Console、trading button、live command 或 order form。最终 Stage Code Audit Report 必须等 MTP-154 至 MTP-161 全部 Linear `Done`，且 Linear Project `Completed/type=completed/completedAt` 非空后单独输出。
 
+## Engine Module Boundary Consolidation matrix extension
+
+| Matrix ID | 验证域 | 当前 coverage 入口 | 验收证据边界 | 后续回填责任 |
+| --- | --- | --- | --- | --- |
+| `TVM-ARCHITECTURE-MODULE-BOUNDARY` | Architecture-graph-aligned module boundary terminology、old-to-target module mapping、future-gated module non-authorization、source layout / validation anchor input 和 forbidden capability baseline | `docs/domain/context.md` 中的 `MTP-162-ARCHITECTURE-GRAPH-ALIGNED-MODULE-BOUNDARY-TERMS`、`MTP-162-OLD-TO-TARGET-MODULE-MAPPING`、`MTP-162-FUTURE-GATED-MODULE-NAME-NON-AUTHORIZATION` 和 `MTP-162-ARCHITECTURE-MODULE-TERMINOLOGY-VALIDATION`；`docs/architecture/module-boundary.md` 中的 `MTP-162-TERMINOLOGY-CONTRACT` 和 `MTP-162-CURRENT-RUNTIME-NON-AUTHORIZATION`；`docs/validation/validation-plan.md` 的 MTP-162 validation；`docs/automation/automation-readiness.md` 的 Architecture graph module terminology anchor；`checks/automation-readiness.sh` 的 MTP-162 mechanical anchors。 | 证据覆盖 DataClient、DataEngine、MessageBus、Cache、Database、Strategies、Trader、Account context、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench 和 Future Live PRO Console 的 MTPRO canonical terms；覆盖 `Core / Adapters / Persistence / Runtime / App / Dashboard / CSQLite` 作为 migration source / compatibility shell 的解释；覆盖 future-gated module name 可以进入目标架构但不表示当前 runtime implementation；禁止 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、broker adapter、real order lifecycle、Live PRO Console、trading button、live command、order form、Graphify 或 Figma。 | MTP-162 issue backfill 建立 terminology、boundary contract、validation plan、matrix、latest summary、automation readiness doc 和 mechanical checks。MTP-163 至 MTP-182 后续只能消费这些术语继续做 source layout、dependency direction、forbidden import、validation anchors、Workbench mapping 和 stage closeout；不得绕过 MTP-162 把 future-gated module 名升级为当前 runtime implementation。 |
+
+## MTP-162 issue backfill
+
+| Issue | Matrix ID | 回填说明 |
+| --- | --- | --- |
+| `MTP-162` | `TVM-ARCHITECTURE-MODULE-BOUNDARY` | 已定义 architecture-graph-aligned module boundary terminology、old-to-target module mapping、future-gated module name non-authorization、MTP-162 terminology contract、current runtime non-authorization、domain context、module-boundary docs、validation plan、automation readiness anchors 和 latest verification summary；MTP-162 只定义 terminology / boundary / contract material，不移动业务代码，不新增 Swift production code，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、broker adapter、real order lifecycle、Live PRO Console、trading button、live command、order form、Graphify 或 Figma。 |
+
 ## Workbench Beta Readiness matrix extension
 
 | Matrix ID | 验证域 | 当前 coverage 入口 | 验收证据边界 | 后续回填责任 |

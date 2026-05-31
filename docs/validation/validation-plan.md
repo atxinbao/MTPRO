@@ -4457,3 +4457,44 @@ MTP-161 必须建立的主要 anchors：
 - 不暴露 Runtime object、Adapter request、SQLite / DuckDB schema、account endpoint payload、broker payload、broker state、credential、secret、API key 或 listenKey。
 - 不新增 Strategy Console、Live PRO Console、trading button、live command、order form、order-level command UI、position command、emergency stop、shutdown、restore 或 production operations command。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-162 Architecture Module Boundary Terminology Validation
+
+日期：2026-06-01
+
+执行者：Codex
+
+MTP-162 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-162 的验收要求：
+
+- `docs/domain/context.md` 必须包含 architecture-graph-aligned module boundary terminology、old-to-target module mapping、future-gated module name non-authorization 和 validation anchors。
+- `docs/architecture/module-boundary.md` 必须包含 MTP-162 terminology contract 和 current runtime non-authorization anchors。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-ARCHITECTURE-MODULE-BOUNDARY` 和 MTP-162 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 Architecture graph module terminology anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-162 的当前 issue execution evidence，并把 Engine Module Boundary Consolidation 从 docs-only planning candidate 更新为 Linear-controlled active Project evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-162 domain context、architecture boundary、validation plan、validation matrix、latest summary、automation readiness doc、planning record、old target mapping、future-gated non-authorization 和 forbidden capability boundary strings。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-162 必须建立的主要 anchors：
+
+- `MTP-162-ARCHITECTURE-GRAPH-ALIGNED-MODULE-BOUNDARY-TERMS`
+- `MTP-162-OLD-TO-TARGET-MODULE-MAPPING`
+- `MTP-162-FUTURE-GATED-MODULE-NAME-NON-AUTHORIZATION`
+- `MTP-162-ARCHITECTURE-MODULE-TERMINOLOGY-VALIDATION`
+- `MTP-162-TERMINOLOGY-CONTRACT`
+- `MTP-162-CURRENT-RUNTIME-NON-AUTHORIZATION`
+
+## MTP-162 禁止
+
+- 不移动业务代码，不新增或修改 Swift production code，不修改 SwiftPM target，不做 source layout move。
+- 不实现 Strategy runtime、Trader runtime、Live runtime、Portfolio runtime、Risk runtime、complete runtime MessageBus 或 current ExecutionClient implementation。
+- 不实现 OMS implementation、broker / exchange execution adapter、`LiveExecutionAdapter`、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不调用 signed endpoint、account endpoint / listenKey，不创建或 keepalive listenKey，不连接 private WebSocket，不启动 private stream runtime 或 account snapshot runtime。
+- 不读取真实账户、真实持仓、真实余额、broker position、margin、leverage、real PnL、account endpoint payload、broker payload 或 broker state。
+- 不新增 Live PRO Console、trading button、live command、order form、order-level command UI、position command、emergency stop、shutdown、restore 或 production operations command。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
