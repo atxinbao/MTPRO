@@ -5056,3 +5056,45 @@ MTP-175 必须建立的主要 anchors：
 - 不把 paper risk evidence、blocked reason、Portfolio exposure reference 或 future live risk gate label 升级为 executable order command、order form payload、live command、position command、trading button 或 Live PRO Console。
 - 不新增 API key input、secret storage、credential provider、keychain storage 或 broker connect UI。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-176 ExecutionEngine Paper / Simulated Lifecycle Boundary Validation
+
+日期：2026-06-01
+
+执行者：Codex
+
+MTP-176 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-176 的验收要求：
+
+- `docs/architecture/module-boundary.md` 必须包含 ExecutionEngine paper / simulated lifecycle boundary、paper lifecycle state contract、simulated fill / fee / slippage contract、Portfolio projection evidence output、OMS future gate boundary、no real order lifecycle / broker path guard 和 ExecutionEngine boundary validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-176 ExecutionEngine shared language anchors。
+- `docs/validation/trading-validation-matrix.md` 必须把 `TVM-ARCHITECTURE-MODULE-BOUNDARY` 扩展到 MTP-176 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 ExecutionEngine paper / simulated lifecycle boundary anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-176 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-176 architecture boundary、domain context、validation plan、validation matrix、latest summary、automation readiness doc、`Sources/ExecutionEngine/`、paper lifecycle、simulated fill、fee / slippage、Portfolio projection、OMSFutureGate、no real order lifecycle、no broker submit / cancel / replace、no execution report、no broker fill、no reconciliation 和 no ExecutionClient request strings。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-176 必须建立的主要 anchors：
+
+- `MTP-176-EXECUTIONENGINE-PAPER-SIMULATED-LIFECYCLE-BOUNDARY`
+- `MTP-176-PAPER-LIFECYCLE-STATE-CONTRACT`
+- `MTP-176-SIMULATED-FILL-FEE-SLIPPAGE-CONTRACT`
+- `MTP-176-PORTFOLIO-PROJECTION-EVIDENCE-OUTPUT`
+- `MTP-176-OMS-FUTURE-GATE-BOUNDARY`
+- `MTP-176-NO-REAL-ORDER-LIFECYCLE-BROKER-PATH-GUARD`
+- `MTP-176-EXECUTIONENGINE-BOUNDARY-VALIDATION`
+
+## MTP-176 禁止
+
+- 不移动 production source，不新增或修改 Swift production code，不修改 `Package.swift` target graph，不创建 SwiftPM target。
+- 不实现 ExecutionEngine runtime、ExecutionClient implementation、OMS implementation、broker adapter、broker / exchange execution adapter、order router、execution venue routing、real order lifecycle 或 production execution audit trail。
+- 不实现 real submit / cancel / replace、execution report ingestion、broker fill ingestion、reconciliation runtime、settlement record、broker statement、real PnL source 或 live fill event。
+- 不调用 signed endpoint、account endpoint / listenKey，不连接 private WebSocket，不启动 private stream runtime、account snapshot runtime、broker session manager 或 private network test。
+- 不把 paper lifecycle state、simulated fill、fee、slippage、Portfolio projection trigger 或 OMSFutureGate 升级为 broker order、ExecutionClient request、OMS order、order form payload、live command、position command、trading button 或 Live PRO Console。
+- 不新增 API key input、secret storage、credential provider、keychain storage 或 broker connect UI。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

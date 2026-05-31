@@ -433,6 +433,34 @@ RiskEngine pre-execution boundary 不能升级为 current live safety runtime。
 
 MTP-175 的验证只证明 RiskEngine pre-execution boundary、paper risk / blocked evidence contract、RiskEngine before ExecutionEngine dependency、future live risk gate boundary、no broker / ExecutionClient risk path guard 和 no live risk runtime / circuit breaker guard 已落仓；不证明 source move、Package.swift target graph change、RiskEngine runtime、live risk runtime、broker adapter、ExecutionClient 或 OMS 已实现。
 
+`MTP-176-EXECUTIONENGINE-PAPER-SIMULATED-LIFECYCLE-BOUNDARY`
+
+MTP-176 固定 `Sources/ExecutionEngine/` 为 paper / simulated execution lifecycle boundary。ExecutionEngine 只消费 RiskEngine paper risk evidence、Trader coordination context、paper proposal evidence 和 Portfolio read model，输出 paper lifecycle evidence、simulated fill evidence、fee / slippage evidence 和 Portfolio projection trigger；它不是 ExecutionClient、broker adapter、OMS、real order state machine、venue API client 或 live execution runtime。
+
+`MTP-176-PAPER-LIFECYCLE-STATE-CONTRACT`
+
+Paper lifecycle state 只表示本地 deterministic 状态流：proposed、accepted、rejected、filled、partially filled、expired 和 cancelled-local。每个 transition 可以记录 risk decision reference、paper order intent reference、correlation / causation evidence、replay trace 和 blocked reason；不得携带 broker order id、exchange order id、client order id、execution report id、broker fill id、real account id、account endpoint payload 或 signed request。
+
+`MTP-176-SIMULATED-FILL-FEE-SLIPPAGE-CONTRACT`
+
+Simulated fill、fee、slippage 和 cost impact 只表示 local simulated exchange / deterministic fixture evidence。它们可以作为 Portfolio projection、Report、Dashboard 和 Events read-model-only evidence input；不得升级为 execution report、broker fill、exchange acknowledgement、venue fee report、settlement record、reconciliation input、broker statement、real PnL source 或 live fill event。
+
+`MTP-176-PORTFOLIO-PROJECTION-EVIDENCE-OUTPUT`
+
+ExecutionEngine 输出必须通过 MessageBus facts、Portfolio projection input、ReadModel / ViewModel export、Report 和 Events evidence surface 传播。禁止直接写 Workbench UI state，禁止暴露 runtime object、Adapter request、SQLite / DuckDB schema、broker payload、account payload、broker state、order form payload 或 UI command surface。
+
+`MTP-176-OMS-FUTURE-GATE-BOUNDARY`
+
+OMSFutureGate 是 future-gated boundary label，用于说明未来 OMS 与 ExecutionEngine 的分界。当前 MTP-176 不实现 OMS、order router、execution venue routing、real order lifecycle、broker session、execution report ingestion、broker fill ingestion、reconciliation runtime、production execution audit trail 或 production recovery。
+
+`MTP-176-NO-REAL-ORDER-LIFECYCLE-BROKER-PATH-GUARD`
+
+MTP-176 的 forbidden path 包括 `ExecutionEngine -> broker submit`、`ExecutionEngine -> broker cancel`、`ExecutionEngine -> broker replace`、`ExecutionEngine -> ExecutionClient request`、`ExecutionEngine -> OMS order`、`ExecutionEngine -> signed endpoint`、`ExecutionEngine -> account endpoint / listenKey`、`ExecutionEngine -> execution report`、`ExecutionEngine -> broker fill`、`ExecutionEngine -> reconciliation` 和 `paper lifecycle -> real order lifecycle`。
+
+`MTP-176-EXECUTIONENGINE-BOUNDARY-VALIDATION`
+
+MTP-176 的验证只证明 ExecutionEngine paper / simulated lifecycle boundary、paper lifecycle state contract、simulated fill / fee / slippage contract、Portfolio projection evidence output、OMS future gate boundary 和 no real order lifecycle / broker path guard 已落仓；不证明 source move、Package.swift target graph change、ExecutionEngine runtime、ExecutionClient、OMS、broker adapter 或 real order lifecycle 已实现。
+
 ## Paper Runtime Kernel Terms
 
 `MTP-96-PAPER-RUNTIME-KERNEL-TERMS`
