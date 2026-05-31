@@ -293,6 +293,34 @@ DataClient 只能提供 public market data capability 和 future-gated label；D
 
 MTP-170 的验证只证明 adapter capability guard、forbidden endpoint/runtime coverage、source identity labeling、fixture / public / future-gated source labels、DataClient / DataEngine boundary guard 和 no credential / secret / private network test guard 已落仓；不证明 endpoint implementation、真实网络私有接口测试、secret / credential / keychain storage、private stream runtime、account snapshot runtime、ExecutionClient、OMS、broker adapter、UI command surface 或 source migration 已实现。
 
+`MTP-171-STRATEGIES-LIFECYCLE-PROPOSAL-BOUNDARY-CONTRACT`
+
+MTP-171 固定 `Sources/Strategies/<strategy>/` 为 strategy-scoped lifecycle、quoter / hedger、signals、paper/live-neutral proposals 和 read-model input boundary。Strategies 可以消费 DomainModel、MessageBus、Cache、Portfolio 和 RiskEngine read-model inputs，也可以发布 signal / proposal / evidence facts；Strategies 不等于 Trader coordination runtime、ExecutionEngine command path、ExecutionClient request layer、broker gateway 或 OMS。
+
+`MTP-171-EMA-STRATEGY-DIRECTORY-EXAMPLE`
+
+`Sources/Strategies/EMA/` 是首个 strategy directory 示例，只用于固定 EMA strategy target structure。`Lifecycle/`、`Quoter/`、`Hedger/`、`Signals/` 和 `Proposals/` 是 boundary labels，不表示 current strategy runtime、scheduler、live quoter、live hedger、broker adapter、ExecutionClient 或 OMS 已实现。
+
+`MTP-171-LIFECYCLE-QUOTER-HEDGER-SIGNALS-PROPOSALS-SPLIT`
+
+Lifecycle 只描述 strategy readiness state evidence；Quoter 只描述 quote intent / market-side evaluation evidence；Hedger 只描述 hedge intent / exposure balancing evidence；Signals 只描述 deterministic signal facts；Proposals 只描述 paper/live-neutral proposal evidence。任何一层都不能输出 executable order command、broker command、ExecutionClient request、OMS order、real submit / cancel / replace 或 UI command payload。
+
+`MTP-171-STRATEGY-READ-MODEL-INPUT-CONTRACT`
+
+Strategy read-model input 只能来自 DomainModel、MessageBus facts、Cache read state、Portfolio projection 和 RiskEngine blocked / allowed evidence。Strategy 不能直接调用 DataEngine、Trader、ExecutionEngine、ExecutionClient、Workbench、Database schema、Adapter request、Runtime object、signed endpoint、account endpoint / listenKey、private stream runtime、account snapshot runtime 或 broker state。
+
+`MTP-171-NO-DIRECT-EXECUTIONCLIENT-PATH-GUARD`
+
+MTP-171 的 forbidden direct execution path 包括 `Strategies -> ExecutionClient`、`Strategies -> broker command`、`Strategies -> OMS`、`Strategies -> real order lifecycle`、`Strategies -> real submit / cancel / replace`、`Strategies -> execution report`、`Strategies -> broker fill`、`Strategies -> reconciliation`、`Strategies -> Live PRO Console command`、`Strategies -> trading button` 和 `Strategies -> order form`。Strategy proposal 必须保持 evidence-only / paper-live-neutral semantics，不能升级为 executable order command。
+
+`MTP-171-NO-RUNTIME-SCHEDULER-LIVE-QUOTER-HEDGER-GUARD`
+
+MTP-171 不实现 strategy runtime、scheduler、live quoter runtime、live hedger runtime、Trader runtime、ExecutionClient implementation、OMS implementation、broker adapter、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、secret / credential / keychain storage、Live PRO Console、trading button、live command 或 order form。
+
+`MTP-171-STRATEGIES-BOUNDARY-VALIDATION`
+
+MTP-171 的验证只证明 Strategies lifecycle and proposal boundary、EMA strategy directory example、lifecycle / quoter / hedger / signals / proposals split、Strategy read-model input contract、no direct ExecutionClient path guard 和 no runtime scheduler / live quoter / hedger guard 已落仓；不证明 source move、Package.swift target graph change、strategy runtime、scheduler、live quoter、live hedger、broker command、executable order command 或 source migration 已实现。
+
 ## Paper Runtime Kernel Terms
 
 `MTP-96-PAPER-RUNTIME-KERNEL-TERMS`

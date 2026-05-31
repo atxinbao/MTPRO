@@ -4844,3 +4844,46 @@ MTP-170 必须建立的主要 anchors：
 - 不读取真实账户、真实持仓、真实余额、broker position、margin、leverage、buying power、real PnL、account endpoint payload、broker payload 或 broker state。
 - 不新增 Live PRO Console、trading button、live command、order form、order-level command UI、position command、emergency stop、shutdown、restore 或 production operations command。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-171 Strategies Lifecycle and Proposal Boundary Validation
+
+日期：2026-06-01
+
+执行者：Codex
+
+MTP-171 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-171 的验收要求：
+
+- `docs/architecture/module-boundary.md` 必须包含 Strategies lifecycle and proposal boundary、EMA strategy directory example、Lifecycle / Quoter / Hedger / Signals / Proposals split、Strategy read-model input contract、no direct ExecutionClient path guard 和 no runtime scheduler / live quoter / hedger guard anchors。
+- `docs/domain/context.md` 必须包含 MTP-171 Strategies shared language anchors。
+- `docs/validation/trading-validation-matrix.md` 必须把 `TVM-ARCHITECTURE-MODULE-BOUNDARY` 扩展到 MTP-171 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 Strategies lifecycle and proposal boundary anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-171 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-171 architecture boundary、domain context、validation plan、validation matrix、latest summary、automation readiness doc、`Sources/Strategies/<strategy>/`、`Sources/Strategies/EMA/`、`Lifecycle/`、`Quoter/`、`Hedger/`、`Signals/`、`Proposals/`、paper/live-neutral proposals、read-model inputs、no direct ExecutionClient path 和 no runtime scheduler / live quoter / hedger guard strings。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-171 必须建立的主要 anchors：
+
+- `MTP-171-STRATEGIES-LIFECYCLE-PROPOSAL-BOUNDARY-CONTRACT`
+- `MTP-171-EMA-STRATEGY-DIRECTORY-EXAMPLE`
+- `MTP-171-LIFECYCLE-QUOTER-HEDGER-SIGNALS-PROPOSALS-SPLIT`
+- `MTP-171-STRATEGY-READ-MODEL-INPUT-CONTRACT`
+- `MTP-171-NO-DIRECT-EXECUTIONCLIENT-PATH-GUARD`
+- `MTP-171-NO-RUNTIME-SCHEDULER-LIVE-QUOTER-HEDGER-GUARD`
+- `MTP-171-STRATEGIES-BOUNDARY-VALIDATION`
+
+## MTP-171 禁止
+
+- 不移动 production source，不新增或修改 Swift production code，不修改 `Package.swift` target graph，不创建 SwiftPM target。
+- 不实现 strategy runtime、scheduler、live quoter runtime、live hedger runtime、Trader runtime、ExecutionClient implementation 或 OMS implementation。
+- 不输出 broker command、executable order command、ExecutionClient request、OMS order、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不把 `Sources/Strategies/EMA/` 写成 current runtime implementation；它只能作为 target directory example 和 validation label。
+- 不调用 signed endpoint、account endpoint / listenKey，不连接 private WebSocket，不启动 private stream runtime 或 account snapshot runtime。
+- 不读取真实账户、真实持仓、真实余额、broker position、margin、leverage、buying power、real PnL、account endpoint payload、broker payload 或 broker state。
+- 不新增 Live PRO Console、trading button、live command、order form、order-level command UI、position command、emergency stop、shutdown、restore 或 production operations command。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

@@ -489,6 +489,36 @@ DataClient 只能提供 public market data capability 和 future-gated label；D
 
 MTP-170 只证明 adapter capability and data-source guard anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不新增 endpoint implementation、不新增真实网络私有接口测试、不引入 secret / credential / keychain storage、不实现 signed/account/listenKey endpoint、private WebSocket runtime、account snapshot runtime、broker adapter、ExecutionClient、OMS、UI command surface、Graphify 或 Figma。
 
+## MTP-171 Strategies Lifecycle and Proposal Boundary
+
+`MTP-171-STRATEGIES-LIFECYCLE-PROPOSAL-BOUNDARY-CONTRACT`
+
+MTP-171 将 `Sources/Strategies/<strategy>/` 固定为 strategy-scoped lifecycle、quoter / hedger、signals、paper/live-neutral proposals 和 read-model input boundary。Strategies 可以消费 DomainModel、MessageBus、Cache、Portfolio 和 RiskEngine read-model inputs，并发布 signal / proposal / evidence facts；它不是 Trader coordination runtime、ExecutionEngine command path、ExecutionClient request layer、broker gateway 或 OMS。
+
+`MTP-171-EMA-STRATEGY-DIRECTORY-EXAMPLE`
+
+`Sources/Strategies/EMA/` 是当前首个 strategy directory 示例。EMA 示例必须保持 `Lifecycle/`、`Quoter/`、`Hedger/`、`Signals/` 和 `Proposals/` 的边界语义：这些目录只表达 future target structure 和 validation labels，不表示已经实现 strategy runtime、scheduler、live quoter、live hedger、broker adapter、ExecutionClient 或 OMS。
+
+`MTP-171-LIFECYCLE-QUOTER-HEDGER-SIGNALS-PROPOSALS-SPLIT`
+
+Lifecycle 只描述 strategy readiness state、enabled / disabled / blocked / unavailable 等本地 evidence；Quoter 只描述 quote intent / market-side evaluation evidence；Hedger 只描述 hedge intent / exposure balancing evidence；Signals 只描述 deterministic signal facts；Proposals 只描述 paper/live-neutral proposal evidence。任何一层都不能输出 executable order command、broker command、ExecutionClient request、OMS order、real submit / cancel / replace 或 UI command payload。
+
+`MTP-171-STRATEGY-READ-MODEL-INPUT-CONTRACT`
+
+Strategy read-model input 只能来自 DomainModel、MessageBus facts、Cache read state、Portfolio projection 和 RiskEngine blocked / allowed evidence。Strategy 不能直接调用 DataEngine、Trader、ExecutionEngine、ExecutionClient、Workbench、Database schema、Adapter request、Runtime object、signed endpoint、account endpoint / listenKey、private stream runtime、account snapshot runtime 或 broker state。
+
+`MTP-171-NO-DIRECT-EXECUTIONCLIENT-PATH-GUARD`
+
+禁止 `Strategies -> ExecutionClient`、`Strategies -> broker command`、`Strategies -> OMS`、`Strategies -> real order lifecycle`、`Strategies -> real submit / cancel / replace`、`Strategies -> execution report`、`Strategies -> broker fill`、`Strategies -> reconciliation`、`Strategies -> Live PRO Console command`、`Strategies -> trading button` 或 `Strategies -> order form`。Strategy proposal 必须继续保持 evidence-only / paper-live-neutral semantics，不能升级为 executable order command。
+
+`MTP-171-NO-RUNTIME-SCHEDULER-LIVE-QUOTER-HEDGER-GUARD`
+
+MTP-171 不实现 strategy runtime、scheduler、live quoter runtime、live hedger runtime、Trader runtime、ExecutionClient implementation、OMS implementation、broker adapter、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、secret / credential / keychain storage、Live PRO Console、trading button、live command 或 order form。
+
+`MTP-171-STRATEGIES-BOUNDARY-VALIDATION`
+
+MTP-171 只证明 Strategies lifecycle and proposal boundary anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不移动 production source、不创建 SwiftPM target、不修改 `Package.swift` target graph、不实现 strategy runtime / scheduler / live quoter / live hedger、不输出 broker command 或 executable order command、不运行 Graphify、不修改 Figma。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |
