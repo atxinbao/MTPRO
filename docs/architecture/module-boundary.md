@@ -343,6 +343,41 @@ Cache 只能消费 MessageBus facts、Database projection snapshot 和 local rep
 
 MTP-166 只证明 Cache boundary anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不实现 Redis、external cache service、real account / broker state cache、Database implementation、UI command surface、runtime object exposure、live command path、signed/account/listenKey endpoint、private WebSocket runtime 或 source migration。
 
+## MTP-167 Database Boundary
+
+`MTP-167-DATABASE-DURABLE-FACTS-SNAPSHOT-PROJECTION-CONTRACT`
+
+MTP-167 将 `Sources/Database/` 固定为 local-first durable backing store boundary。Database 负责 Event Log、Snapshot、Projection、SQLite / DuckDB implementation detail、schema/version 和 replay projection 的职责划分；它不直接驱动 Workbench UI，不复制 Redis，不持久化 broker/account payload。
+
+| Database surface | 当前含义 | 禁止升级 |
+| --- | --- | --- |
+| Event Log | append-only durable facts；输入来自 MessageBus / local replay。 | 不等于 broker event store、execution report store 或 production incident log。 |
+| Snapshot | 从 facts / replay 重建的本地状态切片。 | 不等于 real account snapshot、broker position snapshot 或 source-of-truth account state。 |
+| Projection | 面向 query / report / cache 的 local read state。 | 不直接成为 Workbench UI contract，不暴露 raw table / schema。 |
+| SQLite | local runtime projection implementation detail。 | 不暴露 table、column、raw SQL 或 adapter handle 给 Workbench。 |
+| DuckDB | analytical projection implementation detail。 | 不暴露 analytical schema 给 UI，不承载 broker/account payload archive。 |
+| Schema / version | local deterministic validation 和 replay projection compatibility evidence。 | 不等于 public product API、Adapter request contract 或 Runtime object contract。 |
+
+`MTP-167-SQLITE-DUCKDB-SCHEMA-VERSION-CONTRACT`
+
+SQLite / DuckDB schema、version、migration 和 replay projection 只服务 local deterministic validation。schema/version 不能被 Cache 继承为 state ownership，不能作为 Workbench / Report / Dashboard / Events 的 product surface contract，也不能镜像 account endpoint payload、broker payload、Runtime object 或 Adapter request。
+
+`MTP-167-DATABASE-MESSAGEBUS-CACHE-PORTFOLIO-RELATIONSHIP`
+
+Database 从 MessageBus / Event Log 接收 durable facts，产出 snapshot / projection input 给 Cache、Portfolio projection 和 report read model。Cache 不写 Database schema；Portfolio projection 只消费 paper / simulated facts；Workbench 只能消费 ReadModel / ViewModel，不得直接调用 Database adapter。
+
+`MTP-167-WORKBENCH-SCHEMA-BYPASS-GUARD`
+
+禁止 `Workbench -> Database schema`、`Report -> raw SQL query`、`Dashboard -> SQLite table`、`Events -> DuckDB row`、`Cache -> DB adapter schema owner`、`DataClient -> Database account payload archive` 或 `ExecutionEngine -> Database broker fill store`。所有 database-backed evidence 必须通过 ReadModel / ViewModel / report input contract。
+
+`MTP-167-ACCOUNT-BROKER-PERSISTENCE-FORBIDDEN-GUARD`
+
+Database 禁止持久化 real account payload、broker payload、broker state、broker position、real balance、real position、margin、leverage、buying power、real PnL、signed request、account endpoint response、listenKey state、private WebSocket runtime message、ExecutionClient request、OMS order、execution report、broker fill 或 reconciliation record。
+
+`MTP-167-DATABASE-BOUNDARY-VALIDATION`
+
+MTP-167 只证明 Database boundary anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不实现 Database migration、schema exposure、broker/account payload persistence、Redis clone、UI command surface、runtime object exposure、live command path、signed/account/listenKey endpoint、private WebSocket runtime 或 source migration。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |
