@@ -4800,3 +4800,47 @@ MTP-169 必须建立的主要 anchors：
 - 不读取真实账户、真实持仓、真实余额、broker position、margin、leverage、buying power、real PnL、account endpoint payload、broker payload 或 broker state。
 - 不新增 Live PRO Console、trading button、live command、order form、order-level command UI、position command、emergency stop、shutdown、restore 或 production operations command。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-170 Adapter Capability and Data-source Guard Validation
+
+日期：2026-06-01
+
+执行者：Codex
+
+MTP-170 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-170 的验收要求：
+
+- `docs/architecture/module-boundary.md` 必须包含 adapter capability guard、forbidden endpoint/runtime coverage、source identity labeling、fixture / public / future-gated source labels、DataClient / DataEngine boundary guard 和 no credential / secret / private network test guard anchors。
+- `docs/domain/context.md` 必须包含 MTP-170 adapter capability shared language anchors。
+- `docs/validation/trading-validation-matrix.md` 必须把 `TVM-ARCHITECTURE-MODULE-BOUNDARY` 扩展到 MTP-170 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 Adapter capability and data-source guard anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-170 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-170 architecture boundary、domain context、validation plan、validation matrix、latest summary、automation readiness doc、capability guard、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、broker adapter、source identity、fixture-source、public-market-data-source、future-gated-private-source-label 和 no credential / secret / private network test guard strings。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-170 必须建立的主要 anchors：
+
+- `MTP-170-ADAPTER-CAPABILITY-GUARD-CONTRACT`
+- `MTP-170-FORBIDDEN-ENDPOINT-RUNTIME-COVERAGE`
+- `MTP-170-SOURCE-IDENTITY-LABELING-CONTRACT`
+- `MTP-170-FIXTURE-PUBLIC-FUTURE-GATED-SOURCE-LABELS`
+- `MTP-170-DATACLIENT-DATAENGINE-BOUNDARY-GUARD`
+- `MTP-170-NO-CREDENTIAL-SECRET-PRIVATE-NETWORK-TEST-GUARD`
+- `MTP-170-ADAPTER-CAPABILITY-VALIDATION`
+
+## MTP-170 禁止
+
+- 不新增 endpoint implementation，不新增或修改 Swift production code，不修改 `Package.swift` target graph，不创建 SwiftPM target。
+- 不新增真实网络私有接口测试，不依赖真实凭证、真实 Binance 私有接口或外部 account data。
+- 不引入 secret / credential / keychain storage、API key input、signed request fixture、listenKey fixture、private WebSocket fixture、account endpoint fixture、broker payload fixture 或 real account fixture。
+- 不把 future-gated private source label 写成 current private stream、account snapshot runtime、secret storage、signed request、account endpoint read、listenKey lifecycle、broker sync 或 private network test fixture。
+- 不实现 broker / exchange execution adapter、`LiveExecutionAdapter`、OMS implementation、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不调用 signed endpoint、account endpoint / listenKey，不创建或 keepalive listenKey，不连接 private WebSocket，不启动 private stream runtime 或 account snapshot runtime。
+- 不读取真实账户、真实持仓、真实余额、broker position、margin、leverage、buying power、real PnL、account endpoint payload、broker payload 或 broker state。
+- 不新增 Live PRO Console、trading button、live command、order form、order-level command UI、position command、emergency stop、shutdown、restore 或 production operations command。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

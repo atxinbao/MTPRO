@@ -459,6 +459,36 @@ DataClient 只提供 public market data capability；DataEngine 负责 ingest / 
 
 MTP-169 只证明 DataEngine ingest / replay / quality boundary anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不实现完整 streaming DataEngine runtime、source move、SwiftPM target split、signed/account/listenKey endpoint、private WebSocket runtime、account snapshot runtime、broker / exchange execution adapter、ExecutionClient、OMS、UI command surface、Graphify 或 Figma。
 
+## MTP-170 Adapter Capability and Data-source Guard Evidence
+
+`MTP-170-ADAPTER-CAPABILITY-GUARD-CONTRACT`
+
+MTP-170 将 adapter capability guard 固定为 DataClient / DataEngine 的 validation evidence：所有 adapter capability 必须先分类为 public market data、fixture replay、scenario replay、future-gated private source 或 forbidden capability。Capability guard 只做边界判定，不实现 endpoint、credential、transport、private stream runtime、broker adapter 或 ExecutionClient。
+
+`MTP-170-FORBIDDEN-ENDPOINT-RUNTIME-COVERAGE`
+
+Capability guard 必须覆盖 signed endpoint、account endpoint / listenKey、listenKey create / keepalive、private WebSocket runtime、private stream runtime、account snapshot runtime、broker adapter、exchange execution adapter、ExecutionClient、OMS、real order lifecycle、execution report、broker fill、reconciliation、account payload、broker payload 和 broker state。
+
+`MTP-170-SOURCE-IDENTITY-LABELING-CONTRACT`
+
+所有 DataClient / DataEngine source identity 必须带 source kind、venue、dataset / fixture version、replay window、freshness status、quality gate status 和 capability label。source identity 不包含 endpoint URL、API key、secret、signature、listenKey lease、private stream cursor、broker account id、account payload、broker payload 或 Runtime object。
+
+`MTP-170-FIXTURE-PUBLIC-FUTURE-GATED-SOURCE-LABELS`
+
+合法 source labels 只能是 `fixture-source`、`public-market-data-source`、`scenario-replay-source` 和 `future-gated-private-source-label`。future-gated private source 只是 label-only evidence；它不表示 current private stream、account snapshot runtime、secret storage、signed request、account endpoint read、listenKey lifecycle 或 broker sync。
+
+`MTP-170-DATACLIENT-DATAENGINE-BOUNDARY-GUARD`
+
+DataClient 只能提供 public market data capability 和 future-gated label；DataEngine 只能通过 ingest / replay / quality boundary 消费 public or fixture source 并 publish MessageBus facts / evidence。禁止 DataClient / DataEngine 通过 capability matrix 绕过 MessageBus、Cache、Database、ReadModel / ViewModel、RiskEngine 或 ExecutionEngine。
+
+`MTP-170-NO-CREDENTIAL-SECRET-PRIVATE-NETWORK-TEST-GUARD`
+
+自动验证不得依赖真实凭证、真实 Binance 私有接口、外部 account data、secret / credential / keychain storage、API key input、signed request fixture、listenKey fixture、private WebSocket fixture 或 broker payload fixture。所有 guard evidence 必须由本地 deterministic docs/checks 和 existing public / fixture tests 表达。
+
+`MTP-170-ADAPTER-CAPABILITY-VALIDATION`
+
+MTP-170 只证明 adapter capability and data-source guard anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不新增 endpoint implementation、不新增真实网络私有接口测试、不引入 secret / credential / keychain storage、不实现 signed/account/listenKey endpoint、private WebSocket runtime、account snapshot runtime、broker adapter、ExecutionClient、OMS、UI command surface、Graphify 或 Figma。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |
