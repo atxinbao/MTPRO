@@ -579,6 +579,36 @@ cash、positions、PnL、exposure、margin、open value 和 projection 必须归
 
 MTP-173 只证明 Account / Portfolio read-model boundary anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不移动 production source、不创建 SwiftPM target、不修改 `Package.swift` target graph、不实现 Portfolio runtime、不读取真实 account / broker portfolio、不运行 Graphify、不修改 Figma。
 
+## MTP-174 Strategies / Trader No-direct-execution Guard
+
+`MTP-174-STRATEGIES-TRADER-NO-DIRECT-EXECUTION-GUARD`
+
+MTP-174 将 Strategies / Trader no-direct-execution guard 固定为 M4 收口检查：Strategies 和 Trader 都不能直连 ExecutionClient、broker command、OMS、real order lifecycle 或 executable order command。Strategy proposal、Trader coordination context、account context、Portfolio read model 和 RiskEngine evidence 必须继续停留在 paper / simulated / read-model-only evidence chain。
+
+`MTP-174-PROPOSAL-ORDER-COMMAND-SEMANTIC-ISOLATION`
+
+Strategy proposal 和 Trader proposal 只能表达 paper/live-neutral intent evidence、blocked reason、read-model references 和 validation trace；不得包含 order id、client order id、broker order id、account id、broker account id、side / quantity / price / timeInForce / orderType executable tuple、ExecutionClient request、OMS order 或 signed request。
+
+`MTP-174-TRADER-NOT-LIVE-COORDINATOR-BROKER-GATEWAY`
+
+Trader coordination 只能串联 Strategies、Trader/Accounts、Portfolio、RiskEngine 和 ExecutionEngine paper / simulated boundary；不得升级为 live coordinator、broker gateway、OMS gateway、private stream coordinator、account snapshot runtime、real account synchronizer、broker session manager 或 command router。
+
+`MTP-174-FORBIDDEN-UI-COMMAND-SURFACE-GUARD`
+
+Workbench、Report、Events、Dashboard 和 future Live PRO Console label 都不能把 Strategies / Trader evidence 暴露为 trading button、live command、order form、order-level command UI、position command、emergency stop、shutdown、restore 或 production operations command。当前 UI surface 只能消费 ReadModel / ViewModel。
+
+`MTP-174-EXECUTIONCLIENT-OMS-BROKER-PATH-BLOCKLIST`
+
+禁止 `Strategies -> ExecutionClient`、`Strategies -> broker command`、`Strategies -> OMS`、`Trader -> ExecutionClient`、`Trader -> broker command`、`Trader -> OMS`、`Trader -> real submit / cancel / replace`、`Strategy proposal -> executable order command`、`Trader coordination -> real order lifecycle` 和 `Workbench -> Strategy / Trader live command`。
+
+`MTP-174-NO-RUNTIME-ENDPOINT-CREDENTIAL-BYPASS`
+
+MTP-174 guard 不能通过 runtime、endpoint 或 credential 绕过：不创建 Strategy runtime、Trader runtime、ExecutionClient implementation、OMS implementation、broker adapter、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、API key input、secret storage、credential provider 或 keychain storage。
+
+`MTP-174-NO-DIRECT-EXECUTION-GUARD-VALIDATION`
+
+MTP-174 只证明 Strategies / Trader no-direct-execution guard anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不移动 production source、不创建 SwiftPM target、不修改 `Package.swift` target graph、不实现 Strategy runtime / Trader runtime / ExecutionClient / OMS / broker command、不运行 Graphify、不修改 Figma。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |
