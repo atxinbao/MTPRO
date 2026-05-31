@@ -321,6 +321,34 @@ MTP-171 不实现 strategy runtime、scheduler、live quoter runtime、live hedg
 
 MTP-171 的验证只证明 Strategies lifecycle and proposal boundary、EMA strategy directory example、lifecycle / quoter / hedger / signals / proposals split、Strategy read-model input contract、no direct ExecutionClient path guard 和 no runtime scheduler / live quoter / hedger guard 已落仓；不证明 source move、Package.swift target graph change、strategy runtime、scheduler、live quoter、live hedger、broker command、executable order command 或 source migration 已实现。
 
+`MTP-172-TRADER-COORDINATION-BOUNDARY-CONTRACT`
+
+MTP-172 固定 `Sources/Trader/` 为 strategy / account / risk / execution context 的 coordination boundary。Trader 可以协调 Strategies、Portfolio、RiskEngine 和 ExecutionEngine 的本地 evidence / read-model inputs；Trader 不等于 live coordinator、OMS、broker gateway、ExecutionClient client wrapper、real account service、portfolio ledger 或 executable order command surface。
+
+`MTP-172-ACCOUNTS-COORDINATION-STRATEGYBINDINGS-SPLIT`
+
+`Sources/Trader/Accounts/` 只保存 account context、account identity、source identity 和 future real account gate label；`Sources/Trader/Coordination/` 只表达 strategy / risk / execution context ordering evidence；`Sources/Trader/StrategyBindings/` 只表达 strategy instance 与 Trader context 的 binding evidence。这些 boundary 不拥有 cash、positions、PnL、margin、leverage、broker position、broker state、order form state 或 real account payload。
+
+`MTP-172-STRATEGY-ACCOUNT-RISK-EXECUTION-CONTEXT-COORDINATION`
+
+Trader coordination 只能把 strategy proposals、account context identity、Portfolio read model、RiskEngine evidence 和 ExecutionEngine paper / simulated lifecycle boundary 串成本地 decision context。该 context 不能绕过 MessageBus / Cache / ReadModel / ViewModel，不能直接调用 DataClient / DataEngine / Database schema，也不能产生 broker command、ExecutionClient request、OMS order、live command 或 UI command payload。
+
+`MTP-172-TRADER-ACCOUNT-CONTEXT-IDENTITY-ONLY-GUARD`
+
+Trader/Accounts 只表达 account identity、source identity、simulated / paper / future-gated source label 和 readiness evidence。真实 cash、positions、PnL、exposure、margin、open value 和 paper projection 属于 Portfolio；真实 account source、account endpoint payload、listenKey state、broker position、broker account id、broker payload 和 broker state 仍 forbidden。
+
+`MTP-172-NO-LIVE-COORDINATOR-OMS-BROKER-GATEWAY-GUARD`
+
+MTP-172 禁止把 Trader 写成 live coordinator、OMS、broker gateway、broker session manager、private stream coordinator、account snapshot runtime、real account synchronizer、Live PRO Console backend、trading button handler、order form handler、emergency stop runtime、shutdown runtime 或 restore runtime。
+
+`MTP-172-NO-DIRECT-EXECUTIONCLIENT-BROKER-COMMAND-PATH`
+
+MTP-172 的 forbidden direct command path 包括 `Trader -> ExecutionClient`、`Trader -> broker command`、`Trader -> OMS`、`Trader -> real order lifecycle`、`Trader -> real submit / cancel / replace`、`Trader -> execution report`、`Trader -> broker fill`、`Trader -> reconciliation`、`Trader -> signed endpoint`、`Trader -> account endpoint / listenKey`、`Trader -> private WebSocket runtime`、`Trader -> order form` 和 `Trader -> live command`。
+
+`MTP-172-TRADER-BOUNDARY-VALIDATION`
+
+MTP-172 的验证只证明 Trader coordination boundary、Accounts / Coordination / StrategyBindings split、strategy / account / risk / execution context coordination、account context identity-only guard、no live coordinator / OMS / broker gateway guard 和 no direct ExecutionClient / broker command path 已落仓；不证明 source move、Package.swift target graph change、Trader runtime、live coordinator、OMS、broker gateway、real account read 或 broker position sync 已实现。
+
 ## Paper Runtime Kernel Terms
 
 `MTP-96-PAPER-RUNTIME-KERNEL-TERMS`

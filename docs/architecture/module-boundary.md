@@ -519,6 +519,36 @@ MTP-171 不实现 strategy runtime、scheduler、live quoter runtime、live hedg
 
 MTP-171 只证明 Strategies lifecycle and proposal boundary anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不移动 production source、不创建 SwiftPM target、不修改 `Package.swift` target graph、不实现 strategy runtime / scheduler / live quoter / live hedger、不输出 broker command 或 executable order command、不运行 Graphify、不修改 Figma。
 
+## MTP-172 Trader Coordination Boundary
+
+`MTP-172-TRADER-COORDINATION-BOUNDARY-CONTRACT`
+
+MTP-172 将 `Sources/Trader/` 固定为 strategy / account / risk / execution context 的 coordination boundary。Trader 可以协调 Strategies、Portfolio、RiskEngine 和 ExecutionEngine 的本地 evidence / read-model inputs，但它不是 live coordinator、OMS、broker gateway、ExecutionClient client wrapper、real account service、portfolio ledger 或 executable order command surface。
+
+`MTP-172-ACCOUNTS-COORDINATION-STRATEGYBINDINGS-SPLIT`
+
+`Sources/Trader/Accounts/` 只保存 account context、account identity、source identity 和 future real account gate label；`Sources/Trader/Coordination/` 只表达 strategy / risk / execution context ordering evidence；`Sources/Trader/StrategyBindings/` 只表达 strategy instance 与 Trader context 的 binding evidence。三者都不能拥有 cash、positions、PnL、margin、leverage、broker position、broker state、order form state 或 real account payload。
+
+`MTP-172-STRATEGY-ACCOUNT-RISK-EXECUTION-CONTEXT-COORDINATION`
+
+Trader coordination 只能把 strategy proposals、account context identity、Portfolio read model、RiskEngine evidence 和 ExecutionEngine paper / simulated lifecycle boundary 串成本地 decision context。该 context 不能绕过 MessageBus / Cache / ReadModel / ViewModel，不能直接调用 DataClient / DataEngine / Database schema，也不能产生 broker command、ExecutionClient request、OMS order、live command 或 UI command payload。
+
+`MTP-172-TRADER-ACCOUNT-CONTEXT-IDENTITY-ONLY-GUARD`
+
+Trader/Accounts 的 account context 只表达 account identity、source identity、simulated / paper / future-gated source label 和 readiness evidence。真实 cash、positions、PnL、exposure、margin、open value 和 paper projection 属于 Portfolio；真实 account source、account endpoint payload、listenKey state、broker position、broker account id、broker payload 和 broker state 仍 forbidden。
+
+`MTP-172-NO-LIVE-COORDINATOR-OMS-BROKER-GATEWAY-GUARD`
+
+禁止把 Trader 写成 live coordinator、OMS、broker gateway、broker session manager、private stream coordinator、account snapshot runtime、real account synchronizer、Live PRO Console backend、trading button handler、order form handler、emergency stop runtime、shutdown runtime 或 restore runtime。
+
+`MTP-172-NO-DIRECT-EXECUTIONCLIENT-BROKER-COMMAND-PATH`
+
+禁止 `Trader -> ExecutionClient`、`Trader -> broker command`、`Trader -> OMS`、`Trader -> real order lifecycle`、`Trader -> real submit / cancel / replace`、`Trader -> execution report`、`Trader -> broker fill`、`Trader -> reconciliation`、`Trader -> signed endpoint`、`Trader -> account endpoint / listenKey`、`Trader -> private WebSocket runtime`、`Trader -> order form` 或 `Trader -> live command`。
+
+`MTP-172-TRADER-BOUNDARY-VALIDATION`
+
+MTP-172 只证明 Trader coordination boundary anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不移动 production source、不创建 SwiftPM target、不修改 `Package.swift` target graph、不实现 Trader runtime、不实现 live coordinator / OMS / broker gateway、不读取真实 account / broker position、不运行 Graphify、不修改 Figma。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |
