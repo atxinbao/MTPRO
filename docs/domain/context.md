@@ -181,6 +181,30 @@ Cache 禁止承载 real account cache、broker position cache、real balance、r
 
 MTP-166 的验证只证明 Cache runtime-derived state、durability / schema separation、Database / MessageBus relationship 和 real account cache forbidden guard 已落仓；不证明 Redis、external cache service、real account / broker state cache、Database implementation、runtime object exposure、UI command surface 或 source migration 已实现。
 
+`MTP-167-DATABASE-DURABLE-FACTS-SNAPSHOT-PROJECTION-CONTRACT`
+
+MTP-167 固定 `Database` 为 local-first durable backing store boundary：Event Log 保存 append-only durable facts，Snapshot 保存可重建状态切片，Projection 保存面向查询的本地 read state。Database 只能持久化本地 facts / snapshots / projections，不表示 broker database、production datastore、Redis cache、UI state store 或 account payload archive。
+
+`MTP-167-SQLITE-DUCKDB-SCHEMA-VERSION-CONTRACT`
+
+SQLite / DuckDB 是 Database implementation detail；schema、version、migration 和 replay projection 只能服务本地 deterministic validation。schema/version 不能暴露为 Workbench UI contract，不能被 Cache 继承为 state ownership，也不能成为 Adapter request、Runtime object、broker payload 或 account endpoint payload 的镜像。
+
+`MTP-167-DATABASE-MESSAGEBUS-CACHE-PORTFOLIO-RELATIONSHIP`
+
+Database 从 MessageBus / Event Log 接收 durable facts，向 Cache 和 Portfolio projection 提供可重建 snapshot / projection input。Cache 只消费 Database projection snapshot，不写 schema；Portfolio projection 只消费 paper / simulated facts，不读取 broker account state。Database 不直接驱动 Workbench UI，Workbench 只能消费 ReadModel / ViewModel。
+
+`MTP-167-WORKBENCH-SCHEMA-BYPASS-GUARD`
+
+Workbench、Report、Dashboard 和 Events 禁止直接读取 SQLite / DuckDB schema、table、query row、DB adapter、file handle、runtime object 或 migration version。任何 database-backed evidence 都必须先经过 ReadModel / ViewModel / report input contract，不能把 schema name、table name、column name 或 raw SQL query 暴露为 product surface contract。
+
+`MTP-167-ACCOUNT-BROKER-PERSISTENCE-FORBIDDEN-GUARD`
+
+Database 禁止持久化 real account payload、broker payload、broker state、broker position、real balance、real position、margin、leverage、buying power、real PnL、signed request、account endpoint response、listenKey state、private WebSocket runtime message、ExecutionClient request、OMS order、execution report、broker fill 或 reconciliation record。真实账户和 broker persistence 仍是 future-gated。
+
+`MTP-167-DATABASE-BOUNDARY-VALIDATION`
+
+MTP-167 的验证只证明 Database durable facts / snapshots / projections、SQLite / DuckDB schema/version separation、Database / MessageBus / Cache / Portfolio relationship、Workbench schema bypass guard 和 account / broker persistence forbidden guard 已落仓；不证明 Database implementation migration、schema exposure、broker/account payload persistence、Redis clone、UI command surface 或 source migration 已实现。
+
 ## Paper Runtime Kernel Terms
 
 `MTP-96-PAPER-RUNTIME-KERNEL-TERMS`

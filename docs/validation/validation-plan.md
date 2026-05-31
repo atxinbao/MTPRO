@@ -4668,3 +4668,46 @@ MTP-166 必须建立的主要 anchors：
 - 不读取真实账户、真实持仓、真实余额、broker position、margin、leverage、buying power、real PnL、account endpoint payload、broker payload 或 broker state。
 - 不新增 Live PRO Console、trading button、live command、order form、order-level command UI、position command、emergency stop、shutdown、restore 或 production operations command。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-167 Database Boundary Validation
+
+日期：2026-06-01
+
+执行者：Codex
+
+MTP-167 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-167 的验收要求：
+
+- `docs/architecture/module-boundary.md` 必须包含 Database durable facts / snapshots / projections、SQLite / DuckDB schema-version separation、Database / MessageBus / Cache / Portfolio relationship、Workbench schema bypass guard 和 account / broker persistence forbidden guard anchors。
+- `docs/domain/context.md` 必须包含 MTP-167 Database shared language anchors。
+- `docs/validation/trading-validation-matrix.md` 必须把 `TVM-ARCHITECTURE-MODULE-BOUNDARY` 扩展到 MTP-167 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 Database durable backing store boundary anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-167 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-167 architecture boundary、domain context、validation plan、validation matrix、latest summary、automation readiness doc、Event Log、Snapshot、Projection、SQLite、DuckDB、schema/version、Workbench schema bypass guard 和 account / broker persistence forbidden guard strings。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-167 必须建立的主要 anchors：
+
+- `MTP-167-DATABASE-DURABLE-FACTS-SNAPSHOT-PROJECTION-CONTRACT`
+- `MTP-167-SQLITE-DUCKDB-SCHEMA-VERSION-CONTRACT`
+- `MTP-167-DATABASE-MESSAGEBUS-CACHE-PORTFOLIO-RELATIONSHIP`
+- `MTP-167-WORKBENCH-SCHEMA-BYPASS-GUARD`
+- `MTP-167-ACCOUNT-BROKER-PERSISTENCE-FORBIDDEN-GUARD`
+- `MTP-167-DATABASE-BOUNDARY-VALIDATION`
+
+## MTP-167 禁止
+
+- 不实现 Database migration，不新增或修改 Swift production code，不修改 `Package.swift` target graph，不创建 SwiftPM target。
+- 不把 Database 写成 Redis clone、broker database、production datastore、UI state store、account payload archive 或 broker state mirror。
+- 不把 SQLite / DuckDB schema、table、column、raw SQL query、DB adapter、file handle 或 migration version 暴露给 Workbench / Report / Dashboard / Events。
+- 不通过 Database 绕过 MessageBus、Cache、Portfolio projection、ReadModel / ViewModel 或 report input contract。
+- 不实现 broker / exchange execution adapter、`LiveExecutionAdapter`、OMS implementation、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不调用 signed endpoint、account endpoint / listenKey，不创建或 keepalive listenKey，不连接 private WebSocket，不启动 private stream runtime 或 account snapshot runtime。
+- 不持久化真实账户、真实持仓、真实余额、broker position、margin、leverage、buying power、real PnL、account endpoint payload、broker payload、broker state、signed request、listenKey state 或 private WebSocket runtime message。
+- 不新增 Live PRO Console、trading button、live command、order form、order-level command UI、position command、emergency stop、shutdown、restore 或 production operations command。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
