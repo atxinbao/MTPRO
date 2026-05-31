@@ -377,6 +377,34 @@ MTP-173 的 forbidden read path 包括 `Portfolio -> broker account state`、`Po
 
 MTP-173 的验证只证明 Account / Portfolio read-model boundary、Trader account context identity contract、Portfolio financial state ownership、cash / position / PnL / exposure / projection split、real account broker portfolio future gate 和 no broker account state read guard 已落仓；不证明 source move、Package.swift target graph change、Portfolio runtime、broker sync、real account read 或 live reconciliation 已实现。
 
+`MTP-174-STRATEGIES-TRADER-NO-DIRECT-EXECUTION-GUARD`
+
+MTP-174 固定 M4 no-direct-execution guard：Strategies 和 Trader 只能产生 paper / simulated / read-model-only evidence、proposal evidence、coordination context 和 blocked reason；它们不能直连 ExecutionClient、broker command、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+
+`MTP-174-PROPOSAL-ORDER-COMMAND-SEMANTIC-ISOLATION`
+
+Strategy proposal / Trader proposal 与 executable order command 必须语义隔离。Proposal 可以引用 read-model input、risk evidence、Portfolio projection 和 blocked reason；不得包含 order id、client order id、broker order id、broker account id、ExecutionClient request、OMS order、signed request、side / quantity / price / timeInForce / orderType executable tuple 或 order form payload。
+
+`MTP-174-TRADER-NOT-LIVE-COORDINATOR-BROKER-GATEWAY`
+
+Trader coordination 不是 live coordinator、broker gateway、OMS gateway、broker session manager、account session manager、private stream coordinator、account snapshot runtime、real account synchronizer 或 command router。它只能串联 Strategies、Trader/Accounts、Portfolio、RiskEngine 和 ExecutionEngine paper / simulated boundary。
+
+`MTP-174-FORBIDDEN-UI-COMMAND-SURFACE-GUARD`
+
+Workbench / Report / Events / Dashboard 只能展示 Strategies / Trader 的 ReadModel / ViewModel evidence。禁止把 strategy readiness、proposal、Trader coordination 或 account context 映射为 trading button、live command、order form、position command、order-level command UI、emergency stop、shutdown、restore 或 production operations command。
+
+`MTP-174-EXECUTIONCLIENT-OMS-BROKER-PATH-BLOCKLIST`
+
+MTP-174 的 forbidden direct execution blocklist 包括 `Strategies -> ExecutionClient`、`Strategies -> broker command`、`Strategies -> OMS`、`Trader -> ExecutionClient`、`Trader -> broker command`、`Trader -> OMS`、`Strategy proposal -> executable order command`、`Trader coordination -> real order lifecycle`、`Workbench -> Strategy / Trader live command` 和 `Live PRO Console -> current Workbench command surface`。
+
+`MTP-174-NO-RUNTIME-ENDPOINT-CREDENTIAL-BYPASS`
+
+No-direct-execution guard 不得通过 runtime / endpoint / credential bypass 实现。MTP-174 不创建 Strategy runtime、Trader runtime、ExecutionClient implementation、OMS implementation、broker adapter、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、API key input、secret storage、credential provider、keychain storage 或 private network test。
+
+`MTP-174-NO-DIRECT-EXECUTION-GUARD-VALIDATION`
+
+MTP-174 的验证只证明 Strategies / Trader no-direct-execution guard、proposal / order command semantic isolation、Trader not live coordinator / broker gateway guard、forbidden UI command surface guard、ExecutionClient / OMS / broker blocklist 和 no runtime / endpoint / credential bypass 已落仓；不证明 source move、Package.swift target graph change、Strategy runtime、Trader runtime、ExecutionClient、OMS 或 broker adapter 已实现。
+
 ## Paper Runtime Kernel Terms
 
 `MTP-96-PAPER-RUNTIME-KERNEL-TERMS`

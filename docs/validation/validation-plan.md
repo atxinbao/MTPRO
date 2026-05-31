@@ -4971,3 +4971,45 @@ MTP-173 必须建立的主要 anchors：
 - 不调用 signed endpoint、account endpoint / listenKey，不连接 private WebSocket，不启动 private stream runtime 或 account snapshot runtime。
 - 不新增 broker reconciliation、execution report、broker fill、real order lifecycle、Live PRO Console、trading button、live command、order form、emergency stop、shutdown、restore 或 production operations command。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-174 Strategies / Trader No-direct-execution Guard Evidence Validation
+
+日期：2026-06-01
+
+执行者：Codex
+
+MTP-174 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-174 的验收要求：
+
+- `docs/architecture/module-boundary.md` 必须包含 Strategies / Trader no-direct-execution guard、proposal / order command semantic isolation、Trader not live coordinator / broker gateway guard、forbidden UI command surface guard、ExecutionClient / OMS / broker blocklist、no runtime / endpoint / credential bypass 和 no-direct-execution validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-174 Strategies / Trader guard shared language anchors。
+- `docs/validation/trading-validation-matrix.md` 必须把 `TVM-ARCHITECTURE-MODULE-BOUNDARY` 扩展到 MTP-174 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 Strategies / Trader no-direct-execution guard anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-174 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-174 architecture boundary、domain context、validation plan、validation matrix、latest summary、automation readiness doc、Strategies / Trader no-direct-execution guard、proposal / order command isolation、no ExecutionClient、no broker command、no OMS、no trading button、no live command、no order form 和 no credential / endpoint bypass strings。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-174 必须建立的主要 anchors：
+
+- `MTP-174-STRATEGIES-TRADER-NO-DIRECT-EXECUTION-GUARD`
+- `MTP-174-PROPOSAL-ORDER-COMMAND-SEMANTIC-ISOLATION`
+- `MTP-174-TRADER-NOT-LIVE-COORDINATOR-BROKER-GATEWAY`
+- `MTP-174-FORBIDDEN-UI-COMMAND-SURFACE-GUARD`
+- `MTP-174-EXECUTIONCLIENT-OMS-BROKER-PATH-BLOCKLIST`
+- `MTP-174-NO-RUNTIME-ENDPOINT-CREDENTIAL-BYPASS`
+- `MTP-174-NO-DIRECT-EXECUTION-GUARD-VALIDATION`
+
+## MTP-174 禁止
+
+- 不移动 production source，不新增或修改 Swift production code，不修改 `Package.swift` target graph，不创建 SwiftPM target。
+- 不实现 Strategy runtime、Trader runtime、ExecutionClient implementation、OMS implementation、broker adapter、broker command、real order lifecycle、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不把 Strategy proposal、Trader proposal、Trader coordination context 或 account context 升级为 executable order command、ExecutionClient request、OMS order、broker order 或 order form payload。
+- 不调用 signed endpoint、account endpoint / listenKey，不连接 private WebSocket，不启动 private stream runtime 或 account snapshot runtime。
+- 不新增 Live PRO Console、trading button、live command、order form、order-level command UI、position command、emergency stop、shutdown、restore 或 production operations command。
+- 不新增 API key input、secret storage、credential provider、keychain storage、private network test 或 broker connect UI。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
