@@ -5223,3 +5223,43 @@ MTP-179 必须建立的主要 anchors：
 - 不把 MessageBus facts projection、Portfolio / Risk / Execution evidence read model、local fixture summary、deterministic validation summary 或 ViewModel export 升级成 runtime command surface、database browser、adapter console、broker console 或 live operations console。
 - 不新增 execute、submit、cancel、replace、trade、connect broker、sync account、start live、stop live、emergency stop 或 production operation UI 文案。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-180 Future Live PRO Console Product-Surface Split Validation
+
+日期：2026-06-01
+
+执行者：Codex
+
+MTP-180 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-180 的验收要求：
+
+- `docs/architecture/module-boundary.md` 必须包含 Future Live PRO Console product-surface split、FutureLiveProConsole boundary label、current Workbench vs future command surface、live command controls future-only、no current Live PRO Console implementation、next-stage product-surface readiness input 和 Future Live PRO Console validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-180 Future Live PRO Console shared language anchors。
+- `docs/validation/trading-validation-matrix.md` 必须把 `TVM-ARCHITECTURE-MODULE-BOUNDARY` 扩展到 MTP-180 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 Future Live PRO Console product-surface split anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-180 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-180 architecture boundary、domain context、validation plan、validation matrix、latest summary、automation readiness doc、`Sources/Workbench/FutureLiveProConsole/` future boundary label、current Workbench read-model-only vs future command surface split、live command controls future-only guard、no current Live PRO Console implementation 和 next-stage product-surface readiness input。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-180 必须建立的主要 anchors：
+
+- `MTP-180-FUTURE-LIVE-PRO-CONSOLE-PRODUCT-SURFACE-SPLIT`
+- `MTP-180-FUTURELIVEPROCONSOLE-BOUNDARY-LABEL`
+- `MTP-180-CURRENT-WORKBENCH-VS-FUTURE-COMMAND-SURFACE`
+- `MTP-180-LIVE-COMMAND-CONTROLS-FUTURE-ONLY`
+- `MTP-180-NO-CURRENT-LIVE-PRO-CONSOLE-IMPLEMENTATION`
+- `MTP-180-NEXT-STAGE-PRODUCT-SURFACE-READINESS-INPUT`
+- `MTP-180-FUTURE-LIVE-PRO-CONSOLE-VALIDATION`
+
+## MTP-180 禁止
+
+- 不移动 production source，不新增或修改 Swift production code，不修改 `Package.swift` target graph，不创建 SwiftPM target。
+- 不创建 `Sources/Workbench/FutureLiveProConsole/`、`Sources/LivePROConsole/`、`Sources/OperationsConsole/` 或任何 current command-capable UI target。
+- 不实现 Live PRO Console、FutureLiveProConsole runtime、trading button、live command、order form、position command、emergency stop、shutdown、restore、broker connect UI、account connect UI、ExecutionClient request UI、OMS command UI 或 production operations command。
+- 不把 current Workbench read-model-only controls、Report summary、Events timeline、Dashboard smoke、RiskEngine blocked evidence、ExecutionEngine paper lifecycle 或 Strategy proposal 升级为 command-capable surface。
+- 不创建 L4 Project / Issue，不授权下一阶段，不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

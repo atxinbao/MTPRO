@@ -545,6 +545,34 @@ UI copy / docs copy 必须使用 read-model-only、evidence、snapshot、summary
 
 MTP-179 的验证只证明 Workbench read-model-only consumption boundary、ReadModel / ViewModel only input contract、Workbench / Report / Events surface split、no runtime / adapter / schema / payload exposure、no live command surface guard 和 UI copy read-model-only labeling 已落仓；不证明 source move、Package.swift target graph change、Workbench runtime、Live PRO Console 或 command-capable UI 已实现。
 
+`MTP-180-FUTURE-LIVE-PRO-CONSOLE-PRODUCT-SURFACE-SPLIT`
+
+Future Live PRO Console product-surface split 表示 Live PRO Console 是独立 future surface，不是 current Workbench 的自然扩展。Current Workbench 仍只做 read-model-only evidence / snapshot / summary / timeline inspection；Future Live PRO Console 只能作为未来 command-capable candidate 被记录。
+
+`MTP-180-FUTURELIVEPROCONSOLE-BOUNDARY-LABEL`
+
+`Sources/Workbench/FutureLiveProConsole/` 目前只是 future boundary label，不是当前目录、target、route、ViewModel 或 runtime implementation。该 label 只说明后续 L4 规划可能需要独立产品面，不授权当前创建 Live PRO Console source tree。
+
+`MTP-180-CURRENT-WORKBENCH-VS-FUTURE-COMMAND-SURFACE`
+
+Current Workbench 与 future command surface 的分离规则是：Workbench 只能消费 ReadModel / ViewModel / evidence surface；future command surface 即使被命名，也不能把 Runtime object、Adapter request、SQLite / DuckDB schema、account payload、broker payload、broker state、ExecutionClient request、OMS order 或 live command payload 带入当前 Workbench。
+
+`MTP-180-LIVE-COMMAND-CONTROLS-FUTURE-ONLY`
+
+Live PRO Console、trading button、live command、order form、position command、emergency stop、shutdown、restore、broker connect、account connect 和 production operation control 都是 future-only controls。当前文档只能把它们描述为 future-gated / forbidden capability，不得写成当前可用 UI 或操作能力。
+
+`MTP-180-NO-CURRENT-LIVE-PRO-CONSOLE-IMPLEMENTATION`
+
+No current Live PRO Console implementation 表示本阶段不创建 FutureLiveProConsole 类型、不新增交易按钮、不新增 live command、不新增 order form、不新增 stop / shutdown / restore command、不新增 broker session control、不新增 ExecutionClient / OMS UI 入口。
+
+`MTP-180-NEXT-STAGE-PRODUCT-SURFACE-READINESS-INPUT`
+
+Next-stage product-surface readiness input 只记录后续 L4 planning 需要的事实：Workbench read-model-only boundary 已固定，Future Live PRO Console 仍需独立 Human decision、Project Definition、execution / broker / operations gates 和 validation matrix。它不创建 L4 Project / Issue，也不授权执行。
+
+`MTP-180-FUTURE-LIVE-PRO-CONSOLE-VALIDATION`
+
+MTP-180 的验证只证明 Future Live PRO Console product-surface split、boundary label、current Workbench vs future command surface separation、future-only live command controls、no current implementation 和 next-stage planning input 已落仓；不证明 Live PRO Console、trading button、live command、order form、emergency stop、shutdown 或 restore 已实现。
+
 ## Paper Runtime Kernel Terms
 
 `MTP-96-PAPER-RUNTIME-KERNEL-TERMS`
