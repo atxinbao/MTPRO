@@ -272,6 +272,47 @@ MTP-164 anchors 必须被 M2 MessageBus / Cache / Database、M3 DataClient / Dat
 
 MTP-164 只证明 validation anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不证明任何 source move、SwiftPM target split、runtime actor、private stream runtime、account snapshot runtime、signed/account/listenKey endpoint、broker adapter、OMS、Live PRO Console、trading button、live command 或 order form 已实现。
 
+## MTP-165 MessageBus / Command / Event Boundary
+
+`MTP-165-MESSAGEBUS-FACTS-COMMANDS-EVENTS-CONTRACT`
+
+MTP-165 将 `Sources/MessageBus/` 固定为本地 facts / events / commands / request-response / replay invariant boundary。该边界只服务 deterministic evidence routing，不代表 external message broker、live command bus、OMS bus、ExecutionClient request queue 或 UI command surface。
+
+| MessageBus surface | 当前含义 | 禁止升级 |
+| --- | --- | --- |
+| Facts | append-only `DomainEvent` evidence；包含 market、strategy、paper、risk、portfolio、replay facts。 | 不等于 broker acknowledgement、execution report、account payload 或 production incident fact。 |
+| Events | facts 的领域分类、stream、envelope、correlation / causation evidence。 | 不等于 private WebSocket runtime message、broker event stream 或 UI event handler。 |
+| Commands | 本地 paper / replay / research 意图输入和 routed message。 | 不等于 executable order command、broker command、OMS order 或 live command。 |
+| Request-response | engine-local deterministic request / response evidence。 | 不暴露 HTTP API、Adapter request、Database schema、Runtime object 或 Workbench command surface。 |
+| Replay invariant | Event Log / Replay 可重建 route evidence、stream、correlation 和 causation。 | 不等于 production recovery、broker replay、account replay 或 live incident replay runtime。 |
+
+`MTP-165-REQUEST-RESPONSE-CONTRACT`
+
+Request-response 只允许 DataEngine、Strategies、Trader、RiskEngine、ExecutionEngine 和 Portfolio 交换 read-model / evidence input。请求不能绕开 RiskEngine / ExecutionEngine，响应不能携带 broker payload、account endpoint payload、SQLite / DuckDB schema、Runtime object、Adapter request 或 UI command output。
+
+`MTP-165-PAPER-ROUTING-REPLAY-INVARIANT`
+
+Paper routing 必须继续复用 `PaperRuntimeMessageBusRouting`、`MessageBus.publish`、`AppendOnlyEventLog` 和 `EventReplayCommand` 的 deterministic path。所有 routed facts 都必须可由 Event Log / Replay 重建；Replay 只证明本地 append-only facts consistency，不授权生产恢复、broker replay、real account replay 或 live incident replay runtime。
+
+`MTP-165-ENGINE-DEPENDENCY-BRIDGE`
+
+MessageBus 只能作为 engine evidence bridge：
+
+- `DataEngine -> MessageBus`：publish market ingest、scenario replay 和 data quality facts。
+- `Strategies -> MessageBus`：publish signals / proposals，不直连 Trader、ExecutionClient 或 broker。
+- `Trader -> MessageBus`：协调 context / bindings，不成为 live coordinator 或 broker gateway。
+- `RiskEngine -> MessageBus`：publish pre-trade / blocked evidence，不执行 broker action。
+- `ExecutionEngine -> MessageBus`：publish paper lifecycle / simulated fill facts，不提交真实订单。
+- `Portfolio -> MessageBus`：consume projection facts，不读取 broker account state。
+
+`MTP-165-RISK-EXECUTION-BYPASS-GUARD`
+
+MessageBus 不允许绕过 risk / execution boundary。禁止 `Strategies -> MessageBus -> ExecutionClient`、`Trader -> MessageBus -> broker command`、`Workbench -> MessageBus -> live command`、`DataClient -> MessageBus -> account endpoint`、`ExecutionEngine -> MessageBus -> current OMS` 或任何 broker / signed / listenKey / private runtime bypass path。
+
+`MTP-165-MESSAGEBUS-BOUNDARY-VALIDATION`
+
+MTP-165 只证明 MessageBus contract anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不实现完整 runtime MessageBus，不修改 UI command surface，不实现 broker、OMS、ExecutionClient、live command path、signed/account/listenKey endpoint、private WebSocket runtime 或 source migration。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |

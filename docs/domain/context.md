@@ -137,6 +137,30 @@ MTP-164 的 anchors 是后续 MessageBus / Cache / Database、DataClient / DataE
 
 MTP-164 的验证只证明 architecture boundary validation anchors 已落仓，并由 `checks/automation-readiness.sh` 机械检查；不证明 source move、business code migration、Package.swift target graph change、runtime actor、live broker path、OMS、ExecutionClient implementation 或 command-capable product surface 已实现。
 
+`MTP-165-MESSAGEBUS-FACTS-COMMANDS-EVENTS-CONTRACT`
+
+MTP-165 固定 `MessageBus` 为 facts / events / commands 的本地边界：facts 是 append-only `DomainEvent` evidence，events 是 facts 的领域分类和 stream envelope，commands 是本地 paper / replay / research 意图输入。MessageBus 只能承载这些可 replay 的本地语义，不表示 live command bus、external broker message broker、OMS bus 或真实 order command plane。
+
+`MTP-165-REQUEST-RESPONSE-CONTRACT`
+
+MessageBus request-response 只允许 engine-local deterministic request / response evidence，用于 DataEngine ingest、Strategies proposal input、Trader coordination input、RiskEngine pre-check input、ExecutionEngine paper lifecycle input 和 Portfolio projection input。它不暴露 HTTP API、Adapter request、Database schema、Runtime object、account payload、broker payload 或 UI command surface。
+
+`MTP-165-PAPER-ROUTING-REPLAY-INVARIANT`
+
+MTP-165 复用既有 `PaperRuntimeMessageBusRouting`、`MessageBus.publish`、`AppendOnlyEventLog` 和 `EventReplayCommand` 语义：routing 必须写入 append-only facts，并能从 Event Log / Replay 重建 route evidence、correlation、causation 和 stream。Replay invariant 不能升级成 production recovery、broker replay、account replay 或 live incident replay runtime。
+
+`MTP-165-ENGINE-DEPENDENCY-BRIDGE`
+
+MessageBus 是 DataEngine、Strategies、Trader、RiskEngine、ExecutionEngine 和 Portfolio 之间的 evidence bridge。DataEngine publish market / replay facts；Strategies publish proposal / signal facts；Trader 只协调 context；RiskEngine publish risk evidence；ExecutionEngine publish paper lifecycle / simulated fill facts；Portfolio 只消费 facts 形成 projection。任何模块都不得用 MessageBus 绕过 RiskEngine / ExecutionEngine boundary。
+
+`MTP-165-RISK-EXECUTION-BYPASS-GUARD`
+
+MessageBus 禁止承载 executable order command、broker command、ExecutionClient request、OMS order、signed request、account endpoint request、listenKey operation、private WebSocket runtime message、Live PRO Console command、trading button command 或 order form payload。Strategy / Trader / Workbench 不能通过 MessageBus 直连 ExecutionClient、broker、database schema 或 runtime object。
+
+`MTP-165-MESSAGEBUS-BOUNDARY-VALIDATION`
+
+MTP-165 的验证只证明 MessageBus facts / commands / events / request-response / paper routing / replay invariant 与 bypass guards 已落仓；不证明完整 runtime MessageBus、broker integration、OMS、ExecutionClient implementation、live command path、UI command surface 或 source migration 已实现。
+
 ## Paper Runtime Kernel Terms
 
 `MTP-96-PAPER-RUNTIME-KERNEL-TERMS`
