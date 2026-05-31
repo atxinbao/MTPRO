@@ -609,6 +609,36 @@ MTP-174 guard 不能通过 runtime、endpoint 或 credential 绕过：不创建 
 
 MTP-174 只证明 Strategies / Trader no-direct-execution guard anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不移动 production source、不创建 SwiftPM target、不修改 `Package.swift` target graph、不实现 Strategy runtime / Trader runtime / ExecutionClient / OMS / broker command、不运行 Graphify、不修改 Figma。
 
+## MTP-175 RiskEngine Pre-execution Boundary
+
+`MTP-175-RISKENGINE-PRE-EXECUTION-BOUNDARY-CONTRACT`
+
+MTP-175 将 `Sources/RiskEngine/` 固定为 pre-execution risk boundary：RiskEngine 只消费 DomainModel、MessageBus facts、Cache read state 和 Portfolio read model，输出 paper pre-trade risk evidence、allowed / blocked evidence、blocked reason 和 future live risk gate label。它位于 ExecutionEngine 之前，但不是 broker gateway、ExecutionClient wrapper、OMS、live risk runtime 或 real pre-trade allow / reject service。
+
+`MTP-175-PAPER-RISK-BLOCKED-EVIDENCE-CONTRACT`
+
+Paper risk 只能表达 deterministic pre-trade check、risk input trace、Portfolio exposure reference、paper proposal reference、allowed / blocked verdict 和 blocked reason。Blocked evidence 可以进入 MessageBus / Cache / ReadModel / ViewModel / Report / Events，但不得携带 executable order command、broker account id、broker position、real balance、margin、leverage、real PnL、ExecutionClient request、OMS order 或 signed request。
+
+`MTP-175-RISKENGINE-BEFORE-EXECUTIONENGINE-DEPENDENCY`
+
+RiskEngine 的依赖方向是 `Strategies / Trader / Portfolio evidence -> RiskEngine -> ExecutionEngine paper / simulated lifecycle boundary`。ExecutionEngine 只能消费 RiskEngine 的 paper risk evidence 或 future-gated live risk gate label；不得反向要求 RiskEngine 调用 ExecutionClient、broker adapter、OMS、account endpoint 或 private stream runtime。
+
+`MTP-175-FUTURE-LIVE-RISK-GATE-BOUNDARY`
+
+Future live risk gate 只能作为 future-gated boundary label，用于后续 Human decision 和独立 Project Definition。当前 MTP-175 不实现 live risk engine、real pre-trade allow / reject runtime、circuit breaker runtime、no-trade state runtime、stop trading command、emergency stop、risk command surface、position management command、order form 或 trading button。
+
+`MTP-175-NO-BROKER-EXECUTIONCLIENT-RISK-PATH-GUARD`
+
+禁止 `RiskEngine -> broker`、`RiskEngine -> ExecutionClient`、`RiskEngine -> OMS`、`RiskEngine -> signed endpoint`、`RiskEngine -> account endpoint / listenKey`、`RiskEngine -> private WebSocket runtime`、`RiskEngine -> broker position`、`RiskEngine -> real account state`、`RiskEngine -> live command` 和 `RiskEngine evidence -> executable order command`。
+
+`MTP-175-NO-LIVE-RISK-RUNTIME-CIRCUIT-BREAKER-GUARD`
+
+RiskEngine pre-execution boundary 不能绕成 current live safety runtime：不创建 live risk runtime、circuit breaker runtime、loss / drawdown enforcement runtime、frequency enforcement runtime、global trading lock、stop trading command、emergency stop command、broker session mutation、API key input、secret storage、credential provider 或 keychain storage。
+
+`MTP-175-RISKENGINE-BOUNDARY-VALIDATION`
+
+MTP-175 只证明 RiskEngine pre-execution boundary anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不移动 production source、不创建 SwiftPM target、不修改 `Package.swift` target graph、不实现 RiskEngine runtime、不读取真实 account / broker position、不运行 Graphify、不修改 Figma。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |

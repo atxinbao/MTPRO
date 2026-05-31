@@ -5013,3 +5013,46 @@ MTP-174 必须建立的主要 anchors：
 - 不新增 Live PRO Console、trading button、live command、order form、order-level command UI、position command、emergency stop、shutdown、restore 或 production operations command。
 - 不新增 API key input、secret storage、credential provider、keychain storage、private network test 或 broker connect UI。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-175 RiskEngine Pre-execution Boundary Validation
+
+日期：2026-06-01
+
+执行者：Codex
+
+MTP-175 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-175 的验收要求：
+
+- `docs/architecture/module-boundary.md` 必须包含 RiskEngine pre-execution boundary、paper risk / blocked evidence contract、RiskEngine before ExecutionEngine dependency、future live risk gate boundary、no broker / ExecutionClient risk path guard、no live risk runtime / circuit breaker guard 和 RiskEngine boundary validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-175 RiskEngine shared language anchors。
+- `docs/validation/trading-validation-matrix.md` 必须把 `TVM-ARCHITECTURE-MODULE-BOUNDARY` 扩展到 MTP-175 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 RiskEngine pre-execution boundary anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-175 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-175 architecture boundary、domain context、validation plan、validation matrix、latest summary、automation readiness doc、`Sources/RiskEngine/`、paper pre-trade risk、blocked evidence、future live risk gate、RiskEngine before ExecutionEngine dependency、no broker、no ExecutionClient、no live risk runtime、no circuit breaker runtime、no real account / broker position / margin / leverage / real PnL 和 no executable order command strings。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-175 必须建立的主要 anchors：
+
+- `MTP-175-RISKENGINE-PRE-EXECUTION-BOUNDARY-CONTRACT`
+- `MTP-175-PAPER-RISK-BLOCKED-EVIDENCE-CONTRACT`
+- `MTP-175-RISKENGINE-BEFORE-EXECUTIONENGINE-DEPENDENCY`
+- `MTP-175-FUTURE-LIVE-RISK-GATE-BOUNDARY`
+- `MTP-175-NO-BROKER-EXECUTIONCLIENT-RISK-PATH-GUARD`
+- `MTP-175-NO-LIVE-RISK-RUNTIME-CIRCUIT-BREAKER-GUARD`
+- `MTP-175-RISKENGINE-BOUNDARY-VALIDATION`
+
+## MTP-175 禁止
+
+- 不移动 production source，不新增或修改 Swift production code，不修改 `Package.swift` target graph，不创建 SwiftPM target。
+- 不实现 RiskEngine runtime、live risk engine、real pre-trade allow / reject runtime、circuit breaker runtime、no-trade state runtime、loss / drawdown enforcement runtime、frequency enforcement runtime、global trading lock、stop trading command 或 emergency stop。
+- 不读取真实 account、真实持仓、真实余额、broker position、broker account state、margin、leverage、buying power、real PnL、account endpoint payload、broker payload 或 broker state。
+- 不调用 signed endpoint、account endpoint / listenKey，不连接 private WebSocket，不启动 private stream runtime、account snapshot runtime、broker session manager 或 private network test。
+- 不让 RiskEngine 调用 ExecutionClient、broker adapter、OMS、broker command、real submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不把 paper risk evidence、blocked reason、Portfolio exposure reference 或 future live risk gate label 升级为 executable order command、order form payload、live command、position command、trading button 或 Live PRO Console。
+- 不新增 API key input、secret storage、credential provider、keychain storage 或 broker connect UI。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
