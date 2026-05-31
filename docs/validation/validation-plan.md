@@ -5182,3 +5182,44 @@ MTP-178 必须建立的主要 anchors：
 - 不实现 execution report parser、broker fill parser、broker fill fact、fill reconciliation job、position reconciliation job、settlement importer、broker statement reader、real PnL source、broker portfolio sync、account position sync 或 broker evidence pipeline。
 - 不把 paper lifecycle、simulated fill、RiskEngine blocked evidence、Strategy proposal、ExecutionClient future gate、BrokerCapabilityMatrix、OMSFutureGate 或 LiveExecutionAdapter future gate 升级为 executable order command、order form payload、live command、trading button、Live PRO Console action 或真实订单能力。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-179 Workbench Read-Model-Only Consumption Boundary Validation
+
+日期：2026-06-01
+
+执行者：Codex
+
+MTP-179 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-179 的验收要求：
+
+- `docs/architecture/module-boundary.md` 必须包含 Workbench read-model-only consumption boundary、ReadModel / ViewModel only input contract、Workbench / Report / Events surface split、no runtime / adapter / schema / payload exposure、no live command surface guard、UI copy read-model-only labeling 和 Workbench readmodel boundary validation anchors。
+- `docs/domain/context.md` 必须包含 MTP-179 Workbench read-model-only shared language anchors。
+- `docs/validation/trading-validation-matrix.md` 必须把 `TVM-ARCHITECTURE-MODULE-BOUNDARY` 扩展到 MTP-179 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 Workbench read-model-only consumption boundary anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-179 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-179 architecture boundary、domain context、validation plan、validation matrix、latest summary、automation readiness doc、`Sources/Workbench/` target boundary、ReadModel / ViewModel input、Workbench / Report / Events surface split、no runtime object、no Adapter request、no SQLite / DuckDB schema、no account payload、no broker state、no live command surface、no Live PRO Console、no trading button 和 no order form strings。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-179 必须建立的主要 anchors：
+
+- `MTP-179-WORKBENCH-READ-MODEL-ONLY-CONSUMPTION-BOUNDARY`
+- `MTP-179-READMODEL-VIEWMODEL-ONLY-INPUT-CONTRACT`
+- `MTP-179-WORKBENCH-REPORT-EVENTS-SURFACE-SPLIT`
+- `MTP-179-NO-RUNTIME-ADAPTER-SCHEMA-PAYLOAD-EXPOSURE`
+- `MTP-179-NO-LIVE-COMMAND-SURFACE-GUARD`
+- `MTP-179-UI-COPY-READ-MODEL-ONLY-LABELING`
+- `MTP-179-WORKBENCH-READMODEL-BOUNDARY-VALIDATION`
+
+## MTP-179 禁止
+
+- 不移动 production source，不新增或修改 Swift production code，不修改 `Package.swift` target graph，不创建 SwiftPM target。
+- 不实现 Workbench runtime、Workbench command surface、Live PRO Console、trading button、live command、order form、position command、stop trading command、emergency stop、shutdown / restore command、broker connect UI、signed endpoint trigger、account endpoint trigger 或 ExecutionClient trigger。
+- 不让 Workbench / Report / Dashboard / Events 读取 Runtime object、Adapter request、SQLite / DuckDB schema、SQL table / column contract、account endpoint payload、broker payload、broker state、ExecutionClient request、OMS order 或 live command payload。
+- 不把 MessageBus facts projection、Portfolio / Risk / Execution evidence read model、local fixture summary、deterministic validation summary 或 ViewModel export 升级成 runtime command surface、database browser、adapter console、broker console 或 live operations console。
+- 不新增 execute、submit、cancel、replace、trade、connect broker、sync account、start live、stop live、emergency stop 或 production operation UI 文案。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

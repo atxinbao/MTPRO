@@ -729,6 +729,36 @@ MTP-178 建立 broker / real order forbidden guard evidence，把 signed endpoin
 
 MTP-178 只证明 broker / real order forbidden guard anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不移动 production source、不创建 SwiftPM target、不修改 `Package.swift` target graph、不实现 broker / live execution capability、不读取 real account / broker state、不运行 Graphify、不修改 Figma。
 
+## MTP-179 Workbench Read-Model-Only Consumption Boundary
+
+`MTP-179-WORKBENCH-READ-MODEL-ONLY-CONSUMPTION-BOUNDARY`
+
+MTP-179 将 `Sources/Workbench/` 固定为 Workbench / Report / Dashboard / Events 的 read-model-only consumption boundary。Workbench 只能展示 ReadModel / ViewModel / evidence surface，不拥有 runtime object、不调用 adapter、不读取 Database schema、不读取 account payload、不读取 broker state，也不形成 command surface。
+
+`MTP-179-READMODEL-VIEWMODEL-ONLY-INPUT-CONTRACT`
+
+Workbench / Report / Events 的输入只能是 ReadModel / ViewModel export、MessageBus facts projection、Portfolio / Risk / Execution evidence read model、local fixture summary 和 deterministic validation summary。输入不得包含 Runtime object、Adapter request、SQLite / DuckDB schema、SQL table / column contract、account endpoint payload、broker payload、broker state、ExecutionClient request、OMS order 或 live command payload。
+
+`MTP-179-WORKBENCH-REPORT-EVENTS-SURFACE-SPLIT`
+
+Workbench 是操作者查看和筛选 evidence 的 read-only surface；Report 是 summary / audit / validation evidence surface；Events 是 timeline / fact stream evidence surface。三者都只能消费同一 read-model-only export，不直接消费 engine runtime、adapter request、database implementation、private endpoint payload、broker payload 或 broker state。
+
+`MTP-179-NO-RUNTIME-ADAPTER-SCHEMA-PAYLOAD-EXPOSURE`
+
+禁止 `Workbench -> Runtime object`、`Workbench -> Adapter request`、`Workbench -> SQLite schema`、`Workbench -> DuckDB schema`、`Workbench -> account payload`、`Workbench -> broker payload`、`Workbench -> broker state`、`Report -> Database schema`、`Events -> Runtime object` 和 `Dashboard -> broker state`。Schema、adapter 和 runtime 只能作为 local implementation detail 或 validation evidence，不成为 product surface contract。
+
+`MTP-179-NO-LIVE-COMMAND-SURFACE-GUARD`
+
+Workbench 不得成为 Live PRO Console、trading button、live command、order form、position command、stop trading command、emergency stop、shutdown / restore command、broker connect UI、signed endpoint trigger、account endpoint trigger 或 ExecutionClient trigger。当前 UI surface 必须保持 read-model-only 和 no command side effect。
+
+`MTP-179-UI-COPY-READ-MODEL-ONLY-LABELING`
+
+UI 文案和 docs evidence 必须把 Workbench / Report / Events 描述为 read-model-only、evidence、snapshot、summary、timeline、projection 或 view model，不得暗示 execute、submit、cancel、replace、trade、connect broker、sync account、start live、stop live、emergency stop 或 production operation capability。
+
+`MTP-179-WORKBENCH-READMODEL-BOUNDARY-VALIDATION`
+
+MTP-179 只证明 Workbench read-model-only consumption boundary anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不移动 production source、不创建 SwiftPM target、不修改 `Package.swift` target graph、不实现 Workbench runtime、不创建 Live PRO Console、不运行 Graphify、不修改 Figma。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |

@@ -517,6 +517,34 @@ LiveExecutionAdapter future gate 表示 `LiveExecutionAdapter` 只能作为 forb
 
 MTP-178 的验证只证明 broker / real order forbidden guard、signed / account / listenKey endpoint blocklist、broker / exchange execution adapter blocklist、real submit / cancel / replace forbidden、execution report / broker fill / reconciliation blocklist 和 LiveExecutionAdapter future gate 已落仓；不证明 source move、Package.swift target graph change、broker adapter、ExecutionClient、OMS、real order lifecycle 或 live execution runtime 已实现。
 
+`MTP-179-WORKBENCH-READ-MODEL-ONLY-CONSUMPTION-BOUNDARY`
+
+MTP-179 固定 Workbench / Report / Dashboard / Events 为 read-model-only consumption boundary。Workbench 只能消费 ReadModel / ViewModel / evidence surface，不能拥有 Runtime object、Adapter request、SQLite / DuckDB schema、account payload、broker payload、broker state、ExecutionClient request、OMS order 或 live command payload。
+
+`MTP-179-READMODEL-VIEWMODEL-ONLY-INPUT-CONTRACT`
+
+ReadModel / ViewModel only input contract 表示 Workbench input 必须来自 MessageBus facts projection、Portfolio / Risk / Execution evidence read model、local fixture summary、deterministic validation summary 或 explicit ViewModel export。任何 engine runtime handle、adapter request object、database schema object、private endpoint payload、broker payload 或 account payload 都不能成为 Workbench / Report / Events input。
+
+`MTP-179-WORKBENCH-REPORT-EVENTS-SURFACE-SPLIT`
+
+Workbench 用于 read-only filtering / inspection，Report 用于 summary / audit / validation evidence，Events 用于 timeline / fact stream evidence。三者可以共享 read-model-only export，但不能互相升级为 runtime command surface、database browser、adapter console、broker console 或 live operations console。
+
+`MTP-179-NO-RUNTIME-ADAPTER-SCHEMA-PAYLOAD-EXPOSURE`
+
+MTP-179 的 forbidden exposure 包括 `Workbench -> Runtime object`、`Workbench -> Adapter request`、`Workbench -> SQLite schema`、`Workbench -> DuckDB schema`、`Workbench -> account payload`、`Workbench -> broker payload`、`Workbench -> broker state`、`Report -> Database schema`、`Events -> Runtime object` 和 `Dashboard -> broker state`。这些路径只能出现在 forbidden capability guard 或 validation evidence 中。
+
+`MTP-179-NO-LIVE-COMMAND-SURFACE-GUARD`
+
+Workbench 不能变成 Live PRO Console、trading button、live command、order form、position command、stop trading command、emergency stop、shutdown / restore command、broker connect UI、signed endpoint trigger、account endpoint trigger 或 ExecutionClient trigger。任何 current UI control 只能控制 local demo / filtering / read-only evidence inspection，不产生 trading side effect。
+
+`MTP-179-UI-COPY-READ-MODEL-ONLY-LABELING`
+
+UI copy / docs copy 必须使用 read-model-only、evidence、snapshot、summary、timeline、projection、ViewModel、blocked 或 unavailable 这些语义描述 Workbench。不得把 Workbench 文案写成 execute、submit、cancel、replace、trade、connect broker、sync account、start live、stop live、emergency stop 或 production operation。
+
+`MTP-179-WORKBENCH-READMODEL-BOUNDARY-VALIDATION`
+
+MTP-179 的验证只证明 Workbench read-model-only consumption boundary、ReadModel / ViewModel only input contract、Workbench / Report / Events surface split、no runtime / adapter / schema / payload exposure、no live command surface guard 和 UI copy read-model-only labeling 已落仓；不证明 source move、Package.swift target graph change、Workbench runtime、Live PRO Console 或 command-capable UI 已实现。
+
 ## Paper Runtime Kernel Terms
 
 `MTP-96-PAPER-RUNTIME-KERNEL-TERMS`
