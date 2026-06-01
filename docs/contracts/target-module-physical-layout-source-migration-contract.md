@@ -12,6 +12,8 @@
 
 本文不移动 `Sources` 文件，不修改 `Package.swift` target graph，不写业务代码，不创建 SwiftPM target，不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma，不授权 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、signed endpoint、account endpoint / listenKey、private WebSocket runtime、broker adapter、real order lifecycle、Live PRO Console、trading button、live command 或 order form。
 
+MTP-191 forward-looking correction：本文的 MTP-183 layout 仍作为已完成 migration contract evidence 保留；MTP-191 之后 concrete strategy canonical path 从 `Sources/Strategies/<strategy>/` 修正为 `Sources/Trader/Strategies/<strategy>/`。旧 strategy path 只作为 compatibility / superseded source，直到后续 issue 执行源码迁移。
+
 `MTP-183-TARGET-PHYSICAL-LAYOUT-CONTRACT`
 
 后续 source migration 只能迁入下列目标目录；旧目录只作为 migration source / compatibility shell。
@@ -45,16 +47,16 @@ Sources/
       SQLite/
       DuckDB/
     ReplayProjection/
-  Strategies/
-    EMA/
-      Lifecycle/
-      Quoter/
-      Hedger/
-      Signals/
-      Proposals/
-    <future-strategy>/
   Trader/
     Accounts/
+    Strategies/
+      EMA/
+        Lifecycle/
+        Quoter/
+        Hedger/
+        Signals/
+        Proposals/
+      <future-strategy>/
     Coordination/
     StrategyBindings/
   Portfolio/
@@ -85,6 +87,14 @@ Sources/
     FutureLiveProConsole/
   Dashboard/
 ```
+
+`MTP-191-TRADER-OWNED-STRATEGY-CANONICAL-PATH`
+
+MTP-191 修正后的 forward-looking target layout 把 concrete strategy definitions 放在 `Sources/Trader/Strategies/<strategy>/`。`Sources/Strategies/<strategy>/` 不再是 canonical destination，只能作为 historical MTP-171 / MTP-183 / MTP-187 evidence、compatibility envelope 和 MTP-193 / MTP-194 的待迁移来源。
+
+`MTP-191-STRATEGYBINDINGS-NON-LANDING-GUARD`
+
+`Sources/Trader/StrategyBindings/` 只允许 generic binding protocol / coordination adapter contract。具体 strategy lifecycle、signals、quoter、hedger、proposal implementation 和 strategy-specific business rules 必须落入 `Sources/Trader/Strategies/<strategy>/`，不得放入 `StrategyBindings/`。
 
 ## Current SwiftPM Snapshot
 
@@ -133,8 +143,8 @@ MTP-183 不修改上述 target graph。后续 issue 只有在 Linear execution c
 | `RiskEngine` | `DomainModel`, `MessageBus`, `Cache`, `Portfolio` |
 | `ExecutionClient` | `DomainModel`; future-gated boundary only |
 | `ExecutionEngine` | `DomainModel`, `MessageBus`, `Cache`, `RiskEngine`, `Portfolio`, `ExecutionClient` future gate labels only |
-| `Strategies` | `DomainModel`, `MessageBus`, `Cache`, `Portfolio`, `RiskEngine` read-model inputs |
-| `Trader` | `DomainModel`, `MessageBus`, `Cache`, `Strategies`, `Portfolio`, `RiskEngine`, `ExecutionEngine` |
+| `Trader/Strategies` | `DomainModel`, `MessageBus`, `Cache`, `Portfolio`, `RiskEngine` read-model inputs |
+| `Trader` | `DomainModel`, `MessageBus`, `Cache`, `Trader/Strategies`, `Portfolio`, `RiskEngine`, `ExecutionEngine` |
 | `Workbench` | stable ReadModel / ViewModel exports only |
 | `Dashboard` | `Workbench` / presentation exports only |
 
@@ -153,7 +163,7 @@ MTP-183 不修改上述 target graph。后续 issue 只有在 Linear execution c
 | `Sources/Core/PaperPreTradeRiskEngine.swift`, `LiveRiskGateContract.swift` | `Sources/RiskEngine/` | Paper risk and future live gate evidence; no broker / ExecutionClient call. |
 | `Sources/Core/PaperOrder*`, `PaperExecution*`, `PaperSimulatedFillEvidence.swift`, `MarketLimitSimulatedExecutionSemantics.swift`, `PartialFillLatencyFeeSlippageParity.swift` | `Sources/ExecutionEngine/` | Paper / simulated lifecycle; no OMS implementation or real order lifecycle. |
 | `Sources/Core/PaperAccountPortfolioProjectionV2.swift`, `PaperPortfolioProjectionUpdate.swift`, `SimulatedExchangePortfolioProjectionParity.swift` | `Sources/Portfolio/` | Paper / simulated financial projection; no broker portfolio state. |
-| `Sources/Core/EMACross.swift`, `StrategySignals.swift`, `OrderBookImbalance.swift`, `PaperActionProposal.swift` | `Sources/Strategies/EMA/` or later `Sources/Strategies/<strategy>/` | Strategy-scoped signals and proposals; no direct ExecutionClient / broker command. |
+| `Sources/Core/EMACross.swift`, `StrategySignals.swift`, `OrderBookImbalance.swift`, `PaperActionProposal.swift` | `Sources/Trader/Strategies/EMA/` or later `Sources/Trader/Strategies/<strategy>/` | MTP-191 corrected strategy destination; current `Sources/Strategies/<strategy>/` is compatibility / superseded source until MTP-193 / MTP-194 moves files; no direct ExecutionClient / broker command. |
 | `Sources/Core/LiveTradingBoundary.swift`, `LiveMonitoring*`, `LiveExecutionControlContract.swift`, `LiveAuditIncidentStopContract.swift` | Target boundary contracts under `DomainModel`, `Workbench`, `RiskEngine`, `ExecutionEngine`, or future gate modules as authorized by later issue | Contract movement must preserve read-model-only / future-gated semantics. |
 | `Sources/Adapters/*` | `Sources/DataClient/Binance/PublicMarketData/` and `Sources/DataClient/Binance/FuturePrivateStreamGate/` labels | Binance remains public read-only; no signed/account/listenKey/private runtime. |
 | `Sources/Persistence/*`, `Sources/CSQLite/*` | `Sources/Database/Projections/SQLite/`, `Sources/Database/Projections/DuckDB/`, `Sources/Database/AppendOnlyEventLog/` | Database is local durable backing store; schema is not UI contract. |
@@ -240,6 +250,8 @@ MTP-183 后续 source migration PR 必须证明：
 - no execution report、no broker fill、no reconciliation。
 - no real account / broker position / margin / leverage / real PnL。
 - no Live PRO Console、no trading button、no live command、no order form。
+- MTP-191 之后必须把 `Sources/Trader/Strategies/<strategy>/` 作为 concrete strategy canonical path，把 `Sources/Strategies/<strategy>/` 作为 compatibility / superseded source path。
+- `Sources/Trader/StrategyBindings/` 不得作为 concrete strategy implementation landing path。
 
 `MTP-183-NO-SOURCE-MOVE-PACKAGE-BUSINESS-CODE`
 

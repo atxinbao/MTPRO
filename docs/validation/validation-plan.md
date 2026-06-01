@@ -5672,3 +5672,37 @@ MTP-190 必须建立的主要 anchors：
 - 不实现 Strategy runtime、Trader runtime、Portfolio runtime、RiskEngine runtime、ExecutionEngine runtime、ExecutionClient implementation、OMS implementation、broker adapter、signed endpoint、account endpoint / listenKey、private stream runtime、account snapshot runtime、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form、emergency stop、shutdown、restore 或 production operations command。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-191 Trader-owned Strategy Module Boundary Correction Validation
+
+MTP-191 必须运行：
+
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-191 的验收要求：
+
+- `docs/architecture/module-boundary.md` 必须包含 `MTP-191-TRADER-OWNED-STRATEGY-CANONICAL-PATH`、`MTP-191-TRADER-CONTAINER-SPLIT`、`MTP-191-STRATEGYBINDINGS-NON-LANDING-GUARD`、`MTP-191-INDEPENDENT-ENGINE-MODULES-GUARD`、`MTP-191-NO-SOURCE-MOVE-PACKAGE-RUNTIME-GUARD` 和 `MTP-191-BOUNDARY-CORRECTION-VALIDATION`。
+- `docs/domain/context.md` 必须包含同名 shared language anchors。
+- `docs/contracts/target-module-physical-layout-source-migration-contract.md` 必须把 forward-looking concrete strategy canonical path 修正为 `Sources/Trader/Strategies/<strategy>/`。
+- `Sources/Strategies/<strategy>/`、`Sources/Strategies/EMA/` 和 `Sources/Strategies/OrderBookImbalance/` 只能作为 compatibility / superseded / historical path 出现，不再作为 canonical path。
+- `Sources/Trader/StrategyBindings/` 必须只作为 generic binding protocol / coordination adapter contract，不作为具体 strategy implementation landing path。
+- PR 前必须确认本 issue 没有移动 `Sources`、没有修改 `Package.swift`、没有写业务代码，没有提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+MTP-191 必须建立的主要 anchors：
+
+- `MTP-191-TRADER-OWNED-STRATEGY-CANONICAL-PATH`
+- `MTP-191-TRADER-CONTAINER-SPLIT`
+- `MTP-191-STRATEGYBINDINGS-NON-LANDING-GUARD`
+- `MTP-191-INDEPENDENT-ENGINE-MODULES-GUARD`
+- `MTP-191-NO-SOURCE-MOVE-PACKAGE-RUNTIME-GUARD`
+- `MTP-191-BOUNDARY-CORRECTION-VALIDATION`
+
+## MTP-191 禁止
+
+- 不移动 production source，不新增或修改 Swift production code，不修改 `Package.swift` target graph，不创建 SwiftPM target。
+- 不实现 Strategy runtime、Trader runtime、live coordinator、broker gateway、ExecutionClient implementation、OMS implementation、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、Live PRO Console、trading button、live command 或 order form。
+- 不把 `Sources/Trader/StrategyBindings/` 写成 EMA、OrderBookImbalance 或未来具体策略的源码落点。
+- 不把 Portfolio、RiskEngine、ExecutionEngine 或 ExecutionClient 并入 Trader。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
