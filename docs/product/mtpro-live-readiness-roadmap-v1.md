@@ -25,15 +25,16 @@
 - `L3.2 Private Stream / Account Snapshot Simulation Gate`：Done / not counted in old denominator。
 - `L3.3 Live Monitoring Read-only Console v2`：Done / not counted in old denominator。
 - `L3.4 Strategy / Trader Instance Readiness v1`：Done / not counted in old denominator。
+- `Engine Module Boundary Consolidation before L4`：Done / not counted in old denominator。
 
 当前旧路线进度保持：
 
 ```text
 Engine Maturity Roadmap Progress: 4 / 4 (100%)
-Current maturity statement: L3.4 Strategy / Trader Instance Readiness v1 complete
+Current maturity statement: Engine Module Boundary Consolidation before L4 complete
 ```
 
-该 `4 / 4` 路线已经闭合。L3.0、L3.1、L3.2、L3.3 和 L3.4 作为 Live Readiness 路线的 boundary / read-model-only / simulation gate / monitoring evidence / strategy-trader readiness evidence 追加，不继续改旧分母，不把旧路线回滚成未完成状态。
+该 `4 / 4` 路线已经闭合。L3.0、L3.1、L3.2、L3.3、L3.4 和 Engine Module Boundary Consolidation before L4 作为 Live Readiness 路线的 boundary / read-model-only / simulation gate / monitoring evidence / strategy-trader readiness evidence / L4 planning input evidence 追加，不继续改旧分母，不把旧路线回滚成未完成状态。
 
 ## 3. 为什么需要新路线口径
 
@@ -62,11 +63,12 @@ L3 / L4 进入的是完全不同的风险域：
 | `L3.2 Private Stream / Account Snapshot Simulation Gate` | 通过 simulation / fixture gate 证明 private stream 与 account snapshot 只能在受控边界内被表达 | Done | Stage Code Audit Report、contract、deterministic fixture、forbidden endpoint/runtime tests、Workbench / Report / Events read-model-only simulation gate surface 已闭环 | 不创建 listenKey，不连接 private WebSocket，不运行 production stream |
 | `L3.3 Live Monitoring Read-only Console v2` | 在 L3.0-L3.2 gate 通过后，升级 Live Monitoring 的只读证据面 | Done | Stage Code Audit Report、Core deterministic evidence、Workbench / Report / Events read-model-only surface、forbidden tests 和 automation readiness 已闭环 | 不提供交易控制，不提供 Live PRO Console，不提供 order-level command UI |
 | `L3.4 Strategy / Trader Instance Readiness v1` | 定义 Strategy Instance / Trader Instance 的只读上下文、生命周期、quoter / hedger role、account / portfolio / risk read-model 输入和 paper/live-neutral proposal contract | Done | Stage Code Audit Report、contract、forbidden tests、Workbench / Report / Events read-model-only strategy readiness surface 和 automation readiness 已闭环 | 不让 strategy 直接调用 Execution Client，不输出 broker command，不实现 OMS、trading button、Live PRO Console 或 live command |
+| `Engine Module Boundary Consolidation before L4` | 固定 architecture-graph-aligned target module boundary、source layout、dependency direction、forbidden path taxonomy 和 L4 planning input material | Done | Stage Code Audit Report、module boundary docs、validation matrix、automation readiness 和 L4 planning input material 已闭环 | 不移动 production source，不修改 `Package.swift` target graph，不实现 L4 runtime、ExecutionClient、OMS、broker adapter、Live PRO Console 或 live command |
 | `L4 Live Production / Trading Commands` | 真实 execution、OMS、broker fill、reconciliation、live risk、ops / incident / stop 和独立 Live PRO Console | Future Gated | 只能作为 future gated map | 当前不进入 planning / Linear / implementation |
 
-## 5. L3.0 / L3.1 / L3.2 / L3.3 / L3.4 完成事实与下一候选
+## 5. L3.0 / L3.1 / L3.2 / L3.3 / L3.4 / Engine Boundary 完成事实与下一候选
 
-已完成的 L3.0 / L3.1 / L3.2 / L3.3 / L3.4 Project：
+已完成的 L3.0 / L3.1 / L3.2 / L3.3 / L3.4 / Engine Boundary Project：
 
 ```text
 MTPRO Live Read-only Readiness Boundary v1
@@ -74,9 +76,10 @@ MTPRO Account / Position / Balance Read-model-only v1
 MTPRO Private Stream / Account Snapshot Simulation Gate v1
 MTPRO Live Monitoring Read-only Console v2
 MTPRO Strategy / Trader Instance Readiness v1
+MTPRO Engine Module Boundary Consolidation v1
 ```
 
-这些 Project 已完成 Live read-only readiness 的边界定义、APB read-model-only evidence surface、private stream / account snapshot simulation gate evidence boundary、Live Monitoring v2 read-model-only evidence surface 和 Strategy / Trader structural readiness evidence boundary，而不是实现 read-only account runtime、private stream runtime、account snapshot runtime、Live Monitoring runtime、Strategy runtime、Trader runtime、Execution Client、broker command 或 Live PRO Console。
+这些 Project 已完成 Live read-only readiness 的边界定义、APB read-model-only evidence surface、private stream / account snapshot simulation gate evidence boundary、Live Monitoring v2 read-model-only evidence surface、Strategy / Trader structural readiness evidence boundary 和 L4 前的 target module boundary / planning input material，而不是实现 read-only account runtime、private stream runtime、account snapshot runtime、Live Monitoring runtime、Strategy runtime、Trader runtime、ExecutionClient implementation、OMS implementation、broker command 或 Live PRO Console。
 
 L3.0 已回答：
 
