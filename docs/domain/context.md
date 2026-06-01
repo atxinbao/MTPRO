@@ -2323,6 +2323,44 @@ MTP-161 validation 必须通过 `bash checks/automation-readiness.sh`、`git dif
 
 MTP-161 不运行 Graphify，不修改 Figma，不创建 Linear Project / Issue，不修改 issue body，不输出最终 Stage Code Audit Report，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## Engine Module Boundary Consolidation Closeout Terms
+
+`MTP-182-ENGINE-MODULE-BOUNDARY-STAGE-CLOSEOUT`
+
+MTP-182 stage closeout 只表示 `MTPRO Engine Module Boundary Consolidation v1` 的 validation matrix、automation readiness 和 stage audit input material 已被收口。它不表示最终 Stage Code Audit Report 已输出，不表示 Linear Project `Completed` 已设置，不授权 L4 Project planning / execution，也不授权 live runtime、broker path、ExecutionClient implementation、OMS、Live PRO Console、trading button、live command 或 order form。
+
+`MTP-182-STAGE-AUDIT-INPUT-MATERIAL`
+
+MTP-182 stage audit input material 指 `docs/audit/inputs/mtpro-engine-module-boundary-consolidation-v1-stage-audit-input.md`。该材料只为 Parent Codex 后续 Stage Code Audit Report 提供输入，必须包含 MTP-162 至 MTP-181 issue / PR / merge / checks evidence、`TVM-ARCHITECTURE-MODULE-BOUNDARY` closeout、automation readiness evidence、forbidden implementation audit、unresolved future gates、Root Docs Delta input 和 handoff checklist。
+
+`MTP-182-NO-FINAL-STAGE-CODE-AUDIT`
+
+MTP-182 不输出最终 Stage Code Audit Report。最终 Stage Code Audit Report 必须等 MTP-162 至 MTP-182 全部 Linear `Done`，且 Linear Project status 为 `Completed`、`type=completed`、`completedAt` 非空后，由 Parent Codex 单独输出。
+
+`MTP-182-VALIDATION-MATRIX-CLOSEOUT`
+
+MTP-182 validation matrix closeout 必须证明 `TVM-ARCHITECTURE-MODULE-BOUNDARY` 已覆盖 terminology、fixed layout、dependency direction、MessageBus、Cache、Database、DataClient、DataEngine、adapter capability guard、Strategies、Trader、Account / Portfolio、RiskEngine、ExecutionEngine、ExecutionClient / OMS、broker / real order guard、Workbench read-model-only boundary、Future Live PRO Console split 和 L4 planning input material；该 matrix 不授权 L4 execution。
+
+`MTP-182-AUTOMATION-READINESS-CLOSEOUT`
+
+MTP-182 automation readiness closeout 必须由 `checks/automation-readiness.sh` 机械检查 stage audit input、module-boundary docs、domain context、validation matrix、validation plan、latest verification summary、automation readiness doc、PR evidence 和 no final Stage Code Audit boundary。
+
+`MTP-182-FORBIDDEN-IMPLEMENTATION-AUDIT`
+
+MTP-182 forbidden implementation audit 继续固定 no Strategy runtime、no Trader runtime、no Live runtime、no ExecutionClient implementation、no OMS implementation、no broker adapter、no `LiveExecutionAdapter`、no real order lifecycle、no signed endpoint、no account endpoint / listenKey、no private stream runtime、no account snapshot runtime、no Live PRO Console、no trading button、no live command 和 no order form。
+
+`MTP-182-UNRESOLVED-FUTURE-GATES`
+
+MTP-182 unresolved future gates 指 L4 Project Definition gate、signed / account gate、broker / execution gate、product surface gate、operations gate 和 validation gate 仍未打开。后续必须由 Human + `@001 / PLN` 独立规划，不得把 Engine Module Boundary Consolidation evidence 解读为 execution authorization。
+
+`MTP-182-STAGE-CLOSEOUT-VALIDATION`
+
+MTP-182 validation 必须通过 `bash checks/automation-readiness.sh`、`git diff --check` 和 `bash checks/run.sh`，并确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+`MTP-182-NO-GRAPHIFY-FIGMA-NEXT-STAGE-MUTATION`
+
+MTP-182 不运行 Graphify，不修改 Figma，不创建 L4 Linear Project / Issue，不推进下一阶段 Todo，不启动新的 `@002 / PAR` 或 Symphony，不设置 Linear Project `Completed`，不输出最终 Stage Code Audit Report，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
