@@ -101,7 +101,7 @@ public struct BinancePublicRequestContract: Equatable, Sendable {
 
 /// Binance public 行情客户端配置只保存公开 REST 与 WebSocket base URL，不保存 API key、
 /// signature、account 或 order 相关信息。输入来自只读 endpoint contract，输出仍由 decoder
-/// 转成 Core 市场数据模型，禁止把网络响应直接暴露给 App 或 Persistence。
+/// 转成 DomainModel / Core 兼容市场数据模型，禁止把网络响应直接暴露给 App 或 Persistence。
 public struct BinancePublicMarketDataClientConfiguration: Equatable, Sendable {
     public let restBaseURL: URL
     public let webSocketBaseURL: URL
@@ -219,11 +219,12 @@ public enum BinancePublicMarketDataClientError: Error, Equatable, Sendable, Cust
     }
 }
 
-/// Binance public market data client 是 Adapters 模块内的只读网络边界。
+/// Binance public market data client 是 DataClient/Binance 目录下的只读网络边界。
 /// 它复用 `BinancePublicMarketDataContract` 生成 endpoint / stream 请求路径，复用
 /// `BinancePublicMarketDataPayloadDecoder` 转换 payload，并在发给 transport 前拒绝
 /// mutable、requires API key、signed、account、order 和 listenKey 语义。该类型不负责
 /// MTP-21 ingest 串联，不写 event log，不连接 broker，也不执行真实订单动作。
+/// SwiftPM `Adapters` target 当前只是迁移期兼容壳，长期目标模块名以 DataClient 为准。
 public struct BinancePublicMarketDataClient: Sendable {
     public let configuration: BinancePublicMarketDataClientConfiguration
 

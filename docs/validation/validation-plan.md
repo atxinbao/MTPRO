@@ -1986,7 +1986,7 @@ MTP-102 必须建立的主要 anchors：
 MTP-103 的 required validation：
 
 - `docs/contracts/data-catalog-scenario-replay-contract.md` 必须包含 `MTP-103-DATA-CATALOG-SCENARIO-REPLAY-TERMINOLOGY`、`MTP-103-TARGET-ENGINE-RESPONSIBILITY-BOUNDARY`、`MTP-103-LOCAL-FIRST-DETERMINISTIC-VERSIONED-BOUNDARY`、`MTP-103-FORBIDDEN-CAPABILITY-BASELINE` 和 `MTP-103-DATA-CATALOG-SCENARIO-REPLAY-VALIDATION` anchors。
-- `Sources/Core/DataCatalogScenarioReplayBoundary.swift` 必须定义 `DataCatalogScenarioReplayTerm`、`DataCatalogScenarioReplayTargetEngine`、`DataCatalogScenarioReplayBoundaryPrinciple`、`DataCatalogScenarioReplayForbiddenCapability`、`DataCatalogScenarioReplayEvidenceKind` 和 `DataCatalogScenarioReplayBoundary.deterministicFixture`。
+- `Sources/DataEngine/ScenarioReplay/DataCatalogScenarioReplayBoundary.swift` 必须定义 `DataCatalogScenarioReplayTerm`、`DataCatalogScenarioReplayTargetEngine`、`DataCatalogScenarioReplayBoundaryPrinciple`、`DataCatalogScenarioReplayForbiddenCapability`、`DataCatalogScenarioReplayEvidenceKind` 和 `DataCatalogScenarioReplayBoundary.deterministicFixture`。
 - `DataCatalogScenarioReplayBoundary` 必须固定 Data Engine、State & Persistence Engine 和 Workbench Interface 三类目标引擎职责。
 - Boundary fixture 必须保持 `local-first`、`deterministic`、`versioned` 和 `read-model-only` flags 为 true。
 - Boundary fixture 必须保持 manifest parser、fixture data、replay cursor、report input versioning、production data platform、large-scale ingestion pipeline、real network download、signed endpoint、account endpoint、listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、live command、trading button、Graphify update 和 Figma change flags 全部为 false。
@@ -2024,7 +2024,7 @@ MTP-103 必须建立的主要 anchors：
 MTP-104 的 required validation：
 
 - `docs/contracts/data-catalog-scenario-replay-contract.md` 必须包含 `MTP-104-SCENARIO-MANIFEST-MINIMAL-FIELDS`、`MTP-104-SCENARIO-ID-DATASET-VERSION-STABLE-IDENTITY`、`MTP-104-SINGLE-SYMBOL-SINGLE-TIMEFRAME-MANIFEST`、`MTP-104-MANIFEST-DETERMINISTIC-SERIALIZATION`、`MTP-104-MANIFEST-NO-SCHEMA-ADAPTER-LIVE-CAPABILITY` 和 `MTP-104-SCENARIO-MANIFEST-VALIDATION` anchors。
-- `Sources/Core/ScenarioManifest.swift` 必须定义 `ScenarioID`、`DatasetVersion`、`ScenarioManifestScope`、`ScenarioManifestDeterministicSerialization` 和 `ScenarioManifest.deterministicFixture`。
+- `Sources/DataEngine/ScenarioReplay/ScenarioManifest.swift` 必须定义 `ScenarioID`、`DatasetVersion`、`ScenarioManifestScope`、`ScenarioManifestDeterministicSerialization` 和 `ScenarioManifest.deterministicFixture`。
 - `ScenarioManifest` 必须固定 `scenarioID`、`datasetVersion`、`symbol`、`timeframe`、`sourceAnchor` 和 `single-symbol / single-timeframe` scope。
 - `ScenarioManifest.deterministicSerialization` 必须固定 canonical field order，并生成可比较的 stable source identity。
 - Manifest fixture 必须保持 database schema exposure、adapter request exposure、secret、signed endpoint、account endpoint、listenKey、broker、order command、live runtime、production dataset registry、real network download、multi-symbol catalog 和 multi-timeframe catalog flags 全部为 false。
@@ -2063,7 +2063,7 @@ MTP-104 必须建立的主要 anchors：
 MTP-105 的 required validation：
 
 - `docs/contracts/data-catalog-scenario-replay-contract.md` 必须包含 `MTP-105-SINGLE-SYMBOL-SINGLE-TIMEFRAME-FIXTURE`、`MTP-105-FIXTURE-VERSION-SOURCE-ANCHOR`、`MTP-105-FIXED-WINDOW-RECORD-ORDER`、`MTP-105-PUBLIC-READ-ONLY-LOCAL-FIXTURE-RELATIONSHIP`、`MTP-105-DETERMINISTIC-SUMMARY-PRESTRUCTURE`、`MTP-105-NO-NETWORK-SIGNED-BROKER-LIVE` 和 `MTP-105-SCENARIO-FIXTURE-VALIDATION` anchors。
-- `Sources/Core/ScenarioFixture.swift` 必须定义 `FixtureVersion`、`ScenarioFixtureSourceKind`、`ScenarioFixtureRecordOrderPolicy`、`ScenarioFixtureRecord`、`ScenarioFixtureDeterministicSummary` 和 `DeterministicScenarioFixture.deterministicFixture`。
+- `Sources/DataEngine/ScenarioReplay/ScenarioFixture.swift` 必须定义 `FixtureVersion`、`ScenarioFixtureSourceKind`、`ScenarioFixtureRecordOrderPolicy`、`ScenarioFixtureRecord`、`ScenarioFixtureDeterministicSummary` 和 `DeterministicScenarioFixture.deterministicFixture`。
 - `DeterministicScenarioFixture` 必须复用 `ScenarioManifest.deterministicFixture`，并固定 `fixture-v1`、BTCUSDT、1m、fixed window、record sequence `1,2,3`、strictly ascending interval starts 和 local public-read-only source relationship。
 - `ScenarioFixtureDeterministicSummary` 必须固定 record count、ordered starts、record order identity、canonical record summary、checksum preimage 和 MTP-104 source identity；`checksumEvidenceDeferredToMTP106` 必须为 `true`。
 - Fixture 必须保持 required validation network-independent，且 real network download、production ingestion pipeline、cloud data lake、adapter request exposure、secret、signed endpoint、account endpoint、listenKey、broker、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、live command、trading button、multi-symbol 和 multi-timeframe flags 全部为 false。
@@ -2103,7 +2103,7 @@ MTP-105 必须建立的主要 anchors：
 MTP-106 的 required validation：
 
 - `docs/contracts/data-catalog-scenario-replay-contract.md` 必须包含 `MTP-106-DETERMINISTIC-REPLAY-WINDOW`、`MTP-106-REPLAY-CURSOR-SUMMARY`、`MTP-106-CHECKSUM-PARITY-EVIDENCE`、`MTP-106-FIXTURE-FRESHNESS-EVIDENCE`、`MTP-106-NO-PRODUCTION-NETWORK-BROKER-LIVE` 和 `MTP-106-SCENARIO-REPLAY-EVIDENCE-VALIDATION` anchors。
-- `Sources/Core/ScenarioReplayEvidence.swift` 必须定义 `ScenarioReplayWindow`、`ScenarioReplayCursor`、`ScenarioReplayCursorSummary`、`ScenarioReplayChecksumEvidence`、`ScenarioReplayFreshnessPolicy`、`ScenarioReplayFreshnessEvidence` 和 `ScenarioReplayEvidence.deterministicFixture`。
+- `Sources/DataEngine/ScenarioReplay/ScenarioReplayEvidence.swift` 必须定义 `ScenarioReplayWindow`、`ScenarioReplayCursor`、`ScenarioReplayCursorSummary`、`ScenarioReplayChecksumEvidence`、`ScenarioReplayFreshnessPolicy`、`ScenarioReplayFreshnessEvidence` 和 `ScenarioReplayEvidence.deterministicFixture`。
 - `ScenarioReplayWindow` 必须复用 MTP-105 deterministic fixture 的 fixed window `1704067200...1704067380`、record sequence `1,2,3`、ordered starts 和 record order identity。
 - `ScenarioReplayCursor` 必须只表达本地 fixture record progress，支持 Codable round-trip 和 Comparable，并拒绝 `1...4` 之外的 next sequence。
 - `ScenarioReplayChecksumEvidence` 必须从 MTP-105 checksum preimage 生成 final checksum `fnv1a64:3c6cd4ff13cd4062`，并拒绝 checksum drift。
@@ -2144,7 +2144,7 @@ MTP-106 必须建立的主要 anchors：
 MTP-107 的 required validation：
 
 - `docs/contracts/data-catalog-scenario-replay-contract.md` 必须包含 `MTP-107-DATA-QUALITY-GATE-TAXONOMY`、`MTP-107-MINIMAL-DATA-QUALITY-GATES`、`MTP-107-REPORT-INPUT-VERSIONING`、`MTP-107-REPORT-REPRODUCIBILITY-EVIDENCE`、`MTP-107-NO-PRODUCTION-LIVE-BROKER-DATA-PLATFORM` 和 `MTP-107-DATA-QUALITY-REPORT-INPUT-VALIDATION` anchors。
-- `Sources/Core/ScenarioDataQualityReportInput.swift` 必须定义 `ScenarioDataQualityGateKind`、`ScenarioDataQualityGateVerdict`、`ScenarioDataQualityVerdict`、`ScenarioDataQualityGateEvaluation`、`ScenarioReportInputVersion` 和 `ScenarioDataQualityReportInputEvidence.deterministicFixture`。
+- `Sources/DataEngine/DataQuality/ScenarioDataQualityReportInput.swift` 必须定义 `ScenarioDataQualityGateKind`、`ScenarioDataQualityGateVerdict`、`ScenarioDataQualityVerdict`、`ScenarioDataQualityGateEvaluation`、`ScenarioReportInputVersion` 和 `ScenarioDataQualityReportInputEvidence.deterministicFixture`。
 - `ScenarioDataQualityGateEvaluation` 必须消费 MTP-106 `ScenarioReplayEvidence`，并固定 record order、window coverage、checksum match、freshness status、missing data 和 duplicate data 六个最小 gates。
 - 默认 deterministic fixture 必须全部 passed，整体 `qualityVerdict == accepted`；checksum mismatch、bad record order、missing data 和 duplicate data 必须 rejected；stale freshness 必须 marked；expired freshness 必须 rejected。
 - `ScenarioReportInputVersion` 必须复制 scenario id、dataset version、fixture version、symbol、timeframe、replay window、checksum、freshness status、quality verdict 和 quality summary，并固定 canonical field order。
@@ -2338,7 +2338,7 @@ MTP-111 必须建立的主要 anchors：
 MTP-112 的 required validation：
 
 - `docs/contracts/simulated-exchange-backtest-parity-contract.md` 必须包含 `MTP-112-SCENARIO-REPLAY-MATCHING-INPUT`、`MTP-112-DETERMINISTIC-MATCHING-ORDERING`、`MTP-112-SIMULATED-EXCHANGE-MATCHING-EVENT`、`MTP-112-REPEATABLE-MATCHING-OUTPUT`、`MTP-112-NO-NETWORK-BROKER-LIVE` 和 `MTP-112-SCENARIO-REPLAY-MATCHING-VALIDATION` anchors。
-- `Sources/Core/ScenarioReplayDeterministicMatching.swift` 必须定义 `ScenarioReplayDeterministicMatchingContract`、`ScenarioReplayDeterministicMatchingInput`、`ScenarioReplayMatchingMarketState`、`ScenarioReplaySimulatedExchangeEvent`、`ScenarioReplayDeterministicMatchingOutput`、`ScenarioReplayDeterministicMatchingModel`、`ScenarioReplayMatchingOrderingRule` 和 `ScenarioReplayMatchingOutputKind`。
+- `Sources/DataEngine/ScenarioReplay/ScenarioReplayDeterministicMatching.swift` 必须定义 `ScenarioReplayDeterministicMatchingContract`、`ScenarioReplayDeterministicMatchingInput`、`ScenarioReplayMatchingMarketState`、`ScenarioReplaySimulatedExchangeEvent`、`ScenarioReplayDeterministicMatchingOutput`、`ScenarioReplayDeterministicMatchingModel`、`ScenarioReplayMatchingOrderingRule` 和 `ScenarioReplayMatchingOutputKind`。
 - `ScenarioReplayDeterministicMatchingInput` 必须绑定 MTP-111 shared order input、MTP-106 replay window / cursor / checksum / freshness evidence 和 MTP-105 deterministic fixture record sequence `2`。
 - `ScenarioReplayDeterministicMatchingModel.match` 必须对相同 scenario id / dataset version / fixture version / replay window / cursor / shared order input 输出相同 `ScenarioReplayDeterministicMatchingOutput`。
 - Deterministic result identity 必须固定 scenario id、dataset version、fixture version、window、cursor sequence、record sequence、order id、scaled price 和 scaled quantity。
@@ -5427,5 +5427,49 @@ MTP-184 必须建立的主要 anchors：
 - 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
 - 不迁移 DataClient、DataEngine、Cache、Database、Strategies、Trader、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench 或 Dashboard。
 - 不实现 runtime MessageBus、Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker / live / order capability、signed endpoint、account endpoint / listenKey、private WebSocket runtime、Live PRO Console、trading button、live command 或 order form。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-185 DataClient / DataEngine Physical Migration Validation
+
+日期：2026-06-01
+
+执行者：Codex
+
+MTP-185 的 required validation：
+
+- `swift test --filter AdaptersTests`
+- `swift test --filter RuntimeTests/testMarketDataIngestReplayProjectionWorkflowUsesMockTransportAndStableSnapshots`
+- `swift test --filter CoreTests/testMTP103DataCatalogScenarioReplayDefinesTerminologyAndBoundaryAnchors`
+- `swift test --filter CoreTests/testMTP107ScenarioDataQualityGatesDefineTaxonomyAndDeterministicVerdict`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-185 的验收要求：
+
+- `Sources/DataClient/Binance/PublicMarketData/` 必须包含 Binance public read-only client、batch replay boundary、replay metadata、freshness 和 deterministic parity 文件；旧 `Sources/Adapters/` 不得继续保存这些 migrated files。
+- `Sources/DataEngine/ScenarioReplay/` 必须包含 Data Catalog / Scenario Replay、Scenario Manifest、Scenario Fixture、Scenario Replay Evidence 和 deterministic matching 文件。
+- `Sources/DataEngine/DataQuality/` 必须包含 Scenario Data Quality / Report Input 文件。
+- `Sources/DataEngine/Ingest/` 必须包含 public market data ingest workflow；旧 `Sources/Runtime/Runtime.swift` 不得保留。
+- `Package.swift` 必须保留现有 `Core`、`Adapters` 和 `Runtime` product / target 名称作为 compatibility envelope，不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- `docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-185 mechanical anchors。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-185 必须建立的主要 anchors：
+
+- `MTP-185-DATACLIENT-DATAENGINE-PHYSICAL-MIGRATION`
+- `MTP-185-DATACLIENT-COMPATIBILITY-ENVELOPE`
+- `MTP-185-DATAENGINE-COMPATIBILITY-ENVELOPE`
+- `MTP-185-PUBLIC-READ-ONLY-GUARD`
+- `MTP-185-DATAENGINE-BOUNDARY-GUARD`
+- `MTP-185-REMAINING-COMPATIBILITY-SHELL`
+
+## MTP-185 禁止
+
+- 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- 不实现 signed endpoint、account endpoint、listenKey、private WebSocket runtime、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command 或 order form。
+- 不把 DataEngine 写成完整 streaming runtime，不让 DataEngine 直接服务 UI / Trader / Strategy / RiskEngine / ExecutionEngine，不绕过 MessageBus / Cache / Database / ReadModel / ViewModel。
+- 不迁移 Cache、Database、Strategies、Trader、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench 或 Dashboard，除非是保持现有 target buildability 的最小 import compatibility。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

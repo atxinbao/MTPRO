@@ -39,7 +39,7 @@
 - `docs/planning/projects/mtpro-event-driven-paper-trading-runtime-v1-plan.md`
 - `Package.swift`
 - `Sources/Core/*`
-- `Sources/Adapters/*`
+- `Sources/DataClient/Binance/PublicMarketData/*`
 - `Sources/Persistence/*`
 - `Sources/Runtime/*`
 - `Sources/App/*`

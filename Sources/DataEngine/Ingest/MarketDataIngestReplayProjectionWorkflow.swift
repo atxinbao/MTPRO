@@ -3,9 +3,10 @@ import Adapters
 import Core
 import Persistence
 
-/// Runtime 模块是 MTP-21 的薄编排边界，负责把 Binance public read-only client、
-/// Core DataEngine / TradingKernel、append-only event log replay 与 Persistence projection 串成
-/// 本地端到端链路。该模块不拥有交易策略，不连接 signed endpoint，不读取账户，不提交、取消或替换订单，
+/// DataEngine/Ingest 目录承载 MTP-21 的 public market data ingest 编排边界。
+/// 当前 SwiftPM `Runtime` target 仍作为迁移期兼容壳编译本文件，负责把 Binance public read-only
+/// client、Core TradingKernel、append-only event log replay 与 Persistence projection 串成本地端到端链路。
+/// 该模块不拥有交易策略，不连接 signed endpoint，不读取账户，不提交、取消或替换订单，
 /// 也不向 UI 暴露 SQLite / DuckDB schema。
 
 /// PublicMarketDataIngestPlan 描述一次本地行情 ingest 需要读取的 public Binance market data 范围。
