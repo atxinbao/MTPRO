@@ -13482,3 +13482,27 @@ Root Docs Refresh Gate 更新：
 - `git diff --check`：pass，无输出。
 - `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
 - `bash checks/run.sh`：pass，通过 `git diff --check`、automation readiness、Dashboard build、Dashboard smoke 和 303 个 XCTest；Dashboard smoke 输出包含 `timelineItems=82`、`scenarioReplayEvidence=1`、`scenarioQualityGates=6`、`simulatedParityEvidence=1`、`accountPositionBalanceEvidence=3`、`privateStreamSimulationGateEvidence=4`、`liveMonitoringReadOnlyConsoleV2Surface=4`、`strategyTraderReadinessSurface=6` 和 `liveReadOnlyWorkbenchBoundary=5`；最终输出 `MTPRO checks passed.`。
+
+## 2026-06-02 — MTPRO Target Module Physical Layout / Source Migration v1 Root Docs Refresh Gate
+
+执行者：Codex
+
+范围：
+
+- 基于已合并的 Stage Code Audit Report `docs/audit/mtpro-target-module-physical-layout-source-migration-v1-stage-code-audit.md` 执行 Root Docs Refresh Gate。
+- 只同步已发生事实：`Target Module Physical Layout / Source Migration before L4 complete`、Project Closure Count `23 / 23 (100%)`、Stage Code Audit PR #314 evidence、Project closure evidence、validation baseline 和边界事实。
+- 更新 `GOAL.md`、`BLUEPRINT.md`、`docs/architecture.md`、`docs/roadmap.md`、`docs/product/mtpro-live-readiness-roadmap-v1.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/audit/mtpro-target-module-physical-layout-source-migration-v1-stage-code-audit.md` 和 `checks/automation-readiness.sh`。
+
+边界：
+
+- 不创建下一 Project / Issue，不推进 `Todo`。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不新增 SwiftPM target、product 或 dependency，不做 SwiftPM target graph split。
+- 不实现 Strategy runtime、Trader runtime、Portfolio runtime、RiskEngine runtime、ExecutionEngine runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker adapter、signed endpoint、account endpoint / listenKey、private stream runtime、account snapshot runtime、Live PRO Console、trading button、live command 或 order form。
+- `.codex/*`、`.build/*` 和 `graphify-out/*` 不进入 PR。
+
+验证：
+
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和 306 个 XCTest；Dashboard smoke 输出包含 `sections=8`、`readModelOnly=true`、`workbenchReadModelOnly=true`、`timelineItems=82`、`strategyTraderReadinessSurface=6` 和 `liveMonitoringReadOnlyConsoleV2Surface=4`；最终输出 `MTPRO checks passed.`。
