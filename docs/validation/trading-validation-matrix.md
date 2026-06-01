@@ -737,6 +737,12 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | --- | --- | --- |
 | `MTP-196` | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 新增 Trader-owned strategy path validation：`testTraderOwnedStrategyPathValidationCoversCanonicalOldBindingAndExecutionGuards` 和 automation readiness anchors 直接检查 EMA / OrderBookImbalance 当前 files 位于 `Sources/Trader/Strategies/<strategy>/`，旧 `Sources/Strategies/EMA/` 与 `Sources/Strategies/OrderBookImbalance/` 不得作为 current implementation directory 回流，`Package.swift` 不得使用旧 strategy source roots，`StrategyBindings` 仍只是 non-concrete-strategy binding / adapter contract，并覆盖 no direct ExecutionClient / broker / OMS / live command guard。MTP-196 只添加 validation evidence，不移动 source files，不修改 `Package.swift` source roots，不拆 SwiftPM target graph，不实现 Strategy runtime、Trader runtime、ExecutionClient、OMS、broker command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command 或 order form。 |
 
+## MTP-197 issue backfill
+
+| Issue | Matrix ID | 回填说明 |
+| --- | --- | --- |
+| `MTP-197` | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 新增 Trader-owned strategies layout correction 阶段收口：`docs/audit/inputs/mtpro-trader-owned-strategies-layout-correction-v1-stage-audit-input.md` 汇总 MTP-191 至 MTP-196 的 PR evidence、merge commit、required check、Trader-owned strategy canonical path、historical `Sources/Strategies/<strategy>` compatibility treatment、EMA / OrderBookImbalance current source placement、StrategyBindings generic binding protocol / coordination adapter classification、path validation、compatibility envelope audit、forbidden direct ExecutionClient / broker / OMS / live command audit、unresolved future gates 和 Stage Code Audit handoff checklist。MTP-197 只准备 audit input material，不移动 source files，不修改 `Package.swift`，不拆 SwiftPM target graph，不输出最终 Stage Code Audit Report，不设置 Linear Project `Completed`，不创建下一 Project / Issue，不推进下一阶段，不实现 Strategy runtime、Trader runtime、ExecutionClient、OMS、broker command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command 或 order form。 |
+
 ## MTP-190 Target Module Source Migration 阶段收口
 
 日期：2026-06-01
