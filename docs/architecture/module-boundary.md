@@ -1027,6 +1027,44 @@ Dashboard executable 继续只装载 `DashboardApplication.swift` 并消费 App 
 
 MTP-189 后旧 `Sources/App/` 不再作为 Workbench source owner 保留。Workbench / Report / Dashboard / Events 迁移后仍只能消费 ReadModel / ViewModel exports；future Live PRO Console 目录只保存 future-gated label / boundary evidence，不实现 command-capable UI 或 real trading path。
 
+## MTP-190 Target Module Source Migration Stage Closeout
+
+`MTP-190-TARGET-MODULE-SOURCE-MIGRATION-STAGE-CLOSEOUT`
+
+MTP-190 将 `MTPRO Target Module Physical Layout / Source Migration v1` 的 source migration evidence chain 收口为 stage audit input material。该 closeout 只为 Parent Codex 后续 Stage Code Audit Report 提供输入，不设置 Linear Project `Completed`，不输出最终 Stage Code Audit Report，不授权下一阶段。
+
+`MTP-190-STAGE-AUDIT-INPUT-MATERIAL`
+
+Stage audit input material 固定在 `docs/audit/inputs/mtpro-target-module-physical-layout-source-migration-v1-stage-audit-input.md`，必须覆盖 validation matrix closeout、automation readiness closeout、MTP-183 至 MTP-189 issue / PR evidence、source migration closeout、remaining compatibility shell audit、forbidden implementation audit、unresolved future gates、Root Docs Delta input 和 Stage Code Audit handoff checklist。
+
+`MTP-190-VALIDATION-MATRIX-CLOSEOUT`
+
+MTP-190 必须把 `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` 扩展到 MTP-190 issue backfill，说明 MTP-183 至 MTP-189 的 target module physical source migration evidence 已形成可审计链路，但该 matrix 只证明 boundary-preserving source placement，不授权 SwiftPM target graph split、L4 execution、broker runtime、live runtime 或 command-capable product surface。
+
+`MTP-190-AUTOMATION-READINESS-CLOSEOUT`
+
+Automation readiness closeout 必须由 `checks/automation-readiness.sh` 机械检查 stage audit input、module-boundary docs、domain context、validation matrix、validation plan、latest summary 和 automation readiness doc。MTP-190 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+`MTP-190-REMAINING-COMPATIBILITY-SHELL-AUDIT`
+
+MTP-190 必须明确当前 Project 完成的是 physical directory migration，而不是 final SwiftPM target graph split。`Core`、`Adapters`、`Runtime`、`App` 和 `Dashboard` 等 target / product 名称仍可作为 compatibility envelope 保持 buildability；后续真正 target split 必须由新的 Project Definition、dependency audit、validation matrix 和 Parent Codex queue preflight 授权。
+
+`MTP-190-FORBIDDEN-IMPLEMENTATION-AUDIT`
+
+Forbidden implementation audit 必须确认本 Project 未实现 Strategy runtime、Trader runtime、Portfolio runtime、RiskEngine runtime、ExecutionEngine runtime、ExecutionClient implementation、OMS implementation、broker adapter、signed endpoint、account endpoint / listenKey、private stream runtime、account snapshot runtime、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form、emergency stop、shutdown、restore 或 production operations command。
+
+`MTP-190-UNRESOLVED-FUTURE-GATES`
+
+Unresolved future gates 必须明确 SwiftPM target split、L4 Project Definition、signed / account gate、broker / execution gate、product surface gate、operations gate 和新的 validation gate 仍未打开，后续只能由 Human + `@001 / PLN` 独立规划。
+
+`MTP-190-STAGE-CLOSEOUT-VALIDATION`
+
+MTP-190 validation 必须证明 stage audit input material、validation matrix、automation readiness anchors、remaining compatibility shell audit 和 forbidden implementation audit 已落仓，并且 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh` 通过。
+
+`MTP-190-NO-FINAL-STAGE-CODE-AUDIT`
+
+MTP-190 不创建 L4 Project / Issue，不推进下一阶段 Todo，不启动新的 `@002 / PAR` 或 Symphony，不运行 Graphify，不修改 Figma，不设置 Linear Project `Completed`，不输出最终 Stage Code Audit Report。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |

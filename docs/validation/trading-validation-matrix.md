@@ -695,6 +695,29 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | --- | --- | --- |
 | `MTP-189` | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 已完成 Workbench / Dashboard physical source migration：`Sources/Workbench/ReadModels/` 承载 read-model source chain，`Sources/Workbench/Report/` 承载 Report evidence surfaces，`Sources/Workbench/Dashboard/` 承载 Workbench beta / dashboard read-model assembly，`Sources/Workbench/Events/` 承载 Event Timeline / Evidence Explorer，`Sources/Workbench/FutureLiveProConsole/` 仅承载 future-gated label，`Sources/Dashboard/` 承载 macOS shell / smoke source；anchors 为 `MTP-189-WORKBENCH-DASHBOARD-PHYSICAL-MIGRATION`、`MTP-189-APP-COMPATIBILITY-ENVELOPE`、`MTP-189-DASHBOARD-SHELL-BOUNDARY` 和 `MTP-189-WORKBENCH-READMODEL-ONLY-GUARD`。MTP-189 不实现 Workbench runtime、Live PRO Console、trading button、live command、order form、broker connect UI、account connect UI、Runtime object exposure、Adapter request exposure、SQLite / DuckDB schema exposure、account payload exposure 或 broker state exposure。 |
 
+## MTP-190 issue backfill
+
+| Issue | Matrix ID | 回填说明 |
+| --- | --- | --- |
+| `MTP-190` | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 新增 `docs/audit/inputs/mtpro-target-module-physical-layout-source-migration-v1-stage-audit-input.md`，集中记录 MTP-183 至 MTP-189 的 PR evidence、merge commit、required check、source migration closeout、validation matrix closeout、automation readiness closeout、remaining compatibility shell audit、forbidden implementation audit、unresolved future gates、Root Docs Delta input 和 Stage Code Audit handoff checklist；`docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 已补齐 `MTP-190-TARGET-MODULE-SOURCE-MIGRATION-STAGE-CLOSEOUT`、`MTP-190-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-190-NO-FINAL-STAGE-CODE-AUDIT`、`MTP-190-SOURCE-MIGRATION-EVIDENCE-CHAIN`、`MTP-190-SOURCE-MIGRATION-CLOSEOUT`、`MTP-190-VALIDATION-MATRIX-CLOSEOUT`、`MTP-190-AUTOMATION-READINESS-CLOSEOUT`、`MTP-190-REMAINING-COMPATIBILITY-SHELL-AUDIT`、`MTP-190-FORBIDDEN-IMPLEMENTATION-AUDIT`、`MTP-190-UNRESOLVED-FUTURE-GATES` 和 `MTP-190-STAGE-CLOSEOUT-VALIDATION`。最终 Stage Code Audit Report 仍由 Parent Codex 在有效 issue 全部 Done 且 Linear Project `Completed`、`type=completed`、`completedAt` 非空后单独输出。 |
+
+## MTP-190 Target Module Source Migration 阶段收口
+
+日期：2026-06-01
+
+执行者：Codex
+
+MTP-190 对 `MTPRO Target Module Physical Layout / Source Migration v1` 的 validation matrix、automation readiness、source migration evidence chain、remaining compatibility shell audit、forbidden implementation audit 和 Stage Code Audit 输入材料做阶段收口，不新增业务交易能力，不替代最终 Stage Code Audit Report。
+
+| 收口项 | Evidence location | 审计用途 |
+| --- | --- | --- |
+| Issue / PR evidence | `docs/audit/inputs/mtpro-target-module-physical-layout-source-migration-v1-stage-audit-input.md` 的 `Issue / PR evidence input` | 为 Parent Codex 汇总 PR #306 至 PR #312 和 MTP-190 PR 提供输入。 |
+| Source migration closeout | `docs/audit/inputs/mtpro-target-module-physical-layout-source-migration-v1-stage-audit-input.md` 的 `Source migration closeout` | 确认 DomainModel、MessageBus、DataClient、DataEngine、Cache、Database、Strategies、Trader、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient future gate、Workbench 和 Dashboard 已按 target physical layout 归位。 |
+| Validation matrix | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 确认本 matrix 只证明 physical source placement 和 compatibility evidence，不授权 SwiftPM target split、L4 execution、broker runtime、live runtime 或 command-capable product surface。 |
+| Automation readiness | `checks/automation-readiness.sh`、`docs/validation/validation-plan.md`、`docs/validation/latest-verification-summary.md` | 确认 MTP-190 audit input、matrix anchors、latest summary、validation plan、automation readiness doc 和 PR Automation 证据链仍完整。 |
+| Forbidden implementation audit | `docs/audit/inputs/mtpro-target-module-physical-layout-source-migration-v1-stage-audit-input.md` 的 `Forbidden implementation audit` | 为 Stage Code Audit 的 no Strategy runtime、no Trader runtime、no Portfolio runtime、no RiskEngine runtime、no ExecutionEngine runtime、no ExecutionClient implementation、no OMS implementation、no broker adapter、no signed/account/listenKey endpoint、no Live PRO Console 和 no live command 提供输入。 |
+| Root Docs Delta input | `docs/audit/inputs/mtpro-target-module-physical-layout-source-migration-v1-stage-audit-input.md` 的 `Root Docs Delta input` | 提醒 Parent Codex 在最终 Stage Code Audit Report 中检查 root docs，只同步已发生事实，并在 Root Docs Refresh Gate closure 后输出当前阶段完成进度条。 |
+
 ## MTP-74 Live Monitoring Console 阶段收口
 
 日期：2026-05-21
