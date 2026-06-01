@@ -155,7 +155,7 @@ Required validation：
   - `testMTP97PaperRuntimeBusRoutingContractDefinesPaperOnlyDeterministicBoundary`
   - `testMTP97CommandEventMessageBusRoutesDeterministicallyAndReplaysEvidence`
   - `testMTP97PaperRuntimeBusRoutingRejectsLiveSignedBrokerAndInvalidRouteBypass`
-- `Sources/Core/PaperRuntimeBusRouting.swift` 必须包含：
+- `Sources/MessageBus/PaperRuntimeBusRouting.swift` 必须包含：
   - `PaperRuntimeCommandBus`
   - `PaperRuntimeEventBus`
   - `PaperRuntimeMessageBusRouting`

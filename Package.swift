@@ -20,7 +20,20 @@ let package = Package(
     targets: [
         .target(
             name: "Core",
-            path: "Sources/Core"
+            path: "Sources",
+            exclude: [
+                "Adapters",
+                "App",
+                "CSQLite",
+                "Dashboard",
+                "Persistence",
+                "Runtime"
+            ],
+            sources: [
+                "Core",
+                "DomainModel",
+                "MessageBus"
+            ]
         ),
         .target(
             name: "Adapters",

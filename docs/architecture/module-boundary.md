@@ -887,6 +887,28 @@ MTP-183 的 validation anchors 落在 `docs/contracts/target-module-physical-lay
 
 MTP-183 不移动 `Sources` 文件，不修改 `Package.swift` target graph，不写业务代码，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、signed endpoint、account endpoint / listenKey、private WebSocket runtime、broker adapter、real order lifecycle、Live PRO Console、trading button、live command 或 order form。真正 source migration 从 MTP-184 以后按各自 Linear issue scope 执行。
 
+## MTP-184 DomainModel / MessageBus Physical Migration
+
+`MTP-184-DOMAINMODEL-MESSAGEBUS-PHYSICAL-MIGRATION`
+
+MTP-184 执行第一段 directory-first / namespace-first source migration：`Sources/Core/MarketPrimitives.swift`、`Sources/Core/MarketDataModels.swift` 和 `Sources/Core/CoreBaseline.swift` 已迁入 `Sources/DomainModel/`；`Sources/Core/DomainEvents.swift`、`Sources/Core/CommandsAndQueries.swift`、`Sources/Core/EventLog.swift` 和 `Sources/Core/PaperRuntimeBusRouting.swift` 已迁入 `Sources/MessageBus/`。这些文件仍由现有 `Core` target 编译，未新增 SwiftPM target、product 或 dependency。
+
+`MTP-184-CORE-TARGET-COMPATIBILITY-ENVELOPE`
+
+MTP-184 把 `Core` target 的 source roots 调整为 `Sources/Core`、`Sources/DomainModel` 和 `Sources/MessageBus`，并显式排除 `Adapters`、`Persistence`、`Runtime`、`App`、`Dashboard` 和 `CSQLite`。这只是 compatibility envelope，用于保持既有 `import Core` 下游调用不变；它不等同于最终 target graph split，也不授权后续模块提前依赖新 target。
+
+`MTP-184-NO-BEHAVIOR-CHANGE-IMPORT-BOUNDARY`
+
+MTP-184 不改 public type 名称、不改事件语义、不改 message bus routing 行为、不新增 runtime MessageBus。所有既有 callers 仍通过 `Core` target 使用 DomainModel / MessageBus 类型，验证必须证明 `CoreTests` 和 full checks 继续通过。
+
+`MTP-184-REMAINING-COMPATIBILITY-SHELL`
+
+MTP-184 没有保留旧路径 forwarding file；剩余 compatibility shell 是 `Core` target 本身的多 source-root envelope。旧 `Sources/Core` 仍保留未迁出的 Cache、DataEngine、Strategies、Portfolio、RiskEngine、ExecutionEngine、Live boundary 等后续 issue scope 文件，不在本 issue 内移动。
+
+`MTP-184-FORBIDDEN-HIGHER-MODULE-MIGRATION`
+
+MTP-184 不迁移 DataClient、DataEngine、Cache、Database、Strategies、Trader、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench 或 Dashboard，除非是保持当前 `Core` target 编译所需的 import compatibility。它不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker / live / order capability、signed endpoint、account endpoint / listenKey、private WebSocket runtime、Live PRO Console、trading button、live command 或 order form。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |
