@@ -34,7 +34,7 @@ let package = Package(
                 "DomainModel",
                 "MessageBus",
                 "Trader/Strategies/EMA",
-                "Strategies/OrderBookImbalance",
+                "Trader/Strategies/OrderBookImbalance",
                 "Trader/StrategyBindings",
                 "Portfolio",
                 "RiskEngine/PreTrade",
