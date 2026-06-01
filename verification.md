@@ -3105,6 +3105,49 @@ bash checks/run.sh
 - 未运行 Graphify full rebuild。
 - `.codex/*` 和 `graphify-out/*` 不进入 PR。
 
+---
+
+## 2026-06-01 — MTPRO Target Module Physical Layout / Source Migration Planning Record
+
+执行者：Codex
+
+目的：
+
+- 将 Human 确认的 `MTPRO Target Module Physical Layout / Source Migration v1` planning draft 落仓为 docs-only Project Planning Record。
+- 记录 target module physical layout / source migration 的 Project goal、target maturity、target engines / modules、scope、non-goals、8 个 milestones、suggested issue order、dependencies、validation requirements、evidence requirements、first executable issue candidate、WIP=1、Linear write boundary 和 repository record boundary。
+- 明确该 planning record 只作为 Linear 写入前的 Project 级计划摘要，不授权 source move、`Package.swift` target graph change、business code、L4 implementation 或任何 live / broker / signed / OMS / command 能力。
+
+更新内容：
+
+- 新增 `docs/planning/projects/mtpro-target-module-physical-layout-source-migration-v1-plan.md`。
+- 更新 `docs/planning/linear-draft-plan.md`，把 `MTPRO Engine Module Boundary Consolidation v1` 标记为已完成，并将当前 planning record 指向 `MTPRO Target Module Physical Layout / Source Migration v1`。
+- 更新 `docs/validation/latest-verification-summary.md`，记录该 Project-level planning record 已落仓但不是 Project closure，不更新 `Final Product Goal Progress`，不更新旧 `Engine Maturity Roadmap Progress`，后续执行必须经 Linear 写入和 Parent Codex queue preflight。
+- 更新 `BLUEPRINT.md`，只增加 planning record 引用，不复制完整 issue body，不更新进度条，不授权 execution。
+- 更新 `docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，增加 target module physical layout / source migration planning record 的 mechanical readiness anchor，确保后续 root docs refresh 不会丢失该 non-executable planning record。
+
+验证：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `git diff --check` | pass | 本 docs-only PR 终稿验证通过。 |
+| `bash checks/run.sh` | pass | 通过 automation readiness、Dashboard build / smoke 和 Swift test；最终输出 `MTPRO checks passed.`。 |
+
+边界确认：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify update。
+- 不修改业务代码。
+- 不移动 `Sources` 文件。
+- 不修改 `Package.swift` target graph。
+- 不修改 Figma。
+- 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation 或 OMS implementation。
+- 不实现 signed endpoint、account endpoint / listenKey、private WebSocket runtime、broker / exchange execution adapter、`LiveExecutionAdapter`、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、real PnL、Live PRO Console、trading button、live command、order form、emergency stop、shutdown 或 restore。
+- `.codex/*` 和 `graphify-out/*` 不进入 PR。
+
 ## Root Docs Refresh Gate
 
 日期：2026-05-18
