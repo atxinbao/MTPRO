@@ -530,10 +530,10 @@ MTP-131 的 handoff target 只作为后续 planning material：L3.1 account / po
 MTP-131 的 deterministic evidence 来自：
 
 - `Sources/Core/LiveTradingBoundary.swift` 中的 `LiveReadOnlyWorkbenchBoundarySurface`、`LiveReadOnlyWorkbenchInputBoundary`、`LiveReadOnlyWorkbenchForbiddenUISurface`、`LiveReadOnlyWorkbenchDetailAuditRoute`、`LiveReadOnlyWorkbenchHandoffTarget`、`LiveReadOnlyWorkbenchEvidenceKind` 和 `LiveReadOnlyWorkbenchReadModelBoundary`。
-- `Sources/App/LiveReadOnlyWorkbenchBoundary.swift` 中的 `LiveReadOnlyWorkbenchBoundaryReadModel` 和 `LiveReadOnlyWorkbenchBoundaryViewModel`。
-- `Sources/App/App.swift` 中的 Report / Dashboard read model wiring。
-- `Sources/App/PaperWorkflowEvidenceExplorer.swift` 中的 Event Timeline read-only route。
-- `Sources/App/DashboardShell.swift` 中的 Report / Workbench metrics、details 和 smoke handle。
+- `Sources/Workbench/FutureLiveProConsole/LiveReadOnlyWorkbenchBoundary.swift` 中的 `LiveReadOnlyWorkbenchBoundaryReadModel` 和 `LiveReadOnlyWorkbenchBoundaryViewModel`。
+- `Sources/Workbench/ReadModels/App.swift` 中的 Report / Dashboard read model wiring。
+- `Sources/Workbench/Events/PaperWorkflowEvidenceExplorer.swift` 中的 Event Timeline read-only route。
+- `Sources/Dashboard/DashboardShell.swift` 中的 Report / Workbench metrics、details 和 smoke handle。
 - `Tests/CoreTests/CoreTests.swift` 中的 `testLiveReadOnlyWorkbenchReadModelBoundaryDefinesMTP131Surface` 和 `testLiveReadOnlyWorkbenchReadModelBoundaryRejectsForbiddenUISurfaceBypass`。
 - `Tests/AppTests/AppTests.swift` 中的 `testLiveReadOnlyWorkbenchBoundaryViewModelAggregatesMTP131ReadOnlySurface` 和 Dashboard / Evidence Explorer integration assertions。
 

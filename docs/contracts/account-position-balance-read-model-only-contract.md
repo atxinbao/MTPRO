@@ -603,10 +603,10 @@ Required validation：
 
 Focused validation anchors：
 
-- `Sources/App/AccountPositionBalanceReadModelOnlySurface.swift` 必须包含 `AccountPositionBalanceReadModelOnlySurfaceReadModel`、`AccountPositionBalanceReadModelOnlySurfaceViewModel` 和 `AccountPositionBalanceReadModelOnlySurfaceTraceItem`。
-- `Sources/App/App.swift` 必须把 APB surface 接入 `ReportReadModel` / `ReportViewModel` / `DashboardViewModel` 的 read-model-only source chain。
-- `Sources/App/PaperWorkflowEvidenceExplorer.swift` 必须包含 `accountPositionBalanceReadModelOnlySurface` section、coverage flag 和三条 read-model-only timeline items。
-- `Sources/App/DashboardShell.swift` 必须包含 Workbench metrics / details、Report APB surface details 和 smoke summary handle。
+- `Sources/Workbench/Report/AccountPositionBalanceReadModelOnlySurface.swift` 必须包含 `AccountPositionBalanceReadModelOnlySurfaceReadModel`、`AccountPositionBalanceReadModelOnlySurfaceViewModel` 和 `AccountPositionBalanceReadModelOnlySurfaceTraceItem`。
+- `Sources/Workbench/ReadModels/App.swift` 必须把 APB surface 接入 `ReportReadModel` / `ReportViewModel` / `DashboardViewModel` 的 read-model-only source chain。
+- `Sources/Workbench/Events/PaperWorkflowEvidenceExplorer.swift` 必须包含 `accountPositionBalanceReadModelOnlySurface` section、coverage flag 和三条 read-model-only timeline items。
+- `Sources/Dashboard/DashboardShell.swift` 必须包含 Workbench metrics / details、Report APB surface details 和 smoke summary handle。
 - `Tests/AppTests/AppTests.swift` 必须包含 MTP-138 ViewModel、DashboardShell、Report 和 Event Timeline focused assertions。
 - Contract、Domain context、Trading validation matrix、Validation plan、Latest verification summary、Automation readiness doc 和 `checks/automation-readiness.sh` 必须包含 MTP-138 anchors。
 

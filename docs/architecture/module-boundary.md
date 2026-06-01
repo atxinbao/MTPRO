@@ -1009,6 +1009,24 @@ RiskEngine / ExecutionEngine / ExecutionClient 迁移后仍禁止 `RiskEngine ->
 
 MTP-188 后旧 `Sources/Core/PaperPreTradeRiskEngine.swift`、`Sources/Core/LiveRiskGateContract.swift`、`Sources/Core/LiveAuditIncidentStopContract.swift`、`Sources/Core/LiveExecutionControlContract.swift`、`Sources/Core/PaperExecutionWorkflowContract.swift`、`Sources/Core/PaperRuntimeKernelBoundary.swift`、`Sources/Core/PaperSessionLifecycle.swift`、`Sources/Core/PaperSessionLocalControlCommand.swift`、`Sources/Core/PaperSessionLocalControlEventLog.swift`、`Sources/Core/PaperSessionReplay.swift`、`Sources/Core/PaperOrderIntent.swift`、`Sources/Core/PaperOrderLifecycleCoordinator.swift`、`Sources/Core/PaperExecutionDecision.swift`、`Sources/Core/PaperExecutionEventLog.swift`、`Sources/Core/PaperSimulatedFillEvidence.swift`、`Sources/Core/SimulatedExchangeBacktestParityBoundary.swift`、`Sources/Core/MarketLimitSimulatedExecutionSemantics.swift`、`Sources/Core/PartialFillLatencyFeeSlippageParity.swift`、`Sources/Core/BacktestPaperSharedOrderSemantics.swift` 和 `Sources/Core/ExecutionCosts.swift` 不再保留。剩余 compatibility shell 是旧 `Core` SwiftPM target 名称，以及仍待 MTP-189 授权迁移的 Workbench / Dashboard source roots；`LiveTradingBoundary.swift` 仍保留在 `Core` 作为既有 L3 read-only multi-boundary compatibility file，不在 MTP-188 中强行迁移。
 
+## MTP-189 Workbench / Dashboard Physical Migration
+
+`MTP-189-WORKBENCH-DASHBOARD-PHYSICAL-MIGRATION`
+
+MTP-189 执行 Workbench / Dashboard 的 directory-first source migration：Workbench read-model source chain 已迁入 `Sources/Workbench/ReadModels/`；Report evidence surfaces 已迁入 `Sources/Workbench/Report/`；Workbench beta / dashboard read-model assembly 已迁入 `Sources/Workbench/Dashboard/`；Event Timeline / Evidence Explorer 已迁入 `Sources/Workbench/Events/`；future Live PRO Console label 只作为 read-model-only boundary 放入 `Sources/Workbench/FutureLiveProConsole/`；macOS shell / smoke source 保持在 `Sources/Dashboard/`。
+
+`MTP-189-APP-COMPATIBILITY-ENVELOPE`
+
+MTP-189 保留现有 `App` SwiftPM product / target 名称作为 Workbench 迁移期兼容外壳：`App` target 继续编译 `Sources/Workbench/ReadModels/`、`Sources/Workbench/Report/`、`Sources/Workbench/Dashboard/`、`Sources/Workbench/Events/`、`Sources/Workbench/FutureLiveProConsole/` 和 `Sources/Dashboard/DashboardShell.swift`。该兼容壳只保持 buildability，不等同于新增 Workbench runtime 或 final target graph split。
+
+`MTP-189-DASHBOARD-SHELL-BOUNDARY`
+
+Dashboard executable 继续只装载 `DashboardApplication.swift` 并消费 App / Workbench 输出的稳定 `DashboardViewModel` 与 `DashboardShellSnapshot`。Dashboard shell 不读取 Runtime object、Adapter request、SQLite / DuckDB schema、account payload 或 broker state，不提供 Live PRO Console、trading button、live command、order form、broker connect UI 或 account connect UI。
+
+`MTP-189-WORKBENCH-READMODEL-ONLY-GUARD`
+
+MTP-189 后旧 `Sources/App/` 不再作为 Workbench source owner 保留。Workbench / Report / Dashboard / Events 迁移后仍只能消费 ReadModel / ViewModel exports；future Live PRO Console 目录只保存 future-gated label / boundary evidence，不实现 command-capable UI 或 real trading path。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |

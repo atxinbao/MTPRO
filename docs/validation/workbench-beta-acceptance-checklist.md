@@ -76,7 +76,7 @@ bash checks/workbench-beta-acceptance.sh
 
 - `uname -s` 不是 `Darwin`：停止；本 checklist 是 local macOS Workbench beta acceptance，不在非 macOS runner 上伪造 UI smoke。
 - `swift --version` 或 `swift package resolve` 失败：先定位 SwiftPM toolchain / dependency resolution，不读取 secret，不接 broker，不改 production ops。
-- Dashboard smoke 失败：检查 `Sources/Dashboard/DashboardApplication.swift`、`Sources/App/DashboardShell.swift`、`Sources/App/WorkbenchBetaFirstRunState.swift` 和 `Sources/App/WorkbenchBetaAcceptancePath.swift` 的 read-model-only assembly。
+- Dashboard smoke 失败：检查 `Sources/Dashboard/DashboardApplication.swift`、`Sources/Dashboard/DashboardShell.swift`、`Sources/Workbench/Dashboard/WorkbenchBetaFirstRunState.swift` 和 `Sources/Workbench/Dashboard/WorkbenchBetaAcceptancePath.swift` 的 read-model-only assembly。
 - smoke handle 缺失：优先确认 MTP-120 demo fixture、MTP-121 first-run default demo state 和 MTP-122 Report / Dashboard / Events beta acceptance path 是否仍消费同一 scenario `mtp-104-btcusdt-1m-first-scenario`。
 - `bash checks/run.sh` 失败：按 `git diff --check`、`checks/automation-readiness.sh`、Dashboard build / smoke、`swift test` 的顺序收窄。
 

@@ -451,7 +451,7 @@ Required validation：
 
 Focused validation anchors：
 
-- `Sources/App/WorkbenchBetaFirstRunState.swift` 必须定义 `WorkbenchBetaFirstRunReadModel` 和 `WorkbenchBetaFirstRunViewModel`。
+- `Sources/Workbench/Dashboard/WorkbenchBetaFirstRunState.swift` 必须定义 `WorkbenchBetaFirstRunReadModel` 和 `WorkbenchBetaFirstRunViewModel`。
 - `Sources/Dashboard/DashboardApplication.swift` 必须使用 `DashboardViewModel.defaultWorkbenchBetaDemo`。
 - `Tests/AppTests/AppTests.swift` 必须包含 MTP-121 focused tests，验证 default selected scenario、read-model-only Dashboard state、empty / loading / error fallback、first-run evidence summary、Dashboard smoke handles 和 forbidden capability boundary。
 - `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-121 anchors。
@@ -505,9 +505,9 @@ Required validation：
 
 Focused validation anchors：
 
-- `Sources/App/WorkbenchBetaAcceptancePath.swift` 必须定义 `WorkbenchBetaAcceptancePathReadModel` 和 `WorkbenchBetaAcceptancePathViewModel`。
-- `Sources/App/PaperWorkflowEvidenceExplorer.swift` 必须包含 `workbenchBetaAcceptancePath` timeline section。
-- `Sources/App/DashboardShell.swift` 必须输出 `betaAcceptancePaths`、`betaAcceptanceScenario` 和 `betaAcceptanceTrace` Dashboard smoke handles。
+- `Sources/Workbench/Dashboard/WorkbenchBetaAcceptancePath.swift` 必须定义 `WorkbenchBetaAcceptancePathReadModel` 和 `WorkbenchBetaAcceptancePathViewModel`。
+- `Sources/Workbench/Events/PaperWorkflowEvidenceExplorer.swift` 必须包含 `workbenchBetaAcceptancePath` timeline section。
+- `Sources/Dashboard/DashboardShell.swift` 必须输出 `betaAcceptancePaths`、`betaAcceptanceScenario` 和 `betaAcceptanceTrace` Dashboard smoke handles。
 - `Tests/AppTests/AppTests.swift` 必须包含 MTP-122 focused test，验证 Report summary、Dashboard panels、Events trace、same demo scenario、portfolio evidence 和 forbidden capability boundary。
 - `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-122 anchors。
 

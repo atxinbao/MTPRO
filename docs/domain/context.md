@@ -2491,6 +2491,22 @@ MTP-188 的 `ExecutionClient future gate envelope` 指 `Sources/ExecutionClient/
 
 MTP-188 broker / real order forbidden guard 固定 RiskEngine、ExecutionEngine 和 ExecutionClient 不能形成真实执行路径：RiskEngine 不调用 broker / ExecutionClient，ExecutionEngine 不调用 current OMS / broker adapter / ExecutionClient request，ExecutionClient 不实现 signed request、account endpoint、order submit / cancel / replace、execution report parser、broker fill parser 或 reconciliation runtime。
 
+`MTP-189-WORKBENCH-DASHBOARD-PHYSICAL-MIGRATION`
+
+`Workbench / Dashboard physical migration` 指把 Workbench read model / report / dashboard / events / future Live PRO Console boundary source 从旧 `Sources/App/` 迁入 `Sources/Workbench/`，并把 macOS dashboard shell source 放在 `Sources/Dashboard/`。MTP-189 只做 physical source migration 和兼容 target 配置，不新增真实 Workbench SwiftPM target，不实现 Live PRO Console 或 command-capable UI。
+
+`MTP-189-APP-COMPATIBILITY-ENVELOPE`
+
+MTP-189 的 `App compatibility envelope` 指现有 `App` target 继续编译 `Sources/Workbench/ReadModels/`、`Sources/Workbench/Report/`、`Sources/Workbench/Dashboard/`、`Sources/Workbench/Events/`、`Sources/Workbench/FutureLiveProConsole/` 和 `Sources/Dashboard/DashboardShell.swift`。这只保持 buildability，不授权 Workbench runtime、Dashboard runtime inspector、broker connect UI、account connect UI 或 final target graph split。
+
+`MTP-189-DASHBOARD-SHELL-BOUNDARY`
+
+Dashboard shell 只能消费 `DashboardViewModel` / `DashboardShellSnapshot`。它不读取 Runtime object、Adapter request、SQLite / DuckDB schema、account payload、broker payload 或 broker state，不提供 Live PRO Console、trading button、live command、order form、broker connect UI、account connect UI 或 executable order path。
+
+`MTP-189-WORKBENCH-READMODEL-ONLY-GUARD`
+
+MTP-189 后 `Sources/Workbench/FutureLiveProConsole/` 只是 future-gated boundary label 的 physical location。它不是 current Live PRO Console implementation，不包含 command controls、emergency stop、shutdown、restore、ExecutionClient request UI、OMS command UI 或 production operations command。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

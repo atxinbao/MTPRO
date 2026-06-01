@@ -38,7 +38,7 @@
 - `examples/backtest/*`
 - `examples/live/*`
 
-代码级补充读取见 `docs/product/mtpro-codebase-reference-gap-map-v1.md`。该文档记录 MTPRO 的 `Package.swift`、`Sources/Core/*`、`Sources/Runtime/*`、`Sources/Persistence/*`、`Sources/App/*`、`Sources/Dashboard/*`，以及参考项目的 Rust workspace、BacktestEngine、Kernel、LiveNode、ExecutionEngine、LiveExecutionEngine、RiskEngine、Portfolio、DataCatalog 和 Strategy command surface 读取结果。
+代码级补充读取见 `docs/product/mtpro-codebase-reference-gap-map-v1.md`。该文档记录 MTPRO 的 `Package.swift`、`Sources/Core/*`、`Sources/Runtime/*`、`Sources/Persistence/*`、`Sources/Workbench/*`、`Sources/Dashboard/*`，以及参考项目的 Rust workspace、BacktestEngine、Kernel、LiveNode、ExecutionEngine、LiveExecutionEngine、RiskEngine、Portfolio、DataCatalog 和 Strategy command surface 读取结果。
 
 ## 3. 结论摘要
 

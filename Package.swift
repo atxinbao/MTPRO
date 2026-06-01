@@ -22,11 +22,11 @@ let package = Package(
             name: "Core",
             path: "Sources",
             exclude: [
-                "App",
                 "Dashboard",
                 "DataClient",
                 "DataEngine/Ingest",
-                "Database"
+                "Database",
+                "Workbench"
             ],
             sources: [
                 "Cache/MarketData",
@@ -89,7 +89,6 @@ let package = Package(
             dependencies: ["Core", "Adapters", "Persistence"],
             path: "Sources",
             exclude: [
-                "App",
                 "Cache",
                 "Core",
                 "Dashboard",
@@ -104,7 +103,8 @@ let package = Package(
                 "ExecutionEngine",
                 "ExecutionClient",
                 "Strategies",
-                "Trader"
+                "Trader",
+                "Workbench"
             ],
             sources: [
                 "Database/ReplayProjection",
@@ -114,12 +114,42 @@ let package = Package(
         .target(
             name: "App",
             dependencies: ["Core", "Persistence"],
-            path: "Sources/App"
+            path: "Sources",
+            exclude: [
+                "Cache",
+                "Core",
+                "DataClient",
+                "DataEngine",
+                "Database",
+                "DomainModel",
+                "MessageBus",
+                "Portfolio",
+                "RiskEngine",
+                "ExecutionEngine",
+                "ExecutionClient",
+                "Strategies",
+                "Trader",
+                "Dashboard/DashboardApplication.swift"
+            ],
+            sources: [
+                "Workbench/ReadModels",
+                "Workbench/Report",
+                "Workbench/Dashboard",
+                "Workbench/Events",
+                "Workbench/FutureLiveProConsole",
+                "Dashboard/DashboardShell.swift"
+            ]
         ),
         .executableTarget(
             name: "Dashboard",
             dependencies: ["App"],
-            path: "Sources/Dashboard"
+            path: "Sources/Dashboard",
+            exclude: [
+                "DashboardShell.swift"
+            ],
+            sources: [
+                "DashboardApplication.swift"
+            ]
         ),
         .testTarget(
             name: "CoreTests",

@@ -712,10 +712,10 @@ Required validation：
 
 Focused validation anchors：
 
-- `Sources/App/StrategyTraderReadinessEvidenceSurface.swift` 必须定义 MTP-160 read-model-only evidence surface，且每条 record 均指向 MTP-154 至 MTP-159 的已存在 source anchor。
-- `Sources/App/App.swift` 必须把 Strategy / Trader readiness surface 接入 Report / Dashboard read model 和 ViewModel，并保持 `authorizesTradingExecution == false`。
-- `Sources/App/PaperWorkflowEvidenceExplorer.swift` 必须新增 strategy readiness timeline section，且只生成 read-model-only event trace / evidence link。
-- `Sources/App/DashboardShell.swift` 必须把 strategy readiness evidence 汇总到 Workbench / Report smoke surface，且只输出 metrics / details / boundary evidence；Dashboard smoke handle 必须包含 `strategyTraderReadinessSurface=6`。
+- `Sources/Workbench/Report/StrategyTraderReadinessEvidenceSurface.swift` 必须定义 MTP-160 read-model-only evidence surface，且每条 record 均指向 MTP-154 至 MTP-159 的已存在 source anchor。
+- `Sources/Workbench/ReadModels/App.swift` 必须把 Strategy / Trader readiness surface 接入 Report / Dashboard read model 和 ViewModel，并保持 `authorizesTradingExecution == false`。
+- `Sources/Workbench/Events/PaperWorkflowEvidenceExplorer.swift` 必须新增 strategy readiness timeline section，且只生成 read-model-only event trace / evidence link。
+- `Sources/Dashboard/DashboardShell.swift` 必须把 strategy readiness evidence 汇总到 Workbench / Report smoke surface，且只输出 metrics / details / boundary evidence；Dashboard smoke handle 必须包含 `strategyTraderReadinessSurface=6`。
 - `Tests/AppTests/AppTests.swift` 必须包含 `testStrategyTraderReadinessSurfaceAggregatesMTP160WorkbenchReportEventsEvidence`，覆盖 record count、Event Timeline items、Dashboard smoke handle、forbidden command/runtime/schema/account flags 和 Codable round trip。
 - `docs/domain/context.md` 必须包含 MTP-160 strategy readiness surface shared language。
 - `docs/validation/trading-validation-matrix.md` 必须包含 MTP-160 issue backfill。

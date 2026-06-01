@@ -39,8 +39,8 @@
 | `Sources/DataClient/Binance/PublicMarketData/Adapters.swift` | Binance public read-only adapter boundary 和 forbidden live capability list。 |
 | `Sources/Persistence/Persistence.swift` | Event Log -> Replay -> SQLite / DuckDB projection -> Read Model 边界。 |
 | `Sources/DataEngine/Ingest/MarketDataIngestReplayProjectionWorkflow.swift` | 薄 Runtime 编排：public adapter、kernel、persistence projection；不接 signed/account/live command。 |
-| `Sources/App/DashboardShell.swift` | Workbench read model / ViewModel 汇总、paper session local controls、live blocked evidence surface。 |
-| `Sources/App/LiveIncidentStopBlockedEvidence.swift` | read-model-only incident / stop blocked evidence；不提供 stop / restore command。 |
+| `Sources/Dashboard/DashboardShell.swift` | Workbench read model / ViewModel 汇总、paper session local controls、live blocked evidence surface。 |
+| `Sources/Workbench/Report/LiveIncidentStopBlockedEvidence.swift` | read-model-only incident / stop blocked evidence；不提供 stop / restore command。 |
 | `Sources/Dashboard/DashboardApplication.swift` | Dashboard smoke / local demo entry；不接 secrets、外部系统或 real trading。 |
 
 ### nautilus_trader
