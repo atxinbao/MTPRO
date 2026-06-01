@@ -573,6 +573,34 @@ Next-stage product-surface readiness input 只记录后续 L4 planning 需要的
 
 MTP-180 的验证只证明 Future Live PRO Console product-surface split、boundary label、current Workbench vs future command surface separation、future-only live command controls、no current implementation 和 next-stage planning input 已落仓；不证明 Live PRO Console、trading button、live command、order form、emergency stop、shutdown 或 restore 已实现。
 
+`MTP-181-L4-PLANNING-INPUT-MATERIAL`
+
+L4 planning input material 指 MTP-181 为 Human + `@001 / PLN` 准备的下一阶段规划输入。它汇总 module map、dependency direction、forbidden audit、validation gaps 和 future gates，但不创建 L4 Linear Project / Issue，不推进 Todo，不授权 L4 execution。
+
+`MTP-181-ENGINE-MODULE-BOUNDARY-MAP`
+
+Engine module boundary map 是 DataClient / DataEngine / MessageBus / Cache / Database / Strategies / Trader / Account context / Portfolio / RiskEngine / ExecutionEngine / ExecutionClient / Workbench / Future Live PRO Console 的 target boundary 对照表。该 map 只描述边界和依赖，不表示目录、target 或 runtime 已迁移完成。
+
+`MTP-181-DEPENDENCY-DIRECTION-SUMMARY`
+
+Dependency direction summary 表示 L4 规划必须保留 upstream data / evidence flow 到 ReadModel / ViewModel / Workbench，以及 Strategies / Trader 经 RiskEngine / ExecutionEngine 后进入 Portfolio projection 的方向。任何 Workbench -> Runtime object、Strategy -> ExecutionClient、Trader -> broker gateway、DataClient -> Database account payload 或 DataEngine -> UI command path 都仍是 forbidden capability。
+
+`MTP-181-FORBIDDEN-CAPABILITY-AUDIT`
+
+Forbidden capability audit 是 L4 planning 的负面证据清单：credential、signed endpoint、account endpoint / listenKey、private stream runtime、account snapshot runtime、broker adapter、ExecutionClient implementation、OMS implementation、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console command controls、Runtime object、Adapter request、SQLite / DuckDB schema、account payload、broker payload 和 broker state 均未授权。
+
+`MTP-181-VALIDATION-GAPS-FUTURE-GATES`
+
+Validation gaps / future gates 表示 L4 需要新的 Project Definition、signed / account gate、broker / execution gate、product surface gate、operations gate 和 validation matrix gate。当前 architecture boundary evidence 不能替代这些 gate。
+
+`MTP-181-NO-L4-PROJECT-ISSUE-AUTHORIZATION`
+
+No L4 Project / Issue authorization 表示 MTP-181 不创建下一阶段 Linear Project / Issue、不启动 @002 新项目、不启动 Symphony、不更新 next-stage Todo、不运行 Graphify、不修改 Figma。后续必须由 Human + `@001 / PLN` 独立规划。
+
+`MTP-181-L4-PLANNING-INPUT-VALIDATION`
+
+MTP-181 的验证只证明 L4 planning input material、Engine module boundary map、dependency direction summary、forbidden capability audit、validation gaps / future gates 和 no L4 Project / Issue authorization 已落仓；不证明 L4 runtime、live production、broker path、Live PRO Console 或最终 Stage Code Audit Report 已实现。
+
 ## Paper Runtime Kernel Terms
 
 `MTP-96-PAPER-RUNTIME-KERNEL-TERMS`

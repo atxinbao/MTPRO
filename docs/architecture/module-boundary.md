@@ -789,6 +789,36 @@ MTP-180 只为后续 L4 planning 提供 product-surface readiness input：当前
 
 MTP-180 只证明 Future Live PRO Console product-surface split anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不移动 production source、不创建 SwiftPM target、不修改 `Package.swift` target graph、不实现 Live PRO Console、不运行 Graphify、不修改 Figma。
 
+## MTP-181 L4 Planning Input Material
+
+`MTP-181-L4-PLANNING-INPUT-MATERIAL`
+
+MTP-181 将 Engine Module Boundary Consolidation evidence 汇总为 L4 planning input material。该材料只为 Human + `@001 / PLN` 后续独立规划提供输入，不创建 L4 Linear Project / Issue，不推进 Todo，不授权 business-code implementation。
+
+`MTP-181-ENGINE-MODULE-BOUNDARY-MAP`
+
+L4 planning input 必须覆盖 DataClient、DataEngine、MessageBus、Cache、Database、Strategies、Trader / Account context、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient / OMS、Workbench / Report / Events 和 Future Live PRO Console 的 module boundary map。每个 module 必须保留 target boundary、current implementation baseline 和 forbidden capability baseline。
+
+`MTP-181-DEPENDENCY-DIRECTION-SUMMARY`
+
+L4 planning input 的 dependency direction 必须保持 `DataClient -> DataEngine -> MessageBus -> Cache / Database -> ReadModel / ViewModel -> Workbench`，以及 `Strategies / Trader -> RiskEngine -> ExecutionEngine -> Portfolio projection` 的方向；不得反向让 Workbench、Trader、Strategy 或 DataEngine 直连 ExecutionClient、broker adapter、Database schema 或 private endpoint runtime。
+
+`MTP-181-FORBIDDEN-CAPABILITY-AUDIT`
+
+L4 planning input 必须汇总 forbidden capability audit：signed / account / listenKey endpoint、private stream runtime、account snapshot runtime、broker adapter、ExecutionClient implementation、OMS implementation、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console command controls、Runtime object exposure、Adapter request exposure、SQLite / DuckDB schema exposure、account payload exposure 和 broker state exposure 均保持未授权。
+
+`MTP-181-VALIDATION-GAPS-FUTURE-GATES`
+
+L4 planning input 必须列出 validation gaps and future gates：L4 Project Definition、signed / account gate、broker / execution gate、product surface gate、operations gate 和新的 validation matrix gate。当前 `TVM-ARCHITECTURE-MODULE-BOUNDARY` 只证明 boundary consolidation，不授权 L4 execution。
+
+`MTP-181-NO-L4-PROJECT-ISSUE-AUTHORIZATION`
+
+MTP-181 不创建 L4 Project / Issue，不更新任何 next-stage Todo，不启动新的 `@002 / PAR` project，不启动 Symphony，不运行 Graphify，不修改 Figma。L4 必须由 Human + `@001 / PLN` 独立规划，并在未来由 Parent Codex queue preflight 授权唯一 executable issue。
+
+`MTP-181-L4-PLANNING-INPUT-VALIDATION`
+
+MTP-181 只证明 L4 planning input material anchors 已落仓且可被 `checks/automation-readiness.sh` 机械检查；不移动 production source、不创建 SwiftPM target、不修改 `Package.swift` target graph、不实现 L4 runtime / live production / broker path、不输出最终 Stage Code Audit Report。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |

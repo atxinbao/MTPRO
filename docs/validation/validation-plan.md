@@ -5263,3 +5263,44 @@ MTP-180 必须建立的主要 anchors：
 - 不实现 Live PRO Console、FutureLiveProConsole runtime、trading button、live command、order form、position command、emergency stop、shutdown、restore、broker connect UI、account connect UI、ExecutionClient request UI、OMS command UI 或 production operations command。
 - 不把 current Workbench read-model-only controls、Report summary、Events timeline、Dashboard smoke、RiskEngine blocked evidence、ExecutionEngine paper lifecycle 或 Strategy proposal 升级为 command-capable surface。
 - 不创建 L4 Project / Issue，不授权下一阶段，不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-181 L4 Planning Input Material Validation
+
+日期：2026-06-01
+
+执行者：Codex
+
+MTP-181 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-181 的验收要求：
+
+- `docs/planning/projects/mtpro-engine-module-boundary-consolidation-v1-l4-planning-input.md` 必须存在，并包含 L4 planning input material、Engine module boundary map、dependency direction summary、forbidden capability audit、validation gaps / future gates、no L4 Project / Issue authorization 和 L4 planning input validation anchors。
+- `docs/architecture/module-boundary.md` 必须包含 MTP-181 L4 planning input material anchors。
+- `docs/domain/context.md` 必须包含 MTP-181 L4 planning input shared language anchors。
+- `docs/validation/trading-validation-matrix.md` 必须把 `TVM-ARCHITECTURE-MODULE-BOUNDARY` 扩展到 MTP-181 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 L4 planning input material anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-181 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-181 planning input file、architecture boundary、domain context、validation plan、validation matrix、latest summary 和 automation readiness doc。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-181 必须建立的主要 anchors：
+
+- `MTP-181-L4-PLANNING-INPUT-MATERIAL`
+- `MTP-181-ENGINE-MODULE-BOUNDARY-MAP`
+- `MTP-181-DEPENDENCY-DIRECTION-SUMMARY`
+- `MTP-181-FORBIDDEN-CAPABILITY-AUDIT`
+- `MTP-181-VALIDATION-GAPS-FUTURE-GATES`
+- `MTP-181-NO-L4-PROJECT-ISSUE-AUTHORIZATION`
+- `MTP-181-L4-PLANNING-INPUT-VALIDATION`
+
+## MTP-181 禁止
+
+- 不移动 production source，不新增或修改 Swift production code，不修改 `Package.swift` target graph，不创建 SwiftPM target。
+- 不创建 L4 Linear Project / Issue，不推进 Todo，不启动下一阶段 `@002 / PAR`，不启动 Symphony。
+- 不实现 L4 runtime、live production path、broker path、ExecutionClient implementation、OMS implementation、real order lifecycle、Live PRO Console、trading button、live command、order form、emergency stop、shutdown、restore 或 production operations command。
+- 不输出最终 Stage Code Audit Report；MTP-182 仍负责 validation matrix / automation readiness / stage audit input material 收口，最终 Stage Code Audit Report 仍由 Parent Codex 在 Project closure 后单独输出。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
