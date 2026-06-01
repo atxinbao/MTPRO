@@ -84,7 +84,7 @@ Required validation：
   - `testMTP96TradingClockDefinesDeterministicReplayTicks`
   - `testMTP96PaperRuntimeKernelBoundaryDefinesPaperOnlyFixture`
   - `testMTP96PaperRuntimeKernelBoundaryRejectsLiveSignedBrokerSchemaAndClockBypass`
-- `Sources/Core/PaperRuntimeKernelBoundary.swift` 必须包含：
+- `Sources/ExecutionEngine/PaperLifecycle/PaperRuntimeKernelBoundary.swift` 必须包含：
   - `TradingClock`
   - `TradingClockTick`
   - `PaperRuntimeKernelBoundary`
@@ -233,7 +233,7 @@ Required validation：
   - `testMTP98PaperPreTradeRiskEngineProducesDeterministicAcceptedRejectedDecisions`
   - `testMTP98RejectedDecisionPublishesToEventLogAndReplaysRiskEvidence`
   - `testMTP98PaperPreTradeRiskEngineRejectsLiveAccountBrokerAndDecodeBypass`
-- `Sources/Core/PaperPreTradeRiskEngine.swift` 必须包含：
+- `Sources/RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift` 必须包含：
   - `PaperPreTradeRiskEngineInput`
   - `PaperPreTradeRiskEngineDecision`
   - `PaperPreTradeRiskEngineRuntimePath`
@@ -325,7 +325,7 @@ Required validation：
   - `testMTP99PaperOrderLocalLifecycleCoordinatorProducesDeterministicAcceptedRejectedTransitions`
   - `testMTP99LifecycleTransitionsPublishEventFactsAndReplayEvidence`
   - `testMTP99LifecycleCoordinatorRejectsOMSBrokerRealOrderCancelAndInvalidTransitions`
-- `Sources/Core/PaperOrderLifecycleCoordinator.swift` 必须包含：
+- `Sources/ExecutionEngine/PaperLifecycle/PaperOrderLifecycleCoordinator.swift` 必须包含：
   - `PaperOrderLocalLifecycleState`
   - `PaperOrderLocalLifecycleTransition`
   - `PaperOrderLocalLifecycleCoordinator`
@@ -423,7 +423,7 @@ Required validation：
   - `testMTP100SimulatedFillModelCreatesDeterministicFullAndPartialCostEvidence`
   - `testMTP100SimulatedFillEventLogPublishesPartialAndFullFillsAndReplaysEvidence`
   - `testMTP100SimulatedFillRejectsBrokerExecutionReportReconciliationAndInvalidPartialBypass`
-- `Sources/Core/PaperSimulatedFillEvidence.swift` 必须包含：
+- `Sources/ExecutionEngine/SimulatedExchange/PaperSimulatedFillEvidence.swift` 必须包含：
   - `PaperSimulatedFillMarketSnapshot`
   - `PaperSimulatedFillCompletion`
   - `PaperSimulatedFillPriceSource`
