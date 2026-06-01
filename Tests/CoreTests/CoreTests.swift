@@ -8309,6 +8309,53 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(decoded, evidence)
     }
 
+    func testTraderOwnedStrategyPathValidationCoversCanonicalOldBindingAndExecutionGuards() throws {
+        // 测试场景：MTP-196 必须用本地 deterministic validation 直接检查当前仓库路径，
+        // 防止旧 peer-level strategy path 或 StrategyBindings 策略落点语义回流。
+        let fileManager = FileManager.default
+        let repositoryRoot = URL(fileURLWithPath: fileManager.currentDirectoryPath, isDirectory: true)
+
+        let traderOwnedStrategyFiles = [
+            "Sources/Trader/Strategies/EMA/EMACross.swift",
+            "Sources/Trader/Strategies/EMA/StrategySignals.swift",
+            "Sources/Trader/Strategies/EMA/PaperActionProposal.swift",
+            "Sources/Trader/Strategies/OrderBookImbalance/OrderBookImbalance.swift"
+        ]
+        for relativePath in traderOwnedStrategyFiles {
+            XCTAssertTrue(
+                fileManager.fileExists(atPath: repositoryRoot.appendingPathComponent(relativePath).path),
+                "\(relativePath) must remain under Trader-owned strategy root"
+            )
+        }
+
+        let supersededStrategyDirectories = [
+            "Sources/Strategies/EMA",
+            "Sources/Strategies/OrderBookImbalance"
+        ]
+        for relativePath in supersededStrategyDirectories {
+            XCTAssertFalse(
+                fileManager.fileExists(atPath: repositoryRoot.appendingPathComponent(relativePath).path),
+                "\(relativePath) must not remain as canonical strategy implementation path"
+            )
+        }
+
+        let packageManifest = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        XCTAssertTrue(packageManifest.contains("\"Trader/Strategies/EMA\""))
+        XCTAssertTrue(packageManifest.contains("\"Trader/Strategies/OrderBookImbalance\""))
+        XCTAssertTrue(packageManifest.contains("\"Trader/StrategyBindings\""))
+        XCTAssertFalse(packageManifest.contains("\"Strategies/EMA\""))
+        XCTAssertFalse(packageManifest.contains("\"Strategies/OrderBookImbalance\""))
+
+        let bindingsEvidence = TraderStrategyBindingsBoundaryFixture.deterministic
+        XCTAssertEqual(bindingsEvidence.strategyBindingsRoot, "Sources/Trader/StrategyBindings/")
+        XCTAssertTrue(bindingsEvidence.isGenericBindingProtocolAndAdapterOnly)
+        XCTAssertTrue(bindingsEvidence.concreteStrategiesRemainTraderOwned)
+        XCTAssertTrue(bindingsEvidence.forbidsExecutionAndLiveCommandPaths)
+    }
+
     func testPaperActionRiskLinkBlocksOversizedPaperProposalWithEvidence() throws {
         // 测试场景：MTP-33 阻断路径必须复用 RiskBlockerEvidence，固定 blocker reason、
         // source sequence 和 paper-only context，不引入真实风控或 broker 拒单回退。

@@ -731,6 +731,12 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | --- | --- | --- |
 | `MTP-195` | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 新增 StrategyBindings binding protocol / coordination adapter reclassification：`Sources/Trader/StrategyBindings/` 只承载 generic binding protocol / coordination adapter contract，`TraderStrategyBindingsBoundaryEvidence` 固定该目录不是 concrete strategy implementation landing path；EMA 和 OrderBookImbalance 的 concrete strategy roots 分别保持在 `Sources/Trader/Strategies/EMA/` 和 `Sources/Trader/Strategies/OrderBookImbalance/`。MTP-195 保持 `Core` compatibility envelope，不新增 SwiftPM target、product 或 dependency，不做 target graph split，不迁移 concrete strategy source，不实现 Strategy runtime、Trader runtime、ExecutionClient、OMS、broker command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command、order form 或 executable order command。 |
 
+## MTP-196 issue backfill
+
+| Issue | Matrix ID | 回填说明 |
+| --- | --- | --- |
+| `MTP-196` | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 新增 Trader-owned strategy path validation：`testTraderOwnedStrategyPathValidationCoversCanonicalOldBindingAndExecutionGuards` 和 automation readiness anchors 直接检查 EMA / OrderBookImbalance 当前 files 位于 `Sources/Trader/Strategies/<strategy>/`，旧 `Sources/Strategies/EMA/` 与 `Sources/Strategies/OrderBookImbalance/` 不得作为 current implementation directory 回流，`Package.swift` 不得使用旧 strategy source roots，`StrategyBindings` 仍只是 non-concrete-strategy binding / adapter contract，并覆盖 no direct ExecutionClient / broker / OMS / live command guard。MTP-196 只添加 validation evidence，不移动 source files，不修改 `Package.swift` source roots，不拆 SwiftPM target graph，不实现 Strategy runtime、Trader runtime、ExecutionClient、OMS、broker command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command 或 order form。 |
+
 ## MTP-190 Target Module Source Migration 阶段收口
 
 日期：2026-06-01
