@@ -1,6 +1,12 @@
 import Foundation
 
-/// 市场数据 cache 是只读 market event 的确定性投影，供 replay 和后续 read model 使用。
+/// MTP-186 将 market data cache 迁入 `Sources/Cache/MarketData/`，但当前 SwiftPM
+/// 仍由 `Core` target 作为 compatibility envelope 编译该文件。
+///
+/// 这里的 Cache 只保存可由 MessageBus / Event Log replay 重建的 runtime-derived read state；
+/// 它不是 durable store、SQLite / DuckDB schema owner、真实账户 cache 或 broker state mirror。
+/// 所有输入必须来自本地 `MarketEvent` / `EventEnvelope`，不得触发 signed endpoint、account
+/// endpoint、listenKey、private stream、broker adapter 或任何 live trading side effect。
 
 /// MarketDataSeriesKey 使用 symbol + timeframe 区分 kline 序列。
 public struct MarketDataSeriesKey: Equatable, Hashable, Sendable {

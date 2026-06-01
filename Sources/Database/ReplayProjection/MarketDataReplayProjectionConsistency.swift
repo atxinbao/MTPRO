@@ -3,6 +3,12 @@ import Adapters
 import Core
 import Persistence
 
+/// MTP-186 将 market data replay projection consistency 迁入 `Sources/Database/ReplayProjection/`。
+///
+/// 当前文件仍由 `Runtime` target compatibility envelope 编译，因为它串接 DataClient replay
+/// metadata、Cache snapshot、SQLite runtime projection 和 DuckDB analytical projection。这里的
+/// Database / ReplayProjection 只产出稳定 read-model evidence，不暴露 SQLite / DuckDB schema、
+/// Runtime object、Adapter request、broker payload 或 live trading command。
 /// MarketDataReplayProjectionConsistencyError 描述 MTP-58 本地 replay consistency 证据链的失败原因。
 /// 错误只覆盖本地 batch replay、append-only event log 和 projection snapshot 对齐问题；
 /// 它不表达真实 Binance 网络、signed endpoint、account endpoint、broker 或真实订单状态。

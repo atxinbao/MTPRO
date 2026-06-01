@@ -1,6 +1,10 @@
 import Foundation
 
-/// 订单簿读模型把只读 snapshot / delta 转换为研究输入，保持排序和非零数量不变量。
+/// MTP-186 将 order book read model 迁入 `Sources/Cache/MarketData/`。
+///
+/// 该 read model 是 public market data snapshot / delta 的 runtime-derived state，不是订单簿
+/// 交易指令、broker depth stream、private stream 或 UI command surface。输出只允许作为本地
+/// strategy / report read input，不能升级为 executable order、signed request 或真实 broker action。
 
 /// OrderBookReadModelSource 标记订单簿读模型来自原始 snapshot 还是 delta 应用结果。
 public enum OrderBookReadModelSource: String, Codable, Equatable, Sendable {
