@@ -1,6 +1,6 @@
 import Foundation
 
-/// MTP-187 将 strategy signal shared language 放入 `Sources/Strategies/EMA/` 兼容目录。
+/// MTP-193 将 strategy signal shared language 迁入 `Sources/Trader/Strategies/EMA/`。
 /// 该信号仍只是 read-model / proposal input，不是 Trader 指令、ExecutionClient request 或 broker command。
 /// 策略信号模型只表达本地研究方向和生成时间，不代表真实订单或 broker action。
 

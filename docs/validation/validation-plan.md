@@ -5537,11 +5537,11 @@ MTP-187 的 required validation：
 
 MTP-187 的验收要求：
 
-- `Sources/Strategies/EMA/` 必须包含 EMA lifecycle、strategy signal 和 paper proposal source；`Sources/Strategies/OrderBookImbalance/` 必须包含 order-book imbalance research strategy。
+- MTP-187 historical evidence 记录 EMA lifecycle、strategy signal 和 paper proposal source 曾迁入 `Sources/Strategies/EMA/`；MTP-193 后 EMA current source path 必须是 `Sources/Trader/Strategies/EMA/`。`Sources/Strategies/OrderBookImbalance/` 必须继续包含 order-book imbalance research strategy，直到 MTP-194 迁移。
 - `Sources/Trader/StrategyBindings/` 必须包含 proposal-to-risk binding；Trader 仍只表示 coordination evidence，不实现 live coordinator、broker gateway、OMS gateway 或 ExecutionClient gateway。
 - `Sources/Portfolio/` 必须包含 paper account / portfolio projection、portfolio projection update 和 simulated exchange portfolio projection parity；Portfolio 仍只持有 paper / simulated / read-model financial state。
 - `Package.swift` 必须保留现有 `Core` product / target 名称作为 compatibility envelope，不新增 SwiftPM target、product 或 dependency，不做 target graph split。
-- 旧 `Sources/Strategies/EMA/EMACross.swift`、`Sources/Strategies/EMA/StrategySignals.swift`、`Sources/Strategies/EMA/PaperActionProposal.swift`、`Sources/Strategies/OrderBookImbalance/OrderBookImbalance.swift`、`Sources/Trader/StrategyBindings/PaperActionRiskLink.swift`、`Sources/Portfolio/PaperAccountPortfolioProjectionV2.swift`、`Sources/Portfolio/PaperPortfolioProjectionUpdate.swift` 和 `Sources/Portfolio/SimulatedExchangePortfolioProjectionParity.swift` 不得保留。
+- 旧 `Sources/Core/EMACross.swift`、`Sources/Core/StrategySignals.swift`、`Sources/Core/PaperActionProposal.swift`、`Sources/Core/OrderBookImbalance.swift`、`Sources/Core/PaperActionRiskLink.swift`、`Sources/Core/PaperAccountPortfolioProjectionV2.swift`、`Sources/Core/PaperPortfolioProjectionUpdate.swift` 和 `Sources/Core/SimulatedExchangePortfolioProjectionParity.swift` 不得保留；MTP-193 后 `Sources/Strategies/EMA/` 也不得保留 production source。
 - `docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-187 mechanical anchors。
 - PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
 
@@ -5736,5 +5736,44 @@ MTP-192 必须建立的主要 anchors：
 - 不实现 Strategy runtime、Trader runtime、live coordinator、broker gateway、ExecutionClient implementation、OMS implementation、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、Live PRO Console、trading button、live command 或 order form。
 - 不把历史 `Sources/Strategies/<strategy>` 改写成当前 canonical path；只能加 forward-looking supersession / compatibility note。
 - 不把 `Sources/Trader/StrategyBindings/` 写成 EMA、OrderBookImbalance 或未来具体策略的源码落点。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-193 EMA Trader Strategy Physical Migration Validation
+
+MTP-193 必须运行：
+
+- `git diff --check`
+- `swift test --filter CoreTests/testEMACrossStrategyContractGeneratesDeterministicSignalFixture`
+- `swift test --filter CoreTests/testPaperActionProposalMapsStrategySignalToPaperOnlyIntentDeterministically`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-193 的验收要求：
+
+- `Sources/Trader/Strategies/EMA/` 必须包含 `EMACross.swift`、`StrategySignals.swift` 和 `PaperActionProposal.swift`。
+- `Sources/Strategies/EMA/` 不得继续保留 production source；root docs 中保留的 `Sources/Strategies/EMA/` 必须明确为 MTP-171 / MTP-187 historical evidence、superseded path 或 migration-source path。
+- `Package.swift` 必须使用 `"Trader/Strategies/EMA"` 作为 EMA source root，并且不再包含 `"Strategies/EMA"`。
+- `Core` SwiftPM product / target 名称继续作为 compatibility envelope，不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- EMA lifecycle、strategy signal、paper/live-neutral proposal、proposal authorization、deterministic fixtures、paper-only no-executable-order boundary 和现有 focused tests 行为必须保持不变。
+- `Sources/Strategies/OrderBookImbalance/` 在 MTP-194 前仍作为 compatibility / superseded source root 保留，MTP-193 不迁移 OrderBookImbalance。
+- `docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-193 mechanical anchors。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-193 必须建立的主要 anchors：
+
+- `MTP-193-EMA-TRADER-STRATEGIES-PHYSICAL-MIGRATION`
+- `MTP-193-EMA-OLD-PATH-REMOVAL-GUARD`
+- `MTP-193-CORE-COMPATIBILITY-ENVELOPE-SOURCE-PATH`
+- `MTP-193-BEHAVIOR-UNCHANGED-GUARD`
+- `MTP-193-NO-RUNTIME-TARGET-GRAPH-GUARD`
+- `MTP-193-EMA-PATH-MIGRATION-VALIDATION`
+
+## MTP-193 禁止
+
+- 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- 不实现 Strategy runtime、strategy scheduler、live quoter、live hedger、Trader runtime、live coordinator、broker gateway、ExecutionClient gateway、OMS gateway、account session runtime、broker position sync、signed endpoint、account endpoint、listenKey、private stream runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 position command。
+- 不把 strategy proposal、signal 或 fixture evidence 升级为 executable order command、ExecutionClient request、OMS order、broker order 或 order form payload。
+- 不迁移 OrderBookImbalance、StrategyBindings、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench 或 Dashboard。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
