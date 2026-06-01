@@ -725,6 +725,12 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | --- | --- | --- |
 | `MTP-194` | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 新增 OrderBookImbalance Trader-owned strategy physical migration：order-book imbalance research strategy source 从 superseded `Sources/Strategies/OrderBookImbalance/` 迁入 `Sources/Trader/Strategies/OrderBookImbalance/`，`Package.swift` 的 source root 更新为 `"Trader/Strategies/OrderBookImbalance"`，旧 `Sources/Strategies/OrderBookImbalance/` 不再保留 production source。MTP-194 保持 `Core` compatibility envelope，不新增 SwiftPM target、product 或 dependency，不做 target graph split，不迁移 StrategyBindings、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench 或 Dashboard，不实现 Strategy runtime、Trader runtime、ExecutionClient、OMS、broker command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command、order form、short command、margin command 或 futures command。 |
 
+## MTP-195 issue backfill
+
+| Issue | Matrix ID | 回填说明 |
+| --- | --- | --- |
+| `MTP-195` | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 新增 StrategyBindings binding protocol / coordination adapter reclassification：`Sources/Trader/StrategyBindings/` 只承载 generic binding protocol / coordination adapter contract，`TraderStrategyBindingsBoundaryEvidence` 固定该目录不是 concrete strategy implementation landing path；EMA 和 OrderBookImbalance 的 concrete strategy roots 分别保持在 `Sources/Trader/Strategies/EMA/` 和 `Sources/Trader/Strategies/OrderBookImbalance/`。MTP-195 保持 `Core` compatibility envelope，不新增 SwiftPM target、product 或 dependency，不做 target graph split，不迁移 concrete strategy source，不实现 Strategy runtime、Trader runtime、ExecutionClient、OMS、broker command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command、order form 或 executable order command。 |
+
 ## MTP-190 Target Module Source Migration 阶段收口
 
 日期：2026-06-01

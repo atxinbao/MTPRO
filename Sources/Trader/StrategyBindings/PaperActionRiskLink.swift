@@ -1,12 +1,108 @@
 import Foundation
 
 /// MTP-187 将 proposal-to-risk binding 放入 `Sources/Trader/StrategyBindings/`。
+/// MTP-195 将该目录重新收口为 generic binding protocol / coordination adapter contract。
 /// Trader 在这里仍只是 strategy / risk / portfolio coordination evidence，不是 live coordinator 或 broker gateway。
 /// Paper action risk link 把 MTP-32 的 paper-only proposal 接到本地风险观察证据。
 ///
 /// 该文件只定义 strategy signal -> paper action proposal -> risk blocker 的最小本地链路。
+/// 它不是 EMA、OrderBookImbalance 或未来具体策略的 implementation landing path；具体策略必须继续位于
+/// `Sources/Trader/Strategies/<strategy>/`。
 /// 它不是完整风险引擎、订单管理系统、broker 拒单回退或真实交易执行入口，也不会调用
 /// Binance signed endpoint、account endpoint、order submit / cancel / replace 或 Live execution。
+
+/// TraderStrategyBindingsContractRole 固定 `Sources/Trader/StrategyBindings/` 的允许职责。
+///
+/// MTP-195 只允许该目录表达通用绑定协议和 Trader coordination adapter contract。任何具体策略
+/// lifecycle、signal、proposal、quoter、hedger 或 strategy-specific business rule 都必须放在
+/// `Sources/Trader/Strategies/<strategy>/`，不能放入 StrategyBindings。
+public enum TraderStrategyBindingsContractRole: String, Codable, Equatable, Sendable {
+    case genericBindingProtocol = "generic_binding_protocol"
+    case coordinationAdapterContract = "coordination_adapter_contract"
+}
+
+/// TraderStrategyBindingsBoundaryEvidence 是 MTP-195 的本地边界证据。
+///
+/// 该 evidence 只描述目录职责和禁止能力，用于 XCTest 与 automation readiness 机械检查。
+/// 它不创建 Trader runtime、strategy scheduler、ExecutionClient path、broker command、OMS command
+/// 或 Live command，也不改变现有 `PaperActionProposalRiskLink` 的 deterministic paper-only 行为。
+public struct TraderStrategyBindingsBoundaryEvidence: Codable, Equatable, Sendable {
+    public let strategyBindingsRoot: String
+    public let concreteStrategyRoots: [String]
+    public let contractRoles: [TraderStrategyBindingsContractRole]
+    public let compatibilityTargetName: String
+    public let carriesConcreteStrategyImplementation: Bool
+    public let allowsDirectExecutionClientPath: Bool
+    public let allowsBrokerCommandPath: Bool
+    public let allowsOMSCommandPath: Bool
+    public let allowsLiveCommandPath: Bool
+
+    public init(
+        strategyBindingsRoot: String,
+        concreteStrategyRoots: [String],
+        contractRoles: [TraderStrategyBindingsContractRole],
+        compatibilityTargetName: String,
+        carriesConcreteStrategyImplementation: Bool,
+        allowsDirectExecutionClientPath: Bool,
+        allowsBrokerCommandPath: Bool,
+        allowsOMSCommandPath: Bool,
+        allowsLiveCommandPath: Bool
+    ) {
+        self.strategyBindingsRoot = strategyBindingsRoot
+        self.concreteStrategyRoots = concreteStrategyRoots
+        self.contractRoles = contractRoles
+        self.compatibilityTargetName = compatibilityTargetName
+        self.carriesConcreteStrategyImplementation = carriesConcreteStrategyImplementation
+        self.allowsDirectExecutionClientPath = allowsDirectExecutionClientPath
+        self.allowsBrokerCommandPath = allowsBrokerCommandPath
+        self.allowsOMSCommandPath = allowsOMSCommandPath
+        self.allowsLiveCommandPath = allowsLiveCommandPath
+    }
+
+    /// 证明 StrategyBindings 只保留通用 binding / adapter contract，不持有具体策略实现。
+    public var isGenericBindingProtocolAndAdapterOnly: Bool {
+        contractRoles == [.genericBindingProtocol, .coordinationAdapterContract]
+            && carriesConcreteStrategyImplementation == false
+    }
+
+    /// 证明当前具体策略 root 仍在 Trader-owned Strategies 下，而不是 StrategyBindings 或旧 peer-level path。
+    public var concreteStrategiesRemainTraderOwned: Bool {
+        concreteStrategyRoots.allSatisfy { root in
+            root.hasPrefix("Sources/Trader/Strategies/")
+                && root.contains("/StrategyBindings/") == false
+                && root.hasPrefix("Sources/Strategies/") == false
+        }
+    }
+
+    /// 证明该 binding contract 没有任何 direct execution / broker / OMS / live command 能力。
+    public var forbidsExecutionAndLiveCommandPaths: Bool {
+        allowsDirectExecutionClientPath == false
+            && allowsBrokerCommandPath == false
+            && allowsOMSCommandPath == false
+            && allowsLiveCommandPath == false
+    }
+}
+
+/// TraderStrategyBindingsBoundaryFixture 提供 MTP-195 deterministic boundary fixture。
+///
+/// Fixture 只服务本地测试和 PR evidence，固定 EMA 与 OrderBookImbalance 的 current concrete
+/// strategy root，同时证明 `StrategyBindings` 只是 binding protocol / coordination adapter contract。
+public enum TraderStrategyBindingsBoundaryFixture {
+    public static let deterministic = TraderStrategyBindingsBoundaryEvidence(
+        strategyBindingsRoot: "Sources/Trader/StrategyBindings/",
+        concreteStrategyRoots: [
+            "Sources/Trader/Strategies/EMA/",
+            "Sources/Trader/Strategies/OrderBookImbalance/"
+        ],
+        contractRoles: [.genericBindingProtocol, .coordinationAdapterContract],
+        compatibilityTargetName: "Core",
+        carriesConcreteStrategyImplementation: false,
+        allowsDirectExecutionClientPath: false,
+        allowsBrokerCommandPath: false,
+        allowsOMSCommandPath: false,
+        allowsLiveCommandPath: false
+    )
+}
 
 /// PaperActionProposalRiskPolicy 是 MTP-33 本地 deterministic 风险门槛。
 ///
@@ -259,10 +355,11 @@ public struct PaperActionProposalRiskDecision: Codable, Equatable, Sendable {
     }
 }
 
-/// PaperActionProposalRiskLink 是 MTP-33 的最小本地编排函数。
+/// PaperActionProposalRiskLink 是 MTP-33 的最小本地编排函数，也是 MTP-195 允许的 coordination adapter。
 ///
 /// 它把 proposal 转成 `RiskEvaluationQuery`，再根据 deterministic policy 决定是否生成
-/// `RiskBlockerEvidence`。该函数没有网络、副作用、数据库写入或 broker fallback。
+/// `RiskBlockerEvidence`。该函数没有网络、副作用、数据库写入或 broker fallback，也不承载具体
+/// strategy lifecycle、signal、proposal implementation 或 strategy-specific business rule。
 public enum PaperActionProposalRiskLink {
     public static func evaluate(
         decisionID: Identifier,
