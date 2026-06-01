@@ -463,6 +463,26 @@ StrategyBindings 不得引入 `StrategyBindings -> ExecutionClient`、`StrategyB
 
 MTP-195 validation language 必须证明 `TraderStrategyBindingsBoundaryEvidence`、focused XCTest、docs anchors 和 automation readiness checks 一致覆盖：StrategyBindings 只是 generic binding protocol / coordination adapter，concrete strategies remain Trader-owned，且无 direct execution / broker / OMS / live command path。
 
+`MTP-196-TRADER-OWNED-STRATEGY-PATH-VALIDATION`
+
+`Trader-owned strategy path validation` 指本地 deterministic checks 直接验证 EMA 和 OrderBookImbalance 的 current implementation files 位于 `Sources/Trader/Strategies/<strategy>/`，并验证 `Package.swift` 当前只使用 `"Trader/Strategies/EMA"` 与 `"Trader/Strategies/OrderBookImbalance"` source roots。
+
+`MTP-196-SUPERSEDED-STRATEGIES-PATH-NON-CANONICAL-GUARD`
+
+MTP-196 后，`Sources/Strategies/EMA/` 或 `Sources/Strategies/OrderBookImbalance/` 如果重新作为当前 implementation directory 出现，validation 必须失败。旧 `Sources/Strategies/<strategy>/` 字符串只能在 historical / compatibility / superseded / migration-source 语境中保留，不能表达 canonical future path。
+
+`MTP-196-STRATEGYBINDINGS-NON-CONCRETE-STRATEGY-VALIDATION`
+
+MTP-196 validation 必须继续使用 `TraderStrategyBindingsBoundaryEvidence` 证明 `Sources/Trader/StrategyBindings/` 只是 generic binding protocol / coordination adapter contract，不是 concrete strategy source root。
+
+`MTP-196-NO-DIRECT-EXECUTION-PATH-VALIDATION`
+
+MTP-196 validation 必须覆盖 strategy path 与 StrategyBindings 都没有 direct ExecutionClient、broker command、OMS command、signed/account endpoint、real order lifecycle、Live PRO Console、trading button、live command 或 order form 路径。该验证不创建真实 execution runtime 或 UI command surface。
+
+`MTP-196-VALIDATION-ONLY-GUARD`
+
+MTP-196 只添加 local validation evidence、docs anchors 和 automation readiness checks，不移动 source files，不修改 `Package.swift` source roots，不拆 SwiftPM target graph，不实现 Strategy runtime、Trader runtime、ExecutionClient、OMS、broker gateway、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command 或 order form。
+
 `MTP-173-ACCOUNT-PORTFOLIO-READMODEL-BOUNDARY-CONTRACT`
 
 MTP-173 固定 Account / Portfolio context read-model boundary：`Sources/Trader/Accounts/` 只表达 Trader coordination 使用的 account context、account identity 和 source identity；`Sources/Portfolio/` 独立表达 positions、net positions、cash/equity、PnL、exposure、margin、open value 和 paper projection。

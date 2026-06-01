@@ -1301,6 +1301,14 @@ MTP-195 的当前 issue execution evidence 已建立 `Sources/Trader/StrategyBin
 
 MTP-195-STRATEGYBINDINGS-BOUNDARY-VALIDATION 的本地验证要求：`git diff --check` 无输出；`swift test --filter CoreTests/testStrategyBindingsBoundaryEvidenceKeepsConcreteStrategiesOutOfBindings` 通过；`swift test --filter CoreTests/testPaperActionRiskLinkAllowsPaperProposalWithTraceableContext` 通过；`bash checks/automation-readiness.sh` 输出 `MTPRO automation readiness checks passed.`；`bash checks/run.sh` 通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest，最终输出 `MTPRO checks passed.`。完整验收仍以本次 PR 前本地验证和 GitHub required check `checks` 为准。MTP-195 完成后不得自动推进 MTP-196；必须等待 PR/check/merge、root main fast-forward、Linear Done 和 post-issue ledger evidence 后，再由 Parent Codex queue preflight 判断唯一 eligible next issue。
 
+## 当前 issue execution evidence：MTP-196
+
+MTP-196 的当前 issue execution evidence 已建立 `Tests/CoreTests/CoreTests.swift` 的 `testTraderOwnedStrategyPathValidationCoversCanonicalOldBindingAndExecutionGuards`，并同步到 `docs/architecture/module-boundary.md` 和 `docs/domain/context.md` 的 `MTP-196-TRADER-OWNED-STRATEGY-PATH-VALIDATION`、`MTP-196-SUPERSEDED-STRATEGIES-PATH-NON-CANONICAL-GUARD`、`MTP-196-STRATEGYBINDINGS-NON-CONCRETE-STRATEGY-VALIDATION`、`MTP-196-NO-DIRECT-EXECUTION-PATH-VALIDATION` 和 `MTP-196-VALIDATION-ONLY-GUARD` anchors，以及 `docs/validation/validation-plan.md`、`TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` MTP-196 issue backfill、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`。
+
+该证据只添加 deterministic local validation：验证 EMA 和 OrderBookImbalance 当前 files 位于 `Sources/Trader/Strategies/<strategy>/`，旧 `Sources/Strategies/EMA/` 与 `Sources/Strategies/OrderBookImbalance/` 不得作为 current implementation directory 回流，`Package.swift` 不得使用旧 strategy source roots，`StrategyBindings` 仍只是 non-concrete-strategy binding / adapter contract，并覆盖 no direct ExecutionClient / broker / OMS / live command guard。MTP-196 不移动 source files，不修改 `Package.swift` source roots，不新增 SwiftPM target、product 或 dependency，不做 target graph split，不实现 Strategy runtime、Trader runtime、ExecutionClient、OMS、broker command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command 或 order form；不运行 Symphony、Graphify 或 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+MTP-196-TRADER-OWNED-STRATEGY-PATH-VALIDATION 的本地验证要求：`git diff --check` 无输出；`swift test --filter CoreTests/testTraderOwnedStrategyPathValidationCoversCanonicalOldBindingAndExecutionGuards` 通过；`bash checks/automation-readiness.sh` 输出 `MTPRO automation readiness checks passed.`；`bash checks/run.sh` 通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest，最终输出 `MTPRO checks passed.`。完整验收仍以本次 PR 前本地验证和 GitHub required check `checks` 为准。MTP-196 完成后不得自动推进 MTP-197；必须等待 PR/check/merge、root main fast-forward、Linear Done 和 post-issue ledger evidence 后，再由 Parent Codex queue preflight 判断唯一 eligible next issue。
+
 ## Known CI Boundary
 
 临时 CI 平台边界：
