@@ -1909,7 +1909,7 @@ MTP-100 必须建立的主要 anchors：
 MTP-101 的 required validation：
 
 - `docs/contracts/paper-runtime-kernel-contract.md` 必须包含 `MTP-101-PAPER-ACCOUNT-PORTFOLIO-POSITION-PROJECTION`、`MTP-101-REPLAYED-SIMULATED-FILL-PROJECTION`、`MTP-101-PAPER-PNL-SNAPSHOT`、`MTP-101-READ-MODEL-CONSUMPTION`、`MTP-101-NO-REAL-ACCOUNT-BROKER-MARGIN-LEVERAGE` 和 `MTP-101-PAPER-ACCOUNT-PORTFOLIO-VALIDATION` anchors。
-- `Sources/Core/PaperAccountPortfolioProjectionV2.swift` 必须定义 `PaperAccountProjectionSnapshot`、`PaperPositionProjectionSnapshot`、`PaperPortfolioPnLSummary`、`PaperAccountPortfolioProjectionV2Snapshot`、`PaperAccountPortfolioProjectionV2Path` 和 deterministic fixture。
+- `Sources/Portfolio/PaperAccountPortfolioProjectionV2.swift` 必须定义 `PaperAccountProjectionSnapshot`、`PaperPositionProjectionSnapshot`、`PaperPortfolioPnLSummary`、`PaperAccountPortfolioProjectionV2Snapshot`、`PaperAccountPortfolioProjectionV2Path` 和 deterministic fixture。
 - Projection v2 必须从 replayed `.paper.simulatedFillRecorded` facts 派生 account cash、available paper balance、equity、position quantity、average entry、exposure、cost basis 和 paper PnL summary。
 - Persistence 只能保存 Core snapshot 派生的 runtime projection；App / Dashboard / Report / Risk / Portfolio 只能消费 read model / ViewModel。
 - `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-101 focused tests，验证 replay -> projection deterministic 和 Codable forbidden capability bypass rejection。
@@ -2457,7 +2457,7 @@ MTP-114 必须建立的主要 anchors：
 MTP-115 的 required validation：
 
 - `docs/contracts/simulated-exchange-backtest-parity-contract.md` 必须包含 `MTP-115-SIMULATED-EVENT-TO-PORTFOLIO-PROJECTION`、`MTP-115-BACKTEST-PAPER-PORTFOLIO-PARITY`、`MTP-115-POSITION-CASH-PNL-EXPOSURE-SUMMARY`、`MTP-115-REPORT-INPUT-REPLAY-EVIDENCE`、`MTP-115-NO-REAL-ACCOUNT-BROKER-MARGIN-LEVERAGE` 和 `MTP-115-SIMULATED-EXCHANGE-PORTFOLIO-PROJECTION-VALIDATION` anchors。
-- `Sources/Core/SimulatedExchangePortfolioProjectionParity.swift` 必须定义 `SimulatedExchangePortfolioProjectionParityContract`、`SimulatedExchangePortfolioProjectionParityInput`、`SimulatedExchangePortfolioProjectionSnapshot`、`SimulatedExchangePortfolioProjectionParityEvidence`、`SimulatedExchangePortfolioProjectionParityModel`、`SimulatedExchangePortfolioProjectionRule`、`SimulatedExchangePortfolioProjectionMode`、`SimulatedExchangePortfolioProjectionForbiddenCapability` 和 `SimulatedExchangePortfolioProjectionParityFixture`。
+- `Sources/Portfolio/SimulatedExchangePortfolioProjectionParity.swift` 必须定义 `SimulatedExchangePortfolioProjectionParityContract`、`SimulatedExchangePortfolioProjectionParityInput`、`SimulatedExchangePortfolioProjectionSnapshot`、`SimulatedExchangePortfolioProjectionParityEvidence`、`SimulatedExchangePortfolioProjectionParityModel`、`SimulatedExchangePortfolioProjectionRule`、`SimulatedExchangePortfolioProjectionMode`、`SimulatedExchangePortfolioProjectionForbiddenCapability` 和 `SimulatedExchangePortfolioProjectionParityFixture`。
 - `SimulatedExchangePortfolioProjectionParityInput` 必须消费 MTP-114 `PartialFillLatencyFeeSlippageParityReportEvidence`，绑定 MTP-107 `ScenarioReportInputVersion` 和 source replay sequence `3`；不得读取真实账户、broker position、margin、leverage、Runtime object 或 persistence schema。
 - `SimulatedExchangePortfolioProjectionParityModel.project` 必须从同一个 simulated exchange parity event 同时生成 backtest 与 paper projection，并保证两侧 `parityComparableIdentity` 一致。
 - Projection snapshot 必须输出 position、cash、available simulated cash、equity、gross exposure、realized / unrealized / net simulated PnL 和 `PortfolioExposureSnapshot`；默认 partial fixture 必须固定 cash `39462.98038625`、equity `49993.15538625`、gross exposure `10530.175` 和 net simulated PnL `-6.84461375`。
@@ -5514,5 +5514,50 @@ MTP-186 必须建立的主要 anchors：
 - 不实现 schema exposure、Database runtime migration、real account persistence、broker payload persistence、private stream persistence、Runtime object exposure、Adapter request exposure、real broker sync、real account / position / balance read、signed endpoint、account endpoint、listenKey、private WebSocket runtime、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command 或 order form。
 - 不把 Cache 写成 external cache service、Redis clone、real account cache 或 broker state cache；不把 Database 直连 UI / Trader / Strategy / RiskEngine / ExecutionEngine。
 - 不迁移 Strategies、Trader、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench 或 Dashboard，除非是保持现有 target buildability 的最小 import compatibility。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-187 Strategies / Trader / Portfolio Physical Migration Validation
+
+日期：2026-06-01
+
+执行者：Codex
+
+MTP-187 的 required validation：
+
+- `swift test --filter CoreTests/testEMACrossStrategyContractGeneratesDeterministicSignalFixture`
+- `swift test --filter CoreTests/testPaperActionProposalMapsStrategySignalToPaperOnlyIntentDeterministically`
+- `swift test --filter CoreTests/testPaperActionRiskLinkAllowsPaperProposalWithTraceableContext`
+- `swift test --filter CoreTests/testPaperExecutionReplayProjectsPortfolioOnlyFromSimulatedFillEvidence`
+- `swift test --filter CoreTests/testMTP115SimulatedExchangePortfolioProjectionProducesBacktestPaperParity`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-187 的验收要求：
+
+- `Sources/Strategies/EMA/` 必须包含 EMA lifecycle、strategy signal 和 paper proposal source；`Sources/Strategies/OrderBookImbalance/` 必须包含 order-book imbalance research strategy。
+- `Sources/Trader/StrategyBindings/` 必须包含 proposal-to-risk binding；Trader 仍只表示 coordination evidence，不实现 live coordinator、broker gateway、OMS gateway 或 ExecutionClient gateway。
+- `Sources/Portfolio/` 必须包含 paper account / portfolio projection、portfolio projection update 和 simulated exchange portfolio projection parity；Portfolio 仍只持有 paper / simulated / read-model financial state。
+- `Package.swift` 必须保留现有 `Core` product / target 名称作为 compatibility envelope，不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- 旧 `Sources/Strategies/EMA/EMACross.swift`、`Sources/Strategies/EMA/StrategySignals.swift`、`Sources/Strategies/EMA/PaperActionProposal.swift`、`Sources/Strategies/OrderBookImbalance/OrderBookImbalance.swift`、`Sources/Trader/StrategyBindings/PaperActionRiskLink.swift`、`Sources/Portfolio/PaperAccountPortfolioProjectionV2.swift`、`Sources/Portfolio/PaperPortfolioProjectionUpdate.swift` 和 `Sources/Portfolio/SimulatedExchangePortfolioProjectionParity.swift` 不得保留。
+- `docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-187 mechanical anchors。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-187 必须建立的主要 anchors：
+
+- `MTP-187-STRATEGIES-TRADER-PORTFOLIO-PHYSICAL-MIGRATION`
+- `MTP-187-STRATEGIES-COMPATIBILITY-ENVELOPE`
+- `MTP-187-TRADER-COMPATIBILITY-ENVELOPE`
+- `MTP-187-PORTFOLIO-COMPATIBILITY-ENVELOPE`
+- `MTP-187-NO-DIRECT-EXECUTION-GUARD`
+- `MTP-187-REMAINING-COMPATIBILITY-SHELL`
+
+## MTP-187 禁止
+
+- 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- 不实现 Strategy runtime、Trader runtime、strategy scheduler、live coordinator、broker gateway、ExecutionClient gateway、OMS gateway、account session runtime、broker position sync、Portfolio runtime、real account runtime、signed endpoint、account endpoint、listenKey、private stream runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 position command。
+- 不把 strategy proposal、Trader binding、risk decision、Portfolio projection、paper account snapshot 或 simulated parity evidence 升级为 executable order command、ExecutionClient request、OMS order、broker order 或 order form payload。
+- 不迁移 RiskEngine、ExecutionEngine、ExecutionClient、Workbench 或 Dashboard，除非是保持现有 target buildability 的最小 import compatibility。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

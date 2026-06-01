@@ -1,5 +1,7 @@
 import Foundation
 
+/// MTP-187 将 proposal-to-risk binding 放入 `Sources/Trader/StrategyBindings/`。
+/// Trader 在这里仍只是 strategy / risk / portfolio coordination evidence，不是 live coordinator 或 broker gateway。
 /// Paper action risk link 把 MTP-32 的 paper-only proposal 接到本地风险观察证据。
 ///
 /// 该文件只定义 strategy signal -> paper action proposal -> risk blocker 的最小本地链路。

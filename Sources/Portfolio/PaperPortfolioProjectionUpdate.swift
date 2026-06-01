@@ -1,5 +1,7 @@
 import Foundation
 
+/// MTP-187 将 portfolio projection update 放入 `Sources/Portfolio/`，保持 Core compatibility envelope。
+/// 该 update 仍只消费 replay 后的 simulated fill evidence，不同步 broker position 或真实账户余额。
 /// Paper portfolio projection update 把 replay 后的 simulated fill evidence 转成组合 exposure 更新事件。
 ///
 /// 输入只能是 MTP-40 / MTP-41 生成并经 MTP-42 event log replay 取回的

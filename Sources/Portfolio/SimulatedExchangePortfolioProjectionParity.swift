@@ -1,5 +1,7 @@
 import Foundation
 
+/// MTP-187 将 simulated exchange portfolio parity 放入 `Sources/Portfolio/`。
+/// 该 parity 只服务 paper / simulated projection evidence，不代表 Portfolio runtime 或 broker reconciliation。
 /// MTP-115 simulated exchange -> portfolio projection parity 固定模拟成交事件到组合投影的边界。
 ///
 /// 本文件只消费 MTP-114 的 deterministic simulated exchange parity event / report evidence 和

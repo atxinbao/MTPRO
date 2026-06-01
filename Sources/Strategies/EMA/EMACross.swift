@@ -1,5 +1,7 @@
 import Foundation
 
+/// MTP-187 将 EMA strategy lifecycle 放入 `Sources/Strategies/EMA/`，但仍由 `Core`
+/// compatibility envelope 编译；这里继续只生成本地 deterministic signal，不创建 Strategy runtime。
 /// EMA 交叉策略只消费本地 kline 序列并生成确定性信号，供回测和 Paper 复用。
 
 /// EMACrossStrategyConfiguration 描述 EMA 交叉研究配置，限定 symbol、timeframe 和 period 不变量。

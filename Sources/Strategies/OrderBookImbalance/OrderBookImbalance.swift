@@ -1,5 +1,7 @@
 import Foundation
 
+/// MTP-187 将 order-book imbalance research strategy 放入 `Sources/Strategies/OrderBookImbalance/`。
+/// 该目录只是 strategy-scoped research / signal boundary，不授权 margin、short 或真实 execution path。
 /// 订单簿失衡策略只消费本地订单簿读模型并输出研究样本，禁止 futures、margin 和真实交易能力。
 
 /// OrderBookImbalanceBias 表达订单簿失衡倾向，ask dominance 只作为研究偏向而非做空授权。
