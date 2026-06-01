@@ -353,7 +353,7 @@ MTP-172 的验证只证明 Trader coordination boundary、Accounts / Coordinatio
 
 `MTP-191-TRADER-OWNED-STRATEGY-CANONICAL-PATH`
 
-`Trader-owned strategy canonical path` 指 MTP-191 之后具体策略的 forward-looking source landing path 是 `Sources/Trader/Strategies/<strategy>/`，不是 peer-level `Sources/Strategies/<strategy>/`。旧 `Sources/Strategies/<strategy>/`、`Sources/Strategies/EMA/` 和 `Sources/Strategies/OrderBookImbalance/` 只作为 MTP-171 / MTP-183 / MTP-187 historical evidence、compatibility envelope 和待迁移来源。
+`Trader-owned strategy canonical path` 指 MTP-191 之后具体策略的 forward-looking source landing path 是 `Sources/Trader/Strategies/<strategy>/`，不是 peer-level `Sources/Strategies/<strategy>/`。旧 `Sources/Strategies/<strategy>/`、`Sources/Strategies/EMA/` 和 `Sources/Strategies/OrderBookImbalance/` 只作为 MTP-171 / MTP-183 / MTP-187 historical evidence、compatibility envelope、superseded path 或 historical migration source。
 
 `MTP-191-TRADER-CONTAINER-SPLIT`
 
@@ -377,7 +377,7 @@ MTP-191 validation language 必须同时说明新的 canonical path、旧路径 
 
 `MTP-192-ROOT-DOCS-STRATEGY-PATH-ANCHOR-CORRECTION`
 
-Root docs 的 forward-looking strategy path anchor 必须使用 `Sources/Trader/Strategies/<strategy>/`。旧 `Sources/Strategies/<strategy>/`、`Sources/Strategies/EMA/` 和 `Sources/Strategies/OrderBookImbalance/` 只能作为 historical evidence、compatibility envelope、superseded path、MTP-193 historical migration source 或 MTP-194 pending migration source。
+Root docs 的 forward-looking strategy path anchor 必须使用 `Sources/Trader/Strategies/<strategy>/`。旧 `Sources/Strategies/<strategy>/`、`Sources/Strategies/EMA/` 和 `Sources/Strategies/OrderBookImbalance/` 只能作为 historical evidence、compatibility envelope、superseded path、MTP-193 historical migration source 或 MTP-194 historical migration source。
 
 `MTP-192-HISTORICAL-STRATEGIES-COMPATIBILITY-NOTE`
 
@@ -405,7 +405,7 @@ MTP-193 后 `Sources/Strategies/EMA/` 只能作为 historical evidence、superse
 
 `MTP-193-CORE-COMPATIBILITY-ENVELOPE-SOURCE-PATH`
 
-MTP-193 的 compatibility envelope 指 `Core` target 名称保持不变，但 EMA source root 改为 `Sources/Trader/Strategies/EMA/`；OrderBookImbalance 在 MTP-194 前仍保留在 `Sources/Strategies/OrderBookImbalance/`。这不表示 SwiftPM target graph split 已完成。
+MTP-193 的 compatibility envelope 指 `Core` target 名称保持不变，但 EMA source root 改为 `Sources/Trader/Strategies/EMA/`；MTP-194 后 OrderBookImbalance source root 也改为 `Sources/Trader/Strategies/OrderBookImbalance/`。这不表示 SwiftPM target graph split 已完成。
 
 `MTP-193-BEHAVIOR-UNCHANGED-GUARD`
 
@@ -418,6 +418,30 @@ MTP-193 不创建 `Strategies` / `Trader` SwiftPM target，不迁移 OrderBookIm
 `MTP-193-EMA-PATH-MIGRATION-VALIDATION`
 
 MTP-193 validation language 必须证明 EMA source 位于 `Sources/Trader/Strategies/EMA/`，旧 `Sources/Strategies/EMA/` 目录不存在，`Package.swift` 使用 `"Trader/Strategies/EMA"` 且不再包含 `"Strategies/EMA"`，focused EMA / proposal tests 和完整 checks 仍通过。
+
+`MTP-194-ORDERBOOKIMBALANCE-TRADER-STRATEGIES-PHYSICAL-MIGRATION`
+
+`OrderBookImbalance Trader strategy physical migration` 指 order-book imbalance research strategy source 已从 MTP-187 的 superseded `Sources/Strategies/OrderBookImbalance/` 迁入 Trader-owned canonical path `Sources/Trader/Strategies/OrderBookImbalance/`。该术语只表达 physical source placement correction，不改变 imbalance calculation、bias semantics、input source evidence、fixtures 或 `import Core` compatibility surface。
+
+`MTP-194-ORDERBOOKIMBALANCE-OLD-PATH-REMOVAL-GUARD`
+
+MTP-194 后 `Sources/Strategies/OrderBookImbalance/` 只能作为 historical evidence、superseded path 或 migration-source language 出现，不得再作为 current implementation path、canonical strategy path 或 future landing path。
+
+`MTP-194-CORE-COMPATIBILITY-ENVELOPE-SOURCE-PATH`
+
+MTP-194 的 compatibility envelope 指 `Core` target 名称保持不变，但 OrderBookImbalance source root 改为 `Sources/Trader/Strategies/OrderBookImbalance/`。这不表示 SwiftPM target graph split 已完成。
+
+`MTP-194-BEHAVIOR-UNCHANGED-GUARD`
+
+MTP-194 必须保持 OrderBookImbalance strategy contract、configuration validation、signal sample、bid / ask notional、imbalance ratio、bias calculation、snapshot / delta input source 和 research-only boundary 行为不变。Ask dominance 仍只是 research bias，不授权 short、margin、futures、ExecutionClient、OMS、broker command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command 或 order form。
+
+`MTP-194-NO-RUNTIME-TARGET-GRAPH-GUARD`
+
+MTP-194 不创建 `Strategies` / `Trader` SwiftPM target，不迁移 StrategyBindings、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench 或 Dashboard，不把 research signal、bias 或 fixture evidence 升级为 executable order command。
+
+`MTP-194-ORDERBOOKIMBALANCE-PATH-MIGRATION-VALIDATION`
+
+MTP-194 validation language 必须证明 OrderBookImbalance source 位于 `Sources/Trader/Strategies/OrderBookImbalance/`，旧 `Sources/Strategies/OrderBookImbalance/` 目录不存在，`Package.swift` 使用 `"Trader/Strategies/OrderBookImbalance"` 且不再包含 `"Strategies/OrderBookImbalance"`，focused OrderBookImbalance tests 和完整 checks 仍通过。
 
 `MTP-173-ACCOUNT-PORTFOLIO-READMODEL-BOUNDARY-CONTRACT`
 
@@ -2525,13 +2549,13 @@ MTP-186 schema non-exposure guard 固定 Database projection code 只能提供 l
 
 `MTP-187-STRATEGIES-TRADER-PORTFOLIO-PHYSICAL-MIGRATION`
 
-`Strategies / Trader / Portfolio physical migration` 指 MTP-187 把 EMA strategy lifecycle、strategy signal、paper proposal 和 order-book research strategy 从旧 `Sources/Core/` 迁入当时的 `Sources/Strategies/EMA/` 与 `Sources/Strategies/OrderBookImbalance/`，把 proposal-to-risk binding 迁入 `Sources/Trader/StrategyBindings/`，并把 paper account / portfolio projection、portfolio projection update 和 simulated exchange portfolio projection parity 迁入 `Sources/Portfolio/`。MTP-193 后 EMA current source path 是 `Sources/Trader/Strategies/EMA/`；MTP-187 只做 physical source migration 和兼容 target 配置，不新增真实 Strategies / Trader / Portfolio SwiftPM target。
+`Strategies / Trader / Portfolio physical migration` 指 MTP-187 把 EMA strategy lifecycle、strategy signal、paper proposal 和 order-book research strategy 从旧 `Sources/Core/` 迁入当时的 `Sources/Strategies/EMA/` 与 `Sources/Strategies/OrderBookImbalance/`，把 proposal-to-risk binding 迁入 `Sources/Trader/StrategyBindings/`，并把 paper account / portfolio projection、portfolio projection update 和 simulated exchange portfolio projection parity 迁入 `Sources/Portfolio/`。MTP-193 后 EMA current source path 是 `Sources/Trader/Strategies/EMA/`；MTP-194 后 OrderBookImbalance current source path 是 `Sources/Trader/Strategies/OrderBookImbalance/`；MTP-187 只做 physical source migration 和兼容 target 配置，不新增真实 Strategies / Trader / Portfolio SwiftPM target。
 
-MTP-191 后续把 MTP-187 的 strategy physical locations 标记为 compatibility / superseded path；MTP-193 已把 EMA concrete strategy files 移到 `Sources/Trader/Strategies/EMA/`，`Sources/Strategies/OrderBookImbalance/` 仍等待 MTP-194 迁入 `Sources/Trader/Strategies/OrderBookImbalance/`。
+MTP-191 后续把 MTP-187 的 strategy physical locations 标记为 compatibility / superseded path；MTP-193 已把 EMA concrete strategy files 移到 `Sources/Trader/Strategies/EMA/`，MTP-194 已把 OrderBookImbalance concrete strategy files 移到 `Sources/Trader/Strategies/OrderBookImbalance/`。
 
 `MTP-187-STRATEGIES-COMPATIBILITY-ENVELOPE`
 
-MTP-187 的 `Strategies compatibility envelope` 指现有 `Core` target 继续编译 strategy source roots。MTP-193 后该 envelope 的 EMA root 是 `Sources/Trader/Strategies/EMA/`，OrderBookImbalance root 在 MTP-194 前仍是 `Sources/Strategies/OrderBookImbalance/`。这只保持 buildability，不授权 Strategy runtime、scheduler、live quoter / hedger、direct Strategy -> ExecutionClient path、broker command 或 executable order command。
+MTP-187 的 `Strategies compatibility envelope` 指现有 `Core` target 继续编译 strategy source roots。MTP-194 后该 envelope 的 strategy roots 是 `Sources/Trader/Strategies/EMA/` 和 `Sources/Trader/Strategies/OrderBookImbalance/`。这只保持 buildability，不授权 Strategy runtime、scheduler、live quoter / hedger、direct Strategy -> ExecutionClient path、broker command 或 executable order command。
 
 `MTP-187-TRADER-COMPATIBILITY-ENVELOPE`
 

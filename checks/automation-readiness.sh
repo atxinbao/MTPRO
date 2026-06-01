@@ -3189,7 +3189,7 @@ require_contains "docs/validation/latest-verification-summary.md" "MTP-186 的�
 require_file "Sources/Trader/Strategies/EMA/EMACross.swift"
 require_file "Sources/Trader/Strategies/EMA/StrategySignals.swift"
 require_file "Sources/Trader/Strategies/EMA/PaperActionProposal.swift"
-require_file "Sources/Strategies/OrderBookImbalance/OrderBookImbalance.swift"
+require_file "Sources/Trader/Strategies/OrderBookImbalance/OrderBookImbalance.swift"
 require_file "Sources/Trader/StrategyBindings/PaperActionRiskLink.swift"
 require_file "Sources/Portfolio/PaperAccountPortfolioProjectionV2.swift"
 require_file "Sources/Portfolio/PaperPortfolioProjectionUpdate.swift"
@@ -3199,13 +3199,15 @@ require_file "Sources/Portfolio/SimulatedExchangePortfolioProjectionParity.swift
 [[ ! -f "Sources/Core/PaperActionProposal.swift" ]] || fail "MTP-187 migrated file must not remain at Sources/Core/PaperActionProposal.swift"
 [[ ! -d "Sources/Strategies/EMA" ]] || fail "MTP-193 migrated EMA directory must not remain at Sources/Strategies/EMA"
 [[ ! -f "Sources/Core/OrderBookImbalance.swift" ]] || fail "MTP-187 migrated file must not remain at Sources/Core/OrderBookImbalance.swift"
+[[ ! -d "Sources/Strategies/OrderBookImbalance" ]] || fail "MTP-194 migrated OrderBookImbalance directory must not remain at Sources/Strategies/OrderBookImbalance"
 [[ ! -f "Sources/Core/PaperActionRiskLink.swift" ]] || fail "MTP-187 migrated file must not remain at Sources/Core/PaperActionRiskLink.swift"
 [[ ! -f "Sources/Core/PaperAccountPortfolioProjectionV2.swift" ]] || fail "MTP-187 migrated file must not remain at Sources/Core/PaperAccountPortfolioProjectionV2.swift"
 [[ ! -f "Sources/Core/PaperPortfolioProjectionUpdate.swift" ]] || fail "MTP-187 migrated file must not remain at Sources/Core/PaperPortfolioProjectionUpdate.swift"
 [[ ! -f "Sources/Core/SimulatedExchangePortfolioProjectionParity.swift" ]] || fail "MTP-187 migrated file must not remain at Sources/Core/SimulatedExchangePortfolioProjectionParity.swift"
 require_contains "Package.swift" '"Trader/Strategies/EMA"'
 require_absent "Package.swift" '"Strategies/EMA"'
-require_contains "Package.swift" '"Strategies/OrderBookImbalance"'
+require_contains "Package.swift" '"Trader/Strategies/OrderBookImbalance"'
+require_absent "Package.swift" '"Strategies/OrderBookImbalance"'
 require_contains "Package.swift" '"Trader/StrategyBindings"'
 require_contains "Package.swift" '"Portfolio"'
 require_contains "Package.swift" '"Strategies"'
@@ -3234,6 +3236,24 @@ require_contains "docs/validation/trading-validation-matrix.md" "MTP-193 issue b
 require_contains "docs/automation/automation-readiness.md" "EMA Trader-owned strategy path migration anchor"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-193 的当前 issue execution evidence"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-193-EMA-PATH-MIGRATION-VALIDATION"
+require_contains "docs/architecture/module-boundary.md" "MTP-194 OrderBookImbalance Trader Strategy Physical Migration"
+require_contains "docs/architecture/module-boundary.md" "MTP-194-ORDERBOOKIMBALANCE-TRADER-STRATEGIES-PHYSICAL-MIGRATION"
+require_contains "docs/architecture/module-boundary.md" "MTP-194-ORDERBOOKIMBALANCE-OLD-PATH-REMOVAL-GUARD"
+require_contains "docs/architecture/module-boundary.md" "MTP-194-CORE-COMPATIBILITY-ENVELOPE-SOURCE-PATH"
+require_contains "docs/architecture/module-boundary.md" "MTP-194-BEHAVIOR-UNCHANGED-GUARD"
+require_contains "docs/architecture/module-boundary.md" "MTP-194-NO-RUNTIME-TARGET-GRAPH-GUARD"
+require_contains "docs/architecture/module-boundary.md" "MTP-194-ORDERBOOKIMBALANCE-PATH-MIGRATION-VALIDATION"
+require_contains "docs/domain/context.md" "MTP-194-ORDERBOOKIMBALANCE-TRADER-STRATEGIES-PHYSICAL-MIGRATION"
+require_contains "docs/domain/context.md" "MTP-194-ORDERBOOKIMBALANCE-OLD-PATH-REMOVAL-GUARD"
+require_contains "docs/domain/context.md" "MTP-194-CORE-COMPATIBILITY-ENVELOPE-SOURCE-PATH"
+require_contains "docs/domain/context.md" "MTP-194-BEHAVIOR-UNCHANGED-GUARD"
+require_contains "docs/domain/context.md" "MTP-194-NO-RUNTIME-TARGET-GRAPH-GUARD"
+require_contains "docs/domain/context.md" "MTP-194-ORDERBOOKIMBALANCE-PATH-MIGRATION-VALIDATION"
+require_contains "docs/validation/validation-plan.md" "MTP-194 OrderBookImbalance Trader Strategy Physical Migration Validation"
+require_contains "docs/validation/trading-validation-matrix.md" "MTP-194 issue backfill"
+require_contains "docs/automation/automation-readiness.md" "OrderBookImbalance Trader-owned strategy path migration anchor"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-194 的当前 issue execution evidence"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-194-ORDERBOOKIMBALANCE-PATH-MIGRATION-VALIDATION"
 require_file "Sources/RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift"
 require_file "Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift"
 require_file "Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift"
