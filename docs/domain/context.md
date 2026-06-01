@@ -349,6 +349,30 @@ MTP-172 的 forbidden direct command path 包括 `Trader -> ExecutionClient`、`
 
 MTP-172 的验证只证明 Trader coordination boundary、Accounts / Coordination / StrategyBindings split、strategy / account / risk / execution context coordination、account context identity-only guard、no live coordinator / OMS / broker gateway guard 和 no direct ExecutionClient / broker command path 已落仓；不证明 source move、Package.swift target graph change、Trader runtime、live coordinator、OMS、broker gateway、real account read 或 broker position sync 已实现。
 
+`MTP-191-TRADER-OWNED-STRATEGY-CANONICAL-PATH`
+
+`Trader-owned strategy canonical path` 指 MTP-191 之后具体策略的 forward-looking source landing path 是 `Sources/Trader/Strategies/<strategy>/`，不是 peer-level `Sources/Strategies/<strategy>/`。旧 `Sources/Strategies/<strategy>/`、`Sources/Strategies/EMA/` 和 `Sources/Strategies/OrderBookImbalance/` 只作为 MTP-171 / MTP-183 / MTP-187 historical evidence、compatibility envelope 和待迁移来源。
+
+`MTP-191-TRADER-CONTAINER-SPLIT`
+
+`Trader container split` 指 `Sources/Trader/` 下固定包含 `Accounts/`、`Strategies/`、`Coordination/` 和 `StrategyBindings/`：`Strategies/<strategy>/` 保存具体策略定义和 readiness evidence；`Accounts/` 保存 account context identity；`Coordination/` 保存 strategy / account / risk / execution context ordering evidence；`StrategyBindings/` 保存 generic binding protocol / coordination adapter contract。
+
+`MTP-191-STRATEGYBINDINGS-NON-LANDING-GUARD`
+
+`StrategyBindings non-landing guard` 指 `Sources/Trader/StrategyBindings/` 不得作为 EMA、OrderBookImbalance 或未来具体策略实现目录。它只能表达 strategy instance 与 Trader context / RiskEngine / Portfolio evidence 的通用连接协议或 adapter contract，不能承载 lifecycle、signals、quoter、hedger、proposal implementation 或 strategy-specific business rules。
+
+`MTP-191-INDEPENDENT-ENGINE-MODULES-GUARD`
+
+`Independent engine modules guard` 指 Portfolio、RiskEngine、ExecutionEngine 和 ExecutionClient 不并入 Trader。Trader 可以消费它们的 read-model / evidence / future-gated context，但不能拥有 financial state、risk decision ownership、execution lifecycle ownership、broker capability、OMS、signed/account endpoint、private stream runtime 或 live command surface。
+
+`MTP-191-NO-SOURCE-MOVE-PACKAGE-RUNTIME-GUARD`
+
+MTP-191 只定义 Trader-owned strategy path correction，不移动 production source，不修改 `Package.swift`，不创建 SwiftPM target，不实现 Strategy runtime、Trader runtime、live coordinator、broker gateway、ExecutionClient implementation、OMS implementation、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、Live PRO Console、trading button、live command 或 order form。
+
+`MTP-191-BOUNDARY-CORRECTION-VALIDATION`
+
+MTP-191 validation language 必须同时说明新的 canonical path、旧路径 compatibility / superseded role、StrategyBindings 非具体策略落点，以及 no source move / no Package.swift / no business code / no Graphify / no Figma。
+
 `MTP-173-ACCOUNT-PORTFOLIO-READMODEL-BOUNDARY-CONTRACT`
 
 MTP-173 固定 Account / Portfolio context read-model boundary：`Sources/Trader/Accounts/` 只表达 Trader coordination 使用的 account context、account identity 和 source identity；`Sources/Portfolio/` 独立表达 positions、net positions、cash/equity、PnL、exposure、margin、open value 和 paper projection。
@@ -2367,6 +2391,8 @@ MTP-182 不运行 Graphify，不修改 Figma，不创建 L4 Linear Project / Iss
 
 `target physical layout` 指 `MTPRO Target Module Physical Layout / Source Migration v1` 后续 source migration 允许落入的固定目录结构。它复用 MTP-163 的 target source layout，不表示 MTP-183 已移动任何 source file。
 
+MTP-191 后续将 concrete strategy landing path 修正为 `Sources/Trader/Strategies/<strategy>/`。MTP-183 中的 `Sources/Strategies/<strategy>/` 保留为 historical migration contract evidence，不再作为 MTP-191 之后的 canonical path。
+
 `MTP-183-CURRENT-SWIFTPM-SNAPSHOT`
 
 `current SwiftPM snapshot` 指当前 `Package.swift` 仍保留 `Core / Adapters / Persistence / Runtime / App / Dashboard` coarse targets。该 snapshot 是迁移输入，不是最终架构名。
@@ -2454,6 +2480,8 @@ MTP-186 schema non-exposure guard 固定 Database projection code 只能提供 l
 `MTP-187-STRATEGIES-TRADER-PORTFOLIO-PHYSICAL-MIGRATION`
 
 `Strategies / Trader / Portfolio physical migration` 指把 EMA strategy lifecycle、strategy signal、paper proposal 和 order-book research strategy 从旧 `Sources/Core/` 迁入 `Sources/Strategies/EMA/` 与 `Sources/Strategies/OrderBookImbalance/`，把 proposal-to-risk binding 迁入 `Sources/Trader/StrategyBindings/`，并把 paper account / portfolio projection、portfolio projection update 和 simulated exchange portfolio projection parity 迁入 `Sources/Portfolio/`。MTP-187 只做 physical source migration 和兼容 target 配置，不新增真实 Strategies / Trader / Portfolio SwiftPM target。
+
+MTP-191 后续把 MTP-187 的 strategy physical locations 标记为 compatibility / superseded path；MTP-193 / MTP-194 才允许把 concrete strategy files 移到 `Sources/Trader/Strategies/EMA/` 和 `Sources/Trader/Strategies/OrderBookImbalance/`。
 
 `MTP-187-STRATEGIES-COMPATIBILITY-ENVELOPE`
 
