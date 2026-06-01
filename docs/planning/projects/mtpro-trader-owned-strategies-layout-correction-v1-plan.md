@@ -67,7 +67,7 @@ Sources/Trader/
 - 修正 architecture boundary language。
 - 将 `Sources/Strategies/<strategy>` canonical path 改为 `Sources/Trader/Strategies/<strategy>`。
 - 保留 `Portfolio`、`RiskEngine`、`ExecutionEngine`、`ExecutionClient` 独立模块边界。
-- 明确 `Trader = Accounts + Strategies + Coordination`。
+- 明确 `Trader = Accounts + Strategies + StrategyBindings + Coordination`。
 - 明确 `Trader/Strategies/<strategy>` 存放每个策略的 lifecycle、signals、proposals、quoter / hedger boundary。
 - 明确 `Trader/Coordination` 串联 account、strategy、portfolio、risk、execution context，但不执行真实交易。
 - 将 `Trader/StrategyBindings` 收口为通用 binding protocol / adapter contract，不作为具体策略代码落点。

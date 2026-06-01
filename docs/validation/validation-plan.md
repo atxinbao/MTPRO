@@ -5706,3 +5706,35 @@ MTP-191 必须建立的主要 anchors：
 - 不把 Portfolio、RiskEngine、ExecutionEngine 或 ExecutionClient 并入 Trader。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-192 Root Docs Strategy Path Anchor Correction Validation
+
+MTP-192 必须运行：
+
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-192 的验收要求：
+
+- `BLUEPRINT.md`、`docs/planning/projects/mtpro-trader-owned-strategies-layout-correction-v1-plan.md`、`docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/latest-verification-summary.md` 和 `docs/automation/automation-readiness.md` 必须把 forward-looking concrete strategy canonical path 写成 `Sources/Trader/Strategies/<strategy>/`。
+- Root docs 中保留的 `Sources/Strategies/<strategy>`、`Sources/Strategies/EMA/` 和 `Sources/Strategies/OrderBookImbalance/` 必须明确为 historical / compatibility / superseded / migration-source path，不得表达 MTP-191 之后的 canonical future layout。
+- Root docs 必须使用 `Trader = Accounts + Strategies + StrategyBindings + Coordination`。
+- `StrategyBindings` 必须继续被描述为 generic binding protocol / coordination adapter，不得作为 concrete strategy implementation landing path。
+- PR 前必须确认本 issue 没有移动 production source、没有修改 `Package.swift`、没有拆 SwiftPM target graph、没有写业务代码、没有提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+MTP-192 必须建立的主要 anchors：
+
+- `MTP-192-ROOT-DOCS-STRATEGY-PATH-ANCHOR-CORRECTION`
+- `MTP-192-HISTORICAL-STRATEGIES-COMPATIBILITY-NOTE`
+- `MTP-192-TRADER-CONTAINER-STRATEGYBINDINGS-ROOT-DOCS`
+- `MTP-192-NO-SOURCE-MOVE-PACKAGE-RUNTIME-GUARD`
+- `MTP-192-ROOT-DOCS-ANCHOR-VALIDATION`
+
+## MTP-192 禁止
+
+- 不移动 production source，不新增或修改 Swift production code，不修改 `Package.swift` target graph，不创建 SwiftPM target。
+- 不实现 Strategy runtime、Trader runtime、live coordinator、broker gateway、ExecutionClient implementation、OMS implementation、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、Live PRO Console、trading button、live command 或 order form。
+- 不把历史 `Sources/Strategies/<strategy>` 改写成当前 canonical path；只能加 forward-looking supersession / compatibility note。
+- 不把 `Sources/Trader/StrategyBindings/` 写成 EMA、OrderBookImbalance 或未来具体策略的源码落点。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

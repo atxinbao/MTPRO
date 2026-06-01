@@ -89,6 +89,8 @@ MTP-162 的验证只证明目标模块术语、旧术语映射、future-gated mo
 
 MTP-163 把 MTP-162 的术语固定成唯一 source layout contract：后续模块迁移只能落到 `Sources/DomainModel/`、`Sources/DataClient/<venue>/`、`Sources/DataEngine/`、`Sources/MessageBus/`、`Sources/Cache/`、`Sources/Database/`、`Sources/Strategies/<strategy>/`、`Sources/Trader/`、`Sources/Portfolio/`、`Sources/RiskEngine/`、`Sources/ExecutionEngine/`、`Sources/ExecutionClient/`、`Sources/Workbench/` 和 `Sources/Dashboard/`。该 layout 是后续 issue 的目标地形，不表示本 issue 已移动文件、修改 `Package.swift` 或创建 SwiftPM target。
 
+MTP-191 之后，MTP-163 中的 `Sources/Strategies/<strategy>/` 只作为 historical / compatibility / superseded layout anchor 保留；forward-looking concrete strategy canonical path 是 `Sources/Trader/Strategies/<strategy>/`。
+
 `MTP-163-DEPENDENCY-DIRECTION-CONTRACT`
 
 MTP-163 固定依赖方向：`DataClient` 只依赖 `DomainModel`；`DataEngine` 通过 `DataClient` / `MessageBus` / `Cache` 处理 ingest 和 replay；`Strategies` 只能消费 domain / bus / cache / Portfolio / RiskEngine read-model inputs；`Trader` 可以协调 Strategies / Portfolio / RiskEngine / ExecutionEngine，但不得直连 `ExecutionClient`；`Workbench` 只能消费 ReadModel / ViewModel export。
@@ -99,7 +101,7 @@ MTP-163 的 forbidden path taxonomy 包括：Strategies -> ExecutionClient、Tra
 
 `MTP-163-DATACLIENT-VENUE-STRATEGIES-STRATEGY-DIRECTORY-RULE`
 
-`DataClient/<venue>/` 是 exchange / venue scoped rule，一个交易所一个目录；`Strategies/<strategy>/` 是 strategy scoped rule，一个策略一个目录。当前示例只能表达 `DataClient/Binance/PublicMarketData`、`DataClient/Binance/FuturePrivateStreamGate` 和 `Strategies/EMA/` 目录语义，不授权 private stream runtime、signed/account endpoint、strategy runtime 或 trader process manager。
+`DataClient/<venue>/` 是 exchange / venue scoped rule，一个交易所一个目录；MTP-163 的 `Strategies/<strategy>` 是历史 strategy scoped rule。MTP-191 之后，后续 strategy scoped rule 是 `Trader/Strategies/<strategy>`，一个策略一个目录；当前示例只能表达 `DataClient/Binance/PublicMarketData`、`DataClient/Binance/FuturePrivateStreamGate` 和 historical / compatibility `Strategies/EMA/` 目录语义，不授权 private stream runtime、signed/account endpoint、strategy runtime 或 trader process manager。
 
 `MTP-163-TRADER-ACCOUNT-PORTFOLIO-SPLIT`
 
@@ -295,11 +297,11 @@ MTP-170 的验证只证明 adapter capability guard、forbidden endpoint/runtime
 
 `MTP-171-STRATEGIES-LIFECYCLE-PROPOSAL-BOUNDARY-CONTRACT`
 
-MTP-171 固定 `Sources/Strategies/<strategy>/` 为 strategy-scoped lifecycle、quoter / hedger、signals、paper/live-neutral proposals 和 read-model input boundary。Strategies 可以消费 DomainModel、MessageBus、Cache、Portfolio 和 RiskEngine read-model inputs，也可以发布 signal / proposal / evidence facts；Strategies 不等于 Trader coordination runtime、ExecutionEngine command path、ExecutionClient request layer、broker gateway 或 OMS。
+MTP-171 固定的 `Sources/Strategies/<strategy>/` 是当时的 strategy-scoped lifecycle、quoter / hedger、signals、paper/live-neutral proposals 和 read-model input boundary evidence。MTP-191 之后该路径只作为 historical / compatibility / superseded evidence；forward-looking concrete strategy canonical path 是 `Sources/Trader/Strategies/<strategy>/`。Trader-owned Strategies 可以消费 DomainModel、MessageBus、Cache、Portfolio 和 RiskEngine read-model inputs，也可以发布 signal / proposal / evidence facts；Strategies 不等于 Trader coordination runtime、ExecutionEngine command path、ExecutionClient request layer、broker gateway 或 OMS。
 
 `MTP-171-EMA-STRATEGY-DIRECTORY-EXAMPLE`
 
-`Sources/Strategies/EMA/` 是首个 strategy directory 示例，只用于固定 EMA strategy target structure。`Lifecycle/`、`Quoter/`、`Hedger/`、`Signals/` 和 `Proposals/` 是 boundary labels，不表示 current strategy runtime、scheduler、live quoter、live hedger、broker adapter、ExecutionClient 或 OMS 已实现。
+`Sources/Strategies/EMA/` 是 MTP-171 / MTP-187 historical strategy directory 示例和 MTP-193 待迁移来源。MTP-191 之后，EMA 的 forward-looking canonical 示例是 `Sources/Trader/Strategies/EMA/`；`Lifecycle/`、`Quoter/`、`Hedger/`、`Signals/` 和 `Proposals/` 是 boundary labels，不表示 current strategy runtime、scheduler、live quoter、live hedger、broker adapter、ExecutionClient 或 OMS 已实现。
 
 `MTP-171-LIFECYCLE-QUOTER-HEDGER-SIGNALS-PROPOSALS-SPLIT`
 
@@ -372,6 +374,26 @@ MTP-191 只定义 Trader-owned strategy path correction，不移动 production s
 `MTP-191-BOUNDARY-CORRECTION-VALIDATION`
 
 MTP-191 validation language 必须同时说明新的 canonical path、旧路径 compatibility / superseded role、StrategyBindings 非具体策略落点，以及 no source move / no Package.swift / no business code / no Graphify / no Figma。
+
+`MTP-192-ROOT-DOCS-STRATEGY-PATH-ANCHOR-CORRECTION`
+
+Root docs 的 forward-looking strategy path anchor 必须使用 `Sources/Trader/Strategies/<strategy>/`。旧 `Sources/Strategies/<strategy>/`、`Sources/Strategies/EMA/` 和 `Sources/Strategies/OrderBookImbalance/` 只能作为 historical evidence、compatibility envelope、superseded path 或 MTP-193 / MTP-194 migration source。
+
+`MTP-192-HISTORICAL-STRATEGIES-COMPATIBILITY-NOTE`
+
+历史 evidence 不静默改写；凡保留 `Sources/Strategies/<strategy>/` 的 root docs 段落，必须说明它不是 MTP-191 之后的 canonical future layout。
+
+`MTP-192-TRADER-CONTAINER-STRATEGYBINDINGS-ROOT-DOCS`
+
+Trader shared language 使用 `Trader = Accounts + Strategies + StrategyBindings + Coordination`。`Trader/StrategyBindings` 是 generic binding protocol / coordination adapter，不是具体策略源码落点。
+
+`MTP-192-NO-SOURCE-MOVE-PACKAGE-RUNTIME-GUARD`
+
+MTP-192 不移动 production source，不修改 `Package.swift`，不拆 SwiftPM target graph，不实现 Strategy runtime、Trader runtime、ExecutionClient、OMS、broker command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command 或 order form。
+
+`MTP-192-ROOT-DOCS-ANCHOR-VALIDATION`
+
+MTP-192 validation 证明 root docs 不再把 `Sources/Strategies/<strategy>` 写成 forward-looking canonical strategy layout；允许保留的旧路径必须是 historical / compatibility / superseded / migration-source 语义。
 
 `MTP-173-ACCOUNT-PORTFOLIO-READMODEL-BOUNDARY-CONTRACT`
 
