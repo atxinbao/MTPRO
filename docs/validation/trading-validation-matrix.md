@@ -707,6 +707,12 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | --- | --- | --- |
 | `MTP-191` | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 新增 Trader-owned strategy module boundary correction：`Sources/Trader/Strategies/<strategy>/` 是 MTP-191 之后 concrete strategy canonical path；`Sources/Strategies/<strategy>/`、`Sources/Strategies/EMA/` 和 `Sources/Strategies/OrderBookImbalance/` 只作为 MTP-171 / MTP-183 / MTP-187 historical evidence、compatibility envelope 和待迁移来源；`Sources/Trader/StrategyBindings/` 只承载 generic binding protocol / coordination adapter contract，不作为具体 strategy implementation landing path。MTP-191 只更新 docs / contracts / validation language，不移动 production source，不修改 `Package.swift`，不创建 SwiftPM target，不实现 Strategy runtime、Trader runtime、ExecutionClient、OMS、broker command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command 或 order form。 |
 
+## MTP-192 issue backfill
+
+| Issue | Matrix ID | 回填说明 |
+| --- | --- | --- |
+| `MTP-192` | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 新增 root docs strategy path anchor correction：`BLUEPRINT.md`、planning record、`docs/architecture/module-boundary.md`、`docs/domain/context.md`、validation plan、latest summary 和 automation readiness 的 forward-looking concrete strategy canonical path 统一为 `Sources/Trader/Strategies/<strategy>/`；旧 `Sources/Strategies/<strategy>`、`Sources/Strategies/EMA/` 和 `Sources/Strategies/OrderBookImbalance/` 只能作为 historical / compatibility / superseded / migration-source path。MTP-192 不移动 production source，不修改 `Package.swift`，不拆 SwiftPM target graph，不实现 Strategy runtime、Trader runtime、ExecutionClient、OMS、broker command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command 或 order form。 |
+
 ## MTP-190 Target Module Source Migration 阶段收口
 
 日期：2026-06-01
