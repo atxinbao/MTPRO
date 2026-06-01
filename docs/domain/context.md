@@ -2395,6 +2395,22 @@ MTP-183 validation anchors 只证明 migration contract、target layout、old-to
 
 MTP-183 不移动 `Sources` 文件，不修改 `Package.swift` target graph，不写业务代码，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、signed endpoint、account endpoint / listenKey、private WebSocket runtime、broker adapter、real order lifecycle、Live PRO Console、trading button、live command 或 order form。
 
+`MTP-184-DOMAINMODEL-MESSAGEBUS-PHYSICAL-MIGRATION`
+
+`DomainModel / MessageBus physical migration` 指把 MTP-183 已映射的 pure domain value objects、market data models、Core baseline、domain events、commands / queries、append-only event log 和 paper runtime bus routing 文件从 `Sources/Core/` 迁入 `Sources/DomainModel/` 与 `Sources/MessageBus/`。MTP-184 只移动这些低层 spine 文件，不迁移后续 engine、adapter、UI 或 live boundary 文件。
+
+`MTP-184-CORE-TARGET-COMPATIBILITY-ENVELOPE`
+
+`Core target compatibility envelope` 指迁移期间仍由 `Core` target 编译 `Sources/Core`、`Sources/DomainModel` 和 `Sources/MessageBus`，让下游 target 继续使用既有 `import Core`。它不是新的 target graph，不代表 `DomainModel` 或 `MessageBus` 已成为独立 SwiftPM target。
+
+`MTP-184-NO-BEHAVIOR-CHANGE-IMPORT-BOUNDARY`
+
+`no behavior change import boundary` 指 MTP-184 不改 public type、event envelope、MessageBus replay、paper runtime bus routing 或调用语义；验证重点是 buildability、CoreTests、full checks 和 no unauthorized runtime capability。
+
+`MTP-184-FORBIDDEN-HIGHER-MODULE-MIGRATION`
+
+MTP-184 不迁移 DataClient、DataEngine、Cache、Database、Strategies、Trader、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench 或 Dashboard，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker / live / order capability、signed endpoint、account endpoint / listenKey、private WebSocket runtime、Live PRO Console、trading button、live command 或 order form。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

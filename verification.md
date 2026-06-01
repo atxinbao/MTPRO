@@ -13425,3 +13425,29 @@ Root Docs Refresh Gate 更新：
 - `git diff --check`：pass，无输出。
 - `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
 - `bash checks/run.sh`：pass，通过 `git diff --check`、automation readiness、Dashboard build、Dashboard smoke 和 303 个 XCTest；Dashboard smoke 输出包含 `timelineItems=82`、`scenarioReplayEvidence=1`、`scenarioQualityGates=6`、`simulatedParityEvidence=1`、`accountPositionBalanceEvidence=3`、`privateStreamSimulationGateEvidence=4`、`liveMonitoringReadOnlyConsoleV2Surface=4`、`strategyTraderReadinessSurface=6` 和 `liveReadOnlyWorkbenchBoundary=5`；最终输出 `MTPRO checks passed.`。
+
+## 2026-06-01 — MTP-184 DomainModel / MessageBus physical migration
+
+执行者：Codex
+
+范围：
+
+- 将 `Sources/Core/MarketPrimitives.swift`、`Sources/Core/MarketDataModels.swift` 和 `Sources/Core/CoreBaseline.swift` 迁入 `Sources/DomainModel/`。
+- 将 `Sources/Core/DomainEvents.swift`、`Sources/Core/CommandsAndQueries.swift`、`Sources/Core/EventLog.swift` 和 `Sources/Core/PaperRuntimeBusRouting.swift` 迁入 `Sources/MessageBus/`。
+- 调整 `Package.swift`，让现有 `Core` target 继续编译 `Core`、`DomainModel` 和 `MessageBus` source roots，并显式排除其他 target 目录。
+- 更新 architecture/domain/validation/automation/latest summary/readiness anchors，记录 MTP-184 moved files、compatibility envelope、no behavior change boundary 和 forbidden higher-module migration。
+
+边界：
+
+- 未新增 SwiftPM target、product 或 dependency，未做 target graph split。
+- 未迁移 DataClient、DataEngine、Cache、Database、Strategies、Trader、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench 或 Dashboard。
+- 未实现 runtime MessageBus、Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker / live / order capability、signed endpoint、account endpoint / listenKey、private WebSocket runtime、Live PRO Console、trading button、live command 或 order form。
+- 未启动 Symphony / symphony-issue，未运行 Graphify，未修改 Figma。
+- `.codex/*`、`.build/*` 和 `graphify-out/*` 不进入 PR。
+
+验证：
+
+- `swift test --filter CoreTests`：pass，216 tests，0 failures。
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，通过 `git diff --check`、automation readiness、Dashboard build、Dashboard smoke 和 303 个 XCTest；Dashboard smoke 输出包含 `timelineItems=82`、`scenarioReplayEvidence=1`、`scenarioQualityGates=6`、`simulatedParityEvidence=1`、`accountPositionBalanceEvidence=3`、`privateStreamSimulationGateEvidence=4`、`liveMonitoringReadOnlyConsoleV2Surface=4`、`strategyTraderReadinessSurface=6` 和 `liveReadOnlyWorkbenchBoundary=5`；最终输出 `MTPRO checks passed.`。

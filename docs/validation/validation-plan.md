@@ -1756,8 +1756,8 @@ MTP-96 必须建立的主要 anchors：
 MTP-97 的 required validation：
 
 - `docs/contracts/paper-runtime-kernel-contract.md` 必须包含 `MTP-97-COMMANDBUS-EVENTBUS-MESSAGEBUS-ROUTING`、`MTP-97-DETERMINISTIC-PAPER-ROUTE-ORDER`、`MTP-97-REPLAYABLE-ROUTE-EVIDENCE`、`MTP-97-NO-LIVE-SIGNED-BROKER-ROUTING` 和 `MTP-97-PAPER-RUNTIME-BUS-VALIDATION` anchors。
-- `Sources/Core/PaperRuntimeBusRouting.swift` 必须定义 `PaperRuntimeCommandBus`、`PaperRuntimeEventBus`、`PaperRuntimeMessageBusRouting`、`PaperRuntimeRouteEvidence`、`PaperRuntimeBusRoutingContract` 和 deterministic fixture，并保持 routing 只覆盖 paper session command、paper risk decision、paper lifecycle event 和 simulated fill event。
-- `Sources/Core/EventLog.swift` / `MessageBus.publish` 可接收 deterministic envelope `id`，用于 replay evidence 固定 source / correlation / causation；默认行为仍保持 append-only event log 分配 sequence。
+- `Sources/MessageBus/PaperRuntimeBusRouting.swift` 必须定义 `PaperRuntimeCommandBus`、`PaperRuntimeEventBus`、`PaperRuntimeMessageBusRouting`、`PaperRuntimeRouteEvidence`、`PaperRuntimeBusRoutingContract` 和 deterministic fixture，并保持 routing 只覆盖 paper session command、paper risk decision、paper lifecycle event 和 simulated fill event。
+- `Sources/MessageBus/EventLog.swift` / `MessageBus.publish` 可接收 deterministic envelope `id`，用于 replay evidence 固定 source / correlation / causation；默认行为仍保持 append-only event log 分配 sequence。
 - `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-97 focused tests，验证 routing 顺序 deterministic、Event Log / Replay 后 route evidence 可复现、以及 live command bus / signed request / broker / invalid stream bypass 均被拒绝。
 - `docs/domain/context.md` 必须包含 `MTP-97-PAPER-RUNTIME-BUS-ROUTING-TERMS`。
 - `docs/validation/trading-validation-matrix.md` 必须包含 MTP-97 issue backfill。
@@ -5390,4 +5390,42 @@ MTP-183 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、signed endpoint、account endpoint / listenKey、private WebSocket runtime、broker adapter、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、real PnL、Live PRO Console、trading button、live command 或 order form。
 - 不把 `ExecutionClient`、`OMSFutureGate`、`FuturePrivateStreamGate`、`FutureLiveProConsole` 或 compatibility shell 写成当前 runtime implementation。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-184 DomainModel / MessageBus Physical Migration Validation
+
+日期：2026-06-01
+
+执行者：Codex
+
+MTP-184 的 required validation：
+
+- `swift test --filter CoreTests`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-184 的验收要求：
+
+- `Sources/DomainModel/MarketPrimitives.swift`、`Sources/DomainModel/MarketDataModels.swift` 和 `Sources/DomainModel/CoreBaseline.swift` 必须存在。
+- `Sources/MessageBus/DomainEvents.swift`、`Sources/MessageBus/CommandsAndQueries.swift`、`Sources/MessageBus/EventLog.swift` 和 `Sources/MessageBus/PaperRuntimeBusRouting.swift` 必须存在。
+- `Package.swift` 必须保留现有 `Core` target / product / dependency graph，只把 `Core` target source roots 扩展为 `Core`、`DomainModel` 和 `MessageBus`，并显式排除其他 target 目录。
+- `docs/architecture/module-boundary.md` 和 `docs/domain/context.md` 必须记录 MTP-184 physical migration、Core target compatibility envelope、no behavior change import boundary 和 higher-module migration forbidden boundary。
+- `docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-184 mechanical anchors。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-184 必须建立的主要 anchors：
+
+- `MTP-184-DOMAINMODEL-MESSAGEBUS-PHYSICAL-MIGRATION`
+- `MTP-184-CORE-TARGET-COMPATIBILITY-ENVELOPE`
+- `MTP-184-NO-BEHAVIOR-CHANGE-IMPORT-BOUNDARY`
+- `MTP-184-REMAINING-COMPATIBILITY-SHELL`
+- `MTP-184-FORBIDDEN-HIGHER-MODULE-MIGRATION`
+
+## MTP-184 禁止
+
+- 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- 不迁移 DataClient、DataEngine、Cache、Database、Strategies、Trader、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench 或 Dashboard。
+- 不实现 runtime MessageBus、Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker / live / order capability、signed endpoint、account endpoint / listenKey、private WebSocket runtime、Live PRO Console、trading button、live command 或 order form。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
