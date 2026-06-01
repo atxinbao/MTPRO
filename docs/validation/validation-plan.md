@@ -5473,3 +5473,46 @@ MTP-185 必须建立的主要 anchors：
 - 不迁移 Cache、Database、Strategies、Trader、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench 或 Dashboard，除非是保持现有 target buildability 的最小 import compatibility。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-186 Cache / Database Physical Migration Validation
+
+日期：2026-06-01
+
+执行者：Codex
+
+MTP-186 的 required validation：
+
+- `swift test --filter PersistenceTests`
+- `swift test --filter RuntimeTests/testMarketDataReplayProjectionConsistency`
+- `swift test --filter RuntimeTests/testWorkflowCanPersistRuntimeProjectionThroughSQLiteAdapterFromReplay`
+- `swift test --filter CoreTests`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-186 的验收要求：
+
+- `Sources/Cache/MarketData/` 必须包含 runtime-derived market data cache 和 order book read model；旧 `Sources/Core/MarketDataCache.swift` 与 `Sources/Core/OrderBookReadModel.swift` 不得保留。
+- `Sources/Database/Projections/SQLite/`、`Sources/Database/Projections/DuckDB/` 和 `Sources/Database/ReplayProjection/` 必须分别包含 SQLite projection、DuckDB projection 和 replay projection consistency evidence。
+- `Sources/Database/Projections/SQLite/CSQLite/` 必须承载 CSQLite system library module map 和 public shim header；旧 `Sources/CSQLite/` 不得保留。
+- `Package.swift` 必须保留现有 `Core`、`Persistence`、`CSQLite` 和 `Runtime` product / target 名称作为 compatibility envelope，不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- `docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-186 mechanical anchors。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-186 必须建立的主要 anchors：
+
+- `MTP-186-CACHE-DATABASE-PHYSICAL-MIGRATION`
+- `MTP-186-CACHE-COMPATIBILITY-ENVELOPE`
+- `MTP-186-DATABASE-COMPATIBILITY-ENVELOPE`
+- `MTP-186-CSQLITE-SYSTEM-LIBRARY-BOUNDARY`
+- `MTP-186-SCHEMA-NON-EXPOSURE-GUARD`
+- `MTP-186-REMAINING-COMPATIBILITY-SHELL`
+
+## MTP-186 禁止
+
+- 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- 不实现 schema exposure、Database runtime migration、real account persistence、broker payload persistence、private stream persistence、Runtime object exposure、Adapter request exposure、real broker sync、real account / position / balance read、signed endpoint、account endpoint、listenKey、private WebSocket runtime、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command 或 order form。
+- 不把 Cache 写成 external cache service、Redis clone、real account cache 或 broker state cache；不把 Database 直连 UI / Trader / Strategy / RiskEngine / ExecutionEngine。
+- 不迁移 Strategies、Trader、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench 或 Dashboard，除非是保持现有 target buildability 的最小 import compatibility。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

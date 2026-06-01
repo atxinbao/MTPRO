@@ -2,6 +2,13 @@ import Foundation
 import Core
 import CSQLite
 
+/// MTP-186 将旧 `Sources/Persistence/` 迁入 `Sources/Database/Projections/SQLite/`。
+///
+/// 当前 `Persistence` SwiftPM target 名称只是 migration compatibility envelope；长期边界是
+/// `Database`。本文件保留 append-only event log、replay boundary、SQLite runtime projection
+/// 和部分 projection store 的现有 public API，以避免行为变化。Database 只消费本地 facts 并输出
+/// stable snapshot / projection read model，禁止把 SQLite table、column、raw SQL、runtime object、
+/// account endpoint payload、broker payload 或 live command 暴露给 Workbench / Dashboard。
 public struct PersistenceBoundary: Equatable, Sendable {
     public let factSource: String
     public let sqliteResponsibility: String

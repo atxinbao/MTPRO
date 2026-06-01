@@ -2431,6 +2431,26 @@ MTP-185 public read-only guard 固定 Binance DataClient 只能读取 public mar
 
 MTP-185 DataEngine boundary guard 固定 scenario replay / data quality / ingest 只能在 deterministic local validation 内消费 public read-only output、fixture identity、MessageBus / event log / projection compatibility evidence 和 read-model input。它不实现完整 streaming DataEngine runtime，不绕过 MessageBus / Cache / Database / ReadModel / ViewModel，不触发 network refresh、listenKey keepalive、broker sync、private stream reconnect、live command 或 executable order path。
 
+`MTP-186-CACHE-DATABASE-PHYSICAL-MIGRATION`
+
+`Cache / Database physical migration` 指把 runtime-derived market data cache 和 order book read model 从旧 `Sources/Core/` 迁入 `Sources/Cache/MarketData/`，把 SQLite / DuckDB projection adapters 和 CSQLite shim 从旧 `Sources/Persistence/`、`Sources/CSQLite/` 迁入 `Sources/Database/Projections/SQLite/`、`Sources/Database/Projections/DuckDB/` 与 `Sources/Database/Projections/SQLite/CSQLite/`，并把 replay projection consistency evidence 迁入 `Sources/Database/ReplayProjection/`。MTP-186 只做 physical source migration 和兼容 target 配置，不新增真实 Cache / Database SwiftPM target。
+
+`MTP-186-CACHE-COMPATIBILITY-ENVELOPE`
+
+MTP-186 的 `Cache compatibility envelope` 指现有 `Core` target 继续编译 `Sources/Cache/MarketData/`，让既有 tests 和 downstream target 仍使用 `import Core`。该名称是迁移期兼容壳，不是最终架构名；后续 target split 必须由独立 Linear issue 授权。
+
+`MTP-186-DATABASE-COMPATIBILITY-ENVELOPE`
+
+MTP-186 的 `Database compatibility envelope` 指现有 `Persistence` target 继续编译 `Sources/Database/Projections/SQLite/` 和 `Sources/Database/Projections/DuckDB/`，`Runtime` target 继续编译 `Sources/Database/ReplayProjection/`。这只保持 buildability，不授权 Database 直连 UI、Trader、Strategy、RiskEngine、ExecutionEngine、signed/account endpoint、private stream、broker path 或 live command path。
+
+`MTP-186-CSQLITE-SYSTEM-LIBRARY-BOUNDARY`
+
+MTP-186 的 `CSQLite system library boundary` 指 CSQLite shim 归属 `Sources/Database/Projections/SQLite/CSQLite/`，仍只服务 SQLite projection adapter 编译。该边界不新增 schema migration runtime，不改变 SQLite projection behavior，不向 UI 或 higher modules 暴露 C shim。
+
+`MTP-186-SCHEMA-NON-EXPOSURE-GUARD`
+
+MTP-186 schema non-exposure guard 固定 Database projection code 只能提供 local deterministic facts / snapshots / projection evidence。它不暴露 SQLite / DuckDB schema、Runtime object、Adapter request、broker state、account endpoint payload、credential、secret、API key 或 listenKey，不读取真实账户，不同步 broker position，不触发 signed/account/listenKey/private stream、broker sync、live command 或 executable order path。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

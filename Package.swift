@@ -23,14 +23,14 @@ let package = Package(
             path: "Sources",
             exclude: [
                 "App",
-                "CSQLite",
                 "Dashboard",
                 "DataClient",
                 "DataEngine/Ingest",
-                "Persistence",
+                "Database",
                 "Runtime"
             ],
             sources: [
+                "Cache/MarketData",
                 "Core",
                 "DomainModel",
                 "MessageBus",
@@ -48,6 +48,7 @@ let package = Package(
         ),
         .systemLibrary(
             name: "CSQLite",
+            path: "Sources/Database/Projections/SQLite/CSQLite",
             pkgConfig: "sqlite3",
             providers: [
                 .apt(["libsqlite3-dev"])
@@ -64,7 +65,14 @@ let package = Package(
                     condition: .when(platforms: [.macOS])
                 )
             ],
-            path: "Sources/Persistence"
+            path: "Sources/Database",
+            exclude: [
+                "ReplayProjection"
+            ],
+            sources: [
+                "Projections/SQLite/Persistence.swift",
+                "Projections/DuckDB/DuckDBAnalyticalProjectionAdapter.swift"
+            ]
         ),
         .target(
             name: "Runtime",
@@ -72,17 +80,18 @@ let package = Package(
             path: "Sources",
             exclude: [
                 "App",
+                "Cache",
                 "Core",
-                "CSQLite",
                 "Dashboard",
                 "DataClient",
                 "DataEngine/ScenarioReplay",
                 "DataEngine/DataQuality",
+                "Database/Projections",
                 "DomainModel",
-                "MessageBus",
-                "Persistence"
+                "MessageBus"
             ],
             sources: [
+                "Database/ReplayProjection",
                 "Runtime",
                 "DataEngine/Ingest"
             ]

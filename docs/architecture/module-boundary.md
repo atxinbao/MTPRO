@@ -929,7 +929,33 @@ MTP-185 保留现有 SwiftPM product / target 名称作为兼容外壳：`Adapte
 
 `MTP-185-REMAINING-COMPATIBILITY-SHELL`
 
-MTP-185 后旧 `Sources/Adapters/Adapters.swift`、`Sources/Core/Scenario*.swift`、`Sources/Core/DataCatalogScenarioReplayBoundary.swift` 和 `Sources/Runtime/Runtime.swift` 不再保留文件。剩余 compatibility shell 是旧 SwiftPM target 名称和未迁出的 `Sources/Runtime/MarketDataReplayProjectionConsistency.swift`；该 projection consistency 文件包含 Database / projection evidence，计划由后续 Cache / Database migration issue 继续拆分。
+MTP-185 后旧 `Sources/Adapters/Adapters.swift`、`Sources/Core/Scenario*.swift`、`Sources/Core/DataCatalogScenarioReplayBoundary.swift` 和 `Sources/Runtime/Runtime.swift` 不再保留文件。MTP-185 当时剩余 compatibility shell 是旧 SwiftPM target 名称和未迁出的 replay projection consistency evidence；该 evidence 已由 MTP-186 迁入 `Sources/Database/ReplayProjection/`。
+
+## MTP-186 Cache / Database Physical Migration
+
+`MTP-186-CACHE-DATABASE-PHYSICAL-MIGRATION`
+
+MTP-186 执行 Cache / Database 的 directory-first source migration：runtime-derived market data cache 和 order book read model 已从旧 `Sources/Core/` 迁入 `Sources/Cache/MarketData/`；SQLite / DuckDB projection adapters 和 CSQLite system library boundary 已从旧 `Sources/Persistence/`、`Sources/CSQLite/` 迁入 `Sources/Database/Projections/SQLite/`、`Sources/Database/Projections/DuckDB/` 和 `Sources/Database/Projections/SQLite/CSQLite/`；market data replay projection consistency evidence 已从旧 `Sources/Runtime/` 迁入 `Sources/Database/ReplayProjection/`。
+
+`MTP-186-CACHE-COMPATIBILITY-ENVELOPE`
+
+MTP-186 保留现有 `Core` SwiftPM product / target 名称作为 Cache 迁移期兼容外壳：`Core` target 继续编译 `Sources/Cache/MarketData/`，让既有 tests 和 downstream target 仍通过 `import Core` 使用 runtime-derived cache / read-model 类型。该兼容壳只保持 buildability，不等同于最终 Cache target graph split。
+
+`MTP-186-DATABASE-COMPATIBILITY-ENVELOPE`
+
+MTP-186 保留现有 `Persistence` 和 `Runtime` SwiftPM product / target 名称作为 Database 迁移期兼容外壳：`Persistence` target 改为从 `Sources/Database/Projections/SQLite/` 与 `Sources/Database/Projections/DuckDB/` 编译 SQLite / DuckDB projection adapters；`Runtime` target 继续编译 `Sources/Database/ReplayProjection/`，只保持 replay projection consistency buildability。该兼容壳不新增 Database target / product，不做 target graph split。
+
+`MTP-186-CSQLITE-SYSTEM-LIBRARY-BOUNDARY`
+
+MTP-186 将 `CSQLite` system library path 固定到 `Sources/Database/Projections/SQLite/CSQLite/`，把 SQLite C shim 归入 Database / SQLite projection ownership。该移动只改变 physical source placement，不改变 SQLite API usage、schema ownership、migration runtime 或 persistence behavior。
+
+`MTP-186-SCHEMA-NON-EXPOSURE-GUARD`
+
+迁入 `Database` 的 SQLite / DuckDB / replay projection code 仍只能提供 local deterministic facts、snapshot 和 projection evidence。它不向 Workbench / Report / Events 暴露 SQLite / DuckDB schema，不暴露 Runtime object、Adapter request、account payload、broker payload 或 broker state，不读取真实 account / position / balance，不触发 signed endpoint、listenKey、private stream、broker sync、live command 或 executable order path。
+
+`MTP-186-REMAINING-COMPATIBILITY-SHELL`
+
+MTP-186 后旧 `Sources/Core/MarketDataCache.swift`、`Sources/Core/OrderBookReadModel.swift`、`Sources/Persistence/`、`Sources/CSQLite/` 和 `Sources/Runtime/MarketDataReplayProjectionConsistency.swift` 不再保留。剩余 compatibility shell 是旧 SwiftPM target 名称和未迁出的 higher-module source roots；后续 Strategies / Trader / Portfolio / RiskEngine / ExecutionEngine / ExecutionClient / Workbench / Dashboard migration 必须由独立 Linear issue 授权。
 
 ## 架构图模块到目标目录
 

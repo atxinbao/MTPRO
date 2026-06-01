@@ -4,6 +4,12 @@ import Core
 import DuckDB
 #endif
 
+/// MTP-186 将 DuckDB 分析投影 adapter 迁入 `Sources/Database/Projections/DuckDB/`。
+///
+/// 当前 `Persistence` target 继续作为 compatibility envelope 编译该文件；Database 边界只允许
+/// 基于 append-only facts / replay output 重建本地 analytical projection。DuckDB schema、SQL、
+/// adapter handle 和 payload 编码保持私有，不得成为 Workbench / Dashboard contract，也不得保存
+/// broker、account endpoint、private stream、execution report、broker fill 或 reconciliation payload。
 /// DuckDBAnalyticalProjectionAdapterError 表达 DuckDB 分析投影 adapter 的本地读写错误边界。
 /// 错误只描述私有分析投影存储失败，不代表 Binance、signed endpoint、broker 或真实订单状态。
 public enum DuckDBAnalyticalProjectionAdapterError: Error, Equatable, Sendable {
