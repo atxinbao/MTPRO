@@ -2451,6 +2451,26 @@ MTP-186 的 `CSQLite system library boundary` 指 CSQLite shim 归属 `Sources/D
 
 MTP-186 schema non-exposure guard 固定 Database projection code 只能提供 local deterministic facts / snapshots / projection evidence。它不暴露 SQLite / DuckDB schema、Runtime object、Adapter request、broker state、account endpoint payload、credential、secret、API key 或 listenKey，不读取真实账户，不同步 broker position，不触发 signed/account/listenKey/private stream、broker sync、live command 或 executable order path。
 
+`MTP-187-STRATEGIES-TRADER-PORTFOLIO-PHYSICAL-MIGRATION`
+
+`Strategies / Trader / Portfolio physical migration` 指把 EMA strategy lifecycle、strategy signal、paper proposal 和 order-book research strategy 从旧 `Sources/Core/` 迁入 `Sources/Strategies/EMA/` 与 `Sources/Strategies/OrderBookImbalance/`，把 proposal-to-risk binding 迁入 `Sources/Trader/StrategyBindings/`，并把 paper account / portfolio projection、portfolio projection update 和 simulated exchange portfolio projection parity 迁入 `Sources/Portfolio/`。MTP-187 只做 physical source migration 和兼容 target 配置，不新增真实 Strategies / Trader / Portfolio SwiftPM target。
+
+`MTP-187-STRATEGIES-COMPATIBILITY-ENVELOPE`
+
+MTP-187 的 `Strategies compatibility envelope` 指现有 `Core` target 继续编译 `Sources/Strategies/EMA/` 和 `Sources/Strategies/OrderBookImbalance/`。这只保持 buildability，不授权 Strategy runtime、scheduler、live quoter / hedger、direct Strategy -> ExecutionClient path、broker command 或 executable order command。
+
+`MTP-187-TRADER-COMPATIBILITY-ENVELOPE`
+
+MTP-187 的 `Trader compatibility envelope` 指现有 `Core` target 继续编译 `Sources/Trader/StrategyBindings/`。Trader 在该 issue 中只表示 deterministic local strategy / risk / portfolio coordination evidence，不表示 live coordinator、broker gateway、OMS gateway、ExecutionClient gateway、account session runtime 或 private stream coordinator。
+
+`MTP-187-PORTFOLIO-COMPATIBILITY-ENVELOPE`
+
+MTP-187 的 `Portfolio compatibility envelope` 指现有 `Core` target 继续编译 `Sources/Portfolio/`。Portfolio 当前只持有 paper / simulated / read-model financial state，不读取 broker account state、account endpoint payload、real balance、real position、margin、leverage 或 real PnL。
+
+`MTP-187-NO-DIRECT-EXECUTION-GUARD`
+
+MTP-187 no-direct-execution guard 固定 strategy proposal、Trader binding 和 Portfolio projection 不能升级为 executable order command、ExecutionClient request、OMS order、broker order、order form payload、live command、position command 或 trading button。任何真实交易、broker、signed/account endpoint、listenKey、private stream、execution report、broker fill 和 reconciliation 都保持 future-gated / forbidden。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

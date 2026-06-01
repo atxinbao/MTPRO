@@ -1,5 +1,7 @@
 import Foundation
 
+/// MTP-187 将 paper account / portfolio projection evidence 放入 `Sources/Portfolio/`。
+/// Portfolio 仍只持有 paper / simulated financial read-model state，不读取 broker account 或 real PnL。
 /// PaperPortfolioPnLSummary 汇总 MTP-101 paper-only PnL 证据。
 ///
 /// 该摘要只从 replayed simulated fill 的 gross notional、fee、slippage 和本地 mark price

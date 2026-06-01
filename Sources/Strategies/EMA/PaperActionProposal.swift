@@ -1,5 +1,7 @@
 import Foundation
 
+/// MTP-187 将 paper/live-neutral proposal source 放入 `Sources/Strategies/EMA/` 兼容目录。
+/// proposal 仍只表达 strategy-derived paper intent，不能升级为 order command、OMS order 或 broker request。
 /// Paper action proposal 类型把本地 strategy signal 转成 paper-only action intent。
 ///
 /// 该文件只定义可验证的提案模型、数量 / notional 假设和 deterministic fixture；它不定义订单、

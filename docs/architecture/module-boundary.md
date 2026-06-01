@@ -957,6 +957,32 @@ MTP-186 将 `CSQLite` system library path 固定到 `Sources/Database/Projection
 
 MTP-186 后旧 `Sources/Core/MarketDataCache.swift`、`Sources/Core/OrderBookReadModel.swift`、`Sources/Persistence/`、`Sources/CSQLite/` 和 `Sources/Runtime/MarketDataReplayProjectionConsistency.swift` 不再保留。剩余 compatibility shell 是旧 SwiftPM target 名称和未迁出的 higher-module source roots；后续 Strategies / Trader / Portfolio / RiskEngine / ExecutionEngine / ExecutionClient / Workbench / Dashboard migration 必须由独立 Linear issue 授权。
 
+## MTP-187 Strategies / Trader / Portfolio Physical Migration
+
+`MTP-187-STRATEGIES-TRADER-PORTFOLIO-PHYSICAL-MIGRATION`
+
+MTP-187 执行 Strategies / Trader / Portfolio 的 directory-first source migration：EMA strategy lifecycle、shared strategy signal 和 paper proposal 已从旧 `Sources/Core/` 迁入 `Sources/Strategies/EMA/`；order-book imbalance research strategy 已迁入 `Sources/Strategies/OrderBookImbalance/`；proposal-to-risk binding 已迁入 `Sources/Trader/StrategyBindings/`；paper account / portfolio projection、portfolio projection update 和 simulated exchange portfolio projection parity 已迁入 `Sources/Portfolio/`。
+
+`MTP-187-STRATEGIES-COMPATIBILITY-ENVELOPE`
+
+MTP-187 保留现有 `Core` SwiftPM product / target 名称作为 Strategies 迁移期兼容外壳：`Core` target 继续编译 `Sources/Strategies/EMA/` 和 `Sources/Strategies/OrderBookImbalance/`，让既有 tests 和 downstream target 仍通过 `import Core` 使用 strategy signal / proposal 类型。该兼容壳只保持 buildability，不等同于 Strategy runtime 或最终 target graph split。
+
+`MTP-187-TRADER-COMPATIBILITY-ENVELOPE`
+
+MTP-187 将 proposal-to-risk binding 归入 `Sources/Trader/StrategyBindings/`，但 `Core` target 继续作为兼容外壳编译。Trader 在当前 issue 只表示 strategy / risk / portfolio coordination evidence，不是 live coordinator、broker gateway、ExecutionClient gateway 或 account session runtime。
+
+`MTP-187-PORTFOLIO-COMPATIBILITY-ENVELOPE`
+
+MTP-187 将 paper / simulated financial projection code 归入 `Sources/Portfolio/`，但 `Core` target 继续作为兼容外壳编译。Portfolio 仍只持有 paper / simulated / read-model financial state，不读取 broker account state、account endpoint payload、real balance、real position、margin、leverage 或 real PnL。
+
+`MTP-187-NO-DIRECT-EXECUTION-GUARD`
+
+Strategies / Trader / Portfolio 迁移后仍禁止 `Strategies -> ExecutionClient`、`Trader -> ExecutionClient`、`Trader -> broker command`、`Portfolio -> broker account state` 和 proposal -> executable order command bypass。Paper proposal、risk decision、portfolio projection 和 simulated parity 只能作为 deterministic local evidence，不授权 OMS、ExecutionClient、broker adapter、real submit / cancel / replace、Live PRO Console、trading button、live command 或 order form。
+
+`MTP-187-REMAINING-COMPATIBILITY-SHELL`
+
+MTP-187 后旧 `Sources/Core/EMACross.swift`、`Sources/Core/StrategySignals.swift`、`Sources/Core/PaperActionProposal.swift`、`Sources/Core/OrderBookImbalance.swift`、`Sources/Core/PaperActionRiskLink.swift`、`Sources/Core/PaperAccountPortfolioProjectionV2.swift`、`Sources/Core/PaperPortfolioProjectionUpdate.swift` 和 `Sources/Core/SimulatedExchangePortfolioProjectionParity.swift` 不再保留。剩余 compatibility shell 是旧 `Core` SwiftPM target 名称和未迁出的 RiskEngine / ExecutionEngine / ExecutionClient / Workbench / Dashboard source roots。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |

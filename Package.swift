@@ -26,14 +26,17 @@ let package = Package(
                 "Dashboard",
                 "DataClient",
                 "DataEngine/Ingest",
-                "Database",
-                "Runtime"
+                "Database"
             ],
             sources: [
                 "Cache/MarketData",
                 "Core",
                 "DomainModel",
                 "MessageBus",
+                "Strategies/EMA",
+                "Strategies/OrderBookImbalance",
+                "Trader/StrategyBindings",
+                "Portfolio",
                 "DataEngine/ScenarioReplay",
                 "DataEngine/DataQuality"
             ]
@@ -88,11 +91,13 @@ let package = Package(
                 "DataEngine/DataQuality",
                 "Database/Projections",
                 "DomainModel",
-                "MessageBus"
+                "MessageBus",
+                "Portfolio",
+                "Strategies",
+                "Trader"
             ],
             sources: [
                 "Database/ReplayProjection",
-                "Runtime",
                 "DataEngine/Ingest"
             ]
         ),
