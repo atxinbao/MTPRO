@@ -5304,3 +5304,47 @@ MTP-181 必须建立的主要 anchors：
 - 不实现 L4 runtime、live production path、broker path、ExecutionClient implementation、OMS implementation、real order lifecycle、Live PRO Console、trading button、live command、order form、emergency stop、shutdown、restore 或 production operations command。
 - 不输出最终 Stage Code Audit Report；MTP-182 仍负责 validation matrix / automation readiness / stage audit input material 收口，最终 Stage Code Audit Report 仍由 Parent Codex 在 Project closure 后单独输出。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-182 Validation Matrix / Automation Readiness / Stage Audit Input Validation
+
+日期：2026-06-01
+
+执行者：Codex
+
+MTP-182 的 required validation：
+
+- `bash checks/automation-readiness.sh`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-182 的验收要求：
+
+- `docs/audit/inputs/mtpro-engine-module-boundary-consolidation-v1-stage-audit-input.md` 必须存在，并包含 stage closeout、stage audit input material、no final Stage Code Audit、M1-M6 evidence chain、validation matrix closeout、automation readiness closeout、forbidden implementation audit、unresolved future gates、stage closeout validation 和 no Graphify / Figma / next-stage mutation anchors。
+- `docs/architecture/module-boundary.md` 必须包含 MTP-182 stage closeout anchors。
+- `docs/domain/context.md` 必须包含 MTP-182 shared language anchors。
+- `docs/validation/trading-validation-matrix.md` 必须把 `TVM-ARCHITECTURE-MODULE-BOUNDARY` 扩展到 MTP-182 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 Engine Module Boundary Consolidation stage audit input anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-182 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-182 stage audit input、architecture boundary、domain context、validation plan、validation matrix、latest summary 和 automation readiness doc。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-182 必须建立的主要 anchors：
+
+- `MTP-182-ENGINE-MODULE-BOUNDARY-STAGE-CLOSEOUT`
+- `MTP-182-STAGE-AUDIT-INPUT-MATERIAL`
+- `MTP-182-NO-FINAL-STAGE-CODE-AUDIT`
+- `MTP-182-VALIDATION-MATRIX-CLOSEOUT`
+- `MTP-182-AUTOMATION-READINESS-CLOSEOUT`
+- `MTP-182-M1-M6-EVIDENCE-CHAIN`
+- `MTP-182-FORBIDDEN-IMPLEMENTATION-AUDIT`
+- `MTP-182-UNRESOLVED-FUTURE-GATES`
+- `MTP-182-STAGE-CLOSEOUT-VALIDATION`
+- `MTP-182-NO-GRAPHIFY-FIGMA-NEXT-STAGE-MUTATION`
+
+## MTP-182 禁止
+
+- 不移动 production source，不新增或修改 Swift production code，不修改 `Package.swift` target graph，不创建 SwiftPM target。
+- 不输出最终 Stage Code Audit Report，不设置 Linear Project `Completed`，不启动 Root Docs Refresh Gate，不创建 L4 Linear Project / Issue，不推进下一阶段 Todo，不启动新的 `@002 / PAR` 或 Symphony。
+- 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker adapter、real order lifecycle、signed endpoint、account endpoint / listenKey、private stream runtime、account snapshot runtime、Live PRO Console、trading button、live command、order form、emergency stop、shutdown、restore 或 production operations command。
+- 不把 `TVM-ARCHITECTURE-MODULE-BOUNDARY`、L4 planning input material、Workbench read-model-only boundary 或 Future Live PRO Console product-surface split 写成 execution authorization。
+- 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
