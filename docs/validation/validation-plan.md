@@ -5816,3 +5816,40 @@ MTP-194 必须建立的主要 anchors：
 - 不迁移 StrategyBindings、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench 或 Dashboard。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-195 StrategyBindings Binding Protocol / Coordination Adapter Validation
+
+MTP-195 必须运行：
+
+- `git diff --check`
+- `swift test --filter CoreTests/testStrategyBindingsBoundaryEvidenceKeepsConcreteStrategiesOutOfBindings`
+- `swift test --filter CoreTests/testPaperActionRiskLinkAllowsPaperProposalWithTraceableContext`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-195 的验收要求：
+
+- `Sources/Trader/StrategyBindings/PaperActionRiskLink.swift` 必须明确 `StrategyBindings` 只表达 generic binding protocol / coordination adapter contract。
+- `TraderStrategyBindingsBoundaryEvidence` 必须证明 `Sources/Trader/StrategyBindings/` 不承载 concrete strategy implementation。
+- EMA 和 OrderBookImbalance 的 concrete strategy roots 必须保持在 `Sources/Trader/Strategies/EMA/` 与 `Sources/Trader/Strategies/OrderBookImbalance/`。
+- `StrategyBindings` 不得直连 ExecutionClient、broker command、OMS command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command、order form 或 executable order command。
+- `docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-195 mechanical anchors。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-195 必须建立的主要 anchors：
+
+- `MTP-195-STRATEGYBINDINGS-BINDING-PROTOCOL-ADAPTER-CONTRACT`
+- `MTP-195-CONCRETE-STRATEGY-NON-LANDING-GUARD`
+- `MTP-195-STRATEGYBINDINGS-COMPATIBILITY-ENVELOPE`
+- `MTP-195-NO-DIRECT-EXECUTION-BROKER-OMS-LIVE-GUARD`
+- `MTP-195-STRATEGYBINDINGS-BOUNDARY-VALIDATION`
+
+## MTP-195 禁止
+
+- 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- 不实现 Strategy runtime、strategy scheduler、live quoter、live hedger、Trader runtime、live coordinator、broker gateway、ExecutionClient gateway、OMS gateway、account session runtime、broker position sync、signed endpoint、account endpoint、listenKey、private stream runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form、short command、margin command 或 futures command。
+- 不把 StrategyBindings 写成 EMA、OrderBookImbalance 或未来具体 strategy implementation landing path。
+- 不把 `PaperActionRiskLink` 升级为真实风险引擎、ExecutionClient request、broker fallback、OMS order、broker order 或 executable order command。
+- 不迁移 EMA、OrderBookImbalance、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench 或 Dashboard。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

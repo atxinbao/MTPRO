@@ -8275,6 +8275,40 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(decoded, decision)
     }
 
+    func testStrategyBindingsBoundaryEvidenceKeepsConcreteStrategiesOutOfBindings() throws {
+        // 测试场景：MTP-195 必须把 StrategyBindings 固定为通用 binding / coordination adapter，
+        // 同时证明 EMA 与 OrderBookImbalance 的具体策略实现仍在 Trader-owned Strategies 路径下。
+        let evidence = TraderStrategyBindingsBoundaryFixture.deterministic
+
+        XCTAssertEqual(evidence.strategyBindingsRoot, "Sources/Trader/StrategyBindings/")
+        XCTAssertEqual(
+            evidence.contractRoles,
+            [.genericBindingProtocol, .coordinationAdapterContract]
+        )
+        XCTAssertEqual(evidence.compatibilityTargetName, "Core")
+        XCTAssertEqual(
+            evidence.concreteStrategyRoots,
+            [
+                "Sources/Trader/Strategies/EMA/",
+                "Sources/Trader/Strategies/OrderBookImbalance/"
+            ]
+        )
+        XCTAssertTrue(evidence.isGenericBindingProtocolAndAdapterOnly)
+        XCTAssertTrue(evidence.concreteStrategiesRemainTraderOwned)
+        XCTAssertTrue(evidence.forbidsExecutionAndLiveCommandPaths)
+        XCTAssertFalse(evidence.carriesConcreteStrategyImplementation)
+        XCTAssertFalse(evidence.allowsDirectExecutionClientPath)
+        XCTAssertFalse(evidence.allowsBrokerCommandPath)
+        XCTAssertFalse(evidence.allowsOMSCommandPath)
+        XCTAssertFalse(evidence.allowsLiveCommandPath)
+        XCTAssertFalse(evidence.concreteStrategyRoots.contains { $0.contains("/StrategyBindings/") })
+        XCTAssertFalse(evidence.concreteStrategyRoots.contains { $0.hasPrefix("Sources/Strategies/") })
+
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoded = try JSONDecoder().decode(TraderStrategyBindingsBoundaryEvidence.self, from: encoded)
+        XCTAssertEqual(decoded, evidence)
+    }
+
     func testPaperActionRiskLinkBlocksOversizedPaperProposalWithEvidence() throws {
         // 测试场景：MTP-33 阻断路径必须复用 RiskBlockerEvidence，固定 blocker reason、
         // source sequence 和 paper-only context，不引入真实风控或 broker 拒单回退。

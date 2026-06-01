@@ -652,6 +652,28 @@ MTP-194 只迁移 OrderBookImbalance source path、更新 docs / validation anch
 
 MTP-194 validation 必须证明 `Sources/Trader/Strategies/OrderBookImbalance/` 包含 `OrderBookImbalance.swift`，`Sources/Strategies/OrderBookImbalance/` 已不存在，`Package.swift` 使用 `"Trader/Strategies/OrderBookImbalance"` 且不再包含 `"Strategies/OrderBookImbalance"`，focused OrderBookImbalance tests 与完整 `bash checks/run.sh` 仍通过。
 
+## MTP-195 StrategyBindings Binding Protocol / Coordination Adapter
+
+`MTP-195-STRATEGYBINDINGS-BINDING-PROTOCOL-ADAPTER-CONTRACT`
+
+MTP-195 将 `Sources/Trader/StrategyBindings/` 收口为 generic binding protocol / coordination adapter contract。该目录只能表达 strategy instance 与 Trader context / RiskEngine / Portfolio evidence 的通用连接协议和本地 coordination adapter，不是 EMA、OrderBookImbalance 或未来具体 strategy implementation landing path。
+
+`MTP-195-CONCRETE-STRATEGY-NON-LANDING-GUARD`
+
+具体策略 lifecycle、signals、proposals、quoter、hedger 和 strategy-specific business rules 必须继续位于 `Sources/Trader/Strategies/<strategy>/`。当前 EMA source root 是 `Sources/Trader/Strategies/EMA/`，OrderBookImbalance source root 是 `Sources/Trader/Strategies/OrderBookImbalance/`；`Sources/Trader/StrategyBindings/` 不得承载这些具体策略实现。
+
+`MTP-195-STRATEGYBINDINGS-COMPATIBILITY-ENVELOPE`
+
+MTP-195 保留现有 `Core` SwiftPM product / target 名称作为 compatibility envelope，继续编译 `Sources/Trader/StrategyBindings/PaperActionRiskLink.swift`。该 envelope 只保持 buildability，不新增 SwiftPM target、product 或 dependency，不做 target graph split，也不创建 Trader runtime。
+
+`MTP-195-NO-DIRECT-EXECUTION-BROKER-OMS-LIVE-GUARD`
+
+StrategyBindings 中的 binding / adapter contract 不得直连 ExecutionClient、broker command、OMS command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command、order form 或 executable order command。`PaperActionRiskLink` 只能把 paper proposal 转成本地 risk query / blocker evidence，不能变成真实风控、broker fallback 或订单执行入口。
+
+`MTP-195-STRATEGYBINDINGS-BOUNDARY-VALIDATION`
+
+MTP-195 validation 必须证明 `TraderStrategyBindingsBoundaryEvidence` 固定 `Sources/Trader/StrategyBindings/` 的 generic binding protocol / coordination adapter role，EMA 和 OrderBookImbalance 的 concrete strategy roots 仍在 `Sources/Trader/Strategies/<strategy>/`，并且 focused XCTest、automation readiness 和完整 `bash checks/run.sh` 仍通过。
+
 ## MTP-173 Account / Portfolio Read-model Boundary
 
 `MTP-173-ACCOUNT-PORTFOLIO-READMODEL-BOUNDARY-CONTRACT`

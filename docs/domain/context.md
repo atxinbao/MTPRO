@@ -443,6 +443,26 @@ MTP-194 不创建 `Strategies` / `Trader` SwiftPM target，不迁移 StrategyBin
 
 MTP-194 validation language 必须证明 OrderBookImbalance source 位于 `Sources/Trader/Strategies/OrderBookImbalance/`，旧 `Sources/Strategies/OrderBookImbalance/` 目录不存在，`Package.swift` 使用 `"Trader/Strategies/OrderBookImbalance"` 且不再包含 `"Strategies/OrderBookImbalance"`，focused OrderBookImbalance tests 和完整 checks 仍通过。
 
+`MTP-195-STRATEGYBINDINGS-BINDING-PROTOCOL-ADAPTER-CONTRACT`
+
+`StrategyBindings binding protocol / coordination adapter contract` 指 `Sources/Trader/StrategyBindings/` 只保存 strategy instance 与 Trader context / RiskEngine / Portfolio evidence 的通用 binding protocol、adapter contract 和 deterministic local coordination evidence。它不是 concrete strategy implementation root，也不是 Trader runtime、broker gateway、OMS gateway 或 live coordinator。
+
+`MTP-195-CONCRETE-STRATEGY-NON-LANDING-GUARD`
+
+MTP-195 后 `Sources/Trader/StrategyBindings/` 不得作为 EMA、OrderBookImbalance 或未来具体策略的源码落点。EMA 当前 root 是 `Sources/Trader/Strategies/EMA/`，OrderBookImbalance 当前 root 是 `Sources/Trader/Strategies/OrderBookImbalance/`；具体 strategy lifecycle、signals、proposal implementation、quoter、hedger 和 strategy-specific business rules 必须继续落在 `Sources/Trader/Strategies/<strategy>/`。
+
+`MTP-195-STRATEGYBINDINGS-COMPATIBILITY-ENVELOPE`
+
+MTP-195 的 compatibility envelope 指 `Core` target 名称保持不变，并继续编译 `Sources/Trader/StrategyBindings/PaperActionRiskLink.swift`。这只保持现有 import surface 和 tests buildability，不表示 SwiftPM target graph split、Trader runtime、strategy scheduler 或 live coordinator 已实现。
+
+`MTP-195-NO-DIRECT-EXECUTION-BROKER-OMS-LIVE-GUARD`
+
+StrategyBindings 不得引入 `StrategyBindings -> ExecutionClient`、`StrategyBindings -> broker command`、`StrategyBindings -> OMS command`、`StrategyBindings -> signed/account endpoint`、`StrategyBindings -> private stream runtime`、`StrategyBindings -> Live PRO Console`、`StrategyBindings -> trading button`、`StrategyBindings -> live command` 或 `StrategyBindings -> order form` 路径。`PaperActionRiskLink` 仍只表达 paper proposal -> risk query / blocker evidence 的本地只读链路。
+
+`MTP-195-STRATEGYBINDINGS-BOUNDARY-VALIDATION`
+
+MTP-195 validation language 必须证明 `TraderStrategyBindingsBoundaryEvidence`、focused XCTest、docs anchors 和 automation readiness checks 一致覆盖：StrategyBindings 只是 generic binding protocol / coordination adapter，concrete strategies remain Trader-owned，且无 direct execution / broker / OMS / live command path。
+
 `MTP-173-ACCOUNT-PORTFOLIO-READMODEL-BOUNDARY-CONTRACT`
 
 MTP-173 固定 Account / Portfolio context read-model boundary：`Sources/Trader/Accounts/` 只表达 Trader coordination 使用的 account context、account identity 和 source identity；`Sources/Portfolio/` 独立表达 positions、net positions、cash/equity、PnL、exposure、margin、open value 和 paper projection。
