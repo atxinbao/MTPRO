@@ -3011,7 +3011,7 @@ final class AppTests: XCTestCase {
     func testDashboardShellSourceDoesNotImportForbiddenIntegrationLayers() throws {
         // 测试场景：SwiftUI shell 文件只能消费 App 层 ViewModel，不能导入 Runtime / Adapters，
         // 也不能直接引用数据库实现名或 public market data client 类型。
-        let shellSource = try String(contentsOf: sourceFile("Sources/App/DashboardShell.swift"))
+        let shellSource = try String(contentsOf: sourceFile("Sources/Dashboard/DashboardShell.swift"))
         let executableSource = try String(
             contentsOf: sourceFile("Sources/Dashboard/DashboardApplication.swift")
         )
@@ -3033,6 +3033,61 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(executableSource.contains("Button("))
         XCTAssertFalse(executableSource.contains("TextField("))
         XCTAssertFalse(executableSource.contains("Toggle("))
+    }
+
+    func testMTP189WorkbenchDashboardSourceMigrationBoundaryIsPhysicalAndReadModelOnly() throws {
+        // 测试场景：MTP-189 只做 Workbench / Dashboard physical source migration。
+        // Workbench 目录承载 read model、Report、Events 和 future Live PRO Console label；
+        // Dashboard 目录只保留 macOS shell / smoke，不能暴露 runtime、adapter、schema 或 live command surface。
+        let migratedSourcePaths = [
+            "Sources/Workbench/ReadModels/App.swift",
+            "Sources/Workbench/Report/AccountPositionBalanceReadModelOnlySurface.swift",
+            "Sources/Workbench/Report/LiveMonitoringReadOnlyConsoleV2Surface.swift",
+            "Sources/Workbench/Report/StrategyTraderReadinessEvidenceSurface.swift",
+            "Sources/Workbench/Dashboard/WorkbenchBetaFirstRunState.swift",
+            "Sources/Workbench/Events/PaperWorkflowEvidenceExplorer.swift",
+            "Sources/Workbench/FutureLiveProConsole/LiveReadOnlyWorkbenchBoundary.swift",
+            "Sources/Dashboard/DashboardShell.swift",
+            "Sources/Dashboard/DashboardApplication.swift"
+        ]
+
+        for path in migratedSourcePaths {
+            XCTAssertTrue(
+                FileManager.default.fileExists(atPath: sourceFile(path).path),
+                "\(path) should exist after MTP-189 migration"
+            )
+        }
+
+        let legacyAppDirectory = sourceFile("Sources/App")
+        XCTAssertFalse(
+            FileManager.default.fileExists(atPath: legacyAppDirectory.path),
+            "Sources/App must not remain the Workbench source owner after MTP-189"
+        )
+
+        let packageSource = try String(contentsOf: sourceFile("Package.swift"))
+        XCTAssertTrue(packageSource.contains("\"Workbench/ReadModels\""))
+        XCTAssertTrue(packageSource.contains("\"Workbench/Report\""))
+        XCTAssertTrue(packageSource.contains("\"Workbench/Dashboard\""))
+        XCTAssertTrue(packageSource.contains("\"Workbench/Events\""))
+        XCTAssertTrue(packageSource.contains("\"Workbench/FutureLiveProConsole\""))
+        XCTAssertTrue(packageSource.contains("\"Dashboard/DashboardShell.swift\""))
+        XCTAssertTrue(packageSource.contains("\"DashboardApplication.swift\""))
+
+        let workbenchReportSource = try String(
+            contentsOf: sourceFile("Sources/Workbench/Report/LiveMonitoringReadOnlyConsoleV2Surface.swift")
+        )
+        let dashboardShellSource = try String(contentsOf: sourceFile("Sources/Dashboard/DashboardShell.swift"))
+
+        for forbidden in [
+            "import Runtime",
+            "import Adapters",
+            "Button(",
+            "TextField(",
+            "Toggle("
+        ] {
+            XCTAssertFalse(workbenchReportSource.contains(forbidden))
+            XCTAssertFalse(dashboardShellSource.contains(forbidden))
+        }
     }
 
     func testLiveRiskGateBlockedEvidenceViewModelAggregatesMTP87ReadOnlySurface() throws {

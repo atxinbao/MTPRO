@@ -330,9 +330,9 @@ MTP-72 Dashboard / Report surface 不得暴露：
 
 MTP-72 的验证入口：
 
-- `Sources/App/LiveMonitoringEvidence.swift` 必须包含 `LiveMonitoringEvidenceReadModel` 和 `LiveMonitoringEvidenceViewModel`。
-- `Sources/App/App.swift` 必须包含 `ReportReadModel.liveMonitoringEvidence`、`ReportViewModel.liveMonitoringEvidence` 和 Report 层 monitoring summary fields。
-- `Sources/App/DashboardShell.swift` 必须包含 Report `Monitoring` 指标、Workbench `Live Monitoring` 组、`liveMonitoringHealth` / `liveMonitoringErrors` smoke evidence 和 no command / no schema / no adapter / no runtime boundary 聚合。
+- `Sources/Workbench/Report/LiveMonitoringEvidence.swift` 必须包含 `LiveMonitoringEvidenceReadModel` 和 `LiveMonitoringEvidenceViewModel`。
+- `Sources/Workbench/ReadModels/App.swift` 必须包含 `ReportReadModel.liveMonitoringEvidence`、`ReportViewModel.liveMonitoringEvidence` 和 Report 层 monitoring summary fields。
+- `Sources/Dashboard/DashboardShell.swift` 必须包含 Report `Monitoring` 指标、Workbench `Live Monitoring` 组、`liveMonitoringHealth` / `liveMonitoringErrors` smoke evidence 和 no command / no schema / no adapter / no runtime boundary 聚合。
 - `Tests/AppTests/AppTests.swift` 必须覆盖 `testLiveMonitoringEvidenceViewModelAggregatesMTP72ReadModelOnlyEvidence`、Dashboard / Report deterministic assertions、Dashboard smoke 和 no command / no button / no schema / no adapter / no runtime assertions。
 - Focused validation：`swift test --filter AppTests`。
 - Required validation：`bash checks/run.sh`。
@@ -372,8 +372,8 @@ MTP-73 必须保持以下 flags 为 false：
 
 MTP-73 的验证入口：
 
-- `Sources/App/PaperWorkflowEvidenceExplorer.swift` 必须包含 `PaperWorkflowEvidenceExplorerSection.liveMonitoringEvidence`、`PaperWorkflowEvidenceExplorerReadModel.liveMonitoringEvidence`、`coversLiveMonitoringEvidence` 和 live monitoring timeline item 生成逻辑。
-- `Sources/App/App.swift` 必须把 `ReportReadModel.liveMonitoringEvidence` 传入 `PaperWorkflowEvidenceExplorerReadModel`。
+- `Sources/Workbench/Events/PaperWorkflowEvidenceExplorer.swift` 必须包含 `PaperWorkflowEvidenceExplorerSection.liveMonitoringEvidence`、`PaperWorkflowEvidenceExplorerReadModel.liveMonitoringEvidence`、`coversLiveMonitoringEvidence` 和 live monitoring timeline item 生成逻辑。
+- `Sources/Workbench/ReadModels/App.swift` 必须把 `ReportReadModel.liveMonitoringEvidence` 传入 `PaperWorkflowEvidenceExplorerReadModel`。
 - `Tests/AppTests/AppTests.swift` 必须覆盖 `testLiveMonitoringEvidenceExplorerPreviewDefinesMTP73ReadOnlyTimelineItems`、全量 timeline item count、分区 item count、evidence IDs 和 no command / no live audit / no incident replay / no stop control assertions。
 - Focused validation：`swift test --filter AppTests/testLiveMonitoringEvidenceExplorerPreviewDefinesMTP73ReadOnlyTimelineItems`。
 - Required validation：`swift test --filter AppTests` 和 `bash checks/run.sh`。

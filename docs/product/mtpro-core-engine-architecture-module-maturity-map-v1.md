@@ -42,7 +42,7 @@
 - `Sources/DataClient/Binance/PublicMarketData/*`
 - `Sources/Persistence/*`
 - `Sources/Runtime/*`
-- `Sources/App/*`
+- `Sources/Workbench/*`
 - `Sources/Dashboard/*`
 - 参考项目 `atxinbao/nautilus_trader` `develop` snapshot：`6e059dc Improve Blockchain snapshot fail-closed path`
 - Human 提供的 reference core engine data-flow 截图：Data Clients、Data Engine、Message Bus、Cache、Portfolio、Strategy quoter / hedger、Risk Engine、Execution Engine、Execution Clients、Database

@@ -674,7 +674,7 @@ MTP-65 的 required validation：
 MTP-66 的 required validation：
 
 - `docs/contracts/live-trading-boundary-contract.md` 必须包含 `MTP-66-LIVE-BLOCKED-EVIDENCE-SURFACE`、`MTP-66-DASHBOARD-REPORT-EVENT-TIMELINE-READ-MODEL`、`MTP-66-NO-LIVE-COMMAND-OR-BUTTON` 和 `MTP-66-SCHEMA-ADAPTER-RUNTIME-NON-EXPOSURE` 锚点。
-- `Sources/App/LiveTradingBlockedEvidence.swift` 必须定义 `LiveTradingBlockedEvidenceItem`、`LiveTradingBlockedEvidenceReadModel` 和 `LiveTradingBlockedEvidenceViewModel`，且只消费 Core `LiveReadiness` / `LiveBlockedEvidence`。
+- `Sources/Workbench/Report/LiveTradingBlockedEvidence.swift` 必须定义 `LiveTradingBlockedEvidenceItem`、`LiveTradingBlockedEvidenceReadModel` 和 `LiveTradingBlockedEvidenceViewModel`，且只消费 Core `LiveReadiness` / `LiveBlockedEvidence`。
 - `ReportViewModel` 必须展示 Live blocked evidence count、blocked capability labels、gate labels、source anchors、status、all gates blocked 和 read-model-only boundary flags。
 - `PaperWorkflowEvidenceExplorerViewModel` 必须新增 `live trading blocked evidence` 分区，并为 API key、signed endpoint、account endpoint、listenKey、broker adapter 和 real order lifecycle 各生成只读 timeline item / evidence link。
 - `DashboardShellSnapshot` 必须展示 `Live gates` 指标、Live blocked details 和 Dashboard smoke `liveBlockedGates` evidence，同时继续保持八个 Dashboard sections、readModelOnly=true、workbenchReadModelOnly=true 和 session-level controls。
@@ -1098,7 +1098,7 @@ MTP-79 必须建立的主要 anchors：
 MTP-80 的 required validation：
 
 - `docs/contracts/live-execution-control-contract.md` 必须包含 `MTP-80-DASHBOARD-REPORT-TIMELINE-EXECUTION-CONTROL-BLOCKED-EVIDENCE`、`MTP-80-EXECUTION-CONTROL-READ-MODEL-ONLY-SURFACE`、`MTP-80-NO-LIVE-COMMAND-OR-ORDER-FORM` 和 `MTP-80-LIVE-EXECUTION-CONTROL-DASHBOARD-REPORT-TIMELINE-VALIDATION` anchors。
-- `Sources/App/LiveExecutionControlBlockedEvidence.swift` 必须把 MTP-79 Core blocked evidence 复制成 App 层 read model / ViewModel，不读取 secret、schema、adapter 或 Runtime object。
+- `Sources/Workbench/Report/LiveExecutionControlBlockedEvidence.swift` 必须把 MTP-79 Core blocked evidence 复制成 App 层 read model / ViewModel，不读取 secret、schema、adapter 或 Runtime object。
 - `ReportViewModel` 必须展示 execution-control blocked gate count、blocked gate labels、blocked reason labels、source anchors、deterministic snapshot、all-gates-blocked evidence 和 read-model-only boundary flags。
 - `DashboardShellSnapshot` 必须展示 `Execution control` report metric、`liveExecutionControlGates=7` smoke evidence 和 `Live Execution Control` workbench detail group。
 - `PaperWorkflowEvidenceExplorerViewModel` 必须新增 `live execution control blocked evidence` section，为 submit、cancel、replace、execution report、broker fill、reconciliation 和 incident fallback 生成只读 timeline item / evidence link。
@@ -1400,7 +1400,7 @@ MTP-87 的 required validation：
 - `docs/contracts/live-risk-gate-contract.md` 必须包含 `MTP-87-LIVE-RISK-GATE-BLOCKED-EVIDENCE`、`MTP-87-LIVE-RISK-GATES-BLOCKED-REASONS`、`MTP-87-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT`、`MTP-87-READ-MODEL-ONLY-NO-COMMAND-SURFACE` 和 `MTP-87-LIVE-RISK-GATE-VALIDATION` anchors。
 - `Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift` 必须定义 `LiveRiskGateBlockedGate`、`LiveRiskGateBlockedReason`、`LiveRiskGateBlockedEvidenceItem` 和 `LiveRiskGateBlockedEvidence`。
 - `LiveRiskGateBlockedEvidence` 必须固定 exposure、order notional、frequency、loss / drawdown、circuit breaker、no-trade state 的 blocked reason、source anchors、validation anchors、deterministic snapshot、read-model-only App surface flags 和 forbidden live risk runtime flags。
-- `Sources/App/LiveRiskGateBlockedEvidence.swift` 必须把 Core fixture 复制成 `LiveRiskGateBlockedEvidenceReadModel` / `LiveRiskGateBlockedEvidenceViewModel`，并只通过 `ReportViewModel`、`DashboardShellSnapshot` 和 `PaperWorkflowEvidenceExplorerViewModel` 进入只读展示面。
+- `Sources/Workbench/Report/LiveRiskGateBlockedEvidence.swift` 必须把 Core fixture 复制成 `LiveRiskGateBlockedEvidenceReadModel` / `LiveRiskGateBlockedEvidenceViewModel`，并只通过 `ReportViewModel`、`DashboardShellSnapshot` 和 `PaperWorkflowEvidenceExplorerViewModel` 进入只读展示面。
 - Core tests 必须覆盖 deterministic fixture、Codable round trip、blocked items drift rejection、真实账户 / broker position / allow-reject runtime / circuit breaker runtime / command surface rejection，以及 MTP-83 至 MTP-86 boundary regression。
 - App tests 必须覆盖 Dashboard / Report / Event Timeline blocked evidence、ViewModel Codable boundary、`liveRiskGates=6` smoke anchor、无 risk command、无 order form、无交易按钮、无 schema / adapter / Runtime object 暴露。
 - `docs/validation/trading-validation-matrix.md` 必须把 MTP-87 回填到 `TVM-LIVE-RISK-GATE` candidate entry；MTP-88 仍负责 Project 级 automation readiness 和 stage audit input material 收口。
@@ -1648,7 +1648,7 @@ MTP-94 的 required validation：
 
 - `docs/contracts/live-audit-incident-stop-contract.md` 必须包含 `MTP-94-LIVE-INCIDENT-STOP-BLOCKED-EVIDENCE`、`MTP-94-AUDIT-INCIDENT-STOP-BLOCKED-REASONS`、`MTP-94-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT`、`MTP-94-READ-MODEL-ONLY-NO-COMMAND-SURFACE` 和 `MTP-94-LIVE-INCIDENT-STOP-VALIDATION` anchors。
 - `Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift` 必须包含 `LiveIncidentStopBlockedGate`、`LiveIncidentStopBlockedReason`、`LiveIncidentStopBlockedEvidenceItem` 和 `LiveIncidentStopBlockedEvidence`。
-- `Sources/App/LiveIncidentStopBlockedEvidence.swift` 必须包含 `LiveIncidentStopBlockedEvidenceReadModel` 和 `LiveIncidentStopBlockedEvidenceViewModel`，并保持 Dashboard / Report / Event Timeline 只消费 read model。
+- `Sources/Workbench/Report/LiveIncidentStopBlockedEvidence.swift` 必须包含 `LiveIncidentStopBlockedEvidenceReadModel` 和 `LiveIncidentStopBlockedEvidenceViewModel`，并保持 Dashboard / Report / Event Timeline 只消费 read model。
 - `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-94 focused Core tests，验证 deterministic snapshot、forbidden command / runtime / console flags 和 prior future gate source anchors。
 - `Tests/AppTests/AppTests.swift` 必须包含 MTP-94 focused App tests，验证 ViewModel aggregation 和 Event Timeline read-only items。
 - `docs/validation/trading-validation-matrix.md` 必须包含 MTP-94 issue backfill。
@@ -1948,9 +1948,9 @@ MTP-101 必须建立的主要 anchors：
 MTP-102 的 required validation：
 
 - `docs/contracts/paper-runtime-kernel-contract.md` 必须包含 `MTP-102-EVENTLOG-REPLAY-PROJECTION-EVIDENCE-CLOSEOUT`、`MTP-102-REPORT-DASHBOARD-PAPER-RUNTIME-EVIDENCE`、`MTP-102-EVENT-TIMELINE-COMPLETE-SEQUENCE`、`MTP-102-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-102-NO-FINAL-STAGE-CODE-AUDIT` 和 `MTP-102-PAPER-RUNTIME-STAGE-CLOSEOUT-VALIDATION` anchors。
-- `Sources/App/App.swift` 必须把 local lifecycle transition IDs、paper risk decision IDs、paper order IDs、simulated fill IDs、account portfolio snapshot IDs、gross notional、fee、slippage、cost impact、paper account、position 和 paper PnL evidence 汇总到 `ReportViewModel`。
-- `Sources/App/PaperWorkflowEvidenceExplorer.swift` 必须把 `.paper.orderLocalLifecycleTransitionRecorded` 映射为 `Paper local lifecycle transition` Event Timeline item，并保留 risk decision / paper order evidence links。
-- `Sources/App/DashboardShell.swift` 必须在 Report metrics / details 和 `smokeSummary` 中输出 paper runtime evidence、paper workflow evidence 和 paper portfolio impact handles。
+- `Sources/Workbench/ReadModels/App.swift` 必须把 local lifecycle transition IDs、paper risk decision IDs、paper order IDs、simulated fill IDs、account portfolio snapshot IDs、gross notional、fee、slippage、cost impact、paper account、position 和 paper PnL evidence 汇总到 `ReportViewModel`。
+- `Sources/Workbench/Events/PaperWorkflowEvidenceExplorer.swift` 必须把 `.paper.orderLocalLifecycleTransitionRecorded` 映射为 `Paper local lifecycle transition` Event Timeline item，并保留 risk decision / paper order evidence links。
+- `Sources/Dashboard/DashboardShell.swift` 必须在 Report metrics / details 和 `smokeSummary` 中输出 paper runtime evidence、paper workflow evidence 和 paper portfolio impact handles。
 - `Tests/AppTests/AppTests.swift` 必须包含 `testMTP102PaperRuntimeEvidenceChainFeedsReportDashboardAndEventTimeline`，验证 risk -> lifecycle -> simulated fill -> account portfolio projection 的 deterministic replay chain 被 Report / Dashboard / Event Timeline 只读消费。
 - `docs/audit/inputs/mtpro-event-driven-paper-trading-runtime-v1-stage-audit-input.md` 必须作为 Parent Codex Stage Code Audit 输入材料落仓；不得生成最终 Stage Code Audit Report。
 - `docs/validation/trading-validation-matrix.md` 必须包含 MTP-102 issue backfill。
@@ -2185,7 +2185,7 @@ MTP-107 必须建立的主要 anchors：
 MTP-108 的 required validation：
 
 - `docs/contracts/data-catalog-scenario-replay-contract.md` 必须包含 `MTP-108-SCENARIO-REPLAY-READ-MODEL-EVIDENCE`、`MTP-108-REPORT-SCENARIO-REPLAY-EVIDENCE`、`MTP-108-WORKBENCH-SCENARIO-REPLAY-SUMMARY-DRILLDOWN`、`MTP-108-EVENTS-REPLAY-WINDOW-CURSOR-CHECKSUM-FRESHNESS`、`MTP-108-QUALITY-GATE-TIMELINE`、`MTP-108-READ-MODEL-ONLY-NO-COMMAND-SURFACE` 和 `MTP-108-SCENARIO-REPLAY-SURFACE-VALIDATION` anchors。
-- `Sources/App/ScenarioReplayEvidenceSurface.swift` 必须定义 `ScenarioReplayEvidenceReadModel`、`ScenarioReplayEvidenceViewModel` 和 MTP-108 validation anchors，并且只消费 MTP-107 `ScenarioDataQualityReportInputEvidence.deterministicFixture` 的 stable fields。
+- `Sources/Workbench/Report/ScenarioReplayEvidenceSurface.swift` 必须定义 `ScenarioReplayEvidenceReadModel`、`ScenarioReplayEvidenceViewModel` 和 MTP-108 validation anchors，并且只消费 MTP-107 `ScenarioDataQualityReportInputEvidence.deterministicFixture` 的 stable fields。
 - `ReportReadModel` / `ReportViewModel` 必须输出 scenario id、dataset version、fixture version、replay window、checksum、freshness status、quality verdict、report input version identity、drill-down entry、timeline count 和 quality gate timeline count。
 - `DashboardShellWorkbenchSnapshot` 必须输出 scenario replay summary、drill-down evidence、read-model-only source 和 Dashboard smoke handles `scenarioReplayEvidence` / `scenarioQualityGates`。
 - `PaperWorkflowEvidenceExplorer` 必须新增 `scenario replay evidence` section，并输出 replay window、cursor、checksum、freshness 和六个 quality gate timeline rows。
@@ -2496,7 +2496,7 @@ MTP-115 必须建立的主要 anchors：
 MTP-116 的 required validation：
 
 - `docs/contracts/simulated-exchange-backtest-parity-contract.md` 必须包含 `MTP-116-PARITY-EVIDENCE-READ-MODEL`、`MTP-116-REPORT-DASHBOARD-EVENTS-PARITY-SURFACE`、`MTP-116-SCENARIO-MATCHING-FILL-COST-PORTFOLIO-SNAPSHOT`、`MTP-116-READ-MODEL-ONLY-NO-COMMAND-SURFACE`、`MTP-116-NO-LIVE-BROKER-SIGNED-ENDPOINT` 和 `MTP-116-SIMULATED-EXCHANGE-PARITY-SURFACE-VALIDATION` anchors。
-- `Sources/App/SimulatedExchangeParityEvidenceSurface.swift` 必须定义 `SimulatedExchangeParityEvidenceItem`、`SimulatedExchangeParityEvidenceReadModel`、`SimulatedExchangeParityEvidenceViewModel` 和 timeline entry，且只消费 MTP-112 至 MTP-115 deterministic Core evidence。
+- `Sources/Workbench/Report/SimulatedExchangeParityEvidenceSurface.swift` 必须定义 `SimulatedExchangeParityEvidenceItem`、`SimulatedExchangeParityEvidenceReadModel`、`SimulatedExchangeParityEvidenceViewModel` 和 timeline entry，且只消费 MTP-112 至 MTP-115 deterministic Core evidence。
 - Report ViewModel 必须展示 scenario id、dataset / fixture version、replay window、matching result、matching event、order id / type、partial / full / reject / expire outcomes、latency、fee、slippage、portfolio projection parity、report input version identity、source replay sequence 和 read-model-only boundary flags。
 - Dashboard / Workbench 必须展示 parity evidence、outcomes、timeline、portfolio parity、cost parity metrics 和 no-command/no-trading/no-schema/no-runtime/no-adapter details。
 - Events / Evidence Explorer 必须新增 `simulated exchange parity evidence` 只读 section，并输出 scenario、matching、fill summary、reject / expire、latency / cost、portfolio parity、report input / replay consistency timeline rows。
@@ -2693,7 +2693,7 @@ MTP-121 必须建立的主要 anchors：
 
 MTP-121 的验收要求：
 
-- `Sources/App/WorkbenchBetaFirstRunState.swift` 必须定义 `WorkbenchBetaFirstRunReadModel`、`WorkbenchBetaFirstRunViewModel`、`WorkbenchBetaFirstRunEvidenceSummary` 和 `WorkbenchBetaFirstRunFallbackState`。
+- `Sources/Workbench/Dashboard/WorkbenchBetaFirstRunState.swift` 必须定义 `WorkbenchBetaFirstRunReadModel`、`WorkbenchBetaFirstRunViewModel`、`WorkbenchBetaFirstRunEvidenceSummary` 和 `WorkbenchBetaFirstRunFallbackState`。
 - First-run 默认状态必须选择 `mtp-104-btcusdt-1m-first-scenario`、`dataset-v1`、`fixture-v1`、`BTCUSDT` / `1m`，并输出 checksum `fnv1a64:3c6cd4ff13cd4062`、freshness `fresh`、quality `accepted` 和 report input version identity。
 - `DashboardReadModel.defaultWorkbenchBetaDemo` 和 `DashboardViewModel.defaultWorkbenchBetaDemo` 必须通过 App Read Model / ViewModel 提供 first-run state，不直接暴露 Core fixture、Persistence schema、Runtime object 或 Adapter request。
 - `Sources/Dashboard/DashboardApplication.swift` 必须使用 `DashboardViewModel.defaultWorkbenchBetaDemo`，使 `DASHBOARD_SMOKE=1 swift run Dashboard` 输出 `defaultDemoState=default demo`、`defaultDemoScenario=mtp-104-btcusdt-1m-first-scenario`、`betaFirstRunFallbacks=3`、`scenarioReplayEvidence=1` 和 `simulatedParityEvidence=1`。
@@ -2732,11 +2732,11 @@ MTP-122 必须建立的主要 anchors：
 
 MTP-122 的验收要求：
 
-- `Sources/App/WorkbenchBetaAcceptancePath.swift` 必须定义 `WorkbenchBetaAcceptancePathReadModel` 和 `WorkbenchBetaAcceptancePathViewModel`，只从 `ReportReadModel` 与 `WorkbenchBetaFirstRunReadModel.defaultDemo` 生成 acceptance path。
+- `Sources/Workbench/Dashboard/WorkbenchBetaAcceptancePath.swift` 必须定义 `WorkbenchBetaAcceptancePathReadModel` 和 `WorkbenchBetaAcceptancePathViewModel`，只从 `ReportReadModel` 与 `WorkbenchBetaFirstRunReadModel.defaultDemo` 生成 acceptance path。
 - Acceptance path 必须证明 Report、Dashboard 和 Events 使用同一 scenario `mtp-104-btcusdt-1m-first-scenario`、dataset `dataset-v1`、fixture `fixture-v1`、report input version `mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|1704067200...1704067380|fnv1a64:3c6cd4ff13cd4062|fresh|accepted`。
 - `DashboardViewModel.defaultWorkbenchBetaDemo` 必须输出 `workbenchBetaAcceptancePath.acceptancePathCount=1`、Report summary、Dashboard panel summaries、Events trace 和 portfolio projection parity evidence。
-- `Sources/App/PaperWorkflowEvidenceExplorer.swift` 必须新增 `workbench beta acceptance path` section，输出 Report summary、Scenario Replay evidence、Simulated Exchange / Backtest Parity evidence、Portfolio evidence 和 boundary summary 五条 timeline rows。
-- `Sources/App/DashboardShell.swift` 必须输出 Dashboard smoke handles `betaAcceptancePaths=1`、`betaAcceptanceScenario=mtp-104-btcusdt-1m-first-scenario` 和 `betaAcceptanceTrace=5`。
+- `Sources/Workbench/Events/PaperWorkflowEvidenceExplorer.swift` 必须新增 `workbench beta acceptance path` section，输出 Report summary、Scenario Replay evidence、Simulated Exchange / Backtest Parity evidence、Portfolio evidence 和 boundary summary 五条 timeline rows。
+- `Sources/Dashboard/DashboardShell.swift` 必须输出 Dashboard smoke handles `betaAcceptancePaths=1`、`betaAcceptanceScenario=mtp-104-btcusdt-1m-first-scenario` 和 `betaAcceptanceTrace=5`。
 - `Tests/AppTests/AppTests.swift` 必须包含 MTP-122 focused test，覆盖 Report summary、Dashboard panels、Events trace、same demo scenario、portfolio evidence、validation anchors 和 forbidden capability flags。
 - `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-122 mechanical anchors。
 
@@ -3089,8 +3089,8 @@ MTP-131 的验收要求：
 
 - `docs/contracts/live-read-only-readiness-boundary-contract.md` 必须包含 `MTP-131-WORKBENCH-LIVE-READINESS-READ-MODEL-ONLY-BOUNDARY`、`MTP-131-READ-MODEL-VIEWMODEL-INPUT-BOUNDARY`、`MTP-131-FORBIDDEN-UI-SURFACE`、`MTP-131-DETAIL-AUDIT-ROUTING`、`MTP-131-L31-L32-L33-HANDOFF` 和 `MTP-131-LIVE-READ-ONLY-WORKBENCH-VALIDATION` anchors。
 - `Sources/Core/LiveTradingBoundary.swift` 必须包含 `LiveReadOnlyWorkbenchReadModelBoundary` deterministic fixture，并固定 `TVM-LIVE-READ-ONLY-READINESS`、Workbench boundary surfaces、ReadModel / ViewModel input boundary、forbidden UI surface、detail / audit route、L3 handoff 和 forbidden flags。
-- `Sources/App/LiveReadOnlyWorkbenchBoundary.swift` 必须包含 `LiveReadOnlyWorkbenchBoundaryReadModel` 和 `LiveReadOnlyWorkbenchBoundaryViewModel`，只输出 read-model-only Dashboard / Report / Event Timeline evidence。
-- `Sources/App/App.swift`、`Sources/App/DashboardShell.swift` 和 `Sources/App/PaperWorkflowEvidenceExplorer.swift` 必须接入 MTP-131 read model / ViewModel、Dashboard shell metrics / details / smoke handle 和 Event Timeline evidence item。
+- `Sources/Workbench/FutureLiveProConsole/LiveReadOnlyWorkbenchBoundary.swift` 必须包含 `LiveReadOnlyWorkbenchBoundaryReadModel` 和 `LiveReadOnlyWorkbenchBoundaryViewModel`，只输出 read-model-only Dashboard / Report / Event Timeline evidence。
+- `Sources/Workbench/ReadModels/App.swift`、`Sources/Dashboard/DashboardShell.swift` 和 `Sources/Workbench/Events/PaperWorkflowEvidenceExplorer.swift` 必须接入 MTP-131 read model / ViewModel、Dashboard shell metrics / details / smoke handle 和 Event Timeline evidence item。
 - `Tests/CoreTests/CoreTests.swift` 必须包含 `testLiveReadOnlyWorkbenchReadModelBoundaryDefinesMTP131Surface` 和 `testLiveReadOnlyWorkbenchReadModelBoundaryRejectsForbiddenUISurfaceBypass`。
 - `Tests/AppTests/AppTests.swift` 必须包含 `testLiveReadOnlyWorkbenchBoundaryViewModelAggregatesMTP131ReadOnlySurface`，并覆盖 Dashboard shell、Report snapshot 和 Evidence Explorer read-only integration。
 - `docs/domain/context.md` 必须包含 MTP-131 Workbench Live readiness shared language。
@@ -3397,10 +3397,10 @@ MTP-138 的 required validation：
 
 MTP-138 的验收要求：
 
-- `Sources/App/AccountPositionBalanceReadModelOnlySurface.swift` 必须包含 `AccountPositionBalanceReadModelOnlySurfaceReadModel`、`AccountPositionBalanceReadModelOnlySurfaceViewModel` 和 `AccountPositionBalanceReadModelOnlySurfaceTraceItem`。
-- `Sources/App/App.swift` 必须把 APB surface 接入 `ReportReadModel`、`ReportViewModel` 和 `DashboardViewModel` read-model-only source chain。
-- `Sources/App/PaperWorkflowEvidenceExplorer.swift` 必须新增 `accountPositionBalanceReadModelOnlySurface` section、coverage flag 和三条 APB timeline items。
-- `Sources/App/DashboardShell.swift` 必须在 Workbench、Report 和 Dashboard smoke 中展示 APB read-model-only evidence。
+- `Sources/Workbench/Report/AccountPositionBalanceReadModelOnlySurface.swift` 必须包含 `AccountPositionBalanceReadModelOnlySurfaceReadModel`、`AccountPositionBalanceReadModelOnlySurfaceViewModel` 和 `AccountPositionBalanceReadModelOnlySurfaceTraceItem`。
+- `Sources/Workbench/ReadModels/App.swift` 必须把 APB surface 接入 `ReportReadModel`、`ReportViewModel` 和 `DashboardViewModel` read-model-only source chain。
+- `Sources/Workbench/Events/PaperWorkflowEvidenceExplorer.swift` 必须新增 `accountPositionBalanceReadModelOnlySurface` section、coverage flag 和三条 APB timeline items。
+- `Sources/Dashboard/DashboardShell.swift` 必须在 Workbench、Report 和 Dashboard smoke 中展示 APB read-model-only evidence。
 - `Tests/AppTests/AppTests.swift` 必须覆盖 ViewModel、Workbench metrics / details、Report APB details、Event Timeline APB section 和 forbidden UI / runtime flags。
 - `docs/contracts/account-position-balance-read-model-only-contract.md` 必须包含 `MTP-138-WORKBENCH-REPORT-EVENTS-READ-MODEL-ONLY-SURFACE`、`MTP-138-DASHBOARD-REPORT-EVENTS-EVIDENCE`、`MTP-138-FORBIDDEN-UI-RUNTIME-SURFACE` 和 `MTP-138-WORKBENCH-REPORT-EVENTS-READ-MODEL-ONLY-VALIDATION` anchors。
 - `docs/domain/context.md` 必须包含 MTP-138 Workbench / Report / Events read-model-only surface shared language。
@@ -3731,10 +3731,10 @@ MTP-145 的 required validation：
 
 MTP-145 的验收要求：
 
-- `Sources/App/PrivateStreamSimulationGateEvidenceSurface.swift` 必须包含 `PrivateStreamSimulationGateEvidenceSurfaceReadModel`、`PrivateStreamSimulationGateEvidenceSurfaceViewModel`、`PrivateStreamSimulationGateFreshnessRecordViewModel` 和 `PrivateStreamSimulationGateEvidenceTraceItem`。
-- `Sources/App/App.swift` 必须把 MTP-145 surface 接入 `ReportReadModel`、`ReportViewModel` 和 `DashboardViewModel` source chain。
-- `Sources/App/PaperWorkflowEvidenceExplorer.swift` 必须包含 `privateStreamSimulationGateEvidenceSurface` section，并输出 MTP-145 Event Timeline read-model-only evidence item。
-- `Sources/App/DashboardShell.swift` 必须包含 Workbench / Report simulation gate metrics、details 和 Dashboard smoke handle `privateStreamSimulationGateEvidence=4`。
+- `Sources/Workbench/Report/PrivateStreamSimulationGateEvidenceSurface.swift` 必须包含 `PrivateStreamSimulationGateEvidenceSurfaceReadModel`、`PrivateStreamSimulationGateEvidenceSurfaceViewModel`、`PrivateStreamSimulationGateFreshnessRecordViewModel` 和 `PrivateStreamSimulationGateEvidenceTraceItem`。
+- `Sources/Workbench/ReadModels/App.swift` 必须把 MTP-145 surface 接入 `ReportReadModel`、`ReportViewModel` 和 `DashboardViewModel` source chain。
+- `Sources/Workbench/Events/PaperWorkflowEvidenceExplorer.swift` 必须包含 `privateStreamSimulationGateEvidenceSurface` section，并输出 MTP-145 Event Timeline read-model-only evidence item。
+- `Sources/Dashboard/DashboardShell.swift` 必须包含 Workbench / Report simulation gate metrics、details 和 Dashboard smoke handle `privateStreamSimulationGateEvidence=4`。
 - `Tests/AppTests/AppTests.swift` 必须包含 `testPrivateStreamSimulationGateEvidenceSurfaceAggregatesMTP145ReadOnlySurface`，覆盖 Report / Workbench / Events surface、forbidden UI/runtime flags 和 Codable deterministic snapshot。
 - `docs/contracts/private-stream-account-snapshot-simulation-gate-contract.md` 必须包含 MTP-145 read-model-only surface、Dashboard / Report / Events evidence、forbidden UI/runtime surface 和 validation anchors。
 - `docs/validation/trading-validation-matrix.md` 必须包含 MTP-145 issue backfill。
@@ -4036,10 +4036,10 @@ MTP-152 的 required validation：
 
 MTP-152 的验收要求：
 
-- `Sources/App/LiveMonitoringReadOnlyConsoleV2Surface.swift` 必须包含 `LiveMonitoringReadOnlyConsoleV2SurfaceReadModel`、`LiveMonitoringReadOnlyConsoleV2SurfaceViewModel` 和 `LiveMonitoringReadOnlyConsoleV2TraceItem`。
-- `Sources/App/App.swift` 必须把 `liveMonitoringReadOnlyConsoleV2Surface` 接入 Report / Dashboard read model 和 view model。
-- `Sources/App/PaperWorkflowEvidenceExplorer.swift` 必须包含 `liveMonitoringReadOnlyConsoleV2Surface` section，并输出 MTP-152 Event Timeline read-model-only evidence item。
-- `Sources/App/DashboardShell.swift` 必须包含 Workbench / Report metrics、details 和 smoke handle `liveMonitoringReadOnlyConsoleV2Surface=4`。
+- `Sources/Workbench/Report/LiveMonitoringReadOnlyConsoleV2Surface.swift` 必须包含 `LiveMonitoringReadOnlyConsoleV2SurfaceReadModel`、`LiveMonitoringReadOnlyConsoleV2SurfaceViewModel` 和 `LiveMonitoringReadOnlyConsoleV2TraceItem`。
+- `Sources/Workbench/ReadModels/App.swift` 必须把 `liveMonitoringReadOnlyConsoleV2Surface` 接入 Report / Dashboard read model 和 view model。
+- `Sources/Workbench/Events/PaperWorkflowEvidenceExplorer.swift` 必须包含 `liveMonitoringReadOnlyConsoleV2Surface` section，并输出 MTP-152 Event Timeline read-model-only evidence item。
+- `Sources/Dashboard/DashboardShell.swift` 必须包含 Workbench / Report metrics、details 和 smoke handle `liveMonitoringReadOnlyConsoleV2Surface=4`。
 - `Tests/AppTests/AppTests.swift` 必须包含 `testLiveMonitoringReadOnlyConsoleV2SurfaceAggregatesMTP152WorkbenchReportEventsEvidence`，并验证 Workbench / Report / Events 只消费 Read Model / ViewModel。
 - `docs/contracts/live-monitoring-read-only-console-v2-contract.md` 必须包含 `MTP-152-WORKBENCH-REPORT-EVENTS-READ-MODEL-ONLY-SURFACE`、`MTP-152-MONITORING-SOURCE-FRESHNESS-EXPLANATION-SURFACE`、`MTP-152-NO-RUNTIME-ADAPTER-SCHEMA-PAYLOAD-BROKER-STATE-SURFACE` 和 `MTP-152-LIVE-MONITORING-V2-SURFACE-VALIDATION` anchors。
 - `docs/domain/context.md` 必须包含 MTP-152 Workbench / Report / Events shared language。
@@ -4397,10 +4397,10 @@ MTP-160 必须建立的主要 anchors：
 
 MTP-160 的 App evidence：
 
-- `Sources/App/StrategyTraderReadinessEvidenceSurface.swift` 提供 deterministic read-model-only evidence surface 和 ViewModel。
-- `Sources/App/App.swift` 将 surface 接入 Report / Dashboard read model 和 ViewModel，并保持 trading authorization 为 false。
-- `Sources/App/PaperWorkflowEvidenceExplorer.swift` 新增 strategy readiness timeline section 和六条 read-model-only event items。
-- `Sources/App/DashboardShell.swift` 将 surface 汇入 Workbench / Report metrics、details、boundary flags 和 Dashboard smoke handle `strategyTraderReadinessSurface=6`。
+- `Sources/Workbench/Report/StrategyTraderReadinessEvidenceSurface.swift` 提供 deterministic read-model-only evidence surface 和 ViewModel。
+- `Sources/Workbench/ReadModels/App.swift` 将 surface 接入 Report / Dashboard read model 和 ViewModel，并保持 trading authorization 为 false。
+- `Sources/Workbench/Events/PaperWorkflowEvidenceExplorer.swift` 新增 strategy readiness timeline section 和六条 read-model-only event items。
+- `Sources/Dashboard/DashboardShell.swift` 将 surface 汇入 Workbench / Report metrics、details、boundary flags 和 Dashboard smoke handle `strategyTraderReadinessSurface=6`。
 - `Tests/AppTests/AppTests.swift` 的 `testStrategyTraderReadinessSurfaceAggregatesMTP160WorkbenchReportEventsEvidence` 覆盖 record count、timeline items、Dashboard smoke、forbidden flags 和 Codable round trip。
 
 ## MTP-160 禁止
@@ -5599,4 +5599,38 @@ MTP-188 必须建立的主要 anchors：
 - 不把 paper risk decision、paper order intent、paper lifecycle state、simulated fill、fee / slippage evidence、OMSFutureGate 或 BrokerCapabilityMatrix 升级为 executable order command、ExecutionClient request、OMS order、broker order、order form payload、live command 或 trading button。
 - 不迁移 Workbench 或 Dashboard，除非是保持现有 target buildability 的最小 import compatibility。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-189 Workbench / Dashboard Physical Migration Validation
+
+MTP-189 必须运行：
+
+- `swift test --filter AppTests/testMTP189`
+- `swift test --filter AppTests`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-189 的验收要求：
+
+- `Sources/Workbench/ReadModels/`、`Sources/Workbench/Report/`、`Sources/Workbench/Dashboard/`、`Sources/Workbench/Events/` 和 `Sources/Workbench/FutureLiveProConsole/` 必须承载 Workbench read-model-only source roots。
+- `Sources/Dashboard/` 必须承载 macOS shell / smoke source；Dashboard 只能消费 `DashboardViewModel` / `DashboardShellSnapshot`。
+- `Package.swift` 必须保留现有 `App` product / target 名称作为 compatibility envelope，不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- 旧 `Sources/App/` 不得继续作为 Workbench source owner 保留。
+- `docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-189 mechanical anchors。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-189 必须建立的主要 anchors：
+
+- `MTP-189-WORKBENCH-DASHBOARD-PHYSICAL-MIGRATION`
+- `MTP-189-APP-COMPATIBILITY-ENVELOPE`
+- `MTP-189-DASHBOARD-SHELL-BOUNDARY`
+- `MTP-189-WORKBENCH-READMODEL-ONLY-GUARD`
+
+## MTP-189 禁止
+
+- 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- 不实现 Workbench runtime、Live PRO Console、trading button、live command、order form、broker connect UI、account connect UI、Runtime object exposure、Adapter request exposure、SQLite / DuckDB schema exposure、account payload exposure、broker state exposure、ExecutionClient request UI、OMS command UI、emergency stop、shutdown、restore 或 production operations command。
+- 不把 Report / Dashboard / Events evidence surface 升级为 command surface、broker payload viewer、database schema viewer、adapter request viewer 或 real account console。
+- 不迁移 MTP-190 stage closeout material，不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
