@@ -5890,3 +5890,43 @@ MTP-196 必须建立的主要 anchors：
 - 不把 StrategyBindings 写成 EMA、OrderBookImbalance 或未来具体 strategy implementation landing path。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-197 Validation Matrix / Compatibility Envelope / Stage Audit Input Validation
+
+MTP-197 必须运行：
+
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-197 的验收要求：
+
+- `docs/audit/inputs/mtpro-trader-owned-strategies-layout-correction-v1-stage-audit-input.md` 必须准备 MTP-191 至 MTP-196 的 issue / PR evidence chain、Trader-owned strategy layout closeout、validation matrix closeout、automation readiness closeout、compatibility envelope audit、forbidden implementation audit、unresolved future gates、Root Docs Delta input 和 Stage Code Audit handoff checklist。
+- `docs/validation/trading-validation-matrix.md` 必须包含 MTP-197 issue backfill，并把本 Project 的 matrix coverage 固定为 Trader-owned strategy canonical paths、historical `Sources/Strategies/<strategy>` compatibility treatment、StrategyBindings non-landing guard、forbidden direct execution path 和 no runtime / live capability。
+- `docs/automation/automation-readiness.md` 与 `checks/automation-readiness.sh` 必须机械检查 MTP-197 audit input、validation matrix、validation plan、latest verification summary 和 no final Stage Code Audit / no next stage boundary。
+- MTP-197 只准备 Parent Codex Stage Code Audit 输入材料，不输出最终 Stage Code Audit Report，不设置 Linear Project `Completed`，不创建下一 Project / Issue，不推进下一阶段 Todo。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-197 必须建立的主要 anchors：
+
+- `MTP-197-TRADER-OWNED-STRATEGIES-LAYOUT-STAGE-CLOSEOUT`
+- `MTP-197-STAGE-AUDIT-INPUT-MATERIAL`
+- `MTP-197-NO-FINAL-STAGE-CODE-AUDIT`
+- `MTP-197-TRADER-OWNED-STRATEGIES-EVIDENCE-CHAIN`
+- `MTP-197-TRADER-OWNED-STRATEGY-LAYOUT-CLOSEOUT`
+- `MTP-197-VALIDATION-MATRIX-CLOSEOUT`
+- `MTP-197-AUTOMATION-READINESS-CLOSEOUT`
+- `MTP-197-FORBIDDEN-IMPLEMENTATION-AUDIT`
+- `MTP-197-UNRESOLVED-FUTURE-GATES`
+- `MTP-197-STAGE-CLOSEOUT-VALIDATION`
+
+## MTP-197 禁止
+
+- 不移动 source files，不修改 `Package.swift` source roots。
+- 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- 不实现 Strategy runtime、strategy scheduler、live quoter、live hedger、Trader runtime、live coordinator、broker gateway、ExecutionClient gateway、OMS gateway、account session runtime、broker position sync、signed endpoint、account endpoint、listenKey、private stream runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form、short command、margin command 或 futures command。
+- 不把 `Sources/Strategies/<strategy>` 写回 canonical future path。
+- 不把 StrategyBindings 写成 EMA、OrderBookImbalance 或未来具体 strategy implementation landing path。
+- 不输出最终 Stage Code Audit Report，不设置 Linear Project `Completed`，不创建下一 Project / Issue，不推进下一阶段 Todo。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
