@@ -5634,3 +5634,41 @@ MTP-189 必须建立的主要 anchors：
 - 不把 Report / Dashboard / Events evidence surface 升级为 command surface、broker payload viewer、database schema viewer、adapter request viewer 或 real account console。
 - 不迁移 MTP-190 stage closeout material，不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-190 Target Module Source Migration Stage Closeout Validation
+
+MTP-190 必须运行：
+
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-190 的验收要求：
+
+- `docs/audit/inputs/mtpro-target-module-physical-layout-source-migration-v1-stage-audit-input.md` 必须存在，并包含 MTP-183 至 MTP-189 PR evidence、source migration closeout、validation matrix closeout、automation readiness closeout、remaining compatibility shell audit、forbidden implementation audit、unresolved future gates、Root Docs Delta input 和 Stage Code Audit handoff checklist。
+- `docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-190 mechanical anchors。
+- `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` 必须明确 MTP-190 只收口 validation matrix、automation readiness 和 audit input，不授权 SwiftPM target graph split、L4 execution、broker runtime、live runtime 或 command-capable product surface。
+- Stage audit input 必须明确 final Stage Code Audit Report 仍由 Parent Codex 在 Project Done / Completed evidence 后单独输出。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-190 必须建立的主要 anchors：
+
+- `MTP-190-TARGET-MODULE-SOURCE-MIGRATION-STAGE-CLOSEOUT`
+- `MTP-190-STAGE-AUDIT-INPUT-MATERIAL`
+- `MTP-190-NO-FINAL-STAGE-CODE-AUDIT`
+- `MTP-190-SOURCE-MIGRATION-EVIDENCE-CHAIN`
+- `MTP-190-SOURCE-MIGRATION-CLOSEOUT`
+- `MTP-190-VALIDATION-MATRIX-CLOSEOUT`
+- `MTP-190-AUTOMATION-READINESS-CLOSEOUT`
+- `MTP-190-REMAINING-COMPATIBILITY-SHELL-AUDIT`
+- `MTP-190-FORBIDDEN-IMPLEMENTATION-AUDIT`
+- `MTP-190-UNRESOLVED-FUTURE-GATES`
+- `MTP-190-STAGE-CLOSEOUT-VALIDATION`
+
+## MTP-190 禁止
+
+- 不输出最终 Stage Code Audit Report，不设置 Linear Project `Completed`，不创建下一 Project / Issue，不推进下一阶段 Todo。
+- 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- 不实现 Strategy runtime、Trader runtime、Portfolio runtime、RiskEngine runtime、ExecutionEngine runtime、ExecutionClient implementation、OMS implementation、broker adapter、signed endpoint、account endpoint / listenKey、private stream runtime、account snapshot runtime、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form、emergency stop、shutdown、restore 或 production operations command。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
