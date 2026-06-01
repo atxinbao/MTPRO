@@ -2361,6 +2361,40 @@ MTP-182 validation 必须通过 `bash checks/automation-readiness.sh`、`git dif
 
 MTP-182 不运行 Graphify，不修改 Figma，不创建 L4 Linear Project / Issue，不推进下一阶段 Todo，不启动新的 `@002 / PAR` 或 Symphony，不设置 Linear Project `Completed`，不输出最终 Stage Code Audit Report，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## Target Module Physical Layout / Source Migration Terms
+
+`MTP-183-TARGET-PHYSICAL-LAYOUT-CONTRACT`
+
+`target physical layout` 指 `MTPRO Target Module Physical Layout / Source Migration v1` 后续 source migration 允许落入的固定目录结构。它复用 MTP-163 的 target source layout，不表示 MTP-183 已移动任何 source file。
+
+`MTP-183-CURRENT-SWIFTPM-SNAPSHOT`
+
+`current SwiftPM snapshot` 指当前 `Package.swift` 仍保留 `Core / Adapters / Persistence / Runtime / App / Dashboard` coarse targets。该 snapshot 是迁移输入，不是最终架构名。
+
+`MTP-183-SWIFTPM-MIGRATION-CONTRACT`
+
+`SwiftPM migration contract` 指后续逐步从 directory / namespace move、compatibility shell、low-level target split 到 engine / surface target split 的规则。任何 `Package.swift` target graph change 都必须由后续 Linear issue 明确授权，不能由 planning record 或 MTP-183 自动授权。
+
+`MTP-183-OLD-TO-NEW-SOURCE-MAP`
+
+`old-to-new source map` 指 `Core / Adapters / Persistence / Runtime / App / Dashboard / CSQLite` 到 `DomainModel / DataClient / DataEngine / MessageBus / Cache / Database / Strategies / Trader / Portfolio / RiskEngine / ExecutionEngine / ExecutionClient / Workbench / Dashboard` 的迁移映射。旧路径只能是 migration source / compatibility shell，不是新增能力落点。
+
+`MTP-183-COMPATIBILITY-SHELL-POLICY`
+
+`compatibility shell` 是迁移期间保留 buildability 的旧路径薄壳，只能 forwarding import、typealias、deprecated wrapper 或 minimal adapter glue。它不能新增业务语义，不能绕过 import direction，不能长期保留为最终架构。
+
+`MTP-183-IMPORT-DIRECTION-GUARD`
+
+`import direction guard` 指后续 source migration 必须阻断 `Strategies -> ExecutionClient`、`Trader -> ExecutionClient`、`Workbench -> Runtime object / Adapter request / Database schema`、`DataClient -> signed/account/listenKey/private runtime`、`RiskEngine -> broker / ExecutionClient`、`Portfolio -> broker account state`、`ExecutionEngine -> current OMS / broker adapter` 和 `Dashboard -> broker command / live command / order form`。
+
+`MTP-183-VALIDATION-ANCHORS`
+
+MTP-183 validation anchors 只证明 migration contract、target layout、old-to-new map、compatibility shell policy、import guard 和 required validation 已落仓。它们不授权 MTP-184 之后的 source movement 自动发生。
+
+`MTP-183-NO-SOURCE-MOVE-PACKAGE-BUSINESS-CODE`
+
+MTP-183 不移动 `Sources` 文件，不修改 `Package.swift` target graph，不写业务代码，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、signed endpoint、account endpoint / listenKey、private WebSocket runtime、broker adapter、real order lifecycle、Live PRO Console、trading button、live command 或 order form。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

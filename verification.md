@@ -13401,3 +13401,27 @@ Root Docs Refresh Gate 更新：
 - 不新增 Live PRO Console、trading button、live command、order form、account connect 或 broker connect。
 - 不运行 Graphify，不修改 Figma。
 - `.codex/*` 和 `graphify-out/*` 不进入 PR。
+
+## 2026-06-01 — MTP-183 Target module physical layout migration contract
+
+执行者：Codex
+
+范围：
+
+- 为 `MTP-183 Define target module physical layout and SwiftPM migration contract` 落仓 contract-first migration evidence。
+- 新增 `docs/contracts/target-module-physical-layout-source-migration-contract.md`，固定 target physical layout、current SwiftPM snapshot、SwiftPM migration contract、old-to-new source map、compatibility shell policy、import direction guard、tests placement 和 validation anchors。
+- 更新 `docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh`，建立 MTP-183 mechanical anchors。
+
+边界：
+
+- 未移动 `Sources` 文件。
+- 未修改 `Package.swift` target graph。
+- 未写业务代码。
+- 未启动 Symphony / symphony-issue，未运行 Graphify，未修改 Figma。
+- 不授权 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、signed endpoint、account endpoint / listenKey、private WebSocket runtime、broker adapter、real order lifecycle、Live PRO Console、trading button、live command 或 order form。
+
+验证：
+
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，通过 `git diff --check`、automation readiness、Dashboard build、Dashboard smoke 和 303 个 XCTest；Dashboard smoke 输出包含 `timelineItems=82`、`scenarioReplayEvidence=1`、`scenarioQualityGates=6`、`simulatedParityEvidence=1`、`accountPositionBalanceEvidence=3`、`privateStreamSimulationGateEvidence=4`、`liveMonitoringReadOnlyConsoleV2Surface=4`、`strategyTraderReadinessSurface=6` 和 `liveReadOnlyWorkbenchBoundary=5`；最终输出 `MTPRO checks passed.`。

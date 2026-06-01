@@ -5348,3 +5348,46 @@ MTP-182 必须建立的主要 anchors：
 - 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker adapter、real order lifecycle、signed endpoint、account endpoint / listenKey、private stream runtime、account snapshot runtime、Live PRO Console、trading button、live command、order form、emergency stop、shutdown、restore 或 production operations command。
 - 不把 `TVM-ARCHITECTURE-MODULE-BOUNDARY`、L4 planning input material、Workbench read-model-only boundary 或 Future Live PRO Console product-surface split 写成 execution authorization。
 - 不运行 Graphify，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-183 Target Physical Layout / SwiftPM Migration Contract Validation
+
+日期：2026-06-01
+
+执行者：Codex
+
+MTP-183 的 required validation：
+
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-183 的验收要求：
+
+- `docs/contracts/target-module-physical-layout-source-migration-contract.md` 必须存在，并包含 target physical layout、current SwiftPM snapshot、SwiftPM migration contract、old-to-new source map、compatibility shell policy、import direction guard、tests placement、validation anchors 和 no source move / Package.swift / business code boundary。
+- `docs/architecture/module-boundary.md` 必须包含 MTP-183 target layout / SwiftPM migration anchors。
+- `docs/domain/context.md` 必须包含 MTP-183 shared language anchors。
+- `docs/validation/trading-validation-matrix.md` 必须把 `TVM-ARCHITECTURE-MODULE-BOUNDARY` 扩展到 MTP-183 issue backfill。
+- `docs/automation/automation-readiness.md` 必须新增 Target module migration contract anchor。
+- `docs/validation/latest-verification-summary.md` 必须记录 MTP-183 的当前 issue execution evidence。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-183 contract file、architecture boundary、domain context、validation plan、validation matrix、latest summary 和 automation readiness doc。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-183 必须建立的主要 anchors：
+
+- `MTP-183-TARGET-PHYSICAL-LAYOUT-CONTRACT`
+- `MTP-183-CURRENT-SWIFTPM-SNAPSHOT`
+- `MTP-183-SWIFTPM-MIGRATION-CONTRACT`
+- `MTP-183-OLD-TO-NEW-SOURCE-MAP`
+- `MTP-183-COMPATIBILITY-SHELL-POLICY`
+- `MTP-183-IMPORT-DIRECTION-GUARD`
+- `MTP-183-TESTS-PLACEMENT-CONTRACT`
+- `MTP-183-VALIDATION-ANCHORS`
+- `MTP-183-NO-SOURCE-MOVE-PACKAGE-BUSINESS-CODE`
+
+## MTP-183 禁止
+
+- 不移动 `Sources` 文件，不新增或修改 Swift production code，不修改 `Package.swift` target graph，不创建 SwiftPM target。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、signed endpoint、account endpoint / listenKey、private WebSocket runtime、broker adapter、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、real PnL、Live PRO Console、trading button、live command 或 order form。
+- 不把 `ExecutionClient`、`OMSFutureGate`、`FuturePrivateStreamGate`、`FutureLiveProConsole` 或 compatibility shell 写成当前 runtime implementation。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
