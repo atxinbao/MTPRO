@@ -22,23 +22,29 @@ let package = Package(
             name: "Core",
             path: "Sources",
             exclude: [
-                "Adapters",
                 "App",
                 "CSQLite",
                 "Dashboard",
+                "DataClient",
+                "DataEngine/Ingest",
                 "Persistence",
                 "Runtime"
             ],
             sources: [
                 "Core",
                 "DomainModel",
-                "MessageBus"
+                "MessageBus",
+                "DataEngine/ScenarioReplay",
+                "DataEngine/DataQuality"
             ]
         ),
         .target(
             name: "Adapters",
             dependencies: ["Core"],
-            path: "Sources/Adapters"
+            path: "Sources/DataClient",
+            sources: [
+                "Binance/PublicMarketData"
+            ]
         ),
         .systemLibrary(
             name: "CSQLite",
@@ -63,7 +69,23 @@ let package = Package(
         .target(
             name: "Runtime",
             dependencies: ["Core", "Adapters", "Persistence"],
-            path: "Sources/Runtime"
+            path: "Sources",
+            exclude: [
+                "App",
+                "Core",
+                "CSQLite",
+                "Dashboard",
+                "DataClient",
+                "DataEngine/ScenarioReplay",
+                "DataEngine/DataQuality",
+                "DomainModel",
+                "MessageBus",
+                "Persistence"
+            ],
+            sources: [
+                "Runtime",
+                "DataEngine/Ingest"
+            ]
         ),
         .target(
             name: "App",

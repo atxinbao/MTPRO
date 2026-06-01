@@ -909,6 +909,28 @@ MTP-184 没有保留旧路径 forwarding file；剩余 compatibility shell 是 `
 
 MTP-184 不迁移 DataClient、DataEngine、Cache、Database、Strategies、Trader、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench 或 Dashboard，除非是保持当前 `Core` target 编译所需的 import compatibility。它不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker / live / order capability、signed endpoint、account endpoint / listenKey、private WebSocket runtime、Live PRO Console、trading button、live command 或 order form。
 
+## MTP-185 DataClient / DataEngine Physical Migration
+
+`MTP-185-DATACLIENT-DATAENGINE-PHYSICAL-MIGRATION`
+
+MTP-185 执行 DataClient / DataEngine 的 directory-first source migration：Binance public read-only client、batch replay boundary、replay metadata、freshness 和 deterministic parity 文件已从 `Sources/Adapters/` 迁入 `Sources/DataClient/Binance/PublicMarketData/`；Data Catalog / Scenario Replay、Scenario Manifest、Scenario Fixture、Scenario Replay Evidence 和 deterministic matching 文件已从 `Sources/Core/` 迁入 `Sources/DataEngine/ScenarioReplay/`；Scenario Data Quality / Report Input 文件已迁入 `Sources/DataEngine/DataQuality/`；public market data ingest workflow 已从 `Sources/Runtime/Runtime.swift` 迁入 `Sources/DataEngine/Ingest/MarketDataIngestReplayProjectionWorkflow.swift`。
+
+`MTP-185-DATACLIENT-COMPATIBILITY-ENVELOPE`
+
+MTP-185 保留现有 SwiftPM product / target 名称作为兼容外壳：`Adapters` target 继续编译 `Sources/DataClient/Binance/PublicMarketData/`，`Core` target 继续编译 `Sources/Core`、`Sources/DomainModel`、`Sources/MessageBus`、`Sources/DataEngine/ScenarioReplay` 和 `Sources/DataEngine/DataQuality`，`Runtime` target 继续编译 `Sources/Runtime` 和 `Sources/DataEngine/Ingest`。该兼容壳只保持既有 `import Core`、`import Adapters` 和 `import Runtime` buildability，不等同于最终 target graph split。
+
+`MTP-185-PUBLIC-READ-ONLY-GUARD`
+
+迁入 `DataClient/Binance/PublicMarketData` 的代码仍只能生成 public read-only Binance request、mock transport / fixture / local replay evidence 和 deterministic parity。它不保存 API key，不生成 signature，不访问 account endpoint，不创建 listenKey，不实现 private WebSocket runtime，不连接 broker / exchange execution adapter，不实现 `LiveExecutionAdapter`、OMS、real order lifecycle、submit / cancel / replace、execution report、broker fill 或 reconciliation。
+
+`MTP-185-DATAENGINE-BOUNDARY-GUARD`
+
+迁入 `DataEngine` 的 scenario replay、data quality 和 ingest 代码只能消费 deterministic local fixture、public read-only client 输出、MessageBus / event log / projection compatibility 边界和 read-model evidence。它不把 DataEngine 升级为完整 streaming runtime，不直接服务 UI / Trader / Strategy / RiskEngine / ExecutionEngine，不绕过 MessageBus / Cache / Database / ReadModel / ViewModel，也不触发 signed/account/listenKey/private stream、broker sync、live command 或 executable order path。
+
+`MTP-185-REMAINING-COMPATIBILITY-SHELL`
+
+MTP-185 后旧 `Sources/Adapters/Adapters.swift`、`Sources/Core/Scenario*.swift`、`Sources/Core/DataCatalogScenarioReplayBoundary.swift` 和 `Sources/Runtime/Runtime.swift` 不再保留文件。剩余 compatibility shell 是旧 SwiftPM target 名称和未迁出的 `Sources/Runtime/MarketDataReplayProjectionConsistency.swift`；该 projection consistency 文件包含 Database / projection evidence，计划由后续 Cache / Database migration issue 继续拆分。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |

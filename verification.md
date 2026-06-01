@@ -13426,6 +13426,37 @@ Root Docs Refresh Gate 更新：
 - `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
 - `bash checks/run.sh`：pass，通过 `git diff --check`、automation readiness、Dashboard build、Dashboard smoke 和 303 个 XCTest；Dashboard smoke 输出包含 `timelineItems=82`、`scenarioReplayEvidence=1`、`scenarioQualityGates=6`、`simulatedParityEvidence=1`、`accountPositionBalanceEvidence=3`、`privateStreamSimulationGateEvidence=4`、`liveMonitoringReadOnlyConsoleV2Surface=4`、`strategyTraderReadinessSurface=6` 和 `liveReadOnlyWorkbenchBoundary=5`；最终输出 `MTPRO checks passed.`。
 
+## 2026-06-01 — MTP-185 DataClient / DataEngine physical migration
+
+执行者：Codex
+
+范围：
+
+- 将 Binance public read-only client、batch replay boundary、replay metadata、freshness 和 deterministic parity 从 `Sources/Adapters/` 迁入 `Sources/DataClient/Binance/PublicMarketData/`。
+- 将 Data Catalog / Scenario Replay、Scenario Manifest、Scenario Fixture、Scenario Replay Evidence 和 deterministic matching 从 `Sources/Core/` 迁入 `Sources/DataEngine/ScenarioReplay/`。
+- 将 Scenario Data Quality / Report Input 迁入 `Sources/DataEngine/DataQuality/`。
+- 将 public market data ingest workflow 从 `Sources/Runtime/Runtime.swift` 迁入 `Sources/DataEngine/Ingest/MarketDataIngestReplayProjectionWorkflow.swift`。
+- 调整 `Package.swift`，让现有 `Adapters`、`Core` 和 `Runtime` target 继续作为 compatibility envelope 编译目标目录 source roots，不新增 SwiftPM target、product 或 dependency。
+- 更新 architecture/domain/validation/automation/latest summary/readiness anchors，记录 MTP-185 moved files、compatibility envelope、public read-only guard、DataEngine boundary guard 和 remaining compatibility shell。
+
+边界：
+
+- 未新增 SwiftPM target、product 或 dependency，未做 target graph split。
+- 未实现 signed endpoint、account endpoint、listenKey、private WebSocket runtime、broker / exchange execution adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、完整 streaming DataEngine runtime、Live PRO Console、trading button、live command 或 order form。
+- 未迁移 Cache、Database、Strategies、Trader、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench 或 Dashboard，除保持现有 target buildability 的最小 import compatibility 外未扩大 scope。
+- 未启动 Symphony / symphony-issue，未运行 Graphify，未修改 Figma。
+- `.codex/*`、`.build/*` 和 `graphify-out/*` 不进入 PR。
+
+验证：
+
+- `swift test --filter AdaptersTests`：pass，26 tests，0 failures。
+- `swift test --filter RuntimeTests/testMarketDataIngestReplayProjectionWorkflowUsesMockTransportAndStableSnapshots`：pass，1 test，0 failures。
+- `swift test --filter CoreTests/testMTP103DataCatalogScenarioReplayDefinesTerminologyAndBoundaryAnchors`：pass，1 test，0 failures。
+- `swift test --filter CoreTests/testMTP107ScenarioDataQualityGatesDefineTaxonomyAndDeterministicVerdict`：pass，1 test，0 failures。
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，通过 `git diff --check`、automation readiness、Dashboard build、Dashboard smoke 和 303 个 XCTest；Dashboard smoke 输出包含 `timelineItems=82`、`scenarioReplayEvidence=1`、`scenarioQualityGates=6`、`simulatedParityEvidence=1`、`accountPositionBalanceEvidence=3`、`privateStreamSimulationGateEvidence=4`、`liveMonitoringReadOnlyConsoleV2Surface=4`、`strategyTraderReadinessSurface=6` 和 `liveReadOnlyWorkbenchBoundary=5`；最终输出 `MTPRO checks passed.`。
+
 ## 2026-06-01 — MTP-184 DomainModel / MessageBus physical migration
 
 执行者：Codex

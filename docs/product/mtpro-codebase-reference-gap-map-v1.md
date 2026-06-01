@@ -36,9 +36,9 @@
 | `Sources/MessageBus/EventLog.swift` | append-only local fact log、sequence invariant、stream replay。 |
 | `Sources/MessageBus/CommandsAndQueries.swift` | 当前 command/query registry；只包含 backtest、paper session、research、replay，不包含 live order command。 |
 | `Sources/Core/PaperOrderIntent.swift` | paper-only order intent，不是 OMS、order router、broker adapter 或真实订单授权。 |
-| `Sources/Adapters/Adapters.swift` | Binance public read-only adapter boundary 和 forbidden live capability list。 |
+| `Sources/DataClient/Binance/PublicMarketData/Adapters.swift` | Binance public read-only adapter boundary 和 forbidden live capability list。 |
 | `Sources/Persistence/Persistence.swift` | Event Log -> Replay -> SQLite / DuckDB projection -> Read Model 边界。 |
-| `Sources/Runtime/Runtime.swift` | 薄 Runtime 编排：public adapter、kernel、persistence projection；不接 signed/account/live command。 |
+| `Sources/DataEngine/Ingest/MarketDataIngestReplayProjectionWorkflow.swift` | 薄 Runtime 编排：public adapter、kernel、persistence projection；不接 signed/account/live command。 |
 | `Sources/App/DashboardShell.swift` | Workbench read model / ViewModel 汇总、paper session local controls、live blocked evidence surface。 |
 | `Sources/App/LiveIncidentStopBlockedEvidence.swift` | read-model-only incident / stop blocked evidence；不提供 stop / restore command。 |
 | `Sources/Dashboard/DashboardApplication.swift` | Dashboard smoke / local demo entry；不接 secrets、外部系统或 real trading。 |
