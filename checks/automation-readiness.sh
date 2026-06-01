@@ -297,7 +297,7 @@ require_contains "GOAL.md" "Evidence chain first"
 require_contains "GOAL.md" "Current Foundation Progress"
 require_contains "GOAL.md" "Final Product Goal Progress"
 require_contains "GOAL.md" "Engine Maturity Roadmap Progress: 4 / 4 (100%)"
-require_contains "GOAL.md" "Engine Module Boundary Consolidation before L4 complete"
+require_contains "GOAL.md" "Target Module Physical Layout / Source Migration before L4 complete"
 require_contains "GOAL.md" "无当前可执行推荐"
 require_contains "GOAL.md" "实盘交易基础边界"
 require_contains "GOAL.md" "实盘监控台"
@@ -381,10 +381,10 @@ require_contains "AGENTS.md" "Future Construction Zones / 未来建设区"
 require_contains "AGENTS.md" '不启动 `@002 / PAR`'
 require_contains "docs/roadmap.md" "Current Foundation Progress"
 require_contains "docs/roadmap.md" "Final Product Goal Progress"
-require_contains "docs/roadmap.md" "Project Closure Count: 22 / 22 (100%)"
+require_contains "docs/roadmap.md" "Project Closure Count: 23 / 23 (100%)"
 require_contains "docs/roadmap.md" "Engine Maturity Roadmap Progress: 4 / 4 (100%)"
 require_contains "docs/roadmap.md" "Final Product Progress"
-require_contains "docs/roadmap.md" 'Current maturity statement：`Engine Module Boundary Consolidation before L4 complete`'
+require_contains "docs/roadmap.md" 'Current maturity statement：`Target Module Physical Layout / Source Migration before L4 complete`'
 require_contains "docs/roadmap.md" 'Next recommended maturity slice：无当前可执行推荐'
 require_contains "docs/roadmap.md" "根据蓝图和工程模块定义施工顺序"
 require_contains "docs/roadmap.md" "Roadmap Responsibility / 路线职责"
@@ -413,7 +413,7 @@ require_contains "docs/environment.md" "Secrets / Local State Boundary"
 require_contains "docs/environment.md" "Automation Boundary / 自动化边界"
 require_contains "docs/validation/latest-verification-summary.md" "Current Foundation Progress: 4 / 4 (100%)"
 require_contains "docs/validation/latest-verification-summary.md" "Final Product Goal Progress: 9 / 9 (100%)"
-require_contains "docs/validation/latest-verification-summary.md" "Project Closure Count: 22 / 22 (100%)"
+require_contains "docs/validation/latest-verification-summary.md" "Project Closure Count: 23 / 23 (100%)"
 require_contains "docs/validation/latest-verification-summary.md" "Engine Maturity Roadmap Progress"
 require_contains "docs/validation/latest-verification-summary.md" "4 / 4（100%）"
 for planning_record in \
@@ -3053,8 +3053,8 @@ require_contains "docs/audit/mtpro-strategy-trader-instance-readiness-v1-stage-c
 require_contains "docs/automation/automation-readiness.md" "Strategy / Trader Instance readiness stage code audit report anchor"
 require_contains "docs/automation/automation-readiness.md" "Strategy / Trader Instance readiness root docs refresh anchor"
 require_contains "docs/validation/latest-verification-summary.md" "L3.4 Strategy / Trader Instance Readiness v1 complete"
-require_contains "docs/roadmap.md" 'Latest Completed Project：`MTPRO Engine Module Boundary Consolidation v1`'
-require_contains "BLUEPRINT.md" '最近完成的 construction scope 为 `MTPRO Engine Module Boundary Consolidation v1`'
+require_contains "docs/roadmap.md" 'Latest Completed Project：`MTPRO Target Module Physical Layout / Source Migration v1`'
+require_contains "BLUEPRINT.md" '最近完成的 construction scope 为 `MTPRO Target Module Physical Layout / Source Migration v1`'
 require_contains "docs/audit/mtpro-engine-module-boundary-consolidation-v1-stage-code-audit.md" "MTPRO Engine Module Boundary Consolidation v1 Stage Code Audit Report"
 require_contains "docs/audit/mtpro-engine-module-boundary-consolidation-v1-stage-code-audit.md" "Completed/type=completed"
 require_contains "docs/audit/mtpro-engine-module-boundary-consolidation-v1-stage-code-audit.md" "completedAt=2026-06-01T00:34:11.498Z"
@@ -3325,8 +3325,12 @@ require_file "docs/audit/mtpro-target-module-physical-layout-source-migration-v1
 require_contains "docs/audit/mtpro-target-module-physical-layout-source-migration-v1-stage-code-audit.md" "MTPRO Target Module Physical Layout / Source Migration v1 Stage Code Audit Report"
 require_contains "docs/audit/mtpro-target-module-physical-layout-source-migration-v1-stage-code-audit.md" "Project status 为"
 require_contains "docs/audit/mtpro-target-module-physical-layout-source-migration-v1-stage-code-audit.md" "PR #306 至 PR #313"
-require_contains "docs/audit/mtpro-target-module-physical-layout-source-migration-v1-stage-code-audit.md" "Root Docs Refresh Gate：pending"
+require_contains "docs/audit/mtpro-target-module-physical-layout-source-migration-v1-stage-code-audit.md" "Root Docs Refresh Gate：closed"
 require_contains "docs/automation/automation-readiness.md" "Target module source migration Stage Code Audit Report anchor"
+require_contains "docs/automation/automation-readiness.md" "Target module source migration root docs refresh anchor"
+require_contains "docs/audit/mtpro-target-module-physical-layout-source-migration-v1-stage-code-audit.md" "Project Closure Count input: 23 / 23 (100%)"
+require_contains "docs/audit/mtpro-target-module-physical-layout-source-migration-v1-stage-code-audit.md" 'Next Handoff input: Human + `@001 / PLN`'
+require_contains "docs/validation/latest-verification-summary.md" "Project closure evidence：Target Module Physical Layout / Source Migration v1"
 require_contains "docs/planning/projects/mtpro-strategy-trader-instance-readiness-v1-plan.md" "MTPRO Strategy / Trader Instance Readiness v1"
 require_contains "docs/planning/projects/mtpro-strategy-trader-instance-readiness-v1-plan.md" "L3.4 Strategy / Trader Instance Readiness v1"
 require_contains "docs/planning/projects/mtpro-strategy-trader-instance-readiness-v1-plan.md" "Define Strategy / Trader Instance readiness terminology and boundary"
@@ -4128,6 +4132,8 @@ require_contains "docs/audit/mtpro-engine-module-boundary-consolidation-v1-stage
 require_contains "docs/validation/latest-verification-summary.md" "MTPRO Strategy / Trader Instance Readiness v1"
 require_contains "docs/validation/latest-verification-summary.md" "Project closure evidence：Strategy / Trader Instance Readiness v1"
 require_contains "docs/validation/latest-verification-summary.md" "Project closure evidence：Engine Module Boundary Consolidation v1"
+require_contains "docs/validation/latest-verification-summary.md" "MTPRO Target Module Physical Layout / Source Migration v1"
+require_contains "docs/validation/latest-verification-summary.md" "Target Module Physical Layout / Source Migration before L4 complete"
 require_file "docs/contracts/strategy-trader-instance-readiness-contract.md"
 require_contains "docs/contracts/strategy-trader-instance-readiness-contract.md" "MTP-154-STRATEGY-TRADER-INSTANCE-READINESS-TERMINOLOGY"
 require_contains "docs/contracts/strategy-trader-instance-readiness-contract.md" "MTP-154-READINESS-ONLY-BOUNDARY"
