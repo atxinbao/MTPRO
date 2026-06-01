@@ -901,7 +901,7 @@ MTP-74 必须收口的主要 anchors：
 MTP-75 的 required validation：
 
 - `docs/contracts/live-execution-control-contract.md` 必须存在，并包含 `MTP-75-LIVE-EXECUTION-CONTROL-TERMINOLOGY`、`MTP-75-REAL-ORDER-COMMAND-TAXONOMY`、`MTP-75-PAPER-REAL-COMMAND-ISOLATION`、`MTP-75-NO-EXECUTABLE-COMMAND-SURFACE` 和 `MTP-75-LIVE-EXECUTION-CONTROL-VALIDATION` 锚点。
-- `Sources/Core/LiveExecutionControlContract.swift` 必须定义 `LiveExecutionControlTerm`、`FutureRealOrderCommandTaxonomyTerm`、`LiveExecutionControlFutureGate`、`LiveExecutionControlForbiddenCapability`、`LiveExecutionControlEvidenceKind` 和 `LiveExecutionControlTerminologyBoundary`。
+- `Sources/ExecutionClient/FutureGate/LiveExecutionControlContract.swift` 必须定义 `LiveExecutionControlTerm`、`FutureRealOrderCommandTaxonomyTerm`、`LiveExecutionControlFutureGate`、`LiveExecutionControlForbiddenCapability`、`LiveExecutionControlEvidenceKind` 和 `LiveExecutionControlTerminologyBoundary`。
 - `LiveExecutionControlTerminologyBoundary` 必须固定 execution-control terminology、real order command taxonomy、future gates、forbidden capability baseline、validation anchors 和 paper / real command isolation anchors。
 - Core tests 必须覆盖 deterministic fixture、Codable round trip、taxonomy drift rejection、command surface rejection、submit / cancel / replace / execution report / reconciliation / `LiveExecutionAdapter` / real order state machine / OMS bypass rejection，以及 `PaperOrderIntent` / `PaperExecutionDecision` / `PaperSimulatedFillEvidence` 不可升级为 real order command。
 - `docs/validation/trading-validation-matrix.md` 必须新增 `TVM-LIVE-EXECUTION-CONTROL` candidate entry，并回填 MTP-75 Core contract、deterministic tests、contract docs 和 validation-plan anchor。
@@ -939,7 +939,7 @@ MTP-75 必须建立的主要 anchors：
 MTP-76 的 required validation：
 
 - `docs/contracts/live-execution-control-contract.md` 必须包含 `MTP-76-SUBMIT-CANCEL-REPLACE-FUTURE-GATES`、`MTP-76-FORBIDDEN-SUBMIT-CANCEL-REPLACE-CAPABILITY-TESTS`、`MTP-76-NO-REAL-SUBMIT-CANCEL-REPLACE`、`MTP-76-PAPER-INTENT-NO-REAL-COMMAND-UPGRADE` 和 `MTP-76-LIVE-EXECUTION-CONTROL-VALIDATION` anchors。
-- `Sources/Core/LiveExecutionControlContract.swift` 必须定义 `LiveSubmitCancelReplaceFutureGate`、`LiveSubmitCancelReplaceForbiddenCapability` 和 `LiveSubmitCancelReplaceCommandBoundary`。
+- `Sources/ExecutionClient/FutureGate/LiveExecutionControlContract.swift` 必须定义 `LiveSubmitCancelReplaceFutureGate`、`LiveSubmitCancelReplaceForbiddenCapability` 和 `LiveSubmitCancelReplaceCommandBoundary`。
 - `LiveSubmitCancelReplaceCommandBoundary` 必须固定 submit / cancel / replace command taxonomy subset、future gates、forbidden capability list、validation anchors、source anchors 和 paper intent isolation flags。
 - Core tests 必须覆盖 deterministic fixture、Codable round trip、command taxonomy drift rejection、真实 submit / cancel / replace rejection、signed submit / cancel / replace request rejection、broker / `LiveExecutionAdapter` / real order state machine / OMS / order form / trading button bypass rejection，以及 `PaperOrderIntent` / `PaperExecutionDecision` / `PaperSimulatedFillEvidence` 不可升级为 real submit / cancel / replace。
 - `docs/validation/trading-validation-matrix.md` 必须继续把 MTP-76 回填到 `TVM-LIVE-EXECUTION-CONTROL` candidate entry。
@@ -976,7 +976,7 @@ MTP-76 必须建立的主要 anchors：
 MTP-77 的 required validation：
 
 - `docs/contracts/live-execution-control-contract.md` 必须包含 `MTP-77-EXECUTION-REPORT-BROKER-FILL-RECONCILIATION-FUTURE-GATES`、`MTP-77-FORBIDDEN-REPORT-FILL-RECONCILIATION-CAPABILITY-TESTS`、`MTP-77-SIMULATED-FILL-NO-BROKER-FILL-OR-EXECUTION-REPORT`、`MTP-77-RECONCILIATION-BLOCKED-EVIDENCE-ONLY` 和 `MTP-77-LIVE-EXECUTION-CONTROL-VALIDATION` anchors。
-- `Sources/Core/LiveExecutionControlContract.swift` 必须定义 `LiveExecutionReportBrokerFillReconciliationFutureGate`、`LiveExecutionReportBrokerFillReconciliationForbiddenCapability` 和 `LiveExecutionReportBrokerFillReconciliationBoundary`。
+- `Sources/ExecutionClient/FutureGate/LiveExecutionControlContract.swift` 必须定义 `LiveExecutionReportBrokerFillReconciliationFutureGate`、`LiveExecutionReportBrokerFillReconciliationForbiddenCapability` 和 `LiveExecutionReportBrokerFillReconciliationBoundary`。
 - `LiveExecutionReportBrokerFillReconciliationBoundary` 必须固定 execution report / broker fill / reconciliation terms、future gates、forbidden capability list、validation anchors、source anchors、blocked evidence flags 和 simulated fill / paper portfolio isolation flags。
 - Core tests 必须覆盖 deterministic fixture、Codable round trip、terms drift rejection、execution report consumption / parser / ingestion rejection、broker fill recorder / event fact rejection、reconciliation runtime rejection、real account balance read rejection、broker position sync rejection、broker / `LiveExecutionAdapter` bypass rejection，以及 `PaperSimulatedFillEvidence` / `PaperPortfolioProjectionUpdate` 不可升级为 broker fill、execution report、real account 或 broker position。
 - `docs/validation/trading-validation-matrix.md` 必须继续把 MTP-77 回填到 `TVM-LIVE-EXECUTION-CONTROL` candidate entry。
@@ -1016,7 +1016,7 @@ MTP-77 必须建立的主要 anchors：
 MTP-78 的 required validation：
 
 - `docs/contracts/live-execution-control-contract.md` 必须包含 `MTP-78-PAPER-REAL-COMMAND-ISOLATION-CONTRACT`、`MTP-78-PAPER-EVIDENCE-NO-REAL-COMMAND-UPGRADE`、`MTP-78-PAPER-PROJECTION-READ-MODEL-ONLY`、`MTP-78-REPORT-DASHBOARD-TIMELINE-READ-MODEL-ONLY` 和 `MTP-78-LIVE-EXECUTION-CONTROL-VALIDATION` anchors。
-- `Sources/Core/LiveExecutionControlContract.swift` 必须定义 `LivePaperRealCommandIsolationEvidenceSource`、`LivePaperRealCommandIsolationForbiddenCapability` 和 `LivePaperRealCommandIsolationBoundary`。
+- `Sources/ExecutionClient/FutureGate/LiveExecutionControlContract.swift` 必须定义 `LivePaperRealCommandIsolationEvidenceSource`、`LivePaperRealCommandIsolationForbiddenCapability` 和 `LivePaperRealCommandIsolationBoundary`。
 - `LivePaperRealCommandIsolationBoundary` 必须固定 paper order intent、paper execution decision、simulated fill evidence、paper portfolio projection、Report read model、Dashboard ViewModel 和 Event Timeline read model 的隔离证据来源。
 - Core tests 必须覆盖 deterministic fixture、Codable round trip、evidence source drift rejection、paper order intent / paper execution decision / simulated fill / paper portfolio projection upgrade rejection、real command / submit / execution report / broker fill / reconciliation bypass rejection，以及 paper-only fixture 不可升级为 future real order command。
 - App tests 必须覆盖 `ReportViewModel`、`DashboardShellSnapshot` 和 `PaperWorkflowEvidenceExplorerViewModel` 仍只消费 read model / ViewModel，并且没有 command surface、order-level command、order form、trading button、broker action 或真实交易授权。
@@ -1057,7 +1057,7 @@ MTP-78 必须建立的主要 anchors：
 MTP-79 的 required validation：
 
 - `docs/contracts/live-execution-control-contract.md` 必须包含 `MTP-79-LIVE-EXECUTION-CONTROL-BLOCKED-EVIDENCE`、`MTP-79-EXECUTION-CONTROL-GATES-BLOCKED-REASONS`、`MTP-79-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT`、`MTP-79-READ-MODEL-ONLY-NO-COMMAND-SURFACE` 和 `MTP-79-LIVE-EXECUTION-CONTROL-VALIDATION` anchors。
-- `Sources/Core/LiveExecutionControlContract.swift` 必须定义 `LiveExecutionControlBlockedGate`、`LiveExecutionControlBlockedReason`、`LiveExecutionControlBlockedEvidenceItem` 和 `LiveExecutionControlBlockedEvidence`。
+- `Sources/ExecutionClient/FutureGate/LiveExecutionControlContract.swift` 必须定义 `LiveExecutionControlBlockedGate`、`LiveExecutionControlBlockedReason`、`LiveExecutionControlBlockedEvidenceItem` 和 `LiveExecutionControlBlockedEvidence`。
 - `LiveExecutionControlBlockedEvidence` 必须固定 submit / cancel / replace / execution report / broker fill / reconciliation / incident fallback 的 blocked reason、source anchors、validation anchors 和 deterministic snapshot。
 - Core tests 必须覆盖 deterministic fixture、Codable round trip、blocked item drift rejection、schema / adapter / runtime / command bypass rejection、真实订单 / execution report / broker fill / reconciliation / incident fallback bypass rejection，以及 MTP-76 / MTP-77 / MTP-78 boundary regression。
 - `docs/validation/trading-validation-matrix.md` 必须继续把 MTP-79 回填到 `TVM-LIVE-EXECUTION-CONTROL` candidate entry。
@@ -1188,7 +1188,7 @@ MTP-81 必须收口的主要 anchors：
 MTP-82 的 required validation：
 
 - `docs/contracts/live-risk-gate-contract.md` 必须包含 `MTP-82-LIVE-RISK-TERMINOLOGY`、`MTP-82-FUTURE-RISK-DECISION-TAXONOMY`、`MTP-82-PAPER-RISK-LIVE-RISK-SEPARATION`、`MTP-82-NO-LIVE-RISK-RUNTIME` 和 `MTP-82-LIVE-RISK-GATE-VALIDATION` anchors。
-- `Sources/Core/LiveRiskGateContract.swift` 必须定义 `LiveRiskTerm`、`FutureRiskDecisionTaxonomyTerm`、`LiveRiskGateFutureGate`、`LiveRiskForbiddenCapability`、`LiveRiskEvidenceKind` 和 `LiveRiskTerminologyBoundary`。
+- `Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift` 必须定义 `LiveRiskTerm`、`FutureRiskDecisionTaxonomyTerm`、`LiveRiskGateFutureGate`、`LiveRiskForbiddenCapability`、`LiveRiskEvidenceKind` 和 `LiveRiskTerminologyBoundary`。
 - `LiveRiskTerminologyBoundary` 必须固定 live pre-trade risk terminology、future risk decision taxonomy、future gates、forbidden capability list、validation anchors 和 paper / live risk isolation source anchors。
 - Core tests 必须覆盖 deterministic fixture、Codable round trip、taxonomy drift rejection、真实账户 / broker position / margin / leverage 读取 rejection、real pre-trade allow / reject runtime rejection、signed endpoint / `LiveExecutionAdapter` bypass rejection、risk command / trading button rejection，以及 `RiskBlockerEvidence` / `PortfolioExposureSnapshot` 不可升级为 future live risk decision、real account state 或 broker position。
 - `docs/validation/trading-validation-matrix.md` 必须新增 `TVM-LIVE-RISK-GATE` candidate entry，并把 MTP-82 回填到该 entry。
@@ -1227,7 +1227,7 @@ MTP-82 必须建立的主要 anchors：
 MTP-83 的 required validation：
 
 - `docs/contracts/live-risk-gate-contract.md` 必须包含 `MTP-83-EXPOSURE-ORDER-NOTIONAL-FUTURE-GATES`、`MTP-83-FORBIDDEN-ACCOUNT-POSITION-MARGIN-LEVERAGE-TESTS`、`MTP-83-NO-REAL-PRE-TRADE-ALLOW-REJECT`、`MTP-83-PAPER-EXPOSURE-NO-LIVE-EXPOSURE-UPGRADE` 和 `MTP-83-LIVE-RISK-GATE-VALIDATION` anchors。
-- `Sources/Core/LiveRiskGateContract.swift` 必须定义 `LiveExposureOrderNotionalFutureGate`、`LiveExposureOrderNotionalForbiddenCapability` 和 `LiveExposureOrderNotionalGateBoundary`。
+- `Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift` 必须定义 `LiveExposureOrderNotionalFutureGate`、`LiveExposureOrderNotionalForbiddenCapability` 和 `LiveExposureOrderNotionalGateBoundary`。
 - `LiveExposureOrderNotionalGateBoundary` 必须固定 exposure / order notional future gates、forbidden capability list、validation anchors、source anchors 和 paper exposure isolation flags。
 - Core tests 必须覆盖 deterministic fixture、Codable round trip、terms drift rejection、真实账户余额 / broker position / margin / leverage 读取 rejection、real account exposure calculation rejection、real order notional limit evaluation rejection、real pre-trade allow / reject runtime rejection、account endpoint decode bypass rejection，以及 `PortfolioExposureSnapshot` 不可升级为 future live exposure gate、real account state 或 broker position。
 - `docs/validation/trading-validation-matrix.md` 必须把 MTP-83 回填到 `TVM-LIVE-RISK-GATE` candidate entry。
@@ -1267,7 +1267,7 @@ MTP-83 必须建立的主要 anchors：
 MTP-84 的 required validation：
 
 - `docs/contracts/live-risk-gate-contract.md` 必须包含 `MTP-84-FREQUENCY-LOSS-DRAWDOWN-FUTURE-GATES`、`MTP-84-FORBIDDEN-FREQUENCY-LOSS-DRAWDOWN-RUNTIME-TESTS`、`MTP-84-NO-REAL-PNL-EQUITY-OR-DRAWDOWN-ENFORCEMENT`、`MTP-84-PAPER-RISK-EXPOSURE-NO-LIVE-RISK-UPGRADE` 和 `MTP-84-LIVE-RISK-GATE-VALIDATION` anchors。
-- `Sources/Core/LiveRiskGateContract.swift` 必须定义 `LiveFrequencyLossDrawdownFutureGate`、`LiveFrequencyLossDrawdownForbiddenCapability` 和 `LiveFrequencyLossDrawdownGateBoundary`。
+- `Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift` 必须定义 `LiveFrequencyLossDrawdownFutureGate`、`LiveFrequencyLossDrawdownForbiddenCapability` 和 `LiveFrequencyLossDrawdownGateBoundary`。
 - `LiveFrequencyLossDrawdownGateBoundary` 必须固定 frequency / loss / drawdown future gates、forbidden capability list、validation anchors、source anchors、frequency runtime flags、loss / drawdown runtime flags 和 paper risk / exposure isolation flags。
 - Core tests 必须覆盖 deterministic fixture、Codable round trip、terms drift rejection、真实下单频率计数 rejection、production frequency throttling rejection、真实 PnL / equity 读取 rejection、real loss / drawdown limit evaluation rejection、drawdown circuit breaker rejection、stop / emergency command rejection，以及 `RiskBlockerEvidence` / `PortfolioExposureSnapshot` 不可升级为 future live frequency / loss / drawdown gate、真实 PnL / equity 或 pre-trade runtime。
 - `docs/validation/trading-validation-matrix.md` 必须把 MTP-84 回填到 `TVM-LIVE-RISK-GATE` candidate entry。
@@ -1311,7 +1311,7 @@ MTP-84 必须建立的主要 anchors：
 MTP-85 的 required validation：
 
 - `docs/contracts/live-risk-gate-contract.md` 必须包含 `MTP-85-CIRCUIT-BREAKER-NO-TRADE-FUTURE-GATES`、`MTP-85-FORBIDDEN-CIRCUIT-BREAKER-NO-TRADE-RUNTIME-TESTS`、`MTP-85-NO-CIRCUIT-BREAKER-OR-NO-TRADE-STATE-RUNTIME`、`MTP-85-PAPER-RISK-EXPOSURE-NO-CIRCUIT-BREAKER-UPGRADE` 和 `MTP-85-LIVE-RISK-GATE-VALIDATION` anchors。
-- `Sources/Core/LiveRiskGateContract.swift` 必须定义 `LiveCircuitBreakerNoTradeFutureGate`、`LiveCircuitBreakerNoTradeForbiddenCapability` 和 `LiveCircuitBreakerNoTradeGateBoundary`。
+- `Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift` 必须定义 `LiveCircuitBreakerNoTradeFutureGate`、`LiveCircuitBreakerNoTradeForbiddenCapability` 和 `LiveCircuitBreakerNoTradeGateBoundary`。
 - `LiveCircuitBreakerNoTradeGateBoundary` 必须固定 circuit breaker / no-trade state future gates、forbidden capability list、validation anchors、source anchors、circuit breaker runtime flags、no-trade state runtime flags、operations command flags 和 paper risk / exposure isolation flags。
 - Core tests 必须覆盖 deterministic fixture、Codable round trip、terms drift rejection、circuit breaker runtime rejection、no-trade state runtime rejection、global trading lock rejection、broker session state mutation rejection、stop / emergency / recovery / production shutdown command rejection，以及 `RiskBlockerEvidence` / `PortfolioExposureSnapshot` 不可升级为 future live circuit breaker / no-trade state gate、真实账户状态、真实 PnL / equity 或 pre-trade runtime。
 - `docs/validation/trading-validation-matrix.md` 必须把 MTP-85 回填到 `TVM-LIVE-RISK-GATE` candidate entry。
@@ -1356,7 +1356,7 @@ MTP-85 必须建立的主要 anchors：
 MTP-86 的 required validation：
 
 - `docs/contracts/live-risk-gate-contract.md` 必须包含 `MTP-86-PAPER-RISK-LIVE-DECISION-ISOLATION-CONTRACT`、`MTP-86-PAPER-RISK-EVIDENCE-NO-FUTURE-LIVE-RISK-DECISION`、`MTP-86-PAPER-EXPOSURE-NO-REAL-ACCOUNT-RISK-INPUT`、`MTP-86-REPORT-DASHBOARD-TIMELINE-READ-MODEL-ONLY` 和 `MTP-86-LIVE-RISK-GATE-VALIDATION` anchors。
-- `Sources/Core/LiveRiskGateContract.swift` 必须定义 `LivePaperRiskLiveDecisionIsolationEvidenceSource`、`LivePaperRiskLiveDecisionForbiddenCapability` 和 `LivePaperRiskLiveDecisionIsolationBoundary`。
+- `Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift` 必须定义 `LivePaperRiskLiveDecisionIsolationEvidenceSource`、`LivePaperRiskLiveDecisionForbiddenCapability` 和 `LivePaperRiskLiveDecisionIsolationBoundary`。
 - `LivePaperRiskLiveDecisionIsolationBoundary` 必须固定 paper-only evidence sources、forbidden capability list、validation anchors、source anchors、paper risk / exposure no-upgrade flags、future live risk decision blocked flags 和 read-model-only App surface flags。
 - Core tests 必须覆盖 deterministic fixture、Codable round trip、evidence source drift rejection、paper risk blocker -> future risk decision rejection、paper exposure -> future risk decision rejection、paper risk decision -> real pre-trade allow / reject rejection、paper exposure -> real account exposure rejection、live risk engine rejection、signed endpoint / account endpoint / `LiveExecutionAdapter` rejection、risk command surface rejection，以及 `RiskBlockerEvidence` / `PortfolioExposureSnapshot` 不可升级为 future live risk decision、真实账户风险输入、circuit breaker trigger 或 no-trade state trigger。
 - `docs/validation/trading-validation-matrix.md` 必须把 MTP-86 回填到 `TVM-LIVE-RISK-GATE` candidate entry。
@@ -1398,7 +1398,7 @@ MTP-86 必须建立的主要 anchors：
 MTP-87 的 required validation：
 
 - `docs/contracts/live-risk-gate-contract.md` 必须包含 `MTP-87-LIVE-RISK-GATE-BLOCKED-EVIDENCE`、`MTP-87-LIVE-RISK-GATES-BLOCKED-REASONS`、`MTP-87-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT`、`MTP-87-READ-MODEL-ONLY-NO-COMMAND-SURFACE` 和 `MTP-87-LIVE-RISK-GATE-VALIDATION` anchors。
-- `Sources/Core/LiveRiskGateContract.swift` 必须定义 `LiveRiskGateBlockedGate`、`LiveRiskGateBlockedReason`、`LiveRiskGateBlockedEvidenceItem` 和 `LiveRiskGateBlockedEvidence`。
+- `Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift` 必须定义 `LiveRiskGateBlockedGate`、`LiveRiskGateBlockedReason`、`LiveRiskGateBlockedEvidenceItem` 和 `LiveRiskGateBlockedEvidence`。
 - `LiveRiskGateBlockedEvidence` 必须固定 exposure、order notional、frequency、loss / drawdown、circuit breaker、no-trade state 的 blocked reason、source anchors、validation anchors、deterministic snapshot、read-model-only App surface flags 和 forbidden live risk runtime flags。
 - `Sources/App/LiveRiskGateBlockedEvidence.swift` 必须把 Core fixture 复制成 `LiveRiskGateBlockedEvidenceReadModel` / `LiveRiskGateBlockedEvidenceViewModel`，并只通过 `ReportViewModel`、`DashboardShellSnapshot` 和 `PaperWorkflowEvidenceExplorerViewModel` 进入只读展示面。
 - Core tests 必须覆盖 deterministic fixture、Codable round trip、blocked items drift rejection、真实账户 / broker position / allow-reject runtime / circuit breaker runtime / command surface rejection，以及 MTP-83 至 MTP-86 boundary regression。
@@ -1464,7 +1464,7 @@ MTP-88 必须建立的主要 anchors：
 MTP-89 的 required validation：
 
 - `docs/contracts/live-audit-incident-stop-contract.md` 必须包含 `MTP-89-LIVE-AUDIT-INCIDENT-STOP-TERMINOLOGY`、`MTP-89-FUTURE-AUDIT-INCIDENT-STOP-TAXONOMY`、`MTP-89-BLOCKED-EVIDENCE-ONLY-FUTURE-GATES`、`MTP-89-NO-INCIDENT-REPLAY-OR-STOP-COMMAND`、`MTP-89-NO-LIVE-PRO-CONSOLE-SURFACE` 和 `MTP-89-LIVE-AUDIT-INCIDENT-STOP-VALIDATION` anchors。
-- `Sources/Core/LiveAuditIncidentStopContract.swift` 必须只定义 `LiveAuditIncidentStopTerm`、`FutureAuditIncidentStopTaxonomyTerm`、`LiveAuditIncidentStopFutureGate`、`LiveAuditIncidentStopForbiddenCapability`、`LiveAuditIncidentStopEvidenceKind` 和 `LiveAuditIncidentStopTerminologyBoundary`。
+- `Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift` 必须只定义 `LiveAuditIncidentStopTerm`、`FutureAuditIncidentStopTaxonomyTerm`、`LiveAuditIncidentStopFutureGate`、`LiveAuditIncidentStopForbiddenCapability`、`LiveAuditIncidentStopEvidenceKind` 和 `LiveAuditIncidentStopTerminologyBoundary`。
 - Core deterministic tests 必须覆盖 `testLiveAuditIncidentStopTerminologyDefinesMTP89FutureOnlyTaxonomy`、`testLiveAuditIncidentStopTerminologyRejectsMTP89RuntimeCommandAndConsoleBypass` 和 `testLiveAuditIncidentStopTerminologyKeepsMTP89BlockedEvidenceFutureOnly`。
 - `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-LIVE-AUDIT-INCIDENT-STOP` 和 MTP-89 issue backfill。
 - `docs/domain/context.md` 必须包含 Live Audit Incident Stop Terms 和 MTP-89 anchors。
@@ -1501,7 +1501,7 @@ MTP-89 必须建立的主要 anchors：
 MTP-90 的 required validation：
 
 - `docs/contracts/live-audit-incident-stop-contract.md` 必须包含 `MTP-90-SIGNAL-ORDER-RISK-FILL-AUDIT-TRAIL-FUTURE-GATES`、`MTP-90-FORBIDDEN-EXECUTION-REPORT-BROKER-FILL-OMS-TESTS`、`MTP-90-NO-REAL-ORDER-STATE-MACHINE-OR-BROKER-ACTION`、`MTP-90-PAPER-EVIDENCE-NO-REAL-AUDIT-FACT-UPGRADE` 和 `MTP-90-LIVE-AUDIT-TRAIL-VALIDATION` anchors。
-- `Sources/Core/LiveAuditIncidentStopContract.swift` 必须定义 `LiveAuditTrailSubject`、`LiveAuditTrailFutureGate`、`LiveAuditTrailForbiddenCapability` 和 `LiveAuditTrailFutureGateBoundary`，并保持这些类型只表达 Future / gated audit trail contract。
+- `Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift` 必须定义 `LiveAuditTrailSubject`、`LiveAuditTrailFutureGate`、`LiveAuditTrailForbiddenCapability` 和 `LiveAuditTrailFutureGateBoundary`，并保持这些类型只表达 Future / gated audit trail contract。
 - Core deterministic tests 必须覆盖 `testMTP90LiveAuditTrailFutureGatesDefineSignalOrderRiskDecisionFillBoundary`、`testMTP90LiveAuditTrailFutureGatesRejectExecutionReportBrokerFillOMSAndBrokerAction` 和 `testMTP90LiveAuditTrailFutureGatesKeepPaperEvidenceFromBecomingRealAuditFact`。
 - `docs/validation/trading-validation-matrix.md` 必须包含 MTP-90 issue backfill。
 - `docs/domain/context.md` 必须包含 MTP-90 audit trail future gates、forbidden execution report / broker fill / OMS tests、no real order state machine / broker action、paper evidence no real audit fact upgrade 和 validation anchors。
@@ -1538,7 +1538,7 @@ MTP-90 必须建立的主要 anchors：
 MTP-91 的 required validation：
 
 - `docs/contracts/live-audit-incident-stop-contract.md` 必须包含 `MTP-91-INCIDENT-REPLAY-FUTURE-GATES`、`MTP-91-INCIDENT-REPLAY-INPUT-SOURCE-GATES`、`MTP-91-REPLAY-SCOPE-EVIDENCE-OUTPUT-GATES`、`MTP-91-FORBIDDEN-RECOVERY-BROKER-ACCOUNT-REPLAY-TESTS`、`MTP-91-DETERMINISTIC-REPLAY-NO-PRODUCTION-RECOVERY` 和 `MTP-91-INCIDENT-REPLAY-VALIDATION` anchors。
-- `Sources/Core/LiveAuditIncidentStopContract.swift` 必须定义 `LiveIncidentReplayFutureGate`、`LiveIncidentReplayForbiddenCapability` 和 `LiveIncidentReplayFutureGateBoundary`，并保持这些类型只表达 Future / gated incident replay contract。
+- `Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift` 必须定义 `LiveIncidentReplayFutureGate`、`LiveIncidentReplayForbiddenCapability` 和 `LiveIncidentReplayFutureGateBoundary`，并保持这些类型只表达 Future / gated incident replay contract。
 - Core deterministic tests 必须覆盖 `testMTP91IncidentReplayFutureGatesDefineInputScopeEvidenceOutputBoundary`、`testMTP91IncidentReplayFutureGatesRejectRuntimeRecoveryBrokerAndAccountReplay` 和 `testMTP91IncidentReplayFutureGatesKeepCurrentReplayDeterministicEvidenceOnly`。
 - `docs/validation/trading-validation-matrix.md` 必须包含 MTP-91 issue backfill。
 - `docs/domain/context.md` 必须包含 MTP-91 incident replay future gates、input source gates、scope / evidence / output gates、forbidden recovery / broker / account replay tests、deterministic replay no production recovery 和 validation anchors。
@@ -1576,7 +1576,7 @@ MTP-91 必须建立的主要 anchors：
 MTP-92 的 required validation：
 
 - `docs/contracts/live-audit-incident-stop-contract.md` 必须包含 `MTP-92-EMERGENCY-STOP-SHUTDOWN-RESTORE-FUTURE-GATES`、`MTP-92-FORBIDDEN-STOP-SHUTDOWN-RESTORE-CAPABILITY-TESTS`、`MTP-92-NO-LIVE-RISK-CIRCUIT-BREAKER-OR-NO-TRADE-UPGRADE`、`MTP-92-NO-BROKER-SESSION-MUTATION-OR-PRODUCTION-SHUTDOWN` 和 `MTP-92-STOP-SHUTDOWN-RESTORE-VALIDATION` anchors。
-- `Sources/Core/LiveAuditIncidentStopContract.swift` 必须包含 `LiveStopShutdownRestoreFutureGate`、`LiveStopShutdownRestoreForbiddenCapability` 和 `LiveStopShutdownRestoreFutureGateBoundary`。
+- `Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift` 必须包含 `LiveStopShutdownRestoreFutureGate`、`LiveStopShutdownRestoreForbiddenCapability` 和 `LiveStopShutdownRestoreFutureGateBoundary`。
 - `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-92 focused tests，验证 no emergency stop、no shutdown、no restore command、no live command、no trading button、no broker session mutation、no production operations、no signed endpoint / account endpoint / listenKey / broker action。
 - `docs/validation/trading-validation-matrix.md` 必须包含 MTP-92 issue backfill。
 - `docs/domain/context.md` 必须包含 MTP-92 stop / shutdown / restore future gates、forbidden capability tests、risk circuit breaker / no-trade separation、broker session mutation / production shutdown boundary 和 validation anchors。
@@ -1611,7 +1611,7 @@ MTP-92 必须建立的主要 anchors：
 MTP-93 的 required validation：
 
 - `docs/contracts/live-audit-incident-stop-contract.md` 必须包含 `MTP-93-LIVE-RISK-EXECUTION-BLOCKED-EVIDENCE-ISOLATION`、`MTP-93-NO-BLOCKED-EVIDENCE-TO-INCIDENT-OR-STOP-COMMAND-UPGRADE`、`MTP-93-PAPER-EVIDENCE-NO-INCIDENT-STOP-UPGRADE`、`MTP-93-FORBIDDEN-COMMAND-RUNTIME-UPGRADE-TESTS` 和 `MTP-93-BLOCKED-EVIDENCE-ISOLATION-VALIDATION` anchors。
-- `Sources/Core/LiveAuditIncidentStopContract.swift` 必须包含 `LiveBlockedEvidenceIncidentStopIsolationGate`、`LiveBlockedEvidenceIncidentStopForbiddenCapability` 和 `LiveBlockedEvidenceIncidentStopIsolationBoundary`。
+- `Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift` 必须包含 `LiveBlockedEvidenceIncidentStopIsolationGate`、`LiveBlockedEvidenceIncidentStopForbiddenCapability` 和 `LiveBlockedEvidenceIncidentStopIsolationBoundary`。
 - `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-93 focused tests，验证 Live execution / risk blocked evidence 不能升级为 incident replay runtime、stop command、shutdown command、restore command、production operation、live command、trading button 或 Live PRO Console。
 - `docs/validation/trading-validation-matrix.md` 必须包含 MTP-93 issue backfill。
 - `docs/domain/context.md` 必须包含 MTP-93 blocked evidence isolation、no blocked evidence to incident / stop command upgrade、paper evidence no incident / stop upgrade、forbidden command / runtime tests 和 validation anchors。
@@ -1647,7 +1647,7 @@ MTP-93 必须建立的主要 anchors：
 MTP-94 的 required validation：
 
 - `docs/contracts/live-audit-incident-stop-contract.md` 必须包含 `MTP-94-LIVE-INCIDENT-STOP-BLOCKED-EVIDENCE`、`MTP-94-AUDIT-INCIDENT-STOP-BLOCKED-REASONS`、`MTP-94-DETERMINISTIC-BLOCKED-EVIDENCE-SNAPSHOT`、`MTP-94-READ-MODEL-ONLY-NO-COMMAND-SURFACE` 和 `MTP-94-LIVE-INCIDENT-STOP-VALIDATION` anchors。
-- `Sources/Core/LiveAuditIncidentStopContract.swift` 必须包含 `LiveIncidentStopBlockedGate`、`LiveIncidentStopBlockedReason`、`LiveIncidentStopBlockedEvidenceItem` 和 `LiveIncidentStopBlockedEvidence`。
+- `Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift` 必须包含 `LiveIncidentStopBlockedGate`、`LiveIncidentStopBlockedReason`、`LiveIncidentStopBlockedEvidenceItem` 和 `LiveIncidentStopBlockedEvidence`。
 - `Sources/App/LiveIncidentStopBlockedEvidence.swift` 必须包含 `LiveIncidentStopBlockedEvidenceReadModel` 和 `LiveIncidentStopBlockedEvidenceViewModel`，并保持 Dashboard / Report / Event Timeline 只消费 read model。
 - `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-94 focused Core tests，验证 deterministic snapshot、forbidden command / runtime / console flags 和 prior future gate source anchors。
 - `Tests/AppTests/AppTests.swift` 必须包含 MTP-94 focused App tests，验证 ViewModel aggregation 和 Event Timeline read-only items。
@@ -1719,7 +1719,7 @@ MTP-95 必须建立的主要 anchors：
 MTP-96 的 required validation：
 
 - `docs/contracts/paper-runtime-kernel-contract.md` 必须包含 `MTP-96-TRADING-CLOCK-DETERMINISTIC-TIME`、`MTP-96-PAPER-RUNTIME-KERNEL-BOUNDARY`、`MTP-96-PAPER-ONLY-KERNEL-EVENTS`、`MTP-96-NO-UI-STATE-OR-PERSISTENCE-SCHEMA`、`MTP-96-NO-LIVE-SIGNED-BROKER-RUNTIME` 和 `MTP-96-PAPER-RUNTIME-KERNEL-VALIDATION` anchors。
-- `Sources/Core/PaperRuntimeKernelBoundary.swift` 必须定义 `TradingClock`、`TradingClockTick`、`PaperRuntimeKernelBoundary`、`PaperRuntimeKernelLifecycleState`、`PaperRuntimeKernelInputKind` 和 `PaperRuntimeKernelOutputKind`，并保持这些类型只表达 Core paper-only boundary。
+- `Sources/ExecutionEngine/PaperLifecycle/PaperRuntimeKernelBoundary.swift` 必须定义 `TradingClock`、`TradingClockTick`、`PaperRuntimeKernelBoundary`、`PaperRuntimeKernelLifecycleState`、`PaperRuntimeKernelInputKind` 和 `PaperRuntimeKernelOutputKind`，并保持这些类型只表达 Core paper-only boundary。
 - `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-96 focused tests，验证 deterministic TradingClock、paper-only kernel fixture、forbidden signed/account/listenKey/broker/LiveExecutionAdapter/OMS/live command/trading button、以及 no UI state / no persistence schema。
 - `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-PAPER-RUNTIME-KERNEL` 和 MTP-96 issue backfill。
 - `docs/domain/context.md` 必须包含 `MTP-96-PAPER-RUNTIME-KERNEL-TERMS`。
@@ -1792,7 +1792,7 @@ MTP-97 必须建立的主要 anchors：
 MTP-98 的 required validation：
 
 - `docs/contracts/paper-runtime-kernel-contract.md` 必须包含 `MTP-98-PAPER-PRETRADE-RISKENGINE-RUNTIME-PATH`、`MTP-98-ACCEPTED-REJECTED-PAPER-RISK-DECISION`、`MTP-98-REJECTED-DECISION-EVENTLOG-REPLAY`、`MTP-98-PAPER-RISK-NO-LIVE-ACCOUNT-BROKER-UPGRADE` 和 `MTP-98-PAPER-RISKENGINE-VALIDATION` anchors。
-- `Sources/Core/PaperPreTradeRiskEngine.swift` 必须定义 `PaperPreTradeRiskEngineInput`、`PaperPreTradeRiskEngineDecision`、`PaperPreTradeRiskEngineRuntimePath`、`PaperPreTradeRiskEnginePublication` 和 deterministic fixture，并保持输入只来自 paper proposal、paper account snapshot、paper exposure 和 deterministic paper risk rules。
+- `Sources/RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift` 必须定义 `PaperPreTradeRiskEngineInput`、`PaperPreTradeRiskEngineDecision`、`PaperPreTradeRiskEngineRuntimePath`、`PaperPreTradeRiskEnginePublication` 和 deterministic fixture，并保持输入只来自 paper proposal、paper account snapshot、paper exposure 和 deterministic paper risk rules。
 - MTP-98 必须复用 MTP-97 `PaperRuntimeMessageBusRouting`，让 rejected paper risk decision 进入 `.risk` stream 的 `evaluationRequested` / `blocked` facts，并可由 Event Log / Replay 重建 route evidence。
 - `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-98 focused tests，验证 accepted / rejected paper risk decision deterministic、rejected decision 进入 Event Log / Replay、以及真实账户、broker position、margin、leverage、live risk engine、real pre-trade allow / reject 和 paper -> future live risk decision decode bypass 均被拒绝。
 - `docs/domain/context.md` 必须包含 `MTP-98-PAPER-PRETRADE-RISKENGINE-TERMS`。
@@ -1828,7 +1828,7 @@ MTP-98 必须建立的主要 anchors：
 MTP-99 的 required validation：
 
 - `docs/contracts/paper-runtime-kernel-contract.md` 必须包含 `MTP-99-PAPER-ONLY-LIFECYCLE-COORDINATOR`、`MTP-99-LOCAL-ORDER-LIFECYCLE-STATES`、`MTP-99-LIFECYCLE-TRANSITION-EVENT-FACTS`、`MTP-99-SIMULATED-FILL-PRECONDITION`、`MTP-99-NO-OMS-BROKER-REAL-CANCEL` 和 `MTP-99-PAPER-LIFECYCLE-COORDINATOR-VALIDATION` anchors。
-- `Sources/Core/PaperOrderLifecycleCoordinator.swift` 必须定义 `PaperOrderLocalLifecycleState`、`PaperOrderLocalLifecycleTransition`、`PaperOrderLocalLifecycleCoordinator`、`PaperOrderLocalLifecyclePublication`、`PaperOrderSimulatedFillPrecondition` 和 deterministic fixture。
+- `Sources/ExecutionEngine/PaperLifecycle/PaperOrderLifecycleCoordinator.swift` 必须定义 `PaperOrderLocalLifecycleState`、`PaperOrderLocalLifecycleTransition`、`PaperOrderLocalLifecycleCoordinator`、`PaperOrderLocalLifecyclePublication`、`PaperOrderSimulatedFillPrecondition` 和 deterministic fixture。
 - `PaperOrderLocalLifecycleCoordinator` 必须消费 MTP-98 `PaperPreTradeRiskEngineDecision`，accepted path 产生 `proposed -> submittedLocal -> acceptedLocal`，rejected path 产生 `proposed -> rejectedByPaperRisk`。
 - 每个 transition 必须通过 `PaperEvent.orderLocalLifecycleTransitionRecorded` 写入 `.paper` stream，并可由 Event Log / Replay 重建 route evidence。
 - `cancelledLocal` 只能来自 session close / reset、local expiry 或 deterministic local rule；不得新增单笔 order cancel button 或 real cancel command。
@@ -1868,7 +1868,7 @@ MTP-99 必须建立的主要 anchors：
 MTP-100 的 required validation：
 
 - `docs/contracts/paper-runtime-kernel-contract.md` 必须包含 `MTP-100-SIMULATED-FILL-MARKET-SNAPSHOT`、`MTP-100-PARTIAL-FULL-SIMULATED-FILL-EVIDENCE`、`MTP-100-FEE-SLIPPAGE-COST-IMPACT`、`MTP-100-SIMULATED-FILL-EVENTLOG-REPLAY`、`MTP-100-NO-BROKER-EXECUTION-REPORT-RECONCILIATION` 和 `MTP-100-SIMULATED-FILL-FEE-SLIPPAGE-VALIDATION` anchors。
-- `Sources/Core/PaperSimulatedFillEvidence.swift` 必须定义 `PaperSimulatedFillMarketSnapshot`、`PaperSimulatedFillCompletion`、`PaperSimulatedFillPriceSource`、`PaperSimulatedFillEventLogBoundary`、`PaperSimulatedFillPublication`、`PaperSimulatedFillReplayPath` 和 deterministic fixture。
+- `Sources/ExecutionEngine/SimulatedExchange/PaperSimulatedFillEvidence.swift` 必须定义 `PaperSimulatedFillMarketSnapshot`、`PaperSimulatedFillCompletion`、`PaperSimulatedFillPriceSource`、`PaperSimulatedFillEventLogBoundary`、`PaperSimulatedFillPublication`、`PaperSimulatedFillReplayPath` 和 deterministic fixture。
 - simulated fill 输入必须包含 market snapshot、allowed paper order intent、MTP-99 `PaperOrderSimulatedFillPrecondition` 和 deterministic fill assumption。
 - fee / slippage 必须复用 MTP-27 `ExecutionCostAssumptions.deterministicFixture`，不得引入交易所费率表、真实 fee statement、dynamic slippage 或 execution optimizer。
 - partial / full fill evidence 必须可区分：full 的 remaining quantity 为 0；partial 的 remaining quantity 大于 0。
@@ -2262,7 +2262,7 @@ MTP-109 必须收口的主要 anchors：
 MTP-110 的 required validation：
 
 - `docs/contracts/simulated-exchange-backtest-parity-contract.md` 必须包含 `MTP-110-SIMULATED-EXCHANGE-BACKTEST-PARITY-TERMINOLOGY`、`MTP-110-TARGET-ENGINE-RESPONSIBILITY-BOUNDARY`、`MTP-110-L1-L15-L2-HANDOFF-BOUNDARY`、`MTP-110-FORBIDDEN-CAPABILITY-BASELINE` 和 `MTP-110-SIMULATED-EXCHANGE-BACKTEST-PARITY-VALIDATION` anchors。
-- `Sources/Core/SimulatedExchangeBacktestParityBoundary.swift` 必须定义 `SimulatedExchangeBacktestParityTerm`、`SimulatedExchangeBacktestParityTargetEngine`、`SimulatedExchangeBacktestParityBoundaryPrinciple`、`SimulatedExchangeBacktestParityForbiddenCapability`、`SimulatedExchangeBacktestParityEvidenceKind` 和 `SimulatedExchangeBacktestParityBoundary.deterministicFixture`。
+- `Sources/ExecutionEngine/SimulatedExchange/SimulatedExchangeBacktestParityBoundary.swift` 必须定义 `SimulatedExchangeBacktestParityTerm`、`SimulatedExchangeBacktestParityTargetEngine`、`SimulatedExchangeBacktestParityBoundaryPrinciple`、`SimulatedExchangeBacktestParityForbiddenCapability`、`SimulatedExchangeBacktestParityEvidenceKind` 和 `SimulatedExchangeBacktestParityBoundary.deterministicFixture`。
 - `SimulatedExchangeBacktestParityBoundary` 必须固定 Simulation / Backtest Engine、Execution Engine（paper-only / simulated）、Portfolio Engine、Data Engine、State & Persistence Engine 和 Workbench Interface 六类目标引擎职责。
 - Boundary fixture 必须保持 deterministic simulation、backtest-paper shared simulation semantics、L1 Paper Runtime handoff、L1.5 Data Catalog / Scenario Replay handoff 和 read-model-only parity evidence flags 为 true。
 - Boundary fixture 必须保持 matching runtime、order execution runtime、portfolio projection runtime、UI implementation、signed endpoint、account endpoint、listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage read、live runtime、Live PRO Console、live command、trading button、emergency stop / shutdown / restore、Graphify update 和 Figma change flags 全部为 false。
@@ -2299,7 +2299,7 @@ MTP-110 必须建立的主要 anchors：
 MTP-111 的 required validation：
 
 - `docs/contracts/simulated-exchange-backtest-parity-contract.md` 必须包含 `MTP-111-SHARED-BACKTEST-PAPER-ORDER-FIELDS`、`MTP-111-SIMULATED-ORDER-STATE-SEMANTICS`、`MTP-111-PAPER-LIFECYCLE-BACKTEST-REPLAY-ALIGNMENT`、`MTP-111-NO-REAL-ORDER-COMMAND-UPGRADE` 和 `MTP-111-SHARED-ORDER-SEMANTICS-VALIDATION` anchors。
-- `Sources/Core/BacktestPaperSharedOrderSemantics.swift` 必须定义 `BacktestPaperSharedOrderInputSource`、`BacktestPaperSharedOrderField`、`BacktestPaperSharedOrderState`、`BacktestPaperSharedOrderEventKind`、`BacktestPaperLifecycleReplayAlignmentRule`、`BacktestPaperSharedOrderForbiddenCapability`、`BacktestPaperSharedOrderSemanticsContract.deterministicFixture` 和 `BacktestPaperSharedOrderInput.deterministicFixture`。
+- `Sources/ExecutionEngine/SimulatedExchange/BacktestPaperSharedOrderSemantics.swift` 必须定义 `BacktestPaperSharedOrderInputSource`、`BacktestPaperSharedOrderField`、`BacktestPaperSharedOrderState`、`BacktestPaperSharedOrderEventKind`、`BacktestPaperLifecycleReplayAlignmentRule`、`BacktestPaperSharedOrderForbiddenCapability`、`BacktestPaperSharedOrderSemanticsContract.deterministicFixture` 和 `BacktestPaperSharedOrderInput.deterministicFixture`。
 - `BacktestPaperSharedOrderSemanticsContract` 必须固定 paper order intent 与 backtest replay order input 的共享字段、simulated order state taxonomy、simulated event kind taxonomy、paper lifecycle / fill completion 到 backtest replay 的 alignment rules、source docs anchors 和 validation anchors。
 - `BacktestPaperSharedOrderInput` 必须从既有 `PaperOrderIntent` 复制 order / proposal / session / symbol / timeframe / side / quantity / reference price / notional / risk decision sequence，并绑定 `DeterministicScenarioFixture` 的 scenario id、dataset version 和 fixture version。
 - `BacktestPaperSharedOrderSemanticsContract.sharedState(...)` 必须固定 `PaperOrderLifecycleState`、`PaperOrderLocalLifecycleState` 和 `PaperSimulatedFillCompletion` 到 shared simulated order state 的映射。
@@ -2377,7 +2377,7 @@ MTP-112 必须建立的主要 anchors：
 MTP-113 的 required validation：
 
 - `docs/contracts/simulated-exchange-backtest-parity-contract.md` 必须包含 `MTP-113-MARKET-ORDER-SIMULATED-EXECUTION`、`MTP-113-LIMIT-ORDER-SIMULATED-EXECUTION`、`MTP-113-FULL-FILL-REJECT-EXPIRE-SEMANTICS`、`MTP-113-DETERMINISTIC-EXECUTION-REPLAY`、`MTP-113-NO-REAL-ORDER-LIVE-COMMAND` 和 `MTP-113-MARKET-LIMIT-SIMULATED-EXECUTION-VALIDATION` anchors。
-- `Sources/Core/MarketLimitSimulatedExecutionSemantics.swift` 必须定义 `MarketLimitSimulatedExecutionContract`、`MarketLimitSimulatedExecutionInput`、`MarketLimitSimulatedExecutionEvent`、`MarketLimitSimulatedExecutionOutput`、`MarketLimitSimulatedExecutionModel`、`MarketLimitSimulatedOrderType`、`MarketLimitSimulatedExecutionOutcome`、`MarketLimitSimulatedExecutionRule` 和 `MarketLimitSimulatedExecutionRejectReason`。
+- `Sources/ExecutionEngine/SimulatedExchange/MarketLimitSimulatedExecutionSemantics.swift` 必须定义 `MarketLimitSimulatedExecutionContract`、`MarketLimitSimulatedExecutionInput`、`MarketLimitSimulatedExecutionEvent`、`MarketLimitSimulatedExecutionOutput`、`MarketLimitSimulatedExecutionModel`、`MarketLimitSimulatedOrderType`、`MarketLimitSimulatedExecutionOutcome`、`MarketLimitSimulatedExecutionRule` 和 `MarketLimitSimulatedExecutionRejectReason`。
 - `MarketLimitSimulatedExecutionInput` 必须绑定 MTP-112 deterministic matching input 和 MTP-111 shared order input；market order 不能带 limit price，limit order 必须带 explicit limit price。
 - `MarketLimitSimulatedExecutionModel.execute` 必须对 market order 输出 deterministic full fill；对 buy limit price 大于等于 matched price 输出 full fill；对 buy limit price 低于 matched price 输出 expired simulated；对 rejected initial state 输出 rejected simulated。
 - `MarketLimitSimulatedExecutionOutput.deterministicResultIdentity` 必须固定 scenario id、dataset version、fixture version、window、cursor sequence、record sequence、order id、order type、limit price、initial state、outcome、matched price、filled quantity 和 remaining quantity。
@@ -2416,7 +2416,7 @@ MTP-113 必须建立的主要 anchors：
 MTP-114 的 required validation：
 
 - `docs/contracts/simulated-exchange-backtest-parity-contract.md` 必须包含 `MTP-114-PARTIAL-FULL-FILL-PARITY`、`MTP-114-DETERMINISTIC-LATENCY-MODEL`、`MTP-114-FEE-SLIPPAGE-PARITY-ASSUMPTIONS`、`MTP-114-REPEATABLE-FILL-LATENCY-COST-EVIDENCE`、`MTP-114-NO-REAL-FEE-SCHEDULE-BROKER-RECONCILIATION` 和 `MTP-114-PARTIAL-FILL-LATENCY-FEE-SLIPPAGE-VALIDATION` anchors。
-- `Sources/Core/PartialFillLatencyFeeSlippageParity.swift` 必须定义 `PartialFillLatencyFeeSlippageParityContract`、`PartialFillLatencyFeeSlippageParityInput`、`PartialFillLatencyFeeSlippageLatencyAssumption`、`PartialFillLatencyFeeSlippageParityEvent`、`PartialFillLatencyFeeSlippageParityReportEvidence`、`PartialFillLatencyFeeSlippageParityModel`、`PartialFillLatencyFeeSlippageParityRule` 和 `PartialFillLatencyFeeSlippageForbiddenCapability`。
+- `Sources/ExecutionEngine/SimulatedExchange/PartialFillLatencyFeeSlippageParity.swift` 必须定义 `PartialFillLatencyFeeSlippageParityContract`、`PartialFillLatencyFeeSlippageParityInput`、`PartialFillLatencyFeeSlippageLatencyAssumption`、`PartialFillLatencyFeeSlippageParityEvent`、`PartialFillLatencyFeeSlippageParityReportEvidence`、`PartialFillLatencyFeeSlippageParityModel`、`PartialFillLatencyFeeSlippageParityRule` 和 `PartialFillLatencyFeeSlippageForbiddenCapability`。
 - `PartialFillLatencyFeeSlippageParityInput` 必须绑定 MTP-113 market / limit simulated execution input、deterministic simulated liquidity cap、fixed latency assumption、liquidity role 和 MTP-27 fixed execution cost assumptions。
 - `PartialFillLatencyFeeSlippageParityModel.evaluate` 必须在 available simulated liquidity 小于 order quantity 时输出 partial fill / remaining quantity evidence，在 available simulated liquidity 等于 order quantity 时输出 full fill evidence。
 - Latency evidence 必须由 replay record sequence 和 fixed tick offset 推导，默认 `2 -> 3`、`250ms`；不得使用 wall clock、randomness、真实网络、exchange latency 或 broker SLA。
@@ -5401,6 +5401,7 @@ MTP-183 必须建立的主要 anchors：
 MTP-184 的 required validation：
 
 - `swift test --filter CoreTests`
+- `swift test --filter CoreTests/testMTP188`
 - `git diff --check`
 - `bash checks/automation-readiness.sh`
 - `bash checks/run.sh`
@@ -5559,5 +5560,43 @@ MTP-187 必须建立的主要 anchors：
 - 不实现 Strategy runtime、Trader runtime、strategy scheduler、live coordinator、broker gateway、ExecutionClient gateway、OMS gateway、account session runtime、broker position sync、Portfolio runtime、real account runtime、signed endpoint、account endpoint、listenKey、private stream runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 position command。
 - 不把 strategy proposal、Trader binding、risk decision、Portfolio projection、paper account snapshot 或 simulated parity evidence 升级为 executable order command、ExecutionClient request、OMS order、broker order 或 order form payload。
 - 不迁移 RiskEngine、ExecutionEngine、ExecutionClient、Workbench 或 Dashboard，除非是保持现有 target buildability 的最小 import compatibility。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-188 RiskEngine / ExecutionEngine / ExecutionClient Physical Migration Validation
+
+MTP-188 必须运行：
+
+- `swift test --filter CoreTests`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-188 的验收要求：
+
+- `Sources/RiskEngine/PreTrade/` 必须包含 paper pre-trade risk source；`Sources/RiskEngine/LiveGate/` 必须包含 live risk gate 和 incident / stop blocked evidence source。
+- `Sources/ExecutionEngine/PaperLifecycle/` 必须包含 paper workflow、runtime kernel、session lifecycle、order lifecycle、execution decision 和 event log source；`Sources/ExecutionEngine/SimulatedExchange/` 必须包含 simulated fill、shared order semantics、market / limit simulated execution、partial fill / latency / fee / slippage parity 和 execution costs source。
+- `Sources/ExecutionEngine/OMSFutureGate/` 必须只包含 OMS future gate boundary evidence，不实现 OMS。
+- `Sources/ExecutionClient/FutureGate/` 和 `Sources/ExecutionClient/BrokerCapabilityMatrix/` 必须只包含 future-gated ExecutionClient / BrokerCapabilityMatrix boundary evidence，不实现 ExecutionClient。
+- `Package.swift` 必须保留现有 `Core` product / target 名称作为 compatibility envelope，不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- 旧 MTP-188 source migration files 不得继续保留在 `Sources/Core/`。
+- `docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-188 mechanical anchors。
+- PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
+
+MTP-188 必须建立的主要 anchors：
+
+- `MTP-188-RISK-EXECUTION-PHYSICAL-MIGRATION`
+- `MTP-188-RISKENGINE-COMPATIBILITY-ENVELOPE`
+- `MTP-188-EXECUTIONENGINE-COMPATIBILITY-ENVELOPE`
+- `MTP-188-EXECUTIONCLIENT-FUTURE-GATE-ENVELOPE`
+- `MTP-188-BROKER-REAL-ORDER-FORBIDDEN-GUARD`
+- `MTP-188-REMAINING-COMPATIBILITY-SHELL`
+
+## MTP-188 禁止
+
+- 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- 不实现 RiskEngine runtime、live risk engine、real pre-trade allow / reject runtime、circuit breaker runtime、stop trading command、emergency stop、ExecutionEngine runtime、ExecutionClient implementation、OMS implementation、broker adapter、broker client、signed request、account endpoint、listenKey、private WebSocket runtime、real order lifecycle、real submit / cancel / replace、execution report parser、broker fill parser、reconciliation runtime、credential / secret / keychain storage、Live PRO Console、trading button、live command 或 order form。
+- 不把 paper risk decision、paper order intent、paper lifecycle state、simulated fill、fee / slippage evidence、OMSFutureGate 或 BrokerCapabilityMatrix 升级为 executable order command、ExecutionClient request、OMS order、broker order、order form payload、live command 或 trading button。
+- 不迁移 Workbench 或 Dashboard，除非是保持现有 target buildability 的最小 import compatibility。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

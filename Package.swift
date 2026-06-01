@@ -37,6 +37,13 @@ let package = Package(
                 "Strategies/OrderBookImbalance",
                 "Trader/StrategyBindings",
                 "Portfolio",
+                "RiskEngine/PreTrade",
+                "RiskEngine/LiveGate",
+                "ExecutionEngine/PaperLifecycle",
+                "ExecutionEngine/SimulatedExchange",
+                "ExecutionEngine/OMSFutureGate",
+                "ExecutionClient/FutureGate",
+                "ExecutionClient/BrokerCapabilityMatrix",
                 "DataEngine/ScenarioReplay",
                 "DataEngine/DataQuality"
             ]
@@ -93,6 +100,9 @@ let package = Package(
                 "DomainModel",
                 "MessageBus",
                 "Portfolio",
+                "RiskEngine",
+                "ExecutionEngine",
+                "ExecutionClient",
                 "Strategies",
                 "Trader"
             ],

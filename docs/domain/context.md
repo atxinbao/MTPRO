@@ -2471,6 +2471,26 @@ MTP-187 的 `Portfolio compatibility envelope` 指现有 `Core` target 继续编
 
 MTP-187 no-direct-execution guard 固定 strategy proposal、Trader binding 和 Portfolio projection 不能升级为 executable order command、ExecutionClient request、OMS order、broker order、order form payload、live command、position command 或 trading button。任何真实交易、broker、signed/account endpoint、listenKey、private stream、execution report、broker fill 和 reconciliation 都保持 future-gated / forbidden。
 
+`MTP-188-RISK-EXECUTION-PHYSICAL-MIGRATION`
+
+`RiskEngine / ExecutionEngine / ExecutionClient physical migration` 指把 paper pre-trade risk 迁入 `Sources/RiskEngine/PreTrade/`，把 live risk gate 与 incident / stop blocked evidence 迁入 `Sources/RiskEngine/LiveGate/`，把 paper lifecycle / paper order / paper event log 迁入 `Sources/ExecutionEngine/PaperLifecycle/`，把 simulated fill / shared order semantics / market-limit execution / fee-slippage parity / execution costs 迁入 `Sources/ExecutionEngine/SimulatedExchange/`，并把 OMSFutureGate、ExecutionClient FutureGate 和 BrokerCapabilityMatrix 放入对应 target source directories。MTP-188 只做 physical source migration 和兼容 target 配置，不新增真实 RiskEngine / ExecutionEngine / ExecutionClient SwiftPM target。
+
+`MTP-188-RISKENGINE-COMPATIBILITY-ENVELOPE`
+
+MTP-188 的 `RiskEngine compatibility envelope` 指现有 `Core` target 继续编译 `Sources/RiskEngine/PreTrade/` 和 `Sources/RiskEngine/LiveGate/`。这只保持 buildability，不授权 live risk runtime、real pre-trade allow / reject runtime、circuit breaker runtime、stop trading command、emergency stop、broker state read 或 ExecutionClient call。
+
+`MTP-188-EXECUTIONENGINE-COMPATIBILITY-ENVELOPE`
+
+MTP-188 的 `ExecutionEngine compatibility envelope` 指现有 `Core` target 继续编译 `Sources/ExecutionEngine/PaperLifecycle/`、`Sources/ExecutionEngine/SimulatedExchange/` 和 `Sources/ExecutionEngine/OMSFutureGate/`。ExecutionEngine 当前只表示 paper / simulated lifecycle evidence，不表示 current OMS、order router、broker adapter、real order state machine、execution report ingestion、broker fill ingestion 或 reconciliation runtime。
+
+`MTP-188-EXECUTIONCLIENT-FUTURE-GATE-ENVELOPE`
+
+MTP-188 的 `ExecutionClient future gate envelope` 指 `Sources/ExecutionClient/FutureGate/` 和 `Sources/ExecutionClient/BrokerCapabilityMatrix/` 只保存 future-gated taxonomy / boundary evidence。BrokerCapabilityMatrix 可以列出 future venue capability、signed endpoint future gate、account endpoint future gate、execution report capability、broker fill capability 和 reconciliation capability，但不得升级为 capability discovery runtime、credential check、network probe、private endpoint test、API key input、secret storage、credential provider 或 keychain storage。
+
+`MTP-188-BROKER-REAL-ORDER-FORBIDDEN-GUARD`
+
+MTP-188 broker / real order forbidden guard 固定 RiskEngine、ExecutionEngine 和 ExecutionClient 不能形成真实执行路径：RiskEngine 不调用 broker / ExecutionClient，ExecutionEngine 不调用 current OMS / broker adapter / ExecutionClient request，ExecutionClient 不实现 signed request、account endpoint、order submit / cancel / replace、execution report parser、broker fill parser 或 reconciliation runtime。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

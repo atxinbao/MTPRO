@@ -983,6 +983,32 @@ Strategies / Trader / Portfolio 迁移后仍禁止 `Strategies -> ExecutionClien
 
 MTP-187 后旧 `Sources/Core/EMACross.swift`、`Sources/Core/StrategySignals.swift`、`Sources/Core/PaperActionProposal.swift`、`Sources/Core/OrderBookImbalance.swift`、`Sources/Core/PaperActionRiskLink.swift`、`Sources/Core/PaperAccountPortfolioProjectionV2.swift`、`Sources/Core/PaperPortfolioProjectionUpdate.swift` 和 `Sources/Core/SimulatedExchangePortfolioProjectionParity.swift` 不再保留。剩余 compatibility shell 是旧 `Core` SwiftPM target 名称和未迁出的 RiskEngine / ExecutionEngine / ExecutionClient / Workbench / Dashboard source roots。
 
+## MTP-188 RiskEngine / ExecutionEngine / ExecutionClient Physical Migration
+
+`MTP-188-RISK-EXECUTION-PHYSICAL-MIGRATION`
+
+MTP-188 执行 RiskEngine / ExecutionEngine / ExecutionClient 的 directory-first source migration：paper pre-trade risk 已从旧 `Sources/Core/` 迁入 `Sources/RiskEngine/PreTrade/`；live risk gate 与 incident / stop blocked evidence 已迁入 `Sources/RiskEngine/LiveGate/`；paper execution workflow、paper runtime kernel、paper session lifecycle、paper order lifecycle、paper decision 和 paper event log 已迁入 `Sources/ExecutionEngine/PaperLifecycle/`；simulated fill、shared order semantics、market / limit execution、partial fill / latency / fee / slippage parity、simulated exchange parity 和 execution cost assumptions 已迁入 `Sources/ExecutionEngine/SimulatedExchange/`；OMS future gate boundary 已进入 `Sources/ExecutionEngine/OMSFutureGate/`；future live execution-control contract 已迁入 `Sources/ExecutionClient/FutureGate/`；BrokerCapabilityMatrix future gate 已进入 `Sources/ExecutionClient/BrokerCapabilityMatrix/`。
+
+`MTP-188-RISKENGINE-COMPATIBILITY-ENVELOPE`
+
+MTP-188 保留现有 `Core` SwiftPM product / target 名称作为 RiskEngine 迁移期兼容外壳：`Core` target 继续编译 `Sources/RiskEngine/PreTrade/` 和 `Sources/RiskEngine/LiveGate/`。该兼容壳只保持 buildability，不等同于 live risk runtime、real pre-trade allow / reject runtime、circuit breaker runtime、stop / emergency command 或 broker / ExecutionClient path。
+
+`MTP-188-EXECUTIONENGINE-COMPATIBILITY-ENVELOPE`
+
+MTP-188 保留现有 `Core` SwiftPM product / target 名称作为 ExecutionEngine 迁移期兼容外壳：`Core` target 继续编译 `Sources/ExecutionEngine/PaperLifecycle/`、`Sources/ExecutionEngine/SimulatedExchange/` 和 `Sources/ExecutionEngine/OMSFutureGate/`。ExecutionEngine 当前仍只表示 paper / simulated lifecycle evidence，不实现 current OMS、order router、venue routing、real order lifecycle、broker submit / cancel / replace、execution report、broker fill 或 reconciliation。
+
+`MTP-188-EXECUTIONCLIENT-FUTURE-GATE-ENVELOPE`
+
+MTP-188 将 ExecutionClient future gate 放入 `Sources/ExecutionClient/FutureGate/`，并将 BrokerCapabilityMatrix future gate 放入 `Sources/ExecutionClient/BrokerCapabilityMatrix/`。这些文件只固定 future-gated capability taxonomy 和 forbidden implementation flags；它们不是 ExecutionClient implementation，不创建 broker adapter、exchange execution adapter、signed request、account endpoint request、order submit / cancel / replace、execution report parser、broker fill parser、reconciliation runtime、credential provider 或 network probe。
+
+`MTP-188-BROKER-REAL-ORDER-FORBIDDEN-GUARD`
+
+RiskEngine / ExecutionEngine / ExecutionClient 迁移后仍禁止 `RiskEngine -> broker`、`RiskEngine -> ExecutionClient`、`ExecutionEngine -> current OMS`、`ExecutionEngine -> broker adapter`、`ExecutionEngine -> ExecutionClient request`、`ExecutionClient -> signed request`、`ExecutionClient -> broker client` 和 paper / simulated evidence -> real order lifecycle bypass。Paper risk decision、paper order intent、paper lifecycle state、simulated fill、fee / slippage 和 BrokerCapabilityMatrix 只能作为 deterministic local evidence 或 future-gated label，不授权真实执行。
+
+`MTP-188-REMAINING-COMPATIBILITY-SHELL`
+
+MTP-188 后旧 `Sources/Core/PaperPreTradeRiskEngine.swift`、`Sources/Core/LiveRiskGateContract.swift`、`Sources/Core/LiveAuditIncidentStopContract.swift`、`Sources/Core/LiveExecutionControlContract.swift`、`Sources/Core/PaperExecutionWorkflowContract.swift`、`Sources/Core/PaperRuntimeKernelBoundary.swift`、`Sources/Core/PaperSessionLifecycle.swift`、`Sources/Core/PaperSessionLocalControlCommand.swift`、`Sources/Core/PaperSessionLocalControlEventLog.swift`、`Sources/Core/PaperSessionReplay.swift`、`Sources/Core/PaperOrderIntent.swift`、`Sources/Core/PaperOrderLifecycleCoordinator.swift`、`Sources/Core/PaperExecutionDecision.swift`、`Sources/Core/PaperExecutionEventLog.swift`、`Sources/Core/PaperSimulatedFillEvidence.swift`、`Sources/Core/SimulatedExchangeBacktestParityBoundary.swift`、`Sources/Core/MarketLimitSimulatedExecutionSemantics.swift`、`Sources/Core/PartialFillLatencyFeeSlippageParity.swift`、`Sources/Core/BacktestPaperSharedOrderSemantics.swift` 和 `Sources/Core/ExecutionCosts.swift` 不再保留。剩余 compatibility shell 是旧 `Core` SwiftPM target 名称，以及仍待 MTP-189 授权迁移的 Workbench / Dashboard source roots；`LiveTradingBoundary.swift` 仍保留在 `Core` 作为既有 L3 read-only multi-boundary compatibility file，不在 MTP-188 中强行迁移。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |

@@ -556,9 +556,9 @@ public struct BacktestPaperSharedOrderSemanticsContract: Codable, Equatable, Sen
         "docs/contracts/simulated-exchange-backtest-parity-contract.md",
         "docs/domain/context.md",
         "docs/planning/projects/mtpro-simulated-exchange-backtest-parity-v1-plan.md",
-        "Sources/Core/PaperOrderIntent.swift",
-        "Sources/Core/PaperOrderLifecycleCoordinator.swift",
-        "Sources/Core/PaperSimulatedFillEvidence.swift",
+        "Sources/ExecutionEngine/PaperLifecycle/PaperOrderIntent.swift",
+        "Sources/ExecutionEngine/PaperLifecycle/PaperOrderLifecycleCoordinator.swift",
+        "Sources/ExecutionEngine/SimulatedExchange/PaperSimulatedFillEvidence.swift",
         "Sources/Core/ScenarioManifest.swift",
         "Sources/Core/ScenarioFixture.swift",
         "docs/validation/latest-verification-summary.md"

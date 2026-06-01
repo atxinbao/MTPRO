@@ -35,7 +35,7 @@
 | `Sources/Core/TradingKernel.swift` | 本地市场事件 ingest、MessageBus、MarketDataCache、replay / rebuild 边界。 |
 | `Sources/MessageBus/EventLog.swift` | append-only local fact log、sequence invariant、stream replay。 |
 | `Sources/MessageBus/CommandsAndQueries.swift` | 当前 command/query registry；只包含 backtest、paper session、research、replay，不包含 live order command。 |
-| `Sources/Core/PaperOrderIntent.swift` | paper-only order intent，不是 OMS、order router、broker adapter 或真实订单授权。 |
+| `Sources/ExecutionEngine/PaperLifecycle/PaperOrderIntent.swift` | paper-only order intent，不是 OMS、order router、broker adapter 或真实订单授权。 |
 | `Sources/DataClient/Binance/PublicMarketData/Adapters.swift` | Binance public read-only adapter boundary 和 forbidden live capability list。 |
 | `Sources/Persistence/Persistence.swift` | Event Log -> Replay -> SQLite / DuckDB projection -> Read Model 边界。 |
 | `Sources/DataEngine/Ingest/MarketDataIngestReplayProjectionWorkflow.swift` | 薄 Runtime 编排：public adapter、kernel、persistence projection；不接 signed/account/live command。 |

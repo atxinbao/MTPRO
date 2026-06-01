@@ -220,6 +220,80 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testMTP188OMSFutureGateBoundaryKeepsExecutionEngineNonExecutable() throws {
+        // 测试场景：MTP-188 只允许 OMSFutureGate 作为 ExecutionEngine 目录下的非执行证据。
+        let boundary = try OMSFutureGateBoundary()
+
+        XCTAssertEqual(boundary.allowedPlacement, "Sources/ExecutionEngine/OMSFutureGate/")
+        XCTAssertTrue(boundary.isFutureGateOnly)
+        XCTAssertTrue(boundary.boundaryHeld)
+        XCTAssertFalse(boundary.implementsOMS)
+        XCTAssertFalse(boundary.routesVenueOrders)
+        XCTAssertFalse(boundary.submitsRealOrder)
+        XCTAssertFalse(boundary.cancelsRealOrder)
+        XCTAssertFalse(boundary.replacesRealOrder)
+        XCTAssertFalse(boundary.consumesExecutionReport)
+        XCTAssertFalse(boundary.recordsBrokerFill)
+        XCTAssertFalse(boundary.performsReconciliation)
+
+        let encoded = try JSONEncoder().encode(boundary)
+        let decoded = try JSONDecoder().decode(OMSFutureGateBoundary.self, from: encoded)
+        XCTAssertEqual(decoded, boundary)
+
+        XCTAssertThrowsError(try OMSFutureGateBoundary(implementsOMS: true)) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("implementsOMS"))
+        }
+        XCTAssertThrowsError(try OMSFutureGateBoundary(submitsRealOrder: true)) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("submitsRealOrder"))
+        }
+
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["consumesExecutionReport"] = true
+        let invalidData = try JSONSerialization.data(withJSONObject: object)
+        XCTAssertThrowsError(try JSONDecoder().decode(OMSFutureGateBoundary.self, from: invalidData)) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("consumesExecutionReport"))
+        }
+    }
+
+    func testMTP188ExecutionClientBrokerCapabilityMatrixStaysFutureGated() throws {
+        // 测试场景：MTP-188 只能固定 ExecutionClient/BrokerCapabilityMatrix 的 taxonomy，不创建 broker client。
+        let futureGate = try ExecutionClientBrokerCapabilityMatrixFutureGate()
+
+        XCTAssertEqual(futureGate.entries, ExecutionClientBrokerCapabilityMatrixEntry.allCases)
+        XCTAssertTrue(futureGate.isFutureGateOnly)
+        XCTAssertTrue(futureGate.futureGateBoundaryHeld)
+        XCTAssertFalse(futureGate.implementsExecutionClient)
+        XCTAssertFalse(futureGate.implementsBrokerAdapter)
+        XCTAssertFalse(futureGate.usesSignedEndpoint)
+        XCTAssertFalse(futureGate.callsAccountEndpoint)
+        XCTAssertFalse(futureGate.submitsRealOrder)
+        XCTAssertFalse(futureGate.cancelsRealOrder)
+        XCTAssertFalse(futureGate.replacesRealOrder)
+        XCTAssertFalse(futureGate.parsesExecutionReport)
+        XCTAssertFalse(futureGate.parsesBrokerFill)
+        XCTAssertFalse(futureGate.performsReconciliation)
+
+        let encoded = try JSONEncoder().encode(futureGate)
+        let decoded = try JSONDecoder().decode(ExecutionClientBrokerCapabilityMatrixFutureGate.self, from: encoded)
+        XCTAssertEqual(decoded, futureGate)
+
+        XCTAssertThrowsError(try ExecutionClientBrokerCapabilityMatrixFutureGate(implementsExecutionClient: true)) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("implementsExecutionClient"))
+        }
+        XCTAssertThrowsError(try ExecutionClientBrokerCapabilityMatrixFutureGate(submitsRealOrder: true)) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("submitsRealOrder"))
+        }
+
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["usesSignedEndpoint"] = true
+        let invalidData = try JSONSerialization.data(withJSONObject: object)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(ExecutionClientBrokerCapabilityMatrixFutureGate.self, from: invalidData)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("usesSignedEndpoint"))
+        }
+    }
+
     func testLiveTradingCredentialEndpointBoundaryDefinesMTP62GateOneAsFutureOnly() throws {
         // 测试场景：MTP-62 只定义 API key / secret / signed / account / listenKey
         // 的 Gate 1 禁止边界和 future gate，不实现任何 credential 或账户请求能力。
