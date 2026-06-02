@@ -791,6 +791,12 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | --- | --- | --- |
 | `MTP-210` | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 增加 Trader container completeness validation：focused XCTest `testMTP210TraderContainerCompletenessValidationLocksAccountsEMAAndRiskBindingOnly` 机械验证 `Sources/Trader/` current directory set 只包含 `Accounts`、`Coordination` 和 `Strategies`，`Sources/Trader/Strategies/` active concrete strategy directory set 等于 only `EMA`，binding location 为 `Sources/Trader/Coordination/RiskBinding/`。Validation 阻断 `Sources/Trader/StrategyBindings/`、peer-level `Sources/Strategies/`、`Tests/Trader/StrategyBindings/`、`Tests/Strategies/`、stale Package `"Strategies"` exclude、`"Trader/StrategyBindings"` source root、non-EMA strategy root、`Strategies` target 和 `Trader` target 回流。MTP-210 不新增 SwiftPM target/product/dependency，不拆 target graph，不移动 production source，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、Live PRO Console、trading button、live command、order form 或 L4 capability。 |
 
+## MTP-211 issue backfill
+
+| Issue | Matrix ID | 回填说明 |
+| --- | --- | --- |
+| `MTP-211` | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 新增 Trader Accounts / Coordination compatibility consolidation stage closeout：`docs/audit/inputs/mtpro-trader-accounts-coordination-compatibility-consolidation-v1-stage-audit-input.md` 汇总 MTP-205 至 MTP-210 的 PR evidence、merge commit、required check、`Trader = Accounts + Strategies/EMA + Coordination` compatibility closeout、`Sources/Trader/Accounts/` identity/source/future gate boundary、EMA-only active strategy、`Sources/Trader/Coordination/RiskBinding/` coordination adapter、retired `Sources/Trader/StrategyBindings/` / peer-level `Sources/Strategies/` treatment、Package stale exclude cleanup、validation matrix、automation readiness、compatibility envelope、forbidden implementation audit、Root Docs Delta input 和 Stage Code Audit handoff checklist。MTP-211 只准备 audit input material，不移动 source files，不新增 SwiftPM target/product/dependency，不拆 target graph，不输出最终 Stage Code Audit Report，不设置 Linear Project `Completed`，不创建下一 Project / Issue，不推进下一阶段，不运行 Graphify，不修改 Figma，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command 或 order form。 |
+
 ## MTP-190 Target Module Source Migration 阶段收口
 
 日期：2026-06-01
