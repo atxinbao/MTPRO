@@ -6076,3 +6076,39 @@ MTP-202 必须建立的主要 anchors：
 - 不把 RiskBinding 升级为真实风险引擎、ExecutionClient request、broker fallback、OMS order、broker order 或 executable order command。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-203 EMA-only Strategy Path Validation
+
+MTP-203 必须运行：
+
+- `swift test --filter CoreTests/testEMAOnlyActiveStrategyPathValidationRejectsNonEMAAndBindingDrift`
+- `swift test --filter 'CoreTests/(testTraderOwnedStrategyPathValidationCoversCanonicalOldBindingAndExecutionGuards|testTraderCoordinationRiskBindingEvidenceKeepsConcreteStrategiesOutOfBindings)'`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-203 的验收要求：
+
+- `Sources/Trader/Strategies/` 的 current active concrete strategy directory set 必须等于 only `EMA`。
+- `Sources/Trader/Strategies/EMA/` 必须继续包含 EMA lifecycle、signal 和 paper proposal source files。
+- `Sources/Trader/Strategies/RSI/`、`Sources/Trader/Strategies/OrderBookImbalance/`、`Sources/Trader/Strategies/Momentum/`、`Sources/Trader/Strategies/MeanReversion/`、`Sources/Strategies/<non-EMA>/`、`Tests/Trader/Strategies/<non-EMA>/` 和 `Tests/Strategies/<non-EMA>/` 不得作为 active source / active test root 回流。
+- `Package.swift` 必须只包含 `"Trader/Strategies/EMA"` 这一条 active Trader strategy source root；不得包含 `"Trader/Strategies/<non-EMA>"`、`"Strategies/<non-EMA>"` 或 `"Trader/StrategyBindings"`。
+- `Sources/Trader/StrategyBindings/` 必须继续不存在；binding semantics 必须继续位于 `Sources/Trader/Coordination/RiskBinding/`。
+- Validation 不得建立 network-dependent tests，不得启动 runtime、live endpoint、ExecutionClient、OMS、broker gateway、live command 或 real order lifecycle。
+- Docs / automation readiness / validation matrix / latest verification summary 必须包含 MTP-203 anchors。
+
+MTP-203 必须建立的主要 anchors：
+
+- `MTP-203-EMA-ONLY-ACTIVE-STRATEGY-DIRECTORY-GUARD`
+- `MTP-203-NON-EMA-ACTIVE-SOURCE-TEST-PACKAGE-DRIFT-GUARD`
+- `MTP-203-STRATEGYBINDINGS-FIRST-LEVEL-DRIFT-GUARD`
+- `MTP-203-EMA-ONLY-PATH-VALIDATION`
+
+## MTP-203 禁止
+
+- 不移动 production source，不新增或删除 concrete strategy implementation。
+- 不把 RSI、OrderBookImbalance、Momentum 或 MeanReversion 引入为 current active concrete strategy。
+- 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- 不实现 Strategy runtime、Trader runtime、live coordinator、broker gateway、ExecutionClient gateway、OMS gateway、account session runtime、signed endpoint、account endpoint、listenKey、private stream runtime、broker adapter、`LiveExecutionAdapter`、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form、short command、margin command 或 futures command。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
