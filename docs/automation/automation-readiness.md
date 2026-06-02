@@ -17,10 +17,10 @@
 | Local validation entrypoint | ready | `bash checks/run.sh` |
 | Automation readiness shell gate | ready | `bash checks/automation-readiness.sh` |
 | Linear issue execution contract | ready | Linear issue body 字段作为 child Codex 执行合同 |
-| Parent Codex Automation Supervision | ready | queue preview、eligible issue 调度、host-side fallback、Stage Code Audit；当前不依赖 Symphony |
+| Parent Codex Automation Supervision | ready | queue preview、eligible issue 调度、host-side fallback、Stage Code Audit；当前不依赖额外调度服务 |
 | Host-side issue execution path | ready | 唯一 `Todo` issue 由 @002 / PAR host-side 执行到 PR / check / merge / Linear Done / ledger gate |
-| Post-Issue Ledger | ready | PR merge / Linear bot Done 后写入 read_only 记账；不依赖 Symphony，不运行 Graphify |
-| Symphony / Graphify retired | retired | 当前 @002 / PAR 只使用 host-side supervision、GitHub PR Automation、Linear live-read / Linear API gate 和 post-issue ledger；不依赖 Symphony，不运行 Graphify，不维护 `graphify-out/*` |
+| Post-Issue Ledger | ready | PR merge / Linear bot Done 后写入 read_only 记账；不依赖额外调度或图谱服务 |
+| Symphony / Graphify retired | retired | 当前 @002 / PAR 只使用 host-side supervision、GitHub PR Automation、Linear live-read / Linear API gate 和 post-issue ledger；不依赖已退役的调度 / 图谱服务，不维护 `graphify-out/*` |
 | Codex use-cases alignment | ready | `docs/automation/codex-use-cases-alignment.md` |
 | Verified operations | ready | `docs/automation/verified-operations.md` |
 | Paper Execution Workflow stage audit input anchor | ready | `docs/audit/inputs/mtpro-paper-execution-workflow-v1-stage-audit-input.md` |

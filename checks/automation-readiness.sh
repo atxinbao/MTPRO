@@ -29,6 +29,11 @@ require_absent() {
   fi
 }
 
+require_missing_path() {
+  local path="$1"
+  [[ ! -e "$path" ]] || fail "retired path must not exist: $path"
+}
+
 require_file ".github/workflows/checks.yml"
 require_file ".github/pull_request_template.md"
 require_file ".gitignore"
@@ -134,6 +139,10 @@ require_contains ".github/pull_request_template.md" "Merge method: squash"
 require_contains ".github/pull_request_template.md" "WIP=1"
 
 require_contains ".gitignore" ".codex/"
+require_missing_path ".graphifyignore"
+require_missing_path "graphify-out"
+require_missing_path "docs/automation/graphify-resource-graph-scope.md"
+require_missing_path "docs/automation/symphony-issue-workflow-template.md"
 
 require_contains "docs/automation/automation-readiness.md" "WIP=1"
 require_contains "docs/automation/automation-readiness.md" "Linear issue execution contract"
@@ -149,7 +158,7 @@ require_contains "docs/automation/parent-codex-supervision.md" "host-side fallba
 require_contains "docs/automation/parent-codex-supervision.md" "Linear issue execution contract"
 require_contains "docs/automation/parent-codex-supervision.md" "Linear Project / Issue 格式 Gate"
 require_contains "docs/automation/parent-codex-supervision.md" "Project Planning Facilitator"
-require_contains "docs/automation/parent-codex-supervision.md" "active Project pointer"
+require_contains "docs/automation/parent-codex-supervision.md" "Runtime service boundary"
 require_contains "docs/automation/parent-codex-supervision.md" 'docs/audit/<linear-project-slug>-stage-code-audit.md'
 require_contains "docs/automation/parent-codex-supervision.md" '第一个 issue 和后续 issue 的 `Backlog` -> `Todo` 操作都归属父 Codex'
 require_contains "docs/automation/parent-codex-supervision.md" "Human 确认 Project / Issue plan"
@@ -179,9 +188,9 @@ require_contains "docs/automation/parent-codex-supervision.md" "给 @002 下 Cod
 require_contains "docs/automation/parent-codex-supervision.md" "@002 Startup Runbook"
 require_contains "docs/automation/parent-codex-supervision.md" "执行前检查"
 require_contains "docs/automation/parent-codex-supervision.md" "gate 通过后推进唯一 eligible issue 到 Todo"
-require_contains "docs/automation/parent-codex-supervision.md" "不依赖 Symphony"
-require_contains "docs/automation/post-issue-ledger.md" "不依赖 Symphony"
-require_contains "docs/automation/post-issue-ledger.md" "不运行 Graphify"
+require_contains "docs/automation/parent-codex-supervision.md" "不依赖额外调度服务"
+require_contains "docs/automation/post-issue-ledger.md" "不依赖额外调度或图谱服务"
+require_contains "docs/automation/post-issue-ledger.md" "不运行图谱更新服务"
 require_contains "docs/automation/post-issue-ledger.md" "read_only"
 require_contains "docs/automation/verified-operations.md" "Authorization Source"
 require_contains "docs/automation/verified-operations.md" "Evidence Location"
@@ -248,7 +257,7 @@ require_contains "docs/planning/project-role-map.md" '`005` | `ARC`'
 require_contains "docs/planning/project-role-map.md" '`006` | `QAV`'
 require_contains "docs/planning/project-role-map.md" '`007` | `OPS`'
 require_contains "docs/planning/project-role-map.md" "Linear 外的 reference / root docs 角色"
-require_contains "docs/planning/project-role-map.md" "symphony-issue、Codex Execution Agent 和 GitHub PR Automation 是流程工具 / 执行层 actor"
+require_contains "docs/planning/project-role-map.md" "Codex Execution Agent 和 GitHub PR Automation 是流程工具 / 执行层 actor"
 require_contains "docs/planning/project-role-map.md" "前端设计"
 require_contains "docs/planning/project-role-map.md" "后端开发"
 require_contains "docs/planning/project-role-map.md" "数据 / 持久化"
@@ -1414,7 +1423,7 @@ require_contains "docs/audit/inputs/mtpro-market-data-replay-operations-v1-stage
 require_contains "docs/audit/inputs/mtpro-market-data-replay-operations-v1-stage-audit-input.md" "Dashboard smoke"
 require_contains "docs/audit/inputs/mtpro-market-data-replay-operations-v1-stage-audit-input.md" "timelineItems=0"
 require_contains "docs/validation/eval-strategy.md" "什么时候可以引入独立 eval 框架"
-require_contains "docs/validation/latest-verification-summary.md" "Agent / Graphify 默认读取本文档"
+require_contains "docs/validation/latest-verification-summary.md" "Agent / Parent Codex 默认读取本文档"
 require_contains "docs/validation/latest-verification-summary.md" '完整 `verification.md` 只用于审计、追溯和 debug'
 require_contains "docs/validation/latest-verification-summary.md" "MTP-30"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-37"

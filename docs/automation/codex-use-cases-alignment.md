@@ -30,7 +30,7 @@ MTPRO 使用 Codex 时，不能只从当前 Swift 文件开始改代码。
 - `GOAL.md`、`docs/architecture.md`、`docs/roadmap.md`。
 - `docs/contracts/` 中与当前 issue 相关的 contract。
 - `docs/architecture/module-boundary.md`。
-- Graphify read context。
+- Linear queue context、latest verification summary 和相关 Stage Code Audit evidence。
 - 当前阶段的 source / test / validation 入口。
 
 输出形式：
@@ -50,7 +50,7 @@ MTPRO 必须保留 Pre-PR Codex Code Review。
 - 是否绕过 contract-first 文档。
 - 是否缺少测试或验证证据。
 - 是否缺少必要中文代码注释。
-- `.codex/*`、`graphify-out/*` 和无关 generated files 是否被排除。
+- `.codex/*` 和无关 generated files 是否被排除。
 
 GitHub PR 创建后，可以继续使用 GitHub 上的 Codex review 作为补充审查，但它不替代本地验证和 Parent Codex 监督。
 
@@ -61,7 +61,7 @@ MTPRO 中所有跨系统操作必须按 verified operations 方式记录。
 适用操作：
 
 - Human 确认 Project / Issue plan 并写入 Linear 后，父 Codex 将 eligible `Backlog` 自动推进为唯一 `Todo`。
-- symphony-issue 调度 child Codex。
+- Codex Execution Agent 执行唯一 `Todo` issue。
 - host-side fallback。
 - GitHub auto-merge handoff。
 - Post-Issue Ledger / 施工后记账。
@@ -124,7 +124,7 @@ MTPRO 是 macOS 交易研究工作台，后续不能长期只依赖 `swift test`
 - 类型或函数的业务目的。
 - 输入、输出和关键约束。
 - 领域不变量。
-- 外部系统、持久化、Graphify、Linear、GitHub 或交易边界。
+- 外部系统、持久化、Linear、GitHub 或交易边界。
 - 为什么该实现不能执行 Live trading 或 signed endpoint。
 
 禁止：
