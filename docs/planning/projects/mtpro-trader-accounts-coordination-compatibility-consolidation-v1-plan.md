@@ -10,7 +10,7 @@
 
 本文件只保存 `MTPRO Trader Accounts / Coordination Compatibility Consolidation v1` 的 Project 级计划摘要、issue order、dependencies、validation、evidence、first executable candidate、WIP=1 和边界。它不是 Linear issue body 的长期副本，也不授权执行。
 
-后续如写入 Linear，完整 issue scope、Codex Instructions、Validation、Boundary、PR Requirements 和 Acceptance Criteria 以 Linear issue body 为准。
+完整 issue scope、Codex Instructions、Validation、Boundary、PR Requirements 和 Acceptance Criteria 以 Linear issue body 为准。
 
 ## Project name
 
@@ -38,26 +38,13 @@
 
 固定 `Trader = Accounts + Strategies/EMA + Coordination` 的当前权威口径，新增 `Sources/Trader/Accounts` account context boundary，收口旧 `StrategyBindings` wording 和旧 `Sources/Strategies` compatibility excludes，保持 EMA-only active strategy、RiskBinding coordination boundary、no runtime / no live / no broker / no L4 implementation。
 
-## Target layout
+本阶段的当前 contract：
 
 ```text
-Sources/Trader/
-  Accounts/
-  Strategies/
-    EMA/
-  Coordination/
-    RiskBinding/
+Trader = Accounts + Strategies/EMA + Coordination
 ```
 
-规则：
-
-- `Trader` 是 account context、active EMA strategy definition 和 coordination 的容器。
-- `Trader/Accounts` 只表达 account identity、source identity 和 future real account gate。
-- `Trader/Strategies/EMA` 是当前唯一 active concrete strategy path。
-- `Trader/Coordination/RiskBinding` 是 binding / coordination boundary，不是 execution gateway。
-- `StrategyBindings` 不再作为 active source path 或 Trader 下一级策略目录。
-- `Sources/Strategies` 不再作为 active source path；旧引用只能是 historical / compatibility / superseded evidence。
-- Account context 不拥有 cash、positions、PnL、margin、leverage，不读取 broker / account payload。
+其中 `Accounts` 只表达 account identity、source identity 和 future real account gate；`Strategies/EMA` 是当前唯一 active concrete strategy；`Coordination/RiskBinding` 表达 proposal / risk / portfolio / execution evidence 的 local coordination adapter。旧 `StrategyBindings` 和旧 peer-level `Sources/Strategies` 只能作为 historical / compatibility / superseded context，不再是当前 active source path。
 
 ## Scope
 
@@ -69,6 +56,17 @@ Sources/Trader/
 - 清理 `Package.swift` 中 stale `Sources/Strategies` compatibility excludes。
 - 增加 Trader container completeness validation。
 - 收口 validation matrix、compatibility envelope 和 stage audit input material。
+
+## MTP-205 specific scope
+
+- 只定义 Trader Accounts / Coordination compatibility contract。
+- 固定 `Trader = Accounts + Strategies/EMA + Coordination` 的当前关系。
+- 固定 `Trader/Accounts` 只表达 identity / source / future gate，不拥有 cash、positions、PnL、margin、leverage 或真实账户 payload。
+- 固定当前 active concrete strategy only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/`。
+- 固定 `RiskBinding` 位于 `Sources/Trader/Coordination/RiskBinding/`，只作为 coordination adapter contract。
+- 退休 active wording：`Sources/Trader/StrategyBindings/` 和 `Sources/Strategies/` 不再是当前 active source path。
+- 记录 `Package.swift` compatibility envelope 的后续 cleanup 输入，实际 cleanup 由后续唯一 executable issue 授权。
+- 增加 validation anchors，防止旧 wording 回流成 active layout。
 
 ## Non-goals
 
@@ -97,6 +95,28 @@ Sources/Trader/
 - 不实现 Live PRO Console、trading button、live command 或 order form。
 - 不拆 SwiftPM target graph。
 - 不推进 L4。
+- 不把 `StrategyBindings` 或 `Sources/Strategies` 写回 current active source path。
+
+## Target layout
+
+```text
+Sources/Trader/
+  Accounts/
+  Strategies/
+    EMA/
+  Coordination/
+    RiskBinding/
+```
+
+规则：
+
+- `Trader` 是 account context、active EMA strategy definition 和 coordination adapter 的容器，不是当前 runtime authorization。
+- `Trader/Accounts` 只表达 account identity、source identity 和 future real account gate。
+- `Trader/Strategies/EMA` 是当前唯一 active concrete strategy path。
+- `Trader/Coordination/RiskBinding` 是 binding / coordination boundary，不是 execution gateway。
+- `StrategyBindings` 不再作为 active source path 或 Trader 下一级策略目录。
+- `Sources/Strategies` 不再作为 active source path；旧引用只能是 historical / compatibility / superseded evidence。
+- Account context 不拥有 cash、positions、PnL、margin、leverage，不读取 broker / account payload。
 
 ## Milestones
 
@@ -108,41 +128,43 @@ Sources/Trader/
 | M4 Trader Container Validation | 增加 Trader container completeness validation，验证 Accounts / EMA / Coordination 三件套完整。 |
 | M5 Closeout | 准备 validation matrix、compatibility envelope 和 stage audit input material。 |
 
-## Suggested issue order
+## Canonical issue order
 
-1. Define Trader Accounts / Coordination compatibility contract
-2. Add `Sources/Trader/Accounts` account context boundary
-3. Wire Trader account context evidence into tests / validation anchors
-4. Retire remaining active `StrategyBindings` wording from root docs
-5. Clean `Package.swift` stale `Strategies` compatibility excludes
-6. Add validation for Trader container completeness
-7. Close validation matrix / compatibility envelope / stage audit input
+1. `MTP-205` Define Trader Accounts / Coordination compatibility contract
+2. `MTP-206` Add Sources/Trader/Accounts account context boundary
+3. `MTP-207` Wire Trader account context evidence into tests / validation anchors
+4. `MTP-208` Retire remaining active StrategyBindings wording from root docs
+5. `MTP-209` Clean Package.swift stale Strategies compatibility excludes
+6. `MTP-210` Add validation for Trader container completeness
+7. `MTP-211` Close validation matrix / compatibility envelope / stage audit input
 
 ## Dependencies
 
-- Issue 2 blocked by Issue 1
-- Issue 3 blocked by Issue 2
-- Issue 4 blocked by Issue 1
-- Issue 5 blocked by Issue 4
-- Issue 6 blocked by Issue 2, Issue 3, Issue 4, Issue 5
-- Issue 7 blocked by Issue 6
+- `MTP-206` blocked by `MTP-205`
+- `MTP-207` blocked by `MTP-206`
+- `MTP-208` blocked by `MTP-207`
+- `MTP-209` blocked by `MTP-208`
+- `MTP-210` blocked by `MTP-209`
+- `MTP-211` blocked by `MTP-210`
 
 ## Candidate issue summaries
 
 | Issue | Summary | Boundary |
 | --- | --- | --- |
-| Issue 1 | 定义 Trader Accounts / Coordination compatibility contract，固定 account context、EMA-only strategy、RiskBinding coordination 和 forbidden path taxonomy。 | Docs / contract only；不新增 source，不修改 `Package.swift`。 |
-| Issue 2 | 新增 `Sources/Trader/Accounts` account context boundary，表达 account identity、source identity 和 future real account gate。 | 不读取真实账户，不拥有 cash / positions / PnL / margin / leverage。 |
-| Issue 3 | 将 Trader account context evidence 接入 tests / validation anchors。 | deterministic local evidence only；不实现 Trader runtime 或 account runtime。 |
-| Issue 4 | 清理 root docs 中剩余 active `StrategyBindings` wording。 | 旧引用只能保留为 historical / compatibility / superseded evidence。 |
-| Issue 5 | 清理 `Package.swift` 中 stale `Sources/Strategies` compatibility excludes。 | 不拆 SwiftPM target graph，不新增 target / product / dependency。 |
-| Issue 6 | 增加 Trader container completeness validation，验证 Accounts / Strategies/EMA / Coordination/RiskBinding 的 canonical source layout。 | 不实现 Strategy runtime、Trader runtime、ExecutionClient、OMS 或 broker gateway。 |
-| Issue 7 | 收口 validation matrix、compatibility envelope 和 stage audit input material。 | 只准备 stage audit input；最终 Stage Code Audit 由 Parent Codex 单独输出。 |
+| `MTP-205` | 定义 Trader Accounts / Coordination compatibility contract、active relationship 和 forbidden capability taxonomy。 | Contract / docs / validation anchors only；不新增 source，不移动 source，不修改 `Package.swift`。 |
+| `MTP-206` | 新增 `Sources/Trader/Accounts` account context boundary，表达 account identity、source identity 和 future real account gate。 | 不读取真实账户，不拥有 cash / positions / PnL / margin / leverage。 |
+| `MTP-207` | 将 Trader account context evidence 接入 tests / validation anchors。 | Deterministic local evidence only；不实现 Trader runtime 或 account runtime。 |
+| `MTP-208` | 清理 root docs 中剩余 active `StrategyBindings` wording。 | 旧引用只能保留为 historical / compatibility / superseded evidence。 |
+| `MTP-209` | 清理 `Package.swift` 中 stale `Sources/Strategies` compatibility excludes。 | 不拆 SwiftPM target graph，不新增 target / product / dependency。 |
+| `MTP-210` | 增加 Trader container completeness validation，验证 Accounts / Strategies/EMA / Coordination/RiskBinding 的 canonical source layout。 | 不实现 Strategy runtime、Trader runtime、ExecutionClient、OMS 或 broker gateway。 |
+| `MTP-211` | 收口 validation matrix、compatibility envelope 和 stage audit input material。 | 只准备 stage audit input；最终 Stage Code Audit 由 Parent Codex 单独输出。 |
 
 ## Validation requirements
 
 - 每个 issue 必须运行 `bash checks/run.sh`。
-- 必须验证 `Sources/Trader/Accounts/` exists。
+- 每个 issue 必须运行 `git diff --check`。
+- `MTP-205` 必须验证 `Trader = Accounts + Strategies/EMA + Coordination` contract 已落仓。
+- `MTP-206` 之后必须验证 `Sources/Trader/Accounts/` exists。
 - 必须验证 `Sources/Trader/Strategies/EMA/` is only active strategy。
 - 必须验证 `Sources/Trader/Coordination/RiskBinding/` is binding location。
 - 必须验证 no active `Sources/Trader/StrategyBindings`。
@@ -161,6 +183,7 @@ Sources/Trader/
 - 每个 PR 必须包含 validation output。
 - 每个 PR 必须包含 boundary evidence。
 - 每个 PR 必须包含 changed paths summary。
+- 每个 PR 必须说明 no Symphony、no Graphify、no Figma。
 - 每个 PR 必须说明 no Trader runtime。
 - 每个 PR 必须说明 no real account read。
 - 每个 PR 必须说明 no `ExecutionClient` / OMS / broker gateway。
@@ -202,10 +225,10 @@ Issue 1：`Define Trader Accounts / Coordination compatibility contract`
 
 ## Compatibility / risk notes
 
-- 当前 `Sources/Trader/Accounts/` 尚未作为 production source boundary 落地；本 planning record 只规划后续唯一 executable issue 的执行路径。
+- 当前 `Sources/Trader/Accounts/` 尚未作为 production source boundary 落地；MTP-205 只定义 contract，MTP-206 才能新增 account context boundary source。
 - 当前 `Sources/Trader/Strategies/EMA/` 是唯一 active concrete strategy path；非 EMA strategy 不能回流为 active source / tests / `Package.swift` path。
 - 旧 `StrategyBindings` wording 如果仍存在，应在后续 issue 中改为 historical / compatibility / superseded，或收口为 `Trader/Coordination` binding / adapter 语义。
-- `Package.swift` 中 stale `Sources/Strategies` compatibility excludes 是后续 Issue 5 的 cleanup 对象；本 planning record 不修改 `Package.swift`。
+- `Package.swift` 中 stale `Sources/Strategies` compatibility excludes 是后续 MTP-209 的 cleanup 对象；MTP-205 不修改 `Package.swift`。
 - SwiftPM target graph split 仍为 future gated；本 Project 只清理 compatibility envelope，不新增 target。
 
 ## Final boundary confirmation

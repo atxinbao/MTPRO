@@ -355,6 +355,42 @@ MTP-204 stage audit input material 指 `docs/audit/inputs/mtpro-trader-ema-strat
 
 MTP-204 automation readiness closeout 要求 `checks/automation-readiness.sh` 机械检查 stage audit input、module-boundary docs、domain context、validation matrix、validation plan、latest verification summary、automation readiness doc、MTP-198 至 MTP-203 evidence anchors、compatibility envelope closeout 和 no final Stage Code Audit boundary。
 
+`MTP-205-TRADER-ACCOUNTS-COORDINATION-COMPATIBILITY-CONTRACT`
+
+`Trader Accounts / Coordination compatibility` 指 MTP-205 后的当前 Trader container 口径：`Trader = Accounts + Strategies/EMA + Coordination`。它只表达 current source layout / docs / validation contract，不表示 Trader runtime、strategy scheduler、account session runtime、live coordinator、ExecutionClient、OMS、broker gateway 或 live command 已实现。
+
+`MTP-205-TRADER-CONTAINER-AUTHORITATIVE-RELATIONSHIP`
+
+当前 contract Trader component set 是 `Sources/Trader/Accounts/`、`Sources/Trader/Strategies/EMA/` 和 `Sources/Trader/Coordination/RiskBinding/`。旧 `Trader = Accounts + Strategies + StrategyBindings + Coordination` 只能作为 historical evidence；current / active / forward-looking wording 必须使用 `Trader = Accounts + Strategies/EMA + Coordination`。
+
+`MTP-205-TRADER-ACCOUNTS-IDENTITY-SOURCE-FUTURE-GATE`
+
+`Trader/Accounts` 只表示 account identity、source identity 和 future real account gate，不拥有 cash、positions、PnL、exposure、margin、leverage、buying power、real account payload、account endpoint payload、listenKey state 或 private stream runtime state。Portfolio financial state 继续属于 `Portfolio` boundary。
+
+`MTP-205-EMA-ONLY-STRATEGY-CURRENT-ACTIVE-GUARD`
+
+当前 active concrete strategy only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/`。非 EMA strategy 名称只能作为 future candidate、future-gated label、historical evidence 或 compatibility debt 出现。
+
+`MTP-205-RISKBINDING-COORDINATION-BOUNDARY`
+
+`RiskBinding` 指 `Sources/Trader/Coordination/RiskBinding/` 下的 local coordination adapter contract。它只表达 proposal / risk / portfolio / execution evidence 的连接语义，不是 concrete strategy implementation landing path，不是 ExecutionClient gateway、broker gateway、OMS gateway、executable order command、live command 或 real order lifecycle shortcut。
+
+`MTP-205-STRATEGYBINDINGS-SOURCES-STRATEGIES-RETIRED-ACTIVE-PATHS`
+
+`Sources/Trader/StrategyBindings/` 不再是 current active source root、first-level Trader strategy directory 或 active binding implementation path。`Sources/Strategies/` 不再是 current active strategy source path。两者只能作为 historical / compatibility / superseded / migration-source context 出现。
+
+`MTP-205-PACKAGE-COMPATIBILITY-ENVELOPE-CLEANUP-ENTRY`
+
+MTP-205 不修改 `Package.swift`，只把 stale `Strategies` compatibility excludes 记录为 MTP-209 cleanup input。该 cleanup 不等于 target graph split、Strategy runtime、Trader runtime 或 L4 authorization。
+
+`MTP-205-FORBIDDEN-CAPABILITY-TAXONOMY`
+
+MTP-205 forbidden capability taxonomy 固定 no Strategy runtime、no Trader runtime、no Live runtime、no ExecutionClient implementation、no OMS implementation、no broker gateway、no signed endpoint、no account endpoint / listenKey、no private WebSocket runtime、no account snapshot runtime、no real account read、no real order lifecycle、no Live PRO Console、no trading button、no live command 和 no order form。
+
+`MTP-205-TRADER-ACCOUNTS-COORDINATION-COMPATIBILITY-VALIDATION`
+
+MTP-205 validation 只证明 Trader Accounts / Coordination compatibility anchors 已落仓，并且本地 deterministic validation 通过；不证明任何 runtime、live broker path、account endpoint 或 command-capable UI 已实现。
+
 `MTP-172-TRADER-COORDINATION-BOUNDARY-CONTRACT`
 
 MTP-172 固定 `Sources/Trader/` 为 strategy / account / risk / execution context 的 coordination boundary。Trader 可以协调 Strategies、Portfolio、RiskEngine 和 ExecutionEngine 的本地 evidence / read-model inputs；Trader 不等于 live coordinator、OMS、broker gateway、ExecutionClient client wrapper、real account service、portfolio ledger 或 executable order command surface。
