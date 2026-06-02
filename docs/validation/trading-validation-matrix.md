@@ -785,6 +785,12 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | --- | --- | --- |
 | `MTP-209` | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 清理 `Package.swift` Runtime / App target exclude list 中指向 retired peer-level `Sources/Strategies/` 的 stale `"Strategies"` entry，消除 SwiftPM invalid exclude warning。`Core` compatibility envelope 仍保留 `"Trader/Accounts"`、`"Trader/Strategies/EMA"` 和 `"Trader/Coordination/RiskBinding"` source roots；`Sources/Strategies/` 不得作为 active source directory、Package source root 或 exclude root 回流。MTP-209 不新增 SwiftPM target/product/dependency，不拆 target graph，不移动 production source，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、Live PRO Console、trading button、live command、order form 或 L4 capability。 |
 
+## MTP-210 issue backfill
+
+| Issue | Matrix ID | 回填说明 |
+| --- | --- | --- |
+| `MTP-210` | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 增加 Trader container completeness validation：focused XCTest `testMTP210TraderContainerCompletenessValidationLocksAccountsEMAAndRiskBindingOnly` 机械验证 `Sources/Trader/` current directory set 只包含 `Accounts`、`Coordination` 和 `Strategies`，`Sources/Trader/Strategies/` active concrete strategy directory set 等于 only `EMA`，binding location 为 `Sources/Trader/Coordination/RiskBinding/`。Validation 阻断 `Sources/Trader/StrategyBindings/`、peer-level `Sources/Strategies/`、`Tests/Trader/StrategyBindings/`、`Tests/Strategies/`、stale Package `"Strategies"` exclude、`"Trader/StrategyBindings"` source root、non-EMA strategy root、`Strategies` target 和 `Trader` target 回流。MTP-210 不新增 SwiftPM target/product/dependency，不拆 target graph，不移动 production source，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、Live PRO Console、trading button、live command、order form 或 L4 capability。 |
+
 ## MTP-190 Target Module Source Migration 阶段收口
 
 日期：2026-06-01
