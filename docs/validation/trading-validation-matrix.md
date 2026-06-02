@@ -767,6 +767,12 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | --- | --- | --- |
 | `MTP-206` | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 新增 Trader Accounts source boundary：`Sources/Trader/Accounts/TraderAccountContext.swift` 以 `TraderAccountContext` 固定 account identity、source identity、source kind、future real account gate 和 Portfolio / RiskEngine / ExecutionEngine relationship evidence；`Package.swift` 将 `"Trader/Accounts"` 纳入 `Core` compatibility envelope source root，但不新增 SwiftPM target、product 或 dependency，不拆 target graph。Focused XCTest 覆盖 `testMTP206TraderAccountContextDefinesIdentitySourceAndFutureGateBoundary`、`testMTP206TraderAccountContextRejectsFinancialEndpointBrokerAndRuntimeBypass` 和 `testMTP206TraderAccountContextPathAndPackageCompatibilityEnvelopeArePresent`，验证 account context 不拥有 cash、positions、PnL、margin、leverage，不读取 broker/account payload，不接 signed endpoint、account endpoint、listenKey，不实现 private WebSocket runtime、account snapshot runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker gateway、Live PRO Console、trading button、live command 或 order form。 |
 
+## MTP-207 issue backfill
+
+| Issue | Matrix ID | 回填说明 |
+| --- | --- | --- |
+| `MTP-207` | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 接入 Trader account context validation wiring：`testMTP207TraderAccountContextValidationAnchorsCoverAccountsEMAAndRiskBinding` 同时验证 `Sources/Trader/Accounts/`、`Sources/Trader/Strategies/EMA/` 和 `Sources/Trader/Coordination/RiskBinding/` 仍在 Core compatibility envelope 中，并排除 `Trader/StrategyBindings` 和 peer-level `Sources/Strategies/EMA` active root 回流；`testMTP207TraderAccountContextValidationRejectsBrokerPayloadListenKeyAndRuntimeDrift` 验证 source identity、relationship text 和 Codable flags 均不能恢复 broker/account payload、listenKey、ExecutionClient、OMS、broker gateway、Trader runtime 或 Live runtime。MTP-207 只接入 deterministic validation evidence，不新增 runtime，不读取真实账户，不接 signed endpoint、account endpoint / listenKey，不拆 SwiftPM target graph。 |
+
 ## MTP-190 Target Module Source Migration 阶段收口
 
 日期：2026-06-01

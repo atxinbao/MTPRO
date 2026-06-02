@@ -6232,3 +6232,38 @@ MTP-206 必须建立的主要 anchors：
 - 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-207 Trader Account Context Validation Wiring
+
+MTP-207 必须运行：
+
+- `git diff --check`
+- `swift test --filter CoreTests/testMTP207`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-207 的验收要求：
+
+- Focused tests 必须覆盖 `Sources/Trader/Accounts/`、`Sources/Trader/Strategies/EMA/` 和 `Sources/Trader/Coordination/RiskBinding/` 的 validation wiring。
+- Tests 必须证明 `TraderAccountContext` 不拥有 cash、positions、PnL、margin、leverage。
+- Tests 必须证明 no broker/account payload dependency、no listenKey、no signed/account endpoint。
+- Tests 必须证明 no ExecutionClient / OMS / broker gateway / Trader runtime / Live runtime bypass。
+- Docs / automation readiness / validation matrix / latest verification summary 必须包含 MTP-207 anchors。
+
+MTP-207 必须建立的主要 anchors：
+
+- `MTP-207-TRADER-ACCOUNT-CONTEXT-VALIDATION-WIRING`
+- `MTP-207-ACCOUNTS-EMA-RISKBINDING-COVERAGE`
+- `MTP-207-BROKER-PAYLOAD-LISTENKEY-BYPASS-GUARD`
+- `MTP-207-VALIDATION-ONLY-NO-RUNTIME-GUARD`
+- `MTP-207-TRADER-ACCOUNT-CONTEXT-VALIDATION`
+
+## MTP-207 禁止
+
+- 不实现 account runtime、Trader runtime、Strategy runtime 或 Live runtime。
+- 不读取真实账户，不读取 broker/account payload。
+- 不接 signed endpoint、account endpoint / listenKey，不实现 private WebSocket runtime。
+- 不实现 ExecutionClient、OMS、broker gateway、real order lifecycle、Live PRO Console、trading button、live command 或 order form。
+- 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
