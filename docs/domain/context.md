@@ -323,6 +323,22 @@ MTP-171 不实现 strategy runtime、scheduler、live quoter runtime、live hedg
 
 MTP-171 的验证只证明 Strategies lifecycle and proposal boundary、EMA strategy directory example、lifecycle / quoter / hedger / signals / proposals split、Strategy read-model input contract、no direct ExecutionClient path guard 和 no runtime scheduler / live quoter / hedger guard 已落仓；不证明 source move、Package.swift target graph change、strategy runtime、scheduler、live quoter、live hedger、broker command、executable order command 或 source migration 已实现。
 
+`MTP-203-EMA-ONLY-ACTIVE-STRATEGY-DIRECTORY-GUARD`
+
+MTP-203 后，current active concrete strategy directory set 必须继续等于 only `EMA`。`Sources/Trader/Strategies/EMA/` 是唯一 active source root；`RSI`、`OrderBookImbalance`、`Momentum` 和 `MeanReversion` 只能作为 future candidate、historical evidence 或 Core research evidence，不得作为 active strategy directory、active test root 或 `Package.swift` source root 回流。
+
+`MTP-203-NON-EMA-ACTIVE-SOURCE-TEST-PACKAGE-DRIFT-GUARD`
+
+MTP-203 的 validation language 将 non-EMA drift 定义为：`Sources/Trader/Strategies/<non-EMA>/`、`Sources/Strategies/<non-EMA>/`、`Tests/Trader/Strategies/<non-EMA>/`、`Tests/Strategies/<non-EMA>/` 或 `"Trader/Strategies/<non-EMA>"` source root 回流。OrderBookImbalance research tests 和 Core research evidence 只证明 historical / research parity，不代表 current active strategy implementation。
+
+`MTP-203-STRATEGYBINDINGS-FIRST-LEVEL-DRIFT-GUARD`
+
+旧 `Sources/Trader/StrategyBindings/` 和 `"Trader/StrategyBindings"` 不得作为 current active binding source root 回流。Binding semantics 属于 `Sources/Trader/Coordination/RiskBinding/`，只能表达 generic binding protocol / coordination adapter contract，不得承载 concrete strategy implementation 或 execution gateway。
+
+`MTP-203-EMA-ONLY-PATH-VALIDATION`
+
+MTP-203 validation-only hardening 只增加 deterministic local checks、docs anchors 和 automation readiness anchors；不移动 production source，不拆 SwiftPM target graph，不实现 Strategy runtime、Trader runtime、ExecutionClient、OMS、broker command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command 或 order form。
+
 `MTP-172-TRADER-COORDINATION-BOUNDARY-CONTRACT`
 
 MTP-172 固定 `Sources/Trader/` 为 strategy / account / risk / execution context 的 coordination boundary。Trader 可以协调 Strategies、Portfolio、RiskEngine 和 ExecutionEngine 的本地 evidence / read-model inputs；Trader 不等于 live coordinator、OMS、broker gateway、ExecutionClient client wrapper、real account service、portfolio ledger 或 executable order command surface。

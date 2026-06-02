@@ -4534,6 +4534,16 @@ require_contains "docs/domain/context.md" "TraderCoordinationRiskBindingBoundary
 require_contains "docs/validation/validation-plan.md" "MTP-202 Trader Coordination RiskBinding Boundary Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-202"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-202 的当前 issue execution evidence"
+require_contains "Tests/CoreTests/CoreTests.swift" "testEMAOnlyActiveStrategyPathValidationRejectsNonEMAAndBindingDrift"
+require_contains "docs/architecture/module-boundary.md" "MTP-203-EMA-ONLY-ACTIVE-STRATEGY-DIRECTORY-GUARD"
+require_contains "docs/architecture/module-boundary.md" "MTP-203-NON-EMA-ACTIVE-SOURCE-TEST-PACKAGE-DRIFT-GUARD"
+require_contains "docs/architecture/module-boundary.md" "MTP-203-STRATEGYBINDINGS-FIRST-LEVEL-DRIFT-GUARD"
+require_contains "docs/architecture/module-boundary.md" "MTP-203-EMA-ONLY-PATH-VALIDATION"
+require_contains "docs/domain/context.md" "MTP-203-EMA-ONLY-ACTIVE-STRATEGY-DIRECTORY-GUARD"
+require_contains "docs/validation/validation-plan.md" "MTP-203 EMA-only Strategy Path Validation"
+require_contains "docs/validation/trading-validation-matrix.md" "MTP-203"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-203 的当前 issue execution evidence"
+require_contains "docs/automation/automation-readiness.md" "Trader EMA Strategy Layout MTP-203 path validation anchor"
 require_contains "docs/planning/projects/mtpro-trader-ema-strategy-layout-consolidation-v1-plan.md" '当前 active concrete strategy 只保留 `EMA`'
 require_contains "docs/planning/projects/mtpro-trader-ema-strategy-layout-consolidation-v1-plan.md" '`Sources/Trader/Strategies/EMA`'
 require_contains "Sources/Workbench/Report/StrategyTraderReadinessEvidenceSurface.swift" "MTP-160-WORKBENCH-REPORT-EVENTS-READ-MODEL-ONLY-SURFACE"

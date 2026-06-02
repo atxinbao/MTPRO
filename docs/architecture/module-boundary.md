@@ -744,6 +744,24 @@ MTP-202 将 proposal-to-risk binding 从旧 `Sources/Trader/StrategyBindings/Pap
 
 MTP-202 validation 必须证明 `TraderCoordinationRiskBindingBoundaryEvidence`、focused XCTest、Package.swift source roots、automation readiness 和完整 `bash checks/run.sh` 一致覆盖：RiskBinding 只是 generic binding protocol / coordination adapter，concrete strategies remain Trader-owned，且无 direct execution / broker / OMS / live command path。
 
+## MTP-203 EMA-only Strategy Path Validation
+
+`MTP-203-EMA-ONLY-ACTIVE-STRATEGY-DIRECTORY-GUARD`
+
+MTP-203 validation 必须把 `Sources/Trader/Strategies/` 的 current active concrete strategy directory set 固定为 only `EMA`。`Sources/Trader/Strategies/EMA/` 是唯一 active source root；`RSI`、`OrderBookImbalance`、`Momentum` 和 `MeanReversion` 只能作为 future candidate、historical evidence 或 Core research evidence，不得作为 active strategy directory 回流。
+
+`MTP-203-NON-EMA-ACTIVE-SOURCE-TEST-PACKAGE-DRIFT-GUARD`
+
+MTP-203 validation 必须机械阻断 non-EMA active source / active test root / `Package.swift` source root drift：`Sources/Trader/Strategies/<non-EMA>/`、`Sources/Strategies/<non-EMA>/`、`Tests/Trader/Strategies/<non-EMA>/`、`Tests/Strategies/<non-EMA>/` 和 `"Trader/Strategies/<non-EMA>"` 均不得回流。OrderBookImbalance 只能保留在 `Sources/Core/Research/OrderBookImbalanceResearchEvidence.swift` 和 research validation context。
+
+`MTP-203-STRATEGYBINDINGS-FIRST-LEVEL-DRIFT-GUARD`
+
+MTP-203 validation 必须继续阻断旧 `Sources/Trader/StrategyBindings/` first-level root 和 `"Trader/StrategyBindings"` package root 回流。Binding semantics 的唯一 active source root 是 `Sources/Trader/Coordination/RiskBinding/`，并且只表达 generic binding protocol / coordination adapter contract。
+
+`MTP-203-EMA-ONLY-PATH-VALIDATION`
+
+MTP-203 validation 必须由 `testEMAOnlyActiveStrategyPathValidationRejectsNonEMAAndBindingDrift`、automation readiness 和完整 `bash checks/run.sh` 共同覆盖。该 validation-only issue 不移动 production source，不新增 SwiftPM target、product 或 dependency，不拆 target graph，不实现 Strategy runtime、Trader runtime、ExecutionClient、OMS、broker command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command 或 order form。
+
 `MTP-198-EMA-ONLY-LAYOUT-VALIDATION`
 
 MTP-198 validation 必须证明 EMA-only Trader strategy layout anchors 已落仓，active concrete strategy only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/`，non-EMA strategy names only future candidate / future-gated label，并且 `bash checks/run.sh` 通过。

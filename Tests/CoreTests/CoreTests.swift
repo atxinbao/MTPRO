@@ -8367,6 +8367,79 @@ final class CoreTests: XCTestCase {
         XCTAssertTrue(riskBindingEvidence.forbidsExecutionAndLiveCommandPaths)
     }
 
+    func testEMAOnlyActiveStrategyPathValidationRejectsNonEMAAndBindingDrift() throws {
+        // 测试场景：MTP-203 将 EMA-only active layout 变成仓库级机械 gate。
+        // 任何非 EMA strategy root、旧 StrategyBindings root 或 Package.swift active source root 回流都会失败。
+        let fileManager = FileManager.default
+        let repositoryRoot = URL(fileURLWithPath: fileManager.currentDirectoryPath, isDirectory: true)
+        let traderStrategiesRoot = repositoryRoot.appendingPathComponent("Sources/Trader/Strategies")
+
+        let activeStrategyDirectoryNames = try fileManager.contentsOfDirectory(
+            at: traderStrategiesRoot,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: [.skipsHiddenFiles]
+        )
+        .filter { url in
+            (try? url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true
+        }
+        .map(\.lastPathComponent)
+        .sorted()
+        XCTAssertEqual(
+            activeStrategyDirectoryNames,
+            ["EMA"],
+            "Sources/Trader/Strategies must contain only the EMA active concrete strategy root"
+        )
+
+        let nonEMAStrategyCandidates = [
+            "RSI",
+            "OrderBookImbalance",
+            "Momentum",
+            "MeanReversion"
+        ]
+        let forbiddenActiveRoots = nonEMAStrategyCandidates.flatMap { strategyName in
+            [
+                "Sources/Trader/Strategies/\(strategyName)",
+                "Sources/Strategies/\(strategyName)",
+                "Tests/Trader/Strategies/\(strategyName)",
+                "Tests/Strategies/\(strategyName)"
+            ]
+        } + [
+            "Sources/Trader/StrategyBindings"
+        ]
+        for relativePath in forbiddenActiveRoots {
+            XCTAssertFalse(
+                fileManager.fileExists(atPath: repositoryRoot.appendingPathComponent(relativePath).path),
+                "\(relativePath) must not return as an active source or active test root"
+            )
+        }
+
+        let packageManifest = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let activeTraderStrategyRootOccurrences = packageManifest
+            .components(separatedBy: "\"Trader/Strategies/")
+            .count - 1
+        XCTAssertEqual(activeTraderStrategyRootOccurrences, 1)
+        XCTAssertTrue(packageManifest.contains("\"Trader/Strategies/EMA\""))
+        XCTAssertTrue(packageManifest.contains("\"Trader/Coordination/RiskBinding\""))
+
+        let forbiddenPackageSourceRoots = nonEMAStrategyCandidates.flatMap { strategyName in
+            [
+                "\"Trader/Strategies/\(strategyName)\"",
+                "\"Strategies/\(strategyName)\""
+            ]
+        } + [
+            "\"Trader/StrategyBindings\""
+        ]
+        for forbiddenRoot in forbiddenPackageSourceRoots {
+            XCTAssertFalse(
+                packageManifest.contains(forbiddenRoot),
+                "\(forbiddenRoot) must not return as a Package.swift active source root"
+            )
+        }
+    }
+
     func testPaperActionRiskLinkBlocksOversizedPaperProposalWithEvidence() throws {
         // 测试场景：MTP-33 阻断路径必须复用 RiskBlockerEvidence，固定 blocker reason、
         // source sequence 和 paper-only context，不引入真实风控或 broker 拒单回退。
