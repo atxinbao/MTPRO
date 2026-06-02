@@ -6,7 +6,7 @@ import Foundation
 /// Paper action risk link 把 MTP-32 的 paper-only proposal 接到本地风险观察证据。
 ///
 /// 该文件只定义 strategy signal -> paper action proposal -> risk blocker 的最小本地链路。
-/// 它不是 EMA、OrderBookImbalance 或未来具体策略的 implementation landing path；具体策略必须继续位于
+/// 它不是 EMA、OrderBookImbalance 或未来具体策略的 implementation landing path；当前 active 具体策略必须继续位于
 /// `Sources/Trader/Strategies/<strategy>/`。
 /// 它不是完整风险引擎、订单管理系统、broker 拒单回退或真实交易执行入口，也不会调用
 /// Binance signed endpoint、account endpoint、order submit / cancel / replace 或 Live execution。
@@ -65,7 +65,7 @@ public struct TraderStrategyBindingsBoundaryEvidence: Codable, Equatable, Sendab
             && carriesConcreteStrategyImplementation == false
     }
 
-    /// 证明当前具体策略 root 仍在 Trader-owned Strategies 下，而不是 StrategyBindings 或旧 peer-level path。
+    /// 证明当前 active 具体策略 root 仍在 Trader-owned Strategies 下，而不是 StrategyBindings 或旧 peer-level path。
     public var concreteStrategiesRemainTraderOwned: Bool {
         concreteStrategyRoots.allSatisfy { root in
             root.hasPrefix("Sources/Trader/Strategies/")
@@ -85,14 +85,13 @@ public struct TraderStrategyBindingsBoundaryEvidence: Codable, Equatable, Sendab
 
 /// TraderStrategyBindingsBoundaryFixture 提供 MTP-195 deterministic boundary fixture。
 ///
-/// Fixture 只服务本地测试和 PR evidence，固定 EMA 与 OrderBookImbalance 的 current concrete
-/// strategy root，同时证明 `StrategyBindings` 只是 binding protocol / coordination adapter contract。
+/// Fixture 只服务本地测试和 PR evidence，固定 EMA 是唯一 current active concrete strategy root，
+/// 同时证明 `StrategyBindings` 只是 binding protocol / coordination adapter contract。
 public enum TraderStrategyBindingsBoundaryFixture {
     public static let deterministic = TraderStrategyBindingsBoundaryEvidence(
         strategyBindingsRoot: "Sources/Trader/StrategyBindings/",
         concreteStrategyRoots: [
-            "Sources/Trader/Strategies/EMA/",
-            "Sources/Trader/Strategies/OrderBookImbalance/"
+            "Sources/Trader/Strategies/EMA/"
         ],
         contractRoles: [.genericBindingProtocol, .coordinationAdapterContract],
         compatibilityTargetName: "Core",

@@ -5791,9 +5791,9 @@ MTP-194 必须运行：
 
 MTP-194 的验收要求：
 
-- `Sources/Trader/Strategies/OrderBookImbalance/` 必须包含 `OrderBookImbalance.swift`。
+- MTP-194 当时必须证明 `Sources/Trader/Strategies/OrderBookImbalance/` 包含 `OrderBookImbalance.swift`；MTP-201 后该路径只作为 historical placement evidence，不再是 current active source root。
 - `Sources/Strategies/OrderBookImbalance/` 不得继续保留 production source；root docs 中保留的 `Sources/Strategies/OrderBookImbalance/` 必须明确为 MTP-183 / MTP-187 historical evidence、superseded path 或 migration-source path。
-- `Package.swift` 必须使用 `"Trader/Strategies/OrderBookImbalance"` 作为 OrderBookImbalance source root，并且不再包含 `"Strategies/OrderBookImbalance"`。
+- MTP-194 当时必须证明 `Package.swift` 使用 `"Trader/Strategies/OrderBookImbalance"` 作为 OrderBookImbalance source root，并且不再包含 `"Strategies/OrderBookImbalance"`；MTP-201 后 `Package.swift` 不得再包含 `"Trader/Strategies/OrderBookImbalance"`。
 - `Core` SwiftPM product / target 名称继续作为 compatibility envelope，不新增 SwiftPM target、product 或 dependency，不做 target graph split。
 - OrderBookImbalance strategy contract、configuration validation、signal sample、bias calculation、snapshot / delta input source evidence、research-only no-short / no-margin / no-real-execution boundary 和现有 focused tests 行为必须保持不变。
 - `docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-194 mechanical anchors。
@@ -5831,7 +5831,7 @@ MTP-195 的验收要求：
 
 - `Sources/Trader/StrategyBindings/PaperActionRiskLink.swift` 必须明确 `StrategyBindings` 只表达 generic binding protocol / coordination adapter contract。
 - `TraderStrategyBindingsBoundaryEvidence` 必须证明 `Sources/Trader/StrategyBindings/` 不承载 concrete strategy implementation。
-- EMA 和 OrderBookImbalance 的 concrete strategy roots 必须保持在 `Sources/Trader/Strategies/EMA/` 与 `Sources/Trader/Strategies/OrderBookImbalance/`。
+- MTP-201 后 concrete active strategy roots 必须只包含 `Sources/Trader/Strategies/EMA/`；OrderBookImbalance 只保留为 `Sources/Core/Research/OrderBookImbalanceResearchEvidence.swift` historical research evidence。
 - `StrategyBindings` 不得直连 ExecutionClient、broker command、OMS command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command、order form 或 executable order command。
 - `docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-195 mechanical anchors。
 - PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
@@ -5865,9 +5865,9 @@ MTP-196 必须运行：
 
 MTP-196 的验收要求：
 
-- Validation 必须直接检查 `Sources/Trader/Strategies/EMA/` 当前 active implementation files，并把 `Sources/Trader/Strategies/OrderBookImbalance/` 仅作为 historical / compatibility placement evidence 检查。
+- Validation 必须直接检查 `Sources/Trader/Strategies/EMA/` 当前 active implementation files，并确认 `Sources/Trader/Strategies/OrderBookImbalance/` 已退休、OrderBookImbalance 只作为 Core research evidence 保留。
 - Validation 必须在 `Sources/Strategies/EMA/` 或 `Sources/Strategies/OrderBookImbalance/` 作为当前 implementation directory 回流时失败。
-- Validation 必须检查 `Package.swift` 只使用 `"Trader/Strategies/EMA"`、`"Trader/Strategies/OrderBookImbalance"` 和 `"Trader/StrategyBindings"` source roots，不使用旧 `"Strategies/EMA"` 或 `"Strategies/OrderBookImbalance"` roots。
+- Validation 必须检查 `Package.swift` 只使用 `"Trader/Strategies/EMA"` 和 `"Trader/StrategyBindings"` 相关 source roots，不使用旧 `"Strategies/EMA"`、`"Strategies/OrderBookImbalance"` 或 `"Trader/Strategies/OrderBookImbalance"` roots。
 - Validation 必须覆盖 StrategyBindings as non-concrete-strategy landing area。
 - Validation 必须覆盖 no direct ExecutionClient / broker / OMS / live command path。
 - `docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-196 mechanical anchors。
@@ -5944,7 +5944,7 @@ MTP-198 的验收要求：
 - `docs/contracts/trader-ema-strategy-layout-contract.md` 必须包含 EMA-only Trader strategy layout contract、canonical active EMA path、non-EMA future candidate boundary、StrategyBindings not first-level strategy directory、Trader/Coordination binding responsibility、forbidden strategy path execution bypass taxonomy、no source move / Package.swift / runtime guard 和 validation anchors。
 - `docs/architecture/module-boundary.md` 与 `docs/domain/context.md` 必须明确 current active concrete strategy only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/`。
 - `RSI`、`OrderBookImbalance`、`Momentum` 和 `MeanReversion` 必须被描述为 future candidate / future-gated strategy label，不得被写成 current active strategy。
-- 现有 `Sources/Trader/Strategies/OrderBookImbalance/` 必须被描述为 compatibility / superseded source placement debt，后续由 MTP-200 audit 和 MTP-201 retirement / quarantine 处理。
+- MTP-201 后 `Sources/Trader/Strategies/OrderBookImbalance/` 必须被描述为已退休，OrderBookImbalance 只保留为 Core research evidence。
 - `Sources/Trader/StrategyBindings/` 必须明确不是 first-level Trader strategy directory；binding / adapter semantics 归 `Sources/Trader/Coordination/` responsibility。
 - PR 前必须确认本 issue 没有移动 `Sources`、没有修改 `Package.swift`、没有写 Swift business code、没有提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
@@ -5961,7 +5961,7 @@ MTP-198 必须建立的主要 anchors：
 
 ## MTP-198 禁止
 
-- 不移动 source files，不删除 `Sources/Trader/Strategies/OrderBookImbalance/`，不移动 `Sources/Trader/StrategyBindings/`，不修改 `Package.swift` source roots。
+- 对 MTP-198 执行本身，不移动 source files、不删除当时仍存在的 `Sources/Trader/Strategies/OrderBookImbalance/`、不移动 `Sources/Trader/StrategyBindings/`、不修改 `Package.swift` source roots；MTP-201 后由 retirement gate 接管并删除 non-EMA active source root。
 - 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
 - 不实现 Strategy runtime、strategy scheduler、live quoter、live hedger、Trader runtime、live coordinator、broker gateway、ExecutionClient gateway、OMS gateway、account session runtime、broker position sync、signed endpoint、account endpoint、listenKey、private stream runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form、short command、margin command 或 futures command。
 - 不把 `RSI`、`OrderBookImbalance`、`Momentum` 或 `MeanReversion` 写成 current active concrete strategy。
@@ -5979,7 +5979,7 @@ MTP-200 必须运行：
 MTP-200 的验收要求：
 
 - `docs/audit/inputs/mtpro-trader-ema-strategy-layout-consolidation-v1-mtp-200-non-ema-anchor-audit.md` 必须枚举 `OrderBookImbalance`、`RSI`、`Momentum`、`MeanReversion` 和 `StrategyBindings` 在 `Sources`、`Tests`、`Package.swift` 和 validation anchors 中的当前状态。
-- Audit 必须明确 `OrderBookImbalance` 仍有 active compiled source placement debt、Package compatibility root、research flow / event / persistence / tests dependency。
+- Audit 必须明确 MTP-200 当时 `OrderBookImbalance` 仍有 active compiled source placement debt、Package compatibility root、research flow / event / persistence / tests dependency；MTP-201 后该 debt 由 retirement gate 关闭，只保留 Core research evidence。
 - Audit 必须明确 `RSI`、`Momentum` 和 `MeanReversion` 在 `Sources`、`Tests` 和 `Package.swift` 中没有 exact active anchors。
 - Audit 必须明确 `StrategyBindings` 是 binding / coordination adapter evidence，不是 concrete strategy source root，并作为 MTP-202 输入。
 - PR 前必须确认本 issue 没有移动 `Sources`、没有修改 `Package.swift`、没有写 Swift business code、没有提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
@@ -5997,10 +5997,46 @@ MTP-200 必须建立的主要 anchors：
 
 ## MTP-200 禁止
 
-- 不移动 source files，不删除 `Sources/Trader/Strategies/OrderBookImbalance/`，不移动 `Sources/Trader/StrategyBindings/`，不修改 `Package.swift` source roots。
+- 对 MTP-200 audit 本身，不移动 source files、不删除当时仍存在的 `Sources/Trader/Strategies/OrderBookImbalance/`、不移动 `Sources/Trader/StrategyBindings/`、不修改 `Package.swift` source roots；MTP-201 后由 retirement gate 执行 non-EMA active source removal。
 - 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
 - 不实现 Strategy runtime、strategy scheduler、live quoter、live hedger、Trader runtime、live coordinator、broker gateway、ExecutionClient gateway、OMS gateway、account session runtime、broker position sync、signed endpoint、account endpoint、listenKey、private stream runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form、short command、margin command 或 futures command。
 - 不把 `RSI`、`OrderBookImbalance`、`Momentum` 或 `MeanReversion` 写成 current active concrete strategy。
 - 不把 StrategyBindings 写成 first-level strategy directory 或未来具体 strategy implementation landing path。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-201 Non-EMA Active Strategy Source Retirement Validation
+
+MTP-201 必须运行：
+
+- `swift test --filter CoreTests/testTraderOwnedStrategyPathValidationCoversCanonicalOldBindingAndExecutionGuards`
+- `swift test --filter CoreTests/testOrderBookImbalanceStrategyGeneratesStableSignalFixture`
+- `swift test --filter CoreTests/testOrderBookImbalanceResearchParityEvidenceCoversBiasAndInputSources`
+- `swift test --filter CoreTests/testOrderBookImbalanceRejectsInvalidConfigurationAndInputs`
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-201 的验收要求：
+
+- Current active concrete strategy source layout 必须 only `Sources/Trader/Strategies/EMA/`。
+- `Sources/Trader/Strategies/OrderBookImbalance/` 必须不存在。
+- `Package.swift` 必须不包含 `"Trader/Strategies/OrderBookImbalance"` 或 `"Strategies/OrderBookImbalance"`。
+- `Sources/Core/Research/OrderBookImbalanceResearchEvidence.swift` 必须保留 OrderBookImbalance research / parity / persistence evidence，且不得被写成 current active strategy source。
+- `TraderStrategyBindingsBoundaryFixture` 的 concrete active strategy roots 必须 only EMA；MTP-202 继续负责 StrategyBindings boundary move / reclassification。
+
+MTP-201 必须建立的主要 anchors：
+
+- `MTP-201-NON-EMA-ACTIVE-SOURCE-RETIREMENT`
+- `MTP-201-EMA-ONLY-ACTIVE-SOURCE-LAYOUT`
+- `MTP-201-ORDERBOOKIMBALANCE-RESEARCH-EVIDENCE-RECLASSIFICATION`
+- `MTP-201-SOURCE-RETIREMENT-VALIDATION`
+- `MTP-201-FORBIDDEN-RUNTIME-GUARD`
+
+## MTP-201 禁止
+
+- 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- 不实现 Strategy runtime、strategy scheduler、live quoter、live hedger、Trader runtime、live coordinator、broker gateway、ExecutionClient gateway、OMS gateway、account session runtime、broker position sync、signed endpoint、account endpoint、listenKey、private stream runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form、short command、margin command 或 futures command。
+- 不把 `RSI`、`OrderBookImbalance`、`Momentum` 或 `MeanReversion` 写成 current active concrete strategy。
+- 不移动 `Sources/Trader/StrategyBindings/`；该 boundary 由 MTP-202 处理。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
