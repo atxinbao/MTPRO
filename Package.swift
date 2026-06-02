@@ -102,7 +102,6 @@ let package = Package(
                 "RiskEngine",
                 "ExecutionEngine",
                 "ExecutionClient",
-                "Strategies",
                 "Trader",
                 "Workbench"
             ],
@@ -127,7 +126,6 @@ let package = Package(
                 "RiskEngine",
                 "ExecutionEngine",
                 "ExecutionClient",
-                "Strategies",
                 "Trader",
                 "Dashboard/DashboardApplication.swift"
             ],

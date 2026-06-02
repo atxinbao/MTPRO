@@ -779,6 +779,12 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | --- | --- | --- |
 | `MTP-208` | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 退休 root / high-weight docs 中剩余易误读的 `StrategyBindings` wording：retained `StrategyBindings` references 只能作为 historical / compatibility / superseded evidence，不能表达 current active source path、Trader 下一级策略目录、concrete strategy implementation landing path 或 execution shortcut。Current binding / adapter location 固定为 `Sources/Trader/Coordination/RiskBinding/`，current active concrete strategy only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/`。MTP-208 不移动 production source，不修改 `Package.swift`，不新增 SwiftPM target/product/dependency，不拆 target graph，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker gateway、Live PRO Console、trading button、live command 或 order form。 |
 
+## MTP-209 issue backfill
+
+| Issue | Matrix ID | 回填说明 |
+| --- | --- | --- |
+| `MTP-209` | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 清理 `Package.swift` Runtime / App target exclude list 中指向 retired peer-level `Sources/Strategies/` 的 stale `"Strategies"` entry，消除 SwiftPM invalid exclude warning。`Core` compatibility envelope 仍保留 `"Trader/Accounts"`、`"Trader/Strategies/EMA"` 和 `"Trader/Coordination/RiskBinding"` source roots；`Sources/Strategies/` 不得作为 active source directory、Package source root 或 exclude root 回流。MTP-209 不新增 SwiftPM target/product/dependency，不拆 target graph，不移动 production source，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、Live PRO Console、trading button、live command、order form 或 L4 capability。 |
+
 ## MTP-190 Target Module Source Migration 阶段收口
 
 日期：2026-06-01

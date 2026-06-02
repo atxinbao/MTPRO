@@ -451,6 +451,26 @@ MTP-208 是 docs wording retirement issue：不移动 source，不修改 `Packag
 
 MTP-208 validation 只证明 root / high-weight docs 的 StrategyBindings 易误读 wording 已退休；不证明任何 runtime、broker integration、L4 implementation 或 command-capable UI 已实现。
 
+`MTP-209-PACKAGE-STALE-STRATEGIES-EXCLUDE-CLEANUP`
+
+`Package stale Strategies compatibility exclude cleanup` 指 MTP-209 删除 `Package.swift` Runtime / App exclude list 中指向 retired peer-level `Sources/Strategies/` 的 stale `"Strategies"` entry。该 cleanup 只消除 SwiftPM invalid exclude warning，不表示 SwiftPM target graph split 已完成。
+
+`MTP-209-COMPATIBILITY-ENVELOPE-TARGET-GRAPH-PRESERVATION`
+
+MTP-209 后 `Core` 仍是 compatibility envelope，继续编译 `Trader/Accounts`、`Trader/Strategies/EMA` 和 `Trader/Coordination/RiskBinding` source roots。`Strategies` 或 `Trader` 不因此成为独立 SwiftPM target，products、targets 和 dependencies 不因本 cleanup 改变。
+
+`MTP-209-NO-ACTIVE-SOURCES-STRATEGIES-GUARD`
+
+`Sources/Strategies/` 不是 current active strategy source root、Package source root 或 exclude root。旧 `Sources/Strategies/<strategy>` 只能作为 historical / compatibility / superseded / migration-source language 保留；current active concrete strategy only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/`。
+
+`MTP-209-NO-RUNTIME-LIVE-BROKER-L4-GUARD`
+
+MTP-209 不移动 source，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
+`MTP-209-PACKAGE-CLEANUP-VALIDATION`
+
+MTP-209 validation 只证明 stale peer-level `Strategies` Package exclude 已删除、`Sources/Strategies/` active root 未回流、current Trader source roots 仍在 compatibility envelope 中，并且本地 package / automation / full checks 通过；不证明任何 runtime、live broker path、account endpoint 或 command-capable UI 已实现。
+
 `MTP-172-TRADER-COORDINATION-BOUNDARY-CONTRACT`
 
 MTP-172 固定 `Sources/Trader/` 为 strategy / account / risk / execution context 的 coordination boundary。Trader 可以协调 Strategies、Portfolio、RiskEngine 和 ExecutionEngine 的本地 evidence / read-model inputs；Trader 不等于 live coordinator、OMS、broker gateway、ExecutionClient client wrapper、real account service、portfolio ledger 或 executable order command surface。

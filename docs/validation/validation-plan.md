@@ -6299,3 +6299,39 @@ MTP-208 必须建立的主要 anchors：
 - 不把 `StrategyBindings` 写成 current active source path、Trader 下一级策略目录、concrete strategy implementation landing path 或 execution shortcut。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-209 Package Stale Strategies Compatibility Exclude Cleanup Validation
+
+MTP-209 必须运行：
+
+- `swift package describe`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-209 的验收要求：
+
+- `Package.swift` 不得再包含 Runtime / App target exclude list 中的 stale peer-level `"Strategies"` entry。
+- `swift package describe` 不得再输出 `Sources/Strategies` invalid exclude warning。
+- `Package.swift` 必须继续保留 `"Trader/Accounts"`、`"Trader/Strategies/EMA"` 和 `"Trader/Coordination/RiskBinding"` source roots。
+- `Sources/Strategies/` 目录不得回流为 active source root。
+- 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- 不移动 production source，不实现 runtime / live / broker / L4 capability。
+- Docs / automation readiness / validation matrix / latest verification summary 必须包含 MTP-209 anchors。
+
+MTP-209 必须建立的主要 anchors：
+
+- `MTP-209-PACKAGE-STALE-STRATEGIES-EXCLUDE-CLEANUP`
+- `MTP-209-COMPATIBILITY-ENVELOPE-TARGET-GRAPH-PRESERVATION`
+- `MTP-209-NO-ACTIVE-SOURCES-STRATEGIES-GUARD`
+- `MTP-209-NO-RUNTIME-LIVE-BROKER-L4-GUARD`
+- `MTP-209-PACKAGE-CLEANUP-VALIDATION`
+
+## MTP-209 禁止
+
+- 不新增、不删除、不重命名 SwiftPM target、product 或 dependency。
+- 不把 `Strategies` 或 `Trader` 拆成独立 SwiftPM target。
+- 不移动 production source，不恢复 `Sources/Strategies/` active root。
+- 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
