@@ -4773,6 +4773,27 @@ require_contains "docs/validation/trading-validation-matrix.md" "MTP-207 issue b
 require_contains "docs/validation/latest-verification-summary.md" "MTP-207 的当前 issue execution evidence"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-207-TRADER-ACCOUNT-CONTEXT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Trader account context validation wiring anchor"
+require_contains "docs/architecture/module-boundary.md" "MTP-208 Root Docs StrategyBindings Wording Retirement"
+require_contains "docs/architecture/module-boundary.md" "MTP-208-STRATEGYBINDINGS-ACTIVE-WORDING-RETIREMENT"
+require_contains "docs/architecture/module-boundary.md" "MTP-208-TRADER-COORDINATION-RISKBINDING-CURRENT-LOCATION"
+require_contains "docs/architecture/module-boundary.md" "MTP-208-EMA-ONLY-ACTIVE-STRATEGY-DOC-GUARD"
+require_contains "docs/architecture/module-boundary.md" "MTP-208-NO-SOURCE-MOVE-PACKAGE-RUNTIME-GUARD"
+require_contains "docs/architecture/module-boundary.md" "MTP-208-ROOT-DOCS-WORDING-VALIDATION"
+require_contains "docs/domain/context.md" "MTP-208-STRATEGYBINDINGS-ACTIVE-WORDING-RETIREMENT"
+require_contains "docs/domain/context.md" "MTP-208-TRADER-COORDINATION-RISKBINDING-CURRENT-LOCATION"
+require_contains "docs/domain/context.md" "MTP-208-EMA-ONLY-ACTIVE-STRATEGY-DOC-GUARD"
+require_contains "docs/domain/context.md" "MTP-208-NO-SOURCE-MOVE-PACKAGE-RUNTIME-GUARD"
+require_contains "docs/domain/context.md" "MTP-208-ROOT-DOCS-WORDING-VALIDATION"
+require_contains "docs/validation/validation-plan.md" "MTP-208 Root Docs StrategyBindings Wording Retirement Validation"
+require_contains "docs/validation/validation-plan.md" "MTP-208-ROOT-DOCS-WORDING-VALIDATION"
+require_contains "docs/validation/trading-validation-matrix.md" "MTP-208 issue backfill"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-208 的当前 issue execution evidence"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-208-ROOT-DOCS-WORDING-VALIDATION"
+require_contains "docs/automation/automation-readiness.md" "StrategyBindings wording retirement anchor"
+require_absent "docs/validation/validation-plan.md" 'Root docs 必须使用 `Trader = Accounts + Strategies + StrategyBindings + Coordination`'
+require_absent "docs/validation/validation-plan.md" '`Sources/Trader/StrategyBindings/` 必须包含 proposal-to-risk binding'
+require_absent "docs/validation/validation-plan.md" '只使用 `"Trader/Strategies/EMA"` 和 `"Trader/StrategyBindings"`'
+require_absent "docs/validation/validation-plan.md" "Validation 必须覆盖 StrategyBindings as non-concrete-strategy landing area"
 
 require_absent ".github/workflows/checks.yml" "pull_request_target"
 
