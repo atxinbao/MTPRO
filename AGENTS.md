@@ -30,7 +30,6 @@ Agent 开始工作前必须读取：
 - 只有 Linear live-read 中唯一 configured executable issue 才能授权正式开发；执行前必须由 Parent Codex queue preview 确认 WIP=1。
 - Linear issue 的 Scope / Non-goals / Codex Instructions / Validation / Boundary / PR Requirements 是 Codex Execution Agent 的执行合同。
 - `.codex/*` 不进入 PR。
-- `graphify-out/*` 不进入 PR。
 - Agent 默认读取 `docs/validation/latest-verification-summary.md`，不默认读取完整 `verification.md`。
 
 ## Role Alias Rule / 角色和自动化边界
@@ -48,31 +47,30 @@ MTPRO 采用 AEP 三位数字编号和三字母角色代号。数字编号与三
 | `004` | `DSG` | Design Reference Lead | Linear 外信息架构、Dashboard / Workbench 页面结构、状态与 ViewModel 映射 delta proposal |
 | `005` | `ARC` | Architecture Reference Lead | Linear 外系统结构参考、模块边界、event / replay / adapter / runtime / execution 语义映射 delta proposal |
 | `006` | `QAV` | QA / Trading validation | 验证、失败归因、验收证据、Finance / Trading Domain 和回归边界 |
-| `007` | `OPS` | Operations | 本地环境、运行、部署、Graphify / Symphony / GitHub 自动化可用性 |
+| `007` | `OPS` | Operations | 本地环境、运行、部署、GitHub / Linear 自动化可用性 |
 
-Agent 收到 `给 @000 下 Codex 指令`、`给 @001 下 Codex 指令` 或 `@001：<任务>` 时，必须按对应角色职责解析。symphony-issue、Codex Execution Agent 和 GitHub PR Automation 是流程工具 / 执行层 actor，按名称调用，不占用角色编号。
+Agent 收到 `给 @000 下 Codex 指令`、`给 @001 下 Codex 指令` 或 `@001：<任务>` 时，必须按对应角色职责解析。Codex Execution Agent 和 GitHub PR Automation 是流程工具 / 执行层 actor，按名称调用，不占用角色编号。
 
 ## Planning / Execution 分界
 
-- Project Planning Facilitator 只做规划和草案；`@001 / PLN` 不执行 issue，不启动 symphony-issue，不操作 `Backlog` -> `Todo`。
+- Project Planning Facilitator 只做规划和草案；`@001 / PLN` 不执行 issue，不操作 `Backlog` -> `Todo`。
 - Human 确认 Project / Issue plan 并写入 Linear 后，第一个 issue 和后续 issue 的 `Backlog` -> `Todo` 操作都只能由父 Codex 自动执行。
 - 父 Codex 自动调度前必须确认 WIP=1、previous issue Done、依赖满足、执行合同格式完整，并且当前 Project 没有 `Todo` / `In Progress` / `In Review` active conflict。
-- symphony-issue 只调度唯一 `Todo` issue，并负责 `Todo -> In Progress -> In Review` 状态推进。
+- Codex Execution Agent 只执行唯一 `Todo` issue；Linear 状态推进必须以 Parent Codex queue supervision、GitHub PR evidence 和 Linear live-read 为准。
 - GitHub PR Automation 负责 required checks、auto-merge、squash merge、branch cleanup 和 Linear bot auto Done。
 
 ## @002 Startup Runbook
 
-当 Human 指令要求 `@002 / PAR` 接管一个已写入 Linear 的 Project 时，父 Codex 必须把启动、执行前检查、active Project pointer 更新、二次 queue preview 和首个 eligible issue 推进合并为一个连续动作。
+当 Human 指令要求 `@002 / PAR` 接管一个已写入 Linear 的 Project 时，父 Codex 必须把启动、执行前检查、queue preview 和首个 eligible issue 推进合并为一个连续动作。
 
 1. 读取 Project Planning Record 和 Linear Project / Issues。
 2. 执行 Project / Issue 格式 Gate。
 3. 执行 queue preview，确认 WIP=1、无 active conflict、依赖满足、first executable issue candidate 唯一。
-4. 更新 `symphony-issue` active Project pointer，只更新 Project name、Project ID、Project slug、issue range 和 next eligible candidate。
-5. pointer 更新后再次执行 queue preview。
-6. gate 全部通过后，自动推进唯一 eligible `Backlog` -> `Todo`。
-7. gate 任一失败时停止并报告。
+4. 记录本次 queue context：Project name、Project ID、Project slug、issue range 和 next eligible candidate。
+5. gate 全部通过后，自动推进唯一 eligible `Backlog` -> `Todo`。
+6. gate 任一失败时停止并报告。
 
-`@002 Startup Runbook` 不创建 Linear Project / Issue，不修改 issue body，不启动 `symphony-issue`，不写代码，不创建 PR，不运行 Graphify update。
+`@002 Startup Runbook` 不创建 Linear Project / Issue，不修改 issue body，不启动额外调度服务，不写代码，不创建 PR。
 
 ## Project Closure
 
@@ -87,17 +85,17 @@ Complete Blueprint Design 是 Human + `@000 / AIE` 的 Linear 外蓝图活动，
 
 它可描述 Live / signed endpoint / broker / OMS 等 Future Construction Zones / 未来建设区，但不得自动转成 Linear issue。
 
-Complete Blueprint Design 不创建 Linear Project / Issue，不修改 Linear status，不推进 `Backlog` -> `Todo`，不启动 `@002 / PAR`，不启动 symphony-issue，不运行 Graphify update，不写业务代码。
+Complete Blueprint Design 不创建 Linear Project / Issue，不修改 Linear status，不推进 `Backlog` -> `Todo`，不启动 `@002 / PAR`，不启动额外调度服务，不写业务代码。
 
 ## Codex Execution Agent 流程
 
-被 symphony-issue 调度后，Codex Execution Agent 分三段执行：
+在 Parent Codex 推进唯一 `Todo` 后，Codex Execution Agent 分三段执行：
 
-1. 执行前：读取 root docs、当前 Linear issue、相关 contracts、validation 和 Graphify read context；将当前 Linear issue 已填写合同作为执行边界。
+1. 执行前：读取 root docs、当前 Linear issue、相关 contracts 和 validation；将当前 Linear issue 已填写合同作为执行边界。
 2. 执行中：只完成当前 issue scope 内的代码、文档、测试或验证任务。
-3. 执行后：运行 validation，更新 evidence chain，执行 Pre-PR Codex Code Review，创建 commit，创建 ready-for-review PR，启用 GitHub auto-merge handoff，并写入本地 `.codex/symphony-issue-handoff.json`。
+3. 执行后：运行 validation，更新 evidence chain，执行 Pre-PR Codex Code Review，创建 commit，创建 ready-for-review PR，并启用 GitHub auto-merge handoff。
 
-Codex Execution Agent 不修改 Linear status；`In Progress` -> `In Review` 由 symphony-issue 在 PR 和 handoff evidence 就绪后推进。
+Codex Execution Agent 不绕过 Parent Codex queue gate；issue 状态必须依据 Linear live-read、PR 和 checks evidence 推进。
 
 ## 代码中文注释规则
 

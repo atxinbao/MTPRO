@@ -13572,3 +13572,40 @@ Root Docs Refresh Gate 更新：
 
 - `git diff --check`：pass，无输出。
 - `bash checks/run.sh`：pass，通过项目完整 checks；该 planning record 不写业务代码、不创建 Linear、不推进 Todo。
+
+## 2026-06-02 — Symphony / Graphify service retirement
+
+执行者：Codex
+
+范围：
+
+- 删除 MTPRO 当前自动化流程中的 Symphony / Graphify 服务依赖。
+- 删除 `.graphifyignore`。
+- 删除 `docs/automation/graphify-resource-graph-scope.md`。
+- 删除 `docs/automation/symphony-issue-workflow-template.md`。
+- 删除本地生成目录 `graphify-out/`。
+- 更新 `README.md`、`AGENTS.md`、`BLUEPRINT.md`、`docs/environment.md`、`docs/roadmap.md`、`docs/planning/project-role-map.md`、`docs/automation/*`、`.github/pull_request_template.md` 和 `checks/automation-readiness.sh`，把当前执行链收敛为 Parent Codex queue preflight、Codex Execution Agent、GitHub PR Automation、Post-Issue Ledger 和 Linear evidence。
+- `checks/automation-readiness.sh` 增加 retired path 缺席检查，防止 `.graphifyignore`、`graphify-out/`、Graphify scope 文档或 Symphony workflow template 被重新引入。
+
+边界：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify。
+- 不修改 Figma。
+- 不写业务代码。
+- 不移动 production source。
+- 不修改 `Package.swift`。
+- 不拆 SwiftPM target graph。
+- 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command 或 order form。
+
+验证：
+
+- `ps aux | rg -i "symphony|graphify"`：pass，未发现运行中的 Symphony / Graphify 服务进程。
+- `find . -maxdepth 3 \( -name ".graphifyignore" -o -name "graphify-out" -o -name "*symphony-issue-workflow-template*" -o -name "*graphify-resource-graph-scope*" \) -print`：pass，无输出。
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，Dashboard smoke 正常，308 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。

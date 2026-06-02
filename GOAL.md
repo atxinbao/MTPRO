@@ -100,5 +100,5 @@ Final Product 已完成全部 9 项目标切片；其中第 5 项只完成实盘
 - `GOAL.md` 不创建 Linear Project / Issue。
 - `GOAL.md` 不修改 Linear status。
 - `GOAL.md` 不推进 `Todo`。
-- `GOAL.md` 不启动 Symphony。
+- `GOAL.md` 不启动额外调度服务。
 - `GOAL.md` 不授权 future capability 进入当前执行 scope。
