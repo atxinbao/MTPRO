@@ -8277,7 +8277,7 @@ final class CoreTests: XCTestCase {
 
     func testStrategyBindingsBoundaryEvidenceKeepsConcreteStrategiesOutOfBindings() throws {
         // 测试场景：MTP-195 必须把 StrategyBindings 固定为通用 binding / coordination adapter，
-        // 同时证明 EMA 与 OrderBookImbalance 的具体策略实现仍在 Trader-owned Strategies 路径下。
+        // MTP-201 后还必须证明当前 active 具体策略实现只剩 EMA。
         let evidence = TraderStrategyBindingsBoundaryFixture.deterministic
 
         XCTAssertEqual(evidence.strategyBindingsRoot, "Sources/Trader/StrategyBindings/")
@@ -8289,8 +8289,7 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(
             evidence.concreteStrategyRoots,
             [
-                "Sources/Trader/Strategies/EMA/",
-                "Sources/Trader/Strategies/OrderBookImbalance/"
+                "Sources/Trader/Strategies/EMA/"
             ]
         )
         XCTAssertTrue(evidence.isGenericBindingProtocolAndAdapterOnly)
@@ -8310,32 +8309,41 @@ final class CoreTests: XCTestCase {
     }
 
     func testTraderOwnedStrategyPathValidationCoversCanonicalOldBindingAndExecutionGuards() throws {
-        // 测试场景：MTP-196 必须用本地 deterministic validation 直接检查当前仓库路径，
-        // 防止旧 peer-level strategy path 或 StrategyBindings 策略落点语义回流。
+        // 测试场景：MTP-201 必须用本地 deterministic validation 直接检查当前仓库路径，
+        // 防止旧 peer-level strategy path、non-EMA active strategy path 或 StrategyBindings 策略落点语义回流。
         let fileManager = FileManager.default
         let repositoryRoot = URL(fileURLWithPath: fileManager.currentDirectoryPath, isDirectory: true)
 
-        let traderOwnedStrategyFiles = [
+        let activeTraderOwnedStrategyFiles = [
             "Sources/Trader/Strategies/EMA/EMACross.swift",
             "Sources/Trader/Strategies/EMA/StrategySignals.swift",
-            "Sources/Trader/Strategies/EMA/PaperActionProposal.swift",
-            "Sources/Trader/Strategies/OrderBookImbalance/OrderBookImbalance.swift"
+            "Sources/Trader/Strategies/EMA/PaperActionProposal.swift"
         ]
-        for relativePath in traderOwnedStrategyFiles {
+        for relativePath in activeTraderOwnedStrategyFiles {
             XCTAssertTrue(
                 fileManager.fileExists(atPath: repositoryRoot.appendingPathComponent(relativePath).path),
-                "\(relativePath) must remain under Trader-owned strategy root"
+                "\(relativePath) must remain under the only active Trader-owned strategy root"
             )
         }
 
-        let supersededStrategyDirectories = [
+        XCTAssertTrue(
+            fileManager.fileExists(
+                atPath: repositoryRoot
+                    .appendingPathComponent("Sources/Core/Research/OrderBookImbalanceResearchEvidence.swift")
+                    .path
+            ),
+            "OrderBookImbalance research evidence must live under Core research after MTP-201 retirement"
+        )
+
+        let retiredStrategyDirectories = [
             "Sources/Strategies/EMA",
-            "Sources/Strategies/OrderBookImbalance"
+            "Sources/Strategies/OrderBookImbalance",
+            "Sources/Trader/Strategies/OrderBookImbalance"
         ]
-        for relativePath in supersededStrategyDirectories {
+        for relativePath in retiredStrategyDirectories {
             XCTAssertFalse(
                 fileManager.fileExists(atPath: repositoryRoot.appendingPathComponent(relativePath).path),
-                "\(relativePath) must not remain as canonical strategy implementation path"
+                "\(relativePath) must not remain as current strategy implementation path"
             )
         }
 
@@ -8344,8 +8352,8 @@ final class CoreTests: XCTestCase {
             encoding: .utf8
         )
         XCTAssertTrue(packageManifest.contains("\"Trader/Strategies/EMA\""))
-        XCTAssertTrue(packageManifest.contains("\"Trader/Strategies/OrderBookImbalance\""))
         XCTAssertTrue(packageManifest.contains("\"Trader/StrategyBindings\""))
+        XCTAssertFalse(packageManifest.contains("\"Trader/Strategies/OrderBookImbalance\""))
         XCTAssertFalse(packageManifest.contains("\"Strategies/EMA\""))
         XCTAssertFalse(packageManifest.contains("\"Strategies/OrderBookImbalance\""))
 

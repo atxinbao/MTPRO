@@ -3170,7 +3170,7 @@ require_contains "docs/validation/latest-verification-summary.md" "MTP-186 的�
 require_file "Sources/Trader/Strategies/EMA/EMACross.swift"
 require_file "Sources/Trader/Strategies/EMA/StrategySignals.swift"
 require_file "Sources/Trader/Strategies/EMA/PaperActionProposal.swift"
-require_file "Sources/Trader/Strategies/OrderBookImbalance/OrderBookImbalance.swift"
+require_file "Sources/Core/Research/OrderBookImbalanceResearchEvidence.swift"
 require_file "Sources/Trader/StrategyBindings/PaperActionRiskLink.swift"
 require_file "Sources/Portfolio/PaperAccountPortfolioProjectionV2.swift"
 require_file "Sources/Portfolio/PaperPortfolioProjectionUpdate.swift"
@@ -3179,6 +3179,7 @@ require_file "Sources/Portfolio/SimulatedExchangePortfolioProjectionParity.swift
 [[ ! -f "Sources/Core/StrategySignals.swift" ]] || fail "MTP-187 migrated file must not remain at Sources/Core/StrategySignals.swift"
 [[ ! -f "Sources/Core/PaperActionProposal.swift" ]] || fail "MTP-187 migrated file must not remain at Sources/Core/PaperActionProposal.swift"
 [[ ! -d "Sources/Strategies/EMA" ]] || fail "MTP-193 migrated EMA directory must not remain at Sources/Strategies/EMA"
+[[ ! -d "Sources/Trader/Strategies/OrderBookImbalance" ]] || fail "MTP-201 retired non-EMA active strategy directory must not remain at Sources/Trader/Strategies/OrderBookImbalance"
 [[ ! -f "Sources/Core/OrderBookImbalance.swift" ]] || fail "MTP-187 migrated file must not remain at Sources/Core/OrderBookImbalance.swift"
 [[ ! -d "Sources/Strategies/OrderBookImbalance" ]] || fail "MTP-194 migrated OrderBookImbalance directory must not remain at Sources/Strategies/OrderBookImbalance"
 [[ ! -f "Sources/Core/PaperActionRiskLink.swift" ]] || fail "MTP-187 migrated file must not remain at Sources/Core/PaperActionRiskLink.swift"
@@ -3187,7 +3188,7 @@ require_file "Sources/Portfolio/SimulatedExchangePortfolioProjectionParity.swift
 [[ ! -f "Sources/Core/SimulatedExchangePortfolioProjectionParity.swift" ]] || fail "MTP-187 migrated file must not remain at Sources/Core/SimulatedExchangePortfolioProjectionParity.swift"
 require_contains "Package.swift" '"Trader/Strategies/EMA"'
 require_absent "Package.swift" '"Strategies/EMA"'
-require_contains "Package.swift" '"Trader/Strategies/OrderBookImbalance"'
+require_absent "Package.swift" '"Trader/Strategies/OrderBookImbalance"'
 require_absent "Package.swift" '"Strategies/OrderBookImbalance"'
 require_contains "Package.swift" '"Trader/StrategyBindings"'
 require_contains "Package.swift" '"Portfolio"'
@@ -3232,7 +3233,8 @@ require_contains "docs/domain/context.md" "MTP-194-NO-RUNTIME-TARGET-GRAPH-GUARD
 require_contains "docs/domain/context.md" "MTP-194-ORDERBOOKIMBALANCE-PATH-MIGRATION-VALIDATION"
 require_contains "docs/validation/validation-plan.md" "MTP-194 OrderBookImbalance Trader Strategy Physical Migration Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-194 issue backfill"
-require_contains "docs/automation/automation-readiness.md" "OrderBookImbalance Trader-owned strategy path migration anchor"
+require_contains "docs/automation/automation-readiness.md" "OrderBookImbalance historical research evidence anchor"
+require_contains "docs/automation/automation-readiness.md" 'MTP-201 后 `Sources/Core/Research/OrderBookImbalanceResearchEvidence.swift`'
 require_contains "docs/validation/latest-verification-summary.md" "MTP-194 的当前 issue execution evidence"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-194-ORDERBOOKIMBALANCE-PATH-MIGRATION-VALIDATION"
 require_contains "Sources/Trader/StrategyBindings/PaperActionRiskLink.swift" "TraderStrategyBindingsBoundaryEvidence"
@@ -4487,7 +4489,7 @@ require_contains "docs/contracts/trader-ema-strategy-layout-contract.md" "MTP-19
 require_contains "docs/contracts/trader-ema-strategy-layout-contract.md" 'active concrete strategy 固定为 `EMA`'
 require_contains "docs/contracts/trader-ema-strategy-layout-contract.md" '当前唯一 canonical active concrete strategy path 是 `Sources/Trader/Strategies/EMA/`'
 require_contains "docs/contracts/trader-ema-strategy-layout-contract.md" '`RSI`、`OrderBookImbalance`、`Momentum` 和 `MeanReversion` 只能作为 future strategy candidate'
-require_contains "docs/contracts/trader-ema-strategy-layout-contract.md" '现有 `Sources/Trader/Strategies/OrderBookImbalance/` 只作为 MTP-194 已发生的 compatibility / superseded source placement debt'
+require_contains "docs/contracts/trader-ema-strategy-layout-contract.md" 'MTP-201 已将 `Sources/Trader/Strategies/OrderBookImbalance/` 退休'
 require_contains "docs/contracts/trader-ema-strategy-layout-contract.md" '`Sources/Trader/StrategyBindings/` 不是 first-level Trader strategy directory'
 require_contains "docs/contracts/trader-ema-strategy-layout-contract.md" 'Binding / adapter semantics 归 `Sources/Trader/Coordination/` 责任边界管理'
 require_contains "docs/architecture/module-boundary.md" "MTP-198 EMA-only Trader Strategy Layout Contract"
@@ -4515,6 +4517,12 @@ require_contains "docs/validation/latest-verification-summary.md" "MTP-198 的�
 require_contains "docs/validation/latest-verification-summary.md" "MTP-198-EMA-ONLY-LAYOUT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "EMA-only Trader strategy layout contract anchor"
 require_contains "docs/automation/automation-readiness.md" 'current active concrete strategy only `EMA`'
+require_contains "docs/automation/automation-readiness.md" "Non-EMA active strategy source retirement anchor"
+require_contains "docs/automation/automation-readiness.md" "Sources/Core/Research/OrderBookImbalanceResearchEvidence.swift"
+require_contains "docs/validation/validation-plan.md" "MTP-201 Non-EMA Active Strategy Source Retirement Validation"
+require_contains "docs/validation/trading-validation-matrix.md" "MTP-201"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-201 的当前 issue execution evidence"
+require_contains "docs/audit/inputs/mtpro-trader-ema-strategy-layout-consolidation-v1-mtp-201-non-ema-source-retirement.md" "MTP-201-NON-EMA-ACTIVE-SOURCE-RETIREMENT"
 require_contains "docs/planning/projects/mtpro-trader-ema-strategy-layout-consolidation-v1-plan.md" '当前 active concrete strategy 只保留 `EMA`'
 require_contains "docs/planning/projects/mtpro-trader-ema-strategy-layout-consolidation-v1-plan.md" '`Sources/Trader/Strategies/EMA`'
 require_contains "Sources/Workbench/Report/StrategyTraderReadinessEvidenceSurface.swift" "MTP-160-WORKBENCH-REPORT-EVENTS-READ-MODEL-ONLY-SURFACE"

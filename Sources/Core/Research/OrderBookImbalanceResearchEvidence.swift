@@ -1,8 +1,11 @@
 import Foundation
 
-/// MTP-194 将 order-book imbalance research strategy 迁入 `Sources/Trader/Strategies/OrderBookImbalance/`。
-/// 该目录只是 strategy-scoped research / signal boundary，不授权 margin、short 或真实 execution path。
-/// 订单簿失衡策略只消费本地订单簿读模型并输出研究样本，禁止 futures、margin 和真实交易能力。
+/// MTP-201 将 order-book imbalance evidence 从 `Sources/Trader/Strategies/OrderBookImbalance/`
+/// 退休到 `Sources/Core/Research/`。
+///
+/// 这里保留的类型只服务历史 research / parity / persistence evidence，不再属于当前 active concrete
+/// strategy source layout。当前 active concrete strategy 只有 EMA；订单簿失衡研究只消费本地订单簿
+/// 读模型并输出研究样本，禁止 futures、margin 和真实交易能力。
 
 /// OrderBookImbalanceBias 表达订单簿失衡倾向，ask dominance 只作为研究偏向而非做空授权。
 public enum OrderBookImbalanceBias: String, Codable, Equatable, Sendable {
