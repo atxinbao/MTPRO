@@ -13539,3 +13539,36 @@ Root Docs Refresh Gate 更新：
 
 - `git diff --check`：pass，无输出。
 - `bash checks/run.sh`：pass，通过项目完整 checks；该 planning record 不写业务代码、不创建 Linear、不推进 Todo。
+
+## 2026-06-02 — MTPRO Trader EMA Strategy Layout Consolidation v1 docs-only planning record
+
+执行者：Codex
+
+范围：
+
+- 将 Human 确认的 `MTPRO Trader EMA Strategy Layout Consolidation v1` planning draft 落仓为 docs-only Project Planning Record。
+- 新增 `docs/planning/projects/mtpro-trader-ema-strategy-layout-consolidation-v1-plan.md`，记录 Project name、Target maturity、Target Engines / Modules、goal、scope、non-goals、corrected issue order、dependencies、validation requirements、evidence requirements、first executable issue candidate、WIP=1、Linear write boundary 和 repository record boundary。
+- 更新 `docs/planning/linear-draft-plan.md`，把 `MTPRO Trader-Owned Strategies Layout Correction v1` 标记为已完成，并新增当前 EMA-only strategy layout consolidation docs-only / non-executable planning record 入口。
+- 更新 `docs/validation/latest-verification-summary.md`，记录该 Project-level planning record 已落仓，且这不是 Project closure，不更新 `Final Product Goal Progress`，不更新旧 `Engine Maturity Roadmap Progress`。
+- 更新 `BLUEPRINT.md`，只增加 planning record 引用，不复制完整 issue body，不更新进度条，不授权 execution。
+
+边界：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify。
+- 不修改 Figma。
+- 不移动 production source。
+- 不修改 `Package.swift`。
+- 不拆 SwiftPM target graph。
+- 不写业务代码。
+- 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command 或 order form。
+- `.codex/*` 和 `graphify-out/*` 不进入 PR。
+
+验证：
+
+- `git diff --check`：pass，无输出。
+- `bash checks/run.sh`：pass，通过项目完整 checks；该 planning record 不写业务代码、不创建 Linear、不推进 Todo。
