@@ -1449,6 +1449,14 @@ MTP-208 的当前 issue execution evidence 已把 root / high-weight docs 中剩
 
 MTP-208-ROOT-DOCS-WORDING-VALIDATION 的本地验证已通过：scoped fixed-string grep 确认 root/high-weight docs 不再包含此前的易误读短语或 RiskBinding 文件名式路径；`git diff --check` 无输出；`bash checks/automation-readiness.sh` 输出 `MTPRO automation readiness checks passed.`；`bash checks/run.sh` 通过 automation readiness、Dashboard build、Dashboard smoke 和 314 个 XCTest，Dashboard smoke 输出包含 `sections=8`、`readModelOnly=true`、`workbenchReadModelOnly=true`、`timelineItems=82`、`strategyTraderReadinessSurface=6` 和 `liveMonitoringReadOnlyConsoleV2Surface=4`，最终输出 `MTPRO checks passed.`。SwiftPM 当前仍提示 stale exclude `Sources/Strategies` 不存在，该清理输入归属后续 MTP-209，不在 MTP-208 中修改。完整验收仍以本次 PR 前本地验证和 GitHub required check `checks` 为准。MTP-208 完成后不得自动推进 MTP-209；必须等待 PR/check/merge、root main fast-forward、Linear Done 和 post-issue ledger evidence 后，再由 Parent Codex queue preflight 判断唯一 eligible next issue。
 
+## 当前 issue execution evidence：MTP-209
+
+MTP-209 的当前 issue execution evidence 已清理 `Package.swift` Runtime / App target exclude list 中指向 retired peer-level `Sources/Strategies/` 的 stale `"Strategies"` entry，并同步到 `docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` MTP-209 issue backfill、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`。
+
+该证据只消除 SwiftPM invalid exclude warning：`Sources/Strategies/` 仍不得作为 active source root、Package source root 或 exclude root 回流；`Core` compatibility envelope 继续保留 `"Trader/Accounts"`、`"Trader/Strategies/EMA"` 和 `"Trader/Coordination/RiskBinding"` source roots。MTP-209 不新增 SwiftPM target、product 或 dependency，不拆 target graph，不移动 production source，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability；不运行 Symphony、Graphify 或 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+MTP-209-PACKAGE-CLEANUP-VALIDATION 的本地验证已通过：`swift package describe` exit 0 且 stderr 为空，不再输出 `Sources/Strategies` invalid exclude warning；`git diff --check` 无输出；`bash checks/automation-readiness.sh` 输出 `MTPRO automation readiness checks passed.`；`bash checks/run.sh` 通过 automation readiness、Dashboard build、Dashboard smoke 和 314 个 XCTest，Dashboard smoke 输出包含 `sections=8`、`readModelOnly=true`、`workbenchReadModelOnly=true`、`timelineItems=82`、`strategyTraderReadinessSurface=6` 和 `liveMonitoringReadOnlyConsoleV2Surface=4`，最终输出 `MTPRO checks passed.`。完整验收仍以本次 PR 前本地验证和 GitHub required check `checks` 为准。MTP-209 完成后不得自动推进 MTP-210；必须等待 PR/check/merge、root main fast-forward、Linear Done 和 post-issue ledger evidence 后，再由 Parent Codex queue preflight 判断唯一 eligible next issue。
+
 ## Known CI Boundary
 
 临时 CI 平台边界：

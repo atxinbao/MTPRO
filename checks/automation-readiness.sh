@@ -3206,7 +3206,7 @@ require_absent "Package.swift" '"Strategies/OrderBookImbalance"'
 require_contains "Package.swift" '"Trader/Coordination/RiskBinding"'
 require_absent "Package.swift" '"Trader/StrategyBindings"'
 require_contains "Package.swift" '"Portfolio"'
-require_contains "Package.swift" '"Strategies"'
+require_contains "Package.swift" '"Trader/Strategies/EMA"'
 require_contains "Package.swift" '"Trader"'
 require_contains "docs/architecture/module-boundary.md" "MTP-187 Strategies / Trader / Portfolio Physical Migration"
 require_contains "docs/domain/context.md" "MTP-187-STRATEGIES-TRADER-PORTFOLIO-PHYSICAL-MIGRATION"
@@ -4790,6 +4790,32 @@ require_contains "docs/validation/trading-validation-matrix.md" "MTP-208 issue b
 require_contains "docs/validation/latest-verification-summary.md" "MTP-208 的当前 issue execution evidence"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-208-ROOT-DOCS-WORDING-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "StrategyBindings wording retirement anchor"
+require_contains "docs/architecture/module-boundary.md" "MTP-209 Package Stale Strategies Compatibility Exclude Cleanup"
+require_contains "docs/architecture/module-boundary.md" "MTP-209-PACKAGE-STALE-STRATEGIES-EXCLUDE-CLEANUP"
+require_contains "docs/architecture/module-boundary.md" "MTP-209-COMPATIBILITY-ENVELOPE-TARGET-GRAPH-PRESERVATION"
+require_contains "docs/architecture/module-boundary.md" "MTP-209-NO-ACTIVE-SOURCES-STRATEGIES-GUARD"
+require_contains "docs/architecture/module-boundary.md" "MTP-209-NO-RUNTIME-LIVE-BROKER-L4-GUARD"
+require_contains "docs/architecture/module-boundary.md" "MTP-209-PACKAGE-CLEANUP-VALIDATION"
+require_contains "docs/domain/context.md" "MTP-209-PACKAGE-STALE-STRATEGIES-EXCLUDE-CLEANUP"
+require_contains "docs/domain/context.md" "MTP-209-COMPATIBILITY-ENVELOPE-TARGET-GRAPH-PRESERVATION"
+require_contains "docs/domain/context.md" "MTP-209-NO-ACTIVE-SOURCES-STRATEGIES-GUARD"
+require_contains "docs/domain/context.md" "MTP-209-NO-RUNTIME-LIVE-BROKER-L4-GUARD"
+require_contains "docs/domain/context.md" "MTP-209-PACKAGE-CLEANUP-VALIDATION"
+require_contains "docs/validation/validation-plan.md" "MTP-209 Package Stale Strategies Compatibility Exclude Cleanup Validation"
+require_contains "docs/validation/validation-plan.md" "MTP-209-PACKAGE-CLEANUP-VALIDATION"
+require_contains "docs/validation/trading-validation-matrix.md" "MTP-209 issue backfill"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-209 的当前 issue execution evidence"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-209-PACKAGE-CLEANUP-VALIDATION"
+require_contains "docs/automation/automation-readiness.md" "Package stale Strategies compatibility exclude cleanup anchor"
+require_contains "Package.swift" '"Trader/Accounts"'
+require_contains "Package.swift" '"Trader/Strategies/EMA"'
+require_contains "Package.swift" '"Trader/Coordination/RiskBinding"'
+require_absent "Package.swift" '                "Strategies",'
+require_absent "Package.swift" '"Strategies/EMA"'
+require_absent "Package.swift" '"Trader/StrategyBindings"'
+require_absent "Package.swift" 'name: "Strategies"'
+require_absent "Package.swift" 'name: "Trader"'
+[[ ! -d "Sources/Strategies" ]] || fail "MTP-209 stale active path must not return: Sources/Strategies"
 require_absent "docs/validation/validation-plan.md" 'Root docs 必须使用 `Trader = Accounts + Strategies + StrategyBindings + Coordination`'
 require_absent "docs/validation/validation-plan.md" '`Sources/Trader/StrategyBindings/` 必须包含 proposal-to-risk binding'
 require_absent "docs/validation/validation-plan.md" '只使用 `"Trader/Strategies/EMA"` 和 `"Trader/StrategyBindings"`'

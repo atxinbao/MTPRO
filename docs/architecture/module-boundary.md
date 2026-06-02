@@ -896,6 +896,28 @@ MTP-208 只收口 docs wording，不移动 production source，不修改 `Packag
 
 MTP-208 validation 必须证明 root/high-weight docs 不再把 `StrategyBindings` 写成 active source path；automation readiness、validation plan、validation matrix 和 latest verification summary 必须覆盖该 wording retirement，并且 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh` 通过。
 
+## MTP-209 Package Stale Strategies Compatibility Exclude Cleanup
+
+`MTP-209-PACKAGE-STALE-STRATEGIES-EXCLUDE-CLEANUP`
+
+MTP-209 只清理 `Package.swift` 中 Runtime / App target exclude list 里的 stale peer-level `Strategies` entry。该 entry 指向已退休的 `Sources/Strategies/` active root；MTP-193 / MTP-201 / MTP-202 / MTP-205 后 current active Trader container 已收口为 `Sources/Trader/Accounts/`、`Sources/Trader/Strategies/EMA/` 和 `Sources/Trader/Coordination/RiskBinding/`。
+
+`MTP-209-COMPATIBILITY-ENVELOPE-TARGET-GRAPH-PRESERVATION`
+
+`Core` 继续作为 compatibility envelope 编译 `"Trader/Accounts"`、`"Trader/Strategies/EMA"` 和 `"Trader/Coordination/RiskBinding"`。MTP-209 不新增、不删除、不重命名 SwiftPM product / target / dependency，不把 `Strategies` 或 `Trader` 拆成独立 SwiftPM target，不改变 source import surface。
+
+`MTP-209-NO-ACTIVE-SOURCES-STRATEGIES-GUARD`
+
+`Sources/Strategies/` 不得作为 active source directory、Package source root 或 exclude root 回流。Root docs 中 retained `Sources/Strategies/<strategy>` 只能作为 historical / compatibility / superseded / migration-source evidence；current active concrete strategy only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/`。
+
+`MTP-209-NO-RUNTIME-LIVE-BROKER-L4-GUARD`
+
+MTP-209 不移动 production source，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
+`MTP-209-PACKAGE-CLEANUP-VALIDATION`
+
+MTP-209 validation 必须证明 `Package.swift` 不再包含 stale peer-level `"Strategies"` exclude entry，`Sources/Strategies/` 目录不存在，`Package.swift` 仍保留 `"Trader/Accounts"`、`"Trader/Strategies/EMA"` 和 `"Trader/Coordination/RiskBinding"` source roots，并且 `swift package describe` 不再输出 `Sources/Strategies` invalid exclude warning；同时 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh` 必须通过。
+
 ## MTP-173 Account / Portfolio Read-model Boundary
 
 `MTP-173-ACCOUNT-PORTFOLIO-READMODEL-BOUNDARY-CONTRACT`
