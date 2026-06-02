@@ -8275,12 +8275,12 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(decoded, decision)
     }
 
-    func testStrategyBindingsBoundaryEvidenceKeepsConcreteStrategiesOutOfBindings() throws {
-        // 测试场景：MTP-195 必须把 StrategyBindings 固定为通用 binding / coordination adapter，
-        // MTP-201 后还必须证明当前 active 具体策略实现只剩 EMA。
-        let evidence = TraderStrategyBindingsBoundaryFixture.deterministic
+    func testTraderCoordinationRiskBindingEvidenceKeepsConcreteStrategiesOutOfBindings() throws {
+        // 测试场景：MTP-202 必须把 binding / adapter semantics 固定到 Trader Coordination RiskBinding，
+        // 并证明当前 active 具体策略实现只剩 EMA。
+        let evidence = TraderCoordinationRiskBindingBoundaryFixture.deterministic
 
-        XCTAssertEqual(evidence.strategyBindingsRoot, "Sources/Trader/StrategyBindings/")
+        XCTAssertEqual(evidence.coordinationRiskBindingRoot, "Sources/Trader/Coordination/RiskBinding/")
         XCTAssertEqual(
             evidence.contractRoles,
             [.genericBindingProtocol, .coordinationAdapterContract]
@@ -8300,17 +8300,18 @@ final class CoreTests: XCTestCase {
         XCTAssertFalse(evidence.allowsBrokerCommandPath)
         XCTAssertFalse(evidence.allowsOMSCommandPath)
         XCTAssertFalse(evidence.allowsLiveCommandPath)
+        XCTAssertFalse(evidence.concreteStrategyRoots.contains { $0.contains("/Coordination/RiskBinding/") })
         XCTAssertFalse(evidence.concreteStrategyRoots.contains { $0.contains("/StrategyBindings/") })
         XCTAssertFalse(evidence.concreteStrategyRoots.contains { $0.hasPrefix("Sources/Strategies/") })
 
         let encoded = try JSONEncoder().encode(evidence)
-        let decoded = try JSONDecoder().decode(TraderStrategyBindingsBoundaryEvidence.self, from: encoded)
+        let decoded = try JSONDecoder().decode(TraderCoordinationRiskBindingBoundaryEvidence.self, from: encoded)
         XCTAssertEqual(decoded, evidence)
     }
 
     func testTraderOwnedStrategyPathValidationCoversCanonicalOldBindingAndExecutionGuards() throws {
         // 测试场景：MTP-201 必须用本地 deterministic validation 直接检查当前仓库路径，
-        // 防止旧 peer-level strategy path、non-EMA active strategy path 或 StrategyBindings 策略落点语义回流。
+        // 防止旧 peer-level strategy path、non-EMA active strategy path 或 StrategyBindings first-level path 回流。
         let fileManager = FileManager.default
         let repositoryRoot = URL(fileURLWithPath: fileManager.currentDirectoryPath, isDirectory: true)
 
@@ -8338,7 +8339,8 @@ final class CoreTests: XCTestCase {
         let retiredStrategyDirectories = [
             "Sources/Strategies/EMA",
             "Sources/Strategies/OrderBookImbalance",
-            "Sources/Trader/Strategies/OrderBookImbalance"
+            "Sources/Trader/Strategies/OrderBookImbalance",
+            "Sources/Trader/StrategyBindings"
         ]
         for relativePath in retiredStrategyDirectories {
             XCTAssertFalse(
@@ -8352,16 +8354,17 @@ final class CoreTests: XCTestCase {
             encoding: .utf8
         )
         XCTAssertTrue(packageManifest.contains("\"Trader/Strategies/EMA\""))
-        XCTAssertTrue(packageManifest.contains("\"Trader/StrategyBindings\""))
+        XCTAssertTrue(packageManifest.contains("\"Trader/Coordination/RiskBinding\""))
+        XCTAssertFalse(packageManifest.contains("\"Trader/StrategyBindings\""))
         XCTAssertFalse(packageManifest.contains("\"Trader/Strategies/OrderBookImbalance\""))
         XCTAssertFalse(packageManifest.contains("\"Strategies/EMA\""))
         XCTAssertFalse(packageManifest.contains("\"Strategies/OrderBookImbalance\""))
 
-        let bindingsEvidence = TraderStrategyBindingsBoundaryFixture.deterministic
-        XCTAssertEqual(bindingsEvidence.strategyBindingsRoot, "Sources/Trader/StrategyBindings/")
-        XCTAssertTrue(bindingsEvidence.isGenericBindingProtocolAndAdapterOnly)
-        XCTAssertTrue(bindingsEvidence.concreteStrategiesRemainTraderOwned)
-        XCTAssertTrue(bindingsEvidence.forbidsExecutionAndLiveCommandPaths)
+        let riskBindingEvidence = TraderCoordinationRiskBindingBoundaryFixture.deterministic
+        XCTAssertEqual(riskBindingEvidence.coordinationRiskBindingRoot, "Sources/Trader/Coordination/RiskBinding/")
+        XCTAssertTrue(riskBindingEvidence.isGenericBindingProtocolAndAdapterOnly)
+        XCTAssertTrue(riskBindingEvidence.concreteStrategiesRemainTraderOwned)
+        XCTAssertTrue(riskBindingEvidence.forbidsExecutionAndLiveCommandPaths)
     }
 
     func testPaperActionRiskLinkBlocksOversizedPaperProposalWithEvidence() throws {
