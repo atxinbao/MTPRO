@@ -852,6 +852,28 @@ Trader/Accounts 与 Portfolio、RiskEngine、ExecutionEngine 的关系只允许 
 
 MTP-206 validation 必须证明 `Sources/Trader/Accounts/TraderAccountContext.swift`、`Package.swift` 的 `"Trader/Accounts"` source root、`Tests/CoreTests/CoreTests.swift` 的 `testMTP206TraderAccountContext...` focused tests、automation readiness、validation plan、validation matrix 和 latest verification summary 均覆盖 Accounts source boundary；并且 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh` 通过。
 
+## MTP-207 Trader Account Context Validation Wiring
+
+`MTP-207-TRADER-ACCOUNT-CONTEXT-VALIDATION-WIRING`
+
+MTP-207 将 `TraderAccountContext` evidence 接入 deterministic validation wiring，覆盖 `Sources/Trader/Accounts/`、`Sources/Trader/Strategies/EMA/` 和 `Sources/Trader/Coordination/RiskBinding/` 三件套。该 validation 只证明当前 Trader container boundary 完整，不授权 Trader runtime、Strategy runtime、Live runtime 或 L4 implementation。
+
+`MTP-207-ACCOUNTS-EMA-RISKBINDING-COVERAGE`
+
+MTP-207 focused tests 必须同时检查 `"Trader/Accounts"`、`"Trader/Strategies/EMA"` 和 `"Trader/Coordination/RiskBinding"` 仍在 `Core` compatibility envelope sources 内，并确认旧 `"Trader/StrategyBindings"` 和 `"Strategies/EMA"` 不回流为 active source root。
+
+`MTP-207-BROKER-PAYLOAD-LISTENKEY-BYPASS-GUARD`
+
+MTP-207 validation 必须证明 account context 初始化和 Codable decode 都拒绝 broker/account payload、listenKey、signed/account endpoint、ExecutionClient、OMS、broker gateway、Trader runtime、Live runtime 和 private WebSocket runtime bypass。
+
+`MTP-207-VALIDATION-ONLY-NO-RUNTIME-GUARD`
+
+MTP-207 不新增 production runtime、不修改 SwiftPM target graph、不新增 SwiftPM target/product/dependency、不读取真实账户、不接 signed endpoint、account endpoint / listenKey、不实现 ExecutionClient、OMS、broker gateway、Live PRO Console、trading button、live command 或 order form。
+
+`MTP-207-TRADER-ACCOUNT-CONTEXT-VALIDATION`
+
+MTP-207 validation 必须证明 `testMTP207TraderAccountContextValidationAnchorsCoverAccountsEMAAndRiskBinding`、`testMTP207TraderAccountContextValidationRejectsBrokerPayloadListenKeyAndRuntimeDrift`、automation readiness、validation plan、validation matrix 和 latest verification summary 均覆盖 account context evidence wiring；并且 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh` 通过。
+
 ## MTP-173 Account / Portfolio Read-model Boundary
 
 `MTP-173-ACCOUNT-PORTFOLIO-READMODEL-BOUNDARY-CONTRACT`

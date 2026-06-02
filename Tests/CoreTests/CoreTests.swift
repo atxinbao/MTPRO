@@ -8443,6 +8443,101 @@ final class CoreTests: XCTestCase {
         XCTAssertFalse(packageManifest.contains(".library(name: \"Strategies\""))
     }
 
+    func testMTP207TraderAccountContextValidationAnchorsCoverAccountsEMAAndRiskBinding() throws {
+        // 测试场景：MTP-207 将 Accounts / Strategies/EMA / Coordination/RiskBinding
+        // 接入同一个 deterministic validation wiring，证明 Trader container 三件套完整且仍无 runtime。
+        let accountContext = TraderAccountContext.deterministicFixture
+        let riskBindingEvidence = TraderCoordinationRiskBindingBoundaryFixture.deterministic
+        let fileManager = FileManager.default
+        let repositoryRoot = URL(fileURLWithPath: fileManager.currentDirectoryPath, isDirectory: true)
+
+        let requiredTraderFiles = [
+            "Sources/Trader/Accounts/TraderAccountContext.swift",
+            "Sources/Trader/Strategies/EMA/EMACross.swift",
+            "Sources/Trader/Strategies/EMA/StrategySignals.swift",
+            "Sources/Trader/Strategies/EMA/PaperActionProposal.swift",
+            "Sources/Trader/Coordination/RiskBinding/PaperActionRiskLink.swift"
+        ]
+        for relativePath in requiredTraderFiles {
+            XCTAssertTrue(
+                fileManager.fileExists(atPath: repositoryRoot.appendingPathComponent(relativePath).path),
+                "\(relativePath) must remain wired into Trader container validation"
+            )
+        }
+
+        let packageManifest = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        XCTAssertTrue(packageManifest.contains("\"Trader/Accounts\""))
+        XCTAssertTrue(packageManifest.contains("\"Trader/Strategies/EMA\""))
+        XCTAssertTrue(packageManifest.contains("\"Trader/Coordination/RiskBinding\""))
+        XCTAssertFalse(packageManifest.contains("\"Trader/StrategyBindings\""))
+        XCTAssertFalse(packageManifest.contains("\"Strategies/EMA\""))
+        XCTAssertFalse(packageManifest.contains(".target(name: \"Trader\""))
+        XCTAssertFalse(packageManifest.contains(".library(name: \"Trader\""))
+
+        XCTAssertEqual(accountContext.validationAnchors, TraderAccountContext.requiredValidationAnchors)
+        XCTAssertTrue(accountContext.accountContextBoundaryHeld)
+        XCTAssertTrue(accountContext.noFinancialStateOwnership)
+        XCTAssertTrue(accountContext.noEndpointBrokerRuntimeBoundaryHeld)
+        XCTAssertTrue(riskBindingEvidence.isGenericBindingProtocolAndAdapterOnly)
+        XCTAssertTrue(riskBindingEvidence.concreteStrategiesRemainTraderOwned)
+        XCTAssertTrue(riskBindingEvidence.forbidsExecutionAndLiveCommandPaths)
+        XCTAssertEqual(riskBindingEvidence.concreteStrategyRoots, ["Sources/Trader/Strategies/EMA/"])
+    }
+
+    func testMTP207TraderAccountContextValidationRejectsBrokerPayloadListenKeyAndRuntimeDrift() throws {
+        // 测试场景：MTP-207 明确覆盖 broker/account payload、listenKey 文本和 Codable flag 绕过，
+        // 防止 validation evidence 被误用成真实账户、private stream 或 ExecutionClient runtime。
+        XCTAssertThrowsError(
+            try TraderAccountContext(
+                contextID: try Identifier("invalid-account-context"),
+                accountIdentity: try Identifier("paper-account:invalid"),
+                sourceIdentity: "broker-account-payload",
+                sourceKind: .simulated,
+                portfolioRelationship: "Portfolio read model remains authoritative for financial state",
+                riskEngineRelationship: "RiskEngine consumes account context only as local risk evidence",
+                executionEngineRelationship: "ExecutionEngine remains paper or simulated boundary evidence"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .traderAccountContextForbiddenCapability("traderAccountContext.sourceIdentity.accountpayload")
+            )
+        }
+        XCTAssertThrowsError(
+            try TraderAccountContext(
+                contextID: try Identifier("invalid-account-context"),
+                accountIdentity: try Identifier("paper-account:invalid"),
+                sourceIdentity: "fixture:trader-account-context:invalid",
+                sourceKind: .futureRealAccountGate,
+                portfolioRelationship: "Portfolio read model remains authoritative for financial state",
+                riskEngineRelationship: "listenKey risk evidence",
+                executionEngineRelationship: "ExecutionEngine remains paper or simulated boundary evidence"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .traderAccountContextForbiddenCapability("traderAccountContext.riskEngineRelationship.listenkey")
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(TraderAccountContext.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["readsBrokerAccountPayload"] = true
+        object["implementsTraderRuntime"] = true
+        let runtimeBypassData = try JSONSerialization.data(withJSONObject: object)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(TraderAccountContext.self, from: runtimeBypassData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .traderAccountContextForbiddenCapability("traderAccountContext.readsBrokerAccountPayload")
+            )
+        }
+    }
+
     func testTraderOwnedStrategyPathValidationCoversCanonicalOldBindingAndExecutionGuards() throws {
         // 测试场景：MTP-201 必须用本地 deterministic validation 直接检查当前仓库路径，
         // 防止旧 peer-level strategy path、non-EMA active strategy path 或 StrategyBindings first-level path 回流。

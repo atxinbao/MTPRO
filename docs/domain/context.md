@@ -411,6 +411,26 @@ MTP-206 禁止把 signed endpoint、account endpoint、listenKey、private WebSo
 
 MTP-206 validation 只证明 Accounts source boundary、Core compatibility envelope source root、focused XCTest 和 forbidden bypass guard 已落仓；不证明任何真实账户读取、runtime、broker path 或 command-capable UI 已实现。
 
+`MTP-207-TRADER-ACCOUNT-CONTEXT-VALIDATION-WIRING`
+
+`Trader account context validation wiring` 指 MTP-207 把 `TraderAccountContext`、EMA active strategy root 和 `Trader/Coordination/RiskBinding` evidence 放进同一个 deterministic validation view。它只证明 source boundary / validation anchors 一致，不表示 Trader runtime 或 Strategy runtime 已启动。
+
+`MTP-207-ACCOUNTS-EMA-RISKBINDING-COVERAGE`
+
+MTP-207 后，Accounts / Strategies/EMA / Coordination/RiskBinding 的验证口径必须同时覆盖 `Sources/Trader/Accounts/`、`Sources/Trader/Strategies/EMA/` 和 `Sources/Trader/Coordination/RiskBinding/`，并继续排除 `Sources/Trader/StrategyBindings/` 和 peer-level `Sources/Strategies/` active source root。
+
+`MTP-207-BROKER-PAYLOAD-LISTENKEY-BYPASS-GUARD`
+
+MTP-207 将 broker/account payload、listenKey、signed/account endpoint、ExecutionClient、OMS、broker gateway、Trader runtime、Live runtime 和 private WebSocket runtime bypass 固定为 validation failure，不允许通过 account context source identity、relationship text 或 Codable flags 恢复。
+
+`MTP-207-VALIDATION-ONLY-NO-RUNTIME-GUARD`
+
+MTP-207 是 validation-only issue：不实现 account runtime、Trader runtime、Strategy runtime、Live runtime、ExecutionClient、OMS、broker gateway、real order lifecycle、Live PRO Console、trading button、live command 或 order form，也不拆 SwiftPM target graph。
+
+`MTP-207-TRADER-ACCOUNT-CONTEXT-VALIDATION`
+
+MTP-207 validation 只证明 deterministic account context evidence wiring 已落仓；不证明任何真实账户读取、broker integration、private stream runtime 或 command-capable UI 已实现。
+
 `MTP-172-TRADER-COORDINATION-BOUNDARY-CONTRACT`
 
 MTP-172 固定 `Sources/Trader/` 为 strategy / account / risk / execution context 的 coordination boundary。Trader 可以协调 Strategies、Portfolio、RiskEngine 和 ExecutionEngine 的本地 evidence / read-model inputs；Trader 不等于 live coordinator、OMS、broker gateway、ExecutionClient client wrapper、real account service、portfolio ledger 或 executable order command surface。
