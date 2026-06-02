@@ -120,8 +120,8 @@ Project 末端合并点为 `MTP-88` PR #173，merge commit 为 `50ea5a897c990a6b
 | --- | --- |
 | `GOAL.md` | updated：Final Product Goal Slice #8 已从 Pending / gated 更新为 Complete / contract + blocked evidence；已说明这不代表真实 live risk engine、真实账户风控、real pre-trade allow / reject runtime、circuit breaker command、stop trading command 或 production runtime 已实现。 |
 | `BLUEPRINT.md` | updated：Live Risk Control 已从 Pending / gated 改为 Complete / contract + blocked evidence；Future Incident Replay / Stop Controls 仍保持 Future Gated。 |
-| `docs/environment.md` | no update needed：本 Project 未新增 required validation 入口、secret 读取、broker credential、外部写能力、signed endpoint、account endpoint、listenKey、真实账户读取或网络必需验证；统一验证入口仍是 `bash checks/run.sh`。 |
-| `docs/architecture.md` | updated：已同步 LiveRiskGate read-model-only blocked evidence flow、Core / App / Dashboard evidence surface 和真实 live risk runtime / broker / schema / command 禁区。 |
+| `environment.md` | no update needed：本 Project 未新增 required validation 入口、secret 读取、broker credential、外部写能力、signed endpoint、account endpoint、listenKey、真实账户读取或网络必需验证；统一验证入口仍是 `bash checks/run.sh`。 |
+| `architecture.md` | updated：已同步 LiveRiskGate read-model-only blocked evidence flow、Core / App / Dashboard evidence surface 和真实 live risk runtime / broker / schema / command 禁区。 |
 | `docs/roadmap.md` | updated：已新增 `MTPRO Live Risk Gate Contract v1` 为 Completed，并把 Final Product Goal Progress 更新为 `8 / 9 (89%)`。 |
 | `docs/validation/latest-verification-summary.md` | updated：已记录 Root Docs Refresh Gate closure、当前进度口径和 boundary evidence。 |
 | `checks/automation-readiness.sh` | updated：已将 Final Product Goal Progress readiness anchor 更新为 `8 / 9 (89%)`。 |

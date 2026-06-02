@@ -483,7 +483,7 @@ public struct SimulatedExchangeBacktestParityBoundary: Codable, Equatable, Senda
     public static let requiredSourceDocumentAnchors: [String] = [
         "GOAL.md",
         "BLUEPRINT.md",
-        "docs/architecture.md",
+        "architecture.md",
         "docs/roadmap.md",
         "docs/domain/context.md",
         "docs/product/mtpro-core-engine-architecture-module-maturity-map-v1.md",

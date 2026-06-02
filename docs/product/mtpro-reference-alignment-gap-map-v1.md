@@ -16,7 +16,7 @@
 | --- | --- |
 | `GOAL.md` | 确认 MTPRO 当前使命、用户、9 / 9 完成事实和永久硬边界。 |
 | `BLUEPRINT.md` | 确认完整产品蓝图、Future Construction Zones 和 Workbench / Live 边界。 |
-| `docs/architecture.md` | 确认 SwiftPM-first、macOS-native、read-model-only 和 future live isolation 工程边界。 |
+| `architecture.md` | 确认 SwiftPM-first、macOS-native、read-model-only 和 future live isolation 工程边界。 |
 | `docs/roadmap.md` | 确认 12 / 12 closure、9 / 9 完成、Next Handoff 仍交给 Human + `@001 / PLN`。 |
 | `docs/product/mtpro-product-surface-split-v1.md` | 确认 Workbench 与未来 Live PRO Console 是两个产品面。 |
 | `docs/design/mtpro-workbench-user-facing-dashboard-high-fidelity-v3.md` | 确认当前 Workbench dashboard v3 是 macOS native business dashboard 设计依据。 |

@@ -238,7 +238,7 @@ Future Gated placeholder 只表达：
 - `docs/product/mtpro-product-interaction-model-v1.md` 的产品交互模型。
 - `docs/design/mtpro-workbench-screen-layout-v1.md` 的 screen layout 依据。
 - `docs/design/mtpro-workbench-ui-ux-design-rules-v1.md` 的 UI/UX rules 依据。
-- `docs/architecture.md` 的 Engineering Module Map。
+- `architecture.md` 的 Engineering Module Map。
 - Linear issue body 的 execution contract。
 
 后续如果要进入 SwiftUI 实现、业务代码开发、Future Live trading 或 Linear execution，必须先通过 Human + `@001 / PLN` 形成 Project / Issue draft，并由 Linear live-read、Parent Codex queue preflight 和唯一 configured executable issue 授权。

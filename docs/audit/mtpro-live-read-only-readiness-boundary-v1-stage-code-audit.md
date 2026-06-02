@@ -201,8 +201,8 @@ L3.0 terminology / target engines
 | --- | --- |
 | `GOAL.md` | 需要同步已发生事实：`L3.0 Live Read-only Readiness Boundary` 已完成 boundary / contract / forbidden capability / read-model-only evidence 闭环。旧 `Final Product Goal Progress: 9 / 9 (100%)` 和旧 `Engine Maturity Roadmap Progress: 4 / 4 (100%)` 保持不变，不继续扩大 denominator。 |
 | `BLUEPRINT.md` | 只同步 L3.0 已完成事实；L3.1 / L3.2 / L3.3 / L4 仍为 Future Gated，不得写成当前 execution scope。 |
-| `docs/environment.md` | 可记录本 Project 未新增 secret、private endpoint、broker credential、production operations 或新 validation entry；统一验证入口仍是 `bash checks/run.sh`。 |
-| `docs/architecture.md` | 可标记 L3.0 boundary evidence chain 已完成：Core deterministic fixture -> App read model / ViewModel -> Dashboard / Report / Event Timeline；不得把 signed/account/broker/OMS/live command 模块写成当前 runtime。 |
+| `environment.md` | 可记录本 Project 未新增 secret、private endpoint、broker credential、production operations 或新 validation entry；统一验证入口仍是 `bash checks/run.sh`。 |
+| `architecture.md` | 可标记 L3.0 boundary evidence chain 已完成：Core deterministic fixture -> App read model / ViewModel -> Dashboard / Report / Event Timeline；不得把 signed/account/broker/OMS/live command 模块写成当前 runtime。 |
 | `docs/roadmap.md` | 将 Completed Project Map 增加 `MTPRO Live Read-only Readiness Boundary v1`，Project Closure Count 从 `16 / 16` 更新为 `17 / 17`；Current maturity statement 可更新为 `L3.0 Live Read-only Readiness Boundary complete`，Next maturity planning candidate 为 `L3.1 Account / Position / Balance Read-model-only`，但旧 Engine Maturity Roadmap Progress 保持 `4 / 4 (100%)`。 |
 | `docs/validation/latest-verification-summary.md` | 需要记录 Stage Code Audit PR evidence、Root Docs Refresh PR evidence、最终 main commit、`git diff --check` 和 `bash checks/run.sh` 结果。 |
 | `verification.md` | append-only 记录 Stage Code Audit 和 Root Docs Refresh Gate closure evidence。 |

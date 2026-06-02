@@ -197,8 +197,8 @@ local environment verification
 | --- | --- |
 | `GOAL.md` | 需要同步 `L2+ Workbench Beta Readiness` 本阶段闭环已完成；Engine Maturity Roadmap Progress 应从 `3 / 4 (75%)` 更新为 `4 / 4 (100%)`；Final Product Goal Progress 必须保持 `9 / 9 (100%)`。 |
 | `BLUEPRINT.md` | 只同步已发生事实：local Workbench beta acceptance path 已完成；不得写入下一 Project、Live read-only 或 Live production 当前执行范围。 |
-| `docs/environment.md` | 如有 Workbench local launch / acceptance path 概览，可增加已完成事实；不得写 production release、notarization、App Store、auto-update 或 production operations。 |
-| `docs/architecture.md` | 可标记 Workbench Interface / Evidence Read Model / Docs Validation layer 的 L2+ beta evidence chain 已完成；不得加入 signed/account/broker/OMS/live command 模块为当前 scope。 |
+| `environment.md` | 如有 Workbench local launch / acceptance path 概览，可增加已完成事实；不得写 production release、notarization、App Store、auto-update 或 production operations。 |
+| `architecture.md` | 可标记 Workbench Interface / Evidence Read Model / Docs Validation layer 的 L2+ beta evidence chain 已完成；不得加入 signed/account/broker/OMS/live command 模块为当前 scope。 |
 | `docs/roadmap.md` | 必须标记 `L2+ Workbench Beta Readiness: Done`，`Engine Maturity Roadmap Progress: 4 / 4 (100%)`，当前成熟度 statement 更新为 `L2+ Workbench Beta Readiness complete`。L3 / L4 仍为 Future Gated，不计入 denominator。 |
 | `docs/validation/latest-verification-summary.md` | 需要记录 Stage Code Audit PR evidence、Root Docs Refresh PR evidence、最终 main commit、`git diff --check` 和 `bash checks/run.sh` 结果。 |
 | `verification.md` | append-only 记录 Stage Code Audit 和 Root Docs Refresh Gate closure evidence。 |
@@ -207,7 +207,7 @@ local environment verification
 
 Root Docs Refresh Gate：closed。
 
-Root Docs Refresh Gate 已在本报告 PR merge 后由 `@002 / PAR` 单独执行，只同步已发生事实：`GOAL.md`、`BLUEPRINT.md`、`docs/environment.md`、`docs/architecture.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`checks/automation-readiness.sh`、`docs/validation/latest-verification-summary.md` 和 `verification.md` 已同步 `L2+ Workbench Beta Readiness complete`、`Engine Maturity Roadmap Progress: 4 / 4 (100%)`、Project Closure Count `16 / 16 (100%)` 和 Workbench Beta Readiness Stage Code Audit PR evidence。
+Root Docs Refresh Gate 已在本报告 PR merge 后由 `@002 / PAR` 单独执行，只同步已发生事实：`GOAL.md`、`BLUEPRINT.md`、`environment.md`、`architecture.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`checks/automation-readiness.sh`、`docs/validation/latest-verification-summary.md` 和 `verification.md` 已同步 `L2+ Workbench Beta Readiness complete`、`Engine Maturity Roadmap Progress: 4 / 4 (100%)`、Project Closure Count `16 / 16 (100%)` 和 Workbench Beta Readiness Stage Code Audit PR evidence。
 
 本 Gate 不创建下一 Project / Issue，不推进 `Todo`，不启动 Symphony，不运行 Graphify，不修改 Figma，不写业务 runtime，不授权 production release、notarization、App Store distribution、auto-update、production operations、Live read-only readiness、Live Production、signed endpoint、account endpoint / listenKey、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、real account / broker position / margin / leverage、Live PRO Console、trading button 或 live command。
 

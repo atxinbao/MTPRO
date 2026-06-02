@@ -1,12 +1,12 @@
-# docs/environment.md
+# environment.md
 
-本文档是运行 / 验证 / 外部系统边界文档。它是 `BLUEPRINT.md` 的二级权重承接文档，只定义当前本地环境、验证入口和外部系统使用禁区，不定义产品目标、工程模块或施工路线。
+本文档是运行 / 验证 / 外部系统边界文档。它是根目录高权重承接文档，只定义当前本地环境、验证入口和外部系统使用禁区，不定义产品目标、工程模块或施工路线。
 
 本文档不能推翻 `BLUEPRINT.md`，也不授权 Linear Project / Issue、`Todo` 推进、额外调度服务启动或业务代码修改。
 
 ## Environment Responsibility / 环境职责
 
-`docs/environment.md` 只回答三个问题：
+`environment.md` 只回答三个问题：
 
 1. 当前本地开发和验证需要什么环境。
 2. 哪些验证命令是必跑门槛，哪些只是可选人工证据。

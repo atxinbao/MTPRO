@@ -478,7 +478,7 @@ public struct DataCatalogScenarioReplayBoundary: Codable, Equatable, Sendable {
     public static let requiredSourceDocumentAnchors: [String] = [
         "GOAL.md",
         "BLUEPRINT.md",
-        "docs/architecture.md",
+        "architecture.md",
         "docs/roadmap.md",
         "docs/domain/context.md",
         "docs/planning/projects/mtpro-data-catalog-scenario-replay-v1-plan.md",

@@ -6576,16 +6576,16 @@ Next Handoff: Human + @001 / PLN
 
 目的：
 
-- 将 `ARCHITECTURE.md`、`ENVIRONMENT.md`、`ROADMAP.md` 下沉为 `docs/` 下的二级权重文档。
-- 固定 `docs/architecture.md` 的中文语义为 Engineering Module Map / 工程模块地图。
+- 将旧大写根入口 `ARCHITECTURE.md`、`ENVIRONMENT.md`、`ROADMAP.md` 清理为小写文档入口；本轮之后 `architecture.md` 与 `environment.md` 已重新提升为根目录高权重承接文档。
+- 固定 `architecture.md` 的中文语义为 Engineering Module Map / 工程模块地图。
 - 固定 `docs/roadmap.md` 的职责为“根据蓝图和工程模块定义施工顺序、进度和下一阶段 handoff”。
-- 明确 `docs/architecture.md`、`docs/environment.md` 和 `docs/roadmap.md` 只能承接并细化 `BLUEPRINT.md`，不能推翻蓝图。
+- 明确 `architecture.md`、`environment.md` 和 `docs/roadmap.md` 只能承接并细化 `BLUEPRINT.md`，不能推翻蓝图。
 
 文件范围：
 
 - Moved：
-  - `ARCHITECTURE.md` -> `docs/architecture.md`
-  - `ENVIRONMENT.md` -> `docs/environment.md`
+  - `ARCHITECTURE.md` -> `architecture.md`
+  - `ENVIRONMENT.md` -> `environment.md`
   - `ROADMAP.md` -> `docs/roadmap.md`
 - Updated：
   - `README.md`
@@ -6622,7 +6622,7 @@ Next Handoff: Human + @001 / PLN
 | 命令 | 结果 | 说明 |
 | --- | --- | --- |
 | `git diff --check` | pass | Secondary Weight Docs Rehome 变更无 whitespace error。 |
-| `bash checks/automation-readiness.sh` | pass | 二级权重文档位置、工程模块地图语义、roadmap 施工路线语义和旧根目录入口反向检查通过。 |
+| `bash checks/automation-readiness.sh` | pass | 根目录高权重文档位置、工程模块地图语义、roadmap 施工路线语义和旧大写根目录入口反向检查通过。 |
 | `bash checks/run.sh` | pass | automation readiness、Dashboard build / smoke 和 121 个 XCTest 全部通过；Dashboard smoke 输出 `sections=8; readModelOnly=true; workbenchReadModelOnly=true; controls=start,pause,close,reset; timelineItems=0`；最终输出 `MTPRO checks passed.`。 |
 
 ## Environment / Architecture Docs Deepening
@@ -6633,14 +6633,14 @@ Next Handoff: Human + @001 / PLN
 
 目的：
 
-- 补强 `docs/environment.md`，使其成为运行 / 验证 / 外部系统边界的清晰合同，而不是简短摘要。
-- 补强 `docs/architecture.md`，使其成为承接 `BLUEPRINT.md` 的工程模块地图，明确 SwiftPM 依赖方向、模块边界、能力流、架构不变量和 Future Live 隔离。
+- 补强 `environment.md`，使其成为运行 / 验证 / 外部系统边界的清晰合同，而不是简短摘要。
+- 补强 `architecture.md`，使其成为承接 `BLUEPRINT.md` 的工程模块地图，明确 SwiftPM 依赖方向、模块边界、能力流、架构不变量和 Future Live 隔离。
 - 将关键章节写入 `checks/automation-readiness.sh` 锚点，降低后续文档漂移风险。
 
 文件范围：
 
-- `docs/environment.md`
-- `docs/architecture.md`
+- `environment.md`
+- `architecture.md`
 - `checks/automation-readiness.sh`
 - `docs/validation/latest-verification-summary.md`
 - `verification.md`
@@ -6674,7 +6674,7 @@ Next Handoff: Human + @001 / PLN
 
 目的：
 
-- 补强 `docs/roadmap.md`，使其成为承接 `BLUEPRINT.md` 和 `docs/architecture.md` 的施工路线、进度口径和下一轮 handoff 合同。
+- 补强 `docs/roadmap.md`，使其成为承接 `BLUEPRINT.md` 和 `architecture.md` 的施工路线、进度口径和下一轮 handoff 合同。
 - 明确路线输入、已完成阶段地图、两层进度模型、施工切片选择规则、实盘路线门槛、Project 收口规则和下一轮交接合同。
 - 将关键章节写入 `checks/automation-readiness.sh` 锚点，降低后续路线和进度口径漂移风险。
 
@@ -6715,9 +6715,9 @@ Commit：
 
 目的：
 - 从 `README.md` 开始继续压缩 MTPRO 文档栈。
-- 保持 `GOAL.md` / `BLUEPRINT.md` / `docs/environment.md` / `docs/architecture.md` / `docs/roadmap.md` 的权重分工。
+- 保持 `GOAL.md` / `BLUEPRINT.md` / `environment.md` / `architecture.md` / `docs/roadmap.md` 的权重分工。
 - 压缩重复叙述，让 `README.md` 只做入口，`GOAL.md` 只做 Project Charter，`BLUEPRINT.md` 只做 canonical Root / Complete Blueprint。
-- 保留 `docs/architecture.md` 作为 Engineering Module Map / 工程模块地图。
+- 保留 `architecture.md` 作为 Engineering Module Map / 工程模块地图。
 - 保留 `docs/roadmap.md` 作为 Construction Plan / 施工路线。
 
 文件范围：
@@ -6726,7 +6726,7 @@ Commit：
   - `AGENTS.md`
   - `GOAL.md`
   - `BLUEPRINT.md`
-  - `docs/architecture.md`
+  - `architecture.md`
   - `docs/roadmap.md`
   - `docs/validation/latest-verification-summary.md`
   - `verification.md`
@@ -7338,7 +7338,7 @@ Commit：
 
 - Updated：
   - `GOAL.md`
-  - `docs/architecture.md`
+  - `architecture.md`
   - `docs/roadmap.md`
   - `docs/audit/mtpro-live-trading-boundary-definition-v1-stage-code-audit.md`
   - `docs/validation/latest-verification-summary.md`
@@ -7350,8 +7350,8 @@ Root docs 判断：
 | Root doc | 结果 | 原因 |
 | --- | --- | --- |
 | `GOAL.md` | updated | Final Product Goal Progress 从 `4 / 9 (44%)` 更新为 `5 / 9 (56%)`，并明确 Live trading foundation 只完成 boundary / blocked evidence / read-only surface。 |
-| `docs/environment.md` | no update needed | 本 Project 未新增 required validation、secret、broker credential、signed endpoint、Graphify 或外部写能力；统一验证入口仍是 `bash checks/run.sh`。 |
-| `docs/architecture.md` | updated | 同步 Core / Adapters / App / Dashboard 的 Live boundary evidence flow 和 public read-only / future execution adapter isolation。 |
+| `environment.md` | no update needed | 本 Project 未新增 required validation、secret、broker credential、signed endpoint、Graphify 或外部写能力；统一验证入口仍是 `bash checks/run.sh`。 |
+| `architecture.md` | updated | 同步 Core / Adapters / App / Dashboard 的 Live boundary evidence flow 和 public read-only / future execution adapter isolation。 |
 | `docs/roadmap.md` | updated | 新增 completed Project，Project Closure Count 更新为 `8 / 8 (100%)`，Final Product Goal Progress 更新为 `5 / 9 (56%)`。 |
 
 边界确认：
@@ -7694,13 +7694,13 @@ Root docs 判断：
 
 - 将 @005 / ARC 的 Target System Architecture v3 最终版收口到 root docs。
 - 在 `BLUEPRINT.md` 中补充 Product Workbench Map / 产品工作台地图，明确 Current / In Progress / Future Gated 三块状态。
-- 在 `docs/architecture.md` 中补充 Engineering Layer Map / 工程分层地图和 Evidence Data Flow / 证据数据流。
+- 在 `architecture.md` 中补充 Engineering Layer Map / 工程分层地图和 Evidence Data Flow / 证据数据流。
 - 明确 `Live Monitoring` 当前只代表 read-model-only health / connection / stream / latency / error evidence，不代表真实交易执行入口。
 
 文件范围：
 
 - `BLUEPRINT.md`
-- `docs/architecture.md`
+- `architecture.md`
 - `docs/validation/latest-verification-summary.md`
 - `verification.md`
 
@@ -7708,9 +7708,9 @@ Root docs 判断：
 
 - `BLUEPRINT.md`：把 Final Product Goal Slice #5 更新为 Complete，并说明只完成 Live boundary / blocked evidence；把 Slice #6 标为 In Progress / read-model-only。
 - `BLUEPRINT.md`：新增 Product Workbench Map，拆分 Current / 已完成基础工作台、In Progress / 当前建设、Future Gated / 未来门禁区。
-- `docs/architecture.md`：新增五层 Engineering Layer Map：Workbench UI Layer、App Interface Layer、Evidence Read Model Layer、Local Runtime / Eventing Layer、Domain + Adapter Boundary Layer。
-- `docs/architecture.md`：新增标准 Evidence Data Flow：Input source -> Domain interpretation -> Event fact -> Append-only Event Log -> Replay -> Projection -> Read Model -> ViewModel -> Workbench evidence surface。
-- `docs/architecture.md`：明确 Dashboard / App 不直接读取 Runtime、Adapter、SQLite / DuckDB schema；Paper intent / simulated fill 不能升级为 real order lifecycle。
+- `architecture.md`：新增五层 Engineering Layer Map：Workbench UI Layer、App Interface Layer、Evidence Read Model Layer、Local Runtime / Eventing Layer、Domain + Adapter Boundary Layer。
+- `architecture.md`：新增标准 Evidence Data Flow：Input source -> Domain interpretation -> Event fact -> Append-only Event Log -> Replay -> Projection -> Read Model -> ViewModel -> Workbench evidence surface。
+- `architecture.md`：明确 Dashboard / App 不直接读取 Runtime、Adapter、SQLite / DuckDB schema；Paper intent / simulated fill 不能升级为 real order lifecycle。
 
 边界确认：
 
@@ -7897,8 +7897,8 @@ Root docs 判断：
 | --- | --- | --- |
 | `GOAL.md` | updated | Final Product Goal Progress 更新为 `6 / 9 (67%)`，并明确 Live Monitoring 只完成 read-model-only evidence surface。 |
 | `BLUEPRINT.md` | updated | Live Monitoring Console 从 In Progress 改为 Completed / current evidence surface；真实 live runtime、signed/account stream、broker stream 和交易控制仍 gated。 |
-| `docs/environment.md` | no update needed | 本 Project 未新增 required validation 入口、secret、broker credential、外部写能力、production telemetry 或网络必需验证。 |
-| `docs/architecture.md` | updated | Live monitoring read-model-only evidence chain 已同步为已完成事实，并保持 no adapter / runtime / schema leakage 边界。 |
+| `environment.md` | no update needed | 本 Project 未新增 required validation 入口、secret、broker credential、外部写能力、production telemetry 或网络必需验证。 |
+| `architecture.md` | updated | Live monitoring read-model-only evidence chain 已同步为已完成事实，并保持 no adapter / runtime / schema leakage 边界。 |
 | `docs/roadmap.md` | updated | 新增 completed Project，Project Closure Count 更新为 `9 / 9 (100%)`，Final Product Goal Progress 更新为 `6 / 9 (67%)`。 |
 | `docs/validation/latest-verification-summary.md` | updated | 当前基线、Root Docs Refresh Gate 状态、Progress baseline 和 evidence pointers 已同步。 |
 | `docs/audit/mtpro-live-monitoring-console-v1-stage-code-audit.md` | updated | Root Docs Delta 从 pending input 更新为 closure evidence。 |
@@ -8702,8 +8702,8 @@ Linear / scope evidence：
 
 - `GOAL.md`：updated，Final Product Goal Progress 更新为 `7 / 9 (78%)`。
 - `BLUEPRINT.md`：updated，Live Execution Control 更新为 `Complete / contract + blocked evidence`，Future Live Risk 和 Future Incident Replay / Stop Controls 仍为 Future Gated。
-- `docs/environment.md`：no update needed，本 Project 未新增 secret、broker credential、外部写能力、signed endpoint、account endpoint、listenKey 或网络必需验证。
-- `docs/architecture.md`：updated，补充 `LiveExecutionControl` read-model-only blocked evidence flow 和真实 execution runtime / broker / command 禁区。
+- `environment.md`：no update needed，本 Project 未新增 secret、broker credential、外部写能力、signed endpoint、account endpoint、listenKey 或网络必需验证。
+- `architecture.md`：updated，补充 `LiveExecutionControl` read-model-only blocked evidence flow 和真实 execution runtime / broker / command 禁区。
 - `docs/roadmap.md`：updated，Project Closure Count 更新为 `10 / 10 (100%)`，Final Product Goal Progress 更新为 `7 / 9 (78%)`。
 - `docs/validation/latest-verification-summary.md`：updated，记录 Root Docs Refresh Gate closure 和当前进度口径。
 - `checks/automation-readiness.sh`：updated，机械检查最新 `7 / 9 (78%)` 进度锚点。
@@ -9425,8 +9425,8 @@ Root docs refresh 逐项结论：
 | --- | --- | --- |
 | `GOAL.md` | updated | Final Product Goal Progress 更新为 `8 / 9 (89%)`，并明确 Live Risk Gate 只完成 contract + blocked evidence。 |
 | `BLUEPRINT.md` | updated | Live Risk Control 更新为 `Complete / contract + blocked evidence`，Future Incident Replay / Stop Controls 仍为 Future Gated。 |
-| `docs/environment.md` | no update needed | 本 Project 未新增 validation 入口、secret、broker credential、signed endpoint、account endpoint、listenKey、真实账户读取或网络必需验证。 |
-| `docs/architecture.md` | updated | 新增 LiveRiskGate read-model-only blocked evidence flow 和真实 live risk runtime / command 禁区。 |
+| `environment.md` | no update needed | 本 Project 未新增 validation 入口、secret、broker credential、signed endpoint、account endpoint、listenKey、真实账户读取或网络必需验证。 |
+| `architecture.md` | updated | 新增 LiveRiskGate read-model-only blocked evidence flow 和真实 live risk runtime / command 禁区。 |
 | `docs/roadmap.md` | updated | Project Closure Count 更新为 `11 / 11`，Final Product Goal Progress 更新为 `8 / 9 (89%)`。 |
 | `docs/validation/latest-verification-summary.md` | updated | 记录 Root Docs Refresh Gate closure、当前进度口径、Stage Code Audit Report 状态和 boundary evidence。 |
 | `checks/automation-readiness.sh` | updated | Final Product Goal Progress readiness anchor 更新为 `8 / 9 (89%)`，并检查 Live Risk Gate audit closure。 |
@@ -9964,8 +9964,8 @@ Root docs 判断：
 | --- | --- | --- |
 | `GOAL.md` | updated | Final Product Goal Progress 从 `8 / 9 (89%)` 更新为 `9 / 9 (100%)`，并补充 Slice #9 的 contract + blocked evidence 边界。 |
 | `BLUEPRINT.md` | updated | Final Product Goal Slice #9、Current / Future Boundary 和最近完成 construction scope 已同步 `MTPRO Live Audit Incident Stop Boundary v1` 完成事实。 |
-| `docs/environment.md` | no update needed | 本 Project 未新增 required validation、secret、broker credential、signed endpoint、account endpoint、listenKey、真实账户读取、网络必需验证或外部写能力。 |
-| `docs/architecture.md` | updated | Engineering Module Map / Capability Flow Map 已补充 `LiveIncidentStop` / `LiveIncidentStopBlockedEvidence` read-model-only 边界。 |
+| `environment.md` | no update needed | 本 Project 未新增 required validation、secret、broker credential、signed endpoint、account endpoint、listenKey、真实账户读取、网络必需验证或外部写能力。 |
+| `architecture.md` | updated | Engineering Module Map / Capability Flow Map 已补充 `LiveIncidentStop` / `LiveIncidentStopBlockedEvidence` read-model-only 边界。 |
 | `docs/roadmap.md` | updated | Completed Project Map、Project Closure Count、Final Product Goal Progress、Product Route 和 Live Route Gates 已同步 Slice #9 closure。 |
 | `docs/validation/latest-verification-summary.md` | updated | 当前基线、canonical Stage Code Audit Report 引用和 Goal / Roadmap Progress Baseline 已同步 Root Docs Refresh Gate closure。 |
 | `checks/automation-readiness.sh` | updated | progress anchor 更新为 `9 / 9 (100%)`，并加入 Live Audit Incident Stop audit report closure anchor。 |
@@ -10307,7 +10307,7 @@ Root docs 判断：
 
 - 新增 `docs/product/mtpro-core-engine-architecture-module-maturity-map-v1.md`。
 - 更新 `BLUEPRINT.md`，增加该 Engine map 入口和 Future Construction Zones 前的 Project Draft 对齐要求。
-- 更新 `docs/architecture.md`，增加 Core Engine Architecture Reference。
+- 更新 `architecture.md`，增加 Core Engine Architecture Reference。
 - 更新 `docs/roadmap.md`，把 Module Maturity Development Plan 绑定到 Engine map。
 - 更新 `docs/product/product-surface-map.md`，增加产品 / 架构层 Engine map 引用。
 - 更新 `docs/validation/latest-verification-summary.md`，记录该 Engine map 已落仓且不授权 execution。
@@ -10665,8 +10665,8 @@ Root Docs Refresh Gate：
 | --- | --- | --- |
 | `GOAL.md` | updated | 同步 `L1 Paper Runtime` 本阶段闭环已完成；Final Product Goal Progress 保持 `9 / 9 (100%)`。 |
 | `BLUEPRINT.md` | updated | 把 `MTPRO Event-Driven Paper Trading Runtime v1` 从 planning / candidate 事实刷新为已完成 Project，并保留 future gated 边界。 |
-| `docs/environment.md` | no update needed | 未新增 validation 入口、secret、broker credential、signed endpoint、account endpoint、listenKey、真实账户读取或网络必需验证。 |
-| `docs/architecture.md` | updated | 同步 L1 Paper Runtime 的 TradingClock、routing、paper risk、local lifecycle、simulated fill、paper portfolio projection 和 read-model-only evidence chain。 |
+| `environment.md` | no update needed | 未新增 validation 入口、secret、broker credential、signed endpoint、account endpoint、listenKey、真实账户读取或网络必需验证。 |
+| `architecture.md` | updated | 同步 L1 Paper Runtime 的 TradingClock、routing、paper risk、local lifecycle、simulated fill、paper portfolio projection 和 read-model-only evidence chain。 |
 | `docs/roadmap.md` | updated | Stage 1 Event-Driven Paper Trading Runtime 更新为 Completed；Project Closure Count 更新为 `13 / 13`。 |
 | `docs/validation/latest-verification-summary.md` | updated | 同步最近完成 Project、Stage Code Audit Report、Project closure evidence、validation baseline 和 Root Docs Refresh Gate closure。 |
 | `docs/automation/automation-readiness.md` / `checks/automation-readiness.sh` | updated | 新增 Stage Code Audit Report mechanical anchor。 |
@@ -11070,7 +11070,7 @@ L1 Paper Runtime maturity statement：
 
 文件范围：
 
-- 更新 `GOAL.md`、`BLUEPRINT.md`、`docs/architecture.md`、`docs/roadmap.md` 和 `docs/validation/latest-verification-summary.md`，同步 L1.5 closure、Project Closure Count `14 / 14 (100%)`、Engine Maturity Roadmap Progress `2 / 4 (50%)`、current maturity statement 和 next recommended maturity slice。
+- 更新 `GOAL.md`、`BLUEPRINT.md`、`architecture.md`、`docs/roadmap.md` 和 `docs/validation/latest-verification-summary.md`，同步 L1.5 closure、Project Closure Count `14 / 14 (100%)`、Engine Maturity Roadmap Progress `2 / 4 (50%)`、current maturity statement 和 next recommended maturity slice。
 - 更新 `docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，新增 Data Catalog / Scenario Replay stage code audit report anchor 和 roadmap progress mechanical checks。
 - 更新本 append-only `verification.md`。
 
@@ -11673,7 +11673,7 @@ Operator evidence：
 
 实现摘要：
 
-- 更新 `GOAL.md`、`BLUEPRINT.md`、`docs/architecture.md`、`docs/roadmap.md` 和 `docs/validation/latest-verification-summary.md`，同步 `L2 Simulated Exchange / Backtest Parity complete`、`Next recommended maturity slice: L2+ Workbench Beta Readiness v1`、Project Closure Count `15 / 15 (100%)` 和 Stage Code Audit PR #219 evidence。
+- 更新 `GOAL.md`、`BLUEPRINT.md`、`architecture.md`、`docs/roadmap.md` 和 `docs/validation/latest-verification-summary.md`，同步 `L2 Simulated Exchange / Backtest Parity complete`、`Next recommended maturity slice: L2+ Workbench Beta Readiness v1`、Project Closure Count `15 / 15 (100%)` 和 Stage Code Audit PR #219 evidence。
 - 更新 `docs/audit/mtpro-simulated-exchange-backtest-parity-v1-stage-code-audit.md`，把 Root Docs Refresh Gate 从 pending 更新为 closed。
 - 更新 `docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`，新增 root docs refresh 机械 anchor，检查 `3 / 4 (75%)`、L2 complete 和 L2+ next candidate。
 
@@ -11955,7 +11955,7 @@ Operator evidence：
 
 - 新增 `docs/product/mtpro-live-readiness-roadmap-v1.md`，记录 `L3.0 Live Read-only Readiness Boundary`、`L3.1 Account / Position / Balance Read-model-only`、`L3.2 Private Stream / Account Snapshot Simulation Gate`、`L3.3 Live Monitoring Read-only Console v2` 和 `L4 Live Production / Trading Commands`。
 - 新增 `docs/planning/projects/mtpro-live-read-only-readiness-boundary-v1-plan.md`，记录 L3.0 Project-level planning candidate、Target Engines / Layers、Target maturity、scope、non-goals、issue order、dependencies、validation requirements、evidence requirements、first executable issue candidate、WIP=1、Linear write boundary、repository record boundary 和 Parent Codex queue preflight rule。
-- 更新 `GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/architecture.md`、`docs/product/mtpro-core-engine-architecture-module-maturity-map-v1.md`、`docs/planning/linear-draft-plan.md` 和 `docs/validation/latest-verification-summary.md`，增加 Live Readiness Roadmap 和 L3.0 planning candidate 引用。
+- 更新 `GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`architecture.md`、`docs/product/mtpro-core-engine-architecture-module-maturity-map-v1.md`、`docs/planning/linear-draft-plan.md` 和 `docs/validation/latest-verification-summary.md`，增加 Live Readiness Roadmap 和 L3.0 planning candidate 引用。
 
 边界确认：
 
@@ -12016,8 +12016,8 @@ Root Docs Refresh Gate 更新：
 | --- | --- | --- |
 | `GOAL.md` | updated | Engine Maturity Roadmap Progress 更新为 `4 / 4 (100%)`，current maturity statement 更新为 `L2+ Workbench Beta Readiness complete`。 |
 | `BLUEPRINT.md` | updated | 同步 Workbench Beta Readiness Project closure 和 Stage Code Audit Report evidence；明确 L3 / L4 Future Gated。 |
-| `docs/environment.md` | updated | 记录 local launch / install / environment verification 只代表 local beta acceptance path。 |
-| `docs/architecture.md` | updated | 同步 L2+ Workbench beta acceptance read-model evidence chain，不授权 production / live scope。 |
+| `environment.md` | updated | 记录 local launch / install / environment verification 只代表 local beta acceptance path。 |
+| `architecture.md` | updated | 同步 L2+ Workbench beta acceptance read-model evidence chain，不授权 production / live scope。 |
 | `docs/roadmap.md` | updated | Project Closure Count `16 / 16`，Engine Maturity Roadmap Progress `4 / 4`，L2+ Done，L3 / L4 Future Gated。 |
 | `docs/automation/automation-readiness.md` | updated | 新增 Workbench Beta Readiness stage code audit report 和 root docs refresh anchors。 |
 | `checks/automation-readiness.sh` | updated | 机械检查 Workbench Beta Stage Code Audit、Root Docs Refresh 和 4 / 4 progress anchors。 |
@@ -12366,7 +12366,7 @@ Closure evidence：
 - Stage Code Audit PR：#241。
 - Stage Code Audit merge commit：`e7bd3bb90807fabf21c91008c9000b517b25ae4d`。
 - Stage Code Audit required check：`checks` success, `https://github.com/atxinbao/MTPRO/actions/runs/26521055453/job/78111900502`。
-- Root Docs Refresh Gate：当前分支同步 `GOAL.md`、`BLUEPRINT.md`、`docs/environment.md`、`docs/architecture.md`、`docs/roadmap.md`、`docs/product/mtpro-live-readiness-roadmap-v1.md`、`docs/automation/automation-readiness.md`、`checks/automation-readiness.sh`、`docs/validation/latest-verification-summary.md`、Stage Code Audit Report 和本 append-only verification entry。
+- Root Docs Refresh Gate：当前分支同步 `GOAL.md`、`BLUEPRINT.md`、`environment.md`、`architecture.md`、`docs/roadmap.md`、`docs/product/mtpro-live-readiness-roadmap-v1.md`、`docs/automation/automation-readiness.md`、`checks/automation-readiness.sh`、`docs/validation/latest-verification-summary.md`、Stage Code Audit Report 和本 append-only verification entry。
 
 验证：
 
@@ -12410,7 +12410,7 @@ Closure evidence：
 
 - 更新 `docs/product/mtpro-live-readiness-roadmap-v1.md`，在 L3.3 与 L4 之间新增 `L3.4 Strategy / Trader Instance Readiness v1`。
 - 更新 `docs/product/mtpro-core-engine-architecture-module-maturity-map-v1.md`，把 L3.4 映射到 Strategy Engine、Portfolio Engine、Risk Engine 和 Evidence Read Model Layer。
-- 更新 `docs/roadmap.md`、`BLUEPRINT.md`、`GOAL.md`、`docs/architecture.md`、`docs/automation/automation-readiness.md` 和 `docs/validation/latest-verification-summary.md` 的路线引用。
+- 更新 `docs/roadmap.md`、`BLUEPRINT.md`、`GOAL.md`、`architecture.md`、`docs/automation/automation-readiness.md` 和 `docs/validation/latest-verification-summary.md` 的路线引用。
 - 不更新 `Final Product Goal Progress`，不扩大旧 `Engine Maturity Roadmap Progress: 4 / 4 (100%)` 分母。
 
 验证：
@@ -12830,8 +12830,8 @@ Root Docs Refresh Gate 更新：
 
 - `GOAL.md`：同步 L3.1 APB read-model-only evidence chain 已完成，下一 candidate 改为 L3.2 Future Gated。
 - `BLUEPRINT.md`：同步最近完成 construction scope、Live Readiness Roadmap handoff 和 Future Gated 边界。
-- `docs/environment.md`：补充 L3.1 APB environment / secret / runtime boundary。
-- `docs/architecture.md`：补充 Evidence Read Model Layer 和 Domain + Adapter Boundary Layer 的 L3.1 APB evidence chain。
+- `environment.md`：补充 L3.1 APB environment / secret / runtime boundary。
+- `architecture.md`：补充 Evidence Read Model Layer 和 Domain + Adapter Boundary Layer 的 L3.1 APB evidence chain。
 - `docs/roadmap.md`：Project Closure Count 更新为 `18 / 18 (100%)`，当前 maturity statement 更新为 `L3.1 Account / Position / Balance Read-model-only complete`。
 - `docs/product/mtpro-live-readiness-roadmap-v1.md`：L3.1 标记为 Done / not counted in old denominator，L3.2 保持 Future Gated planning candidate。
 - `docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh`：新增 Root Docs Refresh mechanical anchors。
@@ -13081,8 +13081,8 @@ Root Docs Refresh Gate 更新：
 
 - `GOAL.md`：同步 L3.2 Private Stream / Account Snapshot Simulation Gate evidence chain 已完成，下一 candidate 改为 L3.3 Future Gated。
 - `BLUEPRINT.md`：同步最近完成 construction scope、Stage Code Audit Report 引用和 handoff 状态。
-- `docs/environment.md`：同步 L3.2 未新增 secret、private endpoint、broker credential、production operations 或新 validation entry。
-- `docs/architecture.md`：同步 L3.2 evidence chain 沿 contract / deterministic fixture -> App read model / ViewModel -> Dashboard / Report / Event Timeline 流动。
+- `environment.md`：同步 L3.2 未新增 secret、private endpoint、broker credential、production operations 或新 validation entry。
+- `architecture.md`：同步 L3.2 evidence chain 沿 contract / deterministic fixture -> App read model / ViewModel -> Dashboard / Report / Event Timeline 流动。
 - `docs/roadmap.md`：Project Closure Count 更新为 `19 / 19 (100%)`，当前 maturity statement 更新为 `L3.2 Private Stream / Account Snapshot Simulation Gate complete`。
 - `docs/product/mtpro-live-readiness-roadmap-v1.md`：L3.2 标记为 Done / not counted in old denominator，L3.3 保持 Future Gated planning candidate。
 - `docs/validation/latest-verification-summary.md`：同步最近完成 Project、Stage Code Audit Report、Project closure evidence、validation baseline 和 Root Docs Refresh Gate closure。
@@ -13213,7 +13213,7 @@ Root Docs Refresh Gate 更新：
 更新内容：
 
 - 新增 `docs/audit/mtpro-live-monitoring-read-only-console-v2-stage-code-audit.md`，记录 PR #264、#265、#266、#267、#268、#269、#270、merge commits、GitHub `checks` evidence、Linear Project completion evidence、forbidden capability audit、validation 和 Root Docs Delta input。
-- 更新 `GOAL.md`、`BLUEPRINT.md`、`docs/architecture.md`、`docs/roadmap.md`、`docs/product/mtpro-live-readiness-roadmap-v1.md` 和 `docs/validation/latest-verification-summary.md`，只同步 L3.3 已发生闭环事实，不授权下一阶段。
+- 更新 `GOAL.md`、`BLUEPRINT.md`、`architecture.md`、`docs/roadmap.md`、`docs/product/mtpro-live-readiness-roadmap-v1.md` 和 `docs/validation/latest-verification-summary.md`，只同步 L3.3 已发生闭环事实，不授权下一阶段。
 - 更新 `docs/automation/automation-readiness.md` 与 `checks/automation-readiness.sh`，新增 Live Monitoring Read-only Console v2 stage code audit report anchor、root docs refresh anchor 和 mechanical gate。
 
 验证：
@@ -13491,7 +13491,7 @@ Root Docs Refresh Gate 更新：
 
 - 基于已合并的 Stage Code Audit Report `docs/audit/mtpro-target-module-physical-layout-source-migration-v1-stage-code-audit.md` 执行 Root Docs Refresh Gate。
 - 只同步已发生事实：`Target Module Physical Layout / Source Migration before L4 complete`、Project Closure Count `23 / 23 (100%)`、Stage Code Audit PR #314 evidence、Project closure evidence、validation baseline 和边界事实。
-- 更新 `GOAL.md`、`BLUEPRINT.md`、`docs/architecture.md`、`docs/roadmap.md`、`docs/product/mtpro-live-readiness-roadmap-v1.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/audit/mtpro-target-module-physical-layout-source-migration-v1-stage-code-audit.md` 和 `checks/automation-readiness.sh`。
+- 更新 `GOAL.md`、`BLUEPRINT.md`、`architecture.md`、`docs/roadmap.md`、`docs/product/mtpro-live-readiness-roadmap-v1.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/audit/mtpro-target-module-physical-layout-source-migration-v1-stage-code-audit.md` 和 `checks/automation-readiness.sh`。
 
 边界：
 
@@ -13584,7 +13584,7 @@ Root Docs Refresh Gate 更新：
 - 删除 `docs/automation/graphify-resource-graph-scope.md`。
 - 删除 `docs/automation/symphony-issue-workflow-template.md`。
 - 删除本地生成目录 `graphify-out/`。
-- 更新 `README.md`、`AGENTS.md`、`BLUEPRINT.md`、`docs/environment.md`、`docs/roadmap.md`、`docs/planning/project-role-map.md`、`docs/automation/*`、`.github/pull_request_template.md` 和 `checks/automation-readiness.sh`，把当前执行链收敛为 Parent Codex queue preflight、Codex Execution Agent、GitHub PR Automation、Post-Issue Ledger 和 Linear evidence。
+- 更新 `README.md`、`AGENTS.md`、`BLUEPRINT.md`、`environment.md`、`docs/roadmap.md`、`docs/planning/project-role-map.md`、`docs/automation/*`、`.github/pull_request_template.md` 和 `checks/automation-readiness.sh`，把当前执行链收敛为 Parent Codex queue preflight、Codex Execution Agent、GitHub PR Automation、Post-Issue Ledger 和 Linear evidence。
 - `checks/automation-readiness.sh` 增加 retired path 缺席检查，防止 `.graphifyignore`、`graphify-out/`、Graphify scope 文档或 Symphony workflow template 被重新引入。
 
 边界：
@@ -13620,7 +13620,7 @@ Root Docs Refresh Gate 更新：
 - 记录 Linear Project `Completed/type=completed`，`completedAt=2026-06-02T16:18:43.202Z`。
 - 记录 MTP-198 至 MTP-204 全部 Done / completed，末端 issue PR #334 merge commit `36bd4fe6389e16837137c42afe3ef8d8ef5e5121`，required check `checks` SUCCESS。
 - 记录 Stage Code Audit PR #335 merge commit `b0f9f4f6adb47194ff643a5ddc548b5f2c72cfd2`，required check `checks` SUCCESS。
-- 更新 `GOAL.md`、`BLUEPRINT.md`、`docs/architecture.md`、`docs/roadmap.md` 和 `docs/validation/latest-verification-summary.md`，把当前成熟度结论同步为 `Trader EMA Strategy Layout Consolidation before L4 complete`。
+- 更新 `GOAL.md`、`BLUEPRINT.md`、`architecture.md`、`docs/roadmap.md` 和 `docs/validation/latest-verification-summary.md`，把当前成熟度结论同步为 `Trader EMA Strategy Layout Consolidation before L4 complete`。
 - Project Closure Count 从 `24 / 24 (100%)` 更新为 `25 / 25 (100%)`；Final Product Goal Progress 保持 `9 / 9 (100%)`；Engine Maturity Roadmap Progress 保持 `4 / 4 (100%)`。
 
 边界：
@@ -13643,3 +13643,83 @@ Root Docs Refresh Gate 更新：
 - `git diff --check`：pass，无输出。
 - `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
 - `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest，最终输出 `MTPRO checks passed.`。
+
+## 2026-06-03 — Root Architecture / Environment Authority Compression
+
+执行者：Codex
+
+范围：
+
+- 将 `docs/architecture.md` 提升并迁移为根目录 `architecture.md`。
+- 将 `docs/environment.md` 提升并迁移为根目录 `environment.md`。
+- 在 `architecture.md` 中补充当前架构流：`DataClient/<venue>` 负责从交易所 / venue 输入 public read-only 数据，`DataEngine` 将外部数据整理为内部事实、replay、quality 和 read-model 输入，`Trader/Strategies/EMA` 只产生 signal / proposal / evidence，`Trader/Coordination` 串联 account、portfolio、risk、execution context，`ExecutionEngine` 管内部 paper / simulated lifecycle，`ExecutionClient` 仅保留为未来“把订单发出去”的外部执行适配器 future gate。
+- 在 `architecture.md` 中补充当前源码模块地形、依赖方向和 forbidden path taxonomy，明确 active concrete strategy only `EMA`，canonical active strategy path only `Sources/Trader/Strategies/EMA/`，binding / adapter 语义归入 `Sources/Trader/Coordination/RiskBinding/`。
+- 更新 `environment.md`，明确它是根目录高权重承接文档，维护本地环境、验证入口、外部系统能力矩阵、secret / local state boundary 和 automation boundary。
+- 更新 root docs、planning docs、audit docs、validation docs 和 reference docs 中对 `architecture.md` / `environment.md` 的引用。
+- 更新 source-document anchor 字符串和对应测试预期，使既有 evidence contract 指向根目录 `architecture.md`。
+- 更新 `checks/automation-readiness.sh`，要求根目录 `architecture.md` / `environment.md` 存在，旧 `docs/architecture.md` / `docs/environment.md` 不再存在，并校验新的 DataClient / DataEngine / ExecutionClient / Trader architecture anchors。
+
+边界：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify。
+- 不运行 code-index。
+- 不修改 Figma。
+- 不写业务 runtime。
+- 不移动 production source。
+- 不修改 `Package.swift`。
+- 不拆 SwiftPM target graph。
+- 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command 或 order form。
+- `.codex/*` 和 `graphify-out/*` 不进入 PR。
+
+验证：
+
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，Dashboard smoke 正常，309 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
+备注：
+
+- SwiftPM 当前仍输出 `Invalid Exclude .../Sources/Strategies: File not found.` warning；这是已退休 `Sources/Strategies` 目录仍被 `Package.swift` exclude 引用导致的非阻断 warning。本轮按边界不修改 `Package.swift`，建议后续单独收口。
+
+## 2026-06-03 — MTPRO Trader Accounts / Coordination Compatibility Consolidation v1 docs-only planning record
+
+执行者：Codex
+
+范围：
+
+- 将 Human 确认的 `MTPRO Trader Accounts / Coordination Compatibility Consolidation v1` planning draft 落仓为 docs-only Project Planning Record。
+- 新增 `docs/planning/projects/mtpro-trader-accounts-coordination-compatibility-consolidation-v1-plan.md`。
+- 更新 `docs/planning/linear-draft-plan.md`，把 `MTPRO Trader EMA Strategy Layout Consolidation v1` 标记为已完成，并新增当前 Trader Accounts / Coordination compatibility consolidation docs-only / non-executable planning record 入口。
+- 更新 `docs/validation/latest-verification-summary.md`，记录该 Project-level planning record 已落仓，且这不是 Project closure，不更新 `Project Closure Count`、`Final Product Goal Progress` 或旧 `Engine Maturity Roadmap Progress`。
+- 更新 `BLUEPRINT.md`，只增加 planning record 引用，不复制完整 issue body，不更新进度条，不授权 execution。
+
+边界：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify。
+- 不运行 code-index。
+- 不修改 Figma。
+- 不新增或移动 production source。
+- 不修改 `Package.swift`。
+- 不拆 SwiftPM target graph。
+- 不实现 Trader runtime、Strategy runtime、Live runtime、`ExecutionClient` implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command 或 order form。
+- `.codex/*` 和 `graphify-out/*` 不进入 PR。
+
+验证：
+
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 正常，309 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
+备注：
+
+- `bash checks/run.sh` 仍输出已知 SwiftPM warning：`Invalid Exclude .../Sources/Strategies: File not found.`。这是已退休 `Sources/Strategies` 目录仍被 `Package.swift` exclude 引用导致的非阻断 warning，也是本次新 planning record 后续 Issue 5 的计划 cleanup 对象；本轮按 docs-only 边界不修改 `Package.swift`。

@@ -30,7 +30,7 @@
 - `README.md`
 - `GOAL.md`
 - `BLUEPRINT.md`
-- `docs/architecture.md`
+- `architecture.md`
 - `docs/roadmap.md`
 - `docs/domain/context.md`
 - `docs/product/mtpro-reference-alignment-gap-map-v1.md`

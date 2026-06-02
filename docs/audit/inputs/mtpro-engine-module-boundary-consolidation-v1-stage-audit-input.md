@@ -131,8 +131,8 @@ Parent Codex 输出最终 Stage Code Audit Report 时必须检查：
 | --- | --- |
 | `GOAL.md` | 本 Project 完成后只证明 Engine Module Boundary Consolidation before L4；不代表 L4 runtime、broker readiness、Live PRO Console readiness、live runtime readiness 或真实交易授权。 |
 | `BLUEPRINT.md` | DataClient / DataEngine / MessageBus / Cache / Database / Strategies / Trader / Portfolio / RiskEngine / ExecutionEngine / ExecutionClient / Workbench / Future Live PRO Console 的 module boundary map 可作为 L4 planning input；signed endpoint、broker command、OMS、production operations 和 Live PRO Console 仍属于 Future Construction Zones。 |
-| `docs/environment.md` | 本 Project 未新增 required secret 读取、broker credential、外部写能力、signed endpoint、account endpoint、listenKey、真实账户读取或 production operations；统一验证入口仍是 `bash checks/run.sh`。 |
-| `docs/architecture.md` | 当前 source tree 仍是 migration source / compatibility shell；本 Project 只固定 target module boundary 与 dependency direction，不表示目录迁移、SwiftPM target split 或 runtime implementation 已完成。 |
+| `environment.md` | 本 Project 未新增 required secret 读取、broker credential、外部写能力、signed endpoint、account endpoint、listenKey、真实账户读取或 production operations；统一验证入口仍是 `bash checks/run.sh`。 |
+| `architecture.md` | 当前 source tree 仍是 migration source / compatibility shell；本 Project 只固定 target module boundary 与 dependency direction，不表示目录迁移、SwiftPM target split 或 runtime implementation 已完成。 |
 | `docs/roadmap.md` | Project 完成后需要由 Parent Codex 设置或确认 Linear Project `Completed`，再通过 Stage Code Audit Report、Root Docs Refresh Gate 和 final closure summary 同步已发生事实；MTP-182 不直接修改下一阶段路线，不创建下一 Project / Issue。 |
 
 ## Stage Code Audit handoff checklist
@@ -144,5 +144,5 @@ Parent Codex 输出最终 Stage Code Audit Report 时必须检查：
 - Issue / PR evidence：PR #283 至 #302 和 MTP-182 PR。
 - Validation：每个 PR 的 GitHub required check `checks`，以及最终本地 `bash checks/run.sh`。
 - Boundary Audit：architecture-graph-aligned terminology、fixed target source layout、dependency direction、MessageBus、Cache、Database、DataClient、DataEngine、adapter capability guard、Strategies、Trader、Account / Portfolio、RiskEngine、ExecutionEngine、ExecutionClient / OMS、broker / real order guard、Workbench read-model-only boundary、Future Live PRO Console split、L4 planning input material、forbidden implementation audit 和 unresolved future gates。
-- Root Docs Delta：检查 `GOAL.md`、`BLUEPRINT.md`、`docs/environment.md`、`docs/architecture.md`、`docs/roadmap.md`。
+- Root Docs Delta：检查 `GOAL.md`、`BLUEPRINT.md`、`environment.md`、`architecture.md`、`docs/roadmap.md`。
 - Residual Notes For Human Planning：L4 仍只能作为 Human + `@001 / PLN` planning input，不授权自动创建或推进 issue。

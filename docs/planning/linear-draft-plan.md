@@ -49,14 +49,15 @@
 | `MTPRO Engine Module Boundary Consolidation v1` | `docs/planning/projects/mtpro-engine-module-boundary-consolidation-v1-plan.md` | 已写入 Linear；`MTP-162` 至 `MTP-182` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
 | `MTPRO Target Module Physical Layout / Source Migration v1` | `docs/planning/projects/mtpro-target-module-physical-layout-source-migration-v1-plan.md` | 已写入 Linear；`MTP-183` 至 `MTP-190` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。Historical first executable issue candidate：`Define target module physical layout and SwiftPM migration contract`。 |
 | `MTPRO Trader-Owned Strategies Layout Correction v1` | `docs/planning/projects/mtpro-trader-owned-strategies-layout-correction-v1-plan.md` | 已写入 Linear；`MTP-191` 至 `MTP-197` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
-| `MTPRO Trader EMA Strategy Layout Consolidation v1` | `docs/planning/projects/mtpro-trader-ema-strategy-layout-consolidation-v1-plan.md` | 当前 docs-only planning record / non-executable；未写入 Linear；不创建 Linear，不推进 Todo；只规划 active concrete strategy `EMA` 和 canonical active path `Sources/Trader/Strategies/EMA`；不授权 source move、`Package.swift` change、SwiftPM target graph split、Strategy runtime、Trader runtime、ExecutionClient implementation、OMS、broker gateway、Live PRO Console 或 live command。 |
+| `MTPRO Trader EMA Strategy Layout Consolidation v1` | `docs/planning/projects/mtpro-trader-ema-strategy-layout-consolidation-v1-plan.md` | 已写入 Linear；`MTP-198` 至 `MTP-204` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
+| `MTPRO Trader Accounts / Coordination Compatibility Consolidation v1` | `docs/planning/projects/mtpro-trader-accounts-coordination-compatibility-consolidation-v1-plan.md` | 当前 docs-only planning record / non-executable；未写入 Linear；不创建 Linear，不推进 Todo；只规划补齐 `Sources/Trader/Accounts` account context boundary、收口 active `StrategyBindings` wording、清理 stale `Package.swift` `Sources/Strategies` compatibility excludes 和 Trader container completeness validation；不授权 Trader runtime、real account read、ExecutionClient implementation、OMS、broker gateway、SwiftPM target graph split 或 L4 implementation。 |
 
 ## 当前 Project planning record
 
-- Project：`MTPRO Trader EMA Strategy Layout Consolidation v1`，仅为 Trader-owned EMA-only strategy layout consolidation docs-only planning candidate。
-- Canonical record：`docs/planning/projects/mtpro-trader-ema-strategy-layout-consolidation-v1-plan.md`。
-- 当前状态：未写入 Linear；不创建 Linear Project / Issue，不推进 Todo，不启动 `@002 / PAR`、Symphony 或 Graphify，不授权 source move、`Package.swift` change、SwiftPM target graph split、business code 或 L4 implementation。当前 active concrete strategy only：`EMA`；当前 canonical active strategy path only：`Sources/Trader/Strategies/EMA`；`RSI` / `OrderBookImbalance` / `Momentum` / `MeanReversion` 只能作为 future candidates；`StrategyBindings` 不再作为 Trader 下一级策略目录，binding / adapter 语义应归入 `Trader/Coordination`。后续必须由 Human 确认是否写入 Linear，并由 Parent Codex queue preflight 验证 WIP=1、依赖、active conflict、execution contract、EMA-only source scope 和 validation requirements 后才可推进唯一 eligible issue。
-- First executable issue candidate：`Define EMA-only Trader strategy layout contract`，仅为 candidate，不授权执行。
+- Project：`MTPRO Trader Accounts / Coordination Compatibility Consolidation v1`，仅为 Trader container compatibility consolidation docs-only planning candidate。
+- Canonical record：`docs/planning/projects/mtpro-trader-accounts-coordination-compatibility-consolidation-v1-plan.md`。
+- 当前状态：未写入 Linear；不创建 Linear Project / Issue，不推进 Todo，不启动 `@002 / PAR`、Symphony 或 Graphify，不授权 production source move、`Package.swift` change、SwiftPM target graph split、business code 或 L4 implementation。当前 planning 目标是补齐 `Trader = Accounts + Strategies/EMA + Coordination` 的 source / docs / validation compatibility：`Sources/Trader/Accounts/` 作为 account context boundary，`Sources/Trader/Strategies/EMA/` 继续作为唯一 active strategy，`Sources/Trader/Coordination/RiskBinding/` 继续作为 binding location，旧 `Sources/Trader/StrategyBindings` 与 `Sources/Strategies` 不再作为 active layout。后续必须由 Human 确认是否写入 Linear，并由 Parent Codex queue preflight 验证 WIP=1、依赖、active conflict、execution contract、Trader container source scope 和 validation requirements 后才可推进唯一 eligible issue。
+- First executable issue candidate：`Define Trader Accounts / Coordination compatibility contract`，仅为 candidate，不授权执行。
 - WIP=1：所有候选 issue 写入 Linear 后必须初始保持 `Backlog / non-executable`。
 
 ## Project Planning Record 命名规则
@@ -136,8 +137,8 @@ Linear Project status Completed
 Root Docs Refresh Gate 只同步已发生事实：
 
 - `GOAL.md`：目标、用户、成功标准或安全边界事实变化。
-- `docs/environment.md`：工具、运行方式、Graphify、Symphony、GitHub、Linear、本地依赖或 CI 环境事实变化。
-- `docs/architecture.md`：已稳定落地的功能模块、边界、依赖方向和数据流。
+- `environment.md`：工具、运行方式、Graphify、Symphony、GitHub、Linear、本地依赖或 CI 环境事实变化。
+- `architecture.md`：已稳定落地的功能模块、边界、依赖方向和数据流。
 - `docs/roadmap.md`：阶段状态、已完成 Project 和下一阶段 planning input；不授权执行。
 
 `@002 / PAR` 可以开 factual refresh PR。下一阶段方向、目标、架构路线和优先级必须由 Human + `@001 / PLN` 决定。

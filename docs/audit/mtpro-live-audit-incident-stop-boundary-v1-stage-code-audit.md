@@ -112,8 +112,8 @@ Project 末端合并点为 `MTP-95` PR #184，merge commit 为 `fab605c24c9eb2a1
 | --- | --- |
 | `GOAL.md` | updated：Final Product Goal Progress 更新为 `9 / 9 (100%)`，并明确 Slice #9 只完成 contract、future gates、blocked evidence 和 read-model-only evidence surface，不代表真实 audit trail runtime、incident replay runtime、emergency stop、shutdown、restore、production operations、Live PRO Console、live command 或 trading button。 |
 | `BLUEPRINT.md` | updated：Final Product Goal Slice #9 标记为 `Complete / contract + blocked evidence`，Current / Future Boundary 更新最近完成 Project 和 `9 / 9 (100%)` 事实；Future gated runtime / command 能力仍保持禁止。 |
-| `docs/environment.md` | no update needed：本 Project 未新增 required validation 入口、secret 读取、broker credential、外部写能力、signed endpoint、account endpoint、listenKey、真实账户读取或网络必需验证；统一验证入口仍是 `bash checks/run.sh`。 |
-| `docs/architecture.md` | updated：Evidence Read Model Layer、Module Boundary Contracts 和 Capability Flow Map 已补充 `LiveIncidentStop` / `LiveIncidentStopBlockedEvidence` read-model-only 边界。 |
+| `environment.md` | no update needed：本 Project 未新增 required validation 入口、secret 读取、broker credential、外部写能力、signed endpoint、account endpoint、listenKey、真实账户读取或网络必需验证；统一验证入口仍是 `bash checks/run.sh`。 |
+| `architecture.md` | updated：Evidence Read Model Layer、Module Boundary Contracts 和 Capability Flow Map 已补充 `LiveIncidentStop` / `LiveIncidentStopBlockedEvidence` read-model-only 边界。 |
 | `docs/roadmap.md` | updated：Completed Project Map 增加 `MTPRO Live Risk Gate Contract v1` 和 `MTPRO Live Audit Incident Stop Boundary v1`，Project Closure Count 更新为 `12 / 12 (100%)`，Final Product Goal Progress 更新为 `9 / 9 (100%)`。 |
 | `docs/validation/latest-verification-summary.md` | updated：当前基线、Stage Code Audit Report 引用和 Goal / Roadmap Progress Baseline 已同步 Root Docs Refresh Gate closure。 |
 | `checks/automation-readiness.sh` | updated：progress anchor 更新为 `9 / 9 (100%)`，并新增本报告 Root Docs Refresh Gate closure anchor。 |

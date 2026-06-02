@@ -11862,7 +11862,7 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(boundary.sourceDocumentAnchors, [
             "GOAL.md",
             "BLUEPRINT.md",
-            "docs/architecture.md",
+            "architecture.md",
             "docs/roadmap.md",
             "docs/domain/context.md",
             "docs/planning/projects/mtpro-data-catalog-scenario-replay-v1-plan.md",
@@ -11994,7 +11994,7 @@ final class CoreTests: XCTestCase {
         // 职责只能表达 source docs / validation evidence，不得升级为生产数据平台、真实网络下载或 live command。
         let boundary = DataCatalogScenarioReplayBoundary.deterministicFixture
 
-        XCTAssertTrue(boundary.sourceDocumentAnchors.contains("docs/architecture.md"))
+        XCTAssertTrue(boundary.sourceDocumentAnchors.contains("architecture.md"))
         XCTAssertTrue(boundary.sourceDocumentAnchors.contains("docs/roadmap.md"))
         XCTAssertTrue(
             boundary.sourceDocumentAnchors.contains(
@@ -12073,7 +12073,7 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(boundary.sourceDocumentAnchors, [
             "GOAL.md",
             "BLUEPRINT.md",
-            "docs/architecture.md",
+            "architecture.md",
             "docs/roadmap.md",
             "docs/domain/context.md",
             "docs/product/mtpro-core-engine-architecture-module-maturity-map-v1.md",
@@ -12244,7 +12244,7 @@ final class CoreTests: XCTestCase {
         // 连接为 L2 terminology handoff，同时保持 deterministic simulation 和 read-model-only 边界。
         let boundary = SimulatedExchangeBacktestParityBoundary.deterministicFixture
 
-        XCTAssertTrue(boundary.sourceDocumentAnchors.contains("docs/architecture.md"))
+        XCTAssertTrue(boundary.sourceDocumentAnchors.contains("architecture.md"))
         XCTAssertTrue(boundary.sourceDocumentAnchors.contains("docs/roadmap.md"))
         XCTAssertTrue(
             boundary.sourceDocumentAnchors.contains(

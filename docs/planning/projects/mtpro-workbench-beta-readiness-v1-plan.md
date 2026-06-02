@@ -48,7 +48,7 @@
 - `GOAL.md`
 - `BLUEPRINT.md`
 - `docs/roadmap.md`
-- `docs/architecture.md`
+- `architecture.md`
 - `docs/product/mtpro-core-engine-architecture-module-maturity-map-v1.md`
 - `docs/design/mtpro-workbench-user-facing-dashboard-high-fidelity-v3.md`
 - `docs/product/mtpro-paper-trading-runtime-foundation-blueprint-v1.md`

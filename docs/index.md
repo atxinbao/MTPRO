@@ -20,8 +20,8 @@
 | 2 | `AGENTS.md` | Agent / Codex 工作边界、Linear execution contract 和 PR handoff 规则 |
 | 3 | `GOAL.md` | Project Charter：为什么建、服务谁、永久硬边界和成功标准 |
 | 4 | `BLUEPRINT.md` | canonical Root / Complete Blueprint，定义最终产品 / 系统 / 设计蓝图和 Future gates |
-| 5 | `docs/environment.md` | 本地环境、验证入口和外部系统禁区 |
-| 6 | `docs/architecture.md` | Engineering Module Map / 工程模块地图、依赖方向和 evidence data flow |
+| 5 | `environment.md` | 本地环境、验证入口和外部系统禁区 |
+| 6 | `architecture.md` | Engineering Module Map / 工程模块地图、依赖方向和 evidence data flow |
 | 7 | `docs/roadmap.md` | Construction Plan、已完成阶段和下一轮 planning handoff |
 | 8 | `docs/domain/context.md` | MTPRO shared language、domain terms 和 forbidden terms |
 | 9 | `docs/validation/latest-verification-summary.md` | 最近验证摘要和当前边界轻量入口 |
