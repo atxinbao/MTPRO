@@ -6153,3 +6153,44 @@ MTP-204 必须建立的主要 anchors：
 - 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、Live PRO Console、trading button、live command 或 order form。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-205 Trader Accounts / Coordination Compatibility Contract Validation
+
+MTP-205 必须运行：
+
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-205 的验收要求：
+
+- `docs/contracts/trader-accounts-coordination-compatibility-contract.md` 必须存在，并定义 `Trader = Accounts + Strategies/EMA + Coordination`。
+- `docs/planning/projects/mtpro-trader-accounts-coordination-compatibility-consolidation-v1-plan.md` 必须存在，并记录 MTP-205 至 MTP-211 canonical issue order、dependencies、WIP=1 和 non-executable boundary。
+- `Trader/Accounts` 必须只表达 account identity、source identity 和 future real account gate，不拥有 cash、positions、PnL、margin、leverage、real account payload、account endpoint payload、listenKey state 或 private stream runtime state。
+- 当前 active concrete strategy 必须 only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/`。
+- `RiskBinding` 必须固定在 `Sources/Trader/Coordination/RiskBinding/`，只作为 local coordination adapter contract。
+- `Sources/Trader/StrategyBindings/` 和 `Sources/Strategies/` 必须退休 active source path 语义，只能作为 historical / compatibility / superseded / migration-source context。
+- MTP-205 不得移动 production source，不得修改 `Package.swift`，不得新增 SwiftPM target、product 或 dependency，不得做 target graph split。
+- Docs / automation readiness / validation matrix / latest verification summary 必须包含 MTP-205 anchors。
+
+MTP-205 必须建立的主要 anchors：
+
+- `MTP-205-TRADER-ACCOUNTS-COORDINATION-COMPATIBILITY-CONTRACT`
+- `MTP-205-TRADER-CONTAINER-AUTHORITATIVE-RELATIONSHIP`
+- `MTP-205-TRADER-ACCOUNTS-IDENTITY-SOURCE-FUTURE-GATE`
+- `MTP-205-EMA-ONLY-STRATEGY-CURRENT-ACTIVE-GUARD`
+- `MTP-205-RISKBINDING-COORDINATION-BOUNDARY`
+- `MTP-205-STRATEGYBINDINGS-SOURCES-STRATEGIES-RETIRED-ACTIVE-PATHS`
+- `MTP-205-PACKAGE-COMPATIBILITY-ENVELOPE-CLEANUP-ENTRY`
+- `MTP-205-FORBIDDEN-CAPABILITY-TAXONOMY`
+- `MTP-205-TRADER-ACCOUNTS-COORDINATION-COMPATIBILITY-VALIDATION`
+
+## MTP-205 禁止
+
+- 不移动 production source，不写 Swift business code。
+- 不修改 `Package.swift`；Package cleanup 只能由后续唯一 executable `MTP-209` 授权。
+- 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- 不实现 Strategy runtime、strategy scheduler、live quoter、live hedger、Trader runtime、live coordinator、broker gateway、ExecutionClient gateway、OMS gateway、account session runtime、broker position sync、signed endpoint、account endpoint、listenKey、private stream runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form、short command、margin command 或 futures command。
+- 不把 `Sources/Trader/StrategyBindings/` 或 `Sources/Strategies/` 写回 current active source path。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
