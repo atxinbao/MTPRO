@@ -33,6 +33,7 @@ let package = Package(
                 "Core",
                 "DomainModel",
                 "MessageBus",
+                "Trader/Accounts",
                 "Trader/Strategies/EMA",
                 "Trader/Coordination/RiskBinding",
                 "Portfolio",

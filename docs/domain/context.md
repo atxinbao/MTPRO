@@ -391,6 +391,26 @@ MTP-205 forbidden capability taxonomy 固定 no Strategy runtime、no Trader run
 
 MTP-205 validation 只证明 Trader Accounts / Coordination compatibility anchors 已落仓，并且本地 deterministic validation 通过；不证明任何 runtime、live broker path、account endpoint 或 command-capable UI 已实现。
 
+`MTP-206-TRADER-ACCOUNTS-SOURCE-BOUNDARY`
+
+`Trader Accounts source boundary` 指 `Sources/Trader/Accounts/` 下的 account context source root。MTP-206 后该目录只承载 `TraderAccountContext` 这类 identity / source / gate evidence，不表示 account runtime、account snapshot runtime、Trader runtime 或 Live runtime 已实现。
+
+`MTP-206-ACCOUNT-IDENTITY-SOURCE-FUTURE-GATE`
+
+`TraderAccountContext` 的 account identity、source identity、source kind 和 future real account gate 都是本地合同字段。future real account gate 当前只表示 unavailable / Human planning required，不授权真实 account read、signed endpoint、account endpoint、listenKey、private WebSocket runtime、ExecutionClient、OMS 或 broker gateway。
+
+`MTP-206-NO-FINANCIAL-STATE-OWNERSHIP`
+
+Trader/Accounts 不拥有 cash、positions、PnL、margin、leverage、buying power、broker position、broker account state 或 broker payload。Portfolio 继续负责 financial state；RiskEngine 和 ExecutionEngine 只能通过本地 evidence / read-model context 参与协调。
+
+`MTP-206-NO-ENDPOINT-LISTENKEY-BROKER-RUNTIME`
+
+MTP-206 禁止把 signed endpoint、account endpoint、listenKey、private WebSocket runtime、account snapshot runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker gateway、live command 或 order form 放入 Trader account context。
+
+`MTP-206-TRADER-ACCOUNTS-BOUNDARY-VALIDATION`
+
+MTP-206 validation 只证明 Accounts source boundary、Core compatibility envelope source root、focused XCTest 和 forbidden bypass guard 已落仓；不证明任何真实账户读取、runtime、broker path 或 command-capable UI 已实现。
+
 `MTP-172-TRADER-COORDINATION-BOUNDARY-CONTRACT`
 
 MTP-172 固定 `Sources/Trader/` 为 strategy / account / risk / execution context 的 coordination boundary。Trader 可以协调 Strategies、Portfolio、RiskEngine 和 ExecutionEngine 的本地 evidence / read-model inputs；Trader 不等于 live coordinator、OMS、broker gateway、ExecutionClient client wrapper、real account service、portfolio ledger 或 executable order command surface。

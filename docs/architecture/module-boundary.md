@@ -826,6 +826,32 @@ MTP-205 禁止 Strategy runtime、Trader runtime、Live runtime、live coordinat
 
 MTP-205 validation 必须证明 Trader Accounts / Coordination compatibility contract、planning record、module-boundary docs、domain context、validation plan、validation matrix、latest verification summary、automation readiness doc 和 `checks/automation-readiness.sh` 均包含 MTP-205 anchors，并且 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh` 通过。
 
+## MTP-206 Trader Accounts Source Boundary
+
+`MTP-206-TRADER-ACCOUNTS-SOURCE-BOUNDARY`
+
+MTP-206 将 `Sources/Trader/Accounts/` 落成当前 Trader container 的 account context source boundary，并通过 `TraderAccountContext` 固定 account identity、source identity、source kind 和 future real account gate。该 source 仍由 `Core` compatibility envelope 编译，不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+
+`MTP-206-ACCOUNT-IDENTITY-SOURCE-FUTURE-GATE`
+
+`TraderAccountContext` 只表达 identity / source / gate。`futureRealAccountGate` 当前只能是 unavailable / requires Human planning 语义，不能授权真实账户读取、signed endpoint、account endpoint、listenKey、private WebSocket runtime、account snapshot runtime、broker gateway、ExecutionClient 或 OMS。
+
+`MTP-206-NO-FINANCIAL-STATE-OWNERSHIP`
+
+`Sources/Trader/Accounts/` 不拥有 cash、positions、PnL、margin、leverage、buying power、broker position、broker account state、account endpoint payload 或 broker payload。Portfolio 继续作为 financial state 权威边界；RiskEngine 和 ExecutionEngine 只消费本地 proposal / risk / paper / simulated evidence。
+
+`MTP-206-NO-ENDPOINT-LISTENKEY-BROKER-RUNTIME`
+
+`Sources/Trader/Accounts/` 不允许 signed endpoint、account endpoint、listenKey、private WebSocket runtime、account snapshot runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker gateway、live command、trading button 或 order form。
+
+`MTP-206-PORTFOLIO-RISK-EXECUTION-RELATIONSHIP`
+
+Trader/Accounts 与 Portfolio、RiskEngine、ExecutionEngine 的关系只允许 read-model / local evidence / coordination context，不允许 direct ExecutionClient path、broker command path、OMS command path、live command path 或 order form path。
+
+`MTP-206-TRADER-ACCOUNTS-BOUNDARY-VALIDATION`
+
+MTP-206 validation 必须证明 `Sources/Trader/Accounts/TraderAccountContext.swift`、`Package.swift` 的 `"Trader/Accounts"` source root、`Tests/CoreTests/CoreTests.swift` 的 `testMTP206TraderAccountContext...` focused tests、automation readiness、validation plan、validation matrix 和 latest verification summary 均覆盖 Accounts source boundary；并且 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh` 通过。
+
 ## MTP-173 Account / Portfolio Read-model Boundary
 
 `MTP-173-ACCOUNT-PORTFOLIO-READMODEL-BOUNDARY-CONTRACT`

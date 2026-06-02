@@ -6194,3 +6194,41 @@ MTP-205 必须建立的主要 anchors：
 - 不把 `Sources/Trader/StrategyBindings/` 或 `Sources/Strategies/` 写回 current active source path。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-206 Trader Accounts Source Boundary Validation
+
+MTP-206 必须运行：
+
+- `git diff --check`
+- `swift test --filter CoreTests/testMTP206`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-206 的验收要求：
+
+- `Sources/Trader/Accounts/TraderAccountContext.swift` 必须存在。
+- `Package.swift` 必须把 `"Trader/Accounts"` 纳入 `Core` compatibility envelope source root。
+- 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- `TraderAccountContext` 必须包含 account identity、source identity、source kind 和 future real account gate。
+- `TraderAccountContext` 必须拒绝 cash、positions、PnL、margin、leverage ownership。
+- `TraderAccountContext` 必须拒绝 signed endpoint、account endpoint、listenKey、broker payload、ExecutionClient、OMS、broker gateway、account snapshot runtime、Trader runtime 和 Live runtime bypass。
+- Docs / automation readiness / validation matrix / latest verification summary 必须包含 MTP-206 anchors。
+
+MTP-206 必须建立的主要 anchors：
+
+- `MTP-206-TRADER-ACCOUNTS-SOURCE-BOUNDARY`
+- `MTP-206-ACCOUNT-IDENTITY-SOURCE-FUTURE-GATE`
+- `MTP-206-NO-FINANCIAL-STATE-OWNERSHIP`
+- `MTP-206-NO-ENDPOINT-LISTENKEY-BROKER-RUNTIME`
+- `MTP-206-PORTFOLIO-RISK-EXECUTION-RELATIONSHIP`
+- `MTP-206-TRADER-ACCOUNTS-BOUNDARY-VALIDATION`
+
+## MTP-206 禁止
+
+- 不读取真实账户，不读取 broker/account payload。
+- 不拥有 cash、positions、PnL、margin、leverage、buying power、broker position 或 broker account state。
+- 不接 signed endpoint、account endpoint、listenKey 或 private WebSocket runtime。
+- 不实现 account snapshot runtime、Trader runtime、Strategy runtime、Live runtime、ExecutionClient、OMS、broker gateway、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command 或 order form。
+- 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
