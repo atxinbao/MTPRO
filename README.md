@@ -34,7 +34,7 @@ Agent 进入仓库时按以下顺序读取：
 | `docs/domain/context.md` | Shared Language：领域术语、禁止混用词、paper-only / live-gated 语义 |
 | `docs/automation/agent-engineering-practices.md` | 从 `mattpocock/skills` 吸收的 feedback loop、tracer bullet、diagnose、architecture deepening 方法 |
 | `docs/planning/` | Project Planning Record、角色编号和 Linear 草案规则 |
-| `docs/automation/` | Parent Codex、symphony-issue、Graphify、GitHub PR Automation、Post-Issue Ledger 边界 |
+| `docs/automation/` | Parent Codex、Codex Execution Agent、GitHub PR Automation、Post-Issue Ledger 和 verified operations 边界 |
 | `docs/validation/` | 最近验证摘要、长期验证计划、trading validation matrix |
 | `docs/audit/` | Project 级 Stage Code Audit Reports 和 stage audit inputs |
 | `verification.md` | append-only 完整验证流水账，仅用于审计、追溯和 debug |
@@ -56,7 +56,6 @@ Agent 进入仓库时按以下顺序读取：
 Linear Project / Issues
 -> Parent Codex queue preflight
 -> unique Todo
--> symphony-issue
 -> Codex Execution Agent
 -> GitHub PR Automation
 ```
@@ -98,7 +97,7 @@ MTPRO 采用 AEP 编号方法论：
 2. Construction Plan / Linear Draft
 3. Linear execution contract
 4. Parent Codex project supervision
-5. symphony-issue single issue execution
+5. Codex Execution Agent single issue execution
 6. GitHub PR Automation
 7. Stage Code Audit
 8. Root Docs Refresh / Current Phase Progress Bar

@@ -2,7 +2,7 @@
 
 本文档是 Construction Plan / 施工路线。它是 `BLUEPRINT.md` 的二级权重承接文档，根据蓝图和工程模块定义施工顺序、进度和下一阶段 handoff。
 
-ROADMAP 只定义阶段地图，不授权执行。正式执行必须来自 Linear live-read 中唯一 configured executable issue，并通过 Parent Codex queue preflight、symphony-issue 和 GitHub PR Automation。
+ROADMAP 只定义阶段地图，不授权执行。正式执行必须来自 Linear live-read 中唯一 configured executable issue，并通过 Parent Codex queue preflight、Codex Execution Agent 和 GitHub PR Automation。
 
 完整产品终局和 Future Construction Zones / 未来建设区见 `BLUEPRINT.md`；工程模块细节见 `docs/architecture.md`。
 
@@ -241,7 +241,7 @@ Project closure 后，`docs/roadmap.md` 只更新这些事实：
 
 - `docs/roadmap.md` 不创建 Linear Project / Issue。
 - `docs/roadmap.md` 不修改 Linear status。
-- `docs/roadmap.md` 不启动 symphony-issue。
-- `docs/roadmap.md` 不运行 Graphify update。
+- `docs/roadmap.md` 不启动额外调度服务。
+- `docs/roadmap.md` 不运行图谱更新服务。
 - `docs/roadmap.md` 不解锁下一个 issue。
 - `docs/roadmap.md` 不授权任何 Agent 直接把 issue 改为 `Todo`。

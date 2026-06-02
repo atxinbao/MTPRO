@@ -24,7 +24,7 @@ Linear Project queue preview
 
 它不是业务实现 Agent，不替代 Human 阶段决策，不直接 merge PR。
 
-当前 @002 / PAR supervision 不依赖 Symphony。Issue execution 可以由 Parent Codex host-side 执行到 PR / check / merge / Linear Done / ledger gate；任何历史 `symphony-issue` 术语只作为过去流程证据保留，不授权启动、调用、恢复或依赖 Symphony。
+当前 @002 / PAR supervision 不依赖额外调度服务。Issue execution 可以由 Parent Codex host-side 执行到 PR / check / merge / Linear Done / ledger gate；任何历史 `symphony-issue` 术语只作为过去流程证据保留，不授权启动、调用、恢复或依赖 Symphony。
 
 ## Role Alias Rule
 
@@ -70,7 +70,7 @@ MTPRO 支持 AEP 三位数字编号和三字母角色代号。数字编号与三
 - `@002 Startup Runbook` 不创建 Linear Project。
 - `@002 Startup Runbook` 不创建 Linear issue。
 - `@002 Startup Runbook` 不修改 issue body，除非任务另行明确授权。
-- `@002 Startup Runbook` 不启动额外调度服务，不依赖 Symphony。
+- `@002 Startup Runbook` 不启动或依赖额外调度服务。
 - `@002 Startup Runbook` 不写代码。
 - `@002 Startup Runbook` 不创建 PR。
 - `@002 Startup Runbook` 不运行 Graphify。

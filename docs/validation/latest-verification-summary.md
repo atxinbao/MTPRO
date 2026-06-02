@@ -8,7 +8,7 @@
 
 本文档是 MTPRO 最近验证和当前边界的轻量入口。
 
-Agent / Graphify 默认读取本文档，不默认读取完整 `verification.md`。本文档不替代 PR evidence、Linear evidence、Stage Code Audit Report 或完整验证历史。
+Agent / Parent Codex 默认读取本文档，不默认读取完整 `verification.md`。本文档不替代 PR evidence、Linear evidence、Stage Code Audit Report 或完整验证历史。
 
 完整 `verification.md` 只用于审计、追溯和 debug。
 
@@ -1364,4 +1364,4 @@ MTP-199-ROOT-DOCS-NON-EMA-ACTIVE-ANCHOR-CLEANUP 的本地验证已通过：`git 
 
 Next Handoff：Human + `@001 / PLN`
 
-下一阶段方向、目标、架构路线和优先级仍由 Human + `@001 / PLN` 决定。本文档不创建 Linear Project / Issue，不修改 Linear status，不推进 `Todo`，不启动 Symphony。
+下一阶段方向、目标、架构路线和优先级仍由 Human + `@001 / PLN` 决定。本文档不创建 Linear Project / Issue，不修改 Linear status，不推进 `Todo`，不启动额外调度服务。

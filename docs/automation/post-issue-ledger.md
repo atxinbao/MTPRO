@@ -21,7 +21,7 @@ GitHub PR Automation merge
 
 ## 当前 hook
 
-当前 Post-Issue Ledger 不依赖 Symphony，不使用 `before_remove` hook，不运行 Graphify。Parent Codex 在 host-side gate 里读取 PR/check/merge/root fast-forward/Linear Done evidence 后，可以写入 `.codex/post-issue-ledger/latest.json` 或对应 issue ledger 摘要；该摘要保持 read-only advisory，不进入 PR。
+当前 Post-Issue Ledger 不依赖额外调度或图谱服务，不使用 `before_remove` hook。Parent Codex 在 host-side gate 里读取 PR/check/merge/root fast-forward/Linear Done evidence 后，可以写入 `.codex/post-issue-ledger/latest.json` 或对应 issue ledger 摘要；该摘要保持 read-only advisory，不进入 PR。
 
 如果网络、GitHub、Linear 或持久仓库不可用，ledger 将失败或跳过原因写入结构化摘要，不阻塞已经完成的 PR / Linear Done 结果。
 
@@ -88,8 +88,8 @@ Post-Issue Ledger 做四件事：
 - 不创建 Linear issue。
 - 不修改 `docs/roadmap.md`。
 - 不修改业务代码。
-- 不启动 Symphony，不依赖 Symphony。
-- 不运行 Graphify。
+- 不启动或依赖额外调度服务。
+- 不运行图谱更新服务。
 - 不决定下一阶段目标。
 
 ## 和 Parent Codex 的关系
