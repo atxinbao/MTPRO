@@ -761,6 +761,12 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | --- | --- | --- |
 | `MTP-205` | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 新增 Trader Accounts / Coordination compatibility contract：`Trader = Accounts + Strategies/EMA + Coordination` 是 MTP-205 后 current active relationship；`Sources/Trader/Accounts/` 只表达 account identity、source identity 和 future real account gate，不拥有 cash、positions、PnL、margin、leverage、real account payload、account endpoint payload、listenKey state 或 private stream runtime state；当前 active concrete strategy only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/`；`Sources/Trader/Coordination/RiskBinding/` 只作为 local coordination adapter contract；`Sources/Trader/StrategyBindings/` 和 `Sources/Strategies/` 不再是 current active source path。MTP-205 只更新 contract / docs / validation / automation readiness anchors，不移动 production source，不修改 `Package.swift`，不新增 SwiftPM target、product 或 dependency，不拆 target graph，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command 或 order form。 |
 
+## MTP-206 issue backfill
+
+| Issue | Matrix ID | 回填说明 |
+| --- | --- | --- |
+| `MTP-206` | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 新增 Trader Accounts source boundary：`Sources/Trader/Accounts/TraderAccountContext.swift` 以 `TraderAccountContext` 固定 account identity、source identity、source kind、future real account gate 和 Portfolio / RiskEngine / ExecutionEngine relationship evidence；`Package.swift` 将 `"Trader/Accounts"` 纳入 `Core` compatibility envelope source root，但不新增 SwiftPM target、product 或 dependency，不拆 target graph。Focused XCTest 覆盖 `testMTP206TraderAccountContextDefinesIdentitySourceAndFutureGateBoundary`、`testMTP206TraderAccountContextRejectsFinancialEndpointBrokerAndRuntimeBypass` 和 `testMTP206TraderAccountContextPathAndPackageCompatibilityEnvelopeArePresent`，验证 account context 不拥有 cash、positions、PnL、margin、leverage，不读取 broker/account payload，不接 signed endpoint、account endpoint、listenKey，不实现 private WebSocket runtime、account snapshot runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker gateway、Live PRO Console、trading button、live command 或 order form。 |
+
 ## MTP-190 Target Module Source Migration 阶段收口
 
 日期：2026-06-01

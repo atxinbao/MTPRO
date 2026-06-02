@@ -8309,6 +8309,140 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(decoded, evidence)
     }
 
+    func testMTP206TraderAccountContextDefinesIdentitySourceAndFutureGateBoundary() throws {
+        // 测试场景：MTP-206 新增 Trader/Accounts source boundary，只能表达 account identity、
+        // source identity 和 future real account gate，不能拥有 Portfolio financial state 或 runtime 能力。
+        let context = TraderAccountContext.deterministicFixture
+
+        XCTAssertEqual(context.contextID, try Identifier("mtp-206-trader-account-context"))
+        XCTAssertEqual(context.accountIdentity, try Identifier("paper-account:mtp-206"))
+        XCTAssertEqual(context.sourceIdentity, "fixture:trader-account-context:mtp-206")
+        XCTAssertEqual(context.sourceKind, .fixture)
+        XCTAssertEqual(context.futureRealAccountGate, .unavailableRequiresHumanPlanning)
+        XCTAssertFalse(context.futureRealAccountGate.authorizesRealAccountRead)
+        XCTAssertEqual(context.validationAnchors, TraderAccountContext.requiredValidationAnchors)
+        XCTAssertTrue(context.identitySourceFutureGateBoundaryHeld)
+        XCTAssertTrue(context.noFinancialStateOwnership)
+        XCTAssertTrue(context.noEndpointBrokerRuntimeBoundaryHeld)
+        XCTAssertTrue(context.coordinationRelationshipBoundaryHeld)
+        XCTAssertTrue(context.accountContextBoundaryHeld)
+        XCTAssertFalse(context.ownsCash)
+        XCTAssertFalse(context.ownsPositions)
+        XCTAssertFalse(context.ownsPnL)
+        XCTAssertFalse(context.ownsMargin)
+        XCTAssertFalse(context.ownsLeverage)
+        XCTAssertFalse(context.readsBrokerAccountPayload)
+        XCTAssertFalse(context.callsSignedEndpoint)
+        XCTAssertFalse(context.callsAccountEndpoint)
+        XCTAssertFalse(context.createsListenKey)
+        XCTAssertFalse(context.startsPrivateWebSocketRuntime)
+        XCTAssertFalse(context.implementsAccountSnapshotRuntime)
+        XCTAssertFalse(context.implementsTraderRuntime)
+        XCTAssertFalse(context.implementsLiveRuntime)
+        XCTAssertFalse(context.usesExecutionClient)
+        XCTAssertFalse(context.usesOMS)
+        XCTAssertFalse(context.connectsBrokerGateway)
+
+        let encoded = try JSONEncoder().encode(context)
+        let decoded = try JSONDecoder().decode(TraderAccountContext.self, from: encoded)
+        XCTAssertEqual(decoded, context)
+        XCTAssertTrue(decoded.accountContextBoundaryHeld)
+    }
+
+    func testMTP206TraderAccountContextRejectsFinancialEndpointBrokerAndRuntimeBypass() throws {
+        // 测试场景：MTP-206 的 account context 初始化和 Codable 解码都必须拒绝资金、
+        // 持仓、account endpoint、listenKey、ExecutionClient、OMS、broker gateway 和 runtime bypass。
+        XCTAssertThrowsError(
+            try TraderAccountContext(
+                contextID: try Identifier("invalid-account-context"),
+                accountIdentity: try Identifier("paper-account:invalid"),
+                sourceIdentity: "fixture:trader-account-context:invalid",
+                sourceKind: .paper,
+                portfolioRelationship: "Portfolio read model remains authoritative for financial state",
+                riskEngineRelationship: "RiskEngine consumes account context only as local risk evidence",
+                executionEngineRelationship: "ExecutionEngine remains paper or simulated boundary evidence",
+                ownsCash: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .traderAccountContextForbiddenCapability("traderAccountContext.ownsCash")
+            )
+        }
+        XCTAssertThrowsError(
+            try TraderAccountContext(
+                contextID: try Identifier("invalid-account-context"),
+                accountIdentity: try Identifier("paper-account:invalid"),
+                sourceIdentity: "account-endpoint:/api/v3/account",
+                sourceKind: .futureRealAccountGate,
+                portfolioRelationship: "Portfolio read model remains authoritative for financial state",
+                riskEngineRelationship: "RiskEngine consumes account context only as local risk evidence",
+                executionEngineRelationship: "ExecutionEngine remains paper or simulated boundary evidence"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .traderAccountContextForbiddenCapability("traderAccountContext.sourceIdentity.accountendpoint")
+            )
+        }
+        XCTAssertThrowsError(
+            try TraderAccountContext(
+                contextID: try Identifier("invalid-account-context"),
+                accountIdentity: try Identifier("paper-account:invalid"),
+                sourceIdentity: "fixture:trader-account-context:invalid",
+                sourceKind: .simulated,
+                portfolioRelationship: "Portfolio read model remains authoritative for financial state",
+                riskEngineRelationship: "RiskEngine consumes account context only as local risk evidence",
+                executionEngineRelationship: "ExecutionEngine remains paper or simulated boundary evidence",
+                usesExecutionClient: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .traderAccountContextForbiddenCapability("traderAccountContext.usesExecutionClient")
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(TraderAccountContext.deterministicFixture)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["connectsBrokerGateway"] = true
+        let brokerBypassData = try JSONSerialization.data(withJSONObject: object)
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(TraderAccountContext.self, from: brokerBypassData)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .traderAccountContextForbiddenCapability("traderAccountContext.connectsBrokerGateway")
+            )
+        }
+    }
+
+    func testMTP206TraderAccountContextPathAndPackageCompatibilityEnvelopeArePresent() throws {
+        // 测试场景：MTP-206 必须让 `Sources/Trader/Accounts/` 成为 Core compatibility envelope
+        // 下的编译 source root，但不能新增 SwiftPM target、product 或 dependency。
+        let fileManager = FileManager.default
+        let repositoryRoot = URL(fileURLWithPath: fileManager.currentDirectoryPath, isDirectory: true)
+        XCTAssertTrue(
+            fileManager.fileExists(
+                atPath: repositoryRoot
+                    .appendingPathComponent("Sources/Trader/Accounts/TraderAccountContext.swift")
+                    .path
+            )
+        )
+
+        let packageManifest = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        XCTAssertTrue(packageManifest.contains("\"Trader/Accounts\""))
+        XCTAssertTrue(packageManifest.contains("\"Trader/Strategies/EMA\""))
+        XCTAssertTrue(packageManifest.contains("\"Trader/Coordination/RiskBinding\""))
+        XCTAssertFalse(packageManifest.contains(".target(name: \"Trader\""))
+        XCTAssertFalse(packageManifest.contains(".library(name: \"Trader\""))
+        XCTAssertFalse(packageManifest.contains(".target(name: \"Strategies\""))
+        XCTAssertFalse(packageManifest.contains(".library(name: \"Strategies\""))
+    }
+
     func testTraderOwnedStrategyPathValidationCoversCanonicalOldBindingAndExecutionGuards() throws {
         // 测试场景：MTP-201 必须用本地 deterministic validation 直接检查当前仓库路径，
         // 防止旧 peer-level strategy path、non-EMA active strategy path 或 StrategyBindings first-level path 回流。

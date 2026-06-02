@@ -67,6 +67,8 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
     case simulatedExchangeBacktestParityContractMismatch(field: String, expected: String, actual: String)
     case workbenchBetaReadinessForbiddenCapability(String)
     case workbenchBetaReadinessContractMismatch(field: String, expected: String, actual: String)
+    case traderAccountContextForbiddenCapability(String)
+    case traderAccountContextMismatch(field: String, expected: String, actual: String)
     case liveTradingBoundaryForbiddenCapability(String)
     case liveTradingBoundaryContractMismatch(field: String, expected: String, actual: String)
     case liveMonitoringConsoleForbiddenCapability(String)
@@ -200,6 +202,10 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
             "Workbench beta readiness forbids capability: \(field)"
         case let .workbenchBetaReadinessContractMismatch(field, expected, actual):
             "Workbench beta readiness contract mismatch for \(field): expected \(expected), actual \(actual)"
+        case let .traderAccountContextForbiddenCapability(field):
+            "Trader account context forbids capability: \(field)"
+        case let .traderAccountContextMismatch(field, expected, actual):
+            "Trader account context mismatch for \(field): expected \(expected), actual \(actual)"
         case let .liveTradingBoundaryForbiddenCapability(field):
             "Live trading boundary forbids capability: \(field)"
         case let .liveTradingBoundaryContractMismatch(field, expected, actual):
