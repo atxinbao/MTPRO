@@ -5968,3 +5968,39 @@ MTP-198 必须建立的主要 anchors：
 - 不把 StrategyBindings 写成 first-level strategy directory 或未来具体 strategy implementation landing path。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-200 Non-EMA Strategy Anchor Audit Validation
+
+MTP-200 必须运行：
+
+- `git diff --check`
+- `bash checks/run.sh`
+
+MTP-200 的验收要求：
+
+- `docs/audit/inputs/mtpro-trader-ema-strategy-layout-consolidation-v1-mtp-200-non-ema-anchor-audit.md` 必须枚举 `OrderBookImbalance`、`RSI`、`Momentum`、`MeanReversion` 和 `StrategyBindings` 在 `Sources`、`Tests`、`Package.swift` 和 validation anchors 中的当前状态。
+- Audit 必须明确 `OrderBookImbalance` 仍有 active compiled source placement debt、Package compatibility root、research flow / event / persistence / tests dependency。
+- Audit 必须明确 `RSI`、`Momentum` 和 `MeanReversion` 在 `Sources`、`Tests` 和 `Package.swift` 中没有 exact active anchors。
+- Audit 必须明确 `StrategyBindings` 是 binding / coordination adapter evidence，不是 concrete strategy source root，并作为 MTP-202 输入。
+- PR 前必须确认本 issue 没有移动 `Sources`、没有修改 `Package.swift`、没有写 Swift business code、没有提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+MTP-200 必须建立的主要 anchors：
+
+- `MTP-200-NON-EMA-STRATEGY-ANCHOR-AUDIT`
+- `MTP-200-SOURCE-PACKAGE-CLASSIFICATION`
+- `MTP-200-RUNTIME-TEST-DEPENDENCY-CLASSIFICATION`
+- `MTP-200-VALIDATION-ANCHOR-CLASSIFICATION`
+- `MTP-200-MTP-201-INPUT`
+- `MTP-200-MTP-202-INPUT`
+- `MTP-200-AUDIT-VALIDATION`
+- `MTP-200-NO-SOURCE-MOVE-PACKAGE-RUNTIME-GUARD`
+
+## MTP-200 禁止
+
+- 不移动 source files，不删除 `Sources/Trader/Strategies/OrderBookImbalance/`，不移动 `Sources/Trader/StrategyBindings/`，不修改 `Package.swift` source roots。
+- 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- 不实现 Strategy runtime、strategy scheduler、live quoter、live hedger、Trader runtime、live coordinator、broker gateway、ExecutionClient gateway、OMS gateway、account session runtime、broker position sync、signed endpoint、account endpoint、listenKey、private stream runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form、short command、margin command 或 futures command。
+- 不把 `RSI`、`OrderBookImbalance`、`Momentum` 或 `MeanReversion` 写成 current active concrete strategy。
+- 不把 StrategyBindings 写成 first-level strategy directory 或未来具体 strategy implementation landing path。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
