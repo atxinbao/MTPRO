@@ -67,6 +67,8 @@ flowchart TB
 
 `Trader-Owned Strategies Layout Correction before L4` 已完成 concrete strategy ownership correction：`Sources/Trader/Strategies/<strategy>/` 是 forward-looking canonical path；MTP-198 之后当前 active concrete strategy 只有 EMA，canonical active path 只有 `Sources/Trader/Strategies/EMA/`。OrderBookImbalance 只作为 historical / compatibility source placement evidence 和后续 MTP-200 / MTP-201 debt，不是当前 active strategy；旧 `Sources/Strategies/<strategy>` 只能作为 historical / compatibility / superseded context；`Sources/Trader/StrategyBindings/` 只作为 binding protocol / coordination adapter，不作为具体策略实现落点。该 closure 不代表 Strategy runtime、Trader runtime、ExecutionClient implementation、broker command、OMS、Live PRO Console、trading button、live command 或 SwiftPM target graph split 已实现或获授权。
 
+`Trader EMA Strategy Layout Consolidation before L4` 已完成 EMA-only active concrete strategy layout consolidation：当前 active concrete strategy only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/`；非 EMA strategy 只能作为 future candidate / future-gated label / historical evidence / compatibility debt。OrderBookImbalance 的当前证据收口为 `Sources/Core/Research/OrderBookImbalanceResearchEvidence.swift` historical research evidence，不再作为 active Trader strategy path。`Sources/Trader/Coordination/RiskBinding.swift` 只表达 Trader coordination / binding boundary，不得成为 strategy-to-execution shortcut。该 closure 只证明 layout、validation matrix、compatibility envelope 和 forbidden direct execution audit 已闭环，不代表 Strategy runtime、Trader runtime、ExecutionClient implementation、broker command、OMS、Live PRO Console、trading button、live command 或 SwiftPM target graph split 已实现或获授权。
+
 ## Module Boundary Contracts / 模块边界合同
 
 | 模块 | 职责 |
