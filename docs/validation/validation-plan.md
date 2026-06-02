@@ -6112,3 +6112,44 @@ MTP-203 必须建立的主要 anchors：
 - 不实现 Strategy runtime、Trader runtime、live coordinator、broker gateway、ExecutionClient gateway、OMS gateway、account session runtime、signed endpoint、account endpoint、listenKey、private stream runtime、broker adapter、`LiveExecutionAdapter`、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form、short command、margin command 或 futures command。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-204 Trader EMA Strategy Layout Stage Closeout Validation
+
+MTP-204 必须运行：
+
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-204 的验收要求：
+
+- `docs/audit/inputs/mtpro-trader-ema-strategy-layout-consolidation-v1-stage-audit-input.md` 必须存在，并明确是 stage audit input material，不是最终 Stage Code Audit Report。
+- Stage audit input 必须汇总 MTP-198 至 MTP-203 的 issue / PR / merge commit / required check evidence。
+- Validation matrix 必须覆盖 EMA-only active layout、non-EMA future candidate / historical evidence、OrderBookImbalance Core research evidence、Trader Coordination RiskBinding boundary 和 deterministic path validation。
+- Compatibility envelope 必须明确 `Core` 仍是 compatibility envelope，不表示 SwiftPM target graph split、Strategy runtime 或 Trader runtime 完成。
+- Stage audit input 必须包含 forbidden implementation audit、unresolved future gates、Root Docs Delta input 和 Parent Codex Stage Code Audit handoff checklist。
+- MTP-204 不得输出最终 Stage Code Audit Report，不得设置 Linear Project `Completed`，不得创建下一 Project / Issue，不得推进下一阶段 Todo。
+- Docs / automation readiness / validation matrix / latest verification summary 必须包含 MTP-204 anchors。
+
+MTP-204 必须建立的主要 anchors：
+
+- `MTP-204-TRADER-EMA-LAYOUT-STAGE-CLOSEOUT`
+- `MTP-204-STAGE-AUDIT-INPUT-MATERIAL`
+- `MTP-204-NO-FINAL-STAGE-CODE-AUDIT`
+- `MTP-204-VALIDATION-MATRIX-CLOSEOUT`
+- `MTP-204-COMPATIBILITY-ENVELOPE-CLOSEOUT`
+- `MTP-204-AUTOMATION-READINESS-CLOSEOUT`
+- `MTP-204-FORBIDDEN-IMPLEMENTATION-AUDIT`
+- `MTP-204-UNRESOLVED-FUTURE-GATES`
+- `MTP-204-STAGE-CLOSEOUT-VALIDATION`
+- `MTP-204-NO-GRAPHIFY-FIGMA-NEXT-STAGE-MUTATION`
+
+## MTP-204 禁止
+
+- 不输出最终 Stage Code Audit Report，不设置 Linear Project `Completed`。
+- 不创建下一 Project / Issue，不推进下一阶段 Todo，不启动新的 `@002 / PAR`。
+- 不移动 production source，不新增或删除 concrete strategy implementation。
+- 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、Live PRO Console、trading button、live command 或 order form。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

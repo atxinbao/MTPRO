@@ -339,6 +339,22 @@ MTP-203 的 validation language 将 non-EMA drift 定义为：`Sources/Trader/St
 
 MTP-203 validation-only hardening 只增加 deterministic local checks、docs anchors 和 automation readiness anchors；不移动 production source，不拆 SwiftPM target graph，不实现 Strategy runtime、Trader runtime、ExecutionClient、OMS、broker command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command 或 order form。
 
+`MTP-204-TRADER-EMA-LAYOUT-STAGE-CLOSEOUT`
+
+MTP-204 stage closeout 只表示 `MTPRO Trader EMA Strategy Layout Consolidation v1` 的 validation matrix、automation readiness、compatibility envelope evidence 和 stage audit input material 已被收口。它不表示最终 Stage Code Audit Report 已输出，不表示 Linear Project `Completed` 已设置，不授权下一 Project planning / execution，也不授权 Strategy runtime、Trader runtime、ExecutionClient、OMS、broker command、Live PRO Console、trading button、live command 或 order form。
+
+`MTP-204-STAGE-AUDIT-INPUT-MATERIAL`
+
+MTP-204 stage audit input material 指 `docs/audit/inputs/mtpro-trader-ema-strategy-layout-consolidation-v1-stage-audit-input.md`。该材料只为 Parent Codex 后续 Stage Code Audit Report 提供输入，必须包含 MTP-198 至 MTP-203 issue / PR / merge / checks evidence、EMA-only active layout evidence、non-EMA future candidate / historical evidence、OrderBookImbalance Core research evidence、Trader Coordination RiskBinding boundary、path validation、compatibility envelope closeout、forbidden implementation audit、Root Docs Delta input 和 handoff checklist。
+
+`MTP-204-COMPATIBILITY-ENVELOPE-CLOSEOUT`
+
+`Core` target 在 MTP-204 后仍是 compatibility envelope，而不是完成后的 final module target graph。`Core` 编译 EMA active strategy source、OrderBookImbalance Core research evidence 和 Trader Coordination RiskBinding，只证明当前仓库保持 buildability，不授权 SwiftPM target split、Strategy runtime、Trader runtime 或 live execution capability。
+
+`MTP-204-AUTOMATION-READINESS-CLOSEOUT`
+
+MTP-204 automation readiness closeout 要求 `checks/automation-readiness.sh` 机械检查 stage audit input、module-boundary docs、domain context、validation matrix、validation plan、latest verification summary、automation readiness doc、MTP-198 至 MTP-203 evidence anchors、compatibility envelope closeout 和 no final Stage Code Audit boundary。
+
 `MTP-172-TRADER-COORDINATION-BOUNDARY-CONTRACT`
 
 MTP-172 固定 `Sources/Trader/` 为 strategy / account / risk / execution context 的 coordination boundary。Trader 可以协调 Strategies、Portfolio、RiskEngine 和 ExecutionEngine 的本地 evidence / read-model inputs；Trader 不等于 live coordinator、OMS、broker gateway、ExecutionClient client wrapper、real account service、portfolio ledger 或 executable order command surface。
