@@ -4902,12 +4902,12 @@ MTP-172 的 required validation：
 
 MTP-172 的验收要求：
 
-- `docs/architecture/module-boundary.md` 必须包含 Trader coordination boundary、Accounts / Coordination / StrategyBindings split、strategy / account / risk / execution context coordination、Trader account context identity-only guard、no live coordinator / OMS / broker gateway guard 和 no direct ExecutionClient / broker command path anchors。
+- `docs/architecture/module-boundary.md` 必须包含 Trader coordination boundary、Accounts / Coordination / historical StrategyBindings split、strategy / account / risk / execution context coordination、Trader account context identity-only guard、no live coordinator / OMS / broker gateway guard 和 no direct ExecutionClient / broker command path anchors；MTP-202 / MTP-205 后 current binding location 只能写为 `Trader/Coordination/RiskBinding`。
 - `docs/domain/context.md` 必须包含 MTP-172 Trader shared language anchors。
 - `docs/validation/trading-validation-matrix.md` 必须把 `TVM-ARCHITECTURE-MODULE-BOUNDARY` 扩展到 MTP-172 issue backfill。
 - `docs/automation/automation-readiness.md` 必须新增 Trader coordination boundary anchor。
 - `docs/validation/latest-verification-summary.md` 必须记录 MTP-172 的当前 issue execution evidence。
-- `checks/automation-readiness.sh` 必须机械检查 MTP-172 architecture boundary、domain context、validation plan、validation matrix、latest summary、automation readiness doc、`Sources/Trader/`、`Accounts/`、`Coordination/`、`StrategyBindings/`、strategy / account / risk / execution context、Trader/Accounts identity-only guard、no direct ExecutionClient path、no broker command、no OMS、no order form、no live coordinator 和 no real account / broker position strings。
+- `checks/automation-readiness.sh` 必须机械检查 MTP-172 architecture boundary、domain context、validation plan、validation matrix、latest summary、automation readiness doc、`Sources/Trader/`、`Accounts/`、`Coordination/`、legacy `StrategyBindings` historical/superseded wording、strategy / account / risk / execution context、Trader/Accounts identity-only guard、no direct ExecutionClient path、no broker command、no OMS、no order form、no live coordinator 和 no real account / broker position strings；不得把 `Sources/Trader/StrategyBindings/` 写回 current active source path。
 - PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
 
 MTP-172 必须建立的主要 anchors：
@@ -5538,7 +5538,7 @@ MTP-187 的 required validation：
 MTP-187 的验收要求：
 
 - MTP-187 historical evidence 记录 EMA lifecycle、strategy signal、paper proposal source 和 order-book imbalance research strategy 曾迁入 `Sources/Strategies/EMA/` 与 `Sources/Strategies/OrderBookImbalance/`；MTP-193 后 EMA current active source path 必须是 `Sources/Trader/Strategies/EMA/`，MTP-194 后 OrderBookImbalance placement 只作为 historical / compatibility evidence，MTP-198 后不得写成 current active strategy。
-- `Sources/Trader/StrategyBindings/` 必须包含 proposal-to-risk binding；Trader 仍只表示 coordination evidence，不实现 live coordinator、broker gateway、OMS gateway 或 ExecutionClient gateway。
+- MTP-187 historical evidence 曾记录 proposal-to-risk binding 位于 `Sources/Trader/StrategyBindings/`；MTP-202 / MTP-205 后 current binding location 为 `Sources/Trader/Coordination/RiskBinding/`，Trader 仍只表示 coordination evidence，不实现 live coordinator、broker gateway、OMS gateway 或 ExecutionClient gateway。
 - `Sources/Portfolio/` 必须包含 paper account / portfolio projection、portfolio projection update 和 simulated exchange portfolio projection parity；Portfolio 仍只持有 paper / simulated / read-model financial state。
 - `Package.swift` 必须保留现有 `Core` product / target 名称作为 compatibility envelope，不新增 SwiftPM target、product 或 dependency，不做 target graph split。
 - 旧 `Sources/Core/EMACross.swift`、`Sources/Core/StrategySignals.swift`、`Sources/Core/PaperActionProposal.swift`、`Sources/Core/OrderBookImbalance.swift`、`Sources/Core/PaperActionRiskLink.swift`、`Sources/Core/PaperAccountPortfolioProjectionV2.swift`、`Sources/Core/PaperPortfolioProjectionUpdate.swift` 和 `Sources/Core/SimulatedExchangePortfolioProjectionParity.swift` 不得保留；MTP-193 后 `Sources/Strategies/EMA/` 不得保留 production source，MTP-194 后 `Sources/Strategies/OrderBookImbalance/` 也不得保留 production source。
@@ -5718,8 +5718,8 @@ MTP-192 的验收要求：
 
 - `BLUEPRINT.md`、`docs/planning/projects/mtpro-trader-owned-strategies-layout-correction-v1-plan.md`、`docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/latest-verification-summary.md` 和 `docs/automation/automation-readiness.md` 必须把 forward-looking concrete strategy canonical path 写成 `Sources/Trader/Strategies/<strategy>/`。
 - Root docs 中保留的 `Sources/Strategies/<strategy>`、`Sources/Strategies/EMA/` 和 `Sources/Strategies/OrderBookImbalance/` 必须明确为 historical / compatibility / superseded / migration-source path，不得表达 MTP-191 之后的 canonical future layout。
-- Root docs 必须使用 `Trader = Accounts + Strategies + StrategyBindings + Coordination`。
-- `StrategyBindings` 必须继续被描述为 generic binding protocol / coordination adapter，不得作为 concrete strategy implementation landing path。
+- Root docs 中的 MTP-192-era `Trader = Accounts + Strategies + StrategyBindings + Coordination` 只能作为 historical / superseded wording；MTP-205 后 current authoritative relationship 是 `Trader = Accounts + Strategies/EMA + Coordination`。
+- `StrategyBindings` retained references, if any, 必须描述为 historical / compatibility / superseded evidence；current binding / adapter semantics 必须写为 `Trader/Coordination/RiskBinding`，不得作为 concrete strategy implementation landing path。
 - PR 前必须确认本 issue 没有移动 production source、没有修改 `Package.swift`、没有拆 SwiftPM target graph、没有写业务代码、没有提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
 MTP-192 必须建立的主要 anchors：
@@ -5829,8 +5829,8 @@ MTP-195 必须运行：
 
 MTP-195 的验收要求：
 
-- `Sources/Trader/StrategyBindings/PaperActionRiskLink.swift` 必须明确 `StrategyBindings` 只表达 generic binding protocol / coordination adapter contract。
-- `TraderStrategyBindingsBoundaryEvidence` 必须证明 `Sources/Trader/StrategyBindings/` 不承载 concrete strategy implementation。
+- MTP-195 historical evidence 曾要求 `Sources/Trader/StrategyBindings/PaperActionRiskLink.swift` 明确 `StrategyBindings` 只表达 generic binding protocol / coordination adapter contract；MTP-202 后该 evidence 由 `Sources/Trader/Coordination/RiskBinding/PaperActionRiskLink.swift` 和 `TraderCoordinationRiskBindingBoundaryEvidence` 接管。
+- Current validation 必须证明 `Sources/Trader/StrategyBindings/` 不再作为 active source root 回流，`Sources/Trader/Coordination/RiskBinding/` 不承载 concrete strategy implementation。
 - MTP-201 后 concrete active strategy roots 必须只包含 `Sources/Trader/Strategies/EMA/`；OrderBookImbalance 只保留为 `Sources/Core/Research/OrderBookImbalanceResearchEvidence.swift` historical research evidence。
 - `StrategyBindings` 不得直连 ExecutionClient、broker command、OMS command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command、order form 或 executable order command。
 - `docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-195 mechanical anchors。
@@ -5867,8 +5867,8 @@ MTP-196 的验收要求：
 
 - Validation 必须直接检查 `Sources/Trader/Strategies/EMA/` 当前 active implementation files，并确认 `Sources/Trader/Strategies/OrderBookImbalance/` 已退休、OrderBookImbalance 只作为 Core research evidence 保留。
 - Validation 必须在 `Sources/Strategies/EMA/` 或 `Sources/Strategies/OrderBookImbalance/` 作为当前 implementation directory 回流时失败。
-- Validation 必须检查 `Package.swift` 只使用 `"Trader/Strategies/EMA"` 和 `"Trader/StrategyBindings"` 相关 source roots，不使用旧 `"Strategies/EMA"`、`"Strategies/OrderBookImbalance"` 或 `"Trader/Strategies/OrderBookImbalance"` roots。
-- Validation 必须覆盖 StrategyBindings as non-concrete-strategy landing area。
+- Validation 必须检查 `Package.swift` current source roots 只使用 `"Trader/Strategies/EMA"` 和 `"Trader/Coordination/RiskBinding"` 相关 source roots，不使用旧 `"Strategies/EMA"`、`"Strategies/OrderBookImbalance"`、`"Trader/Strategies/OrderBookImbalance"` 或 `"Trader/StrategyBindings"` roots。
+- Validation 必须覆盖 legacy StrategyBindings references as historical / compatibility / superseded evidence；current non-concrete binding location 是 `Trader/Coordination/RiskBinding`。
 - Validation 必须覆盖 no direct ExecutionClient / broker / OMS / live command path。
 - `docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-196 mechanical anchors。
 - PR 前必须确认 `.codex/*`、`.build/*` 和 `graphify-out/*` 未进入 PR。
@@ -6265,5 +6265,37 @@ MTP-207 必须建立的主要 anchors：
 - 不接 signed endpoint、account endpoint / listenKey，不实现 private WebSocket runtime。
 - 不实现 ExecutionClient、OMS、broker gateway、real order lifecycle、Live PRO Console、trading button、live command 或 order form。
 - 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-208 Root Docs StrategyBindings Wording Retirement Validation
+
+MTP-208 必须运行：
+
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-208 的验收要求：
+
+- Root / high-weight docs 不得把 `StrategyBindings` 写成 current active source path、Trader 下一级策略目录或 concrete strategy implementation landing path。
+- Retained `StrategyBindings` references 必须明确为 historical / compatibility / superseded evidence。
+- Current binding / adapter location 必须写为 `Sources/Trader/Coordination/RiskBinding/`。
+- Current active concrete strategy 必须 only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/`。
+- 不修改 `Package.swift`，不移动 production source，不实现 runtime / live / broker / L4 capability。
+
+MTP-208 必须建立的主要 anchors：
+
+- `MTP-208-STRATEGYBINDINGS-ACTIVE-WORDING-RETIREMENT`
+- `MTP-208-TRADER-COORDINATION-RISKBINDING-CURRENT-LOCATION`
+- `MTP-208-EMA-ONLY-ACTIVE-STRATEGY-DOC-GUARD`
+- `MTP-208-NO-SOURCE-MOVE-PACKAGE-RUNTIME-GUARD`
+- `MTP-208-ROOT-DOCS-WORDING-VALIDATION`
+
+## MTP-208 禁止
+
+- 不移动 production source，不修改 `Package.swift`，不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- 不实现 Trader runtime、Strategy runtime、Live runtime、ExecutionClient、OMS、broker gateway、real order lifecycle、Live PRO Console、trading button、live command 或 order form。
+- 不把 `StrategyBindings` 写成 current active source path、Trader 下一级策略目录、concrete strategy implementation landing path 或 execution shortcut。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

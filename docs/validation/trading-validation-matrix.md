@@ -773,6 +773,12 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | --- | --- | --- |
 | `MTP-207` | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 接入 Trader account context validation wiring：`testMTP207TraderAccountContextValidationAnchorsCoverAccountsEMAAndRiskBinding` 同时验证 `Sources/Trader/Accounts/`、`Sources/Trader/Strategies/EMA/` 和 `Sources/Trader/Coordination/RiskBinding/` 仍在 Core compatibility envelope 中，并排除 `Trader/StrategyBindings` 和 peer-level `Sources/Strategies/EMA` active root 回流；`testMTP207TraderAccountContextValidationRejectsBrokerPayloadListenKeyAndRuntimeDrift` 验证 source identity、relationship text 和 Codable flags 均不能恢复 broker/account payload、listenKey、ExecutionClient、OMS、broker gateway、Trader runtime 或 Live runtime。MTP-207 只接入 deterministic validation evidence，不新增 runtime，不读取真实账户，不接 signed endpoint、account endpoint / listenKey，不拆 SwiftPM target graph。 |
 
+## MTP-208 issue backfill
+
+| Issue | Matrix ID | 回填说明 |
+| --- | --- | --- |
+| `MTP-208` | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 退休 root / high-weight docs 中剩余易误读的 `StrategyBindings` wording：retained `StrategyBindings` references 只能作为 historical / compatibility / superseded evidence，不能表达 current active source path、Trader 下一级策略目录、concrete strategy implementation landing path 或 execution shortcut。Current binding / adapter location 固定为 `Sources/Trader/Coordination/RiskBinding/`，current active concrete strategy only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/`。MTP-208 不移动 production source，不修改 `Package.swift`，不新增 SwiftPM target/product/dependency，不拆 target graph，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker gateway、Live PRO Console、trading button、live command 或 order form。 |
+
 ## MTP-190 Target Module Source Migration 阶段收口
 
 日期：2026-06-01
