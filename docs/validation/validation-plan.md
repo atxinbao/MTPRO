@@ -6022,7 +6022,7 @@ MTP-201 的验收要求：
 - `Sources/Trader/Strategies/OrderBookImbalance/` 必须不存在。
 - `Package.swift` 必须不包含 `"Trader/Strategies/OrderBookImbalance"` 或 `"Strategies/OrderBookImbalance"`。
 - `Sources/Core/Research/OrderBookImbalanceResearchEvidence.swift` 必须保留 OrderBookImbalance research / parity / persistence evidence，且不得被写成 current active strategy source。
-- `TraderStrategyBindingsBoundaryFixture` 的 concrete active strategy roots 必须 only EMA；MTP-202 继续负责 StrategyBindings boundary move / reclassification。
+- `TraderStrategyBindingsBoundaryFixture` 的 concrete active strategy roots 必须 only EMA；MTP-202 后该 fixture 已由 `TraderCoordinationRiskBindingBoundaryFixture` current fixture 接管。
 
 MTP-201 必须建立的主要 anchors：
 
@@ -6038,5 +6038,41 @@ MTP-201 必须建立的主要 anchors：
 - 不实现 Strategy runtime、strategy scheduler、live quoter、live hedger、Trader runtime、live coordinator、broker gateway、ExecutionClient gateway、OMS gateway、account session runtime、broker position sync、signed endpoint、account endpoint、listenKey、private stream runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form、short command、margin command 或 futures command。
 - 不把 `RSI`、`OrderBookImbalance`、`Momentum` 或 `MeanReversion` 写成 current active concrete strategy。
 - 不移动 `Sources/Trader/StrategyBindings/`；该 boundary 由 MTP-202 处理。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-202 Trader Coordination RiskBinding Boundary Validation
+
+MTP-202 必须运行：
+
+- `swift test --filter CoreTests/testTraderCoordinationRiskBindingEvidenceKeepsConcreteStrategiesOutOfBindings`
+- `swift test --filter CoreTests/testTraderOwnedStrategyPathValidationCoversCanonicalOldBindingAndExecutionGuards`
+- `swift test --filter CoreTests/testPaperActionRiskLinkAllowsPaperProposalWithTraceableContext`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-202 的验收要求：
+
+- `Sources/Trader/Coordination/RiskBinding/PaperActionRiskLink.swift` 必须存在，并继续只表达 paper proposal -> risk query / blocker evidence 的 local coordination adapter。
+- `Sources/Trader/StrategyBindings/` 必须不存在，`Package.swift` 必须不包含 `"Trader/StrategyBindings"` source root。
+- `Package.swift` 必须包含 `"Trader/Coordination/RiskBinding"` source root，不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- `TraderCoordinationRiskBindingBoundaryEvidence` 必须证明 RiskBinding 不是 concrete strategy implementation landing path，当前 active concrete strategy roots only EMA。
+- RiskBinding 不得直连 ExecutionClient、broker command、OMS command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command、order form 或 executable order command。
+- Docs / automation readiness / validation matrix / latest verification summary 必须包含 MTP-202 anchors。
+
+MTP-202 必须建立的主要 anchors：
+
+- `MTP-202-TRADER-COORDINATION-RISKBINDING-SOURCE-RECLASSIFICATION`
+- `MTP-202-STRATEGYBINDINGS-FIRST-LEVEL-PATH-RETIREMENT`
+- `MTP-202-RISKBINDING-NO-EXECUTION-GATEWAY-GUARD`
+- `MTP-202-RISKBINDING-VALIDATION`
+
+## MTP-202 禁止
+
+- 不移动 EMA source root，不引入 RSI、OrderBookImbalance、Momentum 或 MeanReversion 为 current active concrete strategy。
+- 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- 不实现 Strategy runtime、strategy scheduler、live quoter、live hedger、Trader runtime、live coordinator、broker gateway、ExecutionClient gateway、OMS gateway、account session runtime、broker position sync、signed endpoint、account endpoint、listenKey、private stream runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form、short command、margin command 或 futures command。
+- 不把 RiskBinding 升级为真实风险引擎、ExecutionClient request、broker fallback、OMS order、broker order 或 executable order command。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

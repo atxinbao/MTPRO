@@ -1,8 +1,9 @@
 import Foundation
 
-/// MTP-187 将 proposal-to-risk binding 放入 `Sources/Trader/StrategyBindings/`。
-/// MTP-195 将该目录重新收口为 generic binding protocol / coordination adapter contract。
-/// Trader 在这里仍只是 strategy / risk / portfolio coordination evidence，不是 live coordinator 或 broker gateway。
+/// MTP-202 将 proposal-to-risk binding 从旧 `Sources/Trader/StrategyBindings/`
+/// 迁入 `Sources/Trader/Coordination/RiskBinding/`。
+/// Trader Coordination 在这里仍只是 strategy / risk / portfolio coordination evidence，
+/// 不是 live coordinator、ExecutionClient gateway 或 broker gateway。
 /// Paper action risk link 把 MTP-32 的 paper-only proposal 接到本地风险观察证据。
 ///
 /// 该文件只定义 strategy signal -> paper action proposal -> risk blocker 的最小本地链路。
@@ -11,25 +12,25 @@ import Foundation
 /// 它不是完整风险引擎、订单管理系统、broker 拒单回退或真实交易执行入口，也不会调用
 /// Binance signed endpoint、account endpoint、order submit / cancel / replace 或 Live execution。
 
-/// TraderStrategyBindingsContractRole 固定 `Sources/Trader/StrategyBindings/` 的允许职责。
+/// TraderCoordinationRiskBindingContractRole 固定 `Sources/Trader/Coordination/RiskBinding/` 的允许职责。
 ///
-/// MTP-195 只允许该目录表达通用绑定协议和 Trader coordination adapter contract。任何具体策略
+/// MTP-202 只允许该目录表达 generic binding protocol / coordination adapter contract。任何具体策略
 /// lifecycle、signal、proposal、quoter、hedger 或 strategy-specific business rule 都必须放在
-/// `Sources/Trader/Strategies/<strategy>/`，不能放入 StrategyBindings。
-public enum TraderStrategyBindingsContractRole: String, Codable, Equatable, Sendable {
+/// `Sources/Trader/Strategies/<strategy>/`，不能放入 Trader Coordination RiskBinding。
+public enum TraderCoordinationRiskBindingContractRole: String, Codable, Equatable, Sendable {
     case genericBindingProtocol = "generic_binding_protocol"
     case coordinationAdapterContract = "coordination_adapter_contract"
 }
 
-/// TraderStrategyBindingsBoundaryEvidence 是 MTP-195 的本地边界证据。
+/// TraderCoordinationRiskBindingBoundaryEvidence 是 MTP-202 的本地边界证据。
 ///
 /// 该 evidence 只描述目录职责和禁止能力，用于 XCTest 与 automation readiness 机械检查。
 /// 它不创建 Trader runtime、strategy scheduler、ExecutionClient path、broker command、OMS command
 /// 或 Live command，也不改变现有 `PaperActionProposalRiskLink` 的 deterministic paper-only 行为。
-public struct TraderStrategyBindingsBoundaryEvidence: Codable, Equatable, Sendable {
-    public let strategyBindingsRoot: String
+public struct TraderCoordinationRiskBindingBoundaryEvidence: Codable, Equatable, Sendable {
+    public let coordinationRiskBindingRoot: String
     public let concreteStrategyRoots: [String]
-    public let contractRoles: [TraderStrategyBindingsContractRole]
+    public let contractRoles: [TraderCoordinationRiskBindingContractRole]
     public let compatibilityTargetName: String
     public let carriesConcreteStrategyImplementation: Bool
     public let allowsDirectExecutionClientPath: Bool
@@ -38,9 +39,9 @@ public struct TraderStrategyBindingsBoundaryEvidence: Codable, Equatable, Sendab
     public let allowsLiveCommandPath: Bool
 
     public init(
-        strategyBindingsRoot: String,
+        coordinationRiskBindingRoot: String,
         concreteStrategyRoots: [String],
-        contractRoles: [TraderStrategyBindingsContractRole],
+        contractRoles: [TraderCoordinationRiskBindingContractRole],
         compatibilityTargetName: String,
         carriesConcreteStrategyImplementation: Bool,
         allowsDirectExecutionClientPath: Bool,
@@ -48,7 +49,7 @@ public struct TraderStrategyBindingsBoundaryEvidence: Codable, Equatable, Sendab
         allowsOMSCommandPath: Bool,
         allowsLiveCommandPath: Bool
     ) {
-        self.strategyBindingsRoot = strategyBindingsRoot
+        self.coordinationRiskBindingRoot = coordinationRiskBindingRoot
         self.concreteStrategyRoots = concreteStrategyRoots
         self.contractRoles = contractRoles
         self.compatibilityTargetName = compatibilityTargetName
@@ -59,16 +60,17 @@ public struct TraderStrategyBindingsBoundaryEvidence: Codable, Equatable, Sendab
         self.allowsLiveCommandPath = allowsLiveCommandPath
     }
 
-    /// 证明 StrategyBindings 只保留通用 binding / adapter contract，不持有具体策略实现。
+    /// 证明 Trader Coordination RiskBinding 只保留通用 binding / adapter contract，不持有具体策略实现。
     public var isGenericBindingProtocolAndAdapterOnly: Bool {
         contractRoles == [.genericBindingProtocol, .coordinationAdapterContract]
             && carriesConcreteStrategyImplementation == false
     }
 
-    /// 证明当前 active 具体策略 root 仍在 Trader-owned Strategies 下，而不是 StrategyBindings 或旧 peer-level path。
+    /// 证明当前 active 具体策略 root 仍在 Trader-owned Strategies 下，而不是 RiskBinding 或旧 peer-level path。
     public var concreteStrategiesRemainTraderOwned: Bool {
         concreteStrategyRoots.allSatisfy { root in
             root.hasPrefix("Sources/Trader/Strategies/")
+                && root.contains("/Coordination/RiskBinding/") == false
                 && root.contains("/StrategyBindings/") == false
                 && root.hasPrefix("Sources/Strategies/") == false
         }
@@ -83,13 +85,13 @@ public struct TraderStrategyBindingsBoundaryEvidence: Codable, Equatable, Sendab
     }
 }
 
-/// TraderStrategyBindingsBoundaryFixture 提供 MTP-195 deterministic boundary fixture。
+/// TraderCoordinationRiskBindingBoundaryFixture 提供 MTP-202 deterministic boundary fixture。
 ///
 /// Fixture 只服务本地测试和 PR evidence，固定 EMA 是唯一 current active concrete strategy root，
-/// 同时证明 `StrategyBindings` 只是 binding protocol / coordination adapter contract。
-public enum TraderStrategyBindingsBoundaryFixture {
-    public static let deterministic = TraderStrategyBindingsBoundaryEvidence(
-        strategyBindingsRoot: "Sources/Trader/StrategyBindings/",
+/// 同时证明 `Trader/Coordination/RiskBinding` 只是 binding protocol / coordination adapter contract。
+public enum TraderCoordinationRiskBindingBoundaryFixture {
+    public static let deterministic = TraderCoordinationRiskBindingBoundaryEvidence(
+        coordinationRiskBindingRoot: "Sources/Trader/Coordination/RiskBinding/",
         concreteStrategyRoots: [
             "Sources/Trader/Strategies/EMA/"
         ],
@@ -354,7 +356,7 @@ public struct PaperActionProposalRiskDecision: Codable, Equatable, Sendable {
     }
 }
 
-/// PaperActionProposalRiskLink 是 MTP-33 的最小本地编排函数，也是 MTP-195 允许的 coordination adapter。
+/// PaperActionProposalRiskLink 是 MTP-33 的最小本地编排函数，也是 MTP-202 允许的 coordination adapter。
 ///
 /// 它把 proposal 转成 `RiskEvaluationQuery`，再根据 deterministic policy 决定是否生成
 /// `RiskBlockerEvidence`。该函数没有网络、副作用、数据库写入或 broker fallback，也不承载具体

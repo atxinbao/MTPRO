@@ -3171,7 +3171,7 @@ require_file "Sources/Trader/Strategies/EMA/EMACross.swift"
 require_file "Sources/Trader/Strategies/EMA/StrategySignals.swift"
 require_file "Sources/Trader/Strategies/EMA/PaperActionProposal.swift"
 require_file "Sources/Core/Research/OrderBookImbalanceResearchEvidence.swift"
-require_file "Sources/Trader/StrategyBindings/PaperActionRiskLink.swift"
+require_file "Sources/Trader/Coordination/RiskBinding/PaperActionRiskLink.swift"
 require_file "Sources/Portfolio/PaperAccountPortfolioProjectionV2.swift"
 require_file "Sources/Portfolio/PaperPortfolioProjectionUpdate.swift"
 require_file "Sources/Portfolio/SimulatedExchangePortfolioProjectionParity.swift"
@@ -3180,6 +3180,7 @@ require_file "Sources/Portfolio/SimulatedExchangePortfolioProjectionParity.swift
 [[ ! -f "Sources/Core/PaperActionProposal.swift" ]] || fail "MTP-187 migrated file must not remain at Sources/Core/PaperActionProposal.swift"
 [[ ! -d "Sources/Strategies/EMA" ]] || fail "MTP-193 migrated EMA directory must not remain at Sources/Strategies/EMA"
 [[ ! -d "Sources/Trader/Strategies/OrderBookImbalance" ]] || fail "MTP-201 retired non-EMA active strategy directory must not remain at Sources/Trader/Strategies/OrderBookImbalance"
+[[ ! -d "Sources/Trader/StrategyBindings" ]] || fail "MTP-202 retired first-level StrategyBindings directory must not remain at Sources/Trader/StrategyBindings"
 [[ ! -f "Sources/Core/OrderBookImbalance.swift" ]] || fail "MTP-187 migrated file must not remain at Sources/Core/OrderBookImbalance.swift"
 [[ ! -d "Sources/Strategies/OrderBookImbalance" ]] || fail "MTP-194 migrated OrderBookImbalance directory must not remain at Sources/Strategies/OrderBookImbalance"
 [[ ! -f "Sources/Core/PaperActionRiskLink.swift" ]] || fail "MTP-187 migrated file must not remain at Sources/Core/PaperActionRiskLink.swift"
@@ -3190,7 +3191,8 @@ require_contains "Package.swift" '"Trader/Strategies/EMA"'
 require_absent "Package.swift" '"Strategies/EMA"'
 require_absent "Package.swift" '"Trader/Strategies/OrderBookImbalance"'
 require_absent "Package.swift" '"Strategies/OrderBookImbalance"'
-require_contains "Package.swift" '"Trader/StrategyBindings"'
+require_contains "Package.swift" '"Trader/Coordination/RiskBinding"'
+require_absent "Package.swift" '"Trader/StrategyBindings"'
 require_contains "Package.swift" '"Portfolio"'
 require_contains "Package.swift" '"Strategies"'
 require_contains "Package.swift" '"Trader"'
@@ -3237,9 +3239,9 @@ require_contains "docs/automation/automation-readiness.md" "OrderBookImbalance h
 require_contains "docs/automation/automation-readiness.md" 'MTP-201 后 `Sources/Core/Research/OrderBookImbalanceResearchEvidence.swift`'
 require_contains "docs/validation/latest-verification-summary.md" "MTP-194 的当前 issue execution evidence"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-194-ORDERBOOKIMBALANCE-PATH-MIGRATION-VALIDATION"
-require_contains "Sources/Trader/StrategyBindings/PaperActionRiskLink.swift" "TraderStrategyBindingsBoundaryEvidence"
-require_contains "Sources/Trader/StrategyBindings/PaperActionRiskLink.swift" "generic binding protocol / coordination adapter contract"
-require_contains "Tests/CoreTests/CoreTests.swift" "testStrategyBindingsBoundaryEvidenceKeepsConcreteStrategiesOutOfBindings"
+require_contains "Sources/Trader/Coordination/RiskBinding/PaperActionRiskLink.swift" "TraderCoordinationRiskBindingBoundaryEvidence"
+require_contains "Sources/Trader/Coordination/RiskBinding/PaperActionRiskLink.swift" "generic binding protocol / coordination adapter contract"
+require_contains "Tests/CoreTests/CoreTests.swift" "testTraderCoordinationRiskBindingEvidenceKeepsConcreteStrategiesOutOfBindings"
 require_contains "docs/architecture/module-boundary.md" "MTP-195 StrategyBindings Binding Protocol / Coordination Adapter"
 require_contains "docs/architecture/module-boundary.md" "MTP-195-STRATEGYBINDINGS-BINDING-PROTOCOL-ADAPTER-CONTRACT"
 require_contains "docs/architecture/module-boundary.md" "MTP-195-CONCRETE-STRATEGY-NON-LANDING-GUARD"
@@ -3253,7 +3255,7 @@ require_contains "docs/domain/context.md" "MTP-195-NO-DIRECT-EXECUTION-BROKER-OM
 require_contains "docs/domain/context.md" "MTP-195-STRATEGYBINDINGS-BOUNDARY-VALIDATION"
 require_contains "docs/validation/validation-plan.md" "MTP-195 StrategyBindings Binding Protocol / Coordination Adapter Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-195 issue backfill"
-require_contains "docs/automation/automation-readiness.md" "StrategyBindings binding protocol / coordination adapter anchor"
+require_contains "docs/automation/automation-readiness.md" "Trader Coordination RiskBinding anchor"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-195 的当前 issue execution evidence"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-195-STRATEGYBINDINGS-BOUNDARY-VALIDATION"
 require_contains "Tests/CoreTests/CoreTests.swift" "testTraderOwnedStrategyPathValidationCoversCanonicalOldBindingAndExecutionGuards"
@@ -4523,6 +4525,15 @@ require_contains "docs/validation/validation-plan.md" "MTP-201 Non-EMA Active St
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-201"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-201 的当前 issue execution evidence"
 require_contains "docs/audit/inputs/mtpro-trader-ema-strategy-layout-consolidation-v1-mtp-201-non-ema-source-retirement.md" "MTP-201-NON-EMA-ACTIVE-SOURCE-RETIREMENT"
+require_contains "docs/automation/automation-readiness.md" "Trader EMA Strategy Layout MTP-202 RiskBinding reclassification anchor"
+require_contains "docs/architecture/module-boundary.md" "MTP-202-TRADER-COORDINATION-RISKBINDING-SOURCE-RECLASSIFICATION"
+require_contains "docs/architecture/module-boundary.md" "MTP-202-STRATEGYBINDINGS-FIRST-LEVEL-PATH-RETIREMENT"
+require_contains "docs/architecture/module-boundary.md" "MTP-202-RISKBINDING-NO-EXECUTION-GATEWAY-GUARD"
+require_contains "docs/architecture/module-boundary.md" "MTP-202-RISKBINDING-VALIDATION"
+require_contains "docs/domain/context.md" "TraderCoordinationRiskBindingBoundaryEvidence"
+require_contains "docs/validation/validation-plan.md" "MTP-202 Trader Coordination RiskBinding Boundary Validation"
+require_contains "docs/validation/trading-validation-matrix.md" "MTP-202"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-202 的当前 issue execution evidence"
 require_contains "docs/planning/projects/mtpro-trader-ema-strategy-layout-consolidation-v1-plan.md" '当前 active concrete strategy 只保留 `EMA`'
 require_contains "docs/planning/projects/mtpro-trader-ema-strategy-layout-consolidation-v1-plan.md" '`Sources/Trader/Strategies/EMA`'
 require_contains "Sources/Workbench/Report/StrategyTraderReadinessEvidenceSurface.swift" "MTP-160-WORKBENCH-REPORT-EVENTS-READ-MODEL-ONLY-SURFACE"

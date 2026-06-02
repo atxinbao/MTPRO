@@ -22,19 +22,19 @@ MTP-198 将当前 active concrete strategy 固定为 `EMA`。当前唯一 canoni
 
 `MTP-198-STRATEGYBINDINGS-NOT-FIRST-LEVEL-STRATEGY-DIRECTORY`
 
-`Sources/Trader/StrategyBindings/` 不是 first-level Trader strategy directory，也不是 concrete strategy implementation landing path。它不能承载 EMA、RSI、OrderBookImbalance、Momentum、MeanReversion 或任何未来具体 strategy 的 lifecycle、signals、proposal implementation、quoter、hedger 或 strategy-specific business rules。
+MTP-202 后 `Sources/Trader/StrategyBindings/` 已不再作为当前 active source root；`Sources/Trader/StrategyBindings/` 不是 first-level Trader strategy directory。Binding / adapter semantics 已收口到 `Sources/Trader/Coordination/RiskBinding/`；该目录不是 concrete strategy implementation landing path，不能承载 EMA、RSI、OrderBookImbalance、Momentum、MeanReversion 或任何未来具体 strategy 的 lifecycle、signals、proposal implementation、quoter、hedger 或 strategy-specific business rules。
 
 `MTP-198-TRADER-COORDINATION-BINDING-RESPONSIBILITY`
 
-Binding / adapter semantics 归 `Sources/Trader/Coordination/` 责任边界管理。当 strategy instance 需要连接 account context、RiskEngine、Portfolio evidence 或 ExecutionEngine evidence 时，应该通过 `Trader/Coordination/<binding>/` 这类 coordination boundary 表达，例如后续可以规划 `Sources/Trader/Coordination/RiskBinding/`。该语义不授权当前创建目录、移动 source 或实现 Trader runtime。
+Binding / adapter semantics 归 `Sources/Trader/Coordination/` 责任边界管理。当 strategy instance 需要连接 account context、RiskEngine、Portfolio evidence 或 ExecutionEngine evidence 时，必须通过 `Trader/Coordination/<binding>/` 这类 coordination boundary 表达；当前 authorized binding source root 是 `Sources/Trader/Coordination/RiskBinding/`。该语义不授权 Trader runtime、ExecutionClient、OMS、broker gateway、live command 或 real order lifecycle。
 
 `MTP-198-FORBIDDEN-STRATEGY-PATH-EXECUTION-BYPASS-TAXONOMY`
 
-当前禁止路径包括：`Strategy -> ExecutionClient`、`Strategy -> broker command`、`Strategy -> OMS`、`Strategy -> executable order command`、`Strategy -> signed endpoint`、`Strategy -> account endpoint / listenKey`、`Strategy -> private WebSocket runtime`、`Strategy -> Live PRO Console`、`Strategy -> trading button`、`Strategy -> live command`、`Strategy -> order form`、`StrategyBindings -> concrete strategy`、`StrategyBindings -> ExecutionClient`、`StrategyBindings -> broker command` 和 `StrategyBindings -> OMS`。Paper proposal、signal、risk decision 和 portfolio projection 只能作为 deterministic local evidence，不得升级为真实交易命令。
+当前禁止路径包括：`Strategy -> ExecutionClient`、`Strategy -> broker command`、`Strategy -> OMS`、`Strategy -> executable order command`、`Strategy -> signed endpoint`、`Strategy -> account endpoint / listenKey`、`Strategy -> private WebSocket runtime`、`Strategy -> Live PRO Console`、`Strategy -> trading button`、`Strategy -> live command`、`Strategy -> order form`、`RiskBinding -> concrete strategy`、`RiskBinding -> ExecutionClient`、`RiskBinding -> broker command` 和 `RiskBinding -> OMS`。Paper proposal、signal、risk decision 和 portfolio projection 只能作为 deterministic local evidence，不得升级为真实交易命令。
 
 `MTP-198-NO-SOURCE-MOVE-PACKAGE-RUNTIME-GUARD`
 
-MTP-198 是 contract / docs boundary issue；MTP-201 只执行已授权的 non-EMA active source retirement。当前合同仍不授权移动 `Sources/Trader/StrategyBindings/`，不新增 SwiftPM target、product 或 dependency，不做 target graph split，不创建 Runtime object、Adapter request、ExecutionClient implementation、OMS implementation、broker adapter、signed/account/listenKey endpoint、private stream runtime、account snapshot runtime、Live PRO Console、trading button、live command 或 order form。
+MTP-198 是 contract / docs boundary issue；MTP-201 执行 non-EMA active source retirement，MTP-202 执行 StrategyBindings -> Trader Coordination RiskBinding reclassification。当前合同不新增 SwiftPM target、product 或 dependency，不做 target graph split，不创建 Runtime object、Adapter request、ExecutionClient implementation、OMS implementation、broker adapter、signed/account/listenKey endpoint、private stream runtime、account snapshot runtime、Live PRO Console、trading button、live command 或 order form。
 
 `MTP-198-EMA-ONLY-LAYOUT-VALIDATION`
 
