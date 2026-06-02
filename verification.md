@@ -13609,3 +13609,37 @@ Root Docs Refresh Gate 更新：
 - `git diff --check`：pass，无输出。
 - `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
 - `bash checks/run.sh`：pass，Dashboard smoke 正常，308 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
+## 2026-06-03 — MTPRO Trader EMA Strategy Layout Consolidation v1 Root Docs Refresh Gate
+
+执行者：Codex
+
+范围：
+
+- 同步 `MTPRO Trader EMA Strategy Layout Consolidation v1` 已发生的 Project closure 事实。
+- 记录 Linear Project `Completed/type=completed`，`completedAt=2026-06-02T16:18:43.202Z`。
+- 记录 MTP-198 至 MTP-204 全部 Done / completed，末端 issue PR #334 merge commit `36bd4fe6389e16837137c42afe3ef8d8ef5e5121`，required check `checks` SUCCESS。
+- 记录 Stage Code Audit PR #335 merge commit `b0f9f4f6adb47194ff643a5ddc548b5f2c72cfd2`，required check `checks` SUCCESS。
+- 更新 `GOAL.md`、`BLUEPRINT.md`、`docs/architecture.md`、`docs/roadmap.md` 和 `docs/validation/latest-verification-summary.md`，把当前成熟度结论同步为 `Trader EMA Strategy Layout Consolidation before L4 complete`。
+- Project Closure Count 从 `24 / 24 (100%)` 更新为 `25 / 25 (100%)`；Final Product Goal Progress 保持 `9 / 9 (100%)`；Engine Maturity Roadmap Progress 保持 `4 / 4 (100%)`。
+
+边界：
+
+- 不创建下一 Linear Project / Issue。
+- 不推进下一 Todo。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify。
+- 不运行 code-index。
+- 不修改 Figma。
+- 不写业务代码。
+- 不移动 production source。
+- 不修改 `Package.swift`。
+- 不拆 SwiftPM target graph。
+- 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command 或 order form。
+- `.codex/*` 和 `graphify-out/*` 不进入 PR。
+
+验证：
+
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest，最终输出 `MTPRO checks passed.`。
