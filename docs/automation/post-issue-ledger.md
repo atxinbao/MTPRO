@@ -6,15 +6,14 @@
 
 ## 定位
 
-Post-Issue Ledger 是 MTPRO 在 `symphony-issue` 完成一个 Linear issue 后执行的本地记账环节。
+Post-Issue Ledger 是 MTPRO 在一个 Linear issue 完成 PR / check / merge / Linear Done gate 后执行的本地 read-only 记账环节。
 
 它发生在：
 
 ```text
 GitHub PR Automation merge
 -> Linear bot auto Done
--> symphony-issue terminal state detected
--> host-side before_remove
+-> Parent Codex host-side gate confirmed
 -> Post-Issue Ledger
 ```
 
@@ -22,30 +21,18 @@ GitHub PR Automation merge
 
 ## 当前 hook
 
-当前本机 `symphony-issue` workflow 的 `before_remove` 负责执行 Post-Issue Ledger。
+当前 Post-Issue Ledger 不依赖 Symphony，不使用 `before_remove` hook，不运行 Graphify。Parent Codex 在 host-side gate 里读取 PR/check/merge/root fast-forward/Linear Done evidence 后，可以写入 `.codex/post-issue-ledger/latest.json` 或对应 issue ledger 摘要；该摘要保持 read-only advisory，不进入 PR。
 
-当前操作为：
-
-```bash
-cd /Users/mac/code/tools/symphony/elixir
-mise exec -- mix workspace.post_issue_ledger \
-  --repo-path /Users/mac/Documents/MTPRO \
-  --issue "${SYMPHONY_ISSUE_IDENTIFIER:-$(basename "$PWD")}" \
-  --workspace "${SYMPHONY_WORKSPACE:-$PWD}" \
-  --output /Users/mac/Documents/MTPRO/.codex/post-issue-ledger/latest.json || true
-```
-
-如果 `graphify` 命令、`git pull` 或持久仓库不可用，hook 将失败或跳过原因写入结构化摘要，不阻塞已经完成的 PR / Linear Done 结果。
+如果网络、GitHub、Linear 或持久仓库不可用，ledger 将失败或跳过原因写入结构化摘要，不阻塞已经完成的 PR / Linear Done 结果。
 
 ## 做什么
 
-Post-Issue Ledger 做五件事：
+Post-Issue Ledger 做四件事：
 
-1. 同步最新 `main`。
-2. 刷新本地 Graphify resource relationship graph。
-3. 保留 `graphify-out/*` 作为本地 ignored output，不进入 Git PR。
-4. 写入 `.codex/post-issue-ledger/latest.json` 结构化摘要。
-5. 生成或承接下一步观察提示，用于 Human / Parent Codex 后续判断。
+1. 只读确认最新 `main` 或 root fast-forward evidence。
+2. 只读确认 PR / required check / merge / Linear Done evidence。
+3. 写入 `.codex/post-issue-ledger/latest.json` 结构化摘要。
+4. 生成或承接下一步观察提示，用于 Human / Parent Codex 后续判断。
 
 ## 结构化摘要
 
@@ -65,14 +52,14 @@ Post-Issue Ledger 做五件事：
 - `workspace`
 - `repo_path`
 - `operations`
-- `graphify`
 - `next_step_hints`
 - `boundaries`
 
 其中 `operations` 至少记录：
 
-- `git_pull_ff_only`
-- `graphify_update`
+- `root_fast_forward`
+- `pr_check_merge_evidence`
+- `linear_done_evidence`
 
 每个 operation 可以是：
 
@@ -101,7 +88,8 @@ Post-Issue Ledger 做五件事：
 - 不创建 Linear issue。
 - 不修改 `docs/roadmap.md`。
 - 不修改业务代码。
-- 不启动 Symphony。
+- 不启动 Symphony，不依赖 Symphony。
+- 不运行 Graphify。
 - 不决定下一阶段目标。
 
 ## 和 Parent Codex 的关系
@@ -124,5 +112,4 @@ Post-Issue Ledger 只提供施工后关系事实和观察提示。
 - Post-Issue Ledger 不替代 `verification.md`。
 - Post-Issue Ledger 不替代 Human Project Planning。
 - Post-Issue Ledger 不授权 Codex 执行下一 issue。
-- Post-Issue Ledger 不提交 `graphify-out/*`。
 - Post-Issue Ledger 不提交 `.codex/post-issue-ledger/*`。

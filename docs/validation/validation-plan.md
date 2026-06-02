@@ -5930,3 +5930,41 @@ MTP-197 必须建立的主要 anchors：
 - 不输出最终 Stage Code Audit Report，不设置 Linear Project `Completed`，不创建下一 Project / Issue，不推进下一阶段 Todo。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-198 EMA-only Trader Strategy Layout Contract Validation
+
+MTP-198 必须运行：
+
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-198 的验收要求：
+
+- `docs/contracts/trader-ema-strategy-layout-contract.md` 必须包含 EMA-only Trader strategy layout contract、canonical active EMA path、non-EMA future candidate boundary、StrategyBindings not first-level strategy directory、Trader/Coordination binding responsibility、forbidden strategy path execution bypass taxonomy、no source move / Package.swift / runtime guard 和 validation anchors。
+- `docs/architecture/module-boundary.md` 与 `docs/domain/context.md` 必须明确 current active concrete strategy only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/`。
+- `RSI`、`OrderBookImbalance`、`Momentum` 和 `MeanReversion` 必须被描述为 future candidate / future-gated strategy label，不得被写成 current active strategy。
+- 现有 `Sources/Trader/Strategies/OrderBookImbalance/` 必须被描述为 compatibility / superseded source placement debt，后续由 MTP-200 audit 和 MTP-201 retirement / quarantine 处理。
+- `Sources/Trader/StrategyBindings/` 必须明确不是 first-level Trader strategy directory；binding / adapter semantics 归 `Sources/Trader/Coordination/` responsibility。
+- PR 前必须确认本 issue 没有移动 `Sources`、没有修改 `Package.swift`、没有写 Swift business code、没有提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+MTP-198 必须建立的主要 anchors：
+
+- `MTP-198-EMA-ONLY-TRADER-STRATEGY-LAYOUT-CONTRACT`
+- `MTP-198-CANONICAL-ACTIVE-EMA-PATH`
+- `MTP-198-NON-EMA-FUTURE-CANDIDATE-BOUNDARY`
+- `MTP-198-STRATEGYBINDINGS-NOT-FIRST-LEVEL-STRATEGY-DIRECTORY`
+- `MTP-198-TRADER-COORDINATION-BINDING-RESPONSIBILITY`
+- `MTP-198-FORBIDDEN-STRATEGY-PATH-EXECUTION-BYPASS-TAXONOMY`
+- `MTP-198-NO-SOURCE-MOVE-PACKAGE-RUNTIME-GUARD`
+- `MTP-198-EMA-ONLY-LAYOUT-VALIDATION`
+
+## MTP-198 禁止
+
+- 不移动 source files，不删除 `Sources/Trader/Strategies/OrderBookImbalance/`，不移动 `Sources/Trader/StrategyBindings/`，不修改 `Package.swift` source roots。
+- 不新增 SwiftPM target、product 或 dependency，不做 target graph split。
+- 不实现 Strategy runtime、strategy scheduler、live quoter、live hedger、Trader runtime、live coordinator、broker gateway、ExecutionClient gateway、OMS gateway、account session runtime、broker position sync、signed endpoint、account endpoint、listenKey、private stream runtime、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form、short command、margin command 或 futures command。
+- 不把 `RSI`、`OrderBookImbalance`、`Momentum` 或 `MeanReversion` 写成 current active concrete strategy。
+- 不把 StrategyBindings 写成 first-level strategy directory 或未来具体 strategy implementation landing path。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

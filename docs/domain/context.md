@@ -483,6 +483,38 @@ MTP-196 validation 必须覆盖 strategy path 与 StrategyBindings 都没有 dir
 
 MTP-196 只添加 local validation evidence、docs anchors 和 automation readiness checks，不移动 source files，不修改 `Package.swift` source roots，不拆 SwiftPM target graph，不实现 Strategy runtime、Trader runtime、ExecutionClient、OMS、broker gateway、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command 或 order form。
 
+`MTP-198-EMA-ONLY-TRADER-STRATEGY-LAYOUT-CONTRACT`
+
+`EMA-only Trader strategy layout` 指当前 active concrete strategy 只有 `EMA`。当前唯一 canonical active concrete strategy path 是 `Sources/Trader/Strategies/EMA/`；该术语只表达当前 strategy 管理和规划口径，不表示 MTP-198 移动 source、修改 Package.swift 或实现 Strategy runtime。
+
+`MTP-198-CANONICAL-ACTIVE-EMA-PATH`
+
+`Canonical active EMA path` 指 `Sources/Trader/Strategies/EMA/` 是当前唯一 active strategy source root。MTP-198 后，任何 root docs、planning record、validation evidence 或 PR text 都不得把其他 strategy 写成 current active concrete strategy。
+
+`MTP-198-NON-EMA-FUTURE-CANDIDATE-BOUNDARY`
+
+`RSI`、`OrderBookImbalance`、`Momentum` 和 `MeanReversion` 只能作为 future strategy candidate / future-gated strategy label。现有 `Sources/Trader/Strategies/OrderBookImbalance/` 属于 compatibility / superseded source placement debt，不是当前 active strategy；后续由 MTP-200 和 MTP-201 处理 audit 与 retirement / quarantine。
+
+`MTP-198-STRATEGYBINDINGS-NOT-FIRST-LEVEL-STRATEGY-DIRECTORY`
+
+`StrategyBindings not first-level strategy directory` 指 `Sources/Trader/StrategyBindings/` 不是 concrete strategy implementation root。它不能承载 EMA、RSI、OrderBookImbalance、Momentum、MeanReversion 或未来具体 strategy 的 lifecycle、signals、proposal implementation、quoter、hedger 或 strategy-specific business rules。
+
+`MTP-198-TRADER-COORDINATION-BINDING-RESPONSIBILITY`
+
+`Trader coordination binding responsibility` 指 binding / adapter semantics 归 `Sources/Trader/Coordination/` 管理。当需要表达 strategy instance 与 account context、RiskEngine、Portfolio evidence 或 ExecutionEngine evidence 的连接关系时，应使用 future `Trader/Coordination/<binding>/` boundary，例如 `Trader/Coordination/RiskBinding/`，而不是把 binding 当作 first-level strategy directory。
+
+`MTP-198-FORBIDDEN-STRATEGY-PATH-EXECUTION-BYPASS-TAXONOMY`
+
+MTP-198 forbidden strategy bypass taxonomy 固定 no direct Strategy / StrategyBindings to ExecutionClient、broker command、OMS、executable order command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command 或 order form。Paper proposal、signal、risk decision 和 portfolio projection 不能升级为真实交易命令。
+
+`MTP-198-NO-SOURCE-MOVE-PACKAGE-RUNTIME-GUARD`
+
+MTP-198 是 contract / docs boundary，不移动 `Sources`，不删除 OrderBookImbalance compatibility debt，不移动 StrategyBindings，不修改 `Package.swift`，不新增 SwiftPM target，不实现 Strategy runtime、Trader runtime、ExecutionClient、OMS、broker adapter、signed/account/listenKey endpoint、private stream runtime、Live PRO Console、trading button、live command 或 order form。
+
+`MTP-198-EMA-ONLY-LAYOUT-VALIDATION`
+
+MTP-198 validation language 必须证明 active concrete strategy only EMA、canonical active path only `Sources/Trader/Strategies/EMA/`、non-EMA future candidates only、StrategyBindings not first-level strategy directory、binding semantics under Trader/Coordination responsibility，以及 no source move / Package.swift / runtime guard。
+
 `MTP-173-ACCOUNT-PORTFOLIO-READMODEL-BOUNDARY-CONTRACT`
 
 MTP-173 固定 Account / Portfolio context read-model boundary：`Sources/Trader/Accounts/` 只表达 Trader coordination 使用的 account context、account identity 和 source identity；`Sources/Portfolio/` 独立表达 positions、net positions、cash/equity、PnL、exposure、margin、open value 和 paper projection。

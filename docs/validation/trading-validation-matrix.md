@@ -743,6 +743,12 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | --- | --- | --- |
 | `MTP-197` | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 新增 Trader-owned strategies layout correction 阶段收口：`docs/audit/inputs/mtpro-trader-owned-strategies-layout-correction-v1-stage-audit-input.md` 汇总 MTP-191 至 MTP-196 的 PR evidence、merge commit、required check、Trader-owned strategy canonical path、historical `Sources/Strategies/<strategy>` compatibility treatment、EMA / OrderBookImbalance current source placement、StrategyBindings generic binding protocol / coordination adapter classification、path validation、compatibility envelope audit、forbidden direct ExecutionClient / broker / OMS / live command audit、unresolved future gates 和 Stage Code Audit handoff checklist。MTP-197 只准备 audit input material，不移动 source files，不修改 `Package.swift`，不拆 SwiftPM target graph，不输出最终 Stage Code Audit Report，不设置 Linear Project `Completed`，不创建下一 Project / Issue，不推进下一阶段，不实现 Strategy runtime、Trader runtime、ExecutionClient、OMS、broker command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command 或 order form。 |
 
+## MTP-198 issue backfill
+
+| Issue | Matrix ID | 回填说明 |
+| --- | --- | --- |
+| `MTP-198` | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 新增 EMA-only Trader strategy layout contract：当前 active concrete strategy only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/`；`RSI`、`OrderBookImbalance`、`Momentum` 和 `MeanReversion` 只能作为 future candidate / future-gated strategy label。现有 `Sources/Trader/Strategies/OrderBookImbalance/` 只作为 MTP-194 compatibility / superseded source placement debt，后续由 MTP-200 audit 与 MTP-201 retirement / quarantine 处理；`Sources/Trader/StrategyBindings/` 不是 first-level strategy directory，binding / adapter semantics 归 `Trader/Coordination` responsibility。MTP-198 只更新 contract / docs / validation / automation readiness anchors，不移动 source，不修改 `Package.swift`，不写 Swift business code，不实现 Strategy runtime、Trader runtime、ExecutionClient、OMS、broker command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command 或 order form。 |
+
 ## MTP-190 Target Module Source Migration 阶段收口
 
 日期：2026-06-01
