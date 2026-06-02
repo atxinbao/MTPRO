@@ -1352,6 +1352,14 @@ MTP-199 的当前 issue execution evidence 已完成 root docs non-EMA active an
 
 MTP-199-ROOT-DOCS-NON-EMA-ACTIVE-ANCHOR-CLEANUP 的本地验证已通过：`git diff --check` 无输出；targeted root-doc grep 确认非 EMA strategy 不再以 current active / canonical active 语境出现，只保留 historical / compatibility / future-gated / debt 语境；`bash checks/run.sh` 通过 automation readiness、Dashboard build、Dashboard smoke 和 308 个 XCTest，Dashboard smoke 输出包含 `sections=8`、`readModelOnly=true`、`workbenchReadModelOnly=true`、`timelineItems=82`、`strategyTraderReadinessSurface=6` 和 `liveMonitoringReadOnlyConsoleV2Surface=4`，最终输出 `MTPRO checks passed.`。完整验收仍以本次 PR 前本地验证和 GitHub required check `checks` 为准。MTP-199 完成后不得自动推进 MTP-200；必须等待 PR/check/merge、root main fast-forward、Linear Done 和 post-issue ledger evidence 后，再由 Parent Codex queue preflight 判断唯一 eligible next issue。
 
+## 当前 issue execution evidence：MTP-200
+
+MTP-200 的当前 issue execution evidence 已建立 `docs/audit/inputs/mtpro-trader-ema-strategy-layout-consolidation-v1-mtp-200-non-ema-anchor-audit.md` 的 `MTP-200-NON-EMA-STRATEGY-ANCHOR-AUDIT`、`MTP-200-SOURCE-PACKAGE-CLASSIFICATION`、`MTP-200-RUNTIME-TEST-DEPENDENCY-CLASSIFICATION`、`MTP-200-VALIDATION-ANCHOR-CLASSIFICATION`、`MTP-200-MTP-201-INPUT`、`MTP-200-MTP-202-INPUT`、`MTP-200-AUDIT-VALIDATION` 和 `MTP-200-NO-SOURCE-MOVE-PACKAGE-RUNTIME-GUARD` anchors，并同步到 `docs/validation/validation-plan.md` 和 `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` MTP-200 issue backfill。
+
+该证据只输出 audit / evidence：`OrderBookImbalance` 仍有 `Sources/Trader/Strategies/OrderBookImbalance/` production source placement debt、`Package.swift` compatibility root、Core research flow / result、MessageBus command / event、SQLite projection 和 Core / Persistence tests dependency；`RSI`、`Momentum` 和 `MeanReversion` 在 `Sources`、`Tests` 和 `Package.swift` 中没有 exact active anchors；`StrategyBindings` 仍是 binding / coordination adapter evidence，作为 MTP-202 Trader Coordination boundary 输入。MTP-200 不移动 source files，不删除 OrderBookImbalance，不移动 StrategyBindings，不修改 `Package.swift`，不写 Swift business code，不新增 SwiftPM target、product 或 dependency，不做 target graph split，不实现 Strategy runtime、Trader runtime、ExecutionClient、OMS、broker command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command 或 order form；不运行 Symphony、Graphify 或 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+MTP-200-NON-EMA-ANCHOR-AUDIT-VALIDATION 的本地验证要求：`git diff --check` 无输出；`bash checks/run.sh` 通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest，最终输出 `MTPRO checks passed.`。完整验收仍以本次 PR 前本地验证和 GitHub required check `checks` 为准。MTP-200 完成后不得自动推进 MTP-201；必须等待 PR/check/merge、root main fast-forward、Linear Done 和 post-issue ledger evidence 后，再由 Parent Codex queue preflight 判断唯一 eligible next issue。
+
 ## Known CI Boundary
 
 临时 CI 平台边界：
