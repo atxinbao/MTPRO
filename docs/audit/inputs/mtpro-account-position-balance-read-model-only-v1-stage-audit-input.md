@@ -150,8 +150,8 @@ Parent Codex 输出最终 Stage Code Audit Report 时必须检查：
 | --- | --- |
 | `GOAL.md` | 本 Project 完成后只证明 L3.1 Account / Position / Balance Read-model-only evidence boundary 已闭环；不代表真实账户读取、private stream、broker readiness、Live PRO Console readiness、live runtime readiness 或真实交易授权。 |
 | `BLUEPRINT.md` | Account / Position / Balance read-model-only 可以作为 Future Live 路线的 read-model evidence input；signed endpoint、account endpoint / listenKey、private WebSocket、account snapshot runtime、broker、OMS、production operations 和 Live PRO Console 仍属于 Future Construction Zones。 |
-| `docs/environment.md` | 本 Project 未新增 required validation 入口、secret 读取、broker credential、外部写能力、signed endpoint、account endpoint、listenKey、真实账户读取或 production operations；统一验证入口仍是 `bash checks/run.sh`。 |
-| `docs/architecture.md` | Core / App / Dashboard 边界继续成立；L3.1 evidence 沿 contract / deterministic fixture -> App read model / ViewModel -> Dashboard / Report / Event Timeline evidence surface 流动，不读取 adapter、Runtime object、SQLite / DuckDB schema、真实账户 / broker state 或 production operations state。 |
+| `environment.md` | 本 Project 未新增 required validation 入口、secret 读取、broker credential、外部写能力、signed endpoint、account endpoint、listenKey、真实账户读取或 production operations；统一验证入口仍是 `bash checks/run.sh`。 |
+| `architecture.md` | Core / App / Dashboard 边界继续成立；L3.1 evidence 沿 contract / deterministic fixture -> App read model / ViewModel -> Dashboard / Report / Event Timeline evidence surface 流动，不读取 adapter、Runtime object、SQLite / DuckDB schema、真实账户 / broker state 或 production operations state。 |
 | `docs/roadmap.md` | Project 完成后需要由 Parent Codex 设置或确认 Linear Project `Completed`，再通过 Stage Code Audit Report、Root Docs Refresh Gate 和 final closure summary 同步已发生事实；MTP-139 不直接修改下一阶段路线，不创建下一 Project / Issue。 |
 
 ## Stage Code Audit handoff checklist
@@ -163,5 +163,5 @@ Parent Codex 输出最终 Stage Code Audit Report 时必须检查：
 - Issue / PR evidence：PR #245、#246、#247、#248、#249、#250 和 MTP-139 PR。
 - Validation：每个 PR 的 GitHub required check `checks`，以及最终本地 `bash checks/run.sh`。
 - Boundary Audit：account / position / balance terminology、account snapshot identity、position snapshot identity、balance snapshot identity、deterministic fixture、forbidden real account tests、Workbench / Report / Events APB surface、Dashboard smoke `accountPositionBalanceEvidence=3`、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、broker position sync、real account balance、margin、leverage、real PnL、broker adapter、`LiveExecutionAdapter`、OMS、real order lifecycle、real submit / cancel / replace、execution report、broker fill、reconciliation、API key input、secret storage、Live PRO Console、live command、order form、trading button、Graphify update 和 Figma change 禁区。
-- Root Docs Delta：检查 `GOAL.md`、`BLUEPRINT.md`、`docs/environment.md`、`docs/architecture.md`、`docs/roadmap.md`。
+- Root Docs Delta：检查 `GOAL.md`、`BLUEPRINT.md`、`environment.md`、`architecture.md`、`docs/roadmap.md`。
 - Residual Notes For Human Planning：下一阶段只作为 Human + `@001 / PLN` planning input，不授权自动创建或推进 issue。

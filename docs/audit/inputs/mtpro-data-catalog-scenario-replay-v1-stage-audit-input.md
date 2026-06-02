@@ -144,8 +144,8 @@ Parent Codex 输出最终 Stage Code Audit Report 时必须检查：
 | --- | --- |
 | `GOAL.md` | 本 Project 完成后只证明 Local Data Catalog / Scenario Replay 的 local-first deterministic data foundation 已形成；不代表 Simulated Exchange / Backtest Parity、production data platform、Live trading、broker / OMS、signed endpoint、account endpoint / listenKey、Live PRO Console 或 trading button 已实现。 |
 | `BLUEPRINT.md` | Scenario replay evidence 可以作为后续 Simulated Exchange / Backtest Parity、Workbench beta demo path 和 report reproducibility 的数据地基；Future Live、signed endpoint、broker、OMS 和 Live PRO Console 仍属于 Future Construction Zones。 |
-| `docs/environment.md` | 本 Project 未新增 required validation 入口、secret 读取、broker credential、外部写能力、signed endpoint、account endpoint、listenKey、真实账户读取或网络必需验证；统一验证入口仍是 `bash checks/run.sh`。 |
-| `docs/architecture.md` | Core / App / Dashboard 边界继续成立；scenario replay evidence 沿 local deterministic fixture -> replay evidence -> quality / report input version -> read model / ViewModel -> Workbench evidence surface 流动，不读取 adapter、Runtime object、SQLite / DuckDB schema、真实账户 / broker state 或 production operations state。 |
+| `environment.md` | 本 Project 未新增 required validation 入口、secret 读取、broker credential、外部写能力、signed endpoint、account endpoint、listenKey、真实账户读取或网络必需验证；统一验证入口仍是 `bash checks/run.sh`。 |
+| `architecture.md` | Core / App / Dashboard 边界继续成立；scenario replay evidence 沿 local deterministic fixture -> replay evidence -> quality / report input version -> read model / ViewModel -> Workbench evidence surface 流动，不读取 adapter、Runtime object、SQLite / DuckDB schema、真实账户 / broker state 或 production operations state。 |
 | `docs/roadmap.md` | Project 完成后需要由 Parent Codex 设置或确认 Linear Project `Completed`，再通过 Stage Code Audit Report、Root Docs Refresh Gate 和当前阶段完成进度条同步已发生事实；MTP-109 不直接修改下一阶段路线，不创建下一 Project / Issue。 |
 
 ## Stage Code Audit handoff checklist
@@ -158,6 +158,6 @@ Parent Codex 输出最终 Stage Code Audit Report 时必须检查：
 - Validation：每个 PR 的 GitHub required check `checks`，以及最终本地 `bash checks/run.sh`。
 - Boundary Audit：terminology、manifest identity、fixture version、fixed window / record order、replay cursor、checksum / freshness、data quality gates、report input versioning、Report / Dashboard / Event Timeline read-model-only evidence、Dashboard smoke scenario replay handles、manifest parser、Runtime replay job、production data platform、automatic download / repair、schema leakage、adapter request leakage、Runtime object read、Graphify update、Figma change、Linear mutation、signed endpoint、account endpoint、listenKey、broker action、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、live command、order form、query language 和 trading button 禁区。
 - Known CI Boundary：如本 Project 没有新增临时 CI 平台边界，应明确记录无新增；若 MTP-109 PR 暴露失败，按事实记录。
-- Root Docs Delta：检查 `GOAL.md`、`BLUEPRINT.md`、`docs/environment.md`、`docs/architecture.md`、`docs/roadmap.md`。
+- Root Docs Delta：检查 `GOAL.md`、`BLUEPRINT.md`、`environment.md`、`architecture.md`、`docs/roadmap.md`。
 - Current Phase Progress Bar：Root Docs Refresh Gate closure 后由 `@002 / PAR` 按 `GOAL.md` / `docs/roadmap.md` 目标切片输出，不按 Project closure count 直接计算目标完成度。
 - Residual Notes For Human Planning：下一阶段只作为 Human + `@001 / PLN` planning input，不授权自动创建或推进 issue。

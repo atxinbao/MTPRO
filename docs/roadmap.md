@@ -4,7 +4,7 @@
 
 ROADMAP 只定义阶段地图，不授权执行。正式执行必须来自 Linear live-read 中唯一 configured executable issue，并通过 Parent Codex queue preflight、Codex Execution Agent 和 GitHub PR Automation。
 
-完整产品终局和 Future Construction Zones / 未来建设区见 `BLUEPRINT.md`；工程模块细节见 `docs/architecture.md`。
+完整产品终局和 Future Construction Zones / 未来建设区见 `BLUEPRINT.md`；工程模块细节见 `architecture.md`。
 
 ## Roadmap Responsibility / 路线职责
 
@@ -24,7 +24,7 @@ ROADMAP 只定义阶段地图，不授权执行。正式执行必须来自 Linea
 ```text
 GOAL.md
 -> BLUEPRINT.md
--> docs/architecture.md
+-> architecture.md
 -> docs/audit/<project-stage-code-audit>.md
 -> docs/validation/latest-verification-summary.md
 -> Linear Project live state
@@ -34,7 +34,7 @@ GOAL.md
 
 - `GOAL.md` 提供目标切片和硬边界。
 - `BLUEPRINT.md` 提供完整产品终局、Current / Future 分界和 Live gates。
-- `docs/architecture.md` 提供工程模块地图和模块依赖方向。
+- `architecture.md` 提供工程模块地图和模块依赖方向。
 - `docs/audit/` 提供已完成 Project 的事实证据。
 - `docs/validation/latest-verification-summary.md` 提供最近验证和当前边界。
 - Linear live-read 只用于确认 Project / issue 当前状态，不写死到本文档中。
@@ -172,7 +172,7 @@ L1 `MTPRO Event-Driven Paper Trading Runtime v1`、L1.5 `MTPRO Data Catalog / Sc
 下一阶段 planning 只能从 `BLUEPRINT.md` 的 Future Construction Zones / 未来建设区中选择一个清晰切片，并把它收敛为 Project Planning Record。选择切片时必须满足：
 
 - 能对应 `GOAL.md` 的某个 Final Product Goal Slice。
-- 能落到 `docs/architecture.md` 中可解释的工程模块或模块边界。
+- 能落到 `architecture.md` 中可解释的工程模块或模块边界。
 - 能被拆成 WIP=1 的 Linear issue queue。
 - 能用 deterministic validation、PR evidence、Stage Code Audit 和 Root Docs Refresh 收口。
 - 不把多个 future capability 一次性打包成模糊大 Project。

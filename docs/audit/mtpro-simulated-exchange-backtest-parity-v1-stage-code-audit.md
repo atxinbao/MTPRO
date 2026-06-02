@@ -219,8 +219,8 @@ local scenario replay identity
 | --- | --- |
 | `GOAL.md` | 需要同步 `L2 Simulated Exchange / Backtest Parity` 本阶段闭环已完成；Engine Maturity Roadmap Progress 应从 `2 / 4 (50%)` 更新为 `3 / 4 (75%)`；Final Product Goal Progress 必须保持 `9 / 9 (100%)`。 |
 | `BLUEPRINT.md` | 需要把 `MTPRO Simulated Exchange / Backtest Parity v1` 从 Next candidate / planning record 事实刷新为已完成 Project，并保留 Future Live / signed endpoint / broker / OMS / Live PRO Console gated 边界。 |
-| `docs/environment.md` | 预计 no update needed：本 Project 未新增 required validation 入口、secret 读取、broker credential、外部写能力、signed endpoint、account endpoint、listenKey、真实账户读取或网络必需验证；统一验证入口仍是 `bash checks/run.sh`。 |
-| `docs/architecture.md` | 需要同步 L2 parity evidence chain 已完成：local scenario replay identity -> shared order input -> deterministic matching -> simulated execution -> cost parity -> portfolio projection parity -> Read Model / ViewModel -> Report / Dashboard / Event Timeline。 |
+| `environment.md` | 预计 no update needed：本 Project 未新增 required validation 入口、secret 读取、broker credential、外部写能力、signed endpoint、account endpoint、listenKey、真实账户读取或网络必需验证；统一验证入口仍是 `bash checks/run.sh`。 |
+| `architecture.md` | 需要同步 L2 parity evidence chain 已完成：local scenario replay identity -> shared order input -> deterministic matching -> simulated execution -> cost parity -> portfolio projection parity -> Read Model / ViewModel -> Report / Dashboard / Event Timeline。 |
 | `docs/roadmap.md` | 需要把 Engine Maturity Roadmap 中 `L2 Simulated Exchange / Backtest Parity` 更新为 Done，`L2+ Workbench Beta Readiness` 更新为 Next candidate，并记录 Stage Code Audit Report 路径；不改变 Final Product Goal Progress `9 / 9 (100%)`。 |
 | `docs/validation/latest-verification-summary.md` | 需要把最近完成 Project、Stage Code Audit Report、Project closure evidence 和 validation baseline 更新为本 Project。 |
 | `docs/automation/automation-readiness.md` / `checks/automation-readiness.sh` | 如 Root Docs Refresh Gate 需要机械 anchor，应只增加 docs/checks-only anchors，不写业务代码。 |
@@ -230,4 +230,4 @@ local scenario replay identity
 
 Root Docs Refresh Gate：closed。
 
-Root Docs Refresh Gate 已在本报告 PR merge 后由 `@002 / PAR` 单独执行，只同步已发生事实：`GOAL.md`、`BLUEPRINT.md`、`docs/architecture.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md`、`checks/automation-readiness.sh` 和 `verification.md` 已同步 `L2 Simulated Exchange / Backtest Parity complete`、`Engine Maturity Roadmap Progress: 3 / 4 (75%)` 和 `Next recommended maturity slice: L2+ Workbench Beta Readiness v1`。本 Gate 不创建下一 Project / Issue，不推进 `Todo`，不启动 Symphony，不运行 Graphify，不修改 Figma，不写业务 runtime，不授权下一阶段 planning 或 execution。
+Root Docs Refresh Gate 已在本报告 PR merge 后由 `@002 / PAR` 单独执行，只同步已发生事实：`GOAL.md`、`BLUEPRINT.md`、`architecture.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md`、`checks/automation-readiness.sh` 和 `verification.md` 已同步 `L2 Simulated Exchange / Backtest Parity complete`、`Engine Maturity Roadmap Progress: 3 / 4 (75%)` 和 `Next recommended maturity slice: L2+ Workbench Beta Readiness v1`。本 Gate 不创建下一 Project / Issue，不推进 `Todo`，不启动 Symphony，不运行 Graphify，不修改 Figma，不写业务 runtime，不授权下一阶段 planning 或 execution。

@@ -42,7 +42,7 @@ MTPRO 首先服务个人专业交易者 / 独立策略研究者：
 ## 当前成功标准
 
 - `BLUEPRINT.md` 保持最终产品 / 系统 / 设计蓝图清楚。
-- `docs/architecture.md` 保持工程模块地图、边界、数据流和不变量清楚。
+- `architecture.md` 保持工程模块地图、边界、数据流和不变量清楚。
 - `docs/roadmap.md` 保持已批准阶段、目标切片和两层进度条清楚。
 - Linear / PR / Stage Code Audit evidence 能追溯每个已完成建设阶段。
 - SwiftPM baseline、Dashboard smoke 和统一验证入口 `bash checks/run.sh` 持续可运行。

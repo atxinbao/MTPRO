@@ -142,8 +142,8 @@ Next Human Project Planning 必须读取该文件。
 Stage Code Audit Report 合并后，Parent Codex 必须检查：
 
 - `GOAL.md`
-- `docs/environment.md`
-- `docs/architecture.md`
+- `environment.md`
+- `architecture.md`
 - `docs/roadmap.md`
 
 Root Docs Delta 只同步已发生事实。

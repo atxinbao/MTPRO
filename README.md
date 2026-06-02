@@ -14,8 +14,8 @@ Agent 进入仓库时按以下顺序读取：
 2. `AGENTS.md`
 3. `GOAL.md`
 4. `BLUEPRINT.md`
-5. `docs/environment.md`
-6. `docs/architecture.md`
+5. `environment.md`
+6. `architecture.md`
 7. `docs/roadmap.md`
 8. `docs/domain/context.md`
 9. `docs/validation/latest-verification-summary.md`
@@ -28,8 +28,8 @@ Agent 进入仓库时按以下顺序读取：
 | --- | --- |
 | `GOAL.md` | Project Charter：为什么建、服务谁、永久硬边界和成功标准 |
 | `BLUEPRINT.md` | Canonical Blueprint：Root Blueprint + Complete Blueprint，定义最终产品 / 系统 / 设计蓝图和 Current / Future 边界 |
-| `docs/environment.md` | Environment Boundary：本地环境、验证入口、外部系统能力和禁区 |
-| `docs/architecture.md` | Engineering Module Map / 工程模块地图：根据蓝图拆工程模块、边界、数据流、接口关系和不变量 |
+| `environment.md` | Environment Boundary：本地环境、验证入口、外部系统能力和禁区 |
+| `architecture.md` | Engineering Module Map / 工程模块地图：根据蓝图拆工程模块、边界、数据流、接口关系和不变量 |
 | `docs/roadmap.md` | Construction Plan：根据蓝图和工程模块定义施工顺序、目标进度和下一阶段 handoff |
 | `docs/domain/context.md` | Shared Language：领域术语、禁止混用词、paper-only / live-gated 语义 |
 | `docs/automation/agent-engineering-practices.md` | 从 `mattpocock/skills` 吸收的 feedback loop、tracer bullet、diagnose、architecture deepening 方法 |
@@ -39,7 +39,7 @@ Agent 进入仓库时按以下顺序读取：
 | `docs/audit/` | Project 级 Stage Code Audit Reports 和 stage audit inputs |
 | `verification.md` | append-only 完整验证流水账，仅用于审计、追溯和 debug |
 
-`docs/environment.md`、`docs/architecture.md`、`docs/roadmap.md` 是二级权重文档：它们只能承接并细化 `BLUEPRINT.md`，不能推翻 `BLUEPRINT.md`。
+`environment.md`、`architecture.md` 是根目录高权重承接文档，`docs/roadmap.md` 是施工路线文档。它们只能承接并细化 `BLUEPRINT.md`，不能推翻 `GOAL.md` 或 `BLUEPRINT.md`。
 
 ## 当前边界
 
@@ -64,19 +64,19 @@ Linear Project / Issues
 
 ```text
 Sources/
-  Core/          领域模型、事件、策略、paper-only execution contract
-  Adapters/      Binance public read-only market data boundary
-  Persistence/   append-only Event Log、SQLite / DuckDB projections
-  Runtime/       ingest / event log / replay / projection orchestration
-  App/           ViewModel / Read Model / Command Model boundary
-  Dashboard/     SwiftPM macOS dashboard shell
-
-Tests/
-  CoreTests/
-  AdaptersTests/
-  PersistenceTests/
-  RuntimeTests/
-  AppTests/
+  DomainModel/       领域模型、事件、命令和 shared semantics
+  MessageBus/        内部 command / event / request-response spine
+  DataClient/        venue-scoped public-read-only data input boundary
+  DataEngine/        ingest / replay / data quality / scenario boundary
+  Cache/             instruments / market data / orders / positions cache boundary
+  Database/          SQLite / DuckDB projection and persistence boundary
+  Trader/            accounts + strategies + coordination container
+  Portfolio/         portfolio / position / exposure read-model context
+  RiskEngine/        paper / simulated / future live risk gate boundary
+  ExecutionEngine/   paper / simulated execution lifecycle boundary
+  ExecutionClient/   future-gated external execution client boundary
+  Workbench/         ReadModel / ViewModel / Report / Events / Dashboard surface
+  Dashboard/         SwiftPM macOS dashboard shell
 ```
 
 ## 本地验证

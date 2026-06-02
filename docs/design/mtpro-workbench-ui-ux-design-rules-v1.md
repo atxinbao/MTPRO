@@ -216,7 +216,7 @@ UI / UX 规则明确禁止出现以下表面：
 
 ## 14. `@005 / ARC` Review Result
 
-`@005 / ARC` 已只读审查 Figma canonical `51:2` 的 `MTPRO Workbench UI/UX Design Rules v1`，并对照已落仓的 Product Interaction Model、Screen Layout v1、Product Surface Map、`BLUEPRINT.md`、`docs/architecture.md` 和 `docs/validation/latest-verification-summary.md`。
+`@005 / ARC` 已只读审查 Figma canonical `51:2` 的 `MTPRO Workbench UI/UX Design Rules v1`，并对照已落仓的 Product Interaction Model、Screen Layout v1、Product Surface Map、`BLUEPRINT.md`、`architecture.md` 和 `docs/validation/latest-verification-summary.md`。
 
 审查结论：通过。
 
@@ -247,7 +247,7 @@ UI / UX 规则明确禁止出现以下表面：
 - `docs/product/mtpro-workbench-user-flow-blueprint-v1.md` 的产品用户动线依据。
 - `docs/product/mtpro-product-interaction-model-v1.md` 的产品交互模型。
 - `docs/design/mtpro-workbench-screen-layout-v1.md` 的 screen layout 依据。
-- `docs/architecture.md` 的 Engineering Module Map。
+- `architecture.md` 的 Engineering Module Map。
 - Linear issue body 的 execution contract。
 
 后续如果要进入最终高保真 UI、组件规范或 SwiftUI 实现，必须先通过 Human + `@001 / PLN` 形成 Project / Issue draft，并由 Linear live-read、Parent Codex queue preflight 和唯一 configured executable issue 授权。

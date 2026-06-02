@@ -214,8 +214,8 @@ deterministic TradingClock / paper command intake
 | --- | --- |
 | `GOAL.md` | 需要检查是否只同步已发生事实：`L1 Paper Runtime` 本阶段闭环已完成；不能把它写成真实 Live trading、broker / OMS、production trading engine 或 Live PRO Console completion。 |
 | `BLUEPRINT.md` | 需要检查 Product / Architecture Blueprint 中 `MTPRO Event-Driven Paper Trading Runtime v1` 是否仍被描述为 planning / candidate；若需要更新，只能同步 paper-only L1 runtime evidence chain 已 closure。 |
-| `docs/environment.md` | 预计 no update needed：本 Project 未新增 required validation 入口、secret 读取、broker credential、外部写能力、signed endpoint、account endpoint、listenKey、真实账户读取或网络必需验证；统一验证入口仍是 `bash checks/run.sh`。 |
-| `docs/architecture.md` | 需要检查 Engineering Layer Map / Capability Flow Map 是否需要同步 L1 Paper Runtime 已完成：TradingClock、routing、paper risk、local lifecycle、simulated fill、paper portfolio projection 和 read-model-only evidence chain。 |
+| `environment.md` | 预计 no update needed：本 Project 未新增 required validation 入口、secret 读取、broker credential、外部写能力、signed endpoint、account endpoint、listenKey、真实账户读取或网络必需验证；统一验证入口仍是 `bash checks/run.sh`。 |
+| `architecture.md` | 需要检查 Engineering Layer Map / Capability Flow Map 是否需要同步 L1 Paper Runtime 已完成：TradingClock、routing、paper risk、local lifecycle、simulated fill、paper portfolio projection 和 read-model-only evidence chain。 |
 | `docs/roadmap.md` | 需要把 Module Maturity Development Plan Stage 1 从 planning / current priority 更新为 Completed，并记录 Stage Code Audit Report 路径；不改变 Final Product Goal Progress `9 / 9 (100%)`。 |
 | `docs/validation/latest-verification-summary.md` | 需要把最近完成 Project、Stage Code Audit Report、Project closure evidence 和 validation baseline 更新为本 Project。 |
 | `verification.md` | 需要追加 Stage Code Audit 和 Root Docs Refresh Gate compact record。 |
@@ -229,8 +229,8 @@ Root Docs Refresh Gate：closed。
 
 - `GOAL.md`：updated。同步 `L1 Paper Runtime` 本阶段闭环已完成，并明确不改变 Final Product Goal Progress `9 / 9 (100%)`，不代表真实 Live trading、broker / OMS、Live PRO Console 或 production trading engine。
 - `BLUEPRINT.md`：updated。把 `MTPRO Event-Driven Paper Trading Runtime v1` 从 planning / candidate 事实刷新为已完成 Project，并保留 future gated 边界。
-- `docs/environment.md`：no update needed。本 Project 未新增 required validation 入口、secret 读取、broker credential、外部写能力、signed endpoint、account endpoint、listenKey、真实账户读取或网络必需验证；统一验证入口仍是 `bash checks/run.sh`。
-- `docs/architecture.md`：updated。同步 L1 Paper Runtime 已完成的 TradingClock、routing、paper risk、local lifecycle、simulated fill、paper portfolio projection 和 read-model-only evidence chain。
+- `environment.md`：no update needed。本 Project 未新增 required validation 入口、secret 读取、broker credential、外部写能力、signed endpoint、account endpoint、listenKey、真实账户读取或网络必需验证；统一验证入口仍是 `bash checks/run.sh`。
+- `architecture.md`：updated。同步 L1 Paper Runtime 已完成的 TradingClock、routing、paper risk、local lifecycle、simulated fill、paper portfolio projection 和 read-model-only evidence chain。
 - `docs/roadmap.md`：updated。Module Maturity Development Plan Stage 1 更新为 Completed，Project Closure Count 更新为 `13 / 13 (100%)`，Final Product Goal Progress 保持 `9 / 9 (100%)`。
 - `docs/validation/latest-verification-summary.md`：updated。同步最近完成 Project、Stage Code Audit Report、Project closure evidence、validation baseline 和 Root Docs Refresh Gate closure。
 - `docs/automation/automation-readiness.md` / `checks/automation-readiness.sh`：updated。新增 Stage Code Audit Report mechanical anchor。

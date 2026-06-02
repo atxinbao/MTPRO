@@ -26,7 +26,7 @@
 - `docs/product/mtpro-codebase-reference-gap-map-v1.md`
 - `docs/product/mtpro-reference-alignment-gap-map-v1.md`
 - `BLUEPRINT.md`
-- `docs/architecture.md`
+- `architecture.md`
 - `docs/roadmap.md`
 - `docs/validation/latest-verification-summary.md`
 

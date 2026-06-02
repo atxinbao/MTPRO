@@ -120,8 +120,8 @@ Post-Issue Ledger 对 `MTP-74` 已执行，但持久仓 `/Users/mac/Documents/MT
 | --- | --- |
 | `GOAL.md` | updated：Final Product Goal Progress 从 `5 / 9 (56%)` 更新为 `6 / 9 (67%)`，并明确第 6 项只完成 read-model-only monitoring evidence surface，不代表真实 live runtime、signed/account stream、broker stream 或交易控制。 |
 | `BLUEPRINT.md` | updated：Live Monitoring Console 从 In Progress 改为 Complete / read-model-only evidence surface；Future Live Execution、Future Live Risk、Future Incident Replay / Stop Controls 仍保持 Future Gated。 |
-| `docs/environment.md` | no update needed：本 Project 未新增 required validation 入口、secret 读取、broker credential、外部写能力、production telemetry 或网络必需验证；统一验证入口仍是 `bash checks/run.sh`。 |
-| `docs/architecture.md` | updated：Live monitoring console read-model-only evidence chain、Core / App / Dashboard evidence flow 和 no adapter / runtime / schema leakage 边界已同步为已完成事实。 |
+| `environment.md` | no update needed：本 Project 未新增 required validation 入口、secret 读取、broker credential、外部写能力、production telemetry 或网络必需验证；统一验证入口仍是 `bash checks/run.sh`。 |
+| `architecture.md` | updated：Live monitoring console read-model-only evidence chain、Core / App / Dashboard evidence flow 和 no adapter / runtime / schema leakage 边界已同步为已完成事实。 |
 | `docs/roadmap.md` | updated：新增 `MTPRO Live Monitoring Console v1` 为 Completed，Project Closure Count 更新为 `9 / 9 (100%)`，Final Product Goal Progress 更新为 `6 / 9 (67%)`。 |
 
 Root Docs Refresh Gate closure：closed。

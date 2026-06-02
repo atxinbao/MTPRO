@@ -118,8 +118,8 @@ Post-Issue Ledger 对 `MTP-67` 已执行，但持久仓 `/Users/mac/Documents/MT
 | --- | --- |
 | `GOAL.md` | updated：已同步 “实盘交易基础边界” 从 Pending / gated 进入 Complete 的事实，并保留 Live trading 未实现、signed endpoint / broker / real order 仍为 future gated 的边界。 |
 | `BLUEPRINT.md` | no update expected：`BLUEPRINT.md` 已把 Future Live 保持为 Future Construction Zones / 未来建设区；本 Project 只增加 gate、blocked evidence 和 read-model-only surface 的事实证据，不改变完整蓝图方向。 |
-| `docs/environment.md` | no update expected：本 Project 未新增 required validation 入口、secret 读取、broker credential 或外部写能力；统一验证入口仍是 `bash checks/run.sh`。 |
-| `docs/architecture.md` | updated：已同步 Core / Adapters / App / Dashboard 的 Live boundary evidence flow，明确 public read-only adapter 与 future execution adapter 隔离，App / Dashboard 只消费 read model / ViewModel。 |
+| `environment.md` | no update expected：本 Project 未新增 required validation 入口、secret 读取、broker credential 或外部写能力；统一验证入口仍是 `bash checks/run.sh`。 |
+| `architecture.md` | updated：已同步 Core / Adapters / App / Dashboard 的 Live boundary evidence flow，明确 public read-only adapter 与 future execution adapter 隔离，App / Dashboard 只消费 read model / ViewModel。 |
 | `docs/roadmap.md` | updated：已新增 `MTPRO Live Trading Boundary Definition v1` 为 Completed，并重新计算 Current Foundation Progress、Final Product Goal Progress 和 Project Closure Count。 |
 
 Root Docs Refresh Gate closure：closed。

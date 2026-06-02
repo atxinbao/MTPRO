@@ -115,8 +115,8 @@ Post-Issue Ledger 对 `MTP-81` 已执行，但持久仓 `/Users/mac/Documents/MT
 | --- | --- |
 | `GOAL.md` | updated：Final Product Goal Progress 从 `6 / 9 (67%)` 更新为 `7 / 9 (78%)`，并明确第 7 项只完成 execution-control contract、future gates、forbidden capability tests、blocked evidence 和 read-model-only evidence surface，不代表真实 execution runtime、真实订单命令、broker fill、execution report 或 reconciliation。 |
 | `BLUEPRINT.md` | updated：Live Execution Control 从 Pending / gated 改为 Complete / contract + blocked evidence；Future Live Risk 和 Future Incident Replay / Stop Controls 仍保持 Future Gated。 |
-| `docs/environment.md` | no update needed：本 Project 未新增 required validation 入口、secret 读取、broker credential、外部写能力、signed endpoint、account endpoint、listenKey 或网络必需验证；统一验证入口仍是 `bash checks/run.sh`。 |
-| `docs/architecture.md` | updated：同步 LiveExecutionControl read-model-only blocked evidence flow、Core / App / Dashboard evidence surface 和真实 execution runtime / broker / schema / command 禁区。 |
+| `environment.md` | no update needed：本 Project 未新增 required validation 入口、secret 读取、broker credential、外部写能力、signed endpoint、account endpoint、listenKey 或网络必需验证；统一验证入口仍是 `bash checks/run.sh`。 |
+| `architecture.md` | updated：同步 LiveExecutionControl read-model-only blocked evidence flow、Core / App / Dashboard evidence surface 和真实 execution runtime / broker / schema / command 禁区。 |
 | `docs/roadmap.md` | updated：新增 `MTPRO Live Execution Control Contract v1` 为 Completed，Project Closure Count 更新为 `10 / 10 (100%)`，Final Product Goal Progress 更新为 `7 / 9 (78%)`。 |
 
 Root Docs Refresh Gate closure：closed。

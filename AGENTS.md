@@ -10,8 +10,8 @@ Agent 开始工作前必须读取：
 2. `AGENTS.md`
 3. `GOAL.md`
 4. `BLUEPRINT.md`
-5. `docs/environment.md`
-6. `docs/architecture.md`
+5. `environment.md`
+6. `architecture.md`
 7. `docs/roadmap.md`
 8. `docs/domain/context.md`
 9. `docs/validation/latest-verification-summary.md`
@@ -23,7 +23,7 @@ Agent 开始工作前必须读取：
 ## 核心硬规则
 
 - 所有正式文档写入必须使用中文。
-- `GOAL.md` 是 Project Charter，`BLUEPRINT.md` 是 canonical Root Blueprint + Complete Blueprint，`docs/architecture.md` 是 Engineering Module Map / 工程模块地图，`docs/roadmap.md` 是 Construction Plan。
+- `GOAL.md` 是 Project Charter，`BLUEPRINT.md` 是 canonical Root Blueprint + Complete Blueprint，`architecture.md` 是 Engineering Module Map / 工程模块地图，`docs/roadmap.md` 是 Construction Plan。
 - `docs/domain/context.md` 是 MTPRO shared language；Project Planning、Linear issue、PR、Stage Audit、public type 注释和验证证据必须优先复用其中 canonical terms。
 - `docs/automation/agent-engineering-practices.md` 是 skill-derived 工程实践入口；执行 issue 时必须遵守 Feedback Loop First、TDD / Tracer Bullet、Diagnose Loop、Architecture Deepening Review 和 Handoff Discipline。
 - `docs/roadmap.md`、Project Planning Record、Backlog issue、label、priority、assignee 都不授权执行。

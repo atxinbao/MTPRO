@@ -192,8 +192,8 @@ Mechanical boundary phrases for automation readiness:
 | --- | --- |
 | `GOAL.md` | 需要同步已发生事实：`L3.1 Account / Position / Balance Read-model-only` 已完成 read-model-only evidence boundary 闭环。旧 `Final Product Goal Progress: 9 / 9 (100%)` 和旧 `Engine Maturity Roadmap Progress: 4 / 4 (100%)` 保持不变，不继续扩大 denominator。 |
 | `BLUEPRINT.md` | 只同步 L3.1 已完成事实；L3.2 / L3.3 / L3.4 / L4 仍为 Future Gated，不得写成当前 execution scope。 |
-| `docs/environment.md` | 可记录本 Project 未新增 secret、private endpoint、broker credential、production operations 或新 validation entry；统一验证入口仍是 `bash checks/run.sh`。 |
-| `docs/architecture.md` | 可标记 L3.1 APB evidence chain 已完成：contract / deterministic fixture -> App read model / ViewModel -> Dashboard / Report / Event Timeline；不得把 signed/account/broker/OMS/live command 模块写成当前 runtime。 |
+| `environment.md` | 可记录本 Project 未新增 secret、private endpoint、broker credential、production operations 或新 validation entry；统一验证入口仍是 `bash checks/run.sh`。 |
+| `architecture.md` | 可标记 L3.1 APB evidence chain 已完成：contract / deterministic fixture -> App read model / ViewModel -> Dashboard / Report / Event Timeline；不得把 signed/account/broker/OMS/live command 模块写成当前 runtime。 |
 | `docs/roadmap.md` | 将 Completed Project Map 增加 `MTPRO Account / Position / Balance Read-model-only v1`，Project Closure Count 从 `17 / 17` 更新为 `18 / 18`；Current maturity statement 可更新为 `L3.1 Account / Position / Balance Read-model-only complete`，Next maturity planning candidate 为 `L3.2 Private Stream / Account Snapshot Simulation Gate`，但旧 Engine Maturity Roadmap Progress 保持 `4 / 4 (100%)`。 |
 | `docs/product/mtpro-live-readiness-roadmap-v1.md` | 将 L3.1 标记为 Done / not counted in old denominator；L3.2 / L3.3 / L3.4 / L4 仍为 Future Gated。 |
 | `docs/validation/latest-verification-summary.md` | 需要记录 Stage Code Audit PR evidence、Root Docs Refresh PR evidence、最终 main commit、`git diff --check` 和 `bash checks/run.sh` 结果。 |

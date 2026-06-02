@@ -17,7 +17,7 @@
 - `docs/product/mtpro-workbench-user-flow-blueprint-v1.md`
 - `docs/product/product-surface-map.md`
 - `BLUEPRINT.md`
-- `docs/architecture.md`
+- `architecture.md`
 - Figma canonical `15:2`
 
 ## 2. 全局交互原则
@@ -162,5 +162,5 @@ Future Live Execution、Future Live Risk、Future Incident Replay / Stop Control
 
 - 可作为 `docs/product/product-surface-map.md`、`BLUEPRINT.md` 和后续 `docs/design/` 的引用源。
 - 不替代 `BLUEPRINT.md` 的总蓝图地位。
-- 不替代 `docs/architecture.md` 的工程模块地图。
+- 不替代 `architecture.md` 的工程模块地图。
 - 不授权 Linear Project / Issue、Todo 推进、Symphony 启动或业务代码实现。

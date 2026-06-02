@@ -19,7 +19,7 @@
 | `Project Charter` | `GOAL.md`，说明为什么建、服务谁、硬边界和成功标准 | 不叫完整蓝图 |
 | `Root Blueprint` | `BLUEPRINT.md`，项目总览、默认读取顺序和完整蓝图入口 | 不授权执行 |
 | `Complete Blueprint` | `BLUEPRINT.md`，最终产品 / 系统 / 设计蓝图 | 不叫当前 sprint，不叫 issue plan |
-| `Engineering Module Map / 工程模块地图` | `docs/architecture.md`，承接 `BLUEPRINT.md` 的工程模块、模块边界、数据流、接口关系和架构不变量 | 不等于完整未来蓝图，不推翻蓝图 |
+| `Engineering Module Map / 工程模块地图` | `architecture.md`，承接 `BLUEPRINT.md` 的工程模块、模块边界、数据流、接口关系和架构不变量 | 不等于完整未来蓝图，不推翻蓝图 |
 | `Construction Plan` | `docs/roadmap.md`，根据蓝图和工程模块定义施工顺序、当前施工阶段、完成进度和非授权边界 | 不等于 Linear queue |
 | `Current Construction Scope` | Human 当前允许进入规划的施工范围 | 不包含 Future Construction Zones / 未来建设区 |
 | `Future Construction Zones / 未来建设区` | 完整蓝图中的长期能力区，例如 Live、signed endpoint、broker、OMS；可以设计，但当前不施工 | 不得自动变成 Linear issue |
@@ -63,8 +63,8 @@
 | `MessageBus` | facts、events、commands、request / response、engine routing 和 replay invariant 的边界 | 不绕过 RiskEngine / ExecutionEngine，不表示 live command bus |
 | `Cache` | instruments、market data、orders、positions、portfolio summary 的 in-memory / runtime-derived read state boundary | 不负责 durability、schema、DB adapter 或真实 account cache |
 | `Database` | append-only event log、snapshot、projection database 和 replay backing store 的 local durable boundary | 不暴露 SQLite / DuckDB schema 给 UI，不复制 Redis |
-| `Strategies` | strategy lifecycle、quoter / hedger、signals 和 paper/live-neutral proposals 的 strategy-scoped boundary | 不直连 Trader、ExecutionClient、broker command 或 OMS |
-| `Trader` | account context、strategy binding、risk / execution coordination 的 orchestration boundary | 不表示当前 Trader runtime、process manager 或 broker session |
+| `Trader/Strategies` | Trader-owned strategy lifecycle、quoter / hedger、signals 和 paper/live-neutral proposals 的 strategy-scoped boundary | 不直连 ExecutionClient、broker command 或 OMS，不作为平级 `Sources/Strategies` 模块 |
+| `Trader` | account context、strategy instances、risk / execution coordination 的 orchestration boundary | 不表示当前 Trader runtime、process manager 或 broker session |
 | `Account context` | `Trader/Accounts` 内的 account identity、source identity 和 future real account gate | 不拥有 cash、positions、PnL、margin、leverage 或真实账户 payload |
 | `Portfolio` | positions、net positions、cash / equity、margin、open value、paper projection 和 exposure read model boundary | 不读取 broker portfolio，不等于 Trader 子状态 |
 | `RiskEngine` | paper pre-trade risk、blocked evidence 和 future live risk gates 的 risk boundary | 不调用 broker / ExecutionClient，不实现 live risk runtime |
@@ -75,7 +75,7 @@
 
 `MTP-162-OLD-TO-TARGET-MODULE-MAPPING`
 
-旧 target 到目标模块只能按迁移来源解释：`Core` 拆向 `DomainModel` / `MessageBus` / `RiskEngine` / `ExecutionEngine` / `Portfolio` / `Strategies` / `Trader`；`Adapters` 拆向 `DataClient`；`Runtime` 拆向 `DataEngine` / `MessageBus` / `Cache`；`Persistence` 拆向 `Database` / `Cache`；`App` 和 `Dashboard` 拆向 `Workbench` / `Dashboard`；`CSQLite` 只保留为 `Database` implementation detail。该 mapping 不授权新增 runtime，不授权把旧 target 继续当作最终模块。
+旧 target 到目标模块只能按迁移来源解释：`Core` 拆向 `DomainModel` / `MessageBus` / `RiskEngine` / `ExecutionEngine` / `Portfolio` / `Trader`；`Adapters` 拆向 `DataClient`；`Runtime` 拆向 `DataEngine` / `MessageBus` / `Cache`；`Persistence` 拆向 `Database` / `Cache`；`App` 和 `Dashboard` 拆向 `Workbench` / `Dashboard`；`CSQLite` 只保留为 `Database` implementation detail。该 mapping 不授权新增 runtime，不授权把旧 target 继续当作最终模块。
 
 `MTP-162-FUTURE-GATED-MODULE-NAME-NON-AUTHORIZATION`
 
@@ -87,21 +87,21 @@ MTP-162 的验证只证明目标模块术语、旧术语映射、future-gated mo
 
 `MTP-163-FIXED-TARGET-SOURCE-MODULE-LAYOUT`
 
-MTP-163 把 MTP-162 的术语固定成唯一 source layout contract：后续模块迁移只能落到 `Sources/DomainModel/`、`Sources/DataClient/<venue>/`、`Sources/DataEngine/`、`Sources/MessageBus/`、`Sources/Cache/`、`Sources/Database/`、`Sources/Strategies/<strategy>/`、`Sources/Trader/`、`Sources/Portfolio/`、`Sources/RiskEngine/`、`Sources/ExecutionEngine/`、`Sources/ExecutionClient/`、`Sources/Workbench/` 和 `Sources/Dashboard/`。该 layout 是后续 issue 的目标地形，不表示本 issue 已移动文件、修改 `Package.swift` 或创建 SwiftPM target。
+MTP-163 把 MTP-162 的术语固定成 source layout contract。MTP-198 后，当前 forward-looking layout 只能落到 `Sources/DomainModel/`、`Sources/DataClient/<venue>/`、`Sources/DataEngine/`、`Sources/MessageBus/`、`Sources/Cache/`、`Sources/Database/`、`Sources/Trader/Strategies/EMA/`、`Sources/Trader/Coordination/`、`Sources/Trader/`、`Sources/Portfolio/`、`Sources/RiskEngine/`、`Sources/ExecutionEngine/`、`Sources/ExecutionClient/`、`Sources/Workbench/` 和 `Sources/Dashboard/`。该 layout 是后续 issue 的目标地形，不表示本 issue 已修改 `Package.swift` 或创建 SwiftPM target。
 
-MTP-191 之后，MTP-163 中的 `Sources/Strategies/<strategy>/` 只作为 historical / compatibility / superseded layout anchor 保留；forward-looking concrete strategy canonical path 是 `Sources/Trader/Strategies/<strategy>/`。
+MTP-191 之后，MTP-163 中的 `Sources/Strategies/<strategy>/` 只作为 historical / compatibility / superseded layout anchor 保留；MTP-198 之后，forward-looking concrete strategy canonical active path 只有 `Sources/Trader/Strategies/EMA/`。RSI、OrderBookImbalance、Momentum、MeanReversion 等只能作为 future candidate，不进入当前 active source / tests / Package path。
 
 `MTP-163-DEPENDENCY-DIRECTION-CONTRACT`
 
-MTP-163 固定依赖方向：`DataClient` 只依赖 `DomainModel`；`DataEngine` 通过 `DataClient` / `MessageBus` / `Cache` 处理 ingest 和 replay；`Strategies` 只能消费 domain / bus / cache / Portfolio / RiskEngine read-model inputs；`Trader` 可以协调 Strategies / Portfolio / RiskEngine / ExecutionEngine，但不得直连 `ExecutionClient`；`Workbench` 只能消费 ReadModel / ViewModel export。
+MTP-163 固定依赖方向：`DataClient` 只依赖 `DomainModel`；`DataEngine` 通过 `DataClient` / `MessageBus` / `Cache` 处理 ingest 和 replay；`Trader/Strategies/EMA` 只能消费 domain / bus / cache / Portfolio / RiskEngine read-model inputs；`Trader` 可以协调 Strategies / Portfolio / RiskEngine / ExecutionEngine，但不得直连 `ExecutionClient`；`Workbench` 只能消费 ReadModel / ViewModel export。
 
 `MTP-163-FORBIDDEN-PATH-TAXONOMY`
 
-MTP-163 的 forbidden path taxonomy 包括：Strategies -> ExecutionClient、Trader -> ExecutionClient、Workbench -> Runtime object、Workbench -> Adapter request、Workbench -> Database schema、DataClient -> signed/account/listenKey endpoint、RiskEngine -> broker / execution client、Portfolio -> broker account state、ExecutionEngine -> current broker / OMS implementation，以及任何 Live PRO Console / trading button / live command / order form 路径。该 taxonomy 只用于 validation 和后续 migration guard。
+MTP-163 的 forbidden path taxonomy 包括：Trader/Strategies -> ExecutionClient、Trader -> ExecutionClient、Workbench -> Runtime object、Workbench -> Adapter request、Workbench -> Database schema、DataClient -> signed/account/listenKey endpoint、RiskEngine -> broker / execution client、Portfolio -> broker account state、ExecutionEngine -> current broker / OMS implementation，以及任何 Live PRO Console / trading button / live command / order form 路径。该 taxonomy 只用于 validation 和后续 migration guard。
 
 `MTP-163-DATACLIENT-VENUE-STRATEGIES-STRATEGY-DIRECTORY-RULE`
 
-`DataClient/<venue>/` 是 exchange / venue scoped rule，一个交易所一个目录；MTP-163 的 `Strategies/<strategy>` 是历史 strategy scoped rule。MTP-191 之后，后续 strategy scoped rule 是 `Trader/Strategies/<strategy>`，一个策略一个目录；当前示例只能表达 `DataClient/Binance/PublicMarketData`、`DataClient/Binance/FuturePrivateStreamGate` 和 historical / compatibility `Strategies/EMA/` 目录语义，不授权 private stream runtime、signed/account endpoint、strategy runtime 或 trader process manager。
+`DataClient/<venue>/` 是 exchange / venue scoped rule，一个交易所一个目录；MTP-163 的 `Strategies/<strategy>` 是历史 strategy scoped rule。MTP-191 之后，后续 strategy scoped rule 是 `Trader/Strategies/<strategy>`；MTP-198 之后当前 active concrete strategy 只允许 `Trader/Strategies/EMA`。当前示例只能表达 `DataClient/Binance/PublicMarketData`、`DataClient/Binance/FuturePrivateStreamGate` 和 active `Trader/Strategies/EMA/` 目录语义，不授权 private stream runtime、signed/account endpoint、strategy runtime 或 trader process manager。
 
 `MTP-163-TRADER-ACCOUNT-PORTFOLIO-SPLIT`
 
@@ -361,7 +361,7 @@ MTP-172 固定 `Sources/Trader/` 为 strategy / account / risk / execution conte
 
 `MTP-172-ACCOUNTS-COORDINATION-STRATEGYBINDINGS-SPLIT`
 
-`Sources/Trader/Accounts/` 只保存 account context、account identity、source identity 和 future real account gate label；`Sources/Trader/Coordination/` 只表达 strategy / risk / execution context ordering evidence；`Sources/Trader/StrategyBindings/` 只表达 strategy instance 与 Trader context 的 binding evidence。这些 boundary 不拥有 cash、positions、PnL、margin、leverage、broker position、broker state、order form state 或 real account payload。
+`Sources/Trader/Accounts/` 只保存 account context、account identity、source identity 和 future real account gate label；`Sources/Trader/Coordination/` 表达 strategy / risk / execution context ordering evidence，并承载 binding / adapter 语义，例如 `Sources/Trader/Coordination/RiskBinding/`。旧 `Sources/Trader/StrategyBindings/` 只作为 historical / compatibility path，不再是 current active source root。这些 boundary 不拥有 cash、positions、PnL、margin、leverage、broker position、broker state、order form state 或 real account payload。
 
 `MTP-172-STRATEGY-ACCOUNT-RISK-EXECUTION-CONTEXT-COORDINATION`
 
@@ -389,7 +389,7 @@ MTP-172 的验证只证明 Trader coordination boundary、Accounts / Coordinatio
 
 `MTP-191-TRADER-CONTAINER-SPLIT`
 
-`Trader container split` 指 `Sources/Trader/` 下固定包含 `Accounts/`、`Strategies/`、`Coordination/` 和 `StrategyBindings/`：`Strategies/<strategy>/` 保存具体策略定义和 readiness evidence；`Accounts/` 保存 account context identity；`Coordination/` 保存 strategy / account / risk / execution context ordering evidence；`StrategyBindings/` 保存 generic binding protocol / coordination adapter contract。
+`Trader container split` 指当前 `Sources/Trader/` 下固定包含 `Accounts/`、`Strategies/` 和 `Coordination/`：`Strategies/<strategy>/` 保存具体策略定义和 readiness evidence；`Accounts/` 保存 account context identity；`Coordination/` 保存 strategy / account / risk / execution context ordering evidence，并承载 generic binding protocol / coordination adapter contract。旧 `StrategyBindings/` 只作为 MTP-191 / MTP-195 historical compatibility context，不再作为 current active first-level Trader source root。
 
 `MTP-191-STRATEGYBINDINGS-NON-LANDING-GUARD`
 
@@ -417,7 +417,7 @@ Root docs 的 forward-looking strategy path anchor 必须使用 `Sources/Trader/
 
 `MTP-192-TRADER-CONTAINER-STRATEGYBINDINGS-ROOT-DOCS`
 
-Trader shared language 使用 `Trader = Accounts + Strategies + StrategyBindings + Coordination`。`Trader/StrategyBindings` 是 generic binding protocol / coordination adapter，不是具体策略源码落点。
+Trader shared language 使用 `Trader = Accounts + Strategies + Coordination`。binding / adapter 语义归入 `Trader/Coordination`，例如 `Trader/Coordination/RiskBinding`；旧 `Trader/StrategyBindings` 只作为 historical / compatibility path，不是具体策略源码落点，也不是 current active first-level Trader source root。
 
 `MTP-192-NO-SOURCE-MOVE-PACKAGE-RUNTIME-GUARD`
 

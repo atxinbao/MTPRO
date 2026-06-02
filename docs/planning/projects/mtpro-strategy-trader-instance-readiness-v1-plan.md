@@ -52,7 +52,7 @@
 - `GOAL.md`
 - `BLUEPRINT.md`
 - `docs/roadmap.md`
-- `docs/architecture.md`
+- `architecture.md`
 - `docs/product/mtpro-live-readiness-roadmap-v1.md`
 - `docs/validation/latest-verification-summary.md`
 - `docs/audit/mtpro-live-monitoring-read-only-console-v2-stage-code-audit.md`

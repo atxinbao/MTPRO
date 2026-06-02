@@ -202,8 +202,8 @@ Post-Issue Ledger 说明：MTP-153 merge 后已执行 `workspace.post_issue_ledg
 | --- | --- |
 | `GOAL.md` | 同步已发生事实：`L3.3 Live Monitoring Read-only Console v2` 已完成 read-model-only monitoring evidence boundary 闭环。旧 `Final Product Goal Progress: 9 / 9 (100%)` 和旧 `Engine Maturity Roadmap Progress: 4 / 4 (100%)` 保持不变，不继续扩大 denominator。 |
 | `BLUEPRINT.md` | 只同步 L3.3 已完成事实；L3.4 / L4 仍为 Future Gated，不得写成当前 execution scope。 |
-| `docs/environment.md` | 可记录本 Project 未新增 secret、private endpoint、broker credential、production operations 或新 validation entry；统一验证入口仍是 `bash checks/run.sh`。 |
-| `docs/architecture.md` | 可标记 L3.3 evidence chain 已完成：deterministic Core contract -> App read model / ViewModel -> Dashboard / Report / Event Timeline；不得把 signed/account/broker/OMS/live command 模块写成当前 runtime。 |
+| `environment.md` | 可记录本 Project 未新增 secret、private endpoint、broker credential、production operations 或新 validation entry；统一验证入口仍是 `bash checks/run.sh`。 |
+| `architecture.md` | 可标记 L3.3 evidence chain 已完成：deterministic Core contract -> App read model / ViewModel -> Dashboard / Report / Event Timeline；不得把 signed/account/broker/OMS/live command 模块写成当前 runtime。 |
 | `docs/roadmap.md` | 将 Completed Project Map 增加 `MTPRO Live Monitoring Read-only Console v2`，Project Closure Count 从 `19 / 19` 更新为 `20 / 20`；Current maturity statement 更新为 `L3.3 Live Monitoring Read-only Console v2 complete`，Next maturity planning candidate 为 `L3.4 Strategy / Trader Instance Readiness v1`，但旧 Engine Maturity Roadmap Progress 保持 `4 / 4 (100%)`。 |
 | `docs/product/mtpro-live-readiness-roadmap-v1.md` | 将 L3.3 标记为 Done / not counted in old denominator；L3.4 / L4 仍为 Future Gated。 |
 | `docs/validation/latest-verification-summary.md` | 需要记录 Stage Code Audit Report、Root Docs Refresh evidence、最终 main commit、`git diff --check` 和 `bash checks/run.sh` 结果。 |

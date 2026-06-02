@@ -157,7 +157,7 @@ P1 修正记录：
 - `BLUEPRINT.md` 的 Root / Complete Blueprint 地位。
 - `docs/product/mtpro-workbench-user-flow-blueprint-v1.md` 的产品用户动线依据。
 - `docs/product/mtpro-product-interaction-model-v1.md` 的产品交互模型。
-- `docs/architecture.md` 的 Engineering Module Map。
+- `architecture.md` 的 Engineering Module Map。
 - Linear issue body 的 execution contract。
 
 后续如果要进入 SwiftUI 实现，必须先通过 Human + `@001 / PLN` 形成 Project / Issue draft，并由 Linear live-read、Parent Codex queue preflight 和唯一 configured executable issue 授权。

@@ -27,7 +27,7 @@ MTPRO 使用 Codex 时，不能只从当前 Swift 文件开始改代码。
 每个阶段开始前，父 Codex 必须先形成阶段级项目理解：
 
 - 当前 Linear Project 和唯一 active issue。
-- `GOAL.md`、`docs/architecture.md`、`docs/roadmap.md`。
+- `GOAL.md`、`architecture.md`、`docs/roadmap.md`。
 - `docs/contracts/` 中与当前 issue 相关的 contract。
 - `docs/architecture/module-boundary.md`。
 - Linear queue context、latest verification summary 和相关 Stage Code Audit evidence。
@@ -110,7 +110,7 @@ MTPRO 是 macOS 交易研究工作台，后续不能长期只依赖 `swift test`
 文档同步规则：
 
 - API / contract 变化必须同步 `docs/contracts/`。
-- 模块边界变化必须同步 `docs/architecture.md` 或 `docs/architecture/module-boundary.md`。
+- 模块边界变化必须同步 `architecture.md` 或 `docs/architecture/module-boundary.md`。
 - 验证变化必须同步 `docs/validation/validation-plan.md`。
 - 自动化流程变化必须同步 `docs/automation/`。
 - `verification.md` 只追加验证流水账，不复刻 PR body。
