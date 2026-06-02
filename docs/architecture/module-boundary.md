@@ -918,6 +918,28 @@ MTP-209 不移动 production source，不实现 Strategy runtime、Trader runtim
 
 MTP-209 validation 必须证明 `Package.swift` 不再包含 stale peer-level `"Strategies"` exclude entry，`Sources/Strategies/` 目录不存在，`Package.swift` 仍保留 `"Trader/Accounts"`、`"Trader/Strategies/EMA"` 和 `"Trader/Coordination/RiskBinding"` source roots，并且 `swift package describe` 不再输出 `Sources/Strategies` invalid exclude warning；同时 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh` 必须通过。
 
+## MTP-210 Trader Container Completeness Validation
+
+`MTP-210-TRADER-CONTAINER-COMPLETENESS-VALIDATION`
+
+MTP-210 将 current Trader container completeness 固定为 deterministic validation：`Sources/Trader/` 下当前只允许 `Accounts/`、`Strategies/` 和 `Coordination/` 三类目录。该 validation 只证明 source layout / package / fixtures 一致，不授权 Trader runtime、strategy scheduler、account session runtime、live coordinator、ExecutionClient、OMS、broker gateway 或 live command。
+
+`MTP-210-ACCOUNTS-EMA-RISKBINDING-ONLY-COVERAGE`
+
+当前 Trader container completeness 必须覆盖 `Sources/Trader/Accounts/TraderAccountContext.swift`、`Sources/Trader/Strategies/EMA/EMACross.swift`、`Sources/Trader/Strategies/EMA/StrategySignals.swift`、`Sources/Trader/Strategies/EMA/PaperActionProposal.swift` 和 `Sources/Trader/Coordination/RiskBinding/PaperActionRiskLink.swift`。`Sources/Trader/Strategies/` 的 active concrete strategy directory set 必须等于 only `EMA`。
+
+`MTP-210-RETIRED-PATH-DRIFT-BLOCK`
+
+`Sources/Trader/StrategyBindings/`、peer-level `Sources/Strategies/`、`Tests/Trader/StrategyBindings/` 和 `Tests/Strategies/` 不得作为 active source / test root 回流。`Package.swift` 不得恢复 stale peer-level `"Strategies"` exclude、`"Trader/StrategyBindings"` source root、non-EMA strategy source root、`Strategies` target 或 `Trader` target。
+
+`MTP-210-NO-TARGET-GRAPH-RUNTIME-LIVE-GUARD`
+
+MTP-210 不新增 SwiftPM target/product/dependency，不做 target graph split，不移动 production source，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
+`MTP-210-TRADER-COMPLETENESS-VALIDATION`
+
+MTP-210 validation 必须证明 focused XCTest `testMTP210TraderContainerCompletenessValidationLocksAccountsEMAAndRiskBindingOnly`、automation readiness、validation plan、validation matrix 和 latest verification summary 均覆盖 Trader container completeness；并且 `git diff --check`、`swift test --filter CoreTests/testMTP210`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh` 必须通过。
+
 ## MTP-173 Account / Portfolio Read-model Boundary
 
 `MTP-173-ACCOUNT-PORTFOLIO-READMODEL-BOUNDARY-CONTRACT`

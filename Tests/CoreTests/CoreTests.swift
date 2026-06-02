@@ -8538,6 +8538,96 @@ final class CoreTests: XCTestCase {
         }
     }
 
+    func testMTP210TraderContainerCompletenessValidationLocksAccountsEMAAndRiskBindingOnly() throws {
+        // 测试场景：MTP-210 将 Trader container completeness 变成仓库级 deterministic gate。
+        // 当前 Trader 只能由 Accounts、Strategies/EMA 和 Coordination/RiskBinding 三件套组成，
+        // 旧 StrategyBindings、peer-level Sources/Strategies 和 non-EMA strategy root 回流都必须失败。
+        let fileManager = FileManager.default
+        let repositoryRoot = URL(fileURLWithPath: fileManager.currentDirectoryPath, isDirectory: true)
+        let traderRoot = repositoryRoot.appendingPathComponent("Sources/Trader")
+
+        let traderDirectoryNames = try fileManager.contentsOfDirectory(
+            at: traderRoot,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: [.skipsHiddenFiles]
+        )
+        .filter { url in
+            (try? url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true
+        }
+        .map(\.lastPathComponent)
+        .sorted()
+        XCTAssertEqual(
+            traderDirectoryNames,
+            ["Accounts", "Coordination", "Strategies"],
+            "Sources/Trader must stay complete and limited to Accounts, Coordination, and Strategies"
+        )
+
+        let requiredTraderContainerFiles = [
+            "Sources/Trader/Accounts/TraderAccountContext.swift",
+            "Sources/Trader/Strategies/EMA/EMACross.swift",
+            "Sources/Trader/Strategies/EMA/StrategySignals.swift",
+            "Sources/Trader/Strategies/EMA/PaperActionProposal.swift",
+            "Sources/Trader/Coordination/RiskBinding/PaperActionRiskLink.swift"
+        ]
+        for relativePath in requiredTraderContainerFiles {
+            XCTAssertTrue(
+                fileManager.fileExists(atPath: repositoryRoot.appendingPathComponent(relativePath).path),
+                "\(relativePath) must remain part of the current Trader container completeness contract"
+            )
+        }
+
+        let traderStrategiesRoot = repositoryRoot.appendingPathComponent("Sources/Trader/Strategies")
+        let activeStrategyDirectoryNames = try fileManager.contentsOfDirectory(
+            at: traderStrategiesRoot,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: [.skipsHiddenFiles]
+        )
+        .filter { url in
+            (try? url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true
+        }
+        .map(\.lastPathComponent)
+        .sorted()
+        XCTAssertEqual(activeStrategyDirectoryNames, ["EMA"])
+
+        let retiredContainerPaths = [
+            "Sources/Trader/StrategyBindings",
+            "Sources/Strategies",
+            "Tests/Trader/StrategyBindings",
+            "Tests/Strategies"
+        ]
+        for relativePath in retiredContainerPaths {
+            XCTAssertFalse(
+                fileManager.fileExists(atPath: repositoryRoot.appendingPathComponent(relativePath).path),
+                "\(relativePath) must not return as active source or active test root"
+            )
+        }
+
+        let packageManifest = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        XCTAssertTrue(packageManifest.contains("\"Trader/Accounts\""))
+        XCTAssertTrue(packageManifest.contains("\"Trader/Strategies/EMA\""))
+        XCTAssertTrue(packageManifest.contains("\"Trader/Coordination/RiskBinding\""))
+        XCTAssertFalse(packageManifest.contains("                \"Strategies\","))
+        XCTAssertFalse(packageManifest.contains("\"Sources/Strategies\""))
+        XCTAssertFalse(packageManifest.contains("\"Trader/StrategyBindings\""))
+        XCTAssertFalse(packageManifest.contains("\"Trader/Strategies/OrderBookImbalance\""))
+        XCTAssertFalse(packageManifest.contains(".target(name: \"Trader\""))
+        XCTAssertFalse(packageManifest.contains(".target(name: \"Strategies\""))
+        XCTAssertFalse(packageManifest.contains(".library(name: \"Trader\""))
+        XCTAssertFalse(packageManifest.contains(".library(name: \"Strategies\""))
+        XCTAssertFalse(packageManifest.contains("name: \"Trader\""))
+        XCTAssertFalse(packageManifest.contains("name: \"Strategies\""))
+
+        let accountContext = TraderAccountContext.deterministicFixture
+        let riskBindingEvidence = TraderCoordinationRiskBindingBoundaryFixture.deterministic
+        XCTAssertTrue(accountContext.accountContextBoundaryHeld)
+        XCTAssertEqual(riskBindingEvidence.coordinationRiskBindingRoot, "Sources/Trader/Coordination/RiskBinding/")
+        XCTAssertEqual(riskBindingEvidence.concreteStrategyRoots, ["Sources/Trader/Strategies/EMA/"])
+        XCTAssertTrue(riskBindingEvidence.forbidsExecutionAndLiveCommandPaths)
+    }
+
     func testTraderOwnedStrategyPathValidationCoversCanonicalOldBindingAndExecutionGuards() throws {
         // 测试场景：MTP-201 必须用本地 deterministic validation 直接检查当前仓库路径，
         // 防止旧 peer-level strategy path、non-EMA active strategy path 或 StrategyBindings first-level path 回流。

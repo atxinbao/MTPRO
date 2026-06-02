@@ -4816,6 +4816,30 @@ require_absent "Package.swift" '"Trader/StrategyBindings"'
 require_absent "Package.swift" 'name: "Strategies"'
 require_absent "Package.swift" 'name: "Trader"'
 [[ ! -d "Sources/Strategies" ]] || fail "MTP-209 stale active path must not return: Sources/Strategies"
+require_contains "Tests/CoreTests/CoreTests.swift" "testMTP210TraderContainerCompletenessValidationLocksAccountsEMAAndRiskBindingOnly"
+require_contains "docs/architecture/module-boundary.md" "MTP-210 Trader Container Completeness Validation"
+require_contains "docs/architecture/module-boundary.md" "MTP-210-TRADER-CONTAINER-COMPLETENESS-VALIDATION"
+require_contains "docs/architecture/module-boundary.md" "MTP-210-ACCOUNTS-EMA-RISKBINDING-ONLY-COVERAGE"
+require_contains "docs/architecture/module-boundary.md" "MTP-210-RETIRED-PATH-DRIFT-BLOCK"
+require_contains "docs/architecture/module-boundary.md" "MTP-210-NO-TARGET-GRAPH-RUNTIME-LIVE-GUARD"
+require_contains "docs/architecture/module-boundary.md" "MTP-210-TRADER-COMPLETENESS-VALIDATION"
+require_contains "docs/domain/context.md" "MTP-210-TRADER-CONTAINER-COMPLETENESS-VALIDATION"
+require_contains "docs/domain/context.md" "MTP-210-ACCOUNTS-EMA-RISKBINDING-ONLY-COVERAGE"
+require_contains "docs/domain/context.md" "MTP-210-RETIRED-PATH-DRIFT-BLOCK"
+require_contains "docs/domain/context.md" "MTP-210-NO-TARGET-GRAPH-RUNTIME-LIVE-GUARD"
+require_contains "docs/domain/context.md" "MTP-210-TRADER-COMPLETENESS-VALIDATION"
+require_contains "docs/validation/validation-plan.md" "MTP-210 Trader Container Completeness Validation"
+require_contains "docs/validation/validation-plan.md" "MTP-210-TRADER-COMPLETENESS-VALIDATION"
+require_contains "docs/validation/trading-validation-matrix.md" "MTP-210 issue backfill"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-210 的当前 issue execution evidence"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-210-TRADER-COMPLETENESS-VALIDATION"
+require_contains "docs/automation/automation-readiness.md" "Trader container completeness validation anchor"
+[[ -d "Sources/Trader/Accounts" ]] || fail "MTP-210 required Trader container directory missing: Sources/Trader/Accounts"
+[[ -d "Sources/Trader/Strategies/EMA" ]] || fail "MTP-210 required Trader strategy directory missing: Sources/Trader/Strategies/EMA"
+[[ -d "Sources/Trader/Coordination/RiskBinding" ]] || fail "MTP-210 required Trader coordination directory missing: Sources/Trader/Coordination/RiskBinding"
+[[ ! -d "Sources/Trader/StrategyBindings" ]] || fail "MTP-210 retired path must not return: Sources/Trader/StrategyBindings"
+[[ ! -d "Tests/Trader/StrategyBindings" ]] || fail "MTP-210 retired test path must not return: Tests/Trader/StrategyBindings"
+[[ ! -d "Tests/Strategies" ]] || fail "MTP-210 retired test path must not return: Tests/Strategies"
 require_absent "docs/validation/validation-plan.md" 'Root docs 必须使用 `Trader = Accounts + Strategies + StrategyBindings + Coordination`'
 require_absent "docs/validation/validation-plan.md" '`Sources/Trader/StrategyBindings/` 必须包含 proposal-to-risk binding'
 require_absent "docs/validation/validation-plan.md" '只使用 `"Trader/Strategies/EMA"` 和 `"Trader/StrategyBindings"`'

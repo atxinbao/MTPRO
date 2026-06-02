@@ -471,6 +471,26 @@ MTP-209 不移动 source，不实现 Strategy runtime、Trader runtime、Live ru
 
 MTP-209 validation 只证明 stale peer-level `Strategies` Package exclude 已删除、`Sources/Strategies/` active root 未回流、current Trader source roots 仍在 compatibility envelope 中，并且本地 package / automation / full checks 通过；不证明任何 runtime、live broker path、account endpoint 或 command-capable UI 已实现。
 
+`MTP-210-TRADER-CONTAINER-COMPLETENESS-VALIDATION`
+
+`Trader container completeness validation` 指 MTP-210 将 current Trader container 机械固定为 `Accounts + Strategies/EMA + Coordination/RiskBinding`。它验证 source layout、Package roots 和 local fixtures 一致，不表示 Trader runtime、strategy scheduler、account session runtime、live coordinator、ExecutionClient、OMS、broker gateway 或 live command 已实现。
+
+`MTP-210-ACCOUNTS-EMA-RISKBINDING-ONLY-COVERAGE`
+
+MTP-210 后 Trader completeness validation 必须同时覆盖 account context、EMA active strategy files 和 RiskBinding local coordination adapter。`Sources/Trader/Strategies/` 的 active concrete strategy directory set 只能是 `EMA`。
+
+`MTP-210-RETIRED-PATH-DRIFT-BLOCK`
+
+MTP-210 将 `Sources/Trader/StrategyBindings/`、peer-level `Sources/Strategies/`、`Tests/Trader/StrategyBindings/`、`Tests/Strategies/`、stale Package `"Strategies"` exclude、`"Trader/StrategyBindings"` source root 和 non-EMA active strategy Package roots 固定为 drift failure。
+
+`MTP-210-NO-TARGET-GRAPH-RUNTIME-LIVE-GUARD`
+
+MTP-210 不新增 SwiftPM target/product/dependency，不拆 target graph，不移动 source，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
+`MTP-210-TRADER-COMPLETENESS-VALIDATION`
+
+MTP-210 validation 只证明 current Trader container completeness 被 deterministic tests 和 readiness anchors 覆盖；不证明真实账户读取、runtime、broker integration、private stream runtime 或 command-capable UI 已实现。
+
 `MTP-172-TRADER-COORDINATION-BOUNDARY-CONTRACT`
 
 MTP-172 固定 `Sources/Trader/` 为 strategy / account / risk / execution context 的 coordination boundary。Trader 可以协调 Strategies、Portfolio、RiskEngine 和 ExecutionEngine 的本地 evidence / read-model inputs；Trader 不等于 live coordinator、OMS、broker gateway、ExecutionClient client wrapper、real account service、portfolio ledger 或 executable order command surface。
