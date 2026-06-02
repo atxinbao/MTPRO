@@ -762,6 +762,28 @@ MTP-203 validation 必须继续阻断旧 `Sources/Trader/StrategyBindings/` firs
 
 MTP-203 validation 必须由 `testEMAOnlyActiveStrategyPathValidationRejectsNonEMAAndBindingDrift`、automation readiness 和完整 `bash checks/run.sh` 共同覆盖。该 validation-only issue 不移动 production source，不新增 SwiftPM target、product 或 dependency，不拆 target graph，不实现 Strategy runtime、Trader runtime、ExecutionClient、OMS、broker command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command 或 order form。
 
+## MTP-204 Trader EMA Strategy Layout Stage Closeout
+
+`MTP-204-TRADER-EMA-LAYOUT-STAGE-CLOSEOUT`
+
+MTP-204 将 `MTPRO Trader EMA Strategy Layout Consolidation v1` 的 MTP-198 至 MTP-203 evidence chain 收口为 stage audit input material。该 closeout 只为 Parent Codex 后续 Stage Code Audit Report 提供输入，不设置 Linear Project `Completed`，不输出最终 Stage Code Audit Report，不授权下一阶段。
+
+`MTP-204-STAGE-AUDIT-INPUT-MATERIAL`
+
+Stage audit input material 位于 `docs/audit/inputs/mtpro-trader-ema-strategy-layout-consolidation-v1-stage-audit-input.md`，必须汇总 EMA-only active layout、non-EMA future candidate / historical evidence、OrderBookImbalance Core research evidence、Trader Coordination RiskBinding boundary、deterministic path validation、validation matrix、automation readiness、compatibility envelope、forbidden implementation audit、unresolved future gates 和 Root Docs Delta input。
+
+`MTP-204-NO-FINAL-STAGE-CODE-AUDIT`
+
+MTP-204 不输出最终 Stage Code Audit Report，不设置 Project Completed，不创建下一 Project / Issue，不推进下一阶段 Todo，不运行 Graphify，不修改 Figma，不启动 Symphony 或 `symphony-issue`。最终 Stage Code Audit Report 必须等待 MTP-198 至 MTP-204 全部 Done，并由 Parent Codex 单独处理 Project closure。
+
+`MTP-204-COMPATIBILITY-ENVELOPE-CLOSEOUT`
+
+MTP-204 closeout 必须明确 `Core` 仍是 compatibility envelope：它继续编译 `Sources/Trader/Strategies/EMA/`、`Sources/Core/Research/OrderBookImbalanceResearchEvidence.swift` 和 `Sources/Trader/Coordination/RiskBinding/`，但这不等于 SwiftPM target graph split 完成，也不等于 Strategy runtime 或 Trader runtime 已实现。
+
+`MTP-204-STAGE-CLOSEOUT-VALIDATION`
+
+MTP-204 validation 必须证明 stage audit input material、validation matrix、automation readiness anchors、compatibility envelope closeout 和 forbidden implementation audit 已落仓，并且 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh` 通过。
+
 `MTP-198-EMA-ONLY-LAYOUT-VALIDATION`
 
 MTP-198 validation 必须证明 EMA-only Trader strategy layout anchors 已落仓，active concrete strategy only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/`，non-EMA strategy names only future candidate / future-gated label，并且 `bash checks/run.sh` 通过。
