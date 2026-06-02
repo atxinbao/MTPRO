@@ -17,10 +17,10 @@
 | Local validation entrypoint | ready | `bash checks/run.sh` |
 | Automation readiness shell gate | ready | `bash checks/automation-readiness.sh` |
 | Linear issue execution contract | ready | Linear issue body 字段作为 child Codex 执行合同 |
-| Parent Codex Automation Supervision | ready | queue preview、eligible issue 调度、child Codex 监控、host-side fallback、Stage Code Audit |
-| symphony-issue path | ready | 唯一 `Todo` -> `In Progress` -> child Codex -> PR handoff -> `In Review` |
-| Post-Issue Ledger | ready | PR merge / Linear bot Done 后刷新本地关系记账，输出 ignored summary |
-| Graphify resource graph | ready | read context + scoped post-issue refresh；不提交 `graphify-out/*` |
+| Parent Codex Automation Supervision | ready | queue preview、eligible issue 调度、host-side fallback、Stage Code Audit；当前不依赖 Symphony |
+| Host-side issue execution path | ready | 唯一 `Todo` issue 由 @002 / PAR host-side 执行到 PR / check / merge / Linear Done / ledger gate |
+| Post-Issue Ledger | ready | PR merge / Linear bot Done 后写入 read_only 记账；不依赖 Symphony，不运行 Graphify |
+| Symphony / Graphify retired | retired | 当前 @002 / PAR 只使用 host-side supervision、GitHub PR Automation、Linear live-read / Linear API gate 和 post-issue ledger；不依赖 Symphony，不运行 Graphify，不维护 `graphify-out/*` |
 | Codex use-cases alignment | ready | `docs/automation/codex-use-cases-alignment.md` |
 | Verified operations | ready | `docs/automation/verified-operations.md` |
 | Paper Execution Workflow stage audit input anchor | ready | `docs/audit/inputs/mtpro-paper-execution-workflow-v1-stage-audit-input.md` |
@@ -135,15 +135,16 @@
 | Engine Module Boundary Consolidation root docs refresh anchor | ready | Engine Maturity Roadmap Progress 保持 `4 / 4 (100%)`；current maturity statement `Engine Module Boundary Consolidation before L4 complete`；Project Closure Count `22 / 22 (100%)`；L4 Live Production / Trading Commands 仍为 Future Gated，不计入旧 progress denominator，不授权下一 Project；不授权 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker adapter、Live PRO Console、trading button 或 live command |
 | Trader-owned strategy boundary correction anchor | ready | `docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/contracts/target-module-physical-layout-source-migration-contract.md`、`docs/validation/validation-plan.md` 和 `docs/validation/trading-validation-matrix.md` 的 `MTP-191-TRADER-OWNED-STRATEGY-CANONICAL-PATH`、`MTP-191-TRADER-CONTAINER-SPLIT`、`MTP-191-STRATEGYBINDINGS-NON-LANDING-GUARD`、`MTP-191-INDEPENDENT-ENGINE-MODULES-GUARD`、`MTP-191-NO-SOURCE-MOVE-PACKAGE-RUNTIME-GUARD` 和 `MTP-191-BOUNDARY-CORRECTION-VALIDATION`；MTP-191 只把 concrete strategy canonical path 修正为 `Sources/Trader/Strategies/<strategy>/`，把旧 `Sources/Strategies/<strategy>/` 标记为 compatibility / superseded / historical path，不移动 production source，不修改 `Package.swift`，不创建 SwiftPM target，不实现 Strategy runtime、Trader runtime、ExecutionClient、OMS、broker command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command 或 order form |
 | Trader-owned strategy root docs anchor correction | ready | `BLUEPRINT.md`、`docs/planning/projects/mtpro-trader-owned-strategies-layout-correction-v1-plan.md`、`docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md` 和 `docs/validation/latest-verification-summary.md` 的 `MTP-192-ROOT-DOCS-STRATEGY-PATH-ANCHOR-CORRECTION`、`MTP-192-HISTORICAL-STRATEGIES-COMPATIBILITY-NOTE`、`MTP-192-TRADER-CONTAINER-STRATEGYBINDINGS-ROOT-DOCS`、`MTP-192-NO-SOURCE-MOVE-PACKAGE-RUNTIME-GUARD` 和 `MTP-192-ROOT-DOCS-ANCHOR-VALIDATION`；MTP-192 只把 root docs 的 forward-looking concrete strategy canonical path 统一为 `Sources/Trader/Strategies/<strategy>/`，保留旧 `Sources/Strategies/<strategy>` 为 historical / compatibility / superseded / migration-source path，不移动 production source，不修改 `Package.swift`，不拆 SwiftPM target graph，不实现 Strategy runtime、Trader runtime、ExecutionClient、OMS、broker command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command 或 order form |
+| EMA-only Trader strategy layout contract anchor | ready | `docs/contracts/trader-ema-strategy-layout-contract.md`、`docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md` 和 `docs/validation/latest-verification-summary.md` 的 `MTP-198-EMA-ONLY-TRADER-STRATEGY-LAYOUT-CONTRACT`、`MTP-198-CANONICAL-ACTIVE-EMA-PATH`、`MTP-198-NON-EMA-FUTURE-CANDIDATE-BOUNDARY`、`MTP-198-STRATEGYBINDINGS-NOT-FIRST-LEVEL-STRATEGY-DIRECTORY`、`MTP-198-TRADER-COORDINATION-BINDING-RESPONSIBILITY`、`MTP-198-FORBIDDEN-STRATEGY-PATH-EXECUTION-BYPASS-TAXONOMY`、`MTP-198-NO-SOURCE-MOVE-PACKAGE-RUNTIME-GUARD` 和 `MTP-198-EMA-ONLY-LAYOUT-VALIDATION`；MTP-198 只定义 current active concrete strategy only `EMA`、canonical active path only `Sources/Trader/Strategies/EMA/`、non-EMA future candidates only、StrategyBindings not first-level strategy directory 和 Trader/Coordination binding responsibility，不移动 source，不修改 `Package.swift`，不写 Swift business code，不启动 Symphony，不运行 Graphify，不修改 Figma |
 | Trader-owned strategies layout correction stage audit input anchor | ready | `docs/audit/inputs/mtpro-trader-owned-strategies-layout-correction-v1-stage-audit-input.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md` 和 `docs/validation/latest-verification-summary.md` 的 `MTP-197-TRADER-OWNED-STRATEGIES-LAYOUT-STAGE-CLOSEOUT`、`MTP-197-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-197-NO-FINAL-STAGE-CODE-AUDIT`、`MTP-197-TRADER-OWNED-STRATEGIES-EVIDENCE-CHAIN`、`MTP-197-TRADER-OWNED-STRATEGY-LAYOUT-CLOSEOUT`、`MTP-197-VALIDATION-MATRIX-CLOSEOUT`、`MTP-197-AUTOMATION-READINESS-CLOSEOUT`、`MTP-197-FORBIDDEN-IMPLEMENTATION-AUDIT`、`MTP-197-UNRESOLVED-FUTURE-GATES` 和 `MTP-197-STAGE-CLOSEOUT-VALIDATION`；MTP-197 只收口 MTP-191 至 MTP-196 的 stage audit input material，不输出最终 Stage Code Audit Report，不设置 Linear Project `Completed`，不创建下一 Project / Issue，不推进下一阶段 Todo，不运行 Graphify，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*` |
 | Trader-owned strategies layout correction Stage Code Audit Report anchor | ready | `docs/audit/mtpro-trader-owned-strategies-layout-correction-v1-stage-code-audit.md`；Parent Codex closure 报告确认 Linear Project `Completed/type=completed`、MTP-191 至 MTP-197 全部 Done、PR #317 至 PR #323 required check `checks` success、root main fast-forward、Trader-owned strategy ownership correction evidence、StrategyBindings boundary、forbidden capability audit、Root Docs Delta input 和 next handoff；报告不创建下一 Project / Issue，不推进 Todo，不启动 Symphony，不运行 Graphify，不修改 Figma，不授权 SwiftPM target graph split、Strategy runtime、Trader runtime、ExecutionClient、broker、OMS、Live PRO Console、trading button 或 live command |
 | Trader-owned strategies layout correction root docs refresh anchor | ready | Engine Maturity Roadmap Progress 保持 `4 / 4 (100%)`；current maturity statement `Trader-Owned Strategies Layout Correction before L4 complete`；Project Closure Count `24 / 24 (100%)`；L4 Live Production / Trading Commands 和 SwiftPM target graph split 仍为 Future Gated，不计入旧 progress denominator，不授权下一 Project；不授权 Strategy runtime、Trader runtime、ExecutionClient implementation、OMS implementation、broker adapter、Live PRO Console、trading button 或 live command |
 
 ## Project 切换规则
 
-`symphony-issue active Project pointer` 属于本地 runtime 配置，不是仓库长期事实。
+MTPRO 不再维护 Symphony active Project pointer；旧 pointer 语义只作为历史流程证据保留。
 
-Parent Codex 切换 Project 时只更新：
+Parent Codex 切换 Project 时只记录本次 queue context：
 
 - Project name
 - Project ID / URL source
@@ -151,23 +152,21 @@ Parent Codex 切换 Project 时只更新：
 - issue range
 - next eligible candidate hint
 
-更新后必须再次 queue preview。不得因为 pointer 更新直接启动 `symphony-issue` 或推进 `Backlog -> Todo`。
+queue context 不写成仓库长期事实，不授权启动额外服务。不得因为 context 记录直接推进 `Backlog -> Todo`。
 
 ## 必须保持
 
 - WIP=1。
-- `.github/pull_request_template.md` 保留 WIP=1、Graphify、handoff、Parent Codex、Post-Issue Ledger、GitHub PR Automation、Pre-PR Code Review 和 verified operations 证据项。
+- `.github/pull_request_template.md` 保留 WIP=1、Parent Codex、Post-Issue Ledger、GitHub PR Automation、Pre-PR Code Review 和 verified operations 证据项。
 - Project Planning Facilitator 不操作 `Backlog -> Todo`。
 - Human 确认 Project / Issue plan 并写入 Linear 后，父 Codex 在当前 Project 内按 WIP=1、依赖和执行合同 Gate 自动推进唯一 eligible issue。
-- `symphony-issue` workflow 本体不得为每个 Linear Project 复制一套。
-- `.gitignore` 排除 `.codex/` 和 `graphify-out/`。
-- `.graphifyignore` 排除 `.codex/`、`graphify-out/`、`Sources/` 和 `Tests/`。
-- Graphify 默认是 resource relationship graph，不是 source code graph。
+- `.gitignore` 排除 `.codex/`。
+- Post-Issue Ledger 保持 read-only advisory，不授权下一 issue。
 
 ## 禁止
 
 - 不在文档中固定 current issue。
 - 不自动创建新的 Linear Project / Issue。
 - 不绕过 GitHub required checks。
-- 不运行 Graphify full rebuild。
-- 不提交 `.codex/*` 或 `graphify-out/*`。
+- 不启动 Symphony、Graphify 或替代调度 / 图谱服务。
+- 不提交 `.codex/*`。
