@@ -6373,3 +6373,47 @@ MTP-210 必须建立的主要 anchors：
 - 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-211 Trader Accounts / Coordination Stage Closeout Validation
+
+MTP-211 必须运行：
+
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-211 的验收要求：
+
+- `docs/audit/inputs/mtpro-trader-accounts-coordination-compatibility-consolidation-v1-stage-audit-input.md` 必须存在。
+- Stage audit input material 必须覆盖 MTP-205 至 MTP-210 的 PR evidence、merge commit、required check、Trader container compatibility closeout、validation matrix closeout、compatibility envelope closeout、forbidden implementation audit、Root Docs Delta input 和 Stage Code Audit handoff checklist。
+- Validation matrix 必须包含 MTP-211 issue backfill。
+- Automation readiness、module-boundary、domain context、validation plan 和 latest verification summary 必须包含 MTP-211 anchors。
+- Stage audit input 必须明确本文档不是最终 Stage Code Audit Report，最终报告仍由 Parent Codex 在全部 issue Done 且 Project Completed 后单独输出。
+- 必须确认 no Graphify、no Figma、no `.codex/*`、no `graphify-out/*`、no next Project / Issue、no next Todo、no runtime、no live、no broker、no L4 capability。
+
+MTP-211 必须建立的主要 anchors：
+
+- `MTP-211-TRADER-ACCOUNTS-COORDINATION-STAGE-CLOSEOUT`
+- `MTP-211-STAGE-AUDIT-INPUT-MATERIAL`
+- `MTP-211-NO-FINAL-STAGE-CODE-AUDIT`
+- `MTP-211-EVIDENCE-CHAIN`
+- `MTP-211-TRADER-CONTAINER-COMPATIBILITY-CLOSEOUT`
+- `MTP-211-VALIDATION-MATRIX-CLOSEOUT`
+- `MTP-211-COMPATIBILITY-ENVELOPE-CLOSEOUT`
+- `MTP-211-FORBIDDEN-IMPLEMENTATION-AUDIT`
+- `MTP-211-STAGE-CLOSEOUT-VALIDATION`
+- `MTP-211-NO-GRAPHIFY-FIGMA-NEXT-STAGE-MUTATION`
+- `MTP-211-ROOT-DOCS-DELTA-INPUT`
+- `MTP-211-STAGE-CODE-AUDIT-HANDOFF`
+
+## MTP-211 禁止
+
+- 不输出最终 Stage Code Audit Report。
+- 不设置 Linear Project `Completed`。
+- 不创建下一 Project / Issue。
+- 不推进下一阶段 Todo。
+- 不新增、不删除、不重命名 SwiftPM target、product 或 dependency。
+- 不拆 SwiftPM target graph，不移动 production source。
+- 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、real account read、Live PRO Console、trading button、live command、order form 或 L4 capability。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
