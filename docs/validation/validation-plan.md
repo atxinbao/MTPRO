@@ -5537,7 +5537,7 @@ MTP-187 的 required validation：
 
 MTP-187 的验收要求：
 
-- MTP-187 historical evidence 记录 EMA lifecycle、strategy signal、paper proposal source 和 order-book imbalance research strategy 曾迁入 `Sources/Strategies/EMA/` 与 `Sources/Strategies/OrderBookImbalance/`；MTP-193 后 EMA current source path 必须是 `Sources/Trader/Strategies/EMA/`，MTP-194 后 OrderBookImbalance current source path 必须是 `Sources/Trader/Strategies/OrderBookImbalance/`。
+- MTP-187 historical evidence 记录 EMA lifecycle、strategy signal、paper proposal source 和 order-book imbalance research strategy 曾迁入 `Sources/Strategies/EMA/` 与 `Sources/Strategies/OrderBookImbalance/`；MTP-193 后 EMA current active source path 必须是 `Sources/Trader/Strategies/EMA/`，MTP-194 后 OrderBookImbalance placement 只作为 historical / compatibility evidence，MTP-198 后不得写成 current active strategy。
 - `Sources/Trader/StrategyBindings/` 必须包含 proposal-to-risk binding；Trader 仍只表示 coordination evidence，不实现 live coordinator、broker gateway、OMS gateway 或 ExecutionClient gateway。
 - `Sources/Portfolio/` 必须包含 paper account / portfolio projection、portfolio projection update 和 simulated exchange portfolio projection parity；Portfolio 仍只持有 paper / simulated / read-model financial state。
 - `Package.swift` 必须保留现有 `Core` product / target 名称作为 compatibility envelope，不新增 SwiftPM target、product 或 dependency，不做 target graph split。
@@ -5865,7 +5865,7 @@ MTP-196 必须运行：
 
 MTP-196 的验收要求：
 
-- Validation 必须直接检查 `Sources/Trader/Strategies/EMA/` 和 `Sources/Trader/Strategies/OrderBookImbalance/` 当前 implementation files。
+- Validation 必须直接检查 `Sources/Trader/Strategies/EMA/` 当前 active implementation files，并把 `Sources/Trader/Strategies/OrderBookImbalance/` 仅作为 historical / compatibility placement evidence 检查。
 - Validation 必须在 `Sources/Strategies/EMA/` 或 `Sources/Strategies/OrderBookImbalance/` 作为当前 implementation directory 回流时失败。
 - Validation 必须检查 `Package.swift` 只使用 `"Trader/Strategies/EMA"`、`"Trader/Strategies/OrderBookImbalance"` 和 `"Trader/StrategyBindings"` source roots，不使用旧 `"Strategies/EMA"` 或 `"Strategies/OrderBookImbalance"` roots。
 - Validation 必须覆盖 StrategyBindings as non-concrete-strategy landing area。
