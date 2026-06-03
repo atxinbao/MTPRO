@@ -5193,6 +5193,23 @@ require_contains "docs/audit/inputs/mtpro-swiftpm-target-graph-module-split-v1-s
 require_contains "docs/audit/inputs/mtpro-swiftpm-target-graph-module-split-v1-stage-audit-input.md" "no Graphify"
 require_contains "docs/audit/inputs/mtpro-swiftpm-target-graph-module-split-v1-stage-audit-input.md" "no code-index"
 require_contains "docs/audit/inputs/mtpro-swiftpm-target-graph-module-split-v1-stage-audit-input.md" "no Figma"
+require_file "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md"
+require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "MTPRO SwiftPM Target Graph Module Split v1 Stage Code Audit Report"
+require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "MTP-216"
+require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "MTP-223"
+require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "Completed/type=completed"
+require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "2026-06-03T23:42:28.499Z"
+require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "PR #359"
+require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "785c26d0d0dd4db835fbb5a340cb18359a40e52b"
+require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "Target Graph Evidence Flow"
+require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "Dashboard -> Workbench"
+require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "App -> Workbench compatibility re-export"
+require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "No ExecutionClient implementation"
+require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "No real order lifecycle"
+require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "No L4 implementation"
+require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "Root Docs Refresh Gate：pending after this Stage Code Audit Report PR is merged"
+require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "Project Closure Count input: 28 / 28 (100%)"
+require_contains "docs/automation/automation-readiness.md" "SwiftPM target graph Stage Code Audit Report anchor"
 require_absent "docs/validation/validation-plan.md" 'Root docs 必须使用 `Trader = Accounts + Strategies + StrategyBindings + Coordination`'
 require_absent "docs/validation/validation-plan.md" '`Sources/Trader/StrategyBindings/` 必须包含 proposal-to-risk binding'
 require_absent "docs/validation/validation-plan.md" '只使用 `"Trader/Strategies/EMA"` 和 `"Trader/StrategyBindings"`'
