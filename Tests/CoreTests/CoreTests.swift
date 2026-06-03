@@ -8419,7 +8419,7 @@ final class CoreTests: XCTestCase {
 
     func testMTP206TraderAccountContextPathAndPackageCompatibilityEnvelopeArePresent() throws {
         // 测试场景：MTP-206 必须让 `Sources/Trader/Accounts/` 成为 Core compatibility envelope
-        // 下的编译 source root，但不能新增 SwiftPM target、product 或 dependency。
+        // 下的编译 source root；MTP-219 之后允许 Trader target anchor，但旧 Strategies target 仍不得回流。
         let fileManager = FileManager.default
         let repositoryRoot = URL(fileURLWithPath: fileManager.currentDirectoryPath, isDirectory: true)
         XCTAssertTrue(
@@ -8437,8 +8437,7 @@ final class CoreTests: XCTestCase {
         XCTAssertTrue(packageManifest.contains("\"Trader/Accounts\""))
         XCTAssertTrue(packageManifest.contains("\"Trader/Strategies/EMA\""))
         XCTAssertTrue(packageManifest.contains("\"Trader/Coordination/RiskBinding\""))
-        XCTAssertFalse(packageManifest.contains(".target(name: \"Trader\""))
-        XCTAssertFalse(packageManifest.contains(".library(name: \"Trader\""))
+        XCTAssertFalse(packageManifest.contains("\"Trader/StrategyBindings\""))
         XCTAssertFalse(packageManifest.contains(".target(name: \"Strategies\""))
         XCTAssertFalse(packageManifest.contains(".library(name: \"Strategies\""))
     }
@@ -8474,8 +8473,8 @@ final class CoreTests: XCTestCase {
         XCTAssertTrue(packageManifest.contains("\"Trader/Coordination/RiskBinding\""))
         XCTAssertFalse(packageManifest.contains("\"Trader/StrategyBindings\""))
         XCTAssertFalse(packageManifest.contains("\"Strategies/EMA\""))
-        XCTAssertFalse(packageManifest.contains(".target(name: \"Trader\""))
-        XCTAssertFalse(packageManifest.contains(".library(name: \"Trader\""))
+        XCTAssertFalse(packageManifest.contains(".target(name: \"Strategies\""))
+        XCTAssertFalse(packageManifest.contains(".library(name: \"Strategies\""))
 
         XCTAssertEqual(accountContext.validationAnchors, TraderAccountContext.requiredValidationAnchors)
         XCTAssertTrue(accountContext.accountContextBoundaryHeld)
@@ -8613,11 +8612,8 @@ final class CoreTests: XCTestCase {
         XCTAssertFalse(packageManifest.contains("\"Sources/Strategies\""))
         XCTAssertFalse(packageManifest.contains("\"Trader/StrategyBindings\""))
         XCTAssertFalse(packageManifest.contains("\"Trader/Strategies/OrderBookImbalance\""))
-        XCTAssertFalse(packageManifest.contains(".target(name: \"Trader\""))
         XCTAssertFalse(packageManifest.contains(".target(name: \"Strategies\""))
-        XCTAssertFalse(packageManifest.contains(".library(name: \"Trader\""))
         XCTAssertFalse(packageManifest.contains(".library(name: \"Strategies\""))
-        XCTAssertFalse(packageManifest.contains("name: \"Trader\""))
         XCTAssertFalse(packageManifest.contains("name: \"Strategies\""))
 
         let accountContext = TraderAccountContext.deterministicFixture

@@ -6544,3 +6544,54 @@ MTP-218 必须建立的主要 anchors：
 - 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-219 Trader / Portfolio / Risk Target Split Validation
+
+MTP-219 必须运行：
+
+- `swift package describe`
+- `swift test --filter TargetGraphTests`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-219 的验收要求：
+
+- `Package.swift` 必须新增 `TraderStrategies`、`Trader`、`Portfolio` 和 `RiskEngine` library products / targets。
+- `TraderStrategies` target 必须依赖 `DomainModel`、`MessageBus`、`Cache`、`Portfolio` 和 `RiskEngine`，并保持 current active concrete strategy only `EMA`。
+- `Trader` target 必须依赖 `DomainModel`、`MessageBus`、`Cache`、`TraderStrategies`、`Portfolio` 和 `RiskEngine`，并把 `ExecutionEngine` dependency 延后到 MTP-220。
+- `Portfolio` target 必须依赖 `DomainModel`、`MessageBus`、`Cache` 和 `Database`，且保持独立 financial state projection boundary。
+- `RiskEngine` target 必须依赖 `DomainModel`、`MessageBus`、`Cache` 和 `Portfolio`，且保持 pre-execution risk boundary。
+- `Core` compatibility envelope 必须保留，既有 Trader / EMA / RiskBinding / Portfolio / RiskEngine behavior 不得改变。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须直接 import `TraderStrategies`、`Trader`、`Portfolio` 和 `RiskEngine`，验证 dependency direction、Trader container completeness、EMA-only active strategy 和 no direct execution / broker / runtime drift。
+- `docs/contracts/swiftpm-target-graph-split-contract.md`、`architecture.md`、`docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-219 anchors。
+
+MTP-219 必须建立的主要 anchors：
+
+- `MTP-219-TRADER-PORTFOLIO-RISK-TARGET-SPLIT-EVIDENCE`
+- `MTP-219-TRADERSTRATEGIES-TARGET-SPLIT`
+- `MTP-219-TRADER-TARGET-SPLIT`
+- `MTP-219-PORTFOLIO-TARGET-SPLIT`
+- `MTP-219-RISKENGINE-TARGET-SPLIT`
+- `MTP-219-TRADER-PORTFOLIO-RISK-DEPENDENCY-DIRECTION`
+- `MTP-219-EMA-ONLY-ACTIVE-STRATEGY-BOUNDARY`
+- `MTP-219-TRADER-CONTAINER-ACCOUNTS-EMA-COORDINATION`
+- `MTP-219-PORTFOLIO-SEPARATE-FROM-TRADER-ACCOUNT`
+- `MTP-219-PRE-EXECUTION-RISK-BOUNDARY`
+- `MTP-219-TRADER-PORTFOLIO-RISK-COMPATIBILITY-ENVELOPE-RETAINED`
+- `MTP-219-TARGETGRAPH-TEST-EVIDENCE`
+- `MTP-219-NO-DIRECT-EXECUTION-GUARD`
+- `MTP-219-TRADER-PORTFOLIO-RISK-TARGET-SPLIT-VALIDATION`
+
+## MTP-219 禁止
+
+- 不退休 `Core` 或其他 compatibility envelope。
+- 不把 `TraderStrategies` 改成 Strategy runtime、strategy scheduler、broker command producer 或 UI command source。
+- 不把 `Trader` 改成 Trader runtime、live coordinator、ExecutionClient direct caller、OMS gateway、broker gateway 或 account endpoint reader。
+- 不把 `Portfolio` 改成 Trader account context、real account state reader、broker payload store 或 account endpoint payload store。
+- 不把 `RiskEngine` 改成 live risk runtime、ExecutionClient wrapper、broker gateway、OMS path 或 executable order command source。
+- 不新增 RSI、OrderBookImbalance、Momentum、MeanReversion 或其他 active concrete strategy source。
+- 不迁移 ExecutionEngine、ExecutionClient、Workbench 或 Dashboard。
+- 不实现 Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

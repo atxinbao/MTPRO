@@ -13,6 +13,10 @@ let package = Package(
         .library(name: "DataClient", targets: ["DataClient"]),
         .library(name: "DataEngine", targets: ["DataEngine"]),
         .library(name: "Cache", targets: ["Cache"]),
+        .library(name: "Portfolio", targets: ["Portfolio"]),
+        .library(name: "RiskEngine", targets: ["RiskEngine"]),
+        .library(name: "TraderStrategies", targets: ["TraderStrategies"]),
+        .library(name: "Trader", targets: ["Trader"]),
         .library(name: "Core", targets: ["Core"]),
         .library(name: "Adapters", targets: ["Adapters"]),
         .library(name: "Persistence", targets: ["Persistence"]),
@@ -61,6 +65,26 @@ let package = Package(
             name: "DataEngine",
             dependencies: ["DomainModel", "DataClient", "MessageBus", "Cache"],
             path: "Sources/TargetGraph/DataEngine"
+        ),
+        .target(
+            name: "Portfolio",
+            dependencies: ["DomainModel", "MessageBus", "Cache", "Database"],
+            path: "Sources/TargetGraph/Portfolio"
+        ),
+        .target(
+            name: "RiskEngine",
+            dependencies: ["DomainModel", "MessageBus", "Cache", "Portfolio"],
+            path: "Sources/TargetGraph/RiskEngine"
+        ),
+        .target(
+            name: "TraderStrategies",
+            dependencies: ["DomainModel", "MessageBus", "Cache", "Portfolio", "RiskEngine"],
+            path: "Sources/TargetGraph/TraderStrategies"
+        ),
+        .target(
+            name: "Trader",
+            dependencies: ["DomainModel", "MessageBus", "Cache", "TraderStrategies", "Portfolio", "RiskEngine"],
+            path: "Sources/TargetGraph/Trader"
         ),
         .target(
             name: "Core",
@@ -218,7 +242,18 @@ let package = Package(
         ),
         .testTarget(
             name: "TargetGraphTests",
-            dependencies: ["DomainModel", "MessageBus", "Database", "DataClient", "DataEngine", "Cache"],
+            dependencies: [
+                "DomainModel",
+                "MessageBus",
+                "Database",
+                "DataClient",
+                "DataEngine",
+                "Cache",
+                "Portfolio",
+                "RiskEngine",
+                "TraderStrategies",
+                "Trader"
+            ],
             path: "Tests/TargetGraphTests"
         ),
         .testTarget(
