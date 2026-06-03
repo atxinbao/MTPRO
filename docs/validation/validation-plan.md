@@ -6417,3 +6417,43 @@ MTP-211 必须建立的主要 anchors：
 - 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、real account read、Live PRO Console、trading button、live command、order form 或 L4 capability。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-216 SwiftPM Target Graph Split Contract Validation
+
+MTP-216 必须运行：
+
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-216 的验收要求：
+
+- `docs/contracts/swiftpm-target-graph-split-contract.md` 必须存在。
+- Contract 必须定义 current compatibility envelope snapshot、canonical target graph baseline、dependency direction contract、forbidden import paths、Trader-owned strategies target boundary、downstream split sequence、Package split non-authorization 和 no runtime / live / broker / L4 boundary。
+- `architecture.md`、`docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-216 anchors。
+- MTP-216 不得修改 `Package.swift` target graph、products、dependencies、source roots 或 exclude list。
+- MTP-216 不得移动 production source 或 tests，不得新增 SwiftPM target / product / dependency，不得退休 compatibility envelope。
+- Contract 必须保留 current active concrete strategy only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/`，后续多策略 path 为 `Sources/Trader/Strategies/<strategy>/`。
+- Contract 必须禁止 TraderStrategies / Trader direct ExecutionClient、broker、OMS、Workbench / Dashboard command path。
+
+MTP-216 必须建立的主要 anchors：
+
+- `MTP-216-SWIFTPM-TARGET-GRAPH-SPLIT-CONTRACT`
+- `MTP-216-CURRENT-COMPATIBILITY-ENVELOPE-SNAPSHOT`
+- `MTP-216-CANONICAL-TARGET-GRAPH-BASELINE`
+- `MTP-216-DEPENDENCY-DIRECTION-CONTRACT`
+- `MTP-216-FORBIDDEN-IMPORT-PATHS`
+- `MTP-216-TRADER-OWNED-STRATEGIES-TARGET-BOUNDARY`
+- `MTP-216-MODULE-TO-TARGET-SPLIT-SEQUENCE`
+- `MTP-216-PACKAGE-SPLIT-NON-AUTHORIZATION`
+- `MTP-216-NO-RUNTIME-LIVE-BROKER-L4`
+- `MTP-216-TARGET-GRAPH-CONTRACT-VALIDATION`
+
+## MTP-216 禁止
+
+- 不修改 `Package.swift`。
+- 不新增、不删除、不重命名 SwiftPM target、product 或 dependency。
+- 不移动 production source，不移动 tests，不退休 compatibility envelope。
+- 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

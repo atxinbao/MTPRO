@@ -153,6 +153,44 @@ Forbidden path taxonomy：
 - `ExecutionEngine -> current OMS / broker adapter` 禁止。
 - `Workbench -> Runtime object / Adapter request / Database schema` 禁止。
 
+## MTP-216 SwiftPM Target Graph Split Contract
+
+`MTP-216-SWIFTPM-TARGET-GRAPH-SPLIT-CONTRACT`
+
+MTP-216 只定义后续 SwiftPM target graph split 的合同和依赖方向，不修改 `Package.swift`，不移动 production source，不新增 SwiftPM target / product / dependency。Canonical contract 位于 `docs/contracts/swiftpm-target-graph-split-contract.md`。
+
+`MTP-216-CURRENT-COMPATIBILITY-ENVELOPE-SNAPSHOT`
+
+当前 SwiftPM target graph 仍是 compatibility envelope：`Core`、`Adapters -> Core`、`Persistence -> Core, CSQLite, DuckDB(macOS)`、`Runtime -> Core, Adapters, Persistence`、`App -> Core, Persistence`、`Dashboard -> App`。该 snapshot 只是 before-state evidence，不代表 final target graph 已拆分。
+
+`MTP-216-CANONICAL-TARGET-GRAPH-BASELINE`
+
+后续目标 module targets 是 `DomainModel`、`MessageBus`、`Database`、`DataClient`、`Cache`、`DataEngine`、`Portfolio`、`RiskEngine`、`ExecutionClient`、`ExecutionEngine`、`TraderStrategies`、`Trader`、`Workbench` 和 `Dashboard`。`TraderStrategies` 归 Trader ownership，当前 active concrete strategy only `EMA`，canonical source path only `Sources/Trader/Strategies/EMA/`。
+
+`MTP-216-DEPENDENCY-DIRECTION-CONTRACT`
+
+目标依赖方向为：`MessageBus -> DomainModel`；`Database -> DomainModel / MessageBus / CSQLite / DuckDB(macOS)`；`DataClient -> DomainModel`；`Cache -> DomainModel / MessageBus`；`DataEngine -> DomainModel / DataClient / MessageBus / Cache`；`Portfolio -> DomainModel / MessageBus / Cache / Database`；`RiskEngine -> DomainModel / MessageBus / Cache / Portfolio`；`ExecutionClient -> DomainModel`；`ExecutionEngine -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine / ExecutionClient(future gate types only)`；`TraderStrategies -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine`；`Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine / ExecutionEngine`；`Workbench -> ReadModel / ViewModel exports only`；`Dashboard -> Workbench`。
+
+`MTP-216-FORBIDDEN-IMPORT-PATHS`
+
+后续 target split 必须阻断 `DataClient -> signed/account/listenKey/private runtime`、`TraderStrategies -> ExecutionClient / broker / OMS`、`Trader -> ExecutionClient`、`RiskEngine -> broker / ExecutionClient`、`ExecutionEngine -> current OMS / broker adapter / signed endpoint / account endpoint / listenKey`、`ExecutionClient -> signed request / real order lifecycle`、`Workbench -> Runtime object / Adapter request / Database schema / broker payload / account payload` 和 `Dashboard -> anything except Workbench`。
+
+`MTP-216-TRADER-OWNED-STRATEGIES-TARGET-BOUNDARY`
+
+后续多个策略统一放在 `Sources/Trader/Strategies/<strategy>/`，并由未来 `TraderStrategies` target 编译。策略只提出 signal / paper-neutral proposal evidence，不能直连 ExecutionClient、broker、OMS、Workbench、Dashboard 或 UI command surface。`Sources/Trader/Coordination/RiskBinding/` 是 coordination adapter / binding boundary，不是 concrete strategy implementation landing path。
+
+`MTP-216-MODULE-TO-TARGET-SPLIT-SEQUENCE`
+
+MTP-217 只能拆 `DomainModel` / `MessageBus` / `Database` foundation targets；MTP-218 只能拆 `DataClient` / `DataEngine` / `Cache`；MTP-219 只能拆 `TraderStrategies` / `Trader` / `Portfolio` / `RiskEngine`；MTP-220 只能拆 `ExecutionEngine` / `ExecutionClient` future gate；MTP-221 只能拆 `Workbench` / `Dashboard` read-model-only consumption targets；MTP-222 才能退休 obsolete compatibility envelopes；MTP-223 只做 validation matrix / automation readiness / stage audit input closeout。
+
+`MTP-216-PACKAGE-SPLIT-NON-AUTHORIZATION`
+
+本文档记录 MTP-216 target graph contract，不授权修改 `Package.swift`、移动 source、退休 compatibility envelope、实现 runtime / live / broker / L4 capability 或创建下一 Project / Issue。
+
+`MTP-216-NO-RUNTIME-LIVE-BROKER-L4`
+
+MTP-216 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
 ## Engineering Layer Map / 工程分层地图
 
 Target System Architecture 的工程分层压缩为五层。依赖方向从 Workbench 往下读取稳定边界；事实流从输入源进入 DataClient / DataEngine 后写入 MessageBus / Event Log，再通过 replay / projection / read model 反向供 Workbench 展示。

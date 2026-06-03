@@ -1,0 +1,161 @@
+# MTPRO SwiftPM Target Graph Split Contract
+
+日期：2026-06-04
+
+执行者：Codex
+
+本文档是 `MTPRO SwiftPM Target Graph Module Split v1` 的 MTP-216 合同。它只定义后续 SwiftPM target graph split 的目标图、依赖方向、禁止导入和 issue 边界；MTP-216 本身不修改 `Package.swift`，不移动 production source，不新增 SwiftPM target / product / dependency。
+
+## MTP-216-SWIFTPM-TARGET-GRAPH-SPLIT-CONTRACT
+
+SwiftPM target graph split contract 指后续把当前 compatibility envelope 拆成 architecture-graph-aligned module targets 时必须遵守的目标图和依赖方向。当前仓库仍以 `Core`、`Adapters`、`Persistence`、`Runtime`、`App`、`Dashboard` 和 `CSQLite` 作为 SwiftPM build envelope；这些 target name 只维持 buildability，不代表最终 target graph 已拆分。
+
+MTP-216 的职责是 contract-first：先固定 target graph baseline、禁止路径、下游 issue 边界和验证锚点，再由 MTP-217 至 MTP-223 按 WIP=1 逐步执行。任何实际 source movement、`Package.swift` target / product / dependency 修改、compatibility envelope 退休，都必须等对应下游 issue live-read 授权。
+
+## MTP-216-CURRENT-COMPATIBILITY-ENVELOPE-SNAPSHOT
+
+当前 SwiftPM target graph baseline 是：
+
+```text
+Core
+Adapters -> Core
+Persistence -> Core, CSQLite, DuckDB(macOS)
+Runtime -> Core, Adapters, Persistence
+App -> Core, Persistence
+Dashboard -> App
+CSQLite
+```
+
+当前 `Core` 仍作为 compatibility envelope 编译 `Sources/DomainModel/`、`Sources/MessageBus/`、`Sources/Cache/MarketData/`、`Sources/Trader/Accounts/`、`Sources/Trader/Strategies/EMA/`、`Sources/Trader/Coordination/RiskBinding/`、`Sources/Portfolio/`、`Sources/RiskEngine/`、`Sources/ExecutionEngine/`、`Sources/ExecutionClient/` 和 retained Core research / compatibility evidence。`Adapters`、`Persistence`、`Runtime`、`App` 和 `Dashboard` 也仍以旧 target 名称承载对应 source roots。
+
+该 snapshot 不是后续目标结构，只是 MTP-216 的 before-state evidence。后续 issue 不能把 snapshot 当成新增 runtime、broker gateway、OMS、ExecutionClient implementation、Live PRO Console 或 target split 已完成的证据。
+
+## MTP-216-CANONICAL-TARGET-GRAPH-BASELINE
+
+后续目标 SwiftPM module targets 必须按下表拆分。表内 dependency 表达允许方向；未列出的逆向依赖默认禁止。
+
+| Target | 允许依赖 | 目标职责 |
+| --- | --- | --- |
+| `DomainModel` | 无业务 target 依赖 | 领域对象、shared value types、paper / simulated / future-gated shared vocabulary。 |
+| `MessageBus` | `DomainModel` | facts、events、commands、request / response、routing envelope、replay invariant。 |
+| `Database` | `DomainModel`, `MessageBus`, `CSQLite`, DuckDB(macOS implementation dependency) | append-only event log、snapshot、SQLite / DuckDB projection、replay projection backing store。 |
+| `DataClient` | `DomainModel` | venue-scoped public read-only market data adapter boundary；当前只有 Binance public market data path。 |
+| `Cache` | `DomainModel`, `MessageBus` | in-memory / runtime-derived market data、instrument、order、position、portfolio read state cache。 |
+| `DataEngine` | `DomainModel`, `DataClient`, `MessageBus`, `Cache` | ingestion、subscription / request / response contract、scenario replay、data quality。 |
+| `Portfolio` | `DomainModel`, `MessageBus`, `Cache`, `Database` | paper / simulated portfolio financial state projection、positions、net positions、cash / equity、margin、open value。 |
+| `RiskEngine` | `DomainModel`, `MessageBus`, `Cache`, `Portfolio` | paper pre-trade risk、risk blockers、future live risk gates 和 blocked evidence。 |
+| `ExecutionClient` | `DomainModel` | future-gated external broker / exchange client capability contract only。 |
+| `ExecutionEngine` | `DomainModel`, `MessageBus`, `Cache`, `Portfolio`, `RiskEngine`, `ExecutionClient` | paper lifecycle、simulated lifecycle、matching / fill / fee / slippage、future OMS boundary；`ExecutionClient` 只能作为 future gate / protocol vocabulary，不是 current call path。 |
+| `TraderStrategies` | `DomainModel`, `MessageBus`, `Cache`, `Portfolio`, `RiskEngine` | Trader-owned concrete strategies；当前 active concrete strategy only `EMA`，canonical source path only `Sources/Trader/Strategies/EMA/`。 |
+| `Trader` | `DomainModel`, `MessageBus`, `Cache`, `TraderStrategies`, `Portfolio`, `RiskEngine`, `ExecutionEngine` | `Trader = Accounts + Strategies/EMA + Coordination`；只做 identity / account context / strategy proposal / risk / execution coordination boundary。 |
+| `Workbench` | `DomainModel`, `MessageBus`, `DataEngine`, `Portfolio`, `RiskEngine`, `ExecutionEngine`, `Trader`, `Database` read-model exports only | Report / Dashboard / Events read-model-only evidence surface and ViewModel assembly。 |
+| `Dashboard` | `Workbench` | macOS shell / smoke executable，只装载 Workbench ViewModel snapshot。 |
+
+## MTP-216-DEPENDENCY-DIRECTION-CONTRACT
+
+依赖方向必须保持：
+
+```text
+DomainModel
+MessageBus -> DomainModel
+Database -> DomainModel / MessageBus / CSQLite / DuckDB(macOS)
+DataClient -> DomainModel
+Cache -> DomainModel / MessageBus
+DataEngine -> DomainModel / DataClient / MessageBus / Cache
+Portfolio -> DomainModel / MessageBus / Cache / Database
+RiskEngine -> DomainModel / MessageBus / Cache / Portfolio
+ExecutionClient -> DomainModel
+ExecutionEngine -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine / ExecutionClient(future gate types only)
+TraderStrategies -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine
+Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine / ExecutionEngine
+Workbench -> ReadModel / ViewModel exports only
+Dashboard -> Workbench
+```
+
+该方向保留 NautilusTrader 风格的 engine layering，但不复制 NautilusTrader runtime，也不把 MTPRO 当前 evidence 升级为 production trading engine。`TraderStrategies` 只能提出 strategy signal / paper-neutral proposal evidence；`Trader` 负责协调，不能绕过 `RiskEngine` / `ExecutionEngine`。`ExecutionClient` 在 MTP-216 仍只是 future gate contract，不是 current executable dependency。
+
+## MTP-216-FORBIDDEN-IMPORT-PATHS
+
+后续 target split 必须阻断以下 import / dependency path：
+
+- `DataClient -> signed endpoint / account endpoint / listenKey / private stream runtime` 禁止。
+- `DataClient -> ExecutionEngine / ExecutionClient / Trader / Workbench / Dashboard` 禁止。
+- `DataEngine -> ExecutionClient / broker / OMS / Workbench / Dashboard` 禁止。
+- `Database -> Workbench / Dashboard / Trader / RiskEngine / ExecutionEngine / ExecutionClient / broker payload` 禁止。
+- `Cache -> Database schema / Workbench / Dashboard / broker payload` 禁止。
+- `TraderStrategies -> ExecutionClient / OMS / broker command / Workbench / Dashboard` 禁止。
+- `Trader -> ExecutionClient` 当前禁止；未来即使允许也只能经 L4 独立 Project、RiskEngine 和 ExecutionEngine gate 重新授权。
+- `Portfolio -> broker account state / account endpoint payload / signed endpoint / listenKey` 禁止。
+- `RiskEngine -> broker / ExecutionClient / signed endpoint / account endpoint / listenKey` 禁止。
+- `ExecutionEngine -> current OMS / broker adapter / signed endpoint / account endpoint / listenKey` 禁止。
+- `ExecutionClient -> signed request / order submit / cancel / replace / execution report / broker fill / reconciliation runtime` 当前禁止。
+- `Workbench -> Runtime object / Adapter request / Database schema / broker payload / account payload` 禁止。
+- `Dashboard -> anything except Workbench` 禁止。
+
+## MTP-216-TRADER-OWNED-STRATEGIES-TARGET-BOUNDARY
+
+Strategies 在后续 target graph 中归 Trader ownership，而不是 peer-level `Sources/Strategies/`。目标结构是：
+
+```text
+Sources/Trader/
+  Accounts/
+  Strategies/
+    EMA/
+  Coordination/
+    RiskBinding/
+```
+
+当前 active concrete strategy only `EMA`。后续多个策略应继续按 `Sources/Trader/Strategies/<strategy>/` 管理，每个 concrete strategy 只依赖 DomainModel / MessageBus / Cache / Portfolio / RiskEngine 层的 evidence/context，不能直接依赖 ExecutionClient、broker、OMS、Workbench、Dashboard 或 UI command surface。
+
+`Sources/Trader/Coordination/RiskBinding/` 是 Trader coordination adapter / binding boundary，不是 concrete strategy implementation landing path。旧 `Sources/Trader/StrategyBindings/` 和 peer-level `Sources/Strategies/` 只保留为 historical / compatibility / superseded context，不得回流为 active source root、Package source root、test root 或 target name。
+
+## MTP-216-MODULE-TO-TARGET-SPLIT-SEQUENCE
+
+MTP-216 之后的 canonical issue sequence 是：
+
+| Issue | 允许打开的边界 | 必须保持的禁止项 |
+| --- | --- | --- |
+| `MTP-217` | Split `DomainModel` / `MessageBus` / `Database` foundation targets。 | 不引入 Trader / Strategy / Live runtime，不接 broker / signed / account endpoint。 |
+| `MTP-218` | Split `DataClient` / `DataEngine` / `Cache` targets。 | DataClient 仍 public read-only；不接 listenKey、private stream、signed/account path。 |
+| `MTP-219` | Split `TraderStrategies` / `Trader` / `Portfolio` / `RiskEngine` targets with EMA-only active boundary。 | Strategies / Trader 不能直连 ExecutionClient、broker、OMS 或 UI command。 |
+| `MTP-220` | Split `ExecutionEngine` / `ExecutionClient` future gate targets。 | `ExecutionClient` 仍 future gate；不实现真实 broker / exchange client、OMS、real order lifecycle。 |
+| `MTP-221` | Split `Workbench` / `Dashboard` read-model-only consumption targets。 | Workbench / Dashboard 不能读取 runtime object、adapter request、schema、broker payload 或 account payload。 |
+| `MTP-222` | Retire obsolete compatibility envelopes and stale target anchors。 | 只退休已经被 split 取代的 envelope；不新增未来方向或 L4 capability。 |
+| `MTP-223` | Close validation matrix / automation readiness / stage audit input。 | 不输出最终 Stage Code Audit Report，不设置 Project Completed，不创建下一 Project / Issue。 |
+
+## MTP-216-PACKAGE-SPLIT-NON-AUTHORIZATION
+
+MTP-216 明确不授权以下动作：
+
+- 修改 `Package.swift` target graph、products、dependencies、source roots 或 exclude list。
+- 新增、删除、重命名 SwiftPM target / product / dependency。
+- 移动 production source 或 tests。
+- 退休 compatibility envelope。
+- 把 `Core`、`Adapters`、`Persistence`、`Runtime`、`App`、`Dashboard` 当作已完成 final target graph split。
+
+## MTP-216-NO-RUNTIME-LIVE-BROKER-L4
+
+MTP-216 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
+MTP-216 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-216-VALIDATION-ANCHORS
+
+MTP-216 required validation：
+
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-216 必须在 root docs / validation docs / automation readiness 中建立：
+
+- `MTP-216-SWIFTPM-TARGET-GRAPH-SPLIT-CONTRACT`
+- `MTP-216-CURRENT-COMPATIBILITY-ENVELOPE-SNAPSHOT`
+- `MTP-216-CANONICAL-TARGET-GRAPH-BASELINE`
+- `MTP-216-DEPENDENCY-DIRECTION-CONTRACT`
+- `MTP-216-FORBIDDEN-IMPORT-PATHS`
+- `MTP-216-TRADER-OWNED-STRATEGIES-TARGET-BOUNDARY`
+- `MTP-216-MODULE-TO-TARGET-SPLIT-SEQUENCE`
+- `MTP-216-PACKAGE-SPLIT-NON-AUTHORIZATION`
+- `MTP-216-NO-RUNTIME-LIVE-BROKER-L4`
+- `MTP-216-TARGET-GRAPH-CONTRACT-VALIDATION`

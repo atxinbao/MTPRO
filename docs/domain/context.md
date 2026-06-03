@@ -2893,6 +2893,46 @@ MTP-190 remaining compatibility shell audit 表示当前迁移完成的是 sourc
 
 MTP-190 forbidden implementation audit 固定 no Strategy runtime、Trader runtime、Portfolio runtime、RiskEngine runtime、ExecutionEngine runtime、ExecutionClient implementation、OMS implementation、broker adapter、signed endpoint、account endpoint / listenKey、private stream runtime、account snapshot runtime、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form、emergency stop、shutdown、restore 或 production operations command。
 
+`MTP-216-SWIFTPM-TARGET-GRAPH-SPLIT-CONTRACT`
+
+`SwiftPM target graph split contract` 指 MTP-216 为后续 `MTPRO SwiftPM Target Graph Module Split v1` 固定的 contract-first baseline。它只定义目标 SwiftPM module targets、依赖方向、禁止导入路径、downstream issue split sequence 和 validation anchors；它不代表 `Package.swift` 已修改，不代表 source 已移动，也不代表 compatibility envelope 已退休。
+
+`MTP-216-CURRENT-COMPATIBILITY-ENVELOPE-SNAPSHOT`
+
+`Current compatibility envelope snapshot` 指当前仍以 `Core`、`Adapters`、`Persistence`、`Runtime`、`App`、`Dashboard` 和 `CSQLite` 维持 buildability。该 snapshot 只能作为 before-state evidence，不能写成 final target graph split、runtime readiness、ExecutionClient implementation、broker gateway、OMS 或 L4 readiness。
+
+`MTP-216-CANONICAL-TARGET-GRAPH-BASELINE`
+
+`Canonical target graph baseline` 指后续目标 module targets：`DomainModel`、`MessageBus`、`Database`、`DataClient`、`Cache`、`DataEngine`、`Portfolio`、`RiskEngine`、`ExecutionClient`、`ExecutionEngine`、`TraderStrategies`、`Trader`、`Workbench` 和 `Dashboard`。该 baseline 是 dependency planning contract，不是当前 target graph implementation。
+
+`MTP-216-DEPENDENCY-DIRECTION-CONTRACT`
+
+`Dependency direction contract` 指依赖只能沿 DomainModel / MessageBus / Database / DataClient / Cache / DataEngine / Portfolio / RiskEngine / ExecutionClient future gate / ExecutionEngine / TraderStrategies / Trader / Workbench / Dashboard 的允许方向前进。逆向依赖、UI 向下读取 runtime / adapter / schema、策略直连 ExecutionClient、Trader 绕过 RiskEngine / ExecutionEngine、ExecutionEngine 直连 broker adapter 都必须保持 forbidden。
+
+`MTP-216-FORBIDDEN-IMPORT-PATHS`
+
+`Forbidden import paths` 指后续 target split 必须机械阻断的 import / dependency route：DataClient 不接 signed/account/listenKey/private runtime；TraderStrategies / Trader 不直连 ExecutionClient、OMS 或 broker；RiskEngine 不直连 broker / ExecutionClient；ExecutionEngine 不直连 current OMS / broker adapter / signed endpoint；ExecutionClient 不实现 signed request 或 real order lifecycle；Workbench / Dashboard 不读取 Runtime object、Adapter request、Database schema、broker payload 或 account payload。
+
+`MTP-216-TRADER-OWNED-STRATEGIES-TARGET-BOUNDARY`
+
+`Trader-owned strategies target boundary` 指后续多个 concrete strategies 都放在 `Sources/Trader/Strategies/<strategy>/`，由 `TraderStrategies` target 管理。当前 active concrete strategy only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/`。策略只提出 signal / paper-neutral proposal evidence，不直连 ExecutionClient、broker、OMS、Workbench、Dashboard 或 UI command surface。
+
+`MTP-216-MODULE-TO-TARGET-SPLIT-SEQUENCE`
+
+`Module-to-target split sequence` 指 MTP-217 到 MTP-223 的执行顺序：foundation targets、DataClient / DataEngine / Cache、TraderStrategies / Trader / Portfolio / RiskEngine、ExecutionEngine / ExecutionClient future gate、Workbench / Dashboard、compatibility envelope retirement、validation closeout。该 sequence 不能绕过 WIP=1、Linear live-read、PR/check/merge/root fast-forward/Linear Done/post-issue ledger gate。
+
+`MTP-216-PACKAGE-SPLIT-NON-AUTHORIZATION`
+
+`Package split non-authorization` 指 MTP-216 只写合同，不授权修改 `Package.swift`、移动 source、增删 target / product / dependency、退休 compatibility envelope 或推进下一 Project / Issue。
+
+`MTP-216-NO-RUNTIME-LIVE-BROKER-L4`
+
+MTP-216 明确不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
+`MTP-216-TARGET-GRAPH-CONTRACT-VALIDATION`
+
+MTP-216 target graph contract validation 指 `docs/contracts/swiftpm-target-graph-split-contract.md`、`architecture.md`、`docs/architecture/module-boundary.md`、本文档、validation plan、validation matrix、latest verification summary、automation readiness doc 和 automation readiness shell gate 均包含 MTP-216 anchors，并通过 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

@@ -797,6 +797,12 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | --- | --- | --- |
 | `MTP-211` | `TVM-TARGET-MODULE-PHYSICAL-LAYOUT-SOURCE-MIGRATION` | 新增 Trader Accounts / Coordination compatibility consolidation stage closeout：`docs/audit/inputs/mtpro-trader-accounts-coordination-compatibility-consolidation-v1-stage-audit-input.md` 汇总 MTP-205 至 MTP-210 的 PR evidence、merge commit、required check、`Trader = Accounts + Strategies/EMA + Coordination` compatibility closeout、`Sources/Trader/Accounts/` identity/source/future gate boundary、EMA-only active strategy、`Sources/Trader/Coordination/RiskBinding/` coordination adapter、retired `Sources/Trader/StrategyBindings/` / peer-level `Sources/Strategies/` treatment、Package stale exclude cleanup、validation matrix、automation readiness、compatibility envelope、forbidden implementation audit、Root Docs Delta input 和 Stage Code Audit handoff checklist。MTP-211 只准备 audit input material，不移动 source files，不新增 SwiftPM target/product/dependency，不拆 target graph，不输出最终 Stage Code Audit Report，不设置 Linear Project `Completed`，不创建下一 Project / Issue，不推进下一阶段，不运行 Graphify，不修改 Figma，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker command、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command 或 order form。 |
 
+## MTP-216 issue backfill
+
+| Issue | Matrix ID | 回填说明 |
+| --- | --- | --- |
+| `MTP-216` | `TVM-SWIFTPM-TARGET-GRAPH-MODULE-SPLIT` | 新增 SwiftPM target graph split contract：`docs/contracts/swiftpm-target-graph-split-contract.md` 固定 current compatibility envelope snapshot、canonical target graph baseline、dependency direction contract、forbidden import paths、Trader-owned strategies target boundary、MTP-217 至 MTP-223 module-to-target split sequence、Package split non-authorization 和 no runtime / live / broker / L4 boundary。MTP-216 只建立 contract / docs / automation readiness anchors；不修改 `Package.swift`，不移动 production source 或 tests，不新增 SwiftPM target/product/dependency，不退休 compatibility envelope，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command、order form 或 L4 capability。 |
+
 ## MTP-190 Target Module Source Migration 阶段收口
 
 日期：2026-06-01
