@@ -13765,3 +13765,49 @@ Root Docs Refresh Gate 更新：
 备注：
 
 - Linear Project final `Completed/type=completed` status 按 closure flow 在本 Stage Code Audit / Root Docs Refresh PR 合并且 GitHub required check `checks` 成功后设置。
+
+## 2026-06-03 — MTPRO Persistence Validation Repair v1 docs-only planning record
+
+执行者：Codex
+
+范围：
+
+- 将 Human 确认的 `MTPRO Persistence Validation Repair v1` planning draft 落仓为 docs-only Project Planning Record。
+- 新增 `docs/planning/projects/mtpro-persistence-validation-repair-v1-plan.md`。
+- 更新 `docs/planning/linear-draft-plan.md`，把 `MTPRO Trader Accounts / Coordination Compatibility Consolidation v1` 标记为已完成，并新增当前 Persistence repair docs-only / non-executable planning record 入口。
+- 更新 `docs/validation/latest-verification-summary.md`，记录当前 `main` 存在 PersistenceTests `xctest` signal 11 validation blocker。
+- 更新 `BLUEPRINT.md`，只增加 repair planning record 引用，不复制完整 issue body，不更新进度条，不授权 execution。
+
+已知 validation blocker：
+
+```text
+PersistenceTests/testFileEventLogStoreRejectsOutOfOrderAppendToProtectAppendOnlyInvariant
+-> xctest signal 11
+```
+
+该 blocker 是本 repair Project 的目标修复对象。本 docs-only planning PR 不要求 `bash checks/run.sh` 通过；如 GitHub required check `checks` 因同一 blocker 失败，不解释为 planning record 内容错误。
+
+边界：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify update。
+- 不修改 Figma。
+- 不修复 production code。
+- 不修改 Persistence implementation。
+- 不修改 `Tests/PersistenceTests` 行为。
+- 不移动 `Sources` 文件。
+- 不修改 `Package.swift` target graph。
+- 不拆 SwiftPM target graph。
+- 不修改 architecture module layout。
+- 不实现 Trader runtime、Strategy runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation 或 L4 implementation。
+- `.codex/*` 和 `graphify-out/*` 不进入 PR。
+
+验证：
+
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：不要求通过；当前已知 blocker 正是本 Project 要修复的问题。
