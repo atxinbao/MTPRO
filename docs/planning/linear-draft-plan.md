@@ -51,15 +51,15 @@
 | `MTPRO Trader-Owned Strategies Layout Correction v1` | `docs/planning/projects/mtpro-trader-owned-strategies-layout-correction-v1-plan.md` | 已写入 Linear；`MTP-191` 至 `MTP-197` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
 | `MTPRO Trader EMA Strategy Layout Consolidation v1` | `docs/planning/projects/mtpro-trader-ema-strategy-layout-consolidation-v1-plan.md` | 已写入 Linear；`MTP-198` 至 `MTP-204` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
 | `MTPRO Trader Accounts / Coordination Compatibility Consolidation v1` | `docs/planning/projects/mtpro-trader-accounts-coordination-compatibility-consolidation-v1-plan.md` | 已写入 Linear；`MTP-205` 至 `MTP-211` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
-| `MTPRO Persistence Validation Repair v1` | `docs/planning/projects/mtpro-persistence-validation-repair-v1-plan.md` | 当前 docs-only planning record / non-executable；repair planning；未写入 Linear；不创建 Linear，不推进 Todo；只规划修复 `PersistenceTests/testFileEventLogStoreRejectsOutOfOrderAppendToProtectAppendOnlyInvariant` 触发的 `xctest` signal 11 validation blocker；不授权 production code repair、Persistence implementation change、test behavior change、source move、`Package.swift` change、SwiftPM target graph split 或 L4 implementation。 |
+| `MTPRO Persistence Validation Repair v1` | `docs/planning/projects/mtpro-persistence-validation-repair-v1-plan.md` | 已写入 Linear；`MTP-213` 至 `MTP-215` 已完成；`MTP-212` 为 Duplicate / non-canonical；Linear Project closure flow 已完成；Stage Code Audit Report 已落仓。 |
 
 ## 当前 Project planning record
 
-- Project：`MTPRO Persistence Validation Repair v1`，仅为 Persistence validation repair docs-only planning candidate。
-- Canonical record：`docs/planning/projects/mtpro-persistence-validation-repair-v1-plan.md`。
-- 当前状态：未写入 Linear；不创建 Linear Project / Issue，不推进 Todo，不启动 `@002 / PAR`、Symphony 或 Graphify，不授权 production code repair、Persistence implementation change、test behavior change、source move、`Package.swift` change、SwiftPM target graph split、business code 或 L4 implementation。当前 planning 目标是修复 `PersistenceTests/testFileEventLogStoreRejectsOutOfOrderAppendToProtectAppendOnlyInvariant` 触发 `xctest` signal 11 的 validation blocker，并恢复 `bash checks/run.sh` baseline。后续必须由 Human 确认是否写入 Linear，并由 Parent Codex queue preflight 验证 WIP=1、依赖、active conflict、execution contract 和 validation requirements 后才可推进唯一 eligible issue。
-- First executable issue candidate：`Diagnose PersistenceTests xctest signal 11`，仅为 candidate，不授权执行。
-- WIP=1：所有候选 issue 写入 Linear 后必须初始保持 `Backlog / non-executable`。
+- 当前没有仓库固定的 active Project planning record。
+- 当前 Project / active issue / Todo / In Progress / In Review 状态必须从 Linear live-read 和 Parent Codex queue preview 获取。
+- 下一阶段必须由 Human 明确输入后，先由 `@001 / PLN` 输出 Project Planning Draft，再经 docs-only planning record、Linear 写入和 Parent Codex queue preflight 才能推进唯一 eligible issue。
+- `MTPRO Persistence Validation Repair v1` 已完成 closure；其 planning record 只作为 historical planning evidence 保留，不再表示当前 queue。
+- 历史 planning record 保留 `当前 docs-only planning record / non-executable` 语义：只代表已落仓计划证据，不代表 execution authorization。
 
 ## Project Planning Record 命名规则
 
