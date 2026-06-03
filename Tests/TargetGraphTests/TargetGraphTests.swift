@@ -2,6 +2,7 @@ import Cache
 import Database
 import DataClient
 import DataEngine
+import Dashboard
 import DomainModel
 import ExecutionClient
 import ExecutionEngine
@@ -10,6 +11,7 @@ import Portfolio
 import RiskEngine
 import Trader
 import TraderStrategies
+import Workbench
 import XCTest
 
 final class TargetGraphTests: XCTestCase {
@@ -177,5 +179,66 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(executionEngine.createsListenKeyOrPrivateWebSocket)
         XCTAssertFalse(executionEngine.implementsRealOrderLifecycle)
         XCTAssertFalse(executionEngine.exposesLiveCommandSurface)
+    }
+
+    func testMTP221WorkbenchDashboardTargetsExposeReadModelOnlyDependencyDirection() {
+        let workbench = WorkbenchTargetBoundary.mtp221
+        let dashboard = DashboardTargetBoundary.mtp221
+
+        XCTAssertTrue(workbench.dependencyDirectionHeld)
+        XCTAssertTrue(dashboard.dependencyDirectionHeld)
+
+        XCTAssertEqual(workbench.allowedDependencies, ["Core", "Persistence"])
+        XCTAssertEqual(dashboard.allowedDependencies, ["Workbench"])
+        XCTAssertEqual(workbench.retainedCompatibilityEnvelope, "App")
+        XCTAssertEqual(dashboard.workbenchBoundary, workbench)
+        XCTAssertTrue(workbench.consumesReadModelOnly)
+        XCTAssertTrue(workbench.consumesViewModelOnly)
+        XCTAssertTrue(dashboard.displaySurfaceOnly)
+        XCTAssertTrue(dashboard.consumesWorkbenchOnly)
+    }
+
+    func testMTP221WorkbenchDashboardTargetsRejectRuntimeAdapterSchemaAndCommandDrift() {
+        let workbench = WorkbenchTargetBoundary.mtp221
+        let dashboard = DashboardTargetBoundary.mtp221
+
+        for forbidden in [
+            "Adapters",
+            "Runtime",
+            "DatabaseSchema",
+            "ExecutionClient",
+            "ExecutionEngineRuntime",
+            "Broker",
+            "OMS",
+            "SignedEndpoint",
+            "AccountEndpoint",
+            "ListenKey",
+            "PrivateWebSocketRuntime",
+            "LiveCommandSurface",
+            "OrderForm"
+        ] {
+            XCTAssertTrue(workbench.forbiddenDependencies.contains(forbidden))
+            XCTAssertTrue(dashboard.forbiddenDependencies.contains(forbidden))
+        }
+
+        XCTAssertFalse(workbench.exposesRuntimeObject)
+        XCTAssertFalse(workbench.readsAdapterRequest)
+        XCTAssertFalse(workbench.exposesPersistenceSchema)
+        XCTAssertFalse(workbench.exposesAccountPayload)
+        XCTAssertFalse(workbench.exposesBrokerState)
+        XCTAssertFalse(workbench.exposesLivePROConsole)
+        XCTAssertFalse(workbench.providesTradingButton)
+        XCTAssertFalse(workbench.providesLiveCommand)
+        XCTAssertFalse(workbench.exposesOrderForm)
+
+        XCTAssertFalse(dashboard.exposesRuntimeObject)
+        XCTAssertFalse(dashboard.readsAdapterRequest)
+        XCTAssertFalse(dashboard.exposesPersistenceSchema)
+        XCTAssertFalse(dashboard.exposesAccountPayload)
+        XCTAssertFalse(dashboard.exposesBrokerState)
+        XCTAssertFalse(dashboard.exposesLivePROConsole)
+        XCTAssertFalse(dashboard.providesTradingButton)
+        XCTAssertFalse(dashboard.providesLiveCommand)
+        XCTAssertFalse(dashboard.exposesOrderForm)
     }
 }

@@ -3065,6 +3065,32 @@ MTP-220 的 dependency direction 是 `ExecutionClient -> DomainModel / MessageBu
 
 MTP-220 不授权 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、broker payload read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
 
+## MTP-221 Workbench / Dashboard target split language
+
+`MTP-221-WORKBENCH-DASHBOARD-TARGET-SPLIT-EVIDENCE`
+
+MTP-221 Workbench / Dashboard target split 指 `Package.swift` 已新增 `Workbench` library product / target，且既有 `Dashboard` executable target 已改为直接依赖 `Workbench`。该 evidence 只表示 read-model-only consumption target graph 可编译，不表示 `App` compatibility export 已退休，也不表示 Live PRO Console 或 UI command surface 已授权。
+
+`MTP-221-WORKBENCH-TARGET-SPLIT`
+
+`Workbench target boundary` 指 Workbench read model / ViewModel consumption layer。它可以消费 `Core` / `Persistence` 导出的 deterministic read model、ViewModel 和 projection snapshot evidence，但不能直接读取 Runtime object、Adapter request、SQLite / DuckDB schema、account payload、broker payload 或 broker state。
+
+`MTP-221-DASHBOARD-TARGET-SPLIT`
+
+`Dashboard target boundary` 指 macOS shell / smoke executable display surface。它只能依赖 `Workbench`，装载 `DashboardViewModel` 和 `DashboardShellSnapshot`；不能直接依赖 `Core`、`Persistence`、`Adapters`、`Runtime`、`ExecutionClient`、broker、OMS、schema、account payload 或 live command。
+
+`MTP-221-WORKBENCH-DASHBOARD-DEPENDENCY-DIRECTION`
+
+MTP-221 的 dependency direction 是 `Workbench -> Core / Persistence read-model and ViewModel exports only`、`Dashboard -> Workbench`、`App -> Workbench compatibility re-export`。`App` 只是 retained compatibility export，退休与否必须等 MTP-222。
+
+`MTP-221-READ-MODEL-VIEWMODEL-ONLY`
+
+Workbench / Dashboard 的 read-model-only 语义表示它们只能展示已经存在的 evidence surface 和 ViewModel snapshot；不得把 Report、Dashboard、Events、Live Monitoring、Strategy readiness、Account Position Balance 或 Private Stream Simulation Gate evidence 升级成 runtime connection、adapter call、schema access、broker state、account payload、live command、trading button 或 order form。
+
+`MTP-221-NO-UI-COMMAND-RUNTIME-SCHEMA-GUARD`
+
+MTP-221 不授权 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、broker payload read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

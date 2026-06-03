@@ -19,6 +19,7 @@ let package = Package(
         .library(name: "ExecutionEngine", targets: ["ExecutionEngine"]),
         .library(name: "TraderStrategies", targets: ["TraderStrategies"]),
         .library(name: "Trader", targets: ["Trader"]),
+        .library(name: "Workbench", targets: ["Workbench"]),
         .library(name: "Core", targets: ["Core"]),
         .library(name: "Adapters", targets: ["Adapters"]),
         .library(name: "Persistence", targets: ["Persistence"]),
@@ -99,9 +100,42 @@ let package = Package(
             path: "Sources/TargetGraph/Trader"
         ),
         .target(
+            name: "Workbench",
+            dependencies: ["Core", "Persistence"],
+            path: "Sources",
+            exclude: [
+                "AppCompatibility",
+                "Cache",
+                "Core",
+                "DataClient",
+                "DataEngine",
+                "Database",
+                "DomainModel",
+                "MessageBus",
+                "Portfolio",
+                "RiskEngine",
+                "ExecutionEngine",
+                "ExecutionClient",
+                "TargetGraph",
+                "Trader",
+                "Dashboard/DashboardApplication.swift",
+                "Dashboard/DashboardTargetBoundary.swift"
+            ],
+            sources: [
+                "Workbench/ReadModels",
+                "Workbench/Report",
+                "Workbench/Dashboard",
+                "Workbench/Events",
+                "Workbench/FutureLiveProConsole",
+                "Workbench/TargetGraph",
+                "Dashboard/DashboardShell.swift"
+            ]
+        ),
+        .target(
             name: "Core",
             path: "Sources",
             exclude: [
+                "AppCompatibility",
                 "Dashboard",
                 "DataClient",
                 "DataEngine/Ingest",
@@ -170,6 +204,7 @@ let package = Package(
             dependencies: ["Core", "Adapters", "Persistence"],
             path: "Sources",
             exclude: [
+                "AppCompatibility",
                 "Cache",
                 "Core",
                 "Dashboard",
@@ -194,42 +229,19 @@ let package = Package(
         ),
         .target(
             name: "App",
-            dependencies: ["Core", "Persistence"],
-            path: "Sources",
-            exclude: [
-                "Cache",
-                "Core",
-                "DataClient",
-                "DataEngine",
-                "Database",
-                "DomainModel",
-                "MessageBus",
-                "Portfolio",
-                "RiskEngine",
-                "ExecutionEngine",
-                "ExecutionClient",
-                "TargetGraph",
-                "Trader",
-                "Dashboard/DashboardApplication.swift"
-            ],
-            sources: [
-                "Workbench/ReadModels",
-                "Workbench/Report",
-                "Workbench/Dashboard",
-                "Workbench/Events",
-                "Workbench/FutureLiveProConsole",
-                "Dashboard/DashboardShell.swift"
-            ]
+            dependencies: ["Workbench"],
+            path: "Sources/AppCompatibility"
         ),
         .executableTarget(
             name: "Dashboard",
-            dependencies: ["App"],
+            dependencies: ["Workbench"],
             path: "Sources/Dashboard",
             exclude: [
                 "DashboardShell.swift"
             ],
             sources: [
-                "DashboardApplication.swift"
+                "DashboardApplication.swift",
+                "DashboardTargetBoundary.swift"
             ]
         ),
         .testTarget(
@@ -266,7 +278,9 @@ let package = Package(
                 "ExecutionClient",
                 "ExecutionEngine",
                 "TraderStrategies",
-                "Trader"
+                "Trader",
+                "Workbench",
+                "Dashboard"
             ],
             path: "Tests/TargetGraphTests"
         ),
