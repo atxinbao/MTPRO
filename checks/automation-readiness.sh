@@ -5084,6 +5084,32 @@ require_contains "docs/validation/latest-verification-summary.md" "MTP-219 的�
 require_contains "docs/validation/latest-verification-summary.md" "MTP-219-TRADER-PORTFOLIO-RISK-TARGET-SPLIT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Trader / Portfolio / Risk target split anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-219 新增 buildable"
+require_contains "Package.swift" '.library(name: "ExecutionClient", targets: ["ExecutionClient"])'
+require_contains "Package.swift" '.library(name: "ExecutionEngine", targets: ["ExecutionEngine"])'
+require_contains "Package.swift" 'name: "ExecutionClient"'
+require_contains "Package.swift" 'name: "ExecutionEngine"'
+require_file "Sources/TargetGraph/ExecutionClient/ExecutionClientTargetBoundary.swift"
+require_file "Sources/TargetGraph/ExecutionEngine/ExecutionEngineTargetBoundary.swift"
+require_contains "Sources/TargetGraph/ExecutionClient/ExecutionClientTargetBoundary.swift" "MTP-220-EXECUTIONCLIENT-TARGET-SPLIT"
+require_contains "Sources/TargetGraph/ExecutionEngine/ExecutionEngineTargetBoundary.swift" "MTP-220-EXECUTIONENGINE-TARGET-SPLIT"
+require_contains "Sources/TargetGraph/Trader/TraderTargetBoundary.swift" "MTP-220-TRADER-EXECUTIONENGINE-DEPENDENCY-RESOLVED"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP220ExecutionTargetsExposeFutureGateDependencyDirection"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP220ExecutionTargetsRejectBrokerOMSRealOrderAndEndpointDrift"
+require_contains "docs/contracts/swiftpm-target-graph-split-contract.md" "MTP-220-EXECUTION-TARGET-SPLIT-EVIDENCE"
+require_contains "docs/contracts/swiftpm-target-graph-split-contract.md" "MTP-220-EXECUTION-TARGET-SPLIT-VALIDATION"
+require_contains "architecture.md" "MTP-220 ExecutionEngine / ExecutionClient Target Split"
+require_contains "architecture.md" "MTP-220-RISKENGINE-EXECUTIONENGINE-EXECUTIONCLIENT-DIRECTION"
+require_contains "docs/architecture/module-boundary.md" "MTP-220 ExecutionEngine / ExecutionClient Target Split"
+require_contains "docs/architecture/module-boundary.md" "MTP-220-TARGETGRAPH-TEST-EVIDENCE"
+require_contains "docs/domain/context.md" "MTP-220-EXECUTION-TARGET-SPLIT-EVIDENCE"
+require_contains "docs/domain/context.md" "MTP-220-EXECUTIONCLIENT-FUTURE-GATE-ONLY"
+require_contains "docs/validation/validation-plan.md" "MTP-220 ExecutionEngine / ExecutionClient Target Split Validation"
+require_contains "docs/validation/validation-plan.md" "MTP-220-EXECUTION-TARGET-SPLIT-VALIDATION"
+require_contains "docs/validation/trading-validation-matrix.md" "MTP-220 issue backfill"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-220 的当前 issue execution evidence"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-220-EXECUTION-TARGET-SPLIT-VALIDATION"
+require_contains "docs/automation/automation-readiness.md" "Execution target split anchor"
+require_contains "docs/automation/automation-readiness.md" "MTP-220 新增 buildable"
 require_absent "docs/validation/validation-plan.md" 'Root docs 必须使用 `Trader = Accounts + Strategies + StrategyBindings + Coordination`'
 require_absent "docs/validation/validation-plan.md" '`Sources/Trader/StrategyBindings/` 必须包含 proposal-to-risk binding'
 require_absent "docs/validation/validation-plan.md" '只使用 `"Trader/Strategies/EMA"` 和 `"Trader/StrategyBindings"`'

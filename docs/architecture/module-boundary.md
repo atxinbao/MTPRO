@@ -1652,6 +1652,44 @@ Trader container 保持 `Accounts + Strategies/EMA + Coordination`：`Sources/Tr
 
 MTP-219 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real account read、broker payload read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
 
+## MTP-220 ExecutionEngine / ExecutionClient Target Split
+
+`MTP-220-EXECUTION-TARGET-SPLIT-EVIDENCE`
+
+MTP-220 新增 `ExecutionClient` 和 `ExecutionEngine` SwiftPM library products / targets。该 evidence 是 execution target split 的第四段，只证明 target graph 可编译和 dependency direction 已落仓，不退休旧 compatibility envelope。
+
+`MTP-220-EXECUTIONCLIENT-TARGET-SPLIT`
+
+`ExecutionClient` target 编译 `Sources/TargetGraph/ExecutionClient/ExecutionClientTargetBoundary.swift`，依赖 `DomainModel` 和 `MessageBus`。ExecutionClient 只表达 future gate / protocol boundary，不实现 broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、execution report、broker fill 或 reconciliation。
+
+`MTP-220-EXECUTIONENGINE-TARGET-SPLIT`
+
+`ExecutionEngine` target 编译 `Sources/TargetGraph/ExecutionEngine/ExecutionEngineTargetBoundary.swift`，依赖 `DomainModel`、`MessageBus`、`Cache`、`Portfolio`、`RiskEngine` 和 `ExecutionClient`。ExecutionEngine 只表达 paper / simulated lifecycle boundary 和 OMS future gate evidence，不实现 live execution runtime、OMS implementation、broker gateway 或 executable live order command。
+
+`MTP-220-RISKENGINE-EXECUTIONENGINE-EXECUTIONCLIENT-DIRECTION`
+
+Direction 固定为 `ExecutionClient -> DomainModel / MessageBus`、`ExecutionEngine -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine / ExecutionClient`，并把 MTP-219 延后的 `Trader -> ExecutionEngine` dependency 解析为正式 target dependency。RiskEngine 不直连 ExecutionClient / broker；Trader 仍不能直连 ExecutionClient、broker、OMS 或 UI command surface。
+
+`MTP-220-TRADER-EXECUTIONENGINE-DEPENDENCY-RESOLVED`
+
+`TraderTargetBoundary` 在 MTP-220 直接依赖 `ExecutionEngineTargetBoundary`，但继续保持 no direct ExecutionClient、no broker / OMS、no real account payload 和 no live command surface guard。
+
+`MTP-220-EXECUTIONCLIENT-FUTURE-GATE-ONLY`
+
+ExecutionClient 只保留 future-gated outgoing adapter contract；BrokerCapabilityMatrix 仍是 future capability taxonomy，不是 capability discovery runtime、credential check、network probe、API key input 或 secret storage。
+
+`MTP-220-EXECUTION-COMPATIBILITY-ENVELOPE-RETAINED`
+
+`Core` 继续编译既有 `Sources/ExecutionEngine/` 和 `Sources/ExecutionClient/` source roots；MTP-220 不迁移 existing implementation，不退休 compatibility envelope。
+
+`MTP-220-TARGETGRAPH-TEST-EVIDENCE`
+
+`Tests/TargetGraphTests/TargetGraphTests.swift` 直接 import `ExecutionClient` 和 `ExecutionEngine`，验证 target split evidence、dependency direction、Trader dependency resolution 和 no broker / OMS / real order / endpoint drift。
+
+`MTP-220-NO-BROKER-OMS-REAL-ORDER-GUARD`
+
+MTP-220 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real account read、broker payload read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |

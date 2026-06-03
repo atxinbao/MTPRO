@@ -293,6 +293,28 @@ Trader container 保持 `Accounts + Strategies/EMA + Coordination`：account con
 
 MTP-219 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real account read、broker payload read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
 
+## MTP-220 ExecutionEngine / ExecutionClient Target Split
+
+`MTP-220-EXECUTION-TARGET-SPLIT-EVIDENCE`
+
+MTP-220 继续实际 SwiftPM target graph split：`Package.swift` 新增 `ExecutionClient` 和 `ExecutionEngine` library products / targets，并通过 `Sources/TargetGraph/*` boundary anchors 证明 execution future gate targets 可编译。该 split 不退休 `Core` compatibility envelope，不迁移既有 production implementation。
+
+`MTP-220-EXECUTIONCLIENT-TARGET-SPLIT`
+
+`ExecutionClient` target 依赖 `DomainModel` 和 `MessageBus`，当前编译 `Sources/TargetGraph/ExecutionClient/ExecutionClientTargetBoundary.swift`。ExecutionClient 只能表达 future gate / outgoing adapter contract，不实现 broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime 或 real order lifecycle。
+
+`MTP-220-EXECUTIONENGINE-TARGET-SPLIT`
+
+`ExecutionEngine` target 依赖 `DomainModel`、`MessageBus`、`Cache`、`Portfolio`、`RiskEngine` 和 `ExecutionClient`，当前编译 `Sources/TargetGraph/ExecutionEngine/ExecutionEngineTargetBoundary.swift`。ExecutionEngine 只表达 paper / simulated execution lifecycle boundary 和 OMS future gate evidence，不实现 live execution runtime、OMS implementation、broker gateway 或 executable live order command。
+
+`MTP-220-RISKENGINE-EXECUTIONENGINE-EXECUTIONCLIENT-DIRECTION`
+
+当前 execution target direction 是 `ExecutionClient -> DomainModel / MessageBus`、`ExecutionEngine -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine / ExecutionClient`，并把 MTP-219 延后的 `Trader -> ExecutionEngine` dependency 解析为正式 target dependency。
+
+`MTP-220-NO-BROKER-OMS-REAL-ORDER-GUARD`
+
+MTP-220 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real account read、broker payload read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
 ## Engineering Layer Map / 工程分层地图
 
 Target System Architecture 的工程分层压缩为五层。依赖方向从 Workbench 往下读取稳定边界；事实流从输入源进入 DataClient / DataEngine 后写入 MessageBus / Event Log，再通过 replay / projection / read model 反向供 Workbench 展示。

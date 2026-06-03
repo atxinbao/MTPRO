@@ -3,6 +3,8 @@ import Database
 import DataClient
 import DataEngine
 import DomainModel
+import ExecutionClient
+import ExecutionEngine
 import MessageBus
 import Portfolio
 import RiskEngine
@@ -96,8 +98,8 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertEqual(portfolio.allowedDependencies, ["DomainModel", "MessageBus", "Cache", "Database"])
         XCTAssertEqual(riskEngine.allowedDependencies, ["DomainModel", "MessageBus", "Cache", "Portfolio"])
         XCTAssertEqual(strategies.allowedDependencies, ["DomainModel", "MessageBus", "Cache", "Portfolio", "RiskEngine"])
-        XCTAssertEqual(trader.allowedDependencies, ["DomainModel", "MessageBus", "Cache", "TraderStrategies", "Portfolio", "RiskEngine"])
-        XCTAssertEqual(trader.deferredDependencies, ["ExecutionEngine(MTP-220)"])
+        XCTAssertEqual(trader.allowedDependencies, ["DomainModel", "MessageBus", "Cache", "TraderStrategies", "Portfolio", "RiskEngine", "ExecutionEngine"])
+        XCTAssertTrue(trader.deferredDependencies.isEmpty)
 
         XCTAssertEqual(trader.accountContextRoot, "Sources/Trader/Accounts")
         XCTAssertEqual(trader.activeStrategyRoot, "Sources/Trader/Strategies/EMA")
@@ -134,5 +136,46 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(trader.callsBrokerOrOMS)
         XCTAssertFalse(trader.readsRealAccountPayload)
         XCTAssertFalse(trader.exposesLiveCommandSurface)
+    }
+
+    func testMTP220ExecutionTargetsExposeFutureGateDependencyDirection() {
+        let executionClient = ExecutionClientTargetBoundary.mtp220
+        let executionEngine = ExecutionEngineTargetBoundary.mtp220
+        let trader = TraderTargetBoundary.mtp219
+
+        XCTAssertTrue(executionClient.dependencyDirectionHeld)
+        XCTAssertTrue(executionEngine.dependencyDirectionHeld)
+        XCTAssertTrue(trader.dependencyDirectionHeld)
+
+        XCTAssertEqual(executionClient.allowedDependencies, ["DomainModel", "MessageBus"])
+        XCTAssertEqual(executionEngine.allowedDependencies, ["DomainModel", "MessageBus", "Cache", "Portfolio", "RiskEngine", "ExecutionClient"])
+        XCTAssertEqual(trader.allowedDependencies, ["DomainModel", "MessageBus", "Cache", "TraderStrategies", "Portfolio", "RiskEngine", "ExecutionEngine"])
+        XCTAssertTrue(trader.deferredDependencies.isEmpty)
+        XCTAssertTrue(executionEngine.consumesRiskEngineBoundary)
+        XCTAssertTrue(executionEngine.executionClientFutureGateOnly)
+    }
+
+    func testMTP220ExecutionTargetsRejectBrokerOMSRealOrderAndEndpointDrift() {
+        let executionClient = ExecutionClientTargetBoundary.mtp220
+        let executionEngine = ExecutionEngineTargetBoundary.mtp220
+
+        XCTAssertTrue(executionClient.futureGateOnly)
+        XCTAssertFalse(executionClient.implementsBrokerGateway)
+        XCTAssertFalse(executionClient.implementsSignedEndpoint)
+        XCTAssertFalse(executionClient.readsAccountEndpointOrListenKey)
+        XCTAssertFalse(executionClient.connectsPrivateWebSocketRuntime)
+        XCTAssertFalse(executionClient.implementsOrderSubmitCancelReplace)
+        XCTAssertFalse(executionClient.parsesExecutionReportOrBrokerFill)
+        XCTAssertFalse(executionClient.runsReconciliationRuntime)
+        XCTAssertFalse(executionClient.exposesLiveCommandSurface)
+
+        XCTAssertTrue(executionEngine.paperSimulatedLifecycleBoundary)
+        XCTAssertFalse(executionEngine.implementsLiveExecutionRuntime)
+        XCTAssertFalse(executionEngine.implementsOMS)
+        XCTAssertFalse(executionEngine.implementsBrokerGateway)
+        XCTAssertFalse(executionEngine.callsSignedOrAccountEndpoint)
+        XCTAssertFalse(executionEngine.createsListenKeyOrPrivateWebSocket)
+        XCTAssertFalse(executionEngine.implementsRealOrderLifecycle)
+        XCTAssertFalse(executionEngine.exposesLiveCommandSurface)
     }
 }
