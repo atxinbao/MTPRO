@@ -6,7 +6,7 @@
 
 本文档是 MTPRO Project Planning Record 的入口索引和统一规则文档。
 
-本文档不授权 Codex 执行，不创建 Linear Project，不创建 Linear Issues，不修改 Linear status，不启动 symphony-issue，不运行 Graphify update，不授权 Binance、策略、UI 或数据库适配器实现。
+本文档不授权 Codex 执行，不创建 Linear Project，不创建 Linear Issues，不修改 Linear status，不启动 `@002 / PAR`、Symphony / symphony-issue、Graphify / code-index，不授权 Binance、策略、UI、数据库适配器、SwiftPM target graph split 或任何 runtime 实现。
 
 ## 职责
 
@@ -52,12 +52,14 @@
 | `MTPRO Trader EMA Strategy Layout Consolidation v1` | `docs/planning/projects/mtpro-trader-ema-strategy-layout-consolidation-v1-plan.md` | 已写入 Linear；`MTP-198` 至 `MTP-204` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
 | `MTPRO Trader Accounts / Coordination Compatibility Consolidation v1` | `docs/planning/projects/mtpro-trader-accounts-coordination-compatibility-consolidation-v1-plan.md` | 已写入 Linear；`MTP-205` 至 `MTP-211` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
 | `MTPRO Persistence Validation Repair v1` | `docs/planning/projects/mtpro-persistence-validation-repair-v1-plan.md` | 已写入 Linear；`MTP-213` 至 `MTP-215` 已完成；`MTP-212` 为 Duplicate / non-canonical；Linear Project closure flow 已完成；Stage Code Audit Report 已落仓。 |
+| `MTPRO SwiftPM Target Graph Module Split v1` | `docs/planning/projects/mtpro-swiftpm-target-graph-module-split-v1-plan.md` | 当前 docs-only planning record / non-executable；未写入 Linear；不创建 Linear，不推进 Todo；只规划 SwiftPM target graph split、dependency direction、compatibility envelope retirement 和 validation baseline，不授权修改 `Package.swift`、移动 `Sources`、拆 target 或实现 runtime。 |
 
 ## 当前 Project planning record
 
-- 当前没有仓库固定的 active Project planning record。
+- 当前仓库只保存 `MTPRO SwiftPM Target Graph Module Split v1` 的 docs-only / non-executable planning record。
 - 当前 Project / active issue / Todo / In Progress / In Review 状态必须从 Linear live-read 和 Parent Codex queue preview 获取。
-- 下一阶段必须由 Human 明确输入后，先由 `@001 / PLN` 输出 Project Planning Draft，再经 docs-only planning record、Linear 写入和 Parent Codex queue preflight 才能推进唯一 eligible issue。
+- `MTPRO SwiftPM Target Graph Module Split v1` 仍未写入 Linear，不创建 Linear Project / Issue，不推进 Todo，不授权 `Package.swift` target graph change、SwiftPM target split、source move 或 runtime implementation。
+- 下一步必须由 Human 明确授权 Linear 写入；Linear 写入后所有 issues 仍必须保持 `Backlog / non-executable`，再由 Parent Codex queue preflight 才能推进唯一 eligible issue。
 - `MTPRO Persistence Validation Repair v1` 已完成 closure；其 planning record 只作为 historical planning evidence 保留，不再表示当前 queue。
 - 历史 planning record 保留 `当前 docs-only planning record / non-executable` 语义：只代表已落仓计划证据，不代表 execution authorization。
 
@@ -114,7 +116,7 @@
 - Project Planning Facilitator 不操作 `Backlog` -> `Todo`。
 - 只有父 Codex 可以操作 `Backlog` -> `Todo`。
 - 只有父 Codex 可以在 Human-approved Project 内，通过 queue preflight、WIP=1、依赖、previous issue Done 和 execution contract gate 后，操作唯一 eligible issue 的 `Backlog` -> `Todo`。
-- symphony-issue 只能调度唯一 `Todo` issue。
+- MTPRO 不再使用 Symphony / symphony-issue 或 Graphify；任何执行调度都不能绕过 Parent Codex queue preflight。
 - Codex Execution Agent 只执行当前唯一 Linear issue scope。
 
 ## Next Human Project Planning 前置 Gate
