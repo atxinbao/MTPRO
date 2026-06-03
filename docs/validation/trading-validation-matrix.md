@@ -839,6 +839,12 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | --- | --- | --- |
 | `MTP-222` | `TVM-SWIFTPM-TARGET-GRAPH-MODULE-SPLIT` | 退休 obsolete compatibility wording / stale active anchors：active target graph snapshot 固定为 MTP-217 至 MTP-221 已建立的 `DomainModel`、`MessageBus`、`Database`、`DataClient`、`Cache`、`DataEngine`、`Portfolio`、`RiskEngine`、`ExecutionClient`、`ExecutionEngine`、`TraderStrategies`、`Trader`、`Workbench` 和 `Dashboard` buildable targets；retained `Core`、`Adapters`、`Persistence`、`Runtime` 和 `App` targets 只能表示 existing implementation / import compatibility。MTP-216 的旧 `Core / Adapters / Persistence / Runtime / App / Dashboard` snapshot、旧 `Dashboard -> App`、旧 `App -> Core, Persistence`、旧 `Sources/Strategies/<strategy>` 和旧 `Sources/Trader/StrategyBindings/` references 只能作为 historical / compatibility / superseded / before-state evidence 保留；active anchors 必须指向 `Sources/Trader/Strategies/EMA/`、`Sources/Trader/Coordination/RiskBinding/`、`TraderStrategies`、`Trader`、`Workbench` 和 `Dashboard -> Workbench`。MTP-222 不移动 source，不新增/删除/重命名 SwiftPM target/product/dependency，不删除 retained compatibility exports，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed/account endpoint、private stream runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。 |
 
+## MTP-223 issue backfill
+
+| Issue | Matrix ID | Evidence |
+| --- | --- | --- |
+| `MTP-223` | `TVM-SWIFTPM-TARGET-GRAPH-MODULE-SPLIT` | 新增 SwiftPM target graph module split stage closeout input：`docs/audit/inputs/mtpro-swiftpm-target-graph-module-split-v1-stage-audit-input.md` 汇总 MTP-216 至 MTP-222 的 PR evidence、merge commit、required check、Linear Done、current target graph snapshot、foundation / data / trader / execution / workbench target split evidence、compatibility anchor retirement、validation matrix、automation readiness、forbidden implementation audit、Root Docs Delta input 和 Stage Code Audit handoff checklist。MTP-223 只准备 audit input material，不输出最终 Stage Code Audit Report，不设置 Linear Project `Completed`，不创建下一 Project / Issue，不推进下一阶段，不运行 Symphony / Graphify / code-index / Figma，不移动 source，不新增/删除/重命名 SwiftPM target/product/dependency，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed/account endpoint、private stream runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。 |
+
 ## MTP-190 Target Module Source Migration 阶段收口
 
 日期：2026-06-01

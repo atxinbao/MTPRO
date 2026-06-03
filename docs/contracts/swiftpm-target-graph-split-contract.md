@@ -528,3 +528,37 @@ MTP-222 required validation：
 - `git diff --check`
 - `bash checks/automation-readiness.sh`
 - `bash checks/run.sh`
+
+## MTP-223 Target Graph Stage Closeout Evidence
+
+日期：2026-06-04
+
+执行者：Codex
+
+`MTP-223-SWIFTPM-TARGET-GRAPH-STAGE-CLOSEOUT`
+
+MTP-223 只收口 `MTPRO SwiftPM Target Graph Module Split v1` 的 validation matrix、automation readiness 和 stage audit input material。Canonical input 位于 `docs/audit/inputs/mtpro-swiftpm-target-graph-module-split-v1-stage-audit-input.md`。
+
+`MTP-223-STAGE-AUDIT-INPUT-MATERIAL`
+
+Stage audit input material 汇总 MTP-216 至 MTP-222 的 issue / PR / merge / required check evidence、current target graph snapshot、foundation / data / trader / execution / workbench target split evidence、compatibility anchor retirement、validation matrix closeout、automation readiness closeout、forbidden implementation audit、Root Docs Delta input 和 Parent Codex Stage Code Audit handoff checklist。
+
+`MTP-223-TARGET-GRAPH-CLOSEOUT`
+
+MTP-223 closeout 的 current target graph 仍以 MTP-222 snapshot 为准：`DomainModel`、`MessageBus`、`Database`、`DataClient`、`Cache`、`DataEngine`、`Portfolio`、`RiskEngine`、`ExecutionClient`、`ExecutionEngine`、`TraderStrategies`、`Trader`、`Workbench` 和 `Dashboard`。Retained `Core`、`Adapters`、`Persistence`、`Runtime` 和 `App` targets 只表达 existing implementation / import compatibility。
+
+`MTP-223-NO-FINAL-STAGE-CODE-AUDIT`
+
+MTP-223 不输出最终 Stage Code Audit Report，不设置 Linear Project `Completed`，不创建下一 Project / Issue，不推进下一阶段，不启动新的 `@002 / PAR`、Symphony 或 `symphony-issue`。最终 Stage Code Audit Report 必须由 Parent Codex 在 MTP-216 至 MTP-223 全部 Done 且 Linear Project `Completed/completedAt` 后单独输出。
+
+`MTP-223-FORBIDDEN-IMPLEMENTATION-AUDIT`
+
+MTP-223 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real account read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability；不运行 Symphony、Graphify、code-index 或 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+`MTP-223-STAGE-CLOSEOUT-VALIDATION`
+
+MTP-223 required validation：
+
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`

@@ -3113,6 +3113,28 @@ Stale active anchor retirement 表示 active source anchors 必须指向 `Source
 
 MTP-222 不授权 source move、target deletion、runtime behavior change、Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real account read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
 
+## MTP-223 target graph stage closeout language
+
+`MTP-223-SWIFTPM-TARGET-GRAPH-STAGE-CLOSEOUT`
+
+MTP-223 target graph stage closeout 指 `MTPRO SwiftPM Target Graph Module Split v1` 的 final issue-level input material：validation matrix、automation readiness、stage audit input、target graph evidence chain summary 和 forbidden capability audit。它不是最终 Stage Code Audit Report。
+
+`MTP-223-STAGE-AUDIT-INPUT-MATERIAL`
+
+Stage audit input material 位于 `docs/audit/inputs/mtpro-swiftpm-target-graph-module-split-v1-stage-audit-input.md`，用于 Parent Codex 在所有 issue Done 后输出最终 Stage Code Audit Report。该 input 可以汇总 PR / merge / checks evidence，但不能设置 Project Completed，不能创建下一 Project / Issue，不能推进下一 Todo。
+
+`MTP-223-TARGET-GRAPH-CLOSEOUT`
+
+Target graph closeout 表示 current active graph snapshot、retained compatibility boundary、TargetGraphTests evidence、validation matrix 和 automation readiness 已形成可审计链路。它不表示 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、real order lifecycle、Live PRO Console、trading button 或 live command 已实现。
+
+`MTP-223-NO-FINAL-STAGE-CODE-AUDIT`
+
+MTP-223 issue 不输出最终 Stage Code Audit Report。最终报告、Linear Project Completed、Root Docs Refresh Gate 和 closure progress summary 必须由 Parent Codex closure flow 在 MTP-216 至 MTP-223 全部 Done 后执行。
+
+`MTP-223-FORBIDDEN-IMPLEMENTATION-AUDIT`
+
+MTP-223 forbidden audit 继续保持 no Symphony、no Graphify、no code-index、no Figma、no `.codex/*` / `graphify-out/*` PR submission、no runtime / live / broker / L4 capability。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
