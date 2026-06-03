@@ -4,6 +4,10 @@ import DataClient
 import DataEngine
 import DomainModel
 import MessageBus
+import Portfolio
+import RiskEngine
+import Trader
+import TraderStrategies
 import XCTest
 
 final class TargetGraphTests: XCTestCase {
@@ -76,5 +80,59 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(dataEngine.implementsPrivateStreamRuntime)
         XCTAssertFalse(dataEngine.callsSignedOrAccountEndpoint)
         XCTAssertFalse(dataEngine.routesBrokerOrExecutionCommand)
+    }
+
+    func testMTP219TraderPortfolioRiskTargetsExposeDependencyDirectionAndContainerBoundary() {
+        let portfolio = PortfolioTargetBoundary.mtp219
+        let riskEngine = RiskEngineTargetBoundary.mtp219
+        let strategies = TraderStrategiesTargetBoundary.mtp219
+        let trader = TraderTargetBoundary.mtp219
+
+        XCTAssertTrue(portfolio.dependencyDirectionHeld)
+        XCTAssertTrue(riskEngine.dependencyDirectionHeld)
+        XCTAssertTrue(strategies.dependencyDirectionHeld)
+        XCTAssertTrue(trader.dependencyDirectionHeld)
+
+        XCTAssertEqual(portfolio.allowedDependencies, ["DomainModel", "MessageBus", "Cache", "Database"])
+        XCTAssertEqual(riskEngine.allowedDependencies, ["DomainModel", "MessageBus", "Cache", "Portfolio"])
+        XCTAssertEqual(strategies.allowedDependencies, ["DomainModel", "MessageBus", "Cache", "Portfolio", "RiskEngine"])
+        XCTAssertEqual(trader.allowedDependencies, ["DomainModel", "MessageBus", "Cache", "TraderStrategies", "Portfolio", "RiskEngine"])
+        XCTAssertEqual(trader.deferredDependencies, ["ExecutionEngine(MTP-220)"])
+
+        XCTAssertEqual(trader.accountContextRoot, "Sources/Trader/Accounts")
+        XCTAssertEqual(trader.activeStrategyRoot, "Sources/Trader/Strategies/EMA")
+        XCTAssertEqual(trader.coordinationRoot, "Sources/Trader/Coordination/RiskBinding")
+        XCTAssertEqual(strategies.activeConcreteStrategies, ["EMA"])
+        XCTAssertEqual(strategies.activeStrategySourceRoots, ["Sources/Trader/Strategies/EMA"])
+    }
+
+    func testMTP219TraderPortfolioRiskTargetsRejectRuntimeBrokerAndNonEMADrift() {
+        let portfolio = PortfolioTargetBoundary.mtp219
+        let riskEngine = RiskEngineTargetBoundary.mtp219
+        let strategies = TraderStrategiesTargetBoundary.mtp219
+        let trader = TraderTargetBoundary.mtp219
+
+        XCTAssertTrue(portfolio.financialStateProjectionBoundary)
+        XCTAssertFalse(portfolio.ownsAccountIdentity)
+        XCTAssertFalse(portfolio.readsBrokerAccountState)
+        XCTAssertFalse(portfolio.readsAccountEndpointPayload)
+        XCTAssertFalse(portfolio.implementsPortfolioRuntime)
+
+        XCTAssertTrue(riskEngine.preExecutionBoundary)
+        XCTAssertFalse(riskEngine.implementsLiveRiskRuntime)
+        XCTAssertFalse(riskEngine.callsBrokerOrExecutionClient)
+        XCTAssertFalse(riskEngine.readsSignedOrAccountEndpoint)
+        XCTAssertFalse(riskEngine.routesExecutableOrderCommand)
+
+        XCTAssertTrue(strategies.nonEMAActiveStrategySourceRoots.isEmpty)
+        XCTAssertFalse(strategies.callsExecutionClient)
+        XCTAssertFalse(strategies.callsBrokerOrOMS)
+        XCTAssertFalse(strategies.exposesUICommandSurface)
+
+        XCTAssertFalse(trader.implementsTraderRuntime)
+        XCTAssertFalse(trader.callsExecutionClientDirectly)
+        XCTAssertFalse(trader.callsBrokerOrOMS)
+        XCTAssertFalse(trader.readsRealAccountPayload)
+        XCTAssertFalse(trader.exposesLiveCommandSurface)
     }
 }

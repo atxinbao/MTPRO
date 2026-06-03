@@ -259,6 +259,40 @@ MTP-218 继续实际 SwiftPM target graph split：`Package.swift` 新增 `DataCl
 
 MTP-218 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real account read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
 
+## MTP-219 Trader / Portfolio / Risk Target Split
+
+`MTP-219-TRADER-PORTFOLIO-RISK-TARGET-SPLIT-EVIDENCE`
+
+MTP-219 继续实际 SwiftPM target graph split：`Package.swift` 新增 `TraderStrategies`、`Trader`、`Portfolio` 和 `RiskEngine` library products / targets，并通过 `Sources/TargetGraph/*` boundary anchors 证明 coordination / financial state / pre-execution risk targets 可编译。该 split 不退休 `Core` compatibility envelope，不迁移既有 production implementation。
+
+`MTP-219-TRADERSTRATEGIES-TARGET-SPLIT`
+
+`TraderStrategies` target 依赖 `DomainModel`、`MessageBus`、`Cache`、`Portfolio` 和 `RiskEngine`，当前编译 `Sources/TargetGraph/TraderStrategies/TraderStrategiesTargetBoundary.swift`。当前 active concrete strategy only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/`。
+
+`MTP-219-TRADER-TARGET-SPLIT`
+
+`Trader` target 依赖 `DomainModel`、`MessageBus`、`Cache`、`TraderStrategies`、`Portfolio` 和 `RiskEngine`，当前编译 `Sources/TargetGraph/Trader/TraderTargetBoundary.swift`。`ExecutionEngine` target 仍归 MTP-220 拆分，因此 MTP-219 只记录 `ExecutionEngine(MTP-220)` deferred dependency，不在本 issue 中依赖 execution layer。
+
+`MTP-219-PORTFOLIO-TARGET-SPLIT`
+
+`Portfolio` target 依赖 `DomainModel`、`MessageBus`、`Cache` 和 `Database`，当前编译 `Sources/TargetGraph/Portfolio/PortfolioTargetBoundary.swift`。Portfolio 保持独立 financial state projection boundary，不拥有 Trader account identity，不读取 broker account state 或 account endpoint payload。
+
+`MTP-219-RISKENGINE-TARGET-SPLIT`
+
+`RiskEngine` target 依赖 `DomainModel`、`MessageBus`、`Cache` 和 `Portfolio`，当前编译 `Sources/TargetGraph/RiskEngine/RiskEngineTargetBoundary.swift`。RiskEngine 保持 pre-execution risk boundary，不实现 live risk runtime、broker route、ExecutionClient wrapper 或 executable order command router。
+
+`MTP-219-TRADER-PORTFOLIO-RISK-DEPENDENCY-DIRECTION`
+
+当前 coordination / financial / risk target direction 是 `Portfolio -> DomainModel / MessageBus / Cache / Database`、`RiskEngine -> DomainModel / MessageBus / Cache / Portfolio`、`TraderStrategies -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine`、`Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine`，并把 `Trader -> ExecutionEngine` 延后到 MTP-220。
+
+`MTP-219-TRADER-CONTAINER-ACCOUNTS-EMA-COORDINATION`
+
+Trader container 保持 `Accounts + Strategies/EMA + Coordination`：account context root 是 `Sources/Trader/Accounts/`，active strategy root 是 `Sources/Trader/Strategies/EMA/`，coordination root 是 `Sources/Trader/Coordination/RiskBinding/`。旧 `Sources/Trader/StrategyBindings/` 和 peer-level `Sources/Strategies/` 不得回流。
+
+`MTP-219-NO-DIRECT-EXECUTION-GUARD`
+
+MTP-219 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real account read、broker payload read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
 ## Engineering Layer Map / 工程分层地图
 
 Target System Architecture 的工程分层压缩为五层。依赖方向从 Workbench 往下读取稳定边界；事实流从输入源进入 DataClient / DataEngine 后写入 MessageBus / Event Log，再通过 replay / projection / read model 反向供 Workbench 展示。

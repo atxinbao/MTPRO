@@ -1610,6 +1610,48 @@ Data-layer direction 固定为 `DataClient -> DomainModel`、`Cache -> DomainMod
 
 MTP-218 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real account read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
 
+## MTP-219 Trader / Portfolio / Risk Target Split
+
+`MTP-219-TRADER-PORTFOLIO-RISK-TARGET-SPLIT-EVIDENCE`
+
+MTP-219 新增 `TraderStrategies`、`Trader`、`Portfolio` 和 `RiskEngine` SwiftPM library products / targets。该 evidence 是 coordination / financial state / pre-execution risk target split 的第三段，只证明 target graph 可编译和 dependency direction 已落仓，不退休旧 compatibility envelope。
+
+`MTP-219-TRADERSTRATEGIES-TARGET-SPLIT`
+
+`TraderStrategies` target 编译 `Sources/TargetGraph/TraderStrategies/TraderStrategiesTargetBoundary.swift`，依赖 `DomainModel`、`MessageBus`、`Cache`、`Portfolio` 和 `RiskEngine`。当前 active concrete strategy only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/`。
+
+`MTP-219-TRADER-TARGET-SPLIT`
+
+`Trader` target 编译 `Sources/TargetGraph/Trader/TraderTargetBoundary.swift`，依赖 `DomainModel`、`MessageBus`、`Cache`、`TraderStrategies`、`Portfolio` 和 `RiskEngine`。`ExecutionEngine` target 归 MTP-220 拆分，因此本 issue 只记录 deferred dependency。
+
+`MTP-219-PORTFOLIO-TARGET-SPLIT`
+
+`Portfolio` target 编译 `Sources/TargetGraph/Portfolio/PortfolioTargetBoundary.swift`，依赖 `DomainModel`、`MessageBus`、`Cache` 和 `Database`。Portfolio 只表达 financial state projection，不拥有 Trader account identity，不读取 broker account state 或 account endpoint payload。
+
+`MTP-219-RISKENGINE-TARGET-SPLIT`
+
+`RiskEngine` target 编译 `Sources/TargetGraph/RiskEngine/RiskEngineTargetBoundary.swift`，依赖 `DomainModel`、`MessageBus`、`Cache` 和 `Portfolio`。RiskEngine 只表达 pre-execution risk boundary，不实现 live risk runtime、broker route、ExecutionClient wrapper 或 executable order command router。
+
+`MTP-219-TRADER-PORTFOLIO-RISK-DEPENDENCY-DIRECTION`
+
+Direction 固定为 `Portfolio -> DomainModel / MessageBus / Cache / Database`、`RiskEngine -> DomainModel / MessageBus / Cache / Portfolio`、`TraderStrategies -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine`、`Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine`，并把 `Trader -> ExecutionEngine` 延后到 MTP-220。
+
+`MTP-219-EMA-ONLY-ACTIVE-STRATEGY-BOUNDARY`
+
+当前 active concrete strategy only `EMA`，canonical active source root only `Sources/Trader/Strategies/EMA/`。非 EMA strategy 不得作为 active source root、Package source root、test root 或 target source root 回流。
+
+`MTP-219-TRADER-CONTAINER-ACCOUNTS-EMA-COORDINATION`
+
+Trader container 保持 `Accounts + Strategies/EMA + Coordination`：`Sources/Trader/Accounts/`、`Sources/Trader/Strategies/EMA/` 和 `Sources/Trader/Coordination/RiskBinding/` 是当前三段 active container；旧 `Sources/Trader/StrategyBindings/` 和 peer-level `Sources/Strategies/` 不得回流。
+
+`MTP-219-TARGETGRAPH-TEST-EVIDENCE`
+
+`Tests/TargetGraphTests/TargetGraphTests.swift` 直接 import `TraderStrategies`、`Trader`、`Portfolio` 和 `RiskEngine`，验证 target split evidence、dependency direction、Trader container completeness、EMA-only active strategy 和 no direct execution / broker / runtime drift。
+
+`MTP-219-NO-DIRECT-EXECUTION-GUARD`
+
+MTP-219 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real account read、broker payload read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |

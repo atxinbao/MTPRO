@@ -4814,7 +4814,6 @@ require_absent "Package.swift" '                "Strategies",'
 require_absent "Package.swift" '"Strategies/EMA"'
 require_absent "Package.swift" '"Trader/StrategyBindings"'
 require_absent "Package.swift" 'name: "Strategies"'
-require_absent "Package.swift" 'name: "Trader"'
 [[ ! -d "Sources/Strategies" ]] || fail "MTP-209 stale active path must not return: Sources/Strategies"
 require_contains "Tests/CoreTests/CoreTests.swift" "testMTP210TraderContainerCompletenessValidationLocksAccountsEMAAndRiskBindingOnly"
 require_contains "docs/architecture/module-boundary.md" "MTP-210 Trader Container Completeness Validation"
@@ -5052,6 +5051,39 @@ require_contains "docs/validation/latest-verification-summary.md" "MTP-218 的�
 require_contains "docs/validation/latest-verification-summary.md" "MTP-218-DATA-TARGET-SPLIT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Data target split anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-218 新增 buildable"
+require_contains "Package.swift" '.library(name: "Portfolio", targets: ["Portfolio"])'
+require_contains "Package.swift" '.library(name: "RiskEngine", targets: ["RiskEngine"])'
+require_contains "Package.swift" '.library(name: "TraderStrategies", targets: ["TraderStrategies"])'
+require_contains "Package.swift" '.library(name: "Trader", targets: ["Trader"])'
+require_contains "Package.swift" 'name: "Portfolio"'
+require_contains "Package.swift" 'name: "RiskEngine"'
+require_contains "Package.swift" 'name: "TraderStrategies"'
+require_contains "Package.swift" 'name: "Trader"'
+require_file "Sources/TargetGraph/Portfolio/PortfolioTargetBoundary.swift"
+require_file "Sources/TargetGraph/RiskEngine/RiskEngineTargetBoundary.swift"
+require_file "Sources/TargetGraph/TraderStrategies/TraderStrategiesTargetBoundary.swift"
+require_file "Sources/TargetGraph/Trader/TraderTargetBoundary.swift"
+require_contains "Sources/TargetGraph/Portfolio/PortfolioTargetBoundary.swift" "MTP-219-PORTFOLIO-TARGET-SPLIT"
+require_contains "Sources/TargetGraph/RiskEngine/RiskEngineTargetBoundary.swift" "MTP-219-RISKENGINE-TARGET-SPLIT"
+require_contains "Sources/TargetGraph/TraderStrategies/TraderStrategiesTargetBoundary.swift" "MTP-219-TRADERSTRATEGIES-TARGET-SPLIT"
+require_contains "Sources/TargetGraph/Trader/TraderTargetBoundary.swift" "MTP-219-TRADER-TARGET-SPLIT"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP219TraderPortfolioRiskTargetsExposeDependencyDirectionAndContainerBoundary"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP219TraderPortfolioRiskTargetsRejectRuntimeBrokerAndNonEMADrift"
+require_contains "docs/contracts/swiftpm-target-graph-split-contract.md" "MTP-219-TRADER-PORTFOLIO-RISK-TARGET-SPLIT-EVIDENCE"
+require_contains "docs/contracts/swiftpm-target-graph-split-contract.md" "MTP-219-TRADER-PORTFOLIO-RISK-TARGET-SPLIT-VALIDATION"
+require_contains "architecture.md" "MTP-219 Trader / Portfolio / Risk Target Split"
+require_contains "architecture.md" "MTP-219-TRADER-CONTAINER-ACCOUNTS-EMA-COORDINATION"
+require_contains "docs/architecture/module-boundary.md" "MTP-219 Trader / Portfolio / Risk Target Split"
+require_contains "docs/architecture/module-boundary.md" "MTP-219-TARGETGRAPH-TEST-EVIDENCE"
+require_contains "docs/domain/context.md" "MTP-219-TRADER-PORTFOLIO-RISK-TARGET-SPLIT-EVIDENCE"
+require_contains "docs/domain/context.md" "MTP-219-EMA-ONLY-ACTIVE-STRATEGY-BOUNDARY"
+require_contains "docs/validation/validation-plan.md" "MTP-219 Trader / Portfolio / Risk Target Split Validation"
+require_contains "docs/validation/validation-plan.md" "MTP-219-TRADER-PORTFOLIO-RISK-TARGET-SPLIT-VALIDATION"
+require_contains "docs/validation/trading-validation-matrix.md" "MTP-219 issue backfill"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-219 的当前 issue execution evidence"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-219-TRADER-PORTFOLIO-RISK-TARGET-SPLIT-VALIDATION"
+require_contains "docs/automation/automation-readiness.md" "Trader / Portfolio / Risk target split anchor"
+require_contains "docs/automation/automation-readiness.md" "MTP-219 新增 buildable"
 require_absent "docs/validation/validation-plan.md" 'Root docs 必须使用 `Trader = Accounts + Strategies + StrategyBindings + Coordination`'
 require_absent "docs/validation/validation-plan.md" '`Sources/Trader/StrategyBindings/` 必须包含 proposal-to-risk binding'
 require_absent "docs/validation/validation-plan.md" '只使用 `"Trader/Strategies/EMA"` 和 `"Trader/StrategyBindings"`'
