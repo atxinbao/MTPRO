@@ -13723,3 +13723,45 @@ Root Docs Refresh Gate 更新：
 备注：
 
 - `bash checks/run.sh` 仍输出已知 SwiftPM warning：`Invalid Exclude .../Sources/Strategies: File not found.`。这是已退休 `Sources/Strategies` 目录仍被 `Package.swift` exclude 引用导致的非阻断 warning，也是本次新 planning record 后续 Issue 5 的计划 cleanup 对象；本轮按 docs-only 边界不修改 `Package.swift`。
+
+## 2026-06-03 — MTPRO Trader Accounts / Coordination Compatibility Consolidation v1 Project closure
+
+执行者：Parent Codex / Codex
+
+范围：
+
+- 完成 `MTPRO Trader Accounts / Coordination Compatibility Consolidation v1` Project closure flow 的 docs-only Stage Code Audit 和 Root Docs Refresh Gate。
+- 新增 `docs/audit/mtpro-trader-accounts-coordination-compatibility-consolidation-v1-stage-code-audit.md`。
+- 汇总 `MTP-205` 至 `MTP-211` 的 issue / PR / merge / required check evidence。
+- 同步 `GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/product/mtpro-live-readiness-roadmap-v1.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 中的已完成事实。
+- 当前权威口径为 `Trader = Accounts + Strategies/EMA + Coordination`。
+- `Sources/Trader/Accounts` 只表达 account identity、source identity 和 future real account gate。
+- 当前 active concrete strategy only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/`。
+- `Sources/Trader/Coordination/RiskBinding` 只表达 coordination / binding boundary。
+- Project Closure Count 更新为 `26 / 26 (100%)`；Final Product Goal Progress 保持 `9 / 9 (100%)`；Engine Maturity Roadmap Progress 保持 `4 / 4 (100%)`。
+
+边界：
+
+- 不创建下一 Linear Project / Issue。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify。
+- 不修改 Figma。
+- 不写业务 runtime。
+- 不拆 SwiftPM target graph。
+- 不实现 Trader runtime、Strategy runtime、Live runtime。
+- 不读取真实账户。
+- 不接 signed endpoint、account endpoint / listenKey 或 private WebSocket runtime。
+- 不实现 ExecutionClient implementation、OMS、broker gateway、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command 或 order form。
+- `.codex/*` 和 `graphify-out/*` 不进入 PR。
+
+验证：
+
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 正常，315 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
+备注：
+
+- Linear Project final `Completed/type=completed` status 按 closure flow 在本 Stage Code Audit / Root Docs Refresh PR 合并且 GitHub required check `checks` 成功后设置。
