@@ -5138,6 +5138,32 @@ require_contains "docs/validation/latest-verification-summary.md" "MTP-221 的�
 require_contains "docs/validation/latest-verification-summary.md" "MTP-221-WORKBENCH-DASHBOARD-TARGET-SPLIT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Workbench / Dashboard target split anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-221 新增 buildable"
+require_contains "docs/contracts/swiftpm-target-graph-split-contract.md" "MTP-222-COMPATIBILITY-ANCHOR-RETIREMENT-EVIDENCE"
+require_contains "docs/contracts/swiftpm-target-graph-split-contract.md" "MTP-222-CURRENT-TARGET-GRAPH-SNAPSHOT"
+require_contains "docs/contracts/swiftpm-target-graph-split-contract.md" "MTP-222-HISTORICAL-COMPATIBILITY-EVIDENCE-RETAINED"
+require_contains "docs/contracts/swiftpm-target-graph-split-contract.md" "MTP-222-STALE-ACTIVE-ANCHOR-RETIREMENT"
+require_contains "docs/contracts/swiftpm-target-graph-split-contract.md" "MTP-222-NO-BEHAVIOR-RUNTIME-LIVE-GUARD"
+require_contains "docs/contracts/swiftpm-target-graph-split-contract.md" "MTP-222-COMPATIBILITY-ANCHOR-RETIREMENT-VALIDATION"
+require_contains "architecture.md" "MTP-222 Compatibility Anchor Retirement"
+require_contains "architecture.md" "MTP-222-CURRENT-TARGET-GRAPH-SNAPSHOT"
+require_contains "architecture.md" "Dashboard -> Workbench"
+require_contains "architecture.md" "App -> Workbench compatibility re-export"
+require_contains "docs/architecture/module-boundary.md" "MTP-222 Compatibility Anchor Retirement"
+require_contains "docs/architecture/module-boundary.md" "MTP-222-HISTORICAL-COMPATIBILITY-EVIDENCE-RETAINED"
+require_contains "docs/domain/context.md" "MTP-222 compatibility anchor retirement language"
+require_contains "docs/domain/context.md" "MTP-222-STALE-ACTIVE-ANCHOR-RETIREMENT"
+require_contains "docs/validation/validation-plan.md" "MTP-222 Compatibility Anchor Retirement Validation"
+require_contains "docs/validation/validation-plan.md" "MTP-222-COMPATIBILITY-ANCHOR-RETIREMENT-VALIDATION"
+require_contains "docs/validation/trading-validation-matrix.md" "MTP-222 issue backfill"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-222 的当前 issue execution evidence"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-222-COMPATIBILITY-ANCHOR-RETIREMENT-VALIDATION"
+require_contains "docs/automation/automation-readiness.md" "Compatibility anchor retirement anchor"
+require_contains "docs/automation/automation-readiness.md" "MTP-222 把旧"
+require_contains "Package.swift" '.library(name: "DomainModel", targets: ["DomainModel"])'
+require_contains "Package.swift" '.library(name: "TraderStrategies", targets: ["TraderStrategies"])'
+require_contains "Package.swift" '.library(name: "Workbench", targets: ["Workbench"])'
+require_contains "Package.swift" 'dependencies: ["Workbench"]'
+require_absent "architecture.md" "当前 SwiftPM target graph 仍保留 compatibility envelope"
 require_absent "docs/validation/validation-plan.md" 'Root docs 必须使用 `Trader = Accounts + Strategies + StrategyBindings + Coordination`'
 require_absent "docs/validation/validation-plan.md" '`Sources/Trader/StrategyBindings/` 必须包含 proposal-to-risk binding'
 require_absent "docs/validation/validation-plan.md" '只使用 `"Trader/Strategies/EMA"` 和 `"Trader/StrategyBindings"`'

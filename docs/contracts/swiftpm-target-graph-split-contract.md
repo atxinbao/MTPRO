@@ -4,11 +4,11 @@
 
 执行者：Codex
 
-本文档是 `MTPRO SwiftPM Target Graph Module Split v1` 的 MTP-216 合同。它只定义后续 SwiftPM target graph split 的目标图、依赖方向、禁止导入和 issue 边界；MTP-216 本身不修改 `Package.swift`，不移动 production source，不新增 SwiftPM target / product / dependency。
+本文档最初是 `MTPRO SwiftPM Target Graph Module Split v1` 的 MTP-216 合同；MTP-217 至 MTP-222 继续在同一合同文件中记录已发生的 target split evidence、current target graph snapshot、retained compatibility boundary 和 stale anchor retirement。MTP-216 section 保留为 before-state / contract-first evidence，不再代表 MTP-222 当前 active target graph。
 
 ## MTP-216-SWIFTPM-TARGET-GRAPH-SPLIT-CONTRACT
 
-SwiftPM target graph split contract 指后续把当前 compatibility envelope 拆成 architecture-graph-aligned module targets 时必须遵守的目标图和依赖方向。当前仓库仍以 `Core`、`Adapters`、`Persistence`、`Runtime`、`App`、`Dashboard` 和 `CSQLite` 作为 SwiftPM build envelope；这些 target name 只维持 buildability，不代表最终 target graph 已拆分。
+SwiftPM target graph split contract 指把 historical compatibility envelope 拆成 architecture-graph-aligned module targets 时必须遵守的目标图和依赖方向。MTP-216 时仓库仍以 `Core`、`Adapters`、`Persistence`、`Runtime`、`App`、`Dashboard` 和 `CSQLite` 作为 SwiftPM build envelope；该 snapshot 只作为 before-state evidence 保留。MTP-222 当前 active graph 以 MTP-217 至 MTP-221 已建立的 buildable targets 为准。
 
 MTP-216 的职责是 contract-first：先固定 target graph baseline、禁止路径、下游 issue 边界和验证锚点，再由 MTP-217 至 MTP-223 按 WIP=1 逐步执行。任何实际 source movement、`Package.swift` target / product / dependency 修改、compatibility envelope 退休，都必须等对应下游 issue live-read 授权。
 
@@ -470,6 +470,61 @@ MTP-221 required validation：
 
 - `swift package describe`
 - `swift test --filter TargetGraphTests`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+## MTP-222 Compatibility Anchor Retirement Evidence
+
+日期：2026-06-04
+
+执行者：Codex
+
+`MTP-222-COMPATIBILITY-ANCHOR-RETIREMENT-EVIDENCE`
+
+MTP-222 退休 obsolete compatibility envelopes and stale target anchors 的 active wording。它不删除 production source、不删除 retained compatibility targets、不改变 runtime behavior；只把 root / high-weight docs、validation plan、validation matrix、latest verification summary 和 automation readiness 中仍把旧 envelope 当作 current target graph 的表述降级为 historical / before-state evidence，并补齐当前 target graph snapshot。
+
+`MTP-222-CURRENT-TARGET-GRAPH-SNAPSHOT`
+
+当前 active SwiftPM target graph snapshot 是：
+
+```text
+DomainModel
+MessageBus -> DomainModel
+Database -> DomainModel / MessageBus / CSQLite / DuckDB(macOS)
+DataClient -> DomainModel
+Cache -> DomainModel / MessageBus
+DataEngine -> DomainModel / DataClient / MessageBus / Cache
+Portfolio -> DomainModel / MessageBus / Cache / Database
+RiskEngine -> DomainModel / MessageBus / Cache / Portfolio
+ExecutionClient -> DomainModel / MessageBus
+ExecutionEngine -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine / ExecutionClient
+TraderStrategies -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine
+Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine / ExecutionEngine
+Workbench -> Core / Persistence read-model and ViewModel exports only
+App -> Workbench compatibility re-export
+Dashboard -> Workbench
+```
+
+`Core`、`Adapters`、`Persistence`、`Runtime` 和 `App` 仍可存在为 retained compatibility envelopes / exports。它们只说明既有 implementation 和 import surface 的 buildability，不再是 active architecture graph 的唯一 target list。
+
+`MTP-222-HISTORICAL-COMPATIBILITY-EVIDENCE-RETAINED`
+
+MTP-216 的 compatibility envelope snapshot、MTP-183 至 MTP-211 的 physical source migration / compatibility envelope evidence、旧 `Sources/Strategies/<strategy>`、旧 `Sources/Trader/StrategyBindings/`、`Dashboard -> App` 和 `App -> Core, Persistence` references 只能作为 historical / compatibility / superseded / before-state evidence 保留。Active docs 必须把 current source anchors 写为 `Sources/Trader/Strategies/EMA/`、`Sources/Trader/Coordination/RiskBinding/`、`TraderStrategies`、`Trader`、`Workbench` 和 `Dashboard -> Workbench`。
+
+`MTP-222-STALE-ACTIVE-ANCHOR-RETIREMENT`
+
+退休 stale active anchors 指：不再把 `Core / Adapters / Persistence / Runtime / App / Dashboard` 写成 current only SwiftPM target graph；不再把 `Sources/Strategies/<strategy>` 或 `Sources/Trader/StrategyBindings/` 写成 active strategy / binding landing path；不再把 `Dashboard -> App` 或 `App -> Core, Persistence` 写成 current UI dependency direction。历史 evidence 可以保留，但必须带 before-state / historical / compatibility / superseded 语义。
+
+`MTP-222-NO-BEHAVIOR-RUNTIME-LIVE-GUARD`
+
+MTP-222 不移动 production source，不新增、不删除、不重命名 SwiftPM target / product / dependency，不退休 `Core` / `Adapters` / `Persistence` / `Runtime` / `App` compatibility exports，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real account read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
+`MTP-222-COMPATIBILITY-ANCHOR-RETIREMENT-VALIDATION`
+
+MTP-222 required validation：
+
+- scoped fixed-string grep / automation readiness 证明 active docs 包含 current target graph snapshot、historical compatibility retained boundary、stale active anchor retirement 和 no behavior / runtime / live guard。
 - `git diff --check`
 - `bash checks/automation-readiness.sh`
 - `bash checks/run.sh`
