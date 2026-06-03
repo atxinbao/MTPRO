@@ -315,6 +315,28 @@ MTP-220 继续实际 SwiftPM target graph split：`Package.swift` 新增 `Execut
 
 MTP-220 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real account read、broker payload read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
 
+## MTP-221 Workbench / Dashboard Target Split
+
+`MTP-221-WORKBENCH-DASHBOARD-TARGET-SPLIT-EVIDENCE`
+
+MTP-221 继续实际 SwiftPM target graph split：`Package.swift` 新增 `Workbench` library product / target，并把既有 `Dashboard` executable target 改为直接依赖 `Workbench`。该 split 只证明 Workbench / Dashboard read-model-only consumption targets 可编译，不退休 `App` compatibility export，不改变现有 Dashboard smoke 或 Workbench evidence behavior。
+
+`MTP-221-WORKBENCH-TARGET-SPLIT`
+
+`Workbench` target 依赖 `Core` 和 `Persistence`，当前编译 `Sources/Workbench/*`、`Sources/Dashboard/DashboardShell.swift` 和 `Sources/Workbench/TargetGraph/WorkbenchTargetBoundary.swift`。Workbench 只消费 read model / ViewModel / projection snapshot，不直接读取 Runtime object、Adapter request、SQLite / DuckDB schema、account payload 或 broker state。
+
+`MTP-221-DASHBOARD-TARGET-SPLIT`
+
+`Dashboard` executable target 只依赖 `Workbench`，当前编译 `Sources/Dashboard/DashboardApplication.swift` 和 `Sources/Dashboard/DashboardTargetBoundary.swift`。Dashboard 只装载 Workbench ViewModel snapshot，不直接依赖 Core、Persistence、Adapters、Runtime、ExecutionClient、broker、OMS、schema、account payload 或 live command。
+
+`MTP-221-WORKBENCH-DASHBOARD-DEPENDENCY-DIRECTION`
+
+当前 UI consumption target direction 是 `Workbench -> Core / Persistence read-model and ViewModel exports only`、`Dashboard -> Workbench`、`App -> Workbench compatibility re-export`。`App` compatibility export 的退休归 MTP-222，不在本 issue 执行。
+
+`MTP-221-NO-UI-COMMAND-RUNTIME-SCHEMA-GUARD`
+
+MTP-221 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real account read、broker payload read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
 ## Engineering Layer Map / 工程分层地图
 
 Target System Architecture 的工程分层压缩为五层。依赖方向从 Workbench 往下读取稳定边界；事实流从输入源进入 DataClient / DataEngine 后写入 MessageBus / Event Log，再通过 replay / projection / read model 反向供 Workbench 展示。

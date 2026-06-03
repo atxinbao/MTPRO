@@ -417,3 +417,59 @@ MTP-220 required validation：
 - `git diff --check`
 - `bash checks/automation-readiness.sh`
 - `bash checks/run.sh`
+
+## MTP-221 Workbench / Dashboard Target Split Evidence
+
+日期：2026-06-04
+
+执行者：Codex
+
+`MTP-221-WORKBENCH-DASHBOARD-TARGET-SPLIT-EVIDENCE`
+
+MTP-221 在 `Package.swift` 中新增 buildable SwiftPM library product / target：`Workbench`，并把既有 `Dashboard` executable target 从 `App` 依赖改为直接依赖 `Workbench`。该变更是 target graph 的第五段 read-model consumption split，只建立可编译的 Workbench / Dashboard target boundary、Dashboard -> Workbench dependency direction、App compatibility re-export 和 forbidden UI command / runtime / adapter / schema guard；它不退休 `App` compatibility envelope，不改变既有 Workbench read model、Dashboard shell 或 Dashboard smoke 行为。
+
+`MTP-221-WORKBENCH-TARGET-SPLIT`
+
+`Workbench` target 当前编译 `Sources/Workbench/ReadModels/`、`Sources/Workbench/Report/`、`Sources/Workbench/Dashboard/`、`Sources/Workbench/Events/`、`Sources/Workbench/FutureLiveProConsole/`、`Sources/Workbench/TargetGraph/WorkbenchTargetBoundary.swift` 和 `Sources/Dashboard/DashboardShell.swift`。Workbench 只消费 `Core` / `Persistence` 导出的 read model、ViewModel 和 projection snapshot，不读取 Runtime object、Adapter request、SQLite / DuckDB schema、account payload 或 broker state。
+
+`MTP-221-DASHBOARD-TARGET-SPLIT`
+
+`Dashboard` executable target 当前编译 `Sources/Dashboard/DashboardApplication.swift` 和 `Sources/Dashboard/DashboardTargetBoundary.swift`，并只依赖 `Workbench`。Dashboard 只装载 `DashboardViewModel` 与 `DashboardShellSnapshot`，不直接依赖 `Core`、`Persistence`、`Adapters`、`Runtime`、`ExecutionClient`、broker、OMS、schema、account payload 或 live command。
+
+`MTP-221-WORKBENCH-DASHBOARD-DEPENDENCY-DIRECTION`
+
+MTP-221 的 dependency direction 固定为：
+
+```text
+Workbench -> Core / Persistence read-model and ViewModel exports only
+Dashboard -> Workbench
+App -> Workbench compatibility re-export
+```
+
+`App` 只保留为 compatibility re-export，不再拥有 Workbench source roots。`Dashboard` 不能越过 Workbench 直接读取 domain runtime、adapter request、persistence schema 或 live command surface。Compatibility envelope retirement 仍归 MTP-222。
+
+`MTP-221-READ-MODEL-VIEWMODEL-ONLY`
+
+Workbench / Dashboard 只能作为 read-model-only consumption targets：允许展示 Report、Dashboard、Events、Evidence Explorer、Live Monitoring / Strategy readiness / Account Position Balance / Private Stream Simulation Gate 等已存在 ViewModel evidence；不得把 evidence surface 升级为 runtime object、adapter call、database schema access、broker payload access、account payload access 或 command surface。
+
+`MTP-221-APP-COMPATIBILITY-EXPORT-RETAINED`
+
+MTP-221 保留 `App` target 作为 `Sources/AppCompatibility/AppCompatibility.swift` 的 compatibility export，避免既有 `import App` tests 和调用面在本 issue 破坏。`App` 的 retirement / removal 不在 MTP-221 范围内，必须由 MTP-222 单独处理。
+
+`MTP-221-TARGETGRAPH-TEST-EVIDENCE`
+
+`Tests/TargetGraphTests/TargetGraphTests.swift` 直接 `import Workbench` 和 `import Dashboard`，验证两个 targets 可编译、依赖方向正确、App compatibility re-export 保留，并阻断 Runtime object、Adapter request、Persistence schema、account payload、broker state、Live PRO Console、trading button、live command 和 order form drift。
+
+`MTP-221-NO-UI-COMMAND-RUNTIME-SCHEMA-GUARD`
+
+MTP-221 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、broker payload read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability；不启动 Symphony / symphony-issue，不运行 Graphify 或 code-index，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+`MTP-221-WORKBENCH-DASHBOARD-TARGET-SPLIT-VALIDATION`
+
+MTP-221 required validation：
+
+- `swift package describe`
+- `swift test --filter TargetGraphTests`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`

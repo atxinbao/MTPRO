@@ -1690,6 +1690,40 @@ ExecutionClient 只保留 future-gated outgoing adapter contract；BrokerCapabil
 
 MTP-220 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real account read、broker payload read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
 
+## MTP-221 Workbench / Dashboard Target Split
+
+`MTP-221-WORKBENCH-DASHBOARD-TARGET-SPLIT-EVIDENCE`
+
+MTP-221 新增 `Workbench` SwiftPM library product / target，并把既有 `Dashboard` executable target 改为直接依赖 `Workbench`。该 evidence 是 read-model consumption target split 的第五段，只证明 target graph 可编译和 dependency direction 已落仓，不退休旧 `App` compatibility export。
+
+`MTP-221-WORKBENCH-TARGET-SPLIT`
+
+`Workbench` target 编译 `Sources/Workbench/ReadModels/`、`Sources/Workbench/Report/`、`Sources/Workbench/Dashboard/`、`Sources/Workbench/Events/`、`Sources/Workbench/FutureLiveProConsole/`、`Sources/Workbench/TargetGraph/WorkbenchTargetBoundary.swift` 和 `Sources/Dashboard/DashboardShell.swift`，依赖 `Core` 和 `Persistence`。Workbench 只能消费 read model / ViewModel / projection snapshot，不直接读取 Runtime object、Adapter request、SQLite / DuckDB schema、account payload 或 broker state。
+
+`MTP-221-DASHBOARD-TARGET-SPLIT`
+
+`Dashboard` executable target 编译 `Sources/Dashboard/DashboardApplication.swift` 和 `Sources/Dashboard/DashboardTargetBoundary.swift`，只依赖 `Workbench`。Dashboard 只装载 Workbench ViewModel snapshot，不直接依赖 Core、Persistence、Adapters、Runtime、ExecutionClient、broker、OMS、schema、account payload 或 live command。
+
+`MTP-221-WORKBENCH-DASHBOARD-DEPENDENCY-DIRECTION`
+
+Direction 固定为 `Workbench -> Core / Persistence read-model and ViewModel exports only`、`Dashboard -> Workbench`、`App -> Workbench compatibility re-export`。`App` compatibility export 的退休归 MTP-222。
+
+`MTP-221-READ-MODEL-VIEWMODEL-ONLY`
+
+Workbench / Dashboard 只能消费已存在的 Report、Dashboard、Events、Evidence Explorer 和 read-model-only evidence surface，不把 UI display surface 升级为 Runtime object、Adapter request、schema access、account payload、broker payload、broker state 或 live command surface。
+
+`MTP-221-APP-COMPATIBILITY-EXPORT-RETAINED`
+
+`App` target 现在只通过 `Sources/AppCompatibility/AppCompatibility.swift` re-export `Workbench`，用来维持既有 `import App` tests / call surface。MTP-221 不删除 `App` product / target。
+
+`MTP-221-TARGETGRAPH-TEST-EVIDENCE`
+
+`Tests/TargetGraphTests/TargetGraphTests.swift` 直接 import `Workbench` 和 `Dashboard`，验证 target split evidence、dependency direction、App compatibility export 和 no runtime / adapter / schema / UI command drift。
+
+`MTP-221-NO-UI-COMMAND-RUNTIME-SCHEMA-GUARD`
+
+MTP-221 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real account read、broker payload read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |

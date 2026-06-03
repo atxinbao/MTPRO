@@ -6638,3 +6638,43 @@ MTP-220 必须建立的主要 anchors：
 - 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-221 Workbench / Dashboard Target Split Validation
+
+MTP-221 必须运行：
+
+- `swift package describe`
+- `swift test --filter TargetGraphTests`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-221 的验收要求：
+
+- `Package.swift` 必须新增 `Workbench` library product / target。
+- `Workbench` target 必须编译 `Sources/Workbench/ReadModels`、`Sources/Workbench/Report`、`Sources/Workbench/Dashboard`、`Sources/Workbench/Events`、`Sources/Workbench/FutureLiveProConsole`、`Sources/Workbench/TargetGraph` 和 `Sources/Dashboard/DashboardShell.swift`，并只消费 read model / ViewModel / projection snapshot。
+- `Dashboard` executable target 必须直接依赖 `Workbench`，并只编译 `DashboardApplication` 与 `DashboardTargetBoundary`。
+- `App` target 必须只保留 `Sources/AppCompatibility/AppCompatibility.swift` compatibility re-export，不继续拥有 Workbench source roots。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须直接 import `Workbench` 和 `Dashboard`，验证 dependency direction、read-model-only consumption 和 no runtime / adapter / schema / UI command drift。
+- `docs/contracts/swiftpm-target-graph-split-contract.md`、`architecture.md`、`docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-221 anchors。
+
+MTP-221 必须建立的主要 anchors：
+
+- `MTP-221-WORKBENCH-DASHBOARD-TARGET-SPLIT-EVIDENCE`
+- `MTP-221-WORKBENCH-TARGET-SPLIT`
+- `MTP-221-DASHBOARD-TARGET-SPLIT`
+- `MTP-221-WORKBENCH-DASHBOARD-DEPENDENCY-DIRECTION`
+- `MTP-221-READ-MODEL-VIEWMODEL-ONLY`
+- `MTP-221-APP-COMPATIBILITY-EXPORT-RETAINED`
+- `MTP-221-TARGETGRAPH-TEST-EVIDENCE`
+- `MTP-221-NO-UI-COMMAND-RUNTIME-SCHEMA-GUARD`
+- `MTP-221-WORKBENCH-DASHBOARD-TARGET-SPLIT-VALIDATION`
+
+## MTP-221 禁止
+
+- 不退休 `App` compatibility export；该事项归 MTP-222。
+- 不把 Workbench / Dashboard 改成 Runtime object owner、Adapter request caller、SQLite / DuckDB schema reader、broker payload reader、account payload reader 或 broker state reader。
+- 不新增 Live PRO Console、trading button、live command、order form、stop / shutdown / restore command 或 real trading UI。
+- 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation 或 L4 capability。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
