@@ -6713,3 +6713,39 @@ MTP-222 必须建立的主要 anchors：
 - 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-223 Target Graph Stage Closeout Validation
+
+MTP-223 必须运行：
+
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-223 的验收要求：
+
+- `docs/audit/inputs/mtpro-swiftpm-target-graph-module-split-v1-stage-audit-input.md` 必须存在，并包含 `MTP-223-SWIFTPM-TARGET-GRAPH-STAGE-CLOSEOUT`、`MTP-223-STAGE-AUDIT-INPUT-MATERIAL`、`MTP-223-NO-FINAL-STAGE-CODE-AUDIT`、`MTP-223-TARGET-GRAPH-CLOSEOUT`、`MTP-223-VALIDATION-MATRIX-CLOSEOUT`、`MTP-223-AUTOMATION-READINESS-CLOSEOUT`、`MTP-223-FORBIDDEN-IMPLEMENTATION-AUDIT`、`MTP-223-ROOT-DOCS-DELTA-INPUT` 和 `MTP-223-STAGE-CODE-AUDIT-HANDOFF`。
+- Stage audit input material 必须汇总 MTP-216 至 MTP-222 的 PR / checks / merge / Linear Done evidence chain。
+- Validation matrix 必须包含 `MTP-223 issue backfill`，并把 `TVM-SWIFTPM-TARGET-GRAPH-MODULE-SPLIT` 收口到 MTP-223。
+- Automation readiness 必须包含 MTP-223 stage closeout anchor，并机械检查 no final Stage Code Audit、no Project Completed mutation、no next Project / Issue creation、no next Todo promotion、no Symphony、no Graphify、no code-index、no Figma 和 no `.codex/*` / `graphify-out/*` PR submission。
+- Latest verification summary 必须记录 MTP-223 当前 issue execution evidence 和本地验证输出。
+
+MTP-223 必须建立的主要 anchors：
+
+- `MTP-223-SWIFTPM-TARGET-GRAPH-STAGE-CLOSEOUT`
+- `MTP-223-STAGE-AUDIT-INPUT-MATERIAL`
+- `MTP-223-NO-FINAL-STAGE-CODE-AUDIT`
+- `MTP-223-TARGET-GRAPH-CLOSEOUT`
+- `MTP-223-VALIDATION-MATRIX-CLOSEOUT`
+- `MTP-223-AUTOMATION-READINESS-CLOSEOUT`
+- `MTP-223-FORBIDDEN-IMPLEMENTATION-AUDIT`
+- `MTP-223-STAGE-CLOSEOUT-VALIDATION`
+
+## MTP-223 禁止
+
+- 不输出最终 Stage Code Audit Report，不设置 Linear Project `Completed`，不创建下一 Project / Issue，不推进下一阶段 Todo。
+- 不把 stage audit input material 当成 Root Docs Refresh Gate 或 closure progress summary。
+- 不移动 production source，不新增、不删除、不重命名 SwiftPM target / product / dependency。
+- 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
