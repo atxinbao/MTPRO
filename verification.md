@@ -13852,3 +13852,38 @@ PersistenceTests/testFileEventLogStoreRejectsOutOfOrderAppendToProtectAppendOnly
 - `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
 - `swift package clean`：pass，清理 stale SwiftPM / XCTest build cache；清理后 focused Persistence test 通过。
 - `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 正常，315 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
+## 2026-06-04 — MTPRO SwiftPM Target Graph Module Split v1 docs-only planning record
+
+执行者：Codex
+
+范围：
+
+- 将 Human 确认的 `MTPRO SwiftPM Target Graph Module Split v1` planning draft 落仓为 docs-only Project Planning Record。
+- 新增 `docs/planning/projects/mtpro-swiftpm-target-graph-module-split-v1-plan.md`。
+- 更新 `docs/planning/linear-draft-plan.md`，新增当前 SwiftPM target graph module split docs-only / non-executable planning record 入口。
+- 更新 `docs/validation/latest-verification-summary.md`，记录该 Project-level planning record 已落仓，且这不是 Project closure，不更新 `Project Closure Count`、`Final Product Goal Progress` 或旧 `Engine Maturity Roadmap Progress`。
+- 更新 `BLUEPRINT.md`，只增加 planning record 引用，不复制完整 issue body，不更新进度条，不授权 execution。
+
+边界：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify / code-index。
+- 不修改 Figma。
+- 不写业务代码。
+- 不移动 `Sources` 文件。
+- 不修改 `Package.swift` target graph。
+- 不拆 SwiftPM target graph。
+- 不修改 architecture module layout。
+- 不实现 Trader runtime、Strategy runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command 或 order form。
+- 不推进 L4。
+- `.codex/*` 和 `graphify-out/*` 不进入 PR。
+
+验证：
+
+- `git diff --check`：pass，无输出。
+- `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 正常，315 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
