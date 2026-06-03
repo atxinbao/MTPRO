@@ -225,6 +225,40 @@ MTP-217 已开始实际 SwiftPM target graph split：`Package.swift` 新增 `Dom
 
 MTP-217 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
 
+## MTP-218 Data Target Split
+
+`MTP-218-DATA-TARGET-SPLIT-EVIDENCE`
+
+MTP-218 继续实际 SwiftPM target graph split：`Package.swift` 新增 `DataClient`、`DataEngine` 和 `Cache` library products / targets，并通过 `Sources/TargetGraph/*` boundary anchors 证明 data-layer target 可编译。该 split 不退休 `Core`、`Adapters` 或 `Runtime` compatibility envelope，不迁移既有 production implementation。
+
+`MTP-218-DATACLIENT-TARGET-SPLIT`
+
+`DataClient` target 只依赖 `DomainModel`，当前编译 `Sources/TargetGraph/DataClient/DataClientTargetBoundary.swift`。既有 Binance public market data implementation 仍由 `Adapters` compatibility envelope 编译；`DataClient` 继续只表达 public read-only venue data input boundary。
+
+`MTP-218-CACHE-TARGET-SPLIT`
+
+`Cache` target 依赖 `DomainModel` 和 `MessageBus`，当前编译 `Sources/TargetGraph/Cache/CacheTargetBoundary.swift`。既有 cache implementation 仍由 `Core` compatibility envelope 编译；`Cache` 只表达可重建 read-model state surface，不拥有 durable facts、Database schema、broker state 或 account payload。
+
+`MTP-218-DATAENGINE-TARGET-SPLIT`
+
+`DataEngine` target 依赖 `DomainModel`、`DataClient`、`MessageBus` 和 `Cache`，当前编译 `Sources/TargetGraph/DataEngine/DataEngineTargetBoundary.swift`。既有 ingest / replay / quality implementation 仍由 `Core` / `Runtime` compatibility envelope 编译；`DataEngine` 不新增 streaming runtime、private stream、account endpoint、broker route 或 UI route。
+
+`MTP-218-DATACLIENT-DATAENGINE-CACHE-DEPENDENCY-DIRECTION`
+
+当前 data-layer target direction 是 `DataClient -> DomainModel`、`Cache -> DomainModel / MessageBus`、`DataEngine -> DomainModel / DataClient / MessageBus / Cache`。`DataClient`、`DataEngine` 和 `Cache` 不得依赖 Trader、TraderStrategies、RiskEngine、ExecutionEngine、ExecutionClient、Workbench、Dashboard、broker、OMS、signed endpoint、account endpoint、listenKey、private stream runtime、Database schema 或 broker state。
+
+`MTP-218-DATA-COMPATIBILITY-ENVELOPE-RETAINED`
+
+`Adapters` 继续编译既有 `Sources/DataClient/Binance/PublicMarketData/` implementation；`Core` 继续编译既有 cache、scenario replay 和 data quality evidence；`Runtime` 继续编译既有 ingest implementation；compatibility envelope retirement 仍归 MTP-222。
+
+`MTP-218-TARGETGRAPH-TEST-EVIDENCE`
+
+`TargetGraphTests` 直接 import `DataClient`、`DataEngine` 和 `Cache`，验证 target buildability、allowed dependency direction、retained compatibility envelope 和 no signed / account / listenKey / broker / runtime drift。
+
+`MTP-218-NO-SIGNED-ACCOUNT-BROKER-GUARD`
+
+MTP-218 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real account read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
 ## Engineering Layer Map / 工程分层地图
 
 Target System Architecture 的工程分层压缩为五层。依赖方向从 Workbench 往下读取稳定边界；事实流从输入源进入 DataClient / DataEngine 后写入 MessageBus / Event Log，再通过 replay / projection / read model 反向供 Workbench 展示。

@@ -6499,3 +6499,48 @@ MTP-217 必须建立的主要 anchors：
 - 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-218 Data Target Split Validation
+
+MTP-218 必须运行：
+
+- `swift package describe`
+- `swift test --filter TargetGraphTests`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-218 的验收要求：
+
+- `Package.swift` 必须新增 `DataClient`、`DataEngine` 和 `Cache` library products / targets。
+- `DataClient` target 必须只依赖 `DomainModel`，且只表达 public read-only data boundary。
+- `Cache` target 必须只依赖 `DomainModel` 和 `MessageBus`，且只表达 read-model state surface。
+- `DataEngine` target 必须依赖 `DomainModel`、`DataClient`、`MessageBus` 和 `Cache`，且只表达 ingest / replay / quality boundary。
+- `Adapters` / `Core` / `Runtime` compatibility envelope 必须保留，既有 Binance public data、cache、scenario replay、data quality 和 ingest behavior 不得改变。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须直接 import `DataClient`、`DataEngine` 和 `Cache`，验证 dependency direction、retained compatibility envelope 和 no signed / account / listenKey / broker / runtime drift。
+- `docs/contracts/swiftpm-target-graph-split-contract.md`、`architecture.md`、`docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-218 anchors。
+
+MTP-218 必须建立的主要 anchors：
+
+- `MTP-218-DATA-TARGET-SPLIT-EVIDENCE`
+- `MTP-218-DATACLIENT-TARGET-SPLIT`
+- `MTP-218-CACHE-TARGET-SPLIT`
+- `MTP-218-DATAENGINE-TARGET-SPLIT`
+- `MTP-218-DATACLIENT-DATAENGINE-CACHE-DEPENDENCY-DIRECTION`
+- `MTP-218-PUBLIC-READ-ONLY-DATA-BOUNDARY`
+- `MTP-218-READMODEL-STATE-SURFACE`
+- `MTP-218-DATA-COMPATIBILITY-ENVELOPE-RETAINED`
+- `MTP-218-TARGETGRAPH-TEST-EVIDENCE`
+- `MTP-218-NO-SIGNED-ACCOUNT-BROKER-GUARD`
+- `MTP-218-DATA-TARGET-SPLIT-VALIDATION`
+
+## MTP-218 禁止
+
+- 不退休 `Core`、`Adapters`、`Runtime` 或其他 compatibility envelope。
+- 不把既有 Binance public market data implementation 搬成 signed/account/private stream runtime。
+- 不把 Cache 改成 durable store、Database schema owner、broker state cache、account payload store 或 UI command source。
+- 不把 DataEngine 改成 streaming runtime、private stream runtime、broker route、account endpoint route 或 Workbench / Dashboard route。
+- 不迁移 TraderStrategies、Trader、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench 或 Dashboard。
+- 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

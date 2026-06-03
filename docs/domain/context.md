@@ -2965,6 +2965,46 @@ MTP-217 的 dependency direction 是 `DomainModel`、`MessageBus -> DomainModel`
 
 MTP-217 不授权 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
 
+`MTP-218-DATA-TARGET-SPLIT-EVIDENCE`
+
+MTP-218 data target split 指 `Package.swift` 已新增 `DataClient`、`DataEngine` 和 `Cache` library products / targets，并用 `Sources/TargetGraph/*` boundary types 证明三个 data-layer targets 可以被 SwiftPM 解析和测试。该 evidence 不表示旧 `Core`、`Adapters` 或 `Runtime` compatibility envelope 已退休。
+
+`MTP-218-DATACLIENT-TARGET-SPLIT`
+
+`DataClient target boundary` 指只依赖 `DomainModel` 的 public read-only venue data input target；当前 compiled boundary root 是 `Sources/TargetGraph/DataClient/`。既有 Binance public market data implementation 仍通过 `Adapters` compatibility envelope 使用，不升级成 signed endpoint、account endpoint、listenKey、private stream runtime 或 broker adapter。
+
+`MTP-218-CACHE-TARGET-SPLIT`
+
+`Cache target boundary` 指只依赖 `DomainModel` 和 `MessageBus` 的 read-model state surface；当前 compiled boundary root 是 `Sources/TargetGraph/Cache/`。Cache 可以表达 runtime-derived state semantics，但不能拥有 durable facts、Database schema、broker state、account payload 或 UI command surface。
+
+`MTP-218-DATAENGINE-TARGET-SPLIT`
+
+`DataEngine target boundary` 指依赖 `DomainModel`、`DataClient`、`MessageBus` 和 `Cache` 的 ingest / replay / quality target；当前 compiled boundary root 是 `Sources/TargetGraph/DataEngine/`。既有 ingest / scenario replay / data quality implementation 仍通过 `Core` / `Runtime` compatibility envelope 使用，不表示 streaming runtime、private stream、account endpoint 或 broker route 已实现。
+
+`MTP-218-DATACLIENT-DATAENGINE-CACHE-DEPENDENCY-DIRECTION`
+
+MTP-218 的 dependency direction 是 `DataClient -> DomainModel`、`Cache -> DomainModel / MessageBus`、`DataEngine -> DomainModel / DataClient / MessageBus / Cache`。禁止 data targets 依赖 Trader、TraderStrategies、RiskEngine、ExecutionEngine、ExecutionClient、Workbench、Dashboard、broker、OMS、signed endpoint、account endpoint、listenKey、private stream runtime、Database schema 或 broker state。
+
+`MTP-218-PUBLIC-READ-ONLY-DATA-BOUNDARY`
+
+`Public read-only data boundary` 指 DataClient 只获取公开 market data，不能读取真实 account / position / balance，不能创建 listenKey，不能调用 signed/account endpoint，不能连接 broker 或 execution adapter。
+
+`MTP-218-READMODEL-STATE-SURFACE`
+
+`Read-model state surface` 指 Cache 只保留可由 facts / replay 重建的本地 state view，不保存 authoritative facts，不暴露 persistence schema，不作为 broker state、account payload 或 UI command source。
+
+`MTP-218-DATA-COMPATIBILITY-ENVELOPE-RETAINED`
+
+MTP-218 保留 `Adapters` / `Core` / `Runtime` compatibility envelope，表示既有 implementation 暂不搬迁，以保持当前行为不变；MTP-222 才能退休已被 split 取代的 obsolete envelope 或 stale target anchors。
+
+`MTP-218-TARGETGRAPH-TEST-EVIDENCE`
+
+`TargetGraphTests` 在 MTP-218 继续直接 import `DataClient`、`DataEngine` 和 `Cache`，验证 allowed dependencies、forbidden dependencies、compatibility envelope 和 no signed / account / listenKey / broker / runtime capability flags。
+
+`MTP-218-NO-SIGNED-ACCOUNT-BROKER-GUARD`
+
+MTP-218 不授权 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

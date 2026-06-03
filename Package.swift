@@ -10,6 +10,9 @@ let package = Package(
         .library(name: "DomainModel", targets: ["DomainModel"]),
         .library(name: "MessageBus", targets: ["MessageBus"]),
         .library(name: "Database", targets: ["Database"]),
+        .library(name: "DataClient", targets: ["DataClient"]),
+        .library(name: "DataEngine", targets: ["DataEngine"]),
+        .library(name: "Cache", targets: ["Cache"]),
         .library(name: "Core", targets: ["Core"]),
         .library(name: "Adapters", targets: ["Adapters"]),
         .library(name: "Persistence", targets: ["Persistence"]),
@@ -43,6 +46,21 @@ let package = Package(
                 )
             ],
             path: "Sources/TargetGraph/Database"
+        ),
+        .target(
+            name: "DataClient",
+            dependencies: ["DomainModel"],
+            path: "Sources/TargetGraph/DataClient"
+        ),
+        .target(
+            name: "Cache",
+            dependencies: ["DomainModel", "MessageBus"],
+            path: "Sources/TargetGraph/Cache"
+        ),
+        .target(
+            name: "DataEngine",
+            dependencies: ["DomainModel", "DataClient", "MessageBus", "Cache"],
+            path: "Sources/TargetGraph/DataEngine"
         ),
         .target(
             name: "Core",
@@ -200,7 +218,7 @@ let package = Package(
         ),
         .testTarget(
             name: "TargetGraphTests",
-            dependencies: ["DomainModel", "MessageBus", "Database"],
+            dependencies: ["DomainModel", "MessageBus", "Database", "DataClient", "DataEngine", "Cache"],
             path: "Tests/TargetGraphTests"
         ),
         .testTarget(

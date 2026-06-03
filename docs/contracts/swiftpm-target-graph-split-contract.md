@@ -215,3 +215,67 @@ MTP-217 required validation：
 - `git diff --check`
 - `bash checks/automation-readiness.sh`
 - `bash checks/run.sh`
+
+## MTP-218 Data Target Split Evidence
+
+日期：2026-06-04
+
+执行者：Codex
+
+`MTP-218-DATA-TARGET-SPLIT-EVIDENCE`
+
+MTP-218 在 `Package.swift` 中新增 buildable SwiftPM library products / targets：`DataClient`、`DataEngine` 和 `Cache`。该变更是 target graph 的第二段 data-layer split，只建立可编译的 target boundary、dependency direction evidence 和 forbidden capability guard；它不退休 `Core`、`Adapters` 或 `Runtime` compatibility envelope，不迁移既有 production implementation，不改变当前 public data、replay、quality 或 cache behavior。
+
+`MTP-218-DATACLIENT-TARGET-SPLIT`
+
+`DataClient` target 当前编译 `Sources/TargetGraph/DataClient/DataClientTargetBoundary.swift`，并只依赖 `DomainModel`。现有 `Sources/DataClient/Binance/PublicMarketData/` implementation 仍由 `Adapters` compatibility envelope 编译，因为当前 Binance public market data path 仍通过旧 product 暴露。`DataClient` 只能表达 venue-scoped public read-only data input boundary。
+
+`MTP-218-CACHE-TARGET-SPLIT`
+
+`Cache` target 当前编译 `Sources/TargetGraph/Cache/CacheTargetBoundary.swift`，依赖 `DomainModel` 和 `MessageBus`。现有 `Sources/Cache/` implementation 仍由 `Core` compatibility envelope 编译。`Cache` 只能表达可从 facts / replay 重建的 read-model state surface，不能成为 durable store、Database schema owner、broker state cache 或 UI contract。
+
+`MTP-218-DATAENGINE-TARGET-SPLIT`
+
+`DataEngine` target 当前编译 `Sources/TargetGraph/DataEngine/DataEngineTargetBoundary.swift`，依赖 `DomainModel`、`DataClient`、`MessageBus` 和 `Cache`。现有 `Sources/DataEngine/Ingest/`、`Sources/DataEngine/ScenarioReplay/` 和 `Sources/DataEngine/DataQuality/` implementation 仍由 `Core` / `Runtime` compatibility envelope 编译。`DataEngine` 只能表达 ingest / replay / quality boundary，不新增 streaming runtime、private stream、account endpoint、broker route 或 UI route。
+
+`MTP-218-DATACLIENT-DATAENGINE-CACHE-DEPENDENCY-DIRECTION`
+
+MTP-218 的 data-layer dependency direction 固定为：
+
+```text
+DataClient -> DomainModel
+Cache -> DomainModel / MessageBus
+DataEngine -> DomainModel / DataClient / MessageBus / Cache
+```
+
+`DataClient` 不得依赖 `DataEngine`、`Trader`、`TraderStrategies`、`RiskEngine`、`ExecutionEngine`、`ExecutionClient`、`Workbench`、`Dashboard`、broker、OMS、signed endpoint、account endpoint、listenKey 或 private stream runtime。`DataEngine` 不得依赖 `Trader`、`ExecutionEngine`、`ExecutionClient`、`Workbench`、`Dashboard`、broker、OMS、signed endpoint、account endpoint、listenKey 或 private stream runtime。`Cache` 不得拥有 Database schema、durable facts、broker state、account payload 或 UI surface。
+
+`MTP-218-PUBLIC-READ-ONLY-DATA-BOUNDARY`
+
+MTP-218 保持 `DataClient` 为 public read-only data boundary。它不调用 signed endpoint，不调用 account endpoint，不创建 listenKey，不连接 broker 或 execution adapter，不读取真实账户 / 持仓 / 余额，也不实现 private WebSocket runtime。
+
+`MTP-218-READMODEL-STATE-SURFACE`
+
+MTP-218 保持 `Cache` 为 read-model state surface。它可以表达 instruments、market data、orders、positions 和 portfolio summary 的 runtime-derived state boundary，但不拥有 durable facts，不暴露 SQLite / DuckDB schema，不保存 broker payload、account payload 或 broker state。
+
+`MTP-218-DATA-COMPATIBILITY-ENVELOPE-RETAINED`
+
+MTP-218 保留 `Adapters` 继续编译既有 Binance public market data implementation，保留 `Core` 继续编译既有 cache / scenario replay / data quality public evidence，保留 `Runtime` 继续编译既有 ingest implementation。`Package.swift` 对 `Core`、`Runtime` 和 `App` compatibility targets 继续排除 `TargetGraph`，避免 boundary anchors 被旧 envelope 重复收编。Compatibility envelope retirement 仍归 MTP-222。
+
+`MTP-218-TARGETGRAPH-TEST-EVIDENCE`
+
+`Tests/TargetGraphTests/TargetGraphTests.swift` 直接 `import DataClient`、`import DataEngine` 和 `import Cache`，验证三个 data-layer targets 可编译、依赖方向正确、compatibility envelope 保留，并阻断 signed / account / listenKey / broker / runtime drift。
+
+`MTP-218-NO-SIGNED-ACCOUNT-BROKER-GUARD`
+
+MTP-218 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability；不启动 Symphony / symphony-issue，不运行 Graphify 或 code-index，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+`MTP-218-DATA-TARGET-SPLIT-VALIDATION`
+
+MTP-218 required validation：
+
+- `swift package describe`
+- `swift test --filter TargetGraphTests`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`

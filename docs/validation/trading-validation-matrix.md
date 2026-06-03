@@ -809,6 +809,12 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | --- | --- | --- |
 | `MTP-217` | `TVM-SWIFTPM-TARGET-GRAPH-MODULE-SPLIT` | 新增 DomainModel / MessageBus / Database foundation target split：`Package.swift` 新增 `DomainModel`、`MessageBus` 和 `Database` library products / targets；`Sources/TargetGraph/DomainModel/DomainModelTargetBoundary.swift`、`Sources/TargetGraph/MessageBus/MessageBusTargetBoundary.swift` 和 `Sources/TargetGraph/Database/DatabaseTargetBoundary.swift` 证明 target graph 可编译，dependency direction 固定为 `DomainModel`、`MessageBus -> DomainModel`、`Database -> DomainModel / MessageBus / CSQLite / DuckDB(macOS)`；`Tests/TargetGraphTests/TargetGraphTests.swift` 直接 import 三个 targets 并验证 no higher-layer runtime / broker / UI drift。MTP-217 保留 `Core` / `Persistence` compatibility envelope，不改变既有 `Sources/DomainModel/`、`Sources/MessageBus/` 和 `Sources/Database/Projections/` behavior，不迁移 DataClient、DataEngine、Cache、TraderStrategies、Trader、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench 或 Dashboard，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker gateway、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command、order form 或 L4 capability。 |
 
+## MTP-218 issue backfill
+
+| Issue | Matrix ID | 回填说明 |
+| --- | --- | --- |
+| `MTP-218` | `TVM-SWIFTPM-TARGET-GRAPH-MODULE-SPLIT` | 新增 DataClient / DataEngine / Cache data target split：`Package.swift` 新增 `DataClient`、`DataEngine` 和 `Cache` library products / targets；`Sources/TargetGraph/DataClient/DataClientTargetBoundary.swift`、`Sources/TargetGraph/DataEngine/DataEngineTargetBoundary.swift` 和 `Sources/TargetGraph/Cache/CacheTargetBoundary.swift` 证明 target graph 可编译，dependency direction 固定为 `DataClient -> DomainModel`、`Cache -> DomainModel / MessageBus`、`DataEngine -> DomainModel / DataClient / MessageBus / Cache`；`Tests/TargetGraphTests/TargetGraphTests.swift` 直接 import 三个 data-layer targets 并验证 no signed / account / listenKey / broker / runtime drift。MTP-218 保留 `Adapters` / `Core` / `Runtime` compatibility envelope，不改变既有 Binance public data、cache、scenario replay、data quality 或 ingest behavior，不迁移 TraderStrategies、Trader、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench 或 Dashboard，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker gateway、signed/account endpoint、private stream runtime、real account read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。 |
+
 ## MTP-190 Target Module Source Migration 阶段收口
 
 日期：2026-06-01

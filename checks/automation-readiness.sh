@@ -5023,6 +5023,35 @@ require_contains "docs/validation/latest-verification-summary.md" "MTP-217 的�
 require_contains "docs/validation/latest-verification-summary.md" "MTP-217-FOUNDATION-TARGET-SPLIT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Foundation target split anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-217 新增 buildable"
+require_contains "Package.swift" '.library(name: "DataClient", targets: ["DataClient"])'
+require_contains "Package.swift" '.library(name: "DataEngine", targets: ["DataEngine"])'
+require_contains "Package.swift" '.library(name: "Cache", targets: ["Cache"])'
+require_contains "Package.swift" 'name: "DataClient"'
+require_contains "Package.swift" 'name: "DataEngine"'
+require_contains "Package.swift" 'name: "Cache"'
+require_file "Sources/TargetGraph/DataClient/DataClientTargetBoundary.swift"
+require_file "Sources/TargetGraph/DataEngine/DataEngineTargetBoundary.swift"
+require_file "Sources/TargetGraph/Cache/CacheTargetBoundary.swift"
+require_contains "Sources/TargetGraph/DataClient/DataClientTargetBoundary.swift" "MTP-218-DATACLIENT-TARGET-SPLIT"
+require_contains "Sources/TargetGraph/DataEngine/DataEngineTargetBoundary.swift" "MTP-218-DATAENGINE-TARGET-SPLIT"
+require_contains "Sources/TargetGraph/Cache/CacheTargetBoundary.swift" "MTP-218-CACHE-TARGET-SPLIT"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP218DataTargetsExposeReadOnlyDependencyDirectionAndCompatibilityBoundary"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP218DataTargetsRejectSignedAccountBrokerAndRuntimeDrift"
+require_contains "docs/contracts/swiftpm-target-graph-split-contract.md" "MTP-218-DATA-TARGET-SPLIT-EVIDENCE"
+require_contains "docs/contracts/swiftpm-target-graph-split-contract.md" "MTP-218-DATA-TARGET-SPLIT-VALIDATION"
+require_contains "architecture.md" "MTP-218 Data Target Split"
+require_contains "architecture.md" "MTP-218-DATACLIENT-DATAENGINE-CACHE-DEPENDENCY-DIRECTION"
+require_contains "docs/architecture/module-boundary.md" "MTP-218 Data Target Split"
+require_contains "docs/architecture/module-boundary.md" "MTP-218-TARGETGRAPH-TEST-EVIDENCE"
+require_contains "docs/domain/context.md" "MTP-218-DATA-TARGET-SPLIT-EVIDENCE"
+require_contains "docs/domain/context.md" "MTP-218-DATAENGINE-TARGET-SPLIT"
+require_contains "docs/validation/validation-plan.md" "MTP-218 Data Target Split Validation"
+require_contains "docs/validation/validation-plan.md" "MTP-218-DATA-TARGET-SPLIT-VALIDATION"
+require_contains "docs/validation/trading-validation-matrix.md" "MTP-218 issue backfill"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-218 的当前 issue execution evidence"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-218-DATA-TARGET-SPLIT-VALIDATION"
+require_contains "docs/automation/automation-readiness.md" "Data target split anchor"
+require_contains "docs/automation/automation-readiness.md" "MTP-218 新增 buildable"
 require_absent "docs/validation/validation-plan.md" 'Root docs 必须使用 `Trader = Accounts + Strategies + StrategyBindings + Coordination`'
 require_absent "docs/validation/validation-plan.md" '`Sources/Trader/StrategyBindings/` 必须包含 proposal-to-risk binding'
 require_absent "docs/validation/validation-plan.md" '只使用 `"Trader/Strategies/EMA"` 和 `"Trader/StrategyBindings"`'
