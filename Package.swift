@@ -7,6 +7,9 @@ let package = Package(
         .macOS(.v14)
     ],
     products: [
+        .library(name: "DomainModel", targets: ["DomainModel"]),
+        .library(name: "MessageBus", targets: ["MessageBus"]),
+        .library(name: "Database", targets: ["Database"]),
         .library(name: "Core", targets: ["Core"]),
         .library(name: "Adapters", targets: ["Adapters"]),
         .library(name: "Persistence", targets: ["Persistence"]),
@@ -19,6 +22,29 @@ let package = Package(
     ],
     targets: [
         .target(
+            name: "DomainModel",
+            path: "Sources/TargetGraph/DomainModel"
+        ),
+        .target(
+            name: "MessageBus",
+            dependencies: ["DomainModel"],
+            path: "Sources/TargetGraph/MessageBus"
+        ),
+        .target(
+            name: "Database",
+            dependencies: [
+                "DomainModel",
+                "MessageBus",
+                "CSQLite",
+                .product(
+                    name: "DuckDB",
+                    package: "duckdb-swift",
+                    condition: .when(platforms: [.macOS])
+                )
+            ],
+            path: "Sources/TargetGraph/Database"
+        ),
+        .target(
             name: "Core",
             path: "Sources",
             exclude: [
@@ -26,6 +52,7 @@ let package = Package(
                 "DataClient",
                 "DataEngine/Ingest",
                 "Database",
+                "TargetGraph",
                 "Workbench"
             ],
             sources: [
@@ -102,6 +129,7 @@ let package = Package(
                 "RiskEngine",
                 "ExecutionEngine",
                 "ExecutionClient",
+                "TargetGraph",
                 "Trader",
                 "Workbench"
             ],
@@ -126,6 +154,7 @@ let package = Package(
                 "RiskEngine",
                 "ExecutionEngine",
                 "ExecutionClient",
+                "TargetGraph",
                 "Trader",
                 "Dashboard/DashboardApplication.swift"
             ],
@@ -168,6 +197,11 @@ let package = Package(
             name: "RuntimeTests",
             dependencies: ["Runtime"],
             path: "Tests/RuntimeTests"
+        ),
+        .testTarget(
+            name: "TargetGraphTests",
+            dependencies: ["DomainModel", "MessageBus", "Database"],
+            path: "Tests/TargetGraphTests"
         ),
         .testTarget(
             name: "AppTests",

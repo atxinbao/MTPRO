@@ -803,6 +803,12 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | --- | --- | --- |
 | `MTP-216` | `TVM-SWIFTPM-TARGET-GRAPH-MODULE-SPLIT` | 新增 SwiftPM target graph split contract：`docs/contracts/swiftpm-target-graph-split-contract.md` 固定 current compatibility envelope snapshot、canonical target graph baseline、dependency direction contract、forbidden import paths、Trader-owned strategies target boundary、MTP-217 至 MTP-223 module-to-target split sequence、Package split non-authorization 和 no runtime / live / broker / L4 boundary。MTP-216 只建立 contract / docs / automation readiness anchors；不修改 `Package.swift`，不移动 production source 或 tests，不新增 SwiftPM target/product/dependency，不退休 compatibility envelope，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command、order form 或 L4 capability。 |
 
+## MTP-217 issue backfill
+
+| Issue | Matrix ID | 回填说明 |
+| --- | --- | --- |
+| `MTP-217` | `TVM-SWIFTPM-TARGET-GRAPH-MODULE-SPLIT` | 新增 DomainModel / MessageBus / Database foundation target split：`Package.swift` 新增 `DomainModel`、`MessageBus` 和 `Database` library products / targets；`Sources/TargetGraph/DomainModel/DomainModelTargetBoundary.swift`、`Sources/TargetGraph/MessageBus/MessageBusTargetBoundary.swift` 和 `Sources/TargetGraph/Database/DatabaseTargetBoundary.swift` 证明 target graph 可编译，dependency direction 固定为 `DomainModel`、`MessageBus -> DomainModel`、`Database -> DomainModel / MessageBus / CSQLite / DuckDB(macOS)`；`Tests/TargetGraphTests/TargetGraphTests.swift` 直接 import 三个 targets 并验证 no higher-layer runtime / broker / UI drift。MTP-217 保留 `Core` / `Persistence` compatibility envelope，不改变既有 `Sources/DomainModel/`、`Sources/MessageBus/` 和 `Sources/Database/Projections/` behavior，不迁移 DataClient、DataEngine、Cache、TraderStrategies、Trader、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench 或 Dashboard，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient、OMS、broker gateway、signed/account endpoint、private stream runtime、Live PRO Console、trading button、live command、order form 或 L4 capability。 |
+
 ## MTP-190 Target Module Source Migration 阶段收口
 
 日期：2026-06-01
