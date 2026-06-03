@@ -1534,6 +1534,40 @@ MTP-216 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionCl
 
 MTP-216 validation 必须证明 contract file、root architecture、module-boundary、domain context、validation plan、validation matrix、latest verification summary、automation readiness doc 和 `checks/automation-readiness.sh` anchors 已落仓，并且 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh` 通过。
 
+## MTP-217 Foundation Target Split
+
+`MTP-217-FOUNDATION-TARGET-SPLIT-EVIDENCE`
+
+MTP-217 新增 `DomainModel`、`MessageBus` 和 `Database` SwiftPM library products / targets。该 evidence 是 foundation target split 的第一段，只证明 target graph 开始可编译，不退休旧 compatibility envelope。
+
+`MTP-217-DOMAINMODEL-TARGET-SPLIT`
+
+`DomainModel` target 编译 `Sources/TargetGraph/DomainModel/DomainModelTargetBoundary.swift`，不依赖业务 target；canonical source root 仍记录为 `Sources/DomainModel/`。
+
+`MTP-217-MESSAGEBUS-TARGET-SPLIT`
+
+`MessageBus` target 编译 `Sources/TargetGraph/MessageBus/MessageBusTargetBoundary.swift`，只依赖 `DomainModel`。既有 `Sources/MessageBus/` 继续由 `Core` compatibility envelope 编译，后续 retirement 归 MTP-222。
+
+`MTP-217-DATABASE-TARGET-SPLIT`
+
+`Database` target 编译 `Sources/TargetGraph/Database/DatabaseTargetBoundary.swift`，依赖 `DomainModel`、`MessageBus`、`CSQLite` 和 macOS 条件 `DuckDB`。既有 SQLite / DuckDB projection implementation 继续由 `Persistence` compatibility envelope 编译。
+
+`MTP-217-FOUNDATION-DEPENDENCY-DIRECTION`
+
+Foundation direction 固定为 `DomainModel`、`MessageBus -> DomainModel`、`Database -> DomainModel / MessageBus / CSQLite / DuckDB(macOS)`。禁止 `DomainModel` / `MessageBus` / `Database` 依赖 DataEngine、Trader、TraderStrategies、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench、Dashboard、broker、OMS、account endpoint 或 private stream runtime。
+
+`MTP-217-FOUNDATION-COMPATIBILITY-ENVELOPE-RETAINED`
+
+`Core` 继续保留 `Sources/DomainModel/`、`Sources/MessageBus/` 兼容编译；`Persistence` 继续保留 `Sources/Database/Projections/` 兼容编译；`TargetGraph` 被 `Core` / `Runtime` / `App` compatibility targets 排除。
+
+`MTP-217-TARGETGRAPH-TEST-EVIDENCE`
+
+`Tests/TargetGraphTests/TargetGraphTests.swift` 直接 import `DomainModel`、`MessageBus` 和 `Database`，验证 target graph split evidence、dependency direction 和 no higher-layer runtime / broker / UI drift。
+
+`MTP-217-NO-RUNTIME-LIVE-BROKER-L4-GUARD`
+
+MTP-217 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |

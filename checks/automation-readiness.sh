@@ -4992,6 +4992,37 @@ require_contains "docs/validation/latest-verification-summary.md" "MTP-216 的�
 require_contains "docs/validation/latest-verification-summary.md" "MTP-216-TARGET-GRAPH-CONTRACT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "SwiftPM target graph split contract anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-216 只定义 target graph split contract"
+require_contains "Package.swift" '.library(name: "DomainModel", targets: ["DomainModel"])'
+require_contains "Package.swift" '.library(name: "MessageBus", targets: ["MessageBus"])'
+require_contains "Package.swift" '.library(name: "Database", targets: ["Database"])'
+require_contains "Package.swift" 'name: "DomainModel"'
+require_contains "Package.swift" 'name: "MessageBus"'
+require_contains "Package.swift" 'name: "Database"'
+require_contains "Package.swift" '"TargetGraph"'
+require_file "Sources/TargetGraph/DomainModel/DomainModelTargetBoundary.swift"
+require_file "Sources/TargetGraph/MessageBus/MessageBusTargetBoundary.swift"
+require_file "Sources/TargetGraph/Database/DatabaseTargetBoundary.swift"
+require_file "Tests/TargetGraphTests/TargetGraphTests.swift"
+require_contains "Sources/TargetGraph/DomainModel/DomainModelTargetBoundary.swift" "MTP-217-DOMAINMODEL-TARGET-SPLIT"
+require_contains "Sources/TargetGraph/MessageBus/MessageBusTargetBoundary.swift" "MTP-217-MESSAGEBUS-TARGET-SPLIT"
+require_contains "Sources/TargetGraph/Database/DatabaseTargetBoundary.swift" "MTP-217-DATABASE-TARGET-SPLIT"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP217FoundationTargetsExposeDependencyDirectionAndCompatibilityBoundary"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP217FoundationTargetsRejectHigherLayerRuntimeAndBrokerDrift"
+require_contains "docs/contracts/swiftpm-target-graph-split-contract.md" "MTP-217-FOUNDATION-TARGET-SPLIT-EVIDENCE"
+require_contains "docs/contracts/swiftpm-target-graph-split-contract.md" "MTP-217-FOUNDATION-TARGET-SPLIT-VALIDATION"
+require_contains "architecture.md" "MTP-217 Foundation Target Split"
+require_contains "architecture.md" "MTP-217-FOUNDATION-DEPENDENCY-DIRECTION"
+require_contains "docs/architecture/module-boundary.md" "MTP-217 Foundation Target Split"
+require_contains "docs/architecture/module-boundary.md" "MTP-217-TARGETGRAPH-TEST-EVIDENCE"
+require_contains "docs/domain/context.md" "MTP-217-FOUNDATION-TARGET-SPLIT-EVIDENCE"
+require_contains "docs/domain/context.md" "MTP-217-DATABASE-TARGET-SPLIT"
+require_contains "docs/validation/validation-plan.md" "MTP-217 Foundation Target Split Validation"
+require_contains "docs/validation/validation-plan.md" "MTP-217-FOUNDATION-TARGET-SPLIT-VALIDATION"
+require_contains "docs/validation/trading-validation-matrix.md" "MTP-217 issue backfill"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-217 的当前 issue execution evidence"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-217-FOUNDATION-TARGET-SPLIT-VALIDATION"
+require_contains "docs/automation/automation-readiness.md" "Foundation target split anchor"
+require_contains "docs/automation/automation-readiness.md" "MTP-217 新增 buildable"
 require_absent "docs/validation/validation-plan.md" 'Root docs 必须使用 `Trader = Accounts + Strategies + StrategyBindings + Coordination`'
 require_absent "docs/validation/validation-plan.md" '`Sources/Trader/StrategyBindings/` 必须包含 proposal-to-risk binding'
 require_absent "docs/validation/validation-plan.md" '只使用 `"Trader/Strategies/EMA"` 和 `"Trader/StrategyBindings"`'

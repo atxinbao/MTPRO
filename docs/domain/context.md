@@ -2933,6 +2933,38 @@ MTP-216 明确不实现 Strategy runtime、Trader runtime、Live runtime、Execu
 
 MTP-216 target graph contract validation 指 `docs/contracts/swiftpm-target-graph-split-contract.md`、`architecture.md`、`docs/architecture/module-boundary.md`、本文档、validation plan、validation matrix、latest verification summary、automation readiness doc 和 automation readiness shell gate 均包含 MTP-216 anchors，并通过 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`。
 
+`MTP-217-FOUNDATION-TARGET-SPLIT-EVIDENCE`
+
+MTP-217 foundation target split 指 `Package.swift` 已新增 `DomainModel`、`MessageBus` 和 `Database` library products / targets，并用 `Sources/TargetGraph/*` boundary types 证明三个 target 可以独立被 SwiftPM 解析和测试。该 evidence 不表示旧 `Core` / `Persistence` compatibility envelope 已退休。
+
+`MTP-217-DOMAINMODEL-TARGET-SPLIT`
+
+`DomainModel target boundary` 指最底层 domain target；当前 compiled boundary root 是 `Sources/TargetGraph/DomainModel/`，canonical source root 仍是 `Sources/DomainModel/`，不得依赖任何 engine、adapter、UI、runtime、broker 或 account endpoint target。
+
+`MTP-217-MESSAGEBUS-TARGET-SPLIT`
+
+`MessageBus target boundary` 指只依赖 `DomainModel` 的 facts / events / commands / replay spine target；当前 compiled boundary root 是 `Sources/TargetGraph/MessageBus/`。既有 `Sources/MessageBus/` public types 仍通过 `Core` compatibility envelope 使用。
+
+`MTP-217-DATABASE-TARGET-SPLIT`
+
+`Database target boundary` 指只依赖 `DomainModel` / `MessageBus` / `CSQLite` / `DuckDB(macOS)` 的 local durable facts / projection boundary；当前 compiled boundary root 是 `Sources/TargetGraph/Database/`。既有 projection implementation 仍通过 `Persistence` compatibility envelope 使用，不暴露 SQLite / DuckDB schema 给 Workbench。
+
+`MTP-217-FOUNDATION-DEPENDENCY-DIRECTION`
+
+MTP-217 的 dependency direction 是 `DomainModel`、`MessageBus -> DomainModel`、`Database -> DomainModel / MessageBus / CSQLite / DuckDB(macOS)`。禁止 foundation targets 依赖 DataEngine、Trader、TraderStrategies、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench、Dashboard、broker、OMS、account endpoint 或 private stream runtime。
+
+`MTP-217-FOUNDATION-COMPATIBILITY-ENVELOPE-RETAINED`
+
+`Core` / `Persistence` compatibility envelope retained 指既有 public types 和 projection implementation 暂不搬迁，以保持当前行为不变；MTP-222 才能退休已被 split 取代的 obsolete envelope 或 stale target anchors。
+
+`MTP-217-TARGETGRAPH-TEST-EVIDENCE`
+
+`TargetGraphTests` 指 MTP-217 新增的 SwiftPM target graph tests，直接 import `DomainModel`、`MessageBus` 和 `Database` 并验证 allowed dependencies、forbidden dependencies 和 no runtime / live / broker capability flags。
+
+`MTP-217-NO-RUNTIME-LIVE-BROKER-L4-GUARD`
+
+MTP-217 不授权 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

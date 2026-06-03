@@ -6457,3 +6457,45 @@ MTP-216 必须建立的主要 anchors：
 - 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-217 Foundation Target Split Validation
+
+MTP-217 必须运行：
+
+- `swift package describe`
+- `swift test --filter TargetGraphTests`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-217 的验收要求：
+
+- `Package.swift` 必须新增 `DomainModel`、`MessageBus` 和 `Database` library products / targets。
+- `DomainModel` target 必须能独立编译，且不依赖任何业务 target。
+- `MessageBus` target 必须只依赖 `DomainModel`。
+- `Database` target 必须依赖 `DomainModel`、`MessageBus`、`CSQLite` 和 macOS 条件 `DuckDB` implementation dependency。
+- `Core` / `Persistence` compatibility envelope 必须保留，既有 `Sources/DomainModel/`、`Sources/MessageBus/` 和 `Sources/Database/Projections/` behavior 不得改变。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须直接 import `DomainModel`、`MessageBus` 和 `Database`，验证 dependency direction、retained compatibility envelope 和 no higher-layer runtime / broker / UI drift。
+- `docs/contracts/swiftpm-target-graph-split-contract.md`、`architecture.md`、`docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-217 anchors。
+
+MTP-217 必须建立的主要 anchors：
+
+- `MTP-217-FOUNDATION-TARGET-SPLIT-EVIDENCE`
+- `MTP-217-DOMAINMODEL-TARGET-SPLIT`
+- `MTP-217-MESSAGEBUS-TARGET-SPLIT`
+- `MTP-217-DATABASE-TARGET-SPLIT`
+- `MTP-217-FOUNDATION-DEPENDENCY-DIRECTION`
+- `MTP-217-FOUNDATION-COMPATIBILITY-ENVELOPE-RETAINED`
+- `MTP-217-TARGETGRAPH-TEST-EVIDENCE`
+- `MTP-217-NO-RUNTIME-LIVE-BROKER-L4-GUARD`
+- `MTP-217-FOUNDATION-TARGET-SPLIT-VALIDATION`
+
+## MTP-217 禁止
+
+- 不退休 `Core`、`Persistence` 或其他 compatibility envelope。
+- 不把既有 `Sources/MessageBus/` paper routing / strategy / portfolio / risk / execution evidence coupling 强行搬入 foundation target。
+- 不把既有 SQLite / DuckDB projection implementation 改成 Workbench schema、broker payload store、account payload archive 或 live runtime persistence。
+- 不迁移 DataClient、DataEngine、Cache、TraderStrategies、Trader、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench 或 Dashboard。
+- 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
