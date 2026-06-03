@@ -1500,7 +1500,7 @@ MTP-216 定义 `MTPRO SwiftPM Target Graph Module Split v1` 的 contract-first b
 
 `MTP-216-CURRENT-COMPATIBILITY-ENVELOPE-SNAPSHOT`
 
-当前 SwiftPM target graph 仍保留 `Core`、`Adapters`、`Persistence`、`Runtime`、`App`、`Dashboard` 和 `CSQLite` compatibility envelope。`Core` 仍编译 DomainModel、MessageBus、Cache、Trader/Accounts、Trader/Strategies/EMA、Trader/Coordination/RiskBinding、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient future gates 和 retained Core research evidence；该 snapshot 只保持 buildability，不代表 target graph 已拆分。
+MTP-216 时 SwiftPM target graph 仍保留 `Core`、`Adapters`、`Persistence`、`Runtime`、`App`、`Dashboard` 和 `CSQLite` compatibility envelope。该 snapshot 只作为 before-state evidence 保留，不再代表 MTP-222 当前 active target graph。MTP-222 当前 active target graph 以 MTP-217 至 MTP-221 已建立的 buildable targets 为准；`Core`、`Adapters`、`Persistence`、`Runtime` 和 `App` 只解释 retained implementation / import compatibility。
 
 `MTP-216-CANONICAL-TARGET-GRAPH-BASELINE`
 
@@ -1723,6 +1723,28 @@ Workbench / Dashboard 只能消费已存在的 Report、Dashboard、Events、Evi
 `MTP-221-NO-UI-COMMAND-RUNTIME-SCHEMA-GUARD`
 
 MTP-221 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real account read、broker payload read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
+## MTP-222 Compatibility Anchor Retirement
+
+`MTP-222-COMPATIBILITY-ANCHOR-RETIREMENT-EVIDENCE`
+
+MTP-222 只退休 obsolete compatibility wording / stale target anchors。已经完成的 MTP-217 至 MTP-221 target split 是当前 active SwiftPM target graph；历史 `Core / Adapters / Persistence / Runtime / App / Dashboard` envelope snapshot 只保留为 before-state / compatibility evidence，不得继续写成 current only target graph。
+
+`MTP-222-CURRENT-TARGET-GRAPH-SNAPSHOT`
+
+Current target graph snapshot 固定为 `DomainModel`、`MessageBus`、`Database`、`DataClient`、`Cache`、`DataEngine`、`Portfolio`、`RiskEngine`、`ExecutionClient`、`ExecutionEngine`、`TraderStrategies`、`Trader`、`Workbench` 和 `Dashboard`。关键 current direction 是 `Dashboard -> Workbench`、`App -> Workbench compatibility re-export`、`Trader -> ExecutionEngine`、`ExecutionEngine -> ExecutionClient` 和 `Workbench -> Core / Persistence read-model exports only`。
+
+`MTP-222-HISTORICAL-COMPATIBILITY-EVIDENCE-RETAINED`
+
+Retained `Core`、`Adapters`、`Persistence`、`Runtime` 和 `App` targets 只解释 existing implementation / import compatibility；旧 `Sources/Strategies/<strategy>`、旧 `Sources/Trader/StrategyBindings/`、`Dashboard -> App` 和 `App -> Core, Persistence` references 只能作为 historical / compatibility / superseded / before-state evidence 保留。Active boundary text 必须指向 `Sources/Trader/Strategies/EMA/`、`Sources/Trader/Coordination/RiskBinding/`、`TraderStrategies`、`Trader`、`Workbench` 和 `Dashboard -> Workbench`。
+
+`MTP-222-NO-BEHAVIOR-RUNTIME-LIVE-GUARD`
+
+MTP-222 不移动 production source，不删除 retained compatibility exports，不新增 SwiftPM target/product/dependency，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real account read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
+`MTP-222-COMPATIBILITY-ANCHOR-RETIREMENT-VALIDATION`
+
+MTP-222 validation 必须证明 current graph snapshot、historical compatibility retained boundary、stale active anchor retirement、no behavior / runtime / live guard、validation matrix、latest verification summary 和 automation readiness anchors 均落仓；并且 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh` 必须通过。
 
 ## 架构图模块到目标目录
 

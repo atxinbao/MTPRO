@@ -6678,3 +6678,38 @@ MTP-221 必须建立的主要 anchors：
 - 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation 或 L4 capability。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-222 Compatibility Anchor Retirement Validation
+
+MTP-222 必须运行：
+
+- scoped fixed-string grep / automation readiness stale anchor checks
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-222 的验收要求：
+
+- `docs/contracts/swiftpm-target-graph-split-contract.md`、`architecture.md`、`docs/architecture/module-boundary.md` 和 `docs/domain/context.md` 必须包含 `MTP-222-CURRENT-TARGET-GRAPH-SNAPSHOT`、`MTP-222-HISTORICAL-COMPATIBILITY-EVIDENCE-RETAINED`、`MTP-222-STALE-ACTIVE-ANCHOR-RETIREMENT` 和 `MTP-222-NO-BEHAVIOR-RUNTIME-LIVE-GUARD`。
+- Active target graph snapshot 必须指向 MTP-217 至 MTP-221 已建立的 buildable targets：`DomainModel`、`MessageBus`、`Database`、`DataClient`、`Cache`、`DataEngine`、`Portfolio`、`RiskEngine`、`ExecutionClient`、`ExecutionEngine`、`TraderStrategies`、`Trader`、`Workbench` 和 `Dashboard`。
+- Retained `Core`、`Adapters`、`Persistence`、`Runtime` 和 `App` targets 只能表达 existing implementation / import compatibility；旧 `Core / Adapters / Persistence / Runtime / App / Dashboard` graph、`Dashboard -> App` 和 `App -> Core, Persistence` 只能作为 historical / before-state evidence 保留。
+- 旧 `Sources/Strategies/<strategy>` 和旧 `Sources/Trader/StrategyBindings/` 只能作为 historical / compatibility / superseded evidence；active source anchors 必须指向 `Sources/Trader/Strategies/EMA/` 和 `Sources/Trader/Coordination/RiskBinding/`。
+- `docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-222 anchors。
+
+MTP-222 必须建立的主要 anchors：
+
+- `MTP-222-COMPATIBILITY-ANCHOR-RETIREMENT-EVIDENCE`
+- `MTP-222-CURRENT-TARGET-GRAPH-SNAPSHOT`
+- `MTP-222-HISTORICAL-COMPATIBILITY-EVIDENCE-RETAINED`
+- `MTP-222-STALE-ACTIVE-ANCHOR-RETIREMENT`
+- `MTP-222-NO-BEHAVIOR-RUNTIME-LIVE-GUARD`
+- `MTP-222-COMPATIBILITY-ANCHOR-RETIREMENT-VALIDATION`
+
+## MTP-222 禁止
+
+- 不移动 production source，不新增、不删除、不重命名 SwiftPM target / product / dependency。
+- 不删除 retained `Core`、`Adapters`、`Persistence`、`Runtime` 或 `App` compatibility exports。
+- 不把 wording cleanup 升级成 source migration、target deletion、runtime behavior change 或 L4 implementation。
+- 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
