@@ -4925,6 +4925,21 @@ require_contains "docs/validation/latest-verification-summary.md" "MTP-214 的�
 require_contains "docs/validation/latest-verification-summary.md" "MTP-214-FOCUSED-VALIDATION-EVIDENCE"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-214-NO-ACTIVE-REPAIR-REQUIRED"
 require_contains "docs/automation/automation-readiness.md" "Persistence validation repair MTP-214 verification-only repair anchor"
+require_file "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-215-validation-closeout.md"
+require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-215-validation-closeout.md" "MTP-215-VALIDATION-BASELINE-CLOSEOUT"
+require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-215-validation-closeout.md" "MTP-215-CURRENT-MAIN-CLOSEOUT-CONTEXT"
+require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-215-validation-closeout.md" "MTP-215-FOCUSED-VALIDATION-EVIDENCE"
+require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-215-validation-closeout.md" "MTP-215-AUTOMATION-READINESS-EVIDENCE"
+require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-215-validation-closeout.md" "MTP-215-FULL-CHECKS-EVIDENCE"
+require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-215-validation-closeout.md" "MTP-215-REPAIR-CLOSURE-EVIDENCE"
+require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-215-validation-closeout.md" "MTP-215-NO-ARCHITECTURE-RUNTIME-BOUNDARY"
+require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-215-validation-closeout.md" "MTP-215-NEXT-HANDOFF"
+require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-215-validation-closeout.md" "MTPRO checks passed."
+require_contains "docs/validation/latest-verification-summary.md" "MTP-215 的当前 issue execution evidence"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-215-FOCUSED-VALIDATION-EVIDENCE"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-215-FULL-CHECKS-EVIDENCE"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-215-REPAIR-CLOSURE-EVIDENCE"
+require_contains "docs/automation/automation-readiness.md" "Persistence validation repair MTP-215 validation closeout anchor"
 require_absent "docs/validation/validation-plan.md" 'Root docs 必须使用 `Trader = Accounts + Strategies + StrategyBindings + Coordination`'
 require_absent "docs/validation/validation-plan.md" '`Sources/Trader/StrategyBindings/` 必须包含 proposal-to-risk binding'
 require_absent "docs/validation/validation-plan.md" '只使用 `"Trader/Strategies/EMA"` 和 `"Trader/StrategyBindings"`'
