@@ -13811,3 +13811,44 @@ PersistenceTests/testFileEventLogStoreRejectsOutOfOrderAppendToProtectAppendOnly
 - `git diff --check`：pass，无输出。
 - `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
 - `bash checks/run.sh`：不要求通过；当前已知 blocker 正是本 Project 要修复的问题。
+
+## 2026-06-04 — MTPRO Persistence Validation Repair v1 Project closure
+
+执行者：Parent Codex / Codex
+
+范围：
+
+- 完成 `MTPRO Persistence Validation Repair v1` Project closure flow 的 docs-only Stage Code Audit 和 Root Docs Refresh Gate。
+- 新增 `docs/audit/mtpro-persistence-validation-repair-v1-stage-code-audit.md`。
+- 汇总 `MTP-213` 至 `MTP-215` 的 issue / PR / merge / required check evidence。
+- 明确 `MTP-212` 为 Duplicate / non-canonical，指向 `MTP-213`，不进入 closure count。
+- 原 `PersistenceTests/testFileEventLogStoreRejectsOutOfOrderAppendToProtectAppendOnlyInvariant -> xctest signal 11` 在 clean build 当前 main 未复现。
+- MTP-214 没有做无根据 production repair。
+- MTP-215 已恢复完整 validation baseline。
+- Project Closure Count 更新为 `27 / 27 (100%)`；Final Product Goal Progress 保持 `9 / 9 (100%)`；Engine Maturity Roadmap Progress 保持 `4 / 4 (100%)`。
+
+边界：
+
+- 不创建下一 Linear Project / Issue。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify 或 code-index。
+- 不修改 Figma。
+- 不修改 Persistence implementation。
+- 不修改 `Tests/PersistenceTests` 行为。
+- 不移动 production source。
+- 不修改 `Package.swift`。
+- 不拆 SwiftPM target graph。
+- 不修改 architecture module layout。
+- 不实现 Trader runtime、Strategy runtime、Live runtime。
+- 不接 signed endpoint、account endpoint / listenKey 或 private WebSocket runtime。
+- 不实现 ExecutionClient implementation、OMS、broker gateway、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command 或 order form。
+- `.codex/*` 和 `graphify-out/*` 不进入 PR。
+
+验证：
+
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `swift package clean`：pass，清理 stale SwiftPM / XCTest build cache；清理后 focused Persistence test 通过。
+- `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 正常，315 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
