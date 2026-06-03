@@ -3041,6 +3041,30 @@ MTP-219 的 dependency direction 是 `Portfolio -> DomainModel / MessageBus / Ca
 
 MTP-219 不授权 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、broker payload read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
 
+`MTP-220-EXECUTION-TARGET-SPLIT-EVIDENCE`
+
+MTP-220 Execution target split 指 `Package.swift` 已新增 `ExecutionClient` 和 `ExecutionEngine` library products / targets，并用 `Sources/TargetGraph/*` boundary types 证明 execution future gate targets 可以被 SwiftPM 解析和测试。该 evidence 不表示旧 `Core` compatibility envelope 已退休。
+
+`MTP-220-EXECUTIONCLIENT-TARGET-SPLIT`
+
+`ExecutionClient target boundary` 指 future-gated outgoing adapter contract target；当前 compiled boundary root 是 `Sources/TargetGraph/ExecutionClient/`，canonical source root 仍是 `Sources/ExecutionClient/`。ExecutionClient 只能表达 future gate / protocol boundary，不实现 broker SDK wrapper、exchange venue client、signed request、account endpoint、listenKey、private WebSocket runtime、real order lifecycle、execution report、broker fill 或 reconciliation。
+
+`MTP-220-EXECUTIONCLIENT-FUTURE-GATE-ONLY`
+
+ExecutionClient future gate only 表示当前 target 只承载 protocol / capability boundary evidence。BrokerCapabilityMatrix 仍是 future taxonomy，不是 capability discovery runtime、credential check、network probe、API key input、secret storage、credential provider 或 keychain storage。
+
+`MTP-220-EXECUTIONENGINE-TARGET-SPLIT`
+
+`ExecutionEngine target boundary` 指 paper / simulated execution lifecycle target；当前 compiled boundary root 是 `Sources/TargetGraph/ExecutionEngine/`，canonical source root 仍是 `Sources/ExecutionEngine/`。ExecutionEngine 可以消费 RiskEngine 和 ExecutionClient future gate evidence，但不能实现 live execution runtime、OMS implementation、broker gateway、signed endpoint 或 executable live order command。
+
+`MTP-220-RISKENGINE-EXECUTIONENGINE-EXECUTIONCLIENT-DIRECTION`
+
+MTP-220 的 dependency direction 是 `ExecutionClient -> DomainModel / MessageBus`、`ExecutionEngine -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine / ExecutionClient`，并把 MTP-219 延后的 `Trader -> ExecutionEngine` dependency 解析为正式 target dependency。RiskEngine 不直连 ExecutionClient / broker；Trader 不直连 ExecutionClient、broker、OMS 或 UI command surface。
+
+`MTP-220-NO-BROKER-OMS-REAL-ORDER-GUARD`
+
+MTP-220 不授权 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、broker payload read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

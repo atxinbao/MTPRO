@@ -357,3 +357,63 @@ MTP-219 required validation：
 - `git diff --check`
 - `bash checks/automation-readiness.sh`
 - `bash checks/run.sh`
+
+## MTP-220 Execution Target Split Evidence
+
+日期：2026-06-04
+
+执行者：Codex
+
+`MTP-220-EXECUTION-TARGET-SPLIT-EVIDENCE`
+
+MTP-220 在 `Package.swift` 中新增 buildable SwiftPM library products / targets：`ExecutionClient` 和 `ExecutionEngine`。该变更是 target graph 的第四段 execution split，只建立可编译的 target boundary、RiskEngine -> ExecutionEngine -> ExecutionClient future gate dependency direction、Trader -> ExecutionEngine dependency resolution 和 forbidden broker / OMS / real order guard；它不退休 `Core` compatibility envelope，不迁移既有 paper lifecycle、simulated exchange、OMS future gate 或 ExecutionClient future gate implementation。
+
+`MTP-220-EXECUTIONCLIENT-TARGET-SPLIT`
+
+`ExecutionClient` target 当前编译 `Sources/TargetGraph/ExecutionClient/ExecutionClientTargetBoundary.swift`，依赖 `DomainModel` 和 `MessageBus`。现有 `Sources/ExecutionClient/FutureGate/` 与 `Sources/ExecutionClient/BrokerCapabilityMatrix/` evidence 仍由 `Core` compatibility envelope 编译。`ExecutionClient` 当前只能表达 outgoing adapter future gate / protocol boundary，不实现 broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、execution report、broker fill 或 reconciliation。
+
+`MTP-220-EXECUTIONENGINE-TARGET-SPLIT`
+
+`ExecutionEngine` target 当前编译 `Sources/TargetGraph/ExecutionEngine/ExecutionEngineTargetBoundary.swift`，依赖 `DomainModel`、`MessageBus`、`Cache`、`Portfolio`、`RiskEngine` 和 `ExecutionClient`。现有 `Sources/ExecutionEngine/PaperLifecycle/`、`Sources/ExecutionEngine/SimulatedExchange/` 和 `Sources/ExecutionEngine/OMSFutureGate/` implementation 仍由 `Core` compatibility envelope 编译。`ExecutionEngine` 当前只表达 paper / simulated execution lifecycle boundary 与 OMS future gate evidence，不实现 live execution runtime、OMS implementation、broker gateway 或 executable live order command。
+
+`MTP-220-RISKENGINE-EXECUTIONENGINE-EXECUTIONCLIENT-DIRECTION`
+
+MTP-220 的 dependency direction 固定为：
+
+```text
+ExecutionClient -> DomainModel / MessageBus
+ExecutionEngine -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine / ExecutionClient
+Trader -> ExecutionEngine dependency resolved from MTP-219 deferred gate
+```
+
+`RiskEngine` 仍不能直连 broker 或 ExecutionClient；`ExecutionEngine` 可以消费 `RiskEngine` target boundary 和 `ExecutionClient` future gate boundary，但不能升级为 broker adapter、OMS implementation 或 real order lifecycle；`Trader` 只能依赖 `ExecutionEngine` target boundary，不能直连 `ExecutionClient`、broker、OMS、signed endpoint、account endpoint、listenKey、private stream runtime 或 UI command surface。
+
+`MTP-220-TRADER-EXECUTIONENGINE-DEPENDENCY-RESOLVED`
+
+MTP-220 将 MTP-219 记录的 `Trader -> ExecutionEngine(MTP-220)` deferred dependency 解析为正式 target dependency：`Trader` target 依赖 `ExecutionEngine`，但 `TraderTargetBoundary` 仍保持 no direct ExecutionClient、no broker / OMS、no real account payload 和 no live command surface guard。
+
+`MTP-220-EXECUTIONCLIENT-FUTURE-GATE-ONLY`
+
+`ExecutionClient` 只保留 future gate / protocol boundary semantics。它不能实现 broker SDK wrapper、exchange venue client、signed request builder、credential / secret / keychain storage、account endpoint reader、listenKey manager、private WebSocket connector、order submit / cancel / replace、execution report parser、broker fill parser 或 reconciliation runtime。
+
+`MTP-220-EXECUTION-COMPATIBILITY-ENVELOPE-RETAINED`
+
+MTP-220 保留 `Core` 继续编译既有 ExecutionEngine / ExecutionClient source roots。`Package.swift` 对 `Core`、`Runtime` 和 `App` compatibility targets 继续排除 `TargetGraph`，避免 boundary anchors 被旧 envelope 重复收编。Compatibility envelope retirement 仍归 MTP-222。
+
+`MTP-220-TARGETGRAPH-TEST-EVIDENCE`
+
+`Tests/TargetGraphTests/TargetGraphTests.swift` 直接 `import ExecutionClient` 和 `import ExecutionEngine`，验证两个 targets 可编译、依赖方向正确、Trader deferred dependency 已解析，并阻断 broker gateway、OMS、signed/account endpoint、listenKey、private WebSocket runtime、real order lifecycle、execution report、broker fill、reconciliation 和 live command surface drift。
+
+`MTP-220-NO-BROKER-OMS-REAL-ORDER-GUARD`
+
+MTP-220 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、broker payload read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability；不启动 Symphony / symphony-issue，不运行 Graphify 或 code-index，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+`MTP-220-EXECUTION-TARGET-SPLIT-VALIDATION`
+
+MTP-220 required validation：
+
+- `swift package describe`
+- `swift test --filter TargetGraphTests`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`

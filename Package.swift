@@ -15,6 +15,8 @@ let package = Package(
         .library(name: "Cache", targets: ["Cache"]),
         .library(name: "Portfolio", targets: ["Portfolio"]),
         .library(name: "RiskEngine", targets: ["RiskEngine"]),
+        .library(name: "ExecutionClient", targets: ["ExecutionClient"]),
+        .library(name: "ExecutionEngine", targets: ["ExecutionEngine"]),
         .library(name: "TraderStrategies", targets: ["TraderStrategies"]),
         .library(name: "Trader", targets: ["Trader"]),
         .library(name: "Core", targets: ["Core"]),
@@ -77,13 +79,23 @@ let package = Package(
             path: "Sources/TargetGraph/RiskEngine"
         ),
         .target(
+            name: "ExecutionClient",
+            dependencies: ["DomainModel", "MessageBus"],
+            path: "Sources/TargetGraph/ExecutionClient"
+        ),
+        .target(
+            name: "ExecutionEngine",
+            dependencies: ["DomainModel", "MessageBus", "Cache", "Portfolio", "RiskEngine", "ExecutionClient"],
+            path: "Sources/TargetGraph/ExecutionEngine"
+        ),
+        .target(
             name: "TraderStrategies",
             dependencies: ["DomainModel", "MessageBus", "Cache", "Portfolio", "RiskEngine"],
             path: "Sources/TargetGraph/TraderStrategies"
         ),
         .target(
             name: "Trader",
-            dependencies: ["DomainModel", "MessageBus", "Cache", "TraderStrategies", "Portfolio", "RiskEngine"],
+            dependencies: ["DomainModel", "MessageBus", "Cache", "TraderStrategies", "Portfolio", "RiskEngine", "ExecutionEngine"],
             path: "Sources/TargetGraph/Trader"
         ),
         .target(
@@ -251,6 +263,8 @@ let package = Package(
                 "Cache",
                 "Portfolio",
                 "RiskEngine",
+                "ExecutionClient",
+                "ExecutionEngine",
                 "TraderStrategies",
                 "Trader"
             ],

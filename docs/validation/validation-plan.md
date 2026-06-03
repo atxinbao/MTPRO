@@ -6595,3 +6595,46 @@ MTP-219 必须建立的主要 anchors：
 - 不实现 Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-220 ExecutionEngine / ExecutionClient Target Split Validation
+
+MTP-220 必须运行：
+
+- `swift package describe`
+- `swift test --filter TargetGraphTests`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-220 的验收要求：
+
+- `Package.swift` 必须新增 `ExecutionClient` 和 `ExecutionEngine` library products / targets。
+- `ExecutionClient` target 必须依赖 `DomainModel` 和 `MessageBus`，并保持 future gate / protocol boundary only。
+- `ExecutionEngine` target 必须依赖 `DomainModel`、`MessageBus`、`Cache`、`Portfolio`、`RiskEngine` 和 `ExecutionClient`，并保持 paper / simulated lifecycle boundary。
+- `Trader` target 必须把 MTP-219 延后的 `ExecutionEngine` dependency 解析为正式 target dependency，但仍不得直连 `ExecutionClient`、broker、OMS 或 UI command surface。
+- `Core` compatibility envelope 必须保留，既有 ExecutionEngine / ExecutionClient future gate implementation 不得迁移或升级为 live runtime。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须直接 import `ExecutionClient` 和 `ExecutionEngine`，验证 dependency direction、Trader dependency resolution、ExecutionClient future gate 和 no broker / OMS / real order / endpoint drift。
+- `docs/contracts/swiftpm-target-graph-split-contract.md`、`architecture.md`、`docs/architecture/module-boundary.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-220 anchors。
+
+MTP-220 必须建立的主要 anchors：
+
+- `MTP-220-EXECUTION-TARGET-SPLIT-EVIDENCE`
+- `MTP-220-EXECUTIONCLIENT-TARGET-SPLIT`
+- `MTP-220-EXECUTIONENGINE-TARGET-SPLIT`
+- `MTP-220-RISKENGINE-EXECUTIONENGINE-EXECUTIONCLIENT-DIRECTION`
+- `MTP-220-TRADER-EXECUTIONENGINE-DEPENDENCY-RESOLVED`
+- `MTP-220-EXECUTIONCLIENT-FUTURE-GATE-ONLY`
+- `MTP-220-EXECUTION-COMPATIBILITY-ENVELOPE-RETAINED`
+- `MTP-220-TARGETGRAPH-TEST-EVIDENCE`
+- `MTP-220-NO-BROKER-OMS-REAL-ORDER-GUARD`
+- `MTP-220-EXECUTION-TARGET-SPLIT-VALIDATION`
+
+## MTP-220 禁止
+
+- 不退休 `Core` 或其他 compatibility envelope。
+- 不把 `ExecutionClient` 改成 broker SDK wrapper、exchange venue client、signed request builder、credential / secret / keychain storage、account endpoint reader、listenKey manager、private WebSocket connector、order submit / cancel / replace、execution report parser、broker fill parser 或 reconciliation runtime。
+- 不把 `ExecutionEngine` 改成 live execution runtime、OMS implementation、broker gateway、real order state machine、execution report ingestion、broker fill ingestion 或 reconciliation runtime。
+- 不让 `RiskEngine` 直连 broker / ExecutionClient，不让 `Trader` 直连 ExecutionClient / broker / OMS / UI command surface。
+- 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
