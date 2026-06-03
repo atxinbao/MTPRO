@@ -4912,6 +4912,19 @@ require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-2
 require_contains "docs/validation/latest-verification-summary.md" "MTP-213 的当前 issue execution evidence"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-213-FOCUSED-VALIDATION-EVIDENCE"
 require_contains "docs/automation/automation-readiness.md" "Persistence validation repair MTP-213 diagnosis anchor"
+require_file "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-214-repair-evidence.md"
+require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-214-repair-evidence.md" "MTP-214-VERIFICATION-ONLY-REPAIR-EVIDENCE"
+require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-214-repair-evidence.md" "MTP-214-CURRENT-MAIN-REPAIR-CONTEXT"
+require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-214-repair-evidence.md" "MTP-214-FOCUSED-VALIDATION-EVIDENCE"
+require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-214-repair-evidence.md" "MTP-214-NO-ACTIVE-REPAIR-REQUIRED"
+require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-214-repair-evidence.md" "MTP-214-APPEND-ONLY-INVARIANT-REPAIR-CONCLUSION"
+require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-214-repair-evidence.md" "MTP-214-NO-CODE-CHANGE-BOUNDARY"
+require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-214-repair-evidence.md" "MTP-214-NEXT-GATE"
+require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-214-repair-evidence.md" "no active repair required"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-214 的当前 issue execution evidence"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-214-FOCUSED-VALIDATION-EVIDENCE"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-214-NO-ACTIVE-REPAIR-REQUIRED"
+require_contains "docs/automation/automation-readiness.md" "Persistence validation repair MTP-214 verification-only repair anchor"
 require_absent "docs/validation/validation-plan.md" 'Root docs 必须使用 `Trader = Accounts + Strategies + StrategyBindings + Coordination`'
 require_absent "docs/validation/validation-plan.md" '`Sources/Trader/StrategyBindings/` 必须包含 proposal-to-risk binding'
 require_absent "docs/validation/validation-plan.md" '只使用 `"Trader/Strategies/EMA"` 和 `"Trader/StrategyBindings"`'
