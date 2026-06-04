@@ -419,9 +419,9 @@ Required validation：
 
 Focused validation anchors：
 
-- `Sources/Workbench/Report/LiveMonitoringReadOnlyConsoleV2Surface.swift` 必须包含 `LiveMonitoringReadOnlyConsoleV2SurfaceReadModel`、`LiveMonitoringReadOnlyConsoleV2SurfaceViewModel` 和 `LiveMonitoringReadOnlyConsoleV2TraceItem`。
-- `Sources/Workbench/ReadModels/App.swift` 必须把 `liveMonitoringReadOnlyConsoleV2Surface` 接入 Report / Dashboard read model 和 view model。
-- `Sources/Workbench/Events/PaperWorkflowEvidenceExplorer.swift` 必须包含 `liveMonitoringReadOnlyConsoleV2Surface` section，并输出 MTP-152 Event Timeline read-model-only evidence item。
+- `Sources/Dashboard/Report/LiveMonitoringReadOnlyConsoleV2Surface.swift` 必须包含 `LiveMonitoringReadOnlyConsoleV2SurfaceReadModel`、`LiveMonitoringReadOnlyConsoleV2SurfaceViewModel` 和 `LiveMonitoringReadOnlyConsoleV2TraceItem`。
+- `Sources/Dashboard/ReadModels/App.swift` 必须把 `liveMonitoringReadOnlyConsoleV2Surface` 接入 Report / Dashboard read model 和 view model。
+- `Sources/Dashboard/Events/PaperWorkflowEvidenceExplorer.swift` 必须包含 `liveMonitoringReadOnlyConsoleV2Surface` section，并输出 MTP-152 Event Timeline read-model-only evidence item。
 - `Sources/Dashboard/DashboardShell.swift` 必须包含 Workbench / Report metrics、details 和 smoke handle `liveMonitoringReadOnlyConsoleV2Surface=4`。
 - `Tests/AppTests/AppTests.swift` 必须包含 `testLiveMonitoringReadOnlyConsoleV2SurfaceAggregatesMTP152WorkbenchReportEventsEvidence`。
 - `docs/contracts/live-monitoring-read-only-console-v2-contract.md` 必须包含 MTP-152 Workbench / Report / Events surface、source freshness explanation surface、no runtime / adapter / schema / payload / broker state surface 和 validation anchors。

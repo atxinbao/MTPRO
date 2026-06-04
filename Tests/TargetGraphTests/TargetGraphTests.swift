@@ -12,7 +12,6 @@ import Portfolio
 import RiskEngine
 import Trader
 import TraderStrategies
-import Workbench
 import XCTest
 
 final class TargetGraphTests: XCTestCase {
@@ -410,25 +409,19 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
-    func testMTP221WorkbenchDashboardTargetsExposeReadModelOnlyDependencyDirection() {
-        let workbench = WorkbenchTargetBoundary.mtp221
+    func testMTP221DashboardTargetExposesReadModelOnlyDependencyDirection() {
         let dashboard = DashboardTargetBoundary.mtp221
 
-        XCTAssertTrue(workbench.dependencyDirectionHeld)
         XCTAssertTrue(dashboard.dependencyDirectionHeld)
 
-        XCTAssertEqual(workbench.allowedDependencies, ["Core", "Persistence"])
-        XCTAssertEqual(dashboard.allowedDependencies, ["Workbench"])
-        XCTAssertEqual(workbench.retainedCompatibilityEnvelope, "App")
-        XCTAssertEqual(dashboard.workbenchBoundary, workbench)
-        XCTAssertTrue(workbench.consumesReadModelOnly)
-        XCTAssertTrue(workbench.consumesViewModelOnly)
+        XCTAssertEqual(dashboard.allowedDependencies, ["Core", "Persistence"])
         XCTAssertTrue(dashboard.displaySurfaceOnly)
-        XCTAssertTrue(dashboard.consumesWorkbenchOnly)
+        XCTAssertTrue(dashboard.consumesReadModelOnly)
+        XCTAssertTrue(dashboard.consumesViewModelOnly)
+        XCTAssertTrue(dashboard.validationAnchors.contains("MTP-DASHBOARD-WORKBENCH-TARGET-RETIRED"))
     }
 
-    func testMTP221WorkbenchDashboardTargetsRejectRuntimeAdapterSchemaAndCommandDrift() {
-        let workbench = WorkbenchTargetBoundary.mtp221
+    func testMTP221DashboardTargetRejectsRuntimeAdapterSchemaAndCommandDrift() {
         let dashboard = DashboardTargetBoundary.mtp221
 
         for forbidden in [
@@ -446,19 +439,8 @@ final class TargetGraphTests: XCTestCase {
             "LiveCommandSurface",
             "OrderForm"
         ] {
-            XCTAssertTrue(workbench.forbiddenDependencies.contains(forbidden))
             XCTAssertTrue(dashboard.forbiddenDependencies.contains(forbidden))
         }
-
-        XCTAssertFalse(workbench.exposesRuntimeObject)
-        XCTAssertFalse(workbench.readsAdapterRequest)
-        XCTAssertFalse(workbench.exposesPersistenceSchema)
-        XCTAssertFalse(workbench.exposesAccountPayload)
-        XCTAssertFalse(workbench.exposesBrokerState)
-        XCTAssertFalse(workbench.exposesLivePROConsole)
-        XCTAssertFalse(workbench.providesTradingButton)
-        XCTAssertFalse(workbench.providesLiveCommand)
-        XCTAssertFalse(workbench.exposesOrderForm)
 
         XCTAssertFalse(dashboard.exposesRuntimeObject)
         XCTAssertFalse(dashboard.readsAdapterRequest)
@@ -471,55 +453,52 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(dashboard.exposesOrderForm)
     }
 
-    func testMTP230WorkbenchDashboardTargetsUseRealModuleRootsAndRetireMixedShellPath() throws {
+    func testMTP230DashboardTargetUsesRealModuleRootAndRetiresWorkbenchTarget() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
             contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
             encoding: .utf8
         )
-        let workbench = WorkbenchTargetBoundary.mtp230
         let dashboard = DashboardTargetBoundary.mtp230
 
-        XCTAssertTrue(workbench.dependencyDirectionHeld)
         XCTAssertTrue(dashboard.dependencyDirectionHeld)
-        XCTAssertEqual(workbench.compiledSourceRoots, [
-            "Sources/Workbench/ReadModels",
-            "Sources/Workbench/Report",
-            "Sources/Workbench/Dashboard",
-            "Sources/Workbench/Events",
-            "Sources/Workbench/FutureLiveProConsole",
-            "Sources/Workbench/TargetGraph"
-        ])
         XCTAssertEqual(dashboard.canonicalSourceRoot, "Sources/Dashboard")
-        XCTAssertEqual(dashboard.shellSource, "Sources/Workbench/Dashboard/DashboardShell.swift")
+        XCTAssertEqual(dashboard.shellSource, "Sources/Dashboard/DashboardShell.swift")
 
         for expected in [
-            "path: \"Sources/Workbench\"",
-            "\"ReadModels\"",
-            "\"Report\"",
-            "\"Dashboard\"",
-            "\"Events\"",
-            "\"FutureLiveProConsole\"",
-            "\"TargetGraph\"",
             "path: \"Sources/Dashboard\"",
             "\"DashboardApplication.swift\"",
-            "\"DashboardTargetBoundary.swift\""
+            "\"DashboardTargetBoundary.swift\"",
+            "\"DashboardShell.swift\"",
+            "\"PaperWorkflowObservability.swift\"",
+            "\"PaperWorkflowWorkbenchArchitecture.swift\"",
+            "\"WorkbenchBetaAcceptancePath.swift\"",
+            "\"WorkbenchBetaFirstRunState.swift\"",
+            "\"ReadModels\"",
+            "\"Report\"",
+            "\"Events\"",
+            "\"FutureLiveProConsole\""
         ] {
             XCTAssertTrue(packageSource.contains(expected), "Package.swift must contain \(expected)")
         }
 
         for forbidden in [
+            ".library(name: \"Workbench\"",
+            "name: \"Workbench\"",
+            "path: \"Sources/Workbench\"",
             "path: \"Sources/TargetGraph/Workbench\"",
             "path: \"Sources/TargetGraph/Dashboard\"",
-            "\"Dashboard/DashboardShell.swift\"",
-            "\"DashboardShell.swift\""
+            "\"Dashboard/DashboardShell.swift\""
         ] {
             XCTAssertFalse(packageSource.contains(forbidden), "UI target path must not remain active: \(forbidden)")
         }
 
         for migratedPath in [
-            "Sources/Workbench/TargetGraph/WorkbenchTargetBoundary.swift",
-            "Sources/Workbench/Dashboard/DashboardShell.swift",
+            "Sources/Dashboard/DashboardShell.swift",
+            "Sources/Dashboard/ReadModels/App.swift",
+            "Sources/Dashboard/Report/LiveTradingBlockedEvidence.swift",
+            "Sources/Dashboard/Events/PaperWorkflowEvidenceExplorer.swift",
+            "Sources/Dashboard/FutureLiveProConsole/LiveReadOnlyWorkbenchBoundary.swift",
             "Sources/Dashboard/DashboardTargetBoundary.swift",
             "Sources/Dashboard/DashboardApplication.swift"
         ] {
@@ -530,7 +509,9 @@ final class TargetGraphTests: XCTestCase {
         }
 
         for retiredPath in [
-            "Sources/Dashboard/DashboardShell.swift",
+            "Sources/Workbench",
+            "Sources/Workbench/TargetGraph/WorkbenchTargetBoundary.swift",
+            "Sources/Workbench/Dashboard/DashboardShell.swift",
             "Sources/TargetGraph/Workbench/WorkbenchTargetBoundary.swift",
             "Sources/TargetGraph/Dashboard/DashboardTargetBoundary.swift"
         ] {
@@ -540,11 +521,8 @@ final class TargetGraphTests: XCTestCase {
             )
         }
 
-        XCTAssertTrue(workbench.validationAnchors.contains("MTP-230-WORKBENCH-REAL-ROOT-TARGET-PATH"))
         XCTAssertTrue(dashboard.validationAnchors.contains("MTP-230-DASHBOARD-REAL-ROOT-TARGET-PATH"))
-        XCTAssertFalse(workbench.exposesRuntimeObject)
         XCTAssertFalse(dashboard.exposesRuntimeObject)
-        XCTAssertFalse(workbench.providesLiveCommand)
         XCTAssertFalse(dashboard.providesLiveCommand)
     }
 
@@ -581,7 +559,6 @@ final class TargetGraphTests: XCTestCase {
             "path: \"Sources/RiskEngine\"",
             "path: \"Sources/ExecutionClient\"",
             "path: \"Sources/ExecutionEngine\"",
-            "path: \"Sources/Workbench\"",
             "path: \"Sources/Dashboard\""
         ] {
             XCTAssertTrue(packageSource.contains(expectedRoot), "Package.swift must keep real module root active: \(expectedRoot)")
@@ -599,7 +576,6 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertEqual(RiskEngineTargetBoundary.mtp219.compiledBoundaryRoot, "Sources/RiskEngine/TargetGraph")
         XCTAssertEqual(ExecutionClientTargetBoundary.mtp220.compiledBoundaryRoot, "Sources/ExecutionClient/TargetGraph")
         XCTAssertEqual(ExecutionEngineTargetBoundary.mtp220.compiledBoundaryRoot, "Sources/ExecutionEngine/TargetGraph")
-        XCTAssertEqual(WorkbenchTargetBoundary.mtp230.compiledSourceRoots.last, "Sources/Workbench/TargetGraph")
         XCTAssertEqual(DashboardTargetBoundary.mtp230.canonicalSourceRoot, "Sources/Dashboard")
 
         XCTAssertTrue(contractSource.contains("MTP-231-TARGETGRAPH-ACTIVE-PATH-REFERENCE-RETIREMENT"))

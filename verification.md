@@ -13994,3 +13994,32 @@ PersistenceTests/testFileEventLogStoreRejectsOutOfOrderAppendToProtectAppendOnly
 - `git diff --check`：pass，无输出。
 - `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
 - `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 正常，331 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
+## 2026-06-05 — AppCompatibility compatibility export cleanup
+
+执行者：Codex
+
+范围：
+
+- 删除 `App` SwiftPM product / target。
+- 删除 `Sources/AppCompatibility/AppCompatibility.swift`，并移除空的 `Sources/AppCompatibility` 目录。
+- `Tests/AppTests/AppTests.swift` 从 `import App` 改为直接 `import Dashboard`。
+- `WorkbenchTargetBoundary` 的 compatibility envelope 从 `App` 更新为 `retired`。
+- 更新 root docs / architecture docs / validation docs / automation readiness anchors，明确 `App` product / target、`Sources/AppCompatibility`、`Workbench` product / target 和 `Sources/Workbench/` 已退休，当前 UI dependency direction 只保留 `Dashboard -> Core / Persistence read-model exports only`。
+- 更新 `checks/automation-readiness.sh`，机械验证 `App` product / target、`Sources/AppCompatibility` 和 `import App` 不再回流。
+
+边界：
+
+- 不实现 Strategy runtime、Trader runtime 或 Live runtime。
+- 不实现 ExecutionClient implementation、OMS implementation 或 broker gateway。
+- 不接 signed endpoint、account endpoint / listenKey 或 private WebSocket runtime。
+- 不实现 real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command 或 order form。
+- 不推进 L4。
+- 不启动 Symphony，不运行 Graphify / code-index，不修改 Figma。
+- `.codex/*` 和 `graphify-out/*` 不进入 PR。
+
+验证：
+
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 正常，331 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。

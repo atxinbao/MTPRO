@@ -577,11 +577,11 @@ Validation 必须覆盖：
 
 Core / App anchors：
 
-- `Sources/Workbench/ReadModels/App.swift`
+- `Sources/Dashboard/ReadModels/App.swift`
   - `paperExecutionWorkflowLocalLifecycleTransitionIDs`
   - `paperExecutionWorkflowAccountPortfolioSnapshotIDs`
   - `paperExecutionWorkflowSimulatedFillCostImpactAmount`
-- `Sources/Workbench/Events/PaperWorkflowEvidenceExplorer.swift`
+- `Sources/Dashboard/Events/PaperWorkflowEvidenceExplorer.swift`
   - `Paper local lifecycle transition`
 - `Sources/Dashboard/DashboardShell.swift`
   - `paperRuntimeEvidence`

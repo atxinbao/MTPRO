@@ -19,12 +19,10 @@ let package = Package(
         .library(name: "ExecutionEngine", targets: ["ExecutionEngine"]),
         .library(name: "TraderStrategies", targets: ["TraderStrategies"]),
         .library(name: "Trader", targets: ["Trader"]),
-        .library(name: "Workbench", targets: ["Workbench"]),
         .library(name: "Core", targets: ["Core"]),
         .library(name: "Adapters", targets: ["Adapters"]),
         .library(name: "Persistence", targets: ["Persistence"]),
         .library(name: "Runtime", targets: ["Runtime"]),
-        .library(name: "App", targets: ["App"]),
         .executable(name: "Dashboard", targets: ["Dashboard"])
     ],
     dependencies: [
@@ -190,23 +188,9 @@ let package = Package(
             ]
         ),
         .target(
-            name: "Workbench",
-            dependencies: ["Core", "Persistence"],
-            path: "Sources/Workbench",
-            sources: [
-                "ReadModels",
-                "Report",
-                "Dashboard",
-                "Events",
-                "FutureLiveProConsole",
-                "TargetGraph"
-            ]
-        ),
-        .target(
             name: "Core",
             path: "Sources",
             exclude: [
-                "AppCompatibility",
                 "Cache/TargetGraph",
                 "Dashboard",
                 "DataClient",
@@ -220,8 +204,7 @@ let package = Package(
                 "Portfolio/TargetGraph",
                 "RiskEngine/TargetGraph",
                 "Trader/Strategies/EMA/TargetGraph",
-                "Trader/TargetGraph",
-                "Workbench"
+                "Trader/TargetGraph"
             ],
             sources: [
                 "Cache/MarketData",
@@ -288,7 +271,6 @@ let package = Package(
             dependencies: ["Core", "Adapters", "Persistence"],
             path: "Sources",
             exclude: [
-                "AppCompatibility",
                 "Cache",
                 "Core",
                 "Dashboard",
@@ -304,26 +286,29 @@ let package = Package(
                 "RiskEngine",
                 "ExecutionEngine",
                 "ExecutionClient",
-                "Trader",
-                "Workbench"
+                "Trader"
             ],
             sources: [
                 "Database/ReplayProjection",
                 "DataEngine/Ingest"
             ]
         ),
-        .target(
-            name: "App",
-            dependencies: ["Workbench"],
-            path: "Sources/AppCompatibility"
-        ),
         .executableTarget(
             name: "Dashboard",
-            dependencies: ["Workbench"],
+            dependencies: ["Core", "Persistence"],
             path: "Sources/Dashboard",
             sources: [
                 "DashboardApplication.swift",
-                "DashboardTargetBoundary.swift"
+                "DashboardTargetBoundary.swift",
+                "DashboardShell.swift",
+                "PaperWorkflowObservability.swift",
+                "PaperWorkflowWorkbenchArchitecture.swift",
+                "WorkbenchBetaAcceptancePath.swift",
+                "WorkbenchBetaFirstRunState.swift",
+                "ReadModels",
+                "Report",
+                "Events",
+                "FutureLiveProConsole"
             ]
         ),
         .testTarget(
@@ -361,14 +346,13 @@ let package = Package(
                 "ExecutionEngine",
                 "TraderStrategies",
                 "Trader",
-                "Workbench",
                 "Dashboard"
             ],
             path: "Tests/TargetGraphTests"
         ),
         .testTarget(
             name: "AppTests",
-            dependencies: ["App", "Core", "Adapters", "Persistence", "Runtime"],
+            dependencies: ["Dashboard", "Core", "Adapters", "Persistence", "Runtime"],
             path: "Tests/AppTests"
         )
     ]

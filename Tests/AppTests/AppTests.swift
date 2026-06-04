@@ -1,6 +1,6 @@
-import App
 import Adapters
 import Core
+import Dashboard
 import Persistence
 import Runtime
 import XCTest
@@ -3011,7 +3011,7 @@ final class AppTests: XCTestCase {
     func testDashboardShellSourceDoesNotImportForbiddenIntegrationLayers() throws {
         // 测试场景：SwiftUI shell 文件只能消费 App 层 ViewModel，不能导入 Runtime / Adapters，
         // 也不能直接引用数据库实现名或 public market data client 类型。
-        let shellSource = try String(contentsOf: sourceFile("Sources/Workbench/Dashboard/DashboardShell.swift"))
+        let shellSource = try String(contentsOf: sourceFile("Sources/Dashboard/DashboardShell.swift"))
         let executableSource = try String(
             contentsOf: sourceFile("Sources/Dashboard/DashboardApplication.swift")
         )
@@ -3037,18 +3037,17 @@ final class AppTests: XCTestCase {
 
     func testMTP189WorkbenchDashboardSourceMigrationBoundaryIsPhysicalAndReadModelOnly() throws {
         // 测试场景：MTP-189 只做 Workbench / Dashboard physical source migration。
-        // Workbench 目录承载 read model、Report、Events 和 future Live PRO Console label；
-        // Dashboard 目录只保留 executable entry / boundary；shell snapshot 归入 Workbench read-model root，
-        // 两者都不能暴露 runtime、adapter、schema 或 live command surface。
+        // Dashboard 目录直接承载 read model、Report、Events、future Live PRO Console label
+        // 和 shell snapshot；它不能暴露 runtime、adapter、schema 或 live command surface。
         let migratedSourcePaths = [
-            "Sources/Workbench/ReadModels/App.swift",
-            "Sources/Workbench/Report/AccountPositionBalanceReadModelOnlySurface.swift",
-            "Sources/Workbench/Report/LiveMonitoringReadOnlyConsoleV2Surface.swift",
-            "Sources/Workbench/Report/StrategyTraderReadinessEvidenceSurface.swift",
-            "Sources/Workbench/Dashboard/WorkbenchBetaFirstRunState.swift",
-            "Sources/Workbench/Events/PaperWorkflowEvidenceExplorer.swift",
-            "Sources/Workbench/FutureLiveProConsole/LiveReadOnlyWorkbenchBoundary.swift",
-            "Sources/Workbench/Dashboard/DashboardShell.swift",
+            "Sources/Dashboard/ReadModels/App.swift",
+            "Sources/Dashboard/Report/AccountPositionBalanceReadModelOnlySurface.swift",
+            "Sources/Dashboard/Report/LiveMonitoringReadOnlyConsoleV2Surface.swift",
+            "Sources/Dashboard/Report/StrategyTraderReadinessEvidenceSurface.swift",
+            "Sources/Dashboard/WorkbenchBetaFirstRunState.swift",
+            "Sources/Dashboard/Events/PaperWorkflowEvidenceExplorer.swift",
+            "Sources/Dashboard/FutureLiveProConsole/LiveReadOnlyWorkbenchBoundary.swift",
+            "Sources/Dashboard/DashboardShell.swift",
             "Sources/Dashboard/DashboardApplication.swift"
         ]
 
@@ -3066,19 +3065,20 @@ final class AppTests: XCTestCase {
         )
 
         let packageSource = try String(contentsOf: sourceFile("Package.swift"))
-        XCTAssertTrue(packageSource.contains("path: \"Sources/Workbench\""))
+        XCTAssertFalse(packageSource.contains("path: \"Sources/Workbench\""))
+        XCTAssertFalse(packageSource.contains(".library(name: \"Workbench\""))
+        XCTAssertTrue(packageSource.contains("path: \"Sources/Dashboard\""))
         XCTAssertTrue(packageSource.contains("\"ReadModels\""))
         XCTAssertTrue(packageSource.contains("\"Report\""))
-        XCTAssertTrue(packageSource.contains("\"Dashboard\""))
         XCTAssertTrue(packageSource.contains("\"Events\""))
         XCTAssertTrue(packageSource.contains("\"FutureLiveProConsole\""))
-        XCTAssertTrue(packageSource.contains("\"TargetGraph\""))
         XCTAssertTrue(packageSource.contains("\"DashboardApplication.swift\""))
+        XCTAssertTrue(packageSource.contains("\"DashboardShell.swift\""))
 
         let workbenchReportSource = try String(
-            contentsOf: sourceFile("Sources/Workbench/Report/LiveMonitoringReadOnlyConsoleV2Surface.swift")
+            contentsOf: sourceFile("Sources/Dashboard/Report/LiveMonitoringReadOnlyConsoleV2Surface.swift")
         )
-        let dashboardShellSource = try String(contentsOf: sourceFile("Sources/Workbench/Dashboard/DashboardShell.swift"))
+        let dashboardShellSource = try String(contentsOf: sourceFile("Sources/Dashboard/DashboardShell.swift"))
 
         for forbidden in [
             "import Runtime",
