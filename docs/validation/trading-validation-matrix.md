@@ -857,6 +857,12 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | --- | --- | --- |
 | `MTP-224` | `TVM-TARGETGRAPH-ANCHOR-RETIREMENT-REAL-MODULE-SOURCE-ROOT-MIGRATION` | MTP-224 issue backfill 已定义 `Sources/TargetGraph` 是 transitional compile anchor / historical evidence，真实模块 source root 是后续 active target path 目标，迁移顺序必须按 MTP-225 至 MTP-232 WIP=1 执行，并保留 EMA-only、ExecutionClient future gate、L4 Future Gated、no Symphony / no Graphify / no code-index / no Figma、no `.codex/*` / `graphify-out/*` 边界。MTP-224 不修改 `Package.swift`，不移动 production source 或 tests，不新增 SwiftPM target/product/dependency，不退休 active `Sources/TargetGraph/*` path references，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed/account endpoint、private stream runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。 |
 
+## MTP-225 issue backfill
+
+| Issue | Matrix ID | Evidence |
+| --- | --- | --- |
+| `MTP-225` | `TVM-TARGETGRAPH-ANCHOR-RETIREMENT-REAL-MODULE-SOURCE-ROOT-MIGRATION` | 新增 `docs/audit/inputs/mtpro-targetgraph-anchor-retirement-real-module-source-root-migration-v1-mtp-225-audit.md`，审计当前 `Sources/TargetGraph/*` active boundary anchors、真实 module source roots、`Package.swift` active target paths / dependencies 和 `Tests/TargetGraphTests` coverage。MTP-225 证明 12 个 `Sources/TargetGraph/<Module>/<Module>TargetBoundary.swift` files 仍是 transitional compile anchor / historical evidence；真实 roots 已存在但仍由 `Core`、`Adapters`、`Persistence`、`Runtime`、`Workbench` 或 `Dashboard` compatibility envelope / target 编译；TargetGraphTests 当前证明 target boundary contracts，不证明 real source root ownership。MTP-225 不修改 `Package.swift`，不移动 production source 或 tests，不新增 SwiftPM target/product/dependency，不退休 active `Sources/TargetGraph/*` path references，不修复 production code，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed/account endpoint、private stream runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。 |
+
 ## MTP-190 Target Module Source Migration 阶段收口
 
 日期：2026-06-01
