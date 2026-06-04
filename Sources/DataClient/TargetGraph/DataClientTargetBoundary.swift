@@ -2,9 +2,10 @@ import DomainModel
 
 /// `DataClient` target boundary 表达交易所 public read-only 数据适配层。
 ///
-/// MTP-218 只建立 `DataClient -> DomainModel` 的 SwiftPM target 方向。现有
-/// Binance public market data implementation 仍由 `Adapters` compatibility envelope 编译，
-/// 因为下游测试和旧 product 仍通过 `Adapters` 暴露当前 public data path。
+/// MTP-227 只把 active target boundary anchor 从 `Sources/TargetGraph/DataClient`
+/// 移到 `Sources/DataClient/TargetGraph`。现有 Binance public market data implementation
+/// 仍由 `Adapters` compatibility envelope 编译；本 issue 不接 signed endpoint、
+/// account endpoint、listenKey、private stream runtime 或 broker path。
 public struct DataClientTargetBoundary: Codable, Equatable, Sendable {
     public let targetName: String
     public let canonicalSourceRoot: String
@@ -23,7 +24,7 @@ public struct DataClientTargetBoundary: Codable, Equatable, Sendable {
     public init(
         targetName: String = "DataClient",
         canonicalSourceRoot: String = "Sources/DataClient",
-        compiledBoundaryRoot: String = "Sources/TargetGraph/DataClient",
+        compiledBoundaryRoot: String = "Sources/DataClient/TargetGraph",
         retainedCompatibilityEnvelope: String = "Adapters",
         domainModelBoundary: DomainModelTargetBoundary = .mtp217,
         allowedDependencies: [String] = ["DomainModel"],
@@ -54,7 +55,7 @@ public struct DataClientTargetBoundary: Codable, Equatable, Sendable {
     public var dependencyDirectionHeld: Bool {
         targetName == "DataClient"
             && canonicalSourceRoot == "Sources/DataClient"
-            && compiledBoundaryRoot == "Sources/TargetGraph/DataClient"
+            && compiledBoundaryRoot == "Sources/DataClient/TargetGraph"
             && retainedCompatibilityEnvelope == "Adapters"
             && domainModelBoundary.boundaryHeld
             && allowedDependencies == ["DomainModel"]
@@ -87,6 +88,7 @@ public struct DataClientTargetBoundary: Codable, Equatable, Sendable {
     public static let requiredValidationAnchors = [
         "MTP-218-DATACLIENT-TARGET-SPLIT",
         "MTP-218-PUBLIC-READ-ONLY-DATA-BOUNDARY",
+        "MTP-227-DATACLIENT-REAL-ROOT-TARGET-PATH",
         "MTP-218-NO-SIGNED-ACCOUNT-BROKER-GUARD"
     ]
 

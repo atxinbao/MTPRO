@@ -142,6 +142,61 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(dataEngine.routesBrokerOrExecutionCommand)
     }
 
+    func testMTP227DataTargetsUseRealModuleRootsAndRetireTargetGraphPathReferences() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+
+        XCTAssertEqual(DataClientTargetBoundary.mtp218.compiledBoundaryRoot, "Sources/DataClient/TargetGraph")
+        XCTAssertEqual(CacheTargetBoundary.mtp218.compiledBoundaryRoot, "Sources/Cache/TargetGraph")
+        XCTAssertEqual(DataEngineTargetBoundary.mtp218.compiledBoundaryRoot, "Sources/DataEngine/TargetGraph")
+
+        for expected in [
+            "path: \"Sources/DataClient\"",
+            "\"TargetGraph/DataClientTargetBoundary.swift\"",
+            "path: \"Sources/Cache\"",
+            "\"TargetGraph/CacheTargetBoundary.swift\"",
+            "path: \"Sources/DataEngine\"",
+            "\"TargetGraph/DataEngineTargetBoundary.swift\"",
+            "\"Cache/TargetGraph\"",
+            "\"DataEngine/TargetGraph\""
+        ] {
+            XCTAssertTrue(packageSource.contains(expected), "Package.swift must contain \(expected)")
+        }
+
+        for forbidden in [
+            "path: \"Sources/TargetGraph/DataClient\"",
+            "path: \"Sources/TargetGraph/Cache\"",
+            "path: \"Sources/TargetGraph/DataEngine\""
+        ] {
+            XCTAssertFalse(packageSource.contains(forbidden), "Data target path must not remain active: \(forbidden)")
+        }
+
+        for migratedPath in [
+            "Sources/DataClient/TargetGraph/DataClientTargetBoundary.swift",
+            "Sources/Cache/TargetGraph/CacheTargetBoundary.swift",
+            "Sources/DataEngine/TargetGraph/DataEngineTargetBoundary.swift"
+        ] {
+            XCTAssertTrue(
+                FileManager.default.fileExists(atPath: repositoryRoot.appendingPathComponent(migratedPath).path),
+                "\(migratedPath) must exist under the real module root"
+            )
+        }
+
+        for retiredPath in [
+            "Sources/TargetGraph/DataClient/DataClientTargetBoundary.swift",
+            "Sources/TargetGraph/Cache/CacheTargetBoundary.swift",
+            "Sources/TargetGraph/DataEngine/DataEngineTargetBoundary.swift"
+        ] {
+            XCTAssertFalse(
+                FileManager.default.fileExists(atPath: repositoryRoot.appendingPathComponent(retiredPath).path),
+                "\(retiredPath) must no longer be the active data target boundary file"
+            )
+        }
+    }
+
     func testMTP219TraderPortfolioRiskTargetsExposeDependencyDirectionAndContainerBoundary() {
         let portfolio = PortfolioTargetBoundary.mtp219
         let riskEngine = RiskEngineTargetBoundary.mtp219

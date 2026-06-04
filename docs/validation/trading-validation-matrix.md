@@ -869,6 +869,12 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | --- | --- | --- |
 | `MTP-226` | `TVM-TARGETGRAPH-ANCHOR-RETIREMENT-REAL-MODULE-SOURCE-ROOT-MIGRATION` | MTP-226 把 foundation targets `DomainModel`、`MessageBus` 和 `Database` 从 `Sources/TargetGraph/<Module>` active target paths 迁到真实 module roots：`Sources/DomainModel`、`Sources/MessageBus` 和 `Sources/Database`。三者只显式编译 real root 下的 `TargetGraph/*TargetBoundary.swift` boundary anchors，避免与 retained compatibility envelopes source overlap；`Core` 继续编译 DomainModel / MessageBus implementation source，`Persistence` 继续编译 Database projections，`Runtime` 继续编译 Database replay projection。`Tests/TargetGraphTests/TargetGraphTests.swift` 新增 `testMTP226FoundationTargetsUseRealModuleRootsAndRetireTargetGraphPathReferences` 验证 new target paths、new boundary file locations、old foundation TargetGraph paths absent 和 dependency direction preserved。MTP-226 不迁移 data / trader / execution / UI targets，不删除 `Sources/TargetGraph`，不改变 persistence behavior，不实现 runtime / live / broker / L4 capability，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。 |
 
+## MTP-227 issue backfill
+
+| Issue | Matrix ID | Evidence |
+| --- | --- | --- |
+| `MTP-227` | `TVM-TARGETGRAPH-ANCHOR-RETIREMENT-REAL-MODULE-SOURCE-ROOT-MIGRATION` | MTP-227 把 data targets `DataClient`、`Cache` 和 `DataEngine` 从 `Sources/TargetGraph/<Module>` active target paths 迁到真实 module roots：`Sources/DataClient`、`Sources/Cache` 和 `Sources/DataEngine`。三者只显式编译 real root 下的 `TargetGraph/*TargetBoundary.swift` boundary anchors，避免与 retained compatibility envelopes source overlap；`Adapters` 继续编译 Binance public market data implementation，`Core` 继续编译 Cache MarketData / DataEngine replay and quality implementation，`Runtime` 继续编译 DataEngine ingest implementation。`Tests/TargetGraphTests/TargetGraphTests.swift` 新增 `testMTP227DataTargetsUseRealModuleRootsAndRetireTargetGraphPathReferences` 验证 new target paths、new boundary file locations、old data TargetGraph paths absent 和 dependency direction preserved。MTP-227 不迁移 trader / portfolio / risk / execution / UI targets，不删除 `Sources/TargetGraph`，不接 signed/account endpoint 或 listenKey，不实现 private stream runtime、broker path、runtime / live / L4 capability，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。 |
+
 ## MTP-190 Target Module Source Migration 阶段收口
 
 日期：2026-06-01

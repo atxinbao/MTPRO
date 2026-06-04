@@ -5039,14 +5039,21 @@ require_contains "Package.swift" '.library(name: "Cache", targets: ["Cache"])'
 require_contains "Package.swift" 'name: "DataClient"'
 require_contains "Package.swift" 'name: "DataEngine"'
 require_contains "Package.swift" 'name: "Cache"'
-require_file "Sources/TargetGraph/DataClient/DataClientTargetBoundary.swift"
-require_file "Sources/TargetGraph/DataEngine/DataEngineTargetBoundary.swift"
-require_file "Sources/TargetGraph/Cache/CacheTargetBoundary.swift"
-require_contains "Sources/TargetGraph/DataClient/DataClientTargetBoundary.swift" "MTP-218-DATACLIENT-TARGET-SPLIT"
-require_contains "Sources/TargetGraph/DataEngine/DataEngineTargetBoundary.swift" "MTP-218-DATAENGINE-TARGET-SPLIT"
-require_contains "Sources/TargetGraph/Cache/CacheTargetBoundary.swift" "MTP-218-CACHE-TARGET-SPLIT"
+require_file "Sources/DataClient/TargetGraph/DataClientTargetBoundary.swift"
+require_file "Sources/DataEngine/TargetGraph/DataEngineTargetBoundary.swift"
+require_file "Sources/Cache/TargetGraph/CacheTargetBoundary.swift"
+require_missing_path "Sources/TargetGraph/DataClient/DataClientTargetBoundary.swift"
+require_missing_path "Sources/TargetGraph/DataEngine/DataEngineTargetBoundary.swift"
+require_missing_path "Sources/TargetGraph/Cache/CacheTargetBoundary.swift"
+require_contains "Sources/DataClient/TargetGraph/DataClientTargetBoundary.swift" "MTP-218-DATACLIENT-TARGET-SPLIT"
+require_contains "Sources/DataClient/TargetGraph/DataClientTargetBoundary.swift" "MTP-227-DATACLIENT-REAL-ROOT-TARGET-PATH"
+require_contains "Sources/DataEngine/TargetGraph/DataEngineTargetBoundary.swift" "MTP-218-DATAENGINE-TARGET-SPLIT"
+require_contains "Sources/DataEngine/TargetGraph/DataEngineTargetBoundary.swift" "MTP-227-DATAENGINE-REAL-ROOT-TARGET-PATH"
+require_contains "Sources/Cache/TargetGraph/CacheTargetBoundary.swift" "MTP-218-CACHE-TARGET-SPLIT"
+require_contains "Sources/Cache/TargetGraph/CacheTargetBoundary.swift" "MTP-227-CACHE-REAL-ROOT-TARGET-PATH"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP218DataTargetsExposeReadOnlyDependencyDirectionAndCompatibilityBoundary"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP218DataTargetsRejectSignedAccountBrokerAndRuntimeDrift"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP227DataTargetsUseRealModuleRootsAndRetireTargetGraphPathReferences"
 require_contains "docs/contracts/swiftpm-target-graph-split-contract.md" "MTP-218-DATA-TARGET-SPLIT-EVIDENCE"
 require_contains "docs/contracts/swiftpm-target-graph-split-contract.md" "MTP-218-DATA-TARGET-SPLIT-VALIDATION"
 require_contains "architecture.md" "MTP-218 Data Target Split"
@@ -5060,8 +5067,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-218-DATA-TARGET-SPLIT
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-218 issue backfill"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-218 的当前 issue execution evidence"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-218-DATA-TARGET-SPLIT-VALIDATION"
-require_contains "docs/automation/automation-readiness.md" "Data target split anchor"
-require_contains "docs/automation/automation-readiness.md" "MTP-218 新增 buildable"
+require_contains "docs/automation/automation-readiness.md" "Data target split / real root migration anchor"
+require_contains "docs/automation/automation-readiness.md" 'MTP-227 把 `DataClient` / `Cache` / `DataEngine` target paths'
 require_contains "Package.swift" '.library(name: "Portfolio", targets: ["Portfolio"])'
 require_contains "Package.swift" '.library(name: "RiskEngine", targets: ["RiskEngine"])'
 require_contains "Package.swift" '.library(name: "TraderStrategies", targets: ["TraderStrategies"])'
@@ -5285,6 +5292,27 @@ require_contains "docs/validation/latest-verification-summary.md" "MTP-226 的�
 require_contains "docs/validation/latest-verification-summary.md" "MTP-226-FOUNDATION-REAL-ROOT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Foundation target split / real root migration anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-226-DATABASE-REAL-ROOT-TARGET-PATH"
+require_contains "Package.swift" 'path: "Sources/DataClient"'
+require_contains "Package.swift" '"TargetGraph/DataClientTargetBoundary.swift"'
+require_contains "Package.swift" 'path: "Sources/Cache"'
+require_contains "Package.swift" '"TargetGraph/CacheTargetBoundary.swift"'
+require_contains "Package.swift" 'path: "Sources/DataEngine"'
+require_contains "Package.swift" '"TargetGraph/DataEngineTargetBoundary.swift"'
+require_contains "Package.swift" '"Cache/TargetGraph"'
+require_contains "Package.swift" '"DataEngine/TargetGraph"'
+require_absent "Package.swift" 'path: "Sources/TargetGraph/DataClient"'
+require_absent "Package.swift" 'path: "Sources/TargetGraph/Cache"'
+require_absent "Package.swift" 'path: "Sources/TargetGraph/DataEngine"'
+require_contains "docs/contracts/targetgraph-anchor-retirement-real-module-source-root-migration-contract.md" "MTP-227-DATA-REAL-ROOT-TARGET-MIGRATION"
+require_contains "docs/contracts/targetgraph-anchor-retirement-real-module-source-root-migration-contract.md" "MTP-227-DATA-DEPENDENCY-DIRECTION-PRESERVED"
+require_contains "docs/contracts/targetgraph-anchor-retirement-real-module-source-root-migration-contract.md" "MTP-227-TARGETGRAPH-DATA-ACTIVE-PATH-RETIREMENT"
+require_contains "docs/contracts/targetgraph-anchor-retirement-real-module-source-root-migration-contract.md" "MTP-227-DATA-REAL-ROOT-VALIDATION"
+require_contains "docs/validation/validation-plan.md" "MTP-227 Data Targets Real Module Root Migration Validation"
+require_contains "docs/validation/validation-plan.md" "MTP-227-DATA-REAL-ROOT-VALIDATION"
+require_contains "docs/validation/trading-validation-matrix.md" "MTP-227 issue backfill"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-227 的当前 issue execution evidence"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-227-DATA-REAL-ROOT-VALIDATION"
+require_contains "docs/automation/automation-readiness.md" "MTP-227-DATAENGINE-REAL-ROOT-TARGET-PATH"
 require_file "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md"
 require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "MTPRO SwiftPM Target Graph Module Split v1 Stage Code Audit Report"
 require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "MTP-216"

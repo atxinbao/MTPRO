@@ -5,9 +5,10 @@ import MessageBus
 
 /// `DataEngine` target boundary 表达内部 ingestion / replay / quality layer。
 ///
-/// MTP-218 只建立 `DataEngine -> DomainModel / DataClient / MessageBus / Cache`
-/// 的 SwiftPM 方向，不新增 streaming runtime、private stream、account endpoint 或 broker path。
-/// 现有 ingest / replay / quality implementation 仍由 `Core` / `Runtime` compatibility envelope 编译。
+/// MTP-227 只把 active target boundary anchor 从 `Sources/TargetGraph/DataEngine`
+/// 移到 `Sources/DataEngine/TargetGraph`。现有 ingest / replay / quality implementation
+/// 仍由 `Core` / `Runtime` compatibility envelope 编译，不新增 streaming runtime、
+/// private stream、account endpoint 或 broker path。
 public struct DataEngineTargetBoundary: Codable, Equatable, Sendable {
     public let targetName: String
     public let canonicalSourceRoot: String
@@ -28,7 +29,7 @@ public struct DataEngineTargetBoundary: Codable, Equatable, Sendable {
     public init(
         targetName: String = "DataEngine",
         canonicalSourceRoot: String = "Sources/DataEngine",
-        compiledBoundaryRoot: String = "Sources/TargetGraph/DataEngine",
+        compiledBoundaryRoot: String = "Sources/DataEngine/TargetGraph",
         retainedCompatibilityEnvelope: String = "Core/Runtime",
         domainModelBoundary: DomainModelTargetBoundary = .mtp217,
         dataClientBoundary: DataClientTargetBoundary = .mtp218,
@@ -63,7 +64,7 @@ public struct DataEngineTargetBoundary: Codable, Equatable, Sendable {
     public var dependencyDirectionHeld: Bool {
         targetName == "DataEngine"
             && canonicalSourceRoot == "Sources/DataEngine"
-            && compiledBoundaryRoot == "Sources/TargetGraph/DataEngine"
+            && compiledBoundaryRoot == "Sources/DataEngine/TargetGraph"
             && retainedCompatibilityEnvelope == "Core/Runtime"
             && domainModelBoundary.boundaryHeld
             && dataClientBoundary.dependencyDirectionHeld
@@ -105,6 +106,7 @@ public struct DataEngineTargetBoundary: Codable, Equatable, Sendable {
     public static let requiredValidationAnchors = [
         "MTP-218-DATAENGINE-TARGET-SPLIT",
         "MTP-218-DATACLIENT-DATAENGINE-CACHE-DEPENDENCY-DIRECTION",
+        "MTP-227-DATAENGINE-REAL-ROOT-TARGET-PATH",
         "MTP-218-NO-SIGNED-ACCOUNT-BROKER-GUARD"
     ]
 
