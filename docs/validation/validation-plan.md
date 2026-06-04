@@ -6888,6 +6888,45 @@ MTP-231 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## MTP-232 TargetGraph Stage Closeout Validation
+
+MTP-232 必须运行：
+
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-232 的验收要求：
+
+- `docs/audit/inputs/mtpro-targetgraph-anchor-retirement-real-module-source-root-migration-v1-stage-audit-input.md` 必须存在。
+- Stage audit input material 必须包含 `MTP-232-TARGETGRAPH-STAGE-CLOSEOUT`、`MTP-232-ISSUE-PR-EVIDENCE-CHAIN`、`MTP-232-VALIDATION-MATRIX-CLOSEOUT`、`MTP-232-COMPATIBILITY-ENVELOPE-CLOSEOUT`、`MTP-232-AUTOMATION-READINESS-CLOSEOUT`、`MTP-232-FORBIDDEN-IMPLEMENTATION-AUDIT`、`MTP-232-STAGE-CODE-AUDIT-HANDOFF` 和 `MTP-232-STAGE-CLOSEOUT-VALIDATION` anchors。
+- Evidence chain 必须覆盖 MTP-224 至 MTP-231 的 PR、required check、merge commit、Linear Done 和 post-issue ledger evidence。
+- Validation matrix 必须包含 MTP-232 issue backfill，并把 `TVM-TARGETGRAPH-ANCHOR-RETIREMENT-REAL-MODULE-SOURCE-ROOT-MIGRATION` 收口到 MTP-232 stage audit input。
+- Automation readiness 必须覆盖 no active `Sources/TargetGraph` path、no runtime、no L4、no final Stage Code Audit、no Project Completed mutation、no next Project / Issue、no next Todo、no Symphony、no Graphify、no code-index、no Figma 和 no `.codex/*` / `.build/*` / `graphify-out/*` PR submission。
+- Latest verification summary 必须记录 MTP-232 当前 issue execution evidence 和本地验证输出。
+
+MTP-232 必须建立的主要 anchors：
+
+- `MTP-232-TARGETGRAPH-STAGE-CLOSEOUT`
+- `MTP-232-ISSUE-PR-EVIDENCE-CHAIN`
+- `MTP-232-VALIDATION-MATRIX-CLOSEOUT`
+- `MTP-232-COMPATIBILITY-ENVELOPE-CLOSEOUT`
+- `MTP-232-AUTOMATION-READINESS-CLOSEOUT`
+- `MTP-232-FORBIDDEN-IMPLEMENTATION-AUDIT`
+- `MTP-232-STAGE-CODE-AUDIT-HANDOFF`
+- `MTP-232-STAGE-CLOSEOUT-VALIDATION`
+
+## MTP-232 禁止
+
+- 不输出最终 Stage Code Audit Report。
+- 不设置 Linear Project `Completed`。
+- 不创建下一 Project / Issue。
+- 不推进下一阶段或下一 Todo。
+- 不删除 retained compatibility implementation，不引入新的 module layout。
+- 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## MTP-227 Data Targets Real Module Root Migration Validation
 
 MTP-227 必须运行：

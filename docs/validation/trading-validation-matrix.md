@@ -899,6 +899,12 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | --- | --- | --- |
 | `MTP-231` | `TVM-TARGETGRAPH-ANCHOR-RETIREMENT-REAL-MODULE-SOURCE-ROOT-MIGRATION` | MTP-231 退休 final active `Sources/TargetGraph` path references：`Sources/TargetGraph/` directory 不再存在，`Package.swift` 不再包含 active `path: "Sources/TargetGraph..."` target path，当前 active roots 固定为 `Sources/DomainModel`、`Sources/MessageBus`、`Sources/Database`、`Sources/DataClient`、`Sources/Cache`、`Sources/DataEngine`、`Sources/Trader/Strategies/EMA`、`Sources/Trader`、`Sources/Portfolio`、`Sources/RiskEngine`、`Sources/ExecutionClient`、`Sources/ExecutionEngine`、`Sources/Workbench` 和 `Sources/Dashboard`。`Tests/TargetGraphTests/TargetGraphTests.swift` 新增 `testMTP231TargetGraphActivePathReferencesAreRetiredAndRealRootsRemainCurrent` 验证 no active directory、no active Package path、real module roots 和 MTP-231 contract anchors。历史 `Sources/TargetGraph/<Module>` 文字只能作为 MTP-224 至 MTP-230 的 before-state / retired evidence 保留，不得描述 current compiler owner、final module root、feature landing path、runtime owner 或 L4 capability source。MTP-231 不删除 retained compatibility implementation，不引入 new module layout，不实现 runtime / live / broker / L4 capability，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。 |
 
+## MTP-232 issue backfill
+
+| Issue | Matrix ID | Evidence |
+| --- | --- | --- |
+| `MTP-232` | `TVM-TARGETGRAPH-ANCHOR-RETIREMENT-REAL-MODULE-SOURCE-ROOT-MIGRATION` | MTP-232 新增 `docs/audit/inputs/mtpro-targetgraph-anchor-retirement-real-module-source-root-migration-v1-stage-audit-input.md`，收口 TargetGraph retirement / real module source root migration 的 validation matrix、compatibility envelope 和 stage audit input material。该 input 汇总 MTP-224 至 MTP-231 的 PR / checks / merge / Linear Done evidence chain，确认 no active `Sources/TargetGraph` directory、no active `Package.swift` `Sources/TargetGraph` target path、real module roots active snapshot、retained compatibility envelopes、automation readiness closeout、forbidden implementation audit 和 final Stage Code Audit handoff。MTP-232 不输出最终 Stage Code Audit Report，不设置 Linear Project `Completed`，不创建下一 Project / Issue，不推进下一阶段或下一 Todo，不实现 runtime / live / broker / L4 capability，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。 |
+
 ## MTP-190 Target Module Source Migration 阶段收口
 
 日期：2026-06-01
