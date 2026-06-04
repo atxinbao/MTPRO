@@ -14161,3 +14161,38 @@ GitHub Issue：[#378](https://github.com/atxinbao/MTPRO/issues/378)
 
 - `git diff --check`：pass。
 - `bash checks/run.sh`：pass；Dashboard smoke 保持 read-model-only evidence surface，`331` 个 XCTest / `0` failures，最终 `MTPRO checks passed.`。
+
+## 2026-06-05 — GH-379 Trader / execution future gate review
+
+执行者：Codex
+
+GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
+
+范围：
+
+- 新增 `docs/audit/inputs/mtpro-architecture-graph-completion-review-l4-readiness-v1-gh-379-trader-execution-future-gates-review.md`。
+- 复核 `Trader = Accounts + Strategies/EMA + Coordination`。
+- 复核 `Portfolio`、`RiskEngine`、`ExecutionEngine` 和 `ExecutionClient` future gate / no-direct-execution 边界。
+- 明确 `ExecutionClient` 是 future-gated outgoing adapter contract，不是 broker implementation。
+
+边界：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 GitHub #380 至 #382。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify / code-index。
+- 不修改 Figma。
+- 不写业务代码。
+- 不修改 `Package.swift`。
+- 不移动 `Sources`。
+- 不拆 SwiftPM target graph。
+- 不实现 Trader runtime、Strategy runtime、Live runtime、`ExecutionClient` implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command 或 order form。
+- 不推进 L4。
+- `.codex/*` 和 `graphify-out/*` 不进入 PR。
+
+验证：
+
+- `git diff --check`：pass。
+- `bash checks/run.sh`：pass；Dashboard smoke 保持 read-model-only evidence surface，`331` 个 XCTest / `0` failures，最终 `MTPRO checks passed.`。
