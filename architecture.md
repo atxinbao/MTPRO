@@ -375,6 +375,24 @@ MTP-222 只退休 stale wording / stale validation anchors，不删除 productio
 
 MTP-222 validation 必须证明 active docs 已包含 current target graph snapshot、historical compatibility evidence retained boundary、stale active anchor retirement 和 no behavior / runtime / live guard；同时 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh` 必须通过。
 
+## MTP-224 TargetGraph Anchor Retirement / Real Module Source Root Migration Contract
+
+`MTP-224-TARGETGRAPH-RETIREMENT-CONTRACT`
+
+`Sources/TargetGraph` 当前只是 transitional compile anchor / historical evidence，用于承载 MTP-217 至 MTP-221 已建立的 SwiftPM target boundary anchors。它不是最终架构模块、不是长期 source ownership、不是 engine layer，也不是未来 feature landing path。Canonical contract 位于 `docs/contracts/targetgraph-anchor-retirement-real-module-source-root-migration-contract.md`。
+
+`MTP-224-REAL-MODULE-SOURCE-ROOT-TARGET`
+
+后续 target source root 的目标落点必须回到真实模块目录：`Sources/DomainModel/`、`Sources/MessageBus/`、`Sources/Database/`、`Sources/DataClient/`、`Sources/DataEngine/`、`Sources/Cache/`、`Sources/Portfolio/`、`Sources/RiskEngine/`、`Sources/ExecutionClient/`、`Sources/ExecutionEngine/`、`Sources/Trader/Strategies/EMA/`、`Sources/Trader/Accounts/`、`Sources/Trader/Coordination/`、`Sources/Workbench/` 和 `Sources/Dashboard/`。当前 active concrete strategy only `EMA`；后续多个策略只能进入 `Sources/Trader/Strategies/<strategy>/`。
+
+`MTP-224-MIGRATION-SEQUENCE-COMPATIBILITY-RULE`
+
+后续迁移顺序固定为 MTP-225 audit、MTP-226 foundation、MTP-227 data、MTP-228 trader / portfolio / risk、MTP-229 execution future gate、MTP-230 Workbench / Dashboard、MTP-231 TargetGraph active path retirement、MTP-232 validation / compatibility / stage audit input closeout。每一步都必须由 Linear live issue 单独授权并保持 WIP=1。
+
+`MTP-224-NO-PACKAGE-SOURCE-MOVE-RUNTIME-GUARD`
+
+MTP-224 不授权修改 `Package.swift`、移动 `Sources` 文件、退休 active `Sources/TargetGraph/*` path references、实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed/account endpoint、private stream runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability；不启动 Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
+
 ## Engineering Layer Map / 工程分层地图
 
 Target System Architecture 的工程分层压缩为五层。依赖方向从 Workbench 往下读取稳定边界；事实流从输入源进入 DataClient / DataEngine 后写入 MessageBus / Event Log，再通过 replay / projection / read model 反向供 Workbench 展示。

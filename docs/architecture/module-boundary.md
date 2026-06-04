@@ -1768,6 +1768,24 @@ MTP-223 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionCl
 
 MTP-223 validation 必须证明 stage audit input material、validation matrix、automation readiness anchors、target graph closeout、forbidden implementation audit、no final Stage Code Audit boundary 和 no next-stage mutation boundary 均落仓；并且 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh` 必须通过。
 
+## MTP-224 TargetGraph Anchor Retirement / Real Module Source Root Migration Contract
+
+`MTP-224-TARGETGRAPH-RETIREMENT-CONTRACT`
+
+`Sources/TargetGraph` 当前只是 transitional compile anchor / historical evidence。它承载 target boundary anchors，以证明 MTP-217 至 MTP-221 的 split targets 可以编译；它不代表最终 architecture module、长期 source ownership、新 engine layer 或未来 feature landing path。
+
+`MTP-224-REAL-MODULE-SOURCE-ROOT-TARGET`
+
+后续 active target source root 的目标落点是 `Sources/DomainModel/`、`Sources/MessageBus/`、`Sources/Database/`、`Sources/DataClient/`、`Sources/DataEngine/`、`Sources/Cache/`、`Sources/Portfolio/`、`Sources/RiskEngine/`、`Sources/ExecutionClient/`、`Sources/ExecutionEngine/`、`Sources/Trader/Strategies/EMA/`、`Sources/Trader/Accounts/`、`Sources/Trader/Coordination/`、`Sources/Workbench/` 和 `Sources/Dashboard/`。当前 active concrete strategy only `EMA`；后续多个策略只能进入 `Sources/Trader/Strategies/<strategy>/`。
+
+`MTP-224-MIGRATION-SEQUENCE-COMPATIBILITY-RULE`
+
+后续迁移必须按 MTP-225 至 MTP-232 的 Linear live issue 合同逐步执行：先 audit，再按 foundation、data、trader / portfolio / risk、execution future gate、Workbench / Dashboard 迁移，最后退休 active `Sources/TargetGraph` path references 并收口 validation / stage audit input。MTP-224 本身只定义合同，不执行迁移。
+
+`MTP-224-NO-PACKAGE-SOURCE-MOVE-RUNTIME-GUARD`
+
+MTP-224 不修改 `Package.swift`，不移动 production source 或 tests，不新增/删除/重命名 SwiftPM target/product/dependency，不退休 active `Sources/TargetGraph/*` path references，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed/account endpoint、private stream runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability；不启动 Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
+
 ## 架构图模块到目标目录
 
 | 架构图模块 | 固定目标目录 | 边界说明 |

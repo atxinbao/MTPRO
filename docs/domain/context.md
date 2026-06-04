@@ -3135,6 +3135,24 @@ MTP-223 issue 不输出最终 Stage Code Audit Report。最终报告、Linear Pr
 
 MTP-223 forbidden audit 继续保持 no Symphony、no Graphify、no code-index、no Figma、no `.codex/*` / `graphify-out/*` PR submission、no runtime / live / broker / L4 capability。
 
+## MTP-224 targetgraph retirement language
+
+`MTP-224-TARGETGRAPH-RETIREMENT-CONTRACT`
+
+`TargetGraph transitional compile anchor` 指 `Sources/TargetGraph` 只作为过渡编译锚点和历史 evidence 存在。它可以承载 target boundary anchor，证明 target split 可编译；它不能被称为最终架构模块、长期 source ownership、新 engine layer、runtime object owner 或未来 feature landing path。
+
+`MTP-224-REAL-MODULE-SOURCE-ROOT-TARGET`
+
+`Real module source root` 指后续 active target path 的真实目标目录，例如 `Sources/DomainModel/`、`Sources/MessageBus/`、`Sources/DataClient/`、`Sources/DataEngine/`、`Sources/Trader/Strategies/EMA/`、`Sources/Trader/Accounts/`、`Sources/Trader/Coordination/`、`Sources/ExecutionEngine/`、`Sources/ExecutionClient/`、`Sources/Workbench/` 和 `Sources/Dashboard/`。当前 active concrete strategy only `EMA`；后续多个策略应放在 `Sources/Trader/Strategies/<strategy>/`。
+
+`MTP-224-MIGRATION-SEQUENCE-COMPATIBILITY-RULE`
+
+`TargetGraph retirement migration sequence` 指 MTP-225 至 MTP-232 必须按 Linear live issue 合同逐步执行：audit、foundation、data、trader / portfolio / risk、execution future gate、Workbench / Dashboard、TargetGraph active path retirement、validation / compatibility / stage audit input closeout。MTP-224 只定义这条序列，不执行迁移。
+
+`MTP-224-NO-PACKAGE-SOURCE-MOVE-RUNTIME-GUARD`
+
+MTP-224 不授权 `Package.swift` change、source move、target split、runtime implementation、live implementation、broker / OMS implementation、signed/account endpoint、private stream runtime、real order lifecycle、Live PRO Console、trading button、live command、order form、L4 capability、Symphony、Graphify、code-index 或 Figma。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
