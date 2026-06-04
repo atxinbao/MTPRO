@@ -215,11 +215,11 @@ MTP-216 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionCl
 
 `MTP-217-FOUNDATION-TARGET-SPLIT-EVIDENCE`
 
-MTP-217 已开始实际 SwiftPM target graph split：`Package.swift` 新增 `DomainModel`、`MessageBus` 和 `Database` library products / targets，并通过 `Sources/TargetGraph/*` boundary anchors 证明 foundation target 可编译。该 split 不退休 `Core` / `Persistence` compatibility envelope，不改变既有 public type 调用面。
+MTP-217 已开始实际 SwiftPM target graph split：`Package.swift` 新增 `DomainModel`、`MessageBus` 和 `Database` library products / targets；MTP-226 / MTP-231 后，active foundation boundary anchors 已迁到真实 module roots 下的 `TargetGraph/*TargetBoundary.swift`。该 split 不退休 `Core` / `Persistence` compatibility envelope，不改变既有 public type 调用面。
 
 `MTP-217-DOMAINMODEL-TARGET-SPLIT`
 
-`DomainModel` target 不依赖任何业务 target；它只固定 `Sources/DomainModel/` canonical source root、`Sources/TargetGraph/DomainModel/` compiled boundary root 和 no runtime / live / broker guard。
+`DomainModel` target 不依赖任何业务 target；它只固定 `Sources/DomainModel/` canonical source root、`Sources/DomainModel/TargetGraph/` compiled boundary root 和 no runtime / live / broker guard。
 
 `MTP-217-MESSAGEBUS-TARGET-SPLIT`
 
@@ -249,19 +249,19 @@ MTP-217 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionCl
 
 `MTP-218-DATA-TARGET-SPLIT-EVIDENCE`
 
-MTP-218 继续实际 SwiftPM target graph split：`Package.swift` 新增 `DataClient`、`DataEngine` 和 `Cache` library products / targets，并通过 `Sources/TargetGraph/*` boundary anchors 证明 data-layer target 可编译。该 split 不退休 `Core`、`Adapters` 或 `Runtime` compatibility envelope，不迁移既有 production implementation。
+MTP-218 继续实际 SwiftPM target graph split：`Package.swift` 新增 `DataClient`、`DataEngine` 和 `Cache` library products / targets；MTP-227 / MTP-231 后，active data-layer boundary anchors 已迁到真实 module roots 下的 `TargetGraph/*TargetBoundary.swift`。该 split 不退休 `Core`、`Adapters` 或 `Runtime` compatibility envelope，不迁移既有 production implementation。
 
 `MTP-218-DATACLIENT-TARGET-SPLIT`
 
-`DataClient` target 只依赖 `DomainModel`，当前编译 `Sources/TargetGraph/DataClient/DataClientTargetBoundary.swift`。既有 Binance public market data implementation 仍由 `Adapters` compatibility envelope 编译；`DataClient` 继续只表达 public read-only venue data input boundary。
+`DataClient` target 只依赖 `DomainModel`，当前 active boundary anchor 是 `Sources/DataClient/TargetGraph/DataClientTargetBoundary.swift`。既有 Binance public market data implementation 仍由 `Adapters` compatibility envelope 编译；`DataClient` 继续只表达 public read-only venue data input boundary。
 
 `MTP-218-CACHE-TARGET-SPLIT`
 
-`Cache` target 依赖 `DomainModel` 和 `MessageBus`，当前编译 `Sources/TargetGraph/Cache/CacheTargetBoundary.swift`。既有 cache implementation 仍由 `Core` compatibility envelope 编译；`Cache` 只表达可重建 read-model state surface，不拥有 durable facts、Database schema、broker state 或 account payload。
+`Cache` target 依赖 `DomainModel` 和 `MessageBus`，当前 active boundary anchor 是 `Sources/Cache/TargetGraph/CacheTargetBoundary.swift`。既有 cache implementation 仍由 `Core` compatibility envelope 编译；`Cache` 只表达可重建 read-model state surface，不拥有 durable facts、Database schema、broker state 或 account payload。
 
 `MTP-218-DATAENGINE-TARGET-SPLIT`
 
-`DataEngine` target 依赖 `DomainModel`、`DataClient`、`MessageBus` 和 `Cache`，当前编译 `Sources/TargetGraph/DataEngine/DataEngineTargetBoundary.swift`。既有 ingest / replay / quality implementation 仍由 `Core` / `Runtime` compatibility envelope 编译；`DataEngine` 不新增 streaming runtime、private stream、account endpoint、broker route 或 UI route。
+`DataEngine` target 依赖 `DomainModel`、`DataClient`、`MessageBus` 和 `Cache`，当前 active boundary anchor 是 `Sources/DataEngine/TargetGraph/DataEngineTargetBoundary.swift`。既有 ingest / replay / quality implementation 仍由 `Core` / `Runtime` compatibility envelope 编译；`DataEngine` 不新增 streaming runtime、private stream、account endpoint、broker route 或 UI route。
 
 `MTP-218-DATACLIENT-DATAENGINE-CACHE-DEPENDENCY-DIRECTION`
 
@@ -283,11 +283,11 @@ MTP-218 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionCl
 
 `MTP-219-TRADER-PORTFOLIO-RISK-TARGET-SPLIT-EVIDENCE`
 
-MTP-219 继续实际 SwiftPM target graph split：`Package.swift` 新增 `TraderStrategies`、`Trader`、`Portfolio` 和 `RiskEngine` library products / targets，并通过 `Sources/TargetGraph/*` boundary anchors 证明 coordination / financial state / pre-execution risk targets 可编译。该 split 不退休 `Core` compatibility envelope，不迁移既有 production implementation。
+MTP-219 继续实际 SwiftPM target graph split：`Package.swift` 新增 `TraderStrategies`、`Trader`、`Portfolio` 和 `RiskEngine` library products / targets；MTP-228 / MTP-231 后，active coordination / financial state / pre-execution risk boundary anchors 已迁到真实 module roots 下的 `TargetGraph/*TargetBoundary.swift`。该 split 不退休 `Core` compatibility envelope，不迁移既有 production implementation。
 
 `MTP-219-TRADERSTRATEGIES-TARGET-SPLIT`
 
-`TraderStrategies` target 依赖 `DomainModel`、`MessageBus`、`Cache`、`Portfolio` 和 `RiskEngine`，当前编译 `Sources/TargetGraph/TraderStrategies/TraderStrategiesTargetBoundary.swift`。当前 active concrete strategy only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/`。
+`TraderStrategies` target 依赖 `DomainModel`、`MessageBus`、`Cache`、`Portfolio` 和 `RiskEngine`，当前 active boundary anchor 是 `Sources/Trader/Strategies/EMA/TargetGraph/TraderStrategiesTargetBoundary.swift`。当前 active concrete strategy only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/`。
 
 `MTP-219-TRADER-TARGET-SPLIT`
 
@@ -295,11 +295,11 @@ MTP-219 继续实际 SwiftPM target graph split：`Package.swift` 新增 `Trader
 
 `MTP-219-PORTFOLIO-TARGET-SPLIT`
 
-`Portfolio` target 依赖 `DomainModel`、`MessageBus`、`Cache` 和 `Database`，当前编译 `Sources/TargetGraph/Portfolio/PortfolioTargetBoundary.swift`。Portfolio 保持独立 financial state projection boundary，不拥有 Trader account identity，不读取 broker account state 或 account endpoint payload。
+`Portfolio` target 依赖 `DomainModel`、`MessageBus`、`Cache` 和 `Database`，当前 active boundary anchor 是 `Sources/Portfolio/TargetGraph/PortfolioTargetBoundary.swift`。Portfolio 保持独立 financial state projection boundary，不拥有 Trader account identity，不读取 broker account state 或 account endpoint payload。
 
 `MTP-219-RISKENGINE-TARGET-SPLIT`
 
-`RiskEngine` target 依赖 `DomainModel`、`MessageBus`、`Cache` 和 `Portfolio`，当前编译 `Sources/TargetGraph/RiskEngine/RiskEngineTargetBoundary.swift`。RiskEngine 保持 pre-execution risk boundary，不实现 live risk runtime、broker route、ExecutionClient wrapper 或 executable order command router。
+`RiskEngine` target 依赖 `DomainModel`、`MessageBus`、`Cache` 和 `Portfolio`，当前 active boundary anchor 是 `Sources/RiskEngine/TargetGraph/RiskEngineTargetBoundary.swift`。RiskEngine 保持 pre-execution risk boundary，不实现 live risk runtime、broker route、ExecutionClient wrapper 或 executable order command router。
 
 `MTP-219-TRADER-PORTFOLIO-RISK-DEPENDENCY-DIRECTION`
 
@@ -317,15 +317,15 @@ MTP-219 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionCl
 
 `MTP-220-EXECUTION-TARGET-SPLIT-EVIDENCE`
 
-MTP-220 继续实际 SwiftPM target graph split：`Package.swift` 新增 `ExecutionClient` 和 `ExecutionEngine` library products / targets，并通过 `Sources/TargetGraph/*` boundary anchors 证明 execution future gate targets 可编译。该 split 不退休 `Core` compatibility envelope，不迁移既有 production implementation。
+MTP-220 继续实际 SwiftPM target graph split：`Package.swift` 新增 `ExecutionClient` 和 `ExecutionEngine` library products / targets；MTP-229 / MTP-231 后，active execution future gate boundary anchors 已迁到真实 module roots 下的 `TargetGraph/*TargetBoundary.swift`。该 split 不退休 `Core` compatibility envelope，不迁移既有 production implementation。
 
 `MTP-220-EXECUTIONCLIENT-TARGET-SPLIT`
 
-`ExecutionClient` target 依赖 `DomainModel` 和 `MessageBus`，当前编译 `Sources/TargetGraph/ExecutionClient/ExecutionClientTargetBoundary.swift`。ExecutionClient 只能表达 future gate / outgoing adapter contract，不实现 broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime 或 real order lifecycle。
+`ExecutionClient` target 依赖 `DomainModel` 和 `MessageBus`，当前 active boundary anchor 是 `Sources/ExecutionClient/TargetGraph/ExecutionClientTargetBoundary.swift`。ExecutionClient 只能表达 future gate / outgoing adapter contract，不实现 broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime 或 real order lifecycle。
 
 `MTP-220-EXECUTIONENGINE-TARGET-SPLIT`
 
-`ExecutionEngine` target 依赖 `DomainModel`、`MessageBus`、`Cache`、`Portfolio`、`RiskEngine` 和 `ExecutionClient`，当前编译 `Sources/TargetGraph/ExecutionEngine/ExecutionEngineTargetBoundary.swift`。ExecutionEngine 只表达 paper / simulated execution lifecycle boundary 和 OMS future gate evidence，不实现 live execution runtime、OMS implementation、broker gateway 或 executable live order command。
+`ExecutionEngine` target 依赖 `DomainModel`、`MessageBus`、`Cache`、`Portfolio`、`RiskEngine` 和 `ExecutionClient`，当前 active boundary anchor 是 `Sources/ExecutionEngine/TargetGraph/ExecutionEngineTargetBoundary.swift`。ExecutionEngine 只表达 paper / simulated execution lifecycle boundary 和 OMS future gate evidence，不实现 live execution runtime、OMS implementation、broker gateway 或 executable live order command。
 
 `MTP-220-RISKENGINE-EXECUTIONENGINE-EXECUTIONCLIENT-DIRECTION`
 
@@ -379,7 +379,7 @@ MTP-222 validation 必须证明 active docs 已包含 current target graph snaps
 
 `MTP-224-TARGETGRAPH-RETIREMENT-CONTRACT`
 
-`Sources/TargetGraph` 当前只是 transitional compile anchor / historical evidence，用于承载 MTP-217 至 MTP-221 已建立的 SwiftPM target boundary anchors。它不是最终架构模块、不是长期 source ownership、不是 engine layer，也不是未来 feature landing path。Canonical contract 位于 `docs/contracts/targetgraph-anchor-retirement-real-module-source-root-migration-contract.md`。
+`Sources/TargetGraph` 在 MTP-224 / MTP-225 语境中是 transitional compile anchor / historical evidence；MTP-231 后不再是 active source directory 或 active target path reference。它不是最终架构模块、不是长期 source ownership、不是 engine layer，也不是未来 feature landing path。Canonical contract 位于 `docs/contracts/targetgraph-anchor-retirement-real-module-source-root-migration-contract.md`。
 
 `MTP-224-REAL-MODULE-SOURCE-ROOT-TARGET`
 
@@ -392,6 +392,20 @@ MTP-222 validation 必须证明 active docs 已包含 current target graph snaps
 `MTP-224-NO-PACKAGE-SOURCE-MOVE-RUNTIME-GUARD`
 
 MTP-224 不授权修改 `Package.swift`、移动 `Sources` 文件、退休 active `Sources/TargetGraph/*` path references、实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed/account endpoint、private stream runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability；不启动 Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
+
+## MTP-231 TargetGraph Active Path Reference Retirement
+
+`MTP-231-TARGETGRAPH-ACTIVE-PATH-REFERENCE-RETIREMENT`
+
+MTP-231 后，`Sources/TargetGraph/` 不再作为 active source directory 存在，`Package.swift` 不再包含 `path: "Sources/TargetGraph..."` active target path。MTP-226 至 MTP-230 已把 foundation、data、Trader / Portfolio / Risk、execution future gate 和 Workbench / Dashboard target boundaries 迁到真实 module roots。
+
+`MTP-231-REAL-MODULE-ROOT-ACTIVE-SNAPSHOT`
+
+当前 active target roots 固定为 `Sources/DomainModel`、`Sources/MessageBus`、`Sources/Database`、`Sources/DataClient`、`Sources/Cache`、`Sources/DataEngine`、`Sources/Trader/Strategies/EMA`、`Sources/Trader`、`Sources/Portfolio`、`Sources/RiskEngine`、`Sources/ExecutionClient`、`Sources/ExecutionEngine`、`Sources/Workbench` 和 `Sources/Dashboard`。历史 `Sources/TargetGraph/<Module>` 文字只能作为 before-state / retired evidence 保留，不得描述 current compiler owner、feature landing path、runtime owner 或 L4 capability source。
+
+`MTP-231-TARGETGRAPH-RETIREMENT-VALIDATION`
+
+MTP-231 validation 必须证明 `Sources/TargetGraph` directory 不存在、`Package.swift` 不含 active `Sources/TargetGraph` path、`TargetGraphTests` 包含 final active path retirement focused test，并且 docs / automation readiness anchors 指向真实 module roots。
 
 ## Engineering Layer Map / 工程分层地图
 

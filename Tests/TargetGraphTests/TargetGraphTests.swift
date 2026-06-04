@@ -547,4 +547,63 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(workbench.providesLiveCommand)
         XCTAssertFalse(dashboard.providesLiveCommand)
     }
+
+    func testMTP231TargetGraphActivePathReferencesAreRetiredAndRealRootsRemainCurrent() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let contractSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/targetgraph-anchor-retirement-real-module-source-root-migration-contract.md"
+            ),
+            encoding: .utf8
+        )
+
+        XCTAssertFalse(
+            FileManager.default.fileExists(atPath: repositoryRoot.appendingPathComponent("Sources/TargetGraph").path),
+            "Sources/TargetGraph must no longer exist as an active source directory"
+        )
+        XCTAssertFalse(packageSource.contains("path: \"Sources/TargetGraph"))
+        XCTAssertFalse(packageSource.contains("Sources/TargetGraph/"))
+
+        for expectedRoot in [
+            "path: \"Sources/DomainModel\"",
+            "path: \"Sources/MessageBus\"",
+            "path: \"Sources/Database\"",
+            "path: \"Sources/DataClient\"",
+            "path: \"Sources/Cache\"",
+            "path: \"Sources/DataEngine\"",
+            "path: \"Sources/Trader/Strategies/EMA\"",
+            "path: \"Sources/Trader\"",
+            "path: \"Sources/Portfolio\"",
+            "path: \"Sources/RiskEngine\"",
+            "path: \"Sources/ExecutionClient\"",
+            "path: \"Sources/ExecutionEngine\"",
+            "path: \"Sources/Workbench\"",
+            "path: \"Sources/Dashboard\""
+        ] {
+            XCTAssertTrue(packageSource.contains(expectedRoot), "Package.swift must keep real module root active: \(expectedRoot)")
+        }
+
+        XCTAssertEqual(DomainModelTargetBoundary.mtp217.compiledBoundaryRoot, "Sources/DomainModel/TargetGraph")
+        XCTAssertEqual(MessageBusTargetBoundary.mtp217.compiledBoundaryRoot, "Sources/MessageBus/TargetGraph")
+        XCTAssertEqual(DatabaseTargetBoundary.mtp217.compiledBoundaryRoot, "Sources/Database/TargetGraph")
+        XCTAssertEqual(DataClientTargetBoundary.mtp218.compiledBoundaryRoot, "Sources/DataClient/TargetGraph")
+        XCTAssertEqual(CacheTargetBoundary.mtp218.compiledBoundaryRoot, "Sources/Cache/TargetGraph")
+        XCTAssertEqual(DataEngineTargetBoundary.mtp218.compiledBoundaryRoot, "Sources/DataEngine/TargetGraph")
+        XCTAssertEqual(TraderStrategiesTargetBoundary.mtp219.compiledBoundaryRoot, "Sources/Trader/Strategies/EMA/TargetGraph")
+        XCTAssertEqual(TraderTargetBoundary.mtp219.compiledBoundaryRoot, "Sources/Trader/TargetGraph")
+        XCTAssertEqual(PortfolioTargetBoundary.mtp219.compiledBoundaryRoot, "Sources/Portfolio/TargetGraph")
+        XCTAssertEqual(RiskEngineTargetBoundary.mtp219.compiledBoundaryRoot, "Sources/RiskEngine/TargetGraph")
+        XCTAssertEqual(ExecutionClientTargetBoundary.mtp220.compiledBoundaryRoot, "Sources/ExecutionClient/TargetGraph")
+        XCTAssertEqual(ExecutionEngineTargetBoundary.mtp220.compiledBoundaryRoot, "Sources/ExecutionEngine/TargetGraph")
+        XCTAssertEqual(WorkbenchTargetBoundary.mtp230.compiledSourceRoots.last, "Sources/Workbench/TargetGraph")
+        XCTAssertEqual(DashboardTargetBoundary.mtp230.canonicalSourceRoot, "Sources/Dashboard")
+
+        XCTAssertTrue(contractSource.contains("MTP-231-TARGETGRAPH-ACTIVE-PATH-REFERENCE-RETIREMENT"))
+        XCTAssertTrue(contractSource.contains("MTP-231-REAL-MODULE-ROOT-ACTIVE-SNAPSHOT"))
+        XCTAssertTrue(contractSource.contains("MTP-231-TARGETGRAPH-RETIREMENT-VALIDATION"))
+    }
 }

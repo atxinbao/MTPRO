@@ -414,3 +414,52 @@ MTP-230 required validation：
 - `bash checks/run.sh`
 - PR evidence 必须确认 Workbench target path 使用 `Sources/Workbench`，Dashboard executable target path 使用 `Sources/Dashboard`，`DashboardShell.swift` active owner 是 `Sources/Workbench/Dashboard`。
 - PR evidence 必须确认 no runtime object、no adapter request、no schema / payload / broker state exposure、no Live PRO Console、no trading button、no live command、no order form、no Symphony、no Graphify、no code-index、no Figma、no `.codex/*`、no `graphify-out/*`。
+
+## MTP-231-TARGETGRAPH-ACTIVE-PATH-REFERENCE-RETIREMENT
+
+MTP-231 retires the final active `Sources/TargetGraph` source root references from validation anchors and current architecture wording. After MTP-231, the repository must not contain an active `Sources/TargetGraph/` directory, and `Package.swift` must not contain any active `path: "Sources/TargetGraph..."` target path.
+
+Remaining text references to `Sources/TargetGraph/<Module>` are allowed only when they are explicitly historical / before-state / retired evidence for MTP-224 through MTP-230. They must not describe a current compiler owner, final module root, new implementation root, feature landing path, engine layer, runtime object owner, or L4 capability source.
+
+## MTP-231-REAL-MODULE-ROOT-ACTIVE-SNAPSHOT
+
+MTP-231 confirms the active target path snapshot is real module roots only:
+
+| Target | Active target path after MTP-231 | Active boundary anchor |
+| --- | --- | --- |
+| `DomainModel` | `Sources/DomainModel` | `TargetGraph/DomainModelTargetBoundary.swift` |
+| `MessageBus` | `Sources/MessageBus` | `TargetGraph/MessageBusTargetBoundary.swift` |
+| `Database` | `Sources/Database` | `TargetGraph/DatabaseTargetBoundary.swift` |
+| `DataClient` | `Sources/DataClient` | `TargetGraph/DataClientTargetBoundary.swift` |
+| `Cache` | `Sources/Cache` | `TargetGraph/CacheTargetBoundary.swift` |
+| `DataEngine` | `Sources/DataEngine` | `TargetGraph/DataEngineTargetBoundary.swift` |
+| `TraderStrategies` | `Sources/Trader/Strategies/EMA` | `TargetGraph/TraderStrategiesTargetBoundary.swift` |
+| `Trader` | `Sources/Trader` | `TargetGraph/TraderTargetBoundary.swift` |
+| `Portfolio` | `Sources/Portfolio` | `TargetGraph/PortfolioTargetBoundary.swift` |
+| `RiskEngine` | `Sources/RiskEngine` | `TargetGraph/RiskEngineTargetBoundary.swift` |
+| `ExecutionClient` | `Sources/ExecutionClient` | `TargetGraph/ExecutionClientTargetBoundary.swift` |
+| `ExecutionEngine` | `Sources/ExecutionEngine` | `TargetGraph/ExecutionEngineTargetBoundary.swift` |
+| `Workbench` | `Sources/Workbench` | `ReadModels`、`Report`、`Dashboard`、`Events`、`FutureLiveProConsole`、`TargetGraph` |
+| `Dashboard` | `Sources/Dashboard` | `DashboardApplication.swift`、`DashboardTargetBoundary.swift` |
+
+This snapshot preserves the dependency direction from MTP-222 and the real-root migrations from MTP-226 through MTP-230. It does not delete retained compatibility implementation and does not introduce new module layout.
+
+## MTP-231-NO-RUNTIME-LIVE-BROKER-L4-GUARD
+
+MTP-231 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
+MTP-231 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-231-TARGETGRAPH-RETIREMENT-VALIDATION
+
+MTP-231 required validation：
+
+- `swift package describe` must complete with empty stderr.
+- `swift test --filter TargetGraphTests/testMTP231TargetGraphActivePathReferencesAreRetiredAndRealRootsRemainCurrent`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+- PR evidence 必须确认 `Sources/TargetGraph/` directory 不存在。
+- PR evidence 必须确认 `Package.swift` 不包含 active `path: "Sources/TargetGraph..."` target path。
+- PR evidence 必须确认 tests / docs / automation readiness anchors 不再把 `Sources/TargetGraph` 描述为 current active source root。
+- PR evidence 必须确认 no Symphony、no Graphify、no code-index、no Figma、no `.codex/*`、no `graphify-out/*`。

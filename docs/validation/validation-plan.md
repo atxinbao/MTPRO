@@ -6852,6 +6852,42 @@ MTP-230 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## MTP-231 TargetGraph Active Path Reference Retirement Validation
+
+MTP-231 必须运行：
+
+- `swift package describe`
+- `swift test --filter TargetGraphTests/testMTP231TargetGraphActivePathReferencesAreRetiredAndRealRootsRemainCurrent`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-231 的验收要求：
+
+- `Sources/TargetGraph/` directory 必须不存在，且不得作为 active source directory 回流。
+- `Package.swift` 不得包含 `path: "Sources/TargetGraph..."` 或 active `Sources/TargetGraph/` target path。
+- `Package.swift` 必须继续使用真实 module roots：`Sources/DomainModel`、`Sources/MessageBus`、`Sources/Database`、`Sources/DataClient`、`Sources/Cache`、`Sources/DataEngine`、`Sources/Trader/Strategies/EMA`、`Sources/Trader`、`Sources/Portfolio`、`Sources/RiskEngine`、`Sources/ExecutionClient`、`Sources/ExecutionEngine`、`Sources/Workbench` 和 `Sources/Dashboard`。
+- `TargetGraphTests` 必须包含 `testMTP231TargetGraphActivePathReferencesAreRetiredAndRealRootsRemainCurrent`，验证 no active `Sources/TargetGraph` directory、no active package path、real module roots 和 MTP-231 contract anchors。
+- Root architecture、module-boundary、contract、validation matrix、latest verification summary、automation readiness 和 `checks/automation-readiness.sh` 必须包含 `MTP-231-TARGETGRAPH-ACTIVE-PATH-REFERENCE-RETIREMENT`、`MTP-231-REAL-MODULE-ROOT-ACTIVE-SNAPSHOT` 和 `MTP-231-TARGETGRAPH-RETIREMENT-VALIDATION` anchors。
+- 旧 `Sources/TargetGraph/<Module>` 文字只能作为 MTP-224 至 MTP-230 的 historical / before-state / retired evidence 保留，不得描述 current compiler owner、final module root、feature landing path、runtime owner 或 L4 capability source。
+- `swift package describe` 必须 exit 0 且 stderr 为空。
+- MTP-231 PR evidence 必须确认 no Symphony、no Graphify、no code-index、no Figma、no `.codex/*`、no `graphify-out/*`。
+
+MTP-231 必须建立的主要 anchors：
+
+- `MTP-231-TARGETGRAPH-ACTIVE-PATH-REFERENCE-RETIREMENT`
+- `MTP-231-REAL-MODULE-ROOT-ACTIVE-SNAPSHOT`
+- `MTP-231-NO-RUNTIME-LIVE-BROKER-L4-GUARD`
+- `MTP-231-TARGETGRAPH-RETIREMENT-VALIDATION`
+
+## MTP-231 禁止
+
+- 不删除 retained compatibility implementation。
+- 不引入新的 module layout。
+- 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## MTP-227 Data Targets Real Module Root Migration Validation
 
 MTP-227 必须运行：
