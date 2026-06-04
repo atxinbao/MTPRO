@@ -5115,10 +5115,14 @@ require_contains "Package.swift" '.library(name: "ExecutionClient", targets: ["E
 require_contains "Package.swift" '.library(name: "ExecutionEngine", targets: ["ExecutionEngine"])'
 require_contains "Package.swift" 'name: "ExecutionClient"'
 require_contains "Package.swift" 'name: "ExecutionEngine"'
-require_file "Sources/TargetGraph/ExecutionClient/ExecutionClientTargetBoundary.swift"
-require_file "Sources/TargetGraph/ExecutionEngine/ExecutionEngineTargetBoundary.swift"
-require_contains "Sources/TargetGraph/ExecutionClient/ExecutionClientTargetBoundary.swift" "MTP-220-EXECUTIONCLIENT-TARGET-SPLIT"
-require_contains "Sources/TargetGraph/ExecutionEngine/ExecutionEngineTargetBoundary.swift" "MTP-220-EXECUTIONENGINE-TARGET-SPLIT"
+require_file "Sources/ExecutionClient/TargetGraph/ExecutionClientTargetBoundary.swift"
+require_file "Sources/ExecutionEngine/TargetGraph/ExecutionEngineTargetBoundary.swift"
+require_missing_path "Sources/TargetGraph/ExecutionClient/ExecutionClientTargetBoundary.swift"
+require_missing_path "Sources/TargetGraph/ExecutionEngine/ExecutionEngineTargetBoundary.swift"
+require_contains "Sources/ExecutionClient/TargetGraph/ExecutionClientTargetBoundary.swift" "MTP-220-EXECUTIONCLIENT-TARGET-SPLIT"
+require_contains "Sources/ExecutionClient/TargetGraph/ExecutionClientTargetBoundary.swift" "MTP-229-EXECUTIONCLIENT-REAL-ROOT-TARGET-PATH"
+require_contains "Sources/ExecutionEngine/TargetGraph/ExecutionEngineTargetBoundary.swift" "MTP-220-EXECUTIONENGINE-TARGET-SPLIT"
+require_contains "Sources/ExecutionEngine/TargetGraph/ExecutionEngineTargetBoundary.swift" "MTP-229-EXECUTIONENGINE-REAL-ROOT-TARGET-PATH"
 require_contains "Sources/Trader/TargetGraph/TraderTargetBoundary.swift" "MTP-220-TRADER-EXECUTIONENGINE-DEPENDENCY-RESOLVED"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP220ExecutionTargetsExposeFutureGateDependencyDirection"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP220ExecutionTargetsRejectBrokerOMSRealOrderAndEndpointDrift"
@@ -5286,7 +5290,14 @@ require_contains "Package.swift" '"Database/TargetGraph"'
 require_absent "Package.swift" 'path: "Sources/TargetGraph/DomainModel"'
 require_absent "Package.swift" 'path: "Sources/TargetGraph/MessageBus"'
 require_absent "Package.swift" 'path: "Sources/TargetGraph/Database"'
-require_contains "Package.swift" 'path: "Sources/TargetGraph/ExecutionEngine"'
+require_contains "Package.swift" 'path: "Sources/ExecutionClient"'
+require_contains "Package.swift" '"TargetGraph/ExecutionClientTargetBoundary.swift"'
+require_contains "Package.swift" 'path: "Sources/ExecutionEngine"'
+require_contains "Package.swift" '"TargetGraph/ExecutionEngineTargetBoundary.swift"'
+require_contains "Package.swift" '"ExecutionClient/TargetGraph"'
+require_contains "Package.swift" '"ExecutionEngine/TargetGraph"'
+require_absent "Package.swift" 'path: "Sources/TargetGraph/ExecutionClient"'
+require_absent "Package.swift" 'path: "Sources/TargetGraph/ExecutionEngine"'
 require_contains "Package.swift" 'name: "TargetGraphTests"'
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "import TraderStrategies"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP221WorkbenchDashboardTargetsRejectRuntimeAdapterSchemaAndCommandDrift"
@@ -5348,6 +5359,25 @@ require_contains "docs/validation/trading-validation-matrix.md" "MTP-228 issue b
 require_contains "docs/validation/latest-verification-summary.md" "MTP-228 的当前 issue execution evidence"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-228-TRADER-PORTFOLIO-RISK-REAL-ROOT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "MTP-228-RISKENGINE-REAL-ROOT-TARGET-PATH"
+require_contains "Package.swift" 'path: "Sources/ExecutionClient"'
+require_contains "Package.swift" '"TargetGraph/ExecutionClientTargetBoundary.swift"'
+require_contains "Package.swift" 'path: "Sources/ExecutionEngine"'
+require_contains "Package.swift" '"TargetGraph/ExecutionEngineTargetBoundary.swift"'
+require_contains "Package.swift" '"ExecutionClient/TargetGraph"'
+require_contains "Package.swift" '"ExecutionEngine/TargetGraph"'
+require_absent "Package.swift" 'path: "Sources/TargetGraph/ExecutionClient"'
+require_absent "Package.swift" 'path: "Sources/TargetGraph/ExecutionEngine"'
+require_contains "docs/contracts/targetgraph-anchor-retirement-real-module-source-root-migration-contract.md" "MTP-229-EXECUTION-REAL-ROOT-TARGET-MIGRATION"
+require_contains "docs/contracts/targetgraph-anchor-retirement-real-module-source-root-migration-contract.md" "MTP-229-EXECUTION-FUTURE-GATE-DEPENDENCY-DIRECTION-PRESERVED"
+require_contains "docs/contracts/targetgraph-anchor-retirement-real-module-source-root-migration-contract.md" "MTP-229-TARGETGRAPH-EXECUTION-ACTIVE-PATH-RETIREMENT"
+require_contains "docs/contracts/targetgraph-anchor-retirement-real-module-source-root-migration-contract.md" "MTP-229-EXECUTION-REAL-ROOT-VALIDATION"
+require_contains "docs/validation/validation-plan.md" "MTP-229 Execution Targets Real Module Root Migration Validation"
+require_contains "docs/validation/validation-plan.md" "MTP-229-EXECUTION-REAL-ROOT-VALIDATION"
+require_contains "docs/validation/trading-validation-matrix.md" "MTP-229 issue backfill"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-229 的当前 issue execution evidence"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-229-EXECUTION-REAL-ROOT-VALIDATION"
+require_contains "docs/automation/automation-readiness.md" "Execution target split / real root migration anchor"
+require_contains "docs/automation/automation-readiness.md" "MTP-229-EXECUTIONENGINE-REAL-ROOT-TARGET-PATH"
 require_file "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md"
 require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "MTPRO SwiftPM Target Graph Module Split v1 Stage Code Audit Report"
 require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "MTP-216"

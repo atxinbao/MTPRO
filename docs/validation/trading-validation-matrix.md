@@ -881,6 +881,12 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | --- | --- | --- |
 | `MTP-228` | `TVM-TARGETGRAPH-ANCHOR-RETIREMENT-REAL-MODULE-SOURCE-ROOT-MIGRATION` | MTP-228 把 Trader / Portfolio / Risk targets `TraderStrategies`、`Trader`、`Portfolio` 和 `RiskEngine` 从 `Sources/TargetGraph/<Module>` active target paths 迁到真实 module roots：`Sources/Trader/Strategies/EMA`、`Sources/Trader`、`Sources/Portfolio` 和 `Sources/RiskEngine`。四者只显式编译 real root 下的 `TargetGraph/*TargetBoundary.swift` boundary anchors，避免与 retained compatibility envelopes source overlap；`Core` 继续编译 Trader Accounts / EMA / Coordination、Portfolio projection 和 RiskEngine pre-trade / live gate evidence implementation。`Tests/TargetGraphTests/TargetGraphTests.swift` 新增 `testMTP228TraderPortfolioRiskTargetsUseRealModuleRootsAndRetireTargetGraphPathReferences` 验证 new target paths、new boundary file locations、old TargetGraph paths absent、Trader container authority 和 EMA-only active strategy。MTP-228 不迁移 execution / UI targets，不删除 `Sources/TargetGraph`，不新增非 EMA active strategy，不实现 Trader runtime、Strategy runtime、direct strategy-to-execution / broker path、runtime / live / L4 capability，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。 |
 
+## MTP-229 issue backfill
+
+| Issue | Matrix ID | Evidence |
+| --- | --- | --- |
+| `MTP-229` | `TVM-TARGETGRAPH-ANCHOR-RETIREMENT-REAL-MODULE-SOURCE-ROOT-MIGRATION` | MTP-229 把 execution targets `ExecutionClient` 和 `ExecutionEngine` 从 `Sources/TargetGraph/<Module>` active target paths 迁到真实 module roots：`Sources/ExecutionClient` 和 `Sources/ExecutionEngine`。两者只显式编译 real root 下的 `TargetGraph/*TargetBoundary.swift` boundary anchors，避免与 retained `Core` compatibility envelope source overlap；`Core` 继续编译 ExecutionClient FutureGate / BrokerCapabilityMatrix 和 ExecutionEngine paper lifecycle / simulated exchange / OMS future gate evidence。`Tests/TargetGraphTests/TargetGraphTests.swift` 新增 `testMTP229ExecutionTargetsUseRealModuleRootsAndRetireTargetGraphPathReferences` 验证 new target paths、new boundary file locations、old execution TargetGraph paths absent、ExecutionClient future gate 和 no real order lifecycle。MTP-229 不迁移 Workbench / Dashboard targets，不删除 `Sources/TargetGraph`，不实现 ExecutionClient implementation、OMS implementation、broker gateway、signed/account/listenKey/private stream、real order lifecycle、live command、runtime / live / L4 capability，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。 |
+
 ## MTP-190 Target Module Source Migration 阶段收口
 
 日期：2026-06-01

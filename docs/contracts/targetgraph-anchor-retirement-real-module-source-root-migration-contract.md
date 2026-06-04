@@ -320,3 +320,46 @@ MTP-228 required validation：
 - `bash checks/run.sh`
 - PR evidence 必须确认 Trader / TraderStrategies / Portfolio / RiskEngine target paths no longer depend on `Sources/TargetGraph/<Module>`.
 - PR evidence 必须确认 EMA-only active strategy、no direct strategy-to-execution / broker path、no Trader runtime、no Strategy runtime、no Symphony、no Graphify、no code-index、no Figma、no `.codex/*`、no `graphify-out/*`。
+
+## MTP-229-EXECUTION-REAL-ROOT-TARGET-MIGRATION
+
+MTP-229 只迁移 execution target boundary anchors：
+
+| Target | Previous active target path | Current active target path | Current explicit sources | Retained compatibility owner |
+| --- | --- | --- | --- | --- |
+| `ExecutionClient` | `Sources/TargetGraph/ExecutionClient` | `Sources/ExecutionClient` | `TargetGraph/ExecutionClientTargetBoundary.swift` | `Core` continues compiling FutureGate and BrokerCapabilityMatrix evidence. |
+| `ExecutionEngine` | `Sources/TargetGraph/ExecutionEngine` | `Sources/ExecutionEngine` | `TargetGraph/ExecutionEngineTargetBoundary.swift` | `Core` continues compiling paper lifecycle, simulated exchange and OMS future gate evidence. |
+
+MTP-229 intentionally keeps `sources` explicit so the newly migrated execution targets do not overlap with retained compatibility envelopes. `Core` excludes `ExecutionClient/TargetGraph` and `ExecutionEngine/TargetGraph`.
+
+## MTP-229-EXECUTION-FUTURE-GATE-DEPENDENCY-DIRECTION-PRESERVED
+
+MTP-229 preserves the execution dependency direction:
+
+```text
+ExecutionClient -> DomainModel / MessageBus
+ExecutionEngine -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine / ExecutionClient
+```
+
+`ExecutionClient` remains future-gated and `ExecutionEngine` remains paper / simulated lifecycle evidence only. MTP-229 does not migrate Workbench or Dashboard. It does not add ExecutionClient implementation, OMS implementation, broker gateway, signed endpoint, account endpoint, listenKey, private stream runtime, real order lifecycle, submit / cancel / replace, execution report, broker fill, reconciliation, live command or L4 capability.
+
+## MTP-229-TARGETGRAPH-EXECUTION-ACTIVE-PATH-RETIREMENT
+
+After MTP-229, these active execution files must not exist:
+
+- `Sources/TargetGraph/ExecutionClient/ExecutionClientTargetBoundary.swift`
+- `Sources/TargetGraph/ExecutionEngine/ExecutionEngineTargetBoundary.swift`
+
+The remaining `Sources/TargetGraph/*` active paths are for later MTP-230 through MTP-231 issues only. MTP-229 does not delete `Sources/TargetGraph` and does not retire UI TargetGraph paths.
+
+## MTP-229-EXECUTION-REAL-ROOT-VALIDATION
+
+MTP-229 required validation：
+
+- `swift package describe` must not emit unhandled-file warnings for the migrated execution target roots.
+- `swift test --filter TargetGraphTests/testMTP229ExecutionTargetsUseRealModuleRootsAndRetireTargetGraphPathReferences`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+- PR evidence 必须确认 ExecutionClient / ExecutionEngine target paths no longer depend on `Sources/TargetGraph/<Module>`.
+- PR evidence 必须确认 no ExecutionClient implementation、no OMS implementation、no broker gateway、no real order lifecycle、no live command、no Symphony、no Graphify、no code-index、no Figma、no `.codex/*`、no `graphify-out/*`。

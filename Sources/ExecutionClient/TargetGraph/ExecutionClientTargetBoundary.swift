@@ -3,7 +3,8 @@ import MessageBus
 
 /// `ExecutionClient` target boundary 表达 future-gated outgoing adapter contract。
 ///
-/// MTP-220 只建立可编译的 SwiftPM target anchor。该 target 不能变成 broker SDK wrapper、
+/// MTP-220 建立可编译的 SwiftPM target anchor；MTP-229 只把 anchor 迁到真实
+/// `Sources/ExecutionClient/TargetGraph` root。该 target 不能变成 broker SDK wrapper、
 /// signed request client、order submit / cancel / replace runtime、execution report parser 或
 /// reconciliation runtime；真实交易执行能力继续保持 future-gated。
 public struct ExecutionClientTargetBoundary: Codable, Equatable, Sendable {
@@ -29,7 +30,7 @@ public struct ExecutionClientTargetBoundary: Codable, Equatable, Sendable {
     public init(
         targetName: String = "ExecutionClient",
         canonicalSourceRoot: String = "Sources/ExecutionClient",
-        compiledBoundaryRoot: String = "Sources/TargetGraph/ExecutionClient",
+        compiledBoundaryRoot: String = "Sources/ExecutionClient/TargetGraph",
         retainedCompatibilityEnvelope: String = "Core",
         domainModelBoundary: DomainModelTargetBoundary = .mtp217,
         messageBusBoundary: MessageBusTargetBoundary = .mtp217,
@@ -70,7 +71,7 @@ public struct ExecutionClientTargetBoundary: Codable, Equatable, Sendable {
     public var dependencyDirectionHeld: Bool {
         targetName == "ExecutionClient"
             && canonicalSourceRoot == "Sources/ExecutionClient"
-            && compiledBoundaryRoot == "Sources/TargetGraph/ExecutionClient"
+            && compiledBoundaryRoot == "Sources/ExecutionClient/TargetGraph"
             && retainedCompatibilityEnvelope == "Core"
             && domainModelBoundary.boundaryHeld
             && messageBusBoundary.dependencyDirectionHeld
@@ -118,7 +119,8 @@ public struct ExecutionClientTargetBoundary: Codable, Equatable, Sendable {
     public static let requiredValidationAnchors = [
         "MTP-220-EXECUTIONCLIENT-TARGET-SPLIT",
         "MTP-220-EXECUTIONCLIENT-FUTURE-GATE-ONLY",
-        "MTP-220-NO-BROKER-OMS-REAL-ORDER-GUARD"
+        "MTP-220-NO-BROKER-OMS-REAL-ORDER-GUARD",
+        "MTP-229-EXECUTIONCLIENT-REAL-ROOT-TARGET-PATH"
     ]
 
     public static let mtp220 = ExecutionClientTargetBoundary()

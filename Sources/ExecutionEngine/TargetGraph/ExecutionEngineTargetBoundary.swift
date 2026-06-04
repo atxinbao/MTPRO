@@ -7,7 +7,8 @@ import RiskEngine
 
 /// `ExecutionEngine` target boundary 表达 paper / simulated execution lifecycle layer。
 ///
-/// MTP-220 只把 ExecutionEngine 拆成 buildable target anchor，并连接 RiskEngine 与
+/// MTP-220 把 ExecutionEngine 拆成 buildable target anchor；MTP-229 只把 anchor
+/// 迁到真实 `Sources/ExecutionEngine/TargetGraph` root，并继续连接 RiskEngine 与
 /// ExecutionClient future gate。它不实现 live execution runtime、OMS、broker gateway、
 /// signed endpoint 或真实订单生命周期。
 public struct ExecutionEngineTargetBoundary: Codable, Equatable, Sendable {
@@ -38,7 +39,7 @@ public struct ExecutionEngineTargetBoundary: Codable, Equatable, Sendable {
     public init(
         targetName: String = "ExecutionEngine",
         canonicalSourceRoot: String = "Sources/ExecutionEngine",
-        compiledBoundaryRoot: String = "Sources/TargetGraph/ExecutionEngine",
+        compiledBoundaryRoot: String = "Sources/ExecutionEngine/TargetGraph",
         retainedCompatibilityEnvelope: String = "Core",
         domainModelBoundary: DomainModelTargetBoundary = .mtp217,
         messageBusBoundary: MessageBusTargetBoundary = .mtp217,
@@ -89,7 +90,7 @@ public struct ExecutionEngineTargetBoundary: Codable, Equatable, Sendable {
     public var dependencyDirectionHeld: Bool {
         targetName == "ExecutionEngine"
             && canonicalSourceRoot == "Sources/ExecutionEngine"
-            && compiledBoundaryRoot == "Sources/TargetGraph/ExecutionEngine"
+            && compiledBoundaryRoot == "Sources/ExecutionEngine/TargetGraph"
             && retainedCompatibilityEnvelope == "Core"
             && domainModelBoundary.boundaryHeld
             && messageBusBoundary.dependencyDirectionHeld
@@ -142,7 +143,8 @@ public struct ExecutionEngineTargetBoundary: Codable, Equatable, Sendable {
     public static let requiredValidationAnchors = [
         "MTP-220-EXECUTIONENGINE-TARGET-SPLIT",
         "MTP-220-RISKENGINE-EXECUTIONENGINE-EXECUTIONCLIENT-DIRECTION",
-        "MTP-220-NO-BROKER-OMS-REAL-ORDER-GUARD"
+        "MTP-220-NO-BROKER-OMS-REAL-ORDER-GUARD",
+        "MTP-229-EXECUTIONENGINE-REAL-ROOT-TARGET-PATH"
     ]
 
     public static let mtp220 = ExecutionEngineTargetBoundary()

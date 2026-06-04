@@ -6764,6 +6764,51 @@ MTP-228 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## MTP-229 Execution Targets Real Module Root Migration Validation
+
+MTP-229 必须运行：
+
+- `swift package describe`
+- `swift test --filter TargetGraphTests/testMTP229ExecutionTargetsUseRealModuleRootsAndRetireTargetGraphPathReferences`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-229 的验收要求：
+
+- `Package.swift` 中 `ExecutionClient` target path 必须为 `Sources/ExecutionClient`，并且 explicit source 必须为 `TargetGraph/ExecutionClientTargetBoundary.swift`。
+- `Package.swift` 中 `ExecutionEngine` target path 必须为 `Sources/ExecutionEngine`，并且 explicit source 必须为 `TargetGraph/ExecutionEngineTargetBoundary.swift`。
+- `Package.swift` 不得再包含 `path: "Sources/TargetGraph/ExecutionClient"` 或 `path: "Sources/TargetGraph/ExecutionEngine"`。
+- `Sources/ExecutionClient/TargetGraph/ExecutionClientTargetBoundary.swift` 和 `Sources/ExecutionEngine/TargetGraph/ExecutionEngineTargetBoundary.swift` 必须存在。
+- `Sources/TargetGraph/ExecutionClient/ExecutionClientTargetBoundary.swift` 和 `Sources/TargetGraph/ExecutionEngine/ExecutionEngineTargetBoundary.swift` 必须不存在。
+- `TargetGraphTests` 必须包含 `testMTP229ExecutionTargetsUseRealModuleRootsAndRetireTargetGraphPathReferences`，验证 package target path、new boundary file location、retired TargetGraph path 和 ExecutionClient future gate / no real order lifecycle boundary。
+- `swift package describe` 不得输出 migrated Execution target roots 的 unhandled-file warnings。
+- Dependency direction 必须保持 `ExecutionClient -> DomainModel / MessageBus` 和 `ExecutionEngine -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine / ExecutionClient`。
+- Compatibility envelope 必须保留：`Core` 继续编译 `ExecutionEngine/PaperLifecycle`、`ExecutionEngine/SimulatedExchange`、`ExecutionEngine/OMSFutureGate`、`ExecutionClient/FutureGate` 和 `ExecutionClient/BrokerCapabilityMatrix` implementation / future gate evidence。
+- MTP-229 PR evidence 必须确认不迁移 Workbench / Dashboard targets，不实现 ExecutionClient implementation、OMS implementation、broker gateway、real order lifecycle、live command 或 L4 capability。
+
+MTP-229 必须建立的主要 anchors：
+
+- `MTP-229-EXECUTION-REAL-ROOT-TARGET-MIGRATION`
+- `MTP-229-EXECUTION-FUTURE-GATE-DEPENDENCY-DIRECTION-PRESERVED`
+- `MTP-229-TARGETGRAPH-EXECUTION-ACTIVE-PATH-RETIREMENT`
+- `MTP-229-EXECUTION-REAL-ROOT-VALIDATION`
+- `MTP-229-EXECUTIONCLIENT-REAL-ROOT-TARGET-PATH`
+- `MTP-229-EXECUTIONENGINE-REAL-ROOT-TARGET-PATH`
+
+## MTP-229 禁止
+
+- 不迁移 Workbench 或 Dashboard target paths。
+- 不实现 ExecutionClient implementation、OMS implementation 或 broker gateway。
+- 不接 signed endpoint、account endpoint 或 listenKey。
+- 不实现 private stream runtime。
+- 不实现 real order lifecycle、submit / cancel / replace、execution report、broker fill 或 reconciliation。
+- 不实现 Trader runtime、Strategy runtime、Live runtime、Live PRO Console、trading button、live command、order form 或 L4 capability。
+- 不删除 `Sources/TargetGraph` 或退休非 Execution TargetGraph active paths。
+- 不新增、删除、重命名 SwiftPM target / product / dependency。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## MTP-227 Data Targets Real Module Root Migration Validation
 
 MTP-227 必须运行：

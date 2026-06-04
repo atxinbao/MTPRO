@@ -141,12 +141,27 @@ let package = Package(
         .target(
             name: "ExecutionClient",
             dependencies: ["DomainModel", "MessageBus"],
-            path: "Sources/TargetGraph/ExecutionClient"
+            path: "Sources/ExecutionClient",
+            exclude: [
+                "BrokerCapabilityMatrix",
+                "FutureGate"
+            ],
+            sources: [
+                "TargetGraph/ExecutionClientTargetBoundary.swift"
+            ]
         ),
         .target(
             name: "ExecutionEngine",
             dependencies: ["DomainModel", "MessageBus", "Cache", "Portfolio", "RiskEngine", "ExecutionClient"],
-            path: "Sources/TargetGraph/ExecutionEngine"
+            path: "Sources/ExecutionEngine",
+            exclude: [
+                "OMSFutureGate",
+                "PaperLifecycle",
+                "SimulatedExchange"
+            ],
+            sources: [
+                "TargetGraph/ExecutionEngineTargetBoundary.swift"
+            ]
         ),
         .target(
             name: "TraderStrategies",
@@ -218,6 +233,8 @@ let package = Package(
                 "DataEngine/TargetGraph",
                 "Database",
                 "DomainModel/TargetGraph",
+                "ExecutionClient/TargetGraph",
+                "ExecutionEngine/TargetGraph",
                 "MessageBus/TargetGraph",
                 "Portfolio/TargetGraph",
                 "RiskEngine/TargetGraph",
