@@ -1,3 +1,4 @@
+import Foundation
 import Cache
 import Database
 import DataClient
@@ -45,6 +46,61 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(database.containsRuntimeOrLiveCapability)
         XCTAssertFalse(database.exposesSchemaToWorkbench)
         XCTAssertFalse(database.persistsBrokerOrAccountPayload)
+    }
+
+    func testMTP226FoundationTargetsUseRealModuleRootsAndRetireTargetGraphPathReferences() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+
+        XCTAssertEqual(DomainModelTargetBoundary.mtp217.compiledBoundaryRoot, "Sources/DomainModel/TargetGraph")
+        XCTAssertEqual(MessageBusTargetBoundary.mtp217.compiledBoundaryRoot, "Sources/MessageBus/TargetGraph")
+        XCTAssertEqual(DatabaseTargetBoundary.mtp217.compiledBoundaryRoot, "Sources/Database/TargetGraph")
+
+        for expected in [
+            "path: \"Sources/DomainModel\"",
+            "\"TargetGraph/DomainModelTargetBoundary.swift\"",
+            "path: \"Sources/MessageBus\"",
+            "\"TargetGraph/MessageBusTargetBoundary.swift\"",
+            "path: \"Sources/Database\"",
+            "\"TargetGraph/DatabaseTargetBoundary.swift\"",
+            "\"DomainModel/TargetGraph\"",
+            "\"MessageBus/TargetGraph\""
+        ] {
+            XCTAssertTrue(packageSource.contains(expected), "Package.swift must contain \(expected)")
+        }
+
+        for forbidden in [
+            "path: \"Sources/TargetGraph/DomainModel\"",
+            "path: \"Sources/TargetGraph/MessageBus\"",
+            "path: \"Sources/TargetGraph/Database\""
+        ] {
+            XCTAssertFalse(packageSource.contains(forbidden), "Foundation target path must not remain active: \(forbidden)")
+        }
+
+        for migratedPath in [
+            "Sources/DomainModel/TargetGraph/DomainModelTargetBoundary.swift",
+            "Sources/MessageBus/TargetGraph/MessageBusTargetBoundary.swift",
+            "Sources/Database/TargetGraph/DatabaseTargetBoundary.swift"
+        ] {
+            XCTAssertTrue(
+                FileManager.default.fileExists(atPath: repositoryRoot.appendingPathComponent(migratedPath).path),
+                "\(migratedPath) must exist under the real module root"
+            )
+        }
+
+        for retiredPath in [
+            "Sources/TargetGraph/DomainModel/DomainModelTargetBoundary.swift",
+            "Sources/TargetGraph/MessageBus/MessageBusTargetBoundary.swift",
+            "Sources/TargetGraph/Database/DatabaseTargetBoundary.swift"
+        ] {
+            XCTAssertFalse(
+                FileManager.default.fileExists(atPath: repositoryRoot.appendingPathComponent(retiredPath).path),
+                "\(retiredPath) must no longer be the active foundation target boundary file"
+            )
+        }
     }
 
     func testMTP218DataTargetsExposeReadOnlyDependencyDirectionAndCompatibilityBoundary() {

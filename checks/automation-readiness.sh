@@ -5002,15 +5002,22 @@ require_contains "Package.swift" 'name: "DomainModel"'
 require_contains "Package.swift" 'name: "MessageBus"'
 require_contains "Package.swift" 'name: "Database"'
 require_contains "Package.swift" '"TargetGraph"'
-require_file "Sources/TargetGraph/DomainModel/DomainModelTargetBoundary.swift"
-require_file "Sources/TargetGraph/MessageBus/MessageBusTargetBoundary.swift"
-require_file "Sources/TargetGraph/Database/DatabaseTargetBoundary.swift"
+require_file "Sources/DomainModel/TargetGraph/DomainModelTargetBoundary.swift"
+require_file "Sources/MessageBus/TargetGraph/MessageBusTargetBoundary.swift"
+require_file "Sources/Database/TargetGraph/DatabaseTargetBoundary.swift"
+require_missing_path "Sources/TargetGraph/DomainModel/DomainModelTargetBoundary.swift"
+require_missing_path "Sources/TargetGraph/MessageBus/MessageBusTargetBoundary.swift"
+require_missing_path "Sources/TargetGraph/Database/DatabaseTargetBoundary.swift"
 require_file "Tests/TargetGraphTests/TargetGraphTests.swift"
-require_contains "Sources/TargetGraph/DomainModel/DomainModelTargetBoundary.swift" "MTP-217-DOMAINMODEL-TARGET-SPLIT"
-require_contains "Sources/TargetGraph/MessageBus/MessageBusTargetBoundary.swift" "MTP-217-MESSAGEBUS-TARGET-SPLIT"
-require_contains "Sources/TargetGraph/Database/DatabaseTargetBoundary.swift" "MTP-217-DATABASE-TARGET-SPLIT"
+require_contains "Sources/DomainModel/TargetGraph/DomainModelTargetBoundary.swift" "MTP-217-DOMAINMODEL-TARGET-SPLIT"
+require_contains "Sources/DomainModel/TargetGraph/DomainModelTargetBoundary.swift" "MTP-226-DOMAINMODEL-REAL-ROOT-TARGET-PATH"
+require_contains "Sources/MessageBus/TargetGraph/MessageBusTargetBoundary.swift" "MTP-217-MESSAGEBUS-TARGET-SPLIT"
+require_contains "Sources/MessageBus/TargetGraph/MessageBusTargetBoundary.swift" "MTP-226-MESSAGEBUS-REAL-ROOT-TARGET-PATH"
+require_contains "Sources/Database/TargetGraph/DatabaseTargetBoundary.swift" "MTP-217-DATABASE-TARGET-SPLIT"
+require_contains "Sources/Database/TargetGraph/DatabaseTargetBoundary.swift" "MTP-226-DATABASE-REAL-ROOT-TARGET-PATH"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP217FoundationTargetsExposeDependencyDirectionAndCompatibilityBoundary"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP217FoundationTargetsRejectHigherLayerRuntimeAndBrokerDrift"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP226FoundationTargetsUseRealModuleRootsAndRetireTargetGraphPathReferences"
 require_contains "docs/contracts/swiftpm-target-graph-split-contract.md" "MTP-217-FOUNDATION-TARGET-SPLIT-EVIDENCE"
 require_contains "docs/contracts/swiftpm-target-graph-split-contract.md" "MTP-217-FOUNDATION-TARGET-SPLIT-VALIDATION"
 require_contains "architecture.md" "MTP-217 Foundation Target Split"
@@ -5024,8 +5031,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-217-FOUNDATION-TARGET
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-217 issue backfill"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-217 的当前 issue execution evidence"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-217-FOUNDATION-TARGET-SPLIT-VALIDATION"
-require_contains "docs/automation/automation-readiness.md" "Foundation target split anchor"
-require_contains "docs/automation/automation-readiness.md" "MTP-217 新增 buildable"
+require_contains "docs/automation/automation-readiness.md" "Foundation target split / real root migration anchor"
+require_contains "docs/automation/automation-readiness.md" 'MTP-226 把 `DomainModel` / `MessageBus` / `Database` target paths'
 require_contains "Package.swift" '.library(name: "DataClient", targets: ["DataClient"])'
 require_contains "Package.swift" '.library(name: "DataEngine", targets: ["DataEngine"])'
 require_contains "Package.swift" '.library(name: "Cache", targets: ["Cache"])'
@@ -5251,11 +5258,33 @@ require_contains "docs/validation/latest-verification-summary.md" "MTP-225 的�
 require_contains "docs/validation/latest-verification-summary.md" "MTP-225-AUDIT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "TargetGraph anchor / real root audit anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-225 只审计"
-require_contains "Package.swift" 'path: "Sources/TargetGraph/DomainModel"'
+require_contains "Package.swift" 'path: "Sources/DomainModel"'
+require_contains "Package.swift" '"TargetGraph/DomainModelTargetBoundary.swift"'
+require_contains "Package.swift" 'path: "Sources/MessageBus"'
+require_contains "Package.swift" '"TargetGraph/MessageBusTargetBoundary.swift"'
+require_contains "Package.swift" 'path: "Sources/Database"'
+require_contains "Package.swift" '"TargetGraph/DatabaseTargetBoundary.swift"'
+require_contains "Package.swift" '"DomainModel/TargetGraph"'
+require_contains "Package.swift" '"MessageBus/TargetGraph"'
+require_contains "Package.swift" '"Database/TargetGraph"'
+require_absent "Package.swift" 'path: "Sources/TargetGraph/DomainModel"'
+require_absent "Package.swift" 'path: "Sources/TargetGraph/MessageBus"'
+require_absent "Package.swift" 'path: "Sources/TargetGraph/Database"'
 require_contains "Package.swift" 'path: "Sources/TargetGraph/Trader"'
 require_contains "Package.swift" 'name: "TargetGraphTests"'
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "import TraderStrategies"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP221WorkbenchDashboardTargetsRejectRuntimeAdapterSchemaAndCommandDrift"
+require_contains "docs/contracts/targetgraph-anchor-retirement-real-module-source-root-migration-contract.md" "MTP-226-FOUNDATION-REAL-ROOT-TARGET-MIGRATION"
+require_contains "docs/contracts/targetgraph-anchor-retirement-real-module-source-root-migration-contract.md" "MTP-226-FOUNDATION-DEPENDENCY-DIRECTION-PRESERVED"
+require_contains "docs/contracts/targetgraph-anchor-retirement-real-module-source-root-migration-contract.md" "MTP-226-TARGETGRAPH-FOUNDATION-ACTIVE-PATH-RETIREMENT"
+require_contains "docs/contracts/targetgraph-anchor-retirement-real-module-source-root-migration-contract.md" "MTP-226-FOUNDATION-REAL-ROOT-VALIDATION"
+require_contains "docs/validation/validation-plan.md" "MTP-226 Foundation Targets Real Module Root Migration Validation"
+require_contains "docs/validation/validation-plan.md" "MTP-226-FOUNDATION-REAL-ROOT-VALIDATION"
+require_contains "docs/validation/trading-validation-matrix.md" "MTP-226 issue backfill"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-226 的当前 issue execution evidence"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-226-FOUNDATION-REAL-ROOT-VALIDATION"
+require_contains "docs/automation/automation-readiness.md" "Foundation target split / real root migration anchor"
+require_contains "docs/automation/automation-readiness.md" "MTP-226-DATABASE-REAL-ROOT-TARGET-PATH"
 require_file "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md"
 require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "MTPRO SwiftPM Target Graph Module Split v1 Stage Code Audit Report"
 require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "MTP-216"

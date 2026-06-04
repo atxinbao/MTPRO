@@ -6824,3 +6824,47 @@ MTP-225 必须建立的主要 anchors：
 - 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-226 Foundation Targets Real Module Root Migration Validation
+
+MTP-226 必须运行：
+
+- `swift package describe`
+- `swift test --filter TargetGraphTests/testMTP226FoundationTargetsUseRealModuleRootsAndRetireTargetGraphPathReferences`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-226 的验收要求：
+
+- `Package.swift` 中 `DomainModel` target path 必须为 `Sources/DomainModel`，并且 explicit source 必须为 `TargetGraph/DomainModelTargetBoundary.swift`。
+- `Package.swift` 中 `MessageBus` target path 必须为 `Sources/MessageBus`，并且 explicit source 必须为 `TargetGraph/MessageBusTargetBoundary.swift`。
+- `Package.swift` 中 `Database` target path 必须为 `Sources/Database`，并且 explicit source 必须为 `TargetGraph/DatabaseTargetBoundary.swift`。
+- `Package.swift` 不得再包含 `path: "Sources/TargetGraph/DomainModel"`、`path: "Sources/TargetGraph/MessageBus"` 或 `path: "Sources/TargetGraph/Database"`。
+- `Sources/DomainModel/TargetGraph/DomainModelTargetBoundary.swift`、`Sources/MessageBus/TargetGraph/MessageBusTargetBoundary.swift` 和 `Sources/Database/TargetGraph/DatabaseTargetBoundary.swift` 必须存在。
+- `Sources/TargetGraph/DomainModel/DomainModelTargetBoundary.swift`、`Sources/TargetGraph/MessageBus/MessageBusTargetBoundary.swift` 和 `Sources/TargetGraph/Database/DatabaseTargetBoundary.swift` 必须不存在。
+- `TargetGraphTests` 必须包含 `testMTP226FoundationTargetsUseRealModuleRootsAndRetireTargetGraphPathReferences`，验证 package target path、new boundary file location 和 retired foundation TargetGraph path。
+- `swift package describe` 不得输出 migrated foundation roots 的 unhandled-file warnings。
+- Dependency direction 必须保持 `DomainModel`、`MessageBus -> DomainModel`、`Database -> DomainModel / MessageBus / CSQLite / DuckDB(macOS)`。
+- Compatibility envelope 必须保留：`Core` 继续编译 DomainModel / MessageBus implementation source，`Persistence` 继续编译 Database projections，`Runtime` 继续编译 Database replay projection。
+- MTP-226 PR evidence 必须确认不迁移 data / trader / execution / UI targets，不改变 persistence behavior，不实现 runtime、live、broker 或 L4 capability。
+
+MTP-226 必须建立的主要 anchors：
+
+- `MTP-226-FOUNDATION-REAL-ROOT-TARGET-MIGRATION`
+- `MTP-226-FOUNDATION-DEPENDENCY-DIRECTION-PRESERVED`
+- `MTP-226-TARGETGRAPH-FOUNDATION-ACTIVE-PATH-RETIREMENT`
+- `MTP-226-FOUNDATION-REAL-ROOT-VALIDATION`
+- `MTP-226-DOMAINMODEL-REAL-ROOT-TARGET-PATH`
+- `MTP-226-MESSAGEBUS-REAL-ROOT-TARGET-PATH`
+- `MTP-226-DATABASE-REAL-ROOT-TARGET-PATH`
+
+## MTP-226 禁止
+
+- 不迁移 DataClient、DataEngine、Cache、TraderStrategies、Trader、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench 或 Dashboard target paths。
+- 不改变 persistence behavior。
+- 不删除 `Sources/TargetGraph` 或退休非 foundation TargetGraph active paths。
+- 不新增、删除、重命名 SwiftPM target / product / dependency。
+- 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

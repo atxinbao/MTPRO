@@ -1,8 +1,8 @@
-/// `DomainModel` target boundary 是 MTP-217 引入的 SwiftPM foundation target 锚点。
+/// `DomainModel` target boundary 是 MTP-217 引入、MTP-226 迁入真实 module root 的 SwiftPM foundation target 锚点。
 ///
-/// 该类型只描述 target split 事实和禁止项，不搬动既有 `Sources/DomainModel/`
-/// 业务类型，也不改变当前 `Core` compatibility envelope 的调用面。后续 MTP-222
-/// 退休兼容壳前，下游仍可以通过 `Core` 使用历史 public types。
+/// 该类型只描述 foundation target split 事实和禁止项；MTP-226 只把 active target
+/// boundary anchor 从 `Sources/TargetGraph/DomainModel` 移到 `Sources/DomainModel/TargetGraph`，
+/// 不改变当前 `Core` compatibility envelope 对既有 `Sources/DomainModel/` 业务类型的编译方式。
 public struct DomainModelTargetBoundary: Codable, Equatable, Sendable {
     public let targetName: String
     public let canonicalSourceRoot: String
@@ -15,7 +15,7 @@ public struct DomainModelTargetBoundary: Codable, Equatable, Sendable {
     public init(
         targetName: String = "DomainModel",
         canonicalSourceRoot: String = "Sources/DomainModel",
-        compiledBoundaryRoot: String = "Sources/TargetGraph/DomainModel",
+        compiledBoundaryRoot: String = "Sources/DomainModel/TargetGraph",
         retainedCompatibilityEnvelope: String = "Core",
         dependsOnBusinessTarget: Bool = false,
         containsRuntimeOrLiveCapability: Bool = false,
@@ -34,7 +34,7 @@ public struct DomainModelTargetBoundary: Codable, Equatable, Sendable {
     public var boundaryHeld: Bool {
         targetName == "DomainModel"
             && canonicalSourceRoot == "Sources/DomainModel"
-            && compiledBoundaryRoot == "Sources/TargetGraph/DomainModel"
+            && compiledBoundaryRoot == "Sources/DomainModel/TargetGraph"
             && retainedCompatibilityEnvelope == "Core"
             && dependsOnBusinessTarget == false
             && containsRuntimeOrLiveCapability == false
@@ -44,6 +44,7 @@ public struct DomainModelTargetBoundary: Codable, Equatable, Sendable {
     public static let requiredValidationAnchors = [
         "MTP-217-DOMAINMODEL-TARGET-SPLIT",
         "MTP-217-FOUNDATION-COMPATIBILITY-ENVELOPE-RETAINED",
+        "MTP-226-DOMAINMODEL-REAL-ROOT-TARGET-PATH",
         "MTP-217-NO-RUNTIME-LIVE-BROKER-L4-GUARD"
     ]
 

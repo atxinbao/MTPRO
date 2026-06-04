@@ -179,3 +179,49 @@ MTP-225 required validation：
 - PR evidence 必须确认 audit 覆盖 `Sources/TargetGraph` anchors、real module roots、`Package.swift` target path / dependencies 和 `Tests/TargetGraphTests` coverage。
 - PR evidence 必须确认 `Package.swift` 无 diff、未移动 production source 或 tests、未退休 active TargetGraph path references。
 - PR evidence 必须确认 no Symphony / no Graphify / no code-index / no Figma / no `.codex/*` / no `graphify-out/*`。
+
+## MTP-226-FOUNDATION-REAL-ROOT-TARGET-MIGRATION
+
+MTP-226 是第一个 real module source root migration issue。它只迁移 foundation target boundary anchors：
+
+| Target | Previous active target path | Current active target path | Current explicit sources | Retained compatibility owner |
+| --- | --- | --- | --- | --- |
+| `DomainModel` | `Sources/TargetGraph/DomainModel` | `Sources/DomainModel` | `TargetGraph/DomainModelTargetBoundary.swift` | `Core` continues compiling `Sources/DomainModel/*.swift` implementation files. |
+| `MessageBus` | `Sources/TargetGraph/MessageBus` | `Sources/MessageBus` | `TargetGraph/MessageBusTargetBoundary.swift` | `Core` continues compiling `Sources/MessageBus/*.swift` implementation files. |
+| `Database` | `Sources/TargetGraph/Database` | `Sources/Database` | `TargetGraph/DatabaseTargetBoundary.swift` | `Persistence` continues compiling projection implementation; `Runtime` continues compiling replay projection. |
+
+MTP-226 intentionally keeps `sources` explicit so the newly migrated foundation targets do not overlap with retained compatibility envelopes. `Core` excludes `DomainModel/TargetGraph` and `MessageBus/TargetGraph`; `Persistence` excludes `TargetGraph`; `Runtime` excludes `Database/TargetGraph`.
+
+## MTP-226-FOUNDATION-DEPENDENCY-DIRECTION-PRESERVED
+
+MTP-226 preserves the foundation dependency direction:
+
+```text
+DomainModel
+MessageBus -> DomainModel
+Database -> DomainModel / MessageBus / CSQLite / DuckDB(macOS)
+```
+
+MTP-226 does not migrate DataClient、DataEngine、Cache、TraderStrategies、Trader、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench or Dashboard. It does not change persistence behavior, runtime behavior, broker boundary, live boundary or L4 boundary.
+
+## MTP-226-TARGETGRAPH-FOUNDATION-ACTIVE-PATH-RETIREMENT
+
+After MTP-226, these active foundation files must not exist:
+
+- `Sources/TargetGraph/DomainModel/DomainModelTargetBoundary.swift`
+- `Sources/TargetGraph/MessageBus/MessageBusTargetBoundary.swift`
+- `Sources/TargetGraph/Database/DatabaseTargetBoundary.swift`
+
+The remaining `Sources/TargetGraph/*` active paths are for later MTP-227 through MTP-231 issues only. MTP-226 does not delete `Sources/TargetGraph` and does not retire data / trader / execution TargetGraph paths.
+
+## MTP-226-FOUNDATION-REAL-ROOT-VALIDATION
+
+MTP-226 required validation：
+
+- `swift package describe` must not emit unhandled-file warnings for the migrated foundation target roots.
+- `swift test --filter TargetGraphTests/testMTP226FoundationTargetsUseRealModuleRootsAndRetireTargetGraphPathReferences`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+- PR evidence 必须确认 foundation target paths no longer depend on `Sources/TargetGraph/DomainModel`、`Sources/TargetGraph/MessageBus` or `Sources/TargetGraph/Database`.
+- PR evidence 必须确认 no Symphony / no Graphify / no code-index / no Figma / no `.codex/*` / no `graphify-out/*`。
