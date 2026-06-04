@@ -251,6 +251,71 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(trader.exposesLiveCommandSurface)
     }
 
+    func testMTP228TraderPortfolioRiskTargetsUseRealModuleRootsAndRetireTargetGraphPathReferences() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+
+        XCTAssertEqual(TraderStrategiesTargetBoundary.mtp219.compiledBoundaryRoot, "Sources/Trader/Strategies/EMA/TargetGraph")
+        XCTAssertEqual(TraderTargetBoundary.mtp219.compiledBoundaryRoot, "Sources/Trader/TargetGraph")
+        XCTAssertEqual(PortfolioTargetBoundary.mtp219.compiledBoundaryRoot, "Sources/Portfolio/TargetGraph")
+        XCTAssertEqual(RiskEngineTargetBoundary.mtp219.compiledBoundaryRoot, "Sources/RiskEngine/TargetGraph")
+        XCTAssertEqual(TraderStrategiesTargetBoundary.mtp219.activeConcreteStrategies, ["EMA"])
+        XCTAssertEqual(TraderTargetBoundary.mtp219.activeStrategyRoot, "Sources/Trader/Strategies/EMA")
+
+        for expected in [
+            "path: \"Sources/Trader/Strategies/EMA\"",
+            "\"TargetGraph/TraderStrategiesTargetBoundary.swift\"",
+            "path: \"Sources/Trader\"",
+            "\"TargetGraph/TraderTargetBoundary.swift\"",
+            "path: \"Sources/Portfolio\"",
+            "\"TargetGraph/PortfolioTargetBoundary.swift\"",
+            "path: \"Sources/RiskEngine\"",
+            "\"TargetGraph/RiskEngineTargetBoundary.swift\"",
+            "\"Trader/Strategies/EMA/TargetGraph\"",
+            "\"Trader/TargetGraph\"",
+            "\"Portfolio/TargetGraph\"",
+            "\"RiskEngine/TargetGraph\""
+        ] {
+            XCTAssertTrue(packageSource.contains(expected), "Package.swift must contain \(expected)")
+        }
+
+        for forbidden in [
+            "path: \"Sources/TargetGraph/TraderStrategies\"",
+            "path: \"Sources/TargetGraph/Trader\"",
+            "path: \"Sources/TargetGraph/Portfolio\"",
+            "path: \"Sources/TargetGraph/RiskEngine\""
+        ] {
+            XCTAssertFalse(packageSource.contains(forbidden), "Trader / Portfolio / Risk target path must not remain active: \(forbidden)")
+        }
+
+        for migratedPath in [
+            "Sources/Trader/Strategies/EMA/TargetGraph/TraderStrategiesTargetBoundary.swift",
+            "Sources/Trader/TargetGraph/TraderTargetBoundary.swift",
+            "Sources/Portfolio/TargetGraph/PortfolioTargetBoundary.swift",
+            "Sources/RiskEngine/TargetGraph/RiskEngineTargetBoundary.swift"
+        ] {
+            XCTAssertTrue(
+                FileManager.default.fileExists(atPath: repositoryRoot.appendingPathComponent(migratedPath).path),
+                "\(migratedPath) must exist under the real module root"
+            )
+        }
+
+        for retiredPath in [
+            "Sources/TargetGraph/TraderStrategies/TraderStrategiesTargetBoundary.swift",
+            "Sources/TargetGraph/Trader/TraderTargetBoundary.swift",
+            "Sources/TargetGraph/Portfolio/PortfolioTargetBoundary.swift",
+            "Sources/TargetGraph/RiskEngine/RiskEngineTargetBoundary.swift"
+        ] {
+            XCTAssertFalse(
+                FileManager.default.fileExists(atPath: repositoryRoot.appendingPathComponent(retiredPath).path),
+                "\(retiredPath) must no longer be the active Trader / Portfolio / Risk target boundary file"
+            )
+        }
+    }
+
     func testMTP220ExecutionTargetsExposeFutureGateDependencyDirection() {
         let executionClient = ExecutionClientTargetBoundary.mtp220
         let executionEngine = ExecutionEngineTargetBoundary.mtp220

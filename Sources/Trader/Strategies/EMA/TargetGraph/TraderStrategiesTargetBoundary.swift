@@ -6,8 +6,10 @@ import RiskEngine
 
 /// `TraderStrategies` target boundary 表达 Trader-owned concrete strategy definitions。
 ///
-/// MTP-219 只允许当前 active concrete strategy 为 EMA。非 EMA strategy 只能作为 future
-/// candidate 或 historical evidence 出现，不能作为 active source root、target source root 或测试入口回流。
+/// MTP-228 只把 active target boundary anchor 从 `Sources/TargetGraph/TraderStrategies`
+/// 移到 `Sources/Trader/Strategies/EMA/TargetGraph`。当前 active concrete strategy 仍只能是 EMA；
+/// 非 EMA strategy 只能作为 future candidate 或 historical evidence 出现，不能作为 active
+/// source root、target source root 或测试入口回流。
 public struct TraderStrategiesTargetBoundary: Codable, Equatable, Sendable {
     public let targetName: String
     public let canonicalSourceRoot: String
@@ -31,7 +33,7 @@ public struct TraderStrategiesTargetBoundary: Codable, Equatable, Sendable {
     public init(
         targetName: String = "TraderStrategies",
         canonicalSourceRoot: String = "Sources/Trader/Strategies",
-        compiledBoundaryRoot: String = "Sources/TargetGraph/TraderStrategies",
+        compiledBoundaryRoot: String = "Sources/Trader/Strategies/EMA/TargetGraph",
         retainedCompatibilityEnvelope: String = "Core",
         domainModelBoundary: DomainModelTargetBoundary = .mtp217,
         messageBusBoundary: MessageBusTargetBoundary = .mtp217,
@@ -72,7 +74,7 @@ public struct TraderStrategiesTargetBoundary: Codable, Equatable, Sendable {
     public var dependencyDirectionHeld: Bool {
         targetName == "TraderStrategies"
             && canonicalSourceRoot == "Sources/Trader/Strategies"
-            && compiledBoundaryRoot == "Sources/TargetGraph/TraderStrategies"
+            && compiledBoundaryRoot == "Sources/Trader/Strategies/EMA/TargetGraph"
             && retainedCompatibilityEnvelope == "Core"
             && domainModelBoundary.boundaryHeld
             && messageBusBoundary.dependencyDirectionHeld
@@ -116,6 +118,7 @@ public struct TraderStrategiesTargetBoundary: Codable, Equatable, Sendable {
     public static let requiredValidationAnchors = [
         "MTP-219-TRADERSTRATEGIES-TARGET-SPLIT",
         "MTP-219-EMA-ONLY-ACTIVE-STRATEGY-BOUNDARY",
+        "MTP-228-TRADERSTRATEGIES-REAL-ROOT-TARGET-PATH",
         "MTP-219-NO-DIRECT-EXECUTION-GUARD"
     ]
 

@@ -6714,6 +6714,56 @@ MTP-222 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## MTP-228 Trader / Portfolio / Risk Targets Real Module Root Migration Validation
+
+MTP-228 必须运行：
+
+- `swift package describe`
+- `swift test --filter TargetGraphTests/testMTP228TraderPortfolioRiskTargetsUseRealModuleRootsAndRetireTargetGraphPathReferences`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-228 的验收要求：
+
+- `Package.swift` 中 `TraderStrategies` target path 必须为 `Sources/Trader/Strategies/EMA`，并且 explicit source 必须为 `TargetGraph/TraderStrategiesTargetBoundary.swift`。
+- `Package.swift` 中 `Trader` target path 必须为 `Sources/Trader`，并且 explicit source 必须为 `TargetGraph/TraderTargetBoundary.swift`。
+- `Package.swift` 中 `Portfolio` target path 必须为 `Sources/Portfolio`，并且 explicit source 必须为 `TargetGraph/PortfolioTargetBoundary.swift`。
+- `Package.swift` 中 `RiskEngine` target path 必须为 `Sources/RiskEngine`，并且 explicit source 必须为 `TargetGraph/RiskEngineTargetBoundary.swift`。
+- `Package.swift` 不得再包含 `path: "Sources/TargetGraph/TraderStrategies"`、`path: "Sources/TargetGraph/Trader"`、`path: "Sources/TargetGraph/Portfolio"` 或 `path: "Sources/TargetGraph/RiskEngine"`。
+- `Sources/Trader/Strategies/EMA/TargetGraph/TraderStrategiesTargetBoundary.swift`、`Sources/Trader/TargetGraph/TraderTargetBoundary.swift`、`Sources/Portfolio/TargetGraph/PortfolioTargetBoundary.swift` 和 `Sources/RiskEngine/TargetGraph/RiskEngineTargetBoundary.swift` 必须存在。
+- `Sources/TargetGraph/TraderStrategies/TraderStrategiesTargetBoundary.swift`、`Sources/TargetGraph/Trader/TraderTargetBoundary.swift`、`Sources/TargetGraph/Portfolio/PortfolioTargetBoundary.swift` 和 `Sources/TargetGraph/RiskEngine/RiskEngineTargetBoundary.swift` 必须不存在。
+- `TargetGraphTests` 必须包含 `testMTP228TraderPortfolioRiskTargetsUseRealModuleRootsAndRetireTargetGraphPathReferences`，验证 package target path、new boundary file location、retired TargetGraph path、`Trader = Accounts + Strategies/EMA + Coordination` 和 EMA-only active strategy。
+- `swift package describe` 不得输出 migrated Trader / Portfolio / Risk roots 的 unhandled-file warnings。
+- Dependency direction 必须保持 Portfolio、RiskEngine、TraderStrategies 和 Trader 的 MTP-219 / MTP-220 direction。
+- Compatibility envelope 必须保留：`Core` 继续编译 Trader Accounts / EMA / Coordination、Portfolio projection 和 RiskEngine pre-trade / live gate evidence implementation。
+- MTP-228 PR evidence 必须确认不迁移 execution / UI targets，不实现 Trader runtime、Strategy runtime、Live runtime、direct strategy-to-execution path、broker / OMS path 或 L4 capability。
+
+MTP-228 必须建立的主要 anchors：
+
+- `MTP-228-TRADER-PORTFOLIO-RISK-REAL-ROOT-TARGET-MIGRATION`
+- `MTP-228-TRADER-CONTAINER-DEPENDENCY-DIRECTION-PRESERVED`
+- `MTP-228-TARGETGRAPH-TRADER-PORTFOLIO-RISK-ACTIVE-PATH-RETIREMENT`
+- `MTP-228-TRADER-PORTFOLIO-RISK-REAL-ROOT-VALIDATION`
+- `MTP-228-TRADERSTRATEGIES-REAL-ROOT-TARGET-PATH`
+- `MTP-228-TRADER-REAL-ROOT-TARGET-PATH`
+- `MTP-228-PORTFOLIO-REAL-ROOT-TARGET-PATH`
+- `MTP-228-RISKENGINE-REAL-ROOT-TARGET-PATH`
+
+## MTP-228 禁止
+
+- 不迁移 ExecutionEngine、ExecutionClient、Workbench 或 Dashboard target paths。
+- 不新增非 EMA active strategy。
+- 不实现 Trader runtime、Strategy runtime 或 Live runtime。
+- 不实现 direct strategy-to-execution / broker / OMS path。
+- 不接 signed endpoint、account endpoint 或 listenKey。
+- 不实现 private stream runtime。
+- 不删除 `Sources/TargetGraph` 或退休非 Trader / Portfolio / Risk TargetGraph active paths。
+- 不新增、删除、重命名 SwiftPM target / product / dependency。
+- 不实现 ExecutionClient implementation、OMS implementation、broker gateway、account snapshot runtime、real account read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## MTP-227 Data Targets Real Module Root Migration Validation
 
 MTP-227 必须运行：

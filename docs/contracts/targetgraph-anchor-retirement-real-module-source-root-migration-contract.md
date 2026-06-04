@@ -271,3 +271,52 @@ MTP-227 required validation：
 - `bash checks/run.sh`
 - PR evidence 必须确认 data target paths no longer depend on `Sources/TargetGraph/DataClient`、`Sources/TargetGraph/Cache` or `Sources/TargetGraph/DataEngine`.
 - PR evidence 必须确认 no signed/account endpoint、no listenKey、no private stream runtime、no broker gateway、no Symphony、no Graphify、no code-index、no Figma、no `.codex/*`、no `graphify-out/*`。
+
+## MTP-228-TRADER-PORTFOLIO-RISK-REAL-ROOT-TARGET-MIGRATION
+
+MTP-228 只迁移 Trader / Portfolio / Risk target boundary anchors：
+
+| Target | Previous active target path | Current active target path | Current explicit sources | Retained compatibility owner |
+| --- | --- | --- | --- | --- |
+| `TraderStrategies` | `Sources/TargetGraph/TraderStrategies` | `Sources/Trader/Strategies/EMA` | `TargetGraph/TraderStrategiesTargetBoundary.swift` | `Core` continues compiling EMA strategy implementation. |
+| `Trader` | `Sources/TargetGraph/Trader` | `Sources/Trader` | `TargetGraph/TraderTargetBoundary.swift` | `Core` continues compiling Accounts / Strategies / Coordination implementation. |
+| `Portfolio` | `Sources/TargetGraph/Portfolio` | `Sources/Portfolio` | `TargetGraph/PortfolioTargetBoundary.swift` | `Core` continues compiling paper portfolio projection implementation. |
+| `RiskEngine` | `Sources/TargetGraph/RiskEngine` | `Sources/RiskEngine` | `TargetGraph/RiskEngineTargetBoundary.swift` | `Core` continues compiling pre-trade / live gate evidence implementation. |
+
+MTP-228 intentionally keeps `sources` explicit so the newly migrated targets do not overlap with retained compatibility envelopes. `Core` excludes `Trader/Strategies/EMA/TargetGraph`、`Trader/TargetGraph`、`Portfolio/TargetGraph` 和 `RiskEngine/TargetGraph`.
+
+## MTP-228-TRADER-CONTAINER-DEPENDENCY-DIRECTION-PRESERVED
+
+MTP-228 preserves the Trader / Portfolio / Risk dependency direction:
+
+```text
+Portfolio -> DomainModel / MessageBus / Cache / Database
+RiskEngine -> DomainModel / MessageBus / Cache / Portfolio
+TraderStrategies -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine
+Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine / ExecutionEngine
+```
+
+`Trader = Accounts + Strategies/EMA + Coordination` remains the authority, and EMA remains the only active concrete strategy. MTP-228 does not migrate ExecutionEngine、ExecutionClient、Workbench or Dashboard. It does not add Trader runtime, Strategy runtime, Live runtime, direct strategy-to-execution path, broker / OMS path, signed endpoint, account endpoint, listenKey, private stream runtime or L4 capability.
+
+## MTP-228-TARGETGRAPH-TRADER-PORTFOLIO-RISK-ACTIVE-PATH-RETIREMENT
+
+After MTP-228, these active Trader / Portfolio / Risk files must not exist:
+
+- `Sources/TargetGraph/TraderStrategies/TraderStrategiesTargetBoundary.swift`
+- `Sources/TargetGraph/Trader/TraderTargetBoundary.swift`
+- `Sources/TargetGraph/Portfolio/PortfolioTargetBoundary.swift`
+- `Sources/TargetGraph/RiskEngine/RiskEngineTargetBoundary.swift`
+
+The remaining `Sources/TargetGraph/*` active paths are for later MTP-229 through MTP-231 issues only. MTP-228 does not delete `Sources/TargetGraph` and does not retire execution / UI TargetGraph paths.
+
+## MTP-228-TRADER-PORTFOLIO-RISK-REAL-ROOT-VALIDATION
+
+MTP-228 required validation：
+
+- `swift package describe` must not emit unhandled-file warnings for the migrated Trader / Portfolio / Risk target roots.
+- `swift test --filter TargetGraphTests/testMTP228TraderPortfolioRiskTargetsUseRealModuleRootsAndRetireTargetGraphPathReferences`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+- PR evidence 必须确认 Trader / TraderStrategies / Portfolio / RiskEngine target paths no longer depend on `Sources/TargetGraph/<Module>`.
+- PR evidence 必须确认 EMA-only active strategy、no direct strategy-to-execution / broker path、no Trader runtime、no Strategy runtime、no Symphony、no Graphify、no code-index、no Figma、no `.codex/*`、no `graphify-out/*`。
