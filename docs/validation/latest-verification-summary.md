@@ -1739,6 +1739,40 @@ MTP-232-STAGE-CLOSEOUT-VALIDATION 的本地验证已通过：`git diff --check` 
 - 后续 PR 已通过 portable module、platform gating 或 macOS 本地验证覆盖修复。
 - 当前 main 没有遗留 failing PR run；最终状态以 GitHub required check `checks` 和 `bash checks/run.sh` 为准。
 
+## 2026-06-05 — Architecture Graph Completion Review / L4 Readiness Planning docs-only planning record
+
+执行者：Codex
+
+范围：
+
+- 将 Human 确认的 `MTPRO Architecture Graph Completion Review / L4 Readiness Planning v1` planning draft 落仓为 docs-only Project Planning Record。
+- 新增 `docs/planning/projects/mtpro-architecture-graph-completion-review-l4-readiness-planning-v1-plan.md`。
+- 更新 `docs/planning/linear-draft-plan.md`，把 `MTPRO TargetGraph Anchor Retirement / Real Module Source Root Migration v1` 标记为 historical completed planning evidence，并新增当前 architecture completion review docs-only / non-executable planning record 入口。
+- 记录当前 active UI 口径为 `Dashboard read-model-only boundary`，旧 `Workbench` / `AppCompatibility` 只允许作为 retired / historical evidence。
+- 记录 `Core / Adapters / Persistence / Runtime` 仍为 retained compatibility envelope，是 L4 readiness review 的重点审计对象。
+
+边界：
+
+- 这不是 Project closure。
+- 不更新 `Project Closure Count`。
+- 不更新 `Final Product Goal Progress`。
+- 不更新旧 `Engine Maturity Roadmap Progress`。
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify / code-index。
+- 不修改 Figma。
+- 不写业务代码。
+- 不修改 `Package.swift`。
+- 不移动 `Sources`。
+- 不拆 SwiftPM target graph。
+- 不执行 `TargetGraph` 命名清理。
+- 不实现 Trader runtime、Strategy runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
+后续执行必须经 Linear 写入和 Parent Codex queue preflight；first executable issue candidate 不构成执行授权。
+
 ## 下一步
 
 Next Handoff：Human + `@001 / PLN`
