@@ -2,9 +2,9 @@ import DomainModel
 
 /// `MessageBus` target boundary 只允许依赖 `DomainModel`。
 ///
-/// 现有 `Sources/MessageBus/` 仍含 paper routing 和上层 evidence 类型，MTP-217
-/// 不把这些高耦合文件强行搬入新 target；本锚点先建立可编译依赖方向，后续 issue
-/// 再按合同退休兼容 envelope。
+/// MTP-226 只把 active target boundary anchor 从 `Sources/TargetGraph/MessageBus`
+/// 移到 `Sources/MessageBus/TargetGraph`，不把 paper routing / 上层 evidence 类型
+/// 强行并入 `MessageBus` target implementation，也不改变当前 `Core` compatibility envelope。
 public struct MessageBusTargetBoundary: Codable, Equatable, Sendable {
     public let targetName: String
     public let canonicalSourceRoot: String
@@ -19,7 +19,7 @@ public struct MessageBusTargetBoundary: Codable, Equatable, Sendable {
     public init(
         targetName: String = "MessageBus",
         canonicalSourceRoot: String = "Sources/MessageBus",
-        compiledBoundaryRoot: String = "Sources/TargetGraph/MessageBus",
+        compiledBoundaryRoot: String = "Sources/MessageBus/TargetGraph",
         retainedCompatibilityEnvelope: String = "Core",
         domainModelBoundary: DomainModelTargetBoundary = .mtp217,
         allowedDependencies: [String] = ["DomainModel"],
@@ -42,7 +42,7 @@ public struct MessageBusTargetBoundary: Codable, Equatable, Sendable {
     public var dependencyDirectionHeld: Bool {
         targetName == "MessageBus"
             && canonicalSourceRoot == "Sources/MessageBus"
-            && compiledBoundaryRoot == "Sources/TargetGraph/MessageBus"
+            && compiledBoundaryRoot == "Sources/MessageBus/TargetGraph"
             && retainedCompatibilityEnvelope == "Core"
             && domainModelBoundary.boundaryHeld
             && allowedDependencies == ["DomainModel"]
@@ -68,6 +68,7 @@ public struct MessageBusTargetBoundary: Codable, Equatable, Sendable {
     public static let requiredValidationAnchors = [
         "MTP-217-MESSAGEBUS-TARGET-SPLIT",
         "MTP-217-FOUNDATION-DEPENDENCY-DIRECTION",
+        "MTP-226-MESSAGEBUS-REAL-ROOT-TARGET-PATH",
         "MTP-217-NO-RUNTIME-LIVE-BROKER-L4-GUARD"
     ]
 

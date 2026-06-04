@@ -33,12 +33,29 @@ let package = Package(
     targets: [
         .target(
             name: "DomainModel",
-            path: "Sources/TargetGraph/DomainModel"
+            path: "Sources/DomainModel",
+            exclude: [
+                "CoreBaseline.swift",
+                "MarketDataModels.swift",
+                "MarketPrimitives.swift"
+            ],
+            sources: [
+                "TargetGraph/DomainModelTargetBoundary.swift"
+            ]
         ),
         .target(
             name: "MessageBus",
             dependencies: ["DomainModel"],
-            path: "Sources/TargetGraph/MessageBus"
+            path: "Sources/MessageBus",
+            exclude: [
+                "CommandsAndQueries.swift",
+                "DomainEvents.swift",
+                "EventLog.swift",
+                "PaperRuntimeBusRouting.swift"
+            ],
+            sources: [
+                "TargetGraph/MessageBusTargetBoundary.swift"
+            ]
         ),
         .target(
             name: "Database",
@@ -52,7 +69,14 @@ let package = Package(
                     condition: .when(platforms: [.macOS])
                 )
             ],
-            path: "Sources/TargetGraph/Database"
+            path: "Sources/Database",
+            exclude: [
+                "Projections",
+                "ReplayProjection"
+            ],
+            sources: [
+                "TargetGraph/DatabaseTargetBoundary.swift"
+            ]
         ),
         .target(
             name: "DataClient",
@@ -140,6 +164,8 @@ let package = Package(
                 "DataClient",
                 "DataEngine/Ingest",
                 "Database",
+                "DomainModel/TargetGraph",
+                "MessageBus/TargetGraph",
                 "TargetGraph",
                 "Workbench"
             ],
@@ -192,7 +218,8 @@ let package = Package(
             ],
             path: "Sources/Database",
             exclude: [
-                "ReplayProjection"
+                "ReplayProjection",
+                "TargetGraph"
             ],
             sources: [
                 "Projections/SQLite/Persistence.swift",
@@ -212,6 +239,7 @@ let package = Package(
                 "DataEngine/ScenarioReplay",
                 "DataEngine/DataQuality",
                 "Database/Projections",
+                "Database/TargetGraph",
                 "DomainModel",
                 "MessageBus",
                 "Portfolio",

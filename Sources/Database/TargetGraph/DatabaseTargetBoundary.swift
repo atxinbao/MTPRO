@@ -3,10 +3,10 @@ import MessageBus
 
 /// `Database` target boundary 建立 foundation persistence target 的 SwiftPM 依赖方向。
 ///
-/// 当前 SQLite / DuckDB projection 实现仍由 `Persistence` compatibility envelope 编译，
-/// 因为旧 projection 文件还引用高层 paper / portfolio / strategy evidence types。MTP-217
-/// 只建立 `Database -> DomainModel / MessageBus / CSQLite / DuckDB(macOS)` 的可构建 target
-/// 边界，并明确禁止 UI、Trader、broker、account payload 或 live runtime 进入 Database。
+/// MTP-226 只把 active target boundary anchor 从 `Sources/TargetGraph/Database`
+/// 移到 `Sources/Database/TargetGraph`。SQLite / DuckDB projection implementation 仍由
+/// `Persistence` compatibility envelope 编译，replay projection 仍由 `Runtime` 编译；
+/// 当前 issue 不改变 persistence behavior，也不暴露 UI、Trader、broker、account payload 或 live runtime。
 public struct DatabaseTargetBoundary: Codable, Equatable, Sendable {
     public let targetName: String
     public let canonicalSourceRoot: String
@@ -24,7 +24,7 @@ public struct DatabaseTargetBoundary: Codable, Equatable, Sendable {
     public init(
         targetName: String = "Database",
         canonicalSourceRoot: String = "Sources/Database",
-        compiledBoundaryRoot: String = "Sources/TargetGraph/Database",
+        compiledBoundaryRoot: String = "Sources/Database/TargetGraph",
         retainedCompatibilityEnvelope: String = "Persistence",
         domainModelBoundary: DomainModelTargetBoundary = .mtp217,
         messageBusBoundary: MessageBusTargetBoundary = .mtp217,
@@ -53,7 +53,7 @@ public struct DatabaseTargetBoundary: Codable, Equatable, Sendable {
     public var dependencyDirectionHeld: Bool {
         targetName == "Database"
             && canonicalSourceRoot == "Sources/Database"
-            && compiledBoundaryRoot == "Sources/TargetGraph/Database"
+            && compiledBoundaryRoot == "Sources/Database/TargetGraph"
             && retainedCompatibilityEnvelope == "Persistence"
             && domainModelBoundary.boundaryHeld
             && messageBusBoundary.dependencyDirectionHeld
@@ -92,6 +92,7 @@ public struct DatabaseTargetBoundary: Codable, Equatable, Sendable {
         "MTP-217-DATABASE-TARGET-SPLIT",
         "MTP-217-FOUNDATION-DEPENDENCY-DIRECTION",
         "MTP-217-DATABASE-COMPATIBILITY-ENVELOPE-RETAINED",
+        "MTP-226-DATABASE-REAL-ROOT-TARGET-PATH",
         "MTP-217-NO-RUNTIME-LIVE-BROKER-L4-GUARD"
     ]
 

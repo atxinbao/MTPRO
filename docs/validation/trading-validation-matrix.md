@@ -863,6 +863,12 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | --- | --- | --- |
 | `MTP-225` | `TVM-TARGETGRAPH-ANCHOR-RETIREMENT-REAL-MODULE-SOURCE-ROOT-MIGRATION` | 新增 `docs/audit/inputs/mtpro-targetgraph-anchor-retirement-real-module-source-root-migration-v1-mtp-225-audit.md`，审计当前 `Sources/TargetGraph/*` active boundary anchors、真实 module source roots、`Package.swift` active target paths / dependencies 和 `Tests/TargetGraphTests` coverage。MTP-225 证明 12 个 `Sources/TargetGraph/<Module>/<Module>TargetBoundary.swift` files 仍是 transitional compile anchor / historical evidence；真实 roots 已存在但仍由 `Core`、`Adapters`、`Persistence`、`Runtime`、`Workbench` 或 `Dashboard` compatibility envelope / target 编译；TargetGraphTests 当前证明 target boundary contracts，不证明 real source root ownership。MTP-225 不修改 `Package.swift`，不移动 production source 或 tests，不新增 SwiftPM target/product/dependency，不退休 active `Sources/TargetGraph/*` path references，不修复 production code，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed/account endpoint、private stream runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。 |
 
+## MTP-226 issue backfill
+
+| Issue | Matrix ID | Evidence |
+| --- | --- | --- |
+| `MTP-226` | `TVM-TARGETGRAPH-ANCHOR-RETIREMENT-REAL-MODULE-SOURCE-ROOT-MIGRATION` | MTP-226 把 foundation targets `DomainModel`、`MessageBus` 和 `Database` 从 `Sources/TargetGraph/<Module>` active target paths 迁到真实 module roots：`Sources/DomainModel`、`Sources/MessageBus` 和 `Sources/Database`。三者只显式编译 real root 下的 `TargetGraph/*TargetBoundary.swift` boundary anchors，避免与 retained compatibility envelopes source overlap；`Core` 继续编译 DomainModel / MessageBus implementation source，`Persistence` 继续编译 Database projections，`Runtime` 继续编译 Database replay projection。`Tests/TargetGraphTests/TargetGraphTests.swift` 新增 `testMTP226FoundationTargetsUseRealModuleRootsAndRetireTargetGraphPathReferences` 验证 new target paths、new boundary file locations、old foundation TargetGraph paths absent 和 dependency direction preserved。MTP-226 不迁移 data / trader / execution / UI targets，不删除 `Sources/TargetGraph`，不改变 persistence behavior，不实现 runtime / live / broker / L4 capability，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。 |
+
 ## MTP-190 Target Module Source Migration 阶段收口
 
 日期：2026-06-01
