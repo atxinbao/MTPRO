@@ -562,3 +562,37 @@ MTP-223 required validation：
 - `git diff --check`
 - `bash checks/automation-readiness.sh`
 - `bash checks/run.sh`
+
+## MTP-224 TargetGraph Anchor Retirement / Real Module Source Root Migration Contract
+
+日期：2026-06-04
+
+执行者：Codex
+
+`MTP-224-TARGETGRAPH-RETIREMENT-CONTRACT`
+
+MTP-224 将 `Sources/TargetGraph` 固定为 transitional compile anchor / historical evidence。它当前仍承载 MTP-217 至 MTP-221 已建立的 SwiftPM target boundary anchors，但不是最终架构模块、不是长期 source ownership、不是新的 engine layer，也不是未来 feature landing path。Canonical MTP-224 contract 位于 `docs/contracts/targetgraph-anchor-retirement-real-module-source-root-migration-contract.md`。
+
+`MTP-224-REAL-MODULE-SOURCE-ROOT-TARGET`
+
+后续 active target path 的目标落点必须迁回真实模块 source roots：`Sources/DomainModel/`、`Sources/MessageBus/`、`Sources/Database/`、`Sources/DataClient/`、`Sources/DataEngine/`、`Sources/Cache/`、`Sources/Portfolio/`、`Sources/RiskEngine/`、`Sources/ExecutionClient/`、`Sources/ExecutionEngine/`、`Sources/Trader/Strategies/EMA/`、`Sources/Trader/Accounts/`、`Sources/Trader/Coordination/`、`Sources/Workbench/` 和 `Sources/Dashboard/`。当前 active concrete strategy only `EMA`；后续多个策略只能进入 `Sources/Trader/Strategies/<strategy>/`。
+
+`MTP-224-MIGRATION-SEQUENCE-COMPATIBILITY-RULE`
+
+后续迁移顺序固定为 MTP-225 audit、MTP-226 foundation、MTP-227 data、MTP-228 trader / portfolio / risk、MTP-229 execution future gate、MTP-230 Workbench / Dashboard、MTP-231 TargetGraph active path retirement、MTP-232 validation / compatibility / stage audit input closeout。每一步必须由 Linear live issue 单独授权，保持 WIP=1，并保留已授权 compatibility envelope，直到对应 issue 允许退休。
+
+`MTP-224-DEPENDENCY-DIRECTION-AND-FORBIDDEN-PATH-TAXONOMY`
+
+真实 module source root 迁移必须保持 MTP-222 current target graph direction，不得打开 `DataClient -> signed/account/listenKey/private runtime`、`TraderStrategies -> ExecutionClient / broker / OMS`、`Trader -> ExecutionClient`、`RiskEngine -> broker / ExecutionClient`、`ExecutionEngine -> current OMS / broker adapter`、`ExecutionClient -> signed request / real order lifecycle`、`Workbench -> Runtime object / Adapter request / Database schema / broker payload / account payload` 或 `Dashboard -> anything except Workbench`。
+
+`MTP-224-NO-PACKAGE-SOURCE-MOVE-RUNTIME-GUARD`
+
+MTP-224 不修改 `Package.swift`，不移动 production source 或 tests，不新增/删除/重命名 SwiftPM target/product/dependency，不退休 active `Sources/TargetGraph/*` path references，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real account read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability；不启动 Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+`MTP-224-VALIDATION-ANCHORS`
+
+MTP-224 required validation：
+
+- `git diff --check`
+- `bash checks/run.sh`
+- PR evidence 确认 `Package.swift` 无 diff、未移动 `Sources` 文件、docs 明确 `Sources/TargetGraph` 只是 transitional compile anchor / historical evidence，且 docs 不授权 `Package.swift` change、source move、target split、runtime、live、broker、L4 capability、Symphony、Graphify、code-index 或 Figma。
