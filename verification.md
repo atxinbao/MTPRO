@@ -13887,3 +13887,39 @@ PersistenceTests/testFileEventLogStoreRejectsOutOfOrderAppendToProtectAppendOnly
 
 - `git diff --check`：pass，无输出。
 - `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 正常，315 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
+## 2026-06-04 — MTPRO SwiftPM Target Graph Module Split v1 Project closure
+
+执行者：Parent Codex / Codex
+
+范围：
+
+- 完成 `MTPRO SwiftPM Target Graph Module Split v1` Project closure flow 的 Stage Code Audit 和 Root Docs Refresh Gate。
+- 确认 Linear Project `Completed/type=completed`，completedAt `2026-06-03T23:42:28.499Z`。
+- 新增 `docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md`。
+- 汇总 `MTP-216` 至 `MTP-223` 的 issue / PR / merge / required check / Linear Done evidence。
+- 确认末端 issue PR #359 merge commit `785c26d0d0dd4db835fbb5a340cb18359a40e52b`。
+- 确认 Stage Code Audit PR #360 merge commit `abb8c99dd3ec733a595082ee33461bdb84b6bba9`。
+- Project Closure Count 更新为 `28 / 28 (100%)`；Final Product Goal Progress 保持 `9 / 9 (100%)`；Engine Maturity Roadmap Progress 保持 `4 / 4 (100%)`。
+- 当前成熟度结论更新为 `SwiftPM Target Graph Module Split before L4 complete`。
+
+边界：
+
+- 不创建下一 Linear Project / Issue。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify 或 code-index。
+- 不修改 Figma。
+- 不实现 Strategy runtime、Trader runtime 或 Live runtime。
+- 不实现 ExecutionClient implementation、OMS implementation 或 broker gateway。
+- 不接 signed endpoint、account endpoint / listenKey 或 private WebSocket runtime。
+- 不实现 real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command 或 order form。
+- 不授权 L4 capability。
+- `.codex/*` 和 `graphify-out/*` 不进入 PR。
+
+验证：
+
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 正常，325 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
