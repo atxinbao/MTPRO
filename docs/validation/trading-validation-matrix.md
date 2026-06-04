@@ -887,6 +887,12 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | --- | --- | --- |
 | `MTP-229` | `TVM-TARGETGRAPH-ANCHOR-RETIREMENT-REAL-MODULE-SOURCE-ROOT-MIGRATION` | MTP-229 把 execution targets `ExecutionClient` 和 `ExecutionEngine` 从 `Sources/TargetGraph/<Module>` active target paths 迁到真实 module roots：`Sources/ExecutionClient` 和 `Sources/ExecutionEngine`。两者只显式编译 real root 下的 `TargetGraph/*TargetBoundary.swift` boundary anchors，避免与 retained `Core` compatibility envelope source overlap；`Core` 继续编译 ExecutionClient FutureGate / BrokerCapabilityMatrix 和 ExecutionEngine paper lifecycle / simulated exchange / OMS future gate evidence。`Tests/TargetGraphTests/TargetGraphTests.swift` 新增 `testMTP229ExecutionTargetsUseRealModuleRootsAndRetireTargetGraphPathReferences` 验证 new target paths、new boundary file locations、old execution TargetGraph paths absent、ExecutionClient future gate 和 no real order lifecycle。MTP-229 不迁移 Workbench / Dashboard targets，不删除 `Sources/TargetGraph`，不实现 ExecutionClient implementation、OMS implementation、broker gateway、signed/account/listenKey/private stream、real order lifecycle、live command、runtime / live / L4 capability，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。 |
 
+## MTP-230 issue backfill
+
+| Issue | Matrix ID | Evidence |
+| --- | --- | --- |
+| `MTP-230` | `TVM-TARGETGRAPH-ANCHOR-RETIREMENT-REAL-MODULE-SOURCE-ROOT-MIGRATION` | MTP-230 把 Workbench / Dashboard UI targets 收口到真实 module roots：`Workbench` target 使用 `path: "Sources/Workbench"` 并显式编译 `ReadModels`、`Report`、`Dashboard`、`Events`、`FutureLiveProConsole` 和 `TargetGraph`；`Dashboard` executable target 使用 `path: "Sources/Dashboard"` 并只显式编译 `DashboardApplication.swift` 和 `DashboardTargetBoundary.swift`。`DashboardShell.swift` 从 mixed `Sources/Dashboard` path 迁到 `Sources/Workbench/Dashboard/DashboardShell.swift`，因为该 shell snapshot 由 Workbench 编译并通过 read-model-only / ViewModel surface 输出给 Dashboard。`Tests/TargetGraphTests/TargetGraphTests.swift` 新增 `testMTP230WorkbenchDashboardTargetsUseRealModuleRootsAndRetireMixedShellPath` 验证 target paths、new shell location、retired mixed shell path、no runtime object 和 no live command boundary。MTP-230 不读取 Runtime object、Adapter request、schema、account payload、broker payload 或 broker state，不实现 Workbench runtime、Dashboard runtime inspector、Live PRO Console、trading button、live command、order form、runtime / live / L4 capability，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。 |
+
 ## MTP-190 Target Module Source Migration 阶段收口
 
 日期：2026-06-01

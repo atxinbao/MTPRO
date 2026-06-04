@@ -192,33 +192,14 @@ let package = Package(
         .target(
             name: "Workbench",
             dependencies: ["Core", "Persistence"],
-            path: "Sources",
-            exclude: [
-                "AppCompatibility",
-                "Cache",
-                "Core",
-                "DataClient",
-                "DataEngine",
-                "Database",
-                "DomainModel",
-                "MessageBus",
-                "Portfolio",
-                "RiskEngine",
-                "ExecutionEngine",
-                "ExecutionClient",
-                "TargetGraph",
-                "Trader",
-                "Dashboard/DashboardApplication.swift",
-                "Dashboard/DashboardTargetBoundary.swift"
-            ],
+            path: "Sources/Workbench",
             sources: [
-                "Workbench/ReadModels",
-                "Workbench/Report",
-                "Workbench/Dashboard",
-                "Workbench/Events",
-                "Workbench/FutureLiveProConsole",
-                "Workbench/TargetGraph",
-                "Dashboard/DashboardShell.swift"
+                "ReadModels",
+                "Report",
+                "Dashboard",
+                "Events",
+                "FutureLiveProConsole",
+                "TargetGraph"
             ]
         ),
         .target(
@@ -238,7 +219,6 @@ let package = Package(
                 "MessageBus/TargetGraph",
                 "Portfolio/TargetGraph",
                 "RiskEngine/TargetGraph",
-                "TargetGraph",
                 "Trader/Strategies/EMA/TargetGraph",
                 "Trader/TargetGraph",
                 "Workbench"
@@ -324,7 +304,6 @@ let package = Package(
                 "RiskEngine",
                 "ExecutionEngine",
                 "ExecutionClient",
-                "TargetGraph",
                 "Trader",
                 "Workbench"
             ],
@@ -342,9 +321,6 @@ let package = Package(
             name: "Dashboard",
             dependencies: ["Workbench"],
             path: "Sources/Dashboard",
-            exclude: [
-                "DashboardShell.swift"
-            ],
             sources: [
                 "DashboardApplication.swift",
                 "DashboardTargetBoundary.swift"

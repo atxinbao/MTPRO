@@ -363,3 +363,54 @@ MTP-229 required validation：
 - `bash checks/run.sh`
 - PR evidence 必须确认 ExecutionClient / ExecutionEngine target paths no longer depend on `Sources/TargetGraph/<Module>`.
 - PR evidence 必须确认 no ExecutionClient implementation、no OMS implementation、no broker gateway、no real order lifecycle、no live command、no Symphony、no Graphify、no code-index、no Figma、no `.codex/*`、no `graphify-out/*`。
+
+## MTP-230-WORKBENCH-DASHBOARD-REAL-ROOT-TARGET-MIGRATION
+
+MTP-230 只迁移 Workbench / Dashboard UI target boundaries：
+
+| Target | Previous active compiler shape | Real module root | Active source anchor after MTP-230 | Retained compatibility |
+| --- | --- | --- | --- | --- |
+| `Workbench` | `path: "Sources"` with explicit `Workbench/*` sources plus `Dashboard/DashboardShell.swift` | `Sources/Workbench` | `ReadModels`、`Report`、`Dashboard`、`Events`、`FutureLiveProConsole`、`TargetGraph` | `App` remains a compatibility re-export depending on `Workbench`. |
+| `Dashboard` | `Sources/Dashboard` executable excluding `DashboardShell.swift` | `Sources/Dashboard` | `DashboardApplication.swift`、`DashboardTargetBoundary.swift` | `Dashboard` continues depending only on `Workbench`. |
+
+MTP-230 将 `DashboardShell.swift` 移入 `Sources/Workbench/Dashboard/DashboardShell.swift`，因为该 shell snapshot 由 `Workbench` target 编译并输出只读 `DashboardViewModel` / `DashboardShellSnapshot` display API。`Sources/Dashboard` 只保留 executable entry 和 target boundary，不拥有 read model、projection snapshot 或 command-capable UI surface。
+
+## MTP-230-UI-READ-MODEL-ONLY-DEPENDENCY-DIRECTION-PRESERVED
+
+MTP-230 preserves the UI dependency direction:
+
+```text
+Workbench -> Core / Persistence read-model and ViewModel exports only
+App -> Workbench compatibility re-export
+Dashboard -> Workbench
+```
+
+Workbench / Dashboard 继续只消费 read model / ViewModel / projection snapshot。MTP-230 不读取 Runtime object、Adapter request、SQLite / DuckDB schema、account payload、broker payload 或 broker state，不新增 Live PRO Console、trading button、live command、order form、Dashboard runtime inspector、broker connect UI、account connect UI 或 L4 capability。
+
+## MTP-230-TARGETGRAPH-UI-MIXED-PATH-RETIREMENT
+
+After MTP-230, this mixed UI path must not remain active:
+
+- `Sources/Dashboard/DashboardShell.swift`
+
+The active Workbench boundary file remains under the real Workbench root:
+
+- `Sources/Workbench/TargetGraph/WorkbenchTargetBoundary.swift`
+
+The active Dashboard boundary file remains under the real Dashboard root:
+
+- `Sources/Dashboard/DashboardTargetBoundary.swift`
+
+MTP-230 does not delete `Sources/TargetGraph` as a historical term from older evidence and does not perform final TargetGraph active path retirement. MTP-231 remains responsible for final active path reference retirement and validation anchor cleanup.
+
+## MTP-230-WORKBENCH-DASHBOARD-REAL-ROOT-VALIDATION
+
+MTP-230 required validation：
+
+- `swift package describe` must not emit unhandled-file warnings for Workbench / Dashboard roots.
+- `swift test --filter TargetGraphTests/testMTP230WorkbenchDashboardTargetsUseRealModuleRootsAndRetireMixedShellPath`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+- PR evidence 必须确认 Workbench target path 使用 `Sources/Workbench`，Dashboard executable target path 使用 `Sources/Dashboard`，`DashboardShell.swift` active owner 是 `Sources/Workbench/Dashboard`。
+- PR evidence 必须确认 no runtime object、no adapter request、no schema / payload / broker state exposure、no Live PRO Console、no trading button、no live command、no order form、no Symphony、no Graphify、no code-index、no Figma、no `.codex/*`、no `graphify-out/*`。

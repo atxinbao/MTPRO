@@ -3,6 +3,8 @@ import Foundation
 /// `Workbench` target boundary 表达 App read-model / ViewModel consumption layer。
 ///
 /// MTP-221 只把 Workbench 拆为可构建 target，并保留 `App` compatibility export。
+/// MTP-230 将 Workbench target path 收口到 `Sources/Workbench`，使 UI 只读 shell
+/// 与 Workbench 编译归属位于同一真实模块 root。
 /// Workbench 可以消费 Core / Persistence 导出的稳定 read model 和 projection snapshot，
 /// 但不能直接读取 Runtime object、Adapter request、SQLite / DuckDB schema、account payload、
 /// broker state，也不能提供 Live PRO Console、trading button、live command 或 order form。
@@ -94,7 +96,7 @@ public struct WorkbenchTargetBoundary: Codable, Equatable, Sendable {
         "Sources/Workbench/Dashboard",
         "Sources/Workbench/Events",
         "Sources/Workbench/FutureLiveProConsole",
-        "Sources/Dashboard/DashboardShell.swift"
+        "Sources/Workbench/TargetGraph"
     ]
 
     public static let requiredCompiledSourceRoots = requiredCanonicalSourceRoots
@@ -127,8 +129,11 @@ public struct WorkbenchTargetBoundary: Codable, Equatable, Sendable {
     public static let requiredValidationAnchors = [
         "MTP-221-WORKBENCH-TARGET-SPLIT",
         "MTP-221-READ-MODEL-VIEWMODEL-ONLY",
-        "MTP-221-NO-UI-COMMAND-RUNTIME-SCHEMA-GUARD"
+        "MTP-221-NO-UI-COMMAND-RUNTIME-SCHEMA-GUARD",
+        "MTP-230-WORKBENCH-REAL-ROOT-TARGET-PATH",
+        "MTP-230-WORKBENCH-READ-MODEL-ONLY-ROOT"
     ]
 
     public static let mtp221 = WorkbenchTargetBoundary()
+    public static let mtp230 = WorkbenchTargetBoundary()
 }
