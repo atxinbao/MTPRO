@@ -8,8 +8,10 @@ import TraderStrategies
 
 /// `Trader` target boundary 表达 Accounts + Strategies/EMA + Coordination 的组合容器。
 ///
-/// MTP-220 解析了 MTP-219 延后的 `Trader -> ExecutionEngine` dependency，但 Trader
-/// 仍不是 live coordinator、broker gateway 或 direct ExecutionClient caller。
+/// MTP-228 只把 active target boundary anchor 从 `Sources/TargetGraph/Trader`
+/// 移到 `Sources/Trader/TargetGraph`。MTP-220 解析了 MTP-219 延后的
+/// `Trader -> ExecutionEngine` dependency，但 Trader 仍不是 live coordinator、
+/// broker gateway 或 direct ExecutionClient caller。
 public struct TraderTargetBoundary: Codable, Equatable, Sendable {
     public let targetName: String
     public let canonicalSourceRoot: String
@@ -39,7 +41,7 @@ public struct TraderTargetBoundary: Codable, Equatable, Sendable {
     public init(
         targetName: String = "Trader",
         canonicalSourceRoot: String = "Sources/Trader",
-        compiledBoundaryRoot: String = "Sources/TargetGraph/Trader",
+        compiledBoundaryRoot: String = "Sources/Trader/TargetGraph",
         retainedCompatibilityEnvelope: String = "Core",
         domainModelBoundary: DomainModelTargetBoundary = .mtp217,
         messageBusBoundary: MessageBusTargetBoundary = .mtp217,
@@ -92,7 +94,7 @@ public struct TraderTargetBoundary: Codable, Equatable, Sendable {
     public var dependencyDirectionHeld: Bool {
         targetName == "Trader"
             && canonicalSourceRoot == "Sources/Trader"
-            && compiledBoundaryRoot == "Sources/TargetGraph/Trader"
+            && compiledBoundaryRoot == "Sources/Trader/TargetGraph"
             && retainedCompatibilityEnvelope == "Core"
             && domainModelBoundary.boundaryHeld
             && messageBusBoundary.dependencyDirectionHeld
@@ -145,6 +147,7 @@ public struct TraderTargetBoundary: Codable, Equatable, Sendable {
         "MTP-219-TRADER-TARGET-SPLIT",
         "MTP-219-TRADER-CONTAINER-ACCOUNTS-EMA-COORDINATION",
         "MTP-220-TRADER-EXECUTIONENGINE-DEPENDENCY-RESOLVED",
+        "MTP-228-TRADER-REAL-ROOT-TARGET-PATH",
         "MTP-219-NO-DIRECT-EXECUTION-GUARD"
     ]
 

@@ -5077,16 +5077,25 @@ require_contains "Package.swift" 'name: "Portfolio"'
 require_contains "Package.swift" 'name: "RiskEngine"'
 require_contains "Package.swift" 'name: "TraderStrategies"'
 require_contains "Package.swift" 'name: "Trader"'
-require_file "Sources/TargetGraph/Portfolio/PortfolioTargetBoundary.swift"
-require_file "Sources/TargetGraph/RiskEngine/RiskEngineTargetBoundary.swift"
-require_file "Sources/TargetGraph/TraderStrategies/TraderStrategiesTargetBoundary.swift"
-require_file "Sources/TargetGraph/Trader/TraderTargetBoundary.swift"
-require_contains "Sources/TargetGraph/Portfolio/PortfolioTargetBoundary.swift" "MTP-219-PORTFOLIO-TARGET-SPLIT"
-require_contains "Sources/TargetGraph/RiskEngine/RiskEngineTargetBoundary.swift" "MTP-219-RISKENGINE-TARGET-SPLIT"
-require_contains "Sources/TargetGraph/TraderStrategies/TraderStrategiesTargetBoundary.swift" "MTP-219-TRADERSTRATEGIES-TARGET-SPLIT"
-require_contains "Sources/TargetGraph/Trader/TraderTargetBoundary.swift" "MTP-219-TRADER-TARGET-SPLIT"
+require_file "Sources/Portfolio/TargetGraph/PortfolioTargetBoundary.swift"
+require_file "Sources/RiskEngine/TargetGraph/RiskEngineTargetBoundary.swift"
+require_file "Sources/Trader/Strategies/EMA/TargetGraph/TraderStrategiesTargetBoundary.swift"
+require_file "Sources/Trader/TargetGraph/TraderTargetBoundary.swift"
+require_missing_path "Sources/TargetGraph/Portfolio/PortfolioTargetBoundary.swift"
+require_missing_path "Sources/TargetGraph/RiskEngine/RiskEngineTargetBoundary.swift"
+require_missing_path "Sources/TargetGraph/TraderStrategies/TraderStrategiesTargetBoundary.swift"
+require_missing_path "Sources/TargetGraph/Trader/TraderTargetBoundary.swift"
+require_contains "Sources/Portfolio/TargetGraph/PortfolioTargetBoundary.swift" "MTP-219-PORTFOLIO-TARGET-SPLIT"
+require_contains "Sources/Portfolio/TargetGraph/PortfolioTargetBoundary.swift" "MTP-228-PORTFOLIO-REAL-ROOT-TARGET-PATH"
+require_contains "Sources/RiskEngine/TargetGraph/RiskEngineTargetBoundary.swift" "MTP-219-RISKENGINE-TARGET-SPLIT"
+require_contains "Sources/RiskEngine/TargetGraph/RiskEngineTargetBoundary.swift" "MTP-228-RISKENGINE-REAL-ROOT-TARGET-PATH"
+require_contains "Sources/Trader/Strategies/EMA/TargetGraph/TraderStrategiesTargetBoundary.swift" "MTP-219-TRADERSTRATEGIES-TARGET-SPLIT"
+require_contains "Sources/Trader/Strategies/EMA/TargetGraph/TraderStrategiesTargetBoundary.swift" "MTP-228-TRADERSTRATEGIES-REAL-ROOT-TARGET-PATH"
+require_contains "Sources/Trader/TargetGraph/TraderTargetBoundary.swift" "MTP-219-TRADER-TARGET-SPLIT"
+require_contains "Sources/Trader/TargetGraph/TraderTargetBoundary.swift" "MTP-228-TRADER-REAL-ROOT-TARGET-PATH"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP219TraderPortfolioRiskTargetsExposeDependencyDirectionAndContainerBoundary"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP219TraderPortfolioRiskTargetsRejectRuntimeBrokerAndNonEMADrift"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP228TraderPortfolioRiskTargetsUseRealModuleRootsAndRetireTargetGraphPathReferences"
 require_contains "docs/contracts/swiftpm-target-graph-split-contract.md" "MTP-219-TRADER-PORTFOLIO-RISK-TARGET-SPLIT-EVIDENCE"
 require_contains "docs/contracts/swiftpm-target-graph-split-contract.md" "MTP-219-TRADER-PORTFOLIO-RISK-TARGET-SPLIT-VALIDATION"
 require_contains "architecture.md" "MTP-219 Trader / Portfolio / Risk Target Split"
@@ -5100,8 +5109,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-219-TRADER-PORTFOLIO-
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-219 issue backfill"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-219 的当前 issue execution evidence"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-219-TRADER-PORTFOLIO-RISK-TARGET-SPLIT-VALIDATION"
-require_contains "docs/automation/automation-readiness.md" "Trader / Portfolio / Risk target split anchor"
-require_contains "docs/automation/automation-readiness.md" "MTP-219 新增 buildable"
+require_contains "docs/automation/automation-readiness.md" "Trader / Portfolio / Risk target split / real root migration anchor"
+require_contains "docs/automation/automation-readiness.md" 'MTP-228 把 `TraderStrategies` / `Trader` / `Portfolio` / `RiskEngine` target paths'
 require_contains "Package.swift" '.library(name: "ExecutionClient", targets: ["ExecutionClient"])'
 require_contains "Package.swift" '.library(name: "ExecutionEngine", targets: ["ExecutionEngine"])'
 require_contains "Package.swift" 'name: "ExecutionClient"'
@@ -5110,7 +5119,7 @@ require_file "Sources/TargetGraph/ExecutionClient/ExecutionClientTargetBoundary.
 require_file "Sources/TargetGraph/ExecutionEngine/ExecutionEngineTargetBoundary.swift"
 require_contains "Sources/TargetGraph/ExecutionClient/ExecutionClientTargetBoundary.swift" "MTP-220-EXECUTIONCLIENT-TARGET-SPLIT"
 require_contains "Sources/TargetGraph/ExecutionEngine/ExecutionEngineTargetBoundary.swift" "MTP-220-EXECUTIONENGINE-TARGET-SPLIT"
-require_contains "Sources/TargetGraph/Trader/TraderTargetBoundary.swift" "MTP-220-TRADER-EXECUTIONENGINE-DEPENDENCY-RESOLVED"
+require_contains "Sources/Trader/TargetGraph/TraderTargetBoundary.swift" "MTP-220-TRADER-EXECUTIONENGINE-DEPENDENCY-RESOLVED"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP220ExecutionTargetsExposeFutureGateDependencyDirection"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP220ExecutionTargetsRejectBrokerOMSRealOrderAndEndpointDrift"
 require_contains "docs/contracts/swiftpm-target-graph-split-contract.md" "MTP-220-EXECUTION-TARGET-SPLIT-EVIDENCE"
@@ -5277,7 +5286,7 @@ require_contains "Package.swift" '"Database/TargetGraph"'
 require_absent "Package.swift" 'path: "Sources/TargetGraph/DomainModel"'
 require_absent "Package.swift" 'path: "Sources/TargetGraph/MessageBus"'
 require_absent "Package.swift" 'path: "Sources/TargetGraph/Database"'
-require_contains "Package.swift" 'path: "Sources/TargetGraph/Trader"'
+require_contains "Package.swift" 'path: "Sources/TargetGraph/ExecutionEngine"'
 require_contains "Package.swift" 'name: "TargetGraphTests"'
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "import TraderStrategies"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP221WorkbenchDashboardTargetsRejectRuntimeAdapterSchemaAndCommandDrift"
@@ -5313,6 +5322,32 @@ require_contains "docs/validation/trading-validation-matrix.md" "MTP-227 issue b
 require_contains "docs/validation/latest-verification-summary.md" "MTP-227 的当前 issue execution evidence"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-227-DATA-REAL-ROOT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "MTP-227-DATAENGINE-REAL-ROOT-TARGET-PATH"
+require_contains "Package.swift" 'path: "Sources/Trader/Strategies/EMA"'
+require_contains "Package.swift" '"TargetGraph/TraderStrategiesTargetBoundary.swift"'
+require_contains "Package.swift" 'path: "Sources/Trader"'
+require_contains "Package.swift" '"TargetGraph/TraderTargetBoundary.swift"'
+require_contains "Package.swift" 'path: "Sources/Portfolio"'
+require_contains "Package.swift" '"TargetGraph/PortfolioTargetBoundary.swift"'
+require_contains "Package.swift" 'path: "Sources/RiskEngine"'
+require_contains "Package.swift" '"TargetGraph/RiskEngineTargetBoundary.swift"'
+require_contains "Package.swift" '"Trader/Strategies/EMA/TargetGraph"'
+require_contains "Package.swift" '"Trader/TargetGraph"'
+require_contains "Package.swift" '"Portfolio/TargetGraph"'
+require_contains "Package.swift" '"RiskEngine/TargetGraph"'
+require_absent "Package.swift" 'path: "Sources/TargetGraph/TraderStrategies"'
+require_absent "Package.swift" 'path: "Sources/TargetGraph/Trader"'
+require_absent "Package.swift" 'path: "Sources/TargetGraph/Portfolio"'
+require_absent "Package.swift" 'path: "Sources/TargetGraph/RiskEngine"'
+require_contains "docs/contracts/targetgraph-anchor-retirement-real-module-source-root-migration-contract.md" "MTP-228-TRADER-PORTFOLIO-RISK-REAL-ROOT-TARGET-MIGRATION"
+require_contains "docs/contracts/targetgraph-anchor-retirement-real-module-source-root-migration-contract.md" "MTP-228-TRADER-CONTAINER-DEPENDENCY-DIRECTION-PRESERVED"
+require_contains "docs/contracts/targetgraph-anchor-retirement-real-module-source-root-migration-contract.md" "MTP-228-TARGETGRAPH-TRADER-PORTFOLIO-RISK-ACTIVE-PATH-RETIREMENT"
+require_contains "docs/contracts/targetgraph-anchor-retirement-real-module-source-root-migration-contract.md" "MTP-228-TRADER-PORTFOLIO-RISK-REAL-ROOT-VALIDATION"
+require_contains "docs/validation/validation-plan.md" "MTP-228 Trader / Portfolio / Risk Targets Real Module Root Migration Validation"
+require_contains "docs/validation/validation-plan.md" "MTP-228-TRADER-PORTFOLIO-RISK-REAL-ROOT-VALIDATION"
+require_contains "docs/validation/trading-validation-matrix.md" "MTP-228 issue backfill"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-228 的当前 issue execution evidence"
+require_contains "docs/validation/latest-verification-summary.md" "MTP-228-TRADER-PORTFOLIO-RISK-REAL-ROOT-VALIDATION"
+require_contains "docs/automation/automation-readiness.md" "MTP-228-RISKENGINE-REAL-ROOT-TARGET-PATH"
 require_file "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md"
 require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "MTPRO SwiftPM Target Graph Module Split v1 Stage Code Audit Report"
 require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "MTP-216"

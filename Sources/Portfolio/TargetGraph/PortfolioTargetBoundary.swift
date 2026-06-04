@@ -5,9 +5,10 @@ import MessageBus
 
 /// `Portfolio` target boundary 表达独立于 Trader account context 的 financial state projection。
 ///
-/// MTP-219 只建立 `Portfolio -> DomainModel / MessageBus / Cache / Database`
-/// 的 SwiftPM 方向。既有 Portfolio implementation 仍由 `Core` compatibility envelope 编译，
-/// 因为当前 paper projection tests 和旧 product 仍通过 `Core` 使用这些类型。
+/// MTP-228 只把 active target boundary anchor 从 `Sources/TargetGraph/Portfolio`
+/// 移到 `Sources/Portfolio/TargetGraph`。既有 Portfolio implementation 仍由 `Core`
+/// compatibility envelope 编译，因为当前 paper projection tests 和旧 product 仍通过 `Core`
+/// 使用这些类型。
 public struct PortfolioTargetBoundary: Codable, Equatable, Sendable {
     public let targetName: String
     public let canonicalSourceRoot: String
@@ -29,7 +30,7 @@ public struct PortfolioTargetBoundary: Codable, Equatable, Sendable {
     public init(
         targetName: String = "Portfolio",
         canonicalSourceRoot: String = "Sources/Portfolio",
-        compiledBoundaryRoot: String = "Sources/TargetGraph/Portfolio",
+        compiledBoundaryRoot: String = "Sources/Portfolio/TargetGraph",
         retainedCompatibilityEnvelope: String = "Core",
         domainModelBoundary: DomainModelTargetBoundary = .mtp217,
         messageBusBoundary: MessageBusTargetBoundary = .mtp217,
@@ -66,7 +67,7 @@ public struct PortfolioTargetBoundary: Codable, Equatable, Sendable {
     public var dependencyDirectionHeld: Bool {
         targetName == "Portfolio"
             && canonicalSourceRoot == "Sources/Portfolio"
-            && compiledBoundaryRoot == "Sources/TargetGraph/Portfolio"
+            && compiledBoundaryRoot == "Sources/Portfolio/TargetGraph"
             && retainedCompatibilityEnvelope == "Core"
             && domainModelBoundary.boundaryHeld
             && messageBusBoundary.dependencyDirectionHeld
@@ -107,6 +108,7 @@ public struct PortfolioTargetBoundary: Codable, Equatable, Sendable {
     public static let requiredValidationAnchors = [
         "MTP-219-PORTFOLIO-TARGET-SPLIT",
         "MTP-219-PORTFOLIO-SEPARATE-FROM-TRADER-ACCOUNT",
+        "MTP-228-PORTFOLIO-REAL-ROOT-TARGET-PATH",
         "MTP-219-NO-REAL-ACCOUNT-BROKER-GUARD"
     ]
 

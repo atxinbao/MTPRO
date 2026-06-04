@@ -116,12 +116,27 @@ let package = Package(
         .target(
             name: "Portfolio",
             dependencies: ["DomainModel", "MessageBus", "Cache", "Database"],
-            path: "Sources/TargetGraph/Portfolio"
+            path: "Sources/Portfolio",
+            exclude: [
+                "PaperAccountPortfolioProjectionV2.swift",
+                "PaperPortfolioProjectionUpdate.swift",
+                "SimulatedExchangePortfolioProjectionParity.swift"
+            ],
+            sources: [
+                "TargetGraph/PortfolioTargetBoundary.swift"
+            ]
         ),
         .target(
             name: "RiskEngine",
             dependencies: ["DomainModel", "MessageBus", "Cache", "Portfolio"],
-            path: "Sources/TargetGraph/RiskEngine"
+            path: "Sources/RiskEngine",
+            exclude: [
+                "LiveGate",
+                "PreTrade"
+            ],
+            sources: [
+                "TargetGraph/RiskEngineTargetBoundary.swift"
+            ]
         ),
         .target(
             name: "ExecutionClient",
@@ -136,12 +151,28 @@ let package = Package(
         .target(
             name: "TraderStrategies",
             dependencies: ["DomainModel", "MessageBus", "Cache", "Portfolio", "RiskEngine"],
-            path: "Sources/TargetGraph/TraderStrategies"
+            path: "Sources/Trader/Strategies/EMA",
+            exclude: [
+                "EMACross.swift",
+                "PaperActionProposal.swift",
+                "StrategySignals.swift"
+            ],
+            sources: [
+                "TargetGraph/TraderStrategiesTargetBoundary.swift"
+            ]
         ),
         .target(
             name: "Trader",
             dependencies: ["DomainModel", "MessageBus", "Cache", "TraderStrategies", "Portfolio", "RiskEngine", "ExecutionEngine"],
-            path: "Sources/TargetGraph/Trader"
+            path: "Sources/Trader",
+            exclude: [
+                "Accounts",
+                "Coordination",
+                "Strategies"
+            ],
+            sources: [
+                "TargetGraph/TraderTargetBoundary.swift"
+            ]
         ),
         .target(
             name: "Workbench",
@@ -188,7 +219,11 @@ let package = Package(
                 "Database",
                 "DomainModel/TargetGraph",
                 "MessageBus/TargetGraph",
+                "Portfolio/TargetGraph",
+                "RiskEngine/TargetGraph",
                 "TargetGraph",
+                "Trader/Strategies/EMA/TargetGraph",
+                "Trader/TargetGraph",
                 "Workbench"
             ],
             sources: [

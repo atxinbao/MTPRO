@@ -8539,8 +8539,8 @@ final class CoreTests: XCTestCase {
 
     func testMTP210TraderContainerCompletenessValidationLocksAccountsEMAAndRiskBindingOnly() throws {
         // 测试场景：MTP-210 将 Trader container completeness 变成仓库级 deterministic gate。
-        // 当前 Trader 只能由 Accounts、Strategies/EMA 和 Coordination/RiskBinding 三件套组成，
-        // 旧 StrategyBindings、peer-level Sources/Strategies 和 non-EMA strategy root 回流都必须失败。
+        // 当前 Trader 业务容器只能由 Accounts、Strategies/EMA 和 Coordination/RiskBinding 三件套组成；
+        // MTP-228 允许 TargetGraph anchor 进入 Trader root，但它不能变成额外业务能力。
         let fileManager = FileManager.default
         let repositoryRoot = URL(fileURLWithPath: fileManager.currentDirectoryPath, isDirectory: true)
         let traderRoot = repositoryRoot.appendingPathComponent("Sources/Trader")
@@ -8557,8 +8557,8 @@ final class CoreTests: XCTestCase {
         .sorted()
         XCTAssertEqual(
             traderDirectoryNames,
-            ["Accounts", "Coordination", "Strategies"],
-            "Sources/Trader must stay complete and limited to Accounts, Coordination, and Strategies"
+            ["Accounts", "Coordination", "Strategies", "TargetGraph"],
+            "Sources/Trader must stay complete and limited to Accounts, Coordination, Strategies, and the MTP-228 TargetGraph anchor"
         )
 
         let requiredTraderContainerFiles = [
@@ -8566,6 +8566,7 @@ final class CoreTests: XCTestCase {
             "Sources/Trader/Strategies/EMA/EMACross.swift",
             "Sources/Trader/Strategies/EMA/StrategySignals.swift",
             "Sources/Trader/Strategies/EMA/PaperActionProposal.swift",
+            "Sources/Trader/TargetGraph/TraderTargetBoundary.swift",
             "Sources/Trader/Coordination/RiskBinding/PaperActionRiskLink.swift"
         ]
         for relativePath in requiredTraderContainerFiles {
@@ -8732,11 +8733,12 @@ final class CoreTests: XCTestCase {
             contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
             encoding: .utf8
         )
-        let activeTraderStrategyRootOccurrences = packageManifest
-            .components(separatedBy: "\"Trader/Strategies/")
+        let activeTraderStrategyTargetRootOccurrences = packageManifest
+            .components(separatedBy: "path: \"Sources/Trader/Strategies/EMA\"")
             .count - 1
-        XCTAssertEqual(activeTraderStrategyRootOccurrences, 1)
+        XCTAssertEqual(activeTraderStrategyTargetRootOccurrences, 1)
         XCTAssertTrue(packageManifest.contains("\"Trader/Strategies/EMA\""))
+        XCTAssertTrue(packageManifest.contains("\"Trader/Strategies/EMA/TargetGraph\""))
         XCTAssertTrue(packageManifest.contains("\"Trader/Coordination/RiskBinding\""))
 
         let forbiddenPackageSourceRoots = nonEMAStrategyCandidates.flatMap { strategyName in
