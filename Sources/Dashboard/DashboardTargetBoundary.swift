@@ -6,6 +6,8 @@ import Workbench
 /// Dashboard 只能启动 macOS shell / smoke summary，并消费 Workbench 导出的
 /// `DashboardViewModel` 与 `DashboardShellSnapshot`。它不直接依赖 Core、Persistence、
 /// Runtime、Adapters、ExecutionClient、broker、OMS、schema、account payload 或 live command。
+/// MTP-230 后 Dashboard executable 只保留应用入口 / target boundary，shell snapshot
+/// 由 Workbench 真实 root 编译并作为只读 ViewModel 展示 API 输出。
 public struct DashboardTargetBoundary: Codable, Equatable, Sendable {
     public let targetName: String
     public let canonicalSourceRoot: String
@@ -28,9 +30,9 @@ public struct DashboardTargetBoundary: Codable, Equatable, Sendable {
 
     public init(
         targetName: String = "Dashboard",
-        canonicalSourceRoot: String = "Sources/Dashboard/DashboardApplication.swift",
-        shellSource: String = "Sources/Dashboard/DashboardShell.swift",
-        workbenchBoundary: WorkbenchTargetBoundary = .mtp221,
+        canonicalSourceRoot: String = "Sources/Dashboard",
+        shellSource: String = "Sources/Workbench/Dashboard/DashboardShell.swift",
+        workbenchBoundary: WorkbenchTargetBoundary = .mtp230,
         allowedDependencies: [String] = Self.requiredAllowedDependencies,
         forbiddenDependencies: [String] = Self.requiredForbiddenDependencies,
         displaySurfaceOnly: Bool = true,
@@ -69,8 +71,8 @@ public struct DashboardTargetBoundary: Codable, Equatable, Sendable {
     /// Dashboard 只能依赖 Workbench 展示模型，不越级读取 runtime / adapter / schema。
     public var dependencyDirectionHeld: Bool {
         targetName == "Dashboard"
-            && canonicalSourceRoot == "Sources/Dashboard/DashboardApplication.swift"
-            && shellSource == "Sources/Dashboard/DashboardShell.swift"
+            && canonicalSourceRoot == "Sources/Dashboard"
+            && shellSource == "Sources/Workbench/Dashboard/DashboardShell.swift"
             && workbenchBoundary.dependencyDirectionHeld
             && allowedDependencies == Self.requiredAllowedDependencies
             && forbiddenDependencies == Self.requiredForbiddenDependencies
@@ -117,8 +119,11 @@ public struct DashboardTargetBoundary: Codable, Equatable, Sendable {
     public static let requiredValidationAnchors = [
         "MTP-221-DASHBOARD-TARGET-SPLIT",
         "MTP-221-DASHBOARD-CONSUMES-WORKBENCH-ONLY",
-        "MTP-221-NO-UI-COMMAND-RUNTIME-SCHEMA-GUARD"
+        "MTP-221-NO-UI-COMMAND-RUNTIME-SCHEMA-GUARD",
+        "MTP-230-DASHBOARD-REAL-ROOT-TARGET-PATH",
+        "MTP-230-DASHBOARD-CONSUMES-WORKBENCH-SHELL-ONLY"
     ]
 
     public static let mtp221 = DashboardTargetBoundary()
+    public static let mtp230 = DashboardTargetBoundary()
 }

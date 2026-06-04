@@ -470,4 +470,81 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(dashboard.providesLiveCommand)
         XCTAssertFalse(dashboard.exposesOrderForm)
     }
+
+    func testMTP230WorkbenchDashboardTargetsUseRealModuleRootsAndRetireMixedShellPath() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let workbench = WorkbenchTargetBoundary.mtp230
+        let dashboard = DashboardTargetBoundary.mtp230
+
+        XCTAssertTrue(workbench.dependencyDirectionHeld)
+        XCTAssertTrue(dashboard.dependencyDirectionHeld)
+        XCTAssertEqual(workbench.compiledSourceRoots, [
+            "Sources/Workbench/ReadModels",
+            "Sources/Workbench/Report",
+            "Sources/Workbench/Dashboard",
+            "Sources/Workbench/Events",
+            "Sources/Workbench/FutureLiveProConsole",
+            "Sources/Workbench/TargetGraph"
+        ])
+        XCTAssertEqual(dashboard.canonicalSourceRoot, "Sources/Dashboard")
+        XCTAssertEqual(dashboard.shellSource, "Sources/Workbench/Dashboard/DashboardShell.swift")
+
+        for expected in [
+            "path: \"Sources/Workbench\"",
+            "\"ReadModels\"",
+            "\"Report\"",
+            "\"Dashboard\"",
+            "\"Events\"",
+            "\"FutureLiveProConsole\"",
+            "\"TargetGraph\"",
+            "path: \"Sources/Dashboard\"",
+            "\"DashboardApplication.swift\"",
+            "\"DashboardTargetBoundary.swift\""
+        ] {
+            XCTAssertTrue(packageSource.contains(expected), "Package.swift must contain \(expected)")
+        }
+
+        for forbidden in [
+            "path: \"Sources/TargetGraph/Workbench\"",
+            "path: \"Sources/TargetGraph/Dashboard\"",
+            "\"Dashboard/DashboardShell.swift\"",
+            "\"DashboardShell.swift\""
+        ] {
+            XCTAssertFalse(packageSource.contains(forbidden), "UI target path must not remain active: \(forbidden)")
+        }
+
+        for migratedPath in [
+            "Sources/Workbench/TargetGraph/WorkbenchTargetBoundary.swift",
+            "Sources/Workbench/Dashboard/DashboardShell.swift",
+            "Sources/Dashboard/DashboardTargetBoundary.swift",
+            "Sources/Dashboard/DashboardApplication.swift"
+        ] {
+            XCTAssertTrue(
+                FileManager.default.fileExists(atPath: repositoryRoot.appendingPathComponent(migratedPath).path),
+                "\(migratedPath) must exist under its real module root"
+            )
+        }
+
+        for retiredPath in [
+            "Sources/Dashboard/DashboardShell.swift",
+            "Sources/TargetGraph/Workbench/WorkbenchTargetBoundary.swift",
+            "Sources/TargetGraph/Dashboard/DashboardTargetBoundary.swift"
+        ] {
+            XCTAssertFalse(
+                FileManager.default.fileExists(atPath: repositoryRoot.appendingPathComponent(retiredPath).path),
+                "\(retiredPath) must no longer be an active UI target boundary path"
+            )
+        }
+
+        XCTAssertTrue(workbench.validationAnchors.contains("MTP-230-WORKBENCH-REAL-ROOT-TARGET-PATH"))
+        XCTAssertTrue(dashboard.validationAnchors.contains("MTP-230-DASHBOARD-REAL-ROOT-TARGET-PATH"))
+        XCTAssertFalse(workbench.exposesRuntimeObject)
+        XCTAssertFalse(dashboard.exposesRuntimeObject)
+        XCTAssertFalse(workbench.providesLiveCommand)
+        XCTAssertFalse(dashboard.providesLiveCommand)
+    }
 }

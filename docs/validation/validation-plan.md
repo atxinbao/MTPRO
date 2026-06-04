@@ -6809,6 +6809,49 @@ MTP-229 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## MTP-230 Workbench / Dashboard Targets Real Module Root Migration Validation
+
+MTP-230 必须运行：
+
+- `swift package describe`
+- `swift test --filter TargetGraphTests/testMTP230WorkbenchDashboardTargetsUseRealModuleRootsAndRetireMixedShellPath`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-230 的验收要求：
+
+- `Package.swift` 中 `Workbench` target path 必须为 `Sources/Workbench`，并显式编译 `ReadModels`、`Report`、`Dashboard`、`Events`、`FutureLiveProConsole` 和 `TargetGraph`。
+- `Package.swift` 中 `Dashboard` executable target path 必须为 `Sources/Dashboard`，并只显式编译 `DashboardApplication.swift` 和 `DashboardTargetBoundary.swift`。
+- `Package.swift` 不得继续把 `Dashboard/DashboardShell.swift` 作为 Workbench target 的 mixed-root source。
+- `Sources/Workbench/Dashboard/DashboardShell.swift` 必须存在，`Sources/Dashboard/DashboardShell.swift` 必须不存在。
+- `WorkbenchTargetBoundary` 必须包含 `MTP-230-WORKBENCH-REAL-ROOT-TARGET-PATH` 和 `MTP-230-WORKBENCH-READ-MODEL-ONLY-ROOT`。
+- `DashboardTargetBoundary` 必须包含 `MTP-230-DASHBOARD-REAL-ROOT-TARGET-PATH` 和 `MTP-230-DASHBOARD-CONSUMES-WORKBENCH-SHELL-ONLY`。
+- `TargetGraphTests` 必须包含 `testMTP230WorkbenchDashboardTargetsUseRealModuleRootsAndRetireMixedShellPath`，验证 package target path、new shell location、retired mixed shell path 和 no runtime / live command boundary。
+- `swift package describe` 不得输出 Workbench / Dashboard roots 的 unhandled-file warnings。
+- Dependency direction 必须保持 `Workbench -> Core / Persistence`、`App -> Workbench`、`Dashboard -> Workbench`。
+- MTP-230 PR evidence 必须确认 UI 仍只消费 Read Model / ViewModel / projection snapshot，不读取 Runtime object、Adapter request、schema、account payload、broker payload 或 broker state，不新增 Live PRO Console、trading button、live command、order form 或 L4 capability。
+
+MTP-230 必须建立的主要 anchors：
+
+- `MTP-230-WORKBENCH-DASHBOARD-REAL-ROOT-TARGET-MIGRATION`
+- `MTP-230-UI-READ-MODEL-ONLY-DEPENDENCY-DIRECTION-PRESERVED`
+- `MTP-230-TARGETGRAPH-UI-MIXED-PATH-RETIREMENT`
+- `MTP-230-WORKBENCH-DASHBOARD-REAL-ROOT-VALIDATION`
+- `MTP-230-WORKBENCH-REAL-ROOT-TARGET-PATH`
+- `MTP-230-DASHBOARD-REAL-ROOT-TARGET-PATH`
+
+## MTP-230 禁止
+
+- 不实现 Workbench runtime、Dashboard runtime inspector、Live PRO Console、trading button、live command、order form、broker connect UI 或 account connect UI。
+- 不读取 Runtime object、Adapter request、SQLite / DuckDB schema、account payload、broker payload 或 broker state。
+- 不接 signed endpoint、account endpoint 或 listenKey。
+- 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、real order lifecycle 或 L4 capability。
+- 不删除 `Sources/TargetGraph` historical term，不执行 MTP-231 final active path reference retirement。
+- 不新增、删除、重命名 SwiftPM target / product / dependency。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## MTP-227 Data Targets Real Module Root Migration Validation
 
 MTP-227 必须运行：
