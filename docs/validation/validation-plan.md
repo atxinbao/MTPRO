@@ -6784,3 +6784,43 @@ MTP-224 必须建立的主要 anchors：
 - 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## MTP-225 TargetGraph Anchor / Real Root / Package / Tests Audit Validation
+
+MTP-225 必须运行：
+
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+MTP-225 的验收要求：
+
+- `docs/audit/inputs/mtpro-targetgraph-anchor-retirement-real-module-source-root-migration-v1-mtp-225-audit.md` 必须包含 `MTP-225-TARGETGRAPH-ANCHOR-AUDIT`、`MTP-225-TARGETGRAPH-ACTIVE-ANCHOR-INVENTORY`、`MTP-225-REAL-MODULE-ROOT-AUDIT`、`MTP-225-PACKAGE-TARGET-PATH-AUDIT`、`MTP-225-TARGETGRAPH-TEST-COVERAGE-AUDIT`、`MTP-225-MIGRATION-RISK-REGISTER`、`MTP-225-NO-MIGRATION-GUARD` 和 `MTP-225-AUDIT-VALIDATION`。
+- Audit 必须列出当前 active `Sources/TargetGraph/*` boundary anchors，并明确它们只是 transitional compile anchor / historical evidence。
+- Audit 必须列出真实 module source roots：`Sources/DomainModel/`、`Sources/MessageBus/`、`Sources/Database/`、`Sources/DataClient/`、`Sources/DataEngine/`、`Sources/Cache/`、`Sources/Portfolio/`、`Sources/RiskEngine/`、`Sources/ExecutionClient/`、`Sources/ExecutionEngine/`、`Sources/Trader/Accounts/`、`Sources/Trader/Strategies/EMA/`、`Sources/Trader/Coordination/`、`Sources/Workbench/` 和 `Sources/Dashboard/`。
+- Audit 必须记录 `Package.swift` 当前 active target paths / dependencies，且 MTP-225 PR evidence 必须确认 `Package.swift` 无 diff。
+- Audit 必须记录 `Tests/TargetGraphTests/TargetGraphTests.swift` 当前 coverage，并说明 tests 当前证明 target boundary contracts，不证明 real source root ownership。
+- MTP-225 PR evidence 必须确认未移动、删除或重命名 production source / tests，未退休 active `Sources/TargetGraph/*` path references，未新增 SwiftPM target/product/dependency。
+- MTP-225 PR evidence 必须确认 no Symphony、no Graphify、no code-index、no Figma、no `.codex/*`、no `graphify-out/*`、no runtime、no live、no broker、no L4 capability。
+
+MTP-225 必须建立的主要 anchors：
+
+- `MTP-225-TARGETGRAPH-ANCHOR-AUDIT`
+- `MTP-225-TARGETGRAPH-ACTIVE-ANCHOR-INVENTORY`
+- `MTP-225-REAL-MODULE-ROOT-AUDIT`
+- `MTP-225-PACKAGE-TARGET-PATH-AUDIT`
+- `MTP-225-TARGETGRAPH-TEST-COVERAGE-AUDIT`
+- `MTP-225-MIGRATION-RISK-REGISTER`
+- `MTP-225-NO-MIGRATION-GUARD`
+- `MTP-225-AUDIT-VALIDATION`
+
+## MTP-225 禁止
+
+- 不修改 `Package.swift` target graph、products、dependencies、source roots 或 exclude list。
+- 不移动 production source 或 tests。
+- 不新增、删除、重命名 SwiftPM target / product / dependency。
+- 不删除 `Sources/TargetGraph`，不退休 active `Sources/TargetGraph/*` path references。
+- 不修复 production code。
+- 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

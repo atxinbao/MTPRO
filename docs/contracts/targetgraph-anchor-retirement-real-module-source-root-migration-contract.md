@@ -4,7 +4,7 @@
 
 执行者：Codex
 
-本文档服务 `MTP-224 Define TargetGraph retirement and real module source root migration contract`。它只固定 `Sources/TargetGraph` 退休合同、真实模块 source root 迁移规则、target dependency direction、forbidden path taxonomy 和 validation anchors；不修改 `Package.swift`，不移动 `Sources` 文件，不写业务代码。
+本文档服务 `MTP-224 Define TargetGraph retirement and real module source root migration contract`，并承接 `MTP-225 Audit current TargetGraph anchors, real module roots, Package.swift and tests` 的 audit input。它只固定 `Sources/TargetGraph` 退休合同、真实模块 source root 迁移规则、target dependency direction、forbidden path taxonomy、current audit snapshot 和 validation anchors；不修改 `Package.swift`，不移动 `Sources` 文件，不写业务代码。
 
 ## MTP-224-TARGETGRAPH-RETIREMENT-CONTRACT
 
@@ -111,3 +111,71 @@ MTP-224 required validation：
 - PR evidence 必须确认 docs 不授权 `Package.swift` change、source move、target split、runtime、live、broker、L4 capability。
 - PR evidence 必须确认 no Symphony / no Graphify / no code-index / no Figma / no `.codex/*` / no `graphify-out/*`。
 
+## MTP-225-TARGETGRAPH-ACTIVE-ANCHOR-AUDIT
+
+`MTP-225` 的 audit input 固定在 `docs/audit/inputs/mtpro-targetgraph-anchor-retirement-real-module-source-root-migration-v1-mtp-225-audit.md`。该文件列出当前 active `Sources/TargetGraph/*` anchors：
+
+- `Sources/TargetGraph/DomainModel/DomainModelTargetBoundary.swift`
+- `Sources/TargetGraph/MessageBus/MessageBusTargetBoundary.swift`
+- `Sources/TargetGraph/Database/DatabaseTargetBoundary.swift`
+- `Sources/TargetGraph/DataClient/DataClientTargetBoundary.swift`
+- `Sources/TargetGraph/DataEngine/DataEngineTargetBoundary.swift`
+- `Sources/TargetGraph/Cache/CacheTargetBoundary.swift`
+- `Sources/TargetGraph/Portfolio/PortfolioTargetBoundary.swift`
+- `Sources/TargetGraph/RiskEngine/RiskEngineTargetBoundary.swift`
+- `Sources/TargetGraph/TraderStrategies/TraderStrategiesTargetBoundary.swift`
+- `Sources/TargetGraph/Trader/TraderTargetBoundary.swift`
+- `Sources/TargetGraph/ExecutionClient/ExecutionClientTargetBoundary.swift`
+- `Sources/TargetGraph/ExecutionEngine/ExecutionEngineTargetBoundary.swift`
+
+这些 files 只能作为 transitional compile anchor / historical evidence。它们证明 MTP-217 至 MTP-221 target split 当前可编译，不代表 final architecture module root、长期 source ownership 或 future feature landing path。
+
+## MTP-225-REAL-MODULE-ROOT-AUDIT
+
+MTP-225 确认真实 source root 已存在，但当前 target path ownership 尚未迁移：
+
+- Foundation roots：`Sources/DomainModel/`、`Sources/MessageBus/`、`Sources/Database/`。
+- Data roots：`Sources/DataClient/`、`Sources/DataEngine/`、`Sources/Cache/`。
+- Trader / Portfolio / Risk roots：`Sources/Trader/Accounts/`、`Sources/Trader/Strategies/EMA/`、`Sources/Trader/Coordination/`、`Sources/Portfolio/`、`Sources/RiskEngine/`。
+- Execution roots：`Sources/ExecutionClient/`、`Sources/ExecutionEngine/`。
+- Workbench / Dashboard roots：`Sources/Workbench/`、`Sources/Dashboard/`。
+
+MTP-225 不改变上述 roots 的 compiler owner。后续只有 `MTP-226` 至 `MTP-230` 可以在各自 Linear issue scope 内迁移对应 target family。
+
+## MTP-225-PACKAGE-TARGET-PATH-AUDIT
+
+MTP-225 audit confirms `Package.swift` active target path snapshot remains:
+
+```text
+DomainModel / MessageBus / Database / DataClient / Cache / DataEngine /
+Portfolio / RiskEngine / TraderStrategies / Trader / ExecutionClient /
+ExecutionEngine -> Sources/TargetGraph/<Module>
+Workbench -> path Sources with explicit Workbench and DashboardShell sources
+Core / Adapters / Persistence / Runtime / App -> retained compatibility envelopes
+Dashboard -> Sources/Dashboard, dependencies: Workbench
+```
+
+MTP-225 does not change `Package.swift`. Any future path change must be issue-scoped and must only move an active target path from `Sources/TargetGraph/<Module>` to the matching real source root.
+
+## MTP-225-TARGETGRAPH-TEST-COVERAGE-AUDIT
+
+MTP-225 audit confirms `Tests/TargetGraphTests/TargetGraphTests.swift` directly imports `DomainModel`、`MessageBus`、`Database`、`DataClient`、`DataEngine`、`Cache`、`Portfolio`、`RiskEngine`、`ExecutionClient`、`ExecutionEngine`、`TraderStrategies`、`Trader`、`Workbench` 和 `Dashboard`，并 covers:
+
+- MTP-217 foundation target split dependency direction and no higher-layer runtime / broker / UI drift.
+- MTP-218 data target split dependency direction and no signed / account / listenKey / broker / runtime drift.
+- MTP-219 Trader / Portfolio / Risk dependency direction, EMA-only active strategy and no direct execution / broker / runtime drift.
+- MTP-220 execution future gate dependency direction and no broker / OMS / real order / endpoint drift.
+- MTP-221 Workbench / Dashboard read-model-only dependency direction and no runtime / adapter / schema / UI command drift.
+
+Current gap: TargetGraphTests prove target boundary contracts, not real source root ownership. Future migration issues must adjust tests only after their target family actually migrates.
+
+## MTP-225-AUDIT-VALIDATION
+
+MTP-225 required validation：
+
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+- PR evidence 必须确认 audit 覆盖 `Sources/TargetGraph` anchors、real module roots、`Package.swift` target path / dependencies 和 `Tests/TargetGraphTests` coverage。
+- PR evidence 必须确认 `Package.swift` 无 diff、未移动 production source 或 tests、未退休 active TargetGraph path references。
+- PR evidence 必须确认 no Symphony / no Graphify / no code-index / no Figma / no `.codex/*` / no `graphify-out/*`。
