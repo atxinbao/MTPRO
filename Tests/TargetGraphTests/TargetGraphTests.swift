@@ -357,6 +357,59 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(executionEngine.exposesLiveCommandSurface)
     }
 
+    func testMTP229ExecutionTargetsUseRealModuleRootsAndRetireTargetGraphPathReferences() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+
+        XCTAssertEqual(ExecutionClientTargetBoundary.mtp220.compiledBoundaryRoot, "Sources/ExecutionClient/TargetGraph")
+        XCTAssertEqual(ExecutionEngineTargetBoundary.mtp220.compiledBoundaryRoot, "Sources/ExecutionEngine/TargetGraph")
+        XCTAssertTrue(ExecutionClientTargetBoundary.mtp220.futureGateOnly)
+        XCTAssertTrue(ExecutionEngineTargetBoundary.mtp220.executionClientFutureGateOnly)
+        XCTAssertFalse(ExecutionClientTargetBoundary.mtp220.implementsOrderSubmitCancelReplace)
+        XCTAssertFalse(ExecutionEngineTargetBoundary.mtp220.implementsRealOrderLifecycle)
+
+        for expected in [
+            "path: \"Sources/ExecutionClient\"",
+            "\"TargetGraph/ExecutionClientTargetBoundary.swift\"",
+            "path: \"Sources/ExecutionEngine\"",
+            "\"TargetGraph/ExecutionEngineTargetBoundary.swift\"",
+            "\"ExecutionClient/TargetGraph\"",
+            "\"ExecutionEngine/TargetGraph\""
+        ] {
+            XCTAssertTrue(packageSource.contains(expected), "Package.swift must contain \(expected)")
+        }
+
+        for forbidden in [
+            "path: \"Sources/TargetGraph/ExecutionClient\"",
+            "path: \"Sources/TargetGraph/ExecutionEngine\""
+        ] {
+            XCTAssertFalse(packageSource.contains(forbidden), "Execution target path must not remain active: \(forbidden)")
+        }
+
+        for migratedPath in [
+            "Sources/ExecutionClient/TargetGraph/ExecutionClientTargetBoundary.swift",
+            "Sources/ExecutionEngine/TargetGraph/ExecutionEngineTargetBoundary.swift"
+        ] {
+            XCTAssertTrue(
+                FileManager.default.fileExists(atPath: repositoryRoot.appendingPathComponent(migratedPath).path),
+                "\(migratedPath) must exist under the real module root"
+            )
+        }
+
+        for retiredPath in [
+            "Sources/TargetGraph/ExecutionClient/ExecutionClientTargetBoundary.swift",
+            "Sources/TargetGraph/ExecutionEngine/ExecutionEngineTargetBoundary.swift"
+        ] {
+            XCTAssertFalse(
+                FileManager.default.fileExists(atPath: repositoryRoot.appendingPathComponent(retiredPath).path),
+                "\(retiredPath) must no longer be the active execution target boundary file"
+            )
+        }
+    }
+
     func testMTP221WorkbenchDashboardTargetsExposeReadModelOnlyDependencyDirection() {
         let workbench = WorkbenchTargetBoundary.mtp221
         let dashboard = DashboardTargetBoundary.mtp221
