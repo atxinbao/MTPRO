@@ -14127,3 +14127,37 @@ GitHub Issue：[#377](https://github.com/atxinbao/MTPRO/issues/377)
 
 - `git diff --check`：pass。
 - `bash checks/run.sh`：pass；Dashboard smoke 保持 read-model-only evidence surface，`331` 个 XCTest / `0` failures，最终 `MTPRO checks passed.`。
+
+## 2026-06-05 — GH-378 Data / foundation graph alignment review
+
+执行者：Codex
+
+GitHub Issue：[#378](https://github.com/atxinbao/MTPRO/issues/378)
+
+范围：
+
+- 新增 `docs/audit/inputs/mtpro-architecture-graph-completion-review-l4-readiness-v1-gh-378-data-foundation-graph-review.md`。
+- 复核 `DataClient`、`DataEngine`、`MessageBus`、`Cache`、`Database` 的 architecture graph alignment。
+- 记录 public read-only data path、read-model state surface、durable facts / projection boundary 和 remaining compatibility envelope debt。
+
+边界：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 GitHub #379 至 #382。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify / code-index。
+- 不修改 Figma。
+- 不写业务代码。
+- 不修改 `Package.swift`。
+- 不移动 `Sources`。
+- 不拆 SwiftPM target graph。
+- 不实现 endpoint、Trader runtime、Strategy runtime、Live runtime、`ExecutionClient` implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command 或 order form。
+- 不推进 L4。
+- `.codex/*` 和 `graphify-out/*` 不进入 PR。
+
+验证：
+
+- `git diff --check`：pass。
+- `bash checks/run.sh`：pass；Dashboard smoke 保持 read-model-only evidence surface，`331` 个 XCTest / `0` failures，最终 `MTPRO checks passed.`。
