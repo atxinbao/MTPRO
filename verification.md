@@ -14212,3 +14212,19 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
 - Validation:
   - `git diff --check`: pass
   - `bash checks/run.sh`: pass; Dashboard smoke includes `readModelOnly=true` and legacy smoke key `workbenchReadModelOnly=true`; 331 XCTest / 0 failures; final output `MTPRO checks passed.`
+## 2026-06-05 - GH-381 L4 Readiness Gate
+
+- Project: `MTPRO Architecture Graph Completion Review / L4 Readiness Planning v1`
+- Queue item: GH-381 `Define L4 readiness gate, blockers and allowed planning scope`
+- Scope: docs-only L4 readiness gate, blocker and allowed planning scope based on GH-376 through GH-380 evidence.
+- Evidence: `docs/audit/inputs/mtpro-architecture-graph-completion-review-l4-readiness-v1-gh-381-l4-readiness-gate.md`
+- Boundary:
+  - No Trader runtime / Strategy runtime / Live runtime.
+  - No ExecutionClient implementation / OMS / broker gateway.
+  - No signed endpoint / account endpoint / listenKey / private WebSocket runtime.
+  - No real order lifecycle / submit / cancel / replace / execution report / broker fill / reconciliation.
+  - No Live PRO Console / trading button / live command / order form.
+  - No Package.swift change, no source movement, no SwiftPM target graph split.
+- Validation:
+  - `git diff --check`: pass
+  - `bash checks/run.sh`: pass; Dashboard smoke includes `readModelOnly=true`; 331 XCTest / 0 failures; final output `MTPRO checks passed.`
