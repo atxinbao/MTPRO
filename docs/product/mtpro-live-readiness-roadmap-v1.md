@@ -31,15 +31,16 @@
 - `Trader EMA Strategy Layout Consolidation before L4`：Done / not counted in old denominator。
 - `Trader Accounts / Coordination Compatibility Consolidation before L4`：Done / not counted in old denominator。
 - `SwiftPM Target Graph Module Split before L4`：Done / not counted in old denominator。
+- `TargetGraph Anchor Retirement / Real Module Source Root Migration before L4`：Done / not counted in old denominator。
 
 当前旧路线进度保持：
 
 ```text
 Engine Maturity Roadmap Progress: 4 / 4 (100%)
-Current maturity statement: SwiftPM Target Graph Module Split before L4 complete
+Current maturity statement: TargetGraph Anchor Retirement / Real Module Source Root Migration before L4 complete
 ```
 
-该 `4 / 4` 路线已经闭合。L3.0、L3.1、L3.2、L3.3、L3.4、Engine Module Boundary Consolidation before L4、Target Module Physical Layout / Source Migration before L4、Trader-Owned Strategies Layout Correction before L4、Trader EMA Strategy Layout Consolidation before L4、Trader Accounts / Coordination Compatibility Consolidation before L4 和 SwiftPM Target Graph Module Split before L4 作为 Live Readiness 路线的 boundary / read-model-only / simulation gate / monitoring evidence / strategy-trader readiness evidence / L4 planning input / physical source migration / Trader container compatibility / buildable target graph evidence 追加，不继续改旧分母，不把旧路线回滚成未完成状态。
+该 `4 / 4` 路线已经闭合。L3.0、L3.1、L3.2、L3.3、L3.4、Engine Module Boundary Consolidation before L4、Target Module Physical Layout / Source Migration before L4、Trader-Owned Strategies Layout Correction before L4、Trader EMA Strategy Layout Consolidation before L4、Trader Accounts / Coordination Compatibility Consolidation before L4、SwiftPM Target Graph Module Split before L4 和 TargetGraph Anchor Retirement / Real Module Source Root Migration before L4 作为 Live Readiness 路线的 boundary / read-model-only / simulation gate / monitoring evidence / strategy-trader readiness evidence / L4 planning input / physical source migration / Trader container compatibility / buildable target graph evidence / no-active-TargetGraph-path evidence 追加，不继续改旧分母，不把旧路线回滚成未完成状态。
 
 ## 3. 为什么需要新路线口径
 
@@ -74,6 +75,7 @@ L3 / L4 进入的是完全不同的风险域：
 | `Trader EMA Strategy Layout Consolidation before L4` | 收口 current active concrete strategy only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/` | Done | Stage Code Audit Report、EMA-only path validation、RiskBinding boundary、compatibility envelope 和 forbidden direct execution audit 已闭环 | 不让非 EMA strategy 进入 active source，不实现 broker command、OMS、trading button、live command 或 L4 capability |
 | `Trader Accounts / Coordination Compatibility Consolidation before L4` | 补齐 `Trader = Accounts + Strategies/EMA + Coordination` 的 Trader container compatibility relationship | Done | Stage Code Audit Report、`Sources/Trader/Accounts` account context boundary、StrategyBindings wording retirement、stale Package excludes cleanup、Trader container completeness validation 已闭环 | 不实现 Trader runtime、Strategy runtime、real account read、ExecutionClient implementation、OMS、broker gateway 或 L4 capability |
 | `SwiftPM Target Graph Module Split before L4` | 把 architecture-graph-aligned source layout 落为 buildable SwiftPM target graph | Done | Stage Code Audit Report、DomainModel / MessageBus / Database / DataClient / DataEngine / Cache / TraderStrategies / Trader / Portfolio / RiskEngine / ExecutionEngine / ExecutionClient / Workbench / Dashboard target evidence、compatibility envelope audit 和 forbidden implementation audit 已闭环 | 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed/account endpoint、private stream runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability |
+| `TargetGraph Anchor Retirement / Real Module Source Root Migration before L4` | 退休 active `Sources/TargetGraph` compile anchor，并把 target boundary source roots 固定到真实 module roots | Done | Stage Code Audit Report、no active `Sources/TargetGraph` directory、no active `Package.swift` `Sources/TargetGraph` target path、real module source root snapshot、compatibility envelope audit 和 forbidden implementation audit 已闭环 | 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed/account endpoint、private stream runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability |
 | `L4 Live Production / Trading Commands` | 真实 execution、OMS、broker fill、reconciliation、live risk、ops / incident / stop 和独立 Live PRO Console | Future Gated | 只能作为 future gated map | 当前不进入 planning / Linear / implementation |
 
 ## 5. L3.0 / L3.1 / L3.2 / L3.3 / L3.4 / Engine Boundary 完成事实与下一候选
@@ -92,9 +94,10 @@ MTPRO Trader-Owned Strategies Layout Correction v1
 MTPRO Trader EMA Strategy Layout Consolidation v1
 MTPRO Trader Accounts / Coordination Compatibility Consolidation v1
 MTPRO SwiftPM Target Graph Module Split v1
+MTPRO TargetGraph Anchor Retirement / Real Module Source Root Migration v1
 ```
 
-这些 Project 已完成 Live read-only readiness 的边界定义、APB read-model-only evidence surface、private stream / account snapshot simulation gate evidence boundary、Live Monitoring v2 read-model-only evidence surface、Strategy / Trader structural readiness evidence boundary、L4 前的 target module boundary / planning input material、L4 前的 target module physical directories / compatibility envelope / source migration evidence、Trader-owned strategy layout correction、EMA-only active strategy consolidation、`Trader = Accounts + Strategies/EMA + Coordination` compatibility consolidation，以及 buildable SwiftPM target graph evidence chain，而不是实现 read-only account runtime、private stream runtime、account snapshot runtime、Live Monitoring runtime、Strategy runtime、Trader runtime、ExecutionClient implementation、OMS implementation、broker command、Live PRO Console 或 L4 execution。
+这些 Project 已完成 Live read-only readiness 的边界定义、APB read-model-only evidence surface、private stream / account snapshot simulation gate evidence boundary、Live Monitoring v2 read-model-only evidence surface、Strategy / Trader structural readiness evidence boundary、L4 前的 target module boundary / planning input material、L4 前的 target module physical directories / compatibility envelope / source migration evidence、Trader-owned strategy layout correction、EMA-only active strategy consolidation、`Trader = Accounts + Strategies/EMA + Coordination` compatibility consolidation、buildable SwiftPM target graph evidence chain，以及 no-active-TargetGraph-path / real module source root migration evidence，而不是实现 read-only account runtime、private stream runtime、account snapshot runtime、Live Monitoring runtime、Strategy runtime、Trader runtime、ExecutionClient implementation、OMS implementation、broker command、Live PRO Console 或 L4 execution。
 
 L3.0 已回答：
 

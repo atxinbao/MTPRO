@@ -13958,3 +13958,39 @@ PersistenceTests/testFileEventLogStoreRejectsOutOfOrderAppendToProtectAppendOnly
 
 - `git diff --check`：pass，无输出。
 - `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 正常，325 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
+## 2026-06-04 — MTPRO TargetGraph Anchor Retirement / Real Module Source Root Migration v1 Project closure
+
+执行者：Parent Codex / Codex
+
+范围：
+
+- 完成 `MTPRO TargetGraph Anchor Retirement / Real Module Source Root Migration v1` Project closure flow 的 Stage Code Audit 和 Root Docs Refresh Gate。
+- 确认 Linear Project `Completed/type=completed`，completedAt `2026-06-04T15:17:36.000Z`。
+- 新增 `docs/audit/mtpro-targetgraph-anchor-retirement-real-module-source-root-migration-v1-stage-code-audit.md`。
+- 汇总 `MTP-224` 至 `MTP-232` 的 issue / PR / merge / required check / Linear Done evidence。
+- 确认末端 issue PR #371 merge commit `75ed77309d4a84eb8fbea6b6127dff37e2636d78`。
+- 确认 Stage Code Audit PR #372 merge commit `5feacecfe1df3bd4e5f3627fb4cbac38a1753afb`。
+- Project Closure Count 更新为 `29 / 29 (100%)`；Final Product Goal Progress 保持 `9 / 9 (100%)`；Engine Maturity Roadmap Progress 保持 `4 / 4 (100%)`。
+- 当前成熟度结论更新为 `TargetGraph Anchor Retirement / Real Module Source Root Migration before L4 complete`。
+
+边界：
+
+- 不创建下一 Linear Project / Issue。
+- 不推进 Todo。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify 或 code-index。
+- 不修改 Figma。
+- 不实现 Strategy runtime、Trader runtime 或 Live runtime。
+- 不实现 ExecutionClient implementation、OMS implementation 或 broker gateway。
+- 不接 signed endpoint、account endpoint / listenKey 或 private WebSocket runtime。
+- 不实现 real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command 或 order form。
+- 不授权 L4 capability。
+- `.codex/*` 和 `graphify-out/*` 不进入 PR。
+
+验证：
+
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 正常，331 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。

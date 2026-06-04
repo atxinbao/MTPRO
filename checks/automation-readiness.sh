@@ -294,7 +294,7 @@ require_contains "GOAL.md" "Evidence chain first"
 require_contains "GOAL.md" "Current Foundation Progress"
 require_contains "GOAL.md" "Final Product Goal Progress"
 require_contains "GOAL.md" "Engine Maturity Roadmap Progress: 4 / 4 (100%)"
-require_contains "GOAL.md" "SwiftPM Target Graph Module Split before L4 complete"
+require_contains "GOAL.md" "TargetGraph Anchor Retirement / Real Module Source Root Migration before L4 complete"
 require_contains "GOAL.md" "无当前可执行推荐"
 require_contains "GOAL.md" "实盘交易基础边界"
 require_contains "GOAL.md" "实盘监控台"
@@ -378,10 +378,10 @@ require_contains "AGENTS.md" "Future Construction Zones / 未来建设区"
 require_contains "AGENTS.md" '不启动 `@002 / PAR`'
 require_contains "docs/roadmap.md" "Current Foundation Progress"
 require_contains "docs/roadmap.md" "Final Product Goal Progress"
-require_contains "docs/roadmap.md" "Project Closure Count: 28 / 28 (100%)"
+require_contains "docs/roadmap.md" "Project Closure Count: 29 / 29 (100%)"
 require_contains "docs/roadmap.md" "Engine Maturity Roadmap Progress: 4 / 4 (100%)"
 require_contains "docs/roadmap.md" "Final Product Progress"
-require_contains "docs/roadmap.md" 'Current maturity statement：`SwiftPM Target Graph Module Split before L4 complete`'
+require_contains "docs/roadmap.md" 'Current maturity statement：`TargetGraph Anchor Retirement / Real Module Source Root Migration before L4 complete`'
 require_contains "docs/roadmap.md" 'Next recommended maturity slice：无当前可执行推荐'
 require_contains "docs/roadmap.md" "根据蓝图和工程模块定义施工顺序"
 require_contains "docs/roadmap.md" "Roadmap Responsibility / 路线职责"
@@ -411,7 +411,7 @@ require_contains "environment.md" "Secrets / Local State Boundary"
 require_contains "environment.md" "Automation Boundary / 自动化边界"
 require_contains "docs/validation/latest-verification-summary.md" "Current Foundation Progress: 4 / 4 (100%)"
 require_contains "docs/validation/latest-verification-summary.md" "Final Product Goal Progress: 9 / 9 (100%)"
-require_contains "docs/validation/latest-verification-summary.md" "Project Closure Count: 28 / 28 (100%)"
+require_contains "docs/validation/latest-verification-summary.md" "Project Closure Count: 29 / 29 (100%)"
 require_contains "docs/validation/latest-verification-summary.md" "Engine Maturity Roadmap Progress"
 require_contains "docs/validation/latest-verification-summary.md" "4 / 4（100%）"
 for planning_record in \
@@ -3049,7 +3049,7 @@ require_contains "docs/audit/mtpro-strategy-trader-instance-readiness-v1-stage-c
 require_contains "docs/automation/automation-readiness.md" "Strategy / Trader Instance readiness stage code audit report anchor"
 require_contains "docs/automation/automation-readiness.md" "Strategy / Trader Instance readiness root docs refresh anchor"
 require_contains "docs/validation/latest-verification-summary.md" "L3.4 Strategy / Trader Instance Readiness v1 complete"
-require_contains "docs/roadmap.md" 'Latest Completed Project：`MTPRO SwiftPM Target Graph Module Split v1`'
+require_contains "docs/roadmap.md" 'Latest Completed Project：`MTPRO TargetGraph Anchor Retirement / Real Module Source Root Migration v1`'
 require_contains "BLUEPRINT.md" 'MTPRO SwiftPM Target Graph Module Split v1` 已完成 Project closure'
 require_contains "docs/audit/mtpro-engine-module-boundary-consolidation-v1-stage-code-audit.md" "MTPRO Engine Module Boundary Consolidation v1 Stage Code Audit Report"
 require_contains "docs/audit/mtpro-engine-module-boundary-consolidation-v1-stage-code-audit.md" "Completed/type=completed"
@@ -4893,14 +4893,14 @@ require_contains "docs/audit/mtpro-trader-accounts-coordination-compatibility-co
 require_contains "docs/audit/mtpro-trader-accounts-coordination-compatibility-consolidation-v1-stage-code-audit.md" "Project Closure Count input: 26 / 26 (100%)"
 require_contains "docs/automation/automation-readiness.md" "Trader Accounts / Coordination Stage Code Audit Report anchor"
 require_contains "docs/automation/automation-readiness.md" "Trader Accounts / Coordination root docs refresh anchor"
-require_contains "docs/roadmap.md" "Project Closure Count: 28 / 28 (100%)"
-require_contains "docs/roadmap.md" "SwiftPM Target Graph Module Split before L4 complete"
-require_contains "docs/validation/latest-verification-summary.md" "MTPRO SwiftPM Target Graph Module Split v1"
-require_contains "docs/validation/latest-verification-summary.md" "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md"
-require_contains "docs/product/mtpro-live-readiness-roadmap-v1.md" "SwiftPM Target Graph Module Split before L4 complete"
-require_contains "BLUEPRINT.md" "SwiftPM Target Graph Module Split before L4 complete"
-require_contains "GOAL.md" "SwiftPM Target Graph Module Split before L4 complete"
-require_contains "architecture.md" "SwiftPM Target Graph Module Split before L4"
+require_contains "docs/roadmap.md" "Project Closure Count: 29 / 29 (100%)"
+require_contains "docs/roadmap.md" "TargetGraph Anchor Retirement / Real Module Source Root Migration before L4 complete"
+require_contains "docs/validation/latest-verification-summary.md" "MTPRO TargetGraph Anchor Retirement / Real Module Source Root Migration v1"
+require_contains "docs/validation/latest-verification-summary.md" "docs/audit/mtpro-targetgraph-anchor-retirement-real-module-source-root-migration-v1-stage-code-audit.md"
+require_contains "docs/product/mtpro-live-readiness-roadmap-v1.md" "TargetGraph Anchor Retirement / Real Module Source Root Migration before L4 complete"
+require_contains "BLUEPRINT.md" "TargetGraph Anchor Retirement / Real Module Source Root Migration before L4 complete"
+require_contains "GOAL.md" "TargetGraph Anchor Retirement / Real Module Source Root Migration before L4 complete"
+require_contains "architecture.md" "TargetGraph Anchor Retirement / Real Module Source Root Migration before L4"
 require_file "docs/audit/mtpro-persistence-validation-repair-v1-stage-code-audit.md"
 require_contains "docs/audit/mtpro-persistence-validation-repair-v1-stage-code-audit.md" "MTPRO Persistence Validation Repair v1 Stage Code Audit Report"
 require_contains "docs/audit/mtpro-persistence-validation-repair-v1-stage-code-audit.md" "MTP-213"
@@ -5466,6 +5466,7 @@ require_contains "docs/audit/mtpro-targetgraph-anchor-retirement-real-module-sou
 require_contains "docs/audit/mtpro-targetgraph-anchor-retirement-real-module-source-root-migration-v1-stage-code-audit.md" "Root Docs Refresh Gate：pending after this Stage Code Audit Report PR is merged"
 require_contains "docs/audit/mtpro-targetgraph-anchor-retirement-real-module-source-root-migration-v1-stage-code-audit.md" "Project Closure Count input: 29 / 29 (100%)"
 require_contains "docs/automation/automation-readiness.md" "TargetGraph retirement Stage Code Audit Report anchor"
+require_contains "docs/automation/automation-readiness.md" "TargetGraph retirement root docs refresh anchor"
 require_file "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md"
 require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "MTPRO SwiftPM Target Graph Module Split v1 Stage Code Audit Report"
 require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "MTP-216"
@@ -5484,18 +5485,20 @@ require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-co
 require_contains "docs/audit/mtpro-swiftpm-target-graph-module-split-v1-stage-code-audit.md" "Project Closure Count input: 28 / 28 (100%)"
 require_contains "docs/automation/automation-readiness.md" "SwiftPM target graph Stage Code Audit Report anchor"
 require_contains "docs/automation/automation-readiness.md" "SwiftPM target graph root docs refresh anchor"
-require_contains "docs/roadmap.md" 'Latest Completed Project：`MTPRO SwiftPM Target Graph Module Split v1`'
-require_contains "docs/roadmap.md" 'Current maturity statement：`SwiftPM Target Graph Module Split before L4 complete`'
-require_contains "docs/roadmap.md" "Project Closure Count: 28 / 28 (100%)"
-require_contains "docs/validation/latest-verification-summary.md" "Project closure evidence：SwiftPM Target Graph Module Split v1"
-require_contains "docs/validation/latest-verification-summary.md" "PR #360"
-require_contains "docs/validation/latest-verification-summary.md" "abb8c99dd3ec733a595082ee33461bdb84b6bba9"
-require_contains "docs/validation/latest-verification-summary.md" "https://github.com/atxinbao/MTPRO/actions/runs/26920467786/job/79419655220"
-require_contains "docs/validation/latest-verification-summary.md" 'Project Closure Count `28 / 28 (100%)`'
+require_contains "docs/roadmap.md" 'Latest Completed Project：`MTPRO TargetGraph Anchor Retirement / Real Module Source Root Migration v1`'
+require_contains "docs/roadmap.md" 'Current maturity statement：`TargetGraph Anchor Retirement / Real Module Source Root Migration before L4 complete`'
+require_contains "docs/roadmap.md" "Project Closure Count: 29 / 29 (100%)"
+require_contains "docs/validation/latest-verification-summary.md" "Project closure evidence：TargetGraph Anchor Retirement / Real Module Source Root Migration v1"
+require_contains "docs/validation/latest-verification-summary.md" "PR #372"
+require_contains "docs/validation/latest-verification-summary.md" "5feacecfe1df3bd4e5f3627fb4cbac38a1753afb"
+require_contains "docs/validation/latest-verification-summary.md" "https://github.com/atxinbao/MTPRO/actions/runs/26963400428/job/79559488210"
+require_contains "docs/validation/latest-verification-summary.md" "Project Closure Count: 29 / 29 (100%)"
 require_contains "docs/validation/latest-verification-summary.md" "不创建下一 Project / Issue"
-require_contains "docs/product/mtpro-live-readiness-roadmap-v1.md" "SwiftPM Target Graph Module Split before L4"
-require_contains "BLUEPRINT.md" '当前 handoff 状态：`MTPRO SwiftPM Target Graph Module Split v1`'
-require_contains "GOAL.md" "SwiftPM target graph split completion"
+require_contains "docs/product/mtpro-live-readiness-roadmap-v1.md" "TargetGraph Anchor Retirement / Real Module Source Root Migration before L4 complete"
+require_contains "BLUEPRINT.md" '当前 handoff 状态：`MTPRO TargetGraph Anchor Retirement / Real Module Source Root Migration v1`'
+require_contains "GOAL.md" "TargetGraph Anchor Retirement / Real Module Source Root Migration before L4 complete"
+require_contains "architecture.md" "TargetGraph Anchor Retirement / Real Module Source Root Migration before L4"
+require_contains "verification.md" "MTPRO TargetGraph Anchor Retirement / Real Module Source Root Migration v1 Project closure"
 require_absent "docs/validation/validation-plan.md" 'Root docs 必须使用 `Trader = Accounts + Strategies + StrategyBindings + Coordination`'
 require_absent "docs/validation/validation-plan.md" '`Sources/Trader/StrategyBindings/` 必须包含 proposal-to-risk binding'
 require_absent "docs/validation/validation-plan.md" '只使用 `"Trader/Strategies/EMA"` 和 `"Trader/StrategyBindings"`'
