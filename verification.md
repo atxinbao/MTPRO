@@ -14058,3 +14058,38 @@ PersistenceTests/testFileEventLogStoreRejectsOutOfOrderAppendToProtectAppendOnly
 
 - `git diff --check`：pass，无输出。
 - `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 正常，331 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
+## 2026-06-05 — GH-376 Architecture completion review baseline
+
+执行者：Codex
+
+GitHub Issue：[#376](https://github.com/atxinbao/MTPRO/issues/376)
+
+范围：
+
+- 创建 GitHub fallback queue milestone：`MTPRO Architecture Graph Completion Review / L4 Readiness Planning v1`。
+- 创建 GitHub canonical issues #376 至 #382，全部初始为 `backlog` / `non-executable`。
+- 通过 queue preview 后，仅将 #376 标记为唯一 active issue。
+- 新增 `docs/audit/inputs/mtpro-architecture-graph-completion-review-l4-readiness-v1-gh-376-baseline.md`，记录 architecture completion review baseline 和 evidence inventory。
+
+边界：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 GitHub #377 至 #382。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify / code-index。
+- 不修改 Figma。
+- 不写业务代码。
+- 不修改 `Package.swift`。
+- 不移动 `Sources`。
+- 不拆 SwiftPM target graph。
+- 不实现 Trader runtime、Strategy runtime、Live runtime、`ExecutionClient` implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command 或 order form。
+- 不推进 L4。
+- `.codex/*` 和 `graphify-out/*` 不进入 PR。
+
+验证：
+
+- `git diff --check`：pass。
+- `bash checks/run.sh`：pass；Dashboard smoke 保持 read-model-only evidence surface，`331` 个 XCTest / `0` failures，最终 `MTPRO checks passed.`。
