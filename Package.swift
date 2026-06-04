@@ -81,17 +81,37 @@ let package = Package(
         .target(
             name: "DataClient",
             dependencies: ["DomainModel"],
-            path: "Sources/TargetGraph/DataClient"
+            path: "Sources/DataClient",
+            exclude: [
+                "Binance"
+            ],
+            sources: [
+                "TargetGraph/DataClientTargetBoundary.swift"
+            ]
         ),
         .target(
             name: "Cache",
             dependencies: ["DomainModel", "MessageBus"],
-            path: "Sources/TargetGraph/Cache"
+            path: "Sources/Cache",
+            exclude: [
+                "MarketData"
+            ],
+            sources: [
+                "TargetGraph/CacheTargetBoundary.swift"
+            ]
         ),
         .target(
             name: "DataEngine",
             dependencies: ["DomainModel", "DataClient", "MessageBus", "Cache"],
-            path: "Sources/TargetGraph/DataEngine"
+            path: "Sources/DataEngine",
+            exclude: [
+                "DataQuality",
+                "Ingest",
+                "ScenarioReplay"
+            ],
+            sources: [
+                "TargetGraph/DataEngineTargetBoundary.swift"
+            ]
         ),
         .target(
             name: "Portfolio",
@@ -160,9 +180,11 @@ let package = Package(
             path: "Sources",
             exclude: [
                 "AppCompatibility",
+                "Cache/TargetGraph",
                 "Dashboard",
                 "DataClient",
                 "DataEngine/Ingest",
+                "DataEngine/TargetGraph",
                 "Database",
                 "DomainModel/TargetGraph",
                 "MessageBus/TargetGraph",
@@ -193,6 +215,9 @@ let package = Package(
             name: "Adapters",
             dependencies: ["Core"],
             path: "Sources/DataClient",
+            exclude: [
+                "TargetGraph"
+            ],
             sources: [
                 "Binance/PublicMarketData"
             ]
@@ -238,6 +263,7 @@ let package = Package(
                 "DataClient",
                 "DataEngine/ScenarioReplay",
                 "DataEngine/DataQuality",
+                "DataEngine/TargetGraph",
                 "Database/Projections",
                 "Database/TargetGraph",
                 "DomainModel",

@@ -3,8 +3,10 @@ import MessageBus
 
 /// `Cache` target boundary 表达可从 facts / replay 重建的 read-model state surface。
 ///
-/// MTP-218 不把 Cache 升级成 durable store、Redis clone、broker state cache 或 UI contract；
-/// 既有 `Sources/Cache/` implementation 仍由 `Core` compatibility envelope 编译。
+/// MTP-227 只把 active target boundary anchor 从 `Sources/TargetGraph/Cache`
+/// 移到 `Sources/Cache/TargetGraph`。既有 `Sources/Cache/MarketData` implementation
+/// 仍由 `Core` compatibility envelope 编译；Cache 不升级成 durable store、Redis clone、
+/// broker state cache 或 UI contract。
 public struct CacheTargetBoundary: Codable, Equatable, Sendable {
     public let targetName: String
     public let canonicalSourceRoot: String
@@ -23,7 +25,7 @@ public struct CacheTargetBoundary: Codable, Equatable, Sendable {
     public init(
         targetName: String = "Cache",
         canonicalSourceRoot: String = "Sources/Cache",
-        compiledBoundaryRoot: String = "Sources/TargetGraph/Cache",
+        compiledBoundaryRoot: String = "Sources/Cache/TargetGraph",
         retainedCompatibilityEnvelope: String = "Core",
         domainModelBoundary: DomainModelTargetBoundary = .mtp217,
         messageBusBoundary: MessageBusTargetBoundary = .mtp217,
@@ -54,7 +56,7 @@ public struct CacheTargetBoundary: Codable, Equatable, Sendable {
     public var dependencyDirectionHeld: Bool {
         targetName == "Cache"
             && canonicalSourceRoot == "Sources/Cache"
-            && compiledBoundaryRoot == "Sources/TargetGraph/Cache"
+            && compiledBoundaryRoot == "Sources/Cache/TargetGraph"
             && retainedCompatibilityEnvelope == "Core"
             && domainModelBoundary.boundaryHeld
             && messageBusBoundary.dependencyDirectionHeld
@@ -84,6 +86,7 @@ public struct CacheTargetBoundary: Codable, Equatable, Sendable {
     public static let requiredValidationAnchors = [
         "MTP-218-CACHE-TARGET-SPLIT",
         "MTP-218-READMODEL-STATE-SURFACE",
+        "MTP-227-CACHE-REAL-ROOT-TARGET-PATH",
         "MTP-218-NO-BROKER-STATE-CACHE-GUARD"
     ]
 

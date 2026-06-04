@@ -225,3 +225,49 @@ MTP-226 required validation：
 - `bash checks/run.sh`
 - PR evidence 必须确认 foundation target paths no longer depend on `Sources/TargetGraph/DomainModel`、`Sources/TargetGraph/MessageBus` or `Sources/TargetGraph/Database`.
 - PR evidence 必须确认 no Symphony / no Graphify / no code-index / no Figma / no `.codex/*` / no `graphify-out/*`。
+
+## MTP-227-DATA-REAL-ROOT-TARGET-MIGRATION
+
+MTP-227 只迁移 data-layer target boundary anchors：
+
+| Target | Previous active target path | Current active target path | Current explicit sources | Retained compatibility owner |
+| --- | --- | --- | --- | --- |
+| `DataClient` | `Sources/TargetGraph/DataClient` | `Sources/DataClient` | `TargetGraph/DataClientTargetBoundary.swift` | `Adapters` continues compiling Binance public market data implementation. |
+| `Cache` | `Sources/TargetGraph/Cache` | `Sources/Cache` | `TargetGraph/CacheTargetBoundary.swift` | `Core` continues compiling `Sources/Cache/MarketData` implementation files. |
+| `DataEngine` | `Sources/TargetGraph/DataEngine` | `Sources/DataEngine` | `TargetGraph/DataEngineTargetBoundary.swift` | `Core` continues compiling replay / quality implementation; `Runtime` continues compiling ingest implementation. |
+
+MTP-227 intentionally keeps `sources` explicit so the newly migrated data targets do not overlap with retained compatibility envelopes. `Adapters` excludes `TargetGraph`; `Core` excludes `Cache/TargetGraph` and `DataEngine/TargetGraph`; `Runtime` excludes `DataEngine/TargetGraph`.
+
+## MTP-227-DATA-DEPENDENCY-DIRECTION-PRESERVED
+
+MTP-227 preserves the data-layer dependency direction:
+
+```text
+DataClient -> DomainModel
+Cache -> DomainModel / MessageBus
+DataEngine -> DomainModel / DataClient / MessageBus / Cache
+```
+
+MTP-227 does not migrate TraderStrategies、Trader、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Workbench or Dashboard. It does not add signed endpoint, account endpoint, listenKey, private stream runtime, broker path, runtime behavior, live behavior or L4 capability.
+
+## MTP-227-TARGETGRAPH-DATA-ACTIVE-PATH-RETIREMENT
+
+After MTP-227, these active data files must not exist:
+
+- `Sources/TargetGraph/DataClient/DataClientTargetBoundary.swift`
+- `Sources/TargetGraph/Cache/CacheTargetBoundary.swift`
+- `Sources/TargetGraph/DataEngine/DataEngineTargetBoundary.swift`
+
+The remaining `Sources/TargetGraph/*` active paths are for later MTP-228 through MTP-231 issues only. MTP-227 does not delete `Sources/TargetGraph` and does not retire trader / portfolio / risk / execution / UI TargetGraph paths.
+
+## MTP-227-DATA-REAL-ROOT-VALIDATION
+
+MTP-227 required validation：
+
+- `swift package describe` must not emit unhandled-file warnings for the migrated data target roots.
+- `swift test --filter TargetGraphTests/testMTP227DataTargetsUseRealModuleRootsAndRetireTargetGraphPathReferences`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+- PR evidence 必须确认 data target paths no longer depend on `Sources/TargetGraph/DataClient`、`Sources/TargetGraph/Cache` or `Sources/TargetGraph/DataEngine`.
+- PR evidence 必须确认 no signed/account endpoint、no listenKey、no private stream runtime、no broker gateway、no Symphony、no Graphify、no code-index、no Figma、no `.codex/*`、no `graphify-out/*`。
