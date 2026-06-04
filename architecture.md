@@ -120,9 +120,7 @@ ExecutionClient -> DomainModel / MessageBus
 ExecutionEngine -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine / ExecutionClient
 TraderStrategies -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine
 Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine / ExecutionEngine
-Workbench -> Core / Persistence read-model and ViewModel exports only
-App -> Workbench compatibility re-export
-Dashboard -> Workbench
+Dashboard -> Core / Persistence
 ```
 
 Retained compatibility envelopes 仍存在，但只能解释 buildability / import compatibility：
@@ -132,7 +130,6 @@ Core
 Adapters -> Core
 Persistence -> Core, CSQLite, DuckDB(macOS)
 Runtime -> Core, Adapters, Persistence
-App -> Workbench compatibility re-export
 ```
 
 兼容壳规则：
@@ -141,8 +138,8 @@ App -> Workbench compatibility re-export
 - `Adapters` 只能表达外部 market data 边界，并通过 Core 类型输出事件或证据。
 - `Persistence` 只能保存 facts / projections，不能成为 UI contract。
 - `Runtime` 可以编排 Core、Adapters、Persistence，但不能直接变成 UI。
-- `App` 只保留 `Workbench` compatibility re-export，不再拥有 Workbench source roots。
-- `Dashboard` 只能依赖 `Workbench`，不读取 SQLite / DuckDB schema、adapter request 或 runtime object。
+- `App` product / target 和 `Sources/AppCompatibility` 已退休；旧 `import App` surface 不再作为 active compatibility envelope。
+- `Dashboard` 只能依赖 `Core` / `Persistence` 导出的 read model、ViewModel 和 projection snapshot，不读取 SQLite / DuckDB schema、adapter request 或 runtime object。
 
 目标模块依赖方向以 active target graph 为准：
 
@@ -159,8 +156,7 @@ ExecutionClient -> DomainModel / MessageBus
 ExecutionEngine -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine / ExecutionClient
 TraderStrategies -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine
 Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine / ExecutionEngine
-Workbench -> Core / Persistence read-model and ViewModel exports only
-Dashboard -> Workbench
+Dashboard -> Core / Persistence
 ```
 
 Forbidden path taxonomy：
@@ -189,7 +185,7 @@ MTP-216 的 before-state snapshot 是旧 compatibility envelope：`Core`、`Adap
 
 `MTP-216-DEPENDENCY-DIRECTION-CONTRACT`
 
-目标依赖方向为：`MessageBus -> DomainModel`；`Database -> DomainModel / MessageBus / CSQLite / DuckDB(macOS)`；`DataClient -> DomainModel`；`Cache -> DomainModel / MessageBus`；`DataEngine -> DomainModel / DataClient / MessageBus / Cache`；`Portfolio -> DomainModel / MessageBus / Cache / Database`；`RiskEngine -> DomainModel / MessageBus / Cache / Portfolio`；`ExecutionClient -> DomainModel`；`ExecutionEngine -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine / ExecutionClient(future gate types only)`；`TraderStrategies -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine`；`Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine / ExecutionEngine`；`Workbench -> ReadModel / ViewModel exports only`；`Dashboard -> Workbench`。
+目标依赖方向为：`MessageBus -> DomainModel`；`Database -> DomainModel / MessageBus / CSQLite / DuckDB(macOS)`；`DataClient -> DomainModel`；`Cache -> DomainModel / MessageBus`；`DataEngine -> DomainModel / DataClient / MessageBus / Cache`；`Portfolio -> DomainModel / MessageBus / Cache / Database`；`RiskEngine -> DomainModel / MessageBus / Cache / Portfolio`；`ExecutionClient -> DomainModel`；`ExecutionEngine -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine / ExecutionClient(future gate types only)`；`TraderStrategies -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine`；`Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine / ExecutionEngine`；`Dashboard -> Core / Persistence read-model and ViewModel exports only`。
 
 `MTP-216-FORBIDDEN-IMPORT-PATHS`
 
@@ -335,23 +331,23 @@ MTP-220 继续实际 SwiftPM target graph split：`Package.swift` 新增 `Execut
 
 MTP-220 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real account read、broker payload read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
 
-## MTP-221 Workbench / Dashboard Target Split
+## MTP-221 Dashboard Read-model-only Target Split
 
-`MTP-221-WORKBENCH-DASHBOARD-TARGET-SPLIT-EVIDENCE`
+`MTP-221-DASHBOARD-TARGET-SPLIT-EVIDENCE`
 
-MTP-221 继续实际 SwiftPM target graph split：`Package.swift` 新增 `Workbench` library product / target，并把既有 `Dashboard` executable target 改为直接依赖 `Workbench`。该 split 只证明 Workbench / Dashboard read-model-only consumption targets 可编译，不退休 `App` compatibility export，不改变现有 Dashboard smoke 或 Workbench evidence behavior。
+MTP-221 曾新增 `Workbench` library product / target 作为 Workbench / Dashboard read-model-only consumption split 证据。当前 Workbench 模块已经退役，`Dashboard` executable target 直接拥有 read-model-only display surface。
 
-`MTP-221-WORKBENCH-TARGET-SPLIT`
+`MTP-221-WORKBENCH-TARGET-RETIRED`
 
-`Workbench` target 依赖 `Core` 和 `Persistence`，当前编译 `Sources/Workbench/*`、`Sources/Dashboard/DashboardShell.swift` 和 `Sources/Workbench/TargetGraph/WorkbenchTargetBoundary.swift`。Workbench 只消费 read model / ViewModel / projection snapshot，不直接读取 Runtime object、Adapter request、SQLite / DuckDB schema、account payload 或 broker state。
+`Workbench` target / source root 当前已退役。`Package.swift` 不再包含 `Workbench` product / target，`Sources/Workbench/` 和 `Sources/Workbench/TargetGraph/WorkbenchTargetBoundary.swift` 只能作为 historical / forbidden active path 证据引用。
 
 `MTP-221-DASHBOARD-TARGET-SPLIT`
 
-`Dashboard` executable target 只依赖 `Workbench`，当前编译 `Sources/Dashboard/DashboardApplication.swift` 和 `Sources/Dashboard/DashboardTargetBoundary.swift`。Dashboard 只装载 Workbench ViewModel snapshot，不直接依赖 Core、Persistence、Adapters、Runtime、ExecutionClient、broker、OMS、schema、account payload 或 live command。
+`Dashboard` executable target 依赖 `Core` 和 `Persistence`，当前编译 `Sources/Dashboard/DashboardApplication.swift`、`Sources/Dashboard/DashboardTargetBoundary.swift`、`Sources/Dashboard/DashboardShell.swift`、`Sources/Dashboard/ReadModels/`、`Sources/Dashboard/Report/`、`Sources/Dashboard/Events/` 和 `Sources/Dashboard/FutureLiveProConsole/`。Dashboard 只消费 read model / ViewModel / projection snapshot，不直接依赖 Adapters、Runtime、ExecutionClient、broker、OMS、schema、account payload 或 live command。
 
-`MTP-221-WORKBENCH-DASHBOARD-DEPENDENCY-DIRECTION`
+`MTP-221-DASHBOARD-READ-MODEL-DEPENDENCY-DIRECTION`
 
-当前 UI consumption target direction 是 `Workbench -> Core / Persistence read-model and ViewModel exports only`、`Dashboard -> Workbench`、`App -> Workbench compatibility re-export`。`App` compatibility export 的退休归 MTP-222，不在本 issue 执行。
+当前 UI consumption target direction 是 `Dashboard -> Core / Persistence read-model and ViewModel exports only`。`App` product / target、`Sources/AppCompatibility`、`Workbench` product / target 和 `Sources/Workbench/` 已退休，`Tests/AppTests` 直接 import `Dashboard`。
 
 `MTP-221-NO-UI-COMMAND-RUNTIME-SCHEMA-GUARD`
 
@@ -361,15 +357,15 @@ MTP-221 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionCl
 
 `MTP-222-CURRENT-TARGET-GRAPH-SNAPSHOT`
 
-MTP-222 后，本文档中的 active SwiftPM target graph snapshot 以 MTP-217 至 MTP-221 已落仓的 buildable targets 为准：`DomainModel`、`MessageBus`、`Database`、`DataClient`、`Cache`、`DataEngine`、`Portfolio`、`RiskEngine`、`ExecutionClient`、`ExecutionEngine`、`TraderStrategies`、`Trader`、`Workbench` 和 `Dashboard`。旧 `Core`、`Adapters`、`Persistence`、`Runtime` 和 `App` 只作为 retained compatibility envelopes / exports 解释既有 implementation 和 import surface；不得再写成当前唯一 SwiftPM target graph。
+MTP-222 后，本文档中的 active SwiftPM target graph snapshot 以 MTP-217 至 MTP-221 已落仓并完成后续 cleanup 的 buildable targets 为准：`DomainModel`、`MessageBus`、`Database`、`DataClient`、`Cache`、`DataEngine`、`Portfolio`、`RiskEngine`、`ExecutionClient`、`ExecutionEngine`、`TraderStrategies`、`Trader` 和 `Dashboard`。旧 `Core`、`Adapters`、`Persistence`、`Runtime` 只作为 retained compatibility envelopes / exports 解释既有 implementation 和 import surface；`App` 和 `Workbench` 已退休，不得再写成当前 active SwiftPM target graph。
 
 `MTP-222-HISTORICAL-COMPATIBILITY-EVIDENCE-RETAINED`
 
-MTP-216 的 `Core / Adapters / Persistence / Runtime / App / Dashboard` snapshot、MTP-183 至 MTP-211 的 source migration / compatibility envelope evidence、旧 `Sources/Strategies/<strategy>` 和旧 `Sources/Trader/StrategyBindings/` references 只作为 historical / compatibility / superseded / before-state evidence 保留。任何 active docs、validation anchors 或 readiness checks 都必须指向 current split target graph、`Sources/Trader/Strategies/EMA/`、`Sources/Trader/Coordination/RiskBinding/` 和 `Dashboard -> Workbench`。
+MTP-216 的 `Core / Adapters / Persistence / Runtime / App / Dashboard` snapshot、MTP-183 至 MTP-211 的 source migration / compatibility envelope evidence、旧 `Sources/Strategies/<strategy>`、旧 `Sources/Trader/StrategyBindings/`、旧 `Dashboard -> Workbench` 和旧 `Sources/Workbench/` references 只作为 historical / compatibility / superseded / before-state evidence 保留。任何 active docs、validation anchors 或 readiness checks 都必须指向 current split target graph、`Sources/Trader/Strategies/EMA/`、`Sources/Trader/Coordination/RiskBinding/` 和 `Dashboard -> Core / Persistence`。
 
 `MTP-222-NO-BEHAVIOR-RUNTIME-LIVE-GUARD`
 
-MTP-222 只退休 stale wording / stale validation anchors，不删除 production implementation，不移除 retained compatibility exports，不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real account read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+MTP-222 退休 stale wording / stale validation anchors；后续 direct cleanup 已删除 `App` product / target 和 `Sources/AppCompatibility` compatibility export。当前仍不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real account read、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
 
 `MTP-222-COMPATIBILITY-ANCHOR-RETIREMENT-VALIDATION`
 
@@ -383,11 +379,11 @@ MTP-222 validation 必须证明 active docs 已包含 current target graph snaps
 
 `MTP-224-REAL-MODULE-SOURCE-ROOT-TARGET`
 
-后续 target source root 的目标落点必须回到真实模块目录：`Sources/DomainModel/`、`Sources/MessageBus/`、`Sources/Database/`、`Sources/DataClient/`、`Sources/DataEngine/`、`Sources/Cache/`、`Sources/Portfolio/`、`Sources/RiskEngine/`、`Sources/ExecutionClient/`、`Sources/ExecutionEngine/`、`Sources/Trader/Strategies/EMA/`、`Sources/Trader/Accounts/`、`Sources/Trader/Coordination/`、`Sources/Workbench/` 和 `Sources/Dashboard/`。当前 active concrete strategy only `EMA`；后续多个策略只能进入 `Sources/Trader/Strategies/<strategy>/`。
+后续 target source root 的目标落点必须回到真实模块目录：`Sources/DomainModel/`、`Sources/MessageBus/`、`Sources/Database/`、`Sources/DataClient/`、`Sources/DataEngine/`、`Sources/Cache/`、`Sources/Portfolio/`、`Sources/RiskEngine/`、`Sources/ExecutionClient/`、`Sources/ExecutionEngine/`、`Sources/Trader/Strategies/EMA/`、`Sources/Trader/Accounts/`、`Sources/Trader/Coordination/` 和 `Sources/Dashboard/`。当前 active concrete strategy only `EMA`；后续多个策略只能进入 `Sources/Trader/Strategies/<strategy>/`。
 
 `MTP-224-MIGRATION-SEQUENCE-COMPATIBILITY-RULE`
 
-后续迁移顺序固定为 MTP-225 audit、MTP-226 foundation、MTP-227 data、MTP-228 trader / portfolio / risk、MTP-229 execution future gate、MTP-230 Workbench / Dashboard、MTP-231 TargetGraph active path retirement、MTP-232 validation / compatibility / stage audit input closeout。每一步都必须由 Linear live issue 单独授权并保持 WIP=1。
+后续迁移顺序固定为 MTP-225 audit、MTP-226 foundation、MTP-227 data、MTP-228 trader / portfolio / risk、MTP-229 execution future gate、MTP-230 Dashboard real root、MTP-231 TargetGraph active path retirement、MTP-232 validation / compatibility / stage audit input closeout。每一步都必须由 Linear live issue 单独授权并保持 WIP=1。
 
 `MTP-224-NO-PACKAGE-SOURCE-MOVE-RUNTIME-GUARD`
 
@@ -397,11 +393,11 @@ MTP-224 不授权修改 `Package.swift`、移动 `Sources` 文件、退休 activ
 
 `MTP-231-TARGETGRAPH-ACTIVE-PATH-REFERENCE-RETIREMENT`
 
-MTP-231 后，`Sources/TargetGraph/` 不再作为 active source directory 存在，`Package.swift` 不再包含 `path: "Sources/TargetGraph..."` active target path。MTP-226 至 MTP-230 已把 foundation、data、Trader / Portfolio / Risk、execution future gate 和 Workbench / Dashboard target boundaries 迁到真实 module roots。
+MTP-231 后，`Sources/TargetGraph/` 不再作为 active source directory 存在，`Package.swift` 不再包含 `path: "Sources/TargetGraph..."` active target path。MTP-226 至 MTP-230 已把 foundation、data、Trader / Portfolio / Risk、execution future gate 和 Dashboard target boundaries 迁到真实 module roots。
 
 `MTP-231-REAL-MODULE-ROOT-ACTIVE-SNAPSHOT`
 
-当前 active target roots 固定为 `Sources/DomainModel`、`Sources/MessageBus`、`Sources/Database`、`Sources/DataClient`、`Sources/Cache`、`Sources/DataEngine`、`Sources/Trader/Strategies/EMA`、`Sources/Trader`、`Sources/Portfolio`、`Sources/RiskEngine`、`Sources/ExecutionClient`、`Sources/ExecutionEngine`、`Sources/Workbench` 和 `Sources/Dashboard`。历史 `Sources/TargetGraph/<Module>` 文字只能作为 before-state / retired evidence 保留，不得描述 current compiler owner、feature landing path、runtime owner 或 L4 capability source。
+当前 active target roots 固定为 `Sources/DomainModel`、`Sources/MessageBus`、`Sources/Database`、`Sources/DataClient`、`Sources/Cache`、`Sources/DataEngine`、`Sources/Trader/Strategies/EMA`、`Sources/Trader`、`Sources/Portfolio`、`Sources/RiskEngine`、`Sources/ExecutionClient`、`Sources/ExecutionEngine` 和 `Sources/Dashboard`。历史 `Sources/TargetGraph/<Module>` 文字只能作为 before-state / retired evidence 保留，不得描述 current compiler owner、feature landing path、runtime owner 或 L4 capability source。
 
 `MTP-231-TARGETGRAPH-RETIREMENT-VALIDATION`
 
@@ -436,9 +432,9 @@ flowchart TB
 
 `Trader EMA Strategy Layout Consolidation before L4` 已完成 EMA-only active concrete strategy layout consolidation：当前 active concrete strategy only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/`；非 EMA strategy 只能作为 future candidate / future-gated label / historical evidence / compatibility debt。OrderBookImbalance 的当前证据收口为 `Sources/Core/Research/OrderBookImbalanceResearchEvidence.swift` historical research evidence，不再作为 active Trader strategy path。`Sources/Trader/Coordination/RiskBinding/` 只表达 Trader coordination / binding boundary，不得成为 strategy-to-execution shortcut。该 closure 只证明 layout、validation matrix、compatibility envelope 和 forbidden direct execution audit 已闭环，本身不代表 Strategy runtime、Trader runtime、ExecutionClient implementation、broker command、OMS、Live PRO Console、trading button、live command 或 SwiftPM target graph split；SwiftPM target graph split 后续已由 `MTPRO SwiftPM Target Graph Module Split v1` 单独完成。
 
-`SwiftPM Target Graph Module Split before L4` 已完成 buildable target graph evidence chain：当前 active SwiftPM target graph 包含 `DomainModel`、`MessageBus`、`Database`、`DataClient`、`Cache`、`DataEngine`、`TraderStrategies`、`Trader`、`Portfolio`、`RiskEngine`、`ExecutionClient`、`ExecutionEngine`、`Workbench` 和 `Dashboard`。`Core`、`Adapters`、`Persistence`、`Runtime` 和 `App` 仍作为 retained compatibility envelopes / exports。该 closure 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed/account endpoint、private stream runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+`SwiftPM Target Graph Module Split before L4` 已完成 buildable target graph evidence chain，后续 cleanup 已退役 `App` 和 `Workbench`。当前 active SwiftPM target graph 包含 `DomainModel`、`MessageBus`、`Database`、`DataClient`、`Cache`、`DataEngine`、`TraderStrategies`、`Trader`、`Portfolio`、`RiskEngine`、`ExecutionClient`、`ExecutionEngine` 和 `Dashboard`。`Core`、`Adapters`、`Persistence` 和 `Runtime` 仍作为 retained compatibility envelopes / exports。该 closure 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed/account endpoint、private stream runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
 
-`TargetGraph Anchor Retirement / Real Module Source Root Migration before L4` 已完成 active `Sources/TargetGraph` compile anchor retirement 和 real module source root migration evidence chain：当前 `Sources/TargetGraph/` directory 不再存在，`Package.swift` 不再包含 active `Sources/TargetGraph` target path，target boundary source roots 固定为 `Sources/DomainModel`、`Sources/MessageBus`、`Sources/Database`、`Sources/DataClient`、`Sources/Cache`、`Sources/DataEngine`、`Sources/Trader/Strategies/EMA`、`Sources/Trader`、`Sources/Portfolio`、`Sources/RiskEngine`、`Sources/ExecutionClient`、`Sources/ExecutionEngine`、`Sources/Workbench` 和 `Sources/Dashboard`。历史 `Sources/TargetGraph/<Module>` 文字只能作为 before-state / retired evidence，不再是 current compiler owner、feature landing path、runtime owner 或 L4 capability source。该 closure 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed/account endpoint、private stream runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+`TargetGraph Anchor Retirement / Real Module Source Root Migration before L4` 已完成 active `Sources/TargetGraph` compile anchor retirement 和 real module source root migration evidence chain；后续 cleanup 已退役 `Sources/Workbench` active module。当前 `Sources/TargetGraph/` directory 不再存在，`Package.swift` 不再包含 active `Sources/TargetGraph` target path，target boundary source roots 固定为 `Sources/DomainModel`、`Sources/MessageBus`、`Sources/Database`、`Sources/DataClient`、`Sources/Cache`、`Sources/DataEngine`、`Sources/Trader/Strategies/EMA`、`Sources/Trader`、`Sources/Portfolio`、`Sources/RiskEngine`、`Sources/ExecutionClient`、`Sources/ExecutionEngine` 和 `Sources/Dashboard`。历史 `Sources/TargetGraph/<Module>` 和 `Sources/Workbench` 文字只能作为 before-state / retired evidence，不再是 current compiler owner、feature landing path、runtime owner 或 L4 capability source。该 closure 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed/account endpoint、private stream runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
 
 ## Module Boundary Contracts / 模块边界合同
 

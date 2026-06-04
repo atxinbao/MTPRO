@@ -168,7 +168,7 @@ MTP-183 不修改上述 target graph。后续 issue 只有在 Linear execution c
 | `Sources/Adapters/*` | `Sources/DataClient/Binance/PublicMarketData/` and `Sources/DataClient/Binance/FuturePrivateStreamGate/` labels | Binance remains public read-only; no signed/account/listenKey/private runtime. |
 | `Sources/Persistence/*`, `Sources/CSQLite/*` | `Sources/Database/Projections/SQLite/`, `Sources/Database/Projections/DuckDB/`, `Sources/Database/AppendOnlyEventLog/` | Database is local durable backing store; schema is not UI contract. |
 | `Sources/Runtime/*` | `Sources/DataEngine/Ingest/`, `Sources/MessageBus/Replay/`, `Sources/Database/ReplayProjection/` | Runtime orchestration must be decomposed into ingest / replay / projection boundaries. |
-| `Sources/App/*` | `Sources/Workbench/ReadModels/`, `Sources/Workbench/Report/`, `Sources/Workbench/Dashboard/`, `Sources/Workbench/Events/`, `Sources/Workbench/FutureLiveProConsole/` | Workbench consumes ReadModel / ViewModel only; future Live PRO Console remains a gated label; no runtime object, adapter request or schema access. |
+| `Sources/App/*` | `Sources/Dashboard/ReadModels/`, `Sources/Dashboard/Report/`, `Sources/Dashboard/`, `Sources/Dashboard/Events/`, `Sources/Dashboard/FutureLiveProConsole/` | Workbench consumes ReadModel / ViewModel only; future Live PRO Console remains a gated label; no runtime object, adapter request or schema access. |
 | `Sources/Dashboard/*` | `Sources/Dashboard/` | macOS shell / smoke / presentation surface only; no broker command path. |
 
 ## Compatibility Shell Policy

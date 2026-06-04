@@ -30,7 +30,6 @@
 | `ExecutionEngine` | `Sources/ExecutionEngine/` |
 | `TraderStrategies` | `Sources/Trader/Strategies/EMA/` 和后续 `Sources/Trader/Strategies/<strategy>/` |
 | `Trader` | `Sources/Trader/Accounts/`、`Sources/Trader/Strategies/EMA/`、`Sources/Trader/Coordination/` |
-| `Workbench` | `Sources/Workbench/` |
 | `Dashboard` | `Sources/Dashboard/` |
 
 当前 active concrete strategy only `EMA`。后续多个策略只能进入 `Sources/Trader/Strategies/<strategy>/`，并必须继续由 `TraderStrategies` / `Trader` 边界管理。旧 peer-level `Sources/Strategies/` 和旧 `Sources/Trader/StrategyBindings/` 只能作为 historical / compatibility / superseded evidence 保留。
@@ -67,9 +66,7 @@ ExecutionClient -> DomainModel / MessageBus
 ExecutionEngine -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine / ExecutionClient
 TraderStrategies -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine
 Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine / ExecutionEngine
-Workbench -> Core / Persistence read-model and ViewModel exports only
-App -> Workbench compatibility re-export
-Dashboard -> Workbench
+Dashboard -> Core / Persistence read-model and ViewModel exports only
 ```
 
 Forbidden path taxonomy 继续保持：
@@ -138,7 +135,7 @@ MTP-225 确认真实 source root 已存在，但当前 target path ownership 尚
 - Data roots：`Sources/DataClient/`、`Sources/DataEngine/`、`Sources/Cache/`。
 - Trader / Portfolio / Risk roots：`Sources/Trader/Accounts/`、`Sources/Trader/Strategies/EMA/`、`Sources/Trader/Coordination/`、`Sources/Portfolio/`、`Sources/RiskEngine/`。
 - Execution roots：`Sources/ExecutionClient/`、`Sources/ExecutionEngine/`。
-- Workbench / Dashboard roots：`Sources/Workbench/`、`Sources/Dashboard/`。
+- Dashboard root：`Sources/Dashboard/`。
 
 MTP-225 不改变上述 roots 的 compiler owner。后续只有 `MTP-226` 至 `MTP-230` 可以在各自 Linear issue scope 内迁移对应 target family。
 
@@ -364,55 +361,51 @@ MTP-229 required validation：
 - PR evidence 必须确认 ExecutionClient / ExecutionEngine target paths no longer depend on `Sources/TargetGraph/<Module>`.
 - PR evidence 必须确认 no ExecutionClient implementation、no OMS implementation、no broker gateway、no real order lifecycle、no live command、no Symphony、no Graphify、no code-index、no Figma、no `.codex/*`、no `graphify-out/*`。
 
-## MTP-230-WORKBENCH-DASHBOARD-REAL-ROOT-TARGET-MIGRATION
+## MTP-230-DASHBOARD-REAL-ROOT-TARGET-MIGRATION
 
-MTP-230 只迁移 Workbench / Dashboard UI target boundaries：
+MTP-230 曾迁移 Workbench / Dashboard UI target boundaries。后续 cleanup 已退休 `Workbench` target / product 和 `Sources/Workbench/` active source root；当前 UI target boundary 只保留 `Dashboard`：
 
 | Target | Previous active compiler shape | Real module root | Active source anchor after MTP-230 | Retained compatibility |
 | --- | --- | --- | --- | --- |
-| `Workbench` | `path: "Sources"` with explicit `Workbench/*` sources plus `Dashboard/DashboardShell.swift` | `Sources/Workbench` | `ReadModels`、`Report`、`Dashboard`、`Events`、`FutureLiveProConsole`、`TargetGraph` | `App` remains a compatibility re-export depending on `Workbench`. |
-| `Dashboard` | `Sources/Dashboard` executable excluding `DashboardShell.swift` | `Sources/Dashboard` | `DashboardApplication.swift`、`DashboardTargetBoundary.swift` | `Dashboard` continues depending only on `Workbench`. |
+| `Workbench` | Historical read-model-only UI library target | retired | historical / forbidden active path evidence only | none |
+| `Dashboard` | `Sources/Dashboard` executable | `Sources/Dashboard` | `DashboardApplication.swift`、`DashboardTargetBoundary.swift`、`DashboardShell.swift`、`ReadModels`、`Report`、`Events`、`FutureLiveProConsole` | `Dashboard` depends only on `Core` / `Persistence`. |
 
-MTP-230 将 `DashboardShell.swift` 移入 `Sources/Workbench/Dashboard/DashboardShell.swift`，因为该 shell snapshot 由 `Workbench` target 编译并输出只读 `DashboardViewModel` / `DashboardShellSnapshot` display API。`Sources/Dashboard` 只保留 executable entry 和 target boundary，不拥有 read model、projection snapshot 或 command-capable UI surface。
+`DashboardShell.swift`、ReadModels、Report、Events 和 FutureLiveProConsole future label 当前均由 `Sources/Dashboard/` 直接拥有。`Sources/Dashboard` 仍只表示 read-model-only display surface，不拥有 runtime object、adapter request、schema、account payload、broker payload、command-capable UI surface 或 L4 capability。
 
 ## MTP-230-UI-READ-MODEL-ONLY-DEPENDENCY-DIRECTION-PRESERVED
 
-MTP-230 preserves the UI dependency direction:
+MTP-230 后续 cleanup 后的 UI dependency direction：
 
 ```text
-Workbench -> Core / Persistence read-model and ViewModel exports only
-App -> Workbench compatibility re-export
-Dashboard -> Workbench
+Dashboard -> Core / Persistence read-model and ViewModel exports only
 ```
 
-Workbench / Dashboard 继续只消费 read model / ViewModel / projection snapshot。MTP-230 不读取 Runtime object、Adapter request、SQLite / DuckDB schema、account payload、broker payload 或 broker state，不新增 Live PRO Console、trading button、live command、order form、Dashboard runtime inspector、broker connect UI、account connect UI 或 L4 capability。
+Dashboard 继续只消费 read model / ViewModel / projection snapshot。`App` product / target、`Sources/AppCompatibility`、`Workbench` product / target 和 `Sources/Workbench/` 已退休。MTP-230 不读取 Runtime object、Adapter request、SQLite / DuckDB schema、account payload、broker payload 或 broker state，不新增 Live PRO Console、trading button、live command、order form、Dashboard runtime inspector、broker connect UI、account connect UI 或 L4 capability。
 
 ## MTP-230-TARGETGRAPH-UI-MIXED-PATH-RETIREMENT
 
-After MTP-230, this mixed UI path must not remain active:
+After MTP-230 follow-up cleanup, these UI paths must not remain active:
 
-- `Sources/Dashboard/DashboardShell.swift`
-
-The active Workbench boundary file remains under the real Workbench root:
-
+- `Sources/Workbench`
 - `Sources/Workbench/TargetGraph/WorkbenchTargetBoundary.swift`
 
-The active Dashboard boundary file remains under the real Dashboard root:
+The active Dashboard boundary files remain under the real Dashboard root:
 
 - `Sources/Dashboard/DashboardTargetBoundary.swift`
+- `Sources/Dashboard/DashboardShell.swift`
 
 MTP-230 does not delete `Sources/TargetGraph` as a historical term from older evidence and does not perform final TargetGraph active path retirement. MTP-231 remains responsible for final active path reference retirement and validation anchor cleanup.
 
-## MTP-230-WORKBENCH-DASHBOARD-REAL-ROOT-VALIDATION
+## MTP-230-DASHBOARD-REAL-ROOT-VALIDATION
 
 MTP-230 required validation：
 
-- `swift package describe` must not emit unhandled-file warnings for Workbench / Dashboard roots.
-- `swift test --filter TargetGraphTests/testMTP230WorkbenchDashboardTargetsUseRealModuleRootsAndRetireMixedShellPath`
+- `swift package describe` must not emit unhandled-file warnings for Dashboard root.
+- `swift test --filter TargetGraphTests/testMTP230DashboardTargetUsesRealModuleRootAndRetiresWorkbenchTarget`
 - `git diff --check`
 - `bash checks/automation-readiness.sh`
 - `bash checks/run.sh`
-- PR evidence 必须确认 Workbench target path 使用 `Sources/Workbench`，Dashboard executable target path 使用 `Sources/Dashboard`，`DashboardShell.swift` active owner 是 `Sources/Workbench/Dashboard`。
+- PR evidence 必须确认 Workbench target / source root 已退休，Dashboard executable target path 使用 `Sources/Dashboard`，`DashboardShell.swift` active owner 是 `Sources/Dashboard`。
 - PR evidence 必须确认 no runtime object、no adapter request、no schema / payload / broker state exposure、no Live PRO Console、no trading button、no live command、no order form、no Symphony、no Graphify、no code-index、no Figma、no `.codex/*`、no `graphify-out/*`。
 
 ## MTP-231-TARGETGRAPH-ACTIVE-PATH-REFERENCE-RETIREMENT
@@ -439,8 +432,7 @@ MTP-231 confirms the active target path snapshot is real module roots only:
 | `RiskEngine` | `Sources/RiskEngine` | `TargetGraph/RiskEngineTargetBoundary.swift` |
 | `ExecutionClient` | `Sources/ExecutionClient` | `TargetGraph/ExecutionClientTargetBoundary.swift` |
 | `ExecutionEngine` | `Sources/ExecutionEngine` | `TargetGraph/ExecutionEngineTargetBoundary.swift` |
-| `Workbench` | `Sources/Workbench` | `ReadModels`、`Report`、`Dashboard`、`Events`、`FutureLiveProConsole`、`TargetGraph` |
-| `Dashboard` | `Sources/Dashboard` | `DashboardApplication.swift`、`DashboardTargetBoundary.swift` |
+| `Dashboard` | `Sources/Dashboard` | `DashboardApplication.swift`、`DashboardTargetBoundary.swift`、`DashboardShell.swift`、`ReadModels`、`Report`、`Events`、`FutureLiveProConsole` |
 
 This snapshot preserves the dependency direction from MTP-222 and the real-root migrations from MTP-226 through MTP-230. It does not delete retained compatibility implementation and does not introduce new module layout.
 

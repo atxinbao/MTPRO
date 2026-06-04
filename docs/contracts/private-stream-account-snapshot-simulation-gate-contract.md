@@ -428,9 +428,9 @@ Required validation：
 
 Focused validation anchors：
 
-- `Sources/Workbench/Report/PrivateStreamSimulationGateEvidenceSurface.swift` 必须包含 `PrivateStreamSimulationGateEvidenceSurfaceReadModel`、`PrivateStreamSimulationGateEvidenceSurfaceViewModel`、`PrivateStreamSimulationGateFreshnessRecordViewModel` 和 `PrivateStreamSimulationGateEvidenceTraceItem`。
-- `Sources/Workbench/ReadModels/App.swift` 必须把 MTP-145 surface 接入 `ReportReadModel`、`ReportViewModel` 和 `DashboardViewModel` source chain。
-- `Sources/Workbench/Events/PaperWorkflowEvidenceExplorer.swift` 必须包含 `privateStreamSimulationGateEvidenceSurface` section，并输出 MTP-145 Event Timeline read-model-only evidence item。
+- `Sources/Dashboard/Report/PrivateStreamSimulationGateEvidenceSurface.swift` 必须包含 `PrivateStreamSimulationGateEvidenceSurfaceReadModel`、`PrivateStreamSimulationGateEvidenceSurfaceViewModel`、`PrivateStreamSimulationGateFreshnessRecordViewModel` 和 `PrivateStreamSimulationGateEvidenceTraceItem`。
+- `Sources/Dashboard/ReadModels/App.swift` 必须把 MTP-145 surface 接入 `ReportReadModel`、`ReportViewModel` 和 `DashboardViewModel` source chain。
+- `Sources/Dashboard/Events/PaperWorkflowEvidenceExplorer.swift` 必须包含 `privateStreamSimulationGateEvidenceSurface` section，并输出 MTP-145 Event Timeline read-model-only evidence item。
 - `Sources/Dashboard/DashboardShell.swift` 必须包含 Workbench / Report simulation gate metrics、details 和 Dashboard smoke handle `privateStreamSimulationGateEvidence=4`。
 - `Tests/AppTests/AppTests.swift` 必须包含 `testPrivateStreamSimulationGateEvidenceSurfaceAggregatesMTP145ReadOnlySurface`，覆盖 Report / Workbench / Events surface、forbidden UI/runtime flags 和 Codable deterministic snapshot。
 - `docs/contracts/private-stream-account-snapshot-simulation-gate-contract.md` 必须包含 MTP-145 read-model-only surface、forbidden UI/runtime surface 和 validation anchors。
