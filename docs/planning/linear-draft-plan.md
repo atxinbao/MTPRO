@@ -52,14 +52,16 @@
 | `MTPRO Trader EMA Strategy Layout Consolidation v1` | `docs/planning/projects/mtpro-trader-ema-strategy-layout-consolidation-v1-plan.md` | 已写入 Linear；`MTP-198` 至 `MTP-204` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
 | `MTPRO Trader Accounts / Coordination Compatibility Consolidation v1` | `docs/planning/projects/mtpro-trader-accounts-coordination-compatibility-consolidation-v1-plan.md` | 已写入 Linear；`MTP-205` 至 `MTP-211` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
 | `MTPRO Persistence Validation Repair v1` | `docs/planning/projects/mtpro-persistence-validation-repair-v1-plan.md` | 已写入 Linear；`MTP-213` 至 `MTP-215` 已完成；`MTP-212` 为 Duplicate / non-canonical；Linear Project closure flow 已完成；Stage Code Audit Report 已落仓。 |
-| `MTPRO SwiftPM Target Graph Module Split v1` | `docs/planning/projects/mtpro-swiftpm-target-graph-module-split-v1-plan.md` | 当前 docs-only planning record / non-executable；未写入 Linear；不创建 Linear，不推进 Todo；只规划 SwiftPM target graph split、dependency direction、compatibility envelope retirement 和 validation baseline，不授权修改 `Package.swift`、移动 `Sources`、拆 target 或实现 runtime。 |
+| `MTPRO SwiftPM Target Graph Module Split v1` | `docs/planning/projects/mtpro-swiftpm-target-graph-module-split-v1-plan.md` | 已写入 Linear；`MTP-216` 至 `MTP-223` 已完成；Linear Project status `Completed`；Stage Code Audit Report 已落仓。 |
+| `MTPRO TargetGraph Anchor Retirement / Real Module Source Root Migration v1` | `docs/planning/projects/mtpro-targetgraph-anchor-retirement-real-module-source-root-migration-v1-plan.md` | 当前 docs-only planning record / non-executable；未写入 Linear；不创建 Linear，不推进 Todo；只规划 `Sources/TargetGraph` 过渡锚点退休和真实模块 source root 迁移，不授权修改 `Package.swift`、移动 `Sources`、拆 target 或实现 runtime。 |
 
 ## 当前 Project planning record
 
-- 当前仓库只保存 `MTPRO SwiftPM Target Graph Module Split v1` 的 docs-only / non-executable planning record。
+- 当前仓库只保存 `MTPRO TargetGraph Anchor Retirement / Real Module Source Root Migration v1` 的 docs-only / non-executable planning record 作为当前 planning entry。
 - 当前 Project / active issue / Todo / In Progress / In Review 状态必须从 Linear live-read 和 Parent Codex queue preview 获取。
-- `MTPRO SwiftPM Target Graph Module Split v1` 仍未写入 Linear，不创建 Linear Project / Issue，不推进 Todo，不授权 `Package.swift` target graph change、SwiftPM target split、source move 或 runtime implementation。
+- `MTPRO TargetGraph Anchor Retirement / Real Module Source Root Migration v1` 仍未写入 Linear，不创建 Linear Project / Issue，不推进 Todo，不授权 `Package.swift` target graph change、SwiftPM target split、source move 或 runtime implementation。
 - 下一步必须由 Human 明确授权 Linear 写入；Linear 写入后所有 issues 仍必须保持 `Backlog / non-executable`，再由 Parent Codex queue preflight 才能推进唯一 eligible issue。
+- `MTPRO SwiftPM Target Graph Module Split v1` 已完成 closure；其 planning record 只作为 historical planning evidence 保留，不再表示当前 queue。
 - `MTPRO Persistence Validation Repair v1` 已完成 closure；其 planning record 只作为 historical planning evidence 保留，不再表示当前 queue。
 - 历史 planning record 保留 `当前 docs-only planning record / non-executable` 语义：只代表已落仓计划证据，不代表 execution authorization。
 
