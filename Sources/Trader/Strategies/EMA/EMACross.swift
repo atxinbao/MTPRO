@@ -1,5 +1,6 @@
 import DomainModel
 import Foundation
+import MessageBus
 
 /// MTP-193 将 EMA strategy lifecycle 迁入 `Sources/Trader/Strategies/EMA/`，但仍由 `Core`
 /// compatibility envelope 编译；这里继续只生成本地 deterministic signal，不创建 Strategy runtime。

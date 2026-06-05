@@ -1,5 +1,6 @@
 import DomainModel
 import Foundation
+import MessageBus
 
 /// MTP-187 将 portfolio projection update 放入 `Sources/Portfolio/`，保持 Core compatibility envelope。
 /// 该 update 仍只消费 replay 后的 simulated fill evidence，不同步 broker position 或真实账户余额。
@@ -152,7 +153,7 @@ public struct PaperPortfolioProjectionUpdate: Codable, Equatable, Sendable {
         syncsBrokerPosition: Bool
     ) throws {
         guard riskDecisionStatus == .allowed else {
-            throw CoreError.paperPortfolioProjectionRequiresAllowedRiskDecision(riskDecisionStatus)
+            throw CoreError.paperPortfolioProjectionRequiresAllowedRiskDecision(riskDecisionStatus.rawValue)
         }
         guard executionMode == .paper else {
             throw CoreError.paperPortfolioProjectionRequiresPaperMode(executionMode)

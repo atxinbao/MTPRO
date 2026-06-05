@@ -173,6 +173,7 @@ final class TargetGraphTests: XCTestCase {
         let domainModelTarget = try packageTargetBlock(named: "DomainModel", packageSource: packageSource)
         let messageBusTarget = try packageTargetBlock(named: "MessageBus", packageSource: packageSource)
         let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        let coreSources = try packageTargetSourcesBlock(targetBlock: coreTarget)
 
         for expected in [
             "\"CoreBaseline.swift\"",
@@ -186,9 +187,11 @@ final class TargetGraphTests: XCTestCase {
 
         XCTAssertTrue(messageBusTarget.contains("\"FoundationMessageStream.swift\""))
         XCTAssertTrue(messageBusTarget.contains("\"MessageBusAppendOnlyJournal.swift\""))
-        XCTAssertTrue(coreTarget.contains("dependencies: [\"DomainModel\", \"Cache\"]"))
+        XCTAssertTrue(coreTarget.contains("\"DomainModel\""))
+        XCTAssertTrue(coreTarget.contains("\"MessageBus\""))
+        XCTAssertTrue(coreTarget.contains("\"Cache\""))
         XCTAssertFalse(
-            coreTarget.contains("\n                \"DomainModel\","),
+            coreSources.contains("\"DomainModel"),
             "Core sources must not compile Sources/DomainModel as primary owner"
         )
 
@@ -370,8 +373,10 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(adaptersTarget.contains("dependencies: [\"DataClient\"]"))
         XCTAssertTrue(adaptersTarget.contains("\"AdaptersCompatibility.swift\""))
         XCTAssertFalse(adaptersSources.contains("Binance/PublicMarketData"))
-        XCTAssertTrue(coreTarget.contains("\"Cache/CacheReadModelSnapshot.swift\""))
-        XCTAssertTrue(coreTarget.contains("dependencies: [\"DomainModel\", \"Cache\"]"))
+        XCTAssertTrue(coreTarget.contains("\"DomainModel\""))
+        XCTAssertTrue(coreTarget.contains("\"Cache\""))
+        XCTAssertTrue(coreTarget.contains("\"DataClient\""))
+        XCTAssertTrue(coreTarget.contains("\"DataEngine/DataEngineReadOnlyReplayPlan.swift\""))
         XCTAssertTrue(runtimeTarget.contains("\"DataEngine/DataEngineReadOnlyReplayPlan.swift\""))
 
         let symbol = try Symbol(rawValue: "BTCUSDT")
@@ -462,7 +467,9 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(adaptersSources.contains("\"AdaptersCompatibility.swift\""))
         XCTAssertFalse(adaptersSources.contains("Binance/PublicMarketData"))
 
-        XCTAssertTrue(coreTarget.contains("dependencies: [\"DomainModel\", \"Cache\"]"))
+        XCTAssertTrue(coreTarget.contains("\"DomainModel\""))
+        XCTAssertTrue(coreTarget.contains("\"Cache\""))
+        XCTAssertTrue(coreTarget.contains("\"DataClient\""))
         XCTAssertFalse(coreSources.contains("Cache/MarketData"))
         XCTAssertFalse(coreSources.contains("DataClient/Binance"))
         XCTAssertTrue(dataEngineTarget.contains("\"ScenarioReplay\""))
@@ -734,6 +741,76 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(traderTarget.contains("\"ExecutionClient\""))
         XCTAssertTrue(executionEngineTarget.contains("dependencies: [\"DomainModel\", \"MessageBus\", \"Cache\", \"Portfolio\", \"RiskEngine\", \"ExecutionClient\"]"))
         XCTAssertTrue(executionClientTarget.contains("dependencies: [\"DomainModel\", \"MessageBus\"]"))
+    }
+
+    func testGH398TraderPortfolioRiskExecutionTargetsOwnRealSourceWithoutRuntimeDrift() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let portfolioTarget = try packageTargetBlock(named: "Portfolio", packageSource: packageSource)
+        let riskEngineTarget = try packageTargetBlock(named: "RiskEngine", packageSource: packageSource)
+        let executionEngineTarget = try packageTargetBlock(named: "ExecutionEngine", packageSource: packageSource)
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        let portfolioSources = try packageTargetSourcesBlock(targetBlock: portfolioTarget)
+        let riskEngineSources = try packageTargetSourcesBlock(targetBlock: riskEngineTarget)
+        let executionEngineSources = try packageTargetSourcesBlock(targetBlock: executionEngineTarget)
+        let coreSources = try packageTargetSourcesBlock(targetBlock: coreTarget)
+
+        XCTAssertTrue(portfolioSources.contains("\"PortfolioFinancialStateProjection.swift\""))
+        XCTAssertTrue(riskEngineSources.contains("\"PreTrade/RiskEnginePreTradeOwnership.swift\""))
+        XCTAssertTrue(executionEngineSources.contains("\"Ownership\""))
+        XCTAssertFalse(riskEngineSources.contains("PaperPreTradeRiskEngine.swift"))
+        XCTAssertFalse(executionEngineSources.contains("PaperLifecycle"))
+        XCTAssertFalse(executionEngineSources.contains("SimulatedExchange"))
+        XCTAssertTrue(coreSources.contains("\"RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift\""))
+        XCTAssertTrue(coreSources.contains("\"ExecutionEngine/PaperLifecycle\""))
+        XCTAssertTrue(coreSources.contains("\"ExecutionEngine/SimulatedExchange\""))
+
+        let proposal = try PaperActionProposalFixture.deterministicLong()
+        let exposure = PortfolioExposureSnapshot(
+            portfolioID: try Identifier("gh-398-paper-portfolio"),
+            symbol: proposal.symbol,
+            timeframe: proposal.timeframe,
+            paperQuantity: try Quantity(0.1, field: "gh398.paperQuantity"),
+            referencePrice: proposal.referencePrice,
+            source: .paperProjection,
+            observedAt: Date(timeIntervalSince1970: 398)
+        )
+        let financialProjection = try PortfolioFinancialStateProjection(
+            projectionID: try Identifier("gh-398-portfolio-financial-state"),
+            exposure: exposure,
+            projectedAt: Date(timeIntervalSince1970: 398)
+        )
+        XCTAssertTrue(financialProjection.paperOnlyBoundaryHeld)
+        XCTAssertEqual(financialProjection.exposure.grossExposureNotional, exposure.grossExposureNotional)
+
+        let riskDecision = try RiskEnginePreTradeOwnershipEvaluator.evaluate(
+            decisionID: try Identifier("gh-398-risk-decision"),
+            proposal: proposal,
+            portfolioExposure: exposure,
+            riskProfileID: try Identifier("gh-398-risk-profile"),
+            maxPaperNotional: 10_000,
+            sourceSequence: 399,
+            evaluatedAt: Date(timeIntervalSince1970: 399)
+        )
+        XCTAssertTrue(riskDecision.boundaryHeld)
+        XCTAssertTrue(riskDecision.isAllowed)
+        XCTAssertFalse(riskDecision.touchesExecutionEngine)
+        XCTAssertFalse(riskDecision.touchesExecutionClient)
+        XCTAssertFalse(riskDecision.authorizesLiveTrading)
+
+        let executionHandoff = try ExecutionEnginePaperOwnershipEvaluator.handoff(
+            handoffID: try Identifier("gh-398-execution-handoff"),
+            riskDecision: riskDecision
+        )
+        XCTAssertTrue(executionHandoff.boundaryHeld)
+        XCTAssertTrue(executionHandoff.acceptedForPaperLifecycle)
+        XCTAssertFalse(executionHandoff.touchesExecutionClient)
+        XCTAssertFalse(executionHandoff.touchesOMS)
+        XCTAssertFalse(executionHandoff.touchesBrokerGateway)
+        XCTAssertFalse(executionHandoff.submitsRealOrder)
     }
 
     func testMTP220ExecutionTargetsExposeFutureGateDependencyDirection() {

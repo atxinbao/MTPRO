@@ -1,4 +1,3 @@
-import DomainModel
 import Foundation
 
 /// Execution cost 类型只服务 Backtest / Paper parity evidence。

@@ -1,5 +1,6 @@
 import DomainModel
 import Foundation
+import MessageBus
 
 /// MTP-98 的 Paper Pre-trade RiskEngine runtime path 只处理本地 paper proposal。
 ///
@@ -685,6 +686,7 @@ public struct PaperPreTradeRiskEngineDecision: Codable, Equatable, Sendable {
     }
 }
 
+#if !MTPRO_RISKENGINE_REAL_TARGET
 /// PaperPreTradeRiskEnginePublication 保存 MTP-98 写入 Event Log 后的 replay evidence。
 ///
 /// `routeEvidence` 来自 MTP-97 EventBus publish，`replayEvidence` 来自同一 `MessageBus` replay 后重建。
@@ -999,3 +1001,4 @@ public enum PaperPreTradeRiskEngineFixture {
         return uuid
     }
 }
+#endif

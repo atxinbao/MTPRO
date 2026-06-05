@@ -34,7 +34,9 @@ let package = Package(
             path: "Sources/DomainModel",
             sources: [
                 "CoreBaseline.swift",
+                "CoreError.swift",
                 "DomainModelContractError.swift",
+                "ExecutionCosts.swift",
                 "FoundationTargetOwnership.swift",
                 "MarketDataModels.swift",
                 "MarketPrimitives.swift",
@@ -54,6 +56,10 @@ let package = Package(
             sources: [
                 "FoundationMessageStream.swift",
                 "MessageBusAppendOnlyJournal.swift",
+                "PaperActionProposal.swift",
+                "PaperActionRiskDecision.swift",
+                "RiskPortfolioContracts.swift",
+                "StrategySignals.swift",
                 "TargetGraph/MessageBusTargetBoundary.swift"
             ]
         ),
@@ -127,11 +133,12 @@ let package = Package(
             dependencies: ["DomainModel", "MessageBus", "Cache", "Database"],
             path: "Sources/Portfolio",
             exclude: [
-                "PaperAccountPortfolioProjectionV2.swift",
                 "PaperPortfolioProjectionUpdate.swift",
+                "PaperAccountPortfolioProjectionV2.swift",
                 "SimulatedExchangePortfolioProjectionParity.swift"
             ],
             sources: [
+                "PortfolioFinancialStateProjection.swift",
                 "TargetGraph/PortfolioTargetBoundary.swift"
             ]
         ),
@@ -140,10 +147,11 @@ let package = Package(
             dependencies: ["DomainModel", "MessageBus", "Cache", "Portfolio"],
             path: "Sources/RiskEngine",
             exclude: [
-                "LiveGate",
-                "PreTrade"
+                "PreTrade/PaperPreTradeRiskEngine.swift"
             ],
             sources: [
+                "LiveGate",
+                "PreTrade/RiskEnginePreTradeOwnership.swift",
                 "TargetGraph/RiskEngineTargetBoundary.swift"
             ]
         ),
@@ -151,11 +159,9 @@ let package = Package(
             name: "ExecutionClient",
             dependencies: ["DomainModel", "MessageBus"],
             path: "Sources/ExecutionClient",
-            exclude: [
-                "BrokerCapabilityMatrix",
-                "FutureGate"
-            ],
             sources: [
+                "BrokerCapabilityMatrix",
+                "FutureGate",
                 "TargetGraph/ExecutionClientTargetBoundary.swift"
             ]
         ),
@@ -164,11 +170,12 @@ let package = Package(
             dependencies: ["DomainModel", "MessageBus", "Cache", "Portfolio", "RiskEngine", "ExecutionClient"],
             path: "Sources/ExecutionEngine",
             exclude: [
-                "OMSFutureGate",
                 "PaperLifecycle",
                 "SimulatedExchange"
             ],
             sources: [
+                "OMSFutureGate",
+                "Ownership",
                 "TargetGraph/ExecutionEngineTargetBoundary.swift"
             ]
         ),
@@ -176,12 +183,8 @@ let package = Package(
             name: "TraderStrategies",
             dependencies: ["DomainModel", "MessageBus", "Cache", "Portfolio", "RiskEngine"],
             path: "Sources/Trader/Strategies/EMA",
-            exclude: [
-                "EMACross.swift",
-                "PaperActionProposal.swift",
-                "StrategySignals.swift"
-            ],
             sources: [
+                "EMACross.swift",
                 "TargetGraph/TraderStrategiesTargetBoundary.swift"
             ]
         ),
@@ -190,17 +193,27 @@ let package = Package(
             dependencies: ["DomainModel", "MessageBus", "Cache", "TraderStrategies", "Portfolio", "RiskEngine"],
             path: "Sources/Trader",
             exclude: [
-                "Accounts",
-                "Coordination",
                 "Strategies"
             ],
             sources: [
+                "Accounts",
+                "Coordination/RiskBinding",
                 "TargetGraph/TraderTargetBoundary.swift"
             ]
         ),
         .target(
             name: "Core",
-            dependencies: ["DomainModel", "Cache"],
+            dependencies: [
+                "DomainModel",
+                "MessageBus",
+                "Cache",
+                "TraderStrategies",
+                "Trader",
+                "Portfolio",
+                "RiskEngine",
+                "ExecutionClient",
+                "ExecutionEngine"
+            ],
             path: "Sources",
             exclude: [
                 "Cache/TargetGraph",
@@ -215,35 +228,46 @@ let package = Package(
                 "DomainModel/DomainModelContractError.swift",
                 "DomainModel/FoundationTargetOwnership.swift",
                 "DomainModel/CoreBaseline.swift",
+                "DomainModel/CoreError.swift",
+                "DomainModel/ExecutionCosts.swift",
                 "DomainModel/MarketDataModels.swift",
                 "DomainModel/MarketPrimitives.swift",
                 "DomainModel/TargetGraph",
+                "ExecutionClient/BrokerCapabilityMatrix",
+                "ExecutionClient/FutureGate",
                 "ExecutionClient/TargetGraph",
+                "ExecutionEngine/OMSFutureGate",
+                "ExecutionEngine/Ownership",
                 "ExecutionEngine/TargetGraph",
                 "MessageBus/FoundationMessageStream.swift",
                 "MessageBus/MessageBusAppendOnlyJournal.swift",
+                "MessageBus/PaperActionProposal.swift",
+                "MessageBus/PaperActionRiskDecision.swift",
+                "MessageBus/RiskPortfolioContracts.swift",
+                "MessageBus/StrategySignals.swift",
                 "MessageBus/TargetGraph",
                 "Portfolio/TargetGraph",
+                "Portfolio/PortfolioFinancialStateProjection.swift",
+                "RiskEngine/LiveGate",
+                "RiskEngine/PreTrade/RiskEnginePreTradeOwnership.swift",
                 "RiskEngine/TargetGraph",
+                "Trader/Accounts",
+                "Trader/Coordination/RiskBinding",
+                "Trader/Strategies/EMA/EMACross.swift",
                 "Trader/Strategies/EMA/TargetGraph",
                 "Trader/TargetGraph"
             ],
             sources: [
                 "Core",
                 "MessageBus",
-                "Trader/Accounts",
-                "Trader/Strategies/EMA",
-                "Trader/Coordination/RiskBinding",
-                "Portfolio",
-                "RiskEngine/PreTrade",
-                "RiskEngine/LiveGate",
-                "ExecutionEngine/PaperLifecycle",
-                "ExecutionEngine/SimulatedExchange",
-                "ExecutionEngine/OMSFutureGate",
-                "ExecutionClient/FutureGate",
-                "ExecutionClient/BrokerCapabilityMatrix",
                 "DataEngine/ScenarioReplay",
-                "DataEngine/DataQuality"
+                "DataEngine/DataQuality",
+                "Portfolio/PaperAccountPortfolioProjectionV2.swift",
+                "Portfolio/PaperPortfolioProjectionUpdate.swift",
+                "Portfolio/SimulatedExchangePortfolioProjectionParity.swift",
+                "RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift",
+                "ExecutionEngine/PaperLifecycle",
+                "ExecutionEngine/SimulatedExchange"
             ]
         ),
         .target(
