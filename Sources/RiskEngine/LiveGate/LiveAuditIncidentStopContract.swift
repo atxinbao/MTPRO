@@ -1,5 +1,6 @@
 import DomainModel
 import Foundation
+import MessageBus
 
 /// LiveAuditIncidentStopTerm 定义 MTP-89 允许命名的 Live audit / incident / stop 术语。
 ///

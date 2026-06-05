@@ -1,5 +1,6 @@
 import DomainModel
 import Foundation
+import MessageBus
 
 /// Paper simulated fill evidence 是本地 paper runtime 的模拟成交、fee 和 slippage 证据模型。
 ///
@@ -636,7 +637,7 @@ public struct PaperSimulatedFillEvidence: Codable, Equatable, Sendable {
         orderIntentReferencePrice: Price
     ) throws {
         guard orderLifecycleState == .intentCreated else {
-            throw CoreError.paperSimulatedFillRequiresOrderIntentCreated(orderLifecycleState)
+            throw CoreError.paperSimulatedFillRequiresOrderIntentCreated(orderLifecycleState.rawValue)
         }
         guard riskDecisionStatus == .allowed else {
             throw CoreError.paperSimulatedFillMismatch(

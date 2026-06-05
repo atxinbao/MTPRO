@@ -3180,8 +3180,8 @@ require_contains "docs/validation/trading-validation-matrix.md" "MTP-186 issue b
 require_contains "docs/automation/automation-readiness.md" "Cache / Database physical migration anchor"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-186 的当前 issue execution evidence"
 require_file "Sources/Trader/Strategies/EMA/EMACross.swift"
-require_file "Sources/Trader/Strategies/EMA/StrategySignals.swift"
-require_file "Sources/Trader/Strategies/EMA/PaperActionProposal.swift"
+require_file "Sources/MessageBus/StrategySignals.swift"
+require_file "Sources/MessageBus/PaperActionProposal.swift"
 require_file "Sources/Core/Research/OrderBookImbalanceResearchEvidence.swift"
 require_file "Sources/Trader/Coordination/RiskBinding/PaperActionRiskLink.swift"
 require_file "Sources/Portfolio/PaperAccountPortfolioProjectionV2.swift"
@@ -3190,6 +3190,8 @@ require_file "Sources/Portfolio/SimulatedExchangePortfolioProjectionParity.swift
 [[ ! -f "Sources/Core/EMACross.swift" ]] || fail "MTP-187 migrated file must not remain at Sources/Core/EMACross.swift"
 [[ ! -f "Sources/Core/StrategySignals.swift" ]] || fail "MTP-187 migrated file must not remain at Sources/Core/StrategySignals.swift"
 [[ ! -f "Sources/Core/PaperActionProposal.swift" ]] || fail "MTP-187 migrated file must not remain at Sources/Core/PaperActionProposal.swift"
+[[ ! -f "Sources/Trader/Strategies/EMA/StrategySignals.swift" ]] || fail "GH-398 MessageBus contract file must not remain under Trader strategy source: Sources/Trader/Strategies/EMA/StrategySignals.swift"
+[[ ! -f "Sources/Trader/Strategies/EMA/PaperActionProposal.swift" ]] || fail "GH-398 MessageBus contract file must not remain under Trader strategy source: Sources/Trader/Strategies/EMA/PaperActionProposal.swift"
 [[ ! -d "Sources/Strategies/EMA" ]] || fail "MTP-193 migrated EMA directory must not remain at Sources/Strategies/EMA"
 [[ ! -d "Sources/Trader/Strategies/OrderBookImbalance" ]] || fail "MTP-201 retired non-EMA active strategy directory must not remain at Sources/Trader/Strategies/OrderBookImbalance"
 [[ ! -d "Sources/Trader/StrategyBindings" ]] || fail "MTP-202 retired first-level StrategyBindings directory must not remain at Sources/Trader/StrategyBindings"
@@ -3199,14 +3201,14 @@ require_file "Sources/Portfolio/SimulatedExchangePortfolioProjectionParity.swift
 [[ ! -f "Sources/Core/PaperAccountPortfolioProjectionV2.swift" ]] || fail "MTP-187 migrated file must not remain at Sources/Core/PaperAccountPortfolioProjectionV2.swift"
 [[ ! -f "Sources/Core/PaperPortfolioProjectionUpdate.swift" ]] || fail "MTP-187 migrated file must not remain at Sources/Core/PaperPortfolioProjectionUpdate.swift"
 [[ ! -f "Sources/Core/SimulatedExchangePortfolioProjectionParity.swift" ]] || fail "MTP-187 migrated file must not remain at Sources/Core/SimulatedExchangePortfolioProjectionParity.swift"
-require_contains "Package.swift" '"Trader/Strategies/EMA"'
-require_absent "Package.swift" '"Strategies/EMA"'
+require_contains "Package.swift" 'path: "Sources/Trader/Strategies/EMA"'
+require_absent "Package.swift" 'path: "Sources/Strategies/EMA"'
 require_absent "Package.swift" '"Trader/Strategies/OrderBookImbalance"'
 require_absent "Package.swift" '"Strategies/OrderBookImbalance"'
 require_contains "Package.swift" '"Trader/Coordination/RiskBinding"'
 require_absent "Package.swift" '"Trader/StrategyBindings"'
 require_contains "Package.swift" '"Portfolio"'
-require_contains "Package.swift" '"Trader/Strategies/EMA"'
+require_contains "Package.swift" 'path: "Sources/Trader/Strategies/EMA"'
 require_contains "Package.swift" '"Trader"'
 require_contains "docs/architecture/module-boundary.md" "MTP-187 Strategies / Trader / Portfolio Physical Migration"
 require_contains "docs/domain/context.md" "MTP-187-STRATEGIES-TRADER-PORTFOLIO-PHYSICAL-MIGRATION"
@@ -3305,7 +3307,7 @@ require_file "Sources/ExecutionEngine/SimulatedExchange/SimulatedExchangeBacktes
 require_file "Sources/ExecutionEngine/SimulatedExchange/MarketLimitSimulatedExecutionSemantics.swift"
 require_file "Sources/ExecutionEngine/SimulatedExchange/PartialFillLatencyFeeSlippageParity.swift"
 require_file "Sources/ExecutionEngine/SimulatedExchange/BacktestPaperSharedOrderSemantics.swift"
-require_file "Sources/ExecutionEngine/SimulatedExchange/ExecutionCosts.swift"
+require_file "Sources/DomainModel/ExecutionCosts.swift"
 require_file "Sources/ExecutionEngine/OMSFutureGate/OMSFutureGateBoundary.swift"
 require_file "Sources/ExecutionClient/FutureGate/LiveExecutionControlContract.swift"
 require_file "Sources/ExecutionClient/BrokerCapabilityMatrix/ExecutionClientBrokerCapabilityMatrix.swift"
@@ -3329,11 +3331,13 @@ require_file "Sources/ExecutionClient/BrokerCapabilityMatrix/ExecutionClientBrok
 [[ ! -f "Sources/Core/PartialFillLatencyFeeSlippageParity.swift" ]] || fail "MTP-188 migrated file must not remain at Sources/Core/PartialFillLatencyFeeSlippageParity.swift"
 [[ ! -f "Sources/Core/BacktestPaperSharedOrderSemantics.swift" ]] || fail "MTP-188 migrated file must not remain at Sources/Core/BacktestPaperSharedOrderSemantics.swift"
 [[ ! -f "Sources/Core/ExecutionCosts.swift" ]] || fail "MTP-188 migrated file must not remain at Sources/Core/ExecutionCosts.swift"
-require_contains "Package.swift" '"RiskEngine/PreTrade"'
-require_contains "Package.swift" '"RiskEngine/LiveGate"'
+[[ ! -f "Sources/ExecutionEngine/SimulatedExchange/ExecutionCosts.swift" ]] || fail "GH-398 shared execution cost value must not remain under ExecutionEngine simulated exchange source"
+require_contains "Package.swift" '"PreTrade/RiskEnginePreTradeOwnership.swift"'
+require_contains "Package.swift" '"RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift"'
+require_contains "Package.swift" '"LiveGate"'
 require_contains "Package.swift" '"ExecutionEngine/PaperLifecycle"'
 require_contains "Package.swift" '"ExecutionEngine/SimulatedExchange"'
-require_contains "Package.swift" '"ExecutionEngine/OMSFutureGate"'
+require_contains "Package.swift" '"OMSFutureGate"'
 require_contains "Package.swift" '"ExecutionClient/FutureGate"'
 require_contains "Package.swift" '"ExecutionClient/BrokerCapabilityMatrix"'
 require_contains "Package.swift" '"RiskEngine"'
@@ -4810,10 +4814,10 @@ require_contains "docs/validation/latest-verification-summary.md" "MTP-209 的�
 require_contains "docs/validation/latest-verification-summary.md" "MTP-209-PACKAGE-CLEANUP-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Package stale Strategies compatibility exclude cleanup anchor"
 require_contains "Package.swift" '"Trader/Accounts"'
-require_contains "Package.swift" '"Trader/Strategies/EMA"'
+require_contains "Package.swift" 'path: "Sources/Trader/Strategies/EMA"'
 require_contains "Package.swift" '"Trader/Coordination/RiskBinding"'
 require_absent "Package.swift" '                "Strategies",'
-require_absent "Package.swift" '"Strategies/EMA"'
+require_absent "Package.swift" 'path: "Sources/Strategies/EMA"'
 require_absent "Package.swift" '"Trader/StrategyBindings"'
 require_absent "Package.swift" 'name: "Strategies"'
 [[ ! -d "Sources/Strategies" ]] || fail "MTP-209 stale active path must not return: Sources/Strategies"
@@ -5348,10 +5352,10 @@ require_contains "Package.swift" 'path: "Sources/Portfolio"'
 require_contains "Package.swift" '"TargetGraph/PortfolioTargetBoundary.swift"'
 require_contains "Package.swift" 'path: "Sources/RiskEngine"'
 require_contains "Package.swift" '"TargetGraph/RiskEngineTargetBoundary.swift"'
-require_contains "Package.swift" '"Trader/Strategies/EMA/TargetGraph"'
-require_contains "Package.swift" '"Trader/TargetGraph"'
-require_contains "Package.swift" '"Portfolio/TargetGraph"'
-require_contains "Package.swift" '"RiskEngine/TargetGraph"'
+require_contains "Package.swift" '"TargetGraph/TraderStrategiesTargetBoundary.swift"'
+require_contains "Package.swift" '"TargetGraph/TraderTargetBoundary.swift"'
+require_contains "Package.swift" '"TargetGraph/PortfolioTargetBoundary.swift"'
+require_contains "Package.swift" '"TargetGraph/RiskEngineTargetBoundary.swift"'
 require_absent "Package.swift" 'path: "Sources/TargetGraph/TraderStrategies"'
 require_absent "Package.swift" 'path: "Sources/TargetGraph/Trader"'
 require_absent "Package.swift" 'path: "Sources/TargetGraph/Portfolio"'

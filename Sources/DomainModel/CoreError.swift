@@ -1,4 +1,3 @@
-import DomainModel
 import Foundation
 
 /// Core 错误边界集中描述合同校验失败，避免 unsupported market data、Live 执行和非法事件进入运行时。
@@ -36,7 +35,7 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
     case paperActionProposalSignalMismatch(field: String, expected: String, actual: String)
     case paperActionProposalCostEvidenceMismatch(field: String, expected: String, actual: String)
     case paperActionRiskDecisionMismatch(field: String, expected: String, actual: String)
-    case paperPortfolioProjectionRequiresAllowedRiskDecision(PaperActionProposalRiskDecisionStatus)
+    case paperPortfolioProjectionRequiresAllowedRiskDecision(String)
     case paperPortfolioProjectionRequiresPaperMode(ExecutionMode)
     case paperPortfolioProjectionForbiddenCapability(String)
     case paperPortfolioProjectionMismatch(field: String, expected: String, actual: String)
@@ -47,7 +46,7 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
     case paperOrderIntentMismatch(field: String, expected: String, actual: String)
     case invalidPaperSimulatedFillQuantity(Double)
     case paperSimulatedFillRequiresPaperMode(ExecutionMode)
-    case paperSimulatedFillRequiresOrderIntentCreated(PaperOrderLifecycleState)
+    case paperSimulatedFillRequiresOrderIntentCreated(String)
     case paperSimulatedFillForbiddenCapability(String)
     case paperSimulatedFillMismatch(field: String, expected: String, actual: String)
     case paperExecutionDecisionRequiresPaperMode(ExecutionMode)
@@ -140,7 +139,7 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
         case let .paperActionRiskDecisionMismatch(field, expected, actual):
             "Paper action risk decision mismatch for \(field): expected \(expected), actual \(actual)"
         case let .paperPortfolioProjectionRequiresAllowedRiskDecision(value):
-            "Paper portfolio projection requires allowed risk decision: \(value.rawValue)"
+            "Paper portfolio projection requires allowed risk decision: \(value)"
         case let .paperPortfolioProjectionRequiresPaperMode(value):
             "Paper portfolio projection requires paper mode: \(value.rawValue)"
         case let .paperPortfolioProjectionForbiddenCapability(field):
@@ -162,7 +161,7 @@ public enum CoreError: Error, Equatable, Sendable, CustomStringConvertible {
         case let .paperSimulatedFillRequiresPaperMode(value):
             "Paper simulated fill requires paper mode: \(value.rawValue)"
         case let .paperSimulatedFillRequiresOrderIntentCreated(value):
-            "Paper simulated fill requires intentCreated order lifecycle state: \(value.rawValue)"
+            "Paper simulated fill requires intentCreated order lifecycle state: \(value)"
         case let .paperSimulatedFillForbiddenCapability(field):
             "Paper simulated fill forbids capability: \(field)"
         case let .paperSimulatedFillMismatch(field, expected, actual):

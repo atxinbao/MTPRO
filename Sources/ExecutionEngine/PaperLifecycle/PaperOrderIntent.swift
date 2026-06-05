@@ -1,5 +1,6 @@
 import DomainModel
 import Foundation
+import MessageBus
 
 /// Paper order intent / lifecycle 是 MTP-39 的本地 paper-only 订单意图模型。
 ///

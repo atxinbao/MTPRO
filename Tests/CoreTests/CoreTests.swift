@@ -7963,7 +7963,7 @@ final class CoreTests: XCTestCase {
         ) { error in
             XCTAssertEqual(
                 error as? CoreError,
-                .paperSimulatedFillRequiresOrderIntentCreated(.rejectedByRisk)
+                .paperSimulatedFillRequiresOrderIntentCreated(PaperOrderLifecycleState.rejectedByRisk.rawValue)
             )
         }
 
@@ -8435,7 +8435,7 @@ final class CoreTests: XCTestCase {
             encoding: .utf8
         )
         XCTAssertTrue(packageManifest.contains("\"Trader/Accounts\""))
-        XCTAssertTrue(packageManifest.contains("\"Trader/Strategies/EMA\""))
+        XCTAssertTrue(packageManifest.contains("path: \"Sources/Trader/Strategies/EMA\""))
         XCTAssertTrue(packageManifest.contains("\"Trader/Coordination/RiskBinding\""))
         XCTAssertFalse(packageManifest.contains("\"Trader/StrategyBindings\""))
         XCTAssertFalse(packageManifest.contains(".target(name: \"Strategies\""))
@@ -8453,8 +8453,6 @@ final class CoreTests: XCTestCase {
         let requiredTraderFiles = [
             "Sources/Trader/Accounts/TraderAccountContext.swift",
             "Sources/Trader/Strategies/EMA/EMACross.swift",
-            "Sources/Trader/Strategies/EMA/StrategySignals.swift",
-            "Sources/Trader/Strategies/EMA/PaperActionProposal.swift",
             "Sources/Trader/Coordination/RiskBinding/PaperActionRiskLink.swift"
         ]
         for relativePath in requiredTraderFiles {
@@ -8464,12 +8462,23 @@ final class CoreTests: XCTestCase {
             )
         }
 
+        let requiredSharedMessageBusFiles = [
+            "Sources/MessageBus/StrategySignals.swift",
+            "Sources/MessageBus/PaperActionProposal.swift"
+        ]
+        for relativePath in requiredSharedMessageBusFiles {
+            XCTAssertTrue(
+                fileManager.fileExists(atPath: repositoryRoot.appendingPathComponent(relativePath).path),
+                "\(relativePath) must remain wired as shared MessageBus contract for Trader container validation"
+            )
+        }
+
         let packageManifest = try String(
             contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
             encoding: .utf8
         )
         XCTAssertTrue(packageManifest.contains("\"Trader/Accounts\""))
-        XCTAssertTrue(packageManifest.contains("\"Trader/Strategies/EMA\""))
+        XCTAssertTrue(packageManifest.contains("path: \"Sources/Trader/Strategies/EMA\""))
         XCTAssertTrue(packageManifest.contains("\"Trader/Coordination/RiskBinding\""))
         XCTAssertFalse(packageManifest.contains("\"Trader/StrategyBindings\""))
         XCTAssertFalse(packageManifest.contains("\"Strategies/EMA\""))
@@ -8564,8 +8573,6 @@ final class CoreTests: XCTestCase {
         let requiredTraderContainerFiles = [
             "Sources/Trader/Accounts/TraderAccountContext.swift",
             "Sources/Trader/Strategies/EMA/EMACross.swift",
-            "Sources/Trader/Strategies/EMA/StrategySignals.swift",
-            "Sources/Trader/Strategies/EMA/PaperActionProposal.swift",
             "Sources/Trader/TargetGraph/TraderTargetBoundary.swift",
             "Sources/Trader/Coordination/RiskBinding/PaperActionRiskLink.swift"
         ]
@@ -8573,6 +8580,17 @@ final class CoreTests: XCTestCase {
             XCTAssertTrue(
                 fileManager.fileExists(atPath: repositoryRoot.appendingPathComponent(relativePath).path),
                 "\(relativePath) must remain part of the current Trader container completeness contract"
+            )
+        }
+
+        let requiredSharedContractFiles = [
+            "Sources/MessageBus/StrategySignals.swift",
+            "Sources/MessageBus/PaperActionProposal.swift"
+        ]
+        for relativePath in requiredSharedContractFiles {
+            XCTAssertTrue(
+                fileManager.fileExists(atPath: repositoryRoot.appendingPathComponent(relativePath).path),
+                "\(relativePath) must remain part of the shared contract surface consumed by the current Trader container"
             )
         }
 
@@ -8607,7 +8625,7 @@ final class CoreTests: XCTestCase {
             encoding: .utf8
         )
         XCTAssertTrue(packageManifest.contains("\"Trader/Accounts\""))
-        XCTAssertTrue(packageManifest.contains("\"Trader/Strategies/EMA\""))
+        XCTAssertTrue(packageManifest.contains("path: \"Sources/Trader/Strategies/EMA\""))
         XCTAssertTrue(packageManifest.contains("\"Trader/Coordination/RiskBinding\""))
         XCTAssertFalse(packageManifest.contains("                \"Strategies\","))
         XCTAssertFalse(packageManifest.contains("\"Sources/Strategies\""))
@@ -8632,14 +8650,23 @@ final class CoreTests: XCTestCase {
         let repositoryRoot = URL(fileURLWithPath: fileManager.currentDirectoryPath, isDirectory: true)
 
         let activeTraderOwnedStrategyFiles = [
-            "Sources/Trader/Strategies/EMA/EMACross.swift",
-            "Sources/Trader/Strategies/EMA/StrategySignals.swift",
-            "Sources/Trader/Strategies/EMA/PaperActionProposal.swift"
+            "Sources/Trader/Strategies/EMA/EMACross.swift"
         ]
         for relativePath in activeTraderOwnedStrategyFiles {
             XCTAssertTrue(
                 fileManager.fileExists(atPath: repositoryRoot.appendingPathComponent(relativePath).path),
                 "\(relativePath) must remain under the only active Trader-owned strategy root"
+            )
+        }
+
+        let sharedMessageBusContractFiles = [
+            "Sources/MessageBus/StrategySignals.swift",
+            "Sources/MessageBus/PaperActionProposal.swift"
+        ]
+        for relativePath in sharedMessageBusContractFiles {
+            XCTAssertTrue(
+                fileManager.fileExists(atPath: repositoryRoot.appendingPathComponent(relativePath).path),
+                "\(relativePath) must remain in MessageBus so Trader, Risk, Portfolio, and Execution boundaries can share the contract without strategy-source coupling"
             )
         }
 
@@ -8669,7 +8696,7 @@ final class CoreTests: XCTestCase {
             contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
             encoding: .utf8
         )
-        XCTAssertTrue(packageManifest.contains("\"Trader/Strategies/EMA\""))
+        XCTAssertTrue(packageManifest.contains("path: \"Sources/Trader/Strategies/EMA\""))
         XCTAssertTrue(packageManifest.contains("\"Trader/Coordination/RiskBinding\""))
         XCTAssertFalse(packageManifest.contains("\"Trader/StrategyBindings\""))
         XCTAssertFalse(packageManifest.contains("\"Trader/Strategies/OrderBookImbalance\""))
@@ -8737,8 +8764,8 @@ final class CoreTests: XCTestCase {
             .components(separatedBy: "path: \"Sources/Trader/Strategies/EMA\"")
             .count - 1
         XCTAssertEqual(activeTraderStrategyTargetRootOccurrences, 1)
-        XCTAssertTrue(packageManifest.contains("\"Trader/Strategies/EMA\""))
-        XCTAssertTrue(packageManifest.contains("\"Trader/Strategies/EMA/TargetGraph\""))
+        XCTAssertTrue(packageManifest.contains("path: \"Sources/Trader/Strategies/EMA\""))
+        XCTAssertTrue(packageManifest.contains("\"TargetGraph/TraderStrategiesTargetBoundary.swift\""))
         XCTAssertTrue(packageManifest.contains("\"Trader/Coordination/RiskBinding\""))
 
         let forbiddenPackageSourceRoots = nonEMAStrategyCandidates.flatMap { strategyName in
@@ -8987,7 +9014,7 @@ final class CoreTests: XCTestCase {
         ) { error in
             XCTAssertEqual(
                 error as? CoreError,
-                .paperPortfolioProjectionRequiresAllowedRiskDecision(.blocked)
+                .paperPortfolioProjectionRequiresAllowedRiskDecision(PaperActionProposalRiskDecisionStatus.blocked.rawValue)
             )
         }
 

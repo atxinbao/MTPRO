@@ -1,5 +1,6 @@
 import DomainModel
 import Foundation
+import MessageBus
 
 /// MTP-187 将 simulated exchange portfolio parity 放入 `Sources/Portfolio/`。
 /// 该 parity 只服务 paper / simulated projection evidence，不代表 Portfolio runtime 或 broker reconciliation。

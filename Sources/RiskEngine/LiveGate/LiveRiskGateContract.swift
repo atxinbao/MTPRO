@@ -1,5 +1,6 @@
 import DomainModel
 import Foundation
+import MessageBus
 
 /// LiveRiskTerm 定义 MTP-82 允许命名的 Future Live Risk 术语。
 ///

@@ -1,5 +1,6 @@
 import DomainModel
 import Foundation
+import MessageBus
 
 /// Paper execution decision 是 MTP-41 的本地 paper-only 决策链路。
 ///
