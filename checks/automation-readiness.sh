@@ -5615,6 +5615,33 @@ require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "DataEngineRead
 require_contains "docs/automation/automation-readiness.md" "GH-395 data target real smoke tests anchor"
 require_contains "docs/validation/latest-verification-summary.md" "GH-395 Data target real smoke tests"
 require_contains "verification.md" "GH-395 Data target real smoke tests"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-396-DATA-TARGET-IMPLEMENTATION-OWNERSHIP"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-396-DATACLIENT-BINANCE-PUBLIC-IMPLEMENTATION-OWNERSHIP"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-396-CACHE-MARKETDATA-IMPLEMENTATION-OWNERSHIP"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-396-DATAENGINE-COMPATIBILITY-ENVELOPE-DOCUMENTED"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-396-VALIDATION-ANCHORS"
+require_contains "architecture.md" "GH-396 Data Target Implementation Ownership"
+require_contains "architecture.md" "GH-396-DATACLIENT-BINANCE-PUBLIC-IMPLEMENTATION-OWNERSHIP"
+require_contains "architecture.md" "GH-396-CACHE-MARKETDATA-IMPLEMENTATION-OWNERSHIP"
+require_contains "architecture.md" "GH-396-DATAENGINE-REPLAY-QUALITY-COREERROR-ENVELOPE-DOCUMENTED"
+require_file "Sources/DataClient/AdaptersCompatibility.swift"
+require_file "Sources/Cache/MarketData/CacheContractError.swift"
+require_file "Sources/Core/MarketDataCacheCoreReplayCompatibility.swift"
+require_contains "Package.swift" '"Binance/PublicMarketData/Adapters.swift"'
+require_contains "Package.swift" '"MarketData/MarketDataCache.swift"'
+require_contains "Package.swift" '"MarketData/CacheContractError.swift"'
+require_contains "Package.swift" '"AdaptersCompatibility.swift"'
+require_contains "Sources/DataClient/TargetGraph/DataClientTargetBoundary.swift" "GH-396-DATACLIENT-BINANCE-PUBLIC-IMPLEMENTATION-OWNERSHIP"
+require_contains "Sources/DataClient/TargetGraph/DataClientTargetBoundary.swift" "GH-396-ADAPTERS-REEXPORT-ONLY"
+require_contains "Sources/Cache/TargetGraph/CacheTargetBoundary.swift" "GH-396-CACHE-MARKETDATA-IMPLEMENTATION-OWNERSHIP"
+require_contains "Sources/Cache/TargetGraph/CacheTargetBoundary.swift" "GH-396-CORE-CACHE-REEXPORT-ONLY"
+require_contains "Sources/DataEngine/TargetGraph/DataEngineTargetBoundary.swift" "GH-396-DATAENGINE-REPLAY-QUALITY-COREERROR-ENVELOPE-DOCUMENTED"
+require_contains "Sources/DataEngine/TargetGraph/DataEngineTargetBoundary.swift" "GH-396-DATAENGINE-INGEST-RUNTIME-ENVELOPE-DOCUMENTED"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH396DataClientAndCacheOwnImplementationSourceWhileDataEngineEnvelopeIsExplicit"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "CacheContractError"
+require_contains "docs/automation/automation-readiness.md" "GH-396 data target implementation ownership anchor"
+require_contains "docs/validation/latest-verification-summary.md" "GH-396 Data target implementation ownership"
+require_contains "verification.md" "GH-396 Data target implementation ownership"
 require_absent "docs/validation/validation-plan.md" 'Root docs 必须使用 `Trader = Accounts + Strategies + StrategyBindings + Coordination`'
 require_absent "docs/validation/validation-plan.md" '`Sources/Trader/StrategyBindings/` 必须包含 proposal-to-risk binding'
 require_absent "docs/validation/validation-plan.md" '只使用 `"Trader/Strategies/EMA"` 和 `"Trader/StrategyBindings"`'

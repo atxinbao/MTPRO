@@ -84,9 +84,14 @@ let package = Package(
             dependencies: ["DomainModel"],
             path: "Sources/DataClient",
             exclude: [
-                "Binance"
+                "AdaptersCompatibility.swift"
             ],
             sources: [
+                "Binance/PublicMarketData/Adapters.swift",
+                "Binance/PublicMarketData/BinanceMarketDataBatchReplayBoundary.swift",
+                "Binance/PublicMarketData/BinanceMarketDataReplayFreshness.swift",
+                "Binance/PublicMarketData/BinanceMarketDataReplayOperationsMetadata.swift",
+                "Binance/PublicMarketData/BinanceMarketDataReplayParity.swift",
                 "DataClientReadOnlyMarketDataSource.swift",
                 "TargetGraph/DataClientTargetBoundary.swift"
             ]
@@ -95,11 +100,11 @@ let package = Package(
             name: "Cache",
             dependencies: ["DomainModel", "MessageBus"],
             path: "Sources/Cache",
-            exclude: [
-                "MarketData"
-            ],
             sources: [
                 "CacheReadModelSnapshot.swift",
+                "MarketData/CacheContractError.swift",
+                "MarketData/MarketDataCache.swift",
+                "MarketData/OrderBookReadModel.swift",
                 "TargetGraph/CacheTargetBoundary.swift"
             ]
         ),
@@ -195,11 +200,12 @@ let package = Package(
         ),
         .target(
             name: "Core",
-            dependencies: ["DomainModel"],
+            dependencies: ["DomainModel", "Cache"],
             path: "Sources",
             exclude: [
                 "Cache/TargetGraph",
                 "Cache/CacheReadModelSnapshot.swift",
+                "Cache/MarketData",
                 "Dashboard",
                 "DataClient",
                 "DataEngine/DataEngineReadOnlyReplayPlan.swift",
@@ -223,7 +229,6 @@ let package = Package(
                 "Trader/TargetGraph"
             ],
             sources: [
-                "Cache/MarketData",
                 "Core",
                 "MessageBus",
                 "Trader/Accounts",
@@ -243,14 +248,15 @@ let package = Package(
         ),
         .target(
             name: "Adapters",
-            dependencies: ["Core"],
+            dependencies: ["DataClient"],
             path: "Sources/DataClient",
             exclude: [
+                "Binance",
                 "DataClientReadOnlyMarketDataSource.swift",
                 "TargetGraph"
             ],
             sources: [
-                "Binance/PublicMarketData"
+                "AdaptersCompatibility.swift"
             ]
         ),
         .systemLibrary(

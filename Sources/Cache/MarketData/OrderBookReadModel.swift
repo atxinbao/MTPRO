@@ -47,7 +47,7 @@ public struct OrderBookReadModelInput: Codable, Equatable, Sendable {
 
     public func applying(_ delta: OrderBookDelta) throws -> OrderBookReadModelInput {
         guard delta.symbol == symbol else {
-            throw CoreError.marketDataMismatch(
+            throw CacheContractError.marketDataMismatch(
                 field: "orderBookDelta.symbol",
                 expected: symbol.rawValue,
                 actual: delta.symbol.rawValue

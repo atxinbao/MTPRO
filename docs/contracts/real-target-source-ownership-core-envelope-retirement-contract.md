@@ -298,3 +298,64 @@ GH-395 readiness anchors：
 - `GH-395-DATAENGINE-REAL-TARGET-SMOKE`
 - `GH-395-DATA-COMPATIBILITY-ENVELOPE-PRESERVED`
 - `GH-395-DATA-VALIDATION-ANCHORS`
+
+## GH-396-DATA-TARGET-IMPLEMENTATION-OWNERSHIP
+
+GH-396 将 data targets 从 smoke API 推进到 partial implementation ownership：
+
+- `DataClient` target 直接编译 `Sources/DataClient/Binance/PublicMarketData/` 的 Binance public read-only implementation 和 `DataClientReadOnlyMarketDataSource.swift`。
+- `Adapters` target 退为 `DataClient` compatibility re-export，只编译 `Sources/DataClient/AdaptersCompatibility.swift`，不再拥有 Binance public market data implementation。
+- `Cache` target 直接编译 `Sources/Cache/MarketData/MarketDataCache.swift`、`Sources/Cache/MarketData/OrderBookReadModel.swift`、`Sources/Cache/MarketData/CacheContractError.swift` 和 `CacheReadModelSnapshot.swift`。
+- `Core` target 通过 `DomainModelCompatibilityImport.swift` re-export `Cache`，并只保留 `MarketDataCacheCoreReplayCompatibility.swift` 作为旧 `EventEnvelope` replay helper bridge。
+- `DataEngine` target 仍只拥有 `DataEngineReadOnlyReplayPlan.swift`；`ScenarioReplay` / `DataQuality` 仍由 `Core` compatibility envelope 承载，`Ingest` 仍由 `Runtime` compatibility envelope 承载。
+
+该 issue 不实现 streaming DataEngine runtime、private stream、signed/account endpoint、listenKey、broker path、ExecutionClient implementation、OMS、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
+## GH-396-DATACLIENT-BINANCE-PUBLIC-IMPLEMENTATION-OWNERSHIP
+
+`DataClient` 是 Binance public read-only implementation owner。验证必须证明：
+
+- `Package.swift` 的 `DataClient` target 编译 `Binance/PublicMarketData/Adapters.swift` 和 replay/freshness/parity public read-only implementation files。
+- `Adapters` target 只依赖 `DataClient`，并只编译 `AdaptersCompatibility.swift`。
+- `Sources/DataClient/TargetGraph/DataClientTargetBoundary.swift` 包含 `GH-396-DATACLIENT-BINANCE-PUBLIC-IMPLEMENTATION-OWNERSHIP` 和 `GH-396-ADAPTERS-REEXPORT-ONLY`。
+
+## GH-396-CACHE-MARKETDATA-IMPLEMENTATION-OWNERSHIP
+
+`Cache` 是 market-data cache / order-book read-model implementation owner。验证必须证明：
+
+- `Package.swift` 的 `Cache` target 编译 `MarketData/MarketDataCache.swift`、`MarketData/OrderBookReadModel.swift` 和 `MarketData/CacheContractError.swift`。
+- `Core` target 不再编译 `Cache/MarketData`，只通过 compatibility import / helper bridge 保留旧调用面。
+- `Sources/Cache/TargetGraph/CacheTargetBoundary.swift` 包含 `GH-396-CACHE-MARKETDATA-IMPLEMENTATION-OWNERSHIP` 和 `GH-396-CORE-CACHE-REEXPORT-ONLY`。
+
+## GH-396-DATAENGINE-COMPATIBILITY-ENVELOPE-DOCUMENTED
+
+GH-396 不把 DataEngine scenario replay / data quality / ingest 伪装成已经完全迁移：
+
+- `DataEngine` target 继续编译 `DataEngineReadOnlyReplayPlan.swift`。
+- `Sources/DataEngine/ScenarioReplay/` 和 `Sources/DataEngine/DataQuality/` 仍在 `Core` compatibility envelope 中，因为它们仍依赖 `CoreError` 和 legacy evidence payload。
+- `Sources/DataEngine/Ingest/` 仍在 `Runtime` compatibility envelope 中，因为它仍负责跨 DataClient / Persistence workflow 编排。
+- `Sources/DataEngine/TargetGraph/DataEngineTargetBoundary.swift` 必须包含 `GH-396-DATAENGINE-REPLAY-QUALITY-COREERROR-ENVELOPE-DOCUMENTED` 和 `GH-396-DATAENGINE-INGEST-RUNTIME-ENVELOPE-DOCUMENTED`。
+
+## GH-396-VALIDATION-ANCHORS
+
+GH-396 required validation：
+
+- `swift build --target DataClient`
+- `swift build --target Cache`
+- `swift build --target DataEngine`
+- `swift build --target Core`
+- `swift test --filter TargetGraphTests/testGH396DataClientAndCacheOwnImplementationSourceWhileDataEngineEnvelopeIsExplicit`
+- `swift test --filter TargetGraphTests`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-396 readiness anchors：
+
+- `GH-396-DATA-TARGET-IMPLEMENTATION-OWNERSHIP`
+- `GH-396-DATACLIENT-BINANCE-PUBLIC-IMPLEMENTATION-OWNERSHIP`
+- `GH-396-CACHE-MARKETDATA-IMPLEMENTATION-OWNERSHIP`
+- `GH-396-DATAENGINE-COMPATIBILITY-ENVELOPE-DOCUMENTED`
+- `GH-396-DATAENGINE-REPLAY-QUALITY-COREERROR-ENVELOPE-DOCUMENTED`
+- `GH-396-DATAENGINE-INGEST-RUNTIME-ENVELOPE-DOCUMENTED`
+- `GH-396-VALIDATION-ANCHORS`

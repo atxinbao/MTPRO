@@ -186,7 +186,7 @@ final class TargetGraphTests: XCTestCase {
 
         XCTAssertTrue(messageBusTarget.contains("\"FoundationMessageStream.swift\""))
         XCTAssertTrue(messageBusTarget.contains("\"MessageBusAppendOnlyJournal.swift\""))
-        XCTAssertTrue(coreTarget.contains("dependencies: [\"DomainModel\"]"))
+        XCTAssertTrue(coreTarget.contains("dependencies: [\"DomainModel\", \"Cache\"]"))
         XCTAssertFalse(
             coreTarget.contains("\n                \"DomainModel\","),
             "Core sources must not compile Sources/DomainModel as primary owner"
@@ -258,9 +258,9 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertEqual(dataClient.allowedDependencies, ["DomainModel"])
         XCTAssertEqual(cache.allowedDependencies, ["DomainModel", "MessageBus"])
         XCTAssertEqual(dataEngine.allowedDependencies, ["DomainModel", "DataClient", "MessageBus", "Cache"])
-        XCTAssertEqual(dataClient.retainedCompatibilityEnvelope, "Adapters")
-        XCTAssertEqual(cache.retainedCompatibilityEnvelope, "Core")
-        XCTAssertEqual(dataEngine.retainedCompatibilityEnvelope, "Core/Runtime")
+        XCTAssertEqual(dataClient.retainedCompatibilityEnvelope, "Adapters(re-export only)")
+        XCTAssertEqual(cache.retainedCompatibilityEnvelope, "Core(re-export only)")
+        XCTAssertEqual(dataEngine.retainedCompatibilityEnvelope, "Core/Runtime(scenario replay, quality, ingest workflow)")
     }
 
     func testMTP218DataTargetsRejectSignedAccountBrokerAndRuntimeDrift() {
@@ -358,15 +358,20 @@ final class TargetGraphTests: XCTestCase {
         let runtimeSources = try packageTargetSourcesBlock(targetBlock: runtimeTarget)
 
         XCTAssertTrue(dataClientTarget.contains("\"DataClientReadOnlyMarketDataSource.swift\""))
+        XCTAssertTrue(dataClientTarget.contains("\"Binance/PublicMarketData/Adapters.swift\""))
         XCTAssertTrue(cacheTarget.contains("\"CacheReadModelSnapshot.swift\""))
+        XCTAssertTrue(cacheTarget.contains("\"MarketData/MarketDataCache.swift\""))
         XCTAssertTrue(dataEngineTarget.contains("\"DataEngineReadOnlyReplayPlan.swift\""))
         XCTAssertFalse(adaptersSources.contains("DataClientReadOnlyMarketDataSource.swift"))
         XCTAssertFalse(coreSources.contains("CacheReadModelSnapshot.swift"))
+        XCTAssertFalse(coreSources.contains("Cache/MarketData"))
         XCTAssertFalse(coreSources.contains("DataEngineReadOnlyReplayPlan.swift"))
         XCTAssertFalse(runtimeSources.contains("DataEngineReadOnlyReplayPlan.swift"))
-        XCTAssertTrue(adaptersTarget.contains("\"DataClientReadOnlyMarketDataSource.swift\""))
+        XCTAssertTrue(adaptersTarget.contains("dependencies: [\"DataClient\"]"))
+        XCTAssertTrue(adaptersTarget.contains("\"AdaptersCompatibility.swift\""))
+        XCTAssertFalse(adaptersSources.contains("Binance/PublicMarketData"))
         XCTAssertTrue(coreTarget.contains("\"Cache/CacheReadModelSnapshot.swift\""))
-        XCTAssertTrue(coreTarget.contains("\"DataEngine/DataEngineReadOnlyReplayPlan.swift\""))
+        XCTAssertTrue(coreTarget.contains("dependencies: [\"DomainModel\", \"Cache\"]"))
         XCTAssertTrue(runtimeTarget.contains("\"DataEngine/DataEngineReadOnlyReplayPlan.swift\""))
 
         let symbol = try Symbol(rawValue: "BTCUSDT")
@@ -422,6 +427,111 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(DataClientTargetBoundary.mtp218.validationAnchors.contains("GH-395-DATACLIENT-REAL-TARGET-SMOKE"))
         XCTAssertTrue(CacheTargetBoundary.mtp218.validationAnchors.contains("GH-395-CACHE-REAL-TARGET-SMOKE"))
         XCTAssertTrue(DataEngineTargetBoundary.mtp218.validationAnchors.contains("GH-395-DATAENGINE-REAL-TARGET-SMOKE"))
+    }
+
+    func testGH396DataClientAndCacheOwnImplementationSourceWhileDataEngineEnvelopeIsExplicit() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+
+        let dataClientTarget = try packageTargetBlock(named: "DataClient", packageSource: packageSource)
+        let cacheTarget = try packageTargetBlock(named: "Cache", packageSource: packageSource)
+        let dataEngineTarget = try packageTargetBlock(named: "DataEngine", packageSource: packageSource)
+        let adaptersTarget = try packageTargetBlock(named: "Adapters", packageSource: packageSource)
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        let runtimeTarget = try packageTargetBlock(named: "Runtime", packageSource: packageSource)
+        let dataClientSources = try packageTargetSourcesBlock(targetBlock: dataClientTarget)
+        let cacheSources = try packageTargetSourcesBlock(targetBlock: cacheTarget)
+        let dataEngineSources = try packageTargetSourcesBlock(targetBlock: dataEngineTarget)
+        let adaptersSources = try packageTargetSourcesBlock(targetBlock: adaptersTarget)
+        let coreSources = try packageTargetSourcesBlock(targetBlock: coreTarget)
+        let runtimeSources = try packageTargetSourcesBlock(targetBlock: runtimeTarget)
+
+        XCTAssertTrue(dataClientSources.contains("\"Binance/PublicMarketData/Adapters.swift\""))
+        XCTAssertTrue(dataClientSources.contains("\"Binance/PublicMarketData/BinanceMarketDataReplayFreshness.swift\""))
+        XCTAssertTrue(dataClientSources.contains("\"DataClientReadOnlyMarketDataSource.swift\""))
+        XCTAssertTrue(cacheSources.contains("\"MarketData/MarketDataCache.swift\""))
+        XCTAssertTrue(cacheSources.contains("\"MarketData/OrderBookReadModel.swift\""))
+        XCTAssertTrue(cacheSources.contains("\"MarketData/CacheContractError.swift\""))
+        XCTAssertTrue(cacheSources.contains("\"CacheReadModelSnapshot.swift\""))
+        XCTAssertTrue(dataEngineSources.contains("\"DataEngineReadOnlyReplayPlan.swift\""))
+
+        XCTAssertTrue(adaptersTarget.contains("dependencies: [\"DataClient\"]"))
+        XCTAssertTrue(adaptersSources.contains("\"AdaptersCompatibility.swift\""))
+        XCTAssertFalse(adaptersSources.contains("Binance/PublicMarketData"))
+
+        XCTAssertTrue(coreTarget.contains("dependencies: [\"DomainModel\", \"Cache\"]"))
+        XCTAssertFalse(coreSources.contains("Cache/MarketData"))
+        XCTAssertFalse(coreSources.contains("DataClient/Binance"))
+        XCTAssertTrue(dataEngineTarget.contains("\"ScenarioReplay\""))
+        XCTAssertTrue(dataEngineTarget.contains("\"DataQuality\""))
+        XCTAssertTrue(runtimeTarget.contains("\"DataEngine/ScenarioReplay\""))
+        XCTAssertTrue(runtimeTarget.contains("\"DataEngine/DataQuality\""))
+        XCTAssertTrue(runtimeSources.contains("\"DataEngine/Ingest\""))
+
+        let request = BinancePublicRequestContract(
+            capability: .klines,
+            transport: .restGET,
+            path: "/api/v3/klines",
+            queryItems: [BinanceQueryItem(name: "symbol", value: "BTCUSDT")]
+        )
+        XCTAssertTrue(request.isReadOnly)
+        XCTAssertFalse(request.requiresAPIKey)
+
+        var cache = MarketDataCache()
+        let symbol = try Symbol(rawValue: "BTCUSDT")
+        let interval = try DateRange(
+            start: Date(timeIntervalSince1970: 396),
+            end: Date(timeIntervalSince1970: 456)
+        )
+        let bar = try MarketBar(
+            symbol: symbol,
+            timeframe: .oneMinute,
+            interval: interval,
+            open: 1,
+            high: 2,
+            low: 0.5,
+            close: 1.5,
+            volume: 10
+        )
+        cache.ingest(.bar(bar))
+        XCTAssertEqual(cache.snapshot.marketEventCount, 1)
+        XCTAssertThrowsError(
+            try OrderBookReadModelInput(snapshot: OrderBookSnapshot(
+                symbol: symbol,
+                observedAt: Date(timeIntervalSince1970: 396),
+                bids: [],
+                asks: []
+            )).applying(OrderBookDelta(
+                symbol: try Symbol(rawValue: "ETHUSDT"),
+                observedAt: Date(timeIntervalSince1970: 397),
+                bidUpdates: [],
+                askUpdates: []
+            ))
+        ) { error in
+            XCTAssertEqual(
+                error as? CacheContractError,
+                .marketDataMismatch(field: "orderBookDelta.symbol", expected: "BTCUSDT", actual: "ETHUSDT")
+            )
+        }
+
+        XCTAssertTrue(
+            DataClientTargetBoundary.mtp218.validationAnchors.contains(
+                "GH-396-DATACLIENT-BINANCE-PUBLIC-IMPLEMENTATION-OWNERSHIP"
+            )
+        )
+        XCTAssertTrue(
+            CacheTargetBoundary.mtp218.validationAnchors.contains(
+                "GH-396-CACHE-MARKETDATA-IMPLEMENTATION-OWNERSHIP"
+            )
+        )
+        XCTAssertTrue(
+            DataEngineTargetBoundary.mtp218.validationAnchors.contains(
+                "GH-396-DATAENGINE-REPLAY-QUALITY-COREERROR-ENVELOPE-DOCUMENTED"
+            )
+        )
     }
 
     func testMTP219TraderPortfolioRiskTargetsExposeDependencyDirectionAndContainerBoundary() {

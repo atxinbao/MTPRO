@@ -3,10 +3,10 @@ import MessageBus
 
 /// `Cache` target boundary 表达可从 facts / replay 重建的 read-model state surface。
 ///
-/// MTP-227 只把 active target boundary anchor 从 `Sources/TargetGraph/Cache`
-/// 移到 `Sources/Cache/TargetGraph`。既有 `Sources/Cache/MarketData` implementation
-/// 仍由 `Core` compatibility envelope 编译；Cache 不升级成 durable store、Redis clone、
-/// broker state cache 或 UI contract。
+/// MTP-227 把 active target boundary anchor 从 `Sources/TargetGraph/Cache`
+/// 移到 `Sources/Cache/TargetGraph`。GH-396 起 `Sources/Cache/MarketData`
+/// implementation 由 `Cache` target 拥有；`Core` 只保留 compatibility re-export。
+/// Cache 不升级成 durable store、Redis clone、broker state cache 或 UI contract。
 public struct CacheTargetBoundary: Codable, Equatable, Sendable {
     public let targetName: String
     public let canonicalSourceRoot: String
@@ -26,7 +26,7 @@ public struct CacheTargetBoundary: Codable, Equatable, Sendable {
         targetName: String = "Cache",
         canonicalSourceRoot: String = "Sources/Cache",
         compiledBoundaryRoot: String = "Sources/Cache/TargetGraph",
-        retainedCompatibilityEnvelope: String = "Core",
+        retainedCompatibilityEnvelope: String = "Core(re-export only)",
         domainModelBoundary: DomainModelTargetBoundary = .mtp217,
         messageBusBoundary: MessageBusTargetBoundary = .mtp217,
         allowedDependencies: [String] = ["DomainModel", "MessageBus"],
@@ -57,7 +57,7 @@ public struct CacheTargetBoundary: Codable, Equatable, Sendable {
         targetName == "Cache"
             && canonicalSourceRoot == "Sources/Cache"
             && compiledBoundaryRoot == "Sources/Cache/TargetGraph"
-            && retainedCompatibilityEnvelope == "Core"
+            && retainedCompatibilityEnvelope == "Core(re-export only)"
             && domainModelBoundary.boundaryHeld
             && messageBusBoundary.dependencyDirectionHeld
             && allowedDependencies == ["DomainModel", "MessageBus"]
@@ -89,7 +89,9 @@ public struct CacheTargetBoundary: Codable, Equatable, Sendable {
         "MTP-227-CACHE-REAL-ROOT-TARGET-PATH",
         "MTP-218-NO-BROKER-STATE-CACHE-GUARD",
         "GH-395-CACHE-REAL-TARGET-SMOKE",
-        "GH-395-CACHE-READ-MODEL-SNAPSHOT"
+        "GH-395-CACHE-READ-MODEL-SNAPSHOT",
+        "GH-396-CACHE-MARKETDATA-IMPLEMENTATION-OWNERSHIP",
+        "GH-396-CORE-CACHE-REEXPORT-ONLY"
     ]
 
     public static let mtp218 = CacheTargetBoundary()

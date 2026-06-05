@@ -2,7 +2,7 @@ import Foundation
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
-import Core
+import DomainModel
 
 public enum BinancePublicMarketDataContractError: Error, Equatable, Sendable, CustomStringConvertible {
     case invalidLimit(field: String, value: Int, allowedRange: String)

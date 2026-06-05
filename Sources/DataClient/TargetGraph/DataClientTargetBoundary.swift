@@ -2,10 +2,11 @@ import DomainModel
 
 /// `DataClient` target boundary 表达交易所 public read-only 数据适配层。
 ///
-/// MTP-227 只把 active target boundary anchor 从 `Sources/TargetGraph/DataClient`
-/// 移到 `Sources/DataClient/TargetGraph`。现有 Binance public market data implementation
-/// 仍由 `Adapters` compatibility envelope 编译；本 issue 不接 signed endpoint、
-/// account endpoint、listenKey、private stream runtime 或 broker path。
+/// MTP-227 把 active target boundary anchor 从 `Sources/TargetGraph/DataClient`
+/// 移到 `Sources/DataClient/TargetGraph`。GH-396 起 Binance public market data
+/// implementation 由 `DataClient` target 拥有；`Adapters` 只保留兼容 re-export。
+/// 本 issue 不接 signed endpoint、account endpoint、listenKey、private stream runtime
+/// 或 broker path。
 public struct DataClientTargetBoundary: Codable, Equatable, Sendable {
     public let targetName: String
     public let canonicalSourceRoot: String
@@ -25,7 +26,7 @@ public struct DataClientTargetBoundary: Codable, Equatable, Sendable {
         targetName: String = "DataClient",
         canonicalSourceRoot: String = "Sources/DataClient",
         compiledBoundaryRoot: String = "Sources/DataClient/TargetGraph",
-        retainedCompatibilityEnvelope: String = "Adapters",
+        retainedCompatibilityEnvelope: String = "Adapters(re-export only)",
         domainModelBoundary: DomainModelTargetBoundary = .mtp217,
         allowedDependencies: [String] = ["DomainModel"],
         forbiddenDependencies: [String] = Self.requiredForbiddenDependencies,
@@ -56,7 +57,7 @@ public struct DataClientTargetBoundary: Codable, Equatable, Sendable {
         targetName == "DataClient"
             && canonicalSourceRoot == "Sources/DataClient"
             && compiledBoundaryRoot == "Sources/DataClient/TargetGraph"
-            && retainedCompatibilityEnvelope == "Adapters"
+            && retainedCompatibilityEnvelope == "Adapters(re-export only)"
             && domainModelBoundary.boundaryHeld
             && allowedDependencies == ["DomainModel"]
             && forbiddenDependencies == Self.requiredForbiddenDependencies
@@ -91,7 +92,9 @@ public struct DataClientTargetBoundary: Codable, Equatable, Sendable {
         "MTP-227-DATACLIENT-REAL-ROOT-TARGET-PATH",
         "MTP-218-NO-SIGNED-ACCOUNT-BROKER-GUARD",
         "GH-395-DATACLIENT-REAL-TARGET-SMOKE",
-        "GH-395-DATACLIENT-PUBLIC-READ-ONLY-SOURCE"
+        "GH-395-DATACLIENT-PUBLIC-READ-ONLY-SOURCE",
+        "GH-396-DATACLIENT-BINANCE-PUBLIC-IMPLEMENTATION-OWNERSHIP",
+        "GH-396-ADAPTERS-REEXPORT-ONLY"
     ]
 
     public static let mtp218 = DataClientTargetBoundary()

@@ -1,5 +1,5 @@
 import Foundation
-import Core
+import DomainModel
 
 /// BinanceMarketDataReplayFreshnessStatus 描述本地 replay batch 相对 retention policy 的 freshness。
 ///

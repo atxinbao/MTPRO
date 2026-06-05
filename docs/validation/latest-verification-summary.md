@@ -1964,3 +1964,42 @@ GitHub Issue：[#395](https://github.com/atxinbao/MTPRO/issues/395)
 - `git diff --check`：pass，无输出。
 - `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
 - `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true`，335 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
+## 2026-06-06 — GH-396 Data target implementation ownership
+
+执行者：Codex
+
+GitHub Issue：[#396](https://github.com/atxinbao/MTPRO/issues/396)
+
+范围：
+
+- 将 Binance public read-only market data implementation 迁入 `DataClient` target：`Sources/DataClient/Binance/PublicMarketData/` 由 `DataClient` 直接编译。
+- 将 `Adapters` 收紧为 `DataClient` compatibility re-export：新增 `Sources/DataClient/AdaptersCompatibility.swift`，不再由 `Adapters` 拥有 Binance public implementation。
+- 将 market-data cache / order-book read-model implementation 迁入 `Cache` target：`Sources/Cache/MarketData/MarketDataCache.swift`、`OrderBookReadModel.swift` 和 `CacheContractError.swift` 由 `Cache` 直接编译。
+- 将 `Core` 收紧为 Cache compatibility re-export / bridge：`DomainModelCompatibilityImport.swift` re-export `Cache`，新增 `MarketDataCacheCoreReplayCompatibility.swift` 桥接旧 `EventEnvelope` replay helper。
+- 明确 `DataEngine` 仍未完成完整 implementation ownership：`ScenarioReplay`、`DataQuality` 继续由 `Core` compatibility envelope 承载，`Ingest` 继续由 `Runtime` compatibility envelope 承载。
+- 新增 `testGH396DataClientAndCacheOwnImplementationSourceWhileDataEngineEnvelopeIsExplicit`，证明 DataClient / Cache implementation ownership 和 DataEngine retained envelope 均有机械验证。
+
+边界：
+
+- 不实现 Trader runtime、Strategy runtime、Live runtime。
+- 不实现 ExecutionClient implementation、OMS、broker gateway。
+- 不接 signed endpoint、account endpoint / listenKey、private WebSocket runtime。
+- 不实现 real account read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation。
+- 不实现 Live PRO Console、trading button、live command 或 order form。
+- 不推进 L4。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify / code-index。
+- 不修改 Figma。
+
+验证：
+
+- `swift build --target DataClient`：pass。
+- `swift build --target Cache`：pass。
+- `swift build --target DataEngine`：pass。
+- `swift build --target Core`：pass。
+- `swift test --filter TargetGraphTests/testGH396DataClientAndCacheOwnImplementationSourceWhileDataEngineEnvelopeIsExplicit`：pass，1 test / 0 failures。
+- `swift test --filter TargetGraphTests`：pass，21 tests / 0 failures。
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true`，336 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
