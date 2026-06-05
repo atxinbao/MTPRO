@@ -69,6 +69,7 @@ public struct MessageBusTargetBoundary: Codable, Equatable, Sendable {
         "MTP-217-MESSAGEBUS-TARGET-SPLIT",
         "MTP-217-FOUNDATION-DEPENDENCY-DIRECTION",
         "MTP-226-MESSAGEBUS-REAL-ROOT-TARGET-PATH",
+        "GH-393-MESSAGEBUS-REAL-TARGET-SMOKE",
         "MTP-217-NO-RUNTIME-LIVE-BROKER-L4-GUARD"
     ]
 

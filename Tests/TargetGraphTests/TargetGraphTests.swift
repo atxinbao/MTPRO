@@ -102,6 +102,67 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH393FoundationTargetsExposeRealAPIsBeyondBoundaryAnchors() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+
+        let domainID = try FoundationTargetID("foundation-domain")
+        let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: domainID)
+        XCTAssertEqual(domainOwnership.targetName, "DomainModel")
+        XCTAssertEqual(domainOwnership.canonicalSourceRoot, "Sources/DomainModel")
+        XCTAssertTrue(domainOwnership.ownsRealModuleSourceRoot)
+
+        let topic = try FoundationMessageTopic("foundation.events")
+        var stream = try FoundationMessageStream()
+        let first = try stream.publish(
+            topic: topic,
+            sourceID: domainID,
+            recordedAt: Date(timeIntervalSince1970: 393)
+        )
+        let second = try stream.publish(
+            topic: topic,
+            sourceID: domainID,
+            recordedAt: Date(timeIntervalSince1970: 394)
+        )
+        XCTAssertEqual(first.sequence, 1)
+        XCTAssertEqual(second.sequence, 2)
+        XCTAssertEqual(stream.replay(topic: topic).map(\.sequence), [1, 2])
+
+        var checkpoint = try FoundationDatabaseCheckpoint(
+            checkpointID: try FoundationTargetID("foundation-database-checkpoint")
+        )
+        try checkpoint.apply(first)
+        try checkpoint.apply(second)
+        XCTAssertEqual(checkpoint.lastAppliedSequence, 2)
+        XCTAssertTrue(checkpoint.ownsDatabaseSourceRoot)
+        XCTAssertThrowsError(try checkpoint.apply(first)) { error in
+            XCTAssertEqual(
+                error as? FoundationTargetOwnershipError,
+                .sequenceRegression(current: 2, proposed: 1)
+            )
+        }
+
+        for expected in [
+            "\"FoundationTargetOwnership.swift\"",
+            "\"FoundationMessageStream.swift\"",
+            "\"FoundationDatabaseCheckpoint.swift\"",
+            "GH-393-DOMAINMODEL-REAL-TARGET-SMOKE",
+            "GH-393-MESSAGEBUS-REAL-TARGET-SMOKE",
+            "GH-393-DATABASE-REAL-TARGET-SMOKE"
+        ] {
+            XCTAssertTrue(packageSource.contains(expected) || packageSourceContainsAnchor(expected), "\(expected) must be active")
+        }
+    }
+
+    private func packageSourceContainsAnchor(_ expected: String) -> Bool {
+        DomainModelTargetBoundary.requiredValidationAnchors.contains(expected)
+            || MessageBusTargetBoundary.requiredValidationAnchors.contains(expected)
+            || DatabaseTargetBoundary.requiredValidationAnchors.contains(expected)
+    }
+
     func testMTP218DataTargetsExposeReadOnlyDependencyDirectionAndCompatibilityBoundary() {
         let dataClient = DataClientTargetBoundary.mtp218
         let cache = CacheTargetBoundary.mtp218
