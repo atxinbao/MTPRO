@@ -1,11 +1,11 @@
 import Core
 import Foundation
 
-/// WorkbenchBetaAcceptancePathTraceItem 是 MTP-122 的 Report / Dashboard / Events 验收轨迹行。
+/// DashboardBetaAcceptancePathTraceItem 是 MTP-122 的 Report / Dashboard / Events 验收轨迹行。
 ///
 /// Trace item 只保存已经进入 App read model 的 evidence id、surface、title 和 summary。它不携带
 /// Runtime object、Persistence schema、adapter request、broker payload、order form、live command 或交易按钮。
-public struct WorkbenchBetaAcceptancePathTraceItem: Codable, Equatable, Sendable {
+public struct DashboardBetaAcceptancePathTraceItem: Codable, Equatable, Sendable {
     public let traceID: String
     public let surface: String
     public let title: String
@@ -30,14 +30,14 @@ public struct WorkbenchBetaAcceptancePathTraceItem: Codable, Equatable, Sendable
     }
 }
 
-/// WorkbenchBetaAcceptancePathItem 是 MTP-122 的单个 beta acceptance path 聚合证据。
+/// DashboardBetaAcceptancePathItem 是 MTP-122 的单个 beta acceptance path 聚合证据。
 ///
 /// 该 item 只把 MTP-120 / MTP-121 的同一 demo scenario、MTP-108 scenario replay、MTP-116
 /// simulated exchange parity 和 L2 portfolio parity 字段组合成 Report / Dashboard / Events
 /// 可验收摘要。它不触发 replay、不读取数据库 schema、不运行 matching / portfolio runtime，
 /// 也不授权 signed endpoint、account endpoint、listenKey、broker、OMS、Live PRO Console、
 /// live command、order-level command 或交易按钮。
-public struct WorkbenchBetaAcceptancePathItem: Codable, Equatable, Sendable {
+public struct DashboardBetaAcceptancePathItem: Codable, Equatable, Sendable {
     public let evidenceID: String
     public let issueID: String
     public let scenarioID: String
@@ -58,7 +58,7 @@ public struct WorkbenchBetaAcceptancePathItem: Codable, Equatable, Sendable {
     public let sourceReplaySequences: [Int]
     public let reportSummary: String
     public let dashboardPanelSummaries: [String]
-    public let eventTraceItems: [WorkbenchBetaAcceptancePathTraceItem]
+    public let eventTraceItems: [DashboardBetaAcceptancePathTraceItem]
     public let validationAnchors: [String]
     public let sameDemoScenarioHeld: Bool
     public let reportSurfaceReady: Bool
@@ -89,7 +89,7 @@ public struct WorkbenchBetaAcceptancePathItem: Codable, Equatable, Sendable {
 
     public init?(
         report: ReportReadModel,
-        firstRun: WorkbenchBetaFirstRunReadModel
+        firstRun: DashboardBetaFirstRunReadModel
     ) {
         guard firstRun.state == .defaultDemo,
               firstRun.readModelOnlyBoundaryHeld,
@@ -238,7 +238,7 @@ public struct WorkbenchBetaAcceptancePathItem: Codable, Equatable, Sendable {
         self.reportSummary = reportSummary
         self.dashboardPanelSummaries = dashboardPanelSummaries
         self.eventTraceItems = eventTraceItems
-        self.validationAnchors = WorkbenchBetaAcceptancePathReadModel.validationAnchors
+        self.validationAnchors = DashboardBetaAcceptancePathReadModel.validationAnchors
         self.sameDemoScenarioHeld = sameDemoScenarioHeld
         self.reportSurfaceReady = reportSurfaceReady
         self.dashboardPanelsReady = dashboardPanelsReady
@@ -273,9 +273,9 @@ public struct WorkbenchBetaAcceptancePathItem: Codable, Equatable, Sendable {
         simulatedParity: SimulatedExchangeParityEvidenceItem,
         portfolioEvidenceID: String,
         portfolioSummary: String
-    ) -> [WorkbenchBetaAcceptancePathTraceItem] {
+    ) -> [DashboardBetaAcceptancePathTraceItem] {
         [
-            WorkbenchBetaAcceptancePathTraceItem(
+            DashboardBetaAcceptancePathTraceItem(
                 traceID: "\(evidenceID)-report",
                 surface: "Report",
                 title: "Report beta acceptance summary",
@@ -283,7 +283,7 @@ public struct WorkbenchBetaAcceptancePathItem: Codable, Equatable, Sendable {
                 evidenceID: scenarioReplay.reportInputVersionIdentity,
                 sourceAnchor: "MTP-122-REPORT-BETA-ACCEPTANCE-SUMMARY"
             ),
-            WorkbenchBetaAcceptancePathTraceItem(
+            DashboardBetaAcceptancePathTraceItem(
                 traceID: "\(evidenceID)-scenario-replay",
                 surface: "Report / Events",
                 title: "Scenario replay acceptance evidence",
@@ -291,7 +291,7 @@ public struct WorkbenchBetaAcceptancePathItem: Codable, Equatable, Sendable {
                 evidenceID: scenarioReplay.evidenceID,
                 sourceAnchor: "MTP-122-SCENARIO-REPLAY-ACCEPTANCE-EVIDENCE"
             ),
-            WorkbenchBetaAcceptancePathTraceItem(
+            DashboardBetaAcceptancePathTraceItem(
                 traceID: "\(evidenceID)-simulated-parity",
                 surface: "Report / Dashboard",
                 title: "Simulated parity acceptance evidence",
@@ -299,7 +299,7 @@ public struct WorkbenchBetaAcceptancePathItem: Codable, Equatable, Sendable {
                 evidenceID: simulatedParity.evidenceID,
                 sourceAnchor: "MTP-122-SIMULATED-PARITY-ACCEPTANCE-EVIDENCE"
             ),
-            WorkbenchBetaAcceptancePathTraceItem(
+            DashboardBetaAcceptancePathTraceItem(
                 traceID: "\(evidenceID)-portfolio",
                 surface: "Dashboard / Events",
                 title: "Portfolio acceptance evidence",
@@ -307,7 +307,7 @@ public struct WorkbenchBetaAcceptancePathItem: Codable, Equatable, Sendable {
                 evidenceID: portfolioEvidenceID,
                 sourceAnchor: "MTP-122-PORTFOLIO-ACCEPTANCE-EVIDENCE"
             ),
-            WorkbenchBetaAcceptancePathTraceItem(
+            DashboardBetaAcceptancePathTraceItem(
                 traceID: "\(evidenceID)-events",
                 surface: "Events",
                 title: "Events beta acceptance trace",
@@ -319,13 +319,13 @@ public struct WorkbenchBetaAcceptancePathItem: Codable, Equatable, Sendable {
     }
 }
 
-/// WorkbenchBetaAcceptancePathReadModel 汇总 MTP-122 可进入 App / Dashboard 的验收路径。
+/// DashboardBetaAcceptancePathReadModel 汇总 MTP-122 可进入 App / Dashboard 的验收路径。
 ///
-/// Read model 只从 `ReportReadModel` 与 `WorkbenchBetaFirstRunReadModel` 派生，不读取 Core
+/// Read model 只从 `ReportReadModel` 与 `DashboardBetaFirstRunReadModel` 派生，不读取 Core
 /// fixture 以外的运行时对象，也不触发 replay / matching / portfolio projection side effect。
-public struct WorkbenchBetaAcceptancePathReadModel: Equatable, Sendable {
+public struct DashboardBetaAcceptancePathReadModel: Equatable, Sendable {
     public let source: ViewModelSourceContract
-    public let items: [WorkbenchBetaAcceptancePathItem]
+    public let items: [DashboardBetaAcceptancePathItem]
     public let lastAppliedSequence: Int?
 
     public static let validationAnchors: [String] = [
@@ -340,7 +340,7 @@ public struct WorkbenchBetaAcceptancePathReadModel: Equatable, Sendable {
 
     public init(
         source: ViewModelSourceContract = ViewModelSourceContract(),
-        items: [WorkbenchBetaAcceptancePathItem] = [],
+        items: [DashboardBetaAcceptancePathItem] = [],
         lastAppliedSequence: Int? = nil
     ) {
         self.source = source
@@ -355,9 +355,9 @@ public struct WorkbenchBetaAcceptancePathReadModel: Equatable, Sendable {
 
     public init(
         report: ReportReadModel,
-        firstRun: WorkbenchBetaFirstRunReadModel
+        firstRun: DashboardBetaFirstRunReadModel
     ) {
-        let item = WorkbenchBetaAcceptancePathItem(report: report, firstRun: firstRun)
+        let item = DashboardBetaAcceptancePathItem(report: report, firstRun: firstRun)
         self.init(
             items: item.map { [$0] } ?? [],
             lastAppliedSequence: report.lastAppliedSequence
@@ -369,13 +369,13 @@ public struct WorkbenchBetaAcceptancePathReadModel: Equatable, Sendable {
     }
 }
 
-/// WorkbenchBetaAcceptancePathViewModel 是 Report / Dashboard / Events 可以共同消费的 MTP-122 快照。
+/// DashboardBetaAcceptancePathViewModel 是 Report / Dashboard / Events 可以共同消费的 MTP-122 快照。
 ///
 /// ViewModel 只做计数、ID 聚合、summary 聚合和 boundary flag 聚合；它不暴露 schema、Runtime、
 /// adapter、signed/account endpoint、broker action、Live PRO Console、live command 或交易按钮。
-public struct WorkbenchBetaAcceptancePathViewModel: Codable, Equatable, Sendable {
+public struct DashboardBetaAcceptancePathViewModel: Codable, Equatable, Sendable {
     public let source: ViewModelSourceContract
-    public let items: [WorkbenchBetaAcceptancePathItem]
+    public let items: [DashboardBetaAcceptancePathItem]
     public let acceptancePathCount: Int
     public let scenarioIDs: [String]
     public let datasetVersions: [String]
@@ -383,7 +383,7 @@ public struct WorkbenchBetaAcceptancePathViewModel: Codable, Equatable, Sendable
     public let reportInputVersionIdentities: [String]
     public let reportSummaries: [String]
     public let dashboardPanelSummaries: [String]
-    public let eventTraceItems: [WorkbenchBetaAcceptancePathTraceItem]
+    public let eventTraceItems: [DashboardBetaAcceptancePathTraceItem]
     public let eventTraceItemCount: Int
     public let portfolioEvidenceIDs: [String]
     public let grossExposureNotional: Double
@@ -417,7 +417,7 @@ public struct WorkbenchBetaAcceptancePathViewModel: Codable, Equatable, Sendable
     public let authorizesTradingExecution: Bool
     public let lastAppliedSequence: Int?
 
-    public init(readModel: WorkbenchBetaAcceptancePathReadModel) {
+    public init(readModel: DashboardBetaAcceptancePathReadModel) {
         let items = readModel.items
         self.source = readModel.source
         self.items = items
@@ -433,7 +433,7 @@ public struct WorkbenchBetaAcceptancePathViewModel: Codable, Equatable, Sendable
         self.portfolioEvidenceIDs = items.map(\.portfolioEvidenceID).uniqueSortedStrings()
         self.grossExposureNotional = items.reduce(0) { $0 + $1.grossExposureNotional }
         self.netSimulatedPnL = items.reduce(0) { $0 + $1.netSimulatedPnL }
-        self.validationAnchors = WorkbenchBetaAcceptancePathReadModel.validationAnchors
+        self.validationAnchors = DashboardBetaAcceptancePathReadModel.validationAnchors
         self.sameDemoScenarioHeld = items.isEmpty == false
             && items.allSatisfy(\.sameDemoScenarioHeld)
         self.reportSurfaceReady = items.isEmpty == false

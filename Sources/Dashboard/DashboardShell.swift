@@ -55,7 +55,7 @@ public struct DashboardShellSectionSnapshot: Codable, Equatable, Identifiable, S
     }
 }
 
-/// DashboardShellControlSnapshot 是 Workbench 壳展示 session-level local control 的只读行。
+/// DashboardShellControlSnapshot 是 Dashboard 壳展示 session-level local control 的只读行。
 ///
 /// 该 snapshot 消费 MTP-48 的 Command Model 枚举，但只作为展示输入：scope、level、execution mode
 /// 和 capability flags 都被固定为本地 paper session。它不携带 command ID，不写 event log，
@@ -156,14 +156,14 @@ public struct DashboardShellControlSnapshot: Codable, Equatable, Identifiable, S
     }
 }
 
-/// DashboardShellWorkbenchSnapshot 汇总 MTP-52 需要渲染的 Paper workflow Workbench 壳输入。
+/// DashboardShellReadModelSurfaceSnapshot 汇总 MTP-52 需要渲染的 Paper workflow Dashboard 壳输入。
 ///
-/// Workbench 壳只组合现有 App 层 ViewModel / Read Model / Command Model：session-level controls
+/// Dashboard 壳只组合现有 App 层 ViewModel / Read Model / Command Model：session-level controls
 /// 来自固定合同，observability、Evidence Explorer、scenario replay evidence、Live blocked evidence、execution-control
 /// blocked evidence、Strategy / Trader readiness evidence、Live Risk gate blocked evidence 和 incident / stop blocked evidence 都来自
 /// `DashboardViewModel`。所有字段都是 read-only 展示材料，不访问运行时对象、adapter request、
 /// 数据库结构或真实账户能力，也不形成 live command、stop command、交易按钮或真实交易入口。
-public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
+public struct DashboardShellReadModelSurfaceSnapshot: Codable, Equatable, Sendable {
     public let title: String
     public let subtitle: String
     public let source: ViewModelSourceContract
@@ -175,9 +175,9 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
     public let privateStreamSimulationGateEvidenceSurfaceSource: ViewModelSourceContract
     public let liveMonitoringReadOnlyConsoleV2SurfaceSource: ViewModelSourceContract
     public let strategyTraderReadinessEvidenceSurfaceSource: ViewModelSourceContract
-    public let workbenchBetaFirstRunSource: ViewModelSourceContract
-    public let workbenchBetaAcceptancePathSource: ViewModelSourceContract
-    public let liveReadOnlyWorkbenchBoundarySource: ViewModelSourceContract
+    public let dashboardBetaFirstRunSource: ViewModelSourceContract
+    public let dashboardBetaAcceptancePathSource: ViewModelSourceContract
+    public let liveReadOnlyDashboardBoundarySource: ViewModelSourceContract
     public let liveBlockedEvidenceSource: ViewModelSourceContract
     public let liveMonitoringEvidenceSource: ViewModelSourceContract
     public let liveExecutionControlBlockedEvidenceSource: ViewModelSourceContract
@@ -201,12 +201,12 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
     public let liveMonitoringReadOnlyConsoleV2SurfaceDetails: [String]
     public let strategyTraderReadinessEvidenceSurfaceMetrics: [DashboardShellMetric]
     public let strategyTraderReadinessEvidenceSurfaceDetails: [String]
-    public let workbenchBetaFirstRunMetrics: [DashboardShellMetric]
-    public let workbenchBetaFirstRunDetails: [String]
-    public let workbenchBetaAcceptancePathMetrics: [DashboardShellMetric]
-    public let workbenchBetaAcceptancePathDetails: [String]
-    public let liveReadOnlyWorkbenchBoundaryMetrics: [DashboardShellMetric]
-    public let liveReadOnlyWorkbenchBoundaryDetails: [String]
+    public let dashboardBetaFirstRunMetrics: [DashboardShellMetric]
+    public let dashboardBetaFirstRunDetails: [String]
+    public let dashboardBetaAcceptancePathMetrics: [DashboardShellMetric]
+    public let dashboardBetaAcceptancePathDetails: [String]
+    public let liveReadOnlyDashboardBoundaryMetrics: [DashboardShellMetric]
+    public let liveReadOnlyDashboardBoundaryDetails: [String]
     public let liveBlockedEvidenceMetrics: [DashboardShellMetric]
     public let liveBlockedEvidenceDetails: [String]
     public let liveMonitoringEvidenceMetrics: [DashboardShellMetric]
@@ -232,9 +232,9 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
     public let privateStreamSimulationGateEvidenceSurfaceBoundaryHeld: Bool
     public let liveMonitoringReadOnlyConsoleV2SurfaceBoundaryHeld: Bool
     public let strategyTraderReadinessEvidenceSurfaceBoundaryHeld: Bool
-    public let workbenchBetaFirstRunReadModelOnlyBoundaryHeld: Bool
-    public let workbenchBetaAcceptancePathReadModelOnlyBoundaryHeld: Bool
-    public let liveReadOnlyWorkbenchBoundaryReadModelOnlyBoundaryHeld: Bool
+    public let dashboardBetaFirstRunReadModelOnlyBoundaryHeld: Bool
+    public let dashboardBetaAcceptancePathReadModelOnlyBoundaryHeld: Bool
+    public let liveReadOnlyDashboardBoundaryReadModelOnlyBoundaryHeld: Bool
 
     public init(
         title: String = "Paper Workflow Control Shell",
@@ -248,9 +248,9 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         privateStreamSimulationGateEvidenceSurfaceSource: ViewModelSourceContract,
         liveMonitoringReadOnlyConsoleV2SurfaceSource: ViewModelSourceContract,
         strategyTraderReadinessEvidenceSurfaceSource: ViewModelSourceContract,
-        workbenchBetaFirstRunSource: ViewModelSourceContract,
-        workbenchBetaAcceptancePathSource: ViewModelSourceContract,
-        liveReadOnlyWorkbenchBoundarySource: ViewModelSourceContract,
+        dashboardBetaFirstRunSource: ViewModelSourceContract,
+        dashboardBetaAcceptancePathSource: ViewModelSourceContract,
+        liveReadOnlyDashboardBoundarySource: ViewModelSourceContract,
         liveBlockedEvidenceSource: ViewModelSourceContract,
         liveMonitoringEvidenceSource: ViewModelSourceContract,
         liveExecutionControlBlockedEvidenceSource: ViewModelSourceContract,
@@ -274,12 +274,12 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         liveMonitoringReadOnlyConsoleV2SurfaceDetails: [String],
         strategyTraderReadinessEvidenceSurfaceMetrics: [DashboardShellMetric],
         strategyTraderReadinessEvidenceSurfaceDetails: [String],
-        workbenchBetaFirstRunMetrics: [DashboardShellMetric],
-        workbenchBetaFirstRunDetails: [String],
-        workbenchBetaAcceptancePathMetrics: [DashboardShellMetric],
-        workbenchBetaAcceptancePathDetails: [String],
-        liveReadOnlyWorkbenchBoundaryMetrics: [DashboardShellMetric],
-        liveReadOnlyWorkbenchBoundaryDetails: [String],
+        dashboardBetaFirstRunMetrics: [DashboardShellMetric],
+        dashboardBetaFirstRunDetails: [String],
+        dashboardBetaAcceptancePathMetrics: [DashboardShellMetric],
+        dashboardBetaAcceptancePathDetails: [String],
+        liveReadOnlyDashboardBoundaryMetrics: [DashboardShellMetric],
+        liveReadOnlyDashboardBoundaryDetails: [String],
         liveBlockedEvidenceMetrics: [DashboardShellMetric],
         liveBlockedEvidenceDetails: [String],
         liveMonitoringEvidenceMetrics: [DashboardShellMetric],
@@ -304,9 +304,9 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
         privateStreamSimulationGateEvidenceSurfaceBoundaryHeld: Bool,
         liveMonitoringReadOnlyConsoleV2SurfaceBoundaryHeld: Bool,
         strategyTraderReadinessEvidenceSurfaceBoundaryHeld: Bool,
-        workbenchBetaFirstRunReadModelOnlyBoundaryHeld: Bool,
-        workbenchBetaAcceptancePathReadModelOnlyBoundaryHeld: Bool,
-        liveReadOnlyWorkbenchBoundaryReadModelOnlyBoundaryHeld: Bool
+        dashboardBetaFirstRunReadModelOnlyBoundaryHeld: Bool,
+        dashboardBetaAcceptancePathReadModelOnlyBoundaryHeld: Bool,
+        liveReadOnlyDashboardBoundaryReadModelOnlyBoundaryHeld: Bool
     ) {
         self.title = title
         self.subtitle = subtitle
@@ -323,9 +323,9 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
             liveMonitoringReadOnlyConsoleV2SurfaceSource
         self.strategyTraderReadinessEvidenceSurfaceSource =
             strategyTraderReadinessEvidenceSurfaceSource
-        self.workbenchBetaFirstRunSource = workbenchBetaFirstRunSource
-        self.workbenchBetaAcceptancePathSource = workbenchBetaAcceptancePathSource
-        self.liveReadOnlyWorkbenchBoundarySource = liveReadOnlyWorkbenchBoundarySource
+        self.dashboardBetaFirstRunSource = dashboardBetaFirstRunSource
+        self.dashboardBetaAcceptancePathSource = dashboardBetaAcceptancePathSource
+        self.liveReadOnlyDashboardBoundarySource = liveReadOnlyDashboardBoundarySource
         self.liveBlockedEvidenceSource = liveBlockedEvidenceSource
         self.liveMonitoringEvidenceSource = liveMonitoringEvidenceSource
         self.liveExecutionControlBlockedEvidenceSource = liveExecutionControlBlockedEvidenceSource
@@ -357,12 +357,12 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
             strategyTraderReadinessEvidenceSurfaceMetrics
         self.strategyTraderReadinessEvidenceSurfaceDetails =
             strategyTraderReadinessEvidenceSurfaceDetails
-        self.workbenchBetaFirstRunMetrics = workbenchBetaFirstRunMetrics
-        self.workbenchBetaFirstRunDetails = workbenchBetaFirstRunDetails
-        self.workbenchBetaAcceptancePathMetrics = workbenchBetaAcceptancePathMetrics
-        self.workbenchBetaAcceptancePathDetails = workbenchBetaAcceptancePathDetails
-        self.liveReadOnlyWorkbenchBoundaryMetrics = liveReadOnlyWorkbenchBoundaryMetrics
-        self.liveReadOnlyWorkbenchBoundaryDetails = liveReadOnlyWorkbenchBoundaryDetails
+        self.dashboardBetaFirstRunMetrics = dashboardBetaFirstRunMetrics
+        self.dashboardBetaFirstRunDetails = dashboardBetaFirstRunDetails
+        self.dashboardBetaAcceptancePathMetrics = dashboardBetaAcceptancePathMetrics
+        self.dashboardBetaAcceptancePathDetails = dashboardBetaAcceptancePathDetails
+        self.liveReadOnlyDashboardBoundaryMetrics = liveReadOnlyDashboardBoundaryMetrics
+        self.liveReadOnlyDashboardBoundaryDetails = liveReadOnlyDashboardBoundaryDetails
         self.liveBlockedEvidenceMetrics = liveBlockedEvidenceMetrics
         self.liveBlockedEvidenceDetails = liveBlockedEvidenceDetails
         self.liveMonitoringEvidenceMetrics = liveMonitoringEvidenceMetrics
@@ -391,12 +391,12 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
             liveMonitoringReadOnlyConsoleV2SurfaceBoundaryHeld
         self.strategyTraderReadinessEvidenceSurfaceBoundaryHeld =
             strategyTraderReadinessEvidenceSurfaceBoundaryHeld
-        self.workbenchBetaFirstRunReadModelOnlyBoundaryHeld =
-            workbenchBetaFirstRunReadModelOnlyBoundaryHeld
-        self.workbenchBetaAcceptancePathReadModelOnlyBoundaryHeld =
-            workbenchBetaAcceptancePathReadModelOnlyBoundaryHeld
-        self.liveReadOnlyWorkbenchBoundaryReadModelOnlyBoundaryHeld =
-            liveReadOnlyWorkbenchBoundaryReadModelOnlyBoundaryHeld
+        self.dashboardBetaFirstRunReadModelOnlyBoundaryHeld =
+            dashboardBetaFirstRunReadModelOnlyBoundaryHeld
+        self.dashboardBetaAcceptancePathReadModelOnlyBoundaryHeld =
+            dashboardBetaAcceptancePathReadModelOnlyBoundaryHeld
+        self.liveReadOnlyDashboardBoundaryReadModelOnlyBoundaryHeld =
+            liveReadOnlyDashboardBoundaryReadModelOnlyBoundaryHeld
         self.readModelOnlyBoundaryHeld = source.isReadModelOnly
             && observabilitySource.isReadModelOnly
             && evidenceExplorerSource.isReadModelOnly
@@ -406,9 +406,9 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
             && privateStreamSimulationGateEvidenceSurfaceSource.isReadModelOnly
             && liveMonitoringReadOnlyConsoleV2SurfaceSource.isReadModelOnly
             && strategyTraderReadinessEvidenceSurfaceSource.isReadModelOnly
-            && workbenchBetaFirstRunSource.isReadModelOnly
-            && workbenchBetaAcceptancePathSource.isReadModelOnly
-            && liveReadOnlyWorkbenchBoundarySource.isReadModelOnly
+            && dashboardBetaFirstRunSource.isReadModelOnly
+            && dashboardBetaAcceptancePathSource.isReadModelOnly
+            && liveReadOnlyDashboardBoundarySource.isReadModelOnly
             && liveBlockedEvidenceSource.isReadModelOnly
             && liveMonitoringEvidenceSource.isReadModelOnly
             && liveExecutionControlBlockedEvidenceSource.isReadModelOnly
@@ -419,9 +419,9 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
             && privateStreamSimulationGateEvidenceSurfaceBoundaryHeld
             && liveMonitoringReadOnlyConsoleV2SurfaceBoundaryHeld
             && strategyTraderReadinessEvidenceSurfaceBoundaryHeld
-            && workbenchBetaFirstRunReadModelOnlyBoundaryHeld
-            && workbenchBetaAcceptancePathReadModelOnlyBoundaryHeld
-            && liveReadOnlyWorkbenchBoundaryReadModelOnlyBoundaryHeld
+            && dashboardBetaFirstRunReadModelOnlyBoundaryHeld
+            && dashboardBetaAcceptancePathReadModelOnlyBoundaryHeld
+            && liveReadOnlyDashboardBoundaryReadModelOnlyBoundaryHeld
             && paperOnlyBoundaryHeld
             && providesCommandSurface == false
             && providesOrderLevelCommand == false
@@ -444,9 +444,9 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
             privateStreamSimulationGateEvidenceSurfaceSource,
             liveMonitoringReadOnlyConsoleV2SurfaceSource,
             strategyTraderReadinessEvidenceSurfaceSource,
-            workbenchBetaFirstRunSource,
-            workbenchBetaAcceptancePathSource,
-            liveReadOnlyWorkbenchBoundarySource,
+            dashboardBetaFirstRunSource,
+            dashboardBetaAcceptancePathSource,
+            liveReadOnlyDashboardBoundarySource,
             liveBlockedEvidenceSource,
             liveMonitoringEvidenceSource,
             liveExecutionControlBlockedEvidenceSource,
@@ -468,117 +468,117 @@ public struct DashboardShellWorkbenchSnapshot: Codable, Equatable, Sendable {
 public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
     public let title: String
     public let subtitle: String
-    public let workbench: DashboardShellWorkbenchSnapshot
+    public let readModelSurface: DashboardShellReadModelSurfaceSnapshot
     public let sections: [DashboardShellSectionSnapshot]
 
     public init(
-        title: String = "MTPRO Research Workbench",
+        title: String = "MTPRO Research Dashboard",
         subtitle: String = "Research -> Backtest -> Report",
         viewModel: DashboardViewModel
     ) {
         self.title = title
         self.subtitle = subtitle
-        self.workbench = Self.makeWorkbenchSnapshot(viewModel)
+        self.readModelSurface = Self.makeReadModelSurfaceSnapshot(viewModel)
         self.sections = viewModel.sections.map { section in
             Self.makeSectionSnapshot(for: section, viewModel: viewModel)
         }
     }
 
     public var viewModelSources: [ViewModelSourceContract] {
-        sections.map(\.source) + workbench.viewModelSources
+        sections.map(\.source) + readModelSurface.viewModelSources
     }
 
     public var isReadModelOnly: Bool {
         viewModelSources.allSatisfy(\.isReadModelOnly)
-            && workbench.readModelOnlyBoundaryHeld
+            && readModelSurface.readModelOnlyBoundaryHeld
     }
 
     public var smokeSummary: String {
         let sectionNames = sections.map(\.title).joined(separator: ",")
-        let controls = workbench.controlLabels.joined(separator: ",")
-        let timelineItems = Self.metricValue("Timeline items", in: workbench.evidenceExplorerMetrics)
+        let controls = readModelSurface.controlLabels.joined(separator: ",")
+        let timelineItems = Self.metricValue("Timeline items", in: readModelSurface.evidenceExplorerMetrics)
         let scenarioReplayEvidence = Self.metricValue(
             "Scenarios",
-            in: workbench.scenarioReplayEvidenceMetrics
+            in: readModelSurface.scenarioReplayEvidenceMetrics
         )
         let scenarioQualityGates = Self.metricValue(
             "Quality gates",
-            in: workbench.scenarioReplayEvidenceMetrics
+            in: readModelSurface.scenarioReplayEvidenceMetrics
         )
         let simulatedParityEvidence = Self.metricValue(
             "Parity evidence",
-            in: workbench.simulatedExchangeParityEvidenceMetrics
+            in: readModelSurface.simulatedExchangeParityEvidenceMetrics
         )
         let accountPositionBalanceEvidence = Self.metricValue(
             "APB records",
-            in: workbench.accountPositionBalanceReadModelOnlySurfaceMetrics
+            in: readModelSurface.accountPositionBalanceReadModelOnlySurfaceMetrics
         )
         let privateStreamSimulationGateEvidence = Self.metricValue(
             "Simulation gate",
-            in: workbench.privateStreamSimulationGateEvidenceSurfaceMetrics
+            in: readModelSurface.privateStreamSimulationGateEvidenceSurfaceMetrics
         )
         let liveMonitoringReadOnlyConsoleV2Surface = Self.metricValue(
             "Live monitoring v2",
-            in: workbench.liveMonitoringReadOnlyConsoleV2SurfaceMetrics
+            in: readModelSurface.liveMonitoringReadOnlyConsoleV2SurfaceMetrics
         )
         let strategyTraderReadinessSurface = Self.metricValue(
             "Strategy readiness",
-            in: workbench.strategyTraderReadinessEvidenceSurfaceMetrics
+            in: readModelSurface.strategyTraderReadinessEvidenceSurfaceMetrics
         )
         let defaultDemoState = Self.metricValue(
             "First run",
-            in: workbench.workbenchBetaFirstRunMetrics
+            in: readModelSurface.dashboardBetaFirstRunMetrics
         )
         let defaultDemoScenario = Self.metricValue(
             "Demo scenario",
-            in: workbench.workbenchBetaFirstRunMetrics
+            in: readModelSurface.dashboardBetaFirstRunMetrics
         )
         let betaFallbacks = Self.metricValue(
             "Fallbacks",
-            in: workbench.workbenchBetaFirstRunMetrics
+            in: readModelSurface.dashboardBetaFirstRunMetrics
         )
         let betaAcceptancePaths = Self.metricValue(
             "Acceptance paths",
-            in: workbench.workbenchBetaAcceptancePathMetrics
+            in: readModelSurface.dashboardBetaAcceptancePathMetrics
         )
         let betaAcceptanceScenario = Self.metricValue(
             "Acceptance scenario",
-            in: workbench.workbenchBetaAcceptancePathMetrics
+            in: readModelSurface.dashboardBetaAcceptancePathMetrics
         )
         let betaAcceptanceTrace = Self.metricValue(
             "Event trace",
-            in: workbench.workbenchBetaAcceptancePathMetrics
+            in: readModelSurface.dashboardBetaAcceptancePathMetrics
         )
-        let liveBlockedGates = Self.metricValue("Live gates", in: workbench.liveBlockedEvidenceMetrics)
+        let liveBlockedGates = Self.metricValue("Live gates", in: readModelSurface.liveBlockedEvidenceMetrics)
         let liveExecutionControlGates = Self.metricValue(
             "Execution gates",
-            in: workbench.liveExecutionControlBlockedEvidenceMetrics
+            in: readModelSurface.liveExecutionControlBlockedEvidenceMetrics
         )
         let liveRiskGates = Self.metricValue(
             "Risk gates",
-            in: workbench.liveRiskGateBlockedEvidenceMetrics
+            in: readModelSurface.liveRiskGateBlockedEvidenceMetrics
         )
         let liveIncidentStopGates = Self.metricValue(
             "Incident stop gates",
-            in: workbench.liveIncidentStopBlockedEvidenceMetrics
+            in: readModelSurface.liveIncidentStopBlockedEvidenceMetrics
         )
-        let liveReadOnlyWorkbenchBoundary = Self.metricValue(
-            "Workbench boundary",
-            in: workbench.liveReadOnlyWorkbenchBoundaryMetrics
+        let liveReadOnlyDashboardBoundary = Self.metricValue(
+            "Dashboard boundary",
+            in: readModelSurface.liveReadOnlyDashboardBoundaryMetrics
         )
         let liveMonitoringHealth = Self.metricValue(
             "Health",
-            in: workbench.liveMonitoringEvidenceMetrics
+            in: readModelSurface.liveMonitoringEvidenceMetrics
         )
         let liveMonitoringErrors = Self.metricValue(
             "Errors",
-            in: workbench.liveMonitoringEvidenceMetrics
+            in: readModelSurface.liveMonitoringEvidenceMetrics
         )
         let reportMetrics = sections.first { $0.section == .report }?.metrics ?? []
         let paperRuntimeEvidence = Self.metricValue("Runtime", in: reportMetrics)
         let paperWorkflowEvidence = Self.metricValue("Exec workflow", in: reportMetrics)
         let paperPortfolioImpact = Self.metricValue("Paper PnL", in: reportMetrics)
-        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); workbenchReadModelOnly=\(workbench.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); scenarioReplayEvidence=\(scenarioReplayEvidence); scenarioQualityGates=\(scenarioQualityGates); simulatedParityEvidence=\(simulatedParityEvidence); accountPositionBalanceEvidence=\(accountPositionBalanceEvidence); privateStreamSimulationGateEvidence=\(privateStreamSimulationGateEvidence); liveMonitoringReadOnlyConsoleV2Surface=\(liveMonitoringReadOnlyConsoleV2Surface); strategyTraderReadinessSurface=\(strategyTraderReadinessSurface); defaultDemoState=\(defaultDemoState); defaultDemoScenario=\(defaultDemoScenario); betaFirstRunFallbacks=\(betaFallbacks); betaAcceptancePaths=\(betaAcceptancePaths); betaAcceptanceScenario=\(betaAcceptanceScenario); betaAcceptanceTrace=\(betaAcceptanceTrace); paperRuntimeEvidence=\(paperRuntimeEvidence); paperWorkflowEvidence=\(paperWorkflowEvidence); paperPortfolioImpact=\(paperPortfolioImpact); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveReadOnlyWorkbenchBoundary=\(liveReadOnlyWorkbenchBoundary); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
+        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); dashboardReadModelOnly=\(readModelSurface.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); scenarioReplayEvidence=\(scenarioReplayEvidence); scenarioQualityGates=\(scenarioQualityGates); simulatedParityEvidence=\(simulatedParityEvidence); accountPositionBalanceEvidence=\(accountPositionBalanceEvidence); privateStreamSimulationGateEvidence=\(privateStreamSimulationGateEvidence); liveMonitoringReadOnlyConsoleV2Surface=\(liveMonitoringReadOnlyConsoleV2Surface); strategyTraderReadinessSurface=\(strategyTraderReadinessSurface); defaultDemoState=\(defaultDemoState); defaultDemoScenario=\(defaultDemoScenario); betaFirstRunFallbacks=\(betaFallbacks); betaAcceptancePaths=\(betaAcceptancePaths); betaAcceptanceScenario=\(betaAcceptanceScenario); betaAcceptanceTrace=\(betaAcceptanceTrace); paperRuntimeEvidence=\(paperRuntimeEvidence); paperWorkflowEvidence=\(paperWorkflowEvidence); paperPortfolioImpact=\(paperPortfolioImpact); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveReadOnlyDashboardBoundary=\(liveReadOnlyDashboardBoundary); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
     }
 
     private static func makeSectionSnapshot(
@@ -605,10 +605,10 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         }
     }
 
-    private static func makeWorkbenchSnapshot(
+    private static func makeReadModelSurfaceSnapshot(
         _ viewModel: DashboardViewModel
-    ) -> DashboardShellWorkbenchSnapshot {
-        let architecture = PaperWorkflowWorkbenchInformationArchitecture.deterministicFixture
+    ) -> DashboardShellReadModelSurfaceSnapshot {
+        let architecture = PaperWorkflowDashboardInformationArchitecture.deterministicFixture
         let observability = viewModel.paperWorkflowObservability
         let explorer = viewModel.paperWorkflowEvidenceExplorer
         let scenarioReplayEvidence = viewModel.report.scenarioReplayEvidence
@@ -617,9 +617,9 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         let privateStreamSimulationGateSurface = viewModel.report.privateStreamSimulationGateEvidenceSurface
         let liveMonitoringReadOnlyConsoleV2Surface = viewModel.report.liveMonitoringReadOnlyConsoleV2Surface
         let strategyTraderReadinessSurface = viewModel.report.strategyTraderReadinessEvidenceSurface
-        let workbenchBetaFirstRun = viewModel.workbenchBetaFirstRun
-        let workbenchBetaAcceptancePath = viewModel.workbenchBetaAcceptancePath
-        let liveReadOnlyWorkbenchBoundary = viewModel.report.liveReadOnlyWorkbenchBoundary
+        let dashboardBetaFirstRun = viewModel.dashboardBetaFirstRun
+        let dashboardBetaAcceptancePath = viewModel.dashboardBetaAcceptancePath
+        let liveReadOnlyDashboardBoundary = viewModel.report.liveReadOnlyDashboardBoundary
         let liveBlockedEvidence = viewModel.report.liveTradingBlockedEvidence
         let liveMonitoringEvidence = viewModel.report.liveMonitoringEvidence
         let liveExecutionControlEvidence = viewModel.report.liveExecutionControlBlockedEvidence
@@ -627,7 +627,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         let liveIncidentStopEvidence = viewModel.report.liveIncidentStopBlockedEvidence
         let sessionControls = architecture.sessionLevelControls.map(DashboardShellControlSnapshot.init)
 
-        return DashboardShellWorkbenchSnapshot(
+        return DashboardShellReadModelSurfaceSnapshot(
             source: architecture.source,
             observabilitySource: observability.source,
             evidenceExplorerSource: explorer.source,
@@ -637,9 +637,9 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             privateStreamSimulationGateEvidenceSurfaceSource: privateStreamSimulationGateSurface.source,
             liveMonitoringReadOnlyConsoleV2SurfaceSource: liveMonitoringReadOnlyConsoleV2Surface.source,
             strategyTraderReadinessEvidenceSurfaceSource: strategyTraderReadinessSurface.source,
-            workbenchBetaFirstRunSource: workbenchBetaFirstRun.source,
-            workbenchBetaAcceptancePathSource: workbenchBetaAcceptancePath.source,
-            liveReadOnlyWorkbenchBoundarySource: liveReadOnlyWorkbenchBoundary.source,
+            dashboardBetaFirstRunSource: dashboardBetaFirstRun.source,
+            dashboardBetaAcceptancePathSource: dashboardBetaAcceptancePath.source,
+            liveReadOnlyDashboardBoundarySource: liveReadOnlyDashboardBoundary.source,
             liveBlockedEvidenceSource: liveBlockedEvidence.source,
             liveMonitoringEvidenceSource: liveMonitoringEvidence.source,
             liveExecutionControlBlockedEvidenceSource: liveExecutionControlEvidence.source,
@@ -992,120 +992,120 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 "Strategy readiness command surface: \(formatForbiddenFlag(strategyTraderReadinessSurface.providesCommandSurface))",
                 "Strategy readiness boundary: \(formatEvidenceFlag(strategyTraderReadinessSurface.readModelOnlyBoundaryHeld))"
             ],
-            workbenchBetaFirstRunMetrics: [
+            dashboardBetaFirstRunMetrics: [
                 DashboardShellMetric(
                     label: "First run",
-                    value: workbenchBetaFirstRun.state.rawValue
+                    value: dashboardBetaFirstRun.state.rawValue
                 ),
                 DashboardShellMetric(
                     label: "Demo scenario",
-                    value: workbenchBetaFirstRun.selectedScenarioID ?? "n/a"
+                    value: dashboardBetaFirstRun.selectedScenarioID ?? "n/a"
                 ),
                 DashboardShellMetric(
                     label: "Fallbacks",
-                    value: "\(workbenchBetaFirstRun.fallbackStates.count)"
+                    value: "\(dashboardBetaFirstRun.fallbackStates.count)"
                 ),
                 DashboardShellMetric(
                     label: "Default selected",
-                    value: formatEvidenceFlag(workbenchBetaFirstRun.isDefaultSelectedScenario)
+                    value: formatEvidenceFlag(dashboardBetaFirstRun.isDefaultSelectedScenario)
                 ),
                 DashboardShellMetric(
                     label: "Boundary",
-                    value: formatEvidenceFlag(workbenchBetaFirstRun.readModelOnlyBoundaryHeld)
+                    value: formatEvidenceFlag(dashboardBetaFirstRun.readModelOnlyBoundaryHeld)
                 )
             ],
-            workbenchBetaFirstRunDetails: [
-                "First-run state: \(workbenchBetaFirstRun.state.rawValue)",
-                "First-run summary: \(workbenchBetaFirstRun.stateSummary)",
-                "Selected scenario: \(workbenchBetaFirstRun.selectedScenarioID ?? "n/a")",
-                "Default scenario: \(workbenchBetaFirstRun.defaultSelectedScenarioID)",
-                "Fallback states: \(joined(workbenchBetaFirstRun.fallbackStateLabels))",
-                "Dataset version: \(workbenchBetaFirstRun.evidenceSummary?.datasetVersion ?? "n/a")",
-                "Fixture version: \(workbenchBetaFirstRun.evidenceSummary?.fixtureVersion ?? "n/a")",
-                "Checksum: \(workbenchBetaFirstRun.evidenceSummary?.checksum ?? "n/a")",
-                "Freshness: \(workbenchBetaFirstRun.evidenceSummary?.freshnessStatus.rawValue ?? "n/a")",
-                "Quality: \(workbenchBetaFirstRun.evidenceSummary?.qualityVerdict.rawValue ?? "n/a")",
-                "Report input: \(workbenchBetaFirstRun.evidenceSummary?.reportInputVersionIdentity ?? "n/a")",
-                "Read model boundary: \(formatEvidenceFlag(workbenchBetaFirstRun.readModelOnlyBoundaryHeld))",
-                "Command surface: \(formatForbiddenFlag(workbenchBetaFirstRun.providesCommandSurface))",
-                "Trading button: \(formatForbiddenFlag(workbenchBetaFirstRun.providesTradingButton))",
-                "Live command: \(formatForbiddenFlag(workbenchBetaFirstRun.providesLiveCommand))"
+            dashboardBetaFirstRunDetails: [
+                "First-run state: \(dashboardBetaFirstRun.state.rawValue)",
+                "First-run summary: \(dashboardBetaFirstRun.stateSummary)",
+                "Selected scenario: \(dashboardBetaFirstRun.selectedScenarioID ?? "n/a")",
+                "Default scenario: \(dashboardBetaFirstRun.defaultSelectedScenarioID)",
+                "Fallback states: \(joined(dashboardBetaFirstRun.fallbackStateLabels))",
+                "Dataset version: \(dashboardBetaFirstRun.evidenceSummary?.datasetVersion ?? "n/a")",
+                "Fixture version: \(dashboardBetaFirstRun.evidenceSummary?.fixtureVersion ?? "n/a")",
+                "Checksum: \(dashboardBetaFirstRun.evidenceSummary?.checksum ?? "n/a")",
+                "Freshness: \(dashboardBetaFirstRun.evidenceSummary?.freshnessStatus.rawValue ?? "n/a")",
+                "Quality: \(dashboardBetaFirstRun.evidenceSummary?.qualityVerdict.rawValue ?? "n/a")",
+                "Report input: \(dashboardBetaFirstRun.evidenceSummary?.reportInputVersionIdentity ?? "n/a")",
+                "Read model boundary: \(formatEvidenceFlag(dashboardBetaFirstRun.readModelOnlyBoundaryHeld))",
+                "Command surface: \(formatForbiddenFlag(dashboardBetaFirstRun.providesCommandSurface))",
+                "Trading button: \(formatForbiddenFlag(dashboardBetaFirstRun.providesTradingButton))",
+                "Live command: \(formatForbiddenFlag(dashboardBetaFirstRun.providesLiveCommand))"
             ],
-            workbenchBetaAcceptancePathMetrics: [
+            dashboardBetaAcceptancePathMetrics: [
                 DashboardShellMetric(
                     label: "Acceptance paths",
-                    value: "\(workbenchBetaAcceptancePath.acceptancePathCount)"
+                    value: "\(dashboardBetaAcceptancePath.acceptancePathCount)"
                 ),
                 DashboardShellMetric(
                     label: "Acceptance scenario",
-                    value: workbenchBetaAcceptancePath.scenarioIDs.first ?? "n/a"
+                    value: dashboardBetaAcceptancePath.scenarioIDs.first ?? "n/a"
                 ),
                 DashboardShellMetric(
                     label: "Event trace",
-                    value: "\(workbenchBetaAcceptancePath.eventTraceItemCount)"
+                    value: "\(dashboardBetaAcceptancePath.eventTraceItemCount)"
                 ),
                 DashboardShellMetric(
                     label: "Portfolio",
-                    value: formatEvidenceFlag(workbenchBetaAcceptancePath.portfolioEvidenceHeld)
+                    value: formatEvidenceFlag(dashboardBetaAcceptancePath.portfolioEvidenceHeld)
                 ),
                 DashboardShellMetric(
                     label: "Boundary",
-                    value: formatEvidenceFlag(workbenchBetaAcceptancePath.readModelOnlyBoundaryHeld)
+                    value: formatEvidenceFlag(dashboardBetaAcceptancePath.readModelOnlyBoundaryHeld)
                 )
             ],
-            workbenchBetaAcceptancePathDetails: [
-                "Report summaries: \(joined(workbenchBetaAcceptancePath.reportSummaries))",
-                "Dashboard panels: \(joined(workbenchBetaAcceptancePath.dashboardPanelSummaries))",
-                "Event trace: \(joined(workbenchBetaAcceptancePath.eventTraceItems.map(\.title)))",
-                "Report inputs: \(joined(workbenchBetaAcceptancePath.reportInputVersionIdentities))",
-                "Portfolio evidence: \(joined(workbenchBetaAcceptancePath.portfolioEvidenceIDs))",
-                "Gross exposure: \(format(workbenchBetaAcceptancePath.grossExposureNotional))",
-                "Net simulated PnL: \(format(workbenchBetaAcceptancePath.netSimulatedPnL))",
-                "Same demo scenario: \(formatEvidenceFlag(workbenchBetaAcceptancePath.sameDemoScenarioHeld))",
-                "Report surface: \(formatEvidenceFlag(workbenchBetaAcceptancePath.reportSurfaceReady))",
-                "Dashboard panels ready: \(formatEvidenceFlag(workbenchBetaAcceptancePath.dashboardPanelsReady))",
-                "Events trace ready: \(formatEvidenceFlag(workbenchBetaAcceptancePath.eventsTraceReady))",
-                "Command surface: \(formatForbiddenFlag(workbenchBetaAcceptancePath.providesCommandSurface))",
-                "Trading button: \(formatForbiddenFlag(workbenchBetaAcceptancePath.providesTradingButton))",
-                "Live command: \(formatForbiddenFlag(workbenchBetaAcceptancePath.providesLiveCommand))"
+            dashboardBetaAcceptancePathDetails: [
+                "Report summaries: \(joined(dashboardBetaAcceptancePath.reportSummaries))",
+                "Dashboard panels: \(joined(dashboardBetaAcceptancePath.dashboardPanelSummaries))",
+                "Event trace: \(joined(dashboardBetaAcceptancePath.eventTraceItems.map(\.title)))",
+                "Report inputs: \(joined(dashboardBetaAcceptancePath.reportInputVersionIdentities))",
+                "Portfolio evidence: \(joined(dashboardBetaAcceptancePath.portfolioEvidenceIDs))",
+                "Gross exposure: \(format(dashboardBetaAcceptancePath.grossExposureNotional))",
+                "Net simulated PnL: \(format(dashboardBetaAcceptancePath.netSimulatedPnL))",
+                "Same demo scenario: \(formatEvidenceFlag(dashboardBetaAcceptancePath.sameDemoScenarioHeld))",
+                "Report surface: \(formatEvidenceFlag(dashboardBetaAcceptancePath.reportSurfaceReady))",
+                "Dashboard panels ready: \(formatEvidenceFlag(dashboardBetaAcceptancePath.dashboardPanelsReady))",
+                "Events trace ready: \(formatEvidenceFlag(dashboardBetaAcceptancePath.eventsTraceReady))",
+                "Command surface: \(formatForbiddenFlag(dashboardBetaAcceptancePath.providesCommandSurface))",
+                "Trading button: \(formatForbiddenFlag(dashboardBetaAcceptancePath.providesTradingButton))",
+                "Live command: \(formatForbiddenFlag(dashboardBetaAcceptancePath.providesLiveCommand))"
             ],
-            liveReadOnlyWorkbenchBoundaryMetrics: [
+            liveReadOnlyDashboardBoundaryMetrics: [
                 DashboardShellMetric(
-                    label: "Workbench boundary",
-                    value: "\(liveReadOnlyWorkbenchBoundary.boundarySurfaceCount)"
+                    label: "Dashboard boundary",
+                    value: "\(liveReadOnlyDashboardBoundary.boundarySurfaceCount)"
                 ),
                 DashboardShellMetric(
                     label: "Forbidden UI",
-                    value: "\(liveReadOnlyWorkbenchBoundary.forbiddenUISurfaceCount)"
+                    value: "\(liveReadOnlyDashboardBoundary.forbiddenUISurfaceCount)"
                 ),
                 DashboardShellMetric(
                     label: "Handoff",
-                    value: "\(liveReadOnlyWorkbenchBoundary.handoffTargetCount)"
+                    value: "\(liveReadOnlyDashboardBoundary.handoffTargetCount)"
                 ),
                 DashboardShellMetric(
                     label: "Boundary",
-                    value: formatEvidenceFlag(liveReadOnlyWorkbenchBoundary.readModelOnlyBoundaryHeld)
+                    value: formatEvidenceFlag(liveReadOnlyDashboardBoundary.readModelOnlyBoundaryHeld)
                 )
             ],
-            liveReadOnlyWorkbenchBoundaryDetails: [
-                "Workbench surfaces: \(joined(liveReadOnlyWorkbenchBoundary.boundarySurfaceLabels))",
-                "Workbench inputs: \(joined(liveReadOnlyWorkbenchBoundary.inputBoundaryLabels))",
-                "Forbidden UI: \(joined(liveReadOnlyWorkbenchBoundary.forbiddenUISurfaceLabels))",
-                "Detail / audit routes: \(joined(liveReadOnlyWorkbenchBoundary.detailAuditRouteLabels))",
-                "L3 handoff: \(joined(liveReadOnlyWorkbenchBoundary.handoffTargetLabels))",
-                "Workbench source anchors: \(joined(liveReadOnlyWorkbenchBoundary.sourceAnchors))",
-                "Workbench API key input: \(formatForbiddenFlag(liveReadOnlyWorkbenchBoundary.exposesAPIKeyInput))",
-                "Workbench secret storage: \(formatForbiddenFlag(liveReadOnlyWorkbenchBoundary.storesSecret))",
-                "Workbench broker connect: \(formatForbiddenFlag(liveReadOnlyWorkbenchBoundary.providesBrokerConnect))",
-                "Workbench account connect: \(formatForbiddenFlag(liveReadOnlyWorkbenchBoundary.providesAccountConnect))",
-                "Workbench Live PRO Console: \(formatForbiddenFlag(liveReadOnlyWorkbenchBoundary.exposesLivePROConsole))",
-                "Workbench trading buttons: \(formatForbiddenFlag(liveReadOnlyWorkbenchBoundary.providesTradingButton))",
-                "Workbench live command: \(formatForbiddenFlag(liveReadOnlyWorkbenchBoundary.providesLiveCommand))",
-                "Workbench order form: \(formatForbiddenFlag(liveReadOnlyWorkbenchBoundary.exposesOrderForm))",
-                "Workbench signed endpoint: \(formatForbiddenFlag(liveReadOnlyWorkbenchBoundary.callsSignedEndpoint))",
-                "Workbench account endpoint: \(formatForbiddenFlag(liveReadOnlyWorkbenchBoundary.callsAccountEndpoint))",
-                "Workbench listenKey: \(formatForbiddenFlag(liveReadOnlyWorkbenchBoundary.createsListenKey))",
-                "Workbench boundary: \(formatEvidenceFlag(liveReadOnlyWorkbenchBoundary.readModelOnlyBoundaryHeld))"
+            liveReadOnlyDashboardBoundaryDetails: [
+                "Dashboard surfaces: \(joined(liveReadOnlyDashboardBoundary.boundarySurfaceLabels))",
+                "Dashboard inputs: \(joined(liveReadOnlyDashboardBoundary.inputBoundaryLabels))",
+                "Forbidden UI: \(joined(liveReadOnlyDashboardBoundary.forbiddenUISurfaceLabels))",
+                "Detail / audit routes: \(joined(liveReadOnlyDashboardBoundary.detailAuditRouteLabels))",
+                "L3 handoff: \(joined(liveReadOnlyDashboardBoundary.handoffTargetLabels))",
+                "Dashboard source anchors: \(joined(liveReadOnlyDashboardBoundary.sourceAnchors))",
+                "Dashboard API key input: \(formatForbiddenFlag(liveReadOnlyDashboardBoundary.exposesAPIKeyInput))",
+                "Dashboard secret storage: \(formatForbiddenFlag(liveReadOnlyDashboardBoundary.storesSecret))",
+                "Dashboard broker connect: \(formatForbiddenFlag(liveReadOnlyDashboardBoundary.providesBrokerConnect))",
+                "Dashboard account connect: \(formatForbiddenFlag(liveReadOnlyDashboardBoundary.providesAccountConnect))",
+                "Dashboard Live PRO Console: \(formatForbiddenFlag(liveReadOnlyDashboardBoundary.exposesLivePROConsole))",
+                "Dashboard trading buttons: \(formatForbiddenFlag(liveReadOnlyDashboardBoundary.providesTradingButton))",
+                "Dashboard live command: \(formatForbiddenFlag(liveReadOnlyDashboardBoundary.providesLiveCommand))",
+                "Dashboard order form: \(formatForbiddenFlag(liveReadOnlyDashboardBoundary.exposesOrderForm))",
+                "Dashboard signed endpoint: \(formatForbiddenFlag(liveReadOnlyDashboardBoundary.callsSignedEndpoint))",
+                "Dashboard account endpoint: \(formatForbiddenFlag(liveReadOnlyDashboardBoundary.callsAccountEndpoint))",
+                "Dashboard listenKey: \(formatForbiddenFlag(liveReadOnlyDashboardBoundary.createsListenKey))",
+                "Dashboard boundary: \(formatEvidenceFlag(liveReadOnlyDashboardBoundary.readModelOnlyBoundaryHeld))"
             ],
             liveBlockedEvidenceMetrics: [
                 DashboardShellMetric(label: "Live gates", value: "\(liveBlockedEvidence.blockedEvidenceCount)"),
@@ -1255,9 +1255,9 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || privateStreamSimulationGateSurface.providesCommandSurface
                 || liveMonitoringReadOnlyConsoleV2Surface.providesCommandSurface
                 || strategyTraderReadinessSurface.providesCommandSurface
-                || workbenchBetaFirstRun.providesCommandSurface
-                || workbenchBetaAcceptancePath.providesCommandSurface
-                || liveReadOnlyWorkbenchBoundary.providesCommandSurface
+                || dashboardBetaFirstRun.providesCommandSurface
+                || dashboardBetaAcceptancePath.providesCommandSurface
+                || liveReadOnlyDashboardBoundary.providesCommandSurface
                 || liveMonitoringEvidence.providesCommandSurface
                 || liveExecutionControlEvidence.providesCommandSurface
                 || liveRiskGateEvidence.providesCommandSurface
@@ -1270,14 +1270,14 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || privateStreamSimulationGateSurface.providesOrderLevelCommand
                 || liveMonitoringReadOnlyConsoleV2Surface.providesOrderLevelCommand
                 || strategyTraderReadinessSurface.providesOrderLevelCommand
-                || workbenchBetaFirstRun.providesOrderLevelCommand
-                || workbenchBetaAcceptancePath.providesOrderLevelCommand
+                || dashboardBetaFirstRun.providesOrderLevelCommand
+                || dashboardBetaAcceptancePath.providesOrderLevelCommand
                 || liveBlockedEvidence.providesOrderLevelCommand
                 || liveMonitoringEvidence.providesOrderLevelCommand
                 || liveExecutionControlEvidence.providesOrderLevelCommand
-                || liveReadOnlyWorkbenchBoundary.submitsRealOrder
-                || liveReadOnlyWorkbenchBoundary.cancelsRealOrder
-                || liveReadOnlyWorkbenchBoundary.replacesRealOrder
+                || liveReadOnlyDashboardBoundary.submitsRealOrder
+                || liveReadOnlyDashboardBoundary.cancelsRealOrder
+                || liveReadOnlyDashboardBoundary.replacesRealOrder
                 || sessionControls.contains { $0.authorizesOrderLevelCommand },
             exposesDatabaseSchema: observability.exposesDatabaseSchema
                 || explorer.exposesDatabaseSchema
@@ -1287,11 +1287,11 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || privateStreamSimulationGateSurface.exposesDatabaseSchema
                 || liveMonitoringReadOnlyConsoleV2Surface.exposesDatabaseSchema
                 || strategyTraderReadinessSurface.exposesDatabaseSchema
-                || workbenchBetaFirstRun.exposesDatabaseSchema
-                || workbenchBetaAcceptancePath.exposesDatabaseSchema
+                || dashboardBetaFirstRun.exposesDatabaseSchema
+                || dashboardBetaAcceptancePath.exposesDatabaseSchema
                 || liveBlockedEvidence.exposesDatabaseSchema
                 || liveMonitoringEvidence.exposesDatabaseSchema
-                || liveReadOnlyWorkbenchBoundary.exposesDatabaseSchema
+                || liveReadOnlyDashboardBoundary.exposesDatabaseSchema
                 || liveExecutionControlEvidence.exposesPersistenceSchema
                 || liveRiskGateEvidence.exposesPersistenceSchema
                 || liveIncidentStopEvidence.exposesPersistenceSchema,
@@ -1303,11 +1303,11 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || privateStreamSimulationGateSurface.exposesRuntimeObject
                 || liveMonitoringReadOnlyConsoleV2Surface.exposesRuntimeObject
                 || strategyTraderReadinessSurface.exposesRuntimeObject
-                || workbenchBetaFirstRun.exposesRuntimeObject
-                || workbenchBetaAcceptancePath.exposesRuntimeObject
+                || dashboardBetaFirstRun.exposesRuntimeObject
+                || dashboardBetaAcceptancePath.exposesRuntimeObject
                 || liveBlockedEvidence.exposesRuntimeObject
                 || liveMonitoringEvidence.exposesRuntimeObject
-                || liveReadOnlyWorkbenchBoundary.exposesRuntimeObject
+                || liveReadOnlyDashboardBoundary.exposesRuntimeObject
                 || liveExecutionControlEvidence.invokesRuntimeControl
                 || liveRiskGateEvidence.invokesRuntimeControl
                 || liveIncidentStopEvidence.invokesRuntimeControl,
@@ -1319,11 +1319,11 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || privateStreamSimulationGateSurface.exposesAdapterRequest
                 || liveMonitoringReadOnlyConsoleV2Surface.exposesAdapterRequest
                 || strategyTraderReadinessSurface.exposesAdapterRequest
-                || workbenchBetaFirstRun.exposesAdapterRequest
-                || workbenchBetaAcceptancePath.exposesAdapterRequest
+                || dashboardBetaFirstRun.exposesAdapterRequest
+                || dashboardBetaAcceptancePath.exposesAdapterRequest
                 || liveBlockedEvidence.exposesAdapterSurface
                 || liveMonitoringEvidence.exposesAdapterSurface
-                || liveReadOnlyWorkbenchBoundary.exposesAdapterSurface
+                || liveReadOnlyDashboardBoundary.exposesAdapterSurface
                 || liveExecutionControlEvidence.readsAdapter
                 || liveRiskGateEvidence.readsAdapter
                 || liveIncidentStopEvidence.readsAdapter,
@@ -1335,11 +1335,11 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || privateStreamSimulationGateSurface.authorizesLiveTrading
                 || liveMonitoringReadOnlyConsoleV2Surface.authorizesLiveTrading
                 || strategyTraderReadinessSurface.authorizesLiveTrading
-                || workbenchBetaFirstRun.authorizesLiveTrading
-                || workbenchBetaAcceptancePath.authorizesLiveTrading
+                || dashboardBetaFirstRun.authorizesLiveTrading
+                || dashboardBetaAcceptancePath.authorizesLiveTrading
                 || liveBlockedEvidence.authorizesLiveTrading
                 || liveMonitoringEvidence.authorizesLiveTrading
-                || liveReadOnlyWorkbenchBoundary.authorizesLiveTrading
+                || liveReadOnlyDashboardBoundary.authorizesLiveTrading
                 || liveExecutionControlEvidence.authorizesLiveTrading
                 || liveRiskGateEvidence.authorizesLiveTrading
                 || liveIncidentStopEvidence.authorizesLiveTrading,
@@ -1351,11 +1351,11 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || privateStreamSimulationGateSurface.connectsBroker
                 || liveMonitoringReadOnlyConsoleV2Surface.connectsBroker
                 || strategyTraderReadinessSurface.connectsBroker
-                || workbenchBetaFirstRun.touchesBrokerAction
-                || workbenchBetaAcceptancePath.touchesBrokerAction
+                || dashboardBetaFirstRun.touchesBrokerAction
+                || dashboardBetaAcceptancePath.touchesBrokerAction
                 || liveBlockedEvidence.touchesBrokerAction
                 || liveMonitoringEvidence.instantiatesBrokerAdapter
-                || liveReadOnlyWorkbenchBoundary.instantiatesBrokerAdapter
+                || liveReadOnlyDashboardBoundary.instantiatesBrokerAdapter
                 || liveExecutionControlEvidence.instantiatesBrokerExecutionAdapter
                 || liveExecutionControlEvidence.instantiatesExchangeExecutionAdapter
                 || liveRiskGateEvidence.instantiatesBrokerExecutionAdapter
@@ -1369,11 +1369,11 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 || privateStreamSimulationGateSurface.authorizesTradingExecution
                 || liveMonitoringReadOnlyConsoleV2Surface.authorizesTradingExecution
                 || strategyTraderReadinessSurface.authorizesTradingExecution
-                || workbenchBetaFirstRun.authorizesTradingExecution
-                || workbenchBetaAcceptancePath.authorizesTradingExecution
+                || dashboardBetaFirstRun.authorizesTradingExecution
+                || dashboardBetaAcceptancePath.authorizesTradingExecution
                 || liveBlockedEvidence.authorizesTradingExecution
                 || liveMonitoringEvidence.authorizesTradingExecution
-                || liveReadOnlyWorkbenchBoundary.authorizesTradingExecution
+                || liveReadOnlyDashboardBoundary.authorizesTradingExecution
                 || liveExecutionControlEvidence.authorizesTradingExecution
                 || liveRiskGateEvidence.authorizesTradingExecution
                 || liveIncidentStopEvidence.authorizesTradingExecution,
@@ -1385,11 +1385,11 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 .readModelOnlyBoundaryHeld,
             strategyTraderReadinessEvidenceSurfaceBoundaryHeld: strategyTraderReadinessSurface
                 .readModelOnlyBoundaryHeld,
-            workbenchBetaFirstRunReadModelOnlyBoundaryHeld: workbenchBetaFirstRun
+            dashboardBetaFirstRunReadModelOnlyBoundaryHeld: dashboardBetaFirstRun
                 .readModelOnlyBoundaryHeld,
-            workbenchBetaAcceptancePathReadModelOnlyBoundaryHeld: workbenchBetaAcceptancePath
+            dashboardBetaAcceptancePathReadModelOnlyBoundaryHeld: dashboardBetaAcceptancePath
                 .readModelOnlyBoundaryHeld,
-            liveReadOnlyWorkbenchBoundaryReadModelOnlyBoundaryHeld: liveReadOnlyWorkbenchBoundary
+            liveReadOnlyDashboardBoundaryReadModelOnlyBoundaryHeld: liveReadOnlyDashboardBoundary
                 .readModelOnlyBoundaryHeld
         )
     }
@@ -1527,8 +1527,8 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                     value: "\(viewModel.liveIncidentStopBlockedEvidence.blockedGateCount)"
                 ),
                 DashboardShellMetric(
-                    label: "Workbench boundary",
-                    value: "\(viewModel.liveReadOnlyWorkbenchBoundary.boundarySurfaceCount)"
+                    label: "Dashboard boundary",
+                    value: "\(viewModel.liveReadOnlyDashboardBoundary.boundarySurfaceCount)"
                 ),
                 DashboardShellMetric(
                     label: "Monitoring",
@@ -1704,22 +1704,22 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 "Incident / stop schema exposure: \(formatForbiddenFlag(viewModel.liveIncidentStopBlockedEvidence.exposesPersistenceSchema))",
                 "Incident / stop runtime exposure: \(formatForbiddenFlag(viewModel.liveIncidentStopBlockedEvidence.invokesRuntimeControl))",
                 "Incident / stop adapter exposure: \(formatForbiddenFlag(viewModel.liveIncidentStopBlockedEvidence.readsAdapter))",
-                "Workbench Live readiness boundary: \(formatEvidenceFlag(viewModel.liveReadOnlyWorkbenchBoundary.readModelOnlyBoundaryHeld))",
-                "Workbench Live readiness surfaces: \(joined(viewModel.liveReadOnlyWorkbenchBoundary.boundarySurfaceLabels))",
-                "Workbench Live readiness inputs: \(joined(viewModel.liveReadOnlyWorkbenchBoundary.inputBoundaryLabels))",
-                "Workbench Live readiness forbidden UI: \(joined(viewModel.liveReadOnlyWorkbenchBoundary.forbiddenUISurfaceLabels))",
-                "Workbench detail / audit routes: \(joined(viewModel.liveReadOnlyWorkbenchBoundary.detailAuditRouteLabels))",
-                "Workbench L3 handoff: \(joined(viewModel.liveReadOnlyWorkbenchBoundary.handoffTargetLabels))",
-                "Workbench API key input: \(formatForbiddenFlag(viewModel.liveReadOnlyWorkbenchBoundary.exposesAPIKeyInput))",
-                "Workbench broker connect: \(formatForbiddenFlag(viewModel.liveReadOnlyWorkbenchBoundary.providesBrokerConnect))",
-                "Workbench account connect: \(formatForbiddenFlag(viewModel.liveReadOnlyWorkbenchBoundary.providesAccountConnect))",
-                "Workbench Live PRO Console: \(formatForbiddenFlag(viewModel.liveReadOnlyWorkbenchBoundary.exposesLivePROConsole))",
-                "Workbench trading buttons: \(formatForbiddenFlag(viewModel.liveReadOnlyWorkbenchBoundary.providesTradingButton))",
-                "Workbench live command: \(formatForbiddenFlag(viewModel.liveReadOnlyWorkbenchBoundary.providesLiveCommand))",
-                "Workbench order form: \(formatForbiddenFlag(viewModel.liveReadOnlyWorkbenchBoundary.exposesOrderForm))",
-                "Workbench signed endpoint: \(formatForbiddenFlag(viewModel.liveReadOnlyWorkbenchBoundary.callsSignedEndpoint))",
-                "Workbench account endpoint: \(formatForbiddenFlag(viewModel.liveReadOnlyWorkbenchBoundary.callsAccountEndpoint))",
-                "Workbench listenKey: \(formatForbiddenFlag(viewModel.liveReadOnlyWorkbenchBoundary.createsListenKey))",
+                "Dashboard Live readiness boundary: \(formatEvidenceFlag(viewModel.liveReadOnlyDashboardBoundary.readModelOnlyBoundaryHeld))",
+                "Dashboard Live readiness surfaces: \(joined(viewModel.liveReadOnlyDashboardBoundary.boundarySurfaceLabels))",
+                "Dashboard Live readiness inputs: \(joined(viewModel.liveReadOnlyDashboardBoundary.inputBoundaryLabels))",
+                "Dashboard Live readiness forbidden UI: \(joined(viewModel.liveReadOnlyDashboardBoundary.forbiddenUISurfaceLabels))",
+                "Dashboard detail / audit routes: \(joined(viewModel.liveReadOnlyDashboardBoundary.detailAuditRouteLabels))",
+                "Dashboard L3 handoff: \(joined(viewModel.liveReadOnlyDashboardBoundary.handoffTargetLabels))",
+                "Dashboard API key input: \(formatForbiddenFlag(viewModel.liveReadOnlyDashboardBoundary.exposesAPIKeyInput))",
+                "Dashboard broker connect: \(formatForbiddenFlag(viewModel.liveReadOnlyDashboardBoundary.providesBrokerConnect))",
+                "Dashboard account connect: \(formatForbiddenFlag(viewModel.liveReadOnlyDashboardBoundary.providesAccountConnect))",
+                "Dashboard Live PRO Console: \(formatForbiddenFlag(viewModel.liveReadOnlyDashboardBoundary.exposesLivePROConsole))",
+                "Dashboard trading buttons: \(formatForbiddenFlag(viewModel.liveReadOnlyDashboardBoundary.providesTradingButton))",
+                "Dashboard live command: \(formatForbiddenFlag(viewModel.liveReadOnlyDashboardBoundary.providesLiveCommand))",
+                "Dashboard order form: \(formatForbiddenFlag(viewModel.liveReadOnlyDashboardBoundary.exposesOrderForm))",
+                "Dashboard signed endpoint: \(formatForbiddenFlag(viewModel.liveReadOnlyDashboardBoundary.callsSignedEndpoint))",
+                "Dashboard account endpoint: \(formatForbiddenFlag(viewModel.liveReadOnlyDashboardBoundary.callsAccountEndpoint))",
+                "Dashboard listenKey: \(formatForbiddenFlag(viewModel.liveReadOnlyDashboardBoundary.createsListenKey))",
                 "Monitoring health: \(viewModel.liveMonitoringHealthStatus.rawValue)",
                 "Monitoring connections: \(joined(viewModel.liveMonitoringConnectionStatusLabels))",
                 "Monitoring streams: \(viewModel.liveMonitoringStreamEvidenceCount)",
@@ -1913,7 +1913,7 @@ public extension DashboardReadModel {
     /// 该快照只表达“当前没有已重放事实”和静态 Live blocked gates，不会伪造 market、
     /// paper、risk、portfolio 或真实交易状态；后续真实数据必须继续通过稳定 read model
     /// projection 注入，Live capability 仍需 future gate 独立授权。
-    static var emptyResearchWorkbench: DashboardReadModel {
+    static var emptyResearchDashboard: DashboardReadModel {
         DashboardReadModel(
             market: MarketReadModel(),
             strategy: StrategyReadModel(),
@@ -1926,13 +1926,13 @@ public extension DashboardReadModel {
         )
     }
 
-    /// Workbench beta first-run 默认 read model 是 MTP-121 的本地 demo 启动快照。
+    /// Dashboard beta first-run 默认 read model 是 MTP-121 的本地 demo 启动快照。
     ///
     /// 该快照只把 MTP-120 选定的 deterministic fixture evidence 注入 Report 和 first-run
     /// read model，保留空 Market / Paper / Risk / Portfolio facts；它不启动 replay job、不读取
     /// Runtime object、不访问 database schema、不调用 Adapter，也不形成 Live PRO Console、
     /// live command、交易按钮或真实交易入口。
-    static var defaultWorkbenchBetaDemo: DashboardReadModel {
+    static var defaultDashboardBetaDemo: DashboardReadModel {
         DashboardReadModel(
             market: MarketReadModel(),
             strategy: StrategyReadModel(),
@@ -1941,7 +1941,7 @@ public extension DashboardReadModel {
                 scenarioReplayEvidence: .deterministicFixture,
                 simulatedExchangeParityEvidence: .deterministicFixture
             ),
-            workbenchBetaFirstRun: .defaultDemoState,
+            dashboardBetaFirstRun: .defaultDemoState,
             paper: PaperReadModel(),
             risk: RiskReadModel(),
             portfolio: PortfolioReadModel(),
@@ -1955,8 +1955,8 @@ public extension DashboardViewModel {
     ///
     /// 输入来自空 read model projection，仅用于 app launch 和 smoke validation；
     /// 它不打开网络、不读取数据库 schema、不创建 broker action，也不提供真实交易控制。
-    static var emptyResearchWorkbench: DashboardViewModel {
-        DashboardViewModel(readModel: .emptyResearchWorkbench)
+    static var emptyResearchDashboard: DashboardViewModel {
+        DashboardViewModel(readModel: .emptyResearchDashboard)
     }
 
     /// MTP-121 Dashboard 启动默认 ViewModel snapshot。
@@ -1964,8 +1964,8 @@ public extension DashboardViewModel {
     /// DashboardApplication 使用该 snapshot 让 operator 启动后直接看到 local beta evidence；
     /// 数据仍来自 App read model，不暴露 Core fixture、Persistence schema、Runtime object、
     /// Adapter request、broker action、live command 或交易按钮。
-    static var defaultWorkbenchBetaDemo: DashboardViewModel {
-        DashboardViewModel(readModel: .defaultWorkbenchBetaDemo)
+    static var defaultDashboardBetaDemo: DashboardViewModel {
+        DashboardViewModel(readModel: .defaultDashboardBetaDemo)
     }
 }
 
@@ -1997,7 +1997,7 @@ public struct DashboardShellView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                DashboardWorkbenchPanel(workbench: snapshot.workbench)
+                DashboardReadModelSurfacePanel(readModelSurface: snapshot.readModelSurface)
 
                 LazyVGrid(
                     columns: [
@@ -2040,21 +2040,21 @@ public struct DashboardShellView: Equatable, Sendable {
 #endif
 
 #if canImport(SwiftUI) && os(macOS)
-private struct DashboardWorkbenchPanel: View {
-    let workbench: DashboardShellWorkbenchSnapshot
+private struct DashboardReadModelSurfacePanel: View {
+    let readModelSurface: DashboardShellReadModelSurfaceSnapshot
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 4) {
-                Label(workbench.title, systemImage: "rectangle.3.group")
+                Label(readModelSurface.title, systemImage: "rectangle.3.group")
                     .font(.headline)
-                Text(workbench.subtitle)
+                Text(readModelSurface.subtitle)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
             HStack(alignment: .top, spacing: 8) {
-                ForEach(workbench.sessionControls) { control in
+                ForEach(readModelSurface.sessionControls) { control in
                     DashboardControlTile(control: control)
                 }
             }
@@ -2066,77 +2066,77 @@ private struct DashboardWorkbenchPanel: View {
                 alignment: .leading,
                 spacing: 12
             ) {
-                DashboardWorkbenchDetailGroup(
+                DashboardReadModelDetailGroup(
                     title: "First Run",
                     systemImage: "sparkle.magnifyingglass",
-                    metrics: workbench.workbenchBetaFirstRunMetrics,
-                    details: workbench.workbenchBetaFirstRunDetails
+                    metrics: readModelSurface.dashboardBetaFirstRunMetrics,
+                    details: readModelSurface.dashboardBetaFirstRunDetails
                 )
-                DashboardWorkbenchDetailGroup(
+                DashboardReadModelDetailGroup(
                     title: "Beta Acceptance",
                     systemImage: "checkmark.seal",
-                    metrics: workbench.workbenchBetaAcceptancePathMetrics,
-                    details: workbench.workbenchBetaAcceptancePathDetails
+                    metrics: readModelSurface.dashboardBetaAcceptancePathMetrics,
+                    details: readModelSurface.dashboardBetaAcceptancePathDetails
                 )
-                DashboardWorkbenchDetailGroup(
+                DashboardReadModelDetailGroup(
                     title: "Observability",
                     systemImage: "eye",
-                    metrics: workbench.observabilityMetrics,
-                    details: workbench.observabilityDetails
+                    metrics: readModelSurface.observabilityMetrics,
+                    details: readModelSurface.observabilityDetails
                 )
-                DashboardWorkbenchDetailGroup(
+                DashboardReadModelDetailGroup(
                     title: "Evidence Explorer",
                     systemImage: "timeline.selection",
-                    metrics: workbench.evidenceExplorerMetrics,
-                    details: workbench.evidenceExplorerDetails + workbench.timelinePreview
+                    metrics: readModelSurface.evidenceExplorerMetrics,
+                    details: readModelSurface.evidenceExplorerDetails + readModelSurface.timelinePreview
                 )
-                DashboardWorkbenchDetailGroup(
+                DashboardReadModelDetailGroup(
                     title: "Simulated Exchange Parity",
                     systemImage: "equal.square",
-                    metrics: workbench.simulatedExchangeParityEvidenceMetrics,
-                    details: workbench.simulatedExchangeParityEvidenceDetails
+                    metrics: readModelSurface.simulatedExchangeParityEvidenceMetrics,
+                    details: readModelSurface.simulatedExchangeParityEvidenceDetails
                 )
-                DashboardWorkbenchDetailGroup(
+                DashboardReadModelDetailGroup(
                     title: "Account Position Balance",
                     systemImage: "rectangle.stack.badge.person.crop",
-                    metrics: workbench.accountPositionBalanceReadModelOnlySurfaceMetrics,
-                    details: workbench.accountPositionBalanceReadModelOnlySurfaceDetails
+                    metrics: readModelSurface.accountPositionBalanceReadModelOnlySurfaceMetrics,
+                    details: readModelSurface.accountPositionBalanceReadModelOnlySurfaceDetails
                 )
-                DashboardWorkbenchDetailGroup(
-                    title: "Live Read-only Workbench",
+                DashboardReadModelDetailGroup(
+                    title: "Live Read-only Dashboard",
                     systemImage: "rectangle.and.text.magnifyingglass",
-                    metrics: workbench.liveReadOnlyWorkbenchBoundaryMetrics,
-                    details: workbench.liveReadOnlyWorkbenchBoundaryDetails
+                    metrics: readModelSurface.liveReadOnlyDashboardBoundaryMetrics,
+                    details: readModelSurface.liveReadOnlyDashboardBoundaryDetails
                 )
-                DashboardWorkbenchDetailGroup(
+                DashboardReadModelDetailGroup(
                     title: "Live Blocked Gates",
                     systemImage: "lock.shield",
-                    metrics: workbench.liveBlockedEvidenceMetrics,
-                    details: workbench.liveBlockedEvidenceDetails
+                    metrics: readModelSurface.liveBlockedEvidenceMetrics,
+                    details: readModelSurface.liveBlockedEvidenceDetails
                 )
-                DashboardWorkbenchDetailGroup(
+                DashboardReadModelDetailGroup(
                     title: "Live Monitoring",
                     systemImage: "waveform.path.ecg",
-                    metrics: workbench.liveMonitoringEvidenceMetrics,
-                    details: workbench.liveMonitoringEvidenceDetails
+                    metrics: readModelSurface.liveMonitoringEvidenceMetrics,
+                    details: readModelSurface.liveMonitoringEvidenceDetails
                 )
-                DashboardWorkbenchDetailGroup(
+                DashboardReadModelDetailGroup(
                     title: "Live Execution Control",
                     systemImage: "lock.rectangle.stack",
-                    metrics: workbench.liveExecutionControlBlockedEvidenceMetrics,
-                    details: workbench.liveExecutionControlBlockedEvidenceDetails
+                    metrics: readModelSurface.liveExecutionControlBlockedEvidenceMetrics,
+                    details: readModelSurface.liveExecutionControlBlockedEvidenceDetails
                 )
-                DashboardWorkbenchDetailGroup(
+                DashboardReadModelDetailGroup(
                     title: "Live Risk Gates",
                     systemImage: "exclamationmark.shield",
-                    metrics: workbench.liveRiskGateBlockedEvidenceMetrics,
-                    details: workbench.liveRiskGateBlockedEvidenceDetails
+                    metrics: readModelSurface.liveRiskGateBlockedEvidenceMetrics,
+                    details: readModelSurface.liveRiskGateBlockedEvidenceDetails
                 )
-                DashboardWorkbenchDetailGroup(
+                DashboardReadModelDetailGroup(
                     title: "Live Incident / Stop",
                     systemImage: "hand.raised.square",
-                    metrics: workbench.liveIncidentStopBlockedEvidenceMetrics,
-                    details: workbench.liveIncidentStopBlockedEvidenceDetails
+                    metrics: readModelSurface.liveIncidentStopBlockedEvidenceMetrics,
+                    details: readModelSurface.liveIncidentStopBlockedEvidenceDetails
                 )
             }
         }
@@ -2176,7 +2176,7 @@ private struct DashboardControlTile: View {
     }
 }
 
-private struct DashboardWorkbenchDetailGroup: View {
+private struct DashboardReadModelDetailGroup: View {
     let title: String
     let systemImage: String
     let metrics: [DashboardShellMetric]

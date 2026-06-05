@@ -83,7 +83,7 @@
 | 3 | Define adapter capability matrix for read-only readiness | 定义 adapter capability matrix，隔离 public read-only、future private read-only 和 forbidden write capability。 | 依赖 Issue 1、Issue 2 |
 | 4 | Define account / position / balance read-model-only future gates | 定义 L3.1 所需的 read-model-only account / position / balance gates，不实现 runtime。 | 依赖 Issue 2、Issue 3 |
 | 5 | Define private stream / account snapshot simulation gate input material | 定义 L3.2 所需的 private stream / account snapshot simulation gate input，不实现 listenKey 或 private stream。 | 依赖 Issue 3、Issue 4 |
-| 6 | Define Workbench Live readiness read-model-only boundary | 定义 Workbench / Dashboard 只能展示 Live readiness boundary evidence，不暴露 command / secret / broker surface。 | 依赖 Issue 4、Issue 5 |
+| 6 | Define Dashboard Live readiness read-model-only boundary | 定义 Workbench / Dashboard 只能展示 Live readiness boundary evidence，不暴露 command / secret / broker surface。 | 依赖 Issue 4、Issue 5 |
 | 7 | Close validation matrix / automation readiness / stage audit input | 收口 L3.0 validation matrix、automation readiness anchors 和 stage audit input material。 | 依赖 Issue 6 |
 
 仓库不复制维护 7 个 issue 的完整正文。后续 issue scope、Codex instructions、validation、boundary、PR requirements 以 Linear issue body 为准。

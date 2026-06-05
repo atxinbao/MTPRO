@@ -17,8 +17,8 @@ public enum PaperWorkflowEvidenceExplorerSection: String, Codable, CaseIterable,
     case privateStreamSimulationGateEvidenceSurface = "private stream simulation gate evidence surface"
     case liveMonitoringReadOnlyConsoleV2Surface = "live monitoring read-only console v2 surface"
     case strategyTraderReadinessEvidenceSurface = "strategy / trader readiness evidence surface"
-    case workbenchBetaAcceptancePath = "workbench beta acceptance path"
-    case liveReadOnlyWorkbenchBoundary = "live read-only Workbench boundary"
+    case dashboardBetaAcceptancePath = "dashboard beta acceptance path"
+    case liveReadOnlyDashboardBoundary = "live read-only Dashboard boundary"
     case liveExecutionControlBlockedEvidence = "live execution control blocked evidence"
     case liveRiskGateBlockedEvidence = "live risk gate blocked evidence"
     case liveIncidentStopBlockedEvidence = "live incident / stop blocked evidence"
@@ -144,10 +144,10 @@ public struct PaperWorkflowEvidenceExplorerFilterSnapshot: Codable, Equatable, S
 /// PaperWorkflowEvidenceExplorerReadModel 汇总 Event Timeline / Evidence Explorer 的稳定输入。
 ///
 /// 该 read model 只组合 Dashboard 已有 App read models：market、strategy、report、
-/// scenario replay evidence、simulated exchange parity evidence、Workbench beta acceptance path、
+/// scenario replay evidence、simulated exchange parity evidence、Dashboard beta acceptance path、
 /// account / position / balance read-model-only surface、private stream simulation gate evidence surface、
 /// Strategy / Trader readiness read-model-only evidence surface、
-/// Live read-only Workbench boundary、
+/// Live read-only Dashboard boundary、
 /// Live blocked evidence、Live monitoring evidence、execution-control blocked evidence、
 /// Live Risk gate blocked evidence、incident / stop blocked evidence、
 /// paper workflow observability 和 append-only event timeline。
@@ -163,8 +163,8 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
     public let privateStreamSimulationGateEvidenceSurface: PrivateStreamSimulationGateEvidenceSurfaceReadModel
     public let liveMonitoringReadOnlyConsoleV2Surface: LiveMonitoringReadOnlyConsoleV2SurfaceReadModel
     public let strategyTraderReadinessEvidenceSurface: StrategyTraderReadinessEvidenceSurfaceReadModel
-    public let workbenchBetaAcceptancePath: WorkbenchBetaAcceptancePathReadModel
-    public let liveReadOnlyWorkbenchBoundary: LiveReadOnlyWorkbenchBoundaryReadModel
+    public let dashboardBetaAcceptancePath: DashboardBetaAcceptancePathReadModel
+    public let liveReadOnlyDashboardBoundary: LiveReadOnlyDashboardBoundaryReadModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel
     public let liveMonitoringEvidence: LiveMonitoringEvidenceReadModel
     public let liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel
@@ -184,8 +184,8 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
         privateStreamSimulationGateEvidenceSurface: PrivateStreamSimulationGateEvidenceSurfaceReadModel? = nil,
         liveMonitoringReadOnlyConsoleV2Surface: LiveMonitoringReadOnlyConsoleV2SurfaceReadModel? = nil,
         strategyTraderReadinessEvidenceSurface: StrategyTraderReadinessEvidenceSurfaceReadModel? = nil,
-        workbenchBetaAcceptancePath: WorkbenchBetaAcceptancePathReadModel? = nil,
-        liveReadOnlyWorkbenchBoundary: LiveReadOnlyWorkbenchBoundaryReadModel? = nil,
+        dashboardBetaAcceptancePath: DashboardBetaAcceptancePathReadModel? = nil,
+        liveReadOnlyDashboardBoundary: LiveReadOnlyDashboardBoundaryReadModel? = nil,
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel? = nil,
         liveMonitoringEvidence: LiveMonitoringEvidenceReadModel? = nil,
         liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel? = nil,
@@ -209,10 +209,10 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
             ?? report.liveMonitoringReadOnlyConsoleV2Surface
         self.strategyTraderReadinessEvidenceSurface = strategyTraderReadinessEvidenceSurface
             ?? report.strategyTraderReadinessEvidenceSurface
-        self.workbenchBetaAcceptancePath = workbenchBetaAcceptancePath
-            ?? WorkbenchBetaAcceptancePathReadModel()
-        self.liveReadOnlyWorkbenchBoundary = liveReadOnlyWorkbenchBoundary
-            ?? report.liveReadOnlyWorkbenchBoundary
+        self.dashboardBetaAcceptancePath = dashboardBetaAcceptancePath
+            ?? DashboardBetaAcceptancePathReadModel()
+        self.liveReadOnlyDashboardBoundary = liveReadOnlyDashboardBoundary
+            ?? report.liveReadOnlyDashboardBoundary
         self.liveTradingBlockedEvidence = liveTradingBlockedEvidence
             ?? report.liveTradingBlockedEvidence
         self.liveMonitoringEvidence = liveMonitoringEvidence
@@ -235,8 +235,8 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
             self.privateStreamSimulationGateEvidenceSurface.lastAppliedSequence,
             self.liveMonitoringReadOnlyConsoleV2Surface.lastAppliedSequence,
             self.strategyTraderReadinessEvidenceSurface.lastAppliedSequence,
-            self.workbenchBetaAcceptancePath.lastAppliedSequence,
-            self.liveReadOnlyWorkbenchBoundary.lastAppliedSequence,
+            self.dashboardBetaAcceptancePath.lastAppliedSequence,
+            self.liveReadOnlyDashboardBoundary.lastAppliedSequence,
             self.liveTradingBlockedEvidence.lastAppliedSequence,
             self.liveMonitoringEvidence.lastAppliedSequence,
             self.liveExecutionControlBlockedEvidence.lastAppliedSequence,
@@ -252,7 +252,7 @@ public struct PaperWorkflowEvidenceExplorerReadModel: Equatable, Sendable {
     }
 }
 
-/// PaperWorkflowEvidenceExplorerViewModel 是 Dashboard / Workbench 可消费的只读 Explorer 快照。
+/// PaperWorkflowEvidenceExplorerViewModel 是 Dashboard 可消费的只读 Explorer 快照。
 ///
 /// ViewModel 从 read model 派生 timeline rows、evidence links 和 section filter snapshot。
 /// 所有 boundary flags 必须保持 read-model-only / paper-only / Live blocked 与 monitoring evidence only；
@@ -273,8 +273,8 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
     public let coversPrivateStreamSimulationGateEvidenceSurface: Bool
     public let coversLiveMonitoringReadOnlyConsoleV2Surface: Bool
     public let coversStrategyTraderReadinessEvidenceSurface: Bool
-    public let coversWorkbenchBetaAcceptancePath: Bool
-    public let coversLiveReadOnlyWorkbenchBoundary: Bool
+    public let coversDashboardBetaAcceptancePath: Bool
+    public let coversLiveReadOnlyDashboardBoundary: Bool
     public let coversLiveExecutionControlBlockedEvidence: Bool
     public let coversLiveRiskGateBlockedEvidence: Bool
     public let coversLiveIncidentStopBlockedEvidence: Bool
@@ -332,11 +332,11 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             StrategyTraderReadinessEvidenceSurfaceViewModel(
                 readModel: readModel.strategyTraderReadinessEvidenceSurface
             )
-        let workbenchBetaAcceptancePath = WorkbenchBetaAcceptancePathViewModel(
-            readModel: readModel.workbenchBetaAcceptancePath
+        let dashboardBetaAcceptancePath = DashboardBetaAcceptancePathViewModel(
+            readModel: readModel.dashboardBetaAcceptancePath
         )
-        let liveReadOnlyWorkbenchBoundary = LiveReadOnlyWorkbenchBoundaryViewModel(
-            readModel: readModel.liveReadOnlyWorkbenchBoundary
+        let liveReadOnlyDashboardBoundary = LiveReadOnlyDashboardBoundaryViewModel(
+            readModel: readModel.liveReadOnlyDashboardBoundary
         )
         let liveExecutionControl = LiveExecutionControlBlockedEvidenceViewModel(
             readModel: readModel.liveExecutionControlBlockedEvidence
@@ -379,11 +379,11 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         let coversStrategyTraderReadinessEvidenceSurface = allTimelineItems.contains {
             $0.section == .strategyTraderReadinessEvidenceSurface
         }
-        let coversWorkbenchBetaAcceptancePath = allTimelineItems.contains {
-            $0.section == .workbenchBetaAcceptancePath
+        let coversDashboardBetaAcceptancePath = allTimelineItems.contains {
+            $0.section == .dashboardBetaAcceptancePath
         }
-        let coversLiveReadOnlyWorkbenchBoundary = allTimelineItems.contains {
-            $0.section == .liveReadOnlyWorkbenchBoundary
+        let coversLiveReadOnlyDashboardBoundary = allTimelineItems.contains {
+            $0.section == .liveReadOnlyDashboardBoundary
         }
         let coversLiveExecutionControlBlockedEvidence = allTimelineItems.contains {
             $0.section == .liveExecutionControlBlockedEvidence
@@ -415,8 +415,8 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             || privateStreamSimulationGateEvidenceSurface.exposesDatabaseSchema
             || liveMonitoringReadOnlyConsoleV2Surface.exposesDatabaseSchema
             || strategyTraderReadinessEvidenceSurface.exposesDatabaseSchema
-            || workbenchBetaAcceptancePath.exposesDatabaseSchema
-            || liveReadOnlyWorkbenchBoundary.exposesDatabaseSchema
+            || dashboardBetaAcceptancePath.exposesDatabaseSchema
+            || liveReadOnlyDashboardBoundary.exposesDatabaseSchema
             || liveExecutionControl.exposesPersistenceSchema
             || liveRiskGate.exposesPersistenceSchema
             || liveIncidentStop.exposesPersistenceSchema
@@ -427,8 +427,8 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             || privateStreamSimulationGateEvidenceSurface.exposesRuntimeObject
             || liveMonitoringReadOnlyConsoleV2Surface.exposesRuntimeObject
             || strategyTraderReadinessEvidenceSurface.exposesRuntimeObject
-            || workbenchBetaAcceptancePath.exposesRuntimeObject
-            || liveReadOnlyWorkbenchBoundary.exposesRuntimeObject
+            || dashboardBetaAcceptancePath.exposesRuntimeObject
+            || liveReadOnlyDashboardBoundary.exposesRuntimeObject
             || liveExecutionControl.invokesRuntimeControl
             || liveRiskGate.invokesRuntimeControl
             || liveIncidentStop.invokesRuntimeControl
@@ -439,8 +439,8 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             || privateStreamSimulationGateEvidenceSurface.exposesAdapterRequest
             || liveMonitoringReadOnlyConsoleV2Surface.exposesAdapterRequest
             || strategyTraderReadinessEvidenceSurface.exposesAdapterRequest
-            || workbenchBetaAcceptancePath.exposesAdapterRequest
-            || liveReadOnlyWorkbenchBoundary.exposesAdapterSurface
+            || dashboardBetaAcceptancePath.exposesAdapterRequest
+            || liveReadOnlyDashboardBoundary.exposesAdapterSurface
             || liveExecutionControl.readsAdapter
             || liveRiskGate.readsAdapter
             || liveIncidentStop.readsAdapter
@@ -450,8 +450,8 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             || privateStreamSimulationGateEvidenceSurface.providesCommandSurface
             || liveMonitoringReadOnlyConsoleV2Surface.providesCommandSurface
             || strategyTraderReadinessEvidenceSurface.providesCommandSurface
-            || workbenchBetaAcceptancePath.providesCommandSurface
-            || liveReadOnlyWorkbenchBoundary.providesCommandSurface
+            || dashboardBetaAcceptancePath.providesCommandSurface
+            || liveReadOnlyDashboardBoundary.providesCommandSurface
             || liveExecutionControl.providesCommandSurface
             || liveRiskGate.providesCommandSurface
             || liveIncidentStop.providesCommandSurface
@@ -461,10 +461,10 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             || privateStreamSimulationGateEvidenceSurface.providesOrderLevelCommand
             || liveMonitoringReadOnlyConsoleV2Surface.providesOrderLevelCommand
             || strategyTraderReadinessEvidenceSurface.providesOrderLevelCommand
-            || workbenchBetaAcceptancePath.providesOrderLevelCommand
-            || liveReadOnlyWorkbenchBoundary.submitsRealOrder
-            || liveReadOnlyWorkbenchBoundary.cancelsRealOrder
-            || liveReadOnlyWorkbenchBoundary.replacesRealOrder
+            || dashboardBetaAcceptancePath.providesOrderLevelCommand
+            || liveReadOnlyDashboardBoundary.submitsRealOrder
+            || liveReadOnlyDashboardBoundary.cancelsRealOrder
+            || liveReadOnlyDashboardBoundary.replacesRealOrder
             || liveExecutionControl.providesOrderLevelCommand
         let supportsQueryLanguage = false
         let providesLiveAudit = false
@@ -476,8 +476,8 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             || privateStreamSimulationGateEvidenceSurface.authorizesLiveTrading
             || liveMonitoringReadOnlyConsoleV2Surface.authorizesLiveTrading
             || strategyTraderReadinessEvidenceSurface.authorizesLiveTrading
-            || workbenchBetaAcceptancePath.authorizesLiveTrading
-            || liveReadOnlyWorkbenchBoundary.authorizesLiveTrading
+            || dashboardBetaAcceptancePath.authorizesLiveTrading
+            || liveReadOnlyDashboardBoundary.authorizesLiveTrading
             || liveExecutionControl.authorizesLiveTrading
             || liveRiskGate.authorizesLiveTrading
             || liveIncidentStop.authorizesLiveTrading
@@ -486,8 +486,8 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             || privateStreamSimulationGateEvidenceSurface.connectsBroker
             || liveMonitoringReadOnlyConsoleV2Surface.connectsBroker
             || strategyTraderReadinessEvidenceSurface.connectsBroker
-            || workbenchBetaAcceptancePath.touchesBrokerAction
-            || liveReadOnlyWorkbenchBoundary.instantiatesBrokerAdapter
+            || dashboardBetaAcceptancePath.touchesBrokerAction
+            || liveReadOnlyDashboardBoundary.instantiatesBrokerAdapter
             || liveExecutionControl.instantiatesBrokerExecutionAdapter
             || liveExecutionControl.instantiatesExchangeExecutionAdapter
             || liveRiskGate.instantiatesBrokerExecutionAdapter
@@ -499,8 +499,8 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             || privateStreamSimulationGateEvidenceSurface.authorizesTradingExecution
             || liveMonitoringReadOnlyConsoleV2Surface.authorizesTradingExecution
             || strategyTraderReadinessEvidenceSurface.authorizesTradingExecution
-            || workbenchBetaAcceptancePath.authorizesTradingExecution
-            || liveReadOnlyWorkbenchBoundary.authorizesTradingExecution
+            || dashboardBetaAcceptancePath.authorizesTradingExecution
+            || liveReadOnlyDashboardBoundary.authorizesTradingExecution
             || liveExecutionControl.authorizesTradingExecution
             || liveRiskGate.authorizesTradingExecution
             || liveIncidentStop.authorizesTradingExecution
@@ -528,8 +528,8 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             coversLiveMonitoringReadOnlyConsoleV2Surface
         self.coversStrategyTraderReadinessEvidenceSurface =
             coversStrategyTraderReadinessEvidenceSurface
-        self.coversWorkbenchBetaAcceptancePath = coversWorkbenchBetaAcceptancePath
-        self.coversLiveReadOnlyWorkbenchBoundary = coversLiveReadOnlyWorkbenchBoundary
+        self.coversDashboardBetaAcceptancePath = coversDashboardBetaAcceptancePath
+        self.coversLiveReadOnlyDashboardBoundary = coversLiveReadOnlyDashboardBoundary
         self.coversLiveExecutionControlBlockedEvidence = coversLiveExecutionControlBlockedEvidence
         self.coversLiveRiskGateBlockedEvidence = coversLiveRiskGateBlockedEvidence
         self.coversLiveIncidentStopBlockedEvidence = coversLiveIncidentStopBlockedEvidence
@@ -558,8 +558,8 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
             && privateStreamSimulationGateEvidenceSurface.readModelOnlyBoundaryHeld
             && liveMonitoringReadOnlyConsoleV2Surface.readModelOnlyBoundaryHeld
             && strategyTraderReadinessEvidenceSurface.readModelOnlyBoundaryHeld
-            && workbenchBetaAcceptancePath.readModelOnlyBoundaryHeld
-            && liveReadOnlyWorkbenchBoundary.readModelOnlyBoundaryHeld
+            && dashboardBetaAcceptancePath.readModelOnlyBoundaryHeld
+            && liveReadOnlyDashboardBoundary.readModelOnlyBoundaryHeld
             && liveExecutionControl.readModelOnlyBoundaryHeld
             && liveRiskGate.readModelOnlyBoundaryHeld
             && liveIncidentStop.readModelOnlyBoundaryHeld
@@ -613,8 +613,8 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
                 + makeStrategyTraderReadinessEvidenceSurfaceItems(
                     readModel.strategyTraderReadinessEvidenceSurface
                 )
-                + makeWorkbenchBetaAcceptancePathItems(readModel.workbenchBetaAcceptancePath)
-                + makeLiveReadOnlyWorkbenchBoundaryItems(readModel.liveReadOnlyWorkbenchBoundary)
+                + makeDashboardBetaAcceptancePathItems(readModel.dashboardBetaAcceptancePath)
+                + makeLiveReadOnlyDashboardBoundaryItems(readModel.liveReadOnlyDashboardBoundary)
                 + makeLiveExecutionControlBlockedEvidenceItems(readModel.liveExecutionControlBlockedEvidence)
                 + makeLiveRiskGateBlockedEvidenceItems(readModel.liveRiskGateBlockedEvidence)
                 + makeLiveIncidentStopBlockedEvidenceItems(readModel.liveIncidentStopBlockedEvidence)
@@ -918,26 +918,26 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         }
     }
 
-    private static func makeWorkbenchBetaAcceptancePathItems(
-        _ readModel: WorkbenchBetaAcceptancePathReadModel
+    private static func makeDashboardBetaAcceptancePathItems(
+        _ readModel: DashboardBetaAcceptancePathReadModel
     ) -> [PaperWorkflowEventTimelineItem] {
         readModel.items.flatMap { item in
             item.eventTraceItems.map { trace in
                 PaperWorkflowEventTimelineItem(
-                    section: .workbenchBetaAcceptancePath,
+                    section: .dashboardBetaAcceptancePath,
                     sequence: readModel.lastAppliedSequence,
-                    stream: "workbench beta acceptance",
+                    stream: "dashboard beta acceptance",
                     title: trace.title,
                     summary: trace.summary,
                     evidenceLinks: [
                         PaperWorkflowEvidenceLinkSummary(
-                            section: .workbenchBetaAcceptancePath,
+                            section: .dashboardBetaAcceptancePath,
                             evidenceID: trace.evidenceID,
                             label: trace.surface,
                             sourceSequence: readModel.lastAppliedSequence
                         ),
                         PaperWorkflowEvidenceLinkSummary(
-                            section: .workbenchBetaAcceptancePath,
+                            section: .dashboardBetaAcceptancePath,
                             evidenceID: item.reportInputVersionIdentity,
                             label: "report input version",
                             sourceSequence: readModel.lastAppliedSequence
@@ -948,26 +948,26 @@ public struct PaperWorkflowEvidenceExplorerViewModel: Codable, Equatable, Sendab
         }
     }
 
-    private static func makeLiveReadOnlyWorkbenchBoundaryItems(
-        _ readModel: LiveReadOnlyWorkbenchBoundaryReadModel
+    private static func makeLiveReadOnlyDashboardBoundaryItems(
+        _ readModel: LiveReadOnlyDashboardBoundaryReadModel
     ) -> [PaperWorkflowEventTimelineItem] {
-        let viewModel = LiveReadOnlyWorkbenchBoundaryViewModel(readModel: readModel)
+        let viewModel = LiveReadOnlyDashboardBoundaryViewModel(readModel: readModel)
         return [
             PaperWorkflowEventTimelineItem(
-                section: .liveReadOnlyWorkbenchBoundary,
+                section: .liveReadOnlyDashboardBoundary,
                 sequence: readModel.lastAppliedSequence,
                 stream: "live read-only readiness",
-                title: "Workbench Live readiness boundary",
+                title: "Dashboard Live readiness boundary",
                 summary: "surfaces=\(viewModel.boundarySurfaceCount); forbiddenUI=\(viewModel.forbiddenUISurfaceCount); handoff=\(viewModel.handoffTargetCount)",
                 evidenceLinks: [
                     PaperWorkflowEvidenceLinkSummary(
-                        section: .liveReadOnlyWorkbenchBoundary,
+                        section: .liveReadOnlyDashboardBoundary,
                         evidenceID: viewModel.contractID,
-                        label: "workbench read-model-only boundary",
+                        label: "dashboard read-model-only boundary",
                         sourceSequence: readModel.lastAppliedSequence
                     ),
                     PaperWorkflowEvidenceLinkSummary(
-                        section: .liveReadOnlyWorkbenchBoundary,
+                        section: .liveReadOnlyDashboardBoundary,
                         evidenceID: "MTP-131-WORKBENCH-LIVE-READINESS-READ-MODEL-ONLY-BOUNDARY",
                         label: "validation anchor",
                         sourceSequence: readModel.lastAppliedSequence

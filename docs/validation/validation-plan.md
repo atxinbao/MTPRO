@@ -352,14 +352,14 @@ MTP-45 的 required validation：
 - Stage Code Audit input 必须明确：最终 Stage Code Audit Report 仍由 Parent Codex 在有效 issue 全部 Done、Linear Project status `Completed` 且 `completedAt` 非空后单独输出。
 - Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不修改 Linear status，不启动下一阶段 `symphony-issue`。
 
-## MTP-47 Paper Workflow Workbench IA / Control Shell Boundary Validation
+## MTP-47 Paper Workflow Dashboard IA / Control Shell Boundary Validation
 
 MTP-47 的 required validation：
 
-- Workbench information architecture 必须使用 deterministic fixture，不依赖真实 Binance 网络、secret、broker、account endpoint、外部 execution venue 或真实订单。
-- App tests 必须覆盖 `PaperWorkflowSessionControl`、`PaperWorkflowObservabilitySection`、`PaperWorkflowForbiddenCapability` 和 `PaperWorkflowWorkbenchInformationArchitecture.deterministicFixture`。
+- Dashboard information architecture 必须使用 deterministic fixture，不依赖真实 Binance 网络、secret、broker、account endpoint、外部 execution venue 或真实订单。
+- App tests 必须覆盖 `PaperWorkflowSessionControl`、`PaperWorkflowObservabilitySection`、`PaperWorkflowForbiddenCapability` 和 `PaperWorkflowDashboardInformationArchitecture.deterministicFixture`。
 - Tests 必须证明 session-level controls 只允许 `start` / `pause` / `close` / `reset`。
-- Tests 必须证明 Workbench 观察面覆盖 session、proposal、risk decision、paper order、simulated fill、portfolio projection、replay freshness、report artifact status 和 event timeline。
+- Tests 必须证明 Dashboard 观察面覆盖 session、proposal、risk decision、paper order、simulated fill、portfolio projection、replay freshness、report artifact status 和 event timeline。
 - Tests 必须证明 order-level command、非 read-model-only source、提前实现 Command Model、UI controls 或 Event Timeline 会被合同拒绝。
 - `docs/validation/trading-validation-matrix.md` 的 `TVM-PAPER-WORKFLOW-CONTROL-SHELL` 必须回填新增 App 类型、fixture、tests 和 no order-level command 边界。
 - Required validation 仍是 `bash checks/run.sh`，不新增独立 eval 框架，不实现 Command Model、不实现 UI 控件、不实现 Event Timeline、不触发 Paper / Live 执行。
@@ -2656,8 +2656,8 @@ MTP-120 必须建立的主要 anchors：
 
 MTP-120 的验收要求：
 
-- `Sources/Core/WorkbenchBetaDemoScenario.swift` 必须定义 `WorkbenchBetaDemoScenarioSelection` 和 `WorkbenchBetaDemoFixtureEvidence`，固定 `mtp-104-btcusdt-1m-first-scenario`、`dataset-v1`、`fixture-v1`、`BTCUSDT` / `1m`。
-- `WorkbenchBetaDemoFixtureEvidence` 必须复用 `ScenarioDataQualityReportInputEvidence.deterministicFixture` 和 `SimulatedExchangePortfolioProjectionParityFixture.deterministicEvidence()`，并输出 checksum `fnv1a64:3c6cd4ff13cd4062`、freshness `fresh`、quality `accepted`、report input version identity 和 simulated parity deterministic identity。
+- `Sources/Core/DashboardBetaDemoScenario.swift` 必须定义 `DashboardBetaDemoScenarioSelection` 和 `DashboardBetaDemoFixtureEvidence`，固定 `mtp-104-btcusdt-1m-first-scenario`、`dataset-v1`、`fixture-v1`、`BTCUSDT` / `1m`。
+- `DashboardBetaDemoFixtureEvidence` 必须复用 `ScenarioDataQualityReportInputEvidence.deterministicFixture` 和 `SimulatedExchangePortfolioProjectionParityFixture.deterministicEvidence()`，并输出 checksum `fnv1a64:3c6cd4ff13cd4062`、freshness `fresh`、quality `accepted`、report input version identity 和 simulated parity deterministic identity。
 - `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-120 focused tests，覆盖 deterministic selection、fixture wiring、L1.5 / L2 relationship、Codable round-trip、scenario mismatch rejection、automatic download / signed endpoint / broker bypass rejection。
 - `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-120 mechanical anchors。
 
@@ -2693,10 +2693,10 @@ MTP-121 必须建立的主要 anchors：
 
 MTP-121 的验收要求：
 
-- `Sources/Dashboard/WorkbenchBetaFirstRunState.swift` 必须定义 `WorkbenchBetaFirstRunReadModel`、`WorkbenchBetaFirstRunViewModel`、`WorkbenchBetaFirstRunEvidenceSummary` 和 `WorkbenchBetaFirstRunFallbackState`。
+- `Sources/Dashboard/DashboardBetaFirstRunState.swift` 必须定义 `DashboardBetaFirstRunReadModel`、`DashboardBetaFirstRunViewModel`、`DashboardBetaFirstRunEvidenceSummary` 和 `DashboardBetaFirstRunFallbackState`。
 - First-run 默认状态必须选择 `mtp-104-btcusdt-1m-first-scenario`、`dataset-v1`、`fixture-v1`、`BTCUSDT` / `1m`，并输出 checksum `fnv1a64:3c6cd4ff13cd4062`、freshness `fresh`、quality `accepted` 和 report input version identity。
-- `DashboardReadModel.defaultWorkbenchBetaDemo` 和 `DashboardViewModel.defaultWorkbenchBetaDemo` 必须通过 App Read Model / ViewModel 提供 first-run state，不直接暴露 Core fixture、Persistence schema、Runtime object 或 Adapter request。
-- `Sources/Dashboard/DashboardApplication.swift` 必须使用 `DashboardViewModel.defaultWorkbenchBetaDemo`，使 `DASHBOARD_SMOKE=1 swift run Dashboard` 输出 `defaultDemoState=default demo`、`defaultDemoScenario=mtp-104-btcusdt-1m-first-scenario`、`betaFirstRunFallbacks=3`、`scenarioReplayEvidence=1` 和 `simulatedParityEvidence=1`。
+- `DashboardReadModel.defaultDashboardBetaDemo` 和 `DashboardViewModel.defaultDashboardBetaDemo` 必须通过 App Read Model / ViewModel 提供 first-run state，不直接暴露 Core fixture、Persistence schema、Runtime object 或 Adapter request。
+- `Sources/Dashboard/DashboardApplication.swift` 必须使用 `DashboardViewModel.defaultDashboardBetaDemo`，使 `DASHBOARD_SMOKE=1 swift run Dashboard` 输出 `defaultDemoState=default demo`、`defaultDemoScenario=mtp-104-btcusdt-1m-first-scenario`、`betaFirstRunFallbacks=3`、`scenarioReplayEvidence=1` 和 `simulatedParityEvidence=1`。
 - `Tests/AppTests/AppTests.swift` 必须包含 MTP-121 focused tests，覆盖 default selected scenario、read-model-only Dashboard state、empty / loading / error fallback、first-run evidence summary、Dashboard smoke handles 和 forbidden capability flags。
 - `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-121 mechanical anchors。
 
@@ -2732,9 +2732,9 @@ MTP-122 必须建立的主要 anchors：
 
 MTP-122 的验收要求：
 
-- `Sources/Dashboard/WorkbenchBetaAcceptancePath.swift` 必须定义 `WorkbenchBetaAcceptancePathReadModel` 和 `WorkbenchBetaAcceptancePathViewModel`，只从 `ReportReadModel` 与 `WorkbenchBetaFirstRunReadModel.defaultDemo` 生成 acceptance path。
+- `Sources/Dashboard/DashboardBetaAcceptancePath.swift` 必须定义 `DashboardBetaAcceptancePathReadModel` 和 `DashboardBetaAcceptancePathViewModel`，只从 `ReportReadModel` 与 `DashboardBetaFirstRunReadModel.defaultDemo` 生成 acceptance path。
 - Acceptance path 必须证明 Report、Dashboard 和 Events 使用同一 scenario `mtp-104-btcusdt-1m-first-scenario`、dataset `dataset-v1`、fixture `fixture-v1`、report input version `mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|1704067200...1704067380|fnv1a64:3c6cd4ff13cd4062|fresh|accepted`。
-- `DashboardViewModel.defaultWorkbenchBetaDemo` 必须输出 `workbenchBetaAcceptancePath.acceptancePathCount=1`、Report summary、Dashboard panel summaries、Events trace 和 portfolio projection parity evidence。
+- `DashboardViewModel.defaultDashboardBetaDemo` 必须输出 `workbenchBetaAcceptancePath.acceptancePathCount=1`、Report summary、Dashboard panel summaries、Events trace 和 portfolio projection parity evidence。
 - `Sources/Dashboard/Events/PaperWorkflowEvidenceExplorer.swift` 必须新增 `workbench beta acceptance path` section，输出 Report summary、Scenario Replay evidence、Simulated Exchange / Backtest Parity evidence、Portfolio evidence 和 boundary summary 五条 timeline rows。
 - `Sources/Dashboard/DashboardShell.swift` 必须输出 Dashboard smoke handles `betaAcceptancePaths=1`、`betaAcceptanceScenario=mtp-104-btcusdt-1m-first-scenario` 和 `betaAcceptanceTrace=5`。
 - `Tests/AppTests/AppTests.swift` 必须包含 MTP-122 focused test，覆盖 Report summary、Dashboard panels、Events trace、same demo scenario、portfolio evidence、validation anchors 和 forbidden capability flags。
@@ -3081,7 +3081,7 @@ MTP-130 必须建立的主要 anchors：
 MTP-131 的 required validation：
 
 - `swift test --filter LiveReadOnlyWorkbench`
-- `swift test --filter AppTests/testLiveReadOnlyWorkbenchBoundaryViewModelAggregatesMTP131ReadOnlySurface`
+- `swift test --filter AppTests/testLiveReadOnlyDashboardBoundaryViewModelAggregatesMTP131ReadOnlySurface`
 - `bash checks/automation-readiness.sh`
 - `bash checks/run.sh`
 
@@ -3089,14 +3089,14 @@ MTP-131 的验收要求：
 
 - `docs/contracts/live-read-only-readiness-boundary-contract.md` 必须包含 `MTP-131-WORKBENCH-LIVE-READINESS-READ-MODEL-ONLY-BOUNDARY`、`MTP-131-READ-MODEL-VIEWMODEL-INPUT-BOUNDARY`、`MTP-131-FORBIDDEN-UI-SURFACE`、`MTP-131-DETAIL-AUDIT-ROUTING`、`MTP-131-L31-L32-L33-HANDOFF` 和 `MTP-131-LIVE-READ-ONLY-WORKBENCH-VALIDATION` anchors。
 - `Sources/Core/LiveTradingBoundary.swift` 必须包含 `LiveReadOnlyWorkbenchReadModelBoundary` deterministic fixture，并固定 `TVM-LIVE-READ-ONLY-READINESS`、Workbench boundary surfaces、ReadModel / ViewModel input boundary、forbidden UI surface、detail / audit route、L3 handoff 和 forbidden flags。
-- `Sources/Dashboard/FutureLiveProConsole/LiveReadOnlyWorkbenchBoundary.swift` 必须包含 `LiveReadOnlyWorkbenchBoundaryReadModel` 和 `LiveReadOnlyWorkbenchBoundaryViewModel`，只输出 read-model-only Dashboard / Report / Event Timeline evidence。
+- `Sources/Dashboard/FutureLiveProConsole/LiveReadOnlyDashboardBoundary.swift` 必须包含 `LiveReadOnlyDashboardBoundaryReadModel` 和 `LiveReadOnlyDashboardBoundaryViewModel`，只输出 read-model-only Dashboard / Report / Event Timeline evidence。
 - `Sources/Dashboard/ReadModels/App.swift`、`Sources/Dashboard/DashboardShell.swift` 和 `Sources/Dashboard/Events/PaperWorkflowEvidenceExplorer.swift` 必须接入 MTP-131 read model / ViewModel、Dashboard shell metrics / details / smoke handle 和 Event Timeline evidence item。
 - `Tests/CoreTests/CoreTests.swift` 必须包含 `testLiveReadOnlyWorkbenchReadModelBoundaryDefinesMTP131Surface` 和 `testLiveReadOnlyWorkbenchReadModelBoundaryRejectsForbiddenUISurfaceBypass`。
-- `Tests/AppTests/AppTests.swift` 必须包含 `testLiveReadOnlyWorkbenchBoundaryViewModelAggregatesMTP131ReadOnlySurface`，并覆盖 Dashboard shell、Report snapshot 和 Evidence Explorer read-only integration。
+- `Tests/AppTests/AppTests.swift` 必须包含 `testLiveReadOnlyDashboardBoundaryViewModelAggregatesMTP131ReadOnlySurface`，并覆盖 Dashboard shell、Report snapshot 和 Evidence Explorer read-only integration。
 - `docs/domain/context.md` 必须包含 MTP-131 Workbench Live readiness shared language。
 - `docs/validation/trading-validation-matrix.md` 必须包含 MTP-131 issue backfill。
 - `docs/validation/latest-verification-summary.md` 必须记录 MTP-131 的当前 issue execution evidence。
-- `docs/automation/automation-readiness.md` 必须新增 Live Read-only Workbench read-model-only boundary anchor。
+- `docs/automation/automation-readiness.md` 必须新增 Live Read-only Dashboard read-model-only boundary anchor。
 - `checks/automation-readiness.sh` 必须机械检查 MTP-131 contract、domain context、validation plan、trading matrix、latest summary、automation readiness doc、Core fixture、App read model / ViewModel、Dashboard shell、Event Timeline 和 focused test anchors。
 
 MTP-131 必须建立的主要 anchors：

@@ -85,7 +85,7 @@ public struct PaperWorkflowObservabilityReadModel: Equatable, Sendable {
     }
 }
 
-/// PaperWorkflowObservabilityViewModel 是 Dashboard / Workbench 可消费的 Paper workflow 观察快照。
+/// PaperWorkflowObservabilityViewModel 是 Dashboard 可消费的 Paper workflow 观察快照。
 ///
 /// 它展示 session status、allowed / blocked evidence、decision -> order -> simulated fill ->
 /// portfolio projection chain coverage、replay freshness 和 report artifact status。所有字段都来自

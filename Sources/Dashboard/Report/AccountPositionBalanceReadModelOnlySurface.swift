@@ -45,7 +45,7 @@ private extension Array where Element == String {
 /// AccountPositionBalanceReadModelOnlySurfaceReadModel 是 MTP-138 的 App 层只读输入。
 ///
 /// 该 read model 只消费 MTP-137 的 deterministic fixture contract，并把 account / position /
-/// balance evidence 暴露为 Workbench、Report 和 Events 可展示的稳定输入。它不读取真实账户、
+/// balance evidence 暴露为 Dashboard、Report 和 Events 可展示的稳定输入。它不读取真实账户、
 /// 不读取 SQLite / DuckDB schema、不调用 Runtime / Adapter，也不创建 account connect 或 broker connect。
 public struct AccountPositionBalanceReadModelOnlySurfaceReadModel: Equatable, Sendable {
     public let source: ViewModelSourceContract
