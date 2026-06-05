@@ -5574,6 +5574,24 @@ require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "FoundationMess
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "FoundationDatabaseCheckpoint"
 require_contains "docs/validation/latest-verification-summary.md" "GH-393 Foundation real target smoke tests"
 require_contains "verification.md" "GH-393 Foundation real target smoke tests"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-394-DOMAINMODEL-MESSAGEBUS-IMPLEMENTATION-OWNERSHIP"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-394-CORE-COMPATIBILITY-ENVELOPE-PRESERVED"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-394-VALIDATION-ANCHORS"
+require_contains "architecture.md" "GH-394 DomainModel / MessageBus Implementation Ownership"
+require_contains "architecture.md" "GH-394-DOMAINMODEL-MESSAGEBUS-IMPLEMENTATION-OWNERSHIP"
+require_contains "Sources/DomainModel/DomainModelContractError.swift" "DomainModelContractError"
+require_contains "Sources/DomainModel/TargetGraph/DomainModelTargetBoundary.swift" "GH-394-DOMAINMODEL-REAL-IMPLEMENTATION-OWNERSHIP"
+require_contains "Sources/MessageBus/MessageBusAppendOnlyJournal.swift" "MessageBusAppendOnlyJournal"
+require_contains "Sources/MessageBus/TargetGraph/MessageBusTargetBoundary.swift" "GH-394-MESSAGEBUS-NEUTRAL-JOURNAL-OWNERSHIP"
+require_contains "Sources/Core/DomainModelCompatibilityImport.swift" "@_exported import DomainModel"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH394DomainModelAndMessageBusOwnRealImplementationSource"
+require_contains "Package.swift" '"DomainModelContractError.swift"'
+require_contains "Package.swift" '"MarketPrimitives.swift"'
+require_contains "Package.swift" '"MarketDataModels.swift"'
+require_contains "Package.swift" '"MessageBusAppendOnlyJournal.swift"'
+require_contains "docs/automation/automation-readiness.md" "GH-394 DomainModel / MessageBus implementation ownership anchor"
+require_contains "docs/validation/latest-verification-summary.md" "GH-394 DomainModel / MessageBus implementation ownership"
+require_contains "verification.md" "GH-394 DomainModel / MessageBus implementation ownership"
 require_absent "docs/validation/validation-plan.md" 'Root docs 必须使用 `Trader = Accounts + Strategies + StrategyBindings + Coordination`'
 require_absent "docs/validation/validation-plan.md" '`Sources/Trader/StrategyBindings/` 必须包含 proposal-to-risk binding'
 require_absent "docs/validation/validation-plan.md" '只使用 `"Trader/Strategies/EMA"` 和 `"Trader/StrategyBindings"`'

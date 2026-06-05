@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// PaperSessionLocalControlApplied 是 accepted session-level command 写入 event log 后的本地事实。

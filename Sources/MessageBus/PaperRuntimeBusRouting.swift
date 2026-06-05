@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// MTP-97 的 paper runtime bus routing 只在 Core 层定义 deterministic command / event / message 路由。

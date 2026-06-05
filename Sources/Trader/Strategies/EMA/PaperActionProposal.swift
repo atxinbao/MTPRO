@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// MTP-193 将 paper/live-neutral proposal source 迁入 `Sources/Trader/Strategies/EMA/`。

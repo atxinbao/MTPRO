@@ -2,7 +2,7 @@
 ///
 /// 该类型只描述 foundation target split 事实和禁止项；MTP-226 只把 active target
 /// boundary anchor 从 `Sources/TargetGraph/DomainModel` 移到 `Sources/DomainModel/TargetGraph`，
-/// 不改变当前 `Core` compatibility envelope 对既有 `Sources/DomainModel/` 业务类型的编译方式。
+/// GH-394 起 `DomainModel` 直接拥有基础值对象实现，`Core` 只保留兼容导入面。
 public struct DomainModelTargetBoundary: Codable, Equatable, Sendable {
     public let targetName: String
     public let canonicalSourceRoot: String
@@ -46,6 +46,7 @@ public struct DomainModelTargetBoundary: Codable, Equatable, Sendable {
         "MTP-217-FOUNDATION-COMPATIBILITY-ENVELOPE-RETAINED",
         "MTP-226-DOMAINMODEL-REAL-ROOT-TARGET-PATH",
         "GH-393-DOMAINMODEL-REAL-TARGET-SMOKE",
+        "GH-394-DOMAINMODEL-REAL-IMPLEMENTATION-OWNERSHIP",
         "MTP-217-NO-RUNTIME-LIVE-BROKER-L4-GUARD"
     ]
 

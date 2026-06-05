@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// LiveMonitoringConnectionReadinessExplanationState 固定 MTP-150 可以展示的 readiness 解释状态。

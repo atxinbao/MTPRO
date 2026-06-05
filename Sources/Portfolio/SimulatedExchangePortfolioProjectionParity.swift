@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// MTP-187 将 simulated exchange portfolio parity 放入 `Sources/Portfolio/`。

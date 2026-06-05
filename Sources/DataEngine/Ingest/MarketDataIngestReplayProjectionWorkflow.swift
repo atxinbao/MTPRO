@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 import Adapters
 import Core

@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// MTP-193 将 EMA strategy lifecycle 迁入 `Sources/Trader/Strategies/EMA/`，但仍由 `Core`

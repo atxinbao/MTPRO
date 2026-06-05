@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// MTP-112 scenario replay deterministic matching 只定义本地 deterministic matching model。

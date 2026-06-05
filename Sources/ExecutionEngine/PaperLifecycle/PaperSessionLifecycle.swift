@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// PaperSessionLifecycleState 定义 Paper session 在 append-only event log 中可观察的本地生命周期。

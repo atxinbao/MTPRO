@@ -279,7 +279,7 @@ final class AdaptersTests: XCTestCase {
                 observedAt: Date(timeIntervalSince1970: 1_704_067_202)
             )
         ) { error in
-            XCTAssertEqual(error as? CoreError, .unsupportedSymbol("DOGEUSDT"))
+            XCTAssertEqual(error as? DomainModelContractError, .unsupportedSymbol("DOGEUSDT"))
         }
 
         XCTAssertThrowsError(

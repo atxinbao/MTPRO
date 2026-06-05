@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// Scenario manifest 合同固定 MTP-104 的本地 scenario 输入身份。

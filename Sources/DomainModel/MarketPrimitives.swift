@@ -1,6 +1,9 @@
 import Foundation
 
 /// Core 基础值对象定义 symbol、timeframe、执行模式、日期范围和数值约束，是所有市场数据与策略合同的输入边界。
+///
+/// GH-394 起这些值对象由 `DomainModel` target 直接编译拥有；`Core` compatibility
+/// envelope 只通过 re-export 保留旧 `import Core` 可见性，不再作为 primary source owner。
 
 /// Symbol 表示第一版允许的交易标的集合，输入会规范化为大写并拒绝未授权市场。
 public struct Symbol: Codable, Equatable, Hashable, Sendable, CustomStringConvertible {
@@ -11,7 +14,7 @@ public struct Symbol: Codable, Equatable, Hashable, Sendable, CustomStringConver
     public init(rawValue: String) throws {
         let normalized = rawValue.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         guard Self.supportedRawValues.contains(normalized) else {
-            throw CoreError.unsupportedSymbol(rawValue)
+            throw domainModelUnsupportedSymbolError(rawValue)
         }
         self.rawValue = normalized
     }
@@ -43,7 +46,7 @@ public enum Timeframe: String, Codable, CaseIterable, Equatable, Hashable, Senda
 
     public init(contractValue: String) throws {
         guard let timeframe = Self(rawValue: contractValue) else {
-            throw CoreError.unsupportedTimeframe(contractValue)
+            throw domainModelUnsupportedTimeframeError(contractValue)
         }
         self = timeframe
     }
@@ -62,9 +65,9 @@ public enum ExecutionMode: String, Codable, CaseIterable, Equatable, Sendable {
         case Self.paper.rawValue:
             self = .paper
         case "live", "broker", "real", "production":
-            throw CoreError.liveExecutionForbidden(contractValue)
+            throw domainModelLiveExecutionForbiddenError(contractValue)
         default:
-            throw CoreError.unsupportedExecutionMode(contractValue)
+            throw domainModelUnsupportedExecutionModeError(contractValue)
         }
     }
 }
@@ -76,7 +79,7 @@ public struct DateRange: Codable, Equatable, Sendable {
 
     public init(start: Date, end: Date) throws {
         guard start < end else {
-            throw CoreError.invalidDateRange
+            throw domainModelInvalidDateRangeError()
         }
         self.start = start
         self.end = end
@@ -108,7 +111,7 @@ public struct Identifier: Codable, Equatable, Hashable, Sendable, CustomStringCo
     public init(_ rawValue: String, field: String = "identifier") throws {
         let trimmed = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmed.isEmpty == false else {
-            throw CoreError.emptyIdentifier(field)
+            throw domainModelEmptyIdentifierError(field)
         }
         self.rawValue = trimmed
     }
@@ -135,7 +138,7 @@ public struct Price: Codable, Equatable, Sendable {
 
     public init(_ rawValue: Double, field: String = "price") throws {
         guard rawValue.isFinite, rawValue > 0 else {
-            throw CoreError.invalidPrice(field, rawValue)
+            throw domainModelInvalidPriceError(field, rawValue)
         }
         self.rawValue = rawValue
     }
@@ -158,7 +161,7 @@ public struct Quantity: Codable, Equatable, Sendable {
 
     public init(_ rawValue: Double, field: String = "quantity") throws {
         guard rawValue.isFinite, rawValue >= 0 else {
-            throw CoreError.invalidQuantity(field, rawValue)
+            throw domainModelInvalidQuantityError(field, rawValue)
         }
         self.rawValue = rawValue
     }
@@ -173,4 +176,36 @@ public struct Quantity: Codable, Equatable, Sendable {
         var container = encoder.singleValueContainer()
         try container.encode(rawValue)
     }
+}
+
+private func domainModelUnsupportedSymbolError(_ value: String) -> any Error {
+    DomainModelContractError.unsupportedSymbol(value)
+}
+
+private func domainModelUnsupportedTimeframeError(_ value: String) -> any Error {
+    DomainModelContractError.unsupportedTimeframe(value)
+}
+
+private func domainModelUnsupportedExecutionModeError(_ value: String) -> any Error {
+    DomainModelContractError.unsupportedExecutionMode(value)
+}
+
+private func domainModelLiveExecutionForbiddenError(_ value: String) -> any Error {
+    DomainModelContractError.liveExecutionForbidden(value)
+}
+
+private func domainModelInvalidDateRangeError() -> any Error {
+    DomainModelContractError.invalidDateRange
+}
+
+private func domainModelEmptyIdentifierError(_ field: String) -> any Error {
+    DomainModelContractError.emptyIdentifier(field)
+}
+
+private func domainModelInvalidPriceError(_ field: String, _ value: Double) -> any Error {
+    DomainModelContractError.invalidPrice(field, value)
+}
+
+private func domainModelInvalidQuantityError(_ field: String, _ value: Double) -> any Error {
+    DomainModelContractError.invalidQuantity(field, value)
 }

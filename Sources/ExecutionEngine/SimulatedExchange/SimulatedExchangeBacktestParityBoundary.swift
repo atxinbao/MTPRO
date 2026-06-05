@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// Simulated Exchange / Backtest Parity 边界定义 MTP-110 的 L2 术语、目标引擎职责和禁止能力基线。

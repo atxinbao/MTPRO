@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// Core 错误边界集中描述合同校验失败，避免 unsupported market data、Live 执行和非法事件进入运行时。

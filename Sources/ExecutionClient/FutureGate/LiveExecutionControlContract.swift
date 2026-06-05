@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// LiveExecutionControlTerm 定义 MTP-75 允许命名的 Future Live Execution 术语。

@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// MTP-186 将 market data cache 迁入 `Sources/Cache/MarketData/`，但当前 SwiftPM

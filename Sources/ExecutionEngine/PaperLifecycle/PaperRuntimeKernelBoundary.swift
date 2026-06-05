@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// TradingClock 和 PaperRuntimeKernelBoundary 定义 MTP-96 的 paper-only runtime kernel 基础合同。

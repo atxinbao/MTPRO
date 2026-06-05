@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// 研究事件流把 command 转换为本地事件序列，复用策略合同并保持 Backtest / Paper parity。

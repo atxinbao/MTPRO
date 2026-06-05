@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// MTP-111 shared backtest-paper order semantics 只定义 backtest 与 paper runtime 共用的订单语义合同。

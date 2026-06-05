@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// MTP-188 将 OMSFutureGate 放入 ExecutionEngine 目标目录，但仍只作为 future-gated boundary。

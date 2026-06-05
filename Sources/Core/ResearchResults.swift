@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// 研究结果类型保存回测、Paper 和订单簿研究的本地事件流输出，是后续 projection 的稳定输入。

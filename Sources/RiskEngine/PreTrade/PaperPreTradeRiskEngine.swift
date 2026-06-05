@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// MTP-98 的 Paper Pre-trade RiskEngine runtime path 只处理本地 paper proposal。

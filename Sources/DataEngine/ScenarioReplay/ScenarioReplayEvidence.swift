@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// Scenario replay evidence 固定 MTP-106 的本地回放窗口、游标、checksum 和 freshness 证据。

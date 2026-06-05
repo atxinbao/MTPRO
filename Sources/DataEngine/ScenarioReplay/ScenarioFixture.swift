@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// Scenario fixture 合同固定 MTP-105 的第一个本地 deterministic scenario 输入。

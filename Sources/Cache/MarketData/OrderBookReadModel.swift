@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// MTP-186 将 order book read model 迁入 `Sources/Cache/MarketData/`。

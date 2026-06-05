@@ -230,6 +230,20 @@ GH-393 不实现 Trader runtime、Strategy runtime、Live runtime、ExecutionCli
 
 GH-391 不实现 Trader runtime、Strategy runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability；不启动 Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
 
+## GH-394 DomainModel / MessageBus Implementation Ownership
+
+`GH-394-DOMAINMODEL-MESSAGEBUS-IMPLEMENTATION-OWNERSHIP`
+
+GH-394 把基础领域模型真实实现迁回 `DomainModel` target：`CoreBaseline.swift`、`MarketPrimitives.swift`、`MarketDataModels.swift`、`DomainModelContractError.swift` 和 `FoundationTargetOwnership.swift` 现在由 `DomainModel` 直接编译。`Core` 不再把 `Sources/DomainModel` 当 source directory 编译，只依赖 `DomainModel` 并通过 compatibility import 保留旧 `import Core` 可见性。
+
+`GH-394-MESSAGEBUS-NEUTRAL-JOURNAL-OWNERSHIP`
+
+GH-394 让 `MessageBus` target 拥有中立 append-only journal：`MessageBusAppendOnlyJournal.swift` 与 `FoundationMessageStream.swift` 可直接由 `MessageBus` 编译和使用。旧 `CommandsAndQueries.swift`、`DomainEvents.swift`、`EventLog.swift` 和 `PaperRuntimeBusRouting.swift` 仍在 `Core` compatibility envelope，因为它们当前引用 paper、strategy、portfolio、risk 和 execution payload，后续必须按依赖方向拆解。
+
+`GH-394-CORE-COMPATIBILITY-ENVELOPE-PRESERVED`
+
+GH-394 不删除 `Core`，也不迁移 Data、Trader、Portfolio、Risk、Execution 或 Dashboard ownership。它只完成 foundation ownership 的第一段真实迁移，并继续禁止 Trader runtime、Strategy runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed/account endpoint、private stream runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 和 L4 capability。
+
 ## MTP-216 SwiftPM Target Graph Split Contract
 
 `MTP-216-SWIFTPM-TARGET-GRAPH-SPLIT-CONTRACT`
