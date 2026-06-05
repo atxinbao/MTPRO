@@ -109,6 +109,7 @@ public struct RiskEngineTargetBoundary: Codable, Equatable, Sendable {
     public static let requiredValidationAnchors = [
         "MTP-219-RISKENGINE-TARGET-SPLIT",
         "MTP-219-PRE-EXECUTION-RISK-BOUNDARY",
+        "GH-397-RISKENGINE-REAL-TARGET-SMOKE",
         "MTP-228-RISKENGINE-REAL-ROOT-TARGET-PATH",
         "MTP-219-NO-DIRECT-EXECUTION-GUARD"
     ]

@@ -108,6 +108,7 @@ public struct PortfolioTargetBoundary: Codable, Equatable, Sendable {
     public static let requiredValidationAnchors = [
         "MTP-219-PORTFOLIO-TARGET-SPLIT",
         "MTP-219-PORTFOLIO-SEPARATE-FROM-TRADER-ACCOUNT",
+        "GH-397-PORTFOLIO-REAL-TARGET-SMOKE",
         "MTP-228-PORTFOLIO-REAL-ROOT-TARGET-PATH",
         "MTP-219-NO-REAL-ACCOUNT-BROKER-GUARD"
     ]

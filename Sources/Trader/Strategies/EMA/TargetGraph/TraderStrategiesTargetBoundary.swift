@@ -118,6 +118,7 @@ public struct TraderStrategiesTargetBoundary: Codable, Equatable, Sendable {
     public static let requiredValidationAnchors = [
         "MTP-219-TRADERSTRATEGIES-TARGET-SPLIT",
         "MTP-219-EMA-ONLY-ACTIVE-STRATEGY-BOUNDARY",
+        "GH-397-TRADERSTRATEGIES-EMA-REAL-TARGET-SMOKE",
         "MTP-228-TRADERSTRATEGIES-REAL-ROOT-TARGET-PATH",
         "MTP-219-NO-DIRECT-EXECUTION-GUARD"
     ]

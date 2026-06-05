@@ -294,6 +294,28 @@ GH-396 把 data target ownership 从 smoke API 推进到部分真实 implementat
 
 `DataEngine/Ingest` 仍由 `Runtime` compatibility envelope 编排 DataClient + Persistence workflow。该路径不新增 streaming runtime、private stream、signed/account endpoint、broker route、ExecutionClient route、OMS route 或 L4 capability。
 
+## GH-397 Trader / Portfolio / Risk / Execution Real Target Smoke Tests
+
+`GH-397-TRADER-PORTFOLIO-RISK-EXECUTION-REAL-SMOKE-TESTS`
+
+GH-397 为 Trader / Portfolio / Risk / Execution 侧建立 real target smoke test baseline。该 baseline 证明 `TraderStrategies`、`Trader`、`Portfolio`、`RiskEngine`、`ExecutionClient` 和 `ExecutionEngine` targets 都能被测试 target 独立 import，并能读取各自的 public boundary API，而不是只靠 `Package.swift` 字符串或 retired top-level `Sources/TargetGraph` path 证明存在。
+
+`GH-397-TRADER-EMA-COORDINATION-SMOKE`
+
+Trader 当前口径继续固定为 `Trader = Accounts + Strategies/EMA + Coordination`。`TraderStrategies` 只允许 active concrete strategy `EMA`，canonical active strategy path only `Sources/Trader/Strategies/EMA`。Trader 不直接依赖 `ExecutionEngine` 或 `ExecutionClient`，也不读取 broker / account payload，不提供 live command surface。
+
+`GH-397-PORTFOLIO-RISK-PREEXECUTION-SMOKE`
+
+`Portfolio` 继续作为 financial state projection boundary，不拥有 Trader account identity、broker account state 或 account endpoint payload。`RiskEngine` 继续作为 pre-execution guard，不调用 broker / ExecutionClient，不路由 executable order command。
+
+`GH-397-EXECUTIONCLIENT-FUTURE-GATE-SMOKE`
+
+`ExecutionClient` 仍只是 future gate / protocol boundary，不是 broker gateway、signed endpoint client、account endpoint client、listenKey runtime、private WebSocket runtime、order submit / cancel / replace client、execution report parser、broker fill parser 或 reconciliation runtime。`ExecutionEngine` 继续只承接 paper / simulated lifecycle boundary 和 ExecutionClient future-gate vocabulary，不实现 OMS、live execution runtime 或 real order lifecycle。
+
+`GH-397-COMPATIBILITY-ENVELOPE-PRESERVED`
+
+GH-397 不迁移 Trader / Portfolio / Risk / Execution implementation ownership。`Core` compatibility envelope 仍显式承载相关既有 implementation，GH-398 才允许按证据继续迁移 ownership。
+
 ## MTP-216 SwiftPM Target Graph Split Contract
 
 `MTP-216-SWIFTPM-TARGET-GRAPH-SPLIT-CONTRACT`

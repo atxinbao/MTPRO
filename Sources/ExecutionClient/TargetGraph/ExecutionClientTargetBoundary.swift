@@ -119,6 +119,7 @@ public struct ExecutionClientTargetBoundary: Codable, Equatable, Sendable {
     public static let requiredValidationAnchors = [
         "MTP-220-EXECUTIONCLIENT-TARGET-SPLIT",
         "MTP-220-EXECUTIONCLIENT-FUTURE-GATE-ONLY",
+        "GH-397-EXECUTIONCLIENT-FUTURE-GATE-SMOKE",
         "MTP-220-NO-BROKER-OMS-REAL-ORDER-GUARD",
         "MTP-229-EXECUTIONCLIENT-REAL-ROOT-TARGET-PATH"
     ]
