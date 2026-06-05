@@ -343,7 +343,7 @@ let package = Package(
         ),
         .testTarget(
             name: "AdaptersTests",
-            dependencies: ["Adapters"],
+            dependencies: ["Adapters", "Core"],
             path: "Tests/AdaptersTests"
         ),
         .testTarget(
