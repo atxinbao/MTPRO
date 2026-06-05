@@ -173,3 +173,46 @@ GH-392 退休了 GH-391 记录的 direct `Trader -> ExecutionEngine` correction 
 ## GH-392-TRADER-PROPOSAL-MESSAGEBUS-COORDINATION-BOUNDARY
 
 Trader 当前只表达 `Accounts + Strategies/EMA + Coordination` 容器。EMA strategy 只产出 signal / proposal / evidence；RiskEngine / ExecutionEngine 是下游 context，通过 contract / MessageBus / read-model evidence 消费，不由 Trader 直接拥有 ExecutionEngine implementation。
+
+## GH-393-FOUNDATION-REAL-TARGET-SMOKE-TESTS
+
+GH-393 开始把 foundation target 从“只有 target boundary anchor”推进到“target 内存在可独立 import / compile / use 的最小真实 API”：
+
+- `DomainModel` target 编译 `Sources/DomainModel/FoundationTargetOwnership.swift`，暴露 `FoundationTargetID`、`FoundationTargetSourceOwnership` 和 shared foundation smoke error vocabulary。
+- `MessageBus` target 编译 `Sources/MessageBus/FoundationMessageStream.swift`，依赖 `DomainModel`，暴露本地 `FoundationMessageTopic`、`FoundationMessageEnvelope` 和 append-only `FoundationMessageStream`。
+- `Database` target 编译 `Sources/Database/FoundationDatabaseCheckpoint.swift`，依赖 `DomainModel` / `MessageBus`，暴露本地 monotonic projection checkpoint。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 增加 `testGH393FoundationTargetsExposeRealAPIsBeyondBoundaryAnchors`，直接 import `DomainModel`、`MessageBus` 和 `Database` 并使用上述 public APIs。
+
+这些 smoke APIs 只证明 foundation targets 已经拥有可调用的最小真实 source ownership。它们不替代仍由 `Core` / `Persistence` compatibility envelope 承载的完整 DomainModel、MessageBus、event log、projection 或 database implementation。
+
+## GH-393-FOUNDATION-COMPATIBILITY-ENVELOPE-PRESERVED
+
+GH-393 只把三个最小 smoke files 从 compatibility envelopes 中排除，避免 SwiftPM source overlap：
+
+- `Core` exclude `DomainModel/FoundationTargetOwnership.swift`。
+- `Core` exclude `MessageBus/FoundationMessageStream.swift`。
+- `Persistence` / `Runtime` exclude `FoundationDatabaseCheckpoint.swift`。
+
+`Core`、`Persistence` 和 `Runtime` 仍保留为 compatibility envelopes；GH-393 不迁移完整 implementation ownership，不拆 runtime，不改 behavior。
+
+## GH-393-FOUNDATION-NO-RUNTIME-LIVE-BROKER-L4-GUARD
+
+GH-393 不授权：
+
+- Trader runtime、Strategy runtime、Live runtime。
+- ExecutionClient implementation、OMS、broker gateway。
+- signed endpoint、account endpoint / listenKey、private WebSocket runtime。
+- real account read、real order lifecycle、submit / cancel / replace。
+- execution report、broker fill、reconciliation。
+- Live PRO Console、trading button、live command、order form。
+- L4 implementation。
+
+## GH-393-FOUNDATION-VALIDATION-ANCHORS
+
+GH-393 required validation：
+
+- `swift test --filter TargetGraphTests/testGH393FoundationTargetsExposeRealAPIsBeyondBoundaryAnchors`
+- `swift test --filter TargetGraphTests`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`

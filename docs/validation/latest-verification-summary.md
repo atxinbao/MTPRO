@@ -1854,3 +1854,38 @@ GitHub Issue：[#392](https://github.com/atxinbao/MTPRO/issues/392)
 - `git diff --check`：pass，无输出。
 - `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
 - `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true`，332 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
+## 2026-06-06 — GH-393 Foundation real target smoke tests
+
+执行者：Codex
+
+GitHub Issue：[#393](https://github.com/atxinbao/MTPRO/issues/393)
+
+范围：
+
+- 新增 `Sources/DomainModel/FoundationTargetOwnership.swift`，让 `DomainModel` target 暴露可独立使用的 foundation identity / ownership public API。
+- 新增 `Sources/MessageBus/FoundationMessageStream.swift`，让 `MessageBus` target 暴露本地 topic / envelope / append-only stream smoke API，并直接依赖 `DomainModel`。
+- 新增 `Sources/Database/FoundationDatabaseCheckpoint.swift`，让 `Database` target 暴露本地 monotonic projection checkpoint smoke API，并直接依赖 `DomainModel` / `MessageBus`。
+- 更新 `Package.swift` 的 foundation target source ownership 与 retained compatibility envelope excludes，避免 SwiftPM source overlap。
+- 新增 `testGH393FoundationTargetsExposeRealAPIsBeyondBoundaryAnchors`，证明 foundation targets 可 import 并使用真实 public APIs，而不是只检查 boundary anchor / Package 字符串。
+
+边界：
+
+- 这不是完整 DomainModel / MessageBus / Database implementation migration；`Core`、`Persistence` 和 `Runtime` compatibility envelope 仍保留。
+- 不实现 Trader runtime、Strategy runtime、Live runtime。
+- 不实现 ExecutionClient implementation、OMS、broker gateway。
+- 不接 signed endpoint、account endpoint / listenKey、private WebSocket runtime。
+- 不实现 real account read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation。
+- 不实现 Live PRO Console、trading button、live command 或 order form。
+- 不推进 L4。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify / code-index。
+- 不修改 Figma。
+
+验证：
+
+- `swift test --filter TargetGraphTests/testGH393FoundationTargetsExposeRealAPIsBeyondBoundaryAnchors`：pass，1 test / 0 failures。
+- `swift test --filter TargetGraphTests`：pass，18 tests / 0 failures。
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true`，333 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。

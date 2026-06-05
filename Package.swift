@@ -38,6 +38,7 @@ let package = Package(
                 "MarketPrimitives.swift"
             ],
             sources: [
+                "FoundationTargetOwnership.swift",
                 "TargetGraph/DomainModelTargetBoundary.swift"
             ]
         ),
@@ -52,6 +53,7 @@ let package = Package(
                 "PaperRuntimeBusRouting.swift"
             ],
             sources: [
+                "FoundationMessageStream.swift",
                 "TargetGraph/MessageBusTargetBoundary.swift"
             ]
         ),
@@ -73,6 +75,7 @@ let package = Package(
                 "ReplayProjection"
             ],
             sources: [
+                "FoundationDatabaseCheckpoint.swift",
                 "TargetGraph/DatabaseTargetBoundary.swift"
             ]
         ),
@@ -197,9 +200,11 @@ let package = Package(
                 "DataEngine/Ingest",
                 "DataEngine/TargetGraph",
                 "Database",
+                "DomainModel/FoundationTargetOwnership.swift",
                 "DomainModel/TargetGraph",
                 "ExecutionClient/TargetGraph",
                 "ExecutionEngine/TargetGraph",
+                "MessageBus/FoundationMessageStream.swift",
                 "MessageBus/TargetGraph",
                 "Portfolio/TargetGraph",
                 "RiskEngine/TargetGraph",
@@ -258,6 +263,7 @@ let package = Package(
             ],
             path: "Sources/Database",
             exclude: [
+                "FoundationDatabaseCheckpoint.swift",
                 "ReplayProjection",
                 "TargetGraph"
             ],
@@ -278,6 +284,7 @@ let package = Package(
                 "DataEngine/ScenarioReplay",
                 "DataEngine/DataQuality",
                 "DataEngine/TargetGraph",
+                "Database/FoundationDatabaseCheckpoint.swift",
                 "Database/Projections",
                 "Database/TargetGraph",
                 "DomainModel",
