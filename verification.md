@@ -14265,3 +14265,24 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
 - Validation:
   - `git diff --check`: pass
   - `bash checks/run.sh`: pass; Dashboard smoke includes `readModelOnly=true`; 331 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-05 - GH-391 Real Target Source Ownership / Core Envelope Retirement Contract
+
+- Project: `MTPRO Real Target Source Ownership Validation / Core Envelope Retirement v1`
+- Queue item: GH-391 `Define real target ownership and dependency direction contract`
+- Scope: contract-first definition of real target source ownership, retained `Core` / `Adapters` / `Persistence` / `Runtime` compatibility envelopes, future real target smoke-test expectations, and `Trader -> ExecutionEngine` dependency correction blocker.
+- Evidence: `docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md`
+- Boundary:
+  - No Package.swift change.
+  - No source movement.
+  - No SwiftPM target graph split.
+  - No Trader runtime / Strategy runtime / Live runtime.
+  - No ExecutionClient implementation / OMS / broker gateway.
+  - No signed endpoint / account endpoint / listenKey / private WebSocket runtime.
+  - No real order lifecycle / submit / cancel / replace / execution report / broker fill / reconciliation.
+  - No Live PRO Console / trading button / live command / order form.
+  - No Symphony / Graphify / code-index / Figma.
+- Validation:
+  - `git diff --check`: pass
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; Dashboard smoke includes `readModelOnly=true`; 331 XCTest / 0 failures; final output `MTPRO checks passed.`

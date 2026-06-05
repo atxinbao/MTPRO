@@ -91,7 +91,6 @@ Sources/
   RiskEngine/
   ExecutionEngine/
   ExecutionClient/
-  Workbench/
   Dashboard/
 ```
 
@@ -101,6 +100,7 @@ Sources/
 - 非 EMA strategy 只能作为 future candidate，不进入当前 active source / tests / Package path。
 - `StrategyBindings` 不再是 Trader 下的一级策略目录；binding / adapter 语义归入 `Trader/Coordination`。
 - `ExecutionClient` 只存在 future gate / capability matrix，不是 broker / exchange execution implementation。
+- `Workbench` product / target 和 `Sources/Workbench/` 已退休；当前 active UI surface 统一为 `Dashboard read-model-only boundary`。
 - 当前 active SwiftPM target graph 以 MTP-217 至 MTP-221 的 split targets 为准；implementation-level envelope retirement、`App` compatibility export retirement 和 L4 runtime 仍需后续独立授权。
 
 ## Package Dependency Direction / SwiftPM 依赖方向
@@ -159,15 +159,48 @@ Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / Risk
 Dashboard -> Core / Persistence
 ```
 
+`Trader -> ExecutionEngine` 是当前 active `Package.swift` dependency snapshot 的历史 coordination boundary evidence。GH-391 后，它被登记为后续 correction blocker：目标方向应收敛为 Trader 管 Accounts + Strategies/EMA + Coordination，策略只产出 proposal / signal，RiskEngine / ExecutionEngine 作为下游 context 通过 contract / MessageBus / read-model evidence 消费，Trader 不直接拥有 ExecutionEngine implementation。
+
 Forbidden path taxonomy：
 
 - `DataClient -> signed/account/listenKey/private runtime` 禁止。
 - `Trader/Strategies -> ExecutionClient` 禁止。
 - `Trader -> ExecutionClient` 当前禁止，未来只能经 L4 Project 重新授权。
+- `Trader -> ExecutionEngine implementation ownership` 后续应退休；当前 `Package.swift` 依赖只作为 historical coordination boundary evidence，不得写成目标方向。
 - `RiskEngine -> broker / ExecutionClient` 禁止。
 - `Portfolio -> broker account state` 禁止。
 - `ExecutionEngine -> current OMS / broker adapter` 禁止。
-- `Workbench -> Runtime object / Adapter request / Database schema` 禁止。
+- `Dashboard -> Runtime object / Adapter request / Database schema` 禁止。
+
+## GH-391 Real Target Source Ownership / Core Envelope Retirement Contract
+
+`GH-391-REAL-TARGET-OWNERSHIP-CONTRACT`
+
+GH-391 记录当前 architecture graph 的关键差距：target name、real module source root 和 boundary anchor 已基本对齐，但很多真实 implementation 仍由 `Core`、`Adapters`、`Persistence` 和 `Runtime` retained compatibility envelopes 承载。Canonical contract 位于 `docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md`。
+
+`GH-391-CURRENT-BLOCKERS`
+
+当前 blocker 包含：多数 target 当前只编译 module-local `TargetGraph/*TargetBoundary.swift`；`TargetGraphTests` 主要验证 boundary anchors / strings，不证明真实 target API ownership；`Trader -> ExecutionEngine` 仍在 active `Package.swift` 中；Dashboard active source 仍有 Workbench naming residue；`try!` / `preconditionFailure` allowed path 还缺少机械验证。
+
+`GH-391-AUTHORITATIVE-TARGET-OWNERSHIP-MODEL`
+
+当前 authoritative target names 是 `DomainModel`、`MessageBus`、`Database`、`DataClient`、`Cache`、`DataEngine`、`TraderStrategies`、`Trader`、`Portfolio`、`RiskEngine`、`ExecutionClient`、`ExecutionEngine` 和 `Dashboard`。当前 active strategy only `EMA`，`Trader = Accounts + Strategies/EMA + Coordination`，`ExecutionClient` remains future gate / protocol boundary only。
+
+`GH-391-DEPENDENCY-DIRECTION-CORRECTION`
+
+GH-391 不修改 `Package.swift`，但固定后续 correction：`Trader` 不应直接拥有 `ExecutionEngine` implementation。后续 `GH-392` 才能在独立 issue 中移除 direct `Trader -> ExecutionEngine` target dependency。
+
+`GH-391-REAL-TARGET-SMOKE-TEST-CONTRACT`
+
+后续 real target smoke tests 必须证明对应 target 能独立 import 并使用目标模块自己的核心类型，不能只检查 `Package.swift` 字符串或 boundary struct。
+
+`GH-391-CORE-ENVELOPE-RETIREMENT-RULE`
+
+`Core`、`Adapters`、`Persistence` 和 `Runtime` 只能逐段退休：先加 real target smoke tests，再迁移 implementation ownership，再更新 compatibility envelope，最后清理 stale docs / validation anchors。GH-391 不授权一次性删除 `Core` 或移动大批 source。
+
+`GH-391-FORBIDDEN-CAPABILITY-GUARD`
+
+GH-391 不实现 Trader runtime、Strategy runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability；不启动 Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
 
 ## MTP-216 SwiftPM Target Graph Split Contract
 

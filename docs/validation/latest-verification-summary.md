@@ -1785,3 +1785,38 @@ MTP-232-STAGE-CLOSEOUT-VALIDATION 的本地验证已通过：`git diff --check` 
 Next Handoff：Human + `@001 / PLN`
 
 下一阶段方向、目标、架构路线和优先级仍由 Human + `@001 / PLN` 决定。本文档不创建 Linear Project / Issue，不修改 Linear status，不推进 `Todo`，不启动额外调度服务。
+
+## 2026-06-05 — GH-391 Real Target Source Ownership / Core Envelope Retirement Contract
+
+执行者：Codex
+
+GitHub Issue：[#391](https://github.com/atxinbao/MTPRO/issues/391)
+
+范围：
+
+- 新增 `docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md`。
+- 在 `architecture.md` 记录 `GH-391-REAL-TARGET-OWNERSHIP-CONTRACT`，区分 real module source root、target boundary anchor、retained compatibility envelope 和 future gate。
+- 明确当前 target graph 仍有 compatibility envelope debt：真实 implementation 仍部分由 `Core`、`Adapters`、`Persistence` 和 `Runtime` 承载。
+- 明确 `Trader -> ExecutionEngine` direct dependency 是后续 correction blocker，GH-391 不修改 `Package.swift`。
+- 明确后续 real target smoke tests 必须证明 target 能独立 import 并使用自己的核心类型，而不是只验证 boundary anchor / Package 字符串。
+
+边界：
+
+- 不创建 Linear Project / Issue。
+- 不修改 Linear status。
+- 不推进 GitHub #392 至 #401。
+- 不启动 `@002 / PAR`。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify / code-index。
+- 不修改 Figma。
+- 不写业务代码。
+- 不修改 `Package.swift`。
+- 不移动 `Sources`。
+- 不拆 SwiftPM target graph。
+- 不实现 Trader runtime、Strategy runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
+验证：
+
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true`，331 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
