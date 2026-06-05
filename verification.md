@@ -14336,3 +14336,31 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; Dashboard smoke includes `readModelOnly=true`; 333 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-06 - GH-394 DomainModel / MessageBus implementation ownership
+
+- Project: `MTPRO Real Target Source Ownership Validation / Core Envelope Retirement v1`
+- Queue item: GH-394 `Migrate DomainModel and MessageBus implementation ownership out of Core`
+- Scope:
+  - Moved `DomainModel` foundational implementation ownership into the `DomainModel` target: `CoreBaseline.swift`, `MarketPrimitives.swift`, `MarketDataModels.swift`, `DomainModelContractError.swift` and `FoundationTargetOwnership.swift`.
+  - Moved neutral append-only journal ownership into the `MessageBus` target through `MessageBusAppendOnlyJournal.swift`.
+  - Preserved `Core` as a compatibility envelope through `DomainModelCompatibilityImport.swift`; old `import Core` callers keep access to `DomainModel` public values, but `Core` is no longer the primary owner for `Sources/DomainModel`, and foundation value object validation errors are owned by `DomainModelContractError`.
+  - Left rich MessageBus paper / downstream routing payload in the `Core` compatibility envelope for later issue-level migration.
+  - Added `testGH394DomainModelAndMessageBusOwnRealImplementationSource`.
+- Boundary:
+  - No Trader runtime / Strategy runtime / Live runtime.
+  - No ExecutionClient implementation / OMS / broker gateway.
+  - No signed endpoint / account endpoint / listenKey / private WebSocket runtime.
+  - No real account read / real order lifecycle / submit / cancel / replace / execution report / broker fill / reconciliation.
+  - No Live PRO Console / trading button / live command / order form.
+  - No L4 implementation.
+  - No Symphony / Graphify / code-index / Figma.
+- Validation:
+  - `swift build --target DomainModel`: pass.
+  - `swift build --target MessageBus`: pass.
+  - `swift build --target Core`: pass.
+  - `swift test --filter TargetGraphTests/testGH394DomainModelAndMessageBusOwnRealImplementationSource`: pass; 1 test / 0 failures.
+  - `swift test --filter TargetGraphTests`: pass; 19 tests / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; Dashboard smoke includes `readModelOnly=true`; 334 XCTest / 0 failures; final output `MTPRO checks passed.`

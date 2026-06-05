@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// LiveTradingFoundationGate 固定 Live trading foundation Project 内的 gate 顺序。

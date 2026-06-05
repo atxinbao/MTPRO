@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// LiveMonitoringSourceEvidenceOrigin 固定 MTP-148 可解释的 monitoring evidence 来源类别。

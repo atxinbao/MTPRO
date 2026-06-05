@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// Paper execution decision 是 MTP-41 的本地 paper-only 决策链路。

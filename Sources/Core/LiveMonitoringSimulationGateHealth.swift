@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// LiveMonitoringSimulationGateHealthStatus 固定 MTP-149 可以展示的 simulation gate health 状态。

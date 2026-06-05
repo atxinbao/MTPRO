@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// MTP-206 在 Trader 容器下新增 Accounts 边界，但只表达 account context。

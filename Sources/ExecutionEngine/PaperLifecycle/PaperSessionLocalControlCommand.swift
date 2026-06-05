@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// Paper session local control command 是 MTP-48 的本地 session-level 控制意图模型。

@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// TradingKernel actor 串行化只读行情 ingest，当前边界不包含策略调度、数据库或 Live execution。

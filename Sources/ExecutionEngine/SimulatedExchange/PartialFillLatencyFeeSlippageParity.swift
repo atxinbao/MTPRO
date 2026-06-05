@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// MTP-114 partial fill / latency / fee / slippage parity 只定义本地 deterministic parity evidence。

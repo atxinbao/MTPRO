@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// MTP-188 的 ExecutionClient BrokerCapabilityMatrix 只描述 future venue capability taxonomy。

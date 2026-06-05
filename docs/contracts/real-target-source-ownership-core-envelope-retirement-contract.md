@@ -216,3 +216,42 @@ GH-393 required validation：
 - `git diff --check`
 - `bash checks/automation-readiness.sh`
 - `bash checks/run.sh`
+
+## GH-394-DOMAINMODEL-MESSAGEBUS-IMPLEMENTATION-OWNERSHIP
+
+GH-394 把 foundation implementation ownership 从 `Core` compatibility envelope 进一步迁回真实 targets：
+
+- `DomainModel` target 直接编译 `CoreBaseline.swift`、`MarketPrimitives.swift`、`MarketDataModels.swift`、`DomainModelContractError.swift` 和 `FoundationTargetOwnership.swift`。
+- `Core` target 不再把 `Sources/DomainModel` 作为 source directory 编译，只依赖 `DomainModel` 并通过 `DomainModelCompatibilityImport.swift` 保留旧 `import Core` 可见性。
+- Foundation value object validation errors are owned by `DomainModelContractError`; `Core` compatibility preserves value visibility, not `CoreError` as the foundation error owner.
+- `MessageBus` target 直接编译 `MessageBusAppendOnlyJournal.swift` 和 `FoundationMessageStream.swift`。
+- `MessageBusAppendOnlyJournal` 只表达中立 append-only journal，不引用 Trader、RiskEngine、ExecutionEngine、ExecutionClient、broker payload、account payload、OMS、Live runtime 或 UI command。
+
+## GH-394-CORE-COMPATIBILITY-ENVELOPE-PRESERVED
+
+GH-394 没有一次性迁移所有 MessageBus rich events / commands：
+
+- `CommandsAndQueries.swift`、`DomainEvents.swift`、`EventLog.swift` 和 `PaperRuntimeBusRouting.swift` 仍留在 `Core` compatibility envelope，因为它们当前引用 paper、strategy、portfolio、risk、execution 等下游 payload。
+- 这些 rich event / command 类型的 ownership 需要后续按依赖方向拆解，不能在 foundation issue 中反向塞进 `MessageBus` target。
+- `Core` 仍是兼容导入面，不再是 DomainModel primary source owner。
+
+## GH-394-VALIDATION-ANCHORS
+
+GH-394 required validation：
+
+- `swift build --target DomainModel`
+- `swift build --target MessageBus`
+- `swift build --target Core`
+- `swift test --filter TargetGraphTests/testGH394DomainModelAndMessageBusOwnRealImplementationSource`
+- `swift test --filter TargetGraphTests`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-394 readiness anchors：
+
+- `GH-394-DOMAINMODEL-MESSAGEBUS-IMPLEMENTATION-OWNERSHIP`
+- `GH-394-DOMAINMODEL-REAL-IMPLEMENTATION-OWNERSHIP`
+- `GH-394-MESSAGEBUS-NEUTRAL-JOURNAL-OWNERSHIP`
+- `GH-394-CORE-COMPATIBILITY-ENVELOPE-PRESERVED`
+- `GH-394-VALIDATION-ANCHORS`

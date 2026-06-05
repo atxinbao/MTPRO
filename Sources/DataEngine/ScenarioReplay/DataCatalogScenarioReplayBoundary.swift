@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// Data Catalog / Scenario Replay 边界定义 MTP-103 的术语、目标引擎职责和禁止能力基线。

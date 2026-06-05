@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// MTP-113 market / limit order simulated execution semantics 定义基础订单类型的本地模拟执行语义。

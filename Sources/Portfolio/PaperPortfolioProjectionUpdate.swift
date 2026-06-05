@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// MTP-187 将 portfolio projection update 放入 `Sources/Portfolio/`，保持 Core compatibility envelope。

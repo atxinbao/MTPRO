@@ -1889,3 +1889,40 @@ GitHub Issue：[#393](https://github.com/atxinbao/MTPRO/issues/393)
 - `git diff --check`：pass，无输出。
 - `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
 - `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true`，333 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
+## 2026-06-06 — GH-394 DomainModel / MessageBus implementation ownership
+
+执行者：Codex
+
+GitHub Issue：[#394](https://github.com/atxinbao/MTPRO/issues/394)
+
+范围：
+
+- 将 `DomainModel` 基础模型实现所有权迁入 `DomainModel` target：`CoreBaseline.swift`、`MarketPrimitives.swift`、`MarketDataModels.swift`、`DomainModelContractError.swift` 和 `FoundationTargetOwnership.swift` 由 `DomainModel` 直接编译。
+- 将 `MessageBus` 中立 append-only journal 所有权迁入 `MessageBus` target：`MessageBusAppendOnlyJournal.swift` 与 `FoundationMessageStream.swift` 由 `MessageBus` 直接编译。
+- 将 `Core` 收紧为 compatibility envelope：`Core` 依赖 `DomainModel`，通过 `DomainModelCompatibilityImport.swift` 保留旧 `import Core` 调用面的基础模型可见性，不再作为 `Sources/DomainModel` 的 primary source owner；foundation value object validation errors 由 `DomainModelContractError` 拥有，不再把 `CoreError` 作为 foundation error owner。
+- 保留 rich MessageBus paper / downstream routing payload 在 `Core` compatibility envelope 中，作为后续 issue 的拆解债务，不在 GH-394 一次性迁移。
+- 新增 `testGH394DomainModelAndMessageBusOwnRealImplementationSource`，验证 `DomainModel` / `MessageBus` 可独立使用真实 implementation API，而不是只检查 target boundary anchor。
+
+边界：
+
+- 不实现 Trader runtime、Strategy runtime、Live runtime。
+- 不实现 ExecutionClient implementation、OMS、broker gateway。
+- 不接 signed endpoint、account endpoint / listenKey、private WebSocket runtime。
+- 不实现 real account read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation。
+- 不实现 Live PRO Console、trading button、live command 或 order form。
+- 不推进 L4。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify / code-index。
+- 不修改 Figma。
+
+验证：
+
+- `swift build --target DomainModel`：pass。
+- `swift build --target MessageBus`：pass。
+- `swift build --target Core`：pass。
+- `swift test --filter TargetGraphTests/testGH394DomainModelAndMessageBusOwnRealImplementationSource`：pass，1 test / 0 failures。
+- `swift test --filter TargetGraphTests`：pass，19 tests / 0 failures。
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true`，334 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。

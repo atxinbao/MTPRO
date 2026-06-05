@@ -21,10 +21,10 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(fiveMinutes, .fiveMinutes)
 
         XCTAssertThrowsError(try Symbol(rawValue: "DOGEUSDT")) { error in
-            XCTAssertEqual(error as? CoreError, .unsupportedSymbol("DOGEUSDT"))
+            XCTAssertEqual(error as? DomainModelContractError, .unsupportedSymbol("DOGEUSDT"))
         }
         XCTAssertThrowsError(try Timeframe(contractValue: "1h")) { error in
-            XCTAssertEqual(error as? CoreError, .unsupportedTimeframe("1h"))
+            XCTAssertEqual(error as? DomainModelContractError, .unsupportedTimeframe("1h"))
         }
     }
 
@@ -36,10 +36,10 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(quantity.rawValue, 0)
 
         XCTAssertThrowsError(try Price(-1, field: "bid")) { error in
-            XCTAssertEqual(error as? CoreError, .invalidPrice("bid", -1))
+            XCTAssertEqual(error as? DomainModelContractError, .invalidPrice("bid", -1))
         }
         XCTAssertThrowsError(try Quantity(-0.01, field: "volume")) { error in
-            XCTAssertEqual(error as? CoreError, .invalidQuantity("volume", -0.01))
+            XCTAssertEqual(error as? DomainModelContractError, .invalidQuantity("volume", -0.01))
         }
     }
 
@@ -56,7 +56,7 @@ final class CoreTests: XCTestCase {
         XCTAssertFalse(validSequenceRange.contains(4))
 
         XCTAssertThrowsError(try DateRange(start: end, end: start)) { error in
-            XCTAssertEqual(error as? CoreError, .invalidDateRange)
+            XCTAssertEqual(error as? DomainModelContractError, .invalidDateRange)
         }
         XCTAssertThrowsError(try EventSequenceRange(lowerBound: 0, upperBound: 1)) { error in
             XCTAssertEqual(error as? CoreError, .invalidSequenceRange)
@@ -205,7 +205,7 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(Query.marketData(marketDataQuery), .marketData(marketDataQuery))
 
         XCTAssertThrowsError(try ExecutionMode(contractValue: "live")) { error in
-            XCTAssertEqual(error as? CoreError, .liveExecutionForbidden("live"))
+            XCTAssertEqual(error as? DomainModelContractError, .liveExecutionForbidden("live"))
         }
         XCTAssertThrowsError(
             try PaperSessionCommand(

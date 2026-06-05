@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// MTP-201 将 order-book imbalance evidence 从 `Sources/Trader/Strategies/OrderBookImbalance/`

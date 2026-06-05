@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// MTP-99 的 paper-only lifecycle coordinator 只管理本地 order lifecycle transition。

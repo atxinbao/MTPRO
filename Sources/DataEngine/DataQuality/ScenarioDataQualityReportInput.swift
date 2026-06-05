@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// Scenario data quality / report input 合同固定 MTP-107 的质量门禁和报告输入版本证据。

@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// LiveMonitoringForbiddenCapabilityTestDomain 固定 MTP-151 的 forbidden test 覆盖域。

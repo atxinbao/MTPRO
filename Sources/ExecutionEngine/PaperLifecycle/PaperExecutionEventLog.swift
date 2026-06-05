@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// Paper execution event log 边界把 MTP-41 的本地 decision chain 写入 append-only facts。

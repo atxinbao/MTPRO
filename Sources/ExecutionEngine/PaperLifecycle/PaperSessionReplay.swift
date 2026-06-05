@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// PaperSessionReplayEvidenceSummary 是 MTP-35 的 replay 证据摘要。

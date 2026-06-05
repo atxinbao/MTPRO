@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// MTP-120 Workbench beta demo scenario 只固定本地 beta fixture 选择与 evidence wiring。

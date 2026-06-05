@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// Paper simulated fill evidence 是本地 paper runtime 的模拟成交、fee 和 slippage 证据模型。

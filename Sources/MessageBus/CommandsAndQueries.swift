@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// Core command / query 合同描述模块内部用例输入，不提供 HTTP API、signed endpoint 或 live order command。

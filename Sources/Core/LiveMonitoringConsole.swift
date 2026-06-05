@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// LiveMonitoringStatus 固定 MTP-69 允许进入最小 health / connection read model 的状态分类。

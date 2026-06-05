@@ -163,6 +163,89 @@ final class TargetGraphTests: XCTestCase {
             || DatabaseTargetBoundary.requiredValidationAnchors.contains(expected)
     }
 
+    func testGH394DomainModelAndMessageBusOwnRealImplementationSource() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+
+        let domainModelTarget = try packageTargetBlock(named: "DomainModel", packageSource: packageSource)
+        let messageBusTarget = try packageTargetBlock(named: "MessageBus", packageSource: packageSource)
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+
+        for expected in [
+            "\"CoreBaseline.swift\"",
+            "\"DomainModelContractError.swift\"",
+            "\"MarketDataModels.swift\"",
+            "\"MarketPrimitives.swift\"",
+            "\"FoundationTargetOwnership.swift\""
+        ] {
+            XCTAssertTrue(domainModelTarget.contains(expected), "DomainModel target must own \(expected)")
+        }
+
+        XCTAssertTrue(messageBusTarget.contains("\"FoundationMessageStream.swift\""))
+        XCTAssertTrue(messageBusTarget.contains("\"MessageBusAppendOnlyJournal.swift\""))
+        XCTAssertTrue(coreTarget.contains("dependencies: [\"DomainModel\"]"))
+        XCTAssertFalse(
+            coreTarget.contains("\n                \"DomainModel\","),
+            "Core sources must not compile Sources/DomainModel as primary owner"
+        )
+
+        let symbol = try Symbol(rawValue: "btcusdt")
+        XCTAssertEqual(symbol.rawValue, "BTCUSDT")
+        XCTAssertThrowsError(try Symbol(rawValue: "DOGEUSDT")) { error in
+            XCTAssertEqual(error as? DomainModelContractError, .unsupportedSymbol("DOGEUSDT"))
+        }
+
+        let interval = try DateRange(
+            start: Date(timeIntervalSince1970: 394),
+            end: Date(timeIntervalSince1970: 454)
+        )
+        let bar = try MarketBar(
+            symbol: symbol,
+            timeframe: .oneMinute,
+            interval: interval,
+            open: 100,
+            high: 110,
+            low: 95,
+            close: 105,
+            volume: 42
+        )
+        XCTAssertEqual(bar.close.rawValue, 105)
+        XCTAssertEqual(CoreBaseline().primaryUniverse.first, "BTCUSDT")
+
+        let stream = try MessageBusJournalStreamID("foundation.messagebus")
+        let sourceID = try FoundationTargetID("foundation-source")
+        var journal = try MessageBusAppendOnlyJournal()
+        let first = try journal.append(
+            stream: stream,
+            sourceID: sourceID,
+            payloadType: "foundation.payload",
+            recordedAt: Date(timeIntervalSince1970: 394)
+        )
+        let second = try journal.append(
+            stream: stream,
+            sourceID: sourceID,
+            payloadType: "foundation.payload",
+            recordedAt: Date(timeIntervalSince1970: 395)
+        )
+        XCTAssertEqual(first.sequence, 1)
+        XCTAssertEqual(second.sequence, 2)
+        XCTAssertEqual(journal.replay(stream: stream).map(\.sequence), [1, 2])
+
+        XCTAssertTrue(
+            DomainModelTargetBoundary.requiredValidationAnchors.contains(
+                "GH-394-DOMAINMODEL-REAL-IMPLEMENTATION-OWNERSHIP"
+            )
+        )
+        XCTAssertTrue(
+            MessageBusTargetBoundary.requiredValidationAnchors.contains(
+                "GH-394-MESSAGEBUS-NEUTRAL-JOURNAL-OWNERSHIP"
+            )
+        )
+    }
+
     func testMTP218DataTargetsExposeReadOnlyDependencyDirectionAndCompatibilityBoundary() {
         let dataClient = DataClientTargetBoundary.mtp218
         let cache = CacheTargetBoundary.mtp218
@@ -671,5 +754,17 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(contractSource.contains("MTP-231-TARGETGRAPH-ACTIVE-PATH-REFERENCE-RETIREMENT"))
         XCTAssertTrue(contractSource.contains("MTP-231-REAL-MODULE-ROOT-ACTIVE-SNAPSHOT"))
         XCTAssertTrue(contractSource.contains("MTP-231-TARGETGRAPH-RETIREMENT-VALIDATION"))
+    }
+
+    private func packageTargetBlock(named targetName: String, packageSource: String) throws -> String {
+        let targetMarker = ".target(\n            name: \"\(targetName)\""
+        guard let markerRange = packageSource.range(of: targetMarker) else {
+            throw XCTSkip("Package.swift target \(targetName) not found")
+        }
+        let tail = packageSource[markerRange.lowerBound...]
+        if let nextTarget = tail.range(of: "\n        .target(", options: [], range: tail.index(after: markerRange.lowerBound)..<tail.endIndex) {
+            return String(tail[..<nextTarget.lowerBound])
+        }
+        return String(tail)
     }
 }

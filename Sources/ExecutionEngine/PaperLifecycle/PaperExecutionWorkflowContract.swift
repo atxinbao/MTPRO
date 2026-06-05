@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// Paper execution workflow contract 定义 MTP-38 的本地 paper-only 执行链路边界。

@@ -32,13 +32,12 @@ let package = Package(
         .target(
             name: "DomainModel",
             path: "Sources/DomainModel",
-            exclude: [
-                "CoreBaseline.swift",
-                "MarketDataModels.swift",
-                "MarketPrimitives.swift"
-            ],
             sources: [
+                "CoreBaseline.swift",
+                "DomainModelContractError.swift",
                 "FoundationTargetOwnership.swift",
+                "MarketDataModels.swift",
+                "MarketPrimitives.swift",
                 "TargetGraph/DomainModelTargetBoundary.swift"
             ]
         ),
@@ -54,6 +53,7 @@ let package = Package(
             ],
             sources: [
                 "FoundationMessageStream.swift",
+                "MessageBusAppendOnlyJournal.swift",
                 "TargetGraph/MessageBusTargetBoundary.swift"
             ]
         ),
@@ -192,6 +192,7 @@ let package = Package(
         ),
         .target(
             name: "Core",
+            dependencies: ["DomainModel"],
             path: "Sources",
             exclude: [
                 "Cache/TargetGraph",
@@ -200,11 +201,16 @@ let package = Package(
                 "DataEngine/Ingest",
                 "DataEngine/TargetGraph",
                 "Database",
+                "DomainModel/DomainModelContractError.swift",
                 "DomainModel/FoundationTargetOwnership.swift",
+                "DomainModel/CoreBaseline.swift",
+                "DomainModel/MarketDataModels.swift",
+                "DomainModel/MarketPrimitives.swift",
                 "DomainModel/TargetGraph",
                 "ExecutionClient/TargetGraph",
                 "ExecutionEngine/TargetGraph",
                 "MessageBus/FoundationMessageStream.swift",
+                "MessageBus/MessageBusAppendOnlyJournal.swift",
                 "MessageBus/TargetGraph",
                 "Portfolio/TargetGraph",
                 "RiskEngine/TargetGraph",
@@ -214,7 +220,6 @@ let package = Package(
             sources: [
                 "Cache/MarketData",
                 "Core",
-                "DomainModel",
                 "MessageBus",
                 "Trader/Accounts",
                 "Trader/Strategies/EMA",

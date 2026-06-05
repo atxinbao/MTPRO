@@ -1,3 +1,4 @@
+import DomainModel
 import Foundation
 
 /// MTP-202 将 proposal-to-risk binding 从旧 `Sources/Trader/StrategyBindings/`
