@@ -1109,6 +1109,130 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(contractSource.contains("MTP-231-TARGETGRAPH-RETIREMENT-VALIDATION"))
     }
 
+    func testGH400TryBangAndPreconditionFailureStayInAllowedPaths() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let scannedFiles = try swiftFiles(
+            under: repositoryRoot,
+            relativeRoots: ["Sources", "Tests"]
+        )
+
+        let violations = try scannedFiles.flatMap { file in
+            try unsafeConstructOccurrences(in: file, repositoryRoot: repositoryRoot).filter { occurrence in
+                !isAllowedUnsafeConstructOccurrence(occurrence)
+            }
+        }
+
+        XCTAssertTrue(
+            violations.isEmpty,
+            """
+            GH-400 unsafe construct guard failed.
+            try! and preconditionFailure are only allowed in tests, deterministic fixture/evidence helpers, \
+            future gates, boundary/contract files, paper/simulated local evidence, and retained Core compatibility \
+            live/read-model boundary files. Violations:
+            \(violations.map(\.description).joined(separator: "\n"))
+            """
+        )
+    }
+
+    private struct UnsafeConstructOccurrence {
+        let relativePath: String
+        let lineNumber: Int
+        let construct: String
+        let line: String
+
+        var description: String {
+            "\(relativePath):\(lineNumber): \(construct): \(line.trimmingCharacters(in: .whitespaces))"
+        }
+    }
+
+    private func swiftFiles(under repositoryRoot: URL, relativeRoots: [String]) throws -> [URL] {
+        let fileManager = FileManager.default
+        var files: [URL] = []
+
+        for relativeRoot in relativeRoots {
+            let root = repositoryRoot.appendingPathComponent(relativeRoot)
+            guard let enumerator = fileManager.enumerator(
+                at: root,
+                includingPropertiesForKeys: [.isRegularFileKey],
+                options: [.skipsPackageDescendants]
+            ) else {
+                continue
+            }
+
+            for case let url as URL in enumerator {
+                let values = try url.resourceValues(forKeys: [.isRegularFileKey])
+                guard values.isRegularFile == true, url.pathExtension == "swift" else {
+                    continue
+                }
+                files.append(url)
+            }
+        }
+
+        return files.sorted { $0.path < $1.path }
+    }
+
+    private func unsafeConstructOccurrences(in file: URL, repositoryRoot: URL) throws -> [UnsafeConstructOccurrence] {
+        let source = try String(contentsOf: file, encoding: .utf8)
+        let relativePath = relativePath(for: file, repositoryRoot: repositoryRoot)
+        let lines = source.components(separatedBy: .newlines)
+
+        return lines.enumerated().flatMap { index, line -> [UnsafeConstructOccurrence] in
+            [
+                line.contains("try!") ? "try!" : nil,
+                line.contains("preconditionFailure") ? "preconditionFailure" : nil
+            ].compactMap { construct in
+                construct.map {
+                    UnsafeConstructOccurrence(
+                        relativePath: relativePath,
+                        lineNumber: index + 1,
+                        construct: $0,
+                        line: line
+                    )
+                }
+            }
+        }
+    }
+
+    private func relativePath(for file: URL, repositoryRoot: URL) -> String {
+        let rootPath = repositoryRoot.path.hasSuffix("/") ? repositoryRoot.path : "\(repositoryRoot.path)/"
+        return file.path.replacingOccurrences(of: rootPath, with: "")
+    }
+
+    private func isAllowedUnsafeConstructOccurrence(_ occurrence: UnsafeConstructOccurrence) -> Bool {
+        if occurrence.relativePath.hasPrefix("Tests/") {
+            return true
+        }
+
+        // GH-400: 这些路径只承载 deterministic fixture、evidence、future gate、
+        // boundary / contract 或 retained compatibility evidence；新增 runtime-facing path
+        // 使用 try! / preconditionFailure 时必须先扩展这里的 taxonomy，并说明原因。
+        let allowedSourcePathFragments = [
+            "/TargetGraph/",
+            "/FutureGate/",
+            "/LiveGate/",
+            "/OMSFutureGate/",
+            "/ScenarioReplay/",
+            "/DataQuality/",
+            "/PaperLifecycle/",
+            "/SimulatedExchange/",
+            "/BrokerCapabilityMatrix/",
+            "/Report/",
+            "Sources/Core/Live",
+            "Sources/Core/DashboardBetaDemoScenario.swift",
+            "Sources/Dashboard/PaperWorkflowDashboardArchitecture.swift",
+            "Sources/Dashboard/Report/SimulatedExchangeParityEvidenceSurface.swift",
+            "Sources/DomainModel/ExecutionCosts.swift",
+            "Sources/MessageBus/PaperActionProposal.swift",
+            "Sources/MessageBus/PaperRuntimeBusRouting.swift",
+            "Sources/Portfolio/SimulatedExchangePortfolioProjectionParity.swift",
+            "Sources/RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift",
+            "Sources/Trader/Accounts/TraderAccountContext.swift",
+            "Sources/Trader/Coordination/RiskBinding/PaperActionRiskLink.swift"
+        ]
+
+        return allowedSourcePathFragments.contains { occurrence.relativePath.contains($0) }
+    }
+
     private func packageTargetBlock(named targetName: String, packageSource: String) throws -> String {
         let targetMarker = ".target(\n            name: \"\(targetName)\""
         guard let markerRange = packageSource.range(of: targetMarker) else {
