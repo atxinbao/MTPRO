@@ -1,5 +1,5 @@
 import Foundation
-import Core
+import DomainModel
 
 /// BinanceMarketDataBatchReplayParityError 描述本地 batch replay consistency 的失败原因。
 /// 错误只覆盖 fixture 输出、metadata 和 deterministic parity hint 的一致性；它不表达真实网络、

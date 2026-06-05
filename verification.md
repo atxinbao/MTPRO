@@ -14394,3 +14394,35 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; Dashboard smoke includes `readModelOnly=true`; 335 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-06 - GH-396 Data target implementation ownership
+
+- Project: `MTPRO Real Target Source Ownership Validation / Core Envelope Retirement v1`
+- Queue item: GH-396 `Migrate DataClient / DataEngine / Cache implementation ownership out of Core / Adapters / Runtime`
+- Scope:
+  - Moved Binance public read-only implementation ownership into `DataClient` target via `Sources/DataClient/Binance/PublicMarketData/`.
+  - Reduced `Adapters` to a `DataClient` compatibility re-export through `Sources/DataClient/AdaptersCompatibility.swift`.
+  - Moved market-data cache and order-book read-model ownership into `Cache` target via `Sources/Cache/MarketData/`.
+  - Added `Sources/Cache/MarketData/CacheContractError.swift` so Cache no longer depends on `CoreError`.
+  - Added `Sources/Core/MarketDataCacheCoreReplayCompatibility.swift` to keep legacy `EventEnvelope` replay helper in the `Core` compatibility envelope.
+  - Updated target boundary anchors and TargetGraph tests for DataClient / Cache ownership and explicit DataEngine retained envelope.
+- Boundary:
+  - DataEngine `ScenarioReplay` and `DataQuality` remain in `Core` compatibility envelope.
+  - DataEngine `Ingest` remains in `Runtime` compatibility envelope.
+  - No Trader runtime / Strategy runtime / Live runtime.
+  - No ExecutionClient implementation / OMS / broker gateway.
+  - No signed endpoint / account endpoint / listenKey / private WebSocket runtime.
+  - No real account read / real order lifecycle / submit / cancel / replace / execution report / broker fill / reconciliation.
+  - No Live PRO Console / trading button / live command / order form.
+  - No L4 implementation.
+  - No Symphony / Graphify / code-index / Figma.
+- Validation:
+  - `swift build --target DataClient`: pass.
+  - `swift build --target Cache`: pass.
+  - `swift build --target DataEngine`: pass.
+  - `swift build --target Core`: pass.
+  - `swift test --filter TargetGraphTests/testGH396DataClientAndCacheOwnImplementationSourceWhileDataEngineEnvelopeIsExplicit`: pass; 1 test / 0 failures.
+  - `swift test --filter TargetGraphTests`: pass; 21 tests / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; Dashboard smoke includes `readModelOnly=true`; 336 XCTest / 0 failures; final output `MTPRO checks passed.`

@@ -9303,7 +9303,7 @@ final class CoreTests: XCTestCase {
             )
         ) { error in
             XCTAssertEqual(
-                error as? CoreError,
+                error as? CacheContractError,
                 .marketDataMismatch(field: "orderBookDelta.symbol", expected: "BTCUSDT", actual: "ETHUSDT")
             )
         }

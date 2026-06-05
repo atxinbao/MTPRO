@@ -266,6 +266,34 @@ GH-395 为 data targets 增加最小 real target smoke APIs：`DataClientReadOnl
 
 完整 DataClient adapter、DataEngine ingest / replay / quality 和 Cache market-data implementation 仍分别由 `Adapters`、`Core` 和 `Runtime` compatibility envelope 承载。GH-395 只建立 smoke APIs；GH-396 才迁移完整 data implementation ownership。
 
+## GH-396 Data Target Implementation Ownership
+
+`GH-396-DATA-TARGET-IMPLEMENTATION-OWNERSHIP`
+
+GH-396 把 data target ownership 从 smoke API 推进到部分真实 implementation ownership：
+
+- `DataClient` target 直接编译 `Sources/DataClient/Binance/PublicMarketData/` 的 Binance public read-only implementation 和 `DataClientReadOnlyMarketDataSource.swift`。
+- `Adapters` target 退为 `DataClient` 的 compatibility re-export，只保留 `Sources/DataClient/AdaptersCompatibility.swift`，不再拥有 Binance public market data implementation。
+- `Cache` target 直接编译 `Sources/Cache/MarketData/` 的 market-data read model implementation、`CacheContractError.swift` 和 `CacheReadModelSnapshot.swift`。
+- `Core` target 通过 `DomainModelCompatibilityImport.swift` re-export `Cache`，并只保留 `MarketDataCacheCoreReplayCompatibility.swift` 桥接旧 `EventEnvelope` replay helper。
+- `DataEngine` target 仍只拥有 `DataEngineReadOnlyReplayPlan.swift`；`ScenarioReplay`、`DataQuality` 和 `Ingest` 继续由 `Core` / `Runtime` compatibility envelopes 承载，因为这些实现仍绑定 `CoreError`、legacy event payload 和 persistence workflow。
+
+`GH-396-DATACLIENT-BINANCE-PUBLIC-IMPLEMENTATION-OWNERSHIP`
+
+`DataClient` 现在是 Binance public read-only market data implementation owner。它仍禁止 signed endpoint、account endpoint、listenKey、private stream runtime、broker adapter、ExecutionClient implementation、OMS、real order lifecycle 和 L4 live capability。
+
+`GH-396-CACHE-MARKETDATA-IMPLEMENTATION-OWNERSHIP`
+
+`Cache` 现在拥有 market-data cache / order-book read-model implementation。`Cache` 仍不拥有 durable facts、Database schema、broker state、account payload、runtime object 或 UI command surface。
+
+`GH-396-DATAENGINE-REPLAY-QUALITY-COREERROR-ENVELOPE-DOCUMENTED`
+
+`DataEngine` 的 scenario replay / data quality implementation 仍在 `Core` compatibility envelope 中，这是显式记录的 migration debt，不得解释为 DataEngine implementation ownership 已完全完成。
+
+`GH-396-DATAENGINE-INGEST-RUNTIME-ENVELOPE-DOCUMENTED`
+
+`DataEngine/Ingest` 仍由 `Runtime` compatibility envelope 编排 DataClient + Persistence workflow。该路径不新增 streaming runtime、private stream、signed/account endpoint、broker route、ExecutionClient route、OMS route 或 L4 capability。
+
 ## MTP-216 SwiftPM Target Graph Split Contract
 
 `MTP-216-SWIFTPM-TARGET-GRAPH-SPLIT-CONTRACT`
@@ -342,19 +370,19 @@ MTP-217 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionCl
 
 `MTP-218-DATA-TARGET-SPLIT-EVIDENCE`
 
-MTP-218 继续实际 SwiftPM target graph split：`Package.swift` 新增 `DataClient`、`DataEngine` 和 `Cache` library products / targets；MTP-227 / MTP-231 后，active data-layer boundary anchors 已迁到真实 module roots 下的 `TargetGraph/*TargetBoundary.swift`。该 split 不退休 `Core`、`Adapters` 或 `Runtime` compatibility envelope，不迁移既有 production implementation。
+MTP-218 继续实际 SwiftPM target graph split：`Package.swift` 新增 `DataClient`、`DataEngine` 和 `Cache` library products / targets；MTP-227 / MTP-231 后，active data-layer boundary anchors 已迁到真实 module roots 下的 `TargetGraph/*TargetBoundary.swift`。GH-395 / GH-396 后，`DataClient` 和 `Cache` 已开始拥有真实 implementation source；`DataEngine` 仍保留明确的 `Core` / `Runtime` compatibility envelope 债务。
 
 `MTP-218-DATACLIENT-TARGET-SPLIT`
 
-`DataClient` target 只依赖 `DomainModel`，当前 active boundary anchor 是 `Sources/DataClient/TargetGraph/DataClientTargetBoundary.swift`。既有 Binance public market data implementation 仍由 `Adapters` compatibility envelope 编译；`DataClient` 继续只表达 public read-only venue data input boundary。
+`DataClient` target 只依赖 `DomainModel`，当前 active boundary anchor 是 `Sources/DataClient/TargetGraph/DataClientTargetBoundary.swift`。GH-396 后，既有 Binance public market data implementation 由 `DataClient` target 编译；`Adapters` 只保留 re-export compatibility envelope。
 
 `MTP-218-CACHE-TARGET-SPLIT`
 
-`Cache` target 依赖 `DomainModel` 和 `MessageBus`，当前 active boundary anchor 是 `Sources/Cache/TargetGraph/CacheTargetBoundary.swift`。既有 cache implementation 仍由 `Core` compatibility envelope 编译；`Cache` 只表达可重建 read-model state surface，不拥有 durable facts、Database schema、broker state 或 account payload。
+`Cache` target 依赖 `DomainModel` 和 `MessageBus`，当前 active boundary anchor 是 `Sources/Cache/TargetGraph/CacheTargetBoundary.swift`。GH-396 后，既有 market-data cache / order-book read-model implementation 由 `Cache` target 编译；`Core` 只保留 re-export 和旧 `EventEnvelope` replay helper compatibility。
 
 `MTP-218-DATAENGINE-TARGET-SPLIT`
 
-`DataEngine` target 依赖 `DomainModel`、`DataClient`、`MessageBus` 和 `Cache`，当前 active boundary anchor 是 `Sources/DataEngine/TargetGraph/DataEngineTargetBoundary.swift`。既有 ingest / replay / quality implementation 仍由 `Core` / `Runtime` compatibility envelope 编译；`DataEngine` 不新增 streaming runtime、private stream、account endpoint、broker route 或 UI route。
+`DataEngine` target 依赖 `DomainModel`、`DataClient`、`MessageBus` 和 `Cache`，当前 active boundary anchor 是 `Sources/DataEngine/TargetGraph/DataEngineTargetBoundary.swift`。既有 scenario replay / data quality implementation 仍由 `Core` compatibility envelope 编译，ingest workflow 仍由 `Runtime` compatibility envelope 编译；`DataEngine` 不新增 streaming runtime、private stream、account endpoint、broker route 或 UI route。
 
 `MTP-218-DATACLIENT-DATAENGINE-CACHE-DEPENDENCY-DIRECTION`
 
@@ -362,7 +390,7 @@ MTP-218 继续实际 SwiftPM target graph split：`Package.swift` 新增 `DataCl
 
 `MTP-218-DATA-COMPATIBILITY-ENVELOPE-RETAINED`
 
-`Adapters` 继续编译既有 `Sources/DataClient/Binance/PublicMarketData/` implementation；`Core` 继续编译既有 cache、scenario replay 和 data quality evidence；`Runtime` 继续编译既有 ingest implementation；compatibility envelope retirement 仍归 MTP-222。
+`Adapters` 只保留 `DataClient` re-export compatibility；`Core` 只保留 Cache re-export、旧 `EventEnvelope` replay helper、scenario replay 和 data quality evidence；`Runtime` 继续编译既有 ingest implementation；DataEngine scenario replay / quality / ingest 的 compatibility envelope retirement 仍是后续 issue。
 
 `MTP-218-TARGETGRAPH-TEST-EVIDENCE`
 

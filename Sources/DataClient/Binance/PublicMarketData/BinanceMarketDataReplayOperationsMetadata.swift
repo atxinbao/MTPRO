@@ -1,5 +1,5 @@
 import Foundation
-import Core
+import DomainModel
 
 /// BinanceMarketDataReplayOperationsMetadataError 描述本地 replay metadata 的构造失败原因。
 /// 错误只覆盖本地合同完整性，不表达 Binance account、signed endpoint、broker 或真实订单状态。

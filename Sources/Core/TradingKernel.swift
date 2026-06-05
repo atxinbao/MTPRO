@@ -1,3 +1,4 @@
+import Cache
 import DomainModel
 import Foundation
 

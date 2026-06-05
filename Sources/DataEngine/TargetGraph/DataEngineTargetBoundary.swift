@@ -5,10 +5,12 @@ import MessageBus
 
 /// `DataEngine` target boundary 表达内部 ingestion / replay / quality layer。
 ///
-/// MTP-227 只把 active target boundary anchor 从 `Sources/TargetGraph/DataEngine`
-/// 移到 `Sources/DataEngine/TargetGraph`。现有 ingest / replay / quality implementation
-/// 仍由 `Core` / `Runtime` compatibility envelope 编译，不新增 streaming runtime、
-/// private stream、account endpoint 或 broker path。
+/// MTP-227 把 active target boundary anchor 从 `Sources/TargetGraph/DataEngine`
+/// 移到 `Sources/DataEngine/TargetGraph`。GH-396 确认 DataEngine 已有 read-only
+/// replay plan real target smoke，但 scenario replay / quality implementation 仍因 `CoreError`
+/// 依赖保留在 `Core` compatibility envelope，ingest workflow 仍由 `Runtime` envelope 串接
+/// DataClient + Persistence。本边界不新增 streaming runtime、private stream、account endpoint
+/// 或 broker path。
 public struct DataEngineTargetBoundary: Codable, Equatable, Sendable {
     public let targetName: String
     public let canonicalSourceRoot: String
@@ -30,7 +32,7 @@ public struct DataEngineTargetBoundary: Codable, Equatable, Sendable {
         targetName: String = "DataEngine",
         canonicalSourceRoot: String = "Sources/DataEngine",
         compiledBoundaryRoot: String = "Sources/DataEngine/TargetGraph",
-        retainedCompatibilityEnvelope: String = "Core/Runtime",
+        retainedCompatibilityEnvelope: String = "Core/Runtime(scenario replay, quality, ingest workflow)",
         domainModelBoundary: DomainModelTargetBoundary = .mtp217,
         dataClientBoundary: DataClientTargetBoundary = .mtp218,
         messageBusBoundary: MessageBusTargetBoundary = .mtp217,
@@ -65,7 +67,7 @@ public struct DataEngineTargetBoundary: Codable, Equatable, Sendable {
         targetName == "DataEngine"
             && canonicalSourceRoot == "Sources/DataEngine"
             && compiledBoundaryRoot == "Sources/DataEngine/TargetGraph"
-            && retainedCompatibilityEnvelope == "Core/Runtime"
+            && retainedCompatibilityEnvelope == "Core/Runtime(scenario replay, quality, ingest workflow)"
             && domainModelBoundary.boundaryHeld
             && dataClientBoundary.dependencyDirectionHeld
             && messageBusBoundary.dependencyDirectionHeld
@@ -109,7 +111,9 @@ public struct DataEngineTargetBoundary: Codable, Equatable, Sendable {
         "MTP-227-DATAENGINE-REAL-ROOT-TARGET-PATH",
         "MTP-218-NO-SIGNED-ACCOUNT-BROKER-GUARD",
         "GH-395-DATAENGINE-REAL-TARGET-SMOKE",
-        "GH-395-DATAENGINE-READ-ONLY-REPLAY-PLAN"
+        "GH-395-DATAENGINE-READ-ONLY-REPLAY-PLAN",
+        "GH-396-DATAENGINE-REPLAY-QUALITY-COREERROR-ENVELOPE-DOCUMENTED",
+        "GH-396-DATAENGINE-INGEST-RUNTIME-ENVELOPE-DOCUMENTED"
     ]
 
     public static let mtp218 = DataEngineTargetBoundary()

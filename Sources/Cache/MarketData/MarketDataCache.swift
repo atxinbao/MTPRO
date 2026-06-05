@@ -1,8 +1,9 @@
 import DomainModel
 import Foundation
 
-/// MTP-186 将 market data cache 迁入 `Sources/Cache/MarketData/`，但当前 SwiftPM
-/// 仍由 `Core` target 作为 compatibility envelope 编译该文件。
+/// MTP-186 将 market data cache 迁入 `Sources/Cache/MarketData/`。
+/// GH-396 起该 implementation 由 `Cache` target 拥有；`Core` 仅 re-export Cache 作为
+/// compatibility envelope，不能继续作为 primary owner。
 ///
 /// 这里的 Cache 只保存可由 MessageBus / Event Log replay 重建的 runtime-derived read state；
 /// 它不是 durable store、SQLite / DuckDB schema owner、真实账户 cache 或 broker state mirror。
@@ -95,18 +96,4 @@ public struct MarketDataCache: Equatable, Sendable {
         return snapshot
     }
 
-    @discardableResult
-    public mutating func rebuild(from envelopes: [EventEnvelope]) -> MarketDataCacheSnapshot {
-        snapshot = Self.project(envelopes)
-        return snapshot
-    }
-
-    public static func project(_ envelopes: [EventEnvelope]) -> MarketDataCacheSnapshot {
-        envelopes.reduce(MarketDataCacheSnapshot()) { snapshot, envelope in
-            guard case let .market(event) = envelope.event else {
-                return snapshot
-            }
-            return snapshot.applying(event)
-        }
-    }
 }
