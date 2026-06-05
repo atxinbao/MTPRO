@@ -102,14 +102,14 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(viewModel.report.liveIncidentStopBlockedEvidence.source.callsBinanceAdapter)
         XCTAssertFalse(viewModel.report.liveIncidentStopBlockedEvidence.source.providesLiveOrderAction)
         XCTAssertEqual(
-            viewModel.report.liveReadOnlyWorkbenchBoundary.source.sourceKind,
+            viewModel.report.liveReadOnlyDashboardBoundary.source.sourceKind,
             .stableReadModelProjection
         )
-        XCTAssertFalse(viewModel.report.liveReadOnlyWorkbenchBoundary.source.exposesDatabaseTables)
-        XCTAssertFalse(viewModel.report.liveReadOnlyWorkbenchBoundary.source.exposesORMModels)
-        XCTAssertFalse(viewModel.report.liveReadOnlyWorkbenchBoundary.source.exposesRuntimeObjects)
-        XCTAssertFalse(viewModel.report.liveReadOnlyWorkbenchBoundary.source.callsBinanceAdapter)
-        XCTAssertFalse(viewModel.report.liveReadOnlyWorkbenchBoundary.source.providesLiveOrderAction)
+        XCTAssertFalse(viewModel.report.liveReadOnlyDashboardBoundary.source.exposesDatabaseTables)
+        XCTAssertFalse(viewModel.report.liveReadOnlyDashboardBoundary.source.exposesORMModels)
+        XCTAssertFalse(viewModel.report.liveReadOnlyDashboardBoundary.source.exposesRuntimeObjects)
+        XCTAssertFalse(viewModel.report.liveReadOnlyDashboardBoundary.source.callsBinanceAdapter)
+        XCTAssertFalse(viewModel.report.liveReadOnlyDashboardBoundary.source.providesLiveOrderAction)
         XCTAssertEqual(
             viewModel.report.accountPositionBalanceReadModelOnlySurface.source.sourceKind,
             .stableReadModelProjection
@@ -147,14 +147,14 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(viewModel.paperWorkflowEvidenceExplorer.source.callsBinanceAdapter)
         XCTAssertFalse(viewModel.paperWorkflowEvidenceExplorer.source.providesLiveOrderAction)
         XCTAssertEqual(
-            viewModel.workbenchBetaAcceptancePath.source.sourceKind,
+            viewModel.dashboardBetaAcceptancePath.source.sourceKind,
             .stableReadModelProjection
         )
-        XCTAssertFalse(viewModel.workbenchBetaAcceptancePath.source.exposesDatabaseTables)
-        XCTAssertFalse(viewModel.workbenchBetaAcceptancePath.source.exposesORMModels)
-        XCTAssertFalse(viewModel.workbenchBetaAcceptancePath.source.exposesRuntimeObjects)
-        XCTAssertFalse(viewModel.workbenchBetaAcceptancePath.source.callsBinanceAdapter)
-        XCTAssertFalse(viewModel.workbenchBetaAcceptancePath.source.providesLiveOrderAction)
+        XCTAssertFalse(viewModel.dashboardBetaAcceptancePath.source.exposesDatabaseTables)
+        XCTAssertFalse(viewModel.dashboardBetaAcceptancePath.source.exposesORMModels)
+        XCTAssertFalse(viewModel.dashboardBetaAcceptancePath.source.exposesRuntimeObjects)
+        XCTAssertFalse(viewModel.dashboardBetaAcceptancePath.source.callsBinanceAdapter)
+        XCTAssertFalse(viewModel.dashboardBetaAcceptancePath.source.providesLiveOrderAction)
         XCTAssertEqual(viewModel.events.source.sourceKind, .stableReadModelProjection)
         XCTAssertFalse(viewModel.events.source.exposesDatabaseTables)
         XCTAssertFalse(viewModel.events.source.exposesORMModels)
@@ -163,11 +163,11 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(viewModel.events.source.providesLiveOrderAction)
     }
 
-    func testLiveReadOnlyWorkbenchBoundaryViewModelAggregatesMTP131ReadOnlySurface() throws {
+    func testLiveReadOnlyDashboardBoundaryViewModelAggregatesMTP131ReadOnlySurface() throws {
         // 测试场景：MTP-131 只把 Core deterministic fixture 映射成 App 层 ReadModel / ViewModel，
         // 供 Dashboard、Report 和 Event Timeline 展示；任何 API key、connect、command 或订单 surface 都必须缺席。
-        let readModel = LiveReadOnlyWorkbenchBoundaryReadModel()
-        let viewModel = LiveReadOnlyWorkbenchBoundaryViewModel(readModel: readModel)
+        let readModel = LiveReadOnlyDashboardBoundaryReadModel()
+        let viewModel = LiveReadOnlyDashboardBoundaryViewModel(readModel: readModel)
 
         XCTAssertTrue(readModel.readModelOnlyBoundaryHeld)
         XCTAssertTrue(viewModel.source.isReadModelOnly)
@@ -225,7 +225,7 @@ final class AppTests: XCTestCase {
 
         let encoded = try JSONEncoder().encode(viewModel)
         let decoded = try JSONDecoder().decode(
-            LiveReadOnlyWorkbenchBoundaryViewModel.self,
+            LiveReadOnlyDashboardBoundaryViewModel.self,
             from: encoded
         )
         XCTAssertEqual(decoded, viewModel)
@@ -300,10 +300,10 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(decoded, viewModel)
     }
 
-    func testPaperWorkflowWorkbenchInformationArchitectureDefinesSessionControlShellBoundary() throws {
+    func testPaperWorkflowDashboardInformationArchitectureDefinesSessionControlShellBoundary() throws {
         // 测试场景：MTP-47 只固定 Paper workflow Workbench 信息架构和控制壳边界。
         // fixture 必须保持 read-model-only，并且 session-level control 只能是 start / pause / close / reset。
-        let contract = PaperWorkflowWorkbenchInformationArchitecture.deterministicFixture
+        let contract = PaperWorkflowDashboardInformationArchitecture.deterministicFixture
 
         XCTAssertEqual(contract.dashboardSections, DashboardSection.allCases)
         XCTAssertEqual(contract.sessionLevelControls, [.start, .pause, .close, .reset])
@@ -347,35 +347,35 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(contract.implementsEventTimeline)
     }
 
-    func testPaperWorkflowWorkbenchInformationArchitectureRejectsOutOfScopeControlShellExpansion() throws {
+    func testPaperWorkflowDashboardInformationArchitectureRejectsOutOfScopeControlShellExpansion() throws {
         // 测试场景：任何 order-level command、非 read-model-only source 或提前实现 Command/UI/Event Timeline
         // 的尝试都必须被合同 fixture 拒绝，避免 MTP-47 越界进入后续 issue。
         XCTAssertThrowsError(
-            try PaperWorkflowWorkbenchInformationArchitecture(allowsOrderLevelCommand: true)
+            try PaperWorkflowDashboardInformationArchitecture(allowsOrderLevelCommand: true)
         ) { error in
-            XCTAssertEqual(error as? PaperWorkflowWorkbenchContractError, .orderLevelCommandExposed)
+            XCTAssertEqual(error as? PaperWorkflowDashboardContractError, .orderLevelCommandExposed)
         }
         XCTAssertThrowsError(
-            try PaperWorkflowWorkbenchInformationArchitecture(sessionLevelControls: [.start, .pause, .close])
+            try PaperWorkflowDashboardInformationArchitecture(sessionLevelControls: [.start, .pause, .close])
         ) { error in
-            XCTAssertEqual(error as? PaperWorkflowWorkbenchContractError, .sessionControlsMismatch)
+            XCTAssertEqual(error as? PaperWorkflowDashboardContractError, .sessionControlsMismatch)
         }
         XCTAssertThrowsError(
-            try PaperWorkflowWorkbenchInformationArchitecture(dashboardSections: [.paper])
+            try PaperWorkflowDashboardInformationArchitecture(dashboardSections: [.paper])
         ) { error in
-            XCTAssertEqual(error as? PaperWorkflowWorkbenchContractError, .dashboardSectionsMismatch)
+            XCTAssertEqual(error as? PaperWorkflowDashboardContractError, .dashboardSectionsMismatch)
         }
         XCTAssertThrowsError(
-            try PaperWorkflowWorkbenchInformationArchitecture(
+            try PaperWorkflowDashboardInformationArchitecture(
                 source: ViewModelSourceContract(exposesRuntimeObjects: true)
             )
         ) { error in
-            XCTAssertEqual(error as? PaperWorkflowWorkbenchContractError, .sourceIsNotReadModelOnly)
+            XCTAssertEqual(error as? PaperWorkflowDashboardContractError, .sourceIsNotReadModelOnly)
         }
         XCTAssertThrowsError(
-            try PaperWorkflowWorkbenchInformationArchitecture(implementsCommandModel: true)
+            try PaperWorkflowDashboardInformationArchitecture(implementsCommandModel: true)
         ) { error in
-            XCTAssertEqual(error as? PaperWorkflowWorkbenchContractError, .implementationEscapedIssueScope)
+            XCTAssertEqual(error as? PaperWorkflowDashboardContractError, .implementationEscapedIssueScope)
         }
     }
 
@@ -476,7 +476,7 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(explorer.coversLiveExecutionControlBlockedEvidence)
         XCTAssertTrue(explorer.coversLiveRiskGateBlockedEvidence)
         XCTAssertTrue(explorer.coversLiveIncidentStopBlockedEvidence)
-        XCTAssertTrue(explorer.coversLiveReadOnlyWorkbenchBoundary)
+        XCTAssertTrue(explorer.coversLiveReadOnlyDashboardBoundary)
         XCTAssertTrue(explorer.coversLiveTradingBlockedEvidence)
         XCTAssertTrue(explorer.coversLiveMonitoringEvidence)
         XCTAssertTrue(explorer.coversStrategySignals)
@@ -501,7 +501,7 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(itemCounts[.liveExecutionControlBlockedEvidence], 7)
         XCTAssertEqual(itemCounts[.liveRiskGateBlockedEvidence], 6)
         XCTAssertEqual(itemCounts[.liveIncidentStopBlockedEvidence], 5)
-        XCTAssertEqual(itemCounts[.liveReadOnlyWorkbenchBoundary], 1)
+        XCTAssertEqual(itemCounts[.liveReadOnlyDashboardBoundary], 1)
         XCTAssertEqual(itemCounts[.liveTradingBlockedEvidence], 6)
         XCTAssertEqual(itemCounts[.liveMonitoringEvidence], 18)
         XCTAssertEqual(itemCounts[.strategySignal], 3)
@@ -1163,20 +1163,20 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(viewModel.report.liveIncidentStopBlockedEvidence.executesBrokerAction)
         XCTAssertFalse(viewModel.report.liveIncidentStopBlockedEvidence.runsIncidentReplayRuntime)
         XCTAssertFalse(viewModel.report.liveIncidentStopBlockedEvidence.runsProductionOperations)
-        XCTAssertEqual(viewModel.report.liveReadOnlyWorkbenchBoundary.boundarySurfaceCount, 5)
-        XCTAssertEqual(viewModel.report.liveReadOnlyWorkbenchBoundary.forbiddenUISurfaceCount, 19)
-        XCTAssertTrue(viewModel.report.liveReadOnlyWorkbenchBoundary.readModelOnlyBoundaryHeld)
-        XCTAssertFalse(viewModel.report.liveReadOnlyWorkbenchBoundary.exposesAPIKeyInput)
-        XCTAssertFalse(viewModel.report.liveReadOnlyWorkbenchBoundary.providesBrokerConnect)
-        XCTAssertFalse(viewModel.report.liveReadOnlyWorkbenchBoundary.providesAccountConnect)
-        XCTAssertFalse(viewModel.report.liveReadOnlyWorkbenchBoundary.exposesLivePROConsole)
-        XCTAssertFalse(viewModel.report.liveReadOnlyWorkbenchBoundary.providesTradingButton)
-        XCTAssertFalse(viewModel.report.liveReadOnlyWorkbenchBoundary.providesLiveCommand)
-        XCTAssertFalse(viewModel.report.liveReadOnlyWorkbenchBoundary.exposesOrderForm)
-        XCTAssertFalse(viewModel.report.liveReadOnlyWorkbenchBoundary.callsSignedEndpoint)
-        XCTAssertFalse(viewModel.report.liveReadOnlyWorkbenchBoundary.callsAccountEndpoint)
-        XCTAssertFalse(viewModel.report.liveReadOnlyWorkbenchBoundary.createsListenKey)
-        XCTAssertFalse(viewModel.report.liveReadOnlyWorkbenchBoundary.authorizesTradingExecution)
+        XCTAssertEqual(viewModel.report.liveReadOnlyDashboardBoundary.boundarySurfaceCount, 5)
+        XCTAssertEqual(viewModel.report.liveReadOnlyDashboardBoundary.forbiddenUISurfaceCount, 19)
+        XCTAssertTrue(viewModel.report.liveReadOnlyDashboardBoundary.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(viewModel.report.liveReadOnlyDashboardBoundary.exposesAPIKeyInput)
+        XCTAssertFalse(viewModel.report.liveReadOnlyDashboardBoundary.providesBrokerConnect)
+        XCTAssertFalse(viewModel.report.liveReadOnlyDashboardBoundary.providesAccountConnect)
+        XCTAssertFalse(viewModel.report.liveReadOnlyDashboardBoundary.exposesLivePROConsole)
+        XCTAssertFalse(viewModel.report.liveReadOnlyDashboardBoundary.providesTradingButton)
+        XCTAssertFalse(viewModel.report.liveReadOnlyDashboardBoundary.providesLiveCommand)
+        XCTAssertFalse(viewModel.report.liveReadOnlyDashboardBoundary.exposesOrderForm)
+        XCTAssertFalse(viewModel.report.liveReadOnlyDashboardBoundary.callsSignedEndpoint)
+        XCTAssertFalse(viewModel.report.liveReadOnlyDashboardBoundary.callsAccountEndpoint)
+        XCTAssertFalse(viewModel.report.liveReadOnlyDashboardBoundary.createsListenKey)
+        XCTAssertFalse(viewModel.report.liveReadOnlyDashboardBoundary.authorizesTradingExecution)
         XCTAssertEqual(viewModel.report.accountPositionBalanceReadModelOnlySurface.recordCount, 3)
         XCTAssertTrue(viewModel.report.accountPositionBalanceReadModelOnlySurface.readModelOnlyBoundaryHeld)
         XCTAssertFalse(viewModel.report.accountPositionBalanceReadModelOnlySurface.providesAccountConnect)
@@ -1249,7 +1249,7 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveExecutionControlBlockedEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveRiskGateBlockedEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveIncidentStopBlockedEvidence)
-        XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveReadOnlyWorkbenchBoundary)
+        XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveReadOnlyDashboardBoundary)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveTradingBlockedEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversLiveMonitoringEvidence)
         XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.readModelOnlyBoundaryHeld)
@@ -1435,9 +1435,9 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(reportSection.details.contains("Simulated parity portfolio: confirmed"))
         XCTAssertTrue(reportSection.details.contains("Simulated parity command surface: none"))
         XCTAssertTrue(reportSection.details.contains("Simulated parity trading buttons: none"))
-        XCTAssertEqual(metricValue("Parity evidence", in: shell.workbench.simulatedExchangeParityEvidenceMetrics), "1")
-        XCTAssertEqual(metricValue("Timeline", in: shell.workbench.simulatedExchangeParityEvidenceMetrics), "7")
-        XCTAssertTrue(shell.workbench.simulatedExchangeParityEvidenceDetails.contains("Parity boundary: confirmed"))
+        XCTAssertEqual(metricValue("Parity evidence", in: shell.readModelSurface.simulatedExchangeParityEvidenceMetrics), "1")
+        XCTAssertEqual(metricValue("Timeline", in: shell.readModelSurface.simulatedExchangeParityEvidenceMetrics), "7")
+        XCTAssertTrue(shell.readModelSurface.simulatedExchangeParityEvidenceDetails.contains("Parity boundary: confirmed"))
         XCTAssertTrue(shell.smokeSummary.contains("simulatedParityEvidence=1"))
     }
 
@@ -1534,15 +1534,15 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(reportSection.details.contains("Simulation gate broker connect: none"))
         XCTAssertTrue(reportSection.details.contains("Simulation gate trading button: none"))
         XCTAssertEqual(
-            metricValue("Simulation gate", in: shell.workbench.privateStreamSimulationGateEvidenceSurfaceMetrics),
+            metricValue("Simulation gate", in: shell.readModelSurface.privateStreamSimulationGateEvidenceSurfaceMetrics),
             "4"
         )
         XCTAssertEqual(
-            metricValue("Boundary", in: shell.workbench.privateStreamSimulationGateEvidenceSurfaceMetrics),
+            metricValue("Boundary", in: shell.readModelSurface.privateStreamSimulationGateEvidenceSurfaceMetrics),
             "confirmed"
         )
         XCTAssertTrue(
-            shell.workbench.privateStreamSimulationGateEvidenceSurfaceDetails.contains(
+            shell.readModelSurface.privateStreamSimulationGateEvidenceSurfaceDetails.contains(
                 "Simulation gate account snapshot runtime: none"
             )
         )
@@ -1645,15 +1645,15 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(reportSection.details.contains("Live Monitoring v2 broker state: none"))
         XCTAssertTrue(reportSection.details.contains("Live Monitoring v2 boundary: confirmed"))
         XCTAssertEqual(
-            metricValue("Live monitoring v2", in: shell.workbench.liveMonitoringReadOnlyConsoleV2SurfaceMetrics),
+            metricValue("Live monitoring v2", in: shell.readModelSurface.liveMonitoringReadOnlyConsoleV2SurfaceMetrics),
             "4"
         )
         XCTAssertEqual(
-            metricValue("Boundary", in: shell.workbench.liveMonitoringReadOnlyConsoleV2SurfaceMetrics),
+            metricValue("Boundary", in: shell.readModelSurface.liveMonitoringReadOnlyConsoleV2SurfaceMetrics),
             "confirmed"
         )
         XCTAssertTrue(
-            shell.workbench.liveMonitoringReadOnlyConsoleV2SurfaceDetails.contains(
+            shell.readModelSurface.liveMonitoringReadOnlyConsoleV2SurfaceDetails.contains(
                 "Live Monitoring v2 broker connect: none"
             )
         )
@@ -1750,15 +1750,15 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(reportSection.details.contains("Strategy readiness database schema: none"))
         XCTAssertTrue(reportSection.details.contains("Strategy readiness boundary: confirmed"))
         XCTAssertEqual(
-            metricValue("Strategy readiness", in: shell.workbench.strategyTraderReadinessEvidenceSurfaceMetrics),
+            metricValue("Strategy readiness", in: shell.readModelSurface.strategyTraderReadinessEvidenceSurfaceMetrics),
             "6"
         )
         XCTAssertEqual(
-            metricValue("Boundary", in: shell.workbench.strategyTraderReadinessEvidenceSurfaceMetrics),
+            metricValue("Boundary", in: shell.readModelSurface.strategyTraderReadinessEvidenceSurfaceMetrics),
             "confirmed"
         )
         XCTAssertTrue(
-            shell.workbench.strategyTraderReadinessEvidenceSurfaceDetails.contains(
+            shell.readModelSurface.strategyTraderReadinessEvidenceSurfaceDetails.contains(
                 "Strategy readiness broker connect: none"
             )
         )
@@ -1798,7 +1798,7 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveExecutionControlBlockedEvidence)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveRiskGateBlockedEvidence)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveIncidentStopBlockedEvidence)
-        XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveReadOnlyWorkbenchBoundary)
+        XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveReadOnlyDashboardBoundary)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveTradingBlockedEvidence)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.coversLiveMonitoringEvidence)
         XCTAssertTrue(decoded.paperWorkflowEvidenceExplorer.readModelOnlyBoundaryHeld)
@@ -1835,14 +1835,14 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(decoded.report.liveIncidentStopBlockedEvidence.providesCommandSurface)
         XCTAssertFalse(decoded.report.liveIncidentStopBlockedEvidence.providesStopButton)
         XCTAssertFalse(decoded.report.liveIncidentStopBlockedEvidence.exposesLiveProConsole)
-        XCTAssertEqual(decoded.report.liveReadOnlyWorkbenchBoundary.boundarySurfaceCount, 5)
-        XCTAssertTrue(decoded.report.liveReadOnlyWorkbenchBoundary.readModelOnlyBoundaryHeld)
-        XCTAssertFalse(decoded.report.liveReadOnlyWorkbenchBoundary.providesCommandSurface)
-        XCTAssertFalse(decoded.report.liveReadOnlyWorkbenchBoundary.exposesLivePROConsole)
-        XCTAssertFalse(decoded.report.liveReadOnlyWorkbenchBoundary.providesTradingButton)
-        XCTAssertFalse(decoded.report.liveReadOnlyWorkbenchBoundary.providesLiveCommand)
-        XCTAssertFalse(decoded.report.liveReadOnlyWorkbenchBoundary.exposesOrderForm)
-        XCTAssertFalse(decoded.report.liveReadOnlyWorkbenchBoundary.authorizesTradingExecution)
+        XCTAssertEqual(decoded.report.liveReadOnlyDashboardBoundary.boundarySurfaceCount, 5)
+        XCTAssertTrue(decoded.report.liveReadOnlyDashboardBoundary.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(decoded.report.liveReadOnlyDashboardBoundary.providesCommandSurface)
+        XCTAssertFalse(decoded.report.liveReadOnlyDashboardBoundary.exposesLivePROConsole)
+        XCTAssertFalse(decoded.report.liveReadOnlyDashboardBoundary.providesTradingButton)
+        XCTAssertFalse(decoded.report.liveReadOnlyDashboardBoundary.providesLiveCommand)
+        XCTAssertFalse(decoded.report.liveReadOnlyDashboardBoundary.exposesOrderForm)
+        XCTAssertFalse(decoded.report.liveReadOnlyDashboardBoundary.authorizesTradingExecution)
         XCTAssertEqual(decoded.report.accountPositionBalanceReadModelOnlySurface.recordCount, 3)
         XCTAssertEqual(
             decoded.report.accountPositionBalanceReadModelOnlySurface.evidenceIDs,
@@ -2153,7 +2153,7 @@ final class AppTests: XCTestCase {
         let shell = DashboardShellView(viewModel: viewModel)
         let snapshot = shell.snapshot
 
-        XCTAssertEqual(snapshot.title, "MTPRO Research Workbench")
+        XCTAssertEqual(snapshot.title, "MTPRO Research Dashboard")
         XCTAssertEqual(snapshot.subtitle, "Research -> Backtest -> Report")
         XCTAssertEqual(snapshot.sections.map(\.section), viewModel.sections)
         XCTAssertTrue(snapshot.isReadModelOnly)
@@ -2186,7 +2186,7 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(metricValue("Execution control", in: report), "7")
         XCTAssertEqual(metricValue("Live risk", in: report), "6")
         XCTAssertEqual(metricValue("Incident stop", in: report), "5")
-        XCTAssertEqual(metricValue("Workbench boundary", in: report), "5")
+        XCTAssertEqual(metricValue("Dashboard boundary", in: report), "5")
         XCTAssertTrue(report.details.contains("Report IDs: report-backtest-ema-fixture"))
         XCTAssertTrue(report.details.contains("Cost assumptions: mtp-27-fixed-cost-assumptions"))
         XCTAssertTrue(report.details.contains("Cost parity: consistent"))
@@ -2275,22 +2275,22 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(report.details.contains("Stop control: none"))
         XCTAssertTrue(report.details.contains("Stop button: none"))
         XCTAssertTrue(report.details.contains("Live PRO Console: none"))
-        XCTAssertTrue(report.details.contains("Workbench Live readiness boundary: confirmed"))
+        XCTAssertTrue(report.details.contains("Dashboard Live readiness boundary: confirmed"))
         XCTAssertTrue(
             report.details.contains(
-                "Workbench Live readiness surfaces: Workbench Live readiness evidence, Dashboard Live readiness summary, Report Live readiness boundary evidence, Event Timeline audit route, detail inspector boundary evidence"
+                "Dashboard Live readiness surfaces: Workbench Live readiness evidence, Dashboard Live readiness summary, Report Live readiness boundary evidence, Event Timeline audit route, detail inspector boundary evidence"
             )
         )
-        XCTAssertTrue(report.details.contains("Workbench API key input: none"))
-        XCTAssertTrue(report.details.contains("Workbench broker connect: none"))
-        XCTAssertTrue(report.details.contains("Workbench account connect: none"))
-        XCTAssertTrue(report.details.contains("Workbench Live PRO Console: none"))
-        XCTAssertTrue(report.details.contains("Workbench trading buttons: none"))
-        XCTAssertTrue(report.details.contains("Workbench live command: none"))
-        XCTAssertTrue(report.details.contains("Workbench order form: none"))
-        XCTAssertTrue(report.details.contains("Workbench signed endpoint: none"))
-        XCTAssertTrue(report.details.contains("Workbench account endpoint: none"))
-        XCTAssertTrue(report.details.contains("Workbench listenKey: none"))
+        XCTAssertTrue(report.details.contains("Dashboard API key input: none"))
+        XCTAssertTrue(report.details.contains("Dashboard broker connect: none"))
+        XCTAssertTrue(report.details.contains("Dashboard account connect: none"))
+        XCTAssertTrue(report.details.contains("Dashboard Live PRO Console: none"))
+        XCTAssertTrue(report.details.contains("Dashboard trading buttons: none"))
+        XCTAssertTrue(report.details.contains("Dashboard live command: none"))
+        XCTAssertTrue(report.details.contains("Dashboard order form: none"))
+        XCTAssertTrue(report.details.contains("Dashboard signed endpoint: none"))
+        XCTAssertTrue(report.details.contains("Dashboard account endpoint: none"))
+        XCTAssertTrue(report.details.contains("Dashboard listenKey: none"))
         XCTAssertTrue(report.details.contains("Trading validation execution: research-only"))
         XCTAssertTrue(report.details.contains("Execution: research-only"))
         XCTAssertTrue(report.details.contains("Latest parity: matched projection evidence"))
@@ -2310,7 +2310,7 @@ final class AppTests: XCTestCase {
 
         XCTAssertTrue(snapshot.smokeSummary.contains("sections=8"))
         XCTAssertTrue(snapshot.smokeSummary.contains("readModelOnly=true"))
-        XCTAssertTrue(snapshot.smokeSummary.contains("workbenchReadModelOnly=true"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("dashboardReadModelOnly=true"))
         XCTAssertTrue(snapshot.smokeSummary.contains("controls=start,pause,close,reset"))
         XCTAssertTrue(snapshot.smokeSummary.contains("timelineItems=95"))
         XCTAssertTrue(snapshot.smokeSummary.contains("scenarioReplayEvidence=1"))
@@ -2323,319 +2323,319 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(snapshot.smokeSummary.contains("liveExecutionControlGates=7"))
         XCTAssertTrue(snapshot.smokeSummary.contains("liveRiskGates=6"))
         XCTAssertTrue(snapshot.smokeSummary.contains("liveIncidentStopGates=5"))
-        XCTAssertTrue(snapshot.smokeSummary.contains("liveReadOnlyWorkbenchBoundary=5"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("liveReadOnlyDashboardBoundary=5"))
         XCTAssertTrue(snapshot.smokeSummary.contains("liveMonitoringHealth=blocked"))
         XCTAssertTrue(snapshot.smokeSummary.contains("liveMonitoringErrors=3"))
     }
 
-    func testDashboardShellWorkbenchSnapshotBindsControlsObservabilityAndExplorerReadOnly() throws {
+    func testDashboardShellReadModelSurfaceSnapshotBindsControlsObservabilityAndExplorerReadOnly() throws {
         // 测试场景：MTP-52 只在现有 Dashboard / Workbench shell 上增量展示控制壳、
         // observability 和 Evidence Explorer 子集；展示层必须继续保持 read-model-only，
         // 且 session control 只能表达本地 Paper session-level intent。
         let snapshot = DashboardShellSnapshot(viewModel: try makeDashboardViewModel())
-        let workbench = snapshot.workbench
+        let readModelSurface = snapshot.readModelSurface
 
-        XCTAssertEqual(workbench.title, "Paper Workflow Control Shell")
-        XCTAssertEqual(workbench.sessionControls.map(\.control), [.start, .pause, .close, .reset])
-        XCTAssertEqual(workbench.sessionControls.map(\.commandAction), [.start, .pause, .close, .reset])
-        XCTAssertTrue(workbench.sessionControls.allSatisfy(\.isSessionLevelLocalPaperControl))
-        XCTAssertTrue(workbench.sessionControls.allSatisfy(\.paperOnlyBoundaryHeld))
+        XCTAssertEqual(readModelSurface.title, "Paper Workflow Control Shell")
+        XCTAssertEqual(readModelSurface.sessionControls.map(\.control), [.start, .pause, .close, .reset])
+        XCTAssertEqual(readModelSurface.sessionControls.map(\.commandAction), [.start, .pause, .close, .reset])
+        XCTAssertTrue(readModelSurface.sessionControls.allSatisfy(\.isSessionLevelLocalPaperControl))
+        XCTAssertTrue(readModelSurface.sessionControls.allSatisfy(\.paperOnlyBoundaryHeld))
         XCTAssertEqual(
-            workbench.sessionControls.map(\.scope),
+            readModelSurface.sessionControls.map(\.scope),
             Array(repeating: .localPaperSession, count: 4)
         )
         XCTAssertEqual(
-            workbench.sessionControls.map(\.controlLevel),
+            readModelSurface.sessionControls.map(\.controlLevel),
             Array(repeating: .session, count: 4)
         )
         XCTAssertEqual(
-            workbench.sessionControls.map(\.executionMode),
+            readModelSurface.sessionControls.map(\.executionMode),
             Array(repeating: .paper, count: 4)
         )
-        XCTAssertFalse(workbench.sessionControls.contains { $0.authorizesOrderLevelCommand })
-        XCTAssertFalse(workbench.sessionControls.contains { $0.authorizesTradingExecution })
-        XCTAssertFalse(workbench.sessionControls.contains { $0.touchesBrokerAction })
-        XCTAssertFalse(workbench.sessionControls.contains { $0.submitsRealOrder })
-        XCTAssertFalse(workbench.sessionControls.contains { $0.cancelsRealOrder })
-        XCTAssertFalse(workbench.sessionControls.contains { $0.replacesRealOrder })
+        XCTAssertFalse(readModelSurface.sessionControls.contains { $0.authorizesOrderLevelCommand })
+        XCTAssertFalse(readModelSurface.sessionControls.contains { $0.authorizesTradingExecution })
+        XCTAssertFalse(readModelSurface.sessionControls.contains { $0.touchesBrokerAction })
+        XCTAssertFalse(readModelSurface.sessionControls.contains { $0.submitsRealOrder })
+        XCTAssertFalse(readModelSurface.sessionControls.contains { $0.cancelsRealOrder })
+        XCTAssertFalse(readModelSurface.sessionControls.contains { $0.replacesRealOrder })
 
-        XCTAssertEqual(workbench.observabilitySections, PaperWorkflowObservabilitySection.allCases)
-        XCTAssertEqual(metricValue("Controls", in: workbench.observabilityMetrics), "4")
-        XCTAssertEqual(metricValue("Completed sessions", in: workbench.observabilityMetrics), "1")
-        XCTAssertEqual(metricValue("Allowed evidence", in: workbench.observabilityMetrics), "3")
-        XCTAssertEqual(metricValue("Blocked evidence", in: workbench.observabilityMetrics), "1")
-        XCTAssertEqual(metricValue("Replay", in: workbench.observabilityMetrics), "fresh")
-        XCTAssertTrue(workbench.observabilityDetails.contains("Session status: started, updated, closed"))
+        XCTAssertEqual(readModelSurface.observabilitySections, PaperWorkflowObservabilitySection.allCases)
+        XCTAssertEqual(metricValue("Controls", in: readModelSurface.observabilityMetrics), "4")
+        XCTAssertEqual(metricValue("Completed sessions", in: readModelSurface.observabilityMetrics), "1")
+        XCTAssertEqual(metricValue("Allowed evidence", in: readModelSurface.observabilityMetrics), "3")
+        XCTAssertEqual(metricValue("Blocked evidence", in: readModelSurface.observabilityMetrics), "1")
+        XCTAssertEqual(metricValue("Replay", in: readModelSurface.observabilityMetrics), "fresh")
+        XCTAssertTrue(readModelSurface.observabilityDetails.contains("Session status: started, updated, closed"))
         XCTAssertTrue(
-            workbench.observabilityDetails.contains(
+            readModelSurface.observabilityDetails.contains(
                 "Session controls: start, pause, close, reset"
             )
         )
 
-        XCTAssertEqual(metricValue("Timeline items", in: workbench.evidenceExplorerMetrics), "95")
-        XCTAssertEqual(metricValue("Sections", in: workbench.evidenceExplorerMetrics), "21")
+        XCTAssertEqual(metricValue("Timeline items", in: readModelSurface.evidenceExplorerMetrics), "95")
+        XCTAssertEqual(metricValue("Sections", in: readModelSurface.evidenceExplorerMetrics), "21")
         XCTAssertTrue(
-            workbench.evidenceExplorerDetails.contains(
+            readModelSurface.evidenceExplorerDetails.contains(
                 "Filter: read-only"
             )
         )
-        XCTAssertTrue(workbench.timelinePreview.isEmpty == false)
-        XCTAssertTrue(workbench.timelinePreview.allSatisfy { $0.contains(":") })
-        XCTAssertEqual(metricValue("APB records", in: workbench.accountPositionBalanceReadModelOnlySurfaceMetrics), "3")
-        XCTAssertEqual(metricValue("Fixture", in: workbench.accountPositionBalanceReadModelOnlySurfaceMetrics), "fixture-v1")
+        XCTAssertTrue(readModelSurface.timelinePreview.isEmpty == false)
+        XCTAssertTrue(readModelSurface.timelinePreview.allSatisfy { $0.contains(":") })
+        XCTAssertEqual(metricValue("APB records", in: readModelSurface.accountPositionBalanceReadModelOnlySurfaceMetrics), "3")
+        XCTAssertEqual(metricValue("Fixture", in: readModelSurface.accountPositionBalanceReadModelOnlySurfaceMetrics), "fixture-v1")
         XCTAssertEqual(
-            metricValue("Freshness", in: workbench.accountPositionBalanceReadModelOnlySurfaceMetrics),
+            metricValue("Freshness", in: readModelSurface.accountPositionBalanceReadModelOnlySurfaceMetrics),
             "fresh, fresh, fresh"
         )
-        XCTAssertEqual(metricValue("Event trace", in: workbench.accountPositionBalanceReadModelOnlySurfaceMetrics), "3")
-        XCTAssertEqual(metricValue("Boundary", in: workbench.accountPositionBalanceReadModelOnlySurfaceMetrics), "confirmed")
+        XCTAssertEqual(metricValue("Event trace", in: readModelSurface.accountPositionBalanceReadModelOnlySurfaceMetrics), "3")
+        XCTAssertEqual(metricValue("Boundary", in: readModelSurface.accountPositionBalanceReadModelOnlySurfaceMetrics), "confirmed")
         XCTAssertTrue(
-            workbench.accountPositionBalanceReadModelOnlySurfaceDetails.contains(
+            readModelSurface.accountPositionBalanceReadModelOnlySurfaceDetails.contains(
                 "APB account connect: none"
             )
         )
         XCTAssertTrue(
-            workbench.accountPositionBalanceReadModelOnlySurfaceDetails.contains(
+            readModelSurface.accountPositionBalanceReadModelOnlySurfaceDetails.contains(
                 "APB broker connect: none"
             )
         )
         XCTAssertTrue(
-            workbench.accountPositionBalanceReadModelOnlySurfaceDetails.contains(
+            readModelSurface.accountPositionBalanceReadModelOnlySurfaceDetails.contains(
                 "APB trading button: none"
             )
         )
         XCTAssertTrue(
-            workbench.accountPositionBalanceReadModelOnlySurfaceDetails.contains(
+            readModelSurface.accountPositionBalanceReadModelOnlySurfaceDetails.contains(
                 "APB live command: none"
             )
         )
         XCTAssertEqual(
-            metricValue("Simulation gate", in: workbench.privateStreamSimulationGateEvidenceSurfaceMetrics),
+            metricValue("Simulation gate", in: readModelSurface.privateStreamSimulationGateEvidenceSurfaceMetrics),
             "4"
         )
         XCTAssertEqual(
-            metricValue("Sources", in: workbench.privateStreamSimulationGateEvidenceSurfaceMetrics),
+            metricValue("Sources", in: readModelSurface.privateStreamSimulationGateEvidenceSurfaceMetrics),
             "3"
         )
         XCTAssertEqual(
-            metricValue("Snapshot inputs", in: workbench.privateStreamSimulationGateEvidenceSurfaceMetrics),
+            metricValue("Snapshot inputs", in: readModelSurface.privateStreamSimulationGateEvidenceSurfaceMetrics),
             "1"
         )
         XCTAssertEqual(
-            metricValue("Update fixtures", in: workbench.privateStreamSimulationGateEvidenceSurfaceMetrics),
+            metricValue("Update fixtures", in: readModelSurface.privateStreamSimulationGateEvidenceSurfaceMetrics),
             "3"
         )
         XCTAssertEqual(
-            metricValue("Event trace", in: workbench.privateStreamSimulationGateEvidenceSurfaceMetrics),
+            metricValue("Event trace", in: readModelSurface.privateStreamSimulationGateEvidenceSurfaceMetrics),
             "4"
         )
         XCTAssertEqual(
-            metricValue("Boundary", in: workbench.privateStreamSimulationGateEvidenceSurfaceMetrics),
+            metricValue("Boundary", in: readModelSurface.privateStreamSimulationGateEvidenceSurfaceMetrics),
             "confirmed"
         )
         XCTAssertTrue(
-            workbench.privateStreamSimulationGateEvidenceSurfaceDetails.contains(
+            readModelSurface.privateStreamSimulationGateEvidenceSurfaceDetails.contains(
                 "Simulation gate account connect: none"
             )
         )
         XCTAssertTrue(
-            workbench.privateStreamSimulationGateEvidenceSurfaceDetails.contains(
+            readModelSurface.privateStreamSimulationGateEvidenceSurfaceDetails.contains(
                 "Simulation gate broker connect: none"
             )
         )
         XCTAssertTrue(
-            workbench.privateStreamSimulationGateEvidenceSurfaceDetails.contains(
+            readModelSurface.privateStreamSimulationGateEvidenceSurfaceDetails.contains(
                 "Simulation gate trading button: none"
             )
         )
         XCTAssertTrue(
-            workbench.privateStreamSimulationGateEvidenceSurfaceDetails.contains(
+            readModelSurface.privateStreamSimulationGateEvidenceSurfaceDetails.contains(
                 "Simulation gate account snapshot runtime: none"
             )
         )
         XCTAssertEqual(
-            metricValue("Live monitoring v2", in: workbench.liveMonitoringReadOnlyConsoleV2SurfaceMetrics),
+            metricValue("Live monitoring v2", in: readModelSurface.liveMonitoringReadOnlyConsoleV2SurfaceMetrics),
             "4"
         )
         XCTAssertEqual(
-            metricValue("Sources", in: workbench.liveMonitoringReadOnlyConsoleV2SurfaceMetrics),
+            metricValue("Sources", in: readModelSurface.liveMonitoringReadOnlyConsoleV2SurfaceMetrics),
             "4"
         )
         XCTAssertEqual(
-            metricValue("Health evidence", in: workbench.liveMonitoringReadOnlyConsoleV2SurfaceMetrics),
+            metricValue("Health evidence", in: readModelSurface.liveMonitoringReadOnlyConsoleV2SurfaceMetrics),
             "4"
         )
         XCTAssertEqual(
-            metricValue("Readiness", in: workbench.liveMonitoringReadOnlyConsoleV2SurfaceMetrics),
+            metricValue("Readiness", in: readModelSurface.liveMonitoringReadOnlyConsoleV2SurfaceMetrics),
             "4"
         )
         XCTAssertEqual(
-            metricValue("Forbidden tests", in: workbench.liveMonitoringReadOnlyConsoleV2SurfaceMetrics),
+            metricValue("Forbidden tests", in: readModelSurface.liveMonitoringReadOnlyConsoleV2SurfaceMetrics),
             "19"
         )
         XCTAssertEqual(
-            metricValue("Boundary", in: workbench.liveMonitoringReadOnlyConsoleV2SurfaceMetrics),
+            metricValue("Boundary", in: readModelSurface.liveMonitoringReadOnlyConsoleV2SurfaceMetrics),
             "confirmed"
         )
         XCTAssertTrue(
-            workbench.liveMonitoringReadOnlyConsoleV2SurfaceDetails.contains(
+            readModelSurface.liveMonitoringReadOnlyConsoleV2SurfaceDetails.contains(
                 "Live Monitoring v2 live command: none"
             )
         )
         XCTAssertTrue(
-            workbench.liveMonitoringReadOnlyConsoleV2SurfaceDetails.contains(
+            readModelSurface.liveMonitoringReadOnlyConsoleV2SurfaceDetails.contains(
                 "Live Monitoring v2 account payload: none"
             )
         )
         XCTAssertTrue(
-            workbench.liveMonitoringReadOnlyConsoleV2SurfaceDetails.contains(
+            readModelSurface.liveMonitoringReadOnlyConsoleV2SurfaceDetails.contains(
                 "Live Monitoring v2 broker state: none"
             )
         )
         XCTAssertEqual(
-            metricValue("Workbench boundary", in: workbench.liveReadOnlyWorkbenchBoundaryMetrics),
+            metricValue("Dashboard boundary", in: readModelSurface.liveReadOnlyDashboardBoundaryMetrics),
             "5"
         )
         XCTAssertEqual(
-            metricValue("Forbidden UI", in: workbench.liveReadOnlyWorkbenchBoundaryMetrics),
+            metricValue("Forbidden UI", in: readModelSurface.liveReadOnlyDashboardBoundaryMetrics),
             "19"
         )
-        XCTAssertEqual(metricValue("Handoff", in: workbench.liveReadOnlyWorkbenchBoundaryMetrics), "3")
+        XCTAssertEqual(metricValue("Handoff", in: readModelSurface.liveReadOnlyDashboardBoundaryMetrics), "3")
         XCTAssertEqual(
-            metricValue("Boundary", in: workbench.liveReadOnlyWorkbenchBoundaryMetrics),
+            metricValue("Boundary", in: readModelSurface.liveReadOnlyDashboardBoundaryMetrics),
             "confirmed"
         )
         XCTAssertTrue(
-            workbench.liveReadOnlyWorkbenchBoundaryDetails.contains(
-                "Workbench API key input: none"
+            readModelSurface.liveReadOnlyDashboardBoundaryDetails.contains(
+                "Dashboard API key input: none"
             )
         )
         XCTAssertTrue(
-            workbench.liveReadOnlyWorkbenchBoundaryDetails.contains(
-                "Workbench Live PRO Console: none"
+            readModelSurface.liveReadOnlyDashboardBoundaryDetails.contains(
+                "Dashboard Live PRO Console: none"
             )
         )
         XCTAssertTrue(
-            workbench.liveReadOnlyWorkbenchBoundaryDetails.contains(
-                "Workbench trading buttons: none"
+            readModelSurface.liveReadOnlyDashboardBoundaryDetails.contains(
+                "Dashboard trading buttons: none"
             )
         )
         XCTAssertTrue(
-            workbench.liveReadOnlyWorkbenchBoundaryDetails.contains(
-                "Workbench order form: none"
+            readModelSurface.liveReadOnlyDashboardBoundaryDetails.contains(
+                "Dashboard order form: none"
             )
         )
-        XCTAssertTrue(workbench.liveReadOnlyWorkbenchBoundaryDetails.contains("Workbench boundary: confirmed"))
-        XCTAssertEqual(metricValue("Live gates", in: workbench.liveBlockedEvidenceMetrics), "6")
-        XCTAssertEqual(metricValue("Blocked", in: workbench.liveBlockedEvidenceMetrics), "6")
-        XCTAssertEqual(metricValue("Status", in: workbench.liveBlockedEvidenceMetrics), "blocked")
-        XCTAssertTrue(workbench.liveBlockedEvidenceDetails.contains("Live readiness: blocked"))
+        XCTAssertTrue(readModelSurface.liveReadOnlyDashboardBoundaryDetails.contains("Dashboard boundary: confirmed"))
+        XCTAssertEqual(metricValue("Live gates", in: readModelSurface.liveBlockedEvidenceMetrics), "6")
+        XCTAssertEqual(metricValue("Blocked", in: readModelSurface.liveBlockedEvidenceMetrics), "6")
+        XCTAssertEqual(metricValue("Status", in: readModelSurface.liveBlockedEvidenceMetrics), "blocked")
+        XCTAssertTrue(readModelSurface.liveBlockedEvidenceDetails.contains("Live readiness: blocked"))
         XCTAssertTrue(
-            workbench.liveBlockedEvidenceDetails.contains(
+            readModelSurface.liveBlockedEvidenceDetails.contains(
                 "Live command surface: none"
             )
         )
         XCTAssertTrue(
-            workbench.liveBlockedEvidenceDetails.contains(
+            readModelSurface.liveBlockedEvidenceDetails.contains(
                 "Live trading authorization: none"
             )
         )
         XCTAssertTrue(
-            workbench.liveBlockedEvidenceDetails.contains(
+            readModelSurface.liveBlockedEvidenceDetails.contains(
                 "Live blocked boundary: confirmed"
             )
         )
-        XCTAssertEqual(metricValue("Health", in: workbench.liveMonitoringEvidenceMetrics), "blocked")
-        XCTAssertEqual(metricValue("Connections", in: workbench.liveMonitoringEvidenceMetrics), "3")
-        XCTAssertEqual(metricValue("Streams", in: workbench.liveMonitoringEvidenceMetrics), "4")
-        XCTAssertEqual(metricValue("Latency", in: workbench.liveMonitoringEvidenceMetrics), "5")
-        XCTAssertEqual(metricValue("Errors", in: workbench.liveMonitoringEvidenceMetrics), "3")
-        XCTAssertEqual(metricValue("Degraded", in: workbench.liveMonitoringEvidenceMetrics), "2")
-        XCTAssertTrue(workbench.liveMonitoringEvidenceDetails.contains("Monitoring health: blocked"))
+        XCTAssertEqual(metricValue("Health", in: readModelSurface.liveMonitoringEvidenceMetrics), "blocked")
+        XCTAssertEqual(metricValue("Connections", in: readModelSurface.liveMonitoringEvidenceMetrics), "3")
+        XCTAssertEqual(metricValue("Streams", in: readModelSurface.liveMonitoringEvidenceMetrics), "4")
+        XCTAssertEqual(metricValue("Latency", in: readModelSurface.liveMonitoringEvidenceMetrics), "5")
+        XCTAssertEqual(metricValue("Errors", in: readModelSurface.liveMonitoringEvidenceMetrics), "3")
+        XCTAssertEqual(metricValue("Degraded", in: readModelSurface.liveMonitoringEvidenceMetrics), "2")
+        XCTAssertTrue(readModelSurface.liveMonitoringEvidenceDetails.contains("Monitoring health: blocked"))
         XCTAssertTrue(
-            workbench.liveMonitoringEvidenceDetails.contains(
+            readModelSurface.liveMonitoringEvidenceDetails.contains(
                 "Monitoring connections: disconnected, blocked, unavailable"
             )
         )
         XCTAssertTrue(
-            workbench.liveMonitoringEvidenceDetails.contains(
+            readModelSurface.liveMonitoringEvidenceDetails.contains(
                 "Monitoring latency: stale, degraded, nominal, unavailable"
             )
         )
-        XCTAssertTrue(workbench.liveMonitoringEvidenceDetails.contains("Monitoring command surface: none"))
-        XCTAssertTrue(workbench.liveMonitoringEvidenceDetails.contains("Monitoring trading buttons: none"))
-        XCTAssertTrue(workbench.liveMonitoringEvidenceDetails.contains("Monitoring schema exposure: none"))
-        XCTAssertTrue(workbench.liveMonitoringEvidenceDetails.contains("Monitoring runtime exposure: none"))
-        XCTAssertTrue(workbench.liveMonitoringEvidenceDetails.contains("Monitoring adapter exposure: none"))
-        XCTAssertTrue(workbench.liveMonitoringEvidenceDetails.contains("Monitoring boundary: confirmed"))
-        XCTAssertEqual(metricValue("Execution gates", in: workbench.liveExecutionControlBlockedEvidenceMetrics), "7")
-        XCTAssertEqual(metricValue("Reasons", in: workbench.liveExecutionControlBlockedEvidenceMetrics), "15")
-        XCTAssertEqual(metricValue("Blocked", in: workbench.liveExecutionControlBlockedEvidenceMetrics), "confirmed")
+        XCTAssertTrue(readModelSurface.liveMonitoringEvidenceDetails.contains("Monitoring command surface: none"))
+        XCTAssertTrue(readModelSurface.liveMonitoringEvidenceDetails.contains("Monitoring trading buttons: none"))
+        XCTAssertTrue(readModelSurface.liveMonitoringEvidenceDetails.contains("Monitoring schema exposure: none"))
+        XCTAssertTrue(readModelSurface.liveMonitoringEvidenceDetails.contains("Monitoring runtime exposure: none"))
+        XCTAssertTrue(readModelSurface.liveMonitoringEvidenceDetails.contains("Monitoring adapter exposure: none"))
+        XCTAssertTrue(readModelSurface.liveMonitoringEvidenceDetails.contains("Monitoring boundary: confirmed"))
+        XCTAssertEqual(metricValue("Execution gates", in: readModelSurface.liveExecutionControlBlockedEvidenceMetrics), "7")
+        XCTAssertEqual(metricValue("Reasons", in: readModelSurface.liveExecutionControlBlockedEvidenceMetrics), "15")
+        XCTAssertEqual(metricValue("Blocked", in: readModelSurface.liveExecutionControlBlockedEvidenceMetrics), "confirmed")
         XCTAssertTrue(
-            workbench.liveExecutionControlBlockedEvidenceDetails.contains(
+            readModelSurface.liveExecutionControlBlockedEvidenceDetails.contains(
                 "Execution gates: submit, cancel, replace, execution report, broker fill, reconciliation, incident fallback"
             )
         )
         XCTAssertTrue(
-            workbench.liveExecutionControlBlockedEvidenceDetails.contains(
+            readModelSurface.liveExecutionControlBlockedEvidenceDetails.contains(
                 "Execution command surface: none"
             )
         )
-        XCTAssertTrue(workbench.liveExecutionControlBlockedEvidenceDetails.contains("Execution order form: none"))
-        XCTAssertTrue(workbench.liveExecutionControlBlockedEvidenceDetails.contains("Execution trading buttons: none"))
-        XCTAssertTrue(workbench.liveExecutionControlBlockedEvidenceDetails.contains("Execution schema exposure: none"))
-        XCTAssertTrue(workbench.liveExecutionControlBlockedEvidenceDetails.contains("Execution runtime exposure: none"))
-        XCTAssertTrue(workbench.liveExecutionControlBlockedEvidenceDetails.contains("Execution adapter exposure: none"))
-        XCTAssertTrue(workbench.liveExecutionControlBlockedEvidenceDetails.contains("Execution boundary: confirmed"))
-        XCTAssertEqual(metricValue("Risk gates", in: workbench.liveRiskGateBlockedEvidenceMetrics), "6")
-        XCTAssertEqual(metricValue("Blocked", in: workbench.liveRiskGateBlockedEvidenceMetrics), "confirmed")
+        XCTAssertTrue(readModelSurface.liveExecutionControlBlockedEvidenceDetails.contains("Execution order form: none"))
+        XCTAssertTrue(readModelSurface.liveExecutionControlBlockedEvidenceDetails.contains("Execution trading buttons: none"))
+        XCTAssertTrue(readModelSurface.liveExecutionControlBlockedEvidenceDetails.contains("Execution schema exposure: none"))
+        XCTAssertTrue(readModelSurface.liveExecutionControlBlockedEvidenceDetails.contains("Execution runtime exposure: none"))
+        XCTAssertTrue(readModelSurface.liveExecutionControlBlockedEvidenceDetails.contains("Execution adapter exposure: none"))
+        XCTAssertTrue(readModelSurface.liveExecutionControlBlockedEvidenceDetails.contains("Execution boundary: confirmed"))
+        XCTAssertEqual(metricValue("Risk gates", in: readModelSurface.liveRiskGateBlockedEvidenceMetrics), "6")
+        XCTAssertEqual(metricValue("Blocked", in: readModelSurface.liveRiskGateBlockedEvidenceMetrics), "confirmed")
         XCTAssertTrue(
-            workbench.liveRiskGateBlockedEvidenceDetails.contains(
+            readModelSurface.liveRiskGateBlockedEvidenceDetails.contains(
                 "Risk gates: exposure, order notional, frequency, loss / drawdown, circuit breaker, no-trade state"
             )
         )
-        XCTAssertTrue(workbench.liveRiskGateBlockedEvidenceDetails.contains("Risk command surface: none"))
-        XCTAssertTrue(workbench.liveRiskGateBlockedEvidenceDetails.contains("Risk trading buttons: none"))
-        XCTAssertTrue(workbench.liveRiskGateBlockedEvidenceDetails.contains("Risk boundary: confirmed"))
-        XCTAssertEqual(metricValue("Incident stop gates", in: workbench.liveIncidentStopBlockedEvidenceMetrics), "5")
-        XCTAssertEqual(metricValue("Blocked", in: workbench.liveIncidentStopBlockedEvidenceMetrics), "confirmed")
+        XCTAssertTrue(readModelSurface.liveRiskGateBlockedEvidenceDetails.contains("Risk command surface: none"))
+        XCTAssertTrue(readModelSurface.liveRiskGateBlockedEvidenceDetails.contains("Risk trading buttons: none"))
+        XCTAssertTrue(readModelSurface.liveRiskGateBlockedEvidenceDetails.contains("Risk boundary: confirmed"))
+        XCTAssertEqual(metricValue("Incident stop gates", in: readModelSurface.liveIncidentStopBlockedEvidenceMetrics), "5")
+        XCTAssertEqual(metricValue("Blocked", in: readModelSurface.liveIncidentStopBlockedEvidenceMetrics), "confirmed")
         XCTAssertTrue(
-            workbench.liveIncidentStopBlockedEvidenceDetails.contains(
+            readModelSurface.liveIncidentStopBlockedEvidenceDetails.contains(
                 "Incident / stop gates: audit trail, incident replay, emergency stop, shutdown, restore"
             )
         )
         XCTAssertTrue(
-            workbench.liveIncidentStopBlockedEvidenceDetails.contains(
+            readModelSurface.liveIncidentStopBlockedEvidenceDetails.contains(
                 "Incident replay runtime: none"
             )
         )
-        XCTAssertTrue(workbench.liveIncidentStopBlockedEvidenceDetails.contains("Stop control: none"))
-        XCTAssertTrue(workbench.liveIncidentStopBlockedEvidenceDetails.contains("Emergency stop: none"))
-        XCTAssertTrue(workbench.liveIncidentStopBlockedEvidenceDetails.contains("Shutdown command: none"))
-        XCTAssertTrue(workbench.liveIncidentStopBlockedEvidenceDetails.contains("Restore command: none"))
-        XCTAssertTrue(workbench.liveIncidentStopBlockedEvidenceDetails.contains("Live PRO Console: none"))
-        XCTAssertTrue(workbench.liveIncidentStopBlockedEvidenceDetails.contains("Stop button: none"))
-        XCTAssertTrue(workbench.liveIncidentStopBlockedEvidenceDetails.contains("Trading buttons: none"))
-        XCTAssertTrue(workbench.liveIncidentStopBlockedEvidenceDetails.contains("Incident / stop boundary: confirmed"))
+        XCTAssertTrue(readModelSurface.liveIncidentStopBlockedEvidenceDetails.contains("Stop control: none"))
+        XCTAssertTrue(readModelSurface.liveIncidentStopBlockedEvidenceDetails.contains("Emergency stop: none"))
+        XCTAssertTrue(readModelSurface.liveIncidentStopBlockedEvidenceDetails.contains("Shutdown command: none"))
+        XCTAssertTrue(readModelSurface.liveIncidentStopBlockedEvidenceDetails.contains("Restore command: none"))
+        XCTAssertTrue(readModelSurface.liveIncidentStopBlockedEvidenceDetails.contains("Live PRO Console: none"))
+        XCTAssertTrue(readModelSurface.liveIncidentStopBlockedEvidenceDetails.contains("Stop button: none"))
+        XCTAssertTrue(readModelSurface.liveIncidentStopBlockedEvidenceDetails.contains("Trading buttons: none"))
+        XCTAssertTrue(readModelSurface.liveIncidentStopBlockedEvidenceDetails.contains("Incident / stop boundary: confirmed"))
 
-        XCTAssertTrue(workbench.source.isReadModelOnly)
-        XCTAssertTrue(workbench.observabilitySource.isReadModelOnly)
-        XCTAssertTrue(workbench.evidenceExplorerSource.isReadModelOnly)
-        XCTAssertTrue(workbench.liveBlockedEvidenceSource.isReadModelOnly)
-        XCTAssertTrue(workbench.liveMonitoringEvidenceSource.isReadModelOnly)
-        XCTAssertTrue(workbench.liveExecutionControlBlockedEvidenceSource.isReadModelOnly)
-        XCTAssertTrue(workbench.liveRiskGateBlockedEvidenceSource.isReadModelOnly)
-        XCTAssertTrue(workbench.liveIncidentStopBlockedEvidenceSource.isReadModelOnly)
-        XCTAssertTrue(workbench.readModelOnlyBoundaryHeld)
-        XCTAssertTrue(workbench.paperOnlyBoundaryHeld)
-        XCTAssertFalse(workbench.providesCommandSurface)
-        XCTAssertFalse(workbench.providesOrderLevelCommand)
-        XCTAssertFalse(workbench.exposesDatabaseSchema)
-        XCTAssertFalse(workbench.exposesRuntimeObject)
-        XCTAssertFalse(workbench.exposesAdapterRequest)
-        XCTAssertFalse(workbench.authorizesLiveTrading)
-        XCTAssertFalse(workbench.touchesBrokerAction)
-        XCTAssertFalse(workbench.authorizesTradingExecution)
+        XCTAssertTrue(readModelSurface.source.isReadModelOnly)
+        XCTAssertTrue(readModelSurface.observabilitySource.isReadModelOnly)
+        XCTAssertTrue(readModelSurface.evidenceExplorerSource.isReadModelOnly)
+        XCTAssertTrue(readModelSurface.liveBlockedEvidenceSource.isReadModelOnly)
+        XCTAssertTrue(readModelSurface.liveMonitoringEvidenceSource.isReadModelOnly)
+        XCTAssertTrue(readModelSurface.liveExecutionControlBlockedEvidenceSource.isReadModelOnly)
+        XCTAssertTrue(readModelSurface.liveRiskGateBlockedEvidenceSource.isReadModelOnly)
+        XCTAssertTrue(readModelSurface.liveIncidentStopBlockedEvidenceSource.isReadModelOnly)
+        XCTAssertTrue(readModelSurface.readModelOnlyBoundaryHeld)
+        XCTAssertTrue(readModelSurface.paperOnlyBoundaryHeld)
+        XCTAssertFalse(readModelSurface.providesCommandSurface)
+        XCTAssertFalse(readModelSurface.providesOrderLevelCommand)
+        XCTAssertFalse(readModelSurface.exposesDatabaseSchema)
+        XCTAssertFalse(readModelSurface.exposesRuntimeObject)
+        XCTAssertFalse(readModelSurface.exposesAdapterRequest)
+        XCTAssertFalse(readModelSurface.authorizesLiveTrading)
+        XCTAssertFalse(readModelSurface.touchesBrokerAction)
+        XCTAssertFalse(readModelSurface.authorizesTradingExecution)
     }
 
     func testReportDashboardAndTimelineRemainMTP78ReadModelOnly() throws {
@@ -2647,7 +2647,7 @@ final class AppTests: XCTestCase {
         let report = viewModel.report
         let explorer = viewModel.paperWorkflowEvidenceExplorer
         let snapshot = DashboardShellSnapshot(viewModel: viewModel)
-        let workbench = snapshot.workbench
+        let readModelSurface = snapshot.readModelSurface
 
         XCTAssertTrue(boundary.appSurfaceReadModelOnlyBoundaryHeld)
         XCTAssertTrue(boundary.paperEvidenceCannotUpgradeToRealCommand)
@@ -2726,28 +2726,28 @@ final class AppTests: XCTestCase {
 
         XCTAssertTrue(snapshot.isReadModelOnly)
         XCTAssertTrue(snapshot.viewModelSources.allSatisfy(\.isReadModelOnly))
-        XCTAssertTrue(workbench.readModelOnlyBoundaryHeld)
-        XCTAssertTrue(workbench.paperOnlyBoundaryHeld)
-        XCTAssertFalse(workbench.providesCommandSurface)
-        XCTAssertFalse(workbench.providesOrderLevelCommand)
-        XCTAssertFalse(workbench.exposesDatabaseSchema)
-        XCTAssertFalse(workbench.exposesRuntimeObject)
-        XCTAssertFalse(workbench.exposesAdapterRequest)
-        XCTAssertFalse(workbench.authorizesLiveTrading)
-        XCTAssertFalse(workbench.touchesBrokerAction)
-        XCTAssertFalse(workbench.authorizesTradingExecution)
-        XCTAssertFalse(workbench.sessionControls.contains { $0.authorizesOrderLevelCommand })
-        XCTAssertFalse(workbench.sessionControls.contains { $0.submitsRealOrder })
-        XCTAssertFalse(workbench.sessionControls.contains { $0.cancelsRealOrder })
-        XCTAssertFalse(workbench.sessionControls.contains { $0.replacesRealOrder })
+        XCTAssertTrue(readModelSurface.readModelOnlyBoundaryHeld)
+        XCTAssertTrue(readModelSurface.paperOnlyBoundaryHeld)
+        XCTAssertFalse(readModelSurface.providesCommandSurface)
+        XCTAssertFalse(readModelSurface.providesOrderLevelCommand)
+        XCTAssertFalse(readModelSurface.exposesDatabaseSchema)
+        XCTAssertFalse(readModelSurface.exposesRuntimeObject)
+        XCTAssertFalse(readModelSurface.exposesAdapterRequest)
+        XCTAssertFalse(readModelSurface.authorizesLiveTrading)
+        XCTAssertFalse(readModelSurface.touchesBrokerAction)
+        XCTAssertFalse(readModelSurface.authorizesTradingExecution)
+        XCTAssertFalse(readModelSurface.sessionControls.contains { $0.authorizesOrderLevelCommand })
+        XCTAssertFalse(readModelSurface.sessionControls.contains { $0.submitsRealOrder })
+        XCTAssertFalse(readModelSurface.sessionControls.contains { $0.cancelsRealOrder })
+        XCTAssertFalse(readModelSurface.sessionControls.contains { $0.replacesRealOrder })
         XCTAssertTrue(snapshot.smokeSummary.contains("readModelOnly=true"))
-        XCTAssertTrue(snapshot.smokeSummary.contains("workbenchReadModelOnly=true"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("dashboardReadModelOnly=true"))
     }
 
     func testDashboardShellInitialSnapshotIsEmptyReadModelProjection() {
         // 测试场景：可运行 macOS shell 的默认快照只能表示空事实投影和静态 Live blocked gates，
         // 不能伪造行情、Paper、Risk、Portfolio 或真实交易事件事实。
-        let snapshot = DashboardShellSnapshot(viewModel: .emptyResearchWorkbench)
+        let snapshot = DashboardShellSnapshot(viewModel: .emptyResearchDashboard)
 
         XCTAssertEqual(snapshot.sections.map(\.section), DashboardSection.allCases)
         XCTAssertTrue(snapshot.isReadModelOnly)
@@ -2774,49 +2774,49 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(report?.metrics.first { $0.label == "Execution control" }?.value, "7")
         XCTAssertEqual(report?.metrics.first { $0.label == "Live risk" }?.value, "6")
         XCTAssertEqual(report?.metrics.first { $0.label == "Incident stop" }?.value, "5")
-        XCTAssertEqual(report?.metrics.first { $0.label == "Workbench boundary" }?.value, "5")
+        XCTAssertEqual(report?.metrics.first { $0.label == "Dashboard boundary" }?.value, "5")
 
         let events = snapshot.sections.first { $0.section == .events }
         XCTAssertEqual(events?.metrics.first { $0.label == "Events" }?.value, "0")
         XCTAssertEqual(events?.metrics.first { $0.label == "Last sequence" }?.value, "n/a")
 
-        XCTAssertEqual(metricValue("Controls", in: snapshot.workbench.observabilityMetrics), "4")
-        XCTAssertEqual(metricValue("Timeline items", in: snapshot.workbench.evidenceExplorerMetrics), "60")
-        XCTAssertEqual(metricValue("Scenarios", in: snapshot.workbench.scenarioReplayEvidenceMetrics), "0")
-        XCTAssertEqual(metricValue("Quality gates", in: snapshot.workbench.scenarioReplayEvidenceMetrics), "0")
+        XCTAssertEqual(metricValue("Controls", in: snapshot.readModelSurface.observabilityMetrics), "4")
+        XCTAssertEqual(metricValue("Timeline items", in: snapshot.readModelSurface.evidenceExplorerMetrics), "60")
+        XCTAssertEqual(metricValue("Scenarios", in: snapshot.readModelSurface.scenarioReplayEvidenceMetrics), "0")
+        XCTAssertEqual(metricValue("Quality gates", in: snapshot.readModelSurface.scenarioReplayEvidenceMetrics), "0")
         XCTAssertEqual(
-            metricValue("Strategy readiness", in: snapshot.workbench.strategyTraderReadinessEvidenceSurfaceMetrics),
+            metricValue("Strategy readiness", in: snapshot.readModelSurface.strategyTraderReadinessEvidenceSurfaceMetrics),
             "6"
         )
         XCTAssertEqual(
-            metricValue("Workbench boundary", in: snapshot.workbench.liveReadOnlyWorkbenchBoundaryMetrics),
+            metricValue("Dashboard boundary", in: snapshot.readModelSurface.liveReadOnlyDashboardBoundaryMetrics),
             "5"
         )
         XCTAssertEqual(
-            metricValue("Forbidden UI", in: snapshot.workbench.liveReadOnlyWorkbenchBoundaryMetrics),
+            metricValue("Forbidden UI", in: snapshot.readModelSurface.liveReadOnlyDashboardBoundaryMetrics),
             "19"
         )
-        XCTAssertEqual(metricValue("Live gates", in: snapshot.workbench.liveBlockedEvidenceMetrics), "6")
-        XCTAssertEqual(metricValue("Health", in: snapshot.workbench.liveMonitoringEvidenceMetrics), "blocked")
-        XCTAssertEqual(metricValue("Errors", in: snapshot.workbench.liveMonitoringEvidenceMetrics), "3")
-        XCTAssertEqual(metricValue("Execution gates", in: snapshot.workbench.liveExecutionControlBlockedEvidenceMetrics), "7")
-        XCTAssertEqual(metricValue("Blocked", in: snapshot.workbench.liveExecutionControlBlockedEvidenceMetrics), "confirmed")
-        XCTAssertEqual(metricValue("Risk gates", in: snapshot.workbench.liveRiskGateBlockedEvidenceMetrics), "6")
-        XCTAssertEqual(metricValue("Blocked", in: snapshot.workbench.liveRiskGateBlockedEvidenceMetrics), "confirmed")
-        XCTAssertEqual(metricValue("Incident stop gates", in: snapshot.workbench.liveIncidentStopBlockedEvidenceMetrics), "5")
-        XCTAssertEqual(metricValue("Blocked", in: snapshot.workbench.liveIncidentStopBlockedEvidenceMetrics), "confirmed")
-        XCTAssertTrue(snapshot.workbench.readModelOnlyBoundaryHeld)
-        XCTAssertFalse(snapshot.workbench.providesOrderLevelCommand)
+        XCTAssertEqual(metricValue("Live gates", in: snapshot.readModelSurface.liveBlockedEvidenceMetrics), "6")
+        XCTAssertEqual(metricValue("Health", in: snapshot.readModelSurface.liveMonitoringEvidenceMetrics), "blocked")
+        XCTAssertEqual(metricValue("Errors", in: snapshot.readModelSurface.liveMonitoringEvidenceMetrics), "3")
+        XCTAssertEqual(metricValue("Execution gates", in: snapshot.readModelSurface.liveExecutionControlBlockedEvidenceMetrics), "7")
+        XCTAssertEqual(metricValue("Blocked", in: snapshot.readModelSurface.liveExecutionControlBlockedEvidenceMetrics), "confirmed")
+        XCTAssertEqual(metricValue("Risk gates", in: snapshot.readModelSurface.liveRiskGateBlockedEvidenceMetrics), "6")
+        XCTAssertEqual(metricValue("Blocked", in: snapshot.readModelSurface.liveRiskGateBlockedEvidenceMetrics), "confirmed")
+        XCTAssertEqual(metricValue("Incident stop gates", in: snapshot.readModelSurface.liveIncidentStopBlockedEvidenceMetrics), "5")
+        XCTAssertEqual(metricValue("Blocked", in: snapshot.readModelSurface.liveIncidentStopBlockedEvidenceMetrics), "confirmed")
+        XCTAssertTrue(snapshot.readModelSurface.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(snapshot.readModelSurface.providesOrderLevelCommand)
     }
 
-    func testMTP121WorkbenchFirstRunDefaultDemoStateFeedsDashboardSmokeReadOnly() throws {
+    func testMTP121DashboardFirstRunDefaultDemoStateFeedsDashboardSmokeReadOnly() throws {
         // 测试场景：MTP-121 Dashboard 启动默认状态必须选择 MTP-120 的 deterministic beta demo
         // fixture，并把 first-run evidence 作为 App ViewModel / Dashboard smoke 只读证据输出。
-        let viewModel = DashboardViewModel.defaultWorkbenchBetaDemo
-        let firstRun = viewModel.workbenchBetaFirstRun
+        let viewModel = DashboardViewModel.defaultDashboardBetaDemo
+        let firstRun = viewModel.dashboardBetaFirstRun
         let summary = try XCTUnwrap(firstRun.evidenceSummary)
         let snapshot = DashboardShellSnapshot(viewModel: viewModel)
-        let workbench = snapshot.workbench
+        let readModelSurface = snapshot.readModelSurface
 
         XCTAssertEqual(firstRun.state, .defaultDemo)
         XCTAssertEqual(firstRun.selectedScenarioID, "mtp-104-btcusdt-1m-first-scenario")
@@ -2837,7 +2837,7 @@ final class AppTests: XCTestCase {
             "mtp-104-btcusdt-1m-first-scenario|dataset-v1|fixture-v1|1704067200...1704067380|fnv1a64:3c6cd4ff13cd4062|fresh|accepted"
         )
         XCTAssertTrue(summary.simulatedParityEvidenceIdentity.contains("paper-order-intent-allowed"))
-        XCTAssertEqual(summary.validationAnchors, WorkbenchBetaFirstRunEvidenceSummary.validationAnchors)
+        XCTAssertEqual(summary.validationAnchors, DashboardBetaFirstRunEvidenceSummary.validationAnchors)
         XCTAssertTrue(summary.scenarioReplayWiringHeld)
         XCTAssertTrue(summary.simulatedParityWiringHeld)
         XCTAssertTrue(summary.localDeterministicFixtureOnly)
@@ -2845,14 +2845,14 @@ final class AppTests: XCTestCase {
 
         XCTAssertEqual(viewModel.report.scenarioReplayEvidenceCount, 1)
         XCTAssertEqual(viewModel.report.simulatedExchangeParityEvidenceCount, 1)
-        XCTAssertEqual(metricValue("First run", in: workbench.workbenchBetaFirstRunMetrics), "default demo")
+        XCTAssertEqual(metricValue("First run", in: readModelSurface.dashboardBetaFirstRunMetrics), "default demo")
         XCTAssertEqual(
-            metricValue("Demo scenario", in: workbench.workbenchBetaFirstRunMetrics),
+            metricValue("Demo scenario", in: readModelSurface.dashboardBetaFirstRunMetrics),
             "mtp-104-btcusdt-1m-first-scenario"
         )
-        XCTAssertEqual(metricValue("Fallbacks", in: workbench.workbenchBetaFirstRunMetrics), "3")
-        XCTAssertTrue(workbench.workbenchBetaFirstRunReadModelOnlyBoundaryHeld)
-        XCTAssertTrue(workbench.readModelOnlyBoundaryHeld)
+        XCTAssertEqual(metricValue("Fallbacks", in: readModelSurface.dashboardBetaFirstRunMetrics), "3")
+        XCTAssertTrue(readModelSurface.dashboardBetaFirstRunReadModelOnlyBoundaryHeld)
+        XCTAssertTrue(readModelSurface.readModelOnlyBoundaryHeld)
         XCTAssertTrue(snapshot.isReadModelOnly)
         XCTAssertTrue(snapshot.smokeSummary.contains("scenarioReplayEvidence=1"))
         XCTAssertTrue(snapshot.smokeSummary.contains("simulatedParityEvidence=1"))
@@ -2873,12 +2873,12 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(firstRun.authorizesTradingExecution)
     }
 
-    func testMTP121WorkbenchFirstRunFallbackStatesRemainReadModelOnly() {
+    func testMTP121DashboardFirstRunFallbackStatesRemainReadModelOnly() {
         // 测试场景：MTP-121 的 empty / loading / error fallback 只解释 first-run 展示状态，
         // 不携带下载、重试、Runtime mutation、broker action、live command 或交易按钮。
-        for state in [WorkbenchBetaFirstRunStateKind.empty, .loading, .error] {
-            let viewModel = WorkbenchBetaFirstRunViewModel(
-                readModel: WorkbenchBetaFirstRunReadModel.fallback(state)
+        for state in [DashboardBetaFirstRunStateKind.empty, .loading, .error] {
+            let viewModel = DashboardBetaFirstRunViewModel(
+                readModel: DashboardBetaFirstRunReadModel.fallback(state)
             )
 
             XCTAssertEqual(viewModel.state, state)
@@ -2901,16 +2901,16 @@ final class AppTests: XCTestCase {
         }
     }
 
-    func testMTP122WorkbenchBetaAcceptancePathFeedsReportDashboardAndEventsReadOnly() throws {
+    func testMTP122DashboardBetaAcceptancePathFeedsReportDashboardAndEventsReadOnly() throws {
         // 测试场景：MTP-122 只把 MTP-120 / MTP-121 的同一 deterministic demo fixture
         // 串成 Report summary、Dashboard panels 和 Events trace；不得新增 Runtime command、
         // broker action、signed endpoint、schema exposure、live command 或交易按钮。
-        let viewModel = DashboardViewModel.defaultWorkbenchBetaDemo
-        let acceptance = viewModel.workbenchBetaAcceptancePath
+        let viewModel = DashboardViewModel.defaultDashboardBetaDemo
+        let acceptance = viewModel.dashboardBetaAcceptancePath
         let snapshot = DashboardShellSnapshot(viewModel: viewModel)
-        let workbench = snapshot.workbench
+        let readModelSurface = snapshot.readModelSurface
         let acceptanceItems = viewModel.paperWorkflowEvidenceExplorer.timelineItems.filter {
-            $0.section == .workbenchBetaAcceptancePath
+            $0.section == .dashboardBetaAcceptancePath
         }
         let sectionCounts = Dictionary(
             uniqueKeysWithValues: viewModel.paperWorkflowEvidenceExplorer.sectionSnapshots.map {
@@ -2941,7 +2941,7 @@ final class AppTests: XCTestCase {
         )
         XCTAssertEqual(acceptance.grossExposureNotional, 10_530.175, accuracy: 0.00000001)
         XCTAssertEqual(acceptance.netSimulatedPnL, -6.84461375, accuracy: 0.00000001)
-        XCTAssertEqual(acceptance.validationAnchors, WorkbenchBetaAcceptancePathReadModel.validationAnchors)
+        XCTAssertEqual(acceptance.validationAnchors, DashboardBetaAcceptancePathReadModel.validationAnchors)
         XCTAssertTrue(acceptance.sameDemoScenarioHeld)
         XCTAssertTrue(acceptance.reportSurfaceReady)
         XCTAssertTrue(acceptance.dashboardPanelsReady)
@@ -2969,9 +2969,9 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(acceptance.touchesBrokerAction)
         XCTAssertFalse(acceptance.authorizesTradingExecution)
 
-        XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversWorkbenchBetaAcceptancePath)
+        XCTAssertTrue(viewModel.paperWorkflowEvidenceExplorer.coversDashboardBetaAcceptancePath)
         XCTAssertEqual(acceptanceItems.count, 5)
-        XCTAssertEqual(sectionCounts[.workbenchBetaAcceptancePath], 5)
+        XCTAssertEqual(sectionCounts[.dashboardBetaAcceptancePath], 5)
         XCTAssertTrue(
             acceptanceItems.contains {
                 $0.title == "Report beta acceptance summary"
@@ -2993,15 +2993,15 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(viewModel.paperWorkflowEvidenceExplorer.providesCommandSurface)
         XCTAssertFalse(viewModel.paperWorkflowEvidenceExplorer.providesOrderLevelCommand)
 
-        XCTAssertEqual(metricValue("Acceptance paths", in: workbench.workbenchBetaAcceptancePathMetrics), "1")
+        XCTAssertEqual(metricValue("Acceptance paths", in: readModelSurface.dashboardBetaAcceptancePathMetrics), "1")
         XCTAssertEqual(
-            metricValue("Acceptance scenario", in: workbench.workbenchBetaAcceptancePathMetrics),
+            metricValue("Acceptance scenario", in: readModelSurface.dashboardBetaAcceptancePathMetrics),
             "mtp-104-btcusdt-1m-first-scenario"
         )
-        XCTAssertEqual(metricValue("Event trace", in: workbench.workbenchBetaAcceptancePathMetrics), "5")
-        XCTAssertEqual(metricValue("Portfolio", in: workbench.workbenchBetaAcceptancePathMetrics), "confirmed")
-        XCTAssertTrue(workbench.workbenchBetaAcceptancePathReadModelOnlyBoundaryHeld)
-        XCTAssertTrue(workbench.readModelOnlyBoundaryHeld)
+        XCTAssertEqual(metricValue("Event trace", in: readModelSurface.dashboardBetaAcceptancePathMetrics), "5")
+        XCTAssertEqual(metricValue("Portfolio", in: readModelSurface.dashboardBetaAcceptancePathMetrics), "confirmed")
+        XCTAssertTrue(readModelSurface.dashboardBetaAcceptancePathReadModelOnlyBoundaryHeld)
+        XCTAssertTrue(readModelSurface.readModelOnlyBoundaryHeld)
         XCTAssertTrue(snapshot.isReadModelOnly)
         XCTAssertTrue(snapshot.smokeSummary.contains("betaAcceptancePaths=1"))
         XCTAssertTrue(snapshot.smokeSummary.contains("betaAcceptanceScenario=mtp-104-btcusdt-1m-first-scenario"))
@@ -3044,9 +3044,9 @@ final class AppTests: XCTestCase {
             "Sources/Dashboard/Report/AccountPositionBalanceReadModelOnlySurface.swift",
             "Sources/Dashboard/Report/LiveMonitoringReadOnlyConsoleV2Surface.swift",
             "Sources/Dashboard/Report/StrategyTraderReadinessEvidenceSurface.swift",
-            "Sources/Dashboard/WorkbenchBetaFirstRunState.swift",
+            "Sources/Dashboard/DashboardBetaFirstRunState.swift",
             "Sources/Dashboard/Events/PaperWorkflowEvidenceExplorer.swift",
-            "Sources/Dashboard/FutureLiveProConsole/LiveReadOnlyWorkbenchBoundary.swift",
+            "Sources/Dashboard/FutureLiveProConsole/LiveReadOnlyDashboardBoundary.swift",
             "Sources/Dashboard/DashboardShell.swift",
             "Sources/Dashboard/DashboardApplication.swift"
         ]
@@ -3283,7 +3283,7 @@ final class AppTests: XCTestCase {
         let scenario = report.scenarioReplayEvidence
         let explorer = viewModel.paperWorkflowEvidenceExplorer
         let snapshot = DashboardShellSnapshot(viewModel: viewModel)
-        let workbench = snapshot.workbench
+        let readModelSurface = snapshot.readModelSurface
 
         XCTAssertEqual(report.scenarioReplayEvidenceCount, 1)
         XCTAssertEqual(report.scenarioReplayScenarioIDs, ["mtp-104-btcusdt-1m-first-scenario"])
@@ -3343,17 +3343,17 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(metricValue("Scenario gates", in: reportSection), "6")
         XCTAssertTrue(reportSection.details.contains("Scenario replay quality: accepted"))
         XCTAssertTrue(reportSection.details.contains("Scenario replay command surface: none"))
-        XCTAssertEqual(metricValue("Scenarios", in: workbench.scenarioReplayEvidenceMetrics), "1")
-        XCTAssertEqual(metricValue("Quality gates", in: workbench.scenarioReplayEvidenceMetrics), "6")
-        XCTAssertEqual(metricValue("Report inputs", in: workbench.scenarioReplayEvidenceMetrics), "1")
-        XCTAssertEqual(metricValue("Quality", in: workbench.scenarioReplayEvidenceMetrics), "accepted")
-        XCTAssertTrue(workbench.scenarioReplayEvidenceSource.isReadModelOnly)
-        XCTAssertTrue(workbench.scenarioReplayEvidenceDetails.contains("Quality verdicts: accepted"))
-        XCTAssertTrue(workbench.scenarioReplayEvidenceDetails.contains("Command surface: none"))
-        XCTAssertTrue(workbench.scenarioReplayEvidenceDetails.contains("Query language: none"))
-        XCTAssertTrue(workbench.readModelOnlyBoundaryHeld)
-        XCTAssertFalse(workbench.providesCommandSurface)
-        XCTAssertFalse(workbench.authorizesTradingExecution)
+        XCTAssertEqual(metricValue("Scenarios", in: readModelSurface.scenarioReplayEvidenceMetrics), "1")
+        XCTAssertEqual(metricValue("Quality gates", in: readModelSurface.scenarioReplayEvidenceMetrics), "6")
+        XCTAssertEqual(metricValue("Report inputs", in: readModelSurface.scenarioReplayEvidenceMetrics), "1")
+        XCTAssertEqual(metricValue("Quality", in: readModelSurface.scenarioReplayEvidenceMetrics), "accepted")
+        XCTAssertTrue(readModelSurface.scenarioReplayEvidenceSource.isReadModelOnly)
+        XCTAssertTrue(readModelSurface.scenarioReplayEvidenceDetails.contains("Quality verdicts: accepted"))
+        XCTAssertTrue(readModelSurface.scenarioReplayEvidenceDetails.contains("Command surface: none"))
+        XCTAssertTrue(readModelSurface.scenarioReplayEvidenceDetails.contains("Query language: none"))
+        XCTAssertTrue(readModelSurface.readModelOnlyBoundaryHeld)
+        XCTAssertFalse(readModelSurface.providesCommandSurface)
+        XCTAssertFalse(readModelSurface.authorizesTradingExecution)
         XCTAssertTrue(snapshot.smokeSummary.contains("scenarioReplayEvidence=1"))
         XCTAssertTrue(snapshot.smokeSummary.contains("scenarioQualityGates=6"))
     }

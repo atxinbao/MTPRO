@@ -1,12 +1,12 @@
 import Foundation
 import Core
 
-/// LiveReadOnlyWorkbenchBoundaryReadModel 是 MTP-131 的 App 层只读输入。
+/// LiveReadOnlyDashboardBoundaryReadModel 是 MTP-131 的 App 层只读输入。
 ///
 /// 输入只能来自 Core `LiveReadOnlyWorkbenchReadModelBoundary` deterministic fixture 或等价只读模型。
 /// App 层只保留 source contract、边界枚举和禁止能力 flags，不读取 secret、不调用 signed / account
 /// endpoint、不连接 broker，也不触碰 Runtime、Persistence schema 或真实交易系统。
-public struct LiveReadOnlyWorkbenchBoundaryReadModel: Equatable, Sendable {
+public struct LiveReadOnlyDashboardBoundaryReadModel: Equatable, Sendable {
     public let source: ViewModelSourceContract
     public let boundary: Core.LiveReadOnlyWorkbenchReadModelBoundary
     public let lastAppliedSequence: Int?
@@ -27,12 +27,12 @@ public struct LiveReadOnlyWorkbenchBoundaryReadModel: Equatable, Sendable {
     }
 }
 
-/// LiveReadOnlyWorkbenchBoundaryViewModel 是 Dashboard / Report / Event Timeline 的 MTP-131 快照。
+/// LiveReadOnlyDashboardBoundaryViewModel 是 Dashboard / Report / Event Timeline 的 MTP-131 快照。
 ///
 /// ViewModel 只输出 boundary surfaces、ReadModel / ViewModel 输入来源、detail / audit route 和
 /// forbidden UI flags。它不提供 API key 输入、连接按钮、Live PRO Console、交易按钮、order form、
 /// live command、adapter、Runtime、schema、signed/account endpoint 或真实订单授权。
-public struct LiveReadOnlyWorkbenchBoundaryViewModel: Codable, Equatable, Sendable {
+public struct LiveReadOnlyDashboardBoundaryViewModel: Codable, Equatable, Sendable {
     public let source: ViewModelSourceContract
     public let contractID: String
     public let issueID: String
@@ -81,7 +81,7 @@ public struct LiveReadOnlyWorkbenchBoundaryViewModel: Codable, Equatable, Sendab
     public let requiredValidationDependsOnNetwork: Bool
     public let lastAppliedSequence: Int?
 
-    public init(readModel: LiveReadOnlyWorkbenchBoundaryReadModel) {
+    public init(readModel: LiveReadOnlyDashboardBoundaryReadModel) {
         let source = readModel.source
         let boundary = readModel.boundary
         let exposesRuntimeObject = source.exposesRuntimeObjects

@@ -3,7 +3,7 @@ import Foundation
 
 /// ScenarioReplayEvidenceTimelineEntry 是 MTP-108 Events / Evidence Explorer 的只读 timeline 行。
 ///
-/// Entry 只复制 MTP-106 replay evidence 和 MTP-107 quality gate 的稳定摘要，用于 Workbench
+/// Entry 只复制 MTP-106 replay evidence 和 MTP-107 quality gate 的稳定摘要，用于 Dashboard
 /// drill-down 与 Event Timeline 展示；它不持有 Runtime object、SQLite / DuckDB schema、
 /// adapter request、query language、command surface、live command 或交易按钮。
 public struct ScenarioReplayEvidenceTimelineEntry: Codable, Equatable, Sendable {
@@ -227,7 +227,7 @@ public struct ScenarioReplayEvidenceItem: Codable, Equatable, Sendable {
     }
 }
 
-/// ScenarioReplayEvidenceReadModel 汇总 Report / Workbench / Events 可消费的 scenario replay 输入。
+/// ScenarioReplayEvidenceReadModel 汇总 Report / Dashboard / Events 可消费的 scenario replay 输入。
 ///
 /// 上游只需要传入已经由 Core deterministic fixture 或后续 projection 生成的 evidence item；App 层只
 /// 排序、聚合和暴露 read-model-only boundary，不触发 replay、不读 schema、不调用 adapter。
@@ -271,7 +271,7 @@ public struct ScenarioReplayEvidenceReadModel: Equatable, Sendable {
     }
 }
 
-/// ScenarioReplayEvidenceViewModel 是 Dashboard / Report / Workbench / Events 的可编码只读快照。
+/// ScenarioReplayEvidenceViewModel 是 Dashboard / Report / Dashboard / Events 的可编码只读快照。
 ///
 /// ViewModel 只从 `ScenarioReplayEvidenceReadModel` 派生计数、ID、quality verdict、timeline 和
 /// boundary flags。它不提供按钮、查询语言、命令模型、下载控制台、Live PRO Console 或交易授权。

@@ -69,7 +69,7 @@ public struct StrategyTraderReadinessEvidenceSurfaceRecord: Codable, Equatable, 
 /// StrategyTraderReadinessEvidenceSurfaceReadModel 是 MTP-160 的 App 层只读输入。
 ///
 /// 该 read model 只组合 MTP-154 至 MTP-159 的 deterministic contract evidence，供
-/// Workbench、Report 和 Events 展示 Strategy / Trader readiness。它不读取真实账户、不连接
+/// Dashboard、Report 和 Events 展示 Strategy / Trader readiness。它不读取真实账户、不连接
 /// broker、不访问 Persistence schema、不调用 Runtime / Adapter，也不创建 Strategy Console、
 /// Live PRO Console、trading button、live command 或 order form。
 public struct StrategyTraderReadinessEvidenceSurfaceReadModel: Equatable, Sendable {
@@ -210,7 +210,7 @@ public struct StrategyTraderReadinessEvidenceSurfaceReadModel: Equatable, Sendab
     ]
 }
 
-/// StrategyTraderReadinessEvidenceSurfaceViewModel 是 MTP-160 的 Workbench / Report / Events 快照。
+/// StrategyTraderReadinessEvidenceSurfaceViewModel 是 MTP-160 的 Dashboard / Report / Events 快照。
 ///
 /// ViewModel 只输出 readiness evidence、source anchors、report summary、dashboard panel summary 和
 /// event trace。所有 capability flags 必须保持 false，证明该 surface 只消费 App Read Model /

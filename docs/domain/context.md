@@ -2051,7 +2051,7 @@ MTP-120 固定 `dataset-v1` 和 `fixture-v1`，使后续 MTP-121 / MTP-122 / MTP
 
 `MTP-120-SCENARIO-REPLAY-FIXTURE-WIRING`
 
-MTP-120 的 wiring 由 Core 值对象 `WorkbenchBetaDemoScenarioSelection` 和 `WorkbenchBetaDemoFixtureEvidence` 表达：前者固定 selection，后者复用 `ScenarioDataQualityReportInputEvidence.deterministicFixture` 和 `SimulatedExchangePortfolioProjectionParityFixture.deterministicEvidence()`。该 wiring 不新增 fixture records、不触发 replay scheduler、不读取 Persistence schema、不调用 Adapter、不新增 App read model 或 Dashboard first-run state。
+MTP-120 的 wiring 由 Core 值对象 `DashboardBetaDemoScenarioSelection` 和 `DashboardBetaDemoFixtureEvidence` 表达：前者固定 selection，后者复用 `ScenarioDataQualityReportInputEvidence.deterministicFixture` 和 `SimulatedExchangePortfolioProjectionParityFixture.deterministicEvidence()`。该 wiring 不新增 fixture records、不触发 replay scheduler、不读取 Persistence schema、不调用 Adapter、不新增 App read model 或 Dashboard first-run state。
 
 `MTP-120-CHECKSUM-FRESHNESS-EVIDENCE`
 
@@ -2078,7 +2078,7 @@ MTP-121 把 Workbench first-run 默认选择固定为 MTP-120 的 local determin
 
 `MTP-121-READ-MODEL-ONLY-DASHBOARD-STATE`
 
-MTP-121 的 first-run state 只能通过 `WorkbenchBetaFirstRunReadModel`、`WorkbenchBetaFirstRunViewModel`、`DashboardReadModel.defaultWorkbenchBetaDemo` 和 `DashboardViewModel.defaultWorkbenchBetaDemo` 进入 Dashboard。Dashboard 不直接读取 Core fixture、Persistence schema、Runtime object 或 Adapter request。
+MTP-121 的 first-run state 只能通过 `DashboardBetaFirstRunReadModel`、`DashboardBetaFirstRunViewModel`、`DashboardReadModel.defaultDashboardBetaDemo` 和 `DashboardViewModel.defaultDashboardBetaDemo` 进入 Dashboard。Dashboard 不直接读取 Core fixture、Persistence schema、Runtime object 或 Adapter request。
 
 `MTP-121-FIRST-RUN-FALLBACK-STATES`
 
@@ -2109,7 +2109,7 @@ MTP-122 把 Report beta acceptance summary 定义为 read-model-only acceptance 
 
 `MTP-122-DASHBOARD-BETA-EVIDENCE-PANELS`
 
-MTP-122 Dashboard panels 必须通过 `WorkbenchBetaAcceptancePathViewModel` 和 `DashboardShellSnapshot` 输出 `betaAcceptancePaths=1`、`betaAcceptanceScenario=mtp-104-btcusdt-1m-first-scenario` 和 `betaAcceptanceTrace=5`。这些 handles 只表示 local beta evidence 可验收，不提供 scenario selector、download action、repair command、order command、live command 或交易按钮。
+MTP-122 Dashboard panels 必须通过 `DashboardBetaAcceptancePathViewModel` 和 `DashboardShellSnapshot` 输出 `betaAcceptancePaths=1`、`betaAcceptanceScenario=mtp-104-btcusdt-1m-first-scenario` 和 `betaAcceptanceTrace=5`。这些 handles 只表示 local beta evidence 可验收，不提供 scenario selector、download action、repair command、order command、live command 或交易按钮。
 
 `MTP-122-EVENTS-BETA-ACCEPTANCE-TRACE`
 
@@ -2305,7 +2305,7 @@ MTP-130 validation 必须证明 contract、domain context、validation plan、tr
 
 `MTP-131-WORKBENCH-LIVE-READINESS-READ-MODEL-ONLY-BOUNDARY`
 
-MTP-131 Workbench Live readiness read-model-only boundary 表示 Workbench、Dashboard、Report 和 Event Timeline 只能展示 Live readiness boundary evidence。`LiveReadOnlyWorkbenchReadModelBoundary`、`LiveReadOnlyWorkbenchBoundaryReadModel` 和 `LiveReadOnlyWorkbenchBoundaryViewModel` 只允许携带 surface labels、ReadModel / ViewModel input boundary、forbidden UI labels、detail / audit route、L3.1 / L3.2 / L3.3 handoff target、source anchors 和 validation anchors；它们不等于 API key 表单、broker connect、account connect、Live PRO Console、trading button、live command、order form、real account balance 或 broker position。
+MTP-131 Workbench Live readiness read-model-only boundary 是历史 issue 名称；当前 active UI surface 是 Dashboard read-model-only boundary。`LiveReadOnlyWorkbenchReadModelBoundary`、`LiveReadOnlyDashboardBoundaryReadModel` 和 `LiveReadOnlyDashboardBoundaryViewModel` 只允许携带 surface labels、ReadModel / ViewModel input boundary、forbidden UI labels、detail / audit route、L3.1 / L3.2 / L3.3 handoff target、source anchors 和 validation anchors；它们不等于 API key 表单、broker connect、account connect、Live PRO Console、trading button、live command、order form、real account balance 或 broker position。
 
 `MTP-131-READ-MODEL-VIEWMODEL-INPUT-BOUNDARY`
 

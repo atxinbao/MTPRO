@@ -86,8 +86,8 @@ Demo workflow 不得被解释为以下能力：
 
 `MTP-124-TROUBLESHOOTING-POINTERS`
 
-- Scenario handle drift：检查 MTP-120 `WorkbenchBetaDemoScenarioSelection` 是否仍固定 `mtp-104-btcusdt-1m-first-scenario`。
-- First-run handle drift：检查 MTP-121 `WorkbenchBetaFirstRunReadModel` / `DashboardViewModel.defaultWorkbenchBetaDemo` 是否仍消费同一 fixture。
-- Acceptance trace drift：检查 MTP-122 `WorkbenchBetaAcceptancePathReadModel` 和 `PaperWorkflowEvidenceExplorerSection.workbenchBetaAcceptancePath`。
+- Scenario handle drift：检查 MTP-120 `DashboardBetaDemoScenarioSelection` 是否仍固定 `mtp-104-btcusdt-1m-first-scenario`。
+- First-run handle drift：检查 MTP-121 `DashboardBetaFirstRunReadModel` / `DashboardViewModel.defaultDashboardBetaDemo` 是否仍消费同一 fixture。
+- Acceptance trace drift：检查 MTP-122 `DashboardBetaAcceptancePathReadModel` 和 `PaperWorkflowEvidenceExplorerSection.workbenchBetaAcceptancePath`。
 - Script failure：检查 MTP-123 `checks/workbench-beta-acceptance.sh` 和 `docs/validation/workbench-beta-acceptance-checklist.md`。
 - Required gate failure：按 `bash checks/run.sh` 的阶段顺序定位，不通过 Graphify、Figma、signed endpoint、broker 或 live command 绕过。

@@ -44,9 +44,9 @@
 | --- | --- | --- |
 | `MTP-118` | `docs/contracts/workbench-beta-readiness-contract.md` | Workbench beta readiness terminology、acceptance boundary 和 forbidden capability baseline |
 | `MTP-119` | `docs/validation/macos-build-run-loop.md` | local launch / install / environment verification path |
-| `MTP-120` | `Sources/Core/WorkbenchBetaDemoScenario.swift` | deterministic demo scenario、dataset / fixture version、checksum / freshness evidence |
-| `MTP-121` | `Sources/App/WorkbenchBetaFirstRunState.swift` | first-run default demo state 和 fallback states |
-| `MTP-122` | `Sources/App/WorkbenchBetaAcceptancePath.swift` | Report / Dashboard / Events beta acceptance path |
+| `MTP-120` | `Sources/Core/DashboardBetaDemoScenario.swift` | deterministic demo scenario、dataset / fixture version、checksum / freshness evidence |
+| `MTP-121` | `Sources/App/DashboardBetaFirstRunState.swift` | first-run default demo state 和 fallback states |
+| `MTP-122` | `Sources/App/DashboardBetaAcceptancePath.swift` | Report / Dashboard / Events beta acceptance path |
 | `MTP-123` | `docs/validation/workbench-beta-acceptance-checklist.md`、`checks/workbench-beta-acceptance.sh` | reproducible beta acceptance checklist / script |
 | `MTP-124` | `docs/index.md`、`docs/validation/workbench-beta-operator-guide.md`、`docs/validation/workbench-beta-demo-workflow-guide.md` | docs index、operator guide、demo workflow guide、known limitations、forbidden capabilities 和 troubleshooting pointers |
 

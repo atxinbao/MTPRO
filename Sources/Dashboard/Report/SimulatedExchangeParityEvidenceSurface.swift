@@ -370,7 +370,7 @@ public struct SimulatedExchangeParityEvidenceReadModel: Equatable, Sendable {
     }
 }
 
-/// SimulatedExchangeParityEvidenceViewModel 是 Dashboard / Report / Workbench / Events 的可编码只读快照。
+/// SimulatedExchangeParityEvidenceViewModel 是 Dashboard / Report / Dashboard / Events 的可编码只读快照。
 ///
 /// ViewModel 只从 `SimulatedExchangeParityEvidenceReadModel` 派生计数、ID、timeline 和 boundary
 /// flags。它不提供按钮、order form、query language、Runtime command、Live PRO Console 或交易授权。

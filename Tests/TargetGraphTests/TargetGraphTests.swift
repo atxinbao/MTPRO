@@ -997,9 +997,9 @@ final class TargetGraphTests: XCTestCase {
             "\"DashboardTargetBoundary.swift\"",
             "\"DashboardShell.swift\"",
             "\"PaperWorkflowObservability.swift\"",
-            "\"PaperWorkflowWorkbenchArchitecture.swift\"",
-            "\"WorkbenchBetaAcceptancePath.swift\"",
-            "\"WorkbenchBetaFirstRunState.swift\"",
+            "\"PaperWorkflowDashboardArchitecture.swift\"",
+            "\"DashboardBetaAcceptancePath.swift\"",
+            "\"DashboardBetaFirstRunState.swift\"",
             "\"ReadModels\"",
             "\"Report\"",
             "\"Events\"",
@@ -1024,7 +1024,7 @@ final class TargetGraphTests: XCTestCase {
             "Sources/Dashboard/ReadModels/App.swift",
             "Sources/Dashboard/Report/LiveTradingBlockedEvidence.swift",
             "Sources/Dashboard/Events/PaperWorkflowEvidenceExplorer.swift",
-            "Sources/Dashboard/FutureLiveProConsole/LiveReadOnlyWorkbenchBoundary.swift",
+            "Sources/Dashboard/FutureLiveProConsole/LiveReadOnlyDashboardBoundary.swift",
             "Sources/Dashboard/DashboardTargetBoundary.swift",
             "Sources/Dashboard/DashboardApplication.swift"
         ] {

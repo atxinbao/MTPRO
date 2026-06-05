@@ -46,7 +46,7 @@ private extension Array where Element: Hashable {
 ///
 /// 该 read model 只组合 MTP-141 至 MTP-144 已完成的 Core deterministic fixture contract，
 /// 并把 source identity、snapshot input、update fixture 和 freshness evidence 暴露为
-/// Workbench、Report 与 Events 可展示的稳定输入。它不读取真实账户、不读取 SQLite / DuckDB
+/// Dashboard、Report 与 Events 可展示的稳定输入。它不读取真实账户、不读取 SQLite / DuckDB
 /// schema、不调用 Runtime / Adapter，也不创建 API key input、account connect 或 broker connect。
 public struct PrivateStreamSimulationGateEvidenceSurfaceReadModel: Equatable, Sendable {
     public let source: ViewModelSourceContract

@@ -9,12 +9,12 @@ import Foundation
 /// 不启动 Runtime job，也不接 signed endpoint、account endpoint、listenKey、broker、OMS、Live PRO
 /// Console、live command 或交易按钮。
 
-/// WorkbenchBetaDemoScenarioSelection 固定 MTP-120 允许进入 beta demo 的唯一 scenario identity。
+/// DashboardBetaDemoScenarioSelection 固定 MTP-120 允许进入 beta demo 的唯一 scenario identity。
 ///
 /// Selection 只表达选择合同：scenario id、dataset version、fixture version、symbol、timeframe、
 /// source anchors 和 validation anchors。所有外部系统、真实交易和 production data capability flag
 /// 必须保持 false，Codable 解码也会重新执行同一校验。
-public struct WorkbenchBetaDemoScenarioSelection: Codable, Equatable, Sendable {
+public struct DashboardBetaDemoScenarioSelection: Codable, Equatable, Sendable {
     public let contractID: Identifier
     public let issueID: Identifier
     public let scenarioID: ScenarioID
@@ -270,9 +270,9 @@ public struct WorkbenchBetaDemoScenarioSelection: Codable, Equatable, Sendable {
         )
     }
 
-    public static let deterministicFixture: WorkbenchBetaDemoScenarioSelection = {
+    public static let deterministicFixture: DashboardBetaDemoScenarioSelection = {
         do {
-            return try WorkbenchBetaDemoScenarioSelection()
+            return try DashboardBetaDemoScenarioSelection()
         } catch {
             preconditionFailure("MTP-120 beta demo scenario selection must be valid: \(error)")
         }
@@ -411,15 +411,15 @@ public struct WorkbenchBetaDemoScenarioSelection: Codable, Equatable, Sendable {
     }
 }
 
-/// WorkbenchBetaDemoFixtureEvidence 把被选择的 beta scenario 绑定到 L1.5 / L2 deterministic evidence。
+/// DashboardBetaDemoFixtureEvidence 把被选择的 beta scenario 绑定到 L1.5 / L2 deterministic evidence。
 ///
 /// Evidence 输出 checksum、freshness、report input version、simulated parity identity 和 relationship
 /// summary，供后续 issue 在 read-model-only 路径中消费。它只做值对象校验和证据复制，不启动 replay
 /// job、不读取 schema、不下载数据、不执行撮合 runtime，也不产生任何真实交易授权。
-public struct WorkbenchBetaDemoFixtureEvidence: Codable, Equatable, Sendable {
+public struct DashboardBetaDemoFixtureEvidence: Codable, Equatable, Sendable {
     public let evidenceID: Identifier
     public let issueID: Identifier
-    public let selection: WorkbenchBetaDemoScenarioSelection
+    public let selection: DashboardBetaDemoScenarioSelection
     public let scenarioReplayEvidence: ScenarioDataQualityReportInputEvidence
     public let simulatedParityEvidence: SimulatedExchangePortfolioProjectionParityEvidence
     public let checksum: String
@@ -466,7 +466,7 @@ public struct WorkbenchBetaDemoFixtureEvidence: Codable, Equatable, Sendable {
             && checksum == scenarioReplayEvidence.reportInputVersion.checksum
             && freshnessStatus == .fresh
             && qualityVerdict == .accepted
-            && validationAnchors == WorkbenchBetaDemoScenarioSelection.requiredValidationAnchors
+            && validationAnchors == DashboardBetaDemoScenarioSelection.requiredValidationAnchors
             && forbiddenCapabilityBoundaryHeld
     }
 
@@ -496,11 +496,11 @@ public struct WorkbenchBetaDemoFixtureEvidence: Codable, Equatable, Sendable {
     public init(
         evidenceID: Identifier = try! Identifier("mtp-120-workbench-beta-demo-fixture-evidence"),
         issueID: Identifier = try! Identifier("MTP-120"),
-        selection: WorkbenchBetaDemoScenarioSelection = .deterministicFixture,
+        selection: DashboardBetaDemoScenarioSelection = .deterministicFixture,
         scenarioReplayEvidence: ScenarioDataQualityReportInputEvidence = .deterministicFixture,
         simulatedParityEvidence: SimulatedExchangePortfolioProjectionParityEvidence =
             try! SimulatedExchangePortfolioProjectionParityFixture.deterministicEvidence(),
-        validationAnchors: [String] = WorkbenchBetaDemoScenarioSelection.requiredValidationAnchors,
+        validationAnchors: [String] = DashboardBetaDemoScenarioSelection.requiredValidationAnchors,
         scenarioReplayWiringHeld: Bool = true,
         simulatedParityWiringHeld: Bool = true,
         localDeterministicFixtureOnly: Bool = true,
@@ -614,10 +614,10 @@ public struct WorkbenchBetaDemoFixtureEvidence: Codable, Equatable, Sendable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        let rebuilt = try WorkbenchBetaDemoFixtureEvidence(
+        let rebuilt = try DashboardBetaDemoFixtureEvidence(
             evidenceID: try container.decode(Identifier.self, forKey: .evidenceID),
             issueID: try container.decode(Identifier.self, forKey: .issueID),
-            selection: try container.decode(WorkbenchBetaDemoScenarioSelection.self, forKey: .selection),
+            selection: try container.decode(DashboardBetaDemoScenarioSelection.self, forKey: .selection),
             scenarioReplayEvidence: try container.decode(
                 ScenarioDataQualityReportInputEvidence.self,
                 forKey: .scenarioReplayEvidence
@@ -689,9 +689,9 @@ public struct WorkbenchBetaDemoFixtureEvidence: Codable, Equatable, Sendable {
         self = rebuilt
     }
 
-    public static let deterministicFixture: WorkbenchBetaDemoFixtureEvidence = {
+    public static let deterministicFixture: DashboardBetaDemoFixtureEvidence = {
         do {
-            return try WorkbenchBetaDemoFixtureEvidence()
+            return try DashboardBetaDemoFixtureEvidence()
         } catch {
             preconditionFailure("MTP-120 beta demo fixture evidence must be valid: \(error)")
         }
@@ -713,7 +713,7 @@ public struct WorkbenchBetaDemoFixtureEvidence: Codable, Equatable, Sendable {
     }
 
     private static func validate(
-        selection: WorkbenchBetaDemoScenarioSelection,
+        selection: DashboardBetaDemoScenarioSelection,
         scenarioReplayEvidence: ScenarioDataQualityReportInputEvidence,
         simulatedParityEvidence: SimulatedExchangePortfolioProjectionParityEvidence,
         validationAnchors: [String],
@@ -786,9 +786,9 @@ public struct WorkbenchBetaDemoFixtureEvidence: Codable, Equatable, Sendable {
                 actual: "\(reportInput.checksum)|\(reportInput.freshnessStatus.rawValue)|\(reportInput.qualityVerdict.rawValue)"
             )
         }
-        try WorkbenchBetaDemoScenarioSelection.validateList(
+        try DashboardBetaDemoScenarioSelection.validateList(
             field: "workbenchBetaDemoFixtureEvidence.validationAnchors",
-            expected: WorkbenchBetaDemoScenarioSelection.requiredValidationAnchors,
+            expected: DashboardBetaDemoScenarioSelection.requiredValidationAnchors,
             actual: validationAnchors
         )
         let requiredTrueFlags = [
@@ -804,7 +804,7 @@ public struct WorkbenchBetaDemoFixtureEvidence: Codable, Equatable, Sendable {
                 actual: "false"
             )
         }
-        try WorkbenchBetaDemoScenarioSelection.validateForbiddenFlags(
+        try DashboardBetaDemoScenarioSelection.validateForbiddenFlags(
             prefix: "workbenchBetaDemoFixtureEvidence",
             requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork
                 || scenarioReplayEvidence.requiredValidationDependsOnNetwork
@@ -832,7 +832,7 @@ public struct WorkbenchBetaDemoFixtureEvidence: Codable, Equatable, Sendable {
     }
 }
 
-fileprivate extension WorkbenchBetaDemoScenarioSelection {
+fileprivate extension DashboardBetaDemoScenarioSelection {
     static func validateList(field: String, expected: [String], actual: [String]) throws {
         guard expected == actual else {
             throw CoreError.workbenchBetaReadinessContractMismatch(

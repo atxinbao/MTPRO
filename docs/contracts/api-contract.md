@@ -638,14 +638,14 @@ MTP-47 不新增 HTTP API，不新增 `Command` case，也不实现 session cont
 新增 App 层合同 fixture：
 
 - `PaperWorkflowSessionControl`：只定义未来 session-level local controls 的允许集合 `start` / `pause` / `close` / `reset`。
-- `PaperWorkflowWorkbenchInformationArchitecture`：记录 Workbench 信息架构、read-model-only 来源、观察面和 forbidden capability。
+- `PaperWorkflowDashboardInformationArchitecture`：记录 Dashboard 信息架构、read-model-only 来源、观察面和 forbidden capability。
 
 契约要求：
 
 - session-level control 名称只能用于后续 paper-only local control shell。
 - order-level command 必须保持禁止。
-- Workbench IA 不得调用 Runtime、Adapters、Binance signed endpoint、account endpoint、listenKey、broker 或真实订单 API。
-- `PaperWorkflowWorkbenchInformationArchitecture` 的合同验证必须拒绝 order-level command、非 read-model-only source、提前实现 Command Model、UI controls 或 Event Timeline。
+- Dashboard IA 不得调用 Runtime、Adapters、Binance signed endpoint、account endpoint、listenKey、broker 或真实订单 API。
+- `PaperWorkflowDashboardInformationArchitecture` 的合同验证必须拒绝 order-level command、非 read-model-only source、提前实现 Command Model、UI controls 或 Event Timeline。
 
 边界确认：
 

@@ -291,11 +291,11 @@ MTP-120 固定 dataset / fixture version 的原因是让 MTP-121 first-run state
 
 `MTP-120-SCENARIO-REPLAY-FIXTURE-WIRING`
 
-MTP-120 的 Core tracer bullet 为 `WorkbenchBetaDemoScenarioSelection` 与 `WorkbenchBetaDemoFixtureEvidence`：
+MTP-120 的 Core tracer bullet 为 `DashboardBetaDemoScenarioSelection` 与 `DashboardBetaDemoFixtureEvidence`：
 
-- `WorkbenchBetaDemoScenarioSelection` 固定 demo scenario identity、source anchors 和 MTP-120 validation anchors。
-- `WorkbenchBetaDemoFixtureEvidence` 复用 `ScenarioDataQualityReportInputEvidence.deterministicFixture`，把 MTP-106 replay window / cursor / checksum / freshness、MTP-107 quality verdict / report input version 绑定到同一 demo scenario。
-- `WorkbenchBetaDemoFixtureEvidence` 同时复用 `SimulatedExchangePortfolioProjectionParityFixture.deterministicEvidence()`，把 L2 simulated exchange / backtest parity evidence 绑定到同一 report input version。
+- `DashboardBetaDemoScenarioSelection` 固定 demo scenario identity、source anchors 和 MTP-120 validation anchors。
+- `DashboardBetaDemoFixtureEvidence` 复用 `ScenarioDataQualityReportInputEvidence.deterministicFixture`，把 MTP-106 replay window / cursor / checksum / freshness、MTP-107 quality verdict / report input version 绑定到同一 demo scenario。
+- `DashboardBetaDemoFixtureEvidence` 同时复用 `SimulatedExchangePortfolioProjectionParityFixture.deterministicEvidence()`，把 L2 simulated exchange / backtest parity evidence 绑定到同一 report input version。
 
 该 wiring 不新增 fixture records，不实现 replay scheduler，不读取 Persistence schema，不调用 Adapter，不接真实网络，不新增 App read model 或 Dashboard first-run state。
 
@@ -355,7 +355,7 @@ Required validation：
 
 Focused validation anchors：
 
-- `Sources/Core/WorkbenchBetaDemoScenario.swift` 必须定义 `WorkbenchBetaDemoScenarioSelection` 和 `WorkbenchBetaDemoFixtureEvidence`。
+- `Sources/Core/DashboardBetaDemoScenario.swift` 必须定义 `DashboardBetaDemoScenarioSelection` 和 `DashboardBetaDemoFixtureEvidence`。
 - `Tests/CoreTests/CoreTests.swift` 必须包含 MTP-120 focused tests，验证 demo scenario selection、dataset / fixture version lock、scenario replay fixture wiring、checksum / freshness evidence、L1.5 / L2 relationship、Codable round-trip 和 forbidden capability bypass rejection。
 - `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-120 anchors。
 
@@ -380,11 +380,11 @@ MTP-121 在 MTP-120 固定的 local deterministic beta demo fixture 之上定义
 
 `MTP-121-READ-MODEL-ONLY-DASHBOARD-STATE`
 
-MTP-121 的 App tracer bullet 是 `WorkbenchBetaFirstRunReadModel` 与 `WorkbenchBetaFirstRunViewModel`：
+MTP-121 的 App tracer bullet 是 `DashboardBetaFirstRunReadModel` 与 `DashboardBetaFirstRunViewModel`：
 
-- `WorkbenchBetaFirstRunReadModel.defaultDemoState` 只复制 `WorkbenchBetaDemoFixtureEvidence.deterministicFixture` 的 scenario、dataset / fixture version、checksum、freshness、quality、report input version 和 L1.5 / L2 relationship。
-- `DashboardReadModel.defaultWorkbenchBetaDemo` 把 first-run read model 与 `ScenarioReplayEvidenceReadModel.deterministicFixture`、`SimulatedExchangeParityEvidenceReadModel.deterministicFixture` 组合为启动 snapshot。
-- `DashboardViewModel.defaultWorkbenchBetaDemo` 和 `DashboardShellSnapshot.smokeSummary` 输出 `defaultDemoState=default demo`、`defaultDemoScenario=mtp-104-btcusdt-1m-first-scenario`、`scenarioReplayEvidence=1`、`simulatedParityEvidence=1` 和 `betaFirstRunFallbacks=3`。
+- `DashboardBetaFirstRunReadModel.defaultDemoState` 只复制 `DashboardBetaDemoFixtureEvidence.deterministicFixture` 的 scenario、dataset / fixture version、checksum、freshness、quality、report input version 和 L1.5 / L2 relationship。
+- `DashboardReadModel.defaultDashboardBetaDemo` 把 first-run read model 与 `ScenarioReplayEvidenceReadModel.deterministicFixture`、`SimulatedExchangeParityEvidenceReadModel.deterministicFixture` 组合为启动 snapshot。
+- `DashboardViewModel.defaultDashboardBetaDemo` 和 `DashboardShellSnapshot.smokeSummary` 输出 `defaultDemoState=default demo`、`defaultDemoScenario=mtp-104-btcusdt-1m-first-scenario`、`scenarioReplayEvidence=1`、`simulatedParityEvidence=1` 和 `betaFirstRunFallbacks=3`。
 
 Dashboard 只能消费 App ViewModel / Read Model，不直接读取 Core fixture、Persistence schema、Runtime object 或 Adapter request。
 
@@ -451,8 +451,8 @@ Required validation：
 
 Focused validation anchors：
 
-- `Sources/Dashboard/WorkbenchBetaFirstRunState.swift` 必须定义 `WorkbenchBetaFirstRunReadModel` 和 `WorkbenchBetaFirstRunViewModel`。
-- `Sources/Dashboard/DashboardApplication.swift` 必须使用 `DashboardViewModel.defaultWorkbenchBetaDemo`。
+- `Sources/Dashboard/DashboardBetaFirstRunState.swift` 必须定义 `DashboardBetaFirstRunReadModel` 和 `DashboardBetaFirstRunViewModel`。
+- `Sources/Dashboard/DashboardApplication.swift` 必须使用 `DashboardViewModel.defaultDashboardBetaDemo`。
 - `Tests/AppTests/AppTests.swift` 必须包含 MTP-121 focused tests，验证 default selected scenario、read-model-only Dashboard state、empty / loading / error fallback、first-run evidence summary、Dashboard smoke handles 和 forbidden capability boundary。
 - `docs/contracts/workbench-beta-readiness-contract.md`、`docs/domain/context.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 MTP-121 anchors。
 
@@ -464,7 +464,7 @@ MTP-121 不新增 engine core capability、不新增 Runtime replay job、不新
 
 `MTP-122-REPORT-BETA-ACCEPTANCE-SUMMARY`
 
-MTP-122 在 MTP-120 demo fixture 与 MTP-121 first-run default demo state 之上建立 Report beta acceptance summary。该 summary 只能消费 `ReportReadModel.scenarioReplayEvidence`、`ReportReadModel.simulatedExchangeParityEvidence` 和 `WorkbenchBetaFirstRunReadModel.defaultDemo`，必须保留同一 scenario、dataset version、fixture version、report input version、checksum、freshness、quality、simulated parity evidence、portfolio projection evidence 和 validation anchors。它不新增 Runtime replay job，不读取 Persistence schema，不暴露 Core object inspector，不接 Adapter request。
+MTP-122 在 MTP-120 demo fixture 与 MTP-121 first-run default demo state 之上建立 Report beta acceptance summary。该 summary 只能消费 `ReportReadModel.scenarioReplayEvidence`、`ReportReadModel.simulatedExchangeParityEvidence` 和 `DashboardBetaFirstRunReadModel.defaultDemo`，必须保留同一 scenario、dataset version、fixture version、report input version、checksum、freshness、quality、simulated parity evidence、portfolio projection evidence 和 validation anchors。它不新增 Runtime replay job，不读取 Persistence schema，不暴露 Core object inspector，不接 Adapter request。
 
 `MTP-122-DASHBOARD-BETA-EVIDENCE-PANELS`
 
@@ -505,7 +505,7 @@ Required validation：
 
 Focused validation anchors：
 
-- `Sources/Dashboard/WorkbenchBetaAcceptancePath.swift` 必须定义 `WorkbenchBetaAcceptancePathReadModel` 和 `WorkbenchBetaAcceptancePathViewModel`。
+- `Sources/Dashboard/DashboardBetaAcceptancePath.swift` 必须定义 `DashboardBetaAcceptancePathReadModel` 和 `DashboardBetaAcceptancePathViewModel`。
 - `Sources/Dashboard/Events/PaperWorkflowEvidenceExplorer.swift` 必须包含 `workbenchBetaAcceptancePath` timeline section。
 - `Sources/Dashboard/DashboardShell.swift` 必须输出 `betaAcceptancePaths`、`betaAcceptanceScenario` 和 `betaAcceptanceTrace` Dashboard smoke handles。
 - `Tests/AppTests/AppTests.swift` 必须包含 MTP-122 focused test，验证 Report summary、Dashboard panels、Events trace、same demo scenario、portfolio evidence 和 forbidden capability boundary。

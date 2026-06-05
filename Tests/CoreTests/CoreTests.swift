@@ -14326,10 +14326,10 @@ final class CoreTests: XCTestCase {
         }
     }
 
-    func testMTP120WorkbenchBetaDemoScenarioSelectionLocksFixtureIdentity() throws {
+    func testMTP120DashboardBetaDemoScenarioSelectionLocksFixtureIdentity() throws {
         // 测试场景：MTP-120 beta demo scenario 必须固定到既有 L1.5 deterministic fixture，
         // 后续 Workbench first-run 和 acceptance path 只能消费该本地选择，不得隐式换数据源。
-        let selection = WorkbenchBetaDemoScenarioSelection.deterministicFixture
+        let selection = DashboardBetaDemoScenarioSelection.deterministicFixture
 
         XCTAssertEqual(selection.contractID, try Identifier("mtp-120-workbench-beta-demo-scenario-selection"))
         XCTAssertEqual(selection.issueID, try Identifier("MTP-120"))
@@ -14375,10 +14375,10 @@ final class CoreTests: XCTestCase {
         XCTAssertFalse(selection.runsGraphify)
     }
 
-    func testMTP120WorkbenchBetaDemoFixtureWiresScenarioReplayAndParityEvidence() throws {
+    func testMTP120DashboardBetaDemoFixtureWiresScenarioReplayAndParityEvidence() throws {
         // 测试场景：MTP-120 fixture evidence 必须把 L1.5 Scenario Replay 的 checksum / freshness
         // 与 L2 Simulated Exchange / Backtest Parity 的 deterministic identity 绑定到同一 demo scenario。
-        let evidence = WorkbenchBetaDemoFixtureEvidence.deterministicFixture
+        let evidence = DashboardBetaDemoFixtureEvidence.deterministicFixture
 
         XCTAssertEqual(evidence.evidenceID, try Identifier("mtp-120-workbench-beta-demo-fixture-evidence"))
         XCTAssertEqual(evidence.issueID, try Identifier("MTP-120"))
@@ -14395,7 +14395,7 @@ final class CoreTests: XCTestCase {
         XCTAssertTrue(evidence.deterministicDemoIdentity.contains(evidence.simulatedParityEvidenceIdentity))
         XCTAssertTrue(evidence.relationshipSummary.contains("l15=Scenario Replay"))
         XCTAssertTrue(evidence.relationshipSummary.contains("l2=Simulated Exchange Backtest Parity"))
-        XCTAssertEqual(evidence.validationAnchors, WorkbenchBetaDemoScenarioSelection.requiredValidationAnchors)
+        XCTAssertEqual(evidence.validationAnchors, DashboardBetaDemoScenarioSelection.requiredValidationAnchors)
         XCTAssertTrue(evidence.scenarioReplayWiringHeld)
         XCTAssertTrue(evidence.simulatedParityWiringHeld)
         XCTAssertTrue(evidence.localDeterministicFixtureOnly)
@@ -14432,19 +14432,19 @@ final class CoreTests: XCTestCase {
         ]))
     }
 
-    func testMTP120WorkbenchBetaDemoFixtureRoundTripsAndRejectsBypass() throws {
+    func testMTP120DashboardBetaDemoFixtureRoundTripsAndRejectsBypass() throws {
         // 测试场景：MTP-120 demo fixture evidence 必须可 Codable round-trip，并在初始化或解码时
         // 拒绝换 scenario、网络依赖、自动下载、signed/account/broker 和 Live capability 绕过。
-        let evidence = WorkbenchBetaDemoFixtureEvidence.deterministicFixture
+        let evidence = DashboardBetaDemoFixtureEvidence.deterministicFixture
         let encoded = try JSONEncoder().encode(evidence)
-        let decoded = try JSONDecoder().decode(WorkbenchBetaDemoFixtureEvidence.self, from: encoded)
+        let decoded = try JSONDecoder().decode(DashboardBetaDemoFixtureEvidence.self, from: encoded)
 
         XCTAssertEqual(decoded, evidence)
         XCTAssertEqual(decoded.deterministicDemoIdentity, evidence.deterministicDemoIdentity)
         XCTAssertTrue(decoded.fixtureWiringBoundaryHeld)
 
         XCTAssertThrowsError(
-            try WorkbenchBetaDemoScenarioSelection(scenarioID: try ScenarioID("mtp-120-other-scenario"))
+            try DashboardBetaDemoScenarioSelection(scenarioID: try ScenarioID("mtp-120-other-scenario"))
         ) { error in
             guard case .workbenchBetaReadinessContractMismatch(
                 field: "workbenchBetaDemoScenarioSelection.identity",
@@ -14456,7 +14456,7 @@ final class CoreTests: XCTestCase {
             }
         }
         XCTAssertThrowsError(
-            try WorkbenchBetaDemoScenarioSelection(usesSignedEndpoint: true)
+            try DashboardBetaDemoScenarioSelection(usesSignedEndpoint: true)
         ) { error in
             XCTAssertEqual(
                 error as? CoreError,
@@ -14466,7 +14466,7 @@ final class CoreTests: XCTestCase {
             )
         }
         XCTAssertThrowsError(
-            try WorkbenchBetaDemoFixtureEvidence(performsAutomaticDownload: true)
+            try DashboardBetaDemoFixtureEvidence(performsAutomaticDownload: true)
         ) { error in
             XCTAssertEqual(
                 error as? CoreError,
@@ -14476,7 +14476,7 @@ final class CoreTests: XCTestCase {
             )
         }
         XCTAssertThrowsError(
-            try WorkbenchBetaDemoFixtureEvidence(scenarioReplayWiringHeld: false)
+            try DashboardBetaDemoFixtureEvidence(scenarioReplayWiringHeld: false)
         ) { error in
             XCTAssertEqual(
                 error as? CoreError,
@@ -14492,7 +14492,7 @@ final class CoreTests: XCTestCase {
         object["connectsBroker"] = true
         let tampered = try JSONSerialization.data(withJSONObject: object)
         XCTAssertThrowsError(
-            try JSONDecoder().decode(WorkbenchBetaDemoFixtureEvidence.self, from: tampered)
+            try JSONDecoder().decode(DashboardBetaDemoFixtureEvidence.self, from: tampered)
         ) { error in
             XCTAssertEqual(
                 error as? CoreError,

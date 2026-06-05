@@ -463,13 +463,13 @@ MTP-130 不新增 Adapters、Runtime、App、Dashboard behavior，不新增 Dash
 
 `MTP-131-WORKBENCH-LIVE-READINESS-READ-MODEL-ONLY-BOUNDARY`
 
-MTP-131 固定 Workbench / Dashboard / Report / Event Timeline 能展示的 Live readiness 只读 boundary。当前只允许 UI 消费 App `ReadModel` / `ViewModel` 和 Core deterministic fixture，不允许 UI 直接读取 secret、Persistence schema、Runtime object、adapter request、account payload 或 broker state：
+MTP-131 固定 Dashboard / Report / Event Timeline 能展示的 Live readiness 只读 boundary。当前只允许 UI 消费 App `ReadModel` / `ViewModel` 和 Core deterministic fixture，不允许 UI 直接读取 secret、Persistence schema、Runtime object、adapter request、account payload 或 broker state：
 
 - Workbench surface：`Workbench Live readiness evidence`、`Dashboard Live readiness summary`、`Report Live readiness boundary evidence`、`Event Timeline audit route` 和 `detail inspector boundary evidence`。
-- App 输入：`LiveReadOnlyWorkbenchBoundaryReadModel` 只能包装 `LiveReadOnlyWorkbenchReadModelBoundary.deterministicFixture` 或等价只读 projection。
-- App 输出：`LiveReadOnlyWorkbenchBoundaryViewModel` 只暴露 contract id、issue id、matrix id、surface labels、forbidden UI labels、detail / audit route、L3 handoff targets、source anchors 和 validation anchors。
+- App 输入：`LiveReadOnlyDashboardBoundaryReadModel` 只能包装 `LiveReadOnlyWorkbenchReadModelBoundary.deterministicFixture` 或等价只读 projection。
+- App 输出：`LiveReadOnlyDashboardBoundaryViewModel` 只暴露 contract id、issue id、matrix id、surface labels、forbidden UI labels、detail / audit route、L3 handoff targets、source anchors 和 validation anchors。
 - Dashboard shell：`DashboardShellSnapshot` 只新增 metrics / details / smoke handle，不新增按钮、表单、连接向导或 command surface。
-- Event Timeline：`PaperWorkflowEvidenceExplorerViewModel` 只新增 `live read-only Workbench boundary` timeline item 和 evidence links。
+- Event Timeline：`PaperWorkflowEvidenceExplorerViewModel` 只新增 `live read-only Dashboard boundary` timeline item 和 evidence links。
 
 ## MTP-131 ReadModel / ViewModel input boundary
 
@@ -487,7 +487,7 @@ MTP-131 的输入边界固定为 Core deterministic fixture、App read model pro
 
 `MTP-131-FORBIDDEN-UI-SURFACE`
 
-当前 `LiveReadOnlyWorkbenchReadModelBoundary` 和 `LiveReadOnlyWorkbenchBoundaryViewModel` 中以下 flags 必须全部为 `false`：
+当前 `LiveReadOnlyWorkbenchReadModelBoundary` 和 `LiveReadOnlyDashboardBoundaryViewModel` 中以下 flags 必须全部为 `false`：
 
 - `exposesAPIKeyInput`
 - `storesSecret`
@@ -530,17 +530,17 @@ MTP-131 的 handoff target 只作为后续 planning material：L3.1 account / po
 MTP-131 的 deterministic evidence 来自：
 
 - `Sources/Core/LiveTradingBoundary.swift` 中的 `LiveReadOnlyWorkbenchBoundarySurface`、`LiveReadOnlyWorkbenchInputBoundary`、`LiveReadOnlyWorkbenchForbiddenUISurface`、`LiveReadOnlyWorkbenchDetailAuditRoute`、`LiveReadOnlyWorkbenchHandoffTarget`、`LiveReadOnlyWorkbenchEvidenceKind` 和 `LiveReadOnlyWorkbenchReadModelBoundary`。
-- `Sources/Dashboard/FutureLiveProConsole/LiveReadOnlyWorkbenchBoundary.swift` 中的 `LiveReadOnlyWorkbenchBoundaryReadModel` 和 `LiveReadOnlyWorkbenchBoundaryViewModel`。
+- `Sources/Dashboard/FutureLiveProConsole/LiveReadOnlyDashboardBoundary.swift` 中的 `LiveReadOnlyDashboardBoundaryReadModel` 和 `LiveReadOnlyDashboardBoundaryViewModel`。
 - `Sources/Dashboard/ReadModels/App.swift` 中的 Report / Dashboard read model wiring。
 - `Sources/Dashboard/Events/PaperWorkflowEvidenceExplorer.swift` 中的 Event Timeline read-only route。
 - `Sources/Dashboard/DashboardShell.swift` 中的 Report / Workbench metrics、details 和 smoke handle。
 - `Tests/CoreTests/CoreTests.swift` 中的 `testLiveReadOnlyWorkbenchReadModelBoundaryDefinesMTP131Surface` 和 `testLiveReadOnlyWorkbenchReadModelBoundaryRejectsForbiddenUISurfaceBypass`。
-- `Tests/AppTests/AppTests.swift` 中的 `testLiveReadOnlyWorkbenchBoundaryViewModelAggregatesMTP131ReadOnlySurface` 和 Dashboard / Evidence Explorer integration assertions。
+- `Tests/AppTests/AppTests.swift` 中的 `testLiveReadOnlyDashboardBoundaryViewModelAggregatesMTP131ReadOnlySurface` 和 Dashboard / Evidence Explorer integration assertions。
 
 Required validation：
 
 - `swift test --filter LiveReadOnlyWorkbench`
-- `swift test --filter AppTests/testLiveReadOnlyWorkbenchBoundaryViewModelAggregatesMTP131ReadOnlySurface`
+- `swift test --filter AppTests/testLiveReadOnlyDashboardBoundaryViewModelAggregatesMTP131ReadOnlySurface`
 - `bash checks/automation-readiness.sh`
 - `bash checks/run.sh`
 
@@ -551,7 +551,7 @@ Focused validation anchors：
 - `docs/validation/trading-validation-matrix.md` 必须包含 MTP-131 issue backfill。
 - `docs/validation/validation-plan.md` 必须包含 MTP-131 required validation。
 - `docs/validation/latest-verification-summary.md` 必须记录 MTP-131 的当前 issue execution evidence。
-- `docs/automation/automation-readiness.md` 必须新增 MTP-131 Live Read-only Workbench read-model-only boundary anchor。
+- `docs/automation/automation-readiness.md` 必须新增 MTP-131 Live Read-only Dashboard read-model-only boundary anchor。
 - `checks/automation-readiness.sh` 必须机械检查 MTP-131 contract、domain context、matrix、validation plan、latest summary、automation readiness doc、Core fixture、App read model / ViewModel、Dashboard shell、Event Timeline 和 focused test anchors。
 
 MTP-131 不新增 signed/account/listenKey/broker endpoint，不新增 API key 输入、secret storage、broker connect、account connect、Live PRO Console、trading button、live command、order form、真实账户余额、broker position、Runtime object、database schema、adapter request、`LiveExecutionAdapter`、OMS、real order lifecycle 或真实订单 submit / cancel / replace；不运行 Graphify，不修改 Figma，不修改 Linear status，不推进 MTP-132。
@@ -594,7 +594,7 @@ MTP-132 必须确认本 Project 的 L3.0 evidence chain 已完整回填：
 - MTP-128：adapter capability matrix、public read-only adapter / future private gate isolation。
 - MTP-129：account / position / balance read-model-only future gates、source / freshness / evidence identity boundary。
 - MTP-130：private stream / account snapshot simulation gate input、future fixture requirements、listenKey forbidden tests。
-- MTP-131：Workbench / Dashboard / Report / Event Timeline read-model-only boundary、forbidden UI surface 和 L3 handoff。
+- MTP-131：Dashboard / Report / Event Timeline read-model-only boundary、forbidden UI surface 和 L3 handoff。
 
 `MTP-132-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN`
 

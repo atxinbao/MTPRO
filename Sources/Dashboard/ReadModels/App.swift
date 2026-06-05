@@ -798,7 +798,7 @@ public struct ResearchBacktestReportArtifact: Codable, Equatable, Sendable {
 /// account / position / balance read-model-only surface、private stream simulation gate evidence surface、
 /// Live Monitoring Read-only Console v2 surface、
 /// Strategy / Trader readiness read-model-only surface、
-/// Live read-only Workbench boundary、Live Risk blocked evidence 和 incident / stop blocked evidence 汇总成报告 artifact / boundary evidence；
+/// Live read-only Dashboard boundary、Live Risk blocked evidence 和 incident / stop blocked evidence 汇总成报告 artifact / boundary evidence；
 /// 该 read model 不重跑策略、不读取数据库 schema、不调用 Runtime / Adapters，也不把报告、
 /// scenario replay、simulated exchange parity、account / position / balance evidence、
 /// private stream / account snapshot simulation gate evidence、
@@ -815,7 +815,7 @@ public struct ReportReadModel: Equatable, Sendable {
     public let privateStreamSimulationGateEvidenceSurface: PrivateStreamSimulationGateEvidenceSurfaceReadModel
     public let liveMonitoringReadOnlyConsoleV2Surface: LiveMonitoringReadOnlyConsoleV2SurfaceReadModel
     public let strategyTraderReadinessEvidenceSurface: StrategyTraderReadinessEvidenceSurfaceReadModel
-    public let liveReadOnlyWorkbenchBoundary: LiveReadOnlyWorkbenchBoundaryReadModel
+    public let liveReadOnlyDashboardBoundary: LiveReadOnlyDashboardBoundaryReadModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel
     public let liveMonitoringEvidence: LiveMonitoringEvidenceReadModel
     public let liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel
@@ -836,7 +836,7 @@ public struct ReportReadModel: Equatable, Sendable {
             LiveMonitoringReadOnlyConsoleV2SurfaceReadModel(),
         strategyTraderReadinessEvidenceSurface: StrategyTraderReadinessEvidenceSurfaceReadModel =
             StrategyTraderReadinessEvidenceSurfaceReadModel(),
-        liveReadOnlyWorkbenchBoundary: LiveReadOnlyWorkbenchBoundaryReadModel = LiveReadOnlyWorkbenchBoundaryReadModel(),
+        liveReadOnlyDashboardBoundary: LiveReadOnlyDashboardBoundaryReadModel = LiveReadOnlyDashboardBoundaryReadModel(),
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel(),
         liveMonitoringEvidence: LiveMonitoringEvidenceReadModel = LiveMonitoringEvidenceReadModel(),
         liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel = LiveExecutionControlBlockedEvidenceReadModel(),
@@ -854,7 +854,7 @@ public struct ReportReadModel: Equatable, Sendable {
         self.privateStreamSimulationGateEvidenceSurface = privateStreamSimulationGateEvidenceSurface
         self.liveMonitoringReadOnlyConsoleV2Surface = liveMonitoringReadOnlyConsoleV2Surface
         self.strategyTraderReadinessEvidenceSurface = strategyTraderReadinessEvidenceSurface
-        self.liveReadOnlyWorkbenchBoundary = liveReadOnlyWorkbenchBoundary
+        self.liveReadOnlyDashboardBoundary = liveReadOnlyDashboardBoundary
         self.liveTradingBlockedEvidence = liveTradingBlockedEvidence
         self.liveMonitoringEvidence = liveMonitoringEvidence
         self.liveExecutionControlBlockedEvidence = liveExecutionControlBlockedEvidence
@@ -869,7 +869,7 @@ public struct ReportReadModel: Equatable, Sendable {
             privateStreamSimulationGateEvidenceSurface.lastAppliedSequence,
             liveMonitoringReadOnlyConsoleV2Surface.lastAppliedSequence,
             strategyTraderReadinessEvidenceSurface.lastAppliedSequence,
-            liveReadOnlyWorkbenchBoundary.lastAppliedSequence,
+            liveReadOnlyDashboardBoundary.lastAppliedSequence,
             liveTradingBlockedEvidence.lastAppliedSequence,
             liveMonitoringEvidence.lastAppliedSequence,
             liveExecutionControlBlockedEvidence.lastAppliedSequence,
@@ -893,7 +893,7 @@ public struct ReportReadModel: Equatable, Sendable {
             LiveMonitoringReadOnlyConsoleV2SurfaceReadModel(),
         strategyTraderReadinessEvidenceSurface: StrategyTraderReadinessEvidenceSurfaceReadModel =
             StrategyTraderReadinessEvidenceSurfaceReadModel(),
-        liveReadOnlyWorkbenchBoundary: LiveReadOnlyWorkbenchBoundaryReadModel = LiveReadOnlyWorkbenchBoundaryReadModel(),
+        liveReadOnlyDashboardBoundary: LiveReadOnlyDashboardBoundaryReadModel = LiveReadOnlyDashboardBoundaryReadModel(),
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel(),
         liveMonitoringEvidence: LiveMonitoringEvidenceReadModel = LiveMonitoringEvidenceReadModel(),
         liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel = LiveExecutionControlBlockedEvidenceReadModel(),
@@ -937,7 +937,7 @@ public struct ReportReadModel: Equatable, Sendable {
             privateStreamSimulationGateEvidenceSurface: privateStreamSimulationGateEvidenceSurface,
             liveMonitoringReadOnlyConsoleV2Surface: liveMonitoringReadOnlyConsoleV2Surface,
             strategyTraderReadinessEvidenceSurface: strategyTraderReadinessEvidenceSurface,
-            liveReadOnlyWorkbenchBoundary: liveReadOnlyWorkbenchBoundary,
+            liveReadOnlyDashboardBoundary: liveReadOnlyDashboardBoundary,
             liveTradingBlockedEvidence: liveTradingBlockedEvidence,
             liveMonitoringEvidence: liveMonitoringEvidence,
             liveExecutionControlBlockedEvidence: liveExecutionControlBlockedEvidence,
@@ -1206,7 +1206,7 @@ public struct ReportReadModel: Equatable, Sendable {
 ///
 /// 输入来自 Persistence projection snapshots、append-only event timeline 和 Core Live readiness
 /// blocked read model；新增 Report / Event Timeline / simulated exchange parity evidence 和
-/// account / position / balance read-model-only surface、Workbench beta first-run state /
+/// account / position / balance read-model-only surface、Dashboard beta first-run state /
 /// beta acceptance path、Strategy / Trader readiness surface 也遵循同一来源边界，禁止 UI 直接读取数据库 schema、Runtime object、
 /// 行情 adapter、真实 Live trading capability 或真实 Live Risk / incident stop runtime。
 public struct DashboardReadModel: Equatable, Sendable {
@@ -1214,8 +1214,8 @@ public struct DashboardReadModel: Equatable, Sendable {
     public let strategy: StrategyReadModel
     public let backtest: BacktestReadModel
     public let report: ReportReadModel
-    public let workbenchBetaFirstRun: WorkbenchBetaFirstRunReadModel
-    public let workbenchBetaAcceptancePath: WorkbenchBetaAcceptancePathReadModel
+    public let dashboardBetaFirstRun: DashboardBetaFirstRunReadModel
+    public let dashboardBetaAcceptancePath: DashboardBetaAcceptancePathReadModel
     public let paperWorkflowObservability: PaperWorkflowObservabilityReadModel
     public let paperWorkflowEvidenceExplorer: PaperWorkflowEvidenceExplorerReadModel
     public let paper: PaperReadModel
@@ -1228,8 +1228,8 @@ public struct DashboardReadModel: Equatable, Sendable {
         strategy: StrategyReadModel,
         backtest: BacktestReadModel,
         report: ReportReadModel,
-        workbenchBetaFirstRun: WorkbenchBetaFirstRunReadModel = .empty,
-        workbenchBetaAcceptancePath: WorkbenchBetaAcceptancePathReadModel? = nil,
+        dashboardBetaFirstRun: DashboardBetaFirstRunReadModel = .empty,
+        dashboardBetaAcceptancePath: DashboardBetaAcceptancePathReadModel? = nil,
         paperWorkflowObservability: PaperWorkflowObservabilityReadModel = PaperWorkflowObservabilityReadModel(),
         paperWorkflowEvidenceExplorer: PaperWorkflowEvidenceExplorerReadModel? = nil,
         paper: PaperReadModel,
@@ -1241,12 +1241,12 @@ public struct DashboardReadModel: Equatable, Sendable {
         self.strategy = strategy
         self.backtest = backtest
         self.report = report
-        self.workbenchBetaFirstRun = workbenchBetaFirstRun
-        let acceptancePath = workbenchBetaAcceptancePath ?? WorkbenchBetaAcceptancePathReadModel(
+        self.dashboardBetaFirstRun = dashboardBetaFirstRun
+        let acceptancePath = dashboardBetaAcceptancePath ?? DashboardBetaAcceptancePathReadModel(
             report: report,
-            firstRun: workbenchBetaFirstRun
+            firstRun: dashboardBetaFirstRun
         )
-        self.workbenchBetaAcceptancePath = acceptancePath
+        self.dashboardBetaAcceptancePath = acceptancePath
         self.paperWorkflowObservability = paperWorkflowObservability
         self.paperWorkflowEvidenceExplorer = paperWorkflowEvidenceExplorer ?? PaperWorkflowEvidenceExplorerReadModel(
             market: market,
@@ -1256,8 +1256,8 @@ public struct DashboardReadModel: Equatable, Sendable {
             simulatedExchangeParityEvidence: report.simulatedExchangeParityEvidence,
             liveMonitoringReadOnlyConsoleV2Surface: report.liveMonitoringReadOnlyConsoleV2Surface,
             strategyTraderReadinessEvidenceSurface: report.strategyTraderReadinessEvidenceSurface,
-            workbenchBetaAcceptancePath: acceptancePath,
-            liveReadOnlyWorkbenchBoundary: report.liveReadOnlyWorkbenchBoundary,
+            dashboardBetaAcceptancePath: acceptancePath,
+            liveReadOnlyDashboardBoundary: report.liveReadOnlyDashboardBoundary,
             liveTradingBlockedEvidence: report.liveTradingBlockedEvidence,
             liveMonitoringEvidence: report.liveMonitoringEvidence,
             liveExecutionControlBlockedEvidence: report.liveExecutionControlBlockedEvidence,
@@ -1287,13 +1287,13 @@ public struct DashboardReadModel: Equatable, Sendable {
             LiveMonitoringReadOnlyConsoleV2SurfaceReadModel(),
         strategyTraderReadinessEvidenceSurface: StrategyTraderReadinessEvidenceSurfaceReadModel =
             StrategyTraderReadinessEvidenceSurfaceReadModel(),
-        liveReadOnlyWorkbenchBoundary: LiveReadOnlyWorkbenchBoundaryReadModel = LiveReadOnlyWorkbenchBoundaryReadModel(),
+        liveReadOnlyDashboardBoundary: LiveReadOnlyDashboardBoundaryReadModel = LiveReadOnlyDashboardBoundaryReadModel(),
         liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel = LiveTradingBlockedEvidenceReadModel(),
         liveMonitoringEvidence: LiveMonitoringEvidenceReadModel = LiveMonitoringEvidenceReadModel(),
         liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceReadModel = LiveExecutionControlBlockedEvidenceReadModel(),
         liveRiskGateBlockedEvidence: LiveRiskGateBlockedEvidenceReadModel = LiveRiskGateBlockedEvidenceReadModel(),
         liveIncidentStopBlockedEvidence: LiveIncidentStopBlockedEvidenceReadModel = LiveIncidentStopBlockedEvidenceReadModel(),
-        workbenchBetaFirstRun: WorkbenchBetaFirstRunReadModel = .empty
+        dashboardBetaFirstRun: DashboardBetaFirstRunReadModel = .empty
     ) {
         let report = ReportReadModel(
             analyticalProjection: analyticalProjection,
@@ -1306,7 +1306,7 @@ public struct DashboardReadModel: Equatable, Sendable {
             privateStreamSimulationGateEvidenceSurface: privateStreamSimulationGateEvidenceSurface,
             liveMonitoringReadOnlyConsoleV2Surface: liveMonitoringReadOnlyConsoleV2Surface,
             strategyTraderReadinessEvidenceSurface: strategyTraderReadinessEvidenceSurface,
-            liveReadOnlyWorkbenchBoundary: liveReadOnlyWorkbenchBoundary,
+            liveReadOnlyDashboardBoundary: liveReadOnlyDashboardBoundary,
             liveTradingBlockedEvidence: liveTradingBlockedEvidence,
             liveMonitoringEvidence: liveMonitoringEvidence,
             liveExecutionControlBlockedEvidence: liveExecutionControlBlockedEvidence,
@@ -1327,17 +1327,17 @@ public struct DashboardReadModel: Equatable, Sendable {
             portfolio: portfolio,
             events: events
         )
-        let workbenchBetaAcceptancePath = WorkbenchBetaAcceptancePathReadModel(
+        let dashboardBetaAcceptancePath = DashboardBetaAcceptancePathReadModel(
             report: report,
-            firstRun: workbenchBetaFirstRun
+            firstRun: dashboardBetaFirstRun
         )
         self.init(
             market: market,
             strategy: strategy,
             backtest: backtest,
             report: report,
-            workbenchBetaFirstRun: workbenchBetaFirstRun,
-            workbenchBetaAcceptancePath: workbenchBetaAcceptancePath,
+            dashboardBetaFirstRun: dashboardBetaFirstRun,
+            dashboardBetaAcceptancePath: dashboardBetaAcceptancePath,
             paperWorkflowObservability: paperWorkflowObservability,
             paperWorkflowEvidenceExplorer: PaperWorkflowEvidenceExplorerReadModel(
                 market: market,
@@ -1347,8 +1347,8 @@ public struct DashboardReadModel: Equatable, Sendable {
                 simulatedExchangeParityEvidence: report.simulatedExchangeParityEvidence,
                 liveMonitoringReadOnlyConsoleV2Surface: report.liveMonitoringReadOnlyConsoleV2Surface,
                 strategyTraderReadinessEvidenceSurface: report.strategyTraderReadinessEvidenceSurface,
-                workbenchBetaAcceptancePath: workbenchBetaAcceptancePath,
-                liveReadOnlyWorkbenchBoundary: report.liveReadOnlyWorkbenchBoundary,
+                dashboardBetaAcceptancePath: dashboardBetaAcceptancePath,
+                liveReadOnlyDashboardBoundary: report.liveReadOnlyDashboardBoundary,
                 liveTradingBlockedEvidence: report.liveTradingBlockedEvidence,
                 liveMonitoringEvidence: report.liveMonitoringEvidence,
                 liveExecutionControlBlockedEvidence: report.liveExecutionControlBlockedEvidence,
@@ -1519,7 +1519,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
     public let privateStreamSimulationGateEvidenceSurface: PrivateStreamSimulationGateEvidenceSurfaceViewModel
     public let liveMonitoringReadOnlyConsoleV2Surface: LiveMonitoringReadOnlyConsoleV2SurfaceViewModel
     public let strategyTraderReadinessEvidenceSurface: StrategyTraderReadinessEvidenceSurfaceViewModel
-    public let liveReadOnlyWorkbenchBoundary: LiveReadOnlyWorkbenchBoundaryViewModel
+    public let liveReadOnlyDashboardBoundary: LiveReadOnlyDashboardBoundaryViewModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceViewModel
     public let liveMonitoringEvidence: LiveMonitoringEvidenceViewModel
     public let liveExecutionControlBlockedEvidence: LiveExecutionControlBlockedEvidenceViewModel
@@ -1796,8 +1796,8 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
             StrategyTraderReadinessEvidenceSurfaceViewModel(
                 readModel: readModel.strategyTraderReadinessEvidenceSurface
             )
-        let liveReadOnlyWorkbenchBoundary = LiveReadOnlyWorkbenchBoundaryViewModel(
-            readModel: readModel.liveReadOnlyWorkbenchBoundary
+        let liveReadOnlyDashboardBoundary = LiveReadOnlyDashboardBoundaryViewModel(
+            readModel: readModel.liveReadOnlyDashboardBoundary
         )
         let liveBlockedEvidence = LiveTradingBlockedEvidenceViewModel(
             readModel: readModel.liveTradingBlockedEvidence
@@ -1828,7 +1828,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
             liveMonitoringReadOnlyConsoleV2Surface
         self.strategyTraderReadinessEvidenceSurface =
             strategyTraderReadinessEvidenceSurface
-        self.liveReadOnlyWorkbenchBoundary = liveReadOnlyWorkbenchBoundary
+        self.liveReadOnlyDashboardBoundary = liveReadOnlyDashboardBoundary
         self.liveTradingBlockedEvidence = liveBlockedEvidence
         self.liveMonitoringEvidence = liveMonitoringEvidence
         self.liveExecutionControlBlockedEvidence = liveExecutionControlBlockedEvidence
@@ -2253,7 +2253,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
             || privateStreamSimulationGateEvidenceSurface.authorizesTradingExecution
             || liveMonitoringReadOnlyConsoleV2Surface.authorizesTradingExecution
             || strategyTraderReadinessEvidenceSurface.authorizesTradingExecution
-            || liveReadOnlyWorkbenchBoundary.authorizesTradingExecution
+            || liveReadOnlyDashboardBoundary.authorizesTradingExecution
             || liveBlockedEvidence.authorizesTradingExecution
             || liveMonitoringEvidence.authorizesTradingExecution
             || liveExecutionControlBlockedEvidence.authorizesTradingExecution
@@ -2517,8 +2517,8 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
     public let strategy: StrategyViewModel
     public let backtest: BacktestViewModel
     public let report: ReportViewModel
-    public let workbenchBetaFirstRun: WorkbenchBetaFirstRunViewModel
-    public let workbenchBetaAcceptancePath: WorkbenchBetaAcceptancePathViewModel
+    public let dashboardBetaFirstRun: DashboardBetaFirstRunViewModel
+    public let dashboardBetaAcceptancePath: DashboardBetaAcceptancePathViewModel
     public let paperWorkflowObservability: PaperWorkflowObservabilityViewModel
     public let paperWorkflowEvidenceExplorer: PaperWorkflowEvidenceExplorerViewModel
     public let paper: PaperViewModel
@@ -2535,11 +2535,11 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
         self.strategy = StrategyViewModel(readModel: readModel.strategy)
         self.backtest = BacktestViewModel(readModel: readModel.backtest)
         self.report = ReportViewModel(readModel: readModel.report)
-        self.workbenchBetaFirstRun = WorkbenchBetaFirstRunViewModel(
-            readModel: readModel.workbenchBetaFirstRun
+        self.dashboardBetaFirstRun = DashboardBetaFirstRunViewModel(
+            readModel: readModel.dashboardBetaFirstRun
         )
-        self.workbenchBetaAcceptancePath = WorkbenchBetaAcceptancePathViewModel(
-            readModel: readModel.workbenchBetaAcceptancePath
+        self.dashboardBetaAcceptancePath = DashboardBetaAcceptancePathViewModel(
+            readModel: readModel.dashboardBetaAcceptancePath
         )
         self.paperWorkflowObservability = PaperWorkflowObservabilityViewModel(
             readModel: readModel.paperWorkflowObservability
@@ -2566,14 +2566,14 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
             report.privateStreamSimulationGateEvidenceSurface.source,
             report.liveMonitoringReadOnlyConsoleV2Surface.source,
             report.strategyTraderReadinessEvidenceSurface.source,
-            report.liveReadOnlyWorkbenchBoundary.source,
+            report.liveReadOnlyDashboardBoundary.source,
             report.liveTradingBlockedEvidence.source,
             report.liveMonitoringEvidence.source,
             report.liveExecutionControlBlockedEvidence.source,
             report.liveRiskGateBlockedEvidence.source,
             report.liveIncidentStopBlockedEvidence.source,
-            workbenchBetaFirstRun.source,
-            workbenchBetaAcceptancePath.source,
+            dashboardBetaFirstRun.source,
+            dashboardBetaAcceptancePath.source,
             paperWorkflowObservability.source,
             paperWorkflowEvidenceExplorer.source,
             paper.source,

@@ -1,7 +1,7 @@
 import Core
 import Foundation
 
-/// LiveMonitoringReadOnlyConsoleV2TraceItem 是 MTP-152 的 Workbench / Events 只读行。
+/// LiveMonitoringReadOnlyConsoleV2TraceItem 是 MTP-152 的 Dashboard / Events 只读行。
 ///
 /// Trace item 只保存 MTP-148 至 MTP-151 已完成合同中的 evidence identity、surface 和摘要；
 /// 它不携带 endpoint URL、listenKey、account payload、broker state、Runtime object、adapter request、
@@ -81,11 +81,11 @@ public struct LiveMonitoringReadOnlyConsoleV2SurfaceReadModel: Equatable, Sendab
     }
 }
 
-/// LiveMonitoringReadOnlyConsoleV2SurfaceViewModel 是 MTP-152 的 Report / Workbench / Events 快照。
+/// LiveMonitoringReadOnlyConsoleV2SurfaceViewModel 是 MTP-152 的 Report / Dashboard / Events 快照。
 ///
 /// ViewModel 只输出 monitoring source identity、freshness、blocked / stale / missing explanation、
 /// forbidden capability coverage 和 event trace。所有 capability flags 必须保持 false，以证明
-/// Workbench / Report / Events 只消费 Read Model / ViewModel，不暴露 Runtime、Adapter、schema、
+/// Dashboard / Report / Events 只消费 Read Model / ViewModel，不暴露 Runtime、Adapter、schema、
 /// account payload、broker state 或任何 live command。
 public struct LiveMonitoringReadOnlyConsoleV2SurfaceViewModel: Codable, Equatable, Sendable {
     public let source: ViewModelSourceContract
