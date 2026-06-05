@@ -176,7 +176,7 @@ let package = Package(
         ),
         .target(
             name: "Trader",
-            dependencies: ["DomainModel", "MessageBus", "Cache", "TraderStrategies", "Portfolio", "RiskEngine", "ExecutionEngine"],
+            dependencies: ["DomainModel", "MessageBus", "Cache", "TraderStrategies", "Portfolio", "RiskEngine"],
             path: "Sources/Trader",
             exclude: [
                 "Accounts",

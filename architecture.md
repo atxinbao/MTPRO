@@ -119,7 +119,7 @@ RiskEngine -> DomainModel / MessageBus / Cache / Portfolio
 ExecutionClient -> DomainModel / MessageBus
 ExecutionEngine -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine / ExecutionClient
 TraderStrategies -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine
-Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine / ExecutionEngine
+Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine
 Dashboard -> Core / Persistence
 ```
 
@@ -155,18 +155,18 @@ RiskEngine -> DomainModel / MessageBus / Cache / Portfolio
 ExecutionClient -> DomainModel / MessageBus
 ExecutionEngine -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine / ExecutionClient
 TraderStrategies -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine
-Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine / ExecutionEngine
+Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine
 Dashboard -> Core / Persistence
 ```
 
-`Trader -> ExecutionEngine` 是当前 active `Package.swift` dependency snapshot 的历史 coordination boundary evidence。GH-391 后，它被登记为后续 correction blocker：目标方向应收敛为 Trader 管 Accounts + Strategies/EMA + Coordination，策略只产出 proposal / signal，RiskEngine / ExecutionEngine 作为下游 context 通过 contract / MessageBus / read-model evidence 消费，Trader 不直接拥有 ExecutionEngine implementation。
+`GH-392-TRADER-NO-DIRECT-EXECUTIONENGINE-DEPENDENCY` 已把 direct `Trader -> ExecutionEngine` target dependency 从当前 active `Package.swift` dependency snapshot 中移除。目标方向收敛为 Trader 管 Accounts + Strategies/EMA + Coordination，策略只产出 proposal / signal，RiskEngine / ExecutionEngine 作为下游 context 通过 contract / MessageBus / read-model evidence 消费，Trader 不直接拥有 ExecutionEngine implementation。
 
 Forbidden path taxonomy：
 
 - `DataClient -> signed/account/listenKey/private runtime` 禁止。
 - `Trader/Strategies -> ExecutionClient` 禁止。
 - `Trader -> ExecutionClient` 当前禁止，未来只能经 L4 Project 重新授权。
-- `Trader -> ExecutionEngine implementation ownership` 后续应退休；当前 `Package.swift` 依赖只作为 historical coordination boundary evidence，不得写成目标方向。
+- `Trader -> ExecutionEngine` direct target dependency 禁止；历史 MTP-220 / GH-391 文档只能作为 before-state evidence，不得写成当前目标方向。
 - `RiskEngine -> broker / ExecutionClient` 禁止。
 - `Portfolio -> broker account state` 禁止。
 - `ExecutionEngine -> current OMS / broker adapter` 禁止。
@@ -180,7 +180,7 @@ GH-391 记录当前 architecture graph 的关键差距：target name、real modu
 
 `GH-391-CURRENT-BLOCKERS`
 
-当前 blocker 包含：多数 target 当前只编译 module-local `TargetGraph/*TargetBoundary.swift`；`TargetGraphTests` 主要验证 boundary anchors / strings，不证明真实 target API ownership；`Trader -> ExecutionEngine` 仍在 active `Package.swift` 中；Dashboard active source 仍有 Workbench naming residue；`try!` / `preconditionFailure` allowed path 还缺少机械验证。
+当前 blocker 包含：多数 target 当前只编译 module-local `TargetGraph/*TargetBoundary.swift`；`TargetGraphTests` 主要验证 boundary anchors / strings，不证明真实 target API ownership；Dashboard active source 仍有 Workbench naming residue；`try!` / `preconditionFailure` allowed path 还缺少机械验证。GH-392 已移除 `Trader -> ExecutionEngine` direct target dependency。
 
 `GH-391-AUTHORITATIVE-TARGET-OWNERSHIP-MODEL`
 
@@ -188,7 +188,21 @@ GH-391 记录当前 architecture graph 的关键差距：target name、real modu
 
 `GH-391-DEPENDENCY-DIRECTION-CORRECTION`
 
-GH-391 不修改 `Package.swift`，但固定后续 correction：`Trader` 不应直接拥有 `ExecutionEngine` implementation。后续 `GH-392` 才能在独立 issue 中移除 direct `Trader -> ExecutionEngine` target dependency。
+GH-391 不修改 `Package.swift`，但固定后续 correction：`Trader` 不应直接拥有 `ExecutionEngine` implementation。GH-392 已在独立 issue 中移除 direct `Trader -> ExecutionEngine` target dependency，并把 Trader boundary 改为 proposal / MessageBus / coordination 口径。
+
+## GH-392 Trader / ExecutionEngine Dependency Direction Correction
+
+`GH-392-TRADER-NO-DIRECT-EXECUTIONENGINE-DEPENDENCY`
+
+GH-392 把 `Trader` target 的 allowed dependencies 收紧为 `DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine`。`Trader` 不再直接依赖 `ExecutionEngine`，也不 import `ExecutionEngine` boundary anchor。
+
+`GH-392-TRADER-PROPOSAL-MESSAGEBUS-COORDINATION-BOUNDARY`
+
+Trader 当前仍只是 `Accounts + Strategies/EMA + Coordination` 容器；策略只产出 proposal / signal / evidence。RiskEngine / ExecutionEngine 是下游 context，后续只能通过 contract / MessageBus / read-model evidence 消费 Trader 输出，不能由 Trader 直接拥有 ExecutionEngine implementation。
+
+`GH-392-VALIDATION-ANCHORS`
+
+GH-392 的 validation anchor 位于 `Package.swift`、`Sources/Trader/TargetGraph/TraderTargetBoundary.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift` 和 `checks/automation-readiness.sh`。这些检查阻止 direct `Trader -> ExecutionEngine` dependency、`import ExecutionEngine` 和旧 allowed dependency string 回退。
 
 `GH-391-REAL-TARGET-SMOKE-TEST-CONTRACT`
 

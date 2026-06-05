@@ -210,7 +210,8 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertEqual(portfolio.allowedDependencies, ["DomainModel", "MessageBus", "Cache", "Database"])
         XCTAssertEqual(riskEngine.allowedDependencies, ["DomainModel", "MessageBus", "Cache", "Portfolio"])
         XCTAssertEqual(strategies.allowedDependencies, ["DomainModel", "MessageBus", "Cache", "Portfolio", "RiskEngine"])
-        XCTAssertEqual(trader.allowedDependencies, ["DomainModel", "MessageBus", "Cache", "TraderStrategies", "Portfolio", "RiskEngine", "ExecutionEngine"])
+        XCTAssertEqual(trader.allowedDependencies, ["DomainModel", "MessageBus", "Cache", "TraderStrategies", "Portfolio", "RiskEngine"])
+        XCTAssertTrue(trader.forbiddenDependencies.contains("ExecutionEngine"))
         XCTAssertTrue(trader.deferredDependencies.isEmpty)
 
         XCTAssertEqual(trader.accountContextRoot, "Sources/Trader/Accounts")
@@ -326,10 +327,38 @@ final class TargetGraphTests: XCTestCase {
 
         XCTAssertEqual(executionClient.allowedDependencies, ["DomainModel", "MessageBus"])
         XCTAssertEqual(executionEngine.allowedDependencies, ["DomainModel", "MessageBus", "Cache", "Portfolio", "RiskEngine", "ExecutionClient"])
-        XCTAssertEqual(trader.allowedDependencies, ["DomainModel", "MessageBus", "Cache", "TraderStrategies", "Portfolio", "RiskEngine", "ExecutionEngine"])
+        XCTAssertEqual(trader.allowedDependencies, ["DomainModel", "MessageBus", "Cache", "TraderStrategies", "Portfolio", "RiskEngine"])
+        XCTAssertFalse(trader.allowedDependencies.contains("ExecutionEngine"))
+        XCTAssertTrue(trader.forbiddenDependencies.contains("ExecutionEngine"))
+        XCTAssertTrue(trader.validationAnchors.contains("GH-392-TRADER-NO-DIRECT-EXECUTIONENGINE-DEPENDENCY"))
         XCTAssertTrue(trader.deferredDependencies.isEmpty)
         XCTAssertTrue(executionEngine.consumesRiskEngineBoundary)
         XCTAssertTrue(executionEngine.executionClientFutureGateOnly)
+    }
+
+    func testGH392TraderTargetPackageDoesNotDependDirectlyOnExecutionEngine() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(contentsOf: repositoryRoot.appendingPathComponent("Package.swift"))
+        let traderBoundarySource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/Trader/TargetGraph/TraderTargetBoundary.swift")
+        )
+
+        XCTAssertFalse(
+            packageSource.contains("dependencies: [\"DomainModel\", \"MessageBus\", \"Cache\", \"TraderStrategies\", \"Portfolio\", \"RiskEngine\", \"ExecutionEngine\"]"),
+            "Trader target must not directly depend on ExecutionEngine after GH-392"
+        )
+        XCTAssertTrue(
+            packageSource.contains("dependencies: [\"DomainModel\", \"MessageBus\", \"Cache\", \"TraderStrategies\", \"Portfolio\", \"RiskEngine\"]"),
+            "Trader target must keep only account / strategy / portfolio / risk coordination dependencies"
+        )
+        XCTAssertFalse(
+            traderBoundarySource.contains("import ExecutionEngine"),
+            "Trader boundary must not import ExecutionEngine after GH-392"
+        )
+        XCTAssertTrue(
+            traderBoundarySource.contains("GH-392-TRADER-NO-DIRECT-EXECUTIONENGINE-DEPENDENCY"),
+            "Trader boundary must expose the GH-392 validation anchor"
+        )
     }
 
     func testMTP220ExecutionTargetsRejectBrokerOMSRealOrderAndEndpointDrift() {
