@@ -359,3 +359,78 @@ GH-396 readiness anchors：
 - `GH-396-DATAENGINE-REPLAY-QUALITY-COREERROR-ENVELOPE-DOCUMENTED`
 - `GH-396-DATAENGINE-INGEST-RUNTIME-ENVELOPE-DOCUMENTED`
 - `GH-396-VALIDATION-ANCHORS`
+
+## GH-397-TRADER-PORTFOLIO-RISK-EXECUTION-REAL-SMOKE-TESTS
+
+GH-397 为 Trader / Portfolio / Risk / Execution targets 建立 real target smoke test baseline。验证必须证明：
+
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 直接 import `TraderStrategies`、`Trader`、`Portfolio`、`RiskEngine`、`ExecutionClient` 和 `ExecutionEngine`。
+- `testGH397TraderPortfolioRiskExecutionTargetsExposeUsableBoundaryAPIs` 能读取并断言这些 targets 的 public boundary APIs。
+- 该 smoke test 验证 target dependency direction、EMA-only strategy boundary、Trader no-direct-execution boundary、Portfolio / Risk pre-execution boundary、ExecutionClient future gate 和 ExecutionEngine paper / simulated lifecycle boundary。
+
+GH-397 不迁移 implementation ownership，不移动 source，不修改 `Package.swift` target graph。它只证明 targets 已具备可独立 import / compile / use 的 boundary APIs，为 GH-398 implementation migration 提供 baseline。
+
+## GH-397-TRADER-EMA-COORDINATION-SMOKE
+
+Trader-side smoke requirements：
+
+- `Trader = Accounts + Strategies/EMA + Coordination`。
+- `TraderTargetBoundary` must expose `GH-397-TRADER-REAL-TARGET-SMOKE`。
+- `TraderStrategiesTargetBoundary` must expose `GH-397-TRADERSTRATEGIES-EMA-REAL-TARGET-SMOKE`。
+- `TraderStrategies` active concrete strategies remain exactly `["EMA"]`。
+- Non-EMA active strategy roots remain empty.
+- `Trader` target must not depend on `ExecutionEngine` or `ExecutionClient`.
+
+## GH-397-PORTFOLIO-RISK-PREEXECUTION-SMOKE
+
+Portfolio / Risk smoke requirements：
+
+- `PortfolioTargetBoundary` must expose `GH-397-PORTFOLIO-REAL-TARGET-SMOKE`。
+- `RiskEngineTargetBoundary` must expose `GH-397-RISKENGINE-REAL-TARGET-SMOKE`。
+- `Portfolio` must remain financial state projection boundary only.
+- `RiskEngine` must remain pre-execution guard only.
+- Neither target may read broker / account payload or route executable order command.
+
+## GH-397-EXECUTIONCLIENT-FUTURE-GATE-SMOKE
+
+Execution smoke requirements：
+
+- `ExecutionClientTargetBoundary` must expose `GH-397-EXECUTIONCLIENT-FUTURE-GATE-SMOKE`。
+- `ExecutionEngineTargetBoundary` must expose `GH-397-EXECUTIONENGINE-REAL-TARGET-SMOKE`。
+- `ExecutionClient` remains future gate / protocol boundary only.
+- `ExecutionEngine` remains paper / simulated lifecycle boundary only.
+- No broker gateway, OMS, signed endpoint, account endpoint / listenKey, private WebSocket runtime, submit / cancel / replace, execution report, broker fill or reconciliation implementation is authorized.
+
+## GH-397-COMPATIBILITY-ENVELOPE-PRESERVED
+
+GH-397 keeps these retained compatibility envelopes explicit:
+
+- Trader / TraderStrategies implementation remains under `Core` compatibility envelope until GH-398.
+- Portfolio implementation remains under `Core` compatibility envelope until GH-398.
+- RiskEngine implementation remains under `Core` compatibility envelope until GH-398.
+- ExecutionEngine / ExecutionClient implementation remains under `Core` compatibility envelope until GH-398.
+
+This issue must not claim implementation ownership migration. It only adds smoke coverage and boundary anchors.
+
+## GH-397-VALIDATION-ANCHORS
+
+GH-397 required validation：
+
+- `swift test --filter TargetGraphTests/testGH397TraderPortfolioRiskExecutionTargetsExposeUsableBoundaryAPIs`
+- `swift test --filter TargetGraphTests`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-397 readiness anchors：
+
+- `GH-397-TRADER-PORTFOLIO-RISK-EXECUTION-REAL-SMOKE-TESTS`
+- `GH-397-TRADER-EMA-COORDINATION-SMOKE`
+- `GH-397-TRADER-REAL-TARGET-SMOKE`
+- `GH-397-TRADERSTRATEGIES-EMA-REAL-TARGET-SMOKE`
+- `GH-397-PORTFOLIO-REAL-TARGET-SMOKE`
+- `GH-397-RISKENGINE-REAL-TARGET-SMOKE`
+- `GH-397-EXECUTIONCLIENT-FUTURE-GATE-SMOKE`
+- `GH-397-EXECUTIONENGINE-REAL-TARGET-SMOKE`
+- `GH-397-COMPATIBILITY-ENVELOPE-PRESERVED`
+- `GH-397-VALIDATION-ANCHORS`

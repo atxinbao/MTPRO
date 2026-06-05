@@ -143,6 +143,7 @@ public struct ExecutionEngineTargetBoundary: Codable, Equatable, Sendable {
     public static let requiredValidationAnchors = [
         "MTP-220-EXECUTIONENGINE-TARGET-SPLIT",
         "MTP-220-RISKENGINE-EXECUTIONENGINE-EXECUTIONCLIENT-DIRECTION",
+        "GH-397-EXECUTIONENGINE-REAL-TARGET-SMOKE",
         "MTP-220-NO-BROKER-OMS-REAL-ORDER-GUARD",
         "MTP-229-EXECUTIONENGINE-REAL-ROOT-TARGET-PATH"
     ]

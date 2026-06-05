@@ -654,6 +654,88 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH397TraderPortfolioRiskExecutionTargetsExposeUsableBoundaryAPIs() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let strategies = TraderStrategiesTargetBoundary.mtp219
+        let trader = TraderTargetBoundary.mtp219
+        let portfolio = PortfolioTargetBoundary.mtp219
+        let riskEngine = RiskEngineTargetBoundary.mtp219
+        let executionClient = ExecutionClientTargetBoundary.mtp220
+        let executionEngine = ExecutionEngineTargetBoundary.mtp220
+
+        XCTAssertTrue(strategies.dependencyDirectionHeld)
+        XCTAssertTrue(trader.dependencyDirectionHeld)
+        XCTAssertTrue(portfolio.dependencyDirectionHeld)
+        XCTAssertTrue(riskEngine.dependencyDirectionHeld)
+        XCTAssertTrue(executionClient.dependencyDirectionHeld)
+        XCTAssertTrue(executionEngine.dependencyDirectionHeld)
+
+        XCTAssertEqual(trader.accountContextRoot, "Sources/Trader/Accounts")
+        XCTAssertEqual(trader.activeStrategyRoot, "Sources/Trader/Strategies/EMA")
+        XCTAssertEqual(trader.coordinationRoot, "Sources/Trader/Coordination/RiskBinding")
+        XCTAssertEqual(trader.activeConcreteStrategies, ["EMA"])
+        XCTAssertEqual(strategies.activeConcreteStrategies, ["EMA"])
+        XCTAssertEqual(strategies.activeStrategySourceRoots, ["Sources/Trader/Strategies/EMA"])
+        XCTAssertTrue(strategies.nonEMAActiveStrategySourceRoots.isEmpty)
+
+        XCTAssertFalse(trader.callsExecutionClientDirectly)
+        XCTAssertTrue(trader.forbiddenDependencies.contains("ExecutionEngine"))
+        XCTAssertTrue(trader.forbiddenDependencies.contains("ExecutionClient"))
+        XCTAssertFalse(strategies.callsExecutionClient)
+        XCTAssertFalse(strategies.callsBrokerOrOMS)
+        XCTAssertFalse(riskEngine.callsBrokerOrExecutionClient)
+        XCTAssertFalse(riskEngine.routesExecutableOrderCommand)
+
+        XCTAssertTrue(executionClient.futureGateOnly)
+        XCTAssertFalse(executionClient.implementsBrokerGateway)
+        XCTAssertFalse(executionClient.implementsOrderSubmitCancelReplace)
+        XCTAssertFalse(executionClient.parsesExecutionReportOrBrokerFill)
+        XCTAssertTrue(executionEngine.paperSimulatedLifecycleBoundary)
+        XCTAssertTrue(executionEngine.consumesRiskEngineBoundary)
+        XCTAssertTrue(executionEngine.executionClientFutureGateOnly)
+        XCTAssertFalse(executionEngine.implementsLiveExecutionRuntime)
+        XCTAssertFalse(executionEngine.implementsOMS)
+        XCTAssertFalse(executionEngine.implementsRealOrderLifecycle)
+
+        XCTAssertEqual(portfolio.retainedCompatibilityEnvelope, "Core")
+        XCTAssertEqual(riskEngine.retainedCompatibilityEnvelope, "Core")
+        XCTAssertEqual(strategies.retainedCompatibilityEnvelope, "Core")
+        XCTAssertEqual(trader.retainedCompatibilityEnvelope, "Core")
+        XCTAssertEqual(executionClient.retainedCompatibilityEnvelope, "Core")
+        XCTAssertEqual(executionEngine.retainedCompatibilityEnvelope, "Core")
+
+        XCTAssertTrue(strategies.validationAnchors.contains("GH-397-TRADERSTRATEGIES-EMA-REAL-TARGET-SMOKE"))
+        XCTAssertTrue(trader.validationAnchors.contains("GH-397-TRADER-REAL-TARGET-SMOKE"))
+        XCTAssertTrue(portfolio.validationAnchors.contains("GH-397-PORTFOLIO-REAL-TARGET-SMOKE"))
+        XCTAssertTrue(riskEngine.validationAnchors.contains("GH-397-RISKENGINE-REAL-TARGET-SMOKE"))
+        XCTAssertTrue(executionClient.validationAnchors.contains("GH-397-EXECUTIONCLIENT-FUTURE-GATE-SMOKE"))
+        XCTAssertTrue(executionEngine.validationAnchors.contains("GH-397-EXECUTIONENGINE-REAL-TARGET-SMOKE"))
+
+        let traderStrategiesTarget = try packageTargetBlock(named: "TraderStrategies", packageSource: packageSource)
+        let traderTarget = try packageTargetBlock(named: "Trader", packageSource: packageSource)
+        let portfolioTarget = try packageTargetBlock(named: "Portfolio", packageSource: packageSource)
+        let riskEngineTarget = try packageTargetBlock(named: "RiskEngine", packageSource: packageSource)
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        let executionEngineTarget = try packageTargetBlock(named: "ExecutionEngine", packageSource: packageSource)
+
+        XCTAssertTrue(traderStrategiesTarget.contains("path: \"Sources/Trader/Strategies/EMA\""))
+        XCTAssertTrue(traderTarget.contains("path: \"Sources/Trader\""))
+        XCTAssertTrue(portfolioTarget.contains("path: \"Sources/Portfolio\""))
+        XCTAssertTrue(riskEngineTarget.contains("path: \"Sources/RiskEngine\""))
+        XCTAssertTrue(executionClientTarget.contains("path: \"Sources/ExecutionClient\""))
+        XCTAssertTrue(executionEngineTarget.contains("path: \"Sources/ExecutionEngine\""))
+
+        XCTAssertTrue(traderTarget.contains("dependencies: [\"DomainModel\", \"MessageBus\", \"Cache\", \"TraderStrategies\", \"Portfolio\", \"RiskEngine\"]"))
+        XCTAssertFalse(traderTarget.contains("\"ExecutionEngine\""))
+        XCTAssertFalse(traderTarget.contains("\"ExecutionClient\""))
+        XCTAssertTrue(executionEngineTarget.contains("dependencies: [\"DomainModel\", \"MessageBus\", \"Cache\", \"Portfolio\", \"RiskEngine\", \"ExecutionClient\"]"))
+        XCTAssertTrue(executionClientTarget.contains("dependencies: [\"DomainModel\", \"MessageBus\"]"))
+    }
+
     func testMTP220ExecutionTargetsExposeFutureGateDependencyDirection() {
         let executionClient = ExecutionClientTargetBoundary.mtp220
         let executionEngine = ExecutionEngineTargetBoundary.mtp220

@@ -14426,3 +14426,28 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; Dashboard smoke includes `readModelOnly=true`; 336 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-06 - GH-397 Trader / Portfolio / Risk / Execution real target smoke tests
+
+- Project: `MTPRO Real Target Source Ownership Validation / Core Envelope Retirement v1`
+- Queue item: GH-397 `Add real target smoke tests for Trader / Portfolio / Risk / Execution boundaries`
+- Scope:
+  - Added GH-397 validation anchors to `TraderStrategies`, `Trader`, `Portfolio`, `RiskEngine`, `ExecutionClient` and `ExecutionEngine` target boundary files.
+  - Added `testGH397TraderPortfolioRiskExecutionTargetsExposeUsableBoundaryAPIs`.
+  - Updated architecture / contract / automation readiness docs for the Trader / Portfolio / Risk / Execution real target smoke baseline.
+- Boundary:
+  - No Trader / Portfolio / Risk / Execution implementation ownership migration.
+  - Retained `Core` compatibility envelope.
+  - No Trader runtime / Strategy runtime / Live runtime.
+  - No ExecutionClient implementation / OMS / broker gateway.
+  - No signed endpoint / account endpoint / listenKey / private WebSocket runtime.
+  - No real account read / real order lifecycle / submit / cancel / replace / execution report / broker fill / reconciliation.
+  - No Live PRO Console / trading button / live command / order form.
+  - No L4 implementation.
+  - No Symphony / Graphify / code-index / Figma.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH397TraderPortfolioRiskExecutionTargetsExposeUsableBoundaryAPIs`: pass; 1 test / 0 failures.
+  - `swift test --filter TargetGraphTests`: pass; 22 tests / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; Dashboard smoke includes `readModelOnly=true`; 337 XCTest / 0 failures; final output `MTPRO checks passed.`
