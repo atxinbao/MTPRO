@@ -87,6 +87,7 @@ let package = Package(
                 "Binance"
             ],
             sources: [
+                "DataClientReadOnlyMarketDataSource.swift",
                 "TargetGraph/DataClientTargetBoundary.swift"
             ]
         ),
@@ -98,6 +99,7 @@ let package = Package(
                 "MarketData"
             ],
             sources: [
+                "CacheReadModelSnapshot.swift",
                 "TargetGraph/CacheTargetBoundary.swift"
             ]
         ),
@@ -111,6 +113,7 @@ let package = Package(
                 "ScenarioReplay"
             ],
             sources: [
+                "DataEngineReadOnlyReplayPlan.swift",
                 "TargetGraph/DataEngineTargetBoundary.swift"
             ]
         ),
@@ -196,8 +199,10 @@ let package = Package(
             path: "Sources",
             exclude: [
                 "Cache/TargetGraph",
+                "Cache/CacheReadModelSnapshot.swift",
                 "Dashboard",
                 "DataClient",
+                "DataEngine/DataEngineReadOnlyReplayPlan.swift",
                 "DataEngine/Ingest",
                 "DataEngine/TargetGraph",
                 "Database",
@@ -241,6 +246,7 @@ let package = Package(
             dependencies: ["Core"],
             path: "Sources/DataClient",
             exclude: [
+                "DataClientReadOnlyMarketDataSource.swift",
                 "TargetGraph"
             ],
             sources: [
@@ -286,6 +292,7 @@ let package = Package(
                 "Core",
                 "Dashboard",
                 "DataClient",
+                "DataEngine/DataEngineReadOnlyReplayPlan.swift",
                 "DataEngine/ScenarioReplay",
                 "DataEngine/DataQuality",
                 "DataEngine/TargetGraph",

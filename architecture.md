@@ -244,6 +244,28 @@ GH-394 让 `MessageBus` target 拥有中立 append-only journal：`MessageBusApp
 
 GH-394 不删除 `Core`，也不迁移 Data、Trader、Portfolio、Risk、Execution 或 Dashboard ownership。它只完成 foundation ownership 的第一段真实迁移，并继续禁止 Trader runtime、Strategy runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed/account endpoint、private stream runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 和 L4 capability。
 
+## GH-395 Data Target Real Smoke Tests
+
+`GH-395-DATA-TARGET-REAL-SMOKE-TESTS`
+
+GH-395 为 data targets 增加最小 real target smoke APIs：`DataClientReadOnlyMarketDataSource.swift`、`CacheReadModelSnapshot.swift` 和 `DataEngineReadOnlyReplayPlan.swift`。`TargetGraphTests` 直接 import `DataClient`、`Cache` 和 `DataEngine`，并创建 public read-only source、read-model snapshot 和 replay plan，证明这些 targets 不再只是 boundary anchor / Package 字符串。
+
+`GH-395-DATACLIENT-REAL-TARGET-SMOKE`
+
+`DataClient` 当前只表达 public read-only market data input source identity。它不调用 signed endpoint、account endpoint，不创建 listenKey，不连接 private WebSocket runtime，也不连接 broker 或 execution adapter。
+
+`GH-395-CACHE-REAL-TARGET-SMOKE`
+
+`Cache` 当前只表达可由 MessageBus replay 重建的 read-model state surface。它不拥有 durable facts、database schema、broker state、account payload 或 runtime object。
+
+`GH-395-DATAENGINE-REAL-TARGET-SMOKE`
+
+`DataEngine` 当前只表达 public data ingest / replay / quality plan。它串联 DataClient source、MessageBus stream 和 Cache read model，不实现 streaming runtime、private stream、signed/account endpoint、broker command、ExecutionClient implementation、OMS、real order lifecycle 或 L4 capability。
+
+`GH-395-DATA-COMPATIBILITY-ENVELOPE-PRESERVED`
+
+完整 DataClient adapter、DataEngine ingest / replay / quality 和 Cache market-data implementation 仍分别由 `Adapters`、`Core` 和 `Runtime` compatibility envelope 承载。GH-395 只建立 smoke APIs；GH-396 才迁移完整 data implementation ownership。
+
 ## MTP-216 SwiftPM Target Graph Split Contract
 
 `MTP-216-SWIFTPM-TARGET-GRAPH-SPLIT-CONTRACT`

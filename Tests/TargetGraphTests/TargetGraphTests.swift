@@ -340,6 +340,90 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH395DataTargetsExposeRealAPIsBeyondBoundaryAnchors() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+
+        let dataClientTarget = try packageTargetBlock(named: "DataClient", packageSource: packageSource)
+        let cacheTarget = try packageTargetBlock(named: "Cache", packageSource: packageSource)
+        let dataEngineTarget = try packageTargetBlock(named: "DataEngine", packageSource: packageSource)
+        let adaptersTarget = try packageTargetBlock(named: "Adapters", packageSource: packageSource)
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        let runtimeTarget = try packageTargetBlock(named: "Runtime", packageSource: packageSource)
+        let adaptersSources = try packageTargetSourcesBlock(targetBlock: adaptersTarget)
+        let coreSources = try packageTargetSourcesBlock(targetBlock: coreTarget)
+        let runtimeSources = try packageTargetSourcesBlock(targetBlock: runtimeTarget)
+
+        XCTAssertTrue(dataClientTarget.contains("\"DataClientReadOnlyMarketDataSource.swift\""))
+        XCTAssertTrue(cacheTarget.contains("\"CacheReadModelSnapshot.swift\""))
+        XCTAssertTrue(dataEngineTarget.contains("\"DataEngineReadOnlyReplayPlan.swift\""))
+        XCTAssertFalse(adaptersSources.contains("DataClientReadOnlyMarketDataSource.swift"))
+        XCTAssertFalse(coreSources.contains("CacheReadModelSnapshot.swift"))
+        XCTAssertFalse(coreSources.contains("DataEngineReadOnlyReplayPlan.swift"))
+        XCTAssertFalse(runtimeSources.contains("DataEngineReadOnlyReplayPlan.swift"))
+        XCTAssertTrue(adaptersTarget.contains("\"DataClientReadOnlyMarketDataSource.swift\""))
+        XCTAssertTrue(coreTarget.contains("\"Cache/CacheReadModelSnapshot.swift\""))
+        XCTAssertTrue(coreTarget.contains("\"DataEngine/DataEngineReadOnlyReplayPlan.swift\""))
+        XCTAssertTrue(runtimeTarget.contains("\"DataEngine/DataEngineReadOnlyReplayPlan.swift\""))
+
+        let symbol = try Symbol(rawValue: "BTCUSDT")
+        let source = try DataClientReadOnlyMarketDataSource(
+            sourceID: try FoundationTargetID("gh-395-binance-public-source"),
+            venue: .binance,
+            symbol: symbol,
+            timeframe: try Timeframe(contractValue: "1m"),
+            datasetVersion: "fixture-gh-395"
+        )
+        XCTAssertTrue(source.publicReadOnlyBoundaryHeld)
+        XCTAssertFalse(source.callsSignedEndpoint)
+        XCTAssertFalse(source.callsAccountEndpoint)
+        XCTAssertFalse(source.createsListenKey)
+        XCTAssertFalse(source.connectsPrivateWebSocketRuntime)
+        XCTAssertFalse(source.connectsBrokerOrExecutionAdapter)
+
+        let streamID = try MessageBusJournalStreamID("gh-395.public-market-data")
+        var snapshot = CacheReadModelSnapshot(
+            snapshotID: try FoundationTargetID("gh-395-cache-snapshot"),
+            stream: streamID,
+            symbol: symbol
+        )
+        XCTAssertTrue(snapshot.readModelBoundaryHeld)
+        XCTAssertFalse(snapshot.ownsDurableFacts)
+        XCTAssertFalse(snapshot.ownsBrokerState)
+        XCTAssertFalse(snapshot.exposesDatabaseSchema)
+
+        let plan = DataEngineReadOnlyReplayPlan(
+            planID: try FoundationTargetID("gh-395-dataengine-plan"),
+            source: source,
+            stream: streamID,
+            cacheSnapshot: snapshot
+        )
+        XCTAssertTrue(plan.ingestReplayQualityBoundaryHeld)
+        XCTAssertFalse(plan.implementsPrivateStreamRuntime)
+        XCTAssertFalse(plan.callsSignedOrAccountEndpoint)
+        XCTAssertFalse(plan.routesBrokerOrExecutionCommand)
+        XCTAssertFalse(plan.exposesLiveRuntime)
+        XCTAssertTrue(plan.payloadType.contains("dataengine.public-market-data.binance.BTCUSDT.1m"))
+
+        var journal = try MessageBusAppendOnlyJournal()
+        let envelope = try journal.append(
+            stream: streamID,
+            sourceID: source.sourceID,
+            payloadType: plan.payloadType,
+            recordedAt: Date(timeIntervalSince1970: 395)
+        )
+        try snapshot.apply(envelope)
+        XCTAssertEqual(snapshot.appliedEventCount, 1)
+        XCTAssertEqual(journal.replay(stream: streamID).map(\.sequence), [1])
+
+        XCTAssertTrue(DataClientTargetBoundary.mtp218.validationAnchors.contains("GH-395-DATACLIENT-REAL-TARGET-SMOKE"))
+        XCTAssertTrue(CacheTargetBoundary.mtp218.validationAnchors.contains("GH-395-CACHE-REAL-TARGET-SMOKE"))
+        XCTAssertTrue(DataEngineTargetBoundary.mtp218.validationAnchors.contains("GH-395-DATAENGINE-REAL-TARGET-SMOKE"))
+    }
+
     func testMTP219TraderPortfolioRiskTargetsExposeDependencyDirectionAndContainerBoundary() {
         let portfolio = PortfolioTargetBoundary.mtp219
         let riskEngine = RiskEngineTargetBoundary.mtp219
@@ -766,5 +850,16 @@ final class TargetGraphTests: XCTestCase {
             return String(tail[..<nextTarget.lowerBound])
         }
         return String(tail)
+    }
+
+    private func packageTargetSourcesBlock(targetBlock: String) throws -> String {
+        guard let sourcesRange = targetBlock.range(of: "sources: [") else {
+            throw XCTSkip("Package.swift target sources block not found")
+        }
+        let tail = targetBlock[sourcesRange.lowerBound...]
+        guard let closeRange = tail.range(of: "\n            ]") else {
+            throw XCTSkip("Package.swift target sources block is not closed")
+        }
+        return String(tail[..<closeRange.upperBound])
     }
 }

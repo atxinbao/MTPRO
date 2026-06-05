@@ -255,3 +255,46 @@ GH-394 readiness anchors：
 - `GH-394-MESSAGEBUS-NEUTRAL-JOURNAL-OWNERSHIP`
 - `GH-394-CORE-COMPATIBILITY-ENVELOPE-PRESERVED`
 - `GH-394-VALIDATION-ANCHORS`
+
+## GH-395-DATA-TARGET-REAL-SMOKE-TESTS
+
+GH-395 把 data targets 从“只有 target boundary anchor”推进到“target 内存在可独立 import / compile / use 的最小真实 API”：
+
+- `DataClient` target 编译 `Sources/DataClient/DataClientReadOnlyMarketDataSource.swift`，暴露 Binance public read-only source identity、symbol、timeframe 和 dataset version。
+- `Cache` target 编译 `Sources/Cache/CacheReadModelSnapshot.swift`，依赖 `DomainModel` / `MessageBus`，暴露可由 replay 重建的 read-model snapshot。
+- `DataEngine` target 编译 `Sources/DataEngine/DataEngineReadOnlyReplayPlan.swift`，依赖 `DomainModel` / `DataClient` / `MessageBus` / `Cache`，暴露 public data ingest / replay plan。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 增加 `testGH395DataTargetsExposeRealAPIsBeyondBoundaryAnchors`，直接 import `DataClient`、`DataEngine` 和 `Cache` 并使用上述 public APIs。
+
+这些 smoke APIs 只证明 data targets 已经拥有可调用的最小真实 source ownership。它们不替代仍由 `Adapters`、`Core` 和 `Runtime` compatibility envelope 承载的完整 DataClient adapter、DataEngine ingest / replay / quality 或 Cache market-data implementation。
+
+## GH-395-DATA-COMPATIBILITY-ENVELOPE-PRESERVED
+
+GH-395 不迁移完整 implementation ownership：
+
+- `Adapters` 仍承载 `Sources/DataClient/Binance/PublicMarketData/`。
+- `Core` 仍承载 `Sources/Cache/MarketData/`、`Sources/DataEngine/ScenarioReplay/` 和 `Sources/DataEngine/DataQuality/`。
+- `Runtime` 仍承载 `Sources/DataEngine/Ingest/`。
+
+后续 GH-396 才处理 DataClient / DataEngine / Cache implementation ownership migration。本 issue 不实现 streaming runtime、private stream、signed/account endpoint、listenKey、broker path、ExecutionClient implementation、OMS、real order lifecycle 或 L4 capability。
+
+## GH-395-DATA-VALIDATION-ANCHORS
+
+GH-395 required validation：
+
+- `swift build --target DataClient`
+- `swift build --target Cache`
+- `swift build --target DataEngine`
+- `swift test --filter TargetGraphTests/testGH395DataTargetsExposeRealAPIsBeyondBoundaryAnchors`
+- `swift test --filter TargetGraphTests`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-395 readiness anchors：
+
+- `GH-395-DATA-TARGET-REAL-SMOKE-TESTS`
+- `GH-395-DATACLIENT-REAL-TARGET-SMOKE`
+- `GH-395-CACHE-REAL-TARGET-SMOKE`
+- `GH-395-DATAENGINE-REAL-TARGET-SMOKE`
+- `GH-395-DATA-COMPATIBILITY-ENVELOPE-PRESERVED`
+- `GH-395-DATA-VALIDATION-ANCHORS`

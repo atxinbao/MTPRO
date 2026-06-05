@@ -1926,3 +1926,41 @@ GitHub Issue：[#394](https://github.com/atxinbao/MTPRO/issues/394)
 - `git diff --check`：pass，无输出。
 - `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
 - `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true`，334 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
+## 2026-06-06 — GH-395 Data target real smoke tests
+
+执行者：Codex
+
+GitHub Issue：[#395](https://github.com/atxinbao/MTPRO/issues/395)
+
+范围：
+
+- 新增 `Sources/DataClient/DataClientReadOnlyMarketDataSource.swift`，让 `DataClient` target 暴露 public read-only market data source identity smoke API。
+- 新增 `Sources/Cache/CacheReadModelSnapshot.swift`，让 `Cache` target 暴露可由 MessageBus replay 重建的 read-model snapshot smoke API。
+- 新增 `Sources/DataEngine/DataEngineReadOnlyReplayPlan.swift`，让 `DataEngine` target 串联 DataClient public source、MessageBus stream 和 Cache snapshot，暴露 read-only replay plan smoke API。
+- 更新 `Package.swift`，让 DataClient / Cache / DataEngine 编译这些真实 target APIs，并让 Core / Adapters / Runtime compatibility envelopes 显式排除这些 smoke files，避免 source ownership overlap。
+- 新增 `testGH395DataTargetsExposeRealAPIsBeyondBoundaryAnchors`，证明 DataClient / Cache / DataEngine targets 可独立 import 并使用最小真实 public APIs，而不是只检查 boundary anchor / Package 字符串。
+
+边界：
+
+- 这不是完整 DataClient adapter、DataEngine ingest / replay / quality 或 Cache market-data implementation migration；`Adapters`、`Core` 和 `Runtime` compatibility envelopes 仍保留。
+- 不实现 Trader runtime、Strategy runtime、Live runtime。
+- 不实现 ExecutionClient implementation、OMS、broker gateway。
+- 不接 signed endpoint、account endpoint / listenKey、private WebSocket runtime。
+- 不实现 real account read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation。
+- 不实现 Live PRO Console、trading button、live command 或 order form。
+- 不推进 L4。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify / code-index。
+- 不修改 Figma。
+
+验证：
+
+- `swift build --target DataClient`：pass。
+- `swift build --target Cache`：pass。
+- `swift build --target DataEngine`：pass。
+- `swift test --filter TargetGraphTests/testGH395DataTargetsExposeRealAPIsBeyondBoundaryAnchors`：pass，1 test / 0 failures。
+- `swift test --filter TargetGraphTests`：pass，20 tests / 0 failures。
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true`，335 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。

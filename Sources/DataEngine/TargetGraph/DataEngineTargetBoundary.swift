@@ -107,7 +107,9 @@ public struct DataEngineTargetBoundary: Codable, Equatable, Sendable {
         "MTP-218-DATAENGINE-TARGET-SPLIT",
         "MTP-218-DATACLIENT-DATAENGINE-CACHE-DEPENDENCY-DIRECTION",
         "MTP-227-DATAENGINE-REAL-ROOT-TARGET-PATH",
-        "MTP-218-NO-SIGNED-ACCOUNT-BROKER-GUARD"
+        "MTP-218-NO-SIGNED-ACCOUNT-BROKER-GUARD",
+        "GH-395-DATAENGINE-REAL-TARGET-SMOKE",
+        "GH-395-DATAENGINE-READ-ONLY-REPLAY-PLAN"
     ]
 
     public static let mtp218 = DataEngineTargetBoundary()
