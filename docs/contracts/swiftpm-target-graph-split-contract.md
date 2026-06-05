@@ -47,7 +47,7 @@ CSQLite
 | `ExecutionClient` | `DomainModel` | future-gated external broker / exchange client capability contract only。 |
 | `ExecutionEngine` | `DomainModel`, `MessageBus`, `Cache`, `Portfolio`, `RiskEngine`, `ExecutionClient` | paper lifecycle、simulated lifecycle、matching / fill / fee / slippage、future OMS boundary；`ExecutionClient` 只能作为 future gate / protocol vocabulary，不是 current call path。 |
 | `TraderStrategies` | `DomainModel`, `MessageBus`, `Cache`, `Portfolio`, `RiskEngine` | Trader-owned concrete strategies；当前 active concrete strategy only `EMA`，canonical source path only `Sources/Trader/Strategies/EMA/`。 |
-| `Trader` | `DomainModel`, `MessageBus`, `Cache`, `TraderStrategies`, `Portfolio`, `RiskEngine`, `ExecutionEngine` | `Trader = Accounts + Strategies/EMA + Coordination`；只做 identity / account context / strategy proposal / risk / execution coordination boundary。 |
+| `Trader` | `DomainModel`, `MessageBus`, `Cache`, `TraderStrategies`, `Portfolio`, `RiskEngine` | `Trader = Accounts + Strategies/EMA + Coordination`；只做 identity / account context / strategy proposal / risk coordination boundary。GH-392 后不再直接依赖 `ExecutionEngine`。 |
 | `Workbench` | `DomainModel`, `MessageBus`, `DataEngine`, `Portfolio`, `RiskEngine`, `ExecutionEngine`, `Trader`, `Database` read-model exports only | Report / Dashboard / Events read-model-only evidence surface and ViewModel assembly。 |
 | `Dashboard` | `Workbench` | macOS shell / smoke executable，只装载 Workbench ViewModel snapshot。 |
 
@@ -67,12 +67,12 @@ RiskEngine -> DomainModel / MessageBus / Cache / Portfolio
 ExecutionClient -> DomainModel
 ExecutionEngine -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine / ExecutionClient(future gate types only)
 TraderStrategies -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine
-Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine / ExecutionEngine
+Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine
 Workbench -> ReadModel / ViewModel exports only
 Dashboard -> Core / Persistence
 ```
 
-该方向保留 NautilusTrader 风格的 engine layering，但不复制 NautilusTrader runtime，也不把 MTPRO 当前 evidence 升级为 production trading engine。`TraderStrategies` 只能提出 strategy signal / paper-neutral proposal evidence；`Trader` 负责协调，不能绕过 `RiskEngine` / `ExecutionEngine`。`ExecutionClient` 在 MTP-216 仍只是 future gate contract，不是 current executable dependency。
+该方向保留 NautilusTrader 风格的 engine layering，但不复制 NautilusTrader runtime，也不把 MTPRO 当前 evidence 升级为 production trading engine。`TraderStrategies` 只能提出 strategy signal / paper-neutral proposal evidence；`Trader` 负责 account / strategy / coordination，不能绕过 `RiskEngine`，也不能直接依赖 `ExecutionEngine` 或 `ExecutionClient`。`ExecutionClient` 在 MTP-216 仍只是 future gate contract，不是 current executable dependency。
 
 ## MTP-216-FORBIDDEN-IMPORT-PATHS
 
@@ -383,14 +383,14 @@ MTP-220 的 dependency direction 固定为：
 ```text
 ExecutionClient -> DomainModel / MessageBus
 ExecutionEngine -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine / ExecutionClient
-Trader -> ExecutionEngine dependency resolved from MTP-219 deferred gate
+Trader -> ExecutionEngine dependency resolved from MTP-219 deferred gate (historical before-state; superseded by GH-392)
 ```
 
-`RiskEngine` 仍不能直连 broker 或 ExecutionClient；`ExecutionEngine` 可以消费 `RiskEngine` target boundary 和 `ExecutionClient` future gate boundary，但不能升级为 broker adapter、OMS implementation 或 real order lifecycle；`Trader` 只能依赖 `ExecutionEngine` target boundary，不能直连 `ExecutionClient`、broker、OMS、signed endpoint、account endpoint、listenKey、private stream runtime 或 UI command surface。
+`RiskEngine` 仍不能直连 broker 或 ExecutionClient；`ExecutionEngine` 可以消费 `RiskEngine` target boundary 和 `ExecutionClient` future gate boundary，但不能升级为 broker adapter、OMS implementation 或 real order lifecycle；MTP-220 historical before-state 曾允许 `Trader` 依赖 `ExecutionEngine` target boundary，GH-392 后该 direct target dependency 已退休，Trader 不能直连 `ExecutionEngine`、`ExecutionClient`、broker、OMS、signed endpoint、account endpoint、listenKey、private stream runtime 或 UI command surface。
 
 `MTP-220-TRADER-EXECUTIONENGINE-DEPENDENCY-RESOLVED`
 
-MTP-220 将 MTP-219 记录的 `Trader -> ExecutionEngine(MTP-220)` deferred dependency 解析为正式 target dependency：`Trader` target 依赖 `ExecutionEngine`，但 `TraderTargetBoundary` 仍保持 no direct ExecutionClient、no broker / OMS、no real account payload 和 no live command surface guard。
+MTP-220 将 MTP-219 记录的 `Trader -> ExecutionEngine(MTP-220)` deferred dependency 解析为正式 target dependency。该段现在只作为 historical before-state evidence；GH-392 已移除 direct `Trader -> ExecutionEngine` target dependency，并把 `TraderTargetBoundary` 收紧为 no direct ExecutionEngine、no direct ExecutionClient、no broker / OMS、no real account payload 和 no live command surface guard。
 
 `MTP-220-EXECUTIONCLIENT-FUTURE-GATE-ONLY`
 
@@ -498,7 +498,7 @@ RiskEngine -> DomainModel / MessageBus / Cache / Portfolio
 ExecutionClient -> DomainModel / MessageBus
 ExecutionEngine -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine / ExecutionClient
 TraderStrategies -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine
-Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine / ExecutionEngine
+Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine
 Dashboard -> Core / Persistence read-model and ViewModel exports only
 ```
 
@@ -579,7 +579,7 @@ MTP-224 将 `Sources/TargetGraph` 固定为 transitional compile anchor / histor
 
 `MTP-224-DEPENDENCY-DIRECTION-AND-FORBIDDEN-PATH-TAXONOMY`
 
-真实 module source root 迁移必须保持 MTP-222 current target graph direction，不得打开 `DataClient -> signed/account/listenKey/private runtime`、`TraderStrategies -> ExecutionClient / broker / OMS`、`Trader -> ExecutionClient`、`RiskEngine -> broker / ExecutionClient`、`ExecutionEngine -> current OMS / broker adapter`、`ExecutionClient -> signed request / real order lifecycle`、`Workbench -> Runtime object / Adapter request / Database schema / broker payload / account payload` 或 `Dashboard -> anything except Workbench`。
+真实 module source root 迁移必须保持 MTP-222 current target graph direction，并应用 GH-392 的 Trader dependency correction：不得打开 `DataClient -> signed/account/listenKey/private runtime`、`TraderStrategies -> ExecutionClient / broker / OMS`、`Trader -> ExecutionEngine`、`Trader -> ExecutionClient`、`RiskEngine -> broker / ExecutionClient`、`ExecutionEngine -> current OMS / broker adapter`、`ExecutionClient -> signed request / real order lifecycle`、`Workbench -> Runtime object / Adapter request / Database schema / broker payload / account payload` 或 `Dashboard -> anything except Workbench`。
 
 `MTP-224-NO-PACKAGE-SOURCE-MOVE-RUNTIME-GUARD`
 

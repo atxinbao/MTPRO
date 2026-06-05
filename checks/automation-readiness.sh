@@ -5125,7 +5125,7 @@ require_contains "Sources/ExecutionClient/TargetGraph/ExecutionClientTargetBound
 require_contains "Sources/ExecutionClient/TargetGraph/ExecutionClientTargetBoundary.swift" "MTP-229-EXECUTIONCLIENT-REAL-ROOT-TARGET-PATH"
 require_contains "Sources/ExecutionEngine/TargetGraph/ExecutionEngineTargetBoundary.swift" "MTP-220-EXECUTIONENGINE-TARGET-SPLIT"
 require_contains "Sources/ExecutionEngine/TargetGraph/ExecutionEngineTargetBoundary.swift" "MTP-229-EXECUTIONENGINE-REAL-ROOT-TARGET-PATH"
-require_contains "Sources/Trader/TargetGraph/TraderTargetBoundary.swift" "MTP-220-TRADER-EXECUTIONENGINE-DEPENDENCY-RESOLVED"
+require_contains "Sources/Trader/TargetGraph/TraderTargetBoundary.swift" "GH-392-TRADER-NO-DIRECT-EXECUTIONENGINE-DEPENDENCY"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP220ExecutionTargetsExposeFutureGateDependencyDirection"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP220ExecutionTargetsRejectBrokerOMSRealOrderAndEndpointDrift"
 require_contains "docs/contracts/swiftpm-target-graph-split-contract.md" "MTP-220-EXECUTION-TARGET-SPLIT-EVIDENCE"
@@ -5530,16 +5530,29 @@ require_contains "docs/contracts/real-target-source-ownership-core-envelope-reti
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "Trader -> ExecutionEngine"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "future gate / protocol boundary only"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-392"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-392-TRADER-NO-DIRECT-EXECUTIONENGINE-DEPENDENCY"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-392-TRADER-PROPOSAL-MESSAGEBUS-COORDINATION-BOUNDARY"
 require_contains "architecture.md" "GH-391 Real Target Source Ownership / Core Envelope Retirement Contract"
 require_contains "architecture.md" "GH-391-DEPENDENCY-DIRECTION-CORRECTION"
 require_contains "architecture.md" "Trader 不直接拥有 ExecutionEngine implementation"
+require_contains "architecture.md" "GH-392-TRADER-NO-DIRECT-EXECUTIONENGINE-DEPENDENCY"
 require_contains "architecture.md" "Dashboard read-model-only boundary"
 require_contains "docs/automation/automation-readiness.md" "GH-391 real target ownership / Core envelope retirement contract anchor"
 require_contains "docs/automation/automation-readiness.md" "GH-391-REAL-TARGET-OWNERSHIP-CONTRACT"
+require_contains "docs/automation/automation-readiness.md" "GH-392 Trader / ExecutionEngine dependency correction anchor"
+require_contains "Package.swift" 'dependencies: ["DomainModel", "MessageBus", "Cache", "TraderStrategies", "Portfolio", "RiskEngine"]'
+require_absent "Package.swift" 'dependencies: ["DomainModel", "MessageBus", "Cache", "TraderStrategies", "Portfolio", "RiskEngine", "ExecutionEngine"]'
+require_absent "Sources/Trader/TargetGraph/TraderTargetBoundary.swift" "import ExecutionEngine"
+require_absent "Sources/Trader/TargetGraph/TraderTargetBoundary.swift" "executionEngineBoundary"
+require_contains "Sources/Trader/TargetGraph/TraderTargetBoundary.swift" "GH-392-TRADER-NO-DIRECT-EXECUTIONENGINE-DEPENDENCY"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH392TraderTargetPackageDoesNotDependDirectlyOnExecutionEngine"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "GH-392-TRADER-NO-DIRECT-EXECUTIONENGINE-DEPENDENCY"
 require_contains "docs/validation/latest-verification-summary.md" "GH-391 Real Target Source Ownership / Core Envelope Retirement Contract"
 require_contains "docs/validation/latest-verification-summary.md" "GitHub Issue：[#391]"
+require_contains "docs/validation/latest-verification-summary.md" "GH-392 Trader / ExecutionEngine dependency correction"
 require_contains "verification.md" "GH-391 Real Target Source Ownership / Core Envelope Retirement Contract"
 require_contains "verification.md" "No Package.swift change"
+require_contains "verification.md" "GH-392 Trader / ExecutionEngine dependency correction"
 require_absent "docs/validation/validation-plan.md" 'Root docs 必须使用 `Trader = Accounts + Strategies + StrategyBindings + Coordination`'
 require_absent "docs/validation/validation-plan.md" '`Sources/Trader/StrategyBindings/` 必须包含 proposal-to-risk binding'
 require_absent "docs/validation/validation-plan.md" '只使用 `"Trader/Strategies/EMA"` 和 `"Trader/StrategyBindings"`'

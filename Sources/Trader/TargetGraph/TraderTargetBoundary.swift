@@ -1,6 +1,5 @@
 import Cache
 import DomainModel
-import ExecutionEngine
 import MessageBus
 import Portfolio
 import RiskEngine
@@ -9,9 +8,9 @@ import TraderStrategies
 /// `Trader` target boundary 表达 Accounts + Strategies/EMA + Coordination 的组合容器。
 ///
 /// MTP-228 只把 active target boundary anchor 从 `Sources/TargetGraph/Trader`
-/// 移到 `Sources/Trader/TargetGraph`。MTP-220 解析了 MTP-219 延后的
-/// `Trader -> ExecutionEngine` dependency，但 Trader 仍不是 live coordinator、
-/// broker gateway 或 direct ExecutionClient caller。
+/// 移到 `Sources/Trader/TargetGraph`。GH-392 明确 Trader 不再直接依赖
+/// `ExecutionEngine` target；Trader 只产出 proposal / coordination evidence，
+/// 下游 Risk / Execution context 通过 MessageBus / contract 消费。
 public struct TraderTargetBoundary: Codable, Equatable, Sendable {
     public let targetName: String
     public let canonicalSourceRoot: String
@@ -23,7 +22,6 @@ public struct TraderTargetBoundary: Codable, Equatable, Sendable {
     public let strategiesBoundary: TraderStrategiesTargetBoundary
     public let portfolioBoundary: PortfolioTargetBoundary
     public let riskEngineBoundary: RiskEngineTargetBoundary
-    public let executionEngineBoundary: ExecutionEngineTargetBoundary
     public let allowedDependencies: [String]
     public let deferredDependencies: [String]
     public let forbiddenDependencies: [String]
@@ -49,7 +47,6 @@ public struct TraderTargetBoundary: Codable, Equatable, Sendable {
         strategiesBoundary: TraderStrategiesTargetBoundary = .mtp219,
         portfolioBoundary: PortfolioTargetBoundary = .mtp219,
         riskEngineBoundary: RiskEngineTargetBoundary = .mtp219,
-        executionEngineBoundary: ExecutionEngineTargetBoundary = .mtp220,
         allowedDependencies: [String] = Self.requiredAllowedDependencies,
         deferredDependencies: [String] = [],
         forbiddenDependencies: [String] = Self.requiredForbiddenDependencies,
@@ -74,7 +71,6 @@ public struct TraderTargetBoundary: Codable, Equatable, Sendable {
         self.strategiesBoundary = strategiesBoundary
         self.portfolioBoundary = portfolioBoundary
         self.riskEngineBoundary = riskEngineBoundary
-        self.executionEngineBoundary = executionEngineBoundary
         self.allowedDependencies = allowedDependencies
         self.deferredDependencies = deferredDependencies
         self.forbiddenDependencies = forbiddenDependencies
@@ -102,7 +98,6 @@ public struct TraderTargetBoundary: Codable, Equatable, Sendable {
             && strategiesBoundary.dependencyDirectionHeld
             && portfolioBoundary.dependencyDirectionHeld
             && riskEngineBoundary.dependencyDirectionHeld
-            && executionEngineBoundary.dependencyDirectionHeld
             && allowedDependencies == Self.requiredAllowedDependencies
             && deferredDependencies.isEmpty
             && forbiddenDependencies == Self.requiredForbiddenDependencies
@@ -124,11 +119,11 @@ public struct TraderTargetBoundary: Codable, Equatable, Sendable {
         "Cache",
         "TraderStrategies",
         "Portfolio",
-        "RiskEngine",
-        "ExecutionEngine"
+        "RiskEngine"
     ]
 
     public static let requiredForbiddenDependencies = [
+        "ExecutionEngine",
         "ExecutionClient",
         "Broker",
         "OMS",
@@ -146,7 +141,8 @@ public struct TraderTargetBoundary: Codable, Equatable, Sendable {
     public static let requiredValidationAnchors = [
         "MTP-219-TRADER-TARGET-SPLIT",
         "MTP-219-TRADER-CONTAINER-ACCOUNTS-EMA-COORDINATION",
-        "MTP-220-TRADER-EXECUTIONENGINE-DEPENDENCY-RESOLVED",
+        "GH-392-TRADER-NO-DIRECT-EXECUTIONENGINE-DEPENDENCY",
+        "GH-392-TRADER-PROPOSAL-MESSAGEBUS-COORDINATION-BOUNDARY",
         "MTP-228-TRADER-REAL-ROOT-TARGET-PATH",
         "MTP-219-NO-DIRECT-EXECUTION-GUARD"
     ]

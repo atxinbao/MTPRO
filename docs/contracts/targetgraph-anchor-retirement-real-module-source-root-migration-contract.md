@@ -65,7 +65,7 @@ RiskEngine -> DomainModel / MessageBus / Cache / Portfolio
 ExecutionClient -> DomainModel / MessageBus
 ExecutionEngine -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine / ExecutionClient
 TraderStrategies -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine
-Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine / ExecutionEngine
+Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine
 Dashboard -> Core / Persistence read-model and ViewModel exports only
 ```
 
@@ -290,10 +290,10 @@ MTP-228 preserves the Trader / Portfolio / Risk dependency direction:
 Portfolio -> DomainModel / MessageBus / Cache / Database
 RiskEngine -> DomainModel / MessageBus / Cache / Portfolio
 TraderStrategies -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine
-Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine / ExecutionEngine
+Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine
 ```
 
-`Trader = Accounts + Strategies/EMA + Coordination` remains the authority, and EMA remains the only active concrete strategy. MTP-228 does not migrate ExecutionEngine、ExecutionClient、Workbench or Dashboard. It does not add Trader runtime, Strategy runtime, Live runtime, direct strategy-to-execution path, broker / OMS path, signed endpoint, account endpoint, listenKey, private stream runtime or L4 capability.
+`Trader = Accounts + Strategies/EMA + Coordination` remains the authority, and EMA remains the only active concrete strategy. GH-392 later removed direct `Trader -> ExecutionEngine` target dependency, so this direction is current. MTP-228 does not migrate ExecutionEngine、ExecutionClient、Workbench or Dashboard. It does not add Trader runtime, Strategy runtime, Live runtime, direct strategy-to-execution path, broker / OMS path, signed endpoint, account endpoint, listenKey, private stream runtime or L4 capability.
 
 ## MTP-228-TARGETGRAPH-TRADER-PORTFOLIO-RISK-ACTIVE-PATH-RETIREMENT
 

@@ -1820,3 +1820,37 @@ GitHub Issue：[#391](https://github.com/atxinbao/MTPRO/issues/391)
 - `git diff --check`：pass，无输出。
 - `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
 - `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true`，331 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
+## 2026-06-06 — GH-392 Trader / ExecutionEngine dependency correction
+
+执行者：Codex
+
+GitHub Issue：[#392](https://github.com/atxinbao/MTPRO/issues/392)
+
+范围：
+
+- 移除 `Package.swift` 中 `Trader` target 对 `ExecutionEngine` 的 direct dependency。
+- 移除 `Sources/Trader/TargetGraph/TraderTargetBoundary.swift` 中的 `import ExecutionEngine` 和 `executionEngineBoundary`。
+- 将 `TraderTargetBoundary.requiredAllowedDependencies` 收紧为 `DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine`。
+- 将 `ExecutionEngine` 加入 Trader forbidden dependencies，明确 direct target dependency 禁止。
+- 新增 `testGH392TraderTargetPackageDoesNotDependDirectlyOnExecutionEngine`，防止 Package.swift 和 Trader boundary 回退。
+- 更新 `architecture.md`、target graph contracts、real target ownership contract 和 automation readiness anchor。
+
+边界：
+
+- 不实现 Trader runtime、Strategy runtime、Live runtime。
+- 不实现 ExecutionClient implementation、OMS、broker gateway。
+- 不接 signed endpoint、account endpoint / listenKey、private WebSocket runtime。
+- 不实现 real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation。
+- 不实现 Live PRO Console、trading button、live command 或 order form。
+- 不推进 L4。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify / code-index。
+- 不修改 Figma。
+
+验证：
+
+- `swift test --filter TargetGraphTests`：pass，17 tests / 0 failures。
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true`，332 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
