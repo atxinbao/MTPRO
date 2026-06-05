@@ -14364,3 +14364,33 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; Dashboard smoke includes `readModelOnly=true`; 334 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-06 - GH-395 Data target real smoke tests
+
+- Project: `MTPRO Real Target Source Ownership Validation / Core Envelope Retirement v1`
+- Queue item: GH-395 `Add real target smoke tests for data targets`
+- Scope:
+  - Added `Sources/DataClient/DataClientReadOnlyMarketDataSource.swift`.
+  - Added `Sources/Cache/CacheReadModelSnapshot.swift`.
+  - Added `Sources/DataEngine/DataEngineReadOnlyReplayPlan.swift`.
+  - Updated `Package.swift` so `DataClient`, `Cache` and `DataEngine` compile those real smoke APIs while `Core`, `Adapters` and `Runtime` compatibility envelopes exclude the new files.
+  - Added `testGH395DataTargetsExposeRealAPIsBeyondBoundaryAnchors`.
+- Boundary:
+  - No full DataClient adapter / DataEngine ingest-replay-quality / Cache market-data implementation migration.
+  - Retained `Adapters` / `Core` / `Runtime` compatibility envelopes.
+  - No Trader runtime / Strategy runtime / Live runtime.
+  - No ExecutionClient implementation / OMS / broker gateway.
+  - No signed endpoint / account endpoint / listenKey / private WebSocket runtime.
+  - No real account read / real order lifecycle / submit / cancel / replace / execution report / broker fill / reconciliation.
+  - No Live PRO Console / trading button / live command / order form.
+  - No L4 implementation.
+  - No Symphony / Graphify / code-index / Figma.
+- Validation:
+  - `swift build --target DataClient`: pass.
+  - `swift build --target Cache`: pass.
+  - `swift build --target DataEngine`: pass.
+  - `swift test --filter TargetGraphTests/testGH395DataTargetsExposeRealAPIsBeyondBoundaryAnchors`: pass; 1 test / 0 failures.
+  - `swift test --filter TargetGraphTests`: pass; 20 tests / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; Dashboard smoke includes `readModelOnly=true`; 335 XCTest / 0 failures; final output `MTPRO checks passed.`

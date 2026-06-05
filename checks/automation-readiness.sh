@@ -5592,6 +5592,29 @@ require_contains "Package.swift" '"MessageBusAppendOnlyJournal.swift"'
 require_contains "docs/automation/automation-readiness.md" "GH-394 DomainModel / MessageBus implementation ownership anchor"
 require_contains "docs/validation/latest-verification-summary.md" "GH-394 DomainModel / MessageBus implementation ownership"
 require_contains "verification.md" "GH-394 DomainModel / MessageBus implementation ownership"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-395-DATA-TARGET-REAL-SMOKE-TESTS"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-395-DATA-COMPATIBILITY-ENVELOPE-PRESERVED"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-395-DATA-VALIDATION-ANCHORS"
+require_contains "architecture.md" "GH-395 Data Target Real Smoke Tests"
+require_contains "architecture.md" "GH-395-DATACLIENT-REAL-TARGET-SMOKE"
+require_contains "architecture.md" "GH-395-CACHE-REAL-TARGET-SMOKE"
+require_contains "architecture.md" "GH-395-DATAENGINE-REAL-TARGET-SMOKE"
+require_file "Sources/DataClient/DataClientReadOnlyMarketDataSource.swift"
+require_file "Sources/Cache/CacheReadModelSnapshot.swift"
+require_file "Sources/DataEngine/DataEngineReadOnlyReplayPlan.swift"
+require_contains "Package.swift" '"DataClientReadOnlyMarketDataSource.swift"'
+require_contains "Package.swift" '"CacheReadModelSnapshot.swift"'
+require_contains "Package.swift" '"DataEngineReadOnlyReplayPlan.swift"'
+require_contains "Sources/DataClient/TargetGraph/DataClientTargetBoundary.swift" "GH-395-DATACLIENT-REAL-TARGET-SMOKE"
+require_contains "Sources/Cache/TargetGraph/CacheTargetBoundary.swift" "GH-395-CACHE-REAL-TARGET-SMOKE"
+require_contains "Sources/DataEngine/TargetGraph/DataEngineTargetBoundary.swift" "GH-395-DATAENGINE-REAL-TARGET-SMOKE"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH395DataTargetsExposeRealAPIsBeyondBoundaryAnchors"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "DataClientReadOnlyMarketDataSource"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "CacheReadModelSnapshot"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "DataEngineReadOnlyReplayPlan"
+require_contains "docs/automation/automation-readiness.md" "GH-395 data target real smoke tests anchor"
+require_contains "docs/validation/latest-verification-summary.md" "GH-395 Data target real smoke tests"
+require_contains "verification.md" "GH-395 Data target real smoke tests"
 require_absent "docs/validation/validation-plan.md" 'Root docs 必须使用 `Trader = Accounts + Strategies + StrategyBindings + Coordination`'
 require_absent "docs/validation/validation-plan.md" '`Sources/Trader/StrategyBindings/` 必须包含 proposal-to-risk binding'
 require_absent "docs/validation/validation-plan.md" '只使用 `"Trader/Strategies/EMA"` 和 `"Trader/StrategyBindings"`'

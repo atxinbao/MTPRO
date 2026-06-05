@@ -89,7 +89,9 @@ public struct DataClientTargetBoundary: Codable, Equatable, Sendable {
         "MTP-218-DATACLIENT-TARGET-SPLIT",
         "MTP-218-PUBLIC-READ-ONLY-DATA-BOUNDARY",
         "MTP-227-DATACLIENT-REAL-ROOT-TARGET-PATH",
-        "MTP-218-NO-SIGNED-ACCOUNT-BROKER-GUARD"
+        "MTP-218-NO-SIGNED-ACCOUNT-BROKER-GUARD",
+        "GH-395-DATACLIENT-REAL-TARGET-SMOKE",
+        "GH-395-DATACLIENT-PUBLIC-READ-ONLY-SOURCE"
     ]
 
     public static let mtp218 = DataClientTargetBoundary()

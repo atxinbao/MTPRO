@@ -87,7 +87,9 @@ public struct CacheTargetBoundary: Codable, Equatable, Sendable {
         "MTP-218-CACHE-TARGET-SPLIT",
         "MTP-218-READMODEL-STATE-SURFACE",
         "MTP-227-CACHE-REAL-ROOT-TARGET-PATH",
-        "MTP-218-NO-BROKER-STATE-CACHE-GUARD"
+        "MTP-218-NO-BROKER-STATE-CACHE-GUARD",
+        "GH-395-CACHE-REAL-TARGET-SMOKE",
+        "GH-395-CACHE-READ-MODEL-SNAPSHOT"
     ]
 
     public static let mtp218 = CacheTargetBoundary()
