@@ -207,6 +207,44 @@ public struct ScenarioFixtureDeterministicSummary: Codable, Equatable, Sendable 
         self.dependsOnNetwork = dependsOnNetwork
     }
 
+    /// deterministic fixture summary 默认值的统一 fail-fast 入口。
+    ///
+    /// 该入口不放宽 summary 的 record、source relationship 或 network boundary 校验；它只替代裸 `try!`，
+    /// 让仓库内固定 summary 失败时能带上调用位置。
+    public static func constant(
+        scenarioID: ScenarioID,
+        datasetVersion: DatasetVersion,
+        fixtureVersion: FixtureVersion,
+        symbol: Symbol,
+        timeframe: Timeframe,
+        fixedWindow: DateRange,
+        canonicalRecordSummary: [String],
+        sourceIdentity: String,
+        publicReadOnlyLocalFixtureRelationshipHeld: Bool,
+        dependsOnNetwork: Bool = false,
+        fileID: StaticString = #fileID,
+        line: UInt = #line
+    ) -> Self {
+        do {
+            return try Self(
+                scenarioID: scenarioID,
+                datasetVersion: datasetVersion,
+                fixtureVersion: fixtureVersion,
+                symbol: symbol,
+                timeframe: timeframe,
+                fixedWindow: fixedWindow,
+                canonicalRecordSummary: canonicalRecordSummary,
+                sourceIdentity: sourceIdentity,
+                publicReadOnlyLocalFixtureRelationshipHeld: publicReadOnlyLocalFixtureRelationshipHeld,
+                dependsOnNetwork: dependsOnNetwork
+            )
+        } catch {
+            fatalError(
+                "MTPRO deterministic ScenarioFixtureDeterministicSummary.constant failed at \(fileID):\(line): \(error)"
+            )
+        }
+    }
+
     private static func extractRecordStart(from token: String) -> Int {
         guard let windowField = token.split(separator: "|").first(where: { $0.hasPrefix("window=") }),
               let startToken = windowField.dropFirst("window=".count).split(separator: ".").first,
@@ -257,11 +295,11 @@ public struct DeterministicScenarioFixture: Codable, Equatable, Sendable {
     public var fixedWindow: DateRange {
         let first = records.first!.bar.interval.start
         let last = records.last!.bar.interval.end
-        return try! DateRange(start: first, end: last)
+        return DateRange.constant(start: first, end: last)
     }
 
     public var deterministicSummary: ScenarioFixtureDeterministicSummary {
-        try! ScenarioFixtureDeterministicSummary(
+        ScenarioFixtureDeterministicSummary.constant(
             scenarioID: manifest.scenarioID,
             datasetVersion: manifest.datasetVersion,
             fixtureVersion: fixtureVersion,

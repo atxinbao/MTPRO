@@ -282,7 +282,7 @@ public struct DashboardBetaDemoScenarioSelection: Codable, Equatable, Sendable {
     public static let requiredScenarioID = ScenarioID.constant("mtp-104-btcusdt-1m-first-scenario")
     public static let requiredDatasetVersion = DatasetVersion.constant("dataset-v1")
     public static let requiredFixtureVersion = FixtureVersion.constant("fixture-v1")
-    public static let requiredSymbol = try! Symbol(rawValue: "BTCUSDT")
+    public static let requiredSymbol = Symbol.constant("BTCUSDT")
     public static let requiredTimeframe = Timeframe.oneMinute
 
     public static let requiredSourceAnchors: [String] = [
@@ -494,13 +494,30 @@ public struct DashboardBetaDemoFixtureEvidence: Codable, Equatable, Sendable {
             && runsGraphify == false
     }
 
+    /// Dashboard beta demo 使用的 simulated parity evidence 固定默认值。
+    ///
+    /// 该入口不放宽 simulated parity evidence 的 throwing 校验；它只替代裸 `try!`，
+    /// 让 deterministic demo fixture wiring 失败时能带上调用位置。
+    public static func deterministicSimulatedParityEvidence(
+        fileID: StaticString = #fileID,
+        line: UInt = #line
+    ) -> SimulatedExchangePortfolioProjectionParityEvidence {
+        do {
+            return try SimulatedExchangePortfolioProjectionParityFixture.deterministicEvidence()
+        } catch {
+            fatalError(
+                "MTPRO deterministic DashboardBetaDemoFixtureEvidence simulated parity evidence failed at \(fileID):\(line): \(error)"
+            )
+        }
+    }
+
     public init(
         evidenceID: Identifier = Identifier.constant("mtp-120-workbench-beta-demo-fixture-evidence"),
         issueID: Identifier = Identifier.constant("MTP-120"),
         selection: DashboardBetaDemoScenarioSelection = .deterministicFixture,
         scenarioReplayEvidence: ScenarioDataQualityReportInputEvidence = .deterministicFixture,
         simulatedParityEvidence: SimulatedExchangePortfolioProjectionParityEvidence =
-            try! SimulatedExchangePortfolioProjectionParityFixture.deterministicEvidence(),
+            DashboardBetaDemoFixtureEvidence.deterministicSimulatedParityEvidence(),
         validationAnchors: [String] = DashboardBetaDemoScenarioSelection.requiredValidationAnchors,
         scenarioReplayWiringHeld: Bool = true,
         simulatedParityWiringHeld: Bool = true,

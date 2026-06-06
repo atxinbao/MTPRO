@@ -458,8 +458,8 @@ public struct ScenarioReplayMatchingMarketState: Codable, Equatable, Sendable {
     }
 
     public init(
-        replayWindow: ScenarioReplayWindow = try! ScenarioReplayWindow(),
-        cursor: ScenarioReplayCursor = try! ScenarioReplayCursor(nextRecordSequence: 2),
+        replayWindow: ScenarioReplayWindow = .constant(),
+        cursor: ScenarioReplayCursor = .constant(nextRecordSequence: 2),
         record: ScenarioFixtureRecord = DeterministicScenarioFixture.deterministicRecords[1],
         sourceAnchor: String = "MTP-112-SCENARIO-REPLAY-MATCHING-INPUT"
     ) throws {
@@ -474,6 +474,32 @@ public struct ScenarioReplayMatchingMarketState: Codable, Equatable, Sendable {
         self.cursor = cursor
         self.record = record
         self.sourceAnchor = sourceAnchor
+    }
+
+    /// deterministic matching market state 默认值的统一 fail-fast 入口。
+    ///
+    /// 该入口不放宽 cursor / record / replay window 对齐校验；它只替代裸 `try!`，
+    /// 让固定 market state 失败时能带上调用位置。
+    public static func constant(
+        replayWindow: ScenarioReplayWindow = .constant(),
+        cursor: ScenarioReplayCursor = .constant(nextRecordSequence: 2),
+        record: ScenarioFixtureRecord = DeterministicScenarioFixture.deterministicRecords[1],
+        sourceAnchor: String = "MTP-112-SCENARIO-REPLAY-MATCHING-INPUT",
+        fileID: StaticString = #fileID,
+        line: UInt = #line
+    ) -> Self {
+        do {
+            return try Self(
+                replayWindow: replayWindow,
+                cursor: cursor,
+                record: record,
+                sourceAnchor: sourceAnchor
+            )
+        } catch {
+            fatalError(
+                "MTPRO deterministic ScenarioReplayMatchingMarketState.constant failed at \(fileID):\(line): \(error)"
+            )
+        }
     }
 
     public init(from decoder: Decoder) throws {
@@ -621,9 +647,9 @@ public struct ScenarioReplayDeterministicMatchingInput: Codable, Equatable, Send
     public init(
         inputID: Identifier = Identifier.constant("mtp-112-deterministic-matching-input"),
         sharedOrderInput: BacktestPaperSharedOrderInput = .deterministicFixture,
-        marketState: ScenarioReplayMatchingMarketState = try! ScenarioReplayMatchingMarketState(),
-        checksumEvidence: ScenarioReplayChecksumEvidence = try! ScenarioReplayChecksumEvidence(),
-        freshnessEvidence: ScenarioReplayFreshnessEvidence = try! ScenarioReplayFreshnessEvidence(),
+        marketState: ScenarioReplayMatchingMarketState = .constant(),
+        checksumEvidence: ScenarioReplayChecksumEvidence = .constant(),
+        freshnessEvidence: ScenarioReplayFreshnessEvidence = .constant(),
         validationAnchors: [String] = ScenarioReplayDeterministicMatchingContract.requiredValidationAnchors,
         requiredValidationDependsOnNetwork: Bool = false,
         usesWallClockTime: Bool = false,
