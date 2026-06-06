@@ -103,8 +103,8 @@ public struct DashboardBetaDemoScenarioSelection: Codable, Equatable, Sendable {
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-120-workbench-beta-demo-scenario-selection"),
-        issueID: Identifier = try! Identifier("MTP-120"),
+        contractID: Identifier = Identifier.constant("mtp-120-workbench-beta-demo-scenario-selection"),
+        issueID: Identifier = Identifier.constant("MTP-120"),
         scenarioID: ScenarioID = Self.requiredScenarioID,
         datasetVersion: DatasetVersion = Self.requiredDatasetVersion,
         fixtureVersion: FixtureVersion = Self.requiredFixtureVersion,
@@ -279,9 +279,9 @@ public struct DashboardBetaDemoScenarioSelection: Codable, Equatable, Sendable {
         }
     }()
 
-    public static let requiredScenarioID = try! ScenarioID("mtp-104-btcusdt-1m-first-scenario")
-    public static let requiredDatasetVersion = try! DatasetVersion("dataset-v1")
-    public static let requiredFixtureVersion = try! FixtureVersion("fixture-v1")
+    public static let requiredScenarioID = ScenarioID.constant("mtp-104-btcusdt-1m-first-scenario")
+    public static let requiredDatasetVersion = DatasetVersion.constant("dataset-v1")
+    public static let requiredFixtureVersion = FixtureVersion.constant("fixture-v1")
     public static let requiredSymbol = try! Symbol(rawValue: "BTCUSDT")
     public static let requiredTimeframe = Timeframe.oneMinute
 
@@ -495,8 +495,8 @@ public struct DashboardBetaDemoFixtureEvidence: Codable, Equatable, Sendable {
     }
 
     public init(
-        evidenceID: Identifier = try! Identifier("mtp-120-workbench-beta-demo-fixture-evidence"),
-        issueID: Identifier = try! Identifier("MTP-120"),
+        evidenceID: Identifier = Identifier.constant("mtp-120-workbench-beta-demo-fixture-evidence"),
+        issueID: Identifier = Identifier.constant("MTP-120"),
         selection: DashboardBetaDemoScenarioSelection = .deterministicFixture,
         scenarioReplayEvidence: ScenarioDataQualityReportInputEvidence = .deterministicFixture,
         simulatedParityEvidence: SimulatedExchangePortfolioProjectionParityEvidence =

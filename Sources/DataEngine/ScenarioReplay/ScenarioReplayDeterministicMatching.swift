@@ -118,8 +118,8 @@ public struct ScenarioReplayDeterministicMatchingContract: Codable, Equatable, S
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-112-scenario-replay-deterministic-matching"),
-        issueID: Identifier = try! Identifier("MTP-112"),
+        contractID: Identifier = Identifier.constant("mtp-112-scenario-replay-deterministic-matching"),
+        issueID: Identifier = Identifier.constant("MTP-112"),
         orderingRules: [ScenarioReplayMatchingOrderingRule] = Self.requiredOrderingRules,
         outputKinds: [ScenarioReplayMatchingOutputKind] = Self.requiredOutputKinds,
         forbiddenCapabilities: [SimulatedExchangeBacktestParityForbiddenCapability] = Self.requiredForbiddenCapabilities,
@@ -619,7 +619,7 @@ public struct ScenarioReplayDeterministicMatchingInput: Codable, Equatable, Send
     }
 
     public init(
-        inputID: Identifier = try! Identifier("mtp-112-deterministic-matching-input"),
+        inputID: Identifier = Identifier.constant("mtp-112-deterministic-matching-input"),
         sharedOrderInput: BacktestPaperSharedOrderInput = .deterministicFixture,
         marketState: ScenarioReplayMatchingMarketState = try! ScenarioReplayMatchingMarketState(),
         checksumEvidence: ScenarioReplayChecksumEvidence = try! ScenarioReplayChecksumEvidence(),
@@ -923,7 +923,7 @@ public struct ScenarioReplaySimulatedExchangeEvent: Codable, Equatable, Sendable
     }
 
     public init(
-        eventID: Identifier = try! Identifier("mtp-112-simulated-exchange-order-matched"),
+        eventID: Identifier = Identifier.constant("mtp-112-simulated-exchange-order-matched"),
         input: ScenarioReplayDeterministicMatchingInput,
         eventKind: ScenarioReplayMatchingOutputKind = .simulatedExchangeOrderMatched,
         sharedOrderState: BacktestPaperSharedOrderState = .filledSimulated,
@@ -1125,7 +1125,7 @@ public struct ScenarioReplayDeterministicMatchingOutput: Codable, Equatable, Sen
     }
 
     public init(
-        outputID: Identifier = try! Identifier("mtp-112-deterministic-matching-output"),
+        outputID: Identifier = Identifier.constant("mtp-112-deterministic-matching-output"),
         inputIdentity: String,
         simulatedExchangeEvent: ScenarioReplaySimulatedExchangeEvent,
         orderingRules: [ScenarioReplayMatchingOrderingRule] =

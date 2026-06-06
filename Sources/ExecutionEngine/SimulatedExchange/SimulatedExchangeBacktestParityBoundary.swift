@@ -220,8 +220,8 @@ public struct SimulatedExchangeBacktestParityBoundary: Codable, Equatable, Senda
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-110-simulated-exchange-backtest-parity-boundary"),
-        issueID: Identifier = try! Identifier("MTP-110"),
+        contractID: Identifier = Identifier.constant("mtp-110-simulated-exchange-backtest-parity-boundary"),
+        issueID: Identifier = Identifier.constant("MTP-110"),
         terms: [SimulatedExchangeBacktestParityTerm] = Self.requiredTerms,
         targetEngines: [SimulatedExchangeBacktestParityTargetEngine] = Self.requiredTargetEngines,
         boundaryPrinciples: [SimulatedExchangeBacktestParityBoundaryPrinciple] = Self.requiredBoundaryPrinciples,

@@ -70,7 +70,7 @@ public struct ExecutionClientBrokerCapabilityMatrixFutureGate: Codable, Equatabl
     }
 
     public init(
-        matrixID: Identifier = try! Identifier("mtp-188-executionclient-broker-capability-matrix"),
+        matrixID: Identifier = Identifier.constant("mtp-188-executionclient-broker-capability-matrix"),
         entries: [ExecutionClientBrokerCapabilityMatrixEntry] = ExecutionClientBrokerCapabilityMatrixEntry.allCases,
         isFutureGateOnly: Bool = true,
         implementsExecutionClient: Bool = false,

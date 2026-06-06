@@ -182,8 +182,8 @@ public struct LiveExecutionControlTerminologyBoundary: Codable, Equatable, Senda
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-75-live-execution-control-terminology"),
-        issueID: Identifier = try! Identifier("MTP-75"),
+        contractID: Identifier = Identifier.constant("mtp-75-live-execution-control-terminology"),
+        issueID: Identifier = Identifier.constant("MTP-75"),
         terms: [LiveExecutionControlTerm] = Self.requiredTerms,
         commandTaxonomy: [FutureRealOrderCommandTaxonomyTerm] = Self.requiredCommandTaxonomy,
         futureGates: [LiveExecutionControlFutureGate] = Self.requiredFutureGates,
@@ -738,8 +738,8 @@ public struct LiveExecutionControlBlockedEvidence: Codable, Equatable, Sendable 
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-79-live-execution-control-blocked-evidence"),
-        issueID: Identifier = try! Identifier("MTP-79"),
+        contractID: Identifier = Identifier.constant("mtp-79-live-execution-control-blocked-evidence"),
+        issueID: Identifier = Identifier.constant("MTP-79"),
         blockedItems: [LiveExecutionControlBlockedEvidenceItem] = Self.requiredBlockedItems,
         allowedEvidenceKinds: [LiveExecutionControlEvidenceKind] = Self.allowedEvidenceKinds,
         validationAnchors: [String] = Self.requiredValidationAnchors,
@@ -1317,8 +1317,8 @@ public struct LiveSubmitCancelReplaceCommandBoundary: Codable, Equatable, Sendab
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-76-submit-cancel-replace-boundary"),
-        issueID: Identifier = try! Identifier("MTP-76"),
+        contractID: Identifier = Identifier.constant("mtp-76-submit-cancel-replace-boundary"),
+        issueID: Identifier = Identifier.constant("MTP-76"),
         commandTaxonomy: [FutureRealOrderCommandTaxonomyTerm] = Self.requiredCommandTaxonomy,
         futureGates: [LiveSubmitCancelReplaceFutureGate] = Self.requiredFutureGates,
         forbiddenCapabilities: [LiveSubmitCancelReplaceForbiddenCapability] = Self.requiredForbiddenCapabilities,
@@ -1858,8 +1858,8 @@ public struct LiveExecutionReportBrokerFillReconciliationBoundary: Codable, Equa
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-77-execution-report-broker-fill-reconciliation-boundary"),
-        issueID: Identifier = try! Identifier("MTP-77"),
+        contractID: Identifier = Identifier.constant("mtp-77-execution-report-broker-fill-reconciliation-boundary"),
+        issueID: Identifier = Identifier.constant("MTP-77"),
         terms: [LiveExecutionControlTerm] = Self.requiredTerms,
         futureGates: [LiveExecutionReportBrokerFillReconciliationFutureGate] = Self.requiredFutureGates,
         forbiddenCapabilities: [LiveExecutionReportBrokerFillReconciliationForbiddenCapability] = Self.requiredForbiddenCapabilities,
@@ -2418,8 +2418,8 @@ public struct LivePaperRealCommandIsolationBoundary: Codable, Equatable, Sendabl
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-78-paper-real-command-isolation-boundary"),
-        issueID: Identifier = try! Identifier("MTP-78"),
+        contractID: Identifier = Identifier.constant("mtp-78-paper-real-command-isolation-boundary"),
+        issueID: Identifier = Identifier.constant("MTP-78"),
         evidenceSources: [LivePaperRealCommandIsolationEvidenceSource] = Self.requiredEvidenceSources,
         forbiddenCapabilities: [LivePaperRealCommandIsolationForbiddenCapability] = Self.requiredForbiddenCapabilities,
         allowedEvidenceKinds: [LiveExecutionControlEvidenceKind] = Self.allowedEvidenceKinds,

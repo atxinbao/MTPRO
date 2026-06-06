@@ -84,7 +84,7 @@ public struct LiveConnectionStatusReadModel: Codable, Equatable, Sendable {
 
     public init(
         connectionID: Identifier,
-        issueID: Identifier = try! Identifier("MTP-69"),
+        issueID: Identifier = Identifier.constant("MTP-69"),
         connectionKind: LiveConnectionKind,
         status: LiveMonitoringStatus,
         sourceAnchors: [String]? = nil,
@@ -355,8 +355,8 @@ public struct LiveRuntimeHealthReadModel: Codable, Equatable, Sendable {
     }
 
     public init(
-        healthID: Identifier = try! Identifier("mtp-69-live-runtime-health"),
-        issueID: Identifier = try! Identifier("MTP-69"),
+        healthID: Identifier = Identifier.constant("mtp-69-live-runtime-health"),
+        issueID: Identifier = Identifier.constant("MTP-69"),
         status: LiveMonitoringStatus = .blocked,
         sourceAnchors: [String] = Self.requiredSourceAnchors,
         allowedStatuses: [LiveMonitoringStatus] = LiveMonitoringStatus.allCases,
@@ -731,7 +731,7 @@ public struct LiveStreamMonitoringEvidenceItem: Codable, Equatable, Sendable {
 
     public init(
         streamID: Identifier,
-        issueID: Identifier = try! Identifier("MTP-70"),
+        issueID: Identifier = Identifier.constant("MTP-70"),
         streamKind: LiveStreamMonitoringKind,
         status: LiveMonitoringStatus? = nil,
         evidenceKind: LiveStreamMonitoringEvidenceKind? = nil,
@@ -1003,8 +1003,8 @@ public struct LiveStreamMonitoringEvidenceItem: Codable, Equatable, Sendable {
             []
         case .simulatedOrderStream:
             [
-                try! Identifier("paper-replay-order-allowed"),
-                try! Identifier("paper-replay-fill-allowed")
+                Identifier.constant("paper-replay-order-allowed"),
+                Identifier.constant("paper-replay-fill-allowed")
             ]
         }
     }
@@ -1224,8 +1224,8 @@ public struct LiveStreamMonitoringEvidenceReadModel: Codable, Equatable, Sendabl
     }
 
     public init(
-        readModelID: Identifier = try! Identifier("mtp-70-live-stream-monitoring-evidence"),
-        issueID: Identifier = try! Identifier("MTP-70"),
+        readModelID: Identifier = Identifier.constant("mtp-70-live-stream-monitoring-evidence"),
+        issueID: Identifier = Identifier.constant("MTP-70"),
         runtimeHealth: LiveRuntimeHealthReadModel = .deterministicFixture,
         sourceAnchors: [String] = Self.requiredSourceAnchors,
         streamEvidence: [LiveStreamMonitoringEvidenceItem] = Self.requiredStreamEvidence,
@@ -1578,7 +1578,7 @@ public struct LiveMonitoringLatencyEvidenceItem: Codable, Equatable, Sendable {
 
     public init(
         latencyID: Identifier,
-        issueID: Identifier = try! Identifier("MTP-71"),
+        issueID: Identifier = Identifier.constant("MTP-71"),
         scope: LiveMonitoringEvidenceScope,
         bucket: LiveMonitoringLatencyBucket? = nil,
         measuredLatencyMilliseconds: Int?? = nil,
@@ -1883,7 +1883,7 @@ public struct LiveMonitoringErrorEvidenceItem: Codable, Equatable, Sendable {
 
     public init(
         errorID: Identifier,
-        issueID: Identifier = try! Identifier("MTP-71"),
+        issueID: Identifier = Identifier.constant("MTP-71"),
         errorKind: LiveMonitoringErrorEvidenceKind,
         scope: LiveMonitoringEvidenceScope? = nil,
         status: LiveMonitoringStatus? = nil,
@@ -2166,7 +2166,7 @@ public struct LiveMonitoringDegradedStateEvidenceItem: Codable, Equatable, Senda
 
     public init(
         stateID: Identifier,
-        issueID: Identifier = try! Identifier("MTP-71"),
+        issueID: Identifier = Identifier.constant("MTP-71"),
         scope: LiveMonitoringEvidenceScope,
         status: LiveMonitoringStatus? = nil,
         reason: String? = nil,
@@ -2353,26 +2353,26 @@ public struct LiveMonitoringDegradedStateEvidenceItem: Codable, Equatable, Senda
     public static func requiredLatencyEvidenceIDs(for scope: LiveMonitoringEvidenceScope) -> [Identifier] {
         switch scope {
         case .publicMarketStream:
-            [try! Identifier("mtp-71-public-market-stream-latency-degraded")]
+            [Identifier.constant("mtp-71-public-market-stream-latency-degraded")]
         case .futureBrokerSession:
-            [try! Identifier("mtp-71-broker-session-latency-unavailable")]
+            [Identifier.constant("mtp-71-broker-session-latency-unavailable")]
         case .runtimeHealth:
-            [try! Identifier("mtp-71-runtime-health-latency-stale")]
+            [Identifier.constant("mtp-71-runtime-health-latency-stale")]
         case .simulatedOrderStream:
-            [try! Identifier("mtp-71-simulated-order-stream-latency-nominal")]
+            [Identifier.constant("mtp-71-simulated-order-stream-latency-nominal")]
         case .futurePrivateUserData:
-            [try! Identifier("mtp-71-private-user-data-latency-unavailable")]
+            [Identifier.constant("mtp-71-private-user-data-latency-unavailable")]
         }
     }
 
     public static func requiredErrorEvidenceIDs(for scope: LiveMonitoringEvidenceScope) -> [Identifier] {
         switch scope {
         case .publicMarketStream:
-            [try! Identifier("mtp-71-public-market-stream-error-disconnected")]
+            [Identifier.constant("mtp-71-public-market-stream-error-disconnected")]
         case .futureBrokerSession:
-            [try! Identifier("mtp-71-broker-session-error-unavailable")]
+            [Identifier.constant("mtp-71-broker-session-error-unavailable")]
         case .futurePrivateUserData:
-            [try! Identifier("mtp-71-private-user-data-error-blocked")]
+            [Identifier.constant("mtp-71-private-user-data-error-blocked")]
         case .runtimeHealth, .simulatedOrderStream:
             []
         }
@@ -2524,8 +2524,8 @@ public struct LiveLatencyErrorDegradedMonitoringEvidenceReadModel: Codable, Equa
     }
 
     public init(
-        readModelID: Identifier = try! Identifier("mtp-71-live-latency-error-degraded-evidence"),
-        issueID: Identifier = try! Identifier("MTP-71"),
+        readModelID: Identifier = Identifier.constant("mtp-71-live-latency-error-degraded-evidence"),
+        issueID: Identifier = Identifier.constant("MTP-71"),
         streamEvidence: LiveStreamMonitoringEvidenceReadModel = .deterministicFixture,
         sourceAnchors: [String] = Self.requiredSourceAnchors,
         latencyEvidence: [LiveMonitoringLatencyEvidenceItem] = Self.requiredLatencyEvidence,

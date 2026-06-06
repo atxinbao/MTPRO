@@ -587,8 +587,8 @@ public struct LiveMonitoringConnectionReadinessExplanationContract: Codable, Equ
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-150-live-monitoring-connection-readiness-explanation"),
-        issueID: Identifier = try! Identifier("MTP-150"),
+        contractID: Identifier = Identifier.constant("mtp-150-live-monitoring-connection-readiness-explanation"),
+        issueID: Identifier = Identifier.constant("MTP-150"),
         matrixID: String = Self.requiredMatrixID,
         sourceIdentityContractID: Identifier = Self.requiredSourceIdentityContractID,
         sourceIdentityChecksum: String = Self.requiredSourceIdentityChecksum,

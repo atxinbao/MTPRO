@@ -254,8 +254,8 @@ public struct BacktestPaperSharedOrderSemanticsContract: Codable, Equatable, Sen
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-111-shared-backtest-paper-order-semantics"),
-        issueID: Identifier = try! Identifier("MTP-111"),
+        contractID: Identifier = Identifier.constant("mtp-111-shared-backtest-paper-order-semantics"),
+        issueID: Identifier = Identifier.constant("MTP-111"),
         inputSources: [BacktestPaperSharedOrderInputSource] = Self.requiredInputSources,
         sharedFields: [BacktestPaperSharedOrderField] = Self.requiredSharedFields,
         orderStates: [BacktestPaperSharedOrderState] = Self.requiredOrderStates,

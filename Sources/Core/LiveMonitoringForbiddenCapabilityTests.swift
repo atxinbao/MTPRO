@@ -404,8 +404,8 @@ public struct LiveMonitoringForbiddenCapabilityTestContract: Codable, Equatable,
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-151-live-monitoring-forbidden-capability-tests"),
-        issueID: Identifier = try! Identifier("MTP-151"),
+        contractID: Identifier = Identifier.constant("mtp-151-live-monitoring-forbidden-capability-tests"),
+        issueID: Identifier = Identifier.constant("MTP-151"),
         matrixID: String = Self.requiredMatrixID,
         sourceIdentityChecksum: String = Self.requiredSourceIdentityChecksum,
         simulationGateHealthChecksum: String = Self.requiredSimulationGateHealthChecksum,

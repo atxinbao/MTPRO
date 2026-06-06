@@ -47,7 +47,7 @@ public struct OMSFutureGateBoundary: Codable, Equatable, Sendable {
     }
 
     public init(
-        boundaryID: Identifier = try! Identifier("mtp-188-oms-future-gate-boundary"),
+        boundaryID: Identifier = Identifier.constant("mtp-188-oms-future-gate-boundary"),
         allowedPlacement: String = "Sources/ExecutionEngine/OMSFutureGate/",
         isFutureGateOnly: Bool = true,
         implementsOMS: Bool = false,

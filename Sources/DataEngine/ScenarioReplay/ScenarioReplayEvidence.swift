@@ -491,7 +491,7 @@ public struct ScenarioReplayFreshnessPolicy: Codable, Equatable, Sendable {
     public let authorizesStorageTiering: Bool
 
     public init(
-        policyID: Identifier = try! Identifier("mtp-106-local-fixture-freshness-policy"),
+        policyID: Identifier = Identifier.constant("mtp-106-local-fixture-freshness-policy"),
         retainFixtureLocally: Bool = true,
         staleAfterSeconds: Int = 300,
         expiresAfterSeconds: Int = 900,
@@ -776,8 +776,8 @@ public struct ScenarioReplayEvidence: Codable, Equatable, Sendable {
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-106-scenario-replay-evidence"),
-        issueID: Identifier = try! Identifier("MTP-106"),
+        contractID: Identifier = Identifier.constant("mtp-106-scenario-replay-evidence"),
+        issueID: Identifier = Identifier.constant("MTP-106"),
         fixture: DeterministicScenarioFixture = .deterministicFixture,
         replayWindow: ScenarioReplayWindow = try! ScenarioReplayWindow(),
         cursorSummary: ScenarioReplayCursorSummary = ScenarioReplayCursorSummary(),

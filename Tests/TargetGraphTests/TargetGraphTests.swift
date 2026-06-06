@@ -1548,6 +1548,48 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH434DeterministicValueObjectConstantsUseExplicitConstructors() throws {
+        let identifier = Identifier.constant(" gh-434-identifier ", field: "gh434Identifier")
+        XCTAssertEqual(identifier.rawValue, "gh-434-identifier")
+        XCTAssertEqual(FixtureVersion.constant("fixture-v1").rawValue, "fixture-v1")
+        XCTAssertEqual(ScenarioID.constant("mtp-104-btcusdt-1m-first-scenario").rawValue, "mtp-104-btcusdt-1m-first-scenario")
+        XCTAssertEqual(DatasetVersion.constant("dataset-v1").rawValue, "dataset-v1")
+        XCTAssertTrue(ScenarioReportInputVersion.constant().reportInputBoundaryHeld)
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let sourceFiles = try swiftFiles(
+            under: repositoryRoot,
+            relativeRoots: ["Sources"]
+        )
+        let forbiddenForceTryValueObjects = [
+            "try! Identifier(",
+            "try! FixtureVersion(",
+            "try! ScenarioID(",
+            "try! DatasetVersion(",
+            "try! ScenarioReportInputVersion()"
+        ]
+
+        let violations = try sourceFiles.flatMap { file -> [String] in
+            let source = try String(contentsOf: file, encoding: .utf8)
+            let relativePath = relativePath(for: file, repositoryRoot: repositoryRoot)
+            return source.components(separatedBy: .newlines).enumerated().compactMap { index, line in
+                guard let forbidden = forbiddenForceTryValueObjects.first(where: { line.contains($0) }) else {
+                    return nil
+                }
+                return "\(relativePath):\(index + 1): \(forbidden): \(line.trimmingCharacters(in: .whitespaces))"
+            }
+        }
+
+        XCTAssertTrue(
+            violations.isEmpty,
+            """
+            GH-434 deterministic value object constants must use explicit constant constructors.
+            Violations:
+            \(violations.joined(separator: "\n"))
+            """
+        )
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int

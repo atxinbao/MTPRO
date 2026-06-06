@@ -224,8 +224,8 @@ public struct DataCatalogScenarioReplayBoundary: Codable, Equatable, Sendable {
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-103-data-catalog-scenario-replay-boundary"),
-        issueID: Identifier = try! Identifier("MTP-103"),
+        contractID: Identifier = Identifier.constant("mtp-103-data-catalog-scenario-replay-boundary"),
+        issueID: Identifier = Identifier.constant("MTP-103"),
         terms: [DataCatalogScenarioReplayTerm] = Self.requiredTerms,
         targetEngines: [DataCatalogScenarioReplayTargetEngine] = Self.requiredTargetEngines,
         boundaryPrinciples: [DataCatalogScenarioReplayBoundaryPrinciple] = Self.requiredBoundaryPrinciples,

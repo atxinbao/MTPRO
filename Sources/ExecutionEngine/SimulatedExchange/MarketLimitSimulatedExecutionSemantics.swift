@@ -148,8 +148,8 @@ public struct MarketLimitSimulatedExecutionContract: Codable, Equatable, Sendabl
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-113-market-limit-simulated-execution-semantics"),
-        issueID: Identifier = try! Identifier("MTP-113"),
+        contractID: Identifier = Identifier.constant("mtp-113-market-limit-simulated-execution-semantics"),
+        issueID: Identifier = Identifier.constant("MTP-113"),
         orderTypes: [MarketLimitSimulatedOrderType] = Self.requiredOrderTypes,
         outcomes: [MarketLimitSimulatedExecutionOutcome] = Self.requiredOutcomes,
         executionRules: [MarketLimitSimulatedExecutionRule] = Self.requiredExecutionRules,
@@ -609,7 +609,7 @@ public struct MarketLimitSimulatedExecutionInput: Codable, Equatable, Sendable {
     }
 
     public init(
-        inputID: Identifier = try! Identifier("mtp-113-market-limit-simulated-execution-input"),
+        inputID: Identifier = Identifier.constant("mtp-113-market-limit-simulated-execution-input"),
         orderType: MarketLimitSimulatedOrderType,
         matchingInput: ScenarioReplayDeterministicMatchingInput = .deterministicFixture,
         limitPrice: Price? = nil,

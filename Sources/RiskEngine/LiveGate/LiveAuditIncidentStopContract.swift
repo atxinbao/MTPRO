@@ -252,8 +252,8 @@ public struct LiveAuditTrailFutureGateBoundary: Codable, Equatable, Sendable {
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-90-live-audit-trail-future-gates"),
-        issueID: Identifier = try! Identifier("MTP-90"),
+        contractID: Identifier = Identifier.constant("mtp-90-live-audit-trail-future-gates"),
+        issueID: Identifier = Identifier.constant("MTP-90"),
         subjects: [LiveAuditTrailSubject] = Self.requiredSubjects,
         futureGates: [LiveAuditTrailFutureGate] = Self.requiredFutureGates,
         forbiddenCapabilities: [LiveAuditTrailForbiddenCapability] = Self.requiredForbiddenCapabilities,
@@ -819,8 +819,8 @@ public struct LiveIncidentStopBlockedEvidence: Codable, Equatable, Sendable {
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-94-live-incident-stop-blocked-evidence"),
-        issueID: Identifier = try! Identifier("MTP-94"),
+        contractID: Identifier = Identifier.constant("mtp-94-live-incident-stop-blocked-evidence"),
+        issueID: Identifier = Identifier.constant("MTP-94"),
         blockedItems: [LiveIncidentStopBlockedEvidenceItem] = Self.requiredBlockedItems,
         allowedEvidenceKinds: [LiveAuditIncidentStopEvidenceKind] = Self.allowedEvidenceKinds,
         validationAnchors: [String] = Self.requiredValidationAnchors,
@@ -1377,8 +1377,8 @@ public struct LiveIncidentReplayFutureGateBoundary: Codable, Equatable, Sendable
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-91-incident-replay-future-gates"),
-        issueID: Identifier = try! Identifier("MTP-91"),
+        contractID: Identifier = Identifier.constant("mtp-91-incident-replay-future-gates"),
+        issueID: Identifier = Identifier.constant("MTP-91"),
         futureGates: [LiveIncidentReplayFutureGate] = Self.requiredFutureGates,
         forbiddenCapabilities: [LiveIncidentReplayForbiddenCapability] = Self.requiredForbiddenCapabilities,
         allowedEvidenceKinds: [LiveAuditIncidentStopEvidenceKind] = Self.allowedEvidenceKinds,
@@ -1856,8 +1856,8 @@ public struct LiveStopShutdownRestoreFutureGateBoundary: Codable, Equatable, Sen
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-92-stop-shutdown-restore-future-gates"),
-        issueID: Identifier = try! Identifier("MTP-92"),
+        contractID: Identifier = Identifier.constant("mtp-92-stop-shutdown-restore-future-gates"),
+        issueID: Identifier = Identifier.constant("MTP-92"),
         futureGates: [LiveStopShutdownRestoreFutureGate] = Self.requiredFutureGates,
         forbiddenCapabilities: [LiveStopShutdownRestoreForbiddenCapability] = Self.requiredForbiddenCapabilities,
         allowedEvidenceKinds: [LiveAuditIncidentStopEvidenceKind] = Self.allowedEvidenceKinds,
@@ -2351,8 +2351,8 @@ public struct LiveBlockedEvidenceIncidentStopIsolationBoundary: Codable, Equatab
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-93-blocked-evidence-incident-stop-isolation"),
-        issueID: Identifier = try! Identifier("MTP-93"),
+        contractID: Identifier = Identifier.constant("mtp-93-blocked-evidence-incident-stop-isolation"),
+        issueID: Identifier = Identifier.constant("MTP-93"),
         isolationGates: [LiveBlockedEvidenceIncidentStopIsolationGate] = Self.requiredIsolationGates,
         forbiddenCapabilities: [LiveBlockedEvidenceIncidentStopForbiddenCapability] =
             Self.requiredForbiddenCapabilities,
@@ -2860,8 +2860,8 @@ public struct LiveAuditIncidentStopTerminologyBoundary: Codable, Equatable, Send
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-89-live-audit-incident-stop-terminology"),
-        issueID: Identifier = try! Identifier("MTP-89"),
+        contractID: Identifier = Identifier.constant("mtp-89-live-audit-incident-stop-terminology"),
+        issueID: Identifier = Identifier.constant("MTP-89"),
         terms: [LiveAuditIncidentStopTerm] = Self.requiredTerms,
         taxonomy: [FutureAuditIncidentStopTaxonomyTerm] = Self.requiredTaxonomy,
         futureGates: [LiveAuditIncidentStopFutureGate] = Self.requiredFutureGates,

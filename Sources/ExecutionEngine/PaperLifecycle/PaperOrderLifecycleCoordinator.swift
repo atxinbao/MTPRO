@@ -131,7 +131,7 @@ public struct PaperOrderLocalLifecycleTransition: Codable, Equatable, Sendable {
 
     public init(
         transitionID: Identifier,
-        issueID: Identifier = try! Identifier("MTP-99"),
+        issueID: Identifier = Identifier.constant("MTP-99"),
         orderID: Identifier,
         riskDecision: PaperActionProposalRiskDecision,
         fromState: PaperOrderLocalLifecycleState?,
@@ -902,8 +902,8 @@ public struct PaperOrderLocalLifecycleCoordinator: Equatable, Sendable {
 /// fixture 覆盖 accepted local path、rejected by paper risk path、Event Log / Replay publication 和
 /// simulated fill precondition。它只用于 tests / PR evidence，不代表真实订单执行、broker order 或 OMS。
 public enum PaperOrderLocalLifecycleCoordinatorFixture {
-    public static let orderID = try! Identifier("mtp-99-paper-order-local")
-    public static let rejectedOrderID = try! Identifier("mtp-99-paper-order-rejected-local")
+    public static let orderID = Identifier.constant("mtp-99-paper-order-local")
+    public static let rejectedOrderID = Identifier.constant("mtp-99-paper-order-rejected-local")
     public static let correlationID = deterministicUUID("11111111-1111-4111-8111-111111111199")
     public static let rootCausationID = deterministicUUID("22222222-2222-4222-8222-222222222199")
     public static let acceptedEnvelopeIDs: [UUID] = [

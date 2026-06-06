@@ -116,6 +116,25 @@ public struct Identifier: Codable, Equatable, Hashable, Sendable, CustomStringCo
         self.rawValue = trimmed
     }
 
+    /// 构造 deterministic fixture / evidence 常量时使用的 fail-fast 入口。
+    ///
+    /// 该入口不放宽 `Identifier` 的 throwing initializer 校验；它只把不可恢复的仓库内固定常量错误
+    /// 统一转成带 file / line / field / value 的明确失败信息，避免裸强制构造只留下通用崩溃。
+    public static func constant(
+        _ rawValue: String,
+        field: String = "identifier",
+        fileID: StaticString = #fileID,
+        line: UInt = #line
+    ) -> Self {
+        do {
+            return try Self(rawValue, field: field)
+        } catch {
+            fatalError(
+                "MTPRO deterministic Identifier.constant failed at \(fileID):\(line) field=\(field) value=\(rawValue): \(error)"
+            )
+        }
+    }
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let rawValue = try container.decode(String.self)
