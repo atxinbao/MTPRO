@@ -163,6 +163,76 @@ final class TargetGraphTests: XCTestCase {
             || DatabaseTargetBoundary.requiredValidationAnchors.contains(expected)
     }
 
+    func testGH419DatabasePersistenceRuntimeOwnershipMatrixIsExplicit() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+
+        let databaseTarget = try packageTargetBlock(named: "Database", packageSource: packageSource)
+        let persistenceTarget = try packageTargetBlock(named: "Persistence", packageSource: packageSource)
+        let runtimeTarget = try packageTargetBlock(named: "Runtime", packageSource: packageSource)
+        let databaseSources = try packageTargetSourcesBlock(targetBlock: databaseTarget)
+        let databaseExcludes = try packageTargetExcludesBlock(targetBlock: databaseTarget)
+        let persistenceSources = try packageTargetSourcesBlock(targetBlock: persistenceTarget)
+        let persistenceExcludes = try packageTargetExcludesBlock(targetBlock: persistenceTarget)
+        let runtimeSources = try packageTargetSourcesBlock(targetBlock: runtimeTarget)
+        let runtimeExcludes = try packageTargetExcludesBlock(targetBlock: runtimeTarget)
+
+        let matrix = DatabaseRuntimeOwnershipMatrix.gh419
+        XCTAssertTrue(matrix.ownershipBoundaryHeld)
+        XCTAssertTrue(DatabaseTargetBoundary.mtp217.validationAnchors.contains(
+            "GH-419-DATABASE-PERSISTENCE-RUNTIME-OWNERSHIP-MATRIX"
+        ))
+
+        XCTAssertTrue(databaseSources.contains("\"DatabaseRuntimeOwnershipMatrix.swift\""))
+        XCTAssertTrue(databaseSources.contains("\"FoundationDatabaseCheckpoint.swift\""))
+        XCTAssertTrue(databaseSources.contains("\"TargetGraph/DatabaseTargetBoundary.swift\""))
+        XCTAssertTrue(databaseExcludes.contains("\"Projections\""))
+        XCTAssertTrue(databaseExcludes.contains("\"ReplayProjection\""))
+
+        XCTAssertTrue(persistenceTarget.contains("\"Core\""))
+        XCTAssertTrue(persistenceTarget.contains("\"CSQLite\""))
+        XCTAssertTrue(persistenceTarget.contains("name: \"DuckDB\""))
+        XCTAssertTrue(persistenceExcludes.contains("\"DatabaseRuntimeOwnershipMatrix.swift\""))
+        XCTAssertTrue(persistenceSources.contains("\"Projections/SQLite/Persistence.swift\""))
+        XCTAssertTrue(persistenceSources.contains("\"Projections/DuckDB/DuckDBAnalyticalProjectionAdapter.swift\""))
+        for forbidden in [
+            "\"Runtime\"",
+            "\"Dashboard\"",
+            "\"Trader\"",
+            "\"TraderStrategies\"",
+            "\"RiskEngine\"",
+            "\"ExecutionEngine\"",
+            "\"ExecutionClient\""
+        ] {
+            XCTAssertFalse(
+                persistenceTarget.contains(forbidden),
+                "Persistence compatibility envelope must not add higher-layer dependency \(forbidden)"
+            )
+        }
+
+        XCTAssertTrue(runtimeTarget.contains("dependencies: [\"Core\", \"Adapters\", \"Persistence\"]"))
+        XCTAssertTrue(runtimeExcludes.contains("\"Database/DatabaseRuntimeOwnershipMatrix.swift\""))
+        XCTAssertTrue(runtimeSources.contains("\"Database/ReplayProjection\""))
+        XCTAssertTrue(runtimeSources.contains("\"DataEngine/Ingest\""))
+        XCTAssertFalse(runtimeSources.contains("\"Database/Projections\""))
+        XCTAssertFalse(runtimeSources.contains("\"DataEngine/ScenarioReplay\""))
+        XCTAssertFalse(runtimeSources.contains("\"Dashboard\""))
+
+        XCTAssertFalse(matrix.exposesSchemaToDashboard)
+        XCTAssertFalse(matrix.ownsRuntimeObject)
+        XCTAssertFalse(matrix.persistsBrokerOrAccountPayload)
+        XCTAssertFalse(matrix.implementsTraderRuntime)
+        XCTAssertFalse(matrix.implementsStrategyRuntime)
+        XCTAssertFalse(matrix.implementsLiveRuntime)
+        XCTAssertFalse(matrix.implementsExecutionClient)
+        XCTAssertFalse(matrix.implementsOMS)
+        XCTAssertFalse(matrix.implementsBrokerGateway)
+        XCTAssertFalse(matrix.advancesL4)
+    }
+
     func testGH394DomainModelAndMessageBusOwnRealImplementationSource() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
@@ -1399,7 +1469,17 @@ final class TargetGraphTests: XCTestCase {
             throw XCTSkip("Package.swift target \(targetName) not found")
         }
         let tail = packageSource[markerRange.lowerBound...]
-        if let nextTarget = tail.range(of: "\n        .target(", options: [], range: tail.index(after: markerRange.lowerBound)..<tail.endIndex) {
+        let nextTargetMarkers = [
+            "\n        .target(",
+            "\n        .executableTarget(",
+            "\n        .testTarget(",
+            "\n        .systemLibrary("
+        ]
+        let searchRange = tail.index(after: markerRange.lowerBound)..<tail.endIndex
+        let nextTarget = nextTargetMarkers
+            .compactMap { tail.range(of: $0, options: [], range: searchRange) }
+            .min { $0.lowerBound < $1.lowerBound }
+        if let nextTarget {
             return String(tail[..<nextTarget.lowerBound])
         }
         return String(tail)
