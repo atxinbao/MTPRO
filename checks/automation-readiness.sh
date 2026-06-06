@@ -5931,6 +5931,18 @@ if violations:
     print("\n".join(violations), file=sys.stderr)
     sys.exit(1)
 PY
+require_file ".swift-format"
+require_file "docs/validation/swift-style.md"
+require_contains ".swift-format" '"version": 1'
+require_contains ".swift-format" '"lineLength": 120'
+require_contains ".swift-format" '"spaces": 4'
+require_contains ".swift-format" '"maximumBlankLines": 1'
+require_contains ".swift-format" '"respectsExistingLineBreaks": true'
+require_contains "docs/validation/swift-style.md" "GH-437-SWIFT-STYLE-CONFIGURATION"
+require_contains "docs/validation/swift-style.md" "swift-format lint --configuration .swift-format --recursive Sources Tests Package.swift"
+require_contains "docs/validation/swift-style.md" '不把 formatter 强制接入 `checks/run.sh`'
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH437SwiftStyleConfigurationIsDocumentedWithoutWholeRepoReformat"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "GH-437 must not make checks/run.sh depend on an unavailable formatter"
 require_contains "docs/audit/inputs/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-audit-input.md" "GH-422-CORE-ENVELOPE-RETIREMENT-MATRIX-STAGE-CLOSEOUT"
 require_contains "docs/audit/inputs/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-audit-input.md" "GH-422-ISSUE-EVIDENCE-CHAIN"
 require_contains "docs/audit/inputs/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-audit-input.md" "GH-422-COMPLETED-OWNERSHIP-MOVES"
