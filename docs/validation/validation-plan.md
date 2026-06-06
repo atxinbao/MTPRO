@@ -294,6 +294,28 @@ GH-460 必须建立的主要 anchors：
 - `GH-460-PRODUCTION-PARSER-DISABLED`
 - `TVM-L4-EXECUTION-REPORT-BROKER-FILL-PARSER`
 
+## GH-461 L4 OMS Order Lifecycle Contract Validation
+
+GH-461 的 required validation：
+
+- `docs/contracts/l4-oms-order-lifecycle-contract.md` 必须存在，并包含 `GH-461-OMS-ORDER-LIFECYCLE-STATE-MACHINE`、`GH-461-LOCAL-ORDER-BROKER-REPORT-RELATIONSHIP`、`GH-461-ILLEGAL-TRANSITION-EVIDENCE`、`GH-461-OMS-ENGINE-CLIENT-PORTFOLIO-BOUNDARY`、`GH-461-ROLLBACK-INCIDENT-EVIDENCE`、`GH-461-NON-AUTHORIZATION` 和 `TVM-L4-OMS-ORDER-LIFECYCLE-CONTRACT`。
+- `Sources/ExecutionEngine/OMSFutureGate/L4OMSOrderLifecycleContract.swift` 必须定义 `L4OMSOrderLifecycleContract`、`L4OMSOrderLifecycleState`、`L4OMSOrderLifecycleTrigger`、`L4OMSOrderStateTransitionRule`、`L4OMSIllegalTransitionEvidence`、`L4OMSRollbackIncidentEvidence` 和 `L4OMSForbiddenCapability`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH461OMSOrderLifecycleContractDefinesStateMachineAndBoundaries` 和 `testGH461OMSOrderLifecycleContractRejectsIllegalTransitionAndBypass`。
+- OMS state machine 必须覆盖 accepted、submitted、partially filled、filled、cancelled 和 rejected。
+- Transition graph 必须定义 local order / broker report relationship，并引用 GH-459 command evidence 和 GH-460 parser evidence。
+- Illegal transition evidence 必须拒绝 filled -> submitted、cancelled -> partially filled、rejected -> filled。
+- Boundary tests 必须拒绝 production order manager、RiskEngine bypass、Portfolio mutation、缺失 transition rule 和 automatic retry bypass。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`，不依赖真实 secret、broker credential、signed/account endpoint、listenKey、private WebSocket、production endpoint 或人工验收。
+
+GH-461 必须建立的主要 anchors：
+
+- `GH-461-OMS-ORDER-LIFECYCLE-STATE-MACHINE`
+- `GH-461-LOCAL-ORDER-BROKER-REPORT-RELATIONSHIP`
+- `GH-461-ILLEGAL-TRANSITION-EVIDENCE`
+- `GH-461-OMS-ENGINE-CLIENT-PORTFOLIO-BOUNDARY`
+- `GH-461-ROLLBACK-INCIDENT-EVIDENCE`
+- `TVM-L4-OMS-ORDER-LIFECYCLE-CONTRACT`
+
 ## MTP-24 Trading Validation Matrix Validation
 
 MTP-24 的 required validation：

@@ -2227,6 +2227,156 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH461OMSOrderLifecycleContractDefinesStateMachineAndBoundaries() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionEngineTarget = try packageTargetBlock(named: "ExecutionEngine", packageSource: packageSource)
+
+        let contract = try L4OMSOrderLifecycleContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-461")
+        XCTAssertEqual(contract.upstreamIssueIDs.map(\.rawValue), ["GH-458", "GH-460"])
+        XCTAssertTrue(contract.parserEvidence.reportParserEvidenceHeld)
+        XCTAssertEqual(contract.states, L4OMSOrderLifecycleState.allCases)
+        XCTAssertEqual(contract.transitionRules.count, 8)
+        XCTAssertEqual(contract.illegalTransitionEvidence.count, 3)
+        XCTAssertTrue(contract.rollbackIncidentEvidence.boundaryHeld)
+        XCTAssertTrue(contract.executionEngineOwnsLocalLifecycleCoordination)
+        XCTAssertTrue(contract.executionClientOnlyProvidesSandboxReportEvidence)
+        XCTAssertTrue(contract.portfolioConsumesProjectionOnly)
+        XCTAssertTrue(contract.riskEnginePreTradeBoundaryRequired)
+        XCTAssertFalse(contract.implementsProductionOrderManager)
+        XCTAssertFalse(contract.submitsRealOrder)
+        XCTAssertFalse(contract.consumesProductionBrokerReport)
+        XCTAssertFalse(contract.bypassesRiskEngine)
+        XCTAssertFalse(contract.touchesBrokerGateway)
+        XCTAssertFalse(contract.mutatesPortfolio)
+        XCTAssertFalse(contract.performsReconciliation)
+        XCTAssertFalse(contract.exposesLiveCommandSurface)
+
+        XCTAssertTrue(contract.isAllowedTransition(from: .accepted, trigger: .sandboxSubmitAccepted, to: .submitted))
+        XCTAssertTrue(contract.isAllowedTransition(from: .submitted, trigger: .sandboxPartialFillReport, to: .partiallyFilled))
+        XCTAssertTrue(contract.isAllowedTransition(from: .partiallyFilled, trigger: .sandboxFillReport, to: .filled))
+        XCTAssertTrue(contract.isAllowedTransition(from: .submitted, trigger: .sandboxCancelAcknowledgement, to: .cancelled))
+        XCTAssertTrue(contract.isAllowedTransition(from: .submitted, trigger: .sandboxRejectReport, to: .rejected))
+        XCTAssertFalse(contract.isAllowedTransition(from: .filled, trigger: .sandboxSubmitAccepted, to: .submitted))
+        XCTAssertFalse(contract.isAllowedTransition(from: .cancelled, trigger: .sandboxPartialFillReport, to: .partiallyFilled))
+        XCTAssertFalse(contract.isAllowedTransition(from: .rejected, trigger: .sandboxFillReport, to: .filled))
+
+        XCTAssertTrue(contract.validationAnchors.contains("GH-461-OMS-ORDER-LIFECYCLE-STATE-MACHINE"))
+        XCTAssertTrue(contract.validationAnchors.contains("GH-461-LOCAL-ORDER-BROKER-REPORT-RELATIONSHIP"))
+        XCTAssertTrue(contract.validationAnchors.contains("GH-461-ILLEGAL-TRANSITION-EVIDENCE"))
+        XCTAssertTrue(contract.validationAnchors.contains("GH-461-OMS-ENGINE-CLIENT-PORTFOLIO-BOUNDARY"))
+        XCTAssertTrue(contract.validationAnchors.contains("GH-461-ROLLBACK-INCIDENT-EVIDENCE"))
+
+        XCTAssertTrue(executionEngineTarget.contains("\"OMSFutureGate\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionEngine/OMSFutureGate/L4OMSOrderLifecycleContract.swift"
+                ).path
+            )
+        )
+    }
+
+    func testGH461OMSOrderLifecycleContractRejectsIllegalTransitionAndBypass() throws {
+        XCTAssertThrowsError(
+            try L4OMSOrderStateTransitionRule(
+                fromState: .filled,
+                trigger: .sandboxSubmitAccepted,
+                toState: .submitted,
+                sourceEvidence: "unsafe filled to submitted bypass"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "transition",
+                    expected: L4OMSOrderLifecycleContract.requiredTransitionRules.map {
+                        "\($0.fromState.rawValue)|\($0.trigger.rawValue)|\($0.toState.rawValue)"
+                    }.sorted().joined(separator: ","),
+                    actual: "filled|sandbox submit accepted|submitted"
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4OMSIllegalTransitionEvidence(
+                evidenceID: Identifier.constant("unsafe-gh-461-allowed-illegal-evidence"),
+                fromState: .accepted,
+                attemptedTrigger: .sandboxSubmitAccepted,
+                attemptedToState: .submitted,
+                rejectionReason: "allowed transition cannot become illegal evidence"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "illegalTransition",
+                    expected: "transition not present in GH-461 allowed graph",
+                    actual: "accepted->submitted"
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4OMSOrderLifecycleContract(
+                implementsProductionOrderManager: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("implementsProductionOrderManager")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4OMSOrderLifecycleContract(
+                bypassesRiskEngine: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("bypassesRiskEngine"))
+        }
+
+        XCTAssertThrowsError(
+            try L4OMSOrderLifecycleContract(
+                mutatesPortfolio: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("mutatesPortfolio"))
+        }
+
+        XCTAssertThrowsError(
+            try L4OMSOrderLifecycleContract(
+                transitionRules: Array(L4OMSOrderLifecycleContract.requiredTransitionRules.dropLast())
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "transitionRules",
+                    expected: L4OMSOrderLifecycleContract.requiredTransitionRules.map {
+                        "\($0.fromState.rawValue)|\($0.trigger.rawValue)|\($0.toState.rawValue)"
+                    }.joined(separator: ","),
+                    actual: Array(L4OMSOrderLifecycleContract.requiredTransitionRules.dropLast()).map {
+                        "\($0.fromState.rawValue)|\($0.trigger.rawValue)|\($0.toState.rawValue)"
+                    }.joined(separator: ",")
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4OMSRollbackIncidentEvidence(
+                automaticRetryEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("automaticRetryEnabled"))
+        }
+    }
+
     func testGH421AllArchitectureTargetsExposeIndependentRealAPISmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-421-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)

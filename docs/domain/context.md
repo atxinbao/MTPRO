@@ -3368,6 +3368,32 @@ Production parser disabled 表示 production raw payload source、production exe
 
 L4 execution report / broker fill parser matrix 必须证明 fill / partial fill / reject / cancel acknowledgement 覆盖完整、parser output 可回放、raw payload 不进 Dashboard、production parser disabled、broker gateway / real broker fill / OMS / reconciliation / Live command surface 全部未触碰。该 matrix 不授权 GH-461 OMS、GH-463 ExecutionEngine wiring、GH-466 reconciliation 或 GH-471 production cutover。
 
+## GH-461 L4 OMS Order Lifecycle Contract Terms
+
+`GH-461-OMS-ORDER-LIFECYCLE-STATE-MACHINE`
+
+L4 OMS order lifecycle state machine 指本地 order state taxonomy 和 allowed transition graph。当前 states 固定为 accepted、submitted、partially filled、filled、cancelled 和 rejected。该 state machine 是合同，不是 production OMS implementation。
+
+`GH-461-LOCAL-ORDER-BROKER-REPORT-RELATIONSHIP`
+
+Local order / broker report relationship 只能引用 GH-459 sandbox command evidence 和 GH-460 sandbox parser evidence。accepted -> submitted 由 sandbox submit evidence 支撑；partial fill / fill / reject / cancel acknowledgement 由 GH-460 parser evidence 支撑。该关系不消费 production broker report。
+
+`GH-461-ILLEGAL-TRANSITION-EVIDENCE`
+
+Illegal transition evidence 必须覆盖 filled -> submitted、cancelled -> partially filled、rejected -> filled。非法转换只输出 rollback / incident evidence requirement，不得直接 mutate order state、重试订单或执行 reconciliation。
+
+`GH-461-OMS-ENGINE-CLIENT-PORTFOLIO-BOUNDARY`
+
+ExecutionEngine 只拥有 local lifecycle coordination contract；ExecutionClient 只提供 sandbox report evidence；Portfolio 只消费后续 projection；RiskEngine pre-trade boundary 必须保留。GH-461 不允许 direct ExecutionClient bypass、RiskEngine bypass 或 Portfolio mutation。
+
+`GH-461-ROLLBACK-INCIDENT-EVIDENCE`
+
+Rollback / incident evidence 只说明异常和非法转换需要审计证据。它不执行自动 retry，不恢复订单，不重放 production broker report，不启动 incident automation 或 Live command surface。
+
+`TVM-L4-OMS-ORDER-LIFECYCLE-CONTRACT`
+
+L4 OMS lifecycle matrix 必须证明 state machine 完整、合法 transition graph 稳定、非法 transition evidence 存在、Engine / Client / Portfolio 边界清楚、rollback / incident evidence 定义完整，并保持 production order manager、real order submission、production broker report、broker gateway、real state store、Portfolio mutation、reconciliation 和 Live command surface 全部关闭。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
