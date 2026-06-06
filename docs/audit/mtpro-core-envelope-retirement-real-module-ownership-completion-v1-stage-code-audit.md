@@ -2,7 +2,7 @@
 
 Project：`MTPRO Core Envelope Retirement / Real Module Ownership Completion v1`
 
-范围：GitHub Issues `#413` 至 `#422`
+范围：GitHub Issues `#413` 至 `#422`；post-audit hardening follow-up GH-433 至 GH-437、GH-445
 
 审计时间：2026-06-06（Asia/Shanghai）
 
@@ -17,6 +17,8 @@ Project：`MTPRO Core Envelope Retirement / Real Module Ownership Completion v1`
 ## 结论
 
 `MTPRO Core Envelope Retirement / Real Module Ownership Completion v1` 已完成 GitHub fallback issue-level execution chain。GitHub Issues `#413` 至 `#422` 全部 closed，均带 `done` label；PR `#424` 至 `#432` 以及 PR `#438` 全部 merged，GitHub required check `checks` 全部 SUCCESS。
+
+Post-audit hardening addendum：后续只读审计发现的 hardening follow-up GH-433 至 GH-437 和 GH-445 已全部 closed / done；PR #440 至 PR #444 以及 PR #446 均已 merged，GitHub required check `checks` 全部 SUCCESS。该 addendum 补强 CI sqlite / Swift preflight、deterministic value object force-try guard、Binance transport actor isolation、precise boundary tests、Swift style configuration 和剩余 deterministic default try-bang constructors。它归入本 Project 的 post-audit evidence chain，不新增 Project Closure Count，不授权 L4 execution。
 
 本 Project 的目标是承接上一轮 real target ownership baseline，继续把仍留在 retained compatibility envelopes 里的可迁移 ownership 推向真实 architecture targets。它完成了 MessageBus neutral query / replay、DataEngine scenario replay / quality、Portfolio paper projection、RiskEngine paper pre-trade、ExecutionEngine paper / simulated lifecycle、Database / Persistence / Runtime ownership matrix、Dashboard active naming cleanup 和 all architecture targets real API smoke coverage。
 
@@ -36,6 +38,19 @@ Project：`MTPRO Core Envelope Retirement / Real Module Ownership Completion v1`
 | [GH-420](https://github.com/atxinbao/MTPRO/issues/420) | Dashboard read-model-only active naming cleanup | [PR #431](https://github.com/atxinbao/MTPRO/pull/431) | `7cb9be7f2004874352a8dcce3e17a4bbdc3a0d6f` | checks success | Dashboard naming cleanup、retired Workbench active wording guard |
 | [GH-421](https://github.com/atxinbao/MTPRO/issues/421) | all architecture targets real API smoke coverage | [PR #432](https://github.com/atxinbao/MTPRO/pull/432) | `11f888ea7c95194c17ad66d61b15732e950d3d16` | checks success | all-target deterministic smoke coverage |
 | [GH-422](https://github.com/atxinbao/MTPRO/issues/422) | Core envelope retirement matrix / L4 readiness closeout | [PR #438](https://github.com/atxinbao/MTPRO/pull/438) | `e8c7f897f352847c27b38f73e3080aebefc2427c` | checks success | stage audit input、retained envelope matrix、L4 blocker review |
+
+## Post-Audit Hardening Addendum
+
+| Follow-up | Evidence domain | PR | Merge commit | GitHub required check | Closure summary |
+| --- | --- | --- | --- | --- | --- |
+| [GH-433](https://github.com/atxinbao/MTPRO/issues/433) | CI sqlite / Swift preflight hardening | [PR #440](https://github.com/atxinbao/MTPRO/pull/440) | `4182f932227b94e867da1bf967f0c380827abf66` | checks success | sqlite dev headers、本地 preflight、runner Swift validation |
+| [GH-434](https://github.com/atxinbao/MTPRO/issues/434) | deterministic value object force-try guard | [PR #441](https://github.com/atxinbao/MTPRO/pull/441) | `02db38e63cb9f875ec2391c6cdc58980d11d0d81` | checks success | deterministic value constructors 收口到 named constants / factories |
+| [GH-435](https://github.com/atxinbao/MTPRO/issues/435) | Binance public transport actor isolation | [PR #442](https://github.com/atxinbao/MTPRO/pull/442) | `dff4f145592016c825c8f0935dbe4f365dc172bf` | checks success | production `@unchecked Sendable` 移除，真实 transport actor 化 |
+| [GH-436](https://github.com/atxinbao/MTPRO/issues/436) | precise boundary guard coverage | [PR #443](https://github.com/atxinbao/MTPRO/pull/443) | `deb40b32f3971d69be0d60c8ddd9a85e9637bd55` | checks success | DataClient / Trader 精确 boundary guard tests |
+| [GH-437](https://github.com/atxinbao/MTPRO/issues/437) | Swift style configuration | [PR #444](https://github.com/atxinbao/MTPRO/pull/444) | `f8828c3d52f46f2eb3b8c843b0e01a27460bf7b7` | checks success | `.swift-format` 落仓，不强接入 full checks |
+| [GH-445](https://github.com/atxinbao/MTPRO/issues/445) | remaining deterministic default try-bang constructors | [PR #446](https://github.com/atxinbao/MTPRO/pull/446) | `d5a8bfd43d94c64ed8fbfd15bf8c6067f4c78dfa` | checks success | 剩余 production deterministic default `try!` 收口到 named constant / factory 入口 |
+
+GH-445 是 GH-434 之后的 follow-up hardening：它把 `Sources/DataEngine/ScenarioReplay`、`Sources/DataEngine/DataQuality` 和 `Sources/Core/DashboardBetaDemoScenario.swift` 中剩余的 deterministic default constructors 改为明确的 constant / factory 来源，并新增 `TargetGraphTests/testGH445DeterministicDefaultsUseNamedFactoriesInsteadOfTryBang`，机械防止这些 production implementation lines 继续出现 bare `try!`。
 
 ## Ownership Completion Findings
 
@@ -106,6 +121,7 @@ Project：`MTPRO Core Envelope Retirement / Real Module Ownership Completion v1`
 | `git diff --check` | pass | GH-422 issue evidence：无输出。 |
 | `bash checks/automation-readiness.sh` | pass | GH-422 issue evidence：输出 `MTPRO automation readiness checks passed.`。 |
 | `bash checks/run.sh` | pass | GH-422 issue evidence：Dashboard smoke 正常；343 XCTest / 0 failures；最终输出 `MTPRO checks passed.`。 |
+| `bash checks/run.sh` after post-audit hardening | pass | GH-445 follow-up evidence：Dashboard smoke 正常；348 XCTest / 0 failures；最终输出 `MTPRO checks passed.`。 |
 
 ## Root Docs Delta Input
 
@@ -116,7 +132,7 @@ Project：`MTPRO Core Envelope Retirement / Real Module Ownership Completion v1`
 | `architecture.md` | 已在 issue chain 中承载 GH-413 至 GH-422 ownership completion evidence；本 closure 不改 module layout。 |
 | `environment.md` | 无需更新：未新增 secret、broker credential、外部写能力、signed endpoint、account endpoint、listenKey、真实账户读取或 production operations。 |
 | `docs/roadmap.md` | 增加 completed Project，Project Closure Count 从 `31 / 31` 更新为 `32 / 32`；Current maturity statement 更新为 `Core Envelope Retirement / Real Module Ownership Completion before L4 complete`。 |
-| `docs/validation/latest-verification-summary.md` | 记录 GitHub fallback queue closure、Stage Code Audit Report、PR #424 至 #432 / #438 evidence 和 final validation。 |
+| `docs/validation/latest-verification-summary.md` | 记录 GitHub fallback queue closure、Stage Code Audit Report、PR #424 至 #432 / #438 evidence、post-audit hardening PR #440 至 #444 / #446 evidence 和 final validation。 |
 
 ## Current Phase Progress Input
 
