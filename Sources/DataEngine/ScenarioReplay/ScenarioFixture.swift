@@ -19,6 +19,21 @@ public struct FixtureVersion: Codable, Equatable, Hashable, Sendable, CustomStri
         self.rawValue = try Identifier(rawValue, field: "fixtureVersion").rawValue
     }
 
+    /// deterministic fixture version 常量的统一 fail-fast 入口，保留原有非空校验并补充调用位置。
+    public static func constant(
+        _ rawValue: String,
+        fileID: StaticString = #fileID,
+        line: UInt = #line
+    ) -> Self {
+        do {
+            return try Self(rawValue)
+        } catch {
+            fatalError(
+                "MTPRO deterministic FixtureVersion.constant failed at \(fileID):\(line) value=\(rawValue): \(error)"
+            )
+        }
+    }
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let rawValue = try container.decode(String.self)
@@ -315,10 +330,10 @@ public struct DeterministicScenarioFixture: Codable, Equatable, Sendable {
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-105-deterministic-scenario-fixture"),
-        issueID: Identifier = try! Identifier("MTP-105"),
+        contractID: Identifier = Identifier.constant("mtp-105-deterministic-scenario-fixture"),
+        issueID: Identifier = Identifier.constant("MTP-105"),
         manifest: ScenarioManifest = .deterministicFixture,
-        fixtureVersion: FixtureVersion = try! FixtureVersion("fixture-v1"),
+        fixtureVersion: FixtureVersion = FixtureVersion.constant("fixture-v1"),
         sourceKind: ScenarioFixtureSourceKind = .binancePublicReadOnlyLocalFixture,
         sourceAnchor: String = "MTP-105-SINGLE-SYMBOL-SINGLE-TIMEFRAME-FIXTURE",
         sourceRelationshipAnchors: [String] = Self.requiredSourceRelationshipAnchors,

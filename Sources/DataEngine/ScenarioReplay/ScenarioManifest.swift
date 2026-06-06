@@ -18,6 +18,21 @@ public struct ScenarioID: Codable, Equatable, Hashable, Sendable, CustomStringCo
         self.rawValue = try Identifier(rawValue, field: "scenarioID").rawValue
     }
 
+    /// deterministic scenario id 常量的统一 fail-fast 入口，保留原有非空校验并补充调用位置。
+    public static func constant(
+        _ rawValue: String,
+        fileID: StaticString = #fileID,
+        line: UInt = #line
+    ) -> Self {
+        do {
+            return try Self(rawValue)
+        } catch {
+            fatalError(
+                "MTPRO deterministic ScenarioID.constant failed at \(fileID):\(line) value=\(rawValue): \(error)"
+            )
+        }
+    }
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let rawValue = try container.decode(String.self)
@@ -43,6 +58,21 @@ public struct DatasetVersion: Codable, Equatable, Hashable, Sendable, CustomStri
 
     public init(_ rawValue: String) throws {
         self.rawValue = try Identifier(rawValue, field: "datasetVersion").rawValue
+    }
+
+    /// deterministic dataset version 常量的统一 fail-fast 入口，保留原有非空校验并补充调用位置。
+    public static func constant(
+        _ rawValue: String,
+        fileID: StaticString = #fileID,
+        line: UInt = #line
+    ) -> Self {
+        do {
+            return try Self(rawValue)
+        } catch {
+            fatalError(
+                "MTPRO deterministic DatasetVersion.constant failed at \(fileID):\(line) value=\(rawValue): \(error)"
+            )
+        }
     }
 
     public init(from decoder: Decoder) throws {
@@ -226,8 +256,8 @@ public struct ScenarioManifest: Codable, Equatable, Sendable {
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-104-scenario-manifest-contract"),
-        issueID: Identifier = try! Identifier("MTP-104"),
+        contractID: Identifier = Identifier.constant("mtp-104-scenario-manifest-contract"),
+        issueID: Identifier = Identifier.constant("MTP-104"),
         scenarioID: ScenarioID,
         datasetVersion: DatasetVersion,
         symbol: Symbol,

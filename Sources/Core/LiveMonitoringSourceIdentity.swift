@@ -407,8 +407,8 @@ public struct LiveMonitoringSourceIdentityContract: Codable, Equatable, Sendable
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-148-live-monitoring-source-identity"),
-        issueID: Identifier = try! Identifier("MTP-148"),
+        contractID: Identifier = Identifier.constant("mtp-148-live-monitoring-source-identity"),
+        issueID: Identifier = Identifier.constant("MTP-148"),
         matrixID: String = Self.requiredMatrixID,
         sourceRecords: [LiveMonitoringSourceIdentityRecord] = Self.requiredSourceRecords,
         checksum: String? = nil,

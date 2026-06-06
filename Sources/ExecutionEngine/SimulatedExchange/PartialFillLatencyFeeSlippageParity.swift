@@ -138,8 +138,8 @@ public struct PartialFillLatencyFeeSlippageParityContract: Codable, Equatable, S
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-114-partial-fill-latency-fee-slippage-parity"),
-        issueID: Identifier = try! Identifier("MTP-114"),
+        contractID: Identifier = Identifier.constant("mtp-114-partial-fill-latency-fee-slippage-parity"),
+        issueID: Identifier = Identifier.constant("MTP-114"),
         rules: [PartialFillLatencyFeeSlippageParityRule] = Self.requiredRules,
         fillCompletions: [PaperSimulatedFillCompletion] = Self.requiredFillCompletions,
         forbiddenCapabilities: [PartialFillLatencyFeeSlippageForbiddenCapability] = Self.requiredForbiddenCapabilities,
@@ -470,7 +470,7 @@ public struct PartialFillLatencyFeeSlippageLatencyAssumption: Codable, Equatable
     }
 
     public init(
-        assumptionID: Identifier = try! Identifier("mtp-114-deterministic-latency-assumption"),
+        assumptionID: Identifier = Identifier.constant("mtp-114-deterministic-latency-assumption"),
         sourceRecordSequence: Int = 2,
         fixedDelayTicks: Int = 1,
         fixedDelayMilliseconds: Double = 250,
@@ -613,7 +613,7 @@ public struct PartialFillLatencyFeeSlippageParityInput: Codable, Equatable, Send
     }
 
     public init(
-        inputID: Identifier = try! Identifier("mtp-114-partial-fill-latency-fee-slippage-input"),
+        inputID: Identifier = Identifier.constant("mtp-114-partial-fill-latency-fee-slippage-input"),
         marketLimitExecutionInput: MarketLimitSimulatedExecutionInput = .deterministicMarketFixture,
         availableSimulatedLiquidity: Quantity,
         latencyAssumption: PartialFillLatencyFeeSlippageLatencyAssumption = .deterministicFixture,

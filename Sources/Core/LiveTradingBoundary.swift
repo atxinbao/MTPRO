@@ -834,8 +834,8 @@ public struct LiveReadiness: Codable, Equatable, Sendable {
     }
 
     public init(
-        readinessID: Identifier = try! Identifier("mtp-65-live-readiness"),
-        issueID: Identifier = try! Identifier("MTP-65"),
+        readinessID: Identifier = Identifier.constant("mtp-65-live-readiness"),
+        issueID: Identifier = Identifier.constant("MTP-65"),
         gate: LiveTradingFoundationGate = .liveReadinessBlockedReadModel,
         status: LiveReadinessStatus = .blocked,
         blockedEvidence: [LiveBlockedEvidence] = Self.requiredBlockedEvidence,
@@ -1108,8 +1108,8 @@ public struct LiveTradingCredentialEndpointBoundary: Codable, Equatable, Sendabl
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-62-live-credential-endpoint-boundary"),
-        issueID: Identifier = try! Identifier("MTP-62"),
+        contractID: Identifier = Identifier.constant("mtp-62-live-credential-endpoint-boundary"),
+        issueID: Identifier = Identifier.constant("MTP-62"),
         gate: LiveTradingFoundationGate = .credentialEndpointBoundary,
         forbiddenCapabilities: [LiveTradingCredentialEndpointCapability] = Self.requiredForbiddenCapabilities,
         futureGates: [LiveTradingCredentialEndpointFutureGate] = Self.requiredFutureGates,
@@ -1355,8 +1355,8 @@ public struct LiveReadOnlyCredentialEndpointTaxonomyBoundary: Codable, Equatable
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-127-live-read-only-credential-endpoint-taxonomy"),
-        issueID: Identifier = try! Identifier("MTP-127"),
+        contractID: Identifier = Identifier.constant("mtp-127-live-read-only-credential-endpoint-taxonomy"),
+        issueID: Identifier = Identifier.constant("MTP-127"),
         matrixID: String = Self.requiredMatrixID,
         credentialPolicyTerms: [LiveReadOnlyCredentialPolicyTerm] = Self.requiredCredentialPolicyTerms,
         endpointTaxonomy: [LiveReadOnlyEndpointCapabilityTaxonomy] = Self.requiredEndpointTaxonomy,
@@ -1688,8 +1688,8 @@ public struct LiveReadOnlyAdapterCapabilityMatrixBoundary: Codable, Equatable, S
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-128-live-read-only-adapter-capability-matrix"),
-        issueID: Identifier = try! Identifier("MTP-128"),
+        contractID: Identifier = Identifier.constant("mtp-128-live-read-only-adapter-capability-matrix"),
+        issueID: Identifier = Identifier.constant("MTP-128"),
         matrixID: String = Self.requiredMatrixID,
         capabilityMatrix: [LiveReadOnlyAdapterCapabilityMatrixEntry] = Self.requiredCapabilityMatrix,
         currentAllowedCapabilities: [LiveReadOnlyAdapterCapabilityMatrixEntry] =
@@ -2053,8 +2053,8 @@ public struct LiveReadOnlyAccountPositionBalanceFutureGateBoundary: Codable, Equ
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-129-live-read-only-account-position-balance-future-gates"),
-        issueID: Identifier = try! Identifier("MTP-129"),
+        contractID: Identifier = Identifier.constant("mtp-129-live-read-only-account-position-balance-future-gates"),
+        issueID: Identifier = Identifier.constant("MTP-129"),
         matrixID: String = Self.requiredMatrixID,
         futureGates: [LiveReadOnlyAccountPositionBalanceFutureGate] = Self.requiredFutureGates,
         sourceIdentityBoundaries: [LiveReadOnlyAccountPositionBalanceSourceIdentity] =
@@ -2630,8 +2630,8 @@ public struct AccountPositionBalanceReadModelOnlyFixtureContract: Codable, Equat
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-137-account-position-balance-read-model-only-fixture"),
-        issueID: Identifier = try! Identifier("MTP-137"),
+        contractID: Identifier = Identifier.constant("mtp-137-account-position-balance-read-model-only-fixture"),
+        issueID: Identifier = Identifier.constant("MTP-137"),
         fixtureVersion: FixtureVersion = Self.requiredFixtureVersion,
         records: [AccountPositionBalanceReadModelOnlyFixtureRecord] = Self.requiredRecords,
         checksum: String? = nil,
@@ -2760,7 +2760,7 @@ public struct AccountPositionBalanceReadModelOnlyFixtureContract: Codable, Equat
         }
     }
 
-    public static let requiredFixtureVersion = try! FixtureVersion("fixture-v1")
+    public static let requiredFixtureVersion = FixtureVersion.constant("fixture-v1")
     public static let requiredForbiddenCapabilities =
         AccountPositionBalanceReadModelOnlyForbiddenCapability.allCases
 
@@ -3392,8 +3392,8 @@ public struct SimulatedAccountSnapshotUpdateFixture: Codable, Equatable, Sendabl
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-143-simulated-account-snapshot-update-fixture"),
-        issueID: Identifier = try! Identifier("MTP-143"),
+        contractID: Identifier = Identifier.constant("mtp-143-simulated-account-snapshot-update-fixture"),
+        issueID: Identifier = Identifier.constant("MTP-143"),
         matrixID: String = Self.requiredMatrixID,
         sourceIdentityLinkage: String = Self.requiredSourceIdentityLinkage,
         snapshotInputID: String = Self.requiredSnapshotInputID,
@@ -4183,8 +4183,8 @@ public struct SimulatedAccountSnapshotInputContract: Codable, Equatable, Sendabl
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-142-simulated-account-snapshot-input"),
-        issueID: Identifier = try! Identifier("MTP-142"),
+        contractID: Identifier = Identifier.constant("mtp-142-simulated-account-snapshot-input"),
+        issueID: Identifier = Identifier.constant("MTP-142"),
         matrixID: String = Self.requiredMatrixID,
         fixtureVersion: FixtureVersion = Self.requiredFixtureVersion,
         sourceIdentityLinkage: String = Self.requiredSourceIdentityLinkage,
@@ -4389,7 +4389,7 @@ public struct SimulatedAccountSnapshotInputContract: Codable, Equatable, Sendabl
     }
 
     public static let requiredMatrixID = "TVM-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-SIMULATION-GATE"
-    public static let requiredFixtureVersion = try! FixtureVersion("fixture-v1")
+    public static let requiredFixtureVersion = FixtureVersion.constant("fixture-v1")
     public static let requiredSourceIdentityLinkage =
         "MTP-141-SIMULATED-PRIVATE-ACCOUNT-EVENT-SOURCE-IDENTITY"
     public static let requiredAllowedInputStates = SimulatedAccountSnapshotInputState.allCases
@@ -5029,8 +5029,8 @@ public struct SimulatedAccountSnapshotFreshnessEvidenceContract: Codable, Equata
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-144-simulated-account-snapshot-freshness-evidence"),
-        issueID: Identifier = try! Identifier("MTP-144"),
+        contractID: Identifier = Identifier.constant("mtp-144-simulated-account-snapshot-freshness-evidence"),
+        issueID: Identifier = Identifier.constant("MTP-144"),
         matrixID: String = Self.requiredMatrixID,
         sourceIdentityLinkage: String = Self.requiredSourceIdentityLinkage,
         snapshotInputID: String = Self.requiredSnapshotInputID,
@@ -5446,10 +5446,10 @@ public struct LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary: Co
     }
 
     public init(
-        contractID: Identifier = try! Identifier(
+        contractID: Identifier = Identifier.constant(
             "mtp-130-live-read-only-private-stream-account-snapshot-simulation-gate"
         ),
-        issueID: Identifier = try! Identifier("MTP-130"),
+        issueID: Identifier = Identifier.constant("MTP-130"),
         matrixID: String = Self.requiredMatrixID,
         simulationInputMaterial: [LiveReadOnlyPrivateStreamAccountSnapshotSimulationInputMaterial] =
             Self.requiredSimulationInputMaterial,
@@ -5869,9 +5869,9 @@ public struct SimulatedPrivateAccountEventSourceIdentityRecord: Codable, Equatab
         }
     }
 
-    public static let requiredScenarioID = try! ScenarioID("mtp-141-private-account-event-source-scenario")
-    public static let requiredDatasetVersion = try! DatasetVersion("dataset-v1")
-    public static let requiredFixtureVersion = try! FixtureVersion("fixture-v1")
+    public static let requiredScenarioID = ScenarioID.constant("mtp-141-private-account-event-source-scenario")
+    public static let requiredDatasetVersion = DatasetVersion.constant("dataset-v1")
+    public static let requiredFixtureVersion = FixtureVersion.constant("fixture-v1")
     public static let requiredFixtureReplayCursor = "fixture-replay-cursor:mtp-141:private-account-event:001"
     public static let requiredSourceWatermark = "fixture-watermark:mtp-141:2024-01-01T00:06:00Z"
     public static let forbiddenSourceIdentityTokens = [
@@ -6081,8 +6081,8 @@ public struct SimulatedPrivateAccountEventSourceIdentityContract: Codable, Equat
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-141-simulated-private-account-event-source-identity"),
-        issueID: Identifier = try! Identifier("MTP-141"),
+        contractID: Identifier = Identifier.constant("mtp-141-simulated-private-account-event-source-identity"),
+        issueID: Identifier = Identifier.constant("MTP-141"),
         matrixID: String = Self.requiredMatrixID,
         sourceRecords: [SimulatedPrivateAccountEventSourceIdentityRecord] = Self.requiredSourceRecords,
         checksum: String? = nil,
@@ -6441,8 +6441,8 @@ public struct LiveReadOnlyWorkbenchReadModelBoundary: Codable, Equatable, Sendab
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-131-live-read-only-workbench-read-model-boundary"),
-        issueID: Identifier = try! Identifier("MTP-131"),
+        contractID: Identifier = Identifier.constant("mtp-131-live-read-only-workbench-read-model-boundary"),
+        issueID: Identifier = Identifier.constant("MTP-131"),
         matrixID: String = Self.requiredMatrixID,
         boundarySurfaces: [LiveReadOnlyWorkbenchBoundarySurface] = Self.requiredBoundarySurfaces,
         inputBoundaries: [LiveReadOnlyWorkbenchInputBoundary] = Self.requiredInputBoundaries,
@@ -6840,8 +6840,8 @@ public struct RealOrderLifecycleBoundary: Codable, Equatable, Sendable {
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-64-real-order-lifecycle-boundary"),
-        issueID: Identifier = try! Identifier("MTP-64"),
+        contractID: Identifier = Identifier.constant("mtp-64-real-order-lifecycle-boundary"),
+        issueID: Identifier = Identifier.constant("MTP-64"),
         gate: LiveTradingFoundationGate = .realOrderLifecycleTerms,
         terminology: [RealOrderLifecycleTerm] = Self.requiredTerminology,
         forbiddenCapabilities: [RealOrderLifecycleForbiddenCapability] = Self.requiredForbiddenCapabilities,
@@ -7138,8 +7138,8 @@ public struct LiveAdapterCapabilityIsolationBoundary: Codable, Equatable, Sendab
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-63-live-adapter-capability-isolation"),
-        issueID: Identifier = try! Identifier("MTP-63"),
+        contractID: Identifier = Identifier.constant("mtp-63-live-adapter-capability-isolation"),
+        issueID: Identifier = Identifier.constant("MTP-63"),
         gate: LiveTradingFoundationGate = .adapterCapabilityIsolation,
         currentAdapterName: String = Self.currentAdapterName,
         readOnlyAllowedCapabilities: [String] = Self.requiredReadOnlyAllowedCapabilities,

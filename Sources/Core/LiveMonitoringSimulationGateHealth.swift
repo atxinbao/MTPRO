@@ -524,8 +524,8 @@ public struct LiveMonitoringSimulationGateHealthContract: Codable, Equatable, Se
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-149-live-monitoring-simulation-gate-health"),
-        issueID: Identifier = try! Identifier("MTP-149"),
+        contractID: Identifier = Identifier.constant("mtp-149-live-monitoring-simulation-gate-health"),
+        issueID: Identifier = Identifier.constant("MTP-149"),
         matrixID: String = Self.requiredMatrixID,
         sourceIdentityContractID: Identifier = Self.requiredSourceIdentityContractID,
         sourceIdentityChecksum: String = Self.requiredSourceIdentityChecksum,

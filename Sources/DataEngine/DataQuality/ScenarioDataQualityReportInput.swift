@@ -170,8 +170,8 @@ public struct ScenarioDataQualityGateEvaluation: Codable, Equatable, Sendable {
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-107-data-quality-gate-evaluation"),
-        issueID: Identifier = try! Identifier("MTP-107"),
+        contractID: Identifier = Identifier.constant("mtp-107-data-quality-gate-evaluation"),
+        issueID: Identifier = Identifier.constant("MTP-107"),
         replayEvidence: ScenarioReplayEvidence = .deterministicFixture,
         observedOrderedRecordStarts: [Int]? = nil,
         observedWindowDescription: String? = nil,
@@ -562,8 +562,8 @@ public struct ScenarioReportInputVersion: Codable, Equatable, Sendable {
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-107-report-input-versioning"),
-        issueID: Identifier = try! Identifier("MTP-107"),
+        contractID: Identifier = Identifier.constant("mtp-107-report-input-versioning"),
+        issueID: Identifier = Identifier.constant("MTP-107"),
         replayEvidence: ScenarioReplayEvidence = .deterministicFixture,
         qualityEvaluation: ScenarioDataQualityGateEvaluation = try! ScenarioDataQualityGateEvaluation(),
         canonicalFieldOrder: [String] = Self.requiredCanonicalFieldOrder,
@@ -633,6 +633,23 @@ public struct ScenarioReportInputVersion: Codable, Equatable, Sendable {
         self.exposesDatabaseSchema = exposesDatabaseSchema
         self.exposesAdapterRequest = exposesAdapterRequest
         self.readsRuntimeObject = readsRuntimeObject
+    }
+
+    /// deterministic report input version 默认值的统一 fail-fast 入口。
+    ///
+    /// 该入口不放宽 replay evidence / quality evaluation 的初始化校验；它只替代裸 `try!`，
+    /// 让仓库内固定报告输入版本常量失败时能带上调用位置。
+    public static func constant(
+        fileID: StaticString = #fileID,
+        line: UInt = #line
+    ) -> Self {
+        do {
+            return try Self()
+        } catch {
+            fatalError(
+                "MTPRO deterministic ScenarioReportInputVersion.constant failed at \(fileID):\(line): \(error)"
+            )
+        }
     }
 
     public init(from decoder: Decoder) throws {
@@ -778,11 +795,11 @@ public struct ScenarioDataQualityReportInputEvidence: Codable, Equatable, Sendab
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-107-data-quality-report-input-evidence"),
-        issueID: Identifier = try! Identifier("MTP-107"),
+        contractID: Identifier = Identifier.constant("mtp-107-data-quality-report-input-evidence"),
+        issueID: Identifier = Identifier.constant("MTP-107"),
         replayEvidence: ScenarioReplayEvidence = .deterministicFixture,
         qualityEvaluation: ScenarioDataQualityGateEvaluation = try! ScenarioDataQualityGateEvaluation(),
-        reportInputVersion: ScenarioReportInputVersion = try! ScenarioReportInputVersion(),
+        reportInputVersion: ScenarioReportInputVersion = ScenarioReportInputVersion.constant(),
         validationAnchors: [String] = ScenarioDataQualityGateEvaluation.requiredValidationAnchors,
         reportReproducibilityEvidenceHeld: Bool = true,
         requiredValidationDependsOnNetwork: Bool = false,

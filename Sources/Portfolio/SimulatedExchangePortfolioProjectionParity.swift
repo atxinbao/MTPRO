@@ -132,8 +132,8 @@ public struct SimulatedExchangePortfolioProjectionParityContract: Codable, Equat
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-115-simulated-exchange-portfolio-projection-parity"),
-        issueID: Identifier = try! Identifier("MTP-115"),
+        contractID: Identifier = Identifier.constant("mtp-115-simulated-exchange-portfolio-projection-parity"),
+        issueID: Identifier = Identifier.constant("MTP-115"),
         rules: [SimulatedExchangePortfolioProjectionRule] = Self.requiredRules,
         projectionModes: [SimulatedExchangePortfolioProjectionMode] = Self.requiredProjectionModes,
         forbiddenCapabilities: [SimulatedExchangePortfolioProjectionForbiddenCapability] =
@@ -480,12 +480,12 @@ public struct SimulatedExchangePortfolioProjectionParityInput: Codable, Equatabl
     }
 
     public init(
-        inputID: Identifier = try! Identifier("mtp-115-simulated-exchange-portfolio-projection-input"),
+        inputID: Identifier = Identifier.constant("mtp-115-simulated-exchange-portfolio-projection-input"),
         sourceReportEvidence: PartialFillLatencyFeeSlippageParityReportEvidence =
             try! PartialFillLatencyFeeSlippageParityModel.evaluate(.deterministicPartialFixture),
-        reportInputVersion: ScenarioReportInputVersion = try! ScenarioReportInputVersion(),
-        accountID: Identifier = try! Identifier("mtp-115-simulated-account"),
-        portfolioID: Identifier = try! Identifier("mtp-115-simulated-portfolio"),
+        reportInputVersion: ScenarioReportInputVersion = ScenarioReportInputVersion.constant(),
+        accountID: Identifier = Identifier.constant("mtp-115-simulated-account"),
+        portfolioID: Identifier = Identifier.constant("mtp-115-simulated-portfolio"),
         startingCashBalance: Double = 50_000,
         sourceReplaySequence: Int? = nil,
         projectedAt: Date = Date(timeIntervalSince1970: 1_704_067_680),

@@ -244,8 +244,8 @@ public struct LiveRiskGateBlockedEvidence: Codable, Equatable, Sendable {
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-87-live-risk-gate-blocked-evidence"),
-        issueID: Identifier = try! Identifier("MTP-87"),
+        contractID: Identifier = Identifier.constant("mtp-87-live-risk-gate-blocked-evidence"),
+        issueID: Identifier = Identifier.constant("MTP-87"),
         blockedItems: [LiveRiskGateBlockedEvidenceItem] = Self.requiredBlockedItems,
         allowedEvidenceKinds: [LiveRiskEvidenceKind] = Self.allowedEvidenceKinds,
         validationAnchors: [String] = Self.requiredValidationAnchors,
@@ -881,8 +881,8 @@ public struct LivePaperRiskLiveDecisionIsolationBoundary: Codable, Equatable, Se
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-86-paper-risk-live-decision-isolation-boundary"),
-        issueID: Identifier = try! Identifier("MTP-86"),
+        contractID: Identifier = Identifier.constant("mtp-86-paper-risk-live-decision-isolation-boundary"),
+        issueID: Identifier = Identifier.constant("MTP-86"),
         evidenceSources: [LivePaperRiskLiveDecisionIsolationEvidenceSource] = Self.requiredEvidenceSources,
         forbiddenCapabilities: [LivePaperRiskLiveDecisionForbiddenCapability] = Self.requiredForbiddenCapabilities,
         allowedEvidenceKinds: [LiveRiskEvidenceKind] = Self.allowedEvidenceKinds,
@@ -1490,8 +1490,8 @@ public struct LiveFrequencyLossDrawdownGateBoundary: Codable, Equatable, Sendabl
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-84-frequency-loss-drawdown-boundary"),
-        issueID: Identifier = try! Identifier("MTP-84"),
+        contractID: Identifier = Identifier.constant("mtp-84-frequency-loss-drawdown-boundary"),
+        issueID: Identifier = Identifier.constant("MTP-84"),
         terms: [LiveRiskTerm] = Self.requiredTerms,
         futureGates: [LiveFrequencyLossDrawdownFutureGate] = Self.requiredFutureGates,
         forbiddenCapabilities: [LiveFrequencyLossDrawdownForbiddenCapability] = Self.requiredForbiddenCapabilities,
@@ -2087,8 +2087,8 @@ public struct LiveRiskTerminologyBoundary: Codable, Equatable, Sendable {
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-82-live-risk-terminology-boundary"),
-        issueID: Identifier = try! Identifier("MTP-82"),
+        contractID: Identifier = Identifier.constant("mtp-82-live-risk-terminology-boundary"),
+        issueID: Identifier = Identifier.constant("MTP-82"),
         terms: [LiveRiskTerm] = Self.requiredTerms,
         decisionTaxonomy: [FutureRiskDecisionTaxonomyTerm] = Self.requiredDecisionTaxonomy,
         futureGates: [LiveRiskGateFutureGate] = Self.requiredFutureGates,
@@ -2649,8 +2649,8 @@ public struct LiveExposureOrderNotionalGateBoundary: Codable, Equatable, Sendabl
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-83-exposure-order-notional-boundary"),
-        issueID: Identifier = try! Identifier("MTP-83"),
+        contractID: Identifier = Identifier.constant("mtp-83-exposure-order-notional-boundary"),
+        issueID: Identifier = Identifier.constant("MTP-83"),
         terms: [LiveRiskTerm] = Self.requiredTerms,
         futureGates: [LiveExposureOrderNotionalFutureGate] = Self.requiredFutureGates,
         forbiddenCapabilities: [LiveExposureOrderNotionalForbiddenCapability] = Self.requiredForbiddenCapabilities,
@@ -3240,8 +3240,8 @@ public struct LiveCircuitBreakerNoTradeGateBoundary: Codable, Equatable, Sendabl
     }
 
     public init(
-        contractID: Identifier = try! Identifier("mtp-85-circuit-breaker-no-trade-boundary"),
-        issueID: Identifier = try! Identifier("MTP-85"),
+        contractID: Identifier = Identifier.constant("mtp-85-circuit-breaker-no-trade-boundary"),
+        issueID: Identifier = Identifier.constant("MTP-85"),
         terms: [LiveRiskTerm] = Self.requiredTerms,
         futureGates: [LiveCircuitBreakerNoTradeFutureGate] = Self.requiredFutureGates,
         forbiddenCapabilities: [LiveCircuitBreakerNoTradeForbiddenCapability] = Self.requiredForbiddenCapabilities,
