@@ -1215,6 +1215,30 @@ public struct PartialFillLatencyFeeSlippageParityReportEvidence: Codable, Equata
         )
     }
 
+    /// MTP-114 partial-fill deterministic evidence helper.
+    ///
+    /// 该入口不放宽 partial fill / cost parity / forbidden command 校验；它只把稳定 fixture
+    /// 的构造失败集中到一个带 MTP 定位的 failure path，避免默认参数散落裸 `try!`。
+    public static let deterministicPartialFixture: PartialFillLatencyFeeSlippageParityReportEvidence = {
+        do {
+            return try PartialFillLatencyFeeSlippageParityModel.evaluate(.deterministicPartialFixture)
+        } catch {
+            preconditionFailure("MTP-114 deterministic partial report evidence must be valid: \(error)")
+        }
+    }()
+
+    /// MTP-114 full-fill deterministic evidence helper.
+    ///
+    /// 该入口不放宽 full fill / cost parity / forbidden command 校验；它只为 Dashboard /
+    /// Report read model 提供明确命名的 deterministic evidence constructor。
+    public static let deterministicFullFixture: PartialFillLatencyFeeSlippageParityReportEvidence = {
+        do {
+            return try PartialFillLatencyFeeSlippageParityModel.evaluate(.deterministicFullFixture)
+        } catch {
+            preconditionFailure("MTP-114 deterministic full report evidence must be valid: \(error)")
+        }
+    }()
+
     private static func validate(
         inputIdentity: String,
         sourceExecutionOutput: MarketLimitSimulatedExecutionOutput,
