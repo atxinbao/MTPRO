@@ -1672,6 +1672,35 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH437SwiftStyleConfigurationIsDocumentedWithoutWholeRepoReformat() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let styleConfigURL = repositoryRoot.appendingPathComponent(".swift-format")
+        let styleDocURL = repositoryRoot.appendingPathComponent("docs/validation/swift-style.md")
+        let runScriptURL = repositoryRoot.appendingPathComponent("checks/run.sh")
+
+        XCTAssertTrue(FileManager.default.fileExists(atPath: styleConfigURL.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: styleDocURL.path))
+
+        let styleConfig = try String(contentsOf: styleConfigURL, encoding: .utf8)
+        XCTAssertTrue(styleConfig.contains("\"version\": 1"))
+        XCTAssertTrue(styleConfig.contains("\"lineLength\": 120"))
+        XCTAssertTrue(styleConfig.contains("\"spaces\": 4"))
+        XCTAssertTrue(styleConfig.contains("\"maximumBlankLines\": 1"))
+        XCTAssertTrue(styleConfig.contains("\"respectsExistingLineBreaks\": true"))
+
+        let styleDoc = try String(contentsOf: styleDocURL, encoding: .utf8)
+        XCTAssertTrue(styleDoc.contains("GH-437-SWIFT-STYLE-CONFIGURATION"))
+        XCTAssertTrue(styleDoc.contains("swift-format lint --configuration .swift-format --recursive Sources Tests Package.swift"))
+        XCTAssertTrue(styleDoc.contains("本阶段不做全仓格式化"))
+        XCTAssertTrue(styleDoc.contains("不把 formatter 强制接入 `checks/run.sh`"))
+
+        let runScript = try String(contentsOf: runScriptURL, encoding: .utf8)
+        XCTAssertFalse(
+            runScript.contains("swift-format"),
+            "GH-437 must not make checks/run.sh depend on an unavailable formatter."
+        )
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
