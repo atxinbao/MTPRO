@@ -3320,6 +3320,28 @@ TraderStrategies / concrete strategy 只能产出 signal / proposal evidence。T
 
 L4 ExecutionClient venue adapter matrix 必须证明 submit、cancel、replace、status/report query、execution report parsing 和 broker fill parsing 都只是 contract operation 行，且全部需要 ExecutionEngine handoff、sandbox venue gate 和 production venue gate。当前 matrix 不授权 broker gateway、sandbox runtime、production venue、OMS、reconciliation、Live PRO Console、order form 或 real submit / cancel / replace。
 
+## GH-459 L4 ExecutionClient Sandbox Submit Cancel Replace Terms
+
+`GH-459-EXECUTIONCLIENT-SANDBOX-SUBMIT-CANCEL-REPLACE`
+
+L4 ExecutionClient sandbox submit / cancel / replace 指本地 deterministic sandbox adapter 验证输出路径。它只证明 request envelope 和 response evidence 可审计，不表示交易所确认、broker fill、execution report、OMS transition 或真实 order lifecycle。
+
+`GH-459-SANDBOX-REQUEST-ENVELOPE`
+
+Sandbox request envelope 只能保存 envelope identity、issue identity、sandbox command kind、sandbox venue identity、client order identity、symbol、quantity、limit price 和 reason。它不能包含 HTTP path、header、signature、secret、account payload、broker payload、network URL 或 production endpoint。
+
+`GH-459-DETERMINISTIC-COMMAND-EVIDENCE`
+
+Deterministic command evidence 必须同时覆盖 submit、cancel、replace，并证明所有 request / response 都是 sandbox mode。该 evidence 不触发 broker side effect，不写 OMS state，不读取 account endpoint，不创建 listenKey，也不驱动 Live PRO Console。
+
+`GH-459-PRODUCTION-VENUE-DISABLED`
+
+Production venue disabled 表示 production mode envelope、adapter 或 evidence 必须被拒绝。GH-471 前任何配置、fixture、UI、test 或 hidden flag 都不能默认打开 production trading。
+
+`TVM-L4-EXECUTIONCLIENT-SANDBOX-SUBMIT-CANCEL-REPLACE`
+
+L4 ExecutionClient sandbox submit / cancel / replace matrix 必须证明 sandbox request/response evidence 可重复、production venue 不可达、signed endpoint / broker gateway / real order lifecycle / OMS / Live command surface 全部未触碰。该 matrix 不授权 GH-460 execution report parser、GH-461 OMS、GH-463 ExecutionEngine wiring 或 GH-471 production cutover。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

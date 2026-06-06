@@ -1887,6 +1887,158 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH459ExecutionClientSandboxVenueAdapterProducesDeterministicCommandEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+
+        let adapter = try L4ExecutionClientSandboxVenueAdapter.deterministicFixture()
+        XCTAssertTrue(adapter.sandboxAdapterBoundaryHeld)
+        XCTAssertEqual(adapter.issueID.rawValue, "GH-459")
+        XCTAssertEqual(adapter.upstreamIssueID.rawValue, "GH-458")
+        XCTAssertTrue(adapter.contract.contractHeld)
+        XCTAssertEqual(adapter.venueMode, .sandbox)
+        XCTAssertFalse(adapter.productionVenueEnabled)
+        XCTAssertFalse(adapter.readsSecret)
+        XCTAssertFalse(adapter.generatesSignedRequest)
+        XCTAssertFalse(adapter.touchesBrokerGateway)
+        XCTAssertFalse(adapter.touchesOMS)
+        XCTAssertFalse(adapter.touchesLiveCommandSurface)
+        XCTAssertTrue(adapter.validationAnchors.contains("GH-459-EXECUTIONCLIENT-SANDBOX-SUBMIT-CANCEL-REPLACE"))
+        XCTAssertTrue(adapter.validationAnchors.contains("GH-459-SANDBOX-REQUEST-ENVELOPE"))
+        XCTAssertTrue(adapter.validationAnchors.contains("GH-459-DETERMINISTIC-COMMAND-EVIDENCE"))
+        XCTAssertTrue(adapter.validationAnchors.contains("GH-459-PRODUCTION-VENUE-DISABLED"))
+
+        let submitEnvelope = try L4ExecutionClientSandboxVenueAdapter.deterministicEnvelope(kind: .submit)
+        let cancelEnvelope = try L4ExecutionClientSandboxVenueAdapter.deterministicEnvelope(kind: .cancel)
+        let replaceEnvelope = try L4ExecutionClientSandboxVenueAdapter.deterministicEnvelope(kind: .replace)
+        let submitResponse = try adapter.submit(submitEnvelope)
+        let cancelResponse = try adapter.cancel(cancelEnvelope)
+        let replaceResponse = try adapter.replace(replaceEnvelope)
+
+        XCTAssertEqual(submitResponse.commandKind, .submit)
+        XCTAssertEqual(cancelResponse.commandKind, .cancel)
+        XCTAssertEqual(replaceResponse.commandKind, .replace)
+        XCTAssertTrue([submitResponse, cancelResponse, replaceResponse].allSatisfy(\.acceptedBySandbox))
+        XCTAssertTrue([submitResponse, cancelResponse, replaceResponse].allSatisfy { $0.venueMode == .sandbox })
+        XCTAssertTrue([submitResponse, cancelResponse, replaceResponse].allSatisfy { $0.productionVenueTouched == false })
+        XCTAssertTrue([submitResponse, cancelResponse, replaceResponse].allSatisfy { $0.brokerGatewayTouched == false })
+        XCTAssertTrue([submitResponse, cancelResponse, replaceResponse].allSatisfy { $0.realOrderLifecycleTouched == false })
+
+        let evidence = try adapter.deterministicCommandEvidence()
+        XCTAssertTrue(evidence.commandEvidenceHeld)
+        XCTAssertEqual(Set(evidence.requestEnvelopes.map(\.commandKind)), Set(L4ExecutionClientSandboxCommandKind.allCases))
+        XCTAssertEqual(Set(evidence.responses.map(\.commandKind)), Set(L4ExecutionClientSandboxCommandKind.allCases))
+        XCTAssertTrue(evidence.requestResponseEvidenceAuditable)
+        XCTAssertTrue(evidence.productionVenueDisabled)
+        XCTAssertFalse(evidence.signedEndpointTouched)
+        XCTAssertFalse(evidence.brokerGatewayTouched)
+        XCTAssertFalse(evidence.realOrderLifecycleTouched)
+        XCTAssertFalse(evidence.omsTouched)
+        XCTAssertFalse(evidence.liveCommandSurfaceTouched)
+
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/L4ExecutionClientSandboxVenueAdapter.swift"
+                ).path
+            )
+        )
+    }
+
+    func testGH459ExecutionClientSandboxVenueAdapterRejectsProductionAndBrokerBypass() throws {
+        XCTAssertThrowsError(
+            try L4ExecutionClientSandboxVenueAdapter(
+                venueMode: .production
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("venueMode.production"))
+        }
+
+        XCTAssertThrowsError(
+            try L4ExecutionClientSandboxVenueAdapter(
+                generatesSignedRequest: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("generatesSignedRequest"))
+        }
+
+        XCTAssertThrowsError(
+            try L4ExecutionClientSandboxVenueAdapter(
+                touchesBrokerGateway: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("touchesBrokerGateway"))
+        }
+
+        XCTAssertThrowsError(
+            try L4ExecutionClientSandboxRequestEnvelope(
+                envelopeID: Identifier.constant("unsafe-gh-459-production-envelope"),
+                commandKind: .submit,
+                venueMode: .production,
+                clientOrderID: Identifier.constant("unsafe-gh-459-order"),
+                symbol: "BTCUSDT",
+                quantity: "0.0100",
+                limitPrice: "42120.70",
+                reason: "unsafe production route"
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("venueMode.production"))
+        }
+
+        XCTAssertThrowsError(
+            try L4ExecutionClientSandboxRequestEnvelope(
+                envelopeID: Identifier.constant("unsafe-gh-459-signed-envelope"),
+                commandKind: .submit,
+                clientOrderID: Identifier.constant("unsafe-gh-459-order"),
+                symbol: "BTCUSDT",
+                quantity: "0.0100",
+                limitPrice: "42120.70",
+                reason: "unsafe signed request route",
+                signedRequestGenerated: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("signedRequestGenerated"))
+        }
+
+        let adapter = try L4ExecutionClientSandboxVenueAdapter.deterministicFixture()
+        let cancelEnvelope = try L4ExecutionClientSandboxVenueAdapter.deterministicEnvelope(kind: .cancel)
+        XCTAssertThrowsError(
+            try adapter.submit(cancelEnvelope)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "commandKind",
+                    expected: "submit",
+                    actual: "cancel"
+                )
+            )
+        }
+
+        let submitEnvelope = try L4ExecutionClientSandboxVenueAdapter.deterministicEnvelope(kind: .submit)
+        let submitResponse = try adapter.submit(submitEnvelope)
+        XCTAssertThrowsError(
+            try L4ExecutionClientSandboxCommandEvidence(
+                requestEnvelopes: [submitEnvelope],
+                responses: [submitResponse]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "requestEnvelopes",
+                    expected: L4ExecutionClientSandboxCommandKind.allCases.map(\.rawValue).joined(separator: ","),
+                    actual: "submit"
+                )
+            )
+        }
+    }
+
     func testGH421AllArchitectureTargetsExposeIndependentRealAPISmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-421-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)

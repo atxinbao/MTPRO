@@ -253,6 +253,26 @@ GH-458 必须建立的主要 anchors：
 - `GH-458-NO-DIRECT-TRADER-STRATEGY-EXECUTIONCLIENT`
 - `TVM-L4-EXECUTIONCLIENT-VENUE-ADAPTER-CONTRACT`
 
+## GH-459 L4 ExecutionClient Sandbox Submit Cancel Replace Validation
+
+GH-459 的 required validation：
+
+- `docs/contracts/l4-executionclient-sandbox-submit-cancel-replace-contract.md` 必须存在，并包含 `GH-459-EXECUTIONCLIENT-SANDBOX-SUBMIT-CANCEL-REPLACE`、`GH-459-SANDBOX-REQUEST-ENVELOPE`、`GH-459-DETERMINISTIC-COMMAND-EVIDENCE`、`GH-459-PRODUCTION-VENUE-DISABLED`、`GH-459-NON-AUTHORIZATION` 和 `TVM-L4-EXECUTIONCLIENT-SANDBOX-SUBMIT-CANCEL-REPLACE`。
+- `Sources/ExecutionClient/FutureGate/L4ExecutionClientSandboxVenueAdapter.swift` 必须定义 `L4ExecutionClientSandboxVenueAdapter`、`L4ExecutionClientSandboxRequestEnvelope`、`L4ExecutionClientSandboxCommandResponse`、`L4ExecutionClientSandboxCommandEvidence`、`L4ExecutionClientSandboxCommandKind`、`L4ExecutionClientSandboxVenueMode` 和 `L4ExecutionClientSandboxForbiddenCapability`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH459ExecutionClientSandboxVenueAdapterProducesDeterministicCommandEvidence` 和 `testGH459ExecutionClientSandboxVenueAdapterRejectsProductionAndBrokerBypass`。
+- Sandbox adapter 必须只接受 sandbox request envelope，并输出 submit / cancel / replace 三类 deterministic command evidence。
+- Evidence 必须证明 request / response identity 可审计、production venue disabled、signed endpoint / broker / real order lifecycle / OMS / Live command surface 全部未触碰。
+- Forbidden capability tests 必须拒绝 production mode、signed request generation、broker gateway touch、command kind mismatch 和 incomplete evidence bypass。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`，不依赖真实 secret、broker credential、signed/account endpoint、listenKey、private WebSocket、production endpoint 或人工验收。
+
+GH-459 必须建立的主要 anchors：
+
+- `GH-459-EXECUTIONCLIENT-SANDBOX-SUBMIT-CANCEL-REPLACE`
+- `GH-459-SANDBOX-REQUEST-ENVELOPE`
+- `GH-459-DETERMINISTIC-COMMAND-EVIDENCE`
+- `GH-459-PRODUCTION-VENUE-DISABLED`
+- `TVM-L4-EXECUTIONCLIENT-SANDBOX-SUBMIT-CANCEL-REPLACE`
+
 ## MTP-24 Trading Validation Matrix Validation
 
 MTP-24 的 required validation：
