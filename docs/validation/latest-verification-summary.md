@@ -2081,6 +2081,41 @@ GitHub Issue：[#416](https://github.com/atxinbao/MTPRO/issues/416)
 - `bash checks/automation-readiness.sh`：pass。
 - `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true` / `dashboardReadModelOnly=true`，340 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
 
+## 2026-06-06 — GH-417 RiskEngine paper pre-trade ownership
+
+执行者：Codex
+
+GitHub Issue：[#417](https://github.com/atxinbao/MTPRO/issues/417)
+
+范围：
+
+- 将 pure paper pre-trade risk decision implementation 收口到真实 `RiskEngine` target。
+- `Sources/RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift` 现在由 `RiskEngine` target 直接编译，提供 `PaperPreTradeRiskEngine.evaluate(...)`、input、decision、rule summary 和 deterministic fixture。
+- 将旧 MessageBus / EventLog publish and replay surface 收口到 `Sources/Core/RiskEnginePaperPreTradeRuntimeBridge.swift`，作为 Core compatibility bridge。
+- 更新 `RiskEngineTargetBoundary`、`TargetGraphTests`、architecture / contract / automation anchors，固定 `GH-417-RISKENGINE-PAPER-PRETRADE-OWNERSHIP`、`GH-417-CORE-RISKENGINE-EVENT-BRIDGE-ONLY` 和 `GH-417-RISKENGINE-NO-EXECUTIONCLIENT-OMS-BROKER-GUARD`。
+
+边界：
+
+- 不实现 live risk runtime、Trader runtime、Strategy runtime、Live runtime。
+- 不实现 ExecutionClient implementation、OMS、broker gateway。
+- 不接 signed endpoint、account endpoint / listenKey、private WebSocket runtime。
+- 不实现 real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation。
+- 不实现 Live PRO Console、trading button、live command 或 order form。
+- 不推进 L4。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify / code-index。
+- 不修改 Figma。
+
+验证：
+
+- `swift build --target RiskEngine`：pass。
+- `swift build --target Core`：pass。
+- `swift test --filter TargetGraphTests/testGH398TraderPortfolioRiskExecutionTargetsOwnRealSourceWithoutRuntimeDrift`：pass，1 test / 0 failures。
+- `swift test --filter TargetGraphTests`：pass，25 tests / 0 failures。
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true` / `dashboardReadModelOnly=true`，340 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
 ## 2026-06-06 — GH-397 Trader / Portfolio / Risk / Execution real target smoke tests
 
 执行者：Codex

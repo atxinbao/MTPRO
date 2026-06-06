@@ -6,9 +6,10 @@ import Portfolio
 /// `RiskEngine` target boundary 表达 Portfolio 之后、ExecutionEngine 之前的 pre-execution risk 层。
 ///
 /// MTP-228 只把 active target boundary anchor 从 `Sources/TargetGraph/RiskEngine`
-/// 移到 `Sources/RiskEngine/TargetGraph`。RiskEngine 不升级成 live risk runtime、
-/// broker gateway 或 ExecutionClient wrapper；既有 paper pre-trade / live gate evidence
-/// 仍由 `Core` compatibility envelope 编译。
+/// 移到 `Sources/RiskEngine/TargetGraph`。GH-417 继续把 pure paper pre-trade
+/// implementation ownership 迁入 RiskEngine target；Core 只保留 EventLog publish/replay
+/// compatibility bridge。RiskEngine 不升级成 live risk runtime、broker gateway 或
+/// ExecutionClient wrapper。
 public struct RiskEngineTargetBoundary: Codable, Equatable, Sendable {
     public let targetName: String
     public let canonicalSourceRoot: String
@@ -31,7 +32,7 @@ public struct RiskEngineTargetBoundary: Codable, Equatable, Sendable {
         targetName: String = "RiskEngine",
         canonicalSourceRoot: String = "Sources/RiskEngine",
         compiledBoundaryRoot: String = "Sources/RiskEngine/TargetGraph",
-        retainedCompatibilityEnvelope: String = "Core",
+        retainedCompatibilityEnvelope: String = "Core(event bridge deferred)",
         domainModelBoundary: DomainModelTargetBoundary = .mtp217,
         messageBusBoundary: MessageBusTargetBoundary = .mtp217,
         cacheBoundary: CacheTargetBoundary = .mtp218,
@@ -68,7 +69,7 @@ public struct RiskEngineTargetBoundary: Codable, Equatable, Sendable {
         targetName == "RiskEngine"
             && canonicalSourceRoot == "Sources/RiskEngine"
             && compiledBoundaryRoot == "Sources/RiskEngine/TargetGraph"
-            && retainedCompatibilityEnvelope == "Core"
+            && retainedCompatibilityEnvelope == "Core(event bridge deferred)"
             && domainModelBoundary.boundaryHeld
             && messageBusBoundary.dependencyDirectionHeld
             && cacheBoundary.dependencyDirectionHeld
@@ -111,6 +112,10 @@ public struct RiskEngineTargetBoundary: Codable, Equatable, Sendable {
         "MTP-219-PRE-EXECUTION-RISK-BOUNDARY",
         "GH-397-RISKENGINE-REAL-TARGET-SMOKE",
         "MTP-228-RISKENGINE-REAL-ROOT-TARGET-PATH",
+        "GH-417-RISKENGINE-PAPER-PRETRADE-OWNERSHIP",
+        "GH-417-CORE-RISKENGINE-EVENT-BRIDGE-ONLY",
+        "GH-417-RISKENGINE-NO-EXECUTIONCLIENT-OMS-BROKER-GUARD",
+        "GH-417-VALIDATION-ANCHORS",
         "MTP-219-NO-DIRECT-EXECUTION-GUARD"
     ]
 

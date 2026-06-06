@@ -686,79 +686,13 @@ public struct PaperPreTradeRiskEngineDecision: Codable, Equatable, Sendable {
     }
 }
 
-#if !MTPRO_RISKENGINE_REAL_TARGET
-/// PaperPreTradeRiskEnginePublication 保存 MTP-98 写入 Event Log 后的 replay evidence。
+/// PaperPreTradeRiskEngine 是 RiskEngine target 直接拥有的 paper pre-trade 判断器。
 ///
-/// `routeEvidence` 来自 MTP-97 EventBus publish，`replayEvidence` 来自同一 `MessageBus` replay 后重建。
-/// 二者必须一致，才能证明 rejected paper risk decision 已进入 append-only facts source 并可 replay。
-public struct PaperPreTradeRiskEnginePublication: Codable, Equatable, Sendable {
-    public let decision: PaperPreTradeRiskEngineDecision
-    public let routeEvidence: [PaperRuntimeRouteEvidence]
-    public let replayEvidence: [PaperRuntimeRouteEvidence]
-
-    public var replayMatchesRouteEvidence: Bool {
-        replayEvidence == routeEvidence
-    }
-
-    public var rejectedDecisionEnteredReplay: Bool {
-        decision.isRejected
-            && replayEvidence.contains { $0.payloadKind == .paperRiskBlocked && $0.stream == .risk }
-    }
-
-    public init(
-        decision: PaperPreTradeRiskEngineDecision,
-        routeEvidence: [PaperRuntimeRouteEvidence],
-        replayEvidence: [PaperRuntimeRouteEvidence]
-    ) throws {
-        guard routeEvidence.isEmpty == false else {
-            throw CoreError.paperPreTradeRiskEngineMismatch(
-                field: "routeEvidence",
-                expected: "at least one paper risk route evidence",
-                actual: "empty"
-            )
-        }
-        guard replayEvidence == routeEvidence else {
-            throw CoreError.paperPreTradeRiskEngineMismatch(
-                field: "replayEvidence",
-                expected: "same as route evidence",
-                actual: "drift"
-            )
-        }
-        if decision.isRejected {
-            guard replayEvidence.contains(where: { $0.payloadKind == .paperRiskBlocked && $0.stream == .risk }) else {
-                throw CoreError.paperPreTradeRiskEngineMismatch(
-                    field: "replayEvidence",
-                    expected: "paperRiskBlocked evidence for rejected decision",
-                    actual: replayEvidence.map(\.payloadKind.rawValue).joined(separator: ",")
-                )
-            }
-        }
-
-        self.decision = decision
-        self.routeEvidence = routeEvidence
-        self.replayEvidence = replayEvidence
-    }
-
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        try self.init(
-            decision: try container.decode(PaperPreTradeRiskEngineDecision.self, forKey: .decision),
-            routeEvidence: try container.decode([PaperRuntimeRouteEvidence].self, forKey: .routeEvidence),
-            replayEvidence: try container.decode([PaperRuntimeRouteEvidence].self, forKey: .replayEvidence)
-        )
-    }
-}
-
-/// PaperPreTradeRiskEngineRuntimePath 是 MTP-98 的本地 runtime path 编排入口。
-///
-/// `evaluate` 只做纯 Core 判定；`evaluateAndPublish` 额外复用 MTP-97 routing 写入 `MessageBus` 并
-/// replay。该路径不启动 actor、不访问 Persistence schema、不读取 Adapter 或 broker，也不提供 UI command。
-public struct PaperPreTradeRiskEngineRuntimePath: Equatable, Sendable {
-    public let routing: PaperRuntimeMessageBusRouting
-
-    public init(routing: PaperRuntimeMessageBusRouting = PaperRuntimeMessageBusRouting()) {
-        self.routing = routing
-    }
+/// 它只执行纯本地 deterministic risk rules，不写入 MessageBus，不访问 Persistence，
+/// 不读取 Adapter / broker，也不提供 UI command。publish / replay bridge 仍由 Core
+/// compatibility envelope 承载，避免 RiskEngine 反向拥有 runtime routing。
+public struct PaperPreTradeRiskEngine: Equatable, Sendable {
+    public init() {}
 
     public func evaluate(
         decisionID: Identifier,
@@ -809,45 +743,12 @@ public struct PaperPreTradeRiskEngineRuntimePath: Equatable, Sendable {
             rejectedRule: rejectedRule
         )
     }
-
-    public func evaluateAndPublish(
-        decisionID: Identifier,
-        input: PaperPreTradeRiskEngineInput,
-        to messageBus: inout MessageBus,
-        clock: TradingClock,
-        envelopeIDs: [UUID],
-        correlationID: UUID,
-        rootCausationID: UUID?
-    ) throws -> PaperPreTradeRiskEnginePublication {
-        let decision = try evaluate(decisionID: decisionID, input: input)
-        let firstNewSequence = messageBus.envelopes.count + 1
-        let routeEvidence = try routing.publish(
-            [.paperRiskDecision(decision.riskDecision)],
-            to: &messageBus,
-            clock: clock,
-            envelopeIDs: envelopeIDs,
-            correlationID: correlationID,
-            rootCausationID: rootCausationID
-        )
-        let replay = messageBus.replay(
-            EventReplayCommand(
-                range: try EventSequenceRange(lowerBound: firstNewSequence, upperBound: messageBus.envelopes.count),
-                streams: [.risk]
-            )
-        )
-        let replayEvidence = try PaperRuntimeMessageBusRouting.replayEvidence(from: replay)
-        return try PaperPreTradeRiskEnginePublication(
-            decision: decision,
-            routeEvidence: routeEvidence,
-            replayEvidence: replayEvidence
-        )
-    }
 }
 
 /// PaperPreTradeRiskEngineFixture 提供 MTP-98 accepted / rejected deterministic tracer bullets。
 ///
-/// Fixture 同时覆盖 account snapshot、paper exposure、risk rules、decision 和 Event Log / Replay
-/// publication。它只服务 tests / PR evidence，不代表真实账户、真实风控配置或 production runtime。
+/// Fixture 覆盖 account snapshot、paper exposure、risk rules 和 pure decision。它只服务 tests / PR
+/// evidence，不代表真实账户、真实风控配置或 production runtime。
 public enum PaperPreTradeRiskEngineFixture {
     public static let correlationID = deterministicUUID("11111111-1111-4111-8111-111111111198")
     public static let rootCausationID = deterministicUUID("22222222-2222-4222-8222-222222222198")
@@ -859,34 +760,6 @@ public enum PaperPreTradeRiskEngineFixture {
         deterministicUUID("98000000-0000-4000-8000-000000000102")
     ]
 
-    public static let deterministicClock: TradingClock = {
-        do {
-            return try TradingClock(
-                clockID: try Identifier("mtp-98-paper-pretrade-riskengine-clock"),
-                issueID: try Identifier("MTP-98"),
-                ticks: [
-                    TradingClockTick(
-                        sequence: 1,
-                        instant: Date(timeIntervalSince1970: 4_000),
-                        source: .deterministicFixture
-                    ),
-                    TradingClockTick(
-                        sequence: 2,
-                        instant: Date(timeIntervalSince1970: 4_001),
-                        source: .deterministicFixture
-                    )
-                ],
-                validationAnchors: [
-                    "MTP-96-TRADING-CLOCK-DETERMINISTIC-TIME",
-                    "MTP-98-REJECTED-DECISION-EVENTLOG-REPLAY",
-                    "MTP-98-PAPER-RISKENGINE-VALIDATION"
-                ]
-            )
-        } catch {
-            preconditionFailure("Invalid MTP-98 risk engine clock fixture: \(error)")
-        }
-    }()
-
     public static func acceptedInput() throws -> PaperPreTradeRiskEngineInput {
         try input(riskRules: acceptedRules(), sourceProposalSequence: 11, evaluatedAt: Date(timeIntervalSince1970: 4_010))
     }
@@ -896,31 +769,17 @@ public enum PaperPreTradeRiskEngineFixture {
     }
 
     public static func acceptedDecision() throws -> PaperPreTradeRiskEngineDecision {
-        try PaperPreTradeRiskEngineRuntimePath().evaluate(
+        try PaperPreTradeRiskEngine().evaluate(
             decisionID: try Identifier("mtp-98-paper-risk-accepted"),
             input: acceptedInput()
         )
     }
 
     public static func rejectedDecision() throws -> PaperPreTradeRiskEngineDecision {
-        try PaperPreTradeRiskEngineRuntimePath().evaluate(
+        try PaperPreTradeRiskEngine().evaluate(
             decisionID: try Identifier("mtp-98-paper-risk-rejected"),
             input: rejectedInput()
         )
-    }
-
-    public static func publishedRejectedDecision() throws -> (MessageBus, PaperPreTradeRiskEnginePublication) {
-        var messageBus = try MessageBus()
-        let publication = try PaperPreTradeRiskEngineRuntimePath().evaluateAndPublish(
-            decisionID: try Identifier("mtp-98-paper-risk-rejected"),
-            input: rejectedInput(),
-            to: &messageBus,
-            clock: deterministicClock,
-            envelopeIDs: rejectedEnvelopeIDs,
-            correlationID: correlationID,
-            rootCausationID: rootCausationID
-        )
-        return (messageBus, publication)
     }
 
     private static func input(
@@ -1001,4 +860,3 @@ public enum PaperPreTradeRiskEngineFixture {
         return uuid
     }
 }
-#endif

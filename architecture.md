@@ -476,6 +476,22 @@ GH-416 将 `PaperPortfolioProjectionUpdate.swift` 从 `Core` compatibility envel
 
 `PaperAccountPortfolioProjectionV2.swift` 和 `SimulatedExchangePortfolioProjectionParity.swift` 继续作为显式 deferred Core compatibility envelope，因为它们仍耦合 replay / simulated exchange / event evidence。GH-416 不把这些 bridge 误迁入 Portfolio，也不实现 Trader runtime、Strategy runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed/account endpoint、private stream runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
 
+## GH-417 RiskEngine Paper Pre-trade Ownership
+
+`GH-417-RISKENGINE-PAPER-PRETRADE-OWNERSHIP`
+
+GH-417 将纯 paper pre-trade risk decision implementation 收口到真实 `RiskEngine` target。`Sources/RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift` 现在由 `RiskEngine` target 直接编译，并提供 `PaperPreTradeRiskEngine.evaluate(...)`、input、decision、rule summary 和 deterministic fixture。该模块只做 paper pre-execution decision，不发布事件、不读写 persistence、不调用 adapter、broker、ExecutionClient、OMS 或 UI command surface。
+
+`GH-417-CORE-RISKENGINE-EVENT-BRIDGE-ONLY`
+
+旧 event-log / replay surface 所需的 `PaperPreTradeRiskEngineRuntimePath`、`PaperPreTradeRiskEnginePublication` 和 deterministic bus publication fixture 已迁到 `Sources/Core/RiskEnginePaperPreTradeRuntimeBridge.swift`。该文件只是 Core compatibility bridge，用于维持既有 MessageBus / EventLog evidence，不把 RiskEngine 反向绑定到 Core runtime owner。
+
+`GH-417-RISKENGINE-NO-EXECUTIONCLIENT-OMS-BROKER-GUARD`
+
+GH-417 不实现 live risk runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private stream runtime、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
+`GH-417-VALIDATION-ANCHORS`
+
 `MTP-219-RISKENGINE-TARGET-SPLIT`
 
 `RiskEngine` target 依赖 `DomainModel`、`MessageBus`、`Cache` 和 `Portfolio`，当前 active boundary anchor 是 `Sources/RiskEngine/TargetGraph/RiskEngineTargetBoundary.swift`。RiskEngine 保持 pre-execution risk boundary，不实现 live risk runtime、broker route、ExecutionClient wrapper 或 executable order command router。
