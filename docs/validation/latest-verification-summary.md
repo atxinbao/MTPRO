@@ -2037,3 +2037,85 @@ GitHub Issue：[#397](https://github.com/atxinbao/MTPRO/issues/397)
 - `git diff --check`：pass，无输出。
 - `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
 - `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true`，337 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
+## 2026-06-06 — GH-398 Trader / Portfolio / Risk / Execution implementation ownership
+
+执行者：Codex
+
+GitHub Issue：[#398](https://github.com/atxinbao/MTPRO/issues/398)
+
+范围：
+
+- 迁移 Trader / Portfolio / RiskEngine / ExecutionEngine / ExecutionClient 的 partial implementation ownership。
+- 将 strategy signal / paper action proposal shared contracts 收口到 `MessageBus`。
+- 保持 `Trader = Accounts + Strategies/EMA + Coordination`，不让 Trader 直接依赖 ExecutionEngine / ExecutionClient。
+- 保持 `ExecutionClient` 为 future gate / protocol boundary only。
+
+边界：
+
+- 不实现 Trader runtime、Strategy runtime、Live runtime。
+- 不实现 ExecutionClient implementation、OMS、broker gateway。
+- 不接 signed endpoint、account endpoint / listenKey、private WebSocket runtime。
+- 不实现 real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation。
+- 不推进 L4。
+
+## 2026-06-06 — GH-399 Dashboard read-model-only naming cleanup
+
+执行者：Codex
+
+GitHub Issue：[#399](https://github.com/atxinbao/MTPRO/issues/399)
+
+范围：
+
+- 清理 active Dashboard source 中的 Workbench 命名 residue。
+- Active UI surface 统一为 `Dashboard read-model-only boundary`。
+- `Workbench` / `AppCompatibility` 不再作为 active module 口径。
+
+边界：
+
+- 不恢复 Workbench / AppCompatibility active modules。
+- 不实现 Live PRO Console、trading button、live command 或 order form。
+- 不读取 Runtime object、Adapter request、schema、account payload、broker payload 或 broker state。
+
+## 2026-06-06 — GH-400 unsafe construct allowed-path validation
+
+执行者：Codex
+
+GitHub Issue：[#400](https://github.com/atxinbao/MTPRO/issues/400)
+
+范围：
+
+- 在 `Tests/TargetGraphTests/TargetGraphTests.swift` 增加 `try!` / `preconditionFailure` allowed-path validation。
+- `Tests/` 默认允许 deterministic assertion / fixture usage。
+- `Sources/` 只允许 deterministic fixture、evidence、future gate、read-model-only guard、paper / simulated boundary 等显式白名单路径。
+
+边界：
+
+- 不修改 production implementation behavior。
+- 不扩大 runtime-facing path 中的 unsafe construct 使用范围。
+- 不推进 L4。
+
+## 2026-06-06 — GH-401 Core envelope retirement matrix / stage audit input
+
+执行者：Codex
+
+GitHub Issue：[#401](https://github.com/atxinbao/MTPRO/issues/401)
+
+范围：
+
+- 新增 `docs/audit/inputs/mtpro-real-target-source-ownership-core-envelope-retirement-v1-stage-audit-input.md`。
+- 汇总 GH-391 到 GH-401 evidence chain。
+- 明确 `Core`、`Adapters`、`Persistence`、`Runtime` 仍是 retained compatibility envelopes。
+- 明确 L4 readiness blockers 和后续 Stage Code Audit input。
+
+边界：
+
+- GH-401 只准备 stage audit input material，不输出最终 Stage Code Audit Report。
+- 不设置 Project closure，不创建下一 Project / Issue，不推进 L4。
+- 不实现 Trader runtime、Strategy runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、real order lifecycle 或 UI command surface。
+
+验证：
+
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true`，339 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
