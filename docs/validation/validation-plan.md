@@ -128,6 +128,27 @@ GH-452 必须建立的主要 anchors：
 - `GH-452-NO-DEFAULT-REAL-TRADING-POLICY`
 - `TVM-L4-LIVE-PRODUCTION-COMMANDS`
 
+## GH-453 L4 Credential Environment Gate Validation
+
+GH-453 的 required validation：
+
+- `docs/contracts/l4-credential-environment-gate-contract.md` 必须存在，并包含 `GH-453-L4-CREDENTIAL-ENVIRONMENT-GATE-CONTRACT`、`GH-453-CREDENTIAL-SOURCE-IDENTITY`、`GH-453-SANDBOX-ONLY-ENABLEMENT-GATE`、`GH-453-PRODUCTION-CUTOVER-BLOCKED-UNTIL-GH-471`、`GH-453-LOCAL-CI-SECRET-PRODUCTION-VALIDATION` 和 `GH-453-NON-AUTHORIZATION`。
+- `Sources/ExecutionClient/FutureGate/L4CredentialEnvironmentGateContract.swift` 必须定义 `L4CredentialEnvironmentGateContract`、`L4CredentialEnvironmentValidationRule`、`L4CredentialEnvironmentScope`、`L4CredentialSourceIdentity`、`L4CredentialEnvironmentGate` 和 `L4CredentialEnvironmentForbiddenCapability`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH453L4CredentialEnvironmentGateDefinesSandboxOnlyContract` 和 `testGH453L4CredentialEnvironmentGateRejectsSecretAndProductionDefault`。
+- Credential source identity 只能保存 environment key / external reference / sandbox-only flag / production cutover flag / forbidden credential value marker，不得保存真实 API key、secret value、signed payload、listenKey、account payload 或 broker credential。
+- Sandbox-only gate 必须保持 validation-only：不得连接 sandbox network，不得实现 signed account runtime，不得实现 ExecutionClient adapter。
+- Production gate 必须保持 blocked until `GH-471`：不得通过环境变量、配置、fixture、UI 或 hidden flag 默认打开 production trading。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`，不依赖真实 secret、真实 Binance private endpoint、broker、production credential 或人工验收。
+
+GH-453 必须建立的主要 anchors：
+
+- `GH-453-L4-CREDENTIAL-ENVIRONMENT-GATE-CONTRACT`
+- `GH-453-CREDENTIAL-SOURCE-IDENTITY`
+- `GH-453-SANDBOX-ONLY-ENABLEMENT-GATE`
+- `GH-453-PRODUCTION-CUTOVER-BLOCKED-UNTIL-GH-471`
+- `GH-453-LOCAL-CI-SECRET-PRODUCTION-VALIDATION`
+- `TVM-L4-CREDENTIAL-ENVIRONMENT-GATE`
+
 ## MTP-24 Trading Validation Matrix Validation
 
 MTP-24 的 required validation：

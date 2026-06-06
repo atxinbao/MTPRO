@@ -1004,6 +1004,129 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH453L4CredentialEnvironmentGateDefinesSandboxOnlyContract() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+
+        let contract = try L4CredentialEnvironmentGateContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertTrue(contract.validationRulesCoverageHeld)
+        XCTAssertEqual(contract.canonicalQueueRange, "GH-452..GH-472")
+        XCTAssertEqual(contract.issueID.rawValue, "GH-453")
+        XCTAssertEqual(contract.upstreamIssueID.rawValue, "GH-452")
+        XCTAssertTrue(contract.validationAnchors.contains("GH-453-L4-CREDENTIAL-ENVIRONMENT-GATE-CONTRACT"))
+        XCTAssertTrue(contract.validationAnchors.contains("TVM-L4-CREDENTIAL-ENVIRONMENT-GATE"))
+        XCTAssertEqual(
+            Set(contract.scopes),
+            Set(L4CredentialEnvironmentScope.allCases)
+        )
+        XCTAssertEqual(
+            Set(contract.sourceIdentities),
+            Set(L4CredentialSourceIdentity.allCases)
+        )
+
+        XCTAssertTrue(contract.credentialSourceIdentityRequired)
+        XCTAssertTrue(contract.sandboxOnlyGateRequired)
+        XCTAssertTrue(contract.productionDisabledByDefault)
+        XCTAssertTrue(contract.productionCutoverRequiresGH471)
+        XCTAssertTrue(contract.localValidationMustRejectSecrets)
+        XCTAssertTrue(contract.ciValidationMustRejectProductionDefault)
+        XCTAssertTrue(contract.networkIndependentValidationRequired)
+
+        for forbidden in [
+            contract.allowsPlaintextCredentialInRepository,
+            contract.readsCredentialValue,
+            contract.printsCredentialValue,
+            contract.storesSecret,
+            contract.constructsAPIKeyHeader,
+            contract.generatesRequestSignature,
+            contract.callsSignedEndpoint,
+            contract.callsAccountEndpoint,
+            contract.createsListenKey,
+            contract.opensPrivateStream,
+            contract.connectsSandboxNetwork,
+            contract.connectsProductionNetwork,
+            contract.productionTradingEnabledByDefault,
+            contract.productionCutoverAllowedBeforeGH471,
+            contract.implementsExecutionClientAdapter,
+            contract.implementsOMS,
+            contract.submitsRealOrder,
+            contract.cancelsRealOrder,
+            contract.replacesRealOrder,
+            contract.exposesLiveProConsoleCommandSurface,
+            contract.exposesOrderForm
+        ] {
+            XCTAssertFalse(forbidden)
+        }
+
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/L4CredentialEnvironmentGateContract.swift"
+                ).path
+            )
+        )
+    }
+
+    func testGH453L4CredentialEnvironmentGateRejectsSecretAndProductionDefault() throws {
+        XCTAssertThrowsError(
+            try L4CredentialEnvironmentGateContract(
+                readsCredentialValue: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("readsCredentialValue")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4CredentialEnvironmentGateContract(
+                productionTradingEnabledByDefault: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("productionTradingEnabledByDefault")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4CredentialEnvironmentGateContract(
+                validationRules: []
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "validationRules",
+                    expected: "GH-453 required validation rules",
+                    actual: "[]"
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4CredentialEnvironmentValidationRule(
+                environmentVariableName: "MTPRO_L4_UNSAFE_SECRET",
+                sourceIdentity: .forbiddenCredentialValue,
+                allowedScopes: [.local],
+                expectedEvidence: "unsafe rule must be rejected",
+                allowsSecretValue: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("allowsSecretValue")
+            )
+        }
+    }
+
     func testGH421AllArchitectureTargetsExposeIndependentRealAPISmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-421-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)
