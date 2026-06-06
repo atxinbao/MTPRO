@@ -14846,3 +14846,37 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 343 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-07 - Core envelope completion post-audit hardening addendum
+
+- Project: `MTPRO Core Envelope Retirement / Real Module Ownership Completion v1`
+- Scope:
+  - Added post-audit hardening evidence for GH-433 through GH-437 and GH-445 to the existing Stage Code Audit chain.
+  - Treated GH-433 through GH-437 and GH-445 as follow-up hardening inside the already completed Project, not as a new Project Closure Count item.
+  - Updated root docs to show the hardening addendum without authorizing L4 execution.
+- Evidence:
+  - GH-433 PR #440 merged at `4182f932227b94e867da1bf967f0c380827abf66`: CI sqlite / Swift preflight hardening.
+  - GH-434 PR #441 merged at `02db38e63cb9f875ec2391c6cdc58980d11d0d81`: deterministic value object force-try guard.
+  - GH-435 PR #442 merged at `dff4f145592016c825c8f0935dbe4f365dc172bf`: Binance public transport actor isolation.
+  - GH-436 PR #443 merged at `deb40b32f3971d69be0d60c8ddd9a85e9637bd55`: precise boundary guard coverage.
+  - GH-437 PR #444 merged at `f8828c3d52f46f2eb3b8c843b0e01a27460bf7b7`: Swift style configuration.
+  - GH-445 PR #446 merged at `d5a8bfd43d94c64ed8fbfd15bf8c6067f4c78dfa`: remaining deterministic default try-bang constructors retired into named constant / factory paths.
+- Boundary:
+  - No Project Closure Count increase; remains `32 / 32 (100%)`.
+  - No next Project / Issue creation.
+  - No next Todo promotion.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No Trader runtime / Strategy runtime / Live runtime.
+  - No ExecutionClient implementation / OMS / broker gateway.
+  - No signed endpoint / account endpoint / listenKey / private WebSocket runtime.
+  - No real order lifecycle / submit / cancel / replace / execution report / broker fill / reconciliation.
+  - No Live PRO Console / trading button / live command / order form.
+  - No L4 implementation.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH445DeterministicDefaultsUseNamedFactoriesInsteadOfTryBang`: pass; 1 test / 0 failures.
+  - `swift test --filter TargetGraphTests/testGH400TryBangAndPreconditionFailureStayInAllowedPaths`: pass; 1 test / 0 failures.
+  - scoped implementation grep for `try!` in `Sources/DataEngine/ScenarioReplay`, `Sources/DataEngine/DataQuality` and `Sources/Core/DashboardBetaDemoScenario.swift`: pass; no scoped implementation `try!` violations.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 348 XCTest / 0 failures; final output `MTPRO checks passed.`

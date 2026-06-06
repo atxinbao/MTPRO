@@ -5527,6 +5527,8 @@ require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownershi
 require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" 'GitHub Issues `#413` 至 `#422`'
 require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" 'PR `#424` 至 `#432` 以及 PR `#438`'
 require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" "Core Envelope Retirement / Real Module Ownership Completion before L4 complete"
+require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" "Post-audit hardening addendum"
+require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" "GH-445"
 require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" "MessageBus"
 require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" "DataEngine"
 require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" "Portfolio"
@@ -5550,6 +5552,8 @@ require_contains "docs/validation/latest-verification-summary.md" "Project closu
 require_contains "docs/validation/latest-verification-summary.md" "PR #402 至 #412"
 require_contains "docs/validation/latest-verification-summary.md" "Project closure evidence：Core Envelope Retirement / Real Module Ownership Completion v1"
 require_contains "docs/validation/latest-verification-summary.md" "PR #424 至 PR #432 以及 PR #438"
+require_contains "docs/validation/latest-verification-summary.md" "Post-audit hardening addendum"
+require_contains "docs/validation/latest-verification-summary.md" "GH-445"
 require_contains "docs/validation/latest-verification-summary.md" "Project Closure Count: 32 / 32 (100%)"
 require_contains "docs/validation/latest-verification-summary.md" "不创建下一 Linear Project / Issue"
 require_contains "docs/validation/latest-verification-summary.md" "Core Envelope Retirement / Real Module Ownership Completion before L4 complete"
