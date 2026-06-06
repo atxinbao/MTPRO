@@ -107,6 +107,27 @@ docs/audit/<linear-project-slug>-stage-code-audit.md
 
 `docs/audit/inputs/` 中的文件不授权下一 Project planning，不创建 Linear Project / Issue，不修改 Linear status，不推进 Todo，不启动下一阶段 `symphony-issue`。
 
+## GH-452 L4 Live Production Command Contract Validation
+
+GH-452 的 required validation：
+
+- `docs/contracts/l4-live-production-command-contract.md` 必须存在，并包含 `GH-452-L4-LIVE-PRODUCTION-COMMAND-CONTRACT`、`GH-452-READONLY-TO-GUARDED-COMMAND-RULE`、`GH-452-SANDBOX-PRODUCTION-GATE`、`GH-452-COMMAND-AUTHORIZATION-EVIDENCE-IDENTITY`、`GH-452-ACCEPTANCE-MATRIX`、`GH-452-NO-DEFAULT-REAL-TRADING-POLICY`、`GH-452-VALIDATION-ANCHORS` 和 `GH-452-NON-AUTHORIZATION`。
+- `Sources/ExecutionClient/FutureGate/L4LiveProductionCommandContract.swift` 必须定义 `L4LiveProductionCommandContract`、`L4LiveProductionAcceptanceMatrixEntry`、`L4LiveProductionAcceptanceDomain`、`L4LiveProductionCommandGate` 和 `L4LiveProductionForbiddenCapability`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH452L4LiveProductionCommandContractDefinesDisabledProductionMatrix` 和 `testGH452L4LiveProductionCommandContractRejectsProductionBypass`。
+- Acceptance matrix 必须覆盖 command、risk、execution、audit、rollback、credential、private stream、dashboard command surface 和 production cutover。
+- Production 默认必须禁用：不得打开 signed endpoint、private stream、ExecutionClient adapter、OMS、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console command surface、order form 或 production endpoint。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`，不依赖真实 secret、真实 Binance private endpoint、broker、production credential 或人工验收。
+
+GH-452 必须建立的主要 anchors：
+
+- `GH-452-L4-LIVE-PRODUCTION-COMMAND-CONTRACT`
+- `GH-452-READONLY-TO-GUARDED-COMMAND-RULE`
+- `GH-452-SANDBOX-PRODUCTION-GATE`
+- `GH-452-COMMAND-AUTHORIZATION-EVIDENCE-IDENTITY`
+- `GH-452-ACCEPTANCE-MATRIX`
+- `GH-452-NO-DEFAULT-REAL-TRADING-POLICY`
+- `TVM-L4-LIVE-PRODUCTION-COMMANDS`
+
 ## MTP-24 Trading Validation Matrix Validation
 
 MTP-24 的 required validation：
