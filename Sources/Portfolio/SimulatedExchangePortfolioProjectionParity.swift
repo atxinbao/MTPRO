@@ -482,7 +482,7 @@ public struct SimulatedExchangePortfolioProjectionParityInput: Codable, Equatabl
     public init(
         inputID: Identifier = Identifier.constant("mtp-115-simulated-exchange-portfolio-projection-input"),
         sourceReportEvidence: PartialFillLatencyFeeSlippageParityReportEvidence =
-            try! PartialFillLatencyFeeSlippageParityModel.evaluate(.deterministicPartialFixture),
+            .deterministicPartialFixture,
         reportInputVersion: ScenarioReportInputVersion = ScenarioReportInputVersion.constant(),
         accountID: Identifier = Identifier.constant("mtp-115-simulated-account"),
         portfolioID: Identifier = Identifier.constant("mtp-115-simulated-portfolio"),
@@ -1425,4 +1425,16 @@ public enum SimulatedExchangePortfolioProjectionParityFixture {
             try SimulatedExchangePortfolioProjectionParityInput()
         )
     }
+
+    /// MTP-115 deterministic portfolio parity evidence helper.
+    ///
+    /// 该入口不放宽 projection、account / portfolio read-model 或 forbidden broker boundary 校验；
+    /// 它只为 App / Dashboard read model 提供明确命名的稳定 fixture constructor。
+    public static let deterministicEvidenceFixture: SimulatedExchangePortfolioProjectionParityEvidence = {
+        do {
+            return try deterministicEvidence()
+        } catch {
+            preconditionFailure("MTP-115 deterministic portfolio projection parity evidence must be valid: \(error)")
+        }
+    }()
 }

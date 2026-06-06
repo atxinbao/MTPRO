@@ -1296,6 +1296,34 @@ public struct MarketLimitSimulatedExecutionOutput: Codable, Equatable, Sendable 
         )
     }
 
+    /// MTP-113 rejected-order deterministic output helper.
+    ///
+    /// 该入口不放宽 rejected execution 的 shared-order state 或 forbidden command 校验；它只把
+    /// stable Dashboard / Report evidence 的构造失败集中到带 MTP 定位的 failure path。
+    public static let deterministicRejectedFixture: MarketLimitSimulatedExecutionOutput = {
+        do {
+            return try MarketLimitSimulatedExecutionModel.execute(
+                MarketLimitSimulatedExecutionInput.deterministicRejectedFixture
+            )
+        } catch {
+            preconditionFailure("MTP-113 deterministic rejected execution output must be valid: \(error)")
+        }
+    }()
+
+    /// MTP-113 expired-limit deterministic output helper.
+    ///
+    /// 该入口不放宽 limit-expire matching、price 或 forbidden command 校验；它只替代
+    /// Dashboard / Report surface 默认参数里的裸 force-try。
+    public static let deterministicLimitExpireFixture: MarketLimitSimulatedExecutionOutput = {
+        do {
+            return try MarketLimitSimulatedExecutionModel.execute(
+                MarketLimitSimulatedExecutionInput.deterministicLimitExpireFixture
+            )
+        } catch {
+            preconditionFailure("MTP-113 deterministic limit-expire execution output must be valid: \(error)")
+        }
+    }()
+
     private static func validate(
         inputIdentity: String,
         matchingOutput: ScenarioReplayDeterministicMatchingOutput?,

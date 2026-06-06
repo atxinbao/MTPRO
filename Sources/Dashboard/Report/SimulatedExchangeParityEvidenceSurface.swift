@@ -94,13 +94,13 @@ public struct SimulatedExchangeParityEvidenceItem: Codable, Equatable, Sendable 
 
     public init(
         evidence: SimulatedExchangePortfolioProjectionParityEvidence =
-            try! SimulatedExchangePortfolioProjectionParityFixture.deterministicEvidence(),
+            SimulatedExchangePortfolioProjectionParityFixture.deterministicEvidenceFixture,
         fullFillEvidence: PartialFillLatencyFeeSlippageParityReportEvidence =
-            try! PartialFillLatencyFeeSlippageParityModel.evaluate(.deterministicFullFixture),
+            .deterministicFullFixture,
         rejectedExecutionOutput: MarketLimitSimulatedExecutionOutput =
-            try! MarketLimitSimulatedExecutionModel.execute(.deterministicRejectedFixture),
+            .deterministicRejectedFixture,
         expiredExecutionOutput: MarketLimitSimulatedExecutionOutput =
-            try! MarketLimitSimulatedExecutionModel.execute(.deterministicLimitExpireFixture)
+            .deterministicLimitExpireFixture
     ) {
         let sourceReport = evidence.sourceReportEvidence
         let sourceExecution = sourceReport.sourceExecutionOutput

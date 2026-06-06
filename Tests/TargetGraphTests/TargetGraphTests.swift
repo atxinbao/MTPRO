@@ -1722,7 +1722,9 @@ final class TargetGraphTests: XCTestCase {
             under: repositoryRoot,
             relativeRoots: [
                 "Sources/DataEngine/ScenarioReplay",
-                "Sources/DataEngine/DataQuality"
+                "Sources/DataEngine/DataQuality",
+                "Sources/Portfolio",
+                "Sources/Dashboard/Report"
             ]
         ) + [
             repositoryRoot.appendingPathComponent("Sources/Core/DashboardBetaDemoScenario.swift")
@@ -1743,7 +1745,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(
             violations.isEmpty,
             """
-            GH-445 deterministic replay / data quality / dashboard defaults must use named factory entrypoints \
+            GH-445 deterministic replay / data quality / simulated parity / dashboard defaults must use named factory entrypoints \
             instead of bare try!.
             Violations:
             \(violations.joined(separator: "\n"))
