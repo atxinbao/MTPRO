@@ -147,7 +147,7 @@ public protocol BinancePublicMarketDataTransport: Sendable {
 /// URLSession 传输实现提供真实网络客户端边界，但只接受客户端已经校验过的 public read-only
 /// request。REST 使用 GET 读取公开 endpoint；WebSocket 分支只接收单条公开 stream payload，
 /// 不管理 listenKey、不建立用户数据流，也不触发任何交易或账户动作。
-public final class URLSessionBinancePublicMarketDataTransport: BinancePublicMarketDataTransport, @unchecked Sendable {
+public actor URLSessionBinancePublicMarketDataTransport: BinancePublicMarketDataTransport {
     private let session: URLSession
 
     public init(session: URLSession = .shared) {
