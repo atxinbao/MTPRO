@@ -434,3 +434,47 @@ GH-397 readiness anchors：
 - `GH-397-EXECUTIONENGINE-REAL-TARGET-SMOKE`
 - `GH-397-COMPATIBILITY-ENVELOPE-PRESERVED`
 - `GH-397-VALIDATION-ANCHORS`
+
+## GH-398-TRADER-RISK-EXECUTION-IMPLEMENTATION-OWNERSHIP
+
+GH-398 将 Trader / Portfolio / RiskEngine / ExecutionEngine / ExecutionClient 从 smoke coverage 推进到 partial implementation ownership：
+
+- `TraderStrategies` 保持 `EMA` 为唯一 active concrete strategy。
+- Strategy signal / proposal shared contracts moved to `MessageBus`，不再落在 strategy source 内部。
+- `Trader` 保持 `Accounts + Strategies/EMA + Coordination` 容器，不直接依赖 `ExecutionEngine` 或 `ExecutionClient`。
+- `Portfolio` owns financial state projection boundary。
+- `RiskEngine` owns pre-trade risk ownership boundary。
+- `ExecutionEngine` owns paper / simulated lifecycle ownership boundary。
+- `ExecutionClient` remains future gate / protocol boundary only。
+
+GH-398 不实现 Trader runtime、Strategy runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed/account endpoint、private stream runtime、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation 或 L4 capability。
+
+## GH-399-DASHBOARD-READ-MODEL-ONLY-NAMING-CLEANUP
+
+GH-399 清理 active Dashboard source 中的 Workbench naming residue：
+
+- Active UI surface 统一为 `Dashboard read-model-only boundary`。
+- `Workbench` / `AppCompatibility` 不再作为 active module 口径。
+- Historical docs 可保留旧项目名，但 active source / contract / validation wording 必须避免把 Workbench 写成当前 active module。
+
+## GH-400-UNSAFE-CONSTRUCT-ALLOWED-PATH-VALIDATION
+
+GH-400 增加 `try!` / `preconditionFailure` allowed-path validation：
+
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 扫描 `Sources` / `Tests` 中的 Swift source。
+- `Tests/` 默认允许 deterministic assertion / fixture usage。
+- `Sources/` 只允许 deterministic fixture、evidence、future gate、read-model-only guard、paper / simulated boundary 等显式白名单路径。
+- Runtime-facing path 不得新增未经授权的 `try!` 或 `preconditionFailure`。
+
+## GH-401-CORE-ENVELOPE-RETIREMENT-MATRIX-STAGE-AUDIT-INPUT
+
+GH-401 只收口 project-level matrix 和 Stage Code Audit input material：
+
+- Canonical stage audit input file：`docs/audit/inputs/mtpro-real-target-source-ownership-core-envelope-retirement-v1-stage-audit-input.md`。
+- `GH-401-ISSUE-EVIDENCE-CHAIN` 汇总 GH-391 到 GH-401 的 evidence chain。
+- `GH-401-CORE-ENVELOPE-RETIREMENT-MATRIX` 明确哪些 implementation ownership 已迁移，哪些 envelope 仍保留。
+- `GH-401-RETAINED-COMPATIBILITY-ENVELOPE-SNAPSHOT` 明确 `Core`、`Adapters`、`Persistence`、`Runtime` 仍是 retained compatibility envelopes。
+- `GH-401-L4-READINESS-BLOCKERS` 明确 L4 仍为 future gated，需要后续单独 planning。
+- `GH-401-STAGE-AUDIT-INPUT` 明确本 issue 只准备审计输入，不输出最终 Stage Code Audit Report。
+
+GH-401 不创建下一 Project / Issue，不推进 L4，不实现 Trader runtime、Strategy runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed/account endpoint、private WebSocket runtime、real order lifecycle 或 UI command surface。

@@ -14451,3 +14451,67 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; Dashboard smoke includes `readModelOnly=true`; 337 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-06 - GH-398 Trader / Portfolio / Risk / Execution implementation ownership
+
+- Project: `MTPRO Real Target Source Ownership Validation / Core Envelope Retirement v1`
+- Queue item: GH-398 `Migrate Trader / Portfolio / RiskEngine / ExecutionEngine / ExecutionClient implementation ownership`
+- Scope:
+  - Migrated partial Trader / Portfolio / RiskEngine / ExecutionEngine / ExecutionClient implementation ownership.
+  - Moved strategy signal / paper action proposal shared contracts to `MessageBus`.
+  - Preserved `Trader = Accounts + Strategies/EMA + Coordination`.
+  - Preserved `ExecutionClient` as future gate / protocol boundary only.
+- Boundary:
+  - No Trader runtime / Strategy runtime / Live runtime.
+  - No ExecutionClient implementation / OMS / broker gateway.
+  - No signed endpoint / account endpoint / listenKey / private WebSocket runtime.
+  - No real order lifecycle / submit / cancel / replace / execution report / broker fill / reconciliation.
+  - No L4 implementation.
+
+## 2026-06-06 - GH-399 Dashboard read-model-only naming cleanup
+
+- Project: `MTPRO Real Target Source Ownership Validation / Core Envelope Retirement v1`
+- Queue item: GH-399 `Clean Dashboard Workbench naming residue`
+- Scope:
+  - Retired active Workbench naming residue from Dashboard source.
+  - Standardized active UI surface as `Dashboard read-model-only boundary`.
+  - Preserved retired Workbench / AppCompatibility as historical wording only.
+- Boundary:
+  - No Workbench / AppCompatibility active module restoration.
+  - No Live PRO Console / trading button / live command / order form.
+  - No Runtime object / Adapter request / schema / account payload / broker payload read.
+
+## 2026-06-06 - GH-400 unsafe construct allowed-path validation
+
+- Project: `MTPRO Real Target Source Ownership Validation / Core Envelope Retirement v1`
+- Queue item: GH-400 `Add try! and preconditionFailure allowed-path validation`
+- Scope:
+  - Added TargetGraphTests allowed-path validation for `try!` and `preconditionFailure`.
+  - Allowed deterministic fixture / evidence / future-gate / read-model-only / paper-simulated boundary use only.
+- Boundary:
+  - No production behavior change.
+  - No expansion of unsafe constructs into runtime-facing path.
+  - No L4 implementation.
+
+## 2026-06-06 - GH-401 Core envelope retirement matrix / stage audit input
+
+- Project: `MTPRO Real Target Source Ownership Validation / Core Envelope Retirement v1`
+- Queue item: GH-401 `Close Core envelope retirement matrix / stage audit input`
+- Scope:
+  - Added `docs/audit/inputs/mtpro-real-target-source-ownership-core-envelope-retirement-v1-stage-audit-input.md`.
+  - Added `GH-401-CORE-ENVELOPE-RETIREMENT-MATRIX`.
+  - Added retained compatibility envelope and L4 blocker summary.
+  - Updated `docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md`, `docs/automation/automation-readiness.md`, `docs/validation/latest-verification-summary.md`, `verification.md` and `checks/automation-readiness.sh`.
+- Boundary:
+  - Stage audit input only; no final Stage Code Audit Report.
+  - No next Project / Issue creation.
+  - No L4 implementation.
+  - No Trader runtime / Strategy runtime / Live runtime.
+  - No ExecutionClient implementation / OMS / broker gateway.
+  - No signed endpoint / account endpoint / listenKey / private WebSocket runtime.
+  - No real order lifecycle / submit / cancel / replace / execution report / broker fill / reconciliation.
+  - No Symphony / Graphify / code-index / Figma.
+- Validation:
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; Dashboard smoke includes `readModelOnly=true`; 339 XCTest / 0 failures; final output `MTPRO checks passed.`
