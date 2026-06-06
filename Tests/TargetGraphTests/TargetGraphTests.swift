@@ -1253,6 +1253,130 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH455SignedAccountReadOnlyRuntimeDefaultsDisabledAndReturnsCanonicalEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+
+        let runtime = try L4SignedAccountReadOnlyRuntime.deterministicFixture()
+        XCTAssertTrue(runtime.runtimeBoundaryHeld)
+        XCTAssertEqual(runtime.issueID.rawValue, "GH-455")
+        XCTAssertEqual(runtime.upstreamIssueIDs.map(\.rawValue), ["GH-453", "GH-454"])
+        XCTAssertTrue(runtime.validationAnchors.contains("GH-455-L4-SIGNED-ACCOUNT-READ-ONLY-RUNTIME"))
+        XCTAssertTrue(runtime.validationAnchors.contains("TVM-L4-SIGNED-ACCOUNT-READ-ONLY-RUNTIME"))
+        XCTAssertTrue(runtime.productionDisabledByDefault)
+        XCTAssertTrue(runtime.networkIndependentFixtureRuntime)
+        XCTAssertTrue(runtime.dashboardReadModelOnlyBoundaryHeld)
+
+        XCTAssertThrowsError(
+            try runtime.readAccountEvidence(configuration: .disabled())
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "mode",
+                    expected: "local fixture or sandbox configured",
+                    actual: "disabled"
+                )
+            )
+        }
+
+        let evidence = try runtime.readAccountEvidence(configuration: .sandboxFixture())
+        XCTAssertTrue(evidence.evidenceBoundaryHeld)
+        XCTAssertEqual(
+            Set(evidence.records.map(\.component)),
+            Set(L4SignedAccountReadOnlyEvidenceComponent.allCases)
+        )
+        XCTAssertTrue(evidence.records.allSatisfy { $0.rawPayloadExposed == false })
+        XCTAssertTrue(evidence.readModelOnly)
+        XCTAssertFalse(evidence.rawSignedPayloadExposed)
+        XCTAssertFalse(evidence.dashboardRawPayloadExposed)
+        XCTAssertFalse(evidence.brokerStateExposed)
+        XCTAssertFalse(evidence.productionGateEnabled)
+        XCTAssertFalse(evidence.commandRuntimeEnabled)
+
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/L4SignedAccountReadOnlyRuntime.swift"
+                ).path
+            )
+        )
+    }
+
+    func testGH455SignedAccountReadOnlyRuntimeRejectsProductionSecretAndPayloadBypass() throws {
+        XCTAssertThrowsError(
+            try L4SignedAccountReadOnlyRuntimeConfiguration(
+                mode: .production
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("mode.production"))
+        }
+
+        XCTAssertThrowsError(
+            try L4SignedAccountReadOnlyRuntimeConfiguration(
+                secretMaterialAvailable: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("secretMaterialAvailable")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4SignedAccountReadOnlyRuntimeConfiguration(
+                rawPayloadExposureAllowed: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("rawPayloadExposureAllowed")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4SignedAccountReadOnlyRuntimeConfiguration(
+                mode: .sandboxConfigured,
+                credentialReference: nil,
+                sandboxGateEnabled: true,
+                fixtureReadEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "credentialReference",
+                    expected: "non-empty external credential reference identity",
+                    actual: "missing"
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4SignedAccountReadOnlyEvidence(
+                sourceIdentity: "unsafe-gh-455",
+                records: [
+                    L4SignedAccountReadOnlyEvidenceRecord(
+                        component: .account,
+                        canonicalValue: "unsafe",
+                        sourceIdentity: "unsafe-gh-455"
+                    )
+                ],
+                rawSignedPayloadExposed: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("rawSignedPayloadExposed")
+            )
+        }
+    }
+
     func testGH421AllArchitectureTargetsExposeIndependentRealAPISmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-421-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)

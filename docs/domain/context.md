@@ -3228,6 +3228,28 @@ Account snapshot / private event source identity 只能描述未来 evidence 来
 
 L4 signed/private boundary matrix 必须证明三类 runtime kind 分离、capability taxonomy 完整、private stream lifecycle gate 完整、source identity 完整，以及 forbidden endpoint path 全部关闭。该 matrix 不授权 secret、signed endpoint、private stream runtime、ExecutionClient adapter、OMS、Live PRO Console、order form 或真实订单。
 
+## GH-455 L4 Signed Account Read-only Runtime Terms
+
+`GH-455-L4-SIGNED-ACCOUNT-READ-ONLY-RUNTIME`
+
+L4 signed account read-only runtime 指 disabled-by-default、sandbox / local fixture-first 的只读 evidence runtime。它只在 credential reference identity、sandbox gate、fixture read gate 和 production disabled gate 同时满足时返回 canonical account evidence。
+
+`GH-455-DISABLED-BY-DEFAULT-RUNTIME-GATE`
+
+Disabled-by-default runtime gate 表示默认配置不可触发 signed account read。未配置时 runtime 必须拒绝读取，不输出 evidence，不读取 secret，不连接 endpoint。
+
+`GH-455-SANDBOX-FIXTURE-FIRST-READ`
+
+Sandbox fixture-first read 表示当前 GH-455 使用 deterministic local evidence 表达 sandbox configured gate，不连接 sandbox network，不调用 signed endpoint，不读取真实账户。后续如果需要真实 sandbox endpoint，必须由独立 issue 授权。
+
+`GH-455-CANONICAL-ACCOUNT-EVIDENCE`
+
+Canonical account evidence 只能包含 account、balance、position、margin 四类 read-model-only record。它不包含 raw signed payload、account endpoint JSON、broker state、private stream event、real balance、real position、margin / leverage runtime 或 real PnL。
+
+`TVM-L4-SIGNED-ACCOUNT-READ-ONLY-RUNTIME`
+
+L4 signed account read-only runtime matrix 必须证明 runtime 默认关闭、sandbox / fixture gate 可重复、canonical evidence 完整、raw payload 不暴露、production gate 不打开，并且 Dashboard / Report 后续只能消费 read-model-only evidence。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
