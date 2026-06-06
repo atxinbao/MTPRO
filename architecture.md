@@ -490,6 +490,24 @@ GH-417 将纯 paper pre-trade risk decision implementation 收口到真实 `Risk
 
 GH-417 不实现 live risk runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private stream runtime、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
 
+## GH-418 ExecutionEngine Paper / Simulated Boundary Ownership
+
+`GH-418-EXECUTIONENGINE-PAPER-RUNTIME-KERNEL-OWNERSHIP`
+
+GH-418 把 eligible paper / simulated execution boundary ownership 推进到真实 `ExecutionEngine` target。`Package.swift` 现在让 `ExecutionEngine` target 直接编译 `PaperExecutionWorkflowContract.swift`、`PaperRuntimeKernelBoundary.swift`、`PaperSessionLocalControlCommand.swift` 和 `SimulatedExchangeBacktestParityBoundary.swift`。这些类型只表达 paper workflow contract、paper runtime kernel boundary、session-level local control command 和 simulated exchange parity boundary，不表示 live execution runtime、OMS、broker gateway 或 real order lifecycle。
+
+`GH-418-EXECUTIONENGINE-SESSION-CONTROL-OWNERSHIP`
+
+`PaperSessionLocalControlCommand` 归入 `ExecutionEngine` 后仍保持 local paper session scope。它只表达 start / pause / close / reset 等 session-level paper intent，不写 EventLog、不调用 Runtime / Adapter、不提交或撤销订单，也不连接 signed endpoint、account endpoint、listenKey、broker 或 Live execution。
+
+`GH-418-EXECUTIONENGINE-SIMULATED-PARITY-BOUNDARY-OWNERSHIP`
+
+`SimulatedExchangeBacktestParityBoundary` 归入 `ExecutionEngine` 后只固定 deterministic simulated / backtest parity terminology。它不实现 matching runtime、order execution runtime、portfolio projection runtime、ExecutionClient implementation、OMS、broker gateway、signed/account endpoint、private stream runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
+`GH-418-CORE-EXECUTIONENGINE-ORDER-EVENT-REPLAY-BRIDGE-DEFERRED`
+
+`Core` 继续保留 paper order intent、paper execution decision/event log、session lifecycle/replay、shared order semantics、fill evidence 和 fee / slippage parity 等 bridge source。保留原因是这些文件仍耦合 Trader / RiskBinding、MessageBus / EventLog、ScenarioReplay 或 historical compatibility exports；直接迁入 `ExecutionEngine` 会制造反向依赖或扩大 execution surface。该 bridge 是显式 compatibility envelope debt，不是 ExecutionEngine ownership 完成声明。
+
 `GH-417-VALIDATION-ANCHORS`
 
 `MTP-219-RISKENGINE-TARGET-SPLIT`

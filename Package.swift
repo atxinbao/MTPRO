@@ -174,12 +174,25 @@ let package = Package(
             dependencies: ["DomainModel", "MessageBus", "Cache", "Portfolio", "RiskEngine", "ExecutionClient"],
             path: "Sources/ExecutionEngine",
             exclude: [
-                "PaperLifecycle",
-                "SimulatedExchange"
+                "PaperLifecycle/PaperExecutionDecision.swift",
+                "PaperLifecycle/PaperExecutionEventLog.swift",
+                "PaperLifecycle/PaperOrderIntent.swift",
+                "PaperLifecycle/PaperOrderLifecycleCoordinator.swift",
+                "PaperLifecycle/PaperSessionLifecycle.swift",
+                "PaperLifecycle/PaperSessionLocalControlEventLog.swift",
+                "PaperLifecycle/PaperSessionReplay.swift",
+                "SimulatedExchange/BacktestPaperSharedOrderSemantics.swift",
+                "SimulatedExchange/MarketLimitSimulatedExecutionSemantics.swift",
+                "SimulatedExchange/PaperSimulatedFillEvidence.swift",
+                "SimulatedExchange/PartialFillLatencyFeeSlippageParity.swift"
             ],
             sources: [
                 "OMSFutureGate",
                 "Ownership",
+                "PaperLifecycle/PaperExecutionWorkflowContract.swift",
+                "PaperLifecycle/PaperRuntimeKernelBoundary.swift",
+                "PaperLifecycle/PaperSessionLocalControlCommand.swift",
+                "SimulatedExchange/SimulatedExchangeBacktestParityBoundary.swift",
                 "TargetGraph/ExecutionEngineTargetBoundary.swift"
             ]
         ),
@@ -248,6 +261,10 @@ let package = Package(
                 "ExecutionClient/TargetGraph",
                 "ExecutionEngine/OMSFutureGate",
                 "ExecutionEngine/Ownership",
+                "ExecutionEngine/PaperLifecycle/PaperExecutionWorkflowContract.swift",
+                "ExecutionEngine/PaperLifecycle/PaperRuntimeKernelBoundary.swift",
+                "ExecutionEngine/PaperLifecycle/PaperSessionLocalControlCommand.swift",
+                "ExecutionEngine/SimulatedExchange/SimulatedExchangeBacktestParityBoundary.swift",
                 "ExecutionEngine/TargetGraph",
                 "MessageBus/EventReplayContract.swift",
                 "MessageBus/FoundationMessageStream.swift",

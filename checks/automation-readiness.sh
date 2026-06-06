@@ -5760,6 +5760,32 @@ require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "GH-417-RISKENG
 require_contains "docs/automation/automation-readiness.md" "GH-417 RiskEngine paper pre-trade ownership anchor"
 require_contains "docs/validation/latest-verification-summary.md" "GH-417 RiskEngine paper pre-trade ownership"
 require_contains "verification.md" "GH-417 RiskEngine paper pre-trade ownership"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-418-EXECUTIONENGINE-PAPER-RUNTIME-KERNEL-OWNERSHIP"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-418-CORE-EXECUTIONENGINE-ORDER-EVENT-REPLAY-BRIDGE-DEFERRED"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-418-EXECUTIONENGINE-NO-LIVE-OMS-BROKER-GUARD"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-418-VALIDATION-ANCHORS"
+require_contains "docs/contracts/targetgraph-anchor-retirement-real-module-source-root-migration-contract.md" "GH-418 later advances the MTP-229 baseline"
+require_contains "architecture.md" "GH-418 ExecutionEngine Paper / Simulated Boundary Ownership"
+require_contains "architecture.md" "GH-418-EXECUTIONENGINE-PAPER-RUNTIME-KERNEL-OWNERSHIP"
+require_contains "architecture.md" "GH-418-CORE-EXECUTIONENGINE-ORDER-EVENT-REPLAY-BRIDGE-DEFERRED"
+require_contains "Package.swift" '"PaperLifecycle/PaperExecutionWorkflowContract.swift"'
+require_contains "Package.swift" '"PaperLifecycle/PaperRuntimeKernelBoundary.swift"'
+require_contains "Package.swift" '"PaperLifecycle/PaperSessionLocalControlCommand.swift"'
+require_contains "Package.swift" '"SimulatedExchange/SimulatedExchangeBacktestParityBoundary.swift"'
+require_contains "Package.swift" '"ExecutionEngine/PaperLifecycle/PaperExecutionWorkflowContract.swift"'
+require_contains "Package.swift" '"ExecutionEngine/PaperLifecycle/PaperRuntimeKernelBoundary.swift"'
+require_contains "Package.swift" '"ExecutionEngine/PaperLifecycle/PaperSessionLocalControlCommand.swift"'
+require_contains "Package.swift" '"ExecutionEngine/SimulatedExchange/SimulatedExchangeBacktestParityBoundary.swift"'
+require_contains "Sources/ExecutionEngine/TargetGraph/ExecutionEngineTargetBoundary.swift" "GH-418-EXECUTIONENGINE-PAPER-RUNTIME-KERNEL-OWNERSHIP"
+require_contains "Sources/ExecutionEngine/TargetGraph/ExecutionEngineTargetBoundary.swift" "GH-418-EXECUTIONENGINE-SESSION-CONTROL-OWNERSHIP"
+require_contains "Sources/ExecutionEngine/TargetGraph/ExecutionEngineTargetBoundary.swift" "GH-418-EXECUTIONENGINE-SIMULATED-PARITY-BOUNDARY-OWNERSHIP"
+require_contains "Sources/ExecutionEngine/TargetGraph/ExecutionEngineTargetBoundary.swift" "GH-418-CORE-EXECUTIONENGINE-ORDER-EVENT-REPLAY-BRIDGE-DEFERRED"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "PaperRuntimeKernelBoundary.deterministicFixture"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "PaperSessionLocalControlCommandFixture.deterministic"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "SimulatedExchangeBacktestParityBoundary.deterministicFixture"
+require_contains "docs/automation/automation-readiness.md" "GH-418 ExecutionEngine paper / simulated boundary ownership anchor"
+require_contains "docs/validation/latest-verification-summary.md" "GH-418 ExecutionEngine paper / simulated boundary ownership"
+require_contains "verification.md" "GH-418 ExecutionEngine paper / simulated boundary ownership"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-398-TRADER-RISK-EXECUTION-IMPLEMENTATION-OWNERSHIP"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-399-DASHBOARD-READ-MODEL-ONLY-NAMING-CLEANUP"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-400-UNSAFE-CONSTRUCT-ALLOWED-PATH-VALIDATION"

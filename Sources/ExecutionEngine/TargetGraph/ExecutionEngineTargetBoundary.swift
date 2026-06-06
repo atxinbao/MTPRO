@@ -9,8 +9,10 @@ import RiskEngine
 ///
 /// MTP-220 把 ExecutionEngine 拆成 buildable target anchor；MTP-229 只把 anchor
 /// 迁到真实 `Sources/ExecutionEngine/TargetGraph` root，并继续连接 RiskEngine 与
-/// ExecutionClient future gate。它不实现 live execution runtime、OMS、broker gateway、
-/// signed endpoint 或真实订单生命周期。
+/// ExecutionClient future gate。GH-418 起，ExecutionEngine target 开始拥有 paper
+/// workflow contract、paper runtime kernel、session local control command 和 simulated
+/// exchange parity boundary；Core 只继续保留 paper order intent、event log / replay / publication bridge。
+/// 它不实现 live execution runtime、OMS、broker gateway、signed endpoint 或真实订单生命周期。
 public struct ExecutionEngineTargetBoundary: Codable, Equatable, Sendable {
     public let targetName: String
     public let canonicalSourceRoot: String
@@ -40,7 +42,7 @@ public struct ExecutionEngineTargetBoundary: Codable, Equatable, Sendable {
         targetName: String = "ExecutionEngine",
         canonicalSourceRoot: String = "Sources/ExecutionEngine",
         compiledBoundaryRoot: String = "Sources/ExecutionEngine/TargetGraph",
-        retainedCompatibilityEnvelope: String = "Core",
+        retainedCompatibilityEnvelope: String = "Core(event/replay bridge deferred)",
         domainModelBoundary: DomainModelTargetBoundary = .mtp217,
         messageBusBoundary: MessageBusTargetBoundary = .mtp217,
         cacheBoundary: CacheTargetBoundary = .mtp218,
@@ -91,7 +93,7 @@ public struct ExecutionEngineTargetBoundary: Codable, Equatable, Sendable {
         targetName == "ExecutionEngine"
             && canonicalSourceRoot == "Sources/ExecutionEngine"
             && compiledBoundaryRoot == "Sources/ExecutionEngine/TargetGraph"
-            && retainedCompatibilityEnvelope == "Core"
+            && retainedCompatibilityEnvelope == "Core(event/replay bridge deferred)"
             && domainModelBoundary.boundaryHeld
             && messageBusBoundary.dependencyDirectionHeld
             && cacheBoundary.dependencyDirectionHeld
@@ -144,6 +146,10 @@ public struct ExecutionEngineTargetBoundary: Codable, Equatable, Sendable {
         "MTP-220-EXECUTIONENGINE-TARGET-SPLIT",
         "MTP-220-RISKENGINE-EXECUTIONENGINE-EXECUTIONCLIENT-DIRECTION",
         "GH-397-EXECUTIONENGINE-REAL-TARGET-SMOKE",
+        "GH-418-EXECUTIONENGINE-PAPER-RUNTIME-KERNEL-OWNERSHIP",
+        "GH-418-EXECUTIONENGINE-SESSION-CONTROL-OWNERSHIP",
+        "GH-418-EXECUTIONENGINE-SIMULATED-PARITY-BOUNDARY-OWNERSHIP",
+        "GH-418-CORE-EXECUTIONENGINE-ORDER-EVENT-REPLAY-BRIDGE-DEFERRED",
         "MTP-220-NO-BROKER-OMS-REAL-ORDER-GUARD",
         "MTP-229-EXECUTIONENGINE-REAL-ROOT-TARGET-PATH"
     ]
