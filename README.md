@@ -47,7 +47,7 @@ Agent 进入仓库时按以下顺序读取：
 - Live trading、signed endpoint、account endpoint、listenKey、broker action 和真实订单在当前 scope 内禁止。
 - Event Log 是 append-only facts source。
 - SQLite / DuckDB 只作为 projection。
-- Dashboard / Workbench 只消费 ViewModel / Read Model / Command Model，不直接读取 adapter、database schema 或 runtime object。
+- Dashboard 只消费 ViewModel / Read Model / Command Model，不直接读取 adapter、database schema 或 runtime object；Workbench 只作为 historical product wording，不再是 active source module。
 - `docs/roadmap.md`、planning record、Backlog issue、label、priority、assignee 或文档摘要都不授权执行。
 
 正式开发只能来自 Linear live-read 中唯一 configured executable issue：
@@ -75,7 +75,6 @@ Sources/
   RiskEngine/        paper / simulated / future live risk gate boundary
   ExecutionEngine/   paper / simulated execution lifecycle boundary
   ExecutionClient/   future-gated external execution client boundary
-  Workbench/         ReadModel / ViewModel / Report / Events / Dashboard surface
   Dashboard/         SwiftPM macOS dashboard shell
 ```
 
