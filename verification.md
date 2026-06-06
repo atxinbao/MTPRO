@@ -15228,3 +15228,38 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 364 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-07 - GH-460 L4 execution report / broker fill parser
+
+- Issue: GH-460 `L4: 09/21 Add execution report / broker fill parser for sandbox`
+- Queue:
+  - GitHub fallback queue used because this L4 stage is not using Linear.
+  - WIP=1 preflight passed before implementation: #460 was OPEN with `mtpro / backlog / non-executable`; #459 was CLOSED with `done`; no open issue carried `todo`, `in-progress` or `in-review`; no open PR was present.
+  - #460 was promoted to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `docs/contracts/l4-execution-report-broker-fill-parser-contract.md`.
+  - Added `Sources/ExecutionClient/FutureGate/L4ExecutionClientSandboxReportParser.swift`.
+  - Added `TargetGraphTests` coverage for sandbox-only execution report / broker fill parser, fill / partial fill / reject / cancel acknowledgement coverage, replayable audit evidence, production parser disabled and raw Dashboard payload rejection.
+  - Backfilled `TVM-L4-EXECUTION-REPORT-BROKER-FILL-PARSER`, validation plan, domain language, latest summary and automation readiness anchors.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No real API key / secret read, storage, print or repository commit.
+  - No API-key header construction or request signature generation.
+  - No signed endpoint / account endpoint call.
+  - No listenKey create / keep-alive / close.
+  - No private WebSocket open / reconnect.
+  - No production raw payload parsing.
+  - No raw payload exposure to Dashboard / Report / Events.
+  - No broker gateway touch.
+  - No real execution report ingestion or real broker fill record.
+  - No OMS state transition.
+  - No reconciliation runtime.
+  - No Live PRO Console command surface, trading button, live command or order form.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH460ExecutionClientSandboxReportParserProducesReplayableAuditEvidence`: pass; 1 test / 0 failures.
+  - `swift test --filter TargetGraphTests/testGH460ExecutionClientSandboxReportParserRejectsProductionRawPayloadAndDashboardBypass`: pass; 1 test / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 366 XCTest / 0 failures; final output `MTPRO checks passed.`

@@ -3342,6 +3342,32 @@ Production venue disabled 表示 production mode envelope、adapter 或 evidence
 
 L4 ExecutionClient sandbox submit / cancel / replace matrix 必须证明 sandbox request/response evidence 可重复、production venue 不可达、signed endpoint / broker gateway / real order lifecycle / OMS / Live command surface 全部未触碰。该 matrix 不授权 GH-460 execution report parser、GH-461 OMS、GH-463 ExecutionEngine wiring 或 GH-471 production cutover。
 
+## GH-460 L4 Execution Report Broker Fill Parser Terms
+
+`GH-460-EXECUTION-REPORT-BROKER-FILL-PARSER`
+
+L4 execution report / broker fill parser 指本地 deterministic sandbox parser，把 GH-460 sandbox fixture 解析为 normalized parsed event 和 replayable audit evidence。它只依赖 GH-459 command evidence，不解析 production raw payload，不连接 broker，不代表真实 execution report ingestion。
+
+`GH-460-SANDBOX-REPORT-KIND-COVERAGE`
+
+Sandbox report kind coverage 必须覆盖 fill、partial fill、reject 和 cancel acknowledgement。四类 kind 只表达 sandbox evidence taxonomy，不代表真实 exchange 状态、真实 broker fill、OMS state transition 或 Portfolio update。
+
+`GH-460-REPLAYABLE-AUDIT-EVIDENCE`
+
+Replayable audit evidence 必须用稳定 replay sequence、report identity、client order identity、trace / digest identity、normalized quantity 和 status 证明 parser output 可回放。该 evidence 不写 EventLog，不推进 OMS，不执行 reconciliation。
+
+`GH-460-RAW-PAYLOAD-DASHBOARD-BLOCK`
+
+Dashboard / Report / Events 只能消费 normalized evidence 和 digest identity，不得读取 raw account payload、raw private payload、raw broker payload、Runtime object、Adapter request、schema 或 production endpoint。GH-460 不授权 Live PRO Console、order form、trading button 或 live command。
+
+`GH-460-PRODUCTION-PARSER-DISABLED`
+
+Production parser disabled 表示 production raw payload source、production execution report、broker fill 和 real order lifecycle 解释必须被拒绝。GH-471 前任何配置、fixture、UI、test 或 hidden flag 都不能打开 production parser 或 production cutover。
+
+`TVM-L4-EXECUTION-REPORT-BROKER-FILL-PARSER`
+
+L4 execution report / broker fill parser matrix 必须证明 fill / partial fill / reject / cancel acknowledgement 覆盖完整、parser output 可回放、raw payload 不进 Dashboard、production parser disabled、broker gateway / real broker fill / OMS / reconciliation / Live command surface 全部未触碰。该 matrix 不授权 GH-461 OMS、GH-463 ExecutionEngine wiring、GH-466 reconciliation 或 GH-471 production cutover。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

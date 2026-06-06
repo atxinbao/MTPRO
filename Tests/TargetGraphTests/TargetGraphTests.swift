@@ -2039,6 +2039,194 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH460ExecutionClientSandboxReportParserProducesReplayableAuditEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+
+        let parser = try L4ExecutionClientSandboxReportParser.deterministicFixture()
+        XCTAssertTrue(parser.parserBoundaryHeld)
+        XCTAssertEqual(parser.issueID.rawValue, "GH-460")
+        XCTAssertEqual(parser.upstreamIssueID.rawValue, "GH-459")
+        XCTAssertTrue(parser.commandEvidence.commandEvidenceHeld)
+        XCTAssertEqual(parser.venueMode, .sandbox)
+        XCTAssertFalse(parser.productionParserEnabled)
+        XCTAssertFalse(parser.interpretsProductionRawPayload)
+        XCTAssertFalse(parser.exposesRawPayloadToDashboard)
+        XCTAssertFalse(parser.touchesBrokerGateway)
+        XCTAssertFalse(parser.recordsRealBrokerFill)
+        XCTAssertFalse(parser.producesOMSStateTransition)
+        XCTAssertFalse(parser.producesReconciliation)
+        XCTAssertFalse(parser.touchesLiveCommandSurface)
+        XCTAssertTrue(parser.validationAnchors.contains("GH-460-EXECUTION-REPORT-BROKER-FILL-PARSER"))
+        XCTAssertTrue(parser.validationAnchors.contains("GH-460-SANDBOX-REPORT-KIND-COVERAGE"))
+        XCTAssertTrue(parser.validationAnchors.contains("GH-460-REPLAYABLE-AUDIT-EVIDENCE"))
+        XCTAssertTrue(parser.validationAnchors.contains("GH-460-RAW-PAYLOAD-DASHBOARD-BLOCK"))
+        XCTAssertTrue(parser.validationAnchors.contains("GH-460-PRODUCTION-PARSER-DISABLED"))
+
+        let fixtures = try L4ExecutionClientSandboxReportParser.deterministicFixtures()
+        XCTAssertEqual(fixtures.map(\.reportKind), [.fill, .partialFill, .reject, .cancelAcknowledgement])
+        XCTAssertEqual(fixtures.map(\.replaySequence), [1, 2, 3, 4])
+        XCTAssertTrue(fixtures.allSatisfy { $0.sourceKind == .sandboxFixture })
+        XCTAssertTrue(fixtures.allSatisfy { $0.venueMode == .sandbox })
+        XCTAssertTrue(fixtures.allSatisfy { $0.productionRawPayloadPresent == false })
+        XCTAssertTrue(fixtures.allSatisfy { $0.rawPayloadExposedToDashboard == false })
+        XCTAssertTrue(fixtures.allSatisfy { $0.brokerGatewayTouched == false })
+
+        let parsedEvents = try fixtures.map(parser.parse)
+        XCTAssertTrue(parsedEvents.allSatisfy(\.parsedEventBoundaryHeld))
+        XCTAssertEqual(Set(parsedEvents.map(\.reportKind)), Set(L4ExecutionClientSandboxReportKind.allCases))
+        XCTAssertEqual(parsedEvents.map(\.eventStatus), [
+            "filled by deterministic sandbox report",
+            "partially filled by deterministic sandbox report",
+            "rejected by deterministic sandbox report",
+            "cancel acknowledged by deterministic sandbox report"
+        ])
+        XCTAssertTrue(parsedEvents.allSatisfy(\.replayable))
+        XCTAssertTrue(parsedEvents.allSatisfy(\.auditEvidenceAttached))
+        XCTAssertTrue(parsedEvents.allSatisfy(\.dashboardReadModelSafe))
+        XCTAssertTrue(parsedEvents.allSatisfy { $0.rawPayloadRetainedForDashboard == false })
+        XCTAssertTrue(parsedEvents.allSatisfy { $0.productionPayloadInterpreted == false })
+        XCTAssertTrue(parsedEvents.allSatisfy { $0.brokerFillFactRecorded == false })
+        XCTAssertTrue(parsedEvents.allSatisfy { $0.omsStateTransitionProduced == false })
+        XCTAssertTrue(parsedEvents.allSatisfy { $0.reconciliationProduced == false })
+
+        let evidence = try parser.deterministicReplayEvidence()
+        XCTAssertTrue(evidence.reportParserEvidenceHeld)
+        XCTAssertEqual(Set(evidence.parsedEvents.map(\.reportKind)), Set(L4ExecutionClientSandboxReportKind.allCases))
+        XCTAssertEqual(evidence.parsedEvents.map(\.replaySequence), [1, 2, 3, 4])
+        XCTAssertTrue(evidence.reportParserReplayable)
+        XCTAssertTrue(evidence.eventAuditEvidenceAttached)
+        XCTAssertTrue(evidence.rawPayloadExcludedFromDashboard)
+        XCTAssertTrue(evidence.productionParserDisabled)
+        XCTAssertFalse(evidence.productionPayloadInterpreted)
+        XCTAssertFalse(evidence.brokerGatewayTouched)
+        XCTAssertFalse(evidence.realBrokerFillRecorded)
+        XCTAssertFalse(evidence.omsStateTransitionProduced)
+        XCTAssertFalse(evidence.reconciliationProduced)
+        XCTAssertFalse(evidence.liveCommandSurfaceTouched)
+
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/L4ExecutionClientSandboxReportParser.swift"
+                ).path
+            )
+        )
+    }
+
+    func testGH460ExecutionClientSandboxReportParserRejectsProductionRawPayloadAndDashboardBypass() throws {
+        XCTAssertThrowsError(
+            try L4ExecutionClientSandboxReportParser(
+                productionParserEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("productionParserEnabled"))
+        }
+
+        XCTAssertThrowsError(
+            try L4ExecutionClientSandboxReportParser(
+                interpretsProductionRawPayload: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("interpretsProductionRawPayload"))
+        }
+
+        XCTAssertThrowsError(
+            try L4ExecutionClientSandboxReportParser(
+                exposesRawPayloadToDashboard: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("exposesRawPayloadToDashboard"))
+        }
+
+        XCTAssertThrowsError(
+            try L4ExecutionClientSandboxReportFixture(
+                reportID: Identifier.constant("unsafe-gh-460-production-report"),
+                sourceKind: .productionRawPayload,
+                reportKind: .fill,
+                relatedCommandKind: .submit,
+                clientOrderID: Identifier.constant("unsafe-gh-460-order"),
+                symbol: "BTCUSDT",
+                filledQuantity: "0.0100",
+                remainingQuantity: "0.0000",
+                reportStatus: L4ExecutionClientSandboxReportFixture.expectedStatus(for: .fill),
+                replaySequence: 1,
+                sandboxTraceID: Identifier.constant("unsafe-gh-460-trace"),
+                rawPayloadDigest: "sha256:unsafe-production-payload"
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("sourceKind.productionRawPayload"))
+        }
+
+        XCTAssertThrowsError(
+            try L4ExecutionClientSandboxReportFixture(
+                reportID: Identifier.constant("unsafe-gh-460-dashboard-raw-report"),
+                reportKind: .fill,
+                relatedCommandKind: .submit,
+                clientOrderID: Identifier.constant("unsafe-gh-460-order"),
+                symbol: "BTCUSDT",
+                filledQuantity: "0.0100",
+                remainingQuantity: "0.0000",
+                reportStatus: L4ExecutionClientSandboxReportFixture.expectedStatus(for: .fill),
+                replaySequence: 1,
+                sandboxTraceID: Identifier.constant("unsafe-gh-460-trace"),
+                rawPayloadDigest: "sha256:unsafe-dashboard-payload",
+                rawPayloadExposedToDashboard: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("rawPayloadExposedToDashboard"))
+        }
+
+        XCTAssertThrowsError(
+            try L4ExecutionClientSandboxParsedReportEvent(
+                eventID: Identifier.constant("unsafe-gh-460-oms-event"),
+                reportID: Identifier.constant("unsafe-gh-460-report"),
+                reportKind: .fill,
+                relatedCommandKind: .submit,
+                replaySequence: 1,
+                eventStatus: L4ExecutionClientSandboxReportFixture.expectedStatus(for: .fill),
+                clientOrderID: Identifier.constant("unsafe-gh-460-order"),
+                symbol: "BTCUSDT",
+                filledQuantity: "0.0100",
+                remainingQuantity: "0.0000",
+                rawPayloadDigest: "sha256:unsafe-oms-payload",
+                omsStateTransitionProduced: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("omsStateTransitionProduced"))
+        }
+
+        let parser = try L4ExecutionClientSandboxReportParser.deterministicFixture()
+        let firstEvent = try parser.parse(L4ExecutionClientSandboxReportParser.deterministicFixtures()[0])
+        XCTAssertThrowsError(
+            try L4ExecutionClientSandboxReportReplayEvidence(parsedEvents: [firstEvent])
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "parsedEvents",
+                    expected: L4ExecutionClientSandboxReportKind.allCases.map(\.rawValue).joined(separator: ","),
+                    actual: "fill"
+                )
+            )
+        }
+
+        let allEvents = try L4ExecutionClientSandboxReportParser.deterministicFixtures().map(parser.parse)
+        XCTAssertThrowsError(
+            try L4ExecutionClientSandboxReportReplayEvidence(
+                parsedEvents: allEvents,
+                productionParserDisabled: false
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("productionParserDisabled"))
+        }
+    }
+
     func testGH421AllArchitectureTargetsExposeIndependentRealAPISmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-421-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)

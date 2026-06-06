@@ -273,6 +273,27 @@ GH-459 必须建立的主要 anchors：
 - `GH-459-PRODUCTION-VENUE-DISABLED`
 - `TVM-L4-EXECUTIONCLIENT-SANDBOX-SUBMIT-CANCEL-REPLACE`
 
+## GH-460 L4 Execution Report Broker Fill Parser Validation
+
+GH-460 的 required validation：
+
+- `docs/contracts/l4-execution-report-broker-fill-parser-contract.md` 必须存在，并包含 `GH-460-EXECUTION-REPORT-BROKER-FILL-PARSER`、`GH-460-SANDBOX-REPORT-KIND-COVERAGE`、`GH-460-REPLAYABLE-AUDIT-EVIDENCE`、`GH-460-RAW-PAYLOAD-DASHBOARD-BLOCK`、`GH-460-PRODUCTION-PARSER-DISABLED`、`GH-460-NON-AUTHORIZATION` 和 `TVM-L4-EXECUTION-REPORT-BROKER-FILL-PARSER`。
+- `Sources/ExecutionClient/FutureGate/L4ExecutionClientSandboxReportParser.swift` 必须定义 `L4ExecutionClientSandboxReportParser`、`L4ExecutionClientSandboxReportFixture`、`L4ExecutionClientSandboxParsedReportEvent`、`L4ExecutionClientSandboxReportReplayEvidence`、`L4ExecutionClientSandboxReportKind`、`L4ExecutionClientSandboxReportSourceKind` 和 `L4ExecutionClientSandboxReportForbiddenCapability`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH460ExecutionClientSandboxReportParserProducesReplayableAuditEvidence` 和 `testGH460ExecutionClientSandboxReportParserRejectsProductionRawPayloadAndDashboardBypass`。
+- Sandbox parser 必须覆盖 fill、partial fill、reject 和 cancel acknowledgement，并输出 replayable parsed event / audit evidence。
+- Evidence 必须证明 raw payload 不进入 Dashboard、production parser disabled、broker gateway / real broker fill / OMS / reconciliation / Live command surface 全部未触碰。
+- Forbidden capability tests 必须拒绝 production parser、production raw payload source、raw Dashboard payload、OMS state transition 和 incomplete replay evidence bypass。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`，不依赖真实 secret、broker credential、signed/account endpoint、listenKey、private WebSocket、production endpoint 或人工验收。
+
+GH-460 必须建立的主要 anchors：
+
+- `GH-460-EXECUTION-REPORT-BROKER-FILL-PARSER`
+- `GH-460-SANDBOX-REPORT-KIND-COVERAGE`
+- `GH-460-REPLAYABLE-AUDIT-EVIDENCE`
+- `GH-460-RAW-PAYLOAD-DASHBOARD-BLOCK`
+- `GH-460-PRODUCTION-PARSER-DISABLED`
+- `TVM-L4-EXECUTION-REPORT-BROKER-FILL-PARSER`
+
 ## MTP-24 Trading Validation Matrix Validation
 
 MTP-24 的 required validation：
