@@ -2574,6 +2574,177 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH463ExecutionEngineSandboxPathWiresRiskApprovedCommandEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionEngineTarget = try packageTargetBlock(named: "ExecutionEngine", packageSource: packageSource)
+
+        let coordinator = try L4ExecutionEngineSandboxPathCoordinator.deterministicFixture()
+        XCTAssertTrue(coordinator.coordinatorBoundaryHeld)
+        XCTAssertTrue(coordinator.riskEngineBoundary.dependencyDirectionHeld)
+        XCTAssertTrue(coordinator.sandboxAdapter.sandboxAdapterBoundaryHeld)
+        XCTAssertTrue(coordinator.localTransitionEvidence.transitionEvidenceHeld)
+        XCTAssertFalse(coordinator.productionExecutionEnabled)
+        XCTAssertFalse(coordinator.directTraderAccessAllowed)
+        XCTAssertFalse(coordinator.directStrategyAccessAllowed)
+        XCTAssertFalse(coordinator.skipsOMS)
+        XCTAssertFalse(coordinator.performsReconciliation)
+        XCTAssertFalse(coordinator.exposesLiveCommandSurface)
+
+        let evidence = try coordinator.deterministicEvidence()
+        XCTAssertTrue(evidence.sandboxPathEvidenceHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-463")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-459", "GH-461", "GH-462"])
+        XCTAssertEqual(Set(evidence.proposals.map(\.commandKind)), Set(L4ExecutionClientSandboxCommandKind.allCases))
+        XCTAssertEqual(Set(evidence.responses.map(\.commandKind)), Set(L4ExecutionClientSandboxCommandKind.allCases))
+        XCTAssertEqual(Set(evidence.events.map(\.eventKind)), Set(L4ExecutionEngineSandboxPathEventKind.allCases))
+        XCTAssertEqual(evidence.events.count, L4ExecutionClientSandboxCommandKind.allCases.count * L4ExecutionEngineSandboxPathEventKind.allCases.count)
+        XCTAssertTrue(evidence.proposals.allSatisfy(\.proposalBoundaryHeld))
+        XCTAssertTrue(evidence.responses.allSatisfy(\.acceptedBySandbox))
+        XCTAssertTrue(evidence.events.allSatisfy(\.eventBoundaryHeld))
+        XCTAssertTrue(evidence.commandEvidenceTraceable)
+        XCTAssertTrue(evidence.responseEvidenceTraceable)
+        XCTAssertTrue(evidence.executionEventEvidenceTraceable)
+        XCTAssertTrue(evidence.directTraderStrategyAccessRejected)
+        XCTAssertTrue(evidence.omsPathRequired)
+        XCTAssertTrue(evidence.productionExecutionDisabled)
+        XCTAssertFalse(evidence.performsReconciliation)
+        XCTAssertFalse(evidence.mutatesPortfolio)
+        XCTAssertFalse(evidence.exposesLiveCommandSurface)
+
+        for proposal in evidence.proposals {
+            let response = try coordinator.dispatch(proposal)
+            XCTAssertEqual(response.commandKind, proposal.commandKind)
+            XCTAssertEqual(response.venueMode, .sandbox)
+            XCTAssertFalse(response.productionVenueTouched)
+            XCTAssertFalse(response.brokerGatewayTouched)
+            XCTAssertFalse(response.realOrderLifecycleTouched)
+        }
+
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-463-EXECUTIONENGINE-EXECUTIONCLIENT-SANDBOX-PATH"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-463-RISKENGINE-APPROVED-COMMAND-PROPOSAL"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-463-SANDBOX-EXECUTIONCLIENT-HANDOFF"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-463-COMMAND-RESPONSE-EVENT-EVIDENCE"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-463-NO-DIRECT-TRADER-STRATEGY-EXECUTIONCLIENT"))
+        XCTAssertTrue(evidence.validationAnchors.contains("TVM-L4-EXECUTIONENGINE-EXECUTIONCLIENT-SANDBOX-PATH"))
+
+        XCTAssertTrue(executionEngineTarget.contains("\"OMSFutureGate\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionEngine/OMSFutureGate/L4ExecutionEngineSandboxPathEvidence.swift"
+                ).path
+            )
+        )
+    }
+
+    func testGH463ExecutionEngineSandboxPathRejectsDirectAccessAndBoundaryBypass() throws {
+        XCTAssertThrowsError(
+            try L4ExecutionEngineSandboxPathCoordinator(
+                productionExecutionEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("productionExecutionEnabled"))
+        }
+
+        XCTAssertThrowsError(
+            try L4ExecutionEngineSandboxPathCoordinator(
+                directTraderAccessAllowed: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("directTraderAccessAllowed"))
+        }
+
+        let localTransitionEvidence = try L4OMSLocalOrderTransitionEvidenceBuilder.deterministicFixture().deterministicEvidence()
+        XCTAssertThrowsError(
+            try L4ExecutionEngineSandboxCommandProposal(
+                proposalID: Identifier.constant("unsafe-gh-463-direct-strategy-proposal"),
+                source: .directStrategy,
+                commandKind: .submit,
+                riskEngineDecisionID: Identifier.constant("unsafe-gh-463-risk-decision"),
+                omsTransitionEvidenceID: localTransitionEvidence.evidenceID,
+                clientOrderID: Identifier.constant("unsafe-gh-463-client-order"),
+                symbol: "BTCUSDT",
+                quantity: "0.0100",
+                limitPrice: "42120.70",
+                reason: "unsafe direct strategy"
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("direct Strategy command"))
+        }
+
+        XCTAssertThrowsError(
+            try L4ExecutionEngineSandboxCommandProposal(
+                proposalID: Identifier.constant("unsafe-gh-463-skip-oms-proposal"),
+                commandKind: .submit,
+                riskEngineDecisionID: Identifier.constant("unsafe-gh-463-risk-decision"),
+                omsTransitionEvidenceID: localTransitionEvidence.evidenceID,
+                clientOrderID: Identifier.constant("unsafe-gh-463-client-order"),
+                symbol: "BTCUSDT",
+                quantity: "0.0100",
+                limitPrice: "42120.70",
+                reason: "unsafe skip OMS",
+                routedThroughOMS: false
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("routedThroughOMS"))
+        }
+
+        let coordinator = try L4ExecutionEngineSandboxPathCoordinator.deterministicFixture()
+        let evidence = try coordinator.deterministicEvidence()
+        XCTAssertThrowsError(
+            try L4ExecutionEngineSandboxPathEvidence(
+                riskEngineBoundary: evidence.riskEngineBoundary,
+                sandboxAdapter: evidence.sandboxAdapter,
+                localTransitionEvidence: evidence.localTransitionEvidence,
+                proposals: evidence.proposals,
+                responses: Array(evidence.responses.dropLast()),
+                events: evidence.events
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "responses",
+                    expected: L4ExecutionClientSandboxCommandKind.allCases.map(\.rawValue).joined(separator: ","),
+                    actual: Array(evidence.responses.dropLast()).map { $0.commandKind.rawValue }.joined(separator: ",")
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4ExecutionEngineSandboxPathEvidence(
+                riskEngineBoundary: evidence.riskEngineBoundary,
+                sandboxAdapter: evidence.sandboxAdapter,
+                localTransitionEvidence: evidence.localTransitionEvidence,
+                proposals: evidence.proposals,
+                responses: evidence.responses,
+                events: evidence.events,
+                performsReconciliation: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("performsReconciliation"))
+        }
+
+        XCTAssertThrowsError(
+            try L4ExecutionEngineSandboxPathEvent(
+                eventID: Identifier.constant("unsafe-gh-463-portfolio-event"),
+                proposalID: Identifier.constant("unsafe-gh-463-proposal"),
+                eventKind: .sandboxResponseRecorded,
+                commandKind: .submit,
+                responseID: Identifier.constant("unsafe-gh-463-response"),
+                omsTransitionEvidenceID: localTransitionEvidence.evidenceID,
+                sequence: 1,
+                writesPortfolioProjection: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("writesPortfolioProjection"))
+        }
+    }
+
     func testGH421AllArchitectureTargetsExposeIndependentRealAPISmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-421-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)
