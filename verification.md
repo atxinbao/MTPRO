@@ -14515,3 +14515,35 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; Dashboard smoke includes `readModelOnly=true`; 339 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-06 - MTPRO Real Target Source Ownership Validation / Core Envelope Retirement v1 Project closure
+
+- Project: `MTPRO Real Target Source Ownership Validation / Core Envelope Retirement v1`
+- Queue: GitHub fallback milestone #2, GH-391 through GH-401.
+- Scope:
+  - Completed final Project closure Stage Code Audit and root docs refresh for GH-391 through GH-401.
+  - Added canonical Stage Code Audit Report at `docs/audit/mtpro-real-target-source-ownership-core-envelope-retirement-v1-stage-code-audit.md`.
+  - Synced root docs to current maturity statement `Real Target Source Ownership / Core Envelope Retirement before L4 complete`.
+  - Updated Project Closure Count to `31 / 31 (100%)` while keeping Final Product Goal Progress `9 / 9 (100%)` and Engine Maturity Roadmap Progress `4 / 4 (100%)`.
+  - Recorded PR #402 through PR #412 evidence, real target ownership validation, direct Trader -> ExecutionEngine dependency removal, real target smoke tests, ownership migration, Dashboard naming cleanup, unsafe construct allowed-path validation and Core envelope retirement matrix.
+- Evidence:
+  - GitHub Issues GH-391 through GH-401 are closed / done.
+  - PR #402 through PR #412 were merged with required check `checks` SUCCESS.
+  - Stage Code Audit Report: `docs/audit/mtpro-real-target-source-ownership-core-envelope-retirement-v1-stage-code-audit.md`.
+  - `Core`, `Adapters`, `Persistence` and `Runtime` remain retained compatibility envelopes and are explicitly tracked.
+- Boundary:
+  - No next Project / Issue creation.
+  - No Todo promotion.
+  - No Symphony / symphony-issue.
+  - No Graphify / code-index.
+  - No Figma change.
+  - No Trader runtime / Strategy runtime / Live runtime.
+  - No ExecutionClient implementation / OMS / broker gateway.
+  - No signed endpoint / account endpoint / listenKey / private WebSocket runtime.
+  - No real order lifecycle / submit / cancel / replace / execution report / broker fill / reconciliation.
+  - No Live PRO Console / trading button / live command / order form.
+  - No L4 implementation.
+- Validation:
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; Dashboard smoke normal; 339 XCTest / 0 failures; final output `MTPRO checks passed.`
