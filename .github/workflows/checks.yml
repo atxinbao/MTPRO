@@ -9,14 +9,18 @@ jobs:
   checks:
     name: checks
     runs-on: ubuntu-24.04
+    env:
+      MTPRO_CI_SWIFT_VERSION_FAMILY: "6.3.x"
+      MTPRO_CI_SWIFT_VERSION_REGEX: "Swift version 6\\.3(\\.| )"
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify Swift toolchain
+      - name: Verify runner-pinned Swift toolchain
         run: |
+          echo "MTPRO runner-pinned Swift toolchain policy: ubuntu-24.04 must provide Swift ${MTPRO_CI_SWIFT_VERSION_FAMILY}."
           swift --version
-          swift --version | grep -E "Swift version 6\\.3(\\.| )"
+          swift --version | grep -E "${MTPRO_CI_SWIFT_VERSION_REGEX}"
 
       - name: Install sqlite3 development headers
         run: |

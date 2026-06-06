@@ -28,6 +28,35 @@ require_sqlite_pkg_config() {
 
 require_swift_toolchain() {
   require_command "swift" "Install Swift 6.3.x or newer before running checks/run.sh. GitHub Actions pins ubuntu-24.04 and verifies the runner Swift 6.3.x toolchain."
+
+  local swift_version_output
+  swift_version_output="$(swift --version 2>&1)"
+
+  local swift_version
+  swift_version="$(printf '%s\n' "$swift_version_output" | grep -m 1 -Eo "(Apple )?Swift version [0-9]+\\.[0-9]+([^[:space:]]*)?( \\([^)]*\\))?" || true)"
+
+  local parsed_version
+  parsed_version="$(printf '%s\n' "$swift_version" | sed -nE 's/.*Swift version ([0-9]+)\.([0-9]+)([ .].*)?/\1 \2/p' | head -n 1)"
+
+  if [[ -z "$parsed_version" ]]; then
+    echo "MTPRO setup hint: unable to parse Swift toolchain version."
+    echo "Observed:"
+    printf '%s\n' "$swift_version_output"
+    echo "Install Swift 6.3.x or newer before running checks/run.sh."
+    exit 1
+  fi
+
+  local swift_major swift_minor
+  read -r swift_major swift_minor <<< "$parsed_version"
+
+  if (( swift_major < 6 || (swift_major == 6 && swift_minor < 3) )); then
+    echo "MTPRO setup hint: Swift 6.3.x or newer is required for reproducible local checks."
+    echo "Observed: $swift_version"
+    echo "GitHub Actions pins ubuntu-24.04 and verifies the runner Swift 6.3.x toolchain; local validation must match that baseline or newer."
+    exit 1
+  fi
+
+  echo "MTPRO local Swift toolchain accepted: $swift_version"
 }
 
 require_swift_toolchain

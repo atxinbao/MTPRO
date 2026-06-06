@@ -13,6 +13,7 @@
 | 能力 | 状态 | 证据入口 |
 | --- | --- | --- |
 | GitHub Actions required check | ready | `.github/workflows/checks.yml`，job name `checks` |
+| CI reproducibility anchor | ready | `docs/automation/ci-reproducibility.md`；GH-450 固定当前 runner-pinned Swift 6.3.x baseline、`ubuntu-24.04` runner、sqlite dev headers、local Swift 6.3.x preflight、formatter 不强制接入 required checks 边界和 future setup action change gate；不新增第三方 setup action，不授权 L4/runtime |
 | GitHub PR Automation | ready | `protect-main`、required checks、squash auto-merge、branch cleanup |
 | Local validation entrypoint | ready | `bash checks/run.sh` |
 | Automation readiness shell gate | ready | `bash checks/automation-readiness.sh` |

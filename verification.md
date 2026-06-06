@@ -14911,3 +14911,29 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 348 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-07 - GH-450 CI reproducibility hardening
+
+- Issue: GH-450 `Harden CI Swift and sqlite reproducibility contract`
+- Scope:
+  - Documented the current runner-pinned Swift 6.3.x baseline in `docs/automation/ci-reproducibility.md`.
+  - Kept `.github/workflows/checks.yml` on `ubuntu-24.04` and made the Swift 6.3.x policy explicit through workflow env and the `Verify runner-pinned Swift toolchain` step.
+  - Kept sqlite dev headers explicit through `libsqlite3-dev`.
+  - Strengthened `checks/run.sh` so local validation rejects Swift versions older than 6.3 before any SwiftPM build / run / test.
+  - Kept formatter configuration out of required checks; `checks/run.sh` and `.github/workflows/checks.yml` do not invoke `swift-format` / `swiftformat`.
+  - Added automation-readiness anchors for the CI runner, Swift version regex, sqlite headers, local Swift gate, formatter boundary and non-authorization boundary.
+- Boundary:
+  - No Linear Project / Issue creation.
+  - No next Todo promotion.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No Trader runtime / Strategy runtime / Live runtime.
+  - No ExecutionClient implementation / OMS / broker gateway.
+  - No signed endpoint / account endpoint / listenKey / private WebSocket runtime.
+  - No real order lifecycle / submit / cancel / replace / execution report / broker fill / reconciliation.
+  - No Live PRO Console / trading button / live command / order form.
+  - No L4 implementation.
+- Validation:
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 348 XCTest / 0 failures; final output `MTPRO checks passed.`
