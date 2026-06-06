@@ -294,7 +294,7 @@ require_contains "GOAL.md" "Evidence chain first"
 require_contains "GOAL.md" "Current Foundation Progress"
 require_contains "GOAL.md" "Final Product Goal Progress"
 require_contains "GOAL.md" "Engine Maturity Roadmap Progress: 4 / 4 (100%)"
-require_contains "GOAL.md" "Real Target Source Ownership / Core Envelope Retirement before L4 complete"
+require_contains "GOAL.md" "Core Envelope Retirement / Real Module Ownership Completion before L4 complete"
 require_contains "GOAL.md" "无当前可执行推荐"
 require_contains "GOAL.md" "实盘交易基础边界"
 require_contains "GOAL.md" "实盘监控台"
@@ -378,10 +378,10 @@ require_contains "AGENTS.md" "Future Construction Zones / 未来建设区"
 require_contains "AGENTS.md" '不启动 `@002 / PAR`'
 require_contains "docs/roadmap.md" "Current Foundation Progress"
 require_contains "docs/roadmap.md" "Final Product Goal Progress"
-require_contains "docs/roadmap.md" "Project Closure Count: 31 / 31 (100%)"
+require_contains "docs/roadmap.md" "Project Closure Count: 32 / 32 (100%)"
 require_contains "docs/roadmap.md" "Engine Maturity Roadmap Progress: 4 / 4 (100%)"
 require_contains "docs/roadmap.md" "Final Product Progress"
-require_contains "docs/roadmap.md" 'Current maturity statement：`Real Target Source Ownership / Core Envelope Retirement before L4 complete`'
+require_contains "docs/roadmap.md" 'Current maturity statement：`Core Envelope Retirement / Real Module Ownership Completion before L4 complete`'
 require_contains "docs/roadmap.md" 'Next recommended maturity slice：无当前可执行推荐'
 require_contains "docs/roadmap.md" "根据蓝图和工程模块定义施工顺序"
 require_contains "docs/roadmap.md" "Roadmap Responsibility / 路线职责"
@@ -411,7 +411,7 @@ require_contains "environment.md" "Secrets / Local State Boundary"
 require_contains "environment.md" "Automation Boundary / 自动化边界"
 require_contains "docs/validation/latest-verification-summary.md" "Current Foundation Progress: 4 / 4 (100%)"
 require_contains "docs/validation/latest-verification-summary.md" "Final Product Goal Progress: 9 / 9 (100%)"
-require_contains "docs/validation/latest-verification-summary.md" "Project Closure Count: 31 / 31 (100%)"
+require_contains "docs/validation/latest-verification-summary.md" "Project Closure Count: 32 / 32 (100%)"
 require_contains "docs/validation/latest-verification-summary.md" "Engine Maturity Roadmap Progress"
 require_contains "docs/validation/latest-verification-summary.md" "4 / 4（100%）"
 for planning_record in \
@@ -3049,7 +3049,7 @@ require_contains "docs/audit/mtpro-strategy-trader-instance-readiness-v1-stage-c
 require_contains "docs/automation/automation-readiness.md" "Strategy / Trader Instance readiness stage code audit report anchor"
 require_contains "docs/automation/automation-readiness.md" "Strategy / Trader Instance readiness root docs refresh anchor"
 require_contains "docs/validation/latest-verification-summary.md" "L3.4 Strategy / Trader Instance Readiness v1 complete"
-require_contains "docs/roadmap.md" 'Latest Completed Project：`MTPRO Real Target Source Ownership Validation / Core Envelope Retirement v1`'
+require_contains "docs/roadmap.md" 'Latest Completed Project：`MTPRO Core Envelope Retirement / Real Module Ownership Completion v1`'
 require_contains "BLUEPRINT.md" 'MTPRO SwiftPM Target Graph Module Split v1` 已完成 Project closure'
 require_contains "docs/audit/mtpro-engine-module-boundary-consolidation-v1-stage-code-audit.md" "MTPRO Engine Module Boundary Consolidation v1 Stage Code Audit Report"
 require_contains "docs/audit/mtpro-engine-module-boundary-consolidation-v1-stage-code-audit.md" "Completed/type=completed"
@@ -4898,13 +4898,13 @@ require_contains "docs/audit/mtpro-trader-accounts-coordination-compatibility-co
 require_contains "docs/audit/mtpro-trader-accounts-coordination-compatibility-consolidation-v1-stage-code-audit.md" "Project Closure Count input: 26 / 26 (100%)"
 require_contains "docs/automation/automation-readiness.md" "Trader Accounts / Coordination Stage Code Audit Report anchor"
 require_contains "docs/automation/automation-readiness.md" "Trader Accounts / Coordination root docs refresh anchor"
-require_contains "docs/roadmap.md" "Project Closure Count: 31 / 31 (100%)"
+require_contains "docs/roadmap.md" "Project Closure Count: 32 / 32 (100%)"
 require_contains "docs/roadmap.md" "TargetGraph Anchor Retirement / Real Module Source Root Migration before L4"
 require_contains "docs/validation/latest-verification-summary.md" "MTPRO TargetGraph Anchor Retirement / Real Module Source Root Migration v1"
 require_contains "docs/validation/latest-verification-summary.md" "docs/audit/mtpro-targetgraph-anchor-retirement-real-module-source-root-migration-v1-stage-code-audit.md"
-require_contains "docs/product/mtpro-live-readiness-roadmap-v1.md" "Real Target Source Ownership / Core Envelope Retirement before L4 complete"
-require_contains "BLUEPRINT.md" "Real Target Source Ownership / Core Envelope Retirement before L4 complete"
-require_contains "GOAL.md" "Real Target Source Ownership / Core Envelope Retirement before L4 complete"
+require_contains "docs/product/mtpro-live-readiness-roadmap-v1.md" "Core Envelope Retirement / Real Module Ownership Completion before L4 complete"
+require_contains "BLUEPRINT.md" "Core Envelope Retirement / Real Module Ownership Completion before L4 complete"
+require_contains "GOAL.md" "Core Envelope Retirement / Real Module Ownership Completion before L4 complete"
 require_contains "architecture.md" "TargetGraph Anchor Retirement / Real Module Source Root Migration before L4"
 require_file "docs/audit/mtpro-persistence-validation-repair-v1-stage-code-audit.md"
 require_contains "docs/audit/mtpro-persistence-validation-repair-v1-stage-code-audit.md" "MTPRO Persistence Validation Repair v1 Stage Code Audit Report"
@@ -5522,18 +5522,42 @@ require_contains "docs/audit/mtpro-real-target-source-ownership-core-envelope-re
 require_contains "docs/audit/mtpro-real-target-source-ownership-core-envelope-retirement-v1-stage-code-audit.md" "Latest Completed Project input: MTPRO Real Target Source Ownership Validation / Core Envelope Retirement v1"
 require_contains "docs/automation/automation-readiness.md" "Real Target Source Ownership / Core Envelope Retirement Stage Code Audit Report anchor"
 require_contains "docs/automation/automation-readiness.md" "Real Target Source Ownership / Core Envelope Retirement root docs refresh anchor"
-require_contains "docs/roadmap.md" 'Latest Completed Project：`MTPRO Real Target Source Ownership Validation / Core Envelope Retirement v1`'
-require_contains "docs/roadmap.md" 'Current maturity statement：`Real Target Source Ownership / Core Envelope Retirement before L4 complete`'
-require_contains "docs/roadmap.md" "Project Closure Count: 31 / 31 (100%)"
+require_file "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md"
+require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" "MTPRO Core Envelope Retirement / Real Module Ownership Completion v1 Stage Code Audit Report"
+require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" 'GitHub Issues `#413` 至 `#422`'
+require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" 'PR `#424` 至 `#432` 以及 PR `#438`'
+require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" "Core Envelope Retirement / Real Module Ownership Completion before L4 complete"
+require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" "MessageBus"
+require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" "DataEngine"
+require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" "Portfolio"
+require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" "RiskEngine"
+require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" "ExecutionEngine"
+require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" "Dashboard read-model-only boundary"
+require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" '`Core`'
+require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" '`Adapters`'
+require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" '`Persistence`'
+require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" '`Runtime`'
+require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" "未实现 ExecutionClient implementation"
+require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" "未实现 real account read"
+require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" "Project Closure Count input: 32 / 32 (100%)"
+require_contains "docs/audit/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md" "Latest Completed Project input: MTPRO Core Envelope Retirement / Real Module Ownership Completion v1"
+require_contains "docs/automation/automation-readiness.md" "Core Envelope Retirement / Real Module Ownership Completion Stage Code Audit Report anchor"
+require_contains "docs/automation/automation-readiness.md" "Core Envelope Retirement / Real Module Ownership Completion root docs refresh anchor"
+require_contains "docs/roadmap.md" 'Latest Completed Project：`MTPRO Core Envelope Retirement / Real Module Ownership Completion v1`'
+require_contains "docs/roadmap.md" 'Current maturity statement：`Core Envelope Retirement / Real Module Ownership Completion before L4 complete`'
+require_contains "docs/roadmap.md" "Project Closure Count: 32 / 32 (100%)"
 require_contains "docs/validation/latest-verification-summary.md" "Project closure evidence：Real Target Source Ownership Validation / Core Envelope Retirement v1"
 require_contains "docs/validation/latest-verification-summary.md" "PR #402 至 #412"
-require_contains "docs/validation/latest-verification-summary.md" "Project Closure Count: 31 / 31 (100%)"
+require_contains "docs/validation/latest-verification-summary.md" "Project closure evidence：Core Envelope Retirement / Real Module Ownership Completion v1"
+require_contains "docs/validation/latest-verification-summary.md" "PR #424 至 PR #432 以及 PR #438"
+require_contains "docs/validation/latest-verification-summary.md" "Project Closure Count: 32 / 32 (100%)"
 require_contains "docs/validation/latest-verification-summary.md" "不创建下一 Linear Project / Issue"
-require_contains "docs/validation/latest-verification-summary.md" "Real Target Source Ownership / Core Envelope Retirement before L4 complete"
-require_contains "docs/product/mtpro-live-readiness-roadmap-v1.md" "Real Target Source Ownership / Core Envelope Retirement before L4 complete"
-require_contains "BLUEPRINT.md" '当前 handoff 状态：`MTPRO Real Target Source Ownership Validation / Core Envelope Retirement v1`'
-require_contains "BLUEPRINT.md" "mtpro-real-target-source-ownership-core-envelope-retirement-v1-stage-code-audit.md"
-require_contains "GOAL.md" "Real Target Source Ownership / Core Envelope Retirement before L4 complete"
+require_contains "docs/validation/latest-verification-summary.md" "Core Envelope Retirement / Real Module Ownership Completion before L4 complete"
+require_contains "docs/product/mtpro-live-readiness-roadmap-v1.md" "Core Envelope Retirement / Real Module Ownership Completion before L4 complete"
+require_contains "BLUEPRINT.md" '当前 handoff 状态：`MTPRO Core Envelope Retirement / Real Module Ownership Completion v1`'
+require_contains "BLUEPRINT.md" "mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-code-audit.md"
+require_contains "GOAL.md" "Core Envelope Retirement / Real Module Ownership Completion before L4 complete"
+require_contains "verification.md" "MTPRO Core Envelope Retirement / Real Module Ownership Completion v1 Project closure"
 require_contains "architecture.md" "GH-391 Real Target Source Ownership / Core Envelope Retirement Contract"
 require_contains "verification.md" "MTPRO Real Target Source Ownership Validation / Core Envelope Retirement v1 Project closure"
 require_contains "docs/validation/latest-verification-summary.md" "Project closure evidence：TargetGraph Anchor Retirement / Real Module Source Root Migration v1"
