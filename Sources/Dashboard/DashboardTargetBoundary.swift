@@ -123,7 +123,8 @@ public struct DashboardTargetBoundary: Codable, Equatable, Sendable {
         "MTP-221-NO-UI-COMMAND-RUNTIME-SCHEMA-GUARD",
         "MTP-230-DASHBOARD-REAL-ROOT-TARGET-PATH",
         "MTP-230-DASHBOARD-OWNS-READ-MODEL-SHELL",
-        "MTP-DASHBOARD-WORKBENCH-TARGET-RETIRED"
+        "MTP-DASHBOARD-WORKBENCH-TARGET-RETIRED",
+        "GH-420-DASHBOARD-ACTIVE-SOURCE-NAMING-CLEAN"
     ]
 
     public static let requiredCompiledSourceRoots = [
@@ -142,4 +143,5 @@ public struct DashboardTargetBoundary: Codable, Equatable, Sendable {
 
     public static let mtp221 = DashboardTargetBoundary()
     public static let mtp230 = DashboardTargetBoundary()
+    public static let gh420 = DashboardTargetBoundary()
 }

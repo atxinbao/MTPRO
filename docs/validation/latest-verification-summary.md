@@ -2360,3 +2360,33 @@ GitHub Issue：[#419](https://github.com/atxinbao/MTPRO/issues/419)
 - `git diff --check`：pass，无输出。
 - `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
 - `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true` / `dashboardReadModelOnly=true`，341 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
+## 2026-06-06 — GH-420 Dashboard active source naming cleanup
+
+执行者：Codex
+
+GitHub Issue：[#420](https://github.com/atxinbao/MTPRO/issues/420)
+
+范围：
+
+- 将 active `Sources/Dashboard/` source 的当前命名收口为 `Dashboard read-model-only boundary`。
+- 在 `Core` 中保留历史 `LiveReadOnlyWorkbenchReadModelBoundary` 合同事实源，同时新增 `LiveReadOnlyDashboardReadModelBoundary` alias 供 Dashboard active source 消费。
+- 更新 `LiveReadOnlyDashboardBoundaryReadModel`，避免 Dashboard source 直接引用旧 Workbench active surface 名称。
+- 将 Dashboard beta acceptance current evidence id 更新为 `mtp-122-dashboard-beta-acceptance-path`。
+- 新增 TargetGraph focused validation，机械验证 `Sources/Dashboard/` active source 不含 `Workbench` / `workbench` 命名。
+
+边界：
+
+- 不恢复 `Workbench` / `AppCompatibility` active modules。
+- 不删除 historical Core contract 或旧审计 / verification 里的历史 Workbench 事实。
+- 不实现 Runtime object access、adapter request、schema exposure、Trader runtime、Strategy runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、real order lifecycle、UI command surface 或 L4 capability。
+- 不启动 Symphony，不运行 Graphify / code-index，不修改 Figma。
+
+验证：
+
+- `swift build --target Dashboard`：pass。
+- `swift test --filter TargetGraphTests/testGH420DashboardActiveSourceUsesDashboardReadModelOnlyNaming`：pass，1 test / 0 failures。
+- `swift test --filter TargetGraphTests`：pass，27 tests / 0 failures。
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true` / `dashboardReadModelOnly=true`，342 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。

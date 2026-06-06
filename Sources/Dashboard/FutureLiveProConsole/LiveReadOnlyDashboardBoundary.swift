@@ -3,17 +3,17 @@ import Core
 
 /// LiveReadOnlyDashboardBoundaryReadModel 是 MTP-131 的 App 层只读输入。
 ///
-/// 输入只能来自 Core `LiveReadOnlyWorkbenchReadModelBoundary` deterministic fixture 或等价只读模型。
+/// 输入只能来自 Core `LiveReadOnlyDashboardReadModelBoundary` deterministic fixture 或等价只读模型。
 /// App 层只保留 source contract、边界枚举和禁止能力 flags，不读取 secret、不调用 signed / account
 /// endpoint、不连接 broker，也不触碰 Runtime、Persistence schema 或真实交易系统。
 public struct LiveReadOnlyDashboardBoundaryReadModel: Equatable, Sendable {
     public let source: ViewModelSourceContract
-    public let boundary: Core.LiveReadOnlyWorkbenchReadModelBoundary
+    public let boundary: Core.LiveReadOnlyDashboardReadModelBoundary
     public let lastAppliedSequence: Int?
 
     public init(
         source: ViewModelSourceContract = ViewModelSourceContract(),
-        boundary: Core.LiveReadOnlyWorkbenchReadModelBoundary = .deterministicFixture,
+        boundary: Core.LiveReadOnlyDashboardReadModelBoundary = .dashboardDeterministicFixture,
         lastAppliedSequence: Int? = nil
     ) {
         self.source = source
@@ -23,7 +23,7 @@ public struct LiveReadOnlyDashboardBoundaryReadModel: Equatable, Sendable {
 
     public var readModelOnlyBoundaryHeld: Bool {
         source.isReadModelOnly
-            && boundary.workbenchReadModelOnlyBoundaryHeld
+            && boundary.dashboardReadModelOnlyBoundaryHeld
     }
 }
 

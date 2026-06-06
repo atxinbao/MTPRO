@@ -6767,6 +6767,23 @@ public struct LiveReadOnlyWorkbenchReadModelBoundary: Codable, Equatable, Sendab
     }
 }
 
+/// Dashboard active surface 使用该别名消费 MTP-131 只读合同。
+///
+/// 旧 `LiveReadOnlyWorkbenchReadModelBoundary` 名称保留为历史合同事实源；Dashboard 模块
+/// 后续应使用 `LiveReadOnlyDashboardReadModelBoundary` 和 `dashboardReadModelOnlyBoundaryHeld`
+/// 表达当前 active UI surface，避免把已退休的 Workbench 重新写成当前模块口径。
+public typealias LiveReadOnlyDashboardReadModelBoundary = LiveReadOnlyWorkbenchReadModelBoundary
+
+public extension LiveReadOnlyDashboardReadModelBoundary {
+    var dashboardReadModelOnlyBoundaryHeld: Bool {
+        workbenchReadModelOnlyBoundaryHeld
+    }
+
+    static var dashboardDeterministicFixture: Self {
+        deterministicFixture
+    }
+}
+
 /// RealOrderLifecycleBoundary 是 MTP-64 的 Gate 3 合同 fixture。
 ///
 /// 该合同只定义真实订单生命周期术语、future gates 和 forbidden capability tests。所有

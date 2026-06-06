@@ -109,7 +109,7 @@ public struct DashboardBetaAcceptancePathItem: Codable, Equatable, Sendable {
             return nil
         }
 
-        let evidenceID = "mtp-122-workbench-beta-acceptance-path"
+        let evidenceID = "mtp-122-dashboard-beta-acceptance-path"
         let portfolioEvidenceID = "\(simulatedParity.evidenceID)-portfolio-parity"
         let portfolioSummary =
             "portfolio=\(portfolioEvidenceID); netQuantity=\(simulatedParity.netQuantity); grossExposure=\(simulatedParity.grossExposureNotional); netPnL=\(simulatedParity.netSimulatedPnL)"
