@@ -2010,6 +2010,42 @@ GitHub Issue：[#396](https://github.com/atxinbao/MTPRO/issues/396)
 - `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
 - `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true`，336 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
 
+## 2026-06-06 — GH-415 DataEngine ScenarioReplay / DataQuality ownership
+
+执行者：Codex
+
+GitHub Issue：[#415](https://github.com/atxinbao/MTPRO/issues/415)
+
+范围：
+
+- 将主 `ScenarioReplay` source ownership 迁入 `DataEngine` target：`DataCatalogScenarioReplayBoundary.swift`、`ScenarioFixture.swift`、`ScenarioManifest.swift` 和 `ScenarioReplayEvidence.swift` 由 `DataEngine` 直接编译。
+- 将 `DataQuality` source ownership 迁入 `DataEngine` target：`ScenarioDataQualityReportInput.swift` 由 `DataEngine` 直接编译。
+- 将 `Core` 收紧为只保留 `ScenarioReplayDeterministicMatching.swift` 的 compatibility envelope，因为该文件仍耦合 simulated exchange / shared order semantics。
+- 保持 `DataEngine/Ingest` 在 `Runtime` compatibility envelope，作为 DataClient / Persistence workflow 编排的 deferred path。
+- 更新 `DataEngineTargetBoundary`、`TargetGraphTests`、architecture / contract / automation anchors，固定 `GH-415-DATAENGINE-SCENARIO-REPLAY-QUALITY-OWNERSHIP` 和 `GH-415-DATAENGINE-DETERMINISTIC-MATCHING-CORE-ENVELOPE-DEFERRED`。
+
+边界：
+
+- 不实现 streaming DataEngine runtime、Trader runtime、Strategy runtime、Live runtime。
+- 不实现 ExecutionClient implementation、OMS、broker gateway。
+- 不接 signed endpoint、account endpoint / listenKey、private WebSocket runtime。
+- 不实现 real account read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation。
+- 不实现 Live PRO Console、trading button、live command 或 order form。
+- 不推进 L4。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify / code-index。
+- 不修改 Figma。
+
+验证：
+
+- `swift build --target DataEngine`：pass。
+- `swift build --target Core`：pass。
+- `swift test --filter TargetGraphTests/testGH396DataClientAndCacheOwnImplementationSourceWhileDataEngineEnvelopeIsExplicit`：pass，1 test / 0 failures。
+- `swift test --filter TargetGraphTests`：pass，25 tests / 0 failures。
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true` / `dashboardReadModelOnly=true`，340 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
 ## 2026-06-06 — GH-397 Trader / Portfolio / Risk / Execution real target smoke tests
 
 执行者：Codex

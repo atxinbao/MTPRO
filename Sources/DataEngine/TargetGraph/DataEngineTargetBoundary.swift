@@ -7,10 +7,11 @@ import MessageBus
 ///
 /// MTP-227 把 active target boundary anchor 从 `Sources/TargetGraph/DataEngine`
 /// 移到 `Sources/DataEngine/TargetGraph`。GH-396 确认 DataEngine 已有 read-only
-/// replay plan real target smoke，但 scenario replay / quality implementation 仍因 `CoreError`
-/// 依赖保留在 `Core` compatibility envelope，ingest workflow 仍由 `Runtime` envelope 串接
-/// DataClient + Persistence。本边界不新增 streaming runtime、private stream、account endpoint
-/// 或 broker path。
+/// replay plan real target smoke。GH-415 将 DataQuality 和主要 ScenarioReplay source ownership
+/// 迁入 `DataEngine` target；deterministic matching 仍作为 Core / downstream compatibility
+/// envelope 保留，因为它耦合 simulated exchange / shared order 语义。ingest workflow 仍由
+/// Runtime envelope 串接 DataClient + Persistence。本边界不新增 streaming runtime、private stream、
+/// account endpoint 或 broker path。
 public struct DataEngineTargetBoundary: Codable, Equatable, Sendable {
     public let targetName: String
     public let canonicalSourceRoot: String
@@ -32,7 +33,7 @@ public struct DataEngineTargetBoundary: Codable, Equatable, Sendable {
         targetName: String = "DataEngine",
         canonicalSourceRoot: String = "Sources/DataEngine",
         compiledBoundaryRoot: String = "Sources/DataEngine/TargetGraph",
-        retainedCompatibilityEnvelope: String = "Core/Runtime(scenario replay, quality, ingest workflow)",
+        retainedCompatibilityEnvelope: String = "Core/Runtime(deterministic matching compatibility, ingest workflow)",
         domainModelBoundary: DomainModelTargetBoundary = .mtp217,
         dataClientBoundary: DataClientTargetBoundary = .mtp218,
         messageBusBoundary: MessageBusTargetBoundary = .mtp217,
@@ -67,7 +68,7 @@ public struct DataEngineTargetBoundary: Codable, Equatable, Sendable {
         targetName == "DataEngine"
             && canonicalSourceRoot == "Sources/DataEngine"
             && compiledBoundaryRoot == "Sources/DataEngine/TargetGraph"
-            && retainedCompatibilityEnvelope == "Core/Runtime(scenario replay, quality, ingest workflow)"
+            && retainedCompatibilityEnvelope == "Core/Runtime(deterministic matching compatibility, ingest workflow)"
             && domainModelBoundary.boundaryHeld
             && dataClientBoundary.dependencyDirectionHeld
             && messageBusBoundary.dependencyDirectionHeld
@@ -112,7 +113,8 @@ public struct DataEngineTargetBoundary: Codable, Equatable, Sendable {
         "MTP-218-NO-SIGNED-ACCOUNT-BROKER-GUARD",
         "GH-395-DATAENGINE-REAL-TARGET-SMOKE",
         "GH-395-DATAENGINE-READ-ONLY-REPLAY-PLAN",
-        "GH-396-DATAENGINE-REPLAY-QUALITY-COREERROR-ENVELOPE-DOCUMENTED",
+        "GH-415-DATAENGINE-SCENARIO-REPLAY-QUALITY-OWNERSHIP",
+        "GH-415-DATAENGINE-DETERMINISTIC-MATCHING-CORE-ENVELOPE-DEFERRED",
         "GH-396-DATAENGINE-INGEST-RUNTIME-ENVELOPE-DOCUMENTED"
     ]
 
