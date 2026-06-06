@@ -318,7 +318,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertEqual(dataEngine.allowedDependencies, ["DomainModel", "DataClient", "MessageBus", "Cache"])
         XCTAssertEqual(dataClient.retainedCompatibilityEnvelope, "Adapters(re-export only)")
         XCTAssertEqual(cache.retainedCompatibilityEnvelope, "Core(re-export only)")
-        XCTAssertEqual(dataEngine.retainedCompatibilityEnvelope, "Core/Runtime(scenario replay, quality, ingest workflow)")
+        XCTAssertEqual(dataEngine.retainedCompatibilityEnvelope, "Core/Runtime(deterministic matching compatibility, ingest workflow)")
     }
 
     func testMTP218DataTargetsRejectSignedAccountBrokerAndRuntimeDrift() {
@@ -517,6 +517,15 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(cacheSources.contains("\"MarketData/CacheContractError.swift\""))
         XCTAssertTrue(cacheSources.contains("\"CacheReadModelSnapshot.swift\""))
         XCTAssertTrue(dataEngineSources.contains("\"DataEngineReadOnlyReplayPlan.swift\""))
+        for expected in [
+            "\"DataQuality/ScenarioDataQualityReportInput.swift\"",
+            "\"ScenarioReplay/DataCatalogScenarioReplayBoundary.swift\"",
+            "\"ScenarioReplay/ScenarioFixture.swift\"",
+            "\"ScenarioReplay/ScenarioManifest.swift\"",
+            "\"ScenarioReplay/ScenarioReplayEvidence.swift\""
+        ] {
+            XCTAssertTrue(dataEngineSources.contains(expected), "DataEngine target must own \(expected)")
+        }
 
         XCTAssertTrue(adaptersTarget.contains("dependencies: [\"DataClient\"]"))
         XCTAssertTrue(adaptersSources.contains("\"AdaptersCompatibility.swift\""))
@@ -525,12 +534,14 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(coreTarget.contains("\"DomainModel\""))
         XCTAssertTrue(coreTarget.contains("\"Cache\""))
         XCTAssertTrue(coreTarget.contains("\"DataClient\""))
+        XCTAssertTrue(coreTarget.contains("\"DataEngine\""))
         XCTAssertFalse(coreSources.contains("Cache/MarketData"))
         XCTAssertFalse(coreSources.contains("DataClient/Binance"))
-        XCTAssertTrue(dataEngineTarget.contains("\"ScenarioReplay\""))
-        XCTAssertTrue(dataEngineTarget.contains("\"DataQuality\""))
-        XCTAssertTrue(runtimeTarget.contains("\"DataEngine/ScenarioReplay\""))
-        XCTAssertTrue(runtimeTarget.contains("\"DataEngine/DataQuality\""))
+        XCTAssertFalse(coreSources.contains("\"DataEngine/ScenarioReplay\""))
+        XCTAssertFalse(coreSources.contains("\"DataEngine/DataQuality\""))
+        XCTAssertTrue(coreSources.contains("\"DataEngine/ScenarioReplay/ScenarioReplayDeterministicMatching.swift\""))
+        XCTAssertFalse(runtimeSources.contains("\"DataEngine/ScenarioReplay\""))
+        XCTAssertFalse(runtimeSources.contains("\"DataEngine/DataQuality\""))
         XCTAssertTrue(runtimeSources.contains("\"DataEngine/Ingest\""))
 
         let request = BinancePublicRequestContract(
@@ -560,6 +571,13 @@ final class TargetGraphTests: XCTestCase {
         )
         cache.ingest(.bar(bar))
         XCTAssertEqual(cache.snapshot.marketEventCount, 1)
+        let scenarioManifest = ScenarioManifest.deterministicFixture
+        XCTAssertTrue(scenarioManifest.manifestBoundaryHeld)
+        let replayEvidence = ScenarioReplayEvidence.deterministicFixture
+        XCTAssertTrue(replayEvidence.evidenceBoundaryHeld)
+        let qualityEvaluation = try ScenarioDataQualityGateEvaluation(replayEvidence: replayEvidence)
+        XCTAssertTrue(qualityEvaluation.qualityGateBoundaryHeld)
+        XCTAssertEqual(qualityEvaluation.qualityVerdict, .accepted)
         XCTAssertThrowsError(
             try OrderBookReadModelInput(snapshot: OrderBookSnapshot(
                 symbol: symbol,
@@ -591,7 +609,12 @@ final class TargetGraphTests: XCTestCase {
         )
         XCTAssertTrue(
             DataEngineTargetBoundary.mtp218.validationAnchors.contains(
-                "GH-396-DATAENGINE-REPLAY-QUALITY-COREERROR-ENVELOPE-DOCUMENTED"
+                "GH-415-DATAENGINE-SCENARIO-REPLAY-QUALITY-OWNERSHIP"
+            )
+        )
+        XCTAssertTrue(
+            DataEngineTargetBoundary.mtp218.validationAnchors.contains(
+                "GH-415-DATAENGINE-DETERMINISTIC-MATCHING-CORE-ENVELOPE-DEFERRED"
             )
         )
     }

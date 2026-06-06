@@ -121,12 +121,16 @@ let package = Package(
             dependencies: ["DomainModel", "DataClient", "MessageBus", "Cache"],
             path: "Sources/DataEngine",
             exclude: [
-                "DataQuality",
                 "Ingest",
-                "ScenarioReplay"
+                "ScenarioReplay/ScenarioReplayDeterministicMatching.swift"
             ],
             sources: [
                 "DataEngineReadOnlyReplayPlan.swift",
+                "DataQuality/ScenarioDataQualityReportInput.swift",
+                "ScenarioReplay/DataCatalogScenarioReplayBoundary.swift",
+                "ScenarioReplay/ScenarioFixture.swift",
+                "ScenarioReplay/ScenarioManifest.swift",
+                "ScenarioReplay/ScenarioReplayEvidence.swift",
                 "TargetGraph/DataEngineTargetBoundary.swift"
             ]
         ),
@@ -209,6 +213,7 @@ let package = Package(
                 "DomainModel",
                 "MessageBus",
                 "Cache",
+                "DataEngine",
                 "TraderStrategies",
                 "Trader",
                 "Portfolio",
@@ -224,7 +229,12 @@ let package = Package(
                 "Dashboard",
                 "DataClient",
                 "DataEngine/DataEngineReadOnlyReplayPlan.swift",
+                "DataEngine/DataQuality/ScenarioDataQualityReportInput.swift",
                 "DataEngine/Ingest",
+                "DataEngine/ScenarioReplay/DataCatalogScenarioReplayBoundary.swift",
+                "DataEngine/ScenarioReplay/ScenarioFixture.swift",
+                "DataEngine/ScenarioReplay/ScenarioManifest.swift",
+                "DataEngine/ScenarioReplay/ScenarioReplayEvidence.swift",
                 "DataEngine/TargetGraph",
                 "Database",
                 "DomainModel/DomainModelContractError.swift",
@@ -264,8 +274,7 @@ let package = Package(
             sources: [
                 "Core",
                 "MessageBus",
-                "DataEngine/ScenarioReplay",
-                "DataEngine/DataQuality",
+                "DataEngine/ScenarioReplay/ScenarioReplayDeterministicMatching.swift",
                 "Portfolio/PaperAccountPortfolioProjectionV2.swift",
                 "Portfolio/PaperPortfolioProjectionUpdate.swift",
                 "Portfolio/SimulatedExchangePortfolioProjectionParity.swift",

@@ -298,11 +298,23 @@ GH-396 把 data target ownership 从 smoke API 推进到部分真实 implementat
 
 `GH-396-DATAENGINE-REPLAY-QUALITY-COREERROR-ENVELOPE-DOCUMENTED`
 
-`DataEngine` 的 scenario replay / data quality implementation 仍在 `Core` compatibility envelope 中，这是显式记录的 migration debt，不得解释为 DataEngine implementation ownership 已完全完成。
+GH-396 记录的是当时的 DataEngine migration debt：scenario replay / data quality implementation 仍在 `Core` compatibility envelope 中。该历史锚点已由 GH-415 收口更新，不得继续把完整 `ScenarioReplay` / `DataQuality` 目录解释为 active Core ownership。
 
 `GH-396-DATAENGINE-INGEST-RUNTIME-ENVELOPE-DOCUMENTED`
 
 `DataEngine/Ingest` 仍由 `Runtime` compatibility envelope 编排 DataClient + Persistence workflow。该路径不新增 streaming runtime、private stream、signed/account endpoint、broker route、ExecutionClient route、OMS route 或 L4 capability。
+
+## GH-415 DataEngine ScenarioReplay / DataQuality Ownership
+
+`GH-415-DATAENGINE-SCENARIO-REPLAY-QUALITY-OWNERSHIP`
+
+GH-415 将 DataEngine 的主 scenario replay / data quality source ownership 迁回真实 `DataEngine` target：`ScenarioManifest`、`ScenarioFixture`、`ScenarioReplayEvidence`、`DataCatalogScenarioReplayBoundary` 和 `ScenarioDataQualityReportInput` 现在由 `DataEngine` 直接编译和测试使用。`TargetGraphTests/testGH396DataClientAndCacheOwnImplementationSourceWhileDataEngineEnvelopeIsExplicit` 已升级为同时验证 DataClient / Cache ownership 和 DataEngine scenario replay / quality ownership。
+
+`GH-415-DATAENGINE-DETERMINISTIC-MATCHING-CORE-ENVELOPE-DEFERRED`
+
+`ScenarioReplayDeterministicMatching.swift` 仍保留在 `Core` compatibility envelope。原因不是遗漏，而是它当前耦合 simulated exchange / shared order 语义；直接迁入 `DataEngine` 会把 execution lifecycle 语义反向带入 data layer。后续必须先拆出中立 replay matching contract，再决定是否迁回 DataEngine。
+
+`DataEngine/Ingest` 仍保留在 `Runtime` compatibility envelope，因为它负责跨 DataClient / Persistence workflow 编排。GH-415 不实现 streaming DataEngine runtime、private stream、signed/account endpoint、listenKey、broker path、ExecutionClient implementation、OMS、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
 
 ## GH-397 Trader / Portfolio / Risk / Execution Real Target Smoke Tests
 

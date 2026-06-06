@@ -369,7 +369,9 @@ GH-396 不把 DataEngine scenario replay / data quality / ingest 伪装成已经
 - `DataEngine` target 继续编译 `DataEngineReadOnlyReplayPlan.swift`。
 - `Sources/DataEngine/ScenarioReplay/` 和 `Sources/DataEngine/DataQuality/` 仍在 `Core` compatibility envelope 中，因为它们仍依赖 `CoreError` 和 legacy evidence payload。
 - `Sources/DataEngine/Ingest/` 仍在 `Runtime` compatibility envelope 中，因为它仍负责跨 DataClient / Persistence workflow 编排。
-- `Sources/DataEngine/TargetGraph/DataEngineTargetBoundary.swift` 必须包含 `GH-396-DATAENGINE-REPLAY-QUALITY-COREERROR-ENVELOPE-DOCUMENTED` 和 `GH-396-DATAENGINE-INGEST-RUNTIME-ENVELOPE-DOCUMENTED`。
+- `Sources/DataEngine/TargetGraph/DataEngineTargetBoundary.swift` 当时必须包含 `GH-396-DATAENGINE-REPLAY-QUALITY-COREERROR-ENVELOPE-DOCUMENTED` 和 `GH-396-DATAENGINE-INGEST-RUNTIME-ENVELOPE-DOCUMENTED`。
+
+该 GH-396 口径是历史 issue evidence。GH-415 后，`ScenarioReplay` / `DataQuality` 的主 source ownership 已迁入真实 `DataEngine` target；只有 deterministic matching 和 ingest workflow 继续作为显式 compatibility envelope debt。
 
 ## GH-396-VALIDATION-ANCHORS
 
@@ -377,6 +379,34 @@ GH-396 required validation：
 
 - `swift build --target DataClient`
 - `swift build --target Cache`
+- `swift build --target DataEngine`
+- `swift build --target Core`
+- `swift test --filter TargetGraphTests/testGH396DataClientAndCacheOwnImplementationSourceWhileDataEngineEnvelopeIsExplicit`
+- `swift test --filter TargetGraphTests`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+## GH-415-DATAENGINE-SCENARIO-REPLAY-QUALITY-OWNERSHIP
+
+GH-415 继续收口 DataEngine source ownership：
+
+- `DataEngine` target 直接编译 `DataQuality/ScenarioDataQualityReportInput.swift`。
+- `DataEngine` target 直接编译 `ScenarioReplay/DataCatalogScenarioReplayBoundary.swift`、`ScenarioReplay/ScenarioFixture.swift`、`ScenarioReplay/ScenarioManifest.swift` 和 `ScenarioReplay/ScenarioReplayEvidence.swift`。
+- `Core` target 不再编译完整 `DataEngine/ScenarioReplay` 或 `DataEngine/DataQuality` 目录。
+- `Core` target 只保留 `DataEngine/ScenarioReplay/ScenarioReplayDeterministicMatching.swift`，作为 deferred compatibility envelope。
+- `Sources/DataEngine/TargetGraph/DataEngineTargetBoundary.swift` 必须包含 `GH-415-DATAENGINE-SCENARIO-REPLAY-QUALITY-OWNERSHIP`。
+
+## GH-415-DATAENGINE-DETERMINISTIC-MATCHING-CORE-ENVELOPE-DEFERRED
+
+`ScenarioReplayDeterministicMatching.swift` 仍留在 `Core` compatibility envelope，因为它当前耦合 simulated exchange / shared order semantics。该文件不得被解释为 DataEngine 仍未拥有主 scenario replay / quality implementation，也不得被提前迁入 `DataEngine` 造成 DataEngine 反向依赖 execution lifecycle。
+
+`DataEngine/Ingest` 仍留在 `Runtime` compatibility envelope，因为它编排 DataClient / Persistence workflow。GH-415 不实现 streaming DataEngine runtime、private stream、signed/account endpoint、listenKey、broker path、ExecutionClient implementation、OMS、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
+## GH-415-VALIDATION-ANCHORS
+
+GH-415 required validation：
+
 - `swift build --target DataEngine`
 - `swift build --target Core`
 - `swift test --filter TargetGraphTests/testGH396DataClientAndCacheOwnImplementationSourceWhileDataEngineEnvelopeIsExplicit`
