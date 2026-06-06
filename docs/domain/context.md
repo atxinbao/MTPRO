@@ -3184,6 +3184,28 @@ No-default-real-trading policy 表示 production trading 默认关闭。#471 之
 
 L4 acceptance matrix 必须覆盖 command、risk、execution、audit、rollback、credential、private stream、dashboard command surface 和 production cutover。任何后续 issue 如果只覆盖其中一个域，不能顺手实现其他域的 runtime。
 
+## GH-453 L4 Credential Environment Gate Terms
+
+`GH-453-L4-CREDENTIAL-ENVIRONMENT-GATE-CONTRACT`
+
+L4 credential environment gate 指 credential source identity、sandbox-only enablement、production cutover blocker 和 local / CI validation 的合同集合。它是 GH-452 顶层 L4 command contract 的 credential 域细化，不是 credential store、secret reader、signed endpoint 或 runtime connection。
+
+`GH-453-CREDENTIAL-SOURCE-IDENTITY`
+
+Credential source identity 只能保存配置身份，例如 `MTPRO_L4_VENUE_ENVIRONMENT`、`MTPRO_L4_CREDENTIAL_REFERENCE`、`MTPRO_L4_SANDBOX_ONLY`、`MTPRO_L4_PRODUCTION_CUTOVER` 和 `MTPRO_L4_CREDENTIAL_VALUE` 这些 key name。它不能保存 key 的 value，不能把 secret 写入仓库、日志、fixture、文档或 validation output。
+
+`GH-453-SANDBOX-ONLY-ENABLEMENT-GATE`
+
+Sandbox-only enablement gate 表示后续 issue 可以在 sandbox scope 下逐步实现受控能力，但 GH-453 自身不连接 sandbox network，不调用 signed endpoint，不创建 listenKey，不实现 ExecutionClient adapter，也不把 sandbox 配置升级成 production trading。
+
+`GH-453-PRODUCTION-CUTOVER-BLOCKED-UNTIL-GH-471`
+
+Production cutover blocked until GH-471 表示 #471 之前 production trading 必须默认关闭。任何环境变量、配置、UI、test fixture 或 hidden flag 都不能默认打开 production endpoint、真实 broker、真实 submit / cancel / replace、execution report、broker fill 或 reconciliation。
+
+`TVM-L4-CREDENTIAL-ENVIRONMENT-GATE`
+
+L4 credential environment matrix 必须证明 credential source identity、sandbox-only gate、production cutover blocker、local secret rejection、CI production default rejection 和 network-independent validation 同时成立。该 matrix 不授权 secret、signed endpoint、private stream、ExecutionClient adapter、OMS、Live PRO Console、order form 或真实订单。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
