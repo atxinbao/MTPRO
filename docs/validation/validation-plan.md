@@ -233,6 +233,26 @@ GH-457 必须建立的主要 anchors：
 - `GH-457-FORBIDDEN-RAW-PAYLOAD-BROKER-STATE-TESTS`
 - `TVM-L4-LIVE-ACCOUNT-READ-MODEL-MAPPING`
 
+## GH-458 L4 ExecutionClient Venue Adapter Contract Validation
+
+GH-458 的 required validation：
+
+- `docs/contracts/l4-executionclient-venue-adapter-contract.md` 必须存在，并包含 `GH-458-EXECUTIONCLIENT-VENUE-ADAPTER-CONTRACT`、`GH-458-EXECUTIONENGINE-INTERNAL-LIFECYCLE-BOUNDARY`、`GH-458-SANDBOX-PRODUCTION-VENUE-GATE`、`GH-458-NO-DIRECT-TRADER-STRATEGY-EXECUTIONCLIENT` 和 `TVM-L4-EXECUTIONCLIENT-VENUE-ADAPTER-CONTRACT`。
+- `Sources/ExecutionClient/FutureGate/L4ExecutionClientVenueAdapterContract.swift` 必须定义 `L4ExecutionClientVenueAdapterContract`、`L4ExecutionClientVenueOperationContract`、`L4ExecutionClientVenueAdapterOperation`、`L4ExecutionClientVenueAdapterGate` 和 `L4ExecutionClientVenueAdapterForbiddenCapability`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH458ExecutionClientVenueAdapterContractDefinesEngineClientBoundary` 和 `testGH458ExecutionClientVenueAdapterContractRejectsDirectAccessAndRuntimeBypass`。
+- 合同必须证明 ExecutionClient 是外部 venue adapter contract，ExecutionEngine 是内部 lifecycle coordinator，submit / cancel / replace / status / execution report / broker fill 只作为 operation contract 行存在。
+- 合同必须证明 sandbox venue gate 和 production venue gate 分离，production venue 默认关闭，production cutover 在 GH-471 前保持 blocked。
+- Forbidden capability tests 必须拒绝 direct Trader / Strategy to ExecutionClient、sandbox submit / cancel / replace runtime、production venue、execution report runtime parser、broker fill parser、OMS、reconciliation、Live PRO Console 和 order form bypass。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`，不依赖真实 secret、broker credential、signed/account endpoint、listenKey、private WebSocket、production endpoint 或人工验收。
+
+GH-458 必须建立的主要 anchors：
+
+- `GH-458-EXECUTIONCLIENT-VENUE-ADAPTER-CONTRACT`
+- `GH-458-EXECUTIONENGINE-INTERNAL-LIFECYCLE-BOUNDARY`
+- `GH-458-SANDBOX-PRODUCTION-VENUE-GATE`
+- `GH-458-NO-DIRECT-TRADER-STRATEGY-EXECUTIONCLIENT`
+- `TVM-L4-EXECUTIONCLIENT-VENUE-ADAPTER-CONTRACT`
+
 ## MTP-24 Trading Validation Matrix Validation
 
 MTP-24 的 required validation：

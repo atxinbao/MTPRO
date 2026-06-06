@@ -15156,3 +15156,40 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 360 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-07 - GH-458 L4 ExecutionClient venue adapter contract
+
+- Issue: GH-458 `L4: 07/21 Define ExecutionClient venue adapter contract`
+- Queue:
+  - GitHub fallback queue used because this L4 stage is not using Linear.
+  - WIP=1 preflight passed before implementation: #458 was OPEN with `mtpro / backlog / non-executable`; #452 and #457 were CLOSED with `done`; no open issue carried `todo`, `in-progress` or `in-review`; no open PR was present.
+  - #458 was promoted to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `docs/contracts/l4-executionclient-venue-adapter-contract.md`.
+  - Added `Sources/ExecutionClient/FutureGate/L4ExecutionClientVenueAdapterContract.swift`.
+  - Added `TargetGraphTests` coverage for ExecutionClient external venue adapter contract, ExecutionEngine internal lifecycle coordinator boundary, sandbox / production venue gate split and no direct Trader / Strategy to ExecutionClient rule.
+  - Backfilled `TVM-L4-EXECUTIONCLIENT-VENUE-ADAPTER-CONTRACT`, validation plan, domain language, latest summary and automation readiness anchors.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No real API key / secret read, storage, print or repository commit.
+  - No API-key header construction or request signature generation.
+  - No signed endpoint / account endpoint call.
+  - No listenKey create / keep-alive / close.
+  - No private WebSocket open / reconnect.
+  - No direct Trader / Strategy to ExecutionClient path.
+  - No broker gateway implementation.
+  - No sandbox submit / cancel / replace runtime.
+  - No production venue, production endpoint or production trading.
+  - No real submit / cancel / replace.
+  - No execution report runtime parser or broker fill parser implementation.
+  - No OMS implementation.
+  - No reconciliation runtime.
+  - No Live PRO Console command surface, trading button, live command or order form.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH458ExecutionClientVenueAdapterContractDefinesEngineClientBoundary`: pass; 1 test / 0 failures.
+  - `swift test --filter TargetGraphTests/testGH458ExecutionClientVenueAdapterContractRejectsDirectAccessAndRuntimeBypass`: pass; 1 test / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 362 XCTest / 0 failures; final output `MTPRO checks passed.`

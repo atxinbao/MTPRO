@@ -1742,6 +1742,151 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH458ExecutionClientVenueAdapterContractDefinesEngineClientBoundary() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        let executionEngineTarget = try packageTargetBlock(named: "ExecutionEngine", packageSource: packageSource)
+        let traderTarget = try packageTargetBlock(named: "Trader", packageSource: packageSource)
+        let traderStrategiesTarget = try packageTargetBlock(named: "TraderStrategies", packageSource: packageSource)
+
+        let contract = try L4ExecutionClientVenueAdapterContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertTrue(contract.operationCoverageHeld)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-458")
+        XCTAssertEqual(contract.upstreamIssueIDs.map(\.rawValue), ["GH-452", "GH-457"])
+        XCTAssertTrue(contract.executionClientIsExternalVenueAdapter)
+        XCTAssertTrue(contract.executionEngineIsInternalLifecycleCoordinator)
+        XCTAssertFalse(contract.traderStrategyDirectAccessAllowed)
+        XCTAssertTrue(contract.sandboxVenueGateRequired)
+        XCTAssertTrue(contract.productionVenueGateRequired)
+        XCTAssertFalse(contract.productionVenueEnabled)
+        XCTAssertFalse(contract.implementsBrokerGateway)
+        XCTAssertFalse(contract.implementsSandboxSubmitCancelReplace)
+        XCTAssertFalse(contract.implementsRealSubmitCancelReplace)
+        XCTAssertFalse(contract.implementsExecutionReportParser)
+        XCTAssertFalse(contract.implementsBrokerFillParser)
+        XCTAssertFalse(contract.implementsOMS)
+        XCTAssertFalse(contract.exposesLiveProConsoleCommandSurface)
+        XCTAssertTrue(contract.validationAnchors.contains("GH-458-EXECUTIONCLIENT-VENUE-ADAPTER-CONTRACT"))
+        XCTAssertTrue(contract.validationAnchors.contains("GH-458-EXECUTIONENGINE-INTERNAL-LIFECYCLE-BOUNDARY"))
+        XCTAssertTrue(contract.validationAnchors.contains("GH-458-SANDBOX-PRODUCTION-VENUE-GATE"))
+        XCTAssertTrue(contract.validationAnchors.contains("GH-458-NO-DIRECT-TRADER-STRATEGY-EXECUTIONCLIENT"))
+        XCTAssertEqual(
+            Set(contract.operationContracts.map(\.operation)),
+            Set(L4ExecutionClientVenueAdapterOperation.allCases)
+        )
+        XCTAssertTrue(contract.operationContracts.allSatisfy { $0.requiresExecutionEngineHandoff })
+        XCTAssertTrue(contract.operationContracts.allSatisfy { $0.sandboxGateRequired })
+        XCTAssertTrue(contract.operationContracts.allSatisfy { $0.productionGateRequired })
+        XCTAssertTrue(contract.operationContracts.allSatisfy { $0.implementsRuntime == false })
+
+        XCTAssertTrue(ExecutionClientTargetBoundary.mtp220.futureGateOnly)
+        XCTAssertTrue(ExecutionEngineTargetBoundary.mtp220.executionClientFutureGateOnly)
+        XCTAssertFalse(ExecutionClientTargetBoundary.mtp220.implementsOrderSubmitCancelReplace)
+        XCTAssertFalse(ExecutionEngineTargetBoundary.mtp220.implementsRealOrderLifecycle)
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(executionEngineTarget.contains("\"ExecutionClient\""))
+        XCTAssertFalse(traderTarget.contains("\"ExecutionClient\""))
+        XCTAssertFalse(traderStrategiesTarget.contains("\"ExecutionClient\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/L4ExecutionClientVenueAdapterContract.swift"
+                ).path
+            )
+        )
+    }
+
+    func testGH458ExecutionClientVenueAdapterContractRejectsDirectAccessAndRuntimeBypass() throws {
+        XCTAssertThrowsError(
+            try L4ExecutionClientVenueOperationContract(
+                operation: .submit,
+                executionClientResponsibility: "",
+                executionEngineResponsibility: "unsafe"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "executionClientResponsibility",
+                    expected: "non-empty ExecutionClient venue adapter responsibility",
+                    actual: "empty"
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4ExecutionClientVenueOperationContract(
+                operation: .submit,
+                executionClientResponsibility: "unsafe",
+                executionEngineResponsibility: "unsafe",
+                implementsRuntime: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("implementsRuntime"))
+        }
+
+        XCTAssertThrowsError(
+            try L4ExecutionClientVenueAdapterContract(
+                operationContracts: []
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "operationContracts",
+                    expected: L4ExecutionClientVenueAdapterOperation.allCases.map(\.rawValue).joined(separator: ","),
+                    actual: ""
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4ExecutionClientVenueAdapterContract(
+                traderStrategyDirectAccessAllowed: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("traderStrategyDirectAccessAllowed")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4ExecutionClientVenueAdapterContract(
+                productionVenueEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("productionVenueEnabled"))
+        }
+
+        XCTAssertThrowsError(
+            try L4ExecutionClientVenueAdapterContract(
+                implementsSandboxSubmitCancelReplace: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("implementsSandboxSubmitCancelReplace")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4ExecutionClientVenueAdapterContract(
+                implementsExecutionReportParser: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("implementsExecutionReportParser")
+            )
+        }
+    }
+
     func testGH421AllArchitectureTargetsExposeIndependentRealAPISmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-421-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)
