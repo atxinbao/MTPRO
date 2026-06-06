@@ -284,6 +284,86 @@ public struct ScenarioDataQualityGateEvaluation: Codable, Equatable, Sendable {
         self.providesTradingButton = providesTradingButton
     }
 
+    /// deterministic data quality gate evaluation 默认值的统一 fail-fast 入口。
+    ///
+    /// 该入口不放宽 replay evidence、gate taxonomy 或 forbidden capability 校验；它只替代裸 `try!`，
+    /// 让固定 quality evaluation 失败时能带上调用位置。
+    public static func constant(
+        contractID: Identifier = Identifier.constant("mtp-107-data-quality-gate-evaluation"),
+        issueID: Identifier = Identifier.constant("MTP-107"),
+        replayEvidence: ScenarioReplayEvidence = .deterministicFixture,
+        observedOrderedRecordStarts: [Int]? = nil,
+        observedWindowDescription: String? = nil,
+        observedRecordCount: Int? = nil,
+        observedChecksum: String? = nil,
+        observedFreshnessStatus: ScenarioReplayFreshnessStatus? = nil,
+        missingRecordSequences: [Int] = [],
+        duplicateRecordSequences: [Int] = [],
+        validationAnchors: [String] = Self.requiredValidationAnchors,
+        requiredValidationDependsOnNetwork: Bool = false,
+        runsProductionDataObservability: Bool = false,
+        performsAutomaticDownload: Bool = false,
+        performsAutomaticRepair: Bool = false,
+        performsBrokerAccountReconciliation: Bool = false,
+        implementsSimulatedExchangeBacktestParity: Bool = false,
+        exposesDatabaseSchema: Bool = false,
+        exposesAdapterRequest: Bool = false,
+        readsRuntimeObject: Bool = false,
+        readsSecret: Bool = false,
+        usesSignedEndpoint: Bool = false,
+        callsAccountEndpoint: Bool = false,
+        createsListenKey: Bool = false,
+        connectsBroker: Bool = false,
+        implementsLiveExecutionAdapter: Bool = false,
+        implementsOMS: Bool = false,
+        implementsRealOrderLifecycle: Bool = false,
+        runsLiveRuntime: Bool = false,
+        providesLiveCommand: Bool = false,
+        providesTradingButton: Bool = false,
+        fileID: StaticString = #fileID,
+        line: UInt = #line
+    ) -> Self {
+        do {
+            return try Self(
+                contractID: contractID,
+                issueID: issueID,
+                replayEvidence: replayEvidence,
+                observedOrderedRecordStarts: observedOrderedRecordStarts,
+                observedWindowDescription: observedWindowDescription,
+                observedRecordCount: observedRecordCount,
+                observedChecksum: observedChecksum,
+                observedFreshnessStatus: observedFreshnessStatus,
+                missingRecordSequences: missingRecordSequences,
+                duplicateRecordSequences: duplicateRecordSequences,
+                validationAnchors: validationAnchors,
+                requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork,
+                runsProductionDataObservability: runsProductionDataObservability,
+                performsAutomaticDownload: performsAutomaticDownload,
+                performsAutomaticRepair: performsAutomaticRepair,
+                performsBrokerAccountReconciliation: performsBrokerAccountReconciliation,
+                implementsSimulatedExchangeBacktestParity: implementsSimulatedExchangeBacktestParity,
+                exposesDatabaseSchema: exposesDatabaseSchema,
+                exposesAdapterRequest: exposesAdapterRequest,
+                readsRuntimeObject: readsRuntimeObject,
+                readsSecret: readsSecret,
+                usesSignedEndpoint: usesSignedEndpoint,
+                callsAccountEndpoint: callsAccountEndpoint,
+                createsListenKey: createsListenKey,
+                connectsBroker: connectsBroker,
+                implementsLiveExecutionAdapter: implementsLiveExecutionAdapter,
+                implementsOMS: implementsOMS,
+                implementsRealOrderLifecycle: implementsRealOrderLifecycle,
+                runsLiveRuntime: runsLiveRuntime,
+                providesLiveCommand: providesLiveCommand,
+                providesTradingButton: providesTradingButton
+            )
+        } catch {
+            fatalError(
+                "MTPRO deterministic ScenarioDataQualityGateEvaluation.constant failed at \(fileID):\(line): \(error)"
+            )
+        }
+    }
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let contractID = try container.decode(Identifier.self, forKey: .contractID)
@@ -565,7 +645,7 @@ public struct ScenarioReportInputVersion: Codable, Equatable, Sendable {
         contractID: Identifier = Identifier.constant("mtp-107-report-input-versioning"),
         issueID: Identifier = Identifier.constant("MTP-107"),
         replayEvidence: ScenarioReplayEvidence = .deterministicFixture,
-        qualityEvaluation: ScenarioDataQualityGateEvaluation = try! ScenarioDataQualityGateEvaluation(),
+        qualityEvaluation: ScenarioDataQualityGateEvaluation = .constant(),
         canonicalFieldOrder: [String] = Self.requiredCanonicalFieldOrder,
         sourceAnchors: [String] = Self.requiredSourceAnchors,
         exposesDatabaseSchema: Bool = false,
@@ -798,7 +878,7 @@ public struct ScenarioDataQualityReportInputEvidence: Codable, Equatable, Sendab
         contractID: Identifier = Identifier.constant("mtp-107-data-quality-report-input-evidence"),
         issueID: Identifier = Identifier.constant("MTP-107"),
         replayEvidence: ScenarioReplayEvidence = .deterministicFixture,
-        qualityEvaluation: ScenarioDataQualityGateEvaluation = try! ScenarioDataQualityGateEvaluation(),
+        qualityEvaluation: ScenarioDataQualityGateEvaluation = .constant(),
         reportInputVersion: ScenarioReportInputVersion = ScenarioReportInputVersion.constant(),
         validationAnchors: [String] = ScenarioDataQualityGateEvaluation.requiredValidationAnchors,
         reportReproducibilityEvidenceHeld: Bool = true,

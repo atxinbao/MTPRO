@@ -19,6 +19,24 @@ public struct Symbol: Codable, Equatable, Hashable, Sendable, CustomStringConver
         self.rawValue = normalized
     }
 
+    /// 构造 deterministic fixture / evidence 标的常量时使用的 fail-fast 入口。
+    ///
+    /// 该入口不放宽 `Symbol` 的 throwing initializer 校验；它只替代裸强制构造，
+    /// 让仓库内固定常量失败时能带上调用位置和原始值。
+    public static func constant(
+        _ rawValue: String,
+        fileID: StaticString = #fileID,
+        line: UInt = #line
+    ) -> Self {
+        do {
+            return try Self(rawValue: rawValue)
+        } catch {
+            fatalError(
+                "MTPRO deterministic Symbol.constant failed at \(fileID):\(line) value=\(rawValue): \(error)"
+            )
+        }
+    }
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let rawValue = try container.decode(String.self)
@@ -83,6 +101,25 @@ public struct DateRange: Codable, Equatable, Sendable {
         }
         self.start = start
         self.end = end
+    }
+
+    /// 构造 deterministic fixture / evidence 日期区间常量时使用的 fail-fast 入口。
+    ///
+    /// 该入口不放宽 `DateRange` 的 start/end 顺序校验；它只替代裸强制构造，
+    /// 让固定 fixture 区间失败时能带上调用位置。
+    public static func constant(
+        start: Date,
+        end: Date,
+        fileID: StaticString = #fileID,
+        line: UInt = #line
+    ) -> Self {
+        do {
+            return try Self(start: start, end: end)
+        } catch {
+            fatalError(
+                "MTPRO deterministic DateRange.constant failed at \(fileID):\(line): \(error)"
+            )
+        }
     }
 
     public init(from decoder: Decoder) throws {

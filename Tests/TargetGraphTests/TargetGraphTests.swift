@@ -1701,6 +1701,56 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH445DeterministicDefaultsUseNamedFactoriesInsteadOfTryBang() throws {
+        XCTAssertEqual(Symbol.constant("BTCUSDT").rawValue, "BTCUSDT")
+        XCTAssertEqual(
+            DateRange.constant(
+                start: Date(timeIntervalSince1970: 1_704_067_200),
+                end: Date(timeIntervalSince1970: 1_704_067_260)
+            ).end.timeIntervalSince1970,
+            1_704_067_260
+        )
+        XCTAssertEqual(ScenarioReplayWindow.constant().recordCount, 3)
+        XCTAssertEqual(ScenarioReplayCursor.constant(nextRecordSequence: 2).nextRecordSequence, 2)
+        XCTAssertTrue(ScenarioReplayChecksumEvidence.constant().parityEvidenceStable)
+        XCTAssertTrue(ScenarioReplayFreshnessPolicy.constant().retainFixtureLocally)
+        XCTAssertTrue(ScenarioReplayFreshnessEvidence.constant().isLocalFixtureFreshnessOnly)
+        XCTAssertTrue(ScenarioDataQualityGateEvaluation.constant().qualityGateBoundaryHeld)
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let scannedFiles = try swiftFiles(
+            under: repositoryRoot,
+            relativeRoots: [
+                "Sources/DataEngine/ScenarioReplay",
+                "Sources/DataEngine/DataQuality"
+            ]
+        ) + [
+            repositoryRoot.appendingPathComponent("Sources/Core/DashboardBetaDemoScenario.swift")
+        ]
+
+        let violations = try scannedFiles.flatMap { file -> [String] in
+            let source = try String(contentsOf: file, encoding: .utf8)
+            let relativePath = relativePath(for: file, repositoryRoot: repositoryRoot)
+            return source.components(separatedBy: .newlines).enumerated().compactMap { index, line in
+                let implementationLine = line.components(separatedBy: "//").first ?? line
+                guard implementationLine.contains("try!") else {
+                    return nil
+                }
+                return "\(relativePath):\(index + 1): \(line.trimmingCharacters(in: .whitespaces))"
+            }
+        }
+
+        XCTAssertTrue(
+            violations.isEmpty,
+            """
+            GH-445 deterministic replay / data quality / dashboard defaults must use named factory entrypoints \
+            instead of bare try!.
+            Violations:
+            \(violations.joined(separator: "\n"))
+            """
+        )
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int

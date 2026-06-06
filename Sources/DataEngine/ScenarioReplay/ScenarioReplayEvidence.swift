@@ -80,6 +80,25 @@ public struct ScenarioReplayWindow: Codable, Equatable, Sendable {
         self.sourceAnchor = sourceAnchor
     }
 
+    /// deterministic replay window 默认值的统一 fail-fast 入口。
+    ///
+    /// 该入口不放宽 fixture boundary 或 source anchor 校验；它只替代裸 `try!`，
+    /// 让固定 replay window 失败时能带上调用位置。
+    public static func constant(
+        fixture: DeterministicScenarioFixture = .deterministicFixture,
+        sourceAnchor: String = "MTP-106-DETERMINISTIC-REPLAY-WINDOW",
+        fileID: StaticString = #fileID,
+        line: UInt = #line
+    ) -> Self {
+        do {
+            return try Self(fixture: fixture, sourceAnchor: sourceAnchor)
+        } catch {
+            fatalError(
+                "MTPRO deterministic ScenarioReplayWindow.constant failed at \(fileID):\(line): \(error)"
+            )
+        }
+    }
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let scenarioID = try container.decode(ScenarioID.self, forKey: .scenarioID)
@@ -215,7 +234,7 @@ public struct ScenarioReplayCursor: Codable, Equatable, Comparable, Sendable {
     public let sourceAnchor: String
 
     public init(
-        replayWindow: ScenarioReplayWindow = try! ScenarioReplayWindow(),
+        replayWindow: ScenarioReplayWindow = .constant(),
         nextRecordSequence: Int = 1,
         sourceAnchor: String = "MTP-106-REPLAY-CURSOR-SUMMARY"
     ) throws {
@@ -248,6 +267,30 @@ public struct ScenarioReplayCursor: Codable, Equatable, Comparable, Sendable {
             lastRecordSequence: replayWindow.lastRecordSequence
         )
         self.sourceAnchor = sourceAnchor
+    }
+
+    /// deterministic replay cursor 默认值的统一 fail-fast 入口。
+    ///
+    /// 该入口不放宽 cursor sequence 或 window identity 校验；它只替代裸 `try!`，
+    /// 让固定 cursor 失败时能带上调用位置。
+    public static func constant(
+        replayWindow: ScenarioReplayWindow = .constant(),
+        nextRecordSequence: Int = 1,
+        sourceAnchor: String = "MTP-106-REPLAY-CURSOR-SUMMARY",
+        fileID: StaticString = #fileID,
+        line: UInt = #line
+    ) -> Self {
+        do {
+            return try Self(
+                replayWindow: replayWindow,
+                nextRecordSequence: nextRecordSequence,
+                sourceAnchor: sourceAnchor
+            )
+        } catch {
+            fatalError(
+                "MTPRO deterministic ScenarioReplayCursor.constant failed at \(fileID):\(line): \(error)"
+            )
+        }
     }
 
     public init(from decoder: Decoder) throws {
@@ -371,7 +414,7 @@ public struct ScenarioReplayCursorSummary: Codable, Equatable, Sendable {
     public let state: ScenarioReplayCursorState
     public let summaryLine: String
 
-    public init(cursor: ScenarioReplayCursor = try! ScenarioReplayCursor()) {
+    public init(cursor: ScenarioReplayCursor = .constant()) {
         self.cursorIdentity = cursor.cursorIdentity
         self.windowIdentity = cursor.windowIdentity
         self.nextRecordSequence = cursor.nextRecordSequence
@@ -422,6 +465,27 @@ public struct ScenarioReplayChecksumEvidence: Codable, Equatable, Sendable {
         self.checksum = computed
         self.checksumMatchedCanonicalPreimage = true
         self.parityEvidenceStable = true
+    }
+
+    /// deterministic checksum evidence 默认值的统一 fail-fast 入口。
+    ///
+    /// 该入口不放宽 checksum preimage 或 parity 校验；它只替代裸 `try!`，
+    /// 让固定 checksum evidence 失败时能带上调用位置。
+    public static func constant(
+        summary: ScenarioFixtureDeterministicSummary = DeterministicScenarioFixture
+            .deterministicFixture
+            .deterministicSummary,
+        checksum: String? = nil,
+        fileID: StaticString = #fileID,
+        line: UInt = #line
+    ) -> Self {
+        do {
+            return try Self(summary: summary, checksum: checksum)
+        } catch {
+            fatalError(
+                "MTPRO deterministic ScenarioReplayChecksumEvidence.constant failed at \(fileID):\(line): \(error)"
+            )
+        }
     }
 
     public init(from decoder: Decoder) throws {
@@ -541,6 +605,38 @@ public struct ScenarioReplayFreshnessPolicy: Codable, Equatable, Sendable {
         self.authorizesStorageTiering = authorizesStorageTiering
     }
 
+    /// deterministic freshness policy 默认值的统一 fail-fast 入口。
+    ///
+    /// 该入口不放宽 stale / expiry 顺序或 forbidden capability 校验；它只替代裸 `try!`，
+    /// 让固定 freshness policy 失败时能带上调用位置。
+    public static func constant(
+        policyID: Identifier = Identifier.constant("mtp-106-local-fixture-freshness-policy"),
+        retainFixtureLocally: Bool = true,
+        staleAfterSeconds: Int = 300,
+        expiresAfterSeconds: Int = 900,
+        authorizesProductionRetentionEngine: Bool = false,
+        authorizesCloudArchive: Bool = false,
+        authorizesStorageTiering: Bool = false,
+        fileID: StaticString = #fileID,
+        line: UInt = #line
+    ) -> Self {
+        do {
+            return try Self(
+                policyID: policyID,
+                retainFixtureLocally: retainFixtureLocally,
+                staleAfterSeconds: staleAfterSeconds,
+                expiresAfterSeconds: expiresAfterSeconds,
+                authorizesProductionRetentionEngine: authorizesProductionRetentionEngine,
+                authorizesCloudArchive: authorizesCloudArchive,
+                authorizesStorageTiering: authorizesStorageTiering
+            )
+        } catch {
+            fatalError(
+                "MTPRO deterministic ScenarioReplayFreshnessPolicy.constant failed at \(fileID):\(line): \(error)"
+            )
+        }
+    }
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         try self.init(
@@ -593,8 +689,8 @@ public struct ScenarioReplayFreshnessEvidence: Codable, Equatable, Sendable {
     public let authorizesStorageTiering: Bool
 
     public init(
-        replayWindow: ScenarioReplayWindow = try! ScenarioReplayWindow(),
-        policy: ScenarioReplayFreshnessPolicy = try! ScenarioReplayFreshnessPolicy(),
+        replayWindow: ScenarioReplayWindow = .constant(),
+        policy: ScenarioReplayFreshnessPolicy = .constant(),
         evaluatedAt: Date = Date(timeIntervalSince1970: 1_704_067_500),
         requiredValidationDependsOnNetwork: Bool = false,
         authorizesProductionRetentionEngine: Bool = false,
@@ -634,6 +730,38 @@ public struct ScenarioReplayFreshnessEvidence: Codable, Equatable, Sendable {
         self.authorizesProductionRetentionEngine = authorizesProductionRetentionEngine
         self.authorizesCloudArchive = authorizesCloudArchive
         self.authorizesStorageTiering = authorizesStorageTiering
+    }
+
+    /// deterministic freshness evidence 默认值的统一 fail-fast 入口。
+    ///
+    /// 该入口不放宽 freshness status 或 forbidden capability 校验；它只替代裸 `try!`，
+    /// 让固定 freshness evidence 失败时能带上调用位置。
+    public static func constant(
+        replayWindow: ScenarioReplayWindow = .constant(),
+        policy: ScenarioReplayFreshnessPolicy = .constant(),
+        evaluatedAt: Date = Date(timeIntervalSince1970: 1_704_067_500),
+        requiredValidationDependsOnNetwork: Bool = false,
+        authorizesProductionRetentionEngine: Bool = false,
+        authorizesCloudArchive: Bool = false,
+        authorizesStorageTiering: Bool = false,
+        fileID: StaticString = #fileID,
+        line: UInt = #line
+    ) -> Self {
+        do {
+            return try Self(
+                replayWindow: replayWindow,
+                policy: policy,
+                evaluatedAt: evaluatedAt,
+                requiredValidationDependsOnNetwork: requiredValidationDependsOnNetwork,
+                authorizesProductionRetentionEngine: authorizesProductionRetentionEngine,
+                authorizesCloudArchive: authorizesCloudArchive,
+                authorizesStorageTiering: authorizesStorageTiering
+            )
+        } catch {
+            fatalError(
+                "MTPRO deterministic ScenarioReplayFreshnessEvidence.constant failed at \(fileID):\(line): \(error)"
+            )
+        }
     }
 
     public init(from decoder: Decoder) throws {
@@ -779,10 +907,10 @@ public struct ScenarioReplayEvidence: Codable, Equatable, Sendable {
         contractID: Identifier = Identifier.constant("mtp-106-scenario-replay-evidence"),
         issueID: Identifier = Identifier.constant("MTP-106"),
         fixture: DeterministicScenarioFixture = .deterministicFixture,
-        replayWindow: ScenarioReplayWindow = try! ScenarioReplayWindow(),
+        replayWindow: ScenarioReplayWindow = .constant(),
         cursorSummary: ScenarioReplayCursorSummary = ScenarioReplayCursorSummary(),
-        checksumEvidence: ScenarioReplayChecksumEvidence = try! ScenarioReplayChecksumEvidence(),
-        freshnessEvidence: ScenarioReplayFreshnessEvidence = try! ScenarioReplayFreshnessEvidence(),
+        checksumEvidence: ScenarioReplayChecksumEvidence = .constant(),
+        freshnessEvidence: ScenarioReplayFreshnessEvidence = .constant(),
         validationAnchors: [String] = Self.requiredValidationAnchors,
         requiredValidationDependsOnNetwork: Bool = false,
         downloadsRealNetworkData: Bool = false,

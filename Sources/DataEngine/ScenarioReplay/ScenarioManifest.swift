@@ -152,6 +152,38 @@ public struct ScenarioManifestDeterministicSerialization: Codable, Equatable, Se
         self.canonicalFieldOrder = canonicalFieldOrder
     }
 
+    /// deterministic manifest serialization 默认值的统一 fail-fast 入口。
+    ///
+    /// 该入口不放宽 manifest serialization 的字段顺序、scope 或 source anchor 校验；它只替代裸 `try!`，
+    /// 让仓库内固定 serialization evidence 失败时能带上调用位置。
+    public static func constant(
+        scenarioID: ScenarioID,
+        datasetVersion: DatasetVersion,
+        symbol: Symbol,
+        timeframe: Timeframe,
+        sourceAnchor: String,
+        scope: ScenarioManifestScope,
+        canonicalFieldOrder: [String] = Self.requiredCanonicalFieldOrder,
+        fileID: StaticString = #fileID,
+        line: UInt = #line
+    ) -> Self {
+        do {
+            return try Self(
+                scenarioID: scenarioID,
+                datasetVersion: datasetVersion,
+                symbol: symbol,
+                timeframe: timeframe,
+                sourceAnchor: sourceAnchor,
+                scope: scope,
+                canonicalFieldOrder: canonicalFieldOrder
+            )
+        } catch {
+            fatalError(
+                "MTPRO deterministic ScenarioManifestDeterministicSerialization.constant failed at \(fileID):\(line): \(error)"
+            )
+        }
+    }
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         try self.init(
@@ -244,7 +276,7 @@ public struct ScenarioManifest: Codable, Equatable, Sendable {
     }
 
     public var deterministicSerialization: ScenarioManifestDeterministicSerialization {
-        try! ScenarioManifestDeterministicSerialization(
+        ScenarioManifestDeterministicSerialization.constant(
             scenarioID: scenarioID,
             datasetVersion: datasetVersion,
             symbol: symbol,
