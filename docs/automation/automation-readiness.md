@@ -14,6 +14,7 @@
 | --- | --- | --- |
 | GitHub Actions required check | ready | `.github/workflows/checks.yml`，job name `checks` |
 | CI reproducibility anchor | ready | `docs/automation/ci-reproducibility.md`；GH-450 固定当前 runner-pinned Swift 6.3.x baseline、`ubuntu-24.04` runner、sqlite dev headers、local Swift 6.3.x preflight、formatter 不强制接入 required checks 边界和 future setup action change gate；不新增第三方 setup action，不授权 L4/runtime |
+| L4 Live Production Command contract anchor | ready | `docs/contracts/l4-live-production-command-contract.md`、`Sources/ExecutionClient/FutureGate/L4LiveProductionCommandContract.swift` 和 `Tests/TargetGraphTests/TargetGraphTests.swift` 的 `testGH452L4LiveProductionCommandContractDefinesDisabledProductionMatrix` / `testGH452L4LiveProductionCommandContractRejectsProductionBypass`；GH-452 只定义 L4 read-only -> guarded command contract、sandbox / production gate、command authorization、acceptance matrix、rollback evidence 和 no-default-real-trading policy，不使用 Linear，不启动 Symphony，不运行 Graphify / code-index，不实现 signed endpoint、private stream、ExecutionClient adapter、OMS、RiskEngine live runtime、Live PRO Console、trading button、live command 或 order form |
 | GitHub PR Automation | ready | `protect-main`、required checks、squash auto-merge、branch cleanup |
 | Local validation entrypoint | ready | `bash checks/run.sh` |
 | Automation readiness shell gate | ready | `bash checks/automation-readiness.sh` |

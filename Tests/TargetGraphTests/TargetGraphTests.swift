@@ -900,6 +900,110 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(executionClientTarget.contains("dependencies: [\"DomainModel\", \"MessageBus\"]"))
     }
 
+    func testGH452L4LiveProductionCommandContractDefinesDisabledProductionMatrix() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+
+        let contract = try L4LiveProductionCommandContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertTrue(contract.acceptanceMatrixCoverageHeld)
+        XCTAssertEqual(contract.canonicalQueueRange, "GH-452..GH-472")
+        XCTAssertEqual(contract.issueID.rawValue, "GH-452")
+        XCTAssertTrue(contract.validationAnchors.contains("GH-452-L4-LIVE-PRODUCTION-COMMAND-CONTRACT"))
+        XCTAssertTrue(contract.validationAnchors.contains("TVM-L4-LIVE-PRODUCTION-COMMANDS"))
+        XCTAssertEqual(
+            Set(contract.acceptanceMatrix.map(\.domain)),
+            Set(L4LiveProductionAcceptanceDomain.allCases)
+        )
+
+        XCTAssertFalse(contract.productionTradingEnabledByDefault)
+        XCTAssertTrue(contract.sandboxGateRequiredBeforeCommand)
+        XCTAssertTrue(contract.commandAuthorizationRequired)
+        XCTAssertTrue(contract.riskGateRequiredBeforeExecution)
+        XCTAssertTrue(contract.omsGateRequiredBeforeExecutionClient)
+        XCTAssertTrue(contract.auditTrailRequired)
+        XCTAssertTrue(contract.rollbackEvidenceRequired)
+        XCTAssertTrue(contract.noDefaultRealTradingPolicyRequired)
+
+        for forbidden in [
+            contract.readsCredentialValue,
+            contract.printsCredentialValue,
+            contract.connectsProductionEndpoint,
+            contract.usesSignedEndpoint,
+            contract.opensPrivateStream,
+            contract.implementsExecutionClientAdapter,
+            contract.implementsOMS,
+            contract.submitsRealOrder,
+            contract.cancelsRealOrder,
+            contract.replacesRealOrder,
+            contract.consumesExecutionReport,
+            contract.recordsBrokerFill,
+            contract.performsReconciliation,
+            contract.exposesLiveProConsoleCommandSurface,
+            contract.exposesOrderForm
+        ] {
+            XCTAssertFalse(forbidden)
+        }
+
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(coreTarget.contains("\"ExecutionClient/FutureGate\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/L4LiveProductionCommandContract.swift"
+                ).path
+            )
+        )
+    }
+
+    func testGH452L4LiveProductionCommandContractRejectsProductionBypass() throws {
+        XCTAssertThrowsError(
+            try L4LiveProductionCommandContract(
+                productionTradingEnabledByDefault: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("productionTradingEnabledByDefault")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4LiveProductionCommandContract(
+                acceptanceMatrix: []
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "acceptanceMatrix",
+                    expected: "GH-452 required acceptance matrix",
+                    actual: "[]"
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4LiveProductionCommandContract(
+                requiredValidationCommands: ["bash checks/run.sh"]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "requiredValidationCommands",
+                    expected: "git diff --check,bash checks/automation-readiness.sh,bash checks/run.sh",
+                    actual: "bash checks/run.sh"
+                )
+            )
+        }
+    }
+
     func testGH421AllArchitectureTargetsExposeIndependentRealAPISmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-421-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)

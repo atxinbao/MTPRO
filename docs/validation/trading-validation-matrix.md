@@ -260,6 +260,16 @@ MTP-117 对 Simulated Exchange / Backtest Parity v1 的 validation matrix、auto
 
 `TVM-FUTURE-ISSUE-BACKFILL`
 
+## GH-452 L4 Live Production / Trading Commands matrix extension
+
+日期：2026-06-07
+
+执行者：Codex
+
+| Issue | Matrix ID | Evidence |
+| --- | --- | --- |
+| `GH-452` | `TVM-L4-LIVE-PRODUCTION-COMMANDS` | 新增 `docs/contracts/l4-live-production-command-contract.md` 和 `Sources/ExecutionClient/FutureGate/L4LiveProductionCommandContract.swift`，定义 L4 read-only -> guarded command contract、sandbox / production gate、command authorization、evidence identity、rollback evidence、no-default-real-trading policy 和 acceptance matrix。`Tests/TargetGraphTests/TargetGraphTests.swift` 的 `testGH452L4LiveProductionCommandContractDefinesDisabledProductionMatrix` 验证矩阵覆盖 command、risk、execution、audit、rollback、credential、private stream、dashboard command surface 和 production cutover；`testGH452L4LiveProductionCommandContractRejectsProductionBypass` 验证 production 默认启用、矩阵缺失或 required validation 缺失会被拒绝。GH-452 不使用 Linear，不启动 Symphony，不运行 Graphify / code-index，不实现 signed endpoint、private stream、ExecutionClient adapter、OMS、RiskEngine live runtime、Live PRO Console、trading button、live command、order form、production endpoint 或 real submit / cancel / replace。 |
+
 | Issue | 必须回填的 Matrix ID | 回填内容 |
 | --- | --- | --- |
 | `MTP-110` | `TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY` | MTP-110 issue backfill 已回填 simulated exchange / backtest parity terminology、target engine responsibility boundary、L1 Paper Runtime + L1.5 Data Catalog / Scenario Replay 到 L2 的 handoff boundary、forbidden capability baseline、source docs anchors、validation anchors、Core deterministic fixture、focused Core tests、contract docs、domain context、validation plan、automation readiness anchors 和 latest verification summary；不实现 matching runtime、order execution runtime、portfolio projection runtime、UI、Graphify、Figma、signed endpoint、account endpoint / listenKey、broker、`LiveExecutionAdapter`、OMS、real order lifecycle、execution report、broker fill、reconciliation、Live PRO Console、live command 或交易按钮。 |
