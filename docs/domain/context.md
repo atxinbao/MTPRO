@@ -3272,6 +3272,32 @@ Freshness evidence 必须覆盖 fresh、stale、blocked、missing 和 disconnect
 
 L4 private stream account snapshot matrix 必须证明 source identity、account snapshot read-model update、freshness status、Dashboard read-model-only boundary 和 forbidden listenKey / WebSocket / raw payload / command lifecycle 同时成立。
 
+## GH-457 L4 Live Account Read-model Mapping Terms
+
+`GH-457-L4-LIVE-ACCOUNT-READ-MODEL-MAPPING`
+
+L4 live account read-model mapping 指把 GH-455 signed account canonical evidence 和 GH-456 private stream account snapshot evidence 解释为 account、position、balance、margin 四类 canonical read model record。它是 projection / interpretation，不是 real account runtime、broker sync、real PnL runtime 或 command surface。
+
+`GH-457-APB-MARGIN-CANONICAL-COMPONENTS`
+
+APB / margin canonical components 固定为 account、position、balance、margin。它们只表达 read-model 维度，不等于 account endpoint JSON、broker state、real PnL、margin / leverage runtime、execution report、broker fill 或 order lifecycle state。
+
+`GH-457-FRESHNESS-SOURCE-EVIDENCE-IDENTITY`
+
+GH-457 read model 必须保留 upstream evidence identity、source identity 和 freshness statuses。fresh、stale、blocked、missing、disconnected 只作为 read-model status，不驱动 reconnect、listenKey keep-alive、broker fallback、reconciliation、order retry 或 trading command。
+
+`GH-457-DASHBOARD-READ-MODEL-ONLY-CONSUMPTION`
+
+Dashboard / Report / Events 只能消费 canonical read model，不得读取 Runtime object、Adapter request、schema、raw account payload、raw private payload、broker payload、broker state 或 command state。GH-457 不授权 UI command console。
+
+`GH-457-FIXTURE-SANDBOX-REAL-ACCOUNT-INTERPRETATION-SEPARATION`
+
+Fixture / sandbox interpretation 是当前可验证 value source；future real account read-only interpretation 只能作为后续受门禁语义。文档、代码和测试不得把 fixture / sandbox value 写成真实账户数据，也不得通过真实 account endpoint、broker state 或 real PnL runtime 解释这些值。
+
+`TVM-L4-LIVE-ACCOUNT-READ-MODEL-MAPPING`
+
+L4 live account read-model matrix 必须证明 APB / margin component 完整、source / freshness / evidence identity 完整、Dashboard read-model-only boundary 成立、fixture / sandbox 与 future real account interpretation 已隔离，并且 raw payload、broker state、Runtime object、Adapter request、schema、real PnL、reconciliation 和 command surface 全部关闭。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
