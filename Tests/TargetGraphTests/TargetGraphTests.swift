@@ -1127,6 +1127,132 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH454L4SignedEndpointPrivateStreamBoundarySeparatesRuntimeKinds() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+
+        let contract = try L4SignedEndpointPrivateStreamBoundaryContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertTrue(contract.boundaryCoverageHeld)
+        XCTAssertEqual(contract.canonicalQueueRange, "GH-452..GH-472")
+        XCTAssertEqual(contract.issueID.rawValue, "GH-454")
+        XCTAssertEqual(contract.upstreamIssueIDs.map(\.rawValue), ["GH-452", "GH-453"])
+        XCTAssertTrue(contract.validationAnchors.contains("GH-454-L4-SIGNED-ENDPOINT-PRIVATE-STREAM-BOUNDARY"))
+        XCTAssertTrue(contract.validationAnchors.contains("TVM-L4-SIGNED-ENDPOINT-PRIVATE-STREAM-BOUNDARY"))
+        XCTAssertEqual(
+            Set(contract.runtimeKinds),
+            Set(L4SignedPrivateRuntimeKind.allCases)
+        )
+        XCTAssertEqual(
+            Set(contract.capabilityTaxonomy),
+            Set(L4SignedRequestCapabilityTaxonomy.allCases)
+        )
+        XCTAssertEqual(
+            Set(contract.lifecycleGates),
+            Set(L4PrivateStreamLifecycleGate.allCases)
+        )
+        XCTAssertEqual(
+            Set(contract.sourceIdentities),
+            Set(L4AccountPrivateEventSourceIdentity.allCases)
+        )
+
+        XCTAssertTrue(contract.signedReadOnlyPrivateStreamAndCommandRuntimeAreSeparated)
+        XCTAssertTrue(contract.futureImplementationContractRequired)
+        XCTAssertTrue(contract.accountSnapshotSourceIdentityRequired)
+        XCTAssertTrue(contract.privateEventSourceIdentityRequired)
+        XCTAssertTrue(contract.credentialEnvironmentGateRequired)
+        XCTAssertTrue(contract.productionDisabledByDefault)
+
+        for forbidden in [
+            contract.readsCredentialValue,
+            contract.constructsAPIKeyHeader,
+            contract.generatesRequestSignature,
+            contract.callsSignedEndpoint,
+            contract.callsAccountEndpoint,
+            contract.createsListenKey,
+            contract.keepsListenKeyAlive,
+            contract.closesListenKey,
+            contract.opensPrivateWebSocket,
+            contract.reconnectsPrivateWebSocket,
+            contract.readsRealAccountSnapshot,
+            contract.consumesRealPrivateEvent,
+            contract.implementsCommandRuntime,
+            contract.implementsExecutionClientAdapter,
+            contract.implementsOMS,
+            contract.submitsRealOrder,
+            contract.cancelsRealOrder,
+            contract.replacesRealOrder,
+            contract.productionTradingEnabledByDefault,
+            contract.exposesLiveProConsoleCommandSurface,
+            contract.exposesOrderForm
+        ] {
+            XCTAssertFalse(forbidden)
+        }
+
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/L4SignedEndpointPrivateStreamBoundaryContract.swift"
+                ).path
+            )
+        )
+    }
+
+    func testGH454L4SignedEndpointPrivateStreamBoundaryRejectsEndpointRuntimeBypass() throws {
+        XCTAssertThrowsError(
+            try L4SignedEndpointPrivateStreamBoundaryContract(
+                callsSignedEndpoint: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("callsSignedEndpoint")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4SignedEndpointPrivateStreamBoundaryContract(
+                createsListenKey: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("createsListenKey")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4SignedEndpointPrivateStreamBoundaryContract(
+                implementsCommandRuntime: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("implementsCommandRuntime")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4SignedEndpointPrivateStreamBoundaryContract(
+                boundaryEntries: []
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "boundaryEntries",
+                    expected: "GH-454 required signed/private boundary entries",
+                    actual: "[]"
+                )
+            )
+        }
+    }
+
     func testGH421AllArchitectureTargetsExposeIndependentRealAPISmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-421-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)
