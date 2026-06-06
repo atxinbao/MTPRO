@@ -539,6 +539,20 @@ GH-420 将 active Dashboard source 的当前命名收口到 `Dashboard read-mode
 
 历史 `LiveReadOnlyWorkbenchReadModelBoundary` 类型仍保留在 `Core` 作为 MTP-131 合同事实源；它不是当前 Dashboard active module 命名。历史 verification / audit 里的 Workbench wording 可以保留为 before-state evidence，但 active source、target boundary、automation readiness 和 current contract 必须使用 Dashboard read-model-only 口径。
 
+## GH-421 All Architecture Targets Real API Smoke Coverage
+
+`GH-421-ALL-ARCHITECTURE-TARGETS-REAL-API-SMOKE`
+
+GH-421 增加一条跨全 architecture target 的 deterministic smoke test，证明当前 SwiftPM targets 不只是 `Package.swift` 字符串或 `TargetGraph` boundary anchor，而是能被 test target 独立 import 并组合使用真实 public APIs：
+
+- Foundation targets：`DomainModel` / `MessageBus` / `Database` 直接创建 source ownership、message stream / journal 和 checkpoint。
+- Data targets：`DataClient` / `DataEngine` / `Cache` 直接创建 public read-only market data source、read-model snapshot 和 replay plan。
+- Trader side：`TraderStrategies` 只使用 `EMA` active concrete strategy；`Trader` 使用 account context future-gate fixture；`Portfolio`、`RiskEngine` 和 `ExecutionEngine` 串联 paper-only proposal / exposure / risk / execution handoff。
+- Future gate：`ExecutionClient` 仍只验证 protocol boundary / future gate，不实现 broker gateway、OMS、signed endpoint、real order lifecycle 或 submit / cancel / replace。
+- UI surface：`Dashboard` 只验证 Dashboard read-model-only boundary，不恢复 Workbench / AppCompatibility active module。
+
+该测试不授权 L4，也不实现 Trader runtime、Strategy runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、real account read、private stream runtime、Live PRO Console、trading button、live command 或 order form。
+
 `GH-417-VALIDATION-ANCHORS`
 
 `MTP-219-RISKENGINE-TARGET-SPLIT`
