@@ -5620,6 +5620,25 @@ require_contains "Package.swift" '"MessageBusAppendOnlyJournal.swift"'
 require_contains "docs/automation/automation-readiness.md" "GH-394 DomainModel / MessageBus implementation ownership anchor"
 require_contains "docs/validation/latest-verification-summary.md" "GH-394 DomainModel / MessageBus implementation ownership"
 require_contains "verification.md" "GH-394 DomainModel / MessageBus implementation ownership"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-414-MESSAGEBUS-NEUTRAL-QUERY-REPLAY-OWNERSHIP"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-414-CORE-RICH-MESSAGEBUS-COMPATIBILITY-ENVELOPE"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-414-VALIDATION-ANCHORS"
+require_contains "architecture.md" "GH-414 MessageBus Neutral Query / Replay Ownership"
+require_contains "architecture.md" "GH-414-MESSAGEBUS-NEUTRAL-QUERY-REPLAY-OWNERSHIP"
+require_file "Sources/MessageBus/MarketDataQuery.swift"
+require_file "Sources/MessageBus/EventReplayContract.swift"
+require_contains "Package.swift" '"MarketDataQuery.swift"'
+require_contains "Package.swift" '"EventReplayContract.swift"'
+require_contains "Package.swift" '"MessageBus/MarketDataQuery.swift"'
+require_contains "Package.swift" '"MessageBus/EventReplayContract.swift"'
+require_contains "Sources/MessageBus/TargetGraph/MessageBusTargetBoundary.swift" "GH-414-MESSAGEBUS-NEUTRAL-QUERY-REPLAY-OWNERSHIP"
+require_contains "Sources/MessageBus/TargetGraph/MessageBusTargetBoundary.swift" "GH-414-CORE-RICH-MESSAGEBUS-COMPATIBILITY-ENVELOPE"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH414MessageBusOwnsNeutralQueryAndReplayContracts"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "MarketDataQuery"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "EventReplayCommand"
+require_contains "docs/automation/automation-readiness.md" "GH-414 MessageBus neutral query / replay ownership anchor"
+require_contains "docs/validation/latest-verification-summary.md" "GH-414 MessageBus neutral query / replay ownership"
+require_contains "verification.md" "GH-414 MessageBus neutral query / replay ownership"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-395-DATA-TARGET-REAL-SMOKE-TESTS"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-395-DATA-COMPATIBILITY-ENVELOPE-PRESERVED"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-395-DATA-VALIDATION-ANCHORS"

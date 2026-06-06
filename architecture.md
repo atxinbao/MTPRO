@@ -244,6 +244,16 @@ GH-394 让 `MessageBus` target 拥有中立 append-only journal：`MessageBusApp
 
 GH-394 不删除 `Core`，也不迁移 Data、Trader、Portfolio、Risk、Execution 或 Dashboard ownership。它只完成 foundation ownership 的第一段真实迁移，并继续禁止 Trader runtime、Strategy runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed/account endpoint、private stream runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 和 L4 capability。
 
+## GH-414 MessageBus Neutral Query / Replay Ownership
+
+`GH-414-MESSAGEBUS-NEUTRAL-QUERY-REPLAY-OWNERSHIP`
+
+GH-414 把可安全独立的 MessageBus neutral query / replay contracts 迁回真实 `MessageBus` target：`MarketDataQuery.swift` 和 `EventReplayContract.swift` 现在由 `MessageBus` 直接编译，并通过 `TargetGraphTests/testGH414MessageBusOwnsNeutralQueryAndReplayContracts` 证明 target 可独立 import / use 这些 query、stream identity、sequence range 和 replay command 类型。
+
+`GH-414-CORE-RICH-MESSAGEBUS-COMPATIBILITY-ENVELOPE`
+
+`CommandsAndQueries.swift`、`DomainEvents.swift`、`EventLog.swift` 和 `PaperRuntimeBusRouting.swift` 仍保留在 `Core` compatibility envelope。保留原因不是遗漏，而是这些 rich payload 当前引用 paper、strategy、portfolio、risk、execution lifecycle 和 downstream evidence；直接迁入 `MessageBus` 会让 MessageBus 反向依赖上层模块。后续必须继续按依赖方向拆解 rich payload ownership。
+
 ## GH-395 Data Target Real Smoke Tests
 
 `GH-395-DATA-TARGET-REAL-SMOKE-TESTS`

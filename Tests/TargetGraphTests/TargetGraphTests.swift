@@ -249,6 +249,61 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH414MessageBusOwnsNeutralQueryAndReplayContracts() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+
+        let messageBusTarget = try packageTargetBlock(named: "MessageBus", packageSource: packageSource)
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        let coreSources = try packageTargetSourcesBlock(targetBlock: coreTarget)
+
+        for expected in [
+            "\"MarketDataQuery.swift\"",
+            "\"EventReplayContract.swift\""
+        ] {
+            XCTAssertTrue(messageBusTarget.contains(expected), "MessageBus target must own \(expected)")
+        }
+
+        for expected in [
+            "\"MessageBus/MarketDataQuery.swift\"",
+            "\"MessageBus/EventReplayContract.swift\""
+        ] {
+            XCTAssertTrue(coreTarget.contains(expected), "Core compatibility envelope must exclude \(expected)")
+            XCTAssertFalse(coreSources.contains(expected), "Core must not primary-compile \(expected)")
+        }
+
+        let symbol = try Symbol(rawValue: "btcusdt")
+        let range = try DateRange(
+            start: Date(timeIntervalSince1970: 414),
+            end: Date(timeIntervalSince1970: 474)
+        )
+        let query = MarketDataQuery(symbol: symbol, timeframe: .oneMinute, range: range)
+        XCTAssertEqual(query.symbol.rawValue, "BTCUSDT")
+        XCTAssertEqual(query.timeframe, .oneMinute)
+
+        let sequenceRange = try EventSequenceRange(lowerBound: 1, upperBound: 3)
+        XCTAssertTrue(sequenceRange.contains(2))
+        XCTAssertFalse(sequenceRange.contains(4))
+
+        let replay = EventReplayCommand(range: sequenceRange, streams: [.paper])
+        XCTAssertTrue(replay.streams.contains(.paper))
+        XCTAssertFalse(replay.streams.contains(.market))
+
+        XCTAssertTrue(
+            MessageBusTargetBoundary.requiredValidationAnchors.contains(
+                "GH-414-MESSAGEBUS-NEUTRAL-QUERY-REPLAY-OWNERSHIP"
+            )
+        )
+        XCTAssertTrue(
+            MessageBusTargetBoundary.requiredValidationAnchors.contains(
+                "GH-414-CORE-RICH-MESSAGEBUS-COMPATIBILITY-ENVELOPE"
+            )
+        )
+    }
+
     func testMTP218DataTargetsExposeReadOnlyDependencyDirectionAndCompatibilityBoundary() {
         let dataClient = DataClientTargetBoundary.mtp218
         let cache = CacheTargetBoundary.mtp218

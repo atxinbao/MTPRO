@@ -2150,3 +2150,34 @@ GitHub Issue：[#413](https://github.com/atxinbao/MTPRO/issues/413)
 - `git diff --check`：pass，无输出。
 - `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
 - `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true` / `dashboardReadModelOnly=true`，339 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
+## 2026-06-06 — GH-414 MessageBus neutral query / replay ownership
+
+执行者：Codex
+
+GitHub Issue：[#414](https://github.com/atxinbao/MTPRO/issues/414)
+
+范围：
+
+- 将 `MarketDataQuery` 从 `Core` compatibility envelope 迁入真实 `MessageBus` target ownership。
+- 新增 `Sources/MessageBus/EventReplayContract.swift`，让 `EventStreamID`、`EventSequenceRange` 和 `EventReplayCommand` 由 `MessageBus` target 直接编译。
+- 更新 `Package.swift`，让 `MessageBus` target 编译 `MarketDataQuery.swift` / `EventReplayContract.swift`，并让 `Core` exclude 这两个 neutral contract files。
+- 更新 `MessageBusTargetBoundary` 和 `TargetGraphTests/testGH414MessageBusOwnsNeutralQueryAndReplayContracts`，验证 MessageBus target 可独立 import / use neutral query / replay contracts。
+- 明确 rich MessageBus paper / runtime / downstream payload 仍保留在 `Core` compatibility envelope，不能反向塞进 `MessageBus` target。
+
+边界：
+
+- 不把 `CommandsAndQueries.swift`、`DomainEvents.swift`、`EventLog.swift` 或 `PaperRuntimeBusRouting.swift` 强行迁入 `MessageBus` target。
+- 不让 `MessageBus` 依赖 DataEngine、Trader、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、Dashboard、broker、OMS 或 live command surface。
+- 不实现 Trader runtime、Strategy runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+- 不启动 Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
+
+验证：
+
+- `swift build --target MessageBus`：pass。
+- `swift test --filter TargetGraphTests/testGH414MessageBusOwnsNeutralQueryAndReplayContracts`：pass，1 test / 0 failures。
+- `swift build --target Core`：pass。
+- `swift test --filter TargetGraphTests`：pass，25 tests / 0 failures。
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true` / `dashboardReadModelOnly=true`，340 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
