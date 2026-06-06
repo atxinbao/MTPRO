@@ -1590,6 +1590,47 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH435URLSessionBinanceTransportUsesActorIsolationWithoutUncheckedSendable() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let adapterSourceURL = repositoryRoot.appendingPathComponent(
+            "Sources/DataClient/Binance/PublicMarketData/Adapters.swift"
+        )
+        let adapterSource = try String(contentsOf: adapterSourceURL, encoding: .utf8)
+
+        XCTAssertTrue(
+            adapterSource.contains("public actor URLSessionBinancePublicMarketDataTransport"),
+            "GH-435 expects the real URLSession public transport to use actor isolation."
+        )
+        XCTAssertFalse(
+            adapterSource.contains("URLSessionBinancePublicMarketDataTransport: BinancePublicMarketDataTransport, @unchecked Sendable"),
+            "GH-435 must not keep the previous unchecked Sendable URLSession transport declaration."
+        )
+
+        let sourceFiles = try swiftFiles(
+            under: repositoryRoot,
+            relativeRoots: ["Sources"]
+        )
+        let uncheckedSendableOccurrences = try sourceFiles.flatMap { file -> [String] in
+            let source = try String(contentsOf: file, encoding: .utf8)
+            let relativePath = relativePath(for: file, repositoryRoot: repositoryRoot)
+            return source.components(separatedBy: .newlines).enumerated().compactMap { index, line in
+                guard line.contains("@unchecked Sendable") else {
+                    return nil
+                }
+                return "\(relativePath):\(index + 1): \(line.trimmingCharacters(in: .whitespaces))"
+            }
+        }
+
+        XCTAssertTrue(
+            uncheckedSendableOccurrences.isEmpty,
+            """
+            GH-435 production sources must not use unchecked Sendable escape hatches.
+            Violations:
+            \(uncheckedSendableOccurrences.joined(separator: "\n"))
+            """
+        )
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
