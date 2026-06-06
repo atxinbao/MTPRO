@@ -325,9 +325,11 @@ MTP-229 只迁移 execution target boundary anchors：
 | Target | Previous active target path | Current active target path | Current explicit sources | Retained compatibility owner |
 | --- | --- | --- | --- | --- |
 | `ExecutionClient` | `Sources/TargetGraph/ExecutionClient` | `Sources/ExecutionClient` | `TargetGraph/ExecutionClientTargetBoundary.swift` | `Core` continues compiling FutureGate and BrokerCapabilityMatrix evidence. |
-| `ExecutionEngine` | `Sources/TargetGraph/ExecutionEngine` | `Sources/ExecutionEngine` | `TargetGraph/ExecutionEngineTargetBoundary.swift` | `Core` continues compiling paper lifecycle, simulated exchange and OMS future gate evidence. |
+| `ExecutionEngine` | `Sources/TargetGraph/ExecutionEngine` | `Sources/ExecutionEngine` | `OMSFutureGate`、`Ownership`、`PaperLifecycle/PaperExecutionWorkflowContract.swift`、`PaperLifecycle/PaperRuntimeKernelBoundary.swift`、`PaperLifecycle/PaperSessionLocalControlCommand.swift`、`SimulatedExchange/SimulatedExchangeBacktestParityBoundary.swift`、`TargetGraph/ExecutionEngineTargetBoundary.swift` | `Core` continues compiling paper order intent、event / replay / publication bridge、shared-order / fill / fee-slippage parity compatibility evidence. |
 
 MTP-229 intentionally keeps `sources` explicit so the newly migrated execution targets do not overlap with retained compatibility envelopes. `Core` excludes `ExecutionClient/TargetGraph` and `ExecutionEngine/TargetGraph`.
+
+GH-418 later advances the MTP-229 baseline: `ExecutionEngine` now directly owns the pure paper workflow contract, paper runtime kernel boundary, session local control command and simulated exchange parity boundary. `PaperOrderIntent`、paper execution event log / replay、paper session lifecycle / replay、shared backtest-paper order semantics、simulated fill evidence and fee / slippage parity remain deferred Core bridge debt because they still couple Trader / RiskBinding、MessageBus / EventLog、ScenarioReplay or compatibility export surfaces. This does not authorize live execution runtime, OMS, broker gateway, signed/account/listenKey/private stream, real order lifecycle, submit / cancel / replace, execution report, broker fill, reconciliation, Live PRO Console, trading button, live command, order form or L4 capability.
 
 ## MTP-229-EXECUTION-FUTURE-GATE-DEPENDENCY-DIRECTION-PRESERVED
 

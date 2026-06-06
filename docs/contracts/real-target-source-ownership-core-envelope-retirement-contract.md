@@ -581,6 +581,58 @@ GH-417 readiness anchors：
 - `GH-417-RISKENGINE-NO-EXECUTIONCLIENT-OMS-BROKER-GUARD`
 - `GH-417-VALIDATION-ANCHORS`
 
+## GH-418-EXECUTIONENGINE-PAPER-RUNTIME-KERNEL-OWNERSHIP
+
+GH-418 moves eligible paper / simulated execution boundary ownership into the real `ExecutionEngine` target:
+
+- `Package.swift` must compile `PaperExecutionWorkflowContract.swift`、`PaperRuntimeKernelBoundary.swift`、`PaperSessionLocalControlCommand.swift` and `SimulatedExchangeBacktestParityBoundary.swift` from the `ExecutionEngine` target.
+- `Core` must exclude those four files so they are not double-owned by the retained compatibility envelope.
+- `TargetGraphTests` must construct paper workflow、paper runtime kernel、session local control and simulated parity boundary values through `ExecutionEngine` imports.
+- `ExecutionEngineTargetBoundary` must expose `GH-418-EXECUTIONENGINE-PAPER-RUNTIME-KERNEL-OWNERSHIP`、`GH-418-EXECUTIONENGINE-SESSION-CONTROL-OWNERSHIP`、`GH-418-EXECUTIONENGINE-SIMULATED-PARITY-BOUNDARY-OWNERSHIP` and `GH-418-CORE-EXECUTIONENGINE-ORDER-EVENT-REPLAY-BRIDGE-DEFERRED`.
+
+## GH-418-CORE-EXECUTIONENGINE-ORDER-EVENT-REPLAY-BRIDGE-DEFERRED
+
+GH-418 intentionally keeps these execution files in the Core compatibility envelope:
+
+- `PaperOrderIntent.swift`
+- `PaperExecutionDecision.swift`
+- `PaperExecutionEventLog.swift`
+- `PaperOrderLifecycleCoordinator.swift`
+- `PaperSessionLifecycle.swift`
+- `PaperSessionLocalControlEventLog.swift`
+- `PaperSessionReplay.swift`
+- `BacktestPaperSharedOrderSemantics.swift`
+- `MarketLimitSimulatedExecutionSemantics.swift`
+- `PaperSimulatedFillEvidence.swift`
+- `PartialFillLatencyFeeSlippageParity.swift`
+
+These files still couple Trader / RiskBinding、MessageBus / EventLog、ScenarioReplay or compatibility export surfaces. Moving them directly into `ExecutionEngine` would create the wrong dependency direction or widen the execution surface before the required bridge decomposition exists.
+
+## GH-418-EXECUTIONENGINE-NO-LIVE-OMS-BROKER-GUARD
+
+GH-418 keeps `ExecutionEngine` as paper / simulated execution evidence only. It must not implement live execution runtime, ExecutionClient implementation, OMS, broker gateway, signed endpoint, account endpoint / listenKey, private stream runtime, real order lifecycle, submit / cancel / replace, execution report parsing, broker fill parsing, reconciliation, Live PRO Console, trading button, live command, order form or L4 capability.
+
+## GH-418-VALIDATION-ANCHORS
+
+GH-418 required validation：
+
+- `swift build --target ExecutionEngine`
+- `swift build --target Core`
+- `swift test --filter TargetGraphTests/testGH398TraderPortfolioRiskExecutionTargetsOwnRealSourceWithoutRuntimeDrift`
+- `swift test --filter TargetGraphTests`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-418 readiness anchors：
+
+- `GH-418-EXECUTIONENGINE-PAPER-RUNTIME-KERNEL-OWNERSHIP`
+- `GH-418-EXECUTIONENGINE-SESSION-CONTROL-OWNERSHIP`
+- `GH-418-EXECUTIONENGINE-SIMULATED-PARITY-BOUNDARY-OWNERSHIP`
+- `GH-418-CORE-EXECUTIONENGINE-ORDER-EVENT-REPLAY-BRIDGE-DEFERRED`
+- `GH-418-EXECUTIONENGINE-NO-LIVE-OMS-BROKER-GUARD`
+- `GH-418-VALIDATION-ANCHORS`
+
 ## GH-398-TRADER-RISK-EXECUTION-IMPLEMENTATION-OWNERSHIP
 
 GH-398 将 Trader / Portfolio / RiskEngine / ExecutionEngine / ExecutionClient 从 smoke coverage 推进到 partial implementation ownership：

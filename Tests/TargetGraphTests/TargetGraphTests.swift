@@ -791,7 +791,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertEqual(strategies.retainedCompatibilityEnvelope, "Core")
         XCTAssertEqual(trader.retainedCompatibilityEnvelope, "Core")
         XCTAssertEqual(executionClient.retainedCompatibilityEnvelope, "Core")
-        XCTAssertEqual(executionEngine.retainedCompatibilityEnvelope, "Core")
+        XCTAssertEqual(executionEngine.retainedCompatibilityEnvelope, "Core(event/replay bridge deferred)")
 
         XCTAssertTrue(strategies.validationAnchors.contains("GH-397-TRADERSTRATEGIES-EMA-REAL-TARGET-SMOKE"))
         XCTAssertTrue(trader.validationAnchors.contains("GH-397-TRADER-REAL-TARGET-SMOKE"))
@@ -804,6 +804,10 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(riskEngine.validationAnchors.contains("GH-417-RISKENGINE-NO-EXECUTIONCLIENT-OMS-BROKER-GUARD"))
         XCTAssertTrue(executionClient.validationAnchors.contains("GH-397-EXECUTIONCLIENT-FUTURE-GATE-SMOKE"))
         XCTAssertTrue(executionEngine.validationAnchors.contains("GH-397-EXECUTIONENGINE-REAL-TARGET-SMOKE"))
+        XCTAssertTrue(executionEngine.validationAnchors.contains("GH-418-EXECUTIONENGINE-PAPER-RUNTIME-KERNEL-OWNERSHIP"))
+        XCTAssertTrue(executionEngine.validationAnchors.contains("GH-418-EXECUTIONENGINE-SESSION-CONTROL-OWNERSHIP"))
+        XCTAssertTrue(executionEngine.validationAnchors.contains("GH-418-EXECUTIONENGINE-SIMULATED-PARITY-BOUNDARY-OWNERSHIP"))
+        XCTAssertTrue(executionEngine.validationAnchors.contains("GH-418-CORE-EXECUTIONENGINE-ORDER-EVENT-REPLAY-BRIDGE-DEFERRED"))
 
         let traderStrategiesTarget = try packageTargetBlock(named: "TraderStrategies", packageSource: packageSource)
         let traderTarget = try packageTargetBlock(named: "Trader", packageSource: packageSource)
@@ -852,14 +856,22 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(riskEngineSources.contains("\"PreTrade/PaperPreTradeRiskEngine.swift\""))
         XCTAssertTrue(riskEngineSources.contains("\"PreTrade/RiskEnginePreTradeOwnership.swift\""))
         XCTAssertTrue(executionEngineSources.contains("\"Ownership\""))
+        XCTAssertTrue(executionEngineSources.contains("\"PaperLifecycle/PaperExecutionWorkflowContract.swift\""))
+        XCTAssertTrue(executionEngineSources.contains("\"PaperLifecycle/PaperRuntimeKernelBoundary.swift\""))
+        XCTAssertTrue(executionEngineSources.contains("\"PaperLifecycle/PaperSessionLocalControlCommand.swift\""))
+        XCTAssertTrue(executionEngineSources.contains("\"SimulatedExchange/SimulatedExchangeBacktestParityBoundary.swift\""))
         XCTAssertTrue(coreExcludes.contains("\"Portfolio/PaperPortfolioProjectionUpdate.swift\""))
         XCTAssertFalse(coreSources.contains("\"Portfolio/PaperPortfolioProjectionUpdate.swift\""))
         XCTAssertTrue(coreSources.contains("\"Portfolio/PaperAccountPortfolioProjectionV2.swift\""))
         XCTAssertTrue(coreSources.contains("\"Portfolio/SimulatedExchangePortfolioProjectionParity.swift\""))
         XCTAssertTrue(coreExcludes.contains("\"RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift\""))
         XCTAssertFalse(coreSources.contains("\"RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift\""))
-        XCTAssertFalse(executionEngineSources.contains("PaperLifecycle"))
-        XCTAssertFalse(executionEngineSources.contains("SimulatedExchange"))
+        XCTAssertFalse(executionEngineSources.contains("\"PaperLifecycle\""))
+        XCTAssertFalse(executionEngineSources.contains("\"SimulatedExchange\""))
+        XCTAssertTrue(coreExcludes.contains("\"ExecutionEngine/PaperLifecycle/PaperExecutionWorkflowContract.swift\""))
+        XCTAssertTrue(coreExcludes.contains("\"ExecutionEngine/PaperLifecycle/PaperRuntimeKernelBoundary.swift\""))
+        XCTAssertTrue(coreExcludes.contains("\"ExecutionEngine/PaperLifecycle/PaperSessionLocalControlCommand.swift\""))
+        XCTAssertTrue(coreExcludes.contains("\"ExecutionEngine/SimulatedExchange/SimulatedExchangeBacktestParityBoundary.swift\""))
         XCTAssertTrue(coreSources.contains("\"ExecutionEngine/PaperLifecycle\""))
         XCTAssertTrue(coreSources.contains("\"ExecutionEngine/SimulatedExchange\""))
 
@@ -941,6 +953,24 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(executionHandoff.touchesOMS)
         XCTAssertFalse(executionHandoff.touchesBrokerGateway)
         XCTAssertFalse(executionHandoff.submitsRealOrder)
+
+        let workflow = PaperExecutionWorkflowContract.deterministicFixture
+        XCTAssertEqual(workflow.stageOrder, PaperExecutionWorkflowStage.allCases)
+        XCTAssertTrue(workflow.paperOnlyBoundaryHeld)
+
+        let runtimeKernel = PaperRuntimeKernelBoundary.deterministicFixture
+        XCTAssertTrue(runtimeKernel.paperOnlyBoundaryHeld)
+        XCTAssertFalse(runtimeKernel.connectsBroker)
+        XCTAssertFalse(runtimeKernel.usesSignedEndpoint)
+
+        let localControl = try PaperSessionLocalControlCommandFixture.deterministic(control: .pause)
+        XCTAssertTrue(localControl.paperOnlyBoundaryHeld)
+        XCTAssertFalse(localControl.submitsRealOrder)
+
+        let simulatedParity = SimulatedExchangeBacktestParityBoundary.deterministicFixture
+        XCTAssertTrue(simulatedParity.terminologyBoundaryHeld)
+        XCTAssertFalse(simulatedParity.implementsOrderExecutionRuntime)
+        XCTAssertFalse(simulatedParity.implementsOMS)
     }
 
     func testMTP220ExecutionTargetsExposeFutureGateDependencyDirection() {
