@@ -337,6 +337,27 @@ GH-462 必须建立的主要 anchors：
 - `GH-462-BROKER-INDEPENDENT-LOCAL-STATE`
 - `TVM-L4-OMS-LOCAL-ORDER-TRANSITION-EVIDENCE`
 
+## GH-463 L4 ExecutionEngine ExecutionClient Sandbox Path Validation
+
+GH-463 的 required validation：
+
+- `docs/contracts/l4-executionengine-executionclient-sandbox-path-contract.md` 必须存在，并包含 `GH-463-EXECUTIONENGINE-EXECUTIONCLIENT-SANDBOX-PATH`、`GH-463-RISKENGINE-APPROVED-COMMAND-PROPOSAL`、`GH-463-SANDBOX-EXECUTIONCLIENT-HANDOFF`、`GH-463-COMMAND-RESPONSE-EVENT-EVIDENCE`、`GH-463-NO-DIRECT-TRADER-STRATEGY-EXECUTIONCLIENT`、`GH-463-NON-AUTHORIZATION` 和 `TVM-L4-EXECUTIONENGINE-EXECUTIONCLIENT-SANDBOX-PATH`。
+- `Sources/ExecutionEngine/OMSFutureGate/L4ExecutionEngineSandboxPathEvidence.swift` 必须定义 `L4ExecutionEngineSandboxCommandProposal`、`L4ExecutionEngineSandboxPathEvent`、`L4ExecutionEngineSandboxPathEvidence` 和 `L4ExecutionEngineSandboxPathCoordinator`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH463ExecutionEngineSandboxPathWiresRiskApprovedCommandEvidence` 和 `testGH463ExecutionEngineSandboxPathRejectsDirectAccessAndBoundaryBypass`。
+- Evidence 必须覆盖 RiskEngine-approved proposal、ExecutionEngine handoff、GH-459 sandbox ExecutionClient request / response 和 GH-462 local transition evidence link。
+- Command evidence 必须覆盖 submit / cancel / replace，execution event evidence 必须覆盖 proposal accepted、request dispatched、response recorded 和 local transition evidence linked。
+- Boundary tests 必须拒绝 direct Trader / Strategy / Live PRO Console access、skip OMS、production execution、Portfolio mutation、reconciliation 和 Live command surface bypass。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`，不依赖真实 secret、broker credential、signed/account endpoint、listenKey、private WebSocket、production endpoint 或人工验收。
+
+GH-463 必须建立的主要 anchors：
+
+- `GH-463-EXECUTIONENGINE-EXECUTIONCLIENT-SANDBOX-PATH`
+- `GH-463-RISKENGINE-APPROVED-COMMAND-PROPOSAL`
+- `GH-463-SANDBOX-EXECUTIONCLIENT-HANDOFF`
+- `GH-463-COMMAND-RESPONSE-EVENT-EVIDENCE`
+- `GH-463-NO-DIRECT-TRADER-STRATEGY-EXECUTIONCLIENT`
+- `TVM-L4-EXECUTIONENGINE-EXECUTIONCLIENT-SANDBOX-PATH`
+
 ## MTP-24 Trading Validation Matrix Validation
 
 MTP-24 的 required validation：
