@@ -15079,3 +15079,41 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 356 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-07 - GH-456 L4 private stream account snapshot read-only runtime
+
+- Issue: GH-456 `L4: 05/21 Implement private stream / account snapshot read-only runtime`
+- Queue:
+  - GitHub fallback queue used because this L4 stage is not using Linear.
+  - WIP=1 preflight passed before implementation: #456 was OPEN with `mtpro / backlog / non-executable`; #455 was CLOSED with `done`; no open issue carried `todo`, `in-progress` or `in-review`; no open PR was present.
+  - #456 was promoted to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `docs/contracts/l4-private-stream-account-snapshot-read-only-runtime-contract.md`.
+  - Added `Sources/ExecutionClient/FutureGate/L4PrivateStreamAccountSnapshotReadOnlyRuntime.swift`.
+  - Added `TargetGraphTests` coverage for private stream source identity, freshness coverage, account snapshot read-model update, disabled default gate and listenKey / raw payload / command bypass rejection.
+  - Backfilled `TVM-L4-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-READ-ONLY-RUNTIME`, validation plan, domain language, latest summary and automation readiness anchors.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No real API key / secret read, storage, print or repository commit.
+  - No API-key header construction or request signature generation.
+  - No signed endpoint / account endpoint call.
+  - No listenKey create / keep-alive / close.
+  - No private WebSocket open / reconnect.
+  - No real private event consumption.
+  - No raw private payload, account endpoint payload, broker payload, broker state or Dashboard raw payload exposure.
+  - No ExecutionClient adapter implementation.
+  - No OMS implementation.
+  - No command runtime.
+  - No production endpoint or production trading.
+  - No real submit / cancel / replace.
+  - No execution report / broker fill production ingestion.
+  - No reconciliation production runtime.
+  - No Live PRO Console command surface, trading button, live command or order form.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH456PrivateStreamAccountSnapshotReadOnlyRuntimeProducesFreshnessEvidence`: pass; 1 test / 0 failures.
+  - `swift test --filter TargetGraphTests/testGH456PrivateStreamAccountSnapshotReadOnlyRuntimeRejectsListenKeyPayloadAndCommandBypass`: pass; 1 test / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 358 XCTest / 0 failures; final output `MTPRO checks passed.`
