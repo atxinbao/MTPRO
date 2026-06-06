@@ -316,6 +316,27 @@ GH-461 必须建立的主要 anchors：
 - `GH-461-ROLLBACK-INCIDENT-EVIDENCE`
 - `TVM-L4-OMS-ORDER-LIFECYCLE-CONTRACT`
 
+## GH-462 L4 OMS Local Order Transition Evidence Validation
+
+GH-462 的 required validation：
+
+- `docs/contracts/l4-oms-local-order-transition-evidence-contract.md` 必须存在，并包含 `GH-462-OMS-LOCAL-ORDER-STATE-RECORD`、`GH-462-DETERMINISTIC-TRANSITION-EVIDENCE`、`GH-462-SANDBOX-FILL-CANCEL-REJECT-EVIDENCE`、`GH-462-ILLEGAL-TRANSITION-REJECTION`、`GH-462-BROKER-INDEPENDENT-LOCAL-STATE`、`GH-462-NON-AUTHORIZATION` 和 `TVM-L4-OMS-LOCAL-ORDER-TRANSITION-EVIDENCE`。
+- `Sources/ExecutionEngine/OMSFutureGate/L4OMSLocalOrderTransitionEvidence.swift` 必须定义 `L4OMSLocalOrderStateRecord`、`L4OMSLocalOrderTransitionRecord`、`L4OMSLocalOrderIllegalTransitionRejection`、`L4OMSLocalOrderTransitionEvidence` 和 `L4OMSLocalOrderTransitionEvidenceBuilder`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH462OMSLocalOrderTransitionEvidenceBuildsDeterministicSandboxLifecycle` 和 `testGH462OMSLocalOrderTransitionEvidenceRejectsIllegalTransitionAndRuntimeBypass`。
+- Local transition evidence 必须复用 GH-461 allowed transition graph，并引用 GH-459 sandbox submit evidence 和 GH-460 parsed report event。
+- Fill / cancel / reject path 必须 deterministic，且非法转换 rejection 不产生 state mutation。
+- Boundary tests 必须拒绝 production runtime、real order state store、broker gateway、production broker report、Portfolio mutation、reconciliation 和 Live command surface bypass。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`，不依赖真实 secret、broker credential、signed/account endpoint、listenKey、private WebSocket、production endpoint 或人工验收。
+
+GH-462 必须建立的主要 anchors：
+
+- `GH-462-OMS-LOCAL-ORDER-STATE-RECORD`
+- `GH-462-DETERMINISTIC-TRANSITION-EVIDENCE`
+- `GH-462-SANDBOX-FILL-CANCEL-REJECT-EVIDENCE`
+- `GH-462-ILLEGAL-TRANSITION-REJECTION`
+- `GH-462-BROKER-INDEPENDENT-LOCAL-STATE`
+- `TVM-L4-OMS-LOCAL-ORDER-TRANSITION-EVIDENCE`
+
 ## MTP-24 Trading Validation Matrix Validation
 
 MTP-24 的 required validation：

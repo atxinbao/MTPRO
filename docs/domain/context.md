@@ -3394,6 +3394,32 @@ Rollback / incident evidence 只说明异常和非法转换需要审计证据。
 
 L4 OMS lifecycle matrix 必须证明 state machine 完整、合法 transition graph 稳定、非法 transition evidence 存在、Engine / Client / Portfolio 边界清楚、rollback / incident evidence 定义完整，并保持 production order manager、real order submission、production broker report、broker gateway、real state store、Portfolio mutation、reconciliation 和 Live command surface 全部关闭。
 
+## GH-462 L4 OMS Local Order Transition Evidence Terms
+
+`GH-462-OMS-LOCAL-ORDER-STATE-RECORD`
+
+L4 OMS local order state record 指 deterministic sandbox evidence 中的本地状态快照。它只保存 local order identity、state、sequence 和 source evidence identity，不是 production order state store，不代表真实 broker state，也不驱动 Portfolio mutation。
+
+`GH-462-DETERMINISTIC-TRANSITION-EVIDENCE`
+
+Deterministic transition evidence 指 GH-461 allowed transition graph 允许的本地状态转换证据。accepted -> submitted 只能引用 GH-459 sandbox submit evidence；partial fill、fill、cancel acknowledgement 和 reject 只能引用 GH-460 parsed report event。该 evidence 不提交订单、不联网、不写 production state。
+
+`GH-462-SANDBOX-FILL-CANCEL-REJECT-EVIDENCE`
+
+Sandbox fill / cancel / reject evidence 固定三条 local lifecycle：accepted -> submitted -> partially filled -> filled、accepted -> submitted -> cancelled、accepted -> rejected。它只证明 sandbox lifecycle 覆盖完整，不代表 production OMS runtime。
+
+`GH-462-ILLEGAL-TRANSITION-REJECTION`
+
+Illegal transition rejection 指非法转换必须被拒绝且不产生 state mutation。该 rejection 只保留 rollback / incident evidence，不执行 retry、broker cancel 或 reconciliation。
+
+`GH-462-BROKER-INDEPENDENT-LOCAL-STATE`
+
+Broker independent local state 指 GH-462 evidence 不依赖真实 broker、不读取 API key / secret、不消费 production broker report、不写 real order state store、不更新 Portfolio，也不执行 reconciliation。
+
+`TVM-L4-OMS-LOCAL-ORDER-TRANSITION-EVIDENCE`
+
+L4 OMS local order transition matrix 必须证明 local state record、deterministic transition evidence、fill / cancel / reject path、illegal transition rejection 和 broker-independent local state 全部成立，并保持 production OMS、real order submission、production broker report、broker gateway、real state store、Portfolio mutation、reconciliation 和 Live command surface 全部关闭。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
