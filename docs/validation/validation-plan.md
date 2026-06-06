@@ -169,6 +169,27 @@ GH-454 必须建立的主要 anchors：
 - `GH-454-FORBIDDEN-ENDPOINT-PATHS`
 - `TVM-L4-SIGNED-ENDPOINT-PRIVATE-STREAM-BOUNDARY`
 
+## GH-455 L4 Signed Account Read-only Runtime Validation
+
+GH-455 的 required validation：
+
+- `docs/contracts/l4-signed-account-read-only-runtime-contract.md` 必须存在，并包含 `GH-455-L4-SIGNED-ACCOUNT-READ-ONLY-RUNTIME`、`GH-455-DISABLED-BY-DEFAULT-RUNTIME-GATE`、`GH-455-SANDBOX-FIXTURE-FIRST-READ`、`GH-455-CANONICAL-ACCOUNT-EVIDENCE`、`GH-455-FORBIDDEN-PRODUCTION-DEFAULT-TESTS` 和 `GH-455-NON-AUTHORIZATION`。
+- `Sources/ExecutionClient/FutureGate/L4SignedAccountReadOnlyRuntime.swift` 必须定义 `L4SignedAccountReadOnlyRuntime`、`L4SignedAccountReadOnlyRuntimeConfiguration`、`L4SignedAccountReadOnlyEvidence`、`L4SignedAccountReadOnlyEvidenceRecord`、`L4SignedAccountReadOnlyRuntimeMode`、`L4SignedAccountReadOnlyEvidenceComponent` 和 `L4SignedAccountReadOnlyForbiddenCapability`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH455SignedAccountReadOnlyRuntimeDefaultsDisabledAndReturnsCanonicalEvidence` 和 `testGH455SignedAccountReadOnlyRuntimeRejectsProductionSecretAndPayloadBypass`。
+- Runtime 默认必须 disabled；未配置 credential reference、sandbox gate 和 fixture read gate 时不可触发 signed account read。
+- Sandbox / local configured gate 只能返回 canonical account / balance / position / margin evidence，不得暴露 raw signed payload、secret、broker state 或 Dashboard raw payload。
+- Forbidden production default tests 必须拒绝 production mode、production gate、secret material、raw payload exposure、network connection、missing credential reference 和 command runtime。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`，不依赖真实 secret、真实 Binance private endpoint、broker、production credential 或人工验收。
+
+GH-455 必须建立的主要 anchors：
+
+- `GH-455-L4-SIGNED-ACCOUNT-READ-ONLY-RUNTIME`
+- `GH-455-DISABLED-BY-DEFAULT-RUNTIME-GATE`
+- `GH-455-SANDBOX-FIXTURE-FIRST-READ`
+- `GH-455-CANONICAL-ACCOUNT-EVIDENCE`
+- `GH-455-FORBIDDEN-PRODUCTION-DEFAULT-TESTS`
+- `TVM-L4-SIGNED-ACCOUNT-READ-ONLY-RUNTIME`
+
 ## MTP-24 Trading Validation Matrix Validation
 
 MTP-24 的 required validation：

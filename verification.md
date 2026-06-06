@@ -15042,3 +15042,40 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 354 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-07 - GH-455 L4 signed account read-only runtime
+
+- Issue: GH-455 `L4: 04/21 Implement signed account read-only runtime behind disabled production gate`
+- Queue:
+  - GitHub fallback queue used because this L4 stage is not using Linear.
+  - WIP=1 preflight passed before implementation: #455 was OPEN with `mtpro / backlog / non-executable`; #454 was CLOSED with `done`; no open issue carried `todo`, `in-progress` or `in-review`; no open PR was present.
+  - #455 was promoted to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `docs/contracts/l4-signed-account-read-only-runtime-contract.md`.
+  - Added `Sources/ExecutionClient/FutureGate/L4SignedAccountReadOnlyRuntime.swift`.
+  - Added `TargetGraphTests` coverage for the disabled default gate, deterministic sandbox fixture account evidence and forbidden production secret / raw signed payload bypass rejection.
+  - Backfilled `TVM-L4-SIGNED-ACCOUNT-READ-ONLY-RUNTIME`, validation plan, domain language, latest summary and automation readiness anchors.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No real API key / secret read, storage, print or repository commit.
+  - No API-key header construction or request signature generation.
+  - No signed endpoint / account endpoint call.
+  - No network connection.
+  - No raw signed payload exposure.
+  - No private WebSocket runtime.
+  - No ExecutionClient adapter implementation.
+  - No OMS implementation.
+  - No command runtime.
+  - No production endpoint or production trading.
+  - No real submit / cancel / replace.
+  - No execution report / broker fill production ingestion.
+  - No reconciliation production runtime.
+  - No Live PRO Console command surface, trading button, live command or order form.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH455SignedAccountReadOnlyRuntimeDefaultsDisabledAndReturnsCanonicalEvidence`: pass; 1 test / 0 failures.
+  - `swift test --filter TargetGraphTests/testGH455SignedAccountReadOnlyRuntimeRejectsProductionSecretAndPayloadBypass`: pass; 1 test / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 356 XCTest / 0 failures; final output `MTPRO checks passed.`
