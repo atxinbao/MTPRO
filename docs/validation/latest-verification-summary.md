@@ -2390,3 +2390,37 @@ GitHub Issue：[#420](https://github.com/atxinbao/MTPRO/issues/420)
 - `git diff --check`：pass，无输出。
 - `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
 - `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true` / `dashboardReadModelOnly=true`，342 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
+## 2026-06-06 — GH-421 all architecture targets real API smoke coverage
+
+执行者：Codex
+
+GitHub Issue：[#421](https://github.com/atxinbao/MTPRO/issues/421)
+
+范围：
+
+- 新增 `TargetGraphTests/testGH421AllArchitectureTargetsExposeIndependentRealAPISmokeCoverage`。
+- 用一条 deterministic smoke chain 直接 import / use 全部当前 architecture targets 的 public APIs：`DomainModel`、`MessageBus`、`Database`、`DataClient`、`DataEngine`、`Cache`、`TraderStrategies`、`Trader`、`Portfolio`、`RiskEngine`、`ExecutionClient`、`ExecutionEngine` 和 `Dashboard`。
+- 验证 real target ownership 不只依赖 `Package.swift` string、target name 或 `TargetGraph` boundary anchor。
+- 保持 `Trader = Accounts + Strategies/EMA + Coordination`，其中 `EMA` 是唯一 active concrete strategy。
+- 保持 `ExecutionClient` 为 future gate / protocol boundary only；Dashboard 只验证 read-model-only boundary。
+- 更新 `architecture.md`、core envelope contract、automation readiness 和 verification anchors。
+
+边界：
+
+- 不实现 Trader runtime、Strategy runtime、Live runtime。
+- 不实现 ExecutionClient implementation、OMS、broker gateway。
+- 不接 signed endpoint、account endpoint / listenKey、private WebSocket runtime。
+- 不实现 real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation。
+- 不实现 Live PRO Console、trading button、live command、order form 或 L4 capability。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify / code-index。
+- 不修改 Figma。
+
+验证：
+
+- `swift test --filter TargetGraphTests/testGH421AllArchitectureTargetsExposeIndependentRealAPISmokeCoverage`：pass，1 test / 0 failures。
+- `swift test --filter TargetGraphTests`：pass，28 tests / 0 failures。
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true` / `dashboardReadModelOnly=true`，343 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
