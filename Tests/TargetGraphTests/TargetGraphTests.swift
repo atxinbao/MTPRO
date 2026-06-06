@@ -1631,6 +1631,47 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH436DataClientAndTraderForbiddenImplementationShapesStayOutOfActiveSource() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let traderTarget = try packageTargetBlock(named: "Trader", packageSource: packageSource)
+
+        XCTAssertTrue(
+            traderTarget.contains("dependencies: [\"DomainModel\", \"MessageBus\", \"Cache\", \"TraderStrategies\", \"Portfolio\", \"RiskEngine\"]"),
+            "GH-436 expects Trader to remain a proposal / coordination container without ExecutionEngine dependency."
+        )
+        XCTAssertFalse(
+            traderTarget.contains("\"ExecutionEngine\""),
+            "GH-436: Trader target must not depend directly on ExecutionEngine."
+        )
+        XCTAssertFalse(
+            traderTarget.contains("\"ExecutionClient\""),
+            "GH-436: Trader target must not depend directly on ExecutionClient."
+        )
+
+        let dataClientSourceFiles = try swiftFiles(
+            under: repositoryRoot,
+            relativeRoots: ["Sources/DataClient"]
+        )
+        let violations = try dataClientSourceFiles.flatMap { file in
+            try forbiddenDataClientImplementationOccurrences(in: file, repositoryRoot: repositoryRoot)
+        }
+
+        XCTAssertTrue(
+            violations.isEmpty,
+            """
+            GH-436 precise forbidden implementation guard failed.
+            DataClient may document and reject forbidden capabilities, but active source must not implement \
+            signed/account/order endpoints, API-key headers, HMAC/signature generation, or credential storage.
+            Violations:
+            \(violations.joined(separator: "\n"))
+            """
+        )
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
@@ -1728,6 +1769,43 @@ final class TargetGraphTests: XCTestCase {
         ]
 
         return allowedSourcePathFragments.contains { occurrence.relativePath.contains($0) }
+    }
+
+    private func forbiddenDataClientImplementationOccurrences(in file: URL, repositoryRoot: URL) throws -> [String] {
+        let source = try String(contentsOf: file, encoding: .utf8)
+        let relativePath = relativePath(for: file, repositoryRoot: repositoryRoot)
+        let forbiddenImplementationPatterns = [
+            "path: \"/api/v3/account\"",
+            "path: \"/api/v3/order\"",
+            "path: \"/api/v3/userDataStream\"",
+            "= \"/api/v3/account\"",
+            "= \"/api/v3/order\"",
+            "= \"/api/v3/userDataStream\"",
+            "URLQueryItem(name: \"signature\"",
+            "BinanceQueryItem(name: \"signature\"",
+            "forHTTPHeaderField: \"X-MBX-APIKEY\"",
+            "headers: [\"X-MBX-APIKEY\"",
+            "import CryptoKit",
+            "import CryptoSwift",
+            "import CommonCrypto",
+            "HMAC<",
+            "CCHmac",
+            "CC_HMAC",
+            "let apiKey",
+            "var apiKey",
+            "let apiSecret",
+            "var apiSecret",
+            "let secretKey",
+            "var secretKey"
+        ]
+
+        return source.components(separatedBy: .newlines).enumerated().compactMap { index, line in
+            let implementationLine = line.components(separatedBy: "//").first ?? line
+            guard let forbidden = forbiddenImplementationPatterns.first(where: { implementationLine.contains($0) }) else {
+                return nil
+            }
+            return "\(relativePath):\(index + 1): \(forbidden): \(line.trimmingCharacters(in: .whitespaces))"
+        }
     }
 
     private func packageTargetBlock(named targetName: String, packageSource: String) throws -> String {

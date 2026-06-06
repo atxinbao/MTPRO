@@ -5865,6 +5865,72 @@ require_contains "docs/contracts/real-target-source-ownership-core-envelope-reti
 require_contains "docs/automation/automation-readiness.md" "GH-421 all architecture targets real API smoke anchor"
 require_contains "docs/validation/latest-verification-summary.md" "GH-421 all architecture targets real API smoke coverage"
 require_contains "verification.md" "GH-421 all architecture targets real API smoke coverage"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH436DataClientAndTraderForbiddenImplementationShapesStayOutOfActiveSource"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "GH-436 precise forbidden implementation guard failed"
+python3 - <<'PY'
+from pathlib import Path
+import sys
+
+root = Path.cwd()
+package = (root / "Package.swift").read_text()
+target_marker = '.target(\n            name: "Trader"'
+start = package.find(target_marker)
+if start == -1:
+    print("automation readiness check failed: Package.swift Trader target not found", file=sys.stderr)
+    sys.exit(1)
+tail = package[start + len(target_marker):]
+next_positions = [
+    pos for marker in ("\n        .target(", "\n        .executableTarget(", "\n        .testTarget(")
+    if (pos := tail.find(marker)) != -1
+]
+end = min(next_positions) if next_positions else len(tail)
+trader_target = package[start:start + len(target_marker) + end]
+for forbidden in ('"ExecutionEngine"', '"ExecutionClient"'):
+    if forbidden in trader_target:
+        print(
+            f"automation readiness check failed: GH-436 Trader target must not depend on {forbidden}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+forbidden_patterns = [
+    'path: "/api/v3/account"',
+    'path: "/api/v3/order"',
+    'path: "/api/v3/userDataStream"',
+    '= "/api/v3/account"',
+    '= "/api/v3/order"',
+    '= "/api/v3/userDataStream"',
+    'URLQueryItem(name: "signature"',
+    'BinanceQueryItem(name: "signature"',
+    'forHTTPHeaderField: "X-MBX-APIKEY"',
+    'headers: ["X-MBX-APIKEY"',
+    'import CryptoKit',
+    'import CryptoSwift',
+    'import CommonCrypto',
+    'HMAC<',
+    'CCHmac',
+    'CC_HMAC',
+    'let apiKey',
+    'var apiKey',
+    'let apiSecret',
+    'var apiSecret',
+    'let secretKey',
+    'var secretKey',
+]
+violations = []
+for source in sorted((root / "Sources/DataClient").rglob("*.swift")):
+    for index, line in enumerate(source.read_text().splitlines(), start=1):
+        implementation_line = line.split("//", 1)[0]
+        for forbidden in forbidden_patterns:
+            if forbidden in implementation_line:
+                violations.append(f"{source.relative_to(root)}:{index}: {forbidden}: {line.strip()}")
+                break
+
+if violations:
+    print("automation readiness check failed: GH-436 DataClient forbidden implementation guard failed", file=sys.stderr)
+    print("\n".join(violations), file=sys.stderr)
+    sys.exit(1)
+PY
 require_contains "docs/audit/inputs/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-audit-input.md" "GH-422-CORE-ENVELOPE-RETIREMENT-MATRIX-STAGE-CLOSEOUT"
 require_contains "docs/audit/inputs/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-audit-input.md" "GH-422-ISSUE-EVIDENCE-CHAIN"
 require_contains "docs/audit/inputs/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-audit-input.md" "GH-422-COMPLETED-OWNERSHIP-MOVES"
