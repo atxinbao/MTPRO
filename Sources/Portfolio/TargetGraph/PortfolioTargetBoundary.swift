@@ -5,10 +5,10 @@ import MessageBus
 
 /// `Portfolio` target boundary 表达独立于 Trader account context 的 financial state projection。
 ///
-/// MTP-228 只把 active target boundary anchor 从 `Sources/TargetGraph/Portfolio`
-/// 移到 `Sources/Portfolio/TargetGraph`。既有 Portfolio implementation 仍由 `Core`
-/// compatibility envelope 编译，因为当前 paper projection tests 和旧 product 仍通过 `Core`
-/// 使用这些类型。
+/// MTP-228 把 active target boundary anchor 从 `Sources/TargetGraph/Portfolio`
+/// 移到 `Sources/Portfolio/TargetGraph`。GH-416 进一步把 paper portfolio update
+/// ownership 迁入 Portfolio target；依赖 replay / simulated exchange event bridge 的
+/// account projection path 和 parity evidence 仍显式留在 Core compatibility envelope。
 public struct PortfolioTargetBoundary: Codable, Equatable, Sendable {
     public let targetName: String
     public let canonicalSourceRoot: String
@@ -31,7 +31,7 @@ public struct PortfolioTargetBoundary: Codable, Equatable, Sendable {
         targetName: String = "Portfolio",
         canonicalSourceRoot: String = "Sources/Portfolio",
         compiledBoundaryRoot: String = "Sources/Portfolio/TargetGraph",
-        retainedCompatibilityEnvelope: String = "Core",
+        retainedCompatibilityEnvelope: String = "Core(replay / simulated parity bridge deferred)",
         domainModelBoundary: DomainModelTargetBoundary = .mtp217,
         messageBusBoundary: MessageBusTargetBoundary = .mtp217,
         cacheBoundary: CacheTargetBoundary = .mtp218,
@@ -68,7 +68,7 @@ public struct PortfolioTargetBoundary: Codable, Equatable, Sendable {
         targetName == "Portfolio"
             && canonicalSourceRoot == "Sources/Portfolio"
             && compiledBoundaryRoot == "Sources/Portfolio/TargetGraph"
-            && retainedCompatibilityEnvelope == "Core"
+            && retainedCompatibilityEnvelope == "Core(replay / simulated parity bridge deferred)"
             && domainModelBoundary.boundaryHeld
             && messageBusBoundary.dependencyDirectionHeld
             && cacheBoundary.dependencyDirectionHeld
@@ -109,6 +109,10 @@ public struct PortfolioTargetBoundary: Codable, Equatable, Sendable {
         "MTP-219-PORTFOLIO-TARGET-SPLIT",
         "MTP-219-PORTFOLIO-SEPARATE-FROM-TRADER-ACCOUNT",
         "GH-397-PORTFOLIO-REAL-TARGET-SMOKE",
+        "GH-416-PORTFOLIO-PAPER-PROJECTION-UPDATE-OWNERSHIP",
+        "GH-416-PORTFOLIO-REPLAY-PARITY-BRIDGE-DEFERRED",
+        "GH-416-CORE-PORTFOLIO-EVENT-BRIDGE-ONLY",
+        "GH-416-VALIDATION-ANCHORS",
         "MTP-228-PORTFOLIO-REAL-ROOT-TARGET-PATH",
         "MTP-219-NO-REAL-ACCOUNT-BROKER-GUARD"
     ]

@@ -462,6 +462,20 @@ MTP-219 继续实际 SwiftPM target graph split：`Package.swift` 新增 `Trader
 
 `Portfolio` target 依赖 `DomainModel`、`MessageBus`、`Cache` 和 `Database`，当前 active boundary anchor 是 `Sources/Portfolio/TargetGraph/PortfolioTargetBoundary.swift`。Portfolio 保持独立 financial state projection boundary，不拥有 Trader account identity，不读取 broker account state 或 account endpoint payload。
 
+## GH-416 Portfolio Paper Projection Update Ownership
+
+`GH-416-PORTFOLIO-PAPER-PROJECTION-UPDATE-OWNERSHIP`
+
+GH-416 将 `PaperPortfolioProjectionUpdate.swift` 从 `Core` compatibility envelope 迁入真实 `Portfolio` target。`Portfolio` 现在直接编译并可独立构造 paper portfolio projection update，保持 `PortfolioFinancialStateProjection.swift` 与 paper projection update ownership 在 Portfolio module 内。
+
+`GH-416-CORE-PORTFOLIO-EVENT-BRIDGE-ONLY`
+
+`Core` 不再拥有 `Sources/Portfolio/PaperPortfolioProjectionUpdate.swift` implementation；旧 event-log / replay surface 所需的 `portfolioEvent` 和 simulated-fill initializer 已收口到 `Sources/Core/PortfolioProjectionCompatibility.swift`。该文件只是 compatibility bridge，不把 Portfolio 反向绑定到 Core、ExecutionEngine、simulated fill lifecycle 或 runtime path。
+
+`GH-416-PORTFOLIO-REPLAY-PARITY-BRIDGE-DEFERRED`
+
+`PaperAccountPortfolioProjectionV2.swift` 和 `SimulatedExchangePortfolioProjectionParity.swift` 继续作为显式 deferred Core compatibility envelope，因为它们仍耦合 replay / simulated exchange / event evidence。GH-416 不把这些 bridge 误迁入 Portfolio，也不实现 Trader runtime、Strategy runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed/account endpoint、private stream runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
+
 `MTP-219-RISKENGINE-TARGET-SPLIT`
 
 `RiskEngine` target 依赖 `DomainModel`、`MessageBus`、`Cache` 和 `Portfolio`，当前 active boundary anchor 是 `Sources/RiskEngine/TargetGraph/RiskEngineTargetBoundary.swift`。RiskEngine 保持 pre-execution risk boundary，不实现 live risk runtime、broker route、ExecutionClient wrapper 或 executable order command router。

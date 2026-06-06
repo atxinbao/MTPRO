@@ -139,11 +139,11 @@ let package = Package(
             dependencies: ["DomainModel", "MessageBus", "Cache", "Database"],
             path: "Sources/Portfolio",
             exclude: [
-                "PaperPortfolioProjectionUpdate.swift",
                 "PaperAccountPortfolioProjectionV2.swift",
                 "SimulatedExchangePortfolioProjectionParity.swift"
             ],
             sources: [
+                "PaperPortfolioProjectionUpdate.swift",
                 "PortfolioFinancialStateProjection.swift",
                 "TargetGraph/PortfolioTargetBoundary.swift"
             ]
@@ -260,6 +260,7 @@ let package = Package(
                 "MessageBus/RiskPortfolioContracts.swift",
                 "MessageBus/StrategySignals.swift",
                 "MessageBus/TargetGraph",
+                "Portfolio/PaperPortfolioProjectionUpdate.swift",
                 "Portfolio/TargetGraph",
                 "Portfolio/PortfolioFinancialStateProjection.swift",
                 "RiskEngine/LiveGate",
@@ -276,7 +277,6 @@ let package = Package(
                 "MessageBus",
                 "DataEngine/ScenarioReplay/ScenarioReplayDeterministicMatching.swift",
                 "Portfolio/PaperAccountPortfolioProjectionV2.swift",
-                "Portfolio/PaperPortfolioProjectionUpdate.swift",
                 "Portfolio/SimulatedExchangePortfolioProjectionParity.swift",
                 "RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift",
                 "ExecutionEngine/PaperLifecycle",

@@ -500,6 +500,46 @@ GH-397 readiness anchors：
 - `GH-397-COMPATIBILITY-ENVELOPE-PRESERVED`
 - `GH-397-VALIDATION-ANCHORS`
 
+## GH-416-PORTFOLIO-PAPER-PROJECTION-UPDATE-OWNERSHIP
+
+GH-416 moves the eligible paper portfolio projection update source into the real `Portfolio` target:
+
+- `Package.swift` must compile `Sources/Portfolio/PaperPortfolioProjectionUpdate.swift` from the `Portfolio` target.
+- `Core` must exclude `Sources/Portfolio/PaperPortfolioProjectionUpdate.swift`.
+- `TargetGraphTests` must construct `PaperPortfolioProjectionUpdate` through `Portfolio` imports, proving the target owns the API.
+- `PortfolioTargetBoundary` must expose `GH-416-PORTFOLIO-PAPER-PROJECTION-UPDATE-OWNERSHIP`.
+
+## GH-416-CORE-PORTFOLIO-EVENT-BRIDGE-ONLY
+
+The old event-log / replay surface remains supported only through `Sources/Core/PortfolioProjectionCompatibility.swift`:
+
+- `portfolioEvent` and the simulated-fill convenience initializer live in the Core compatibility bridge.
+- The bridge may import `ExecutionEngine` and `MessageBus`; the `Portfolio` target must not.
+- The bridge does not authorize runtime execution, broker connection, account payload reads, OMS, real order lifecycle or L4 capability.
+
+## GH-416-PORTFOLIO-REPLAY-PARITY-BRIDGE-DEFERRED
+
+`PaperAccountPortfolioProjectionV2.swift` and `SimulatedExchangePortfolioProjectionParity.swift` remain explicit Core compatibility envelope debt. They still couple replay / simulated exchange / event evidence, so GH-416 must not move them into `Portfolio`.
+
+## GH-416-VALIDATION-ANCHORS
+
+GH-416 required validation：
+
+- `swift build --target Portfolio`
+- `swift build --target Core`
+- `swift test --filter TargetGraphTests/testGH398TraderPortfolioRiskExecutionTargetsOwnRealSourceWithoutRuntimeDrift`
+- `swift test --filter TargetGraphTests`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-416 readiness anchors：
+
+- `GH-416-PORTFOLIO-PAPER-PROJECTION-UPDATE-OWNERSHIP`
+- `GH-416-CORE-PORTFOLIO-EVENT-BRIDGE-ONLY`
+- `GH-416-PORTFOLIO-REPLAY-PARITY-BRIDGE-DEFERRED`
+- `GH-416-VALIDATION-ANCHORS`
+
 ## GH-398-TRADER-RISK-EXECUTION-IMPLEMENTATION-OWNERSHIP
 
 GH-398 将 Trader / Portfolio / RiskEngine / ExecutionEngine / ExecutionClient 从 smoke coverage 推进到 partial implementation ownership：

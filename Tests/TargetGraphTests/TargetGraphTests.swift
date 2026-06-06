@@ -786,7 +786,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(executionEngine.implementsOMS)
         XCTAssertFalse(executionEngine.implementsRealOrderLifecycle)
 
-        XCTAssertEqual(portfolio.retainedCompatibilityEnvelope, "Core")
+        XCTAssertEqual(portfolio.retainedCompatibilityEnvelope, "Core(replay / simulated parity bridge deferred)")
         XCTAssertEqual(riskEngine.retainedCompatibilityEnvelope, "Core")
         XCTAssertEqual(strategies.retainedCompatibilityEnvelope, "Core")
         XCTAssertEqual(trader.retainedCompatibilityEnvelope, "Core")
@@ -796,6 +796,8 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(strategies.validationAnchors.contains("GH-397-TRADERSTRATEGIES-EMA-REAL-TARGET-SMOKE"))
         XCTAssertTrue(trader.validationAnchors.contains("GH-397-TRADER-REAL-TARGET-SMOKE"))
         XCTAssertTrue(portfolio.validationAnchors.contains("GH-397-PORTFOLIO-REAL-TARGET-SMOKE"))
+        XCTAssertTrue(portfolio.validationAnchors.contains("GH-416-PORTFOLIO-PAPER-PROJECTION-UPDATE-OWNERSHIP"))
+        XCTAssertTrue(portfolio.validationAnchors.contains("GH-416-PORTFOLIO-REPLAY-PARITY-BRIDGE-DEFERRED"))
         XCTAssertTrue(riskEngine.validationAnchors.contains("GH-397-RISKENGINE-REAL-TARGET-SMOKE"))
         XCTAssertTrue(executionClient.validationAnchors.contains("GH-397-EXECUTIONCLIENT-FUTURE-GATE-SMOKE"))
         XCTAssertTrue(executionEngine.validationAnchors.contains("GH-397-EXECUTIONENGINE-REAL-TARGET-SMOKE"))
@@ -835,10 +837,21 @@ final class TargetGraphTests: XCTestCase {
         let riskEngineSources = try packageTargetSourcesBlock(targetBlock: riskEngineTarget)
         let executionEngineSources = try packageTargetSourcesBlock(targetBlock: executionEngineTarget)
         let coreSources = try packageTargetSourcesBlock(targetBlock: coreTarget)
+        let portfolioExcludes = try packageTargetExcludesBlock(targetBlock: portfolioTarget)
+        let coreExcludes = try packageTargetExcludesBlock(targetBlock: coreTarget)
 
+        XCTAssertTrue(portfolioSources.contains("\"PaperPortfolioProjectionUpdate.swift\""))
         XCTAssertTrue(portfolioSources.contains("\"PortfolioFinancialStateProjection.swift\""))
+        XCTAssertFalse(portfolioSources.contains("PaperAccountPortfolioProjectionV2.swift"))
+        XCTAssertFalse(portfolioSources.contains("SimulatedExchangePortfolioProjectionParity.swift"))
+        XCTAssertTrue(portfolioExcludes.contains("\"PaperAccountPortfolioProjectionV2.swift\""))
+        XCTAssertTrue(portfolioExcludes.contains("\"SimulatedExchangePortfolioProjectionParity.swift\""))
         XCTAssertTrue(riskEngineSources.contains("\"PreTrade/RiskEnginePreTradeOwnership.swift\""))
         XCTAssertTrue(executionEngineSources.contains("\"Ownership\""))
+        XCTAssertTrue(coreExcludes.contains("\"Portfolio/PaperPortfolioProjectionUpdate.swift\""))
+        XCTAssertFalse(coreSources.contains("\"Portfolio/PaperPortfolioProjectionUpdate.swift\""))
+        XCTAssertTrue(coreSources.contains("\"Portfolio/PaperAccountPortfolioProjectionV2.swift\""))
+        XCTAssertTrue(coreSources.contains("\"Portfolio/SimulatedExchangePortfolioProjectionParity.swift\""))
         XCTAssertFalse(riskEngineSources.contains("PaperPreTradeRiskEngine.swift"))
         XCTAssertFalse(executionEngineSources.contains("PaperLifecycle"))
         XCTAssertFalse(executionEngineSources.contains("SimulatedExchange"))
@@ -863,6 +876,32 @@ final class TargetGraphTests: XCTestCase {
         )
         XCTAssertTrue(financialProjection.paperOnlyBoundaryHeld)
         XCTAssertEqual(financialProjection.exposure.grossExposureNotional, exposure.grossExposureNotional)
+
+        let projectionUpdate = try PaperPortfolioProjectionUpdate(
+            updateID: try Identifier("gh-416-portfolio-projection-update"),
+            decisionID: try Identifier("gh-416-risk-decision"),
+            orderID: try Identifier("gh-416-order"),
+            fillID: try Identifier("gh-416-fill"),
+            proposalID: proposal.proposalID,
+            sessionID: try Identifier("gh-416-session"),
+            riskProfileID: try Identifier("gh-416-risk-profile"),
+            side: proposal.side,
+            riskDecisionStatus: .allowed,
+            exposure: exposure,
+            executionMode: .paper,
+            sourceSequence: 416,
+            sourceOrderIntentSequence: 414,
+            sourceRiskDecisionSequence: 415,
+            updatedAt: exposure.observedAt,
+            usesSimulatedFillEvidence: true,
+            authorizesTradingExecution: false,
+            readsRealAccountBalance: false,
+            syncsBrokerPosition: false
+        )
+        XCTAssertEqual(projectionUpdate.portfolioID, exposure.portfolioID)
+        XCTAssertFalse(projectionUpdate.authorizesTradingExecution)
+        XCTAssertFalse(projectionUpdate.readsRealAccountBalance)
+        XCTAssertFalse(projectionUpdate.syncsBrokerPosition)
 
         let riskDecision = try RiskEnginePreTradeOwnershipEvaluator.evaluate(
             decisionID: try Identifier("gh-398-risk-decision"),
@@ -1330,6 +1369,17 @@ final class TargetGraphTests: XCTestCase {
         let tail = targetBlock[sourcesRange.lowerBound...]
         guard let closeRange = tail.range(of: "\n            ]") else {
             throw XCTSkip("Package.swift target sources block is not closed")
+        }
+        return String(tail[..<closeRange.upperBound])
+    }
+
+    private func packageTargetExcludesBlock(targetBlock: String) throws -> String {
+        guard let excludesRange = targetBlock.range(of: "exclude: [") else {
+            throw XCTSkip("Package.swift target excludes block not found")
+        }
+        let tail = targetBlock[excludesRange.lowerBound...]
+        guard let closeRange = tail.range(of: "\n            ]") else {
+            throw XCTSkip("Package.swift target excludes block is not closed")
         }
         return String(tail[..<closeRange.upperBound])
     }
