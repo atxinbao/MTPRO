@@ -1282,6 +1282,35 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(dashboard.providesLiveCommand)
     }
 
+    func testGH420DashboardActiveSourceUsesDashboardReadModelOnlyNaming() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let dashboard = DashboardTargetBoundary.gh420
+        let dashboardFiles = try swiftFiles(under: repositoryRoot, relativeRoots: ["Sources/Dashboard"])
+
+        XCTAssertTrue(dashboard.dependencyDirectionHeld)
+        XCTAssertTrue(dashboard.validationAnchors.contains("GH-420-DASHBOARD-ACTIVE-SOURCE-NAMING-CLEAN"))
+        XCTAssertFalse(dashboardFiles.isEmpty, "Dashboard source root must contain Swift files")
+        for file in dashboardFiles {
+            let source = try String(contentsOf: file, encoding: .utf8)
+            XCTAssertFalse(source.contains("Workbench"), "\(file.path) must not use active Workbench naming")
+            XCTAssertFalse(source.contains("workbench"), "\(file.path) must not use active workbench naming")
+        }
+
+        let coreLiveBoundary = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/Core/LiveTradingBoundary.swift"),
+            encoding: .utf8
+        )
+        XCTAssertTrue(coreLiveBoundary.contains("public typealias LiveReadOnlyDashboardReadModelBoundary"))
+        XCTAssertTrue(coreLiveBoundary.contains("dashboardReadModelOnlyBoundaryHeld"))
+
+        let betaAcceptanceSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/Dashboard/DashboardBetaAcceptancePath.swift"),
+            encoding: .utf8
+        )
+        XCTAssertTrue(betaAcceptanceSource.contains("mtp-122-dashboard-beta-acceptance-path"))
+        XCTAssertFalse(betaAcceptanceSource.contains("mtp-122-workbench-beta-acceptance-path"))
+    }
+
     func testMTP231TargetGraphActivePathReferencesAreRetiredAndRealRootsRemainCurrent() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

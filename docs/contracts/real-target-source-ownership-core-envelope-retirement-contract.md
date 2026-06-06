@@ -730,6 +730,17 @@ GH-399 清理 active Dashboard source 中的 Workbench naming residue：
 - `Workbench` / `AppCompatibility` 不再作为 active module 口径。
 - Historical docs 可保留旧项目名，但 active source / contract / validation wording 必须避免把 Workbench 写成当前 active module。
 
+## GH-420-DASHBOARD-ACTIVE-SOURCE-NAMING-CLEAN
+
+GH-420 把 Dashboard active source 的命名和验证锚点收紧为当前 UI 口径：
+
+- `Sources/Dashboard/` active source 不再包含 `Workbench` / `workbench` 命名。
+- `DashboardTargetBoundary` 必须包含 `GH-420-DASHBOARD-ACTIVE-SOURCE-NAMING-CLEAN`。
+- `LiveReadOnlyDashboardBoundaryReadModel` 必须消费 `Core.LiveReadOnlyDashboardReadModelBoundary`，而不是在 Dashboard source 里直接引用旧 Workbench active surface 名称。
+- `DashboardBetaAcceptancePath` 的 current evidence id 必须是 `mtp-122-dashboard-beta-acceptance-path`。
+
+GH-420 不删除 `Core.LiveReadOnlyWorkbenchReadModelBoundary` 历史合同事实源；该类型只作为 MTP-131 legacy contract 继续存在。Dashboard active module、current validation 和 readiness evidence 只能使用 Dashboard read-model-only 口径。
+
 ## GH-400-UNSAFE-CONSTRUCT-ALLOWED-PATH-VALIDATION
 
 GH-400 增加 `try!` / `preconditionFailure` allowed-path validation：
