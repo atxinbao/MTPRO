@@ -478,3 +478,87 @@ GH-401 只收口 project-level matrix 和 Stage Code Audit input material：
 - `GH-401-STAGE-AUDIT-INPUT` 明确本 issue 只准备审计输入，不输出最终 Stage Code Audit Report。
 
 GH-401 不创建下一 Project / Issue，不推进 L4，不实现 Trader runtime、Strategy runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed/account endpoint、private WebSocket runtime、real order lifecycle 或 UI command surface。
+
+## GH-413-CORE-ENVELOPE-RETIREMENT-CONTRACT
+
+GH-413 启动第二轮 Core envelope retirement / real module ownership completion queue。它只定义后续 GH-414 至 GH-422 的 real ownership acceptance criteria、dependency direction、retained compatibility envelope exit criteria 和 forbidden capability guard；不修改 `Package.swift`，不移动 `Sources`，不写业务代码，不实现 runtime / live / broker / L4 capability。
+
+本轮的核心判断是：architecture module target names 和 real source roots 已经基本存在，但最终完成标准不是“目录存在”，而是每个模块能在自己的 SwiftPM target 中承载核心实现、通过独立 smoke / behavior tests，并且不再让 `Core`、`Adapters`、`Persistence` 或 `Runtime` 继续作为该模块 primary implementation owner。
+
+## GH-413-REAL-MODULE-OWNERSHIP-ACCEPTANCE-CRITERIA
+
+| Module | Real ownership acceptance criteria | Retained envelope exit criteria |
+| --- | --- | --- |
+| `MessageBus` | Owns neutral command / event / request-response spine, append-only journal, proposal / risk decision contracts, and paper routing vocabulary that does not import downstream module implementation. | `CommandsAndQueries.swift`、`DomainEvents.swift`、`EventLog.swift` 和 `PaperRuntimeBusRouting.swift` must no longer be primary `Core` ownership, or must be split so only explicitly legacy compatibility shims remain in `Core`. |
+| `DataEngine` | Owns ingest / replay / quality contracts and executable read-only replay evidence without requiring `Core` as implementation owner. | `ScenarioReplay`、`DataQuality` and `Ingest` must no longer be primary `Core` / `Runtime` ownership, except explicitly documented compatibility shims. |
+| `Database` | Owns durable facts / projection / replay projection boundaries and database checkpoint vocabulary; schema details remain hidden from UI. | `Projections` and `ReplayProjection` must no longer depend on `Persistence` / `Runtime` as primary source owners, except compatibility shims with explicit labels. |
+| `Portfolio` | Owns financial state projection boundary, paper portfolio projection evidence, and portfolio parity vocabulary. | Paper projection and parity files must no longer be primary `Core` ownership. |
+| `RiskEngine` | Owns pre-execution risk gate boundary and paper pre-trade risk evidence without owning broker or live risk runtime. | `PreTrade/PaperPreTradeRiskEngine.swift` must no longer be primary `Core` ownership. |
+| `ExecutionEngine` | Owns paper / simulated execution lifecycle and simulated exchange evidence while keeping real order lifecycle future-gated. | `PaperLifecycle` and `SimulatedExchange` must no longer be primary `Core` ownership. |
+| `ExecutionClient` | Remains future gate / protocol boundary only; owns vocabulary for future broker capability, not implementation. | No broker gateway, OMS, signed request client, account endpoint client, listenKey runtime, private WebSocket runtime, submit / cancel / replace, execution report, broker fill or reconciliation implementation is allowed. |
+| `Trader` | Owns `Accounts + Strategies/EMA + Coordination`; strategy output remains proposal / signal, not executable order command. | Trader must not directly depend on `ExecutionEngine` / `ExecutionClient`, broker, OMS, live command or UI command surface. |
+| `Dashboard` | Consumes read model / ViewModel only and remains the active UI surface. | No active `Workbench` / `AppCompatibility` module restoration; any historical wording must remain clearly non-active. |
+| `Core` / `Adapters` / `Persistence` / `Runtime` | Retained compatibility envelopes only. | They may keep temporary re-export / bridge shims, but cannot be described as final owners for architecture module implementation. |
+
+## GH-413-SOURCE-ROOT-BOUNDARY-ANCHOR-FUTURE-GATE-MATRIX
+
+GH-413 requires future PRs to label every touched path as exactly one of:
+
+| Category | Meaning | Allowed use |
+| --- | --- | --- |
+| Real module source root | The module's intended implementation home. | `Sources/MessageBus/`、`Sources/DataEngine/`、`Sources/Trader/` and other architecture source roots. |
+| Boundary anchor | Compile-time / validation declaration proving target shape. | `Sources/*/TargetGraph/*TargetBoundary.swift`; these anchors prove shape, not full implementation ownership. |
+| Retained compatibility envelope | Temporary compatibility target carrying old import surface or shims. | `Core`、`Adapters`、`Persistence`、`Runtime`; every retained file must have an explicit reason and exit path. |
+| Future gate | Current vocabulary for future capability only. | `ExecutionClient` broker capability, OMS, live order lifecycle, live command and L4 production trading remain future-gated. |
+
+This matrix is the acceptance baseline for GH-414 through GH-422. A module is not complete merely because its target builds or because a `TargetGraph` boundary exists; it is complete only when its implementation ownership, dependency direction and forbidden capability guards are proven by tests and readiness anchors.
+
+## GH-413-DEPENDENCY-DIRECTION-AND-EXIT-GATES
+
+Dependency direction remains:
+
+```text
+DataClient -> DataEngine -> MessageBus -> Cache / Database
+Trader = Accounts + Strategies/EMA + Coordination
+Trader / Portfolio / RiskEngine -> proposal / risk / projection contracts
+RiskEngine -> ExecutionEngine -> ExecutionClient future gate
+Dashboard -> ReadModel / ViewModel only
+```
+
+Exit gates for retained envelopes:
+
+- `Core` exits a module area only after the real target can independently compile and use its core types, focused tests prove behavior, and old `Core` callers are either updated or covered by a clearly labeled compatibility shim.
+- `Adapters` exits DataClient ownership when venue implementations compile from `DataClient/<venue>/` and `Adapters` is reduced to historical or re-export compatibility only.
+- `Persistence` / `Runtime` exit Database / DataEngine ownership when projection, replay and ingest source roots compile from their real targets or are explicitly split into smaller authorized targets.
+- Dashboard exits old UI wording when active source and validation use `Dashboard read-model-only boundary` and do not restore Workbench / AppCompatibility active modules.
+
+## GH-413-NO-L4-RUNTIME-BROKER-GUARD
+
+GH-413 and the downstream Core envelope retirement queue do not authorize:
+
+- Trader runtime、Strategy runtime、Live runtime。
+- ExecutionClient implementation、OMS、broker gateway。
+- signed endpoint、account endpoint / listenKey、private WebSocket runtime。
+- real account read、real order lifecycle、submit / cancel / replace。
+- execution report、broker fill、reconciliation。
+- Live PRO Console、trading button、live command、order form。
+- L4 implementation。
+- Symphony / symphony-issue、Graphify / code-index、Figma。
+- `.codex/*`、`.build/*`、`graphify-out/*` 提交。
+
+## GH-413-VALIDATION-ANCHORS
+
+GH-413 required validation：
+
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-413 readiness anchors：
+
+- `GH-413-CORE-ENVELOPE-RETIREMENT-CONTRACT`
+- `GH-413-REAL-MODULE-OWNERSHIP-ACCEPTANCE-CRITERIA`
+- `GH-413-SOURCE-ROOT-BOUNDARY-ANCHOR-FUTURE-GATE-MATRIX`
+- `GH-413-DEPENDENCY-DIRECTION-AND-EXIT-GATES`
+- `GH-413-NO-L4-RUNTIME-BROKER-GUARD`
+- `GH-413-VALIDATION-ANCHORS`

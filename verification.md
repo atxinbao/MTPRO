@@ -14547,3 +14547,28 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; Dashboard smoke normal; 339 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-06 - GH-413 Core envelope retirement contract
+
+- Project: `MTPRO Core Envelope Retirement / Real Module Ownership Completion v1`
+- Queue item: GH-413 `Define Core envelope retirement contract and real ownership acceptance criteria`
+- Scope:
+  - Added the second-round Core envelope retirement / real module ownership completion contract.
+  - Defined real module ownership acceptance criteria for `MessageBus`, `DataEngine`, `Database`, `Portfolio`, `RiskEngine`, `ExecutionEngine`, `ExecutionClient`, `Trader`, `Dashboard`, and retained compatibility envelopes.
+  - Distinguished real module source roots, module-local `TargetGraph` boundary anchors, retained compatibility envelopes, and future gates.
+  - Added GH-413 readiness anchors to `architecture.md`, `docs/automation/automation-readiness.md`, `docs/validation/latest-verification-summary.md`, `verification.md`, and `checks/automation-readiness.sh`.
+- Boundary:
+  - No `Package.swift` change.
+  - No `Sources` move.
+  - No production behavior change.
+  - No Trader runtime / Strategy runtime / Live runtime.
+  - No ExecutionClient implementation / OMS / broker gateway.
+  - No signed endpoint / account endpoint / listenKey / private WebSocket runtime.
+  - No real order lifecycle / submit / cancel / replace / execution report / broker fill / reconciliation.
+  - No Live PRO Console / trading button / live command / order form.
+  - No L4 implementation.
+  - No Symphony / Graphify / code-index / Figma.
+- Validation:
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 339 XCTest / 0 failures; final output `MTPRO checks passed.`

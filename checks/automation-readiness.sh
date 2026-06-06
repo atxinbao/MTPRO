@@ -5703,6 +5703,19 @@ require_contains "verification.md" "GH-398 Trader / Portfolio / Risk / Execution
 require_contains "verification.md" "GH-399 Dashboard read-model-only naming cleanup"
 require_contains "verification.md" "GH-400 unsafe construct allowed-path validation"
 require_contains "verification.md" "GH-401 Core envelope retirement matrix / stage audit input"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-413-CORE-ENVELOPE-RETIREMENT-CONTRACT"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-413-REAL-MODULE-OWNERSHIP-ACCEPTANCE-CRITERIA"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-413-SOURCE-ROOT-BOUNDARY-ANCHOR-FUTURE-GATE-MATRIX"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-413-DEPENDENCY-DIRECTION-AND-EXIT-GATES"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-413-NO-L4-RUNTIME-BROKER-GUARD"
+require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-413-VALIDATION-ANCHORS"
+require_contains "architecture.md" "GH-413 Core Envelope Retirement / Real Module Ownership Completion Contract"
+require_contains "architecture.md" "GH-413-REAL-MODULE-OWNERSHIP-ACCEPTANCE-CRITERIA"
+require_contains "architecture.md" "GH-413-SOURCE-ROOT-BOUNDARY-ANCHOR-FUTURE-GATE-MATRIX"
+require_contains "architecture.md" "GH-413-NO-L4-RUNTIME-BROKER-GUARD"
+require_contains "docs/automation/automation-readiness.md" "GH-413 core envelope retirement contract anchor"
+require_contains "docs/validation/latest-verification-summary.md" "GH-413 Core envelope retirement contract"
+require_contains "verification.md" "GH-413 Core envelope retirement contract"
 require_absent "docs/validation/validation-plan.md" 'Root docs 必须使用 `Trader = Accounts + Strategies + StrategyBindings + Coordination`'
 require_absent "docs/validation/validation-plan.md" '`Sources/Trader/StrategyBindings/` 必须包含 proposal-to-risk binding'
 require_absent "docs/validation/validation-plan.md" '只使用 `"Trader/Strategies/EMA"` 和 `"Trader/StrategyBindings"`'
