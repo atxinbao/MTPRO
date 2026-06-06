@@ -3298,6 +3298,28 @@ Fixture / sandbox interpretation 是当前可验证 value source；future real a
 
 L4 live account read-model matrix 必须证明 APB / margin component 完整、source / freshness / evidence identity 完整、Dashboard read-model-only boundary 成立、fixture / sandbox 与 future real account interpretation 已隔离，并且 raw payload、broker state、Runtime object、Adapter request、schema、real PnL、reconciliation 和 command surface 全部关闭。
 
+## GH-458 L4 ExecutionClient Venue Adapter Contract Terms
+
+`GH-458-EXECUTIONCLIENT-VENUE-ADAPTER-CONTRACT`
+
+L4 ExecutionClient venue adapter contract 指 `ExecutionClient/<venue>` 未来把已授权的 execution intent 映射到外部交易所 / broker venue API 的合同边界。它不是当前 broker gateway，不生成 signed request，不连接 account endpoint，不提交真实订单。
+
+`GH-458-EXECUTIONENGINE-INTERNAL-LIFECYCLE-BOUNDARY`
+
+ExecutionEngine 是内部执行生命周期协调者：它拥有 order identity、risk-approved handoff、local lifecycle transition、audit evidence 和后续 OMS gate 之后的 parsed evidence consumption。ExecutionClient 只表达外部 venue adapter contract，不拥有内部 order state machine。
+
+`GH-458-SANDBOX-PRODUCTION-VENUE-GATE`
+
+Sandbox venue gate 是 GH-459 之后才能继续授权的 sandbox submit / cancel / replace 门禁。Production venue gate 在 GH-471 前保持关闭；任何配置、fixture、UI 或 test 都不得把 sandbox gate 写成 production shortcut。
+
+`GH-458-NO-DIRECT-TRADER-STRATEGY-EXECUTIONCLIENT`
+
+TraderStrategies / concrete strategy 只能产出 signal / proposal evidence。Trader 是 Accounts + Strategies/EMA + Coordination 容器。Trader 和 Strategy 都不得 direct import、依赖或调用 ExecutionClient；order intent 必须先经过 RiskEngine / ExecutionEngine 边界。
+
+`TVM-L4-EXECUTIONCLIENT-VENUE-ADAPTER-CONTRACT`
+
+L4 ExecutionClient venue adapter matrix 必须证明 submit、cancel、replace、status/report query、execution report parsing 和 broker fill parsing 都只是 contract operation 行，且全部需要 ExecutionEngine handoff、sandbox venue gate 和 production venue gate。当前 matrix 不授权 broker gateway、sandbox runtime、production venue、OMS、reconciliation、Live PRO Console、order form 或 real submit / cancel / replace。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
