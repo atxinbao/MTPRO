@@ -2424,3 +2424,38 @@ GitHub Issue：[#421](https://github.com/atxinbao/MTPRO/issues/421)
 - `git diff --check`：pass，无输出。
 - `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
 - `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true` / `dashboardReadModelOnly=true`，343 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
+## 2026-06-06 — GH-422 Core envelope retirement matrix / L4 readiness closeout
+
+执行者：Codex
+
+GitHub Issue：[#422](https://github.com/atxinbao/MTPRO/issues/422)
+
+范围：
+
+- 新增 `docs/audit/inputs/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-audit-input.md`。
+- 汇总 GH-413 至 GH-422 evidence chain。
+- 明确本轮 completed ownership moves：MessageBus neutral query / replay、DataEngine scenario replay / quality、Portfolio paper projection、RiskEngine paper pre-trade、ExecutionEngine paper / simulated lifecycle、Dashboard read-model-only naming cleanup、all architecture targets real API smoke。
+- 明确 retained compatibility envelopes：`Core`、`Adapters`、`Persistence`、`Runtime`。
+- 明确 L4 readiness blockers 和 forbidden capability guard。
+
+边界：
+
+- 不输出最终 Stage Code Audit Report。
+- 不创建下一 Project / Issue。
+- 不推进 L4。
+- 不实现 Trader runtime、Strategy runtime、Live runtime。
+- 不实现 ExecutionClient implementation、OMS、broker gateway。
+- 不接 signed endpoint、account endpoint / listenKey、private WebSocket runtime。
+- 不实现 real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation。
+- 不实现 Live PRO Console、trading button、live command、order form 或 L4 capability。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify / code-index。
+- 不修改 Figma。
+
+验证：
+
+- `swift test --filter TargetGraphTests`：pass，28 tests / 0 failures。
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true` / `dashboardReadModelOnly=true`，343 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。

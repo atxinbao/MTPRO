@@ -785,6 +785,21 @@ GH-401 只收口 project-level matrix 和 Stage Code Audit input material：
 
 GH-401 不创建下一 Project / Issue，不推进 L4，不实现 Trader runtime、Strategy runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed/account endpoint、private WebSocket runtime、real order lifecycle 或 UI command surface。
 
+## GH-422-CORE-ENVELOPE-RETIREMENT-MATRIX-STAGE-CLOSEOUT
+
+GH-422 收口第二轮 Core envelope retirement / real module ownership completion 的 stage audit input material：
+
+- Canonical stage audit input file：`docs/audit/inputs/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-audit-input.md`。
+- `GH-422-ISSUE-EVIDENCE-CHAIN` 汇总 GH-413 到 GH-422 的 evidence chain。
+- `GH-422-COMPLETED-OWNERSHIP-MOVES` 明确 MessageBus、DataEngine、Portfolio、RiskEngine、ExecutionEngine、Dashboard 和 all-target smoke 的 completed ownership moves。
+- `GH-422-RETAINED-COMPATIBILITY-ENVELOPE-SNAPSHOT` 明确 `Core`、`Adapters`、`Persistence`、`Runtime` 仍是 retained compatibility envelopes。
+- `GH-422-L4-READINESS-BLOCKERS` 明确 L4 仍为 future gated，需要后续单独 planning。
+- `GH-422-STAGE-AUDIT-INPUT` 明确本 issue 只准备审计输入，不输出最终 Stage Code Audit Report。
+- `GH-422-NO-L4-RUNTIME-BROKER-GUARD` 明确不授权 runtime / live / broker / L4 capability。
+- `GH-422-VALIDATION-ANCHORS` 固定 focused TargetGraph、automation readiness 和 full checks 验证。
+
+GH-422 不创建下一 Project / Issue，不推进 L4，不实现 Trader runtime、Strategy runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed/account endpoint、private WebSocket runtime、real order lifecycle 或 UI command surface。
+
 ## GH-413-CORE-ENVELOPE-RETIREMENT-CONTRACT
 
 GH-413 启动第二轮 Core envelope retirement / real module ownership completion queue。它只定义后续 GH-414 至 GH-422 的 real ownership acceptance criteria、dependency direction、retained compatibility envelope exit criteria 和 forbidden capability guard；不修改 `Package.swift`，不移动 `Sources`，不写业务代码，不实现 runtime / live / broker / L4 capability。
