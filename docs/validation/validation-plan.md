@@ -190,6 +190,27 @@ GH-455 必须建立的主要 anchors：
 - `GH-455-FORBIDDEN-PRODUCTION-DEFAULT-TESTS`
 - `TVM-L4-SIGNED-ACCOUNT-READ-ONLY-RUNTIME`
 
+## GH-456 L4 Private Stream Account Snapshot Read-only Runtime Validation
+
+GH-456 的 required validation：
+
+- `docs/contracts/l4-private-stream-account-snapshot-read-only-runtime-contract.md` 必须存在，并包含 `GH-456-L4-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-READ-ONLY-RUNTIME`、`GH-456-PRIVATE-STREAM-SOURCE-IDENTITY`、`GH-456-ACCOUNT-SNAPSHOT-READ-MODEL-UPDATE`、`GH-456-FRESHNESS-STALE-BLOCKED-MISSING-DISCONNECT-EVIDENCE`、`GH-456-LISTENKEY-LIFECYCLE-NO-COMMAND-SURFACE` 和 `GH-456-NON-AUTHORIZATION`。
+- `Sources/ExecutionClient/FutureGate/L4PrivateStreamAccountSnapshotReadOnlyRuntime.swift` 必须定义 `L4PrivateStreamAccountSnapshotReadOnlyRuntime`、`L4PrivateStreamReadOnlyRuntimeConfiguration`、`L4PrivateStreamAccountSnapshotReadOnlyEvidence`、`L4PrivateStreamAccountSnapshotReadModelRecord`、`L4PrivateStreamSourceIdentity`、`L4PrivateStreamFreshnessStatus` 和 `L4PrivateStreamReadOnlyForbiddenCapability`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH456PrivateStreamAccountSnapshotReadOnlyRuntimeProducesFreshnessEvidence` 和 `testGH456PrivateStreamAccountSnapshotReadOnlyRuntimeRejectsListenKeyPayloadAndCommandBypass`。
+- Runtime 默认必须 disabled；未配置 credential reference、sandbox gate、fixture stream gate 和 account snapshot mapping gate 时不可触发 private stream evidence。
+- Runtime 必须引用 GH-455 canonical signed account evidence，只输出 source identity、freshness、stale / blocked / missing / disconnected 和 account snapshot read-model update evidence。
+- Forbidden lifecycle tests 必须拒绝 production mode、listenKey lifecycle、private WebSocket、raw payload exposure、command runtime、missing credential reference、raw private payload record 和 raw broker payload evidence。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`，不依赖真实 secret、listenKey、private WebSocket、broker、production credential 或人工验收。
+
+GH-456 必须建立的主要 anchors：
+
+- `GH-456-L4-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-READ-ONLY-RUNTIME`
+- `GH-456-PRIVATE-STREAM-SOURCE-IDENTITY`
+- `GH-456-ACCOUNT-SNAPSHOT-READ-MODEL-UPDATE`
+- `GH-456-FRESHNESS-STALE-BLOCKED-MISSING-DISCONNECT-EVIDENCE`
+- `GH-456-LISTENKEY-LIFECYCLE-NO-COMMAND-SURFACE`
+- `TVM-L4-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-READ-ONLY-RUNTIME`
+
 ## MTP-24 Trading Validation Matrix Validation
 
 MTP-24 的 required validation：

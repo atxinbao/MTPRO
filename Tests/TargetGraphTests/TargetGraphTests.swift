@@ -1377,6 +1377,194 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH456PrivateStreamAccountSnapshotReadOnlyRuntimeProducesFreshnessEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+
+        let signedRuntime = try L4SignedAccountReadOnlyRuntime.deterministicFixture()
+        let signedEvidence = try signedRuntime.readAccountEvidence(configuration: .sandboxFixture())
+        let runtime = try L4PrivateStreamAccountSnapshotReadOnlyRuntime.deterministicFixture()
+        XCTAssertTrue(runtime.runtimeBoundaryHeld)
+        XCTAssertEqual(runtime.issueID.rawValue, "GH-456")
+        XCTAssertEqual(runtime.upstreamIssueIDs.map(\.rawValue), ["GH-454", "GH-455"])
+        XCTAssertTrue(
+            runtime.validationAnchors.contains("GH-456-L4-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-READ-ONLY-RUNTIME")
+        )
+        XCTAssertTrue(runtime.validationAnchors.contains("TVM-L4-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-READ-ONLY-RUNTIME"))
+        XCTAssertTrue(runtime.productionDisabledByDefault)
+        XCTAssertTrue(runtime.fixtureStreamOnly)
+        XCTAssertTrue(runtime.dashboardReadModelOnlyBoundaryHeld)
+
+        XCTAssertThrowsError(
+            try runtime.readPrivateStreamAccountSnapshotEvidence(
+                configuration: .disabled(),
+                signedAccountEvidence: signedEvidence
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "mode",
+                    expected: "local fixture or sandbox configured",
+                    actual: "disabled"
+                )
+            )
+        }
+
+        let evidence = try runtime.readPrivateStreamAccountSnapshotEvidence(
+            configuration: .sandboxFixture(),
+            signedAccountEvidence: signedEvidence
+        )
+        XCTAssertTrue(evidence.evidenceBoundaryHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-456")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-454", "GH-455"])
+        XCTAssertEqual(evidence.signedAccountEvidenceID.rawValue, "gh-455-signed-account-read-only-evidence")
+        XCTAssertEqual(
+            Set(evidence.records.map(\.freshnessStatus)),
+            Set(L4PrivateStreamFreshnessStatus.allCases)
+        )
+        XCTAssertEqual(
+            Set(evidence.records.map(\.sourceKind)),
+            Set(L4PrivateStreamSourceIdentity.allCases)
+        )
+        XCTAssertTrue(evidence.records.contains { $0.eventKind == .accountSnapshot })
+        XCTAssertTrue(evidence.records.contains { $0.eventKind == .disconnectEvidence })
+        XCTAssertTrue(evidence.records.allSatisfy { $0.rawPrivatePayloadExposed == false })
+        XCTAssertTrue(evidence.records.allSatisfy { $0.commandSurfaceEnabled == false })
+        XCTAssertTrue(evidence.readModelOnly)
+        XCTAssertTrue(evidence.dashboardReadModelOnly)
+        XCTAssertFalse(evidence.listenKeyValueExposed)
+        XCTAssertFalse(evidence.privateWebSocketOpened)
+        XCTAssertFalse(evidence.rawBrokerPayloadExposed)
+        XCTAssertFalse(evidence.rawPrivatePayloadExposed)
+        XCTAssertFalse(evidence.commandSurfaceEnabled)
+        XCTAssertFalse(evidence.productionGateEnabled)
+
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/L4PrivateStreamAccountSnapshotReadOnlyRuntime.swift"
+                ).path
+            )
+        )
+    }
+
+    func testGH456PrivateStreamAccountSnapshotReadOnlyRuntimeRejectsListenKeyPayloadAndCommandBypass() throws {
+        XCTAssertThrowsError(
+            try L4PrivateStreamReadOnlyRuntimeConfiguration(
+                mode: .production
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("mode.production"))
+        }
+
+        XCTAssertThrowsError(
+            try L4PrivateStreamReadOnlyRuntimeConfiguration(
+                listenKeyLifecycleAllowed: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("listenKeyLifecycleAllowed")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4PrivateStreamReadOnlyRuntimeConfiguration(
+                privateWebSocketAllowed: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("privateWebSocketAllowed")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4PrivateStreamReadOnlyRuntimeConfiguration(
+                rawPayloadExposureAllowed: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("rawPayloadExposureAllowed")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4PrivateStreamReadOnlyRuntimeConfiguration(
+                commandRuntimeAllowed: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("commandRuntimeAllowed")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4PrivateStreamReadOnlyRuntimeConfiguration(
+                mode: .sandboxConfigured,
+                credentialReference: nil,
+                sandboxGateEnabled: true,
+                fixtureStreamEnabled: true,
+                accountSnapshotMappingEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "credentialReference",
+                    expected: "non-empty external credential reference identity",
+                    actual: "missing"
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4PrivateStreamAccountSnapshotReadModelRecord(
+                eventKind: .accountSnapshot,
+                sourceKind: .signedAccountSnapshot,
+                freshnessStatus: .fresh,
+                canonicalReadModelValue: "unsafe raw payload",
+                sourceIdentity: "unsafe-gh-456",
+                rawPrivatePayloadExposed: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("rawPrivatePayloadExposed")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4PrivateStreamAccountSnapshotReadOnlyEvidence(
+                signedAccountEvidenceID: Identifier.constant("gh-455-signed-account-read-only-evidence"),
+                sourceIdentity: "unsafe-gh-456",
+                records: [
+                    L4PrivateStreamAccountSnapshotReadModelRecord(
+                        eventKind: .accountSnapshot,
+                        sourceKind: .signedAccountSnapshot,
+                        freshnessStatus: .fresh,
+                        canonicalReadModelValue: "unsafe",
+                        sourceIdentity: "unsafe-gh-456"
+                    )
+                ],
+                rawBrokerPayloadExposed: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("rawBrokerPayloadExposed")
+            )
+        }
+    }
+
     func testGH421AllArchitectureTargetsExposeIndependentRealAPISmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-421-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)
