@@ -35,48 +35,6 @@ public struct PaperPortfolioProjectionUpdate: Codable, Equatable, Sendable {
         exposure.portfolioID
     }
 
-    public var portfolioEvent: PortfolioEvent {
-        .paperProjectionUpdated(self)
-    }
-
-    public init(
-        updateID: Identifier,
-        portfolioID: Identifier,
-        simulatedFill: PaperSimulatedFillEvidence,
-        sourceSimulatedFillSequence: Int,
-        updatedAt: Date
-    ) throws {
-        try self.init(
-            updateID: updateID,
-            decisionID: simulatedFill.riskDecisionID,
-            orderID: simulatedFill.orderID,
-            fillID: simulatedFill.fillID,
-            proposalID: simulatedFill.proposalID,
-            sessionID: simulatedFill.sessionID,
-            riskProfileID: simulatedFill.riskProfileID,
-            side: simulatedFill.side,
-            riskDecisionStatus: simulatedFill.riskDecisionStatus,
-            exposure: PortfolioExposureSnapshot(
-                portfolioID: portfolioID,
-                symbol: simulatedFill.symbol,
-                timeframe: simulatedFill.timeframe,
-                paperQuantity: simulatedFill.filledQuantity,
-                referencePrice: simulatedFill.fillPrice,
-                source: .paperProjection,
-                observedAt: updatedAt
-            ),
-            executionMode: simulatedFill.executionMode,
-            sourceSequence: sourceSimulatedFillSequence,
-            sourceOrderIntentSequence: simulatedFill.sourceOrderIntentSequence,
-            sourceRiskDecisionSequence: simulatedFill.sourceRiskDecisionSequence,
-            updatedAt: updatedAt,
-            usesSimulatedFillEvidence: true,
-            authorizesTradingExecution: false,
-            readsRealAccountBalance: false,
-            syncsBrokerPosition: false
-        )
-    }
-
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         try self.init(
@@ -131,7 +89,7 @@ public struct PaperPortfolioProjectionUpdate: Codable, Equatable, Sendable {
         try container.encode(syncsBrokerPosition, forKey: .syncsBrokerPosition)
     }
 
-    private init(
+    public init(
         updateID: Identifier,
         decisionID: Identifier,
         orderID: Identifier,

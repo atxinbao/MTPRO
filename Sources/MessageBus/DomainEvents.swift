@@ -1,6 +1,7 @@
 import DomainModel
 import Foundation
 import MessageBus
+import Portfolio
 
 /// 领域事件和 envelope 定义 append-only event log 的事实格式，事件只来自 Core 合同内的本地行为。
 
