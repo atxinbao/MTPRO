@@ -15005,3 +15005,40 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 352 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-07 - GH-454 L4 signed endpoint and private stream boundary
+
+- Issue: GH-454 `L4: 03/21 Define signed endpoint and private stream runtime boundary`
+- Queue:
+  - GitHub fallback queue used because this L4 stage is not using Linear.
+  - WIP=1 preflight passed before implementation: #454 was OPEN with `mtpro / backlog / non-executable`; #452 and #453 were CLOSED with `done`; no open issue carried `todo`, `in-progress` or `in-review`; no open PR was present.
+  - #454 was promoted to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `docs/contracts/l4-signed-endpoint-private-stream-boundary-contract.md`.
+  - Added `Sources/ExecutionClient/FutureGate/L4SignedEndpointPrivateStreamBoundaryContract.swift`.
+  - Added `TargetGraphTests` coverage for signed read-only / private stream / command runtime separation, signed request capability taxonomy, private lifecycle gates, source identities and forbidden endpoint path rejection.
+  - Backfilled `TVM-L4-SIGNED-ENDPOINT-PRIVATE-STREAM-BOUNDARY`, validation plan, domain language, latest summary and automation readiness anchors.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No real API key / secret read, storage, print or repository commit.
+  - No API-key header construction or request signature generation.
+  - No signed endpoint / account endpoint call.
+  - No listenKey create / keep-alive / close.
+  - No private WebSocket open / reconnect.
+  - No real account snapshot read or real private event consumption.
+  - No ExecutionClient adapter implementation.
+  - No OMS implementation.
+  - No command runtime.
+  - No production endpoint or production trading.
+  - No real submit / cancel / replace.
+  - No execution report / broker fill production ingestion.
+  - No reconciliation production runtime.
+  - No Live PRO Console command surface, trading button, live command or order form.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH454L4SignedEndpointPrivateStreamBoundarySeparatesRuntimeKinds`: pass; 1 test / 0 failures.
+  - `swift test --filter TargetGraphTests/testGH454L4SignedEndpointPrivateStreamBoundaryRejectsEndpointRuntimeBypass`: pass; 1 test / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 354 XCTest / 0 failures; final output `MTPRO checks passed.`

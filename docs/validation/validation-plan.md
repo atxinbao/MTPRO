@@ -149,6 +149,26 @@ GH-453 必须建立的主要 anchors：
 - `GH-453-LOCAL-CI-SECRET-PRODUCTION-VALIDATION`
 - `TVM-L4-CREDENTIAL-ENVIRONMENT-GATE`
 
+## GH-454 L4 Signed Endpoint Private Stream Boundary Validation
+
+GH-454 的 required validation：
+
+- `docs/contracts/l4-signed-endpoint-private-stream-boundary-contract.md` 必须存在，并包含 `GH-454-L4-SIGNED-ENDPOINT-PRIVATE-STREAM-BOUNDARY`、`GH-454-SIGNED-REQUEST-CAPABILITY-TAXONOMY`、`GH-454-LISTENKEY-PRIVATE-WEBSOCKET-FUTURE-CONTRACT`、`GH-454-ACCOUNT-SNAPSHOT-PRIVATE-EVENT-SOURCE-IDENTITY`、`GH-454-FORBIDDEN-ENDPOINT-PATHS` 和 `GH-454-NON-AUTHORIZATION`。
+- `Sources/ExecutionClient/FutureGate/L4SignedEndpointPrivateStreamBoundaryContract.swift` 必须定义 `L4SignedEndpointPrivateStreamBoundaryContract`、`L4SignedPrivateBoundaryEntry`、`L4SignedPrivateRuntimeKind`、`L4SignedRequestCapabilityTaxonomy`、`L4PrivateStreamLifecycleGate`、`L4AccountPrivateEventSourceIdentity` 和 `L4SignedPrivateForbiddenCapability`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH454L4SignedEndpointPrivateStreamBoundarySeparatesRuntimeKinds` 和 `testGH454L4SignedEndpointPrivateStreamBoundaryRejectsEndpointRuntimeBypass`。
+- Boundary 必须明确区分 signed read-only、private stream 和 command runtime；GH-454 不能把 account read-only、private event stream 和 submit / cancel / replace command 合并成单一 runtime。
+- Forbidden endpoint tests 必须证明 credential value read、API-key header construction、request signature generation、signed endpoint call、account endpoint call、listenKey creation / keep-alive / close、private WebSocket open / reconnect、real account snapshot read、real private event consumption 和 command runtime 全部关闭。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`，不依赖真实 secret、真实 Binance private endpoint、broker、production credential 或人工验收。
+
+GH-454 必须建立的主要 anchors：
+
+- `GH-454-L4-SIGNED-ENDPOINT-PRIVATE-STREAM-BOUNDARY`
+- `GH-454-SIGNED-REQUEST-CAPABILITY-TAXONOMY`
+- `GH-454-LISTENKEY-PRIVATE-WEBSOCKET-FUTURE-CONTRACT`
+- `GH-454-ACCOUNT-SNAPSHOT-PRIVATE-EVENT-SOURCE-IDENTITY`
+- `GH-454-FORBIDDEN-ENDPOINT-PATHS`
+- `TVM-L4-SIGNED-ENDPOINT-PRIVATE-STREAM-BOUNDARY`
+
 ## MTP-24 Trading Validation Matrix Validation
 
 MTP-24 的 required validation：
