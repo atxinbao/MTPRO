@@ -15299,3 +15299,39 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 368 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-07 - GH-462 L4 OMS local order transition evidence
+
+- Issue: GH-462 `L4: 11/21 Implement OMS local order state transition evidence`
+- Queue:
+  - GitHub fallback queue used because this L4 stage is not using Linear.
+  - WIP=1 preflight passed before implementation: #462 was OPEN with `mtpro / backlog / non-executable`; #461 was CLOSED with `done`; no other open issue carried `todo`, `in-progress` or `in-review`; no open PR was present.
+  - #462 was promoted to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `docs/contracts/l4-oms-local-order-transition-evidence-contract.md`.
+  - Added `Sources/ExecutionEngine/OMSFutureGate/L4OMSLocalOrderTransitionEvidence.swift`.
+  - Added `TargetGraphTests` coverage for deterministic sandbox local order state records, GH-461 allowed local transition evidence, fill / cancel / reject lifecycle paths, illegal transition rejection and broker-independent local state evidence.
+  - Backfilled `TVM-L4-OMS-LOCAL-ORDER-TRANSITION-EVIDENCE`, validation plan, domain language, latest summary and automation readiness anchors.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No real API key / secret read, storage, print or repository commit.
+  - No API-key header construction or request signature generation.
+  - No signed endpoint / account endpoint call.
+  - No listenKey create / keep-alive / close.
+  - No private WebSocket open / reconnect.
+  - No production OMS.
+  - No real order submission.
+  - No production broker report consumption.
+  - No broker gateway touch.
+  - No real order state store write.
+  - No Portfolio mutation.
+  - No reconciliation runtime.
+  - No Live PRO Console command surface, trading button, live command or order form.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH462OMSLocalOrderTransitionEvidenceBuildsDeterministicSandboxLifecycle`: pass; 1 test / 0 failures.
+  - `swift test --filter TargetGraphTests/testGH462OMSLocalOrderTransitionEvidenceRejectsIllegalTransitionAndRuntimeBypass`: pass; 1 test / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 370 XCTest / 0 failures; final output `MTPRO checks passed.`

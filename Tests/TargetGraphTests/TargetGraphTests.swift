@@ -2377,6 +2377,203 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH462OMSLocalOrderTransitionEvidenceBuildsDeterministicSandboxLifecycle() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionEngineTarget = try packageTargetBlock(named: "ExecutionEngine", packageSource: packageSource)
+
+        let builder = try L4OMSLocalOrderTransitionEvidenceBuilder.deterministicFixture()
+        XCTAssertTrue(builder.lifecycleContract.contractHeld)
+        XCTAssertTrue(builder.parserEvidence.reportParserEvidenceHeld)
+        XCTAssertFalse(builder.productionRuntimeEnabled)
+        XCTAssertFalse(builder.brokerGatewayTouched)
+        XCTAssertFalse(builder.liveCommandSurfaceTouched)
+
+        let evidence = try builder.deterministicEvidence()
+        XCTAssertTrue(evidence.transitionEvidenceHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-462")
+        XCTAssertEqual(evidence.upstreamIssueID.rawValue, "GH-461")
+        XCTAssertTrue(evidence.lifecycleContract.contractHeld)
+        XCTAssertEqual(evidence.stateRecords.count, 9)
+        XCTAssertEqual(evidence.transitions.count, 6)
+        XCTAssertEqual(evidence.illegalRejections.count, 3)
+        XCTAssertTrue(evidence.fillEvidenceComplete)
+        XCTAssertTrue(evidence.cancelEvidenceComplete)
+        XCTAssertTrue(evidence.rejectEvidenceComplete)
+        XCTAssertTrue(evidence.deterministicSandboxOnly)
+        XCTAssertTrue(evidence.brokerIndependent)
+        XCTAssertFalse(evidence.writesRealOrderStateStore)
+        XCTAssertFalse(evidence.mutatesPortfolio)
+        XCTAssertFalse(evidence.performsReconciliation)
+        XCTAssertFalse(evidence.exposesLiveCommandSurface)
+
+        XCTAssertEqual(evidence.stateRecords.map(\.sequence), Array(1...9))
+        XCTAssertTrue(evidence.stateRecords.allSatisfy(\.recordBoundaryHeld))
+        XCTAssertTrue(evidence.transitions.allSatisfy(\.transitionBoundaryHeld))
+        XCTAssertTrue(evidence.illegalRejections.allSatisfy(\.rejectionBoundaryHeld))
+        XCTAssertTrue(Set(evidence.transitions.map(\.trigger)).isSuperset(of: [
+            .sandboxSubmitAccepted,
+            .sandboxPartialFillReport,
+            .sandboxFillReport,
+            .sandboxCancelAcknowledgement,
+            .sandboxRejectReport
+        ]))
+        XCTAssertTrue(Set(evidence.stateRecords.map(\.state)).isSuperset(of: [
+            .filled,
+            .cancelled,
+            .rejected
+        ]))
+
+        let reportKinds = evidence.transitions.compactMap { $0.sandboxReportEvent?.reportKind }
+        XCTAssertEqual(Set(reportKinds), Set<L4ExecutionClientSandboxReportKind>([
+            .partialFill,
+            .fill,
+            .cancelAcknowledgement,
+            .reject
+        ]))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-462-OMS-LOCAL-ORDER-STATE-RECORD"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-462-DETERMINISTIC-TRANSITION-EVIDENCE"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-462-SANDBOX-FILL-CANCEL-REJECT-EVIDENCE"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-462-ILLEGAL-TRANSITION-REJECTION"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-462-BROKER-INDEPENDENT-LOCAL-STATE"))
+
+        XCTAssertTrue(executionEngineTarget.contains("\"OMSFutureGate\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionEngine/OMSFutureGate/L4OMSLocalOrderTransitionEvidence.swift"
+                ).path
+            )
+        )
+    }
+
+    func testGH462OMSLocalOrderTransitionEvidenceRejectsIllegalTransitionAndRuntimeBypass() throws {
+        XCTAssertThrowsError(
+            try L4OMSLocalOrderTransitionEvidenceBuilder(
+                productionRuntimeEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("productionRuntimeEnabled"))
+        }
+
+        XCTAssertThrowsError(
+            try L4OMSLocalOrderStateRecord(
+                recordID: Identifier.constant("unsafe-gh-462-real-state-record"),
+                orderID: Identifier.constant("unsafe-gh-462-order"),
+                state: .submitted,
+                sequence: 1,
+                sourceEvidenceID: Identifier.constant("unsafe-gh-462-source"),
+                writesRealOrderStateStore: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("writesRealOrderStateStore"))
+        }
+
+        let contract = try L4OMSOrderLifecycleContract.deterministicFixture()
+        let fromRecord = try L4OMSLocalOrderStateRecord(
+            recordID: Identifier.constant("unsafe-gh-462-filled-record"),
+            orderID: Identifier.constant("unsafe-gh-462-order"),
+            state: .filled,
+            sequence: 1,
+            sourceEvidenceID: Identifier.constant("unsafe-gh-462-source")
+        )
+        let toRecord = try L4OMSLocalOrderStateRecord(
+            recordID: Identifier.constant("unsafe-gh-462-submitted-record"),
+            orderID: Identifier.constant("unsafe-gh-462-order"),
+            state: .submitted,
+            sequence: 2,
+            sourceEvidenceID: Identifier.constant("unsafe-gh-462-source")
+        )
+        XCTAssertThrowsError(
+            try L4OMSLocalOrderTransitionRecord(
+                transitionID: Identifier.constant("unsafe-gh-462-filled-to-submitted"),
+                fromRecord: fromRecord,
+                toRecord: toRecord,
+                trigger: .sandboxSubmitAccepted,
+                sourceEvidence: "unsafe illegal transition",
+                contract: contract
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "transition",
+                    expected: "GH-461 allowed transition",
+                    actual: "filled|sandbox submit accepted|submitted"
+                )
+            )
+        }
+
+        let submitted = try L4OMSLocalOrderStateRecord(
+            recordID: Identifier.constant("unsafe-gh-462-submitted-record-2"),
+            orderID: Identifier.constant("unsafe-gh-462-order-2"),
+            state: .submitted,
+            sequence: 1,
+            sourceEvidenceID: Identifier.constant("unsafe-gh-462-source")
+        )
+        let filled = try L4OMSLocalOrderStateRecord(
+            recordID: Identifier.constant("unsafe-gh-462-filled-record-2"),
+            orderID: Identifier.constant("unsafe-gh-462-order-2"),
+            state: .filled,
+            sequence: 2,
+            sourceEvidenceID: Identifier.constant("unsafe-gh-462-source")
+        )
+        XCTAssertThrowsError(
+            try L4OMSLocalOrderTransitionRecord(
+                transitionID: Identifier.constant("unsafe-gh-462-missing-fill-event"),
+                fromRecord: submitted,
+                toRecord: filled,
+                trigger: .sandboxFillReport,
+                sourceEvidence: "missing GH-460 fill event",
+                contract: contract
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "sandboxReportEvent",
+                    expected: "fill",
+                    actual: "nil"
+                )
+            )
+        }
+
+        let builder = try L4OMSLocalOrderTransitionEvidenceBuilder.deterministicFixture()
+        let evidence = try builder.deterministicEvidence()
+        XCTAssertThrowsError(
+            try L4OMSLocalOrderTransitionEvidence(
+                lifecycleContract: evidence.lifecycleContract,
+                stateRecords: evidence.stateRecords,
+                transitions: Array(evidence.transitions.dropLast()),
+                illegalRejections: evidence.illegalRejections
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "transitionTriggers",
+                    expected: L4OMSLocalOrderTransitionEvidence.requiredTransitionTriggers.map(\.rawValue).sorted().joined(separator: ","),
+                    actual: Set(Array(evidence.transitions.dropLast()).map(\.trigger)).map(\.rawValue).sorted().joined(separator: ",")
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4OMSLocalOrderTransitionEvidence(
+                lifecycleContract: evidence.lifecycleContract,
+                stateRecords: evidence.stateRecords,
+                transitions: evidence.transitions,
+                illegalRejections: evidence.illegalRejections,
+                performsReconciliation: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("performsReconciliation"))
+        }
+    }
+
     func testGH421AllArchitectureTargetsExposeIndependentRealAPISmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-421-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)
