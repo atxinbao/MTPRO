@@ -15117,3 +15117,42 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 358 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-07 - GH-457 L4 live account read-model mapping
+
+- Issue: GH-457 `L4: 06/21 Add live account / position / balance / margin read-model mapping`
+- Queue:
+  - GitHub fallback queue used because this L4 stage is not using Linear.
+  - WIP=1 preflight passed before implementation: #457 was OPEN with `mtpro / backlog / non-executable`; #455 and #456 were CLOSED with `done`; no open issue carried `todo`, `in-progress` or `in-review`; no open PR was present.
+  - #457 was promoted to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `docs/contracts/l4-live-account-read-model-mapping-contract.md`.
+  - Added `Sources/ExecutionClient/FutureGate/L4LiveAccountReadModelMapping.swift`.
+  - Added `TargetGraphTests` coverage for account / position / balance / margin read-model mapping, source / freshness / evidence identity preservation, fixture / sandbox vs future real account interpretation separation and forbidden raw payload / broker / runtime / schema bypass rejection.
+  - Backfilled `TVM-L4-LIVE-ACCOUNT-READ-MODEL-MAPPING`, validation plan, domain language, latest summary and automation readiness anchors.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No real API key / secret read, storage, print or repository commit.
+  - No API-key header construction or request signature generation.
+  - No signed endpoint / account endpoint call.
+  - No listenKey create / keep-alive / close.
+  - No private WebSocket open / reconnect.
+  - No Runtime object, Adapter request or schema exposure.
+  - No raw account payload, raw private payload, account endpoint payload, broker payload, broker state or Dashboard raw payload exposure.
+  - No real PnL runtime, margin / leverage runtime or real account read.
+  - No ExecutionClient adapter implementation.
+  - No OMS implementation.
+  - No command runtime.
+  - No production endpoint or production trading.
+  - No real submit / cancel / replace.
+  - No execution report / broker fill production ingestion.
+  - No reconciliation production runtime.
+  - No Live PRO Console command surface, trading button, live command or order form.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH457LiveAccountReadModelMappingMapsAPBMarginEvidenceReadOnly`: pass; 1 test / 0 failures.
+  - `swift test --filter TargetGraphTests/testGH457LiveAccountReadModelMappingRejectsRawPayloadBrokerStateAndRuntimeBypass`: pass; 1 test / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 360 XCTest / 0 failures; final output `MTPRO checks passed.`

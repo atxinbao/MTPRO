@@ -211,6 +211,28 @@ GH-456 必须建立的主要 anchors：
 - `GH-456-LISTENKEY-LIFECYCLE-NO-COMMAND-SURFACE`
 - `TVM-L4-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-READ-ONLY-RUNTIME`
 
+## GH-457 L4 Live Account Read-model Mapping Validation
+
+GH-457 的 required validation：
+
+- `docs/contracts/l4-live-account-read-model-mapping-contract.md` 必须存在，并包含 `GH-457-L4-LIVE-ACCOUNT-READ-MODEL-MAPPING`、`GH-457-APB-MARGIN-CANONICAL-COMPONENTS`、`GH-457-FRESHNESS-SOURCE-EVIDENCE-IDENTITY`、`GH-457-DASHBOARD-READ-MODEL-ONLY-CONSUMPTION`、`GH-457-FIXTURE-SANDBOX-REAL-ACCOUNT-INTERPRETATION-SEPARATION`、`GH-457-FORBIDDEN-RAW-PAYLOAD-BROKER-STATE-TESTS` 和 `GH-457-NON-AUTHORIZATION`。
+- `Sources/ExecutionClient/FutureGate/L4LiveAccountReadModelMapping.swift` 必须定义 `L4LiveAccountReadModelMapping`、`L4LiveAccountReadModel`、`L4LiveAccountReadModelRecord`、`L4LiveAccountReadModelComponent`、`L4LiveAccountReadModelSourceKind`、`L4LiveAccountReadModelInterpretationMode` 和 `L4LiveAccountReadModelForbiddenCapability`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH457LiveAccountReadModelMappingMapsAPBMarginEvidenceReadOnly` 和 `testGH457LiveAccountReadModelMappingRejectsRawPayloadBrokerStateAndRuntimeBypass`。
+- Mapper 必须只消费 GH-455 signed account evidence 和 GH-456 private stream account snapshot evidence，并输出 account / position / balance / margin 四类 canonical read-model records。
+- Read model 必须保留 source identity、evidence identity、freshness statuses 和 fixture / sandbox vs future real account interpretation separation。
+- Forbidden mapping tests 必须拒绝 raw account payload、raw private payload、broker state、Runtime object、Adapter request、schema、real PnL runtime、command surface、reconciliation、ExecutionClient adapter 和 OMS bypass。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`，不依赖真实 secret、真实 account endpoint、broker state、Runtime object、schema、production credential 或人工验收。
+
+GH-457 必须建立的主要 anchors：
+
+- `GH-457-L4-LIVE-ACCOUNT-READ-MODEL-MAPPING`
+- `GH-457-APB-MARGIN-CANONICAL-COMPONENTS`
+- `GH-457-FRESHNESS-SOURCE-EVIDENCE-IDENTITY`
+- `GH-457-DASHBOARD-READ-MODEL-ONLY-CONSUMPTION`
+- `GH-457-FIXTURE-SANDBOX-REAL-ACCOUNT-INTERPRETATION-SEPARATION`
+- `GH-457-FORBIDDEN-RAW-PAYLOAD-BROKER-STATE-TESTS`
+- `TVM-L4-LIVE-ACCOUNT-READ-MODEL-MAPPING`
+
 ## MTP-24 Trading Validation Matrix Validation
 
 MTP-24 的 required validation：
