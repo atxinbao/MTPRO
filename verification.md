@@ -14572,3 +14572,32 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 339 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-06 - GH-414 MessageBus neutral query / replay ownership
+
+- Project: `MTPRO Core Envelope Retirement / Real Module Ownership Completion v1`
+- Queue item: GH-414 `Move remaining MessageBus implementation ownership out of Core`
+- Scope:
+  - Moved neutral `MarketDataQuery` ownership into the `MessageBus` target.
+  - Added `EventReplayContract.swift` so `EventStreamID`, `EventSequenceRange` and `EventReplayCommand` are directly owned by `MessageBus`.
+  - Updated `Package.swift` so `MessageBus` compiles `MarketDataQuery.swift` and `EventReplayContract.swift`, while `Core` excludes those neutral files.
+  - Added `testGH414MessageBusOwnsNeutralQueryAndReplayContracts`.
+  - Documented that rich MessageBus paper / runtime / downstream payload remains an explicit `Core` compatibility envelope debt.
+- Boundary:
+  - No reverse `MessageBus` dependency on DataEngine / Trader / Portfolio / RiskEngine / ExecutionEngine / ExecutionClient / Dashboard.
+  - No migration of rich paper runtime routing payload into `MessageBus`.
+  - No Trader runtime / Strategy runtime / Live runtime.
+  - No ExecutionClient implementation / OMS / broker gateway.
+  - No signed endpoint / account endpoint / listenKey / private WebSocket runtime.
+  - No real order lifecycle / submit / cancel / replace / execution report / broker fill / reconciliation.
+  - No Live PRO Console / trading button / live command / order form.
+  - No L4 implementation.
+  - No Symphony / Graphify / code-index / Figma.
+- Validation:
+  - `swift build --target MessageBus`: pass.
+  - `swift test --filter TargetGraphTests/testGH414MessageBusOwnsNeutralQueryAndReplayContracts`: pass; 1 test / 0 failures.
+  - `swift build --target Core`: pass.
+  - `swift test --filter TargetGraphTests`: pass; 25 tests / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 340 XCTest / 0 failures; final output `MTPRO checks passed.`

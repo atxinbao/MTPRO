@@ -54,7 +54,9 @@ let package = Package(
                 "PaperRuntimeBusRouting.swift"
             ],
             sources: [
+                "EventReplayContract.swift",
                 "FoundationMessageStream.swift",
+                "MarketDataQuery.swift",
                 "MessageBusAppendOnlyJournal.swift",
                 "PaperActionProposal.swift",
                 "PaperActionRiskDecision.swift",
@@ -239,7 +241,9 @@ let package = Package(
                 "ExecutionEngine/OMSFutureGate",
                 "ExecutionEngine/Ownership",
                 "ExecutionEngine/TargetGraph",
+                "MessageBus/EventReplayContract.swift",
                 "MessageBus/FoundationMessageStream.swift",
+                "MessageBus/MarketDataQuery.swift",
                 "MessageBus/MessageBusAppendOnlyJournal.swift",
                 "MessageBus/PaperActionProposal.swift",
                 "MessageBus/PaperActionRiskDecision.swift",

@@ -256,6 +256,41 @@ GH-394 readiness anchors：
 - `GH-394-CORE-COMPATIBILITY-ENVELOPE-PRESERVED`
 - `GH-394-VALIDATION-ANCHORS`
 
+## GH-414-MESSAGEBUS-NEUTRAL-QUERY-REPLAY-OWNERSHIP
+
+GH-414 继续把可安全迁移的中立 MessageBus ownership 从 `Core` compatibility envelope 迁回真实 `MessageBus` target：
+
+- `MessageBus` target 直接编译 `MarketDataQuery.swift`，表达 read-only market-data query contract。
+- `MessageBus` target 直接编译 `EventReplayContract.swift`，表达 `EventStreamID`、`EventSequenceRange` 和 `EventReplayCommand`。
+- 这些类型只依赖 `DomainModel`，不引用 DataEngine、Trader、TraderStrategies、Portfolio、RiskEngine、ExecutionEngine、ExecutionClient、broker payload、account payload、OMS、Live runtime、adapter request、database schema 或 UI command。
+- `Package.swift` 明确让 `MessageBus` 编译 `MarketDataQuery.swift` / `EventReplayContract.swift`，并让 `Core` exclude 这两个 files，防止 neutral query / replay contract 再由 `Core` primary ownership 承载。
+
+## GH-414-CORE-RICH-MESSAGEBUS-COMPATIBILITY-ENVELOPE
+
+GH-414 不强行把所有 MessageBus 历史文件塞进 `MessageBus` target：
+
+- `CommandsAndQueries.swift`、`DomainEvents.swift`、`EventLog.swift` 和 `PaperRuntimeBusRouting.swift` 仍作为 rich MessageBus / paper runtime compatibility envelope 由 `Core` 编译。
+- 保留原因是这些文件仍引用 paper session、strategy proposal、portfolio projection、risk decision、execution lifecycle 和 downstream payload；若直接迁入 `MessageBus`，会造成 MessageBus 反向依赖上层模块。
+- 后续 GH-415+ 必须继续按 dependency direction 拆解 rich payload ownership，而不是让 `MessageBus` 依赖 DataEngine、Trader、RiskEngine、ExecutionEngine 或 ExecutionClient implementation。
+
+## GH-414-VALIDATION-ANCHORS
+
+GH-414 required validation：
+
+- `swift build --target MessageBus`
+- `swift build --target Core`
+- `swift test --filter TargetGraphTests/testGH414MessageBusOwnsNeutralQueryAndReplayContracts`
+- `swift test --filter TargetGraphTests`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-414 readiness anchors：
+
+- `GH-414-MESSAGEBUS-NEUTRAL-QUERY-REPLAY-OWNERSHIP`
+- `GH-414-CORE-RICH-MESSAGEBUS-COMPATIBILITY-ENVELOPE`
+- `GH-414-VALIDATION-ANCHORS`
+
 ## GH-395-DATA-TARGET-REAL-SMOKE-TESTS
 
 GH-395 把 data targets 从“只有 target boundary anchor”推进到“target 内存在可独立 import / compile / use 的最小真实 API”：

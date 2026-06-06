@@ -4,19 +4,6 @@ import MessageBus
 
 /// Core command / query 合同描述模块内部用例输入，不提供 HTTP API、signed endpoint 或 live order command。
 
-/// MarketDataQuery 描述只读行情查询范围，是策略研究、回测和 Paper command 的共同输入。
-public struct MarketDataQuery: Codable, Equatable, Sendable {
-    public let symbol: Symbol
-    public let timeframe: Timeframe
-    public let range: DateRange
-
-    public init(symbol: Symbol, timeframe: Timeframe, range: DateRange) {
-        self.symbol = symbol
-        self.timeframe = timeframe
-        self.range = range
-    }
-}
-
 /// OrderBookImbalanceResearchCommand 请求本地订单簿失衡研究，不代表可交易命令。
 public struct OrderBookImbalanceResearchCommand: Codable, Equatable, Sendable {
     public let researchID: Identifier

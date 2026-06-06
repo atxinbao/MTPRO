@@ -5,8 +5,9 @@ import DomainModel
 /// MTP-226 只把 active target boundary anchor 从 `Sources/TargetGraph/MessageBus`
 /// 移到 `Sources/MessageBus/TargetGraph`，不把 paper routing / 上层 evidence 类型
 /// 强行并入 `MessageBus` target implementation；GH-394 起 `MessageBus` 直接拥有
-/// 中立 append-only journal，旧 paper routing / downstream evidence 仍留在 `Core`
-/// compatibility envelope，等待后续专门迁移。
+/// 中立 append-only journal；GH-414 起 `MessageBus` 直接拥有中立 query / replay
+/// 合同。旧 paper routing / downstream evidence 仍留在 `Core` compatibility
+/// envelope，等待后续专门迁移。
 public struct MessageBusTargetBoundary: Codable, Equatable, Sendable {
     public let targetName: String
     public let canonicalSourceRoot: String
@@ -73,6 +74,8 @@ public struct MessageBusTargetBoundary: Codable, Equatable, Sendable {
         "MTP-226-MESSAGEBUS-REAL-ROOT-TARGET-PATH",
         "GH-393-MESSAGEBUS-REAL-TARGET-SMOKE",
         "GH-394-MESSAGEBUS-NEUTRAL-JOURNAL-OWNERSHIP",
+        "GH-414-MESSAGEBUS-NEUTRAL-QUERY-REPLAY-OWNERSHIP",
+        "GH-414-CORE-RICH-MESSAGEBUS-COMPATIBILITY-ENVELOPE",
         "MTP-217-NO-RUNTIME-LIVE-BROKER-L4-GUARD"
     ]
 
