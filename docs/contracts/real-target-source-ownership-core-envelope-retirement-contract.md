@@ -540,6 +540,47 @@ GH-416 readiness anchors：
 - `GH-416-PORTFOLIO-REPLAY-PARITY-BRIDGE-DEFERRED`
 - `GH-416-VALIDATION-ANCHORS`
 
+## GH-417-RISKENGINE-PAPER-PRETRADE-OWNERSHIP
+
+GH-417 moves the eligible pure paper pre-trade risk decision implementation into the real `RiskEngine` target:
+
+- `Package.swift` must compile `Sources/RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift` from the `RiskEngine` target.
+- `Core` must exclude `Sources/RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift`.
+- `RiskEngine` must expose `PaperPreTradeRiskEngine.evaluate(...)`, input, decision, rule summary and deterministic fixture without owning MessageBus / EventLog publish routing.
+- `TargetGraphTests` must construct a paper pre-trade decision through `RiskEngine` imports, proving the target owns the pure decision API.
+- `RiskEngineTargetBoundary` must expose `GH-417-RISKENGINE-PAPER-PRETRADE-OWNERSHIP`.
+
+## GH-417-CORE-RISKENGINE-EVENT-BRIDGE-ONLY
+
+The old event-log / replay surface remains supported only through `Sources/Core/RiskEnginePaperPreTradeRuntimeBridge.swift`:
+
+- `PaperPreTradeRiskEngineRuntimePath` and `PaperPreTradeRiskEnginePublication` live in the Core compatibility bridge.
+- The bridge may use `MessageBus`, `TradingClock` and replay command evidence; the `RiskEngine` target must not.
+- The bridge does not authorize live risk runtime, executable order routing, broker connection, account payload reads, OMS, real order lifecycle or L4 capability.
+
+## GH-417-RISKENGINE-NO-EXECUTIONCLIENT-OMS-BROKER-GUARD
+
+GH-417 keeps `RiskEngine` as paper pre-execution guard only. It must not call `ExecutionClient`, implement OMS, connect a broker gateway, expose signed / account endpoint capability, submit / cancel / replace real orders, parse execution reports / broker fills, reconcile live state, or add UI command surfaces.
+
+## GH-417-VALIDATION-ANCHORS
+
+GH-417 required validation：
+
+- `swift build --target RiskEngine`
+- `swift build --target Core`
+- `swift test --filter TargetGraphTests/testGH398TraderPortfolioRiskExecutionTargetsOwnRealSourceWithoutRuntimeDrift`
+- `swift test --filter TargetGraphTests`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-417 readiness anchors：
+
+- `GH-417-RISKENGINE-PAPER-PRETRADE-OWNERSHIP`
+- `GH-417-CORE-RISKENGINE-EVENT-BRIDGE-ONLY`
+- `GH-417-RISKENGINE-NO-EXECUTIONCLIENT-OMS-BROKER-GUARD`
+- `GH-417-VALIDATION-ANCHORS`
+
 ## GH-398-TRADER-RISK-EXECUTION-IMPLEMENTATION-OWNERSHIP
 
 GH-398 将 Trader / Portfolio / RiskEngine / ExecutionEngine / ExecutionClient 从 smoke coverage 推进到 partial implementation ownership：

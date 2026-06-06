@@ -787,7 +787,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(executionEngine.implementsRealOrderLifecycle)
 
         XCTAssertEqual(portfolio.retainedCompatibilityEnvelope, "Core(replay / simulated parity bridge deferred)")
-        XCTAssertEqual(riskEngine.retainedCompatibilityEnvelope, "Core")
+        XCTAssertEqual(riskEngine.retainedCompatibilityEnvelope, "Core(event bridge deferred)")
         XCTAssertEqual(strategies.retainedCompatibilityEnvelope, "Core")
         XCTAssertEqual(trader.retainedCompatibilityEnvelope, "Core")
         XCTAssertEqual(executionClient.retainedCompatibilityEnvelope, "Core")
@@ -799,6 +799,9 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(portfolio.validationAnchors.contains("GH-416-PORTFOLIO-PAPER-PROJECTION-UPDATE-OWNERSHIP"))
         XCTAssertTrue(portfolio.validationAnchors.contains("GH-416-PORTFOLIO-REPLAY-PARITY-BRIDGE-DEFERRED"))
         XCTAssertTrue(riskEngine.validationAnchors.contains("GH-397-RISKENGINE-REAL-TARGET-SMOKE"))
+        XCTAssertTrue(riskEngine.validationAnchors.contains("GH-417-RISKENGINE-PAPER-PRETRADE-OWNERSHIP"))
+        XCTAssertTrue(riskEngine.validationAnchors.contains("GH-417-CORE-RISKENGINE-EVENT-BRIDGE-ONLY"))
+        XCTAssertTrue(riskEngine.validationAnchors.contains("GH-417-RISKENGINE-NO-EXECUTIONCLIENT-OMS-BROKER-GUARD"))
         XCTAssertTrue(executionClient.validationAnchors.contains("GH-397-EXECUTIONCLIENT-FUTURE-GATE-SMOKE"))
         XCTAssertTrue(executionEngine.validationAnchors.contains("GH-397-EXECUTIONENGINE-REAL-TARGET-SMOKE"))
 
@@ -846,16 +849,17 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(portfolioSources.contains("SimulatedExchangePortfolioProjectionParity.swift"))
         XCTAssertTrue(portfolioExcludes.contains("\"PaperAccountPortfolioProjectionV2.swift\""))
         XCTAssertTrue(portfolioExcludes.contains("\"SimulatedExchangePortfolioProjectionParity.swift\""))
+        XCTAssertTrue(riskEngineSources.contains("\"PreTrade/PaperPreTradeRiskEngine.swift\""))
         XCTAssertTrue(riskEngineSources.contains("\"PreTrade/RiskEnginePreTradeOwnership.swift\""))
         XCTAssertTrue(executionEngineSources.contains("\"Ownership\""))
         XCTAssertTrue(coreExcludes.contains("\"Portfolio/PaperPortfolioProjectionUpdate.swift\""))
         XCTAssertFalse(coreSources.contains("\"Portfolio/PaperPortfolioProjectionUpdate.swift\""))
         XCTAssertTrue(coreSources.contains("\"Portfolio/PaperAccountPortfolioProjectionV2.swift\""))
         XCTAssertTrue(coreSources.contains("\"Portfolio/SimulatedExchangePortfolioProjectionParity.swift\""))
-        XCTAssertFalse(riskEngineSources.contains("PaperPreTradeRiskEngine.swift"))
+        XCTAssertTrue(coreExcludes.contains("\"RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift\""))
+        XCTAssertFalse(coreSources.contains("\"RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift\""))
         XCTAssertFalse(executionEngineSources.contains("PaperLifecycle"))
         XCTAssertFalse(executionEngineSources.contains("SimulatedExchange"))
-        XCTAssertTrue(coreSources.contains("\"RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift\""))
         XCTAssertTrue(coreSources.contains("\"ExecutionEngine/PaperLifecycle\""))
         XCTAssertTrue(coreSources.contains("\"ExecutionEngine/SimulatedExchange\""))
 
@@ -917,6 +921,15 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(riskDecision.touchesExecutionEngine)
         XCTAssertFalse(riskDecision.touchesExecutionClient)
         XCTAssertFalse(riskDecision.authorizesLiveTrading)
+
+        let paperPreTradeDecision = try PaperPreTradeRiskEngine().evaluate(
+            decisionID: try Identifier("gh-417-riskengine-paper-pretrade-decision"),
+            input: try PaperPreTradeRiskEngineFixture.acceptedInput()
+        )
+        XCTAssertTrue(paperPreTradeDecision.isAccepted)
+        XCTAssertTrue(paperPreTradeDecision.paperOnlyBoundaryHeld)
+        XCTAssertFalse(paperPreTradeDecision.providesLiveRiskEngine)
+        XCTAssertFalse(paperPreTradeDecision.runsRealPreTradeAllowReject)
 
         let executionHandoff = try ExecutionEnginePaperOwnershipEvaluator.handoff(
             handoffID: try Identifier("gh-398-execution-handoff"),

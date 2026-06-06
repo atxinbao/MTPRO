@@ -14630,6 +14630,32 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
 - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
 - `bash checks/run.sh`: pass; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 340 XCTest / 0 failures; final output `MTPRO checks passed.`
 
+## 2026-06-06 - GH-417 RiskEngine paper pre-trade ownership
+
+- Project: `MTPRO Core Envelope Retirement / Real Module Ownership Completion v1`
+- Queue item: GH-417 `Move RiskEngine paper pre-trade ownership out of Core`
+- Scope:
+  - Moved pure `PaperPreTradeRiskEngine` decision ownership into the real `RiskEngine` target.
+  - Kept MessageBus / EventLog publish and replay support in `Sources/Core/RiskEnginePaperPreTradeRuntimeBridge.swift` as an explicit Core compatibility bridge.
+  - Updated `RiskEngineTargetBoundary`, TargetGraph tests, architecture / contract / automation anchors and readiness guards.
+- Boundary:
+  - No live risk runtime.
+  - No Trader runtime / Strategy runtime / Live runtime.
+  - No ExecutionClient implementation / OMS / broker gateway.
+  - No signed endpoint / account endpoint / listenKey / private WebSocket runtime.
+  - No real order lifecycle / submit / cancel / replace / execution report / broker fill / reconciliation.
+  - No Live PRO Console / trading button / live command / order form.
+  - No L4 implementation.
+  - No Symphony / Graphify / code-index / Figma.
+- Validation:
+- `swift build --target RiskEngine`: pass.
+- `swift build --target Core`: pass.
+- `swift test --filter TargetGraphTests/testGH398TraderPortfolioRiskExecutionTargetsOwnRealSourceWithoutRuntimeDrift`: pass; 1 test / 0 failures.
+- `swift test --filter TargetGraphTests`: pass; 25 tests / 0 failures.
+- `git diff --check`: pass.
+- `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+- `bash checks/run.sh`: pass; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 340 XCTest / 0 failures; final output `MTPRO checks passed.`
+
 ## 2026-06-06 - GH-416 Portfolio paper projection update ownership
 
 - Project: `MTPRO Core Envelope Retirement / Real Module Ownership Completion v1`

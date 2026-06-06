@@ -152,11 +152,9 @@ let package = Package(
             name: "RiskEngine",
             dependencies: ["DomainModel", "MessageBus", "Cache", "Portfolio"],
             path: "Sources/RiskEngine",
-            exclude: [
-                "PreTrade/PaperPreTradeRiskEngine.swift"
-            ],
             sources: [
                 "LiveGate",
+                "PreTrade/PaperPreTradeRiskEngine.swift",
                 "PreTrade/RiskEnginePreTradeOwnership.swift",
                 "TargetGraph/RiskEngineTargetBoundary.swift"
             ]
@@ -264,6 +262,7 @@ let package = Package(
                 "Portfolio/TargetGraph",
                 "Portfolio/PortfolioFinancialStateProjection.swift",
                 "RiskEngine/LiveGate",
+                "RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift",
                 "RiskEngine/PreTrade/RiskEnginePreTradeOwnership.swift",
                 "RiskEngine/TargetGraph",
                 "Trader/Accounts",
@@ -278,7 +277,6 @@ let package = Package(
                 "DataEngine/ScenarioReplay/ScenarioReplayDeterministicMatching.swift",
                 "Portfolio/PaperAccountPortfolioProjectionV2.swift",
                 "Portfolio/SimulatedExchangePortfolioProjectionParity.swift",
-                "RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift",
                 "ExecutionEngine/PaperLifecycle",
                 "ExecutionEngine/SimulatedExchange"
             ]
