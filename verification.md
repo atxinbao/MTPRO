@@ -14788,6 +14788,32 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - No Symphony / Graphify / code-index / Figma.
 - Validation:
   - `swift test --filter TargetGraphTests/testGH421AllArchitectureTargetsExposeIndependentRealAPISmokeCoverage`: pass; 1 test / 0 failures.
+- `swift test --filter TargetGraphTests`: pass; 28 tests / 0 failures.
+- `git diff --check`: pass.
+- `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+- `bash checks/run.sh`: pass; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 343 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-06 - GH-422 Core envelope retirement matrix / L4 readiness closeout
+
+- Project: `MTPRO Core Envelope Retirement / Real Module Ownership Completion v1`
+- Queue item: GH-422 `Close Core envelope retirement matrix and L4 readiness blocker review`
+- Scope:
+  - Added `docs/audit/inputs/mtpro-core-envelope-retirement-real-module-ownership-completion-v1-stage-audit-input.md`.
+  - Summarized GH-413 through GH-422 evidence chain.
+  - Listed completed ownership moves for MessageBus, DataEngine, Portfolio, RiskEngine, ExecutionEngine, Dashboard and all-target smoke coverage.
+  - Listed retained compatibility envelopes: `Core`, `Adapters`, `Persistence`, `Runtime`.
+  - Listed L4 readiness blockers and no runtime / live / broker guard.
+- Boundary:
+  - No final Stage Code Audit Report in this issue.
+  - No next Project / Issue creation.
+  - No L4 advancement.
+  - No Trader runtime / Strategy runtime / Live runtime.
+  - No ExecutionClient implementation / OMS / broker gateway.
+  - No signed endpoint / account endpoint / listenKey / private WebSocket runtime.
+  - No real order lifecycle / submit / cancel / replace / execution report / broker fill / reconciliation.
+  - No Live PRO Console / trading button / live command / order form.
+  - No Symphony / Graphify / code-index / Figma.
+- Validation:
   - `swift test --filter TargetGraphTests`: pass; 28 tests / 0 failures.
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`

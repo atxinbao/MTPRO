@@ -553,6 +553,26 @@ GH-421 增加一条跨全 architecture target 的 deterministic smoke test，证
 
 该测试不授权 L4，也不实现 Trader runtime、Strategy runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、real account read、private stream runtime、Live PRO Console、trading button、live command 或 order form。
 
+## GH-422 Core Envelope Retirement Matrix / L4 Readiness Closeout
+
+`GH-422-CORE-ENVELOPE-RETIREMENT-MATRIX-STAGE-CLOSEOUT`
+
+GH-422 收口第二轮 Core envelope retirement / real module ownership completion 的审计输入，而不是输出最终 Stage Code Audit Report。当前已完成的 ownership moves 包括：
+
+- `MessageBus` neutral query / replay ownership。
+- `DataEngine` scenario replay / data quality ownership。
+- `Portfolio` paper projection update ownership。
+- `RiskEngine` paper pre-trade decision ownership。
+- `ExecutionEngine` paper / simulated lifecycle boundary ownership。
+- `Dashboard` active read-model-only naming cleanup。
+- 全 architecture targets real public API smoke coverage。
+
+`GH-422-RETAINED-COMPATIBILITY-ENVELOPE-SNAPSHOT`：`Core`、`Adapters`、`Persistence` 和 `Runtime` 仍是 retained compatibility envelopes。它们不能再被描述为最终架构模块 owner，但仍承载历史 import surface、venue adapter compatibility、SQLite / DuckDB projection adapter、replay projection / ingest workflow composition 等退出前债务。
+
+`GH-422-L4-READINESS-BLOCKERS`：L4 仍为 future gated。Trader runtime、Strategy runtime、Live runtime、ExecutionClient implementation、OMS、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real order lifecycle、Live PRO Console、trading button、live command 和 order form 均未授权、未实现。
+
+`GH-422-NO-L4-RUNTIME-BROKER-GUARD`：本 closeout 不创建下一 Project / Issue，不推进 L4，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不修改 business runtime。
+
 `GH-417-VALIDATION-ANCHORS`
 
 `MTP-219-RISKENGINE-TARGET-SPLIT`
