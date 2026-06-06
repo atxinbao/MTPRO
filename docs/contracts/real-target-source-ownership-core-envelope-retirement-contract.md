@@ -633,6 +633,81 @@ GH-418 readiness anchors：
 - `GH-418-EXECUTIONENGINE-NO-LIVE-OMS-BROKER-GUARD`
 - `GH-418-VALIDATION-ANCHORS`
 
+## GH-419-DATABASE-PERSISTENCE-RUNTIME-OWNERSHIP-MATRIX
+
+GH-419 cleans the Database / Persistence / Runtime ownership boundary without pretending the full projection implementation has already moved into `Database`:
+
+- `Database` target compiles `Sources/Database/DatabaseRuntimeOwnershipMatrix.swift` together with `FoundationDatabaseCheckpoint.swift` and `TargetGraph/DatabaseTargetBoundary.swift`.
+- `DatabaseRuntimeOwnershipMatrix.gh419` is the source-of-truth evidence for current ownership, retained envelopes, deferred exit gates and forbidden capability guards.
+- `DatabaseTargetBoundary` exposes `GH-419-DATABASE-PERSISTENCE-RUNTIME-OWNERSHIP-MATRIX` as a validation anchor.
+
+`Database` now owns the durable boundary vocabulary and ownership matrix. It does not yet own the full SQLite / DuckDB projection adapters or replay / ingest workflow implementation.
+
+## GH-419-PERSISTENCE-CORE-DEPENDENCY-DEFERRED-ONLY
+
+GH-419 intentionally keeps these projection adapter files in the retained `Persistence` compatibility envelope:
+
+- `Sources/Database/Projections/SQLite/Persistence.swift`
+- `Sources/Database/Projections/DuckDB/DuckDBAnalyticalProjectionAdapter.swift`
+
+The retained `Persistence -> Core` dependency remains explicit debt because these adapters still consume rich `EventEnvelope`, paper, risk and portfolio projection payloads owned by the remaining `Core` compatibility surface. Directly moving them into `Database` in GH-419 would create reverse dependencies and would blur Database's durable boundary with legacy paper / risk / portfolio payload ownership.
+
+Persistence exit gate:
+
+- split neutral event payloads into `MessageBus`;
+- split neutral projection DTOs into `Database`;
+- keep SQLite / DuckDB schema hidden from Dashboard;
+- only then move adapters out of the `Persistence` compatibility envelope.
+
+## GH-419-RUNTIME-REPLAY-INGEST-COMPOSITION-ONLY
+
+GH-419 intentionally keeps these workflow paths in the retained `Runtime` composition envelope:
+
+- `Sources/Database/ReplayProjection/`
+- `Sources/DataEngine/Ingest/`
+
+`Runtime` is not the final owner of Database replay or DataEngine ingest. It currently coordinates DataClient / Persistence / Core compatibility workflow until those dependencies are reduced into neutral contracts.
+
+Runtime exit gate:
+
+- replay projection no longer depends on Persistence / Core bridge payloads;
+- ingest workflow no longer requires compatibility-envelope composition;
+- DataEngine and Database can compile the neutral workflow contracts from real module roots.
+
+## GH-419-NO-SCHEMA-RUNTIME-BROKER-L4-GUARD
+
+GH-419 does not authorize:
+
+- SQLite / DuckDB schema exposure to Dashboard;
+- Runtime object exposure;
+- Adapter request, account payload, broker payload or broker state exposure;
+- Trader runtime, Strategy runtime, Live runtime;
+- ExecutionClient implementation, OMS or broker gateway;
+- signed endpoint, account endpoint / listenKey, private WebSocket runtime;
+- real order lifecycle, submit / cancel / replace, execution report, broker fill or reconciliation;
+- Live PRO Console, trading button, live command, order form or L4 capability.
+
+## GH-419-VALIDATION-ANCHORS
+
+GH-419 required validation：
+
+- `swift build --target Database`
+- `swift build --target Persistence`
+- `swift build --target Runtime`
+- `swift test --filter TargetGraphTests/testGH419DatabasePersistenceRuntimeOwnershipMatrixIsExplicit`
+- `swift test --filter TargetGraphTests`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-419 readiness anchors：
+
+- `GH-419-DATABASE-PERSISTENCE-RUNTIME-OWNERSHIP-MATRIX`
+- `GH-419-PERSISTENCE-CORE-DEPENDENCY-DEFERRED-ONLY`
+- `GH-419-RUNTIME-REPLAY-INGEST-COMPOSITION-ONLY`
+- `GH-419-NO-SCHEMA-RUNTIME-BROKER-L4-GUARD`
+- `GH-419-VALIDATION-ANCHORS`
+
 ## GH-398-TRADER-RISK-EXECUTION-IMPLEMENTATION-OWNERSHIP
 
 GH-398 将 Trader / Portfolio / RiskEngine / ExecutionEngine / ExecutionClient 从 smoke coverage 推进到 partial implementation ownership：

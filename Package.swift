@@ -83,6 +83,7 @@ let package = Package(
                 "ReplayProjection"
             ],
             sources: [
+                "DatabaseRuntimeOwnershipMatrix.swift",
                 "FoundationDatabaseCheckpoint.swift",
                 "TargetGraph/DatabaseTargetBoundary.swift"
             ]
@@ -332,6 +333,7 @@ let package = Package(
             ],
             path: "Sources/Database",
             exclude: [
+                "DatabaseRuntimeOwnershipMatrix.swift",
                 "FoundationDatabaseCheckpoint.swift",
                 "ReplayProjection",
                 "TargetGraph"
@@ -354,6 +356,7 @@ let package = Package(
                 "DataEngine/ScenarioReplay",
                 "DataEngine/DataQuality",
                 "DataEngine/TargetGraph",
+                "Database/DatabaseRuntimeOwnershipMatrix.swift",
                 "Database/FoundationDatabaseCheckpoint.swift",
                 "Database/Projections",
                 "Database/TargetGraph",

@@ -2322,3 +2322,41 @@ GitHub Issue：[#418](https://github.com/atxinbao/MTPRO/issues/418)
 - `git diff --check`：pass，无输出。
 - `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
 - `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true` / `dashboardReadModelOnly=true`，340 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
+## 2026-06-06 — GH-419 Database / Persistence / Runtime ownership matrix
+
+执行者：Codex
+
+GitHub Issue：[#419](https://github.com/atxinbao/MTPRO/issues/419)
+
+范围：
+
+- 新增 `Sources/Database/DatabaseRuntimeOwnershipMatrix.swift`，由 `Database` target 直接编译。
+- 明确 `Database` 当前拥有 durable boundary vocabulary / ownership matrix，不把 SQLite / DuckDB projection adapters 或 replay / ingest workflow 误写为已经完全迁入 Database。
+- 保留 `Persistence` compatibility envelope 承载 SQLite / DuckDB projection adapters，因为这些文件仍依赖 `Core` rich `EventEnvelope`、paper、risk、portfolio payload 和 legacy compatibility surface。
+- 保留 `Runtime` composition envelope 承载 `Database/ReplayProjection` 和 `DataEngine/Ingest`，直到 replay / ingest 依赖可以拆成中立 contracts。
+- 更新 `DatabaseTargetBoundary`、`TargetGraphTests`、architecture / contract / automation anchors 和 readiness guards。
+
+边界：
+
+- 不暴露 SQLite / DuckDB schema 给 Dashboard。
+- 不暴露 Runtime object、Adapter request、account payload、broker payload 或 broker state。
+- 不实现 Trader runtime、Strategy runtime、Live runtime。
+- 不实现 ExecutionClient implementation、OMS、broker gateway。
+- 不接 signed endpoint、account endpoint / listenKey、private WebSocket runtime。
+- 不实现 real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation。
+- 不实现 Live PRO Console、trading button、live command、order form 或 L4 capability。
+- 不启动 Symphony / symphony-issue。
+- 不运行 Graphify / code-index。
+- 不修改 Figma。
+
+验证：
+
+- `swift build --target Database`：pass。
+- `swift test --filter TargetGraphTests/testGH419DatabasePersistenceRuntimeOwnershipMatrixIsExplicit`：pass，1 test / 0 failures。
+- `swift build --target Persistence`：pass。
+- `swift build --target Runtime`：pass。
+- `swift test --filter TargetGraphTests`：pass，26 tests / 0 failures。
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true` / `dashboardReadModelOnly=true`，341 个 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
