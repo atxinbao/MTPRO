@@ -26,7 +26,8 @@ let package = Package(
         .executable(name: "Dashboard", targets: ["Dashboard"])
     ],
     dependencies: [
-        .package(url: "https://github.com/duckdb/duckdb-swift.git", from: "1.1.3")
+        .package(url: "https://github.com/duckdb/duckdb-swift.git", from: "1.1.3"),
+        .package(url: "https://github.com/apple/swift-crypto.git", from: "3.0.0")
     ],
     targets: [
         .target(
@@ -90,7 +91,10 @@ let package = Package(
         ),
         .target(
             name: "DataClient",
-            dependencies: ["DomainModel"],
+            dependencies: [
+                "DomainModel",
+                .product(name: "Crypto", package: "swift-crypto")
+            ],
             path: "Sources/DataClient",
             exclude: [
                 "AdaptersCompatibility.swift"
@@ -101,6 +105,7 @@ let package = Package(
                 "Binance/PublicMarketData/BinanceMarketDataReplayFreshness.swift",
                 "Binance/PublicMarketData/BinanceMarketDataReplayOperationsMetadata.swift",
                 "Binance/PublicMarketData/BinanceMarketDataReplayParity.swift",
+                "Binance/SignedAccount/BinanceSignedAccountReadRuntime.swift",
                 "DataClientReadOnlyMarketDataSource.swift",
                 "TargetGraph/DataClientTargetBoundary.swift"
             ]

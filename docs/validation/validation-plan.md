@@ -7718,3 +7718,43 @@ GH-524 必须建立的主要 anchors：
 - 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## GH-525 Binance Signed Account Read Runtime Validation
+
+GH-525 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-525 的验收要求：
+
+- `Sources/DataClient/Binance/SignedAccount/BinanceSignedAccountReadRuntime.swift` 必须存在，并包含 `GH-525-BINANCE-SIGNED-ACCOUNT-READ-RUNTIME` 和 `TVM-RELEASE-V010-BINANCE-SIGNED-ACCOUNT-READ` anchors。
+- `Package.swift` 必须把 `swift-crypto` 的 `Crypto` product 纳入 `DataClient` target，并让 `DataClient` 显式拥有 `Binance/SignedAccount/BinanceSignedAccountReadRuntime.swift` source。
+- Signed account read configuration 必须默认使用 Binance Spot testnet / local fixture-first path，并拒绝 production host `api.binance.com`。
+- Runtime 只能构造 `/api/v3/account` signed GET request，允许 `X-MBX-APIKEY` header 和 HMAC-SHA256 signature query item，但不得创建 `/api/v3/order`、`/api/v3/userDataStream`、listenKey、private WebSocket、broker gateway 或 command runtime。
+- Account payload 必须被映射为 canonical read model snapshot，只暴露 account type、balances、credential reference、source path 和 validation anchors，不暴露 raw signed payload、API key header value、secret material、broker state 或 command state。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface`，用 mock transport 验证 request/signature/header/snapshot mapping、secret non-exposure、production endpoint rejection 和 no submit / cancel / replace boundary。
+- GH-525 PR evidence 必须确认不读取 production secret，不连接 production endpoint，不创建 listenKey，不启动 private stream，不连接 broker，不提交、取消或替换订单，不启用 production trading，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+GH-525 必须建立的主要 anchors：
+
+- `GH-525-BINANCE-SIGNED-ACCOUNT-READ-RUNTIME`
+- `TVM-RELEASE-V010-BINANCE-SIGNED-ACCOUNT-READ`
+- `testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface`
+
+## GH-525 禁止
+
+- 不读取、打印、保存或推导 production secret。
+- 不接受 production endpoint 或 production broker endpoint。
+- 不创建 listenKey lifecycle 或 private WebSocket runtime。
+- 不把 signed account read 扩大成 private stream、account snapshot runtime、broker account state 或 command runtime。
+- 不连接 broker gateway、OMS 或 ExecutionClient order path。
+- 不提交、取消或替换真实订单。
+- 不启用 non-Binance venue。
+- 不启用 non-EMA active strategy。
+- 不绕过 RiskEngine、ExecutionEngine、OMS、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

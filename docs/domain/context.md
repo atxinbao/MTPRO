@@ -3736,6 +3736,16 @@ Binance public market data runtime path 指 release v0.1.0 中唯一 active venu
 
 Release v0.1.0 Binance public market data matrix 必须证明 DataClient -> DataEngine -> Cache 的 public path 成立，并且 required validation 使用 mock transport、可离线重复。真实 Binance public network smoke 只能作为人工可选证据，不能替代 required validation，也不能授权 production trading。
 
+## GH-525 Binance Signed Account Read Runtime Terms
+
+`GH-525-BINANCE-SIGNED-ACCOUNT-READ-RUNTIME`
+
+Binance signed account read runtime 指 release v0.1.0 中 DataClient 拥有的只读 signed `/api/v3/account` client。它只允许 local fixture / Binance Spot testnet-first verification，用 credential reference 追踪来源，用短生命周期 credential material 构造 request，并把返回 payload 映射为 canonical account / balance read model。它不把 API key header value、secret material、signature、raw payload 或 broker state 写入 snapshot、日志、Dashboard、MessageBus 或 validation evidence。
+
+`TVM-RELEASE-V010-BINANCE-SIGNED-ACCOUNT-READ`
+
+Release v0.1.0 Binance signed account read matrix 必须证明 `/api/v3/account` signed GET request、HMAC-SHA256 signature、`X-MBX-APIKEY` header transport boundary、credential reference-only evidence、production endpoint rejection 和 canonical snapshot mapping 全部成立。该 matrix 不授权 listenKey、private WebSocket、account snapshot stream、broker gateway、ExecutionClient order path、submit / cancel / replace 或 production trading。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
