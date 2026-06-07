@@ -15789,3 +15789,36 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 386 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-08 - GH-522 Release v0.1.0 ownership gap retirement
+
+- Issue: GH-522 `Retire remaining Core / Adapters / Persistence / Runtime ownership gaps`
+- Queue:
+  - GitHub fallback queue used because this release stage does not use Linear.
+  - WIP=1 preflight passed before implementation: #522 was OPEN with `mtpro / backlog / non-executable`; dependency #521 was CLOSED with `done`; no other open issue carried `todo`, `in-progress` or `in-review`; no open PR was present.
+  - #522 was promoted to `todo`, then to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `docs/contracts/release-v0.1.0-ownership-gap-retirement-contract.md`.
+  - Backfilled `TVM-RELEASE-V010-OWNERSHIP-GAP-RETIREMENT`, validation plan, domain language, latest summary and automation readiness anchors.
+  - Added `TargetGraphTests/testGH522ReleaseV010OwnershipGapsAreRetiredOrExplicitlyDeferred` to prove Package target source snapshot and deferred ownership register.
+  - Classified `Adapters` as compatibility re-export only.
+  - Deferred `Runtime -> DataEngine/Ingest`, `Runtime -> Database/ReplayProjection`, `Persistence -> Database/Projections` and `Core -> LiveTradingBoundary / LiveMonitoring*` to later scoped release issues.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No runtime implementation.
+  - No production source move.
+  - No SwiftPM dependency graph change.
+  - No production secret read, print or storage.
+  - No production endpoint connection.
+  - No signed endpoint, account endpoint or listenKey connection.
+  - No production trading.
+  - No real order submission / cancellation / replacement.
+  - No non-Binance venue.
+  - No non-EMA active strategy.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH522ReleaseV010OwnershipGapsAreRetiredOrExplicitlyDeferred`: pass; 1 test / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 405 XCTest / 0 failures; final output `MTPRO checks passed.`

@@ -3694,6 +3694,28 @@ No-default-production-trading 指 release v0.1.0 默认状态必须保持 produc
 
 Release v0.1.0 Binance EMA runtime matrix 必须证明 release contract、active scope、acceptance matrix、dry-run-first / testnet-first gate 和 no-default-production-trading boundary 全部成立，并为 GH-522 至 GH-541 的逐 issue evidence 回填提供稳定锚点。
 
+## GH-522 Release v0.1.0 Ownership Gap Terms
+
+`GH-522-RELEASE-V010-OWNERSHIP-GAP-RETIREMENT`
+
+Release ownership gap retirement 指 GH-522 对 retained `Core` / `Adapters` / `Persistence` / `Runtime` envelopes 的 release-path 影响做 closure / deferred classification。它不要求一次性删除所有 compatibility envelope，但要求后续 release issue 不得把这些 envelope 写成 v0.1.0 active runtime owner。
+
+`GH-522-RELEASE-OWNERSHIP-AUTHORITY`
+
+Release ownership authority 指每个 release domain 的 owner 必须是对应真实 module source root：Binance public market data 属于 `DataClient`，EMA 属于 `TraderStrategies` / `Trader`，risk 属于 `RiskEngine`，execution 属于 `ExecutionEngine` / `ExecutionClient`，Dashboard 属于 `Dashboard`。如果当前仍由 `Runtime` 或 `Persistence` compatibility envelope 组合，只能写成 deferred bridge。
+
+`GH-522-COMPATIBILITY-ENVELOPE-MATRIX`
+
+Compatibility envelope matrix 固定 `Core` 只保留 legacy / compatibility / deferred bridge，`Adapters` 只保留 DataClient re-export，`Persistence` 只保留 private projection adapter compatibility，`Runtime` 只保留 ingest / replay projection composition bridge。它们均不是 release v0.1.0 active runtime owner。
+
+`GH-522-DEFERRED-OWNERSHIP-REGISTER`
+
+Deferred ownership register 指 GH-524 / GH-533 等后续 issue 必须逐项处理 `Runtime -> DataEngine/Ingest`、`Runtime -> Database/ReplayProjection`、`Persistence -> Database/Projections` 和 `Core -> LiveTradingBoundary / LiveMonitoring*` 的 release 使用方式，不能把 deferred bridge 默认为已完成 runtime implementation。
+
+`TVM-RELEASE-V010-OWNERSHIP-GAP-RETIREMENT`
+
+Release v0.1.0 ownership gap retirement matrix 必须证明 release-path ownership 已关闭或明确 deferred，并且 production trading、production secret、production endpoint、real submit / cancel / replace、non-Binance venue 和 non-EMA active strategy 均保持默认关闭。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
