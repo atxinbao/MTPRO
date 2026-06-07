@@ -126,11 +126,13 @@ Required anchors：
 - `GH-524-BINANCE-PUBLIC-MARKET-DATA-RUNTIME-PATH`
 - `GH-525-BINANCE-SIGNED-ACCOUNT-READ-RUNTIME`
 - `GH-526-BINANCE-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-RUNTIME`
+- `GH-527-TRADER-RUNTIME-LIFECYCLE`
 - `TVM-RELEASE-V010-BINANCE-EMA-RUNTIME`
 - `TVM-RELEASE-V010-REAL-TARGET-SMOKE-COVERAGE`
 - `TVM-RELEASE-V010-BINANCE-PUBLIC-MARKET-DATA-PATH`
 - `TVM-RELEASE-V010-BINANCE-SIGNED-ACCOUNT-READ`
 - `TVM-RELEASE-V010-BINANCE-PRIVATE-STREAM-ACCOUNT-SNAPSHOT`
+- `TVM-RELEASE-V010-TRADER-RUNTIME-LIFECYCLE`
 
 Required validation：
 
@@ -138,6 +140,35 @@ Required validation：
 - `bash checks/automation-readiness.sh`
 - `bash checks/run.sh`
 - GitHub required check `checks` SUCCESS
+
+## GH-527-TRADER-RUNTIME-LIFECYCLE
+
+`GH-527-TRADER-RUNTIME-LIFECYCLE`
+
+Trader runtime lifecycle 指 release v0.1.0 中 `Trader` target 对 Accounts、唯一 active EMA strategy instance 和 Coordination/RiskBinding handoff 的本地 lifecycle 管理。该 lifecycle 只能生成 deterministic startup / shutdown report 和 local evidence：
+
+- account context 来自 `Sources/Trader/Accounts/TraderAccountContext.swift`。
+- active concrete strategy 固定为 `EMA`，strategy configuration 来自 `TraderStrategies.EMACrossStrategyConfiguration`。
+- coordination handoff 固定使用 `Sources/Trader/Coordination/RiskBinding/` 的 generic binding / adapter contract。
+- lifecycle events 只允许 `configured`、`started`、`account_context_bound`、`ema_strategy_registered`、`coordination_risk_handoff_prepared` 和 `shutdown`。
+- report 必须保持 `directExecutionClientEnabled == false`、`brokerCommandEnabled == false`、`omsBypassEnabled == false`、`productionTradingEnabledByDefault == false`、`nonBinanceVenueEnabled == false` 和 `nonEMAStrategyEnabled == false`。
+
+该 lifecycle 不读取 production secret，不连接 production endpoint，不提交 / 撤销 / 替换订单，不直连 ExecutionClient、broker 或 OMS，不暴露 Dashboard command surface，也不把 private stream read-model evidence 扩大成 command runtime。
+
+`TVM-RELEASE-V010-TRADER-RUNTIME-LIFECYCLE`
+
+## GH-527-NON-AUTHORIZATION
+
+`GH-527-NON-AUTHORIZATION`
+
+GH-527 不授权：
+
+- 非 Binance venue。
+- 非 EMA active strategy。
+- direct Trader / Strategy -> ExecutionClient path。
+- broker command、OMS bypass 或 executable order command。
+- production secret、production endpoint 或 production trading。
+- Dashboard command surface、trading button、live command 或 order form。
 
 ## GH-521-NON-AUTHORIZATION
 

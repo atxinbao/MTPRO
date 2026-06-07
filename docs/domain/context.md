@@ -3756,6 +3756,24 @@ Binance private stream / account snapshot runtime 指 release v0.1.0 中 DataCli
 
 Release v0.1.0 Binance private stream account snapshot matrix 必须证明 listenKey lifecycle request、redacted listenKey reference、private stream frame ingest、account / balance / position mapping、stale / blocked / missing / disconnected freshness evidence 和 no-command boundary 全部成立。该 matrix 不授权 production endpoint、broker gateway、ExecutionClient order path、OMS、submit / cancel / replace、Dashboard command surface 或 production trading。
 
+## GH-527 Trader Runtime Lifecycle Terms
+
+`GH-527-TRADER-RUNTIME-LIFECYCLE`
+
+Trader runtime lifecycle 指 release v0.1.0 中 `Trader` target 对 Accounts、唯一 active EMA strategy instance 和 Coordination/RiskBinding handoff 的 deterministic lifecycle 管理。它可以启动、绑定 account context、注册 EMA strategy instance、准备 RiskBinding handoff 并关闭，但只能输出本地 evidence report。
+
+`GH-527-TRADER-ACCOUNTS-EMA-COORDINATION-LIFECYCLE`
+
+Trader Accounts + EMA + Coordination lifecycle 固定当前 Trader 容器关系：`TraderAccountContext` 提供 account identity / source / future gate；`EMACrossStrategyConfiguration` 提供唯一 active EMA instance；`TraderCoordinationRiskBindingBoundaryEvidence` 提供 generic binding / adapter handoff。该 relationship 不表示 Trader 拥有 Portfolio financial state，不表示 Strategy 或 Trader 可以跳过 RiskEngine。
+
+`GH-527-NO-DIRECT-ORDER-SUBMISSION`
+
+No direct order submission 表示 GH-527 后 Trader lifecycle report 必须保持 `directExecutionClientEnabled == false`、`brokerCommandEnabled == false`、`omsBypassEnabled == false`、`productionTradingEnabledByDefault == false`、`nonBinanceVenueEnabled == false` 和 `nonEMAStrategyEnabled == false`。Trader lifecycle 不能直连 ExecutionClient、broker、OMS、signed endpoint、account endpoint、listenKey、Dashboard command surface、trading button、live command 或 order form。
+
+`TVM-RELEASE-V010-TRADER-RUNTIME-LIFECYCLE`
+
+Release v0.1.0 Trader runtime lifecycle matrix 必须证明 Trader target 显式拥有 lifecycle source、startup / shutdown event sequence、account context binding、EMA instance registration、Coordination/RiskBinding handoff 和 no-command / no-production-trading flags。该 matrix 不授权 real order lifecycle、ExecutionClient adapter、broker fill、reconciliation、production OMS 或 production trading。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

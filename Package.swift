@@ -223,6 +223,7 @@ let package = Package(
             sources: [
                 "Accounts",
                 "Coordination/RiskBinding",
+                "Runtime/TraderRuntimeLifecycle.swift",
                 "TargetGraph/TraderTargetBoundary.swift"
             ]
         ),
@@ -293,6 +294,7 @@ let package = Package(
                 "RiskEngine/TargetGraph",
                 "Trader/Accounts",
                 "Trader/Coordination/RiskBinding",
+                "Trader/Runtime",
                 "Trader/Strategies/EMA/EMACross.swift",
                 "Trader/Strategies/EMA/TargetGraph",
                 "Trader/TargetGraph"

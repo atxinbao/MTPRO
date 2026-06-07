@@ -8549,6 +8549,7 @@ final class CoreTests: XCTestCase {
     func testMTP210TraderContainerCompletenessValidationLocksAccountsEMAAndRiskBindingOnly() throws {
         // 测试场景：MTP-210 将 Trader container completeness 变成仓库级 deterministic gate。
         // 当前 Trader 业务容器只能由 Accounts、Strategies/EMA 和 Coordination/RiskBinding 三件套组成；
+        // GH-527 允许 Runtime 子目录承载 release-scoped lifecycle evidence，但不能变成执行入口。
         // MTP-228 允许 TargetGraph anchor 进入 Trader root，但它不能变成额外业务能力。
         let fileManager = FileManager.default
         let repositoryRoot = URL(fileURLWithPath: fileManager.currentDirectoryPath, isDirectory: true)
@@ -8566,12 +8567,13 @@ final class CoreTests: XCTestCase {
         .sorted()
         XCTAssertEqual(
             traderDirectoryNames,
-            ["Accounts", "Coordination", "Strategies", "TargetGraph"],
-            "Sources/Trader must stay complete and limited to Accounts, Coordination, Strategies, and the MTP-228 TargetGraph anchor"
+            ["Accounts", "Coordination", "Runtime", "Strategies", "TargetGraph"],
+            "Sources/Trader must stay complete and limited to Accounts, Coordination, Runtime lifecycle evidence, Strategies, and the MTP-228 TargetGraph anchor"
         )
 
         let requiredTraderContainerFiles = [
             "Sources/Trader/Accounts/TraderAccountContext.swift",
+            "Sources/Trader/Runtime/TraderRuntimeLifecycle.swift",
             "Sources/Trader/Strategies/EMA/EMACross.swift",
             "Sources/Trader/TargetGraph/TraderTargetBoundary.swift",
             "Sources/Trader/Coordination/RiskBinding/PaperActionRiskLink.swift"
@@ -8625,6 +8627,7 @@ final class CoreTests: XCTestCase {
             encoding: .utf8
         )
         XCTAssertTrue(packageManifest.contains("\"Trader/Accounts\""))
+        XCTAssertTrue(packageManifest.contains("\"Runtime/TraderRuntimeLifecycle.swift\""))
         XCTAssertTrue(packageManifest.contains("path: \"Sources/Trader/Strategies/EMA\""))
         XCTAssertTrue(packageManifest.contains("\"Trader/Coordination/RiskBinding\""))
         XCTAssertFalse(packageManifest.contains("                \"Strategies\","))
@@ -8636,8 +8639,12 @@ final class CoreTests: XCTestCase {
         XCTAssertFalse(packageManifest.contains("name: \"Strategies\""))
 
         let accountContext = TraderAccountContext.deterministicFixture
+        let traderLifecycle = try TraderRuntimeLifecycle.deterministicFixture()
         let riskBindingEvidence = TraderCoordinationRiskBindingBoundaryFixture.deterministic
         XCTAssertTrue(accountContext.accountContextBoundaryHeld)
+        XCTAssertFalse(traderLifecycle.directExecutionClientEnabled)
+        XCTAssertFalse(traderLifecycle.productionTradingEnabledByDefault)
+        XCTAssertEqual(traderLifecycle.activeConcreteStrategy, "EMA")
         XCTAssertEqual(riskBindingEvidence.coordinationRiskBindingRoot, "Sources/Trader/Coordination/RiskBinding/")
         XCTAssertEqual(riskBindingEvidence.concreteStrategyRoots, ["Sources/Trader/Strategies/EMA/"])
         XCTAssertTrue(riskBindingEvidence.forbidsExecutionAndLiveCommandPaths)

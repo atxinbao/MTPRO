@@ -7801,3 +7801,44 @@ GH-526 必须建立的主要 anchors：
 - 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## GH-527 Trader Runtime Lifecycle Validation
+
+GH-527 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH527TraderRuntimeLifecycleManagesAccountsEMAAndCoordinationWithoutOrderSubmission`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-527 的验收要求：
+
+- `Sources/Trader/Runtime/TraderRuntimeLifecycle.swift` 必须存在，并包含 `GH-527-TRADER-RUNTIME-LIFECYCLE` 和 `TVM-RELEASE-V010-TRADER-RUNTIME-LIFECYCLE` anchors。
+- `Package.swift` 必须让 `Trader` target 显式拥有 `Runtime/TraderRuntimeLifecycle.swift` source，且 `Trader` target 不得依赖 `ExecutionClient`。
+- Lifecycle 必须覆盖 startup / shutdown、account context binding、EMA strategy instance registration 和 Coordination/RiskBinding handoff。
+- Lifecycle report 必须保持 `directExecutionClientEnabled == false`、`brokerCommandEnabled == false`、`omsBypassEnabled == false`、`productionTradingEnabledByDefault == false`、`nonBinanceVenueEnabled == false` 和 `nonEMAStrategyEnabled == false`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH527TraderRuntimeLifecycleManagesAccountsEMAAndCoordinationWithoutOrderSubmission`，验证 lifecycle event sequence、account / EMA 管理、RiskBinding handoff、no-command flags 和 production default rejection。
+- GH-527 PR evidence 必须确认不读取 production secret，不连接 production endpoint，不直连 ExecutionClient / broker / OMS，不提交、取消或替换订单，不启用 production trading，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+GH-527 必须建立的主要 anchors：
+
+- `GH-527-TRADER-RUNTIME-LIFECYCLE`
+- `GH-527-TRADER-ACCOUNTS-EMA-COORDINATION-LIFECYCLE`
+- `GH-527-NO-DIRECT-ORDER-SUBMISSION`
+- `TVM-RELEASE-V010-TRADER-RUNTIME-LIFECYCLE`
+- `testGH527TraderRuntimeLifecycleManagesAccountsEMAAndCoordinationWithoutOrderSubmission`
+
+## GH-527 禁止
+
+- 不启用 non-Binance venue。
+- 不启用 non-EMA active strategy。
+- 不读取、打印、保存或推导 production secret。
+- 不接受 production endpoint、production stream endpoint 或 production broker endpoint。
+- 不直连 ExecutionClient、broker gateway 或 OMS。
+- 不提交、取消或替换真实订单。
+- 不把 private stream read-model evidence 扩大成 command runtime。
+- 不暴露 Dashboard command surface、trading button、live command 或 order form。
+- 不绕过 RiskEngine、ExecutionEngine、OMS、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
