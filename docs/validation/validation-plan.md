@@ -7604,3 +7604,43 @@ GH-521 必须建立的主要 anchors：
 - 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## GH-522 Release v0.1.0 Ownership Gap Retirement Validation
+
+GH-522 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH522ReleaseV010OwnershipGapsAreRetiredOrExplicitlyDeferred`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-522 的验收要求：
+
+- `docs/contracts/release-v0.1.0-ownership-gap-retirement-contract.md` 必须存在，并包含 `GH-522-RELEASE-V010-OWNERSHIP-GAP-RETIREMENT`、`GH-522-RELEASE-OWNERSHIP-AUTHORITY`、`GH-522-COMPATIBILITY-ENVELOPE-MATRIX`、`GH-522-DEFERRED-OWNERSHIP-REGISTER`、`GH-522-NO-PRODUCTION-AUTHORIZATION`、`GH-522-VALIDATION-ANCHORS`、`GH-522-NON-AUTHORIZATION` 和 `TVM-RELEASE-V010-OWNERSHIP-GAP-RETIREMENT`。
+- Release ownership matrix 必须把 `Adapters` 收口为 compatibility re-export only，并把 `Runtime` 的 `DataEngine/Ingest` / `Database/ReplayProjection`、`Persistence` 的 SQLite / DuckDB projection adapter 和 `Core` 的 legacy compatibility surfaces 显式标为 deferred / compatibility bridge，而不是 release active runtime owner。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH522ReleaseV010OwnershipGapsAreRetiredOrExplicitlyDeferred`，验证 contract anchor、Package target source snapshot 和 deferred ownership register。
+- GH-522 PR evidence 必须确认不实现 runtime，不移动 production source，不读取 production secret，不连接 production endpoint，不提交真实订单，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+GH-522 必须建立的主要 anchors：
+
+- `GH-522-RELEASE-V010-OWNERSHIP-GAP-RETIREMENT`
+- `GH-522-RELEASE-OWNERSHIP-AUTHORITY`
+- `GH-522-COMPATIBILITY-ENVELOPE-MATRIX`
+- `GH-522-DEFERRED-OWNERSHIP-REGISTER`
+- `GH-522-NO-PRODUCTION-AUTHORIZATION`
+- `TVM-RELEASE-V010-OWNERSHIP-GAP-RETIREMENT`
+
+## GH-522 禁止
+
+- 不实现 release runtime。
+- 不移动 production source 或改变 SwiftPM dependency graph。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint 或 listenKey。
+- 不提交、取消或替换真实订单。
+- 不启用 non-Binance venue。
+- 不启用 non-EMA active strategy。
+- 不把 `Core`、`Adapters`、`Persistence` 或 `Runtime` 写成 release v0.1.0 active runtime owner。
+- 不绕过 RiskEngine、ExecutionEngine、OMS、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

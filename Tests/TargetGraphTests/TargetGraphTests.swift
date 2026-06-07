@@ -4360,6 +4360,72 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH522ReleaseV010OwnershipGapsAreRetiredOrExplicitlyDeferred() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let releaseContract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.1.0-ownership-gap-retirement-contract.md"
+            ),
+            encoding: .utf8
+        )
+
+        for anchor in [
+            "GH-522-RELEASE-V010-OWNERSHIP-GAP-RETIREMENT",
+            "GH-522-RELEASE-OWNERSHIP-AUTHORITY",
+            "GH-522-COMPATIBILITY-ENVELOPE-MATRIX",
+            "GH-522-DEFERRED-OWNERSHIP-REGISTER",
+            "GH-522-NO-PRODUCTION-AUTHORIZATION",
+            "TVM-RELEASE-V010-OWNERSHIP-GAP-RETIREMENT"
+        ] {
+            XCTAssertTrue(releaseContract.contains(anchor), "\(anchor) must remain documented")
+        }
+
+        let dataClientTarget = try packageTargetBlock(named: "DataClient", packageSource: packageSource)
+        let dataEngineTarget = try packageTargetBlock(named: "DataEngine", packageSource: packageSource)
+        let adaptersTarget = try packageTargetBlock(named: "Adapters", packageSource: packageSource)
+        let persistenceTarget = try packageTargetBlock(named: "Persistence", packageSource: packageSource)
+        let runtimeTarget = try packageTargetBlock(named: "Runtime", packageSource: packageSource)
+        let dataClientSources = try packageTargetSourcesBlock(targetBlock: dataClientTarget)
+        let dataEngineExcludes = try packageTargetExcludesBlock(targetBlock: dataEngineTarget)
+        let adaptersSources = try packageTargetSourcesBlock(targetBlock: adaptersTarget)
+        let persistenceSources = try packageTargetSourcesBlock(targetBlock: persistenceTarget)
+        let runtimeSources = try packageTargetSourcesBlock(targetBlock: runtimeTarget)
+
+        XCTAssertTrue(dataClientSources.contains("\"Binance/PublicMarketData/Adapters.swift\""))
+        XCTAssertTrue(dataClientSources.contains("\"DataClientReadOnlyMarketDataSource.swift\""))
+        XCTAssertTrue(dataEngineExcludes.contains("\"Ingest\""))
+        XCTAssertTrue(adaptersSources.contains("\"AdaptersCompatibility.swift\""))
+        XCTAssertFalse(adaptersSources.contains("\"Binance/PublicMarketData/Adapters.swift\""))
+        XCTAssertTrue(persistenceSources.contains("\"Projections/SQLite/Persistence.swift\""))
+        XCTAssertTrue(persistenceSources.contains("\"Projections/DuckDB/DuckDBAnalyticalProjectionAdapter.swift\""))
+        XCTAssertTrue(runtimeSources.contains("\"Database/ReplayProjection\""))
+        XCTAssertTrue(runtimeSources.contains("\"DataEngine/Ingest\""))
+
+        for requiredDecision in [
+            "Runtime -> DataEngine/Ingest",
+            "Runtime -> Database/ReplayProjection",
+            "Persistence -> Database/Projections",
+            "Core -> LiveTradingBoundary / LiveMonitoring*"
+        ] {
+            XCTAssertTrue(releaseContract.contains(requiredDecision), "\(requiredDecision) must be deferred")
+        }
+
+        for forbiddenDefault in [
+            "productionTradingEnabledByDefault == false",
+            "productionSecretReadEnabledByDefault == false",
+            "productionEndpointConnectionEnabledByDefault == false",
+            "productionOrderSubmitEnabledByDefault == false",
+            "nonBinanceVenueEnabled == false",
+            "nonEMAStrategyEnabled == false"
+        ] {
+            XCTAssertTrue(releaseContract.contains(forbiddenDefault), "\(forbiddenDefault) must remain explicit")
+        }
+    }
+
     func testGH503ProductionCredentialSecretPolicyGateDefinesNoDefaultSecretReadContract() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
