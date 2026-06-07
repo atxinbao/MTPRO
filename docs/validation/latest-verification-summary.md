@@ -2721,3 +2721,36 @@ GitHub Issue：[#539](https://github.com/atxinbao/MTPRO/issues/539)
 - `bash checks/automation-readiness.sh`：pass，输出 `MTPRO release v0.1.0 no-default-production-trading guard passed.` 和 `MTPRO automation readiness checks passed.`。
 - `bash checks/release-v0.1.0-dryrun-testnet.sh`：pass，1 test / 0 failures，最终输出 `MTPRO release v0.1.0 dry-run/testnet validation suite passed.`。
 - `bash checks/run.sh`：pass，local Swift toolchain accepted as Apple Swift 6.3；Dashboard smoke 包含 `readModelOnly=true`、`dashboardReadModelOnly=true`、`releaseLiveMonitoringSurface=7`、`releaseCommandSurface=3` 和 `releaseKillSwitch=3`；421 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
+## 2026-06-08 — GH-540 Validation matrix and stage audit input closeout
+
+执行者：Codex
+
+GitHub Issue：[#540](https://github.com/atxinbao/MTPRO/issues/540)
+
+范围：
+
+- 新增 `docs/audit/inputs/mtpro-release-v0.1.0-binance-ema-runtime-stage-audit-input.md`。
+- Stage audit input 汇总 GH-521 至 GH-539 issue / PR / checks / merge evidence，其中 PR #542 至 PR #560 均已 merged 且 required check `checks` 均为 SUCCESS。
+- 将 `GH-540-STAGE-AUDIT-INPUT`、`GH-540-ISSUE-PR-EVIDENCE-CHAIN`、`GH-540-VALIDATION-MATRIX-CLOSEOUT`、`GH-540-FORBIDDEN-PRODUCTION-CAPABILITY-AUDIT`、`GH-540-NO-FINAL-STAGE-CODE-AUDIT` 和 `TVM-RELEASE-V010-STAGE-AUDIT-INPUT-CLOSEOUT` 接入 release contract、trading validation matrix、validation plan、domain context、automation readiness 和 `checks/automation-readiness.d/l4-boundary.sh`。
+- 明确 GH-540 只准备 GH-541 final audit 输入，不输出最终 Stage Code Audit Report，不执行 Root Docs Refresh，不创建下一 Project / Issue。
+
+边界：
+
+- 不使用 Linear。
+- 不启动 Symphony / `symphony-issue`。
+- 不运行 Graphify / code-index。
+- 不修改 Figma。
+- 不实现 runtime、adapter、OMS、broker gateway、Dashboard command runtime 或 order form。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、account endpoint、listenKey 或 private WebSocket runtime。
+- 不连接真实 testnet network，不连接 broker，不提交、取消或替换真实订单。
+- 不触发 production order、sandbox-to-production command promotion、automatic recovery、rollback command 或 broker emergency API。
+- 不绕过 RiskEngine / ExecutionEngine / OMS / kill switch / no-trade state。
+- 不启用 production trading、non-Binance venue 或 non-EMA active strategy。
+
+验证：
+
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO release v0.1.0 no-default-production-trading guard passed.` 和 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，local Swift toolchain accepted as Apple Swift 6.3；Dashboard smoke 包含 `readModelOnly=true`、`dashboardReadModelOnly=true`、`releaseLiveMonitoringSurface=7`、`releaseCommandSurface=3` 和 `releaseKillSwitch=3`；421 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
