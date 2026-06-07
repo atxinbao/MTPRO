@@ -4576,6 +4576,163 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(dashboard.providesLiveCommand)
     }
 
+    func testGH524BinancePublicMarketDataRuntimePathProjectsIntoCacheReadModel() async throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let dataEngineTarget = try packageTargetBlock(named: "DataEngine", packageSource: packageSource)
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        let runtimeTarget = try packageTargetBlock(named: "Runtime", packageSource: packageSource)
+        XCTAssertTrue(
+            try packageTargetSourcesBlock(targetBlock: dataEngineTarget)
+                .contains("\"BinancePublicMarketDataRuntimePath.swift\"")
+        )
+        XCTAssertTrue(
+            try packageTargetExcludesBlock(targetBlock: coreTarget)
+                .contains("\"DataEngine/BinancePublicMarketDataRuntimePath.swift\"")
+        )
+        XCTAssertTrue(
+            try packageTargetExcludesBlock(targetBlock: runtimeTarget)
+                .contains("\"DataEngine/BinancePublicMarketDataRuntimePath.swift\"")
+        )
+
+        let symbol = try Symbol(rawValue: "BTCUSDT")
+        let range = try DateRange(
+            start: Date(timeIntervalSince1970: 1_704_067_200),
+            end: Date(timeIntervalSince1970: 1_704_067_260)
+        )
+        let transport = TargetGraphMockBinancePublicMarketDataTransport { request in
+            switch request.contract.capability {
+            case .klines:
+                Data(
+                    #"""
+                    [
+                      [
+                        1704067200000,
+                        "42000.10",
+                        "42100.20",
+                        "41900.30",
+                        "42050.40",
+                        "12.345",
+                        1704067259999,
+                        "519000.00",
+                        120,
+                        "6.000",
+                        "252000.00",
+                        "0"
+                      ]
+                    ]
+                    """#.utf8
+                )
+            case .recentTrades:
+                Data(
+                    #"""
+                    [
+                      {
+                        "id": 1,
+                        "price": "42010.50",
+                        "qty": "0.125",
+                        "time": 1704067201000,
+                        "isBuyerMaker": true,
+                        "isBestMatch": true
+                      }
+                    ]
+                    """#.utf8
+                )
+            case .bestBidAsk:
+                Data(
+                    #"""
+                    {
+                      "symbol": "BTCUSDT",
+                      "bidPrice": "42009.90",
+                      "bidQty": "1.500",
+                      "askPrice": "42010.10",
+                      "askQty": "1.250"
+                    }
+                    """#.utf8
+                )
+            case .depthSnapshot:
+                Data(
+                    #"""
+                    {
+                      "lastUpdateId": 100,
+                      "bids": [["42000.00", "1.100"]],
+                      "asks": [["42001.00", "0.900"]]
+                    }
+                    """#.utf8
+                )
+            case .depthDelta:
+                Data(
+                    #"""
+                    {
+                      "e": "depthUpdate",
+                      "E": 1704067203000,
+                      "s": "BTCUSDT",
+                      "U": 101,
+                      "u": 102,
+                      "b": [["42000.20", "0.400"]],
+                      "a": [["42001.20", "0.000"]]
+                    }
+                    """#.utf8
+                )
+            case .exchangeInfo:
+                Data(#"{"symbols":[]}"#.utf8)
+            }
+        }
+        let client = BinancePublicMarketDataClient(transport: transport)
+        let plan = try BinancePublicMarketDataRuntimePlan(
+            sourceID: try FoundationTargetID("gh-524-binance-public-source"),
+            symbol: symbol,
+            timeframe: .oneMinute,
+            range: range,
+            datasetVersion: "gh-524",
+            klineLimit: 1,
+            recentTradeLimit: 1,
+            depthSnapshotLimit: .oneHundred,
+            bestBidAskObservedAt: Date(timeIntervalSince1970: 1_704_067_202),
+            depthSnapshotObservedAt: Date(timeIntervalSince1970: 1_704_067_204),
+            firstRecordedAt: Date(timeIntervalSince1970: 1_704_067_210)
+        )
+
+        let result = try await BinancePublicMarketDataRuntimePath(client: client).run(plan)
+
+        XCTAssertEqual(result.marketEvents.count, 5)
+        XCTAssertEqual(result.eventEnvelopes.map(\.sequence), [1, 2, 3, 4, 5])
+        XCTAssertEqual(result.replayedEnvelopes, result.eventEnvelopes)
+        XCTAssertEqual(result.cacheSnapshot, result.replayedCacheSnapshot)
+        XCTAssertEqual(result.cacheSnapshot.marketEventCount, 5)
+        XCTAssertTrue(result.publicMarketDataRuntimePathBoundaryHeld)
+        XCTAssertFalse(result.callsSignedEndpoint)
+        XCTAssertFalse(result.callsAccountEndpoint)
+        XCTAssertFalse(result.createsListenKey)
+        XCTAssertFalse(result.connectsPrivateWebSocketRuntime)
+        XCTAssertFalse(result.routesBrokerOrExecutionCommand)
+        XCTAssertFalse(result.enablesProductionTrading)
+
+        let seriesKey = MarketDataSeriesKey(symbol: symbol, timeframe: .oneMinute)
+        XCTAssertEqual(result.cacheSnapshot.barsBySeries[seriesKey]?.count, 1)
+        XCTAssertEqual(result.cacheSnapshot.tradesBySymbol[symbol]?.count, 1)
+        XCTAssertEqual(result.cacheSnapshot.bestBidAskBySymbol[symbol]?.bid.price.rawValue, 42_009.90)
+        XCTAssertEqual(result.cacheSnapshot.orderBookSnapshotsBySymbol[symbol]?.bids.count, 1)
+        XCTAssertEqual(result.cacheSnapshot.orderBookDeltasBySymbol[symbol]?.count, 1)
+
+        let requests = await transport.requests()
+        XCTAssertEqual(requests.map(\.contract.path), result.requestedPublicPaths)
+        XCTAssertEqual(
+            result.requestedPublicPaths,
+            ["/api/v3/klines", "/api/v3/trades", "/api/v3/ticker/bookTicker", "/api/v3/depth", "/ws/btcusdt@depth"]
+        )
+        XCTAssertTrue(requests.allSatisfy { $0.method == "GET" })
+        XCTAssertTrue(requests.allSatisfy { $0.headers.isEmpty })
+        assertNoForbiddenBinancePublicRequestFragments(
+            result.publicRequestContracts,
+            file: #filePath,
+            line: #line
+        )
+    }
+
     func testGH503ProductionCredentialSecretPolicyGateDefinesNoDefaultSecretReadContract() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
@@ -5845,6 +6002,29 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    private func assertNoForbiddenBinancePublicRequestFragments(
+        _ contracts: [BinancePublicRequestContract],
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let serializedRequests = contracts
+            .flatMap { contract in
+                [contract.path] + contract.queryItems.flatMap { [$0.name, $0.value] }
+            }
+            .joined(separator: " ")
+            .lowercased()
+
+        XCTAssertFalse(serializedRequests.contains("apikey"), file: file, line: line)
+        XCTAssertFalse(serializedRequests.contains("signature"), file: file, line: line)
+        XCTAssertFalse(serializedRequests.contains("listenkey"), file: file, line: line)
+        XCTAssertFalse(serializedRequests.contains("/api/v3/account"), file: file, line: line)
+        XCTAssertFalse(serializedRequests.contains("/api/v3/order"), file: file, line: line)
+        XCTAssertFalse(serializedRequests.contains("/api/v3/userdatastream"), file: file, line: line)
+        XCTAssertFalse(serializedRequests.contains("/sapi/"), file: file, line: line)
+        XCTAssertFalse(serializedRequests.contains("/fapi/"), file: file, line: line)
+        XCTAssertFalse(serializedRequests.contains("/dapi/"), file: file, line: line)
+    }
+
     private func packageTargetBlock(named targetName: String, packageSource: String) throws -> String {
         let targetMarker = ".target(\n            name: \"\(targetName)\""
         guard let markerRange = packageSource.range(of: targetMarker) else {
@@ -5887,5 +6067,26 @@ final class TargetGraphTests: XCTestCase {
             throw XCTSkip("Package.swift target excludes block is not closed")
         }
         return String(tail[..<closeRange.upperBound])
+    }
+}
+
+/// TargetGraphTests 专用 mock transport 只返回本地 fixture，不访问 Binance 网络。
+private actor TargetGraphMockBinancePublicMarketDataTransport: BinancePublicMarketDataTransport {
+    typealias Handler = @Sendable (BinancePublicTransportRequest) throws -> Data
+
+    private let handler: Handler
+    private var loadedRequests: [BinancePublicTransportRequest] = []
+
+    init(handler: @escaping Handler) {
+        self.handler = handler
+    }
+
+    func load(_ request: BinancePublicTransportRequest) async throws -> Data {
+        loadedRequests.append(request)
+        return try handler(request)
+    }
+
+    func requests() -> [BinancePublicTransportRequest] {
+        loadedRequests
     }
 }

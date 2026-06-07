@@ -15852,3 +15852,36 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 406 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-08 - GH-524 Binance public market data runtime path
+
+- Issue: GH-524 `Implement Binance public market data runtime path into DataEngine and Cache`
+- Queue:
+  - GitHub fallback queue used because this release stage does not use Linear.
+  - WIP=1 preflight passed before implementation: #524 was OPEN with `mtpro / backlog / non-executable`; dependency #523 was CLOSED with `done`; no other open issue carried `todo`, `in-progress` or `in-review`; no open PR was present.
+  - #524 was promoted to `todo`, then to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `Sources/DataEngine/BinancePublicMarketDataRuntimePath.swift`.
+  - Added Cache batch projection helpers in `Sources/Cache/MarketData/MarketDataCache.swift`.
+  - Added `TargetGraphTests/testGH524BinancePublicMarketDataRuntimePathProjectsIntoCacheReadModel`.
+  - Updated `Package.swift` so `DataEngine` owns `BinancePublicMarketDataRuntimePath.swift` while `Core` / `Runtime` compatibility envelopes explicitly exclude it.
+  - Backfilled `GH-524-BINANCE-PUBLIC-MARKET-DATA-RUNTIME-PATH`, `TVM-RELEASE-V010-BINANCE-PUBLIC-MARKET-DATA-PATH`, validation plan, domain language, latest summary and automation readiness guard.
+  - Covered Binance public kline, recent trade, best bid / ask, depth snapshot and depth delta through mock transport, DataClient decoder, DataEngine neutral journal replay evidence and Cache read model projection.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No private account read.
+  - No signed endpoint, account endpoint, listenKey or private WebSocket runtime.
+  - No broker gateway, OMS or execution command.
+  - No production secret read, print or storage.
+  - No production endpoint connection.
+  - No production trading.
+  - No real order submission / cancellation / replacement.
+  - No non-Binance venue.
+  - No non-EMA active strategy.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH524BinancePublicMarketDataRuntimePathProjectsIntoCacheReadModel`: pass; 1 test / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 407 XCTest / 0 failures; final output `MTPRO checks passed.`

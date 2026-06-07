@@ -96,4 +96,21 @@ public struct MarketDataCache: Equatable, Sendable {
         return snapshot
     }
 
+    /// 批量投影 public market events，供 DataEngine target 的 release runtime path 复用。
+    ///
+    /// 该方法只消费本地 `MarketEvent`，不读取数据库、网络、账户 payload 或 broker state。
+    @discardableResult
+    public mutating func ingest(contentsOf events: [MarketEvent]) -> MarketDataCacheSnapshot {
+        for event in events {
+            ingest(event)
+        }
+        return snapshot
+    }
+
+    /// 从 public market events 生成确定性 snapshot，不依赖 Core compatibility envelope。
+    public static func project(_ events: [MarketEvent]) -> MarketDataCacheSnapshot {
+        var cache = MarketDataCache()
+        return cache.ingest(contentsOf: events)
+    }
+
 }
