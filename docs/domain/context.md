@@ -3858,6 +3858,32 @@ Production endpoint explicit gate 表示任何 `api.binance.com`、production cr
 
 Release v0.1.0 Binance ExecutionClient testnet SCR matrix 必须证明 testnet request mapping 覆盖 submit / cancel / replace、credential reference guard 成立、#530 OMS source identity 已绑定、production endpoint explicit gate 成立，以及 execution report、broker fill、reconciliation、Dashboard command surface 和 production trading 均未开启。
 
+## GH-532 Binance Execution Report Broker Fill Parser Terms
+
+`GH-532-BINANCE-EXECUTION-REPORT-BROKER-FILL-PARSER`
+
+Binance execution report / broker fill parser 指 release v0.1.0 中 `ExecutionClient` target 对 #531 testnet command evidence 的 normalized parser。它只解析 deterministic testnet fixture，不能接受 production raw payload、production endpoint、broker gateway payload、Dashboard command 或 direct Trader / Strategy input。
+
+`GH-532-EXECUTIONENGINE-EVENT-MODEL-HANDOFF`
+
+ExecutionEngine event model handoff 表示 parser 输出可以进入 ExecutionEngine 本地事件模型 evidence，并保持 `eventStream == .paper`。这不是 production OMS event、Portfolio update、reconciliation input 或 Dashboard command surface。
+
+`GH-532-BROKER-FILL-MAPPING`
+
+Broker fill mapping 在 GH-532 中只适用于 `full fill` / `partial fill` 的 normalized event evidence。`canceled` / `rejected` 只能形成 ExecutionEngine event evidence，不能伪造成 fill。
+
+`GH-532-INVALID-REPORT-BLOCKED-EVIDENCE`
+
+Invalid report blocked evidence 表示 production raw payload、unsupported execution status、command evidence mismatch 或 raw payload exposure attempt 必须被记录为 blocked / invalid evidence，且不能产生 ExecutionEngine event、broker fill fact、Portfolio update 或 reconciliation input。
+
+`GH-532-PRODUCTION-PARSER-DISABLED`
+
+Production parser disabled 表示 GH-532 默认关闭 production parser、production trading、production payload interpretation、broker gateway、reconciliation、Portfolio update 和 Dashboard command surface。Production cutover 仍必须等待后续 release gate、operator confirmation、risk approval 和 kill switch pass。
+
+`TVM-RELEASE-V010-EXECUTION-REPORT-BROKER-FILL-PARSER`
+
+Release v0.1.0 execution report / broker fill parser matrix 必须证明 #531 command evidence 已绑定、full / partial / cancel / reject coverage 完整、异常回报有 blocked evidence、production parser disabled，以及 reconciliation、Portfolio update、Dashboard command surface 和 production trading 均未开启。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

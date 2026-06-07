@@ -131,6 +131,7 @@ Required anchors：
 - `GH-529-RISKENGINE-LIVE-PRETRADE-GATE`
 - `GH-530-EXECUTIONENGINE-OMS-STATE-MACHINE`
 - `GH-531-BINANCE-TESTNET-SUBMIT-CANCEL-REPLACE`
+- `GH-532-BINANCE-EXECUTION-REPORT-BROKER-FILL-PARSER`
 - `TVM-RELEASE-V010-BINANCE-EMA-RUNTIME`
 - `TVM-RELEASE-V010-REAL-TARGET-SMOKE-COVERAGE`
 - `TVM-RELEASE-V010-BINANCE-PUBLIC-MARKET-DATA-PATH`
@@ -141,6 +142,7 @@ Required anchors：
 - `TVM-RELEASE-V010-RISKENGINE-PRETRADE-GATE`
 - `TVM-RELEASE-V010-EXECUTIONENGINE-OMS-LIFECYCLE`
 - `TVM-RELEASE-V010-BINANCE-EXECUTIONCLIENT-TESTNET-SCR`
+- `TVM-RELEASE-V010-EXECUTION-REPORT-BROKER-FILL-PARSER`
 
 Required validation：
 
@@ -288,6 +290,35 @@ GH-531 不授权：
 - broker gateway、production broker connection、production OMS runtime 或 production order store。
 - execution report / broker fill parser；该能力留给 GH-532。
 - reconciliation / Portfolio update path；该能力留给 GH-533。
+- Dashboard command surface、trading button、live command 或 order form。
+- kill switch / no-trade / rollback controls；该能力留给 GH-536。
+
+## GH-532-BINANCE-EXECUTION-REPORT-BROKER-FILL-PARSER
+
+`GH-532-BINANCE-EXECUTION-REPORT-BROKER-FILL-PARSER`
+
+Binance execution report / broker fill parser 指 release v0.1.0 中 `ExecutionClient` target 对 #531 testnet command evidence 的 normalized parser。该 parser 只消费 deterministic Binance testnet execution report fixture，输出可进入 ExecutionEngine 本地事件模型的 parsed event evidence：
+
+- parser 必须绑定 #531 command evidence，不能接受 direct Trader、Strategy、Dashboard 或 production broker payload。
+- 支持 `full fill`、`partial fill`、`canceled` 和 `rejected` 回报类型。
+- `full fill` / `partial fill` 可以形成 broker fill mapping evidence；`canceled` / `rejected` 只能形成 ExecutionEngine event model evidence，不生成 fill。
+- 异常回报必须形成 blocked / invalid evidence，不能产生 ExecutionEngine event、broker fill fact、Portfolio update 或 reconciliation input。
+- raw payload 只能以 digest identity 留痕，不能保存 raw JSON、header、signature、credential value、account payload、production endpoint 或 broker secret。
+- parser evidence 必须保持 `productionParserEnabledByDefault == false`、`productionTradingEnabledByDefault == false`、`productionPayloadInterpreted == false`、`brokerGatewayTouched == false`、`reconciliationProduced == false`、`portfolioUpdated == false` 和 `dashboardCommandSurfaceTouched == false`。
+
+`TVM-RELEASE-V010-EXECUTION-REPORT-BROKER-FILL-PARSER`
+
+## GH-532-NON-AUTHORIZATION
+
+`GH-532-NON-AUTHORIZATION`
+
+GH-532 不授权：
+
+- 非 Binance venue。
+- 非 EMA active strategy。
+- production raw payload parser、production endpoint、production secret、production broker connection 或 production trading。
+- production submit / cancel / replace。
+- Portfolio reconciliation 或 Portfolio update path；该能力留给 GH-533。
 - Dashboard command surface、trading button、live command 或 order form。
 - kill switch / no-trade / rollback controls；该能力留给 GH-536。
 

@@ -5605,6 +5605,136 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH532BinanceExecutionReportParserMapsBrokerFillAndInvalidEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+
+        let parser = try ReleaseV010BinanceExecutionReportParser.deterministicFixture()
+        XCTAssertTrue(parser.parserBoundaryHeld)
+        XCTAssertEqual(parser.issueID.rawValue, "GH-532")
+        XCTAssertEqual(parser.upstreamIssueID.rawValue, "GH-531")
+        XCTAssertTrue(parser.commandEvidence.evidenceBoundaryHeld)
+        XCTAssertFalse(parser.productionParserEnabledByDefault)
+        XCTAssertFalse(parser.productionTradingEnabledByDefault)
+        XCTAssertFalse(parser.productionPayloadInterpreted)
+        XCTAssertFalse(parser.brokerGatewayTouched)
+        XCTAssertFalse(parser.reconciliationProduced)
+        XCTAssertFalse(parser.portfolioUpdated)
+        XCTAssertFalse(parser.dashboardCommandSurfaceTouched)
+        XCTAssertTrue(parser.validationAnchors.contains("GH-532-BINANCE-EXECUTION-REPORT-BROKER-FILL-PARSER"))
+        XCTAssertTrue(parser.validationAnchors.contains("GH-532-EXECUTIONENGINE-EVENT-MODEL-HANDOFF"))
+        XCTAssertTrue(parser.validationAnchors.contains("GH-532-BROKER-FILL-MAPPING"))
+        XCTAssertTrue(parser.validationAnchors.contains("GH-532-PARTIAL-CANCEL-REJECT-EVIDENCE"))
+        XCTAssertTrue(parser.validationAnchors.contains("GH-532-INVALID-REPORT-BLOCKED-EVIDENCE"))
+        XCTAssertTrue(parser.validationAnchors.contains("GH-532-PRODUCTION-PARSER-DISABLED"))
+
+        let evidence = try parser.deterministicParserEvidence()
+        XCTAssertTrue(evidence.evidenceBoundaryHeld)
+        XCTAssertEqual(Set(evidence.parsedEvents.map(\.reportKind)), Set(ReleaseV010BinanceExecutionReportKind.allCases))
+        XCTAssertEqual(evidence.parsedEvents.map(\.replaySequence), [1, 2, 3, 4])
+        XCTAssertTrue(evidence.executionEngineEventModelReady)
+        XCTAssertTrue(evidence.brokerFillMappingEvidenceComplete)
+        XCTAssertTrue(evidence.partialFillCancelRejectCovered)
+        XCTAssertTrue(evidence.invalidReportBlockedEvidenceComplete)
+        XCTAssertTrue(evidence.productionParserDisabled)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionPayloadInterpreted)
+        XCTAssertFalse(evidence.brokerGatewayTouched)
+        XCTAssertFalse(evidence.reconciliationProduced)
+        XCTAssertFalse(evidence.portfolioUpdated)
+        XCTAssertFalse(evidence.dashboardCommandSurfaceTouched)
+
+        let fillEvents = evidence.parsedEvents.filter(\.brokerFillMapped)
+        XCTAssertEqual(Set(fillEvents.map(\.reportKind)), [.fullFill, .partialFill])
+        XCTAssertTrue(fillEvents.allSatisfy { $0.executionEngineEventModelReady })
+        XCTAssertTrue(fillEvents.allSatisfy { $0.eventStream == .paper })
+        XCTAssertTrue(fillEvents.allSatisfy { $0.rawPayloadExposed == false })
+        XCTAssertTrue(fillEvents.allSatisfy { $0.reconciliationProduced == false })
+        XCTAssertTrue(fillEvents.allSatisfy { $0.portfolioUpdated == false })
+
+        let canceled = try XCTUnwrap(evidence.parsedEvents.first { $0.reportKind == .canceled })
+        XCTAssertEqual(canceled.orderStatus, "CANCELED")
+        XCTAssertFalse(canceled.brokerFillMapped)
+        XCTAssertTrue(canceled.executionEngineEventModelReady)
+
+        let rejected = try XCTUnwrap(evidence.parsedEvents.first { $0.reportKind == .rejected })
+        XCTAssertEqual(rejected.executionType, "REJECTED")
+        XCTAssertFalse(rejected.brokerFillMapped)
+        XCTAssertTrue(rejected.executionEngineEventModelReady)
+
+        XCTAssertEqual(
+            Set(evidence.invalidReports.map(\.reason)),
+            [.unsupportedExecutionStatus, .productionRawPayload]
+        )
+        XCTAssertTrue(evidence.invalidReports.allSatisfy(\.invalidReportBlocked))
+        XCTAssertTrue(evidence.invalidReports.allSatisfy { $0.executionEngineEventProduced == false })
+        XCTAssertTrue(evidence.invalidReports.allSatisfy { $0.brokerFillMapped == false })
+        XCTAssertTrue(evidence.invalidReports.allSatisfy { $0.productionPayloadInterpreted == false })
+
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoded = try JSONDecoder().decode(
+            ReleaseV010BinanceExecutionReportParserEvidence.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, evidence)
+
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/ReleaseV010BinanceExecutionReportBrokerFillParser.swift"
+                ).path
+            )
+        )
+
+        let commandEvidence = parser.commandEvidence
+        let submit = try XCTUnwrap(commandEvidence.requests.first { $0.commandKind == .submit })
+        let submitAck = try XCTUnwrap(commandEvidence.acknowledgements.first { $0.commandKind == .submit })
+        XCTAssertThrowsError(
+            try ReleaseV010BinanceExecutionReportFixture(
+                reportID: Identifier.constant("unsafe-gh-532-production-report"),
+                sourceKind: .productionRawExecutionReport,
+                reportKind: .fullFill,
+                sourceCommandKind: .submit,
+                sourceCommandRequestID: submit.requestID,
+                sourceCommandAckID: submitAck.ackID,
+                sourceOMSOrderID: submit.sourceOMSOrderID,
+                sourceOMSEventLogID: submit.sourceOMSEventLogID,
+                sourceRiskDecisionID: submit.sourceRiskDecisionID,
+                clientOrderID: submit.clientOrderID,
+                symbol: submit.symbol,
+                cumulativeFilledQuantity: "0.0100",
+                lastExecutedQuantity: "0.0100",
+                remainingQuantity: "0.0000",
+                lastExecutedPrice: "42120.70",
+                commissionAsset: "USDT",
+                commissionAmount: "0.000010",
+                replaySequence: 1,
+                rawPayloadDigest: "sha256:unsafe-production-report"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("releaseV010ExecutionReport.productionRawPayload")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV010BinanceExecutionReportParser(
+                productionParserEnabledByDefault: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("releaseV010ExecutionReport.productionParserEnabledByDefault")
+            )
+        }
+    }
+
     func testGH503ProductionCredentialSecretPolicyGateDefinesNoDefaultSecretReadContract() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
