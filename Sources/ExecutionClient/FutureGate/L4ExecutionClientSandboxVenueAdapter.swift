@@ -481,7 +481,7 @@ public struct L4ExecutionClientSandboxVenueAdapter: Codable, Equatable, Sendable
         try L4ExecutionClientSandboxVenueAdapter()
     }
 
-    public static func deterministicEnvelope(
+    static func deterministicEnvelope(
         kind: L4ExecutionClientSandboxCommandKind
     ) throws -> L4ExecutionClientSandboxRequestEnvelope {
         try L4ExecutionClientSandboxRequestEnvelope(

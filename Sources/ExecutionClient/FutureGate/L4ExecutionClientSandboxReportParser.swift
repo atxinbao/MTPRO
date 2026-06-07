@@ -638,7 +638,7 @@ public struct L4ExecutionClientSandboxReportParser: Codable, Equatable, Sendable
         try L4ExecutionClientSandboxReportParser()
     }
 
-    public static func deterministicFixtures() throws -> [L4ExecutionClientSandboxReportFixture] {
+    static func deterministicFixtures() throws -> [L4ExecutionClientSandboxReportFixture] {
         try [
             deterministicFixture(kind: .fill, commandKind: .submit, sequence: 1),
             deterministicFixture(kind: .partialFill, commandKind: .replace, sequence: 2),

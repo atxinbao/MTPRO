@@ -1912,9 +1912,9 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(adapter.validationAnchors.contains("GH-459-DETERMINISTIC-COMMAND-EVIDENCE"))
         XCTAssertTrue(adapter.validationAnchors.contains("GH-459-PRODUCTION-VENUE-DISABLED"))
 
-        let submitEnvelope = try L4ExecutionClientSandboxVenueAdapter.deterministicEnvelope(kind: .submit)
-        let cancelEnvelope = try L4ExecutionClientSandboxVenueAdapter.deterministicEnvelope(kind: .cancel)
-        let replaceEnvelope = try L4ExecutionClientSandboxVenueAdapter.deterministicEnvelope(kind: .replace)
+        let submitEnvelope = try gh497SandboxEnvelope(kind: .submit)
+        let cancelEnvelope = try gh497SandboxEnvelope(kind: .cancel)
+        let replaceEnvelope = try gh497SandboxEnvelope(kind: .replace)
         let submitResponse = try adapter.submit(submitEnvelope)
         let cancelResponse = try adapter.cancel(cancelEnvelope)
         let replaceResponse = try adapter.replace(replaceEnvelope)
@@ -2006,7 +2006,7 @@ final class TargetGraphTests: XCTestCase {
         }
 
         let adapter = try L4ExecutionClientSandboxVenueAdapter.deterministicFixture()
-        let cancelEnvelope = try L4ExecutionClientSandboxVenueAdapter.deterministicEnvelope(kind: .cancel)
+        let cancelEnvelope = try gh497SandboxEnvelope(kind: .cancel)
         XCTAssertThrowsError(
             try adapter.submit(cancelEnvelope)
         ) { error in
@@ -2020,7 +2020,7 @@ final class TargetGraphTests: XCTestCase {
             )
         }
 
-        let submitEnvelope = try L4ExecutionClientSandboxVenueAdapter.deterministicEnvelope(kind: .submit)
+        let submitEnvelope = try gh497SandboxEnvelope(kind: .submit)
         let submitResponse = try adapter.submit(submitEnvelope)
         XCTAssertThrowsError(
             try L4ExecutionClientSandboxCommandEvidence(
@@ -2067,7 +2067,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(parser.validationAnchors.contains("GH-460-RAW-PAYLOAD-DASHBOARD-BLOCK"))
         XCTAssertTrue(parser.validationAnchors.contains("GH-460-PRODUCTION-PARSER-DISABLED"))
 
-        let fixtures = try L4ExecutionClientSandboxReportParser.deterministicFixtures()
+        let fixtures = try gh497SandboxReportFixtures()
         XCTAssertEqual(fixtures.map(\.reportKind), [.fill, .partialFill, .reject, .cancelAcknowledgement])
         XCTAssertEqual(fixtures.map(\.replaySequence), [1, 2, 3, 4])
         XCTAssertTrue(fixtures.allSatisfy { $0.sourceKind == .sandboxFixture })
@@ -2202,7 +2202,7 @@ final class TargetGraphTests: XCTestCase {
         }
 
         let parser = try L4ExecutionClientSandboxReportParser.deterministicFixture()
-        let firstEvent = try parser.parse(L4ExecutionClientSandboxReportParser.deterministicFixtures()[0])
+        let firstEvent = try parser.parse(gh497SandboxReportFixtures()[0])
         XCTAssertThrowsError(
             try L4ExecutionClientSandboxReportReplayEvidence(parsedEvents: [firstEvent])
         ) { error in
@@ -2216,7 +2216,7 @@ final class TargetGraphTests: XCTestCase {
             )
         }
 
-        let allEvents = try L4ExecutionClientSandboxReportParser.deterministicFixtures().map(parser.parse)
+        let allEvents = try gh497SandboxReportFixtures().map(parser.parse)
         XCTAssertThrowsError(
             try L4ExecutionClientSandboxReportReplayEvidence(
                 parsedEvents: allEvents,
@@ -4328,6 +4328,38 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(isAllowedUnsafeConstructOccurrence(runtimeForceTry))
     }
 
+    func testGH497FutureGateBuilderHelpersAreNotPublicSurface() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let scopedFiles = [
+            "Sources/ExecutionClient/FutureGate/L4ExecutionClientSandboxVenueAdapter.swift",
+            "Sources/ExecutionClient/FutureGate/L4ExecutionClientSandboxReportParser.swift"
+        ]
+        let forbiddenPublicHelpers = [
+            "public static func deterministicEnvelope(",
+            "public static func deterministicFixtures()"
+        ]
+
+        let violations = try scopedFiles.flatMap { relativePath -> [String] in
+            let source = try String(
+                contentsOf: repositoryRoot.appendingPathComponent(relativePath),
+                encoding: .utf8
+            )
+            return forbiddenPublicHelpers.compactMap { helper in
+                source.contains(helper) ? "\(relativePath): \(helper)" : nil
+            }
+        }
+
+        XCTAssertTrue(
+            violations.isEmpty,
+            """
+            GH-497 FutureGate builder/helper functions must stay internal unless Dashboard or tests \
+            need them as read-model contract surface.
+            Violations:
+            \(violations.joined(separator: "\n"))
+            """
+        )
+    }
+
     func testGH434DeterministicValueObjectConstantsUseExplicitConstructors() throws {
         let identifier = Identifier.constant(" gh-434-identifier ", field: "gh434Identifier")
         XCTAssertEqual(identifier.rawValue, "gh-434-identifier")
@@ -4542,6 +4574,84 @@ final class TargetGraphTests: XCTestCase {
 
         var description: String {
             "\(relativePath):\(lineNumber): \(construct): \(line.trimmingCharacters(in: .whitespaces))"
+        }
+    }
+
+    private func gh497SandboxEnvelope(
+        kind: L4ExecutionClientSandboxCommandKind
+    ) throws -> L4ExecutionClientSandboxRequestEnvelope {
+        try L4ExecutionClientSandboxRequestEnvelope(
+            envelopeID: Identifier.constant("gh-459-sandbox-\(kind.rawValue)-request-envelope"),
+            commandKind: kind,
+            clientOrderID: Identifier.constant("gh-459-sandbox-client-order-\(kind.rawValue)"),
+            symbol: "BTCUSDT",
+            quantity: "0.0100",
+            limitPrice: "42120.70",
+            reason: "GH-459 deterministic sandbox \(kind.rawValue) evidence"
+        )
+    }
+
+    private func gh497SandboxReportFixtures() throws -> [L4ExecutionClientSandboxReportFixture] {
+        try [
+            gh497SandboxReportFixture(kind: .fill, commandKind: .submit, sequence: 1),
+            gh497SandboxReportFixture(kind: .partialFill, commandKind: .replace, sequence: 2),
+            gh497SandboxReportFixture(kind: .reject, commandKind: .submit, sequence: 3),
+            gh497SandboxReportFixture(kind: .cancelAcknowledgement, commandKind: .cancel, sequence: 4)
+        ]
+    }
+
+    private func gh497SandboxReportFixture(
+        kind: L4ExecutionClientSandboxReportKind,
+        commandKind: L4ExecutionClientSandboxCommandKind,
+        sequence: Int
+    ) throws -> L4ExecutionClientSandboxReportFixture {
+        try L4ExecutionClientSandboxReportFixture(
+            reportID: Identifier.constant("gh-460-sandbox-\(gh497EventIDComponent(for: kind))-report"),
+            reportKind: kind,
+            relatedCommandKind: commandKind,
+            clientOrderID: Identifier.constant("gh-459-sandbox-client-order-\(commandKind.rawValue)"),
+            symbol: "BTCUSDT",
+            filledQuantity: gh497FilledQuantity(for: kind),
+            remainingQuantity: gh497RemainingQuantity(for: kind),
+            reportStatus: L4ExecutionClientSandboxReportFixture.expectedStatus(for: kind),
+            replaySequence: sequence,
+            sandboxTraceID: Identifier.constant("gh-459-sandbox-\(commandKind.rawValue)-trace"),
+            rawPayloadDigest: "sha256:gh-460-sandbox-\(gh497EventIDComponent(for: kind))-fixture"
+        )
+    }
+
+    private func gh497EventIDComponent(for kind: L4ExecutionClientSandboxReportKind) -> String {
+        switch kind {
+        case .fill:
+            "fill"
+        case .partialFill:
+            "partial-fill"
+        case .reject:
+            "reject"
+        case .cancelAcknowledgement:
+            "cancel-acknowledgement"
+        }
+    }
+
+    private func gh497FilledQuantity(for kind: L4ExecutionClientSandboxReportKind) -> String {
+        switch kind {
+        case .fill:
+            "0.0100"
+        case .partialFill:
+            "0.0040"
+        case .reject, .cancelAcknowledgement:
+            "0.0000"
+        }
+    }
+
+    private func gh497RemainingQuantity(for kind: L4ExecutionClientSandboxReportKind) -> String {
+        switch kind {
+        case .fill:
+            "0.0000"
+        case .partialFill:
+            "0.0060"
+        case .reject, .cancelAcknowledgement:
+            "0.0100"
         }
     }
 
