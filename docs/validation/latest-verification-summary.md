@@ -2551,3 +2551,36 @@ GitHub Issue：[#422](https://github.com/atxinbao/MTPRO/issues/422)
 - `git diff --check`：pass，无输出。
 - `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
 - `bash checks/run.sh`：pass，通过 automation readiness、Dashboard build、Dashboard smoke 和完整 XCTest；Dashboard smoke 保持 `readModelOnly=true` / `dashboardReadModelOnly=true`，343 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
+## 2026-06-08 — GH-535 Dashboard controlled command surface with production disabled by default
+
+执行者：Codex
+
+GitHub Issue：[#535](https://github.com/atxinbao/MTPRO/issues/535)
+
+范围：
+
+- 新增 `Sources/Dashboard/Report/ReleaseV010ControlledCommandSurface.swift`。
+- 新增 `AppTests/testGH535ReleaseV010DashboardControlledCommandSurfaceDefaultsNoTrade`。
+- 将 release v0.1.0 controlled command surface 接入 Report / Dashboard shell smoke。
+- Surface 展示 submit / cancel / replace command entry、默认 no-trade、dry-run gate、Binance testnet gate 和 production disabled explanation。
+- 更新 release contract、trading validation matrix、validation plan、domain context 和 automation readiness guard。
+
+边界：
+
+- 不使用 Linear。
+- 不启动 Symphony / `symphony-issue`。
+- 不运行 Graphify / code-index。
+- 不修改 Figma。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint 或 production broker endpoint。
+- 不调用 ExecutionClient，不连接 broker，不绕过 RiskEngine / ExecutionEngine / OMS / kill switch。
+- 不提交、取消或替换真实订单。
+- 不启用 production trading、non-Binance venue 或 non-EMA active strategy。
+
+验证：
+
+- `swift test --filter AppTests/testGH535ReleaseV010DashboardControlledCommandSurfaceDefaultsNoTrade`：pass，1 test / 0 failures。
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，local Swift toolchain accepted as Apple Swift 6.3；Dashboard smoke 包含 `readModelOnly=true`、`dashboardReadModelOnly=true`、`releaseLiveMonitoringSurface=7` 和 `releaseCommandSurface=3`；418 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。

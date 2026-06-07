@@ -547,6 +547,109 @@ final class AppTests: XCTestCase {
         )
     }
 
+    func testGH535ReleaseV010DashboardControlledCommandSurfaceDefaultsNoTrade() throws {
+        // 测试场景：GH-535 可以在 Dashboard 展示受控 command entry，但默认必须是 no-trade。
+        // dry-run / Binance testnet 只是 gate label；production 继续禁用，不能生成真实交易命令。
+        let commandReadModel = ReleaseV010ControlledCommandSurfaceReadModel()
+        XCTAssertTrue(commandReadModel.commandSurfaceBoundaryHeld)
+        XCTAssertEqual(
+            commandReadModel.validationAnchors,
+            ReleaseV010ControlledCommandSurfaceReadModel.requiredValidationAnchors
+        )
+        XCTAssertTrue(
+            commandReadModel.validationAnchors.contains("GH-535-DASHBOARD-CONTROLLED-COMMAND-SURFACE")
+        )
+        XCTAssertTrue(
+            commandReadModel.validationAnchors.contains("GH-535-PRODUCTION-DISABLED-BY-DEFAULT")
+        )
+
+        let surface = ReleaseV010ControlledCommandSurfaceViewModel(readModel: commandReadModel)
+        XCTAssertEqual(surface.issueID, "GH-535")
+        XCTAssertEqual(surface.matrixID, "TVM-RELEASE-V010-DASHBOARD-CONTROLLED-COMMAND-SURFACE")
+        XCTAssertEqual(surface.actionLabels, ["cancel", "replace", "submit"])
+        XCTAssertEqual(surface.controlCount, 3)
+        XCTAssertEqual(surface.defaultModeLabels, ["no-trade"])
+        XCTAssertTrue(surface.visibleModeLabels.contains("dry-run"))
+        XCTAssertTrue(surface.visibleModeLabels.contains("testnet"))
+        XCTAssertTrue(surface.visibleModeLabels.contains("production disabled"))
+        XCTAssertTrue(surface.commandEntryDefaultNoTrade)
+        XCTAssertTrue(surface.dryRunGateVisible)
+        XCTAssertTrue(surface.testnetGateVisible)
+        XCTAssertTrue(surface.productionGateVisible)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionCommandEnabled)
+        XCTAssertTrue(surface.commandSurfaceVisible)
+        XCTAssertFalse(surface.commandSurfaceEnabled)
+        XCTAssertTrue(surface.operatorConfirmationRequired)
+        XCTAssertTrue(surface.riskEngineGateRequired)
+        XCTAssertTrue(surface.executionEngineGateRequired)
+        XCTAssertTrue(surface.omsGateRequired)
+        XCTAssertTrue(surface.killSwitchGateRequired)
+        XCTAssertTrue(surface.commandSurfaceBoundaryHeld)
+        XCTAssertTrue(surface.providesCommandSurface)
+        XCTAssertFalse(surface.providesTradingButton)
+        XCTAssertFalse(surface.providesLiveCommand)
+        XCTAssertFalse(surface.exposesOrderForm)
+        XCTAssertFalse(surface.exposesSecretEditor)
+        XCTAssertFalse(surface.readsSecret)
+        XCTAssertFalse(surface.opensProductionEndpoint)
+        XCTAssertFalse(surface.connectsBroker)
+        XCTAssertFalse(surface.callsExecutionClient)
+        XCTAssertFalse(surface.bypassesRiskEngine)
+        XCTAssertFalse(surface.bypassesExecutionEngine)
+        XCTAssertFalse(surface.bypassesOMS)
+        XCTAssertFalse(surface.bypassesKillSwitch)
+        XCTAssertFalse(surface.submitsRealOrder)
+        XCTAssertFalse(surface.cancelsRealOrder)
+        XCTAssertFalse(surface.replacesRealOrder)
+        XCTAssertFalse(surface.authorizesTradingExecution)
+        XCTAssertTrue(
+            surface.productionDisabledExplanations.allSatisfy {
+                $0.contains("Production trading is disabled by default")
+            }
+        )
+
+        let report = ReportReadModel(releaseV010ControlledCommandSurface: commandReadModel)
+        let dashboard = DashboardViewModel(
+            readModel: DashboardReadModel(
+                market: MarketReadModel(),
+                strategy: StrategyReadModel(),
+                backtest: BacktestReadModel(),
+                report: report,
+                paper: PaperReadModel(),
+                risk: RiskReadModel(),
+                portfolio: PortfolioReadModel(),
+                events: EventTimelineReadModel()
+            )
+        )
+        XCTAssertEqual(dashboard.report.releaseV010ControlledCommandActionCount, 3)
+        XCTAssertTrue(dashboard.report.releaseV010ControlledCommandEntryDefaultNoTrade)
+        XCTAssertTrue(dashboard.report.releaseV010ControlledCommandDryRunGateVisible)
+        XCTAssertTrue(dashboard.report.releaseV010ControlledCommandTestnetGateVisible)
+        XCTAssertTrue(dashboard.report.releaseV010ControlledCommandProductionDisabled)
+        XCTAssertFalse(dashboard.report.releaseV010ControlledCommandSurfaceEnabled)
+        XCTAssertTrue(dashboard.report.releaseV010ControlledCommandBoundaryHeld)
+        XCTAssertFalse(dashboard.report.releaseV010ControlledCommandAuthorizesTradingExecution)
+        XCTAssertFalse(dashboard.report.authorizesTradingExecution)
+        XCTAssertTrue(dashboard.viewModelSources.allSatisfy(\.isReadModelOnly))
+
+        let shell = DashboardShellSnapshot(viewModel: dashboard)
+        XCTAssertTrue(shell.isReadModelOnly)
+        XCTAssertTrue(shell.smokeSummary.contains("releaseCommandSurface=3"))
+        let reportSection = try XCTUnwrap(shell.sections.first { $0.section == .report })
+        XCTAssertTrue(reportSection.metrics.contains(DashboardShellMetric(label: "Release commands", value: "3")))
+        XCTAssertTrue(
+            reportSection.details.contains {
+                $0.contains("Release command default no-trade: confirmed")
+            }
+        )
+        XCTAssertTrue(
+            reportSection.details.contains {
+                $0.contains("Release command production disabled: confirmed")
+            }
+        )
+    }
+
     func testAccountPositionBalanceReadModelOnlySurfaceAggregatesMTP138Evidence() throws {
         // 测试场景：MTP-138 只把 MTP-137 deterministic fixture 映射成 App 层 ReadModel / ViewModel，
         // 供 Workbench、Report 和 Event Timeline 展示；任何 account connect、broker connect 或交易入口都必须缺席。

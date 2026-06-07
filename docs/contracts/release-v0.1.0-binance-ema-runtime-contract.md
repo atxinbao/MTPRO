@@ -134,6 +134,7 @@ Required anchors：
 - `GH-532-BINANCE-EXECUTION-REPORT-BROKER-FILL-PARSER`
 - `GH-533-EXECUTION-ACCOUNT-PORTFOLIO-RECONCILIATION`
 - `GH-534-DASHBOARD-LIVE-MONITORING-SURFACE`
+- `GH-535-DASHBOARD-CONTROLLED-COMMAND-SURFACE`
 - `TVM-RELEASE-V010-BINANCE-EMA-RUNTIME`
 - `TVM-RELEASE-V010-REAL-TARGET-SMOKE-COVERAGE`
 - `TVM-RELEASE-V010-BINANCE-PUBLIC-MARKET-DATA-PATH`
@@ -147,6 +148,7 @@ Required anchors：
 - `TVM-RELEASE-V010-EXECUTION-REPORT-BROKER-FILL-PARSER`
 - `TVM-RELEASE-V010-PORTFOLIO-RECONCILIATION-UPDATE-PATH`
 - `TVM-RELEASE-V010-DASHBOARD-LIVE-MONITORING-SURFACE`
+- `TVM-RELEASE-V010-DASHBOARD-CONTROLLED-COMMAND-SURFACE`
 
 Required validation：
 
@@ -379,6 +381,36 @@ GH-534 不授权：
 - production account endpoint、production private payload、production broker connection 或 production trading。
 - production submit / cancel / replace。
 - kill switch / no-trade / rollback controls；该能力留给 GH-536。
+
+## GH-535-DASHBOARD-CONTROLLED-COMMAND-SURFACE
+
+`GH-535-DASHBOARD-CONTROLLED-COMMAND-SURFACE`
+
+Dashboard controlled command surface 指 release v0.1.0 中 Dashboard 报告区对 submit / cancel / replace command entry 的受控展示模型。它只展示默认 no-trade、dry-run gate、Binance testnet gate 和 production disabled explanation，不向 ExecutionClient、broker、OMS 或真实订单 runtime 发送命令：
+
+- command entry 必须默认 no-trade，并且 `commandSurfaceEnabled == false`。
+- dry-run / testnet gate 可见，但只作为受控路径 label，不代表 production trading。
+- production gate 必须可见且禁用，用户必须能看到 production 被禁止的解释。
+- 每个 action 必须绑定 #529 RiskEngine gate、#530 ExecutionEngine / OMS、#531 Binance testnet SCR 和 #534 Dashboard monitoring evidence。
+- Surface 必须保持 `productionTradingEnabledByDefault == false`、`productionCommandEnabled == false`、`authorizesTradingExecution == false`。
+
+`GH-535-DEFAULT-NO-TRADE-COMMAND-ENTRY`
+`GH-535-DRYRUN-TESTNET-GATE`
+`GH-535-PRODUCTION-DISABLED-BY-DEFAULT`
+`GH-535-NO-RISK-EXECUTION-KILLSWITCH-BYPASS`
+`TVM-RELEASE-V010-DASHBOARD-CONTROLLED-COMMAND-SURFACE`
+
+## GH-535-NON-AUTHORIZATION
+
+`GH-535-NON-AUTHORIZATION`
+
+GH-535 不授权：
+
+- production trading、production submit / cancel / replace 或 production broker connection。
+- production secret read、secret editor、signature value exposure 或 production endpoint。
+- 绕过 RiskEngine、ExecutionEngine、OMS、kill switch、operator confirmation 或 no-trade state。
+- Live PRO Console runtime、real trading button、live command、order form 或 broker gateway。
+- non-Binance venue、non-EMA active strategy 或 release v0.1.0 之后的阶段。
 
 ## GH-521-NON-AUTHORIZATION
 
