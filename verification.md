@@ -15917,3 +15917,34 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 408 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-08 - GH-526 Binance private stream account snapshot runtime
+
+- Issue: GH-526 `Implement Binance private stream and account snapshot runtime`
+- Queue:
+  - GitHub fallback queue used because this release stage does not use Linear.
+  - WIP=1 preflight passed before implementation: #526 was OPEN with `mtpro / backlog / non-executable`; dependency #525 was CLOSED with `done`; no other open issue carried `todo`, `in-progress` or `in-review`; no open PR was present.
+  - #526 was promoted to `todo`, then to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `Sources/DataClient/Binance/PrivateStream/BinancePrivateStreamAccountSnapshotRuntime.swift`.
+  - Added `TargetGraphTests/testGH526BinancePrivateStreamAccountSnapshotRuntimeMapsEventsWithoutCommandSurface`.
+  - Backfilled `GH-526-BINANCE-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-RUNTIME`, `TVM-RELEASE-V010-BINANCE-PRIVATE-STREAM-ACCOUNT-SNAPSHOT`, validation plan, domain language, latest summary and automation readiness guard.
+  - Covered Binance Spot testnet / local fixture-first listenKey lifecycle request, redacted listenKey reference, mock private stream frame ingest, `outboundAccountPosition` / `balanceUpdate` account / balance / position read-model mapping, stale / blocked / missing / disconnected freshness evidence and forbidden `executionReport` rejection.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No production secret read, print or storage.
+  - No production endpoint or production stream connection.
+  - No raw listenKey exposure.
+  - No raw private payload or broker payload exposure.
+  - No broker gateway, OMS or execution command.
+  - No production trading.
+  - No real order submission / cancellation / replacement.
+  - No non-Binance venue.
+  - No non-EMA active strategy.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH526BinancePrivateStreamAccountSnapshotRuntimeMapsEventsWithoutCommandSurface`: pass; 1 test / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 409 XCTest / 0 failures; final output `MTPRO checks passed.`

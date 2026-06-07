@@ -4830,6 +4830,200 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertEqual(requests.first?.path, BinanceSignedAccountReadTransportRequest.accountReadOnlyPath)
     }
 
+    func testGH526BinancePrivateStreamAccountSnapshotRuntimeMapsEventsWithoutCommandSurface() async throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let dataClientTarget = try packageTargetBlock(named: "DataClient", packageSource: packageSource)
+        XCTAssertTrue(
+            dataClientTarget.contains(
+                "\"Binance/PrivateStream/BinancePrivateStreamAccountSnapshotRuntime.swift\""
+            )
+        )
+
+        XCTAssertThrowsError(
+            try BinancePrivateStreamRuntimeConfiguration(
+                restBaseURL: try XCTUnwrap(URL(string: "https://api.binance.com"))
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? BinancePrivateStreamRuntimeError,
+                .productionEndpointForbidden("api.binance.com")
+            )
+        }
+
+        let material = try BinanceSignedAccountCredentialMaterial(
+            referenceID: "gh-526-fixture-credential",
+            keyHeaderValue: "fixture-key",
+            signingSecretValue: "fixture-secret"
+        )
+        let configuration = try BinancePrivateStreamRuntimeConfiguration(staleAfterSeconds: 90)
+        let listenKeyTransport = TargetGraphMockBinancePrivateStreamListenKeyTransport { request in
+            XCTAssertEqual(request.environment, .testnet)
+            XCTAssertEqual(request.action, .create)
+            XCTAssertEqual(request.method, "POST")
+            XCTAssertEqual(request.path, "/api/v3/userDataStream")
+            XCTAssertEqual(
+                request.headers[BinanceSignedAccountReadTransportRequest.binanceKeyHeaderName],
+                "fixture-key"
+            )
+            XCTAssertEqual(request.credentialReference, "gh-526-fixture-credential")
+            XCTAssertFalse(request.url.absoluteString.contains("/api/v3/order"))
+            return Data(#"{ "listenKey": "fixture-listen-key-gh-526" }"#.utf8)
+        }
+        let listenKeyClient = BinancePrivateStreamListenKeyClient(
+            configuration: configuration,
+            credentialProvider: BinanceStaticSignedAccountCredentialProvider(material: material),
+            transport: listenKeyTransport
+        )
+        let lease = try await listenKeyClient.openListenKey(createdAt: Date(timeIntervalSince1970: 1_704_067_200))
+        XCTAssertEqual(lease.credentialReference, "gh-526-fixture-credential")
+        XCTAssertTrue(lease.listenKeyReference.hasPrefix("listen-key:"))
+        XCTAssertFalse(lease.listenKeyReference.contains("fixture-listen-key-gh-526"))
+        XCTAssertFalse(String(describing: lease).contains("fixture-listen-key-gh-526"))
+
+        let keepAliveRequest = try listenKeyClient.lifecycleRequest(
+            action: .keepAlive,
+            credential: material,
+            lease: lease
+        )
+        XCTAssertEqual(keepAliveRequest.method, "PUT")
+        XCTAssertTrue(keepAliveRequest.url.absoluteString.contains("listenKey=fixture-listen-key-gh-526"))
+
+        let closeRequest = try listenKeyClient.lifecycleRequest(
+            action: .close,
+            credential: material,
+            lease: lease
+        )
+        XCTAssertEqual(closeRequest.method, "DELETE")
+
+        let runtime = BinancePrivateStreamAccountSnapshotRuntime(configuration: configuration)
+        let subscription = try runtime.subscription(for: lease)
+        XCTAssertTrue(subscription.boundaryHeld)
+        XCTAssertTrue(subscription.redactedStreamURL.absoluteString.contains(lease.listenKeyReference))
+        XCTAssertFalse(subscription.redactedStreamURL.absoluteString.contains("fixture-listen-key-gh-526"))
+        XCTAssertFalse(subscription.exposesListenKeyValue)
+        XCTAssertFalse(subscription.opensProductionStream)
+
+        let signedSnapshot = try BinanceSignedAccountReadSnapshot(
+            snapshotID: try FoundationTargetID("gh-526-signed-account-snapshot"),
+            accountType: "SPOT",
+            canTrade: true,
+            canWithdraw: false,
+            canDeposit: true,
+            updateTime: Date(timeIntervalSince1970: 1_704_067_205),
+            balances: [
+                BinanceSignedAccountBalanceReadModel(
+                    asset: "BTC",
+                    free: try XCTUnwrap(Decimal(string: "0.10000000")),
+                    locked: 0
+                ),
+                BinanceSignedAccountBalanceReadModel(
+                    asset: "USDT",
+                    free: try XCTUnwrap(Decimal(string: "1000.50000000")),
+                    locked: 10
+                )
+            ],
+            credentialReference: material.referenceID
+        )
+        let eventPayloads = [
+            Data(
+                #"""
+                {
+                  "e": "outboundAccountPosition",
+                  "E": 1704067210000,
+                  "u": 1704067211000,
+                  "B": [
+                    { "a": "BTC", "f": "0.12000000", "l": "0.01000000" },
+                    { "a": "USDT", "f": "900.00000000", "l": "5.00000000" }
+                  ]
+                }
+                """#.utf8
+            ),
+            Data(
+                #"""
+                {
+                  "e": "balanceUpdate",
+                  "E": 1704067220000,
+                  "a": "USDT",
+                  "d": "12.50000000",
+                  "T": 1704067221000
+                }
+                """#.utf8
+            )
+        ]
+
+        let readModel = try runtime.readModel(
+            signedSnapshot: signedSnapshot,
+            lease: lease,
+            eventPayloads: eventPayloads
+        )
+        XCTAssertTrue(readModel.boundaryHeld)
+        XCTAssertEqual(readModel.signedSnapshotID.rawValue, "gh-526-signed-account-snapshot")
+        XCTAssertEqual(readModel.listenKeyReference, lease.listenKeyReference)
+        XCTAssertEqual(readModel.credentialReference, "gh-526-fixture-credential")
+        XCTAssertEqual(readModel.staleAfterSeconds, 90)
+        XCTAssertEqual(
+            Set(readModel.records.map(\.freshnessStatus)),
+            Set(BinancePrivateStreamFreshnessStatus.allCases)
+        )
+        XCTAssertTrue(readModel.records.contains { $0.eventKind == .accountSnapshot })
+        XCTAssertTrue(readModel.records.contains { $0.eventKind == .balanceUpdate && $0.asset == "USDT" })
+        XCTAssertTrue(readModel.records.contains { $0.eventKind == .positionUpdate && $0.asset == "BTC" })
+        XCTAssertTrue(readModel.records.contains { $0.eventKind == .staleEvidence })
+        XCTAssertTrue(readModel.records.contains { $0.eventKind == .blockedEvidence })
+        XCTAssertTrue(readModel.records.contains { $0.eventKind == .missingEvidence })
+        XCTAssertTrue(readModel.records.contains { $0.eventKind == .disconnectedEvidence })
+        XCTAssertFalse(readModel.rawPrivatePayloadExposed)
+        XCTAssertFalse(readModel.listenKeyValueExposed)
+        XCTAssertFalse(readModel.commandRuntimeEnabled)
+        XCTAssertFalse(readModel.productionTradingEnabledByDefault)
+        XCTAssertTrue(readModel.records.allSatisfy { $0.rawPrivatePayloadExposed == false })
+        XCTAssertTrue(readModel.records.allSatisfy { $0.listenKeyValueExposed == false })
+        XCTAssertTrue(readModel.records.allSatisfy { $0.commandSurfaceEnabled == false })
+        XCTAssertFalse(String(describing: readModel).contains("fixture-listen-key-gh-526"))
+        XCTAssertFalse(String(describing: readModel).contains("fixture-secret"))
+
+        let eventSource = TargetGraphMockBinancePrivateStreamEventSource(payloads: eventPayloads)
+        let readModelFromSource = try await runtime.readModel(
+            signedSnapshot: signedSnapshot,
+            lease: lease,
+            eventSource: eventSource
+        )
+        XCTAssertEqual(readModelFromSource.records, readModel.records)
+        let eventSourceLeaseReferences = await eventSource.leaseReferences()
+        XCTAssertEqual(eventSourceLeaseReferences, [lease.listenKeyReference])
+
+        XCTAssertThrowsError(
+            try BinancePrivateStreamPayloadDecoder.decodeEventRecords(
+                from: [Data(#"{ "e": "executionReport", "E": 1704067230000 }"#.utf8)],
+                sourceIdentity: "gh-526-forbidden-execution-report"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? BinancePrivateStreamRuntimeError,
+                .forbiddenEventKind("executionReport")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try BinancePrivateStreamReadModelRecord(
+                eventKind: .balanceUpdate,
+                freshnessStatus: .fresh,
+                canonicalReadModelValue: "unsafe",
+                sourceIdentity: "unsafe",
+                listenKeyValueExposed: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? BinancePrivateStreamRuntimeError,
+                .forbiddenCapability("listenKeyValueExposed")
+            )
+        }
+    }
+
     func testGH503ProductionCredentialSecretPolicyGateDefinesNoDefaultSecretReadContract() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
@@ -6066,12 +6260,16 @@ final class TargetGraphTests: XCTestCase {
         let source = try String(contentsOf: file, encoding: .utf8)
         let relativePath = relativePath(for: file, repositoryRoot: repositoryRoot)
         let gh525SignedAccountReadRuntime = "Sources/DataClient/Binance/SignedAccount/BinanceSignedAccountReadRuntime.swift"
+        let gh526PrivateStreamRuntime = "Sources/DataClient/Binance/PrivateStream/BinancePrivateStreamAccountSnapshotRuntime.swift"
         let gh525AllowedPatterns = Set([
             "path: \"/api/v3/account\"",
             "= \"/api/v3/account\"",
             "URLQueryItem(name: \"signature\"",
             "forHTTPHeaderField: \"X-MBX-APIKEY\"",
             "HMAC<"
+        ])
+        let gh526AllowedPatterns = Set([
+            "= \"/api/v3/userDataStream\""
         ])
         let forbiddenImplementationPatterns = [
             "path: \"/api/v3/account\"",
@@ -6104,6 +6302,9 @@ final class TargetGraphTests: XCTestCase {
                 return nil
             }
             if relativePath == gh525SignedAccountReadRuntime, gh525AllowedPatterns.contains(forbidden) {
+                return nil
+            }
+            if relativePath == gh526PrivateStreamRuntime, gh526AllowedPatterns.contains(forbidden) {
                 return nil
             }
             return "\(relativePath):\(index + 1): \(forbidden): \(line.trimmingCharacters(in: .whitespaces))"
@@ -6217,5 +6418,45 @@ private actor TargetGraphMockBinanceSignedAccountReadTransport: BinanceSignedAcc
 
     func requests() -> [BinanceSignedAccountReadTransportRequest] {
         loadedRequests
+    }
+}
+
+/// TargetGraphTests 专用 listenKey lifecycle mock transport 只返回本地 listenKey fixture。
+private actor TargetGraphMockBinancePrivateStreamListenKeyTransport: BinancePrivateStreamListenKeyTransport {
+    typealias Handler = @Sendable (BinancePrivateStreamListenKeyLifecycleRequest) throws -> Data
+
+    private let handler: Handler
+    private var loadedRequests: [BinancePrivateStreamListenKeyLifecycleRequest] = []
+
+    init(handler: @escaping Handler) {
+        self.handler = handler
+    }
+
+    func perform(_ request: BinancePrivateStreamListenKeyLifecycleRequest) async throws -> Data {
+        loadedRequests.append(request)
+        return try handler(request)
+    }
+
+    func requests() -> [BinancePrivateStreamListenKeyLifecycleRequest] {
+        loadedRequests
+    }
+}
+
+/// TargetGraphTests 专用 private stream event source 只返回本地 WebSocket frame fixture。
+private actor TargetGraphMockBinancePrivateStreamEventSource: BinancePrivateStreamEventSource {
+    private let payloads: [Data]
+    private var loadedLeaseReferences: [String] = []
+
+    init(payloads: [Data]) {
+        self.payloads = payloads
+    }
+
+    func receiveEvents(for lease: BinancePrivateStreamListenKeyLease) async throws -> [Data] {
+        loadedLeaseReferences.append(lease.listenKeyReference)
+        return payloads
+    }
+
+    func leaseReferences() -> [String] {
+        loadedLeaseReferences
     }
 }
