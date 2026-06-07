@@ -7758,3 +7758,46 @@ GH-525 必须建立的主要 anchors：
 - 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## GH-526 Binance Private Stream Account Snapshot Runtime Validation
+
+GH-526 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH526BinancePrivateStreamAccountSnapshotRuntimeMapsEventsWithoutCommandSurface`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-526 的验收要求：
+
+- `Sources/DataClient/Binance/PrivateStream/BinancePrivateStreamAccountSnapshotRuntime.swift` 必须存在，并包含 `GH-526-BINANCE-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-RUNTIME` 和 `TVM-RELEASE-V010-BINANCE-PRIVATE-STREAM-ACCOUNT-SNAPSHOT` anchors。
+- `Package.swift` 必须让 `DataClient` 显式拥有 `Binance/PrivateStream/BinancePrivateStreamAccountSnapshotRuntime.swift` source。
+- Runtime configuration 必须默认使用 Binance Spot testnet / local fixture-first path，并拒绝 production REST host `api.binance.com` 和 production stream host `stream.binance.com`。
+- ListenKey lifecycle request 只能访问 `/api/v3/userDataStream`，只能携带 API key header，不得生成 `/api/v3/order`、broker path、order signature 或 production authorization。
+- ListenKey value 必须只存在于 transport lease 内部；read model、subscription evidence、Dashboard、MessageBus、logs 和 verification evidence 只能暴露 redacted listenKey reference。
+- Private stream event ingest 必须使用 mock/source-driven frames 覆盖 `outboundAccountPosition` 和 `balanceUpdate`，并映射为 account / balance / position read-model records。
+- Runtime 必须输出 stale / blocked / missing / disconnected freshness evidence，且不得把这些状态解释为 reconnect command、order retry、broker fallback 或 command path。
+- `executionReport`、order update、broker fill 或未知 private event frame 必须被拒绝。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH526BinancePrivateStreamAccountSnapshotRuntimeMapsEventsWithoutCommandSurface`，验证 request lifecycle、redacted listenKey reference、private event mapping、freshness evidence、forbidden event rejection 和 no submit / cancel / replace boundary。
+- GH-526 PR evidence 必须确认不读取 production secret，不连接 production endpoint，不暴露 raw listenKey，不暴露 raw private payload，不连接 broker，不提交、取消或替换订单，不启用 production trading，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+GH-526 必须建立的主要 anchors：
+
+- `GH-526-BINANCE-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-RUNTIME`
+- `TVM-RELEASE-V010-BINANCE-PRIVATE-STREAM-ACCOUNT-SNAPSHOT`
+- `testGH526BinancePrivateStreamAccountSnapshotRuntimeMapsEventsWithoutCommandSurface`
+
+## GH-526 禁止
+
+- 不读取、打印、保存或推导 production secret。
+- 不接受 production endpoint、production stream endpoint 或 production broker endpoint。
+- 不把 listenKey value 写入 read model、Dashboard、MessageBus、日志或 verification evidence。
+- 不暴露 raw private payload、raw broker payload、execution report payload 或 order update payload。
+- 不连接 broker gateway、OMS 或 ExecutionClient order path。
+- 不提交、取消或替换真实订单。
+- 不启用 non-Binance venue。
+- 不启用 non-EMA active strategy。
+- 不绕过 RiskEngine、ExecutionEngine、OMS、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

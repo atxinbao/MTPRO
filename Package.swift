@@ -105,6 +105,7 @@ let package = Package(
                 "Binance/PublicMarketData/BinanceMarketDataReplayFreshness.swift",
                 "Binance/PublicMarketData/BinanceMarketDataReplayOperationsMetadata.swift",
                 "Binance/PublicMarketData/BinanceMarketDataReplayParity.swift",
+                "Binance/PrivateStream/BinancePrivateStreamAccountSnapshotRuntime.swift",
                 "Binance/SignedAccount/BinanceSignedAccountReadRuntime.swift",
                 "DataClientReadOnlyMarketDataSource.swift",
                 "TargetGraph/DataClientTargetBoundary.swift"

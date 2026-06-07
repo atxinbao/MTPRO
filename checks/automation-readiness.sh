@@ -6354,12 +6354,16 @@ forbidden_patterns = [
 ]
 violations = []
 gh525_signed_account_read_runtime = Path("Sources/DataClient/Binance/SignedAccount/BinanceSignedAccountReadRuntime.swift")
+gh526_private_stream_runtime = Path("Sources/DataClient/Binance/PrivateStream/BinancePrivateStreamAccountSnapshotRuntime.swift")
 gh525_allowed_patterns = {
     'path: "/api/v3/account"',
     '= "/api/v3/account"',
     'URLQueryItem(name: "signature"',
     'forHTTPHeaderField: "X-MBX-APIKEY"',
     'HMAC<',
+}
+gh526_allowed_patterns = {
+    '= "/api/v3/userDataStream"',
 }
 for source in sorted((root / "Sources/DataClient").rglob("*.swift")):
     relative_source = source.relative_to(root)
@@ -6368,6 +6372,8 @@ for source in sorted((root / "Sources/DataClient").rglob("*.swift")):
         for forbidden in forbidden_patterns:
             if forbidden in implementation_line:
                 if relative_source == gh525_signed_account_read_runtime and forbidden in gh525_allowed_patterns:
+                    continue
+                if relative_source == gh526_private_stream_runtime and forbidden in gh526_allowed_patterns:
                     continue
                 violations.append(f"{relative_source}:{index}: {forbidden}: {line.strip()}")
                 break
