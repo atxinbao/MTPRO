@@ -138,6 +138,7 @@ Required anchors：
 - `GH-536-KILL-SWITCH-NO-TRADE-ROLLBACK-CONTROLS`
 - `GH-537-BINANCE-DRYRUN-TESTNET-VALIDATION-SUITE`
 - `GH-538-NO-DEFAULT-PRODUCTION-TRADING-AUTOMATION-GUARD`
+- `GH-539-RELEASE-DOCS-OPERATOR-RUNBOOK`
 - `TVM-RELEASE-V010-BINANCE-EMA-RUNTIME`
 - `TVM-RELEASE-V010-REAL-TARGET-SMOKE-COVERAGE`
 - `TVM-RELEASE-V010-BINANCE-PUBLIC-MARKET-DATA-PATH`
@@ -155,6 +156,7 @@ Required anchors：
 - `TVM-RELEASE-V010-KILL-SWITCH-NO-TRADE-ROLLBACK`
 - `TVM-RELEASE-V010-BINANCE-DRYRUN-TESTNET-VALIDATION`
 - `TVM-RELEASE-V010-NO-DEFAULT-PRODUCTION-TRADING-GUARD`
+- `TVM-RELEASE-V010-OPERATOR-RUNBOOK`
 
 Required validation：
 
@@ -507,6 +509,45 @@ Release v0.1.0 no-default-production-trading guard matrix 必须证明 guard 脚
 `GH-538-NON-AUTHORIZATION`
 
 GH-538 不授权：
+
+- production trading、production submit / cancel / replace 或 production broker connection。
+- production secret read、secret editor、signature value exposure、account endpoint、listenKey 或 production endpoint。
+- 真实 Binance testnet network call、production broker gateway、OMS mutation、real order lifecycle、automatic rollback command 或 broker emergency API。
+- 绕过 RiskEngine、ExecutionEngine、OMS、kill switch、operator confirmation、dry-run / testnet gate 或 no-trade state。
+- Live PRO Console runtime、real trading button、live command、order form 或 production cutover。
+- non-Binance venue、non-EMA active strategy、下一 Project / Issue 或 release v0.1.0 之后的阶段。
+
+## GH-539-RELEASE-DOCS-OPERATOR-RUNBOOK
+
+`GH-539-RELEASE-DOCS-OPERATOR-RUNBOOK`
+
+Release v0.1.0 docs / operator runbook 指 `docs/release/mtpro-release-v0.1.0-binance-ema-operator-runbook.md`。该文档必须把 dry-run / testnet acceptance procedure、credential handling instructions、production disabled boundary、rollback / no-trade procedure 和 operator checklist 固化为 release v0.1.0 的操作说明。
+
+`GH-539-DRYRUN-TESTNET-ACCEPTANCE-PROCEDURE`
+
+Dry-run / testnet acceptance procedure 表示 operator 必须先运行本地 deterministic validation、#538 automation guard、#537 dry-run / testnet validation suite 和完整 `checks/run.sh`，并记录 Dashboard smoke / XCTest / no-default-production-trading evidence。缺少 testnet credential 或 environment 时必须停止并报告，不能回退到 production secret 或 production endpoint。
+
+`GH-539-CREDENTIAL-HANDLING-INSTRUCTIONS`
+
+Credential handling instructions 表示 release docs 只能允许 testnet credential reference、local fixture identity、mock transport identity 和 redacted listenKey reference。Runbook 必须禁止读取、打印、保存或推导 production secret，禁止把 testnet credential reference 升级为 production credential，也禁止在 PR、logs、docs、verification 或 issue comment 中写入 raw secret material。
+
+`GH-539-PRODUCTION-DISABLED-BOUNDARY`
+
+Production disabled boundary 表示 GH-537 passed、GH-538 passed、Binance testnet evidence passed、Dashboard command entry 可见或 operator checklist completed 都不构成 production trading authorization。Production trading 仍必须等待后续显式 release gate、operator confirmation、risk approval、kill switch pass、capital / exposure limits 和 production cutover authorization。
+
+`GH-539-ROLLBACK-NO-TRADE-PROCEDURE`
+
+Rollback / no-trade procedure 表示 validation 或 readiness failure 时 operator 必须保持 no-trade state 和 kill switch active，只在当前 issue scope 内修复 deterministic evidence / docs / tests，并且不得触发 production order、automatic recovery、rollback command、broker emergency API 或真实 submit / cancel / replace。
+
+`TVM-RELEASE-V010-OPERATOR-RUNBOOK`
+
+Release v0.1.0 operator runbook matrix 必须证明 release docs 覆盖 dry-run / testnet acceptance、credential handling、production disabled boundary、rollback / no-trade procedure、operator checklist 和 forbidden capability audit。该 matrix 只作为 GH-540 validation matrix closeout 和 GH-541 final audit input，不授权 production cutover、不创建下一 Project / Issue、不推进 release v0.1.0 之后的阶段。
+
+## GH-539-NON-AUTHORIZATION
+
+`GH-539-NON-AUTHORIZATION`
+
+GH-539 不授权：
 
 - production trading、production submit / cancel / replace 或 production broker connection。
 - production secret read、secret editor、signature value exposure、account endpoint、listenKey 或 production endpoint。

@@ -8264,6 +8264,46 @@ GH-538 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-539 Release Docs and Operator Runbook Validation
+
+GH-539 必须运行：
+
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/release-v0.1.0-dryrun-testnet.sh`
+- `bash checks/run.sh`
+
+GH-539 的验收要求：
+
+- `docs/release/mtpro-release-v0.1.0-binance-ema-operator-runbook.md` 必须存在，并包含 `GH-539-RELEASE-DOCS-OPERATOR-RUNBOOK`、`GH-539-DRYRUN-TESTNET-ACCEPTANCE-PROCEDURE`、`GH-539-CREDENTIAL-HANDLING-INSTRUCTIONS`、`GH-539-PRODUCTION-DISABLED-BOUNDARY`、`GH-539-ROLLBACK-NO-TRADE-PROCEDURE` 和 `TVM-RELEASE-V010-OPERATOR-RUNBOOK` anchors。
+- Runbook 必须说明 dry-run / testnet acceptance procedure：先本地 deterministic evidence，再 #538 guard，再 #537 dry-run / testnet suite，再 full checks。
+- Runbook 必须说明 credential handling：只允许 testnet credential reference、local fixture、mock transport 和 redacted listenKey reference；缺少 testnet credential / environment 时停止并报告，不回退到 production secret 或 production endpoint。
+- Runbook 必须明确 production trading 默认禁止；GH-537 / GH-538 通过、Dashboard command entry 可见或 operator checklist completed 都不构成 production authorization。
+- Runbook 必须定义 rollback / no-trade procedure：保持 no-trade state 和 kill switch active，不执行 automatic recovery、rollback command、broker emergency API 或真实 submit / cancel / replace。
+- `checks/automation-readiness.d/l4-boundary.sh` 必须要求 runbook、release contract、trading matrix、validation plan、domain context 和 automation readiness 文档中的 #539 anchors。
+- PR evidence 必须确认不使用 Linear，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+GH-539 必须建立的主要 anchors：
+
+- `GH-539-RELEASE-DOCS-OPERATOR-RUNBOOK`
+- `GH-539-DRYRUN-TESTNET-ACCEPTANCE-PROCEDURE`
+- `GH-539-CREDENTIAL-HANDLING-INSTRUCTIONS`
+- `GH-539-PRODUCTION-DISABLED-BOUNDARY`
+- `GH-539-ROLLBACK-NO-TRADE-PROCEDURE`
+- `TVM-RELEASE-V010-OPERATOR-RUNBOOK`
+
+## GH-539 禁止
+
+- 不启用 production trading。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、account endpoint、listenKey 或 private WebSocket runtime。
+- 不执行真实 Binance testnet network call；runbook 只记录 dry-run / testnet acceptance procedure 和停止条件。
+- 不触发 production order、sandbox-to-production command promotion、rollback command、broker emergency API 或 automatic recovery。
+- 不绕过 RiskEngine、ExecutionEngine、OMS、kill switch、operator confirmation、dry-run / testnet gate 或 no-trade state。
+- 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-530 ExecutionEngine OMS Lifecycle Validation
 
 GH-530 必须运行：
