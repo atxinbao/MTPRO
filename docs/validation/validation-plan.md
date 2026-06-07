@@ -358,6 +358,27 @@ GH-463 必须建立的主要 anchors：
 - `GH-463-NO-DIRECT-TRADER-STRATEGY-EXECUTIONCLIENT`
 - `TVM-L4-EXECUTIONENGINE-EXECUTIONCLIENT-SANDBOX-PATH`
 
+## GH-464 L4 Live RiskEngine Pre-trade Gate Validation
+
+GH-464 的 required validation：
+
+- `docs/contracts/l4-live-riskengine-pre-trade-gate-contract.md` 必须存在，并包含 `GH-464-LIVE-RISKENGINE-PRE-TRADE-GATE`、`GH-464-ORDER-PROPOSAL-RISK-INPUT`、`GH-464-APB-MARGIN-READ-MODEL-GATE`、`GH-464-ALLOW-REJECT-BLOCKED-INCIDENT-EVIDENCE`、`GH-464-COMMAND-PATH-RISKENGINE-REQUIRED`、`GH-464-NON-AUTHORIZATION` 和 `TVM-L4-LIVE-RISKENGINE-PRE-TRADE-GATE`。
+- `Sources/RiskEngine/LiveGate/L4LiveRiskPreTradeGate.swift` 必须定义 `L4LiveRiskPreTradeReadModelInput`、`L4LiveRiskOrderProposalInput`、`L4LiveRiskPreTradeDecisionEvidence`、`L4LiveRiskPreTradeGateEvidence` 和 `L4LiveRiskPreTradeGateRuntime`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH464LiveRiskPreTradeGateProducesAllowRejectBlockedIncidentEvidence` 和 `testGH464LiveRiskPreTradeGateRejectsBypassAndForbiddenRuntime`。
+- Evidence 必须覆盖 GH-457 APB / margin read-model identity、GH-461 OMS identity、allow / reject / blocked / incident stop decision evidence 和 command path RiskEngine required。
+- RiskEngine target 必须继续不依赖 ExecutionClient；APB / margin read-model input 只能携带 canonical values，不能携带 raw account payload、broker state、Runtime object 或 Adapter request。
+- Boundary tests 必须拒绝 production risk enablement、risk gate bypass、missing APB / margin components、command execution、ExecutionClient call、Portfolio mutation、reconciliation 和 Live command surface bypass。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`，不依赖真实 secret、broker credential、signed/account endpoint、listenKey、private WebSocket、production endpoint 或人工验收。
+
+GH-464 必须建立的主要 anchors：
+
+- `GH-464-LIVE-RISKENGINE-PRE-TRADE-GATE`
+- `GH-464-ORDER-PROPOSAL-RISK-INPUT`
+- `GH-464-APB-MARGIN-READ-MODEL-GATE`
+- `GH-464-ALLOW-REJECT-BLOCKED-INCIDENT-EVIDENCE`
+- `GH-464-COMMAND-PATH-RISKENGINE-REQUIRED`
+- `TVM-L4-LIVE-RISKENGINE-PRE-TRADE-GATE`
+
 ## MTP-24 Trading Validation Matrix Validation
 
 MTP-24 的 required validation：
