@@ -8343,6 +8343,39 @@ GH-540 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-541 Final Stage Code Audit and Root Docs Refresh Validation
+
+GH-541 必须运行：
+
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-541 的验收要求：
+
+- `docs/audit/mtpro-release-v0.1.0-binance-ema-runtime-stage-code-audit.md` 必须存在，并覆盖 GH-521 至 GH-541 release queue、PR #542 至 PR #561 merge evidence、required check `checks` evidence、Binance-only / EMA-only release scope、dry-run / testnet validation、operator runbook、no-default-production-trading guard 和 forbidden production capability audit。
+- `GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md` 和 `verification.md` 只能同步已发生 release closure 事实，不写未来方向，不创建下一 Project / Issue，不推进下一 Todo。
+- `docs/automation/automation-readiness.md` 和 `checks/automation-readiness.d/l4-boundary.sh` 必须机械检查 final Stage Code Audit Report、Project Closure Count `35 / 35`、latest completed Project 和 verification log。
+- PR evidence 必须确认不使用 Linear，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+GH-541 必须建立的主要 anchors：
+
+- `MTPRO Release v0.1.0 Binance EMA Runtime Stage Code Audit Report`
+- `MTPRO Release v0.1.0 Binance + EMA runtime validation complete with production trading disabled by default`
+- `TVM-RELEASE-V010-FINAL-STAGE-CODE-AUDIT-ROOT-DOCS`
+
+## GH-541 禁止
+
+- 不启用 production trading。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、account endpoint、listenKey 或 private WebSocket runtime。
+- 不执行真实 Binance testnet network call；closure 只收口已发生的 deterministic / dry-run / testnet evidence。
+- 不触发 production order、sandbox-to-production command promotion、rollback command、broker emergency API 或 automatic recovery。
+- 不绕过 RiskEngine、ExecutionEngine、OMS、kill switch、operator confirmation、dry-run / testnet gate 或 no-trade state。
+- 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-530 ExecutionEngine OMS Lifecycle Validation
 
 GH-530 必须运行：
