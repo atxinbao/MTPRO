@@ -129,6 +129,7 @@ Required anchors：
 - `GH-527-TRADER-RUNTIME-LIFECYCLE`
 - `GH-528-EMA-STRATEGY-PROPOSAL-RUNTIME`
 - `GH-529-RISKENGINE-LIVE-PRETRADE-GATE`
+- `GH-530-EXECUTIONENGINE-OMS-STATE-MACHINE`
 - `TVM-RELEASE-V010-BINANCE-EMA-RUNTIME`
 - `TVM-RELEASE-V010-REAL-TARGET-SMOKE-COVERAGE`
 - `TVM-RELEASE-V010-BINANCE-PUBLIC-MARKET-DATA-PATH`
@@ -137,6 +138,7 @@ Required anchors：
 - `TVM-RELEASE-V010-TRADER-RUNTIME-LIFECYCLE`
 - `TVM-RELEASE-V010-EMA-PROPOSAL-RUNTIME`
 - `TVM-RELEASE-V010-RISKENGINE-PRETRADE-GATE`
+- `TVM-RELEASE-V010-EXECUTIONENGINE-OMS-LIFECYCLE`
 
 Required validation：
 
@@ -226,6 +228,34 @@ GH-529 不授权：
 - 非 EMA active strategy。
 - RiskEngine bypass、ExecutionEngine bypass、OMS bypass、kill switch bypass 或 no-trade bypass。
 - ExecutionClient / broker gateway / order command / submit / cancel / replace。
+- production secret、production endpoint 或 production trading。
+- Dashboard command surface、trading button、live command 或 order form。
+
+## GH-530-EXECUTIONENGINE-OMS-STATE-MACHINE
+
+`GH-530-EXECUTIONENGINE-OMS-STATE-MACHINE`
+
+ExecutionEngine OMS state machine 指 release v0.1.0 中 ExecutionEngine 对 #529 RiskEngine decision evidence 的本地订单生命周期证据。它只生成 deterministic event log / audit evidence，覆盖 `new`、`accepted`、`rejected`、`canceled`、`replaced`、`filled` 状态：
+
+- 只有 #529 `approved` risk decision 能创建本地 order intent，并进入 accepted / canceled / replaced / filled path。
+- #529 `rejected` 或 `blocked` risk decision 只能进入 rejected path，不能 fallback 到 ExecutionClient、broker retry 或 OMS bypass。
+- OMS event log 必须 append-only、deterministic、audit-only，不能写 production order store。
+- state machine evidence 必须保持 `productionTradingEnabledByDefault == false`、`productionOMSRuntimeEnabledByDefault == false`、`callsExecutionClient == false`、`touchesBrokerGateway == false`、`submitsRealOrder == false`、`cancelsRealOrder == false`、`replacesRealOrder == false`、`performsReconciliation == false`、`exposesLiveCommandSurface == false`、`nonBinanceVenueEnabled == false` 和 `nonEMAStrategyEnabled == false`。
+
+`TVM-RELEASE-V010-EXECUTIONENGINE-OMS-LIFECYCLE`
+
+## GH-530-NON-AUTHORIZATION
+
+`GH-530-NON-AUTHORIZATION`
+
+GH-530 不授权：
+
+- 非 Binance venue。
+- 非 EMA active strategy。
+- ExecutionClient testnet submit / cancel / replace runtime；该能力留给 GH-531。
+- production OMS runtime、production order store 或 broker gateway。
+- execution report / broker fill parser；该能力留给 GH-532。
+- reconciliation / Portfolio update path；该能力留给 GH-533。
 - production secret、production endpoint 或 production trading。
 - Dashboard command surface、trading button、live command 或 order form。
 
