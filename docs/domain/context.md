@@ -3726,6 +3726,16 @@ Release v0.1.0 real target smoke coverage 指 GH-523 通过真实 public API imp
 
 Release v0.1.0 real target smoke matrix 必须证明 deterministic / read-model / paper-only smoke evidence 成立，并且 production secret、production endpoint、signed endpoint、listenKey、private stream runtime、broker gateway、production OMS、real submit / cancel / replace、non-Binance venue 和 non-EMA active strategy 全部未被授权。
 
+## GH-524 Binance Public Market Data Runtime Path Terms
+
+`GH-524-BINANCE-PUBLIC-MARKET-DATA-RUNTIME-PATH`
+
+Binance public market data runtime path 指 release v0.1.0 中唯一 active venue Binance 的公开行情链路：`DataClient.BinancePublicMarketDataClient` 读取或解码 public kline、recent trades、best bid / ask、depth snapshot 和 depth delta payload，`DataEngine.BinancePublicMarketDataRuntimePath` 写入 neutral `MessageBusAppendOnlyJournal` replay evidence，`Cache.MarketDataCache` 生成 deterministic read model snapshot。该 path 不包含 signed endpoint、account endpoint、listenKey、private stream、broker gateway、OMS 或 order command。
+
+`TVM-RELEASE-V010-BINANCE-PUBLIC-MARKET-DATA-PATH`
+
+Release v0.1.0 Binance public market data matrix 必须证明 DataClient -> DataEngine -> Cache 的 public path 成立，并且 required validation 使用 mock transport、可离线重复。真实 Binance public network smoke 只能作为人工可选证据，不能替代 required validation，也不能授权 production trading。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

@@ -7681,3 +7681,40 @@ GH-523 必须建立的主要 anchors：
 - 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## GH-524 Binance Public Market Data Runtime Path Validation
+
+GH-524 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH524BinancePublicMarketDataRuntimePathProjectsIntoCacheReadModel`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-524 的验收要求：
+
+- `Sources/DataEngine/BinancePublicMarketDataRuntimePath.swift` 必须存在，并包含 `GH-524-BINANCE-PUBLIC-MARKET-DATA-RUNTIME-PATH` 和 `TVM-RELEASE-V010-BINANCE-PUBLIC-MARKET-DATA-PATH` anchors。
+- `Package.swift` 必须把 `BinancePublicMarketDataRuntimePath.swift` 纳入 `DataEngine` target，并从 `Core` / `Runtime` compatibility envelopes 显式 exclude。
+- `Sources/Cache/MarketData/MarketDataCache.swift` 必须提供 public market events batch projection helper，让 Cache target 能从 `[MarketEvent]` 生成 deterministic `MarketDataCacheSnapshot`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH524BinancePublicMarketDataRuntimePathProjectsIntoCacheReadModel`，用 mock `BinancePublicMarketDataTransport` 验证 Binance public kline、recent trade、best bid / ask、depth snapshot 和 depth delta 经 DataClient -> DataEngine neutral journal -> Cache read model。
+- GH-524 PR evidence 必须确认不读取 private account，不调用 signed endpoint，不创建 listenKey，不连接 private WebSocket / broker，不提交、取消或替换订单，不启用 production trading，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+GH-524 必须建立的主要 anchors：
+
+- `GH-524-BINANCE-PUBLIC-MARKET-DATA-RUNTIME-PATH`
+- `TVM-RELEASE-V010-BINANCE-PUBLIC-MARKET-DATA-PATH`
+- `testGH524BinancePublicMarketDataRuntimePathProjectsIntoCacheReadModel`
+
+## GH-524 禁止
+
+- 不读取私有账户、account endpoint、account snapshot 或 broker account state。
+- 不新增 signed endpoint client、listenKey lifecycle 或 private WebSocket runtime。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint 或 production broker endpoint。
+- 不提交、取消或替换真实订单。
+- 不启用 non-Binance venue。
+- 不启用 non-EMA active strategy。
+- 不绕过 RiskEngine、ExecutionEngine、OMS、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

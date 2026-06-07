@@ -126,6 +126,7 @@ let package = Package(
                 "ScenarioReplay/ScenarioReplayDeterministicMatching.swift"
             ],
             sources: [
+                "BinancePublicMarketDataRuntimePath.swift",
                 "DataEngineReadOnlyReplayPlan.swift",
                 "DataQuality/ScenarioDataQualityReportInput.swift",
                 "ScenarioReplay/DataCatalogScenarioReplayBoundary.swift",
@@ -240,6 +241,7 @@ let package = Package(
                 "Cache/MarketData",
                 "Dashboard",
                 "DataClient",
+                "DataEngine/BinancePublicMarketDataRuntimePath.swift",
                 "DataEngine/DataEngineReadOnlyReplayPlan.swift",
                 "DataEngine/DataQuality/ScenarioDataQualityReportInput.swift",
                 "DataEngine/Ingest",
@@ -352,6 +354,7 @@ let package = Package(
                 "Core",
                 "Dashboard",
                 "DataClient",
+                "DataEngine/BinancePublicMarketDataRuntimePath.swift",
                 "DataEngine/DataEngineReadOnlyReplayPlan.swift",
                 "DataEngine/ScenarioReplay",
                 "DataEngine/DataQuality",
