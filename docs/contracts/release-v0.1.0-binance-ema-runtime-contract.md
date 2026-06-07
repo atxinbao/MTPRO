@@ -128,6 +128,7 @@ Required anchors：
 - `GH-526-BINANCE-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-RUNTIME`
 - `GH-527-TRADER-RUNTIME-LIFECYCLE`
 - `GH-528-EMA-STRATEGY-PROPOSAL-RUNTIME`
+- `GH-529-RISKENGINE-LIVE-PRETRADE-GATE`
 - `TVM-RELEASE-V010-BINANCE-EMA-RUNTIME`
 - `TVM-RELEASE-V010-REAL-TARGET-SMOKE-COVERAGE`
 - `TVM-RELEASE-V010-BINANCE-PUBLIC-MARKET-DATA-PATH`
@@ -135,6 +136,7 @@ Required anchors：
 - `TVM-RELEASE-V010-BINANCE-PRIVATE-STREAM-ACCOUNT-SNAPSHOT`
 - `TVM-RELEASE-V010-TRADER-RUNTIME-LIFECYCLE`
 - `TVM-RELEASE-V010-EMA-PROPOSAL-RUNTIME`
+- `TVM-RELEASE-V010-RISKENGINE-PRETRADE-GATE`
 
 Required validation：
 
@@ -199,6 +201,33 @@ GH-528 不授权：
 - production secret、production endpoint 或 production trading。
 - Dashboard command surface、trading button、live command 或 order form。
 - RiskEngine bypass、ExecutionEngine bypass、kill switch bypass 或 no-trade bypass。
+
+## GH-529-RISKENGINE-LIVE-PRETRADE-GATE
+
+`GH-529-RISKENGINE-LIVE-PRETRADE-GATE`
+
+RiskEngine live pre-trade gate 指 release v0.1.0 中 RiskEngine 对 #528 EMA paper proposal 的交易前裁决面。该 gate 只能消费 neutral `PaperActionProposal` / `RiskEvaluationQuery`，输出 approve / reject / blocked evidence：
+
+- 所有 proposal 必须先进入 RiskEngine gate，不能被 Trader、Strategy、ExecutionEngine 或 OMS 绕过。
+- `approved` 只表示本地 RiskEngine pre-trade gate 通过，不表示 ExecutionEngine、OMS、broker 或 production trading 已获授权。
+- `rejected` 必须记录 quantity / notional / available balance 等可审计拒绝原因。
+- `blocked` 必须覆盖 no-trade guard，并保持 command path closed。
+- decision evidence 必须保持 `authorizesExecutionCommand == false`、`productionTradingEnabledByDefault == false`、`callsExecutionClient == false`、`touchesBrokerGateway == false`、`bypassesOMS == false`、`submitsRealOrder == false`、`exposesLiveCommandSurface == false`、`nonBinanceVenueEnabled == false` 和 `nonEMAStrategyEnabled == false`。
+
+`TVM-RELEASE-V010-RISKENGINE-PRETRADE-GATE`
+
+## GH-529-NON-AUTHORIZATION
+
+`GH-529-NON-AUTHORIZATION`
+
+GH-529 不授权：
+
+- 非 Binance venue。
+- 非 EMA active strategy。
+- RiskEngine bypass、ExecutionEngine bypass、OMS bypass、kill switch bypass 或 no-trade bypass。
+- ExecutionClient / broker gateway / order command / submit / cancel / replace。
+- production secret、production endpoint 或 production trading。
+- Dashboard command surface、trading button、live command 或 order form。
 
 ## GH-521-NON-AUTHORIZATION
 

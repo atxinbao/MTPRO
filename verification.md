@@ -16007,3 +16007,33 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 411 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-08 - GH-529 RiskEngine pre-trade gate
+
+- Issue: GH-529 `Implement RiskEngine live pre-trade gate`
+- Queue:
+  - GitHub fallback queue used because this release stage does not use Linear.
+  - WIP=1 preflight passed before implementation: #529 was OPEN with `mtpro / backlog / non-executable`; dependencies #527 and #528 were CLOSED with `done`; no other open issue carried `todo`, `in-progress` or `in-review`; no open PR was present.
+  - #529 was promoted to `todo`, then to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `Sources/RiskEngine/LiveGate/ReleaseV010RiskPreTradeGate.swift`.
+  - Added `TargetGraphTests/testGH529RiskEnginePreTradeGateConsumesEMAProposalBeforeExecutionPath`.
+  - Backfilled `GH-529-RISKENGINE-LIVE-PRETRADE-GATE`, `GH-529-EMA-PROPOSAL-RISK-DECISION`, `GH-529-NO-TRADE-GUARD`, `TVM-RELEASE-V010-RISKENGINE-PRETRADE-GATE`, validation plan, domain language, latest summary and automation readiness guard.
+  - Covered #528 neutral `PaperActionProposal` / `RiskEvaluationQuery` input, approved / rejected / blocked decision evidence, quantity / notional / available balance rejection, no-trade guard blocked path and no-command flags.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No production secret read, print or storage.
+  - No production endpoint or production broker endpoint connection.
+  - No ExecutionClient, broker gateway or OMS call.
+  - No production trading.
+  - No real order submission / cancellation / replacement.
+  - No non-Binance venue.
+  - No non-EMA active strategy.
+  - No Dashboard command surface, trading button, live command or order form.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH529RiskEnginePreTradeGateConsumesEMAProposalBeforeExecutionPath`: pass; 1 test / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 412 XCTest / 0 failures; final output `MTPRO checks passed.`
