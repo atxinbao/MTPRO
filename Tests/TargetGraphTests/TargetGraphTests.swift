@@ -4360,6 +4360,111 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH503ProductionCredentialSecretPolicyGateDefinesNoDefaultSecretReadContract() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+
+        let gate = try ProductionCutoverCredentialSecretPolicyGate.deterministicFixture()
+        XCTAssertTrue(gate.contractHeld)
+        XCTAssertTrue(gate.readinessEvidenceCoverageHeld)
+        XCTAssertEqual(gate.issueID.rawValue, "GH-503")
+        XCTAssertEqual(gate.canonicalQueueRange, "GH-503..GH-510")
+        XCTAssertEqual(Set(gate.scopes), Set(ProductionCutoverCredentialPolicyScope.allCases))
+        XCTAssertEqual(Set(gate.gates), Set(ProductionCutoverSecretPolicyGate.allCases))
+        XCTAssertEqual(Set(gate.forbiddenCapabilities), Set(ProductionCutoverCredentialForbiddenCapability.allCases))
+        XCTAssertTrue(gate.validationAnchors.contains("GH-503-NO-DEFAULT-SECRET-READ"))
+        XCTAssertTrue(gate.validationAnchors.contains("GH-503-PRODUCTION-BLOCKED-EVIDENCE"))
+
+        XCTAssertTrue(gate.noDefaultSecretReadRequired)
+        XCTAssertTrue(gate.localFixtureDryRunProductionIsolationRequired)
+        XCTAssertTrue(gate.secretStorageFutureGateOnly)
+        XCTAssertTrue(gate.secretInjectionRotationFutureGateOnly)
+        XCTAssertTrue(gate.productionBlockedByDefault)
+
+        for forbidden in [
+            gate.readsSecretValue,
+            gate.probesEnvironmentSecret,
+            gate.storesAPIKey,
+            gate.storesAPISecret,
+            gate.constructsAPIKeyHeader,
+            gate.generatesRequestSignature,
+            gate.callsSignedEndpoint,
+            gate.callsAccountEndpoint,
+            gate.createsListenKey,
+            gate.connectsBroker,
+            gate.sandboxCommandPromotesProductionCredential,
+            gate.productionTradingEnabledByDefault,
+            gate.implementsExecutionClientAdapter,
+            gate.implementsOMS,
+            gate.submitsRealOrder,
+            gate.cancelsRealOrder,
+            gate.replacesRealOrder
+        ] {
+            XCTAssertFalse(forbidden)
+        }
+
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/ProductionCutoverCredentialSecretPolicyGate.swift"
+                ).path
+            )
+        )
+    }
+
+    func testGH503ProductionCredentialSecretPolicyGateRejectsSecretReadAndProductionPromotion() throws {
+        XCTAssertThrowsError(
+            try ProductionCutoverCredentialSecretPolicyGate(
+                readsSecretValue: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("readsSecretValue"))
+        }
+
+        XCTAssertThrowsError(
+            try ProductionCutoverCredentialSecretPolicyGate(
+                sandboxCommandPromotesProductionCredential: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("sandboxCommandPromotesProductionCredential")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try ProductionCutoverCredentialSecretPolicyGate(
+                requiredValidationCommands: ["bash checks/run.sh"]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "requiredValidationCommands",
+                    expected: "git diff --check,bash checks/automation-readiness.sh,bash checks/run.sh",
+                    actual: "bash checks/run.sh"
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try ProductionCutoverCredentialReadinessEvidence(
+                evidenceID: Identifier.constant("gh-503-unsafe-secret-read"),
+                scope: .dryRun,
+                expectedEvidence: "unsafe secret read",
+                blockedReason: "must be rejected",
+                readsSecretValue: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("readsSecretValue"))
+        }
+    }
+
     func testGH434DeterministicValueObjectConstantsUseExplicitConstructors() throws {
         let identifier = Identifier.constant(" gh-434-identifier ", field: "gh434Identifier")
         XCTAssertEqual(identifier.rawValue, "gh-434-identifier")
