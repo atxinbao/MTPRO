@@ -16165,3 +16165,33 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 416 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-08 - GH-534 Dashboard live monitoring surfaces
+
+- Issue: GH-534 `Add Dashboard live monitoring surfaces`
+- Queue:
+  - GitHub fallback queue used because this release stage does not use Linear.
+  - WIP=1 preflight passed before implementation: #534 was OPEN with `mtpro / backlog / non-executable`; dependencies #526, #528 and #533 were CLOSED with `done`; no other open issue carried `todo`, `in-progress` or `in-review`; no open PR was present.
+  - #534 was promoted to `todo`, then to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `Sources/Dashboard/Report/ReleaseV010LiveMonitoringSurface.swift`.
+  - Added `AppTests/testGH534ReleaseV010DashboardLiveMonitoringSurfaceIsReadModelOnly`.
+  - Backfilled `GH-534-DASHBOARD-LIVE-MONITORING-SURFACE`, `GH-534-CONNECTION-HEALTH-READ-MODEL`, `GH-534-ACCOUNT-PRIVATE-STREAM-STATUS`, `GH-534-TRADER-EMA-RISK-EXECUTION-PORTFOLIO-SUMMARY`, `GH-534-READ-MODEL-ONLY-NO-COMMAND-SURFACE`, `TVM-RELEASE-V010-DASHBOARD-LIVE-MONITORING-SURFACE`, validation plan, domain language, latest summary and automation readiness guard.
+  - Covered Dashboard Report / shell access to #526 account/private stream, #528 EMA proposal, #529 RiskEngine gate, #530 ExecutionEngine / OMS, #532 execution report / broker fill and #533 Portfolio reconciliation evidence identity.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No Dashboard direct runtime object consumption.
+  - No production secret read, print or storage.
+  - No production endpoint or production broker endpoint connection.
+  - No raw private payload, listenKey value or account endpoint response exposure.
+  - No secret editor, command surface, trading button, live command or order form.
+  - No production trading.
+  - No non-Binance venue.
+  - No non-EMA active strategy.
+- Validation:
+  - `swift test --filter AppTests/testGH534ReleaseV010DashboardLiveMonitoringSurfaceIsReadModelOnly`: pass; 1 test / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true`, `dashboardReadModelOnly=true` and `releaseLiveMonitoringSurface=7`; 417 XCTest / 0 failures; final output `MTPRO checks passed.`
