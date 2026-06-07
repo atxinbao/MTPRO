@@ -379,6 +379,27 @@ GH-464 必须建立的主要 anchors：
 - `GH-464-COMMAND-PATH-RISKENGINE-REQUIRED`
 - `TVM-L4-LIVE-RISKENGINE-PRE-TRADE-GATE`
 
+## GH-465 L4 Kill Switch Incident Shutdown Gate Validation
+
+GH-465 的 required validation：
+
+- `docs/contracts/l4-kill-switch-incident-shutdown-gate-contract.md` 必须存在，并包含 `GH-465-KILL-SWITCH-INCIDENT-SHUTDOWN-GATE`、`GH-465-INCIDENT-STOP-SOURCE-IDENTITY`、`GH-465-SUBMIT-CANCEL-REPLACE-SHUTDOWN-RULES`、`GH-465-DASHBOARD-AUDIT-SHUTDOWN-EVIDENCE`、`GH-465-NO-AUTOMATIC-RECOVERY`、`GH-465-NON-AUTHORIZATION` 和 `TVM-L4-KILL-SWITCH-INCIDENT-SHUTDOWN-GATE`。
+- `Sources/RiskEngine/LiveGate/L4KillSwitchIncidentShutdownGate.swift` 必须定义 `L4IncidentStopSourceEvidence`、`L4CommandShutdownGateDecisionEvidence`、`L4KillSwitchIncidentShutdownGateEvidence` 和 `L4KillSwitchIncidentShutdownGateRuntime`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH465KillSwitchIncidentShutdownGateBlocksAllCommandsAndDefinesRecoveryBoundary` 和 `testGH465KillSwitchIncidentShutdownGateRejectsAutoRecoveryAndCommandBypass`。
+- Evidence 必须绑定 GH-464 incident stop decision、source identity、submit / cancel / replace shutdown rules、Dashboard / audit explanation 和 no automatic recovery boundary。
+- Shutdown gate 必须继续不依赖 ExecutionClient；它不能触碰 broker gateway、production operations runtime、real emergency broker API、Live PRO Console command surface、order form 或 trading button。
+- Boundary tests 必须拒绝 auto recovery、non-incident risk decision source、command execution、missing submit / cancel / replace coverage、ExecutionClient call、broker touch、production trading 和 Live command surface bypass。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`，不依赖真实 secret、broker credential、signed/account endpoint、listenKey、private WebSocket、production endpoint 或人工验收。
+
+GH-465 必须建立的主要 anchors：
+
+- `GH-465-KILL-SWITCH-INCIDENT-SHUTDOWN-GATE`
+- `GH-465-INCIDENT-STOP-SOURCE-IDENTITY`
+- `GH-465-SUBMIT-CANCEL-REPLACE-SHUTDOWN-RULES`
+- `GH-465-DASHBOARD-AUDIT-SHUTDOWN-EVIDENCE`
+- `GH-465-NO-AUTOMATIC-RECOVERY`
+- `TVM-L4-KILL-SWITCH-INCIDENT-SHUTDOWN-GATE`
+
 ## MTP-24 Trading Validation Matrix Validation
 
 MTP-24 的 required validation：

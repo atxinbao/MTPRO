@@ -2925,6 +2925,190 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertEqual(rejected.rejectReasons, [.notionalLimitExceeded])
     }
 
+    func testGH465KillSwitchIncidentShutdownGateBlocksAllCommandsAndDefinesRecoveryBoundary() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let riskEngineTarget = try packageTargetBlock(named: "RiskEngine", packageSource: packageSource)
+
+        let runtime = try L4KillSwitchIncidentShutdownGateRuntime.deterministicFixture()
+        XCTAssertTrue(runtime.runtimeBoundaryHeld)
+        XCTAssertFalse(runtime.productionTradingEnabled)
+        XCTAssertFalse(runtime.productionOperationsRuntimeTouched)
+        XCTAssertFalse(runtime.readsSecret)
+        XCTAssertFalse(runtime.callsExecutionClient)
+        XCTAssertFalse(runtime.touchesBrokerGateway)
+        XCTAssertFalse(runtime.submitsRealOrder)
+        XCTAssertFalse(runtime.autoRecoveryEnabled)
+        XCTAssertFalse(runtime.bypassesRiskEngine)
+        XCTAssertFalse(runtime.bypassesOMS)
+        XCTAssertFalse(runtime.exposesLiveCommandSurface)
+
+        let evidence = try runtime.deterministicEvidence()
+        XCTAssertTrue(evidence.gateEvidenceHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-465")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-464"])
+        XCTAssertTrue(evidence.sourceEvidence.sourceBoundaryHeld)
+        XCTAssertEqual(evidence.sourceEvidence.sourceKind, .riskEngineIncidentStop)
+        XCTAssertEqual(evidence.sourceEvidence.upstreamRiskOutcome, .incidentStop)
+        XCTAssertTrue(evidence.sourceEvidence.identityRecorded)
+        XCTAssertTrue(evidence.sourceEvidence.operatorAcknowledged)
+        XCTAssertFalse(evidence.sourceEvidence.autoRecoveryAuthorized)
+        XCTAssertFalse(evidence.sourceEvidence.liveCommandSurfaceTouched)
+        XCTAssertFalse(evidence.sourceEvidence.productionOperationsRuntimeTouched)
+        XCTAssertFalse(evidence.sourceEvidence.brokerGatewayTouched)
+
+        XCTAssertEqual(evidence.decisions.map(\.commandKind), L4LiveRiskPreTradeCommandKind.allCases)
+        XCTAssertTrue(evidence.decisions.allSatisfy(\.decisionBoundaryHeld))
+        XCTAssertTrue(evidence.incidentStopBlocksCommandPath)
+        XCTAssertTrue(evidence.submitCancelReplaceBlocked)
+        XCTAssertTrue(evidence.sourceIdentityAuditable)
+        XCTAssertTrue(evidence.dashboardAuditEvidenceExplainable)
+        XCTAssertTrue(evidence.recoveryBoundaryNotAutomatic)
+        XCTAssertTrue(evidence.productionEnablementClosed)
+        XCTAssertFalse(evidence.callsExecutionClient)
+        XCTAssertFalse(evidence.touchesBrokerGateway)
+        XCTAssertFalse(evidence.exposesLiveCommandSurface)
+
+        for decision in evidence.decisions {
+            XCTAssertEqual(decision.outcome, .blockedByCommandShutdown)
+            XCTAssertEqual(decision.reasons, L4CommandShutdownGateDecisionEvidence.requiredReasons)
+            XCTAssertEqual(decision.recoveryBoundary, L4CommandShutdownGateDecisionEvidence.requiredRecoveryBoundary)
+            XCTAssertTrue(decision.incidentStopActive)
+            XCTAssertTrue(decision.commandShutdownActive)
+            XCTAssertTrue(decision.sourceIdentityAttached)
+            XCTAssertTrue(decision.dashboardAuditExplainable)
+            XCTAssertFalse(decision.executesCommand)
+            XCTAssertFalse(decision.callsExecutionClient)
+            XCTAssertFalse(decision.touchesBrokerGateway)
+            XCTAssertFalse(decision.submitsRealOrder)
+            XCTAssertFalse(decision.productionTradingEnabled)
+            XCTAssertFalse(decision.autoRecoveryEnabled)
+            XCTAssertFalse(decision.exposesLiveCommandSurface)
+        }
+
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-465-KILL-SWITCH-INCIDENT-SHUTDOWN-GATE"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-465-INCIDENT-STOP-SOURCE-IDENTITY"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-465-SUBMIT-CANCEL-REPLACE-SHUTDOWN-RULES"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-465-DASHBOARD-AUDIT-SHUTDOWN-EVIDENCE"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-465-NO-AUTOMATIC-RECOVERY"))
+        XCTAssertTrue(evidence.validationAnchors.contains("TVM-L4-KILL-SWITCH-INCIDENT-SHUTDOWN-GATE"))
+
+        XCTAssertTrue(riskEngineTarget.contains("\"LiveGate\""))
+        XCTAssertFalse(riskEngineTarget.contains("\"ExecutionClient\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/RiskEngine/LiveGate/L4KillSwitchIncidentShutdownGate.swift"
+                ).path
+            )
+        )
+    }
+
+    func testGH465KillSwitchIncidentShutdownGateRejectsAutoRecoveryAndCommandBypass() throws {
+        XCTAssertThrowsError(
+            try L4KillSwitchIncidentShutdownGateRuntime(
+                autoRecoveryEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("autoRecoveryEnabled"))
+        }
+
+        let riskRuntime = try L4LiveRiskPreTradeGateRuntime.deterministicFixture()
+        let riskEvidence = try riskRuntime.deterministicEvidence()
+        let decisionsByOutcome = Dictionary(uniqueKeysWithValues: riskEvidence.decisions.map { ($0.outcome, $0) })
+        let incidentDecision = try XCTUnwrap(decisionsByOutcome[.incidentStop])
+        let allowDecision = try XCTUnwrap(decisionsByOutcome[.allow])
+
+        XCTAssertThrowsError(
+            try L4IncidentStopSourceEvidence(
+                triggeredByRiskDecisionID: incidentDecision.decisionID,
+                upstreamRiskOutcome: incidentDecision.outcome,
+                reason: "unsafe auto recovery",
+                autoRecoveryAuthorized: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("autoRecoveryAuthorized"))
+        }
+
+        XCTAssertThrowsError(
+            try L4IncidentStopSourceEvidence(
+                triggeredByRiskDecisionID: allowDecision.decisionID,
+                upstreamRiskOutcome: allowDecision.outcome,
+                reason: "unsafe non-incident source"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "upstreamRiskOutcome",
+                    expected: L4LiveRiskPreTradeDecisionOutcome.incidentStop.rawValue,
+                    actual: L4LiveRiskPreTradeDecisionOutcome.allow.rawValue
+                )
+            )
+        }
+
+        let source = try L4IncidentStopSourceEvidence(
+            triggeredByRiskDecisionID: incidentDecision.decisionID,
+            upstreamRiskOutcome: incidentDecision.outcome,
+            reason: "GH-465 focused incident shutdown source"
+        )
+        XCTAssertThrowsError(
+            try L4CommandShutdownGateDecisionEvidence(
+                decisionID: Identifier.constant("unsafe-gh-465-executes-command"),
+                sourceEvidenceID: source.sourceEvidenceID,
+                triggeredByRiskDecisionID: incidentDecision.decisionID,
+                commandKind: .submit,
+                executesCommand: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("executesCommand"))
+        }
+
+        let runtime = try L4KillSwitchIncidentShutdownGateRuntime.deterministicFixture()
+        XCTAssertThrowsError(
+            try runtime.activate(sourceEvidence: source, riskDecision: allowDecision)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "riskDecision.outcome",
+                    expected: L4LiveRiskPreTradeDecisionOutcome.incidentStop.rawValue,
+                    actual: L4LiveRiskPreTradeDecisionOutcome.allow.rawValue
+                )
+            )
+        }
+
+        let evidence = try runtime.activate(sourceEvidence: source, riskDecision: incidentDecision)
+        XCTAssertThrowsError(
+            try L4KillSwitchIncidentShutdownGateEvidence(
+                sourceEvidence: evidence.sourceEvidence,
+                decisions: Array(evidence.decisions.dropLast())
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "decisions.commandKind",
+                    expected: L4LiveRiskPreTradeCommandKind.allCases.map(\.rawValue).joined(separator: ","),
+                    actual: Array(evidence.decisions.dropLast()).map { $0.commandKind.rawValue }.joined(separator: ",")
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4KillSwitchIncidentShutdownGateEvidence(
+                sourceEvidence: evidence.sourceEvidence,
+                decisions: evidence.decisions,
+                exposesLiveCommandSurface: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("exposesLiveCommandSurface"))
+        }
+    }
+
     func testGH421AllArchitectureTargetsExposeIndependentRealAPISmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-421-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)
