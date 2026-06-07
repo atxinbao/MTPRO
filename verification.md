@@ -15448,3 +15448,37 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 376 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-07 - GH-466 L4 OMS / broker / portfolio reconciliation evidence
+
+- Issue: GH-466 `L4: 15/21 Add reconciliation between OMS / broker report / portfolio projection`
+- Queue:
+  - GitHub fallback queue used because this L4 stage is not using Linear.
+  - WIP=1 preflight passed before implementation: #466 was OPEN with `mtpro / backlog / non-executable`; dependencies #460, #462 and #463 were CLOSED with `done`; no other open issue carried `todo`, `in-progress` or `in-review`; no open PR was present.
+  - #466 was promoted to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `docs/contracts/l4-oms-broker-portfolio-reconciliation-contract.md`.
+  - Added `Sources/ExecutionEngine/OMSFutureGate/L4OMSBrokerPortfolioReconciliationEvidence.swift`.
+  - Added `TargetGraphTests` coverage for GH-460 parser evidence, GH-462 local transition evidence, GH-463 sandbox path evidence, field matrix, matched / mismatched / stale / missing status coverage, partial fill / cancel / reject paths and projection no broker payload.
+  - Backfilled `TVM-L4-OMS-BROKER-PORTFOLIO-RECONCILIATION`, validation plan, domain language, latest summary and automation readiness anchors.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No real API key / secret read, storage, print or repository commit.
+  - No real broker account read.
+  - No production broker report consumption.
+  - No raw broker payload read.
+  - No real PnL calculation.
+  - No Portfolio runtime mutation.
+  - No reconciliation runtime enablement.
+  - No repair command.
+  - No ExecutionClient call.
+  - No broker gateway touch.
+  - No production trading.
+  - No Live PRO Console command surface, trading button, live command or order form.
+- Validation:
+  - `swift test --filter 'TargetGraphTests/testGH466'`: pass; 2 tests / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 378 XCTest / 0 failures; final output `MTPRO checks passed.`

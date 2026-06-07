@@ -400,6 +400,28 @@ GH-465 必须建立的主要 anchors：
 - `GH-465-NO-AUTOMATIC-RECOVERY`
 - `TVM-L4-KILL-SWITCH-INCIDENT-SHUTDOWN-GATE`
 
+## GH-466 L4 OMS Broker Portfolio Reconciliation Validation
+
+GH-466 的 required validation：
+
+- `docs/contracts/l4-oms-broker-portfolio-reconciliation-contract.md` 必须存在，并包含 `GH-466-OMS-BROKER-PORTFOLIO-RECONCILIATION`、`GH-466-RECONCILIATION-FIELD-MATRIX`、`GH-466-MATCHED-MISMATCHED-STALE-MISSING-EVIDENCE`、`GH-466-PARTIAL-CANCEL-REJECT-PATHS`、`GH-466-PORTFOLIO-PROJECTION-NO-BROKER-PAYLOAD`、`GH-466-NON-AUTHORIZATION` 和 `TVM-L4-OMS-BROKER-PORTFOLIO-RECONCILIATION`。
+- `Sources/ExecutionEngine/OMSFutureGate/L4OMSBrokerPortfolioReconciliationEvidence.swift` 必须定义 `L4OMSBrokerPortfolioReconciliationRecord`、`L4PortfolioProjectionReconciliationSnapshot`、`L4OMSBrokerPortfolioReconciliationEvidence` 和 `L4OMSBrokerPortfolioReconciliationRuntime`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH466OMSBrokerPortfolioReconciliationBuildsDeterministicEvidence` 和 `testGH466OMSBrokerPortfolioReconciliationRejectsProductionBrokerPayloadAndCoverageBypass`。
+- Evidence 必须绑定 GH-460 parser evidence、GH-462 OMS local transition evidence 和 GH-463 sandbox path evidence，并覆盖 matched / mismatched / stale / missing。
+- Reconciliation path 必须覆盖 partial fill、cancel 和 reject；fill 只能作为 additional missing evidence，不替代 required paths。
+- Portfolio projection snapshot 必须证明不读取 raw broker payload、不读取真实账户、不计算 real PnL、不写 Portfolio runtime、不调用 broker gateway、不输出 repair command。
+- Boundary tests 必须拒绝 production reconciliation enablement、production broker report consumption、raw broker payload read、matched evidence mismatch 和 incomplete status coverage bypass。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`，不依赖真实 secret、broker credential、signed/account endpoint、listenKey、private WebSocket、production endpoint 或人工验收。
+
+GH-466 必须建立的主要 anchors：
+
+- `GH-466-OMS-BROKER-PORTFOLIO-RECONCILIATION`
+- `GH-466-RECONCILIATION-FIELD-MATRIX`
+- `GH-466-MATCHED-MISMATCHED-STALE-MISSING-EVIDENCE`
+- `GH-466-PARTIAL-CANCEL-REJECT-PATHS`
+- `GH-466-PORTFOLIO-PROJECTION-NO-BROKER-PAYLOAD`
+- `TVM-L4-OMS-BROKER-PORTFOLIO-RECONCILIATION`
+
 ## MTP-24 Trading Validation Matrix Validation
 
 MTP-24 的 required validation：

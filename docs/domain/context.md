@@ -3498,6 +3498,32 @@ No automatic recovery 固定 shutdown 后恢复必须等待 manual review eviden
 
 L4 kill switch / incident shutdown gate matrix 必须证明 source identity、submit / cancel / replace shutdown、Dashboard / audit explanation、manual recovery boundary 和 forbidden runtime flags 全部成立，并保持 production trading、ExecutionClient call、broker gateway、real order lifecycle、reconciliation 和 Live command surface 全部关闭。
 
+## GH-466 L4 OMS Broker Portfolio Reconciliation Terms
+
+`GH-466-OMS-BROKER-PORTFOLIO-RECONCILIATION`
+
+L4 OMS / broker / portfolio reconciliation 指本地 deterministic reconciliation evidence：它比较 GH-462 OMS local transition、GH-460 normalized sandbox broker report 和本地 portfolio projection snapshot，输出 matched / mismatched / stale / missing evidence。该 evidence 不是 production reconciliation runtime。
+
+`GH-466-RECONCILIATION-FIELD-MATRIX`
+
+Reconciliation field matrix 只允许比较 client order id、OMS lifecycle state、broker report status、filled quantity、remaining quantity 和 projection sequence。字段来源只能是 normalized sandbox report、local OMS transition 和本地 projection snapshot，不能包含 raw broker payload、真实账户、broker position、secret 或 production broker statement。
+
+`GH-466-MATCHED-MISMATCHED-STALE-MISSING-EVIDENCE`
+
+Matched / mismatched / stale / missing evidence 固定四种对账结果。Matched 证明 OMS、broker report 和 projection 一致；mismatched 记录 projection state 或 quantity mismatch；stale 记录 projection sequence 落后；missing 记录 broker report 与 OMS transition 存在但 projection 缺失。这些 reason 只作为 audit input，不触发 repair。
+
+`GH-466-PARTIAL-CANCEL-REJECT-PATHS`
+
+Partial fill / cancel / reject paths 必须分别绑定 GH-460 partialFill / cancelAcknowledgement / reject report 和 GH-462 sandboxPartialFillReport / sandboxCancelAcknowledgement / sandboxRejectReport transition。Fill path 可以提供 additional missing evidence，但不能替代这三类必备路径。
+
+`GH-466-PORTFOLIO-PROJECTION-NO-BROKER-PAYLOAD`
+
+Portfolio projection no broker payload 固定 projection snapshot 只能由 normalized sandbox report 和 OMS transition 派生。Projection 不能读取 raw broker payload、不能读真实账户、不能计算 real PnL、不能写 Portfolio runtime、不能调用 broker gateway，也不能输出 repair command。
+
+`TVM-L4-OMS-BROKER-PORTFOLIO-RECONCILIATION`
+
+L4 OMS / broker / portfolio reconciliation matrix 必须证明 field matrix、matched / mismatched / stale / missing status、partial fill / cancel / reject paths、projection no broker payload 和 production broker report future-gated 全部成立，并保持 production trading、real account read、real PnL、Portfolio mutation、ExecutionClient call、broker gateway 和 Live command surface 全部关闭。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
