@@ -578,7 +578,8 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         let paperRuntimeEvidence = Self.metricValue("Runtime", in: reportMetrics)
         let paperWorkflowEvidence = Self.metricValue("Exec workflow", in: reportMetrics)
         let paperPortfolioImpact = Self.metricValue("Paper PnL", in: reportMetrics)
-        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); dashboardReadModelOnly=\(readModelSurface.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); scenarioReplayEvidence=\(scenarioReplayEvidence); scenarioQualityGates=\(scenarioQualityGates); simulatedParityEvidence=\(simulatedParityEvidence); accountPositionBalanceEvidence=\(accountPositionBalanceEvidence); privateStreamSimulationGateEvidence=\(privateStreamSimulationGateEvidence); liveMonitoringReadOnlyConsoleV2Surface=\(liveMonitoringReadOnlyConsoleV2Surface); strategyTraderReadinessSurface=\(strategyTraderReadinessSurface); defaultDemoState=\(defaultDemoState); defaultDemoScenario=\(defaultDemoScenario); betaFirstRunFallbacks=\(betaFallbacks); betaAcceptancePaths=\(betaAcceptancePaths); betaAcceptanceScenario=\(betaAcceptanceScenario); betaAcceptanceTrace=\(betaAcceptanceTrace); paperRuntimeEvidence=\(paperRuntimeEvidence); paperWorkflowEvidence=\(paperWorkflowEvidence); paperPortfolioImpact=\(paperPortfolioImpact); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveReadOnlyDashboardBoundary=\(liveReadOnlyDashboardBoundary); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
+        let releaseLiveMonitoringSurface = Self.metricValue("Release live", in: reportMetrics)
+        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); dashboardReadModelOnly=\(readModelSurface.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); scenarioReplayEvidence=\(scenarioReplayEvidence); scenarioQualityGates=\(scenarioQualityGates); simulatedParityEvidence=\(simulatedParityEvidence); accountPositionBalanceEvidence=\(accountPositionBalanceEvidence); privateStreamSimulationGateEvidence=\(privateStreamSimulationGateEvidence); liveMonitoringReadOnlyConsoleV2Surface=\(liveMonitoringReadOnlyConsoleV2Surface); strategyTraderReadinessSurface=\(strategyTraderReadinessSurface); defaultDemoState=\(defaultDemoState); defaultDemoScenario=\(defaultDemoScenario); betaFirstRunFallbacks=\(betaFallbacks); betaAcceptancePaths=\(betaAcceptancePaths); betaAcceptanceScenario=\(betaAcceptanceScenario); betaAcceptanceTrace=\(betaAcceptanceTrace); paperRuntimeEvidence=\(paperRuntimeEvidence); paperWorkflowEvidence=\(paperWorkflowEvidence); paperPortfolioImpact=\(paperPortfolioImpact); releaseLiveMonitoringSurface=\(releaseLiveMonitoringSurface); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveReadOnlyDashboardBoundary=\(liveReadOnlyDashboardBoundary); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
     }
 
     private static func makeSectionSnapshot(
@@ -1510,6 +1511,10 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                     value: "\(viewModel.liveMonitoringReadOnlyConsoleV2Surface.eventTraceItemCount)"
                 ),
                 DashboardShellMetric(
+                    label: "Release live",
+                    value: "\(viewModel.releaseV010LiveMonitoringEvidenceCount)"
+                ),
+                DashboardShellMetric(
                     label: "Strategy readiness",
                     value: "\(viewModel.strategyTraderReadinessEvidenceSurface.recordCount)"
                 ),
@@ -1651,6 +1656,17 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 "Live Monitoring v2 account payload: \(formatForbiddenFlag(viewModel.liveMonitoringReadOnlyConsoleV2Surface.exposesAccountPayload))",
                 "Live Monitoring v2 broker state: \(formatForbiddenFlag(viewModel.liveMonitoringReadOnlyConsoleV2Surface.exposesBrokerState))",
                 "Live Monitoring v2 boundary: \(formatEvidenceFlag(viewModel.liveMonitoringReadOnlyConsoleV2Surface.readModelOnlyBoundaryHeld))",
+                "Release live monitoring summary: \(viewModel.releaseV010LiveMonitoringSurface.reportSummary)",
+                "Release live monitoring sources: \(joined(viewModel.releaseV010LiveMonitoringSourceIssueIDs))",
+                "Release live monitoring categories: \(joined(viewModel.releaseV010LiveMonitoringCategoryLabels))",
+                "Release live monitoring statuses: \(joined(viewModel.releaseV010LiveMonitoringStatusLabels))",
+                "Release live monitoring panels: \(joined(viewModel.releaseV010LiveMonitoringSurface.dashboardPanelSummaries))",
+                "Release live monitoring command surface: \(formatForbiddenFlag(viewModel.releaseV010LiveMonitoringProvidesCommandSurface))",
+                "Release live monitoring trading button: \(formatForbiddenFlag(viewModel.releaseV010LiveMonitoringProvidesTradingButton))",
+                "Release live monitoring runtime object: \(formatForbiddenFlag(viewModel.releaseV010LiveMonitoringSurface.consumesRuntimeObject))",
+                "Release live monitoring network: \(formatForbiddenFlag(viewModel.releaseV010LiveMonitoringSurface.opensNetworkConnection))",
+                "Release live monitoring account payload: \(formatForbiddenFlag(viewModel.releaseV010LiveMonitoringSurface.exposesAccountPayload))",
+                "Release live monitoring boundary: \(formatEvidenceFlag(viewModel.releaseV010LiveMonitoringReadModelOnlyBoundaryHeld))",
                 "Strategy readiness summary: \(viewModel.strategyTraderReadinessEvidenceSurface.reportSummary)",
                 "Strategy readiness categories: \(joined(viewModel.strategyTraderReadinessEvidenceSurface.categories))",
                 "Strategy readiness evidence: \(joined(viewModel.strategyTraderReadinessEvidenceSurface.evidenceIDs))",

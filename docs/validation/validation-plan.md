@@ -8064,6 +8064,46 @@ GH-533 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-534 Dashboard Live Monitoring Surface Validation
+
+GH-534 必须运行：
+
+- `swift test --filter AppTests/testGH534ReleaseV010DashboardLiveMonitoringSurfaceIsReadModelOnly`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-534 的验收要求：
+
+- `Sources/Dashboard/Report/ReleaseV010LiveMonitoringSurface.swift` 必须存在，并包含 `GH-534-DASHBOARD-LIVE-MONITORING-SURFACE` 和 `TVM-RELEASE-V010-DASHBOARD-LIVE-MONITORING-SURFACE` anchors。
+- Dashboard target 必须继续只依赖 `Core` / `Persistence`；不得新增 DataClient、Trader、RiskEngine、ExecutionEngine、ExecutionClient、broker、OMS 或 runtime target dependency。
+- Surface 必须覆盖 connection health、account/private stream status、Trader/EMA、RiskEngine、ExecutionEngine / OMS、execution report / broker fill 和 Portfolio reconciliation summary。
+- Dashboard report / shell smoke 必须能读取 release live monitoring evidence，并保留 read-model-only boundary。
+- PR evidence 必须确认不读取 production secret，不连接 production endpoint，不直接消费 runtime object，不暴露 command surface、trading button、live command、order form 或 secret editor，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+GH-534 必须建立的主要 anchors：
+
+- `GH-534-DASHBOARD-LIVE-MONITORING-SURFACE`
+- `GH-534-CONNECTION-HEALTH-READ-MODEL`
+- `GH-534-ACCOUNT-PRIVATE-STREAM-STATUS`
+- `GH-534-TRADER-EMA-RISK-EXECUTION-PORTFOLIO-SUMMARY`
+- `GH-534-READ-MODEL-ONLY-NO-COMMAND-SURFACE`
+- `TVM-RELEASE-V010-DASHBOARD-LIVE-MONITORING-SURFACE`
+- `testGH534ReleaseV010DashboardLiveMonitoringSurfaceIsReadModelOnly`
+
+## GH-534 禁止
+
+- 不启用 non-Binance venue。
+- 不启用 non-EMA active strategy。
+- 不读取、打印、保存或推导 production secret。
+- 不接受 production account endpoint、production private payload、production stream endpoint 或 production broker endpoint。
+- 不让 Dashboard 直接 import / consume runtime object、adapter request、broker state、OMS store 或 ExecutionClient command object。
+- 不暴露 secret editor、broker connect、account connect、trading button、live command 或 order form。
+- 不绕过 RiskEngine、ExecutionEngine、OMS、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-530 ExecutionEngine OMS Lifecycle Validation
 
 GH-530 必须运行：

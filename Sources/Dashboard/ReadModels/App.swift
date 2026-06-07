@@ -803,6 +803,7 @@ public struct ResearchBacktestReportArtifact: Codable, Equatable, Sendable {
 /// scenario replay、simulated exchange parity、account / position / balance evidence、
 /// private stream / account snapshot simulation gate evidence、
 /// Live Monitoring Read-only Console v2 evidence、
+/// release v0.1.0 live monitoring evidence、
 /// Strategy / Trader readiness evidence、
 /// Live readiness blocked 状态、monitoring 状态、risk blocked evidence 或 incident / stop evidence
 /// 解释为交易授权。
@@ -814,6 +815,7 @@ public struct ReportReadModel: Equatable, Sendable {
     public let accountPositionBalanceReadModelOnlySurface: AccountPositionBalanceReadModelOnlySurfaceReadModel
     public let privateStreamSimulationGateEvidenceSurface: PrivateStreamSimulationGateEvidenceSurfaceReadModel
     public let liveMonitoringReadOnlyConsoleV2Surface: LiveMonitoringReadOnlyConsoleV2SurfaceReadModel
+    public let releaseV010LiveMonitoringSurface: ReleaseV010LiveMonitoringSurfaceReadModel
     public let strategyTraderReadinessEvidenceSurface: StrategyTraderReadinessEvidenceSurfaceReadModel
     public let liveReadOnlyDashboardBoundary: LiveReadOnlyDashboardBoundaryReadModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel
@@ -834,6 +836,8 @@ public struct ReportReadModel: Equatable, Sendable {
             PrivateStreamSimulationGateEvidenceSurfaceReadModel(),
         liveMonitoringReadOnlyConsoleV2Surface: LiveMonitoringReadOnlyConsoleV2SurfaceReadModel =
             LiveMonitoringReadOnlyConsoleV2SurfaceReadModel(),
+        releaseV010LiveMonitoringSurface: ReleaseV010LiveMonitoringSurfaceReadModel =
+            ReleaseV010LiveMonitoringSurfaceReadModel(),
         strategyTraderReadinessEvidenceSurface: StrategyTraderReadinessEvidenceSurfaceReadModel =
             StrategyTraderReadinessEvidenceSurfaceReadModel(),
         liveReadOnlyDashboardBoundary: LiveReadOnlyDashboardBoundaryReadModel = LiveReadOnlyDashboardBoundaryReadModel(),
@@ -853,6 +857,7 @@ public struct ReportReadModel: Equatable, Sendable {
         self.accountPositionBalanceReadModelOnlySurface = accountPositionBalanceReadModelOnlySurface
         self.privateStreamSimulationGateEvidenceSurface = privateStreamSimulationGateEvidenceSurface
         self.liveMonitoringReadOnlyConsoleV2Surface = liveMonitoringReadOnlyConsoleV2Surface
+        self.releaseV010LiveMonitoringSurface = releaseV010LiveMonitoringSurface
         self.strategyTraderReadinessEvidenceSurface = strategyTraderReadinessEvidenceSurface
         self.liveReadOnlyDashboardBoundary = liveReadOnlyDashboardBoundary
         self.liveTradingBlockedEvidence = liveTradingBlockedEvidence
@@ -868,6 +873,7 @@ public struct ReportReadModel: Equatable, Sendable {
             accountPositionBalanceReadModelOnlySurface.lastAppliedSequence,
             privateStreamSimulationGateEvidenceSurface.lastAppliedSequence,
             liveMonitoringReadOnlyConsoleV2Surface.lastAppliedSequence,
+            releaseV010LiveMonitoringSurface.lastAppliedSequence,
             strategyTraderReadinessEvidenceSurface.lastAppliedSequence,
             liveReadOnlyDashboardBoundary.lastAppliedSequence,
             liveTradingBlockedEvidence.lastAppliedSequence,
@@ -891,6 +897,8 @@ public struct ReportReadModel: Equatable, Sendable {
             PrivateStreamSimulationGateEvidenceSurfaceReadModel(),
         liveMonitoringReadOnlyConsoleV2Surface: LiveMonitoringReadOnlyConsoleV2SurfaceReadModel =
             LiveMonitoringReadOnlyConsoleV2SurfaceReadModel(),
+        releaseV010LiveMonitoringSurface: ReleaseV010LiveMonitoringSurfaceReadModel =
+            ReleaseV010LiveMonitoringSurfaceReadModel(),
         strategyTraderReadinessEvidenceSurface: StrategyTraderReadinessEvidenceSurfaceReadModel =
             StrategyTraderReadinessEvidenceSurfaceReadModel(),
         liveReadOnlyDashboardBoundary: LiveReadOnlyDashboardBoundaryReadModel = LiveReadOnlyDashboardBoundaryReadModel(),
@@ -936,6 +944,7 @@ public struct ReportReadModel: Equatable, Sendable {
             accountPositionBalanceReadModelOnlySurface: accountPositionBalanceReadModelOnlySurface,
             privateStreamSimulationGateEvidenceSurface: privateStreamSimulationGateEvidenceSurface,
             liveMonitoringReadOnlyConsoleV2Surface: liveMonitoringReadOnlyConsoleV2Surface,
+            releaseV010LiveMonitoringSurface: releaseV010LiveMonitoringSurface,
             strategyTraderReadinessEvidenceSurface: strategyTraderReadinessEvidenceSurface,
             liveReadOnlyDashboardBoundary: liveReadOnlyDashboardBoundary,
             liveTradingBlockedEvidence: liveTradingBlockedEvidence,
@@ -1285,6 +1294,8 @@ public struct DashboardReadModel: Equatable, Sendable {
             PrivateStreamSimulationGateEvidenceSurfaceReadModel(),
         liveMonitoringReadOnlyConsoleV2Surface: LiveMonitoringReadOnlyConsoleV2SurfaceReadModel =
             LiveMonitoringReadOnlyConsoleV2SurfaceReadModel(),
+        releaseV010LiveMonitoringSurface: ReleaseV010LiveMonitoringSurfaceReadModel =
+            ReleaseV010LiveMonitoringSurfaceReadModel(),
         strategyTraderReadinessEvidenceSurface: StrategyTraderReadinessEvidenceSurfaceReadModel =
             StrategyTraderReadinessEvidenceSurfaceReadModel(),
         liveReadOnlyDashboardBoundary: LiveReadOnlyDashboardBoundaryReadModel = LiveReadOnlyDashboardBoundaryReadModel(),
@@ -1305,6 +1316,7 @@ public struct DashboardReadModel: Equatable, Sendable {
             accountPositionBalanceReadModelOnlySurface: accountPositionBalanceReadModelOnlySurface,
             privateStreamSimulationGateEvidenceSurface: privateStreamSimulationGateEvidenceSurface,
             liveMonitoringReadOnlyConsoleV2Surface: liveMonitoringReadOnlyConsoleV2Surface,
+            releaseV010LiveMonitoringSurface: releaseV010LiveMonitoringSurface,
             strategyTraderReadinessEvidenceSurface: strategyTraderReadinessEvidenceSurface,
             liveReadOnlyDashboardBoundary: liveReadOnlyDashboardBoundary,
             liveTradingBlockedEvidence: liveTradingBlockedEvidence,
@@ -1503,6 +1515,7 @@ public struct ReportArtifactViewModel: Codable, Equatable, Sendable {
 /// scenario replay evidence、account / position / balance read-model-only evidence、
 /// private stream / account snapshot simulation gate read-model-only evidence、
 /// Live Monitoring Read-only Console v2 evidence surface、
+/// release v0.1.0 live monitoring read-model-only evidence surface、
 /// Strategy / Trader readiness read-model-only evidence surface、
 /// Live trading foundation blocked gates、Live monitoring evidence、Live Risk blocked evidence 和
 /// incident / stop blocked evidence；
@@ -1518,6 +1531,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
     public let accountPositionBalanceReadModelOnlySurface: AccountPositionBalanceReadModelOnlySurfaceViewModel
     public let privateStreamSimulationGateEvidenceSurface: PrivateStreamSimulationGateEvidenceSurfaceViewModel
     public let liveMonitoringReadOnlyConsoleV2Surface: LiveMonitoringReadOnlyConsoleV2SurfaceViewModel
+    public let releaseV010LiveMonitoringSurface: ReleaseV010LiveMonitoringSurfaceViewModel
     public let strategyTraderReadinessEvidenceSurface: StrategyTraderReadinessEvidenceSurfaceViewModel
     public let liveReadOnlyDashboardBoundary: LiveReadOnlyDashboardBoundaryViewModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceViewModel
@@ -1727,6 +1741,14 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
     public let liveMonitoringAuthorizesLiveTrading: Bool
     public let liveMonitoringAuthorizesTradingExecution: Bool
     public let liveMonitoringRequiredValidationDependsOnNetwork: Bool
+    public let releaseV010LiveMonitoringEvidenceCount: Int
+    public let releaseV010LiveMonitoringSourceIssueIDs: [String]
+    public let releaseV010LiveMonitoringCategoryLabels: [String]
+    public let releaseV010LiveMonitoringStatusLabels: [String]
+    public let releaseV010LiveMonitoringReadModelOnlyBoundaryHeld: Bool
+    public let releaseV010LiveMonitoringProvidesCommandSurface: Bool
+    public let releaseV010LiveMonitoringProvidesTradingButton: Bool
+    public let releaseV010LiveMonitoringAuthorizesTradingExecution: Bool
     public let liveExecutionControlBlockedGateCount: Int
     public let liveExecutionControlBlockedGateLabels: [String]
     public let liveExecutionControlBlockedReasonLabels: [String]
@@ -1792,6 +1814,9 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
             LiveMonitoringReadOnlyConsoleV2SurfaceViewModel(
                 readModel: readModel.liveMonitoringReadOnlyConsoleV2Surface
             )
+        let releaseV010LiveMonitoringSurface = ReleaseV010LiveMonitoringSurfaceViewModel(
+            readModel: readModel.releaseV010LiveMonitoringSurface
+        )
         let strategyTraderReadinessEvidenceSurface =
             StrategyTraderReadinessEvidenceSurfaceViewModel(
                 readModel: readModel.strategyTraderReadinessEvidenceSurface
@@ -1826,6 +1851,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
             privateStreamSimulationGateEvidenceSurface
         self.liveMonitoringReadOnlyConsoleV2Surface =
             liveMonitoringReadOnlyConsoleV2Surface
+        self.releaseV010LiveMonitoringSurface = releaseV010LiveMonitoringSurface
         self.strategyTraderReadinessEvidenceSurface =
             strategyTraderReadinessEvidenceSurface
         self.liveReadOnlyDashboardBoundary = liveReadOnlyDashboardBoundary
@@ -2178,6 +2204,18 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
             .authorizesTradingExecution
         self.liveMonitoringRequiredValidationDependsOnNetwork = liveMonitoringEvidence
             .requiredValidationDependsOnNetwork
+        self.releaseV010LiveMonitoringEvidenceCount = releaseV010LiveMonitoringSurface.evidenceCount
+        self.releaseV010LiveMonitoringSourceIssueIDs = releaseV010LiveMonitoringSurface.sourceIssueIDs
+        self.releaseV010LiveMonitoringCategoryLabels = releaseV010LiveMonitoringSurface.categoryLabels
+        self.releaseV010LiveMonitoringStatusLabels = releaseV010LiveMonitoringSurface.statusLabels
+        self.releaseV010LiveMonitoringReadModelOnlyBoundaryHeld =
+            releaseV010LiveMonitoringSurface.readModelOnlyBoundaryHeld
+        self.releaseV010LiveMonitoringProvidesCommandSurface =
+            releaseV010LiveMonitoringSurface.providesCommandSurface
+        self.releaseV010LiveMonitoringProvidesTradingButton =
+            releaseV010LiveMonitoringSurface.providesTradingButton
+        self.releaseV010LiveMonitoringAuthorizesTradingExecution =
+            releaseV010LiveMonitoringSurface.authorizesTradingExecution
         self.liveExecutionControlBlockedGateCount = liveExecutionControlBlockedEvidence
             .blockedGateCount
         self.liveExecutionControlBlockedGateLabels = liveExecutionControlBlockedEvidence
@@ -2252,6 +2290,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
             || accountPositionBalanceReadModelOnlySurface.authorizesTradingExecution
             || privateStreamSimulationGateEvidenceSurface.authorizesTradingExecution
             || liveMonitoringReadOnlyConsoleV2Surface.authorizesTradingExecution
+            || releaseV010LiveMonitoringSurface.authorizesTradingExecution
             || strategyTraderReadinessEvidenceSurface.authorizesTradingExecution
             || liveReadOnlyDashboardBoundary.authorizesTradingExecution
             || liveBlockedEvidence.authorizesTradingExecution
@@ -2565,6 +2604,7 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
             report.accountPositionBalanceReadModelOnlySurface.source,
             report.privateStreamSimulationGateEvidenceSurface.source,
             report.liveMonitoringReadOnlyConsoleV2Surface.source,
+            report.releaseV010LiveMonitoringSurface.source,
             report.strategyTraderReadinessEvidenceSurface.source,
             report.liveReadOnlyDashboardBoundary.source,
             report.liveTradingBlockedEvidence.source,

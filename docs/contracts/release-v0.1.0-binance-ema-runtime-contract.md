@@ -133,6 +133,7 @@ Required anchors：
 - `GH-531-BINANCE-TESTNET-SUBMIT-CANCEL-REPLACE`
 - `GH-532-BINANCE-EXECUTION-REPORT-BROKER-FILL-PARSER`
 - `GH-533-EXECUTION-ACCOUNT-PORTFOLIO-RECONCILIATION`
+- `GH-534-DASHBOARD-LIVE-MONITORING-SURFACE`
 - `TVM-RELEASE-V010-BINANCE-EMA-RUNTIME`
 - `TVM-RELEASE-V010-REAL-TARGET-SMOKE-COVERAGE`
 - `TVM-RELEASE-V010-BINANCE-PUBLIC-MARKET-DATA-PATH`
@@ -145,6 +146,7 @@ Required anchors：
 - `TVM-RELEASE-V010-BINANCE-EXECUTIONCLIENT-TESTNET-SCR`
 - `TVM-RELEASE-V010-EXECUTION-REPORT-BROKER-FILL-PARSER`
 - `TVM-RELEASE-V010-PORTFOLIO-RECONCILIATION-UPDATE-PATH`
+- `TVM-RELEASE-V010-DASHBOARD-LIVE-MONITORING-SURFACE`
 
 Required validation：
 
@@ -350,6 +352,32 @@ GH-533 不授权：
 - production submit / cancel / replace。
 - 自动修复 Portfolio 或 repair command。
 - Dashboard command surface、trading button、live command 或 order form。
+- kill switch / no-trade / rollback controls；该能力留给 GH-536。
+
+## GH-534-DASHBOARD-LIVE-MONITORING-SURFACE
+
+`GH-534-DASHBOARD-LIVE-MONITORING-SURFACE`
+
+Dashboard live monitoring surface 指 release v0.1.0 中 `Dashboard` target 对 #526 account/private stream、#528 EMA proposal、#529 RiskEngine gate、#530 ExecutionEngine / OMS、#532 execution report / broker fill 和 #533 Portfolio reconciliation evidence 的 read-model-only 摘要：
+
+- Dashboard 只能消费 stable read-model identity、source issue、status label、summary 和 validation anchors。
+- Connection health 必须展示为 read-model-only fresh / stale / blocked / unavailable evidence，不打开 network reconnect 或 runtime connection。
+- Account/private stream status 必须展示 redacted account / balance / position read-model，不暴露 raw private payload、listenKey value、secret 或 account endpoint response。
+- Trader/EMA/Risk/Execution/Portfolio summary 必须只显示 proposal、gate、lifecycle、broker fill 和 reconciliation evidence 状态，不直接消费 runtime object。
+- Dashboard 必须保持 `providesCommandSurface == false`、`providesTradingButton == false`、`authorizesTradingExecution == false`。
+
+`TVM-RELEASE-V010-DASHBOARD-LIVE-MONITORING-SURFACE`
+
+## GH-534-NON-AUTHORIZATION
+
+`GH-534-NON-AUTHORIZATION`
+
+GH-534 不授权：
+
+- Dashboard command surface、trading button、live command、order form 或 secret editor。
+- Dashboard 直接 import / 持有 DataClient、Trader、RiskEngine、ExecutionEngine、ExecutionClient、broker、OMS 或 runtime object。
+- production account endpoint、production private payload、production broker connection 或 production trading。
+- production submit / cancel / replace。
 - kill switch / no-trade / rollback controls；该能力留给 GH-536。
 
 ## GH-521-NON-AUTHORIZATION

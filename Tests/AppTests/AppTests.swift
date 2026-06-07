@@ -472,6 +472,81 @@ final class AppTests: XCTestCase {
         }
     }
 
+    func testGH534ReleaseV010DashboardLiveMonitoringSurfaceIsReadModelOnly() throws {
+        // 测试场景：GH-534 只把 release v0.1.0 已完成的 live evidence identity 接入 Dashboard。
+        // Dashboard 能读取 connection / account / Trader / EMA / Risk / Execution / Portfolio 摘要，
+        // 但不直接消费 runtime object，也不暴露 secret editor、交易按钮、live command 或 order form。
+        let surfaceReadModel = ReleaseV010LiveMonitoringSurfaceReadModel()
+        XCTAssertTrue(surfaceReadModel.readModelOnlyBoundaryHeld)
+        XCTAssertEqual(surfaceReadModel.evidenceItems.count, 7)
+        XCTAssertEqual(
+            surfaceReadModel.validationAnchors,
+            ReleaseV010LiveMonitoringSurfaceReadModel.requiredValidationAnchors
+        )
+        XCTAssertTrue(
+            surfaceReadModel.validationAnchors.contains("GH-534-DASHBOARD-LIVE-MONITORING-SURFACE")
+        )
+        XCTAssertTrue(
+            surfaceReadModel.validationAnchors.contains("GH-534-READ-MODEL-ONLY-NO-COMMAND-SURFACE")
+        )
+
+        let surface = ReleaseV010LiveMonitoringSurfaceViewModel(readModel: surfaceReadModel)
+        XCTAssertTrue(surface.readModelOnlyBoundaryHeld)
+        XCTAssertEqual(surface.issueID, "GH-534")
+        XCTAssertEqual(surface.matrixID, "TVM-RELEASE-V010-DASHBOARD-LIVE-MONITORING-SURFACE")
+        XCTAssertEqual(
+            surface.sourceIssueIDs,
+            ["GH-526", "GH-528", "GH-529", "GH-530", "GH-532", "GH-533"]
+        )
+        XCTAssertEqual(surface.connectionHealthCount, 1)
+        XCTAssertEqual(surface.accountPrivateStreamStatusCount, 1)
+        XCTAssertEqual(surface.traderEMARiskExecutionPortfolioSummaryCount, 5)
+        XCTAssertTrue(surface.categoryLabels.contains("connection health"))
+        XCTAssertTrue(surface.categoryLabels.contains("Portfolio reconciliation"))
+        XCTAssertFalse(surface.consumesRuntimeObject)
+        XCTAssertFalse(surface.opensNetworkConnection)
+        XCTAssertFalse(surface.exposesAccountPayload)
+        XCTAssertFalse(surface.providesCommandSurface)
+        XCTAssertFalse(surface.providesTradingButton)
+        XCTAssertFalse(surface.providesLiveCommand)
+        XCTAssertFalse(surface.exposesOrderForm)
+        XCTAssertFalse(surface.exposesSecretEditor)
+        XCTAssertFalse(surface.connectsBroker)
+        XCTAssertFalse(surface.authorizesLiveTrading)
+        XCTAssertFalse(surface.authorizesTradingExecution)
+
+        let report = ReportReadModel(releaseV010LiveMonitoringSurface: surfaceReadModel)
+        let dashboard = DashboardViewModel(
+            readModel: DashboardReadModel(
+                market: MarketReadModel(),
+                strategy: StrategyReadModel(),
+                backtest: BacktestReadModel(),
+                report: report,
+                paper: PaperReadModel(),
+                risk: RiskReadModel(),
+                portfolio: PortfolioReadModel(),
+                events: EventTimelineReadModel()
+            )
+        )
+        XCTAssertEqual(dashboard.report.releaseV010LiveMonitoringEvidenceCount, 7)
+        XCTAssertTrue(dashboard.report.releaseV010LiveMonitoringReadModelOnlyBoundaryHeld)
+        XCTAssertFalse(dashboard.report.releaseV010LiveMonitoringProvidesCommandSurface)
+        XCTAssertFalse(dashboard.report.releaseV010LiveMonitoringProvidesTradingButton)
+        XCTAssertFalse(dashboard.report.releaseV010LiveMonitoringAuthorizesTradingExecution)
+        XCTAssertTrue(dashboard.viewModelSources.allSatisfy(\.isReadModelOnly))
+
+        let shell = DashboardShellSnapshot(viewModel: dashboard)
+        XCTAssertTrue(shell.isReadModelOnly)
+        XCTAssertTrue(shell.smokeSummary.contains("releaseLiveMonitoringSurface=7"))
+        let reportSection = try XCTUnwrap(shell.sections.first { $0.section == .report })
+        XCTAssertTrue(reportSection.metrics.contains(DashboardShellMetric(label: "Release live", value: "7")))
+        XCTAssertTrue(
+            reportSection.details.contains {
+                $0.contains("Release live monitoring boundary: confirmed")
+            }
+        )
+    }
+
     func testAccountPositionBalanceReadModelOnlySurfaceAggregatesMTP138Evidence() throws {
         // 测试场景：MTP-138 只把 MTP-137 deterministic fixture 映射成 App 层 ReadModel / ViewModel，
         // 供 Workbench、Report 和 Event Timeline 展示；任何 account connect、broker connect 或交易入口都必须缺席。
