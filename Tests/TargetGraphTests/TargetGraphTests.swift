@@ -5024,6 +5024,87 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH527TraderRuntimeLifecycleManagesAccountsEMAAndCoordinationWithoutOrderSubmission() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let traderTarget = try packageTargetBlock(named: "Trader", packageSource: packageSource)
+        XCTAssertTrue(traderTarget.contains("\"Runtime/TraderRuntimeLifecycle.swift\""))
+        XCTAssertTrue(traderTarget.contains("\"TraderStrategies\""))
+        XCTAssertTrue(traderTarget.contains("\"RiskEngine\""))
+        XCTAssertFalse(traderTarget.contains("\"ExecutionClient\""))
+
+        let lifecycle = try TraderRuntimeLifecycle.deterministicFixture()
+        XCTAssertEqual(lifecycle.releaseVenue, "Binance")
+        XCTAssertEqual(lifecycle.activeConcreteStrategy, "EMA")
+        XCTAssertEqual(lifecycle.emaStrategyConfiguration.strategyID.rawValue, "gh-527-ema-instance")
+        XCTAssertTrue(lifecycle.accountContext.accountContextBoundaryHeld)
+        XCTAssertTrue(lifecycle.coordinationBoundary.isGenericBindingProtocolAndAdapterOnly)
+        XCTAssertTrue(lifecycle.coordinationBoundary.concreteStrategiesRemainTraderOwned)
+        XCTAssertTrue(lifecycle.coordinationBoundary.forbidsExecutionAndLiveCommandPaths)
+
+        let report = try lifecycle.runDeterministicLifecycle(
+            startedAt: Date(timeIntervalSince1970: 1_704_067_300),
+            shutdownAt: Date(timeIntervalSince1970: 1_704_067_360)
+        )
+        XCTAssertTrue(report.boundaryHeld)
+        XCTAssertEqual(report.lifecycleID.rawValue, "gh-527-trader-runtime-lifecycle")
+        XCTAssertEqual(report.accountContextID, lifecycle.accountContext.contextID)
+        XCTAssertEqual(report.accountIdentity, lifecycle.accountContext.accountIdentity)
+        XCTAssertEqual(report.emaStrategyID, lifecycle.emaStrategyConfiguration.strategyID)
+        XCTAssertEqual(report.events.map(\.kind), TraderRuntimeLifecycle.requiredEventKinds)
+        XCTAssertEqual(Set(report.validationAnchors), Set(TraderRuntimeLifecycle.requiredValidationAnchors))
+        XCTAssertTrue(report.riskEngineHandoffRequired)
+        XCTAssertFalse(report.directExecutionClientEnabled)
+        XCTAssertFalse(report.brokerCommandEnabled)
+        XCTAssertFalse(report.omsBypassEnabled)
+        XCTAssertFalse(report.productionTradingEnabledByDefault)
+        XCTAssertFalse(report.nonBinanceVenueEnabled)
+        XCTAssertFalse(report.nonEMAStrategyEnabled)
+
+        XCTAssertThrowsError(
+            try TraderRuntimeLifecycle(
+                lifecycleID: Identifier.constant("unsafe-gh-527-direct-executionclient"),
+                accountContext: .deterministicFixture,
+                emaStrategyConfiguration: lifecycle.emaStrategyConfiguration,
+                directExecutionClientEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("traderRuntimeLifecycle.directExecutionClientEnabled")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try TraderRuntimeLifecycle(
+                lifecycleID: Identifier.constant("unsafe-gh-527-production-default"),
+                accountContext: .deterministicFixture,
+                emaStrategyConfiguration: lifecycle.emaStrategyConfiguration,
+                productionTradingEnabledByDefault: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("traderRuntimeLifecycle.productionTradingEnabledByDefault")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try lifecycle.runDeterministicLifecycle(
+                startedAt: Date(timeIntervalSince1970: 1_704_067_400),
+                shutdownAt: Date(timeIntervalSince1970: 1_704_067_399)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("traderRuntimeLifecycle.shutdownBeforeStart")
+            )
+        }
+    }
+
     func testGH503ProductionCredentialSecretPolicyGateDefinesNoDefaultSecretReadContract() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
