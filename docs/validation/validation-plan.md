@@ -7605,6 +7605,54 @@ GH-521 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-531 Binance ExecutionClient Testnet SCR Validation
+
+GH-531 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH531BinanceExecutionClientTestnetSubmitCancelReplaceRequiresCredentialGuardAndOMS`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-531 的验收要求：
+
+- `Sources/ExecutionClient/FutureGate/ReleaseV010BinanceExecutionClientTestnetCommands.swift` 必须存在，并包含 `GH-531-BINANCE-TESTNET-SUBMIT-CANCEL-REPLACE` 和 `TVM-RELEASE-V010-BINANCE-EXECUTIONCLIENT-TESTNET-SCR` anchors。
+- `Package.swift` 必须让 `ExecutionClient` target 显式拥有 `FutureGate` source root，并保持 `dependencies: ["DomainModel", "MessageBus"]`，不得新增 DataClient、ExecutionEngine、RiskEngine、Crypto、Dashboard 或 broker dependency。
+- Adapter 必须覆盖 Binance Spot testnet submit / cancel / replace request mapping：submit `POST /api/v3/order`、cancel `DELETE /api/v3/order`、replace `POST /api/v3/order/cancelReplace`。
+- Request mapping 必须引用 #530 OMS order / event log / source risk decision identity，不能由 Trader、Strategy、Dashboard 或 MessageBus direct command 直接创建。
+- Credential guard 必须只保存 testnet credential reference，不保存、不打印、不暴露 credential value 或 signature value，不读取 production secret，不允许 testnet credential 升级为 production credential。
+- Capability matrix 必须保持 `productionEndpointEnabledByDefault == false`、`productionTradingEnabledByDefault == false`、`productionSecretReadEnabledByDefault == false`、`productionSubmitEnabledByDefault == false`、`productionCancelEnabledByDefault == false`、`productionReplaceEnabledByDefault == false`、`brokerGatewayTouched == false`、`liveCommandSurfaceTouched == false`、`bypassesRiskEngine == false`、`bypassesOMS == false`、`bypassesKillSwitch == false`、`nonBinanceVenueEnabled == false` 和 `nonEMAStrategyEnabled == false`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH531BinanceExecutionClientTestnetSubmitCancelReplaceRequiresCredentialGuardAndOMS`，验证 ExecutionClient source ownership、testnet endpoint mapping、credential guard、#530 OMS source identity、production endpoint rejection、signature value rejection 和 mismatched command rejection。
+- GH-531 PR evidence 必须确认不读取 production secret，不连接 production endpoint，不连接 production broker，不暴露 signature value，不解析 execution report / broker fill，不执行 reconciliation，不启用 production trading，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+GH-531 必须建立的主要 anchors：
+
+- `GH-531-BINANCE-TESTNET-SUBMIT-CANCEL-REPLACE`
+- `GH-531-BINANCE-TESTNET-REQUEST-MAPPING`
+- `GH-531-TESTNET-CREDENTIAL-GUARD`
+- `GH-531-BINANCE-TESTNET-CAPABILITY-MATRIX`
+- `GH-531-TESTNET-SUBMIT-CANCEL-REPLACE-EVIDENCE`
+- `GH-531-PRODUCTION-ENDPOINT-EXPLICIT-GATE`
+- `TVM-RELEASE-V010-BINANCE-EXECUTIONCLIENT-TESTNET-SCR`
+- `testGH531BinanceExecutionClientTestnetSubmitCancelReplaceRequiresCredentialGuardAndOMS`
+
+## GH-531 禁止
+
+- 不启用 non-Binance venue。
+- 不启用 non-EMA active strategy。
+- 不读取、打印、保存或推导 production secret。
+- 不接受 production endpoint、production stream endpoint 或 production broker endpoint。
+- 不连接 production broker 或 broker gateway。
+- 不暴露 signature value、credential value 或 raw secret material。
+- 不把 testnet mapping 扩大成 production submit / cancel / replace。
+- 不解析 execution report 或 broker fill；该能力留给 GH-532。
+- 不执行 reconciliation 或 Portfolio update；该能力留给 GH-533。
+- 不暴露 Dashboard command surface、trading button、live command 或 order form。
+- 不绕过 RiskEngine、ExecutionEngine、OMS、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-522 Release v0.1.0 Ownership Gap Retirement Validation
 
 GH-522 必须运行：

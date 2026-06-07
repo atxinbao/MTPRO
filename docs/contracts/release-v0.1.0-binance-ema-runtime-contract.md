@@ -130,6 +130,7 @@ Required anchors：
 - `GH-528-EMA-STRATEGY-PROPOSAL-RUNTIME`
 - `GH-529-RISKENGINE-LIVE-PRETRADE-GATE`
 - `GH-530-EXECUTIONENGINE-OMS-STATE-MACHINE`
+- `GH-531-BINANCE-TESTNET-SUBMIT-CANCEL-REPLACE`
 - `TVM-RELEASE-V010-BINANCE-EMA-RUNTIME`
 - `TVM-RELEASE-V010-REAL-TARGET-SMOKE-COVERAGE`
 - `TVM-RELEASE-V010-BINANCE-PUBLIC-MARKET-DATA-PATH`
@@ -139,6 +140,7 @@ Required anchors：
 - `TVM-RELEASE-V010-EMA-PROPOSAL-RUNTIME`
 - `TVM-RELEASE-V010-RISKENGINE-PRETRADE-GATE`
 - `TVM-RELEASE-V010-EXECUTIONENGINE-OMS-LIFECYCLE`
+- `TVM-RELEASE-V010-BINANCE-EXECUTIONCLIENT-TESTNET-SCR`
 
 Required validation：
 
@@ -258,6 +260,36 @@ GH-530 不授权：
 - reconciliation / Portfolio update path；该能力留给 GH-533。
 - production secret、production endpoint 或 production trading。
 - Dashboard command surface、trading button、live command 或 order form。
+
+## GH-531-BINANCE-TESTNET-SUBMIT-CANCEL-REPLACE
+
+`GH-531-BINANCE-TESTNET-SUBMIT-CANCEL-REPLACE`
+
+Binance ExecutionClient testnet submit / cancel / replace 指 release v0.1.0 中 `ExecutionClient` target 对 #530 local OMS evidence 的 testnet-only command mapping。该 adapter 只生成 Binance Spot testnet request mapping 和 deterministic acknowledgement evidence：
+
+- request 必须引用 #530 OMS order / event log / source risk decision identity，不能由 Trader、Strategy、Dashboard 或 MessageBus 直接创建。
+- environment 固定为 `testnet`，base URL 固定为 `https://testnet.binance.vision`。
+- submit 映射到 `POST /api/v3/order`，cancel 映射到 `DELETE /api/v3/order`，replace 映射到 `POST /api/v3/order/cancelReplace`。
+- credential guard 只允许 testnet credential reference，不保存、不打印、不暴露 credential value 或 signature value。
+- capability matrix 必须保持 `productionEndpointEnabledByDefault == false`、`productionTradingEnabledByDefault == false`、`productionSecretReadEnabledByDefault == false`、`productionSubmitEnabledByDefault == false`、`productionCancelEnabledByDefault == false`、`productionReplaceEnabledByDefault == false`、`brokerGatewayTouched == false`、`liveCommandSurfaceTouched == false`、`bypassesRiskEngine == false`、`bypassesOMS == false`、`bypassesKillSwitch == false`、`nonBinanceVenueEnabled == false` 和 `nonEMAStrategyEnabled == false`。
+
+`TVM-RELEASE-V010-BINANCE-EXECUTIONCLIENT-TESTNET-SCR`
+
+## GH-531-NON-AUTHORIZATION
+
+`GH-531-NON-AUTHORIZATION`
+
+GH-531 不授权：
+
+- 非 Binance venue。
+- 非 EMA active strategy。
+- production endpoint、production secret、production credential 或 production trading。
+- production submit / cancel / replace。
+- broker gateway、production broker connection、production OMS runtime 或 production order store。
+- execution report / broker fill parser；该能力留给 GH-532。
+- reconciliation / Portfolio update path；该能力留给 GH-533。
+- Dashboard command surface、trading button、live command 或 order form。
+- kill switch / no-trade / rollback controls；该能力留给 GH-536。
 
 ## GH-521-NON-AUTHORIZATION
 

@@ -5429,6 +5429,182 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH531BinanceExecutionClientTestnetSubmitCancelReplaceRequiresCredentialGuardAndOMS() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+
+        let adapter = try ReleaseV010BinanceExecutionClientTestnetAdapter.deterministicFixture()
+        XCTAssertTrue(adapter.adapterBoundaryHeld)
+        XCTAssertEqual(adapter.issueID.rawValue, "GH-531")
+        XCTAssertEqual(adapter.upstreamIssueID.rawValue, "GH-530")
+        XCTAssertTrue(adapter.capabilityMatrix.matrixHeld)
+        XCTAssertTrue(adapter.credentialGuard.guardHeld)
+        XCTAssertEqual(adapter.environment, .testnet)
+        XCTAssertFalse(adapter.productionEndpointEnabledByDefault)
+        XCTAssertFalse(adapter.productionTradingEnabledByDefault)
+        XCTAssertFalse(adapter.productionSecretReadEnabledByDefault)
+        XCTAssertFalse(adapter.brokerGatewayTouched)
+        XCTAssertFalse(adapter.bypassesRiskEngine)
+        XCTAssertFalse(adapter.bypassesOMS)
+        XCTAssertFalse(adapter.bypassesKillSwitch)
+
+        let evidence = try adapter.deterministicCommandEvidence()
+        XCTAssertTrue(evidence.evidenceBoundaryHeld)
+        XCTAssertEqual(
+            Set(evidence.requests.map(\.commandKind)),
+            Set(ReleaseV010BinanceExecutionClientTestnetCommandKind.allCases)
+        )
+        XCTAssertEqual(
+            Set(evidence.acknowledgements.map(\.commandKind)),
+            Set(ReleaseV010BinanceExecutionClientTestnetCommandKind.allCases)
+        )
+        XCTAssertTrue(evidence.requests.allSatisfy { $0.environment == .testnet })
+        XCTAssertTrue(evidence.requests.allSatisfy { $0.baseURL.host == "testnet.binance.vision" })
+        XCTAssertTrue(evidence.requests.allSatisfy(\.signatureRequired))
+        XCTAssertTrue(evidence.requests.allSatisfy { $0.signatureValueExposed == false })
+        XCTAssertTrue(evidence.acknowledgements.allSatisfy(\.acceptedByTestnetAdapter))
+        XCTAssertTrue(evidence.acknowledgements.allSatisfy { $0.productionOrderTouched == false })
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionSecretReadEnabledByDefault)
+        XCTAssertFalse(evidence.productionSubmitEnabledByDefault)
+        XCTAssertFalse(evidence.productionCancelEnabledByDefault)
+        XCTAssertFalse(evidence.productionReplaceEnabledByDefault)
+        XCTAssertFalse(evidence.executionReportParsed)
+        XCTAssertFalse(evidence.brokerFillParsed)
+        XCTAssertFalse(evidence.reconciliationPerformed)
+
+        let submit = try XCTUnwrap(evidence.requests.first { $0.commandKind == .submit })
+        XCTAssertEqual(submit.method, .post)
+        XCTAssertEqual(submit.endpointPath, "/api/v3/order")
+        XCTAssertEqual(
+            submit.queryItemNames,
+            ["symbol", "side", "type", "timeInForce", "quantity", "price", "newClientOrderId", "recvWindow", "timestamp"]
+        )
+
+        let cancel = try XCTUnwrap(evidence.requests.first { $0.commandKind == .cancel })
+        XCTAssertEqual(cancel.method, .delete)
+        XCTAssertEqual(cancel.endpointPath, "/api/v3/order")
+        XCTAssertEqual(
+            cancel.queryItemNames,
+            ["symbol", "origClientOrderId", "newClientOrderId", "recvWindow", "timestamp"]
+        )
+
+        let replace = try XCTUnwrap(evidence.requests.first { $0.commandKind == .replace })
+        XCTAssertEqual(replace.method, .post)
+        XCTAssertEqual(replace.endpointPath, "/api/v3/order/cancelReplace")
+        XCTAssertEqual(
+            replace.queryItemNames,
+            [
+                "symbol",
+                "side",
+                "type",
+                "timeInForce",
+                "quantity",
+                "price",
+                "cancelOrigClientOrderId",
+                "newClientOrderId",
+                "cancelReplaceMode",
+                "recvWindow",
+                "timestamp"
+            ]
+        )
+
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoded = try JSONDecoder().decode(
+            ReleaseV010BinanceExecutionClientTestnetCommandEvidence.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, evidence)
+
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/ReleaseV010BinanceExecutionClientTestnetCommands.swift"
+                ).path
+            )
+        )
+
+        XCTAssertThrowsError(
+            try ReleaseV010BinanceExecutionClientCredentialGuard(
+                credentialReferenceID: Identifier.constant("unsafe-gh-531-production-credential"),
+                environment: .production
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("releaseV010BinanceExecutionClient.productionCredential")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV010BinanceExecutionClientTestnetCommandRequest(
+                requestID: Identifier.constant("unsafe-gh-531-production-request"),
+                commandKind: .submit,
+                environment: .production,
+                credentialReferenceID: adapter.credentialGuard.credentialReferenceID,
+                sourceOMSOrderID: Identifier.constant("gh-530-oms-submit-order"),
+                sourceOMSEventLogID: Identifier.constant("gh-530-oms-submit-event-log"),
+                sourceRiskDecisionID: Identifier.constant("gh-529-approved-risk-decision"),
+                clientOrderID: Identifier.constant("unsafe-gh-531-client-order"),
+                symbol: "BTCUSDT",
+                queryItems: submit.queryItems
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("releaseV010BinanceExecutionClient.productionEnvironment")
+            )
+        }
+
+        let productionURL = try XCTUnwrap(URL(string: "https://api.binance.com"))
+        XCTAssertThrowsError(
+            try ReleaseV010BinanceExecutionClientTestnetCommandRequest(
+                requestID: Identifier.constant("unsafe-gh-531-production-url"),
+                commandKind: .submit,
+                baseURL: productionURL,
+                credentialReferenceID: adapter.credentialGuard.credentialReferenceID,
+                sourceOMSOrderID: Identifier.constant("gh-530-oms-submit-order"),
+                sourceOMSEventLogID: Identifier.constant("gh-530-oms-submit-event-log"),
+                sourceRiskDecisionID: Identifier.constant("gh-529-approved-risk-decision"),
+                clientOrderID: Identifier.constant("unsafe-gh-531-client-order"),
+                symbol: "BTCUSDT",
+                queryItems: submit.queryItems
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("releaseV010BinanceExecutionClient.productionEndpoint")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV010BinanceExecutionClientTestnetQueryItem(name: "signature", value: "unsafe-signature")
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("releaseV010BinanceExecutionClient.signatureValue")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try adapter.submit(cancel)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "commandKind",
+                    expected: "submit",
+                    actual: "cancel"
+                )
+            )
+        }
+    }
+
     func testGH503ProductionCredentialSecretPolicyGateDefinesNoDefaultSecretReadContract() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
