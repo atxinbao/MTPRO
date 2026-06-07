@@ -7976,6 +7976,51 @@ GH-529 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-532 Binance Execution Report Broker Fill Parser Validation
+
+GH-532 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH532BinanceExecutionReportParserMapsBrokerFillAndInvalidEvidence`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-532 的验收要求：
+
+- `Sources/ExecutionClient/FutureGate/ReleaseV010BinanceExecutionReportBrokerFillParser.swift` 必须存在，并包含 `GH-532-BINANCE-EXECUTION-REPORT-BROKER-FILL-PARSER` 和 `TVM-RELEASE-V010-EXECUTION-REPORT-BROKER-FILL-PARSER` anchors。
+- `Package.swift` 必须让 `ExecutionClient` target 继续显式拥有 `FutureGate` source root，并保持依赖方向不反转；parser 不能让 `ExecutionClient` 依赖 `ExecutionEngine`、`Portfolio`、`Dashboard` 或 broker runtime。
+- Parser 必须绑定 #531 `ReleaseV010BinanceExecutionClientTestnetCommandEvidence`，并覆盖 full fill、partial fill、canceled 和 rejected report kinds。
+- Parsed event 必须可进入 ExecutionEngine 本地 event model evidence，且保持 `eventStream == .paper`、`executionEngineEventModelReady == true`。
+- Broker fill mapping 只允许 full fill / partial fill 为 true；cancel / reject 必须保持 `brokerFillMapped == false`。
+- 异常回报必须形成 blocked / invalid evidence，且不能产生 ExecutionEngine event、broker fill fact、Portfolio update 或 reconciliation input。
+- PR evidence 必须确认不解析 production raw payload，不保存 raw payload，不读取 production secret，不连接 production endpoint / broker gateway，不执行 reconciliation，不更新 Portfolio，不暴露 Dashboard command surface，不启用 production trading，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+GH-532 必须建立的主要 anchors：
+
+- `GH-532-BINANCE-EXECUTION-REPORT-BROKER-FILL-PARSER`
+- `GH-532-EXECUTIONENGINE-EVENT-MODEL-HANDOFF`
+- `GH-532-BROKER-FILL-MAPPING`
+- `GH-532-PARTIAL-CANCEL-REJECT-EVIDENCE`
+- `GH-532-INVALID-REPORT-BLOCKED-EVIDENCE`
+- `GH-532-PRODUCTION-PARSER-DISABLED`
+- `TVM-RELEASE-V010-EXECUTION-REPORT-BROKER-FILL-PARSER`
+- `testGH532BinanceExecutionReportParserMapsBrokerFillAndInvalidEvidence`
+
+## GH-532 禁止
+
+- 不启用 non-Binance venue。
+- 不启用 non-EMA active strategy。
+- 不读取、打印、保存或推导 production secret。
+- 不接受 production raw execution report、production endpoint、production stream endpoint 或 production broker endpoint。
+- 不连接 production broker 或 broker gateway。
+- 不把 #531 testnet command evidence 扩大成 production submit / cancel / replace。
+- 不执行 reconciliation 或 Portfolio update；该能力留给 GH-533。
+- 不暴露 Dashboard command surface、trading button、live command 或 order form。
+- 不绕过 RiskEngine、ExecutionEngine、OMS、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-530 ExecutionEngine OMS Lifecycle Validation
 
 GH-530 必须运行：
