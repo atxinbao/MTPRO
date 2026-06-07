@@ -15516,3 +15516,36 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 380 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-07 - GH-468 L4 Dashboard / Live PRO Console command split
+
+- Issue: GH-468 `L4: 17/21 Add Dashboard / Live PRO Console read-only-to-command split`
+- Queue:
+  - GitHub fallback queue used because this L4 stage is not using Linear.
+  - WIP=1 preflight passed before implementation: #468 was OPEN with `mtpro / backlog / non-executable`; dependencies #464, #465, #466 and #467 were CLOSED with `done`; no other open issue carried `todo`, `in-progress` or `in-review`; no open PR was present.
+  - #468 was promoted to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `docs/contracts/l4-dashboard-livepro-command-split-contract.md`.
+  - Added `Sources/Dashboard/FutureLiveProConsole/L4DashboardCommandSplit.swift`.
+  - Added `AppTests` coverage for Dashboard read-model-only preservation, future Live PRO Console command gate state, read-only / armed / blocked / incident state coverage, command UI default invisible / disabled, and Dashboard command / production bypass rejection.
+  - Backfilled `TVM-L4-DASHBOARD-LIVEPRO-COMMAND-SPLIT`, validation plan, domain language, latest summary and automation readiness anchors.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No real API key / secret read, storage, print or repository commit.
+  - No guarded UI implementation.
+  - No Dashboard submit / cancel / replace.
+  - No trading button.
+  - No order form.
+  - No production command.
+  - No RiskEngine bypass.
+  - No OMS bypass.
+  - No broker gateway touch.
+  - No signed endpoint call.
+  - No real order submission / cancellation / replacement.
+- Validation:
+  - `swift test --filter 'AppTests/testGH468'`: pass; 2 tests / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 382 XCTest / 0 failures; final output `MTPRO checks passed.`

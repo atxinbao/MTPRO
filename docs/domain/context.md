@@ -3550,6 +3550,32 @@ No secret / raw payload 固定 audit trail 和 replay input/output 不包含 API
 
 L4 audit trail / incident replay matrix 必须证明 command evidence trace、append-only sequence、deterministic replay、secret / raw payload exclusion 和 forbidden runtime flags 全部成立，并保持 production incident ops、external audit upload、production broker replay、repair command、ExecutionClient call、broker gateway 和 Live command surface 全部关闭。
 
+## GH-468 L4 Dashboard Live PRO Console Command Split Terms
+
+`GH-468-DASHBOARD-LIVEPRO-READONLY-COMMAND-SPLIT`
+
+L4 Dashboard / Live PRO Console command split 指 Dashboard read-model-only surface 与未来 gated command console 的分离合同。Dashboard 继续只消费 ViewModel / ReadModel / CommandGate state；submit / cancel / replace 只能作为未来 Live PRO Console gate action labels 被描述。
+
+`GH-468-DASHBOARD-READ-MODEL-ONLY`
+
+Dashboard read-model-only 固定 Dashboard 不显示 submit / cancel / replace，不显示 trading button，不显示 order form，不提供 broker connect、signed endpoint、account endpoint 或 private stream control。
+
+`GH-468-LIVEPRO-CONSOLE-COMMAND-GATE`
+
+Live PRO Console command gate 固定未来 command surface 的唯一位置是独立 Live PRO Console gate。GH-468 只定义 gate state 和 action labels，不渲染按钮，不启用 command，不提交 / 撤销 / 替换订单。
+
+`GH-468-READONLY-ARMED-BLOCKED-INCIDENT-STATES`
+
+Read-only / armed / blocked / incident states 固定 command gate 必须能表达只读、已武装但未启用、被 kill switch / shutdown gate 阻断、incident review 四类状态。状态只进入 ViewModel evidence，不触发 runtime side effect。
+
+`GH-468-NO-DASHBOARD-SUBMIT-CANCEL-REPLACE`
+
+No Dashboard submit / cancel / replace 固定任何 Dashboard visible action、enabled action、trading button、order form 或 Live command exposure 都必须被合同测试拒绝。
+
+`TVM-L4-DASHBOARD-LIVEPRO-COMMAND-SPLIT`
+
+L4 Dashboard / Live PRO Console command split matrix 必须证明 Dashboard read-model-only、future Live PRO Console command gate、read-only / armed / blocked / incident states、默认 invisible / disabled UI 和 forbidden command flags 全部成立，并保持 production command、RiskEngine bypass、OMS bypass、broker gateway、signed endpoint 和 real order submit 全部关闭。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

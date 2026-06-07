@@ -444,6 +444,28 @@ GH-467 必须建立的主要 anchors：
 - `GH-467-NO-SECRET-RAW-PAYLOAD`
 - `TVM-L4-AUDIT-TRAIL-INCIDENT-REPLAY`
 
+## GH-468 L4 Dashboard Live PRO Console Command Split Validation
+
+GH-468 的 required validation：
+
+- `docs/contracts/l4-dashboard-livepro-command-split-contract.md` 必须存在，并包含 `GH-468-DASHBOARD-LIVEPRO-READONLY-COMMAND-SPLIT`、`GH-468-DASHBOARD-READ-MODEL-ONLY`、`GH-468-LIVEPRO-CONSOLE-COMMAND-GATE`、`GH-468-READONLY-ARMED-BLOCKED-INCIDENT-STATES`、`GH-468-NO-DASHBOARD-SUBMIT-CANCEL-REPLACE`、`GH-468-NON-AUTHORIZATION` 和 `TVM-L4-DASHBOARD-LIVEPRO-COMMAND-SPLIT`。
+- `Sources/Dashboard/FutureLiveProConsole/L4DashboardCommandSplit.swift` 必须定义 `L4DashboardLivePROConsoleCommandSplitContract`、`L4LivePROConsoleCommandGateViewModel`、`L4DashboardLivePROConsoleCommandSplitEvidence` 和 `L4DashboardCommandSplitRuntime`。
+- `Tests/AppTests/AppTests.swift` 必须包含 `testGH468DashboardLivePROConsoleSplitKeepsDashboardReadModelOnly` 和 `testGH468DashboardLivePROConsoleSplitRejectsDashboardCommandsAndGateBypass`。
+- Dashboard 必须继续 read-model-only，且不得提供 submit / cancel / replace、trading button、order form、broker connect、signed endpoint、account endpoint 或 private stream control。
+- Future Live PRO Console gate 必须表达 read-only、armed、blocked、incident 四类状态，并保持 command surface default invisible or disabled until GH-469。
+- Evidence 必须证明 UI 只消费 ViewModel / ReadModel / CommandGate state，并继续要求 RiskEngine gate、OMS gate、kill switch gate、reconciliation evidence 和 audit trail evidence。
+- Boundary tests 必须拒绝 Dashboard command surface、提前启用 Live PRO Console command UI、production command、RiskEngine bypass、OMS bypass、broker gateway touch、signed endpoint call 和 real order submit。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`，不依赖真实 secret、broker credential、signed/account endpoint、listenKey、private WebSocket、production endpoint 或人工验收。
+
+GH-468 必须建立的主要 anchors：
+
+- `GH-468-DASHBOARD-LIVEPRO-READONLY-COMMAND-SPLIT`
+- `GH-468-DASHBOARD-READ-MODEL-ONLY`
+- `GH-468-LIVEPRO-CONSOLE-COMMAND-GATE`
+- `GH-468-READONLY-ARMED-BLOCKED-INCIDENT-STATES`
+- `GH-468-NO-DASHBOARD-SUBMIT-CANCEL-REPLACE`
+- `TVM-L4-DASHBOARD-LIVEPRO-COMMAND-SPLIT`
+
 ## MTP-24 Trading Validation Matrix Validation
 
 MTP-24 的 required validation：

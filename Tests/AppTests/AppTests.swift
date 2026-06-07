@@ -231,6 +231,129 @@ final class AppTests: XCTestCase {
         XCTAssertEqual(decoded, viewModel)
     }
 
+    func testGH468DashboardLivePROConsoleSplitKeepsDashboardReadModelOnly() throws {
+        // 测试场景：GH-468 只允许 Dashboard 继续展示 read-model-only evidence，并把未来
+        // submit / cancel / replace command surface 固定在独立 Live PRO Console gate 中。
+        let dashboardBoundary = DashboardTargetBoundary.gh420
+        let runtime = try L4DashboardCommandSplitRuntime.deterministicFixture()
+        let evidence = try runtime.deterministicEvidence()
+
+        XCTAssertTrue(dashboardBoundary.dependencyDirectionHeld)
+        XCTAssertTrue(runtime.runtimeBoundaryHeld)
+        XCTAssertTrue(evidence.splitEvidenceHeld)
+        XCTAssertEqual(evidence.contract.issueID, "GH-468")
+        XCTAssertEqual(evidence.contract.upstreamIssueIDs, ["GH-464", "GH-465", "GH-466", "GH-467"])
+        XCTAssertEqual(evidence.contract.dashboardSurface, .dashboard)
+        XCTAssertEqual(evidence.contract.commandSurface, .livePROConsole)
+        XCTAssertEqual(evidence.contract.dashboardState, .readOnly)
+        XCTAssertEqual(evidence.contract.commandGateStates, L4CommandGateState.allCases)
+        XCTAssertEqual(evidence.contract.liveConsoleGatedActions, L4LiveCommandAction.allCases)
+        XCTAssertTrue(evidence.contract.dashboardVisibleActions.isEmpty)
+        XCTAssertTrue(evidence.contract.dashboardEnabledActions.isEmpty)
+        XCTAssertFalse(evidence.contract.commandUIDefaultVisible)
+        XCTAssertFalse(evidence.contract.commandUIDefaultEnabled)
+        XCTAssertTrue(evidence.contract.consumesViewModelReadModelCommandGateState)
+        XCTAssertTrue(evidence.contract.riskEngineGateRequired)
+        XCTAssertTrue(evidence.contract.omsGateRequired)
+        XCTAssertTrue(evidence.contract.killSwitchGateRequired)
+        XCTAssertTrue(evidence.contract.reconciliationEvidenceRequired)
+        XCTAssertTrue(evidence.contract.auditTrailEvidenceRequired)
+        XCTAssertFalse(evidence.contract.productionCommandEnabled)
+        XCTAssertFalse(evidence.contract.brokerGatewayTouched)
+        XCTAssertFalse(evidence.contract.signedEndpointCalled)
+        XCTAssertFalse(evidence.contract.realOrderSubmitted)
+
+        XCTAssertEqual(Set(evidence.commandGateViewModels.map(\.state)), Set(L4CommandGateState.allCases))
+        XCTAssertTrue(evidence.commandGateViewModels.allSatisfy(\.commandGateBoundaryHeld))
+        XCTAssertTrue(evidence.commandGateViewModels.allSatisfy { $0.surface == .livePROConsole })
+        XCTAssertTrue(evidence.commandGateViewModels.allSatisfy { $0.gatedActions == L4LiveCommandAction.allCases })
+        XCTAssertTrue(evidence.commandGateViewModels.allSatisfy { $0.dashboardCommandSurfaceVisible == false })
+        XCTAssertTrue(evidence.commandGateViewModels.allSatisfy { $0.commandSurfaceEnabled == false })
+        XCTAssertTrue(evidence.commandGateViewModels.allSatisfy(\.consumesCommandGateState))
+        XCTAssertTrue(evidence.commandGateViewModels.allSatisfy(\.requiresGH469GuardedUISurface))
+        XCTAssertTrue(evidence.commandGateViewModels.allSatisfy(\.riskEngineGateRequired))
+        XCTAssertTrue(evidence.commandGateViewModels.allSatisfy(\.omsGateRequired))
+        XCTAssertTrue(evidence.commandGateViewModels.allSatisfy(\.killSwitchGateRequired))
+        XCTAssertTrue(evidence.commandGateViewModels.allSatisfy(\.reconciliationEvidenceRequired))
+        XCTAssertTrue(evidence.commandGateViewModels.allSatisfy(\.auditTrailEvidenceRequired))
+        XCTAssertTrue(evidence.commandGateViewModels.allSatisfy { $0.submitsRealOrder == false })
+        XCTAssertTrue(evidence.commandGateViewModels.allSatisfy { $0.cancelsRealOrder == false })
+        XCTAssertTrue(evidence.commandGateViewModels.allSatisfy { $0.replacesRealOrder == false })
+        XCTAssertFalse(try XCTUnwrap(evidence.commandGateViewModels.first { $0.state == .readOnly }).liveConsoleCommandSurfaceVisible)
+        XCTAssertTrue(try XCTUnwrap(evidence.commandGateViewModels.first { $0.state == .armed }).liveConsoleCommandSurfaceVisible)
+        XCTAssertTrue(try XCTUnwrap(evidence.commandGateViewModels.first { $0.state == .blocked }).liveConsoleCommandSurfaceVisible)
+        XCTAssertFalse(try XCTUnwrap(evidence.commandGateViewModels.first { $0.state == .incident }).liveConsoleCommandSurfaceVisible)
+
+        XCTAssertTrue(evidence.dashboardReadModelOnly)
+        XCTAssertTrue(evidence.commandSurfaceOnlyInLivePROConsole)
+        XCTAssertTrue(evidence.commandUIDefaultInvisibleOrDisabled)
+        XCTAssertTrue(evidence.consumesOnlyViewModelReadModelCommandGateState)
+        XCTAssertFalse(evidence.dashboardProvidesSubmitCancelReplace)
+        XCTAssertFalse(evidence.productionCommandEnabled)
+        XCTAssertFalse(evidence.riskEngineBypassed)
+        XCTAssertFalse(evidence.omsBypassed)
+        XCTAssertFalse(evidence.brokerGatewayTouched)
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-468-DASHBOARD-LIVEPRO-READONLY-COMMAND-SPLIT"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-468-DASHBOARD-READ-MODEL-ONLY"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-468-LIVEPRO-CONSOLE-COMMAND-GATE"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-468-READONLY-ARMED-BLOCKED-INCIDENT-STATES"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-468-NO-DASHBOARD-SUBMIT-CANCEL-REPLACE"))
+        XCTAssertTrue(evidence.validationAnchors.contains("TVM-L4-DASHBOARD-LIVEPRO-COMMAND-SPLIT"))
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/Dashboard/FutureLiveProConsole/L4DashboardCommandSplit.swift"
+                ).path
+            )
+        )
+    }
+
+    func testGH468DashboardLivePROConsoleSplitRejectsDashboardCommandsAndGateBypass() throws {
+        // 测试场景：Dashboard command surface、提前启用 Live PRO Console command UI、
+        // production command 或缺少 gate state coverage 都必须被 GH-468 合同拒绝。
+        XCTAssertThrowsError(
+            try L4DashboardLivePROConsoleCommandSplitContract(
+                dashboardVisibleActions: [.submit]
+            )
+        ) { error in
+            XCTAssertEqual(error as? L4DashboardCommandSplitContractError, .dashboardCommandSurfaceExposed)
+        }
+
+        XCTAssertThrowsError(
+            try L4LivePROConsoleCommandGateViewModel(
+                state: .armed,
+                commandSurfaceEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? L4DashboardCommandSplitContractError,
+                .liveConsoleEnabledBeforeGuardedUIIssue
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4DashboardCommandSplitRuntime(productionCommandEnabled: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? L4DashboardCommandSplitContractError,
+                .forbiddenCapabilityEnabled("productionCommandEnabled")
+            )
+        }
+
+        let runtime = try L4DashboardCommandSplitRuntime.deterministicFixture()
+        let evidence = try runtime.deterministicEvidence()
+        XCTAssertThrowsError(
+            try L4DashboardLivePROConsoleCommandSplitEvidence(
+                contract: evidence.contract,
+                commandGateViewModels: Array(evidence.commandGateViewModels.dropLast())
+            )
+        ) { error in
+            XCTAssertEqual(error as? L4DashboardCommandSplitContractError, .commandGateStatesMismatch)
+        }
+    }
+
     func testAccountPositionBalanceReadModelOnlySurfaceAggregatesMTP138Evidence() throws {
         // 测试场景：MTP-138 只把 MTP-137 deterministic fixture 映射成 App 层 ReadModel / ViewModel，
         // 供 Workbench、Report 和 Event Timeline 展示；任何 account connect、broker connect 或交易入口都必须缺席。
