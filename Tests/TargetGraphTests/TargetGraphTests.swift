@@ -4999,6 +4999,120 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH509DryRunShadowNoDefaultTradingEvidenceBindsUpstreamGatesAndReadModelSurfaces() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let manualGate = try ProductionCutoverManualApprovalGate.deterministicFixture()
+        let incidentGate = try ProductionCutoverIncidentRollbackNoTradeGate.deterministicFixture()
+        let limitGate = try ProductionCutoverCapitalRiskLimitGate.deterministicFixture()
+        let evidence = try ProductionCutoverDryRunShadowNoDefaultTradingEvidence.deterministicFixture()
+
+        XCTAssertTrue(manualGate.gateHeld)
+        XCTAssertTrue(incidentGate.gateHeld)
+        XCTAssertTrue(limitGate.gateHeld)
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.proofCoverageHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-509")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-506", "GH-507", "GH-508"])
+        XCTAssertEqual(evidence.canonicalQueueRange, "GH-503..GH-510")
+        XCTAssertEqual(Set(evidence.modes), Set(ProductionCutoverDryRunProofMode.allCases))
+        XCTAssertEqual(Set(evidence.surfaces), Set(ProductionCutoverDryRunEvidenceSurface.allCases))
+        XCTAssertEqual(
+            Set(evidence.forbiddenCapabilities),
+            Set(ProductionCutoverDryRunForbiddenCapability.allCases)
+        )
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-509-REPORT-DASHBOARD-EVENTS-READ-MODEL-ONLY"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-509-NO-SANDBOX-TO-PRODUCTION-PROMOTION"))
+
+        XCTAssertTrue(evidence.manualApprovalGateRequired)
+        XCTAssertTrue(evidence.incidentRollbackNoTradeGateRequired)
+        XCTAssertTrue(evidence.capitalRiskLimitGateRequired)
+        XCTAssertTrue(evidence.noDefaultTradingRequired)
+        XCTAssertTrue(evidence.reportSurfaceReadModelOnly)
+        XCTAssertTrue(evidence.dashboardSurfaceReadModelOnly)
+        XCTAssertTrue(evidence.eventsSurfaceReadModelOnly)
+
+        for forbidden in [
+            evidence.implementsProductionExecution,
+            evidence.implementsRealBrokerShadowTrading,
+            evidence.connectsBroker,
+            evidence.readsSecretValue,
+            evidence.callsSignedEndpoint,
+            evidence.callsAccountEndpoint,
+            evidence.createsListenKey,
+            evidence.opensPrivateWebSocket,
+            evidence.sandboxCommandPromotesProductionCommand,
+            evidence.productionTradingEnabledByDefault,
+            evidence.submitsRealOrder,
+            evidence.cancelsRealOrder,
+            evidence.replacesRealOrder,
+            evidence.exposesLiveCommandSurface,
+            evidence.exposesTradingButton,
+            evidence.exposesOrderForm
+        ] {
+            XCTAssertFalse(forbidden)
+        }
+
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/ProductionCutoverDryRunShadowNoDefaultTradingEvidence.swift"
+                ).path
+            )
+        )
+    }
+
+    func testGH509DryRunShadowNoDefaultTradingEvidenceRejectsBrokerSecretAndProductionPromotion() throws {
+        XCTAssertThrowsError(
+            try ProductionCutoverDryRunShadowNoDefaultTradingEvidence(
+                implementsProductionExecution: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("implementsProductionExecution")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try ProductionCutoverDryRunShadowNoDefaultTradingEvidence(
+                readsSecretValue: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("readsSecretValue"))
+        }
+
+        XCTAssertThrowsError(
+            try ProductionCutoverDryRunShadowNoDefaultTradingEvidence(
+                sandboxCommandPromotesProductionCommand: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("sandboxCommandPromotesProductionCommand")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try ProductionCutoverDryRunShadowNoDefaultTradingEvidence(
+                submitsRealOrder: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("submitsRealOrder"))
+        }
+
+        XCTAssertThrowsError(
+            try ProductionCutoverDryRunProofEvidence(
+                evidenceID: Identifier.constant("gh-509-unsafe-secret-read"),
+                mode: .shadow,
+                expectedEvidence: "unsafe shadow secret read",
+                blockedReason: "must be rejected",
+                readsSecretValue: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("readsSecretValue"))
+        }
+    }
+
     func testGH434DeterministicValueObjectConstantsUseExplicitConstructors() throws {
         let identifier = Identifier.constant(" gh-434-identifier ", field: "gh434Identifier")
         XCTAssertEqual(identifier.rawValue, "gh-434-identifier")
