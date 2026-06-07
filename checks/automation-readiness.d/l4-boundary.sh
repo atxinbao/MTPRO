@@ -10,6 +10,7 @@ require_file "docs/contracts/production-cutover-environment-isolation-gate-contr
 require_file "docs/contracts/production-cutover-broker-venue-capability-matrix-contract.md"
 require_file "docs/contracts/production-cutover-manual-approval-operator-confirmation-gate-contract.md"
 require_file "docs/contracts/production-cutover-incident-rollback-no-trade-gate-contract.md"
+require_file "docs/contracts/production-cutover-capital-risk-limit-gate-contract.md"
 require_file "Sources/ExecutionClient/FutureGate/L4LiveProductionCommandContract.swift"
 require_file "Sources/ExecutionClient/FutureGate/L4ProductionCutoverGatePolicy.swift"
 require_file "Sources/ExecutionClient/FutureGate/ProductionCutoverCredentialSecretPolicyGate.swift"
@@ -17,6 +18,7 @@ require_file "Sources/ExecutionClient/FutureGate/ProductionCutoverEnvironmentIso
 require_file "Sources/ExecutionClient/FutureGate/ProductionCutoverManualApprovalGate.swift"
 require_file "Sources/ExecutionClient/FutureGate/ProductionCutoverIncidentRollbackNoTradeGate.swift"
 require_file "Sources/ExecutionClient/BrokerCapabilityMatrix/ProductionCutoverBrokerVenueCapabilityMatrix.swift"
+require_file "Sources/RiskEngine/LiveGate/ProductionCutoverCapitalRiskLimitGate.swift"
 require_contains "docs/contracts/l4-live-production-command-contract.md" "GH-452-NO-DEFAULT-REAL-TRADING-POLICY"
 require_contains "docs/contracts/l4-production-cutover-no-default-real-trading-policy.md" "TVM-L4-PRODUCTION-CUTOVER-GATE"
 require_contains "docs/contracts/production-cutover-credential-secret-policy-gate-contract.md" "GH-503-PRODUCTION-CUTOVER-CREDENTIAL-SECRET-POLICY-GATE"
@@ -29,6 +31,8 @@ require_contains "docs/contracts/production-cutover-manual-approval-operator-con
 require_contains "docs/contracts/production-cutover-manual-approval-operator-confirmation-gate-contract.md" "GH-506-NO-APPROVAL-BYPASS"
 require_contains "docs/contracts/production-cutover-incident-rollback-no-trade-gate-contract.md" "GH-507-INCIDENT-STOP-ROLLBACK-NO-TRADE-GATE"
 require_contains "docs/contracts/production-cutover-incident-rollback-no-trade-gate-contract.md" "GH-507-NO-PRODUCTION-RUNTIME-COMMAND"
+require_contains "docs/contracts/production-cutover-capital-risk-limit-gate-contract.md" "GH-508-CAPITAL-RISK-NOTIONAL-EXPOSURE-LIMIT-GATE"
+require_contains "docs/contracts/production-cutover-capital-risk-limit-gate-contract.md" "GH-508-NO-LIVE-RISK-PRETRADE-RUNTIME"
 require_contains "Sources/ExecutionClient/FutureGate/L4LiveProductionCommandContract.swift" "productionTradingEnabledByDefault"
 require_contains "Sources/ExecutionClient/FutureGate/L4ProductionCutoverGatePolicy.swift" "automaticProductionCutoverEnabled"
 require_contains "Sources/ExecutionClient/FutureGate/ProductionCutoverCredentialSecretPolicyGate.swift" "ProductionCutoverCredentialSecretPolicyGate"
@@ -41,6 +45,8 @@ require_contains "Sources/ExecutionClient/FutureGate/ProductionCutoverIncidentRo
 require_contains "Sources/ExecutionClient/FutureGate/ProductionCutoverIncidentRollbackNoTradeGate.swift" "GH-507-INCIDENT-STOP-ROLLBACK-NO-TRADE-GATE"
 require_contains "Sources/ExecutionClient/BrokerCapabilityMatrix/ProductionCutoverBrokerVenueCapabilityMatrix.swift" "ProductionCutoverBrokerVenueCapabilityMatrix"
 require_contains "Sources/ExecutionClient/BrokerCapabilityMatrix/ProductionCutoverBrokerVenueCapabilityMatrix.swift" "GH-505-BROKER-VENUE-CAPABILITY-MATRIX"
+require_contains "Sources/RiskEngine/LiveGate/ProductionCutoverCapitalRiskLimitGate.swift" "ProductionCutoverCapitalRiskLimitGate"
+require_contains "Sources/RiskEngine/LiveGate/ProductionCutoverCapitalRiskLimitGate.swift" "GH-508-CAPITAL-RISK-NOTIONAL-EXPOSURE-LIMIT-GATE"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH471ProductionCutoverGatePolicyDefinesNoDefaultRealTradingBoundary"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH471ProductionCutoverGatePolicyRejectsAutomaticCutoverAndProductionBypass"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH503ProductionCredentialSecretPolicyGateDefinesNoDefaultSecretReadContract"
@@ -53,6 +59,8 @@ require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH506Manua
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH506ManualApprovalGateRejectsConfigEnvUIAndSandboxBypass"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH507IncidentRollbackNoTradeGateBindsManualApprovalAndNoTradePriority"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH507IncidentRollbackNoTradeGateRejectsRuntimeCommandAndOrderBypass"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH508CapitalRiskLimitGateBindsBrokerMatrixAndManualApproval"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH508CapitalRiskLimitGateRejectsLiveRiskRuntimeAndAccountReads"
 
 python3 - <<'PY'
 from pathlib import Path
