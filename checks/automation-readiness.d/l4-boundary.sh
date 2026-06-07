@@ -12,6 +12,7 @@ require_file "docs/contracts/production-cutover-manual-approval-operator-confirm
 require_file "docs/contracts/production-cutover-incident-rollback-no-trade-gate-contract.md"
 require_file "docs/contracts/production-cutover-capital-risk-limit-gate-contract.md"
 require_file "docs/contracts/production-cutover-dry-run-shadow-no-default-trading-evidence-contract.md"
+require_file "docs/audit/inputs/mtpro-production-cutover-readiness-real-broker-enablement-gate-v1-stage-audit-input.md"
 require_file "Sources/ExecutionClient/FutureGate/L4LiveProductionCommandContract.swift"
 require_file "Sources/ExecutionClient/FutureGate/L4ProductionCutoverGatePolicy.swift"
 require_file "Sources/ExecutionClient/FutureGate/ProductionCutoverCredentialSecretPolicyGate.swift"
@@ -37,6 +38,10 @@ require_contains "docs/contracts/production-cutover-capital-risk-limit-gate-cont
 require_contains "docs/contracts/production-cutover-capital-risk-limit-gate-contract.md" "GH-508-NO-LIVE-RISK-PRETRADE-RUNTIME"
 require_contains "docs/contracts/production-cutover-dry-run-shadow-no-default-trading-evidence-contract.md" "GH-509-DRY-RUN-PROOF-SHADOW-NO-DEFAULT-TRADING-EVIDENCE"
 require_contains "docs/contracts/production-cutover-dry-run-shadow-no-default-trading-evidence-contract.md" "GH-509-NO-BROKER-SECRET-REAL-ORDER"
+require_contains "docs/audit/inputs/mtpro-production-cutover-readiness-real-broker-enablement-gate-v1-stage-audit-input.md" "GH-510-STAGE-AUDIT-INPUT"
+require_contains "docs/audit/inputs/mtpro-production-cutover-readiness-real-broker-enablement-gate-v1-stage-audit-input.md" "TVM-PRODUCTION-CUTOVER-READINESS-REAL-BROKER-GATE"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-PRODUCTION-CUTOVER-READINESS-REAL-BROKER-GATE"
+require_contains "docs/automation/automation-readiness.md" "Production Cutover Readiness stage audit input anchor"
 require_contains "Sources/ExecutionClient/FutureGate/L4LiveProductionCommandContract.swift" "productionTradingEnabledByDefault"
 require_contains "Sources/ExecutionClient/FutureGate/L4ProductionCutoverGatePolicy.swift" "automaticProductionCutoverEnabled"
 require_contains "Sources/ExecutionClient/FutureGate/ProductionCutoverCredentialSecretPolicyGate.swift" "ProductionCutoverCredentialSecretPolicyGate"
@@ -69,6 +74,8 @@ require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH508Capit
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH508CapitalRiskLimitGateRejectsLiveRiskRuntimeAndAccountReads"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH509DryRunShadowNoDefaultTradingEvidenceBindsUpstreamGatesAndReadModelSurfaces"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH509DryRunShadowNoDefaultTradingEvidenceRejectsBrokerSecretAndProductionPromotion"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH510ProductionCutoverReadinessStageAuditInputDocumentsCompleteEvidenceChain"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH510ProductionCutoverReadinessCloseoutRejectsProductionRuntimeAuthorization"
 
 python3 - <<'PY'
 from pathlib import Path
