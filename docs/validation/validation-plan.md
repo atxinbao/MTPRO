@@ -506,6 +506,27 @@ GH-470 必须建立的主要 anchors：
 - `GH-470-NO-SECRET-RAW-BROKER-PAYLOAD`
 - `TVM-L4-SANDBOX-VALIDATION-MATRIX-CLOSEOUT`
 
+## GH-471 L4 Production Cutover Gate Validation
+
+GH-471 的 required validation：
+
+- `docs/contracts/l4-production-cutover-no-default-real-trading-policy.md` 必须存在，并包含 `GH-471-PRODUCTION-CUTOVER-FUTURE-GATE`、`GH-471-NO-DEFAULT-REAL-TRADING-POLICY`、`GH-471-HUMAN-ACCEPTANCE-CRITERIA`、`GH-471-ENVIRONMENT-CREDENTIAL-INCIDENT-STOP-GATES`、`GH-471-NON-AUTHORIZATION` 和 `TVM-L4-PRODUCTION-CUTOVER-GATE`。
+- `Sources/ExecutionClient/FutureGate/L4ProductionCutoverGatePolicy.swift` 必须定义 `L4ProductionCutoverPrerequisite`、`L4ProductionCutoverAcceptanceCriterion`、`L4ProductionCutoverForbiddenCapability` 和 `L4ProductionCutoverGatePolicy`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH471ProductionCutoverGatePolicyDefinesNoDefaultRealTradingBoundary` 和 `testGH471ProductionCutoverGatePolicyRejectsAutomaticCutoverAndProductionBypass`。
+- Production cutover 必须是独立 future gate；当前 L4 sandbox 不得默认变成 real trading。
+- Human acceptance criteria 必须清晰，并保持 `requiresHumanAcceptance == true`、`allowsAutomationOnlyCutover == false`。
+- Boundary tests 必须拒绝 production trading default、automatic cutover、production endpoint connection、automation-only cutover、secret read / storage、broker gateway、Dashboard / Live PRO Console production command、order form、trading button 和 real submit / cancel / replace。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`，不依赖真实 secret、broker credential、signed/account endpoint、listenKey、private WebSocket、production endpoint 或人工验收。
+- GH-471 不执行 production cutover，不授权 GH-472 Stage Audit input closure 之外的下一 Project / Issue。
+
+GH-471 必须建立的主要 anchors：
+
+- `GH-471-PRODUCTION-CUTOVER-FUTURE-GATE`
+- `GH-471-NO-DEFAULT-REAL-TRADING-POLICY`
+- `GH-471-HUMAN-ACCEPTANCE-CRITERIA`
+- `GH-471-ENVIRONMENT-CREDENTIAL-INCIDENT-STOP-GATES`
+- `TVM-L4-PRODUCTION-CUTOVER-GATE`
+
 ## MTP-24 Trading Validation Matrix Validation
 
 MTP-24 的 required validation：
