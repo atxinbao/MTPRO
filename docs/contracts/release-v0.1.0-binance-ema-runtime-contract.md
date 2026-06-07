@@ -132,6 +132,7 @@ Required anchors：
 - `GH-530-EXECUTIONENGINE-OMS-STATE-MACHINE`
 - `GH-531-BINANCE-TESTNET-SUBMIT-CANCEL-REPLACE`
 - `GH-532-BINANCE-EXECUTION-REPORT-BROKER-FILL-PARSER`
+- `GH-533-EXECUTION-ACCOUNT-PORTFOLIO-RECONCILIATION`
 - `TVM-RELEASE-V010-BINANCE-EMA-RUNTIME`
 - `TVM-RELEASE-V010-REAL-TARGET-SMOKE-COVERAGE`
 - `TVM-RELEASE-V010-BINANCE-PUBLIC-MARKET-DATA-PATH`
@@ -143,6 +144,7 @@ Required anchors：
 - `TVM-RELEASE-V010-EXECUTIONENGINE-OMS-LIFECYCLE`
 - `TVM-RELEASE-V010-BINANCE-EXECUTIONCLIENT-TESTNET-SCR`
 - `TVM-RELEASE-V010-EXECUTION-REPORT-BROKER-FILL-PARSER`
+- `TVM-RELEASE-V010-PORTFOLIO-RECONCILIATION-UPDATE-PATH`
 
 Required validation：
 
@@ -319,6 +321,34 @@ GH-532 不授权：
 - production raw payload parser、production endpoint、production secret、production broker connection 或 production trading。
 - production submit / cancel / replace。
 - Portfolio reconciliation 或 Portfolio update path；该能力留给 GH-533。
+- Dashboard command surface、trading button、live command 或 order form。
+- kill switch / no-trade / rollback controls；该能力留给 GH-536。
+
+## GH-533-EXECUTION-ACCOUNT-PORTFOLIO-RECONCILIATION
+
+`GH-533-EXECUTION-ACCOUNT-PORTFOLIO-RECONCILIATION`
+
+Portfolio reconciliation update path 指 release v0.1.0 中 `ExecutionEngine` target 对 #532 execution report / broker fill parser evidence 与 GH-526 account / balance / position read-model evidence 的 deterministic reconciliation：
+
+- input 必须绑定 #532 normalized execution event evidence 和 account snapshot read-model evidence identity，不能读取 production account endpoint、raw private payload、listenKey value、broker state 或 Dashboard command。
+- output 必须包含 Portfolio update evidence，覆盖 positions、net positions、margin requirement 和 open value。
+- matched / mismatched / stale / blocked 状态必须可审计，不能隐藏 mismatch。
+- Portfolio update 只能是 evidence / projection，不 mutate Portfolio runtime，不生成 repair command，不授权 trading execution。
+- evidence 必须保持 `productionTradingEnabledByDefault == false`、`productionAccountEndpointRead == false`、`brokerGatewayTouched == false`、`repairCommandProduced == false` 和 `dashboardCommandSurfaceTouched == false`。
+
+`TVM-RELEASE-V010-PORTFOLIO-RECONCILIATION-UPDATE-PATH`
+
+## GH-533-NON-AUTHORIZATION
+
+`GH-533-NON-AUTHORIZATION`
+
+GH-533 不授权：
+
+- 非 Binance venue。
+- 非 EMA active strategy。
+- production account endpoint、production private payload、production broker connection 或 production trading。
+- production submit / cancel / replace。
+- 自动修复 Portfolio 或 repair command。
 - Dashboard command surface、trading button、live command 或 order form。
 - kill switch / no-trade / rollback controls；该能力留给 GH-536。
 
