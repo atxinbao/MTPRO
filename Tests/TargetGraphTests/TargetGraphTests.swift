@@ -2745,6 +2745,186 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH464LiveRiskPreTradeGateProducesAllowRejectBlockedIncidentEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let riskEngineTarget = try packageTargetBlock(named: "RiskEngine", packageSource: packageSource)
+
+        let runtime = try L4LiveRiskPreTradeGateRuntime.deterministicFixture()
+        XCTAssertTrue(runtime.runtimeBoundaryHeld)
+        XCTAssertFalse(runtime.productionRiskEnabled)
+        XCTAssertFalse(runtime.productionTradingEnabled)
+        XCTAssertFalse(runtime.readsSecret)
+        XCTAssertFalse(runtime.callsExecutionClient)
+        XCTAssertFalse(runtime.touchesBrokerGateway)
+        XCTAssertFalse(runtime.mutatesPortfolio)
+        XCTAssertFalse(runtime.performsReconciliation)
+        XCTAssertFalse(runtime.exposesLiveCommandSurface)
+
+        let evidence = try runtime.deterministicEvidence()
+        XCTAssertTrue(evidence.gateEvidenceHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-464")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-457", "GH-461"])
+        XCTAssertEqual(Set(evidence.decisions.map(\.outcome)), Set(L4LiveRiskPreTradeDecisionOutcome.allCases))
+        XCTAssertTrue(evidence.decisions.allSatisfy(\.decisionBoundaryHeld))
+        XCTAssertTrue(evidence.allSandboxCommandsPassRiskEngine)
+        XCTAssertTrue(evidence.riskRejectReasonsAuditable)
+        XCTAssertTrue(evidence.commandBlockedWithoutRiskGate)
+        XCTAssertTrue(evidence.productionEnablementClosed)
+        XCTAssertFalse(evidence.callsExecutionClient)
+        XCTAssertFalse(evidence.mutatesPortfolio)
+        XCTAssertFalse(evidence.performsReconciliation)
+        XCTAssertFalse(evidence.exposesLiveCommandSurface)
+
+        let decisionsByOutcome = Dictionary(uniqueKeysWithValues: evidence.decisions.map { ($0.outcome, $0) })
+        XCTAssertEqual(decisionsByOutcome[.allow]?.rejectReasons, [.none])
+        XCTAssertEqual(decisionsByOutcome[.reject]?.rejectReasons, [.notionalLimitExceeded])
+        XCTAssertEqual(decisionsByOutcome[.blocked]?.rejectReasons, [.accountReadModelMissing, .riskGateBypassRejected])
+        XCTAssertEqual(decisionsByOutcome[.incidentStop]?.rejectReasons, [.incidentStopActive])
+
+        for decision in evidence.decisions {
+            XCTAssertTrue(decision.proposal.proposalBoundaryHeld)
+            XCTAssertTrue(decision.readModelInput.inputBoundaryHeld)
+            XCTAssertEqual(Set(decision.readModelInput.components), L4LiveRiskPreTradeReadModelInput.requiredComponents)
+            XCTAssertTrue(decision.commandPathRequiresRiskEngine)
+            XCTAssertTrue(decision.accountPositionBalanceMarginReadModelAttached)
+            XCTAssertTrue(decision.decisionAuditable)
+            XCTAssertFalse(decision.executesCommand)
+            XCTAssertFalse(decision.callsExecutionClient)
+            XCTAssertFalse(decision.touchesBrokerGateway)
+            XCTAssertFalse(decision.mutatesPortfolio)
+            XCTAssertFalse(decision.performsReconciliation)
+            XCTAssertFalse(decision.exposesLiveCommandSurface)
+        }
+
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-464-LIVE-RISKENGINE-PRE-TRADE-GATE"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-464-ORDER-PROPOSAL-RISK-INPUT"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-464-APB-MARGIN-READ-MODEL-GATE"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-464-ALLOW-REJECT-BLOCKED-INCIDENT-EVIDENCE"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-464-COMMAND-PATH-RISKENGINE-REQUIRED"))
+        XCTAssertTrue(evidence.validationAnchors.contains("TVM-L4-LIVE-RISKENGINE-PRE-TRADE-GATE"))
+
+        XCTAssertTrue(riskEngineTarget.contains("\"LiveGate\""))
+        XCTAssertFalse(riskEngineTarget.contains("\"ExecutionClient\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/RiskEngine/LiveGate/L4LiveRiskPreTradeGate.swift"
+                ).path
+            )
+        )
+    }
+
+    func testGH464LiveRiskPreTradeGateRejectsBypassAndForbiddenRuntime() throws {
+        XCTAssertThrowsError(
+            try L4LiveRiskPreTradeGateRuntime(
+                productionRiskEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("productionRiskEnabled"))
+        }
+
+        XCTAssertThrowsError(
+            try L4LiveRiskPreTradeReadModelInput(
+                accountValue: "account",
+                positionValue: "position",
+                balanceValue: "balance",
+                marginValue: "margin",
+                availableBalance: 1000,
+                marginCapacity: 1000,
+                components: ["account"]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "components",
+                    expected: "account,balance,margin,position",
+                    actual: "account"
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4LiveRiskOrderProposalInput(
+                proposalID: Identifier.constant("unsafe-gh-464-risk-bypass-proposal"),
+                commandKind: .submit,
+                symbol: "BTCUSDT",
+                quantity: 0.10,
+                limitPrice: 42120.70,
+                reason: "unsafe bypass",
+                riskGateBypassed: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("riskGateBypassed"))
+        }
+
+        let runtime = try L4LiveRiskPreTradeGateRuntime.deterministicFixture()
+        let readModelInput = try L4LiveRiskPreTradeReadModelInput.deterministicFixture()
+        let proposal = try L4LiveRiskOrderProposalInput(
+            proposalID: Identifier.constant("unsafe-gh-464-executes-command-proposal"),
+            commandKind: .submit,
+            symbol: "BTCUSDT",
+            quantity: 0.10,
+            limitPrice: 42120.70,
+            reason: "unsafe command execution"
+        )
+        XCTAssertThrowsError(
+            try L4LiveRiskPreTradeDecisionEvidence(
+                decisionID: Identifier.constant("unsafe-gh-464-executes-command-decision"),
+                proposal: proposal,
+                readModelInput: readModelInput,
+                outcome: .allow,
+                rejectReasons: [.none],
+                executesCommand: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("executesCommand"))
+        }
+
+        let evidence = try runtime.deterministicEvidence()
+        XCTAssertThrowsError(
+            try L4LiveRiskPreTradeGateEvidence(
+                decisions: Array(evidence.decisions.dropLast())
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "decisions.outcome",
+                    expected: L4LiveRiskPreTradeDecisionOutcome.allCases.map(\.rawValue).joined(separator: ","),
+                    actual: Array(evidence.decisions.dropLast()).map { $0.outcome.rawValue }.joined(separator: ",")
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4LiveRiskPreTradeGateEvidence(
+                decisions: evidence.decisions,
+                callsExecutionClient: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("callsExecutionClient"))
+        }
+
+        let rejected = try runtime.evaluate(
+            proposal: try L4LiveRiskOrderProposalInput(
+                proposalID: Identifier.constant("gh-464-focused-reject-proposal"),
+                commandKind: .replace,
+                symbol: "BTCUSDT",
+                quantity: 1.0,
+                limitPrice: 42120.70,
+                reason: "focused reject coverage"
+            ),
+            readModelInput: readModelInput
+        )
+        XCTAssertEqual(rejected.outcome, .reject)
+        XCTAssertEqual(rejected.rejectReasons, [.notionalLimitExceeded])
+    }
+
     func testGH421AllArchitectureTargetsExposeIndependentRealAPISmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-421-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)

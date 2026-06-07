@@ -3446,6 +3446,32 @@ No direct Trader / Strategy -> ExecutionClient 固定 Trader、Strategy、Live P
 
 L4 ExecutionEngine / ExecutionClient sandbox path matrix 必须证明 RiskEngine-approved proposal、ExecutionEngine handoff、sandbox request / response、execution event evidence、direct access rejection 和 OMS path required 全部成立，并保持 production execution、broker gateway、real order lifecycle、Portfolio mutation、reconciliation 和 Live command surface 全部关闭。
 
+## GH-464 L4 Live RiskEngine Pre-trade Gate Terms
+
+`GH-464-LIVE-RISKENGINE-PRE-TRADE-GATE`
+
+L4 live RiskEngine pre-trade gate 指本地 deterministic 风控 gate：它消费 order proposal risk input 和 GH-457 APB / margin read-model identity，输出 allow / reject / blocked / incident stop decision evidence。该 gate 不是 production risk enablement。
+
+`GH-464-ORDER-PROPOSAL-RISK-INPUT`
+
+Order proposal risk input 必须携带 symbol、quantity、limit price、command kind 和 GH-461 OMS contract identity。proposal 不得标记 risk gate bypass、OMS bypass 或 production trading request。
+
+`GH-464-APB-MARGIN-READ-MODEL-GATE`
+
+APB / margin read-model gate 指 RiskEngine 只接入 GH-457 read-model identity、account / position / balance / margin components 和 canonical values。RiskEngine target 不依赖 ExecutionClient，也不读取 raw account payload、broker state、Runtime object 或 Adapter request。
+
+`GH-464-ALLOW-REJECT-BLOCKED-INCIDENT-EVIDENCE`
+
+Allow / reject / blocked / incident evidence 必须覆盖 allow、notional limit exceeded reject、risk gate unavailable / bypass rejected blocked、incident stop active 四类 decision。Decision 只用于审计，不执行 command。
+
+`GH-464-COMMAND-PATH-RISKENGINE-REQUIRED`
+
+Command path RiskEngine required 固定所有 sandbox command path 必须先经过 RiskEngine。无 RiskEngine gate 时 command 不可执行；本 issue 不提交订单、不调用 ExecutionClient、不触碰 broker。
+
+`TVM-L4-LIVE-RISKENGINE-PRE-TRADE-GATE`
+
+L4 live RiskEngine pre-trade gate matrix 必须证明 proposal input、APB / margin read-model gate、allow / reject / blocked / incident evidence、command path required 和 forbidden runtime flags 全部成立，并保持 production trading、ExecutionClient call、broker gateway、Portfolio mutation、reconciliation 和 Live command surface 全部关闭。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
