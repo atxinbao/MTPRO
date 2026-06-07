@@ -816,6 +816,7 @@ public struct ReportReadModel: Equatable, Sendable {
     public let privateStreamSimulationGateEvidenceSurface: PrivateStreamSimulationGateEvidenceSurfaceReadModel
     public let liveMonitoringReadOnlyConsoleV2Surface: LiveMonitoringReadOnlyConsoleV2SurfaceReadModel
     public let releaseV010LiveMonitoringSurface: ReleaseV010LiveMonitoringSurfaceReadModel
+    public let releaseV010ControlledCommandSurface: ReleaseV010ControlledCommandSurfaceReadModel
     public let strategyTraderReadinessEvidenceSurface: StrategyTraderReadinessEvidenceSurfaceReadModel
     public let liveReadOnlyDashboardBoundary: LiveReadOnlyDashboardBoundaryReadModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel
@@ -838,6 +839,8 @@ public struct ReportReadModel: Equatable, Sendable {
             LiveMonitoringReadOnlyConsoleV2SurfaceReadModel(),
         releaseV010LiveMonitoringSurface: ReleaseV010LiveMonitoringSurfaceReadModel =
             ReleaseV010LiveMonitoringSurfaceReadModel(),
+        releaseV010ControlledCommandSurface: ReleaseV010ControlledCommandSurfaceReadModel =
+            ReleaseV010ControlledCommandSurfaceReadModel(),
         strategyTraderReadinessEvidenceSurface: StrategyTraderReadinessEvidenceSurfaceReadModel =
             StrategyTraderReadinessEvidenceSurfaceReadModel(),
         liveReadOnlyDashboardBoundary: LiveReadOnlyDashboardBoundaryReadModel = LiveReadOnlyDashboardBoundaryReadModel(),
@@ -858,6 +861,7 @@ public struct ReportReadModel: Equatable, Sendable {
         self.privateStreamSimulationGateEvidenceSurface = privateStreamSimulationGateEvidenceSurface
         self.liveMonitoringReadOnlyConsoleV2Surface = liveMonitoringReadOnlyConsoleV2Surface
         self.releaseV010LiveMonitoringSurface = releaseV010LiveMonitoringSurface
+        self.releaseV010ControlledCommandSurface = releaseV010ControlledCommandSurface
         self.strategyTraderReadinessEvidenceSurface = strategyTraderReadinessEvidenceSurface
         self.liveReadOnlyDashboardBoundary = liveReadOnlyDashboardBoundary
         self.liveTradingBlockedEvidence = liveTradingBlockedEvidence
@@ -874,6 +878,7 @@ public struct ReportReadModel: Equatable, Sendable {
             privateStreamSimulationGateEvidenceSurface.lastAppliedSequence,
             liveMonitoringReadOnlyConsoleV2Surface.lastAppliedSequence,
             releaseV010LiveMonitoringSurface.lastAppliedSequence,
+            releaseV010ControlledCommandSurface.lastAppliedSequence,
             strategyTraderReadinessEvidenceSurface.lastAppliedSequence,
             liveReadOnlyDashboardBoundary.lastAppliedSequence,
             liveTradingBlockedEvidence.lastAppliedSequence,
@@ -899,6 +904,8 @@ public struct ReportReadModel: Equatable, Sendable {
             LiveMonitoringReadOnlyConsoleV2SurfaceReadModel(),
         releaseV010LiveMonitoringSurface: ReleaseV010LiveMonitoringSurfaceReadModel =
             ReleaseV010LiveMonitoringSurfaceReadModel(),
+        releaseV010ControlledCommandSurface: ReleaseV010ControlledCommandSurfaceReadModel =
+            ReleaseV010ControlledCommandSurfaceReadModel(),
         strategyTraderReadinessEvidenceSurface: StrategyTraderReadinessEvidenceSurfaceReadModel =
             StrategyTraderReadinessEvidenceSurfaceReadModel(),
         liveReadOnlyDashboardBoundary: LiveReadOnlyDashboardBoundaryReadModel = LiveReadOnlyDashboardBoundaryReadModel(),
@@ -945,6 +952,7 @@ public struct ReportReadModel: Equatable, Sendable {
             privateStreamSimulationGateEvidenceSurface: privateStreamSimulationGateEvidenceSurface,
             liveMonitoringReadOnlyConsoleV2Surface: liveMonitoringReadOnlyConsoleV2Surface,
             releaseV010LiveMonitoringSurface: releaseV010LiveMonitoringSurface,
+            releaseV010ControlledCommandSurface: releaseV010ControlledCommandSurface,
             strategyTraderReadinessEvidenceSurface: strategyTraderReadinessEvidenceSurface,
             liveReadOnlyDashboardBoundary: liveReadOnlyDashboardBoundary,
             liveTradingBlockedEvidence: liveTradingBlockedEvidence,
@@ -1532,6 +1540,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
     public let privateStreamSimulationGateEvidenceSurface: PrivateStreamSimulationGateEvidenceSurfaceViewModel
     public let liveMonitoringReadOnlyConsoleV2Surface: LiveMonitoringReadOnlyConsoleV2SurfaceViewModel
     public let releaseV010LiveMonitoringSurface: ReleaseV010LiveMonitoringSurfaceViewModel
+    public let releaseV010ControlledCommandSurface: ReleaseV010ControlledCommandSurfaceViewModel
     public let strategyTraderReadinessEvidenceSurface: StrategyTraderReadinessEvidenceSurfaceViewModel
     public let liveReadOnlyDashboardBoundary: LiveReadOnlyDashboardBoundaryViewModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceViewModel
@@ -1749,6 +1758,18 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
     public let releaseV010LiveMonitoringProvidesCommandSurface: Bool
     public let releaseV010LiveMonitoringProvidesTradingButton: Bool
     public let releaseV010LiveMonitoringAuthorizesTradingExecution: Bool
+    public let releaseV010ControlledCommandActionCount: Int
+    public let releaseV010ControlledCommandActionLabels: [String]
+    public let releaseV010ControlledCommandDefaultModeLabels: [String]
+    public let releaseV010ControlledCommandVisibleModeLabels: [String]
+    public let releaseV010ControlledCommandProductionDisabledExplanations: [String]
+    public let releaseV010ControlledCommandEntryDefaultNoTrade: Bool
+    public let releaseV010ControlledCommandDryRunGateVisible: Bool
+    public let releaseV010ControlledCommandTestnetGateVisible: Bool
+    public let releaseV010ControlledCommandProductionDisabled: Bool
+    public let releaseV010ControlledCommandSurfaceEnabled: Bool
+    public let releaseV010ControlledCommandBoundaryHeld: Bool
+    public let releaseV010ControlledCommandAuthorizesTradingExecution: Bool
     public let liveExecutionControlBlockedGateCount: Int
     public let liveExecutionControlBlockedGateLabels: [String]
     public let liveExecutionControlBlockedReasonLabels: [String]
@@ -1817,6 +1838,9 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
         let releaseV010LiveMonitoringSurface = ReleaseV010LiveMonitoringSurfaceViewModel(
             readModel: readModel.releaseV010LiveMonitoringSurface
         )
+        let releaseV010ControlledCommandSurface = ReleaseV010ControlledCommandSurfaceViewModel(
+            readModel: readModel.releaseV010ControlledCommandSurface
+        )
         let strategyTraderReadinessEvidenceSurface =
             StrategyTraderReadinessEvidenceSurfaceViewModel(
                 readModel: readModel.strategyTraderReadinessEvidenceSurface
@@ -1852,6 +1876,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
         self.liveMonitoringReadOnlyConsoleV2Surface =
             liveMonitoringReadOnlyConsoleV2Surface
         self.releaseV010LiveMonitoringSurface = releaseV010LiveMonitoringSurface
+        self.releaseV010ControlledCommandSurface = releaseV010ControlledCommandSurface
         self.strategyTraderReadinessEvidenceSurface =
             strategyTraderReadinessEvidenceSurface
         self.liveReadOnlyDashboardBoundary = liveReadOnlyDashboardBoundary
@@ -2216,6 +2241,27 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
             releaseV010LiveMonitoringSurface.providesTradingButton
         self.releaseV010LiveMonitoringAuthorizesTradingExecution =
             releaseV010LiveMonitoringSurface.authorizesTradingExecution
+        self.releaseV010ControlledCommandActionCount = releaseV010ControlledCommandSurface.controlCount
+        self.releaseV010ControlledCommandActionLabels = releaseV010ControlledCommandSurface.actionLabels
+        self.releaseV010ControlledCommandDefaultModeLabels = releaseV010ControlledCommandSurface.defaultModeLabels
+        self.releaseV010ControlledCommandVisibleModeLabels = releaseV010ControlledCommandSurface.visibleModeLabels
+        self.releaseV010ControlledCommandProductionDisabledExplanations =
+            releaseV010ControlledCommandSurface.productionDisabledExplanations
+        self.releaseV010ControlledCommandEntryDefaultNoTrade =
+            releaseV010ControlledCommandSurface.commandEntryDefaultNoTrade
+        self.releaseV010ControlledCommandDryRunGateVisible =
+            releaseV010ControlledCommandSurface.dryRunGateVisible
+        self.releaseV010ControlledCommandTestnetGateVisible =
+            releaseV010ControlledCommandSurface.testnetGateVisible
+        self.releaseV010ControlledCommandProductionDisabled =
+            releaseV010ControlledCommandSurface.productionTradingEnabledByDefault == false
+                && releaseV010ControlledCommandSurface.productionCommandEnabled == false
+        self.releaseV010ControlledCommandSurfaceEnabled =
+            releaseV010ControlledCommandSurface.commandSurfaceEnabled
+        self.releaseV010ControlledCommandBoundaryHeld =
+            releaseV010ControlledCommandSurface.commandSurfaceBoundaryHeld
+        self.releaseV010ControlledCommandAuthorizesTradingExecution =
+            releaseV010ControlledCommandSurface.authorizesTradingExecution
         self.liveExecutionControlBlockedGateCount = liveExecutionControlBlockedEvidence
             .blockedGateCount
         self.liveExecutionControlBlockedGateLabels = liveExecutionControlBlockedEvidence
@@ -2291,6 +2337,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
             || privateStreamSimulationGateEvidenceSurface.authorizesTradingExecution
             || liveMonitoringReadOnlyConsoleV2Surface.authorizesTradingExecution
             || releaseV010LiveMonitoringSurface.authorizesTradingExecution
+            || releaseV010ControlledCommandSurface.authorizesTradingExecution
             || strategyTraderReadinessEvidenceSurface.authorizesTradingExecution
             || liveReadOnlyDashboardBoundary.authorizesTradingExecution
             || liveBlockedEvidence.authorizesTradingExecution
@@ -2605,6 +2652,7 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
             report.privateStreamSimulationGateEvidenceSurface.source,
             report.liveMonitoringReadOnlyConsoleV2Surface.source,
             report.releaseV010LiveMonitoringSurface.source,
+            report.releaseV010ControlledCommandSurface.source,
             report.strategyTraderReadinessEvidenceSurface.source,
             report.liveReadOnlyDashboardBoundary.source,
             report.liveTradingBlockedEvidence.source,

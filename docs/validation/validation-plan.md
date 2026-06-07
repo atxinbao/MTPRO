@@ -8104,6 +8104,44 @@ GH-534 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-535 Dashboard Controlled Command Surface Validation
+
+GH-535 必须运行：
+
+- `swift test --filter AppTests/testGH535ReleaseV010DashboardControlledCommandSurfaceDefaultsNoTrade`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-535 的验收要求：
+
+- `Sources/Dashboard/Report/ReleaseV010ControlledCommandSurface.swift` 必须存在，并包含 `GH-535-DASHBOARD-CONTROLLED-COMMAND-SURFACE` 和 `TVM-RELEASE-V010-DASHBOARD-CONTROLLED-COMMAND-SURFACE` anchors。
+- Dashboard report / shell smoke 必须暴露受控 command entry 数量，并证明默认 no-trade。
+- Surface 必须展示 dry-run / Binance testnet gate、production disabled explanation、RiskEngine / ExecutionEngine / OMS / kill switch gate requirement。
+- Production command 必须继续 disabled；不得读取 secret、连接 production endpoint、调用 ExecutionClient、连接 broker、提交 / 取消 / 替换真实订单。
+- PR evidence 必须确认不使用 Linear，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+GH-535 必须建立的主要 anchors：
+
+- `GH-535-DASHBOARD-CONTROLLED-COMMAND-SURFACE`
+- `GH-535-DEFAULT-NO-TRADE-COMMAND-ENTRY`
+- `GH-535-DRYRUN-TESTNET-GATE`
+- `GH-535-PRODUCTION-DISABLED-BY-DEFAULT`
+- `GH-535-NO-RISK-EXECUTION-KILLSWITCH-BYPASS`
+- `TVM-RELEASE-V010-DASHBOARD-CONTROLLED-COMMAND-SURFACE`
+- `testGH535ReleaseV010DashboardControlledCommandSurfaceDefaultsNoTrade`
+
+## GH-535 禁止
+
+- 不启用 production trading。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、account endpoint、listenKey 或 private WebSocket runtime。
+- 不让 Dashboard 直接调用 ExecutionClient、broker gateway、OMS store 或真实 order lifecycle。
+- 不绕过 RiskEngine、ExecutionEngine、OMS、kill switch、operator confirmation 或 no-trade state。
+- 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-530 ExecutionEngine OMS Lifecycle Validation
 
 GH-530 必须运行：

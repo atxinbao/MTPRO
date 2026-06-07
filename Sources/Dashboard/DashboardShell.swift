@@ -579,7 +579,8 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         let paperWorkflowEvidence = Self.metricValue("Exec workflow", in: reportMetrics)
         let paperPortfolioImpact = Self.metricValue("Paper PnL", in: reportMetrics)
         let releaseLiveMonitoringSurface = Self.metricValue("Release live", in: reportMetrics)
-        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); dashboardReadModelOnly=\(readModelSurface.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); scenarioReplayEvidence=\(scenarioReplayEvidence); scenarioQualityGates=\(scenarioQualityGates); simulatedParityEvidence=\(simulatedParityEvidence); accountPositionBalanceEvidence=\(accountPositionBalanceEvidence); privateStreamSimulationGateEvidence=\(privateStreamSimulationGateEvidence); liveMonitoringReadOnlyConsoleV2Surface=\(liveMonitoringReadOnlyConsoleV2Surface); strategyTraderReadinessSurface=\(strategyTraderReadinessSurface); defaultDemoState=\(defaultDemoState); defaultDemoScenario=\(defaultDemoScenario); betaFirstRunFallbacks=\(betaFallbacks); betaAcceptancePaths=\(betaAcceptancePaths); betaAcceptanceScenario=\(betaAcceptanceScenario); betaAcceptanceTrace=\(betaAcceptanceTrace); paperRuntimeEvidence=\(paperRuntimeEvidence); paperWorkflowEvidence=\(paperWorkflowEvidence); paperPortfolioImpact=\(paperPortfolioImpact); releaseLiveMonitoringSurface=\(releaseLiveMonitoringSurface); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveReadOnlyDashboardBoundary=\(liveReadOnlyDashboardBoundary); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
+        let releaseCommandSurface = Self.metricValue("Release commands", in: reportMetrics)
+        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); dashboardReadModelOnly=\(readModelSurface.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); scenarioReplayEvidence=\(scenarioReplayEvidence); scenarioQualityGates=\(scenarioQualityGates); simulatedParityEvidence=\(simulatedParityEvidence); accountPositionBalanceEvidence=\(accountPositionBalanceEvidence); privateStreamSimulationGateEvidence=\(privateStreamSimulationGateEvidence); liveMonitoringReadOnlyConsoleV2Surface=\(liveMonitoringReadOnlyConsoleV2Surface); strategyTraderReadinessSurface=\(strategyTraderReadinessSurface); defaultDemoState=\(defaultDemoState); defaultDemoScenario=\(defaultDemoScenario); betaFirstRunFallbacks=\(betaFallbacks); betaAcceptancePaths=\(betaAcceptancePaths); betaAcceptanceScenario=\(betaAcceptanceScenario); betaAcceptanceTrace=\(betaAcceptanceTrace); paperRuntimeEvidence=\(paperRuntimeEvidence); paperWorkflowEvidence=\(paperWorkflowEvidence); paperPortfolioImpact=\(paperPortfolioImpact); releaseLiveMonitoringSurface=\(releaseLiveMonitoringSurface); releaseCommandSurface=\(releaseCommandSurface); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveReadOnlyDashboardBoundary=\(liveReadOnlyDashboardBoundary); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
     }
 
     private static func makeSectionSnapshot(
@@ -1515,6 +1516,10 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                     value: "\(viewModel.releaseV010LiveMonitoringEvidenceCount)"
                 ),
                 DashboardShellMetric(
+                    label: "Release commands",
+                    value: "\(viewModel.releaseV010ControlledCommandActionCount)"
+                ),
+                DashboardShellMetric(
                     label: "Strategy readiness",
                     value: "\(viewModel.strategyTraderReadinessEvidenceSurface.recordCount)"
                 ),
@@ -1667,6 +1672,18 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 "Release live monitoring network: \(formatForbiddenFlag(viewModel.releaseV010LiveMonitoringSurface.opensNetworkConnection))",
                 "Release live monitoring account payload: \(formatForbiddenFlag(viewModel.releaseV010LiveMonitoringSurface.exposesAccountPayload))",
                 "Release live monitoring boundary: \(formatEvidenceFlag(viewModel.releaseV010LiveMonitoringReadModelOnlyBoundaryHeld))",
+                "Release command summary: \(viewModel.releaseV010ControlledCommandSurface.reportSummary)",
+                "Release command actions: \(joined(viewModel.releaseV010ControlledCommandActionLabels))",
+                "Release command modes: \(joined(viewModel.releaseV010ControlledCommandVisibleModeLabels))",
+                "Release command default no-trade: \(formatEvidenceFlag(viewModel.releaseV010ControlledCommandEntryDefaultNoTrade))",
+                "Release command dry-run gate: \(formatEvidenceFlag(viewModel.releaseV010ControlledCommandDryRunGateVisible))",
+                "Release command testnet gate: \(formatEvidenceFlag(viewModel.releaseV010ControlledCommandTestnetGateVisible))",
+                "Release command production disabled: \(formatEvidenceFlag(viewModel.releaseV010ControlledCommandProductionDisabled))",
+                "Release command enabled: \(formatForbiddenFlag(viewModel.releaseV010ControlledCommandSurfaceEnabled))",
+                "Release command explanations: \(joined(viewModel.releaseV010ControlledCommandProductionDisabledExplanations))",
+                "Release command panels: \(joined(viewModel.releaseV010ControlledCommandSurface.dashboardPanelSummaries))",
+                "Release command boundary: \(formatEvidenceFlag(viewModel.releaseV010ControlledCommandBoundaryHeld))",
+                "Release command trading execution: \(formatForbiddenFlag(viewModel.releaseV010ControlledCommandAuthorizesTradingExecution))",
                 "Strategy readiness summary: \(viewModel.strategyTraderReadinessEvidenceSurface.reportSummary)",
                 "Strategy readiness categories: \(joined(viewModel.strategyTraderReadinessEvidenceSurface.categories))",
                 "Strategy readiness evidence: \(joined(viewModel.strategyTraderReadinessEvidenceSurface.evidenceIDs))",
