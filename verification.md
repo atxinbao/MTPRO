@@ -16286,3 +16286,36 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true`, `dashboardReadModelOnly=true`, `releaseLiveMonitoringSurface=7`, `releaseCommandSurface=3` and `releaseKillSwitch=3`; 420 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-08 - GH-538 No-default-production-trading automation guard
+
+- Issue: GH-538 `Add no-default-production-trading automation guards`
+- Queue:
+  - GitHub fallback queue used because this release stage does not use Linear.
+  - WIP=1 preflight passed before implementation: #538 was OPEN with `mtpro / backlog / non-executable`; dependencies #536 and #537 were CLOSED with `done`; no other open issue carried `todo`, `in-progress` or `in-review`; no open PR was present.
+  - #538 was promoted to `todo`, then to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `checks/automation-readiness.d/release-v010-no-default-production-trading.sh`.
+  - Wired #538 guard into `checks/automation-readiness.d/run-domain-guards.sh`, making it part of required `bash checks/automation-readiness.sh`.
+  - Backfilled l4-boundary self-guard for the #538 script, runner, focused test, release contract, matrix, validation plan, domain context and automation readiness evidence chain.
+  - Added `TargetGraphTests/testGH538NoDefaultProductionTradingGuardIsRequiredAutomationReadiness`.
+  - Backfilled `GH-538-NO-DEFAULT-PRODUCTION-TRADING-AUTOMATION-GUARD`, `GH-538-FORBIDDEN-PRODUCTION-CONFIG-DEFAULTS`, `GH-538-SECRET-ENDPOINT-GUARD-EVIDENCE`, `GH-538-DRYRUN-TESTNET-KILLSWITCH-BYPASS-GUARD`, `TVM-RELEASE-V010-NO-DEFAULT-PRODUCTION-TRADING-GUARD`, release contract, trading matrix, validation plan, domain language, latest summary and automation readiness docs.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No production secret read, print or storage.
+  - No production endpoint, production broker endpoint, account endpoint, listenKey or private WebSocket connection.
+  - No real Binance testnet network connection.
+  - No broker connection, RiskEngine bypass, ExecutionEngine bypass, OMS bypass, kill switch bypass or no-trade bypass.
+  - No real submit / cancel / replace.
+  - No production order on failure, sandbox-to-production command promotion, automatic recovery, rollback command or broker emergency API.
+  - No production trading.
+  - No non-Binance venue.
+  - No non-EMA active strategy.
+- Validation:
+  - `bash checks/automation-readiness.d/release-v010-no-default-production-trading.sh`: pass; output `MTPRO release v0.1.0 no-default-production-trading guard passed.`
+  - `swift test --filter TargetGraphTests/testGH538NoDefaultProductionTradingGuardIsRequiredAutomationReadiness`: pass; 1 test / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true`, `dashboardReadModelOnly=true`, `releaseLiveMonitoringSurface=7`, `releaseCommandSurface=3` and `releaseKillSwitch=3`; 421 XCTest / 0 failures; final output `MTPRO checks passed.`

@@ -5964,6 +5964,94 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH538NoDefaultProductionTradingGuardIsRequiredAutomationReadiness() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let guardScriptPath = repositoryRoot.appendingPathComponent(
+            "checks/automation-readiness.d/release-v010-no-default-production-trading.sh"
+        )
+        let guardScript = try String(contentsOf: guardScriptPath, encoding: .utf8)
+        let domainGuardRunner = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.d/run-domain-guards.sh"),
+            encoding: .utf8
+        )
+        let l4Boundary = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.d/l4-boundary.sh"),
+            encoding: .utf8
+        )
+        let releaseContract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.1.0-binance-ema-runtime-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(FileManager.default.fileExists(atPath: guardScriptPath.path))
+        XCTAssertTrue(domainGuardRunner.contains("release-v010-no-default-production-trading"))
+        XCTAssertTrue(l4Boundary.contains("release-v010-no-default-production-trading.sh"))
+
+        for expected in [
+            "GH-538-NO-DEFAULT-PRODUCTION-TRADING-AUTOMATION-GUARD",
+            "GH-538-FORBIDDEN-PRODUCTION-CONFIG-DEFAULTS",
+            "GH-538-SECRET-ENDPOINT-GUARD-EVIDENCE",
+            "GH-538-DRYRUN-TESTNET-KILLSWITCH-BYPASS-GUARD",
+            "TVM-RELEASE-V010-NO-DEFAULT-PRODUCTION-TRADING-GUARD",
+            "productionTradingEnabledByDefault",
+            "productionEndpointConnectionEnabledByDefault",
+            "productionSecretReadEnabledByDefault",
+            "productionOrderSubmitEnabledByDefault",
+            "productionOrderCancelEnabledByDefault",
+            "productionOrderReplaceEnabledByDefault",
+            "productionOMSRuntimeEnabledByDefault",
+            "productionDashboardCommandEnabledByDefault",
+            "automaticProductionCutoverEnabled",
+            "failureTriggersProductionOrder",
+            "sandboxCommandPromotesProductionCommand",
+            "bypassesRiskEngine",
+            "bypassesExecutionEngine",
+            "bypassesOMS",
+            "bypassesKillSwitch",
+            "bypassesNoTradeState"
+        ] {
+            XCTAssertTrue(guardScript.contains(expected), "GH-538 guard script must contain \(expected)")
+        }
+
+        for expected in [
+            "GH-538-NO-DEFAULT-PRODUCTION-TRADING-AUTOMATION-GUARD",
+            "GH-538-FORBIDDEN-PRODUCTION-CONFIG-DEFAULTS",
+            "GH-538-SECRET-ENDPOINT-GUARD-EVIDENCE",
+            "GH-538-DRYRUN-TESTNET-KILLSWITCH-BYPASS-GUARD",
+            "TVM-RELEASE-V010-NO-DEFAULT-PRODUCTION-TRADING-GUARD"
+        ] {
+            XCTAssertTrue(releaseContract.contains(expected), "Release contract must contain \(expected)")
+            XCTAssertTrue(l4Boundary.contains(expected), "L4 boundary readiness must contain \(expected)")
+        }
+
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V010-NO-DEFAULT-PRODUCTION-TRADING-GUARD"))
+        XCTAssertTrue(validationPlan.contains("GH-538 No-default Production Trading Automation Guard Validation"))
+        XCTAssertTrue(domainContext.contains("GH-538 No-default Production Trading Automation Guard Terms"))
+        XCTAssertTrue(
+            automationReadiness.contains(
+                "Release v0.1.0 no-default-production-trading automation guard anchor"
+            )
+        )
+    }
+
     func testGH503ProductionCredentialSecretPolicyGateDefinesNoDefaultSecretReadContract() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

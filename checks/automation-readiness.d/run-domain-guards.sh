@@ -10,6 +10,7 @@ domain_scripts=(
   "dashboard-read-model"
   "forbidden-capability"
   "docs-closure"
+  "release-v010-no-default-production-trading"
 )
 
 for domain in "${domain_scripts[@]}"; do
