@@ -4782,6 +4782,112 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH507IncidentRollbackNoTradeGateBindsManualApprovalAndNoTradePriority() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let manualGate = try ProductionCutoverManualApprovalGate.deterministicFixture()
+        let incidentGate = try ProductionCutoverIncidentRollbackNoTradeGate.deterministicFixture()
+
+        XCTAssertTrue(manualGate.gateHeld)
+        XCTAssertTrue(incidentGate.gateHeld)
+        XCTAssertTrue(incidentGate.rollbackChecklistCoverageHeld)
+        XCTAssertEqual(incidentGate.issueID.rawValue, "GH-507")
+        XCTAssertEqual(incidentGate.upstreamIssueIDs.map(\.rawValue), ["GH-506"])
+        XCTAssertEqual(incidentGate.canonicalQueueRange, "GH-503..GH-510")
+        XCTAssertEqual(
+            Set(incidentGate.states),
+            Set(ProductionCutoverIncidentReadinessState.allCases)
+        )
+        XCTAssertEqual(
+            Set(incidentGate.forbiddenCapabilities),
+            Set(ProductionCutoverIncidentForbiddenCapability.allCases)
+        )
+        XCTAssertTrue(incidentGate.validationAnchors.contains("GH-507-NO-TRADE-STATE-PRIORITY"))
+        XCTAssertTrue(incidentGate.validationAnchors.contains("GH-507-NO-PRODUCTION-RUNTIME-COMMAND"))
+
+        XCTAssertTrue(incidentGate.manualApprovalGateRequired)
+        XCTAssertTrue(incidentGate.productionNoDefaultTradingRequired)
+        XCTAssertTrue(incidentGate.rollbackChecklistRequired)
+        XCTAssertTrue(incidentGate.noTradeStatePriorityRequired)
+        XCTAssertTrue(incidentGate.productionBlockedDryRunDefault)
+
+        for forbidden in [
+            incidentGate.implementsEmergencyStopRuntime,
+            incidentGate.implementsShutdownRuntime,
+            incidentGate.implementsRestoreRuntime,
+            incidentGate.implementsProductionOperationsRuntime,
+            incidentGate.exposesLiveCommandSurface,
+            incidentGate.exposesTradingButton,
+            incidentGate.exposesOrderForm,
+            incidentGate.connectsBroker,
+            incidentGate.parsesBrokerFill,
+            incidentGate.performsReconciliation,
+            incidentGate.bypassesNoTradeState,
+            incidentGate.productionTradingEnabledByDefault,
+            incidentGate.submitsRealOrder,
+            incidentGate.cancelsRealOrder,
+            incidentGate.replacesRealOrder
+        ] {
+            XCTAssertFalse(forbidden)
+        }
+
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/ProductionCutoverIncidentRollbackNoTradeGate.swift"
+                ).path
+            )
+        )
+    }
+
+    func testGH507IncidentRollbackNoTradeGateRejectsRuntimeCommandAndOrderBypass() throws {
+        XCTAssertThrowsError(
+            try ProductionCutoverIncidentRollbackNoTradeGate(
+                implementsEmergencyStopRuntime: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("implementsEmergencyStopRuntime")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try ProductionCutoverIncidentRollbackNoTradeGate(
+                exposesLiveCommandSurface: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("exposesLiveCommandSurface"))
+        }
+
+        XCTAssertThrowsError(
+            try ProductionCutoverIncidentRollbackNoTradeGate(
+                bypassesNoTradeState: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("bypassesNoTradeState"))
+        }
+
+        XCTAssertThrowsError(
+            try ProductionCutoverIncidentRollbackNoTradeGate(
+                submitsRealOrder: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("submitsRealOrder"))
+        }
+
+        XCTAssertThrowsError(
+            try ProductionCutoverIncidentRollbackEvidence(
+                evidenceID: Identifier.constant("gh-507-unsafe-runtime-command"),
+                state: .incidentStop,
+                expectedEvidence: "unsafe runtime command",
+                blockedReason: "must be rejected",
+                runtimeCommandImplemented: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("runtimeCommandImplemented"))
+        }
+    }
+
     func testGH434DeterministicValueObjectConstantsUseExplicitConstructors() throws {
         let identifier = Identifier.constant(" gh-434-identifier ", field: "gh434Identifier")
         XCTAssertEqual(identifier.rawValue, "gh-434-identifier")
