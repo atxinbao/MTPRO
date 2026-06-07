@@ -21,6 +21,7 @@ Release v0.1.0 contract 是 GH-521 至 GH-541 的共同上层合同。后续 iss
 - active venue：`Binance`
 - active concrete strategy：`EMA`
 - ownership gap retirement：`GH-522` 必须先把 `Core` / `Adapters` / `Persistence` / `Runtime` retained envelope 对 release path 的影响关闭或明确 deferred。
+- release target smoke coverage：`GH-523` 必须证明 release targets 可通过真实 public API 独立 import / use，而不只验证 `Package.swift` 文本。
 - production trading 默认关闭。
 - dry-run-first 和 testnet-first 必须先于任何真实生产讨论。
 - RiskEngine gate、ExecutionEngine lifecycle、kill switch / no-trade gate 必须先于任何 submit / cancel / replace。
@@ -34,6 +35,7 @@ Release v0.1.0 的 active construction scope 只包含：
 
 - Binance public market data runtime path。
 - Release ownership gap retirement for retained `Core` / `Adapters` / `Persistence` / `Runtime` envelopes。
+- Real target smoke tests for all release modules：`DomainModel`、`MessageBus`、`Database`、`DataClient`、`DataEngine`、`Cache`、`Trader`、`TraderStrategies`、`Portfolio`、`RiskEngine`、`ExecutionEngine`、`ExecutionClient` 和 `Dashboard`。
 - Binance signed account read runtime。
 - Binance private stream and account snapshot runtime。
 - Trader runtime lifecycle for Accounts, EMA and Coordination。
@@ -76,6 +78,7 @@ Production endpoint、production secret、production broker connection 和 produ
 | Domain | Release v0.1.0 required evidence | Issue anchors | Production default |
 | --- | --- | --- | --- |
 | Ownership / compatibility envelopes | Core / Adapters / Persistence / Runtime ownership gap closed or explicitly deferred | GH-522 | compatibility envelope cannot be release runtime owner |
+| Release target smoke coverage | DomainModel / MessageBus / Database / DataClient / DataEngine / Cache / Trader / TraderStrategies / Portfolio / RiskEngine / ExecutionEngine / ExecutionClient / Dashboard real public API smoke | GH-523 | smoke evidence cannot authorize runtime implementation or production trading |
 | DataClient / DataEngine / Cache | Binance public market data runtime path、market data freshness、cache update evidence | GH-524 | production trading disabled；public market data 不授权 order command |
 | Account / private stream | Binance signed account read、private stream、account snapshot evidence | GH-525、GH-526 | no production secret by default；no production endpoint by default |
 | Trader / EMA | Trader Accounts + EMA + Coordination lifecycle、EMA proposal runtime | GH-527、GH-528 | only EMA active；no non-EMA active strategy |
@@ -119,7 +122,9 @@ Required anchors：
 - `GH-521-ACCEPTANCE-MATRIX`
 - `GH-521-NO-DEFAULT-PRODUCTION-TRADING`
 - `GH-522-RELEASE-V010-OWNERSHIP-GAP-RETIREMENT`
+- `GH-523-RELEASE-V010-REAL-TARGET-SMOKE-COVERAGE`
 - `TVM-RELEASE-V010-BINANCE-EMA-RUNTIME`
+- `TVM-RELEASE-V010-REAL-TARGET-SMOKE-COVERAGE`
 
 Required validation：
 

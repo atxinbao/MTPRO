@@ -4426,6 +4426,156 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH523ReleaseV010TargetsExposeRealSmokeCoverage() throws {
+        let sourceID = try FoundationTargetID("gh-523-release-source")
+        let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)
+        XCTAssertEqual(domainOwnership.targetName, "DomainModel")
+        XCTAssertTrue(domainOwnership.ownsRealModuleSourceRoot)
+
+        let topic = try FoundationMessageTopic("gh523.release")
+        var foundationStream = try FoundationMessageStream()
+        let foundationEnvelope = try foundationStream.publish(
+            topic: topic,
+            sourceID: sourceID,
+            recordedAt: Date(timeIntervalSince1970: 523)
+        )
+        XCTAssertEqual(foundationStream.replay(topic: topic), [foundationEnvelope])
+
+        var checkpoint = try FoundationDatabaseCheckpoint(
+            checkpointID: try FoundationTargetID("gh-523-database-checkpoint")
+        )
+        try checkpoint.apply(foundationEnvelope)
+        XCTAssertEqual(checkpoint.lastAppliedSequence, 1)
+        XCTAssertTrue(checkpoint.ownsDatabaseSourceRoot)
+
+        let symbol = try Symbol(rawValue: "BTCUSDT")
+        let timeframe = Timeframe.oneMinute
+        let dataSource = try DataClientReadOnlyMarketDataSource(
+            sourceID: sourceID,
+            venue: .binance,
+            symbol: symbol,
+            timeframe: timeframe,
+            datasetVersion: "gh-523"
+        )
+        XCTAssertTrue(dataSource.publicReadOnlyBoundaryHeld)
+
+        let marketStream = try MessageBusJournalStreamID("gh523.market")
+        var journal = try MessageBusAppendOnlyJournal()
+        let marketEnvelope = try journal.append(
+            stream: marketStream,
+            sourceID: sourceID,
+            payloadType: "market.bar",
+            recordedAt: Date(timeIntervalSince1970: 524)
+        )
+        var cacheSnapshot = CacheReadModelSnapshot(
+            snapshotID: try FoundationTargetID("gh-523-cache"),
+            stream: marketStream,
+            symbol: symbol
+        )
+        try cacheSnapshot.apply(marketEnvelope)
+        XCTAssertEqual(cacheSnapshot.appliedEventCount, 1)
+        XCTAssertTrue(cacheSnapshot.readModelBoundaryHeld)
+
+        let replayPlan = DataEngineReadOnlyReplayPlan(
+            planID: try FoundationTargetID("gh-523-dataengine-plan"),
+            source: dataSource,
+            stream: marketStream,
+            cacheSnapshot: cacheSnapshot
+        )
+        XCTAssertTrue(replayPlan.ingestReplayQualityBoundaryHeld)
+        XCTAssertTrue(replayPlan.payloadType.contains("dataengine.public-market-data.binance.BTCUSDT.1m"))
+
+        let bars = try (0..<5).map { index in
+            let start = Date(timeIntervalSince1970: Double(index * 60))
+            return try MarketBar(
+                symbol: symbol,
+                timeframe: timeframe,
+                interval: try DateRange(start: start, end: start.addingTimeInterval(60)),
+                open: 100 + Double(index),
+                high: 101 + Double(index),
+                low: 99 + Double(index),
+                close: 100 + Double(index),
+                volume: 1 + Double(index)
+            )
+        }
+        let emaConfig = try EMACrossStrategyConfiguration(
+            strategyID: try Identifier("gh-523-ema"),
+            symbol: symbol,
+            timeframe: timeframe,
+            shortPeriod: 2,
+            longPeriod: 3
+        )
+        let emaSamples = try EMACrossStrategyContract(configuration: emaConfig).evaluate(bars)
+        let signal = try XCTUnwrap(emaSamples.last?.signal)
+        XCTAssertEqual(signal.strategyID, emaConfig.strategyID)
+
+        let traderAccount = TraderAccountContext.deterministicFixture
+        XCTAssertTrue(traderAccount.accountContextBoundaryHeld)
+        XCTAssertFalse(traderAccount.futureRealAccountGate.authorizesRealAccountRead)
+
+        let sizing = try PaperActionProposalSizingAssumption(
+            assumptionID: try Identifier("gh-523-sizing"),
+            quantity: try Quantity(0.1, field: "gh523.quantity"),
+            referencePrice: try Price(100, field: "gh523.referencePrice"),
+            liquidityRole: .maker
+        )
+        let proposal = try PaperActionProposal(
+            proposalID: try Identifier("gh-523-proposal"),
+            sessionID: try Identifier("gh-523-session"),
+            signal: signal,
+            sizingAssumption: sizing,
+            proposedAt: Date(timeIntervalSince1970: 525)
+        )
+        XCTAssertFalse(proposal.isExecutableAsRealOrder)
+
+        let exposure = PortfolioExposureSnapshot(
+            portfolioID: try Identifier("gh-523-portfolio"),
+            symbol: symbol,
+            timeframe: timeframe,
+            paperQuantity: try Quantity(0.1, field: "gh523.paperQuantity"),
+            referencePrice: try Price(100, field: "gh523.exposurePrice"),
+            source: .paperProjection,
+            observedAt: Date(timeIntervalSince1970: 526)
+        )
+        let financialProjection = try PortfolioFinancialStateProjection(
+            projectionID: try Identifier("gh-523-financial-projection"),
+            exposure: exposure,
+            projectedAt: Date(timeIntervalSince1970: 526)
+        )
+        XCTAssertTrue(financialProjection.paperOnlyBoundaryHeld)
+        XCTAssertEqual(financialProjection.exposure.grossExposureNotional, 10)
+
+        let riskDecision = try RiskEnginePreTradeOwnershipEvaluator.evaluate(
+            decisionID: try Identifier("gh-523-risk-decision"),
+            proposal: proposal,
+            portfolioExposure: exposure,
+            riskProfileID: try Identifier("gh-523-risk-profile"),
+            maxPaperNotional: 10_000,
+            sourceSequence: marketEnvelope.sequence,
+            evaluatedAt: Date(timeIntervalSince1970: 527)
+        )
+        XCTAssertTrue(riskDecision.boundaryHeld)
+        XCTAssertTrue(riskDecision.isAllowed)
+        XCTAssertFalse(riskDecision.touchesExecutionClient)
+
+        let executionHandoff = try ExecutionEnginePaperOwnershipEvaluator.handoff(
+            handoffID: try Identifier("gh-523-execution-handoff"),
+            riskDecision: riskDecision
+        )
+        XCTAssertTrue(executionHandoff.boundaryHeld)
+        XCTAssertTrue(executionHandoff.acceptedForPaperLifecycle)
+        XCTAssertFalse(executionHandoff.submitsRealOrder)
+
+        let venueContract = try L4ExecutionClientVenueAdapterContract.deterministicFixture()
+        XCTAssertTrue(venueContract.contractHeld)
+        XCTAssertTrue(venueContract.operationCoverageHeld)
+
+        let dashboard = DashboardTargetBoundary.gh420
+        XCTAssertTrue(dashboard.dependencyDirectionHeld)
+        XCTAssertTrue(dashboard.consumesReadModelOnly)
+        XCTAssertFalse(dashboard.providesLiveCommand)
+    }
+
     func testGH503ProductionCredentialSecretPolicyGateDefinesNoDefaultSecretReadContract() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

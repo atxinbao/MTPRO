@@ -15822,3 +15822,33 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 405 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-08 - GH-523 Release v0.1.0 real target smoke coverage
+
+- Issue: GH-523 `Add real target smoke tests for all release modules`
+- Queue:
+  - GitHub fallback queue used because this release stage does not use Linear.
+  - WIP=1 preflight passed before implementation: #523 was OPEN with `mtpro / backlog / non-executable`; dependency #522 was CLOSED with `done`; no other open issue carried `todo`, `in-progress` or `in-review`; no open PR was present.
+  - #523 was promoted to `todo`, then to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `TargetGraphTests/testGH523ReleaseV010TargetsExposeRealSmokeCoverage`.
+  - Backfilled `GH-523-RELEASE-V010-REAL-TARGET-SMOKE-COVERAGE` in the release v0.1.0 contract.
+  - Backfilled `TVM-RELEASE-V010-REAL-TARGET-SMOKE-COVERAGE`, validation plan, domain language, latest summary and automation readiness guard.
+  - Covered `DomainModel`, `MessageBus`, `Database`, `DataClient`, `DataEngine`, `Cache`, `Trader`, `TraderStrategies`, `Portfolio`, `RiskEngine`, `ExecutionEngine`, `ExecutionClient` and `Dashboard` through real public API smoke usage.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No release runtime implementation.
+  - No broker gateway, signed endpoint client, account endpoint client, listenKey lifecycle or private WebSocket runtime.
+  - No production secret read, print or storage.
+  - No production endpoint connection.
+  - No production trading.
+  - No real order submission / cancellation / replacement.
+  - No non-Binance venue.
+  - No non-EMA active strategy.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH523ReleaseV010TargetsExposeRealSmokeCoverage`: pass; 1 test / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 406 XCTest / 0 failures; final output `MTPRO checks passed.`

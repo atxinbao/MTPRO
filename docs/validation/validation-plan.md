@@ -7644,3 +7644,40 @@ GH-522 必须建立的主要 anchors：
 - 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## GH-523 Release v0.1.0 Real Target Smoke Coverage Validation
+
+GH-523 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH523ReleaseV010TargetsExposeRealSmokeCoverage`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-523 的验收要求：
+
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH523ReleaseV010TargetsExposeRealSmokeCoverage`，并通过真实 public API 覆盖 `DomainModel`、`MessageBus`、`Database`、`DataClient`、`DataEngine`、`Cache`、`Trader`、`TraderStrategies`、`Portfolio`、`RiskEngine`、`ExecutionEngine`、`ExecutionClient` 和 `Dashboard`。
+- `docs/contracts/release-v0.1.0-binance-ema-runtime-contract.md` 必须包含 `GH-523-RELEASE-V010-REAL-TARGET-SMOKE-COVERAGE`，并明确 smoke coverage 不授权 runtime implementation 或 production trading。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-RELEASE-V010-REAL-TARGET-SMOKE-COVERAGE` 和 `GH-523` backfill row。
+- GH-523 PR evidence 必须确认不实现 release runtime，不读取 production secret，不连接 production endpoint，不创建 signed endpoint / listenKey，不提交、取消或替换真实订单，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+GH-523 必须建立的主要 anchors：
+
+- `GH-523-RELEASE-V010-REAL-TARGET-SMOKE-COVERAGE`
+- `TVM-RELEASE-V010-REAL-TARGET-SMOKE-COVERAGE`
+- `testGH523ReleaseV010TargetsExposeRealSmokeCoverage`
+
+## GH-523 禁止
+
+- 不实现 release runtime。
+- 不新增 broker gateway、signed endpoint client、account endpoint client、listenKey lifecycle 或 private WebSocket runtime。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint 或 production broker endpoint。
+- 不提交、取消或替换真实订单。
+- 不启用 non-Binance venue。
+- 不启用 non-EMA active strategy。
+- 不把 smoke test 写成 runtime 已完成证据。
+- 不绕过 RiskEngine、ExecutionEngine、OMS、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
