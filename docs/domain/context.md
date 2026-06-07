@@ -3832,6 +3832,32 @@ No production OMS runtime 表示 release v0.1.0 当前仍保持 production OMS d
 
 Release v0.1.0 ExecutionEngine OMS lifecycle matrix 必须证明 Risk approve before execution path、state machine covers new / accepted / rejected / canceled / replaced / filled、event log audit evidence complete、production OMS runtime disabled by default、no ExecutionClient / broker / real order path。该 matrix 不授权 GH-531 testnet ExecutionClient runtime、GH-532 execution report / broker fill parser、GH-533 reconciliation、Dashboard command surface 或 production trading。
 
+## GH-531 Binance ExecutionClient Testnet SCR Terms
+
+`GH-531-BINANCE-TESTNET-SUBMIT-CANCEL-REPLACE`
+
+Binance ExecutionClient testnet submit / cancel / replace 指 release v0.1.0 中 `ExecutionClient` target 拥有的 testnet-only adapter evidence。它把 #530 local OMS evidence identity 映射为 Binance Spot testnet submit / cancel / replace request，不接受 Trader、Strategy、Dashboard、MessageBus 或外部 UI direct command。
+
+`GH-531-BINANCE-TESTNET-REQUEST-MAPPING`
+
+Binance testnet request mapping 表示 submit 使用 `POST /api/v3/order`，cancel 使用 `DELETE /api/v3/order`，replace 使用 `POST /api/v3/order/cancelReplace`，且 base URL 必须是 `https://testnet.binance.vision`。该 mapping 不保存 secret，不暴露 signature value，不连接 production endpoint，不携带 broker payload。
+
+`GH-531-TESTNET-CREDENTIAL-GUARD`
+
+Testnet credential guard 表示 GH-531 只允许 testnet credential reference 进入 evidence。credential value、signature value、production secret、production credential、keychain / environment secret reader 和 sandbox-to-production credential promotion 都必须保持关闭。
+
+`GH-531-BINANCE-TESTNET-CAPABILITY-MATRIX`
+
+Binance testnet capability matrix 固定 GH-531 只授权 testnet submit / cancel / replace mapping，并要求 RiskEngine decision、ExecutionEngine / OMS evidence 和后续 kill switch gate。Matrix 必须保持 production endpoint、production trading、production secret read、production submit / cancel / replace、broker gateway、Live command surface、RiskEngine bypass、OMS bypass、kill switch bypass、non-Binance venue 和 non-EMA active strategy 全部关闭。
+
+`GH-531-PRODUCTION-ENDPOINT-EXPLICIT-GATE`
+
+Production endpoint explicit gate 表示任何 `api.binance.com`、production credential、production order command 或 production broker endpoint 都不能从 GH-531 默认路径进入。Production cutover 仍必须等待后续 release gate、operator confirmation、risk approval 和 kill switch pass。
+
+`TVM-RELEASE-V010-BINANCE-EXECUTIONCLIENT-TESTNET-SCR`
+
+Release v0.1.0 Binance ExecutionClient testnet SCR matrix 必须证明 testnet request mapping 覆盖 submit / cancel / replace、credential reference guard 成立、#530 OMS source identity 已绑定、production endpoint explicit gate 成立，以及 execution report、broker fill、reconciliation、Dashboard command surface 和 production trading 均未开启。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
