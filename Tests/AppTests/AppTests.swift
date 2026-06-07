@@ -354,6 +354,124 @@ final class AppTests: XCTestCase {
         }
     }
 
+    func testGH469GuardedCommandUISurfaceAllowsSandboxOnlySubmitCancelReplace() throws {
+        // 测试场景：GH-469 只允许 Live PRO Console 暴露 sandbox-gated guarded controls；
+        // Dashboard 仍然 read-model-only，production gate 未满足时不能执行真实 command。
+        let runtime = try L4GuardedCommandUISurfaceRuntime.deterministicFixture()
+        let evidence = try runtime.deterministicEvidence()
+
+        XCTAssertTrue(runtime.runtimeBoundaryHeld)
+        XCTAssertTrue(evidence.guardedSurfaceEvidenceHeld)
+        XCTAssertTrue(evidence.splitEvidence.splitEvidenceHeld)
+        XCTAssertEqual(evidence.issueID, "GH-469")
+        XCTAssertEqual(evidence.upstreamIssueIDs, ["GH-468"])
+        XCTAssertEqual(evidence.controls.map(\.action), L4LiveCommandAction.allCases)
+        XCTAssertEqual(evidence.sandboxOnlyActions, L4LiveCommandAction.allCases)
+        XCTAssertTrue(evidence.dashboardReadModelOnly)
+        XCTAssertTrue(evidence.livePROConsoleSurfaceOnly)
+        XCTAssertTrue(evidence.controlsDisabledByDefault)
+        XCTAssertTrue(evidence.allControlsHaveConfirmation)
+        XCTAssertTrue(evidence.allControlsHaveAuditEvidence)
+        XCTAssertTrue(evidence.blockedReasonVisible)
+        XCTAssertTrue(evidence.incidentStopVisible)
+        XCTAssertTrue(evidence.riskEngineEvidenceConsumed)
+        XCTAssertTrue(evidence.omsEvidenceConsumed)
+        XCTAssertTrue(evidence.executionEngineSandboxEvidenceConsumed)
+        XCTAssertFalse(evidence.productionCommandEnabled)
+        XCTAssertFalse(evidence.brokerGatewayTouched)
+        XCTAssertFalse(evidence.signedEndpointCalled)
+        XCTAssertFalse(evidence.secretStored)
+        XCTAssertFalse(evidence.realSubmitCancelReplaceEnabled)
+
+        XCTAssertTrue(evidence.controls.allSatisfy(\.controlBoundaryHeld))
+        XCTAssertTrue(evidence.controls.allSatisfy { $0.surface == .livePROConsole })
+        XCTAssertTrue(evidence.controls.allSatisfy { $0.controlStates == L4GuardedCommandUIControlState.allCases })
+        XCTAssertTrue(evidence.controls.allSatisfy { $0.defaultEnabled == false })
+        XCTAssertTrue(evidence.controls.allSatisfy(\.sandboxGateEnabled))
+        XCTAssertTrue(evidence.controls.allSatisfy { $0.productionGateEnabled == false })
+        XCTAssertTrue(evidence.controls.allSatisfy(\.confirmationRequired))
+        XCTAssertTrue(evidence.controls.allSatisfy { $0.confirmationPrompt.isEmpty == false })
+        XCTAssertTrue(evidence.controls.allSatisfy { $0.confirmationEvidenceID.isEmpty == false })
+        XCTAssertTrue(evidence.controls.allSatisfy { $0.blockedReason.isEmpty == false })
+        XCTAssertTrue(evidence.controls.allSatisfy { $0.incidentStopReason.isEmpty == false })
+        XCTAssertTrue(evidence.controls.allSatisfy { $0.auditEvidenceID.isEmpty == false })
+        XCTAssertTrue(evidence.controls.allSatisfy { $0.dashboardCommandSurfaceVisible == false })
+        XCTAssertTrue(evidence.controls.allSatisfy { $0.brokerGatewayTouched == false })
+        XCTAssertTrue(evidence.controls.allSatisfy { $0.signedEndpointCalled == false })
+        XCTAssertTrue(evidence.controls.allSatisfy { $0.secretStored == false })
+        XCTAssertTrue(evidence.controls.allSatisfy { $0.submitsRealOrder == false })
+        XCTAssertTrue(evidence.controls.allSatisfy { $0.cancelsRealOrder == false })
+        XCTAssertTrue(evidence.controls.allSatisfy { $0.replacesRealOrder == false })
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-469-GUARDED-SUBMIT-CANCEL-REPLACE-UI-SURFACE"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-469-SANDBOX-GATE-ONLY-COMMANDS"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-469-CONFIRMATION-BLOCKED-INCIDENT-EVIDENCE"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-469-NO-PRODUCTION-COMMAND-DEFAULT"))
+        XCTAssertTrue(evidence.validationAnchors.contains("TVM-L4-GUARDED-COMMAND-UI-SURFACE"))
+    }
+
+    func testGH469GuardedCommandUISurfaceRejectsProductionBypassAndMissingEvidence() throws {
+        // 测试场景：GH-469 的 guarded UI surface 不能被 production command、Dashboard command surface、
+        // 缺失 confirmation、缺失 audit evidence 或绕过 sandbox evidence 的输入扩大。
+        XCTAssertThrowsError(
+            try L4GuardedCommandUISurfaceRuntime(productionCommandEnabled: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? L4GuardedCommandUISurfaceError,
+                .forbiddenCapabilityEnabled("productionCommandEnabled")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4GuardedCommandControlViewModel(
+                action: .submit,
+                surface: .dashboard
+            )
+        ) { error in
+            XCTAssertEqual(error as? L4GuardedCommandUISurfaceError, .commandSurfaceLocationMismatch)
+        }
+
+        XCTAssertThrowsError(
+            try L4GuardedCommandControlViewModel(
+                action: .cancel,
+                confirmationRequired: false
+            )
+        ) { error in
+            XCTAssertEqual(error as? L4GuardedCommandUISurfaceError, .missingConfirmation("cancel"))
+        }
+
+        XCTAssertThrowsError(
+            try L4GuardedCommandControlViewModel(
+                action: .replace,
+                auditEvidenceID: ""
+            )
+        ) { error in
+            XCTAssertEqual(error as? L4GuardedCommandUISurfaceError, .missingAuditEvidence("replace"))
+        }
+
+        XCTAssertThrowsError(
+            try L4GuardedCommandControlViewModel(
+                action: .submit,
+                executionEngineSandboxEvidenceAnchor: "production-broker-path"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? L4GuardedCommandUISurfaceError,
+                .upstreamEvidenceMismatch("executionEngineSandboxEvidenceAnchor")
+            )
+        }
+
+        let runtime = try L4GuardedCommandUISurfaceRuntime.deterministicFixture()
+        let evidence = try runtime.deterministicEvidence()
+        XCTAssertThrowsError(
+            try L4GuardedCommandUISurfaceEvidence(
+                splitEvidence: evidence.splitEvidence,
+                controls: Array(evidence.controls.dropLast())
+            )
+        ) { error in
+            XCTAssertEqual(error as? L4GuardedCommandUISurfaceError, .commandActionsMismatch)
+        }
+    }
+
     func testAccountPositionBalanceReadModelOnlySurfaceAggregatesMTP138Evidence() throws {
         // 测试场景：MTP-138 只把 MTP-137 deterministic fixture 映射成 App 层 ReadModel / ViewModel，
         // 供 Workbench、Report 和 Event Timeline 展示；任何 account connect、broker connect 或交易入口都必须缺席。

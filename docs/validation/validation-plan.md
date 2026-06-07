@@ -466,6 +466,27 @@ GH-468 必须建立的主要 anchors：
 - `GH-468-NO-DASHBOARD-SUBMIT-CANCEL-REPLACE`
 - `TVM-L4-DASHBOARD-LIVEPRO-COMMAND-SPLIT`
 
+## GH-469 L4 Guarded Command UI Surface Validation
+
+GH-469 的 required validation：
+
+- `docs/contracts/l4-guarded-command-ui-surface-contract.md` 必须存在，并包含 `GH-469-GUARDED-SUBMIT-CANCEL-REPLACE-UI-SURFACE`、`GH-469-SANDBOX-GATE-ONLY-COMMANDS`、`GH-469-CONFIRMATION-BLOCKED-INCIDENT-EVIDENCE`、`GH-469-NO-PRODUCTION-COMMAND-DEFAULT`、`GH-469-NON-AUTHORIZATION` 和 `TVM-L4-GUARDED-COMMAND-UI-SURFACE`。
+- `Sources/Dashboard/FutureLiveProConsole/L4GuardedCommandUISurface.swift` 必须定义 `L4GuardedCommandControlViewModel`、`L4GuardedCommandUISurfaceEvidence` 和 `L4GuardedCommandUISurfaceRuntime`。
+- `Tests/AppTests/AppTests.swift` 必须包含 `testGH469GuardedCommandUISurfaceAllowsSandboxOnlySubmitCancelReplace` 和 `testGH469GuardedCommandUISurfaceRejectsProductionBypassAndMissingEvidence`。
+- Guarded controls 必须覆盖 submit / cancel / replace，并保持 default disabled、sandbox gate only、production gate disabled。
+- 每个 control 必须展示 confirmation prompt、confirmation evidence ID、blocked reason、incident stop reason 和 audit evidence ID。
+- Evidence 必须消费 GH-468 split evidence，并以 anchor 方式绑定 GH-464 RiskEngine、GH-461 / GH-462 OMS、GH-463 ExecutionEngine sandbox path 和 GH-467 audit trail evidence；Dashboard target 不直接依赖 RiskEngine / OMS / ExecutionEngine target。
+- Boundary tests 必须拒绝 production command、Dashboard command surface、missing confirmation、missing audit evidence、ExecutionEngine sandbox evidence bypass、secret storage、signed endpoint call、broker gateway touch 和 real submit / cancel / replace。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`，不依赖真实 secret、broker credential、signed/account endpoint、listenKey、private WebSocket、production endpoint 或人工验收。
+
+GH-469 必须建立的主要 anchors：
+
+- `GH-469-GUARDED-SUBMIT-CANCEL-REPLACE-UI-SURFACE`
+- `GH-469-SANDBOX-GATE-ONLY-COMMANDS`
+- `GH-469-CONFIRMATION-BLOCKED-INCIDENT-EVIDENCE`
+- `GH-469-NO-PRODUCTION-COMMAND-DEFAULT`
+- `TVM-L4-GUARDED-COMMAND-UI-SURFACE`
+
 ## MTP-24 Trading Validation Matrix Validation
 
 MTP-24 的 required validation：

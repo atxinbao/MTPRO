@@ -3576,6 +3576,28 @@ No Dashboard submit / cancel / replace 固定任何 Dashboard visible action、e
 
 L4 Dashboard / Live PRO Console command split matrix 必须证明 Dashboard read-model-only、future Live PRO Console command gate、read-only / armed / blocked / incident states、默认 invisible / disabled UI 和 forbidden command flags 全部成立，并保持 production command、RiskEngine bypass、OMS bypass、broker gateway、signed endpoint 和 real order submit 全部关闭。
 
+## GH-469 L4 Guarded Command UI Surface Terms
+
+`GH-469-GUARDED-SUBMIT-CANCEL-REPLACE-UI-SURFACE`
+
+L4 guarded command UI surface 指未来 Live PRO Console 内的 sandbox-gated submit / cancel / replace controls。该 surface 只作为 ViewModel / evidence 存在，不把 Dashboard 变成交易台。
+
+`GH-469-SANDBOX-GATE-ONLY-COMMANDS`
+
+Sandbox-gate-only commands 固定 submit / cancel / replace 只在 sandbox gate 下可用，并以 GH-464 RiskEngine、GH-461 / GH-462 OMS、GH-463 ExecutionEngine sandbox path、GH-467 audit trail 和 GH-468 split evidence anchors 作为 UI evidence。Dashboard target 不直接依赖 RiskEngine / OMS / ExecutionEngine target。
+
+`GH-469-CONFIRMATION-BLOCKED-INCIDENT-EVIDENCE`
+
+Confirmation / blocked / incident evidence 固定每个 guarded control 必须展示 confirmation prompt、confirmation evidence ID、blocked reason、incident stop reason 和 audit evidence ID。缺少任一项都表示 command UI evidence 不完整。
+
+`GH-469-NO-PRODUCTION-COMMAND-DEFAULT`
+
+No production command default 固定 production gate 未满足时 UI 不可执行命令；GH-469 不读取 API key，不存储 secret，不调用 signed endpoint，不接 broker，不提交 / 撤销 / 替换真实订单。
+
+`TVM-L4-GUARDED-COMMAND-UI-SURFACE`
+
+L4 guarded command UI surface matrix 必须证明 Dashboard read-model-only、Live PRO Console surface only、controls disabled by default、sandbox-only actions、confirmation / audit / blocked / incident evidence 和 forbidden production command flags 全部成立，并保持 secret storage、signed endpoint、real broker gateway、order form、trading button 和 real submit / cancel / replace 全部关闭。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
