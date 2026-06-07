@@ -15482,3 +15482,37 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 378 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-07 - GH-467 L4 audit trail / incident replay evidence
+
+- Issue: GH-467 `L4: 16/21 Add audit trail / incident replay evidence`
+- Queue:
+  - GitHub fallback queue used because this L4 stage is not using Linear.
+  - WIP=1 preflight passed before implementation: #467 was OPEN with `mtpro / backlog / non-executable`; dependency #466 was CLOSED with `done`; no other open issue carried `todo`, `in-progress` or `in-review`; no open PR was present.
+  - #467 was promoted to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `docs/contracts/l4-audit-trail-incident-replay-contract.md`.
+  - Added `Sources/ExecutionEngine/OMSFutureGate/L4AuditTrailIncidentReplayEvidence.swift`.
+  - Added `TargetGraphTests` coverage for command intent, risk decision, execution request, broker report, OMS transition, reconciliation outcome, append-only sequence, deterministic replay, secret / raw payload exclusion and production replay bypass rejection.
+  - Backfilled `TVM-L4-AUDIT-TRAIL-INCIDENT-REPLAY`, validation plan, domain language, latest summary and automation readiness anchors.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No real API key / secret read, storage, print or repository commit.
+  - No external audit upload.
+  - No production incident ops.
+  - No production broker replay.
+  - No secret capture.
+  - No raw broker payload capture.
+  - No mutable audit trail.
+  - No repair command.
+  - No ExecutionClient call.
+  - No broker gateway touch.
+  - No production trading.
+  - No Live PRO Console command surface, trading button, live command or order form.
+- Validation:
+  - `swift test --filter 'TargetGraphTests/testGH467'`: pass; 2 tests / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 380 XCTest / 0 failures; final output `MTPRO checks passed.`

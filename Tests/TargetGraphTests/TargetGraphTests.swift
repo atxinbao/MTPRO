@@ -3328,6 +3328,207 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH467AuditTrailIncidentReplayBuildsAppendOnlyReplayEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionEngineTarget = try packageTargetBlock(named: "ExecutionEngine", packageSource: packageSource)
+
+        let runtime = try L4AuditTrailIncidentReplayRuntime.deterministicFixture()
+        XCTAssertTrue(runtime.runtimeBoundaryHeld)
+        XCTAssertTrue(runtime.sandboxPathEvidence.sandboxPathEvidenceHeld)
+        XCTAssertTrue(runtime.reconciliationEvidence.reconciliationEvidenceHeld)
+        XCTAssertFalse(runtime.externalAuditUploadEnabled)
+        XCTAssertFalse(runtime.productionIncidentOpsEnabled)
+        XCTAssertFalse(runtime.productionBrokerReplayEnabled)
+        XCTAssertFalse(runtime.capturesSecret)
+        XCTAssertFalse(runtime.capturesRawBrokerPayload)
+        XCTAssertFalse(runtime.mutableAuditTrail)
+        XCTAssertFalse(runtime.callsExecutionClient)
+        XCTAssertFalse(runtime.touchesBrokerGateway)
+        XCTAssertFalse(runtime.exposesLiveCommandSurface)
+
+        let evidence = try runtime.deterministicEvidence()
+        XCTAssertTrue(evidence.auditTrailReplayEvidenceHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-467")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-463", "GH-466"])
+        XCTAssertTrue(evidence.sandboxPathEvidence.sandboxPathEvidenceHeld)
+        XCTAssertTrue(evidence.reconciliationEvidence.reconciliationEvidenceHeld)
+        XCTAssertTrue(evidence.commandEvidenceTraceable)
+        XCTAssertTrue(evidence.incidentReplayDeterministic)
+        XCTAssertTrue(evidence.appendOnlyAuditTrail)
+        XCTAssertTrue(evidence.secretAndRawPayloadFree)
+        XCTAssertTrue(evidence.externalAuditDisabled)
+        XCTAssertTrue(evidence.productionIncidentOpsDisabled)
+        XCTAssertFalse(evidence.productionBrokerReplayEnabled)
+        XCTAssertFalse(evidence.exposesLiveCommandSurface)
+
+        XCTAssertEqual(evidence.auditTrailEntries.map(\.sequence), Array(1...evidence.auditTrailEntries.count))
+        XCTAssertEqual(Set(evidence.auditTrailEntries.map(\.commandKind)), Set(L4ExecutionClientSandboxCommandKind.allCases))
+        XCTAssertEqual(Set(evidence.auditTrailEntries.map(\.stage)), Set(L4AuditTrailIncidentReplayStage.allCases))
+        XCTAssertEqual(
+            Set(evidence.auditTrailEntries.compactMap(\.reconciliationStatus)),
+            Set(L4OMSBrokerPortfolioReconciliationStatus.allCases)
+        )
+        XCTAssertTrue(evidence.auditTrailEntries.allSatisfy(\.entryBoundaryHeld))
+
+        for commandKind in L4ExecutionClientSandboxCommandKind.allCases {
+            let commandEntries = evidence.auditTrailEntries.filter { $0.commandKind == commandKind }
+            XCTAssertEqual(Set(commandEntries.map(\.stage)), Set(L4AuditTrailIncidentReplayStage.allCases))
+        }
+
+        for entry in evidence.auditTrailEntries {
+            XCTAssertTrue(entry.appendOnlyFact)
+            XCTAssertFalse(entry.containsSecret)
+            XCTAssertFalse(entry.containsRawBrokerPayload)
+            XCTAssertFalse(entry.uploadedToExternalAudit)
+            XCTAssertFalse(entry.mutableAfterAppend)
+            XCTAssertFalse(entry.productionBrokerReplay)
+            XCTAssertFalse(entry.repairCommandProduced)
+            XCTAssertFalse(entry.callsExecutionClient)
+            XCTAssertFalse(entry.touchesBrokerGateway)
+            XCTAssertFalse(entry.exposesLiveCommandSurface)
+            XCTAssertFalse(entry.deterministicPayloadDigest.isEmpty)
+            switch entry.stage {
+            case .commandIntent:
+                XCTAssertFalse(entry.commandIntentID.rawValue.isEmpty)
+            case .riskDecision:
+                XCTAssertFalse(entry.riskDecisionID.rawValue.isEmpty)
+            case .executionRequest:
+                XCTAssertFalse(entry.executionRequestID.rawValue.isEmpty)
+            case .brokerReport:
+                XCTAssertNotNil(entry.brokerReportEventID)
+            case .omsTransition:
+                XCTAssertNotNil(entry.omsTransitionID)
+            case .reconciliationOutcome:
+                XCTAssertNotNil(entry.reconciliationRecordID)
+                XCTAssertNotNil(entry.reconciliationStatus)
+            }
+        }
+
+        XCTAssertTrue(evidence.replayInput.inputBoundaryHeld)
+        XCTAssertTrue(evidence.replayOutput.outputBoundaryHeld)
+        XCTAssertEqual(evidence.replayOutput.replayedCommandKinds, L4ExecutionClientSandboxCommandKind.allCases)
+        XCTAssertEqual(evidence.replayOutput.replayedStages, L4AuditTrailIncidentReplayStage.allCases)
+        XCTAssertEqual(evidence.replayOutput.replayedReconciliationStatuses, L4OMSBrokerPortfolioReconciliationStatus.allCases)
+        XCTAssertTrue(evidence.replayOutput.appendOnlyReplayDeterministic)
+        XCTAssertTrue(evidence.replayOutput.sandboxLifecycleReplayed)
+        XCTAssertTrue(evidence.replayOutput.secretFree)
+        XCTAssertTrue(evidence.replayOutput.rawBrokerPayloadFree)
+        XCTAssertFalse(evidence.replayOutput.externalAuditUpload)
+        XCTAssertFalse(evidence.replayOutput.productionIncidentOps)
+        XCTAssertFalse(evidence.replayOutput.productionBrokerReplay)
+        XCTAssertFalse(evidence.replayOutput.repairCommandProduced)
+        XCTAssertFalse(evidence.replayOutput.exposesLiveCommandSurface)
+
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-467-AUDIT-TRAIL-INCIDENT-REPLAY"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-467-COMMAND-EVIDENCE-TRACE"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-467-APPEND-ONLY-AUDIT-TRAIL"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-467-DETERMINISTIC-INCIDENT-REPLAY"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-467-NO-SECRET-RAW-PAYLOAD"))
+        XCTAssertTrue(evidence.validationAnchors.contains("TVM-L4-AUDIT-TRAIL-INCIDENT-REPLAY"))
+
+        XCTAssertTrue(executionEngineTarget.contains("\"OMSFutureGate\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionEngine/OMSFutureGate/L4AuditTrailIncidentReplayEvidence.swift"
+                ).path
+            )
+        )
+    }
+
+    func testGH467AuditTrailIncidentReplayRejectsExternalAuditRawPayloadAndReplayBypass() throws {
+        XCTAssertThrowsError(
+            try L4AuditTrailIncidentReplayRuntime(
+                externalAuditUploadEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("externalAuditUploadEnabled"))
+        }
+
+        let runtime = try L4AuditTrailIncidentReplayRuntime.deterministicFixture()
+        let evidence = try runtime.deterministicEvidence()
+        let firstEntry = try XCTUnwrap(evidence.auditTrailEntries.first)
+
+        XCTAssertThrowsError(
+            try L4CommandAuditTrailEntry(
+                entryID: Identifier.constant("unsafe-gh-467-zero-sequence-entry"),
+                commandKind: firstEntry.commandKind,
+                stage: .commandIntent,
+                sequence: 0,
+                commandIntentID: firstEntry.commandIntentID,
+                riskDecisionID: firstEntry.riskDecisionID,
+                executionRequestID: firstEntry.executionRequestID,
+                deterministicPayloadDigest: "unsafe"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "sequence",
+                    expected: "positive append-only GH-467 sequence",
+                    actual: "0"
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4CommandAuditTrailEntry(
+                entryID: Identifier.constant("unsafe-gh-467-secret-entry"),
+                commandKind: firstEntry.commandKind,
+                stage: .commandIntent,
+                sequence: firstEntry.sequence,
+                commandIntentID: firstEntry.commandIntentID,
+                riskDecisionID: firstEntry.riskDecisionID,
+                executionRequestID: firstEntry.executionRequestID,
+                deterministicPayloadDigest: "unsafe",
+                containsSecret: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("containsSecret"))
+        }
+
+        XCTAssertThrowsError(
+            try L4IncidentReplayOutput(
+                inputID: evidence.replayInput.inputID,
+                incidentID: evidence.replayInput.incidentID,
+                replayedEntries: evidence.auditTrailEntries,
+                replayedCommandKinds: L4ExecutionClientSandboxCommandKind.allCases,
+                replayedStages: L4AuditTrailIncidentReplayStage.allCases,
+                replayedReconciliationStatuses: L4OMSBrokerPortfolioReconciliationStatus.allCases,
+                deterministicReplayDigest: "unsafe",
+                productionBrokerReplay: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("productionBrokerReplay"))
+        }
+
+        XCTAssertThrowsError(
+            try L4AuditTrailIncidentReplayEvidence(
+                sandboxPathEvidence: evidence.sandboxPathEvidence,
+                reconciliationEvidence: evidence.reconciliationEvidence,
+                auditTrailEntries: Array(evidence.auditTrailEntries.dropLast()),
+                replayInput: evidence.replayInput,
+                replayOutput: evidence.replayOutput
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "auditTrailEntries.reconciliationStatus",
+                    expected: L4OMSBrokerPortfolioReconciliationStatus.allCases.map(\.rawValue).joined(separator: ","),
+                    actual: Set(Array(evidence.auditTrailEntries.dropLast()).compactMap(\.reconciliationStatus))
+                        .map(\.rawValue)
+                        .sorted()
+                        .joined(separator: ",")
+                )
+            )
+        }
+    }
+
     func testGH421AllArchitectureTargetsExposeIndependentRealAPISmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-421-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)

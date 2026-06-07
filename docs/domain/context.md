@@ -3524,6 +3524,32 @@ Portfolio projection no broker payload 固定 projection snapshot 只能由 norm
 
 L4 OMS / broker / portfolio reconciliation matrix 必须证明 field matrix、matched / mismatched / stale / missing status、partial fill / cancel / reject paths、projection no broker payload 和 production broker report future-gated 全部成立，并保持 production trading、real account read、real PnL、Portfolio mutation、ExecutionClient call、broker gateway 和 Live command surface 全部关闭。
 
+## GH-467 L4 Audit Trail Incident Replay Terms
+
+`GH-467-AUDIT-TRAIL-INCIDENT-REPLAY`
+
+L4 audit trail / incident replay 指本地 deterministic command evidence：它消费 GH-463 sandbox command path 和 GH-466 reconciliation outcome，把 command lifecycle 写入 append-only audit entries，并从这些 entries 重放 sandbox lifecycle。该 evidence 不是 production incident ops。
+
+`GH-467-COMMAND-EVIDENCE-TRACE`
+
+Command evidence trace 必须覆盖 command intent、risk decision、execution request、broker report、OMS transition 和 reconciliation outcome。Trace 只能引用 deterministic identity，不能保存 secret、API key、signature、raw broker payload、account endpoint payload 或 production broker statement。
+
+`GH-467-APPEND-ONLY-AUDIT-TRAIL`
+
+Append-only audit trail 固定 entry sequence 从 1 开始连续递增，且 entry 创建后不可变。该 trail 是本地 evidence，不上传外部审计系统，不创建 production audit runtime。
+
+`GH-467-DETERMINISTIC-INCIDENT-REPLAY`
+
+Deterministic incident replay 只能消费本地 append-only audit entries，并输出 sandbox lifecycle replay evidence。Replay 必须覆盖 submit / cancel / replace command kinds、所有 audit stages，以及 GH-466 matched / mismatched / stale / missing reconciliation statuses。
+
+`GH-467-NO-SECRET-RAW-PAYLOAD`
+
+No secret / raw payload 固定 audit trail 和 replay input/output 不包含 API key、secret、signature、raw broker payload、account endpoint payload、listenKey、private stream payload 或 production broker replay payload。
+
+`TVM-L4-AUDIT-TRAIL-INCIDENT-REPLAY`
+
+L4 audit trail / incident replay matrix 必须证明 command evidence trace、append-only sequence、deterministic replay、secret / raw payload exclusion 和 forbidden runtime flags 全部成立，并保持 production incident ops、external audit upload、production broker replay、repair command、ExecutionClient call、broker gateway 和 Live command surface 全部关闭。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
