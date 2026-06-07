@@ -38,12 +38,23 @@ forbidden_patterns = [
     'var secretKey',
 ]
 violations = []
+gh525_signed_account_read_runtime = Path("Sources/DataClient/Binance/SignedAccount/BinanceSignedAccountReadRuntime.swift")
+gh525_allowed_patterns = {
+    'path: "/api/v3/account"',
+    '= "/api/v3/account"',
+    'URLQueryItem(name: "signature"',
+    'forHTTPHeaderField: "X-MBX-APIKEY"',
+    'HMAC<',
+}
 for source in sorted((root / "Sources/DataClient").rglob("*.swift")):
+    relative_source = source.relative_to(root)
     for index, line in enumerate(source.read_text().splitlines(), start=1):
         implementation_line = line.split("//", 1)[0]
         for forbidden in forbidden_patterns:
             if forbidden in implementation_line:
-                violations.append(f"{source.relative_to(root)}:{index}: {forbidden}: {line.strip()}")
+                if relative_source == gh525_signed_account_read_runtime and forbidden in gh525_allowed_patterns:
+                    continue
+                violations.append(f"{relative_source}:{index}: {forbidden}: {line.strip()}")
                 break
 
 if violations:

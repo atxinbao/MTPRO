@@ -4733,6 +4733,103 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface() async throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let dataClientTarget = try packageTargetBlock(named: "DataClient", packageSource: packageSource)
+        XCTAssertTrue(dataClientTarget.contains(".product(name: \"Crypto\", package: \"swift-crypto\")"))
+        XCTAssertTrue(dataClientTarget.contains("\"Binance/SignedAccount/BinanceSignedAccountReadRuntime.swift\""))
+
+        XCTAssertThrowsError(
+            try BinanceSignedAccountReadClientConfiguration(
+                baseURL: try XCTUnwrap(URL(string: "https://api.binance.com"))
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? BinanceSignedAccountReadRuntimeError,
+                .productionEndpointForbidden("api.binance.com")
+            )
+        }
+
+        let material = try BinanceSignedAccountCredentialMaterial(
+            referenceID: "gh-525-fixture-credential",
+            keyHeaderValue: "fixture-key",
+            signingSecretValue: "fixture-secret"
+        )
+        let timestamp = Date(timeIntervalSince1970: 1_704_067_200)
+        let configuration = try BinanceSignedAccountReadClientConfiguration(receiveWindowMilliseconds: 5_000)
+        let transport = TargetGraphMockBinanceSignedAccountReadTransport { request in
+            XCTAssertEqual(request.environment, .testnet)
+            XCTAssertEqual(request.method, "GET")
+            XCTAssertEqual(request.path, "/api/v3/account")
+            XCTAssertEqual(request.headers[BinanceSignedAccountReadTransportRequest.binanceKeyHeaderName], "fixture-key")
+            XCTAssertEqual(request.credentialReference, "gh-525-fixture-credential")
+            XCTAssertTrue(request.unsignedQueryString.contains("timestamp=1704067200000"))
+            XCTAssertTrue(request.unsignedQueryString.contains("recvWindow=5000"))
+            XCTAssertTrue(request.url.absoluteString.contains("signature="))
+            XCTAssertFalse(request.url.absoluteString.contains("fixture-secret"))
+            XCTAssertFalse(request.url.absoluteString.contains("/api/v3/order"))
+            XCTAssertFalse(request.url.absoluteString.lowercased().contains("listenkey"))
+            return Data(
+                #"""
+                {
+                  "makerCommission": 15,
+                  "takerCommission": 15,
+                  "buyerCommission": 0,
+                  "sellerCommission": 0,
+                  "canTrade": true,
+                  "canWithdraw": false,
+                  "canDeposit": true,
+                  "updateTime": 1704067205000,
+                  "accountType": "SPOT",
+                  "balances": [
+                    { "asset": "BTC", "free": "0.10000000", "locked": "0.00000000" },
+                    { "asset": "USDT", "free": "1000.50000000", "locked": "10.00000000" }
+                  ],
+                  "permissions": ["SPOT"]
+                }
+                """#.utf8
+            )
+        }
+        let client = BinanceSignedAccountReadClient(
+            configuration: configuration,
+            credentialProvider: BinanceStaticSignedAccountCredentialProvider(material: material),
+            transport: transport
+        )
+
+        let request = try client.transportRequest(timestamp: timestamp, credential: material)
+        XCTAssertEqual(
+            request.url.query?.contains("signature=\(material.signature(for: request.unsignedQueryString))"),
+            true
+        )
+
+        let snapshot = try await client.accountSnapshot(timestamp: timestamp)
+
+        XCTAssertEqual(snapshot.accountType, "SPOT")
+        XCTAssertTrue(snapshot.canTrade)
+        XCTAssertFalse(snapshot.canWithdraw)
+        XCTAssertTrue(snapshot.canDeposit)
+        XCTAssertEqual(try XCTUnwrap(snapshot.updateTime).timeIntervalSince1970, 1_704_067_205, accuracy: 0.001)
+        XCTAssertEqual(snapshot.balances.map(\.asset), ["BTC", "USDT"])
+        XCTAssertEqual(snapshot.balances.first?.free, Decimal(string: "0.10000000"))
+        XCTAssertEqual(snapshot.balances.last?.total, Decimal(string: "1010.50000000"))
+        XCTAssertEqual(snapshot.credentialReference, "gh-525-fixture-credential")
+        XCTAssertTrue(snapshot.snapshotBoundaryHeld)
+        XCTAssertFalse(snapshot.rawPayloadExposed)
+        XCTAssertFalse(snapshot.secretMaterialExposed)
+        XCTAssertFalse(snapshot.commandRuntimeEnabled)
+        XCTAssertFalse(snapshot.productionTradingEnabledByDefault)
+        XCTAssertFalse(String(describing: snapshot).contains("fixture-secret"))
+        XCTAssertFalse(String(describing: snapshot).contains("fixture-key"))
+
+        let requests = await transport.requests()
+        XCTAssertEqual(requests.count, 1)
+        XCTAssertEqual(requests.first?.path, BinanceSignedAccountReadTransportRequest.accountReadOnlyPath)
+    }
+
     func testGH503ProductionCredentialSecretPolicyGateDefinesNoDefaultSecretReadContract() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
@@ -5968,6 +6065,14 @@ final class TargetGraphTests: XCTestCase {
     private func forbiddenDataClientImplementationOccurrences(in file: URL, repositoryRoot: URL) throws -> [String] {
         let source = try String(contentsOf: file, encoding: .utf8)
         let relativePath = relativePath(for: file, repositoryRoot: repositoryRoot)
+        let gh525SignedAccountReadRuntime = "Sources/DataClient/Binance/SignedAccount/BinanceSignedAccountReadRuntime.swift"
+        let gh525AllowedPatterns = Set([
+            "path: \"/api/v3/account\"",
+            "= \"/api/v3/account\"",
+            "URLQueryItem(name: \"signature\"",
+            "forHTTPHeaderField: \"X-MBX-APIKEY\"",
+            "HMAC<"
+        ])
         let forbiddenImplementationPatterns = [
             "path: \"/api/v3/account\"",
             "path: \"/api/v3/order\"",
@@ -5996,6 +6101,9 @@ final class TargetGraphTests: XCTestCase {
         return source.components(separatedBy: .newlines).enumerated().compactMap { index, line in
             let implementationLine = line.components(separatedBy: "//").first ?? line
             guard let forbidden = forbiddenImplementationPatterns.first(where: { implementationLine.contains($0) }) else {
+                return nil
+            }
+            if relativePath == gh525SignedAccountReadRuntime, gh525AllowedPatterns.contains(forbidden) {
                 return nil
             }
             return "\(relativePath):\(index + 1): \(forbidden): \(line.trimmingCharacters(in: .whitespaces))"
@@ -6087,6 +6195,27 @@ private actor TargetGraphMockBinancePublicMarketDataTransport: BinancePublicMark
     }
 
     func requests() -> [BinancePublicTransportRequest] {
+        loadedRequests
+    }
+}
+
+/// TargetGraphTests 专用 signed account mock transport 只返回本地 account fixture。
+private actor TargetGraphMockBinanceSignedAccountReadTransport: BinanceSignedAccountReadTransport {
+    typealias Handler = @Sendable (BinanceSignedAccountReadTransportRequest) throws -> Data
+
+    private let handler: Handler
+    private var loadedRequests: [BinanceSignedAccountReadTransportRequest] = []
+
+    init(handler: @escaping Handler) {
+        self.handler = handler
+    }
+
+    func load(_ request: BinanceSignedAccountReadTransportRequest) async throws -> Data {
+        loadedRequests.append(request)
+        return try handler(request)
+    }
+
+    func requests() -> [BinanceSignedAccountReadTransportRequest] {
         loadedRequests
     }
 }
