@@ -127,12 +127,14 @@ Required anchors：
 - `GH-525-BINANCE-SIGNED-ACCOUNT-READ-RUNTIME`
 - `GH-526-BINANCE-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-RUNTIME`
 - `GH-527-TRADER-RUNTIME-LIFECYCLE`
+- `GH-528-EMA-STRATEGY-PROPOSAL-RUNTIME`
 - `TVM-RELEASE-V010-BINANCE-EMA-RUNTIME`
 - `TVM-RELEASE-V010-REAL-TARGET-SMOKE-COVERAGE`
 - `TVM-RELEASE-V010-BINANCE-PUBLIC-MARKET-DATA-PATH`
 - `TVM-RELEASE-V010-BINANCE-SIGNED-ACCOUNT-READ`
 - `TVM-RELEASE-V010-BINANCE-PRIVATE-STREAM-ACCOUNT-SNAPSHOT`
 - `TVM-RELEASE-V010-TRADER-RUNTIME-LIFECYCLE`
+- `TVM-RELEASE-V010-EMA-PROPOSAL-RUNTIME`
 
 Required validation：
 
@@ -169,6 +171,34 @@ GH-527 不授权：
 - broker command、OMS bypass 或 executable order command。
 - production secret、production endpoint 或 production trading。
 - Dashboard command surface、trading button、live command 或 order form。
+
+## GH-528-EMA-STRATEGY-PROPOSAL-RUNTIME
+
+`GH-528-EMA-STRATEGY-PROPOSAL-RUNTIME`
+
+EMA strategy proposal runtime 指 release v0.1.0 中唯一 active concrete strategy `EMA` 的 signal-to-proposal path。该 runtime 位于 `Sources/Trader/Strategies/EMA/EMAProposalRuntime.swift`，只把 `EMACrossSignalSample` / market bars 转成 paper-only `PaperActionProposal` 和 RiskEngine 可消费的 `RiskEvaluationQuery` evidence：
+
+- active venue 固定为 `Binance`。
+- active concrete strategy 固定为 `EMA`。
+- proposal 必须保持 `executionMode == .paper`、`executionAuthorization == .paperIntentOnly` 和 `isExecutableAsRealOrder == false`。
+- RiskEngine consumable evidence 必须保持 risk query 与 proposal 的 `paperOrderID`、symbol、timeframe、quantity 和 paper execution mode 一致。
+- runtime report 必须保持 `directExecutionClientEnabled == false`、`brokerCommandEnabled == false`、`omsBypassEnabled == false`、`productionTradingEnabledByDefault == false`、`nonBinanceVenueEnabled == false` 和 `nonEMAStrategyEnabled == false`。
+
+`TVM-RELEASE-V010-EMA-PROPOSAL-RUNTIME`
+
+## GH-528-NON-AUTHORIZATION
+
+`GH-528-NON-AUTHORIZATION`
+
+GH-528 不授权：
+
+- 非 Binance venue。
+- 非 EMA active strategy。
+- Trader / Strategy 直连 ExecutionClient。
+- broker command、OMS bypass、executable order command、submit / cancel / replace。
+- production secret、production endpoint 或 production trading。
+- Dashboard command surface、trading button、live command 或 order form。
+- RiskEngine bypass、ExecutionEngine bypass、kill switch bypass 或 no-trade bypass。
 
 ## GH-521-NON-AUTHORIZATION
 

@@ -5105,6 +5105,105 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH528EMAProposalRuntimeGeneratesRiskConsumableProposalWithoutExecutionPath() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let traderStrategiesTarget = try packageTargetBlock(named: "TraderStrategies", packageSource: packageSource)
+        XCTAssertTrue(traderStrategiesTarget.contains("\"EMAProposalRuntime.swift\""))
+        XCTAssertTrue(traderStrategiesTarget.contains("\"MessageBus\""))
+        XCTAssertTrue(traderStrategiesTarget.contains("\"RiskEngine\""))
+        XCTAssertFalse(traderStrategiesTarget.contains("\"ExecutionClient\""))
+
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        XCTAssertTrue(coreTarget.contains("\"Trader/Strategies/EMA/EMAProposalRuntime.swift\""))
+
+        let runtime = try EMAProposalRuntime.deterministicFixture()
+        XCTAssertEqual(runtime.releaseVenue, "Binance")
+        XCTAssertEqual(runtime.activeConcreteStrategy, "EMA")
+        XCTAssertFalse(runtime.directExecutionClientEnabled)
+        XCTAssertFalse(runtime.brokerCommandEnabled)
+        XCTAssertFalse(runtime.omsBypassEnabled)
+        XCTAssertFalse(runtime.productionTradingEnabledByDefault)
+
+        let evidence = try runtime.generateProposal(
+            from: EMAProposalRuntime.deterministicBars(),
+            sessionID: Identifier.constant("gh-528-session"),
+            riskProfileID: Identifier.constant("gh-528-risk-profile"),
+            sourceSequence: 528,
+            proposedAt: Date(timeIntervalSince1970: 1_704_067_528),
+            paperQuantity: Quantity(0.10, field: "gh528.paperQuantity")
+        )
+        XCTAssertTrue(evidence.boundaryHeld)
+        XCTAssertTrue(evidence.riskEngineConsumable)
+        XCTAssertTrue(evidence.paperOnlyProposalBoundaryHeld)
+        XCTAssertTrue(evidence.liveReadPathCompatible)
+        XCTAssertEqual(evidence.proposal.signal.strategyID, runtime.configuration.strategyID)
+        XCTAssertEqual(evidence.proposal.signal.direction, .long)
+        XCTAssertEqual(evidence.proposal.side, .buy)
+        XCTAssertEqual(evidence.proposal.executionMode, .paper)
+        XCTAssertFalse(evidence.proposal.isExecutableAsRealOrder)
+        XCTAssertEqual(evidence.riskQuery.paperOrderID, evidence.proposal.proposalID)
+        XCTAssertEqual(evidence.riskQuery.riskProfileID.rawValue, "gh-528-risk-profile")
+        XCTAssertEqual(evidence.riskQuery.executionMode, .paper)
+        XCTAssertEqual(evidence.riskEvents, [.evaluationRequested(evidence.riskQuery)])
+        XCTAssertEqual(Set(evidence.validationAnchors), Set(EMAProposalRuntime.requiredValidationAnchors))
+        XCTAssertFalse(evidence.directExecutionClientEnabled)
+        XCTAssertFalse(evidence.brokerCommandEnabled)
+        XCTAssertFalse(evidence.omsBypassEnabled)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.nonBinanceVenueEnabled)
+        XCTAssertFalse(evidence.nonEMAStrategyEnabled)
+
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoded = try JSONDecoder().decode(EMAProposalRuntimeEvidence.self, from: encoded)
+        XCTAssertEqual(decoded, evidence)
+
+        XCTAssertThrowsError(
+            try EMAProposalRuntime(
+                runtimeID: Identifier.constant("unsafe-gh-528-production-default"),
+                configuration: runtime.configuration,
+                productionTradingEnabledByDefault: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("emaProposalRuntime.productionTradingEnabledByDefault")
+            )
+        }
+
+        let sample = try XCTUnwrap(EMACrossStrategyContract(configuration: runtime.configuration)
+            .evaluate(EMAProposalRuntime.deterministicBars())
+            .last)
+        let mismatchedSizing = try PaperActionProposalSizingAssumption(
+            assumptionID: Identifier.constant("unsafe-gh-528-sizing"),
+            quantity: Quantity(0.10, field: "gh528.unsafeQuantity"),
+            referencePrice: Price(1, field: "gh528.unsafeReferencePrice"),
+            liquidityRole: .maker
+        )
+        XCTAssertThrowsError(
+            try runtime.generateProposal(
+                from: sample,
+                sessionID: Identifier.constant("gh-528-session"),
+                riskProfileID: Identifier.constant("gh-528-risk-profile"),
+                sourceSequence: 528,
+                sizingAssumption: mismatchedSizing,
+                proposedAt: Date(timeIntervalSince1970: 1_704_067_528)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperActionProposalCostEvidenceMismatch(
+                    field: "emaProposalRuntime.referencePrice",
+                    expected: "\(sample.close.rawValue)",
+                    actual: "1.0"
+                )
+            )
+        }
+    }
+
     func testGH503ProductionCredentialSecretPolicyGateDefinesNoDefaultSecretReadContract() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

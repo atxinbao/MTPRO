@@ -7842,3 +7842,45 @@ GH-527 必须建立的主要 anchors：
 - 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## GH-528 EMA Proposal Runtime Validation
+
+GH-528 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH528EMAProposalRuntimeGeneratesRiskConsumableProposalWithoutExecutionPath`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-528 的验收要求：
+
+- `Sources/Trader/Strategies/EMA/EMAProposalRuntime.swift` 必须存在，并包含 `GH-528-EMA-STRATEGY-PROPOSAL-RUNTIME` 和 `TVM-RELEASE-V010-EMA-PROPOSAL-RUNTIME` anchors。
+- `Package.swift` 必须让 `TraderStrategies` target 显式拥有 `EMAProposalRuntime.swift` source，且 `TraderStrategies` target 不得依赖 `ExecutionClient`。
+- Runtime 必须覆盖 live-read compatible market bars / EMA signal sample 输入、paper-only `PaperActionProposal` 生成和 RiskEngine 可消费 `RiskEvaluationQuery` evidence。
+- Proposal 必须保持 `executionMode == .paper`、`executionAuthorization == .paperIntentOnly`、`isExecutableAsRealOrder == false`。
+- Runtime evidence 必须保持 `directExecutionClientEnabled == false`、`brokerCommandEnabled == false`、`omsBypassEnabled == false`、`productionTradingEnabledByDefault == false`、`nonBinanceVenueEnabled == false` 和 `nonEMAStrategyEnabled == false`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH528EMAProposalRuntimeGeneratesRiskConsumableProposalWithoutExecutionPath`，验证 Package ownership、EMA-only / Binance-only identity、RiskEngine consumable query、paper-only proposal boundary、production default rejection 和 mismatched reference price rejection。
+- GH-528 PR evidence 必须确认不读取 production secret，不连接 production endpoint，不直连 ExecutionClient / broker / OMS，不提交、取消或替换订单，不启用 production trading，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+GH-528 必须建立的主要 anchors：
+
+- `GH-528-EMA-STRATEGY-PROPOSAL-RUNTIME`
+- `GH-528-EMA-SIGNAL-TO-PAPER-PROPOSAL`
+- `GH-528-RISKENGINE-CONSUMABLE-PROPOSAL`
+- `TVM-RELEASE-V010-EMA-PROPOSAL-RUNTIME`
+- `testGH528EMAProposalRuntimeGeneratesRiskConsumableProposalWithoutExecutionPath`
+
+## GH-528 禁止
+
+- 不启用 non-Binance venue。
+- 不启用 non-EMA active strategy。
+- 不读取、打印、保存或推导 production secret。
+- 不接受 production endpoint、production stream endpoint 或 production broker endpoint。
+- 不直连 ExecutionClient、broker gateway 或 OMS。
+- 不提交、取消或替换真实订单。
+- 不把 RiskEngine consumable proposal 扩大成 RiskEngine bypass 或 ExecutionEngine command。
+- 不暴露 Dashboard command surface、trading button、live command 或 order form。
+- 不绕过 RiskEngine、ExecutionEngine、OMS、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
