@@ -650,6 +650,148 @@ final class AppTests: XCTestCase {
         )
     }
 
+    func testGH536ReleaseV010KillSwitchBlocksSubmitCancelReplaceAndAuditsRollback() throws {
+        // 测试场景：GH-536 把 GH-535 的 submit / cancel / replace command entry 全部接入
+        // global no-trade、kill switch 和 rollback/operator evidence；Dashboard 只能展示阻断证据。
+        let killSwitchReadModel = ReleaseV010KillSwitchNoTradeRollbackSurfaceReadModel()
+        XCTAssertTrue(killSwitchReadModel.killSwitchNoTradeRollbackBoundaryHeld)
+        XCTAssertEqual(
+            killSwitchReadModel.validationAnchors,
+            ReleaseV010KillSwitchNoTradeRollbackSurfaceReadModel.requiredValidationAnchors
+        )
+        XCTAssertTrue(
+            killSwitchReadModel.validationAnchors.contains(
+                "GH-536-KILL-SWITCH-NO-TRADE-ROLLBACK-CONTROLS"
+            )
+        )
+        XCTAssertTrue(
+            killSwitchReadModel.validationAnchors.contains(
+                "GH-536-SUBMIT-CANCEL-REPLACE-BLOCKED"
+            )
+        )
+        XCTAssertTrue(killSwitchReadModel.rollbackEvidence.rollbackBoundaryHeld)
+        XCTAssertEqual(killSwitchReadModel.blockedActions.count, 3)
+        XCTAssertEqual(killSwitchReadModel.blockedActions.map(\.action.rawValue), ["cancel", "replace", "submit"])
+
+        for blockedAction in killSwitchReadModel.blockedActions {
+            XCTAssertTrue(blockedAction.actionBoundaryHeld)
+            XCTAssertTrue(blockedAction.blockedByGlobalNoTrade)
+            XCTAssertTrue(blockedAction.blockedByKillSwitch)
+            XCTAssertTrue(blockedAction.rollbackEvidenceRequired)
+            XCTAssertTrue(blockedAction.operatorEvidenceRequired)
+            XCTAssertFalse(blockedAction.commandEntryEnabled)
+            XCTAssertFalse(blockedAction.readsSecret)
+            XCTAssertFalse(blockedAction.opensProductionEndpoint)
+            XCTAssertFalse(blockedAction.connectsBroker)
+            XCTAssertFalse(blockedAction.callsExecutionClient)
+            XCTAssertFalse(blockedAction.bypassesRiskEngine)
+            XCTAssertFalse(blockedAction.bypassesExecutionEngine)
+            XCTAssertFalse(blockedAction.bypassesOMS)
+            XCTAssertFalse(blockedAction.bypassesKillSwitch)
+            XCTAssertFalse(blockedAction.submitsRealOrder)
+            XCTAssertFalse(blockedAction.cancelsRealOrder)
+            XCTAssertFalse(blockedAction.replacesRealOrder)
+            XCTAssertFalse(blockedAction.triggersAutoRecovery)
+            XCTAssertFalse(blockedAction.authorizesLiveTrading)
+            XCTAssertFalse(blockedAction.authorizesTradingExecution)
+        }
+
+        let surface = ReleaseV010KillSwitchNoTradeRollbackSurfaceViewModel(
+            readModel: killSwitchReadModel
+        )
+        XCTAssertEqual(surface.issueID, "GH-536")
+        XCTAssertEqual(surface.matrixID, "TVM-RELEASE-V010-KILL-SWITCH-NO-TRADE-ROLLBACK")
+        XCTAssertEqual(surface.blockedActionLabels, ["cancel", "replace", "submit"])
+        XCTAssertEqual(surface.blockedActionCount, 3)
+        XCTAssertTrue(surface.globalNoTradeActive)
+        XCTAssertTrue(surface.killSwitchActive)
+        XCTAssertTrue(surface.submitCancelReplaceBlocked)
+        XCTAssertTrue(surface.rollbackEvidenceAuditable)
+        XCTAssertTrue(surface.operatorEvidenceRequired)
+        XCTAssertTrue(surface.noAutomaticRecovery)
+        XCTAssertTrue(surface.productionTradingDisabledByDefault)
+        XCTAssertTrue(surface.commandSurfaceVisible)
+        XCTAssertFalse(surface.commandSurfaceEnabled)
+        XCTAssertTrue(surface.killSwitchNoTradeRollbackBoundaryHeld)
+        XCTAssertTrue(surface.providesCommandSurface)
+        XCTAssertFalse(surface.providesTradingButton)
+        XCTAssertFalse(surface.providesLiveCommand)
+        XCTAssertFalse(surface.exposesOrderForm)
+        XCTAssertFalse(surface.exposesSecretEditor)
+        XCTAssertFalse(surface.readsSecret)
+        XCTAssertFalse(surface.opensProductionEndpoint)
+        XCTAssertFalse(surface.connectsBroker)
+        XCTAssertFalse(surface.callsExecutionClient)
+        XCTAssertFalse(surface.bypassesRiskEngine)
+        XCTAssertFalse(surface.bypassesExecutionEngine)
+        XCTAssertFalse(surface.bypassesOMS)
+        XCTAssertFalse(surface.bypassesKillSwitch)
+        XCTAssertFalse(surface.submitsRealOrder)
+        XCTAssertFalse(surface.cancelsRealOrder)
+        XCTAssertFalse(surface.replacesRealOrder)
+        XCTAssertFalse(surface.triggersAutoRecovery)
+        XCTAssertFalse(surface.authorizesLiveTrading)
+        XCTAssertFalse(surface.authorizesTradingExecution)
+
+        let report = ReportReadModel(releaseV010KillSwitchNoTradeRollbackSurface: killSwitchReadModel)
+        let dashboard = DashboardViewModel(
+            readModel: DashboardReadModel(
+                market: MarketReadModel(),
+                strategy: StrategyReadModel(),
+                backtest: BacktestReadModel(),
+                report: report,
+                paper: PaperReadModel(),
+                risk: RiskReadModel(),
+                portfolio: PortfolioReadModel(),
+                events: EventTimelineReadModel()
+            )
+        )
+        XCTAssertEqual(dashboard.report.releaseV010KillSwitchBlockedActionCount, 3)
+        XCTAssertEqual(dashboard.report.releaseV010KillSwitchBlockedActionLabels, ["cancel", "replace", "submit"])
+        XCTAssertTrue(dashboard.report.releaseV010KillSwitchGlobalNoTradeActive)
+        XCTAssertTrue(dashboard.report.releaseV010KillSwitchActive)
+        XCTAssertTrue(dashboard.report.releaseV010KillSwitchSubmitCancelReplaceBlocked)
+        XCTAssertTrue(dashboard.report.releaseV010KillSwitchRollbackAuditable)
+        XCTAssertTrue(dashboard.report.releaseV010KillSwitchOperatorEvidenceRequired)
+        XCTAssertTrue(dashboard.report.releaseV010KillSwitchNoAutomaticRecovery)
+        XCTAssertTrue(dashboard.report.releaseV010KillSwitchProductionDisabledByDefault)
+        XCTAssertFalse(dashboard.report.releaseV010KillSwitchCommandSurfaceEnabled)
+        XCTAssertTrue(dashboard.report.releaseV010KillSwitchBoundaryHeld)
+        XCTAssertFalse(dashboard.report.releaseV010KillSwitchAuthorizesTradingExecution)
+        XCTAssertFalse(dashboard.report.authorizesTradingExecution)
+        XCTAssertTrue(dashboard.viewModelSources.allSatisfy(\.isReadModelOnly))
+
+        let shell = DashboardShellSnapshot(viewModel: dashboard)
+        XCTAssertTrue(shell.isReadModelOnly)
+        XCTAssertTrue(shell.smokeSummary.contains("releaseKillSwitch=3"))
+        let reportSection = try XCTUnwrap(shell.sections.first { $0.section == .report })
+        XCTAssertTrue(
+            reportSection.metrics.contains(
+                DashboardShellMetric(label: "Release kill switch", value: "3")
+            )
+        )
+        XCTAssertTrue(
+            reportSection.details.contains {
+                $0.contains("Release kill switch blocked SCR: confirmed")
+            }
+        )
+        XCTAssertTrue(
+            reportSection.details.contains {
+                $0.contains("Release kill switch rollback: confirmed")
+            }
+        )
+        XCTAssertTrue(
+            reportSection.details.contains {
+                $0.contains("Release kill switch command enabled: none")
+            }
+        )
+        XCTAssertTrue(
+            reportSection.details.contains {
+                $0.contains("Release kill switch trading execution: none")
+            }
+        )
+    }
+
     func testAccountPositionBalanceReadModelOnlySurfaceAggregatesMTP138Evidence() throws {
         // 测试场景：MTP-138 只把 MTP-137 deterministic fixture 映射成 App 层 ReadModel / ViewModel，
         // 供 Workbench、Report 和 Event Timeline 展示；任何 account connect、broker connect 或交易入口都必须缺席。

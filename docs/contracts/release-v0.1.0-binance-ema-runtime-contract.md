@@ -135,6 +135,7 @@ Required anchors：
 - `GH-533-EXECUTION-ACCOUNT-PORTFOLIO-RECONCILIATION`
 - `GH-534-DASHBOARD-LIVE-MONITORING-SURFACE`
 - `GH-535-DASHBOARD-CONTROLLED-COMMAND-SURFACE`
+- `GH-536-KILL-SWITCH-NO-TRADE-ROLLBACK-CONTROLS`
 - `TVM-RELEASE-V010-BINANCE-EMA-RUNTIME`
 - `TVM-RELEASE-V010-REAL-TARGET-SMOKE-COVERAGE`
 - `TVM-RELEASE-V010-BINANCE-PUBLIC-MARKET-DATA-PATH`
@@ -149,6 +150,7 @@ Required anchors：
 - `TVM-RELEASE-V010-PORTFOLIO-RECONCILIATION-UPDATE-PATH`
 - `TVM-RELEASE-V010-DASHBOARD-LIVE-MONITORING-SURFACE`
 - `TVM-RELEASE-V010-DASHBOARD-CONTROLLED-COMMAND-SURFACE`
+- `TVM-RELEASE-V010-KILL-SWITCH-NO-TRADE-ROLLBACK`
 
 Required validation：
 
@@ -410,6 +412,37 @@ GH-535 不授权：
 - production secret read、secret editor、signature value exposure 或 production endpoint。
 - 绕过 RiskEngine、ExecutionEngine、OMS、kill switch、operator confirmation 或 no-trade state。
 - Live PRO Console runtime、real trading button、live command、order form 或 broker gateway。
+- non-Binance venue、non-EMA active strategy 或 release v0.1.0 之后的阶段。
+
+## GH-536-KILL-SWITCH-NO-TRADE-ROLLBACK-CONTROLS
+
+`GH-536-KILL-SWITCH-NO-TRADE-ROLLBACK-CONTROLS`
+
+Release v0.1.0 kill switch / no-trade / rollback controls 指 Dashboard / Report 对 submit / cancel / replace 的硬门证据面。它消费 GH-535 controlled command action identity，并把每个 action 固定为 global no-trade active、kill switch active、rollback required、operator review required 和 production trading disabled：
+
+- submit / cancel / replace 必须全部被阻断，`submitCancelReplaceBlocked == true`。
+- global no-trade 与 kill switch 必须同时为 active。
+- rollback plan、incident evidence 和 operator evidence 必须可审计。
+- recovery 必须是 manual review only，`noAutomaticRecovery == true`。
+- production trading 必须继续 disabled by default，且 command surface 不能 enabled。
+
+`GH-536-GLOBAL-NO-TRADE-MODE`
+`GH-536-SUBMIT-CANCEL-REPLACE-BLOCKED`
+`GH-536-ROLLBACK-OPERATOR-EVIDENCE`
+`GH-536-NO-PRODUCTION-DEFAULT`
+`TVM-RELEASE-V010-KILL-SWITCH-NO-TRADE-ROLLBACK`
+
+## GH-536-NON-AUTHORIZATION
+
+`GH-536-NON-AUTHORIZATION`
+
+GH-536 不授权：
+
+- production trading、production submit / cancel / replace 或 production broker connection。
+- production secret read、secret editor、signature value exposure、account endpoint、listenKey 或 production endpoint。
+- ExecutionClient call、broker gateway、OMS mutation、real order lifecycle 或 automatic rollback command。
+- 绕过 RiskEngine、ExecutionEngine、OMS、kill switch、operator confirmation 或 no-trade state。
+- Live PRO Console runtime、real trading button、live command、order form 或 broker emergency API。
 - non-Binance venue、non-EMA active strategy 或 release v0.1.0 之后的阶段。
 
 ## GH-521-NON-AUTHORIZATION

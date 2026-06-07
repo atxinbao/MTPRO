@@ -16224,3 +16224,33 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true`, `dashboardReadModelOnly=true`, `releaseLiveMonitoringSurface=7` and `releaseCommandSurface=3`; 418 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-08 - GH-536 Kill switch / no-trade / rollback controls
+
+- Issue: GH-536 `Add kill switch, no-trade and rollback controls`
+- Queue:
+  - GitHub fallback queue used because this release stage does not use Linear.
+  - WIP=1 preflight passed before implementation: #536 was OPEN with `mtpro / backlog / non-executable`; dependencies #530, #531 and #535 were CLOSED with `done`; no other open issue carried `todo`, `in-progress` or `in-review`; no open PR was present.
+  - #536 was promoted to `todo`, then to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `Sources/Dashboard/Report/ReleaseV010KillSwitchNoTradeRollbackSurface.swift`.
+  - Added `AppTests/testGH536ReleaseV010KillSwitchBlocksSubmitCancelReplaceAndAuditsRollback`.
+  - Backfilled `GH-536-KILL-SWITCH-NO-TRADE-ROLLBACK-CONTROLS`, `GH-536-GLOBAL-NO-TRADE-MODE`, `GH-536-SUBMIT-CANCEL-REPLACE-BLOCKED`, `GH-536-ROLLBACK-OPERATOR-EVIDENCE`, `GH-536-NO-PRODUCTION-DEFAULT`, `TVM-RELEASE-V010-KILL-SWITCH-NO-TRADE-ROLLBACK`, validation plan, domain language, latest summary and automation readiness guard.
+  - Covered Dashboard Report / shell access to submit / cancel / replace blocked evidence, global no-trade state, kill switch active state, rollback plan evidence and operator evidence.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No production secret read, print or storage.
+  - No production endpoint or production broker endpoint connection.
+  - No ExecutionClient call, broker connection, RiskEngine bypass, ExecutionEngine bypass, OMS bypass or kill switch bypass.
+  - No real submit / cancel / replace.
+  - No automatic recovery, rollback command or broker emergency API.
+  - No production trading.
+  - No non-Binance venue.
+  - No non-EMA active strategy.
+- Validation:
+  - `swift test --filter AppTests/testGH536ReleaseV010KillSwitchBlocksSubmitCancelReplaceAndAuditsRollback`: pass; 1 test / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true`, `dashboardReadModelOnly=true`, `releaseLiveMonitoringSurface=7`, `releaseCommandSurface=3` and `releaseKillSwitch=3`; 419 XCTest / 0 failures; final output `MTPRO checks passed.`

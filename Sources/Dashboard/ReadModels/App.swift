@@ -817,6 +817,8 @@ public struct ReportReadModel: Equatable, Sendable {
     public let liveMonitoringReadOnlyConsoleV2Surface: LiveMonitoringReadOnlyConsoleV2SurfaceReadModel
     public let releaseV010LiveMonitoringSurface: ReleaseV010LiveMonitoringSurfaceReadModel
     public let releaseV010ControlledCommandSurface: ReleaseV010ControlledCommandSurfaceReadModel
+    public let releaseV010KillSwitchNoTradeRollbackSurface:
+        ReleaseV010KillSwitchNoTradeRollbackSurfaceReadModel
     public let strategyTraderReadinessEvidenceSurface: StrategyTraderReadinessEvidenceSurfaceReadModel
     public let liveReadOnlyDashboardBoundary: LiveReadOnlyDashboardBoundaryReadModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceReadModel
@@ -841,6 +843,9 @@ public struct ReportReadModel: Equatable, Sendable {
             ReleaseV010LiveMonitoringSurfaceReadModel(),
         releaseV010ControlledCommandSurface: ReleaseV010ControlledCommandSurfaceReadModel =
             ReleaseV010ControlledCommandSurfaceReadModel(),
+        releaseV010KillSwitchNoTradeRollbackSurface:
+            ReleaseV010KillSwitchNoTradeRollbackSurfaceReadModel =
+                ReleaseV010KillSwitchNoTradeRollbackSurfaceReadModel(),
         strategyTraderReadinessEvidenceSurface: StrategyTraderReadinessEvidenceSurfaceReadModel =
             StrategyTraderReadinessEvidenceSurfaceReadModel(),
         liveReadOnlyDashboardBoundary: LiveReadOnlyDashboardBoundaryReadModel = LiveReadOnlyDashboardBoundaryReadModel(),
@@ -862,6 +867,8 @@ public struct ReportReadModel: Equatable, Sendable {
         self.liveMonitoringReadOnlyConsoleV2Surface = liveMonitoringReadOnlyConsoleV2Surface
         self.releaseV010LiveMonitoringSurface = releaseV010LiveMonitoringSurface
         self.releaseV010ControlledCommandSurface = releaseV010ControlledCommandSurface
+        self.releaseV010KillSwitchNoTradeRollbackSurface =
+            releaseV010KillSwitchNoTradeRollbackSurface
         self.strategyTraderReadinessEvidenceSurface = strategyTraderReadinessEvidenceSurface
         self.liveReadOnlyDashboardBoundary = liveReadOnlyDashboardBoundary
         self.liveTradingBlockedEvidence = liveTradingBlockedEvidence
@@ -879,6 +886,7 @@ public struct ReportReadModel: Equatable, Sendable {
             liveMonitoringReadOnlyConsoleV2Surface.lastAppliedSequence,
             releaseV010LiveMonitoringSurface.lastAppliedSequence,
             releaseV010ControlledCommandSurface.lastAppliedSequence,
+            releaseV010KillSwitchNoTradeRollbackSurface.lastAppliedSequence,
             strategyTraderReadinessEvidenceSurface.lastAppliedSequence,
             liveReadOnlyDashboardBoundary.lastAppliedSequence,
             liveTradingBlockedEvidence.lastAppliedSequence,
@@ -906,6 +914,9 @@ public struct ReportReadModel: Equatable, Sendable {
             ReleaseV010LiveMonitoringSurfaceReadModel(),
         releaseV010ControlledCommandSurface: ReleaseV010ControlledCommandSurfaceReadModel =
             ReleaseV010ControlledCommandSurfaceReadModel(),
+        releaseV010KillSwitchNoTradeRollbackSurface:
+            ReleaseV010KillSwitchNoTradeRollbackSurfaceReadModel =
+                ReleaseV010KillSwitchNoTradeRollbackSurfaceReadModel(),
         strategyTraderReadinessEvidenceSurface: StrategyTraderReadinessEvidenceSurfaceReadModel =
             StrategyTraderReadinessEvidenceSurfaceReadModel(),
         liveReadOnlyDashboardBoundary: LiveReadOnlyDashboardBoundaryReadModel = LiveReadOnlyDashboardBoundaryReadModel(),
@@ -953,6 +964,8 @@ public struct ReportReadModel: Equatable, Sendable {
             liveMonitoringReadOnlyConsoleV2Surface: liveMonitoringReadOnlyConsoleV2Surface,
             releaseV010LiveMonitoringSurface: releaseV010LiveMonitoringSurface,
             releaseV010ControlledCommandSurface: releaseV010ControlledCommandSurface,
+            releaseV010KillSwitchNoTradeRollbackSurface:
+                releaseV010KillSwitchNoTradeRollbackSurface,
             strategyTraderReadinessEvidenceSurface: strategyTraderReadinessEvidenceSurface,
             liveReadOnlyDashboardBoundary: liveReadOnlyDashboardBoundary,
             liveTradingBlockedEvidence: liveTradingBlockedEvidence,
@@ -1541,6 +1554,8 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
     public let liveMonitoringReadOnlyConsoleV2Surface: LiveMonitoringReadOnlyConsoleV2SurfaceViewModel
     public let releaseV010LiveMonitoringSurface: ReleaseV010LiveMonitoringSurfaceViewModel
     public let releaseV010ControlledCommandSurface: ReleaseV010ControlledCommandSurfaceViewModel
+    public let releaseV010KillSwitchNoTradeRollbackSurface:
+        ReleaseV010KillSwitchNoTradeRollbackSurfaceViewModel
     public let strategyTraderReadinessEvidenceSurface: StrategyTraderReadinessEvidenceSurfaceViewModel
     public let liveReadOnlyDashboardBoundary: LiveReadOnlyDashboardBoundaryViewModel
     public let liveTradingBlockedEvidence: LiveTradingBlockedEvidenceViewModel
@@ -1770,6 +1785,22 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
     public let releaseV010ControlledCommandSurfaceEnabled: Bool
     public let releaseV010ControlledCommandBoundaryHeld: Bool
     public let releaseV010ControlledCommandAuthorizesTradingExecution: Bool
+    public let releaseV010KillSwitchBlockedActionCount: Int
+    public let releaseV010KillSwitchBlockedActionLabels: [String]
+    public let releaseV010KillSwitchStateLabels: [String]
+    public let releaseV010KillSwitchRollbackEvidenceIDs: [String]
+    public let releaseV010KillSwitchOperatorEvidenceIDs: [String]
+    public let releaseV010KillSwitchSourceAnchors: [String]
+    public let releaseV010KillSwitchGlobalNoTradeActive: Bool
+    public let releaseV010KillSwitchActive: Bool
+    public let releaseV010KillSwitchSubmitCancelReplaceBlocked: Bool
+    public let releaseV010KillSwitchRollbackAuditable: Bool
+    public let releaseV010KillSwitchOperatorEvidenceRequired: Bool
+    public let releaseV010KillSwitchNoAutomaticRecovery: Bool
+    public let releaseV010KillSwitchProductionDisabledByDefault: Bool
+    public let releaseV010KillSwitchCommandSurfaceEnabled: Bool
+    public let releaseV010KillSwitchBoundaryHeld: Bool
+    public let releaseV010KillSwitchAuthorizesTradingExecution: Bool
     public let liveExecutionControlBlockedGateCount: Int
     public let liveExecutionControlBlockedGateLabels: [String]
     public let liveExecutionControlBlockedReasonLabels: [String]
@@ -1841,6 +1872,10 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
         let releaseV010ControlledCommandSurface = ReleaseV010ControlledCommandSurfaceViewModel(
             readModel: readModel.releaseV010ControlledCommandSurface
         )
+        let releaseV010KillSwitchNoTradeRollbackSurface =
+            ReleaseV010KillSwitchNoTradeRollbackSurfaceViewModel(
+                readModel: readModel.releaseV010KillSwitchNoTradeRollbackSurface
+            )
         let strategyTraderReadinessEvidenceSurface =
             StrategyTraderReadinessEvidenceSurfaceViewModel(
                 readModel: readModel.strategyTraderReadinessEvidenceSurface
@@ -1877,6 +1912,8 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
             liveMonitoringReadOnlyConsoleV2Surface
         self.releaseV010LiveMonitoringSurface = releaseV010LiveMonitoringSurface
         self.releaseV010ControlledCommandSurface = releaseV010ControlledCommandSurface
+        self.releaseV010KillSwitchNoTradeRollbackSurface =
+            releaseV010KillSwitchNoTradeRollbackSurface
         self.strategyTraderReadinessEvidenceSurface =
             strategyTraderReadinessEvidenceSurface
         self.liveReadOnlyDashboardBoundary = liveReadOnlyDashboardBoundary
@@ -2262,6 +2299,38 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
             releaseV010ControlledCommandSurface.commandSurfaceBoundaryHeld
         self.releaseV010ControlledCommandAuthorizesTradingExecution =
             releaseV010ControlledCommandSurface.authorizesTradingExecution
+        self.releaseV010KillSwitchBlockedActionCount =
+            releaseV010KillSwitchNoTradeRollbackSurface.blockedActionCount
+        self.releaseV010KillSwitchBlockedActionLabels =
+            releaseV010KillSwitchNoTradeRollbackSurface.blockedActionLabels
+        self.releaseV010KillSwitchStateLabels =
+            releaseV010KillSwitchNoTradeRollbackSurface.stateLabels
+        self.releaseV010KillSwitchRollbackEvidenceIDs =
+            releaseV010KillSwitchNoTradeRollbackSurface.rollbackEvidenceIDs
+        self.releaseV010KillSwitchOperatorEvidenceIDs =
+            releaseV010KillSwitchNoTradeRollbackSurface.operatorEvidenceIDs
+        self.releaseV010KillSwitchSourceAnchors =
+            releaseV010KillSwitchNoTradeRollbackSurface.sourceAnchors
+        self.releaseV010KillSwitchGlobalNoTradeActive =
+            releaseV010KillSwitchNoTradeRollbackSurface.globalNoTradeActive
+        self.releaseV010KillSwitchActive =
+            releaseV010KillSwitchNoTradeRollbackSurface.killSwitchActive
+        self.releaseV010KillSwitchSubmitCancelReplaceBlocked =
+            releaseV010KillSwitchNoTradeRollbackSurface.submitCancelReplaceBlocked
+        self.releaseV010KillSwitchRollbackAuditable =
+            releaseV010KillSwitchNoTradeRollbackSurface.rollbackEvidenceAuditable
+        self.releaseV010KillSwitchOperatorEvidenceRequired =
+            releaseV010KillSwitchNoTradeRollbackSurface.operatorEvidenceRequired
+        self.releaseV010KillSwitchNoAutomaticRecovery =
+            releaseV010KillSwitchNoTradeRollbackSurface.noAutomaticRecovery
+        self.releaseV010KillSwitchProductionDisabledByDefault =
+            releaseV010KillSwitchNoTradeRollbackSurface.productionTradingDisabledByDefault
+        self.releaseV010KillSwitchCommandSurfaceEnabled =
+            releaseV010KillSwitchNoTradeRollbackSurface.commandSurfaceEnabled
+        self.releaseV010KillSwitchBoundaryHeld =
+            releaseV010KillSwitchNoTradeRollbackSurface.killSwitchNoTradeRollbackBoundaryHeld
+        self.releaseV010KillSwitchAuthorizesTradingExecution =
+            releaseV010KillSwitchNoTradeRollbackSurface.authorizesTradingExecution
         self.liveExecutionControlBlockedGateCount = liveExecutionControlBlockedEvidence
             .blockedGateCount
         self.liveExecutionControlBlockedGateLabels = liveExecutionControlBlockedEvidence
@@ -2338,6 +2407,7 @@ public struct ReportViewModel: Codable, Equatable, Sendable {
             || liveMonitoringReadOnlyConsoleV2Surface.authorizesTradingExecution
             || releaseV010LiveMonitoringSurface.authorizesTradingExecution
             || releaseV010ControlledCommandSurface.authorizesTradingExecution
+            || releaseV010KillSwitchNoTradeRollbackSurface.authorizesTradingExecution
             || strategyTraderReadinessEvidenceSurface.authorizesTradingExecution
             || liveReadOnlyDashboardBoundary.authorizesTradingExecution
             || liveBlockedEvidence.authorizesTradingExecution
@@ -2653,6 +2723,7 @@ public struct DashboardViewModel: Codable, Equatable, Sendable {
             report.liveMonitoringReadOnlyConsoleV2Surface.source,
             report.releaseV010LiveMonitoringSurface.source,
             report.releaseV010ControlledCommandSurface.source,
+            report.releaseV010KillSwitchNoTradeRollbackSurface.source,
             report.strategyTraderReadinessEvidenceSurface.source,
             report.liveReadOnlyDashboardBoundary.source,
             report.liveTradingBlockedEvidence.source,

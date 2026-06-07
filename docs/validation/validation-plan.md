@@ -8142,6 +8142,46 @@ GH-535 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-536 Kill Switch / No-Trade / Rollback Validation
+
+GH-536 必须运行：
+
+- `swift test --filter AppTests/testGH536ReleaseV010KillSwitchBlocksSubmitCancelReplaceAndAuditsRollback`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-536 的验收要求：
+
+- `Sources/Dashboard/Report/ReleaseV010KillSwitchNoTradeRollbackSurface.swift` 必须存在，并包含 `GH-536-KILL-SWITCH-NO-TRADE-ROLLBACK-CONTROLS` 和 `TVM-RELEASE-V010-KILL-SWITCH-NO-TRADE-ROLLBACK` anchors。
+- Dashboard report / shell smoke 必须暴露 release kill switch blocked action 数量，并包含 `releaseKillSwitch=3`。
+- submit / cancel / replace 必须全部被 global no-trade、kill switch 和 rollback/operator evidence gate 阻断。
+- rollback evidence 必须可审计，operator evidence 必须可追溯，automatic recovery 必须关闭。
+- Production command 必须继续 disabled；不得读取 secret、连接 production endpoint、调用 ExecutionClient、连接 broker、提交 / 取消 / 替换真实订单。
+- PR evidence 必须确认不使用 Linear，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+GH-536 必须建立的主要 anchors：
+
+- `GH-536-KILL-SWITCH-NO-TRADE-ROLLBACK-CONTROLS`
+- `GH-536-GLOBAL-NO-TRADE-MODE`
+- `GH-536-SUBMIT-CANCEL-REPLACE-BLOCKED`
+- `GH-536-ROLLBACK-OPERATOR-EVIDENCE`
+- `GH-536-NO-PRODUCTION-DEFAULT`
+- `TVM-RELEASE-V010-KILL-SWITCH-NO-TRADE-ROLLBACK`
+- `testGH536ReleaseV010KillSwitchBlocksSubmitCancelReplaceAndAuditsRollback`
+
+## GH-536 禁止
+
+- 不启用 production trading。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、account endpoint、listenKey 或 private WebSocket runtime。
+- 不让 Dashboard 直接调用 ExecutionClient、broker gateway、OMS store、kill switch runtime 或真实 order lifecycle。
+- 不执行 rollback command、broker emergency API、automatic recovery 或 production incident operation。
+- 不绕过 RiskEngine、ExecutionEngine、OMS、kill switch、operator confirmation 或 no-trade state。
+- 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-530 ExecutionEngine OMS Lifecycle Validation
 
 GH-530 必须运行：
