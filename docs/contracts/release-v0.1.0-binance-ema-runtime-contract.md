@@ -136,6 +136,7 @@ Required anchors：
 - `GH-534-DASHBOARD-LIVE-MONITORING-SURFACE`
 - `GH-535-DASHBOARD-CONTROLLED-COMMAND-SURFACE`
 - `GH-536-KILL-SWITCH-NO-TRADE-ROLLBACK-CONTROLS`
+- `GH-537-BINANCE-DRYRUN-TESTNET-VALIDATION-SUITE`
 - `TVM-RELEASE-V010-BINANCE-EMA-RUNTIME`
 - `TVM-RELEASE-V010-REAL-TARGET-SMOKE-COVERAGE`
 - `TVM-RELEASE-V010-BINANCE-PUBLIC-MARKET-DATA-PATH`
@@ -151,6 +152,7 @@ Required anchors：
 - `TVM-RELEASE-V010-DASHBOARD-LIVE-MONITORING-SURFACE`
 - `TVM-RELEASE-V010-DASHBOARD-CONTROLLED-COMMAND-SURFACE`
 - `TVM-RELEASE-V010-KILL-SWITCH-NO-TRADE-ROLLBACK`
+- `TVM-RELEASE-V010-BINANCE-DRYRUN-TESTNET-VALIDATION`
 
 Required validation：
 
@@ -441,6 +443,37 @@ GH-536 不授权：
 - production trading、production submit / cancel / replace 或 production broker connection。
 - production secret read、secret editor、signature value exposure、account endpoint、listenKey 或 production endpoint。
 - ExecutionClient call、broker gateway、OMS mutation、real order lifecycle 或 automatic rollback command。
+- 绕过 RiskEngine、ExecutionEngine、OMS、kill switch、operator confirmation 或 no-trade state。
+- Live PRO Console runtime、real trading button、live command、order form 或 broker emergency API。
+- non-Binance venue、non-EMA active strategy 或 release v0.1.0 之后的阶段。
+
+## GH-537-BINANCE-DRYRUN-TESTNET-VALIDATION-SUITE
+
+`GH-537-BINANCE-DRYRUN-TESTNET-VALIDATION-SUITE`
+
+Release v0.1.0 Binance dry-run / testnet validation suite 指本地 deterministic suite，用于串联 GH-531 Binance testnet submit / cancel / replace evidence、GH-532 execution report / broker fill parser evidence、GH-533 reconciliation / Portfolio update evidence 和 GH-536 kill switch / no-trade / rollback evidence：
+
+- `bash checks/release-v0.1.0-dryrun-testnet.sh` 是本 issue 的 release validation command。
+- suite 必须可重复执行，且 repeat evidence 完全一致。
+- dry-run end-to-end 必须覆盖 command request / ack、parser event、reconciliation record 和 kill switch evidence。
+- testnet submit / cancel / replace 必须保持 testnet-only；production endpoint、production secret 和 broker gateway 默认关闭。
+- 失败路径只能产生 validation failure，不得触发 production order、rollback command、broker emergency API 或 automatic recovery。
+
+`GH-537-DRYRUN-END-TO-END`
+`GH-537-TESTNET-SUBMIT-CANCEL-REPLACE`
+`GH-537-EXECUTION-REPORT-FILL-RECONCILIATION-CHECKS`
+`GH-537-NO-PRODUCTION-ORDER-ON-FAILURE`
+`TVM-RELEASE-V010-BINANCE-DRYRUN-TESTNET-VALIDATION`
+
+## GH-537-NON-AUTHORIZATION
+
+`GH-537-NON-AUTHORIZATION`
+
+GH-537 不授权：
+
+- production trading、production submit / cancel / replace 或 production broker connection。
+- production secret read、secret editor、signature value exposure、account endpoint、listenKey 或 production endpoint。
+- 真实 Binance testnet network call、production broker gateway、OMS mutation、real order lifecycle 或 automatic rollback command。
 - 绕过 RiskEngine、ExecutionEngine、OMS、kill switch、operator confirmation 或 no-trade state。
 - Live PRO Console runtime、real trading button、live command、order form 或 broker emergency API。
 - non-Binance venue、non-EMA active strategy 或 release v0.1.0 之后的阶段。

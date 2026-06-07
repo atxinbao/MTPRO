@@ -3988,6 +3988,32 @@ No production default 表示 kill switch / rollback evidence 不会打开 produc
 
 Release v0.1.0 kill switch / no-trade / rollback matrix 必须证明 Dashboard 可以读取 blocked command evidence 和 rollback/operator audit evidence，同时 production trading、secret read、production endpoint、broker connection、ExecutionClient call、OMS bypass、kill switch bypass、automatic recovery 和真实 submit / cancel / replace 均保持关闭。
 
+## GH-537 Binance Dry-run / Testnet Validation Terms
+
+`GH-537-BINANCE-DRYRUN-TESTNET-VALIDATION-SUITE`
+
+Binance dry-run / testnet validation suite 指 release v0.1.0 中由 ExecutionEngine ownership 承担的 deterministic validation evidence chain。它汇总 GH-531 Binance testnet submit / cancel / replace request + ack、GH-532 execution report / broker fill parser、GH-533 reconciliation / Portfolio update 和 GH-536 kill switch / no-trade / rollback anchor，用于证明 release validation 可以在本地重复运行；它不是真实 testnet network runner、production broker gateway 或 production trading authorization。
+
+`GH-537-DRYRUN-END-TO-END`
+
+Dry-run end-to-end 表示本地 deterministic evidence 能覆盖 submit / cancel / replace request、testnet ack、execution report parse、broker fill parse 和 reconciliation record 的连续证据链。该证据链不读取 production secret、不连接 production endpoint、不连接 broker、不提交真实订单，也不把 failure path 扩大成 production order。
+
+`GH-537-TESTNET-SUBMIT-CANCEL-REPLACE`
+
+Testnet submit / cancel / replace 表示 validation suite 只能消费 GH-531 已定义的 Binance testnet command evidence，证明 request identity 与 ack identity 可以被本地验证。它不能打开 production submit / cancel / replace，不能引入 non-Binance venue，也不能绕过 RiskEngine / ExecutionEngine / OMS / kill switch。
+
+`GH-537-EXECUTION-REPORT-FILL-RECONCILIATION-CHECKS`
+
+Execution report / fill / reconciliation checks 表示 validation suite 必须把 GH-532 parsed report / invalid report evidence 与 GH-533 reconciliation / Portfolio projection evidence 纳入同一 release validation chain，并证明 deterministic repeat evidence 完全一致。
+
+`GH-537-NO-PRODUCTION-ORDER-ON-FAILURE`
+
+No production order on failure 表示 dry-run / testnet validation suite 的 failure evidence 只能阻断 release readiness，不允许触发 production order、broker emergency API、automatic recovery、rollback command 或任何真实交易动作。
+
+`TVM-RELEASE-V010-BINANCE-DRYRUN-TESTNET-VALIDATION`
+
+Release v0.1.0 Binance dry-run / testnet validation matrix 必须证明 deterministic local validation command 能覆盖 GH-531、GH-532、GH-533 和 GH-536 的关键 evidence，同时 production trading、production secret read、production endpoint connection、broker gateway、real submit / cancel / replace、non-Binance venue 和 non-EMA active strategy 均保持关闭。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

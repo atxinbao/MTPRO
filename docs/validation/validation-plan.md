@@ -8182,6 +8182,47 @@ GH-536 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-537 Binance Dry-run / Testnet Validation Suite
+
+GH-537 必须运行：
+
+- `bash checks/release-v0.1.0-dryrun-testnet.sh`
+- `swift test --filter TargetGraphTests/testGH537ReleaseDryRunTestnetValidationSuiteIsRepeatableAndProductionSafe`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-537 的验收要求：
+
+- `Sources/ExecutionEngine/OMSFutureGate/ReleaseV010DryRunTestnetValidationSuite.swift` 必须存在，并包含 `GH-537-BINANCE-DRYRUN-TESTNET-VALIDATION-SUITE` 和 `TVM-RELEASE-V010-BINANCE-DRYRUN-TESTNET-VALIDATION` anchors。
+- `checks/release-v0.1.0-dryrun-testnet.sh` 必须存在，并从 `checks/run.sh` 调用。
+- Suite 必须组合 GH-531 / GH-532 / GH-533 / GH-536 deterministic evidence，证明 dry-run end-to-end、testnet submit / cancel / replace、execution report / broker fill、reconciliation / Portfolio update 和 kill switch / no-trade / rollback checks 可重复执行。
+- Failure path 必须保持 `failureTriggersProductionOrder == false`。
+- Production trading、production secret、production endpoint、broker gateway、non-Binance venue 和 non-EMA strategy 必须全部默认关闭。
+- PR evidence 必须确认不使用 Linear，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+GH-537 必须建立的主要 anchors：
+
+- `GH-537-BINANCE-DRYRUN-TESTNET-VALIDATION-SUITE`
+- `GH-537-DRYRUN-END-TO-END`
+- `GH-537-TESTNET-SUBMIT-CANCEL-REPLACE`
+- `GH-537-EXECUTION-REPORT-FILL-RECONCILIATION-CHECKS`
+- `GH-537-NO-PRODUCTION-ORDER-ON-FAILURE`
+- `TVM-RELEASE-V010-BINANCE-DRYRUN-TESTNET-VALIDATION`
+- `testGH537ReleaseDryRunTestnetValidationSuiteIsRepeatableAndProductionSafe`
+
+## GH-537 禁止
+
+- 不启用 production trading。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、account endpoint、listenKey 或 private WebSocket runtime。
+- 不执行真实 Binance testnet network call；validation suite 必须使用 deterministic local evidence。
+- 不触发 production order、rollback command、broker emergency API 或 automatic recovery。
+- 不绕过 RiskEngine、ExecutionEngine、OMS、kill switch、operator confirmation 或 no-trade state。
+- 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-530 ExecutionEngine OMS Lifecycle Validation
 
 GH-530 必须运行：
