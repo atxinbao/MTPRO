@@ -4062,6 +4062,32 @@ Rollback / no-trade procedure 表示 validation failure 时必须保持 no-trade
 
 Release v0.1.0 operator runbook matrix 必须证明 release docs 覆盖 dry-run / testnet acceptance、credential handling、production disabled boundary、rollback / no-trade procedure、operator checklist 和 forbidden capability audit。该 matrix 只作为 GH-540 validation matrix closeout 和 GH-541 final audit input，不授权 production cutover、不创建下一 Project / Issue、不推进 release v0.1.0 之后的阶段。
 
+## GH-540 Validation Matrix and Stage Audit Input Closeout Terms
+
+`GH-540-STAGE-AUDIT-INPUT`
+
+Stage audit input 指 `docs/audit/inputs/mtpro-release-v0.1.0-binance-ema-runtime-stage-audit-input.md`。它只汇总 release v0.1.0 的 issue / PR / checks / merge evidence、validation matrix closeout、automation readiness closeout、forbidden production capability audit、Root Docs Delta input 和 GH-541 handoff checklist，不是最终 Stage Code Audit Report。
+
+`GH-540-ISSUE-PR-EVIDENCE-CHAIN`
+
+Issue / PR evidence chain 表示 GH-521 至 GH-539 对应 PR #542 至 #560 已 merged，required check `checks` 已 SUCCESS，并保留 merge commit evidence。GH-540 当前 PR merge 后才允许进入 GH-541 final audit gate。
+
+`GH-540-VALIDATION-MATRIX-CLOSEOUT`
+
+Validation matrix closeout 表示 `docs/validation/trading-validation-matrix.md` 已覆盖 release v0.1.0 从 contract、runtime path、dry-run / testnet evidence、no-default-production-trading guard、operator runbook 到 stage audit input 的完整矩阵。该 closeout 不授权 production cutover。
+
+`GH-540-FORBIDDEN-PRODUCTION-CAPABILITY-AUDIT`
+
+Forbidden production capability audit 表示 stage audit input 必须继续证明 production trading、production secret、production endpoint、production broker endpoint、account endpoint、listenKey、private WebSocket production fallback、broker gateway、production OMS、real submit / cancel / replace、production Dashboard command、Live PRO Console runtime、automatic recovery、rollback command、broker emergency API、RiskEngine / ExecutionEngine / OMS / kill switch / no-trade bypass、non-Binance venue 和 non-EMA active strategy 均未获默认授权。
+
+`GH-540-NO-FINAL-STAGE-CODE-AUDIT`
+
+No final Stage Code Audit 表示 GH-540 只准备输入材料；GH-541 才能输出最终 Stage Code Audit Report 和 Root Docs Refresh。
+
+`TVM-RELEASE-V010-STAGE-AUDIT-INPUT-CLOSEOUT`
+
+Release v0.1.0 stage audit input closeout matrix 只证明 GH-541 final audit 所需输入材料已齐备，不授权 production trading、不创建下一 Project / Issue、不推进 release v0.1.0 之后的阶段。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

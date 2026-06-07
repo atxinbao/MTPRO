@@ -139,6 +139,7 @@ Required anchors：
 - `GH-537-BINANCE-DRYRUN-TESTNET-VALIDATION-SUITE`
 - `GH-538-NO-DEFAULT-PRODUCTION-TRADING-AUTOMATION-GUARD`
 - `GH-539-RELEASE-DOCS-OPERATOR-RUNBOOK`
+- `GH-540-STAGE-AUDIT-INPUT`
 - `TVM-RELEASE-V010-BINANCE-EMA-RUNTIME`
 - `TVM-RELEASE-V010-REAL-TARGET-SMOKE-COVERAGE`
 - `TVM-RELEASE-V010-BINANCE-PUBLIC-MARKET-DATA-PATH`
@@ -157,6 +158,7 @@ Required anchors：
 - `TVM-RELEASE-V010-BINANCE-DRYRUN-TESTNET-VALIDATION`
 - `TVM-RELEASE-V010-NO-DEFAULT-PRODUCTION-TRADING-GUARD`
 - `TVM-RELEASE-V010-OPERATOR-RUNBOOK`
+- `TVM-RELEASE-V010-STAGE-AUDIT-INPUT-CLOSEOUT`
 
 Required validation：
 
@@ -549,6 +551,42 @@ Release v0.1.0 operator runbook matrix 必须证明 release docs 覆盖 dry-run 
 
 GH-539 不授权：
 
+- production trading、production submit / cancel / replace 或 production broker connection。
+- production secret read、secret editor、signature value exposure、account endpoint、listenKey 或 production endpoint。
+- 真实 Binance testnet network call、production broker gateway、OMS mutation、real order lifecycle、automatic rollback command 或 broker emergency API。
+- 绕过 RiskEngine、ExecutionEngine、OMS、kill switch、operator confirmation、dry-run / testnet gate 或 no-trade state。
+- Live PRO Console runtime、real trading button、live command、order form 或 production cutover。
+- non-Binance venue、non-EMA active strategy、下一 Project / Issue 或 release v0.1.0 之后的阶段。
+
+## GH-540-STAGE-AUDIT-INPUT
+
+`GH-540-STAGE-AUDIT-INPUT`
+
+GH-540 stage audit input 指 `docs/audit/inputs/mtpro-release-v0.1.0-binance-ema-runtime-stage-audit-input.md`。该输入材料汇总 GH-521 至 GH-539 的 issue / PR / checks / merge evidence、validation matrix closeout、automation readiness closeout、forbidden production capability audit、Root Docs Delta input 和 GH-541 handoff checklist。
+
+`GH-540-ISSUE-PR-EVIDENCE-CHAIN`
+
+Issue / PR evidence chain 必须记录 GH-521 至 GH-539 对应 PR #542 至 #560 均已 merged，required check `checks` 均为 SUCCESS，并保留 merge commit evidence。GH-540 当前 PR merge 后才允许 GH-541 进行最终 Stage Code Audit。
+
+`GH-540-VALIDATION-MATRIX-CLOSEOUT`
+
+Validation matrix closeout 表示 `docs/validation/trading-validation-matrix.md` 已覆盖 release v0.1.0 的 contract、ownership、target smoke、DataClient / DataEngine / Cache、signed account read、private stream / account snapshot、Trader / EMA、RiskEngine、ExecutionEngine / OMS、ExecutionClient testnet SCR、execution report / broker fill、Portfolio reconciliation、Dashboard surfaces、kill switch、dry-run / testnet suite、no-default-production-trading guard、operator runbook 和 stage audit input。
+
+`GH-540-FORBIDDEN-PRODUCTION-CAPABILITY-AUDIT`
+
+Forbidden production capability audit 必须证明 production trading、production secret、production endpoint、production broker endpoint、account endpoint、listenKey、private WebSocket production fallback、broker gateway、production OMS、real submit / cancel / replace、production Dashboard command、Live PRO Console runtime、automatic recovery、rollback command、broker emergency API、RiskEngine / ExecutionEngine / OMS / kill switch / no-trade bypass、non-Binance venue 和 non-EMA active strategy 均未获默认授权。
+
+`TVM-RELEASE-V010-STAGE-AUDIT-INPUT-CLOSEOUT`
+
+Release v0.1.0 stage audit input closeout matrix 只证明最终 Stage Code Audit 的输入材料已齐备。该 matrix 不授权 production cutover、不创建下一 Project / Issue、不推进 release v0.1.0 之后的阶段。
+
+## GH-540-NON-AUTHORIZATION
+
+`GH-540-NON-AUTHORIZATION`
+
+GH-540 不授权：
+
+- final Stage Code Audit Report 或 Root Docs Refresh。
 - production trading、production submit / cancel / replace 或 production broker connection。
 - production secret read、secret editor、signature value exposure、account endpoint、listenKey 或 production endpoint。
 - 真实 Binance testnet network call、production broker gateway、OMS mutation、real order lifecycle、automatic rollback command 或 broker emergency API。

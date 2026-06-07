@@ -8304,6 +8304,45 @@ GH-539 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-540 Validation Matrix and Stage Audit Input Closeout Validation
+
+GH-540 必须运行：
+
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-540 的验收要求：
+
+- `docs/audit/inputs/mtpro-release-v0.1.0-binance-ema-runtime-stage-audit-input.md` 必须存在，并包含 `GH-540-STAGE-AUDIT-INPUT`、`GH-540-ISSUE-PR-EVIDENCE-CHAIN`、`GH-540-VALIDATION-MATRIX-CLOSEOUT`、`GH-540-FORBIDDEN-PRODUCTION-CAPABILITY-AUDIT`、`GH-540-NO-FINAL-STAGE-CODE-AUDIT` 和 `TVM-RELEASE-V010-STAGE-AUDIT-INPUT-CLOSEOUT` anchors。
+- Stage audit input 必须汇总 GH-521 至 GH-539 issue / PR / checks / merge evidence，并将 GH-540 当前 PR 标记为 current issue PR / pending merge evidence。
+- Trading validation matrix 必须包含 `TVM-RELEASE-V010-STAGE-AUDIT-INPUT-CLOSEOUT`，并把 GH-540 backfill 标记为 validation matrix / stage audit input closeout，不输出最终 Stage Code Audit Report。
+- Release contract、domain context、automation readiness 和 `checks/automation-readiness.d/l4-boundary.sh` 必须机械检查 #540 stage audit input anchors。
+- PR evidence 必须确认不使用 Linear，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+GH-540 必须建立的主要 anchors：
+
+- `GH-540-STAGE-AUDIT-INPUT`
+- `GH-540-ISSUE-PR-EVIDENCE-CHAIN`
+- `GH-540-VALIDATION-MATRIX-CLOSEOUT`
+- `GH-540-FORBIDDEN-PRODUCTION-CAPABILITY-AUDIT`
+- `GH-540-NO-FINAL-STAGE-CODE-AUDIT`
+- `TVM-RELEASE-V010-STAGE-AUDIT-INPUT-CLOSEOUT`
+
+## GH-540 禁止
+
+- 不输出最终 Stage Code Audit Report。
+- 不执行 Root Docs Refresh。
+- 不启用 production trading。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、account endpoint、listenKey 或 private WebSocket runtime。
+- 不执行真实 Binance testnet network call；stage audit input 只收口已发生的 deterministic / dry-run / testnet evidence。
+- 不触发 production order、sandbox-to-production command promotion、rollback command、broker emergency API 或 automatic recovery。
+- 不绕过 RiskEngine、ExecutionEngine、OMS、kill switch、operator confirmation、dry-run / testnet gate 或 no-trade state。
+- 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-530 ExecutionEngine OMS Lifecycle Validation
 
 GH-530 必须运行：
