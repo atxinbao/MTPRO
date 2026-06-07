@@ -4888,6 +4888,117 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH508CapitalRiskLimitGateBindsBrokerMatrixAndManualApproval() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let brokerMatrix = try ProductionCutoverBrokerVenueCapabilityMatrix.deterministicFixture()
+        let manualGate = try ProductionCutoverManualApprovalGate.deterministicFixture()
+        let limitGate = try ProductionCutoverCapitalRiskLimitGate.deterministicFixture()
+
+        XCTAssertTrue(brokerMatrix.matrixHeld)
+        XCTAssertTrue(manualGate.gateHeld)
+        XCTAssertTrue(limitGate.gateHeld)
+        XCTAssertTrue(limitGate.limitEvidenceCoverageHeld)
+        XCTAssertEqual(limitGate.issueID.rawValue, "GH-508")
+        XCTAssertEqual(limitGate.upstreamIssueIDs.map(\.rawValue), ["GH-505", "GH-506"])
+        XCTAssertEqual(limitGate.canonicalQueueRange, "GH-503..GH-510")
+        XCTAssertEqual(
+            Set(limitGate.limitKinds),
+            Set(ProductionCutoverCapitalRiskLimitKind.allCases)
+        )
+        XCTAssertEqual(
+            Set(limitGate.states),
+            Set(ProductionCutoverCapitalRiskLimitState.allCases)
+        )
+        XCTAssertEqual(
+            Set(limitGate.forbiddenCapabilities),
+            Set(ProductionCutoverCapitalRiskForbiddenCapability.allCases)
+        )
+        XCTAssertTrue(limitGate.validationAnchors.contains("GH-508-BINDS-GH505-GH506"))
+        XCTAssertTrue(limitGate.validationAnchors.contains("GH-508-NO-LIVE-RISK-PRETRADE-RUNTIME"))
+
+        XCTAssertTrue(limitGate.brokerVenueCapabilityMatrixRequired)
+        XCTAssertTrue(limitGate.manualApprovalGateRequired)
+        XCTAssertTrue(limitGate.productionNoDefaultTradingRequired)
+        XCTAssertTrue(limitGate.blockedDryRunNoTradeDefault)
+
+        for forbidden in [
+            limitGate.implementsLiveRiskEngine,
+            limitGate.evaluatesRealPreTradeAllowReject,
+            limitGate.readsRealAccountBalance,
+            limitGate.readsBrokerPosition,
+            limitGate.readsMarginOrLeverage,
+            limitGate.readsRealPnL,
+            limitGate.implementsCapitalAllocationRuntime,
+            limitGate.connectsBroker,
+            limitGate.implementsOMS,
+            limitGate.implementsBrokerGateway,
+            limitGate.productionTradingEnabledByDefault,
+            limitGate.submitsRealOrder,
+            limitGate.cancelsRealOrder,
+            limitGate.replacesRealOrder
+        ] {
+            XCTAssertFalse(forbidden)
+        }
+
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/RiskEngine/LiveGate/ProductionCutoverCapitalRiskLimitGate.swift"
+                ).path
+            )
+        )
+    }
+
+    func testGH508CapitalRiskLimitGateRejectsLiveRiskRuntimeAndAccountReads() throws {
+        XCTAssertThrowsError(
+            try ProductionCutoverCapitalRiskLimitGate(
+                implementsLiveRiskEngine: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("implementsLiveRiskEngine"))
+        }
+
+        XCTAssertThrowsError(
+            try ProductionCutoverCapitalRiskLimitGate(
+                evaluatesRealPreTradeAllowReject: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("evaluatesRealPreTradeAllowReject")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try ProductionCutoverCapitalRiskLimitGate(
+                readsRealAccountBalance: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("readsRealAccountBalance"))
+        }
+
+        XCTAssertThrowsError(
+            try ProductionCutoverCapitalRiskLimitGate(
+                submitsRealOrder: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("submitsRealOrder"))
+        }
+
+        XCTAssertThrowsError(
+            try ProductionCutoverCapitalRiskLimitEvidence(
+                evidenceID: Identifier.constant("gh-508-unsafe-broker-position-read"),
+                kind: .exposure,
+                state: .futureGated,
+                expectedEvidence: "unsafe broker position read",
+                blockedReason: "must be rejected",
+                readsBrokerPosition: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("readsBrokerPosition"))
+        }
+    }
+
     func testGH434DeterministicValueObjectConstantsUseExplicitConstructors() throws {
         let identifier = Identifier.constant(" gh-434-identifier ", field: "gh434Identifier")
         XCTAssertEqual(identifier.rawValue, "gh-434-identifier")
