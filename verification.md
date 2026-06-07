@@ -16382,3 +16382,41 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO release v0.1.0 no-default-production-trading guard passed.` and `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true`, `dashboardReadModelOnly=true`, `releaseLiveMonitoringSurface=7`, `releaseCommandSurface=3` and `releaseKillSwitch=3`; 421 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-08 - GH-541 Final Stage Code Audit and Root Docs Refresh
+
+- Issue: GH-541 `Final Stage Code Audit and Root Docs Refresh`
+- Queue:
+  - GitHub fallback queue used because this release stage does not use Linear.
+  - WIP=1 preflight passed before implementation: #541 was OPEN with `mtpro / backlog / non-executable`; dependency #540 was CLOSED with `done`; no other open issue carried `todo`, `in-progress` or `in-review`; no open PR was present.
+  - #541 was promoted to `todo`, then to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `docs/audit/mtpro-release-v0.1.0-binance-ema-runtime-stage-code-audit.md`.
+  - Refreshed `GOAL.md`, `BLUEPRINT.md`, `docs/roadmap.md`, `docs/validation/latest-verification-summary.md` and this `verification.md` with completed release facts.
+  - Added `Release v0.1.0 final Stage Code Audit and Root Docs Refresh anchor` to `docs/automation/automation-readiness.md`.
+  - Added mechanical checks for the final Stage Code Audit Report, root docs refresh and verification evidence to `checks/automation-readiness.d/l4-boundary.sh`.
+  - Confirmed release maturity statement: `MTPRO Release v0.1.0 Binance + EMA runtime validation complete with production trading disabled by default`.
+- Evidence:
+  - GH-521 through GH-541 belong to GitHub milestone `MTPRO Release v0.1.0`.
+  - GH-521 through GH-540 were CLOSED / done before this #541 PR.
+  - PR #542 through PR #561 were MERGED before this #541 PR, with required check `checks` SUCCESS.
+  - #541 closure PR must pass required check `checks`, then be squash merged, and #541 must be CLOSED / done before final release closure result.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No new runtime, adapter, OMS, broker gateway, Dashboard command runtime or order form implementation.
+  - No production secret read, print, storage or derivation.
+  - No production endpoint, production broker endpoint, account endpoint, listenKey or private WebSocket connection.
+  - No real Binance testnet network connection.
+  - No broker connection, RiskEngine bypass, ExecutionEngine bypass, OMS bypass, kill switch bypass or no-trade bypass.
+  - No real submit / cancel / replace.
+  - No production order on failure, sandbox-to-production command promotion, automatic recovery, rollback command or broker emergency API.
+  - No production trading.
+  - No non-Binance venue.
+  - No non-EMA active strategy.
+  - No next Project / Issue creation and no release v0.1.0 post-stage promotion.
+- Validation:
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO release v0.1.0 no-default-production-trading guard passed.` and `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; release dry-run / testnet validation suite passed; Dashboard smoke includes `readModelOnly=true`, `dashboardReadModelOnly=true`, `releaseLiveMonitoringSurface=7`, `releaseCommandSurface=3` and `releaseKillSwitch=3`; 421 XCTest / 0 failures; final output `MTPRO checks passed.`
