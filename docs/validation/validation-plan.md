@@ -422,6 +422,28 @@ GH-466 必须建立的主要 anchors：
 - `GH-466-PORTFOLIO-PROJECTION-NO-BROKER-PAYLOAD`
 - `TVM-L4-OMS-BROKER-PORTFOLIO-RECONCILIATION`
 
+## GH-467 L4 Audit Trail Incident Replay Validation
+
+GH-467 的 required validation：
+
+- `docs/contracts/l4-audit-trail-incident-replay-contract.md` 必须存在，并包含 `GH-467-AUDIT-TRAIL-INCIDENT-REPLAY`、`GH-467-COMMAND-EVIDENCE-TRACE`、`GH-467-APPEND-ONLY-AUDIT-TRAIL`、`GH-467-DETERMINISTIC-INCIDENT-REPLAY`、`GH-467-NO-SECRET-RAW-PAYLOAD`、`GH-467-NON-AUTHORIZATION` 和 `TVM-L4-AUDIT-TRAIL-INCIDENT-REPLAY`。
+- `Sources/ExecutionEngine/OMSFutureGate/L4AuditTrailIncidentReplayEvidence.swift` 必须定义 `L4CommandAuditTrailEntry`、`L4IncidentReplayInput`、`L4IncidentReplayOutput`、`L4AuditTrailIncidentReplayEvidence` 和 `L4AuditTrailIncidentReplayRuntime`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH467AuditTrailIncidentReplayBuildsAppendOnlyReplayEvidence` 和 `testGH467AuditTrailIncidentReplayRejectsExternalAuditRawPayloadAndReplayBypass`。
+- Evidence 必须绑定 GH-463 sandbox command path evidence 和 GH-466 reconciliation evidence。
+- Audit trail 必须覆盖 command intent、risk decision、execution request、broker report、OMS transition 和 reconciliation outcome。
+- Replay 必须证明 append-only sequence 连续、submit / cancel / replace command kinds 覆盖、所有 audit stage 覆盖，以及 matched / mismatched / stale / missing reconciliation status 覆盖。
+- Boundary tests 必须拒绝 external audit upload、secret capture、raw broker payload capture、production incident ops、production broker replay、mutable audit trail、repair command、ExecutionClient call、broker gateway touch 和 Live command surface bypass。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`，不依赖真实 secret、broker credential、signed/account endpoint、listenKey、private WebSocket、production endpoint 或人工验收。
+
+GH-467 必须建立的主要 anchors：
+
+- `GH-467-AUDIT-TRAIL-INCIDENT-REPLAY`
+- `GH-467-COMMAND-EVIDENCE-TRACE`
+- `GH-467-APPEND-ONLY-AUDIT-TRAIL`
+- `GH-467-DETERMINISTIC-INCIDENT-REPLAY`
+- `GH-467-NO-SECRET-RAW-PAYLOAD`
+- `TVM-L4-AUDIT-TRAIL-INCIDENT-REPLAY`
+
 ## MTP-24 Trading Validation Matrix Validation
 
 MTP-24 的 required validation：
