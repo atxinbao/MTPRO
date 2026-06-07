@@ -4666,6 +4666,122 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH506ManualApprovalGateBindsUpstreamCutoverReadinessEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let credentialGate = try ProductionCutoverCredentialSecretPolicyGate.deterministicFixture()
+        let environmentGate = try ProductionCutoverEnvironmentIsolationGateContract.deterministicFixture()
+        let brokerMatrix = try ProductionCutoverBrokerVenueCapabilityMatrix.deterministicFixture()
+        let manualGate = try ProductionCutoverManualApprovalGate.deterministicFixture()
+
+        XCTAssertTrue(credentialGate.contractHeld)
+        XCTAssertTrue(environmentGate.contractHeld)
+        XCTAssertTrue(brokerMatrix.matrixHeld)
+        XCTAssertTrue(manualGate.gateHeld)
+        XCTAssertTrue(manualGate.checklistCoverageHeld)
+        XCTAssertEqual(manualGate.issueID.rawValue, "GH-506")
+        XCTAssertEqual(manualGate.upstreamIssueIDs.map(\.rawValue), ["GH-503", "GH-504", "GH-505"])
+        XCTAssertEqual(manualGate.canonicalQueueRange, "GH-503..GH-510")
+        XCTAssertEqual(
+            Set(manualGate.checkpoints),
+            Set(ProductionCutoverManualApprovalCheckpoint.allCases)
+        )
+        XCTAssertEqual(
+            Set(manualGate.forbiddenCapabilities),
+            Set(ProductionCutoverManualApprovalForbiddenCapability.allCases)
+        )
+        XCTAssertTrue(manualGate.validationAnchors.contains("GH-506-OPERATOR-CONFIRMATION-CHECKLIST"))
+        XCTAssertTrue(manualGate.validationAnchors.contains("GH-506-NO-APPROVAL-BYPASS"))
+
+        XCTAssertTrue(manualGate.credentialPolicyGateRequired)
+        XCTAssertTrue(manualGate.environmentIsolationGateRequired)
+        XCTAssertTrue(manualGate.brokerVenueCapabilityMatrixRequired)
+        XCTAssertTrue(manualGate.manualApprovalRequired)
+        XCTAssertTrue(manualGate.operatorConfirmationRequired)
+        XCTAssertTrue(manualGate.futureDedicatedCutoverIssueRequired)
+        XCTAssertTrue(manualGate.productionCommandBlockedByDefault)
+
+        for forbidden in [
+            manualGate.approvalGranted,
+            manualGate.allowsConfigDefaultApproval,
+            manualGate.allowsEnvironmentVariableApproval,
+            manualGate.allowsUIApprovalBypass,
+            manualGate.allowsScriptApprovalBypass,
+            manualGate.sandboxCommandPromotesProductionCommand,
+            manualGate.exposesLiveCommandSurface,
+            manualGate.exposesTradingButton,
+            manualGate.exposesOrderForm,
+            manualGate.readsSecretValue,
+            manualGate.connectsBroker,
+            manualGate.implementsProductionApprovalSystem,
+            manualGate.implementsProductionOMS,
+            manualGate.submitsRealOrder,
+            manualGate.cancelsRealOrder,
+            manualGate.replacesRealOrder
+        ] {
+            XCTAssertFalse(forbidden)
+        }
+
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/ProductionCutoverManualApprovalGate.swift"
+                ).path
+            )
+        )
+    }
+
+    func testGH506ManualApprovalGateRejectsConfigEnvUIAndSandboxBypass() throws {
+        XCTAssertThrowsError(
+            try ProductionCutoverManualApprovalGate(
+                allowsConfigDefaultApproval: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("allowsConfigDefaultApproval"))
+        }
+
+        XCTAssertThrowsError(
+            try ProductionCutoverManualApprovalGate(
+                allowsEnvironmentVariableApproval: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("allowsEnvironmentVariableApproval")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try ProductionCutoverManualApprovalGate(
+                exposesTradingButton: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("exposesTradingButton"))
+        }
+
+        XCTAssertThrowsError(
+            try ProductionCutoverManualApprovalGate(
+                sandboxCommandPromotesProductionCommand: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("sandboxCommandPromotesProductionCommand")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try ProductionCutoverManualApprovalEvidence(
+                evidenceID: Identifier.constant("gh-506-unsafe-ui-bypass"),
+                checkpoint: .operatorConfirmationChecklist,
+                expectedEvidence: "unsafe approval bypass",
+                blockedReason: "must be rejected",
+                allowsUIApprovalBypass: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("allowsUIApprovalBypass"))
+        }
+    }
+
     func testGH434DeterministicValueObjectConstantsUseExplicitConstructors() throws {
         let identifier = Identifier.constant(" gh-434-identifier ", field: "gh434Identifier")
         XCTAssertEqual(identifier.rawValue, "gh-434-identifier")
