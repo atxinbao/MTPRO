@@ -34,6 +34,8 @@ require_missing_path() {
   [[ ! -e "$path" ]] || fail "retired path must not exist: $path"
 }
 
+bash "$ROOT/checks/automation-readiness.d/run-domain-guards.sh"
+
 require_file ".github/workflows/checks.yml"
 require_file ".github/pull_request_template.md"
 require_file ".gitignore"
