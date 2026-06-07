@@ -209,6 +209,7 @@ let package = Package(
             dependencies: ["DomainModel", "MessageBus", "Cache", "Portfolio", "RiskEngine"],
             path: "Sources/Trader/Strategies/EMA",
             sources: [
+                "EMAProposalRuntime.swift",
                 "EMACross.swift",
                 "TargetGraph/TraderStrategiesTargetBoundary.swift"
             ]
@@ -295,6 +296,7 @@ let package = Package(
                 "Trader/Accounts",
                 "Trader/Coordination/RiskBinding",
                 "Trader/Runtime",
+                "Trader/Strategies/EMA/EMAProposalRuntime.swift",
                 "Trader/Strategies/EMA/EMACross.swift",
                 "Trader/Strategies/EMA/TargetGraph",
                 "Trader/TargetGraph"

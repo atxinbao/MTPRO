@@ -15978,3 +15978,32 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 410 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-08 - GH-528 EMA strategy proposal runtime
+
+- Issue: GH-528 `Implement EMA strategy proposal runtime`
+- Queue:
+  - GitHub fallback queue used because this release stage does not use Linear.
+  - WIP=1 preflight passed before implementation: #528 was OPEN with `mtpro / backlog / non-executable`; dependency #527 was CLOSED with `done`; no other open issue carried `todo`, `in-progress` or `in-review`; no open PR was present.
+  - #528 was promoted to `todo`, then to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `Sources/Trader/Strategies/EMA/EMAProposalRuntime.swift`.
+  - Added `TargetGraphTests/testGH528EMAProposalRuntimeGeneratesRiskConsumableProposalWithoutExecutionPath`.
+  - Backfilled `GH-528-EMA-STRATEGY-PROPOSAL-RUNTIME`, `GH-528-EMA-SIGNAL-TO-PAPER-PROPOSAL`, `GH-528-RISKENGINE-CONSUMABLE-PROPOSAL`, `TVM-RELEASE-V010-EMA-PROPOSAL-RUNTIME`, validation plan, domain language, latest summary and automation readiness guard.
+  - Covered live-read compatible market bars / EMA signal sample input, paper-only proposal generation, RiskEngine consumable risk query evidence, EMA-only / Binance-only identity and no-command flags.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No production secret read, print or storage.
+  - No production endpoint or production broker endpoint connection.
+  - No direct ExecutionClient, broker gateway or OMS path.
+  - No production trading.
+  - No real order submission / cancellation / replacement.
+  - No non-Binance venue.
+  - No non-EMA active strategy.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH528EMAProposalRuntimeGeneratesRiskConsumableProposalWithoutExecutionPath`: pass; 1 test / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 411 XCTest / 0 failures; final output `MTPRO checks passed.`
