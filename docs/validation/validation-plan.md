@@ -527,6 +527,27 @@ GH-471 必须建立的主要 anchors：
 - `GH-471-ENVIRONMENT-CREDENTIAL-INCIDENT-STOP-GATES`
 - `TVM-L4-PRODUCTION-CUTOVER-GATE`
 
+## GH-472 L4 Stage Audit Input Validation
+
+GH-472 的 required validation：
+
+- `docs/audit/inputs/mtpro-l4-live-production-trading-commands-v1-stage-audit-input.md` 必须存在，并包含 `GH-472-L4-STAGE-AUDIT-INPUT`、`GH-472-EVIDENCE-CHAIN-TRACE`、`GH-472-COMMAND-RISK-EXECUTION-AUDIT-UI-GATE-TRACE`、`GH-472-NO-DEFAULT-PRODUCTION-TRADING`、`GH-472-NO-NEXT-PROJECT-AUTO-PROMOTION`、`GH-472-NON-AUTHORIZATION` 和 `TVM-L4-STAGE-AUDIT-INPUT-CLOSEOUT`。
+- Stage Audit input 必须汇总 GH-452 至 GH-471 的 issue / PR / merge evidence chain。
+- Stage Audit input 必须证明 command / risk / execution / OMS / reconciliation / audit / UI gate evidence 可追溯。
+- Stage Audit input 必须提供 Root Docs Delta input，但不得执行 root docs refresh。
+- Stage Audit input 必须确认 no default production trading、no production cutover execution、no next Project / Issue auto promotion。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`，不依赖真实 secret、broker credential、signed/account endpoint、listenKey、private WebSocket、production endpoint 或人工验收。
+- GH-472 不输出最终 production approval，不打开 production gate，不自动推进下一 Project / Issue。
+
+GH-472 必须建立的主要 anchors：
+
+- `GH-472-L4-STAGE-AUDIT-INPUT`
+- `GH-472-EVIDENCE-CHAIN-TRACE`
+- `GH-472-COMMAND-RISK-EXECUTION-AUDIT-UI-GATE-TRACE`
+- `GH-472-NO-DEFAULT-PRODUCTION-TRADING`
+- `GH-472-NO-NEXT-PROJECT-AUTO-PROMOTION`
+- `TVM-L4-STAGE-AUDIT-INPUT-CLOSEOUT`
+
 ## MTP-24 Trading Validation Matrix Validation
 
 MTP-24 的 required validation：
