@@ -954,6 +954,22 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | `GH-509` | `TVM-PRODUCTION-CUTOVER-READINESS-REAL-BROKER-GATE` | Dry-run / shadow / no-default-trading evidence：定义 dry-run proof、shadow mode evidence、production blocked evidence、Report / Dashboard / Events read-model-only evidence surface 和 no-default-trading 验证入口；不实现 production execution、真实 broker shadow trading、sandbox command promoted to production command 或真实订单。 |
 | `GH-510` | `TVM-PRODUCTION-CUTOVER-READINESS-REAL-BROKER-GATE` | Stage audit input closeout：新增 `docs/audit/inputs/mtpro-production-cutover-readiness-real-broker-enablement-gate-v1-stage-audit-input.md`，收口 GH-503 至 GH-510 PR / checks / merge evidence、validation matrix、automation readiness anchors、forbidden capability evidence 和 Parent Codex handoff checklist。GH-510 不输出最终 Stage Code Audit Report，不设置 Project Completed，不创建下一 Project / Issue，不推进 Todo，不授权 production cutover、broker connection、real secret read 或 real order lifecycle。 |
 
+## Release v0.1.0 Binance EMA Runtime matrix extension
+
+日期：2026-06-08
+
+执行者：Codex
+
+| Matrix ID | 验证域 | 当前 coverage 入口 | 验收证据边界 | 后续回填责任 |
+| --- | --- | --- | --- | --- |
+| `TVM-RELEASE-V010-BINANCE-EMA-RUNTIME` | Release v0.1.0 Binance + EMA runtime contract、acceptance matrix、dry-run-first / testnet-first gate、no-default-production-trading boundary | `docs/contracts/release-v0.1.0-binance-ema-runtime-contract.md`、`docs/validation/validation-plan.md`、`docs/domain/context.md`、`docs/automation/automation-readiness.md` 和 `checks/automation-readiness.d/l4-boundary.sh`。 | 证据覆盖 release v0.1.0 的唯一 active venue Binance、唯一 active concrete strategy EMA、DataClient / DataEngine / Cache、signed account read、private stream / account snapshot、Trader lifecycle、EMA proposal、RiskEngine pre-trade gate、ExecutionEngine / OMS、Binance ExecutionClient testnet submit / cancel / replace、execution report / broker fill parser、reconciliation / portfolio update、Dashboard monitoring、controlled command surface、kill switch / no-trade / rollback、dry-run / testnet validation、no-default-production-trading guard、release docs、operator runbook、validation matrix、stage audit input、final Stage Code Audit 和 Root Docs Refresh。当前 GH-521 只定义 contract / matrix，不实现 runtime，不读取 secret，不连接 production endpoint，不提交真实订单，不启用 non-Binance venue 或 non-EMA active strategy。 | GH-521 已回填顶层 release contract、acceptance matrix、dry-run-first / testnet-first gate、no-default-production-trading boundary、domain context、validation plan、automation readiness anchors 和 latest verification summary。后续 GH-522 至 GH-541 必须逐 issue 回填对应 runtime / validation / docs / audit evidence，保持 WIP=1，不得跳过 dependencies，不得默认启用 production trading。 |
+
+## GH-521..GH-541 issue backfill
+
+| Issue | Matrix ID | Evidence |
+| --- | --- | --- |
+| `GH-521` | `TVM-RELEASE-V010-BINANCE-EMA-RUNTIME` | Release v0.1.0 contract：新增 `docs/contracts/release-v0.1.0-binance-ema-runtime-contract.md`，固定 milestone `MTPRO Release v0.1.0`、queue range `GH-521..GH-541`、唯一 active venue Binance、唯一 active concrete strategy EMA、dry-run-first / testnet-first gate、DataClient/DataEngine/Trader/EMA/Risk/Execution/Dashboard/kill switch/docs acceptance matrix 和 no-default-production-trading boundary。GH-521 不直接实现 runtime，不读取 production secret，不连接 production endpoint，不提交真实订单，不创建下一 Project / Issue，不推进 release v0.1.0 后续阶段。 |
+
 ## MTP-190 Target Module Source Migration 阶段收口
 
 日期：2026-06-01
