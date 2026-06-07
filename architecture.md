@@ -354,7 +354,7 @@ MTP-216 的 before-state snapshot 是旧 compatibility envelope：`Core`、`Adap
 
 `MTP-216-DEPENDENCY-DIRECTION-CONTRACT`
 
-目标依赖方向为：`MessageBus -> DomainModel`；`Database -> DomainModel / MessageBus / CSQLite / DuckDB(macOS)`；`DataClient -> DomainModel`；`Cache -> DomainModel / MessageBus`；`DataEngine -> DomainModel / DataClient / MessageBus / Cache`；`Portfolio -> DomainModel / MessageBus / Cache / Database`；`RiskEngine -> DomainModel / MessageBus / Cache / Portfolio`；`ExecutionClient -> DomainModel`；`ExecutionEngine -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine / ExecutionClient(future gate types only)`；`TraderStrategies -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine`；`Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine / ExecutionEngine`；`Dashboard -> Core / Persistence read-model and ViewModel exports only`。
+目标依赖方向为：`MessageBus -> DomainModel`；`Database -> DomainModel / MessageBus / CSQLite / DuckDB(macOS)`；`DataClient -> DomainModel`；`Cache -> DomainModel / MessageBus`；`DataEngine -> DomainModel / DataClient / MessageBus / Cache`；`Portfolio -> DomainModel / MessageBus / Cache / Database`；`RiskEngine -> DomainModel / MessageBus / Cache / Portfolio`；`ExecutionClient -> DomainModel`；`ExecutionEngine -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine / ExecutionClient(future gate types only)`；`TraderStrategies -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine`；`Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine`；`Dashboard -> Core / Persistence read-model and ViewModel exports only`。历史 MTP-216 合同中出现过的 `Trader -> ExecutionEngine` 只能作为后续 correction 前的 before-state / deferred candidate evidence 保留；GH-392 后的当前 active graph 禁止 direct `Trader -> ExecutionEngine` target dependency。
 
 `MTP-216-FORBIDDEN-IMPORT-PATHS`
 
@@ -456,7 +456,7 @@ MTP-219 继续实际 SwiftPM target graph split：`Package.swift` 新增 `Trader
 
 `MTP-219-TRADER-TARGET-SPLIT`
 
-`Trader` target 在 MTP-219 时依赖 `DomainModel`、`MessageBus`、`Cache`、`TraderStrategies`、`Portfolio` 和 `RiskEngine`，并把 `ExecutionEngine(MTP-220)` 记录为 deferred dependency。MTP-220 已把该 deferred dependency 解析为当前 active `Trader -> ExecutionEngine` target dependency。
+`Trader` target 在 MTP-219 时依赖 `DomainModel`、`MessageBus`、`Cache`、`TraderStrategies`、`Portfolio` 和 `RiskEngine`，并把 `ExecutionEngine(MTP-220)` 记录为 deferred downstream context candidate。GH-392 后该 deferred wording 已被校正为 no direct `Trader -> ExecutionEngine`：Trader 只保留 Accounts + Strategies/EMA + Coordination ownership，ExecutionEngine 作为下游 paper / simulated / future-gated execution evidence boundary 承接 proposal / risk context，不成为 Trader target 的 active dependency。
 
 `MTP-219-PORTFOLIO-TARGET-SPLIT`
 
@@ -581,7 +581,7 @@ GH-422 收口第二轮 Core envelope retirement / real module ownership completi
 
 `MTP-219-TRADER-PORTFOLIO-RISK-DEPENDENCY-DIRECTION`
 
-MTP-219 的 historical direction 是 `Portfolio -> DomainModel / MessageBus / Cache / Database`、`RiskEngine -> DomainModel / MessageBus / Cache / Portfolio`、`TraderStrategies -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine`、`Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine`，并把 `Trader -> ExecutionEngine` 延后到 MTP-220。MTP-222 的当前 active direction 已包含 `Trader -> ExecutionEngine`。
+MTP-219 的 historical direction 是 `Portfolio -> DomainModel / MessageBus / Cache / Database`、`RiskEngine -> DomainModel / MessageBus / Cache / Portfolio`、`TraderStrategies -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine`、`Trader -> DomainModel / MessageBus / Cache / TraderStrategies / Portfolio / RiskEngine`，并把 `ExecutionEngine` 记录为后续 downstream context candidate。该 wording 只能作为 historical evidence；GH-392 / MTP-222 后的当前 active direction 不包含 direct `Trader -> ExecutionEngine` target dependency。
 
 `MTP-219-TRADER-CONTAINER-ACCOUNTS-EMA-COORDINATION`
 
@@ -607,7 +607,7 @@ MTP-220 继续实际 SwiftPM target graph split：`Package.swift` 新增 `Execut
 
 `MTP-220-RISKENGINE-EXECUTIONENGINE-EXECUTIONCLIENT-DIRECTION`
 
-当前 execution target direction 是 `ExecutionClient -> DomainModel / MessageBus`、`ExecutionEngine -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine / ExecutionClient`，并把 MTP-219 延后的 `Trader -> ExecutionEngine` dependency 解析为正式 target dependency。
+当前 execution target direction 是 `ExecutionClient -> DomainModel / MessageBus`、`ExecutionEngine -> DomainModel / MessageBus / Cache / Portfolio / RiskEngine / ExecutionClient`。`ExecutionEngine` 只经 paper / simulated / future-gated execution boundary 承接下游 evidence；MTP-219 延后的 `Trader -> ExecutionEngine` wording 已由 GH-392 校正为 forbidden direct dependency，不再代表当前 active target graph。
 
 `MTP-220-NO-BROKER-OMS-REAL-ORDER-GUARD`
 
