@@ -2687,3 +2687,37 @@ GitHub Issue：[#538](https://github.com/atxinbao/MTPRO/issues/538)
 - `git diff --check`：pass，无输出。
 - `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
 - `bash checks/run.sh`：pass，local Swift toolchain accepted as Apple Swift 6.3；Dashboard smoke 包含 `readModelOnly=true`、`dashboardReadModelOnly=true`、`releaseLiveMonitoringSurface=7`、`releaseCommandSurface=3` 和 `releaseKillSwitch=3`；421 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
+## 2026-06-08 — GH-539 Release docs and operator runbook
+
+执行者：Codex
+
+GitHub Issue：[#539](https://github.com/atxinbao/MTPRO/issues/539)
+
+范围：
+
+- 新增 `docs/release/mtpro-release-v0.1.0-binance-ema-operator-runbook.md`。
+- Runbook 覆盖 release v0.1.0 dry-run / testnet acceptance procedure、credential handling instructions、production disabled boundary、rollback / no-trade procedure 和 operator checklist。
+- 将 `GH-539-RELEASE-DOCS-OPERATOR-RUNBOOK`、`GH-539-DRYRUN-TESTNET-ACCEPTANCE-PROCEDURE`、`GH-539-CREDENTIAL-HANDLING-INSTRUCTIONS`、`GH-539-PRODUCTION-DISABLED-BOUNDARY`、`GH-539-ROLLBACK-NO-TRADE-PROCEDURE` 和 `TVM-RELEASE-V010-OPERATOR-RUNBOOK` 接入 release contract、trading validation matrix、validation plan、domain context 和 automation readiness guard。
+- 明确缺少 testnet credential / environment 时必须停止并报告，不允许 fallback 到 production secret、production endpoint 或 production broker endpoint。
+
+边界：
+
+- 不使用 Linear。
+- 不启动 Symphony / `symphony-issue`。
+- 不运行 Graphify / code-index。
+- 不修改 Figma。
+- 不实现 runtime、adapter、OMS、broker gateway、Dashboard command runtime 或 order form。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、account endpoint、listenKey 或 private WebSocket runtime。
+- 不连接真实 testnet network，不连接 broker，不提交、取消或替换真实订单。
+- 不触发 production order、sandbox-to-production command promotion、automatic recovery、rollback command 或 broker emergency API。
+- 不绕过 RiskEngine / ExecutionEngine / OMS / kill switch / no-trade state。
+- 不启用 production trading、non-Binance venue 或 non-EMA active strategy。
+
+验证：
+
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO release v0.1.0 no-default-production-trading guard passed.` 和 `MTPRO automation readiness checks passed.`。
+- `bash checks/release-v0.1.0-dryrun-testnet.sh`：pass，1 test / 0 failures，最终输出 `MTPRO release v0.1.0 dry-run/testnet validation suite passed.`。
+- `bash checks/run.sh`：pass，local Swift toolchain accepted as Apple Swift 6.3；Dashboard smoke 包含 `readModelOnly=true`、`dashboardReadModelOnly=true`、`releaseLiveMonitoringSurface=7`、`releaseCommandSurface=3` 和 `releaseKillSwitch=3`；421 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。

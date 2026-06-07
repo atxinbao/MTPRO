@@ -16319,3 +16319,34 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true`, `dashboardReadModelOnly=true`, `releaseLiveMonitoringSurface=7`, `releaseCommandSurface=3` and `releaseKillSwitch=3`; 421 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-08 - GH-539 Release docs and operator runbook
+
+- Issue: GH-539 `Add release docs and operator runbook`
+- Queue:
+  - GitHub fallback queue used because this release stage does not use Linear.
+  - WIP=1 preflight passed before implementation: #539 was OPEN with `mtpro / backlog / non-executable`; dependency #538 was CLOSED with `done`; no other open issue carried `todo`, `in-progress` or `in-review`; no open PR was present.
+  - #539 was promoted to `todo`, then to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `docs/release/mtpro-release-v0.1.0-binance-ema-operator-runbook.md`.
+  - Backfilled `GH-539-RELEASE-DOCS-OPERATOR-RUNBOOK`, `GH-539-DRYRUN-TESTNET-ACCEPTANCE-PROCEDURE`, `GH-539-CREDENTIAL-HANDLING-INSTRUCTIONS`, `GH-539-PRODUCTION-DISABLED-BOUNDARY`, `GH-539-ROLLBACK-NO-TRADE-PROCEDURE`, `TVM-RELEASE-V010-OPERATOR-RUNBOOK`, release contract, trading matrix, validation plan, domain language, latest summary and automation readiness docs.
+  - Covered dry-run / testnet acceptance sequence, credential handling instructions, production disabled by default boundary, rollback / no-trade procedure and operator checklist for Binance + EMA release v0.1.0.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No runtime, adapter, OMS, broker gateway, Dashboard command runtime or order form implementation.
+  - No production secret read, print, storage or derivation.
+  - No production endpoint, production broker endpoint, account endpoint, listenKey or private WebSocket connection.
+  - No real Binance testnet network connection.
+  - No broker connection, RiskEngine bypass, ExecutionEngine bypass, OMS bypass, kill switch bypass or no-trade bypass.
+  - No real submit / cancel / replace.
+  - No production order on failure, sandbox-to-production command promotion, automatic recovery, rollback command or broker emergency API.
+  - No production trading.
+  - No non-Binance venue.
+  - No non-EMA active strategy.
+- Validation:
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO release v0.1.0 no-default-production-trading guard passed.` and `MTPRO automation readiness checks passed.`
+  - `bash checks/release-v0.1.0-dryrun-testnet.sh`: pass; 1 test / 0 failures; final output `MTPRO release v0.1.0 dry-run/testnet validation suite passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true`, `dashboardReadModelOnly=true`, `releaseLiveMonitoringSurface=7`, `releaseCommandSurface=3` and `releaseKillSwitch=3`; 421 XCTest / 0 failures; final output `MTPRO checks passed.`

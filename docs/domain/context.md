@@ -4036,6 +4036,32 @@ Dry-run / testnet / kill switch bypass guard 表示 failure path 只能阻断 va
 
 Release v0.1.0 no-default-production-trading guard matrix 必须证明 guard script、domain guard runner、l4-boundary self-guard、focused TargetGraph test、release contract、validation matrix、validation plan、domain context 和 automation readiness 文档形成 required evidence chain。删除任一关键 guard evidence 必须让 automation readiness 或 focused test 失败。
 
+## GH-539 Release Docs and Operator Runbook Terms
+
+`GH-539-RELEASE-DOCS-OPERATOR-RUNBOOK`
+
+Release docs / operator runbook 指 release v0.1.0 的操作说明文档。它只指导本地 deterministic validation、dry-run / Binance testnet evidence、operator review、credential reference handling 和 no-trade / rollback procedure，不授权 production trading、不读取 production secret、不连接 production endpoint、不连接 production broker endpoint，也不创建下一 release scope。
+
+`GH-539-DRYRUN-TESTNET-ACCEPTANCE-PROCEDURE`
+
+Dry-run / testnet acceptance procedure 表示 operator 必须按固定顺序运行 `git diff --check`、`bash checks/automation-readiness.sh`、`bash checks/release-v0.1.0-dryrun-testnet.sh` 和 `bash checks/run.sh`，并记录 Dashboard smoke、#538 guard passed、#537 dry-run/testnet suite passed 和 Swift XCTest 结果。
+
+`GH-539-CREDENTIAL-HANDLING-INSTRUCTIONS`
+
+Credential handling instructions 表示 release docs 只能允许 testnet credential reference、local fixture identity、mock transport identity 和 redacted listenKey reference；不得读取、打印、保存或推导 production secret，不得把缺失的 testnet credential 回退成 production credential、production endpoint 或 production broker endpoint。
+
+`GH-539-PRODUCTION-DISABLED-BOUNDARY`
+
+Production disabled boundary 表示 release validation 通过、Dashboard command entry 可见或 operator checklist completed 都不构成 production trading authorization。Production trading 仍必须等待后续显式 release gate、operator confirmation、risk approval、kill switch pass、capital / exposure limits 和 production cutover authorization。
+
+`GH-539-ROLLBACK-NO-TRADE-PROCEDURE`
+
+Rollback / no-trade procedure 表示 validation failure 时必须保持 no-trade state 和 kill switch active，只在当前 issue scope 内修复 deterministic evidence / docs / tests；不得触发 production order、automatic recovery、rollback command、broker emergency API 或真实 submit / cancel / replace。
+
+`TVM-RELEASE-V010-OPERATOR-RUNBOOK`
+
+Release v0.1.0 operator runbook matrix 必须证明 release docs 覆盖 dry-run / testnet acceptance、credential handling、production disabled boundary、rollback / no-trade procedure、operator checklist 和 forbidden capability audit。该 matrix 只作为 GH-540 validation matrix closeout 和 GH-541 final audit input，不授权 production cutover、不创建下一 Project / Issue、不推进 release v0.1.0 之后的阶段。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
