@@ -3792,6 +3792,24 @@ RiskEngine consumable proposal 表示 GH-528 evidence 必须同步生成与 prop
 
 Release v0.1.0 EMA proposal runtime matrix 必须证明 EMA-only、Binance-only、live-read compatible input、paper-only proposal、RiskEngine consumable query 和 no-command / no-production-trading flags。该 matrix 不授权 non-EMA strategy、ExecutionClient adapter、OMS、broker fill、Dashboard command surface、trading button、live command、order form 或 production trading。
 
+## GH-529 RiskEngine Pre-Trade Gate Terms
+
+`GH-529-RISKENGINE-LIVE-PRETRADE-GATE`
+
+RiskEngine live pre-trade gate 指 release v0.1.0 中 RiskEngine 对 EMA paper proposal 的本地 pre-trade decision surface。它消费 `PaperActionProposal` / `RiskEvaluationQuery`，输出 approve / reject / blocked evidence，但不执行订单，不调用 ExecutionClient，不连接 broker，不授权 production trading。
+
+`GH-529-EMA-PROPOSAL-RISK-DECISION`
+
+EMA proposal risk decision 表示 #528 的 EMA proposal 必须先通过 RiskEngine gate。`approved` 只表示本地 pre-trade risk gate 通过，仍不能跳过 ExecutionEngine、OMS、kill switch、no-trade 和后续 testnet / production gates；`rejected` 必须带 quantity / notional / available balance 等可审计原因；`blocked` 必须覆盖 no-trade guard。
+
+`GH-529-NO-TRADE-GUARD`
+
+No-trade guard 表示当 release gate 处于 no-trade / incident / rollback 语义时，RiskEngine 必须输出 blocked evidence，而不是 fallback 到 submit / cancel / replace、broker retry、OMS bypass 或 Dashboard command surface。
+
+`TVM-RELEASE-V010-RISKENGINE-PRETRADE-GATE`
+
+Release v0.1.0 RiskEngine pre-trade gate matrix 必须证明 all proposals require RiskEngine、blocked/rejected evidence auditable、no-trade guard covered、production trading disabled by default、no ExecutionClient / broker / OMS / real order path。该 matrix 不授权 ExecutionEngine path、Binance ExecutionClient testnet adapter、OMS state machine、kill switch command runtime、Dashboard command surface 或 production cutover。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

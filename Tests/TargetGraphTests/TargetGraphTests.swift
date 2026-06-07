@@ -5204,6 +5204,109 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH529RiskEnginePreTradeGateConsumesEMAProposalBeforeExecutionPath() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let riskEngineTarget = try packageTargetBlock(named: "RiskEngine", packageSource: packageSource)
+        XCTAssertTrue(riskEngineTarget.contains("\"LiveGate\""))
+        XCTAssertFalse(riskEngineTarget.contains("\"ExecutionClient\""))
+
+        let emaRuntime = try EMAProposalRuntime.deterministicFixture()
+        let proposalEvidence = try emaRuntime.generateProposal(
+            from: EMAProposalRuntime.deterministicBars(),
+            sessionID: Identifier.constant("gh-529-session"),
+            riskProfileID: Identifier.constant("gh-529-risk-profile"),
+            sourceSequence: 529,
+            proposedAt: Date(timeIntervalSince1970: 1_704_067_529),
+            paperQuantity: Quantity(0.10, field: "gh529.paperQuantity")
+        )
+        XCTAssertTrue(proposalEvidence.boundaryHeld)
+
+        let riskInput = try ReleaseV010RiskPreTradeInput(
+            inputID: Identifier.constant("gh-529-risk-input"),
+            proposal: proposalEvidence.proposal,
+            riskQuery: proposalEvidence.riskQuery,
+            sourceSequence: proposalEvidence.sourceSequence,
+            availableBalance: 100_000
+        )
+        XCTAssertTrue(riskInput.inputBoundaryHeld)
+        XCTAssertTrue(riskInput.riskQueryMatchesProposal)
+
+        let gate = try ReleaseV010RiskPreTradeGateRuntime.deterministicFixture()
+        let approved = try gate.evaluate(riskInput)
+        XCTAssertEqual(approved.outcome, .approved)
+        XCTAssertEqual(approved.rejectReasons, [.none])
+        XCTAssertTrue(approved.decisionBoundaryHeld)
+        XCTAssertTrue(approved.allProposalsRequireRiskEngine)
+        XCTAssertFalse(approved.authorizesExecutionCommand)
+        XCTAssertFalse(approved.productionTradingEnabledByDefault)
+        XCTAssertFalse(approved.callsExecutionClient)
+        XCTAssertFalse(approved.submitsRealOrder)
+
+        let evidence = try gate.deterministicEvidence(approvedInput: riskInput)
+        XCTAssertTrue(evidence.evidenceBoundaryHeld)
+        XCTAssertEqual(Set(evidence.decisions.map(\.outcome)), Set(ReleaseV010RiskPreTradeDecisionOutcome.allCases))
+        XCTAssertTrue(evidence.allProposalsRequireRiskEngine)
+        XCTAssertTrue(evidence.blockedRejectedEvidenceAuditable)
+        XCTAssertTrue(evidence.noTradeGuardCovered)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.callsExecutionClient)
+        XCTAssertFalse(evidence.submitsRealOrder)
+        XCTAssertEqual(Set(evidence.validationAnchors), Set(ReleaseV010RiskPreTradeGateRuntime.requiredValidationAnchors))
+        XCTAssertTrue(try XCTUnwrap(evidence.decisions.first { $0.outcome == .rejected })
+            .rejectReasons.contains(.availableBalanceExceeded))
+        XCTAssertTrue(try XCTUnwrap(evidence.decisions.first { $0.outcome == .blocked })
+            .rejectReasons.contains(.noTradeGuardActive))
+
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoded = try JSONDecoder().decode(ReleaseV010RiskPreTradeGateEvidence.self, from: encoded)
+        XCTAssertEqual(decoded, evidence)
+
+        XCTAssertThrowsError(
+            try ReleaseV010RiskPreTradeGateRuntime(
+                runtimeID: Identifier.constant("unsafe-gh-529-production-default"),
+                productionTradingEnabledByDefault: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability(
+                    "releaseV010RiskPreTrade.productionTradingEnabledByDefault"
+                )
+            )
+        }
+
+        let mismatchedRiskQuery = try RiskEvaluationQuery(
+            paperOrderID: proposalEvidence.proposal.proposalID,
+            symbol: proposalEvidence.proposal.symbol,
+            timeframe: proposalEvidence.proposal.timeframe,
+            proposedQuantity: Quantity(0.99, field: "gh529.mismatchedQuantity"),
+            riskProfileID: Identifier.constant("gh-529-risk-profile"),
+            executionMode: .paper
+        )
+        XCTAssertThrowsError(
+            try ReleaseV010RiskPreTradeInput(
+                inputID: Identifier.constant("unsafe-gh-529-risk-input"),
+                proposal: proposalEvidence.proposal,
+                riskQuery: mismatchedRiskQuery,
+                sourceSequence: proposalEvidence.sourceSequence,
+                availableBalance: 100_000
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperActionRiskDecisionMismatch(
+                    field: "riskQuery",
+                    expected: "proposal-compatible risk query",
+                    actual: "mismatched"
+                )
+            )
+        }
+    }
+
     func testGH503ProductionCredentialSecretPolicyGateDefinesNoDefaultSecretReadContract() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

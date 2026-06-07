@@ -7884,3 +7884,46 @@ GH-528 必须建立的主要 anchors：
 - 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## GH-529 RiskEngine Pre-Trade Gate Validation
+
+GH-529 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH529RiskEnginePreTradeGateConsumesEMAProposalBeforeExecutionPath`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-529 的验收要求：
+
+- `Sources/RiskEngine/LiveGate/ReleaseV010RiskPreTradeGate.swift` 必须存在，并包含 `GH-529-RISKENGINE-LIVE-PRETRADE-GATE` 和 `TVM-RELEASE-V010-RISKENGINE-PRETRADE-GATE` anchors。
+- `Package.swift` 必须让 `RiskEngine` target 显式拥有 `LiveGate` source root，且 `RiskEngine` target 不得依赖 `ExecutionClient`。
+- Gate 必须消费 #528 生成的 neutral `PaperActionProposal` / `RiskEvaluationQuery`，并验证 proposal 与 risk query 完全匹配。
+- Gate 必须输出 approved / rejected / blocked 三类 deterministic evidence；rejected 必须带 quantity / notional / available balance 等可审计原因，blocked 必须覆盖 no-trade guard。
+- Approved decision 只表示 RiskEngine 本地 pre-trade gate 通过，不授权 ExecutionEngine command、OMS lifecycle、broker submit / cancel / replace 或 production trading。
+- Runtime evidence 必须保持 `authorizesExecutionCommand == false`、`productionTradingEnabledByDefault == false`、`callsExecutionClient == false`、`touchesBrokerGateway == false`、`bypassesOMS == false`、`submitsRealOrder == false`、`exposesLiveCommandSurface == false`、`nonBinanceVenueEnabled == false` 和 `nonEMAStrategyEnabled == false`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH529RiskEnginePreTradeGateConsumesEMAProposalBeforeExecutionPath`，验证 RiskEngine source ownership、no ExecutionClient dependency、EMA proposal -> risk input handoff、approved / rejected / blocked evidence、production default rejection 和 mismatched risk query rejection。
+- GH-529 PR evidence 必须确认不读取 production secret，不连接 production endpoint，不调用 ExecutionClient / broker / OMS，不提交、取消或替换订单，不启用 production trading，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+GH-529 必须建立的主要 anchors：
+
+- `GH-529-RISKENGINE-LIVE-PRETRADE-GATE`
+- `GH-529-EMA-PROPOSAL-RISK-DECISION`
+- `GH-529-NO-TRADE-GUARD`
+- `TVM-RELEASE-V010-RISKENGINE-PRETRADE-GATE`
+- `testGH529RiskEnginePreTradeGateConsumesEMAProposalBeforeExecutionPath`
+
+## GH-529 禁止
+
+- 不启用 non-Binance venue。
+- 不启用 non-EMA active strategy。
+- 不读取、打印、保存或推导 production secret。
+- 不接受 production endpoint、production stream endpoint 或 production broker endpoint。
+- 不调用 ExecutionClient、broker gateway 或 OMS。
+- 不提交、取消或替换真实订单。
+- 不把 approved risk decision 扩大成 ExecutionEngine command、OMS bypass、broker submit 或 Dashboard command runtime。
+- 不暴露 Dashboard command surface、trading button、live command 或 order form。
+- 不绕过 RiskEngine、ExecutionEngine、OMS、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
