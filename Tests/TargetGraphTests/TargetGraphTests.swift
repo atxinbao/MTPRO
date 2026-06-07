@@ -4465,6 +4465,110 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH504ProductionEnvironmentIsolationGateDefinesBlockedDryRunDefault() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+
+        let upstream = try ProductionCutoverCredentialSecretPolicyGate.deterministicFixture()
+        let gate = try ProductionCutoverEnvironmentIsolationGateContract.deterministicFixture()
+        XCTAssertTrue(upstream.contractHeld)
+        XCTAssertTrue(gate.contractHeld)
+        XCTAssertTrue(gate.environmentCoverageHeld)
+        XCTAssertEqual(gate.issueID.rawValue, "GH-504")
+        XCTAssertEqual(gate.upstreamIssueID.rawValue, "GH-503")
+        XCTAssertEqual(gate.canonicalQueueRange, "GH-503..GH-510")
+        XCTAssertEqual(Set(gate.scopes), Set(ProductionCutoverEnvironmentScope.allCases))
+        XCTAssertEqual(Set(gate.gates), Set(ProductionCutoverEnvironmentGate.allCases))
+        XCTAssertEqual(Set(gate.forbiddenCapabilities), Set(ProductionCutoverEnvironmentForbiddenCapability.allCases))
+        XCTAssertTrue(gate.validationAnchors.contains("GH-504-PRODUCTION-NO-DEFAULT-TRADING"))
+        XCTAssertTrue(gate.validationAnchors.contains("GH-504-SANDBOX-DRYRUN-PRODUCTION-COMMAND-ISOLATION"))
+
+        XCTAssertTrue(gate.credentialPolicyGateRequired)
+        XCTAssertTrue(gate.productionNoDefaultTradingRequired)
+        XCTAssertTrue(gate.sandboxCommandProductionCommandIsolationRequired)
+        XCTAssertTrue(gate.explicitAuditableEnvironmentSwitchRequired)
+        XCTAssertTrue(gate.manualApprovalCannotBeBypassed)
+        XCTAssertTrue(gate.productionBlockedDryRunDefault)
+
+        for forbidden in [
+            gate.implementsProductionRuntime,
+            gate.allowsAutomaticEnvironmentSwitch,
+            gate.readsSecretValue,
+            gate.connectsBroker,
+            gate.implementsBrokerAdapter,
+            gate.implementsOMS,
+            gate.implementsLiveExecutionAdapter,
+            gate.sandboxCommandPromotesProductionCommand,
+            gate.productionTradingEnabledByDefault,
+            gate.submitsRealOrder,
+            gate.cancelsRealOrder,
+            gate.replacesRealOrder,
+            gate.exposesLiveCommandSurface,
+            gate.exposesTradingButton,
+            gate.exposesOrderForm
+        ] {
+            XCTAssertFalse(forbidden)
+        }
+
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/ProductionCutoverEnvironmentIsolationGate.swift"
+                ).path
+            )
+        )
+    }
+
+    func testGH504ProductionEnvironmentIsolationGateRejectsAutomaticSwitchAndBrokerBypass() throws {
+        XCTAssertThrowsError(
+            try ProductionCutoverEnvironmentIsolationGateContract(
+                allowsAutomaticEnvironmentSwitch: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("allowsAutomaticEnvironmentSwitch")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try ProductionCutoverEnvironmentIsolationGateContract(
+                connectsBroker: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("connectsBroker"))
+        }
+
+        XCTAssertThrowsError(
+            try ProductionCutoverEnvironmentIsolationGateContract(
+                productionTradingEnabledByDefault: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("productionTradingEnabledByDefault")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try ProductionCutoverEnvironmentSwitchEvidence(
+                evidenceID: Identifier.constant("gh-504-unsafe-automatic-switch"),
+                fromScope: .dryRun,
+                toScope: .futureProduction,
+                triggerIdentity: "unsafe automatic production switch",
+                blockedReason: "must be rejected",
+                allowsAutomaticSwitch: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("allowsAutomaticSwitch"))
+        }
+    }
+
     func testGH434DeterministicValueObjectConstantsUseExplicitConstructors() throws {
         let identifier = Identifier.constant(" gh-434-identifier ", field: "gh434Identifier")
         XCTAssertEqual(identifier.rawValue, "gh-434-identifier")
