@@ -3962,6 +3962,32 @@ No RiskEngine / ExecutionEngine / kill switch bypass 表示 Dashboard controlled
 
 Release v0.1.0 Dashboard controlled command matrix 必须证明受控 command entry 默认 no-trade、production disabled explanation 可见、dry-run / Binance testnet gate 可见，同时 production trading、secret read、production endpoint、broker connection、ExecutionClient call、OMS bypass、kill switch bypass 和真实 submit / cancel / replace 均保持关闭。
 
+## GH-536 Kill Switch / No-Trade / Rollback Terms
+
+`GH-536-KILL-SWITCH-NO-TRADE-ROLLBACK-CONTROLS`
+
+Kill switch / no-trade / rollback controls 指 release v0.1.0 中 Dashboard 报告区和 shell smoke 对 submit / cancel / replace 的硬门证据面。它消费 GH-535 controlled command action identity，并把每个 action 固定为 global no-trade active、kill switch active、rollback required、operator review required 和 production trading disabled；它不是真实 broker emergency API、运行时 kill switch 或 production operations command。
+
+`GH-536-GLOBAL-NO-TRADE-MODE`
+
+Global no-trade mode 表示 release command entry 在默认状态下不可执行；submit / cancel / replace 只能展示 blocked evidence，不能形成真实命令、broker request、OMS mutation 或 ExecutionClient call。
+
+`GH-536-SUBMIT-CANCEL-REPLACE-BLOCKED`
+
+Submit / cancel / replace blocked 表示三个 action 必须全部被 kill switch / no-trade gate 阻断，`submitCancelReplaceBlocked == true`，且 `commandSurfaceEnabled == false`、`submitsRealOrder == false`、`cancelsRealOrder == false`、`replacesRealOrder == false`。
+
+`GH-536-ROLLBACK-OPERATOR-EVIDENCE`
+
+Rollback / operator evidence 表示 rollback plan、incident evidence 和 operator review evidence 可审计、可展示、可追溯，但不执行 rollback command、不触发 automatic recovery、不调用 broker emergency endpoint，也不授权 production trading。
+
+`GH-536-NO-PRODUCTION-DEFAULT`
+
+No production default 表示 kill switch / rollback evidence 不会打开 production secret、production endpoint、broker connection、account endpoint、listenKey、production submit / cancel / replace 或 production OMS。
+
+`TVM-RELEASE-V010-KILL-SWITCH-NO-TRADE-ROLLBACK`
+
+Release v0.1.0 kill switch / no-trade / rollback matrix 必须证明 Dashboard 可以读取 blocked command evidence 和 rollback/operator audit evidence，同时 production trading、secret read、production endpoint、broker connection、ExecutionClient call、OMS bypass、kill switch bypass、automatic recovery 和真实 submit / cancel / replace 均保持关闭。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
