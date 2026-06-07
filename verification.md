@@ -15644,8 +15644,48 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
 - Validation:
   - `swift test --filter 'GH471'`: pass; 2 tests / 0 failures.
   - `git diff --check`: pass.
+- `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+- `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 386 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-07 - MTPRO Production Cutover Readiness / Real Broker Enablement Gate v1 Root Docs Refresh Gate
+
+- Project: `MTPRO Production Cutover Readiness / Real Broker Enablement Gate v1`
+- Queue:
+  - GitHub fallback queue used because this stage did not use Linear.
+  - GH-503 through GH-510 are all closed and carry `done`.
+  - PR #511 through PR #519 are all merged and carried required check `checks` SUCCESS.
+  - Closure PR #519 merge commit before this Root Docs Refresh PR: `f37707579499391c0d7d93009c797dbfc3440885`.
+- Stage Code Audit:
+  - Canonical report: `docs/audit/mtpro-production-cutover-readiness-real-broker-enablement-gate-v1-stage-code-audit.md`.
+  - Report covers credential / secret policy gate、production environment isolation gate、broker / venue capability matrix、manual approval / operator confirmation gate、incident stop / rollback / no-trade state gate、capital / risk / order notional / exposure limit gate、dry-run proof / shadow mode / no-default-production-trading evidence、final readiness matrix、automation readiness and forbidden capability audit.
+- Root Docs Refresh:
+  - Updated `GOAL.md`, `BLUEPRINT.md`, `docs/roadmap.md`, `docs/validation/latest-verification-summary.md`, `verification.md`, `docs/automation/automation-readiness.md` and `checks/automation-readiness.sh`.
+  - Project Closure Count moves to `34 / 34 (100%)`.
+  - Current maturity statement becomes `Production Cutover Readiness / Real Broker Enablement Gate complete with no-default-production-trading policy and no real broker authorization`.
+  - Final Product Goal Progress remains `9 / 9 (100%)`.
+  - Engine Maturity Roadmap Progress remains `4 / 4 (100%)`.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No `.codex/*`, `.build/*` or `graphify-out/*` submitted.
+  - No next Project / Issue creation or promotion.
+  - No production trading authorization.
+  - No real broker authorization.
+  - No real order authorization.
+  - No real API key / secret read, storage, print or repository commit.
+  - No production endpoint connection.
+  - No signed endpoint / account endpoint / listenKey.
+  - No broker adapter / LiveExecutionAdapter.
+  - No production OMS.
+  - No real order submission / cancellation / replacement.
+  - No broker fill / reconciliation runtime.
+  - No Live PRO Console production command.
+  - No live command, order form or trading button.
+- Validation:
+  - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
-  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 386 XCTest / 0 failures; final output `MTPRO checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 404 XCTest / 0 failures; final output `MTPRO checks passed.`
 
 ## 2026-06-07 - MTPRO L4 Live Production / Trading Commands v1 Project closure
 
