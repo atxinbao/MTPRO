@@ -4276,7 +4276,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(contractSource.contains("MTP-231-TARGETGRAPH-RETIREMENT-VALIDATION"))
     }
 
-    func testGH400TryBangAndPreconditionFailureStayInAllowedPaths() throws {
+    func testGH400TryBangPreconditionFailureAndFatalErrorStayInAllowedConstructs() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let scannedFiles = try swiftFiles(
             under: repositoryRoot,
@@ -4293,12 +4293,39 @@ final class TargetGraphTests: XCTestCase {
             violations.isEmpty,
             """
             GH-400 unsafe construct guard failed.
-            try! and preconditionFailure are only allowed in tests, deterministic fixture/evidence helpers, \
-            future gates, boundary/contract files, paper/simulated local evidence, and retained Core compatibility \
-            live/read-model boundary files. Violations:
+            try!, preconditionFailure, and fatalError are only allowed in tests, deterministic .constant(...) \
+            helpers, or production fixture/evidence/contract/boundary builders with explicit markers. Violations:
             \(violations.map(\.description).joined(separator: "\n"))
             """
         )
+    }
+
+    func testGH496UnsafeConstructGuardRejectsRuntimeFacingCrashPaths() {
+        let runtimePreconditionFailure = UnsafeConstructOccurrence(
+            relativePath: "Sources/ExecutionEngine/Runtime/LiveOrderRouter.swift",
+            lineNumber: 42,
+            construct: "preconditionFailure",
+            line: "preconditionFailure(\"live order router failed\")",
+            context: "func submitLiveOrder() { preconditionFailure(\"live order router failed\") }"
+        )
+        let runtimeFatalError = UnsafeConstructOccurrence(
+            relativePath: "Sources/Trader/Runtime/TraderRuntime.swift",
+            lineNumber: 27,
+            construct: "fatalError",
+            line: "fatalError(\"trader runtime not configured\")",
+            context: "func startRuntime() { fatalError(\"trader runtime not configured\") }"
+        )
+        let runtimeForceTry = UnsafeConstructOccurrence(
+            relativePath: "Sources/RiskEngine/Runtime/LiveRiskRuntime.swift",
+            lineNumber: 19,
+            construct: "try!",
+            line: "let decision = try! evaluateLiveRisk()",
+            context: "func evaluate() { let decision = try! evaluateLiveRisk() }"
+        )
+
+        XCTAssertFalse(isAllowedUnsafeConstructOccurrence(runtimePreconditionFailure))
+        XCTAssertFalse(isAllowedUnsafeConstructOccurrence(runtimeFatalError))
+        XCTAssertFalse(isAllowedUnsafeConstructOccurrence(runtimeForceTry))
     }
 
     func testGH434DeterministicValueObjectConstantsUseExplicitConstructors() throws {
@@ -4511,6 +4538,7 @@ final class TargetGraphTests: XCTestCase {
         let lineNumber: Int
         let construct: String
         let line: String
+        let context: String
 
         var description: String {
             "\(relativePath):\(lineNumber): \(construct): \(line.trimmingCharacters(in: .whitespaces))"
@@ -4549,20 +4577,32 @@ final class TargetGraphTests: XCTestCase {
         let lines = source.components(separatedBy: .newlines)
 
         return lines.enumerated().flatMap { index, line -> [UnsafeConstructOccurrence] in
-            [
-                line.contains("try!") ? "try!" : nil,
-                line.contains("preconditionFailure") ? "preconditionFailure" : nil
+            let implementationLine = line.components(separatedBy: "//").first ?? line
+            return [
+                implementationLine.contains("try!") ? "try!" : nil,
+                implementationLine.contains("preconditionFailure") ? "preconditionFailure" : nil,
+                implementationLine.contains("fatalError") ? "fatalError" : nil
             ].compactMap { construct in
                 construct.map {
                     UnsafeConstructOccurrence(
                         relativePath: relativePath,
                         lineNumber: index + 1,
                         construct: $0,
-                        line: line
+                        line: line,
+                        context: unsafeConstructContext(lines: lines, occurrenceIndex: index)
                     )
                 }
             }
         }
+    }
+
+    private func unsafeConstructContext(lines: [String], occurrenceIndex: Int) -> String {
+        let lowerBound = max(0, occurrenceIndex - 90)
+        let upperBound = min(lines.count - 1, occurrenceIndex + 6)
+        guard lowerBound <= upperBound else {
+            return ""
+        }
+        return lines[lowerBound...upperBound].joined(separator: "\n")
     }
 
     private func relativePath(for file: URL, repositoryRoot: URL) -> String {
@@ -4575,34 +4615,42 @@ final class TargetGraphTests: XCTestCase {
             return true
         }
 
-        // GH-400: 这些路径只承载 deterministic fixture、evidence、future gate、
-        // boundary / contract 或 retained compatibility evidence；新增 runtime-facing path
-        // 使用 try! / preconditionFailure 时必须先扩展这里的 taxonomy，并说明原因。
-        let allowedSourcePathFragments = [
-            "/TargetGraph/",
-            "/FutureGate/",
-            "/LiveGate/",
-            "/OMSFutureGate/",
-            "/ScenarioReplay/",
-            "/DataQuality/",
-            "/PaperLifecycle/",
-            "/SimulatedExchange/",
-            "/BrokerCapabilityMatrix/",
-            "/Report/",
-            "Sources/Core/Live",
-            "Sources/Core/DashboardBetaDemoScenario.swift",
-            "Sources/Dashboard/PaperWorkflowDashboardArchitecture.swift",
-            "Sources/Dashboard/Report/SimulatedExchangeParityEvidenceSurface.swift",
-            "Sources/DomainModel/ExecutionCosts.swift",
-            "Sources/MessageBus/PaperActionProposal.swift",
-            "Sources/MessageBus/PaperRuntimeBusRouting.swift",
-            "Sources/Portfolio/SimulatedExchangePortfolioProjectionParity.swift",
-            "Sources/RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift",
-            "Sources/Trader/Accounts/TraderAccountContext.swift",
-            "Sources/Trader/Coordination/RiskBinding/PaperActionRiskLink.swift"
+        switch occurrence.construct {
+        case "try!":
+            return false
+        case "fatalError":
+            return isDeterministicConstantHelperCrash(occurrence)
+        case "preconditionFailure":
+            return hasAllowedFixtureEvidenceOrBoundaryMarker(occurrence)
+        default:
+            return false
+        }
+    }
+
+    private func isDeterministicConstantHelperCrash(_ occurrence: UnsafeConstructOccurrence) -> Bool {
+        let context = occurrence.context
+        return context.contains("MTPRO deterministic")
+            && (
+                context.contains("static func constant(")
+                    || context.contains("static func deterministic")
+                    || context.contains("static var deterministic")
+            )
+    }
+
+    private func hasAllowedFixtureEvidenceOrBoundaryMarker(_ occurrence: UnsafeConstructOccurrence) -> Bool {
+        let context = occurrence.context.lowercased()
+        let allowedMarkers = [
+            "deterministic",
+            "fixture",
+            "evidence",
+            "contract",
+            "boundary",
+            "validation rules",
+            "acceptance fixture"
         ]
 
-        return allowedSourcePathFragments.contains { occurrence.relativePath.contains($0) }
+        return allowedMarkers.contains { context.contains($0) }
+            || (context.contains("static func required") && context.contains("must be valid"))
     }
 
     private func forbiddenDataClientImplementationOccurrences(in file: URL, repositoryRoot: URL) throws -> [String] {
