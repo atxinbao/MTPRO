@@ -5735,6 +5735,117 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH533PortfolioReconciliationUpdatesFromExecutionAndAccountEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionEngineTarget = try packageTargetBlock(named: "ExecutionEngine", packageSource: packageSource)
+        XCTAssertTrue(executionEngineTarget.contains("\"OMSFutureGate\""))
+        XCTAssertTrue(executionEngineTarget.contains("\"Portfolio\""))
+        XCTAssertTrue(executionEngineTarget.contains("\"ExecutionClient\""))
+
+        let path = try ReleaseV010PortfolioReconciliationUpdatePath.deterministicFixture()
+        XCTAssertTrue(path.pathBoundaryHeld)
+        XCTAssertTrue(path.parserEvidence.evidenceBoundaryHeld)
+        XCTAssertFalse(path.productionTradingEnabledByDefault)
+        XCTAssertFalse(path.productionAccountEndpointRead)
+        XCTAssertFalse(path.brokerGatewayTouched)
+        XCTAssertFalse(path.repairCommandProduced)
+        XCTAssertFalse(path.dashboardCommandSurfaceTouched)
+
+        let evidence = try path.deterministicEvidence()
+        XCTAssertTrue(evidence.evidenceBoundaryHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-533")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-530", "GH-532"])
+        XCTAssertEqual(Set(evidence.records.map(\.status)), Set(ReleaseV010PortfolioReconciliationStatus.allCases))
+        XCTAssertTrue(evidence.portfolioCanUpdateFromExecutionAndAccountEvidence)
+        XCTAssertTrue(evidence.mismatchStaleBlockedAuditable)
+        XCTAssertTrue(evidence.positionsNetMarginOpenValueCovered)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionAccountEndpointRead)
+        XCTAssertFalse(evidence.brokerGatewayTouched)
+        XCTAssertFalse(evidence.repairCommandProduced)
+        XCTAssertFalse(evidence.dashboardCommandSurfaceTouched)
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-533-EXECUTION-ACCOUNT-PORTFOLIO-RECONCILIATION"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-533-PORTFOLIO-UPDATE-PATH"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-533-MISMATCH-STALE-BLOCKED-AUDIT-EVIDENCE"))
+
+        let matched = try XCTUnwrap(evidence.records.first { $0.status == .matched })
+        XCTAssertTrue(matched.recordBoundaryHeld)
+        XCTAssertEqual(matched.reasons, [.none])
+        XCTAssertNotNil(matched.portfolioUpdate)
+        XCTAssertTrue(try XCTUnwrap(matched.portfolioUpdate).updateBoundaryHeld)
+        XCTAssertEqual(try XCTUnwrap(matched.portfolioUpdate).openValue, try XCTUnwrap(matched.portfolioUpdate).exposure.grossExposureNotional)
+        XCTAssertFalse(try XCTUnwrap(matched.portfolioUpdate).portfolioRuntimeMutated)
+        XCTAssertFalse(try XCTUnwrap(matched.portfolioUpdate).readsProductionAccountEndpoint)
+        XCTAssertFalse(try XCTUnwrap(matched.portfolioUpdate).syncsBrokerPosition)
+        XCTAssertFalse(try XCTUnwrap(matched.portfolioUpdate).authorizesTradingExecution)
+
+        let mismatched = try XCTUnwrap(evidence.records.first { $0.status == .mismatched })
+        XCTAssertTrue(mismatched.recordBoundaryHeld)
+        XCTAssertEqual(mismatched.reasons, [.accountPositionQuantityMismatch])
+        XCTAssertNotNil(mismatched.portfolioUpdate)
+
+        let stale = try XCTUnwrap(evidence.records.first { $0.status == .stale })
+        XCTAssertTrue(stale.recordBoundaryHeld)
+        XCTAssertEqual(stale.accountSnapshot.freshness, .stale)
+        XCTAssertNil(stale.portfolioUpdate)
+
+        let blocked = try XCTUnwrap(evidence.records.first { $0.status == .blocked })
+        XCTAssertTrue(blocked.recordBoundaryHeld)
+        XCTAssertEqual(blocked.accountSnapshot.freshness, .blocked)
+        XCTAssertNil(blocked.portfolioUpdate)
+
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoded = try JSONDecoder().decode(
+            ReleaseV010PortfolioReconciliationUpdateEvidence.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, evidence)
+
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionEngine/OMSFutureGate/ReleaseV010PortfolioReconciliationUpdatePath.swift"
+                ).path
+            )
+        )
+
+        XCTAssertThrowsError(
+            try ReleaseV010PortfolioReconciliationUpdatePath(
+                productionTradingEnabledByDefault: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("releaseV010Portfolio.productionTradingEnabledByDefault")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV010AccountPortfolioSnapshotEvidence(
+                snapshotID: Identifier.constant("unsafe-gh-533-account"),
+                accountID: Identifier.constant("unsafe-gh-533-account-id"),
+                portfolioID: Identifier.constant("unsafe-gh-533-portfolio"),
+                symbol: Symbol.constant("BTCUSDT"),
+                freeBalance: 100_000,
+                lockedBalance: 0,
+                accountPositionQuantity: Quantity(0.01, field: "unsafe-gh-533-quantity"),
+                referencePrice: Price(42_120.70, field: "unsafe-gh-533-price"),
+                freshness: .fresh,
+                observedAt: Date(timeIntervalSince1970: 1_704_067_700),
+                readsProductionAccountEndpoint: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("releaseV010Portfolio.readsProductionAccountEndpoint")
+            )
+        }
+    }
+
     func testGH503ProductionCredentialSecretPolicyGateDefinesNoDefaultSecretReadContract() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

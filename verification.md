@@ -16135,3 +16135,33 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 415 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-08 - GH-533 Portfolio reconciliation update path
+
+- Issue: GH-533 `Implement reconciliation and portfolio update path`
+- Queue:
+  - GitHub fallback queue used because this release stage does not use Linear.
+  - WIP=1 preflight passed before implementation: #533 was OPEN with `mtpro / backlog / non-executable`; dependencies #530 and #532 were CLOSED with `done`; no other open issue carried `todo`, `in-progress` or `in-review`; no open PR was present.
+  - #533 was promoted to `todo`, then to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `Sources/ExecutionEngine/OMSFutureGate/ReleaseV010PortfolioReconciliationUpdatePath.swift`.
+  - Added `TargetGraphTests/testGH533PortfolioReconciliationUpdatesFromExecutionAndAccountEvidence`.
+  - Backfilled `GH-533-EXECUTION-ACCOUNT-PORTFOLIO-RECONCILIATION`, `GH-533-ACCOUNT-POSITION-BALANCE-SNAPSHOT-EVIDENCE`, `GH-533-PORTFOLIO-UPDATE-PATH`, `GH-533-MISMATCH-STALE-BLOCKED-AUDIT-EVIDENCE`, `GH-533-PRODUCTION-TRADING-STAYS-DISABLED`, `TVM-RELEASE-V010-PORTFOLIO-RECONCILIATION-UPDATE-PATH`, validation plan, domain language, latest summary and automation readiness guard.
+  - Covered #532 execution event + GH-526 account / balance / position read-model evidence -> Portfolio update projection, positions / net positions / margin / open value evidence and matched / mismatched / stale / blocked audit states.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No production secret read, print or storage.
+  - No production account endpoint or production broker endpoint connection.
+  - No raw private payload or listenKey value read.
+  - No repair command.
+  - No Dashboard command surface, trading button, live command or order form.
+  - No production trading.
+  - No non-Binance venue.
+  - No non-EMA active strategy.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH533PortfolioReconciliationUpdatesFromExecutionAndAccountEvidence`: pass; 1 test / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 416 XCTest / 0 failures; final output `MTPRO checks passed.`

@@ -3884,6 +3884,32 @@ Production parser disabled 表示 GH-532 默认关闭 production parser、produc
 
 Release v0.1.0 execution report / broker fill parser matrix 必须证明 #531 command evidence 已绑定、full / partial / cancel / reject coverage 完整、异常回报有 blocked evidence、production parser disabled，以及 reconciliation、Portfolio update、Dashboard command surface 和 production trading 均未开启。
 
+## GH-533 Portfolio Reconciliation Update Path Terms
+
+`GH-533-EXECUTION-ACCOUNT-PORTFOLIO-RECONCILIATION`
+
+Execution / account / Portfolio reconciliation 指 release v0.1.0 中 `ExecutionEngine` target 对 #532 normalized execution event evidence 与 GH-526 account / balance / position read-model evidence identity 的 deterministic 对账。它不是 production reconciliation runtime，不读取 production account endpoint，不连接 broker gateway。
+
+`GH-533-ACCOUNT-POSITION-BALANCE-SNAPSHOT-EVIDENCE`
+
+Account / position / balance snapshot evidence 表示 GH-533 只能消费 read-model-only account evidence identity。该 evidence 不包含 raw private payload、listenKey value、secret、broker state、OMS state 或 command state。
+
+`GH-533-PORTFOLIO-UPDATE-PATH`
+
+Portfolio update path 表示 reconciliation 可以生成 Portfolio projection evidence，覆盖 positions、net positions、margin requirement 和 open value。该 update 是 evidence/projection，不 mutate Portfolio runtime，不授权 trading execution。
+
+`GH-533-MISMATCH-STALE-BLOCKED-AUDIT-EVIDENCE`
+
+Mismatch / stale / blocked audit evidence 表示 reconciliation mismatch、account snapshot stale 和 account snapshot blocked 必须显式留痕，不能隐藏、自动修复或 fallback 到 production broker read。
+
+`GH-533-PRODUCTION-TRADING-STAYS-DISABLED`
+
+Production trading stays disabled 表示 GH-533 继续保持 production trading、production account endpoint read、broker gateway、repair command、Dashboard command surface、non-Binance venue 和 non-EMA active strategy 关闭。
+
+`TVM-RELEASE-V010-PORTFOLIO-RECONCILIATION-UPDATE-PATH`
+
+Release v0.1.0 Portfolio reconciliation update matrix 必须证明 #532 parser evidence 和 account read-model evidence 可生成 Portfolio update projection，matched / mismatched / stale / blocked 状态可审计，并且 production trading、broker gateway、repair command 和 Dashboard command surface 均未开启。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

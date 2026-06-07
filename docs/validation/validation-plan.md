@@ -8021,6 +8021,49 @@ GH-532 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-533 Portfolio Reconciliation Update Path Validation
+
+GH-533 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH533PortfolioReconciliationUpdatesFromExecutionAndAccountEvidence`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-533 的验收要求：
+
+- `Sources/ExecutionEngine/OMSFutureGate/ReleaseV010PortfolioReconciliationUpdatePath.swift` 必须存在，并包含 `GH-533-EXECUTION-ACCOUNT-PORTFOLIO-RECONCILIATION` 和 `TVM-RELEASE-V010-PORTFOLIO-RECONCILIATION-UPDATE-PATH` anchors。
+- `ExecutionEngine` target 必须继续通过 `OMSFutureGate` 拥有该 path，并只使用既有 `Portfolio` / `ExecutionClient` dependency；不得新增 `DataClient`、`Dashboard`、broker runtime 或 production endpoint dependency。
+- Evidence 必须消费 #532 normalized execution event evidence 和 GH-526 account / balance / position read-model evidence identity，输出 Portfolio update projection。
+- Portfolio update evidence 必须覆盖 positions、net positions、margin requirement 和 open value。
+- Matched / mismatched / stale / blocked 状态必须可审计，不得隐藏 mismatch，不得生成 repair command。
+- PR evidence 必须确认不读取 production account endpoint，不连接 production broker，不读取 raw private payload、listenKey value 或 production secret，不启用 production trading，不暴露 Dashboard command surface，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+GH-533 必须建立的主要 anchors：
+
+- `GH-533-EXECUTION-ACCOUNT-PORTFOLIO-RECONCILIATION`
+- `GH-533-ACCOUNT-POSITION-BALANCE-SNAPSHOT-EVIDENCE`
+- `GH-533-PORTFOLIO-UPDATE-PATH`
+- `GH-533-MISMATCH-STALE-BLOCKED-AUDIT-EVIDENCE`
+- `GH-533-PRODUCTION-TRADING-STAYS-DISABLED`
+- `TVM-RELEASE-V010-PORTFOLIO-RECONCILIATION-UPDATE-PATH`
+- `testGH533PortfolioReconciliationUpdatesFromExecutionAndAccountEvidence`
+
+## GH-533 禁止
+
+- 不启用 non-Binance venue。
+- 不启用 non-EMA active strategy。
+- 不读取、打印、保存或推导 production secret。
+- 不接受 production account endpoint、production private payload、production stream endpoint 或 production broker endpoint。
+- 不连接 production broker 或 broker gateway。
+- 不把 #532 parser evidence 扩大成 production report parser。
+- 不生成 repair command，不隐藏 reconciliation mismatch。
+- 不暴露 Dashboard command surface、trading button、live command 或 order form。
+- 不绕过 RiskEngine、ExecutionEngine、OMS、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-530 ExecutionEngine OMS Lifecycle Validation
 
 GH-530 必须运行：
