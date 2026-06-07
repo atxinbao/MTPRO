@@ -7566,3 +7566,41 @@ MTP-226 必须建立的主要 anchors：
 - 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、real order lifecycle、submit / cancel / replace、execution report、broker fill、reconciliation、Live PRO Console、trading button、live command、order form 或 L4 capability。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation
+
+GH-521 必须运行：
+
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-521 的验收要求：
+
+- `docs/contracts/release-v0.1.0-binance-ema-runtime-contract.md` 必须存在，并包含 `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`、`GH-521-BINANCE-EMA-ACTIVE-SCOPE`、`GH-521-TESTNET-DRY-RUN-FIRST-GATE`、`GH-521-ACCEPTANCE-MATRIX`、`GH-521-NO-DEFAULT-PRODUCTION-TRADING`、`GH-521-VALIDATION-ANCHORS`、`GH-521-NON-AUTHORIZATION` 和 `TVM-RELEASE-V010-BINANCE-EMA-RUNTIME`。
+- Acceptance matrix 必须覆盖 DataClient / DataEngine / Cache、signed account read、private stream / account snapshot、Trader lifecycle、EMA proposal、RiskEngine pre-trade gate、ExecutionEngine / OMS、Binance ExecutionClient testnet submit / cancel / replace、execution report / broker fill parser、reconciliation / portfolio update、Dashboard live monitoring、controlled command surface、kill switch / no-trade / rollback、dry-run / testnet validation、no-default-production-trading automation guard、release docs、operator runbook、validation matrix、stage audit input、final Stage Code Audit 和 Root Docs Refresh。
+- Contract 必须明确 Binance 是 release v0.1.0 唯一 active venue，EMA 是 release v0.1.0 唯一 active concrete strategy。
+- Contract 必须明确 production trading 默认关闭，production secret、production endpoint、production order submit / cancel / replace、production OMS 和 production Dashboard command surface 均不得默认启用。
+- GH-521 PR evidence 必须确认不实现 runtime，不读取 production secret，不连接 production endpoint，不提交真实订单，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+GH-521 必须建立的主要 anchors：
+
+- `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`
+- `GH-521-BINANCE-EMA-ACTIVE-SCOPE`
+- `GH-521-TESTNET-DRY-RUN-FIRST-GATE`
+- `GH-521-ACCEPTANCE-MATRIX`
+- `GH-521-NO-DEFAULT-PRODUCTION-TRADING`
+- `TVM-RELEASE-V010-BINANCE-EMA-RUNTIME`
+
+## GH-521 禁止
+
+- 不实现 release runtime。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint 或 listenKey。
+- 不提交、取消或替换真实订单。
+- 不启用 non-Binance venue。
+- 不启用 non-EMA active strategy。
+- 不绕过 RiskEngine、ExecutionEngine、OMS、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

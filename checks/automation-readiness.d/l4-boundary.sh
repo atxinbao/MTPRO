@@ -4,6 +4,7 @@ set -euo pipefail
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
 
 require_file "docs/contracts/l4-live-production-command-contract.md"
+require_file "docs/contracts/release-v0.1.0-binance-ema-runtime-contract.md"
 require_file "docs/contracts/l4-production-cutover-no-default-real-trading-policy.md"
 require_file "docs/contracts/production-cutover-credential-secret-policy-gate-contract.md"
 require_file "docs/contracts/production-cutover-environment-isolation-gate-contract.md"
@@ -23,6 +24,19 @@ require_file "Sources/ExecutionClient/FutureGate/ProductionCutoverDryRunShadowNo
 require_file "Sources/ExecutionClient/BrokerCapabilityMatrix/ProductionCutoverBrokerVenueCapabilityMatrix.swift"
 require_file "Sources/RiskEngine/LiveGate/ProductionCutoverCapitalRiskLimitGate.swift"
 require_contains "docs/contracts/l4-live-production-command-contract.md" "GH-452-NO-DEFAULT-REAL-TRADING-POLICY"
+require_contains "docs/contracts/release-v0.1.0-binance-ema-runtime-contract.md" "GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT"
+require_contains "docs/contracts/release-v0.1.0-binance-ema-runtime-contract.md" "GH-521-BINANCE-EMA-ACTIVE-SCOPE"
+require_contains "docs/contracts/release-v0.1.0-binance-ema-runtime-contract.md" "GH-521-TESTNET-DRY-RUN-FIRST-GATE"
+require_contains "docs/contracts/release-v0.1.0-binance-ema-runtime-contract.md" "GH-521-ACCEPTANCE-MATRIX"
+require_contains "docs/contracts/release-v0.1.0-binance-ema-runtime-contract.md" "GH-521-NO-DEFAULT-PRODUCTION-TRADING"
+require_contains "docs/contracts/release-v0.1.0-binance-ema-runtime-contract.md" "TVM-RELEASE-V010-BINANCE-EMA-RUNTIME"
+require_contains "docs/contracts/release-v0.1.0-binance-ema-runtime-contract.md" 'active venue：`Binance`'
+require_contains "docs/contracts/release-v0.1.0-binance-ema-runtime-contract.md" 'active concrete strategy：`EMA`'
+require_contains "docs/contracts/release-v0.1.0-binance-ema-runtime-contract.md" "productionTradingEnabledByDefault == false"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V010-BINANCE-EMA-RUNTIME"
+require_contains "docs/validation/validation-plan.md" "GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation"
+require_contains "docs/domain/context.md" "GH-521 Release v0.1.0 Binance EMA Runtime Terms"
+require_contains "docs/automation/automation-readiness.md" "Release v0.1.0 Binance EMA runtime contract anchor"
 require_contains "docs/contracts/l4-production-cutover-no-default-real-trading-policy.md" "TVM-L4-PRODUCTION-CUTOVER-GATE"
 require_contains "docs/contracts/production-cutover-credential-secret-policy-gate-contract.md" "GH-503-PRODUCTION-CUTOVER-CREDENTIAL-SECRET-POLICY-GATE"
 require_contains "docs/contracts/production-cutover-credential-secret-policy-gate-contract.md" "GH-503-NO-DEFAULT-SECRET-READ"

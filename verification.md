@@ -15687,6 +15687,38 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 404 XCTest / 0 failures; final output `MTPRO checks passed.`
 
+## 2026-06-08 - GH-521 Release v0.1.0 Binance EMA runtime contract
+
+- Issue: GH-521 `Define release v0.1.0 Binance EMA runtime contract and acceptance matrix`
+- Queue:
+  - GitHub fallback queue used because this release stage is not using Linear.
+  - WIP=1 preflight passed before implementation: #521 was OPEN with `mtpro / backlog / non-executable`; no upstream blocker; no open PR; no open issue carried `todo`, `in-progress` or `in-review`.
+  - #521 was promoted to `todo`, then to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `docs/contracts/release-v0.1.0-binance-ema-runtime-contract.md`.
+  - Backfilled `TVM-RELEASE-V010-BINANCE-EMA-RUNTIME` in `docs/validation/trading-validation-matrix.md`.
+  - Added GH-521 validation anchors in `docs/validation/validation-plan.md`, `docs/domain/context.md`, `docs/automation/automation-readiness.md`, `docs/validation/latest-verification-summary.md` and `checks/automation-readiness.d/l4-boundary.sh`.
+  - Fixed release v0.1.0 active scope as Binance-only and EMA-only.
+  - Fixed dry-run-first / testnet-first gate and no-default-production-trading boundary.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No runtime implementation.
+  - No production secret read, storage, print or repository commit.
+  - No production endpoint connection.
+  - No production broker connection.
+  - No signed endpoint / account endpoint / listenKey call.
+  - No real order submission / cancellation / replacement.
+  - No non-Binance active venue.
+  - No non-EMA active concrete strategy.
+  - No RiskEngine / ExecutionEngine / OMS / kill switch bypass.
+  - No next Project / Issue creation or release v0.1.0 post-stage promotion.
+- Validation:
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 404 XCTest / 0 failures; final output `MTPRO checks passed.`
+
 ## 2026-06-07 - MTPRO L4 Live Production / Trading Commands v1 Project closure
 
 - Project: `MTPRO L4 Live Production / Trading Commands v1`
