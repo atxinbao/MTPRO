@@ -5113,6 +5113,82 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH510ProductionCutoverReadinessStageAuditInputDocumentsCompleteEvidenceChain() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let stageAuditInput = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/audit/inputs/mtpro-production-cutover-readiness-real-broker-enablement-gate-v1-stage-audit-input.md"
+            ),
+            encoding: .utf8
+        )
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+
+        for expected in [
+            "GH-510-STAGE-AUDIT-INPUT",
+            "TVM-PRODUCTION-CUTOVER-READINESS-REAL-BROKER-GATE",
+            "Parent Codex Handoff",
+            "git diff --check",
+            "bash checks/automation-readiness.sh",
+            "bash checks/run.sh"
+        ] {
+            XCTAssertTrue(stageAuditInput.contains(expected), "Stage audit input must contain \(expected)")
+        }
+
+        for issueID in ["GH-503", "GH-504", "GH-505", "GH-506", "GH-507", "GH-508", "GH-509", "GH-510"] {
+            XCTAssertTrue(stageAuditInput.contains(issueID), "Stage audit input must cover \(issueID)")
+            XCTAssertTrue(validationMatrix.contains(issueID), "Validation matrix must cover \(issueID)")
+        }
+
+        for pullRequest in ["PR #511", "PR #512", "PR #513", "PR #514", "PR #515", "PR #516", "PR #517"] {
+            XCTAssertTrue(stageAuditInput.contains(pullRequest), "Stage audit input must record \(pullRequest)")
+        }
+
+        XCTAssertTrue(validationMatrix.contains("TVM-PRODUCTION-CUTOVER-READINESS-REAL-BROKER-GATE"))
+        XCTAssertTrue(validationMatrix.contains("GH-503..GH-510 issue backfill"))
+        XCTAssertTrue(automationReadiness.contains("Production Cutover Readiness stage audit input anchor"))
+        XCTAssertTrue(
+            automationReadiness.contains(
+                "docs/audit/inputs/mtpro-production-cutover-readiness-real-broker-enablement-gate-v1-stage-audit-input.md"
+            )
+        )
+        XCTAssertTrue(
+            automationReadiness.contains(
+                "testGH510ProductionCutoverReadinessStageAuditInputDocumentsCompleteEvidenceChain"
+            )
+        )
+        XCTAssertTrue(stageAuditInput.contains("不输出最终 Stage Code Audit Report"))
+    }
+
+    func testGH510ProductionCutoverReadinessCloseoutRejectsProductionRuntimeAuthorization() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let stageAuditInput = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/audit/inputs/mtpro-production-cutover-readiness-real-broker-enablement-gate-v1-stage-audit-input.md"
+            ),
+            encoding: .utf8
+        )
+
+        for forbiddenBoundary in [
+            "不授权 production cutover",
+            "不连接 broker",
+            "不读取真实 secret",
+            "不提交 / 撤销 / 替换真实订单",
+            "不实现 production OMS",
+            "不创建下一阶段 Project / Issue",
+            "不推进 Todo",
+            "不输出最终 Stage Code Audit Report"
+        ] {
+            XCTAssertTrue(stageAuditInput.contains(forbiddenBoundary), "Stage audit input must preserve \(forbiddenBoundary)")
+        }
+    }
+
     func testGH434DeterministicValueObjectConstantsUseExplicitConstructors() throws {
         let identifier = Identifier.constant(" gh-434-identifier ", field: "gh434Identifier")
         XCTAssertEqual(identifier.rawValue, "gh-434-identifier")
