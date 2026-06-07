@@ -5307,6 +5307,128 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH530ExecutionEngineOMSStateMachineRequiresRiskApprovedEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionEngineTarget = try packageTargetBlock(named: "ExecutionEngine", packageSource: packageSource)
+        XCTAssertTrue(executionEngineTarget.contains("\"OMSFutureGate\""))
+        XCTAssertTrue(executionEngineTarget.contains("\"RiskEngine\""))
+
+        let emaRuntime = try EMAProposalRuntime.deterministicFixture()
+        let proposalEvidence = try emaRuntime.generateProposal(
+            from: EMAProposalRuntime.deterministicBars(),
+            sessionID: Identifier.constant("gh-530-session"),
+            riskProfileID: Identifier.constant("gh-530-risk-profile"),
+            sourceSequence: 530,
+            proposedAt: Date(timeIntervalSince1970: 1_704_067_530),
+            paperQuantity: Quantity(0.10, field: "gh530.paperQuantity")
+        )
+        let riskInput = try ReleaseV010RiskPreTradeInput(
+            inputID: Identifier.constant("gh-530-risk-input"),
+            proposal: proposalEvidence.proposal,
+            riskQuery: proposalEvidence.riskQuery,
+            sourceSequence: proposalEvidence.sourceSequence,
+            availableBalance: 100_000
+        )
+        let riskGate = try ReleaseV010RiskPreTradeGateRuntime.deterministicFixture()
+        let riskEvidence = try riskGate.deterministicEvidence(approvedInput: riskInput)
+        let approvedRiskDecision = try XCTUnwrap(riskEvidence.decisions.first { $0.outcome == .approved })
+        let blockedRiskDecision = try XCTUnwrap(riskEvidence.decisions.first { $0.outcome == .blocked })
+
+        let stateMachine = try ReleaseV010ExecutionOMSStateMachine.deterministicFixture()
+        let orderIntent = try stateMachine.makeOrderIntent(
+            from: approvedRiskDecision,
+            orderIntentID: Identifier.constant("gh-530-order-intent")
+        )
+        XCTAssertTrue(orderIntent.intentBoundaryHeld)
+        XCTAssertEqual(orderIntent.proposalID, proposalEvidence.proposal.proposalID)
+        XCTAssertEqual(orderIntent.symbol, proposalEvidence.proposal.symbol)
+        XCTAssertEqual(orderIntent.quantity, proposalEvidence.proposal.quantity)
+        XCTAssertFalse(orderIntent.routedToExecutionClient)
+        XCTAssertFalse(orderIntent.submitsRealOrder)
+
+        let evidence = try stateMachine.deterministicEvidence(from: riskEvidence)
+        XCTAssertTrue(evidence.evidenceBoundaryHeld)
+        XCTAssertEqual(evidence.statesCovered, Set(ReleaseV010OMSOrderLifecycleState.allCases))
+        XCTAssertEqual(Set(evidence.eventLogs.map(\.path)), Set(ReleaseV010OMSPath.allCases))
+        XCTAssertTrue(evidence.riskApprovedRequiredBeforeExecutionPath)
+        XCTAssertTrue(evidence.stateMachineCoversAllRequiredStates)
+        XCTAssertTrue(evidence.eventLogAuditEvidenceComplete)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionOMSRuntimeEnabledByDefault)
+        XCTAssertFalse(evidence.callsExecutionClient)
+        XCTAssertFalse(evidence.submitsRealOrder)
+        XCTAssertFalse(evidence.cancelsRealOrder)
+        XCTAssertFalse(evidence.replacesRealOrder)
+
+        let rejectedLog = try XCTUnwrap(evidence.eventLogs.first { $0.path == .riskRejected })
+        XCTAssertNil(rejectedLog.orderIntent)
+        XCTAssertEqual(rejectedLog.sourceRiskDecision.outcome, .blocked)
+        XCTAssertEqual(rejectedLog.terminalState, .rejected)
+        XCTAssertTrue(rejectedLog.eventLogBoundaryHeld)
+
+        let replacedLog = try XCTUnwrap(evidence.eventLogs.first { $0.path == .acceptedReplacedFilled })
+        XCTAssertTrue(replacedLog.statesCovered.contains(.replaced))
+        XCTAssertEqual(replacedLog.terminalState, .filled)
+        XCTAssertTrue(replacedLog.transitions.allSatisfy(\.appendOnlyAuditEvent))
+
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoded = try JSONDecoder().decode(ReleaseV010ExecutionOMSStateMachineEvidence.self, from: encoded)
+        XCTAssertEqual(decoded, evidence)
+
+        XCTAssertThrowsError(
+            try stateMachine.makeOrderIntent(
+                from: blockedRiskDecision,
+                orderIntentID: Identifier.constant("unsafe-gh-530-blocked-intent")
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "sourceRiskDecision.outcome",
+                    expected: ReleaseV010RiskPreTradeDecisionOutcome.approved.rawValue,
+                    actual: ReleaseV010RiskPreTradeDecisionOutcome.blocked.rawValue
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV010ExecutionOMSStateMachine(
+                stateMachineID: Identifier.constant("unsafe-gh-530-production-oms"),
+                productionOMSRuntimeEnabledByDefault: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("releaseV010OMS.productionOMSRuntimeEnabledByDefault")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV010OMSStateTransition(
+                transitionID: Identifier.constant("unsafe-gh-530-transition"),
+                orderID: Identifier.constant("unsafe-gh-530-order"),
+                sourceRiskDecisionID: approvedRiskDecision.decisionID,
+                fromState: .filled,
+                trigger: .riskApproved,
+                toState: .accepted,
+                sequence: 1
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "omsTransition",
+                    expected: ReleaseV010OMSStateTransition.allowedTransitionDescriptions.sorted().joined(separator: ","),
+                    actual: "filled|risk approved|accepted"
+                )
+            )
+        }
+    }
+
     func testGH503ProductionCredentialSecretPolicyGateDefinesNoDefaultSecretReadContract() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

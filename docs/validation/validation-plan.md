@@ -7927,3 +7927,47 @@ GH-529 必须建立的主要 anchors：
 - 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## GH-530 ExecutionEngine OMS Lifecycle Validation
+
+GH-530 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH530ExecutionEngineOMSStateMachineRequiresRiskApprovedEvidence`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-530 的验收要求：
+
+- `Sources/ExecutionEngine/OMSFutureGate/ReleaseV010ExecutionOMSStateMachine.swift` 必须存在，并包含 `GH-530-EXECUTIONENGINE-OMS-STATE-MACHINE` 和 `TVM-RELEASE-V010-EXECUTIONENGINE-OMS-LIFECYCLE` anchors。
+- `Package.swift` 必须让 `ExecutionEngine` target 显式拥有 `OMSFutureGate` source root，并保持 `RiskEngine` dependency。
+- State machine 必须消费 #529 `ReleaseV010RiskPreTradeDecisionEvidence`；只有 `approved` decision 能创建 local order intent 并进入 accepted / canceled / replaced / filled path。
+- `rejected` 或 `blocked` risk decision 只能进入 rejected path，不得 fallback 到 ExecutionClient、broker retry、OMS bypass 或 Dashboard command surface。
+- Evidence 必须覆盖 `new`、`accepted`、`rejected`、`canceled`、`replaced`、`filled` 状态，以及 append-only OMS event log / audit evidence。
+- Runtime evidence 必须保持 `productionTradingEnabledByDefault == false`、`productionOMSRuntimeEnabledByDefault == false`、`callsExecutionClient == false`、`touchesBrokerGateway == false`、`submitsRealOrder == false`、`cancelsRealOrder == false`、`replacesRealOrder == false`、`performsReconciliation == false`、`exposesLiveCommandSurface == false`、`nonBinanceVenueEnabled == false` 和 `nonEMAStrategyEnabled == false`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH530ExecutionEngineOMSStateMachineRequiresRiskApprovedEvidence`，验证 ExecutionEngine source ownership、RiskEngine dependency、risk-approved order intent、state coverage、event log audit evidence、blocked risk rejection path、production OMS default rejection 和 illegal transition rejection。
+- GH-530 PR evidence 必须确认不读取 production secret，不连接 production endpoint，不调用 ExecutionClient / broker，不提交、取消或替换真实订单，不执行 reconciliation，不启用 production trading，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+GH-530 必须建立的主要 anchors：
+
+- `GH-530-EXECUTIONENGINE-OMS-STATE-MACHINE`
+- `GH-530-RISK-APPROVED-ORDER-INTENT`
+- `GH-530-OMS-EVENT-LOG-AUDIT-EVIDENCE`
+- `GH-530-NO-PRODUCTION-OMS-RUNTIME`
+- `TVM-RELEASE-V010-EXECUTIONENGINE-OMS-LIFECYCLE`
+- `testGH530ExecutionEngineOMSStateMachineRequiresRiskApprovedEvidence`
+
+## GH-530 禁止
+
+- 不启用 non-Binance venue。
+- 不启用 non-EMA active strategy。
+- 不读取、打印、保存或推导 production secret。
+- 不接受 production endpoint、production stream endpoint 或 production broker endpoint。
+- 不调用 ExecutionClient 或 broker gateway。
+- 不提交、取消或替换真实订单。
+- 不把 local OMS event log 扩大成 production OMS runtime、production order store、execution report parser、broker fill parser 或 reconciliation runtime。
+- 不暴露 Dashboard command surface、trading button、live command 或 order form。
+- 不绕过 RiskEngine、ExecutionEngine、OMS、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
