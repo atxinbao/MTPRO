@@ -2618,3 +2618,37 @@ GitHub Issue：[#536](https://github.com/atxinbao/MTPRO/issues/536)
 - `git diff --check`：pass，无输出。
 - `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
 - `bash checks/run.sh`：pass，local Swift toolchain accepted as Apple Swift 6.3；Dashboard smoke 包含 `readModelOnly=true`、`dashboardReadModelOnly=true`、`releaseLiveMonitoringSurface=7`、`releaseCommandSurface=3` 和 `releaseKillSwitch=3`；419 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
+## 2026-06-08 — GH-537 Binance dry-run / testnet validation suite
+
+执行者：Codex
+
+GitHub Issue：[#537](https://github.com/atxinbao/MTPRO/issues/537)
+
+范围：
+
+- 新增 `Sources/ExecutionEngine/OMSFutureGate/ReleaseV010DryRunTestnetValidationSuite.swift`。
+- 新增 `TargetGraphTests/testGH537ReleaseDryRunTestnetValidationSuiteIsRepeatableAndProductionSafe`。
+- 新增 release validation command：`bash checks/release-v0.1.0-dryrun-testnet.sh`，并接入 `checks/run.sh`。
+- Suite 汇总 GH-531 Binance testnet submit / cancel / replace request + ack、GH-532 execution report / broker fill parser、GH-533 reconciliation / Portfolio update 和 GH-536 kill switch / no-trade / rollback anchor。
+- 更新 release contract、trading validation matrix、validation plan、domain context、automation readiness 文档和 automation readiness guard。
+
+边界：
+
+- 不使用 Linear。
+- 不启动 Symphony / `symphony-issue`。
+- 不运行 Graphify / code-index。
+- 不修改 Figma。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint 或 production broker endpoint。
+- 不连接真实 testnet network，不连接 broker，不提交、取消或替换真实订单。
+- 不绕过 RiskEngine / ExecutionEngine / OMS / kill switch。
+- 不执行 automatic recovery、rollback command 或 broker emergency API。
+- 不启用 production trading、non-Binance venue 或 non-EMA active strategy。
+
+验证：
+
+- `bash checks/release-v0.1.0-dryrun-testnet.sh`：pass，1 test / 0 failures，最终输出 `MTPRO release v0.1.0 dry-run/testnet validation suite passed.`。
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，local Swift toolchain accepted as Apple Swift 6.3；Dashboard smoke 包含 `readModelOnly=true`、`dashboardReadModelOnly=true`、`releaseLiveMonitoringSurface=7`、`releaseCommandSurface=3` 和 `releaseKillSwitch=3`；420 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。

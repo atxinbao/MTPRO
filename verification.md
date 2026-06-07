@@ -16254,3 +16254,35 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true`, `dashboardReadModelOnly=true`, `releaseLiveMonitoringSurface=7`, `releaseCommandSurface=3` and `releaseKillSwitch=3`; 419 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-08 - GH-537 Binance dry-run / testnet validation suite
+
+- Issue: GH-537 `Add Binance dry-run and testnet validation suite`
+- Queue:
+  - GitHub fallback queue used because this release stage does not use Linear.
+  - WIP=1 preflight passed before implementation: #537 was OPEN with `mtpro / backlog / non-executable`; dependencies #531, #532, #533 and #536 were CLOSED with `done`; no other open issue carried `todo`, `in-progress` or `in-review`; no open PR was present.
+  - #537 was promoted to `todo`, then to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `Sources/ExecutionEngine/OMSFutureGate/ReleaseV010DryRunTestnetValidationSuite.swift`.
+  - Added `TargetGraphTests/testGH537ReleaseDryRunTestnetValidationSuiteIsRepeatableAndProductionSafe`.
+  - Added `checks/release-v0.1.0-dryrun-testnet.sh` and wired it into `checks/run.sh`.
+  - Backfilled `GH-537-BINANCE-DRYRUN-TESTNET-VALIDATION-SUITE`, `GH-537-DRYRUN-END-TO-END`, `GH-537-TESTNET-SUBMIT-CANCEL-REPLACE`, `GH-537-EXECUTION-REPORT-FILL-RECONCILIATION-CHECKS`, `GH-537-NO-PRODUCTION-ORDER-ON-FAILURE`, `TVM-RELEASE-V010-BINANCE-DRYRUN-TESTNET-VALIDATION`, validation plan, domain language, latest summary and automation readiness guard.
+  - Covered GH-531 Binance testnet submit / cancel / replace request + ack evidence, GH-532 execution report / broker fill parser evidence, GH-533 reconciliation / Portfolio update evidence and GH-536 kill switch / no-trade / rollback anchor in one deterministic release validation suite.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No production secret read, print or storage.
+  - No production endpoint or production broker endpoint connection.
+  - No real testnet network connection.
+  - No broker connection, RiskEngine bypass, ExecutionEngine bypass, OMS bypass or kill switch bypass.
+  - No real submit / cancel / replace.
+  - No automatic recovery, rollback command or broker emergency API.
+  - No production trading.
+  - No non-Binance venue.
+  - No non-EMA active strategy.
+- Validation:
+  - `bash checks/release-v0.1.0-dryrun-testnet.sh`: pass; 1 test / 0 failures; final output `MTPRO release v0.1.0 dry-run/testnet validation suite passed.`
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true`, `dashboardReadModelOnly=true`, `releaseLiveMonitoringSurface=7`, `releaseCommandSurface=3` and `releaseKillSwitch=3`; 420 XCTest / 0 failures; final output `MTPRO checks passed.`

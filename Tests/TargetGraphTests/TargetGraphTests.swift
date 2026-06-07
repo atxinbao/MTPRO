@@ -5846,6 +5846,124 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH537ReleaseDryRunTestnetValidationSuiteIsRepeatableAndProductionSafe() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionEngineTarget = try packageTargetBlock(named: "ExecutionEngine", packageSource: packageSource)
+        XCTAssertTrue(executionEngineTarget.contains("\"OMSFutureGate\""))
+        XCTAssertTrue(executionEngineTarget.contains("\"ExecutionClient\""))
+        XCTAssertTrue(executionEngineTarget.contains("\"Portfolio\""))
+
+        let suite = try ReleaseV010DryRunTestnetValidationSuite.deterministicFixture()
+        XCTAssertTrue(suite.suiteBoundaryHeld)
+
+        let evidence = try suite.deterministicValidationEvidence()
+        XCTAssertTrue(evidence.evidenceBoundaryHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-537")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-531", "GH-532", "GH-533", "GH-536"])
+        XCTAssertEqual(evidence.validationCommand, "bash checks/release-v0.1.0-dryrun-testnet.sh")
+        XCTAssertEqual(evidence.steps.map(\.stage), ReleaseV010DryRunTestnetValidationStage.allCases)
+        XCTAssertTrue(evidence.steps.allSatisfy(\.stepBoundaryHeld))
+        XCTAssertEqual(evidence.commandEvidence.requests.count, 3)
+        XCTAssertEqual(evidence.commandEvidence.acknowledgements.count, 3)
+        XCTAssertEqual(evidence.parserEvidence.parsedEvents.count, 4)
+        XCTAssertEqual(evidence.parserEvidence.parsedEvents.filter(\.brokerFillMapped).count, 2)
+        XCTAssertEqual(evidence.reconciliationEvidence.records.count, 4)
+
+        let dryRun = try XCTUnwrap(evidence.steps.first { $0.stage == .dryRunEndToEnd })
+        XCTAssertEqual(dryRun.expectedRecordCount, 14)
+        XCTAssertEqual(dryRun.actualRecordCount, 14)
+
+        let testnet = try XCTUnwrap(evidence.steps.first { $0.stage == .testnetSubmitCancelReplace })
+        XCTAssertEqual(testnet.expectedRecordCount, 6)
+        XCTAssertEqual(testnet.sourceIssueIDs, ["GH-531"])
+
+        let report = try XCTUnwrap(evidence.steps.first { $0.stage == .executionReportBrokerFill })
+        XCTAssertEqual(report.expectedRecordCount, 6)
+        XCTAssertEqual(report.sourceIssueIDs, ["GH-532"])
+
+        let reconciliation = try XCTUnwrap(evidence.steps.first { $0.stage == .reconciliationPortfolioUpdate })
+        XCTAssertEqual(reconciliation.expectedRecordCount, 4)
+        XCTAssertEqual(reconciliation.sourceIssueIDs, ["GH-533"])
+
+        let killSwitch = try XCTUnwrap(evidence.steps.first { $0.stage == .killSwitchNoTradeRollback })
+        XCTAssertEqual(killSwitch.expectedRecordCount, 3)
+        XCTAssertEqual(killSwitch.sourceIssueIDs, ["GH-536"])
+
+        XCTAssertTrue(evidence.dryRunEndToEndRepeatable)
+        XCTAssertTrue(evidence.testnetSubmitCancelReplaceCovered)
+        XCTAssertTrue(evidence.executionReportFillReconciliationCovered)
+        XCTAssertTrue(evidence.killSwitchNoTradeRollbackRequired)
+        XCTAssertFalse(evidence.failureTriggersProductionOrder)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionSecretReadEnabledByDefault)
+        XCTAssertFalse(evidence.productionEndpointConnectionEnabledByDefault)
+        XCTAssertFalse(evidence.brokerGatewayTouched)
+        XCTAssertFalse(evidence.nonBinanceVenueEnabled)
+        XCTAssertFalse(evidence.nonEMAStrategyEnabled)
+        XCTAssertFalse(evidence.authorizesTradingExecution)
+        XCTAssertTrue(
+            evidence.validationAnchors.contains("GH-537-BINANCE-DRYRUN-TESTNET-VALIDATION-SUITE")
+        )
+        XCTAssertTrue(
+            evidence.validationAnchors.contains("GH-537-NO-PRODUCTION-ORDER-ON-FAILURE")
+        )
+        XCTAssertTrue(
+            evidence.validationAnchors.contains("TVM-RELEASE-V010-BINANCE-DRYRUN-TESTNET-VALIDATION")
+        )
+
+        let repeatEvidence = try ReleaseV010DryRunTestnetValidationSuite.deterministicFixture()
+            .deterministicValidationEvidence()
+        XCTAssertEqual(repeatEvidence, evidence)
+
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionEngine/OMSFutureGate/ReleaseV010DryRunTestnetValidationSuite.swift"
+                ).path
+            )
+        )
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "checks/release-v0.1.0-dryrun-testnet.sh"
+                ).path
+            )
+        )
+
+        XCTAssertThrowsError(
+            try ReleaseV010DryRunTestnetValidationEvidence(
+                steps: evidence.steps,
+                commandEvidence: evidence.commandEvidence,
+                parserEvidence: evidence.parserEvidence,
+                reconciliationEvidence: evidence.reconciliationEvidence,
+                failureTriggersProductionOrder: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("releaseV010Validation.failureTriggersProductionOrder")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV010DryRunTestnetValidationSuite(validationAnchors: ["unsafe"])
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "validationAnchors",
+                    expected: ReleaseV010DryRunTestnetValidationEvidence.requiredValidationAnchors
+                        .joined(separator: ","),
+                    actual: "unsafe"
+                )
+            )
+        }
+    }
+
     func testGH503ProductionCredentialSecretPolicyGateDefinesNoDefaultSecretReadContract() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
