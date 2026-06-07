@@ -487,6 +487,25 @@ GH-469 必须建立的主要 anchors：
 - `GH-469-NO-PRODUCTION-COMMAND-DEFAULT`
 - `TVM-L4-GUARDED-COMMAND-UI-SURFACE`
 
+## GH-470 L4 Sandbox Validation Matrix Closeout Validation
+
+GH-470 的 required validation：
+
+- `docs/audit/inputs/mtpro-l4-live-production-trading-commands-v1-gh-470-sandbox-validation-closeout.md` 必须存在，并包含 `GH-470-SANDBOX-VALIDATION-MATRIX-CLOSEOUT`、`GH-470-READ-RISK-EXECUTION-OMS-RECONCILIATION-AUDIT-UI-GATE`、`GH-470-NO-DEFAULT-PRODUCTION-TRADING`、`GH-470-NO-SECRET-RAW-BROKER-PAYLOAD`、`GH-470-NON-AUTHORIZATION` 和 `TVM-L4-SANDBOX-VALIDATION-MATRIX-CLOSEOUT`。
+- `docs/validation/trading-validation-matrix.md` 必须包含 GH-452 至 GH-470 的 L4 matrix entries，并明确 read、risk、execution、OMS、reconciliation、audit 和 UI gate coverage。
+- Automation readiness 必须机械检查 GH-470 closeout input、matrix、validation plan、domain context 和 latest summary anchors。
+- Closeout 必须确认 no default production trading、no production cutover、no secret exposure、no raw broker payload exposure、no real broker gateway、no real submit / cancel / replace。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`，不依赖真实 secret、broker credential、signed/account endpoint、listenKey、private WebSocket、production endpoint 或人工验收。
+- GH-470 不输出 final Stage Code Audit Report，不授权 GH-471 production cutover，不授权 GH-472 Stage Audit input closure，不创建下一 Project / Issue。
+
+GH-470 必须建立的主要 anchors：
+
+- `GH-470-SANDBOX-VALIDATION-MATRIX-CLOSEOUT`
+- `GH-470-READ-RISK-EXECUTION-OMS-RECONCILIATION-AUDIT-UI-GATE`
+- `GH-470-NO-DEFAULT-PRODUCTION-TRADING`
+- `GH-470-NO-SECRET-RAW-BROKER-PAYLOAD`
+- `TVM-L4-SANDBOX-VALIDATION-MATRIX-CLOSEOUT`
+
 ## MTP-24 Trading Validation Matrix Validation
 
 MTP-24 的 required validation：
