@@ -4569,6 +4569,103 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH505BrokerVenueCapabilityMatrixBindsCredentialAndEnvironmentGates() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+
+        let credentialGate = try ProductionCutoverCredentialSecretPolicyGate.deterministicFixture()
+        let environmentGate = try ProductionCutoverEnvironmentIsolationGateContract.deterministicFixture()
+        let matrix = try ProductionCutoverBrokerVenueCapabilityMatrix.deterministicFixture()
+        XCTAssertTrue(credentialGate.contractHeld)
+        XCTAssertTrue(environmentGate.contractHeld)
+        XCTAssertTrue(matrix.matrixHeld)
+        XCTAssertTrue(matrix.domainCoverageHeld)
+        XCTAssertEqual(matrix.issueID.rawValue, "GH-505")
+        XCTAssertEqual(matrix.upstreamIssueIDs.map(\.rawValue), ["GH-503", "GH-504"])
+        XCTAssertEqual(matrix.canonicalQueueRange, "GH-503..GH-510")
+        XCTAssertEqual(Set(matrix.rows.map(\.domain)), Set(ProductionCutoverBrokerCapabilityDomain.allCases))
+        XCTAssertEqual(Set(matrix.states), Set(ProductionCutoverBrokerCapabilityState.allCases))
+        XCTAssertEqual(
+            Set(matrix.forbiddenCapabilities),
+            Set(ProductionCutoverBrokerVenueForbiddenCapability.allCases)
+        )
+        XCTAssertTrue(matrix.validationAnchors.contains("GH-505-CAPABILITY-TAXONOMY"))
+        XCTAssertTrue(matrix.validationAnchors.contains("GH-505-NO-BROKER-ADAPTER-IMPLEMENTATION"))
+
+        XCTAssertFalse(matrix.brokerSelectionIsExecutionAuthorization)
+        XCTAssertTrue(matrix.credentialPolicyGateRequired)
+        XCTAssertTrue(matrix.environmentIsolationGateRequired)
+        XCTAssertTrue(matrix.readinessMatrixOnly)
+
+        for forbidden in [
+            matrix.implementsBrokerAdapter,
+            matrix.connectsBroker,
+            matrix.callsSignedEndpoint,
+            matrix.callsAccountEndpoint,
+            matrix.createsListenKey,
+            matrix.opensPrivateWebSocket,
+            matrix.implementsRealOrderLifecycle,
+            matrix.submitsRealOrder,
+            matrix.cancelsRealOrder,
+            matrix.replacesRealOrder,
+            matrix.parsesExecutionReport,
+            matrix.parsesBrokerFill,
+            matrix.performsReconciliation
+        ] {
+            XCTAssertFalse(forbidden)
+        }
+
+        XCTAssertTrue(executionClientTarget.contains("\"BrokerCapabilityMatrix\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionClient/BrokerCapabilityMatrix/ProductionCutoverBrokerVenueCapabilityMatrix.swift"
+                ).path
+            )
+        )
+    }
+
+    func testGH505BrokerVenueCapabilityMatrixRejectsAdapterEndpointAndOrderBypass() throws {
+        XCTAssertThrowsError(
+            try ProductionCutoverBrokerVenueCapabilityMatrix(
+                implementsBrokerAdapter: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("implementsBrokerAdapter"))
+        }
+
+        XCTAssertThrowsError(
+            try ProductionCutoverBrokerVenueCapabilityMatrix(
+                callsSignedEndpoint: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("callsSignedEndpoint"))
+        }
+
+        XCTAssertThrowsError(
+            try ProductionCutoverBrokerVenueCapabilityMatrix(
+                submitsRealOrder: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("submitsRealOrder"))
+        }
+
+        XCTAssertThrowsError(
+            try ProductionCutoverBrokerVenueCapabilityRow(
+                domain: .signedTrading,
+                state: .futureGated,
+                evidence: "unsafe endpoint row",
+                callsSignedEndpoint: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("callsSignedEndpoint"))
+        }
+    }
+
     func testGH434DeterministicValueObjectConstantsUseExplicitConstructors() throws {
         let identifier = Identifier.constant(" gh-434-identifier ", field: "gh434Identifier")
         XCTAssertEqual(identifier.rawValue, "gh-434-identifier")
