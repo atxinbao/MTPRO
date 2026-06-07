@@ -8223,6 +8223,47 @@ GH-537 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-538 No-default Production Trading Automation Guard Validation
+
+GH-538 必须运行：
+
+- `bash checks/automation-readiness.d/release-v010-no-default-production-trading.sh`
+- `swift test --filter TargetGraphTests/testGH538NoDefaultProductionTradingGuardIsRequiredAutomationReadiness`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-538 的验收要求：
+
+- `checks/automation-readiness.d/release-v010-no-default-production-trading.sh` 必须存在，并包含 `GH-538-NO-DEFAULT-PRODUCTION-TRADING-AUTOMATION-GUARD`、`GH-538-FORBIDDEN-PRODUCTION-CONFIG-DEFAULTS`、`GH-538-SECRET-ENDPOINT-GUARD-EVIDENCE`、`GH-538-DRYRUN-TESTNET-KILLSWITCH-BYPASS-GUARD` 和 `TVM-RELEASE-V010-NO-DEFAULT-PRODUCTION-TRADING-GUARD` anchors。
+- `checks/automation-readiness.d/run-domain-guards.sh` 必须调度 #538 guard，`checks/automation-readiness.d/l4-boundary.sh` 必须 self-guard 该脚本、测试和文档锚点。
+- Guard 必须扫描 release source、`Package.swift`、CI workflow 和 checks runner，拒绝 production trading / endpoint / secret / submit / cancel / replace / OMS / Dashboard command 默认开启。
+- Guard 必须拒绝 failure path 触发 production order、sandbox command promoted to production command、trading authorization、RiskEngine / ExecutionEngine / OMS / kill switch / no-trade bypass 和真实 submit / cancel / replace 默认开启。
+- `TargetGraphTests/testGH538NoDefaultProductionTradingGuardIsRequiredAutomationReadiness` 必须固定 guard script、domain runner、l4-boundary、release contract、trading matrix、validation plan、domain context 和 automation readiness evidence chain。
+- 删除 guard 脚本、移出 `run-domain-guards.sh`、移除 l4-boundary self-guard 或移除关键文档锚点必须导致 automation readiness 或 focused TargetGraph test 失败。
+- PR evidence 必须确认不使用 Linear，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。
+
+GH-538 必须建立的主要 anchors：
+
+- `GH-538-NO-DEFAULT-PRODUCTION-TRADING-AUTOMATION-GUARD`
+- `GH-538-FORBIDDEN-PRODUCTION-CONFIG-DEFAULTS`
+- `GH-538-SECRET-ENDPOINT-GUARD-EVIDENCE`
+- `GH-538-DRYRUN-TESTNET-KILLSWITCH-BYPASS-GUARD`
+- `TVM-RELEASE-V010-NO-DEFAULT-PRODUCTION-TRADING-GUARD`
+- `testGH538NoDefaultProductionTradingGuardIsRequiredAutomationReadiness`
+
+## GH-538 禁止
+
+- 不启用 production trading。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、account endpoint、listenKey 或 private WebSocket runtime。
+- 不执行真实 Binance testnet network call；guard 只检查本地 source / config / readiness evidence。
+- 不触发 production order、sandbox-to-production command promotion、rollback command、broker emergency API 或 automatic recovery。
+- 不绕过 RiskEngine、ExecutionEngine、OMS、kill switch、operator confirmation、dry-run / testnet gate 或 no-trade state。
+- 不创建下一 Project / Issue，不推进 release v0.1.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-530 ExecutionEngine OMS Lifecycle Validation
 
 GH-530 必须运行：

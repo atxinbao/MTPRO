@@ -4014,6 +4014,28 @@ No production order on failure 表示 dry-run / testnet validation suite 的 fai
 
 Release v0.1.0 Binance dry-run / testnet validation matrix 必须证明 deterministic local validation command 能覆盖 GH-531、GH-532、GH-533 和 GH-536 的关键 evidence，同时 production trading、production secret read、production endpoint connection、broker gateway、real submit / cancel / replace、non-Binance venue 和 non-EMA active strategy 均保持关闭。
 
+## GH-538 No-default Production Trading Automation Guard Terms
+
+`GH-538-NO-DEFAULT-PRODUCTION-TRADING-AUTOMATION-GUARD`
+
+No-default-production-trading automation guard 指 release v0.1.0 required automation readiness 中的硬门检查。它必须由 `checks/automation-readiness.d/run-domain-guards.sh` 调度，并拒绝 release source、`Package.swift`、CI workflow 和 checks runner 中任何默认开启 production trading、production endpoint、production secret、production submit / cancel / replace、production OMS 或 production Dashboard command surface 的实现或配置。
+
+`GH-538-FORBIDDEN-PRODUCTION-CONFIG-DEFAULTS`
+
+Forbidden production config defaults 表示环境变量、配置项、hidden flag、CI runner 默认值、testnet credential reference 或 dry-run command 都不能把 release v0.1.0 从 no-trade / dry-run / testnet-first 状态升级成 production trading。
+
+`GH-538-SECRET-ENDPOINT-GUARD-EVIDENCE`
+
+Secret / endpoint guard evidence 表示 automation readiness 必须持续证明 production secret read、production endpoint connection、production broker endpoint、account endpoint、listenKey 和 private WebSocket runtime 均未默认启用，也不会因缺少 testnet credential 回退到 production credential。
+
+`GH-538-DRYRUN-TESTNET-KILLSWITCH-BYPASS-GUARD`
+
+Dry-run / testnet / kill switch bypass guard 表示 failure path 只能阻断 validation，不能触发 production order、sandbox-to-production command promotion、trading authorization、RiskEngine bypass、ExecutionEngine bypass、OMS bypass、kill switch bypass、no-trade bypass 或真实 submit / cancel / replace。
+
+`TVM-RELEASE-V010-NO-DEFAULT-PRODUCTION-TRADING-GUARD`
+
+Release v0.1.0 no-default-production-trading guard matrix 必须证明 guard script、domain guard runner、l4-boundary self-guard、focused TargetGraph test、release contract、validation matrix、validation plan、domain context 和 automation readiness 文档形成 required evidence chain。删除任一关键 guard evidence 必须让 automation readiness 或 focused test 失败。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

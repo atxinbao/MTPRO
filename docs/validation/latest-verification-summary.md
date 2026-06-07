@@ -2652,3 +2652,38 @@ GitHub Issue：[#537](https://github.com/atxinbao/MTPRO/issues/537)
 - `git diff --check`：pass，无输出。
 - `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
 - `bash checks/run.sh`：pass，local Swift toolchain accepted as Apple Swift 6.3；Dashboard smoke 包含 `readModelOnly=true`、`dashboardReadModelOnly=true`、`releaseLiveMonitoringSurface=7`、`releaseCommandSurface=3` 和 `releaseKillSwitch=3`；420 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。
+
+## 2026-06-08 — GH-538 No-default-production-trading automation guard
+
+执行者：Codex
+
+GitHub Issue：[#538](https://github.com/atxinbao/MTPRO/issues/538)
+
+范围：
+
+- 新增 `checks/automation-readiness.d/release-v010-no-default-production-trading.sh`。
+- 将 #538 guard 接入 `checks/automation-readiness.d/run-domain-guards.sh`，使其成为 `bash checks/automation-readiness.sh` 的 required guard。
+- 更新 `checks/automation-readiness.d/l4-boundary.sh`，要求 guard script、runner、focused test、release contract、matrix、validation plan、domain context 和 automation readiness evidence chain 存在。
+- 新增 `TargetGraphTests/testGH538NoDefaultProductionTradingGuardIsRequiredAutomationReadiness`。
+- 更新 release contract、trading validation matrix、validation plan、domain context 和 automation readiness 文档。
+
+边界：
+
+- 不使用 Linear。
+- 不启动 Symphony / `symphony-issue`。
+- 不运行 Graphify / code-index。
+- 不修改 Figma。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、account endpoint、listenKey 或 private WebSocket runtime。
+- 不执行真实 Binance testnet network call，不连接 broker，不提交、取消或替换真实订单。
+- 不触发 production order、sandbox-to-production command promotion、automatic recovery、rollback command 或 broker emergency API。
+- 不绕过 RiskEngine / ExecutionEngine / OMS / kill switch / no-trade state。
+- 不启用 production trading、non-Binance venue 或 non-EMA active strategy。
+
+验证：
+
+- `bash checks/automation-readiness.d/release-v010-no-default-production-trading.sh`：pass，输出 `MTPRO release v0.1.0 no-default-production-trading guard passed.`。
+- `swift test --filter TargetGraphTests/testGH538NoDefaultProductionTradingGuardIsRequiredAutomationReadiness`：pass，1 test / 0 failures。
+- `git diff --check`：pass，无输出。
+- `bash checks/automation-readiness.sh`：pass，输出 `MTPRO automation readiness checks passed.`。
+- `bash checks/run.sh`：pass，local Swift toolchain accepted as Apple Swift 6.3；Dashboard smoke 包含 `readModelOnly=true`、`dashboardReadModelOnly=true`、`releaseLiveMonitoringSurface=7`、`releaseCommandSurface=3` 和 `releaseKillSwitch=3`；421 XCTest / 0 failures，最终输出 `MTPRO checks passed.`。

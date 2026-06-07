@@ -137,6 +137,7 @@ Required anchors：
 - `GH-535-DASHBOARD-CONTROLLED-COMMAND-SURFACE`
 - `GH-536-KILL-SWITCH-NO-TRADE-ROLLBACK-CONTROLS`
 - `GH-537-BINANCE-DRYRUN-TESTNET-VALIDATION-SUITE`
+- `GH-538-NO-DEFAULT-PRODUCTION-TRADING-AUTOMATION-GUARD`
 - `TVM-RELEASE-V010-BINANCE-EMA-RUNTIME`
 - `TVM-RELEASE-V010-REAL-TARGET-SMOKE-COVERAGE`
 - `TVM-RELEASE-V010-BINANCE-PUBLIC-MARKET-DATA-PATH`
@@ -153,6 +154,7 @@ Required anchors：
 - `TVM-RELEASE-V010-DASHBOARD-CONTROLLED-COMMAND-SURFACE`
 - `TVM-RELEASE-V010-KILL-SWITCH-NO-TRADE-ROLLBACK`
 - `TVM-RELEASE-V010-BINANCE-DRYRUN-TESTNET-VALIDATION`
+- `TVM-RELEASE-V010-NO-DEFAULT-PRODUCTION-TRADING-GUARD`
 
 Required validation：
 
@@ -477,6 +479,41 @@ GH-537 不授权：
 - 绕过 RiskEngine、ExecutionEngine、OMS、kill switch、operator confirmation 或 no-trade state。
 - Live PRO Console runtime、real trading button、live command、order form 或 broker emergency API。
 - non-Binance venue、non-EMA active strategy 或 release v0.1.0 之后的阶段。
+
+## GH-538-NO-DEFAULT-PRODUCTION-TRADING-AUTOMATION-GUARD
+
+`GH-538-NO-DEFAULT-PRODUCTION-TRADING-AUTOMATION-GUARD`
+
+Release v0.1.0 no-default-production-trading automation guard 指 required automation readiness 中的硬门检查。该 guard 必须在 `bash checks/automation-readiness.sh` 中自动执行，并拒绝 release source / Package / CI workflow / checks runner 中任何默认开启 production trading、production secret、production endpoint、production submit / cancel / replace、production OMS、production Dashboard command surface、dry-run / testnet bypass 或 kill switch / no-trade bypass 的实现或配置。
+
+`GH-538-FORBIDDEN-PRODUCTION-CONFIG-DEFAULTS`
+
+Forbidden production config defaults 表示 `.github/workflows/checks.yml`、`Package.swift`、`checks/run.sh` 和 release validation command 不得通过环境变量、配置值、hidden flag 或 runner 默认值打开 production trading、production endpoint、real broker、real order submit / cancel / replace、production command surface 或 production OMS。
+
+`GH-538-SECRET-ENDPOINT-GUARD-EVIDENCE`
+
+Secret / endpoint guard evidence 表示 automation readiness 必须继续证明 release v0.1.0 不读取、打印、保存或推导 production secret，不连接 production endpoint、production broker endpoint、account endpoint、listenKey 或 private WebSocket runtime，也不能把 testnet credential reference 升级为 production credential。
+
+`GH-538-DRYRUN-TESTNET-KILLSWITCH-BYPASS-GUARD`
+
+Dry-run / testnet / kill switch bypass guard 表示 automation readiness 必须阻断 `failureTriggersProductionOrder == true`、`sandboxCommandPromotesProductionCommand == true`、`authorizesTradingExecution == true`、`bypassesRiskEngine == true`、`bypassesExecutionEngine == true`、`bypassesOMS == true`、`bypassesKillSwitch == true`、`bypassesNoTradeState == true` 和真实 submit / cancel / replace 默认开启。
+
+`TVM-RELEASE-V010-NO-DEFAULT-PRODUCTION-TRADING-GUARD`
+
+Release v0.1.0 no-default-production-trading guard matrix 必须证明 guard 脚本被 `checks/automation-readiness.d/run-domain-guards.sh` 调度、被 `checks/automation-readiness.d/l4-boundary.sh` 要求存在，并由 `TargetGraphTests/testGH538NoDefaultProductionTradingGuardIsRequiredAutomationReadiness` 固定 required evidence chain。
+
+## GH-538-NON-AUTHORIZATION
+
+`GH-538-NON-AUTHORIZATION`
+
+GH-538 不授权：
+
+- production trading、production submit / cancel / replace 或 production broker connection。
+- production secret read、secret editor、signature value exposure、account endpoint、listenKey 或 production endpoint。
+- 真实 Binance testnet network call、production broker gateway、OMS mutation、real order lifecycle、automatic rollback command 或 broker emergency API。
+- 绕过 RiskEngine、ExecutionEngine、OMS、kill switch、operator confirmation、dry-run / testnet gate 或 no-trade state。
+- Live PRO Console runtime、real trading button、live command、order form 或 production cutover。
+- non-Binance venue、non-EMA active strategy、下一 Project / Issue 或 release v0.1.0 之后的阶段。
 
 ## GH-521-NON-AUTHORIZATION
 
