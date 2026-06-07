@@ -15614,3 +15614,35 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 384 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-07 - GH-471 L4 production cutover gate and no-default-real-trading policy
+
+- Issue: GH-471 `L4: 20/21 Define production cutover gate and no-default-real-trading policy`
+- Queue:
+  - GitHub fallback queue used because this L4 stage is not using Linear.
+  - WIP=1 preflight passed before implementation: #471 was OPEN with `mtpro / backlog / non-executable`; dependency #470 was CLOSED with `done`; no other open issue carried `todo`, `in-progress` or `in-review`; no open PR was present.
+  - #471 was promoted to `todo`, then to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `Sources/ExecutionClient/FutureGate/L4ProductionCutoverGatePolicy.swift`.
+  - Added `docs/contracts/l4-production-cutover-no-default-real-trading-policy.md`.
+  - Added TargetGraph focused coverage for future production cutover gate, Human acceptance criteria and no-default-real-trading policy.
+  - Backfilled `TVM-L4-PRODUCTION-CUTOVER-GATE`, validation plan, domain language, latest summary and automation readiness anchors.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No production cutover execution.
+  - No production endpoint connection.
+  - No real API key / secret read, storage, print or repository commit.
+  - No signed endpoint call.
+  - No broker gateway enablement.
+  - No Dashboard command bypass.
+  - No Live PRO Console production command.
+  - No order form.
+  - No trading button.
+  - No real order submission / cancellation / replacement.
+- Validation:
+  - `swift test --filter 'GH471'`: pass; 2 tests / 0 failures.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass; output `MTPRO automation readiness checks passed.`
+  - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; Dashboard smoke includes `readModelOnly=true` and `dashboardReadModelOnly=true`; 386 XCTest / 0 failures; final output `MTPRO checks passed.`

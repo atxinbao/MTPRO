@@ -3529,6 +3529,130 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH471ProductionCutoverGatePolicyDefinesNoDefaultRealTradingBoundary() throws {
+        // 测试场景：GH-471 只定义 future production cutover gate 和 no-default-real-trading policy；
+        // 它不能打开 production endpoint、broker gateway、order form、trading button 或真实订单。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+
+        let policy = try L4ProductionCutoverGatePolicy.deterministicFixture()
+        XCTAssertTrue(policy.policyHeld)
+        XCTAssertTrue(policy.acceptanceCriteriaCoverageHeld)
+        XCTAssertEqual(policy.issueID.rawValue, "GH-471")
+        XCTAssertEqual(policy.upstreamIssueID.rawValue, "GH-470")
+        XCTAssertEqual(policy.downstreamIssueID.rawValue, "GH-472")
+        XCTAssertEqual(policy.canonicalQueueRange, "GH-452..GH-472")
+        XCTAssertEqual(Set(policy.prerequisites), Set(L4ProductionCutoverPrerequisite.allCases))
+        XCTAssertEqual(Set(policy.forbiddenCapabilities), Set(L4ProductionCutoverForbiddenCapability.allCases))
+
+        XCTAssertTrue(policy.validationAnchors.contains("GH-471-PRODUCTION-CUTOVER-FUTURE-GATE"))
+        XCTAssertTrue(policy.validationAnchors.contains("GH-471-NO-DEFAULT-REAL-TRADING-POLICY"))
+        XCTAssertTrue(policy.validationAnchors.contains("GH-471-HUMAN-ACCEPTANCE-CRITERIA"))
+        XCTAssertTrue(policy.validationAnchors.contains("TVM-L4-PRODUCTION-CUTOVER-GATE"))
+
+        XCTAssertTrue(policy.productionCutoverIsFutureGate)
+        XCTAssertTrue(policy.humanAcceptanceRequired)
+        XCTAssertTrue(policy.sandboxValidationMatrixClosureRequired)
+        XCTAssertTrue(policy.stageAuditInputRequiredBeforeCutover)
+        XCTAssertTrue(policy.noDefaultRealTradingPolicyRequired)
+        XCTAssertTrue(policy.acceptanceCriteria.allSatisfy(\.requiresHumanAcceptance))
+        XCTAssertTrue(policy.acceptanceCriteria.allSatisfy { $0.allowsAutomationOnlyCutover == false })
+
+        for forbidden in [
+            policy.productionTradingEnabledByDefault,
+            policy.automaticProductionCutoverEnabled,
+            policy.automationOnlyCutoverAllowed,
+            policy.readsCredentialValue,
+            policy.storesSecret,
+            policy.callsSignedEndpoint,
+            policy.connectsProductionEndpoint,
+            policy.enablesBrokerGateway,
+            policy.submitsRealOrder,
+            policy.cancelsRealOrder,
+            policy.replacesRealOrder,
+            policy.exposesDashboardCommandBypass,
+            policy.exposesLiveProConsoleProductionCommand,
+            policy.exposesOrderForm,
+            policy.exposesTradingButton
+        ] {
+            XCTAssertFalse(forbidden)
+        }
+
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/L4ProductionCutoverGatePolicy.swift"
+                ).path
+            )
+        )
+    }
+
+    func testGH471ProductionCutoverGatePolicyRejectsAutomaticCutoverAndProductionBypass() throws {
+        XCTAssertThrowsError(
+            try L4ProductionCutoverGatePolicy(
+                productionTradingEnabledByDefault: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("productionTradingEnabledByDefault")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4ProductionCutoverGatePolicy(
+                automaticProductionCutoverEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("automaticProductionCutoverEnabled")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4ProductionCutoverGatePolicy(
+                connectsProductionEndpoint: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("connectsProductionEndpoint")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4ProductionCutoverGatePolicy(
+                acceptanceCriteria: []
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "acceptanceCriteria",
+                    expected: "GH-471 required human acceptance criteria",
+                    actual: "[]"
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4ProductionCutoverAcceptanceCriterion(
+                name: "unsafe automation-only cutover",
+                evidenceAnchor: "unsafe",
+                upstreamIssueAnchors: ["GH-471"],
+                allowsAutomationOnlyCutover: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("allowsAutomationOnlyCutover"))
+        }
+    }
+
     func testGH421AllArchitectureTargetsExposeIndependentRealAPISmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-421-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)

@@ -3620,6 +3620,28 @@ No secret / raw broker payload 固定 GH-470 closeout 不读取 API key / secret
 
 L4 sandbox validation matrix closeout matrix 必须证明 GH-452 至 GH-469 的 required anchors、forbidden capability evidence、read/risk/execution/OMS/reconciliation/audit/UI coverage 和 no-default-production boundary 全部成立。
 
+## GH-471 L4 Production Cutover Gate Terms
+
+`GH-471-PRODUCTION-CUTOVER-FUTURE-GATE`
+
+Production cutover future gate 指 sandbox validation matrix 完成后，仍必须等待 Human acceptance、environment isolation、credential handling、incident stop readiness、rollback evidence 和 Stage Audit input 的独立 future gate。它不是 production cutover execution，也不是可由 CI 或环境变量自动打开的开关。
+
+`GH-471-NO-DEFAULT-REAL-TRADING-POLICY`
+
+No-default-real-trading policy 固定 production trading 默认关闭。`productionTradingEnabledByDefault`、`automaticProductionCutoverEnabled`、`automationOnlyCutoverAllowed`、`connectsProductionEndpoint`、`enablesBrokerGateway`、`submitsRealOrder`、`cancelsRealOrder`、`replacesRealOrder`、`exposesOrderForm` 和 `exposesTradingButton` 必须保持 false。
+
+`GH-471-HUMAN-ACCEPTANCE-CRITERIA`
+
+Human acceptance criteria 指 future production cutover 的人工验收条件。每条 criterion 必须包含 evidence anchor、upstream issue anchors，并保持 `requiresHumanAcceptance == true`、`allowsAutomationOnlyCutover == false`。
+
+`GH-471-ENVIRONMENT-CREDENTIAL-INCIDENT-STOP-GATES`
+
+Environment / credential / incident-stop gates 固定 future production 讨论前必须具备 environment isolation、credential source identity、secret-free evidence、incident stop readiness、rollback plan、reconciliation evidence、audit trail 和 Stage Audit input。
+
+`TVM-L4-PRODUCTION-CUTOVER-GATE`
+
+L4 production cutover gate matrix 必须证明 production cutover 是 future gate、Human acceptance 清晰、no-default-real-trading policy 成立，并且 secret、signed endpoint、production endpoint、broker gateway、Dashboard / Live PRO Console production command、order form、trading button 和 real submit / cancel / replace 全部关闭。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：
