@@ -3109,6 +3109,225 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH466OMSBrokerPortfolioReconciliationBuildsDeterministicEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionEngineTarget = try packageTargetBlock(named: "ExecutionEngine", packageSource: packageSource)
+
+        let runtime = try L4OMSBrokerPortfolioReconciliationRuntime.deterministicFixture()
+        XCTAssertTrue(runtime.runtimeBoundaryHeld)
+        XCTAssertTrue(runtime.parserEvidence.reportParserEvidenceHeld)
+        XCTAssertTrue(runtime.localTransitionEvidence.transitionEvidenceHeld)
+        XCTAssertTrue(runtime.sandboxPathEvidence.sandboxPathEvidenceHeld)
+        XCTAssertFalse(runtime.productionReconciliationEnabled)
+        XCTAssertFalse(runtime.productionBrokerReportConsumed)
+        XCTAssertFalse(runtime.rawBrokerPayloadRead)
+        XCTAssertFalse(runtime.realAccountRead)
+        XCTAssertFalse(runtime.realPnLProduced)
+        XCTAssertFalse(runtime.portfolioRuntimeMutated)
+        XCTAssertFalse(runtime.callsExecutionClient)
+        XCTAssertFalse(runtime.touchesBrokerGateway)
+        XCTAssertFalse(runtime.exposesLiveCommandSurface)
+
+        let evidence = try runtime.deterministicEvidence()
+        XCTAssertTrue(evidence.reconciliationEvidenceHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-466")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-460", "GH-462", "GH-463"])
+        XCTAssertEqual(Set(evidence.records.map(\.status)), Set(L4OMSBrokerPortfolioReconciliationStatus.allCases))
+        XCTAssertTrue(Set(evidence.records.map(\.path)).isSuperset(of: [
+            .partialFill,
+            .cancel,
+            .reject
+        ]))
+        XCTAssertTrue(evidence.records.allSatisfy(\.recordBoundaryHeld))
+        XCTAssertTrue(evidence.matchedMismatchedStaleMissingCovered)
+        XCTAssertTrue(evidence.partialFillCancelRejectCovered)
+        XCTAssertTrue(evidence.portfolioProjectionAvoidsBrokerPayload)
+        XCTAssertTrue(evidence.productionBrokerReportFutureGated)
+        XCTAssertTrue(evidence.deterministicAuditEvidence)
+        XCTAssertFalse(evidence.productionReconciliationEnabled)
+        XCTAssertFalse(evidence.realPnLProduced)
+        XCTAssertFalse(evidence.exposesLiveCommandSurface)
+
+        let recordsByStatus = Dictionary(uniqueKeysWithValues: evidence.records.map { ($0.status, $0) })
+        let matched = try XCTUnwrap(recordsByStatus[.matched])
+        XCTAssertEqual(matched.path, .partialFill)
+        XCTAssertEqual(matched.reasons, [.none])
+        XCTAssertEqual(matched.portfolioProjection?.projectedState, matched.omsTransition.toRecord.state)
+        XCTAssertEqual(matched.portfolioProjection?.projectedFilledQuantity, matched.brokerReportEvent?.filledQuantity)
+        XCTAssertEqual(matched.portfolioProjection?.projectedRemainingQuantity, matched.brokerReportEvent?.remainingQuantity)
+
+        let mismatched = try XCTUnwrap(recordsByStatus[.mismatched])
+        XCTAssertEqual(mismatched.path, .cancel)
+        XCTAssertEqual(mismatched.reasons, [.omsProjectionStateMismatch])
+        XCTAssertNotEqual(mismatched.portfolioProjection?.projectedState, mismatched.omsTransition.toRecord.state)
+
+        let stale = try XCTUnwrap(recordsByStatus[.stale])
+        XCTAssertEqual(stale.path, .reject)
+        XCTAssertEqual(stale.reasons, [.projectionStaleSequence])
+        XCTAssertLessThan(
+            try XCTUnwrap(stale.portfolioProjection?.projectionSequence),
+            stale.omsTransition.toRecord.sequence
+        )
+
+        let missing = try XCTUnwrap(recordsByStatus[.missing])
+        XCTAssertEqual(missing.path, .fill)
+        XCTAssertEqual(missing.reasons, [.portfolioProjectionMissing])
+        XCTAssertNotNil(missing.brokerReportEvent)
+        XCTAssertNil(missing.portfolioProjection)
+
+        for record in evidence.records {
+            XCTAssertEqual(record.comparedFields, L4OMSBrokerPortfolioReconciliationRecord.requiredComparedFields)
+            XCTAssertTrue(record.deterministicAuditEvidence)
+            XCTAssertFalse(record.productionBrokerReportConsumed)
+            XCTAssertFalse(record.rawBrokerPayloadRead)
+            XCTAssertFalse(record.realAccountRead)
+            XCTAssertFalse(record.portfolioRuntimeMutated)
+            XCTAssertFalse(record.repairCommandProduced)
+            XCTAssertFalse(record.exposesLiveCommandSurface)
+            XCTAssertTrue(record.brokerReportEvent?.parsedEventBoundaryHeld ?? false)
+            if let projection = record.portfolioProjection {
+                XCTAssertTrue(projection.projectionBoundaryHeld)
+                XCTAssertFalse(projection.readsRawBrokerPayload)
+                XCTAssertFalse(projection.readsRealAccount)
+                XCTAssertFalse(projection.computesRealPnL)
+                XCTAssertFalse(projection.mutatesPortfolioRuntime)
+            }
+        }
+
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-466-OMS-BROKER-PORTFOLIO-RECONCILIATION"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-466-RECONCILIATION-FIELD-MATRIX"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-466-MATCHED-MISMATCHED-STALE-MISSING-EVIDENCE"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-466-PARTIAL-CANCEL-REJECT-PATHS"))
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-466-PORTFOLIO-PROJECTION-NO-BROKER-PAYLOAD"))
+        XCTAssertTrue(evidence.validationAnchors.contains("TVM-L4-OMS-BROKER-PORTFOLIO-RECONCILIATION"))
+
+        XCTAssertTrue(executionEngineTarget.contains("\"OMSFutureGate\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionEngine/OMSFutureGate/L4OMSBrokerPortfolioReconciliationEvidence.swift"
+                ).path
+            )
+        )
+    }
+
+    func testGH466OMSBrokerPortfolioReconciliationRejectsProductionBrokerPayloadAndCoverageBypass() throws {
+        XCTAssertThrowsError(
+            try L4OMSBrokerPortfolioReconciliationRuntime(
+                productionReconciliationEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("productionReconciliationEnabled"))
+        }
+
+        let runtime = try L4OMSBrokerPortfolioReconciliationRuntime.deterministicFixture()
+        let transition = try XCTUnwrap(
+            runtime.localTransitionEvidence.transitions.first { $0.trigger == .sandboxPartialFillReport }
+        )
+        let event = try XCTUnwrap(
+            runtime.parserEvidence.parsedEvents.first { $0.reportKind == .partialFill }
+        )
+
+        XCTAssertThrowsError(
+            try L4PortfolioProjectionReconciliationSnapshot(
+                projectionID: Identifier.constant("unsafe-gh-466-broker-payload-projection"),
+                sourceTransitionID: transition.transitionID,
+                sourceReportEventID: event.eventID,
+                clientOrderID: event.clientOrderID,
+                path: .partialFill,
+                projectedState: transition.toRecord.state,
+                projectedFilledQuantity: event.filledQuantity,
+                projectedRemainingQuantity: event.remainingQuantity,
+                projectionSequence: transition.toRecord.sequence,
+                readsRawBrokerPayload: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("readsRawBrokerPayload"))
+        }
+
+        let mismatchingProjection = try L4PortfolioProjectionReconciliationSnapshot(
+            projectionID: Identifier.constant("unsafe-gh-466-matched-mismatch-projection"),
+            sourceTransitionID: transition.transitionID,
+            sourceReportEventID: event.eventID,
+            clientOrderID: event.clientOrderID,
+            path: .partialFill,
+            projectedState: .submitted,
+            projectedFilledQuantity: event.filledQuantity,
+            projectedRemainingQuantity: event.remainingQuantity,
+            projectionSequence: transition.toRecord.sequence
+        )
+        XCTAssertThrowsError(
+            try L4OMSBrokerPortfolioReconciliationRecord(
+                recordID: Identifier.constant("unsafe-gh-466-matched-record"),
+                path: .partialFill,
+                status: .matched,
+                omsTransition: transition,
+                brokerReportEvent: event,
+                portfolioProjection: mismatchingProjection,
+                reasons: [.none]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "recordBoundaryHeld",
+                    expected: "matched partial fill reconciliation boundary held",
+                    actual: "mismatch"
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4OMSBrokerPortfolioReconciliationRecord(
+                recordID: Identifier.constant("unsafe-gh-466-production-report-record"),
+                path: .partialFill,
+                status: .mismatched,
+                omsTransition: transition,
+                brokerReportEvent: event,
+                portfolioProjection: mismatchingProjection,
+                reasons: [.omsProjectionStateMismatch],
+                productionBrokerReportConsumed: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("productionBrokerReportConsumed"))
+        }
+
+        let evidence = try runtime.deterministicEvidence()
+        XCTAssertThrowsError(
+            try L4OMSBrokerPortfolioReconciliationEvidence(
+                parserEvidence: evidence.parserEvidence,
+                localTransitionEvidence: evidence.localTransitionEvidence,
+                sandboxPathEvidence: evidence.sandboxPathEvidence,
+                records: Array(evidence.records.dropLast())
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "records.status",
+                    expected: L4OMSBrokerPortfolioReconciliationStatus.allCases.map(\.rawValue).joined(separator: ","),
+                    actual: Array(evidence.records.dropLast()).map { $0.status.rawValue }.joined(separator: ",")
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try L4OMSBrokerPortfolioReconciliationEvidence(
+                parserEvidence: evidence.parserEvidence,
+                localTransitionEvidence: evidence.localTransitionEvidence,
+                sandboxPathEvidence: evidence.sandboxPathEvidence,
+                records: evidence.records,
+                productionReconciliationEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("productionReconciliationEnabled"))
+        }
+    }
+
     func testGH421AllArchitectureTargetsExposeIndependentRealAPISmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-421-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)
