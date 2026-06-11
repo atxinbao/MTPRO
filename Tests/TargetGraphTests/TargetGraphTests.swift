@@ -6716,6 +6716,359 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH582PerpetualExecutionAlgorithmSupportsOpenReduceOnlyAndBlocksOneShotFlip() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let releaseContract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md"
+            ),
+            encoding: .utf8
+        )
+
+        let symbol = Symbol.constant("BTCUSDT")
+        let perp = InstrumentIdentity.binance(productType: .usdsPerpetual, symbol: symbol)
+        let evaluatedAt = Date(timeIntervalSince1970: 1_704_068_200)
+        let freshObservedAt = evaluatedAt.addingTimeInterval(-30)
+        let emaID = Identifier.constant("gh-582-ema")
+        let rsiID = Identifier.constant("gh-582-rsi")
+        let quantity = try Quantity(0.25, field: "gh582Quantity")
+        let referencePrice = try Price(43_000, field: "gh582ReferencePrice")
+        let riskPolicy = try ReleaseV020PerpetualRiskPolicy.deterministicFixture()
+
+        func sourceIntent(
+            targetExposure: TargetExposureIntent,
+            intentID: String
+        ) throws -> ProductAwareOrderIntent {
+            try ProductAwareOrderIntent(
+                intentID: Identifier.constant(intentID),
+                instrument: perp,
+                targetExposure: targetExposure,
+                quantity: quantity,
+                referencePrice: referencePrice,
+                createdAt: evaluatedAt
+            )
+        }
+
+        func candidate(
+            strategyID: Identifier,
+            targetExposure: TargetExposureIntent,
+            sourceOrderIntent: ProductAwareOrderIntent,
+            sourceSequence: Int
+        ) throws -> StrategyProposalArbitrationCandidate {
+            try StrategyProposalArbitrationCandidate(
+                strategyID: strategyID,
+                instrument: perp,
+                targetExposure: targetExposure,
+                productAwareOrderIntent: sourceOrderIntent,
+                emittedAt: evaluatedAt,
+                sourceSequence: sourceSequence
+            )
+        }
+
+        func markPrice() throws -> PerpetualMarkPriceReadModel {
+            try PerpetualMarkPriceReadModel(
+                instrument: perp,
+                markPrice: 43_100,
+                indexPrice: 43_090,
+                observedAt: freshObservedAt,
+                evaluatedAt: evaluatedAt,
+                staleAfter: 60
+            )
+        }
+
+        func funding() throws -> PerpetualFundingRiskReadModel {
+            let readModel = try PerpetualFundingRateReadModel(
+                instrument: perp,
+                fundingRate: 0.0001,
+                nextFundingTime: evaluatedAt.addingTimeInterval(8 * 60 * 60),
+                observedAt: freshObservedAt,
+                evaluatedAt: evaluatedAt,
+                staleAfter: 60
+            )
+            return try PerpetualFundingRiskReadModel(fundingReadModel: readModel)
+        }
+
+        func perpetualRiskEvidence(
+            decisionID: String,
+            targetExposure: TargetExposureIntent,
+            reduceOnlyClose: Bool,
+            currentPositionQuantity: Double,
+            sourceSequence: Int
+        ) throws -> (ProductAwareOrderIntent, ReleaseV020PerpetualRiskDecision) {
+            let orderIntent = try sourceIntent(
+                targetExposure: targetExposure,
+                intentID: "\(decisionID)-source-order-intent"
+            )
+            let arbitration = try ProposalArbitrator.arbitrate(
+                decisionID: Identifier.constant("\(decisionID)-arbitration"),
+                candidates: [
+                    candidate(
+                        strategyID: emaID,
+                        targetExposure: targetExposure,
+                        sourceOrderIntent: orderIntent,
+                        sourceSequence: sourceSequence
+                    ),
+                    candidate(
+                        strategyID: rsiID,
+                        targetExposure: targetExposure,
+                        sourceOrderIntent: orderIntent,
+                        sourceSequence: sourceSequence + 1
+                    )
+                ],
+                evaluatedAt: evaluatedAt,
+                allowPerpetualShort: true
+            )
+            let commonInput = try ReleaseV020RiskEngineCommonInput(
+                inputID: Identifier.constant("\(decisionID)-common-input"),
+                arbitrationDecision: arbitration,
+                currentAggregateExposure: 5_000,
+                evaluatedAt: evaluatedAt,
+                sourceSequence: sourceSequence + 2
+            )
+            let commonPolicy = try ReleaseV020RiskEngineCommonPolicy(
+                policyID: Identifier.constant("\(decisionID)-common-policy"),
+                allowedStrategies: [
+                    ReleaseV020RiskStrategyAllowlistEntry(strategyID: emaID, kind: .ema),
+                    ReleaseV020RiskStrategyAllowlistEntry(strategyID: rsiID, kind: .rsi)
+                ],
+                allowedInstruments: [perp],
+                maxNotional: 20_000,
+                maxAggregateExposure: 50_000
+            )
+            let commonDecision = try ReleaseV020RiskEngineCommonLayer.evaluate(
+                decisionID: Identifier.constant("\(decisionID)-common-decision"),
+                input: commonInput,
+                policy: commonPolicy
+            )
+            let perpInput = try ReleaseV020PerpetualRiskInput(
+                inputID: Identifier.constant("\(decisionID)-perp-risk-input"),
+                commonDecision: commonDecision,
+                markPriceReadModel: markPrice(),
+                fundingReadModel: funding(),
+                leverage: 3,
+                liquidationPrice: Price(39_000, field: "gh582LiquidationPrice"),
+                reduceOnlyClose: reduceOnlyClose,
+                currentPositionQuantity: currentPositionQuantity,
+                evaluatedAt: evaluatedAt,
+                sourceSequence: sourceSequence + 3
+            )
+            let riskDecision = try ReleaseV020PerpetualRiskLayer.evaluate(
+                decisionID: Identifier.constant("\(decisionID)-perp-risk-decision"),
+                input: perpInput,
+                policy: riskPolicy
+            )
+            XCTAssertTrue(riskDecision.forwardsToCommandGateway)
+            return (orderIntent, riskDecision)
+        }
+
+        func algorithmInput(
+            inputID: String,
+            targetExposure: TargetExposureIntent,
+            sourceOrderIntent: ProductAwareOrderIntent? = nil,
+            riskDecision: ReleaseV020PerpetualRiskDecision? = nil,
+            currentPositionQuantity: Double,
+            sourceSequence: Int
+        ) throws -> ReleaseV020PerpetualExecutionAlgorithmInput {
+            try ReleaseV020PerpetualExecutionAlgorithmInput(
+                inputID: Identifier.constant(inputID),
+                targetExposure: targetExposure,
+                sourceOrderIntent: sourceOrderIntent,
+                perpetualRiskDecision: riskDecision,
+                currentPositionQuantity: currentPositionQuantity,
+                evaluatedAt: evaluatedAt,
+                sourceSequence: sourceSequence
+            )
+        }
+
+        let longEvidence = try perpetualRiskEvidence(
+            decisionID: "gh-582-open-long",
+            targetExposure: .targetLong,
+            reduceOnlyClose: false,
+            currentPositionQuantity: 0,
+            sourceSequence: 1
+        )
+        let openLong = try ReleaseV020PerpetualExecutionAlgorithm.decide(
+            decisionID: Identifier.constant("gh-582-open-long-decision"),
+            input: algorithmInput(
+                inputID: "gh-582-open-long-input",
+                targetExposure: .targetLong,
+                sourceOrderIntent: longEvidence.0,
+                riskDecision: longEvidence.1,
+                currentPositionQuantity: 0,
+                sourceSequence: 5
+            )
+        )
+        XCTAssertEqual(openLong.status, .orderIntentCreated)
+        XCTAssertEqual(openLong.orderIntent?.action, .openLong)
+        XCTAssertEqual(openLong.orderIntent?.side, .buy)
+        XCTAssertEqual(openLong.orderIntent?.reduceOnly, false)
+        XCTAssertTrue(openLong.orderIntentCreated)
+        XCTAssertFalse(openLong.orderIntent?.executesLeverageAction ?? true)
+        XCTAssertFalse(openLong.orderIntent?.submitsRealOrder ?? true)
+
+        let shortEvidence = try perpetualRiskEvidence(
+            decisionID: "gh-582-open-short",
+            targetExposure: .targetShort,
+            reduceOnlyClose: false,
+            currentPositionQuantity: 0,
+            sourceSequence: 10
+        )
+        let openShort = try ReleaseV020PerpetualExecutionAlgorithm.decide(
+            decisionID: Identifier.constant("gh-582-open-short-decision"),
+            input: algorithmInput(
+                inputID: "gh-582-open-short-input",
+                targetExposure: .targetShort,
+                sourceOrderIntent: shortEvidence.0,
+                riskDecision: shortEvidence.1,
+                currentPositionQuantity: 0,
+                sourceSequence: 14
+            )
+        )
+        XCTAssertEqual(openShort.status, .orderIntentCreated)
+        XCTAssertEqual(openShort.orderIntent?.action, .openShort)
+        XCTAssertEqual(openShort.orderIntent?.side, .sell)
+        XCTAssertEqual(openShort.orderIntent?.reduceOnly, false)
+
+        let closeLongEvidence = try perpetualRiskEvidence(
+            decisionID: "gh-582-close-long",
+            targetExposure: .targetFlat,
+            reduceOnlyClose: true,
+            currentPositionQuantity: 0.50,
+            sourceSequence: 20
+        )
+        let closeLong = try ReleaseV020PerpetualExecutionAlgorithm.decide(
+            decisionID: Identifier.constant("gh-582-close-long-decision"),
+            input: algorithmInput(
+                inputID: "gh-582-close-long-input",
+                targetExposure: .targetFlat,
+                sourceOrderIntent: closeLongEvidence.0,
+                riskDecision: closeLongEvidence.1,
+                currentPositionQuantity: 0.50,
+                sourceSequence: 24
+            )
+        )
+        XCTAssertEqual(closeLong.status, .orderIntentCreated)
+        XCTAssertEqual(closeLong.orderIntent?.action, .reduceOnlyCloseLong)
+        XCTAssertEqual(closeLong.orderIntent?.side, .sell)
+        XCTAssertEqual(closeLong.orderIntent?.reduceOnly, true)
+
+        let closeShortEvidence = try perpetualRiskEvidence(
+            decisionID: "gh-582-close-short",
+            targetExposure: .targetFlat,
+            reduceOnlyClose: true,
+            currentPositionQuantity: -0.50,
+            sourceSequence: 30
+        )
+        let closeShort = try ReleaseV020PerpetualExecutionAlgorithm.decide(
+            decisionID: Identifier.constant("gh-582-close-short-decision"),
+            input: algorithmInput(
+                inputID: "gh-582-close-short-input",
+                targetExposure: .targetFlat,
+                sourceOrderIntent: closeShortEvidence.0,
+                riskDecision: closeShortEvidence.1,
+                currentPositionQuantity: -0.50,
+                sourceSequence: 34
+            )
+        )
+        XCTAssertEqual(closeShort.status, .orderIntentCreated)
+        XCTAssertEqual(closeShort.orderIntent?.action, .reduceOnlyCloseShort)
+        XCTAssertEqual(closeShort.orderIntent?.side, .buy)
+        XCTAssertEqual(closeShort.orderIntent?.reduceOnly, true)
+
+        let longFromShortBlocked = try ReleaseV020PerpetualExecutionAlgorithm.decide(
+            decisionID: Identifier.constant("gh-582-long-from-short-blocked"),
+            input: algorithmInput(
+                inputID: "gh-582-long-from-short-input",
+                targetExposure: .targetLong,
+                sourceOrderIntent: longEvidence.0,
+                riskDecision: longEvidence.1,
+                currentPositionQuantity: -0.25,
+                sourceSequence: 40
+            )
+        )
+        XCTAssertEqual(longFromShortBlocked.status, .blocked)
+        XCTAssertEqual(longFromShortBlocked.blocker, .uncontrolledOneShotFlip)
+
+        let shortFromLongBlocked = try ReleaseV020PerpetualExecutionAlgorithm.decide(
+            decisionID: Identifier.constant("gh-582-short-from-long-blocked"),
+            input: algorithmInput(
+                inputID: "gh-582-short-from-long-input",
+                targetExposure: .targetShort,
+                sourceOrderIntent: shortEvidence.0,
+                riskDecision: shortEvidence.1,
+                currentPositionQuantity: 0.25,
+                sourceSequence: 41
+            )
+        )
+        XCTAssertEqual(shortFromLongBlocked.status, .blocked)
+        XCTAssertEqual(shortFromLongBlocked.blocker, .uncontrolledOneShotFlip)
+
+        let holdNoOrder = try ReleaseV020PerpetualExecutionAlgorithm.decide(
+            decisionID: Identifier.constant("gh-582-hold-no-order"),
+            input: algorithmInput(
+                inputID: "gh-582-hold-input",
+                targetExposure: .hold,
+                currentPositionQuantity: -0.25,
+                sourceSequence: 42
+            )
+        )
+        XCTAssertEqual(holdNoOrder.status, .noOrder)
+        XCTAssertEqual(holdNoOrder.noOrderReason, .holdTargetExposure)
+
+        XCTAssertThrowsError(
+            try ReleaseV020PerpetualExecutionAlgorithmOrderIntent(
+                orderIntentID: Identifier.constant("unsafe-gh-582-order-intent"),
+                sourceInputID: Identifier.constant("unsafe-gh-582-input"),
+                sourceRiskDecisionID: longEvidence.1.decisionID,
+                sourceProductAwareIntentID: longEvidence.0.intentID,
+                instrument: perp,
+                targetExposure: .targetLong,
+                action: .openLong,
+                side: .buy,
+                quantity: quantity,
+                referencePrice: referencePrice,
+                currentPositionQuantity: 0,
+                reduceOnly: false,
+                createdAt: evaluatedAt,
+                executesLeverageAction: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability(
+                    "releaseV020PerpetualExecutionAlgorithm.executesLeverageAction"
+                )
+            )
+        }
+
+        XCTAssertTrue(validationMatrix.contains("`GH-582`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-PERP-EXECUTION-ALGORITHM"))
+        XCTAssertTrue(validationPlan.contains("GH-582 Release v0.2.0 Perpetual ExecutionAlgorithm Validation"))
+        XCTAssertTrue(domainContext.contains("GH-582 Perpetual ExecutionAlgorithm Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 Perpetual ExecutionAlgorithm anchor"))
+        XCTAssertTrue(
+            releaseContract.contains(
+                "GH-582 / V020-20 | Perpetual ExecutionAlgorithm maps TargetExposureIntent to controlled Perp order intent"
+            )
+        )
+    }
+
     func testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

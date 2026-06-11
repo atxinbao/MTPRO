@@ -4098,6 +4098,36 @@ Hold no-order 指 `hold` 只输出 no-order evidence，不生成 order intent，
 
 Release v0.2.0 Spot ExecutionAlgorithm matrix 必须证明 targetLong -> BUY、targetFlat -> SELL、targetShort -> blocked、hold -> no-order 和 no ExecutionClient / broker / real order bypass 同时成立。
 
+## GH-582 Perpetual ExecutionAlgorithm Terms
+
+`GH-582-PERP-EXECUTION-ALGORITHM`
+
+Perpetual ExecutionAlgorithm 指 release v0.2.0 中 Binance USDⓈ-M Perpetual 专属的本地 deterministic execution evidence。它消费 Perp risk allow evidence 和 source `ProductAwareOrderIntent`，把 `TargetExposureIntent` 映射为受控 Perp order intent evidence；该 evidence 不是 ExecutionClient request、broker order、OMS command、leverage / margin action 或 production trading 授权。
+
+`GH-582-OPEN-LONG`
+
+Open long 指 Perp `targetLong` 只有在当前 position 为 flat 且 Perp risk decision 已 forward 时，才可生成本地 BUY open-long intent。若当前已经 short，必须 blocked，不能单步翻仓。
+
+`GH-582-OPEN-SHORT`
+
+Open short 指 Perp `targetShort` 只有在当前 position 为 flat 且 Perp risk decision 已 forward 时，才可生成本地 SELL open-short intent。若当前已经 long，必须 blocked，不能单步翻仓。
+
+`GH-582-REDUCE-ONLY-CLOSE-LONG`
+
+Reduce-only close long 指 Perp `targetFlat` 在当前 long position 下只能生成 reduce-only SELL close intent，且 close quantity 不得超过本地 position size。它不是 broker reduceOnly flag runtime，也不提交真实 close order。
+
+`GH-582-REDUCE-ONLY-CLOSE-SHORT`
+
+Reduce-only close short 指 Perp `targetFlat` 在当前 short position 下只能生成 reduce-only BUY close intent，且 close quantity 不得超过本地 position size。它不是 broker reduceOnly flag runtime，也不提交真实 close order。
+
+`GH-582-NO-UNCONTROLLED-ONE-SHOT-FLIP`
+
+No uncontrolled one-shot flip 指 algorithm 必须阻断 targetLong 从 short 直接翻 long、targetShort 从 long 直接翻 short。先 close 再 open 必须由后续显式 gate / issue 单独授权，不能在 #582 内自动合成。
+
+`TVM-RELEASE-V020-PERP-EXECUTION-ALGORITHM`
+
+Release v0.2.0 Perpetual ExecutionAlgorithm matrix 必须证明 open long、open short、reduce-only close long、reduce-only close short、no uncontrolled one-shot flip 和 no ExecutionClient / broker / leverage / margin / real order bypass 同时成立。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Terms
 
 `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`
