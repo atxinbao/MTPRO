@@ -6052,6 +6052,89 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH563ReleaseV020ContractDefinesBinanceSpotPerpEMARSIBoundary() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let contractPath = repositoryRoot.appendingPathComponent(
+            "docs/contracts/release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md"
+        )
+        let releaseContract = try String(contentsOf: contractPath, encoding: .utf8)
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let l4Boundary = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.d/l4-boundary.sh"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(FileManager.default.fileExists(atPath: contractPath.path))
+
+        for expected in [
+            "GH-563-RELEASE-V020-BINANCE-SPOT-PERP-EMA-RSI-CONTRACT",
+            "GH-563-BINANCE-SPOT-PERP-ACTIVE-SCOPE",
+            "GH-563-EMA-RSI-ACTIVE-STRATEGY-SCOPE",
+            "GH-563-NTPRO-SCOPED-ALIGNMENT-MATRIX",
+            "GH-563-ACCEPTANCE-MATRIX",
+            "GH-563-NO-DEFAULT-PRODUCTION-TRADING",
+            "GH-563-VALIDATION-ANCHORS",
+            "GH-563-NON-AUTHORIZATION",
+            "TVM-RELEASE-V020-BINANCE-SPOT-PERP-EMA-RSI-NTPRO-ALIGNMENT",
+            "activeVenue == Binance",
+            "activeProductTypes == [spot, usdsPerpetual]",
+            "activeStrategies == [ema, rsi]",
+            "productionTradingEnabledByDefault == false",
+            "NTPRO scoped 100% alignment"
+        ] {
+            XCTAssertTrue(releaseContract.contains(expected), "Release v0.2.0 contract must contain \(expected)")
+        }
+
+        for forbiddenBoundary in [
+            "non-Binance venue",
+            "非 Spot / USDⓈ-M Perpetual product",
+            "非 EMA / RSI active strategy",
+            "CommandGateway",
+            "RiskEngine",
+            "ExecutionEngine",
+            "OMS",
+            "Event Store",
+            "production secret",
+            "production endpoint",
+            "real submit / cancel / replace"
+        ] {
+            XCTAssertTrue(
+                releaseContract.contains(forbiddenBoundary),
+                "Release v0.2.0 contract must preserve boundary text for \(forbiddenBoundary)"
+            )
+        }
+
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-BINANCE-SPOT-PERP-EMA-RSI-NTPRO-ALIGNMENT"))
+        XCTAssertTrue(validationMatrix.contains("GH-563..GH-596 issue backfill"))
+        XCTAssertTrue(validationMatrix.contains("`GH-563`"))
+        XCTAssertTrue(
+            validationPlan.contains("GH-563 Release v0.2.0 Binance Spot + Perp EMA/RSI Contract Validation")
+        )
+        XCTAssertTrue(
+            domainContext.contains("GH-563 Release v0.2.0 Binance Spot + Perp EMA/RSI Contract Terms")
+        )
+        XCTAssertTrue(
+            automationReadiness.contains("Release v0.2.0 Binance Spot + Perp EMA/RSI contract anchor")
+        )
+        XCTAssertTrue(l4Boundary.contains("release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md"))
+        XCTAssertTrue(l4Boundary.contains("testGH563ReleaseV020ContractDefinesBinanceSpotPerpEMARSIBoundary"))
+    }
+
     func testGH503ProductionCredentialSecretPolicyGateDefinesNoDefaultSecretReadContract() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
