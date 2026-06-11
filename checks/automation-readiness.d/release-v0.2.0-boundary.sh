@@ -196,6 +196,8 @@ required_evidence = {
         "TVM-RELEASE-V020-PERP-MARK-FUNDING-OI-READ-MODEL",
         "GH-576",
         "TVM-RELEASE-V020-PRODUCT-AWARE-CACHE-STATE",
+        "GH-577",
+        "TVM-RELEASE-V020-PROPOSAL-ARBITRATOR",
     ],
     "docs/validation/validation-plan.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Validation",
@@ -207,6 +209,7 @@ required_evidence = {
         "GH-574 Release v0.2.0 Binance USD-M Perpetual DataEngine Cache Path Validation",
         "GH-575 Release v0.2.0 Perp Mark Funding Open Interest Read Model Validation",
         "GH-576 Release v0.2.0 Product-aware Cache State Validation",
+        "GH-577 Release v0.2.0 Proposal Arbitrator Validation",
     ],
     "docs/domain/context.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Terms",
@@ -218,6 +221,7 @@ required_evidence = {
         "GH-574 Binance USD-M Perpetual DataEngine Cache Path Terms",
         "GH-575 Perp Mark Funding Open Interest Read Model Terms",
         "GH-576 Product-aware Cache State Terms",
+        "GH-577 Proposal Arbitrator Terms",
     ],
     "docs/automation/automation-readiness.md": [
         "Release v0.2.0 boundary automation guard anchor",
@@ -229,6 +233,7 @@ required_evidence = {
         "Release v0.2.0 Binance USD-M Perpetual DataEngine Cache path anchor",
         "Release v0.2.0 Perp mark funding open interest read model anchor",
         "Release v0.2.0 product-aware Cache state anchor",
+        "Release v0.2.0 ProposalArbitrator anchor",
     ],
     "Tests/TargetGraphTests/TargetGraphTests.swift": [
         "testGH565ReleaseV020BoundaryGuardBlocksScopeExpansionAndProductionDefaults",
@@ -240,6 +245,7 @@ required_evidence = {
         "testGH574BinanceUSDMPerpetualMarketDataActivePathEmitsProductAwareEventsIntoCache",
         "testGH575PerpMarkFundingOpenInterestReadModelSupportsStaleEvidence",
         "testGH576ProductAwareCacheSeparatesSpotPerpStateAndRebuildsFromReplay",
+        "testGH577ProposalArbitratorAllowsAgreementAndBlocksConflictsBeforeRisk",
     ],
 }
 

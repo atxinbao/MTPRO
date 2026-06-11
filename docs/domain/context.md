@@ -3976,6 +3976,32 @@ No broker / account / durable store path 指 GH-576 不实现 broker state cache
 
 Release v0.2.0 product-aware Cache state matrix 必须证明 Spot/Perp BTCUSDT no collision、strategy state keyed by product + strategy、product-aware order / position state、本地 replay rebuild parity 和 no broker / account / durable store path 同时成立。
 
+## GH-577 Proposal Arbitrator Terms
+
+`GH-577-PROPOSAL-ARBITRATOR-EMA-RSI`
+
+ProposalArbitrator 指 release v0.2.0 中 RiskEngine pre-trade layer 对 EMA / RSI product-aware proposal 的进入风险前仲裁。它只决定一致 proposal 是否可 forward to RiskEngine，或在冲突 / forbidden exposure 时 blocked；它不执行真实风险决策、不调用 ExecutionEngine、OMS、ExecutionClient、broker 或 CommandGateway。
+
+`GH-577-CONFLICT-BLOCKED-BY-DEFAULT`
+
+Conflict blocked by default 指 EMA 与 RSI 对同一 instrument 输出不同 target exposure 时，仲裁必须默认 blocked。后续 issue 不能把冲突自动解释成交易授权，也不能用 Dashboard / UI command 绕过该 blocker。
+
+`GH-577-SPOT-SHORT-BLOCKED`
+
+Spot short blocked 指 Binance Spot instrument 的 `targetShort` proposal 在仲裁层必须 blocked，即使上游由于 bug 传入了该 candidate。Spot short 不得进入 RiskEngine、ExecutionEngine、OMS 或 order command。
+
+`GH-577-PERP-SHORT-FORWARDED-TO-RISK`
+
+Perp short forwarded to risk 指 USDⓈ-M Perpetual 的 `targetShort` 只有在显式 `allowPerpetualShort` gate 打开、proposal 一致且 order intent 仍是 pre-risk evidence 时，才可 forward to RiskEngine。该 forward 不是交易授权，production trading 仍默认关闭。
+
+`GH-577-NO-RISK-EXECUTION-BYPASS`
+
+No risk / execution bypass 指 ProposalArbitrator 不得触发 CommandGateway、RiskEngine runtime、ExecutionEngine、OMS、ExecutionClient、broker gateway、submit / cancel / replace 或 production trading authorization。
+
+`TVM-RELEASE-V020-PROPOSAL-ARBITRATOR`
+
+Release v0.2.0 ProposalArbitrator matrix 必须证明 agree-long allowed、agree-flat allowed、conflict blocked by default、spot short blocked、perp short gated forward to risk 和 no risk / execution bypass 同时成立。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Terms
 
 `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`

@@ -8134,6 +8134,48 @@ GH-576 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-577 Release v0.2.0 Proposal Arbitrator Validation
+
+GH-577 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH577ProposalArbitratorAllowsAgreementAndBlocksConflictsBeforeRisk`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-577 的验收要求：
+
+- EMA / RSI 对同一 instrument 的 agree-long 必须可 `forwardToRisk`，且 forwarded order intent 仍为 pre-risk evidence。
+- EMA / RSI 对同一 instrument 的 agree-flat 必须可 `forwardToRisk`。
+- EMA / RSI target exposure 冲突必须默认 blocked。
+- Spot `targetShort` 必须在 ProposalArbitrator 层 blocked，即使上游传入非法 candidate。
+- USDⓈ-M Perpetual `targetShort` 只有在 explicit short gate 允许、proposal 一致且 pre-risk order intent 存在时，才可 forward to RiskEngine。
+- GH-577 PR evidence 必须确认不实现 signed endpoint、account endpoint、listenKey、private stream runtime、broker route、ExecutionClient、OMS、真实订单、RiskEngine bypass、ExecutionEngine bypass、leverage action、margin action 或 production trading，不启动 Symphony，不运行 Graphify / code-index，不使用 Linear，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+GH-577 必须建立的主要 anchors：
+
+- `GH-577-PROPOSAL-ARBITRATOR-EMA-RSI`
+- `GH-577-CONFLICT-BLOCKED-BY-DEFAULT`
+- `GH-577-SPOT-SHORT-BLOCKED`
+- `GH-577-PERP-SHORT-FORWARDED-TO-RISK`
+- `GH-577-NO-RISK-EXECUTION-BYPASS`
+- `TVM-RELEASE-V020-PROPOSAL-ARBITRATOR`
+
+## GH-577 禁止
+
+- 不实现 signed endpoint、account endpoint、listenKey、private stream runtime、broker route、ExecutionClient、OMS、order command、leverage action、margin action 或 production trading。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint、private stream endpoint 或 listenKey。
+- 不提交、取消或替换真实订单。
+- 不把 ProposalArbitrator 变成 RiskEngine runtime、ExecutionEngine command、OMS state transition、broker route 或 Dashboard command surface。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USDⓈ-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation
 
 GH-521 必须运行：
