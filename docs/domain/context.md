@@ -3818,6 +3818,28 @@ EMA Spot / Perp intent binding 指 EMA target exposure 可以绑定到 Binance S
 
 Release v0.2.0 EMA target exposure matrix 必须证明 EMA 输出 `targetLong` / `targetFlat` / `hold`，不输出 direct order side，并且 Spot / Perp binding 不授权 production trading 或真实订单。
 
+## GH-570 RSI Target Exposure Intent Terms
+
+`GH-570-RSI-DETERMINISTIC-CALCULATION`
+
+RSI deterministic calculation 指 `Sources/Trader/Strategies/RSI/RSIStrategy.swift` 使用固定 close 序列、本地 period / threshold 计算 RSI sample，oversold 输出 `targetLong`，overbought 的 sample 保持 spot-safe `targetFlat`，中性区间输出 `hold`。该计算只生成 strategy evidence，不读取 market runtime、secret 或 broker state。
+
+`GH-570-RSI-SPOT-NO-TARGETSHORT`
+
+RSI Spot no targetShort 指 Binance Spot instrument binding 下，RSI overbought 只能输出 `targetFlat` pre-risk-gate intent，永远不能从 RSI strategy 或 product-aware intent emitter 输出 `targetShort`。
+
+`GH-570-RSI-PERP-SHORT-GATED`
+
+RSI Perp short gated 指 Binance USDⓈ-M Perpetual instrument 只有在 `perpetualShortEnabled == true` 时，才允许 RSI overbought 输出 `targetShort` pre-risk-gate intent；该 intent 仍必须经过 RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 和 no-trade gate，不授权真实交易。
+
+`GH-570-RSI-RISKENGINE-CONSUMABLE-INTENT`
+
+RSI RiskEngine-consumable intent 指 RSI target exposure 只进入 `StrategyIntentMessage` / `ProductAwareOrderIntent` evidence surface。它不生成 broker request、signed endpoint request、account endpoint request、listenKey、ExecutionClient command、OMS command 或 Dashboard live command。
+
+`TVM-RELEASE-V020-RSI-TARGET-EXPOSURE-INTENT`
+
+Release v0.2.0 RSI target exposure matrix 必须证明 RSI deterministic calculation、Spot never short、Perp short explicit gate 和 RiskEngine-consumable pre-risk intent evidence 同时成立。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Terms
 
 `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`

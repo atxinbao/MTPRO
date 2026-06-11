@@ -7847,6 +7847,47 @@ GH-569 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-570 Release v0.2.0 RSI Target Exposure Intent Validation
+
+GH-570 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH570RSITargetExposureIntentSupportsSpotAndGatedPerpShort`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-570 的验收要求：
+
+- `RSIStrategyContract` 必须使用 deterministic close 序列计算 RSI，覆盖 oversold、overbought 和中性区间。
+- RSI sample 必须输出 spot-safe `TargetExposureIntent`：oversold 为 `targetLong`，overbought 为 `targetFlat`，中性区间为 `hold`。
+- Binance Spot binding 下 RSI 永远不得输出 `targetShort`。
+- Binance USDⓈ-M Perpetual binding 只有在 `perpetualShortEnabled == true` 时，才能把 overbought 映射为 `targetShort`。
+- RSI target exposure 只能形成 `StrategyIntentMessage` / `ProductAwareOrderIntent` pre-risk-gate evidence，不得授权 trading execution 或默认开启 production trading。
+- GH-570 PR evidence 必须确认不实现 broker command、真实订单、production endpoint、非 Binance venue、非 Spot / Perp product、非 EMA / RSI strategy，不启动 Symphony，不运行 Graphify / code-index，不使用 Linear，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+GH-570 必须建立的主要 anchors：
+
+- `GH-570-RSI-DETERMINISTIC-CALCULATION`
+- `GH-570-RSI-SPOT-NO-TARGETSHORT`
+- `GH-570-RSI-PERP-SHORT-GATED`
+- `GH-570-RSI-RISKENGINE-CONSUMABLE-INTENT`
+- `TVM-RELEASE-V020-RSI-TARGET-EXPOSURE-INTENT`
+
+## GH-570 禁止
+
+- 不实现 strategy scheduler、Trader runtime、risk runtime、ExecutionClient、OMS、broker gateway 或 Dashboard command runtime。
+- 不把 RSI target exposure 变成 broker request、signed endpoint request、account endpoint request、listenKey 或 order command。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint 或 listenKey。
+- 不提交、取消或替换真实订单。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USDⓈ-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation
 
 GH-521 必须运行：
