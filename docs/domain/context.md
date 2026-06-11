@@ -3742,6 +3742,24 @@ Production auto-enable guard 指 automation readiness 必须阻断 production tr
 
 Release v0.2.0 boundary guard matrix 必须证明上述 source layout、active flag 和 production default guard 已接入 required automation readiness；该 guard 不实现 runtime，不读取 secret，不连接 endpoint，不提交订单，不创建下一 Project / Issue。
 
+## GH-566 Product Type / Instrument Identity / Perpetual Contract Terms
+
+`GH-566-PRODUCT-TYPE-DOMAIN-MODEL`
+
+ProductType domain model 指 release v0.2.0 在 `DomainModel` target 内拥有的产品类型基础模型。当前只允许 `spot` 和 `usdsPerpetual`，不把 COIN-M、options、margin 或第三 product type 写成 current active capability。
+
+`GH-566-INSTRUMENT-IDENTITY-REQUIRES-PRODUCT-TYPE`
+
+InstrumentIdentity 指由 venue、productType 和 symbol 组成的稳定 instrument identity。同一个 Binance `BTCUSDT` 在 Spot 与 USDⓈ-M Perpetual 下必须是两个不同 instrument，不能只用 symbol 作为 instrument key。
+
+`GH-566-PERPETUAL-CONTRACT-DOMAIN-MODEL`
+
+PerpetualContract 指 USDⓈ-M Perpetual instrument 的最小合约元数据：perpetual instrument identity、margin asset、settlement asset、contract size 和 funding interval。该模型不等于 leverage action、margin action、funding settlement runtime、broker order 或 production endpoint。
+
+`TVM-RELEASE-V020-PRODUCT-INSTRUMENT-PERPETUAL-DOMAIN-MODEL`
+
+Release v0.2.0 product / instrument / perpetual matrix 必须证明 Spot BTCUSDT 与 USDⓈ-M Perpetual BTCUSDT 是不同 instrument，productType 是 instrument identity 必填维度，非法 identity 和非 perpetual instrument 的 perpetual contract 会被拒绝。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Terms
 
 `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`
