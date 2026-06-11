@@ -210,6 +210,8 @@ required_evidence = {
         "TVM-RELEASE-V020-PERP-EXECUTION-ALGORITHM",
         "GH-583",
         "TVM-RELEASE-V020-PRODUCT-AWARE-OMS-STATE-MACHINE",
+        "GH-584",
+        "TVM-RELEASE-V020-BINANCE-SPOT-EXECUTIONCLIENT-ADAPTER",
     ],
     "docs/validation/validation-plan.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Validation",
@@ -228,6 +230,7 @@ required_evidence = {
         "GH-581 Release v0.2.0 Spot ExecutionAlgorithm Validation",
         "GH-582 Release v0.2.0 Perpetual ExecutionAlgorithm Validation",
         "GH-583 Release v0.2.0 Product-aware OMS State Machine Validation",
+        "GH-584 Release v0.2.0 Binance Spot ExecutionClient Adapter Validation",
     ],
     "docs/domain/context.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Terms",
@@ -246,6 +249,7 @@ required_evidence = {
         "GH-581 Spot ExecutionAlgorithm Terms",
         "GH-582 Perpetual ExecutionAlgorithm Terms",
         "GH-583 Product-aware OMS State Machine Terms",
+        "GH-584 Binance Spot ExecutionClient Adapter Terms",
     ],
     "docs/automation/automation-readiness.md": [
         "Release v0.2.0 boundary automation guard anchor",
@@ -264,6 +268,7 @@ required_evidence = {
         "Release v0.2.0 Spot ExecutionAlgorithm anchor",
         "Release v0.2.0 Perpetual ExecutionAlgorithm anchor",
         "Release v0.2.0 Product-aware OMS state machine anchor",
+        "Release v0.2.0 Binance Spot ExecutionClient adapter anchor",
     ],
     "Tests/TargetGraphTests/TargetGraphTests.swift": [
         "testGH565ReleaseV020BoundaryGuardBlocksScopeExpansionAndProductionDefaults",
@@ -282,6 +287,7 @@ required_evidence = {
         "testGH581SpotExecutionAlgorithmMapsTargetExposureToControlledSpotOrderIntent",
         "testGH582PerpetualExecutionAlgorithmSupportsOpenReduceOnlyAndBlocksOneShotFlip",
         "testGH583ProductAwareOMSStateMachineCoversSpotPerpReplayAndRejectsIllegalTransition",
+        "testGH584BinanceSpotExecutionClientAdapterProducesDryRunAndTestnetMapping",
     ],
 }
 

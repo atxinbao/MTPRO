@@ -7208,6 +7208,173 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH584BinanceSpotExecutionClientAdapterProducesDryRunAndTestnetMapping() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let releaseContract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md"
+            ),
+            encoding: .utf8
+        )
+
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        XCTAssertTrue(executionClientTarget.contains("path: \"Sources/ExecutionClient\""))
+        XCTAssertFalse(executionClientTarget.contains("\"ExecutionEngine\""))
+
+        let adapter = try ReleaseV020BinanceSpotExecutionClientAdapter.deterministicFixture()
+        let evidence = try adapter.deterministicAdapterEvidence()
+
+        XCTAssertTrue(adapter.adapterBoundaryHeld)
+        XCTAssertTrue(evidence.evidenceBoundaryHeld)
+        XCTAssertTrue(evidence.capabilityMatrix.matrixHeld)
+        XCTAssertTrue(evidence.credentialGate.gateHeld)
+        XCTAssertTrue(evidence.omsHandoff.handoffBoundaryHeld)
+        XCTAssertEqual(evidence.omsHandoff.sourceIssueID.rawValue, "GH-583")
+        XCTAssertEqual(evidence.omsHandoff.instrument.productType, .spot)
+        XCTAssertEqual(evidence.omsHandoff.eventStream.rawValue, "execution-oms-local")
+        XCTAssertTrue(evidence.dryRunEvidenceComplete)
+        XCTAssertTrue(evidence.testnetEvidenceGateHeld)
+        XCTAssertTrue(evidence.productionRejectedByDefault)
+        XCTAssertFalse(evidence.productionEndpointEnabledByDefault)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionSecretReadEnabledByDefault)
+        XCTAssertFalse(evidence.brokerGatewayTouched)
+        XCTAssertFalse(evidence.realOrderSubmitted)
+        XCTAssertFalse(evidence.realOrderCanceled)
+        XCTAssertFalse(evidence.realOrderReplaced)
+        XCTAssertFalse(evidence.liveCommandSurfaceTouched)
+
+        let previews = Dictionary(uniqueKeysWithValues: evidence.dryRunPreviews.map { ($0.commandKind, $0) })
+        let requests = Dictionary(uniqueKeysWithValues: evidence.testnetRequests.map { ($0.commandKind, $0) })
+        let acknowledgements = Dictionary(uniqueKeysWithValues: evidence.acknowledgements.map { ($0.commandKind, $0) })
+        XCTAssertEqual(Set(previews.keys), Set(ReleaseV020BinanceSpotExecutionClientCommandKind.allCases))
+        XCTAssertEqual(Set(requests.keys), Set(ReleaseV020BinanceSpotExecutionClientCommandKind.allCases))
+        XCTAssertEqual(Set(acknowledgements.keys), Set(ReleaseV020BinanceSpotExecutionClientCommandKind.allCases))
+
+        let expectedQueryItemNames: [ReleaseV020BinanceSpotExecutionClientCommandKind: [String]] = [
+            .submit: ["symbol", "side", "type", "timeInForce", "quantity", "price", "newClientOrderId", "recvWindow", "timestamp"],
+            .cancel: ["symbol", "origClientOrderId", "newClientOrderId", "recvWindow", "timestamp"],
+            .replace: [
+                "symbol",
+                "side",
+                "type",
+                "timeInForce",
+                "quantity",
+                "price",
+                "cancelOrigClientOrderId",
+                "newClientOrderId",
+                "cancelReplaceMode",
+                "recvWindow",
+                "timestamp",
+            ],
+        ]
+        let expectedEndpointPaths: [ReleaseV020BinanceSpotExecutionClientCommandKind: String] = [
+            .submit: "/api/v3/order",
+            .cancel: "/api/v3/order",
+            .replace: "/api/v3/order/cancelReplace",
+        ]
+        let expectedMethods: [ReleaseV020BinanceSpotExecutionClientCommandKind: ReleaseV020BinanceSpotExecutionClientHTTPMethod] = [
+            .submit: .post,
+            .cancel: .delete,
+            .replace: .post,
+        ]
+
+        for kind in ReleaseV020BinanceSpotExecutionClientCommandKind.allCases {
+            let preview = try XCTUnwrap(previews[kind])
+            let request = try XCTUnwrap(requests[kind])
+            let acknowledgement = try XCTUnwrap(acknowledgements[kind])
+
+            XCTAssertTrue(preview.previewBoundaryHeld)
+            XCTAssertEqual(preview.mode, .dryRun)
+            XCTAssertEqual(preview.baseURL.host?.lowercased(), "testnet.binance.vision")
+            XCTAssertEqual(preview.method, expectedMethods[kind])
+            XCTAssertEqual(preview.endpointPath, expectedEndpointPaths[kind])
+            XCTAssertEqual(preview.queryItems.map(\.name), expectedQueryItemNames[kind])
+            XCTAssertFalse(preview.networkCallPerformed)
+            XCTAssertFalse(preview.signatureValueExposed)
+            XCTAssertFalse(preview.productionEndpointTouched)
+            XCTAssertFalse(preview.productionTradingEnabledByDefault)
+
+            XCTAssertTrue(request.requestMappingHeld)
+            XCTAssertEqual(request.mode, .testnet)
+            XCTAssertEqual(request.baseURL.host?.lowercased(), "testnet.binance.vision")
+            XCTAssertEqual(request.method, expectedMethods[kind])
+            XCTAssertEqual(request.endpointPath, expectedEndpointPaths[kind])
+            XCTAssertEqual(request.queryItems.map(\.name), expectedQueryItemNames[kind])
+            XCTAssertFalse(request.signatureValueExposed)
+            XCTAssertFalse(request.productionEndpointTouched)
+            XCTAssertFalse(request.productionSecretRead)
+            XCTAssertFalse(request.brokerGatewayTouched)
+            XCTAssertFalse(request.liveCommandSurfaceTouched)
+
+            XCTAssertTrue(acknowledgement.ackBoundaryHeld)
+            XCTAssertEqual(acknowledgement.mode, .testnet)
+            XCTAssertEqual(acknowledgement.requestID, request.requestID)
+            XCTAssertEqual(acknowledgement.commandKind, kind)
+            XCTAssertFalse(acknowledgement.productionEndpointTouched)
+            XCTAssertFalse(acknowledgement.productionOrderTouched)
+            XCTAssertFalse(acknowledgement.brokerGatewayTouched)
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV020BinanceSpotExecutionClientAdapter(
+                testnetMode: .production
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability(
+                    "releaseV020BinanceSpotExecutionClient.productionEnvironment"
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV020BinanceSpotExecutionClientQueryItem(
+                name: "signature",
+                value: "redacted"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability(
+                    "releaseV020BinanceSpotExecutionClient.signatureValue"
+                )
+            )
+        }
+
+        XCTAssertTrue(validationMatrix.contains("`GH-584`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-BINANCE-SPOT-EXECUTIONCLIENT-ADAPTER"))
+        XCTAssertTrue(validationPlan.contains("GH-584 Release v0.2.0 Binance Spot ExecutionClient Adapter Validation"))
+        XCTAssertTrue(domainContext.contains("GH-584 Binance Spot ExecutionClient Adapter Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 Binance Spot ExecutionClient adapter anchor"))
+        XCTAssertTrue(
+            releaseContract.contains(
+                "GH-584 / V020-22 | Binance Spot ExecutionClient adapter submit / cancel / replace mapping"
+            )
+        )
+    }
+
     func testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
