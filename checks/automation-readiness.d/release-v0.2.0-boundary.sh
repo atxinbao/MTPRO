@@ -186,30 +186,36 @@ required_evidence = {
         "TVM-RELEASE-V020-RSI-TARGET-EXPOSURE-INTENT",
         "GH-571",
         "TVM-RELEASE-V020-STRATEGY-ACTOR-REGISTRY-BINDING",
+        "GH-572",
+        "TVM-RELEASE-V020-TYPED-MESSAGEBUS-ENVELOPE",
     ],
     "docs/validation/validation-plan.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Validation",
         "GH-569 Release v0.2.0 EMA Target Exposure Intent Validation",
         "GH-570 Release v0.2.0 RSI Target Exposure Intent Validation",
         "GH-571 Release v0.2.0 Strategy Actor Registry Validation",
+        "GH-572 Release v0.2.0 Typed MessageBus Envelope Validation",
     ],
     "docs/domain/context.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Terms",
         "GH-569 EMA Target Exposure Intent Terms",
         "GH-570 RSI Target Exposure Intent Terms",
         "GH-571 Strategy Actor Registry Terms",
+        "GH-572 Typed MessageBus Envelope Terms",
     ],
     "docs/automation/automation-readiness.md": [
         "Release v0.2.0 boundary automation guard anchor",
         "Release v0.2.0 EMA target exposure intent anchor",
         "Release v0.2.0 RSI target exposure intent anchor",
         "Release v0.2.0 strategy actor registry anchor",
+        "Release v0.2.0 typed MessageBus envelope anchor",
     ],
     "Tests/TargetGraphTests/TargetGraphTests.swift": [
         "testGH565ReleaseV020BoundaryGuardBlocksScopeExpansionAndProductionDefaults",
         "testGH569EMATargetExposureIntentSupportsSpotAndPerpWithoutDirectOrderSide",
         "testGH570RSITargetExposureIntentSupportsSpotAndGatedPerpShort",
         "testGH571StrategyRegistryRegistersEMAAndRSIProductBindingsWithoutExecutionDependency",
+        "testGH572TypedMessageBusEnvelopeEvidenceIsWiredIntoReleaseGuard",
     ],
 }
 

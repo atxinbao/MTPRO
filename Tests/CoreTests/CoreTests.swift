@@ -11380,6 +11380,139 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(oneShotBus.envelopes, messageBus.envelopes)
     }
 
+    func testGH572TypedMessageBusEnvelopePreservesProductContextAcrossReplay() throws {
+        // 测试场景：release v0.2.0 的 strategy/risk/execution/portfolio 关键消息必须把
+        // venue、productType、instrumentID 和 correlation/causation metadata 写入 envelope，
+        // replay 后必须保持完全一致，不能退化成未分产品的旧 symbol/timeframe evidence。
+        let symbol = try Symbol(rawValue: "BTCUSDT")
+        let context = try TypedMessageEnvelopeContext.binance(
+            productType: .usdsPerpetual,
+            symbol: symbol
+        )
+        XCTAssertTrue(context.releaseV020BoundaryHeld)
+        XCTAssertEqual(context.venue.rawValue, "binance")
+        XCTAssertEqual(context.productType, .usdsPerpetual)
+        XCTAssertEqual(context.instrumentID.rawValue, "binance:usdsPerpetual:BTCUSDT")
+
+        XCTAssertThrowsError(
+            try TypedMessageEnvelopeContext(
+                venue: try Identifier("binance"),
+                productType: .spot,
+                instrumentID: InstrumentIdentity.binance(
+                    productType: .usdsPerpetual,
+                    symbol: symbol
+                )
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("typedMessageEnvelopeContext.productTypeMismatch")
+            )
+        }
+
+        let correlationID = try XCTUnwrap(UUID(uuidString: "57200000-0000-4000-8000-000000000001"))
+        let strategyEnvelopeID = try XCTUnwrap(UUID(uuidString: "57200000-0000-4000-8000-000000000101"))
+        let riskEnvelopeID = try XCTUnwrap(UUID(uuidString: "57200000-0000-4000-8000-000000000102"))
+        let executionEnvelopeID = try XCTUnwrap(UUID(uuidString: "57200000-0000-4000-8000-000000000103"))
+        let portfolioEnvelopeID = try XCTUnwrap(UUID(uuidString: "57200000-0000-4000-8000-000000000104"))
+        var messageBus = try MessageBus()
+
+        let strategyEnvelope = try messageBus.publish(
+            .strategySignal(
+                StrategySignalEvent(
+                    strategyID: try Identifier("gh-572-rsi"),
+                    symbol: symbol,
+                    timeframe: .oneMinute,
+                    direction: .long,
+                    generatedAt: Date(timeIntervalSince1970: 5_720)
+                )
+            ),
+            stream: .strategy,
+            id: strategyEnvelopeID,
+            recordedAt: Date(timeIntervalSince1970: 5_720),
+            typedContext: context,
+            correlationID: correlationID,
+            causationID: nil
+        )
+
+        let riskEnvelope = try messageBus.publish(
+            .risk(
+                .evaluationRequested(
+                    RiskEvaluationQuery(
+                        paperOrderID: try Identifier("gh-572-paper-order"),
+                        symbol: symbol,
+                        timeframe: .oneMinute,
+                        proposedQuantity: try Quantity(0.2, field: "gh572.quantity"),
+                        riskProfileID: try Identifier("gh-572-risk-profile"),
+                        executionMode: .paper
+                    )
+                )
+            ),
+            stream: .risk,
+            id: riskEnvelopeID,
+            recordedAt: Date(timeIntervalSince1970: 5_721),
+            typedContext: context,
+            correlationID: correlationID,
+            causationID: strategyEnvelope.id
+        )
+
+        let executionEnvelope = try messageBus.publish(
+            .paper(
+                .simulatedFillRecorded(
+                    PaperSimulatedFillFixture.deterministicAllowed()
+                )
+            ),
+            stream: .paper,
+            id: executionEnvelopeID,
+            recordedAt: Date(timeIntervalSince1970: 5_722),
+            typedContext: context,
+            correlationID: correlationID,
+            causationID: riskEnvelope.id
+        )
+
+        let portfolioEnvelope = try messageBus.publish(
+            .portfolio(
+                .projectionRequested(
+                    PortfolioQuery(
+                        portfolioID: try Identifier("gh-572-portfolio"),
+                        asOf: Date(timeIntervalSince1970: 5_723)
+                    )
+                )
+            ),
+            stream: .portfolio,
+            id: portfolioEnvelopeID,
+            recordedAt: Date(timeIntervalSince1970: 5_723),
+            typedContext: context,
+            correlationID: correlationID,
+            causationID: executionEnvelope.id
+        )
+
+        let envelopes = [strategyEnvelope, riskEnvelope, executionEnvelope, portfolioEnvelope]
+        XCTAssertEqual(envelopes.map(\.sequence), [1, 2, 3, 4])
+        XCTAssertEqual(envelopes.map(\.stream), [.strategy, .risk, .paper, .portfolio])
+        XCTAssertEqual(envelopes.map(\.typedContext), Array(repeating: context, count: 4))
+        XCTAssertEqual(envelopes.map { $0.typedContext?.productType }, Array(repeating: .usdsPerpetual, count: 4))
+        XCTAssertEqual(envelopes.map { $0.typedContext?.instrumentID }, Array(repeating: context.instrumentID, count: 4))
+        XCTAssertEqual(envelopes.map(\.correlationID), Array(repeating: correlationID, count: 4))
+        XCTAssertEqual(envelopes.map(\.causationID), [
+            nil,
+            strategyEnvelope.id,
+            riskEnvelope.id,
+            executionEnvelope.id
+        ])
+
+        let replay = messageBus.replay(
+            EventReplayCommand(
+                range: try EventSequenceRange(lowerBound: 1, upperBound: 4),
+                streams: [.strategy, .risk, .paper, .portfolio]
+            )
+        )
+        XCTAssertEqual(replay.envelopes, envelopes)
+        XCTAssertEqual(replay.envelopes.map(\.typedContext), envelopes.map(\.typedContext))
+        XCTAssertEqual(replay.envelopes.map(\.correlationID), envelopes.map(\.correlationID))
+        XCTAssertEqual(replay.envelopes.map(\.causationID), envelopes.map(\.causationID))
+    }
+
     func testMTP97PaperRuntimeBusRoutingRejectsLiveSignedBrokerAndInvalidRouteBypass() throws {
         // 测试场景：MTP-97 routing 不能被配置成 live command bus、signed request routing、broker
         // action 或错误 stream；非 lifecycle 的 PaperEvent 也不能伪装成 lifecycle route。
