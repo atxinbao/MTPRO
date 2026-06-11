@@ -4002,6 +4002,32 @@ No risk / execution bypass 指 ProposalArbitrator 不得触发 CommandGateway、
 
 Release v0.2.0 ProposalArbitrator matrix 必须证明 agree-long allowed、agree-flat allowed、conflict blocked by default、spot short blocked、perp short gated forward to risk 和 no risk / execution bypass 同时成立。
 
+## GH-578 RiskEngine Common Layer Terms
+
+`GH-578-RISKENGINE-COMMON-LAYER`
+
+RiskEngine common layer 指 release v0.2.0 中 ProposalArbitrator 之后、CommandGateway / ExecutionEngine 之前的通用风控证据层。它只评估 allowlist、notional、aggregate exposure、kill switch 和 no-trade，不调用 CommandGateway、ExecutionEngine、OMS、ExecutionClient、broker gateway，也不授权 production trading。
+
+`GH-578-STRATEGY-INSTRUMENT-ALLOWLIST`
+
+Strategy / instrument allowlist 指 common RiskEngine 只接受 EMA / RSI strategyID 和 Binance Spot / USDⓈ-M Perpetual instrument。未知 strategy、非 allowlisted instrument、非 Binance venue 或非 Spot / Perp product 必须 blocked，不能进入命令或执行路径。
+
+`GH-578-NOTIONAL-AGGREGATE-EXPOSURE-GATE`
+
+Notional / aggregate exposure gate 指每个 pre-risk order intent 必须先通过 max notional 和 projected aggregate exposure 检查。超限只能输出 blocked evidence，不能 fallback 到 submit / cancel / replace、OMS mutation、broker retry 或 Dashboard command surface。
+
+`GH-578-KILL-SWITCH-NO-TRADE-GATE`
+
+Kill switch / no-trade gate 指当 kill switch active 或 no-trade state active 时，common RiskEngine 必须 blocked。该 gate 是 deterministic evidence，不是真实 broker emergency stop、不修改 broker session、不授权 automatic recovery。
+
+`GH-578-NO-COMMAND-EXECUTION-BYPASS`
+
+No command / execution bypass 指 common RiskEngine 的 allow 只表示可进入后续 CommandGateway gate，不等于可提交订单。该 path 不得绕过 CommandGateway、ExecutionEngine、OMS、Event Store、kill switch、no-trade 或 validation gates。
+
+`TVM-RELEASE-V020-RISKENGINE-COMMON-LAYER`
+
+Release v0.2.0 RiskEngine common layer matrix 必须证明 strategy allowlist、instrument allowlist、max notional、aggregate exposure、kill switch、no-trade 和 no command / execution bypass 同时成立。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Terms
 
 `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`
