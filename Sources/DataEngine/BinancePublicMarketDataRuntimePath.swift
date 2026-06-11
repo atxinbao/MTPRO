@@ -11,6 +11,7 @@ import MessageBus
 public enum BinancePublicMarketDataRuntimePathError: Error, Equatable, Sendable, CustomStringConvertible {
     case invalidRecordedAtStride(TimeInterval)
     case noMarketEventsLoaded
+    case invalidSpotInstrument(field: String, expected: String, actual: String)
 
     public var description: String {
         switch self {
@@ -18,6 +19,8 @@ public enum BinancePublicMarketDataRuntimePathError: Error, Equatable, Sendable,
             "Binance public market data runtime path recordedAt stride must be positive: \(value)"
         case .noMarketEventsLoaded:
             "Binance public market data runtime path requires at least one public market event"
+        case let .invalidSpotInstrument(field, expected, actual):
+            "Binance Spot public market data runtime path \(field) mismatch: expected \(expected), actual \(actual)"
         }
     }
 }
@@ -29,6 +32,7 @@ public enum BinancePublicMarketDataRuntimePathError: Error, Equatable, Sendable,
 /// 应通过 mock transport 运行，真实 Binance public 网络只能作为人工可选 smoke。
 public struct BinancePublicMarketDataRuntimePlan: Equatable, Sendable {
     public let sourceID: FoundationTargetID
+    public let instrument: InstrumentIdentity
     public let symbol: Symbol
     public let timeframe: Timeframe
     public let range: DateRange
@@ -43,6 +47,7 @@ public struct BinancePublicMarketDataRuntimePlan: Equatable, Sendable {
 
     public init(
         sourceID: FoundationTargetID,
+        instrument: InstrumentIdentity,
         symbol: Symbol,
         timeframe: Timeframe,
         range: DateRange,
@@ -58,7 +63,9 @@ public struct BinancePublicMarketDataRuntimePlan: Equatable, Sendable {
         guard recordedAtStride > 0 else {
             throw BinancePublicMarketDataRuntimePathError.invalidRecordedAtStride(recordedAtStride)
         }
+        try Self.validateSpotInstrument(instrument, symbol: symbol)
         self.sourceID = sourceID
+        self.instrument = instrument
         self.symbol = symbol
         self.timeframe = timeframe
         self.range = range
@@ -70,6 +77,37 @@ public struct BinancePublicMarketDataRuntimePlan: Equatable, Sendable {
         self.depthSnapshotObservedAt = depthSnapshotObservedAt
         self.firstRecordedAt = firstRecordedAt
         self.recordedAtStride = recordedAtStride
+    }
+
+    public init(
+        sourceID: FoundationTargetID,
+        symbol: Symbol,
+        timeframe: Timeframe,
+        range: DateRange,
+        datasetVersion: String,
+        klineLimit: Int,
+        recentTradeLimit: Int,
+        depthSnapshotLimit: BinanceDepthSnapshotLimit,
+        bestBidAskObservedAt: Date,
+        depthSnapshotObservedAt: Date,
+        firstRecordedAt: Date,
+        recordedAtStride: TimeInterval = 1
+    ) throws {
+        try self.init(
+            sourceID: sourceID,
+            instrument: InstrumentIdentity.binance(productType: .spot, symbol: symbol),
+            symbol: symbol,
+            timeframe: timeframe,
+            range: range,
+            datasetVersion: datasetVersion,
+            klineLimit: klineLimit,
+            recentTradeLimit: recentTradeLimit,
+            depthSnapshotLimit: depthSnapshotLimit,
+            bestBidAskObservedAt: bestBidAskObservedAt,
+            depthSnapshotObservedAt: depthSnapshotObservedAt,
+            firstRecordedAt: firstRecordedAt,
+            recordedAtStride: recordedAtStride
+        )
     }
 
     /// DataClient source identity 固定为 Binance public read-only input，不表达私有账户或订单能力。
@@ -109,6 +147,60 @@ public struct BinancePublicMarketDataRuntimePlan: Equatable, Sendable {
     public func recordedAt(forEventAt index: Int) -> Date {
         firstRecordedAt.addingTimeInterval(TimeInterval(index) * recordedAtStride)
     }
+
+    fileprivate static func validateSpotInstrument(_ instrument: InstrumentIdentity, symbol: Symbol) throws {
+        guard instrument.venue.rawValue == "binance" else {
+            throw BinancePublicMarketDataRuntimePathError.invalidSpotInstrument(
+                field: "instrument.venue",
+                expected: "binance",
+                actual: instrument.venue.rawValue
+            )
+        }
+        guard instrument.productType == .spot else {
+            throw BinancePublicMarketDataRuntimePathError.invalidSpotInstrument(
+                field: "instrument.productType",
+                expected: ProductType.spot.rawValue,
+                actual: instrument.productType.rawValue
+            )
+        }
+        guard instrument.symbol == symbol else {
+            throw BinancePublicMarketDataRuntimePathError.invalidSpotInstrument(
+                field: "instrument.symbol",
+                expected: symbol.rawValue,
+                actual: instrument.symbol.rawValue
+            )
+        }
+    }
+}
+
+/// BinanceSpotProductAwareMarketDataEvent 是 release v0.2.0 的 Spot 行情事件 wrapper。
+///
+/// wrapper 把原始 public `MarketEvent` 与 Binance Spot `InstrumentIdentity` 绑定起来，让
+/// DataEngine / MessageBus / Cache evidence 不再只靠 symbol 区分产品类型。它不包含
+/// signed endpoint、account payload、listenKey、broker order 或 production trading 授权。
+public struct BinanceSpotProductAwareMarketDataEvent: Equatable, Sendable {
+    public let instrument: InstrumentIdentity
+    public let marketEvent: MarketEvent
+
+    public init(
+        instrument: InstrumentIdentity,
+        marketEvent: MarketEvent
+    ) throws {
+        try BinancePublicMarketDataRuntimePlan.validateSpotInstrument(
+            instrument,
+            symbol: marketEvent.symbol
+        )
+        self.instrument = instrument
+        self.marketEvent = marketEvent
+    }
+
+    public var productType: ProductType {
+        instrument.productType
+    }
+
+    public var symbol: Symbol {
+        instrument.symbol
+    }
 }
 
 /// BinancePublicMarketDataRuntimePathResult 是 GH-524 的 DataClient -> DataEngine -> Cache 证据。
@@ -118,8 +210,10 @@ public struct BinancePublicMarketDataRuntimePlan: Equatable, Sendable {
 /// 中立事实流进入 Cache read model，而不是只在 DataClient decoder 中停留。
 public struct BinancePublicMarketDataRuntimePathResult: Equatable, Sendable {
     public let source: DataClientReadOnlyMarketDataSource
+    public let instrument: InstrumentIdentity
     public let publicRequestContracts: [BinancePublicRequestContract]
     public let marketEvents: [MarketEvent]
+    public let productAwareEvents: [BinanceSpotProductAwareMarketDataEvent]
     public let eventEnvelopes: [MessageBusJournalEnvelope]
     public let replayedEnvelopes: [MessageBusJournalEnvelope]
     public let cacheSnapshot: MarketDataCacheSnapshot
@@ -128,8 +222,10 @@ public struct BinancePublicMarketDataRuntimePathResult: Equatable, Sendable {
 
     public init(
         source: DataClientReadOnlyMarketDataSource,
+        instrument: InstrumentIdentity,
         publicRequestContracts: [BinancePublicRequestContract],
         marketEvents: [MarketEvent],
+        productAwareEvents: [BinanceSpotProductAwareMarketDataEvent],
         eventEnvelopes: [MessageBusJournalEnvelope],
         replayedEnvelopes: [MessageBusJournalEnvelope],
         cacheSnapshot: MarketDataCacheSnapshot,
@@ -137,8 +233,10 @@ public struct BinancePublicMarketDataRuntimePathResult: Equatable, Sendable {
         validationAnchors: [String] = Self.requiredValidationAnchors
     ) {
         self.source = source
+        self.instrument = instrument
         self.publicRequestContracts = publicRequestContracts
         self.marketEvents = marketEvents
+        self.productAwareEvents = productAwareEvents
         self.eventEnvelopes = eventEnvelopes
         self.replayedEnvelopes = replayedEnvelopes
         self.cacheSnapshot = cacheSnapshot
@@ -156,9 +254,24 @@ public struct BinancePublicMarketDataRuntimePathResult: Equatable, Sendable {
             && replayedEnvelopes == eventEnvelopes
     }
 
+    public var spotProductAwareEventsBoundaryHeld: Bool {
+        productAwareEvents.count == marketEvents.count
+            && productAwareEvents.allSatisfy { productAwareEvent in
+                productAwareEvent.instrument == instrument
+                    && productAwareEvent.productType == .spot
+                    && productAwareEvent.marketEvent.symbol == instrument.symbol
+            }
+            && eventEnvelopes.allSatisfy { envelope in
+                envelope.instrumentID == instrument
+                    && envelope.productType == .spot
+                    && envelope.payloadType.contains("binance.spot")
+            }
+    }
+
     public var publicMarketDataRuntimePathBoundaryHeld: Bool {
         source.publicReadOnlyBoundaryHeld
             && publicRequestBoundaryHeld
+            && spotProductAwareEventsBoundaryHeld
             && cacheProjectionMatchesReplay
             && validationAnchors == Self.requiredValidationAnchors
             && callsSignedEndpoint == false
@@ -192,6 +305,8 @@ public struct BinancePublicMarketDataRuntimePathResult: Equatable, Sendable {
 
     public static let requiredValidationAnchors = [
         "GH-524-BINANCE-PUBLIC-MARKET-DATA-RUNTIME-PATH",
+        "GH-573-BINANCE-SPOT-PRODUCT-AWARE-DATAENGINE-CACHE-PATH",
+        "TVM-RELEASE-V020-BINANCE-SPOT-DATAENGINE-CACHE-PATH",
         "TVM-RELEASE-V010-BINANCE-PUBLIC-MARKET-DATA-PATH"
     ]
 
@@ -227,20 +342,27 @@ public struct BinancePublicMarketDataRuntimePath: Sendable {
         guard marketEvents.isEmpty == false else {
             throw BinancePublicMarketDataRuntimePathError.noMarketEventsLoaded
         }
+        let productAwareEvents = try marketEvents.map { event in
+            try BinanceSpotProductAwareMarketDataEvent(
+                instrument: plan.instrument,
+                marketEvent: event
+            )
+        }
 
         let journalStream = try MessageBusJournalStreamID("dataengine.binance-public-market")
         var journal = try MessageBusAppendOnlyJournal()
         var cache = MarketDataCache()
         var envelopes: [MessageBusJournalEnvelope] = []
-        for (index, event) in marketEvents.enumerated() {
+        for (index, productAwareEvent) in productAwareEvents.enumerated() {
             let envelope = try journal.append(
                 stream: journalStream,
                 sourceID: plan.sourceID,
-                payloadType: payloadType(for: event),
+                payloadType: payloadType(for: productAwareEvent),
+                instrumentID: productAwareEvent.instrument,
                 recordedAt: plan.recordedAt(forEventAt: index)
             )
             envelopes.append(envelope)
-            cache.ingest(event)
+            cache.ingest(productAwareEvent.marketEvent)
         }
 
         let replayedEnvelopes = journal.replay(stream: journalStream)
@@ -248,8 +370,10 @@ public struct BinancePublicMarketDataRuntimePath: Sendable {
 
         return BinancePublicMarketDataRuntimePathResult(
             source: source,
+            instrument: plan.instrument,
             publicRequestContracts: publicRequestContracts,
             marketEvents: marketEvents,
+            productAwareEvents: productAwareEvents,
             eventEnvelopes: envelopes,
             replayedEnvelopes: replayedEnvelopes,
             cacheSnapshot: cache.snapshot,
@@ -288,18 +412,19 @@ public struct BinancePublicMarketDataRuntimePath: Sendable {
             ]
     }
 
-    private func payloadType(for event: MarketEvent) -> String {
-        switch event {
+    private func payloadType(for productAwareEvent: BinanceSpotProductAwareMarketDataEvent) -> String {
+        let prefix = "dataengine.binance.\(productAwareEvent.productType.rawValue)"
+        switch productAwareEvent.marketEvent {
         case let .bar(bar):
-            "market.bar.\(bar.symbol.rawValue).\(bar.timeframe.rawValue)"
+            return "\(prefix).market.bar.\(bar.symbol.rawValue).\(bar.timeframe.rawValue)"
         case let .trade(trade):
-            "market.trade.\(trade.symbol.rawValue)"
+            return "\(prefix).market.trade.\(trade.symbol.rawValue)"
         case let .bestBidAsk(bestBidAsk):
-            "market.best-bid-ask.\(bestBidAsk.symbol.rawValue)"
+            return "\(prefix).market.best-bid-ask.\(bestBidAsk.symbol.rawValue)"
         case let .orderBookSnapshot(snapshot):
-            "market.order-book-snapshot.\(snapshot.symbol.rawValue)"
+            return "\(prefix).market.order-book-snapshot.\(snapshot.symbol.rawValue)"
         case let .orderBookDelta(delta):
-            "market.order-book-delta.\(delta.symbol.rawValue)"
+            return "\(prefix).market.order-book-delta.\(delta.symbol.rawValue)"
         }
     }
 }

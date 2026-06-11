@@ -7972,6 +7972,47 @@ GH-572 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-573 Release v0.2.0 Binance Spot DataEngine Cache Path Validation
+
+GH-573 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH573BinanceSpotMarketDataActivePathEmitsProductAwareEventsIntoCache`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-573 的验收要求：
+
+- Binance Spot public kline、recent trade、best bid / ask、depth snapshot 和 depth delta 必须通过 `DataClient.BinancePublicMarketDataClient` decoder 进入 DataEngine active path。
+- DataEngine 必须把 Spot `InstrumentIdentity` 绑定到 product-aware market data event，不能只保留未分产品的 symbol。
+- MessageBus journal envelope 必须保存 Spot instrumentID / productType，并保留 replay parity。
+- Spot events 必须投影到 `MarketDataCacheSnapshot`，且 replayed cache snapshot 必须与 live projection 一致。
+- Perpetual instrument 不得进入 GH-573 Spot active path；USDⓈ-M Perpetual path 由后续 issue 单独授权。
+- GH-573 PR evidence 必须确认不实现 signed endpoint、account endpoint、listenKey、private stream runtime、broker route、ExecutionClient、OMS、真实订单或 production trading，不启动 Symphony，不运行 Graphify / code-index，不使用 Linear，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+GH-573 必须建立的主要 anchors：
+
+- `GH-573-BINANCE-SPOT-PRODUCT-AWARE-DATAENGINE-CACHE-PATH`
+- `GH-573-SPOT-PUBLIC-MARKETDATA-TO-CACHE`
+- `GH-573-MESSAGEBUS-JOURNAL-SPOT-INSTRUMENT-CONTEXT`
+- `GH-573-NO-SIGNED-PRIVATE-BROKER-PATH`
+- `TVM-RELEASE-V020-BINANCE-SPOT-DATAENGINE-CACHE-PATH`
+
+## GH-573 禁止
+
+- 不实现 USDⓈ-M Perpetual market data active path；Perp path 必须由后续 issue 单独授权。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint、private stream endpoint 或 listenKey。
+- 不提交、取消或替换真实订单。
+- 不实现 broker gateway、ExecutionClient、OMS、live command bus、Dashboard command runtime 或 strategy scheduler。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USDⓈ-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation
 
 GH-521 必须运行：

@@ -4742,6 +4742,140 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH573BinanceSpotMarketDataActivePathEmitsProductAwareEventsIntoCache() async throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+
+        let symbol = try Symbol(rawValue: "BTCUSDT")
+        let instrument = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let range = try DateRange(
+            start: Date(timeIntervalSince1970: 1_704_067_300),
+            end: Date(timeIntervalSince1970: 1_704_067_360)
+        )
+        let transport = TargetGraphMockBinancePublicMarketDataTransport { request in
+            switch request.contract.capability {
+            case .klines:
+                Data(
+                    #"""
+                    [[1704067300000,"43000.00","43100.00","42950.00","43050.00","8.000",1704067359999,"344400.00",100,"4.000","172200.00","0"]]
+                    """#.utf8
+                )
+            case .recentTrades:
+                Data(
+                    #"""
+                    [{"id":2,"price":"43020.00","qty":"0.200","time":1704067301000,"isBuyerMaker":false,"isBestMatch":true}]
+                    """#.utf8
+                )
+            case .bestBidAsk:
+                Data(
+                    #"""
+                    {"symbol":"BTCUSDT","bidPrice":"43019.90","bidQty":"1.000","askPrice":"43020.10","askQty":"1.100"}
+                    """#.utf8
+                )
+            case .depthSnapshot:
+                Data(
+                    #"""
+                    {"lastUpdateId":110,"bids":[["43000.00","1.000"]],"asks":[["43001.00","1.000"]]}
+                    """#.utf8
+                )
+            case .depthDelta:
+                Data(
+                    #"""
+                    {"e":"depthUpdate","E":1704067303000,"s":"BTCUSDT","U":111,"u":112,"b":[["43000.50","0.500"]],"a":[["43001.50","0.000"]]}
+                    """#.utf8
+                )
+            case .exchangeInfo:
+                Data(#"{"symbols":[]}"#.utf8)
+            }
+        }
+        let plan = try BinancePublicMarketDataRuntimePlan(
+            sourceID: try FoundationTargetID("gh-573-binance-spot-source"),
+            instrument: instrument,
+            symbol: symbol,
+            timeframe: .oneMinute,
+            range: range,
+            datasetVersion: "gh-573",
+            klineLimit: 1,
+            recentTradeLimit: 1,
+            depthSnapshotLimit: .oneHundred,
+            bestBidAskObservedAt: Date(timeIntervalSince1970: 1_704_067_302),
+            depthSnapshotObservedAt: Date(timeIntervalSince1970: 1_704_067_304),
+            firstRecordedAt: Date(timeIntervalSince1970: 1_704_067_310)
+        )
+
+        let result = try await BinancePublicMarketDataRuntimePath(
+            client: BinancePublicMarketDataClient(transport: transport)
+        ).run(plan)
+
+        XCTAssertEqual(result.instrument, instrument)
+        XCTAssertEqual(result.marketEvents.count, 5)
+        XCTAssertEqual(result.productAwareEvents.count, 5)
+        XCTAssertTrue(result.productAwareEvents.allSatisfy { $0.instrument == instrument })
+        XCTAssertTrue(result.productAwareEvents.allSatisfy { $0.productType == .spot })
+        XCTAssertEqual(result.eventEnvelopes.map(\.instrumentID), Array(repeating: instrument, count: 5))
+        XCTAssertEqual(result.eventEnvelopes.map(\.productType), Array(repeating: .spot, count: 5))
+        XCTAssertTrue(result.eventEnvelopes.allSatisfy { $0.payloadType.contains("dataengine.binance.spot") })
+        XCTAssertTrue(result.spotProductAwareEventsBoundaryHeld)
+        XCTAssertTrue(result.publicMarketDataRuntimePathBoundaryHeld)
+        XCTAssertEqual(result.cacheSnapshot.marketEventCount, 5)
+        XCTAssertEqual(result.cacheSnapshot, result.replayedCacheSnapshot)
+        XCTAssertEqual(result.replayedEnvelopes, result.eventEnvelopes)
+
+        let seriesKey = MarketDataSeriesKey(symbol: symbol, timeframe: .oneMinute)
+        XCTAssertEqual(result.cacheSnapshot.barsBySeries[seriesKey]?.count, 1)
+        XCTAssertEqual(result.cacheSnapshot.tradesBySymbol[symbol]?.count, 1)
+        XCTAssertNotNil(result.cacheSnapshot.bestBidAskBySymbol[symbol])
+        XCTAssertNotNil(result.cacheSnapshot.orderBookSnapshotsBySymbol[symbol])
+        XCTAssertEqual(result.cacheSnapshot.orderBookDeltasBySymbol[symbol]?.count, 1)
+
+        XCTAssertThrowsError(
+            try BinancePublicMarketDataRuntimePlan(
+                sourceID: try FoundationTargetID("gh-573-invalid-perp-source"),
+                instrument: InstrumentIdentity.binance(productType: .usdsPerpetual, symbol: symbol),
+                symbol: symbol,
+                timeframe: .oneMinute,
+                range: range,
+                datasetVersion: "gh-573",
+                klineLimit: 1,
+                recentTradeLimit: 1,
+                depthSnapshotLimit: .oneHundred,
+                bestBidAskObservedAt: Date(timeIntervalSince1970: 1_704_067_302),
+                depthSnapshotObservedAt: Date(timeIntervalSince1970: 1_704_067_304),
+                firstRecordedAt: Date(timeIntervalSince1970: 1_704_067_310)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? BinancePublicMarketDataRuntimePathError,
+                .invalidSpotInstrument(
+                    field: "instrument.productType",
+                    expected: ProductType.spot.rawValue,
+                    actual: ProductType.usdsPerpetual.rawValue
+                )
+            )
+        }
+
+        XCTAssertTrue(validationMatrix.contains("`GH-573`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-BINANCE-SPOT-DATAENGINE-CACHE-PATH"))
+        XCTAssertTrue(validationPlan.contains("GH-573 Release v0.2.0 Binance Spot DataEngine Cache Path Validation"))
+        XCTAssertTrue(domainContext.contains("GH-573 Binance Spot DataEngine Cache Path Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 Binance Spot DataEngine Cache path anchor"))
+    }
+
     func testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

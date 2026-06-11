@@ -3884,6 +3884,28 @@ No live command bus 指 typed MessageBus envelope 仍是本地事实 metadata，
 
 Release v0.2.0 typed MessageBus envelope matrix 必须证明 typed context、strategy / risk / execution / portfolio product context、correlation / causation replay parity 和 no live command bus 同时成立。
 
+## GH-573 Binance Spot DataEngine Cache Path Terms
+
+`GH-573-BINANCE-SPOT-PRODUCT-AWARE-DATAENGINE-CACHE-PATH`
+
+Binance Spot product-aware DataEngine Cache path 指 release v0.2.0 的 Spot public market data active path：DataClient 只读取 Binance public kline、recent trade、best bid / ask、depth snapshot 和 depth delta，DataEngine 将这些 `MarketEvent` 绑定到 Binance Spot `InstrumentIdentity` 后写入 MessageBus journal evidence，并投影到 Cache read model。
+
+`GH-573-SPOT-PUBLIC-MARKETDATA-TO-CACHE`
+
+Spot public marketdata to Cache 指 Spot public events 必须能形成 `MarketDataCacheSnapshot`，且 replayed cache snapshot 与 live projection 一致。该 evidence 不表示 Redis、Database schema、private account state、broker state 或 production data feed。
+
+`GH-573-MESSAGEBUS-JOURNAL-SPOT-INSTRUMENT-CONTEXT`
+
+MessageBus journal Spot instrument context 指 `MessageBusJournalEnvelope` 必须保存 Spot `instrumentID` / `productType` metadata，避免 release v0.2.0 继续只靠 symbol 区分产品。该 metadata 只表达本地 facts identity，不是 broker route、OMS request 或 executable command。
+
+`GH-573-NO-SIGNED-PRIVATE-BROKER-PATH`
+
+No signed / private / broker path 指 GH-573 不读取 signed endpoint、account endpoint、listenKey、private stream、broker endpoint、ExecutionClient、OMS 或 order command。USDⓈ-M Perpetual active path 也不由 GH-573 授权，必须由后续 issue 单独处理。
+
+`TVM-RELEASE-V020-BINANCE-SPOT-DATAENGINE-CACHE-PATH`
+
+Release v0.2.0 Binance Spot DataEngine Cache path matrix 必须证明 Spot product-aware events、MessageBus journal Spot instrument context、Cache projection parity 和 no signed / private / broker path 同时成立。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Terms
 
 `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`
