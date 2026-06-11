@@ -131,6 +131,73 @@ public struct EMAProposalRuntime: Codable, Equatable, Sendable {
         )
     }
 
+    /// 从 EMA signal sample 生成 target exposure intent message。
+    ///
+    /// 该入口是 GH-569 的策略输出层：EMA 只发布 `TargetExposureIntent`，并按 instrument
+    /// product type 生成 pre-risk-gate `ProductAwareOrderIntent` evidence。它不生成 broker
+    /// command、不调用 RiskEngine / ExecutionEngine / OMS，也不授权 production trading。
+    public func generateTargetExposureIntent(
+        from sample: EMACrossSignalSample,
+        instrument: InstrumentIdentity,
+        sourceSequence: Int,
+        quantity: Quantity,
+        emittedAt: Date
+    ) throws -> StrategyIntentMessage {
+        guard sourceSequence > 0 else {
+            throw CoreError.invalidEventSequence(sourceSequence)
+        }
+        try validate(sample: sample)
+        try validate(instrument: instrument)
+
+        let productAwareOrderIntent: ProductAwareOrderIntent?
+        if sample.targetExposure.requiresOrderIntent {
+            productAwareOrderIntent = try ProductAwareOrderIntent(
+                intentID: Identifier(
+                    "\(runtimeID.rawValue)-product-aware-intent-\(sourceSequence)-\(instrument.productType.rawValue)"
+                ),
+                instrument: instrument,
+                targetExposure: sample.targetExposure,
+                quantity: quantity,
+                referencePrice: sample.close,
+                createdAt: emittedAt
+            )
+        } else {
+            productAwareOrderIntent = nil
+        }
+
+        return try StrategyIntentMessage(
+            messageID: Identifier(
+                "\(runtimeID.rawValue)-target-exposure-\(sourceSequence)-\(instrument.productType.rawValue)"
+            ),
+            strategyID: configuration.strategyID,
+            instrument: instrument,
+            targetExposure: sample.targetExposure,
+            productAwareOrderIntent: productAwareOrderIntent,
+            emittedAt: emittedAt
+        )
+    }
+
+    /// 从 bars 生成最后一个 EMA sample 的 target exposure intent message。
+    public func generateTargetExposureIntent(
+        from bars: [MarketBar],
+        instrument: InstrumentIdentity,
+        sourceSequence: Int,
+        quantity: Quantity,
+        emittedAt: Date
+    ) throws -> StrategyIntentMessage {
+        let samples = try EMACrossStrategyContract(configuration: configuration).evaluate(bars)
+        guard let latestSample = samples.last else {
+            throw CoreError.insufficientMarketData(required: configuration.longPeriod, actual: bars.count)
+        }
+        return try generateTargetExposureIntent(
+            from: latestSample,
+            instrument: instrument,
+            sourceSequence: sourceSequence,
+            quantity: quantity,
+            emittedAt: emittedAt
+        )
+    }
+
     /// GH-528 deterministic fixture 只服务本地测试和 PR evidence。
     public static func deterministicFixture() throws -> EMAProposalRuntime {
         try EMAProposalRuntime(
@@ -172,6 +239,17 @@ public struct EMAProposalRuntime: Codable, Equatable, Sendable {
     ]
 
     private func validate(sample: EMACrossSignalSample, sizingAssumption: PaperActionProposalSizingAssumption) throws {
+        try validate(sample: sample)
+        guard sizingAssumption.referencePrice == sample.close else {
+            throw CoreError.paperActionProposalCostEvidenceMismatch(
+                field: "emaProposalRuntime.referencePrice",
+                expected: "\(sample.close.rawValue)",
+                actual: "\(sizingAssumption.referencePrice.rawValue)"
+            )
+        }
+    }
+
+    private func validate(sample: EMACrossSignalSample) throws {
         guard sample.signal.strategyID == configuration.strategyID else {
             throw CoreError.traderAccountContextMismatch(
                 field: "emaProposalRuntime.strategyID",
@@ -193,11 +271,22 @@ public struct EMAProposalRuntime: Codable, Equatable, Sendable {
                 actual: sample.signal.timeframe.rawValue
             )
         }
-        guard sizingAssumption.referencePrice == sample.close else {
-            throw CoreError.paperActionProposalCostEvidenceMismatch(
-                field: "emaProposalRuntime.referencePrice",
-                expected: "\(sample.close.rawValue)",
-                actual: "\(sizingAssumption.referencePrice.rawValue)"
+        guard sample.targetExposure != .targetShort else {
+            throw DomainModelContractError.invalidTargetExposureIntent(
+                "EMA target exposure must not be targetShort"
+            )
+        }
+    }
+
+    private func validate(instrument: InstrumentIdentity) throws {
+        guard instrument.venue.rawValue == "binance" else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("emaProposalRuntime.nonBinanceInstrument")
+        }
+        guard instrument.symbol == configuration.symbol else {
+            throw CoreError.marketDataMismatch(
+                field: "emaProposalRuntime.instrument.symbol",
+                expected: configuration.symbol.rawValue,
+                actual: instrument.symbol.rawValue
             )
         }
     }

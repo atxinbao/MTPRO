@@ -180,18 +180,24 @@ required_evidence = {
     "docs/validation/trading-validation-matrix.md": [
         "GH-565",
         "TVM-RELEASE-V020-BINANCE-SPOT-PERP-EMA-RSI-BOUNDARY-GUARD",
+        "GH-569",
+        "TVM-RELEASE-V020-EMA-TARGET-EXPOSURE-INTENT",
     ],
     "docs/validation/validation-plan.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Validation",
+        "GH-569 Release v0.2.0 EMA Target Exposure Intent Validation",
     ],
     "docs/domain/context.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Terms",
+        "GH-569 EMA Target Exposure Intent Terms",
     ],
     "docs/automation/automation-readiness.md": [
         "Release v0.2.0 boundary automation guard anchor",
+        "Release v0.2.0 EMA target exposure intent anchor",
     ],
     "Tests/TargetGraphTests/TargetGraphTests.swift": [
         "testGH565ReleaseV020BoundaryGuardBlocksScopeExpansionAndProductionDefaults",
+        "testGH569EMATargetExposureIntentSupportsSpotAndPerpWithoutDirectOrderSide",
     ],
 }
 

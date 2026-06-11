@@ -71,23 +71,37 @@ public struct EMACrossStrategyConfiguration: Codable, Equatable, Sendable {
     }
 }
 
-/// EMACrossSignalSample 保存 EMA 信号、close、shortEMA 和 longEMA，供 parity 与 projection 使用。
+/// EMACrossSignalSample 保存 EMA 信号、目标敞口意图、close、shortEMA 和 longEMA，
+/// 供 parity、target exposure message 和 projection 使用。
 public struct EMACrossSignalSample: Codable, Equatable, Sendable {
     public let signal: StrategySignalEvent
+    public let targetExposure: TargetExposureIntent
     public let close: Price
     public let shortEMA: Price
     public let longEMA: Price
 
     public init(
         signal: StrategySignalEvent,
+        targetExposure: TargetExposureIntent,
         close: Double,
         shortEMA: Double,
         longEMA: Double
     ) throws {
+        guard targetExposure != .targetShort else {
+            throw DomainModelContractError.invalidTargetExposureIntent(
+                "EMA must not emit targetShort in release v0.2.0"
+            )
+        }
         self.signal = signal
+        self.targetExposure = targetExposure
         self.close = try Price(close, field: "ema.close")
         self.shortEMA = try Price(shortEMA, field: "ema.short")
         self.longEMA = try Price(longEMA, field: "ema.long")
+    }
+
+    /// EMA sample 只输出 target exposure intent；后续 paper proposal compatibility 才可能映射 side。
+    public var emitsDirectOrderSide: Bool {
+        false
     }
 }
 
@@ -116,6 +130,7 @@ public struct EMACrossStrategyContract: Equatable, Sendable {
         let longMultiplier = Self.multiplier(for: configuration.longPeriod)
         var shortEMA: Double?
         var longEMA: Double?
+        var previousRawTargetExposure: TargetExposureIntent?
         var samples: [EMACrossSignalSample] = []
 
         for (index, bar) in sortedBars.enumerated() {
@@ -127,7 +142,13 @@ public struct EMACrossStrategyContract: Equatable, Sendable {
                 continue
             }
 
-            let direction: SignalDirection = shortEMA > longEMA ? .long : .flat
+            let rawTargetExposure: TargetExposureIntent = shortEMA > longEMA ? .targetLong : .targetFlat
+            let targetExposure: TargetExposureIntent = previousRawTargetExposure == rawTargetExposure
+                ? .hold
+                : rawTargetExposure
+            previousRawTargetExposure = rawTargetExposure
+
+            let direction: SignalDirection = rawTargetExposure == .targetLong ? .long : .flat
             let signal = StrategySignalEvent(
                 strategyID: configuration.strategyID,
                 symbol: configuration.symbol,
@@ -137,6 +158,7 @@ public struct EMACrossStrategyContract: Equatable, Sendable {
             )
             let sample = try EMACrossSignalSample(
                 signal: signal,
+                targetExposure: targetExposure,
                 close: close,
                 shortEMA: shortEMA,
                 longEMA: longEMA

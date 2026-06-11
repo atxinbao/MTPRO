@@ -6577,6 +6577,132 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(automationReadiness.contains("Release v0.2.0 TraderStrategies EMA RSI root anchor"))
     }
 
+    func testGH569EMATargetExposureIntentSupportsSpotAndPerpWithoutDirectOrderSide() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let emaSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/Trader/Strategies/EMA/EMACross.swift"),
+            encoding: .utf8
+        )
+
+        let runtime = try EMAProposalRuntime.deterministicFixture()
+        let samples = try EMACrossStrategyContract(configuration: runtime.configuration).evaluate(
+            Self.gh568Bars(closes: [10, 11, 12, 11, 10, 13])
+        )
+        XCTAssertEqual(samples.map(\.signal.direction), [.long, .long, .flat, .long])
+        XCTAssertEqual(samples.map(\.targetExposure), [.targetLong, .hold, .targetFlat, .targetLong])
+        XCTAssertTrue(samples.allSatisfy { $0.emitsDirectOrderSide == false })
+        XCTAssertTrue(emaSource.contains("TargetExposureIntent"))
+        XCTAssertFalse(emaSource.contains("PaperActionProposalSide"))
+
+        let symbol = Symbol.constant("BTCUSDT")
+        let spot = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let perp = InstrumentIdentity.binance(productType: .usdsPerpetual, symbol: symbol)
+        let quantity = try Quantity(0.20, field: "gh569.quantity")
+        let emittedAt = Date(timeIntervalSince1970: 1_704_067_569)
+
+        let spotLong = try runtime.generateTargetExposureIntent(
+            from: samples[0],
+            instrument: spot,
+            sourceSequence: 5_691,
+            quantity: quantity,
+            emittedAt: emittedAt
+        )
+        let perpLong = try runtime.generateTargetExposureIntent(
+            from: samples[0],
+            instrument: perp,
+            sourceSequence: 5_692,
+            quantity: quantity,
+            emittedAt: emittedAt
+        )
+        let spotFlat = try runtime.generateTargetExposureIntent(
+            from: samples[2],
+            instrument: spot,
+            sourceSequence: 5_693,
+            quantity: quantity,
+            emittedAt: emittedAt
+        )
+        let hold = try runtime.generateTargetExposureIntent(
+            from: samples[1],
+            instrument: perp,
+            sourceSequence: 5_694,
+            quantity: quantity,
+            emittedAt: emittedAt
+        )
+
+        XCTAssertEqual(spotLong.targetExposure, .targetLong)
+        XCTAssertEqual(perpLong.targetExposure, .targetLong)
+        XCTAssertEqual(spotFlat.targetExposure, .targetFlat)
+        XCTAssertEqual(hold.targetExposure, .hold)
+        XCTAssertEqual(spotLong.instrument.productType, .spot)
+        XCTAssertEqual(perpLong.instrument.productType, .usdsPerpetual)
+        XCTAssertNil(hold.productAwareOrderIntent)
+
+        let spotLongIntent = try XCTUnwrap(spotLong.productAwareOrderIntent)
+        let perpLongIntent = try XCTUnwrap(perpLong.productAwareOrderIntent)
+        let spotFlatIntent = try XCTUnwrap(spotFlat.productAwareOrderIntent)
+        XCTAssertEqual(spotLongIntent.instrument, spot)
+        XCTAssertEqual(perpLongIntent.instrument, perp)
+        XCTAssertEqual(spotFlatIntent.targetExposure, .targetFlat)
+        XCTAssertTrue(spotLongIntent.isPreRiskGateIntent)
+        XCTAssertTrue(perpLongIntent.isPreRiskGateIntent)
+        XCTAssertFalse(spotLongIntent.authorizesTradingExecution)
+        XCTAssertFalse(perpLongIntent.productionTradingEnabledByDefault)
+
+        XCTAssertThrowsError(
+            try runtime.generateTargetExposureIntent(
+                from: samples[0],
+                instrument: InstrumentIdentity(
+                    venue: "coinbase",
+                    productType: .spot,
+                    symbol: symbol
+                ),
+                sourceSequence: 5_695,
+                quantity: quantity,
+                emittedAt: emittedAt
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("emaProposalRuntime.nonBinanceInstrument")
+            )
+        }
+
+        for expected in [
+            "\"EMA/EMAProposalRuntime.swift\"",
+            "\"EMA/EMACross.swift\"",
+            "\"TargetExposureIntent.swift\"",
+            "\"ProductAwareOrderIntent.swift\"",
+            "\"StrategyIntentMessages.swift\""
+        ] {
+            XCTAssertTrue(packageSource.contains(expected), "Package.swift must compile \(expected)")
+        }
+        XCTAssertTrue(validationMatrix.contains("`GH-569`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-EMA-TARGET-EXPOSURE-INTENT"))
+        XCTAssertTrue(validationPlan.contains("GH-569 Release v0.2.0 EMA Target Exposure Intent Validation"))
+        XCTAssertTrue(domainContext.contains("GH-569 EMA Target Exposure Intent Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 EMA target exposure intent anchor"))
+    }
+
     private static func gh568Bars(closes: [Double]) throws -> [MarketBar] {
         try closes.enumerated().map { index, close in
             let start = Date(timeIntervalSince1970: Double(index * 60))

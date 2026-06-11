@@ -301,10 +301,13 @@ final class PersistenceTests: XCTestCase {
         XCTAssertEqual(research.depth, 2)
         XCTAssertEqual(research.signalCount, 3)
         XCTAssertEqual(snapshot.signalTimeline.count, 7)
-        XCTAssertEqual(snapshot.signalTimeline.filter { $0.source == .backtest }.count, 4)
+        let emaSignals = snapshot.signalTimeline.filter { $0.source == .backtest }
+        XCTAssertEqual(emaSignals.count, 4)
+        XCTAssertEqual(emaSignals.map(\.targetExposure), [.targetLong, .hold, .targetFlat, .targetLong])
         XCTAssertEqual(snapshot.signalTimeline.filter { $0.source == .orderBookImbalanceResearch }.count, 3)
-        XCTAssertEqual(snapshot.signalTimeline.first?.close, 12)
+        XCTAssertEqual(emaSignals.first?.close, 12)
         let researchSignals = snapshot.signalTimeline.filter { $0.source == .orderBookImbalanceResearch }
+        XCTAssertTrue(researchSignals.allSatisfy { $0.targetExposure == nil })
         XCTAssertEqual(researchSignals.map(\.orderBookInputSource), [.snapshot, .deltaApplied, .snapshot])
         let lastImbalanceRatio = try XCTUnwrap(snapshot.signalTimeline.last?.imbalanceRatio)
         XCTAssertEqual(lastImbalanceRatio, -0.2088353414, accuracy: 0.0001)
