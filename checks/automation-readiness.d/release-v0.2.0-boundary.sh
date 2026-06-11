@@ -192,6 +192,8 @@ required_evidence = {
         "TVM-RELEASE-V020-BINANCE-SPOT-DATAENGINE-CACHE-PATH",
         "GH-574",
         "TVM-RELEASE-V020-BINANCE-USDM-PERP-DATAENGINE-CACHE-PATH",
+        "GH-575",
+        "TVM-RELEASE-V020-PERP-MARK-FUNDING-OI-READ-MODEL",
     ],
     "docs/validation/validation-plan.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Validation",
@@ -201,6 +203,7 @@ required_evidence = {
         "GH-572 Release v0.2.0 Typed MessageBus Envelope Validation",
         "GH-573 Release v0.2.0 Binance Spot DataEngine Cache Path Validation",
         "GH-574 Release v0.2.0 Binance USD-M Perpetual DataEngine Cache Path Validation",
+        "GH-575 Release v0.2.0 Perp Mark Funding Open Interest Read Model Validation",
     ],
     "docs/domain/context.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Terms",
@@ -210,6 +213,7 @@ required_evidence = {
         "GH-572 Typed MessageBus Envelope Terms",
         "GH-573 Binance Spot DataEngine Cache Path Terms",
         "GH-574 Binance USD-M Perpetual DataEngine Cache Path Terms",
+        "GH-575 Perp Mark Funding Open Interest Read Model Terms",
     ],
     "docs/automation/automation-readiness.md": [
         "Release v0.2.0 boundary automation guard anchor",
@@ -219,6 +223,7 @@ required_evidence = {
         "Release v0.2.0 typed MessageBus envelope anchor",
         "Release v0.2.0 Binance Spot DataEngine Cache path anchor",
         "Release v0.2.0 Binance USD-M Perpetual DataEngine Cache path anchor",
+        "Release v0.2.0 Perp mark funding open interest read model anchor",
     ],
     "Tests/TargetGraphTests/TargetGraphTests.swift": [
         "testGH565ReleaseV020BoundaryGuardBlocksScopeExpansionAndProductionDefaults",
@@ -228,6 +233,7 @@ required_evidence = {
         "testGH572TypedMessageBusEnvelopeEvidenceIsWiredIntoReleaseGuard",
         "testGH573BinanceSpotMarketDataActivePathEmitsProductAwareEventsIntoCache",
         "testGH574BinanceUSDMPerpetualMarketDataActivePathEmitsProductAwareEventsIntoCache",
+        "testGH575PerpMarkFundingOpenInterestReadModelSupportsStaleEvidence",
     ],
 }
 
