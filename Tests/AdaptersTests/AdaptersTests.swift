@@ -42,7 +42,10 @@ final class AdaptersTests: XCTestCase {
 
         let contracts = try endpoints.map(BinancePublicMarketDataContract.request(for:))
 
-        XCTAssertEqual(contracts.map(\.capability), BinancePublicMarketDataCapability.allCases)
+        XCTAssertEqual(
+            contracts.map(\.capability),
+            [.exchangeInfo, .klines, .recentTrades, .bestBidAsk, .depthSnapshot, .depthDelta]
+        )
         XCTAssertTrue(contracts.allSatisfy(\.isReadOnly))
         XCTAssertFalse(contracts.contains(where: \.requiresAPIKey))
         XCTAssertEqual(contracts.first?.path, "/api/v3/exchangeInfo")
@@ -594,7 +597,13 @@ final class AdaptersTests: XCTestCase {
         let adapterBoundary = BinanceReadOnlyAdapterBoundary()
 
         XCTAssertTrue(liveBoundary.gateTwoBoundaryHeld)
-        XCTAssertEqual(adapterBoundary.allowedCapabilities, liveBoundary.readOnlyAllowedCapabilities)
+        XCTAssertTrue(
+            liveBoundary.readOnlyAllowedCapabilities.allSatisfy { capability in
+                adapterBoundary.allowedCapabilities.contains(capability)
+            }
+        )
+        XCTAssertTrue(adapterBoundary.allowedCapabilities.contains("premium index"))
+        XCTAssertTrue(adapterBoundary.allowedCapabilities.contains("open interest"))
         XCTAssertTrue(adapterBoundary.adapterCapabilityIsolationHeld)
         XCTAssertTrue(adapterBoundary.forbidsCapability(.liveExecutionAdapter))
         XCTAssertTrue(adapterBoundary.forbidsCapability(.brokerExecutionAdapter))
@@ -801,7 +810,10 @@ final class AdaptersTests: XCTestCase {
         XCTAssertEqual(boundary.outputFields, [.batchID, .replayRunID, .recordCount, .checksumParityHint])
         XCTAssertEqual(boundary.metadataFields, BinanceMarketDataBatchReplayContractField.allCases)
         XCTAssertTrue(boundary.coversMinimumContractFields)
-        XCTAssertEqual(boundary.allowedMarketDataCapabilities, BinancePublicMarketDataCapability.allCases)
+        XCTAssertEqual(
+            boundary.allowedMarketDataCapabilities,
+            [.exchangeInfo, .klines, .recentTrades, .bestBidAsk, .depthSnapshot, .depthDelta]
+        )
         XCTAssertEqual(boundary.requiredValidationModes, [.mockTransport, .fixtureParity, .localBatchReplay])
         XCTAssertEqual(boundary.optionalValidationModes, [.optionalManualNetworkSmoke])
         XCTAssertTrue(boundary.isPublicReadOnly)

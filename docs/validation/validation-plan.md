@@ -8013,6 +8013,46 @@ GH-573 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-574 Release v0.2.0 Binance USD-M Perpetual DataEngine Cache Path Validation
+
+GH-574 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH574BinanceUSDMPerpetualMarketDataActivePathEmitsProductAwareEventsIntoCache`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-574 的验收要求：
+
+- Binance USDⓈ-M Perpetual public exchangeInfo、kline、depth snapshot、depth stream、premium index 和 open interest 必须通过 `DataClient.BinancePublicMarketDataClient` decoder 进入 DataEngine active path。
+- DataEngine 必须把 Perp `InstrumentIdentity` / `PerpetualContract` 绑定到 product-aware market data / metadata event，不能只保留未分产品的 symbol。
+- MessageBus journal envelope 必须保存 USDⓈ-M Perpetual instrumentID / productType，并保留 replay parity。
+- Perp market events 必须投影到 `MarketDataCacheSnapshot`，且 replayed cache snapshot 必须与 live projection 一致。
+- Mark price、index price、funding rate、next funding time 和 open interest 只作为 public market evidence，不得变成账户保证金、账户持仓、leverage / margin action、broker sync 或 reconciliation。
+- GH-574 PR evidence 必须确认不实现 signed endpoint、account endpoint、listenKey、private stream runtime、broker route、ExecutionClient、OMS、真实订单、leverage action、margin action 或 production trading，不启动 Symphony，不运行 Graphify / code-index，不使用 Linear，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+GH-574 必须建立的主要 anchors：
+
+- `GH-574-BINANCE-USDM-PERP-PRODUCT-AWARE-DATAENGINE-CACHE-PATH`
+- `GH-574-USDM-PERP-METADATA-MARK-INDEX-FUNDING-OI-EVIDENCE`
+- `GH-574-MESSAGEBUS-JOURNAL-USDM-PERP-INSTRUMENT-CONTEXT`
+- `GH-574-NO-SIGNED-PRIVATE-BROKER-PATH`
+- `TVM-RELEASE-V020-BINANCE-USDM-PERP-DATAENGINE-CACHE-PATH`
+
+## GH-574 禁止
+
+- 不实现 signed endpoint、account endpoint、listenKey、private stream runtime、broker route、ExecutionClient、OMS、order command、leverage action、margin action 或 production trading。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint、private stream endpoint 或 listenKey。
+- 不提交、取消或替换真实订单。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USDⓈ-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation
 
 GH-521 必须运行：

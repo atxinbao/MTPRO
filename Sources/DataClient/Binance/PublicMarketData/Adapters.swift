@@ -25,6 +25,8 @@ public enum BinancePublicMarketDataCapability: String, CaseIterable, Codable, Eq
     case bestBidAsk = "best bid / ask"
     case depthSnapshot = "depth snapshot"
     case depthDelta = "depth delta"
+    case premiumIndex = "premium index"
+    case openInterest = "open interest"
 }
 
 public enum BinanceForbiddenCapability: String, CaseIterable, Codable, Equatable, Sendable {
@@ -76,6 +78,7 @@ public struct BinanceQueryItem: Equatable, Sendable {
 
 public struct BinancePublicRequestContract: Equatable, Sendable {
     public let capability: BinancePublicMarketDataCapability
+    public let productType: ProductType?
     public let transport: BinancePublicTransport
     public let path: String
     public let queryItems: [BinanceQueryItem]
@@ -84,6 +87,7 @@ public struct BinancePublicRequestContract: Equatable, Sendable {
 
     public init(
         capability: BinancePublicMarketDataCapability,
+        productType: ProductType? = nil,
         transport: BinancePublicTransport,
         path: String,
         queryItems: [BinanceQueryItem] = [],
@@ -91,6 +95,7 @@ public struct BinancePublicRequestContract: Equatable, Sendable {
         requiresAPIKey: Bool = false
     ) {
         self.capability = capability
+        self.productType = productType
         self.transport = transport
         self.path = path
         self.queryItems = queryItems
@@ -105,13 +110,31 @@ public struct BinancePublicRequestContract: Equatable, Sendable {
 public struct BinancePublicMarketDataClientConfiguration: Equatable, Sendable {
     public let restBaseURL: URL
     public let webSocketBaseURL: URL
+    public let usdsPerpetualRestBaseURL: URL
+    public let usdsPerpetualWebSocketBaseURL: URL
 
     public init(
         restBaseURL: URL = URL(string: "https://api.binance.com")!,
-        webSocketBaseURL: URL = URL(string: "wss://stream.binance.com:9443")!
+        webSocketBaseURL: URL = URL(string: "wss://stream.binance.com:9443")!,
+        usdsPerpetualRestBaseURL: URL = URL(string: "https://fapi.binance.com")!,
+        usdsPerpetualWebSocketBaseURL: URL = URL(string: "wss://fstream.binance.com")!
     ) {
         self.restBaseURL = restBaseURL
         self.webSocketBaseURL = webSocketBaseURL
+        self.usdsPerpetualRestBaseURL = usdsPerpetualRestBaseURL
+        self.usdsPerpetualWebSocketBaseURL = usdsPerpetualWebSocketBaseURL
+    }
+
+    public init(
+        restBaseURL: URL,
+        webSocketBaseURL: URL
+    ) {
+        self.init(
+            restBaseURL: restBaseURL,
+            webSocketBaseURL: webSocketBaseURL,
+            usdsPerpetualRestBaseURL: URL(string: "https://fapi.binance.com")!,
+            usdsPerpetualWebSocketBaseURL: URL(string: "wss://fstream.binance.com")!
+        )
     }
 }
 
@@ -244,6 +267,14 @@ public struct BinancePublicMarketDataClient: Sendable {
         return try BinancePublicMarketDataPayloadDecoder.decodeExchangeInfo(from: data)
     }
 
+    /// 读取 Binance USDⓈ-M Perpetual exchangeInfo public endpoint，并生成 perpetual instrument metadata。
+    ///
+    /// 该方法只消费公开合约元数据，不读取 leverage、margin action、account endpoint 或 order endpoint。
+    public func usdsPerpetualExchangeInfo(symbols: [Symbol]) async throws -> [BinanceUSDMPerpetualInstrumentMetadata] {
+        let data = try await payload(for: .usdsPerpetualExchangeInfo(symbols: symbols))
+        return try BinancePublicMarketDataPayloadDecoder.decodeUSDMPerpetualExchangeInfo(from: data)
+    }
+
     /// 读取 Binance kline public endpoint，并把 fixture 或真实 public payload 转成 Core `MarketBar`。
     public func klines(
         symbol: Symbol,
@@ -253,6 +284,30 @@ public struct BinancePublicMarketDataClient: Sendable {
     ) async throws -> [MarketBar] {
         let data = try await payload(
             for: .klines(
+                symbol: symbol,
+                timeframe: timeframe,
+                range: range,
+                limit: limit
+            )
+        )
+        return try BinancePublicMarketDataPayloadDecoder.decodeKlines(
+            from: data,
+            symbol: symbol,
+            timeframe: timeframe
+        )
+    }
+
+    /// 读取 Binance USDⓈ-M Perpetual kline public endpoint，并输出通用 `MarketBar`。
+    ///
+    /// 输出仍是只读行情事件，不携带 broker position、margin action、leverage action 或交易授权。
+    public func usdsPerpetualKlines(
+        symbol: Symbol,
+        timeframe: Timeframe,
+        range: DateRange,
+        limit: Int
+    ) async throws -> [MarketBar] {
+        let data = try await payload(
+            for: .usdsPerpetualKlines(
                 symbol: symbol,
                 timeframe: timeframe,
                 range: range,
@@ -292,6 +347,22 @@ public struct BinancePublicMarketDataClient: Sendable {
         )
     }
 
+    /// 读取 Binance USDⓈ-M Perpetual public depth snapshot。
+    ///
+    /// 该 snapshot 只进入 DataEngine / Cache read model，不表示可交易订单簿或 broker route。
+    public func usdsPerpetualDepthSnapshot(
+        symbol: Symbol,
+        limit: BinanceDepthSnapshotLimit,
+        observedAt: Date
+    ) async throws -> OrderBookSnapshot {
+        let data = try await payload(for: .usdsPerpetualDepthSnapshot(symbol: symbol, limit: limit))
+        return try BinancePublicMarketDataPayloadDecoder.decodeDepthSnapshot(
+            from: data,
+            symbol: symbol,
+            observedAt: observedAt
+        )
+    }
+
     /// 读取 Binance public depth stream 的单条 payload，用于验证 stream request path 和 decoder
     /// parity；该方法不创建 listenKey user data stream，也不串联 ingest 或交易执行。
     public func depthDelta(symbol: Symbol) async throws -> OrderBookDelta {
@@ -304,6 +375,38 @@ public struct BinancePublicMarketDataClient: Sendable {
             )
         }
         return delta
+    }
+
+    /// 读取 Binance USDⓈ-M Perpetual public depth stream 的单条 payload。
+    ///
+    /// 该方法使用 public futures stream base，不创建 listenKey，也不连接 private user stream。
+    public func usdsPerpetualDepthDelta(symbol: Symbol) async throws -> OrderBookDelta {
+        let data = try await payload(for: .usdsPerpetualDepthDelta(symbol: symbol))
+        let delta = try BinancePublicMarketDataPayloadDecoder.decodeDepthDelta(from: data)
+        guard delta.symbol == symbol else {
+            throw BinancePublicMarketDataClientError.streamSymbolMismatch(
+                expected: symbol.rawValue,
+                actual: delta.symbol.rawValue
+            )
+        }
+        return delta
+    }
+
+    /// 读取 Binance USDⓈ-M Perpetual premium index public endpoint。
+    ///
+    /// premium index 同时提供 mark price、index price 和 funding rate evidence；它不是
+    /// account margin、position、leverage 或 order command。
+    public func usdsPerpetualPremiumIndex(symbol: Symbol) async throws -> BinanceUSDMPerpetualPremiumIndex {
+        let data = try await payload(for: .usdsPerpetualPremiumIndex(symbol: symbol))
+        return try BinancePublicMarketDataPayloadDecoder.decodeUSDMPerpetualPremiumIndex(from: data)
+    }
+
+    /// 读取 Binance USDⓈ-M Perpetual open interest public endpoint。
+    ///
+    /// open interest 只作为市场公开读模型输入，不代表账户持仓或 broker position sync。
+    public func usdsPerpetualOpenInterest(symbol: Symbol) async throws -> BinanceUSDMPerpetualOpenInterest {
+        let data = try await payload(for: .usdsPerpetualOpenInterest(symbol: symbol))
+        return try BinancePublicMarketDataPayloadDecoder.decodeUSDMPerpetualOpenInterest(from: data)
     }
 
     /// 按 endpoint 生成只读 contract 后读取原始 payload，供测试验证 request path 与 decoder parity。
@@ -323,9 +426,13 @@ public struct BinancePublicMarketDataClient: Sendable {
         let baseURL: URL
         switch contract.transport {
         case .restGET:
-            baseURL = configuration.restBaseURL
+            baseURL = contract.productType == .usdsPerpetual
+                ? configuration.usdsPerpetualRestBaseURL
+                : configuration.restBaseURL
         case .webSocketStream:
-            baseURL = configuration.webSocketBaseURL
+            baseURL = contract.productType == .usdsPerpetual
+                ? configuration.usdsPerpetualWebSocketBaseURL
+                : configuration.webSocketBaseURL
         }
 
         let base = baseURL.absoluteString.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
@@ -362,7 +469,10 @@ public struct BinancePublicMarketDataClient: Sendable {
                 reason: "request requires API key"
             )
         }
-        let publicPaths = Self.allowedPublicPaths(for: contract.capability)
+        let publicPaths = Self.allowedPublicPaths(
+            for: contract.capability,
+            productType: contract.productType
+        )
         guard contract.transport == publicPaths.transport else {
             throw BinancePublicMarketDataClientError.forbiddenRequest(
                 path: contract.path,
@@ -405,6 +515,11 @@ public struct BinancePublicMarketDataClient: Sendable {
         "listenkey",
         "/api/v3/account",
         "/api/v3/order",
+        "/api/v3/userdatastream",
+        "/fapi/v1/account",
+        "/fapi/v1/order",
+        "/fapi/v1/listenkey",
+        "/fapi/v1/userdatastream",
         "liveexecutionadapter",
         "executionadapter",
         "broker fill",
@@ -423,24 +538,39 @@ public struct BinancePublicMarketDataClient: Sendable {
         "real account state",
         "broker position sync",
         "/sapi/",
-        "/fapi/",
         "/dapi/"
     ]
 
     private static func allowedPublicPaths(
-        for capability: BinancePublicMarketDataCapability
+        for capability: BinancePublicMarketDataCapability,
+        productType: ProductType?
     ) -> (transport: BinancePublicTransport, paths: [String]) {
         switch capability {
         case .exchangeInfo:
-            (.restGET, ["/api/v3/exchangeInfo"])
+            switch productType {
+            case .usdsPerpetual:
+                (.restGET, ["/fapi/v1/exchangeInfo"])
+            default:
+                (.restGET, ["/api/v3/exchangeInfo", "/fapi/v1/exchangeInfo"])
+            }
         case .klines:
-            (.restGET, ["/api/v3/klines"])
+            switch productType {
+            case .usdsPerpetual:
+                (.restGET, ["/fapi/v1/klines"])
+            default:
+                (.restGET, ["/api/v3/klines", "/fapi/v1/klines"])
+            }
         case .recentTrades:
             (.restGET, ["/api/v3/trades"])
         case .bestBidAsk:
             (.restGET, ["/api/v3/ticker/bookTicker"])
         case .depthSnapshot:
-            (.restGET, ["/api/v3/depth"])
+            switch productType {
+            case .usdsPerpetual:
+                (.restGET, ["/fapi/v1/depth"])
+            default:
+                (.restGET, ["/api/v3/depth", "/fapi/v1/depth"])
+            }
         case .depthDelta:
             (
                 .webSocketStream,
@@ -448,6 +578,10 @@ public struct BinancePublicMarketDataClient: Sendable {
                     "/ws/\(symbol.lowercased())@depth"
                 }
             )
+        case .premiumIndex:
+            (.restGET, ["/fapi/v1/premiumIndex"])
+        case .openInterest:
+            (.restGET, ["/fapi/v1/openInterest"])
         }
     }
 
@@ -465,32 +599,44 @@ public struct BinancePublicMarketDataClient: Sendable {
             ["symbol", "limit"]
         case .depthDelta:
             []
+        case .premiumIndex, .openInterest:
+            ["symbol"]
         }
     }
 }
 
 public enum BinancePublicMarketDataEndpoint: Equatable, Sendable {
     case exchangeInfo(symbols: [Symbol])
+    case usdsPerpetualExchangeInfo(symbols: [Symbol])
     case klines(symbol: Symbol, timeframe: Timeframe, range: DateRange, limit: Int)
+    case usdsPerpetualKlines(symbol: Symbol, timeframe: Timeframe, range: DateRange, limit: Int)
     case recentTrades(symbol: Symbol, limit: Int)
     case bestBidAsk(symbol: Symbol)
     case depthSnapshot(symbol: Symbol, limit: BinanceDepthSnapshotLimit)
+    case usdsPerpetualDepthSnapshot(symbol: Symbol, limit: BinanceDepthSnapshotLimit)
     case depthDelta(symbol: Symbol)
+    case usdsPerpetualDepthDelta(symbol: Symbol)
+    case usdsPerpetualPremiumIndex(symbol: Symbol)
+    case usdsPerpetualOpenInterest(symbol: Symbol)
 
     public var capability: BinancePublicMarketDataCapability {
         switch self {
-        case .exchangeInfo:
+        case .exchangeInfo, .usdsPerpetualExchangeInfo:
             .exchangeInfo
-        case .klines:
+        case .klines, .usdsPerpetualKlines:
             .klines
         case .recentTrades:
             .recentTrades
         case .bestBidAsk:
             .bestBidAsk
-        case .depthSnapshot:
+        case .depthSnapshot, .usdsPerpetualDepthSnapshot:
             .depthSnapshot
-        case .depthDelta:
+        case .depthDelta, .usdsPerpetualDepthDelta:
             .depthDelta
+        case .usdsPerpetualPremiumIndex:
+            .premiumIndex
+        case .usdsPerpetualOpenInterest:
+            .openInterest
         }
     }
 }
@@ -505,8 +651,20 @@ public enum BinancePublicMarketDataContract {
         case let .exchangeInfo(symbols):
             return BinancePublicRequestContract(
                 capability: endpoint.capability,
+                productType: .spot,
                 transport: .restGET,
                 path: "/api/v3/exchangeInfo",
+                queryItems: [
+                    BinanceQueryItem(name: "symbols", value: symbolsQueryValue(symbols))
+                ]
+            )
+
+        case let .usdsPerpetualExchangeInfo(symbols):
+            return BinancePublicRequestContract(
+                capability: endpoint.capability,
+                productType: .usdsPerpetual,
+                transport: .restGET,
+                path: "/fapi/v1/exchangeInfo",
                 queryItems: [
                     BinanceQueryItem(name: "symbols", value: symbolsQueryValue(symbols))
                 ]
@@ -516,8 +674,25 @@ public enum BinancePublicMarketDataContract {
             try validate(limit: limit, field: "klines.limit", allowedRange: 1...1_000)
             return BinancePublicRequestContract(
                 capability: endpoint.capability,
+                productType: .spot,
                 transport: .restGET,
                 path: "/api/v3/klines",
+                queryItems: [
+                    BinanceQueryItem(name: "symbol", value: symbol.rawValue),
+                    BinanceQueryItem(name: "interval", value: timeframe.rawValue),
+                    BinanceQueryItem(name: "startTime", value: millisecondsString(from: range.start)),
+                    BinanceQueryItem(name: "endTime", value: millisecondsString(from: range.end)),
+                    BinanceQueryItem(name: "limit", value: String(limit))
+                ]
+            )
+
+        case let .usdsPerpetualKlines(symbol, timeframe, range, limit):
+            try validate(limit: limit, field: "usdsPerpetualKlines.limit", allowedRange: 1...1_500)
+            return BinancePublicRequestContract(
+                capability: endpoint.capability,
+                productType: .usdsPerpetual,
+                transport: .restGET,
+                path: "/fapi/v1/klines",
                 queryItems: [
                     BinanceQueryItem(name: "symbol", value: symbol.rawValue),
                     BinanceQueryItem(name: "interval", value: timeframe.rawValue),
@@ -531,6 +706,7 @@ public enum BinancePublicMarketDataContract {
             try validate(limit: limit, field: "recentTrades.limit", allowedRange: 1...1_000)
             return BinancePublicRequestContract(
                 capability: endpoint.capability,
+                productType: .spot,
                 transport: .restGET,
                 path: "/api/v3/trades",
                 queryItems: [
@@ -542,6 +718,7 @@ public enum BinancePublicMarketDataContract {
         case let .bestBidAsk(symbol):
             return BinancePublicRequestContract(
                 capability: endpoint.capability,
+                productType: .spot,
                 transport: .restGET,
                 path: "/api/v3/ticker/bookTicker",
                 queryItems: [
@@ -552,8 +729,21 @@ public enum BinancePublicMarketDataContract {
         case let .depthSnapshot(symbol, limit):
             return BinancePublicRequestContract(
                 capability: endpoint.capability,
+                productType: .spot,
                 transport: .restGET,
                 path: "/api/v3/depth",
+                queryItems: [
+                    BinanceQueryItem(name: "symbol", value: symbol.rawValue),
+                    BinanceQueryItem(name: "limit", value: String(limit.rawValue))
+                ]
+            )
+
+        case let .usdsPerpetualDepthSnapshot(symbol, limit):
+            return BinancePublicRequestContract(
+                capability: endpoint.capability,
+                productType: .usdsPerpetual,
+                transport: .restGET,
+                path: "/fapi/v1/depth",
                 queryItems: [
                     BinanceQueryItem(name: "symbol", value: symbol.rawValue),
                     BinanceQueryItem(name: "limit", value: String(limit.rawValue))
@@ -563,8 +753,39 @@ public enum BinancePublicMarketDataContract {
         case let .depthDelta(symbol):
             return BinancePublicRequestContract(
                 capability: endpoint.capability,
+                productType: .spot,
                 transport: .webSocketStream,
                 path: "/ws/\(symbol.rawValue.lowercased())@depth"
+            )
+
+        case let .usdsPerpetualDepthDelta(symbol):
+            return BinancePublicRequestContract(
+                capability: endpoint.capability,
+                productType: .usdsPerpetual,
+                transport: .webSocketStream,
+                path: "/ws/\(symbol.rawValue.lowercased())@depth"
+            )
+
+        case let .usdsPerpetualPremiumIndex(symbol):
+            return BinancePublicRequestContract(
+                capability: endpoint.capability,
+                productType: .usdsPerpetual,
+                transport: .restGET,
+                path: "/fapi/v1/premiumIndex",
+                queryItems: [
+                    BinanceQueryItem(name: "symbol", value: symbol.rawValue)
+                ]
+            )
+
+        case let .usdsPerpetualOpenInterest(symbol):
+            return BinancePublicRequestContract(
+                capability: endpoint.capability,
+                productType: .usdsPerpetual,
+                transport: .restGET,
+                path: "/fapi/v1/openInterest",
+                queryItems: [
+                    BinanceQueryItem(name: "symbol", value: symbol.rawValue)
+                ]
             )
         }
     }
@@ -597,6 +818,90 @@ public struct BinanceExchangeInfo: Equatable, Sendable {
     }
 }
 
+/// BinanceUSDMPerpetualInstrumentMetadata 是 USDⓈ-M perpetual public exchangeInfo 的本地 read model。
+///
+/// 它只保存公开合约元数据和 `PerpetualContract`，不包含 leverage action、margin action、
+/// account position、broker position sync 或 order command。
+public struct BinanceUSDMPerpetualInstrumentMetadata: Equatable, Sendable {
+    public let contract: PerpetualContract
+    public let status: String
+    public let contractType: String
+    public let pricePrecision: Int
+    public let quantityPrecision: Int
+
+    public init(
+        contract: PerpetualContract,
+        status: String,
+        contractType: String,
+        pricePrecision: Int,
+        quantityPrecision: Int
+    ) {
+        self.contract = contract
+        self.status = status
+        self.contractType = contractType
+        self.pricePrecision = pricePrecision
+        self.quantityPrecision = quantityPrecision
+    }
+
+    public var instrument: InstrumentIdentity {
+        contract.instrument
+    }
+}
+
+/// BinanceUSDMPerpetualPremiumIndex 保存 mark price、index price 与 funding evidence。
+///
+/// 这些字段来自 public premium index endpoint，只能作为行情 read model input，不是账户保证金、
+/// funding debit/credit、position 或可执行订单状态。
+public struct BinanceUSDMPerpetualPremiumIndex: Equatable, Sendable {
+    public let instrument: InstrumentIdentity
+    public let markPrice: Price
+    public let indexPrice: Price
+    public let lastFundingRate: Double
+    public let nextFundingTime: Date
+    public let observedAt: Date
+
+    public init(
+        instrument: InstrumentIdentity,
+        markPrice: Double,
+        indexPrice: Double,
+        lastFundingRate: Double,
+        nextFundingTime: Date,
+        observedAt: Date
+    ) throws {
+        guard lastFundingRate.isFinite else {
+            throw BinancePublicMarketDataContractError.invalidNumericField(
+                field: "premiumIndex.lastFundingRate",
+                value: "\(lastFundingRate)"
+            )
+        }
+        self.instrument = instrument
+        self.markPrice = try Price(markPrice, field: "premiumIndex.markPrice")
+        self.indexPrice = try Price(indexPrice, field: "premiumIndex.indexPrice")
+        self.lastFundingRate = lastFundingRate
+        self.nextFundingTime = nextFundingTime
+        self.observedAt = observedAt
+    }
+}
+
+/// BinanceUSDMPerpetualOpenInterest 保存 public open interest evidence。
+///
+/// open interest 是市场级公开读模型输入，不等于账户仓位、broker 持仓同步或 reconciliation。
+public struct BinanceUSDMPerpetualOpenInterest: Equatable, Sendable {
+    public let instrument: InstrumentIdentity
+    public let openInterest: Quantity
+    public let observedAt: Date
+
+    public init(
+        instrument: InstrumentIdentity,
+        openInterest: Double,
+        observedAt: Date
+    ) throws {
+        self.instrument = instrument
+        self.openInterest = try Quantity(openInterest, field: "openInterest")
+        self.observedAt = observedAt
+    }
+}
+
 public enum BinancePublicMarketDataPayloadDecoder {
     public static func decodeExchangeInfo(from data: Data) throws -> BinanceExchangeInfo {
         let payload = try JSONDecoder().decode(BinanceExchangeInfoPayload.self, from: data)
@@ -607,6 +912,35 @@ public enum BinancePublicMarketDataPayloadDecoder {
             return try? Symbol(rawValue: symbol.symbol)
         }
         return BinanceExchangeInfo(symbols: symbols)
+    }
+
+    public static func decodeUSDMPerpetualExchangeInfo(
+        from data: Data
+    ) throws -> [BinanceUSDMPerpetualInstrumentMetadata] {
+        let payload = try JSONDecoder().decode(BinanceUSDMPerpetualExchangeInfoPayload.self, from: data)
+        return try payload.symbols.compactMap { symbol -> BinanceUSDMPerpetualInstrumentMetadata? in
+            guard symbol.status == "TRADING", symbol.contractType == "PERPETUAL" else {
+                return nil
+            }
+            let instrument = InstrumentIdentity.binance(
+                productType: .usdsPerpetual,
+                symbol: try Symbol(rawValue: symbol.symbol)
+            )
+            let contract = try PerpetualContract(
+                instrument: instrument,
+                marginAsset: try Identifier(symbol.marginAsset, field: "usdsPerpetual.marginAsset"),
+                settlementAsset: try Identifier(symbol.quoteAsset, field: "usdsPerpetual.settlementAsset"),
+                contractSize: 1,
+                fundingIntervalHours: 8
+            )
+            return BinanceUSDMPerpetualInstrumentMetadata(
+                contract: contract,
+                status: symbol.status,
+                contractType: symbol.contractType,
+                pricePrecision: symbol.pricePrecision,
+                quantityPrecision: symbol.quantityPrecision
+            )
+        }
     }
 
     public static func decodeKlines(
@@ -678,6 +1012,39 @@ public enum BinancePublicMarketDataPayloadDecoder {
             observedAt: dateFromMilliseconds(payload.eventTime),
             bidUpdates: payload.bidUpdates.map { try $0.toCoreLevel(fieldPrefix: "depthDelta.bid") },
             askUpdates: payload.askUpdates.map { try $0.toCoreLevel(fieldPrefix: "depthDelta.ask") }
+        )
+    }
+
+    public static func decodeUSDMPerpetualPremiumIndex(
+        from data: Data
+    ) throws -> BinanceUSDMPerpetualPremiumIndex {
+        let payload = try JSONDecoder().decode(BinanceUSDMPerpetualPremiumIndexPayload.self, from: data)
+        let instrument = InstrumentIdentity.binance(
+            productType: .usdsPerpetual,
+            symbol: try Symbol(rawValue: payload.symbol)
+        )
+        return try BinanceUSDMPerpetualPremiumIndex(
+            instrument: instrument,
+            markPrice: decimal(payload.markPrice, field: "premiumIndex.markPrice"),
+            indexPrice: decimal(payload.indexPrice, field: "premiumIndex.indexPrice"),
+            lastFundingRate: decimal(payload.lastFundingRate, field: "premiumIndex.lastFundingRate"),
+            nextFundingTime: dateFromMilliseconds(payload.nextFundingTime),
+            observedAt: dateFromMilliseconds(payload.time)
+        )
+    }
+
+    public static func decodeUSDMPerpetualOpenInterest(
+        from data: Data
+    ) throws -> BinanceUSDMPerpetualOpenInterest {
+        let payload = try JSONDecoder().decode(BinanceUSDMPerpetualOpenInterestPayload.self, from: data)
+        let instrument = InstrumentIdentity.binance(
+            productType: .usdsPerpetual,
+            symbol: try Symbol(rawValue: payload.symbol)
+        )
+        return try BinanceUSDMPerpetualOpenInterest(
+            instrument: instrument,
+            openInterest: decimal(payload.openInterest, field: "openInterest"),
+            observedAt: dateFromMilliseconds(payload.time)
         )
     }
 
@@ -783,6 +1150,20 @@ private struct BinanceExchangeInfoPayload: Decodable {
     }
 }
 
+private struct BinanceUSDMPerpetualExchangeInfoPayload: Decodable {
+    let symbols: [Symbol]
+
+    struct Symbol: Decodable {
+        let symbol: String
+        let status: String
+        let contractType: String
+        let marginAsset: String
+        let quoteAsset: String
+        let pricePrecision: Int
+        let quantityPrecision: Int
+    }
+}
+
 private struct BinanceKlineRow: Decodable {
     let openTime: Int64
     let open: String
@@ -851,6 +1232,21 @@ private struct BinanceDepthDeltaPayload: Decodable {
         case bidUpdates = "b"
         case askUpdates = "a"
     }
+}
+
+private struct BinanceUSDMPerpetualPremiumIndexPayload: Decodable {
+    let symbol: String
+    let markPrice: String
+    let indexPrice: String
+    let lastFundingRate: String
+    let nextFundingTime: Int64
+    let time: Int64
+}
+
+private struct BinanceUSDMPerpetualOpenInterestPayload: Decodable {
+    let symbol: String
+    let openInterest: String
+    let time: Int64
 }
 
 private struct BinanceDepthLevelPayload: Decodable {
