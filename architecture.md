@@ -29,35 +29,46 @@ DataClient/<venue>
 -> DataEngine
 -> MessageBus
 -> Cache / Database
--> Trader/Strategies/EMA + Trader/Coordination
+-> Trader/Strategies/{EMA,RSI} + Trader/Coordination
 -> Portfolio + RiskEngine
 -> ExecutionEngine
--> ExecutionClient future gate
+-> ExecutionClient gated testnet / production-disabled boundary
 ```
 
 | 模块 | 大白话职责 | 当前状态 | 禁止越界 |
 | --- | --- | --- | --- |
-| `DataClient/<venue>/` | 从交易所 / venue 拿外部数据的输入适配器。一个 venue 一个目录，例如 `DataClient/Binance/`。 | 当前只允许 Binance public market data read-only 和 future-gated private stream label。 | 不接 signed endpoint、account endpoint、listenKey、broker execution adapter。 |
+| `DataClient/<venue>/` | 从交易所 / venue 拿外部 market / account / private stream evidence 的输入适配器。一个 venue 一个目录，例如 `DataClient/Binance/`。 | Release v0.2.0 当前 active venue 固定 Binance；active product types 固定 Spot + USDⓈ-M Perpetual；production secret / production endpoint 默认关闭。 | 不接非 Binance venue，不把 testnet / dry-run / read-only evidence 升级成 production command。 |
 | `DataEngine/` | 把 DataClient 拿到的数据变成系统内部可用的事实：ingest、replay、quality、scenario、cursor、freshness。 | 当前服务 deterministic fixture、scenario replay 和 read-model evidence。 | 不直接写 UI，不执行交易，不绕过 MessageBus / Cache / Database。 |
 | `MessageBus/` | 内部事实和请求 / 响应的脊柱，让 Data、Trader、Risk、Execution、Portfolio 通过统一事件 / 命令边界沟通。 | 当前是 boundary / evidence spine，不是外部 API。 | 不暴露 HTTP、broker payload、adapter request、DB schema 或 UI command surface。 |
 | `Cache/` | 系统内的近线状态：instruments、market data、orders、positions 等可重建状态。 | 当前承接 projection / evidence cache boundary。 | 不成为唯一事实源，不替代 Database / Event Log。 |
 | `Database/` | 持久化 facts / projections，包含 SQLite runtime projection 和 DuckDB analytical projection。 | 当前是 state / projection / replay evidence boundary。 | 不暴露 schema 给 Dashboard，不成为 UI contract。 |
-| `Trader/` | account + strategy instances + coordination 的容器。它消费策略输出、组合状态、风险上下文和执行上下文。 | 当前只完成 layout / evidence / coordination boundary，不是 Trader runtime。 | 不直连 `ExecutionClient`、broker、OMS 或 live command。 |
-| `Trader/Strategies/EMA/` | 当前唯一 active concrete strategy 的定义区。策略只产生 signal / proposal / evidence。 | 当前 active concrete strategy only：EMA。 | 不新增 RSI / OBI / Momentum 等 active source；不提交订单。 |
+| `Trader/` | account + strategy instances + coordination 的容器。它消费策略输出、组合状态、风险上下文和执行上下文。 | Release v0.2.0 当前 active strategy scope 固定 EMA + RSI；Trader runtime 仍必须按 issue gate 逐步实现。 | 不直连 `ExecutionClient`、broker、OMS 或 live command。 |
+| `Trader/Strategies/<strategy>/` | Trader-owned concrete strategy 定义区。策略只产生 signal / proposal / evidence。 | Release v0.2.0 activeStrategies == [ema, rsi]；EMA 已有 canonical path，RSI 只能由对应 v0.2.0 issue 在同一 layout 下落地。 | 不新增非 EMA / RSI active strategy；不提交订单。 |
 | `Trader/Coordination/` | 串联 account、strategy、portfolio、risk、execution context 的协调边界；binding / adapter 语义归这里。 | 当前 `RiskBinding` 归入该层。 | 不作为具体 strategy code 落点，不绕过 RiskEngine / ExecutionEngine。 |
 | `Portfolio/` | 组合视角：position、net position、margin、open value 等 read-model / projection context。 | 当前是 read-model / evidence boundary。 | 不读取 broker account state，不表达 real account truth。 |
 | `RiskEngine/` | 执行前风险判断和 blocked evidence。 | 当前是 paper / simulated / future live risk gate boundary。 | 不调用 broker，不调用 `ExecutionClient`，不实现 live risk runtime。 |
 | `ExecutionEngine/` | 系统内部的执行生命周期脑子：paper / simulated order lifecycle、fill、fee / slippage、portfolio projection。 | 当前已拆出 paper / simulated / OMS future gate boundary。 | 不调用交易所，不实现 broker adapter，不处理 real order lifecycle。 |
-| `ExecutionClient/` | 未来对外执行适配器：把已授权订单意图翻译成交易所 / broker API 请求，并接收 execution report / broker fill。 | 当前只有 future gate / capability matrix，没有实现。 | 当前禁止 signed request、submit / cancel / replace、execution report parser、broker fill、reconciliation。 |
+| `ExecutionClient/` | 对外执行适配器边界：把已授权订单意图翻译成交易所 / broker API 请求，并接收 execution report / broker fill。 | Release v0.2.0 只允许在 issue scope 内推进 Binance Spot / USDⓈ-M Perpetual testnet / dry-run evidence；production capability 是 gated capability，不是缺失能力。 | 禁止 production default、secret auto-read、production endpoint auto-connect、CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store bypass。 |
 | `Dashboard/` | 只读消费 ReadModel / ViewModel，展示 Report、Dashboard、Events 和 evidence surface。 | 当前 active UI surface 是 `Dashboard read-model-only boundary`。 | 不读 Runtime object、Adapter request、DB schema，不提供 trading button / live command。 |
 
-`DataClient` 和 `ExecutionClient` 是一进一出，但当前只实现了输入侧的 public read-only 能力：
+`GH-564-RELEASE-V020-ROOT-DOCS-BOUNDARY-REFRESH`
 
-- `DataClient` 是“从外部拿数据进来”的输入适配器。
+`DataClient` 和 `ExecutionClient` 是一进一出；Release v0.2.0 的当前边界不再是“只存在 public-read-only / paper-only / EMA-only / ExecutionClient future-gate”。当前 release construction scope 固定：
+
+- activeVenue == Binance
+- activeProductTypes == [spot, usdsPerpetual]
+- activeStrategies == [ema, rsi]
+- productionTradingEnabledByDefault == false
+- productionCapabilityGatedNotMissing == true
+- oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true
+
+Production capability 是 gated capability：它必须经 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch / no-trade 和 validation gates；没有这些 gate 的路径仍不得读取 production secret、连接 production endpoint、连接 broker 或提交真实订单。
+
+- `DataClient` 是“从外部拿 market / account / private evidence 进来”的输入适配器。
 - `DataEngine` 把外部数据整理成内部事件、回放、质量证据和 read model 输入。
-- `Trader/Strategies/EMA` 消费内部模型和上下文，只产出 proposal / signal / evidence。
+- `Trader/Strategies/{EMA,RSI}` 消费内部模型和上下文，只产出 proposal / signal / evidence。
 - `ExecutionEngine` 是内部 paper / simulated 执行生命周期，不负责和交易所通话。
-- `ExecutionClient` 是未来“把订单发出去”的外部执行适配器；当前 MTPRO 只保留 future gate，不实现任何真实下单路径。
+- `ExecutionClient` 是“把订单发出去”的 gated boundary：只把已授权订单意图发给外部 venue；当前 production trading 默认关闭，后续只能在 v0.2 issue scope 内推进 Binance Spot / USDⓈ-M Perpetual testnet / dry-run evidence。
 
 因此，正确心智不是“策略直接调用 ExecutionClient”，而是：
 
@@ -66,7 +77,7 @@ DataClient/<venue>
 -> Trader 协调上下文
 -> RiskEngine 做风险门
 -> ExecutionEngine 处理内部 paper / simulated lifecycle
--> ExecutionClient 未来在 L4 授权后才可能接外部交易所 / broker
+-> ExecutionClient 在 release issue 明确授权、且 production 默认关闭的 gate 后才可能接外部交易所 / broker
 ```
 
 ## Current Source Layout / 当前源码模块地形
@@ -87,6 +98,7 @@ Sources/
       RiskBinding/
     Strategies/
       EMA/
+      # RSI 只能由 v0.2.0 对应 issue 在 Trader-owned strategy layout 下落地
   Portfolio/
   RiskEngine/
   ExecutionEngine/
@@ -96,10 +108,11 @@ Sources/
 
 当前需要继续守住的事实：
 
-- active concrete strategy 只有 `EMA`，canonical path 是 `Sources/Trader/Strategies/EMA/`。
-- 非 EMA strategy 只能作为 future candidate，不进入当前 active source / tests / Package path。
+- Release v0.2.0 active concrete strategy scope 是 `EMA + RSI`，canonical path pattern 是 `Sources/Trader/Strategies/<strategy>/`。
+- 既有 `EMA` source root 保持在 `Sources/Trader/Strategies/EMA/`；`RSI` 只能由对应 v0.2.0 issue 在同一 Trader-owned strategy layout 下落地。
+- 非 EMA / RSI strategy 只能作为 future candidate，不进入当前 active release scope。
 - `StrategyBindings` 不再是 Trader 下的一级策略目录；binding / adapter 语义归入 `Trader/Coordination`。
-- `ExecutionClient` 只存在 future gate / capability matrix，不是 broker / exchange execution implementation。
+- `ExecutionClient` 是 gated execution boundary；testnet / dry-run evidence 可以由对应 v0.2.0 issue 授权，production capability 仍默认关闭并受 CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store gate 约束。
 - `Workbench` product / target 和 `Sources/Workbench/` 已退休；当前 active UI surface 统一为 `Dashboard read-model-only boundary`。
 - 当前 active SwiftPM target graph 以 MTP-217 至 MTP-221 的 split targets 为准；implementation-level envelope retirement、`App` compatibility export retirement 和 L4 runtime 仍需后续独立授权。
 
@@ -184,7 +197,7 @@ GH-391 记录当前 architecture graph 的关键差距：target name、real modu
 
 `GH-391-AUTHORITATIVE-TARGET-OWNERSHIP-MODEL`
 
-当前 authoritative target names 是 `DomainModel`、`MessageBus`、`Database`、`DataClient`、`Cache`、`DataEngine`、`TraderStrategies`、`Trader`、`Portfolio`、`RiskEngine`、`ExecutionClient`、`ExecutionEngine` 和 `Dashboard`。当前 active strategy only `EMA`，`Trader = Accounts + Strategies/EMA + Coordination`，`ExecutionClient` remains future gate / protocol boundary only。
+当前 authoritative target names 是 `DomainModel`、`MessageBus`、`Database`、`DataClient`、`Cache`、`DataEngine`、`TraderStrategies`、`Trader`、`Portfolio`、`RiskEngine`、`ExecutionClient`、`ExecutionEngine` 和 `Dashboard`。Release v0.2.0 当前 active strategy scope 是 `EMA + RSI`，`Trader = Accounts + Strategies/{EMA,RSI} + Coordination`；`ExecutionClient` 是 gated execution boundary，production capability 默认关闭并受 release gates 约束。
 
 `GH-391-DEPENDENCY-DIRECTION-CORRECTION`
 
@@ -350,7 +363,7 @@ MTP-216 的 before-state snapshot 是旧 compatibility envelope：`Core`、`Adap
 
 `MTP-216-CANONICAL-TARGET-GRAPH-BASELINE`
 
-后续目标 module targets 是 `DomainModel`、`MessageBus`、`Database`、`DataClient`、`Cache`、`DataEngine`、`Portfolio`、`RiskEngine`、`ExecutionClient`、`ExecutionEngine`、`TraderStrategies`、`Trader`、`Workbench` 和 `Dashboard`。`TraderStrategies` 归 Trader ownership，当前 active concrete strategy only `EMA`，canonical source path only `Sources/Trader/Strategies/EMA/`。
+后续目标 module targets 是 `DomainModel`、`MessageBus`、`Database`、`DataClient`、`Cache`、`DataEngine`、`Portfolio`、`RiskEngine`、`ExecutionClient`、`ExecutionEngine`、`TraderStrategies`、`Trader`、`Workbench` 和 `Dashboard`。`TraderStrategies` 归 Trader ownership；MTP-216 / MTP-198 时的 EMA-only 事实只作为 historical target split evidence 保留，Release v0.2.0 当前 active strategy scope 是 `EMA + RSI`，canonical source path pattern 是 `Sources/Trader/Strategies/<strategy>/`。
 
 `MTP-216-DEPENDENCY-DIRECTION-CONTRACT`
 
@@ -452,7 +465,7 @@ MTP-219 继续实际 SwiftPM target graph split：`Package.swift` 新增 `Trader
 
 `MTP-219-TRADERSTRATEGIES-TARGET-SPLIT`
 
-`TraderStrategies` target 依赖 `DomainModel`、`MessageBus`、`Cache`、`Portfolio` 和 `RiskEngine`，当前 active boundary anchor 是 `Sources/Trader/Strategies/EMA/TargetGraph/TraderStrategiesTargetBoundary.swift`。当前 active concrete strategy only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/`。
+`TraderStrategies` target 依赖 `DomainModel`、`MessageBus`、`Cache`、`Portfolio` 和 `RiskEngine`，当前 active boundary anchor 仍包含 `Sources/Trader/Strategies/EMA/TargetGraph/TraderStrategiesTargetBoundary.swift`。Release v0.2.0 的 active strategy scope 是 `EMA + RSI`；EMA 保持既有 canonical path，RSI 只能由对应 v0.2.0 issue 在 `Sources/Trader/Strategies/<strategy>/` layout 下落地。
 
 `MTP-219-TRADER-TARGET-SPLIT`
 
@@ -661,7 +674,7 @@ MTP-222 validation 必须证明 active docs 已包含 current target graph snaps
 
 `MTP-224-REAL-MODULE-SOURCE-ROOT-TARGET`
 
-后续 target source root 的目标落点必须回到真实模块目录：`Sources/DomainModel/`、`Sources/MessageBus/`、`Sources/Database/`、`Sources/DataClient/`、`Sources/DataEngine/`、`Sources/Cache/`、`Sources/Portfolio/`、`Sources/RiskEngine/`、`Sources/ExecutionClient/`、`Sources/ExecutionEngine/`、`Sources/Trader/Strategies/EMA/`、`Sources/Trader/Accounts/`、`Sources/Trader/Coordination/` 和 `Sources/Dashboard/`。当前 active concrete strategy only `EMA`；后续多个策略只能进入 `Sources/Trader/Strategies/<strategy>/`。
+后续 target source root 的目标落点必须回到真实模块目录：`Sources/DomainModel/`、`Sources/MessageBus/`、`Sources/Database/`、`Sources/DataClient/`、`Sources/DataEngine/`、`Sources/Cache/`、`Sources/Portfolio/`、`Sources/RiskEngine/`、`Sources/ExecutionClient/`、`Sources/ExecutionEngine/`、`Sources/Trader/Strategies/<strategy>/`、`Sources/Trader/Accounts/`、`Sources/Trader/Coordination/` 和 `Sources/Dashboard/`。Release v0.2.0 active strategy scope 是 `EMA + RSI`；非 EMA / RSI strategy 仍只能作为 future candidate。
 
 `MTP-224-MIGRATION-SEQUENCE-COMPATIBILITY-RULE`
 
@@ -679,7 +692,7 @@ MTP-231 后，`Sources/TargetGraph/` 不再作为 active source directory 存在
 
 `MTP-231-REAL-MODULE-ROOT-ACTIVE-SNAPSHOT`
 
-当前 active target roots 固定为 `Sources/DomainModel`、`Sources/MessageBus`、`Sources/Database`、`Sources/DataClient`、`Sources/Cache`、`Sources/DataEngine`、`Sources/Trader/Strategies/EMA`、`Sources/Trader`、`Sources/Portfolio`、`Sources/RiskEngine`、`Sources/ExecutionClient`、`Sources/ExecutionEngine` 和 `Sources/Dashboard`。历史 `Sources/TargetGraph/<Module>` 文字只能作为 before-state / retired evidence 保留，不得描述 current compiler owner、feature landing path、runtime owner 或 L4 capability source。
+当前 active target roots 固定为 `Sources/DomainModel`、`Sources/MessageBus`、`Sources/Database`、`Sources/DataClient`、`Sources/Cache`、`Sources/DataEngine`、`Sources/Trader/Strategies/<strategy>`、`Sources/Trader`、`Sources/Portfolio`、`Sources/RiskEngine`、`Sources/ExecutionClient`、`Sources/ExecutionEngine` 和 `Sources/Dashboard`。EMA 已有真实 root；RSI 只能由对应 v0.2.0 issue 在同一 Trader-owned strategy layout 下落地。历史 `Sources/TargetGraph/<Module>` 文字只能作为 before-state / retired evidence 保留，不得描述 current compiler owner、feature landing path、runtime owner 或 L4 capability source。
 
 `MTP-231-TARGETGRAPH-RETIREMENT-VALIDATION`
 
@@ -710,9 +723,9 @@ flowchart TB
 
 `L1 Paper Runtime` 已完成 local-first、paper-only、deterministic evidence chain，不代表 production trading engine。`L1.5 Data Catalog / Scenario Replay` 已完成 local deterministic scenario input 和 report reproducibility evidence，不代表 production data platform 或 large-scale ingestion pipeline。`L2 Simulated Exchange / Backtest Parity` 已完成 deterministic simulated exchange / backtest parity evidence chain，不代表真实 exchange runtime、production backtest engine、broker connection、OMS、execution report、broker fill 或 reconciliation。`L2+ Workbench Beta Readiness` 已完成 local macOS Workbench demo / acceptance path，不代表 production release、notarization、App Store distribution、auto-update、production operations、Live read-only runtime 或 Live Production。`L3.0 Live Read-only Readiness Boundary` 已完成 terminology、credential / secret policy、endpoint taxonomy、adapter capability matrix、account / position / balance future gates、private stream / account snapshot simulation gate 和 Workbench read-model-only boundary，不代表 signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、real account read、broker position sync、broker readiness、Live Monitoring Console v2 runtime、Live PRO Console 或 real trading readiness。`L3.1 Account / Position / Balance Read-model-only` 已完成 account / position / balance read-model-only evidence chain，不代表 account / position / balance runtime、account snapshot runtime、private stream runtime、real account read、broker position sync、real balance、margin、leverage、real PnL runtime 或 Live PRO Console。`L3.2 Private Stream / Account Snapshot Simulation Gate` 已完成 private stream / account snapshot 的 local fixture / simulated source / future-gated label / read-model-only evidence chain，不代表 private stream runtime、account snapshot runtime、signed endpoint、account endpoint / listenKey、private WebSocket runtime、real account read、broker position sync、broker readiness、Live Monitoring Console v2 runtime、Live PRO Console 或 real trading readiness。`L3.3 Live Monitoring Read-only Console v2` 已完成 deterministic Core contract -> App Read Model / ViewModel -> Dashboard / Report / Event Timeline 的 read-model-only monitoring evidence chain，不代表 Live Monitoring runtime、Live readiness runtime、connection manager、runtime connection、signed endpoint、account endpoint / listenKey、private WebSocket runtime、account snapshot runtime、broker adapter、Live PRO Console、trading button、live command、order form、stop、shutdown、restore 或 real trading readiness。`L3.4 Strategy / Trader Instance Readiness v1` 已完成 contract anchors / deterministic evidence -> App Read Model / ViewModel -> Dashboard / Report / Event Timeline 的 read-model-only strategy/trader structural readiness evidence chain，不代表 Strategy runtime、Trader runtime、ExecutionClient implementation、broker command、OMS、Live PRO Console、trading button、live command 或 real trading readiness。`Engine Module Boundary Consolidation before L4` 已完成 architecture-graph-aligned target module boundary、fixed source layout、dependency direction、forbidden path taxonomy 和 L4 planning input material。`Target Module Physical Layout / Source Migration before L4` 已完成 DomainModel / MessageBus / DataClient / DataEngine / Cache / Database / Strategies / Trader / Portfolio / RiskEngine / ExecutionEngine / ExecutionClient / Workbench / Dashboard 的 physical source migration 和 compatibility envelope evidence，不代表 SwiftPM target graph 已拆分、L4 runtime 已实现或 live trading 已授权。Live Readiness 作为新路线单独记录：`L4 Live Production / Trading Commands` 仍是 Future Gated。Target Module Physical Layout / Source Migration completion 只证明 target module physical directories、compatibility envelope 和 L4 前 source migration evidence 已闭环，不允许 strategy 直接调用 ExecutionClient、broker command、OMS、trading button、Live PRO Console 或 live command。Real live runtime source、signed / account stream、broker / exchange stream 仍是 Future Gated / Forbidden now。当前 `LiveMonitoring` 只能消费被允许的 read-model-only evidence source，不代表真实 broker connection、listenKey user data stream 或 real order stream。当前 `LiveExecutionControl` 只能表达 execution-control contract、future gates、forbidden capability tests、blocked evidence 和 read-model-only evidence surface，不代表真实 execution runtime、真实订单命令、execution report、broker fill 或 reconciliation。当前 `LiveRiskGate` 只能表达 risk gate contract、future gates、forbidden capability tests、paper / live risk isolation、blocked evidence 和 read-model-only evidence surface，不代表真实 live risk engine、真实账户风控、real pre-trade allow / reject runtime、circuit breaker command、stop trading command 或 production runtime。当前 `LiveIncidentStop` 只能表达 audit / incident / stop contract、future gates、forbidden capability tests、blocked evidence 和 read-model-only evidence surface，不代表真实 audit trail runtime、incident replay runtime、emergency stop、shutdown、restore、production operations、Live PRO Console、live command 或 trading button。
 
-`Trader-Owned Strategies Layout Correction before L4` 已完成 concrete strategy ownership correction：`Sources/Trader/Strategies/<strategy>/` 是 forward-looking canonical path；MTP-198 之后当前 active concrete strategy 只有 EMA，canonical active path 只有 `Sources/Trader/Strategies/EMA/`。OrderBookImbalance 只作为 historical / compatibility source placement evidence 和后续 MTP-200 / MTP-201 debt，不是当前 active strategy；旧 `Sources/Strategies/<strategy>` 只能作为 historical / compatibility / superseded context；旧 `Sources/Trader/StrategyBindings/` 只作为 historical / compatibility path，当前 binding / adapter 语义归入 `Sources/Trader/Coordination/RiskBinding/`，不作为具体策略实现落点。该 closure 本身不代表 Strategy runtime、Trader runtime、ExecutionClient implementation、broker command、OMS、Live PRO Console、trading button、live command 或 SwiftPM target graph split；SwiftPM target graph split 后续已由 `MTPRO SwiftPM Target Graph Module Split v1` 单独完成。
+`Trader-Owned Strategies Layout Correction before L4` 已完成 concrete strategy ownership correction：`Sources/Trader/Strategies/<strategy>/` 是 forward-looking canonical path；MTP-198 当时的 active concrete strategy 只有 EMA，canonical active path 只有 `Sources/Trader/Strategies/EMA/`。该 EMA-only 事实现在只作为 historical / audit evidence 保留；Release v0.2.0 当前 active strategy scope 是 `EMA + RSI`。OrderBookImbalance 只作为 historical / compatibility source placement evidence 和后续 MTP-200 / MTP-201 debt，不是当前 active strategy；旧 `Sources/Strategies/<strategy>` 只能作为 historical / compatibility / superseded context；旧 `Sources/Trader/StrategyBindings/` 只作为 historical / compatibility path，当前 binding / adapter 语义归入 `Sources/Trader/Coordination/RiskBinding/`，不作为具体策略实现落点。该 closure 本身不代表 Strategy runtime、Trader runtime、ExecutionClient implementation、broker command、OMS、Live PRO Console、trading button、live command 或 SwiftPM target graph split；SwiftPM target graph split 后续已由 `MTPRO SwiftPM Target Graph Module Split v1` 单独完成。
 
-`Trader EMA Strategy Layout Consolidation before L4` 已完成 EMA-only active concrete strategy layout consolidation：当前 active concrete strategy only `EMA`，canonical active path only `Sources/Trader/Strategies/EMA/`；非 EMA strategy 只能作为 future candidate / future-gated label / historical evidence / compatibility debt。OrderBookImbalance 的当前证据收口为 `Sources/Core/Research/OrderBookImbalanceResearchEvidence.swift` historical research evidence，不再作为 active Trader strategy path。`Sources/Trader/Coordination/RiskBinding/` 只表达 Trader coordination / binding boundary，不得成为 strategy-to-execution shortcut。该 closure 只证明 layout、validation matrix、compatibility envelope 和 forbidden direct execution audit 已闭环，本身不代表 Strategy runtime、Trader runtime、ExecutionClient implementation、broker command、OMS、Live PRO Console、trading button、live command 或 SwiftPM target graph split；SwiftPM target graph split 后续已由 `MTPRO SwiftPM Target Graph Module Split v1` 单独完成。
+`Trader EMA Strategy Layout Consolidation before L4` 已完成当时的 EMA-only active concrete strategy layout consolidation：EMA canonical active path 是 `Sources/Trader/Strategies/EMA/`；非 EMA strategy 在该 closure 中只能作为 future candidate / future-gated label / historical evidence / compatibility debt。该 EMA-only 口径不再作为 release v0.2.0 当前边界；Release v0.2.0 当前 active strategy scope 是 `EMA + RSI`。OrderBookImbalance 的当前证据收口为 `Sources/Core/Research/OrderBookImbalanceResearchEvidence.swift` historical research evidence，不再作为 active Trader strategy path。`Sources/Trader/Coordination/RiskBinding/` 只表达 Trader coordination / binding boundary，不得成为 strategy-to-execution shortcut。该 closure 只证明 layout、validation matrix、compatibility envelope 和 forbidden direct execution audit 已闭环，本身不代表 Strategy runtime、Trader runtime、ExecutionClient implementation、broker command、OMS、Live PRO Console、trading button、live command 或 SwiftPM target graph split；SwiftPM target graph split 后续已由 `MTPRO SwiftPM Target Graph Module Split v1` 单独完成。
 
 `SwiftPM Target Graph Module Split before L4` 已完成 buildable target graph evidence chain，后续 cleanup 已退役 `App` 和 `Workbench`。当前 active SwiftPM target graph 包含 `DomainModel`、`MessageBus`、`Database`、`DataClient`、`Cache`、`DataEngine`、`TraderStrategies`、`Trader`、`Portfolio`、`RiskEngine`、`ExecutionClient`、`ExecutionEngine` 和 `Dashboard`。`Core`、`Adapters`、`Persistence` 和 `Runtime` 仍作为 retained compatibility envelopes / exports。该 closure 不实现 Strategy runtime、Trader runtime、Live runtime、ExecutionClient implementation、OMS implementation、broker gateway、signed/account endpoint、private stream runtime、real order lifecycle、Live PRO Console、trading button、live command、order form 或 L4 capability。
 
@@ -724,17 +737,17 @@ flowchart TB
 | --- | --- | --- |
 | `DomainModel` | 领域模型、事件、命令、交易语义、paper / simulated / live-gated shared vocabulary。 | 当前已有 buildable target boundary；既有 implementation 仍可由 compatibility envelope 暴露；不表达 live runtime。 |
 | `MessageBus` | engine-local command / event / request-response spine。 | 当前已有 buildable target boundary；不是外部 API。 |
-| `DataClient/<venue>` | venue scoped public data input adapter；一个交易所 / venue 一个目录。 | 当前 `Binance` 只允许 public read-only market data；private / signed / account source 是 future gate。 |
+| `DataClient/<venue>` | venue scoped market / account / private evidence input adapter；一个交易所 / venue 一个目录。 | Release v0.2.0 当前 active venue 固定 `Binance`，active product types 固定 Spot + USDⓈ-M Perpetual；production secret / endpoint 默认关闭。 |
 | `DataEngine` | ingest、scenario replay、data quality、freshness、cursor、dataset version 和 replay evidence。 | 当前服务 deterministic fixture / scenario replay / report input evidence。 |
 | `Cache` | instruments、market data、orders、positions 的可重建状态边界。 | 当前只作为 projection / evidence cache boundary。 |
 | `Database` | append-only facts、SQLite runtime projection、DuckDB analytical projection 和 replay projection。 | 当前不能暴露 schema 给 UI。 |
 | `Trader` | account + strategy instances + coordination container。 | 当前只表达 layout / evidence / coordination boundary，不是 Trader runtime。 |
-| `Trader/Strategies/EMA` | 当前唯一 active concrete strategy 的 lifecycle、signals、proposals、quoter / hedger boundary。 | 当前 only active strategy；不提交订单，不直连 ExecutionClient。 |
+| `Trader/Strategies/<strategy>` | active concrete strategy 的 lifecycle、signals、proposals、quoter / hedger boundary。 | Release v0.2.0 activeStrategies == [ema, rsi]；不提交订单，不直连 ExecutionClient。 |
 | `Trader/Coordination` | 串联 account、strategy、portfolio、risk、execution context；binding / adapter 语义归入这里。 | 当前 `RiskBinding` 在该边界下。 |
 | `Portfolio` | positions、net positions、margin、open value、paper / simulated exposure read-model context。 | 当前不读取 broker account state。 |
 | `RiskEngine` | paper pre-trade risk、blocked evidence、future live risk gates。 | 当前不调用 broker / ExecutionClient。 |
 | `ExecutionEngine` | paper / simulated lifecycle、simulated fill、fee / slippage、Portfolio projection output、OMS future gate。 | 当前不实现 broker submit / cancel / replace。 |
-| `ExecutionClient` | future exchange / broker execution client capability boundary。 | 当前只允许 module name / future gate / capability matrix，不实现 broker / exchange execution adapter。 |
+| `ExecutionClient` | gated exchange / broker execution client capability boundary。 | Release v0.2.0 只允许对应 issue scope 内的 Binance Spot / USDⓈ-M Perpetual testnet / dry-run evidence；production capability 默认关闭且受 gate 约束。 |
 | `Workbench` | Report / Dashboard / Events / ReadModel / ViewModel evidence surface。 | 当前只读消费 read models，不读取 runtime / adapter / DB schema。 |
 | `Dashboard` | SwiftPM 可构建 / smoke-run 的 macOS shell。 | 当前只依赖 Workbench 并装载 Workbench ViewModel snapshot；`App` 只是 compatibility re-export。 |
 

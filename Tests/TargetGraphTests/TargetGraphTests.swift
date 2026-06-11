@@ -6135,6 +6135,73 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(l4Boundary.contains("testGH563ReleaseV020ContractDefinesBinanceSpotPerpEMARSIBoundary"))
     }
 
+    func testGH564ReleaseV020RootDocsReplaceOldSpotPaperEMABoundaries() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let readme = try String(contentsOf: repositoryRoot.appendingPathComponent("README.md"), encoding: .utf8)
+        let architecture = try String(contentsOf: repositoryRoot.appendingPathComponent("architecture.md"), encoding: .utf8)
+        let roadmap = try String(contentsOf: repositoryRoot.appendingPathComponent("docs/roadmap.md"), encoding: .utf8)
+        let latestSummary = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/latest-verification-summary.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let l4Boundary = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.d/l4-boundary.sh"),
+            encoding: .utf8
+        )
+
+        for rootDoc in [readme, architecture, roadmap, latestSummary, domainContext] {
+            XCTAssertTrue(rootDoc.contains("GH-564-RELEASE-V020-ROOT-DOCS-BOUNDARY-REFRESH"))
+            XCTAssertTrue(rootDoc.contains("activeVenue == Binance"))
+            XCTAssertTrue(rootDoc.contains("activeProductTypes == [spot, usdsPerpetual]"))
+            XCTAssertTrue(rootDoc.contains("activeStrategies == [ema, rsi]"))
+            XCTAssertTrue(rootDoc.contains("productionTradingEnabledByDefault == false"))
+        }
+
+        for currentBoundaryDoc in [readme, architecture, roadmap, latestSummary, domainContext] {
+            XCTAssertTrue(currentBoundaryDoc.contains("productionCapabilityGatedNotMissing == true"))
+            XCTAssertTrue(currentBoundaryDoc.contains("oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true"))
+        }
+
+        XCTAssertTrue(domainContext.contains("GH-564-PRODUCTION-CAPABILITY-GATED-NOT-MISSING"))
+        XCTAssertTrue(domainContext.contains("GH-564-NO-OLD-BOUNDARY-AS-CURRENT"))
+        XCTAssertTrue(validationMatrix.contains("`GH-564`"))
+        XCTAssertTrue(validationPlan.contains("GH-564 Release v0.2.0 Root Docs Boundary Refresh Validation"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 root docs boundary refresh anchor"))
+        XCTAssertTrue(l4Boundary.contains("GH-564-RELEASE-V020-ROOT-DOCS-BOUNDARY-REFRESH"))
+        XCTAssertTrue(l4Boundary.contains("testGH564ReleaseV020RootDocsReplaceOldSpotPaperEMABoundaries"))
+
+        XCTAssertFalse(
+            readme.contains("当前 execution scope 仍是 paper-only / public-read-only foundation")
+        )
+        for retiredCurrentBoundary in [
+            "当前只允许 Binance public market data read-only 和 future-gated private stream label",
+            "active concrete strategy 只有 `EMA`",
+            "非 EMA strategy 只能作为 future candidate",
+            "`ExecutionClient` 只存在 future gate / capability matrix"
+        ] {
+            XCTAssertFalse(
+                architecture.contains(retiredCurrentBoundary),
+                "architecture.md must not present old boundary as current: \(retiredCurrentBoundary)"
+            )
+        }
+    }
+
     func testGH503ProductionCredentialSecretPolicyGateDefinesNoDefaultSecretReadContract() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

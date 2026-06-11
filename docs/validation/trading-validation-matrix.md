@@ -969,6 +969,7 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | Issue | Matrix ID | Evidence |
 | --- | --- | --- |
 | `GH-563` | `TVM-RELEASE-V020-BINANCE-SPOT-PERP-EMA-RSI-NTPRO-ALIGNMENT` | Release v0.2.0 contract：新增 `docs/contracts/release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md`，固定 milestone `MTPRO Release v0.2.0`、queue range `GH-563..GH-596`、`activeVenue == Binance`、`activeProductTypes == [spot, usdsPerpetual]`、`activeStrategies == [ema, rsi]`、`productionTradingEnabledByDefault == false`、NTPRO scoped 100% alignment matrix、CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store gate boundary 和 release v0.2.0 acceptance matrix。GH-563 不实现 runtime，不读取 production secret，不连接 production endpoint，不提交真实订单，不创建下一 Project / Issue，不推进 release v0.2.0 后续阶段。 |
+| `GH-564` | `TVM-RELEASE-V020-BINANCE-SPOT-PERP-EMA-RSI-NTPRO-ALIGNMENT` | Root docs boundary refresh：更新 `README.md`、`architecture.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md` 和 `docs/domain/context.md` 的当前边界口径，固定 `GH-564-RELEASE-V020-ROOT-DOCS-BOUNDARY-REFRESH`、`GH-564-PRODUCTION-CAPABILITY-GATED-NOT-MISSING`、`GH-564-NO-OLD-BOUNDARY-AS-CURRENT`、`productionCapabilityGatedNotMissing == true` 和 `oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true`。GH-564 只同步当前 root docs 口径，不实现 runtime，不读取 production secret，不连接 production endpoint，不提交真实订单，不创建下一 Project / Issue，不推进 release v0.2.0 后续阶段。 |
 
 ## Release v0.1.0 Binance EMA Runtime matrix extension
 
