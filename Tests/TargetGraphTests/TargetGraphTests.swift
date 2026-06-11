@@ -4688,6 +4688,8 @@ final class TargetGraphTests: XCTestCase {
                 )
             case .exchangeInfo:
                 Data(#"{"symbols":[]}"#.utf8)
+            case .premiumIndex, .openInterest:
+                throw XCTSkip("Unexpected GH-524 Perp-only capability: \(request.contract.capability.rawValue)")
             }
         }
         let client = BinancePublicMarketDataClient(transport: transport)
@@ -4801,6 +4803,8 @@ final class TargetGraphTests: XCTestCase {
                 )
             case .exchangeInfo:
                 Data(#"{"symbols":[]}"#.utf8)
+            case .premiumIndex, .openInterest:
+                throw XCTSkip("Unexpected GH-573 Perp-only capability: \(request.contract.capability.rawValue)")
             }
         }
         let plan = try BinancePublicMarketDataRuntimePlan(
@@ -4874,6 +4878,163 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(validationPlan.contains("GH-573 Release v0.2.0 Binance Spot DataEngine Cache Path Validation"))
         XCTAssertTrue(domainContext.contains("GH-573 Binance Spot DataEngine Cache Path Terms"))
         XCTAssertTrue(automationReadiness.contains("Release v0.2.0 Binance Spot DataEngine Cache path anchor"))
+    }
+
+    func testGH574BinanceUSDMPerpetualMarketDataActivePathEmitsProductAwareEventsIntoCache() async throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+
+        let symbol = try Symbol(rawValue: "BTCUSDT")
+        let contract = try PerpetualContract.binanceBTCUSDTFixture()
+        let instrument = contract.instrument
+        let range = try DateRange(
+            start: Date(timeIntervalSince1970: 1_704_067_400),
+            end: Date(timeIntervalSince1970: 1_704_067_460)
+        )
+        let transport = TargetGraphMockBinancePublicMarketDataTransport { request in
+            switch request.contract.path {
+            case "/fapi/v1/exchangeInfo":
+                Data(
+                    #"""
+                    {"symbols":[{"symbol":"BTCUSDT","status":"TRADING","contractType":"PERPETUAL","marginAsset":"USDT","quoteAsset":"USDT","pricePrecision":2,"quantityPrecision":3}]}
+                    """#.utf8
+                )
+            case "/fapi/v1/klines":
+                Data(
+                    #"""
+                    [[1704067400000,"43000.00","43200.00","42900.00","43150.00","12.000",1704067459999,"517800.00",120,"6.000","258900.00","0"]]
+                    """#.utf8
+                )
+            case "/fapi/v1/depth":
+                Data(
+                    #"""
+                    {"lastUpdateId":210,"bids":[["43100.00","2.000"]],"asks":[["43101.00","2.500"]]}
+                    """#.utf8
+                )
+            case "/ws/btcusdt@depth":
+                Data(
+                    #"""
+                    {"e":"depthUpdate","E":1704067403000,"s":"BTCUSDT","U":211,"u":212,"b":[["43100.50","1.500"]],"a":[["43101.50","0.000"]]}
+                    """#.utf8
+                )
+            case "/fapi/v1/premiumIndex":
+                Data(
+                    #"""
+                    {"symbol":"BTCUSDT","markPrice":"43120.50","indexPrice":"43118.25","lastFundingRate":"0.00010000","nextFundingTime":1704096000000,"time":1704067405000}
+                    """#.utf8
+                )
+            case "/fapi/v1/openInterest":
+                Data(
+                    #"""
+                    {"symbol":"BTCUSDT","openInterest":"12345.678","time":1704067406000}
+                    """#.utf8
+                )
+            default:
+                throw XCTSkip("Unexpected GH-574 request path: \(request.contract.path)")
+            }
+        }
+        let plan = try BinanceUSDMPerpetualMarketDataRuntimePlan(
+            sourceID: try FoundationTargetID("gh-574-binance-usdm-perp-source"),
+            contract: contract,
+            symbol: symbol,
+            timeframe: .oneMinute,
+            range: range,
+            datasetVersion: "gh-574",
+            klineLimit: 1,
+            depthSnapshotLimit: .oneHundred,
+            depthSnapshotObservedAt: Date(timeIntervalSince1970: 1_704_067_404),
+            firstRecordedAt: Date(timeIntervalSince1970: 1_704_067_410)
+        )
+
+        let result = try await BinancePublicMarketDataRuntimePath(
+            client: BinancePublicMarketDataClient(transport: transport)
+        ).run(plan)
+
+        XCTAssertEqual(result.instrument, instrument)
+        XCTAssertEqual(result.marketEvents.count, 3)
+        XCTAssertEqual(result.productAwareEvents.count, 6)
+        XCTAssertTrue(result.productAwareEvents.allSatisfy { $0.instrument == instrument })
+        XCTAssertTrue(result.productAwareEvents.allSatisfy { $0.productType == .usdsPerpetual })
+        XCTAssertEqual(result.eventEnvelopes.map(\.instrumentID), Array(repeating: instrument, count: 6))
+        XCTAssertEqual(result.eventEnvelopes.map(\.productType), Array(repeating: .usdsPerpetual, count: 6))
+        XCTAssertTrue(result.eventEnvelopes.allSatisfy { $0.payloadType.contains("dataengine.binance.usdsPerpetual") })
+        XCTAssertTrue(result.usdmPerpetualProductAwareEventsBoundaryHeld)
+        XCTAssertTrue(result.publicMarketDataRuntimePathBoundaryHeld)
+        XCTAssertEqual(result.cacheSnapshot.marketEventCount, 3)
+        XCTAssertEqual(result.cacheSnapshot, result.replayedCacheSnapshot)
+        XCTAssertEqual(result.replayedEnvelopes, result.eventEnvelopes)
+
+        let seriesKey = MarketDataSeriesKey(symbol: symbol, timeframe: .oneMinute)
+        XCTAssertEqual(result.cacheSnapshot.barsBySeries[seriesKey]?.count, 1)
+        XCTAssertNotNil(result.cacheSnapshot.orderBookSnapshotsBySymbol[symbol])
+        XCTAssertEqual(result.cacheSnapshot.orderBookDeltasBySymbol[symbol]?.count, 1)
+
+        let requests = await transport.requests()
+        XCTAssertEqual(requests.map(\.contract.path), result.requestedPublicPaths)
+        XCTAssertEqual(
+            result.requestedPublicPaths,
+            [
+                "/fapi/v1/exchangeInfo",
+                "/fapi/v1/klines",
+                "/fapi/v1/depth",
+                "/ws/btcusdt@depth",
+                "/fapi/v1/premiumIndex",
+                "/fapi/v1/openInterest"
+            ]
+        )
+        XCTAssertTrue(requests.allSatisfy { $0.method == "GET" })
+        XCTAssertTrue(requests.allSatisfy { $0.headers.isEmpty })
+        XCTAssertTrue(result.publicRequestContracts.allSatisfy { $0.productType == .usdsPerpetual })
+        assertNoForbiddenBinanceUSDMPerpetualPublicRequestFragments(
+            result.publicRequestContracts,
+            file: #filePath,
+            line: #line
+        )
+
+        XCTAssertThrowsError(
+            try BinanceUSDMPerpetualMarketDataRuntimePlan(
+                sourceID: try FoundationTargetID("gh-574-invalid-symbol-source"),
+                contract: contract,
+                symbol: try Symbol(rawValue: "ETHUSDT"),
+                timeframe: .oneMinute,
+                range: range,
+                datasetVersion: "gh-574",
+                klineLimit: 1,
+                depthSnapshotLimit: .oneHundred,
+                depthSnapshotObservedAt: Date(timeIntervalSince1970: 1_704_067_404),
+                firstRecordedAt: Date(timeIntervalSince1970: 1_704_067_410)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? BinancePublicMarketDataRuntimePathError,
+                .invalidUSDMPerpetualInstrument(
+                    field: "instrument.symbol",
+                    expected: "ETHUSDT",
+                    actual: "BTCUSDT"
+                )
+            )
+        }
+
+        XCTAssertTrue(validationMatrix.contains("`GH-574`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-BINANCE-USDM-PERP-DATAENGINE-CACHE-PATH"))
+        XCTAssertTrue(validationPlan.contains("GH-574 Release v0.2.0 Binance USD-M Perpetual DataEngine Cache Path Validation"))
+        XCTAssertTrue(domainContext.contains("GH-574 Binance USD-M Perpetual DataEngine Cache Path Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 Binance USD-M Perpetual DataEngine Cache path anchor"))
     }
 
     func testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface() async throws {
@@ -8490,6 +8651,32 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(serializedRequests.contains("/api/v3/userdatastream"), file: file, line: line)
         XCTAssertFalse(serializedRequests.contains("/sapi/"), file: file, line: line)
         XCTAssertFalse(serializedRequests.contains("/fapi/"), file: file, line: line)
+        XCTAssertFalse(serializedRequests.contains("/dapi/"), file: file, line: line)
+    }
+
+    private func assertNoForbiddenBinanceUSDMPerpetualPublicRequestFragments(
+        _ contracts: [BinancePublicRequestContract],
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let serializedRequests = contracts
+            .flatMap { contract in
+                [contract.path] + contract.queryItems.flatMap { [$0.name, $0.value] }
+            }
+            .joined(separator: " ")
+            .lowercased()
+
+        XCTAssertFalse(serializedRequests.contains("apikey"), file: file, line: line)
+        XCTAssertFalse(serializedRequests.contains("signature"), file: file, line: line)
+        XCTAssertFalse(serializedRequests.contains("listenkey"), file: file, line: line)
+        XCTAssertFalse(serializedRequests.contains("/api/v3/account"), file: file, line: line)
+        XCTAssertFalse(serializedRequests.contains("/api/v3/order"), file: file, line: line)
+        XCTAssertFalse(serializedRequests.contains("/api/v3/userdatastream"), file: file, line: line)
+        XCTAssertFalse(serializedRequests.contains("/fapi/v1/account"), file: file, line: line)
+        XCTAssertFalse(serializedRequests.contains("/fapi/v1/order"), file: file, line: line)
+        XCTAssertFalse(serializedRequests.contains("/fapi/v1/listenkey"), file: file, line: line)
+        XCTAssertFalse(serializedRequests.contains("/fapi/v1/userdatastream"), file: file, line: line)
+        XCTAssertFalse(serializedRequests.contains("/sapi/"), file: file, line: line)
         XCTAssertFalse(serializedRequests.contains("/dapi/"), file: file, line: line)
     }
 

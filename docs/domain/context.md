@@ -3906,6 +3906,28 @@ No signed / private / broker path 指 GH-573 不读取 signed endpoint、account
 
 Release v0.2.0 Binance Spot DataEngine Cache path matrix 必须证明 Spot product-aware events、MessageBus journal Spot instrument context、Cache projection parity 和 no signed / private / broker path 同时成立。
 
+## GH-574 Binance USD-M Perpetual DataEngine Cache Path Terms
+
+`GH-574-BINANCE-USDM-PERP-PRODUCT-AWARE-DATAENGINE-CACHE-PATH`
+
+Binance USDⓈ-M Perpetual product-aware DataEngine Cache path 指 release v0.2.0 的 Perp public market data active path：DataClient 只读取 Binance public futures exchangeInfo、kline、depth snapshot、depth stream、premium index 和 open interest，DataEngine 将这些 evidence 绑定到 Binance USDⓈ-M Perpetual `InstrumentIdentity` 后写入 MessageBus journal evidence，并把 market events 投影到 Cache read model。
+
+`GH-574-USDM-PERP-METADATA-MARK-INDEX-FUNDING-OI-EVIDENCE`
+
+USD-M Perp metadata / mark / index / funding / open interest evidence 指 public futures metadata、mark price、index price、last funding rate、next funding time 和 open interest 只作为市场公开读模型输入。它不表示账户保证金、账户持仓、funding debit / credit、leverage action、margin action、broker position sync 或 reconciliation。
+
+`GH-574-MESSAGEBUS-JOURNAL-USDM-PERP-INSTRUMENT-CONTEXT`
+
+MessageBus journal USD-M Perp instrument context 指 `MessageBusJournalEnvelope` 必须保存 USDⓈ-M Perpetual `instrumentID` / `productType` metadata，避免 Spot BTCUSDT 与 Perp BTCUSDT 只靠 symbol 混用。该 metadata 只表达本地 facts identity，不是 broker route、OMS request 或 executable command。
+
+`GH-574-NO-SIGNED-PRIVATE-BROKER-PATH`
+
+No signed / private / broker path 指 GH-574 不读取 signed endpoint、account endpoint、listenKey、private stream、broker endpoint、ExecutionClient、OMS、order command、leverage action 或 margin action。Spot active path 已由 GH-573 单独处理；GH-574 只授权 USDⓈ-M Perpetual public market data active path。
+
+`TVM-RELEASE-V020-BINANCE-USDM-PERP-DATAENGINE-CACHE-PATH`
+
+Release v0.2.0 Binance USD-M Perpetual DataEngine Cache path matrix 必须证明 Perp product-aware events、instrument metadata / mark / index / funding / open interest evidence、MessageBus journal Perp instrument context、Cache projection parity 和 no signed / private / broker path 同时成立。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Terms
 
 `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`

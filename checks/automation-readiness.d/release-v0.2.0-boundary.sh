@@ -190,6 +190,8 @@ required_evidence = {
         "TVM-RELEASE-V020-TYPED-MESSAGEBUS-ENVELOPE",
         "GH-573",
         "TVM-RELEASE-V020-BINANCE-SPOT-DATAENGINE-CACHE-PATH",
+        "GH-574",
+        "TVM-RELEASE-V020-BINANCE-USDM-PERP-DATAENGINE-CACHE-PATH",
     ],
     "docs/validation/validation-plan.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Validation",
@@ -198,6 +200,7 @@ required_evidence = {
         "GH-571 Release v0.2.0 Strategy Actor Registry Validation",
         "GH-572 Release v0.2.0 Typed MessageBus Envelope Validation",
         "GH-573 Release v0.2.0 Binance Spot DataEngine Cache Path Validation",
+        "GH-574 Release v0.2.0 Binance USD-M Perpetual DataEngine Cache Path Validation",
     ],
     "docs/domain/context.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Terms",
@@ -206,6 +209,7 @@ required_evidence = {
         "GH-571 Strategy Actor Registry Terms",
         "GH-572 Typed MessageBus Envelope Terms",
         "GH-573 Binance Spot DataEngine Cache Path Terms",
+        "GH-574 Binance USD-M Perpetual DataEngine Cache Path Terms",
     ],
     "docs/automation/automation-readiness.md": [
         "Release v0.2.0 boundary automation guard anchor",
@@ -214,6 +218,7 @@ required_evidence = {
         "Release v0.2.0 strategy actor registry anchor",
         "Release v0.2.0 typed MessageBus envelope anchor",
         "Release v0.2.0 Binance Spot DataEngine Cache path anchor",
+        "Release v0.2.0 Binance USD-M Perpetual DataEngine Cache path anchor",
     ],
     "Tests/TargetGraphTests/TargetGraphTests.swift": [
         "testGH565ReleaseV020BoundaryGuardBlocksScopeExpansionAndProductionDefaults",
@@ -222,6 +227,7 @@ required_evidence = {
         "testGH571StrategyRegistryRegistersEMAAndRSIProductBindingsWithoutExecutionDependency",
         "testGH572TypedMessageBusEnvelopeEvidenceIsWiredIntoReleaseGuard",
         "testGH573BinanceSpotMarketDataActivePathEmitsProductAwareEventsIntoCache",
+        "testGH574BinanceUSDMPerpetualMarketDataActivePathEmitsProductAwareEventsIntoCache",
     ],
 }
 
