@@ -6437,6 +6437,285 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH581SpotExecutionAlgorithmMapsTargetExposureToControlledSpotOrderIntent() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let releaseContract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md"
+            ),
+            encoding: .utf8
+        )
+
+        let symbol = Symbol.constant("BTCUSDT")
+        let spot = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let evaluatedAt = Date(timeIntervalSince1970: 1_704_068_100)
+        let emaID = Identifier.constant("gh-581-ema")
+        let rsiID = Identifier.constant("gh-581-rsi")
+        let quantity = try Quantity(0.25, field: "gh581Quantity")
+        let referencePrice = try Price(43_000, field: "gh581ReferencePrice")
+        let filter = try ReleaseV020SpotExchangeFilterEvidence.deterministicFixture()
+
+        func sourceIntent(
+            targetExposure: TargetExposureIntent,
+            intentID: String
+        ) throws -> ProductAwareOrderIntent {
+            try ProductAwareOrderIntent(
+                intentID: Identifier.constant(intentID),
+                instrument: spot,
+                targetExposure: targetExposure,
+                quantity: quantity,
+                referencePrice: referencePrice,
+                createdAt: evaluatedAt
+            )
+        }
+
+        func candidate(
+            strategyID: Identifier,
+            targetExposure: TargetExposureIntent,
+            sourceOrderIntent: ProductAwareOrderIntent,
+            sourceSequence: Int
+        ) throws -> StrategyProposalArbitrationCandidate {
+            try StrategyProposalArbitrationCandidate(
+                strategyID: strategyID,
+                instrument: spot,
+                targetExposure: targetExposure,
+                productAwareOrderIntent: sourceOrderIntent,
+                emittedAt: evaluatedAt,
+                sourceSequence: sourceSequence
+            )
+        }
+
+        func spotRiskEvidence(
+            decisionID: String,
+            targetExposure: TargetExposureIntent,
+            sourceSequence: Int,
+            cashBalance: Double,
+            baseBalance: Double
+        ) throws -> (ProductAwareOrderIntent, ReleaseV020SpotRiskDecision) {
+            let orderIntent = try sourceIntent(
+                targetExposure: targetExposure,
+                intentID: "\(decisionID)-source-order-intent"
+            )
+            let arbitration = try ProposalArbitrator.arbitrate(
+                decisionID: Identifier.constant("\(decisionID)-arbitration"),
+                candidates: [
+                    candidate(
+                        strategyID: emaID,
+                        targetExposure: targetExposure,
+                        sourceOrderIntent: orderIntent,
+                        sourceSequence: sourceSequence
+                    ),
+                    candidate(
+                        strategyID: rsiID,
+                        targetExposure: targetExposure,
+                        sourceOrderIntent: orderIntent,
+                        sourceSequence: sourceSequence + 1
+                    )
+                ],
+                evaluatedAt: evaluatedAt
+            )
+            let commonInput = try ReleaseV020RiskEngineCommonInput(
+                inputID: Identifier.constant("\(decisionID)-common-input"),
+                arbitrationDecision: arbitration,
+                currentAggregateExposure: 5_000,
+                evaluatedAt: evaluatedAt,
+                sourceSequence: sourceSequence + 2
+            )
+            let commonPolicy = try ReleaseV020RiskEngineCommonPolicy(
+                policyID: Identifier.constant("\(decisionID)-common-policy"),
+                allowedStrategies: [
+                    ReleaseV020RiskStrategyAllowlistEntry(strategyID: emaID, kind: .ema),
+                    ReleaseV020RiskStrategyAllowlistEntry(strategyID: rsiID, kind: .rsi)
+                ],
+                allowedInstruments: [spot],
+                maxNotional: 20_000,
+                maxAggregateExposure: 50_000
+            )
+            let commonDecision = try ReleaseV020RiskEngineCommonLayer.evaluate(
+                decisionID: Identifier.constant("\(decisionID)-common-decision"),
+                input: commonInput,
+                policy: commonPolicy
+            )
+            let spotRiskInput = try ReleaseV020SpotRiskInput(
+                inputID: Identifier.constant("\(decisionID)-spot-risk-input"),
+                commonDecision: commonDecision,
+                cashBalance: cashBalance,
+                baseBalance: baseBalance,
+                exchangeFilter: filter,
+                evaluatedAt: evaluatedAt,
+                sourceSequence: sourceSequence + 3
+            )
+            let spotRiskDecision = try ReleaseV020SpotRiskLayer.evaluate(
+                decisionID: Identifier.constant("\(decisionID)-spot-risk-decision"),
+                input: spotRiskInput
+            )
+            XCTAssertTrue(spotRiskDecision.forwardsToCommandGateway)
+            return (orderIntent, spotRiskDecision)
+        }
+
+        func algorithmInput(
+            inputID: String,
+            targetExposure: TargetExposureIntent,
+            sourceOrderIntent: ProductAwareOrderIntent? = nil,
+            spotRiskDecision: ReleaseV020SpotRiskDecision? = nil,
+            currentBasePositionQuantity: Double,
+            sourceSequence: Int
+        ) throws -> ReleaseV020SpotExecutionAlgorithmInput {
+            try ReleaseV020SpotExecutionAlgorithmInput(
+                inputID: Identifier.constant(inputID),
+                targetExposure: targetExposure,
+                sourceOrderIntent: sourceOrderIntent,
+                spotRiskDecision: spotRiskDecision,
+                currentBasePositionQuantity: currentBasePositionQuantity,
+                evaluatedAt: evaluatedAt,
+                sourceSequence: sourceSequence
+            )
+        }
+
+        let longEvidence = try spotRiskEvidence(
+            decisionID: "gh-581-long",
+            targetExposure: .targetLong,
+            sourceSequence: 1,
+            cashBalance: 20_000,
+            baseBalance: 0
+        )
+        let buyDecision = try ReleaseV020SpotExecutionAlgorithm.decide(
+            decisionID: Identifier.constant("gh-581-buy-decision"),
+            input: algorithmInput(
+                inputID: "gh-581-buy-input",
+                targetExposure: .targetLong,
+                sourceOrderIntent: longEvidence.0,
+                spotRiskDecision: longEvidence.1,
+                currentBasePositionQuantity: 0,
+                sourceSequence: 5
+            )
+        )
+        XCTAssertEqual(buyDecision.status, .orderIntentCreated)
+        XCTAssertEqual(buyDecision.orderIntent?.side, .buy)
+        XCTAssertEqual(buyDecision.orderIntent?.targetExposure, .targetLong)
+        XCTAssertEqual(buyDecision.orderIntent?.instrument, spot)
+        XCTAssertTrue(buyDecision.orderIntentCreated)
+        XCTAssertFalse(buyDecision.productionTradingEnabledByDefault)
+        XCTAssertFalse(buyDecision.callsExecutionClient)
+        XCTAssertFalse(buyDecision.submitsRealOrder)
+        XCTAssertTrue(buyDecision.orderIntent?.requiresOMSBeforeExecution == true)
+        XCTAssertTrue(buyDecision.orderIntent?.requiresKillSwitchBeforeExecution == true)
+
+        let flatEvidence = try spotRiskEvidence(
+            decisionID: "gh-581-flat",
+            targetExposure: .targetFlat,
+            sourceSequence: 10,
+            cashBalance: 20_000,
+            baseBalance: 1.0
+        )
+        let sellDecision = try ReleaseV020SpotExecutionAlgorithm.decide(
+            decisionID: Identifier.constant("gh-581-sell-decision"),
+            input: algorithmInput(
+                inputID: "gh-581-sell-input",
+                targetExposure: .targetFlat,
+                sourceOrderIntent: flatEvidence.0,
+                spotRiskDecision: flatEvidence.1,
+                currentBasePositionQuantity: 0.50,
+                sourceSequence: 14
+            )
+        )
+        XCTAssertEqual(sellDecision.status, .orderIntentCreated)
+        XCTAssertEqual(sellDecision.orderIntent?.side, .sell)
+        XCTAssertEqual(sellDecision.orderIntent?.targetExposure, .targetFlat)
+        XCTAssertTrue(sellDecision.orderIntentCreated)
+
+        let targetShortBlocked = try ReleaseV020SpotExecutionAlgorithm.decide(
+            decisionID: Identifier.constant("gh-581-target-short-blocked"),
+            input: algorithmInput(
+                inputID: "gh-581-target-short-input",
+                targetExposure: .targetShort,
+                currentBasePositionQuantity: 0,
+                sourceSequence: 20
+            )
+        )
+        XCTAssertEqual(targetShortBlocked.status, .blocked)
+        XCTAssertEqual(targetShortBlocked.blocker, .targetShortForbidden)
+        XCTAssertNil(targetShortBlocked.orderIntent)
+
+        let holdNoOrder = try ReleaseV020SpotExecutionAlgorithm.decide(
+            decisionID: Identifier.constant("gh-581-hold-no-order"),
+            input: algorithmInput(
+                inputID: "gh-581-hold-input",
+                targetExposure: .hold,
+                currentBasePositionQuantity: 0.25,
+                sourceSequence: 21
+            )
+        )
+        XCTAssertEqual(holdNoOrder.status, .noOrder)
+        XCTAssertEqual(holdNoOrder.noOrderReason, .holdTargetExposure)
+        XCTAssertNil(holdNoOrder.orderIntent)
+
+        let alreadyLongNoOrder = try ReleaseV020SpotExecutionAlgorithm.decide(
+            decisionID: Identifier.constant("gh-581-already-long-no-order"),
+            input: algorithmInput(
+                inputID: "gh-581-already-long-input",
+                targetExposure: .targetLong,
+                sourceOrderIntent: longEvidence.0,
+                spotRiskDecision: longEvidence.1,
+                currentBasePositionQuantity: 0.25,
+                sourceSequence: 22
+            )
+        )
+        XCTAssertEqual(alreadyLongNoOrder.status, .noOrder)
+        XCTAssertEqual(alreadyLongNoOrder.noOrderReason, .alreadyLong)
+
+        XCTAssertThrowsError(
+            try ReleaseV020SpotExecutionAlgorithmOrderIntent(
+                orderIntentID: Identifier.constant("unsafe-gh-581-order-intent"),
+                sourceInputID: Identifier.constant("unsafe-gh-581-input"),
+                sourceRiskDecisionID: longEvidence.1.decisionID,
+                sourceProductAwareIntentID: longEvidence.0.intentID,
+                instrument: spot,
+                targetExposure: .targetLong,
+                side: .buy,
+                quantity: quantity,
+                referencePrice: referencePrice,
+                currentBasePositionQuantity: 0,
+                createdAt: evaluatedAt,
+                callsExecutionClient: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability(
+                    "releaseV020SpotExecutionAlgorithm.callsExecutionClient"
+                )
+            )
+        }
+
+        XCTAssertTrue(validationMatrix.contains("`GH-581`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-SPOT-EXECUTION-ALGORITHM"))
+        XCTAssertTrue(validationPlan.contains("GH-581 Release v0.2.0 Spot ExecutionAlgorithm Validation"))
+        XCTAssertTrue(domainContext.contains("GH-581 Spot ExecutionAlgorithm Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 Spot ExecutionAlgorithm anchor"))
+        XCTAssertTrue(
+            releaseContract.contains(
+                "GH-581 / V020-19 | Spot ExecutionAlgorithm maps TargetExposureIntent to controlled Spot order intent"
+            )
+        )
+    }
+
     func testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
