@@ -5,7 +5,7 @@ import Portfolio
 import RiskEngine
 import TraderStrategies
 
-/// `Trader` target boundary 表达 Accounts + Strategies/EMA + Coordination 的组合容器。
+/// `Trader` target boundary 表达 Accounts + Strategies/{EMA,RSI} + Coordination 的组合容器。
 ///
 /// MTP-228 只把 active target boundary anchor 从 `Sources/TargetGraph/Trader`
 /// 移到 `Sources/Trader/TargetGraph`。GH-392 明确 Trader 不再直接依赖
@@ -51,9 +51,9 @@ public struct TraderTargetBoundary: Codable, Equatable, Sendable {
         deferredDependencies: [String] = [],
         forbiddenDependencies: [String] = Self.requiredForbiddenDependencies,
         accountContextRoot: String = "Sources/Trader/Accounts",
-        activeStrategyRoot: String = "Sources/Trader/Strategies/EMA",
+        activeStrategyRoot: String = "Sources/Trader/Strategies",
         coordinationRoot: String = "Sources/Trader/Coordination/RiskBinding",
-        activeConcreteStrategies: [String] = ["EMA"],
+        activeConcreteStrategies: [String] = TraderStrategiesTargetBoundary.requiredActiveConcreteStrategies,
         implementsTraderRuntime: Bool = false,
         callsExecutionClientDirectly: Bool = false,
         callsBrokerOrOMS: Bool = false,
@@ -102,9 +102,9 @@ public struct TraderTargetBoundary: Codable, Equatable, Sendable {
             && deferredDependencies.isEmpty
             && forbiddenDependencies == Self.requiredForbiddenDependencies
             && accountContextRoot == "Sources/Trader/Accounts"
-            && activeStrategyRoot == "Sources/Trader/Strategies/EMA"
+            && activeStrategyRoot == "Sources/Trader/Strategies"
             && coordinationRoot == "Sources/Trader/Coordination/RiskBinding"
-            && activeConcreteStrategies == ["EMA"]
+            && activeConcreteStrategies == TraderStrategiesTargetBoundary.requiredActiveConcreteStrategies
             && implementsTraderRuntime == false
             && callsExecutionClientDirectly == false
             && callsBrokerOrOMS == false
@@ -140,7 +140,8 @@ public struct TraderTargetBoundary: Codable, Equatable, Sendable {
 
     public static let requiredValidationAnchors = [
         "MTP-219-TRADER-TARGET-SPLIT",
-        "MTP-219-TRADER-CONTAINER-ACCOUNTS-EMA-COORDINATION",
+        "MTP-219-TRADER-CONTAINER-ACCOUNTS-EMA-COORDINATION-HISTORICAL",
+        "GH-568-TRADER-CONTAINER-ACCOUNTS-EMA-RSI-COORDINATION",
         "GH-392-TRADER-NO-DIRECT-EXECUTIONENGINE-DEPENDENCY",
         "GH-392-TRADER-PROPOSAL-MESSAGEBUS-COORDINATION-BOUNDARY",
         "GH-397-TRADER-REAL-TARGET-SMOKE",
