@@ -18,6 +18,8 @@ public enum DomainModelContractError: Error, Equatable, Sendable, CustomStringCo
     case unsupportedProductType(String)
     case invalidInstrumentIdentity(String)
     case invalidPerpetualContract(String)
+    case invalidTargetExposureIntent(String)
+    case invalidProductAwareOrderIntent(String)
 
     public var description: String {
         switch self {
@@ -43,6 +45,10 @@ public enum DomainModelContractError: Error, Equatable, Sendable, CustomStringCo
             "Instrument identity is invalid: \(value)"
         case let .invalidPerpetualContract(value):
             "Perpetual contract is invalid: \(value)"
+        case let .invalidTargetExposureIntent(value):
+            "Target exposure intent is invalid: \(value)"
+        case let .invalidProductAwareOrderIntent(value):
+            "Product-aware order intent is invalid: \(value)"
         }
     }
 }

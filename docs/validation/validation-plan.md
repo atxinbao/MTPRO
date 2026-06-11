@@ -7727,6 +7727,47 @@ GH-566 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-567 Release v0.2.0 Target Exposure / Product-aware Intent Validation
+
+GH-567 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH567TargetExposureAndProductAwareOrderIntentModel`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-567 的验收要求：
+
+- `Sources/DomainModel/TargetExposureIntent.swift` 必须支持 `targetLong`、`targetShort`、`targetFlat` 和 `hold`。
+- `Sources/DomainModel/ProductAwareOrderIntent.swift` 必须保留 `InstrumentIdentity.productType`，并在构造阶段阻断 Spot `targetShort`。
+- USDⓈ-M Perpetual `targetShort` 可以形成 pre-risk-gate intent，但必须保持 `requiresRiskGateBeforeExecution == true`、`authorizesTradingExecution == false` 和 `productionTradingEnabledByDefault == false`。
+- `Sources/MessageBus/StrategyIntentMessages.swift` 只能承载 strategy intent evidence，不得生成 ExecutionClient / OMS / broker command。
+- `Package.swift` 必须把 `TargetExposureIntent.swift`、`ProductAwareOrderIntent.swift` 和 `StrategyIntentMessages.swift` 编入对应 target，并从 `Core` compatibility target 排除。
+- GH-567 PR evidence 必须确认不实现 runtime，不读取 production secret，不连接 production endpoint，不提交真实订单，不启动 Symphony，不运行 Graphify / code-index，不使用 Linear，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+GH-567 必须建立的主要 anchors：
+
+- `GH-567-TARGET-EXPOSURE-INTENT`
+- `GH-567-PRODUCT-AWARE-ORDER-INTENT`
+- `GH-567-SPOT-SHORT-BLOCKED-BEFORE-ORDER-CREATION`
+- `GH-567-PERP-SHORT-PRE-RISK-GATE-ALLOWED`
+- `TVM-RELEASE-V020-TARGET-EXPOSURE-PRODUCT-AWARE-INTENT`
+
+## GH-567 禁止
+
+- 不实现 perpetual market data runtime、strategy runtime、risk runtime、ExecutionClient、OMS、broker gateway 或 Dashboard command runtime。
+- 不把 product-aware intent 变成交易授权、broker request、signed endpoint request、account endpoint request、listenKey 或 order command。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint 或 listenKey。
+- 不提交、取消或替换真实订单。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USDⓈ-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation
 
 GH-521 必须运行：

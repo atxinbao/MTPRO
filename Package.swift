@@ -43,7 +43,9 @@ let package = Package(
                 "MarketDataModels.swift",
                 "MarketPrimitives.swift",
                 "PerpetualContract.swift",
+                "ProductAwareOrderIntent.swift",
                 "ProductType.swift",
+                "TargetExposureIntent.swift",
                 "TargetGraph/DomainModelTargetBoundary.swift"
             ]
         ),
@@ -65,6 +67,7 @@ let package = Package(
                 "PaperActionProposal.swift",
                 "PaperActionRiskDecision.swift",
                 "RiskPortfolioContracts.swift",
+                "StrategyIntentMessages.swift",
                 "StrategySignals.swift",
                 "TargetGraph/MessageBusTargetBoundary.swift"
             ]
@@ -272,6 +275,8 @@ let package = Package(
                 "DomainModel/MarketPrimitives.swift",
                 "DomainModel/PerpetualContract.swift",
                 "DomainModel/ProductType.swift",
+                "DomainModel/ProductAwareOrderIntent.swift",
+                "DomainModel/TargetExposureIntent.swift",
                 "DomainModel/TargetGraph",
                 "ExecutionClient/BrokerCapabilityMatrix",
                 "ExecutionClient/FutureGate",
@@ -290,6 +295,7 @@ let package = Package(
                 "MessageBus/PaperActionProposal.swift",
                 "MessageBus/PaperActionRiskDecision.swift",
                 "MessageBus/RiskPortfolioContracts.swift",
+                "MessageBus/StrategyIntentMessages.swift",
                 "MessageBus/StrategySignals.swift",
                 "MessageBus/TargetGraph",
                 "Portfolio/PaperPortfolioProjectionUpdate.swift",
