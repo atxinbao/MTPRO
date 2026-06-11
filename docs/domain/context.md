@@ -3716,6 +3716,32 @@ No old boundary as current 指 public-read-only、paper-only、ExecutionClient f
 
 GH-564 对该 matrix 的补充责任是证明 root docs、validation plan、validation matrix、automation readiness 和 focused TargetGraph test 都能机械确认：v0.2.0 当前口径是 Binance-only、Spot + USDⓈ-M Perpetual-only、EMA + RSI-only、production disabled by default、production capability gated-not-missing，且旧 public-read-only / paper-only / EMA-only boundary 只作为 historical evidence。
 
+## GH-565 Release v0.2.0 Boundary Automation Guard Terms
+
+`GH-565-V020-BINANCE-SPOT-PERP-EMA-RSI-AUTOMATION-GUARD`
+
+Release v0.2.0 boundary automation guard 指 required automation readiness 中的机械守卫：当前 active venue 只能是 Binance，当前 active product types 只能是 Spot + USDⓈ-M Perpetual，当前 active concrete strategies 只能是 EMA + RSI，productionTradingEnabledByDefault 必须为 false。
+
+`GH-565-NON-BINANCE-ACTIVE-SOURCE-GUARD`
+
+Non-Binance active source guard 指 `Sources/DataClient/*` 的 active venue source directory 只能包含 Binance 和 target boundary evidence，不允许新增 Coinbase、OKX、Bybit、Kraken 或其他非 Binance active venue source。历史文档或 future planning wording 可以提到非 Binance，但不能进入 current active source。
+
+`GH-565-ACTIVE-PRODUCT-TYPE-GUARD`
+
+Active product type guard 指所有显式 `activeProductTypes` 口径必须保持 spot + usdsPerpetual。COIN-M、options、margin 或第三 active product type 只能作为 future / forbidden wording，不能成为 current active product type。
+
+`GH-565-ACTIVE-STRATEGY-GUARD`
+
+Active strategy guard 指 `Sources/Trader/Strategies/*` 的 active concrete strategy source directory 和所有显式 `activeStrategies` 口径只能覆盖 EMA + RSI。OrderBookImbalance、Momentum、MeanReversion 或第三 active strategy 只能作为 historical / future candidate，不得成为 current active release source。
+
+`GH-565-PRODUCTION-AUTO-ENABLE-GUARD`
+
+Production auto-enable guard 指 automation readiness 必须阻断 production trading、production endpoint、production secret read、production submit / cancel / replace、production OMS、production Dashboard command、automatic production cutover、real order action，以及 CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store / kill switch / no-trade bypass 被设置为 true。
+
+`TVM-RELEASE-V020-BINANCE-SPOT-PERP-EMA-RSI-BOUNDARY-GUARD`
+
+Release v0.2.0 boundary guard matrix 必须证明上述 source layout、active flag 和 production default guard 已接入 required automation readiness；该 guard 不实现 runtime，不读取 secret，不连接 endpoint，不提交订单，不创建下一 Project / Issue。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Terms
 
 `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`

@@ -6202,6 +6202,64 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH565ReleaseV020BoundaryGuardBlocksScopeExpansionAndProductionDefaults() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let guardPath = repositoryRoot.appendingPathComponent(
+            "checks/automation-readiness.d/release-v0.2.0-boundary.sh"
+        )
+        let guardScript = try String(contentsOf: guardPath, encoding: .utf8)
+        let runDomainGuards = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.d/run-domain-guards.sh"),
+            encoding: .utf8
+        )
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(FileManager.default.fileExists(atPath: guardPath.path))
+        for expected in [
+            "GH-565-V020-BINANCE-SPOT-PERP-EMA-RSI-AUTOMATION-GUARD",
+            "GH-565-NON-BINANCE-ACTIVE-SOURCE-GUARD",
+            "GH-565-ACTIVE-PRODUCT-TYPE-GUARD",
+            "GH-565-ACTIVE-STRATEGY-GUARD",
+            "GH-565-PRODUCTION-AUTO-ENABLE-GUARD",
+            "TVM-RELEASE-V020-BINANCE-SPOT-PERP-EMA-RSI-BOUNDARY-GUARD",
+            "allowed_venue_dirs = {\"Binance\", \"TargetGraph\"}",
+            "allowed_strategy_dirs = {\"EMA\", \"RSI\"}",
+            "activeVenue must be Binance only",
+            "activeProductTypes must be spot + usdsPerpetual only",
+            "activeStrategies must be EMA + RSI only",
+            "productionTradingEnabledByDefault",
+            "nonBinanceVenueEnabled",
+            "thirdActiveProductTypeEnabled",
+            "thirdActiveStrategyEnabled",
+            "bypassesCommandGateway",
+            "MTPRO release v0.2.0 boundary guard passed."
+        ] {
+            XCTAssertTrue(guardScript.contains(expected), "v0.2.0 boundary guard must contain \(expected)")
+        }
+
+        XCTAssertTrue(runDomainGuards.contains("release-v0.2.0-boundary"))
+        XCTAssertTrue(validationMatrix.contains("`GH-565`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-BINANCE-SPOT-PERP-EMA-RSI-BOUNDARY-GUARD"))
+        XCTAssertTrue(validationPlan.contains("GH-565 Release v0.2.0 Boundary Automation Guard Validation"))
+        XCTAssertTrue(domainContext.contains("GH-565 Release v0.2.0 Boundary Automation Guard Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 boundary automation guard anchor"))
+    }
+
     func testGH503ProductionCredentialSecretPolicyGateDefinesNoDefaultSecretReadContract() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
