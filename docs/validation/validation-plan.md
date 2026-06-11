@@ -8172,6 +8172,46 @@ GH-577 必须建立的主要 anchors：
 - 不启用非 Spot / USDⓈ-M Perpetual product。
 - 不启用非 EMA / RSI active strategy。
 - 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+
+## GH-578 Release v0.2.0 RiskEngine Common Layer Validation
+
+GH-578 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH578RiskEngineCommonLayerAppliesAllowlistsLimitsKillSwitchAndNoTrade`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-578 的验收要求：
+
+- strategy allowlist 必须只允许 EMA / RSI strategyID；未知 strategy 必须 blocked。
+- instrument allowlist 必须只允许 Binance Spot / USDⓈ-M Perpetual instrument；未列入 instrument 必须 blocked。
+- max notional gate 必须阻断超单笔 notional 的 pre-risk intent。
+- aggregate exposure gate 必须阻断 projected aggregate exposure 超限。
+- kill switch active 时必须 blocked。
+- no-trade state active 时必须 blocked。
+- allow 只表示进入后续 CommandGateway gate，不授权 submit / cancel / replace、ExecutionEngine、OMS、ExecutionClient、broker 或 production trading。
+
+GH-578 必须建立的主要 anchors：
+
+- `GH-578-RISKENGINE-COMMON-LAYER`
+- `GH-578-STRATEGY-INSTRUMENT-ALLOWLIST`
+- `GH-578-NOTIONAL-AGGREGATE-EXPOSURE-GATE`
+- `GH-578-KILL-SWITCH-NO-TRADE-GATE`
+- `GH-578-NO-COMMAND-EXECUTION-BYPASS`
+- `TVM-RELEASE-V020-RISKENGINE-COMMON-LAYER`
+
+## GH-578 禁止
+
+- 不实现 signed endpoint、account endpoint、listenKey、private stream runtime、broker route、ExecutionClient、OMS、order command、leverage action、margin action 或 production trading。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint、private stream endpoint 或 listenKey。
+- 不提交、取消或替换真实订单。
+- 不把 common RiskEngine allow 解释成交易授权或 ExecutionEngine / OMS command。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USDⓈ-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
 - 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

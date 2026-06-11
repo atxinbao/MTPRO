@@ -96,7 +96,7 @@ NTPRO scoped 100% alignment 是 release v0.2.0 的 scoped alignment contract，�
 | GH-575 / V020-13 | Perp mark price / funding / open interest read model | market risk input 不授权 margin / leverage action |
 | GH-576 / V020-14 | Product-aware Cache market / order / position / strategy state | Cache state keeps product identity and no durable / broker state |
 | GH-577 / V020-15 | EMA / RSI ProposalArbitrator across Spot and Perp | conflicts block by default and no RiskEngine / execution bypass |
-| GH-578 / V020-16 | CommandGateway gated submit / cancel / replace contract | no direct UI / strategy command |
+| GH-578 / V020-16 | RiskEngine common layer for strategy / instrument / notional / exposure / kill switch / no-trade | no CommandGateway / execution bypass |
 | GH-579 / V020-17 | ExecutionEngine OMS lifecycle for Spot / Perp | OMS before ExecutionClient |
 | GH-580 / V020-18 | Binance Spot ExecutionClient testnet SCR | testnet only |
 | GH-581 / V020-19 | Binance USDⓈ-M ExecutionClient testnet SCR | testnet only, no production leverage action |

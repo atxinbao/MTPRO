@@ -505,3 +505,534 @@ public enum ProposalArbitrator {
         )
     }
 }
+
+/// ReleaseV020RiskStrategyKind 固定 #578 common RiskEngine 允许的策略种类。
+///
+/// RiskEngine 不依赖 TraderStrategies target，因此这里用本地 release enum 表达 allowlist。
+/// 当前 release 只允许 EMA / RSI，未知策略必须在进入 CommandGateway / ExecutionEngine 前被阻断。
+public enum ReleaseV020RiskStrategyKind: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case ema
+    case rsi
+}
+
+/// ReleaseV020RiskEngineCommonGate 表达 #578 要覆盖的通用风控门。
+public enum ReleaseV020RiskEngineCommonGate: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case strategyAllowlist
+    case instrumentAllowlist
+    case maxNotional
+    case aggregateExposure
+    case killSwitch
+    case noTradeState
+}
+
+/// ReleaseV020RiskEngineCommonStatus 描述 common RiskEngine 对下一 gate 的输出。
+public enum ReleaseV020RiskEngineCommonStatus: String, Codable, Equatable, Sendable {
+    case forwardToCommandGateway
+    case blocked
+}
+
+/// ReleaseV020RiskEngineCommonBlocker 描述 #578 common layer 的阻断原因。
+public enum ReleaseV020RiskEngineCommonBlocker: String, Codable, Equatable, Hashable, Sendable {
+    case arbitrationNotForwarded
+    case strategyNotAllowed
+    case instrumentNotAllowed
+    case maxNotionalExceeded
+    case aggregateExposureExceeded
+    case killSwitchActive
+    case noTradeStateActive
+}
+
+/// ReleaseV020RiskStrategyAllowlistEntry 保存 strategyID 与 release strategy kind 的显式 allowlist。
+public struct ReleaseV020RiskStrategyAllowlistEntry: Codable, Equatable, Hashable, Sendable {
+    public let strategyID: Identifier
+    public let kind: ReleaseV020RiskStrategyKind
+
+    public init(
+        strategyID: Identifier,
+        kind: ReleaseV020RiskStrategyKind
+    ) {
+        self.strategyID = strategyID
+        self.kind = kind
+    }
+}
+
+/// ReleaseV020RiskEngineCommonPolicy 是 #578 的本地 deterministic risk policy。
+///
+/// Policy 覆盖策略 allowlist、instrument allowlist、单笔 notional、aggregate exposure、
+/// kill switch 和 no-trade。它只用于 release evidence，不读取 secret、不连接 broker、
+/// 不调用 CommandGateway / ExecutionEngine / OMS，也不授权 production trading。
+public struct ReleaseV020RiskEngineCommonPolicy: Codable, Equatable, Sendable {
+    public let policyID: Identifier
+    public let allowedStrategies: [ReleaseV020RiskStrategyAllowlistEntry]
+    public let allowedInstruments: [InstrumentIdentity]
+    public let maxNotional: Double
+    public let maxAggregateExposure: Double
+    public let killSwitchActive: Bool
+    public let noTradeStateActive: Bool
+    public let validationAnchors: [String]
+    public let productionTradingEnabledByDefault: Bool
+    public let bypassesCommandGateway: Bool
+    public let touchesExecutionEngine: Bool
+    public let touchesExecutionClient: Bool
+    public let touchesBrokerGateway: Bool
+    public let bypassesOMS: Bool
+    public let bypassesEventStore: Bool
+    public let submitsRealOrder: Bool
+
+    public init(
+        policyID: Identifier,
+        allowedStrategies: [ReleaseV020RiskStrategyAllowlistEntry],
+        allowedInstruments: [InstrumentIdentity],
+        maxNotional: Double,
+        maxAggregateExposure: Double,
+        killSwitchActive: Bool = false,
+        noTradeStateActive: Bool = false,
+        validationAnchors: [String] = ReleaseV020RiskEngineCommonDecision.requiredValidationAnchors,
+        productionTradingEnabledByDefault: Bool = false,
+        bypassesCommandGateway: Bool = false,
+        touchesExecutionEngine: Bool = false,
+        touchesExecutionClient: Bool = false,
+        touchesBrokerGateway: Bool = false,
+        bypassesOMS: Bool = false,
+        bypassesEventStore: Bool = false,
+        submitsRealOrder: Bool = false
+    ) throws {
+        guard maxNotional.isFinite && maxNotional > 0 else {
+            throw CoreError.paperPreTradeRiskEngineMismatch(
+                field: "releaseV020RiskEngineCommon.maxNotional",
+                expected: "finite positive notional",
+                actual: "\(maxNotional)"
+            )
+        }
+        guard maxAggregateExposure.isFinite && maxAggregateExposure > 0 else {
+            throw CoreError.paperPreTradeRiskEngineMismatch(
+                field: "releaseV020RiskEngineCommon.maxAggregateExposure",
+                expected: "finite positive aggregate exposure",
+                actual: "\(maxAggregateExposure)"
+            )
+        }
+        guard Set(allowedStrategies.map(\.kind)) == Set(ReleaseV020RiskStrategyKind.allCases) else {
+            throw CoreError.paperPreTradeRiskEngineMismatch(
+                field: "releaseV020RiskEngineCommon.allowedStrategies",
+                expected: "EMA and RSI allowlist entries",
+                actual: allowedStrategies.map(\.kind.rawValue).joined(separator: ",")
+            )
+        }
+        guard allowedInstruments.isEmpty == false else {
+            throw CoreError.paperPreTradeRiskEngineMismatch(
+                field: "releaseV020RiskEngineCommon.allowedInstruments",
+                expected: "non-empty Binance Spot / USD-M Perp instruments",
+                actual: "empty"
+            )
+        }
+        if let forbiddenInstrument = allowedInstruments.first(where: {
+            $0.venue.rawValue != "binance" || [.spot, .usdsPerpetual].contains($0.productType) == false
+        }) {
+            throw CoreError.paperPreTradeRiskEngineMismatch(
+                field: "releaseV020RiskEngineCommon.allowedInstruments",
+                expected: "Binance Spot or USD-M Perp instrument",
+                actual: forbiddenInstrument.rawValue
+            )
+        }
+        try Self.forbid(productionTradingEnabledByDefault, "productionTradingEnabledByDefault")
+        try Self.forbid(bypassesCommandGateway, "bypassesCommandGateway")
+        try Self.forbid(touchesExecutionEngine, "touchesExecutionEngine")
+        try Self.forbid(touchesExecutionClient, "touchesExecutionClient")
+        try Self.forbid(touchesBrokerGateway, "touchesBrokerGateway")
+        try Self.forbid(bypassesOMS, "bypassesOMS")
+        try Self.forbid(bypassesEventStore, "bypassesEventStore")
+        try Self.forbid(submitsRealOrder, "submitsRealOrder")
+
+        self.policyID = policyID
+        self.allowedStrategies = allowedStrategies
+        self.allowedInstruments = allowedInstruments
+        self.maxNotional = maxNotional
+        self.maxAggregateExposure = maxAggregateExposure
+        self.killSwitchActive = killSwitchActive
+        self.noTradeStateActive = noTradeStateActive
+        self.validationAnchors = validationAnchors
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.bypassesCommandGateway = bypassesCommandGateway
+        self.touchesExecutionEngine = touchesExecutionEngine
+        self.touchesExecutionClient = touchesExecutionClient
+        self.touchesBrokerGateway = touchesBrokerGateway
+        self.bypassesOMS = bypassesOMS
+        self.bypassesEventStore = bypassesEventStore
+        self.submitsRealOrder = submitsRealOrder
+    }
+
+    public var boundaryHeld: Bool {
+        validationAnchors == ReleaseV020RiskEngineCommonDecision.requiredValidationAnchors
+            && productionTradingEnabledByDefault == false
+            && bypassesCommandGateway == false
+            && touchesExecutionEngine == false
+            && touchesExecutionClient == false
+            && touchesBrokerGateway == false
+            && bypassesOMS == false
+            && bypassesEventStore == false
+            && submitsRealOrder == false
+    }
+
+    public var allowedStrategyIDs: Set<Identifier> {
+        Set(allowedStrategies.map(\.strategyID))
+    }
+
+    public var allowedInstrumentSet: Set<InstrumentIdentity> {
+        Set(allowedInstruments)
+    }
+
+    private static func forbid(_ value: Bool, _ field: String) throws {
+        guard value == false else {
+            throw CoreError.paperPreTradeRiskEngineForbiddenCapability("releaseV020RiskEngineCommon.\(field)")
+        }
+    }
+}
+
+/// ReleaseV020RiskEngineCommonInput 是 #577 仲裁结果进入 #578 common RiskEngine 的输入。
+public struct ReleaseV020RiskEngineCommonInput: Codable, Equatable, Sendable {
+    public let inputID: Identifier
+    public let arbitrationDecision: ProposalArbitrationDecision
+    public let currentAggregateExposure: Double
+    public let evaluatedAt: Date
+    public let sourceSequence: Int
+    public let riskGateBypassed: Bool
+    public let productionTradingRequested: Bool
+
+    public init(
+        inputID: Identifier,
+        arbitrationDecision: ProposalArbitrationDecision,
+        currentAggregateExposure: Double,
+        evaluatedAt: Date,
+        sourceSequence: Int,
+        riskGateBypassed: Bool = false,
+        productionTradingRequested: Bool = false
+    ) throws {
+        guard sourceSequence > 0 else {
+            throw CoreError.invalidEventSequence(sourceSequence)
+        }
+        guard currentAggregateExposure.isFinite && currentAggregateExposure >= 0 else {
+            throw CoreError.paperPreTradeRiskEngineMismatch(
+                field: "releaseV020RiskEngineCommon.currentAggregateExposure",
+                expected: "finite non-negative aggregate exposure",
+                actual: "\(currentAggregateExposure)"
+            )
+        }
+        guard riskGateBypassed == false else {
+            throw CoreError.paperPreTradeRiskEngineForbiddenCapability(
+                "releaseV020RiskEngineCommon.input.riskGateBypassed"
+            )
+        }
+        guard productionTradingRequested == false else {
+            throw CoreError.paperPreTradeRiskEngineForbiddenCapability(
+                "releaseV020RiskEngineCommon.input.productionTradingRequested"
+            )
+        }
+
+        self.inputID = inputID
+        self.arbitrationDecision = arbitrationDecision
+        self.currentAggregateExposure = currentAggregateExposure
+        self.evaluatedAt = evaluatedAt
+        self.sourceSequence = sourceSequence
+        self.riskGateBypassed = riskGateBypassed
+        self.productionTradingRequested = productionTradingRequested
+    }
+
+    public var inputBoundaryHeld: Bool {
+        sourceSequence > 0
+            && currentAggregateExposure.isFinite
+            && currentAggregateExposure >= 0
+            && riskGateBypassed == false
+            && productionTradingRequested == false
+            && arbitrationDecision.boundaryHeld
+    }
+
+    public var proposedNotional: Double? {
+        guard let intent = arbitrationDecision.forwardedOrderIntent else {
+            return nil
+        }
+        return intent.quantity.rawValue * intent.referencePrice.rawValue
+    }
+}
+
+/// ReleaseV020RiskEngineCommonDecision 是 #578 common layer 的可审计输出。
+///
+/// `forwardToCommandGateway` 只表示通用风控门通过并可进入下一 gate；它不绕过
+/// CommandGateway，不触碰 ExecutionEngine / OMS / ExecutionClient / broker，也不授权真实订单。
+public struct ReleaseV020RiskEngineCommonDecision: Codable, Equatable, Sendable {
+    public let decisionID: Identifier
+    public let inputID: Identifier
+    public let instrument: InstrumentIdentity?
+    public let status: ReleaseV020RiskEngineCommonStatus
+    public let blocker: ReleaseV020RiskEngineCommonBlocker?
+    public let passedGates: [ReleaseV020RiskEngineCommonGate]
+    public let proposedNotional: Double?
+    public let projectedAggregateExposure: Double?
+    public let forwardedOrderIntent: ProductAwareOrderIntent?
+    public let evaluatedAt: Date
+    public let validationAnchors: [String]
+    public let productionTradingEnabledByDefault: Bool
+    public let bypassesCommandGateway: Bool
+    public let touchesExecutionEngine: Bool
+    public let touchesExecutionClient: Bool
+    public let touchesBrokerGateway: Bool
+    public let bypassesOMS: Bool
+    public let bypassesEventStore: Bool
+    public let bypassesKillSwitch: Bool
+    public let bypassesNoTradeState: Bool
+    public let submitsRealOrder: Bool
+
+    public init(
+        decisionID: Identifier,
+        inputID: Identifier,
+        instrument: InstrumentIdentity?,
+        status: ReleaseV020RiskEngineCommonStatus,
+        blocker: ReleaseV020RiskEngineCommonBlocker?,
+        passedGates: [ReleaseV020RiskEngineCommonGate],
+        proposedNotional: Double?,
+        projectedAggregateExposure: Double?,
+        forwardedOrderIntent: ProductAwareOrderIntent?,
+        evaluatedAt: Date,
+        validationAnchors: [String] = Self.requiredValidationAnchors,
+        productionTradingEnabledByDefault: Bool = false,
+        bypassesCommandGateway: Bool = false,
+        touchesExecutionEngine: Bool = false,
+        touchesExecutionClient: Bool = false,
+        touchesBrokerGateway: Bool = false,
+        bypassesOMS: Bool = false,
+        bypassesEventStore: Bool = false,
+        bypassesKillSwitch: Bool = false,
+        bypassesNoTradeState: Bool = false,
+        submitsRealOrder: Bool = false
+    ) throws {
+        if status == .forwardToCommandGateway {
+            guard blocker == nil else {
+                throw CoreError.paperPreTradeRiskEngineMismatch(
+                    field: "releaseV020RiskEngineCommon.blocker",
+                    expected: "nil for forwardToCommandGateway",
+                    actual: blocker?.rawValue ?? "nil"
+                )
+            }
+            guard Set(passedGates) == Set(ReleaseV020RiskEngineCommonGate.allCases) else {
+                throw CoreError.paperPreTradeRiskEngineMismatch(
+                    field: "releaseV020RiskEngineCommon.passedGates",
+                    expected: ReleaseV020RiskEngineCommonGate.allCases.map(\.rawValue).joined(separator: ","),
+                    actual: passedGates.map(\.rawValue).joined(separator: ",")
+                )
+            }
+            guard let forwardedOrderIntent, forwardedOrderIntent.isPreRiskGateIntent else {
+                throw CoreError.paperPreTradeRiskEngineMismatch(
+                    field: "releaseV020RiskEngineCommon.forwardedOrderIntent",
+                    expected: "pre-risk order intent for next gate",
+                    actual: "nil or execution-authorizing intent"
+                )
+            }
+        }
+        if status == .blocked, blocker == nil {
+            throw CoreError.paperPreTradeRiskEngineMismatch(
+                field: "releaseV020RiskEngineCommon.blocker",
+                expected: "present for blocked",
+                actual: "nil"
+            )
+        }
+        let forbiddenFlags: [(String, Bool)] = [
+            ("productionTradingEnabledByDefault", productionTradingEnabledByDefault),
+            ("bypassesCommandGateway", bypassesCommandGateway),
+            ("touchesExecutionEngine", touchesExecutionEngine),
+            ("touchesExecutionClient", touchesExecutionClient),
+            ("touchesBrokerGateway", touchesBrokerGateway),
+            ("bypassesOMS", bypassesOMS),
+            ("bypassesEventStore", bypassesEventStore),
+            ("bypassesKillSwitch", bypassesKillSwitch),
+            ("bypassesNoTradeState", bypassesNoTradeState),
+            ("submitsRealOrder", submitsRealOrder)
+        ]
+        if let forbidden = forbiddenFlags.first(where: \.1) {
+            throw CoreError.paperPreTradeRiskEngineForbiddenCapability("releaseV020RiskEngineCommon.\(forbidden.0)")
+        }
+
+        self.decisionID = decisionID
+        self.inputID = inputID
+        self.instrument = instrument
+        self.status = status
+        self.blocker = blocker
+        self.passedGates = passedGates
+        self.proposedNotional = proposedNotional
+        self.projectedAggregateExposure = projectedAggregateExposure
+        self.forwardedOrderIntent = forwardedOrderIntent
+        self.evaluatedAt = evaluatedAt
+        self.validationAnchors = validationAnchors
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.bypassesCommandGateway = bypassesCommandGateway
+        self.touchesExecutionEngine = touchesExecutionEngine
+        self.touchesExecutionClient = touchesExecutionClient
+        self.touchesBrokerGateway = touchesBrokerGateway
+        self.bypassesOMS = bypassesOMS
+        self.bypassesEventStore = bypassesEventStore
+        self.bypassesKillSwitch = bypassesKillSwitch
+        self.bypassesNoTradeState = bypassesNoTradeState
+        self.submitsRealOrder = submitsRealOrder
+    }
+
+    public var forwardsToCommandGateway: Bool {
+        status == .forwardToCommandGateway
+            && forwardedOrderIntent?.isPreRiskGateIntent == true
+            && boundaryHeld
+    }
+
+    public var isBlocked: Bool {
+        status == .blocked
+    }
+
+    public var boundaryHeld: Bool {
+        validationAnchors == Self.requiredValidationAnchors
+            && productionTradingEnabledByDefault == false
+            && bypassesCommandGateway == false
+            && touchesExecutionEngine == false
+            && touchesExecutionClient == false
+            && touchesBrokerGateway == false
+            && bypassesOMS == false
+            && bypassesEventStore == false
+            && bypassesKillSwitch == false
+            && bypassesNoTradeState == false
+            && submitsRealOrder == false
+    }
+
+    public static let requiredValidationAnchors = [
+        "GH-578-RISKENGINE-COMMON-LAYER",
+        "GH-578-STRATEGY-INSTRUMENT-ALLOWLIST",
+        "GH-578-NOTIONAL-AGGREGATE-EXPOSURE-GATE",
+        "GH-578-KILL-SWITCH-NO-TRADE-GATE",
+        "TVM-RELEASE-V020-RISKENGINE-COMMON-LAYER"
+    ]
+}
+
+/// ReleaseV020RiskEngineCommonLayer 执行 #578 的通用风控门。
+public enum ReleaseV020RiskEngineCommonLayer {
+    public static func evaluate(
+        decisionID: Identifier,
+        input: ReleaseV020RiskEngineCommonInput,
+        policy: ReleaseV020RiskEngineCommonPolicy
+    ) throws -> ReleaseV020RiskEngineCommonDecision {
+        guard input.inputBoundaryHeld, policy.boundaryHeld else {
+            return try blocked(
+                decisionID: decisionID,
+                input: input,
+                policy: policy,
+                blocker: .arbitrationNotForwarded,
+                passedGates: []
+            )
+        }
+        guard input.arbitrationDecision.forwardsToRisk else {
+            return try blocked(
+                decisionID: decisionID,
+                input: input,
+                policy: policy,
+                blocker: .arbitrationNotForwarded,
+                passedGates: []
+            )
+        }
+        guard policy.killSwitchActive == false else {
+            return try blocked(
+                decisionID: decisionID,
+                input: input,
+                policy: policy,
+                blocker: .killSwitchActive,
+                passedGates: [.strategyAllowlist, .instrumentAllowlist, .maxNotional, .aggregateExposure]
+            )
+        }
+        guard policy.noTradeStateActive == false else {
+            return try blocked(
+                decisionID: decisionID,
+                input: input,
+                policy: policy,
+                blocker: .noTradeStateActive,
+                passedGates: [.strategyAllowlist, .instrumentAllowlist, .maxNotional, .aggregateExposure, .killSwitch]
+            )
+        }
+        guard Set(input.arbitrationDecision.candidateStrategyIDs).isSubset(of: policy.allowedStrategyIDs) else {
+            return try blocked(
+                decisionID: decisionID,
+                input: input,
+                policy: policy,
+                blocker: .strategyNotAllowed,
+                passedGates: []
+            )
+        }
+        guard let instrument = input.arbitrationDecision.instrument,
+              policy.allowedInstrumentSet.contains(instrument) else {
+            return try blocked(
+                decisionID: decisionID,
+                input: input,
+                policy: policy,
+                blocker: .instrumentNotAllowed,
+                passedGates: [.strategyAllowlist]
+            )
+        }
+        guard let proposedNotional = input.proposedNotional else {
+            return try blocked(
+                decisionID: decisionID,
+                input: input,
+                policy: policy,
+                blocker: .arbitrationNotForwarded,
+                passedGates: [.strategyAllowlist, .instrumentAllowlist]
+            )
+        }
+        guard proposedNotional <= policy.maxNotional else {
+            return try blocked(
+                decisionID: decisionID,
+                input: input,
+                policy: policy,
+                blocker: .maxNotionalExceeded,
+                passedGates: [.strategyAllowlist, .instrumentAllowlist]
+            )
+        }
+
+        let projectedAggregateExposure = input.currentAggregateExposure + proposedNotional
+        guard projectedAggregateExposure <= policy.maxAggregateExposure else {
+            return try blocked(
+                decisionID: decisionID,
+                input: input,
+                policy: policy,
+                blocker: .aggregateExposureExceeded,
+                passedGates: [.strategyAllowlist, .instrumentAllowlist, .maxNotional]
+            )
+        }
+
+        return try ReleaseV020RiskEngineCommonDecision(
+            decisionID: decisionID,
+            inputID: input.inputID,
+            instrument: instrument,
+            status: .forwardToCommandGateway,
+            blocker: nil,
+            passedGates: ReleaseV020RiskEngineCommonGate.allCases,
+            proposedNotional: proposedNotional,
+            projectedAggregateExposure: projectedAggregateExposure,
+            forwardedOrderIntent: input.arbitrationDecision.forwardedOrderIntent,
+            evaluatedAt: input.evaluatedAt,
+            validationAnchors: policy.validationAnchors
+        )
+    }
+
+    private static func blocked(
+        decisionID: Identifier,
+        input: ReleaseV020RiskEngineCommonInput,
+        policy: ReleaseV020RiskEngineCommonPolicy,
+        blocker: ReleaseV020RiskEngineCommonBlocker,
+        passedGates: [ReleaseV020RiskEngineCommonGate]
+    ) throws -> ReleaseV020RiskEngineCommonDecision {
+        let proposedNotional = input.proposedNotional
+        return try ReleaseV020RiskEngineCommonDecision(
+            decisionID: decisionID,
+            inputID: input.inputID,
+            instrument: input.arbitrationDecision.instrument,
+            status: .blocked,
+            blocker: blocker,
+            passedGates: passedGates,
+            proposedNotional: proposedNotional,
+            projectedAggregateExposure: proposedNotional.map { input.currentAggregateExposure + $0 },
+            forwardedOrderIntent: nil,
+            evaluatedAt: input.evaluatedAt,
+            validationAnchors: policy.validationAnchors
+        )
+    }
+}
