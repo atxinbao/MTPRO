@@ -8374,6 +8374,48 @@ GH-582 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-583 Release v0.2.0 Product-aware OMS State Machine Validation
+
+GH-583 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH583ProductAwareOMSStateMachineCoversSpotPerpReplayAndRejectsIllegalTransition`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-583 的验收要求：
+
+- Spot order intent 必须能进入 product-aware OMS 本地 lifecycle event log。
+- USDⓈ-M Perpetual order intent 必须能进入 product-aware OMS 本地 lifecycle event log。
+- 状态机必须覆盖 `new`、`accepted`、`submitted`、`partiallyFilled`、`filled`、`cancelled` 和 `rejected`。
+- 非法 transition 必须被拒绝，不能静默修正或降级成 allowed state。
+- replay 必须能从 append-only event log 恢复 terminal order state。
+- 生成的 OMS evidence 仍必须保持本地 deterministic evidence，不授权 production OMS runtime、ExecutionClient、broker、真实 submit / cancel / replace 或 production order store。
+
+GH-583 必须建立的主要 anchors：
+
+- `GH-583-PRODUCT-AWARE-OMS-STATE-MACHINE`
+- `GH-583-SPOT-LIFECYCLE`
+- `GH-583-PERP-LIFECYCLE`
+- `GH-583-ILLEGAL-TRANSITION-REJECTED`
+- `GH-583-REPLAY-RESTORES-ORDER-STATE`
+- `TVM-RELEASE-V020-PRODUCT-AWARE-OMS-STATE-MACHINE`
+
+## GH-583 禁止
+
+- 不实现 signed endpoint、account endpoint、listenKey、private stream runtime、broker route、ExecutionClient、broker adapter、real order lifecycle、真实 submit / cancel / replace、broker fill parser、reconciliation runtime 或 production trading。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint、private stream endpoint 或 listenKey。
+- 不把 product-aware OMS event log 解释为 broker request、ExecutionClient request、live command、production OMS runtime 或 production authorization。
+- 不写 production order store，不创建 durable broker state，不执行真实 cancel / replace。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USDⓈ-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation
 
 GH-521 必须运行：

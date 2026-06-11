@@ -101,7 +101,7 @@ NTPRO scoped 100% alignment 是 release v0.2.0 的 scoped alignment contract，�
 | GH-580 / V020-18 | Binance USD-M Perpetual margin / leverage / liquidation / funding risk checks | reduce-only close evidence and no command / execution bypass |
 | GH-581 / V020-19 | Spot ExecutionAlgorithm maps TargetExposureIntent to controlled Spot order intent | targetLong BUY, targetFlat SELL, targetShort blocked, hold no-order; no real order |
 | GH-582 / V020-20 | Perpetual ExecutionAlgorithm maps TargetExposureIntent to controlled Perp order intent | open long/short, reduce-only close long/short, no uncontrolled one-shot flip |
-| GH-583 / V020-21 | USDⓈ-M execution report / broker fill parser | no raw production payload |
+| GH-583 / V020-21 | Product-aware OMS state machine covers Spot/Perp lifecycle and replay | Spot/Perp local event log, illegal transition rejected, replay restores state |
 | GH-584 / V020-22 | reconciliation and portfolio update path | no repair command |
 | GH-585 / V020-23 | Dashboard live monitoring surfaces | read-model-only surface |
 | GH-586 / V020-24 | Dashboard controlled command surface | production disabled by default |

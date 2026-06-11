@@ -208,6 +208,8 @@ required_evidence = {
         "TVM-RELEASE-V020-SPOT-EXECUTION-ALGORITHM",
         "GH-582",
         "TVM-RELEASE-V020-PERP-EXECUTION-ALGORITHM",
+        "GH-583",
+        "TVM-RELEASE-V020-PRODUCT-AWARE-OMS-STATE-MACHINE",
     ],
     "docs/validation/validation-plan.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Validation",
@@ -225,6 +227,7 @@ required_evidence = {
         "GH-580 Release v0.2.0 Perpetual Risk Checks Validation",
         "GH-581 Release v0.2.0 Spot ExecutionAlgorithm Validation",
         "GH-582 Release v0.2.0 Perpetual ExecutionAlgorithm Validation",
+        "GH-583 Release v0.2.0 Product-aware OMS State Machine Validation",
     ],
     "docs/domain/context.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Terms",
@@ -242,6 +245,7 @@ required_evidence = {
         "GH-580 Perpetual Risk Checks Terms",
         "GH-581 Spot ExecutionAlgorithm Terms",
         "GH-582 Perpetual ExecutionAlgorithm Terms",
+        "GH-583 Product-aware OMS State Machine Terms",
     ],
     "docs/automation/automation-readiness.md": [
         "Release v0.2.0 boundary automation guard anchor",
@@ -259,6 +263,7 @@ required_evidence = {
         "Release v0.2.0 Perpetual risk checks anchor",
         "Release v0.2.0 Spot ExecutionAlgorithm anchor",
         "Release v0.2.0 Perpetual ExecutionAlgorithm anchor",
+        "Release v0.2.0 Product-aware OMS state machine anchor",
     ],
     "Tests/TargetGraphTests/TargetGraphTests.swift": [
         "testGH565ReleaseV020BoundaryGuardBlocksScopeExpansionAndProductionDefaults",
@@ -276,6 +281,7 @@ required_evidence = {
         "testGH580PerpetualRiskChecksCoverLeverageLiquidationFundingAndReduceOnly",
         "testGH581SpotExecutionAlgorithmMapsTargetExposureToControlledSpotOrderIntent",
         "testGH582PerpetualExecutionAlgorithmSupportsOpenReduceOnlyAndBlocksOneShotFlip",
+        "testGH583ProductAwareOMSStateMachineCoversSpotPerpReplayAndRejectsIllegalTransition",
     ],
 }
 

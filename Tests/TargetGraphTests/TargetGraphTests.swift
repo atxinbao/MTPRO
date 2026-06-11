@@ -7069,6 +7069,145 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH583ProductAwareOMSStateMachineCoversSpotPerpReplayAndRejectsIllegalTransition() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let releaseContract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md"
+            ),
+            encoding: .utf8
+        )
+
+        let symbol = Symbol.constant("BTCUSDT")
+        let spot = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let perp = InstrumentIdentity.binance(productType: .usdsPerpetual, symbol: symbol)
+        let evaluatedAt = Date(timeIntervalSince1970: 1_704_071_800)
+        let quantity = try Quantity(0.25, field: "gh583Quantity")
+        let referencePrice = try Price(43_500, field: "gh583ReferencePrice")
+        let spotOrderIntent = try ReleaseV020SpotExecutionAlgorithmOrderIntent(
+            orderIntentID: Identifier.constant("gh-583-spot-order-intent"),
+            sourceInputID: Identifier.constant("gh-583-spot-input"),
+            sourceRiskDecisionID: Identifier.constant("gh-583-spot-risk-decision"),
+            sourceProductAwareIntentID: Identifier.constant("gh-583-spot-product-aware-intent"),
+            instrument: spot,
+            targetExposure: .targetLong,
+            side: .buy,
+            quantity: quantity,
+            referencePrice: referencePrice,
+            currentBasePositionQuantity: 0,
+            createdAt: evaluatedAt
+        )
+        let perpetualOrderIntent = try ReleaseV020PerpetualExecutionAlgorithmOrderIntent(
+            orderIntentID: Identifier.constant("gh-583-perp-order-intent"),
+            sourceInputID: Identifier.constant("gh-583-perp-input"),
+            sourceRiskDecisionID: Identifier.constant("gh-583-perp-risk-decision"),
+            sourceProductAwareIntentID: Identifier.constant("gh-583-perp-product-aware-intent"),
+            instrument: perp,
+            targetExposure: .targetShort,
+            action: .openShort,
+            side: .sell,
+            quantity: quantity,
+            referencePrice: referencePrice,
+            currentPositionQuantity: 0,
+            reduceOnly: false,
+            createdAt: evaluatedAt
+        )
+        let stateMachine = try ReleaseV020ProductAwareOMSStateMachine.deterministicFixture()
+        let evidence = try stateMachine.deterministicEvidence(
+            evidenceID: Identifier.constant("gh-583-product-aware-oms-evidence"),
+            spotOrderIntent: spotOrderIntent,
+            perpetualOrderIntent: perpetualOrderIntent,
+            replayedAt: evaluatedAt.addingTimeInterval(60)
+        )
+
+        XCTAssertTrue(evidence.evidenceBoundaryHeld)
+        XCTAssertTrue(evidence.spotLifecyclePasses)
+        XCTAssertTrue(evidence.perpetualLifecyclePasses)
+        XCTAssertTrue(evidence.illegalTransitionGuarded)
+        XCTAssertTrue(evidence.replayRestoresOrderState)
+        XCTAssertEqual(evidence.productTypesCovered, Set(ProductType.allCases))
+        XCTAssertEqual(evidence.statesCovered, Set(ReleaseV020ProductAwareOMSOrderState.allCases))
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionOMSRuntimeEnabledByDefault)
+        XCTAssertFalse(evidence.callsExecutionClient)
+        XCTAssertFalse(evidence.submitsRealOrder)
+
+        let spotFilledLog = try XCTUnwrap(evidence.eventLogs.first { $0.path == .spotFilled })
+        XCTAssertEqual(spotFilledLog.orderIntent.instrument.productType, .spot)
+        XCTAssertEqual(spotFilledLog.terminalState, .filled)
+        XCTAssertTrue(spotFilledLog.eventLogBoundaryHeld)
+
+        let perpetualCancelledLog = try XCTUnwrap(evidence.eventLogs.first { $0.path == .perpetualCancelled })
+        XCTAssertEqual(perpetualCancelledLog.orderIntent.instrument.productType, .usdsPerpetual)
+        XCTAssertEqual(perpetualCancelledLog.terminalState, .cancelled)
+        XCTAssertTrue(perpetualCancelledLog.eventLogBoundaryHeld)
+
+        for replay in evidence.replayResults {
+            let sourceLog = try XCTUnwrap(evidence.eventLogs.first { $0.eventLogID == replay.sourceEventLogID })
+            XCTAssertEqual(replay.restoredState, sourceLog.terminalState)
+            XCTAssertEqual(replay.restoredFromTransitionCount, sourceLog.transitions.count)
+            XCTAssertTrue(replay.replayBoundaryHeld)
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV020ProductAwareOMSTransition(
+                transitionID: Identifier.constant("unsafe-gh-583-transition"),
+                orderID: Identifier.constant("unsafe-gh-583-order"),
+                sourceOrderIntentID: spotOrderIntent.orderIntentID,
+                instrument: spot,
+                fromState: .submitted,
+                trigger: .orderIntentAccepted,
+                toState: .accepted,
+                sequence: 999
+            )
+        ) { error in
+            guard case let CoreError.liveTradingBoundaryContractMismatch(field, _, _) = error else {
+                XCTFail("unexpected error: \(error)")
+                return
+            }
+            XCTAssertEqual(field, "releaseV020ProductAwareOMS.transition")
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV020ProductAwareOMSStateMachine(
+                stateMachineID: Identifier.constant("unsafe-gh-583-state-machine"),
+                callsExecutionClient: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("releaseV020ProductAwareOMS.callsExecutionClient")
+            )
+        }
+
+        XCTAssertTrue(validationMatrix.contains("`GH-583`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-PRODUCT-AWARE-OMS-STATE-MACHINE"))
+        XCTAssertTrue(validationPlan.contains("GH-583 Release v0.2.0 Product-aware OMS State Machine Validation"))
+        XCTAssertTrue(domainContext.contains("GH-583 Product-aware OMS State Machine Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 Product-aware OMS state machine anchor"))
+        XCTAssertTrue(
+            releaseContract.contains(
+                "GH-583 / V020-21 | Product-aware OMS state machine covers Spot/Perp lifecycle and replay"
+            )
+        )
+    }
+
     func testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
