@@ -5346,6 +5346,237 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH577ProposalArbitratorAllowsAgreementAndBlocksConflictsBeforeRisk() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let releaseContract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md"
+            ),
+            encoding: .utf8
+        )
+
+        let symbol = Symbol.constant("BTCUSDT")
+        let spot = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let perp = InstrumentIdentity.binance(productType: .usdsPerpetual, symbol: symbol)
+        let emittedAt = Date(timeIntervalSince1970: 1_704_067_700)
+        let quantity = try Quantity(0.25, field: "gh577Quantity")
+        let spotReferencePrice = try Price(43_000, field: "gh577SpotReferencePrice")
+        let perpReferencePrice = try Price(43_100, field: "gh577PerpReferencePrice")
+
+        func candidate(
+            strategyID: String,
+            instrument: InstrumentIdentity,
+            targetExposure: TargetExposureIntent,
+            intentID: String,
+            sourceSequence: Int
+        ) throws -> StrategyProposalArbitrationCandidate {
+            let orderIntent = try ProductAwareOrderIntent(
+                intentID: Identifier.constant(intentID),
+                instrument: instrument,
+                targetExposure: targetExposure,
+                quantity: quantity,
+                referencePrice: instrument.productType == .spot ? spotReferencePrice : perpReferencePrice,
+                createdAt: emittedAt
+            )
+            return try StrategyProposalArbitrationCandidate(
+                strategyID: Identifier.constant(strategyID),
+                instrument: instrument,
+                targetExposure: targetExposure,
+                productAwareOrderIntent: orderIntent,
+                emittedAt: emittedAt,
+                sourceSequence: sourceSequence
+            )
+        }
+
+        let agreeLong = try ProposalArbitrator.arbitrate(
+            decisionID: Identifier.constant("gh-577-agree-long"),
+            candidates: [
+                candidate(
+                    strategyID: "gh-577-ema",
+                    instrument: spot,
+                    targetExposure: .targetLong,
+                    intentID: "gh-577-ema-long",
+                    sourceSequence: 1
+                ),
+                candidate(
+                    strategyID: "gh-577-rsi",
+                    instrument: spot,
+                    targetExposure: .targetLong,
+                    intentID: "gh-577-rsi-long",
+                    sourceSequence: 2
+                )
+            ],
+            evaluatedAt: emittedAt
+        )
+        XCTAssertEqual(agreeLong.status, .forwardToRisk)
+        XCTAssertEqual(agreeLong.targetExposure, .targetLong)
+        XCTAssertTrue(agreeLong.forwardsToRisk)
+        XCTAssertTrue(agreeLong.boundaryHeld)
+
+        let agreeFlat = try ProposalArbitrator.arbitrate(
+            decisionID: Identifier.constant("gh-577-agree-flat"),
+            candidates: [
+                candidate(
+                    strategyID: "gh-577-ema",
+                    instrument: spot,
+                    targetExposure: .targetFlat,
+                    intentID: "gh-577-ema-flat",
+                    sourceSequence: 3
+                ),
+                candidate(
+                    strategyID: "gh-577-rsi",
+                    instrument: spot,
+                    targetExposure: .targetFlat,
+                    intentID: "gh-577-rsi-flat",
+                    sourceSequence: 4
+                )
+            ],
+            evaluatedAt: emittedAt
+        )
+        XCTAssertEqual(agreeFlat.status, .forwardToRisk)
+        XCTAssertEqual(agreeFlat.targetExposure, .targetFlat)
+        XCTAssertTrue(agreeFlat.forwardsToRisk)
+
+        let conflict = try ProposalArbitrator.arbitrate(
+            decisionID: Identifier.constant("gh-577-conflict"),
+            candidates: [
+                candidate(
+                    strategyID: "gh-577-ema",
+                    instrument: spot,
+                    targetExposure: .targetLong,
+                    intentID: "gh-577-ema-conflict-long",
+                    sourceSequence: 5
+                ),
+                candidate(
+                    strategyID: "gh-577-rsi",
+                    instrument: spot,
+                    targetExposure: .targetFlat,
+                    intentID: "gh-577-rsi-conflict-flat",
+                    sourceSequence: 6
+                )
+            ],
+            evaluatedAt: emittedAt
+        )
+        XCTAssertEqual(conflict.status, .blocked)
+        XCTAssertEqual(conflict.blocker, .conflictBlockedByDefault)
+        XCTAssertFalse(conflict.forwardsToRisk)
+
+        let spotShortCandidate = try StrategyProposalArbitrationCandidate(
+            strategyID: Identifier.constant("gh-577-rsi"),
+            instrument: spot,
+            targetExposure: .targetShort,
+            productAwareOrderIntent: nil,
+            emittedAt: emittedAt,
+            sourceSequence: 7
+        )
+        let spotShort = try ProposalArbitrator.arbitrate(
+            decisionID: Identifier.constant("gh-577-spot-short"),
+            candidates: [spotShortCandidate],
+            evaluatedAt: emittedAt
+        )
+        XCTAssertEqual(spotShort.status, .blocked)
+        XCTAssertEqual(spotShort.blocker, .spotShortBlocked)
+        XCTAssertNil(spotShort.forwardedOrderIntent)
+
+        let perpShort = try ProposalArbitrator.arbitrate(
+            decisionID: Identifier.constant("gh-577-perp-short"),
+            candidates: [
+                candidate(
+                    strategyID: "gh-577-ema",
+                    instrument: perp,
+                    targetExposure: .targetShort,
+                    intentID: "gh-577-ema-perp-short",
+                    sourceSequence: 8
+                ),
+                candidate(
+                    strategyID: "gh-577-rsi",
+                    instrument: perp,
+                    targetExposure: .targetShort,
+                    intentID: "gh-577-rsi-perp-short",
+                    sourceSequence: 9
+                )
+            ],
+            evaluatedAt: emittedAt,
+            allowPerpetualShort: true
+        )
+        XCTAssertEqual(perpShort.status, .forwardToRisk)
+        XCTAssertEqual(perpShort.targetExposure, .targetShort)
+        XCTAssertEqual(perpShort.forwardedOrderIntent?.instrument.productType, .usdsPerpetual)
+        XCTAssertTrue(perpShort.forwardsToRisk)
+        XCTAssertFalse(perpShort.authorizesLiveTrading)
+        XCTAssertFalse(perpShort.productionTradingEnabledByDefault)
+
+        let perpShortBlocked = try ProposalArbitrator.arbitrate(
+            decisionID: Identifier.constant("gh-577-perp-short-gate-closed"),
+            candidates: [
+                candidate(
+                    strategyID: "gh-577-rsi",
+                    instrument: perp,
+                    targetExposure: .targetShort,
+                    intentID: "gh-577-rsi-perp-short-blocked",
+                    sourceSequence: 10
+                )
+            ],
+            evaluatedAt: emittedAt,
+            allowPerpetualShort: false
+        )
+        XCTAssertEqual(perpShortBlocked.status, .blocked)
+        XCTAssertEqual(perpShortBlocked.blocker, .perpetualShortGateClosed)
+
+        XCTAssertThrowsError(
+            try ProposalArbitrationDecision(
+                decisionID: Identifier.constant("unsafe-gh-577-production-default"),
+                instrument: spot,
+                targetExposure: .targetLong,
+                candidateStrategyIDs: [Identifier.constant("gh-577-ema")],
+                sourceSequences: [11],
+                status: .forwardToRisk,
+                blocker: nil,
+                forwardedOrderIntent: candidate(
+                    strategyID: "gh-577-ema",
+                    instrument: spot,
+                    targetExposure: .targetLong,
+                    intentID: "unsafe-gh-577-order",
+                    sourceSequence: 11
+                ).productAwareOrderIntent,
+                evaluatedAt: emittedAt,
+                productionTradingEnabledByDefault: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperPreTradeRiskEngineForbiddenCapability("productionTradingEnabledByDefault")
+            )
+        }
+
+        XCTAssertTrue(validationMatrix.contains("`GH-577`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-PROPOSAL-ARBITRATOR"))
+        XCTAssertTrue(validationPlan.contains("GH-577 Release v0.2.0 Proposal Arbitrator Validation"))
+        XCTAssertTrue(domainContext.contains("GH-577 Proposal Arbitrator Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 ProposalArbitrator anchor"))
+        XCTAssertTrue(
+            releaseContract.contains(
+                "GH-577 / V020-15 | EMA / RSI ProposalArbitrator across Spot and Perp"
+            )
+        )
+    }
+
     func testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
