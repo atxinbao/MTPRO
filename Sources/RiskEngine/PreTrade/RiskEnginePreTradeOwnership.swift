@@ -1489,3 +1489,521 @@ public enum ReleaseV020SpotRiskLayer {
         )
     }
 }
+
+/// ReleaseV020PerpetualRiskGate 表达 #580 Perp 专属风控检查项。
+public enum ReleaseV020PerpetualRiskGate: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case leverageCap
+    case liquidationDistance
+    case markPriceFreshness
+    case fundingRisk
+    case reduceOnlyClose
+}
+
+/// ReleaseV020PerpetualRiskStatus 描述 Perp risk check 的输出。
+public enum ReleaseV020PerpetualRiskStatus: String, Codable, Equatable, Sendable {
+    case forwardToCommandGateway
+    case forwardToCommandGatewayWithWarning
+    case blocked
+}
+
+/// ReleaseV020PerpetualRiskBlocker 描述 #580 Perp risk check 的阻断原因。
+public enum ReleaseV020PerpetualRiskBlocker: String, Codable, Equatable, Hashable, Sendable {
+    case commonRiskNotForwarded
+    case nonPerpetualInstrument
+    case leverageCapExceeded
+    case liquidationDistanceUnsafe
+    case staleMarkPrice
+    case fundingRiskBlocked
+    case reduceOnlyCloseInvalid
+}
+
+/// ReleaseV020PerpetualRiskWarning 描述 non-blocking Perp 风险提示。
+public enum ReleaseV020PerpetualRiskWarning: String, Codable, Equatable, Hashable, Sendable {
+    case fundingRiskWarning
+}
+
+/// ReleaseV020PerpetualRiskPolicy 保存 #580 的 Perp 风控阈值。
+public struct ReleaseV020PerpetualRiskPolicy: Codable, Equatable, Sendable {
+    public let policyID: Identifier
+    public let maxLeverage: Double
+    public let minLiquidationDistanceRatio: Double
+    public let fundingWarningAbsRate: Double
+    public let fundingBlockAbsRate: Double
+    public let validationAnchors: [String]
+    public let productionTradingEnabledByDefault: Bool
+    public let bypassesCommandGateway: Bool
+    public let touchesExecutionEngine: Bool
+    public let touchesExecutionClient: Bool
+    public let touchesBrokerGateway: Bool
+    public let bypassesOMS: Bool
+    public let bypassesEventStore: Bool
+    public let bypassesKillSwitch: Bool
+    public let bypassesNoTradeState: Bool
+    public let submitsRealOrder: Bool
+
+    public init(
+        policyID: Identifier,
+        maxLeverage: Double,
+        minLiquidationDistanceRatio: Double,
+        fundingWarningAbsRate: Double,
+        fundingBlockAbsRate: Double,
+        validationAnchors: [String] = ReleaseV020PerpetualRiskDecision.requiredValidationAnchors,
+        productionTradingEnabledByDefault: Bool = false,
+        bypassesCommandGateway: Bool = false,
+        touchesExecutionEngine: Bool = false,
+        touchesExecutionClient: Bool = false,
+        touchesBrokerGateway: Bool = false,
+        bypassesOMS: Bool = false,
+        bypassesEventStore: Bool = false,
+        bypassesKillSwitch: Bool = false,
+        bypassesNoTradeState: Bool = false,
+        submitsRealOrder: Bool = false
+    ) throws {
+        let finitePositive: [(String, Double)] = [
+            ("maxLeverage", maxLeverage),
+            ("minLiquidationDistanceRatio", minLiquidationDistanceRatio),
+            ("fundingWarningAbsRate", fundingWarningAbsRate),
+            ("fundingBlockAbsRate", fundingBlockAbsRate)
+        ]
+        if let invalid = finitePositive.first(where: { $0.1.isFinite == false || $0.1 <= 0 }) {
+            throw CoreError.paperPreTradeRiskEngineMismatch(
+                field: "releaseV020PerpetualRisk.\(invalid.0)",
+                expected: "finite positive value",
+                actual: "\(invalid.1)"
+            )
+        }
+        guard fundingWarningAbsRate < fundingBlockAbsRate else {
+            throw CoreError.paperPreTradeRiskEngineMismatch(
+                field: "releaseV020PerpetualRisk.fundingThresholds",
+                expected: "warning threshold below block threshold",
+                actual: "\(fundingWarningAbsRate) >= \(fundingBlockAbsRate)"
+            )
+        }
+        try Self.forbid(productionTradingEnabledByDefault, "productionTradingEnabledByDefault")
+        try Self.forbid(bypassesCommandGateway, "bypassesCommandGateway")
+        try Self.forbid(touchesExecutionEngine, "touchesExecutionEngine")
+        try Self.forbid(touchesExecutionClient, "touchesExecutionClient")
+        try Self.forbid(touchesBrokerGateway, "touchesBrokerGateway")
+        try Self.forbid(bypassesOMS, "bypassesOMS")
+        try Self.forbid(bypassesEventStore, "bypassesEventStore")
+        try Self.forbid(bypassesKillSwitch, "bypassesKillSwitch")
+        try Self.forbid(bypassesNoTradeState, "bypassesNoTradeState")
+        try Self.forbid(submitsRealOrder, "submitsRealOrder")
+
+        self.policyID = policyID
+        self.maxLeverage = maxLeverage
+        self.minLiquidationDistanceRatio = minLiquidationDistanceRatio
+        self.fundingWarningAbsRate = fundingWarningAbsRate
+        self.fundingBlockAbsRate = fundingBlockAbsRate
+        self.validationAnchors = validationAnchors
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.bypassesCommandGateway = bypassesCommandGateway
+        self.touchesExecutionEngine = touchesExecutionEngine
+        self.touchesExecutionClient = touchesExecutionClient
+        self.touchesBrokerGateway = touchesBrokerGateway
+        self.bypassesOMS = bypassesOMS
+        self.bypassesEventStore = bypassesEventStore
+        self.bypassesKillSwitch = bypassesKillSwitch
+        self.bypassesNoTradeState = bypassesNoTradeState
+        self.submitsRealOrder = submitsRealOrder
+    }
+
+    public var boundaryHeld: Bool {
+        validationAnchors == ReleaseV020PerpetualRiskDecision.requiredValidationAnchors
+            && productionTradingEnabledByDefault == false
+            && bypassesCommandGateway == false
+            && touchesExecutionEngine == false
+            && touchesExecutionClient == false
+            && touchesBrokerGateway == false
+            && bypassesOMS == false
+            && bypassesEventStore == false
+            && bypassesKillSwitch == false
+            && bypassesNoTradeState == false
+            && submitsRealOrder == false
+    }
+
+    public static func deterministicFixture() throws -> ReleaseV020PerpetualRiskPolicy {
+        try ReleaseV020PerpetualRiskPolicy(
+            policyID: Identifier.constant("gh-580-perp-risk-policy"),
+            maxLeverage: 5,
+            minLiquidationDistanceRatio: 0.05,
+            fundingWarningAbsRate: 0.0005,
+            fundingBlockAbsRate: 0.001
+        )
+    }
+
+    private static func forbid(_ value: Bool, _ field: String) throws {
+        guard value == false else {
+            throw CoreError.paperPreTradeRiskEngineForbiddenCapability("releaseV020PerpetualRisk.\(field)")
+        }
+    }
+}
+
+/// ReleaseV020PerpetualRiskInput 是 #580 Perp risk check 的输入。
+public struct ReleaseV020PerpetualRiskInput: Codable, Equatable, Sendable {
+    public let inputID: Identifier
+    public let commonDecision: ReleaseV020RiskEngineCommonDecision
+    public let markPriceReadModel: PerpetualMarkPriceReadModel
+    public let fundingReadModel: PerpetualFundingRiskReadModel
+    public let leverage: Double
+    public let liquidationPrice: Price
+    public let reduceOnlyClose: Bool
+    public let currentPositionQuantity: Double
+    public let evaluatedAt: Date
+    public let sourceSequence: Int
+    public let productionTradingRequested: Bool
+    public let riskGateBypassed: Bool
+
+    public init(
+        inputID: Identifier,
+        commonDecision: ReleaseV020RiskEngineCommonDecision,
+        markPriceReadModel: PerpetualMarkPriceReadModel,
+        fundingReadModel: PerpetualFundingRiskReadModel,
+        leverage: Double,
+        liquidationPrice: Price,
+        reduceOnlyClose: Bool = false,
+        currentPositionQuantity: Double,
+        evaluatedAt: Date,
+        sourceSequence: Int,
+        productionTradingRequested: Bool = false,
+        riskGateBypassed: Bool = false
+    ) throws {
+        guard sourceSequence > 0 else {
+            throw CoreError.invalidEventSequence(sourceSequence)
+        }
+        guard leverage.isFinite && leverage > 0 else {
+            throw CoreError.paperPreTradeRiskEngineMismatch(
+                field: "releaseV020PerpetualRisk.leverage",
+                expected: "finite positive leverage",
+                actual: "\(leverage)"
+            )
+        }
+        guard currentPositionQuantity.isFinite else {
+            throw CoreError.paperPreTradeRiskEngineMismatch(
+                field: "releaseV020PerpetualRisk.currentPositionQuantity",
+                expected: "finite position quantity",
+                actual: "\(currentPositionQuantity)"
+            )
+        }
+        guard markPriceReadModel.instrument == fundingReadModel.instrument else {
+            throw CoreError.paperPreTradeRiskEngineMismatch(
+                field: "releaseV020PerpetualRisk.instrument",
+                expected: markPriceReadModel.instrument.rawValue,
+                actual: fundingReadModel.instrument.rawValue
+            )
+        }
+        guard productionTradingRequested == false else {
+            throw CoreError.paperPreTradeRiskEngineForbiddenCapability(
+                "releaseV020PerpetualRisk.productionTradingRequested"
+            )
+        }
+        guard riskGateBypassed == false else {
+            throw CoreError.paperPreTradeRiskEngineForbiddenCapability(
+                "releaseV020PerpetualRisk.riskGateBypassed"
+            )
+        }
+
+        self.inputID = inputID
+        self.commonDecision = commonDecision
+        self.markPriceReadModel = markPriceReadModel
+        self.fundingReadModel = fundingReadModel
+        self.leverage = leverage
+        self.liquidationPrice = liquidationPrice
+        self.reduceOnlyClose = reduceOnlyClose
+        self.currentPositionQuantity = currentPositionQuantity
+        self.evaluatedAt = evaluatedAt
+        self.sourceSequence = sourceSequence
+        self.productionTradingRequested = productionTradingRequested
+        self.riskGateBypassed = riskGateBypassed
+    }
+
+    public var requestedQuantity: Double {
+        commonDecision.forwardedOrderIntent?.quantity.rawValue ?? 0
+    }
+
+    public var liquidationDistanceRatio: Double {
+        abs(markPriceReadModel.markPrice.rawValue - liquidationPrice.rawValue) / markPriceReadModel.markPrice.rawValue
+    }
+
+    public var inputBoundaryHeld: Bool {
+        sourceSequence > 0
+            && leverage.isFinite
+            && leverage > 0
+            && currentPositionQuantity.isFinite
+            && productionTradingRequested == false
+            && riskGateBypassed == false
+            && commonDecision.boundaryHeld
+            && markPriceReadModel.instrument.productType == .usdsPerpetual
+            && fundingReadModel.instrument == markPriceReadModel.instrument
+    }
+}
+
+/// ReleaseV020PerpetualRiskDecision 是 #580 Perp risk check 的可审计输出。
+public struct ReleaseV020PerpetualRiskDecision: Codable, Equatable, Sendable {
+    public let decisionID: Identifier
+    public let inputID: Identifier
+    public let instrument: InstrumentIdentity?
+    public let status: ReleaseV020PerpetualRiskStatus
+    public let blocker: ReleaseV020PerpetualRiskBlocker?
+    public let warnings: [ReleaseV020PerpetualRiskWarning]
+    public let passedGates: [ReleaseV020PerpetualRiskGate]
+    public let leverage: Double
+    public let liquidationDistanceRatio: Double
+    public let fundingRate: Double
+    public let reduceOnlyClose: Bool
+    public let evaluatedAt: Date
+    public let validationAnchors: [String]
+    public let productionTradingEnabledByDefault: Bool
+    public let bypassesCommandGateway: Bool
+    public let touchesExecutionEngine: Bool
+    public let touchesExecutionClient: Bool
+    public let touchesBrokerGateway: Bool
+    public let bypassesOMS: Bool
+    public let bypassesEventStore: Bool
+    public let bypassesKillSwitch: Bool
+    public let bypassesNoTradeState: Bool
+    public let submitsRealOrder: Bool
+
+    public init(
+        decisionID: Identifier,
+        inputID: Identifier,
+        instrument: InstrumentIdentity?,
+        status: ReleaseV020PerpetualRiskStatus,
+        blocker: ReleaseV020PerpetualRiskBlocker?,
+        warnings: [ReleaseV020PerpetualRiskWarning],
+        passedGates: [ReleaseV020PerpetualRiskGate],
+        leverage: Double,
+        liquidationDistanceRatio: Double,
+        fundingRate: Double,
+        reduceOnlyClose: Bool,
+        evaluatedAt: Date,
+        validationAnchors: [String] = Self.requiredValidationAnchors,
+        productionTradingEnabledByDefault: Bool = false,
+        bypassesCommandGateway: Bool = false,
+        touchesExecutionEngine: Bool = false,
+        touchesExecutionClient: Bool = false,
+        touchesBrokerGateway: Bool = false,
+        bypassesOMS: Bool = false,
+        bypassesEventStore: Bool = false,
+        bypassesKillSwitch: Bool = false,
+        bypassesNoTradeState: Bool = false,
+        submitsRealOrder: Bool = false
+    ) throws {
+        if status == .blocked, blocker == nil {
+            throw CoreError.paperPreTradeRiskEngineMismatch(
+                field: "releaseV020PerpetualRisk.blocker",
+                expected: "present for blocked",
+                actual: "nil"
+            )
+        }
+        if status != .blocked, blocker != nil {
+            throw CoreError.paperPreTradeRiskEngineMismatch(
+                field: "releaseV020PerpetualRisk.blocker",
+                expected: "nil for forward status",
+                actual: blocker?.rawValue ?? "nil"
+            )
+        }
+        if status == .forwardToCommandGateway {
+            guard warnings.isEmpty else {
+                throw CoreError.paperPreTradeRiskEngineMismatch(
+                    field: "releaseV020PerpetualRisk.warnings",
+                    expected: "empty for non-warning forward",
+                    actual: warnings.map(\.rawValue).joined(separator: ",")
+                )
+            }
+        }
+        if status == .forwardToCommandGatewayWithWarning {
+            guard warnings.isEmpty == false else {
+                throw CoreError.paperPreTradeRiskEngineMismatch(
+                    field: "releaseV020PerpetualRisk.warnings",
+                    expected: "present for warning forward",
+                    actual: "empty"
+                )
+            }
+        }
+        if status == .blocked {
+            guard warnings.isEmpty else {
+                throw CoreError.paperPreTradeRiskEngineMismatch(
+                    field: "releaseV020PerpetualRisk.warnings",
+                    expected: "empty for blocked",
+                    actual: warnings.map(\.rawValue).joined(separator: ",")
+                )
+            }
+        }
+        if status != .blocked {
+            guard Set(passedGates) == Set(ReleaseV020PerpetualRiskGate.allCases) else {
+                throw CoreError.paperPreTradeRiskEngineMismatch(
+                    field: "releaseV020PerpetualRisk.passedGates",
+                    expected: ReleaseV020PerpetualRiskGate.allCases.map(\.rawValue).joined(separator: ","),
+                    actual: passedGates.map(\.rawValue).joined(separator: ",")
+                )
+            }
+        }
+        let forbiddenFlags: [(String, Bool)] = [
+            ("productionTradingEnabledByDefault", productionTradingEnabledByDefault),
+            ("bypassesCommandGateway", bypassesCommandGateway),
+            ("touchesExecutionEngine", touchesExecutionEngine),
+            ("touchesExecutionClient", touchesExecutionClient),
+            ("touchesBrokerGateway", touchesBrokerGateway),
+            ("bypassesOMS", bypassesOMS),
+            ("bypassesEventStore", bypassesEventStore),
+            ("bypassesKillSwitch", bypassesKillSwitch),
+            ("bypassesNoTradeState", bypassesNoTradeState),
+            ("submitsRealOrder", submitsRealOrder)
+        ]
+        if let forbidden = forbiddenFlags.first(where: \.1) {
+            throw CoreError.paperPreTradeRiskEngineForbiddenCapability("releaseV020PerpetualRisk.\(forbidden.0)")
+        }
+
+        self.decisionID = decisionID
+        self.inputID = inputID
+        self.instrument = instrument
+        self.status = status
+        self.blocker = blocker
+        self.warnings = warnings
+        self.passedGates = passedGates
+        self.leverage = leverage
+        self.liquidationDistanceRatio = liquidationDistanceRatio
+        self.fundingRate = fundingRate
+        self.reduceOnlyClose = reduceOnlyClose
+        self.evaluatedAt = evaluatedAt
+        self.validationAnchors = validationAnchors
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.bypassesCommandGateway = bypassesCommandGateway
+        self.touchesExecutionEngine = touchesExecutionEngine
+        self.touchesExecutionClient = touchesExecutionClient
+        self.touchesBrokerGateway = touchesBrokerGateway
+        self.bypassesOMS = bypassesOMS
+        self.bypassesEventStore = bypassesEventStore
+        self.bypassesKillSwitch = bypassesKillSwitch
+        self.bypassesNoTradeState = bypassesNoTradeState
+        self.submitsRealOrder = submitsRealOrder
+    }
+
+    public var forwardsToCommandGateway: Bool {
+        (status == .forwardToCommandGateway || status == .forwardToCommandGatewayWithWarning)
+            && boundaryHeld
+    }
+
+    public var isBlocked: Bool {
+        status == .blocked
+    }
+
+    public var boundaryHeld: Bool {
+        validationAnchors == Self.requiredValidationAnchors
+            && productionTradingEnabledByDefault == false
+            && bypassesCommandGateway == false
+            && touchesExecutionEngine == false
+            && touchesExecutionClient == false
+            && touchesBrokerGateway == false
+            && bypassesOMS == false
+            && bypassesEventStore == false
+            && bypassesKillSwitch == false
+            && bypassesNoTradeState == false
+            && submitsRealOrder == false
+    }
+
+    public static let requiredValidationAnchors = [
+        "GH-580-PERP-RISK-CHECKS",
+        "GH-580-LEVERAGE-LIQUIDATION-GATE",
+        "GH-580-MARK-FUNDING-RISK-GATE",
+        "GH-580-REDUCE-ONLY-CLOSE-VALIDATION",
+        "TVM-RELEASE-V020-PERP-RISK-CHECKS"
+    ]
+}
+
+/// ReleaseV020PerpetualRiskLayer 执行 #580 Perp 专属 risk checks。
+public enum ReleaseV020PerpetualRiskLayer {
+    public static func evaluate(
+        decisionID: Identifier,
+        input: ReleaseV020PerpetualRiskInput,
+        policy: ReleaseV020PerpetualRiskPolicy
+    ) throws -> ReleaseV020PerpetualRiskDecision {
+        guard input.inputBoundaryHeld, policy.boundaryHeld, input.commonDecision.forwardsToCommandGateway else {
+            return try blocked(decisionID: decisionID, input: input, blocker: .commonRiskNotForwarded, passedGates: [])
+        }
+        guard let instrument = input.commonDecision.instrument, instrument.productType == .usdsPerpetual else {
+            return try blocked(decisionID: decisionID, input: input, blocker: .nonPerpetualInstrument, passedGates: [])
+        }
+        guard input.leverage <= policy.maxLeverage else {
+            return try blocked(decisionID: decisionID, input: input, blocker: .leverageCapExceeded, passedGates: [])
+        }
+        guard input.liquidationDistanceRatio >= policy.minLiquidationDistanceRatio else {
+            return try blocked(
+                decisionID: decisionID,
+                input: input,
+                blocker: .liquidationDistanceUnsafe,
+                passedGates: [.leverageCap]
+            )
+        }
+        guard input.markPriceReadModel.freshness.isFresh else {
+            return try blocked(
+                decisionID: decisionID,
+                input: input,
+                blocker: .staleMarkPrice,
+                passedGates: [.leverageCap, .liquidationDistance]
+            )
+        }
+        let absFunding = abs(input.fundingReadModel.fundingRate)
+        guard absFunding < policy.fundingBlockAbsRate else {
+            return try blocked(
+                decisionID: decisionID,
+                input: input,
+                blocker: .fundingRiskBlocked,
+                passedGates: [.leverageCap, .liquidationDistance, .markPriceFreshness]
+            )
+        }
+        guard input.reduceOnlyClose == false
+            || (
+                input.commonDecision.forwardedOrderIntent?.targetExposure == .targetFlat
+                    && input.currentPositionQuantity != 0
+                    && input.requestedQuantity <= abs(input.currentPositionQuantity)
+            ) else {
+            return try blocked(
+                decisionID: decisionID,
+                input: input,
+                blocker: .reduceOnlyCloseInvalid,
+                passedGates: [.leverageCap, .liquidationDistance, .markPriceFreshness, .fundingRisk]
+            )
+        }
+
+        let warnings: [ReleaseV020PerpetualRiskWarning] =
+            absFunding >= policy.fundingWarningAbsRate ? [.fundingRiskWarning] : []
+        return try ReleaseV020PerpetualRiskDecision(
+            decisionID: decisionID,
+            inputID: input.inputID,
+            instrument: instrument,
+            status: warnings.isEmpty ? .forwardToCommandGateway : .forwardToCommandGatewayWithWarning,
+            blocker: nil,
+            warnings: warnings,
+            passedGates: ReleaseV020PerpetualRiskGate.allCases,
+            leverage: input.leverage,
+            liquidationDistanceRatio: input.liquidationDistanceRatio,
+            fundingRate: input.fundingReadModel.fundingRate,
+            reduceOnlyClose: input.reduceOnlyClose,
+            evaluatedAt: input.evaluatedAt
+        )
+    }
+
+    private static func blocked(
+        decisionID: Identifier,
+        input: ReleaseV020PerpetualRiskInput,
+        blocker: ReleaseV020PerpetualRiskBlocker,
+        passedGates: [ReleaseV020PerpetualRiskGate]
+    ) throws -> ReleaseV020PerpetualRiskDecision {
+        try ReleaseV020PerpetualRiskDecision(
+            decisionID: decisionID,
+            inputID: input.inputID,
+            instrument: input.commonDecision.instrument,
+            status: .blocked,
+            blocker: blocker,
+            warnings: [],
+            passedGates: passedGates,
+            leverage: input.leverage,
+            liquidationDistanceRatio: input.liquidationDistanceRatio,
+            fundingRate: input.fundingReadModel.fundingRate,
+            reduceOnlyClose: input.reduceOnlyClose,
+            evaluatedAt: input.evaluatedAt
+        )
+    }
+}
