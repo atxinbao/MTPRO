@@ -7609,6 +7609,44 @@ GH-563 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-564 Release v0.2.0 Root Docs Boundary Refresh Validation
+
+GH-564 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH564ReleaseV020RootDocsReplaceOldSpotPaperEMABoundaries`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-564 的验收要求：
+
+- `README.md`、`architecture.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md` 和 `docs/domain/context.md` 必须包含 `GH-564-RELEASE-V020-ROOT-DOCS-BOUNDARY-REFRESH`。
+- root docs 当前口径必须明确 `activeVenue == Binance`、`activeProductTypes == [spot, usdsPerpetual]`、`activeStrategies == [ema, rsi]`、`productionTradingEnabledByDefault == false`、`productionCapabilityGatedNotMissing == true` 和 `oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true`。
+- 当前 root docs 不得再把 public-read-only、paper-only、ExecutionClient future-gate 或 EMA-only 写成 release v0.2.0 当前边界；这些只能作为 historical / audit / compatibility evidence 出现。
+- `docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`checks/automation-readiness.d/l4-boundary.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 GH-564 validation anchors。
+- GH-564 PR evidence 必须确认不实现 runtime，不读取 production secret，不连接 production endpoint，不提交真实订单，不启动 Symphony，不运行 Graphify / code-index，不使用 Linear，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+GH-564 必须建立的主要 anchors：
+
+- `GH-564-RELEASE-V020-ROOT-DOCS-BOUNDARY-REFRESH`
+- `GH-564-PRODUCTION-CAPABILITY-GATED-NOT-MISSING`
+- `GH-564-NO-OLD-BOUNDARY-AS-CURRENT`
+- `TVM-RELEASE-V020-BINANCE-SPOT-PERP-EMA-RSI-NTPRO-ALIGNMENT`
+
+## GH-564 禁止
+
+- 不实现 release runtime、Strategy runtime、Trader runtime、ExecutionClient runtime、OMS runtime 或 Dashboard command runtime。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint 或 listenKey。
+- 不提交、取消或替换真实订单。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USDⓈ-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation
 
 GH-521 必须运行：
