@@ -3840,6 +3840,28 @@ RSI RiskEngine-consumable intent 指 RSI target exposure 只进入 `StrategyInte
 
 Release v0.2.0 RSI target exposure matrix 必须证明 RSI deterministic calculation、Spot never short、Perp short explicit gate 和 RiskEngine-consumable pre-risk intent evidence 同时成立。
 
+## GH-571 Strategy Actor Registry Terms
+
+`GH-571-STRATEGY-ACTOR-KIND-ALLOWLIST`
+
+Strategy actor kind allowlist 指 release v0.2.0 只允许 `ema` 与 `rsi` 两类 strategy actor。未知 strategy kind 必须在 registry / actor 构造前被拒绝，不能形成 active source root、runtime loop 或 order command path。
+
+`GH-571-EMA-RSI-ACTOR-REGISTRATION`
+
+EMA / RSI actor registration 指 `EMAStrategyActor` 与 `RSIStrategyActor` 都能生成 deterministic `StrategyActorRegistration`，并按 Binance Spot 与 Binance USDⓈ-M Perpetual instrument 建立 product binding。Registration 只保存 identity、source root 和 binding evidence，不保存 broker session、OMS state 或 account payload。
+
+`GH-571-DUPLICATE-STRATEGY-ID-REJECTED`
+
+Duplicate strategyID rejected 指 `StrategyRegistry` 必须拒绝重复 `strategyID`，避免两个 actor 共享同一 strategy identity。该拒绝只发生在本地 registration gate，不依赖外部服务或 runtime state。
+
+`GH-571-NO-STRATEGY-EXECUTIONCLIENT-DEPENDENCY`
+
+No Strategy -> ExecutionClient dependency 指 `TraderStrategies` target 仍不得依赖 `ExecutionClient`，strategy registry / product binding 不能 import 或调用 ExecutionClient、broker、OMS、signed endpoint、account endpoint、listenKey 或 Dashboard command。
+
+`TVM-RELEASE-V020-STRATEGY-ACTOR-REGISTRY-BINDING`
+
+Release v0.2.0 strategy actor registry binding matrix 必须证明 EMA / RSI actor registration、duplicate strategyID rejection、unknown strategy kind rejection、Spot + Perp product binding 和 no Strategy -> ExecutionClient dependency 同时成立。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Terms
 
 `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`

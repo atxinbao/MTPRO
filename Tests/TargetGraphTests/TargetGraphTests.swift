@@ -6862,6 +6862,108 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(automationReadiness.contains("Release v0.2.0 RSI target exposure intent anchor"))
     }
 
+    func testGH571StrategyRegistryRegistersEMAAndRSIProductBindingsWithoutExecutionDependency() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let registrySource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/Trader/Strategies/StrategyRegistry.swift"),
+            encoding: .utf8
+        )
+
+        var registry = try StrategyRegistry.deterministicReleaseV020(perpetualShortEnabled: true)
+        let emaRegistrations = registry.registrations(for: .ema)
+        let rsiRegistrations = registry.registrations(for: .rsi)
+        XCTAssertEqual(emaRegistrations.count, 1)
+        XCTAssertEqual(rsiRegistrations.count, 1)
+
+        let emaRegistration = try XCTUnwrap(emaRegistrations.first)
+        let rsiRegistration = try XCTUnwrap(rsiRegistrations.first)
+        XCTAssertEqual(emaRegistration.sourceRoot, "Sources/Trader/Strategies/EMA")
+        XCTAssertEqual(rsiRegistration.sourceRoot, "Sources/Trader/Strategies/RSI")
+        XCTAssertTrue(emaRegistration.isExecutionIsolated)
+        XCTAssertTrue(rsiRegistration.isExecutionIsolated)
+        XCTAssertEqual(Set(emaRegistration.productBindings.map(\.instrument.productType)), [.spot, .usdsPerpetual])
+        XCTAssertEqual(Set(rsiRegistration.productBindings.map(\.instrument.productType)), [.spot, .usdsPerpetual])
+        XCTAssertTrue(emaRegistration.productBindings.allSatisfy { $0.allowsTargetShort == false })
+
+        let rsiSpotBinding = try XCTUnwrap(
+            rsiRegistration.productBindings.first { $0.instrument.productType == .spot }
+        )
+        let rsiPerpBinding = try XCTUnwrap(
+            rsiRegistration.productBindings.first { $0.instrument.productType == .usdsPerpetual }
+        )
+        XCTAssertFalse(rsiSpotBinding.allowsTargetShort)
+        XCTAssertTrue(rsiPerpBinding.allowsTargetShort)
+        XCTAssertTrue(rsiSpotBinding.isPreRiskOnlyBinding)
+        XCTAssertTrue(rsiPerpBinding.isPreRiskOnlyBinding)
+
+        XCTAssertThrowsError(try registry.register(emaRegistration)) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .traderAccountContextMismatch(
+                    field: "strategyRegistry.duplicateStrategyID",
+                    expected: "unique",
+                    actual: "gh-571-ema-actor"
+                )
+            )
+        }
+        XCTAssertThrowsError(try StrategyActorKind(contractValue: "grid")) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("strategyRegistry.unknownStrategyKind.grid")
+            )
+        }
+        XCTAssertThrowsError(
+            try StrategyProductBinding(
+                strategyID: Identifier("gh-571-invalid-binding"),
+                kind: .rsi,
+                instrument: InstrumentIdentity(
+                    venue: "coinbase",
+                    productType: .spot,
+                    symbol: Symbol.constant("BTCUSDT")
+                )
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("strategyProductBinding.nonBinanceInstrument")
+            )
+        }
+
+        XCTAssertTrue(packageSource.contains("\"StrategyRegistry.swift\""))
+        XCTAssertTrue(
+            packageSource.contains("dependencies: [\"DomainModel\", \"MessageBus\", \"Cache\", \"Portfolio\", \"RiskEngine\"]")
+        )
+        XCTAssertFalse(registrySource.contains("import ExecutionClient"))
+        XCTAssertFalse(registrySource.contains("ExecutionClient."))
+        XCTAssertFalse(registrySource.contains("brokerCommand"))
+
+        XCTAssertTrue(validationMatrix.contains("`GH-571`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-STRATEGY-ACTOR-REGISTRY-BINDING"))
+        XCTAssertTrue(validationPlan.contains("GH-571 Release v0.2.0 Strategy Actor Registry Validation"))
+        XCTAssertTrue(domainContext.contains("GH-571 Strategy Actor Registry Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 strategy actor registry anchor"))
+    }
+
     private static func gh568Bars(closes: [Double]) throws -> [MarketBar] {
         try closes.enumerated().map { index, close in
             let start = Date(timeIntervalSince1970: Double(index * 60))

@@ -7888,6 +7888,48 @@ GH-570 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-571 Release v0.2.0 Strategy Actor Registry Validation
+
+GH-571 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH571StrategyRegistryRegistersEMAAndRSIProductBindingsWithoutExecutionDependency`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-571 的验收要求：
+
+- `EMAStrategyActor` 与 `RSIStrategyActor` 必须能注册进 `StrategyRegistry`。
+- Registry 必须拒绝重复 `strategyID`。
+- 未知 strategy kind 必须被拒绝，不能形成 active strategy actor。
+- Product binding 必须只覆盖 Binance Spot 与 Binance USDⓈ-M Perpetual，且保持 pre-risk-only。
+- RSI Perp binding 可以在显式 short gate 下允许 `targetShort`，Spot binding 永远不得允许 `targetShort`。
+- `TraderStrategies` target 不得新增 `ExecutionClient` dependency，registry / binding source 不得 import 或调用 ExecutionClient / broker / OMS。
+- GH-571 PR evidence 必须确认不实现 strategy scheduler、Trader runtime、broker command、真实订单、production endpoint、非 Binance venue、非 Spot / Perp product、非 EMA / RSI strategy，不启动 Symphony，不运行 Graphify / code-index，不使用 Linear，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+GH-571 必须建立的主要 anchors：
+
+- `GH-571-STRATEGY-ACTOR-KIND-ALLOWLIST`
+- `GH-571-EMA-RSI-ACTOR-REGISTRATION`
+- `GH-571-DUPLICATE-STRATEGY-ID-REJECTED`
+- `GH-571-NO-STRATEGY-EXECUTIONCLIENT-DEPENDENCY`
+- `TVM-RELEASE-V020-STRATEGY-ACTOR-REGISTRY-BINDING`
+
+## GH-571 禁止
+
+- 不实现 strategy scheduler、Trader runtime loop、risk runtime、ExecutionClient、OMS、broker gateway 或 Dashboard command runtime。
+- 不把 strategy registry / product binding 变成 broker request、signed endpoint request、account endpoint request、listenKey 或 order command。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint 或 listenKey。
+- 不提交、取消或替换真实订单。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USDⓈ-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation
 
 GH-521 必须运行：

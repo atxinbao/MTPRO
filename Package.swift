@@ -218,6 +218,7 @@ let package = Package(
                 "EMA/EMAProposalRuntime.swift",
                 "EMA/EMACross.swift",
                 "RSI/RSIStrategy.swift",
+                "StrategyRegistry.swift",
                 "TargetGraph/TraderStrategiesTargetBoundary.swift"
             ]
         ),
@@ -310,6 +311,7 @@ let package = Package(
                 "Trader/Coordination/RiskBinding",
                 "Trader/Runtime",
                 "Trader/Strategies/RSI/RSIStrategy.swift",
+                "Trader/Strategies/StrategyRegistry.swift",
                 "Trader/Strategies/EMA/EMAProposalRuntime.swift",
                 "Trader/Strategies/EMA/EMACross.swift",
                 "Trader/Strategies/TargetGraph",
