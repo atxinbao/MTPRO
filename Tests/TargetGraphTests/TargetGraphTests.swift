@@ -6127,6 +6127,316 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH580PerpetualRiskChecksCoverLeverageLiquidationFundingAndReduceOnly() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let releaseContract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md"
+            ),
+            encoding: .utf8
+        )
+
+        let symbol = Symbol.constant("BTCUSDT")
+        let perp = InstrumentIdentity.binance(productType: .usdsPerpetual, symbol: symbol)
+        let evaluatedAt = Date(timeIntervalSince1970: 1_704_068_000)
+        let freshObservedAt = evaluatedAt.addingTimeInterval(-30)
+        let staleObservedAt = evaluatedAt.addingTimeInterval(-120)
+        let staleAfter: TimeInterval = 60
+        let emaID = Identifier.constant("gh-580-ema")
+        let rsiID = Identifier.constant("gh-580-rsi")
+        let quantity = try Quantity(0.25, field: "gh580Quantity")
+        let referencePrice = try Price(43_000, field: "gh580ReferencePrice")
+        let policy = try ReleaseV020PerpetualRiskPolicy.deterministicFixture()
+
+        func candidate(
+            strategyID: Identifier,
+            targetExposure: TargetExposureIntent,
+            intentID: String,
+            sourceSequence: Int,
+            candidateQuantity: Quantity = quantity
+        ) throws -> StrategyProposalArbitrationCandidate {
+            let orderIntent = try ProductAwareOrderIntent(
+                intentID: Identifier.constant(intentID),
+                instrument: perp,
+                targetExposure: targetExposure,
+                quantity: candidateQuantity,
+                referencePrice: referencePrice,
+                createdAt: evaluatedAt
+            )
+            return try StrategyProposalArbitrationCandidate(
+                strategyID: strategyID,
+                instrument: perp,
+                targetExposure: targetExposure,
+                productAwareOrderIntent: orderIntent,
+                emittedAt: evaluatedAt,
+                sourceSequence: sourceSequence
+            )
+        }
+
+        func commonDecision(
+            decisionID: String,
+            targetExposure: TargetExposureIntent,
+            sourceSequence: Int
+        ) throws -> ReleaseV020RiskEngineCommonDecision {
+            let arbitration = try ProposalArbitrator.arbitrate(
+                decisionID: Identifier.constant("\(decisionID)-arbitration"),
+                candidates: [
+                    candidate(
+                        strategyID: emaID,
+                        targetExposure: targetExposure,
+                        intentID: "\(decisionID)-ema",
+                        sourceSequence: sourceSequence
+                    ),
+                    candidate(
+                        strategyID: rsiID,
+                        targetExposure: targetExposure,
+                        intentID: "\(decisionID)-rsi",
+                        sourceSequence: sourceSequence + 1
+                    )
+                ],
+                evaluatedAt: evaluatedAt,
+                allowPerpetualShort: true
+            )
+            let input = try ReleaseV020RiskEngineCommonInput(
+                inputID: Identifier.constant("\(decisionID)-common-input"),
+                arbitrationDecision: arbitration,
+                currentAggregateExposure: 10_000,
+                evaluatedAt: evaluatedAt,
+                sourceSequence: sourceSequence + 2
+            )
+            let commonPolicy = try ReleaseV020RiskEngineCommonPolicy(
+                policyID: Identifier.constant("\(decisionID)-common-policy"),
+                allowedStrategies: [
+                    ReleaseV020RiskStrategyAllowlistEntry(strategyID: emaID, kind: .ema),
+                    ReleaseV020RiskStrategyAllowlistEntry(strategyID: rsiID, kind: .rsi)
+                ],
+                allowedInstruments: [perp],
+                maxNotional: 20_000,
+                maxAggregateExposure: 50_000
+            )
+            return try ReleaseV020RiskEngineCommonLayer.evaluate(
+                decisionID: Identifier.constant("\(decisionID)-common-decision"),
+                input: input,
+                policy: commonPolicy
+            )
+        }
+
+        func markPrice(stale: Bool = false) throws -> PerpetualMarkPriceReadModel {
+            try PerpetualMarkPriceReadModel(
+                instrument: perp,
+                markPrice: 43_100,
+                indexPrice: 43_090,
+                observedAt: stale ? staleObservedAt : freshObservedAt,
+                evaluatedAt: evaluatedAt,
+                staleAfter: staleAfter
+            )
+        }
+
+        func funding(rate: Double) throws -> PerpetualFundingRiskReadModel {
+            let readModel = try PerpetualFundingRateReadModel(
+                instrument: perp,
+                fundingRate: rate,
+                nextFundingTime: evaluatedAt.addingTimeInterval(8 * 60 * 60),
+                observedAt: freshObservedAt,
+                evaluatedAt: evaluatedAt,
+                staleAfter: staleAfter
+            )
+            return try PerpetualFundingRiskReadModel(fundingReadModel: readModel)
+        }
+
+        func perpInput(
+            decision: ReleaseV020RiskEngineCommonDecision,
+            leverage: Double = 3,
+            liquidationPrice: Double = 39_000,
+            fundingRate: Double = 0.0001,
+            staleMark: Bool = false,
+            reduceOnlyClose: Bool = false,
+            currentPositionQuantity: Double = 0.50,
+            sourceSequence: Int
+        ) throws -> ReleaseV020PerpetualRiskInput {
+            try ReleaseV020PerpetualRiskInput(
+                inputID: Identifier.constant("gh-580-perp-risk-input-\(sourceSequence)"),
+                commonDecision: decision,
+                markPriceReadModel: markPrice(stale: staleMark),
+                fundingReadModel: funding(rate: fundingRate),
+                leverage: leverage,
+                liquidationPrice: Price(liquidationPrice, field: "gh580LiquidationPrice"),
+                reduceOnlyClose: reduceOnlyClose,
+                currentPositionQuantity: currentPositionQuantity,
+                evaluatedAt: evaluatedAt,
+                sourceSequence: sourceSequence
+            )
+        }
+
+        let shortCommon = try commonDecision(
+            decisionID: "gh-580-short",
+            targetExposure: .targetShort,
+            sourceSequence: 1
+        )
+        let allowed = try ReleaseV020PerpetualRiskLayer.evaluate(
+            decisionID: Identifier.constant("gh-580-allowed"),
+            input: perpInput(decision: shortCommon, sourceSequence: 4),
+            policy: policy
+        )
+        XCTAssertEqual(allowed.status, .forwardToCommandGateway)
+        XCTAssertTrue(allowed.warnings.isEmpty)
+        XCTAssertEqual(Set(allowed.passedGates), Set(ReleaseV020PerpetualRiskGate.allCases))
+        XCTAssertGreaterThanOrEqual(allowed.liquidationDistanceRatio, policy.minLiquidationDistanceRatio)
+        XCTAssertTrue(allowed.forwardsToCommandGateway)
+        XCTAssertTrue(allowed.boundaryHeld)
+        XCTAssertFalse(allowed.productionTradingEnabledByDefault)
+        XCTAssertFalse(allowed.bypassesCommandGateway)
+        XCTAssertFalse(allowed.touchesExecutionEngine)
+        XCTAssertFalse(allowed.submitsRealOrder)
+
+        let fundingWarning = try ReleaseV020PerpetualRiskLayer.evaluate(
+            decisionID: Identifier.constant("gh-580-funding-warning"),
+            input: perpInput(decision: shortCommon, fundingRate: 0.0007, sourceSequence: 5),
+            policy: policy
+        )
+        XCTAssertEqual(fundingWarning.status, .forwardToCommandGatewayWithWarning)
+        XCTAssertEqual(fundingWarning.warnings, [.fundingRiskWarning])
+        XCTAssertTrue(fundingWarning.forwardsToCommandGateway)
+
+        let leverageBlocked = try ReleaseV020PerpetualRiskLayer.evaluate(
+            decisionID: Identifier.constant("gh-580-leverage-blocked"),
+            input: perpInput(decision: shortCommon, leverage: 8, sourceSequence: 6),
+            policy: policy
+        )
+        XCTAssertEqual(leverageBlocked.status, .blocked)
+        XCTAssertEqual(leverageBlocked.blocker, .leverageCapExceeded)
+
+        let liquidationBlocked = try ReleaseV020PerpetualRiskLayer.evaluate(
+            decisionID: Identifier.constant("gh-580-liquidation-blocked"),
+            input: perpInput(decision: shortCommon, liquidationPrice: 43_000, sourceSequence: 7),
+            policy: policy
+        )
+        XCTAssertEqual(liquidationBlocked.status, .blocked)
+        XCTAssertEqual(liquidationBlocked.blocker, .liquidationDistanceUnsafe)
+
+        let staleMarkBlocked = try ReleaseV020PerpetualRiskLayer.evaluate(
+            decisionID: Identifier.constant("gh-580-stale-mark-blocked"),
+            input: perpInput(decision: shortCommon, staleMark: true, sourceSequence: 8),
+            policy: policy
+        )
+        XCTAssertEqual(staleMarkBlocked.status, .blocked)
+        XCTAssertEqual(staleMarkBlocked.blocker, .staleMarkPrice)
+
+        let fundingBlocked = try ReleaseV020PerpetualRiskLayer.evaluate(
+            decisionID: Identifier.constant("gh-580-funding-blocked"),
+            input: perpInput(decision: shortCommon, fundingRate: 0.0012, sourceSequence: 9),
+            policy: policy
+        )
+        XCTAssertEqual(fundingBlocked.status, .blocked)
+        XCTAssertEqual(fundingBlocked.blocker, .fundingRiskBlocked)
+
+        let flatCommon = try commonDecision(
+            decisionID: "gh-580-flat",
+            targetExposure: .targetFlat,
+            sourceSequence: 10
+        )
+        let reduceOnlyAllowed = try ReleaseV020PerpetualRiskLayer.evaluate(
+            decisionID: Identifier.constant("gh-580-reduce-only-allowed"),
+            input: perpInput(
+                decision: flatCommon,
+                reduceOnlyClose: true,
+                currentPositionQuantity: -0.50,
+                sourceSequence: 13
+            ),
+            policy: policy
+        )
+        XCTAssertEqual(reduceOnlyAllowed.status, .forwardToCommandGateway)
+        XCTAssertTrue(reduceOnlyAllowed.reduceOnlyClose)
+
+        let reduceOnlyBlocked = try ReleaseV020PerpetualRiskLayer.evaluate(
+            decisionID: Identifier.constant("gh-580-reduce-only-blocked"),
+            input: perpInput(
+                decision: flatCommon,
+                reduceOnlyClose: true,
+                currentPositionQuantity: -0.10,
+                sourceSequence: 14
+            ),
+            policy: policy
+        )
+        XCTAssertEqual(reduceOnlyBlocked.status, .blocked)
+        XCTAssertEqual(reduceOnlyBlocked.blocker, .reduceOnlyCloseInvalid)
+
+        XCTAssertThrowsError(
+            try ReleaseV020PerpetualRiskDecision(
+                decisionID: Identifier.constant("unsafe-gh-580-command-bypass"),
+                inputID: Identifier.constant("unsafe-gh-580-input"),
+                instrument: perp,
+                status: .forwardToCommandGateway,
+                blocker: nil,
+                warnings: [],
+                passedGates: ReleaseV020PerpetualRiskGate.allCases,
+                leverage: 3,
+                liquidationDistanceRatio: 0.10,
+                fundingRate: 0.0001,
+                reduceOnlyClose: false,
+                evaluatedAt: evaluatedAt,
+                bypassesCommandGateway: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperPreTradeRiskEngineForbiddenCapability("releaseV020PerpetualRisk.bypassesCommandGateway")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV020PerpetualRiskDecision(
+                decisionID: Identifier.constant("unsafe-gh-580-warning-status"),
+                inputID: Identifier.constant("unsafe-gh-580-warning-input"),
+                instrument: perp,
+                status: .forwardToCommandGatewayWithWarning,
+                blocker: nil,
+                warnings: [],
+                passedGates: ReleaseV020PerpetualRiskGate.allCases,
+                leverage: 3,
+                liquidationDistanceRatio: 0.10,
+                fundingRate: 0.0007,
+                reduceOnlyClose: false,
+                evaluatedAt: evaluatedAt
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperPreTradeRiskEngineMismatch(
+                    field: "releaseV020PerpetualRisk.warnings",
+                    expected: "present for warning forward",
+                    actual: "empty"
+                )
+            )
+        }
+
+        XCTAssertTrue(validationMatrix.contains("`GH-580`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-PERP-RISK-CHECKS"))
+        XCTAssertTrue(validationPlan.contains("GH-580 Release v0.2.0 Perpetual Risk Checks Validation"))
+        XCTAssertTrue(domainContext.contains("GH-580 Perpetual Risk Checks Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 Perpetual risk checks anchor"))
+        XCTAssertTrue(
+            releaseContract.contains(
+                "GH-580 / V020-18 | Binance USD-M Perpetual margin / leverage / liquidation / funding risk checks"
+            )
+        )
+    }
+
     func testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

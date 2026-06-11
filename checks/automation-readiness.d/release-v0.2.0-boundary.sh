@@ -202,6 +202,8 @@ required_evidence = {
         "TVM-RELEASE-V020-RISKENGINE-COMMON-LAYER",
         "GH-579",
         "TVM-RELEASE-V020-SPOT-RISK-CHECKS",
+        "GH-580",
+        "TVM-RELEASE-V020-PERP-RISK-CHECKS",
     ],
     "docs/validation/validation-plan.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Validation",
@@ -216,6 +218,7 @@ required_evidence = {
         "GH-577 Release v0.2.0 Proposal Arbitrator Validation",
         "GH-578 Release v0.2.0 RiskEngine Common Layer Validation",
         "GH-579 Release v0.2.0 Spot Risk Checks Validation",
+        "GH-580 Release v0.2.0 Perpetual Risk Checks Validation",
     ],
     "docs/domain/context.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Terms",
@@ -230,6 +233,7 @@ required_evidence = {
         "GH-577 Proposal Arbitrator Terms",
         "GH-578 RiskEngine Common Layer Terms",
         "GH-579 Spot Risk Checks Terms",
+        "GH-580 Perpetual Risk Checks Terms",
     ],
     "docs/automation/automation-readiness.md": [
         "Release v0.2.0 boundary automation guard anchor",
@@ -244,6 +248,7 @@ required_evidence = {
         "Release v0.2.0 ProposalArbitrator anchor",
         "Release v0.2.0 RiskEngine common layer anchor",
         "Release v0.2.0 Spot risk checks anchor",
+        "Release v0.2.0 Perpetual risk checks anchor",
     ],
     "Tests/TargetGraphTests/TargetGraphTests.swift": [
         "testGH565ReleaseV020BoundaryGuardBlocksScopeExpansionAndProductionDefaults",
@@ -258,6 +263,7 @@ required_evidence = {
         "testGH577ProposalArbitratorAllowsAgreementAndBlocksConflictsBeforeRisk",
         "testGH578RiskEngineCommonLayerAppliesAllowlistsLimitsKillSwitchAndNoTrade",
         "testGH579SpotRiskChecksCoverBalancesShortAndExchangeFilters",
+        "testGH580PerpetualRiskChecksCoverLeverageLiquidationFundingAndReduceOnly",
     ],
 }
 

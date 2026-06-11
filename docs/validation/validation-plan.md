@@ -8249,6 +8249,44 @@ GH-579 必须建立的主要 anchors：
 - 不启用非 Spot / USDⓈ-M Perpetual product。
 - 不启用非 EMA / RSI active strategy。
 - 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+
+## GH-580 Release v0.2.0 Perpetual Risk Checks Validation
+
+GH-580 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH580PerpetualRiskChecksCoverLeverageLiquidationFundingAndReduceOnly`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-580 的验收要求：
+
+- leverage cap 必须阻断超限 leverage。
+- liquidation distance gate 必须阻断 liquidation price 过近的 order intent。
+- stale mark price 必须 blocked。
+- funding risk 必须支持 warning 和 block。
+- reduce-only close 只有在 targetFlat、存在本地 position quantity 且 close quantity 不超过 position size 时才可通过。
+- allow 只表示继续进入后续 gate 链路，不授权 submit / cancel / replace、ExecutionEngine、OMS、ExecutionClient、broker 或 production trading。
+
+GH-580 必须建立的主要 anchors：
+
+- `GH-580-PERP-RISK-CHECKS`
+- `GH-580-LEVERAGE-LIQUIDATION-GATE`
+- `GH-580-MARK-FUNDING-RISK-GATE`
+- `GH-580-REDUCE-ONLY-CLOSE-VALIDATION`
+- `TVM-RELEASE-V020-PERP-RISK-CHECKS`
+
+## GH-580 禁止
+
+- 不实现 signed endpoint、account endpoint、listenKey、private stream runtime、broker route、ExecutionClient、OMS、order command、leverage action、margin action 或 production trading。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint、private stream endpoint 或 listenKey。
+- 不提交、取消或替换真实订单。
+- 不把 Perp risk allow 解释成交易授权、leverage / margin action 或 ExecutionEngine / OMS command。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USDⓈ-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
 - 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
