@@ -3800,6 +3800,24 @@ Trader container accounts EMA RSI coordination 指当前 Trader target 的结构
 
 Release v0.2.0 TraderStrategies EMA / RSI root matrix 必须证明 target path 已从 EMA-only root 提升到 shared strategy root，EMA public APIs 保持可用，RSI active source 可编译，且非 EMA / RSI strategy、production trading、broker command 和真实订单仍未授权。
 
+## GH-569 EMA Target Exposure Intent Terms
+
+`GH-569-EMA-TARGET-EXPOSURE-OUTPUT`
+
+EMA target exposure output 指 EMA strategy sample 输出 `TargetExposureIntent`，而不是直接输出 order side。Release v0.2.0 的 EMA 只允许 `targetLong`、`targetFlat` 和 `hold`；`targetShort` 不属于 EMA 当前 active output。
+
+`GH-569-EMA-NO-DIRECT-ORDER-SIDE`
+
+EMA no direct order side 指 `Sources/Trader/Strategies/EMA/EMACross.swift` 不暴露 `PaperActionProposalSide`、broker side 或 order side。后续 paper proposal compatibility 可以在更低层把 intent 映射成 paper-only proposal，但这不是 EMA strategy output。
+
+`GH-569-EMA-SPOT-PERP-INTENT-BINDING`
+
+EMA Spot / Perp intent binding 指 EMA target exposure 可以绑定到 Binance Spot 或 Binance USDⓈ-M Perpetual `InstrumentIdentity`，并生成 `StrategyIntentMessage` / `ProductAwareOrderIntent` pre-risk-gate evidence。该 binding 不绕过 RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+
+`TVM-RELEASE-V020-EMA-TARGET-EXPOSURE-INTENT`
+
+Release v0.2.0 EMA target exposure matrix 必须证明 EMA 输出 `targetLong` / `targetFlat` / `hold`，不输出 direct order side，并且 Spot / Perp binding 不授权 production trading 或真实订单。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Terms
 
 `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`

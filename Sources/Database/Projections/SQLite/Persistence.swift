@@ -1271,6 +1271,8 @@ public struct DuckDBSignalTimelineProjection: Codable, Equatable, Sendable {
     public let timeframe: Timeframe
     public let generatedAt: Date
     public let direction: SignalDirection
+    /// EMA v0.2 target exposure evidence，只描述策略目标敞口，不是订单指令或 broker command。
+    public let targetExposure: TargetExposureIntent?
     public let close: Double?
     public let shortEMA: Double?
     public let longEMA: Double?
@@ -1287,6 +1289,7 @@ public struct DuckDBSignalTimelineProjection: Codable, Equatable, Sendable {
         timeframe: Timeframe,
         generatedAt: Date,
         direction: SignalDirection,
+        targetExposure: TargetExposureIntent? = nil,
         close: Double? = nil,
         shortEMA: Double? = nil,
         longEMA: Double? = nil,
@@ -1301,6 +1304,7 @@ public struct DuckDBSignalTimelineProjection: Codable, Equatable, Sendable {
         self.timeframe = timeframe
         self.generatedAt = generatedAt
         self.direction = direction
+        self.targetExposure = targetExposure
         self.close = close
         self.shortEMA = shortEMA
         self.longEMA = longEMA
@@ -1575,6 +1579,7 @@ public struct DuckDBAnalyticalProjectionStore: Equatable, Sendable {
             timeframe: sample.signal.timeframe,
             generatedAt: sample.signal.generatedAt,
             direction: sample.signal.direction,
+            targetExposure: sample.targetExposure,
             close: sample.close.rawValue,
             shortEMA: sample.shortEMA.rawValue,
             longEMA: sample.longEMA.rawValue

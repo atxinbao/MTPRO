@@ -7241,6 +7241,8 @@ final class CoreTests: XCTestCase {
         let samples = try strategy.evaluate(try makeEMAFixtureBars())
 
         XCTAssertEqual(samples.map(\.signal.direction), [.long, .long, .flat, .long])
+        XCTAssertEqual(samples.map(\.targetExposure), [.targetLong, .hold, .targetFlat, .targetLong])
+        XCTAssertTrue(samples.allSatisfy { $0.emitsDirectOrderSide == false })
         XCTAssertEqual(samples.map(\.signal.generatedAt.timeIntervalSince1970), [280, 340, 400, 460])
         XCTAssertEqual(samples.map(\.signal.timeframe), [.oneMinute, .oneMinute, .oneMinute, .oneMinute])
         XCTAssertEqual(samples[0].shortEMA.rawValue, 11.5555555556, accuracy: 0.0001)

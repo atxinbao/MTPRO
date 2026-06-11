@@ -7808,6 +7808,45 @@ GH-568 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-569 Release v0.2.0 EMA Target Exposure Intent Validation
+
+GH-569 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH569EMATargetExposureIntentSupportsSpotAndPerpWithoutDirectOrderSide`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-569 的验收要求：
+
+- `EMACrossSignalSample` 必须输出 `TargetExposureIntent`，覆盖 `targetLong`、`targetFlat` 和 `hold`。
+- EMA strategy output 不得直接暴露 `PaperActionProposalSide`、broker side 或 order side。
+- `EMAProposalRuntime.generateTargetExposureIntent` 必须支持 Binance Spot 与 Binance USDⓈ-M Perpetual `InstrumentIdentity` binding。
+- Spot / Perp binding 只能形成 `StrategyIntentMessage` / `ProductAwareOrderIntent` pre-risk-gate evidence，不得授权 trading execution 或默认开启 production trading。
+- GH-569 PR evidence 必须确认不实现 broker command、真实订单、production endpoint、非 Binance venue、非 Spot / Perp product、非 EMA / RSI strategy，不启动 Symphony，不运行 Graphify / code-index，不使用 Linear，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+GH-569 必须建立的主要 anchors：
+
+- `GH-569-EMA-TARGET-EXPOSURE-OUTPUT`
+- `GH-569-EMA-NO-DIRECT-ORDER-SIDE`
+- `GH-569-EMA-SPOT-PERP-INTENT-BINDING`
+- `TVM-RELEASE-V020-EMA-TARGET-EXPOSURE-INTENT`
+
+## GH-569 禁止
+
+- 不实现 perpetual market data runtime、risk runtime、ExecutionClient、OMS、broker gateway 或 Dashboard command runtime。
+- 不把 EMA target exposure 变成 broker request、signed endpoint request、account endpoint request、listenKey 或 order command。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint 或 listenKey。
+- 不提交、取消或替换真实订单。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USDⓈ-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation
 
 GH-521 必须运行：
