@@ -5164,6 +5164,188 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(automationReadiness.contains("Release v0.2.0 Perp mark funding open interest read model anchor"))
     }
 
+    func testGH576ProductAwareCacheSeparatesSpotPerpStateAndRebuildsFromReplay() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let releaseContract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md"
+            ),
+            encoding: .utf8
+        )
+
+        let symbol = Symbol.constant("BTCUSDT")
+        let spot = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let perp = InstrumentIdentity.binance(productType: .usdsPerpetual, symbol: symbol)
+        let interval = try DateRange(
+            start: Date(timeIntervalSince1970: 1_704_067_600),
+            end: Date(timeIntervalSince1970: 1_704_067_660)
+        )
+        let emittedAt = Date(timeIntervalSince1970: 1_704_067_610)
+        let strategyID = Identifier.constant("gh-576-shared-ema-strategy")
+
+        let spotBar = try MarketBar(
+            symbol: symbol,
+            timeframe: .oneMinute,
+            interval: interval,
+            open: 43_000,
+            high: 43_100,
+            low: 42_900,
+            close: 43_050,
+            volume: 10
+        )
+        let perpBar = try MarketBar(
+            symbol: symbol,
+            timeframe: .oneMinute,
+            interval: interval,
+            open: 43_020,
+            high: 43_180,
+            low: 42_950,
+            close: 43_120,
+            volume: 18
+        )
+        let spotOrderIntent = try ProductAwareOrderIntent(
+            intentID: Identifier.constant("gh-576-spot-long-intent"),
+            instrument: spot,
+            targetExposure: .targetLong,
+            quantity: try Quantity(0.10, field: "gh576SpotQuantity"),
+            referencePrice: try Price(43_050, field: "gh576SpotReferencePrice"),
+            createdAt: emittedAt
+        )
+        let perpOrderIntent = try ProductAwareOrderIntent(
+            intentID: Identifier.constant("gh-576-perp-short-intent"),
+            instrument: perp,
+            targetExposure: .targetShort,
+            quantity: try Quantity(0.20, field: "gh576PerpQuantity"),
+            referencePrice: try Price(43_120, field: "gh576PerpReferencePrice"),
+            createdAt: emittedAt
+        )
+        let spotStrategyMessage = try StrategyIntentMessage(
+            messageID: Identifier.constant("gh-576-spot-strategy-message"),
+            strategyID: strategyID,
+            instrument: spot,
+            targetExposure: .targetLong,
+            productAwareOrderIntent: spotOrderIntent,
+            emittedAt: emittedAt
+        )
+        let perpStrategyMessage = try StrategyIntentMessage(
+            messageID: Identifier.constant("gh-576-perp-strategy-message"),
+            strategyID: strategyID,
+            instrument: perp,
+            targetExposure: .targetShort,
+            productAwareOrderIntent: perpOrderIntent,
+            emittedAt: emittedAt
+        )
+        let spotPosition = try ProductAwarePositionState(
+            positionID: Identifier.constant("gh-576-shared-position"),
+            portfolioID: Identifier.constant("gh-576-portfolio"),
+            instrument: spot,
+            netQuantity: 0.10,
+            averageEntryPrice: 43_050,
+            updatedAt: emittedAt,
+            sourceSequence: 7
+        )
+        let perpPosition = try ProductAwarePositionState(
+            positionID: Identifier.constant("gh-576-shared-position"),
+            portfolioID: Identifier.constant("gh-576-portfolio"),
+            instrument: perp,
+            netQuantity: 0.20,
+            averageEntryPrice: 43_120,
+            updatedAt: emittedAt,
+            sourceSequence: 8
+        )
+
+        var cache = ProductAwareCache()
+        try cache.ingestMarketEvent(.bar(spotBar), instrument: spot)
+        try cache.ingestMarketEvent(.bar(perpBar), instrument: perp)
+        try cache.ingestStrategyIntent(spotStrategyMessage, sourceSequence: 3)
+        try cache.ingestStrategyIntent(perpStrategyMessage, sourceSequence: 4)
+        try cache.ingestOrderIntent(spotOrderIntent, sourceSequence: 5)
+        try cache.ingestOrderIntent(perpOrderIntent, sourceSequence: 6)
+        cache.ingestPositionState(spotPosition)
+        cache.ingestPositionState(perpPosition)
+
+        let spotSeriesKey = ProductAwareMarketDataSeriesKey(instrument: spot, timeframe: .oneMinute)
+        let perpSeriesKey = ProductAwareMarketDataSeriesKey(instrument: perp, timeframe: .oneMinute)
+        XCTAssertNotEqual(spotSeriesKey, perpSeriesKey)
+        XCTAssertEqual(cache.snapshot.marketData.barsBySeries[spotSeriesKey]?.first?.close.rawValue, 43_050)
+        XCTAssertEqual(cache.snapshot.marketData.barsBySeries[perpSeriesKey]?.first?.close.rawValue, 43_120)
+
+        let spotStrategyKey = ProductAwareStrategyStateKey(instrument: spot, strategyID: strategyID)
+        let perpStrategyKey = ProductAwareStrategyStateKey(instrument: perp, strategyID: strategyID)
+        XCTAssertNotEqual(spotStrategyKey, perpStrategyKey)
+        XCTAssertEqual(cache.snapshot.strategyStatesByKey[spotStrategyKey]?.targetExposure, .targetLong)
+        XCTAssertEqual(cache.snapshot.strategyStatesByKey[perpStrategyKey]?.targetExposure, .targetShort)
+        XCTAssertEqual(cache.snapshot.orderStatesByKey.count, 2)
+        XCTAssertEqual(cache.snapshot.positionStatesByKey.count, 2)
+        XCTAssertTrue(cache.snapshot.productAwareBoundaryHeld)
+        XCTAssertEqual(cache.snapshot.evidenceCount, 8)
+
+        let replayFacts: [ProductAwareCacheReplayFact] = [
+            .marketEvent(instrument: spot, event: .bar(spotBar)),
+            .marketEvent(instrument: perp, event: .bar(perpBar)),
+            .strategyIntent(message: spotStrategyMessage, sourceSequence: 3),
+            .strategyIntent(message: perpStrategyMessage, sourceSequence: 4),
+            .orderIntent(intent: spotOrderIntent, sourceSequence: 5),
+            .orderIntent(intent: perpOrderIntent, sourceSequence: 6),
+            .positionState(spotPosition),
+            .positionState(perpPosition)
+        ]
+        XCTAssertEqual(try ProductAwareCache.project(replayFacts), cache.snapshot)
+
+        var replayCache = ProductAwareCache()
+        XCTAssertEqual(try replayCache.replay(replayFacts), cache.snapshot)
+        XCTAssertEqual(replayCache.snapshot, cache.snapshot)
+
+        XCTAssertThrowsError(
+            try ProductAwarePositionState(
+                positionID: Identifier.constant("unsafe-gh-576-margin-position"),
+                portfolioID: Identifier.constant("gh-576-portfolio"),
+                instrument: perp,
+                netQuantity: 0.20,
+                averageEntryPrice: 43_120,
+                updatedAt: emittedAt,
+                sourceSequence: 9,
+                usesMargin: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CacheContractError,
+                .marketDataMismatch(
+                    field: "productAwarePositionState.usesMargin",
+                    expected: "false",
+                    actual: "true"
+                )
+            )
+        }
+
+        XCTAssertTrue(validationMatrix.contains("`GH-576`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-PRODUCT-AWARE-CACHE-STATE"))
+        XCTAssertTrue(validationPlan.contains("GH-576 Release v0.2.0 Product-aware Cache State Validation"))
+        XCTAssertTrue(domainContext.contains("GH-576 Product-aware Cache State Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 product-aware Cache state anchor"))
+        XCTAssertTrue(
+            releaseContract.contains(
+                "GH-576 / V020-14 | Product-aware Cache market / order / position / strategy state"
+            )
+        )
+    }
+
     func testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

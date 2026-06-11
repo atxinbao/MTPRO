@@ -8093,6 +8093,47 @@ GH-575 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-576 Release v0.2.0 Product-aware Cache State Validation
+
+GH-576 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH576ProductAwareCacheSeparatesSpotPerpStateAndRebuildsFromReplay`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-576 的验收要求：
+
+- Cache market state 必须用 `InstrumentIdentity` / product-aware key 保存，Spot BTCUSDT 与 USDⓈ-M Perpetual BTCUSDT 不得在同一裸 `Symbol` bucket 中碰撞。
+- Strategy state 必须以 product + strategy key 保存；相同 strategyID 在 Spot 与 Perp 下必须形成不同 state。
+- Product-aware order / position read state 必须保留 instrument product context，且只表达 pre-risk / local read-model evidence。
+- Product-aware Cache snapshot 必须能从本地 replay facts 重建，并与 live ingest snapshot 一致。
+- GH-576 PR evidence 必须确认不实现 signed endpoint、account endpoint、listenKey、private stream runtime、broker route、ExecutionClient、OMS、真实订单、broker state cache、durable store schema、leverage action、margin action 或 production trading，不启动 Symphony，不运行 Graphify / code-index，不使用 Linear，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+GH-576 必须建立的主要 anchors：
+
+- `GH-576-PRODUCT-AWARE-CACHE-STATE`
+- `GH-576-SPOT-PERP-BTCUSDT-NO-CACHE-COLLISION`
+- `GH-576-STRATEGY-STATE-KEYED-BY-PRODUCT-AND-STRATEGY`
+- `GH-576-REPLAY-REBUILDS-CACHE`
+- `GH-576-NO-BROKER-ACCOUNT-DURABLE-STORE-PATH`
+- `TVM-RELEASE-V020-PRODUCT-AWARE-CACHE-STATE`
+
+## GH-576 禁止
+
+- 不实现 signed endpoint、account endpoint、listenKey、private stream runtime、broker route、ExecutionClient、OMS、order command、leverage action、margin action 或 production trading。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint、private stream endpoint 或 listenKey。
+- 不提交、取消或替换真实订单。
+- 不把 Cache 扩大为 durable store、broker state cache、account endpoint mirror、SQLite / DuckDB schema owner、Redis clone 或 production Runtime object。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USDⓈ-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation
 
 GH-521 必须运行：

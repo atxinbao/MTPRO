@@ -3950,6 +3950,32 @@ No broker / margin / leverage path 指 GH-575 不实现 broker route、margin op
 
 Release v0.2.0 Perp mark / funding / open interest read model matrix 必须证明 Cache mark / open interest update、RiskEngine funding read model update、stale mark / funding evidence 和 no broker / margin / leverage path 同时成立。
 
+## GH-576 Product-aware Cache State Terms
+
+`GH-576-PRODUCT-AWARE-CACHE-STATE`
+
+Product-aware Cache state 指 release v0.2.0 中 Cache target 以 `InstrumentIdentity` 为核心 key 保存 market / order / position / strategy read-model state。该 state 只保存可从本地 facts / replay 重建的状态，不是 durable store、broker cache、account endpoint mirror、private stream cursor 或 production Runtime object。
+
+`GH-576-SPOT-PERP-BTCUSDT-NO-CACHE-COLLISION`
+
+Spot / Perp no cache collision 指 Binance Spot BTCUSDT 与 Binance USDⓈ-M Perpetual BTCUSDT 必须在 Cache 中形成不同 instrument key。后续 DataEngine、Strategy、Risk、Portfolio 或 Dashboard read model 不得只用裸 `Symbol` 合并这两个 product 的 market state。
+
+`GH-576-STRATEGY-STATE-KEYED-BY-PRODUCT-AND-STRATEGY`
+
+Strategy state keyed by product and strategy 指相同 `strategyID` 在 Spot 与 USDⓈ-M Perpetual 下必须以不同 `ProductAwareStrategyStateKey` 保存。该状态只表达 pre-risk intent evidence，不绕过 RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+
+`GH-576-REPLAY-REBUILDS-CACHE`
+
+Replay rebuilds Cache 指 product-aware Cache snapshot 必须能从本地 replay facts 重新投影，并与 live ingest 后的 snapshot 一致。Replay 只消费已经规范化的本地 facts，不读取 production secret、signed endpoint、account endpoint、listenKey、private stream 或 broker payload。
+
+`GH-576-NO-BROKER-ACCOUNT-DURABLE-STORE-PATH`
+
+No broker / account / durable store path 指 GH-576 不实现 broker state cache、真实账户 state mirror、margin / leverage state、SQLite / DuckDB schema、Redis clone、ExecutionClient path、OMS order state 或 production trading authorization。
+
+`TVM-RELEASE-V020-PRODUCT-AWARE-CACHE-STATE`
+
+Release v0.2.0 product-aware Cache state matrix 必须证明 Spot/Perp BTCUSDT no collision、strategy state keyed by product + strategy、product-aware order / position state、本地 replay rebuild parity 和 no broker / account / durable store path 同时成立。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Terms
 
 `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`
