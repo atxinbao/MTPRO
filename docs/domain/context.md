@@ -4072,6 +4072,32 @@ Reduce-only close validation 指 reduce-only close 只有在 targetFlat、存在
 
 Release v0.2.0 Perpetual risk checks matrix 必须证明 leverage cap、liquidation distance、stale mark price、funding warning / block、reduce-only close validation 和 no command / execution bypass 同时成立。
 
+## GH-581 Spot ExecutionAlgorithm Terms
+
+`GH-581-SPOT-EXECUTION-ALGORITHM`
+
+Spot ExecutionAlgorithm 指 release v0.2.0 中 Binance Spot 专属的本地 deterministic execution evidence。它消费 Spot risk allow evidence 和 source `ProductAwareOrderIntent`，只把 `TargetExposureIntent` 映射为受控 Spot order intent evidence；该 evidence 不是 ExecutionClient request、broker order、OMS command 或 production trading 授权。
+
+`GH-581-TARGET-LONG-BUY`
+
+Target-long buy mapping 指 Spot `targetLong` 只有在当前 base position 为 0 且 Spot risk decision 已 forward 时，才可生成本地 BUY order intent。该 BUY 仍必须等待 OMS、Event Store、kill switch 和 no-trade 后续 gate，不能直连 ExecutionClient。
+
+`GH-581-TARGET-FLAT-SELL`
+
+Target-flat sell mapping 指 Spot `targetFlat` 只有在当前存在 base position 且 close quantity 不超过 position quantity 时，才可生成本地 SELL order intent。该 SELL 不等于 broker sell request，也不授权真实订单。
+
+`GH-581-TARGET-SHORT-BLOCKED`
+
+Target-short blocked 指 Binance Spot `targetShort` 必须在 Spot ExecutionAlgorithm 层 blocked，即使异常输入绕过上游也不能生成 sell-short intent、margin action、ExecutionClient request 或 OMS mutation。
+
+`GH-581-HOLD-NO-ORDER`
+
+Hold no-order 指 `hold` 只输出 no-order evidence，不生成 order intent，不触发 risk fallback、ExecutionEngine mutation、OMS command 或 broker action。
+
+`TVM-RELEASE-V020-SPOT-EXECUTION-ALGORITHM`
+
+Release v0.2.0 Spot ExecutionAlgorithm matrix 必须证明 targetLong -> BUY、targetFlat -> SELL、targetShort -> blocked、hold -> no-order 和 no ExecutionClient / broker / real order bypass 同时成立。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Terms
 
 `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`
