@@ -81,12 +81,68 @@ public enum DomainEvent: Codable, Equatable, Sendable {
     case replay(ReplayEvent)
 }
 
+/// TypedMessageEnvelopeContext 是 release v0.2.0 typed MessageBus envelope 的产品上下文。
+///
+/// context 强制把 venue、productType 和 instrumentID 一起写入 envelope metadata，让 strategy、
+/// risk、execution 和 portfolio 链路在 replay 时保留相同 instrument identity。它不包含 endpoint、
+/// account payload、broker order id、secret、listenKey 或任何 live command 授权。
+public struct TypedMessageEnvelopeContext: Codable, Equatable, Sendable {
+    public let venue: Identifier
+    public let productType: ProductType
+    public let instrumentID: InstrumentIdentity
+
+    public init(
+        venue: Identifier,
+        productType: ProductType,
+        instrumentID: InstrumentIdentity
+    ) throws {
+        guard venue == instrumentID.venue else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(
+                "typedMessageEnvelopeContext.venueMismatch"
+            )
+        }
+        guard productType == instrumentID.productType else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(
+                "typedMessageEnvelopeContext.productTypeMismatch"
+            )
+        }
+        self.venue = venue
+        self.productType = productType
+        self.instrumentID = instrumentID
+    }
+
+    /// Release v0.2.0 当前唯一 active venue 的 deterministic context 入口。
+    public static func binance(
+        productType: ProductType,
+        symbol: Symbol
+    ) throws -> Self {
+        let instrument = InstrumentIdentity.binance(
+            productType: productType,
+            symbol: symbol
+        )
+        return try Self(
+            venue: instrument.venue,
+            productType: instrument.productType,
+            instrumentID: instrument
+        )
+    }
+
+    /// 当前 release 只允许 Binance + Spot / USDⓈ-M Perpetual 的 typed context。
+    public var releaseV020BoundaryHeld: Bool {
+        venue.rawValue == "binance"
+            && ProductType.allCases.contains(productType)
+            && instrumentID.venue == venue
+            && instrumentID.productType == productType
+    }
+}
+
 /// EventEnvelope 包装领域事件、单调 sequence 和因果关系，是事件日志的稳定事实格式。
 public struct EventEnvelope: Codable, Equatable, Sendable {
     public let id: UUID
     public let sequence: Int
     public let stream: EventStreamID
     public let recordedAt: Date
+    public let typedContext: TypedMessageEnvelopeContext?
     public let correlationID: UUID?
     public let causationID: UUID?
     public let event: DomainEvent
@@ -96,6 +152,7 @@ public struct EventEnvelope: Codable, Equatable, Sendable {
         sequence: Int,
         stream: EventStreamID,
         recordedAt: Date,
+        typedContext: TypedMessageEnvelopeContext? = nil,
         correlationID: UUID? = nil,
         causationID: UUID? = nil,
         event: DomainEvent
@@ -107,9 +164,31 @@ public struct EventEnvelope: Codable, Equatable, Sendable {
         self.sequence = sequence
         self.stream = stream
         self.recordedAt = recordedAt
+        self.typedContext = typedContext
         self.correlationID = correlationID
         self.causationID = causationID
         self.event = event
+    }
+
+    public init(
+        id: UUID = UUID(),
+        sequence: Int,
+        stream: EventStreamID,
+        recordedAt: Date,
+        correlationID: UUID? = nil,
+        causationID: UUID? = nil,
+        event: DomainEvent
+    ) throws {
+        try self.init(
+            id: id,
+            sequence: sequence,
+            stream: stream,
+            recordedAt: recordedAt,
+            typedContext: nil,
+            correlationID: correlationID,
+            causationID: causationID,
+            event: event
+        )
     }
 
     public init(from decoder: Decoder) throws {
@@ -118,6 +197,7 @@ public struct EventEnvelope: Codable, Equatable, Sendable {
         let sequence = try container.decode(Int.self, forKey: .sequence)
         let stream = try container.decode(EventStreamID.self, forKey: .stream)
         let recordedAt = try container.decode(Date.self, forKey: .recordedAt)
+        let typedContext = try container.decodeIfPresent(TypedMessageEnvelopeContext.self, forKey: .typedContext)
         let correlationID = try container.decodeIfPresent(UUID.self, forKey: .correlationID)
         let causationID = try container.decodeIfPresent(UUID.self, forKey: .causationID)
         let event = try container.decode(DomainEvent.self, forKey: .event)
@@ -126,6 +206,7 @@ public struct EventEnvelope: Codable, Equatable, Sendable {
             sequence: sequence,
             stream: stream,
             recordedAt: recordedAt,
+            typedContext: typedContext,
             correlationID: correlationID,
             causationID: causationID,
             event: event
@@ -138,6 +219,7 @@ public struct EventEnvelope: Codable, Equatable, Sendable {
         try container.encode(sequence, forKey: .sequence)
         try container.encode(stream, forKey: .stream)
         try container.encode(recordedAt, forKey: .recordedAt)
+        try container.encodeIfPresent(typedContext, forKey: .typedContext)
         try container.encodeIfPresent(correlationID, forKey: .correlationID)
         try container.encodeIfPresent(causationID, forKey: .causationID)
         try container.encode(event, forKey: .event)
@@ -148,6 +230,7 @@ public struct EventEnvelope: Codable, Equatable, Sendable {
         case sequence
         case stream
         case recordedAt
+        case typedContext
         case correlationID
         case causationID
         case event

@@ -7930,6 +7930,48 @@ GH-571 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-572 Release v0.2.0 Typed MessageBus Envelope Validation
+
+GH-572 必须运行：
+
+- `swift test --filter CoreTests/testGH572TypedMessageBusEnvelopePreservesProductContextAcrossReplay`
+- `swift test --filter TargetGraphTests/testGH572TypedMessageBusEnvelopeEvidenceIsWiredIntoReleaseGuard`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-572 的验收要求：
+
+- `EventEnvelope` 必须能携带 typed context：`venue`、`productType` 和 `instrumentID`。
+- Typed context 必须拒绝 venue / productType 与 `InstrumentIdentity` 不一致的 envelope metadata。
+- strategy、risk、execution 和 portfolio 关键链路消息必须能通过 MessageBus envelope 携带同一 Binance instrument context。
+- `correlationID` 和 `causationID` 必须在 publish -> replay 后保持一致。
+- Paper runtime route message 和 route evidence 必须透传 typed context，不能只保存未分产品的旧 symbol/timeframe evidence。
+- GH-572 PR evidence 必须确认不实现 live command bus、broker routing、ExecutionClient、OMS、signed endpoint、account endpoint、listenKey、private stream runtime、production endpoint、真实订单或 production trading，不启动 Symphony，不运行 Graphify / code-index，不使用 Linear，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+GH-572 必须建立的主要 anchors：
+
+- `GH-572-TYPED-MESSAGEBUS-ENVELOPE-CONTEXT`
+- `GH-572-STRATEGY-RISK-EXECUTION-PORTFOLIO-PRODUCT-CONTEXT`
+- `GH-572-CORRELATION-CAUSATION-REPLAY-PARITY`
+- `GH-572-NO-LIVE-COMMAND-BUS`
+- `TVM-RELEASE-V020-TYPED-MESSAGEBUS-ENVELOPE`
+
+## GH-572 禁止
+
+- 不实现 live command bus、external message broker、strategy scheduler、Trader runtime loop、RiskEngine runtime、ExecutionClient、OMS、broker gateway 或 Dashboard command runtime。
+- 不把 MessageBus envelope metadata 变成 broker request、signed endpoint request、account endpoint request、listenKey、private stream cursor、order command 或 UI command payload。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint 或 listenKey。
+- 不提交、取消或替换真实订单。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USDⓈ-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation
 
 GH-521 必须运行：

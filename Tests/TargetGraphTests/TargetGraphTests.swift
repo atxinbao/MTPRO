@@ -6964,6 +6964,75 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(automationReadiness.contains("Release v0.2.0 strategy actor registry anchor"))
     }
 
+    func testGH572TypedMessageBusEnvelopeEvidenceIsWiredIntoReleaseGuard() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let domainEventsSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/MessageBus/DomainEvents.swift"),
+            encoding: .utf8
+        )
+        let eventLogSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/MessageBus/EventLog.swift"),
+            encoding: .utf8
+        )
+        let paperRoutingSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/MessageBus/PaperRuntimeBusRouting.swift"),
+            encoding: .utf8
+        )
+        let coreTests = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Tests/CoreTests/CoreTests.swift"),
+            encoding: .utf8
+        )
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let releaseGuard = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.d/release-v0.2.0-boundary.sh"),
+            encoding: .utf8
+        )
+        let releaseContract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md"
+            ),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(domainEventsSource.contains("public struct TypedMessageEnvelopeContext"))
+        XCTAssertTrue(domainEventsSource.contains("public let venue: Identifier"))
+        XCTAssertTrue(domainEventsSource.contains("public let productType: ProductType"))
+        XCTAssertTrue(domainEventsSource.contains("public let instrumentID: InstrumentIdentity"))
+        XCTAssertTrue(domainEventsSource.contains("public let typedContext: TypedMessageEnvelopeContext?"))
+        XCTAssertTrue(eventLogSource.contains("typedContext: TypedMessageEnvelopeContext? = nil"))
+        XCTAssertTrue(paperRoutingSource.contains("public let typedContext: TypedMessageEnvelopeContext?"))
+        XCTAssertTrue(paperRoutingSource.contains("typedContext: message.typedContext"))
+        XCTAssertTrue(coreTests.contains("testGH572TypedMessageBusEnvelopePreservesProductContextAcrossReplay"))
+        XCTAssertTrue(coreTests.contains("strategy/risk/execution/portfolio"))
+        XCTAssertTrue(coreTests.contains("replay.envelopes.map(\\.typedContext)"))
+
+        XCTAssertTrue(releaseContract.contains("Typed MessageBus envelopes with venue + productType + instrumentID"))
+        XCTAssertTrue(validationMatrix.contains("`GH-572`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-TYPED-MESSAGEBUS-ENVELOPE"))
+        XCTAssertTrue(validationPlan.contains("GH-572 Release v0.2.0 Typed MessageBus Envelope Validation"))
+        XCTAssertTrue(domainContext.contains("GH-572 Typed MessageBus Envelope Terms"))
+        XCTAssertTrue(domainContext.contains("GH-572-NO-LIVE-COMMAND-BUS"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 typed MessageBus envelope anchor"))
+        XCTAssertTrue(releaseGuard.contains("testGH572TypedMessageBusEnvelopeEvidenceIsWiredIntoReleaseGuard"))
+        XCTAssertFalse(domainEventsSource.contains("ExecutionClient"))
+        XCTAssertFalse(domainEventsSource.contains("brokerCommand"))
+    }
+
     private static func gh568Bars(closes: [Double]) throws -> [MarketBar] {
         try closes.enumerated().map { index, close in
             let start = Date(timeIntervalSince1970: Double(index * 60))

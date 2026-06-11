@@ -21,6 +21,7 @@ public struct AppendOnlyEventLog: Equatable, Sendable {
         stream: EventStreamID,
         id: UUID = UUID(),
         recordedAt: Date = Date(),
+        typedContext: TypedMessageEnvelopeContext? = nil,
         correlationID: UUID? = nil,
         causationID: UUID? = nil
     ) throws -> EventEnvelope {
@@ -29,12 +30,33 @@ public struct AppendOnlyEventLog: Equatable, Sendable {
             sequence: envelopes.count + 1,
             stream: stream,
             recordedAt: recordedAt,
+            typedContext: typedContext,
             correlationID: correlationID,
             causationID: causationID,
             event: event
         )
         envelopes.append(envelope)
         return envelope
+    }
+
+    @discardableResult
+    public mutating func append(
+        _ event: DomainEvent,
+        stream: EventStreamID,
+        id: UUID = UUID(),
+        recordedAt: Date = Date(),
+        correlationID: UUID? = nil,
+        causationID: UUID? = nil
+    ) throws -> EventEnvelope {
+        try append(
+            event,
+            stream: stream,
+            id: id,
+            recordedAt: recordedAt,
+            typedContext: nil,
+            correlationID: correlationID,
+            causationID: causationID
+        )
     }
 
     public func replay(_ command: EventReplayCommand) -> EventReplayResult {
@@ -64,6 +86,7 @@ public struct MessageBus: Equatable, Sendable {
         stream: EventStreamID,
         id: UUID = UUID(),
         recordedAt: Date = Date(),
+        typedContext: TypedMessageEnvelopeContext? = nil,
         correlationID: UUID? = nil,
         causationID: UUID? = nil
     ) throws -> EventEnvelope {
@@ -72,6 +95,27 @@ public struct MessageBus: Equatable, Sendable {
             stream: stream,
             id: id,
             recordedAt: recordedAt,
+            typedContext: typedContext,
+            correlationID: correlationID,
+            causationID: causationID
+        )
+    }
+
+    @discardableResult
+    public mutating func publish(
+        _ event: DomainEvent,
+        stream: EventStreamID,
+        id: UUID = UUID(),
+        recordedAt: Date = Date(),
+        correlationID: UUID? = nil,
+        causationID: UUID? = nil
+    ) throws -> EventEnvelope {
+        try publish(
+            event,
+            stream: stream,
+            id: id,
+            recordedAt: recordedAt,
+            typedContext: nil,
             correlationID: correlationID,
             causationID: causationID
         )

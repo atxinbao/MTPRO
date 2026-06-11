@@ -174,6 +174,7 @@ public struct PaperRuntimeRoutedMessage: Codable, Equatable, Sendable {
     public let stream: EventStreamID
     public let event: DomainEvent
     public let recordedAt: Date
+    public let typedContext: TypedMessageEnvelopeContext?
     public let correlationID: UUID
     public let causationID: UUID?
 
@@ -185,6 +186,7 @@ public struct PaperRuntimeRoutedMessage: Codable, Equatable, Sendable {
         stream: EventStreamID,
         event: DomainEvent,
         recordedAt: Date,
+        typedContext: TypedMessageEnvelopeContext? = nil,
         correlationID: UUID,
         causationID: UUID?
     ) throws {
@@ -225,6 +227,7 @@ public struct PaperRuntimeRoutedMessage: Codable, Equatable, Sendable {
         self.stream = stream
         self.event = event
         self.recordedAt = recordedAt
+        self.typedContext = typedContext
         self.correlationID = correlationID
         self.causationID = causationID
     }
@@ -241,6 +244,7 @@ public struct PaperRuntimeRouteEvidence: Codable, Equatable, Sendable {
     public let payloadKind: PaperRuntimeRoutePayloadKind
     public let stream: EventStreamID
     public let recordedAt: Date
+    public let typedContext: TypedMessageEnvelopeContext?
     public let correlationID: UUID?
     public let causationID: UUID?
 
@@ -252,6 +256,7 @@ public struct PaperRuntimeRouteEvidence: Codable, Equatable, Sendable {
         self.payloadKind = classification.payloadKind
         self.stream = envelope.stream
         self.recordedAt = envelope.recordedAt
+        self.typedContext = envelope.typedContext
         self.correlationID = envelope.correlationID
         self.causationID = envelope.causationID
 
@@ -276,6 +281,7 @@ public struct PaperRuntimeCommandBus: Equatable, Sendable {
         _ inputs: [PaperRuntimeRouteInput],
         clock: TradingClock,
         envelopeIDs: [UUID],
+        typedContext: TypedMessageEnvelopeContext? = nil,
         correlationID: UUID,
         rootCausationID: UUID?
     ) throws -> [PaperRuntimeRoutedMessage] {
@@ -330,6 +336,7 @@ public struct PaperRuntimeCommandBus: Equatable, Sendable {
                 stream: payload.stream,
                 event: payload.event,
                 recordedAt: clock.ticks[index].instant,
+                typedContext: typedContext,
                 correlationID: correlationID,
                 causationID: previousCausationID
             )
@@ -362,6 +369,7 @@ public struct PaperRuntimeEventBus: Equatable, Sendable {
                 stream: message.stream,
                 id: message.envelopeID,
                 recordedAt: message.recordedAt,
+                typedContext: message.typedContext,
                 correlationID: message.correlationID,
                 causationID: message.causationID
             )
@@ -406,6 +414,7 @@ public struct PaperRuntimeMessageBusRouting: Equatable, Sendable {
         to messageBus: inout MessageBus,
         clock: TradingClock,
         envelopeIDs: [UUID],
+        typedContext: TypedMessageEnvelopeContext? = nil,
         correlationID: UUID,
         rootCausationID: UUID?
     ) throws -> [PaperRuntimeRouteEvidence] {
@@ -413,6 +422,7 @@ public struct PaperRuntimeMessageBusRouting: Equatable, Sendable {
             inputs,
             clock: clock,
             envelopeIDs: envelopeIDs,
+            typedContext: typedContext,
             correlationID: correlationID,
             rootCausationID: rootCausationID
         )
