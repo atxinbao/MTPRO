@@ -3928,6 +3928,28 @@ No signed / private / broker path 指 GH-574 不读取 signed endpoint、account
 
 Release v0.2.0 Binance USD-M Perpetual DataEngine Cache path matrix 必须证明 Perp product-aware events、instrument metadata / mark / index / funding / open interest evidence、MessageBus journal Perp instrument context、Cache projection parity 和 no signed / private / broker path 同时成立。
 
+## GH-575 Perp Mark Funding Open Interest Read Model Terms
+
+`GH-575-PERP-MARK-FUNDING-OI-READ-MODEL`
+
+Perp mark / funding / open interest read model 指 release v0.2.0 中 Cache target 对 USDⓈ-M Perpetual mark price、index price、funding rate、next funding time 和 open interest 的本地 public market read model。该 read model 只保存可由 public market evidence 重建的状态，不保存账户保证金、账户持仓、broker state、margin action、leverage action 或 production Runtime object。
+
+`GH-575-PERP-FUNDING-RISK-READ-MODEL`
+
+Perp funding risk read model 指 RiskEngine target 消费 Cache 中的 funding read model，把 funding rate 与 freshness evidence 作为后续 pre-trade gate 的只读输入。它不触发 ExecutionEngine、ExecutionClient、OMS、broker gateway 或真实订单，也不把 fresh funding input 解释成交易授权。
+
+`GH-575-STALE-MARK-FUNDING-EVIDENCE`
+
+Stale mark / funding evidence 指 mark price 和 funding rate 都必须能基于 observedAt、evaluatedAt 和 staleAfter 形成 fresh / stale 状态。Stale 只表示 read model 输入过期，需要后续 gate 处理，不表示自动拉取新数据、自动切换 endpoint、自动下单或自动恢复 production runtime。
+
+`GH-575-NO-BROKER-MARGIN-LEVERAGE-PATH`
+
+No broker / margin / leverage path 指 GH-575 不实现 broker route、margin operation、leverage operation、account endpoint、private stream、ExecutionClient、OMS、order command 或 production trading。Open interest 也只能作为市场级公开指标，不得解释为本账户仓位或 broker position sync。
+
+`TVM-RELEASE-V020-PERP-MARK-FUNDING-OI-READ-MODEL`
+
+Release v0.2.0 Perp mark / funding / open interest read model matrix 必须证明 Cache mark / open interest update、RiskEngine funding read model update、stale mark / funding evidence 和 no broker / margin / leverage path 同时成立。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Terms
 
 `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`

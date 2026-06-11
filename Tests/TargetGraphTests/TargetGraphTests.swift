@@ -5037,6 +5037,133 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(automationReadiness.contains("Release v0.2.0 Binance USD-M Perpetual DataEngine Cache path anchor"))
     }
 
+    func testGH575PerpMarkFundingOpenInterestReadModelSupportsStaleEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+
+        let contract = try PerpetualContract.binanceBTCUSDTFixture()
+        let instrument = contract.instrument
+        let observedAt = Date(timeIntervalSince1970: 1_704_067_500)
+        let freshEvaluation = observedAt.addingTimeInterval(30)
+        let staleEvaluation = observedAt.addingTimeInterval(90)
+        let staleAfter: TimeInterval = 60
+
+        var cache = PerpetualMarketDataCache()
+        try cache.ingestMarkPrice(
+            instrument: instrument,
+            markPrice: 43_120.50,
+            indexPrice: 43_118.25,
+            observedAt: observedAt,
+            evaluatedAt: freshEvaluation,
+            staleAfter: staleAfter
+        )
+        try cache.ingestFundingRate(
+            instrument: instrument,
+            fundingRate: 0.0001,
+            nextFundingTime: observedAt.addingTimeInterval(8 * 60 * 60),
+            observedAt: observedAt,
+            evaluatedAt: freshEvaluation,
+            staleAfter: staleAfter
+        )
+        try cache.ingestOpenInterest(
+            instrument: instrument,
+            openInterest: 12_345.678,
+            observedAt: observedAt,
+            evaluatedAt: freshEvaluation,
+            staleAfter: staleAfter
+        )
+
+        XCTAssertEqual(cache.snapshot.evidenceCount, 3)
+        XCTAssertEqual(cache.snapshot.markPricesByInstrument[instrument]?.markPrice.rawValue, 43_120.50)
+        XCTAssertEqual(cache.snapshot.markPricesByInstrument[instrument]?.indexPrice.rawValue, 43_118.25)
+        XCTAssertEqual(cache.snapshot.fundingRatesByInstrument[instrument]?.fundingRate, 0.0001)
+        XCTAssertEqual(cache.snapshot.openInterestsByInstrument[instrument]?.openInterest.rawValue, 12_345.678)
+        XCTAssertEqual(cache.snapshot.markPricesByInstrument[instrument]?.freshness.status, .fresh)
+        XCTAssertEqual(cache.snapshot.fundingRatesByInstrument[instrument]?.freshness.status, .fresh)
+
+        let fundingReadModel = try XCTUnwrap(cache.snapshot.fundingRatesByInstrument[instrument])
+        let riskReadModel = try PerpetualFundingRiskReadModel(fundingReadModel: fundingReadModel)
+        XCTAssertTrue(riskReadModel.riskReadModelReady)
+        XCTAssertFalse(riskReadModel.staleFundingEvidenceSupported)
+        XCTAssertTrue(riskReadModel.boundaryHeld)
+        XCTAssertFalse(riskReadModel.touchesExecutionEngine)
+        XCTAssertFalse(riskReadModel.touchesExecutionClient)
+        XCTAssertFalse(riskReadModel.touchesBrokerGateway)
+        XCTAssertFalse(riskReadModel.authorizesLiveTrading)
+
+        let staleMark = try PerpetualMarkPriceReadModel(
+            instrument: instrument,
+            markPrice: 43_120.50,
+            indexPrice: 43_118.25,
+            observedAt: observedAt,
+            evaluatedAt: staleEvaluation,
+            staleAfter: staleAfter
+        )
+        let staleFunding = try PerpetualFundingRateReadModel(
+            instrument: instrument,
+            fundingRate: 0.0001,
+            nextFundingTime: observedAt.addingTimeInterval(8 * 60 * 60),
+            observedAt: observedAt,
+            evaluatedAt: staleEvaluation,
+            staleAfter: staleAfter
+        )
+        let staleRiskReadModel = try PerpetualFundingRiskReadModel(fundingReadModel: staleFunding)
+
+        XCTAssertEqual(staleMark.freshness.status, .stale)
+        XCTAssertEqual(staleFunding.freshness.status, .stale)
+        XCTAssertFalse(staleRiskReadModel.riskReadModelReady)
+        XCTAssertTrue(staleRiskReadModel.staleFundingEvidenceSupported)
+
+        XCTAssertThrowsError(
+            try PerpetualMarkPriceReadModel(
+                instrument: InstrumentIdentity.binance(productType: .spot, symbol: instrument.symbol),
+                markPrice: 43_120.50,
+                indexPrice: 43_118.25,
+                observedAt: observedAt,
+                evaluatedAt: freshEvaluation,
+                staleAfter: staleAfter
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? PerpetualMarketDataReadModelError,
+                .invalidInstrument(InstrumentIdentity.binance(productType: .spot, symbol: instrument.symbol))
+            )
+        }
+
+        XCTAssertThrowsError(
+            try PerpetualFundingRiskReadModel(
+                fundingReadModel: fundingReadModel,
+                authorizesLiveTrading: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperPreTradeRiskEngineForbiddenCapability("authorizesLiveTrading")
+            )
+        }
+
+        XCTAssertTrue(validationMatrix.contains("`GH-575`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-PERP-MARK-FUNDING-OI-READ-MODEL"))
+        XCTAssertTrue(validationPlan.contains("GH-575 Release v0.2.0 Perp Mark Funding Open Interest Read Model Validation"))
+        XCTAssertTrue(domainContext.contains("GH-575 Perp Mark Funding Open Interest Read Model Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 Perp mark funding open interest read model anchor"))
+    }
+
     func testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

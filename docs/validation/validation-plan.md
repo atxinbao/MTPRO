@@ -8053,6 +8053,46 @@ GH-574 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-575 Release v0.2.0 Perp Mark Funding Open Interest Read Model Validation
+
+GH-575 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH575PerpMarkFundingOpenInterestReadModelSupportsStaleEvidence`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-575 的验收要求：
+
+- USDⓈ-M Perpetual mark price / index price 必须能更新 Cache target 的 Perp mark read model。
+- USDⓈ-M Perpetual funding rate / next funding time 必须能更新 RiskEngine target 的 funding risk read model。
+- USDⓈ-M Perpetual open interest 必须能进入 Cache target 的 public market read model。
+- Mark price 和 funding rate 必须支持基于 observedAt、evaluatedAt 和 staleAfter 的 fresh / stale evidence。
+- GH-575 PR evidence 必须确认不实现 signed endpoint、account endpoint、listenKey、private stream runtime、broker route、ExecutionClient、OMS、真实订单、leverage action、margin action 或 production trading，不启动 Symphony，不运行 Graphify / code-index，不使用 Linear，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+GH-575 必须建立的主要 anchors：
+
+- `GH-575-PERP-MARK-FUNDING-OI-READ-MODEL`
+- `GH-575-PERP-FUNDING-RISK-READ-MODEL`
+- `GH-575-STALE-MARK-FUNDING-EVIDENCE`
+- `GH-575-NO-BROKER-MARGIN-LEVERAGE-PATH`
+- `TVM-RELEASE-V020-PERP-MARK-FUNDING-OI-READ-MODEL`
+
+## GH-575 禁止
+
+- 不实现 signed endpoint、account endpoint、listenKey、private stream runtime、broker route、ExecutionClient、OMS、order command、leverage action、margin action 或 production trading。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint、private stream endpoint 或 listenKey。
+- 不提交、取消或替换真实订单。
+- 不把 open interest 解释为本账户仓位或 broker position sync。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USDⓈ-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation
 
 GH-521 必须运行：

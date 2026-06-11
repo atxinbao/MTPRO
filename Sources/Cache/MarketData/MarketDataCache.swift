@@ -114,3 +114,269 @@ public struct MarketDataCache: Equatable, Sendable {
     }
 
 }
+
+/// PerpetualMarketDataReadModelError 描述 Perp market read model 的本地合同错误。
+///
+/// 这些错误只覆盖 Cache target 内的 public market read model，不表达账户、broker、
+/// leverage action、margin action、ExecutionClient、OMS 或 production trading 状态。
+public enum PerpetualMarketDataReadModelError: Error, Equatable, Sendable, CustomStringConvertible {
+    case invalidInstrument(InstrumentIdentity)
+    case invalidStaleAfter(TimeInterval)
+    case invalidFundingRate(Double)
+
+    public var description: String {
+        switch self {
+        case let .invalidInstrument(instrument):
+            "Perpetual market data read model requires USD-M Perpetual instrument: \(instrument.rawValue)"
+        case let .invalidStaleAfter(value):
+            "Perpetual market data staleAfter must be positive: \(value)"
+        case let .invalidFundingRate(value):
+            "Perpetual funding rate must be finite: \(value)"
+        }
+    }
+}
+
+/// PerpetualMarketDataFreshnessStatus 标记 Perp market evidence 在本地 read model 中的新鲜度。
+public enum PerpetualMarketDataFreshnessStatus: String, Codable, Equatable, Sendable {
+    case fresh
+    case stale
+}
+
+/// PerpetualMarketDataFreshnessEvidence 是 mark/funding evidence 的 stale 判断结果。
+///
+/// 它只描述 public market data 的 observation freshness，不读取 private stream、account
+/// endpoint、broker position 或 production feed。
+public struct PerpetualMarketDataFreshnessEvidence: Codable, Equatable, Sendable {
+    public let observedAt: Date
+    public let evaluatedAt: Date
+    public let staleAfter: TimeInterval
+    public let status: PerpetualMarketDataFreshnessStatus
+
+    public init(
+        observedAt: Date,
+        evaluatedAt: Date,
+        staleAfter: TimeInterval
+    ) throws {
+        guard staleAfter > 0 else {
+            throw PerpetualMarketDataReadModelError.invalidStaleAfter(staleAfter)
+        }
+        self.observedAt = observedAt
+        self.evaluatedAt = evaluatedAt
+        self.staleAfter = staleAfter
+        self.status = evaluatedAt.timeIntervalSince(observedAt) <= staleAfter ? .fresh : .stale
+    }
+
+    public var isFresh: Bool {
+        status == .fresh
+    }
+}
+
+/// PerpetualMarkPriceReadModel 保存 USDⓈ-M Perpetual mark / index price read model。
+///
+/// 该 read model 来自 public premium index evidence，不代表账户保证金、账户持仓、
+/// liquidation price、broker state 或可执行交易授权。
+public struct PerpetualMarkPriceReadModel: Codable, Equatable, Sendable {
+    public let instrument: InstrumentIdentity
+    public let markPrice: Price
+    public let indexPrice: Price
+    public let freshness: PerpetualMarketDataFreshnessEvidence
+
+    public init(
+        instrument: InstrumentIdentity,
+        markPrice: Double,
+        indexPrice: Double,
+        observedAt: Date,
+        evaluatedAt: Date,
+        staleAfter: TimeInterval
+    ) throws {
+        try Self.validateInstrument(instrument)
+        self.instrument = instrument
+        self.markPrice = try Price(markPrice, field: "perpetualMarkPrice.markPrice")
+        self.indexPrice = try Price(indexPrice, field: "perpetualMarkPrice.indexPrice")
+        self.freshness = try PerpetualMarketDataFreshnessEvidence(
+            observedAt: observedAt,
+            evaluatedAt: evaluatedAt,
+            staleAfter: staleAfter
+        )
+    }
+
+    private static func validateInstrument(_ instrument: InstrumentIdentity) throws {
+        guard instrument.productType == .usdsPerpetual else {
+            throw PerpetualMarketDataReadModelError.invalidInstrument(instrument)
+        }
+    }
+}
+
+/// PerpetualFundingRateReadModel 保存 USDⓈ-M Perpetual funding read model。
+///
+/// Funding rate 这里只是 public market risk input，不表达实际 funding debit / credit、
+/// 账户余额变化、margin 调整或 broker reconciliation。
+public struct PerpetualFundingRateReadModel: Codable, Equatable, Sendable {
+    public let instrument: InstrumentIdentity
+    public let fundingRate: Double
+    public let nextFundingTime: Date
+    public let freshness: PerpetualMarketDataFreshnessEvidence
+
+    public init(
+        instrument: InstrumentIdentity,
+        fundingRate: Double,
+        nextFundingTime: Date,
+        observedAt: Date,
+        evaluatedAt: Date,
+        staleAfter: TimeInterval
+    ) throws {
+        guard fundingRate.isFinite else {
+            throw PerpetualMarketDataReadModelError.invalidFundingRate(fundingRate)
+        }
+        guard instrument.productType == .usdsPerpetual else {
+            throw PerpetualMarketDataReadModelError.invalidInstrument(instrument)
+        }
+        self.instrument = instrument
+        self.fundingRate = fundingRate
+        self.nextFundingTime = nextFundingTime
+        self.freshness = try PerpetualMarketDataFreshnessEvidence(
+            observedAt: observedAt,
+            evaluatedAt: evaluatedAt,
+            staleAfter: staleAfter
+        )
+    }
+}
+
+/// PerpetualOpenInterestReadModel 保存 USDⓈ-M Perpetual open interest read model。
+///
+/// Open interest 是市场级公开指标，不等于本账户仓位、broker position sync 或 portfolio exposure。
+public struct PerpetualOpenInterestReadModel: Codable, Equatable, Sendable {
+    public let instrument: InstrumentIdentity
+    public let openInterest: Quantity
+    public let freshness: PerpetualMarketDataFreshnessEvidence
+
+    public init(
+        instrument: InstrumentIdentity,
+        openInterest: Double,
+        observedAt: Date,
+        evaluatedAt: Date,
+        staleAfter: TimeInterval
+    ) throws {
+        guard instrument.productType == .usdsPerpetual else {
+            throw PerpetualMarketDataReadModelError.invalidInstrument(instrument)
+        }
+        self.instrument = instrument
+        self.openInterest = try Quantity(openInterest, field: "perpetualOpenInterest")
+        self.freshness = try PerpetualMarketDataFreshnessEvidence(
+            observedAt: observedAt,
+            evaluatedAt: evaluatedAt,
+            staleAfter: staleAfter
+        )
+    }
+}
+
+/// PerpetualMarketDataCacheSnapshot 汇总 Perp mark/funding/open-interest read model state。
+public struct PerpetualMarketDataCacheSnapshot: Codable, Equatable, Sendable {
+    public let markPricesByInstrument: [InstrumentIdentity: PerpetualMarkPriceReadModel]
+    public let fundingRatesByInstrument: [InstrumentIdentity: PerpetualFundingRateReadModel]
+    public let openInterestsByInstrument: [InstrumentIdentity: PerpetualOpenInterestReadModel]
+
+    public init(
+        markPricesByInstrument: [InstrumentIdentity: PerpetualMarkPriceReadModel] = [:],
+        fundingRatesByInstrument: [InstrumentIdentity: PerpetualFundingRateReadModel] = [:],
+        openInterestsByInstrument: [InstrumentIdentity: PerpetualOpenInterestReadModel] = [:]
+    ) {
+        self.markPricesByInstrument = markPricesByInstrument
+        self.fundingRatesByInstrument = fundingRatesByInstrument
+        self.openInterestsByInstrument = openInterestsByInstrument
+    }
+
+    public var evidenceCount: Int {
+        markPricesByInstrument.count
+            + fundingRatesByInstrument.count
+            + openInterestsByInstrument.count
+    }
+}
+
+/// PerpetualMarketDataCache 是 Cache target 的 Perp public read-model cache。
+///
+/// 它只接收调用方已经规范化的 public market evidence，不读取 Binance 网络、account endpoint、
+/// private stream、broker payload 或 production Runtime object。
+public struct PerpetualMarketDataCache: Equatable, Sendable {
+    public private(set) var snapshot: PerpetualMarketDataCacheSnapshot
+
+    public init(snapshot: PerpetualMarketDataCacheSnapshot = PerpetualMarketDataCacheSnapshot()) {
+        self.snapshot = snapshot
+    }
+
+    @discardableResult
+    public mutating func ingestMarkPrice(
+        instrument: InstrumentIdentity,
+        markPrice: Double,
+        indexPrice: Double,
+        observedAt: Date,
+        evaluatedAt: Date,
+        staleAfter: TimeInterval
+    ) throws -> PerpetualMarketDataCacheSnapshot {
+        var markPrices = snapshot.markPricesByInstrument
+        markPrices[instrument] = try PerpetualMarkPriceReadModel(
+            instrument: instrument,
+            markPrice: markPrice,
+            indexPrice: indexPrice,
+            observedAt: observedAt,
+            evaluatedAt: evaluatedAt,
+            staleAfter: staleAfter
+        )
+        snapshot = PerpetualMarketDataCacheSnapshot(
+            markPricesByInstrument: markPrices,
+            fundingRatesByInstrument: snapshot.fundingRatesByInstrument,
+            openInterestsByInstrument: snapshot.openInterestsByInstrument
+        )
+        return snapshot
+    }
+
+    @discardableResult
+    public mutating func ingestFundingRate(
+        instrument: InstrumentIdentity,
+        fundingRate: Double,
+        nextFundingTime: Date,
+        observedAt: Date,
+        evaluatedAt: Date,
+        staleAfter: TimeInterval
+    ) throws -> PerpetualMarketDataCacheSnapshot {
+        var fundingRates = snapshot.fundingRatesByInstrument
+        fundingRates[instrument] = try PerpetualFundingRateReadModel(
+            instrument: instrument,
+            fundingRate: fundingRate,
+            nextFundingTime: nextFundingTime,
+            observedAt: observedAt,
+            evaluatedAt: evaluatedAt,
+            staleAfter: staleAfter
+        )
+        snapshot = PerpetualMarketDataCacheSnapshot(
+            markPricesByInstrument: snapshot.markPricesByInstrument,
+            fundingRatesByInstrument: fundingRates,
+            openInterestsByInstrument: snapshot.openInterestsByInstrument
+        )
+        return snapshot
+    }
+
+    @discardableResult
+    public mutating func ingestOpenInterest(
+        instrument: InstrumentIdentity,
+        openInterest: Double,
+        observedAt: Date,
+        evaluatedAt: Date,
+        staleAfter: TimeInterval
+    ) throws -> PerpetualMarketDataCacheSnapshot {
+        var openInterests = snapshot.openInterestsByInstrument
+        openInterests[instrument] = try PerpetualOpenInterestReadModel(
+            instrument: instrument,
+            openInterest: openInterest,
+            observedAt: observedAt,
+            evaluatedAt: evaluatedAt,
+            staleAfter: staleAfter
+        )
+        snapshot = PerpetualMarketDataCacheSnapshot(
+            markPricesByInstrument: snapshot.markPricesByInstrument,
+            fundingRatesByInstrument: snapshot.fundingRatesByInstrument,
+            openInterestsByInstrument: openInterests
+        )
+        return snapshot
+    }
+}

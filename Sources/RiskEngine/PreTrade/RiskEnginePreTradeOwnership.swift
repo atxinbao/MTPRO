@@ -1,3 +1,4 @@
+import Cache
 import DomainModel
 import Foundation
 import MessageBus
@@ -136,4 +137,87 @@ public enum RiskEnginePreTradeOwnershipEvaluator {
             evaluatedAt: evaluatedAt
         )
     }
+}
+
+/// PerpetualFundingRiskReadModel 是 GH-575 的 Perp funding 风控读模型输入。
+///
+/// 它只消费 `Cache.PerpetualFundingRateReadModel` 的 public market evidence，用于后续
+/// RiskEngine gate 判断 funding input 是否 fresh。它不读取账户保证金、不执行 leverage /
+/// margin action、不连接 ExecutionEngine / ExecutionClient / broker，也不授权真实交易。
+public struct PerpetualFundingRiskReadModel: Codable, Equatable, Sendable {
+    public let instrument: InstrumentIdentity
+    public let fundingRate: Double
+    public let nextFundingTime: Date
+    public let freshness: PerpetualMarketDataFreshnessEvidence
+    public let sourceAnchor: String
+    public let touchesExecutionEngine: Bool
+    public let touchesExecutionClient: Bool
+    public let touchesBrokerGateway: Bool
+    public let authorizesLiveTrading: Bool
+    public let validationAnchors: [String]
+
+    public init(
+        fundingReadModel: PerpetualFundingRateReadModel,
+        sourceAnchor: String = "GH-575-PERP-FUNDING-RISK-READ-MODEL",
+        touchesExecutionEngine: Bool = false,
+        touchesExecutionClient: Bool = false,
+        touchesBrokerGateway: Bool = false,
+        authorizesLiveTrading: Bool = false,
+        validationAnchors: [String] = Self.requiredValidationAnchors
+    ) throws {
+        guard sourceAnchor.isEmpty == false else {
+            throw CoreError.paperPreTradeRiskEngineMismatch(
+                field: "sourceAnchor",
+                expected: "non-empty GH-575 source anchor",
+                actual: "empty"
+            )
+        }
+        let forbiddenFlags: [(String, Bool)] = [
+            ("touchesExecutionEngine", touchesExecutionEngine),
+            ("touchesExecutionClient", touchesExecutionClient),
+            ("touchesBrokerGateway", touchesBrokerGateway),
+            ("authorizesLiveTrading", authorizesLiveTrading)
+        ]
+        if let forbidden = forbiddenFlags.first(where: \.1) {
+            throw CoreError.paperPreTradeRiskEngineForbiddenCapability(forbidden.0)
+        }
+
+        self.instrument = fundingReadModel.instrument
+        self.fundingRate = fundingReadModel.fundingRate
+        self.nextFundingTime = fundingReadModel.nextFundingTime
+        self.freshness = fundingReadModel.freshness
+        self.sourceAnchor = sourceAnchor
+        self.touchesExecutionEngine = touchesExecutionEngine
+        self.touchesExecutionClient = touchesExecutionClient
+        self.touchesBrokerGateway = touchesBrokerGateway
+        self.authorizesLiveTrading = authorizesLiveTrading
+        self.validationAnchors = validationAnchors
+    }
+
+    public var riskReadModelReady: Bool {
+        freshness.status == .fresh
+            && boundaryHeld
+    }
+
+    public var staleFundingEvidenceSupported: Bool {
+        freshness.status == .stale
+            && boundaryHeld
+    }
+
+    public var boundaryHeld: Bool {
+        instrument.productType == .usdsPerpetual
+            && sourceAnchor == "GH-575-PERP-FUNDING-RISK-READ-MODEL"
+            && touchesExecutionEngine == false
+            && touchesExecutionClient == false
+            && touchesBrokerGateway == false
+            && authorizesLiveTrading == false
+            && validationAnchors == Self.requiredValidationAnchors
+    }
+
+    public static let requiredValidationAnchors = [
+        "GH-575-PERP-MARK-FUNDING-OI-READ-MODEL",
+        "GH-575-PERP-FUNDING-RISK-READ-MODEL",
+        "GH-575-STALE-MARK-FUNDING-EVIDENCE",
+        "TVM-RELEASE-V020-PERP-MARK-FUNDING-OI-READ-MODEL"
+    ]
 }

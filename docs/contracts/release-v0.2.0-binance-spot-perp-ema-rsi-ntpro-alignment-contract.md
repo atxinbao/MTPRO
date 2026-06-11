@@ -93,7 +93,7 @@ NTPRO scoped 100% alignment 是 release v0.2.0 的 scoped alignment contract，�
 | GH-572 / V020-10 | Typed MessageBus envelopes with venue + productType + instrumentID | replay preserves product context and correlation / causation metadata |
 | GH-573 / V020-11 | Binance Spot DataClient / DataEngine active path into Cache | Spot market data remains public read-only |
 | GH-574 / V020-12 | Binance USDⓈ-M Perpetual DataClient / DataEngine active path into Cache | Perp public market data 不授权 leverage / margin action |
-| GH-575 / V020-13 | RSI runtime addition for v0.2.0 | RSI only inside active RSI scope |
+| GH-575 / V020-13 | Perp mark price / funding / open interest read model | market risk input 不授权 margin / leverage action |
 | GH-576 / V020-14 | Strategy coordination and proposal parity for EMA / RSI | paper/live-neutral proposal isolation |
 | GH-577 / V020-15 | RiskEngine live pre-trade gate for Spot / Perp | no RiskEngine bypass |
 | GH-578 / V020-16 | CommandGateway gated submit / cancel / replace contract | no direct UI / strategy command |
