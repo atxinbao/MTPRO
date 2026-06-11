@@ -8331,6 +8331,49 @@ GH-581 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-582 Release v0.2.0 Perpetual ExecutionAlgorithm Validation
+
+GH-582 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH582PerpetualExecutionAlgorithmSupportsOpenReduceOnlyAndBlocksOneShotFlip`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-582 的验收要求：
+
+- flat position + `targetLong` 必须生成本地 BUY open-long intent。
+- flat position + `targetShort` 必须生成本地 SELL open-short intent。
+- long position + `targetFlat` 必须生成 reduce-only SELL close-long intent。
+- short position + `targetFlat` 必须生成 reduce-only BUY close-short intent。
+- targetLong from short 和 targetShort from long 必须 blocked，不能自动合成 close + open 的单步翻仓。
+- 生成的 order intent 仍必须保留 OMS、Event Store、kill switch 和 no-trade 后续 gate，不授权真实 submit / cancel / replace、leverage action 或 margin action。
+
+GH-582 必须建立的主要 anchors：
+
+- `GH-582-PERP-EXECUTION-ALGORITHM`
+- `GH-582-OPEN-LONG`
+- `GH-582-OPEN-SHORT`
+- `GH-582-REDUCE-ONLY-CLOSE-LONG`
+- `GH-582-REDUCE-ONLY-CLOSE-SHORT`
+- `GH-582-NO-UNCONTROLLED-ONE-SHOT-FLIP`
+- `TVM-RELEASE-V020-PERP-EXECUTION-ALGORITHM`
+
+## GH-582 禁止
+
+- 不实现 signed endpoint、account endpoint、listenKey、private stream runtime、broker route、ExecutionClient、broker adapter、OMS command、real order lifecycle、submit / cancel / replace、broker fill parser、reconciliation runtime 或 production trading。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint、private stream endpoint 或 listenKey。
+- 不把 Perp ExecutionAlgorithm order intent 解释为真实订单、broker request、OMS command、ExecutionClient request、leverage / margin action 或 production authorization。
+- 不自动执行 close + open 的单步翻仓。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USDⓈ-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation
 
 GH-521 必须运行：
