@@ -15,6 +15,9 @@ public enum DomainModelContractError: Error, Equatable, Sendable, CustomStringCo
     case emptyIdentifier(String)
     case invalidPrice(String, Double)
     case invalidQuantity(String, Double)
+    case unsupportedProductType(String)
+    case invalidInstrumentIdentity(String)
+    case invalidPerpetualContract(String)
 
     public var description: String {
         switch self {
@@ -34,6 +37,12 @@ public enum DomainModelContractError: Error, Equatable, Sendable, CustomStringCo
             "Price must be finite and positive for \(field): \(value)"
         case let .invalidQuantity(field, value):
             "Quantity must be finite and non-negative for \(field): \(value)"
+        case let .unsupportedProductType(value):
+            "Unsupported product type: \(value)"
+        case let .invalidInstrumentIdentity(value):
+            "Instrument identity is invalid: \(value)"
+        case let .invalidPerpetualContract(value):
+            "Perpetual contract is invalid: \(value)"
         }
     }
 }

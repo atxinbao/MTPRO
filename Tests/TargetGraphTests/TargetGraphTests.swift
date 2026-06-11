@@ -6260,6 +6260,77 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(automationReadiness.contains("Release v0.2.0 boundary automation guard anchor"))
     }
 
+    func testGH566ProductTypeInstrumentIdentityAndPerpetualContractDomainModel() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+
+        let symbol = Symbol.constant("BTCUSDT")
+        let spot = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let perpetual = InstrumentIdentity.binance(productType: .usdsPerpetual, symbol: symbol)
+        let contract = try PerpetualContract(
+            instrument: perpetual,
+            marginAsset: .constant("USDT", field: "perpetualContract.marginAsset"),
+            settlementAsset: .constant("USDT", field: "perpetualContract.settlementAsset"),
+            contractSize: 1,
+            fundingIntervalHours: 8
+        )
+
+        XCTAssertNotEqual(spot, perpetual)
+        XCTAssertEqual(spot.rawValue, "binance:spot:BTCUSDT")
+        XCTAssertEqual(perpetual.rawValue, "binance:usdsPerpetual:BTCUSDT")
+        XCTAssertEqual(try ProductType(contractValue: "usds-perpetual"), .usdsPerpetual)
+        XCTAssertEqual(contract.instrument, perpetual)
+        XCTAssertEqual(contract.marginAsset.rawValue, "USDT")
+        XCTAssertEqual(contract.settlementAsset.rawValue, "USDT")
+        XCTAssertEqual(contract.fundingIntervalHours, 8)
+        XCTAssertEqual(try PerpetualContract.binanceBTCUSDTFixture().instrument, perpetual)
+
+        XCTAssertThrowsError(try InstrumentIdentity(rawValue: "binance:BTCUSDT"))
+        XCTAssertThrowsError(try InstrumentIdentity(rawValue: "binance:coinMPerpetual:BTCUSDT"))
+        XCTAssertThrowsError(try InstrumentIdentity(rawValue: "binance:spot:UNKNOWN"))
+        XCTAssertThrowsError(
+            try PerpetualContract(
+                instrument: spot,
+                marginAsset: .constant("USDT", field: "perpetualContract.marginAsset"),
+                settlementAsset: .constant("USDT", field: "perpetualContract.settlementAsset"),
+                contractSize: 1,
+                fundingIntervalHours: 8
+            )
+        )
+
+        for expected in [
+            "\"ProductType.swift\"",
+            "\"InstrumentIdentity.swift\"",
+            "\"PerpetualContract.swift\""
+        ] {
+            XCTAssertTrue(packageSource.contains(expected), "DomainModel target must compile \(expected)")
+        }
+        XCTAssertTrue(validationMatrix.contains("`GH-566`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-PRODUCT-INSTRUMENT-PERPETUAL-DOMAIN-MODEL"))
+        XCTAssertTrue(validationPlan.contains("GH-566 Release v0.2.0 Product / Instrument Domain Model Validation"))
+        XCTAssertTrue(domainContext.contains("GH-566 Product Type / Instrument Identity / Perpetual Contract Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 product instrument domain model anchor"))
+    }
+
     func testGH503ProductionCredentialSecretPolicyGateDefinesNoDefaultSecretReadContract() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

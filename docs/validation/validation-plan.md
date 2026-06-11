@@ -7687,6 +7687,46 @@ GH-565 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-566 Release v0.2.0 Product / Instrument Domain Model Validation
+
+GH-566 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH566ProductTypeInstrumentIdentityAndPerpetualContractDomainModel`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-566 的验收要求：
+
+- `Sources/DomainModel/ProductType.swift` 必须定义 release v0.2.0 当前允许的 `spot` 和 `usdsPerpetual` product type，并拒绝第三 active product type。
+- `Sources/DomainModel/InstrumentIdentity.swift` 必须把 venue、productType 和 symbol 组成稳定 identity；`binance:spot:BTCUSDT` 与 `binance:usdsPerpetual:BTCUSDT` 必须是不同 instrument。
+- `Sources/DomainModel/PerpetualContract.swift` 必须只接受 `usdsPerpetual` instrument，并拒绝 Spot instrument、非法 funding interval 和非法 contract size。
+- `Package.swift` 必须把 `ProductType.swift`、`InstrumentIdentity.swift` 和 `PerpetualContract.swift` 编入 `DomainModel` target。
+- `docs/validation/trading-validation-matrix.md`、`docs/domain/context.md`、`docs/automation/automation-readiness.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 GH-566 validation anchors。
+- GH-566 PR evidence 必须确认不实现 runtime，不读取 production secret，不连接 production endpoint，不提交真实订单，不启动 Symphony，不运行 Graphify / code-index，不使用 Linear，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+GH-566 必须建立的主要 anchors：
+
+- `GH-566-PRODUCT-TYPE-DOMAIN-MODEL`
+- `GH-566-INSTRUMENT-IDENTITY-REQUIRES-PRODUCT-TYPE`
+- `GH-566-PERPETUAL-CONTRACT-DOMAIN-MODEL`
+- `TVM-RELEASE-V020-PRODUCT-INSTRUMENT-PERPETUAL-DOMAIN-MODEL`
+
+## GH-566 禁止
+
+- 不实现 Binance perpetual market data runtime。
+- 不实现 leverage action、margin action、funding settlement runtime、ExecutionClient、OMS、broker gateway 或 Dashboard command runtime。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint 或 listenKey。
+- 不提交、取消或替换真实订单。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USDⓈ-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation
 
 GH-521 必须运行：
