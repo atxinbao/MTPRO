@@ -1036,3 +1036,456 @@ public enum ReleaseV020RiskEngineCommonLayer {
         )
     }
 }
+
+/// ReleaseV020SpotRiskGate 表达 #579 Spot 专属风控检查项。
+public enum ReleaseV020SpotRiskGate: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case cashBalance
+    case baseBalance
+    case spotShortForbidden
+    case minNotional
+    case lotSize
+    case priceFilter
+}
+
+/// ReleaseV020SpotRiskStatus 描述 Spot risk check 的输出。
+public enum ReleaseV020SpotRiskStatus: String, Codable, Equatable, Sendable {
+    case forwardToCommandGateway
+    case blocked
+}
+
+/// ReleaseV020SpotRiskBlocker 描述 #579 Spot risk check 的阻断原因。
+public enum ReleaseV020SpotRiskBlocker: String, Codable, Equatable, Hashable, Sendable {
+    case commonRiskNotForwarded
+    case nonSpotInstrument
+    case cashBalanceInsufficient
+    case baseBalanceInsufficient
+    case spotShortForbidden
+    case minNotionalFilterFailed
+    case lotSizeFilterFailed
+    case priceFilterFailed
+}
+
+/// ReleaseV020SpotExchangeFilterEvidence 保存 Binance Spot 过滤器的 deterministic evidence。
+///
+/// 该 evidence 只表达 min notional、lot size 和 price filter，不连接 exchangeInfo endpoint，
+/// 不读取真实账户，不执行 broker filter 校验 runtime，也不授权 order command。
+public struct ReleaseV020SpotExchangeFilterEvidence: Codable, Equatable, Sendable {
+    public let filterID: Identifier
+    public let minNotional: Double
+    public let minQuantity: Double
+    public let maxQuantity: Double
+    public let lotSizeStep: Double
+    public let minPrice: Double
+    public let maxPrice: Double
+    public let tickSize: Double
+
+    public init(
+        filterID: Identifier,
+        minNotional: Double,
+        minQuantity: Double,
+        maxQuantity: Double,
+        lotSizeStep: Double,
+        minPrice: Double,
+        maxPrice: Double,
+        tickSize: Double
+    ) throws {
+        let finitePositive: [(String, Double)] = [
+            ("minNotional", minNotional),
+            ("minQuantity", minQuantity),
+            ("maxQuantity", maxQuantity),
+            ("lotSizeStep", lotSizeStep),
+            ("minPrice", minPrice),
+            ("maxPrice", maxPrice),
+            ("tickSize", tickSize)
+        ]
+        if let invalid = finitePositive.first(where: { $0.1.isFinite == false || $0.1 <= 0 }) {
+            throw CoreError.paperPreTradeRiskEngineMismatch(
+                field: "releaseV020SpotExchangeFilter.\(invalid.0)",
+                expected: "finite positive value",
+                actual: "\(invalid.1)"
+            )
+        }
+        guard minQuantity <= maxQuantity else {
+            throw CoreError.paperPreTradeRiskEngineMismatch(
+                field: "releaseV020SpotExchangeFilter.quantityRange",
+                expected: "minQuantity <= maxQuantity",
+                actual: "\(minQuantity) > \(maxQuantity)"
+            )
+        }
+        guard minPrice <= maxPrice else {
+            throw CoreError.paperPreTradeRiskEngineMismatch(
+                field: "releaseV020SpotExchangeFilter.priceRange",
+                expected: "minPrice <= maxPrice",
+                actual: "\(minPrice) > \(maxPrice)"
+            )
+        }
+
+        self.filterID = filterID
+        self.minNotional = minNotional
+        self.minQuantity = minQuantity
+        self.maxQuantity = maxQuantity
+        self.lotSizeStep = lotSizeStep
+        self.minPrice = minPrice
+        self.maxPrice = maxPrice
+        self.tickSize = tickSize
+    }
+
+    public func passesMinNotional(quantity: Quantity, price: Price) -> Bool {
+        quantity.rawValue * price.rawValue >= minNotional
+    }
+
+    public func passesLotSize(quantity: Quantity) -> Bool {
+        quantity.rawValue >= minQuantity
+            && quantity.rawValue <= maxQuantity
+            && Self.isMultiple(quantity.rawValue - minQuantity, of: lotSizeStep)
+    }
+
+    public func passesPriceFilter(price: Price) -> Bool {
+        price.rawValue >= minPrice
+            && price.rawValue <= maxPrice
+            && Self.isMultiple(price.rawValue - minPrice, of: tickSize)
+    }
+
+    private static func isMultiple(_ value: Double, of step: Double) -> Bool {
+        let quotient = value / step
+        return abs(quotient.rounded() - quotient) < 0.000_000_1
+    }
+
+    public static func deterministicFixture() throws -> ReleaseV020SpotExchangeFilterEvidence {
+        try ReleaseV020SpotExchangeFilterEvidence(
+            filterID: Identifier.constant("gh-579-spot-filter"),
+            minNotional: 100,
+            minQuantity: 0.01,
+            maxQuantity: 10,
+            lotSizeStep: 0.01,
+            minPrice: 1,
+            maxPrice: 100_000,
+            tickSize: 0.01
+        )
+    }
+}
+
+/// ReleaseV020SpotRiskInput 是 #579 Spot risk check 的输入。
+public struct ReleaseV020SpotRiskInput: Codable, Equatable, Sendable {
+    public let inputID: Identifier
+    public let commonDecision: ReleaseV020RiskEngineCommonDecision
+    public let targetExposure: TargetExposureIntent
+    public let quantity: Quantity
+    public let referencePrice: Price
+    public let cashBalance: Double
+    public let baseBalance: Double
+    public let exchangeFilter: ReleaseV020SpotExchangeFilterEvidence
+    public let evaluatedAt: Date
+    public let sourceSequence: Int
+    public let productionTradingRequested: Bool
+    public let riskGateBypassed: Bool
+
+    public init(
+        inputID: Identifier,
+        commonDecision: ReleaseV020RiskEngineCommonDecision,
+        targetExposure: TargetExposureIntent? = nil,
+        quantity: Quantity? = nil,
+        referencePrice: Price? = nil,
+        cashBalance: Double,
+        baseBalance: Double,
+        exchangeFilter: ReleaseV020SpotExchangeFilterEvidence,
+        evaluatedAt: Date,
+        sourceSequence: Int,
+        productionTradingRequested: Bool = false,
+        riskGateBypassed: Bool = false
+    ) throws {
+        guard sourceSequence > 0 else {
+            throw CoreError.invalidEventSequence(sourceSequence)
+        }
+        guard cashBalance.isFinite && cashBalance >= 0 else {
+            throw CoreError.paperPreTradeRiskEngineMismatch(
+                field: "releaseV020SpotRisk.cashBalance",
+                expected: "finite non-negative cash balance",
+                actual: "\(cashBalance)"
+            )
+        }
+        guard baseBalance.isFinite && baseBalance >= 0 else {
+            throw CoreError.paperPreTradeRiskEngineMismatch(
+                field: "releaseV020SpotRisk.baseBalance",
+                expected: "finite non-negative base balance",
+                actual: "\(baseBalance)"
+            )
+        }
+        guard productionTradingRequested == false else {
+            throw CoreError.paperPreTradeRiskEngineForbiddenCapability(
+                "releaseV020SpotRisk.productionTradingRequested"
+            )
+        }
+        guard riskGateBypassed == false else {
+            throw CoreError.paperPreTradeRiskEngineForbiddenCapability(
+                "releaseV020SpotRisk.riskGateBypassed"
+            )
+        }
+
+        let forwardedIntent = commonDecision.forwardedOrderIntent
+        guard let resolvedTargetExposure = targetExposure ?? forwardedIntent?.targetExposure,
+              let resolvedQuantity = quantity ?? forwardedIntent?.quantity,
+              let resolvedReferencePrice = referencePrice ?? forwardedIntent?.referencePrice else {
+            throw CoreError.paperPreTradeRiskEngineMismatch(
+                field: "releaseV020SpotRisk.forwardedOrderIntent",
+                expected: "forwarded order intent or explicit defensive override",
+                actual: "nil"
+            )
+        }
+
+        self.inputID = inputID
+        self.commonDecision = commonDecision
+        self.targetExposure = resolvedTargetExposure
+        self.quantity = resolvedQuantity
+        self.referencePrice = resolvedReferencePrice
+        self.cashBalance = cashBalance
+        self.baseBalance = baseBalance
+        self.exchangeFilter = exchangeFilter
+        self.evaluatedAt = evaluatedAt
+        self.sourceSequence = sourceSequence
+        self.productionTradingRequested = productionTradingRequested
+        self.riskGateBypassed = riskGateBypassed
+    }
+
+    public var notional: Double {
+        quantity.rawValue * referencePrice.rawValue
+    }
+
+    public var inputBoundaryHeld: Bool {
+        sourceSequence > 0
+            && cashBalance.isFinite
+            && cashBalance >= 0
+            && baseBalance.isFinite
+            && baseBalance >= 0
+            && productionTradingRequested == false
+            && riskGateBypassed == false
+            && commonDecision.boundaryHeld
+    }
+}
+
+/// ReleaseV020SpotRiskDecision 是 #579 Spot risk check 的可审计输出。
+public struct ReleaseV020SpotRiskDecision: Codable, Equatable, Sendable {
+    public let decisionID: Identifier
+    public let inputID: Identifier
+    public let instrument: InstrumentIdentity?
+    public let targetExposure: TargetExposureIntent
+    public let status: ReleaseV020SpotRiskStatus
+    public let blocker: ReleaseV020SpotRiskBlocker?
+    public let passedGates: [ReleaseV020SpotRiskGate]
+    public let notional: Double
+    public let evaluatedAt: Date
+    public let validationAnchors: [String]
+    public let productionTradingEnabledByDefault: Bool
+    public let bypassesCommandGateway: Bool
+    public let touchesExecutionEngine: Bool
+    public let touchesExecutionClient: Bool
+    public let touchesBrokerGateway: Bool
+    public let bypassesOMS: Bool
+    public let bypassesEventStore: Bool
+    public let bypassesKillSwitch: Bool
+    public let bypassesNoTradeState: Bool
+    public let submitsRealOrder: Bool
+
+    public init(
+        decisionID: Identifier,
+        inputID: Identifier,
+        instrument: InstrumentIdentity?,
+        targetExposure: TargetExposureIntent,
+        status: ReleaseV020SpotRiskStatus,
+        blocker: ReleaseV020SpotRiskBlocker?,
+        passedGates: [ReleaseV020SpotRiskGate],
+        notional: Double,
+        evaluatedAt: Date,
+        validationAnchors: [String] = Self.requiredValidationAnchors,
+        productionTradingEnabledByDefault: Bool = false,
+        bypassesCommandGateway: Bool = false,
+        touchesExecutionEngine: Bool = false,
+        touchesExecutionClient: Bool = false,
+        touchesBrokerGateway: Bool = false,
+        bypassesOMS: Bool = false,
+        bypassesEventStore: Bool = false,
+        bypassesKillSwitch: Bool = false,
+        bypassesNoTradeState: Bool = false,
+        submitsRealOrder: Bool = false
+    ) throws {
+        if status == .forwardToCommandGateway {
+            guard blocker == nil else {
+                throw CoreError.paperPreTradeRiskEngineMismatch(
+                    field: "releaseV020SpotRisk.blocker",
+                    expected: "nil for forwardToCommandGateway",
+                    actual: blocker?.rawValue ?? "nil"
+                )
+            }
+            guard Set(passedGates) == Set(ReleaseV020SpotRiskGate.allCases) else {
+                throw CoreError.paperPreTradeRiskEngineMismatch(
+                    field: "releaseV020SpotRisk.passedGates",
+                    expected: ReleaseV020SpotRiskGate.allCases.map(\.rawValue).joined(separator: ","),
+                    actual: passedGates.map(\.rawValue).joined(separator: ",")
+                )
+            }
+        }
+        if status == .blocked, blocker == nil {
+            throw CoreError.paperPreTradeRiskEngineMismatch(
+                field: "releaseV020SpotRisk.blocker",
+                expected: "present for blocked",
+                actual: "nil"
+            )
+        }
+        let forbiddenFlags: [(String, Bool)] = [
+            ("productionTradingEnabledByDefault", productionTradingEnabledByDefault),
+            ("bypassesCommandGateway", bypassesCommandGateway),
+            ("touchesExecutionEngine", touchesExecutionEngine),
+            ("touchesExecutionClient", touchesExecutionClient),
+            ("touchesBrokerGateway", touchesBrokerGateway),
+            ("bypassesOMS", bypassesOMS),
+            ("bypassesEventStore", bypassesEventStore),
+            ("bypassesKillSwitch", bypassesKillSwitch),
+            ("bypassesNoTradeState", bypassesNoTradeState),
+            ("submitsRealOrder", submitsRealOrder)
+        ]
+        if let forbidden = forbiddenFlags.first(where: \.1) {
+            throw CoreError.paperPreTradeRiskEngineForbiddenCapability("releaseV020SpotRisk.\(forbidden.0)")
+        }
+
+        self.decisionID = decisionID
+        self.inputID = inputID
+        self.instrument = instrument
+        self.targetExposure = targetExposure
+        self.status = status
+        self.blocker = blocker
+        self.passedGates = passedGates
+        self.notional = notional
+        self.evaluatedAt = evaluatedAt
+        self.validationAnchors = validationAnchors
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.bypassesCommandGateway = bypassesCommandGateway
+        self.touchesExecutionEngine = touchesExecutionEngine
+        self.touchesExecutionClient = touchesExecutionClient
+        self.touchesBrokerGateway = touchesBrokerGateway
+        self.bypassesOMS = bypassesOMS
+        self.bypassesEventStore = bypassesEventStore
+        self.bypassesKillSwitch = bypassesKillSwitch
+        self.bypassesNoTradeState = bypassesNoTradeState
+        self.submitsRealOrder = submitsRealOrder
+    }
+
+    public var forwardsToCommandGateway: Bool {
+        status == .forwardToCommandGateway
+            && boundaryHeld
+    }
+
+    public var isBlocked: Bool {
+        status == .blocked
+    }
+
+    public var boundaryHeld: Bool {
+        validationAnchors == Self.requiredValidationAnchors
+            && productionTradingEnabledByDefault == false
+            && bypassesCommandGateway == false
+            && touchesExecutionEngine == false
+            && touchesExecutionClient == false
+            && touchesBrokerGateway == false
+            && bypassesOMS == false
+            && bypassesEventStore == false
+            && bypassesKillSwitch == false
+            && bypassesNoTradeState == false
+            && submitsRealOrder == false
+    }
+
+    public static let requiredValidationAnchors = [
+        "GH-579-SPOT-RISK-CHECKS",
+        "GH-579-CASH-BASE-BALANCE-CHECK",
+        "GH-579-SPOT-SHORT-FORBIDDEN",
+        "GH-579-SPOT-EXCHANGE-FILTER-EVIDENCE",
+        "TVM-RELEASE-V020-SPOT-RISK-CHECKS"
+    ]
+}
+
+/// ReleaseV020SpotRiskLayer 执行 #579 Spot 专属 risk checks。
+public enum ReleaseV020SpotRiskLayer {
+    public static func evaluate(
+        decisionID: Identifier,
+        input: ReleaseV020SpotRiskInput
+    ) throws -> ReleaseV020SpotRiskDecision {
+        guard input.inputBoundaryHeld, input.commonDecision.forwardsToCommandGateway else {
+            return try blocked(decisionID: decisionID, input: input, blocker: .commonRiskNotForwarded, passedGates: [])
+        }
+        guard let instrument = input.commonDecision.instrument, instrument.productType == .spot else {
+            return try blocked(decisionID: decisionID, input: input, blocker: .nonSpotInstrument, passedGates: [])
+        }
+        guard input.targetExposure != .targetShort else {
+            return try blocked(decisionID: decisionID, input: input, blocker: .spotShortForbidden, passedGates: [])
+        }
+        guard input.targetExposure != .targetLong || input.notional <= input.cashBalance else {
+            return try blocked(
+                decisionID: decisionID,
+                input: input,
+                blocker: .cashBalanceInsufficient,
+                passedGates: [.spotShortForbidden]
+            )
+        }
+        guard input.targetExposure != .targetFlat || input.quantity.rawValue <= input.baseBalance else {
+            return try blocked(
+                decisionID: decisionID,
+                input: input,
+                blocker: .baseBalanceInsufficient,
+                passedGates: [.cashBalance, .spotShortForbidden]
+            )
+        }
+        guard input.exchangeFilter.passesMinNotional(quantity: input.quantity, price: input.referencePrice) else {
+            return try blocked(
+                decisionID: decisionID,
+                input: input,
+                blocker: .minNotionalFilterFailed,
+                passedGates: [.cashBalance, .baseBalance, .spotShortForbidden]
+            )
+        }
+        guard input.exchangeFilter.passesLotSize(quantity: input.quantity) else {
+            return try blocked(
+                decisionID: decisionID,
+                input: input,
+                blocker: .lotSizeFilterFailed,
+                passedGates: [.cashBalance, .baseBalance, .spotShortForbidden, .minNotional]
+            )
+        }
+        guard input.exchangeFilter.passesPriceFilter(price: input.referencePrice) else {
+            return try blocked(
+                decisionID: decisionID,
+                input: input,
+                blocker: .priceFilterFailed,
+                passedGates: [.cashBalance, .baseBalance, .spotShortForbidden, .minNotional, .lotSize]
+            )
+        }
+
+        return try ReleaseV020SpotRiskDecision(
+            decisionID: decisionID,
+            inputID: input.inputID,
+            instrument: instrument,
+            targetExposure: input.targetExposure,
+            status: .forwardToCommandGateway,
+            blocker: nil,
+            passedGates: ReleaseV020SpotRiskGate.allCases,
+            notional: input.notional,
+            evaluatedAt: input.evaluatedAt
+        )
+    }
+
+    private static func blocked(
+        decisionID: Identifier,
+        input: ReleaseV020SpotRiskInput,
+        blocker: ReleaseV020SpotRiskBlocker,
+        passedGates: [ReleaseV020SpotRiskGate]
+    ) throws -> ReleaseV020SpotRiskDecision {
+        try ReleaseV020SpotRiskDecision(
+            decisionID: decisionID,
+            inputID: input.inputID,
+            instrument: input.commonDecision.instrument,
+            targetExposure: input.targetExposure,
+            status: .blocked,
+            blocker: blocker,
+            passedGates: passedGates,
+            notional: input.notional,
+            evaluatedAt: input.evaluatedAt
+        )
+    }
+}

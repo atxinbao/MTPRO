@@ -8212,6 +8212,43 @@ GH-578 必须建立的主要 anchors：
 - 不启用非 Spot / USDⓈ-M Perpetual product。
 - 不启用非 EMA / RSI active strategy。
 - 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+
+## GH-579 Release v0.2.0 Spot Risk Checks Validation
+
+GH-579 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH579SpotRiskChecksCoverBalancesShortAndExchangeFilters`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-579 的验收要求：
+
+- Spot targetLong 必须通过 cash balance check；cash 不足必须 blocked。
+- Spot targetFlat 必须通过 base balance check；base 不足必须 blocked。
+- Spot targetShort 必须 forbidden，即使异常输入绕过上游也必须 blocked。
+- min notional、lot size 和 price filter 必须有 deterministic evidence，失败时必须 blocked。
+- allow 只表示继续进入后续 gate 链路，不授权 submit / cancel / replace、ExecutionEngine、OMS、ExecutionClient、broker 或 production trading。
+
+GH-579 必须建立的主要 anchors：
+
+- `GH-579-SPOT-RISK-CHECKS`
+- `GH-579-CASH-BASE-BALANCE-CHECK`
+- `GH-579-SPOT-SHORT-FORBIDDEN`
+- `GH-579-SPOT-EXCHANGE-FILTER-EVIDENCE`
+- `TVM-RELEASE-V020-SPOT-RISK-CHECKS`
+
+## GH-579 禁止
+
+- 不实现 signed endpoint、account endpoint、listenKey、private stream runtime、broker route、ExecutionClient、OMS、order command、leverage action、margin action 或 production trading。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint、private stream endpoint 或 listenKey。
+- 不提交、取消或替换真实订单。
+- 不把 Spot risk allow 解释成交易授权或 ExecutionEngine / OMS command。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USDⓈ-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
 - 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。

@@ -97,7 +97,7 @@ NTPRO scoped 100% alignment 是 release v0.2.0 的 scoped alignment contract，�
 | GH-576 / V020-14 | Product-aware Cache market / order / position / strategy state | Cache state keeps product identity and no durable / broker state |
 | GH-577 / V020-15 | EMA / RSI ProposalArbitrator across Spot and Perp | conflicts block by default and no RiskEngine / execution bypass |
 | GH-578 / V020-16 | RiskEngine common layer for strategy / instrument / notional / exposure / kill switch / no-trade | no CommandGateway / execution bypass |
-| GH-579 / V020-17 | ExecutionEngine OMS lifecycle for Spot / Perp | OMS before ExecutionClient |
+| GH-579 / V020-17 | Binance Spot risk checks for cash / base balance / filters | Spot short forbidden and no command / execution bypass |
 | GH-580 / V020-18 | Binance Spot ExecutionClient testnet SCR | testnet only |
 | GH-581 / V020-19 | Binance USDⓈ-M ExecutionClient testnet SCR | testnet only, no production leverage action |
 | GH-582 / V020-20 | Spot execution report / broker fill parser | no raw production payload |

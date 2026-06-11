@@ -4028,6 +4028,28 @@ No command / execution bypass 指 common RiskEngine 的 allow 只表示可进入
 
 Release v0.2.0 RiskEngine common layer matrix 必须证明 strategy allowlist、instrument allowlist、max notional、aggregate exposure、kill switch、no-trade 和 no command / execution bypass 同时成立。
 
+## GH-579 Spot Risk Checks Terms
+
+`GH-579-SPOT-RISK-CHECKS`
+
+Spot risk checks 指 release v0.2.0 中 Binance Spot 专属的本地 deterministic risk evidence。它消费 common RiskEngine allow evidence，继续检查现金、base balance、Spot short 和交易所过滤器；它不读取真实 account endpoint、不调用 signed endpoint、不连接 broker，也不授权真实订单。
+
+`GH-579-CASH-BASE-BALANCE-CHECK`
+
+Cash / base balance check 指 Spot targetLong 必须有足够 cash balance，Spot targetFlat 必须有足够 base balance。余额不足只能输出 blocked evidence，不能 fallback 到 broker retry、OMS mutation、Dashboard command 或 production trading。
+
+`GH-579-SPOT-SHORT-FORBIDDEN`
+
+Spot short forbidden 指 Binance Spot 的 `targetShort` 即使通过异常输入到达 Spot risk layer，也必须 blocked。该 blocker 不允许进入 CommandGateway、ExecutionEngine、OMS、ExecutionClient 或 broker gateway。
+
+`GH-579-SPOT-EXCHANGE-FILTER-EVIDENCE`
+
+Spot exchange filter evidence 指 min notional、lot size 和 price filter 必须在本地 deterministic evidence 中可验证。过滤器失败只阻断 release validation，不触发 production endpoint、exchangeInfo runtime 或真实订单修复。
+
+`TVM-RELEASE-V020-SPOT-RISK-CHECKS`
+
+Release v0.2.0 Spot risk checks matrix 必须证明 cash balance、base balance、Spot short forbidden、min notional、lot size、price filter 和 no command / execution bypass 同时成立。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Terms
 
 `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`
