@@ -11,6 +11,7 @@ domain_scripts=(
   "forbidden-capability"
   "docs-closure"
   "release-v010-no-default-production-trading"
+  "release-v0.2.0-boundary"
 )
 
 for domain in "${domain_scripts[@]}"; do

@@ -7647,6 +7647,46 @@ GH-564 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-565 Release v0.2.0 Boundary Automation Guard Validation
+
+GH-565 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH565ReleaseV020BoundaryGuardBlocksScopeExpansionAndProductionDefaults`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-565 的验收要求：
+
+- `checks/automation-readiness.d/release-v0.2.0-boundary.sh` 必须存在，并包含 `GH-565-V020-BINANCE-SPOT-PERP-EMA-RSI-AUTOMATION-GUARD`、`GH-565-NON-BINANCE-ACTIVE-SOURCE-GUARD`、`GH-565-ACTIVE-PRODUCT-TYPE-GUARD`、`GH-565-ACTIVE-STRATEGY-GUARD`、`GH-565-PRODUCTION-AUTO-ENABLE-GUARD` 和 `TVM-RELEASE-V020-BINANCE-SPOT-PERP-EMA-RSI-BOUNDARY-GUARD`。
+- `checks/automation-readiness.d/run-domain-guards.sh` 必须调用 `release-v0.2.0-boundary.sh`。
+- Guard 必须阻断 non-Binance active `Sources/DataClient/*` source、非 EMA / RSI active `Sources/Trader/Strategies/*` source、错误 `activeVenue`、错误 `activeProductTypes`、错误 `activeStrategies`、production default true flag、production endpoint / secret / order true flag，以及 CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store / kill switch / no-trade bypass true flag。
+- `docs/validation/trading-validation-matrix.md`、`docs/domain/context.md`、`docs/automation/automation-readiness.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 GH-565 validation anchors。
+- GH-565 PR evidence 必须确认不实现 runtime，不读取 production secret，不连接 production endpoint，不提交真实订单，不启动 Symphony，不运行 Graphify / code-index，不使用 Linear，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+GH-565 必须建立的主要 anchors：
+
+- `GH-565-V020-BINANCE-SPOT-PERP-EMA-RSI-AUTOMATION-GUARD`
+- `GH-565-NON-BINANCE-ACTIVE-SOURCE-GUARD`
+- `GH-565-ACTIVE-PRODUCT-TYPE-GUARD`
+- `GH-565-ACTIVE-STRATEGY-GUARD`
+- `GH-565-PRODUCTION-AUTO-ENABLE-GUARD`
+- `TVM-RELEASE-V020-BINANCE-SPOT-PERP-EMA-RSI-BOUNDARY-GUARD`
+
+## GH-565 禁止
+
+- 不实现 release runtime、Strategy runtime、Trader runtime、ExecutionClient runtime、OMS runtime 或 Dashboard command runtime。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint 或 listenKey。
+- 不提交、取消或替换真实订单。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USDⓈ-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation
 
 GH-521 必须运行：
