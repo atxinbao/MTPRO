@@ -88,7 +88,7 @@ NTPRO scoped 100% alignment 是 release v0.2.0 的 scoped alignment contract，�
 | GH-567 / V020-05 | Binance USDⓈ-M Perpetual public market data runtime path | perpetual market data 不授权 leverage / margin action |
 | GH-568 / V020-06 | TraderStrategies EMA + RSI shared source root | source layout 不等于 strategy runtime authorization |
 | GH-569 / V020-07 | EMA emits TargetExposureIntent for Spot / Perp binding | no direct order side from EMA strategy output |
-| GH-570 / V020-08 | Spot private stream / account snapshot runtime | no raw listenKey exposure |
+| GH-570 / V020-08 | RSI emits TargetExposureIntent for Spot / gated Perp short binding | no direct order side from RSI strategy output |
 | GH-571 / V020-09 | USDⓈ-M private stream / account snapshot runtime | no broker command surface |
 | GH-572 / V020-10 | account / position / balance / margin read-model mapping | read-model-only evidence |
 | GH-573 / V020-11 | Trader runtime lifecycle for Binance Spot / Perp accounts | no direct ExecutionClient path |

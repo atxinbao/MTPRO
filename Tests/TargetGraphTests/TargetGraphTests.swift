@@ -6703,6 +6703,165 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(automationReadiness.contains("Release v0.2.0 EMA target exposure intent anchor"))
     }
 
+    func testGH570RSITargetExposureIntentSupportsSpotAndGatedPerpShort() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let rsiSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/Trader/Strategies/RSI/RSIStrategy.swift"),
+            encoding: .utf8
+        )
+
+        let defaultEmitter = try RSITargetExposureIntentEmitter.deterministicFixture()
+        let defaultContract = RSIStrategyContract(configuration: defaultEmitter.configuration)
+        let oversoldSample = try XCTUnwrap(
+            defaultContract.evaluate(Self.gh568Bars(closes: [100, 99, 98, 97])).last
+        )
+        let overboughtSample = try XCTUnwrap(
+            defaultContract.evaluate(Self.gh568Bars(closes: [100, 101, 102, 103])).last
+        )
+        let neutralSample = try XCTUnwrap(
+            defaultContract.evaluate(Self.gh568Bars(closes: [100, 101, 100, 101])).last
+        )
+
+        XCTAssertEqual(oversoldSample.rsiValue, 0)
+        XCTAssertEqual(oversoldSample.signal.direction, .long)
+        XCTAssertEqual(oversoldSample.targetExposure, .targetLong)
+        XCTAssertEqual(overboughtSample.rsiValue, 100)
+        XCTAssertEqual(overboughtSample.signal.direction, .flat)
+        XCTAssertEqual(overboughtSample.targetExposure, .targetFlat)
+        XCTAssertEqual(neutralSample.rsiValue, 66.6666666667, accuracy: 0.0001)
+        XCTAssertEqual(neutralSample.targetExposure, .hold)
+        XCTAssertTrue([oversoldSample, overboughtSample, neutralSample].allSatisfy {
+            $0.emitsDirectOrderSide == false
+        })
+        XCTAssertTrue(rsiSource.contains("TargetExposureIntent"))
+        XCTAssertFalse(rsiSource.contains("PaperActionProposalSide"))
+
+        let symbol = Symbol.constant("BTCUSDT")
+        let spot = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let perp = InstrumentIdentity.binance(productType: .usdsPerpetual, symbol: symbol)
+        let quantity = try Quantity(0.15, field: "gh570.quantity")
+        let emittedAt = Date(timeIntervalSince1970: 1_704_067_570)
+
+        let spotLong = try defaultEmitter.generateTargetExposureIntent(
+            from: oversoldSample,
+            instrument: spot,
+            sourceSequence: 5_701,
+            quantity: quantity,
+            emittedAt: emittedAt
+        )
+        let spotFlat = try defaultEmitter.generateTargetExposureIntent(
+            from: overboughtSample,
+            instrument: spot,
+            sourceSequence: 5_702,
+            quantity: quantity,
+            emittedAt: emittedAt
+        )
+        let perpFlatWhenShortDisabled = try defaultEmitter.generateTargetExposureIntent(
+            from: overboughtSample,
+            instrument: perp,
+            sourceSequence: 5_703,
+            quantity: quantity,
+            emittedAt: emittedAt
+        )
+        let hold = try defaultEmitter.generateTargetExposureIntent(
+            from: neutralSample,
+            instrument: perp,
+            sourceSequence: 5_704,
+            quantity: quantity,
+            emittedAt: emittedAt
+        )
+
+        XCTAssertEqual(spotLong.targetExposure, .targetLong)
+        XCTAssertEqual(spotFlat.targetExposure, .targetFlat)
+        XCTAssertEqual(perpFlatWhenShortDisabled.targetExposure, .targetFlat)
+        XCTAssertEqual(hold.targetExposure, .hold)
+        XCTAssertNil(hold.productAwareOrderIntent)
+        XCTAssertEqual(spotFlat.productAwareOrderIntent?.instrument.productType, .spot)
+        XCTAssertEqual(perpFlatWhenShortDisabled.productAwareOrderIntent?.targetExposure, .targetFlat)
+
+        let shortEmitter = try RSITargetExposureIntentEmitter.deterministicFixture(perpetualShortEnabled: true)
+        let shortContract = RSIStrategyContract(configuration: shortEmitter.configuration)
+        let shortCandidateSample = try XCTUnwrap(
+            shortContract.evaluate(Self.gh568Bars(closes: [100, 101, 102, 103])).last
+        )
+        XCTAssertEqual(shortCandidateSample.targetExposure, .targetFlat)
+        let spotStillFlat = try shortEmitter.generateTargetExposureIntent(
+            from: shortCandidateSample,
+            instrument: spot,
+            sourceSequence: 5_705,
+            quantity: quantity,
+            emittedAt: emittedAt
+        )
+        let perpShort = try shortEmitter.generateTargetExposureIntent(
+            from: shortCandidateSample,
+            instrument: perp,
+            sourceSequence: 5_706,
+            quantity: quantity,
+            emittedAt: emittedAt
+        )
+        XCTAssertEqual(spotStillFlat.targetExposure, .targetFlat)
+        XCTAssertEqual(perpShort.targetExposure, .targetShort)
+        let perpShortIntent = try XCTUnwrap(perpShort.productAwareOrderIntent)
+        XCTAssertEqual(perpShortIntent.instrument, perp)
+        XCTAssertEqual(perpShortIntent.targetExposure, .targetShort)
+        XCTAssertTrue(perpShortIntent.isPreRiskGateIntent)
+        XCTAssertFalse(perpShortIntent.authorizesTradingExecution)
+        XCTAssertFalse(perpShortIntent.productionTradingEnabledByDefault)
+
+        XCTAssertThrowsError(
+            try defaultEmitter.generateTargetExposureIntent(
+                from: oversoldSample,
+                instrument: InstrumentIdentity(
+                    venue: "coinbase",
+                    productType: .spot,
+                    symbol: symbol
+                ),
+                sourceSequence: 5_707,
+                quantity: quantity,
+                emittedAt: emittedAt
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("rsiTargetExposureEmitter.nonBinanceInstrument")
+            )
+        }
+
+        for expected in [
+            "\"RSI/RSIStrategy.swift\"",
+            "\"TargetExposureIntent.swift\"",
+            "\"ProductAwareOrderIntent.swift\"",
+            "\"StrategyIntentMessages.swift\""
+        ] {
+            XCTAssertTrue(packageSource.contains(expected), "Package.swift must compile \(expected)")
+        }
+        XCTAssertTrue(validationMatrix.contains("`GH-570`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-RSI-TARGET-EXPOSURE-INTENT"))
+        XCTAssertTrue(validationPlan.contains("GH-570 Release v0.2.0 RSI Target Exposure Intent Validation"))
+        XCTAssertTrue(domainContext.contains("GH-570 RSI Target Exposure Intent Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 RSI target exposure intent anchor"))
+    }
+
     private static func gh568Bars(closes: [Double]) throws -> [MarketBar] {
         try closes.enumerated().map { index, close in
             let start = Date(timeIntervalSince1970: Double(index * 60))

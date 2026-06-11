@@ -182,22 +182,28 @@ required_evidence = {
         "TVM-RELEASE-V020-BINANCE-SPOT-PERP-EMA-RSI-BOUNDARY-GUARD",
         "GH-569",
         "TVM-RELEASE-V020-EMA-TARGET-EXPOSURE-INTENT",
+        "GH-570",
+        "TVM-RELEASE-V020-RSI-TARGET-EXPOSURE-INTENT",
     ],
     "docs/validation/validation-plan.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Validation",
         "GH-569 Release v0.2.0 EMA Target Exposure Intent Validation",
+        "GH-570 Release v0.2.0 RSI Target Exposure Intent Validation",
     ],
     "docs/domain/context.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Terms",
         "GH-569 EMA Target Exposure Intent Terms",
+        "GH-570 RSI Target Exposure Intent Terms",
     ],
     "docs/automation/automation-readiness.md": [
         "Release v0.2.0 boundary automation guard anchor",
         "Release v0.2.0 EMA target exposure intent anchor",
+        "Release v0.2.0 RSI target exposure intent anchor",
     ],
     "Tests/TargetGraphTests/TargetGraphTests.swift": [
         "testGH565ReleaseV020BoundaryGuardBlocksScopeExpansionAndProductionDefaults",
         "testGH569EMATargetExposureIntentSupportsSpotAndPerpWithoutDirectOrderSide",
+        "testGH570RSITargetExposureIntentSupportsSpotAndGatedPerpShort",
     ],
 }
 
