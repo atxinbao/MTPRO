@@ -954,6 +954,22 @@ MTP-68 只定义 Live monitoring console information architecture 和 validation
 | `GH-509` | `TVM-PRODUCTION-CUTOVER-READINESS-REAL-BROKER-GATE` | Dry-run / shadow / no-default-trading evidence：定义 dry-run proof、shadow mode evidence、production blocked evidence、Report / Dashboard / Events read-model-only evidence surface 和 no-default-trading 验证入口；不实现 production execution、真实 broker shadow trading、sandbox command promoted to production command 或真实订单。 |
 | `GH-510` | `TVM-PRODUCTION-CUTOVER-READINESS-REAL-BROKER-GATE` | Stage audit input closeout：新增 `docs/audit/inputs/mtpro-production-cutover-readiness-real-broker-enablement-gate-v1-stage-audit-input.md`，收口 GH-503 至 GH-510 PR / checks / merge evidence、validation matrix、automation readiness anchors、forbidden capability evidence 和 Parent Codex handoff checklist。GH-510 不输出最终 Stage Code Audit Report，不设置 Project Completed，不创建下一 Project / Issue，不推进 Todo，不授权 production cutover、broker connection、real secret read 或 real order lifecycle。 |
 
+## Release v0.2.0 Binance Spot + Perp EMA/RSI matrix extension
+
+日期：2026-06-11
+
+执行者：Codex
+
+| Matrix ID | 验证域 | 当前 coverage 入口 | 验收证据边界 | 后续回填责任 |
+| --- | --- | --- | --- | --- |
+| `TVM-RELEASE-V020-BINANCE-SPOT-PERP-EMA-RSI-NTPRO-ALIGNMENT` | Release v0.2.0 Binance Spot + USDⓈ-M Perpetual + EMA/RSI top-level contract、NTPRO scoped 100% alignment matrix、acceptance matrix 和 no-default-production-trading boundary | `docs/contracts/release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md`、`docs/validation/validation-plan.md`、`docs/domain/context.md`、`docs/automation/automation-readiness.md`、`checks/automation-readiness.d/l4-boundary.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift` 的 `testGH563ReleaseV020ContractDefinesBinanceSpotPerpEMARSIBoundary`。 | 证据覆盖 `activeVenue == Binance`、`activeProductTypes == [spot, usdsPerpetual]`、`activeStrategies == [ema, rsi]`、`productionTradingEnabledByDefault == false`、NTPRO scoped 100% alignment、CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store / validation gate 不可绕过，以及非 Binance、非 Spot / USDⓈ-M Perpetual、非 EMA / RSI active strategy、production secret、production endpoint、production broker connection、real submit / cancel / replace、Live PRO Console、trading button、live command 和 order form 全部不授权。GH-563 只定义 contract / matrix，不实现 runtime。 | GH-563 回填 release v0.2.0 顶层合同、active venue / product / strategy scope、NTPRO scoped alignment matrix、acceptance matrix、domain context、validation plan、automation readiness anchors 和 focused TargetGraph test。后续 GH-564 至 GH-596 必须逐 issue 回填对应 ownership、runtime、strategy、risk、execution、Dashboard、guard、docs、audit 和 closure evidence，保持 WIP=1，不得跳过 dependencies，不得默认启用 production trading。 |
+
+## GH-563..GH-596 issue backfill
+
+| Issue | Matrix ID | Evidence |
+| --- | --- | --- |
+| `GH-563` | `TVM-RELEASE-V020-BINANCE-SPOT-PERP-EMA-RSI-NTPRO-ALIGNMENT` | Release v0.2.0 contract：新增 `docs/contracts/release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md`，固定 milestone `MTPRO Release v0.2.0`、queue range `GH-563..GH-596`、`activeVenue == Binance`、`activeProductTypes == [spot, usdsPerpetual]`、`activeStrategies == [ema, rsi]`、`productionTradingEnabledByDefault == false`、NTPRO scoped 100% alignment matrix、CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store gate boundary 和 release v0.2.0 acceptance matrix。GH-563 不实现 runtime，不读取 production secret，不连接 production endpoint，不提交真实订单，不创建下一 Project / Issue，不推进 release v0.2.0 后续阶段。 |
+
 ## Release v0.1.0 Binance EMA Runtime matrix extension
 
 日期：2026-06-08

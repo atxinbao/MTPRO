@@ -7567,6 +7567,48 @@ MTP-226 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-563 Release v0.2.0 Binance Spot + Perp EMA/RSI Contract Validation
+
+GH-563 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH563ReleaseV020ContractDefinesBinanceSpotPerpEMARSIBoundary`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-563 的验收要求：
+
+- `docs/contracts/release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md` 必须存在，并包含 `GH-563-RELEASE-V020-BINANCE-SPOT-PERP-EMA-RSI-CONTRACT`、`GH-563-BINANCE-SPOT-PERP-ACTIVE-SCOPE`、`GH-563-EMA-RSI-ACTIVE-STRATEGY-SCOPE`、`GH-563-NTPRO-SCOPED-ALIGNMENT-MATRIX`、`GH-563-ACCEPTANCE-MATRIX`、`GH-563-NO-DEFAULT-PRODUCTION-TRADING`、`GH-563-VALIDATION-ANCHORS`、`GH-563-NON-AUTHORIZATION` 和 `TVM-RELEASE-V020-BINANCE-SPOT-PERP-EMA-RSI-NTPRO-ALIGNMENT`。
+- Contract 必须明确 `activeVenue == Binance`、`activeProductTypes == [spot, usdsPerpetual]`、`activeStrategies == [ema, rsi]` 和 `productionTradingEnabledByDefault == false`。
+- Contract 必须包含 NTPRO scoped 100% alignment matrix，并明确 scoped alignment 只对齐合同、边界、证据链和验证口径，不复制 NTPRO 代码，不引入 NTPRO runtime dependency。
+- Acceptance matrix 必须覆盖 GH-563 至 GH-596，并保持 Binance-only、Spot + USDⓈ-M Perpetual-only、EMA + RSI-only 和 no-default-production-trading 边界。
+- `docs/validation/trading-validation-matrix.md`、`docs/domain/context.md`、`docs/automation/automation-readiness.md`、`checks/automation-readiness.d/l4-boundary.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 release v0.2.0 contract / validation anchors。
+- GH-563 PR evidence 必须确认不实现 runtime，不读取 production secret，不连接 production endpoint，不提交真实订单，不启动 Symphony，不运行 Graphify / code-index，不使用 Linear，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+GH-563 必须建立的主要 anchors：
+
+- `GH-563-RELEASE-V020-BINANCE-SPOT-PERP-EMA-RSI-CONTRACT`
+- `GH-563-BINANCE-SPOT-PERP-ACTIVE-SCOPE`
+- `GH-563-EMA-RSI-ACTIVE-STRATEGY-SCOPE`
+- `GH-563-NTPRO-SCOPED-ALIGNMENT-MATRIX`
+- `GH-563-ACCEPTANCE-MATRIX`
+- `GH-563-NO-DEFAULT-PRODUCTION-TRADING`
+- `TVM-RELEASE-V020-BINANCE-SPOT-PERP-EMA-RSI-NTPRO-ALIGNMENT`
+
+## GH-563 禁止
+
+- 不实现 release runtime。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint 或 listenKey。
+- 不提交、取消或替换真实订单。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USDⓈ-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation
 
 GH-521 必须运行：
