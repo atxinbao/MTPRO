@@ -6331,6 +6331,143 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(automationReadiness.contains("Release v0.2.0 product instrument domain model anchor"))
     }
 
+    func testGH567TargetExposureAndProductAwareOrderIntentModel() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+
+        let symbol = Symbol.constant("BTCUSDT")
+        let spot = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let perp = InstrumentIdentity.binance(productType: .usdsPerpetual, symbol: symbol)
+        let quantity = try Quantity(0.25, field: "productAwareOrderIntent.quantity")
+        let referencePrice = try Price(100, field: "productAwareOrderIntent.referencePrice")
+        let createdAt = Date(timeIntervalSince1970: 567)
+
+        XCTAssertEqual(
+            TargetExposureIntent.allCases,
+            [.targetLong, .targetShort, .targetFlat, .hold]
+        )
+        XCTAssertTrue(TargetExposureIntent.targetLong.requiresOrderIntent)
+        XCTAssertTrue(TargetExposureIntent.targetShort.requiresOrderIntent)
+        XCTAssertTrue(TargetExposureIntent.targetFlat.requiresOrderIntent)
+        XCTAssertFalse(TargetExposureIntent.hold.requiresOrderIntent)
+
+        let spotLong = try ProductAwareOrderIntent(
+            intentID: .constant("gh-567-spot-long"),
+            instrument: spot,
+            targetExposure: .targetLong,
+            quantity: quantity,
+            referencePrice: referencePrice,
+            createdAt: createdAt
+        )
+        let spotFlat = try ProductAwareOrderIntent(
+            intentID: .constant("gh-567-spot-flat"),
+            instrument: spot,
+            targetExposure: .targetFlat,
+            quantity: quantity,
+            referencePrice: referencePrice,
+            createdAt: createdAt
+        )
+        let perpShort = try ProductAwareOrderIntent(
+            intentID: .constant("gh-567-perp-short"),
+            instrument: perp,
+            targetExposure: .targetShort,
+            quantity: quantity,
+            referencePrice: referencePrice,
+            createdAt: createdAt
+        )
+
+        XCTAssertEqual(spotLong.instrument.productType, .spot)
+        XCTAssertEqual(spotFlat.targetExposure, .targetFlat)
+        XCTAssertEqual(perpShort.instrument.productType, .usdsPerpetual)
+        XCTAssertEqual(perpShort.targetExposure, .targetShort)
+        XCTAssertTrue(perpShort.isPreRiskGateIntent)
+        XCTAssertFalse(perpShort.authorizesTradingExecution)
+        XCTAssertFalse(perpShort.productionTradingEnabledByDefault)
+
+        XCTAssertThrowsError(
+            try ProductAwareOrderIntent(
+                intentID: .constant("gh-567-spot-short"),
+                instrument: spot,
+                targetExposure: .targetShort,
+                quantity: quantity,
+                referencePrice: referencePrice,
+                createdAt: createdAt
+            )
+        )
+        XCTAssertThrowsError(
+            try ProductAwareOrderIntent(
+                intentID: .constant("gh-567-hold-order"),
+                instrument: spot,
+                targetExposure: .hold,
+                quantity: quantity,
+                referencePrice: referencePrice,
+                createdAt: createdAt
+            )
+        )
+
+        let shortMessage = try StrategyIntentMessage(
+            messageID: .constant("gh-567-perp-short-message"),
+            strategyID: .constant("gh-567-rsi-strategy"),
+            instrument: perp,
+            targetExposure: .targetShort,
+            productAwareOrderIntent: perpShort,
+            emittedAt: createdAt
+        )
+        let holdMessage = try StrategyIntentMessage(
+            messageID: .constant("gh-567-hold-message"),
+            strategyID: .constant("gh-567-rsi-strategy"),
+            instrument: spot,
+            targetExposure: .hold,
+            productAwareOrderIntent: nil,
+            emittedAt: createdAt
+        )
+
+        XCTAssertEqual(shortMessage.productAwareOrderIntent, perpShort)
+        XCTAssertNil(holdMessage.productAwareOrderIntent)
+        XCTAssertThrowsError(
+            try StrategyIntentMessage(
+                messageID: .constant("gh-567-missing-order"),
+                strategyID: .constant("gh-567-rsi-strategy"),
+                instrument: perp,
+                targetExposure: .targetLong,
+                productAwareOrderIntent: nil,
+                emittedAt: createdAt
+            )
+        )
+
+        for expected in [
+            "\"TargetExposureIntent.swift\"",
+            "\"ProductAwareOrderIntent.swift\"",
+            "\"StrategyIntentMessages.swift\""
+        ] {
+            XCTAssertTrue(packageSource.contains(expected), "Package.swift must compile \(expected)")
+        }
+        XCTAssertTrue(validationMatrix.contains("`GH-567`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-TARGET-EXPOSURE-PRODUCT-AWARE-INTENT"))
+        XCTAssertTrue(validationPlan.contains("GH-567 Release v0.2.0 Target Exposure / Product-aware Intent Validation"))
+        XCTAssertTrue(domainContext.contains("GH-567 Target Exposure / Product-aware Order Intent Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 target exposure product-aware intent anchor"))
+    }
+
     func testGH503ProductionCredentialSecretPolicyGateDefinesNoDefaultSecretReadContract() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

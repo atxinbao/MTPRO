@@ -3760,6 +3760,28 @@ PerpetualContract 指 USDⓈ-M Perpetual instrument 的最小合约元数据：p
 
 Release v0.2.0 product / instrument / perpetual matrix 必须证明 Spot BTCUSDT 与 USDⓈ-M Perpetual BTCUSDT 是不同 instrument，productType 是 instrument identity 必填维度，非法 identity 和非 perpetual instrument 的 perpetual contract 会被拒绝。
 
+## GH-567 Target Exposure / Product-aware Order Intent Terms
+
+`GH-567-TARGET-EXPOSURE-INTENT`
+
+TargetExposureIntent 指策略输出给执行前链路的目标敞口意图。Release v0.2.0 当前支持 `targetLong`、`targetShort`、`targetFlat` 和 `hold`；该 intent 不等于 order command、broker request 或 production trading 授权。
+
+`GH-567-PRODUCT-AWARE-ORDER-INTENT`
+
+ProductAwareOrderIntent 指带有 `InstrumentIdentity` 和 `ProductType` 的 pre-execution order intent。它必须在构造阶段保留 product identity，并明确 `requiresRiskGateBeforeExecution == true`、`authorizesTradingExecution == false` 和 `productionTradingEnabledByDefault == false`。
+
+`GH-567-SPOT-SHORT-BLOCKED-BEFORE-ORDER-CREATION`
+
+Spot targetShort blocked before order creation 指 Binance Spot instrument 不允许构造 short order intent；该拒绝发生在 RiskEngine / ExecutionEngine / OMS 之前，避免 Spot short 被误解释为可执行能力。
+
+`GH-567-PERP-SHORT-PRE-RISK-GATE-ALLOWED`
+
+Perp targetShort pre-risk-gate allowed 指 Binance USDⓈ-M Perpetual instrument 可以形成 targetShort pre-risk-gate intent，但它仍必须等待后续 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 和 no-trade gate，不得直接提交订单。
+
+`TVM-RELEASE-V020-TARGET-EXPOSURE-PRODUCT-AWARE-INTENT`
+
+Release v0.2.0 target exposure / product-aware intent matrix 必须证明四类 target exposure 被支持，Spot short 在 order intent 创建前被拒绝，Perp short 只作为 pre-risk-gate intent 存在，MessageBus 只承载 strategy intent evidence。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Terms
 
 `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`
