@@ -5884,6 +5884,249 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH579SpotRiskChecksCoverBalancesShortAndExchangeFilters() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let releaseContract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md"
+            ),
+            encoding: .utf8
+        )
+
+        let symbol = Symbol.constant("BTCUSDT")
+        let spot = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let evaluatedAt = Date(timeIntervalSince1970: 1_704_067_900)
+        let emaID = Identifier.constant("gh-579-ema")
+        let rsiID = Identifier.constant("gh-579-rsi")
+        let quantity = try Quantity(0.25, field: "gh579Quantity")
+        let referencePrice = try Price(43_000, field: "gh579ReferencePrice")
+        let exchangeFilter = try ReleaseV020SpotExchangeFilterEvidence.deterministicFixture()
+
+        func candidate(
+            strategyID: Identifier,
+            targetExposure: TargetExposureIntent,
+            intentID: String,
+            sourceSequence: Int,
+            candidateQuantity: Quantity = quantity
+        ) throws -> StrategyProposalArbitrationCandidate {
+            let orderIntent = try ProductAwareOrderIntent(
+                intentID: Identifier.constant(intentID),
+                instrument: spot,
+                targetExposure: targetExposure,
+                quantity: candidateQuantity,
+                referencePrice: referencePrice,
+                createdAt: evaluatedAt
+            )
+            return try StrategyProposalArbitrationCandidate(
+                strategyID: strategyID,
+                instrument: spot,
+                targetExposure: targetExposure,
+                productAwareOrderIntent: orderIntent,
+                emittedAt: evaluatedAt,
+                sourceSequence: sourceSequence
+            )
+        }
+
+        func commonDecision(
+            decisionID: String,
+            targetExposure: TargetExposureIntent,
+            quantity: Quantity = quantity,
+            sourceSequence: Int
+        ) throws -> ReleaseV020RiskEngineCommonDecision {
+            let arbitration = try ProposalArbitrator.arbitrate(
+                decisionID: Identifier.constant("\(decisionID)-arbitration"),
+                candidates: [
+                    candidate(
+                        strategyID: emaID,
+                        targetExposure: targetExposure,
+                        intentID: "\(decisionID)-ema",
+                        sourceSequence: sourceSequence,
+                        candidateQuantity: quantity
+                    ),
+                    candidate(
+                        strategyID: rsiID,
+                        targetExposure: targetExposure,
+                        intentID: "\(decisionID)-rsi",
+                        sourceSequence: sourceSequence + 1,
+                        candidateQuantity: quantity
+                    )
+                ],
+                evaluatedAt: evaluatedAt
+            )
+            let input = try ReleaseV020RiskEngineCommonInput(
+                inputID: Identifier.constant("\(decisionID)-common-input"),
+                arbitrationDecision: arbitration,
+                currentAggregateExposure: 10_000,
+                evaluatedAt: evaluatedAt,
+                sourceSequence: sourceSequence + 2
+            )
+            let policy = try ReleaseV020RiskEngineCommonPolicy(
+                policyID: Identifier.constant("\(decisionID)-common-policy"),
+                allowedStrategies: [
+                    ReleaseV020RiskStrategyAllowlistEntry(strategyID: emaID, kind: .ema),
+                    ReleaseV020RiskStrategyAllowlistEntry(strategyID: rsiID, kind: .rsi)
+                ],
+                allowedInstruments: [spot],
+                maxNotional: 20_000,
+                maxAggregateExposure: 50_000
+            )
+            return try ReleaseV020RiskEngineCommonLayer.evaluate(
+                decisionID: Identifier.constant("\(decisionID)-common-decision"),
+                input: input,
+                policy: policy
+            )
+        }
+
+        func spotInput(
+            decision: ReleaseV020RiskEngineCommonDecision,
+            targetExposure: TargetExposureIntent? = nil,
+            quantity: Quantity? = nil,
+            referencePrice: Price? = nil,
+            cashBalance: Double = 20_000,
+            baseBalance: Double = 1,
+            sourceSequence: Int
+        ) throws -> ReleaseV020SpotRiskInput {
+            try ReleaseV020SpotRiskInput(
+                inputID: Identifier.constant("gh-579-spot-risk-input-\(sourceSequence)"),
+                commonDecision: decision,
+                targetExposure: targetExposure,
+                quantity: quantity,
+                referencePrice: referencePrice,
+                cashBalance: cashBalance,
+                baseBalance: baseBalance,
+                exchangeFilter: exchangeFilter,
+                evaluatedAt: evaluatedAt,
+                sourceSequence: sourceSequence
+            )
+        }
+
+        let longCommon = try commonDecision(
+            decisionID: "gh-579-long",
+            targetExposure: .targetLong,
+            sourceSequence: 1
+        )
+        let allowed = try ReleaseV020SpotRiskLayer.evaluate(
+            decisionID: Identifier.constant("gh-579-spot-allowed"),
+            input: spotInput(decision: longCommon, sourceSequence: 4)
+        )
+        XCTAssertEqual(allowed.status, .forwardToCommandGateway)
+        XCTAssertNil(allowed.blocker)
+        XCTAssertEqual(Set(allowed.passedGates), Set(ReleaseV020SpotRiskGate.allCases))
+        XCTAssertEqual(allowed.notional, 10_750)
+        XCTAssertTrue(allowed.forwardsToCommandGateway)
+        XCTAssertTrue(allowed.boundaryHeld)
+        XCTAssertFalse(allowed.productionTradingEnabledByDefault)
+        XCTAssertFalse(allowed.bypassesCommandGateway)
+        XCTAssertFalse(allowed.touchesExecutionEngine)
+        XCTAssertFalse(allowed.submitsRealOrder)
+
+        let cashBlocked = try ReleaseV020SpotRiskLayer.evaluate(
+            decisionID: Identifier.constant("gh-579-cash-blocked"),
+            input: spotInput(decision: longCommon, cashBalance: 100, sourceSequence: 5)
+        )
+        XCTAssertEqual(cashBlocked.status, .blocked)
+        XCTAssertEqual(cashBlocked.blocker, .cashBalanceInsufficient)
+
+        let flatCommon = try commonDecision(
+            decisionID: "gh-579-flat",
+            targetExposure: .targetFlat,
+            sourceSequence: 6
+        )
+        let baseBlocked = try ReleaseV020SpotRiskLayer.evaluate(
+            decisionID: Identifier.constant("gh-579-base-blocked"),
+            input: spotInput(decision: flatCommon, baseBalance: 0.10, sourceSequence: 9)
+        )
+        XCTAssertEqual(baseBlocked.status, .blocked)
+        XCTAssertEqual(baseBlocked.blocker, .baseBalanceInsufficient)
+
+        let shortBlocked = try ReleaseV020SpotRiskLayer.evaluate(
+            decisionID: Identifier.constant("gh-579-short-blocked"),
+            input: spotInput(decision: longCommon, targetExposure: .targetShort, sourceSequence: 10)
+        )
+        XCTAssertEqual(shortBlocked.status, .blocked)
+        XCTAssertEqual(shortBlocked.blocker, .spotShortForbidden)
+
+        let minNotionalBlocked = try ReleaseV020SpotRiskLayer.evaluate(
+            decisionID: Identifier.constant("gh-579-min-notional-blocked"),
+            input: spotInput(
+                decision: longCommon,
+                quantity: Quantity(0.001, field: "gh579TinyQuantity"),
+                sourceSequence: 11
+            )
+        )
+        XCTAssertEqual(minNotionalBlocked.status, .blocked)
+        XCTAssertEqual(minNotionalBlocked.blocker, .minNotionalFilterFailed)
+
+        let lotSizeBlocked = try ReleaseV020SpotRiskLayer.evaluate(
+            decisionID: Identifier.constant("gh-579-lot-size-blocked"),
+            input: spotInput(
+                decision: longCommon,
+                quantity: Quantity(0.255, field: "gh579OddLotQuantity"),
+                sourceSequence: 12
+            )
+        )
+        XCTAssertEqual(lotSizeBlocked.status, .blocked)
+        XCTAssertEqual(lotSizeBlocked.blocker, .lotSizeFilterFailed)
+
+        let priceFilterBlocked = try ReleaseV020SpotRiskLayer.evaluate(
+            decisionID: Identifier.constant("gh-579-price-filter-blocked"),
+            input: spotInput(
+                decision: longCommon,
+                referencePrice: Price(43_000.005, field: "gh579OddTickPrice"),
+                sourceSequence: 13
+            )
+        )
+        XCTAssertEqual(priceFilterBlocked.status, .blocked)
+        XCTAssertEqual(priceFilterBlocked.blocker, .priceFilterFailed)
+
+        XCTAssertThrowsError(
+            try ReleaseV020SpotRiskDecision(
+                decisionID: Identifier.constant("unsafe-gh-579-command-bypass"),
+                inputID: Identifier.constant("unsafe-gh-579-input"),
+                instrument: spot,
+                targetExposure: .targetLong,
+                status: .forwardToCommandGateway,
+                blocker: nil,
+                passedGates: ReleaseV020SpotRiskGate.allCases,
+                notional: 10_750,
+                evaluatedAt: evaluatedAt,
+                bypassesCommandGateway: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperPreTradeRiskEngineForbiddenCapability("releaseV020SpotRisk.bypassesCommandGateway")
+            )
+        }
+
+        XCTAssertTrue(validationMatrix.contains("`GH-579`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-SPOT-RISK-CHECKS"))
+        XCTAssertTrue(validationPlan.contains("GH-579 Release v0.2.0 Spot Risk Checks Validation"))
+        XCTAssertTrue(domainContext.contains("GH-579 Spot Risk Checks Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 Spot risk checks anchor"))
+        XCTAssertTrue(
+            releaseContract.contains(
+                "GH-579 / V020-17 | Binance Spot risk checks for cash / base balance / filters"
+            )
+        )
+    }
+
     func testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
