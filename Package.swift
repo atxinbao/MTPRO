@@ -213,10 +213,11 @@ let package = Package(
         .target(
             name: "TraderStrategies",
             dependencies: ["DomainModel", "MessageBus", "Cache", "Portfolio", "RiskEngine"],
-            path: "Sources/Trader/Strategies/EMA",
+            path: "Sources/Trader/Strategies",
             sources: [
-                "EMAProposalRuntime.swift",
-                "EMACross.swift",
+                "EMA/EMAProposalRuntime.swift",
+                "EMA/EMACross.swift",
+                "RSI/RSIStrategy.swift",
                 "TargetGraph/TraderStrategiesTargetBoundary.swift"
             ]
         ),
@@ -308,9 +309,10 @@ let package = Package(
                 "Trader/Accounts",
                 "Trader/Coordination/RiskBinding",
                 "Trader/Runtime",
+                "Trader/Strategies/RSI/RSIStrategy.swift",
                 "Trader/Strategies/EMA/EMAProposalRuntime.swift",
                 "Trader/Strategies/EMA/EMACross.swift",
-                "Trader/Strategies/EMA/TargetGraph",
+                "Trader/Strategies/TargetGraph",
                 "Trader/TargetGraph"
             ],
             sources: [

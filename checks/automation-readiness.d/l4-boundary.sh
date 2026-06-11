@@ -179,7 +179,7 @@ require_contains "Package.swift" ".product(name: \"Crypto\", package: \"swift-cr
 require_contains "Package.swift" "\"Binance/SignedAccount/BinanceSignedAccountReadRuntime.swift\""
 require_contains "Package.swift" "\"Binance/PrivateStream/BinancePrivateStreamAccountSnapshotRuntime.swift\""
 require_contains "Package.swift" "\"Runtime/TraderRuntimeLifecycle.swift\""
-require_contains "Package.swift" "\"EMAProposalRuntime.swift\""
+require_contains "Package.swift" "\"EMA/EMAProposalRuntime.swift\""
 require_contains "Package.swift" "\"Trader/Strategies/EMA/EMAProposalRuntime.swift\""
 require_contains "Package.swift" "\"LiveGate\""
 require_contains "Package.swift" "\"OMSFutureGate\""

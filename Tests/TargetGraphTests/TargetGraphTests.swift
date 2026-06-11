@@ -708,10 +708,13 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(trader.deferredDependencies.isEmpty)
 
         XCTAssertEqual(trader.accountContextRoot, "Sources/Trader/Accounts")
-        XCTAssertEqual(trader.activeStrategyRoot, "Sources/Trader/Strategies/EMA")
+        XCTAssertEqual(trader.activeStrategyRoot, "Sources/Trader/Strategies")
         XCTAssertEqual(trader.coordinationRoot, "Sources/Trader/Coordination/RiskBinding")
-        XCTAssertEqual(strategies.activeConcreteStrategies, ["EMA"])
-        XCTAssertEqual(strategies.activeStrategySourceRoots, ["Sources/Trader/Strategies/EMA"])
+        XCTAssertEqual(strategies.activeConcreteStrategies, ["EMA", "RSI"])
+        XCTAssertEqual(
+            strategies.activeStrategySourceRoots,
+            ["Sources/Trader/Strategies/EMA", "Sources/Trader/Strategies/RSI"]
+        )
     }
 
     func testMTP219TraderPortfolioRiskTargetsRejectRuntimeBrokerAndNonEMADrift() {
@@ -732,7 +735,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(riskEngine.readsSignedOrAccountEndpoint)
         XCTAssertFalse(riskEngine.routesExecutableOrderCommand)
 
-        XCTAssertTrue(strategies.nonEMAActiveStrategySourceRoots.isEmpty)
+        XCTAssertTrue(strategies.nonReleaseActiveStrategySourceRoots.isEmpty)
         XCTAssertFalse(strategies.callsExecutionClient)
         XCTAssertFalse(strategies.callsBrokerOrOMS)
         XCTAssertFalse(strategies.exposesUICommandSurface)
@@ -751,15 +754,18 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
 
-        XCTAssertEqual(TraderStrategiesTargetBoundary.mtp219.compiledBoundaryRoot, "Sources/Trader/Strategies/EMA/TargetGraph")
+        XCTAssertEqual(TraderStrategiesTargetBoundary.mtp219.compiledBoundaryRoot, "Sources/Trader/Strategies/TargetGraph")
         XCTAssertEqual(TraderTargetBoundary.mtp219.compiledBoundaryRoot, "Sources/Trader/TargetGraph")
         XCTAssertEqual(PortfolioTargetBoundary.mtp219.compiledBoundaryRoot, "Sources/Portfolio/TargetGraph")
         XCTAssertEqual(RiskEngineTargetBoundary.mtp219.compiledBoundaryRoot, "Sources/RiskEngine/TargetGraph")
-        XCTAssertEqual(TraderStrategiesTargetBoundary.mtp219.activeConcreteStrategies, ["EMA"])
-        XCTAssertEqual(TraderTargetBoundary.mtp219.activeStrategyRoot, "Sources/Trader/Strategies/EMA")
+        XCTAssertEqual(TraderStrategiesTargetBoundary.mtp219.activeConcreteStrategies, ["EMA", "RSI"])
+        XCTAssertEqual(TraderTargetBoundary.mtp219.activeStrategyRoot, "Sources/Trader/Strategies")
 
         for expected in [
-            "path: \"Sources/Trader/Strategies/EMA\"",
+            "path: \"Sources/Trader/Strategies\"",
+            "\"EMA/EMAProposalRuntime.swift\"",
+            "\"EMA/EMACross.swift\"",
+            "\"RSI/RSIStrategy.swift\"",
             "\"TargetGraph/TraderStrategiesTargetBoundary.swift\"",
             "path: \"Sources/Trader\"",
             "\"TargetGraph/TraderTargetBoundary.swift\"",
@@ -767,7 +773,7 @@ final class TargetGraphTests: XCTestCase {
             "\"TargetGraph/PortfolioTargetBoundary.swift\"",
             "path: \"Sources/RiskEngine\"",
             "\"TargetGraph/RiskEngineTargetBoundary.swift\"",
-            "\"Trader/Strategies/EMA/TargetGraph\"",
+            "\"Trader/Strategies/TargetGraph\"",
             "\"Trader/TargetGraph\"",
             "\"Portfolio/TargetGraph\"",
             "\"RiskEngine/TargetGraph\""
@@ -785,7 +791,7 @@ final class TargetGraphTests: XCTestCase {
         }
 
         for migratedPath in [
-            "Sources/Trader/Strategies/EMA/TargetGraph/TraderStrategiesTargetBoundary.swift",
+            "Sources/Trader/Strategies/TargetGraph/TraderStrategiesTargetBoundary.swift",
             "Sources/Trader/TargetGraph/TraderTargetBoundary.swift",
             "Sources/Portfolio/TargetGraph/PortfolioTargetBoundary.swift",
             "Sources/RiskEngine/TargetGraph/RiskEngineTargetBoundary.swift"
@@ -830,12 +836,15 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(executionEngine.dependencyDirectionHeld)
 
         XCTAssertEqual(trader.accountContextRoot, "Sources/Trader/Accounts")
-        XCTAssertEqual(trader.activeStrategyRoot, "Sources/Trader/Strategies/EMA")
+        XCTAssertEqual(trader.activeStrategyRoot, "Sources/Trader/Strategies")
         XCTAssertEqual(trader.coordinationRoot, "Sources/Trader/Coordination/RiskBinding")
-        XCTAssertEqual(trader.activeConcreteStrategies, ["EMA"])
-        XCTAssertEqual(strategies.activeConcreteStrategies, ["EMA"])
-        XCTAssertEqual(strategies.activeStrategySourceRoots, ["Sources/Trader/Strategies/EMA"])
-        XCTAssertTrue(strategies.nonEMAActiveStrategySourceRoots.isEmpty)
+        XCTAssertEqual(trader.activeConcreteStrategies, ["EMA", "RSI"])
+        XCTAssertEqual(strategies.activeConcreteStrategies, ["EMA", "RSI"])
+        XCTAssertEqual(
+            strategies.activeStrategySourceRoots,
+            ["Sources/Trader/Strategies/EMA", "Sources/Trader/Strategies/RSI"]
+        )
+        XCTAssertTrue(strategies.nonReleaseActiveStrategySourceRoots.isEmpty)
 
         XCTAssertFalse(trader.callsExecutionClientDirectly)
         XCTAssertTrue(trader.forbiddenDependencies.contains("ExecutionEngine"))
@@ -886,7 +895,7 @@ final class TargetGraphTests: XCTestCase {
         let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
         let executionEngineTarget = try packageTargetBlock(named: "ExecutionEngine", packageSource: packageSource)
 
-        XCTAssertTrue(traderStrategiesTarget.contains("path: \"Sources/Trader/Strategies/EMA\""))
+        XCTAssertTrue(traderStrategiesTarget.contains("path: \"Sources/Trader/Strategies\""))
         XCTAssertTrue(traderTarget.contains("path: \"Sources/Trader\""))
         XCTAssertTrue(portfolioTarget.contains("path: \"Sources/Portfolio\""))
         XCTAssertTrue(riskEngineTarget.contains("path: \"Sources/RiskEngine\""))
@@ -4246,7 +4255,7 @@ final class TargetGraphTests: XCTestCase {
             "path: \"Sources/DataClient\"",
             "path: \"Sources/Cache\"",
             "path: \"Sources/DataEngine\"",
-            "path: \"Sources/Trader/Strategies/EMA\"",
+            "path: \"Sources/Trader/Strategies\"",
             "path: \"Sources/Trader\"",
             "path: \"Sources/Portfolio\"",
             "path: \"Sources/RiskEngine\"",
@@ -4263,7 +4272,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertEqual(DataClientTargetBoundary.mtp218.compiledBoundaryRoot, "Sources/DataClient/TargetGraph")
         XCTAssertEqual(CacheTargetBoundary.mtp218.compiledBoundaryRoot, "Sources/Cache/TargetGraph")
         XCTAssertEqual(DataEngineTargetBoundary.mtp218.compiledBoundaryRoot, "Sources/DataEngine/TargetGraph")
-        XCTAssertEqual(TraderStrategiesTargetBoundary.mtp219.compiledBoundaryRoot, "Sources/Trader/Strategies/EMA/TargetGraph")
+        XCTAssertEqual(TraderStrategiesTargetBoundary.mtp219.compiledBoundaryRoot, "Sources/Trader/Strategies/TargetGraph")
         XCTAssertEqual(TraderTargetBoundary.mtp219.compiledBoundaryRoot, "Sources/Trader/TargetGraph")
         XCTAssertEqual(PortfolioTargetBoundary.mtp219.compiledBoundaryRoot, "Sources/Portfolio/TargetGraph")
         XCTAssertEqual(RiskEngineTargetBoundary.mtp219.compiledBoundaryRoot, "Sources/RiskEngine/TargetGraph")
@@ -5112,7 +5121,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let traderStrategiesTarget = try packageTargetBlock(named: "TraderStrategies", packageSource: packageSource)
-        XCTAssertTrue(traderStrategiesTarget.contains("\"EMAProposalRuntime.swift\""))
+        XCTAssertTrue(traderStrategiesTarget.contains("\"EMA/EMAProposalRuntime.swift\""))
         XCTAssertTrue(traderStrategiesTarget.contains("\"MessageBus\""))
         XCTAssertTrue(traderStrategiesTarget.contains("\"RiskEngine\""))
         XCTAssertFalse(traderStrategiesTarget.contains("\"ExecutionClient\""))
@@ -6238,7 +6247,7 @@ final class TargetGraphTests: XCTestCase {
             "GH-565-PRODUCTION-AUTO-ENABLE-GUARD",
             "TVM-RELEASE-V020-BINANCE-SPOT-PERP-EMA-RSI-BOUNDARY-GUARD",
             "allowed_venue_dirs = {\"Binance\", \"TargetGraph\"}",
-            "allowed_strategy_dirs = {\"EMA\", \"RSI\"}",
+            "allowed_strategy_dirs = {\"EMA\", \"RSI\", \"TargetGraph\"}",
             "activeVenue must be Binance only",
             "activeProductTypes must be spot + usdsPerpetual only",
             "activeStrategies must be EMA + RSI only",
@@ -6466,6 +6475,122 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(validationPlan.contains("GH-567 Release v0.2.0 Target Exposure / Product-aware Intent Validation"))
         XCTAssertTrue(domainContext.contains("GH-567 Target Exposure / Product-aware Order Intent Terms"))
         XCTAssertTrue(automationReadiness.contains("Release v0.2.0 target exposure product-aware intent anchor"))
+    }
+
+    func testGH568TraderStrategiesTargetUsesEMARSISharedRoot() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let strategies = TraderStrategiesTargetBoundary.mtp219
+        let trader = TraderTargetBoundary.mtp219
+
+        XCTAssertEqual(strategies.canonicalSourceRoot, "Sources/Trader/Strategies")
+        XCTAssertEqual(strategies.compiledBoundaryRoot, "Sources/Trader/Strategies/TargetGraph")
+        XCTAssertEqual(strategies.activeConcreteStrategies, ["EMA", "RSI"])
+        XCTAssertEqual(
+            strategies.activeStrategySourceRoots,
+            ["Sources/Trader/Strategies/EMA", "Sources/Trader/Strategies/RSI"]
+        )
+        XCTAssertTrue(strategies.nonReleaseActiveStrategySourceRoots.isEmpty)
+        XCTAssertFalse(strategies.callsExecutionClient)
+        XCTAssertFalse(strategies.callsBrokerOrOMS)
+        XCTAssertFalse(strategies.exposesUICommandSurface)
+        XCTAssertEqual(trader.activeStrategyRoot, "Sources/Trader/Strategies")
+        XCTAssertEqual(trader.activeConcreteStrategies, ["EMA", "RSI"])
+
+        for expected in [
+            "path: \"Sources/Trader/Strategies\"",
+            "\"EMA/EMAProposalRuntime.swift\"",
+            "\"EMA/EMACross.swift\"",
+            "\"RSI/RSIStrategy.swift\"",
+            "\"TargetGraph/TraderStrategiesTargetBoundary.swift\"",
+            "\"Trader/Strategies/RSI/RSIStrategy.swift\"",
+            "\"Trader/Strategies/TargetGraph\""
+        ] {
+            XCTAssertTrue(packageSource.contains(expected), "Package.swift must contain \(expected)")
+        }
+        XCTAssertFalse(packageSource.contains("path: \"Sources/Trader/Strategies/EMA\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot
+                    .appendingPathComponent("Sources/Trader/Strategies/TargetGraph/TraderStrategiesTargetBoundary.swift")
+                    .path
+            )
+        )
+        XCTAssertFalse(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot
+                    .appendingPathComponent("Sources/Trader/Strategies/EMA/TargetGraph/TraderStrategiesTargetBoundary.swift")
+                    .path
+            )
+        )
+
+        _ = try EMACrossStrategyConfiguration(
+            strategyID: .constant("gh-568-ema"),
+            symbol: .constant("BTCUSDT"),
+            timeframe: .oneMinute,
+            shortPeriod: 2,
+            longPeriod: 3
+        )
+        let rsiConfiguration = try RSIStrategyConfiguration(
+            strategyID: .constant("gh-568-rsi"),
+            symbol: .constant("BTCUSDT"),
+            timeframe: .oneMinute,
+            period: 3
+        )
+        let rsiSamples = try RSIStrategyContract(configuration: rsiConfiguration).evaluate(
+            Self.gh568Bars(closes: [100, 99, 98, 97, 96])
+        )
+        XCTAssertEqual(rsiSamples.last?.signal.direction, .long)
+        XCTAssertEqual(rsiSamples.last?.rsiValue, 0)
+        XCTAssertThrowsError(
+            try RSIStrategyConfiguration(
+                strategyID: .constant("gh-568-rsi-invalid"),
+                symbol: .constant("BTCUSDT"),
+                timeframe: .oneMinute,
+                period: 1
+            )
+        )
+
+        XCTAssertTrue(validationMatrix.contains("`GH-568`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-TRADERSTRATEGIES-EMA-RSI-ROOT"))
+        XCTAssertTrue(validationPlan.contains("GH-568 Release v0.2.0 TraderStrategies EMA / RSI Root Validation"))
+        XCTAssertTrue(domainContext.contains("GH-568 TraderStrategies EMA / RSI Root Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 TraderStrategies EMA RSI root anchor"))
+    }
+
+    private static func gh568Bars(closes: [Double]) throws -> [MarketBar] {
+        try closes.enumerated().map { index, close in
+            let start = Date(timeIntervalSince1970: Double(index * 60))
+            return try MarketBar(
+                symbol: .constant("BTCUSDT"),
+                timeframe: .oneMinute,
+                interval: DateRange(start: start, end: start.addingTimeInterval(60)),
+                open: close,
+                high: close + 1,
+                low: close - 1,
+                close: close,
+                volume: 10 + Double(index)
+            )
+        }
     }
 
     func testGH503ProductionCredentialSecretPolicyGateDefinesNoDefaultSecretReadContract() throws {

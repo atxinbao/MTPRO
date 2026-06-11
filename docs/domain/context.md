@@ -3782,6 +3782,24 @@ Perp targetShort pre-risk-gate allowed 指 Binance USDⓈ-M Perpetual instrument
 
 Release v0.2.0 target exposure / product-aware intent matrix 必须证明四类 target exposure 被支持，Spot short 在 order intent 创建前被拒绝，Perp short 只作为 pre-risk-gate intent 存在，MessageBus 只承载 strategy intent evidence。
 
+## GH-568 TraderStrategies EMA / RSI Root Terms
+
+`GH-568-TRADERSTRATEGIES-EMA-RSI-ROOT`
+
+TraderStrategies EMA / RSI root 指 `TraderStrategies` SwiftPM target 的 active source root 是 `Sources/Trader/Strategies`，并在其下显式管理 `EMA/` 和 `RSI/` 两个 active concrete strategy source directory。该 root 不等于 Trader runtime、strategy scheduler、broker gateway、OMS 或 Dashboard command surface。
+
+`GH-568-RSI-ACTIVE-SOURCE-COMPILES`
+
+RSI active source compiles 指 `Sources/Trader/Strategies/RSI/RSIStrategy.swift` 作为 release v0.2.0 active strategy source 被 `TraderStrategies` target 编译，并只能产生本地 deterministic `StrategySignalEvent` evidence。它不生成 order intent，不调用 RiskEngine / ExecutionEngine / ExecutionClient，不连接 broker，也不授权 production trading。
+
+`GH-568-TRADER-CONTAINER-ACCOUNTS-EMA-RSI-COORDINATION`
+
+Trader container accounts EMA RSI coordination 指当前 Trader target 的结构口径是 `Accounts + Strategies/{EMA,RSI} + Coordination`。该口径只表达 source layout / target boundary，不表示 Trader runtime、live coordinator、account session runtime 或 command path 已实现。
+
+`TVM-RELEASE-V020-TRADERSTRATEGIES-EMA-RSI-ROOT`
+
+Release v0.2.0 TraderStrategies EMA / RSI root matrix 必须证明 target path 已从 EMA-only root 提升到 shared strategy root，EMA public APIs 保持可用，RSI active source 可编译，且非 EMA / RSI strategy、production trading、broker command 和真实订单仍未授权。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Terms
 
 `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`

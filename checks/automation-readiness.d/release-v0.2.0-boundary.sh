@@ -29,7 +29,7 @@ if data_client_root.exists():
                 f"{child.relative_to(root)}: non-Binance active DataClient source is forbidden"
             )
 
-allowed_strategy_dirs = {"EMA", "RSI"}
+allowed_strategy_dirs = {"EMA", "RSI", "TargetGraph"}
 strategy_root = root / "Sources" / "Trader" / "Strategies"
 if strategy_root.exists():
     for child in sorted(strategy_root.iterdir()):

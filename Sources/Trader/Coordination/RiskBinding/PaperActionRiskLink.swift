@@ -89,13 +89,15 @@ public struct TraderCoordinationRiskBindingBoundaryEvidence: Codable, Equatable,
 
 /// TraderCoordinationRiskBindingBoundaryFixture 提供 MTP-202 deterministic boundary fixture。
 ///
-/// Fixture 只服务本地测试和 PR evidence，固定 EMA 是唯一 current active concrete strategy root，
-/// 同时证明 `Trader/Coordination/RiskBinding` 只是 binding protocol / coordination adapter contract。
+/// Fixture 只服务本地测试和 PR evidence，固定 EMA / RSI 是 release v0.2.0
+/// current active concrete strategy root，同时证明 `Trader/Coordination/RiskBinding` 只是 binding
+/// protocol / coordination adapter contract。
 public enum TraderCoordinationRiskBindingBoundaryFixture {
     public static let deterministic = TraderCoordinationRiskBindingBoundaryEvidence(
         coordinationRiskBindingRoot: "Sources/Trader/Coordination/RiskBinding/",
         concreteStrategyRoots: [
-            "Sources/Trader/Strategies/EMA/"
+            "Sources/Trader/Strategies/EMA/",
+            "Sources/Trader/Strategies/RSI/"
         ],
         contractRoles: [.genericBindingProtocol, .coordinationAdapterContract],
         compatibilityTargetName: "Core",

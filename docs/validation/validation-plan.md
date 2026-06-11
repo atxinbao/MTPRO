@@ -6522,7 +6522,7 @@ MTP-202 必须建立的主要 anchors：
 
 MTP-203 必须运行：
 
-- `swift test --filter CoreTests/testEMAOnlyActiveStrategyPathValidationRejectsNonEMAAndBindingDrift`
+- `swift test --filter CoreTests/testReleaseActiveStrategyPathValidationRejectsNonReleaseStrategiesAndBindingDrift`
 - `swift test --filter 'CoreTests/(testTraderOwnedStrategyPathValidationCoversCanonicalOldBindingAndExecutionGuards|testTraderCoordinationRiskBindingEvidenceKeepsConcreteStrategiesOutOfBindings)'`
 - `git diff --check`
 - `bash checks/automation-readiness.sh`
@@ -6532,7 +6532,7 @@ MTP-203 的验收要求：
 
 - `Sources/Trader/Strategies/` 的 current active concrete strategy directory set 必须等于 only `EMA`。
 - `Sources/Trader/Strategies/EMA/` 必须继续包含 EMA lifecycle、signal 和 paper proposal source files。
-- `Sources/Trader/Strategies/RSI/`、`Sources/Trader/Strategies/OrderBookImbalance/`、`Sources/Trader/Strategies/Momentum/`、`Sources/Trader/Strategies/MeanReversion/`、`Sources/Strategies/<non-EMA>/`、`Tests/Trader/Strategies/<non-EMA>/` 和 `Tests/Strategies/<non-EMA>/` 不得作为 active source / active test root 回流。
+- `Sources/Trader/Strategies/OrderBookImbalance/`、`Sources/Trader/Strategies/Momentum/`、`Sources/Trader/Strategies/MeanReversion/`、`Sources/Strategies/<non-release>/`、`Tests/Trader/Strategies/<non-release>/` 和 `Tests/Strategies/<non-release>/` 不得作为 active source / active test root 回流；GH-568 之后 `Sources/Trader/Strategies/RSI/` 是 release v0.2.0 active source root。
 - `Package.swift` 必须只包含 `"Trader/Strategies/EMA"` 这一条 active Trader strategy source root；不得包含 `"Trader/Strategies/<non-EMA>"`、`"Strategies/<non-EMA>"` 或 `"Trader/StrategyBindings"`。
 - `Sources/Trader/StrategyBindings/` 必须继续不存在；binding semantics 必须继续位于 `Sources/Trader/Coordination/RiskBinding/`。
 - Validation 不得建立 network-dependent tests，不得启动 runtime、live endpoint、ExecutionClient、OMS、broker gateway、live command 或 real order lifecycle。
@@ -7172,7 +7172,7 @@ MTP-228 的验收要求：
 - `Package.swift` 中 `Portfolio` target path 必须为 `Sources/Portfolio`，并且 explicit source 必须为 `TargetGraph/PortfolioTargetBoundary.swift`。
 - `Package.swift` 中 `RiskEngine` target path 必须为 `Sources/RiskEngine`，并且 explicit source 必须为 `TargetGraph/RiskEngineTargetBoundary.swift`。
 - `Package.swift` 不得再包含 `path: "Sources/TargetGraph/TraderStrategies"`、`path: "Sources/TargetGraph/Trader"`、`path: "Sources/TargetGraph/Portfolio"` 或 `path: "Sources/TargetGraph/RiskEngine"`。
-- `Sources/Trader/Strategies/EMA/TargetGraph/TraderStrategiesTargetBoundary.swift`、`Sources/Trader/TargetGraph/TraderTargetBoundary.swift`、`Sources/Portfolio/TargetGraph/PortfolioTargetBoundary.swift` 和 `Sources/RiskEngine/TargetGraph/RiskEngineTargetBoundary.swift` 必须存在。
+- `Sources/Trader/Strategies/TargetGraph/TraderStrategiesTargetBoundary.swift`、`Sources/Trader/TargetGraph/TraderTargetBoundary.swift`、`Sources/Portfolio/TargetGraph/PortfolioTargetBoundary.swift` 和 `Sources/RiskEngine/TargetGraph/RiskEngineTargetBoundary.swift` 必须存在。
 - `Sources/TargetGraph/TraderStrategies/TraderStrategiesTargetBoundary.swift`、`Sources/TargetGraph/Trader/TraderTargetBoundary.swift`、`Sources/TargetGraph/Portfolio/PortfolioTargetBoundary.swift` 和 `Sources/TargetGraph/RiskEngine/RiskEngineTargetBoundary.swift` 必须不存在。
 - `TargetGraphTests` 必须包含 `testMTP228TraderPortfolioRiskTargetsUseRealModuleRootsAndRetireTargetGraphPathReferences`，验证 package target path、new boundary file location、retired TargetGraph path、`Trader = Accounts + Strategies/EMA + Coordination` 和 EMA-only active strategy。
 - `swift package describe` 不得输出 migrated Trader / Portfolio / Risk roots 的 unhandled-file warnings。
@@ -7757,6 +7757,46 @@ GH-567 必须建立的主要 anchors：
 
 - 不实现 perpetual market data runtime、strategy runtime、risk runtime、ExecutionClient、OMS、broker gateway 或 Dashboard command runtime。
 - 不把 product-aware intent 变成交易授权、broker request、signed endpoint request、account endpoint request、listenKey 或 order command。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint 或 listenKey。
+- 不提交、取消或替换真实订单。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USDⓈ-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+## GH-568 Release v0.2.0 TraderStrategies EMA / RSI Root Validation
+
+GH-568 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH568TraderStrategiesTargetUsesEMARSISharedRoot`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-568 的验收要求：
+
+- `Package.swift` 中 `TraderStrategies` target path 必须为 `Sources/Trader/Strategies`。
+- `TraderStrategies` target 必须显式编译 `EMA/EMAProposalRuntime.swift`、`EMA/EMACross.swift`、`RSI/RSIStrategy.swift` 和 `TargetGraph/TraderStrategiesTargetBoundary.swift`。
+- `Sources/Trader/Strategies/TargetGraph/TraderStrategiesTargetBoundary.swift` 必须成为 active boundary file；旧 `Sources/Trader/Strategies/EMA/TargetGraph/TraderStrategiesTargetBoundary.swift` 必须不存在。
+- EMA public APIs 必须继续可用，RSI active source 必须可编译并能产生本地 deterministic `StrategySignalEvent` evidence。
+- `TraderStrategiesTargetBoundary` 和 `TraderTargetBoundary` 必须固定 `activeConcreteStrategies == ["EMA", "RSI"]`、`productionTradingEnabledByDefault == false` 口径，并保持 no ExecutionClient / broker / OMS / Dashboard command surface。
+- GH-568 PR evidence 必须确认不实现 runtime，不读取 production secret，不连接 production endpoint，不提交真实订单，不启动 Symphony，不运行 Graphify / code-index，不使用 Linear，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+GH-568 必须建立的主要 anchors：
+
+- `GH-568-TRADERSTRATEGIES-EMA-RSI-ROOT`
+- `GH-568-RSI-ACTIVE-SOURCE-COMPILES`
+- `GH-568-TRADER-CONTAINER-ACCOUNTS-EMA-RSI-COORDINATION`
+- `TVM-RELEASE-V020-TRADERSTRATEGIES-EMA-RSI-ROOT`
+
+## GH-568 禁止
+
+- 不实现 perpetual market data runtime、strategy runtime、risk runtime、ExecutionClient、OMS、broker gateway 或 Dashboard command runtime。
+- 不把 RSI source 变成交易授权、broker request、signed endpoint request、account endpoint request、listenKey 或 order command。
 - 不读取、打印、保存或推导 production secret。
 - 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint 或 listenKey。
 - 不提交、取消或替换真实订单。

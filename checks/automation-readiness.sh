@@ -3580,14 +3580,14 @@ require_file "Sources/Portfolio/SimulatedExchangePortfolioProjectionParity.swift
 [[ ! -f "Sources/Core/PaperAccountPortfolioProjectionV2.swift" ]] || fail "MTP-187 migrated file must not remain at Sources/Core/PaperAccountPortfolioProjectionV2.swift"
 [[ ! -f "Sources/Core/PaperPortfolioProjectionUpdate.swift" ]] || fail "MTP-187 migrated file must not remain at Sources/Core/PaperPortfolioProjectionUpdate.swift"
 [[ ! -f "Sources/Core/SimulatedExchangePortfolioProjectionParity.swift" ]] || fail "MTP-187 migrated file must not remain at Sources/Core/SimulatedExchangePortfolioProjectionParity.swift"
-require_contains "Package.swift" 'path: "Sources/Trader/Strategies/EMA"'
+require_contains "Package.swift" 'path: "Sources/Trader/Strategies"'
 require_absent "Package.swift" 'path: "Sources/Strategies/EMA"'
 require_absent "Package.swift" '"Trader/Strategies/OrderBookImbalance"'
 require_absent "Package.swift" '"Strategies/OrderBookImbalance"'
 require_contains "Package.swift" '"Trader/Coordination/RiskBinding"'
 require_absent "Package.swift" '"Trader/StrategyBindings"'
 require_contains "Package.swift" '"Portfolio"'
-require_contains "Package.swift" 'path: "Sources/Trader/Strategies/EMA"'
+require_contains "Package.swift" 'path: "Sources/Trader/Strategies"'
 require_contains "Package.swift" '"Trader"'
 require_contains "docs/architecture/module-boundary.md" "MTP-187 Strategies / Trader / Portfolio Physical Migration"
 require_contains "docs/domain/context.md" "MTP-187-STRATEGIES-TRADER-PORTFOLIO-PHYSICAL-MIGRATION"
@@ -4944,7 +4944,7 @@ require_contains "docs/domain/context.md" "TraderCoordinationRiskBindingBoundary
 require_contains "docs/validation/validation-plan.md" "MTP-202 Trader Coordination RiskBinding Boundary Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-202"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-202 的当前 issue execution evidence"
-require_contains "Tests/CoreTests/CoreTests.swift" "testEMAOnlyActiveStrategyPathValidationRejectsNonEMAAndBindingDrift"
+require_contains "Tests/CoreTests/CoreTests.swift" "testReleaseActiveStrategyPathValidationRejectsNonReleaseStrategiesAndBindingDrift"
 require_contains "docs/architecture/module-boundary.md" "MTP-203-EMA-ONLY-ACTIVE-STRATEGY-DIRECTORY-GUARD"
 require_contains "docs/architecture/module-boundary.md" "MTP-203-NON-EMA-ACTIVE-SOURCE-TEST-PACKAGE-DRIFT-GUARD"
 require_contains "docs/architecture/module-boundary.md" "MTP-203-STRATEGYBINDINGS-FIRST-LEVEL-DRIFT-GUARD"
@@ -5139,7 +5139,7 @@ require_contains "docs/validation/trading-validation-matrix.md" "Trader Accounts
 require_contains "docs/validation/latest-verification-summary.md" "MTP-206 的当前 issue execution evidence"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-206-TRADER-ACCOUNTS-BOUNDARY-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Trader Accounts source boundary anchor"
-require_contains "Tests/CoreTests/CoreTests.swift" "testMTP207TraderAccountContextValidationAnchorsCoverAccountsEMAAndRiskBinding"
+require_contains "Tests/CoreTests/CoreTests.swift" "testMTP207TraderAccountContextValidationAnchorsCoverAccountsEMARSIAndRiskBinding"
 require_contains "Tests/CoreTests/CoreTests.swift" "testMTP207TraderAccountContextValidationRejectsBrokerPayloadListenKeyAndRuntimeDrift"
 require_contains "docs/architecture/module-boundary.md" "MTP-207 Trader Account Context Validation Wiring"
 require_contains "docs/architecture/module-boundary.md" "MTP-207-TRADER-ACCOUNT-CONTEXT-VALIDATION-WIRING"
@@ -5193,14 +5193,14 @@ require_contains "docs/validation/latest-verification-summary.md" "MTP-209 的�
 require_contains "docs/validation/latest-verification-summary.md" "MTP-209-PACKAGE-CLEANUP-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Package stale Strategies compatibility exclude cleanup anchor"
 require_contains "Package.swift" '"Trader/Accounts"'
-require_contains "Package.swift" 'path: "Sources/Trader/Strategies/EMA"'
+require_contains "Package.swift" 'path: "Sources/Trader/Strategies"'
 require_contains "Package.swift" '"Trader/Coordination/RiskBinding"'
 require_absent "Package.swift" '                "Strategies",'
 require_absent "Package.swift" 'path: "Sources/Strategies/EMA"'
 require_absent "Package.swift" '"Trader/StrategyBindings"'
 require_absent "Package.swift" 'name: "Strategies"'
 [[ ! -d "Sources/Strategies" ]] || fail "MTP-209 stale active path must not return: Sources/Strategies"
-require_contains "Tests/CoreTests/CoreTests.swift" "testMTP210TraderContainerCompletenessValidationLocksAccountsEMAAndRiskBindingOnly"
+require_contains "Tests/CoreTests/CoreTests.swift" "testMTP210TraderContainerCompletenessValidationLocksAccountsEMARSIAndRiskBindingOnly"
 require_contains "docs/architecture/module-boundary.md" "MTP-210 Trader Container Completeness Validation"
 require_contains "docs/architecture/module-boundary.md" "MTP-210-TRADER-CONTAINER-COMPLETENESS-VALIDATION"
 require_contains "docs/architecture/module-boundary.md" "MTP-210-ACCOUNTS-EMA-RISKBINDING-ONLY-COVERAGE"
@@ -5464,7 +5464,7 @@ require_contains "Package.swift" 'name: "TraderStrategies"'
 require_contains "Package.swift" 'name: "Trader"'
 require_file "Sources/Portfolio/TargetGraph/PortfolioTargetBoundary.swift"
 require_file "Sources/RiskEngine/TargetGraph/RiskEngineTargetBoundary.swift"
-require_file "Sources/Trader/Strategies/EMA/TargetGraph/TraderStrategiesTargetBoundary.swift"
+require_file "Sources/Trader/Strategies/TargetGraph/TraderStrategiesTargetBoundary.swift"
 require_file "Sources/Trader/TargetGraph/TraderTargetBoundary.swift"
 require_missing_path "Sources/TargetGraph/Portfolio/PortfolioTargetBoundary.swift"
 require_missing_path "Sources/TargetGraph/RiskEngine/RiskEngineTargetBoundary.swift"
@@ -5474,8 +5474,8 @@ require_contains "Sources/Portfolio/TargetGraph/PortfolioTargetBoundary.swift" "
 require_contains "Sources/Portfolio/TargetGraph/PortfolioTargetBoundary.swift" "MTP-228-PORTFOLIO-REAL-ROOT-TARGET-PATH"
 require_contains "Sources/RiskEngine/TargetGraph/RiskEngineTargetBoundary.swift" "MTP-219-RISKENGINE-TARGET-SPLIT"
 require_contains "Sources/RiskEngine/TargetGraph/RiskEngineTargetBoundary.swift" "MTP-228-RISKENGINE-REAL-ROOT-TARGET-PATH"
-require_contains "Sources/Trader/Strategies/EMA/TargetGraph/TraderStrategiesTargetBoundary.swift" "MTP-219-TRADERSTRATEGIES-TARGET-SPLIT"
-require_contains "Sources/Trader/Strategies/EMA/TargetGraph/TraderStrategiesTargetBoundary.swift" "MTP-228-TRADERSTRATEGIES-REAL-ROOT-TARGET-PATH"
+require_contains "Sources/Trader/Strategies/TargetGraph/TraderStrategiesTargetBoundary.swift" "MTP-219-TRADERSTRATEGIES-TARGET-SPLIT"
+require_contains "Sources/Trader/Strategies/TargetGraph/TraderStrategiesTargetBoundary.swift" "MTP-228-TRADERSTRATEGIES-REAL-ROOT-TARGET-PATH"
 require_contains "Sources/Trader/TargetGraph/TraderTargetBoundary.swift" "MTP-219-TRADER-TARGET-SPLIT"
 require_contains "Sources/Trader/TargetGraph/TraderTargetBoundary.swift" "MTP-228-TRADER-REAL-ROOT-TARGET-PATH"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testMTP219TraderPortfolioRiskTargetsExposeDependencyDirectionAndContainerBoundary"
@@ -5723,7 +5723,7 @@ require_contains "docs/validation/trading-validation-matrix.md" "MTP-227 issue b
 require_contains "docs/validation/latest-verification-summary.md" "MTP-227 的当前 issue execution evidence"
 require_contains "docs/validation/latest-verification-summary.md" "MTP-227-DATA-REAL-ROOT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "MTP-227-DATAENGINE-REAL-ROOT-TARGET-PATH"
-require_contains "Package.swift" 'path: "Sources/Trader/Strategies/EMA"'
+require_contains "Package.swift" 'path: "Sources/Trader/Strategies"'
 require_contains "Package.swift" '"TargetGraph/TraderStrategiesTargetBoundary.swift"'
 require_contains "Package.swift" 'path: "Sources/Trader"'
 require_contains "Package.swift" '"TargetGraph/TraderTargetBoundary.swift"'
@@ -6167,7 +6167,7 @@ require_contains "architecture.md" "GH-397 Trader / Portfolio / Risk / Execution
 require_contains "architecture.md" "GH-397-TRADER-PORTFOLIO-RISK-EXECUTION-REAL-SMOKE-TESTS"
 require_contains "architecture.md" "GH-397-EXECUTIONCLIENT-FUTURE-GATE-SMOKE"
 require_contains "Sources/Trader/TargetGraph/TraderTargetBoundary.swift" "GH-397-TRADER-REAL-TARGET-SMOKE"
-require_contains "Sources/Trader/Strategies/EMA/TargetGraph/TraderStrategiesTargetBoundary.swift" "GH-397-TRADERSTRATEGIES-EMA-REAL-TARGET-SMOKE"
+require_contains "Sources/Trader/Strategies/TargetGraph/TraderStrategiesTargetBoundary.swift" "GH-397-TRADERSTRATEGIES-EMA-REAL-TARGET-SMOKE"
 require_contains "Sources/Portfolio/TargetGraph/PortfolioTargetBoundary.swift" "GH-397-PORTFOLIO-REAL-TARGET-SMOKE"
 require_contains "Sources/RiskEngine/TargetGraph/RiskEngineTargetBoundary.swift" "GH-397-RISKENGINE-REAL-TARGET-SMOKE"
 require_contains "Sources/ExecutionClient/TargetGraph/ExecutionClientTargetBoundary.swift" "GH-397-EXECUTIONCLIENT-FUTURE-GATE-SMOKE"
