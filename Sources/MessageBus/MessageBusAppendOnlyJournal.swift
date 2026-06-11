@@ -45,6 +45,7 @@ public struct MessageBusJournalEnvelope: Codable, Equatable, Sendable {
     public let stream: MessageBusJournalStreamID
     public let sourceID: FoundationTargetID
     public let payloadType: String
+    public let instrumentID: InstrumentIdentity?
     public let recordedAt: Date
 
     public init(
@@ -52,6 +53,7 @@ public struct MessageBusJournalEnvelope: Codable, Equatable, Sendable {
         stream: MessageBusJournalStreamID,
         sourceID: FoundationTargetID,
         payloadType: String,
+        instrumentID: InstrumentIdentity?,
         recordedAt: Date
     ) throws {
         guard sequence > 0 else {
@@ -61,7 +63,29 @@ public struct MessageBusJournalEnvelope: Codable, Equatable, Sendable {
         self.stream = stream
         self.sourceID = sourceID
         self.payloadType = try FoundationTargetID(payloadType, field: "messageBusJournalPayloadType").rawValue
+        self.instrumentID = instrumentID
         self.recordedAt = recordedAt
+    }
+
+    public init(
+        sequence: Int,
+        stream: MessageBusJournalStreamID,
+        sourceID: FoundationTargetID,
+        payloadType: String,
+        recordedAt: Date
+    ) throws {
+        try self.init(
+            sequence: sequence,
+            stream: stream,
+            sourceID: sourceID,
+            payloadType: payloadType,
+            instrumentID: nil,
+            recordedAt: recordedAt
+        )
+    }
+
+    public var productType: ProductType? {
+        instrumentID?.productType
     }
 }
 
@@ -92,6 +116,7 @@ public struct MessageBusAppendOnlyJournal: Equatable, Sendable {
         stream: MessageBusJournalStreamID,
         sourceID: FoundationTargetID,
         payloadType: String,
+        instrumentID: InstrumentIdentity?,
         recordedAt: Date
     ) throws -> MessageBusJournalEnvelope {
         let envelope = try MessageBusJournalEnvelope(
@@ -99,10 +124,27 @@ public struct MessageBusAppendOnlyJournal: Equatable, Sendable {
             stream: stream,
             sourceID: sourceID,
             payloadType: payloadType,
+            instrumentID: instrumentID,
             recordedAt: recordedAt
         )
         envelopes.append(envelope)
         return envelope
+    }
+
+    @discardableResult
+    public mutating func append(
+        stream: MessageBusJournalStreamID,
+        sourceID: FoundationTargetID,
+        payloadType: String,
+        recordedAt: Date
+    ) throws -> MessageBusJournalEnvelope {
+        try append(
+            stream: stream,
+            sourceID: sourceID,
+            payloadType: payloadType,
+            instrumentID: nil,
+            recordedAt: recordedAt
+        )
     }
 
     public func replay(stream: MessageBusJournalStreamID) -> [MessageBusJournalEnvelope] {

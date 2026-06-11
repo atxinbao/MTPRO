@@ -91,7 +91,7 @@ NTPRO scoped 100% alignment 是 release v0.2.0 的 scoped alignment contract，�
 | GH-570 / V020-08 | RSI emits TargetExposureIntent for Spot / gated Perp short binding | no direct order side from RSI strategy output |
 | GH-571 / V020-09 | StrategyActor / StrategyRegistry / product binding for EMA + RSI | no Strategy -> ExecutionClient dependency |
 | GH-572 / V020-10 | Typed MessageBus envelopes with venue + productType + instrumentID | replay preserves product context and correlation / causation metadata |
-| GH-573 / V020-11 | Trader runtime lifecycle for Binance Spot / Perp accounts | no direct ExecutionClient path |
+| GH-573 / V020-11 | Binance Spot DataClient / DataEngine active path into Cache | Spot market data remains public read-only |
 | GH-574 / V020-12 | EMA runtime consolidation for v0.2.0 | EMA only inside active EMA scope |
 | GH-575 / V020-13 | RSI runtime addition for v0.2.0 | RSI only inside active RSI scope |
 | GH-576 / V020-14 | Strategy coordination and proposal parity for EMA / RSI | paper/live-neutral proposal isolation |
