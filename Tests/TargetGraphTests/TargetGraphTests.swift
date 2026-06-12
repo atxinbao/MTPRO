@@ -5197,6 +5197,173 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(auditInput.contains("no next Project / Issue is created or promoted"))
     }
 
+    func testGH643ProductionCutoverRuntimeHardeningContractFailsClosedWithoutProductionCutover() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/production-cutover-runtime-hardening-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+
+        let contract = try ProductionCutoverRuntimeHardeningContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertTrue(contract.productionCapabilityDefaultsClosed)
+        XCTAssertTrue(contract.gateBypassRejected)
+        XCTAssertTrue(contract.gatePassCoverageHeld)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-643")
+        XCTAssertEqual(contract.downstreamIssueID.rawValue, "GH-644")
+        XCTAssertEqual(contract.canonicalQueueRange, "GH-643..GH-649")
+        XCTAssertEqual(contract.projectName, "MTPRO Production Cutover Runtime Hardening v1")
+        XCTAssertEqual(contract.allowedVenue, "Binance")
+        XCTAssertEqual(contract.allowedProductTypes, ["spot", "usdsPerpetual"])
+        XCTAssertEqual(contract.allowedStrategies, ["EMA", "RSI"])
+        XCTAssertEqual(Set(contract.requirements), Set(ProductionCutoverRuntimeHardeningGateRequirement.allCases))
+        XCTAssertEqual(
+            Set(contract.forbiddenCapabilities),
+            Set(ProductionCutoverRuntimeHardeningForbiddenCapability.allCases)
+        )
+
+        XCTAssertTrue(contract.operatorApprovalRequired)
+        XCTAssertTrue(contract.allGatePassesRequired)
+        XCTAssertFalse(contract.productionTradingEnabledByDefault)
+        XCTAssertFalse(contract.realBrokerEnabledByDefault)
+        XCTAssertFalse(contract.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(contract.productionSecretAutoReadEnabled)
+        XCTAssertFalse(contract.commandGatewayBypassAllowed)
+        XCTAssertFalse(contract.riskEngineBypassAllowed)
+        XCTAssertFalse(contract.executionEngineBypassAllowed)
+        XCTAssertFalse(contract.omsBypassAllowed)
+        XCTAssertFalse(contract.eventStoreBypassAllowed)
+        XCTAssertFalse(contract.realOrderSubmissionEnabled)
+        XCTAssertFalse(contract.startsNextMilestone)
+
+        for anchor in ProductionCutoverRuntimeHardeningContract.requiredValidationAnchors {
+            XCTAssertTrue(contract.validationAnchors.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation-plan.md")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading-validation-matrix.md")
+        }
+        for gateAnchor in [
+            "PCHR-01-COMMANDGATEWAY-REQUIRED",
+            "PCHR-01-RISKENGINE-REQUIRED",
+            "PCHR-01-EXECUTIONENGINE-REQUIRED",
+            "PCHR-01-OMS-REQUIRED",
+            "PCHR-01-EVENT-STORE-REQUIRED"
+        ] {
+            XCTAssertTrue(contractDoc.contains(gateAnchor), "\(gateAnchor) must stay in contract doc")
+            XCTAssertTrue(
+                contract.gatePassRequirements.map(\.requiredAnchor).contains(gateAnchor),
+                "\(gateAnchor) must stay in gate pass requirements"
+            )
+        }
+
+        XCTAssertTrue(automationReadiness.contains("Production cutover runtime hardening contract anchor"))
+        XCTAssertTrue(readinessScript.contains("ProductionCutoverRuntimeHardeningContract.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH643ProductionCutoverRuntimeHardeningContractFailsClosedWithoutProductionCutover"
+            )
+        )
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/ProductionCutoverRuntimeHardeningContract.swift"
+                ).path
+            )
+        )
+
+        XCTAssertThrowsError(
+            try ProductionCutoverRuntimeHardeningContract(
+                productionTradingEnabledByDefault: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("productionTradingEnabledByDefault")
+            )
+        }
+        XCTAssertThrowsError(
+            try ProductionCutoverRuntimeHardeningContract(
+                productionSecretAutoReadEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("productionSecretAutoReadEnabled")
+            )
+        }
+        XCTAssertThrowsError(
+            try ProductionCutoverRuntimeHardeningContract(
+                productionEndpointAutoConnectEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("productionEndpointAutoConnectEnabled")
+            )
+        }
+        XCTAssertThrowsError(
+            try ProductionCutoverRuntimeHardeningContract(
+                realOrderSubmissionEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("realOrderSubmissionEnabled"))
+        }
+        XCTAssertThrowsError(
+            try ProductionCutoverRuntimeHardeningContract(
+                commandGatewayBypassAllowed: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("commandGatewayBypassAllowed"))
+        }
+        XCTAssertThrowsError(
+            try ProductionCutoverRuntimeHardeningContract(
+                operatorApprovalRequired: false
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "operatorApprovalRequired",
+                    expected: "true",
+                    actual: "false"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try ProductionCutoverRuntimeHardeningGatePassRequirement(
+                gateName: "unsafe gate",
+                requiredAnchor: "PCHR-01-UNSAFE-GATE-BYPASS",
+                bypassAllowed: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("bypassAllowed"))
+        }
+    }
+
     func testGH523ReleaseV010TargetsExposeRealSmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-523-release-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)

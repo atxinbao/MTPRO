@@ -77,6 +77,28 @@ bash checks/run.sh
 
 该矩阵记录 EMA parity、order book imbalance parity、fees / slippage、risk blocker、portfolio exposure 和 report evidence 的现有 coverage、验收证据边界和后续 issue 回填规则。
 
+## GH-643 Production Cutover Runtime Hardening Contract Validation
+
+GH-643 的 required validation：
+
+- `docs/contracts/production-cutover-runtime-hardening-contract.md` 必须存在，并包含 `PCHR-01-PRODUCTION-CUTOVER-RUNTIME-HARDENING-CONTRACT`、`PCHR-01-PRODUCTION-TRADING-DEFAULT-DISABLED`、`PCHR-01-REAL-BROKER-PRODUCTION-ENDPOINT-DEFAULT-OFF`、`PCHR-01-OPERATOR-APPROVAL-AND-GATE-PASS-REQUIRED`、`PCHR-01-NO-SECRET-AUTO-READ`、`PCHR-01-NO-ENDPOINT-AUTO-CONNECT` 和 `PCHR-01-COMMAND-RISK-EXECUTION-OMS-EVENTSTORE-NO-BYPASS`。
+- `Sources/ExecutionClient/FutureGate/ProductionCutoverRuntimeHardeningContract.swift` 必须定义 `ProductionCutoverRuntimeHardeningContract`、`ProductionCutoverRuntimeHardeningGateRequirement`、`ProductionCutoverRuntimeHardeningForbiddenCapability` 和 `ProductionCutoverRuntimeHardeningGatePassRequirement`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH643ProductionCutoverRuntimeHardeningContractFailsClosedWithoutProductionCutover`。
+- Contract 必须固定 active venue 为 Binance，active product types 为 Spot + USDⓈ-M Perpetual，active strategies 为 EMA + RSI。
+- Contract 必须证明 production trading 默认关闭、real broker / production endpoint 默认关闭、operator approval 和全部 gate pass 必须存在、no secret auto-read、no endpoint auto-connect、CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store 不可 bypass。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH643ProductionCutoverRuntimeHardeningContractFailsClosedWithoutProductionCutover`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential 或人工验收。
+
+GH-643 必须建立的主要 anchors：
+
+- `PCHR-01-PRODUCTION-CUTOVER-RUNTIME-HARDENING-CONTRACT`
+- `PCHR-01-PRODUCTION-TRADING-DEFAULT-DISABLED`
+- `PCHR-01-REAL-BROKER-PRODUCTION-ENDPOINT-DEFAULT-OFF`
+- `PCHR-01-OPERATOR-APPROVAL-AND-GATE-PASS-REQUIRED`
+- `PCHR-01-NO-SECRET-AUTO-READ`
+- `PCHR-01-NO-ENDPOINT-AUTO-CONNECT`
+- `PCHR-01-COMMAND-RISK-EXECUTION-OMS-EVENTSTORE-NO-BYPASS`
+- `TVM-PCHR-PRODUCTION-CUTOVER-RUNTIME-HARDENING-CONTRACT`
+
 ## GH-631 CEFR Final Envelope Retirement Contract Validation
 
 GH-631 的 required validation：
