@@ -218,6 +218,8 @@ required_evidence = {
         "TVM-RELEASE-V020-EXECUTION-REPORT-BROKER-FILL-PARSER",
         "GH-587",
         "TVM-RELEASE-V020-SPOT-PORTFOLIO-PROJECTION",
+        "GH-588",
+        "TVM-RELEASE-V020-PERPETUAL-PORTFOLIO-PROJECTION",
     ],
     "docs/validation/validation-plan.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Validation",
@@ -240,6 +242,7 @@ required_evidence = {
         "GH-585 Release v0.2.0 Binance USD-M Perpetual ExecutionClient Adapter Validation",
         "GH-586 Release v0.2.0 Execution Report Broker Fill Parser Validation",
         "GH-587 Release v0.2.0 Spot Portfolio Projection Validation",
+        "GH-588 Release v0.2.0 Perpetual Portfolio Projection Validation",
     ],
     "docs/domain/context.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Terms",
@@ -262,6 +265,7 @@ required_evidence = {
         "GH-585 Binance USD-M Perpetual ExecutionClient Adapter Terms",
         "GH-586 Execution Report Broker Fill Parser Terms",
         "GH-587 Spot Portfolio Projection Terms",
+        "GH-588 Perpetual Portfolio Projection Terms",
     ],
     "docs/automation/automation-readiness.md": [
         "Release v0.2.0 boundary automation guard anchor",
@@ -284,6 +288,7 @@ required_evidence = {
         "Release v0.2.0 Binance USD-M Perpetual ExecutionClient adapter anchor",
         "Release v0.2.0 execution report broker fill parser anchor",
         "Release v0.2.0 Spot Portfolio projection anchor",
+        "Release v0.2.0 Perpetual Portfolio projection anchor",
     ],
     "Tests/TargetGraphTests/TargetGraphTests.swift": [
         "testGH565ReleaseV020BoundaryGuardBlocksScopeExpansionAndProductionDefaults",
@@ -306,6 +311,7 @@ required_evidence = {
         "testGH585BinanceUSDMPerpExecutionClientAdapterProducesPositionSideReduceOnlyMapping",
         "testGH586BinanceExecutionReportParserMapsSpotPerpBrokerFillAndPositionUpdates",
         "testGH587SpotPortfolioProjectionUpdatesBalancePositionPnLAndStrategyAttribution",
+        "testGH588PerpetualPortfolioProjectionUpdatesPositionMarginPnLFundingAndAttribution",
     ],
 }
 

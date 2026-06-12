@@ -7945,6 +7945,201 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH588PerpetualPortfolioProjectionUpdatesPositionMarginPnLFundingAndAttribution() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let releaseContract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md"
+            ),
+            encoding: .utf8
+        )
+
+        let executionEngineTarget = try packageTargetBlock(named: "ExecutionEngine", packageSource: packageSource)
+        XCTAssertTrue(executionEngineTarget.contains("\"Portfolio\""))
+        XCTAssertTrue(executionEngineTarget.contains("\"ExecutionClient\""))
+        XCTAssertFalse(executionEngineTarget.contains("\"DataClient\""))
+
+        let portfolioTarget = try packageTargetBlock(named: "Portfolio", packageSource: packageSource)
+        XCTAssertFalse(portfolioTarget.contains("\"ExecutionClient\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionEngine/OMSFutureGate/ReleaseV020PerpetualPortfolioProjection.swift"
+                ).path
+            )
+        )
+
+        let projection = try ReleaseV020PerpetualPortfolioProjection.deterministicFixture()
+        XCTAssertTrue(projection.projectionBoundaryHeld)
+        XCTAssertEqual(projection.issueID.rawValue, "GH-588")
+        XCTAssertTrue(projection.input.inputBoundaryHeld)
+        XCTAssertEqual(projection.input.parserEvidence.issueID.rawValue, "GH-586")
+        XCTAssertEqual(projection.input.perpParseResults.map(\.brokerFill.reportKind), [.perpFill, .perpPartialFill])
+        XCTAssertTrue(projection.input.perpParseResults.allSatisfy { $0.brokerFill.instrument.productType == .usdsPerpetual })
+        XCTAssertTrue(projection.input.perpParseResults.allSatisfy { $0.brokerFill.sourceAdapterIssueID.rawValue == "GH-585" })
+        XCTAssertTrue(projection.input.perpParseResults.allSatisfy { $0.positionUpdate?.positionUpdateBoundaryHeld == true })
+        XCTAssertTrue(projection.input.markPriceReadModel.freshness.isFresh)
+        XCTAssertTrue(projection.input.fundingReadModel.freshness.isFresh)
+        XCTAssertFalse(projection.productionTradingEnabledByDefault)
+        XCTAssertFalse(projection.productionAccountEndpointRead)
+        XCTAssertFalse(projection.brokerGatewayTouched)
+        XCTAssertFalse(projection.brokerPositionSynced)
+        XCTAssertFalse(projection.leverageActionExecuted)
+        XCTAssertFalse(projection.marginActionExecuted)
+        XCTAssertFalse(projection.portfolioRuntimeMutated)
+        XCTAssertFalse(projection.liveCommandSurfaceTouched)
+
+        for anchor in [
+            "GH-588-PERPETUAL-PORTFOLIO-PROJECTION",
+            "GH-588-PERP-POSITIONAMT-ENTRY-MARK",
+            "GH-588-PERP-MARGIN-PROJECTION",
+            "GH-588-PERP-PNL-PROJECTION",
+            "GH-588-PERP-FUNDING-PROJECTION",
+            "GH-588-PERP-STRATEGY-ATTRIBUTION",
+            "GH-588-NO-PRODUCTION-ACCOUNT-READ",
+            "TVM-RELEASE-V020-PERPETUAL-PORTFOLIO-PROJECTION",
+        ] {
+            XCTAssertTrue(projection.input.validationAnchors.contains(anchor), anchor)
+        }
+
+        let evidence = try projection.deterministicEvidence()
+        XCTAssertTrue(evidence.evidenceBoundaryHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-588")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-575", "GH-586"])
+        XCTAssertEqual(evidence.sourceFillIDs.count, 2)
+        XCTAssertEqual(evidence.sourcePositionUpdateIDs.count, 2)
+        XCTAssertTrue(evidence.positionUpdated)
+        XCTAssertTrue(evidence.marginProjected)
+        XCTAssertTrue(evidence.pnlProjected)
+        XCTAssertTrue(evidence.fundingProjected)
+        XCTAssertTrue(evidence.strategyAttributionComplete)
+
+        XCTAssertEqual(evidence.positionProjection.instrument.productType, .usdsPerpetual)
+        XCTAssertEqual(evidence.positionProjection.positionSide, .long)
+        XCTAssertEqual(evidence.positionProjection.positionAmt.rawValue, 0.15, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.positionProjection.entryPrice.rawValue, 43_000, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.positionProjection.markPrice.rawValue, 43_120.50, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.positionProjection.positionNotional, 6_468.075, accuracy: 0.000_000_01)
+        XCTAssertTrue(evidence.positionProjection.positionBoundaryHeld)
+        XCTAssertFalse(evidence.positionProjection.accountEndpointRead)
+        XCTAssertFalse(evidence.positionProjection.brokerPositionSynced)
+        XCTAssertFalse(evidence.positionProjection.leverageActionExecuted)
+        XCTAssertFalse(evidence.positionProjection.marginActionExecuted)
+
+        XCTAssertEqual(evidence.marginProjection.leverage, 5, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.marginProjection.marginRequirement, 1_293.615, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.marginProjection.marginAsset, "USDT")
+        XCTAssertTrue(evidence.marginProjection.marginBoundaryHeld)
+        XCTAssertFalse(evidence.marginProjection.readsAccountMargin)
+        XCTAssertFalse(evidence.marginProjection.marginActionExecuted)
+
+        XCTAssertEqual(evidence.pnlProjection.realizedPnL, 176, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.pnlProjection.unrealizedPnL, 18.075, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.pnlProjection.commissionPaid, 0.000175, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.pnlProjection.fundingPaymentEstimate, 0.6468075, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.pnlProjection.netPnL, 193.4280175, accuracy: 0.000_000_01)
+        XCTAssertTrue(evidence.pnlProjection.pnlBoundaryHeld)
+        XCTAssertFalse(evidence.pnlProjection.readsRealPnL)
+        XCTAssertFalse(evidence.pnlProjection.brokerReconciliationPerformed)
+
+        XCTAssertEqual(evidence.fundingProjection.fundingRate, 0.0001, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.fundingProjection.fundingPaymentEstimate, 0.6468075, accuracy: 0.000_000_01)
+        XCTAssertTrue(evidence.fundingProjection.fundingBoundaryHeld)
+        XCTAssertFalse(evidence.fundingProjection.fundingSettlementTouched)
+        XCTAssertFalse(evidence.fundingProjection.brokerStatementRead)
+
+        XCTAssertEqual(Set(evidence.strategyAttributions.map(\.strategyKind)), Set(ReleaseV020PerpetualPortfolioProjectionStrategyKind.allCases))
+        XCTAssertTrue(evidence.strategyAttributions.allSatisfy(\.attributionBoundaryHeld))
+        XCTAssertEqual(
+            evidence.strategyAttributions.reduce(0.0) { $0 + $1.attributedQuantity.rawValue },
+            0.35,
+            accuracy: 0.000_000_01
+        )
+        XCTAssertEqual(
+            evidence.strategyAttributions.reduce(0.0) { $0 + $1.attributedNotional },
+            15_226,
+            accuracy: 0.000_000_01
+        )
+        XCTAssertEqual(
+            evidence.strategyAttributions.reduce(0.0) { $0 + $1.attributedRealizedPnL },
+            176,
+            accuracy: 0.000_000_01
+        )
+
+        XCTAssertTrue(evidence.financialStateProjection.paperOnlyBoundaryHeld)
+        XCTAssertEqual(evidence.exposureSnapshot.source, .paperProjection)
+        XCTAssertEqual(evidence.exposureSnapshot.grossExposureNotional, evidence.positionProjection.positionNotional)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionAccountEndpointRead)
+        XCTAssertFalse(evidence.brokerGatewayTouched)
+        XCTAssertFalse(evidence.brokerPositionSynced)
+        XCTAssertFalse(evidence.leverageActionExecuted)
+        XCTAssertFalse(evidence.marginActionExecuted)
+        XCTAssertFalse(evidence.portfolioRuntimeMutated)
+        XCTAssertFalse(evidence.liveCommandSurfaceTouched)
+
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoded = try JSONDecoder().decode(
+            ReleaseV020PerpetualPortfolioProjectionEvidence.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, evidence)
+
+        let parserEvidence = projection.input.parserEvidence
+        XCTAssertThrowsError(
+            try ReleaseV020PerpetualPortfolioProjectionInput(
+                parserEvidence: parserEvidence,
+                perpParseResults: parserEvidence.parseResults,
+                markPriceReadModel: projection.input.markPriceReadModel,
+                fundingReadModel: projection.input.fundingReadModel
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV020PerpetualPortfolioProjection(
+                input: projection.input,
+                productionTradingEnabledByDefault: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability(
+                    "releaseV020PerpetualPortfolioProjection.productionTradingEnabledByDefault"
+                )
+            )
+        }
+
+        XCTAssertTrue(validationMatrix.contains("`GH-588`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-PERPETUAL-PORTFOLIO-PROJECTION"))
+        XCTAssertTrue(validationPlan.contains("GH-588 Release v0.2.0 Perpetual Portfolio Projection Validation"))
+        XCTAssertTrue(domainContext.contains("GH-588 Perpetual Portfolio Projection Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 Perpetual Portfolio projection anchor"))
+        XCTAssertTrue(
+            releaseContract.contains(
+                "GH-588 / V020-26 | Perpetual Portfolio projection from BrokerFill and mark/funding"
+            )
+        )
+    }
+
     func testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
