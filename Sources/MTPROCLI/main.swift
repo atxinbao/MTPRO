@@ -6,6 +6,6 @@ do {
     let output = try ReleaseV020CLIProductSurface.commandLineOutput(arguments: arguments)
     print(output)
 } catch {
-    fputs("mtpro error: \(error)\n", stderr)
+    print("mtpro error: \(error)")
     Foundation.exit(64)
 }
