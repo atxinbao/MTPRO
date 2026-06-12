@@ -4248,6 +4248,36 @@ Production parser disabled 指 GH-586 的默认值必须关闭 production parser
 
 Release v0.2.0 execution report broker fill parser matrix 必须证明 Spot normalized BrokerFill、Perp normalized BrokerFill、Perp position update、invalid payload blocked、raw payload not exposed to Dashboard 和 production parser disabled 同时成立，且 parser 不直连 ExecutionEngine target、不绕过 CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store / kill switch / no-trade gate。
 
+## GH-587 Spot Portfolio Projection Terms
+
+`GH-587-SPOT-PORTFOLIO-PROJECTION`
+
+Spot Portfolio projection 指 release v0.2.0 中消费 GH-586 Spot normalized BrokerFill 的 deterministic projection evidence。它只计算本地 quote balance、base position、PnL 和 strategy attribution，不读取 production account endpoint，不同步 broker position，也不代表 production Portfolio runtime。
+
+`GH-587-SPOT-BALANCE-UPDATE`
+
+Spot balance update 指用 normalized Spot fill 的成交 notional 和 commission 计算 USDT free balance 变化。该 balance 是 release evidence projection，不是 broker account balance、account endpoint payload、settlement record 或 production cash ledger。
+
+`GH-587-SPOT-POSITION-UPDATE`
+
+Spot position update 指用 Spot fill quantity 和 mark price 计算 base position quantity、average cost 和 gross position notional。该 update 不读取 broker position，不执行 margin / leverage action，也不把 Perp position update 混入 Spot Portfolio projection。
+
+`GH-587-SPOT-PNL-PROJECTION`
+
+Spot PnL projection 指基于 deterministic mark price 和 average cost 计算本地 realized / unrealized / net PnL evidence。该 PnL 不是 real PnL，不读取 broker statement、account endpoint、margin、leverage 或 reconciliation runtime。
+
+`GH-587-STRATEGY-ATTRIBUTION`
+
+Strategy attribution 指把 Spot BrokerFill projection attribution 绑定到 release v0.2.0 当前 active 的 EMA / RSI 策略。它不启用 non-EMA / non-RSI strategy，不创建 strategy runtime command，也不绕过 RiskEngine / ExecutionEngine / OMS gate。
+
+`GH-587-NO-PRODUCTION-ACCOUNT-READ`
+
+No production account read 指 GH-587 默认关闭 production account endpoint、production secret read、broker gateway、broker position sync、Portfolio runtime mutation、reconciliation runtime、Dashboard live command surface 和 production trading。
+
+`TVM-RELEASE-V020-SPOT-PORTFOLIO-PROJECTION`
+
+Release v0.2.0 Spot Portfolio projection matrix 必须证明 GH-586 Spot BrokerFill -> balance / position / PnL / EMA-RSI attribution / Portfolio financial state projection evidence 成立，且 `Portfolio` target 不直接依赖 `ExecutionClient`，projection 不绕过 CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store / kill switch / no-trade gate。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Terms
 
 `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`
