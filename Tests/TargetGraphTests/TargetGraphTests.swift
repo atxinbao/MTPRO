@@ -8331,6 +8331,148 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH590ProductAwareEventStoreSchemaStoresContextRejectsOutOfOrderAndKeepsChecksum() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let releaseContract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md"
+            ),
+            encoding: .utf8
+        )
+
+        let databaseTarget = try packageTargetBlock(named: "Database", packageSource: packageSource)
+        XCTAssertTrue(databaseTarget.contains("\"DomainModel\""))
+        XCTAssertTrue(databaseTarget.contains("\"MessageBus\""))
+        XCTAssertTrue(databaseTarget.contains("\"ReleaseV020ProductAwareEventStoreSchema.swift\""))
+        XCTAssertFalse(databaseTarget.contains("\"ExecutionClient\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/Database/ReleaseV020ProductAwareEventStoreSchema.swift"
+                ).path
+            )
+        )
+
+        let evidence = try ReleaseV020ProductAwareEventStore.deterministicEvidence()
+        XCTAssertTrue(evidence.evidenceBoundaryHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-590")
+        XCTAssertEqual(
+            evidence.schemaColumns,
+            [
+                "sequence",
+                "stream",
+                "venue",
+                "productType",
+                "instrumentID",
+                "payloadType",
+                "previousChecksum",
+                "checksum",
+                "recordedAt",
+            ]
+        )
+        XCTAssertEqual(evidence.records.map(\.sequence), [1, 2])
+        XCTAssertEqual(Set(evidence.records.map(\.venue.rawValue)), ["binance"])
+        XCTAssertEqual(Set(evidence.records.map(\.productType)), Set(ProductType.allCases))
+        XCTAssertEqual(evidence.records.map(\.instrumentID.rawValue), [
+            "binance:spot:BTCUSDT",
+            "binance:usdsPerpetual:BTCUSDT",
+        ])
+        XCTAssertTrue(evidence.records.allSatisfy(\.recordBoundaryHeld))
+        XCTAssertEqual(evidence.records[0].previousChecksum, ReleaseV020ProductAwareEventStoreSchema.genesisChecksum)
+        XCTAssertEqual(evidence.records[1].previousChecksum, evidence.records[0].checksum)
+        XCTAssertNotEqual(evidence.records[0].checksum, evidence.records[1].checksum)
+        XCTAssertTrue(evidence.venueProductInstrumentStoredForEveryEvent)
+        XCTAssertTrue(evidence.outOfOrderAppendRejected)
+        XCTAssertTrue(evidence.checksumStable)
+        XCTAssertTrue(evidence.appendOnlySchema)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.rawPayloadStored)
+        XCTAssertFalse(evidence.brokerGatewayTouched)
+        XCTAssertFalse(evidence.accountEndpointRead)
+        XCTAssertFalse(evidence.liveCommandSurfaceTouched)
+
+        var schema = try ReleaseV020ProductAwareEventStoreSchema()
+        for envelope in try ReleaseV020ProductAwareEventStore.deterministicSourceEnvelopes() {
+            try schema.append(sourceEnvelope: envelope)
+        }
+        XCTAssertTrue(schema.schemaBoundaryHeld)
+        XCTAssertEqual(schema.storedProductTypes, Set(ProductType.allCases))
+        XCTAssertEqual(schema.stableChecksum, schema.recomputedStableChecksum)
+
+        let stream = try MessageBusJournalStreamID("release-v020-event-store")
+        let source = try FoundationTargetID("gh-590", field: "releaseV020ProductAwareEventStore.sourceID")
+        XCTAssertThrowsError(
+            try {
+                var rejectedSchema = try ReleaseV020ProductAwareEventStoreSchema()
+                try rejectedSchema.append(
+                    sourceEnvelope: MessageBusJournalEnvelope(
+                        sequence: 2,
+                        stream: stream,
+                        sourceID: source,
+                        payloadType: "gh-590-out-of-order-event",
+                        instrumentID: .binance(productType: .spot, symbol: Symbol.constant("BTCUSDT")),
+                        recordedAt: Date(timeIntervalSince1970: 1_801_353_600)
+                    )
+                )
+            }()
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .invalidSequenceRange)
+        }
+        XCTAssertThrowsError(
+            try {
+                var rejectedSchema = try ReleaseV020ProductAwareEventStoreSchema()
+                try rejectedSchema.append(
+                    sourceEnvelope: MessageBusJournalEnvelope(
+                        sequence: 1,
+                        stream: stream,
+                        sourceID: source,
+                        payloadType: "gh-590-missing-instrument-event",
+                        instrumentID: nil,
+                        recordedAt: Date(timeIntervalSince1970: 1_801_353_600)
+                    )
+                )
+            }()
+        )
+
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoded = try JSONDecoder().decode(
+            ReleaseV020ProductAwareEventStoreSchemaEvidence.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, evidence)
+
+        XCTAssertTrue(validationMatrix.contains("`GH-590`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-PRODUCT-AWARE-EVENT-STORE-SCHEMA"))
+        XCTAssertTrue(validationPlan.contains("GH-590 Release v0.2.0 Product-aware Event Store Schema Validation"))
+        XCTAssertTrue(domainContext.contains("GH-590 Product-aware Event Store Schema Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 product-aware Event Store schema anchor"))
+        XCTAssertTrue(
+            releaseContract.contains(
+                "GH-590 / V020-28 | Product-aware append-only Event Store schema"
+            )
+        )
+    }
+
     func testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

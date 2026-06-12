@@ -8679,6 +8679,48 @@ GH-589 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-590 Release v0.2.0 Product-aware Event Store Schema Validation
+
+GH-590 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH590ProductAwareEventStoreSchemaStoresContextRejectsOutOfOrderAndKeepsChecksum`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-590 的验收要求：
+
+- `Database` target 必须拥有 product-aware append-only Event Store schema evidence，不依赖 `ExecutionClient` 或上层 runtime target。
+- 每条 event record 必须保存 `venue`、`productType` 和 `instrumentID`，并证明 Spot BTCUSDT 与 USDⓈ-M Perpetual BTCUSDT 不碰撞。
+- out-of-order append 必须被拒绝。
+- checksum chain 必须 deterministic stable，并覆盖 previous checksum。
+- Schema evidence 不得保存 raw payload、不得暴露 SQLite table、不得读取 production account endpoint、不得连接 broker gateway、不得触发 live command。
+
+GH-590 必须建立的主要 anchors：
+
+- `GH-590-PRODUCT-AWARE-EVENT-STORE-SCHEMA`
+- `GH-590-EVENT-CONTEXT-VENUE-PRODUCT-INSTRUMENT`
+- `GH-590-OUT-OF-ORDER-APPEND-REJECTED`
+- `GH-590-STABLE-CHECKSUM`
+- `GH-590-NO-PRODUCTION-EVENT-STORE-SIDE-EFFECT`
+- `TVM-RELEASE-V020-PRODUCT-AWARE-EVENT-STORE-SCHEMA`
+
+## GH-590 禁止
+
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint、listenKey 或 private stream endpoint。
+- 不保存 raw execution report、raw broker payload、signature value、API key、secret material、account payload、margin payload、broker state 或 UI command payload。
+- 不暴露 SQLite table / column / raw SQL 作为 Dashboard、Workbench 或 API contract。
+- 不执行真实 submit / cancel / replace，不把 Event Store schema evidence 解释为 production event store、production order store、broker statement 或 production authorization。
+- 不执行 reconciliation runtime，不同步 broker position，不读取真实 balance、real PnL、margin、leverage、buying power 或 account endpoint payload。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USD-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation
 
 GH-521 必须运行：
