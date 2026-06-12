@@ -6230,6 +6230,230 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertEqual(missingTraceDecision.rejectReason, .missingMessageBusTrace)
     }
 
+    func testGH662ExecutionOMSRehearsalLifecycleConsumesRiskApprovedIntentAndReplaysOMSState() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionEngineTarget = try packageTargetBlock(named: "ExecutionEngine", packageSource: packageSource)
+        let lifecycleDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.3.0-execution-oms-rehearsal-lifecycle-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let lifecycleSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/ExecutionEngine/OMSFutureGate/ReleaseV030ExecutionOMSRehearsalLifecycle.swift"
+            ),
+            encoding: .utf8
+        )
+
+        let symbol = Symbol.constant("BTCUSDT")
+        let spot = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let perp = InstrumentIdentity.binance(productType: .usdsPerpetual, symbol: symbol)
+        let traderEvidence = try ReleaseV030TraderStrategyRuntimeRehearsalFlow().run(
+            emaRuntime: EMAProposalRuntime.deterministicFixture(),
+            rsiEmitter: RSITargetExposureIntentEmitter.deterministicFixture(perpetualShortEnabled: true),
+            emaBars: EMAProposalRuntime.deterministicBars(),
+            rsiBars: Self.gh568Bars(closes: [100, 101, 102, 103]),
+            emaInstrument: spot,
+            rsiInstrument: perp,
+            quantity: Quantity(0.10, field: "gh662Quantity"),
+            emittedAt: Date(timeIntervalSince1970: 1_704_068_100)
+        )
+        let allowedStrategyIDs = traderEvidence.intentMessages.map(\.strategyID)
+        let allowedInstruments = traderEvidence.intentMessages.map(\.instrument)
+        let riskGate = ReleaseV030RiskEngineRehearsalGate()
+        let riskEvidence = try riskGate.run(
+            intentMessages: traderEvidence.intentMessages,
+            eventEnvelopes: traderEvidence.eventEnvelopes,
+            replayedEnvelopes: traderEvidence.replayedEnvelopes,
+            allowPolicy: ReleaseV030RiskEngineRehearsalPolicy(
+                policyID: Identifier("gh-662-riskengine-allow-policy"),
+                allowedStrategyIDs: allowedStrategyIDs,
+                allowedInstruments: allowedInstruments,
+                maxNotional: 10_000,
+                maxAggregateExposure: 20_000
+            ),
+            invalidPolicy: ReleaseV030RiskEngineRehearsalPolicy(
+                policyID: Identifier("gh-662-riskengine-invalid-policy"),
+                allowedStrategyIDs: allowedStrategyIDs,
+                allowedInstruments: allowedInstruments,
+                maxNotional: 1,
+                maxAggregateExposure: 20_000
+            ),
+            killSwitchPolicy: ReleaseV030RiskEngineRehearsalPolicy(
+                policyID: Identifier("gh-662-riskengine-kill-policy"),
+                allowedStrategyIDs: allowedStrategyIDs,
+                allowedInstruments: allowedInstruments,
+                maxNotional: 10_000,
+                maxAggregateExposure: 20_000,
+                killSwitchActive: true
+            ),
+            noTradePolicy: ReleaseV030RiskEngineRehearsalPolicy(
+                policyID: Identifier("gh-662-riskengine-no-trade-policy"),
+                allowedStrategyIDs: allowedStrategyIDs,
+                allowedInstruments: allowedInstruments,
+                maxNotional: 10_000,
+                maxAggregateExposure: 20_000,
+                noTradeActive: true
+            ),
+            evaluatedAt: Date(timeIntervalSince1970: 1_704_068_200)
+        )
+        let lifecycle = try ReleaseV030ExecutionOMSRehearsalLifecycle()
+        let evidence = try lifecycle.run(
+            riskEvidence: riskEvidence,
+            recordedAt: Date(timeIntervalSince1970: 1_704_068_300)
+        )
+
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.lifecycleCoverageHeld)
+        XCTAssertTrue(evidence.replayCoverageHeld)
+        XCTAssertTrue(evidence.boundaryHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-662")
+        XCTAssertEqual(evidence.upstreamIssueID.rawValue, "GH-661")
+        XCTAssertEqual(evidence.downstreamIssueID.rawValue, "GH-663")
+        XCTAssertEqual(evidence.canonicalQueueRange, "GH-657..GH-670")
+        XCTAssertEqual(evidence.projectName, "MTPRO Release v0.3.0 Runtime Rehearsal v1")
+        XCTAssertEqual(evidence.releaseVersion, "v0.3.0")
+        XCTAssertEqual(evidence.upstreamRiskEngineRehearsalAnchor, "TVM-RELEASE-V030-RISKENGINE-REHEARSAL-GATE")
+        XCTAssertEqual(evidence.mode, .dryRun)
+        XCTAssertEqual(evidence.requirements, ReleaseV030ExecutionOMSRehearsalRequirement.allCases)
+        XCTAssertEqual(
+            Set(evidence.forbiddenCapabilities),
+            Set(ReleaseV030ExecutionOMSRehearsalForbiddenCapability.allCases)
+        )
+
+        XCTAssertEqual(evidence.eventLogs.count, 3)
+        XCTAssertTrue(evidence.eventLogs.allSatisfy(\.eventLogHeld))
+        XCTAssertTrue(evidence.eventLogs.allSatisfy(\.replayRestoresFinalState))
+        XCTAssertTrue(evidence.eventLogs.contains { $0.path == .acceptedSubmittedFilled && $0.finalState == .filledSimulated })
+        XCTAssertTrue(evidence.eventLogs.contains { $0.path == .acceptedSubmittedCancelled && $0.finalState == .cancelled })
+        XCTAssertTrue(evidence.eventLogs.contains { $0.path == .riskRejected && $0.finalState == .rejected })
+        XCTAssertEqual(
+            Set(evidence.eventLogs.flatMap { log in log.transitions.flatMap { [$0.fromState, $0.toState] } }),
+            Set(ReleaseV030OMSRehearsalState.allCases)
+        )
+        XCTAssertTrue(
+            evidence.eventLogs.flatMap(\.envelopes).allSatisfy {
+                $0.payloadType.contains("execution.release-v0.3.0.oms")
+            }
+        )
+
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(evidence.productionSecretAutoReadEnabled)
+        XCTAssertFalse(evidence.productionOrderSubmissionEnabled)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertFalse(evidence.callsExecutionClient)
+        XCTAssertFalse(evidence.touchesBrokerGateway)
+        XCTAssertFalse(evidence.productionOMSRuntimeEnabledByDefault)
+        XCTAssertFalse(evidence.performsReconciliation)
+        XCTAssertFalse(evidence.exposesDashboardCommandSurface)
+        XCTAssertFalse(evidence.commandGatewayBypassAllowed)
+        XCTAssertFalse(evidence.riskEngineBypassAllowed)
+        XCTAssertFalse(evidence.eventStoreBypassAllowed)
+        XCTAssertFalse(evidence.startsNextMilestone)
+
+        for anchor in ReleaseV030ExecutionOMSRehearsalEvidence.requiredValidationAnchors {
+            XCTAssertTrue(evidence.validationAnchors.contains(anchor), "\(anchor) must stay in Swift evidence")
+            XCTAssertTrue(lifecycleDoc.contains(anchor), "\(anchor) must stay in Execution OMS contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation-plan.md")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading-validation-matrix.md")
+        }
+        XCTAssertTrue(lifecycleDoc.contains("submitted-testnet-or-dry-run"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.3.0 ExecutionEngine OMS rehearsal lifecycle anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV030ExecutionOMSRehearsalLifecycle.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH662ExecutionOMSRehearsalLifecycleConsumesRiskApprovedIntentAndReplaysOMSState"
+            )
+        )
+        XCTAssertTrue(executionEngineTarget.contains("\"OMSFutureGate\""))
+        XCTAssertTrue(executionEngineTarget.contains("\"RiskEngine\""))
+
+        for forbidden in [
+            "import ExecutionClient",
+            "URLSessionBinance",
+            "/api/v3/order",
+            "/fapi/v1/order"
+        ] {
+            XCTAssertFalse(lifecycleSource.contains(forbidden), "Execution OMS rehearsal source must not contain \(forbidden)")
+        }
+
+        XCTAssertThrowsError(
+            try lifecycle.run(
+                upstreamRiskEngineRehearsalAnchor: "UNSAFE-MISSING-GH-661-ANCHOR",
+                riskEvidence: riskEvidence,
+                recordedAt: Date(timeIntervalSince1970: 1_704_068_300)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "upstreamRiskEngineRehearsalAnchor",
+                    expected: "TVM-RELEASE-V030-RISKENGINE-REHEARSAL-GATE",
+                    actual: "UNSAFE-MISSING-GH-661-ANCHOR"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV030OMSRehearsalTransition(
+                transitionID: Identifier("gh-662-illegal-transition"),
+                orderID: Identifier("gh-662-illegal-order"),
+                sourceRiskDecisionID: riskEvidence.allowDecision.decisionID,
+                fromState: .accepted,
+                trigger: .simulatedFillObserved,
+                toState: .filledSimulated,
+                sequence: 1,
+                recordedAt: Date(timeIntervalSince1970: 1_704_068_300)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "releaseV030OMS.transition",
+                    expected: "legal OMS rehearsal transition",
+                    actual: "accepted->simulated fill observed->filled-simulated"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV030OMSRehearsalOrderIntent(
+                orderIntentID: Identifier("gh-662-rejected-order-intent"),
+                sourceRiskDecision: riskEvidence.invalidDecision,
+                createdAt: Date(timeIntervalSince1970: 1_704_068_300)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "releaseV030OMS.sourceRiskDecision",
+                    expected: "allowed risk decision",
+                    actual: ReleaseV030RiskEngineRehearsalDecisionStatus.reject.rawValue
+                )
+            )
+        }
+    }
+
     func testGH643ProductionCutoverRuntimeHardeningContractFailsClosedWithoutProductionCutover() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
