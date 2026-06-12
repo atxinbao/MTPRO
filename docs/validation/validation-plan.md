@@ -187,6 +187,28 @@ GH-647 必须建立的主要 anchors：
 - `PCHR-05-NO-PRODUCTION-ORDER-AUTHORIZATION`
 - `TVM-PCHR-OMS-EVENT-STORE-AUDIT-TRAIL`
 
+## GH-648 Production Broker Shadow / Dry-Run Proof Validation
+
+GH-648 的 required validation：
+
+- `docs/contracts/production-broker-shadow-dry-run-proof-contract.md` 必须存在，并包含 `PCHR-06-BROKER-SHADOW-DRY-RUN-PRODUCTION-CUTOVER-PROOF`、`PCHR-06-PRODUCTION-LIKE-REQUEST-MAPPING-EVIDENCE`、`PCHR-06-NO-REAL-ORDER-SENT`、`PCHR-06-DRY-RUN-SHADOW-MODE-MARKED`、`PCHR-06-SUBMIT-CANCEL-REPLACE-PAYLOAD-AUDIT`、`PCHR-06-PRODUCTION-ORDER-PATH-BLOCKED-BY-DEFAULT` 和 `PCHR-06-NO-RAW-BROKER-PAYLOAD-DASHBOARD`。
+- `Sources/ExecutionEngine/OMSFutureGate/ProductionBrokerShadowDryRunProof.swift` 必须定义 `ProductionBrokerShadowDryRunProof`、`ProductionBrokerShadowDryRunPayloadEvidence`、`ProductionBrokerShadowDryRunProofMode`、`ProductionBrokerShadowDryRunRequirement` 和 `ProductionBrokerShadowDryRunForbiddenCapability`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH648BrokerShadowDryRunProofKeepsProductionOrdersBlocked`。
+- Contract 必须绑定 GH-647 upstream audit trail gate，并证明 production-like request mapping evidence、dry-run / shadow / production-blocked mode 标记、submit / cancel / replace payload audit 和 raw broker payload not exposed to Dashboard。
+- Contract 必须证明 no real order sent、production order path blocked by default、production endpoint 不 auto-connect、不读取 production secret、不连接真实 broker、不提交真实订单。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH648BrokerShadowDryRunProofKeepsProductionOrdersBlocked`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential 或人工验收。
+
+GH-648 必须建立的主要 anchors：
+
+- `PCHR-06-BROKER-SHADOW-DRY-RUN-PRODUCTION-CUTOVER-PROOF`
+- `PCHR-06-PRODUCTION-LIKE-REQUEST-MAPPING-EVIDENCE`
+- `PCHR-06-NO-REAL-ORDER-SENT`
+- `PCHR-06-DRY-RUN-SHADOW-MODE-MARKED`
+- `PCHR-06-SUBMIT-CANCEL-REPLACE-PAYLOAD-AUDIT`
+- `PCHR-06-PRODUCTION-ORDER-PATH-BLOCKED-BY-DEFAULT`
+- `PCHR-06-NO-RAW-BROKER-PAYLOAD-DASHBOARD`
+- `TVM-PCHR-BROKER-SHADOW-DRY-RUN-PROOF`
+
 ## GH-631 CEFR Final Envelope Retirement Contract Validation
 
 GH-631 的 required validation：
