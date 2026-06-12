@@ -6,6 +6,7 @@ import MessageBus
 /// MTP-226 只把 active target boundary anchor 从 `Sources/TargetGraph/Database`
 /// 移到 `Sources/Database/TargetGraph`。SQLite / DuckDB projection implementation 仍由
 /// `Persistence` compatibility envelope 编译，replay projection 仍由 `Runtime` 编译；
+/// GH-635 起 Database target 直接拥有 Persistence / Runtime envelope 收窄 contract；
 /// 当前 issue 不改变 persistence behavior，也不暴露 UI、Trader、broker、account payload 或 live runtime。
 public struct DatabaseTargetBoundary: Codable, Equatable, Sendable {
     public let targetName: String
@@ -95,6 +96,7 @@ public struct DatabaseTargetBoundary: Codable, Equatable, Sendable {
         "MTP-226-DATABASE-REAL-ROOT-TARGET-PATH",
         "GH-393-DATABASE-REAL-TARGET-SMOKE",
         "GH-419-DATABASE-PERSISTENCE-RUNTIME-OWNERSHIP-MATRIX",
+        "GH-635-PERSISTENCE-RUNTIME-ENVELOPE-RETIREMENT-CONTRACT",
         "MTP-217-NO-RUNTIME-LIVE-BROKER-L4-GUARD"
     ]
 
