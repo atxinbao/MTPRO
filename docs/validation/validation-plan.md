@@ -77,6 +77,29 @@ bash checks/run.sh
 
 该矩阵记录 EMA parity、order book imbalance parity、fees / slippage、risk blocker、portfolio exposure 和 report evidence 的现有 coverage、验收证据边界和后续 issue 回填规则。
 
+## GH-663 Release v0.3.0 Binance Adapter Rehearsal Validation
+
+GH-663 的 required validation：
+
+- `docs/contracts/release-v0.3.0-binance-adapter-rehearsal-contract.md` 必须存在，并包含 `V030-07-BINANCE-TESTNET-DRYRUN-ADAPTER-REHEARSAL`、`V030-07-SUBMIT-CANCEL-REPLACE-MAPPING`、`V030-07-DRYRUN-EVIDENCE`、`V030-07-TESTNET-EVIDENCE`、`V030-07-PRODUCTION-ENDPOINT-BLOCKED` 和 `V030-07-NO-RAW-BROKER-PAYLOAD-DASHBOARD`。
+- `Sources/ExecutionClient/FutureGate/ReleaseV030BinanceAdapterRehearsal.swift` 必须定义 `ReleaseV030BinanceAdapterRehearsal`、`ReleaseV030BinanceAdapterRehearsalEvidence`、`ReleaseV030BinanceAdapterRehearsalOMSHandoff`、`ReleaseV030BinanceAdapterRehearsalRequestMapping`、`ReleaseV030BinanceAdapterRehearsalAcknowledgement` 和 `ReleaseV030BinanceAdapterRehearsalForbiddenCapability`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH663BinanceAdapterRehearsalMapsDryRunAndTestnetSubmitCancelReplace`。
+- Adapter rehearsal 必须绑定 GH-662 upstream OMS rehearsal anchor `TVM-RELEASE-V030-EXECUTIONENGINE-OMS-REHEARSAL-LIFECYCLE`，但 `ExecutionClient` target 不得依赖 `ExecutionEngine` target。
+- Dry-run 与 testnet mapping 必须覆盖 Spot / USDⓈ-M Perpetual 的 submit / cancel / replace。
+- Testnet acknowledgement 必须是 deterministic evidence，不代表 broker fill、execution report、portfolio reconciliation 或 production order lifecycle。
+- Production endpoint / production secret / production order / production cutover 默认关闭；raw broker payload 不得暴露给 Dashboard。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH663BinanceAdapterRehearsalMapsDryRunAndTestnetSubmitCancelReplace`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-663 必须建立的主要 anchors：
+
+- `V030-07-BINANCE-TESTNET-DRYRUN-ADAPTER-REHEARSAL`
+- `V030-07-SUBMIT-CANCEL-REPLACE-MAPPING`
+- `V030-07-DRYRUN-EVIDENCE`
+- `V030-07-TESTNET-EVIDENCE`
+- `V030-07-PRODUCTION-ENDPOINT-BLOCKED`
+- `V030-07-NO-RAW-BROKER-PAYLOAD-DASHBOARD`
+- `TVM-RELEASE-V030-BINANCE-ADAPTER-REHEARSAL`
+
 ## GH-662 Release v0.3.0 ExecutionEngine OMS Rehearsal Lifecycle Validation
 
 GH-662 的 required validation：
