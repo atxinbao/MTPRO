@@ -353,6 +353,7 @@ let package = Package(
             name: "Persistence",
             dependencies: [
                 "Core",
+                "Database",
                 "CSQLite",
                 .product(
                     name: "DuckDB",
@@ -369,6 +370,7 @@ let package = Package(
                 "TargetGraph"
             ],
             sources: [
+                "Projections/ReleaseV020SpotPerpDatabaseProjections.swift",
                 "Projections/SQLite/Persistence.swift",
                 "Projections/DuckDB/DuckDBAnalyticalProjectionAdapter.swift"
             ]

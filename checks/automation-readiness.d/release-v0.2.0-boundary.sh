@@ -176,6 +176,8 @@ required_evidence = {
         "activeProductTypes == [spot, usdsPerpetual]",
         "activeStrategies == [ema, rsi]",
         "productionTradingEnabledByDefault == false",
+        "GH-591 / V020-29",
+        "SQLite / DuckDB Spot + Perp projections",
     ],
     "docs/validation/trading-validation-matrix.md": [
         "GH-565",
@@ -224,6 +226,8 @@ required_evidence = {
         "TVM-RELEASE-V020-AGGREGATE-PORTFOLIO-ATTRIBUTION",
         "GH-590",
         "TVM-RELEASE-V020-PRODUCT-AWARE-EVENT-STORE-SCHEMA",
+        "GH-591",
+        "TVM-RELEASE-V020-SQLITE-DUCKDB-SPOT-PERP-PROJECTIONS",
     ],
     "docs/validation/validation-plan.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Validation",
@@ -249,6 +253,7 @@ required_evidence = {
         "GH-588 Release v0.2.0 Perpetual Portfolio Projection Validation",
         "GH-589 Release v0.2.0 Aggregate Portfolio Attribution Validation",
         "GH-590 Release v0.2.0 Product-aware Event Store Schema Validation",
+        "GH-591 Release v0.2.0 SQLite / DuckDB Spot + Perp Projection Validation",
     ],
     "docs/domain/context.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Terms",
@@ -274,6 +279,7 @@ required_evidence = {
         "GH-588 Perpetual Portfolio Projection Terms",
         "GH-589 Aggregate Portfolio Attribution Terms",
         "GH-590 Product-aware Event Store Schema Terms",
+        "GH-591 SQLite / DuckDB Spot + Perp Projection Terms",
     ],
     "docs/automation/automation-readiness.md": [
         "Release v0.2.0 boundary automation guard anchor",
@@ -299,6 +305,7 @@ required_evidence = {
         "Release v0.2.0 Perpetual Portfolio projection anchor",
         "Release v0.2.0 aggregate Portfolio attribution anchor",
         "Release v0.2.0 product-aware Event Store schema anchor",
+        "Release v0.2.0 SQLite / DuckDB Spot + Perp projection anchor",
     ],
     "Tests/TargetGraphTests/TargetGraphTests.swift": [
         "testGH565ReleaseV020BoundaryGuardBlocksScopeExpansionAndProductionDefaults",
@@ -324,6 +331,9 @@ required_evidence = {
         "testGH588PerpetualPortfolioProjectionUpdatesPositionMarginPnLFundingAndAttribution",
         "testGH589AggregatePortfolioAndStrategyAttributionCombinesSpotPerpEvidence",
         "testGH590ProductAwareEventStoreSchemaStoresContextRejectsOutOfOrderAndKeepsChecksum",
+    ],
+    "Tests/PersistenceTests/PersistenceTests.swift": [
+        "testGH591SQLiteDuckDBSpotPerpProjectionsStayProductAwareAndDashboardSchemaFree",
     ],
 }
 

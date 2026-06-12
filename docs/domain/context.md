@@ -4364,6 +4364,28 @@ No production Event Store side effect 指 GH-590 默认关闭 production trading
 
 Release v0.2.0 product-aware Event Store schema matrix 必须证明每条 event 保存 venue / productType / instrumentID、out-of-order append rejected 和 checksum stable，并且 `Database` target 不依赖 `ExecutionClient`、不暴露 SQLite table、不保存 raw payload、不绕过 CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store / kill switch / no-trade gate。
 
+## GH-591 SQLite / DuckDB Spot + Perp Projection Terms
+
+`GH-591-SQLITE-SPOT-PERP-RUNTIME-PROJECTION`
+
+SQLite Spot + Perp runtime projection 指 GH-591 在 `Persistence` compatibility target 内定义的稳定 runtime read model。它消费 GH-590 Event Store schema 和 GH-589 aggregate attribution evidence，输出 Spot / USDⓈ-M Perpetual rows，保留 `InstrumentIdentity`、productType、sequence、source checksum、exposure notional 和 net PnL；它不是 Dashboard 可依赖的 SQLite table contract。
+
+`GH-591-DUCKDB-SPOT-PERP-ANALYTICAL-PROJECTION`
+
+DuckDB Spot + Perp analytical projection 指 GH-591 的本地 analytical evidence surface。它保留 Spot / Perp aggregate exposure、EMA / RSI attribution count、Perp funding / liquidation summary 和 source evidence IDs；它不把 DuckDB table、column、raw SQL 或 payload encoding 暴露成 UI / API contract。
+
+`GH-591-DASHBOARD-STABLE-READ-MODEL-ONLY`
+
+Dashboard stable read-model-only 指 Dashboard 只能消费 `SQLiteRuntimeProjectionSnapshot`、`DuckDBAnalyticalProjectionSnapshot` 或 GH-591 release projection evidence 这种稳定 read model，不得读取 `release_v020_runtime_projection_records`、`release_v020_analytical_projection_records`、raw SQL、table、column 或 adapter handle。
+
+`GH-591-NO-PRODUCTION-DATABASE-SIDE-EFFECT`
+
+No production database side effect 指 GH-591 默认关闭 production trading、production secret read、signed/account/private/broker endpoint、production reconciliation runtime、real submit / cancel / replace 和 broker / account side effect。
+
+`TVM-RELEASE-V020-SQLITE-DUCKDB-SPOT-PERP-PROJECTIONS`
+
+Release v0.2.0 SQLite / DuckDB Spot + Perp projection matrix 必须证明 GH-590 product-aware Event Store schema 可派生 SQLite runtime projection 和 DuckDB analytical projection，Spot 与 USDⓈ-M Perpetual 不碰撞，Dashboard 仍只消费 stable read model，并且 projection evidence 不绕过 CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store / kill switch / no-trade gate。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Terms
 
 `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`

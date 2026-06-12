@@ -414,6 +414,105 @@ final class PersistenceTests: XCTestCase {
         XCTAssertTrue(duckDBSnapshot.signalTimeline.allSatisfy { $0.source != .orderBookImbalanceResearch || $0.imbalanceRatio != nil })
     }
 
+    func testGH591SQLiteDuckDBSpotPerpProjectionsStayProductAwareAndDashboardSchemaFree() throws {
+        // 测试场景：GH-591 必须把 GH-590 Event Store schema 投影成 SQLite runtime read model
+        // 和 DuckDB analytical read model，同时证明 Dashboard 只消费稳定 projection，不读取私有 DB schema。
+        let evidence = try ReleaseV020SpotPerpDatabaseProjections.deterministicEvidence()
+        let sqlite = evidence.sqliteRuntimeProjection
+        let duckDB = evidence.duckDBAnalyticalProjection
+        let sqliteSpot = try XCTUnwrap(sqlite.rows.first { $0.productType == .spot })
+        let sqlitePerp = try XCTUnwrap(sqlite.rows.first { $0.productType == .usdsPerpetual })
+        let duckDBSpot = try XCTUnwrap(duckDB.rows.first { $0.productType == .spot })
+        let duckDBPerp = try XCTUnwrap(duckDB.rows.first { $0.productType == .usdsPerpetual })
+
+        XCTAssertTrue(evidence.evidenceBoundaryHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-591")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-589", "GH-590"])
+        XCTAssertEqual(evidence.validationAnchors, ReleaseV020SpotPerpDatabaseProjections.requiredValidationAnchors)
+        XCTAssertTrue(evidence.runtimeProjectionInSQLite)
+        XCTAssertTrue(evidence.analyticalProjectionInDuckDB)
+        XCTAssertTrue(evidence.dashboardDoesNotDependOnRawDatabaseSchema)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionSecretRead)
+        XCTAssertFalse(evidence.brokerGatewayTouched)
+        XCTAssertFalse(evidence.accountEndpointRead)
+        XCTAssertFalse(evidence.liveCommandSurfaceTouched)
+
+        XCTAssertTrue(sqlite.snapshotBoundaryHeld)
+        XCTAssertEqual(sqlite.privateSQLiteSchemaName, "release_v020_runtime_projection_records")
+        XCTAssertEqual(sqlite.storedProductTypes, Set(ProductType.allCases))
+        XCTAssertEqual(sqlite.storedInstrumentIDs.map(\.rawValue), [
+            "binance:spot:BTCUSDT",
+            "binance:usdsPerpetual:BTCUSDT"
+        ])
+        XCTAssertEqual(sqlite.rows.map(\.sequence), [1, 2])
+        XCTAssertEqual(sqlite.lastAppliedSequence, 2)
+        XCTAssertGreaterThan(sqliteSpot.exposureNotional, 0)
+        XCTAssertGreaterThan(sqlitePerp.exposureNotional, 0)
+        XCTAssertNotEqual(sqliteSpot.eventStoreChecksum, sqlitePerp.eventStoreChecksum)
+        XCTAssertFalse(sqlite.rows.contains { $0.rawDatabaseSchemaExposedToDashboard })
+
+        XCTAssertTrue(duckDB.snapshotBoundaryHeld)
+        XCTAssertEqual(duckDB.privateDuckDBSchemaName, "release_v020_analytical_projection_records")
+        XCTAssertEqual(duckDB.storedProductTypes, Set(ProductType.allCases))
+        XCTAssertEqual(duckDB.lastAppliedSequence, 2)
+        XCTAssertEqual(duckDBSpot.strategyAttributionCount, ReleaseV020AggregatePortfolioStrategyKind.allCases.count)
+        XCTAssertEqual(duckDBPerp.strategyAttributionCount, ReleaseV020AggregatePortfolioStrategyKind.allCases.count)
+        XCTAssertEqual(duckDBSpot.fundingPaymentEstimate, 0)
+        XCTAssertGreaterThanOrEqual(duckDBPerp.fundingPaymentEstimate, 0)
+        XCTAssertGreaterThanOrEqual(duckDBPerp.liquidationDistance, 0)
+        XCTAssertFalse(duckDB.rows.contains { $0.rawDatabaseSchemaExposedToDashboard })
+
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoded = try JSONDecoder().decode(ReleaseV020SpotPerpDatabaseProjectionEvidence.self, from: encoded)
+        XCTAssertEqual(decoded, evidence)
+
+        XCTAssertThrowsError(
+            try ReleaseV020SpotPerpDatabaseProjectionEvidence(
+                sqliteRuntimeProjection: sqlite,
+                duckDBAnalyticalProjection: duckDB,
+                dashboardDoesNotDependOnRawDatabaseSchema: false
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV020SpotPerpSQLiteRuntimeProjectionRow(
+                rowID: Identifier.constant("gh-591-forbidden-sqlite-row"),
+                sequence: sqliteSpot.sequence,
+                instrument: sqliteSpot.instrument,
+                eventStoreChecksum: sqliteSpot.eventStoreChecksum,
+                exposureNotional: sqliteSpot.exposureNotional,
+                netPnL: sqliteSpot.netPnL,
+                sourceEvidenceID: sqliteSpot.sourceEvidenceID,
+                projectedAt: sqliteSpot.projectedAt,
+                rawDatabaseSchemaExposedToDashboard: true
+            )
+        )
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let dashboardReadModelSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/Dashboard/ReadModels/App.swift"),
+            encoding: .utf8
+        )
+        let dashboardBoundarySource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/Dashboard/DashboardTargetBoundary.swift"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(packageSource.contains("\"Projections/ReleaseV020SpotPerpDatabaseProjections.swift\""))
+        XCTAssertTrue(packageSource.contains("\"Database\","))
+        XCTAssertTrue(dashboardReadModelSource.contains("SQLiteRuntimeProjectionSnapshot"))
+        XCTAssertTrue(dashboardReadModelSource.contains("DuckDBAnalyticalProjectionSnapshot"))
+        XCTAssertFalse(dashboardReadModelSource.contains("release_v020_runtime_projection_records"))
+        XCTAssertFalse(dashboardReadModelSource.contains("release_v020_analytical_projection_records"))
+        XCTAssertFalse(dashboardReadModelSource.contains("runtime_projection_records"))
+        XCTAssertFalse(dashboardReadModelSource.contains("analytical_projection_records"))
+        XCTAssertTrue(dashboardBoundarySource.contains("exposesPersistenceSchema: Bool = false"))
+    }
+
     private func makeFullEventLog() throws -> [EventEnvelope] {
         var messageBus = try MessageBus()
 
