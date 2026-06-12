@@ -99,6 +99,7 @@ let package = Package(
                 "ReleaseV020GoldenTraceCatalog.swift",
                 "ReleaseV020ProductAwareEventStoreSchema.swift",
                 "ReleaseV020VerificationGates.swift",
+                "ReleaseV030EventStoreRehearsalEvidence.swift",
                 "TargetGraph/DatabaseTargetBoundary.swift"
             ]
         ),
@@ -385,6 +386,7 @@ let package = Package(
                 "ReleaseV020GoldenTraceCatalog.swift",
                 "ReleaseV020ProductAwareEventStoreSchema.swift",
                 "ReleaseV020VerificationGates.swift",
+                "ReleaseV030EventStoreRehearsalEvidence.swift",
                 "ReplayProjection",
                 "TargetGraph"
             ],
@@ -416,6 +418,7 @@ let package = Package(
                 "Database/ReleaseV020GoldenTraceCatalog.swift",
                 "Database/ReleaseV020ProductAwareEventStoreSchema.swift",
                 "Database/ReleaseV020VerificationGates.swift",
+                "Database/ReleaseV030EventStoreRehearsalEvidence.swift",
                 "Database/Projections",
                 "Database/TargetGraph",
                 "DomainModel",

@@ -77,6 +77,28 @@ bash checks/run.sh
 
 该矩阵记录 EMA parity、order book imbalance parity、fees / slippage、risk blocker、portfolio exposure 和 report evidence 的现有 coverage、验收证据边界和后续 issue 回填规则。
 
+## GH-664 Release v0.3.0 Event Store Rehearsal Validation
+
+GH-664 的 required validation：
+
+- `docs/contracts/release-v0.3.0-event-store-rehearsal-contract.md` 必须存在，并包含 `V030-08-EVENT-STORE-REHEARSAL-EVIDENCE`、`V030-08-APPEND-ONLY-REHEARSAL-EVENTS`、`V030-08-CORRELATION-CAUSATION-LINKS`、`V030-08-REPLAY-RECONSTRUCTS-KEY-STATE` 和 `V030-08-STRATEGY-RISK-EXECUTION-OMS-PORTFOLIO-CHAIN`。
+- `Sources/Database/ReleaseV030EventStoreRehearsalEvidence.swift` 必须定义 `ReleaseV030EventStoreRehearsal`、`ReleaseV030EventStoreRehearsalEvidence`、`ReleaseV030EventStoreRehearsalRecord`、`ReleaseV030EventStoreRehearsalStore`、`ReleaseV030EventStoreRehearsalReplayState` 和 `ReleaseV030EventStoreRehearsalForbiddenCapability`。
+- `Package.swift` 的 `Database` target source list 必须包含 `ReleaseV030EventStoreRehearsalEvidence.swift`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH664EventStoreReplayReconstructsRehearsalCausalityChain`。
+- Event Store rehearsal 必须绑定 GH-663 upstream adapter anchor `TVM-RELEASE-V030-BINANCE-ADAPTER-REHEARSAL`。
+- Records 必须 append-only，保存 sequence、correlation ID、causation ID、source issue、source evidence anchor、stage、instrument identity、strategy identity、previous checksum 和 checksum。
+- Replay 必须重建 strategy -> risk -> execution -> OMS -> adapter -> portfolio stage trail，并证明 correlation / causation links 完整。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH664EventStoreReplayReconstructsRehearsalCausalityChain`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-664 必须建立的主要 anchors：
+
+- `V030-08-EVENT-STORE-REHEARSAL-EVIDENCE`
+- `V030-08-APPEND-ONLY-REHEARSAL-EVENTS`
+- `V030-08-CORRELATION-CAUSATION-LINKS`
+- `V030-08-REPLAY-RECONSTRUCTS-KEY-STATE`
+- `V030-08-STRATEGY-RISK-EXECUTION-OMS-PORTFOLIO-CHAIN`
+- `TVM-RELEASE-V030-EVENT-STORE-REHEARSAL-EVIDENCE`
+
 ## GH-663 Release v0.3.0 Binance Adapter Rehearsal Validation
 
 GH-663 的 required validation：
