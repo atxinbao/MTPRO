@@ -8595,6 +8595,153 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH593CLIProductSurfaceRoutesVerifyCommandsThroughCommandGateway() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let releaseContract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let cliMainSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/MTPROCLI/main.swift"),
+            encoding: .utf8
+        )
+
+        let databaseTarget = try packageTargetBlock(named: "Database", packageSource: packageSource)
+        let persistenceTarget = try packageTargetBlock(named: "Persistence", packageSource: packageSource)
+        let runtimeTarget = try packageTargetBlock(named: "Runtime", packageSource: packageSource)
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        let cliTarget = try packageTargetBlock(named: "MTPROCLI", packageSource: packageSource)
+        let databaseSources = try packageTargetSourcesBlock(targetBlock: databaseTarget)
+        let persistenceExcludes = try packageTargetExcludesBlock(targetBlock: persistenceTarget)
+        let runtimeExcludes = try packageTargetExcludesBlock(targetBlock: runtimeTarget)
+        let coreExcludes = try packageTargetExcludesBlock(targetBlock: coreTarget)
+
+        XCTAssertTrue(packageSource.contains(".executable(name: \"mtpro\", targets: [\"MTPROCLI\"])"))
+        XCTAssertTrue(cliTarget.contains("dependencies: [\"Database\"]"))
+        XCTAssertTrue(cliTarget.contains("path: \"Sources/MTPROCLI\""))
+        XCTAssertTrue(cliTarget.contains("\"main.swift\""))
+        XCTAssertFalse(cliTarget.contains("\"ExecutionClient\""))
+        XCTAssertFalse(cliTarget.contains("\"ExecutionEngine\""))
+        XCTAssertFalse(cliTarget.contains("\"RiskEngine\""))
+        XCTAssertTrue(databaseSources.contains("\"ReleaseV020CLIProductSurface.swift\""))
+        XCTAssertTrue(persistenceExcludes.contains("\"ReleaseV020CLIProductSurface.swift\""))
+        XCTAssertTrue(runtimeExcludes.contains("\"Database/ReleaseV020CLIProductSurface.swift\""))
+        XCTAssertTrue(coreExcludes.contains("\"MTPROCLI\""))
+        XCTAssertTrue(runtimeExcludes.contains("\"MTPROCLI\""))
+        XCTAssertTrue(cliMainSource.contains("ReleaseV020CLIProductSurface.commandLineOutput"))
+
+        let evidence = try ReleaseV020CLIProductSurface.deterministicEvidence()
+        XCTAssertTrue(evidence.surfaceBoundaryHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-593")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-592"])
+        XCTAssertEqual(evidence.cliProductName, "mtpro")
+        XCTAssertEqual(evidence.executableTargetName, "MTPROCLI")
+        XCTAssertEqual(evidence.commandNames, ["spot", "perp", "strategy", "risk", "execution", "verify-fast", "verify-release"])
+        XCTAssertEqual(Set(evidence.cliProductTypes), Set(ProductType.allCases))
+        XCTAssertEqual(Set(evidence.cliStrategies), Set(ReleaseV020GoldenTraceStrategy.allCases))
+        XCTAssertEqual(evidence.cliVenue.rawValue, "binance")
+        XCTAssertTrue(evidence.commands.allSatisfy(\.routesThroughCommandGateway))
+        XCTAssertTrue(evidence.commands.allSatisfy(\.usesGoldenTraceCatalog))
+        XCTAssertTrue(evidence.commands.allSatisfy(\.commandBoundaryHeld))
+        XCTAssertTrue(evidence.verifyFastPasses)
+        XCTAssertTrue(evidence.verifyReleasePasses)
+        XCTAssertTrue(evidence.commandGatewayRequired)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionSecretRead)
+        XCTAssertFalse(evidence.productionEndpointTouched)
+        XCTAssertFalse(evidence.brokerGatewayTouched)
+        XCTAssertFalse(evidence.accountEndpointRead)
+        XCTAssertFalse(evidence.submitsRealOrder)
+        XCTAssertFalse(evidence.cancelsRealOrder)
+        XCTAssertFalse(evidence.replacesRealOrder)
+        XCTAssertFalse(evidence.bypassesCommandGateway)
+        XCTAssertFalse(evidence.bypassesRiskEngine)
+        XCTAssertFalse(evidence.bypassesExecutionEngine)
+        XCTAssertFalse(evidence.bypassesOMS)
+        XCTAssertFalse(evidence.bypassesEventStore)
+        XCTAssertFalse(evidence.bypassesKillSwitch)
+        XCTAssertFalse(evidence.bypassesNoTradeState)
+
+        let verifyFast = try ReleaseV020CLIProductSurface.verify(arguments: ["verify-fast"], evidence: evidence)
+        let verifyRelease = try ReleaseV020CLIProductSurface.verify(arguments: ["verify-release"], evidence: evidence)
+        XCTAssertTrue(verifyFast.passed)
+        XCTAssertTrue(verifyRelease.passed)
+        XCTAssertTrue(
+            try ReleaseV020CLIProductSurface.commandLineOutput(arguments: ["verify-fast"])
+                .contains("mtpro verify-fast pass")
+        )
+        XCTAssertTrue(
+            try ReleaseV020CLIProductSurface.commandLineOutput(arguments: ["verify-release"])
+                .contains("mtpro verify-release pass")
+        )
+        XCTAssertTrue(
+            try ReleaseV020CLIProductSurface.commandLineOutput(arguments: ["verify-release"])
+                .contains("commandGateway=required")
+        )
+        XCTAssertTrue(
+            try ReleaseV020CLIProductSurface.commandLineOutput(arguments: ["verify-release"])
+                .contains("realOrderSubmitCancelReplace=false")
+        )
+
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoded = try JSONDecoder().decode(ReleaseV020CLIProductSurfaceEvidence.self, from: encoded)
+        XCTAssertEqual(decoded, evidence)
+
+        XCTAssertThrowsError(
+            try ReleaseV020CLIProductSurface.verify(arguments: ["spot"], evidence: evidence)
+        )
+        XCTAssertThrowsError(
+            try ReleaseV020CLIProductSurfaceEvidence(commands: Array(evidence.commands.dropLast()))
+        )
+        XCTAssertThrowsError(
+            try ReleaseV020CLICommandRecord(
+                command: .verifyFast,
+                productTypes: ProductType.allCases,
+                strategies: ReleaseV020GoldenTraceStrategy.allCases,
+                sourceEvidenceAnchor: "unsafe-command-gateway-bypass",
+                bypassesCommandGateway: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("releaseV020CLIProductSurface.bypassesCommandGateway")
+            )
+        }
+
+        XCTAssertTrue(validationMatrix.contains("`GH-593`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-CLI-PRODUCT-SURFACE"))
+        XCTAssertTrue(validationPlan.contains("GH-593 Release v0.2.0 CLI Product Surface Validation"))
+        XCTAssertTrue(domainContext.contains("GH-593 CLI Product Surface Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 CLI product surface anchor"))
+        XCTAssertTrue(
+            releaseContract.contains(
+                "GH-593 / V020-31 | CLI product surface for Spot / Perp / strategy / risk / execution / verify"
+            )
+        )
+    }
+
     func testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
@@ -12239,8 +12386,15 @@ final class TargetGraphTests: XCTestCase {
     }
 
     private func packageTargetBlock(named targetName: String, packageSource: String) throws -> String {
-        let targetMarker = ".target(\n            name: \"\(targetName)\""
-        guard let markerRange = packageSource.range(of: targetMarker) else {
+        let targetMarkers = [
+            ".target(\n            name: \"\(targetName)\"",
+            ".executableTarget(\n            name: \"\(targetName)\"",
+            ".testTarget(\n            name: \"\(targetName)\""
+        ]
+        let markerRange = targetMarkers
+            .compactMap { packageSource.range(of: $0) }
+            .min { $0.lowerBound < $1.lowerBound }
+        guard let markerRange else {
             throw XCTSkip("Package.swift target \(targetName) not found")
         }
         let tail = packageSource[markerRange.lowerBound...]

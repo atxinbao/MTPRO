@@ -8803,6 +8803,50 @@ GH-592 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-593 Release v0.2.0 CLI Product Surface Validation
+
+GH-593 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH593CLIProductSurfaceRoutesVerifyCommandsThroughCommandGateway`
+- `swift run mtpro verify-fast`
+- `swift run mtpro verify-release`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-593 的验收要求：
+
+- `Package.swift` 必须暴露 `.executable(name: "mtpro", targets: ["MTPROCLI"])`，且 `MTPROCLI` target 只能依赖 `Database`。
+- `Database` target 必须显式编译 `Sources/Database/ReleaseV020CLIProductSurface.swift`，并保持 `ExecutionClient`、`ExecutionEngine`、`RiskEngine`、`OMS`、Dashboard command surface 和 broker gateway 不进入 CLI 入口。
+- CLI product surface 必须覆盖 `spot`、`perp`、`strategy`、`risk`、`execution`、`verify-fast` 和 `verify-release`。
+- `mtpro verify-fast` 必须输出 `mtpro verify-fast pass`；`mtpro verify-release` 必须输出 `mtpro verify-release pass`。
+- 每个 CLI command record 必须声明 `routesThroughCommandGateway == true`、`usesGoldenTraceCatalog == true`，并保持 `bypassesCommandGateway == false`、`bypassesRiskEngine == false`、`bypassesExecutionEngine == false`、`bypassesOMS == false`、`bypassesEventStore == false`、`bypassesKillSwitch == false` 和 `bypassesNoTradeState == false`。
+- Evidence 必须拒绝 production trading default、production secret read、production endpoint touch、broker gateway touch、account endpoint read、real submit / cancel / replace 和 gate bypass。
+
+GH-593 必须建立的主要 anchors：
+
+- `GH-593-CLI-PRODUCT-SURFACE`
+- `GH-593-MTPRO-VERIFY-FAST-PASS`
+- `GH-593-MTPRO-VERIFY-RELEASE-PASS`
+- `GH-593-COMMANDGATEWAY-ROUTING-GATE`
+- `GH-593-NO-PRODUCTION-CLI-SIDE-EFFECT`
+- `TVM-RELEASE-V020-CLI-PRODUCT-SURFACE`
+
+## GH-593 禁止
+
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint、listenKey 或 private stream endpoint。
+- 不把 CLI product surface 扩大成 production runtime、operator authorization、production runbook、broker statement、reconciliation job、Dashboard command surface、Live PRO Console、trading button、live command 或 order form。
+- 不执行真实 submit / cancel / replace，不把 `mtpro verify-fast` 或 `mtpro verify-release` 解释为 production trading authorization。
+- 不执行 production reconciliation runtime，不同步 broker position，不读取真实 balance、real PnL、margin、leverage、buying power 或 account endpoint payload。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USD-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation
 
 GH-521 必须运行：
