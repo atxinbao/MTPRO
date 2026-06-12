@@ -107,7 +107,7 @@ NTPRO scoped 100% alignment 是 release v0.2.0 的 scoped alignment contract，�
 | GH-586 / V020-24 | Spot / Perp execution report and broker fill parser | normalized BrokerFill, Perp position update, invalid payload blocked and raw payload not exposed |
 | GH-587 / V020-25 | Spot Portfolio projection from BrokerFill | balance、position、PnL 和 EMA / RSI strategy attribution evidence；不读取 production account、不同步 broker position |
 | GH-588 / V020-26 | Perpetual Portfolio projection from BrokerFill and mark/funding | positionAmt、entryPrice、markPrice、margin、PnL、funding 和 EMA / RSI attribution evidence；不读取 production account、不同步 broker position、不执行 leverage / margin action |
-| GH-589 / V020-27 | Binance USDⓈ-M dry-run and testnet validation suite | no production fallback |
+| GH-589 / V020-27 | Aggregate Portfolio and strategy attribution | Spot + Perp aggregate exposure、EMA / RSI separated attribution、funding / liquidation summary evidence；不读取 production account、不执行 reconciliation runtime |
 | GH-590 / V020-28 | release v0.2.0 no-default-production-trading guards | required automation readiness guard |
 | GH-591 / V020-29 | NTPRO scoped alignment validation evidence | scoped alignment only, no NTPRO runtime dependency |
 | GH-592 / V020-30 | release docs and operator runbook | no production cutover authorization |
