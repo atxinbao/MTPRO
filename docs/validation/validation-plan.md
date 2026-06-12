@@ -99,6 +99,27 @@ GH-643 必须建立的主要 anchors：
 - `PCHR-01-COMMAND-RISK-EXECUTION-OMS-EVENTSTORE-NO-BYPASS`
 - `TVM-PCHR-PRODUCTION-CUTOVER-RUNTIME-HARDENING-CONTRACT`
 
+## GH-644 Production Credential Reference / Environment Isolation Validation
+
+GH-644 的 required validation：
+
+- `docs/contracts/production-credential-reference-environment-isolation-contract.md` 必须存在，并包含 `PCHR-02-CREDENTIAL-REFERENCE-ENVIRONMENT-ISOLATION-RUNTIME`、`PCHR-02-CREDENTIAL-IDENTITY-PROFILE-REFERENCE`、`PCHR-02-DRYRUN-TESTNET-PRODUCTION-ENVIRONMENT-ISOLATION`、`PCHR-02-MISSING-AUTHORIZATION-FAIL-CLOSED`、`PCHR-02-NO-PRODUCTION-FALLBACK` 和 `PCHR-02-NO-PRODUCTION-SECRET-VALUE-READ`。
+- `Sources/ExecutionClient/FutureGate/ProductionCredentialReferenceEnvironmentIsolation.swift` 必须定义 `ProductionCredentialReferenceEnvironmentIsolation`、`ProductionCredentialProfileReference`、`ProductionCredentialEnvironmentKind`、`ProductionCredentialAuthorizationState`、`ProductionCredentialReferenceRequirement` 和 `ProductionCredentialReferenceForbiddenCapability`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH644CredentialReferenceEnvironmentIsolationFailsClosedWithoutSecretRead`。
+- Contract 必须绑定 GH-643 upstream hardening contract，并证明 credential identity / profile reference only、dry-run / testnet / production-blocked / future-production environment isolation、missing authorization fail-closed 和 no production fallback。
+- Contract 必须证明不读取 production secret value、不探测 environment secret、不保存 secret value、不默认选择 production environment、不让模糊 environment fallback 到 production、不自动连接 production endpoint、不连接真实 broker、不提交真实订单、不绕过 CommandGateway / RiskEngine / ExecutionEngine / OMS。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH644CredentialReferenceEnvironmentIsolationFailsClosedWithoutSecretRead`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential 或人工验收。
+
+GH-644 必须建立的主要 anchors：
+
+- `PCHR-02-CREDENTIAL-REFERENCE-ENVIRONMENT-ISOLATION-RUNTIME`
+- `PCHR-02-CREDENTIAL-IDENTITY-PROFILE-REFERENCE`
+- `PCHR-02-DRYRUN-TESTNET-PRODUCTION-ENVIRONMENT-ISOLATION`
+- `PCHR-02-MISSING-AUTHORIZATION-FAIL-CLOSED`
+- `PCHR-02-NO-PRODUCTION-FALLBACK`
+- `PCHR-02-NO-PRODUCTION-SECRET-VALUE-READ`
+- `TVM-PCHR-CREDENTIAL-REFERENCE-ENVIRONMENT-ISOLATION`
+
 ## GH-631 CEFR Final Envelope Retirement Contract Validation
 
 GH-631 的 required validation：
