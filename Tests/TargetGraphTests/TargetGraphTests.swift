@@ -6454,6 +6454,197 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH663BinanceAdapterRehearsalMapsDryRunAndTestnetSubmitCancelReplace() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.3.0-binance-adapter-rehearsal-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let adapterSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/ExecutionClient/FutureGate/ReleaseV030BinanceAdapterRehearsal.swift"
+            ),
+            encoding: .utf8
+        )
+
+        let rehearsal = try ReleaseV030BinanceAdapterRehearsal()
+        let evidence = try rehearsal.run(recordedAt: Date(timeIntervalSince1970: 1_704_068_400))
+
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.mappingCoverageHeld)
+        XCTAssertTrue(evidence.replayCoverageHeld)
+        XCTAssertTrue(evidence.boundaryHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-663")
+        XCTAssertEqual(evidence.upstreamIssueID.rawValue, "GH-662")
+        XCTAssertEqual(evidence.downstreamIssueID.rawValue, "GH-664")
+        XCTAssertEqual(evidence.canonicalQueueRange, "GH-657..GH-670")
+        XCTAssertEqual(evidence.projectName, "MTPRO Release v0.3.0 Runtime Rehearsal v1")
+        XCTAssertEqual(evidence.releaseVersion, "v0.3.0")
+        XCTAssertEqual(
+            evidence.upstreamOMSRehearsalAnchor,
+            "TVM-RELEASE-V030-EXECUTIONENGINE-OMS-REHEARSAL-LIFECYCLE"
+        )
+        XCTAssertEqual(evidence.supportedProductTypes, [.spot, .usdsPerpetual])
+        XCTAssertEqual(evidence.supportedCommands, ReleaseV030BinanceAdapterRehearsalCommandKind.allCases)
+        XCTAssertEqual(evidence.requirements, ReleaseV030BinanceAdapterRehearsalRequirement.allCases)
+        XCTAssertEqual(
+            Set(evidence.forbiddenCapabilities),
+            Set(ReleaseV030BinanceAdapterRehearsalForbiddenCapability.allCases)
+        )
+
+        XCTAssertEqual(evidence.omsHandoffs.count, 2)
+        XCTAssertTrue(evidence.omsHandoffs.allSatisfy(\.handoffHeld))
+        XCTAssertTrue(evidence.omsHandoffs.allSatisfy { $0.sourceIssueID.rawValue == "GH-662" })
+        XCTAssertTrue(evidence.omsHandoffs.allSatisfy { $0.stateEvidence.contains("submitted-testnet-or-dry-run") })
+        XCTAssertEqual(evidence.dryRunMappings.count, 6)
+        XCTAssertEqual(evidence.testnetMappings.count, 6)
+        XCTAssertEqual(evidence.testnetAcknowledgements.count, 6)
+        XCTAssertTrue(evidence.dryRunMappings.allSatisfy { $0.mode == .dryRun && $0.mappingHeld })
+        XCTAssertTrue(evidence.testnetMappings.allSatisfy { $0.mode == .testnet && $0.mappingHeld })
+        XCTAssertTrue(evidence.testnetAcknowledgements.allSatisfy(\.acknowledgementHeld))
+        XCTAssertTrue(evidence.eventEnvelopes.allSatisfy { $0.payloadType.contains("executionclient.release-v0.3.0.binance") })
+        XCTAssertEqual(evidence.eventEnvelopes, evidence.replayedEnvelopes)
+
+        let dryRunPairs = Set(evidence.dryRunMappings.map { "\($0.productType.rawValue):\($0.commandKind.rawValue)" })
+        let testnetPairs = Set(evidence.testnetMappings.map { "\($0.productType.rawValue):\($0.commandKind.rawValue)" })
+        let expectedPairs = Set(["spot:submit", "spot:cancel", "spot:replace", "usdsPerpetual:submit", "usdsPerpetual:cancel", "usdsPerpetual:replace"])
+        XCTAssertEqual(dryRunPairs, expectedPairs)
+        XCTAssertEqual(testnetPairs, expectedPairs)
+        XCTAssertTrue(evidence.testnetMappings.contains {
+            $0.productType == .spot
+                && $0.commandKind == .replace
+                && $0.method == .post
+                && $0.endpointPath == "/api/v3/order/cancelReplace"
+        })
+        XCTAssertTrue(evidence.testnetMappings.contains {
+            $0.productType == .usdsPerpetual
+                && $0.commandKind == .replace
+                && $0.method == .put
+                && $0.endpointPath == "/fapi/v1/order"
+                && $0.positionSide == "SHORT"
+        })
+        XCTAssertTrue(evidence.testnetMappings.allSatisfy(\.signatureRequired))
+        XCTAssertTrue(evidence.testnetMappings.allSatisfy { $0.networkCallPerformed == false })
+        XCTAssertTrue(evidence.testnetMappings.allSatisfy { $0.productionOrderSubmitted == false })
+        XCTAssertTrue(evidence.testnetMappings.allSatisfy { $0.rawBrokerPayloadExposedToDashboard == false })
+
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(evidence.productionSecretAutoReadEnabled)
+        XCTAssertFalse(evidence.productionOrderSubmissionEnabled)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertFalse(evidence.exposesRawBrokerPayloadToDashboard)
+        XCTAssertFalse(evidence.commandGatewayBypassAllowed)
+        XCTAssertFalse(evidence.riskEngineBypassAllowed)
+        XCTAssertFalse(evidence.omsBypassAllowed)
+        XCTAssertFalse(evidence.eventStoreBypassAllowed)
+        XCTAssertFalse(evidence.startsNextMilestone)
+
+        for anchor in ReleaseV030BinanceAdapterRehearsalEvidence.requiredValidationAnchors {
+            XCTAssertTrue(evidence.validationAnchors.contains(anchor), "\(anchor) must stay in Swift evidence")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in Binance adapter rehearsal contract")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation-plan.md")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading-validation-matrix.md")
+        }
+        XCTAssertTrue(contractDoc.contains("GH-662"))
+        XCTAssertTrue(contractDoc.contains("GH-664"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.3.0 Binance adapter rehearsal anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV030BinanceAdapterRehearsal.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH663BinanceAdapterRehearsalMapsDryRunAndTestnetSubmitCancelReplace"
+            )
+        )
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(adapterSource.contains("ReleaseV030BinanceAdapterRehearsal"))
+        XCTAssertTrue(adapterSource.contains("ReleaseV030BinanceAdapterRehearsalEvidence"))
+        XCTAssertTrue(adapterSource.contains("ReleaseV030BinanceAdapterRehearsalRequestMapping"))
+
+        for forbidden in [
+            "api.binance.com",
+            "fapi.binance.com",
+            "URLSession",
+            "import ExecutionEngine",
+            "import RiskEngine",
+            "secretValue",
+            "privateKey",
+            "rawBrokerPayload:"
+        ] {
+            XCTAssertFalse(adapterSource.contains(forbidden), "Binance adapter rehearsal source must not contain \(forbidden)")
+        }
+
+        XCTAssertThrowsError(
+            try rehearsal.run(
+                upstreamOMSRehearsalAnchor: "UNSAFE-MISSING-GH-662-ANCHOR",
+                recordedAt: Date(timeIntervalSince1970: 1_704_068_400)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "upstreamOMSRehearsalAnchor",
+                    expected: "TVM-RELEASE-V030-EXECUTIONENGINE-OMS-REHEARSAL-LIFECYCLE",
+                    actual: "UNSAFE-MISSING-GH-662-ANCHOR"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV030BinanceAdapterRehearsalRequestMapping(
+                mappingID: Identifier("gh-663-production-endpoint-rejected"),
+                commandKind: .submit,
+                mode: .testnet,
+                productType: .spot,
+                baseURL: URL(string: "https://api.binance.com"),
+                credentialReferenceID: Identifier("gh-663-testnet-credential"),
+                sourceOrderIntentID: Identifier("gh-662-order-intent"),
+                sourceEventLogID: Identifier("gh-662-event-log"),
+                sourceOMSOrderID: Identifier("gh-662-order"),
+                clientOrderID: Identifier("gh-663-client-order"),
+                symbol: "BTCUSDT",
+                side: "BUY",
+                queryItems: [
+                    try ReleaseV030BinanceAdapterRehearsalQueryItem(name: "symbol", value: "BTCUSDT"),
+                    try ReleaseV030BinanceAdapterRehearsalQueryItem(name: "side", value: "BUY"),
+                    try ReleaseV030BinanceAdapterRehearsalQueryItem(name: "type", value: "LIMIT"),
+                    try ReleaseV030BinanceAdapterRehearsalQueryItem(name: "timeInForce", value: "GTC"),
+                    try ReleaseV030BinanceAdapterRehearsalQueryItem(name: "quantity", value: "0.10"),
+                    try ReleaseV030BinanceAdapterRehearsalQueryItem(name: "price", value: "43000"),
+                    try ReleaseV030BinanceAdapterRehearsalQueryItem(name: "newClientOrderId", value: "unsafe"),
+                    try ReleaseV030BinanceAdapterRehearsalQueryItem(name: "recvWindow", value: "5000"),
+                    try ReleaseV030BinanceAdapterRehearsalQueryItem(name: "timestamp", value: "1704068600000")
+                ]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("releaseV030BinanceAdapter.productionEndpoint")
+            )
+        }
+    }
+
     func testGH643ProductionCutoverRuntimeHardeningContractFailsClosedWithoutProductionCutover() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
