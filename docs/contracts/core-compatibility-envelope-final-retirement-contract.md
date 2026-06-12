@@ -215,6 +215,102 @@ Production defaults remain:
 - `brokerGatewayEnabledByDefault == false`
 - `realOrderCommandEnabledByDefault == false`
 
+## GH-634-PORTFOLIO-PARITY-OWNERSHIP-CONTRACT
+
+`GH-634-PORTFOLIO-PARITY-OWNERSHIP-CONTRACT`
+
+GH-634 收窄 Portfolio / Execution simulated parity compatibility ownership。`Portfolio` target 现在直接拥有 `Sources/Portfolio/PortfolioParityOwnershipContract.swift`，由 `PortfolioParityOwnershipContract.gh634` 记录 active Portfolio projection sources、Core retained Portfolio parity bridges、退出路径和 no-production authorization。
+
+## GH-634-PORTFOLIO-ACTIVE-PROJECTION-SOURCES
+
+`GH-634-PORTFOLIO-ACTIVE-PROJECTION-SOURCES`
+
+以下 source 是 Portfolio active ownership，不再由 `Core` 解释为 active portfolio implementation：
+
+| Active source | Owner target | Ownership reason |
+| --- | --- | --- |
+| `Sources/Portfolio/PaperPortfolioProjectionUpdate.swift` | `Portfolio` | paper portfolio projection update is active Portfolio-owned read-model evidence |
+| `Sources/Portfolio/PortfolioFinancialStateProjection.swift` | `Portfolio` | financial state projection is active Portfolio-owned read-model evidence |
+| `Sources/Portfolio/PortfolioParityOwnershipContract.swift` | `Portfolio` | CEFR portfolio parity ownership classification belongs to Portfolio |
+
+以下 source 仍由 `Core` compatibility envelope 编译，但只能解释为 compatibility-only retained bridge：
+
+- `Sources/Portfolio/PaperAccountPortfolioProjectionV2.swift`
+- `Sources/Portfolio/SimulatedExchangePortfolioProjectionParity.swift`
+
+## GH-634-EXECUTION-PARITY-OWNERSHIP-CONTRACT
+
+`GH-634-EXECUTION-PARITY-OWNERSHIP-CONTRACT`
+
+`ExecutionEngine` target 现在直接拥有 `Sources/ExecutionEngine/Ownership/ExecutionParityOwnershipContract.swift`，由 `ExecutionParityOwnershipContract.gh634` 记录 active paper / simulated execution sources、Core retained execution parity bridges、退出路径和 no-production authorization。
+
+## GH-634-EXECUTION-ACTIVE-SIMULATED-SOURCES
+
+`GH-634-EXECUTION-ACTIVE-SIMULATED-SOURCES`
+
+以下 source 是 ExecutionEngine active ownership：
+
+| Active source | Owner target | Ownership reason |
+| --- | --- | --- |
+| `Sources/ExecutionEngine/Ownership/ExecutionEnginePaperOwnership.swift` | `ExecutionEngine` | paper execution ownership matrix belongs to ExecutionEngine |
+| `Sources/ExecutionEngine/Ownership/ExecutionParityOwnershipContract.swift` | `ExecutionEngine` | CEFR execution parity ownership classification belongs to ExecutionEngine |
+| `Sources/ExecutionEngine/PaperLifecycle/PaperExecutionWorkflowContract.swift` | `ExecutionEngine` | paper execution workflow contract belongs to ExecutionEngine |
+| `Sources/ExecutionEngine/PaperLifecycle/PaperRuntimeKernelBoundary.swift` | `ExecutionEngine` | paper runtime kernel boundary belongs to ExecutionEngine |
+| `Sources/ExecutionEngine/PaperLifecycle/PaperSessionLocalControlCommand.swift` | `ExecutionEngine` | paper session local control command belongs to ExecutionEngine |
+| `Sources/ExecutionEngine/SimulatedExchange/SimulatedExchangeBacktestParityBoundary.swift` | `ExecutionEngine` | simulated exchange parity boundary belongs to ExecutionEngine |
+
+以下 source 仍由 `Core` compatibility envelope 编译，但只能解释为 compatibility-only retained bridge：
+
+- `Sources/ExecutionEngine/PaperLifecycle/PaperExecutionDecision.swift`
+- `Sources/ExecutionEngine/PaperLifecycle/PaperExecutionEventLog.swift`
+- `Sources/ExecutionEngine/PaperLifecycle/PaperOrderIntent.swift`
+- `Sources/ExecutionEngine/PaperLifecycle/PaperOrderLifecycleCoordinator.swift`
+- `Sources/ExecutionEngine/PaperLifecycle/PaperSessionLifecycle.swift`
+- `Sources/ExecutionEngine/PaperLifecycle/PaperSessionLocalControlEventLog.swift`
+- `Sources/ExecutionEngine/PaperLifecycle/PaperSessionReplay.swift`
+- `Sources/ExecutionEngine/SimulatedExchange/BacktestPaperSharedOrderSemantics.swift`
+- `Sources/ExecutionEngine/SimulatedExchange/MarketLimitSimulatedExecutionSemantics.swift`
+- `Sources/ExecutionEngine/SimulatedExchange/PaperSimulatedFillEvidence.swift`
+- `Sources/ExecutionEngine/SimulatedExchange/PartialFillLatencyFeeSlippageParity.swift`
+
+## GH-634-CORE-PORTFOLIO-EXECUTION-PARITY-COMPATIBILITY-ONLY
+
+`GH-634-CORE-PORTFOLIO-EXECUTION-PARITY-COMPATIBILITY-ONLY`
+
+`GH-634-CORE-PORTFOLIO-PARITY-COMPATIBILITY-ONLY`
+
+`GH-634-CORE-EXECUTION-PARITY-COMPATIBILITY-ONLY`
+
+GH-634 后，Core 不再作为 active portfolio / execution parity owner。Core 只保留 legacy import、event/replay bridge 和 cross-module deterministic parity bridge 编译路径。后续 CEFR issue 只能在 owner-specific dependency surface 可拆分后迁移 retained bridge，不能通过 Core 新增 active parity implementation。
+
+## GH-634-NO-PRODUCTION-AUTHORIZATION
+
+`GH-634-NO-PRODUCTION-AUTHORIZATION`
+
+GH-634 does not authorize:
+
+- production trading;
+- production secret read, print or storage;
+- production endpoint connection;
+- signed endpoint, account endpoint, listenKey or private WebSocket runtime;
+- broker gateway, broker adapter or automatic broker connection;
+- real submit / cancel / replace;
+- production OMS;
+- execution report, broker fill or reconciliation runtime;
+- Live PRO Console production command, trading button, live command or order form.
+
+Production defaults remain:
+
+- `productionTradingEnabledByDefault == false`
+- `productionSecretReadEnabledByDefault == false`
+- `productionEndpointConnectionEnabledByDefault == false`
+- `brokerGatewayEnabledByDefault == false`
+- `omsRuntimeEnabledByDefault == false`
+- `realOrderCommandEnabledByDefault == false`
+- `executionReportRuntimeEnabledByDefault == false`
+- `brokerFillRuntimeEnabledByDefault == false`
+- `reconciliationRuntimeEnabledByDefault == false`
+
 ## GH-631-RETENTION-REASON-AND-EXIT-PATH
 
 `GH-631-RETENTION-REASON-AND-EXIT-PATH`
@@ -296,12 +392,22 @@ Required anchors:
 - `GH-633-CORE-DETERMINISTIC-MATCHING-COMPATIBILITY-ONLY`
 - `GH-633-NO-PRODUCTION-AUTHORIZATION`
 - `TVM-CEFR-DATAENGINE-SCENARIO-QUALITY-OWNERSHIP`
+- `GH-634-PORTFOLIO-PARITY-OWNERSHIP-CONTRACT`
+- `GH-634-PORTFOLIO-ACTIVE-PROJECTION-SOURCES`
+- `GH-634-EXECUTION-PARITY-OWNERSHIP-CONTRACT`
+- `GH-634-EXECUTION-ACTIVE-SIMULATED-SOURCES`
+- `GH-634-CORE-PORTFOLIO-EXECUTION-PARITY-COMPATIBILITY-ONLY`
+- `GH-634-CORE-PORTFOLIO-PARITY-COMPATIBILITY-ONLY`
+- `GH-634-CORE-EXECUTION-PARITY-COMPATIBILITY-ONLY`
+- `GH-634-NO-PRODUCTION-AUTHORIZATION`
+- `TVM-CEFR-PORTFOLIO-EXECUTION-PARITY-OWNERSHIP`
 
 Required validation:
 
 - `swift test --filter TargetGraphTests/testGH631FinalEnvelopeRetirementContractClassifiesEveryRetainedSource`
 - `swift test --filter TargetGraphTests/testGH632MessageBusOwnsRichRoutingCompatibilityContractAndKeepsCoreCompatibilityOnly`
 - `swift test --filter TargetGraphTests/testGH633DataEngineOwnsScenarioReplayAndDataQualityWhileCoreRetainsMatchingBridgeOnly`
+- `swift test --filter TargetGraphTests/testGH634PortfolioAndExecutionOwnParityContractsWhileCoreRetainsBridgeOnly`
 - `git diff --check`
 - `bash checks/automation-readiness.sh`
 - `bash checks/run.sh`

@@ -11,7 +11,8 @@ import RiskEngine
 /// 迁到真实 `Sources/ExecutionEngine/TargetGraph` root，并继续连接 RiskEngine 与
 /// ExecutionClient future gate。GH-418 起，ExecutionEngine target 开始拥有 paper
 /// workflow contract、paper runtime kernel、session local control command 和 simulated
-/// exchange parity boundary；Core 只继续保留 paper order intent、event log / replay / publication bridge。
+/// exchange parity boundary；GH-634 起 ExecutionEngine target 直接拥有 execution parity
+/// ownership classification。Core 只继续保留 paper order intent、event log / replay / publication bridge。
 /// 它不实现 live execution runtime、OMS、broker gateway、signed endpoint 或真实订单生命周期。
 public struct ExecutionEngineTargetBoundary: Codable, Equatable, Sendable {
     public let targetName: String
@@ -150,6 +151,7 @@ public struct ExecutionEngineTargetBoundary: Codable, Equatable, Sendable {
         "GH-418-EXECUTIONENGINE-SESSION-CONTROL-OWNERSHIP",
         "GH-418-EXECUTIONENGINE-SIMULATED-PARITY-BOUNDARY-OWNERSHIP",
         "GH-418-CORE-EXECUTIONENGINE-ORDER-EVENT-REPLAY-BRIDGE-DEFERRED",
+        "GH-634-EXECUTION-PARITY-OWNERSHIP-CONTRACT",
         "MTP-220-NO-BROKER-OMS-REAL-ORDER-GUARD",
         "MTP-229-EXECUTIONENGINE-REAL-ROOT-TARGET-PATH"
     ]
