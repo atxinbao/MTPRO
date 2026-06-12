@@ -5364,6 +5364,189 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH644CredentialReferenceEnvironmentIsolationFailsClosedWithoutSecretRead() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/production-credential-reference-environment-isolation-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let upstreamContractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/production-cutover-runtime-hardening-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+
+        let upstream = try ProductionCutoverRuntimeHardeningContract.deterministicFixture()
+        let contract = try ProductionCredentialReferenceEnvironmentIsolation.deterministicFixture()
+        XCTAssertTrue(upstream.contractHeld)
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertTrue(contract.environmentCoverageHeld)
+        XCTAssertTrue(contract.secretAndEndpointDefaultsClosed)
+        XCTAssertTrue(contract.commandPathBypassRejected)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-644")
+        XCTAssertEqual(contract.upstreamIssueID.rawValue, "GH-643")
+        XCTAssertEqual(contract.downstreamIssueID.rawValue, "GH-645")
+        XCTAssertEqual(contract.canonicalQueueRange, "GH-643..GH-649")
+        XCTAssertEqual(Set(contract.requirements), Set(ProductionCredentialReferenceRequirement.allCases))
+        XCTAssertEqual(
+            Set(contract.forbiddenCapabilities),
+            Set(ProductionCredentialReferenceForbiddenCapability.allCases)
+        )
+        XCTAssertEqual(
+            Set(contract.profileReferences.map(\.environment)),
+            Set(ProductionCredentialEnvironmentKind.allCases)
+        )
+
+        XCTAssertTrue(contract.upstreamRuntimeHardeningContractHeld)
+        XCTAssertTrue(contract.credentialIdentityOnlyRequired)
+        XCTAssertTrue(contract.explicitEnvironmentSelectionRequired)
+        XCTAssertTrue(contract.missingAuthorizationFailsClosed)
+        XCTAssertTrue(contract.noProductionFallbackRequired)
+        XCTAssertFalse(contract.readsProductionSecretValue)
+        XCTAssertFalse(contract.probesEnvironmentSecret)
+        XCTAssertFalse(contract.storesSecretValue)
+        XCTAssertFalse(contract.defaultProductionEnvironmentSelected)
+        XCTAssertFalse(contract.ambiguousEnvironmentFallsBackToProduction)
+        XCTAssertFalse(contract.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(contract.realBrokerConnectionEnabled)
+        XCTAssertFalse(contract.realOrderSubmissionEnabled)
+        XCTAssertFalse(contract.commandRiskExecutionOMSBypassAllowed)
+        XCTAssertFalse(contract.startsNextMilestone)
+
+        let profileStates = Dictionary(uniqueKeysWithValues: contract.profileReferences.map { ($0.environment, $0) })
+        XCTAssertEqual(profileStates[.dryRun]?.authorizationState, .localFixtureAuthorized)
+        XCTAssertEqual(profileStates[.testnet]?.authorizationState, .testnetReferenceAuthorized)
+        XCTAssertEqual(profileStates[.productionBlocked]?.authorizationState, .productionMissingFailClosed)
+        XCTAssertEqual(profileStates[.futureProduction]?.authorizationState, .futureProductionManualGateRequired)
+        XCTAssertTrue(contract.profileReferences.allSatisfy(\.referenceBoundaryHeld))
+
+        for anchor in ProductionCredentialReferenceEnvironmentIsolation.requiredValidationAnchors {
+            XCTAssertTrue(contract.validationAnchors.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in credential contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation-plan.md")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading-validation-matrix.md")
+        }
+        XCTAssertTrue(upstreamContractDoc.contains("PCHR-01-PRODUCTION-CUTOVER-RUNTIME-HARDENING-CONTRACT"))
+        XCTAssertTrue(automationReadiness.contains("Production credential reference / environment isolation anchor"))
+        XCTAssertTrue(readinessScript.contains("ProductionCredentialReferenceEnvironmentIsolation.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH644CredentialReferenceEnvironmentIsolationFailsClosedWithoutSecretRead"
+            )
+        )
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/ProductionCredentialReferenceEnvironmentIsolation.swift"
+                ).path
+            )
+        )
+
+        XCTAssertThrowsError(
+            try ProductionCredentialReferenceEnvironmentIsolation(
+                readsProductionSecretValue: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("readsProductionSecretValue"))
+        }
+        XCTAssertThrowsError(
+            try ProductionCredentialReferenceEnvironmentIsolation(
+                probesEnvironmentSecret: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("probesEnvironmentSecret"))
+        }
+        XCTAssertThrowsError(
+            try ProductionCredentialReferenceEnvironmentIsolation(
+                ambiguousEnvironmentFallsBackToProduction: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("ambiguousEnvironmentFallsBackToProduction")
+            )
+        }
+        XCTAssertThrowsError(
+            try ProductionCredentialReferenceEnvironmentIsolation(
+                productionEndpointAutoConnectEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("productionEndpointAutoConnectEnabled")
+            )
+        }
+        XCTAssertThrowsError(
+            try ProductionCredentialReferenceEnvironmentIsolation(
+                upstreamRuntimeHardeningContractHeld: false
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "upstreamRuntimeHardeningContractHeld",
+                    expected: "true",
+                    actual: "false"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try ProductionCredentialProfileReference(
+                referenceID: Identifier.constant("unsafe-gh-644-secret-read"),
+                environment: .testnet,
+                profileReference: "unsafe-testnet-profile-reference",
+                authorizationState: .testnetReferenceAuthorized,
+                authorizationAnchor: "PCHR-02-UNSAFE-SECRET-READ",
+                readsSecretValue: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("readsSecretValue"))
+        }
+        XCTAssertThrowsError(
+            try ProductionCredentialProfileReference(
+                referenceID: Identifier.constant("unsafe-gh-644-production-state-mismatch"),
+                environment: .productionBlocked,
+                profileReference: "unsafe-production-profile-reference",
+                authorizationState: .testnetReferenceAuthorized,
+                authorizationAnchor: "PCHR-02-UNSAFE-PRODUCTION-STATE"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "referenceBoundaryHeld",
+                    expected: "credential reference environment state matches fail-closed contract",
+                    actual: "production blocked:testnet reference authorized"
+                )
+            )
+        }
+    }
+
     func testGH523ReleaseV010TargetsExposeRealSmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-523-release-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)
