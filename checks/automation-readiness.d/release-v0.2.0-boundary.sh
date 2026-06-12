@@ -222,6 +222,8 @@ required_evidence = {
         "TVM-RELEASE-V020-PERPETUAL-PORTFOLIO-PROJECTION",
         "GH-589",
         "TVM-RELEASE-V020-AGGREGATE-PORTFOLIO-ATTRIBUTION",
+        "GH-590",
+        "TVM-RELEASE-V020-PRODUCT-AWARE-EVENT-STORE-SCHEMA",
     ],
     "docs/validation/validation-plan.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Validation",
@@ -246,6 +248,7 @@ required_evidence = {
         "GH-587 Release v0.2.0 Spot Portfolio Projection Validation",
         "GH-588 Release v0.2.0 Perpetual Portfolio Projection Validation",
         "GH-589 Release v0.2.0 Aggregate Portfolio Attribution Validation",
+        "GH-590 Release v0.2.0 Product-aware Event Store Schema Validation",
     ],
     "docs/domain/context.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Terms",
@@ -270,6 +273,7 @@ required_evidence = {
         "GH-587 Spot Portfolio Projection Terms",
         "GH-588 Perpetual Portfolio Projection Terms",
         "GH-589 Aggregate Portfolio Attribution Terms",
+        "GH-590 Product-aware Event Store Schema Terms",
     ],
     "docs/automation/automation-readiness.md": [
         "Release v0.2.0 boundary automation guard anchor",
@@ -294,6 +298,7 @@ required_evidence = {
         "Release v0.2.0 Spot Portfolio projection anchor",
         "Release v0.2.0 Perpetual Portfolio projection anchor",
         "Release v0.2.0 aggregate Portfolio attribution anchor",
+        "Release v0.2.0 product-aware Event Store schema anchor",
     ],
     "Tests/TargetGraphTests/TargetGraphTests.swift": [
         "testGH565ReleaseV020BoundaryGuardBlocksScopeExpansionAndProductionDefaults",
@@ -318,6 +323,7 @@ required_evidence = {
         "testGH587SpotPortfolioProjectionUpdatesBalancePositionPnLAndStrategyAttribution",
         "testGH588PerpetualPortfolioProjectionUpdatesPositionMarginPnLFundingAndAttribution",
         "testGH589AggregatePortfolioAndStrategyAttributionCombinesSpotPerpEvidence",
+        "testGH590ProductAwareEventStoreSchemaStoresContextRejectsOutOfOrderAndKeepsChecksum",
     ],
 }
 

@@ -4338,6 +4338,32 @@ No production Portfolio runtime 指 GH-589 默认关闭 production account endpo
 
 Release v0.2.0 aggregate Portfolio attribution matrix 必须证明 GH-587 Spot projection + GH-588 Perp projection -> aggregate exposure / separated EMA-RSI attribution / funding-liquidation summary evidence 成立，且 `Portfolio` target 不直接依赖 `ExecutionClient`，aggregate evidence 不绕过 CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store / kill switch / no-trade gate。
 
+## GH-590 Product-aware Event Store Schema Terms
+
+`GH-590-PRODUCT-AWARE-EVENT-STORE-SCHEMA`
+
+Product-aware Event Store schema 指 release v0.2.0 中由 `Database` target 拥有的 append-only event record evidence。每条 record 必须保存 sequence、stream、venue、productType、instrumentID、payloadType、previousChecksum、checksum 和 recordedAt；该 schema 不保存 raw payload，不暴露 SQLite table，也不代表 production event store。
+
+`GH-590-EVENT-CONTEXT-VENUE-PRODUCT-INSTRUMENT`
+
+Event context venue / product / instrument 指每条 event record 都必须从 `InstrumentIdentity` 持久化 Binance venue、Spot / USDⓈ-M Perpetual productType 和完整 instrumentID。该 context 防止 Spot BTCUSDT 与 Perp BTCUSDT 在 replay / projection 中碰撞。
+
+`GH-590-OUT-OF-ORDER-APPEND-REJECTED`
+
+Out-of-order append rejected 指 Event Store schema 只接受 next sequence，拒绝跳号、回退或不连续 append。该规则服务本地 append-only evidence，不连接 broker，不执行 recovery command。
+
+`GH-590-STABLE-CHECKSUM`
+
+Stable checksum 指 event record checksum 基于 sequence、stream、sourceID、payloadType、instrumentID、previousChecksum 和 recordedAt 生成 deterministic 本地校验值。它不是安全签名，不保存 secret，也不授权 production trading。
+
+`GH-590-NO-PRODUCTION-EVENT-STORE-SIDE-EFFECT`
+
+No production Event Store side effect 指 GH-590 默认关闭 production trading、production account endpoint、broker gateway、raw payload persistence、Dashboard live command surface 和 broker / account side effect。
+
+`TVM-RELEASE-V020-PRODUCT-AWARE-EVENT-STORE-SCHEMA`
+
+Release v0.2.0 product-aware Event Store schema matrix 必须证明每条 event 保存 venue / productType / instrumentID、out-of-order append rejected 和 checksum stable，并且 `Database` target 不依赖 `ExecutionClient`、不暴露 SQLite table、不保存 raw payload、不绕过 CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store / kill switch / no-trade gate。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Terms
 
 `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`
