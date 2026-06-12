@@ -5197,6 +5197,198 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(auditInput.contains("no next Project / Issue is created or promoted"))
     }
 
+    func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.3.0-runtime-rehearsal-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+
+        let contract = try ReleaseV030RuntimeRehearsalContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertTrue(contract.productionDefaultsClosed)
+        XCTAssertTrue(contract.commandGateChainRequired)
+        XCTAssertTrue(contract.bypassesRejected)
+        XCTAssertTrue(contract.oneCommandCriteriaHeld)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-657")
+        XCTAssertEqual(contract.downstreamIssueID.rawValue, "GH-658")
+        XCTAssertEqual(contract.canonicalQueueRange, "GH-657..GH-670")
+        XCTAssertEqual(contract.projectName, "MTPRO Release v0.3.0 Runtime Rehearsal v1")
+        XCTAssertEqual(contract.releaseVersion, "v0.3.0")
+        XCTAssertEqual(contract.allowedVenue, "Binance")
+        XCTAssertEqual(contract.allowedProductTypes, ["spot", "usdsPerpetual"])
+        XCTAssertEqual(contract.allowedStrategies, ["EMA", "RSI"])
+        XCTAssertEqual(contract.rehearsalModes, ReleaseV030RuntimeRehearsalMode.allCases)
+        XCTAssertEqual(
+            Set(contract.forbiddenCapabilities),
+            Set(ReleaseV030RuntimeRehearsalForbiddenCapability.allCases)
+        )
+        XCTAssertEqual(contract.oneCommandRehearsalName, "verify-v0.3.0")
+        XCTAssertEqual(contract.successCriteria, ReleaseV030RuntimeRehearsalSuccessCriterion.allCases)
+
+        XCTAssertFalse(contract.productionTradingEnabledByDefault)
+        XCTAssertFalse(contract.productionSecretAutoReadEnabled)
+        XCTAssertFalse(contract.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(contract.productionOrderSubmissionEnabled)
+        XCTAssertFalse(contract.productionCutoverAuthorized)
+        XCTAssertTrue(contract.commandGatewayRequired)
+        XCTAssertTrue(contract.riskEngineRequired)
+        XCTAssertTrue(contract.executionEngineRequired)
+        XCTAssertTrue(contract.omsRequired)
+        XCTAssertTrue(contract.eventStoreRequired)
+        XCTAssertFalse(contract.dashboardCLICommandGatewayBypassAllowed)
+        XCTAssertFalse(contract.strategyExecutionClientDirectAccessAllowed)
+        XCTAssertFalse(contract.riskExecutionOMSEventStoreBypassAllowed)
+        XCTAssertFalse(contract.startsNextMilestone)
+
+        for anchor in ReleaseV030RuntimeRehearsalContract.requiredValidationAnchors {
+            XCTAssertTrue(contract.validationAnchors.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation-plan.md")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading-validation-matrix.md")
+        }
+        for mode in ["dry-run", "testnet", "shadow", "production-blocked"] {
+            XCTAssertTrue(contractDoc.contains(mode), "\(mode) must stay documented as a rehearsal mode")
+        }
+        for criterion in ReleaseV030RuntimeRehearsalSuccessCriterion.allCases {
+            XCTAssertTrue(
+                contractDoc.contains(criterion.rawValue),
+                "\(criterion.rawValue) must stay documented as one-command success criteria"
+            )
+        }
+
+        XCTAssertTrue(automationReadiness.contains("Release v0.3.0 runtime rehearsal contract anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV030RuntimeRehearsalContract.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary"
+            )
+        )
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/ReleaseV030RuntimeRehearsalContract.swift"
+                ).path
+            )
+        )
+
+        XCTAssertThrowsError(
+            try ReleaseV030RuntimeRehearsalContract(
+                productionTradingEnabledByDefault: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("productionTradingEnabledByDefault")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV030RuntimeRehearsalContract(
+                productionSecretAutoReadEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("productionSecretAutoReadEnabled")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV030RuntimeRehearsalContract(
+                productionEndpointAutoConnectEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("productionEndpointAutoConnectEnabled")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV030RuntimeRehearsalContract(
+                productionOrderSubmissionEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("productionOrderSubmissionEnabled")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV030RuntimeRehearsalContract(
+                productionCutoverAuthorized: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("productionCutoverAuthorized"))
+        }
+        XCTAssertThrowsError(
+            try ReleaseV030RuntimeRehearsalContract(
+                allowedVenue: "Coinbase"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(field: "allowedVenue", expected: "Binance", actual: "Coinbase")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV030RuntimeRehearsalContract(
+                allowedProductTypes: ["spot"]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "allowedProductTypes",
+                    expected: "spot,usdsPerpetual",
+                    actual: "spot"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV030RuntimeRehearsalContract(
+                strategyExecutionClientDirectAccessAllowed: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("strategyExecutionClientDirectAccessAllowed")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV030RuntimeRehearsalContract(
+                commandGatewayRequired: false
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(field: "commandGatewayRequired", expected: "true", actual: "false")
+            )
+        }
+    }
+
     func testGH643ProductionCutoverRuntimeHardeningContractFailsClosedWithoutProductionCutover() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

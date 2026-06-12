@@ -77,6 +77,30 @@ bash checks/run.sh
 
 该矩阵记录 EMA parity、order book imbalance parity、fees / slippage、risk blocker、portfolio exposure 和 report evidence 的现有 coverage、验收证据边界和后续 issue 回填规则。
 
+## GH-657 Release v0.3.0 Runtime Rehearsal Contract Validation
+
+GH-657 的 required validation：
+
+- `docs/contracts/release-v0.3.0-runtime-rehearsal-contract.md` 必须存在，并包含 `V030-01-RUNTIME-REHEARSAL-CONTRACT`、`V030-01-REHEARSAL-MODES`、`V030-01-BINANCE-SPOT-PERP-EMA-RSI-BOUNDARY`、`V030-01-FORBIDDEN-PRODUCTION-CAPABILITIES`、`V030-01-ONE-COMMAND-REHEARSAL-SUCCESS-CRITERIA` 和 `V030-01-COMMAND-RISK-EXECUTION-OMS-EVENTSTORE-AUDITABLE-GATES`。
+- `Sources/ExecutionClient/FutureGate/ReleaseV030RuntimeRehearsalContract.swift` 必须定义 `ReleaseV030RuntimeRehearsalContract`、`ReleaseV030RuntimeRehearsalMode`、`ReleaseV030RuntimeRehearsalForbiddenCapability` 和 `ReleaseV030RuntimeRehearsalSuccessCriterion`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary`。
+- Contract 必须固定 release version 为 `v0.3.0`，queue range 为 `GH-657..GH-670`，downstream issue 为 `GH-658`。
+- Contract 必须证明 rehearsal modes 只包含 dry-run、testnet、shadow 和 production-blocked。
+- Contract 必须证明 active venue 为 Binance，active product types 为 Spot + USDⓈ-M Perpetual，active strategies 为 EMA + RSI。
+- Contract 必须证明 production trading 默认关闭、production secret 不自动读取、production endpoint 不自动连接、production order 不提交、production cutover 未授权。
+- Contract 必须证明 Dashboard / CLI 不绕过 CommandGateway，Strategy 不直连 ExecutionClient，RiskEngine / ExecutionEngine / OMS / Event Store gate 必须可审计。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-657 必须建立的主要 anchors：
+
+- `V030-01-RUNTIME-REHEARSAL-CONTRACT`
+- `V030-01-REHEARSAL-MODES`
+- `V030-01-BINANCE-SPOT-PERP-EMA-RSI-BOUNDARY`
+- `V030-01-FORBIDDEN-PRODUCTION-CAPABILITIES`
+- `V030-01-ONE-COMMAND-REHEARSAL-SUCCESS-CRITERIA`
+- `V030-01-COMMAND-RISK-EXECUTION-OMS-EVENTSTORE-AUDITABLE-GATES`
+- `TVM-RELEASE-V030-RUNTIME-REHEARSAL-CONTRACT`
+
 ## GH-643 Production Cutover Runtime Hardening Contract Validation
 
 GH-643 的 required validation：
