@@ -23,7 +23,8 @@ let package = Package(
         .library(name: "Adapters", targets: ["Adapters"]),
         .library(name: "Persistence", targets: ["Persistence"]),
         .library(name: "Runtime", targets: ["Runtime"]),
-        .executable(name: "Dashboard", targets: ["Dashboard"])
+        .executable(name: "Dashboard", targets: ["Dashboard"]),
+        .executable(name: "mtpro", targets: ["MTPROCLI"])
     ],
     dependencies: [
         .package(url: "https://github.com/duckdb/duckdb-swift.git", from: "1.1.3"),
@@ -92,6 +93,7 @@ let package = Package(
             sources: [
                 "DatabaseRuntimeOwnershipMatrix.swift",
                 "FoundationDatabaseCheckpoint.swift",
+                "ReleaseV020CLIProductSurface.swift",
                 "ReleaseV020GoldenTraceCatalog.swift",
                 "ReleaseV020ProductAwareEventStoreSchema.swift",
                 "TargetGraph/DatabaseTargetBoundary.swift"
@@ -302,6 +304,7 @@ let package = Package(
                 "MessageBus/StrategyIntentMessages.swift",
                 "MessageBus/StrategySignals.swift",
                 "MessageBus/TargetGraph",
+                "MTPROCLI",
                 "Portfolio/PaperPortfolioProjectionUpdate.swift",
                 "Portfolio/TargetGraph",
                 "Portfolio/PortfolioFinancialStateProjection.swift",
@@ -366,6 +369,7 @@ let package = Package(
             exclude: [
                 "DatabaseRuntimeOwnershipMatrix.swift",
                 "FoundationDatabaseCheckpoint.swift",
+                "ReleaseV020CLIProductSurface.swift",
                 "ReleaseV020GoldenTraceCatalog.swift",
                 "ReleaseV020ProductAwareEventStoreSchema.swift",
                 "ReplayProjection",
@@ -393,6 +397,7 @@ let package = Package(
                 "DataEngine/TargetGraph",
                 "Database/DatabaseRuntimeOwnershipMatrix.swift",
                 "Database/FoundationDatabaseCheckpoint.swift",
+                "Database/ReleaseV020CLIProductSurface.swift",
                 "Database/ReleaseV020GoldenTraceCatalog.swift",
                 "Database/ReleaseV020ProductAwareEventStoreSchema.swift",
                 "Database/Projections",
@@ -403,11 +408,20 @@ let package = Package(
                 "RiskEngine",
                 "ExecutionEngine",
                 "ExecutionClient",
+                "MTPROCLI",
                 "Trader"
             ],
             sources: [
                 "Database/ReplayProjection",
                 "DataEngine/Ingest"
+            ]
+        ),
+        .executableTarget(
+            name: "MTPROCLI",
+            dependencies: ["Database"],
+            path: "Sources/MTPROCLI",
+            sources: [
+                "main.swift"
             ]
         ),
         .executableTarget(

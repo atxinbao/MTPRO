@@ -4408,6 +4408,32 @@ No production trace side effect 指 GH-592 默认关闭 production trading、pro
 
 Release v0.2.0 Spot + Perp golden trace catalog matrix 必须证明 15 条 required trace 均存在，Binance / Spot / USDⓈ-M Perpetual / EMA / RSI coverage 完整，run checksum 与 replay checksum parity 成立，并且 catalog evidence 不绕过 CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store / kill switch / no-trade gate。
 
+## GH-593 CLI Product Surface Terms
+
+`GH-593-CLI-PRODUCT-SURFACE`
+
+CLI product surface 指 release v0.2.0 的 `mtpro` SwiftPM executable 产品表面。它只把 Spot、Perp、strategy、risk、execution、verify-fast 和 verify-release 的 deterministic evidence 汇总成可运行的本地验证入口，不成为 Strategy runtime、Trader runtime、Execution runtime、Dashboard command surface 或 broker runtime owner。
+
+`GH-593-MTPRO-VERIFY-FAST-PASS`
+
+`mtpro verify-fast pass` 指 CLI fast verification 在本地 deterministic evidence 上通过。该输出不读取 secret、不连接 endpoint、不执行真实订单、不代表 production approval，也不跳过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+
+`GH-593-MTPRO-VERIFY-RELEASE-PASS`
+
+`mtpro verify-release pass` 指 CLI release verification 在 GH-592 golden trace catalog 和 GH-593 CLI product surface evidence 上通过。该输出只证明 release v0.2.0 本地 evidence chain 可被 CLI 入口消费，不授权 production trading、production endpoint、broker connection、real submit / cancel / replace 或 production reconciliation。
+
+`GH-593-COMMANDGATEWAY-ROUTING-GATE`
+
+CommandGateway routing gate 指 CLI surface 中每个 command record 都必须声明经过 CommandGateway gate，并保持 `bypassesCommandGateway == false`、`bypassesRiskEngine == false`、`bypassesExecutionEngine == false`、`bypassesOMS == false`、`bypassesEventStore == false`、`bypassesKillSwitch == false` 和 `bypassesNoTradeState == false`。
+
+`GH-593-NO-PRODUCTION-CLI-SIDE-EFFECT`
+
+No production CLI side effect 指 CLI 入口不得读取 production secret、连接 signed/account/private/broker endpoint、读取 account endpoint、触碰 broker gateway、提交 / 取消 / 替换真实订单、执行 production reconciliation、暴露 Dashboard command surface 或启用 production trading。
+
+`TVM-RELEASE-V020-CLI-PRODUCT-SURFACE`
+
+Release v0.2.0 CLI product surface matrix 必须证明 `mtpro` product 和 `MTPROCLI` target 存在，`spot` / `perp` / `strategy` / `risk` / `execution` / `verify-fast` / `verify-release` command surface 完整，`mtpro verify-fast` 与 `mtpro verify-release` 输出 pass，并且 CLI evidence 不绕过 CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store / kill switch / no-trade gate。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Terms
 
 `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`
