@@ -77,6 +77,27 @@ bash checks/run.sh
 
 该矩阵记录 EMA parity、order book imbalance parity、fees / slippage、risk blocker、portfolio exposure 和 report evidence 的现有 coverage、验收证据边界和后续 issue 回填规则。
 
+## GH-660 Release v0.3.0 Trader Strategy Runtime Rehearsal Flow Validation
+
+GH-660 的 required validation：
+
+- `docs/contracts/release-v0.3.0-trader-strategy-runtime-rehearsal-flow-contract.md` 必须存在，并包含 `V030-04-TRADER-STRATEGY-RUNTIME-REHEARSAL-FLOW`、`V030-04-EMA-TARGET-EXPOSURE-INTENT-MESSAGEBUS`、`V030-04-RSI-TARGET-EXPOSURE-INTENT-MESSAGEBUS`、`V030-04-NO-STRATEGY-EXECUTIONCLIENT-OR-BINANCE-ADAPTER-ACCESS` 和 `V030-04-TRACEABLE-TRADER-STRATEGY-REHEARSAL-EVIDENCE`。
+- `Sources/Trader/Runtime/ReleaseV030TraderStrategyRuntimeRehearsalFlow.swift` 必须定义 `ReleaseV030TraderStrategyRuntimeRehearsalFlow`、`ReleaseV030TraderStrategyRuntimeRehearsalEvidence`、`ReleaseV030TraderStrategyRuntimeRehearsalRecord`、`ReleaseV030TraderStrategyRuntimeRehearsalRequirement` 和 `ReleaseV030TraderStrategyRuntimeRehearsalForbiddenCapability`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH660TraderStrategyRuntimeRehearsalFlowEmitsEMAAndRSIIntentThroughMessageBus`。
+- Flow 必须绑定 GH-659 upstream DataEngine rehearsal anchor `TVM-RELEASE-V030-DATAENGINE-RUNTIME-REHEARSAL-FLOW`，但 Trader target 不得依赖 DataEngine target。
+- Flow 必须证明 EMA 与 RSI 均生成 `StrategyIntentMessage`，且 intent message 进入 MessageBus append-only journal 并可 replay。
+- Flow 必须证明 Strategy 不直接访问 ExecutionClient、不直接访问 Binance adapter、不绕过 CommandGateway、不提交真实订单。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH660TraderStrategyRuntimeRehearsalFlowEmitsEMAAndRSIIntentThroughMessageBus`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-660 必须建立的主要 anchors：
+
+- `V030-04-TRADER-STRATEGY-RUNTIME-REHEARSAL-FLOW`
+- `V030-04-EMA-TARGET-EXPOSURE-INTENT-MESSAGEBUS`
+- `V030-04-RSI-TARGET-EXPOSURE-INTENT-MESSAGEBUS`
+- `V030-04-NO-STRATEGY-EXECUTIONCLIENT-OR-BINANCE-ADAPTER-ACCESS`
+- `V030-04-TRACEABLE-TRADER-STRATEGY-REHEARSAL-EVIDENCE`
+- `TVM-RELEASE-V030-TRADER-STRATEGY-RUNTIME-REHEARSAL-FLOW`
+
 ## GH-659 Release v0.3.0 DataEngine Runtime Rehearsal Flow Validation
 
 GH-659 的 required validation：

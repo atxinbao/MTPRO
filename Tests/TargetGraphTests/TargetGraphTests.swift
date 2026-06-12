@@ -5813,6 +5813,198 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH660TraderStrategyRuntimeRehearsalFlowEmitsEMAAndRSIIntentThroughMessageBus() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let traderTarget = try packageTargetBlock(named: "Trader", packageSource: packageSource)
+        let flowDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.3.0-trader-strategy-runtime-rehearsal-flow-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let emaSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/Trader/Strategies/EMA/EMAProposalRuntime.swift"),
+            encoding: .utf8
+        )
+        let rsiSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/Trader/Strategies/RSI/RSIStrategy.swift"),
+            encoding: .utf8
+        )
+
+        let symbol = Symbol.constant("BTCUSDT")
+        let spot = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let perp = InstrumentIdentity.binance(productType: .usdsPerpetual, symbol: symbol)
+        let flow = try ReleaseV030TraderStrategyRuntimeRehearsalFlow()
+        let emaRuntime = try EMAProposalRuntime.deterministicFixture()
+        let rsiEmitter = try RSITargetExposureIntentEmitter.deterministicFixture(perpetualShortEnabled: true)
+        let evidence = try flow.run(
+            emaRuntime: emaRuntime,
+            rsiEmitter: rsiEmitter,
+            emaBars: EMAProposalRuntime.deterministicBars(),
+            rsiBars: Self.gh568Bars(closes: [100, 101, 102, 103]),
+            emaInstrument: spot,
+            rsiInstrument: perp,
+            quantity: Quantity(0.10, field: "gh660Quantity"),
+            emittedAt: Date(timeIntervalSince1970: 1_704_068_100)
+        )
+
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.intentCoverageHeld)
+        XCTAssertTrue(evidence.messageBusTraceHeld)
+        XCTAssertTrue(evidence.strategyIsolationHeld)
+        XCTAssertTrue(evidence.productionCapabilitiesClosed)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-660")
+        XCTAssertEqual(evidence.upstreamIssueID.rawValue, "GH-659")
+        XCTAssertEqual(evidence.downstreamIssueID.rawValue, "GH-661")
+        XCTAssertEqual(evidence.canonicalQueueRange, "GH-657..GH-670")
+        XCTAssertEqual(evidence.projectName, "MTPRO Release v0.3.0 Runtime Rehearsal v1")
+        XCTAssertEqual(evidence.releaseVersion, "v0.3.0")
+        XCTAssertEqual(evidence.upstreamDataEngineRehearsalAnchor, "TVM-RELEASE-V030-DATAENGINE-RUNTIME-REHEARSAL-FLOW")
+        XCTAssertEqual(evidence.mode, .dryRun)
+        XCTAssertEqual(evidence.requirements, ReleaseV030TraderStrategyRuntimeRehearsalRequirement.allCases)
+        XCTAssertEqual(
+            Set(evidence.forbiddenCapabilities),
+            Set(ReleaseV030TraderStrategyRuntimeRehearsalForbiddenCapability.allCases)
+        )
+
+        XCTAssertEqual(evidence.emaRecord.strategyName, "EMA")
+        XCTAssertEqual(evidence.emaRecord.message.instrument, spot)
+        XCTAssertEqual(evidence.emaRecord.message.targetExposure, .hold)
+        XCTAssertNil(evidence.emaRecord.message.productAwareOrderIntent)
+        XCTAssertTrue(evidence.emaRecord.payloadType.contains("trader.release-v0.3.0.binance.spot.ema"))
+        XCTAssertEqual(evidence.rsiRecord.strategyName, "RSI")
+        XCTAssertEqual(evidence.rsiRecord.message.instrument, perp)
+        XCTAssertEqual(evidence.rsiRecord.message.targetExposure, .targetShort)
+        XCTAssertNotNil(evidence.rsiRecord.message.productAwareOrderIntent)
+        XCTAssertTrue(
+            evidence.rsiRecord.payloadType.contains("trader.release-v0.3.0.binance.usdsPerpetual.rsi")
+        )
+
+        XCTAssertEqual(evidence.intentMessages, [evidence.emaRecord.message, evidence.rsiRecord.message])
+        XCTAssertEqual(evidence.eventEnvelopes, evidence.replayedEnvelopes)
+        XCTAssertEqual(evidence.eventEnvelopes.map(\.instrumentID), [spot, perp])
+        XCTAssertEqual(evidence.eventEnvelopes.compactMap(\.productType), [.spot, .usdsPerpetual])
+        XCTAssertTrue(evidence.eventEnvelopes.allSatisfy { $0.payloadType.contains("targetExposureIntent") })
+
+        XCTAssertFalse(evidence.directExecutionClientAccessEnabled)
+        XCTAssertFalse(evidence.directBinanceAdapterAccessEnabled)
+        XCTAssertFalse(evidence.commandGatewayBypassAllowed)
+        XCTAssertFalse(evidence.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(evidence.productionSecretAutoReadEnabled)
+        XCTAssertFalse(evidence.productionOrderSubmissionEnabled)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertFalse(evidence.startsNextMilestone)
+
+        for anchor in ReleaseV030TraderStrategyRuntimeRehearsalEvidence.requiredValidationAnchors {
+            XCTAssertTrue(evidence.validationAnchors.contains(anchor), "\(anchor) must stay in Swift evidence")
+            XCTAssertTrue(flowDoc.contains(anchor), "\(anchor) must stay in Trader rehearsal contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation-plan.md")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading-validation-matrix.md")
+        }
+        XCTAssertTrue(flowDoc.contains("Trader target 不依赖 DataEngine target"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.3.0 Trader strategy runtime rehearsal flow anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV030TraderStrategyRuntimeRehearsalFlow.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH660TraderStrategyRuntimeRehearsalFlowEmitsEMAAndRSIIntentThroughMessageBus"
+            )
+        )
+        XCTAssertTrue(traderTarget.contains("Runtime/ReleaseV030TraderStrategyRuntimeRehearsalFlow.swift"))
+        XCTAssertTrue(traderTarget.contains("\"TraderStrategies\""))
+        XCTAssertTrue(traderTarget.contains("\"MessageBus\""))
+        XCTAssertFalse(traderTarget.contains("\"ExecutionClient\""))
+
+        for forbidden in [
+            "import ExecutionClient",
+            "ExecutionClient.",
+            "BinancePublicMarketDataClient",
+            "URLSessionBinance",
+            "import DataClient"
+        ] {
+            XCTAssertFalse(emaSource.contains(forbidden), "EMA source must not contain \(forbidden)")
+            XCTAssertFalse(rsiSource.contains(forbidden), "RSI source must not contain \(forbidden)")
+        }
+
+        XCTAssertThrowsError(
+            try flow.run(
+                upstreamDataEngineRehearsalAnchor: "UNSAFE-MISSING-GH-659-ANCHOR",
+                emaRuntime: emaRuntime,
+                rsiEmitter: rsiEmitter,
+                emaBars: EMAProposalRuntime.deterministicBars(),
+                rsiBars: Self.gh568Bars(closes: [100, 101, 102, 103]),
+                emaInstrument: spot,
+                rsiInstrument: perp,
+                quantity: Quantity(0.10, field: "gh660UnsafeQuantity"),
+                emittedAt: Date(timeIntervalSince1970: 1_704_068_100)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "upstreamDataEngineRehearsalAnchor",
+                    expected: "TVM-RELEASE-V030-DATAENGINE-RUNTIME-REHEARSAL-FLOW",
+                    actual: "UNSAFE-MISSING-GH-659-ANCHOR"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV030TraderStrategyRuntimeRehearsalRecord(
+                mode: .dryRun,
+                strategyName: "EMA",
+                message: evidence.emaRecord.message,
+                payloadType: evidence.emaRecord.payloadType,
+                directExecutionClientAccessEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("directExecutionClientAccessEnabled"))
+        }
+        XCTAssertThrowsError(
+            try ReleaseV030TraderStrategyRuntimeRehearsalRecord(
+                mode: .dryRun,
+                strategyName: "Grid",
+                message: evidence.emaRecord.message,
+                payloadType: evidence.emaRecord.payloadType
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("unsupportedStrategy"))
+        }
+        XCTAssertThrowsError(
+            try ReleaseV030TraderStrategyRuntimeRehearsalEvidence(
+                emaRecord: evidence.emaRecord,
+                rsiRecord: evidence.rsiRecord,
+                intentMessages: evidence.intentMessages,
+                eventEnvelopes: evidence.eventEnvelopes,
+                replayedEnvelopes: evidence.replayedEnvelopes,
+                directBinanceAdapterAccessEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("directBinanceAdapterAccessEnabled")
+            )
+        }
+    }
+
     func testGH643ProductionCutoverRuntimeHardeningContractFailsClosedWithoutProductionCutover() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
