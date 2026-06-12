@@ -94,6 +94,7 @@ let package = Package(
             sources: [
                 "DatabaseRuntimeOwnershipMatrix.swift",
                 "FoundationDatabaseCheckpoint.swift",
+                "PersistenceRuntimeEnvelopeRetirementContract.swift",
                 "ReleaseV020CLIProductSurface.swift",
                 "ReleaseV020GoldenTraceCatalog.swift",
                 "ReleaseV020ProductAwareEventStoreSchema.swift",
@@ -376,6 +377,7 @@ let package = Package(
             exclude: [
                 "DatabaseRuntimeOwnershipMatrix.swift",
                 "FoundationDatabaseCheckpoint.swift",
+                "PersistenceRuntimeEnvelopeRetirementContract.swift",
                 "ReleaseV020CLIProductSurface.swift",
                 "ReleaseV020GoldenTraceCatalog.swift",
                 "ReleaseV020ProductAwareEventStoreSchema.swift",
@@ -405,6 +407,7 @@ let package = Package(
                 "DataEngine/TargetGraph",
                 "Database/DatabaseRuntimeOwnershipMatrix.swift",
                 "Database/FoundationDatabaseCheckpoint.swift",
+                "Database/PersistenceRuntimeEnvelopeRetirementContract.swift",
                 "Database/ReleaseV020CLIProductSurface.swift",
                 "Database/ReleaseV020GoldenTraceCatalog.swift",
                 "Database/ReleaseV020ProductAwareEventStoreSchema.swift",

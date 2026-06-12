@@ -2,6 +2,7 @@ import Foundation
 
 /// DatabaseRuntimeOwnershipMatrix 固定 GH-419 的 Database / Persistence / Runtime 当前归属。
 /// GH-419 Database / Persistence / Runtime current ownership matrix.
+/// GH-635 进一步把 Persistence / Runtime retained sources 收窄为明确 adapter/workflow shim。
 ///
 /// 这个类型只描述 target ownership 和 compatibility envelope，不打开数据库、不执行 replay、
 /// 不暴露 SQLite / DuckDB schema，也不把 Runtime、broker、account 或 live command 引入 Database。
@@ -111,6 +112,7 @@ public struct DatabaseRuntimeOwnershipMatrix: Codable, Equatable, Sendable {
         "GH-419-DATABASE-PERSISTENCE-RUNTIME-OWNERSHIP-MATRIX",
         "GH-419-PERSISTENCE-CORE-DEPENDENCY-DEFERRED-ONLY",
         "GH-419-RUNTIME-REPLAY-INGEST-COMPOSITION-ONLY",
+        "GH-635-PERSISTENCE-RUNTIME-ENVELOPE-RETIREMENT-CONTRACT",
         "GH-419-NO-SCHEMA-RUNTIME-BROKER-L4-GUARD"
     ]
 

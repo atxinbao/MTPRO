@@ -4919,6 +4919,119 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH635PersistenceRuntimeEnvelopesAreAdapterAndWorkflowShimsOnly() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let contract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/core-compatibility-envelope-final-retirement-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+
+        let envelope = PersistenceRuntimeEnvelopeRetirementContract.gh635
+        XCTAssertTrue(envelope.boundaryHeld)
+        XCTAssertTrue(envelope.persistenceEnvelopeIsAdapterShimOnly)
+        XCTAssertTrue(envelope.runtimeEnvelopeIsWorkflowShimOnly)
+        XCTAssertTrue(envelope.noProductionAuthorization.allForbiddenCapabilitiesDisabledByDefault)
+
+        for anchor in PersistenceRuntimeEnvelopeRetirementContract.requiredValidationAnchors {
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must remain in CEFR contract")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must remain in validation-plan.md")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must remain in trading-validation-matrix.md")
+        }
+
+        let databaseTarget = try packageTargetBlock(named: "Database", packageSource: packageSource)
+        let persistenceTarget = try packageTargetBlock(named: "Persistence", packageSource: packageSource)
+        let runtimeTarget = try packageTargetBlock(named: "Runtime", packageSource: packageSource)
+        let databaseSources = try packageTargetSourcesBlock(targetBlock: databaseTarget)
+        let databaseExcludes = try packageTargetExcludesBlock(targetBlock: databaseTarget)
+        let persistenceSources = try packageTargetSourcesBlock(targetBlock: persistenceTarget)
+        let persistenceExcludes = try packageTargetExcludesBlock(targetBlock: persistenceTarget)
+        let runtimeSources = try packageTargetSourcesBlock(targetBlock: runtimeTarget)
+        let runtimeExcludes = try packageTargetExcludesBlock(targetBlock: runtimeTarget)
+
+        XCTAssertTrue(databaseSources.contains("\"PersistenceRuntimeEnvelopeRetirementContract.swift\""))
+        XCTAssertTrue(databaseExcludes.contains("\"Projections\""))
+        XCTAssertTrue(databaseExcludes.contains("\"ReplayProjection\""))
+        XCTAssertTrue(persistenceExcludes.contains("\"PersistenceRuntimeEnvelopeRetirementContract.swift\""))
+        XCTAssertTrue(runtimeExcludes.contains("\"Database/PersistenceRuntimeEnvelopeRetirementContract.swift\""))
+
+        XCTAssertEqual(
+            try packageTargetSwiftSources(
+                repositoryRoot: repositoryRoot,
+                targetRoot: "Sources/Database",
+                targetBlock: persistenceTarget
+            ),
+            PersistenceRuntimeEnvelopeRetirementContract.requiredPersistenceShimSourcePaths
+        )
+        XCTAssertEqual(
+            try packageTargetSwiftSources(repositoryRoot: repositoryRoot, targetRoot: "Sources", targetBlock: runtimeTarget),
+            PersistenceRuntimeEnvelopeRetirementContract.requiredRuntimeShimSourcePaths
+        )
+
+        for source in PersistenceRuntimeEnvelopeRetirementContract.requiredPersistenceShimSourcePaths {
+            let relative = source.replacingOccurrences(of: "Sources/Database/", with: "")
+            XCTAssertTrue(persistenceSources.contains("\"\(relative)\""))
+            XCTAssertTrue(contract.contains("`\(source)`"))
+        }
+        for source in PersistenceRuntimeEnvelopeRetirementContract.requiredRuntimeShimSourcePaths {
+            XCTAssertTrue(contract.contains("`\(source)`"))
+        }
+        XCTAssertTrue(runtimeSources.contains("\"Database/ReplayProjection\""))
+        XCTAssertTrue(runtimeSources.contains("\"DataEngine/Ingest\""))
+        XCTAssertFalse(runtimeSources.contains("\"Database/Projections\""))
+        XCTAssertFalse(runtimeSources.contains("\"DataEngine/BinancePublicMarketDataRuntimePath.swift\""))
+
+        for retiredDirectory in [
+            "Sources/Persistence",
+            "Sources/Runtime"
+        ] {
+            XCTAssertFalse(
+                FileManager.default.fileExists(atPath: repositoryRoot.appendingPathComponent(retiredDirectory).path),
+                "\(retiredDirectory) must not reappear as an active source directory"
+            )
+        }
+
+        XCTAssertTrue(
+            DatabaseTargetBoundary.requiredValidationAnchors.contains(
+                "GH-635-PERSISTENCE-RUNTIME-ENVELOPE-RETIREMENT-CONTRACT"
+            )
+        )
+        XCTAssertTrue(
+            DatabaseRuntimeOwnershipMatrix.requiredValidationAnchors.contains(
+                "GH-635-PERSISTENCE-RUNTIME-ENVELOPE-RETIREMENT-CONTRACT"
+            )
+        )
+
+        for forbiddenDefault in [
+            "productionTradingEnabledByDefault == false",
+            "productionSecretReadEnabledByDefault == false",
+            "productionEndpointConnectionEnabledByDefault == false",
+            "rawSchemaExposedToDashboard == false",
+            "runtimeObjectExposedToDashboard == false",
+            "brokerPayloadPersistenceEnabledByDefault == false",
+            "accountPayloadPersistenceEnabledByDefault == false",
+            "brokerGatewayEnabledByDefault == false",
+            "omsRuntimeEnabledByDefault == false",
+            "realOrderCommandEnabledByDefault == false",
+            "reconciliationRuntimeEnabledByDefault == false"
+        ] {
+            XCTAssertTrue(contract.contains(forbiddenDefault), "\(forbiddenDefault) must remain explicit")
+        }
+    }
+
     func testGH523ReleaseV010TargetsExposeRealSmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-523-release-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)

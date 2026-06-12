@@ -160,6 +160,27 @@ GH-634 必须建立的主要 anchors：
 - `GH-634-NO-PRODUCTION-AUTHORIZATION`
 - `TVM-CEFR-PORTFOLIO-EXECUTION-PARITY-OWNERSHIP`
 
+## GH-635 CEFR Persistence / Runtime Envelope Retirement Validation
+
+GH-635 的 required validation：
+
+- `Sources/Database/PersistenceRuntimeEnvelopeRetirementContract.swift` 必须位于 `Database` target，并定义 `PersistenceRuntimeEnvelopeRetirementContract.gh635`。
+- `Persistence` target 只能继续编译 Database projection adapter shim：`Projections/ReleaseV020SpotPerpDatabaseProjections.swift`、`Projections/SQLite/Persistence.swift` 和 `Projections/DuckDB/DuckDBAnalyticalProjectionAdapter.swift`。
+- `Runtime` target 只能继续编译 DataEngine / Database replay-ingest workflow shim：`Database/ReplayProjection` 和 `DataEngine/Ingest`。
+- `Package.swift` 必须让 `Persistence` / `Runtime` 显式排除 `PersistenceRuntimeEnvelopeRetirementContract.swift`，避免 compatibility envelope 重新成为 active ownership decision owner。
+- `Sources/Persistence` 和 `Sources/Runtime` 目录必须继续不存在。
+- `DatabaseTargetBoundary.requiredValidationAnchors` 和 `DatabaseRuntimeOwnershipMatrix.requiredValidationAnchors` 必须包含 `GH-635-PERSISTENCE-RUNTIME-ENVELOPE-RETIREMENT-CONTRACT`。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、真实 Binance private endpoint、broker、production credential 或人工验收。
+
+GH-635 必须建立的主要 anchors：
+
+- `GH-635-PERSISTENCE-RUNTIME-ENVELOPE-RETIREMENT-CONTRACT`
+- `GH-635-PERSISTENCE-ADAPTER-SHIM-ONLY`
+- `GH-635-RUNTIME-WORKFLOW-SHIM-ONLY`
+- `GH-635-PACKAGE-SOURCE-OVERLAP-GUARD`
+- `GH-635-NO-PRODUCTION-AUTHORIZATION`
+- `TVM-CEFR-PERSISTENCE-RUNTIME-ENVELOPE-RETIREMENT`
+
 ## Stage Audit Input Location Rule
 
 `docs/validation/` 只保留长期验证入口，例如 latest summary、validation plan、trading validation matrix、eval strategy 和 macOS build / run loop。

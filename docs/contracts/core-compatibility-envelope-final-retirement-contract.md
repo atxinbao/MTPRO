@@ -311,6 +311,78 @@ Production defaults remain:
 - `brokerFillRuntimeEnabledByDefault == false`
 - `reconciliationRuntimeEnabledByDefault == false`
 
+## GH-635-PERSISTENCE-RUNTIME-ENVELOPE-RETIREMENT-CONTRACT
+
+`GH-635-PERSISTENCE-RUNTIME-ENVELOPE-RETIREMENT-CONTRACT`
+
+GH-635 收窄 `Persistence` / `Runtime` compatibility envelope。`Database` target 现在直接拥有 `Sources/Database/PersistenceRuntimeEnvelopeRetirementContract.swift`，由 `PersistenceRuntimeEnvelopeRetirementContract.gh635` 记录 retained Persistence adapter shim、retained Runtime workflow shim、Package source overlap guard 和 no-production authorization。
+
+## GH-635-PERSISTENCE-ADAPTER-SHIM-ONLY
+
+`GH-635-PERSISTENCE-ADAPTER-SHIM-ONLY`
+
+`Persistence` target 只允许继续编译 Database projection adapter shim；它不是 active Database implementation owner、UI schema contract、broker payload store 或 account payload store：
+
+| Retained source | Envelope target | Real module owner | Shim role |
+| --- | --- | --- | --- |
+| `Sources/Database/Projections/ReleaseV020SpotPerpDatabaseProjections.swift` | `Persistence` | `Database` | Database projection adapter shim |
+| `Sources/Database/Projections/SQLite/Persistence.swift` | `Persistence` | `Database` | Database projection adapter shim |
+| `Sources/Database/Projections/DuckDB/DuckDBAnalyticalProjectionAdapter.swift` | `Persistence` | `Database` | Database projection adapter shim |
+
+## GH-635-RUNTIME-WORKFLOW-SHIM-ONLY
+
+`GH-635-RUNTIME-WORKFLOW-SHIM-ONLY`
+
+`Runtime` target 只允许继续编译 DataEngine / Database replay-ingest workflow shim；它不是 Live runtime、production operations runtime、Trader runtime、Strategy runtime、ExecutionClient runtime、OMS runtime 或 broker gateway：
+
+| Retained source | Envelope target | Real module owner | Shim role |
+| --- | --- | --- | --- |
+| `Sources/Database/ReplayProjection/MarketDataReplayProjectionConsistency.swift` | `Runtime` | `Database` / `DataEngine` | DataEngine / Database replay-ingest workflow shim |
+| `Sources/DataEngine/Ingest/MarketDataIngestReplayProjectionWorkflow.swift` | `Runtime` | `DataEngine` / `Database` | DataEngine / Database replay-ingest workflow shim |
+
+## GH-635-PACKAGE-SOURCE-OVERLAP-GUARD
+
+`GH-635-PACKAGE-SOURCE-OVERLAP-GUARD`
+
+Package guard:
+
+- `Database` target lists `PersistenceRuntimeEnvelopeRetirementContract.swift` as a Database-owned source.
+- `Persistence` target excludes `PersistenceRuntimeEnvelopeRetirementContract.swift` and continues listing only the three projection adapter shim sources.
+- `Runtime` target excludes `Database/PersistenceRuntimeEnvelopeRetirementContract.swift` and continues listing only `Database/ReplayProjection` and `DataEngine/Ingest`.
+- `Sources/Persistence` and `Sources/Runtime` directories remain absent; `Persistence` / `Runtime` remain target-level compatibility envelopes only.
+
+## GH-635-NO-PRODUCTION-AUTHORIZATION
+
+`GH-635-NO-PRODUCTION-AUTHORIZATION`
+
+GH-635 does not authorize:
+
+- production trading;
+- production secret read, print or storage;
+- production endpoint connection;
+- raw SQLite / DuckDB schema exposure to Dashboard;
+- Runtime object exposure to Dashboard;
+- broker payload or account payload persistence;
+- broker gateway, broker adapter or automatic broker connection;
+- real submit / cancel / replace;
+- production OMS;
+- execution report, broker fill or reconciliation runtime;
+- Live PRO Console production command, trading button, live command or order form.
+
+Production defaults remain:
+
+- `productionTradingEnabledByDefault == false`
+- `productionSecretReadEnabledByDefault == false`
+- `productionEndpointConnectionEnabledByDefault == false`
+- `rawSchemaExposedToDashboard == false`
+- `runtimeObjectExposedToDashboard == false`
+- `brokerPayloadPersistenceEnabledByDefault == false`
+- `accountPayloadPersistenceEnabledByDefault == false`
+- `brokerGatewayEnabledByDefault == false`
+- `omsRuntimeEnabledByDefault == false`
+- `realOrderCommandEnabledByDefault == false`
+- `reconciliationRuntimeEnabledByDefault == false`
+
 ## GH-631-RETENTION-REASON-AND-EXIT-PATH
 
 `GH-631-RETENTION-REASON-AND-EXIT-PATH`
@@ -401,6 +473,12 @@ Required anchors:
 - `GH-634-CORE-EXECUTION-PARITY-COMPATIBILITY-ONLY`
 - `GH-634-NO-PRODUCTION-AUTHORIZATION`
 - `TVM-CEFR-PORTFOLIO-EXECUTION-PARITY-OWNERSHIP`
+- `GH-635-PERSISTENCE-RUNTIME-ENVELOPE-RETIREMENT-CONTRACT`
+- `GH-635-PERSISTENCE-ADAPTER-SHIM-ONLY`
+- `GH-635-RUNTIME-WORKFLOW-SHIM-ONLY`
+- `GH-635-PACKAGE-SOURCE-OVERLAP-GUARD`
+- `GH-635-NO-PRODUCTION-AUTHORIZATION`
+- `TVM-CEFR-PERSISTENCE-RUNTIME-ENVELOPE-RETIREMENT`
 
 Required validation:
 
@@ -408,6 +486,7 @@ Required validation:
 - `swift test --filter TargetGraphTests/testGH632MessageBusOwnsRichRoutingCompatibilityContractAndKeepsCoreCompatibilityOnly`
 - `swift test --filter TargetGraphTests/testGH633DataEngineOwnsScenarioReplayAndDataQualityWhileCoreRetainsMatchingBridgeOnly`
 - `swift test --filter TargetGraphTests/testGH634PortfolioAndExecutionOwnParityContractsWhileCoreRetainsBridgeOnly`
+- `swift test --filter TargetGraphTests/testGH635PersistenceRuntimeEnvelopesAreAdapterAndWorkflowShimsOnly`
 - `git diff --check`
 - `bash checks/automation-readiness.sh`
 - `bash checks/run.sh`
