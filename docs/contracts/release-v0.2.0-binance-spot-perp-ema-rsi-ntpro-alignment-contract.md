@@ -103,7 +103,7 @@ NTPRO scoped 100% alignment 是 release v0.2.0 的 scoped alignment contract，�
 | GH-582 / V020-20 | Perpetual ExecutionAlgorithm maps TargetExposureIntent to controlled Perp order intent | open long/short, reduce-only close long/short, no uncontrolled one-shot flip |
 | GH-583 / V020-21 | Product-aware OMS state machine covers Spot/Perp lifecycle and replay | Spot/Perp local event log, illegal transition rejected, replay restores state |
 | GH-584 / V020-22 | Binance Spot ExecutionClient adapter submit / cancel / replace mapping | dry-run/testnet evidence only and production rejected by default |
-| GH-585 / V020-23 | Dashboard live monitoring surfaces | read-model-only surface |
+| GH-585 / V020-23 | Binance USD-M Perpetual ExecutionClient adapter submit / cancel / replace mapping | positionSide / reduceOnly dry-run/testnet evidence only and production rejected by default |
 | GH-586 / V020-24 | Dashboard controlled command surface | production disabled by default |
 | GH-587 / V020-25 | kill switch / no-trade / rollback controls | must block submit / cancel / replace |
 | GH-588 / V020-26 | Binance Spot dry-run and testnet validation suite | no production fallback |
