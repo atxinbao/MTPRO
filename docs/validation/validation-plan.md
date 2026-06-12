@@ -77,6 +77,27 @@ bash checks/run.sh
 
 该矩阵记录 EMA parity、order book imbalance parity、fees / slippage、risk blocker、portfolio exposure 和 report evidence 的现有 coverage、验收证据边界和后续 issue 回填规则。
 
+## GH-661 Release v0.3.0 RiskEngine Rehearsal Gate Validation
+
+GH-661 的 required validation：
+
+- `docs/contracts/release-v0.3.0-riskengine-rehearsal-gate-contract.md` 必须存在，并包含 `V030-05-RISKENGINE-REHEARSAL-GATE`、`V030-05-MESSAGEBUS-STRATEGY-INTENT-RISK-INPUT`、`V030-05-ALLOW-REJECT-LIMIT-EVIDENCE`、`V030-05-KILL-SWITCH-NO-TRADE-REJECT-EVIDENCE` 和 `V030-05-AUDITABLE-RISK-DECISION-EVIDENCE`。
+- `Sources/RiskEngine/LiveGate/ReleaseV030RiskEngineRehearsalGate.swift` 必须定义 `ReleaseV030RiskEngineRehearsalGate`、`ReleaseV030RiskEngineRehearsalEvidence`、`ReleaseV030RiskEngineRehearsalDecision`、`ReleaseV030RiskEngineRehearsalPolicy`、`ReleaseV030RiskEngineRehearsalRequirement` 和 `ReleaseV030RiskEngineRehearsalForbiddenCapability`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH661RiskEngineRehearsalGateAllowsRejectsAndBlocksStrategyIntents`。
+- Gate 必须绑定 GH-660 upstream Trader strategy rehearsal anchor `TVM-RELEASE-V030-TRADER-STRATEGY-RUNTIME-REHEARSAL-FLOW`，但 RiskEngine target 不得依赖 Trader target、ExecutionEngine、ExecutionClient 或 Binance adapter。
+- Gate 必须证明 RiskEngine 只消费 MessageBus `StrategyIntentMessage` / replay envelope，输出 allow / reject / kill switch / no-trade risk decision evidence。
+- Gate 必须证明不绕过 CommandGateway、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade，不提交真实订单，不授权 production cutover。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH661RiskEngineRehearsalGateAllowsRejectsAndBlocksStrategyIntents`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-661 必须建立的主要 anchors：
+
+- `V030-05-RISKENGINE-REHEARSAL-GATE`
+- `V030-05-MESSAGEBUS-STRATEGY-INTENT-RISK-INPUT`
+- `V030-05-ALLOW-REJECT-LIMIT-EVIDENCE`
+- `V030-05-KILL-SWITCH-NO-TRADE-REJECT-EVIDENCE`
+- `V030-05-AUDITABLE-RISK-DECISION-EVIDENCE`
+- `TVM-RELEASE-V030-RISKENGINE-REHEARSAL-GATE`
+
 ## GH-660 Release v0.3.0 Trader Strategy Runtime Rehearsal Flow Validation
 
 GH-660 的 required validation：
