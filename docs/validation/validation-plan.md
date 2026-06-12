@@ -8721,6 +8721,47 @@ GH-590 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-591 Release v0.2.0 SQLite / DuckDB Spot + Perp Projection Validation
+
+GH-591 必须运行：
+
+- `swift test --filter PersistenceTests/testGH591SQLiteDuckDBSpotPerpProjectionsStayProductAwareAndDashboardSchemaFree`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-591 的验收要求：
+
+- `Persistence` compatibility target 必须显式编译 `Sources/Database/Projections/ReleaseV020SpotPerpDatabaseProjections.swift`，并直接消费 `Database` target 的 GH-590 Event Store schema evidence。
+- SQLite runtime projection 必须覆盖 Spot 与 USDⓈ-M Perpetual rows，保留 `InstrumentIdentity`、productType、sequence、source checksum、exposure notional 和 net PnL。
+- DuckDB analytical projection 必须覆盖 Spot 与 USDⓈ-M Perpetual rows，保留 aggregate exposure、strategy attribution count、Perp funding / liquidation summary 和 source evidence IDs。
+- Dashboard 必须继续只消费 stable read model / projection snapshots，不依赖 `release_v020_runtime_projection_records`、`release_v020_analytical_projection_records`、raw SQL、table 或 column schema。
+- Evidence 不得读取 production secret、不得连接 signed/account/private/broker endpoint、不得触发 real submit / cancel / replace、不得执行 production reconciliation runtime。
+
+GH-591 必须建立的主要 anchors：
+
+- `GH-591-SQLITE-SPOT-PERP-RUNTIME-PROJECTION`
+- `GH-591-DUCKDB-SPOT-PERP-ANALYTICAL-PROJECTION`
+- `GH-591-DASHBOARD-STABLE-READ-MODEL-ONLY`
+- `GH-591-NO-PRODUCTION-DATABASE-SIDE-EFFECT`
+- `TVM-RELEASE-V020-SQLITE-DUCKDB-SPOT-PERP-PROJECTIONS`
+
+## GH-591 禁止
+
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint、listenKey 或 private stream endpoint。
+- 不把 SQLite / DuckDB table、column、raw SQL、ORM model 或 payload encoding 暴露为 Dashboard、Workbench 或 API contract。
+- 不保存 raw execution report、raw broker payload、signature value、API key、secret material、account payload、margin payload、broker state 或 UI command payload。
+- 不执行真实 submit / cancel / replace，不把 projection evidence 解释为 production database、production order store、broker statement 或 production authorization。
+- 不执行 production reconciliation runtime，不同步 broker position，不读取真实 balance、real PnL、margin、leverage、buying power 或 account endpoint payload。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USD-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation
 
 GH-521 必须运行：
