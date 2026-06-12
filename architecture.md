@@ -51,6 +51,10 @@ DataClient/<venue>
 | `ExecutionClient/` | 对外执行适配器边界：把已授权订单意图翻译成交易所 / broker API 请求，并接收 execution report / broker fill。 | Release v0.2.0 只允许在 issue scope 内推进 Binance Spot / USDⓈ-M Perpetual testnet / dry-run evidence；production capability 是 gated capability，不是缺失能力。 | 禁止 production default、secret auto-read、production endpoint auto-connect、CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store bypass。 |
 | `Dashboard/` | 只读消费 ReadModel / ViewModel，展示 Report、Dashboard、Events 和 evidence surface。 | 当前 active UI surface 是 `Dashboard read-model-only boundary`。 | 不读 Runtime object、Adapter request、DB schema，不提供 trading button / live command。 |
 
+`GH-596-RELEASE-V020-ROOT-DOCS-REFRESH`
+
+`MTPRO Release v0.2.0` 已通过 GitHub fallback queue `GH-563..GH-596` 完成 Binance Spot + USDⓈ-M Perpetual + EMA/RSI release validation closure。Stage Code Audit Report 位于 `docs/audit/mtpro-release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-stage-code-audit.md`，operator runbook 位于 `docs/operators/release-v0.2.0-operator-runbook.md`。该 closure 只同步已发生事实，不创建下一 Project / Issue，不推进下一 Todo，不授权 production trading。
+
 `GH-564-RELEASE-V020-ROOT-DOCS-BOUNDARY-REFRESH`
 
 `DataClient` 和 `ExecutionClient` 是一进一出；Release v0.2.0 的当前边界不再是“只存在 public-read-only / paper-only / EMA-only / ExecutionClient future-gate”。当前 release construction scope 固定：

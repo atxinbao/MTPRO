@@ -757,10 +757,10 @@ require_contains "AGENTS.md" "Future Construction Zones / 未来建设区"
 require_contains "AGENTS.md" '不启动 `@002 / PAR`'
 require_contains "docs/roadmap.md" "Current Foundation Progress"
 require_contains "docs/roadmap.md" "Final Product Goal Progress"
-require_contains "docs/roadmap.md" "Project Closure Count: 35 / 35 (100%)"
+require_contains "docs/roadmap.md" "Project Closure Count: 36 / 36 (100%)"
 require_contains "docs/roadmap.md" "Engine Maturity Roadmap Progress: 4 / 4 (100%)"
 require_contains "docs/roadmap.md" "Final Product Progress"
-require_contains "docs/roadmap.md" 'Current maturity statement：`MTPRO Release v0.1.0 Binance + EMA runtime validation complete with production trading disabled by default`'
+require_contains "docs/roadmap.md" 'Current maturity statement：`MTPRO Release v0.2.0 Binance Spot + USDⓈ-M Perpetual + EMA/RSI validation complete with production trading disabled by default`'
 require_contains "docs/roadmap.md" 'Next recommended maturity slice：无当前可执行推荐'
 require_contains "docs/roadmap.md" "根据蓝图和工程模块定义施工顺序"
 require_contains "docs/roadmap.md" "Roadmap Responsibility / 路线职责"
@@ -790,7 +790,7 @@ require_contains "environment.md" "Secrets / Local State Boundary"
 require_contains "environment.md" "Automation Boundary / 自动化边界"
 require_contains "docs/validation/latest-verification-summary.md" "Current Foundation Progress: 4 / 4 (100%)"
 require_contains "docs/validation/latest-verification-summary.md" "Final Product Goal Progress: 9 / 9 (100%)"
-require_contains "docs/validation/latest-verification-summary.md" "Project Closure Count: 35 / 35 (100%)"
+require_contains "docs/validation/latest-verification-summary.md" "Project Closure Count: 36 / 36 (100%)"
 require_contains "docs/validation/latest-verification-summary.md" "Engine Maturity Roadmap Progress"
 require_contains "docs/validation/latest-verification-summary.md" "4 / 4（100%）"
 for planning_record in \
@@ -3428,7 +3428,7 @@ require_contains "docs/audit/mtpro-strategy-trader-instance-readiness-v1-stage-c
 require_contains "docs/automation/automation-readiness.md" "Strategy / Trader Instance readiness stage code audit report anchor"
 require_contains "docs/automation/automation-readiness.md" "Strategy / Trader Instance readiness root docs refresh anchor"
 require_contains "docs/validation/latest-verification-summary.md" "L3.4 Strategy / Trader Instance Readiness v1 complete"
-require_contains "docs/roadmap.md" 'Latest Completed Project：`MTPRO Release v0.1.0`'
+require_contains "docs/roadmap.md" 'Latest Completed Project：`MTPRO Release v0.2.0`'
 require_contains "BLUEPRINT.md" 'MTPRO SwiftPM Target Graph Module Split v1` 已完成 Project closure'
 require_contains "docs/audit/mtpro-engine-module-boundary-consolidation-v1-stage-code-audit.md" "MTPRO Engine Module Boundary Consolidation v1 Stage Code Audit Report"
 require_contains "docs/audit/mtpro-engine-module-boundary-consolidation-v1-stage-code-audit.md" "Completed/type=completed"
@@ -5277,7 +5277,7 @@ require_contains "docs/audit/mtpro-trader-accounts-coordination-compatibility-co
 require_contains "docs/audit/mtpro-trader-accounts-coordination-compatibility-consolidation-v1-stage-code-audit.md" "Project Closure Count input: 26 / 26 (100%)"
 require_contains "docs/automation/automation-readiness.md" "Trader Accounts / Coordination Stage Code Audit Report anchor"
 require_contains "docs/automation/automation-readiness.md" "Trader Accounts / Coordination root docs refresh anchor"
-require_contains "docs/roadmap.md" "Project Closure Count: 35 / 35 (100%)"
+require_contains "docs/roadmap.md" "Project Closure Count: 36 / 36 (100%)"
 require_contains "docs/roadmap.md" "TargetGraph Anchor Retirement / Real Module Source Root Migration before L4"
 require_contains "docs/validation/latest-verification-summary.md" "MTPRO TargetGraph Anchor Retirement / Real Module Source Root Migration v1"
 require_contains "docs/validation/latest-verification-summary.md" "docs/audit/mtpro-targetgraph-anchor-retirement-real-module-source-root-migration-v1-stage-code-audit.md"
@@ -5952,9 +5952,9 @@ require_contains "docs/audit/mtpro-production-cutover-readiness-real-broker-enab
 require_contains "docs/audit/mtpro-production-cutover-readiness-real-broker-enablement-gate-v1-stage-code-audit.md" "no automatic broker connection"
 require_contains "docs/audit/mtpro-production-cutover-readiness-real-broker-enablement-gate-v1-stage-code-audit.md" "no real submit / cancel / replace"
 require_contains "docs/automation/automation-readiness.md" "Production Cutover Readiness Stage Code Audit Report anchor"
-require_contains "docs/roadmap.md" 'Latest Completed Project：`MTPRO Release v0.1.0`'
-require_contains "docs/roadmap.md" 'Current maturity statement：`MTPRO Release v0.1.0 Binance + EMA runtime validation complete with production trading disabled by default`'
-require_contains "docs/roadmap.md" "Project Closure Count: 35 / 35 (100%)"
+require_contains "docs/roadmap.md" 'Latest Completed Project：`MTPRO Release v0.2.0`'
+require_contains "docs/roadmap.md" 'Current maturity statement：`MTPRO Release v0.2.0 Binance Spot + USDⓈ-M Perpetual + EMA/RSI validation complete with production trading disabled by default`'
+require_contains "docs/roadmap.md" "Project Closure Count: 36 / 36 (100%)"
 require_contains "docs/roadmap.md" "PR #511 至 #519 evidence"
 require_contains "docs/roadmap.md" "不授权真实 broker"
 require_contains "docs/roadmap.md" "PR #473 至 #493 evidence"
@@ -5972,7 +5972,7 @@ require_contains "docs/validation/latest-verification-summary.md" "production ex
 require_contains "docs/validation/latest-verification-summary.md" "Project closure evidence：L4 Live Production / Trading Commands v1"
 require_contains "docs/validation/latest-verification-summary.md" "PR #473 至 #493"
 require_contains "docs/validation/latest-verification-summary.md" "https://github.com/atxinbao/MTPRO/actions/runs/27079944855/job/79923903479"
-require_contains "docs/validation/latest-verification-summary.md" "Project Closure Count: 35 / 35 (100%)"
+require_contains "docs/validation/latest-verification-summary.md" "Project Closure Count: 36 / 36 (100%)"
 require_contains "docs/validation/latest-verification-summary.md" "MTPRO Production Cutover Readiness / Real Broker Enablement Gate v1"
 require_contains "docs/validation/latest-verification-summary.md" "PR #511 至 PR #519"
 require_contains "docs/validation/latest-verification-summary.md" "f37707579499391c0d7d93009c797dbfc3440885"

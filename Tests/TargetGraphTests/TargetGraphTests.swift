@@ -9052,6 +9052,92 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH596ReleaseV020ClosureDocsRecordCompletedFactsWithoutNextPhaseAuthorization() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let runbook = try read("docs/operators/release-v0.2.0-operator-runbook.md")
+        let stageAudit = try read(
+            "docs/audit/mtpro-release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-stage-code-audit.md"
+        )
+        let readme = try read("README.md")
+        let architecture = try read("architecture.md")
+        let roadmap = try read("docs/roadmap.md")
+        let latestSummary = try read("docs/validation/latest-verification-summary.md")
+        let validationMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let domainContext = try read("docs/domain/context.md")
+        let automationReadiness = try read("docs/automation/automation-readiness.md")
+        let releaseGuard = try read("checks/automation-readiness.d/release-v0.2.0-boundary.sh")
+        let releaseContract = try read(
+            "docs/contracts/release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md"
+        )
+
+        XCTAssertTrue(runbook.contains("GH-596-RELEASE-V020-OPERATOR-RUNBOOK"))
+        XCTAssertTrue(runbook.contains("swift run mtpro verify-fast"))
+        XCTAssertTrue(runbook.contains("swift run mtpro verify-release"))
+        XCTAssertTrue(runbook.contains("DASHBOARD_SMOKE=1 swift run Dashboard"))
+        XCTAssertTrue(runbook.contains("productionTradingEnabledByDefault == false"))
+        XCTAssertTrue(runbook.contains("No-trade state"))
+        XCTAssertTrue(runbook.contains("不授权 production trading"))
+        XCTAssertTrue(runbook.contains("不创建下一 Project / Issue"))
+
+        XCTAssertTrue(stageAudit.contains("GH-596-RELEASE-V020-STAGE-CODE-AUDIT"))
+        XCTAssertTrue(stageAudit.contains("GitHub fallback queue `#563` 至 `#596`"))
+        XCTAssertTrue(stageAudit.contains("`V020-01` 至 `V020-34`"))
+        XCTAssertTrue(stageAudit.contains("PR `#597` 至 `#629`"))
+        XCTAssertTrue(stageAudit.contains("`checks` SUCCESS"))
+        XCTAssertTrue(stageAudit.contains("e71d5c568f7346051e3d924b977bfcdfeb809043"))
+        XCTAssertTrue(stageAudit.contains("current #596 closure PR"))
+        XCTAssertTrue(stageAudit.contains("TVM-RELEASE-V020-FINAL-STAGE-CODE-AUDIT-ROOT-DOCS"))
+        XCTAssertTrue(stageAudit.contains("production trading remains disabled by default"))
+
+        XCTAssertTrue(readme.contains("GH-596-RELEASE-V020-ROOT-DOCS-REFRESH"))
+        XCTAssertTrue(readme.contains("Latest completed release construction scope: `MTPRO Release v0.2.0`"))
+        XCTAssertTrue(architecture.contains("GH-596-RELEASE-V020-ROOT-DOCS-REFRESH"))
+        XCTAssertTrue(architecture.contains("docs/operators/release-v0.2.0-operator-runbook.md"))
+        XCTAssertTrue(roadmap.contains("MTPRO Release v0.2.0 | Completed"))
+        XCTAssertTrue(roadmap.contains("Project Closure Count: 36 / 36 (100%)"))
+        XCTAssertTrue(roadmap.contains("Latest Completed Project：`MTPRO Release v0.2.0`"))
+        XCTAssertTrue(latestSummary.contains("GH-596-RELEASE-V020-ROOT-DOCS-REFRESH"))
+        XCTAssertTrue(latestSummary.contains("Project Closure Count: 36 / 36"))
+        XCTAssertTrue(
+            latestSummary.contains(
+                "Current maturity statement：`MTPRO Release v0.2.0 Binance Spot + USDⓈ-M Perpetual + EMA/RSI validation complete with production trading disabled by default`"
+            )
+        )
+
+        XCTAssertTrue(validationMatrix.contains("`GH-596`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-FINAL-STAGE-CODE-AUDIT-ROOT-DOCS"))
+        XCTAssertTrue(validationPlan.contains("GH-596 Release v0.2.0 Final Stage Code Audit and Root Docs Refresh Validation"))
+        XCTAssertTrue(domainContext.contains("GH-596 Release v0.2.0 Final Closure Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 final Stage Code Audit / Root Docs anchor"))
+        XCTAssertTrue(releaseContract.contains("GH-596 / V020-34 | final Stage Code Audit, operator runbook and Root Docs Refresh"))
+        XCTAssertTrue(releaseGuard.contains("testGH596ReleaseV020ClosureDocsRecordCompletedFactsWithoutNextPhaseAuthorization"))
+
+        for forbiddenAuthorization in [
+            "productionTradingEnabledByDefault == true",
+            "productionSecretReadEnabledByDefault == true",
+            "productionEndpointEnabledByDefault == true",
+            "productionSubmitEnabledByDefault == true",
+            "productionCancelEnabledByDefault == true",
+            "productionReplaceEnabledByDefault == true",
+            "automaticProductionCutoverEnabled == true",
+            "nonBinanceVenueEnabled == true",
+            "nonSpotProductEnabled == true",
+            "nonUSDSPerpetualProductEnabled == true",
+            "nonEMARSIStrategyEnabled == true"
+        ] {
+            XCTAssertFalse(runbook.contains(forbiddenAuthorization))
+            XCTAssertFalse(stageAudit.contains(forbiddenAuthorization))
+            XCTAssertFalse(readme.contains(forbiddenAuthorization))
+            XCTAssertFalse(roadmap.contains(forbiddenAuthorization))
+            XCTAssertFalse(latestSummary.contains(forbiddenAuthorization))
+        }
+    }
+
     func testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
