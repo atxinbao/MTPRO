@@ -5609,6 +5609,210 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH659DataEngineRuntimeRehearsalFlowPreservesSpotPerpProductIdentity() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let dataEngineTarget = try packageTargetBlock(named: "DataEngine", packageSource: packageSource)
+        let flowDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.3.0-dataengine-runtime-rehearsal-flow-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+
+        let symbol = Symbol.constant("BTCUSDT")
+        let spot = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let perp = InstrumentIdentity.binance(productType: .usdsPerpetual, symbol: symbol)
+        let interval = try DateRange(
+            start: Date(timeIntervalSince1970: 1_704_068_000),
+            end: Date(timeIntervalSince1970: 1_704_068_060)
+        )
+        let spotBar = try MarketBar(
+            symbol: symbol,
+            timeframe: .oneMinute,
+            interval: interval,
+            open: 43_000,
+            high: 43_120,
+            low: 42_980,
+            close: 43_080,
+            volume: 9
+        )
+        let perpBar = try MarketBar(
+            symbol: symbol,
+            timeframe: .oneMinute,
+            interval: interval,
+            open: 43_010,
+            high: 43_180,
+            low: 42_990,
+            close: 43_150,
+            volume: 14
+        )
+        let spotEvent = try BinanceSpotProductAwareMarketDataEvent(
+            instrument: spot,
+            marketEvent: .bar(spotBar)
+        )
+        let perpEvent = try BinanceUSDMPerpetualProductAwareMarketDataEvent(
+            instrument: perp,
+            marketEvent: .bar(perpBar)
+        )
+
+        let flow = try ReleaseV030DataEngineRuntimeRehearsalFlow()
+        let evidence = try flow.run(
+            spotEvents: [spotEvent],
+            usdmPerpetualEvents: [perpEvent]
+        )
+
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.productIdentityCoverageHeld)
+        XCTAssertTrue(evidence.traceableMessageBusEvidenceHeld)
+        XCTAssertTrue(evidence.productionCapabilitiesClosed)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-659")
+        XCTAssertEqual(evidence.upstreamIssueID.rawValue, "GH-658")
+        XCTAssertEqual(evidence.downstreamIssueID.rawValue, "GH-660")
+        XCTAssertEqual(evidence.canonicalQueueRange, "GH-657..GH-670")
+        XCTAssertEqual(evidence.projectName, "MTPRO Release v0.3.0 Runtime Rehearsal v1")
+        XCTAssertEqual(evidence.releaseVersion, "v0.3.0")
+        XCTAssertEqual(evidence.upstreamEnvironmentConfigAnchor, "TVM-RELEASE-V030-RUNTIME-ENVIRONMENT-CONFIG")
+        XCTAssertEqual(evidence.mode, .dryRun)
+        XCTAssertEqual(evidence.requirements, ReleaseV030DataEngineRuntimeRehearsalRequirement.allCases)
+        XCTAssertEqual(
+            Set(evidence.forbiddenCapabilities),
+            Set(ReleaseV030DataEngineRuntimeRehearsalForbiddenCapability.allCases)
+        )
+
+        XCTAssertEqual(evidence.spotRecord.instrument, spot)
+        XCTAssertEqual(evidence.spotRecord.marketEventCount, 1)
+        XCTAssertEqual(evidence.spotRecord.messageBusEnvelopeCount, 1)
+        XCTAssertTrue(evidence.spotRecord.payloadTypes.first?.contains("dataengine.release-v0.3.0.binance.spot") == true)
+        XCTAssertEqual(evidence.usdmPerpetualRecord.instrument, perp)
+        XCTAssertEqual(evidence.usdmPerpetualRecord.marketEventCount, 1)
+        XCTAssertEqual(evidence.usdmPerpetualRecord.messageBusEnvelopeCount, 1)
+        XCTAssertTrue(
+            evidence.usdmPerpetualRecord.payloadTypes.first?.contains(
+                "dataengine.release-v0.3.0.binance.usdsPerpetual"
+            ) == true
+        )
+
+        let spotSeriesKey = ProductAwareMarketDataSeriesKey(instrument: spot, timeframe: .oneMinute)
+        let perpSeriesKey = ProductAwareMarketDataSeriesKey(instrument: perp, timeframe: .oneMinute)
+        XCTAssertNotEqual(spotSeriesKey, perpSeriesKey)
+        XCTAssertEqual(evidence.cacheSnapshot.barsBySeries[spotSeriesKey]?.first?.close.rawValue, 43_080)
+        XCTAssertEqual(evidence.cacheSnapshot.barsBySeries[perpSeriesKey]?.first?.close.rawValue, 43_150)
+        XCTAssertTrue(evidence.cacheSnapshot.productAwareBoundaryHeld)
+        XCTAssertEqual(evidence.cacheSnapshot.marketEventCount, 2)
+        XCTAssertEqual(evidence.eventEnvelopes, evidence.replayedEnvelopes)
+        XCTAssertEqual(evidence.eventEnvelopes.map(\.instrumentID), [spot, perp])
+        XCTAssertEqual(evidence.eventEnvelopes.compactMap(\.productType), [.spot, .usdsPerpetual])
+
+        XCTAssertFalse(evidence.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(evidence.productionSecretAutoReadEnabled)
+        XCTAssertFalse(evidence.productionOrderSubmissionEnabled)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertFalse(evidence.commandGatewayBypassAllowed)
+        XCTAssertFalse(evidence.strategyExecutionClientDirectAccessAllowed)
+        XCTAssertFalse(evidence.startsNextMilestone)
+
+        for anchor in ReleaseV030DataEngineRuntimeRehearsalEvidence.requiredValidationAnchors {
+            XCTAssertTrue(evidence.validationAnchors.contains(anchor), "\(anchor) must stay in Swift evidence")
+            XCTAssertTrue(flowDoc.contains(anchor), "\(anchor) must stay in DataEngine rehearsal contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation-plan.md")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading-validation-matrix.md")
+        }
+        XCTAssertTrue(flowDoc.contains("DataEngine target 不依赖 ExecutionClient target"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.3.0 DataEngine runtime rehearsal flow anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV030DataEngineRuntimeRehearsalFlow.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH659DataEngineRuntimeRehearsalFlowPreservesSpotPerpProductIdentity"
+            )
+        )
+        XCTAssertTrue(dataEngineTarget.contains("ReleaseV030DataEngineRuntimeRehearsalFlow.swift"))
+        XCTAssertFalse(dataEngineTarget.contains("\"ExecutionClient\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/DataEngine/ReleaseV030DataEngineRuntimeRehearsalFlow.swift"
+                ).path
+            )
+        )
+
+        XCTAssertThrowsError(
+            try flow.run(
+                upstreamEnvironmentConfigAnchor: "UNSAFE-MISSING-GH-658-ANCHOR",
+                spotEvents: [spotEvent],
+                usdmPerpetualEvents: [perpEvent]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "upstreamEnvironmentConfigAnchor",
+                    expected: "TVM-RELEASE-V030-RUNTIME-ENVIRONMENT-CONFIG",
+                    actual: "UNSAFE-MISSING-GH-658-ANCHOR"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try flow.run(spotEvents: [], usdmPerpetualEvents: [perpEvent])
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("missingSpotRehearsalEvent"))
+        }
+        XCTAssertThrowsError(
+            try flow.run(spotEvents: [spotEvent], usdmPerpetualEvents: [])
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("missingUSDMPerpetualRehearsalEvent")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV030DataEngineRuntimeRehearsalRecord(
+                mode: .dryRun,
+                instrument: spot,
+                marketEventCount: 1,
+                messageBusEnvelopeCount: 1,
+                payloadTypes: ["dataengine.release-v0.3.0.binance.spot.rehearsal.BTCUSDT"],
+                usesProductionEndpoint: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("usesProductionEndpoint"))
+        }
+        XCTAssertThrowsError(
+            try ReleaseV030DataEngineRuntimeRehearsalEvidence(
+                spotRecord: evidence.spotRecord,
+                usdmPerpetualRecord: evidence.usdmPerpetualRecord,
+                cacheSnapshot: evidence.cacheSnapshot,
+                eventEnvelopes: evidence.eventEnvelopes,
+                replayedEnvelopes: evidence.replayedEnvelopes,
+                productionEndpointAutoConnectEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("productionEndpointAutoConnectEnabled")
+            )
+        }
+    }
+
     func testGH643ProductionCutoverRuntimeHardeningContractFailsClosedWithoutProductionCutover() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

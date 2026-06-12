@@ -77,6 +77,29 @@ bash checks/run.sh
 
 该矩阵记录 EMA parity、order book imbalance parity、fees / slippage、risk blocker、portfolio exposure 和 report evidence 的现有 coverage、验收证据边界和后续 issue 回填规则。
 
+## GH-659 Release v0.3.0 DataEngine Runtime Rehearsal Flow Validation
+
+GH-659 的 required validation：
+
+- `docs/contracts/release-v0.3.0-dataengine-runtime-rehearsal-flow-contract.md` 必须存在，并包含 `V030-03-DATAENGINE-RUNTIME-REHEARSAL-FLOW`、`V030-03-SPOT-REHEARSAL-PRODUCT-IDENTITY`、`V030-03-USDM-PERP-REHEARSAL-PRODUCT-IDENTITY`、`V030-03-TRACEABLE-DATAENGINE-REHEARSAL-EVIDENCE` 和 `V030-03-NO-PRODUCTION-ENDPOINT-DEPENDENCY`。
+- `Sources/DataEngine/ReleaseV030DataEngineRuntimeRehearsalFlow.swift` 必须定义 `ReleaseV030DataEngineRuntimeRehearsalFlow`、`ReleaseV030DataEngineRuntimeRehearsalEvidence`、`ReleaseV030DataEngineRuntimeRehearsalRecord`、`ReleaseV030DataEngineRuntimeRehearsalRequirement` 和 `ReleaseV030DataEngineRuntimeRehearsalForbiddenCapability`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH659DataEngineRuntimeRehearsalFlowPreservesSpotPerpProductIdentity`。
+- Flow 必须绑定 GH-658 upstream environment config anchor `TVM-RELEASE-V030-RUNTIME-ENVIRONMENT-CONFIG`，但 DataEngine target 不得依赖 ExecutionClient target。
+- Flow 必须证明 Binance Spot rehearsal events 与 USDⓈ-M Perpetual rehearsal events 均进入 DataEngine，且 venue / productType / instrument identity 被保留。
+- Flow 必须证明 product-aware cache 使用 `ProductAwareMarketDataSeriesKey(instrument:timeframe:)` 区分 Spot 与 Perp，同 symbol 不得退回 symbol-only key。
+- Flow 必须证明 MessageBus append-only journal replay 与原始 envelope 一致，payload type 保留 `dataengine.release-v0.3.0.binance.spot` 与 `dataengine.release-v0.3.0.binance.usdsPerpetual`。
+- Flow 必须证明 production endpoint 不自动连接、production secret 不自动读取、production order 不提交、production cutover 未授权、Dashboard / CLI 不绕过 CommandGateway、Strategy 不直连 ExecutionClient。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH659DataEngineRuntimeRehearsalFlowPreservesSpotPerpProductIdentity`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-659 必须建立的主要 anchors：
+
+- `V030-03-DATAENGINE-RUNTIME-REHEARSAL-FLOW`
+- `V030-03-SPOT-REHEARSAL-PRODUCT-IDENTITY`
+- `V030-03-USDM-PERP-REHEARSAL-PRODUCT-IDENTITY`
+- `V030-03-TRACEABLE-DATAENGINE-REHEARSAL-EVIDENCE`
+- `V030-03-NO-PRODUCTION-ENDPOINT-DEPENDENCY`
+- `TVM-RELEASE-V030-DATAENGINE-RUNTIME-REHEARSAL-FLOW`
+
 ## GH-658 Release v0.3.0 Runtime Environment Config Validation
 
 GH-658 的 required validation：
