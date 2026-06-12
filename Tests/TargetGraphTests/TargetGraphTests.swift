@@ -8473,6 +8473,128 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH592SpotPerpGoldenTraceCatalogCovers15RequiredRunReplayChecksums() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let releaseContract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md"
+            ),
+            encoding: .utf8
+        )
+
+        let databaseTarget = try packageTargetBlock(named: "Database", packageSource: packageSource)
+        XCTAssertTrue(databaseTarget.contains("\"ReleaseV020GoldenTraceCatalog.swift\""))
+        XCTAssertFalse(databaseTarget.contains("\"ExecutionClient\""))
+        XCTAssertFalse(databaseTarget.contains("\"ExecutionEngine\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/Database/ReleaseV020GoldenTraceCatalog.swift"
+                ).path
+            )
+        )
+
+        let evidence = try ReleaseV020GoldenTraceCatalog.deterministicEvidence()
+        XCTAssertTrue(evidence.catalogBoundaryHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-592")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-591"])
+        XCTAssertEqual(evidence.traceCount, 15)
+        XCTAssertEqual(ReleaseV020GoldenTraceKind.allCases.count, 15)
+        XCTAssertEqual(evidence.traceKinds, ReleaseV020GoldenTraceKind.allCases)
+        XCTAssertEqual(
+            evidence.traceIDs.map(\.rawValue),
+            ReleaseV020GoldenTraceKind.allCases.map { "gh-592-\($0.rawValue)" }
+        )
+        XCTAssertEqual(evidence.records.map(\.sequence), Array(1...15))
+        XCTAssertEqual(evidence.runChecksums, evidence.replayChecksums)
+        XCTAssertEqual(evidence.runChecksums.count, 15)
+        XCTAssertEqual(Set(evidence.runChecksums).count, 15)
+        XCTAssertTrue(evidence.records.allSatisfy(\.traceBoundaryHeld))
+        XCTAssertEqual(Set(evidence.records.flatMap { $0.productTypes }), Set(ProductType.allCases))
+        XCTAssertEqual(
+            Set(evidence.records.flatMap { $0.strategies }),
+            Set(ReleaseV020GoldenTraceStrategy.allCases)
+        )
+        XCTAssertTrue(evidence.allRequiredTracesPresent)
+        XCTAssertTrue(evidence.runReplayChecksumsMatch)
+        XCTAssertEqual(evidence.catalogVenue.rawValue, "binance")
+        XCTAssertEqual(Set(evidence.catalogProductTypes), Set(ProductType.allCases))
+        XCTAssertEqual(Set(evidence.catalogStrategies), Set(ReleaseV020GoldenTraceStrategy.allCases))
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionSecretRead)
+        XCTAssertFalse(evidence.brokerGatewayTouched)
+        XCTAssertFalse(evidence.accountEndpointRead)
+        XCTAssertFalse(evidence.rawPayloadStored)
+        XCTAssertFalse(evidence.rawDatabaseSchemaExposedToDashboard)
+
+        let upstreamIssues = Set(evidence.records.map(\.upstreamIssueID.rawValue))
+        for issue in ["GH-573", "GH-574", "GH-575", "GH-569", "GH-570", "GH-577",
+                      "GH-578", "GH-579", "GH-580", "GH-581", "GH-582", "GH-586", "GH-591"] {
+            XCTAssertTrue(upstreamIssues.contains(issue), issue)
+        }
+
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoded = try JSONDecoder().decode(ReleaseV020GoldenTraceCatalogEvidence.self, from: encoded)
+        XCTAssertEqual(decoded, evidence)
+
+        let spotTrace = try XCTUnwrap(evidence.records.first { $0.kind == .spotMarketDataCache })
+        XCTAssertEqual(spotTrace.productTypes, [.spot])
+        XCTAssertEqual(spotTrace.strategies, [])
+        XCTAssertTrue(spotTrace.runChecksum.hasPrefix("fnv1a64:"))
+
+        let projectionTrace = try XCTUnwrap(evidence.records.first { $0.kind == .eventStoreSQLiteDuckDBProjection })
+        XCTAssertEqual(Set(projectionTrace.productTypes), Set(ProductType.allCases))
+        XCTAssertEqual(Set(projectionTrace.strategies), Set(ReleaseV020GoldenTraceStrategy.allCases))
+        XCTAssertEqual(projectionTrace.upstreamIssueID.rawValue, "GH-591")
+
+        XCTAssertThrowsError(
+            try ReleaseV020GoldenTraceRecord(
+                traceID: Identifier.constant("unsafe-gh-592-trace"),
+                sequence: 1,
+                kind: .spotMarketDataCache,
+                upstreamIssueID: Identifier.constant("GH-573"),
+                productTypes: [.spot],
+                strategies: [],
+                sourceEvidenceAnchor: "GH-573-BINANCE-SPOT-MARKET-DATA-ACTIVE-PATH",
+                runChecksum: "fnv1a64:0000000000000000"
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV020GoldenTraceCatalogEvidence(records: Array(evidence.records.dropLast()))
+        )
+
+        XCTAssertTrue(validationMatrix.contains("`GH-592`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-SPOT-PERP-GOLDEN-TRACE-CATALOG"))
+        XCTAssertTrue(validationPlan.contains("GH-592 Release v0.2.0 Spot + Perp Golden Trace Catalog Validation"))
+        XCTAssertTrue(domainContext.contains("GH-592 Spot + Perp Golden Trace Catalog Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 Spot + Perp golden trace catalog anchor"))
+        XCTAssertTrue(
+            releaseContract.contains(
+                "GH-592 / V020-30 | Spot + Perp golden trace catalog"
+            )
+        )
+    }
+
     func testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
