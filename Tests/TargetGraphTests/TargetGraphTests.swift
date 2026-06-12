@@ -4593,6 +4593,105 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH632MessageBusOwnsRichRoutingCompatibilityContractAndKeepsCoreCompatibilityOnly() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let contract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/core-compatibility-envelope-final-retirement-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+
+        for anchor in MessageBusRichRoutingCompatibilityContract.requiredValidationAnchors {
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must remain in CEFR contract")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must remain in validation-plan.md")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must remain in trading-validation-matrix.md")
+        }
+
+        let messageBusTarget = try packageTargetBlock(named: "MessageBus", packageSource: packageSource)
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        let dashboardTarget = try packageTargetBlock(named: "Dashboard", packageSource: packageSource)
+        let cliTarget = try packageTargetBlock(named: "MTPROCLI", packageSource: packageSource)
+        let messageBusSources = try packageTargetSourcesBlock(targetBlock: messageBusTarget)
+        let coreSources = try packageTargetSourcesBlock(targetBlock: coreTarget)
+        let coreExcludes = try packageTargetExcludesBlock(targetBlock: coreTarget)
+
+        XCTAssertTrue(messageBusSources.contains("\"RichRoutingCompatibilityContract.swift\""))
+        XCTAssertTrue(coreExcludes.contains("\"MessageBus/RichRoutingCompatibilityContract.swift\""))
+        XCTAssertFalse(coreSources.contains("\"MessageBus/RichRoutingCompatibilityContract.swift\""))
+
+        for forbiddenDependency in [
+            "\"Trader\"",
+            "\"TraderStrategies\"",
+            "\"Portfolio\"",
+            "\"RiskEngine\"",
+            "\"ExecutionEngine\"",
+            "\"ExecutionClient\"",
+            "\"Dashboard\""
+        ] {
+            XCTAssertFalse(
+                messageBusTarget.contains(forbiddenDependency),
+                "MessageBus target must not gain upper-layer dependency \(forbiddenDependency)"
+            )
+        }
+
+        let evidence = MessageBusRichRoutingCompatibilityContract.gh632
+        XCTAssertTrue(evidence.boundaryHeld)
+        XCTAssertEqual(
+            Set(evidence.retainedSourcePaths),
+            MessageBusRichRoutingCompatibilityContract.requiredRetainedSourcePaths
+        )
+        XCTAssertTrue(evidence.allSurfacesAreCompatibilityOnly)
+        XCTAssertTrue(evidence.noProductionAuthorization.allProductionCapabilitiesDisabledByDefault)
+        XCTAssertTrue(
+            MessageBusTargetBoundary.requiredValidationAnchors.contains(
+                "GH-632-MESSAGEBUS-RICH-ROUTING-COMPATIBILITY-CONTRACT"
+            )
+        )
+
+        for surface in evidence.retainedSurfaces {
+            XCTAssertEqual(surface.compiledByCompatibilityEnvelope, "Core")
+            XCTAssertEqual(surface.status, .retainedCompatibilityOnly)
+            XCTAssertTrue(surface.messageBusOwnsCompatibilityDecision)
+            XCTAssertTrue(surface.realModuleOwners.contains("MessageBus"))
+            XCTAssertTrue(contract.contains("`\(surface.sourcePath)`"))
+            XCTAssertTrue(FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(surface.sourcePath).path
+            ))
+        }
+
+        XCTAssertTrue(dashboardTarget.contains("dependencies: [\"Core\", \"Persistence\"]"))
+        XCTAssertTrue(cliTarget.contains("dependencies: [\"Database\"]"))
+        XCTAssertFalse(cliTarget.contains("\"Core\""))
+        XCTAssertFalse(cliTarget.contains("\"MessageBus\""))
+        XCTAssertFalse(cliTarget.contains("\"ExecutionEngine\""))
+        XCTAssertFalse(cliTarget.contains("\"ExecutionClient\""))
+
+        for forbiddenDefault in [
+            "productionTradingEnabledByDefault == false",
+            "productionSecretReadEnabledByDefault == false",
+            "productionEndpointConnectionEnabledByDefault == false",
+            "brokerGatewayEnabledByDefault == false",
+            "realOrderCommandEnabledByDefault == false",
+            "omsRuntimeEnabledByDefault == false",
+            "dashboardCommandSurfaceEnabledByDefault == false"
+        ] {
+            XCTAssertTrue(contract.contains(forbiddenDefault), "\(forbiddenDefault) must remain explicit")
+        }
+    }
+
     func testGH523ReleaseV010TargetsExposeRealSmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-523-release-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)

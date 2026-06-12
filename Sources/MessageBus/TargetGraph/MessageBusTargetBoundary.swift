@@ -7,7 +7,8 @@ import DomainModel
 /// 强行并入 `MessageBus` target implementation；GH-394 起 `MessageBus` 直接拥有
 /// 中立 append-only journal；GH-414 起 `MessageBus` 直接拥有中立 query / replay
 /// 合同。旧 paper routing / downstream evidence 仍留在 `Core` compatibility
-/// envelope，等待后续专门迁移。
+/// envelope，等待后续专门迁移。GH-632 起 rich routing compatibility 的归属判定
+/// 已由 `MessageBus` target 内的 `MessageBusRichRoutingCompatibilityContract` 拥有。
 public struct MessageBusTargetBoundary: Codable, Equatable, Sendable {
     public let targetName: String
     public let canonicalSourceRoot: String
@@ -76,6 +77,7 @@ public struct MessageBusTargetBoundary: Codable, Equatable, Sendable {
         "GH-394-MESSAGEBUS-NEUTRAL-JOURNAL-OWNERSHIP",
         "GH-414-MESSAGEBUS-NEUTRAL-QUERY-REPLAY-OWNERSHIP",
         "GH-414-CORE-RICH-MESSAGEBUS-COMPATIBILITY-ENVELOPE",
+        "GH-632-MESSAGEBUS-RICH-ROUTING-COMPATIBILITY-CONTRACT",
         "MTP-217-NO-RUNTIME-LIVE-BROKER-L4-GUARD"
     ]
 
