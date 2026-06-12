@@ -8592,6 +8592,50 @@ GH-587 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-588 Release v0.2.0 Perpetual Portfolio Projection Validation
+
+GH-588 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH588PerpetualPortfolioProjectionUpdatesPositionMarginPnLFundingAndAttribution`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-588 的验收要求：
+
+- Projection 必须消费 GH-586 Perp normalized BrokerFill / position update evidence 和 GH-575 fresh mark / funding read model；Spot BrokerFill 进入 Perp projection 必须被拒绝。
+- Perp fill 必须更新 positionAmt、entryPrice、markPrice、margin requirement、本地 realized / unrealized / net PnL、funding estimate 和 EMA / RSI strategy attribution。
+- Projection 必须产出 Portfolio financial state projection evidence，但不得让 `Portfolio` target 直接依赖 `ExecutionClient`。
+- 生成的 projection evidence 必须保持 production trading disabled by default，不授权 production account endpoint、production secret、broker gateway、broker position sync、leverage / margin action、funding settlement、reconciliation runtime、Portfolio runtime mutation、Dashboard live command surface 或真实 submit / cancel / replace。
+
+GH-588 必须建立的主要 anchors：
+
+- `GH-588-PERPETUAL-PORTFOLIO-PROJECTION`
+- `GH-588-PERP-POSITIONAMT-ENTRY-MARK`
+- `GH-588-PERP-MARGIN-PROJECTION`
+- `GH-588-PERP-PNL-PROJECTION`
+- `GH-588-PERP-FUNDING-PROJECTION`
+- `GH-588-PERP-STRATEGY-ATTRIBUTION`
+- `GH-588-NO-PRODUCTION-ACCOUNT-READ`
+- `TVM-RELEASE-V020-PERPETUAL-PORTFOLIO-PROJECTION`
+
+## GH-588 禁止
+
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint、listenKey 或 private stream endpoint。
+- 不保存或暴露 raw execution report、raw broker payload、signature value、API key、secret material、account payload、margin payload 或 broker state。
+- 不执行真实 submit / cancel / replace，不把 Perp Portfolio projection evidence 解释为 production fill、production position、broker statement、funding settlement 或 production authorization。
+- 不执行 reconciliation runtime，不同步 broker position，不读取真实 balance、real PnL、margin、leverage、buying power 或 account endpoint payload。
+- 不执行 leverage action、margin action、funding settlement、broker statement read 或 broker reconciliation。
+- 不把 projection output 暴露为 Dashboard raw payload、Dashboard live command、Live PRO Console command、trading button、order form 或 production authorization。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USD-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation
 
 GH-521 必须运行：
