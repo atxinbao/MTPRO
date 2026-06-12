@@ -142,6 +142,29 @@ GH-645 必须建立的主要 anchors：
 - `PCHR-03-NO-PRODUCTION-ENDPOINT-AUTO-CONNECT`
 - `TVM-PCHR-PRODUCTION-ENDPOINT-CONNECTION-GATE`
 
+## GH-646 Production Command Dispatch Gate Validation
+
+GH-646 的 required validation：
+
+- `docs/contracts/production-command-dispatch-gate-contract.md` 必须存在，并包含 `PCHR-04-COMMAND-RISK-EXECUTION-OMS-DISPATCH-GATE`、`PCHR-04-DASHBOARD-CLI-NO-DIRECT-EXECUTIONCLIENT`、`PCHR-04-COMMANDGATEWAY-OPERATOR-APPROVAL`、`PCHR-04-RISKENGINE-KILL-NOTRADE-LIMITS`、`PCHR-04-EXECUTIONENGINE-RISK-APPROVED-ONLY`、`PCHR-04-OMS-LIFECYCLE-BEFORE-HANDOFF`、`PCHR-04-FAILED-GATE-BLOCKS-COMMAND` 和 `PCHR-04-NO-PRODUCTION-ORDER-AUTHORIZATION`。
+- `Sources/ExecutionEngine/OMSFutureGate/ProductionCommandDispatchGate.swift` 必须定义 `ProductionCommandDispatchGate`、`ProductionCommandDispatchAttemptEvidence`、`ProductionCommandDispatchGateRequirement`、`ProductionCommandDispatchForbiddenCapability`、`ProductionCommandDispatchSourceKind` 和 `ProductionCommandDispatchOutcome`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH646ProductionCommandDispatchGateRequiresCommandRiskExecutionOMSGates`。
+- Contract 必须绑定 GH-645 upstream endpoint connection gate，并证明 Dashboard / CLI 不能直达 ExecutionClient、CommandGateway 必须检查 operator approval、RiskEngine 必须检查 kill switch / no-trade / limits、ExecutionEngine 只能接受 Risk-approved command、OMS 必须在 handoff 前记录 lifecycle、Event Store audit 必须存在。
+- Contract 必须证明 failed gate blocks command、production endpoint 不 auto-connect、不读取 production secret、不连接真实 broker、不提交 / 撤销 / 替换真实订单、不绕过 CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH646ProductionCommandDispatchGateRequiresCommandRiskExecutionOMSGates`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential 或人工验收。
+
+GH-646 必须建立的主要 anchors：
+
+- `PCHR-04-COMMAND-RISK-EXECUTION-OMS-DISPATCH-GATE`
+- `PCHR-04-DASHBOARD-CLI-NO-DIRECT-EXECUTIONCLIENT`
+- `PCHR-04-COMMANDGATEWAY-OPERATOR-APPROVAL`
+- `PCHR-04-RISKENGINE-KILL-NOTRADE-LIMITS`
+- `PCHR-04-EXECUTIONENGINE-RISK-APPROVED-ONLY`
+- `PCHR-04-OMS-LIFECYCLE-BEFORE-HANDOFF`
+- `PCHR-04-FAILED-GATE-BLOCKS-COMMAND`
+- `PCHR-04-NO-PRODUCTION-ORDER-AUTHORIZATION`
+- `TVM-PCHR-COMMAND-RISK-EXECUTION-OMS-DISPATCH-GATE`
+
 ## GH-631 CEFR Final Envelope Retirement Contract Validation
 
 GH-631 的 required validation：

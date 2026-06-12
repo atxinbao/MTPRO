@@ -5730,6 +5730,185 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH646ProductionCommandDispatchGateRequiresCommandRiskExecutionOMSGates() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionEngineTarget = try packageTargetBlock(named: "ExecutionEngine", packageSource: packageSource)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/production-command-dispatch-gate-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let upstreamContractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/production-endpoint-connection-gate-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+
+        let upstream = try ProductionEndpointConnectionGate.deterministicFixture()
+        let contract = try ProductionCommandDispatchGate.deterministicFixture()
+        XCTAssertTrue(upstream.contractHeld)
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertTrue(contract.dispatchGateCoverageHeld)
+        XCTAssertTrue(contract.surfaceDirectAccessBlocked)
+        XCTAssertTrue(contract.productionDefaultsClosed)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-646")
+        XCTAssertEqual(contract.upstreamIssueID.rawValue, "GH-645")
+        XCTAssertEqual(contract.downstreamIssueID.rawValue, "GH-647")
+        XCTAssertEqual(contract.canonicalQueueRange, "GH-643..GH-649")
+        XCTAssertEqual(contract.allowedCommandSource, .commandGateway)
+        XCTAssertEqual(Set(contract.requirements), Set(ProductionCommandDispatchGateRequirement.allCases))
+        XCTAssertEqual(
+            Set(contract.forbiddenCapabilities),
+            Set(ProductionCommandDispatchForbiddenCapability.allCases)
+        )
+
+        XCTAssertTrue(contract.upstreamEndpointConnectionGateHeld)
+        XCTAssertTrue(contract.dashboardCLIDirectExecutionClientBlocked)
+        XCTAssertTrue(contract.commandGatewayOperatorApprovalRequired)
+        XCTAssertTrue(contract.riskEngineKillSwitchRequired)
+        XCTAssertTrue(contract.riskEngineNoTradeStateRequired)
+        XCTAssertTrue(contract.riskEngineLimitChecksRequired)
+        XCTAssertTrue(contract.executionEngineRiskApprovedOnly)
+        XCTAssertTrue(contract.omsLifecycleRecordingRequiredBeforeHandoff)
+        XCTAssertTrue(contract.eventStoreAuditRequired)
+        XCTAssertTrue(contract.failedGateBlocksCommand)
+        XCTAssertFalse(contract.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(contract.productionSecretAutoReadEnabled)
+        XCTAssertFalse(contract.realBrokerConnectionEnabled)
+        XCTAssertFalse(contract.realOrderSubmissionEnabled)
+        XCTAssertFalse(contract.startsNextMilestone)
+
+        let outcomes = Set(contract.attemptEvidence.map(\.outcome))
+        XCTAssertEqual(outcomes, Set(ProductionCommandDispatchOutcome.allCases))
+        XCTAssertTrue(contract.attemptEvidence.allSatisfy(\.evidenceBoundaryHeld))
+        XCTAssertTrue(contract.attemptEvidence.allSatisfy(\.eventStoreAuditRecorded))
+        XCTAssertTrue(contract.attemptEvidence.allSatisfy { $0.callsExecutionClient == false })
+        XCTAssertTrue(contract.attemptEvidence.allSatisfy { $0.touchesBrokerGateway == false })
+        XCTAssertTrue(contract.attemptEvidence.allSatisfy { $0.submitsRealOrder == false })
+        XCTAssertTrue(contract.attemptEvidence.allSatisfy { $0.cancelsRealOrder == false })
+        XCTAssertTrue(contract.attemptEvidence.allSatisfy { $0.replacesRealOrder == false })
+        XCTAssertTrue(
+            contract.attemptEvidence.contains {
+                $0.outcome == .recordedGatedHandoff
+                    && $0.riskEngineApproved
+                    && $0.executionEngineAccepted
+                    && $0.omsLifecycleRecorded
+                    && $0.commandBlocked == false
+            }
+        )
+
+        for anchor in ProductionCommandDispatchGate.requiredValidationAnchors {
+            XCTAssertTrue(contract.validationAnchors.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in dispatch gate contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation-plan.md")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading-validation-matrix.md")
+        }
+        XCTAssertTrue(upstreamContractDoc.contains("PCHR-03-PRODUCTION-ENDPOINT-CONNECTION-GATE"))
+        XCTAssertTrue(automationReadiness.contains("Production command dispatch gate anchor"))
+        XCTAssertTrue(readinessScript.contains("ProductionCommandDispatchGate.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH646ProductionCommandDispatchGateRequiresCommandRiskExecutionOMSGates"
+            )
+        )
+        XCTAssertTrue(executionEngineTarget.contains("\"OMSFutureGate\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionEngine/OMSFutureGate/ProductionCommandDispatchGate.swift"
+                ).path
+            )
+        )
+
+        XCTAssertThrowsError(
+            try ProductionCommandDispatchGate(
+                upstreamEndpointConnectionGateHeld: false
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "upstreamEndpointConnectionGateHeld",
+                    expected: "true",
+                    actual: "false"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try ProductionCommandDispatchGate(
+                realOrderSubmissionEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("realOrderSubmissionEnabled"))
+        }
+        XCTAssertThrowsError(
+            try ProductionCommandDispatchAttemptEvidence(
+                attemptID: Identifier.constant("unsafe-gh-646-executionclient-call"),
+                commandKind: .submit,
+                source: .commandGateway,
+                outcome: .recordedGatedHandoff,
+                operatorApprovalPassed: true,
+                killSwitchPassed: true,
+                noTradeStatePassed: true,
+                limitChecksPassed: true,
+                riskEngineApproved: true,
+                executionEngineAccepted: true,
+                omsLifecycleRecorded: true,
+                commandBlocked: false,
+                callsExecutionClient: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("callsExecutionClient"))
+        }
+        XCTAssertThrowsError(
+            try ProductionCommandDispatchAttemptEvidence(
+                attemptID: Identifier.constant("unsafe-gh-646-outcome-mismatch"),
+                commandKind: .cancel,
+                source: .commandGateway,
+                outcome: .recordedGatedHandoff,
+                operatorApprovalPassed: true,
+                killSwitchPassed: true,
+                noTradeStatePassed: true,
+                limitChecksPassed: true,
+                riskEngineApproved: false,
+                executionEngineAccepted: false,
+                omsLifecycleRecorded: false,
+                commandBlocked: false
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "evidenceBoundaryHeld",
+                    expected: "command dispatch attempt matches GH-646 fail-closed gate chain",
+                    actual: "recorded: gated handoff evidence"
+                )
+            )
+        }
+    }
+
     func testGH523ReleaseV010TargetsExposeRealSmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-523-release-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)
