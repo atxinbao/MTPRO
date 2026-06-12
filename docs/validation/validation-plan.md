@@ -120,6 +120,28 @@ GH-644 必须建立的主要 anchors：
 - `PCHR-02-NO-PRODUCTION-SECRET-VALUE-READ`
 - `TVM-PCHR-CREDENTIAL-REFERENCE-ENVIRONMENT-ISOLATION`
 
+## GH-645 Production Endpoint Connection Gate Validation
+
+GH-645 的 required validation：
+
+- `docs/contracts/production-endpoint-connection-gate-contract.md` 必须存在，并包含 `PCHR-03-PRODUCTION-ENDPOINT-CONNECTION-GATE`、`PCHR-03-OPERATOR-APPROVAL-REQUIRED`、`PCHR-03-ENDPOINT-VENUE-PRODUCT-ALLOWLIST`、`PCHR-03-CONNECTION-ATTEMPT-AUDIT-EVIDENCE`、`PCHR-03-CONNECTION-FAILURE-FAIL-CLOSED`、`PCHR-03-NO-ENDPOINT-FALLBACK-OR-SILENT-CONTINUATION` 和 `PCHR-03-NO-PRODUCTION-ENDPOINT-AUTO-CONNECT`。
+- `Sources/ExecutionClient/FutureGate/ProductionEndpointConnectionGate.swift` 必须定义 `ProductionEndpointConnectionGate`、`ProductionEndpointConnectionAttemptAuditEvidence`、`ProductionEndpointConnectionRequirement`、`ProductionEndpointConnectionForbiddenCapability` 和 `ProductionEndpointConnectionAttemptOutcome`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH645ProductionEndpointConnectionGateRequiresApprovalAllowlistAndAudit`。
+- Contract 必须绑定 GH-644 upstream credential isolation contract，并证明 production endpoint connection 需要 operator approval、endpoint / venue / productType allowlist、connection attempt audit evidence 和 connection failure fail-closed。
+- Contract 必须证明 production endpoint 默认不连接、不 auto-connect、不读取 production secret、不连接真实 broker、不提交真实订单、不允许 endpoint fallback、不允许 silent continuation、不绕过 CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH645ProductionEndpointConnectionGateRequiresApprovalAllowlistAndAudit`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential 或人工验收。
+
+GH-645 必须建立的主要 anchors：
+
+- `PCHR-03-PRODUCTION-ENDPOINT-CONNECTION-GATE`
+- `PCHR-03-OPERATOR-APPROVAL-REQUIRED`
+- `PCHR-03-ENDPOINT-VENUE-PRODUCT-ALLOWLIST`
+- `PCHR-03-CONNECTION-ATTEMPT-AUDIT-EVIDENCE`
+- `PCHR-03-CONNECTION-FAILURE-FAIL-CLOSED`
+- `PCHR-03-NO-ENDPOINT-FALLBACK-OR-SILENT-CONTINUATION`
+- `PCHR-03-NO-PRODUCTION-ENDPOINT-AUTO-CONNECT`
+- `TVM-PCHR-PRODUCTION-ENDPOINT-CONNECTION-GATE`
+
 ## GH-631 CEFR Final Envelope Retirement Contract Validation
 
 GH-631 的 required validation：
