@@ -7571,6 +7571,205 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH586BinanceExecutionReportParserMapsSpotPerpBrokerFillAndPositionUpdates() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let releaseContract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md"
+            ),
+            encoding: .utf8
+        )
+
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        XCTAssertTrue(executionClientTarget.contains("path: \"Sources/ExecutionClient\""))
+        XCTAssertFalse(executionClientTarget.contains("\"ExecutionEngine\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/ReleaseV020BinanceExecutionReportBrokerFillParser.swift"
+                ).path
+            )
+        )
+
+        let parser = try ReleaseV020BinanceExecutionReportParser.deterministicFixture()
+        XCTAssertTrue(parser.parserBoundaryHeld)
+        XCTAssertEqual(parser.issueID.rawValue, "GH-586")
+        XCTAssertEqual(parser.upstreamIssueIDs.map(\.rawValue), ["GH-584", "GH-585"])
+        XCTAssertTrue(parser.spotAdapterEvidence.evidenceBoundaryHeld)
+        XCTAssertTrue(parser.perpAdapterEvidence.evidenceBoundaryHeld)
+        XCTAssertFalse(parser.productionParserEnabledByDefault)
+        XCTAssertFalse(parser.productionTradingEnabledByDefault)
+        XCTAssertFalse(parser.productionPayloadInterpreted)
+        XCTAssertFalse(parser.brokerGatewayTouched)
+        XCTAssertFalse(parser.reconciliationProduced)
+        XCTAssertFalse(parser.portfolioRuntimeUpdated)
+        XCTAssertFalse(parser.dashboardRawPayloadExposed)
+        XCTAssertFalse(parser.liveCommandSurfaceTouched)
+
+        for anchor in [
+            "GH-586-BINANCE-EXECUTION-REPORT-BROKER-FILL-PARSER",
+            "GH-586-SPOT-BROKER-FILL-PARSER",
+            "GH-586-PERP-BROKER-FILL-PARSER",
+            "GH-586-NORMALIZED-BROKER-FILL",
+            "GH-586-PERP-POSITION-UPDATE",
+            "GH-586-INVALID-PAYLOAD-BLOCKED",
+            "GH-586-RAW-PAYLOAD-NOT-EXPOSED-TO-DASHBOARD",
+            "GH-586-PRODUCTION-PARSER-DISABLED",
+            "TVM-RELEASE-V020-EXECUTION-REPORT-BROKER-FILL-PARSER",
+        ] {
+            XCTAssertTrue(parser.validationAnchors.contains(anchor), anchor)
+        }
+
+        let evidence = try parser.deterministicParserEvidence()
+        XCTAssertTrue(evidence.evidenceBoundaryHeld)
+        XCTAssertEqual(Set(evidence.parseResults.map(\.brokerFill.reportKind)), Set(ReleaseV020BinanceExecutionReportKind.allCases))
+        XCTAssertEqual(evidence.parseResults.map(\.brokerFill.replaySequence), [1, 2, 3, 4])
+        XCTAssertTrue(evidence.spotBrokerFillParserComplete)
+        XCTAssertTrue(evidence.perpBrokerFillParserComplete)
+        XCTAssertTrue(evidence.perpPositionUpdateEvidenceComplete)
+        XCTAssertTrue(evidence.invalidPayloadBlockedEvidenceComplete)
+        XCTAssertTrue(evidence.rawPayloadNotExposedToDashboard)
+        XCTAssertTrue(evidence.productionParserDisabled)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionPayloadInterpreted)
+        XCTAssertFalse(evidence.brokerGatewayTouched)
+        XCTAssertFalse(evidence.reconciliationProduced)
+        XCTAssertFalse(evidence.portfolioRuntimeUpdated)
+        XCTAssertFalse(evidence.dashboardRawPayloadExposed)
+
+        let spotResults = evidence.parseResults.filter { $0.brokerFill.instrument.productType == .spot }
+        XCTAssertEqual(Set(spotResults.map(\.brokerFill.reportKind)), [.spotFill, .spotPartialFill])
+        XCTAssertTrue(spotResults.allSatisfy(\.resultBoundaryHeld))
+        XCTAssertTrue(spotResults.allSatisfy { $0.positionUpdate == nil })
+        XCTAssertTrue(spotResults.allSatisfy { $0.brokerFill.sourceAdapterIssueID.rawValue == "GH-584" })
+
+        let perpResults = evidence.parseResults.filter { $0.brokerFill.instrument.productType == .usdsPerpetual }
+        XCTAssertEqual(Set(perpResults.map(\.brokerFill.reportKind)), [.perpFill, .perpPartialFill])
+        XCTAssertTrue(perpResults.allSatisfy(\.resultBoundaryHeld))
+        XCTAssertTrue(perpResults.allSatisfy { $0.positionUpdate?.positionUpdateBoundaryHeld == true })
+        XCTAssertTrue(perpResults.allSatisfy { $0.brokerFill.sourceAdapterIssueID.rawValue == "GH-585" })
+        XCTAssertTrue(perpResults.allSatisfy { $0.brokerFill.positionSide == .long })
+        XCTAssertTrue(perpResults.allSatisfy { $0.brokerFill.reduceOnly })
+        XCTAssertTrue(perpResults.allSatisfy { $0.positionUpdate?.accountEndpointRead == false })
+        XCTAssertTrue(perpResults.allSatisfy { $0.positionUpdate?.brokerPositionSynced == false })
+        XCTAssertTrue(perpResults.allSatisfy { $0.positionUpdate?.leverageActionExecuted == false })
+        XCTAssertTrue(perpResults.allSatisfy { $0.positionUpdate?.marginActionExecuted == false })
+        XCTAssertTrue(perpResults.allSatisfy { $0.positionUpdate?.portfolioRuntimeUpdated == false })
+
+        let perpFull = try XCTUnwrap(perpResults.first { $0.brokerFill.reportKind == .perpFill })
+        let perpFullUpdate = try XCTUnwrap(perpFull.positionUpdate)
+        XCTAssertEqual(perpFullUpdate.previousPositionQuantity.rawValue, 0.25)
+        XCTAssertEqual(perpFullUpdate.fillQuantity.rawValue, 0.25)
+        XCTAssertEqual(perpFullUpdate.resultingPositionQuantity.rawValue, 0)
+
+        let perpPartial = try XCTUnwrap(perpResults.first { $0.brokerFill.reportKind == .perpPartialFill })
+        let perpPartialUpdate = try XCTUnwrap(perpPartial.positionUpdate)
+        XCTAssertEqual(perpPartialUpdate.previousPositionQuantity.rawValue, 0.25)
+        XCTAssertEqual(perpPartialUpdate.fillQuantity.rawValue, 0.10)
+        XCTAssertEqual(perpPartialUpdate.resultingPositionQuantity.rawValue, 0.15, accuracy: 0.000_000_01)
+
+        XCTAssertTrue(evidence.parseResults.allSatisfy { $0.brokerFill.fillBoundaryHeld })
+        XCTAssertTrue(evidence.parseResults.allSatisfy { $0.brokerFill.dashboardReadModelSafe })
+        XCTAssertTrue(evidence.parseResults.allSatisfy { $0.brokerFill.rawPayloadExposedToDashboard == false })
+        XCTAssertTrue(evidence.parseResults.allSatisfy { $0.brokerFill.productionPayloadInterpreted == false })
+        XCTAssertTrue(evidence.parseResults.allSatisfy { $0.brokerFill.brokerGatewayTouched == false })
+        XCTAssertTrue(evidence.parseResults.allSatisfy { $0.brokerFill.reconciliationProduced == false })
+        XCTAssertTrue(evidence.parseResults.allSatisfy { $0.brokerFill.portfolioUpdated == false })
+        XCTAssertTrue(evidence.parseResults.allSatisfy { $0.brokerFill.liveCommandSurfaceTouched == false })
+
+        XCTAssertEqual(
+            Set(evidence.invalidPayloads.map(\.reason)),
+            [.productionRawPayload, .unsupportedExecutionStatus, .rawPayloadExposureAttempt]
+        )
+        XCTAssertTrue(evidence.invalidPayloads.allSatisfy(\.invalidEvidenceBoundaryHeld))
+        XCTAssertTrue(evidence.invalidPayloads.allSatisfy { $0.brokerFillProduced == false })
+        XCTAssertTrue(evidence.invalidPayloads.allSatisfy { $0.positionUpdateProduced == false })
+        XCTAssertTrue(evidence.invalidPayloads.allSatisfy { $0.rawPayloadRetained == false })
+        XCTAssertTrue(evidence.invalidPayloads.allSatisfy { $0.rawPayloadExposedToDashboard == false })
+
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoded = try JSONDecoder().decode(
+            ReleaseV020BinanceExecutionReportParserEvidence.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, evidence)
+
+        let spotRequest = try XCTUnwrap(parser.spotAdapterEvidence.testnetRequests.first { $0.commandKind == .submit })
+        let spotAck = try XCTUnwrap(parser.spotAdapterEvidence.acknowledgements.first { $0.commandKind == .submit })
+        XCTAssertThrowsError(
+            try ReleaseV020BinanceExecutionReportFixture(
+                reportID: Identifier.constant("unsafe-gh-586-production-raw-report"),
+                sourceAdapterIssueID: Identifier.constant("GH-584"),
+                sourceKind: .productionRawPayload,
+                reportKind: .spotFill,
+                sourceCommandKind: "submit",
+                sourceCommandRequestID: spotRequest.requestID,
+                sourceCommandAckID: spotAck.ackID,
+                sourceOrderIntentID: spotRequest.sourceOrderIntentID,
+                sourceEventLogID: spotRequest.sourceEventLogID,
+                sourceOMSOrderID: spotRequest.sourceOMSOrderID,
+                clientOrderID: spotRequest.clientOrderID,
+                instrument: InstrumentIdentity.binance(productType: .spot, symbol: Symbol.constant(spotRequest.symbol)),
+                side: "BUY",
+                cumulativeFilledQuantity: try Quantity(0.01, field: "gh586UnsafeCumulative"),
+                lastExecutedQuantity: try Quantity(0.01, field: "gh586UnsafeLast"),
+                remainingQuantity: try Quantity(0, field: "gh586UnsafeRemaining"),
+                lastExecutedPrice: try Price(42_120.70, field: "gh586UnsafePrice"),
+                commissionAsset: "USDT",
+                commissionAmount: "0.000010",
+                replaySequence: 1,
+                rawPayloadDigest: "sha256:unsafe-gh-586-production-report"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("releaseV020ExecutionReport.productionRawPayload")
+            )
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV020BinanceExecutionReportParser(
+                productionParserEnabledByDefault: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("releaseV020ExecutionReport.productionParserEnabledByDefault")
+            )
+        }
+
+        XCTAssertTrue(validationMatrix.contains("`GH-586`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-EXECUTION-REPORT-BROKER-FILL-PARSER"))
+        XCTAssertTrue(validationPlan.contains("GH-586 Release v0.2.0 Execution Report Broker Fill Parser Validation"))
+        XCTAssertTrue(domainContext.contains("GH-586 Execution Report Broker Fill Parser Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 execution report broker fill parser anchor"))
+        XCTAssertTrue(
+            releaseContract.contains(
+                "GH-586 / V020-24 | Spot / Perp execution report and broker fill parser"
+            )
+        )
+    }
+
     func testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

@@ -8503,6 +8503,53 @@ GH-585 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-586 Release v0.2.0 Execution Report Broker Fill Parser Validation
+
+GH-586 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH586BinanceExecutionReportParserMapsSpotPerpBrokerFillAndPositionUpdates`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-586 的验收要求：
+
+- Parser 必须消费 GH-584 Spot adapter evidence 与 GH-585 Perp adapter evidence，不能直接依赖 `ExecutionEngine` target。
+- Spot execution report parser 必须输出 normalized BrokerFill evidence。
+- Perp execution report parser 必须输出 normalized BrokerFill evidence 和 position update evidence。
+- Invalid payload 必须形成 blocked evidence，不得产生 BrokerFill 或 position update。
+- Raw payload 不得保留、不得暴露给 Dashboard、不得进入 Portfolio runtime 或 reconciliation。
+- 生成的 parser evidence 必须保持 production parser disabled by default，不授权 production endpoint、production secret、broker gateway、真实 submit / cancel / replace、Dashboard live command surface 或 production trading。
+
+GH-586 必须建立的主要 anchors：
+
+- `GH-586-BINANCE-EXECUTION-REPORT-BROKER-FILL-PARSER`
+- `GH-586-SPOT-BROKER-FILL-PARSER`
+- `GH-586-PERP-BROKER-FILL-PARSER`
+- `GH-586-NORMALIZED-BROKER-FILL`
+- `GH-586-PERP-POSITION-UPDATE`
+- `GH-586-INVALID-PAYLOAD-BLOCKED`
+- `GH-586-RAW-PAYLOAD-NOT-EXPOSED-TO-DASHBOARD`
+- `GH-586-PRODUCTION-PARSER-DISABLED`
+- `TVM-RELEASE-V020-EXECUTION-REPORT-BROKER-FILL-PARSER`
+
+## GH-586 禁止
+
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint、listenKey 或 private stream endpoint。
+- 不保存或暴露 raw execution report、raw broker payload、signature value、API key、secret material 或 account payload。
+- 不执行真实 submit / cancel / replace，不把 BrokerFill evidence 解释为 production fill。
+- 不执行 reconciliation，不更新 Portfolio runtime，不读取 account endpoint，不同步 broker position。
+- 不执行 leverage / margin action。
+- 不把 parser output 暴露为 Dashboard raw payload、Dashboard live command、Live PRO Console command 或 production authorization。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USD-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation
 
 GH-521 必须运行：

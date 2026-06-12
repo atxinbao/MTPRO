@@ -4210,6 +4210,44 @@ Production rejected by default 指 GH-585 的默认值必须同时关闭 product
 
 Release v0.2.0 Binance USD-M Perpetual ExecutionClient adapter matrix 必须证明 GH-583 Perp OMS handoff identity、dry-run preview、submit / cancel / replace mapping、positionSide / reduceOnly mapping、deterministic ack correlation 和 production rejected by default 同时成立，且 adapter 不直连 ExecutionEngine target、不绕过 CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store / kill switch / no-trade gate。
 
+## GH-586 Execution Report Broker Fill Parser Terms
+
+`GH-586-BINANCE-EXECUTION-REPORT-BROKER-FILL-PARSER`
+
+Execution report broker fill parser 指 release v0.2.0 中消费 GH-584 Spot adapter evidence 与 GH-585 Perp adapter evidence 的 deterministic normalized parser。它只处理 testnet normalized execution report fixture，不保存 raw payload，不读取 secret，不连接 broker gateway，也不代表 production parser 授权。
+
+`GH-586-SPOT-BROKER-FILL-PARSER`
+
+Spot broker fill parser 指 Spot execution report fixture 到 normalized BrokerFill evidence 的映射。该 mapping 保留 source adapter issue、request ID、ack ID、OMS identity、clientOrderID、instrument、side、fill quantity、price、commission 和 raw payload digest，不保留 raw payload，不更新 Portfolio runtime。
+
+`GH-586-PERP-BROKER-FILL-PARSER`
+
+Perp broker fill parser 指 USD-M Perpetual execution report fixture 到 normalized BrokerFill evidence 的映射。该 mapping 继承 GH-585 的 `positionSide` / `reduceOnly` evidence，但不执行 leverage / margin action，不同步 broker position，也不授权 production fill。
+
+`GH-586-NORMALIZED-BROKER-FILL`
+
+Normalized BrokerFill 指 parser 输出的 broker fill evidence 只包含规范化字段和 digest identity，可以被后续 gate 审计，但不能被解释为真实 broker fill、Portfolio update、reconciliation fact、Dashboard command 或 production authorization。
+
+`GH-586-PERP-POSITION-UPDATE`
+
+Perp position update 指 Perp BrokerFill 派生的本地 position update evidence。它只根据 normalized fill quantity、previous position quantity、`positionSide` 和 `reduceOnly` 计算 resulting quantity，不读取 account endpoint，不同步 broker position，不执行 leverage / margin action，也不写 Portfolio runtime。
+
+`GH-586-INVALID-PAYLOAD-BLOCKED`
+
+Invalid payload blocked 指 production raw payload、unsupported execution status、raw payload exposure attempt 和 adapter evidence mismatch 只能形成 blocked evidence，不能产生 BrokerFill、position update、ExecutionEngine event、Portfolio update 或 Dashboard raw payload。
+
+`GH-586-RAW-PAYLOAD-NOT-EXPOSED-TO-DASHBOARD`
+
+Raw payload not exposed to Dashboard 指 GH-586 parser 不保留 raw JSON、HTTP header、signature、credential value、account payload 或 broker payload；Dashboard 只能看到 downstream read-model-safe evidence，不接收 raw payload。
+
+`GH-586-PRODUCTION-PARSER-DISABLED`
+
+Production parser disabled 指 GH-586 的默认值必须关闭 production parser、production payload interpretation、production trading、broker gateway、reconciliation、Portfolio runtime update、Dashboard raw payload 和 live command surface。
+
+`TVM-RELEASE-V020-EXECUTION-REPORT-BROKER-FILL-PARSER`
+
+Release v0.2.0 execution report broker fill parser matrix 必须证明 Spot normalized BrokerFill、Perp normalized BrokerFill、Perp position update、invalid payload blocked、raw payload not exposed to Dashboard 和 production parser disabled 同时成立，且 parser 不直连 ExecutionEngine target、不绕过 CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store / kill switch / no-trade gate。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Terms
 
 `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`
