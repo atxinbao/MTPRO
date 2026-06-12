@@ -337,9 +337,16 @@ public struct ReleaseV020CLIVerificationResult: Codable, Equatable, Sendable {
     public let mode: ReleaseV020CLIVerificationMode
     public let status: String
     public let evidence: ReleaseV020CLIProductSurfaceEvidence
+    public let verificationGates: ReleaseV020VerificationGateEvidence
 
     public var passed: Bool {
-        status == "pass" && evidence.surfaceBoundaryHeld
+        status == "pass"
+            && evidence.surfaceBoundaryHeld
+            && verificationGates.gateBoundaryHeld
+            && (
+                (mode == .verifyFast && verificationGates.verifyFastPasses)
+                    || (mode == .verifyRelease && verificationGates.verifyReleasePasses)
+            )
     }
 }
 
@@ -391,9 +398,35 @@ public enum ReleaseV020CLIProductSurface {
 
         switch mode {
         case .verifyFast where resolvedEvidence.verifyFastPasses:
-            return ReleaseV020CLIVerificationResult(mode: mode, status: "pass", evidence: resolvedEvidence)
+            let verificationGates = try ReleaseV020VerificationGates.deterministicEvidence()
+            guard verificationGates.verifyFastPasses else {
+                throw CoreError.liveTradingBoundaryContractMismatch(
+                    field: "mtpro.verify-fast.gate",
+                    expected: "foundation + sample traces coverage",
+                    actual: "fail"
+                )
+            }
+            return ReleaseV020CLIVerificationResult(
+                mode: mode,
+                status: "pass",
+                evidence: resolvedEvidence,
+                verificationGates: verificationGates
+            )
         case .verifyRelease where resolvedEvidence.verifyReleasePasses:
-            return ReleaseV020CLIVerificationResult(mode: mode, status: "pass", evidence: resolvedEvidence)
+            let verificationGates = try ReleaseV020VerificationGates.deterministicEvidence()
+            guard verificationGates.verifyReleasePasses else {
+                throw CoreError.liveTradingBoundaryContractMismatch(
+                    field: "mtpro.verify-release.gate",
+                    expected: "full gates + all traces coverage",
+                    actual: "fail"
+                )
+            }
+            return ReleaseV020CLIVerificationResult(
+                mode: mode,
+                status: "pass",
+                evidence: resolvedEvidence,
+                verificationGates: verificationGates
+            )
         default:
             throw CoreError.liveTradingBoundaryContractMismatch(
                 field: "mtpro.\(mode.rawValue)",
@@ -409,14 +442,25 @@ public enum ReleaseV020CLIProductSurface {
         let commands = result.evidence.commandNames.joined(separator: ",")
         let cliProductTypes = result.evidence.cliProductTypes.map(\.rawValue).joined(separator: ",")
         let cliStrategies = result.evidence.cliStrategies.map(\.rawValue).joined(separator: ",")
+        let coverage = result.mode == .verifyFast
+            ? result.verificationGates.verifyFast
+            : result.verificationGates.verifyRelease
+        let verifyCoverage = coverage.sectionLabels.joined(separator: ",")
+        let verifyTraceKinds = coverage.traceKindLabels.joined(separator: ",")
         return [
             "mtpro \(result.mode.rawValue) \(result.status)",
             "issue=\(result.evidence.issueID.rawValue)",
+            "verificationIssue=\(result.verificationGates.issueID.rawValue)",
             "upstream=\(upstreamIssues)",
             "cliProduct=\(result.evidence.cliProductName)",
             "executableTarget=\(result.evidence.executableTargetName)",
             "commandGateway=required",
             "commands=\(commands)",
+            "verifyCoverage=\(verifyCoverage)",
+            "verifyTraceCount=\(coverage.traceKinds.count)",
+            "verifyCatalogTraceCount=\(result.verificationGates.catalogTraceCount)",
+            "verifyTraceKinds=\(verifyTraceKinds)",
+            "verifyGateBoundaryHeld=\(result.verificationGates.gateBoundaryHeld)",
             "cliVenue=\(result.evidence.cliVenue.rawValue)",
             "cliProductTypes=\(cliProductTypes)",
             "cliStrategies=\(cliStrategies)",
