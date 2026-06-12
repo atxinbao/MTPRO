@@ -77,6 +77,26 @@ bash checks/run.sh
 
 该矩阵记录 EMA parity、order book imbalance parity、fees / slippage、risk blocker、portfolio exposure 和 report evidence 的现有 coverage、验收证据边界和后续 issue 回填规则。
 
+## GH-631 CEFR Final Envelope Retirement Contract Validation
+
+GH-631 的 required validation：
+
+- `docs/contracts/core-compatibility-envelope-final-retirement-contract.md` 必须存在，并包含 `GH-631-CEFR-FINAL-ENVELOPE-RETIREMENT-CONTRACT`、`GH-631-RETAINED-ENVELOPE-SOURCE-INVENTORY`、`GH-631-REAL-MODULE-OWNER-CLASSIFICATION`、`GH-631-RETENTION-REASON-AND-EXIT-PATH`、`GH-631-FIRST-EXECUTABLE-CANDIDATE-ONLY`、`GH-631-NO-PRODUCTION-AUTHORIZATION` 和 `GH-631-VALIDATION-ANCHORS`。
+- Contract 必须覆盖当前 `Core`、`Adapters`、`Persistence` 和 `Runtime` retained compatibility envelopes 的 source inventory、真实 module owner、保留原因和退出路径。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH631FinalEnvelopeRetirementContractClassifiesEveryRetainedSource`。
+- `Core` 不能被描述为 active business implementation owner；`Adapters` 只能作为 `DataClient` compatibility re-export；`Persistence` 只能作为 `Database` projection adapter shim；`Runtime` 只能作为 `DataEngine` ingest / `Database` replay projection workflow shim。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、真实 Binance private endpoint、broker、production credential 或人工验收。
+
+GH-631 必须建立的主要 anchors：
+
+- `GH-631-CEFR-FINAL-ENVELOPE-RETIREMENT-CONTRACT`
+- `GH-631-RETAINED-ENVELOPE-SOURCE-INVENTORY`
+- `GH-631-REAL-MODULE-OWNER-CLASSIFICATION`
+- `GH-631-RETENTION-REASON-AND-EXIT-PATH`
+- `GH-631-FIRST-EXECUTABLE-CANDIDATE-ONLY`
+- `GH-631-NO-PRODUCTION-AUTHORIZATION`
+- `TVM-CEFR-FINAL-ENVELOPE-RETIREMENT-CONTRACT`
+
 ## Stage Audit Input Location Rule
 
 `docs/validation/` 只保留长期验证入口，例如 latest summary、validation plan、trading validation matrix、eval strategy 和 macOS build / run loop。

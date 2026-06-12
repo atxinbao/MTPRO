@@ -4435,6 +4435,164 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH631FinalEnvelopeRetirementContractClassifiesEveryRetainedSource() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let contract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/core-compatibility-envelope-final-retirement-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+
+        for anchor in [
+            "GH-631-CEFR-FINAL-ENVELOPE-RETIREMENT-CONTRACT",
+            "GH-631-RETAINED-ENVELOPE-SOURCE-INVENTORY",
+            "GH-631-REAL-MODULE-OWNER-CLASSIFICATION",
+            "GH-631-RETENTION-REASON-AND-EXIT-PATH",
+            "GH-631-FIRST-EXECUTABLE-CANDIDATE-ONLY",
+            "GH-631-NO-PRODUCTION-AUTHORIZATION",
+            "GH-631-VALIDATION-ANCHORS",
+            "TVM-CEFR-FINAL-ENVELOPE-RETIREMENT-CONTRACT"
+        ] {
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must remain in the CEFR contract")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must remain in validation-plan.md")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must remain in trading-validation-matrix.md")
+        }
+
+        for retiredDirectory in [
+            "Sources/Adapters",
+            "Sources/Persistence",
+            "Sources/Runtime"
+        ] {
+            XCTAssertFalse(
+                FileManager.default.fileExists(atPath: repositoryRoot.appendingPathComponent(retiredDirectory).path),
+                "\(retiredDirectory) must not reappear as an active source directory"
+            )
+        }
+
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        let adaptersTarget = try packageTargetBlock(named: "Adapters", packageSource: packageSource)
+        let persistenceTarget = try packageTargetBlock(named: "Persistence", packageSource: packageSource)
+        let runtimeTarget = try packageTargetBlock(named: "Runtime", packageSource: packageSource)
+
+        let expectedCoreRetainedSources: Set<String> = [
+            "Sources/Core/DashboardBetaDemoScenario.swift",
+            "Sources/Core/DomainModelCompatibilityImport.swift",
+            "Sources/Core/LiveMonitoringConnectionReadinessExplanation.swift",
+            "Sources/Core/LiveMonitoringConsole.swift",
+            "Sources/Core/LiveMonitoringForbiddenCapabilityTests.swift",
+            "Sources/Core/LiveMonitoringSimulationGateHealth.swift",
+            "Sources/Core/LiveMonitoringSourceIdentity.swift",
+            "Sources/Core/LiveTradingBoundary.swift",
+            "Sources/Core/MarketDataCacheCoreReplayCompatibility.swift",
+            "Sources/Core/PortfolioProjectionCompatibility.swift",
+            "Sources/Core/Research/OrderBookImbalanceResearchEvidence.swift",
+            "Sources/Core/ResearchEventFlows.swift",
+            "Sources/Core/ResearchResults.swift",
+            "Sources/Core/RiskEnginePaperPreTradeRuntimeBridge.swift",
+            "Sources/Core/TradingKernel.swift",
+            "Sources/MessageBus/CommandsAndQueries.swift",
+            "Sources/MessageBus/DomainEvents.swift",
+            "Sources/MessageBus/EventLog.swift",
+            "Sources/MessageBus/PaperRuntimeBusRouting.swift",
+            "Sources/DataEngine/ScenarioReplay/ScenarioReplayDeterministicMatching.swift",
+            "Sources/Portfolio/PaperAccountPortfolioProjectionV2.swift",
+            "Sources/Portfolio/SimulatedExchangePortfolioProjectionParity.swift",
+            "Sources/ExecutionEngine/PaperLifecycle/PaperExecutionDecision.swift",
+            "Sources/ExecutionEngine/PaperLifecycle/PaperExecutionEventLog.swift",
+            "Sources/ExecutionEngine/PaperLifecycle/PaperOrderIntent.swift",
+            "Sources/ExecutionEngine/PaperLifecycle/PaperOrderLifecycleCoordinator.swift",
+            "Sources/ExecutionEngine/PaperLifecycle/PaperSessionLifecycle.swift",
+            "Sources/ExecutionEngine/PaperLifecycle/PaperSessionLocalControlEventLog.swift",
+            "Sources/ExecutionEngine/PaperLifecycle/PaperSessionReplay.swift",
+            "Sources/ExecutionEngine/SimulatedExchange/BacktestPaperSharedOrderSemantics.swift",
+            "Sources/ExecutionEngine/SimulatedExchange/MarketLimitSimulatedExecutionSemantics.swift",
+            "Sources/ExecutionEngine/SimulatedExchange/PaperSimulatedFillEvidence.swift",
+            "Sources/ExecutionEngine/SimulatedExchange/PartialFillLatencyFeeSlippageParity.swift"
+        ]
+        let expectedAdaptersRetainedSources: Set<String> = [
+            "Sources/DataClient/AdaptersCompatibility.swift"
+        ]
+        let expectedPersistenceRetainedSources: Set<String> = [
+            "Sources/Database/Projections/ReleaseV020SpotPerpDatabaseProjections.swift",
+            "Sources/Database/Projections/SQLite/Persistence.swift",
+            "Sources/Database/Projections/DuckDB/DuckDBAnalyticalProjectionAdapter.swift"
+        ]
+        let expectedRuntimeRetainedSources: Set<String> = [
+            "Sources/Database/ReplayProjection/MarketDataReplayProjectionConsistency.swift",
+            "Sources/DataEngine/Ingest/MarketDataIngestReplayProjectionWorkflow.swift"
+        ]
+
+        XCTAssertEqual(
+            try packageTargetSwiftSources(repositoryRoot: repositoryRoot, targetRoot: "Sources", targetBlock: coreTarget),
+            expectedCoreRetainedSources
+        )
+        XCTAssertEqual(
+            try packageTargetSwiftSources(
+                repositoryRoot: repositoryRoot,
+                targetRoot: "Sources/DataClient",
+                targetBlock: adaptersTarget
+            ),
+            expectedAdaptersRetainedSources
+        )
+        XCTAssertEqual(
+            try packageTargetSwiftSources(
+                repositoryRoot: repositoryRoot,
+                targetRoot: "Sources/Database",
+                targetBlock: persistenceTarget
+            ),
+            expectedPersistenceRetainedSources
+        )
+        XCTAssertEqual(
+            try packageTargetSwiftSources(repositoryRoot: repositoryRoot, targetRoot: "Sources", targetBlock: runtimeTarget),
+            expectedRuntimeRetainedSources
+        )
+
+        let allRetainedSources = expectedCoreRetainedSources
+            .union(expectedAdaptersRetainedSources)
+            .union(expectedPersistenceRetainedSources)
+            .union(expectedRuntimeRetainedSources)
+        for retainedSource in allRetainedSources.sorted() {
+            XCTAssertTrue(
+                FileManager.default.fileExists(atPath: repositoryRoot.appendingPathComponent(retainedSource).path),
+                "\(retainedSource) must exist while it is listed as retained"
+            )
+            XCTAssertTrue(contract.contains("`\(retainedSource)`"), "\(retainedSource) must be classified in the contract")
+        }
+
+        for requiredClassification in [
+            "`Core` 只能保留 legacy import surface",
+            "`Adapters` 只能保留 `DataClient` compatibility re-export",
+            "`Persistence` 只能保留 `Database` projection adapter shim",
+            "`Runtime` 只能保留 `DataEngine` ingest 与 `Database` replay projection workflow shim",
+            "`GH-631` is the only executable candidate"
+        ] {
+            XCTAssertTrue(contract.contains(requiredClassification), "\(requiredClassification) must remain explicit")
+        }
+
+        for forbiddenDefault in [
+            "productionTradingEnabledByDefault == false",
+            "productionSecretReadEnabledByDefault == false",
+            "productionEndpointConnectionEnabledByDefault == false",
+            "productionOrderSubmitEnabledByDefault == false",
+            "productionBrokerConnectionEnabledByDefault == false"
+        ] {
+            XCTAssertTrue(contract.contains(forbiddenDefault), "\(forbiddenDefault) must remain explicit")
+        }
+    }
+
     func testGH523ReleaseV010TargetsExposeRealSmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-523-release-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)
@@ -12593,6 +12751,71 @@ final class TargetGraphTests: XCTestCase {
         }
 
         return files.sorted { $0.path < $1.path }
+    }
+
+    private func packageTargetSwiftSources(
+        repositoryRoot: URL,
+        targetRoot: String,
+        targetBlock: String
+    ) throws -> Set<String> {
+        let sourceEntries = try packageListEntries(in: packageTargetSourcesBlock(targetBlock: targetBlock))
+        let excludeEntries: [String]
+        if let excludesBlock = try? packageTargetExcludesBlock(targetBlock: targetBlock) {
+            excludeEntries = packageListEntries(in: excludesBlock)
+        } else {
+            excludeEntries = []
+        }
+
+        let fileManager = FileManager.default
+        let targetRootURL = repositoryRoot.appendingPathComponent(targetRoot, isDirectory: true)
+        let sourceFiles = try sourceEntries.flatMap { sourceEntry -> [URL] in
+            let sourceURL = targetRootURL.appendingPathComponent(sourceEntry)
+            var isDirectory: ObjCBool = false
+            guard fileManager.fileExists(atPath: sourceURL.path, isDirectory: &isDirectory) else {
+                throw XCTSkip("Package.swift source entry \(targetRoot)/\(sourceEntry) does not exist")
+            }
+            if isDirectory.boolValue {
+                guard let enumerator = fileManager.enumerator(
+                    at: sourceURL,
+                    includingPropertiesForKeys: [.isRegularFileKey],
+                    options: [.skipsPackageDescendants]
+                ) else {
+                    throw XCTSkip("Cannot enumerate Package.swift source entry \(sourceURL.path)")
+                }
+                return try enumerator.compactMap { item -> URL? in
+                    guard let url = item as? URL else {
+                        return nil
+                    }
+                    let values = try url.resourceValues(forKeys: [.isRegularFileKey])
+                    return values.isRegularFile == true && url.pathExtension == "swift" ? url : nil
+                }
+            }
+            return sourceURL.pathExtension == "swift" ? [sourceURL] : []
+        }
+
+        return Set(sourceFiles.compactMap { file in
+            let targetRelativePath = relativePath(for: file, repositoryRoot: targetRootURL)
+            let isExcluded = excludeEntries.contains { excludeEntry in
+                targetRelativePath == excludeEntry || targetRelativePath.hasPrefix("\(excludeEntry)/")
+            }
+            guard !isExcluded else {
+                return nil
+            }
+            return relativePath(for: file, repositoryRoot: repositoryRoot)
+        })
+    }
+
+    private func packageListEntries(in listBlock: String) -> [String] {
+        listBlock.components(separatedBy: .newlines).compactMap { line in
+            guard let openingQuote = line.firstIndex(of: "\"") else {
+                return nil
+            }
+            let afterOpeningQuote = line.index(after: openingQuote)
+            guard let closingQuote = line[afterOpeningQuote...].firstIndex(of: "\"") else {
+                return nil
+            }
+            return String(line[afterOpeningQuote..<closingQuote])
+        }
     }
 
     private func unsafeConstructOccurrences(in file: URL, repositoryRoot: URL) throws -> [UnsafeConstructOccurrence] {
