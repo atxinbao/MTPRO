@@ -8847,6 +8847,50 @@ GH-593 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-594 Release v0.2.0 Dashboard CommandGateway Surface Validation
+
+GH-594 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH594DashboardCommandGatewaySurfaceShowsReleasePanelsWithoutProductionCommand`
+- `DASHBOARD_SMOKE=1 swift run Dashboard`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-594 的验收要求：
+
+- `Dashboard` target 必须继续只编译 `Sources/Dashboard` 下 read-model / view-model / shell surface，不新增 `ExecutionClient`、`ExecutionEngine`、broker gateway、Runtime 或 Database schema dependency。
+- Dashboard command surface 必须展示 `Spot`、`Perp`、`EMA`、`RSI`、`Risk`、`OMS` 和 `Portfolio` 七个 panel。
+- 每个 panel 必须声明 `routesThroughCommandGateway == true` 和 `command-gateway/release-v0.2.0/*` route。
+- 每个 panel 必须保持 `defaultMode == no-trade`、`productionCommandEnabled == false`、`commandEntryEnabled == false`。
+- 每个 panel 必须要求 RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 和 no-trade gate。
+- Dashboard shell smoke 必须暴露 `releaseV020DashboardSurface=7`，并在 report section detail 中确认 required panels、CommandGateway 和 production disabled。
+- Evidence 必须拒绝 production trading default、production secret read、production endpoint touch、broker gateway touch、account endpoint read、real submit / cancel / replace 和 gate bypass。
+
+GH-594 必须建立的主要 anchors：
+
+- `GH-594-DASHBOARD-COMMANDGATEWAY-SURFACE`
+- `GH-594-SPOT-PERP-EMA-RSI-RISK-OMS-PORTFOLIO-PANELS`
+- `GH-594-COMMANDGATEWAY-ROUTING-GATE`
+- `GH-594-PRODUCTION-COMMAND-DISABLED-BY-DEFAULT`
+- `GH-594-NO-RISK-EXECUTION-OMS-EVENTSTORE-BYPASS`
+- `TVM-RELEASE-V020-DASHBOARD-COMMANDGATEWAY-SURFACE`
+
+## GH-594 禁止
+
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint、listenKey 或 private stream endpoint。
+- 不把 Dashboard command surface 扩大成 Live PRO Console、trading button、live command、order form、secret editor、broker statement、operator authorization 或 production runbook。
+- 不执行真实 submit / cancel / replace，不把 CommandGateway route evidence 解释为 production trading authorization。
+- 不执行 production reconciliation runtime，不同步 broker position，不读取真实 balance、real PnL、margin、leverage、buying power 或 account endpoint payload。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USD-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation
 
 GH-521 必须运行：

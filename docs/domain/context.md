@@ -4434,6 +4434,32 @@ No production CLI side effect 指 CLI 入口不得读取 production secret、连
 
 Release v0.2.0 CLI product surface matrix 必须证明 `mtpro` product 和 `MTPROCLI` target 存在，`spot` / `perp` / `strategy` / `risk` / `execution` / `verify-fast` / `verify-release` command surface 完整，`mtpro verify-fast` 与 `mtpro verify-release` 输出 pass，并且 CLI evidence 不绕过 CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store / kill switch / no-trade gate。
 
+## GH-594 Dashboard CommandGateway Surface Terms
+
+`GH-594-DASHBOARD-COMMANDGATEWAY-SURFACE`
+
+Dashboard CommandGateway surface 指 release v0.2.0 Dashboard 的 Spot / Perp 控制面 read-model / view-model evidence。它可以展示产品、策略、risk、OMS 和 Portfolio 状态入口，但所有 command entry 默认 disabled，并且只声明 CommandGateway route，不创建 Live PRO Console、trading button、order form、broker gateway 或真实 command runtime。
+
+`GH-594-SPOT-PERP-EMA-RSI-RISK-OMS-PORTFOLIO-PANELS`
+
+Spot / Perp / EMA / RSI / Risk / OMS / Portfolio panels 指 GH-594 Dashboard 必须同时展示的七个 panel。该 panel 集合只覆盖 Binance Spot、Binance USDⓈ-M Perpetual、EMA / RSI、Risk gate、OMS state 和 Portfolio read model，不启用第三 product type、第三 active strategy 或 production trading。
+
+`GH-594-COMMANDGATEWAY-ROUTING-GATE`
+
+Dashboard CommandGateway routing gate 指 GH-594 的每个 panel 都必须声明 `command-gateway/release-v0.2.0/*` route，并保持 `bypassesCommandGateway == false`、`bypassesRiskEngine == false`、`bypassesExecutionEngine == false`、`bypassesOMS == false`、`bypassesEventStore == false`、`bypassesKillSwitch == false` 和 `bypassesNoTradeState == false`。
+
+`GH-594-PRODUCTION-COMMAND-DISABLED-BY-DEFAULT`
+
+Production command disabled by default 指 GH-594 Dashboard 的所有 command entry 默认 `no-trade` 且 disabled；production command 不可见为可执行状态，不读取 secret，不连接 endpoint，不提交、取消或替换真实订单。
+
+`GH-594-NO-RISK-EXECUTION-OMS-EVENTSTORE-BYPASS`
+
+No Risk / Execution / OMS / Event Store bypass 指 Dashboard surface 只能展示 gate 状态，不能绕过 RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade state，也不能把 Dashboard route evidence 解释为交易授权。
+
+`TVM-RELEASE-V020-DASHBOARD-COMMANDGATEWAY-SURFACE`
+
+Release v0.2.0 Dashboard CommandGateway surface matrix 必须证明 Dashboard 显示 Spot / Perp / EMA / RSI / Risk / OMS / Portfolio，所有 panel 都声明 CommandGateway gate，production command 默认 disabled，并且 shell smoke 暴露 `releaseV020DashboardSurface=7`。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Terms
 
 `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`

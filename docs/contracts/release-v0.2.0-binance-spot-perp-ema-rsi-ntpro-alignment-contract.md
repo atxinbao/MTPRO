@@ -112,7 +112,7 @@ NTPRO scoped 100% alignment 是 release v0.2.0 的 scoped alignment contract，�
 | GH-591 / V020-29 | SQLite / DuckDB Spot + Perp projections | SQLite runtime projection、DuckDB analytical projection 和 Dashboard stable read-model-only boundary；不暴露 raw DB schema |
 | GH-592 / V020-30 | Spot + Perp golden trace catalog | 15 required traces present；run / replay checksums match；不保存 raw payload、不授权 production trace side effect |
 | GH-593 / V020-31 | CLI product surface for Spot / Perp / strategy / risk / execution / verify | `mtpro verify-fast pass` and `mtpro verify-release pass` through CommandGateway gate; no production side effect |
-| GH-594 / V020-32 | final Stage Code Audit input | no next Project / Issue |
+| GH-594 / V020-32 | Dashboard Spot + Perp control surface through CommandGateway | Spot / Perp / EMA / RSI / Risk / OMS / Portfolio panels, CommandGateway gate required, production command disabled by default |
 | GH-595 / V020-33 | Root Docs Refresh input | sync only completed facts |
 | GH-596 / V020-34 | final release closure | production trading remains disabled by default |
 
