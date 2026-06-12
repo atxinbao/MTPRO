@@ -4692,6 +4692,111 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH633DataEngineOwnsScenarioReplayAndDataQualityWhileCoreRetainsMatchingBridgeOnly() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let contract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/core-compatibility-envelope-final-retirement-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+
+        for anchor in ScenarioReplayDataQualityOwnershipContract.requiredValidationAnchors {
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must remain in CEFR contract")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must remain in validation-plan.md")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must remain in trading-validation-matrix.md")
+        }
+
+        let dataEngineTarget = try packageTargetBlock(named: "DataEngine", packageSource: packageSource)
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        let dataEngineSources = try packageTargetSourcesBlock(targetBlock: dataEngineTarget)
+        let coreSources = try packageTargetSourcesBlock(targetBlock: coreTarget)
+        let coreExcludes = try packageTargetExcludesBlock(targetBlock: coreTarget)
+
+        for activeSource in ScenarioReplayDataQualityOwnershipContract.requiredActiveDataEngineSourcePaths {
+            let packageEntry = activeSource.replacingOccurrences(of: "Sources/DataEngine/", with: "")
+            XCTAssertTrue(dataEngineSources.contains("\"\(packageEntry)\""), "\(packageEntry) must be DataEngine-owned")
+            XCTAssertTrue(contract.contains("`\(activeSource)`"))
+            XCTAssertTrue(FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(activeSource).path
+            ))
+        }
+
+        XCTAssertTrue(coreExcludes.contains("\"DataEngine/ScenarioReplay/ScenarioReplayDataQualityOwnershipContract.swift\""))
+        XCTAssertFalse(coreSources.contains("\"DataEngine/ScenarioReplay/ScenarioReplayDataQualityOwnershipContract.swift\""))
+        XCTAssertTrue(coreSources.contains("\"DataEngine/ScenarioReplay/ScenarioReplayDeterministicMatching.swift\""))
+        XCTAssertFalse(dataEngineSources.contains("\"ScenarioReplay/ScenarioReplayDeterministicMatching.swift\""))
+
+        for forbiddenDependency in [
+            "\"Trader\"",
+            "\"TraderStrategies\"",
+            "\"Portfolio\"",
+            "\"RiskEngine\"",
+            "\"ExecutionEngine\"",
+            "\"ExecutionClient\"",
+            "\"Dashboard\""
+        ] {
+            XCTAssertFalse(
+                dataEngineTarget.contains(forbiddenDependency),
+                "DataEngine target must not gain upper-layer dependency \(forbiddenDependency)"
+            )
+        }
+
+        let evidence = ScenarioReplayDataQualityOwnershipContract.gh633
+        XCTAssertTrue(evidence.boundaryHeld)
+        XCTAssertEqual(
+            Set(evidence.activeSourcePaths),
+            ScenarioReplayDataQualityOwnershipContract.requiredActiveDataEngineSourcePaths
+        )
+        XCTAssertEqual(
+            Set(evidence.retainedBridgeSourcePaths),
+            ScenarioReplayDataQualityOwnershipContract.requiredRetainedBridgeSourcePaths
+        )
+        XCTAssertTrue(evidence.dataEngineOwnsAllActiveSurfaces)
+        XCTAssertTrue(evidence.retainedBridgesAreCompatibilityOnly)
+        XCTAssertTrue(evidence.noProductionAuthorization.allProductionCapabilitiesDisabledByDefault)
+        XCTAssertTrue(
+            DataEngineTargetBoundary.requiredValidationAnchors.contains(
+                "GH-633-DATAENGINE-SCENARIO-QUALITY-OWNERSHIP-CONTRACT"
+            )
+        )
+
+        for bridge in evidence.retainedCompatibilityBridges {
+            XCTAssertEqual(bridge.compiledByCompatibilityEnvelope, "Core")
+            XCTAssertEqual(bridge.status, .retainedCompatibilityOnly)
+            XCTAssertTrue(bridge.realModuleOwners.contains("DataEngine"))
+            XCTAssertTrue(bridge.realModuleOwners.contains("ExecutionEngine"))
+            XCTAssertTrue(contract.contains("`\(bridge.sourcePath)`"))
+            XCTAssertTrue(FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(bridge.sourcePath).path
+            ))
+        }
+
+        for forbiddenDefault in [
+            "productionTradingEnabledByDefault == false",
+            "productionSecretReadEnabledByDefault == false",
+            "productionEndpointConnectionEnabledByDefault == false",
+            "signedEndpointEnabledByDefault == false",
+            "privateStreamRuntimeEnabledByDefault == false",
+            "brokerGatewayEnabledByDefault == false",
+            "realOrderCommandEnabledByDefault == false"
+        ] {
+            XCTAssertTrue(contract.contains(forbiddenDefault), "\(forbiddenDefault) must remain explicit")
+        }
+    }
+
     func testGH523ReleaseV010TargetsExposeRealSmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-523-release-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)

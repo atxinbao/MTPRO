@@ -150,6 +150,7 @@ let package = Package(
                 "ScenarioReplay/DataCatalogScenarioReplayBoundary.swift",
                 "ScenarioReplay/ScenarioFixture.swift",
                 "ScenarioReplay/ScenarioManifest.swift",
+                "ScenarioReplay/ScenarioReplayDataQualityOwnershipContract.swift",
                 "ScenarioReplay/ScenarioReplayEvidence.swift",
                 "TargetGraph/DataEngineTargetBoundary.swift"
             ]
@@ -270,6 +271,7 @@ let package = Package(
                 "DataEngine/ScenarioReplay/DataCatalogScenarioReplayBoundary.swift",
                 "DataEngine/ScenarioReplay/ScenarioFixture.swift",
                 "DataEngine/ScenarioReplay/ScenarioManifest.swift",
+                "DataEngine/ScenarioReplay/ScenarioReplayDataQualityOwnershipContract.swift",
                 "DataEngine/ScenarioReplay/ScenarioReplayEvidence.swift",
                 "DataEngine/TargetGraph",
                 "Database",

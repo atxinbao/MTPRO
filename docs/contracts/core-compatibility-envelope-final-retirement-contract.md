@@ -48,7 +48,7 @@ CEFR 的目标不是继续把 `Core`、`Adapters`、`Persistence` 或 `Runtime` 
 | `Core` | `Sources/MessageBus/DomainEvents.swift` | `MessageBus` / `DomainModel` / `ExecutionEngine` / `Portfolio` | rich domain event enum still aggregates cross-module paper and portfolio events | split event payloads by owner while preserving append-only replay invariants |
 | `Core` | `Sources/MessageBus/EventLog.swift` | `MessageBus` / `Database` | append-only event log still carries rich Core event payloads | move neutral journal to MessageBus and persistence-facing records to Database |
 | `Core` | `Sources/MessageBus/PaperRuntimeBusRouting.swift` | `MessageBus` / `ExecutionEngine` / `RiskEngine` | paper runtime routing still bridges risk / execution / portfolio evidence | split paper routing evidence into MessageBus contracts and owning engine evidence |
-| `Core` | `Sources/DataEngine/ScenarioReplay/ScenarioReplayDeterministicMatching.swift` | `DataEngine` | deterministic matching still compiled by Core for compatibility after DataEngine split | move into DataEngine target once dependency surface no longer requires Core |
+| `Core` | `Sources/DataEngine/ScenarioReplay/ScenarioReplayDeterministicMatching.swift` | `DataEngine` / `ExecutionEngine` | deterministic matching still consumes simulated exchange / shared order payloads while active ScenarioReplay / DataQuality ownership has moved to DataEngine | split DataEngine replay inputs from ExecutionEngine simulated parity payloads before target migration |
 | `Core` | `Sources/Portfolio/PaperAccountPortfolioProjectionV2.swift` | `Portfolio` | paper account / portfolio projection v2 retained through Core for legacy Dashboard/App tests | move to Portfolio owner and expose read model through stable API |
 | `Core` | `Sources/Portfolio/SimulatedExchangePortfolioProjectionParity.swift` | `Portfolio` / `ExecutionEngine` | simulated exchange parity still bridges execution fill evidence and portfolio projection | split execution evidence to ExecutionEngine and projection update to Portfolio |
 | `Core` | `Sources/ExecutionEngine/PaperLifecycle/PaperExecutionDecision.swift` | `ExecutionEngine` | paper execution decision retained through Core for legacy paper workflow tests | move to ExecutionEngine owner after direct target consumers are complete |
@@ -160,6 +160,61 @@ Production defaults remain:
 - `omsRuntimeEnabledByDefault == false`
 - `dashboardCommandSurfaceEnabledByDefault == false`
 
+## GH-633-DATAENGINE-SCENARIO-QUALITY-OWNERSHIP-CONTRACT
+
+`GH-633-DATAENGINE-SCENARIO-QUALITY-OWNERSHIP-CONTRACT`
+
+GH-633 收窄 DataEngine / ScenarioReplay / DataQuality compatibility ownership。`DataEngine` target 现在直接拥有 `Sources/DataEngine/ScenarioReplay/ScenarioReplayDataQualityOwnershipContract.swift`，由 `ScenarioReplayDataQualityOwnershipContract.gh633` 记录 active DataEngine-owned scenario / quality sources、Core retained deterministic matching bridge、退出路径和 no-production authorization。
+
+## GH-633-ACTIVE-DATAENGINE-SCENARIO-QUALITY-SOURCES
+
+`GH-633-ACTIVE-DATAENGINE-SCENARIO-QUALITY-SOURCES`
+
+以下 source 是 DataEngine active ownership，不再由 `Core` 解释为 active DataEngine business implementation：
+
+| Active source | Owner target | Ownership reason |
+| --- | --- | --- |
+| `Sources/DataEngine/DataQuality/ScenarioDataQualityReportInput.swift` | `DataEngine` | scenario replay quality gates and report input evidence belong to DataEngine |
+| `Sources/DataEngine/ScenarioReplay/DataCatalogScenarioReplayBoundary.swift` | `DataEngine` | data catalog and scenario replay boundary belongs to DataEngine |
+| `Sources/DataEngine/ScenarioReplay/ScenarioFixture.swift` | `DataEngine` | deterministic local scenario fixture identity belongs to DataEngine |
+| `Sources/DataEngine/ScenarioReplay/ScenarioManifest.swift` | `DataEngine` | scenario manifest identity and scope belongs to DataEngine |
+| `Sources/DataEngine/ScenarioReplay/ScenarioReplayDataQualityOwnershipContract.swift` | `DataEngine` | CEFR ownership classification is owned by DataEngine |
+| `Sources/DataEngine/ScenarioReplay/ScenarioReplayEvidence.swift` | `DataEngine` | replay window, cursor, checksum and freshness evidence belongs to DataEngine |
+
+`Package.swift` lists these sources in the `DataEngine` target, and `Core` excludes the DataEngine-owned ownership contract from its compatibility compile path.
+
+## GH-633-CORE-DETERMINISTIC-MATCHING-COMPATIBILITY-ONLY
+
+`GH-633-CORE-DETERMINISTIC-MATCHING-COMPATIBILITY-ONLY`
+
+`Sources/DataEngine/ScenarioReplay/ScenarioReplayDeterministicMatching.swift` remains compiled by `Core` only as compatibility bridge. It is not active DataEngine business ownership because the file still consumes upper-layer simulated exchange / shared order payloads. The exit path is to split DataEngine replay input semantics from ExecutionEngine simulated parity payloads before a future target migration.
+
+## GH-633-NO-PRODUCTION-AUTHORIZATION
+
+`GH-633-NO-PRODUCTION-AUTHORIZATION`
+
+GH-633 does not authorize:
+
+- production trading;
+- production secret read, print or storage;
+- production endpoint connection;
+- signed endpoint, account endpoint, listenKey or private WebSocket runtime;
+- broker gateway, broker adapter or automatic broker connection;
+- real submit / cancel / replace;
+- production OMS;
+- execution report, broker fill or reconciliation runtime;
+- Live PRO Console production command, trading button, live command or order form.
+
+Production defaults remain:
+
+- `productionTradingEnabledByDefault == false`
+- `productionSecretReadEnabledByDefault == false`
+- `productionEndpointConnectionEnabledByDefault == false`
+- `signedEndpointEnabledByDefault == false`
+- `privateStreamRuntimeEnabledByDefault == false`
+- `brokerGatewayEnabledByDefault == false`
+- `realOrderCommandEnabledByDefault == false`
+
 ## GH-631-RETENTION-REASON-AND-EXIT-PATH
 
 `GH-631-RETENTION-REASON-AND-EXIT-PATH`
@@ -236,11 +291,17 @@ Required anchors:
 - `GH-632-DASHBOARD-CLI-BOUNDARY-HELD`
 - `GH-632-NO-PRODUCTION-AUTHORIZATION`
 - `TVM-CEFR-MESSAGEBUS-RICH-ROUTING-COMPATIBILITY`
+- `GH-633-DATAENGINE-SCENARIO-QUALITY-OWNERSHIP-CONTRACT`
+- `GH-633-ACTIVE-DATAENGINE-SCENARIO-QUALITY-SOURCES`
+- `GH-633-CORE-DETERMINISTIC-MATCHING-COMPATIBILITY-ONLY`
+- `GH-633-NO-PRODUCTION-AUTHORIZATION`
+- `TVM-CEFR-DATAENGINE-SCENARIO-QUALITY-OWNERSHIP`
 
 Required validation:
 
 - `swift test --filter TargetGraphTests/testGH631FinalEnvelopeRetirementContractClassifiesEveryRetainedSource`
 - `swift test --filter TargetGraphTests/testGH632MessageBusOwnsRichRoutingCompatibilityContractAndKeepsCoreCompatibilityOnly`
+- `swift test --filter TargetGraphTests/testGH633DataEngineOwnsScenarioReplayAndDataQualityWhileCoreRetainsMatchingBridgeOnly`
 - `git diff --check`
 - `bash checks/automation-readiness.sh`
 - `bash checks/run.sh`

@@ -8,10 +8,11 @@ import MessageBus
 /// MTP-227 把 active target boundary anchor 从 `Sources/TargetGraph/DataEngine`
 /// 移到 `Sources/DataEngine/TargetGraph`。GH-396 确认 DataEngine 已有 read-only
 /// replay plan real target smoke。GH-415 将 DataQuality 和主要 ScenarioReplay source ownership
-/// 迁入 `DataEngine` target；deterministic matching 仍作为 Core / downstream compatibility
-/// envelope 保留，因为它耦合 simulated exchange / shared order 语义。ingest workflow 仍由
-/// Runtime envelope 串接 DataClient + Persistence。本边界不新增 streaming runtime、private stream、
-/// account endpoint 或 broker path。
+/// 迁入 `DataEngine` target；GH-633 起 DataEngine 直接拥有 ScenarioReplay / DataQuality
+/// ownership classification contract。deterministic matching 仍作为 Core / downstream
+/// compatibility envelope 保留，因为它耦合 simulated exchange / shared order 语义。
+/// ingest workflow 仍由 Runtime envelope 串接 DataClient + Persistence。本边界不新增
+/// streaming runtime、private stream、account endpoint 或 broker path。
 public struct DataEngineTargetBoundary: Codable, Equatable, Sendable {
     public let targetName: String
     public let canonicalSourceRoot: String
@@ -115,6 +116,7 @@ public struct DataEngineTargetBoundary: Codable, Equatable, Sendable {
         "GH-395-DATAENGINE-READ-ONLY-REPLAY-PLAN",
         "GH-415-DATAENGINE-SCENARIO-REPLAY-QUALITY-OWNERSHIP",
         "GH-415-DATAENGINE-DETERMINISTIC-MATCHING-CORE-ENVELOPE-DEFERRED",
+        "GH-633-DATAENGINE-SCENARIO-QUALITY-OWNERSHIP-CONTRACT",
         "GH-396-DATAENGINE-INGEST-RUNTIME-ENVELOPE-DOCUMENTED"
     ]
 

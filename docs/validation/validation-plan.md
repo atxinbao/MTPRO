@@ -117,6 +117,25 @@ GH-632 必须建立的主要 anchors：
 - `GH-632-NO-PRODUCTION-AUTHORIZATION`
 - `TVM-CEFR-MESSAGEBUS-RICH-ROUTING-COMPATIBILITY`
 
+## GH-633 CEFR DataEngine ScenarioReplay / DataQuality Ownership Validation
+
+GH-633 的 required validation：
+
+- `Sources/DataEngine/ScenarioReplay/ScenarioReplayDataQualityOwnershipContract.swift` 必须位于 `DataEngine` target，并定义 `ScenarioReplayDataQualityOwnershipContract.gh633`。
+- `DataEngine` target 必须直接拥有 ScenarioReplay / DataQuality active sources：`ScenarioDataQualityReportInput.swift`、`DataCatalogScenarioReplayBoundary.swift`、`ScenarioFixture.swift`、`ScenarioManifest.swift`、`ScenarioReplayEvidence.swift` 和 `ScenarioReplayDataQualityOwnershipContract.swift`。
+- `Core` target 必须排除 `DataEngine/ScenarioReplay/ScenarioReplayDataQualityOwnershipContract.swift`，避免 Core 拥有 active DataEngine ownership decision。
+- `Sources/DataEngine/ScenarioReplay/ScenarioReplayDeterministicMatching.swift` 仍可由 `Core` 编译，但只能标记为 compatibility-only retained bridge，因为它还耦合 simulated exchange / shared order payload。
+- `DataEngineTargetBoundary.requiredValidationAnchors` 必须包含 `GH-633-DATAENGINE-SCENARIO-QUALITY-OWNERSHIP-CONTRACT`。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、真实 Binance private endpoint、broker、production credential 或人工验收。
+
+GH-633 必须建立的主要 anchors：
+
+- `GH-633-DATAENGINE-SCENARIO-QUALITY-OWNERSHIP-CONTRACT`
+- `GH-633-ACTIVE-DATAENGINE-SCENARIO-QUALITY-SOURCES`
+- `GH-633-CORE-DETERMINISTIC-MATCHING-COMPATIBILITY-ONLY`
+- `GH-633-NO-PRODUCTION-AUTHORIZATION`
+- `TVM-CEFR-DATAENGINE-SCENARIO-QUALITY-OWNERSHIP`
+
 ## Stage Audit Input Location Rule
 
 `docs/validation/` 只保留长期验证入口，例如 latest summary、validation plan、trading validation matrix、eval strategy 和 macOS build / run loop。
