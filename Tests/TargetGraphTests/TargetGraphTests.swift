@@ -6645,6 +6645,157 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH664EventStoreReplayReconstructsRehearsalCausalityChain() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let databaseTarget = try packageTargetBlock(named: "Database", packageSource: packageSource)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.3.0-event-store-rehearsal-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let eventStoreSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/Database/ReleaseV030EventStoreRehearsalEvidence.swift"
+            ),
+            encoding: .utf8
+        )
+
+        let evidence = try ReleaseV030EventStoreRehearsal.deterministicEvidence()
+
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.boundaryHeld)
+        XCTAssertTrue(evidence.appendOnlyRecordsHeld)
+        XCTAssertTrue(evidence.correlationCausationHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-664")
+        XCTAssertEqual(evidence.upstreamIssueID.rawValue, "GH-663")
+        XCTAssertEqual(evidence.downstreamIssueID.rawValue, "GH-665")
+        XCTAssertEqual(evidence.canonicalQueueRange, "GH-657..GH-670")
+        XCTAssertEqual(evidence.projectName, "MTPRO Release v0.3.0 Runtime Rehearsal v1")
+        XCTAssertEqual(evidence.releaseVersion, "v0.3.0")
+        XCTAssertEqual(evidence.upstreamAdapterRehearsalAnchor, "TVM-RELEASE-V030-BINANCE-ADAPTER-REHEARSAL")
+        XCTAssertEqual(evidence.requirements, ReleaseV030EventStoreRehearsalRequirement.allCases)
+        XCTAssertEqual(
+            Set(evidence.forbiddenCapabilities),
+            Set(ReleaseV030EventStoreRehearsalForbiddenCapability.allCases)
+        )
+
+        XCTAssertEqual(evidence.records.count, 6)
+        XCTAssertEqual(evidence.records, evidence.replayedRecords)
+        XCTAssertTrue(evidence.records.allSatisfy(\.recordHeld))
+        XCTAssertEqual(evidence.records.map(\.sequence), [1, 2, 3, 4, 5, 6])
+        XCTAssertEqual(
+            evidence.records.map(\.stage),
+            [.strategy, .risk, .execution, .oms, .adapter, .portfolio]
+        )
+        XCTAssertEqual(
+            evidence.records.map { $0.sourceIssueID.rawValue },
+            ["GH-660", "GH-661", "GH-662", "GH-662", "GH-663", "GH-664"]
+        )
+        XCTAssertTrue(evidence.records.dropFirst().enumerated().allSatisfy { index, record in
+            record.causationID == evidence.records[index].eventID
+        })
+        XCTAssertTrue(evidence.records.allSatisfy {
+            $0.correlationID == ReleaseV030EventStoreRehearsalStore.requiredCorrelationID
+        })
+        XCTAssertTrue(evidence.records.allSatisfy {
+            $0.payloadType.contains("database.release-v0.3.0")
+                && $0.instrumentID.productType == .spot
+                && $0.strategyID.rawValue == "ema"
+        })
+
+        XCTAssertTrue(evidence.replayState.replayStateHeld)
+        XCTAssertEqual(evidence.replayState.eventCount, 6)
+        XCTAssertEqual(evidence.replayState.finalStage, .portfolio)
+        XCTAssertEqual(evidence.replayState.latestChecksum, evidence.records.last?.checksum)
+        XCTAssertTrue(evidence.replayState.reconstructsStrategyRiskExecutionOMSPortfolio)
+        XCTAssertTrue(evidence.replayState.correlationCausationHeld)
+        XCTAssertTrue(try ReleaseV030EventStoreRehearsal.outOfOrderAppendRejected())
+
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(evidence.productionSecretAutoReadEnabled)
+        XCTAssertFalse(evidence.productionOrderSubmissionEnabled)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertFalse(evidence.productionEventStoreRuntimeEnabled)
+        XCTAssertFalse(evidence.rawBrokerPayloadStored)
+        XCTAssertFalse(evidence.rawDatabaseSchemaExposedToDashboard)
+        XCTAssertFalse(evidence.dashboardCommandSurfaceExposed)
+        XCTAssertFalse(evidence.commandGatewayBypassAllowed)
+        XCTAssertFalse(evidence.riskEngineBypassAllowed)
+        XCTAssertFalse(evidence.omsBypassAllowed)
+        XCTAssertFalse(evidence.eventStoreBypassAllowed)
+        XCTAssertFalse(evidence.startsNextMilestone)
+
+        for anchor in ReleaseV030EventStoreRehearsalEvidence.requiredValidationAnchors {
+            XCTAssertTrue(evidence.validationAnchors.contains(anchor), "\(anchor) must stay in Swift evidence")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in Event Store rehearsal contract")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation-plan.md")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading-validation-matrix.md")
+        }
+        XCTAssertTrue(contractDoc.contains("GH-663"))
+        XCTAssertTrue(contractDoc.contains("GH-665"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.3.0 Event Store rehearsal anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV030EventStoreRehearsalEvidence.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH664EventStoreReplayReconstructsRehearsalCausalityChain"
+            )
+        )
+        XCTAssertTrue(databaseTarget.contains("\"ReleaseV030EventStoreRehearsalEvidence.swift\""))
+
+        for forbidden in [
+            "import ExecutionClient",
+            "import ExecutionEngine",
+            "import RiskEngine",
+            "URLSession",
+            "api.binance.com",
+            "fapi.binance.com",
+            "secretValue",
+            "rawBrokerPayload:"
+        ] {
+            XCTAssertFalse(eventStoreSource.contains(forbidden), "Event Store rehearsal source must not contain \(forbidden)")
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV030EventStoreRehearsalEvidence(
+                upstreamAdapterRehearsalAnchor: "UNSAFE-MISSING-GH-663-ANCHOR",
+                records: evidence.records,
+                replayedRecords: evidence.replayedRecords,
+                replayState: evidence.replayState
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "upstreamAdapterRehearsalAnchor",
+                    expected: "TVM-RELEASE-V030-BINANCE-ADAPTER-REHEARSAL",
+                    actual: "UNSAFE-MISSING-GH-663-ANCHOR"
+                )
+            )
+        }
+    }
+
     func testGH643ProductionCutoverRuntimeHardeningContractFailsClosedWithoutProductionCutover() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
