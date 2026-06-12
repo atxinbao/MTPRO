@@ -8916,6 +8916,142 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH595VerifyFastAndVerifyReleaseCoverFoundationSampleFullAndAllTraces() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let releaseContract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let releaseGuard = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "checks/automation-readiness.d/release-v0.2.0-boundary.sh"
+            ),
+            encoding: .utf8
+        )
+
+        let databaseTarget = try packageTargetBlock(named: "Database", packageSource: packageSource)
+        let persistenceTarget = try packageTargetBlock(named: "Persistence", packageSource: packageSource)
+        let runtimeTarget = try packageTargetBlock(named: "Runtime", packageSource: packageSource)
+        let databaseSources = try packageTargetSourcesBlock(targetBlock: databaseTarget)
+        let persistenceExcludes = try packageTargetExcludesBlock(targetBlock: persistenceTarget)
+        let runtimeExcludes = try packageTargetExcludesBlock(targetBlock: runtimeTarget)
+        XCTAssertTrue(databaseSources.contains("\"ReleaseV020VerificationGates.swift\""))
+        XCTAssertTrue(persistenceExcludes.contains("\"ReleaseV020VerificationGates.swift\""))
+        XCTAssertTrue(runtimeExcludes.contains("\"Database/ReleaseV020VerificationGates.swift\""))
+
+        let gateEvidence = try ReleaseV020VerificationGates.deterministicEvidence()
+        XCTAssertTrue(gateEvidence.gateBoundaryHeld)
+        XCTAssertEqual(gateEvidence.issueID.rawValue, "GH-595")
+        XCTAssertEqual(gateEvidence.upstreamIssueIDs.map(\.rawValue), ["GH-594"])
+        XCTAssertEqual(gateEvidence.catalogTraceCount, ReleaseV020GoldenTraceCatalog.requiredTraceCount)
+        XCTAssertTrue(gateEvidence.verifyFastPasses)
+        XCTAssertTrue(gateEvidence.verifyReleasePasses)
+        XCTAssertEqual(gateEvidence.verifyFast.sectionLabels, ["foundation", "sample-traces"])
+        XCTAssertEqual(gateEvidence.verifyFast.traceKinds, ReleaseV020VerificationGates.sampleTraceKinds)
+        XCTAssertEqual(
+            gateEvidence.verifyRelease.sectionLabels,
+            ["foundation", "sample-traces", "full-gates", "all-traces"]
+        )
+        XCTAssertEqual(Set(gateEvidence.verifyRelease.traceKinds), Set(ReleaseV020GoldenTraceKind.allCases))
+        XCTAssertEqual(gateEvidence.validationAnchors, ReleaseV020VerificationGates.requiredValidationAnchors)
+        XCTAssertFalse(gateEvidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(gateEvidence.productionSecretRead)
+        XCTAssertFalse(gateEvidence.productionEndpointTouched)
+        XCTAssertFalse(gateEvidence.brokerGatewayTouched)
+        XCTAssertFalse(gateEvidence.accountEndpointRead)
+        XCTAssertFalse(gateEvidence.submitsRealOrder)
+        XCTAssertFalse(gateEvidence.cancelsRealOrder)
+        XCTAssertFalse(gateEvidence.replacesRealOrder)
+        XCTAssertTrue(gateEvidence.verifyFast.commandGatewayRequired)
+        XCTAssertTrue(gateEvidence.verifyRelease.commandGatewayRequired)
+        XCTAssertTrue(gateEvidence.verifyRelease.eventStoreGateRequired)
+        XCTAssertTrue(gateEvidence.verifyRelease.killSwitchGateRequired)
+        XCTAssertTrue(gateEvidence.verifyRelease.noTradeStateRequired)
+
+        let verifyFast = try ReleaseV020CLIProductSurface.verify(arguments: ["verify-fast"])
+        let verifyRelease = try ReleaseV020CLIProductSurface.verify(arguments: ["verify-release"])
+        XCTAssertTrue(verifyFast.passed)
+        XCTAssertTrue(verifyRelease.passed)
+        XCTAssertEqual(verifyFast.verificationGates, gateEvidence)
+        XCTAssertEqual(verifyRelease.verificationGates, gateEvidence)
+        let verifyFastOutput = try ReleaseV020CLIProductSurface.commandLineOutput(arguments: ["verify-fast"])
+        let verifyReleaseOutput = try ReleaseV020CLIProductSurface.commandLineOutput(arguments: ["verify-release"])
+        XCTAssertTrue(verifyFastOutput.contains("mtpro verify-fast pass"))
+        XCTAssertTrue(verifyFastOutput.contains("verificationIssue=GH-595"))
+        XCTAssertTrue(verifyFastOutput.contains("verifyCoverage=foundation,sample-traces"))
+        XCTAssertTrue(verifyFastOutput.contains("verifyTraceCount=6"))
+        XCTAssertTrue(verifyReleaseOutput.contains("mtpro verify-release pass"))
+        XCTAssertTrue(verifyReleaseOutput.contains("verificationIssue=GH-595"))
+        XCTAssertTrue(verifyReleaseOutput.contains("verifyCoverage=foundation,sample-traces,full-gates,all-traces"))
+        XCTAssertTrue(verifyReleaseOutput.contains("verifyCatalogTraceCount=15"))
+        XCTAssertTrue(verifyReleaseOutput.contains("verifyGateBoundaryHeld=true"))
+
+        XCTAssertThrowsError(
+            try ReleaseV020VerificationGateCoverage(
+                mode: .verifyFast,
+                sections: [.foundation],
+                traceKinds: ReleaseV020VerificationGates.sampleTraceKinds,
+                sourceEvidenceAnchors: ["GH-595-INCOMPLETE-FAST-GATE"]
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV020VerificationGateCoverage(
+                mode: .verifyRelease,
+                sections: ReleaseV020VerificationGates.requiredSections(for: .verifyRelease),
+                traceKinds: ReleaseV020VerificationGates.sampleTraceKinds,
+                sourceEvidenceAnchors: ["GH-595-INCOMPLETE-RELEASE-GATE"]
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV020VerificationGateCoverage(
+                mode: .verifyRelease,
+                sections: ReleaseV020VerificationGates.requiredSections(for: .verifyRelease),
+                traceKinds: ReleaseV020GoldenTraceKind.allCases,
+                sourceEvidenceAnchors: ["GH-595-BYPASS-GATE"],
+                bypassesCommandGateway: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("releaseV020VerificationGates.bypassesCommandGateway")
+            )
+        }
+
+        XCTAssertTrue(validationMatrix.contains("`GH-595`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-VERIFY-FAST-RELEASE-GATES"))
+        XCTAssertTrue(validationPlan.contains("GH-595 Release v0.2.0 Verify Fast / Verify Release Gate Validation"))
+        XCTAssertTrue(domainContext.contains("GH-595 Verify Fast / Verify Release Gate Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 verify-fast / verify-release gate anchor"))
+        XCTAssertTrue(releaseGuard.contains("testGH595VerifyFastAndVerifyReleaseCoverFoundationSampleFullAndAllTraces"))
+        XCTAssertTrue(
+            releaseContract.contains(
+                "GH-595 / V020-33 | verify-fast / verify-release Spot + Perp release gates"
+            )
+        )
+    }
+
     func testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

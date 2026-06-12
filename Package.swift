@@ -96,6 +96,7 @@ let package = Package(
                 "ReleaseV020CLIProductSurface.swift",
                 "ReleaseV020GoldenTraceCatalog.swift",
                 "ReleaseV020ProductAwareEventStoreSchema.swift",
+                "ReleaseV020VerificationGates.swift",
                 "TargetGraph/DatabaseTargetBoundary.swift"
             ]
         ),
@@ -372,6 +373,7 @@ let package = Package(
                 "ReleaseV020CLIProductSurface.swift",
                 "ReleaseV020GoldenTraceCatalog.swift",
                 "ReleaseV020ProductAwareEventStoreSchema.swift",
+                "ReleaseV020VerificationGates.swift",
                 "ReplayProjection",
                 "TargetGraph"
             ],
@@ -400,6 +402,7 @@ let package = Package(
                 "Database/ReleaseV020CLIProductSurface.swift",
                 "Database/ReleaseV020GoldenTraceCatalog.swift",
                 "Database/ReleaseV020ProductAwareEventStoreSchema.swift",
+                "Database/ReleaseV020VerificationGates.swift",
                 "Database/Projections",
                 "Database/TargetGraph",
                 "DomainModel",

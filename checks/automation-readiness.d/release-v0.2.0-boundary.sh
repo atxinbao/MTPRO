@@ -184,6 +184,8 @@ required_evidence = {
         "CLI product surface for Spot / Perp / strategy / risk / execution / verify",
         "GH-594 / V020-32",
         "Dashboard Spot + Perp control surface through CommandGateway",
+        "GH-595 / V020-33",
+        "verify-fast / verify-release Spot + Perp release gates",
     ],
     "docs/validation/trading-validation-matrix.md": [
         "GH-565",
@@ -240,6 +242,8 @@ required_evidence = {
         "TVM-RELEASE-V020-CLI-PRODUCT-SURFACE",
         "GH-594",
         "TVM-RELEASE-V020-DASHBOARD-COMMANDGATEWAY-SURFACE",
+        "GH-595",
+        "TVM-RELEASE-V020-VERIFY-FAST-RELEASE-GATES",
     ],
     "docs/validation/validation-plan.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Validation",
@@ -269,6 +273,7 @@ required_evidence = {
         "GH-592 Release v0.2.0 Spot + Perp Golden Trace Catalog Validation",
         "GH-593 Release v0.2.0 CLI Product Surface Validation",
         "GH-594 Release v0.2.0 Dashboard CommandGateway Surface Validation",
+        "GH-595 Release v0.2.0 Verify Fast / Verify Release Gate Validation",
     ],
     "docs/domain/context.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Terms",
@@ -298,6 +303,7 @@ required_evidence = {
         "GH-592 Spot + Perp Golden Trace Catalog Terms",
         "GH-593 CLI Product Surface Terms",
         "GH-594 Dashboard CommandGateway Surface Terms",
+        "GH-595 Verify Fast / Verify Release Gate Terms",
     ],
     "docs/automation/automation-readiness.md": [
         "Release v0.2.0 boundary automation guard anchor",
@@ -327,6 +333,15 @@ required_evidence = {
         "Release v0.2.0 Spot + Perp golden trace catalog anchor",
         "Release v0.2.0 CLI product surface anchor",
         "Release v0.2.0 Dashboard CommandGateway surface anchor",
+        "Release v0.2.0 verify-fast / verify-release gate anchor",
+    ],
+    "Sources/Database/ReleaseV020VerificationGates.swift": [
+        "GH-595-VERIFY-FAST-FOUNDATION-SAMPLE-TRACES",
+        "GH-595-VERIFY-RELEASE-FULL-GATES-ALL-TRACES",
+        "GH-595-MTPRO-VERIFY-FAST-GATE-PASS",
+        "GH-595-MTPRO-VERIFY-RELEASE-GATE-PASS",
+        "GH-595-NO-PRODUCTION-VERIFY-SIDE-EFFECT",
+        "TVM-RELEASE-V020-VERIFY-FAST-RELEASE-GATES",
     ],
     "Sources/Dashboard/Report/ReleaseV020DashboardCommandGatewaySurface.swift": [
         "GH-594-DASHBOARD-COMMANDGATEWAY-SURFACE",
@@ -363,6 +378,7 @@ required_evidence = {
         "testGH592SpotPerpGoldenTraceCatalogCovers15RequiredRunReplayChecksums",
         "testGH593CLIProductSurfaceRoutesVerifyCommandsThroughCommandGateway",
         "testGH594DashboardCommandGatewaySurfaceShowsReleasePanelsWithoutProductionCommand",
+        "testGH595VerifyFastAndVerifyReleaseCoverFoundationSampleFullAndAllTraces",
     ],
     "Tests/PersistenceTests/PersistenceTests.swift": [
         "testGH591SQLiteDuckDBSpotPerpProjectionsStayProductAwareAndDashboardSchemaFree",
