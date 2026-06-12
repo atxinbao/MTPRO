@@ -8742,6 +8742,180 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH594DashboardCommandGatewaySurfaceShowsReleasePanelsWithoutProductionCommand() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let releaseContract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let releaseGuard = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "checks/automation-readiness.d/release-v0.2.0-boundary.sh"
+            ),
+            encoding: .utf8
+        )
+        let dashboardSurfaceSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/Dashboard/Report/ReleaseV020DashboardCommandGatewaySurface.swift"
+            ),
+            encoding: .utf8
+        )
+
+        let dashboardTarget = try packageTargetBlock(named: "Dashboard", packageSource: packageSource)
+        XCTAssertTrue(dashboardTarget.contains("\"Report\""))
+        XCTAssertFalse(dashboardTarget.contains("\"ExecutionClient\""))
+        XCTAssertFalse(dashboardTarget.contains("\"ExecutionEngine\""))
+        XCTAssertTrue(dashboardSurfaceSource.contains("GH-594-DASHBOARD-COMMANDGATEWAY-SURFACE"))
+
+        let readModel = ReleaseV020DashboardCommandGatewaySurfaceReadModel()
+        XCTAssertTrue(readModel.dashboardSurfaceBoundaryHeld)
+        XCTAssertEqual(readModel.dashboardLabels, ["Spot", "Perp", "EMA", "RSI", "Risk", "OMS", "Portfolio"])
+        XCTAssertEqual(Set(readModel.productTypesCovered), Set(ProductType.allCases))
+        XCTAssertEqual(readModel.strategiesCovered.map(\.rawValue), ["ema", "rsi"])
+        XCTAssertTrue(readModel.commandsRouteThroughCommandGateway)
+        XCTAssertTrue(readModel.productionCommandDisabledByDefault)
+        XCTAssertEqual(
+            readModel.validationAnchors,
+            ReleaseV020DashboardCommandGatewaySurfaceReadModel.requiredValidationAnchors
+        )
+
+        let surface = ReleaseV020DashboardCommandGatewaySurfaceViewModel(readModel: readModel)
+        XCTAssertEqual(surface.issueID, "GH-594")
+        XCTAssertEqual(surface.matrixID, "TVM-RELEASE-V020-DASHBOARD-COMMANDGATEWAY-SURFACE")
+        XCTAssertEqual(surface.panelCount, 7)
+        XCTAssertTrue(surface.dashboardShowsRequiredPanels)
+        XCTAssertTrue(surface.commandsRouteThroughCommandGateway)
+        XCTAssertTrue(surface.commandEntryDefaultNoTrade)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionCommandEnabled)
+        XCTAssertTrue(surface.commandSurfaceVisible)
+        XCTAssertFalse(surface.commandSurfaceEnabled)
+        XCTAssertTrue(surface.riskEngineGateRequired)
+        XCTAssertTrue(surface.executionEngineGateRequired)
+        XCTAssertTrue(surface.omsGateRequired)
+        XCTAssertTrue(surface.eventStoreGateRequired)
+        XCTAssertTrue(surface.killSwitchGateRequired)
+        XCTAssertTrue(surface.noTradeStateRequired)
+        XCTAssertTrue(surface.dashboardSurfaceBoundaryHeld)
+        XCTAssertTrue(surface.providesCommandSurface)
+        XCTAssertFalse(surface.providesTradingButton)
+        XCTAssertFalse(surface.providesLiveCommand)
+        XCTAssertFalse(surface.exposesOrderForm)
+        XCTAssertFalse(surface.exposesSecretEditor)
+        XCTAssertFalse(surface.readsSecret)
+        XCTAssertFalse(surface.opensProductionEndpoint)
+        XCTAssertFalse(surface.connectsBroker)
+        XCTAssertFalse(surface.touchesAccountEndpoint)
+        XCTAssertFalse(surface.submitsRealOrder)
+        XCTAssertFalse(surface.cancelsRealOrder)
+        XCTAssertFalse(surface.replacesRealOrder)
+        XCTAssertFalse(surface.bypassesCommandGateway)
+        XCTAssertFalse(surface.bypassesRiskEngine)
+        XCTAssertFalse(surface.bypassesExecutionEngine)
+        XCTAssertFalse(surface.bypassesOMS)
+        XCTAssertFalse(surface.bypassesEventStore)
+        XCTAssertFalse(surface.bypassesKillSwitch)
+        XCTAssertFalse(surface.bypassesNoTradeState)
+        XCTAssertFalse(surface.authorizesTradingExecution)
+
+        let report = ReportReadModel(releaseV020DashboardCommandGatewaySurface: readModel)
+        let dashboard = DashboardViewModel(
+            readModel: DashboardReadModel(
+                market: MarketReadModel(),
+                strategy: StrategyReadModel(),
+                backtest: BacktestReadModel(),
+                report: report,
+                paper: PaperReadModel(),
+                risk: RiskReadModel(),
+                portfolio: PortfolioReadModel(),
+                events: EventTimelineReadModel()
+            )
+        )
+        XCTAssertEqual(dashboard.report.releaseV020DashboardCommandGatewayPanelCount, 7)
+        XCTAssertEqual(
+            dashboard.report.releaseV020DashboardCommandGatewayPanelLabels,
+            ["Spot", "Perp", "EMA", "RSI", "Risk", "OMS", "Portfolio"]
+        )
+        XCTAssertTrue(dashboard.report.releaseV020DashboardCommandGatewayRoutesThroughGateway)
+        XCTAssertTrue(dashboard.report.releaseV020DashboardCommandGatewayProductionDisabled)
+        XCTAssertFalse(dashboard.report.releaseV020DashboardCommandGatewaySurfaceEnabled)
+        XCTAssertTrue(dashboard.report.releaseV020DashboardCommandGatewayBoundaryHeld)
+        XCTAssertFalse(dashboard.report.releaseV020DashboardCommandGatewayAuthorizesTradingExecution)
+        XCTAssertFalse(dashboard.report.authorizesTradingExecution)
+        XCTAssertTrue(dashboard.viewModelSources.allSatisfy(\.isReadModelOnly))
+
+        let shell = DashboardShellSnapshot(viewModel: dashboard)
+        XCTAssertTrue(shell.isReadModelOnly)
+        XCTAssertTrue(shell.smokeSummary.contains("releaseV020DashboardSurface=7"))
+        let reportSection = try XCTUnwrap(shell.sections.first { $0.section == .report })
+        XCTAssertTrue(
+            reportSection.metrics.contains(DashboardShellMetric(label: "Release v0.2 dashboard", value: "7"))
+        )
+        XCTAssertTrue(
+            reportSection.details.contains {
+                $0.contains("Release v0.2 Dashboard required panels: confirmed")
+            }
+        )
+        XCTAssertTrue(
+            reportSection.details.contains {
+                $0.contains("Release v0.2 Dashboard CommandGateway: confirmed")
+            }
+        )
+        XCTAssertTrue(
+            reportSection.details.contains {
+                $0.contains("Release v0.2 Dashboard production disabled: confirmed")
+            }
+        )
+
+        XCTAssertThrowsError(
+            try ReleaseV020DashboardCommandGatewayPanelViewModel(
+                panel: .spot,
+                bypassesCommandGateway: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability(
+                    "releaseV020DashboardCommandGatewaySurface.bypassesCommandGateway"
+                )
+            )
+        }
+
+        XCTAssertTrue(validationMatrix.contains("`GH-594`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-DASHBOARD-COMMANDGATEWAY-SURFACE"))
+        XCTAssertTrue(validationPlan.contains("GH-594 Release v0.2.0 Dashboard CommandGateway Surface Validation"))
+        XCTAssertTrue(domainContext.contains("GH-594 Dashboard CommandGateway Surface Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 Dashboard CommandGateway surface anchor"))
+        XCTAssertTrue(releaseGuard.contains("testGH594DashboardCommandGatewaySurfaceShowsReleasePanelsWithoutProductionCommand"))
+        XCTAssertTrue(
+            releaseContract.contains(
+                "GH-594 / V020-32 | Dashboard Spot + Perp control surface through CommandGateway"
+            )
+        )
+    }
+
     func testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

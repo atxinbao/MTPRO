@@ -182,6 +182,8 @@ required_evidence = {
         "Spot + Perp golden trace catalog",
         "GH-593 / V020-31",
         "CLI product surface for Spot / Perp / strategy / risk / execution / verify",
+        "GH-594 / V020-32",
+        "Dashboard Spot + Perp control surface through CommandGateway",
     ],
     "docs/validation/trading-validation-matrix.md": [
         "GH-565",
@@ -236,6 +238,8 @@ required_evidence = {
         "TVM-RELEASE-V020-SPOT-PERP-GOLDEN-TRACE-CATALOG",
         "GH-593",
         "TVM-RELEASE-V020-CLI-PRODUCT-SURFACE",
+        "GH-594",
+        "TVM-RELEASE-V020-DASHBOARD-COMMANDGATEWAY-SURFACE",
     ],
     "docs/validation/validation-plan.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Validation",
@@ -264,6 +268,7 @@ required_evidence = {
         "GH-591 Release v0.2.0 SQLite / DuckDB Spot + Perp Projection Validation",
         "GH-592 Release v0.2.0 Spot + Perp Golden Trace Catalog Validation",
         "GH-593 Release v0.2.0 CLI Product Surface Validation",
+        "GH-594 Release v0.2.0 Dashboard CommandGateway Surface Validation",
     ],
     "docs/domain/context.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Terms",
@@ -292,6 +297,7 @@ required_evidence = {
         "GH-591 SQLite / DuckDB Spot + Perp Projection Terms",
         "GH-592 Spot + Perp Golden Trace Catalog Terms",
         "GH-593 CLI Product Surface Terms",
+        "GH-594 Dashboard CommandGateway Surface Terms",
     ],
     "docs/automation/automation-readiness.md": [
         "Release v0.2.0 boundary automation guard anchor",
@@ -320,6 +326,15 @@ required_evidence = {
         "Release v0.2.0 SQLite / DuckDB Spot + Perp projection anchor",
         "Release v0.2.0 Spot + Perp golden trace catalog anchor",
         "Release v0.2.0 CLI product surface anchor",
+        "Release v0.2.0 Dashboard CommandGateway surface anchor",
+    ],
+    "Sources/Dashboard/Report/ReleaseV020DashboardCommandGatewaySurface.swift": [
+        "GH-594-DASHBOARD-COMMANDGATEWAY-SURFACE",
+        "GH-594-SPOT-PERP-EMA-RSI-RISK-OMS-PORTFOLIO-PANELS",
+        "GH-594-COMMANDGATEWAY-ROUTING-GATE",
+        "GH-594-PRODUCTION-COMMAND-DISABLED-BY-DEFAULT",
+        "GH-594-NO-RISK-EXECUTION-OMS-EVENTSTORE-BYPASS",
+        "TVM-RELEASE-V020-DASHBOARD-COMMANDGATEWAY-SURFACE",
     ],
     "Tests/TargetGraphTests/TargetGraphTests.swift": [
         "testGH565ReleaseV020BoundaryGuardBlocksScopeExpansionAndProductionDefaults",
@@ -347,6 +362,7 @@ required_evidence = {
         "testGH590ProductAwareEventStoreSchemaStoresContextRejectsOutOfOrderAndKeepsChecksum",
         "testGH592SpotPerpGoldenTraceCatalogCovers15RequiredRunReplayChecksums",
         "testGH593CLIProductSurfaceRoutesVerifyCommandsThroughCommandGateway",
+        "testGH594DashboardCommandGatewaySurfaceShowsReleasePanelsWithoutProductionCommand",
     ],
     "Tests/PersistenceTests/PersistenceTests.swift": [
         "testGH591SQLiteDuckDBSpotPerpProjectionsStayProductAwareAndDashboardSchemaFree",

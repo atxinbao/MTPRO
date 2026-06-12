@@ -580,8 +580,9 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         let paperPortfolioImpact = Self.metricValue("Paper PnL", in: reportMetrics)
         let releaseLiveMonitoringSurface = Self.metricValue("Release live", in: reportMetrics)
         let releaseCommandSurface = Self.metricValue("Release commands", in: reportMetrics)
+        let releaseV020DashboardSurface = Self.metricValue("Release v0.2 dashboard", in: reportMetrics)
         let releaseKillSwitch = Self.metricValue("Release kill switch", in: reportMetrics)
-        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); dashboardReadModelOnly=\(readModelSurface.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); scenarioReplayEvidence=\(scenarioReplayEvidence); scenarioQualityGates=\(scenarioQualityGates); simulatedParityEvidence=\(simulatedParityEvidence); accountPositionBalanceEvidence=\(accountPositionBalanceEvidence); privateStreamSimulationGateEvidence=\(privateStreamSimulationGateEvidence); liveMonitoringReadOnlyConsoleV2Surface=\(liveMonitoringReadOnlyConsoleV2Surface); strategyTraderReadinessSurface=\(strategyTraderReadinessSurface); defaultDemoState=\(defaultDemoState); defaultDemoScenario=\(defaultDemoScenario); betaFirstRunFallbacks=\(betaFallbacks); betaAcceptancePaths=\(betaAcceptancePaths); betaAcceptanceScenario=\(betaAcceptanceScenario); betaAcceptanceTrace=\(betaAcceptanceTrace); paperRuntimeEvidence=\(paperRuntimeEvidence); paperWorkflowEvidence=\(paperWorkflowEvidence); paperPortfolioImpact=\(paperPortfolioImpact); releaseLiveMonitoringSurface=\(releaseLiveMonitoringSurface); releaseCommandSurface=\(releaseCommandSurface); releaseKillSwitch=\(releaseKillSwitch); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveReadOnlyDashboardBoundary=\(liveReadOnlyDashboardBoundary); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
+        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); dashboardReadModelOnly=\(readModelSurface.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); scenarioReplayEvidence=\(scenarioReplayEvidence); scenarioQualityGates=\(scenarioQualityGates); simulatedParityEvidence=\(simulatedParityEvidence); accountPositionBalanceEvidence=\(accountPositionBalanceEvidence); privateStreamSimulationGateEvidence=\(privateStreamSimulationGateEvidence); liveMonitoringReadOnlyConsoleV2Surface=\(liveMonitoringReadOnlyConsoleV2Surface); strategyTraderReadinessSurface=\(strategyTraderReadinessSurface); defaultDemoState=\(defaultDemoState); defaultDemoScenario=\(defaultDemoScenario); betaFirstRunFallbacks=\(betaFallbacks); betaAcceptancePaths=\(betaAcceptancePaths); betaAcceptanceScenario=\(betaAcceptanceScenario); betaAcceptanceTrace=\(betaAcceptanceTrace); paperRuntimeEvidence=\(paperRuntimeEvidence); paperWorkflowEvidence=\(paperWorkflowEvidence); paperPortfolioImpact=\(paperPortfolioImpact); releaseLiveMonitoringSurface=\(releaseLiveMonitoringSurface); releaseCommandSurface=\(releaseCommandSurface); releaseV020DashboardSurface=\(releaseV020DashboardSurface); releaseKillSwitch=\(releaseKillSwitch); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveReadOnlyDashboardBoundary=\(liveReadOnlyDashboardBoundary); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
     }
 
     private static func makeSectionSnapshot(
@@ -1521,6 +1522,10 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                     value: "\(viewModel.releaseV010ControlledCommandActionCount)"
                 ),
                 DashboardShellMetric(
+                    label: "Release v0.2 dashboard",
+                    value: "\(viewModel.releaseV020DashboardCommandGatewayPanelCount)"
+                ),
+                DashboardShellMetric(
                     label: "Release kill switch",
                     value: "\(viewModel.releaseV010KillSwitchBlockedActionCount)"
                 ),
@@ -1689,6 +1694,17 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 "Release command panels: \(joined(viewModel.releaseV010ControlledCommandSurface.dashboardPanelSummaries))",
                 "Release command boundary: \(formatEvidenceFlag(viewModel.releaseV010ControlledCommandBoundaryHeld))",
                 "Release command trading execution: \(formatForbiddenFlag(viewModel.releaseV010ControlledCommandAuthorizesTradingExecution))",
+                "Release v0.2 Dashboard summary: \(viewModel.releaseV020DashboardCommandGatewaySurface.reportSummary)",
+                "Release v0.2 Dashboard panels: \(joined(viewModel.releaseV020DashboardCommandGatewayPanelLabels))",
+                "Release v0.2 Dashboard products: \(joined(viewModel.releaseV020DashboardCommandGatewayProductTypeLabels))",
+                "Release v0.2 Dashboard strategies: \(joined(viewModel.releaseV020DashboardCommandGatewayStrategyLabels))",
+                "Release v0.2 Dashboard routes: \(joined(viewModel.releaseV020DashboardCommandGatewayRoutes))",
+                "Release v0.2 Dashboard required panels: \(formatEvidenceFlag(viewModel.releaseV020DashboardCommandGatewayShowsRequiredPanels))",
+                "Release v0.2 Dashboard CommandGateway: \(formatEvidenceFlag(viewModel.releaseV020DashboardCommandGatewayRoutesThroughGateway))",
+                "Release v0.2 Dashboard production disabled: \(formatEvidenceFlag(viewModel.releaseV020DashboardCommandGatewayProductionDisabled))",
+                "Release v0.2 Dashboard enabled: \(formatForbiddenFlag(viewModel.releaseV020DashboardCommandGatewaySurfaceEnabled))",
+                "Release v0.2 Dashboard boundary: \(formatEvidenceFlag(viewModel.releaseV020DashboardCommandGatewayBoundaryHeld))",
+                "Release v0.2 Dashboard trading execution: \(formatForbiddenFlag(viewModel.releaseV020DashboardCommandGatewayAuthorizesTradingExecution))",
                 "Release kill switch summary: \(viewModel.releaseV010KillSwitchNoTradeRollbackSurface.reportSummary)",
                 "Release kill switch actions: \(joined(viewModel.releaseV010KillSwitchBlockedActionLabels))",
                 "Release kill switch states: \(joined(viewModel.releaseV010KillSwitchStateLabels))",
