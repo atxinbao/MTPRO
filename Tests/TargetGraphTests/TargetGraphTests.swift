@@ -8140,6 +8140,197 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH589AggregatePortfolioAndStrategyAttributionCombinesSpotPerpEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let releaseContract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md"
+            ),
+            encoding: .utf8
+        )
+
+        let executionEngineTarget = try packageTargetBlock(named: "ExecutionEngine", packageSource: packageSource)
+        XCTAssertTrue(executionEngineTarget.contains("\"Portfolio\""))
+        XCTAssertTrue(executionEngineTarget.contains("\"ExecutionClient\""))
+        XCTAssertFalse(executionEngineTarget.contains("\"DataClient\""))
+
+        let portfolioTarget = try packageTargetBlock(named: "Portfolio", packageSource: packageSource)
+        XCTAssertFalse(portfolioTarget.contains("\"ExecutionClient\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionEngine/OMSFutureGate/ReleaseV020AggregatePortfolioAttribution.swift"
+                ).path
+            )
+        )
+
+        let aggregate = try ReleaseV020AggregatePortfolioAttribution.deterministicFixture()
+        XCTAssertTrue(aggregate.aggregateBoundaryHeld)
+        XCTAssertEqual(aggregate.issueID.rawValue, "GH-589")
+        XCTAssertTrue(aggregate.input.inputBoundaryHeld)
+        XCTAssertEqual(aggregate.input.spotEvidence.issueID.rawValue, "GH-587")
+        XCTAssertEqual(aggregate.input.perpetualEvidence.issueID.rawValue, "GH-588")
+        XCTAssertFalse(aggregate.productionTradingEnabledByDefault)
+        XCTAssertFalse(aggregate.productionAccountEndpointRead)
+        XCTAssertFalse(aggregate.brokerGatewayTouched)
+        XCTAssertFalse(aggregate.brokerPositionSynced)
+        XCTAssertFalse(aggregate.reconciliationRuntimeExecuted)
+        XCTAssertFalse(aggregate.portfolioRuntimeMutated)
+        XCTAssertFalse(aggregate.liveCommandSurfaceTouched)
+
+        for anchor in [
+            "GH-589-AGGREGATE-PORTFOLIO-ATTRIBUTION",
+            "GH-589-SPOT-PERP-EXPOSURE-SUMMARY",
+            "GH-589-EMA-RSI-ATTRIBUTION-SEPARATED",
+            "GH-589-FUNDING-LIQUIDATION-SUMMARY",
+            "GH-589-NO-PRODUCTION-PORTFOLIO-RUNTIME",
+            "TVM-RELEASE-V020-AGGREGATE-PORTFOLIO-ATTRIBUTION",
+        ] {
+            XCTAssertTrue(aggregate.input.validationAnchors.contains(anchor), anchor)
+        }
+
+        let evidence = try aggregate.deterministicEvidence()
+        XCTAssertTrue(evidence.evidenceBoundaryHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-589")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-587", "GH-588"])
+        XCTAssertTrue(evidence.aggregateExposureCalculated)
+        XCTAssertTrue(evidence.strategyAttributionSeparated)
+        XCTAssertTrue(evidence.fundingAndLiquidationSummaryVisible)
+
+        XCTAssertEqual(evidence.exposureSummary.spotInstrument.productType, .spot)
+        XCTAssertEqual(evidence.exposureSummary.perpetualInstrument.productType, .usdsPerpetual)
+        XCTAssertEqual(evidence.exposureSummary.spotGrossExposureNotional, 591.5098, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.exposureSummary.perpetualGrossExposureNotional, 6_468.075, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.exposureSummary.aggregateGrossExposureNotional, 7_059.5848, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.exposureSummary.spotNetPnL, 1.779986, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.exposureSummary.perpetualNetPnL, 193.4280175, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.exposureSummary.aggregateNetPnL, 195.2080035, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.exposureSummary.marginRequirement, 1_293.615, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.exposureSummary.fundingPaymentEstimate, 0.6468075, accuracy: 0.000_000_01)
+        XCTAssertTrue(evidence.exposureSummary.exposureBoundaryHeld)
+        XCTAssertFalse(evidence.exposureSummary.productionAccountEndpointRead)
+        XCTAssertFalse(evidence.exposureSummary.brokerPositionSynced)
+        XCTAssertFalse(evidence.exposureSummary.portfolioRuntimeMutated)
+
+        XCTAssertEqual(
+            Set(evidence.strategyAttributionSummaries.map(\.strategyKind)),
+            Set(ReleaseV020AggregatePortfolioStrategyKind.allCases)
+        )
+        XCTAssertTrue(evidence.strategyAttributionSummaries.allSatisfy(\.attributionBoundaryHeld))
+        XCTAssertTrue(evidence.strategyAttributionSummaries.allSatisfy { $0.sourceSpotAttributionIDs.isEmpty == false })
+        XCTAssertTrue(evidence.strategyAttributionSummaries.allSatisfy { $0.sourcePerpetualAttributionIDs.isEmpty == false })
+        XCTAssertEqual(
+            evidence.strategyAttributionSummaries.reduce(0.0) { $0 + $1.aggregateAttributedNotional },
+            15_815.7298,
+            accuracy: 0.000_000_01
+        )
+        XCTAssertEqual(
+            evidence.strategyAttributionSummaries.reduce(0.0) { $0 + $1.aggregateAttributedPnL },
+            177.779986,
+            accuracy: 0.000_000_01
+        )
+
+        XCTAssertEqual(evidence.fundingLiquidationSummary.instrument.productType, .usdsPerpetual)
+        XCTAssertEqual(evidence.fundingLiquidationSummary.positionSide, .long)
+        XCTAssertEqual(evidence.fundingLiquidationSummary.leverage, 5, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.fundingLiquidationSummary.entryPrice.rawValue, 43_000, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.fundingLiquidationSummary.markPrice.rawValue, 43_120.50, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.fundingLiquidationSummary.fundingRate, 0.0001, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.fundingLiquidationSummary.fundingPaymentEstimate, 0.6468075, accuracy: 0.000_000_01)
+        XCTAssertEqual(
+            evidence.fundingLiquidationSummary.deterministicLiquidationReferencePrice.rawValue,
+            34_400,
+            accuracy: 0.000_000_01
+        )
+        XCTAssertEqual(evidence.fundingLiquidationSummary.liquidationDistance, 8_720.5, accuracy: 0.000_000_01)
+        XCTAssertEqual(
+            evidence.fundingLiquidationSummary.liquidationDistanceRatio,
+            8_720.5 / 43_120.50,
+            accuracy: 0.000_000_01
+        )
+        XCTAssertTrue(evidence.fundingLiquidationSummary.fundingSummaryVisible)
+        XCTAssertTrue(evidence.fundingLiquidationSummary.liquidationSummaryVisible)
+        XCTAssertTrue(evidence.fundingLiquidationSummary.summaryBoundaryHeld)
+        XCTAssertFalse(evidence.fundingLiquidationSummary.readsBrokerMargin)
+        XCTAssertFalse(evidence.fundingLiquidationSummary.brokerStatementRead)
+        XCTAssertFalse(evidence.fundingLiquidationSummary.leverageActionExecuted)
+        XCTAssertFalse(evidence.fundingLiquidationSummary.marginActionExecuted)
+
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionAccountEndpointRead)
+        XCTAssertFalse(evidence.brokerGatewayTouched)
+        XCTAssertFalse(evidence.brokerPositionSynced)
+        XCTAssertFalse(evidence.reconciliationRuntimeExecuted)
+        XCTAssertFalse(evidence.portfolioRuntimeMutated)
+        XCTAssertFalse(evidence.liveCommandSurfaceTouched)
+
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoded = try JSONDecoder().decode(
+            ReleaseV020AggregatePortfolioAttributionEvidence.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, evidence)
+
+        XCTAssertThrowsError(
+            try ReleaseV020AggregatePortfolioAttributionInput(
+                spotEvidence: aggregate.input.spotEvidence,
+                perpetualEvidence: aggregate.input.perpetualEvidence,
+                brokerPositionSynced: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability(
+                    "releaseV020AggregatePortfolioAttribution.brokerPositionSynced"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV020AggregatePortfolioAttribution(
+                input: aggregate.input,
+                productionTradingEnabledByDefault: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability(
+                    "releaseV020AggregatePortfolioAttribution.productionTradingEnabledByDefault"
+                )
+            )
+        }
+
+        XCTAssertTrue(validationMatrix.contains("`GH-589`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-AGGREGATE-PORTFOLIO-ATTRIBUTION"))
+        XCTAssertTrue(validationPlan.contains("GH-589 Release v0.2.0 Aggregate Portfolio Attribution Validation"))
+        XCTAssertTrue(domainContext.contains("GH-589 Aggregate Portfolio Attribution Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 aggregate Portfolio attribution anchor"))
+        XCTAssertTrue(
+            releaseContract.contains(
+                "GH-589 / V020-27 | Aggregate Portfolio and strategy attribution"
+            )
+        )
+    }
+
     func testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
