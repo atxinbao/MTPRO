@@ -5909,6 +5909,155 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH647ProductionAuditTrailRequiresAppendOnlyReplayAndRepairEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionEngineTarget = try packageTargetBlock(named: "ExecutionEngine", packageSource: packageSource)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/production-audit-trail-gate-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let upstreamContractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/production-command-dispatch-gate-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+
+        let upstream = try ProductionCommandDispatchGate.deterministicFixture()
+        let contract = try ProductionAuditTrailGate.deterministicFixture()
+        XCTAssertTrue(upstream.contractHeld)
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertTrue(contract.auditTrailCoverageHeld)
+        XCTAssertTrue(contract.replayRepairCoverageHeld)
+        XCTAssertTrue(contract.productionDefaultsClosed)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-647")
+        XCTAssertEqual(contract.upstreamIssueID.rawValue, "GH-646")
+        XCTAssertEqual(contract.downstreamIssueID.rawValue, "GH-648")
+        XCTAssertEqual(contract.canonicalQueueRange, "GH-643..GH-649")
+        XCTAssertEqual(Set(contract.requirements), Set(ProductionAuditTrailRequirement.allCases))
+        XCTAssertEqual(Set(contract.forbiddenCapabilities), Set(ProductionAuditTrailForbiddenCapability.allCases))
+
+        XCTAssertTrue(contract.upstreamCommandDispatchGateHeld)
+        XCTAssertTrue(contract.appendOnlyEvidenceRequired)
+        XCTAssertTrue(contract.eventIdempotencyRequired)
+        XCTAssertTrue(contract.replayRestoresKeyCommandState)
+        XCTAssertTrue(contract.rollbackRepairEvidenceRequired)
+        XCTAssertTrue(contract.missingAuditTrailBlocksExecutionHandoff)
+        XCTAssertFalse(contract.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(contract.productionSecretAutoReadEnabled)
+        XCTAssertFalse(contract.realBrokerConnectionEnabled)
+        XCTAssertFalse(contract.realOrderSubmissionEnabled)
+        XCTAssertFalse(contract.startsNextMilestone)
+
+        XCTAssertEqual(Set(contract.events.map(\.kind)), Set(ProductionAuditTrailEventKind.allCases))
+        XCTAssertEqual(contract.events.map(\.sequence), [1, 2, 3, 4])
+        XCTAssertTrue(contract.events.allSatisfy(\.eventBoundaryHeld))
+        XCTAssertTrue(contract.events.allSatisfy(\.appendOnly))
+        XCTAssertTrue(contract.events.allSatisfy(\.idempotent))
+        XCTAssertTrue(contract.events.allSatisfy { $0.mutableWriteAllowed == false })
+        XCTAssertTrue(contract.events.allSatisfy { $0.containsSecretValue == false })
+        XCTAssertTrue(contract.events.allSatisfy { $0.containsBrokerPayload == false })
+        XCTAssertTrue(contract.events.allSatisfy { $0.writesProductionOrderState == false })
+        XCTAssertTrue(contract.replayRepairEvidence.replayRepairBoundaryHeld)
+        XCTAssertTrue(contract.replayRepairEvidence.replayRestoresKeyState)
+        XCTAssertTrue(contract.replayRepairEvidence.rollbackRepairEvidenceProduced)
+        XCTAssertTrue(contract.replayRepairEvidence.missingAuditTrailBlocksExecutionHandoff)
+        XCTAssertFalse(contract.replayRepairEvidence.automaticRepairEnabled)
+        XCTAssertFalse(contract.replayRepairEvidence.executionHandoffAllowedWithoutAuditTrail)
+        XCTAssertFalse(contract.replayRepairEvidence.eventStoreBypassAllowed)
+
+        for anchor in ProductionAuditTrailGate.requiredValidationAnchors {
+            XCTAssertTrue(contract.validationAnchors.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in audit trail contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation-plan.md")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading-validation-matrix.md")
+        }
+        XCTAssertTrue(upstreamContractDoc.contains("PCHR-04-COMMAND-RISK-EXECUTION-OMS-DISPATCH-GATE"))
+        XCTAssertTrue(automationReadiness.contains("Production audit trail gate anchor"))
+        XCTAssertTrue(readinessScript.contains("ProductionAuditTrailGate.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH647ProductionAuditTrailRequiresAppendOnlyReplayAndRepairEvidence"
+            )
+        )
+        XCTAssertTrue(executionEngineTarget.contains("\"OMSFutureGate\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionEngine/OMSFutureGate/ProductionAuditTrailGate.swift"
+                ).path
+            )
+        )
+
+        XCTAssertThrowsError(
+            try ProductionAuditTrailGate(
+                upstreamCommandDispatchGateHeld: false
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "upstreamCommandDispatchGateHeld",
+                    expected: "true",
+                    actual: "false"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try ProductionAuditTrailGate(
+                realOrderSubmissionEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("realOrderSubmissionEnabled"))
+        }
+        XCTAssertThrowsError(
+            try ProductionAuditTrailEventEvidence(
+                eventID: Identifier.constant("unsafe-gh-647-mutable-event"),
+                commandID: Identifier.constant("gh-647-command"),
+                kind: .command,
+                sequence: 1,
+                idempotencyKey: "unsafe-gh-647-mutable",
+                sourceAnchor: "PCHR-05-UNSAFE-MUTABLE",
+                mutableWriteAllowed: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("mutableWriteAllowed"))
+        }
+        XCTAssertThrowsError(
+            try ProductionAuditTrailReplayRepairEvidence(
+                replayedEventIDs: ProductionAuditTrailGate.requiredEvents.map(\.eventID),
+                executionHandoffAllowedWithoutAuditTrail: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("executionHandoffAllowedWithoutAuditTrail")
+            )
+        }
+    }
+
     func testGH523ReleaseV010TargetsExposeRealSmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-523-release-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)

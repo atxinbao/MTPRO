@@ -165,6 +165,28 @@ GH-646 必须建立的主要 anchors：
 - `PCHR-04-NO-PRODUCTION-ORDER-AUTHORIZATION`
 - `TVM-PCHR-COMMAND-RISK-EXECUTION-OMS-DISPATCH-GATE`
 
+## GH-647 Production Audit Trail Gate Validation
+
+GH-647 的 required validation：
+
+- `docs/contracts/production-audit-trail-gate-contract.md` 必须存在，并包含 `PCHR-05-OMS-EVENT-STORE-PRODUCTION-AUDIT-TRAIL`、`PCHR-05-APPEND-ONLY-COMMAND-RISK-OMS-EXECUTION-EVENTS`、`PCHR-05-EVENT-IDEMPOTENCY`、`PCHR-05-REPLAY-RESTORES-COMMAND-STATE`、`PCHR-05-ROLLBACK-REPAIR-EVIDENCE`、`PCHR-05-MISSING-AUDIT-BLOCKS-HANDOFF` 和 `PCHR-05-NO-PRODUCTION-ORDER-AUTHORIZATION`。
+- `Sources/ExecutionEngine/OMSFutureGate/ProductionAuditTrailGate.swift` 必须定义 `ProductionAuditTrailGate`、`ProductionAuditTrailEventEvidence`、`ProductionAuditTrailReplayRepairEvidence`、`ProductionAuditTrailRequirement`、`ProductionAuditTrailForbiddenCapability` 和 `ProductionAuditTrailEventKind`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH647ProductionAuditTrailRequiresAppendOnlyReplayAndRepairEvidence`。
+- Contract 必须绑定 GH-646 upstream command dispatch gate，并证明 command、risk decision、OMS transition 和 execution intent 是 append-only events，event idempotency 被验证，replay 可恢复关键 command state，rollback / repair evidence 可输出。
+- Contract 必须证明缺少 audit trail 会阻断 execution handoff、不实现 production Event Store runtime、不读取 production secret、不连接 production endpoint、不连接真实 broker、不提交真实订单、不绕过 CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH647ProductionAuditTrailRequiresAppendOnlyReplayAndRepairEvidence`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential 或人工验收。
+
+GH-647 必须建立的主要 anchors：
+
+- `PCHR-05-OMS-EVENT-STORE-PRODUCTION-AUDIT-TRAIL`
+- `PCHR-05-APPEND-ONLY-COMMAND-RISK-OMS-EXECUTION-EVENTS`
+- `PCHR-05-EVENT-IDEMPOTENCY`
+- `PCHR-05-REPLAY-RESTORES-COMMAND-STATE`
+- `PCHR-05-ROLLBACK-REPAIR-EVIDENCE`
+- `PCHR-05-MISSING-AUDIT-BLOCKS-HANDOFF`
+- `PCHR-05-NO-PRODUCTION-ORDER-AUTHORIZATION`
+- `TVM-PCHR-OMS-EVENT-STORE-AUDIT-TRAIL`
+
 ## GH-631 CEFR Final Envelope Retirement Contract Validation
 
 GH-631 的 required validation：
