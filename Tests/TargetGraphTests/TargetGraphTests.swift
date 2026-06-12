@@ -7770,6 +7770,181 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH587SpotPortfolioProjectionUpdatesBalancePositionPnLAndStrategyAttribution() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let releaseContract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md"
+            ),
+            encoding: .utf8
+        )
+
+        let executionEngineTarget = try packageTargetBlock(named: "ExecutionEngine", packageSource: packageSource)
+        XCTAssertTrue(executionEngineTarget.contains("\"Portfolio\""))
+        XCTAssertTrue(executionEngineTarget.contains("\"ExecutionClient\""))
+        XCTAssertFalse(executionEngineTarget.contains("\"DataClient\""))
+
+        let portfolioTarget = try packageTargetBlock(named: "Portfolio", packageSource: packageSource)
+        XCTAssertFalse(portfolioTarget.contains("\"ExecutionClient\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionEngine/OMSFutureGate/ReleaseV020SpotPortfolioProjection.swift"
+                ).path
+            )
+        )
+
+        let projection = try ReleaseV020SpotPortfolioProjection.deterministicFixture()
+        XCTAssertTrue(projection.projectionBoundaryHeld)
+        XCTAssertEqual(projection.issueID.rawValue, "GH-587")
+        XCTAssertTrue(projection.input.inputBoundaryHeld)
+        XCTAssertEqual(projection.input.parserEvidence.issueID.rawValue, "GH-586")
+        XCTAssertEqual(projection.input.spotBrokerFills.map(\.reportKind), [.spotFill, .spotPartialFill])
+        XCTAssertTrue(projection.input.spotBrokerFills.allSatisfy { $0.instrument.productType == .spot })
+        XCTAssertTrue(projection.input.spotBrokerFills.allSatisfy { $0.sourceAdapterIssueID.rawValue == "GH-584" })
+        XCTAssertFalse(projection.productionTradingEnabledByDefault)
+        XCTAssertFalse(projection.productionAccountEndpointRead)
+        XCTAssertFalse(projection.brokerGatewayTouched)
+        XCTAssertFalse(projection.brokerPositionSynced)
+        XCTAssertFalse(projection.portfolioRuntimeMutated)
+        XCTAssertFalse(projection.liveCommandSurfaceTouched)
+
+        for anchor in [
+            "GH-587-SPOT-PORTFOLIO-PROJECTION",
+            "GH-587-SPOT-BALANCE-UPDATE",
+            "GH-587-SPOT-POSITION-UPDATE",
+            "GH-587-SPOT-PNL-PROJECTION",
+            "GH-587-STRATEGY-ATTRIBUTION",
+            "GH-587-NO-PRODUCTION-ACCOUNT-READ",
+            "TVM-RELEASE-V020-SPOT-PORTFOLIO-PROJECTION",
+        ] {
+            XCTAssertTrue(projection.input.validationAnchors.contains(anchor), anchor)
+        }
+
+        let evidence = try projection.deterministicEvidence()
+        XCTAssertTrue(evidence.evidenceBoundaryHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-587")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-586"])
+        XCTAssertEqual(evidence.sourceFillIDs.count, 2)
+        XCTAssertTrue(evidence.balancesUpdated)
+        XCTAssertTrue(evidence.positionUpdated)
+        XCTAssertTrue(evidence.pnlProjected)
+        XCTAssertTrue(evidence.strategyAttributionComplete)
+
+        XCTAssertEqual(evidence.balanceProjection.quoteAsset, "USDT")
+        XCTAssertEqual(evidence.balanceProjection.startingFreeBalance, 100_000, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.balanceProjection.quoteSpent, 589.7298, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.balanceProjection.commissionPaid, 0.000014, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.balanceProjection.endingFreeBalance, 99_410.270186, accuracy: 0.000_000_01)
+        XCTAssertTrue(evidence.balanceProjection.balanceBoundaryHeld)
+        XCTAssertFalse(evidence.balanceProjection.readsRealBalance)
+        XCTAssertFalse(evidence.balanceProjection.accountEndpointRead)
+
+        XCTAssertEqual(evidence.positionProjection.instrument.productType, .spot)
+        XCTAssertEqual(evidence.positionProjection.baseAsset, "BTC")
+        XCTAssertEqual(evidence.positionProjection.positionQuantity.rawValue, 0.014, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.positionProjection.averageCost.rawValue, 42_123.55714285714, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.positionProjection.markPrice.rawValue, 42_250.70, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.positionProjection.grossPositionNotional, 591.5098, accuracy: 0.000_000_01)
+        XCTAssertTrue(evidence.positionProjection.positionBoundaryHeld)
+        XCTAssertFalse(evidence.positionProjection.brokerPositionSynced)
+        XCTAssertFalse(evidence.positionProjection.marginOrLeverageTouched)
+
+        XCTAssertEqual(evidence.pnlProjection.realizedPnL, 0, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.pnlProjection.unrealizedPnL, 1.78, accuracy: 0.000_000_01)
+        XCTAssertEqual(evidence.pnlProjection.netPnL, 1.779986, accuracy: 0.000_000_01)
+        XCTAssertTrue(evidence.pnlProjection.pnlBoundaryHeld)
+        XCTAssertFalse(evidence.pnlProjection.readsRealPnL)
+        XCTAssertFalse(evidence.pnlProjection.brokerReconciliationPerformed)
+
+        XCTAssertEqual(Set(evidence.strategyAttributions.map(\.strategyKind)), Set(ReleaseV020SpotPortfolioProjectionStrategyKind.allCases))
+        XCTAssertTrue(evidence.strategyAttributions.allSatisfy(\.attributionBoundaryHeld))
+        XCTAssertEqual(
+            evidence.strategyAttributions.reduce(0.0) { $0 + $1.attributedQuantity.rawValue },
+            evidence.positionProjection.positionQuantity.rawValue,
+            accuracy: 0.000_000_01
+        )
+        XCTAssertEqual(
+            evidence.strategyAttributions.reduce(0.0) { $0 + $1.attributedNotional },
+            evidence.balanceProjection.quoteSpent,
+            accuracy: 0.000_000_01
+        )
+        XCTAssertEqual(
+            evidence.strategyAttributions.reduce(0.0) { $0 + $1.attributedNetPnL },
+            evidence.pnlProjection.netPnL,
+            accuracy: 0.000_000_01
+        )
+
+        XCTAssertTrue(evidence.financialStateProjection.paperOnlyBoundaryHeld)
+        XCTAssertEqual(evidence.exposureSnapshot.source, .paperProjection)
+        XCTAssertEqual(evidence.exposureSnapshot.grossExposureNotional, evidence.positionProjection.grossPositionNotional)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionAccountEndpointRead)
+        XCTAssertFalse(evidence.brokerGatewayTouched)
+        XCTAssertFalse(evidence.brokerPositionSynced)
+        XCTAssertFalse(evidence.portfolioRuntimeMutated)
+        XCTAssertFalse(evidence.liveCommandSurfaceTouched)
+
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoded = try JSONDecoder().decode(
+            ReleaseV020SpotPortfolioProjectionEvidence.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, evidence)
+
+        let parserEvidence = projection.input.parserEvidence
+        XCTAssertThrowsError(
+            try ReleaseV020SpotPortfolioProjectionInput(
+                parserEvidence: parserEvidence,
+                spotBrokerFills: parserEvidence.parseResults.map(\.brokerFill)
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV020SpotPortfolioProjection(
+                input: projection.input,
+                productionTradingEnabledByDefault: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability(
+                    "releaseV020SpotPortfolioProjection.productionTradingEnabledByDefault"
+                )
+            )
+        }
+
+        XCTAssertTrue(validationMatrix.contains("`GH-587`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-SPOT-PORTFOLIO-PROJECTION"))
+        XCTAssertTrue(validationPlan.contains("GH-587 Release v0.2.0 Spot Portfolio Projection Validation"))
+        XCTAssertTrue(domainContext.contains("GH-587 Spot Portfolio Projection Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 Spot Portfolio projection anchor"))
+        XCTAssertTrue(
+            releaseContract.contains(
+                "GH-587 / V020-25 | Spot Portfolio projection from BrokerFill"
+            )
+        )
+    }
+
     func testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

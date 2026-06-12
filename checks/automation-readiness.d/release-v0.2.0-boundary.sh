@@ -216,6 +216,8 @@ required_evidence = {
         "TVM-RELEASE-V020-BINANCE-USDM-PERP-EXECUTIONCLIENT-ADAPTER",
         "GH-586",
         "TVM-RELEASE-V020-EXECUTION-REPORT-BROKER-FILL-PARSER",
+        "GH-587",
+        "TVM-RELEASE-V020-SPOT-PORTFOLIO-PROJECTION",
     ],
     "docs/validation/validation-plan.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Validation",
@@ -237,6 +239,7 @@ required_evidence = {
         "GH-584 Release v0.2.0 Binance Spot ExecutionClient Adapter Validation",
         "GH-585 Release v0.2.0 Binance USD-M Perpetual ExecutionClient Adapter Validation",
         "GH-586 Release v0.2.0 Execution Report Broker Fill Parser Validation",
+        "GH-587 Release v0.2.0 Spot Portfolio Projection Validation",
     ],
     "docs/domain/context.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Terms",
@@ -258,6 +261,7 @@ required_evidence = {
         "GH-584 Binance Spot ExecutionClient Adapter Terms",
         "GH-585 Binance USD-M Perpetual ExecutionClient Adapter Terms",
         "GH-586 Execution Report Broker Fill Parser Terms",
+        "GH-587 Spot Portfolio Projection Terms",
     ],
     "docs/automation/automation-readiness.md": [
         "Release v0.2.0 boundary automation guard anchor",
@@ -279,6 +283,7 @@ required_evidence = {
         "Release v0.2.0 Binance Spot ExecutionClient adapter anchor",
         "Release v0.2.0 Binance USD-M Perpetual ExecutionClient adapter anchor",
         "Release v0.2.0 execution report broker fill parser anchor",
+        "Release v0.2.0 Spot Portfolio projection anchor",
     ],
     "Tests/TargetGraphTests/TargetGraphTests.swift": [
         "testGH565ReleaseV020BoundaryGuardBlocksScopeExpansionAndProductionDefaults",
@@ -300,6 +305,7 @@ required_evidence = {
         "testGH584BinanceSpotExecutionClientAdapterProducesDryRunAndTestnetMapping",
         "testGH585BinanceUSDMPerpExecutionClientAdapterProducesPositionSideReduceOnlyMapping",
         "testGH586BinanceExecutionReportParserMapsSpotPerpBrokerFillAndPositionUpdates",
+        "testGH587SpotPortfolioProjectionUpdatesBalancePositionPnLAndStrategyAttribution",
     ],
 }
 
