@@ -4386,6 +4386,28 @@ No production database side effect 指 GH-591 默认关闭 production trading、
 
 Release v0.2.0 SQLite / DuckDB Spot + Perp projection matrix 必须证明 GH-590 product-aware Event Store schema 可派生 SQLite runtime projection 和 DuckDB analytical projection，Spot 与 USDⓈ-M Perpetual 不碰撞，Dashboard 仍只消费 stable read model，并且 projection evidence 不绕过 CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store / kill switch / no-trade gate。
 
+## GH-592 Spot + Perp Golden Trace Catalog Terms
+
+`GH-592-SPOT-PERP-GOLDEN-TRACE-CATALOG`
+
+Spot + Perp golden trace catalog 指 GH-592 在 `Database` target 内定义的本地 deterministic trace evidence catalog。它固定 release v0.2.0 的 15 条 required trace，覆盖 Binance、Spot、USDⓈ-M Perpetual、EMA、RSI、proposal arbitration、risk gates、execution algorithm、execution report parser、Event Store 和 SQLite / DuckDB projection evidence。它不是 production runbook、operator command、broker replay job、Dashboard schema 或交易授权。
+
+`GH-592-ALL-15-REQUIRED-TRACES-PRESENT`
+
+All 15 required traces present 指 catalog 必须包含 15 条 sequence 为 `1...15` 的 trace record，并且 trace kind 集合与 `ReleaseV020GoldenTraceKind.allCases` 完全一致。缺失任一 trace、重复 trace kind、跳号或非 deterministic ordering 都必须被拒绝。
+
+`GH-592-RUN-REPLAY-CHECKSUM-PARITY`
+
+Run / replay checksum parity 指每条 golden trace 使用相同 canonical preimage 生成 run checksum 和 replay checksum，二者必须一致。该 checksum 只用于本地可重复验证，不是安全签名，不保存 secret，不代表真实交易所 replay、broker statement、account checkpoint 或 production reconciliation。
+
+`GH-592-NO-PRODUCTION-TRACE-SIDE-EFFECT`
+
+No production trace side effect 指 GH-592 默认关闭 production trading、production secret read、signed/account/private/broker endpoint、raw trace payload persistence、raw SQLite / DuckDB schema exposure、real submit / cancel / replace 和 production reconciliation runtime。
+
+`TVM-RELEASE-V020-SPOT-PERP-GOLDEN-TRACE-CATALOG`
+
+Release v0.2.0 Spot + Perp golden trace catalog matrix 必须证明 15 条 required trace 均存在，Binance / Spot / USDⓈ-M Perpetual / EMA / RSI coverage 完整，run checksum 与 replay checksum parity 成立，并且 catalog evidence 不绕过 CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store / kill switch / no-trade gate。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Terms
 
 `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`

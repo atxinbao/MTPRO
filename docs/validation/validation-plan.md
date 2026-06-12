@@ -8762,6 +8762,47 @@ GH-591 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-592 Release v0.2.0 Spot + Perp Golden Trace Catalog Validation
+
+GH-592 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH592SpotPerpGoldenTraceCatalogCovers15RequiredRunReplayChecksums`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-592 的验收要求：
+
+- `Database` target 必须显式编译 `Sources/Database/ReleaseV020GoldenTraceCatalog.swift`，且不得依赖 `ExecutionClient` 或 `ExecutionEngine`。
+- Golden trace catalog 必须固定 15 条 required trace，sequence 必须为 `1...15`。
+- Trace catalog 必须覆盖 Binance-only venue、Spot + USDⓈ-M Perpetual active products、EMA + RSI active strategies。
+- 每条 trace 必须有 deterministic run checksum 和 replay checksum，且二者必须一致。
+- Evidence 必须拒绝 checksum drift、缺失 trace、production trading default、production secret read、broker gateway、account endpoint、raw payload 和 raw database schema exposure。
+
+GH-592 必须建立的主要 anchors：
+
+- `GH-592-SPOT-PERP-GOLDEN-TRACE-CATALOG`
+- `GH-592-ALL-15-REQUIRED-TRACES-PRESENT`
+- `GH-592-RUN-REPLAY-CHECKSUM-PARITY`
+- `GH-592-NO-PRODUCTION-TRACE-SIDE-EFFECT`
+- `TVM-RELEASE-V020-SPOT-PERP-GOLDEN-TRACE-CATALOG`
+
+## GH-592 禁止
+
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint、listenKey 或 private stream endpoint。
+- 不保存 raw execution report、raw broker payload、signature value、API key、secret material、account payload、margin payload、broker state、UI command payload 或 raw trace payload。
+- 不把 SQLite / DuckDB table、column、raw SQL、ORM model、payload encoding 或 golden trace catalog 内部字段暴露为 Dashboard、Workbench 或 API contract。
+- 不执行真实 submit / cancel / replace，不把 trace catalog evidence 解释为 production runbook、operator authorization、production replay job、broker statement 或 production cutover。
+- 不执行 production reconciliation runtime，不同步 broker position，不读取真实 balance、real PnL、margin、leverage、buying power 或 account endpoint payload。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USD-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation
 
 GH-521 必须运行：
