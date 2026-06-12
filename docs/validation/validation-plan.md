@@ -8459,6 +8459,50 @@ GH-584 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-585 Release v0.2.0 Binance USD-M Perpetual ExecutionClient Adapter Validation
+
+GH-585 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH585BinanceUSDMPerpExecutionClientAdapterProducesPositionSideReduceOnlyMapping`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-585 的验收要求：
+
+- Perp adapter 必须只消费 GH-583 Perp OMS handoff identity，不能直接依赖 `ExecutionEngine` target。
+- adapter 必须覆盖 Binance USD-M Perpetual submit / cancel / replace 三个 command kind。
+- dry-run preview 必须完整输出 request mapping evidence，且不得执行 network call。
+- testnet request mapping 必须固定到 `https://testnet.binancefuture.com` 和 `/fapi/v1/order`。
+- submit / replace query item names 必须包含 `positionSide` 与 `reduceOnly`，并机械拒绝 `signature` item。
+- deterministic ack 必须与 request mapping ID 保持一一对应，且不得被解释为 broker fill、execution report、reconciliation 或真实订单结果。
+- 生成的 adapter evidence 必须保持 production rejected by default，不授权 production endpoint、production secret、broker gateway、leverage / margin action、Dashboard live command surface 或真实 submit / cancel / replace。
+
+GH-585 必须建立的主要 anchors：
+
+- `GH-585-BINANCE-USDM-PERP-EXECUTIONCLIENT-ADAPTER`
+- `GH-585-SUBMIT-CANCEL-REPLACE-MAPPING`
+- `GH-585-POSITIONSIDE-REDUCEONLY-MAPPING`
+- `GH-585-DRYRUN-EVIDENCE`
+- `GH-585-TESTNET-EVIDENCE-GATE`
+- `GH-585-PRODUCTION-REJECTED-BY-DEFAULT`
+- `TVM-RELEASE-V020-BINANCE-USDM-PERP-EXECUTIONCLIENT-ADAPTER`
+
+## GH-585 禁止
+
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、signed endpoint、account endpoint、listenKey 或 private stream endpoint。
+- 不暴露 signature value、API key、secret material、raw broker payload 或 raw execution report。
+- 不执行 leverage / margin action，不把 `positionSide` / `reduceOnly` mapping 解释为 broker position sync 或 margin authorization。
+- 不把 adapter request mapping 解释为 broker fill、reconciliation、Portfolio update、Dashboard live command、Live PRO Console command 或 production authorization。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch 或 no-trade gate。
+- 不启用 non-Binance venue。
+- 不启用非 Spot / USD-M Perpetual product。
+- 不启用非 EMA / RSI active strategy。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不使用 Linear，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Contract Validation
 
 GH-521 必须运行：

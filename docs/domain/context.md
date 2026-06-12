@@ -4180,6 +4180,36 @@ Production rejected by default 指 GH-584 的默认值必须同时关闭 product
 
 Release v0.2.0 Binance Spot ExecutionClient adapter matrix 必须证明 GH-583 Spot OMS handoff identity、dry-run preview、submit / cancel / replace mapping、deterministic ack correlation 和 production rejected by default 同时成立，且 adapter 不直连 ExecutionEngine target、不绕过 CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store / kill switch / no-trade gate。
 
+## GH-585 Binance USD-M Perpetual ExecutionClient Adapter Terms
+
+`GH-585-BINANCE-USDM-PERP-EXECUTIONCLIENT-ADAPTER`
+
+Binance USD-M Perpetual ExecutionClient adapter 指 release v0.2.0 中消费 GH-583 Perp OMS handoff identity 的本地 deterministic adapter evidence。它只生成 dry-run preview、Binance USD-M Perpetual testnet submit / cancel / replace request mapping 和 deterministic ack；它不是 broker gateway、production adapter、leverage / margin action、live command surface 或 production trading 授权。
+
+`GH-585-SUBMIT-CANCEL-REPLACE-MAPPING`
+
+Submit / cancel / replace mapping 指 Binance USD-M Perpetual adapter 对三类 command kind 的固定 request projection：host 固定为 `testnet.binancefuture.com`，endpoint 固定为 `/fapi/v1/order`，submit 使用 `POST`，cancel 使用 `DELETE`，replace 使用 `PUT`。该 mapping 只保存 redacted query item names / values，不暴露 signature value。
+
+`GH-585-POSITIONSIDE-REDUCEONLY-MAPPING`
+
+PositionSide / reduceOnly mapping 指 Perp request evidence 必须从 GH-583 Perp OMS handoff 继承 open long、open short、reduce-only close long、reduce-only close short 的方向约束。`positionSide` 与 `reduceOnly` 只作为 request mapping 参数存在，不授权 broker position sync、leverage action、margin action 或真实订单。
+
+`GH-585-DRYRUN-EVIDENCE`
+
+Dry-run evidence 指 adapter 在不执行 network call 的前提下生成完整 Perp request preview，并保留 issue identity、OMS handoff identity、clientOrderID、positionSide、reduceOnly、query item names 和 auditable mapping evidence。dry-run preview 不能被解释为 broker ack、execution report、fill、reconciliation 或 Portfolio update。
+
+`GH-585-TESTNET-EVIDENCE-GATE`
+
+Testnet evidence gate 指 adapter 只接受 testnet credential reference 和 Binance USD-M Perpetual testnet host，且 deterministic transport 只返回本地 ack evidence。该 gate 不读取 production secret，不连接 production endpoint，不连接 broker，也不把 testnet credential 升级成 production credential。
+
+`GH-585-PRODUCTION-REJECTED-BY-DEFAULT`
+
+Production rejected by default 指 GH-585 的默认值必须同时关闭 production endpoint、production secret read、broker gateway、live command surface、leverage / margin action 和真实 submit / cancel / replace。任何 production capability 只能留给后续 issue 在完整 gate 链下单独授权。
+
+`TVM-RELEASE-V020-BINANCE-USDM-PERP-EXECUTIONCLIENT-ADAPTER`
+
+Release v0.2.0 Binance USD-M Perpetual ExecutionClient adapter matrix 必须证明 GH-583 Perp OMS handoff identity、dry-run preview、submit / cancel / replace mapping、positionSide / reduceOnly mapping、deterministic ack correlation 和 production rejected by default 同时成立，且 adapter 不直连 ExecutionEngine target、不绕过 CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store / kill switch / no-trade gate。
+
 ## GH-521 Release v0.1.0 Binance EMA Runtime Terms
 
 `GH-521-RELEASE-V010-BINANCE-EMA-RUNTIME-CONTRACT`

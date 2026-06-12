@@ -7375,6 +7375,202 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH585BinanceUSDMPerpExecutionClientAdapterProducesPositionSideReduceOnlyMapping() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let validationMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let domainContext = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let releaseContract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-contract.md"
+            ),
+            encoding: .utf8
+        )
+
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        XCTAssertTrue(executionClientTarget.contains("path: \"Sources/ExecutionClient\""))
+        XCTAssertFalse(executionClientTarget.contains("\"ExecutionEngine\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/ReleaseV020BinanceUSDMPerpExecutionClientAdapter.swift"
+                ).path
+            )
+        )
+
+        let adapter = try ReleaseV020BinanceUSDMPerpExecutionClientAdapter.deterministicFixture()
+        let evidence = try adapter.deterministicAdapterEvidence()
+
+        XCTAssertTrue(adapter.adapterBoundaryHeld)
+        XCTAssertTrue(evidence.evidenceBoundaryHeld)
+        XCTAssertTrue(evidence.capabilityMatrix.matrixHeld)
+        XCTAssertTrue(evidence.credentialGate.gateHeld)
+        XCTAssertTrue(evidence.omsHandoff.handoffBoundaryHeld)
+        XCTAssertEqual(evidence.omsHandoff.sourceIssueID.rawValue, "GH-583")
+        XCTAssertEqual(evidence.omsHandoff.instrument.productType, .usdsPerpetual)
+        XCTAssertEqual(evidence.omsHandoff.eventStream.rawValue, "execution-oms-local")
+        XCTAssertEqual(evidence.omsHandoff.positionSide, .long)
+        XCTAssertTrue(evidence.omsHandoff.reduceOnly)
+        XCTAssertEqual(evidence.omsHandoff.side, "SELL")
+        XCTAssertEqual(evidence.omsHandoff.action, "reduceOnlyCloseLong")
+        XCTAssertTrue(evidence.dryRunEvidenceComplete)
+        XCTAssertTrue(evidence.testnetEvidenceGateHeld)
+        XCTAssertTrue(evidence.positionSideReduceOnlyMappingHeld)
+        XCTAssertTrue(evidence.productionRejectedByDefault)
+        XCTAssertFalse(evidence.productionEndpointEnabledByDefault)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionSecretReadEnabledByDefault)
+        XCTAssertFalse(evidence.brokerGatewayTouched)
+        XCTAssertFalse(evidence.realOrderSubmitted)
+        XCTAssertFalse(evidence.capabilityMatrix.realOrderCanceled)
+        XCTAssertFalse(evidence.capabilityMatrix.realOrderReplaced)
+        XCTAssertFalse(evidence.liveCommandSurfaceTouched)
+        XCTAssertFalse(adapter.bypassesOMS)
+        XCTAssertFalse(adapter.bypassesKillSwitch)
+        XCTAssertFalse(adapter.bypassesNoTradeGate)
+        XCTAssertFalse(adapter.executesLeverageAction)
+        XCTAssertFalse(adapter.executesMarginAction)
+
+        let previews = Dictionary(uniqueKeysWithValues: evidence.dryRunPreviews.map { ($0.commandKind, $0) })
+        let requests = Dictionary(uniqueKeysWithValues: evidence.testnetRequests.map { ($0.commandKind, $0) })
+        let acknowledgements = Dictionary(uniqueKeysWithValues: evidence.acknowledgements.map { ($0.commandKind, $0) })
+        XCTAssertEqual(Set(previews.keys), Set(ReleaseV020BinanceUSDMPerpExecutionClientCommandKind.allCases))
+        XCTAssertEqual(Set(requests.keys), Set(ReleaseV020BinanceUSDMPerpExecutionClientCommandKind.allCases))
+        XCTAssertEqual(Set(acknowledgements.keys), Set(ReleaseV020BinanceUSDMPerpExecutionClientCommandKind.allCases))
+
+        let expectedQueryItemNames: [ReleaseV020BinanceUSDMPerpExecutionClientCommandKind: [String]] = [
+            .submit: [
+                "symbol",
+                "side",
+                "positionSide",
+                "type",
+                "timeInForce",
+                "quantity",
+                "price",
+                "reduceOnly",
+                "newClientOrderId",
+                "recvWindow",
+                "timestamp",
+            ],
+            .cancel: ["symbol", "origClientOrderId", "recvWindow", "timestamp"],
+            .replace: [
+                "symbol",
+                "side",
+                "positionSide",
+                "quantity",
+                "price",
+                "reduceOnly",
+                "origClientOrderId",
+                "newClientOrderId",
+                "recvWindow",
+                "timestamp",
+            ],
+        ]
+        let expectedMethods: [ReleaseV020BinanceUSDMPerpExecutionClientCommandKind: ReleaseV020BinanceUSDMPerpExecutionClientHTTPMethod] = [
+            .submit: .post,
+            .cancel: .delete,
+            .replace: .put,
+        ]
+
+        for kind in ReleaseV020BinanceUSDMPerpExecutionClientCommandKind.allCases {
+            let preview = try XCTUnwrap(previews[kind])
+            let request = try XCTUnwrap(requests[kind])
+            let acknowledgement = try XCTUnwrap(acknowledgements[kind])
+
+            XCTAssertTrue(preview.mappingBoundaryHeld)
+            XCTAssertEqual(preview.mode, .dryRun)
+            XCTAssertEqual(preview.baseURL.host?.lowercased(), "testnet.binancefuture.com")
+            XCTAssertEqual(preview.method, expectedMethods[kind])
+            XCTAssertEqual(preview.endpointPath, "/fapi/v1/order")
+            XCTAssertEqual(preview.queryItems.map(\.name), expectedQueryItemNames[kind])
+            XCTAssertEqual(preview.positionSide, .long)
+            XCTAssertTrue(preview.reduceOnly)
+            XCTAssertFalse(preview.networkCallPerformed)
+            XCTAssertFalse(preview.signatureValueExposed)
+            XCTAssertFalse(preview.productionEndpointTouched)
+            XCTAssertFalse(preview.productionSecretRead)
+            XCTAssertFalse(preview.brokerGatewayTouched)
+
+            XCTAssertTrue(request.mappingBoundaryHeld)
+            XCTAssertEqual(request.mode, .testnet)
+            XCTAssertEqual(request.baseURL.host?.lowercased(), "testnet.binancefuture.com")
+            XCTAssertEqual(request.method, expectedMethods[kind])
+            XCTAssertEqual(request.endpointPath, "/fapi/v1/order")
+            XCTAssertEqual(request.queryItems.map(\.name), expectedQueryItemNames[kind])
+            XCTAssertEqual(request.positionSide, .long)
+            XCTAssertTrue(request.reduceOnly)
+            XCTAssertFalse(request.networkCallPerformed)
+            XCTAssertFalse(request.signatureValueExposed)
+            XCTAssertFalse(request.productionEndpointTouched)
+            XCTAssertFalse(request.productionSecretRead)
+            XCTAssertFalse(request.brokerGatewayTouched)
+            XCTAssertFalse(request.liveCommandSurfaceTouched)
+
+            XCTAssertTrue(acknowledgement.ackBoundaryHeld)
+            XCTAssertEqual(acknowledgement.mode, .testnet)
+            XCTAssertEqual(acknowledgement.requestID, request.mappingID)
+            XCTAssertEqual(acknowledgement.commandKind, kind)
+            XCTAssertFalse(acknowledgement.productionEndpointTouched)
+            XCTAssertFalse(acknowledgement.productionOrderTouched)
+            XCTAssertFalse(acknowledgement.brokerGatewayTouched)
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV020BinanceUSDMPerpExecutionClientAdapter(
+                testnetMode: .production
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability(
+                    "releaseV020BinanceUSDMPerpExecutionClient.productionEnvironment"
+                )
+            )
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV020BinanceUSDMPerpExecutionClientQueryItem(
+                name: "signature",
+                value: "redacted"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability(
+                    "releaseV020BinanceUSDMPerpExecutionClient.signatureValue"
+                )
+            )
+        }
+
+        XCTAssertTrue(validationMatrix.contains("`GH-585`"))
+        XCTAssertTrue(validationMatrix.contains("TVM-RELEASE-V020-BINANCE-USDM-PERP-EXECUTIONCLIENT-ADAPTER"))
+        XCTAssertTrue(validationPlan.contains("GH-585 Release v0.2.0 Binance USD-M Perpetual ExecutionClient Adapter Validation"))
+        XCTAssertTrue(domainContext.contains("GH-585 Binance USD-M Perpetual ExecutionClient Adapter Terms"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.2.0 Binance USD-M Perpetual ExecutionClient adapter anchor"))
+        XCTAssertTrue(
+            releaseContract.contains(
+                "GH-585 / V020-23 | Binance USD-M Perpetual ExecutionClient adapter submit / cancel / replace mapping"
+            )
+        )
+    }
+
     func testGH525BinanceSignedAccountReadRuntimeMapsCanonicalSnapshotWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
