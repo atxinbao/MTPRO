@@ -77,6 +77,29 @@ bash checks/run.sh
 
 该矩阵记录 EMA parity、order book imbalance parity、fees / slippage、risk blocker、portfolio exposure 和 report evidence 的现有 coverage、验收证据边界和后续 issue 回填规则。
 
+## GH-658 Release v0.3.0 Runtime Environment Config Validation
+
+GH-658 的 required validation：
+
+- `docs/contracts/release-v0.3.0-runtime-environment-config-contract.md` 必须存在，并包含 `V030-02-RUNTIME-ENVIRONMENT-CONFIG`、`V030-02-DRYRUN-TESTNET-SHADOW-PRODUCTION-BLOCKED-MODES`、`V030-02-SAFE-DEFAULT-MODE`、`V030-02-NO-PRODUCTION-SECRET-AUTO-READ`、`V030-02-NO-PRODUCTION-ENDPOINT-AUTO-CONNECT` 和 `V030-02-INVALID-ENVIRONMENT-TRANSITION-FAIL-CLOSED`。
+- `Sources/ExecutionClient/FutureGate/ReleaseV030RuntimeEnvironmentConfig.swift` 必须定义 `ReleaseV030RuntimeEnvironmentConfig`、`ReleaseV030RuntimeEnvironmentModeConfig`、`ReleaseV030RuntimeEnvironmentTransition`、`ReleaseV030RuntimeEnvironmentEndpointPolicy` 和 `ReleaseV030RuntimeEnvironmentCredentialPolicy`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH658RuntimeEnvironmentConfigDefaultsSafeAndRejectsProductionTransitions`。
+- Contract 必须绑定 GH-657 upstream rehearsal contract，并证明 default mode 固定为 `dry-run`，allowed default modes 只包含 `dry-run` 和 `production-blocked`。
+- Contract 必须证明 dry-run、testnet、shadow、production-blocked 四类 mode 均有明确 endpoint / credential policy。
+- Contract 必须证明 production trading 默认关闭、production secret 不自动读取、production endpoint 不自动连接、production order 不提交、production cutover 未授权。
+- Contract 必须证明 invalid environment transition fail closed，不允许模糊 mode fallback 到 production，也不允许 Dashboard / CLI 或 Strategy 绕过 CommandGateway / ExecutionClient 边界。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH658RuntimeEnvironmentConfigDefaultsSafeAndRejectsProductionTransitions`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-658 必须建立的主要 anchors：
+
+- `V030-02-RUNTIME-ENVIRONMENT-CONFIG`
+- `V030-02-DRYRUN-TESTNET-SHADOW-PRODUCTION-BLOCKED-MODES`
+- `V030-02-SAFE-DEFAULT-MODE`
+- `V030-02-NO-PRODUCTION-SECRET-AUTO-READ`
+- `V030-02-NO-PRODUCTION-ENDPOINT-AUTO-CONNECT`
+- `V030-02-INVALID-ENVIRONMENT-TRANSITION-FAIL-CLOSED`
+- `TVM-RELEASE-V030-RUNTIME-ENVIRONMENT-CONFIG`
+
 ## GH-657 Release v0.3.0 Runtime Rehearsal Contract Validation
 
 GH-657 的 required validation：

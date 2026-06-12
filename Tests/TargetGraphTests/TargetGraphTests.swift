@@ -5389,6 +5389,226 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH658RuntimeEnvironmentConfigDefaultsSafeAndRejectsProductionTransitions() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        let configDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.3.0-runtime-environment-config-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let upstreamContractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.3.0-runtime-rehearsal-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+
+        let config = try ReleaseV030RuntimeEnvironmentConfig.deterministicFixture()
+        XCTAssertTrue(config.configHeld)
+        XCTAssertTrue(config.safeDefaultHeld)
+        XCTAssertTrue(config.modeCoverageHeld)
+        XCTAssertTrue(config.transitionCoverageHeld)
+        XCTAssertTrue(config.productionCapabilityDefaultsClosed)
+        XCTAssertTrue(config.commandPathBypassRejected)
+        XCTAssertEqual(config.issueID.rawValue, "GH-658")
+        XCTAssertEqual(config.upstreamIssueID.rawValue, "GH-657")
+        XCTAssertEqual(config.downstreamIssueID.rawValue, "GH-659")
+        XCTAssertEqual(config.canonicalQueueRange, "GH-657..GH-670")
+        XCTAssertEqual(config.projectName, "MTPRO Release v0.3.0 Runtime Rehearsal v1")
+        XCTAssertEqual(config.defaultMode, .dryRun)
+        XCTAssertEqual(config.allowedDefaultModes, [.dryRun, .productionBlocked])
+        XCTAssertEqual(Set(config.modeConfigs.map(\.mode)), Set(ReleaseV030RuntimeRehearsalMode.allCases))
+        XCTAssertEqual(config.requirements, ReleaseV030RuntimeEnvironmentRequirement.allCases)
+        XCTAssertEqual(
+            Set(config.forbiddenCapabilities),
+            Set(ReleaseV030RuntimeEnvironmentForbiddenCapability.allCases)
+        )
+
+        XCTAssertTrue(config.transitionAllowed(from: .productionBlocked, to: .dryRun))
+        XCTAssertTrue(config.transitionAllowed(from: .dryRun, to: .testnet))
+        XCTAssertTrue(config.transitionAllowed(from: .dryRun, to: .shadow))
+        XCTAssertTrue(config.transitionAllowed(from: .testnet, to: .shadow))
+        XCTAssertTrue(config.transitionAllowed(from: .dryRun, to: .productionBlocked))
+        XCTAssertTrue(config.transitionAllowed(from: .testnet, to: .productionBlocked))
+        XCTAssertTrue(config.transitionAllowed(from: .shadow, to: .productionBlocked))
+        XCTAssertFalse(config.transitionAllowed(from: .productionBlocked, to: .testnet))
+        XCTAssertFalse(config.transitionAllowed(from: .shadow, to: .testnet))
+        XCTAssertFalse(config.transitionAllowed(from: .testnet, to: .dryRun))
+
+        for modeConfig in config.modeConfigs {
+            XCTAssertTrue(modeConfig.modeBoundaryHeld)
+            XCTAssertFalse(modeConfig.readsProductionSecret)
+            XCTAssertFalse(modeConfig.autoConnectsProductionEndpoint)
+            XCTAssertFalse(modeConfig.enablesProductionTrading)
+            XCTAssertFalse(modeConfig.submitsProductionOrder)
+            XCTAssertFalse(modeConfig.authorizesProductionCutover)
+        }
+        for transition in config.allowedTransitions {
+            XCTAssertTrue(transition.transitionBoundaryHeld)
+            XCTAssertFalse(transition.readsProductionSecret)
+            XCTAssertFalse(transition.autoConnectsProductionEndpoint)
+            XCTAssertFalse(transition.enablesProductionTrading)
+            XCTAssertFalse(transition.submitsProductionOrder)
+            XCTAssertFalse(transition.authorizesProductionCutover)
+        }
+
+        XCTAssertFalse(config.productionTradingEnabledByDefault)
+        XCTAssertFalse(config.productionSecretAutoReadEnabled)
+        XCTAssertFalse(config.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(config.productionOrderSubmissionEnabled)
+        XCTAssertFalse(config.productionCutoverAuthorized)
+        XCTAssertFalse(config.ambiguousModeFallsBackToProduction)
+        XCTAssertFalse(config.invalidTransitionAllowed)
+        XCTAssertFalse(config.commandGatewayBypassAllowed)
+        XCTAssertFalse(config.strategyExecutionClientDirectAccessAllowed)
+        XCTAssertFalse(config.startsNextMilestone)
+
+        for anchor in ReleaseV030RuntimeEnvironmentConfig.requiredValidationAnchors {
+            XCTAssertTrue(config.validationAnchors.contains(anchor), "\(anchor) must stay in Swift config")
+            XCTAssertTrue(configDoc.contains(anchor), "\(anchor) must stay in environment config doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation-plan.md")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading-validation-matrix.md")
+        }
+        XCTAssertTrue(upstreamContractDoc.contains("V030-01-RUNTIME-REHEARSAL-CONTRACT"))
+        XCTAssertTrue(configDoc.contains("production-blocked -> dry-run"))
+        XCTAssertTrue(configDoc.contains("dry-run -> testnet"))
+        XCTAssertTrue(configDoc.contains("testnet -> shadow"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.3.0 runtime environment config anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV030RuntimeEnvironmentConfig.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH658RuntimeEnvironmentConfigDefaultsSafeAndRejectsProductionTransitions"
+            )
+        )
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/ReleaseV030RuntimeEnvironmentConfig.swift"
+                ).path
+            )
+        )
+
+        XCTAssertThrowsError(
+            try ReleaseV030RuntimeEnvironmentConfig(defaultMode: .testnet)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(field: "defaultMode", expected: "dry-run", actual: "testnet")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV030RuntimeEnvironmentConfig(productionSecretAutoReadEnabled: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("productionSecretAutoReadEnabled")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV030RuntimeEnvironmentConfig(productionEndpointAutoConnectEnabled: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("productionEndpointAutoConnectEnabled")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV030RuntimeEnvironmentConfig(invalidTransitionAllowed: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("invalidTransitionAllowed"))
+        }
+        XCTAssertThrowsError(
+            try ReleaseV030RuntimeEnvironmentConfig(upstreamRehearsalContractHeld: false)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "upstreamRehearsalContractHeld",
+                    expected: "true",
+                    actual: "false"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV030RuntimeEnvironmentModeConfig(
+                mode: .testnet,
+                endpointPolicy: .localFixtureOnly,
+                credentialPolicy: .testnetProfileReference
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "endpointPolicy",
+                    expected: "Binance testnet endpoint reference only",
+                    actual: "local fixture endpoint only"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV030RuntimeEnvironmentModeConfig(
+                mode: .dryRun,
+                endpointPolicy: .localFixtureOnly,
+                credentialPolicy: .localFixtureReference,
+                readsProductionSecret: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("readsProductionSecret"))
+        }
+        XCTAssertThrowsError(
+            try ReleaseV030RuntimeEnvironmentTransition(
+                from: .dryRun,
+                to: .dryRun,
+                transitionAnchor: "V030-02-INVALID-SAME-MODE"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "environmentTransition",
+                    expected: "distinct rehearsal modes",
+                    actual: "dry-run->dry-run"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV030RuntimeEnvironmentTransition(
+                from: .dryRun,
+                to: .testnet,
+                transitionAnchor: "V030-02-UNSAFE-TRANSITION",
+                autoConnectsProductionEndpoint: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("transitionAutoConnectsProductionEndpoint")
+            )
+        }
+    }
+
     func testGH643ProductionCutoverRuntimeHardeningContractFailsClosedWithoutProductionCutover() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
