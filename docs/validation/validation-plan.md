@@ -77,6 +77,27 @@ bash checks/run.sh
 
 该矩阵记录 EMA parity、order book imbalance parity、fees / slippage、risk blocker、portfolio exposure 和 report evidence 的现有 coverage、验收证据边界和后续 issue 回填规则。
 
+## GH-662 Release v0.3.0 ExecutionEngine OMS Rehearsal Lifecycle Validation
+
+GH-662 的 required validation：
+
+- `docs/contracts/release-v0.3.0-execution-oms-rehearsal-lifecycle-contract.md` 必须存在，并包含 `V030-06-EXECUTIONENGINE-OMS-REHEARSAL-LIFECYCLE`、`V030-06-RISK-APPROVED-INTENT-TO-OMS`、`V030-06-OMS-STATE-COVERAGE`、`V030-06-ILLEGAL-TRANSITION-REJECTED` 和 `V030-06-OMS-REPLAY-EVIDENCE`。
+- `Sources/ExecutionEngine/OMSFutureGate/ReleaseV030ExecutionOMSRehearsalLifecycle.swift` 必须定义 `ReleaseV030ExecutionOMSRehearsalLifecycle`、`ReleaseV030ExecutionOMSRehearsalEvidence`、`ReleaseV030OMSRehearsalOrderIntent`、`ReleaseV030OMSRehearsalTransition`、`ReleaseV030OMSRehearsalEventLog` 和 `ReleaseV030ExecutionOMSRehearsalForbiddenCapability`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH662ExecutionOMSRehearsalLifecycleConsumesRiskApprovedIntentAndReplaysOMSState`。
+- Lifecycle 必须绑定 GH-661 upstream RiskEngine rehearsal anchor `TVM-RELEASE-V030-RISKENGINE-REHEARSAL-GATE`，只消费 allow / reject risk decision evidence。
+- Lifecycle 必须覆盖 `created`、`accepted`、`submitted-testnet-or-dry-run`、`cancelled`、`rejected` 和 `filled-simulated` 状态，并拒绝非法迁移。
+- Lifecycle 必须证明 OMS transition 写入 MessageBus append-only journal，并可通过 replay 恢复 final state evidence。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH662ExecutionOMSRehearsalLifecycleConsumesRiskApprovedIntentAndReplaysOMSState`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-662 必须建立的主要 anchors：
+
+- `V030-06-EXECUTIONENGINE-OMS-REHEARSAL-LIFECYCLE`
+- `V030-06-RISK-APPROVED-INTENT-TO-OMS`
+- `V030-06-OMS-STATE-COVERAGE`
+- `V030-06-ILLEGAL-TRANSITION-REJECTED`
+- `V030-06-OMS-REPLAY-EVIDENCE`
+- `TVM-RELEASE-V030-EXECUTIONENGINE-OMS-REHEARSAL-LIFECYCLE`
+
 ## GH-661 Release v0.3.0 RiskEngine Rehearsal Gate Validation
 
 GH-661 的 required validation：
