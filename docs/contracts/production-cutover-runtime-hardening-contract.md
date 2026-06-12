@@ -144,3 +144,71 @@ GH-643 不授权：
 - Spot / USDⓈ-M Perpetual 之外的 product type。
 - EMA / RSI 之外的 active strategy。
 - 下一阶段 Project / Issue 自动启动。
+
+## PCHR-07-PRODUCTION-HARDENING-READINESS-CLOSEOUT
+
+`PCHR-07-PRODUCTION-HARDENING-READINESS-CLOSEOUT`
+
+GH-649 收口 GH-643 至 GH-648 的 production runtime hardening readiness matrix。收口后，PCHR queue 只能解释为 release v0.2.0 之后的 fail-closed production cutover evidence，不授权 production trading、production secret read、production endpoint connection、real broker、real order 或下一阶段自动启动。
+
+## PCHR-07-ISSUE-PR-EVIDENCE-CHAIN
+
+`PCHR-07-ISSUE-PR-EVIDENCE-CHAIN`
+
+GH-649 的 evidence chain 以 `docs/audit/inputs/mtpro-production-cutover-runtime-hardening-v1-stage-audit-input.md` 为 Stage Code Audit 输入材料，覆盖：
+
+- GH-643 / PR #650 / merge `485a8a93a7de13d98e174345b9eddc53e2eb6c84`;
+- GH-644 / PR #651 / merge `d29d557bdda1abbe71338cfe8c4204cb1c63feaa`;
+- GH-645 / PR #652 / merge `5a64abfea38b482d8e5da87e83fbee785dd6ef8b`;
+- GH-646 / PR #653 / merge `9e250ec3b46feb7074de55f3651e3e5fa3dc817d`;
+- GH-647 / PR #654 / merge `eee1f3e18ee545507f4b4d4be1d6fcb19b499e05`;
+- GH-648 / PR #655 / merge `d73ab662a2193bdf99944a4cd733519bf1978986`.
+
+## PCHR-07-PRODUCTION-DEFAULTS-REMAIN-CLOSED
+
+`PCHR-07-PRODUCTION-DEFAULTS-REMAIN-CLOSED`
+
+Production defaults remain closed:
+
+- `productionTradingEnabledByDefault == false`
+- `productionSecretReadEnabledByDefault == false`
+- `productionEndpointConnectionEnabledByDefault == false`
+- `productionBrokerConnectionEnabledByDefault == false`
+- `productionOrderSubmitEnabledByDefault == false`
+- `productionCutoverAuthorized == false`
+
+## PCHR-07-COMMAND-RISK-EXECUTION-OMS-EVENTSTORE-GATES-COMPLETE
+
+`PCHR-07-COMMAND-RISK-EXECUTION-OMS-EVENTSTORE-GATES-COMPLETE`
+
+The completed gate chain covers credential reference, endpoint connection, CommandGateway / RiskEngine / ExecutionEngine / OMS dispatch, OMS / Event Store audit trail, replay / repair evidence and broker shadow / dry-run proof. This chain remains evidence-only and cannot be treated as production order authorization.
+
+## PCHR-07-AUTOMATION-READINESS-CLOSEOUT
+
+`PCHR-07-AUTOMATION-READINESS-CLOSEOUT`
+
+Automation readiness must mechanically require the GH-649 stage audit input file, the PCHR-07 contract anchors, the final trading validation matrix row and the focused TargetGraph test `testGH649ProductionHardeningReadinessCloseoutDocumentsCompleteEvidenceWithoutCutover`.
+
+## PCHR-07-NO-PRODUCTION-CUTOVER-AUTHORIZATION
+
+`PCHR-07-NO-PRODUCTION-CUTOVER-AUTHORIZATION`
+
+GH-649 does not authorize production trading, production secret read, production endpoint connection, signed endpoint, account endpoint, listenKey, private WebSocket runtime, broker gateway, broker adapter, automatic broker connection, real submit / cancel / replace, production OMS, production Event Store runtime, execution report runtime, broker fill runtime, reconciliation runtime, Live PRO Console command, trading button, live command, order form, non-Binance venue, non-Spot / non-USDⓈ-M product type, non-EMA / non-RSI active strategy, production cutover, next Project / Issue creation or next-stage Todo promotion.
+
+## PCHR-07-STAGE-CODE-AUDIT-HANDOFF
+
+`PCHR-07-STAGE-CODE-AUDIT-HANDOFF`
+
+After GH-649 PR merge, Parent Codex must verify GH-643..GH-649 closed / done, PR #650..#656 merged with `checks` SUCCESS, open PR = 0, open issue = 0 before formal release tagging, no active issue conflict, `main == origin/main`, worktree clean and no next-stage mutation.
+
+## TVM-PCHR-PRODUCTION-HARDENING-READINESS-CLOSEOUT
+
+`TVM-PCHR-PRODUCTION-HARDENING-READINESS-CLOSEOUT`
+
+Required validation：
+
+- `swift test --filter TargetGraphTests/testGH649ProductionHardeningReadinessCloseoutDocumentsCompleteEvidenceWithoutCutover`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+- GitHub required check `checks` SUCCESS

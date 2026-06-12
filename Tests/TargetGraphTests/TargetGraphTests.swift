@@ -6203,6 +6203,120 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH649ProductionHardeningReadinessCloseoutDocumentsCompleteEvidenceWithoutCutover() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let contract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/production-cutover-runtime-hardening-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let auditInput = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/audit/inputs/mtpro-production-cutover-runtime-hardening-v1-stage-audit-input.md"
+            ),
+            encoding: .utf8
+        )
+
+        let closeoutAnchors = [
+            "PCHR-07-PRODUCTION-HARDENING-READINESS-CLOSEOUT",
+            "PCHR-07-ISSUE-PR-EVIDENCE-CHAIN",
+            "PCHR-07-PRODUCTION-DEFAULTS-REMAIN-CLOSED",
+            "PCHR-07-COMMAND-RISK-EXECUTION-OMS-EVENTSTORE-GATES-COMPLETE",
+            "PCHR-07-AUTOMATION-READINESS-CLOSEOUT",
+            "PCHR-07-NO-PRODUCTION-CUTOVER-AUTHORIZATION",
+            "PCHR-07-STAGE-CODE-AUDIT-HANDOFF",
+            "TVM-PCHR-PRODUCTION-HARDENING-READINESS-CLOSEOUT"
+        ]
+        for anchor in closeoutAnchors {
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must remain in PCHR contract")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must remain in validation-plan.md")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must remain in trading-validation-matrix.md")
+            XCTAssertTrue(auditInput.contains(anchor), "\(anchor) must remain in stage audit input")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must be mechanically checked")
+        }
+        XCTAssertTrue(automationReadiness.contains("Production hardening readiness closeout anchor"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH649ProductionHardeningReadinessCloseoutDocumentsCompleteEvidenceWithoutCutover"
+            )
+        )
+
+        for issue in 643...648 {
+            XCTAssertTrue(auditInput.contains("[GH-\(issue)]"), "GH-\(issue) must be linked in evidence chain")
+        }
+        for pr in 650...655 {
+            XCTAssertTrue(auditInput.contains("[PR #\(pr)]"), "PR #\(pr) must be linked in evidence chain")
+        }
+        for mergeCommit in [
+            "485a8a93a7de13d98e174345b9eddc53e2eb6c84",
+            "d29d557bdda1abbe71338cfe8c4204cb1c63feaa",
+            "5a64abfea38b482d8e5da87e83fbee785dd6ef8b",
+            "9e250ec3b46feb7074de55f3651e3e5fa3dc817d",
+            "eee1f3e18ee545507f4b4d4be1d6fcb19b499e05",
+            "d73ab662a2193bdf99944a4cd733519bf1978986"
+        ] {
+            XCTAssertTrue(auditInput.contains(mergeCommit), "\(mergeCommit) must remain in evidence chain")
+            XCTAssertTrue(contract.contains(mergeCommit), "\(mergeCommit) must remain in PCHR contract")
+        }
+
+        for closedDefault in [
+            "productionTradingEnabledByDefault == false",
+            "productionSecretReadEnabledByDefault == false",
+            "productionEndpointConnectionEnabledByDefault == false",
+            "productionBrokerConnectionEnabledByDefault == false",
+            "productionOrderSubmitEnabledByDefault == false",
+            "productionCutoverAuthorized == false"
+        ] {
+            XCTAssertTrue(auditInput.contains(closedDefault), "\(closedDefault) must remain in audit input")
+            XCTAssertTrue(contract.contains(closedDefault), "\(closedDefault) must remain in PCHR contract")
+        }
+
+        for forbidden in [
+            "production trading",
+            "production secret read",
+            "production endpoint connection",
+            "real submit / cancel / replace",
+            "production OMS",
+            "production Event Store runtime",
+            "production cutover",
+            "next Project / Issue creation"
+        ] {
+            XCTAssertTrue(auditInput.contains(forbidden), "\(forbidden) must remain forbidden")
+        }
+
+        for upstreamAnchor in [
+            "PCHR-01-PRODUCTION-CUTOVER-RUNTIME-HARDENING-CONTRACT",
+            "PCHR-02-CREDENTIAL-REFERENCE-ENVIRONMENT-ISOLATION-RUNTIME",
+            "PCHR-03-PRODUCTION-ENDPOINT-CONNECTION-GATE",
+            "PCHR-04-COMMAND-RISK-EXECUTION-OMS-DISPATCH-GATE",
+            "PCHR-05-OMS-EVENT-STORE-PRODUCTION-AUDIT-TRAIL",
+            "PCHR-06-BROKER-SHADOW-DRY-RUN-PRODUCTION-CUTOVER-PROOF"
+        ] {
+            XCTAssertTrue(readinessScript.contains(upstreamAnchor), "\(upstreamAnchor) must remain in readiness guard")
+        }
+
+        XCTAssertTrue(auditInput.contains("formal `v0.2.0` GitHub Release"))
+        XCTAssertFalse(auditInput.contains("productionCutoverAuthorized == true"))
+        XCTAssertFalse(contract.contains("productionCutoverAuthorized == true"))
+    }
+
     func testGH523ReleaseV010TargetsExposeRealSmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-523-release-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)

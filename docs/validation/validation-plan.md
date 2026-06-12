@@ -209,6 +209,28 @@ GH-648 必须建立的主要 anchors：
 - `PCHR-06-NO-RAW-BROKER-PAYLOAD-DASHBOARD`
 - `TVM-PCHR-BROKER-SHADOW-DRY-RUN-PROOF`
 
+## GH-649 Production Hardening Readiness Closeout Validation
+
+GH-649 的 required validation：
+
+- `docs/audit/inputs/mtpro-production-cutover-runtime-hardening-v1-stage-audit-input.md` 必须存在，并包含 `PCHR-07-PRODUCTION-HARDENING-READINESS-CLOSEOUT`、`PCHR-07-ISSUE-PR-EVIDENCE-CHAIN`、`PCHR-07-PRODUCTION-DEFAULTS-REMAIN-CLOSED`、`PCHR-07-COMMAND-RISK-EXECUTION-OMS-EVENTSTORE-GATES-COMPLETE`、`PCHR-07-AUTOMATION-READINESS-CLOSEOUT`、`PCHR-07-NO-PRODUCTION-CUTOVER-AUTHORIZATION`、`PCHR-07-STAGE-CODE-AUDIT-HANDOFF` 和 `TVM-PCHR-PRODUCTION-HARDENING-READINESS-CLOSEOUT`。
+- `docs/contracts/production-cutover-runtime-hardening-contract.md` 必须包含 PCHR-07 closeout anchors，并继续保留 PCHR-01 through PCHR-06 的 upstream hardening anchors。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-PCHR-PRODUCTION-HARDENING-READINESS-CLOSEOUT`。
+- `docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 Production hardening readiness closeout anchors。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH649ProductionHardeningReadinessCloseoutDocumentsCompleteEvidenceWithoutCutover`。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH649ProductionHardeningReadinessCloseoutDocumentsCompleteEvidenceWithoutCutover`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential 或人工验收。
+
+GH-649 必须建立的主要 anchors：
+
+- `PCHR-07-PRODUCTION-HARDENING-READINESS-CLOSEOUT`
+- `PCHR-07-ISSUE-PR-EVIDENCE-CHAIN`
+- `PCHR-07-PRODUCTION-DEFAULTS-REMAIN-CLOSED`
+- `PCHR-07-COMMAND-RISK-EXECUTION-OMS-EVENTSTORE-GATES-COMPLETE`
+- `PCHR-07-AUTOMATION-READINESS-CLOSEOUT`
+- `PCHR-07-NO-PRODUCTION-CUTOVER-AUTHORIZATION`
+- `PCHR-07-STAGE-CODE-AUDIT-HANDOFF`
+- `TVM-PCHR-PRODUCTION-HARDENING-READINESS-CLOSEOUT`
+
 ## GH-631 CEFR Final Envelope Retirement Contract Validation
 
 GH-631 的 required validation：
