@@ -2,7 +2,7 @@
 
 MTPRO 是 SwiftPM-first、local-first 的 macOS 原生专业交易工作台。
 
-它先建设 Research -> Backtest -> Report -> Paper 的可追溯证据链；最终目标是专业版交易工作台，包含 Live trading、实盘监控台、实盘执行控制、实盘风险控制和实盘审计 / 事故回放 / 停机控制。当前 release construction scope 已进入 `MTPRO Release v0.2.0`：activeVenue == Binance，activeProductTypes == [spot, usdsPerpetual]，activeStrategies == [ema, rsi]，productionTradingEnabledByDefault == false。早期 public-read-only / paper-only / EMA-only 只作为历史 foundation evidence，不再作为当前 v0.2.0 边界。
+它先建设 Research -> Backtest -> Report -> Paper 的可追溯证据链；最终目标是专业版交易工作台，包含 Live trading、实盘监控台、实盘执行控制、实盘风险控制和实盘审计 / 事故回放 / 停机控制。最新完成的 release construction scope 是 `MTPRO Release v0.2.0`：activeVenue == Binance，activeProductTypes == [spot, usdsPerpetual]，activeStrategies == [ema, rsi]，productionTradingEnabledByDefault == false。早期 public-read-only / paper-only / EMA-only 只作为历史 foundation evidence，不再作为当前 v0.2.0 边界。
 
 MTPRO 借鉴 `nautilus_trader` 的 Kernel / MessageBus / Cache / Engine / Adapter 分层思想，也参考 `macos-trader` 的既有产品语义，但不引入 NautilusTrader 作为运行依赖，不复制 `macos-trader` 整仓代码。
 
@@ -43,14 +43,17 @@ Agent 进入仓库时按以下顺序读取：
 
 ## 当前边界
 
+- `GH-596-RELEASE-V020-ROOT-DOCS-REFRESH`
 - `GH-564-RELEASE-V020-ROOT-DOCS-BOUNDARY-REFRESH`
-- Current release construction scope: `MTPRO Release v0.2.0`
+- Latest completed release construction scope: `MTPRO Release v0.2.0`
 - activeVenue == Binance
 - activeProductTypes == [spot, usdsPerpetual]
 - activeStrategies == [ema, rsi]
 - productionTradingEnabledByDefault == false
 - productionCapabilityGatedNotMissing == true
 - oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true
+- Stage Code Audit Report: `docs/audit/mtpro-release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-stage-code-audit.md`
+- Operator runbook: `docs/operators/release-v0.2.0-operator-runbook.md`
 - Production capability 是 gated capability，不是缺失能力：只有后续 issue 明确授权、CommandGateway / RiskEngine / ExecutionEngine / OMS / Event Store / kill switch / no-trade / validation gates 全部通过时，才允许在 bounded scope 内推进。
 - Production trading 默认关闭；production secret、production endpoint、production broker connection 和 real submit / cancel / replace 不得自动启用。
 - Event Log 是 append-only facts source。

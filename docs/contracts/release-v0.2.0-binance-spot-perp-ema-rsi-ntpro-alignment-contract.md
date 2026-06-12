@@ -114,7 +114,7 @@ NTPRO scoped 100% alignment 是 release v0.2.0 的 scoped alignment contract，�
 | GH-593 / V020-31 | CLI product surface for Spot / Perp / strategy / risk / execution / verify | `mtpro verify-fast pass` and `mtpro verify-release pass` through CommandGateway gate; no production side effect |
 | GH-594 / V020-32 | Dashboard Spot + Perp control surface through CommandGateway | Spot / Perp / EMA / RSI / Risk / OMS / Portfolio panels, CommandGateway gate required, production command disabled by default |
 | GH-595 / V020-33 | verify-fast / verify-release Spot + Perp release gates | verify-fast covers foundation + sample traces; verify-release covers full gates + all 15 traces |
-| GH-596 / V020-34 | final release closure | production trading remains disabled by default |
+| GH-596 / V020-34 | final Stage Code Audit, operator runbook and Root Docs Refresh | production trading remains disabled by default; no next Project / Issue authorized |
 
 ## GH-563-NO-DEFAULT-PRODUCTION-TRADING
 

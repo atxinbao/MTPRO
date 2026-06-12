@@ -288,8 +288,8 @@ require_contains "docs/audit/mtpro-release-v0.1.0-binance-ema-runtime-stage-code
 require_contains "docs/audit/mtpro-release-v0.1.0-binance-ema-runtime-stage-code-audit.md" "MTPRO Release v0.1.0 Binance + EMA runtime validation complete with production trading disabled by default"
 require_contains "GOAL.md" "MTPRO Release v0.1.0"
 require_contains "BLUEPRINT.md" "docs/audit/mtpro-release-v0.1.0-binance-ema-runtime-stage-code-audit.md"
-require_contains "docs/roadmap.md" "Project Closure Count: 35 / 35"
-require_contains "docs/roadmap.md" 'Latest Completed Project：`MTPRO Release v0.1.0`'
+require_contains "docs/roadmap.md" "Project Closure Count: 36 / 36"
+require_contains "docs/roadmap.md" 'Latest Completed Project：`MTPRO Release v0.2.0`'
 require_contains "docs/validation/latest-verification-summary.md" "GH-541 Final Stage Code Audit and Root Docs Refresh"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V010-FINAL-STAGE-CODE-AUDIT-ROOT-DOCS"
 require_contains "docs/validation/validation-plan.md" "GH-541 Final Stage Code Audit and Root Docs Refresh Validation"

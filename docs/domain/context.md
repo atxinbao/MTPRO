@@ -4906,6 +4906,20 @@ No final Stage Code Audit 表示 GH-540 只准备输入材料；GH-541 才能输
 
 Release v0.1.0 stage audit input closeout matrix 只证明 GH-541 final audit 所需输入材料已齐备，不授权 production trading、不创建下一 Project / Issue、不推进 release v0.1.0 之后的阶段。
 
+## GH-596 Release v0.2.0 Final Closure Terms
+
+`GH-596-RELEASE-V020-OPERATOR-RUNBOOK`
+
+Release v0.2.0 operator runbook 指 `docs/operators/release-v0.2.0-operator-runbook.md`。它只说明 Binance Spot + USDⓈ-M Perpetual + EMA/RSI release closure 后的本地 deterministic validation、verify-fast / verify-release gate、Dashboard smoke、credential / endpoint policy 和 no-trade procedure，不授权 production trading、不读取 production secret、不连接 production endpoint、不连接 broker、不创建下一 Project / Issue。
+
+`GH-596-RELEASE-V020-STAGE-CODE-AUDIT`
+
+Release v0.2.0 Stage Code Audit 指 `docs/audit/mtpro-release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-stage-code-audit.md`。它汇总 GH-563 至 GH-596 issue queue、PR #597 至 #629 checks / merge evidence、Binance Spot + USDⓈ-M Perpetual + EMA/RSI scoped release evidence、validation evidence、forbidden capability audit 和 Root Docs Refresh result。#596 closure PR merge 前，#596 自身只能作为 current closure issue，不得提前写成已 merged。
+
+`TVM-RELEASE-V020-FINAL-STAGE-CODE-AUDIT-ROOT-DOCS`
+
+Release v0.2.0 final Stage Code Audit / Root Docs matrix 表示 closure 只同步已发生事实，并保持 `productionTradingEnabledByDefault == false`。该 matrix 不创建下一 Project / Issue，不推进下一 Todo，不授权 production cutover。
+
 ## Forbidden Terms / 当前禁用或必须带门禁语义的词
 
 以下词在当前 construction scope 中必须带上 `Future`、`gated` 或 `forbidden` 语义。中文写法也必须表达“未来建设区 / 受门禁保护 / 当前禁止”，不能写成当前已具备能力：

@@ -9745,6 +9745,47 @@ GH-541 必须建立的主要 anchors：
 - 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-596 Release v0.2.0 Final Stage Code Audit and Root Docs Refresh Validation
+
+GH-596 必须运行：
+
+- `swift test --filter TargetGraphTests/testGH596ReleaseV020ClosureDocsRecordCompletedFactsWithoutNextPhaseAuthorization`
+- `swift run mtpro verify-fast`
+- `swift run mtpro verify-release`
+- `DASHBOARD_SMOKE=1 swift run Dashboard`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-596 的验收要求：
+
+- `docs/audit/mtpro-release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-stage-code-audit.md` 必须存在，并覆盖 GH-563 至 GH-596 release queue、PR #597 至 #629 merge evidence、required check `checks` evidence、Binance Spot + USDⓈ-M Perpetual + EMA/RSI release scope、verify-fast / verify-release gate、Dashboard CommandGateway surface、operator runbook、no-default-production-trading guard 和 forbidden production capability audit。
+- `docs/operators/release-v0.2.0-operator-runbook.md` 必须存在，并覆盖 local acceptance commands、credential / endpoint policy、rollback / no-trade procedure、operator checklist 和 final stop rule。
+- `README.md`、`architecture.md`、`docs/roadmap.md` 和 `docs/validation/latest-verification-summary.md` 只能同步已发生 release v0.2.0 closure 事实，不写未来方向，不创建下一 Project / Issue，不推进下一 Todo。
+- `docs/automation/automation-readiness.md` 和 `checks/automation-readiness.d/release-v0.2.0-boundary.sh` 必须机械检查 final Stage Code Audit Report、operator runbook、Project Closure Count `36 / 36`、latest completed Project 和 focused test anchor。
+- PR evidence 必须确认不使用 Linear，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+GH-596 必须建立的主要 anchors：
+
+- `GH-596-RELEASE-V020-OPERATOR-RUNBOOK`
+- `GH-596-RELEASE-V020-STAGE-CODE-AUDIT`
+- `GH-596-RELEASE-V020-ROOT-DOCS-REFRESH`
+- `TVM-RELEASE-V020-FINAL-STAGE-CODE-AUDIT-ROOT-DOCS`
+- `testGH596ReleaseV020ClosureDocsRecordCompletedFactsWithoutNextPhaseAuthorization`
+
+## GH-596 禁止
+
+- 不启用 production trading。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、production broker endpoint、account endpoint、listenKey 或 private WebSocket runtime。
+- 不把 testnet / dry-run / deterministic evidence fallback 成 production credential、production endpoint 或 production broker endpoint。
+- 不触发 production order、sandbox-to-production command promotion、rollback command、broker emergency API 或 automatic recovery。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch、operator confirmation、dry-run / testnet gate 或 no-trade state。
+- 不启用 non-Binance venue、non-Spot / non-USDSM product 或 non-EMA / non-RSI active strategy。
+- 不创建下一 Project / Issue，不推进 release v0.2.0 之后的阶段。
+- 不启动 Symphony / symphony-issue，不运行 Graphify，不运行 code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-530 ExecutionEngine OMS Lifecycle Validation
 
 GH-530 必须运行：

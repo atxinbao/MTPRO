@@ -52,6 +52,9 @@ scan_paths = [
     root / "docs" / "automation" / "automation-readiness.md",
     root / "README.md",
     root / "architecture.md",
+    root / "docs" / "roadmap.md",
+    root / "docs" / "operators" / "release-v0.2.0-operator-runbook.md",
+    root / "docs" / "audit" / "mtpro-release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-stage-code-audit.md",
 ]
 scan_paths.extend(sorted((root / "Sources").rglob("*.swift")))
 
@@ -186,6 +189,8 @@ required_evidence = {
         "Dashboard Spot + Perp control surface through CommandGateway",
         "GH-595 / V020-33",
         "verify-fast / verify-release Spot + Perp release gates",
+        "GH-596 / V020-34",
+        "final Stage Code Audit, operator runbook and Root Docs Refresh",
     ],
     "docs/validation/trading-validation-matrix.md": [
         "GH-565",
@@ -244,6 +249,8 @@ required_evidence = {
         "TVM-RELEASE-V020-DASHBOARD-COMMANDGATEWAY-SURFACE",
         "GH-595",
         "TVM-RELEASE-V020-VERIFY-FAST-RELEASE-GATES",
+        "GH-596",
+        "TVM-RELEASE-V020-FINAL-STAGE-CODE-AUDIT-ROOT-DOCS",
     ],
     "docs/validation/validation-plan.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Validation",
@@ -274,6 +281,7 @@ required_evidence = {
         "GH-593 Release v0.2.0 CLI Product Surface Validation",
         "GH-594 Release v0.2.0 Dashboard CommandGateway Surface Validation",
         "GH-595 Release v0.2.0 Verify Fast / Verify Release Gate Validation",
+        "GH-596 Release v0.2.0 Final Stage Code Audit and Root Docs Refresh Validation",
     ],
     "docs/domain/context.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Terms",
@@ -304,6 +312,7 @@ required_evidence = {
         "GH-593 CLI Product Surface Terms",
         "GH-594 Dashboard CommandGateway Surface Terms",
         "GH-595 Verify Fast / Verify Release Gate Terms",
+        "GH-596 Release v0.2.0 Final Closure Terms",
     ],
     "docs/automation/automation-readiness.md": [
         "Release v0.2.0 boundary automation guard anchor",
@@ -334,6 +343,48 @@ required_evidence = {
         "Release v0.2.0 CLI product surface anchor",
         "Release v0.2.0 Dashboard CommandGateway surface anchor",
         "Release v0.2.0 verify-fast / verify-release gate anchor",
+        "Release v0.2.0 final Stage Code Audit / Root Docs anchor",
+    ],
+    "docs/operators/release-v0.2.0-operator-runbook.md": [
+        "GH-596-RELEASE-V020-OPERATOR-RUNBOOK",
+        "swift run mtpro verify-fast",
+        "swift run mtpro verify-release",
+        "DASHBOARD_SMOKE=1 swift run Dashboard",
+        "productionTradingEnabledByDefault == false",
+        "No-trade state",
+    ],
+    "docs/audit/mtpro-release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-stage-code-audit.md": [
+        "GH-596-RELEASE-V020-STAGE-CODE-AUDIT",
+        "GH-563",
+        "GH-596",
+        "V020-01",
+        "V020-34",
+        "PR #597",
+        "PR #629",
+        "checks` SUCCESS",
+        "TVM-RELEASE-V020-FINAL-STAGE-CODE-AUDIT-ROOT-DOCS",
+        "production trading remains disabled by default",
+    ],
+    "README.md": [
+        "GH-596-RELEASE-V020-ROOT-DOCS-REFRESH",
+        "Latest completed release construction scope: `MTPRO Release v0.2.0`",
+        "docs/audit/mtpro-release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-stage-code-audit.md",
+    ],
+    "architecture.md": [
+        "GH-596-RELEASE-V020-ROOT-DOCS-REFRESH",
+        "MTPRO Release v0.2.0",
+        "docs/operators/release-v0.2.0-operator-runbook.md",
+    ],
+    "docs/roadmap.md": [
+        "MTPRO Release v0.2.0 | Completed",
+        "Project Closure Count: 36 / 36 (100%)",
+        "Latest Completed Project：`MTPRO Release v0.2.0`",
+    ],
+    "docs/validation/latest-verification-summary.md": [
+        "GH-596-RELEASE-V020-ROOT-DOCS-REFRESH",
+        "MTPRO Release v0.2.0",
+        "Project Closure Count: 36 / 36",
+        "Current maturity statement：`MTPRO Release v0.2.0 Binance Spot + USDⓈ-M Perpetual + EMA/RSI validation complete with production trading disabled by default`",
     ],
     "Sources/Database/ReleaseV020VerificationGates.swift": [
         "GH-595-VERIFY-FAST-FOUNDATION-SAMPLE-TRACES",
@@ -379,6 +430,7 @@ required_evidence = {
         "testGH593CLIProductSurfaceRoutesVerifyCommandsThroughCommandGateway",
         "testGH594DashboardCommandGatewaySurfaceShowsReleasePanelsWithoutProductionCommand",
         "testGH595VerifyFastAndVerifyReleaseCoverFoundationSampleFullAndAllTraces",
+        "testGH596ReleaseV020ClosureDocsRecordCompletedFactsWithoutNextPhaseAuthorization",
     ],
     "Tests/PersistenceTests/PersistenceTests.swift": [
         "testGH591SQLiteDuckDBSpotPerpProjectionsStayProductAwareAndDashboardSchemaFree",
