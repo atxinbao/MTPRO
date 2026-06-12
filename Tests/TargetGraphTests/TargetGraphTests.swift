@@ -6058,6 +6058,151 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH648BrokerShadowDryRunProofKeepsProductionOrdersBlocked() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionEngineTarget = try packageTargetBlock(named: "ExecutionEngine", packageSource: packageSource)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/production-broker-shadow-dry-run-proof-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let upstreamContractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/production-audit-trail-gate-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+
+        let upstream = try ProductionAuditTrailGate.deterministicFixture()
+        let contract = try ProductionBrokerShadowDryRunProof.deterministicFixture()
+        XCTAssertTrue(upstream.contractHeld)
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertTrue(contract.payloadCoverageHeld)
+        XCTAssertTrue(contract.productionDefaultsClosed)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-648")
+        XCTAssertEqual(contract.upstreamIssueID.rawValue, "GH-647")
+        XCTAssertEqual(contract.downstreamIssueID.rawValue, "GH-649")
+        XCTAssertEqual(contract.canonicalQueueRange, "GH-643..GH-649")
+        XCTAssertEqual(Set(contract.requirements), Set(ProductionBrokerShadowDryRunRequirement.allCases))
+        XCTAssertEqual(Set(contract.forbiddenCapabilities), Set(ProductionBrokerShadowDryRunForbiddenCapability.allCases))
+
+        XCTAssertTrue(contract.upstreamAuditTrailGateHeld)
+        XCTAssertTrue(contract.productionLikeRequestMappingRequired)
+        XCTAssertTrue(contract.dryRunAndShadowModeMarked)
+        XCTAssertTrue(contract.submitCancelReplacePayloadAuditRequired)
+        XCTAssertTrue(contract.productionOrderPathBlockedByDefault)
+        XCTAssertTrue(contract.rawBrokerPayloadNotExposedToDashboard)
+        XCTAssertFalse(contract.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(contract.productionSecretAutoReadEnabled)
+        XCTAssertFalse(contract.realBrokerConnectionEnabled)
+        XCTAssertFalse(contract.realOrderSubmissionEnabled)
+        XCTAssertFalse(contract.startsNextMilestone)
+
+        XCTAssertEqual(Set(contract.payloadEvidence.map(\.commandKind)), Set(L4LiveRiskPreTradeCommandKind.allCases))
+        XCTAssertEqual(Set(contract.payloadEvidence.map(\.mode)), Set(ProductionBrokerShadowDryRunProofMode.allCases))
+        XCTAssertTrue(contract.payloadEvidence.allSatisfy(\.payloadBoundaryHeld))
+        XCTAssertTrue(contract.payloadEvidence.allSatisfy(\.productionLikeRequestMappingPresent))
+        XCTAssertTrue(contract.payloadEvidence.allSatisfy(\.modeExplicitlyMarked))
+        XCTAssertTrue(contract.payloadEvidence.allSatisfy(\.payloadConstructionAuditable))
+        XCTAssertTrue(contract.payloadEvidence.allSatisfy(\.upstreamAuditTrailLinked))
+        XCTAssertTrue(contract.payloadEvidence.allSatisfy(\.productionOrderPathBlocked))
+        XCTAssertTrue(contract.payloadEvidence.allSatisfy { $0.sendsRealOrder == false })
+        XCTAssertTrue(contract.payloadEvidence.allSatisfy { $0.connectsBroker == false })
+        XCTAssertTrue(contract.payloadEvidence.allSatisfy { $0.readsSecretValue == false })
+        XCTAssertTrue(contract.payloadEvidence.allSatisfy { $0.exposesRawBrokerPayloadToDashboard == false })
+
+        for anchor in ProductionBrokerShadowDryRunProof.requiredValidationAnchors {
+            XCTAssertTrue(contract.validationAnchors.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in broker shadow / dry-run proof doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation-plan.md")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading-validation-matrix.md")
+        }
+        XCTAssertTrue(upstreamContractDoc.contains("PCHR-05-OMS-EVENT-STORE-PRODUCTION-AUDIT-TRAIL"))
+        XCTAssertTrue(automationReadiness.contains("Production broker shadow / dry-run proof anchor"))
+        XCTAssertTrue(readinessScript.contains("ProductionBrokerShadowDryRunProof.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH648BrokerShadowDryRunProofKeepsProductionOrdersBlocked"
+            )
+        )
+        XCTAssertTrue(executionEngineTarget.contains("\"OMSFutureGate\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionEngine/OMSFutureGate/ProductionBrokerShadowDryRunProof.swift"
+                ).path
+            )
+        )
+
+        XCTAssertThrowsError(
+            try ProductionBrokerShadowDryRunProof(
+                upstreamAuditTrailGateHeld: false
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "upstreamAuditTrailGateHeld",
+                    expected: "true",
+                    actual: "false"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try ProductionBrokerShadowDryRunProof(
+                realOrderSubmissionEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("realOrderSubmissionEnabled"))
+        }
+        XCTAssertThrowsError(
+            try ProductionBrokerShadowDryRunPayloadEvidence(
+                payloadID: Identifier.constant("unsafe-gh-648-real-order"),
+                commandKind: .submit,
+                mode: .dryRun,
+                productType: "spot",
+                sendsRealOrder: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("sendsRealOrder"))
+        }
+        XCTAssertThrowsError(
+            try ProductionBrokerShadowDryRunPayloadEvidence(
+                payloadID: Identifier.constant("unsafe-gh-648-dashboard-payload"),
+                commandKind: .replace,
+                mode: .shadow,
+                productType: "usdsPerpetual",
+                exposesRawBrokerPayloadToDashboard: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("exposesRawBrokerPayloadToDashboard")
+            )
+        }
+    }
+
     func testGH523ReleaseV010TargetsExposeRealSmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-523-release-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)
