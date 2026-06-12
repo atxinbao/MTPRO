@@ -165,6 +165,7 @@ let package = Package(
             ],
             sources: [
                 "PaperPortfolioProjectionUpdate.swift",
+                "PortfolioParityOwnershipContract.swift",
                 "PortfolioFinancialStateProjection.swift",
                 "TargetGraph/PortfolioTargetBoundary.swift"
             ]
@@ -311,6 +312,7 @@ let package = Package(
                 "MessageBus/TargetGraph",
                 "MTPROCLI",
                 "Portfolio/PaperPortfolioProjectionUpdate.swift",
+                "Portfolio/PortfolioParityOwnershipContract.swift",
                 "Portfolio/TargetGraph",
                 "Portfolio/PortfolioFinancialStateProjection.swift",
                 "RiskEngine/LiveGate",

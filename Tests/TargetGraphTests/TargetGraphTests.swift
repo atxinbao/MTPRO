@@ -4797,6 +4797,128 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH634PortfolioAndExecutionOwnParityContractsWhileCoreRetainsBridgeOnly() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let contract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/core-compatibility-envelope-final-retirement-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+
+        for anchor in Set(
+            PortfolioParityOwnershipContract.requiredValidationAnchors
+                + ExecutionParityOwnershipContract.requiredValidationAnchors
+        ) {
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must remain in CEFR contract")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must remain in validation-plan.md")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must remain in trading-validation-matrix.md")
+        }
+
+        let portfolioTarget = try packageTargetBlock(named: "Portfolio", packageSource: packageSource)
+        let executionEngineTarget = try packageTargetBlock(named: "ExecutionEngine", packageSource: packageSource)
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        let portfolioSources = try packageTargetSourcesBlock(targetBlock: portfolioTarget)
+        let portfolioExcludes = try packageTargetExcludesBlock(targetBlock: portfolioTarget)
+        let executionEngineSources = try packageTargetSourcesBlock(targetBlock: executionEngineTarget)
+        let executionEngineExcludes = try packageTargetExcludesBlock(targetBlock: executionEngineTarget)
+        let coreExcludes = try packageTargetExcludesBlock(targetBlock: coreTarget)
+
+        XCTAssertTrue(portfolioSources.contains("\"PortfolioParityOwnershipContract.swift\""))
+        XCTAssertTrue(coreExcludes.contains("\"Portfolio/PortfolioParityOwnershipContract.swift\""))
+        XCTAssertTrue(portfolioExcludes.contains("\"PaperAccountPortfolioProjectionV2.swift\""))
+        XCTAssertTrue(portfolioExcludes.contains("\"SimulatedExchangePortfolioProjectionParity.swift\""))
+        XCTAssertTrue(executionEngineSources.contains("\"Ownership\""))
+
+        let portfolioTargetSwiftSources = try packageTargetSwiftSources(
+            repositoryRoot: repositoryRoot,
+            targetRoot: "Sources/Portfolio",
+            targetBlock: portfolioTarget
+        )
+        let executionTargetSwiftSources = try packageTargetSwiftSources(
+            repositoryRoot: repositoryRoot,
+            targetRoot: "Sources/ExecutionEngine",
+            targetBlock: executionEngineTarget
+        )
+        let coreTargetSwiftSources = try packageTargetSwiftSources(
+            repositoryRoot: repositoryRoot,
+            targetRoot: "Sources",
+            targetBlock: coreTarget
+        )
+
+        for activeSource in PortfolioParityOwnershipContract.requiredActivePortfolioSourcePaths {
+            XCTAssertTrue(portfolioTargetSwiftSources.contains(activeSource), "\(activeSource) must be Portfolio-owned")
+            XCTAssertTrue(contract.contains("`\(activeSource)`"))
+        }
+        for activeSource in ExecutionParityOwnershipContract.requiredActiveExecutionSourcePaths {
+            XCTAssertTrue(executionTargetSwiftSources.contains(activeSource), "\(activeSource) must be ExecutionEngine-owned")
+            XCTAssertTrue(contract.contains("`\(activeSource)`"))
+        }
+
+        for retainedSource in PortfolioParityOwnershipContract.requiredRetainedBridgeSourcePaths {
+            let relative = retainedSource.replacingOccurrences(of: "Sources/Portfolio/", with: "")
+            XCTAssertTrue(portfolioExcludes.contains("\"\(relative)\""))
+            XCTAssertTrue(coreTargetSwiftSources.contains(retainedSource), "\(retainedSource) must remain Core compatibility-only")
+            XCTAssertTrue(contract.contains("`\(retainedSource)`"))
+        }
+        for retainedSource in ExecutionParityOwnershipContract.requiredRetainedBridgeSourcePaths {
+            let relative = retainedSource.replacingOccurrences(of: "Sources/ExecutionEngine/", with: "")
+            XCTAssertTrue(executionEngineExcludes.contains("\"\(relative)\""))
+            XCTAssertTrue(coreTargetSwiftSources.contains(retainedSource), "\(retainedSource) must remain Core compatibility-only")
+            XCTAssertTrue(contract.contains("`\(retainedSource)`"))
+        }
+
+        let portfolioEvidence = PortfolioParityOwnershipContract.gh634
+        let executionEvidence = ExecutionParityOwnershipContract.gh634
+        XCTAssertTrue(portfolioEvidence.boundaryHeld)
+        XCTAssertTrue(executionEvidence.boundaryHeld)
+        XCTAssertTrue(portfolioEvidence.portfolioOwnsAllActiveSurfaces)
+        XCTAssertTrue(portfolioEvidence.retainedBridgesAreCompatibilityOnly)
+        XCTAssertTrue(executionEvidence.executionEngineOwnsAllActiveSurfaces)
+        XCTAssertTrue(executionEvidence.retainedBridgesAreCompatibilityOnly)
+        XCTAssertTrue(portfolioEvidence.noProductionAuthorization.allProductionCapabilitiesDisabledByDefault)
+        XCTAssertTrue(executionEvidence.noProductionAuthorization.allProductionCapabilitiesDisabledByDefault)
+
+        XCTAssertTrue(
+            PortfolioTargetBoundary.requiredValidationAnchors.contains(
+                "GH-634-PORTFOLIO-PARITY-OWNERSHIP-CONTRACT"
+            )
+        )
+        XCTAssertTrue(
+            ExecutionEngineTargetBoundary.requiredValidationAnchors.contains(
+                "GH-634-EXECUTION-PARITY-OWNERSHIP-CONTRACT"
+            )
+        )
+        XCTAssertTrue(executionClientTarget.contains("dependencies: [\"DomainModel\", \"MessageBus\"]"))
+
+        for forbiddenDefault in [
+            "productionTradingEnabledByDefault == false",
+            "productionSecretReadEnabledByDefault == false",
+            "productionEndpointConnectionEnabledByDefault == false",
+            "brokerGatewayEnabledByDefault == false",
+            "omsRuntimeEnabledByDefault == false",
+            "realOrderCommandEnabledByDefault == false",
+            "executionReportRuntimeEnabledByDefault == false",
+            "brokerFillRuntimeEnabledByDefault == false",
+            "reconciliationRuntimeEnabledByDefault == false"
+        ] {
+            XCTAssertTrue(contract.contains(forbiddenDefault), "\(forbiddenDefault) must remain explicit")
+        }
+    }
+
     func testGH523ReleaseV010TargetsExposeRealSmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-523-release-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)

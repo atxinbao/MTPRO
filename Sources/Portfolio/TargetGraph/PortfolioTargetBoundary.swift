@@ -9,6 +9,7 @@ import MessageBus
 /// 移到 `Sources/Portfolio/TargetGraph`。GH-416 进一步把 paper portfolio update
 /// ownership 迁入 Portfolio target；依赖 replay / simulated exchange event bridge 的
 /// account projection path 和 parity evidence 仍显式留在 Core compatibility envelope。
+/// GH-634 起 Portfolio target 直接拥有 Portfolio parity ownership classification。
 public struct PortfolioTargetBoundary: Codable, Equatable, Sendable {
     public let targetName: String
     public let canonicalSourceRoot: String
@@ -113,6 +114,7 @@ public struct PortfolioTargetBoundary: Codable, Equatable, Sendable {
         "GH-416-PORTFOLIO-REPLAY-PARITY-BRIDGE-DEFERRED",
         "GH-416-CORE-PORTFOLIO-EVENT-BRIDGE-ONLY",
         "GH-416-VALIDATION-ANCHORS",
+        "GH-634-PORTFOLIO-PARITY-OWNERSHIP-CONTRACT",
         "MTP-228-PORTFOLIO-REAL-ROOT-TARGET-PATH",
         "MTP-219-NO-REAL-ACCOUNT-BROKER-GUARD"
     ]

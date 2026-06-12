@@ -136,6 +136,30 @@ GH-633 必须建立的主要 anchors：
 - `GH-633-NO-PRODUCTION-AUTHORIZATION`
 - `TVM-CEFR-DATAENGINE-SCENARIO-QUALITY-OWNERSHIP`
 
+## GH-634 CEFR Portfolio / Execution Parity Ownership Validation
+
+GH-634 的 required validation：
+
+- `Sources/Portfolio/PortfolioParityOwnershipContract.swift` 必须位于 `Portfolio` target，并定义 `PortfolioParityOwnershipContract.gh634`。
+- `Sources/ExecutionEngine/Ownership/ExecutionParityOwnershipContract.swift` 必须位于 `ExecutionEngine` target，并定义 `ExecutionParityOwnershipContract.gh634`。
+- `Portfolio` target 必须直接拥有 active projection sources，并把 `PaperAccountPortfolioProjectionV2.swift` / `SimulatedExchangePortfolioProjectionParity.swift` 标记为 Core compatibility-only retained bridge。
+- `ExecutionEngine` target 必须直接拥有 active paper / simulated boundary sources，并把 paper lifecycle / simulated parity retained files 标记为 Core compatibility-only retained bridge。
+- `PortfolioTargetBoundary.requiredValidationAnchors` 必须包含 `GH-634-PORTFOLIO-PARITY-OWNERSHIP-CONTRACT`。
+- `ExecutionEngineTargetBoundary.requiredValidationAnchors` 必须包含 `GH-634-EXECUTION-PARITY-OWNERSHIP-CONTRACT`。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、真实 Binance private endpoint、broker、production credential 或人工验收。
+
+GH-634 必须建立的主要 anchors：
+
+- `GH-634-PORTFOLIO-PARITY-OWNERSHIP-CONTRACT`
+- `GH-634-PORTFOLIO-ACTIVE-PROJECTION-SOURCES`
+- `GH-634-EXECUTION-PARITY-OWNERSHIP-CONTRACT`
+- `GH-634-EXECUTION-ACTIVE-SIMULATED-SOURCES`
+- `GH-634-CORE-PORTFOLIO-EXECUTION-PARITY-COMPATIBILITY-ONLY`
+- `GH-634-CORE-PORTFOLIO-PARITY-COMPATIBILITY-ONLY`
+- `GH-634-CORE-EXECUTION-PARITY-COMPATIBILITY-ONLY`
+- `GH-634-NO-PRODUCTION-AUTHORIZATION`
+- `TVM-CEFR-PORTFOLIO-EXECUTION-PARITY-OWNERSHIP`
+
 ## Stage Audit Input Location Rule
 
 `docs/validation/` 只保留长期验证入口，例如 latest summary、validation plan、trading validation matrix、eval strategy 和 macOS build / run loop。
