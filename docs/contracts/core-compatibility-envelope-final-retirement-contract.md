@@ -89,6 +89,77 @@ Owner classification rules:
 - `ExecutionClient` owns gated external execution boundary; production remains disabled by default.
 - `Dashboard` owns read-model-only UI evidence surfaces and must not consume runtime object, adapter request or schema.
 
+## GH-632-MESSAGEBUS-RICH-ROUTING-COMPATIBILITY-CONTRACT
+
+`GH-632-MESSAGEBUS-RICH-ROUTING-COMPATIBILITY-CONTRACT`
+
+GH-632 收窄 `Sources/MessageBus` 中仍由 `Core` compatibility envelope 编译的 rich routing surface。当前不能把这些文件整体迁入 `MessageBus` target，因为它们仍引用 strategy、paper execution、risk、portfolio 和 persistence-facing rich payload；整体迁移会让 `MessageBus` 反向依赖上层模块。
+
+本 issue 的 active ownership 迁移点是：`MessageBus` target 现在直接拥有 `Sources/MessageBus/RichRoutingCompatibilityContract.swift`，由 `MessageBusRichRoutingCompatibilityContract.gh632` 记录 retained rich routing surfaces、真实 owner、保留理由、退出路径和 no-production authorization。`Core` 只继续编译 legacy rich payload files，不再作为 active routing ownership decision 的来源。
+
+## GH-632-CORE-RICH-ROUTING-COMPATIBILITY-ONLY
+
+`GH-632-CORE-RICH-ROUTING-COMPATIBILITY-ONLY`
+
+GH-632 后，以下文件仍由 `Core` compatibility envelope 编译，但只能解释为 compatibility-only retained source：
+
+| Retained source | Compatibility envelope | Real module owners | Retention reason | Exit path |
+| --- | --- | --- | --- | --- |
+| `Sources/MessageBus/CommandsAndQueries.swift` | `Core` | `MessageBus` / `TraderStrategies` / `ExecutionEngine` / `RiskEngine` / `Portfolio` | rich commands and queries still reference upper-layer strategy, paper execution, risk and portfolio payloads | split neutral command/query vocabulary into MessageBus and upper-layer payloads into their owning modules |
+| `Sources/MessageBus/DomainEvents.swift` | `Core` | `MessageBus` / `DomainModel` / `ExecutionEngine` / `Portfolio` | rich event enum still aggregates cross-module paper lifecycle, simulated fill and portfolio facts | split neutral event envelope semantics into MessageBus and rich event payloads into owner modules |
+| `Sources/MessageBus/EventLog.swift` | `Core` | `MessageBus` / `Database` / `ExecutionEngine` | append-only log remains coupled to rich Core event payloads during compatibility retirement | move neutral journal semantics to MessageBus and persistence-facing records to Database |
+| `Sources/MessageBus/PaperRuntimeBusRouting.swift` | `Core` | `MessageBus` / `ExecutionEngine` / `RiskEngine` / `Portfolio` | paper runtime routing still bridges risk, execution and portfolio evidence for legacy Core imports | split routing contracts into MessageBus and move engine-specific evidence to the owning targets |
+
+## GH-632-MESSAGEBUS-OWNED-ROUTING-CLASSIFICATION
+
+`GH-632-MESSAGEBUS-OWNED-ROUTING-CLASSIFICATION`
+
+`MessageBus` target now owns the classification and validation evidence for rich routing compatibility:
+
+- `Package.swift` lists `RichRoutingCompatibilityContract.swift` in the `MessageBus` target.
+- `Package.swift` excludes `MessageBus/RichRoutingCompatibilityContract.swift` from the `Core` target.
+- `MessageBusTargetBoundary.requiredValidationAnchors` includes `GH-632-MESSAGEBUS-RICH-ROUTING-COMPATIBILITY-CONTRACT`.
+- `Tests/TargetGraphTests/TargetGraphTests.swift` includes `testGH632MessageBusOwnsRichRoutingCompatibilityContractAndKeepsCoreCompatibilityOnly`.
+
+This does not retire the four rich files yet. It prevents drift by making the retained state explicit and mechanically checked before later CEFR issues split payload ownership further.
+
+## GH-632-DASHBOARD-CLI-BOUNDARY-HELD
+
+`GH-632-DASHBOARD-CLI-BOUNDARY-HELD`
+
+GH-632 does not change product surfaces:
+
+- `Dashboard` remains an executable target depending on `Core` and `Persistence`.
+- `MTPROCLI` remains an executable target depending on `Database`.
+- `Dashboard` is still read-model-only and must not consume `MessageBusRichRoutingCompatibilityContract` as runtime command authority.
+- `MTPROCLI` must not gain `Core`, `MessageBus`, `ExecutionEngine`, `ExecutionClient`, broker or OMS dependency through this issue.
+
+## GH-632-NO-PRODUCTION-AUTHORIZATION
+
+`GH-632-NO-PRODUCTION-AUTHORIZATION`
+
+GH-632 does not authorize:
+
+- production trading;
+- production secret read, print or storage;
+- production endpoint connection;
+- signed endpoint, account endpoint, listenKey or private WebSocket runtime;
+- broker gateway, broker adapter or automatic broker connection;
+- real submit / cancel / replace;
+- production OMS;
+- execution report, broker fill or reconciliation runtime;
+- Live PRO Console production command, trading button, live command or order form.
+
+Production defaults remain:
+
+- `productionTradingEnabledByDefault == false`
+- `productionSecretReadEnabledByDefault == false`
+- `productionEndpointConnectionEnabledByDefault == false`
+- `brokerGatewayEnabledByDefault == false`
+- `realOrderCommandEnabledByDefault == false`
+- `omsRuntimeEnabledByDefault == false`
+- `dashboardCommandSurfaceEnabledByDefault == false`
+
 ## GH-631-RETENTION-REASON-AND-EXIT-PATH
 
 `GH-631-RETENTION-REASON-AND-EXIT-PATH`
@@ -159,10 +230,17 @@ Required anchors:
 - `GH-631-FIRST-EXECUTABLE-CANDIDATE-ONLY`
 - `GH-631-NO-PRODUCTION-AUTHORIZATION`
 - `TVM-CEFR-FINAL-ENVELOPE-RETIREMENT-CONTRACT`
+- `GH-632-MESSAGEBUS-RICH-ROUTING-COMPATIBILITY-CONTRACT`
+- `GH-632-CORE-RICH-ROUTING-COMPATIBILITY-ONLY`
+- `GH-632-MESSAGEBUS-OWNED-ROUTING-CLASSIFICATION`
+- `GH-632-DASHBOARD-CLI-BOUNDARY-HELD`
+- `GH-632-NO-PRODUCTION-AUTHORIZATION`
+- `TVM-CEFR-MESSAGEBUS-RICH-ROUTING-COMPATIBILITY`
 
 Required validation:
 
 - `swift test --filter TargetGraphTests/testGH631FinalEnvelopeRetirementContractClassifiesEveryRetainedSource`
+- `swift test --filter TargetGraphTests/testGH632MessageBusOwnsRichRoutingCompatibilityContractAndKeepsCoreCompatibilityOnly`
 - `git diff --check`
 - `bash checks/automation-readiness.sh`
 - `bash checks/run.sh`

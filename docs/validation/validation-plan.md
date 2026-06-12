@@ -97,6 +97,26 @@ GH-631 必须建立的主要 anchors：
 - `GH-631-NO-PRODUCTION-AUTHORIZATION`
 - `TVM-CEFR-FINAL-ENVELOPE-RETIREMENT-CONTRACT`
 
+## GH-632 CEFR MessageBus Rich Routing Compatibility Validation
+
+GH-632 的 required validation：
+
+- `Sources/MessageBus/RichRoutingCompatibilityContract.swift` 必须位于 `MessageBus` target，并定义 `MessageBusRichRoutingCompatibilityContract.gh632`。
+- `Core` target 必须排除 `MessageBus/RichRoutingCompatibilityContract.swift`，避免 Core 拥有 active routing ownership decision。
+- Contract 必须覆盖 `Sources/MessageBus/CommandsAndQueries.swift`、`Sources/MessageBus/DomainEvents.swift`、`Sources/MessageBus/EventLog.swift` 和 `Sources/MessageBus/PaperRuntimeBusRouting.swift`，并把它们标记为 `Core` compatibility-only retained surfaces。
+- `MessageBusTargetBoundary.requiredValidationAnchors` 必须包含 `GH-632-MESSAGEBUS-RICH-ROUTING-COMPATIBILITY-CONTRACT`。
+- `Dashboard` 和 `MTPROCLI` target dependency boundary 必须保持不变。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、真实 Binance private endpoint、broker、production credential 或人工验收。
+
+GH-632 必须建立的主要 anchors：
+
+- `GH-632-MESSAGEBUS-RICH-ROUTING-COMPATIBILITY-CONTRACT`
+- `GH-632-CORE-RICH-ROUTING-COMPATIBILITY-ONLY`
+- `GH-632-MESSAGEBUS-OWNED-ROUTING-CLASSIFICATION`
+- `GH-632-DASHBOARD-CLI-BOUNDARY-HELD`
+- `GH-632-NO-PRODUCTION-AUTHORIZATION`
+- `TVM-CEFR-MESSAGEBUS-RICH-ROUTING-COMPATIBILITY`
+
 ## Stage Audit Input Location Rule
 
 `docs/validation/` 只保留长期验证入口，例如 latest summary、validation plan、trading validation matrix、eval strategy 和 macOS build / run loop。
