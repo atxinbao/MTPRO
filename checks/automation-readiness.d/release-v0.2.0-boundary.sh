@@ -214,6 +214,8 @@ required_evidence = {
         "TVM-RELEASE-V020-BINANCE-SPOT-EXECUTIONCLIENT-ADAPTER",
         "GH-585",
         "TVM-RELEASE-V020-BINANCE-USDM-PERP-EXECUTIONCLIENT-ADAPTER",
+        "GH-586",
+        "TVM-RELEASE-V020-EXECUTION-REPORT-BROKER-FILL-PARSER",
     ],
     "docs/validation/validation-plan.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Validation",
@@ -234,6 +236,7 @@ required_evidence = {
         "GH-583 Release v0.2.0 Product-aware OMS State Machine Validation",
         "GH-584 Release v0.2.0 Binance Spot ExecutionClient Adapter Validation",
         "GH-585 Release v0.2.0 Binance USD-M Perpetual ExecutionClient Adapter Validation",
+        "GH-586 Release v0.2.0 Execution Report Broker Fill Parser Validation",
     ],
     "docs/domain/context.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Terms",
@@ -254,6 +257,7 @@ required_evidence = {
         "GH-583 Product-aware OMS State Machine Terms",
         "GH-584 Binance Spot ExecutionClient Adapter Terms",
         "GH-585 Binance USD-M Perpetual ExecutionClient Adapter Terms",
+        "GH-586 Execution Report Broker Fill Parser Terms",
     ],
     "docs/automation/automation-readiness.md": [
         "Release v0.2.0 boundary automation guard anchor",
@@ -274,6 +278,7 @@ required_evidence = {
         "Release v0.2.0 Product-aware OMS state machine anchor",
         "Release v0.2.0 Binance Spot ExecutionClient adapter anchor",
         "Release v0.2.0 Binance USD-M Perpetual ExecutionClient adapter anchor",
+        "Release v0.2.0 execution report broker fill parser anchor",
     ],
     "Tests/TargetGraphTests/TargetGraphTests.swift": [
         "testGH565ReleaseV020BoundaryGuardBlocksScopeExpansionAndProductionDefaults",
@@ -294,6 +299,7 @@ required_evidence = {
         "testGH583ProductAwareOMSStateMachineCoversSpotPerpReplayAndRejectsIllegalTransition",
         "testGH584BinanceSpotExecutionClientAdapterProducesDryRunAndTestnetMapping",
         "testGH585BinanceUSDMPerpExecutionClientAdapterProducesPositionSideReduceOnlyMapping",
+        "testGH586BinanceExecutionReportParserMapsSpotPerpBrokerFillAndPositionUpdates",
     ],
 }
 
