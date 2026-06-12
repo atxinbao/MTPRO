@@ -383,6 +383,62 @@ Production defaults remain:
 - `realOrderCommandEnabledByDefault == false`
 - `reconciliationRuntimeEnabledByDefault == false`
 
+## GH-636-FINAL-ENVELOPE-RETIREMENT-CLOSEOUT
+
+`GH-636-FINAL-ENVELOPE-RETIREMENT-CLOSEOUT`
+
+GH-636 收口 GH-631 至 GH-635 的 final envelope retirement validation matrix。收口后，`Core`、`Adapters`、`Persistence` 和 `Runtime` 都只能解释为 retained compatibility envelope 或 shim，不再代表 active business implementation owner。
+
+## GH-636-ISSUE-PR-EVIDENCE-CHAIN
+
+`GH-636-ISSUE-PR-EVIDENCE-CHAIN`
+
+GH-636 的 evidence chain 以 `docs/audit/inputs/mtpro-core-compatibility-envelope-final-retirement-v1-stage-audit-input.md` 为 Stage Code Audit 输入材料，覆盖：
+
+- GH-631 / PR #637 / merge `e3279b0c102ba47e56304d3ad98d203819ef3ecc`;
+- GH-632 / PR #638 / merge `c1aa7634c658833171f2956bbc7102be3e7e5bdc`;
+- GH-633 / PR #639 / merge `02c50ea24488e430664073833d076af88fbddff5`;
+- GH-634 / PR #640 / merge `4041b7eb82e490ee6deb2c2bfe6781cc772bb778`;
+- GH-635 / PR #641 / merge `75cb1cf157244c3e4234ad4f866ae2eab06a2634`.
+
+## GH-636-REAL-MODULE-OWNER-MAP-COMPLETE
+
+`GH-636-REAL-MODULE-OWNER-MAP-COMPLETE`
+
+Final owner map 必须覆盖 `DataClient`、`DataEngine`、`MessageBus`、`Database`、`Portfolio`、`RiskEngine`、`ExecutionEngine`、`ExecutionClient`、`Trader`、`TraderStrategies` 和 `Dashboard`。任何 active implementation ownership 都必须落在这些真实 module owner 或对应 foundation owner，不得回流到 `Core`、`Adapters`、`Persistence` 或 `Runtime` compatibility envelope。
+
+## GH-636-RETAINED-ENVELOPE-SHIM-MATRIX
+
+`GH-636-RETAINED-ENVELOPE-SHIM-MATRIX`
+
+Retained envelope shim matrix:
+
+- `Core`: compatibility envelope only; allowed reasons are legacy import surface, rich cross-module payload bridge, read-model-only historical evidence and deterministic validation bridge.
+- `Adapters`: DataClient compatibility re-export only; allowed reason is re-export compatibility surface.
+- `Persistence`: Database projection adapter shim only; allowed reason is projection adapter shim.
+- `Runtime`: DataEngine / Database replay-ingest workflow shim only; allowed reason is ingest / replay workflow shim.
+
+## GH-636-AUTOMATION-READINESS-CLOSEOUT
+
+`GH-636-AUTOMATION-READINESS-CLOSEOUT`
+
+Automation readiness must mechanically require the GH-636 stage audit input file, the GH-636 contract anchors, the final trading validation matrix row and the focused TargetGraph test `testGH636FinalEnvelopeRetirementCloseoutMatrixCoversCompletedEvidenceWithoutProductionCutover`.
+
+## GH-636-NO-PRODUCTION-CUTOVER-AUTHORIZATION
+
+`GH-636-NO-PRODUCTION-CUTOVER-AUTHORIZATION`
+
+GH-636 does not authorize production trading, production secret read, production endpoint connection, signed endpoint, account endpoint, listenKey, private WebSocket runtime, broker gateway, broker adapter, automatic broker connection, real submit / cancel / replace, production OMS, execution report runtime, broker fill runtime, reconciliation runtime, Live PRO Console command, trading button, live command, order form or production cutover.
+
+Production defaults remain:
+
+- `productionTradingEnabledByDefault == false`
+- `productionSecretReadEnabledByDefault == false`
+- `productionEndpointConnectionEnabledByDefault == false`
+- `productionOrderSubmitEnabledByDefault == false`
+- `productionBrokerConnectionEnabledByDefault == false`
+- `productionCutoverAuthorized == false`
+
 ## GH-631-RETENTION-REASON-AND-EXIT-PATH
 
 `GH-631-RETENTION-REASON-AND-EXIT-PATH`
@@ -479,6 +535,13 @@ Required anchors:
 - `GH-635-PACKAGE-SOURCE-OVERLAP-GUARD`
 - `GH-635-NO-PRODUCTION-AUTHORIZATION`
 - `TVM-CEFR-PERSISTENCE-RUNTIME-ENVELOPE-RETIREMENT`
+- `GH-636-FINAL-ENVELOPE-RETIREMENT-CLOSEOUT`
+- `GH-636-ISSUE-PR-EVIDENCE-CHAIN`
+- `GH-636-REAL-MODULE-OWNER-MAP-COMPLETE`
+- `GH-636-RETAINED-ENVELOPE-SHIM-MATRIX`
+- `GH-636-AUTOMATION-READINESS-CLOSEOUT`
+- `GH-636-NO-PRODUCTION-CUTOVER-AUTHORIZATION`
+- `TVM-CEFR-FINAL-ENVELOPE-RETIREMENT-CLOSEOUT`
 
 Required validation:
 
@@ -487,6 +550,7 @@ Required validation:
 - `swift test --filter TargetGraphTests/testGH633DataEngineOwnsScenarioReplayAndDataQualityWhileCoreRetainsMatchingBridgeOnly`
 - `swift test --filter TargetGraphTests/testGH634PortfolioAndExecutionOwnParityContractsWhileCoreRetainsBridgeOnly`
 - `swift test --filter TargetGraphTests/testGH635PersistenceRuntimeEnvelopesAreAdapterAndWorkflowShimsOnly`
+- `swift test --filter TargetGraphTests/testGH636FinalEnvelopeRetirementCloseoutMatrixCoversCompletedEvidenceWithoutProductionCutover`
 - `git diff --check`
 - `bash checks/automation-readiness.sh`
 - `bash checks/run.sh`

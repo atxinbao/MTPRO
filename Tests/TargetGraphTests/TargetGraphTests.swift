@@ -5032,6 +5032,171 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH636FinalEnvelopeRetirementCloseoutMatrixCoversCompletedEvidenceWithoutProductionCutover() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let contract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/core-compatibility-envelope-final-retirement-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let auditInput = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/audit/inputs/mtpro-core-compatibility-envelope-final-retirement-v1-stage-audit-input.md"
+            ),
+            encoding: .utf8
+        )
+
+        let closeoutAnchors = [
+            "GH-636-FINAL-ENVELOPE-RETIREMENT-CLOSEOUT",
+            "GH-636-ISSUE-PR-EVIDENCE-CHAIN",
+            "GH-636-REAL-MODULE-OWNER-MAP-COMPLETE",
+            "GH-636-RETAINED-ENVELOPE-SHIM-MATRIX",
+            "GH-636-AUTOMATION-READINESS-CLOSEOUT",
+            "GH-636-NO-PRODUCTION-CUTOVER-AUTHORIZATION",
+            "TVM-CEFR-FINAL-ENVELOPE-RETIREMENT-CLOSEOUT"
+        ]
+        for anchor in closeoutAnchors {
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must remain in CEFR contract")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must remain in validation-plan.md")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must remain in trading-validation-matrix.md")
+            XCTAssertTrue(auditInput.contains(anchor), "\(anchor) must remain in stage audit input")
+        }
+        for anchor in closeoutAnchors.dropLast() {
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must be mechanically checked")
+        }
+        XCTAssertTrue(automationReadiness.contains("Core compatibility envelope final retirement closeout anchor"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH636FinalEnvelopeRetirementCloseoutMatrixCoversCompletedEvidenceWithoutProductionCutover"
+            )
+        )
+
+        for issue in 631...635 {
+            XCTAssertTrue(auditInput.contains("[GH-\(issue)]"), "GH-\(issue) must be linked in evidence chain")
+        }
+        for pr in 637...641 {
+            XCTAssertTrue(auditInput.contains("[PR #\(pr)]"), "PR #\(pr) must be linked in evidence chain")
+        }
+        for mergeCommit in [
+            "e3279b0c102ba47e56304d3ad98d203819ef3ecc",
+            "c1aa7634c658833171f2956bbc7102be3e7e5bdc",
+            "02c50ea24488e430664073833d076af88fbddff5",
+            "4041b7eb82e490ee6deb2c2bfe6781cc772bb778",
+            "75cb1cf157244c3e4234ad4f866ae2eab06a2634"
+        ] {
+            XCTAssertTrue(auditInput.contains(mergeCommit), "\(mergeCommit) must remain in evidence chain")
+        }
+
+        for owner in [
+            "DataClient",
+            "DataEngine",
+            "MessageBus",
+            "Database",
+            "Portfolio",
+            "RiskEngine",
+            "ExecutionEngine",
+            "ExecutionClient",
+            "Trader",
+            "TraderStrategies",
+            "Dashboard"
+        ] {
+            XCTAssertTrue(auditInput.contains("`\(owner)`"), "\(owner) must be present in owner map")
+        }
+
+        for retainedRole in [
+            "`Core` | compatibility envelope only",
+            "`Adapters` | DataClient compatibility re-export only",
+            "`Persistence` | Database projection adapter shim only",
+            "`Runtime` | DataEngine / Database replay-ingest workflow shim only"
+        ] {
+            XCTAssertTrue(auditInput.contains(retainedRole), "\(retainedRole) must stay explicit")
+        }
+
+        let dataClientTarget = try packageTargetBlock(named: "DataClient", packageSource: packageSource)
+        let dataEngineTarget = try packageTargetBlock(named: "DataEngine", packageSource: packageSource)
+        let messageBusTarget = try packageTargetBlock(named: "MessageBus", packageSource: packageSource)
+        let databaseTarget = try packageTargetBlock(named: "Database", packageSource: packageSource)
+        let portfolioTarget = try packageTargetBlock(named: "Portfolio", packageSource: packageSource)
+        let riskEngineTarget = try packageTargetBlock(named: "RiskEngine", packageSource: packageSource)
+        let executionEngineTarget = try packageTargetBlock(named: "ExecutionEngine", packageSource: packageSource)
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        let traderTarget = try packageTargetBlock(named: "Trader", packageSource: packageSource)
+        let traderStrategiesTarget = try packageTargetBlock(named: "TraderStrategies", packageSource: packageSource)
+        let dashboardTarget = try packageTargetBlock(named: "Dashboard", packageSource: packageSource)
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        let adaptersTarget = try packageTargetBlock(named: "Adapters", packageSource: packageSource)
+        let persistenceTarget = try packageTargetBlock(named: "Persistence", packageSource: packageSource)
+        let runtimeTarget = try packageTargetBlock(named: "Runtime", packageSource: packageSource)
+
+        XCTAssertTrue(dataClientTarget.contains("\"Binance/PublicMarketData/Adapters.swift\""))
+        XCTAssertTrue(dataEngineTarget.contains("\"ScenarioReplay/ScenarioReplayDataQualityOwnershipContract.swift\""))
+        XCTAssertTrue(messageBusTarget.contains("\"RichRoutingCompatibilityContract.swift\""))
+        XCTAssertTrue(databaseTarget.contains("\"PersistenceRuntimeEnvelopeRetirementContract.swift\""))
+        XCTAssertTrue(portfolioTarget.contains("\"PortfolioParityOwnershipContract.swift\""))
+        XCTAssertTrue(riskEngineTarget.contains("\"PreTrade/RiskEnginePreTradeOwnership.swift\""))
+        XCTAssertTrue(executionEngineTarget.contains("\"Ownership\""))
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(traderTarget.contains("\"Accounts\""))
+        XCTAssertTrue(traderStrategiesTarget.contains("\"StrategyRegistry.swift\""))
+        XCTAssertTrue(dashboardTarget.contains("dependencies: [\"Core\", \"Persistence\"]"))
+
+        XCTAssertTrue(adaptersTarget.contains("\"AdaptersCompatibility.swift\""))
+        XCTAssertTrue(persistenceTarget.contains("\"Projections/ReleaseV020SpotPerpDatabaseProjections.swift\""))
+        XCTAssertTrue(persistenceTarget.contains("\"Projections/SQLite/Persistence.swift\""))
+        XCTAssertTrue(persistenceTarget.contains("\"Projections/DuckDB/DuckDBAnalyticalProjectionAdapter.swift\""))
+        XCTAssertTrue(runtimeTarget.contains("\"Database/ReplayProjection\""))
+        XCTAssertTrue(runtimeTarget.contains("\"DataEngine/Ingest\""))
+        XCTAssertTrue(coreTarget.contains("\"DataEngine/ScenarioReplay/ScenarioReplayDeterministicMatching.swift\""))
+        XCTAssertTrue(coreTarget.contains("\"Portfolio/PaperAccountPortfolioProjectionV2.swift\""))
+        XCTAssertTrue(coreTarget.contains("\"ExecutionEngine/PaperLifecycle\""))
+
+        for retiredDirectory in [
+            "Sources/Adapters",
+            "Sources/Persistence",
+            "Sources/Runtime"
+        ] {
+            XCTAssertFalse(
+                FileManager.default.fileExists(atPath: repositoryRoot.appendingPathComponent(retiredDirectory).path),
+                "\(retiredDirectory) must stay absent after final closeout"
+            )
+        }
+
+        for forbiddenDefault in [
+            "productionTradingEnabledByDefault == false",
+            "productionSecretReadEnabledByDefault == false",
+            "productionEndpointConnectionEnabledByDefault == false",
+            "productionOrderSubmitEnabledByDefault == false",
+            "productionBrokerConnectionEnabledByDefault == false",
+            "productionCutoverAuthorized == false"
+        ] {
+            XCTAssertTrue(contract.contains(forbiddenDefault), "\(forbiddenDefault) must stay in contract")
+            XCTAssertTrue(auditInput.contains(forbiddenDefault), "\(forbiddenDefault) must stay in audit input")
+        }
+        XCTAssertTrue(tradingMatrix.contains("production cutover"))
+        XCTAssertTrue(auditInput.contains("no next Project / Issue is created or promoted"))
+    }
+
     func testGH523ReleaseV010TargetsExposeRealSmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-523-release-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)

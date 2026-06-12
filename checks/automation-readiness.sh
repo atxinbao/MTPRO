@@ -6446,6 +6446,25 @@ require_absent "docs/validation/validation-plan.md" '`Sources/Trader/StrategyBin
 require_absent "docs/validation/validation-plan.md" '只使用 `"Trader/Strategies/EMA"` 和 `"Trader/StrategyBindings"`'
 require_absent "docs/validation/validation-plan.md" "Validation 必须覆盖 StrategyBindings as non-concrete-strategy landing area"
 
+require_file "docs/audit/inputs/mtpro-core-compatibility-envelope-final-retirement-v1-stage-audit-input.md"
+require_contains "docs/automation/automation-readiness.md" "Core compatibility envelope final retirement closeout anchor"
+require_contains "docs/audit/inputs/mtpro-core-compatibility-envelope-final-retirement-v1-stage-audit-input.md" "GH-636-FINAL-ENVELOPE-RETIREMENT-CLOSEOUT"
+require_contains "docs/audit/inputs/mtpro-core-compatibility-envelope-final-retirement-v1-stage-audit-input.md" "GH-636-ISSUE-PR-EVIDENCE-CHAIN"
+require_contains "docs/audit/inputs/mtpro-core-compatibility-envelope-final-retirement-v1-stage-audit-input.md" "GH-636-REAL-MODULE-OWNER-MAP-COMPLETE"
+require_contains "docs/audit/inputs/mtpro-core-compatibility-envelope-final-retirement-v1-stage-audit-input.md" "GH-636-RETAINED-ENVELOPE-SHIM-MATRIX"
+require_contains "docs/audit/inputs/mtpro-core-compatibility-envelope-final-retirement-v1-stage-audit-input.md" "GH-636-AUTOMATION-READINESS-CLOSEOUT"
+require_contains "docs/audit/inputs/mtpro-core-compatibility-envelope-final-retirement-v1-stage-audit-input.md" "GH-636-NO-PRODUCTION-CUTOVER-AUTHORIZATION"
+require_contains "docs/audit/inputs/mtpro-core-compatibility-envelope-final-retirement-v1-stage-audit-input.md" "GH-636-STAGE-CODE-AUDIT-HANDOFF"
+require_contains "docs/contracts/core-compatibility-envelope-final-retirement-contract.md" "GH-636-FINAL-ENVELOPE-RETIREMENT-CLOSEOUT"
+require_contains "docs/contracts/core-compatibility-envelope-final-retirement-contract.md" "GH-636-ISSUE-PR-EVIDENCE-CHAIN"
+require_contains "docs/contracts/core-compatibility-envelope-final-retirement-contract.md" "GH-636-REAL-MODULE-OWNER-MAP-COMPLETE"
+require_contains "docs/contracts/core-compatibility-envelope-final-retirement-contract.md" "GH-636-RETAINED-ENVELOPE-SHIM-MATRIX"
+require_contains "docs/contracts/core-compatibility-envelope-final-retirement-contract.md" "GH-636-AUTOMATION-READINESS-CLOSEOUT"
+require_contains "docs/contracts/core-compatibility-envelope-final-retirement-contract.md" "GH-636-NO-PRODUCTION-CUTOVER-AUTHORIZATION"
+require_contains "docs/validation/validation-plan.md" "GH-636 CEFR Final Envelope Retirement Closeout Validation"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-CEFR-FINAL-ENVELOPE-RETIREMENT-CLOSEOUT"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH636FinalEnvelopeRetirementCloseoutMatrixCoversCompletedEvidenceWithoutProductionCutover"
+
 require_absent ".github/workflows/checks.yml" "pull_request_target"
 
 printf 'MTPRO automation readiness checks passed.\n'

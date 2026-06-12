@@ -181,6 +181,29 @@ GH-635 必须建立的主要 anchors：
 - `GH-635-NO-PRODUCTION-AUTHORIZATION`
 - `TVM-CEFR-PERSISTENCE-RUNTIME-ENVELOPE-RETIREMENT`
 
+## GH-636 CEFR Final Envelope Retirement Closeout Validation
+
+GH-636 的 required validation：
+
+- `docs/audit/inputs/mtpro-core-compatibility-envelope-final-retirement-v1-stage-audit-input.md` 必须存在，并包含 `GH-636-FINAL-ENVELOPE-RETIREMENT-CLOSEOUT`、`GH-636-ISSUE-PR-EVIDENCE-CHAIN`、`GH-636-REAL-MODULE-OWNER-MAP-COMPLETE`、`GH-636-RETAINED-ENVELOPE-SHIM-MATRIX`、`GH-636-AUTOMATION-READINESS-CLOSEOUT`、`GH-636-NO-PRODUCTION-CUTOVER-AUTHORIZATION` 和 `GH-636-STAGE-CODE-AUDIT-HANDOFF`。
+- `docs/contracts/core-compatibility-envelope-final-retirement-contract.md` 必须包含 GH-636 closeout anchors，并继续保留 GH-631 至 GH-635 anchors。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-CEFR-FINAL-ENVELOPE-RETIREMENT-CLOSEOUT`。
+- `docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须包含 GH-636 automation readiness closeout anchors。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH636FinalEnvelopeRetirementCloseoutMatrixCoversCompletedEvidenceWithoutProductionCutover`。
+- `Core` 不能被描述为 active business implementation owner；`Adapters`、`Persistence` 和 `Runtime` 的 retained reasons 必须短且明确。
+- Real module owner map 必须覆盖 `DataClient`、`DataEngine`、`MessageBus`、`Database`、`Portfolio`、`RiskEngine`、`ExecutionEngine`、`ExecutionClient`、`Trader`、`TraderStrategies` 和 `Dashboard`。
+- Required validation 仍为 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、真实 Binance private endpoint、broker、production credential 或人工验收。
+
+GH-636 必须建立的主要 anchors：
+
+- `GH-636-FINAL-ENVELOPE-RETIREMENT-CLOSEOUT`
+- `GH-636-ISSUE-PR-EVIDENCE-CHAIN`
+- `GH-636-REAL-MODULE-OWNER-MAP-COMPLETE`
+- `GH-636-RETAINED-ENVELOPE-SHIM-MATRIX`
+- `GH-636-AUTOMATION-READINESS-CLOSEOUT`
+- `GH-636-NO-PRODUCTION-CUTOVER-AUTHORIZATION`
+- `TVM-CEFR-FINAL-ENVELOPE-RETIREMENT-CLOSEOUT`
+
 ## Stage Audit Input Location Rule
 
 `docs/validation/` 只保留长期验证入口，例如 latest summary、validation plan、trading validation matrix、eval strategy 和 macOS build / run loop。
