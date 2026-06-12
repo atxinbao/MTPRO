@@ -5547,6 +5547,189 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH645ProductionEndpointConnectionGateRequiresApprovalAllowlistAndAudit() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/production-endpoint-connection-gate-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let upstreamContractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/production-credential-reference-environment-isolation-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+
+        let upstream = try ProductionCredentialReferenceEnvironmentIsolation.deterministicFixture()
+        let contract = try ProductionEndpointConnectionGate.deterministicFixture()
+        XCTAssertTrue(upstream.contractHeld)
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertTrue(contract.allowlistCoverageHeld)
+        XCTAssertTrue(contract.auditFailClosedCoverageHeld)
+        XCTAssertTrue(contract.endpointDefaultsClosed)
+        XCTAssertTrue(contract.bypassRejected)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-645")
+        XCTAssertEqual(contract.upstreamIssueID.rawValue, "GH-644")
+        XCTAssertEqual(contract.downstreamIssueID.rawValue, "GH-646")
+        XCTAssertEqual(contract.canonicalQueueRange, "GH-643..GH-649")
+        XCTAssertEqual(contract.allowedEndpointReferences, ProductionEndpointConnectionGate.requiredAllowedEndpointReferences)
+        XCTAssertEqual(contract.allowedVenue, "Binance")
+        XCTAssertEqual(contract.allowedProductTypes, ["spot", "usdsPerpetual"])
+        XCTAssertEqual(Set(contract.requirements), Set(ProductionEndpointConnectionRequirement.allCases))
+        XCTAssertEqual(
+            Set(contract.forbiddenCapabilities),
+            Set(ProductionEndpointConnectionForbiddenCapability.allCases)
+        )
+
+        XCTAssertTrue(contract.upstreamCredentialIsolationContractHeld)
+        XCTAssertTrue(contract.operatorApprovalRequired)
+        XCTAssertTrue(contract.endpointVenueProductAllowlistRequired)
+        XCTAssertTrue(contract.connectionAttemptAuditRequired)
+        XCTAssertTrue(contract.connectionFailureFailsClosed)
+        XCTAssertTrue(contract.noEndpointFallbackRequired)
+        XCTAssertTrue(contract.noSilentContinuationAfterFailureRequired)
+        XCTAssertFalse(contract.productionEndpointConnectsByDefault)
+        XCTAssertFalse(contract.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(contract.productionSecretAutoReadEnabled)
+        XCTAssertFalse(contract.realBrokerConnectionEnabled)
+        XCTAssertFalse(contract.realOrderSubmissionEnabled)
+        XCTAssertFalse(contract.commandRiskExecutionOMSBypassAllowed)
+        XCTAssertFalse(contract.eventStoreBypassAllowed)
+        XCTAssertFalse(contract.startsNextMilestone)
+
+        let outcomes = Set(contract.attemptEvidence.map(\.outcome))
+        XCTAssertEqual(outcomes, Set(ProductionEndpointConnectionAttemptOutcome.allCases))
+        XCTAssertTrue(contract.attemptEvidence.allSatisfy(\.auditBoundaryHeld))
+        XCTAssertTrue(contract.attemptEvidence.allSatisfy(\.connectionAttemptRecorded))
+        XCTAssertTrue(contract.attemptEvidence.allSatisfy(\.failureFailsClosed))
+        XCTAssertTrue(contract.attemptEvidence.allSatisfy { $0.allowsFallback == false })
+        XCTAssertTrue(contract.attemptEvidence.allSatisfy { $0.silentContinuationAllowed == false })
+        XCTAssertTrue(contract.attemptEvidence.allSatisfy { $0.connectsProductionEndpoint == false })
+
+        for anchor in ProductionEndpointConnectionGate.requiredValidationAnchors {
+            XCTAssertTrue(contract.validationAnchors.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in endpoint gate contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation-plan.md")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading-validation-matrix.md")
+        }
+        XCTAssertTrue(upstreamContractDoc.contains("PCHR-02-CREDENTIAL-REFERENCE-ENVIRONMENT-ISOLATION-RUNTIME"))
+        XCTAssertTrue(automationReadiness.contains("Production endpoint connection gate anchor"))
+        XCTAssertTrue(readinessScript.contains("ProductionEndpointConnectionGate.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH645ProductionEndpointConnectionGateRequiresApprovalAllowlistAndAudit"
+            )
+        )
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/ProductionEndpointConnectionGate.swift"
+                ).path
+            )
+        )
+
+        XCTAssertThrowsError(
+            try ProductionEndpointConnectionGate(
+                productionEndpointAutoConnectEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("productionEndpointAutoConnectEnabled")
+            )
+        }
+        XCTAssertThrowsError(
+            try ProductionEndpointConnectionGate(
+                productionEndpointConnectsByDefault: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("productionEndpointConnectsByDefault")
+            )
+        }
+        XCTAssertThrowsError(
+            try ProductionEndpointConnectionGate(
+                upstreamCredentialIsolationContractHeld: false
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "upstreamCredentialIsolationContractHeld",
+                    expected: "true",
+                    actual: "false"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try ProductionEndpointConnectionAttemptAuditEvidence(
+                attemptID: Identifier.constant("unsafe-gh-645-fallback"),
+                endpointReference: "binance-production-rest-endpoint-reference",
+                venue: "Binance",
+                productType: "spot",
+                operatorApprovalAnchor: "PCHR-03-OPERATOR-APPROVAL-REQUIRED",
+                auditAnchor: "PCHR-03-UNSAFE-FALLBACK",
+                outcome: .blockedMissingOperatorApproval,
+                endpointAllowlisted: true,
+                venueAllowlisted: true,
+                productTypeAllowlisted: true,
+                operatorApprovalPresent: false,
+                allowsFallback: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("allowsFallback"))
+        }
+        XCTAssertThrowsError(
+            try ProductionEndpointConnectionAttemptAuditEvidence(
+                attemptID: Identifier.constant("unsafe-gh-645-outcome-mismatch"),
+                endpointReference: "binance-production-rest-endpoint-reference",
+                venue: "Binance",
+                productType: "spot",
+                operatorApprovalAnchor: "PCHR-03-OPERATOR-APPROVAL-REQUIRED",
+                auditAnchor: "PCHR-03-UNSAFE-OUTCOME-MISMATCH",
+                outcome: .blockedEndpointNotAllowlisted,
+                endpointAllowlisted: true,
+                venueAllowlisted: true,
+                productTypeAllowlisted: true,
+                operatorApprovalPresent: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "auditBoundaryHeld",
+                    expected: "endpoint attempt outcome matches fail-closed connection gate",
+                    actual: "blocked: endpoint not allowlisted"
+                )
+            )
+        }
+    }
+
     func testGH523ReleaseV010TargetsExposeRealSmokeCoverage() throws {
         let sourceID = try FoundationTargetID("gh-523-release-source")
         let domainOwnership = FoundationTargetSourceOwnership.domainModel(ownerID: sourceID)
