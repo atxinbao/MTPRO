@@ -351,6 +351,31 @@ GH-658 必须建立的主要 anchors：
 - `V030-02-INVALID-ENVIRONMENT-TRANSITION-FAIL-CLOSED`
 - `TVM-RELEASE-V030-RUNTIME-ENVIRONMENT-CONFIG`
 
+## GH-694 Release v0.4.0 Unified Runtime Rehearsal Pipeline Contract Validation
+
+GH-694 的 required validation：
+
+- `docs/contracts/release-v0.4.0-unified-runtime-rehearsal-pipeline-contract.md` 必须存在，并包含 `V040-01-UNIFIED-RUNTIME-REHEARSAL-PIPELINE-CONTRACT`、`V040-01-ONE-RUNID-EVIDENCE-CHAIN`、`V040-01-BINANCE-SPOT-PERP-EMA-RSI-BOUNDARY`、`V040-01-DRYRUN-SHADOW-TESTNET-GUARDED-SEMANTICS`、`V040-01-DASHBOARD-CLI-UNIFIED-RUN-PROJECTION` 和 `V040-01-FORBIDDEN-PRODUCTION-CAPABILITIES`。
+- `Sources/ExecutionClient/FutureGate/ReleaseV040UnifiedRuntimeRehearsalPipelineContract.swift` 必须定义 `ReleaseV040UnifiedRuntimeRehearsalPipelineContract`、`ReleaseV040UnifiedRuntimeRehearsalMode`、`ReleaseV040UnifiedRuntimeModuleStep`、`ReleaseV040UnifiedRuntimeForbiddenCapability` 和 `ReleaseV040UnifiedRuntimeValidationExpectation`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH694ReleaseV040UnifiedRuntimeRehearsalPipelineContractRequiresOneRunID`。
+- Contract 必须固定 release version 为 `v0.4.0`，queue range 为 `GH-694..GH-709`，downstream issue 为 `GH-695`。
+- Contract 必须证明一次 rehearsal run 只有一个 runID，所有 module evidence 必须共享一个 unified evidence envelope。
+- Contract 必须证明模块顺序固定为 DataEngine -> MessageBus -> Trader / EMA / RSI -> RiskEngine -> ExecutionEngine / OMS -> Binance dry-run / testnet-gated ExecutionClient -> Event Store -> Portfolio projection -> Dashboard / CLI。
+- Contract 必须证明 active venue 为 Binance，active product types 为 Spot + USDⓈ-M Perpetual，active strategies 为 EMA + RSI。
+- Contract 必须定义 dry-run、shadow、testnet-guarded 和 production-blocked semantics，并明确 GH-694 不连接 testnet 或 production endpoint。
+- Contract 必须证明 production trading 默认关闭、production secret 不自动读取、production endpoint 不自动连接、production broker 不连接、production order 不提交、production cutover 未授权。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH694ReleaseV040UnifiedRuntimeRehearsalPipelineContractRequiresOneRunID`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-694 必须建立的主要 anchors：
+
+- `V040-01-UNIFIED-RUNTIME-REHEARSAL-PIPELINE-CONTRACT`
+- `V040-01-ONE-RUNID-EVIDENCE-CHAIN`
+- `V040-01-BINANCE-SPOT-PERP-EMA-RSI-BOUNDARY`
+- `V040-01-DRYRUN-SHADOW-TESTNET-GUARDED-SEMANTICS`
+- `V040-01-DASHBOARD-CLI-UNIFIED-RUN-PROJECTION`
+- `V040-01-FORBIDDEN-PRODUCTION-CAPABILITIES`
+- `TVM-RELEASE-V040-UNIFIED-RUNTIME-REHEARSAL-PIPELINE-CONTRACT`
+
 ## GH-657 Release v0.3.0 Runtime Rehearsal Contract Validation
 
 GH-657 的 required validation：
