@@ -513,6 +513,24 @@ GH-701 必须建立的主要 anchors：
 - `V040-08-NETWORK-PRODUCTION-ORDER-BLOCKED`
 - `TVM-RELEASE-V040-BINANCE-DRYRUN-EXECUTIONCLIENT-ADAPTER`
 
+## GH-702 Release v0.4.0 Binance Testnet Mode Boundary Validation
+
+GH-702 的 required validation：
+
+- `docs/contracts/release-v0.4.0-binance-testnet-mode-boundary-contract.md` 必须存在，并包含 `V040-09-BINANCE-TESTNET-MODE-BOUNDARY`、`V040-09-EXPLICIT-MODE-OPERATOR-CONFIRMATION`、`V040-09-TESTNET-ONLY-ENDPOINT-ENVIRONMENT` 和 `V040-09-PRODUCTION-FALLBACK-BLOCKED`。
+- `Sources/ExecutionClient/FutureGate/ReleaseV040BinanceTestnetModeBoundary.swift` 必须定义 `ReleaseV040BinanceTestnetEndpointReference`、`ReleaseV040BinanceTestnetOperatorConfirmation`、`ReleaseV040BinanceTestnetModeBoundaryEvidence` 和 `ReleaseV040BinanceTestnetModeBoundary`。
+- Testnet mode boundary 必须消费 #701 dry-run ExecutionClient adapter evidence，保留 defaultMode=dry-run，并且只允许 explicit `--mode testnet` + operator confirmation evidence。
+- Evidence 必须覆盖 Binance Spot `https://testnet.binance.vision` 和 Binance USDⓈ-M Perpetual `https://testnet.binancefuture.com`，且 production endpoint、production secret、production order、fallback-to-production 和 production cutover 全部保持 false。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH702BinanceTestnetModeBoundaryRequiresExplicitOperatorConfirmation`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、真实 testnet network 或人工验收。
+
+GH-702 必须建立的主要 anchors：
+
+- `V040-09-BINANCE-TESTNET-MODE-BOUNDARY`
+- `V040-09-EXPLICIT-MODE-OPERATOR-CONFIRMATION`
+- `V040-09-TESTNET-ONLY-ENDPOINT-ENVIRONMENT`
+- `V040-09-PRODUCTION-FALLBACK-BLOCKED`
+- `TVM-RELEASE-V040-BINANCE-TESTNET-MODE-BOUNDARY`
+
 ## GH-657 Release v0.3.0 Runtime Rehearsal Contract Validation
 
 GH-657 的 required validation：

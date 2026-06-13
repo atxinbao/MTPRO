@@ -6462,6 +6462,233 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH702BinanceTestnetModeBoundaryRequiresExplicitOperatorConfirmation() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.4.0-binance-testnet-mode-boundary-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let boundarySource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/ExecutionClient/FutureGate/ReleaseV040BinanceTestnetModeBoundary.swift"
+            ),
+            encoding: .utf8
+        )
+
+        let upstreamData = try ReleaseV040DataEngineMessageBusRuntimeStep.deterministicEvidence()
+        let traderStep = try ReleaseV040TraderStrategyActorsRuntimeStep(runContext: upstreamData.runContext)
+        let traderEvidence = try traderStep.run(
+            marketInputs: ReleaseV040TraderStrategyActorsRuntimeStep.deterministicMessageBusMarketInputs(
+                runContext: upstreamData.runContext
+            ),
+            quantity: Quantity(0.10, field: "gh702Quantity")
+        )
+        let riskInputs = try traderEvidence.emissions.map { emission in
+            try ReleaseV040RiskEngineStrategyIntentInput(
+                runContext: traderEvidence.runContext,
+                upstreamEvidenceID: emission.messageBusEnvelope.evidenceID,
+                intentMessage: emission.intentMessage,
+                intentJournalEnvelope: emission.intentJournalEnvelope
+            )
+        }
+        let riskEvidence = try ReleaseV040RiskEnginePreTradeRehearsalGate(
+            runContext: traderEvidence.runContext
+        ).run(intentInputs: riskInputs)
+        let lifecycleEvidence = try ReleaseV040ExecutionOMSDryRunLifecycle(
+            runContext: riskEvidence.runContext
+        ).run(riskEvidence: riskEvidence)
+        let executableLogs = lifecycleEvidence.lifecycleLogs.filter(\.path.requiresAllowedRiskDecision)
+        let symbol = try Symbol(rawValue: "BTCUSDT")
+        let adapterQuantity = try Quantity(0.10, field: "gh702AdapterQuantity")
+        let adapterReferencePrice = try Price(42_500.0, field: "gh702AdapterReferencePrice")
+        let spotLog = try XCTUnwrap(executableLogs.first { $0.finalState == .filledSimulated })
+        let perpLog = try XCTUnwrap(executableLogs.first { $0.finalState == .cancelled })
+        let handoffs = try [
+            ReleaseV040BinanceDryRunExecutionClientOMSHandoff(
+                handoffID: Identifier.constant("gh-702-spot-oms-handoff"),
+                runContext: lifecycleEvidence.runContext,
+                sourceLifecycleLogID: spotLog.logID,
+                sourceOMSOrderID: spotLog.orderID,
+                sourceLifecyclePath: spotLog.path.rawValue,
+                sourceFinalState: spotLog.finalState.rawValue,
+                sourceEventIDs: spotLog.events.map(\.eventID),
+                sourceOMSEnvelopeIDs: spotLog.events.map(\.omsEnvelope.evidenceID),
+                instrument: InstrumentIdentity.binance(productType: .spot, symbol: symbol),
+                targetExposure: .targetLong,
+                quantity: adapterQuantity,
+                referencePrice: adapterReferencePrice,
+                stateEvidence: spotLog.events.flatMap { [$0.fromState.rawValue, $0.toState.rawValue] }
+            ),
+            ReleaseV040BinanceDryRunExecutionClientOMSHandoff(
+                handoffID: Identifier.constant("gh-702-perp-oms-handoff"),
+                runContext: lifecycleEvidence.runContext,
+                sourceLifecycleLogID: perpLog.logID,
+                sourceOMSOrderID: perpLog.orderID,
+                sourceLifecyclePath: perpLog.path.rawValue,
+                sourceFinalState: perpLog.finalState.rawValue,
+                sourceEventIDs: perpLog.events.map(\.eventID),
+                sourceOMSEnvelopeIDs: perpLog.events.map(\.omsEnvelope.evidenceID),
+                instrument: InstrumentIdentity.binance(productType: .usdsPerpetual, symbol: symbol),
+                targetExposure: .targetShort,
+                quantity: adapterQuantity,
+                referencePrice: adapterReferencePrice,
+                stateEvidence: perpLog.events.flatMap { [$0.fromState.rawValue, $0.toState.rawValue] }
+            )
+        ]
+        let upstreamAdapterEvidence = try ReleaseV040BinanceDryRunExecutionClientAdapter(
+            runContext: lifecycleEvidence.runContext
+        ).run(omsHandoffs: handoffs)
+        let evidence = try ReleaseV040BinanceTestnetModeBoundary().run(upstreamAdapterEvidence: upstreamAdapterEvidence)
+
+        XCTAssertTrue(upstreamAdapterEvidence.evidenceHeld)
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-702")
+        XCTAssertEqual(evidence.upstreamIssueID.rawValue, "GH-701")
+        XCTAssertEqual(evidence.downstreamIssueID.rawValue, "GH-707")
+        XCTAssertEqual(evidence.upstreamAdapterEvidenceID, upstreamAdapterEvidence.evidenceID)
+        XCTAssertEqual(evidence.defaultMode, .dryRun)
+        XCTAssertEqual(evidence.requestedMode, .testnetGuarded)
+        XCTAssertEqual(evidence.runContext.runID, upstreamAdapterEvidence.runContext.runID)
+        XCTAssertEqual(evidence.runContext.mode, .testnetGuarded)
+        XCTAssertEqual(evidence.runContext.causationID, upstreamAdapterEvidence.evidenceID)
+        XCTAssertTrue(evidence.endpointCoverageHeld)
+        XCTAssertTrue(evidence.operatorConfirmationCoverageHeld)
+        XCTAssertTrue(evidence.boundaryHeld)
+        XCTAssertEqual(evidence.endpoints.count, 2)
+        XCTAssertEqual(evidence.confirmations.count, 2)
+        XCTAssertEqual(
+            Set(evidence.endpoints.map { "\($0.productType.rawValue):\($0.baseURL.absoluteString)" }),
+            Set([
+                "spot:https://testnet.binance.vision",
+                "usdsPerpetual:https://testnet.binancefuture.com"
+            ])
+        )
+        XCTAssertTrue(evidence.endpoints.allSatisfy(\.endpointHeld))
+        XCTAssertTrue(evidence.endpoints.allSatisfy { $0.environment == .testnet && $0.testnetOnly })
+        XCTAssertTrue(evidence.confirmations.allSatisfy(\.confirmationHeld))
+        XCTAssertTrue(evidence.confirmations.allSatisfy { $0.modeFlag == .testnet })
+        XCTAssertTrue(evidence.confirmations.allSatisfy(\.operatorExplicitlyConfirmed))
+        XCTAssertTrue(
+            evidence.confirmations.allSatisfy {
+                $0.credentialProfileReference.hasPrefix(ReleaseV040BinanceTestnetOperatorConfirmation.testnetCredentialPrefix)
+            }
+        )
+        XCTAssertTrue(
+            evidence.confirmations.allSatisfy {
+                $0.acknowledgedCheckpoints == ReleaseV040BinanceTestnetOperatorConfirmation.requiredAcknowledgedCheckpoints
+            }
+        )
+
+        XCTAssertFalse(evidence.testnetEnabledByDefault)
+        XCTAssertFalse(evidence.networkCallPerformed)
+        XCTAssertFalse(evidence.productionSecretRead)
+        XCTAssertFalse(evidence.productionEndpointConnected)
+        XCTAssertFalse(evidence.productionOrderSubmitted)
+        XCTAssertFalse(evidence.fallbackToProduction)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertFalse(evidence.startsNextMilestone)
+
+        for anchor in [
+            "V040-09-BINANCE-TESTNET-MODE-BOUNDARY",
+            "V040-09-EXPLICIT-MODE-OPERATOR-CONFIRMATION",
+            "V040-09-TESTNET-ONLY-ENDPOINT-ENVIRONMENT",
+            "V040-09-PRODUCTION-FALLBACK-BLOCKED",
+            "TVM-RELEASE-V040-BINANCE-TESTNET-MODE-BOUNDARY"
+        ] {
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+        }
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(automationReadiness.contains("Release v0.4.0 Binance testnet mode boundary anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV040BinanceTestnetModeBoundary.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH702BinanceTestnetModeBoundaryRequiresExplicitOperatorConfirmation"
+            )
+        )
+        XCTAssertTrue(boundarySource.contains("ReleaseV040BinanceTestnetModeBoundary"))
+        XCTAssertTrue(boundarySource.contains("ReleaseV040BinanceTestnetEndpointReference"))
+        XCTAssertTrue(boundarySource.contains("ReleaseV040BinanceTestnetOperatorConfirmation"))
+        XCTAssertFalse(boundarySource.contains("URLSession"))
+        XCTAssertFalse(boundarySource.contains("URLRequest"))
+
+        XCTAssertThrowsError(
+            try ReleaseV040BinanceTestnetEndpointReference(
+                endpointID: Identifier.constant("gh-702-production-endpoint"),
+                productType: .spot,
+                baseURL: try XCTUnwrap(URL(string: "https://api.binance.com"))
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("releaseV040BinanceTestnet.productionEndpoint"))
+        }
+        XCTAssertThrowsError(
+            try ReleaseV040BinanceTestnetEndpointReference(
+                endpointID: Identifier.constant("gh-702-non-https-endpoint"),
+                productType: .spot,
+                baseURL: try XCTUnwrap(URL(string: "http://testnet.binance.vision"))
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("releaseV040BinanceTestnet.nonHTTPSBaseURL"))
+        }
+        XCTAssertThrowsError(
+            try ReleaseV040BinanceTestnetOperatorConfirmation(
+                confirmationID: Identifier.constant("gh-702-unsafe-mode"),
+                runContext: evidence.runContext,
+                modeFlag: .dryRun,
+                endpoint: evidence.endpoints[0],
+                credentialProfileReference: "testnet-profile:gh-702",
+                confirmedAt: Date(timeIntervalSince1970: 1_705_002_702)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "releaseV040BinanceTestnet.modeFlag",
+                    expected: ReleaseV040BinanceTestnetModeFlag.testnet.rawValue,
+                    actual: ReleaseV040BinanceTestnetModeFlag.dryRun.rawValue
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV040BinanceTestnetModeBoundaryEvidence(
+                upstreamAdapterEvidenceID: upstreamAdapterEvidence.evidenceID,
+                runContext: evidence.runContext,
+                endpoints: evidence.endpoints,
+                confirmations: evidence.confirmations,
+                productionOrderSubmitted: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("releaseV040BinanceTestnet.evidence.productionOrderSubmitted")
+            )
+        }
+    }
+
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
