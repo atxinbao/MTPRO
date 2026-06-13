@@ -6855,10 +6855,13 @@ final class TargetGraphTests: XCTestCase {
 
         XCTAssertEqual(evidence.fills.count, 4)
         XCTAssertTrue(evidence.fills.allSatisfy(\.fillHeld))
-        XCTAssertEqual(Set(evidence.fills.map(\.productType)), Set(ProductType.allCases))
+        XCTAssertEqual(
+            Set(evidence.fills.map(\.productType)),
+            Set(ReleaseV030PortfolioProjectionRehearsalEvidence.requiredProductTypes)
+        )
         XCTAssertEqual(
             Set(evidence.fills.map(\.strategyKind)),
-            Set(ReleaseV030PortfolioProjectionRehearsalStrategyKind.allCases)
+            Set(ReleaseV030PortfolioProjectionRehearsalEvidence.requiredStrategies)
         )
         XCTAssertTrue(evidence.fills.allSatisfy {
             $0.sourceEvidenceAnchor == ReleaseV030PortfolioProjectionRehearsalEvidence.requiredUpstreamEventStoreAnchor
@@ -6872,7 +6875,10 @@ final class TargetGraphTests: XCTestCase {
 
         XCTAssertEqual(evidence.productProjections.count, 2)
         XCTAssertTrue(evidence.productProjections.allSatisfy(\.projectionHeld))
-        XCTAssertEqual(Set(evidence.productProjections.map(\.productType)), Set(ProductType.allCases))
+        XCTAssertEqual(
+            Set(evidence.productProjections.map(\.productType)),
+            Set(ReleaseV030PortfolioProjectionRehearsalEvidence.requiredProductTypes)
+        )
         let spotProjection = try XCTUnwrap(evidence.productProjections.first { $0.productType == .spot })
         let perpProjection = try XCTUnwrap(evidence.productProjections.first { $0.productType == .usdsPerpetual })
         XCTAssertEqual(spotProjection.netPositionQuantity, 0.05, accuracy: 0.000001)
@@ -6886,10 +6892,10 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(evidence.strategyAttributions.allSatisfy(\.attributionHeld))
         XCTAssertEqual(
             Set(evidence.strategyAttributions.map(\.strategyKind)),
-            Set(ReleaseV030PortfolioProjectionRehearsalStrategyKind.allCases)
+            Set(ReleaseV030PortfolioProjectionRehearsalEvidence.requiredStrategies)
         )
         XCTAssertTrue(evidence.strategyAttributions.allSatisfy {
-            Set($0.productTypes) == Set(ProductType.allCases)
+            Set($0.productTypes) == Set(ReleaseV030PortfolioProjectionRehearsalEvidence.requiredProductTypes)
                 && $0.visibleInEvidence
                 && $0.productionAccountSynced == false
                 && $0.rawBrokerPayloadExposed == false
@@ -7056,15 +7062,15 @@ final class TargetGraphTests: XCTestCase {
         )
         XCTAssertEqual(evidence.runStatus, .blocked)
         XCTAssertEqual(cliEvidence.runStatus, .blocked)
-        XCTAssertEqual(Set(evidence.productTypes), Set(ProductType.allCases))
-        XCTAssertEqual(Set(cliEvidence.productTypes), Set(ProductType.allCases))
+        XCTAssertEqual(Set(evidence.productTypes), Set(ReleaseV030RehearsalSurfaceEvidence.requiredProductTypes))
+        XCTAssertEqual(Set(cliEvidence.productTypes), Set(ReleaseV030CLIRehearsalSurfaceEvidence.requiredProductTypes))
         XCTAssertEqual(
             Set(evidence.strategies),
-            Set(ReleaseV030PortfolioProjectionRehearsalStrategyKind.allCases)
+            Set(ReleaseV030RehearsalSurfaceEvidence.requiredStrategies)
         )
         XCTAssertEqual(
             Set(cliEvidence.strategies),
-            Set(ReleaseV030CLIRehearsalStrategyKind.allCases)
+            Set(ReleaseV030CLIRehearsalSurfaceEvidence.requiredStrategies)
         )
         XCTAssertEqual(evidence.gates.map(\.gate), ReleaseV030RehearsalSurfaceGate.allCases)
         XCTAssertEqual(cliEvidence.gates.map(\.gate), ReleaseV030CLIRehearsalGate.allCases)
@@ -7251,6 +7257,105 @@ final class TargetGraphTests: XCTestCase {
                 )
             )
         }
+    }
+
+    func testGH685ReleaseV031LocksV030CLIRehearsalProductAndStrategyBoundary() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let portfolioProjectionSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/Portfolio/ReleaseV030PortfolioProjectionRehearsal.swift"
+            ),
+            encoding: .utf8
+        )
+        let portfolioSurfaceSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/Portfolio/ReleaseV030RehearsalSurface.swift"
+            ),
+            encoding: .utf8
+        )
+        let cliSurfaceSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/Database/ReleaseV030CLIRehearsalSurface.swift"
+            ),
+            encoding: .utf8
+        )
+
+        let projectionEvidence = try ReleaseV030PortfolioProjectionRehearsal.deterministicEvidence()
+        let surfaceEvidence = try ReleaseV030RehearsalSurface.deterministicEvidence()
+        let cliEvidence = try ReleaseV030CLIRehearsalSurface.deterministicEvidence()
+
+        XCTAssertEqual(
+            ReleaseV030PortfolioProjectionRehearsalEvidence.requiredProductTypes,
+            [.spot, .usdsPerpetual]
+        )
+        XCTAssertEqual(ReleaseV030PortfolioProjectionRehearsalEvidence.requiredStrategies, [.ema, .rsi])
+        XCTAssertEqual(ReleaseV030RehearsalSurfaceEvidence.requiredProductTypes, [.spot, .usdsPerpetual])
+        XCTAssertEqual(ReleaseV030RehearsalSurfaceEvidence.requiredStrategies, [.ema, .rsi])
+        XCTAssertEqual(ReleaseV030CLIRehearsalSurfaceEvidence.requiredProductTypes, [.spot, .usdsPerpetual])
+        XCTAssertEqual(ReleaseV030CLIRehearsalSurfaceEvidence.requiredStrategies, [.ema, .rsi])
+
+        XCTAssertEqual(
+            Set(projectionEvidence.productProjections.map(\.productType)),
+            Set(ReleaseV030PortfolioProjectionRehearsalEvidence.requiredProductTypes)
+        )
+        XCTAssertEqual(
+            Set(projectionEvidence.strategyAttributions.map(\.strategyKind)),
+            Set(ReleaseV030PortfolioProjectionRehearsalEvidence.requiredStrategies)
+        )
+        XCTAssertEqual(Set(surfaceEvidence.productTypes), Set(ReleaseV030RehearsalSurfaceEvidence.requiredProductTypes))
+        XCTAssertEqual(Set(surfaceEvidence.strategies), Set(ReleaseV030RehearsalSurfaceEvidence.requiredStrategies))
+        XCTAssertEqual(Set(cliEvidence.productTypes), Set(ReleaseV030CLIRehearsalSurfaceEvidence.requiredProductTypes))
+        XCTAssertEqual(Set(cliEvidence.strategies), Set(ReleaseV030CLIRehearsalSurfaceEvidence.requiredStrategies))
+
+        let cliOutput = try ReleaseV030CLIRehearsalSurface.commandLineOutput(arguments: ["rehearsal-status"])
+        XCTAssertTrue(cliOutput.contains("productTypes=spot,usdsPerpetual"))
+        XCTAssertTrue(cliOutput.contains("strategies=ema,rsi"))
+        XCTAssertTrue(cliOutput.contains("productionTradingEnabledByDefault=false"))
+
+        for (name, source) in [
+            ("portfolio projection", portfolioProjectionSource),
+            ("portfolio surface", portfolioSurfaceSource),
+            ("CLI surface", cliSurfaceSource)
+        ] {
+            XCTAssertFalse(source.contains("ProductType.allCases"), "\(name) must not use allCases for v0.3.x product boundary")
+        }
+        XCTAssertFalse(
+            portfolioProjectionSource.contains("ReleaseV030PortfolioProjectionRehearsalStrategyKind.allCases"),
+            "Portfolio projection must not use allCases for v0.3.x strategy boundary"
+        )
+        XCTAssertFalse(
+            portfolioSurfaceSource.contains("ReleaseV030PortfolioProjectionRehearsalStrategyKind.allCases"),
+            "Portfolio surface must not use allCases for v0.3.x strategy boundary"
+        )
+        XCTAssertFalse(
+            cliSurfaceSource.contains("ReleaseV030CLIRehearsalStrategyKind.allCases"),
+            "CLI surface must not use allCases for v0.3.x strategy boundary"
+        )
+
+        XCTAssertThrowsError(
+            try ReleaseV030RehearsalSurfaceEvidence(
+                productTypes: [.spot],
+                gates: surfaceEvidence.gates
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV030RehearsalSurfaceEvidence(
+                strategies: [.ema],
+                gates: surfaceEvidence.gates
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV030CLIRehearsalSurfaceEvidence(
+                productTypes: [.spot],
+                gates: cliEvidence.gates
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV030CLIRehearsalSurfaceEvidence(
+                strategies: [.ema],
+                gates: cliEvidence.gates
+            )
+        )
     }
 
     func testGH667KillSwitchNoTradeRollbackDrillBlocksSubmitCancelReplace() throws {

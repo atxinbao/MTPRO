@@ -179,8 +179,8 @@ public struct ReleaseV030RehearsalSurfaceEvidence: Codable, Equatable, Sendable 
             && releaseVersion == "v0.3.0"
             && upstreamPortfolioProjectionAnchor == Self.requiredUpstreamPortfolioProjectionAnchor
             && runStatus == .blocked
-            && Set(productTypes) == Set(ProductType.allCases)
-            && Set(strategies) == Set(ReleaseV030PortfolioProjectionRehearsalStrategyKind.allCases)
+            && Set(productTypes) == Set(Self.requiredProductTypes)
+            && Set(strategies) == Set(Self.requiredStrategies)
             && gates.map(\.gate) == ReleaseV030RehearsalSurfaceGate.allCases
             && gates.allSatisfy(\.gateHeld)
             && failureReasons.count == gates.count
@@ -235,9 +235,8 @@ public struct ReleaseV030RehearsalSurfaceEvidence: Codable, Equatable, Sendable 
         releaseVersion: String = "v0.3.0",
         upstreamPortfolioProjectionAnchor: String = Self.requiredUpstreamPortfolioProjectionAnchor,
         runStatus: ReleaseV030RehearsalSurfaceStatus = .blocked,
-        productTypes: [ProductType] = ProductType.allCases,
-        strategies: [ReleaseV030PortfolioProjectionRehearsalStrategyKind] =
-            ReleaseV030PortfolioProjectionRehearsalStrategyKind.allCases,
+        productTypes: [ProductType] = Self.requiredProductTypes,
+        strategies: [ReleaseV030PortfolioProjectionRehearsalStrategyKind] = Self.requiredStrategies,
         gates: [ReleaseV030RehearsalSurfaceGateEvidence],
         requirements: [ReleaseV030RehearsalSurfaceRequirement] = Self.requiredRequirements,
         forbiddenCapabilities: [ReleaseV030RehearsalSurfaceForbiddenCapability] = Self.requiredForbiddenCapabilities,
@@ -340,6 +339,13 @@ public struct ReleaseV030RehearsalSurfaceEvidence: Codable, Equatable, Sendable 
     public static let requiredProjectName = "MTPRO Release v0.3.0 Runtime Rehearsal v1"
     public static let requiredUpstreamPortfolioProjectionAnchor =
         "TVM-RELEASE-V030-PORTFOLIO-PROJECTION-REHEARSAL"
+    /// GH-685 固定 v0.3.x Dashboard / CLI rehearsal product boundary。
+    ///
+    /// 该 release 常量不能从产品枚举全集派生，避免未来新增产品类型时
+    /// 自动扩大 v0.3.x rehearsal surface。
+    public static let requiredProductTypes: [ProductType] = [.spot, .usdsPerpetual]
+    /// GH-685 固定 v0.3.x Dashboard / CLI rehearsal strategy boundary。
+    public static let requiredStrategies: [ReleaseV030PortfolioProjectionRehearsalStrategyKind] = [.ema, .rsi]
     public static let requiredRequirements = ReleaseV030RehearsalSurfaceRequirement.allCases
     public static let requiredForbiddenCapabilities = ReleaseV030RehearsalSurfaceForbiddenCapability.allCases
     public static let requiredValidationAnchors = [
@@ -487,14 +493,14 @@ private extension ReleaseV030RehearsalSurfaceEvidence {
             ),
             (
                 "productTypes",
-                Set(productTypes) == Set(ProductType.allCases),
-                ProductType.supportedRawValues.joined(separator: ","),
+                Set(productTypes) == Set(Self.requiredProductTypes),
+                Self.requiredProductTypes.map(\.rawValue).joined(separator: ","),
                 productTypes.map(\.rawValue).joined(separator: ",")
             ),
             (
                 "strategies",
-                Set(strategies) == Set(ReleaseV030PortfolioProjectionRehearsalStrategyKind.allCases),
-                ReleaseV030PortfolioProjectionRehearsalStrategyKind.allCases.map(\.rawValue).joined(separator: ","),
+                Set(strategies) == Set(Self.requiredStrategies),
+                Self.requiredStrategies.map(\.rawValue).joined(separator: ","),
                 strategies.map(\.rawValue).joined(separator: ",")
             ),
             (

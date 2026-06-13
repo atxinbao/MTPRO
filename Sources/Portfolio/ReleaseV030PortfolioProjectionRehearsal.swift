@@ -86,7 +86,7 @@ public struct ReleaseV030PortfolioProjectionRehearsalFill: Codable, Equatable, S
     public let brokerPositionSynced: Bool
 
     public var fillHeld: Bool {
-        ProductType.allCases.contains(productType)
+        ReleaseV030PortfolioProjectionRehearsalEvidence.requiredProductTypes.contains(productType)
             && instrumentID.productType == productType
             && sourceReplaySequence > 0
             && sourceEvidenceAnchor == ReleaseV030PortfolioProjectionRehearsalEvidence.requiredUpstreamEventStoreAnchor
@@ -120,11 +120,13 @@ public struct ReleaseV030PortfolioProjectionRehearsalFill: Codable, Equatable, S
         accountEndpointRead: Bool = false,
         brokerPositionSynced: Bool = false
     ) throws {
-        guard ProductType.allCases.contains(productType),
+        guard ReleaseV030PortfolioProjectionRehearsalEvidence.requiredProductTypes.contains(productType),
               instrumentID.productType == productType else {
             throw CoreError.paperPortfolioProjectionMismatch(
                 field: "releaseV030PortfolioRehearsal.productType",
-                expected: ProductType.supportedRawValues.joined(separator: ","),
+                expected: ReleaseV030PortfolioProjectionRehearsalEvidence.requiredProductTypes
+                    .map(\.rawValue)
+                    .joined(separator: ","),
                 actual: instrumentID.productType.rawValue
             )
         }
@@ -221,7 +223,7 @@ public struct ReleaseV030PortfolioProjectionRehearsalProductProjection: Codable,
     public let reconciliationRuntimeExecuted: Bool
 
     public var projectionHeld: Bool {
-        ProductType.allCases.contains(productType)
+        ReleaseV030PortfolioProjectionRehearsalEvidence.requiredProductTypes.contains(productType)
             && instrumentID.productType == productType
             && sourceFillIDs.isEmpty == false
             && netPositionQuantity.isFinite
@@ -258,11 +260,13 @@ public struct ReleaseV030PortfolioProjectionRehearsalProductProjection: Codable,
         rawBrokerPayloadExposed: Bool = false,
         reconciliationRuntimeExecuted: Bool = false
     ) throws {
-        guard ProductType.allCases.contains(productType),
+        guard ReleaseV030PortfolioProjectionRehearsalEvidence.requiredProductTypes.contains(productType),
               instrumentID.productType == productType else {
             throw CoreError.paperPortfolioProjectionMismatch(
                 field: "releaseV030PortfolioRehearsal.productProjection.productType",
-                expected: ProductType.supportedRawValues.joined(separator: ","),
+                expected: ReleaseV030PortfolioProjectionRehearsalEvidence.requiredProductTypes
+                    .map(\.rawValue)
+                    .joined(separator: ","),
                 actual: instrumentID.productType.rawValue
             )
         }
@@ -344,7 +348,7 @@ public struct ReleaseV030PortfolioProjectionRehearsalStrategyAttribution: Codabl
     public var attributionHeld: Bool {
         sourceFillIDs.isEmpty == false
             && productTypes.isEmpty == false
-            && Set(productTypes).isSubset(of: Set(ProductType.allCases))
+            && Set(productTypes).isSubset(of: Set(ReleaseV030PortfolioProjectionRehearsalEvidence.requiredProductTypes))
             && attributedNotional > 0
             && attributedFeeQuote >= 0
             && visibleInEvidence
@@ -365,7 +369,7 @@ public struct ReleaseV030PortfolioProjectionRehearsalStrategyAttribution: Codabl
     ) throws {
         guard sourceFillIDs.isEmpty == false,
               productTypes.isEmpty == false,
-              Set(productTypes).isSubset(of: Set(ProductType.allCases)),
+              Set(productTypes).isSubset(of: Set(ReleaseV030PortfolioProjectionRehearsalEvidence.requiredProductTypes)),
               attributedNotional.isFinite,
               attributedNotional > 0,
               attributedFeeQuote.isFinite,
@@ -454,8 +458,8 @@ public struct ReleaseV030PortfolioProjectionRehearsalEvidence: Codable, Equatabl
             && fills.allSatisfy(\.fillHeld)
             && productProjections.count == 2
             && productProjections.allSatisfy(\.projectionHeld)
-            && Set(productProjections.map(\.productType)) == Set(ProductType.allCases)
-            && Set(strategyAttributions.map(\.strategyKind)) == Set(ReleaseV030PortfolioProjectionRehearsalStrategyKind.allCases)
+            && Set(productProjections.map(\.productType)) == Set(Self.requiredProductTypes)
+            && Set(strategyAttributions.map(\.strategyKind)) == Set(Self.requiredStrategies)
             && strategyAttributions.allSatisfy(\.attributionHeld)
             && requirements == Self.requiredRequirements
             && forbiddenCapabilities == Self.requiredForbiddenCapabilities
@@ -583,6 +587,13 @@ public struct ReleaseV030PortfolioProjectionRehearsalEvidence: Codable, Equatabl
     public static let requiredProjectName = "MTPRO Release v0.3.0 Runtime Rehearsal v1"
     public static let requiredUpstreamEventStoreAnchor =
         "TVM-RELEASE-V030-EVENT-STORE-REHEARSAL-EVIDENCE"
+    /// GH-685 固定 v0.3.x rehearsal product boundary 为显式 release 常量。
+    ///
+    /// 不能用产品枚举全集作为 release 期望，否则未来新增 product type 时会
+    /// 静默扩大 v0.3.x evidence 范围。
+    public static let requiredProductTypes: [ProductType] = [.spot, .usdsPerpetual]
+    /// GH-685 固定 v0.3.x rehearsal strategy boundary 为显式 release 常量。
+    public static let requiredStrategies: [ReleaseV030PortfolioProjectionRehearsalStrategyKind] = [.ema, .rsi]
     public static let requiredRequirements = ReleaseV030PortfolioProjectionRehearsalRequirement.allCases
     public static let requiredForbiddenCapabilities =
         ReleaseV030PortfolioProjectionRehearsalForbiddenCapability.allCases
@@ -700,7 +711,7 @@ public enum ReleaseV030PortfolioProjectionRehearsal {
     private static func productProjections(
         from fills: [ReleaseV030PortfolioProjectionRehearsalFill]
     ) throws -> [ReleaseV030PortfolioProjectionRehearsalProductProjection] {
-        try ProductType.allCases.map { productType in
+        try ReleaseV030PortfolioProjectionRehearsalEvidence.requiredProductTypes.map { productType in
             let productFills = fills.filter { $0.productType == productType }
             let instrument = try unwrap(
                 productFills.first?.instrumentID,
@@ -725,7 +736,7 @@ public enum ReleaseV030PortfolioProjectionRehearsal {
     private static func strategyAttributions(
         from fills: [ReleaseV030PortfolioProjectionRehearsalFill]
     ) throws -> [ReleaseV030PortfolioProjectionRehearsalStrategyAttribution] {
-        try ReleaseV030PortfolioProjectionRehearsalStrategyKind.allCases.map { strategyKind in
+        try ReleaseV030PortfolioProjectionRehearsalEvidence.requiredStrategies.map { strategyKind in
             let strategyFills = fills.filter { $0.strategyKind == strategyKind }
             return try ReleaseV030PortfolioProjectionRehearsalStrategyAttribution(
                 attributionID: Identifier.constant("gh-665-\(strategyKind.rawValue)-attribution"),
