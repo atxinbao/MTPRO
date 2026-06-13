@@ -6828,6 +6828,152 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH704PortfolioReplayProjectionDerivesReadModelFromEventStoreRunJournal() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let portfolioTarget = try packageTargetBlock(named: "Portfolio", packageSource: packageSource)
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.4.0-portfolio-replay-projection-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let projectionSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/Portfolio/ReleaseV040PortfolioReplayProjection.swift"
+            ),
+            encoding: .utf8
+        )
+
+        let upstream = try ReleaseV040EventStoreRunJournalBuilder.deterministicEvidence()
+        let evidence = try ReleaseV040PortfolioReplayProjection.deterministicEvidence(
+            upstreamJournalEvidence: upstream
+        )
+
+        XCTAssertTrue(upstream.evidenceHeld)
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-704")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-700", "GH-703"])
+        XCTAssertEqual(evidence.downstreamIssueIDs.map(\.rawValue), ["GH-705", "GH-707"])
+        XCTAssertEqual(evidence.releaseVersion, "v0.4.0")
+        XCTAssertEqual(evidence.upstreamJournalEvidenceID, upstream.evidenceID)
+        XCTAssertEqual(evidence.upstreamReplayState, upstream.replayState)
+        XCTAssertEqual(Set(evidence.replayFills.map(\.runID)), [upstream.replayState.runID])
+        XCTAssertEqual(evidence.replayFills.count, 4)
+        XCTAssertEqual(evidence.productProjections.count, 2)
+        XCTAssertEqual(Set(evidence.productProjections.map(\.productType)), Set([.spot, .usdsPerpetual]))
+        XCTAssertEqual(Set(evidence.replayFills.map(\.productType)), Set([.spot, .usdsPerpetual]))
+        XCTAssertEqual(Set(evidence.replayFills.map(\.strategy)), Set([.ema, .rsi]))
+        XCTAssertTrue(evidence.replayFills.allSatisfy(\.fillHeld))
+        XCTAssertTrue(evidence.productProjections.allSatisfy(\.projectionHeld))
+        XCTAssertTrue(evidence.projectionState.stateHeld)
+        XCTAssertTrue(evidence.replayDerived)
+        XCTAssertTrue(evidence.spotProjectionUpdated)
+        XCTAssertTrue(evidence.perpetualProjectionUpdated)
+        XCTAssertTrue(evidence.pnlLikeMetricsProjected)
+        XCTAssertTrue(evidence.marginLikeMetricsProjected)
+        XCTAssertTrue(evidence.dashboardCLIConsumableByRunID)
+        XCTAssertEqual(evidence.projectionState.runID, upstream.replayState.runID)
+        XCTAssertEqual(evidence.projectionState.sourceJournalEvidenceID, upstream.evidenceID)
+        XCTAssertEqual(evidence.projectionState.sourceJournalLatestChecksum, upstream.replayState.latestChecksum)
+        XCTAssertGreaterThan(evidence.projectionState.totalGrossExposure, 0)
+        XCTAssertTrue(evidence.projectionState.totalProjectedPnLLike.isFinite)
+        XCTAssertGreaterThan(evidence.projectionState.totalMarginLikeRequirement, 0)
+        XCTAssertTrue(
+            evidence.replayFills.allSatisfy {
+                $0.sourceRunJournalRecordID == upstream.records.first { $0.module == .executionClient }?.recordID
+            }
+        )
+        XCTAssertTrue(
+            evidence.replayFills.allSatisfy {
+                $0.sourceOMSRecordID == upstream.records.first { $0.module == .oms }?.recordID
+            }
+        )
+        XCTAssertTrue(
+            evidence.replayFills.allSatisfy {
+                $0.sourcePortfolioRecordID == upstream.records.first { $0.module == .portfolio }?.recordID
+            }
+        )
+        XCTAssertTrue(evidence.boundaryHeld)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionEndpointConnected)
+        XCTAssertFalse(evidence.productionSecretRead)
+        XCTAssertFalse(evidence.productionOrderSubmitted)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertFalse(evidence.realAccountStateSynced)
+        XCTAssertFalse(evidence.accountEndpointRead)
+        XCTAssertFalse(evidence.brokerPositionRead)
+        XCTAssertFalse(evidence.brokerMarginRead)
+        XCTAssertFalse(evidence.brokerLeverageRead)
+        XCTAssertFalse(evidence.realPnLRead)
+        XCTAssertFalse(evidence.rawBrokerPayloadStored)
+        XCTAssertFalse(evidence.reconciliationRuntimeExecuted)
+        XCTAssertFalse(evidence.brokerGatewayTouched)
+        XCTAssertFalse(evidence.executionClientTouched)
+        XCTAssertFalse(evidence.dashboardCommandSurfaceExposed)
+        XCTAssertFalse(evidence.startsNextMilestone)
+
+        for anchor in ReleaseV040PortfolioReplayProjectionEvidence.requiredValidationAnchors {
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+        }
+        XCTAssertTrue(portfolioTarget.contains("\"ReleaseV040PortfolioReplayProjection.swift\""))
+        XCTAssertTrue(coreTarget.contains("\"Portfolio/ReleaseV040PortfolioReplayProjection.swift\""))
+        XCTAssertTrue(automationReadiness.contains("Release v0.4.0 Portfolio replay projection anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV040PortfolioReplayProjection.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH704PortfolioReplayProjectionDerivesReadModelFromEventStoreRunJournal"
+            )
+        )
+        XCTAssertTrue(projectionSource.contains("ReleaseV040PortfolioReplayFillEvidence"))
+        XCTAssertTrue(projectionSource.contains("ReleaseV040PortfolioReplayProductProjection"))
+        XCTAssertTrue(projectionSource.contains("ReleaseV040PortfolioReplayProjectionState"))
+        XCTAssertFalse(projectionSource.contains("URLSession"))
+        XCTAssertFalse(projectionSource.contains("URLRequest"))
+        XCTAssertFalse(projectionSource.contains("import ExecutionEngine"))
+        XCTAssertFalse(projectionSource.contains("import ExecutionClient"))
+        XCTAssertFalse(projectionSource.contains("accountEndpointPayload"))
+        XCTAssertTrue(try ReleaseV040PortfolioReplayProjection.realAccountReadRejected())
+
+        XCTAssertThrowsError(
+            try ReleaseV040PortfolioReplayProjectionEvidence(
+                upstreamJournalEvidenceID: evidence.upstreamJournalEvidenceID,
+                upstreamReplayState: evidence.upstreamReplayState,
+                replayFills: evidence.replayFills,
+                productProjections: evidence.productProjections,
+                projectionState: evidence.projectionState,
+                accountEndpointRead: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .paperPortfolioProjectionForbiddenCapability("releaseV040PortfolioReplay.accountEndpointRead")
+            )
+        }
+    }
+
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
