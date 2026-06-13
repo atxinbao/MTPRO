@@ -120,8 +120,8 @@ public struct ReleaseV030CLIRehearsalSurfaceEvidence: Codable, Equatable, Sendab
         upstreamPortfolioProjectionAnchor: String = Self.requiredUpstreamPortfolioProjectionAnchor,
         validationAnchor: String = Self.requiredValidationAnchor,
         runStatus: ReleaseV030CLIRehearsalStatus = .blocked,
-        productTypes: [ProductType] = ProductType.allCases,
-        strategies: [ReleaseV030CLIRehearsalStrategyKind] = ReleaseV030CLIRehearsalStrategyKind.allCases,
+        productTypes: [ProductType] = Self.requiredProductTypes,
+        strategies: [ReleaseV030CLIRehearsalStrategyKind] = Self.requiredStrategies,
         gates: [ReleaseV030CLIRehearsalGateRecord],
         productionTradingEnabledByDefault: Bool = false,
         productionEndpointAutoConnectEnabled: Bool = false,
@@ -143,8 +143,8 @@ public struct ReleaseV030CLIRehearsalSurfaceEvidence: Codable, Equatable, Sendab
               upstreamPortfolioProjectionAnchor == Self.requiredUpstreamPortfolioProjectionAnchor,
               validationAnchor == Self.requiredValidationAnchor,
               runStatus == .blocked,
-              Set(sortedProducts) == Set(ProductType.allCases),
-              Set(sortedStrategies) == Set(ReleaseV030CLIRehearsalStrategyKind.allCases),
+              Set(sortedProducts) == Set(Self.requiredProductTypes),
+              Set(sortedStrategies) == Set(Self.requiredStrategies),
               gates.map(\.gate) == ReleaseV030CLIRehearsalGate.allCases,
               gates.allSatisfy(\.gateHeld) else {
             throw CoreError.liveTradingBoundaryContractMismatch(
@@ -223,6 +223,13 @@ public struct ReleaseV030CLIRehearsalSurfaceEvidence: Codable, Equatable, Sendab
     public static let requiredUpstreamPortfolioProjectionAnchor =
         "TVM-RELEASE-V030-PORTFOLIO-PROJECTION-REHEARSAL"
     public static let requiredValidationAnchor = "TVM-RELEASE-V030-DASHBOARD-CLI-REHEARSAL-SURFACE"
+    /// GH-685 固定 `mtpro rehearsal-status` 的 v0.3.x product boundary。
+    ///
+    /// 这里不能使用产品枚举全集，否则未来新增 product type 时 CLI evidence 会
+    /// 静默扩大 release v0.3.x 范围。
+    public static let requiredProductTypes: [ProductType] = [.spot, .usdsPerpetual]
+    /// GH-685 固定 `mtpro rehearsal-status` 的 v0.3.x strategy boundary。
+    public static let requiredStrategies: [ReleaseV030CLIRehearsalStrategyKind] = [.ema, .rsi]
 }
 
 /// ReleaseV030CLIRehearsalSurface 生成 `mtpro rehearsal-status` 的本地 deterministic 输出。
