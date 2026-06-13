@@ -77,6 +77,26 @@ bash checks/run.sh
 
 该矩阵记录 EMA parity、order book imbalance parity、fees / slippage、risk blocker、portfolio exposure 和 report evidence 的现有 coverage、验收证据边界和后续 issue 回填规则。
 
+## GH-668 Release v0.3.0 Validation Suite
+
+GH-668 的 required validation：
+
+- `docs/contracts/release-v0.3.0-validation-suite-contract.md` 必须存在，并包含 `V030-12-VERIFY-RELEASE-VALIDATION-SUITE`、`V030-12-COMPLETE-REHEARSAL-CHAIN`、`V030-12-CLI-REHEARSAL-SMOKE` 和 `V030-12-PRODUCTION-DISABLED-BOUNDARY`。
+- `checks/verify-v0.3.0.sh` 必须存在，并包含 `GH-668-VERIFY-V030-RELEASE-VALIDATION-SUITE` 和 `TVM-RELEASE-V030-VERIFY-VALIDATION-SUITE`。
+- `checks/verify-v0.3.0.sh` 必须覆盖 GH-657 至 GH-667 focused TargetGraph tests，并执行 `swift run mtpro rehearsal-status`。
+- CLI smoke 必须断言 `mtpro rehearsal-status blocked`、`commandGateway=required`、`killSwitchStatus=blocked`、`noTradeStatus=blocked`、`productionTradingEnabledByDefault=false`、`productionEndpointAutoConnect=false`、`productionSecretAutoRead=false`、`productionOrderSubmission=false`、`productionCutoverAuthorized=false` 和 `boundaryHeld=true`。
+- `checks/run.sh` 必须调用 `bash checks/verify-v0.3.0.sh`，让统一验证入口覆盖 release v0.3.0 rehearsal suite。
+- Required validation 为 `bash checks/verify-v0.3.0.sh`、`swift test --filter TargetGraphTests/testGH668VerifyV030ReleaseValidationSuiteCoversFullRehearsalChain`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-668 必须建立的主要 anchors：
+
+- `GH-668-VERIFY-V030-RELEASE-VALIDATION-SUITE`
+- `V030-12-VERIFY-RELEASE-VALIDATION-SUITE`
+- `V030-12-COMPLETE-REHEARSAL-CHAIN`
+- `V030-12-CLI-REHEARSAL-SMOKE`
+- `V030-12-PRODUCTION-DISABLED-BOUNDARY`
+- `TVM-RELEASE-V030-VERIFY-VALIDATION-SUITE`
+
 ## GH-667 Release v0.3.0 Kill Switch / No-Trade / Rollback Drill Validation
 
 GH-667 的 required validation：
