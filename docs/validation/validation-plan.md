@@ -159,7 +159,7 @@ GH-666 的 required validation：
 
 - `docs/contracts/release-v0.3.0-dashboard-cli-rehearsal-surface-contract.md` 必须存在，并包含 `V030-10-DASHBOARD-CLI-REHEARSAL-SURFACE`、`V030-10-RUN-STATUS-SURFACE`、`V030-10-GATE-FAILURE-REASONS`、`V030-10-KILL-SWITCH-NO-TRADE-STATUS` 和 `V030-10-COMMANDGATEWAY-ROUTING`。
 - `Sources/Portfolio/ReleaseV030RehearsalSurface.swift` 必须定义 `ReleaseV030RehearsalSurface`、`ReleaseV030RehearsalSurfaceEvidence`、`ReleaseV030RehearsalSurfaceGateEvidence`、`ReleaseV030RehearsalSurfaceGate` 和 `ReleaseV030RehearsalSurfaceForbiddenCapability`。
-- `Sources/Database/ReleaseV030CLIRehearsalSurface.swift` 必须定义 `ReleaseV030CLIRehearsalSurface`、`ReleaseV030CLIRehearsalSurfaceEvidence`、`ReleaseV030CLIRehearsalGateRecord` 和 `ReleaseV030CLIRehearsalGate`，并保持 `MTPROCLI` target 只依赖 `Database`。
+- `Sources/Database/ReleaseV030CLIRehearsalSurface.swift` 必须定义 `ReleaseV030CLIRehearsalSurface`、`ReleaseV030CLIRehearsalSurfaceEvidence`、`ReleaseV030CLIRehearsalGateRecord` 和 `ReleaseV030CLIRehearsalGate`；v0.3.0 `rehearsal-status` route 仍由 Database-owned adapter 暴露。GH-705 之后，当前 `MTPROCLI` 还可依赖 `Portfolio` 暴露 v0.4.0 read-model-only `unified-run-status`，但不得依赖 Core、MessageBus、RiskEngine、ExecutionEngine、ExecutionClient、broker、OMS 或 live command surface。
 - `Sources/Dashboard/Report/ReleaseV030DashboardRehearsalSurface.swift` 必须定义 `ReleaseV030DashboardRehearsalSurfaceViewModel`。
 - `Sources/MTPROCLI/main.swift` 必须支持 `ReleaseV030CLIRehearsalSurface.cliCommand`，并保留既有 release v0.2.0 verify command fallback。
 - `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH666DashboardCLIRehearsalSurfaceShowsStatusGatesAndCommandGatewayRoute`。
@@ -570,6 +570,27 @@ GH-704 必须建立的主要 anchors：
 - `V040-11-READMODEL-ONLY-NO-ACCOUNT-SYNC`
 - `V040-11-DASHBOARD-CLI-RUNID-CONSUMABLE`
 - `TVM-RELEASE-V040-PORTFOLIO-REPLAY-PROJECTION`
+
+## GH-705 Release v0.4.0 Dashboard / CLI Unified Run Surface Validation
+
+GH-705 的 required validation：
+
+- `docs/contracts/release-v0.4.0-dashboard-cli-unified-run-surface-contract.md` 必须存在，并包含 `V040-12-DASHBOARD-CLI-UNIFIED-RUN-SURFACE`、`V040-12-ONE-RUNID-PROJECTION-CONSUMPTION`、`V040-12-BLOCKED-REJECTED-STATE-EXPLANATIONS`、`V040-12-ADAPTER-PORTFOLIO-PROJECTION-VISIBLE` 和 `V040-12-NO-LIVE-COMMAND-SURFACE`。
+- `Sources/Portfolio/ReleaseV040UnifiedRunSurface.swift` 必须定义 `ReleaseV040UnifiedRunSurfaceGateRecord`、`ReleaseV040UnifiedRunSurfaceEvidence` 和 `ReleaseV040UnifiedRunSurface`。
+- `Sources/Dashboard/Report/ReleaseV040DashboardUnifiedRunSurface.swift` 必须定义 `ReleaseV040DashboardUnifiedRunSurfaceViewModel`，并只消费 Portfolio-owned unified run evidence。
+- `Sources/MTPROCLI/main.swift` 必须暴露 read-only `unified-run-status` route，输出 runID、validation anchor、gate states、blocked / rejected explanations 和 production-disabled flags。
+- Dashboard / CLI 必须消费同一 GH-704 Portfolio replay projection `runID`，并展示 adapter evidence、Portfolio projection evidence、blocked state 和 rejected state。
+- Evidence 必须证明 trading button、order form、live command surface、production command surface、production endpoint、production secret、account endpoint、broker gateway、ExecutionClient command access、real order submission 和 production cutover 全部保持 false。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH705DashboardCLIUnifiedRunSurfaceConsumesPortfolioProjectionByRunID`、`swift run mtpro unified-run-status`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、真实 testnet network 或人工验收。
+
+GH-705 必须建立的主要 anchors：
+
+- `V040-12-DASHBOARD-CLI-UNIFIED-RUN-SURFACE`
+- `V040-12-ONE-RUNID-PROJECTION-CONSUMPTION`
+- `V040-12-BLOCKED-REJECTED-STATE-EXPLANATIONS`
+- `V040-12-ADAPTER-PORTFOLIO-PROJECTION-VISIBLE`
+- `V040-12-NO-LIVE-COMMAND-SURFACE`
+- `TVM-RELEASE-V040-DASHBOARD-CLI-UNIFIED-RUN-SURFACE`
 
 ## GH-657 Release v0.3.0 Runtime Rehearsal Contract Validation
 
@@ -9615,7 +9636,7 @@ GH-593 必须运行：
 
 GH-593 的验收要求：
 
-- `Package.swift` 必须暴露 `.executable(name: "mtpro", targets: ["MTPROCLI"])`，且 `MTPROCLI` target 只能依赖 `Database`。
+- `Package.swift` 必须暴露 `.executable(name: "mtpro", targets: ["MTPROCLI"])`，且 `MTPROCLI` target 必须保留 `Database` dependency。GH-705 之后，当前 `MTPROCLI` 还可依赖 `Portfolio` 暴露 v0.4.0 read-model-only `unified-run-status`，但不得依赖 Core、MessageBus、RiskEngine、ExecutionEngine、ExecutionClient、broker、OMS 或 live command surface。
 - `Database` target 必须显式编译 `Sources/Database/ReleaseV020CLIProductSurface.swift`，并保持 `ExecutionClient`、`ExecutionEngine`、`RiskEngine`、`OMS`、Dashboard command surface 和 broker gateway 不进入 CLI 入口。
 - CLI product surface 必须覆盖 `spot`、`perp`、`strategy`、`risk`、`execution`、`verify-fast` 和 `verify-release`。
 - `mtpro verify-fast` 必须输出 `mtpro verify-fast pass`；`mtpro verify-release` 必须输出 `mtpro verify-release pass`。
@@ -10244,7 +10265,7 @@ GH-534 必须运行：
 GH-534 的验收要求：
 
 - `Sources/Dashboard/Report/ReleaseV010LiveMonitoringSurface.swift` 必须存在，并包含 `GH-534-DASHBOARD-LIVE-MONITORING-SURFACE` 和 `TVM-RELEASE-V010-DASHBOARD-LIVE-MONITORING-SURFACE` anchors。
-- Dashboard target 必须继续只依赖 `Core` / `Persistence`；不得新增 DataClient、Trader、RiskEngine、ExecutionEngine、ExecutionClient、broker、OMS 或 runtime target dependency。
+- Dashboard target 必须继续依赖 `Core` / `Persistence`，且 GH-705 之后可依赖 `Portfolio` 来展示 v0.4.0 read-model-only unified run surface；不得新增 DataClient、Trader、RiskEngine、ExecutionEngine、ExecutionClient、broker、OMS 或 runtime target dependency。
 - Surface 必须覆盖 connection health、account/private stream status、Trader/EMA、RiskEngine、ExecutionEngine / OMS、execution report / broker fill 和 Portfolio reconciliation summary。
 - Dashboard report / shell smoke 必须能读取 release live monitoring evidence，并保留 read-model-only boundary。
 - PR evidence 必须确认不读取 production secret，不连接 production endpoint，不直接消费 runtime object，不暴露 command surface、trading button、live command、order form 或 secret editor，不启动 Symphony，不运行 Graphify / code-index，不修改 Figma，不提交 `.codex/*` 或 `graphify-out/*`。

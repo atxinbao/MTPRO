@@ -426,7 +426,7 @@ MTP-220 required validation：
 
 `MTP-221-DASHBOARD-TARGET-SPLIT-EVIDENCE`
 
-MTP-221 最初建立 Workbench / Dashboard read-model consumption split。后续 direct cleanup 已退休 `Workbench` product / target、`Sources/Workbench/`、`App` product / target 和 `Sources/AppCompatibility`。当前 active UI target 只有 `Dashboard` executable，它直接编译 Dashboard shell、ReadModels、Report、Events 和 FutureLiveProConsole future label，并只依赖 `Core` / `Persistence` 导出的 read model、ViewModel 和 projection snapshot。
+MTP-221 最初建立 Workbench / Dashboard read-model consumption split。后续 direct cleanup 已退休 `Workbench` product / target、`Sources/Workbench/`、`App` product / target 和 `Sources/AppCompatibility`。当前 active UI target 只有 `Dashboard` executable，它直接编译 Dashboard shell、ReadModels、Report、Events 和 FutureLiveProConsole future label，并依赖 `Core` / `Persistence` 导出的 read model、ViewModel 和 projection snapshot；GH-705 之后还可依赖 `Portfolio` 来展示 v0.4.0 read-model-only unified run surface。
 
 `MTP-221-WORKBENCH-TARGET-RETIRED`
 
@@ -434,7 +434,7 @@ MTP-221 最初建立 Workbench / Dashboard read-model consumption split。后续
 
 `MTP-221-DASHBOARD-TARGET-SPLIT`
 
-`Dashboard` executable target 当前编译 `Sources/Dashboard/DashboardApplication.swift`、`Sources/Dashboard/DashboardTargetBoundary.swift`、`Sources/Dashboard/DashboardShell.swift`、`Sources/Dashboard/ReadModels/`、`Sources/Dashboard/Report/`、`Sources/Dashboard/Events/` 和 `Sources/Dashboard/FutureLiveProConsole/`，并只依赖 `Core` / `Persistence`。Dashboard 只装载 read model / ViewModel / projection snapshot display surface，不依赖 `Adapters`、`Runtime`、`ExecutionClient`、broker、OMS、schema、account payload 或 live command。
+`Dashboard` executable target 当前编译 `Sources/Dashboard/DashboardApplication.swift`、`Sources/Dashboard/DashboardTargetBoundary.swift`、`Sources/Dashboard/DashboardShell.swift`、`Sources/Dashboard/ReadModels/`、`Sources/Dashboard/Report/`、`Sources/Dashboard/Events/` 和 `Sources/Dashboard/FutureLiveProConsole/`，并依赖 `Core` / `Persistence`；GH-705 之后还可依赖 `Portfolio` 展示 v0.4.0 read-model-only unified run surface。Dashboard 只装载 read model / ViewModel / projection snapshot display surface，不依赖 `Adapters`、`Runtime`、`ExecutionClient`、broker、OMS、schema、account payload 或 live command。
 
 `MTP-221-DASHBOARD-READ-MODEL-DEPENDENCY-DIRECTION`
 
