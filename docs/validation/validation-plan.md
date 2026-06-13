@@ -551,6 +551,26 @@ GH-703 必须建立的主要 anchors：
 - `V040-10-NO-PRODUCTION-EVENTSTORE-CUTOVER`
 - `TVM-RELEASE-V040-EVENTSTORE-RUN-JOURNAL`
 
+## GH-704 Release v0.4.0 Portfolio Replay Projection Validation
+
+GH-704 的 required validation：
+
+- `docs/contracts/release-v0.4.0-portfolio-replay-projection-contract.md` 必须存在，并包含 `V040-11-PORTFOLIO-REPLAY-PROJECTION`、`V040-11-REPLAY-DERIVED-POSITIONS-EXPOSURE`、`V040-11-SPOT-PERP-PNL-MARGIN-LIKE-METRICS`、`V040-11-READMODEL-ONLY-NO-ACCOUNT-SYNC` 和 `V040-11-DASHBOARD-CLI-RUNID-CONSUMABLE`。
+- `Sources/Portfolio/ReleaseV040PortfolioReplayProjection.swift` 必须定义 `ReleaseV040PortfolioReplayFillEvidence`、`ReleaseV040PortfolioReplayProductProjection`、`ReleaseV040PortfolioReplayProjectionState`、`ReleaseV040PortfolioReplayProjectionEvidence` 和 `ReleaseV040PortfolioReplayProjection`。
+- Portfolio replay projection 必须消费 GH-703 Event Store run journal evidence，并从 replay record 派生 Spot 与 USDⓈ-M Perpetual position、exposure、PnL-like metrics 和 margin-like fields。
+- Projection state 必须保持 read-model-only，并能由后续 Dashboard / CLI 按 runID 消费。
+- Evidence 必须证明 production account sync、account endpoint、broker position / margin / leverage read、real PnL read、raw broker payload、reconciliation runtime、broker gateway、ExecutionClient access、Dashboard command surface 和 production cutover 全部保持 false。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH704PortfolioReplayProjectionDerivesReadModelFromEventStoreRunJournal`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、真实 testnet network 或人工验收。
+
+GH-704 必须建立的主要 anchors：
+
+- `V040-11-PORTFOLIO-REPLAY-PROJECTION`
+- `V040-11-REPLAY-DERIVED-POSITIONS-EXPOSURE`
+- `V040-11-SPOT-PERP-PNL-MARGIN-LIKE-METRICS`
+- `V040-11-READMODEL-ONLY-NO-ACCOUNT-SYNC`
+- `V040-11-DASHBOARD-CLI-RUNID-CONSUMABLE`
+- `TVM-RELEASE-V040-PORTFOLIO-REPLAY-PROJECTION`
+
 ## GH-657 Release v0.3.0 Runtime Rehearsal Contract Validation
 
 GH-657 的 required validation：
