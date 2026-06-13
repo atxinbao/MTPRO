@@ -1697,7 +1697,7 @@ MTP-221 曾新增 `Workbench` SwiftPM library product / target 作为 read-model
 
 `MTP-221-DASHBOARD-TARGET-SPLIT`
 
-`Dashboard` executable target 编译 `Sources/Dashboard/DashboardApplication.swift`、`Sources/Dashboard/DashboardTargetBoundary.swift`、`Sources/Dashboard/DashboardShell.swift`、`Sources/Dashboard/ReadModels/`、`Sources/Dashboard/Report/`、`Sources/Dashboard/Events/` 和 `Sources/Dashboard/FutureLiveProConsole/`，只依赖 `Core` / `Persistence` compatibility exports。Dashboard 不直接依赖 Adapters、Runtime、ExecutionClient、broker、OMS、schema、account payload 或 live command。
+`Dashboard` executable target 编译 `Sources/Dashboard/DashboardApplication.swift`、`Sources/Dashboard/DashboardTargetBoundary.swift`、`Sources/Dashboard/DashboardShell.swift`、`Sources/Dashboard/ReadModels/`、`Sources/Dashboard/Report/`、`Sources/Dashboard/Events/` 和 `Sources/Dashboard/FutureLiveProConsole/`，依赖 `Core` / `Persistence` compatibility exports；GH-705 之后还可依赖 `Portfolio` 展示 v0.4.0 read-model-only unified run surface。Dashboard 不直接依赖 Adapters、Runtime、ExecutionClient、broker、OMS、schema、account payload 或 live command。
 
 `MTP-221-DASHBOARD-READ-MODEL-DEPENDENCY-DIRECTION`
 

@@ -4672,8 +4672,11 @@ final class TargetGraphTests: XCTestCase {
             ))
         }
 
-        XCTAssertTrue(dashboardTarget.contains("dependencies: [\"Core\", \"Persistence\"]"))
-        XCTAssertTrue(cliTarget.contains("dependencies: [\"Database\"]"))
+        XCTAssertTrue(dashboardTarget.contains("\"Core\""))
+        XCTAssertTrue(dashboardTarget.contains("\"Persistence\""))
+        XCTAssertTrue(dashboardTarget.contains("\"Portfolio\""))
+        XCTAssertTrue(cliTarget.contains("\"Database\""))
+        XCTAssertTrue(cliTarget.contains("\"Portfolio\""))
         XCTAssertFalse(cliTarget.contains("\"Core\""))
         XCTAssertFalse(cliTarget.contains("\"MessageBus\""))
         XCTAssertFalse(cliTarget.contains("\"ExecutionEngine\""))
@@ -5159,7 +5162,12 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
         XCTAssertTrue(traderTarget.contains("\"Accounts\""))
         XCTAssertTrue(traderStrategiesTarget.contains("\"StrategyRegistry.swift\""))
-        XCTAssertTrue(dashboardTarget.contains("dependencies: [\"Core\", \"Persistence\"]"))
+        XCTAssertTrue(dashboardTarget.contains("\"Core\""))
+        XCTAssertTrue(dashboardTarget.contains("\"Persistence\""))
+        XCTAssertTrue(dashboardTarget.contains("\"Portfolio\""))
+        XCTAssertFalse(dashboardTarget.contains("\"ExecutionClient\""))
+        XCTAssertFalse(dashboardTarget.contains("\"ExecutionEngine\""))
+        XCTAssertFalse(dashboardTarget.contains("\"RiskEngine\""))
 
         XCTAssertTrue(adaptersTarget.contains("\"AdaptersCompatibility.swift\""))
         XCTAssertTrue(persistenceTarget.contains("\"Projections/ReleaseV020SpotPerpDatabaseProjections.swift\""))
@@ -6972,6 +6980,194 @@ final class TargetGraphTests: XCTestCase {
                 .paperPortfolioProjectionForbiddenCapability("releaseV040PortfolioReplay.accountEndpointRead")
             )
         }
+    }
+
+    func testGH705DashboardCLIUnifiedRunSurfaceConsumesPortfolioProjectionByRunID() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let portfolioTarget = try packageTargetBlock(named: "Portfolio", packageSource: packageSource)
+        let dashboardTarget = try packageTargetBlock(named: "Dashboard", packageSource: packageSource)
+        let cliTarget = try packageTargetBlock(named: "MTPROCLI", packageSource: packageSource)
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.4.0-dashboard-cli-unified-run-surface-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let cliSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/MTPROCLI/main.swift"),
+            encoding: .utf8
+        )
+        let surfaceSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/Portfolio/ReleaseV040UnifiedRunSurface.swift"),
+            encoding: .utf8
+        )
+        let dashboardSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/Dashboard/Report/ReleaseV040DashboardUnifiedRunSurface.swift"
+            ),
+            encoding: .utf8
+        )
+
+        let upstreamProjection = try ReleaseV040PortfolioReplayProjection.deterministicEvidence()
+        let evidence = try ReleaseV040UnifiedRunSurface.deterministicEvidence(
+            upstreamProjectionEvidence: upstreamProjection
+        )
+        let dashboardViewModel = ReleaseV040DashboardUnifiedRunSurfaceViewModel(evidence: evidence)
+        let deterministicDashboardViewModel = try ReleaseV040DashboardUnifiedRunSurfaceViewModel.deterministic()
+
+        XCTAssertTrue(upstreamProjection.evidenceHeld)
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-705")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-703", "GH-704"])
+        XCTAssertEqual(evidence.downstreamIssueIDs.map(\.rawValue), ["GH-707", "GH-708"])
+        XCTAssertEqual(evidence.releaseVersion, "v0.4.0")
+        XCTAssertEqual(evidence.upstreamProjectionEvidenceID, upstreamProjection.evidenceID)
+        XCTAssertEqual(evidence.upstreamProjectionState, upstreamProjection.projectionState)
+        XCTAssertEqual(evidence.runID, upstreamProjection.projectionState.runID)
+        XCTAssertEqual(evidence.validationAnchor, "TVM-RELEASE-V040-DASHBOARD-CLI-UNIFIED-RUN-SURFACE")
+        XCTAssertEqual(evidence.gates.map(\.gate), ReleaseV040UnifiedRunSurfaceGate.allCases)
+        XCTAssertTrue(evidence.gates.allSatisfy(\.gateHeld))
+        XCTAssertTrue(evidence.gates.contains { $0.status == .blocked })
+        XCTAssertTrue(evidence.gates.contains { $0.status == .rejected })
+        XCTAssertEqual(evidence.productTypes, [.spot, .usdsPerpetual])
+        XCTAssertEqual(evidence.strategies, [.ema, .rsi])
+        XCTAssertTrue(evidence.adapterEvidenceVisible)
+        XCTAssertTrue(evidence.portfolioProjectionVisible)
+        XCTAssertTrue(evidence.blockedStatesExplained)
+        XCTAssertTrue(evidence.rejectedStatesExplained)
+        XCTAssertTrue(evidence.dashboardConsumesProjectionByRunID)
+        XCTAssertTrue(evidence.cliConsumesProjectionByRunID)
+        XCTAssertTrue(evidence.boundaryHeld)
+        XCTAssertFalse(evidence.tradingButtonExposed)
+        XCTAssertFalse(evidence.orderFormExposed)
+        XCTAssertFalse(evidence.liveCommandSurfaceExposed)
+        XCTAssertFalse(evidence.productionCommandSurfaceExposed)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionEndpointConnected)
+        XCTAssertFalse(evidence.productionSecretRead)
+        XCTAssertFalse(evidence.productionOrderSubmitted)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertFalse(evidence.brokerGatewayTouched)
+        XCTAssertFalse(evidence.executionClientCommandTouched)
+        XCTAssertFalse(evidence.accountEndpointRead)
+        XCTAssertFalse(evidence.startsNextMilestone)
+
+        XCTAssertEqual(dashboardViewModel.issueID, "GH-705")
+        XCTAssertEqual(dashboardViewModel.runID, evidence.runID.rawValue)
+        XCTAssertEqual(dashboardViewModel.validationAnchor, evidence.validationAnchor)
+        XCTAssertEqual(dashboardViewModel.productTypeLabels, evidence.productTypes.map(\.rawValue))
+        XCTAssertEqual(dashboardViewModel.strategyLabels, evidence.strategies.map(\.rawValue))
+        XCTAssertEqual(dashboardViewModel.gateLabels, evidence.gates.map(\.gate.rawValue))
+        XCTAssertEqual(dashboardViewModel.gateStatuses, evidence.gates.map(\.status.rawValue))
+        XCTAssertEqual(dashboardViewModel.explanations, evidence.failureReasons)
+        XCTAssertTrue(dashboardViewModel.adapterEvidenceVisible)
+        XCTAssertTrue(dashboardViewModel.portfolioProjectionVisible)
+        XCTAssertTrue(dashboardViewModel.blockedStatesExplained)
+        XCTAssertTrue(dashboardViewModel.rejectedStatesExplained)
+        XCTAssertTrue(dashboardViewModel.consumesProjectionByRunID)
+        XCTAssertTrue(dashboardViewModel.readModelOnly)
+        XCTAssertTrue(dashboardViewModel.dashboardSurfaceBoundaryHeld)
+        XCTAssertEqual(deterministicDashboardViewModel.runID, dashboardViewModel.runID)
+        XCTAssertFalse(dashboardViewModel.commandSurfaceVisible)
+        XCTAssertFalse(dashboardViewModel.commandSurfaceEnabled)
+        XCTAssertFalse(dashboardViewModel.providesTradingButton)
+        XCTAssertFalse(dashboardViewModel.exposesOrderForm)
+        XCTAssertFalse(dashboardViewModel.authorizesTradingExecution)
+        XCTAssertFalse(dashboardViewModel.readsSecret)
+        XCTAssertFalse(dashboardViewModel.opensProductionEndpoint)
+        XCTAssertFalse(dashboardViewModel.touchesAccountEndpoint)
+        XCTAssertFalse(dashboardViewModel.connectsBroker)
+        XCTAssertFalse(dashboardViewModel.submitsRealOrder)
+        XCTAssertFalse(dashboardViewModel.startsNextMilestone)
+
+        let cliOutput = try ReleaseV040UnifiedRunSurface.commandLineOutput(arguments: ["unified-run-status"])
+        XCTAssertTrue(cliOutput.contains("mtpro unified-run-status blocked"))
+        XCTAssertTrue(cliOutput.contains("issue=GH-705"))
+        XCTAssertTrue(cliOutput.contains("runID=\(evidence.runID.rawValue)"))
+        XCTAssertTrue(cliOutput.contains("upstreamProjection=\(upstreamProjection.evidenceID.rawValue)"))
+        XCTAssertTrue(cliOutput.contains("validationAnchor=TVM-RELEASE-V040-DASHBOARD-CLI-UNIFIED-RUN-SURFACE"))
+        XCTAssertTrue(cliOutput.contains("adapterEvidenceVisible=true"))
+        XCTAssertTrue(cliOutput.contains("portfolioProjectionVisible=true"))
+        XCTAssertTrue(cliOutput.contains("blockedStatesExplained=true"))
+        XCTAssertTrue(cliOutput.contains("rejectedStatesExplained=true"))
+        XCTAssertTrue(cliOutput.contains("dashboardConsumesProjectionByRunID=true"))
+        XCTAssertTrue(cliOutput.contains("cliConsumesProjectionByRunID=true"))
+        XCTAssertTrue(cliOutput.contains("productionTradingEnabledByDefault=false"))
+        XCTAssertTrue(cliOutput.contains("productionEndpointConnected=false"))
+        XCTAssertTrue(cliOutput.contains("productionSecretRead=false"))
+        XCTAssertTrue(cliOutput.contains("productionOrderSubmitted=false"))
+        XCTAssertTrue(cliOutput.contains("productionCutoverAuthorized=false"))
+        XCTAssertTrue(cliOutput.contains("boundaryHeld=true"))
+        XCTAssertEqual(
+            try ReleaseV040UnifiedRunSurface.commandLineOutput(
+                arguments: ["unified-run-status", evidence.runID.rawValue]
+            ),
+            cliOutput
+        )
+        XCTAssertThrowsError(
+            try ReleaseV040UnifiedRunSurface.commandLineOutput(arguments: ["unified-run-status", "wrong-run"])
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "mtpro.unifiedRunStatus.runID",
+                    expected: evidence.runID.rawValue,
+                    actual: "wrong-run"
+                )
+            )
+        }
+        XCTAssertTrue(try ReleaseV040UnifiedRunSurface.commandSurfaceRejected())
+
+        for anchor in ReleaseV040UnifiedRunSurfaceEvidence.requiredValidationAnchors {
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+        }
+        XCTAssertTrue(portfolioTarget.contains("\"ReleaseV040UnifiedRunSurface.swift\""))
+        XCTAssertTrue(coreTarget.contains("\"Portfolio/ReleaseV040UnifiedRunSurface.swift\""))
+        XCTAssertTrue(cliTarget.contains("\"Portfolio\""))
+        XCTAssertTrue(dashboardTarget.contains("\"Portfolio\""))
+        XCTAssertTrue(dashboardTarget.contains("\"Report\""))
+        XCTAssertTrue(automationReadiness.contains("Release v0.4.0 Dashboard / CLI unified run surface anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV040UnifiedRunSurface.swift"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV040DashboardUnifiedRunSurface.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH705DashboardCLIUnifiedRunSurfaceConsumesPortfolioProjectionByRunID"
+            )
+        )
+        XCTAssertTrue(cliSource.contains("ReleaseV040UnifiedRunSurface.cliCommand"))
+        XCTAssertTrue(cliSource.contains("ReleaseV040UnifiedRunSurface.commandLineOutput"))
+        XCTAssertTrue(surfaceSource.contains("ReleaseV040UnifiedRunSurfaceEvidence"))
+        XCTAssertTrue(surfaceSource.contains("ReleaseV040UnifiedRunSurfaceGateRecord"))
+        XCTAssertTrue(dashboardSource.contains("ReleaseV040DashboardUnifiedRunSurfaceViewModel"))
+        XCTAssertFalse(surfaceSource.contains("URLSession"))
+        XCTAssertFalse(surfaceSource.contains("URLRequest"))
+        XCTAssertFalse(surfaceSource.contains("submitOrder"))
+        XCTAssertFalse(dashboardSource.contains("URLSession"))
+        XCTAssertFalse(dashboardSource.contains("URLRequest"))
+        XCTAssertFalse(dashboardSource.contains("submitOrder"))
     }
 
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
@@ -9060,10 +9256,13 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(persistenceExcludes.contains("\"ReleaseV030CLIRehearsalSurface.swift\""))
         XCTAssertTrue(runtimeExcludes.contains("\"Database/ReleaseV030CLIRehearsalSurface.swift\""))
         XCTAssertTrue(coreTarget.contains("\"Portfolio/ReleaseV030RehearsalSurface.swift\""))
-        XCTAssertTrue(cliTarget.contains("dependencies: [\"Database\"]"))
-        XCTAssertFalse(cliTarget.contains("\"Portfolio\""))
+        XCTAssertTrue(cliTarget.contains("\"Database\""))
+        XCTAssertTrue(cliTarget.contains("\"Portfolio\""))
         XCTAssertFalse(cliTarget.contains("\"Core\""))
         XCTAssertFalse(cliTarget.contains("\"MessageBus\""))
+        XCTAssertFalse(cliTarget.contains("\"RiskEngine\""))
+        XCTAssertFalse(cliTarget.contains("\"ExecutionEngine\""))
+        XCTAssertFalse(cliTarget.contains("\"ExecutionClient\""))
         XCTAssertTrue(cliSource.contains("ReleaseV030CLIRehearsalSurface.cliCommand"))
         XCTAssertTrue(
             PortfolioParityOwnershipContract.gh634.activeSourcePaths.contains(
@@ -15004,9 +15203,12 @@ final class TargetGraphTests: XCTestCase {
         let coreExcludes = try packageTargetExcludesBlock(targetBlock: coreTarget)
 
         XCTAssertTrue(packageSource.contains(".executable(name: \"mtpro\", targets: [\"MTPROCLI\"])"))
-        XCTAssertTrue(cliTarget.contains("dependencies: [\"Database\"]"))
+        XCTAssertTrue(cliTarget.contains("\"Database\""))
+        XCTAssertTrue(cliTarget.contains("\"Portfolio\""))
         XCTAssertTrue(cliTarget.contains("path: \"Sources/MTPROCLI\""))
         XCTAssertTrue(cliTarget.contains("\"main.swift\""))
+        XCTAssertFalse(cliTarget.contains("\"Core\""))
+        XCTAssertFalse(cliTarget.contains("\"MessageBus\""))
         XCTAssertFalse(cliTarget.contains("\"ExecutionClient\""))
         XCTAssertFalse(cliTarget.contains("\"ExecutionEngine\""))
         XCTAssertFalse(cliTarget.contains("\"RiskEngine\""))

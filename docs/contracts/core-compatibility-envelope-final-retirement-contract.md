@@ -130,7 +130,7 @@ This does not retire the four rich files yet. It prevents drift by making the re
 GH-632 does not change product surfaces:
 
 - `Dashboard` remains an executable target depending on `Core` and `Persistence`.
-- `MTPROCLI` remains an executable target depending on `Database`.
+- `MTPROCLI` remains an executable target depending on `Database`; GH-705 also permits a `Portfolio` dependency for the v0.4.0 read-model-only `unified-run-status` route while Core / MessageBus / RiskEngine / ExecutionEngine / ExecutionClient / broker / OMS dependencies remain forbidden.
 - `Dashboard` is still read-model-only and must not consume `MessageBusRichRoutingCompatibilityContract` as runtime command authority.
 - `MTPROCLI` must not gain `Core`, `MessageBus`, `ExecutionEngine`, `ExecutionClient`, broker or OMS dependency through this issue.
 
