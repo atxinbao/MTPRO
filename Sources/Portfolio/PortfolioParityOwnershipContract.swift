@@ -169,7 +169,8 @@ public struct PortfolioParityOwnershipContract: Codable, Equatable, Sendable {
     public static let requiredActivePortfolioSourcePaths: Set<String> = [
         "Sources/Portfolio/PaperPortfolioProjectionUpdate.swift",
         "Sources/Portfolio/PortfolioFinancialStateProjection.swift",
-        "Sources/Portfolio/PortfolioParityOwnershipContract.swift"
+        "Sources/Portfolio/PortfolioParityOwnershipContract.swift",
+        "Sources/Portfolio/ReleaseV030PortfolioProjectionRehearsal.swift"
     ]
 
     public static let requiredRetainedBridgeSourcePaths: Set<String> = [
@@ -198,6 +199,12 @@ public struct PortfolioParityOwnershipContract: Codable, Equatable, Sendable {
                 ownerTarget: "Portfolio",
                 status: .activePortfolioOwner,
                 ownershipReason: "CEFR portfolio parity ownership classification belongs to Portfolio"
+            ),
+            PortfolioParityOwnedSurface(
+                sourcePath: "Sources/Portfolio/ReleaseV030PortfolioProjectionRehearsal.swift",
+                ownerTarget: "Portfolio",
+                status: .activePortfolioOwner,
+                ownershipReason: "GH-665 Portfolio projection rehearsal evidence is active Portfolio-owned projection logic"
             )
         ],
         retainedCompatibilityBridges: [

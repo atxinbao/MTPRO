@@ -170,6 +170,7 @@ let package = Package(
                 "PaperPortfolioProjectionUpdate.swift",
                 "PortfolioParityOwnershipContract.swift",
                 "PortfolioFinancialStateProjection.swift",
+                "ReleaseV030PortfolioProjectionRehearsal.swift",
                 "TargetGraph/PortfolioTargetBoundary.swift"
             ]
         ),
@@ -320,6 +321,7 @@ let package = Package(
                 "Portfolio/PortfolioParityOwnershipContract.swift",
                 "Portfolio/TargetGraph",
                 "Portfolio/PortfolioFinancialStateProjection.swift",
+                "Portfolio/ReleaseV030PortfolioProjectionRehearsal.swift",
                 "RiskEngine/LiveGate",
                 "RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift",
                 "RiskEngine/PreTrade/RiskEnginePreTradeOwnership.swift",

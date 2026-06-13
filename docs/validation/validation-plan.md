@@ -77,6 +77,27 @@ bash checks/run.sh
 
 该矩阵记录 EMA parity、order book imbalance parity、fees / slippage、risk blocker、portfolio exposure 和 report evidence 的现有 coverage、验收证据边界和后续 issue 回填规则。
 
+## GH-665 Release v0.3.0 Portfolio Projection Rehearsal Validation
+
+GH-665 的 required validation：
+
+- `docs/contracts/release-v0.3.0-portfolio-projection-rehearsal-contract.md` 必须存在，并包含 `V030-09-PORTFOLIO-PROJECTION-REHEARSAL`、`V030-09-SPOT-PORTFOLIO-PROJECTION`、`V030-09-PERP-PORTFOLIO-PROJECTION`、`V030-09-EMA-RSI-ATTRIBUTION` 和 `V030-09-NO-PRODUCTION-ACCOUNT-SYNC`。
+- `Sources/Portfolio/ReleaseV030PortfolioProjectionRehearsal.swift` 必须定义 `ReleaseV030PortfolioProjectionRehearsal`、`ReleaseV030PortfolioProjectionRehearsalEvidence`、`ReleaseV030PortfolioProjectionRehearsalFill`、`ReleaseV030PortfolioProjectionRehearsalProductProjection`、`ReleaseV030PortfolioProjectionRehearsalStrategyAttribution` 和 `ReleaseV030PortfolioProjectionRehearsalForbiddenCapability`。
+- `Package.swift` 的 `Portfolio` target source list 必须包含 `ReleaseV030PortfolioProjectionRehearsal.swift`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH665PortfolioProjectionRehearsalProjectsSpotPerpAndAttributionFromReplayEvidence`。
+- Portfolio projection rehearsal 必须绑定 GH-664 upstream Event Store replay anchor `TVM-RELEASE-V030-EVENT-STORE-REHEARSAL-EVIDENCE`。
+- Projection 必须同时覆盖 Spot 与 USDⓈ-M Perpetual，并且 EMA / RSI attribution 必须可见。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH665PortfolioProjectionRehearsalProjectsSpotPerpAndAttributionFromReplayEvidence`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-665 必须建立的主要 anchors：
+
+- `V030-09-PORTFOLIO-PROJECTION-REHEARSAL`
+- `V030-09-SPOT-PORTFOLIO-PROJECTION`
+- `V030-09-PERP-PORTFOLIO-PROJECTION`
+- `V030-09-EMA-RSI-ATTRIBUTION`
+- `V030-09-NO-PRODUCTION-ACCOUNT-SYNC`
+- `TVM-RELEASE-V030-PORTFOLIO-PROJECTION-REHEARSAL`
+
 ## GH-664 Release v0.3.0 Event Store Rehearsal Validation
 
 GH-664 的 required validation：
