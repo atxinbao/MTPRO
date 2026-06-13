@@ -10,6 +10,15 @@
 
 本文档不授权 production trading，不读取 production secret，不连接 production endpoint，不连接 production broker endpoint，不发送真实 submit / cancel / replace，不授权 production cutover，不创建下一 Project / Issue，不启动下一 milestone。
 
+## GH-687-RELEASE-V031-REHEARSAL-EVIDENCE-DOCS-HANDOFF
+
+v0.3.x 的 release 语义必须按以下口径理解：
+
+- v0.3.0 是 deterministic rehearsal evidence release：它证明本地 evidence chain、dry-run / testnet / shadow / production-blocked taxonomy、Dashboard / CLI rehearsal surface、kill switch / no-trade / rollback drill 和 `checks/verify-v0.3.0.sh` validation suite 已闭环。
+- v0.3.1 是 rehearsal evidence hardening patch：它只补强 v0.3.0 evidence 边界、testnet URL policy、文档语义和 patch release closeout，不新增 runtime pipeline、network connector、product type、strategy 或 production cutover。
+- v0.3.x 不是 real testnet / shadow runtime runner：本文档中的 `testnet` / `shadow` 表示 deterministic rehearsal mode 和 mapping proof，不表示真实 Binance testnet network loop、shadow production feed、broker connection、secret read、live private stream、real submit / cancel / replace 或 production endpoint。
+- v0.4.0 只是 planned unified runtime rehearsal pipeline stage 的 handoff 语义；必须等待 Human + `@001 / PLN` 重新规划和新的 live queue source，不由 v0.3.x 文档自动创建 Project / Issue、推进 Todo 或授权 execution。
+
 ## Release Scope
 
 | 项 | v0.3.0 rehearsal fact |

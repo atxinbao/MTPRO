@@ -64,6 +64,15 @@ Release v0.3.0 closure 范围固定为 Binance Spot + Binance USDⓈ-M Perpetual
 
 Current maturity statement：`MTPRO Release v0.3.0 Testnet / Shadow Production Rehearsal complete with production trading disabled by default`
 
+`GH-687-RELEASE-V031-REHEARSAL-EVIDENCE-DOCS-HANDOFF`
+
+v0.3.x release semantics：
+
+- `v0.3.0` 是 deterministic rehearsal evidence release：它证明本地 evidence chain、dry-run / testnet / shadow / production-blocked taxonomy、Dashboard / CLI rehearsal surface、kill switch / no-trade / rollback drill 和 `checks/verify-v0.3.0.sh` validation suite 已闭环。
+- `v0.3.1` 是 rehearsal evidence hardening patch：它只补强 v0.3.0 evidence 边界、testnet URL policy、文档语义和 patch release closeout，不新增 runtime pipeline、network connector、product type、strategy 或 production cutover。
+- `v0.3.x` 不表示 real testnet / shadow runtime runner 已存在：`testnet` / `shadow` 在本轮文档中表示 deterministic rehearsal mode 和 mapping proof，不表示真实 Binance testnet network loop、shadow production feed、broker connection、secret read、live private stream、real submit / cancel / replace 或 production endpoint。
+- `v0.4.0` 只作为 planned unified runtime rehearsal pipeline stage 的 handoff 语义；必须等待 Human + `@001 / PLN` 重新规划和新的 live queue source，不由 v0.3.x 文档自动创建 Project / Issue、推进 Todo 或授权 execution。
+
 `GH-596-RELEASE-V020-ROOT-DOCS-REFRESH`
 
 `MTPRO Release v0.2.0` 已完成 GitHub fallback queue final closure input。canonical Stage Code Audit Report 位于 `docs/audit/mtpro-release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-stage-code-audit.md`，operator runbook 位于 `docs/operators/release-v0.2.0-operator-runbook.md`。GH-563 至 GH-595 全部 closed / done；PR #597 至 PR #629 均已 merged，required check `checks` 均为 SUCCESS；terminal completed issue before #596 为 GH-595，merge commit 为 `e71d5c568f7346051e3d924b977bfcdfeb809043`。#596 closure PR 负责最终 Stage Code Audit、operator runbook、root docs refresh 和 focused closure guard；该 PR 必须等待 required check `checks` SUCCESS 后才能 merge，merge 后才能关闭 GH-596。
