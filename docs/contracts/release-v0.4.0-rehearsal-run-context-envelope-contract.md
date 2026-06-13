@@ -59,6 +59,7 @@ Envelope 的 `runID`、`mode`、`venue`、`productType`、`strategy`、`correlat
 统一 envelope 必须覆盖以下 module：
 
 - DataEngine
+- MessageBus
 - Trader
 - RiskEngine
 - ExecutionEngine
