@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# GH-727-VERIFY-V050-STRICT-CLI-COMMAND-PARSER
+# TVM-RELEASE-V050-STRICT-CLI-COMMAND-PARSER
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+cd "$ROOT"
+
+require_output_contains() {
+  local output="$1"
+  local expected="$2"
+
+  if ! grep -Fq "$expected" <<< "$output"; then
+    printf 'release v0.5.0 CLI verification failed: output must contain: %s\n' "$expected" >&2
+    printf '%s\n' "$output" >&2
+    exit 1
+  fi
+}
+
+reject_output_contains() {
+  local output="$1"
+  local forbidden="$2"
+
+  if grep -Fq "$forbidden" <<< "$output"; then
+    printf 'release v0.5.0 CLI verification failed: output must not contain: %s\n' "$forbidden" >&2
+    printf '%s\n' "$output" >&2
+    exit 1
+  fi
+}
+
+expect_failure_contains() {
+  local expected="$1"
+  shift
+
+  local output
+  set +e
+  output="$("$@" 2>&1)"
+  local status=$?
+  set -e
+
+  if [[ "$status" -eq 0 ]]; then
+    printf 'release v0.5.0 CLI verification failed: command unexpectedly succeeded: %s\n' "$*" >&2
+    printf '%s\n' "$output" >&2
+    exit 1
+  fi
+
+  require_output_contains "$output" "$expected"
+  reject_output_contains "$output" "mtpro verify-fast pass"
+  reject_output_contains "$output" "mtpro rehearsal-status blocked"
+  reject_output_contains "$output" "mtpro unified-run-status blocked"
+}
+
+swift test --filter TargetGraphTests/testGH727StrictCLICommandParserRejectsUnknownFallback
+
+help_output="$(swift run mtpro help)"
+require_output_contains "$help_output" "mtpro help"
+require_output_contains "$help_output" "commands=help,run,status,verify,rehearsal-status,unified-run-status,verify-fast,verify-release"
+require_output_contains "$help_output" "productionTradingEnabledByDefault=false"
+
+run_output="$(swift run mtpro run)"
+require_output_contains "$run_output" "mtpro run blocked"
+require_output_contains "$run_output" "runtimeStarted=false"
+require_output_contains "$run_output" "testnetConnected=false"
+require_output_contains "$run_output" "productionOrderSubmitted=false"
+
+status_output="$(swift run mtpro status)"
+require_output_contains "$status_output" "mtpro status blocked"
+require_output_contains "$status_output" "mtpro unified-run-status blocked"
+require_output_contains "$status_output" "productionCutoverAuthorized=false"
+
+verify_output="$(swift run mtpro verify)"
+require_output_contains "$verify_output" "mtpro verify pass"
+require_output_contains "$verify_output" "legacyFallbackDisabled=true"
+require_output_contains "$verify_output" "unknownCommandFailure=mtpro.strict.arguments"
+
+legacy_v040_output="$(swift run mtpro unified-run-status)"
+require_output_contains "$legacy_v040_output" "mtpro unified-run-status blocked"
+
+legacy_v030_output="$(swift run mtpro rehearsal-status)"
+require_output_contains "$legacy_v030_output" "mtpro rehearsal-status blocked"
+
+legacy_v020_output="$(swift run mtpro verify-fast)"
+require_output_contains "$legacy_v020_output" "mtpro verify-fast pass"
+
+expect_failure_contains "mtpro.strict.arguments" swift run mtpro unknown-command
+expect_failure_contains "mtpro.strict.arguments" swift run mtpro spot
+expect_failure_contains "mtpro.strict.arguments" swift run mtpro submit
+expect_failure_contains "mtpro.strict.arguments" swift run mtpro cancel
+expect_failure_contains "mtpro.strict.arguments" swift run mtpro replace
+
+echo "MTPRO release v0.5.0 strict CLI command parser verification passed."
