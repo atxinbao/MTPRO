@@ -5740,6 +5740,149 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH698TraderStrategyActorsConsumeMessageBusMarketEventsAndEmitRunScopedIntents() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let traderTarget = try packageTargetBlock(named: "Trader", packageSource: packageSource)
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.4.0-trader-strategy-actors-runtime-step-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+
+        let upstreamEvidence = try ReleaseV040DataEngineMessageBusRuntimeStep.deterministicEvidence()
+        let step = try ReleaseV040TraderStrategyActorsRuntimeStep(runContext: upstreamEvidence.runContext)
+        let marketInputs = try ReleaseV040TraderStrategyActorsRuntimeStep.deterministicMessageBusMarketInputs(
+            runContext: upstreamEvidence.runContext
+        )
+        let evidence = try step.run(
+            marketInputs: marketInputs,
+            quantity: Quantity(0.10, field: "gh698Quantity")
+        )
+
+        XCTAssertTrue(upstreamEvidence.evidenceHeld)
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-698")
+        XCTAssertEqual(evidence.upstreamIssueID.rawValue, "GH-697")
+        XCTAssertEqual(evidence.downstreamIssueID.rawValue, "GH-699")
+        XCTAssertEqual(evidence.runContext.runID, upstreamEvidence.runContext.runID)
+        XCTAssertEqual(Set(evidence.consumedMarketInputs.map(\.runID)), [upstreamEvidence.runContext.runID])
+        XCTAssertEqual(Set(evidence.emissions.map(\.strategy)), Set(ReleaseV040RehearsalRunContext.requiredStrategies))
+        XCTAssertEqual(
+            Set(evidence.intentMessages.map(\.instrument.productType)),
+            Set(ReleaseV040RehearsalRunContext.requiredProductTypes)
+        )
+        XCTAssertEqual(evidence.intentMessages.count, 2)
+        XCTAssertEqual(evidence.intentMessages.map(\.instrument.venue.rawValue), ["binance", "binance"])
+        XCTAssertTrue(
+            evidence.intentMessages.allSatisfy { message in
+                if message.targetExposure.requiresOrderIntent {
+                    return message.productAwareOrderIntent?.instrument == message.instrument
+                }
+                return message.productAwareOrderIntent == nil
+            }
+        )
+        XCTAssertEqual(evidence.intentJournalEnvelopes, evidence.replayedIntentEnvelopes)
+        XCTAssertEqual(evidence.intentJournalEnvelopes.map(\.sequence), [1, 2])
+        XCTAssertEqual(
+            evidence.unifiedEnvelopes.map(\.module),
+            [.trader, .messageBus, .trader, .messageBus]
+        )
+        XCTAssertEqual(evidence.unifiedEnvelopes.map(\.sequence), [1, 2, 3, 4])
+        XCTAssertTrue(evidence.unifiedEnvelopes.allSatisfy { $0.runID == upstreamEvidence.runContext.runID })
+        XCTAssertTrue(evidence.emissions.allSatisfy(\.boundaryHeld))
+        XCTAssertTrue(evidence.messageBusMarketConsumptionHeld)
+        XCTAssertTrue(evidence.strategyCoverageHeld)
+        XCTAssertTrue(evidence.runScopedIntentHeld)
+        XCTAssertTrue(evidence.noDirectExecutionPathHeld)
+        XCTAssertFalse(evidence.directExecutionClientAccessEnabled)
+        XCTAssertFalse(evidence.directBrokerAccessEnabled)
+        XCTAssertFalse(evidence.commandGatewayBypassAllowed)
+        XCTAssertFalse(evidence.networkCallsPerformed)
+        XCTAssertFalse(evidence.secretReadsPerformed)
+        XCTAssertFalse(evidence.productionEndpointConnected)
+        XCTAssertFalse(evidence.productionBrokerConnected)
+        XCTAssertFalse(evidence.productionOrderSubmitted)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertFalse(evidence.unsupportedStrategyEnabled)
+
+        for anchor in [
+            "V040-05-TRADER-STRATEGY-ACTORS-RUNTIME-STEP",
+            "V040-05-EMA-RSI-RUN-SCOPED-INTENTS",
+            "V040-05-MESSAGEBUS-MARKET-CONSUMPTION",
+            "V040-05-NO-STRATEGY-EXECUTIONCLIENT-PATH",
+            "TVM-RELEASE-V040-TRADER-STRATEGY-ACTORS-RUNTIME-STEP"
+        ] {
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+        }
+        XCTAssertTrue(traderTarget.contains("\"Runtime/ReleaseV040TraderStrategyActorsRuntimeStep.swift\""))
+        XCTAssertTrue(coreTarget.contains("\"Trader/Runtime\""))
+        XCTAssertTrue(automationReadiness.contains("Release v0.4.0 Trader strategy actors runtime step anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV040TraderStrategyActorsRuntimeStep.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH698TraderStrategyActorsConsumeMessageBusMarketEventsAndEmitRunScopedIntents"
+            )
+        )
+        XCTAssertFalse(traderTarget.contains("\"ExecutionClient\""))
+
+        XCTAssertThrowsError(
+            try ReleaseV040TraderStrategyActorsRuntimeStep(
+                runContext: try ReleaseV040RehearsalRunContext(mode: .shadow)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(field: "runContext.mode", expected: "dry-run", actual: "shadow")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV040TraderStrategyActorsRuntimeStepEvidence(
+                runContext: evidence.runContext,
+                consumedMarketInputs: evidence.consumedMarketInputs,
+                emissions: evidence.emissions,
+                replayedIntentEnvelopes: evidence.replayedIntentEnvelopes,
+                directExecutionClientAccessEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("directExecutionClientAccessEnabled"))
+        }
+
+        let encoded = try JSONEncoder().encode(evidence)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["productionBrokerConnected"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(ReleaseV040TraderStrategyActorsRuntimeStepEvidence.self, from: data)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("productionBrokerConnected"))
+        }
+    }
+
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

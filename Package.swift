@@ -249,6 +249,7 @@ let package = Package(
                 "Accounts",
                 "Coordination/RiskBinding",
                 "Runtime/ReleaseV030TraderStrategyRuntimeRehearsalFlow.swift",
+                "Runtime/ReleaseV040TraderStrategyActorsRuntimeStep.swift",
                 "Runtime/TraderRuntimeLifecycle.swift",
                 "TargetGraph/TraderTargetBoundary.swift"
             ]
