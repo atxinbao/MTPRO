@@ -232,6 +232,7 @@ GH-634 收窄 Portfolio / Execution simulated parity compatibility ownership。`
 | `Sources/Portfolio/PaperPortfolioProjectionUpdate.swift` | `Portfolio` | paper portfolio projection update is active Portfolio-owned read-model evidence |
 | `Sources/Portfolio/PortfolioFinancialStateProjection.swift` | `Portfolio` | financial state projection is active Portfolio-owned read-model evidence |
 | `Sources/Portfolio/PortfolioParityOwnershipContract.swift` | `Portfolio` | CEFR portfolio parity ownership classification belongs to Portfolio |
+| `Sources/Portfolio/ReleaseV030PortfolioProjectionRehearsal.swift` | `Portfolio` | GH-665 Portfolio projection rehearsal evidence is active Portfolio-owned projection logic |
 
 以下 source 仍由 `Core` compatibility envelope 编译，但只能解释为 compatibility-only retained bridge：
 

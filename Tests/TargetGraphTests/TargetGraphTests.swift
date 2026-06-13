@@ -6796,6 +6796,179 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH665PortfolioProjectionRehearsalProjectsSpotPerpAndAttributionFromReplayEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let portfolioTarget = try packageTargetBlock(named: "Portfolio", packageSource: packageSource)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.3.0-portfolio-projection-rehearsal-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let portfolioSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/Portfolio/ReleaseV030PortfolioProjectionRehearsal.swift"
+            ),
+            encoding: .utf8
+        )
+
+        let evidence = try ReleaseV030PortfolioProjectionRehearsal.deterministicEvidence()
+
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.boundaryHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-665")
+        XCTAssertEqual(evidence.upstreamIssueID.rawValue, "GH-664")
+        XCTAssertEqual(evidence.downstreamIssueID.rawValue, "GH-666")
+        XCTAssertEqual(evidence.canonicalQueueRange, "GH-657..GH-670")
+        XCTAssertEqual(evidence.projectName, "MTPRO Release v0.3.0 Runtime Rehearsal v1")
+        XCTAssertEqual(evidence.releaseVersion, "v0.3.0")
+        XCTAssertEqual(
+            evidence.upstreamEventStoreAnchor,
+            "TVM-RELEASE-V030-EVENT-STORE-REHEARSAL-EVIDENCE"
+        )
+        XCTAssertTrue(evidence.upstreamReplayState.replayStateHeld)
+        XCTAssertEqual(evidence.requirements, ReleaseV030PortfolioProjectionRehearsalRequirement.allCases)
+        XCTAssertEqual(
+            Set(evidence.forbiddenCapabilities),
+            Set(ReleaseV030PortfolioProjectionRehearsalForbiddenCapability.allCases)
+        )
+
+        XCTAssertEqual(evidence.fills.count, 4)
+        XCTAssertTrue(evidence.fills.allSatisfy(\.fillHeld))
+        XCTAssertEqual(Set(evidence.fills.map(\.productType)), Set(ProductType.allCases))
+        XCTAssertEqual(
+            Set(evidence.fills.map(\.strategyKind)),
+            Set(ReleaseV030PortfolioProjectionRehearsalStrategyKind.allCases)
+        )
+        XCTAssertTrue(evidence.fills.allSatisfy {
+            $0.sourceEvidenceAnchor == ReleaseV030PortfolioProjectionRehearsalEvidence.requiredUpstreamEventStoreAnchor
+                && $0.sourceReplaySequence == 6
+                && $0.simulatedOrTestnetEvidence
+                && $0.rawBrokerPayloadExposed == false
+                && $0.productionAccountSynced == false
+                && $0.accountEndpointRead == false
+                && $0.brokerPositionSynced == false
+        })
+
+        XCTAssertEqual(evidence.productProjections.count, 2)
+        XCTAssertTrue(evidence.productProjections.allSatisfy(\.projectionHeld))
+        XCTAssertEqual(Set(evidence.productProjections.map(\.productType)), Set(ProductType.allCases))
+        let spotProjection = try XCTUnwrap(evidence.productProjections.first { $0.productType == .spot })
+        let perpProjection = try XCTUnwrap(evidence.productProjections.first { $0.productType == .usdsPerpetual })
+        XCTAssertEqual(spotProjection.netPositionQuantity, 0.05, accuracy: 0.000001)
+        XCTAssertEqual(perpProjection.netPositionQuantity, 0.12, accuracy: 0.000001)
+        XCTAssertFalse(spotProjection.productionAccountSynced)
+        XCTAssertFalse(perpProjection.brokerPositionSynced)
+        XCTAssertFalse(spotProjection.reconciliationRuntimeExecuted)
+        XCTAssertFalse(perpProjection.rawBrokerPayloadExposed)
+
+        XCTAssertEqual(evidence.strategyAttributions.count, 2)
+        XCTAssertTrue(evidence.strategyAttributions.allSatisfy(\.attributionHeld))
+        XCTAssertEqual(
+            Set(evidence.strategyAttributions.map(\.strategyKind)),
+            Set(ReleaseV030PortfolioProjectionRehearsalStrategyKind.allCases)
+        )
+        XCTAssertTrue(evidence.strategyAttributions.allSatisfy {
+            Set($0.productTypes) == Set(ProductType.allCases)
+                && $0.visibleInEvidence
+                && $0.productionAccountSynced == false
+                && $0.rawBrokerPayloadExposed == false
+        })
+        XCTAssertTrue(try ReleaseV030PortfolioProjectionRehearsal.productionAccountSyncRejected())
+
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(evidence.productionSecretAutoReadEnabled)
+        XCTAssertFalse(evidence.productionOrderSubmissionEnabled)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertFalse(evidence.productionAccountSyncEnabled)
+        XCTAssertFalse(evidence.accountEndpointReadEnabled)
+        XCTAssertFalse(evidence.brokerPositionSyncEnabled)
+        XCTAssertFalse(evidence.rawBrokerPayloadExposed)
+        XCTAssertFalse(evidence.reconciliationRuntimeExecuted)
+        XCTAssertFalse(evidence.dashboardCommandSurfaceExposed)
+        XCTAssertFalse(evidence.commandGatewayBypassAllowed)
+        XCTAssertFalse(evidence.startsNextMilestone)
+
+        for anchor in ReleaseV030PortfolioProjectionRehearsalEvidence.requiredValidationAnchors {
+            XCTAssertTrue(evidence.validationAnchors.contains(anchor), "\(anchor) must stay in Swift evidence")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in Portfolio rehearsal contract")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation-plan.md")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading-validation-matrix.md")
+        }
+        XCTAssertTrue(contractDoc.contains("GH-664"))
+        XCTAssertTrue(contractDoc.contains("GH-666"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.3.0 Portfolio projection rehearsal anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV030PortfolioProjectionRehearsal.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH665PortfolioProjectionRehearsalProjectsSpotPerpAndAttributionFromReplayEvidence"
+            )
+        )
+        XCTAssertTrue(portfolioTarget.contains("\"ReleaseV030PortfolioProjectionRehearsal.swift\""))
+        XCTAssertTrue(
+            PortfolioParityOwnershipContract.gh634.activeSourcePaths.contains(
+                "Sources/Portfolio/ReleaseV030PortfolioProjectionRehearsal.swift"
+            )
+        )
+
+        for forbidden in [
+            "import ExecutionClient",
+            "import ExecutionEngine",
+            "import RiskEngine",
+            "URLSession",
+            "api.binance.com",
+            "fapi.binance.com",
+            "listenKey",
+            "secretValue",
+            "rawBrokerPayload:"
+        ] {
+            XCTAssertFalse(
+                portfolioSource.contains(forbidden),
+                "Portfolio rehearsal source must not contain \(forbidden)"
+            )
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV030PortfolioProjectionRehearsalEvidence(
+                upstreamEventStoreAnchor: "UNSAFE-MISSING-GH-664-ANCHOR",
+                upstreamReplayState: evidence.upstreamReplayState,
+                fills: evidence.fills,
+                productProjections: evidence.productProjections,
+                strategyAttributions: evidence.strategyAttributions
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "upstreamEventStoreAnchor",
+                    expected: "TVM-RELEASE-V030-EVENT-STORE-REHEARSAL-EVIDENCE",
+                    actual: "UNSAFE-MISSING-GH-664-ANCHOR"
+                )
+            )
+        }
+    }
+
     func testGH643ProductionCutoverRuntimeHardeningContractFailsClosedWithoutProductionCutover() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
