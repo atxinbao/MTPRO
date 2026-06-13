@@ -99,6 +99,7 @@ let package = Package(
                 "ReleaseV020GoldenTraceCatalog.swift",
                 "ReleaseV020ProductAwareEventStoreSchema.swift",
                 "ReleaseV020VerificationGates.swift",
+                "ReleaseV030CLIRehearsalSurface.swift",
                 "ReleaseV030EventStoreRehearsalEvidence.swift",
                 "TargetGraph/DatabaseTargetBoundary.swift"
             ]
@@ -170,6 +171,7 @@ let package = Package(
                 "PaperPortfolioProjectionUpdate.swift",
                 "PortfolioParityOwnershipContract.swift",
                 "PortfolioFinancialStateProjection.swift",
+                "ReleaseV030RehearsalSurface.swift",
                 "ReleaseV030PortfolioProjectionRehearsal.swift",
                 "TargetGraph/PortfolioTargetBoundary.swift"
             ]
@@ -321,6 +323,7 @@ let package = Package(
                 "Portfolio/PortfolioParityOwnershipContract.swift",
                 "Portfolio/TargetGraph",
                 "Portfolio/PortfolioFinancialStateProjection.swift",
+                "Portfolio/ReleaseV030RehearsalSurface.swift",
                 "Portfolio/ReleaseV030PortfolioProjectionRehearsal.swift",
                 "RiskEngine/LiveGate",
                 "RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift",
@@ -388,6 +391,7 @@ let package = Package(
                 "ReleaseV020GoldenTraceCatalog.swift",
                 "ReleaseV020ProductAwareEventStoreSchema.swift",
                 "ReleaseV020VerificationGates.swift",
+                "ReleaseV030CLIRehearsalSurface.swift",
                 "ReleaseV030EventStoreRehearsalEvidence.swift",
                 "ReplayProjection",
                 "TargetGraph"
@@ -420,6 +424,7 @@ let package = Package(
                 "Database/ReleaseV020GoldenTraceCatalog.swift",
                 "Database/ReleaseV020ProductAwareEventStoreSchema.swift",
                 "Database/ReleaseV020VerificationGates.swift",
+                "Database/ReleaseV030CLIRehearsalSurface.swift",
                 "Database/ReleaseV030EventStoreRehearsalEvidence.swift",
                 "Database/Projections",
                 "Database/TargetGraph",

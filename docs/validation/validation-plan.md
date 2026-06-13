@@ -77,6 +77,29 @@ bash checks/run.sh
 
 该矩阵记录 EMA parity、order book imbalance parity、fees / slippage、risk blocker、portfolio exposure 和 report evidence 的现有 coverage、验收证据边界和后续 issue 回填规则。
 
+## GH-666 Release v0.3.0 Dashboard / CLI Rehearsal Surface Validation
+
+GH-666 的 required validation：
+
+- `docs/contracts/release-v0.3.0-dashboard-cli-rehearsal-surface-contract.md` 必须存在，并包含 `V030-10-DASHBOARD-CLI-REHEARSAL-SURFACE`、`V030-10-RUN-STATUS-SURFACE`、`V030-10-GATE-FAILURE-REASONS`、`V030-10-KILL-SWITCH-NO-TRADE-STATUS` 和 `V030-10-COMMANDGATEWAY-ROUTING`。
+- `Sources/Portfolio/ReleaseV030RehearsalSurface.swift` 必须定义 `ReleaseV030RehearsalSurface`、`ReleaseV030RehearsalSurfaceEvidence`、`ReleaseV030RehearsalSurfaceGateEvidence`、`ReleaseV030RehearsalSurfaceGate` 和 `ReleaseV030RehearsalSurfaceForbiddenCapability`。
+- `Sources/Database/ReleaseV030CLIRehearsalSurface.swift` 必须定义 `ReleaseV030CLIRehearsalSurface`、`ReleaseV030CLIRehearsalSurfaceEvidence`、`ReleaseV030CLIRehearsalGateRecord` 和 `ReleaseV030CLIRehearsalGate`，并保持 `MTPROCLI` target 只依赖 `Database`。
+- `Sources/Dashboard/Report/ReleaseV030DashboardRehearsalSurface.swift` 必须定义 `ReleaseV030DashboardRehearsalSurfaceViewModel`。
+- `Sources/MTPROCLI/main.swift` 必须支持 `ReleaseV030CLIRehearsalSurface.cliCommand`，并保留既有 release v0.2.0 verify command fallback。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH666DashboardCLIRehearsalSurfaceShowsStatusGatesAndCommandGatewayRoute`。
+- Dashboard / CLI rehearsal surface 必须绑定 GH-665 upstream Portfolio projection rehearsal anchor `TVM-RELEASE-V030-PORTFOLIO-PROJECTION-REHEARSAL`。
+- Surface 必须展示 run status、gate evidence、failure reasons、kill switch status、no-trade status，并证明 Dashboard / CLI 不绕过 CommandGateway。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH666DashboardCLIRehearsalSurfaceShowsStatusGatesAndCommandGatewayRoute`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-666 必须建立的主要 anchors：
+
+- `V030-10-DASHBOARD-CLI-REHEARSAL-SURFACE`
+- `V030-10-RUN-STATUS-SURFACE`
+- `V030-10-GATE-FAILURE-REASONS`
+- `V030-10-KILL-SWITCH-NO-TRADE-STATUS`
+- `V030-10-COMMANDGATEWAY-ROUTING`
+- `TVM-RELEASE-V030-DASHBOARD-CLI-REHEARSAL-SURFACE`
+
 ## GH-665 Release v0.3.0 Portfolio Projection Rehearsal Validation
 
 GH-665 的 required validation：

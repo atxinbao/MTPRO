@@ -170,6 +170,7 @@ public struct PortfolioParityOwnershipContract: Codable, Equatable, Sendable {
         "Sources/Portfolio/PaperPortfolioProjectionUpdate.swift",
         "Sources/Portfolio/PortfolioFinancialStateProjection.swift",
         "Sources/Portfolio/PortfolioParityOwnershipContract.swift",
+        "Sources/Portfolio/ReleaseV030RehearsalSurface.swift",
         "Sources/Portfolio/ReleaseV030PortfolioProjectionRehearsal.swift"
     ]
 
@@ -205,6 +206,12 @@ public struct PortfolioParityOwnershipContract: Codable, Equatable, Sendable {
                 ownerTarget: "Portfolio",
                 status: .activePortfolioOwner,
                 ownershipReason: "GH-665 Portfolio projection rehearsal evidence is active Portfolio-owned projection logic"
+            ),
+            PortfolioParityOwnedSurface(
+                sourcePath: "Sources/Portfolio/ReleaseV030RehearsalSurface.swift",
+                ownerTarget: "Portfolio",
+                status: .activePortfolioOwner,
+                ownershipReason: "GH-666 shared Dashboard / CLI rehearsal surface evidence is active Portfolio-owned read-model logic"
             )
         ],
         retainedCompatibilityBridges: [
