@@ -116,6 +116,28 @@ GH-726 必须建立的主要 anchors：
 - `TVM-RELEASE-V050-BOUNDARY-PREFLIGHT-CONTRACT`
 - `testGH726ReleaseV050BoundaryPreflightContractDefinesGuardedRuntimeFoundation`
 
+## GH-727 Release v0.5.0 Strict CLI Command Parser Validation
+
+GH-727 的 required validation：
+
+- `Sources/MTPROCLI/main.swift` 必须以 `MTPROStrictCLI.commandLineOutput(arguments:)` 作为唯一 top-level router。
+- `docs/contracts/release-v0.5.0-strict-cli-command-parser-contract.md` 必须存在，并包含 `V050-02-STRICT-CLI-COMMAND-PARSER`、`V050-02-HELP-RUN-STATUS-VERIFY-SHAPE`、`V050-02-LEGACY-COMMAND-WHITELIST`、`V050-02-UNKNOWN-COMMAND-FAILS-NONZERO`、`V050-02-NO-PRODUCTION-CLI-SIDE-EFFECT` 和 `TVM-RELEASE-V050-STRICT-CLI-COMMAND-PARSER`。
+- `help`、`run`、`status [runID]` 和 `verify` 必须成为 v0.5.0 explicit command shape。
+- `rehearsal-status`、`unified-run-status`、`verify-fast` 和 `verify-release` 只能作为 explicit legacy whitelist route 保留。
+- 未知命令、`spot`、`submit`、`cancel`、`replace` 必须 non-zero failure，且输出包含 `mtpro.strict.arguments`，不得 fallback 到旧 v0.2 / v0.3 / v0.4 surface。
+- `checks/verify-v0.5.0-cli.sh` 必须覆盖 known command success 和 unknown command failure，并由 `checks/run.sh` 调用。
+- Required validation 为 `swift test --filter TargetGraphTests/testGH727StrictCLICommandParserRejectsUnknownFallback`、`bash checks/verify-v0.5.0-cli.sh`、`bash checks/verify-v0.5.0-preflight.sh`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-727 必须建立的主要 anchors：
+
+- `V050-02-STRICT-CLI-COMMAND-PARSER`
+- `V050-02-HELP-RUN-STATUS-VERIFY-SHAPE`
+- `V050-02-LEGACY-COMMAND-WHITELIST`
+- `V050-02-UNKNOWN-COMMAND-FAILS-NONZERO`
+- `V050-02-NO-PRODUCTION-CLI-SIDE-EFFECT`
+- `TVM-RELEASE-V050-STRICT-CLI-COMMAND-PARSER`
+- `testGH727StrictCLICommandParserRejectsUnknownFallback`
+
 ## GH-669 Release v0.3.0 Operator Rehearsal Runbook
 
 GH-669 的 required validation：

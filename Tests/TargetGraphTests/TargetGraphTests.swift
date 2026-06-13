@@ -7800,6 +7800,107 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH727StrictCLICommandParserRejectsUnknownFallback() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let cliTarget = try packageTargetBlock(named: "MTPROCLI", packageSource: packageSource)
+        let cliSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/MTPROCLI/main.swift"),
+            encoding: .utf8
+        )
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.5.0-strict-cli-command-parser-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let cliVerificationScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.5.0-cli.sh"),
+            encoding: .utf8
+        )
+
+        for anchor in [
+            "V050-02-STRICT-CLI-COMMAND-PARSER",
+            "V050-02-HELP-RUN-STATUS-VERIFY-SHAPE",
+            "V050-02-LEGACY-COMMAND-WHITELIST",
+            "V050-02-UNKNOWN-COMMAND-FAILS-NONZERO",
+            "V050-02-NO-PRODUCTION-CLI-SIDE-EFFECT",
+            "TVM-RELEASE-V050-STRICT-CLI-COMMAND-PARSER"
+        ] {
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in CLI contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+        }
+
+        XCTAssertTrue(cliTarget.contains("\"main.swift\""))
+        XCTAssertTrue(cliTarget.contains("\"Database\""))
+        XCTAssertTrue(cliTarget.contains("\"Portfolio\""))
+        XCTAssertTrue(cliSource.contains("MTPROStrictCLI.commandLineOutput(arguments: arguments)"))
+        XCTAssertTrue(cliSource.contains("mtpro.strict.arguments"))
+        XCTAssertTrue(cliSource.contains("unknownCommandRejected"))
+        XCTAssertTrue(cliSource.contains("supportedCommands"))
+        XCTAssertTrue(cliSource.contains("help"))
+        XCTAssertTrue(cliSource.contains("run"))
+        XCTAssertTrue(cliSource.contains("status"))
+        XCTAssertTrue(cliSource.contains("verify"))
+        XCTAssertTrue(cliSource.contains("ReleaseV030CLIRehearsalSurface.commandLineOutput"))
+        XCTAssertTrue(cliSource.contains("ReleaseV040UnifiedRunSurface.commandLineOutput"))
+        XCTAssertTrue(cliSource.contains("ReleaseV020CLIProductSurface.commandLineOutput"))
+        XCTAssertTrue(cliSource.contains("legacyFallbackDisabled=true"))
+        XCTAssertTrue(cliSource.contains("productionTradingEnabledByDefault=false"))
+        XCTAssertTrue(cliSource.contains("productionEndpointConnected=false"))
+        XCTAssertTrue(cliSource.contains("productionOrderSubmitted=false"))
+        XCTAssertTrue(cliSource.contains("productionCutoverAuthorized=false"))
+        XCTAssertFalse(cliSource.contains("URLSession"))
+        XCTAssertFalse(cliSource.contains("URLRequest"))
+        XCTAssertFalse(cliSource.contains("submitOrder"))
+        XCTAssertFalse(cliSource.contains("cancelOrder"))
+        XCTAssertFalse(cliSource.contains("replaceOrder"))
+
+        XCTAssertTrue(automationReadiness.contains("Release v0.5.0 strict CLI command parser anchor"))
+        XCTAssertTrue(readinessScript.contains("Sources/MTPROCLI/main.swift"))
+        XCTAssertTrue(readinessScript.contains("testGH727StrictCLICommandParserRejectsUnknownFallback"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.5.0-cli.sh"))
+        XCTAssertTrue(cliVerificationScript.contains("GH-727-VERIFY-V050-STRICT-CLI-COMMAND-PARSER"))
+        XCTAssertTrue(cliVerificationScript.contains("swift run mtpro help"))
+        XCTAssertTrue(cliVerificationScript.contains("swift run mtpro run"))
+        XCTAssertTrue(cliVerificationScript.contains("swift run mtpro status"))
+        XCTAssertTrue(cliVerificationScript.contains("swift run mtpro verify"))
+        XCTAssertTrue(cliVerificationScript.contains("swift run mtpro unified-run-status"))
+        XCTAssertTrue(cliVerificationScript.contains("swift run mtpro rehearsal-status"))
+        XCTAssertTrue(cliVerificationScript.contains("swift run mtpro verify-fast"))
+        for rejectedCommand in ["unknown-command", "spot", "submit", "cancel", "replace"] {
+            XCTAssertTrue(
+                cliVerificationScript.contains("swift run mtpro \(rejectedCommand)"),
+                "\(rejectedCommand) must be covered by non-zero CLI verification"
+            )
+        }
+    }
+
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
