@@ -7279,6 +7279,126 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(source.contains("listenKey"))
     }
 
+    func testGH707VerifyV040ReleaseValidationSuiteCoversUnifiedRuntimeShadowAndGuards() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let verificationScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.4.0.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.4.0-validation-suite-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let targetGraphTests = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Tests/TargetGraphTests/TargetGraphTests.swift"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(verificationScript.contains("GH-707-VERIFY-V040-RELEASE-VALIDATION-SUITE"))
+        XCTAssertTrue(verificationScript.contains("TVM-RELEASE-V040-VERIFY-VALIDATION-SUITE"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.4.0.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.4.0.sh"))
+
+        let requiredFocusedTests = [
+            "testGH694ReleaseV040UnifiedRuntimeRehearsalPipelineContractRequiresOneRunID",
+            "testGH695ReleaseV040RehearsalRunContextAndEnvelopeShareOneRunID",
+            "testGH696RuntimeKernelDryRunOrchestratorDrivesLocalRunWithoutNetworkOrSecrets",
+            "testGH697DataEngineRuntimeStepPublishesRunScopedMarketEventsIntoMessageBus",
+            "testGH698TraderStrategyActorsConsumeMessageBusMarketEventsAndEmitRunScopedIntents",
+            "testGH699RiskEnginePreTradeRehearsalGateAllowsRejectsAndBlocksRunScopedIntents",
+            "testGH700ExecutionOMSDryRunLifecycleConsumesRiskApprovedDecisionAndReplaysRunScopedEvents",
+            "testGH701BinanceDryRunExecutionClientAdapterMapsLifecycleRequestsWithoutNetworkCalls",
+            "testGH702BinanceTestnetModeBoundaryRequiresExplicitOperatorConfirmation",
+            "testGH703EventStoreRunJournalAppendsAndReplaysOneRunIDChain",
+            "testGH704PortfolioReplayProjectionDerivesReadModelFromEventStoreRunJournal",
+            "testGH705DashboardCLIUnifiedRunSurfaceConsumesPortfolioProjectionByRunID",
+            "testGH706ShadowReplayModeUsesUnifiedRunContextWithoutNetworkBrokerCalls"
+        ]
+        for testName in requiredFocusedTests {
+            XCTAssertTrue(verificationScript.contains(testName), "\(testName) must stay in verify-v0.4.0.sh")
+            XCTAssertTrue(targetGraphTests.contains(testName), "\(testName) must stay in TargetGraphTests")
+        }
+
+        for cliAssertion in [
+            "swift run mtpro unified-run-status",
+            "mtpro unified-run-status blocked",
+            "issue=GH-705",
+            "validationAnchor=TVM-RELEASE-V040-DASHBOARD-CLI-UNIFIED-RUN-SURFACE",
+            "productTypes=spot,usdsPerpetual",
+            "strategies=EMA,RSI",
+            "adapterEvidenceVisible=true",
+            "portfolioProjectionVisible=true",
+            "blockedStatesExplained=true",
+            "rejectedStatesExplained=true",
+            "dashboardConsumesProjectionByRunID=true",
+            "cliConsumesProjectionByRunID=true",
+            "productionTradingEnabledByDefault=false",
+            "productionEndpointConnected=false",
+            "productionSecretRead=false",
+            "productionOrderSubmitted=false",
+            "productionCutoverAuthorized=false",
+            "boundaryHeld=true"
+        ] {
+            XCTAssertTrue(verificationScript.contains(cliAssertion), "\(cliAssertion) must stay in CLI smoke")
+        }
+
+        for sourceGuard in [
+            "networkCallsPerformed: Bool = false",
+            "productionEndpointConnected: Bool = false",
+            "productionOrderSubmitted: Bool = false",
+            "defaultMode: ReleaseV040RehearsalRunMode = .dryRun",
+            "requestedMode: ReleaseV040RehearsalRunMode = .testnetGuarded",
+            "testnetConnected: Bool = false",
+            "shadowSuccessTreatedAsProductionApproval: Bool = false"
+        ] {
+            XCTAssertTrue(verificationScript.contains(sourceGuard), "\(sourceGuard) must stay in source guard")
+        }
+
+        for anchor in [
+            "GH-707-VERIFY-V040-RELEASE-VALIDATION-SUITE",
+            "V040-14-VERIFY-RELEASE-VALIDATION-SUITE",
+            "V040-14-COMPLETE-UNIFIED-RUNTIME-CHAIN",
+            "V040-14-SHADOW-REPLAY-SMOKE",
+            "V040-14-TESTNET-DISABLED-BY-DEFAULT",
+            "V040-14-PRODUCTION-DISABLED-BOUNDARY",
+            "TVM-RELEASE-V040-VERIFY-VALIDATION-SUITE"
+        ] {
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+        }
+
+        XCTAssertTrue(validationPlan.contains("GH-707 Release v0.4.0 Validation Suite"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.4.0 validation suite anchor"))
+        XCTAssertTrue(tradingMatrix.contains("GH-708"))
+        XCTAssertTrue(contractDoc.contains("GH-708"))
+        XCTAssertTrue(verificationScript.contains("reject_file_contains"))
+        XCTAssertTrue(verificationScript.contains("grep -Fv 'reject_file_contains'"))
+    }
+
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
