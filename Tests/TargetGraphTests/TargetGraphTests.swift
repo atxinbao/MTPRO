@@ -5197,6 +5197,169 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(auditInput.contains("no next Project / Issue is created or promoted"))
     }
 
+    func testGH694ReleaseV040UnifiedRuntimeRehearsalPipelineContractRequiresOneRunID() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.4.0-unified-runtime-rehearsal-pipeline-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+
+        let contract = try ReleaseV040UnifiedRuntimeRehearsalPipelineContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertTrue(contract.runIdentityHeld)
+        XCTAssertTrue(contract.semanticsHeld)
+        XCTAssertTrue(contract.productionDefaultsClosed)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-694")
+        XCTAssertEqual(contract.downstreamIssueID.rawValue, "GH-695")
+        XCTAssertEqual(contract.canonicalQueueRange, "GH-694..GH-709")
+        XCTAssertEqual(contract.projectName, "MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline")
+        XCTAssertEqual(contract.releaseVersion, "v0.4.0")
+        XCTAssertEqual(contract.allowedVenue, "Binance")
+        XCTAssertEqual(contract.allowedProductTypes, ["spot", "usdsPerpetual"])
+        XCTAssertEqual(contract.allowedStrategies, ["EMA", "RSI"])
+        XCTAssertEqual(contract.rehearsalModes, ReleaseV040UnifiedRuntimeRehearsalMode.allCases)
+        XCTAssertEqual(contract.moduleOrder, ReleaseV040UnifiedRuntimeModuleStep.allCases)
+        XCTAssertEqual(
+            contract.moduleOrder.map(\.rawValue).joined(separator: " -> "),
+            "DataEngine -> MessageBus -> Trader / EMA / RSI -> RiskEngine -> ExecutionEngine / OMS -> Binance dry-run / testnet-gated ExecutionClient -> Event Store -> Portfolio projection -> Dashboard / CLI"
+        )
+        XCTAssertEqual(
+            Set(contract.forbiddenCapabilities),
+            Set(ReleaseV040UnifiedRuntimeForbiddenCapability.allCases)
+        )
+        XCTAssertEqual(
+            Set(contract.validationExpectations),
+            Set(ReleaseV040UnifiedRuntimeValidationExpectation.allCases)
+        )
+
+        XCTAssertTrue(contract.runIDRequiredAcrossAllEvidence)
+        XCTAssertTrue(contract.unifiedEvidenceEnvelopeRequired)
+        XCTAssertTrue(contract.dashboardCLIUnifiedProjectionOnly)
+        XCTAssertTrue(contract.dryRunSemanticsDefined)
+        XCTAssertTrue(contract.shadowSemanticsDefined)
+        XCTAssertTrue(contract.guardedTestnetSemanticsDefined)
+        XCTAssertFalse(contract.productionTradingEnabledByDefault)
+        XCTAssertFalse(contract.productionSecretAutoReadEnabled)
+        XCTAssertFalse(contract.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(contract.productionBrokerConnectionEnabled)
+        XCTAssertFalse(contract.productionOrderSubmissionEnabled)
+        XCTAssertFalse(contract.productionCutoverAuthorized)
+        XCTAssertFalse(contract.startsNextMilestone)
+
+        for anchor in ReleaseV040UnifiedRuntimeRehearsalPipelineContract.requiredValidationAnchors {
+            XCTAssertTrue(contract.validationAnchors.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation-plan.md")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading-validation-matrix.md")
+        }
+        for mode in ["dry-run", "shadow", "testnet-guarded", "production-blocked"] {
+            XCTAssertTrue(contractDoc.contains(mode), "\(mode) must stay documented as a rehearsal mode")
+        }
+        for step in ReleaseV040UnifiedRuntimeModuleStep.allCases {
+            XCTAssertTrue(contractDoc.contains(step.rawValue), "\(step.rawValue) must stay in module order docs")
+        }
+        for expectation in ReleaseV040UnifiedRuntimeValidationExpectation.allCases {
+            XCTAssertTrue(
+                contractDoc.contains(expectation.rawValue),
+                "\(expectation.rawValue) must stay documented as future validation expectation"
+            )
+        }
+
+        XCTAssertTrue(automationReadiness.contains("Release v0.4.0 unified runtime rehearsal pipeline contract anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV040UnifiedRuntimeRehearsalPipelineContract.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH694ReleaseV040UnifiedRuntimeRehearsalPipelineContractRequiresOneRunID"
+            )
+        )
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: repositoryRoot.appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/ReleaseV040UnifiedRuntimeRehearsalPipelineContract.swift"
+                ).path
+            )
+        )
+
+        XCTAssertThrowsError(
+            try ReleaseV040UnifiedRuntimeRehearsalPipelineContract(
+                runIDRequiredAcrossAllEvidence: false
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "runIDRequiredAcrossAllEvidence",
+                    expected: "true",
+                    actual: "false"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV040UnifiedRuntimeRehearsalPipelineContract(
+                productionTradingEnabledByDefault: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("productionTradingEnabledByDefault")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV040UnifiedRuntimeRehearsalPipelineContract(
+                productionEndpointAutoConnectEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("productionEndpointAutoConnectEnabled")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV040UnifiedRuntimeRehearsalPipelineContract(
+                productionBrokerConnectionEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("productionBrokerConnectionEnabled")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV040UnifiedRuntimeRehearsalPipelineContract(
+                allowedVenue: "Coinbase"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(field: "allowedVenue", expected: "Binance", actual: "Coinbase")
+            )
+        }
+    }
+
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

@@ -28,6 +28,26 @@ reject_tree_pattern() {
   fi
 }
 
+reject_tree_pattern_except_gh694_contract() {
+  local pattern="$1"
+  local description="$2"
+  shift 2
+
+  local matches
+  matches="$(grep -R -n -E "$pattern" "$@" || true)"
+  matches="$(
+    printf '%s\n' "$matches" \
+      | grep -Ev '^Sources/ExecutionClient/FutureGate/ReleaseV040UnifiedRuntimeRehearsalPipelineContract\.swift:' \
+      | grep -Ev '^Tests/TargetGraphTests/TargetGraphTests\.swift:' \
+      || true
+  )"
+  if [[ -n "$matches" ]]; then
+    printf '%s\n' "$matches"
+    printf 'release v0.3.1 hardening verification failed: forbidden %s found.\n' "$description" >&2
+    exit 1
+  fi
+}
+
 require_file_contains \
   "Sources/Database/ReleaseV030CLIRehearsalSurface.swift" \
   'GH-685 固定 `mtpro rehearsal-status` 的 v0.3.x product boundary'
@@ -98,7 +118,9 @@ require_file_contains \
   "docs/release/mtpro-release-v0.3.1-rehearsal-evidence-hardening-patch-notes.md" \
   "no v0.4.0 runtime pipeline is implemented"
 
-reject_tree_pattern "v0\\.4\\.0|V040|ReleaseV040|releaseV040" "v0.4.0 runtime/source marker" \
+reject_tree_pattern_except_gh694_contract \
+  "v0\\.4\\.0|V040|ReleaseV040|releaseV040" \
+  "v0.4.0 runtime/source marker outside the GH-694 contract boundary" \
   Sources Tests Package.swift
 
 echo "MTPRO release v0.3.1 rehearsal evidence hardening guard passed."
