@@ -7253,6 +7253,160 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH667KillSwitchNoTradeRollbackDrillBlocksSubmitCancelReplace() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionEngineTarget = try packageTargetBlock(named: "ExecutionEngine", packageSource: packageSource)
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.3.0-kill-switch-notrade-rollback-drill-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let drillSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/ExecutionEngine/OMSFutureGate/ReleaseV030KillSwitchNoTradeRollbackDrill.swift"
+            ),
+            encoding: .utf8
+        )
+
+        let evidence = try ReleaseV030KillSwitchNoTradeRollbackDrill.deterministicEvidence()
+
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.boundaryHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-667")
+        XCTAssertEqual(evidence.upstreamIssueID.rawValue, "GH-666")
+        XCTAssertEqual(evidence.downstreamIssueID.rawValue, "GH-668")
+        XCTAssertEqual(evidence.canonicalQueueRange, "GH-657..GH-670")
+        XCTAssertEqual(evidence.releaseVersion, "v0.3.0")
+        XCTAssertEqual(evidence.upstreamSurfaceAnchor, "TVM-RELEASE-V030-DASHBOARD-CLI-REHEARSAL-SURFACE")
+        XCTAssertEqual(evidence.upstreamSurfaceIssueID.rawValue, "GH-666")
+        XCTAssertEqual(evidence.upstreamSurfaceStatus, .blocked)
+        XCTAssertEqual(evidence.requirements, ReleaseV030ControlDrillRequirement.allCases)
+        XCTAssertEqual(
+            Set(evidence.forbiddenCapabilities),
+            Set(ReleaseV030ControlDrillForbiddenCapability.allCases)
+        )
+        XCTAssertEqual(evidence.blockedCommands.count, 9)
+        XCTAssertEqual(Set(evidence.blockedCommands.map(\.command)), Set(ReleaseV030ControlDrillCommandKind.allCases))
+        XCTAssertEqual(Set(evidence.blockedCommands.map(\.scenario)), Set(ReleaseV030ControlDrillScenario.allCases))
+        XCTAssertTrue(evidence.blockedCommands.allSatisfy(\.blockHeld))
+        XCTAssertTrue(evidence.blockedCommands.allSatisfy {
+            $0.commandGatewayRoute.hasPrefix("command-gateway/release-v0.3.0/drill/")
+                && $0.audited
+                && $0.blockedBeforeExecutionClient
+                && $0.blockedBeforeBrokerGateway
+        })
+
+        let killSwitchRecords = evidence.records(for: .killSwitch)
+        let noTradeRecords = evidence.records(for: .noTrade)
+        let rollbackRecords = evidence.records(for: .rollback)
+        XCTAssertEqual(killSwitchRecords.count, 3)
+        XCTAssertEqual(noTradeRecords.count, 3)
+        XCTAssertEqual(rollbackRecords.count, 3)
+        XCTAssertEqual(Set(killSwitchRecords.map(\.command)), Set(ReleaseV030ControlDrillCommandKind.allCases))
+        XCTAssertEqual(Set(noTradeRecords.map(\.command)), Set(ReleaseV030ControlDrillCommandKind.allCases))
+        XCTAssertEqual(Set(rollbackRecords.map(\.command)), Set(ReleaseV030ControlDrillCommandKind.allCases))
+        XCTAssertTrue(killSwitchRecords.allSatisfy { $0.blockReason.contains("kill switch active") })
+        XCTAssertTrue(noTradeRecords.allSatisfy { $0.blockReason.contains("no-trade state") })
+        XCTAssertTrue(rollbackRecords.allSatisfy {
+            $0.blockReason.contains("rollback drill")
+                && $0.rollbackEvidenceID == evidence.rollbackEvidence.evidenceID
+        })
+
+        XCTAssertTrue(evidence.rollbackEvidence.boundaryHeld)
+        XCTAssertTrue(evidence.rollbackEvidence.rollbackReady)
+        XCTAssertTrue(evidence.rollbackEvidence.noTradePriorityHeld)
+        XCTAssertTrue(evidence.rollbackEvidence.incidentStopActive)
+        XCTAssertEqual(
+            evidence.rollbackEvidence.auditSteps,
+            ReleaseV030RollbackDrillEvidence.requiredAuditSteps
+        )
+        XCTAssertFalse(evidence.rollbackEvidence.restoresProductionTrading)
+        XCTAssertFalse(evidence.rollbackEvidence.connectsBrokerGateway)
+        XCTAssertFalse(evidence.rollbackEvidence.submitsRealOrder)
+        XCTAssertFalse(evidence.rollbackEvidence.productionCutoverAuthorized)
+
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(evidence.productionSecretAutoReadEnabled)
+        XCTAssertFalse(evidence.productionOrderSubmissionEnabled)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertFalse(evidence.startsNextMilestone)
+
+        for anchor in ReleaseV030KillSwitchNoTradeRollbackDrillEvidence.requiredValidationAnchors {
+            XCTAssertTrue(evidence.validationAnchors.contains(anchor), "\(anchor) must stay in Swift evidence")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in kill switch / no-trade contract")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation-plan.md")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading-validation-matrix.md")
+        }
+        XCTAssertTrue(contractDoc.contains("GH-666"))
+        XCTAssertTrue(contractDoc.contains("GH-668"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.3.0 kill switch / no-trade / rollback drill anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV030KillSwitchNoTradeRollbackDrill.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH667KillSwitchNoTradeRollbackDrillBlocksSubmitCancelReplace"
+            )
+        )
+        XCTAssertTrue(executionEngineTarget.contains("\"OMSFutureGate\""))
+        XCTAssertTrue(coreTarget.contains("\"ExecutionEngine/OMSFutureGate\""))
+
+        for forbidden in [
+            "import ExecutionClient",
+            "URLSession",
+            "api.binance.com",
+            "fapi.binance.com",
+            "secretValue",
+            "listenKey",
+            "rawBrokerPayload:"
+        ] {
+            XCTAssertFalse(drillSource.contains(forbidden), "GH-667 drill source must not contain \(forbidden)")
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV030BlockedCommandDrillRecord(
+                command: .submit,
+                scenario: .killSwitch,
+                blockReason: "unsafe bypass attempt",
+                bypassesCommandGateway: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("releaseV030ControlDrill.bypassesCommandGateway")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV030RollbackDrillEvidence(productionCutoverAuthorized: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("releaseV030RollbackDrill.productionCutoverAuthorized")
+            )
+        }
+    }
+
     func testGH643ProductionCutoverRuntimeHardeningContractFailsClosedWithoutProductionCutover() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

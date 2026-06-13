@@ -77,6 +77,26 @@ bash checks/run.sh
 
 该矩阵记录 EMA parity、order book imbalance parity、fees / slippage、risk blocker、portfolio exposure 和 report evidence 的现有 coverage、验收证据边界和后续 issue 回填规则。
 
+## GH-667 Release v0.3.0 Kill Switch / No-Trade / Rollback Drill Validation
+
+GH-667 的 required validation：
+
+- `docs/contracts/release-v0.3.0-kill-switch-notrade-rollback-drill-contract.md` 必须存在，并包含 `V030-11-KILL-SWITCH-NO-TRADE-ROLLBACK-DRILL`、`V030-11-KILL-SWITCH-BLOCKS-COMMANDS`、`V030-11-NO-TRADE-BLOCKS-COMMANDS`、`V030-11-ROLLBACK-EVIDENCE` 和 `V030-11-BLOCKED-COMMAND-AUDIT`。
+- `Sources/ExecutionEngine/OMSFutureGate/ReleaseV030KillSwitchNoTradeRollbackDrill.swift` 必须定义 `ReleaseV030KillSwitchNoTradeRollbackDrill`、`ReleaseV030KillSwitchNoTradeRollbackDrillEvidence`、`ReleaseV030BlockedCommandDrillRecord`、`ReleaseV030RollbackDrillEvidence` 和 `ReleaseV030ControlDrillCommandKind`。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH667KillSwitchNoTradeRollbackDrillBlocksSubmitCancelReplace`。
+- Kill switch、no-trade 和 rollback drill 必须分别阻断 submit / cancel / replace。
+- Blocked command records 必须证明阻断发生在 ExecutionClient / broker gateway 之前，并保留 CommandGateway audit route。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH667KillSwitchNoTradeRollbackDrillBlocksSubmitCancelReplace`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-667 必须建立的主要 anchors：
+
+- `V030-11-KILL-SWITCH-NO-TRADE-ROLLBACK-DRILL`
+- `V030-11-KILL-SWITCH-BLOCKS-COMMANDS`
+- `V030-11-NO-TRADE-BLOCKS-COMMANDS`
+- `V030-11-ROLLBACK-EVIDENCE`
+- `V030-11-BLOCKED-COMMAND-AUDIT`
+- `TVM-RELEASE-V030-KILL-SWITCH-NOTRADE-ROLLBACK-DRILL`
+
 ## GH-666 Release v0.3.0 Dashboard / CLI Rehearsal Surface Validation
 
 GH-666 的 required validation：
