@@ -43,6 +43,7 @@ reject_tree_pattern_except_gh694_contract() {
       | grep -Ev '^Sources/DataEngine/ReleaseV040DataEngineMessageBusRuntimeStep\.swift:' \
       | grep -Ev '^Sources/Trader/Runtime/ReleaseV040TraderStrategyActorsRuntimeStep\.swift:' \
       | grep -Ev '^Sources/RiskEngine/LiveGate/ReleaseV040RiskEnginePreTradeRehearsalGate\.swift:' \
+      | grep -Ev '^Sources/ExecutionEngine/OMSFutureGate/ReleaseV040ExecutionOMSDryRunLifecycle\.swift:' \
       | grep -Ev '^Package\.swift:[0-9]+:                "ReleaseV040RehearsalRunContext\.swift",$' \
       | grep -Ev '^Package\.swift:[0-9]+:                "DomainModel/ReleaseV040RehearsalRunContext\.swift",$' \
       | grep -Ev '^Package\.swift:[0-9]+:                "DataEngine/ReleaseV040DataEngineMessageBusRuntimeStep\.swift",$' \
@@ -130,7 +131,7 @@ require_file_contains \
 
 reject_tree_pattern_except_gh694_contract \
   "v0\\.4\\.0|V040|ReleaseV040|releaseV040" \
-  "v0.4.0 runtime/source marker outside the GH-694/GH-695/GH-696/GH-697/GH-698/GH-699 contract boundary" \
+  "v0.4.0 runtime/source marker outside the GH-694/GH-695/GH-696/GH-697/GH-698/GH-699/GH-700 contract boundary" \
   Sources Tests Package.swift
 
 echo "MTPRO release v0.3.1 rehearsal evidence hardening guard passed."

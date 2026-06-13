@@ -6034,6 +6034,205 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH700ExecutionOMSDryRunLifecycleConsumesRiskApprovedDecisionAndReplaysRunScopedEvents() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionEngineTarget = try packageTargetBlock(named: "ExecutionEngine", packageSource: packageSource)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.4.0-execution-oms-dryrun-lifecycle-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let lifecycleSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/ExecutionEngine/OMSFutureGate/ReleaseV040ExecutionOMSDryRunLifecycle.swift"
+            ),
+            encoding: .utf8
+        )
+
+        let upstreamData = try ReleaseV040DataEngineMessageBusRuntimeStep.deterministicEvidence()
+        let traderStep = try ReleaseV040TraderStrategyActorsRuntimeStep(runContext: upstreamData.runContext)
+        let traderEvidence = try traderStep.run(
+            marketInputs: ReleaseV040TraderStrategyActorsRuntimeStep.deterministicMessageBusMarketInputs(
+                runContext: upstreamData.runContext
+            ),
+            quantity: Quantity(0.10, field: "gh700Quantity")
+        )
+        let riskInputs = try traderEvidence.emissions.map { emission in
+            try ReleaseV040RiskEngineStrategyIntentInput(
+                runContext: traderEvidence.runContext,
+                upstreamEvidenceID: emission.messageBusEnvelope.evidenceID,
+                intentMessage: emission.intentMessage,
+                intentJournalEnvelope: emission.intentJournalEnvelope
+            )
+        }
+        let riskEvidence = try ReleaseV040RiskEnginePreTradeRehearsalGate(
+            runContext: traderEvidence.runContext
+        ).run(intentInputs: riskInputs)
+        let lifecycle = try ReleaseV040ExecutionOMSDryRunLifecycle(runContext: riskEvidence.runContext)
+        let evidence = try lifecycle.run(riskEvidence: riskEvidence)
+
+        XCTAssertTrue(upstreamData.evidenceHeld)
+        XCTAssertTrue(traderEvidence.evidenceHeld)
+        XCTAssertTrue(riskEvidence.evidenceHeld)
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-700")
+        XCTAssertEqual(evidence.upstreamIssueID.rawValue, "GH-699")
+        XCTAssertEqual(evidence.downstreamIssueID.rawValue, "GH-701")
+        XCTAssertEqual(evidence.runContext.runID, riskEvidence.runContext.runID)
+        XCTAssertEqual(evidence.upstreamRiskEvidenceID, riskEvidence.evidenceID)
+        XCTAssertTrue(evidence.lifecycleCoverageHeld)
+        XCTAssertTrue(evidence.replayCoverageHeld)
+        XCTAssertTrue(evidence.runScopedEnvelopeHeld)
+        XCTAssertTrue(evidence.boundaryHeld)
+
+        XCTAssertEqual(evidence.lifecycleLogs.count, 3)
+        XCTAssertTrue(evidence.lifecycleLogs.allSatisfy(\.logHeld))
+        XCTAssertTrue(evidence.lifecycleLogs.allSatisfy(\.replayRestoresFinalState))
+        XCTAssertTrue(
+            evidence.lifecycleLogs.contains {
+                $0.path == .acceptedSubmittedFilled && $0.finalState == .filledSimulated
+            }
+        )
+        XCTAssertTrue(
+            evidence.lifecycleLogs.contains {
+                $0.path == .acceptedSubmittedCancelled && $0.finalState == .cancelled
+            }
+        )
+        XCTAssertTrue(
+            evidence.lifecycleLogs.contains {
+                $0.path == .riskRejected && $0.finalState == .rejected && $0.orderIntent == nil
+            }
+        )
+        XCTAssertEqual(
+            Set(evidence.lifecycleLogs.flatMap { log in log.events.flatMap { [$0.fromState, $0.toState] } }),
+            Set(ReleaseV040ExecutionOMSDryRunLifecycleState.allCases)
+        )
+        XCTAssertEqual(evidence.unifiedEnvelopes.map(\.sequence), Array(1...evidence.unifiedEnvelopes.count))
+        XCTAssertTrue(evidence.unifiedEnvelopes.allSatisfy { $0.runID == evidence.runContext.runID })
+        XCTAssertEqual(
+            stride(from: 0, to: evidence.unifiedEnvelopes.count, by: 2).map {
+                [evidence.unifiedEnvelopes[$0].module, evidence.unifiedEnvelopes[$0 + 1].module]
+            },
+            Array(repeating: [.executionEngine, .oms], count: evidence.unifiedEnvelopes.count / 2)
+        )
+        XCTAssertTrue(
+            evidence.lifecycleLogs.flatMap(\.events).allSatisfy {
+                $0.causationID == $0.sourceRiskEnvelopeID
+                    && $0.executionEnvelope.upstreamEvidenceID == $0.sourceRiskEnvelopeID
+                    && $0.omsEnvelope.upstreamEvidenceID == $0.executionEnvelope.evidenceID
+            }
+        )
+        XCTAssertTrue(
+            evidence.lifecycleLogs
+                .filter(\.path.requiresAllowedRiskDecision)
+                .allSatisfy {
+                    $0.sourceRiskDecision.status == .allow
+                        && $0.orderIntent?.boundaryHeld == true
+                }
+        )
+        XCTAssertTrue(
+            evidence.lifecycleLogs.flatMap(\.messageBusEnvelopes).allSatisfy {
+                $0.payloadType.contains("execution.release-v0.4.0.oms")
+                    && $0.instrumentID != nil
+            }
+        )
+
+        XCTAssertFalse(evidence.callsExecutionClient)
+        XCTAssertFalse(evidence.touchesBrokerGateway)
+        XCTAssertFalse(evidence.productionOMSRuntimeEnabledByDefault)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionEndpointConnected)
+        XCTAssertFalse(evidence.productionSecretAutoReadEnabled)
+        XCTAssertFalse(evidence.productionBrokerConnected)
+        XCTAssertFalse(evidence.productionOrderSubmitted)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertFalse(evidence.riskEngineBypassAllowed)
+        XCTAssertFalse(evidence.startsNextMilestone)
+
+        for anchor in [
+            "V040-07-EXECUTIONENGINE-OMS-DRYRUN-LIFECYCLE",
+            "V040-07-RISK-APPROVED-INTENT-TO-LOCAL-ORDER",
+            "V040-07-RUN-SCOPED-OMS-STATE-REPLAY",
+            "V040-07-NO-PRODUCTION-BROKER-CALL",
+            "TVM-RELEASE-V040-EXECUTIONENGINE-OMS-DRYRUN-LIFECYCLE"
+        ] {
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+        }
+        XCTAssertTrue(executionEngineTarget.contains("\"OMSFutureGate\""))
+        XCTAssertTrue(executionEngineTarget.contains("\"RiskEngine\""))
+        XCTAssertTrue(automationReadiness.contains("Release v0.4.0 ExecutionEngine OMS dry-run lifecycle anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV040ExecutionOMSDryRunLifecycle.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH700ExecutionOMSDryRunLifecycleConsumesRiskApprovedDecisionAndReplaysRunScopedEvents"
+            )
+        )
+
+        for forbidden in [
+            "import ExecutionClient",
+            "URLSessionBinance",
+            "/api/v3/order",
+            "/fapi/v1/order"
+        ] {
+            XCTAssertFalse(lifecycleSource.contains(forbidden), "Execution OMS dry-run source must not contain \(forbidden)")
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV040ExecutionOMSDryRunLifecycle(
+                runContext: try ReleaseV040RehearsalRunContext(mode: .shadow)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(field: "runContext.mode", expected: "dry-run", actual: "shadow")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV040ExecutionOMSDryRunLifecycleEvidence(
+                runContext: evidence.runContext,
+                upstreamRiskEvidenceID: evidence.upstreamRiskEvidenceID,
+                lifecycleLogs: evidence.lifecycleLogs,
+                productionOrderSubmitted: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("productionOrderSubmitted"))
+        }
+
+        let encoded = try JSONEncoder().encode(evidence)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["productionBrokerConnected"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(ReleaseV040ExecutionOMSDryRunLifecycleEvidence.self, from: data)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("productionBrokerConnected"))
+        }
+    }
+
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
