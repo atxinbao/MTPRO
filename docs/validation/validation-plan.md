@@ -94,6 +94,28 @@ GH-670 必须建立的主要 anchors：
 - `MTPRO Release v0.3.0 Testnet / Shadow Production Rehearsal complete with production trading disabled by default`
 - `testGH670ReleaseV030StageAuditAndReleaseDocsCloseCompletedFactsOnly`
 
+## GH-726 Release v0.5.0 Boundary / Preflight Contract Validation
+
+GH-726 的 required validation：
+
+- `docs/contracts/release-v0.5.0-release-boundary-preflight-contract.md` 必须存在，并包含 `V050-01-RELEASE-BOUNDARY-PREFLIGHT-CONTRACT`、`V050-01-GUARDED-RUNTIME-FOUNDATION`、`V050-01-DRYRUN-TESTNET-PRODUCTION-BLOCKED-MODES`、`V050-01-BINANCE-SPOT-PERP-EMA-RSI-ONLY`、`V050-01-PREFLIGHT-REQUIREMENTS`、`V050-01-FORBIDDEN-PRODUCTION-CAPABILITIES` 和 `TVM-RELEASE-V050-BOUNDARY-PREFLIGHT-CONTRACT`。
+- `Sources/ExecutionClient/FutureGate/ReleaseV050ReleaseBoundaryPreflightContract.swift` 必须定义 `ReleaseV050ReleaseBoundaryPreflightContract`、`ReleaseV050RuntimeMode`、`ReleaseV050PreflightRequirement` 和 `ReleaseV050ForbiddenCapability`。
+- v0.5.0 release boundary 必须固定 `GH-726..GH-739` queue、Binance-only、Spot + USDⓈ-M Perpetual-only、EMA + RSI-only、`dry-run` default、`testnet-guarded` explicit operator confirmation 和 `production-blocked` default production posture。
+- `checks/verify-v0.5.0-preflight.sh` 必须存在，并覆盖 GH-726 focused test、contract doc anchors、v0.4.0 verification preservation 和 forbidden source fragments。
+- `checks/run.sh` 必须调用 `bash checks/verify-v0.5.0-preflight.sh`，让统一验证入口覆盖 v0.5.0 preflight boundary。
+- Required validation 为 `swift test --filter TargetGraphTests/testGH726ReleaseV050BoundaryPreflightContractDefinesGuardedRuntimeFoundation`、`bash checks/verify-v0.5.0-preflight.sh`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-726 必须建立的主要 anchors：
+
+- `V050-01-RELEASE-BOUNDARY-PREFLIGHT-CONTRACT`
+- `V050-01-GUARDED-RUNTIME-FOUNDATION`
+- `V050-01-DRYRUN-TESTNET-PRODUCTION-BLOCKED-MODES`
+- `V050-01-BINANCE-SPOT-PERP-EMA-RSI-ONLY`
+- `V050-01-PREFLIGHT-REQUIREMENTS`
+- `V050-01-FORBIDDEN-PRODUCTION-CAPABILITIES`
+- `TVM-RELEASE-V050-BOUNDARY-PREFLIGHT-CONTRACT`
+- `testGH726ReleaseV050BoundaryPreflightContractDefinesGuardedRuntimeFoundation`
+
 ## GH-669 Release v0.3.0 Operator Rehearsal Runbook
 
 GH-669 的 required validation：

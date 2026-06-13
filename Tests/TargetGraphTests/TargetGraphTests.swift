@@ -7643,6 +7643,163 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH726ReleaseV050BoundaryPreflightContractDefinesGuardedRuntimeFoundation() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.5.0-release-boundary-preflight-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let preflightScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.5.0-preflight.sh"),
+            encoding: .utf8
+        )
+        let sourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/ExecutionClient/FutureGate/ReleaseV050ReleaseBoundaryPreflightContract.swift"
+        )
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+
+        let contract = try ReleaseV050ReleaseBoundaryPreflightContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertTrue(contract.modeBoundaryHeld)
+        XCTAssertTrue(contract.productionDefaultsClosed)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-726")
+        XCTAssertEqual(contract.downstreamIssueIDs.map(\.rawValue), (727...739).map { "GH-\($0)" })
+        XCTAssertEqual(contract.canonicalQueueRange, "GH-726..GH-739")
+        XCTAssertEqual(
+            contract.projectName,
+            "MTPRO Release v0.5.0 Guarded Testnet Runtime Foundation / Deterministic-to-Operational Bridge"
+        )
+        XCTAssertEqual(contract.releaseVersion, "v0.5.0")
+        XCTAssertEqual(contract.allowedVenue, "Binance")
+        XCTAssertEqual(contract.allowedProductTypes, ["spot", "usdsPerpetual"])
+        XCTAssertEqual(contract.allowedStrategies, ["EMA", "RSI"])
+        XCTAssertEqual(contract.allowedModes, [.dryRun, .testnetGuarded, .productionBlocked])
+        XCTAssertEqual(contract.preflightRequirements, ReleaseV050PreflightRequirement.allCases)
+        XCTAssertEqual(contract.forbiddenCapabilities, ReleaseV050ForbiddenCapability.allCases)
+        XCTAssertTrue(contract.dryRunIsDefault)
+        XCTAssertTrue(contract.testnetRequiresOperatorConfirmation)
+        XCTAssertFalse(contract.testnetSecretValueReadEnabled)
+        XCTAssertFalse(contract.testnetNetworkConnectionEnabledByThisIssue)
+        XCTAssertFalse(contract.productionTradingEnabledByDefault)
+        XCTAssertFalse(contract.productionSecretReadEnabled)
+        XCTAssertFalse(contract.productionEndpointConnectionEnabled)
+        XCTAssertFalse(contract.productionBrokerConnectionEnabled)
+        XCTAssertFalse(contract.realOrderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(contract.productionCutoverAuthorized)
+        XCTAssertFalse(contract.startsNextMilestone)
+
+        for anchor in ReleaseV050ReleaseBoundaryPreflightContract.requiredValidationAnchors {
+            XCTAssertTrue(contract.validationAnchors.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+        }
+        for mode in ["dry-run", "testnet-guarded", "production-blocked"] {
+            XCTAssertTrue(contractDoc.contains(mode), "\(mode) must stay documented")
+        }
+        for requirement in ReleaseV050PreflightRequirement.allCases {
+            XCTAssertTrue(
+                contractDoc.contains(requirement.rawValue),
+                "\(requirement.rawValue) must stay documented as preflight"
+            )
+        }
+        for forbiddenCapability in ReleaseV050ForbiddenCapability.allCases {
+            XCTAssertTrue(
+                contractDoc.contains(forbiddenCapability.rawValue),
+                "\(forbiddenCapability.rawValue) must stay documented as forbidden"
+            )
+        }
+
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: sourcePath.path))
+        XCTAssertTrue(automationReadiness.contains("Release v0.5.0 boundary preflight contract anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV050ReleaseBoundaryPreflightContract.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH726ReleaseV050BoundaryPreflightContractDefinesGuardedRuntimeFoundation"
+            )
+        )
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.5.0-preflight.sh"))
+        XCTAssertTrue(preflightScript.contains("GH-726-VERIFY-V050-BOUNDARY-PREFLIGHT"))
+        XCTAssertTrue(preflightScript.contains("TVM-RELEASE-V050-BOUNDARY-PREFLIGHT-CONTRACT"))
+        XCTAssertTrue(preflightScript.contains("testGH726ReleaseV050BoundaryPreflightContractDefinesGuardedRuntimeFoundation"))
+        XCTAssertTrue(source.contains("ReleaseV050ReleaseBoundaryPreflightContract"))
+        XCTAssertFalse(source.contains("URLSession"))
+        XCTAssertFalse(source.contains("URLRequest"))
+        XCTAssertFalse(source.contains("submitOrder"))
+        XCTAssertFalse(source.contains("cancelOrder"))
+        XCTAssertFalse(source.contains("replaceOrder"))
+
+        XCTAssertThrowsError(
+            try ReleaseV050ReleaseBoundaryPreflightContract(dryRunIsDefault: false)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(field: "dryRunIsDefault", expected: "true", actual: "false")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV050ReleaseBoundaryPreflightContract(testnetSecretValueReadEnabled: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("testnetSecretValueReadEnabled")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV050ReleaseBoundaryPreflightContract(productionEndpointConnectionEnabled: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("productionEndpointConnectionEnabled")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV050ReleaseBoundaryPreflightContract(realOrderSubmitCancelReplaceEnabled: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("realOrderSubmitCancelReplaceEnabled")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV050ReleaseBoundaryPreflightContract(allowedVenue: "Coinbase")
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(field: "allowedVenue", expected: "Binance", actual: "Coinbase")
+            )
+        }
+    }
+
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
