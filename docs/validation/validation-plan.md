@@ -77,6 +77,23 @@ bash checks/run.sh
 
 该矩阵记录 EMA parity、order book imbalance parity、fees / slippage、risk blocker、portfolio exposure 和 report evidence 的现有 coverage、验收证据边界和后续 issue 回填规则。
 
+## GH-670 Release v0.3.0 Final Stage Audit / Release Docs
+
+GH-670 的 required validation：
+
+- `docs/audit/mtpro-release-v0.3.0-testnet-shadow-production-rehearsal-stage-code-audit.md` 必须存在，并包含 `GH-670-RELEASE-V030-FINAL-STAGE-AUDIT-RELEASE-DOCS`、`TVM-RELEASE-V030-FINAL-STAGE-AUDIT-RELEASE-DOCS`、`MTPRO Release v0.3.0 Testnet / Shadow Production Rehearsal complete with production trading disabled by default`、`#657` 至 `#670`、`#671` 至 `#683`、`checks SUCCESS`、`productionTradingEnabledByDefault=false` 和 `productionCutoverAuthorized=false`。
+- `README.md`、`docs/roadmap.md` 和 `docs/validation/latest-verification-summary.md` 必须只同步已发生 release v0.3.0 closure 事实，明确不创建下一 Project / Issue，不推进下一阶段，不授权 production cutover。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-RELEASE-V030-FINAL-STAGE-AUDIT-RELEASE-DOCS`，并把 GH-670 限定为 final Stage Code Audit / release docs closeout。
+- `docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须机械检查 final Stage Code Audit、release docs、validation summary 和 focused test anchor。
+- Required validation 为 `swift test --filter TargetGraphTests/testGH670ReleaseV030StageAuditAndReleaseDocsCloseCompletedFactsOnly`、`bash checks/verify-v0.3.0.sh`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-670 必须建立的主要 anchors：
+
+- `GH-670-RELEASE-V030-FINAL-STAGE-AUDIT-RELEASE-DOCS`
+- `TVM-RELEASE-V030-FINAL-STAGE-AUDIT-RELEASE-DOCS`
+- `MTPRO Release v0.3.0 Testnet / Shadow Production Rehearsal complete with production trading disabled by default`
+- `testGH670ReleaseV030StageAuditAndReleaseDocsCloseCompletedFactsOnly`
+
 ## GH-669 Release v0.3.0 Operator Rehearsal Runbook
 
 GH-669 的 required validation：

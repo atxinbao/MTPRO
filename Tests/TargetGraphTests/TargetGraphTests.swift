@@ -7619,6 +7619,104 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH670ReleaseV030StageAuditAndReleaseDocsCloseCompletedFactsOnly() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let auditReport = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/audit/mtpro-release-v0.3.0-testnet-shadow-production-rehearsal-stage-code-audit.md"
+            ),
+            encoding: .utf8
+        )
+        let readme = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("README.md"),
+            encoding: .utf8
+        )
+        let roadmap = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/roadmap.md"),
+            encoding: .utf8
+        )
+        let latestSummary = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/latest-verification-summary.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+
+        for anchor in [
+            "GH-670-RELEASE-V030-FINAL-STAGE-AUDIT-RELEASE-DOCS",
+            "TVM-RELEASE-V030-FINAL-STAGE-AUDIT-RELEASE-DOCS",
+            "MTPRO Release v0.3.0 Testnet / Shadow Production Rehearsal complete with production trading disabled by default"
+        ] {
+            XCTAssertTrue(auditReport.contains(anchor), "\(anchor) must stay in final audit report")
+            XCTAssertTrue(latestSummary.contains(anchor), "\(anchor) must stay in latest summary")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+        }
+
+        for issueNumber in 657...670 {
+            XCTAssertTrue(auditReport.contains("#\(issueNumber)"), "#\(issueNumber) must stay in issue evidence")
+        }
+
+        for pullRequestNumber in 671...683 {
+            XCTAssertTrue(auditReport.contains("#\(pullRequestNumber)"), "#\(pullRequestNumber) must stay in PR evidence")
+        }
+
+        for productionDisabledProof in [
+            "productionTradingEnabledByDefault=false",
+            "productionEndpointAutoConnect=false",
+            "productionSecretAutoRead=false",
+            "productionOrderSubmission=false",
+            "productionCutoverAuthorized=false"
+        ] {
+            XCTAssertTrue(auditReport.contains(productionDisabledProof), "\(productionDisabledProof) must stay in audit")
+        }
+
+        for completedFact in [
+            "Latest completed release construction scope: `MTPRO Release v0.3.0 Testnet / Shadow Production Rehearsal`",
+            "Project Closure Count: 37 / 37 (100%)",
+            "Current maturity statement：`MTPRO Release v0.3.0 Testnet / Shadow Production Rehearsal complete with production trading disabled by default`"
+        ] {
+            XCTAssertTrue(readme.contains(completedFact) || roadmap.contains(completedFact) || latestSummary.contains(completedFact))
+        }
+
+        XCTAssertTrue(validationPlan.contains("GH-670 Release v0.3.0 Final Stage Audit / Release Docs"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V030-FINAL-STAGE-AUDIT-RELEASE-DOCS"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.3.0 final stage audit / release docs anchor"))
+        XCTAssertTrue(readinessScript.contains("testGH670ReleaseV030StageAuditAndReleaseDocsCloseCompletedFactsOnly"))
+
+        for forbiddenAuthorization in [
+            "productionTradingEnabledByDefault=true",
+            "productionEndpointAutoConnect=true",
+            "productionSecretAutoRead=true",
+            "productionOrderSubmission=true",
+            "productionCutoverAuthorized=true"
+        ] {
+            XCTAssertFalse(auditReport.contains(forbiddenAuthorization), "audit must not authorize \(forbiddenAuthorization)")
+        }
+
+        for deniedBoundary in [
+            "不创建下一 Project / Issue",
+            "不授权 production cutover",
+            "No next Project / Issue creation",
+            "No release v0.3.0 post-stage promotion"
+        ] {
+            XCTAssertTrue(auditReport.contains(deniedBoundary), "\(deniedBoundary) must stay denied in audit")
+        }
+    }
+
     func testGH643ProductionCutoverRuntimeHardeningContractFailsClosedWithoutProductionCutover() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
