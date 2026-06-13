@@ -7170,6 +7170,115 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(dashboardSource.contains("submitOrder"))
     }
 
+    func testGH706ShadowReplayModeUsesUnifiedRunContextWithoutNetworkBrokerCalls() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.4.0-shadow-replay-mode-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let sourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/ExecutionClient/FutureGate/ReleaseV040ShadowReplayMode.swift"
+        )
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+
+        let dryRun = try ReleaseV040RuntimeKernelDryRunOrchestrator.deterministicFixture()
+        let evidence = try ReleaseV040ShadowReplayMode.deterministicEvidence()
+
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-706")
+        XCTAssertEqual(evidence.upstreamIssueID.rawValue, "GH-703")
+        XCTAssertEqual(evidence.downstreamIssueID.rawValue, "GH-707")
+        XCTAssertEqual(evidence.releaseVersion, "v0.4.0")
+        XCTAssertEqual(evidence.runContext.mode, .shadow)
+        XCTAssertEqual(evidence.runContext.runID.rawValue, "gh-706-v040-shadow-replay-run")
+        XCTAssertNotEqual(evidence.runContext.mode, dryRun.runContext.mode)
+        XCTAssertEqual(evidence.stepEvidence.map(\.step), dryRun.stepEvidence.map(\.step))
+        XCTAssertEqual(evidence.envelopes.map(\.module), dryRun.envelopes.map(\.module))
+        XCTAssertEqual(evidence.envelopes.map(\.sequence), dryRun.envelopes.map(\.sequence))
+        XCTAssertTrue(evidence.sameRunIDChainShapeAsDryRun)
+        XCTAssertTrue(evidence.shadowReplayOnly)
+        XCTAssertTrue(evidence.boundaryHeld)
+        XCTAssertTrue(evidence.inputEvents.allSatisfy(\.inputHeld))
+        XCTAssertEqual(Set(evidence.inputEvents.map(\.kind)), Set(ReleaseV040ShadowReplayInputKind.allCases))
+        XCTAssertEqual(Set(evidence.inputEvents.map(\.productType)), Set(ReleaseV040RehearsalRunContext.requiredProductTypes))
+        XCTAssertEqual(Set(evidence.inputEvents.map(\.strategy)), Set(ReleaseV040RehearsalRunContext.requiredStrategies))
+        XCTAssertTrue(evidence.envelopes.allSatisfy { $0.runID == evidence.runContext.runID })
+        XCTAssertTrue(evidence.envelopes.allSatisfy { $0.mode == .shadow })
+        XCTAssertFalse(evidence.networkCallsPerformed)
+        XCTAssertFalse(evidence.brokerConnectionOpened)
+        XCTAssertFalse(evidence.testnetConnected)
+        XCTAssertFalse(evidence.productionEndpointConnected)
+        XCTAssertFalse(evidence.productionSecretRead)
+        XCTAssertFalse(evidence.productionOrderSubmitted)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertFalse(evidence.shadowSuccessTreatedAsProductionApproval)
+        XCTAssertFalse(evidence.startsNextMilestone)
+        XCTAssertTrue(try ReleaseV040ShadowReplayMode.brokerConnectionRejected())
+
+        XCTAssertThrowsError(
+            try ReleaseV040ShadowReplayModeEvidence(
+                runContext: evidence.runContext,
+                inputEvents: evidence.inputEvents,
+                stepEvidence: evidence.stepEvidence,
+                networkCallsPerformed: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("releaseV040ShadowReplay.networkCallsPerformed")
+            )
+        }
+
+        for anchor in ReleaseV040ShadowReplayModeEvidence.requiredValidationAnchors {
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+        }
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: sourcePath.path))
+        XCTAssertTrue(automationReadiness.contains("Release v0.4.0 Shadow replay mode anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV040ShadowReplayMode.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH706ShadowReplayModeUsesUnifiedRunContextWithoutNetworkBrokerCalls"
+            )
+        )
+        XCTAssertTrue(source.contains("ReleaseV040ShadowReplayInputEvent"))
+        XCTAssertTrue(source.contains("ReleaseV040ShadowReplayStepEvidence"))
+        XCTAssertTrue(source.contains("ReleaseV040ShadowReplayModeEvidence"))
+        XCTAssertTrue(source.contains("ReleaseV040RuntimeKernelDryRunOrchestrator.requiredStepOrder"))
+        XCTAssertFalse(source.contains("URLSession"))
+        XCTAssertFalse(source.contains("URLRequest"))
+        XCTAssertFalse(source.contains("import Database"))
+        XCTAssertFalse(source.contains("import Portfolio"))
+        XCTAssertFalse(source.contains("submitOrder"))
+        XCTAssertFalse(source.contains("accountEndpoint"))
+        XCTAssertFalse(source.contains("listenKey"))
+    }
+
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
