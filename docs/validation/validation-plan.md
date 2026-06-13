@@ -531,6 +531,26 @@ GH-702 必须建立的主要 anchors：
 - `V040-09-PRODUCTION-FALLBACK-BLOCKED`
 - `TVM-RELEASE-V040-BINANCE-TESTNET-MODE-BOUNDARY`
 
+## GH-703 Release v0.4.0 Event Store Run Journal Validation
+
+GH-703 的 required validation：
+
+- `docs/contracts/release-v0.4.0-eventstore-run-journal-contract.md` 必须存在，并包含 `V040-10-EVENTSTORE-RUN-JOURNAL`、`V040-10-APPEND-ONLY-RUN-EVENTS`、`V040-10-RUNID-CORRELATION-CAUSATION-REPLAY`、`V040-10-DASHBOARD-CLI-PROJECTION-REPLAY` 和 `V040-10-NO-PRODUCTION-EVENTSTORE-CUTOVER`。
+- `Sources/Database/ReleaseV040EventStoreRunJournal.swift` 必须定义 `ReleaseV040EventStoreRunJournalRecord`、`ReleaseV040EventStoreRunJournal`、`ReleaseV040EventStoreRunReplayState`、`ReleaseV040EventStoreRunJournalEvidence` 和 `ReleaseV040EventStoreRunJournalBuilder`。
+- Event Store run journal 必须消费 release v0.4.0 unified evidence envelope，并把 DataEngine、Trader、RiskEngine、ExecutionEngine、OMS、ExecutionClient 和 Portfolio evidence 写成同一 runID 的 append-only sequence。
+- Replay evidence 必须保留 correlation / causation chain、previous checksum chain、source issue trail 和 Dashboard / CLI projection-ready replay state。
+- Evidence 必须证明 production Event Store runtime、mutable event rewrite、raw broker payload、broker gateway、Dashboard command surface、production endpoint、production secret、production order 和 production cutover 全部保持 false。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH703EventStoreRunJournalAppendsAndReplaysOneRunIDChain`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、真实 testnet network 或人工验收。
+
+GH-703 必须建立的主要 anchors：
+
+- `V040-10-EVENTSTORE-RUN-JOURNAL`
+- `V040-10-APPEND-ONLY-RUN-EVENTS`
+- `V040-10-RUNID-CORRELATION-CAUSATION-REPLAY`
+- `V040-10-DASHBOARD-CLI-PROJECTION-REPLAY`
+- `V040-10-NO-PRODUCTION-EVENTSTORE-CUTOVER`
+- `TVM-RELEASE-V040-EVENTSTORE-RUN-JOURNAL`
+
 ## GH-657 Release v0.3.0 Runtime Rehearsal Contract Validation
 
 GH-657 的 required validation：
