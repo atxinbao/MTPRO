@@ -138,6 +138,40 @@ GH-727 必须建立的主要 anchors：
 - `TVM-RELEASE-V050-STRICT-CLI-COMMAND-PARSER`
 - `testGH727StrictCLICommandParserRejectsUnknownFallback`
 
+## GH-728 Release v0.5.0 Environment / Endpoint / Secret Policy Validation
+
+GH-728 的 required validation：
+
+- `Sources/ExecutionClient/FutureGate/ReleaseV050EnvironmentEndpointSecretPolicy.swift` 必须定义 `ReleaseV050EnvironmentEndpointSecretPolicyContract`、`ReleaseV050EnvironmentProfile`、`ReleaseV050EndpointPolicy` 和 `ReleaseV050SecretProfileRef`。
+- `docs/contracts/release-v0.5.0-environment-endpoint-secret-policy-contract.md` 必须存在，并包含 `V050-03-ENVIRONMENT-PROFILE-ENDPOINT-SECRET-POLICY`、`V050-03-DRYRUN-NO-SECRET-NO-ENDPOINT`、`V050-03-TESTNET-HTTPS-ALLOWLIST-POLICY`、`V050-03-PRODUCTION-BLOCKED-FAILS-CLOSED`、`V050-03-SECRET-PROFILE-REFERENCE-ONLY` 和 `TVM-RELEASE-V050-ENVIRONMENT-ENDPOINT-SECRET-POLICY`。
+- `dry-run` profile 必须解析为 no secret / no endpoint。
+- `testnet-guarded` policy 必须只允许 HTTPS testnet allowlist，并拒绝 non-HTTPS testnet URL、production host 和 unsupported product。
+- `production-blocked` endpoint resolution 必须 fail closed。
+- `SecretProfileRef` 必须保持 reference-only，不包含 secret value，不解析 secret value。
+- `checks/verify-v0.5.0-environment.sh` 必须覆盖 focused test、contract doc anchors、source anchors 和 forbidden source fragments，并由 `checks/run.sh` 调用。
+- Required validation 为 `swift test --filter TargetGraphTests/testGH728EnvironmentEndpointSecretPolicyFailsClosed`、`bash checks/verify-v0.5.0-environment.sh`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-728 必须建立的主要 anchors：
+
+- `V050-03-ENVIRONMENT-PROFILE-ENDPOINT-SECRET-POLICY`
+- `V050-03-DRYRUN-NO-SECRET-NO-ENDPOINT`
+- `V050-03-TESTNET-HTTPS-ALLOWLIST-POLICY`
+- `V050-03-PRODUCTION-BLOCKED-FAILS-CLOSED`
+- `V050-03-SECRET-PROFILE-REFERENCE-ONLY`
+- `TVM-RELEASE-V050-ENVIRONMENT-ENDPOINT-SECRET-POLICY`
+- `testGH728EnvironmentEndpointSecretPolicyFailsClosed`
+
+## GH-728 禁止
+
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、broker endpoint、account endpoint、listenKey 或 private WebSocket runtime。
+- 不通过 testnet policy fallback 到 production。
+- 不创建 broker gateway、ExecutionClient live adapter、real submit / cancel / replace、production OMS、Live PRO Console production command、trading button、live command 或 order form。
+- 不绕过 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch / no-trade 或 operator confirmation。
+- 不创建下一 Project / Issue，不推进 release v0.5.0 之后的阶段。
+- 不启动 Linear、Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-669 Release v0.3.0 Operator Rehearsal Runbook
 
 GH-669 的 required validation：

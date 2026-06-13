@@ -7901,6 +7901,175 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH728EnvironmentEndpointSecretPolicyFailsClosed() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        let sourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/ExecutionClient/FutureGate/ReleaseV050EnvironmentEndpointSecretPolicy.swift"
+        )
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.5.0-environment-endpoint-secret-policy-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let environmentScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.5.0-environment.sh"),
+            encoding: .utf8
+        )
+
+        let contract = try ReleaseV050EnvironmentEndpointSecretPolicyContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertTrue(contract.modeCoverageHeld)
+        XCTAssertTrue(contract.productionDefaultsClosed)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-728")
+        XCTAssertEqual(contract.upstreamIssueID.rawValue, "GH-726")
+        XCTAssertEqual(contract.previousIssueID.rawValue, "GH-727")
+        XCTAssertEqual(contract.canonicalQueueRange, "GH-726..GH-739")
+        XCTAssertEqual(contract.profiles.map(\.mode), [.dryRun, .testnetGuarded, .productionBlocked])
+
+        let dryRunProfile = try ReleaseV050EnvironmentProfile.fixture(for: .dryRun)
+        XCTAssertTrue(dryRunProfile.profileHeld)
+        XCTAssertEqual(dryRunProfile.endpointPolicy.allowedHosts, [])
+        XCTAssertEqual(dryRunProfile.endpointPolicy.requiredScheme, "none")
+        XCTAssertEqual(dryRunProfile.secretProfileRef.kind, .noSecretRequired)
+        let dryRunEvidence = try dryRunProfile.endpointPolicy.resolve(endpointReference: nil, productType: "spot")
+        XCTAssertEqual(dryRunEvidence.decision, .noEndpointRequired)
+        XCTAssertFalse(dryRunEvidence.endpointResolved)
+        XCTAssertFalse(dryRunEvidence.networkConnectionOpened)
+
+        let testnetPolicy = try ReleaseV050EndpointPolicy.fixture(for: .testnetGuarded)
+        XCTAssertTrue(testnetPolicy.policyHeld)
+        XCTAssertEqual(testnetPolicy.allowedHosts, ["testnet.binance.vision", "testnet.binancefuture.com"])
+        XCTAssertEqual(testnetPolicy.forbiddenHosts, ["api.binance.com", "fapi.binance.com"])
+        XCTAssertEqual(testnetPolicy.requiredScheme, "https")
+        let testnetEvidence = try testnetPolicy.resolve(
+            endpointReference: "https://testnet.binance.vision",
+            productType: "spot"
+        )
+        XCTAssertEqual(testnetEvidence.decision, .testnetEndpointAllowed)
+        XCTAssertTrue(testnetEvidence.boundaryHeld)
+        XCTAssertTrue(testnetEvidence.endpointResolved)
+        XCTAssertFalse(testnetEvidence.networkConnectionOpened)
+
+        let productionBlockedProfile = try ReleaseV050EnvironmentProfile.fixture(for: .productionBlocked)
+        XCTAssertTrue(productionBlockedProfile.profileHeld)
+        XCTAssertEqual(productionBlockedProfile.secretProfileRef.kind, .productionBlockedReference)
+        XCTAssertFalse(productionBlockedProfile.productionEndpointConnectionEnabled)
+
+        for anchor in ReleaseV050EnvironmentEndpointSecretPolicyContract.requiredValidationAnchors {
+            XCTAssertTrue(contract.validationAnchors.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+        }
+
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: sourcePath.path))
+        XCTAssertTrue(source.contains("ReleaseV050EnvironmentEndpointSecretPolicyContract"))
+        XCTAssertTrue(source.contains("ReleaseV050EndpointPolicy"))
+        XCTAssertTrue(source.contains("ReleaseV050SecretProfileRef"))
+        XCTAssertTrue(source.contains("testnet.binance.vision"))
+        XCTAssertTrue(source.contains("testnet.binancefuture.com"))
+        XCTAssertTrue(source.contains("api.binance.com"))
+        XCTAssertTrue(source.contains("fapi.binance.com"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.5.0 environment endpoint secret policy anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV050EnvironmentEndpointSecretPolicy.swift"))
+        XCTAssertTrue(readinessScript.contains("testGH728EnvironmentEndpointSecretPolicyFailsClosed"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.5.0-environment.sh"))
+        XCTAssertTrue(environmentScript.contains("GH-728-VERIFY-V050-ENVIRONMENT-ENDPOINT-SECRET-POLICY"))
+        XCTAssertTrue(environmentScript.contains("testGH728EnvironmentEndpointSecretPolicyFailsClosed"))
+        XCTAssertFalse(source.contains("URLSession"))
+        XCTAssertFalse(source.contains("URLRequest"))
+        XCTAssertFalse(source.contains("submitOrder"))
+        XCTAssertFalse(source.contains("cancelOrder"))
+        XCTAssertFalse(source.contains("replaceOrder"))
+
+        XCTAssertThrowsError(
+            try dryRunProfile.endpointPolicy.resolve(endpointReference: "https://testnet.binance.vision", productType: "spot")
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("dryRunEndpointResolution"))
+        }
+        XCTAssertThrowsError(
+            try testnetPolicy.resolve(endpointReference: "http://testnet.binance.vision", productType: "spot")
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(field: "endpointScheme", expected: "https", actual: "http")
+            )
+        }
+        XCTAssertThrowsError(
+            try testnetPolicy.resolve(endpointReference: "https://api.binance.com", productType: "spot")
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("productionEndpointHost"))
+        }
+        XCTAssertThrowsError(
+            try testnetPolicy.resolve(endpointReference: "https://testnet.binance.vision", productType: "coinMargin")
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "productType",
+                    expected: "spot,usdsPerpetual",
+                    actual: "coinMargin"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try productionBlockedProfile.endpointPolicy.resolve(endpointReference: nil, productType: "spot")
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("productionBlockedEndpointResolution")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV050SecretProfileRef(
+                referenceID: Identifier.constant("gh-728-invalid-secret"),
+                mode: .testnetGuarded,
+                kind: .testnetReferenceOnly,
+                profileReference: "binance-testnet-reference-only",
+                containsSecretValue: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("containsSecretValue"))
+        }
+        XCTAssertThrowsError(
+            try ReleaseV050EnvironmentEndpointSecretPolicyContract(productionEndpointConnectionEnabled: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("productionEndpointConnectionEnabled")
+            )
+        }
+    }
+
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
