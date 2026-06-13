@@ -50,6 +50,7 @@ reject_tree_pattern_except_gh694_contract() {
       | grep -Ev '^Sources/Portfolio/ReleaseV040PortfolioReplayProjection\.swift:' \
       | grep -Ev '^Sources/Portfolio/ReleaseV040UnifiedRunSurface\.swift:' \
       | grep -Ev '^Sources/Dashboard/Report/ReleaseV040DashboardUnifiedRunSurface\.swift:' \
+      | grep -Ev '^Sources/ExecutionClient/FutureGate/ReleaseV040ShadowReplayMode\.swift:' \
       | grep -Ev '^Sources/MTPROCLI/main\.swift:' \
       | grep -Ev '^Package\.swift:[0-9]+:                "ReleaseV040RehearsalRunContext\.swift",$' \
       | grep -Ev '^Package\.swift:[0-9]+:                "ReleaseV040EventStoreRunJournal\.swift",$' \
@@ -144,7 +145,7 @@ require_file_contains \
 
 reject_tree_pattern_except_gh694_contract \
   "v0\\.4\\.0|V040|ReleaseV040|releaseV040" \
-  "v0.4.0 runtime/source marker outside the GH-694/GH-695/GH-696/GH-697/GH-698/GH-699/GH-700/GH-701/GH-702/GH-703/GH-704/GH-705 contract boundary" \
+  "v0.4.0 runtime/source marker outside the GH-694/GH-695/GH-696/GH-697/GH-698/GH-699/GH-700/GH-701/GH-702/GH-703/GH-704/GH-705/GH-706 contract boundary" \
   Sources Tests Package.swift
 
 echo "MTPRO release v0.3.1 rehearsal evidence hardening guard passed."

@@ -592,6 +592,27 @@ GH-705 必须建立的主要 anchors：
 - `V040-12-NO-LIVE-COMMAND-SURFACE`
 - `TVM-RELEASE-V040-DASHBOARD-CLI-UNIFIED-RUN-SURFACE`
 
+## GH-706 Release v0.4.0 Shadow Replay Mode Validation
+
+GH-706 的 required validation：
+
+- `docs/contracts/release-v0.4.0-shadow-replay-mode-contract.md` 必须存在，并包含 `V040-13-SHADOW-REPLAY-MODE`、`V040-13-HISTORICAL-DETERMINISTIC-INPUT`、`V040-13-SAME-RUNID-EVIDENCE-CHAIN-SHAPE`、`V040-13-NO-NETWORK-BROKER-CALLS` 和 `V040-13-SHADOW-IS-NOT-PRODUCTION-APPROVAL`。
+- `Sources/ExecutionClient/FutureGate/ReleaseV040ShadowReplayMode.swift` 必须定义 `ReleaseV040ShadowReplayInputEvent`、`ReleaseV040ShadowReplayStepEvidence`、`ReleaseV040ShadowReplayModeEvidence` 和 `ReleaseV040ShadowReplayMode`。
+- Shadow replay 必须使用 `ReleaseV040RehearsalRunContext.mode == .shadow`，并读取 historical / deterministic market-event 与 run-event input。
+- Shadow replay 必须覆盖 Spot + USDⓈ-M Perpetual 和 EMA + RSI release v0.4.0 boundary。
+- Shadow replay step shape 必须等于 `ReleaseV040RuntimeKernelDryRunOrchestrator.requiredStepOrder`，并使用同一个 `runID` 输出 unified evidence envelopes。
+- Evidence 必须证明 network call、broker connection、testnet connection、production endpoint、production secret、production order、shadow success as production approval 和 production cutover 全部保持 false。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH706ShadowReplayModeUsesUnifiedRunContextWithoutNetworkBrokerCalls`、`bash checks/verify-v0.3.1.sh`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、真实 testnet network 或人工验收。
+
+GH-706 必须建立的主要 anchors：
+
+- `V040-13-SHADOW-REPLAY-MODE`
+- `V040-13-HISTORICAL-DETERMINISTIC-INPUT`
+- `V040-13-SAME-RUNID-EVIDENCE-CHAIN-SHAPE`
+- `V040-13-NO-NETWORK-BROKER-CALLS`
+- `V040-13-SHADOW-IS-NOT-PRODUCTION-APPROVAL`
+- `TVM-RELEASE-V040-SHADOW-REPLAY-MODE`
+
 ## GH-657 Release v0.3.0 Runtime Rehearsal Contract Validation
 
 GH-657 的 required validation：
