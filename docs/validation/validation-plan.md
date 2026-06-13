@@ -459,6 +459,24 @@ GH-698 必须建立的主要 anchors：
 - `V040-05-NO-STRATEGY-EXECUTIONCLIENT-PATH`
 - `TVM-RELEASE-V040-TRADER-STRATEGY-ACTORS-RUNTIME-STEP`
 
+## GH-699 Release v0.4.0 RiskEngine Pre-trade Rehearsal Gate Validation
+
+GH-699 的 required validation：
+
+- `docs/contracts/release-v0.4.0-riskengine-pretrade-rehearsal-gate-contract.md` 必须存在，并包含 `V040-06-RISKENGINE-PRETRADE-REHEARSAL-GATE`、`V040-06-ALLOW-REJECT-BLOCK-DECISIONS`、`V040-06-KILL-SWITCH-NO-TRADE-GUARDS` 和 `V040-06-EXECUTIONENGINE-RISK-APPROVED-ONLY`。
+- `Sources/RiskEngine/LiveGate/ReleaseV040RiskEnginePreTradeRehearsalGate.swift` 必须定义 `ReleaseV040RiskEngineStrategyIntentInput`、`ReleaseV040RiskEnginePreTradePolicy`、`ReleaseV040RiskEnginePreTradeDecision`、`ReleaseV040RiskEnginePreTradeRehearsalGateEvidence` 和 `ReleaseV040RiskEnginePreTradeRehearsalGate`。
+- RiskEngine gate 必须消费 #698 的 neutral `StrategyIntentMessage` 和 MessageBus intent envelope，不 import Trader implementation。
+- RiskEngine 必须输出 allow、reject、kill switch blocked 和 no-trade blocked evidence；后续 ExecutionEngine 只能消费 allow decision。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH699RiskEnginePreTradeRehearsalGateAllowsRejectsAndBlocksRunScopedIntents`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-699 必须建立的主要 anchors：
+
+- `V040-06-RISKENGINE-PRETRADE-REHEARSAL-GATE`
+- `V040-06-ALLOW-REJECT-BLOCK-DECISIONS`
+- `V040-06-KILL-SWITCH-NO-TRADE-GUARDS`
+- `V040-06-EXECUTIONENGINE-RISK-APPROVED-ONLY`
+- `TVM-RELEASE-V040-RISKENGINE-PRETRADE-REHEARSAL-GATE`
+
 ## GH-657 Release v0.3.0 Runtime Rehearsal Contract Validation
 
 GH-657 的 required validation：
