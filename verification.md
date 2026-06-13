@@ -16420,3 +16420,44 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass; output `MTPRO release v0.1.0 no-default-production-trading guard passed.` and `MTPRO automation readiness checks passed.`
   - `bash checks/run.sh`: pass; local Swift toolchain accepted as Apple Swift 6.3; release dry-run / testnet validation suite passed; Dashboard smoke includes `readModelOnly=true`, `dashboardReadModelOnly=true`, `releaseLiveMonitoringSurface=7`, `releaseCommandSurface=3` and `releaseKillSwitch=3`; 421 XCTest / 0 failures; final output `MTPRO checks passed.`
+
+## 2026-06-13 - GH-709 Release v0.4.0 Final Stage Code Audit and release docs refresh
+
+- Issue: GH-709 `V040-16 Close v0.4.0 stage audit and release docs`
+- Queue:
+  - GitHub fallback queue used because this release stage does not use Linear.
+  - WIP=1 preflight passed before implementation: #709 was OPEN with `mtpro / backlog / non-executable`; dependencies #694 through #708 were CLOSED with `done`; no other open issue carried `todo`, `in-progress` or `in-review`; no open PR was present.
+  - #709 was promoted to `todo`, then to `in-progress` after removing `backlog / non-executable`.
+- Scope:
+  - Added `docs/audit/mtpro-release-v0.4.0-unified-runtime-rehearsal-pipeline-stage-code-audit.md`.
+  - Added `docs/release/mtpro-release-v0.4.0-unified-runtime-rehearsal-pipeline-notes.md`.
+  - Refreshed `README.md`, `GOAL.md`, `docs/roadmap.md`, `docs/validation/latest-verification-summary.md` and this `verification.md` with completed release facts.
+  - Added `GH-709-RELEASE-V040-FINAL-STAGE-AUDIT-RELEASE-DOCS` and `TVM-RELEASE-V040-FINAL-STAGE-AUDIT-RELEASE-DOCS` to validation plan, trading matrix, automation readiness and readiness script.
+  - Confirmed release maturity statement: `MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline complete with production trading disabled by default`.
+- Evidence:
+  - GH-694 through GH-709 belong to GitHub milestone `MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline`.
+  - GH-694 through GH-708 were CLOSED / done before this #709 PR.
+  - PR #710 through PR #724 were MERGED before this #709 PR, with required check `checks` SUCCESS.
+  - #709 closure PR must pass required check `checks`, then be squash merged, and #709 must be CLOSED / done before final release closure result.
+- Boundary:
+  - No Linear use.
+  - No Symphony / `symphony-issue`.
+  - No Graphify / code-index / Figma.
+  - No new runtime, adapter, OMS, broker gateway, Dashboard command runtime or order form implementation.
+  - No production secret read, print, storage or derivation.
+  - No production endpoint, production broker endpoint, account endpoint, listenKey or private WebSocket connection.
+  - No real Binance testnet network connection.
+  - No broker connection, RiskEngine bypass, ExecutionEngine bypass, OMS bypass, kill switch bypass or no-trade bypass.
+  - No real submit / cancel / replace.
+  - No production order on failure, sandbox-to-production command promotion, automatic recovery, rollback command or broker emergency API.
+  - No production trading.
+  - No non-Binance venue.
+  - No non-Spot / non-USDSM active product.
+  - No non-EMA / non-RSI active strategy.
+  - No next Project / Issue creation and no release v0.4.0 post-stage promotion.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH709ReleaseV040StageAuditAndReleaseDocsCloseCompletedFactsOnly`: required focused closure guard.
+  - `bash checks/verify-v0.4.0.sh`: required release validation suite.
+  - `git diff --check`: required whitespace validation.
+  - `bash checks/automation-readiness.sh`: required readiness validation.
+  - `bash checks/run.sh`: required full local validation.

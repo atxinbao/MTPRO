@@ -387,6 +387,24 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V04
 require_contains "docs/validation/validation-plan.md" "GH-708 Release v0.4.0 Operator Runtime Rehearsal Runbook"
 require_contains "docs/automation/automation-readiness.md" "Release v0.4.0 operator runtime rehearsal runbook anchor"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH708OperatorRuntimeRehearsalRunbookDocumentsStartObserveStopReplayAndProductionProof"
+require_file "docs/audit/mtpro-release-v0.4.0-unified-runtime-rehearsal-pipeline-stage-code-audit.md"
+require_file "docs/release/mtpro-release-v0.4.0-unified-runtime-rehearsal-pipeline-notes.md"
+require_contains "docs/audit/mtpro-release-v0.4.0-unified-runtime-rehearsal-pipeline-stage-code-audit.md" "GH-709-RELEASE-V040-FINAL-STAGE-AUDIT-RELEASE-DOCS"
+require_contains "docs/audit/mtpro-release-v0.4.0-unified-runtime-rehearsal-pipeline-stage-code-audit.md" "TVM-RELEASE-V040-FINAL-STAGE-AUDIT-RELEASE-DOCS"
+require_contains "docs/audit/mtpro-release-v0.4.0-unified-runtime-rehearsal-pipeline-stage-code-audit.md" "MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline complete with production trading disabled by default"
+require_contains "docs/audit/mtpro-release-v0.4.0-unified-runtime-rehearsal-pipeline-stage-code-audit.md" "productionTradingEnabledByDefault=false"
+require_contains "docs/audit/mtpro-release-v0.4.0-unified-runtime-rehearsal-pipeline-stage-code-audit.md" "productionCutoverAuthorized=false"
+require_contains "docs/release/mtpro-release-v0.4.0-unified-runtime-rehearsal-pipeline-notes.md" "v0.4.0 是 unified runtime rehearsal pipeline closure"
+require_contains "README.md" 'Latest completed release construction scope: `MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline`'
+require_contains "GOAL.md" "MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline"
+require_contains "docs/roadmap.md" "MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline"
+require_contains "docs/roadmap.md" "Project Closure Count: 38 / 38 (100%)"
+require_contains "docs/validation/latest-verification-summary.md" "GH-709-RELEASE-V040-FINAL-STAGE-AUDIT-RELEASE-DOCS"
+require_contains "docs/validation/latest-verification-summary.md" 'Current maturity statement：`MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline complete with production trading disabled by default`'
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V040-FINAL-STAGE-AUDIT-RELEASE-DOCS"
+require_contains "docs/validation/validation-plan.md" "GH-709 Release v0.4.0 Final Stage Audit / Release Docs"
+require_contains "docs/automation/automation-readiness.md" "Release v0.4.0 final stage audit / release docs anchor"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH709ReleaseV040StageAuditAndReleaseDocsCloseCompletedFactsOnly"
 require_file "Sources/ExecutionClient/FutureGate/ReleaseV030RuntimeRehearsalContract.swift"
 require_file "docs/contracts/release-v0.3.0-runtime-rehearsal-contract.md"
 require_contains "docs/contracts/release-v0.3.0-runtime-rehearsal-contract.md" "V030-01-RUNTIME-REHEARSAL-CONTRACT"
@@ -618,11 +636,11 @@ require_contains "docs/audit/mtpro-release-v0.3.0-testnet-shadow-production-rehe
 require_contains "docs/audit/mtpro-release-v0.3.0-testnet-shadow-production-rehearsal-stage-code-audit.md" "MTPRO Release v0.3.0 Testnet / Shadow Production Rehearsal complete with production trading disabled by default"
 require_contains "docs/audit/mtpro-release-v0.3.0-testnet-shadow-production-rehearsal-stage-code-audit.md" "productionTradingEnabledByDefault=false"
 require_contains "docs/audit/mtpro-release-v0.3.0-testnet-shadow-production-rehearsal-stage-code-audit.md" "productionCutoverAuthorized=false"
-require_contains "README.md" 'Latest completed release construction scope: `MTPRO Release v0.3.0 Testnet / Shadow Production Rehearsal`'
+require_contains "README.md" "Historical release v0.3.0 Stage Code Audit Report"
 require_contains "docs/roadmap.md" "MTPRO Release v0.3.0 Testnet / Shadow Production Rehearsal"
 require_contains "docs/roadmap.md" "Project Closure Count: 37 / 37 (100%)"
 require_contains "docs/validation/latest-verification-summary.md" "GH-670-RELEASE-V030-FINAL-STAGE-AUDIT-RELEASE-DOCS"
-require_contains "docs/validation/latest-verification-summary.md" 'Current maturity statement：`MTPRO Release v0.3.0 Testnet / Shadow Production Rehearsal complete with production trading disabled by default`'
+require_contains "docs/validation/latest-verification-summary.md" 'Historical maturity statement：`MTPRO Release v0.3.0 Testnet / Shadow Production Rehearsal complete with production trading disabled by default`'
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V030-FINAL-STAGE-AUDIT-RELEASE-DOCS"
 require_contains "docs/validation/validation-plan.md" "GH-670 Release v0.3.0 Final Stage Audit / Release Docs"
 require_contains "docs/automation/automation-readiness.md" "Release v0.3.0 final stage audit / release docs anchor"

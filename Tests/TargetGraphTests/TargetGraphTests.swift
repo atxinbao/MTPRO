@@ -7529,6 +7529,120 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(readinessScript.contains("docs/operators/release-v0.4.0-operator-runtime-rehearsal-runbook.md"))
     }
 
+    func testGH709ReleaseV040StageAuditAndReleaseDocsCloseCompletedFactsOnly() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let auditReport = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/audit/mtpro-release-v0.4.0-unified-runtime-rehearsal-pipeline-stage-code-audit.md"
+            ),
+            encoding: .utf8
+        )
+        let releaseNotes = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/release/mtpro-release-v0.4.0-unified-runtime-rehearsal-pipeline-notes.md"
+            ),
+            encoding: .utf8
+        )
+        let readme = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("README.md"),
+            encoding: .utf8
+        )
+        let goal = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("GOAL.md"),
+            encoding: .utf8
+        )
+        let roadmap = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/roadmap.md"),
+            encoding: .utf8
+        )
+        let latestSummary = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/latest-verification-summary.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+
+        for anchor in [
+            "GH-709-RELEASE-V040-FINAL-STAGE-AUDIT-RELEASE-DOCS",
+            "TVM-RELEASE-V040-FINAL-STAGE-AUDIT-RELEASE-DOCS",
+            "MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline complete with production trading disabled by default"
+        ] {
+            XCTAssertTrue(auditReport.contains(anchor), "\(anchor) must stay in final audit report")
+            XCTAssertTrue(latestSummary.contains(anchor), "\(anchor) must stay in latest summary")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+        }
+
+        for issueNumber in 694...709 {
+            XCTAssertTrue(auditReport.contains("#\(issueNumber)"), "#\(issueNumber) must stay in issue evidence")
+        }
+
+        for pullRequestNumber in 710...724 {
+            XCTAssertTrue(auditReport.contains("#\(pullRequestNumber)"), "#\(pullRequestNumber) must stay in PR evidence")
+        }
+
+        for productionDisabledProof in [
+            "productionTradingEnabledByDefault=false",
+            "productionEndpointConnected=false",
+            "productionSecretRead=false",
+            "productionOrderSubmitted=false",
+            "productionCutoverAuthorized=false"
+        ] {
+            XCTAssertTrue(auditReport.contains(productionDisabledProof), "\(productionDisabledProof) must stay in audit")
+        }
+
+        for completedFact in [
+            "Latest completed release construction scope: `MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline`",
+            "Project Closure Count: 38 / 38 (100%)",
+            "Current maturity statement：`MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline complete with production trading disabled by default`"
+        ] {
+            XCTAssertTrue(
+                readme.contains(completedFact) || roadmap.contains(completedFact) || latestSummary.contains(completedFact),
+                "\(completedFact) must stay in root docs"
+            )
+        }
+
+        XCTAssertTrue(goal.contains("MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline"))
+        XCTAssertTrue(releaseNotes.contains("v0.4.0 是 unified runtime rehearsal pipeline closure"))
+        XCTAssertTrue(releaseNotes.contains("不创建 tag"))
+        XCTAssertTrue(validationPlan.contains("GH-709 Release v0.4.0 Final Stage Audit / Release Docs"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V040-FINAL-STAGE-AUDIT-RELEASE-DOCS"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.4.0 final stage audit / release docs anchor"))
+        XCTAssertTrue(readinessScript.contains("testGH709ReleaseV040StageAuditAndReleaseDocsCloseCompletedFactsOnly"))
+
+        for forbiddenAuthorization in [
+            "productionTradingEnabledByDefault=true",
+            "productionEndpointConnected=true",
+            "productionSecretRead=true",
+            "productionOrderSubmitted=true",
+            "productionCutoverAuthorized=true"
+        ] {
+            XCTAssertFalse(auditReport.contains(forbiddenAuthorization), "audit must not authorize \(forbiddenAuthorization)")
+        }
+
+        for deniedBoundary in [
+            "不创建下一 Project / Issue",
+            "不授权 production cutover",
+            "No next Project / Issue creation",
+            "No release v0.4.0 post-stage promotion"
+        ] {
+            XCTAssertTrue(auditReport.contains(deniedBoundary), "\(deniedBoundary) must stay denied in audit")
+        }
+    }
+
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
@@ -10206,9 +10320,9 @@ final class TargetGraphTests: XCTestCase {
         }
 
         for completedFact in [
-            "Latest completed release construction scope: `MTPRO Release v0.3.0 Testnet / Shadow Production Rehearsal`",
-            "Project Closure Count: 37 / 37 (100%)",
-            "Current maturity statement：`MTPRO Release v0.3.0 Testnet / Shadow Production Rehearsal complete with production trading disabled by default`"
+            "Historical release v0.3.0 Stage Code Audit Report",
+            "Historical Project Closure Count: 37 / 37 (100%)",
+            "Historical maturity statement：`MTPRO Release v0.3.0 Testnet / Shadow Production Rehearsal complete with production trading disabled by default`"
         ] {
             XCTAssertTrue(readme.contains(completedFact) || roadmap.contains(completedFact) || latestSummary.contains(completedFact))
         }

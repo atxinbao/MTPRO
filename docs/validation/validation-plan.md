@@ -658,6 +658,24 @@ GH-708 必须建立的主要 anchors：
 - `TVM-RELEASE-V040-OPERATOR-RUNTIME-REHEARSAL-RUNBOOK`
 - `GH-708-NON-AUTHORIZATION`
 
+## GH-709 Release v0.4.0 Final Stage Audit / Release Docs
+
+GH-709 的 required validation：
+
+- `docs/audit/mtpro-release-v0.4.0-unified-runtime-rehearsal-pipeline-stage-code-audit.md` 必须存在，并包含 `GH-709-RELEASE-V040-FINAL-STAGE-AUDIT-RELEASE-DOCS`、`TVM-RELEASE-V040-FINAL-STAGE-AUDIT-RELEASE-DOCS`、`MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline complete with production trading disabled by default`、`#694` 至 `#709`、`#710` 至 `#724`、`checks SUCCESS`、`productionTradingEnabledByDefault=false` 和 `productionCutoverAuthorized=false`。
+- `docs/release/mtpro-release-v0.4.0-unified-runtime-rehearsal-pipeline-notes.md` 必须存在，并明确该 release notes 不创建 tag、不发布 production cutover、不授权 production trading。
+- `README.md`、`GOAL.md`、`docs/roadmap.md` 和 `docs/validation/latest-verification-summary.md` 必须只同步已发生 release v0.4.0 closure 事实，明确不创建下一 Project / Issue，不推进下一阶段，不授权 production cutover。
+- `docs/validation/trading-validation-matrix.md` 必须包含 `TVM-RELEASE-V040-FINAL-STAGE-AUDIT-RELEASE-DOCS`，并把 GH-709 限定为 final Stage Code Audit / release docs closeout。
+- `docs/automation/automation-readiness.md` 和 `checks/automation-readiness.sh` 必须机械检查 final Stage Code Audit、release notes、root docs、validation summary 和 focused test anchor。
+- Required validation 为 `swift test --filter TargetGraphTests/testGH709ReleaseV040StageAuditAndReleaseDocsCloseCompletedFactsOnly`、`bash checks/verify-v0.4.0.sh`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-709 必须建立的主要 anchors：
+
+- `GH-709-RELEASE-V040-FINAL-STAGE-AUDIT-RELEASE-DOCS`
+- `TVM-RELEASE-V040-FINAL-STAGE-AUDIT-RELEASE-DOCS`
+- `MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline complete with production trading disabled by default`
+- `testGH709ReleaseV040StageAuditAndReleaseDocsCloseCompletedFactsOnly`
+
 ## GH-657 Release v0.3.0 Runtime Rehearsal Contract Validation
 
 GH-657 的 required validation：
