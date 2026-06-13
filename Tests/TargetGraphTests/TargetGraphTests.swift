@@ -5611,6 +5611,135 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH697DataEngineRuntimeStepPublishesRunScopedMarketEventsIntoMessageBus() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let dataEngineTarget = try packageTargetBlock(named: "DataEngine", packageSource: packageSource)
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.4.0-dataengine-messagebus-runtime-step-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+
+        let evidence = try ReleaseV040DataEngineMessageBusRuntimeStep.deterministicEvidence()
+        let emissions = evidence.emissions
+        let unifiedEnvelopes = evidence.unifiedEnvelopes
+
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-697")
+        XCTAssertEqual(evidence.upstreamIssueID.rawValue, "GH-696")
+        XCTAssertEqual(evidence.runContext.runID.rawValue, "gh-697-v040-dataengine-messagebus-run")
+        XCTAssertEqual(evidence.runContext.mode, .dryRun)
+        XCTAssertEqual(emissions.count, 2)
+        XCTAssertEqual(
+            Set(emissions.map(\.instrument.productType)),
+            Set(ReleaseV040RehearsalRunContext.requiredProductTypes)
+        )
+        XCTAssertEqual(
+            emissions.map(\.payloadType),
+            [.binanceSpotMarketEvent, .binanceUSDMPerpetualMarketEvent]
+        )
+        XCTAssertEqual(evidence.journalEnvelopes, evidence.replayedEnvelopes)
+        XCTAssertEqual(evidence.journalEnvelopes.map(\.sequence), [1, 2])
+        XCTAssertTrue(evidence.journalEnvelopes.allSatisfy { $0.stream == evidence.streamID })
+        XCTAssertTrue(evidence.journalEnvelopes.allSatisfy { $0.instrumentID != nil })
+        XCTAssertEqual(
+            unifiedEnvelopes.map(\.module),
+            [.dataEngine, .messageBus, .dataEngine, .messageBus]
+        )
+        XCTAssertEqual(unifiedEnvelopes.map(\.sequence), [1, 2, 3, 4])
+        XCTAssertTrue(unifiedEnvelopes.allSatisfy { $0.runID == evidence.runContext.runID })
+        XCTAssertNil(unifiedEnvelopes.first?.upstreamEvidenceID)
+        for index in unifiedEnvelopes.indices.dropFirst() {
+            XCTAssertEqual(unifiedEnvelopes[index].upstreamEvidenceID, unifiedEnvelopes[index - 1].evidenceID)
+        }
+        XCTAssertTrue(emissions.allSatisfy(\.boundaryHeld))
+        XCTAssertTrue(evidence.productIdentityCoverageHeld)
+        XCTAssertTrue(evidence.runScopedMessageBusHeld)
+        XCTAssertTrue(evidence.forbiddenRuntimeHeld)
+        XCTAssertFalse(evidence.networkCallsPerformed)
+        XCTAssertFalse(evidence.secretReadsPerformed)
+        XCTAssertFalse(evidence.productionEndpointConnected)
+        XCTAssertFalse(evidence.productionBrokerConnected)
+        XCTAssertFalse(evidence.productionOrderSubmitted)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+
+        for anchor in [
+            "V040-04-DATAENGINE-MESSAGEBUS-RUNTIME-STEP",
+            "V040-04-RUN-SCOPED-MARKET-EVENTS",
+            "V040-04-BINANCE-SPOT-PERP-PRODUCT-IDENTITY",
+            "V040-04-FORBIDDEN-NETWORK-SECRET-PRODUCTION",
+            "TVM-RELEASE-V040-DATAENGINE-MESSAGEBUS-RUNTIME-STEP"
+        ] {
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+        }
+        XCTAssertTrue(dataEngineTarget.contains("\"ReleaseV040DataEngineMessageBusRuntimeStep.swift\""))
+        XCTAssertTrue(coreTarget.contains("\"DataEngine/ReleaseV040DataEngineMessageBusRuntimeStep.swift\""))
+        XCTAssertTrue(automationReadiness.contains("Release v0.4.0 DataEngine MessageBus runtime step anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV040DataEngineMessageBusRuntimeStep.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH697DataEngineRuntimeStepPublishesRunScopedMarketEventsIntoMessageBus"
+            )
+        )
+
+        XCTAssertThrowsError(
+            try ReleaseV040DataEngineMessageBusRuntimeStep(
+                runContext: try ReleaseV040RehearsalRunContext(mode: .shadow)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(field: "runContext.mode", expected: "dry-run", actual: "shadow")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV040DataEngineMessageBusRuntimeStepEvidence(
+                runContext: evidence.runContext,
+                streamID: evidence.streamID,
+                emissions: emissions,
+                replayedEnvelopes: evidence.replayedEnvelopes,
+                networkCallsPerformed: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("networkCallsPerformed"))
+        }
+
+        let encoded = try JSONEncoder().encode(evidence)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["productionOrderSubmitted"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(ReleaseV040DataEngineMessageBusRuntimeStepEvidence.self, from: data)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("productionOrderSubmitted"))
+        }
+    }
+
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
