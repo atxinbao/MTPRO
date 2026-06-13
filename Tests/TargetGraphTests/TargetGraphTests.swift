@@ -6611,6 +6611,87 @@ final class TargetGraphTests: XCTestCase {
                 )
             )
         }
+
+        func spotSubmitMapping(
+            baseURL: URL,
+            networkCallPerformed: Bool = false
+        ) throws -> ReleaseV030BinanceAdapterRehearsalRequestMapping {
+            try ReleaseV030BinanceAdapterRehearsalRequestMapping(
+                mappingID: Identifier("gh-686-url-policy"),
+                commandKind: .submit,
+                mode: .testnet,
+                productType: .spot,
+                baseURL: baseURL,
+                credentialReferenceID: Identifier("gh-663-testnet-credential"),
+                sourceOrderIntentID: Identifier("gh-662-order-intent"),
+                sourceEventLogID: Identifier("gh-662-event-log"),
+                sourceOMSOrderID: Identifier("gh-662-order"),
+                clientOrderID: Identifier("gh-686-client-order"),
+                symbol: "BTCUSDT",
+                side: "BUY",
+                queryItems: [
+                    try ReleaseV030BinanceAdapterRehearsalQueryItem(name: "symbol", value: "BTCUSDT"),
+                    try ReleaseV030BinanceAdapterRehearsalQueryItem(name: "side", value: "BUY"),
+                    try ReleaseV030BinanceAdapterRehearsalQueryItem(name: "type", value: "LIMIT"),
+                    try ReleaseV030BinanceAdapterRehearsalQueryItem(name: "timeInForce", value: "GTC"),
+                    try ReleaseV030BinanceAdapterRehearsalQueryItem(name: "quantity", value: "0.10"),
+                    try ReleaseV030BinanceAdapterRehearsalQueryItem(name: "price", value: "43000"),
+                    try ReleaseV030BinanceAdapterRehearsalQueryItem(name: "newClientOrderId", value: "gh-686-client-order"),
+                    try ReleaseV030BinanceAdapterRehearsalQueryItem(name: "recvWindow", value: "5000"),
+                    try ReleaseV030BinanceAdapterRehearsalQueryItem(name: "timestamp", value: "1704068600000")
+                ],
+                networkCallPerformed: networkCallPerformed
+            )
+        }
+
+        let gh686ValidMapping = try spotSubmitMapping(
+            baseURL: try XCTUnwrap(URL(string: "https://testnet.binance.vision"))
+        )
+        XCTAssertTrue(gh686ValidMapping.mappingHeld)
+        XCTAssertFalse(gh686ValidMapping.networkCallPerformed)
+        XCTAssertEqual(gh686ValidMapping.baseURL.absoluteString, "https://testnet.binance.vision")
+
+        let gh686InvalidBaseURLs: [(String, CoreError)] = [
+            (
+                "http://testnet.binance.vision",
+                .liveTradingBoundaryForbiddenCapability("releaseV030BinanceAdapter.nonHTTPSBaseURL")
+            ),
+            (
+                "https://api.binance.com",
+                .liveTradingBoundaryForbiddenCapability("releaseV030BinanceAdapter.productionEndpoint")
+            ),
+            (
+                "https://user:pass@testnet.binance.vision",
+                .liveTradingBoundaryForbiddenCapability("releaseV030BinanceAdapter.baseURLUserInfo")
+            ),
+            (
+                "https://testnet.binance.vision/api/v3",
+                .liveTradingBoundaryForbiddenCapability("releaseV030BinanceAdapter.baseURLPath")
+            ),
+            (
+                "https://testnet.binance.vision?recvWindow=5000",
+                .liveTradingBoundaryForbiddenCapability("releaseV030BinanceAdapter.baseURLQuery")
+            )
+        ]
+        for (rawURL, expectedError) in gh686InvalidBaseURLs {
+            XCTAssertThrowsError(
+                try spotSubmitMapping(baseURL: try XCTUnwrap(URL(string: rawURL))),
+                "\(rawURL) must be rejected by the GH-686 testnet URL policy"
+            ) { error in
+                XCTAssertEqual(error as? CoreError, expectedError)
+            }
+        }
+        XCTAssertThrowsError(
+            try spotSubmitMapping(
+                baseURL: try XCTUnwrap(URL(string: "https://testnet.binance.vision")),
+                networkCallPerformed: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("releaseV030BinanceAdapter.mapping.networkCallPerformed")
+            )
+        }
         XCTAssertThrowsError(
             try ReleaseV030BinanceAdapterRehearsalRequestMapping(
                 mappingID: Identifier("gh-663-production-endpoint-rejected"),

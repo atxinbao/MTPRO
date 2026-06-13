@@ -383,9 +383,7 @@ public struct ReleaseV030BinanceAdapterRehearsalRequestMapping: Codable, Equatab
         guard productType == .spot || productType == .usdsPerpetual else {
             throw CoreError.liveTradingBoundaryForbiddenCapability("releaseV030BinanceAdapter.unsupportedProductType")
         }
-        guard resolvedBaseURL.host?.lowercased() == Self.testnetHost(for: productType) else {
-            throw CoreError.liveTradingBoundaryForbiddenCapability("releaseV030BinanceAdapter.productionEndpoint")
-        }
+        try Self.validateTestnetBaseURL(resolvedBaseURL, productType: productType)
         guard resolvedMethod == Self.method(productType: productType, commandKind: commandKind),
               resolvedEndpointPath == Self.endpointPath(productType: productType, commandKind: commandKind) else {
             throw CoreError.liveTradingBoundaryContractMismatch(
@@ -477,7 +475,7 @@ public struct ReleaseV030BinanceAdapterRehearsalRequestMapping: Codable, Equatab
     public var mappingHeld: Bool {
         issueID.rawValue == "GH-663"
             && upstreamIssueID.rawValue == "GH-662"
-            && baseURL.host?.lowercased() == Self.testnetHost(for: productType)
+            && Self.isCanonicalTestnetBaseURL(baseURL, productType: productType)
             && method == Self.method(productType: productType, commandKind: commandKind)
             && endpointPath == Self.endpointPath(productType: productType, commandKind: commandKind)
             && queryItems.map(\.name) == Self.requiredQueryItemNames(productType: productType, commandKind: commandKind)
@@ -510,6 +508,37 @@ public struct ReleaseV030BinanceAdapterRehearsalRequestMapping: Codable, Equatab
             )
         }
         return url
+    }
+
+    private static func validateTestnetBaseURL(_ baseURL: URL, productType: ProductType) throws {
+        guard baseURL.scheme?.lowercased() == "https" else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("releaseV030BinanceAdapter.nonHTTPSBaseURL")
+        }
+        guard baseURL.host?.lowercased() == testnetHost(for: productType) else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("releaseV030BinanceAdapter.productionEndpoint")
+        }
+        guard baseURL.user == nil, baseURL.password == nil else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("releaseV030BinanceAdapter.baseURLUserInfo")
+        }
+        guard hasNoPath(baseURL) else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("releaseV030BinanceAdapter.baseURLPath")
+        }
+        guard baseURL.query == nil else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("releaseV030BinanceAdapter.baseURLQuery")
+        }
+    }
+
+    private static func isCanonicalTestnetBaseURL(_ baseURL: URL, productType: ProductType) -> Bool {
+        baseURL.scheme?.lowercased() == "https"
+            && baseURL.host?.lowercased() == testnetHost(for: productType)
+            && baseURL.user == nil
+            && baseURL.password == nil
+            && hasNoPath(baseURL)
+            && baseURL.query == nil
+    }
+
+    private static func hasNoPath(_ baseURL: URL) -> Bool {
+        baseURL.path.isEmpty || baseURL.path == "/"
     }
 
     public static func endpointPath(
