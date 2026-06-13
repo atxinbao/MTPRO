@@ -5883,6 +5883,157 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH699RiskEnginePreTradeRehearsalGateAllowsRejectsAndBlocksRunScopedIntents() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let riskEngineTarget = try packageTargetBlock(named: "RiskEngine", packageSource: packageSource)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.4.0-riskengine-pretrade-rehearsal-gate-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+
+        let upstreamData = try ReleaseV040DataEngineMessageBusRuntimeStep.deterministicEvidence()
+        let traderStep = try ReleaseV040TraderStrategyActorsRuntimeStep(runContext: upstreamData.runContext)
+        let traderEvidence = try traderStep.run(
+            marketInputs: ReleaseV040TraderStrategyActorsRuntimeStep.deterministicMessageBusMarketInputs(
+                runContext: upstreamData.runContext
+            ),
+            quantity: Quantity(0.10, field: "gh699Quantity")
+        )
+        let riskInputs = try traderEvidence.emissions.map { emission in
+            try ReleaseV040RiskEngineStrategyIntentInput(
+                runContext: traderEvidence.runContext,
+                upstreamEvidenceID: emission.messageBusEnvelope.evidenceID,
+                intentMessage: emission.intentMessage,
+                intentJournalEnvelope: emission.intentJournalEnvelope
+            )
+        }
+        let gate = try ReleaseV040RiskEnginePreTradeRehearsalGate(runContext: traderEvidence.runContext)
+        let evidence = try gate.run(intentInputs: riskInputs)
+
+        XCTAssertTrue(upstreamData.evidenceHeld)
+        XCTAssertTrue(traderEvidence.evidenceHeld)
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-699")
+        XCTAssertEqual(evidence.upstreamIssueID.rawValue, "GH-698")
+        XCTAssertEqual(evidence.downstreamIssueID.rawValue, "GH-700")
+        XCTAssertEqual(evidence.runContext.runID, upstreamData.runContext.runID)
+        XCTAssertEqual(evidence.runContext.runID, traderEvidence.runContext.runID)
+        XCTAssertEqual(Set(evidence.strategyIntentInputs.map(\.runID)), [traderEvidence.runContext.runID])
+        XCTAssertTrue(evidence.strategyIntentInputs.allSatisfy(\.boundaryHeld))
+
+        XCTAssertEqual(evidence.allowDecision.status, .allow)
+        XCTAssertNil(evidence.allowDecision.reason)
+        XCTAssertTrue(evidence.allowDecision.executionEligible)
+        XCTAssertEqual(evidence.rejectDecision.status, .reject)
+        XCTAssertEqual(evidence.rejectDecision.reason, .notionalLimitExceeded)
+        XCTAssertFalse(evidence.rejectDecision.executionEligible)
+        XCTAssertEqual(evidence.killSwitchDecision.status, .blocked)
+        XCTAssertEqual(evidence.killSwitchDecision.reason, .killSwitchActive)
+        XCTAssertFalse(evidence.killSwitchDecision.executionEligible)
+        XCTAssertEqual(evidence.noTradeDecision.status, .blocked)
+        XCTAssertEqual(evidence.noTradeDecision.reason, .noTradeActive)
+        XCTAssertFalse(evidence.noTradeDecision.executionEligible)
+        XCTAssertEqual(evidence.executionEligibleInputs, [evidence.allowDecision.input.intentMessage])
+        XCTAssertEqual(
+            evidence.unifiedEnvelopes.map(\.module),
+            [.riskEngine, .riskEngine, .riskEngine, .riskEngine]
+        )
+        XCTAssertEqual(evidence.unifiedEnvelopes.map(\.sequence), [1, 2, 3, 4])
+        XCTAssertTrue(evidence.unifiedEnvelopes.allSatisfy { $0.runID == evidence.runContext.runID })
+        XCTAssertTrue(evidence.unifiedEnvelopes.allSatisfy { $0.sourceIssueID.rawValue == "GH-699" })
+        XCTAssertTrue(evidence.downstreamBoundaryHeld)
+        XCTAssertFalse(evidence.executionEngineBypassAllowed)
+        XCTAssertFalse(evidence.omsBypassAllowed)
+        XCTAssertFalse(evidence.executionClientAccessEnabled)
+        XCTAssertFalse(evidence.brokerGatewayAccessEnabled)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionEndpointConnected)
+        XCTAssertFalse(evidence.productionSecretAutoReadEnabled)
+        XCTAssertFalse(evidence.productionBrokerConnected)
+        XCTAssertFalse(evidence.productionOrderSubmitted)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+
+        for anchor in [
+            "V040-06-RISKENGINE-PRETRADE-REHEARSAL-GATE",
+            "V040-06-ALLOW-REJECT-BLOCK-DECISIONS",
+            "V040-06-KILL-SWITCH-NO-TRADE-GUARDS",
+            "V040-06-EXECUTIONENGINE-RISK-APPROVED-ONLY",
+            "TVM-RELEASE-V040-RISKENGINE-PRETRADE-REHEARSAL-GATE"
+        ] {
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+        }
+        XCTAssertTrue(riskEngineTarget.contains("\"LiveGate\""))
+        XCTAssertTrue(automationReadiness.contains("Release v0.4.0 RiskEngine pre-trade rehearsal gate anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV040RiskEnginePreTradeRehearsalGate.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH699RiskEnginePreTradeRehearsalGateAllowsRejectsAndBlocksRunScopedIntents"
+            )
+        )
+        XCTAssertFalse(riskEngineTarget.contains("\"Trader\""))
+        XCTAssertFalse(riskEngineTarget.contains("\"ExecutionEngine\""))
+        XCTAssertFalse(riskEngineTarget.contains("\"ExecutionClient\""))
+
+        XCTAssertThrowsError(
+            try ReleaseV040RiskEnginePreTradeRehearsalGate(
+                runContext: try ReleaseV040RehearsalRunContext(mode: .shadow)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(field: "runContext.mode", expected: "dry-run", actual: "shadow")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV040RiskEnginePreTradeRehearsalGateEvidence(
+                runContext: evidence.runContext,
+                strategyIntentInputs: evidence.strategyIntentInputs,
+                allowDecision: evidence.allowDecision,
+                rejectDecision: evidence.rejectDecision,
+                killSwitchDecision: evidence.killSwitchDecision,
+                noTradeDecision: evidence.noTradeDecision,
+                executionClientAccessEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("executionClientAccessEnabled"))
+        }
+
+        let encoded = try JSONEncoder().encode(evidence)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["productionOrderSubmitted"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(ReleaseV040RiskEnginePreTradeRehearsalGateEvidence.self, from: data)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("productionOrderSubmitted"))
+        }
+    }
+
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
