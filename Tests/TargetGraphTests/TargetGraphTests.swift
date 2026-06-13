@@ -6233,6 +6233,235 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH701BinanceDryRunExecutionClientAdapterMapsLifecycleRequestsWithoutNetworkCalls() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.4.0-binance-dryrun-executionclient-adapter-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let adapterSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/ExecutionClient/FutureGate/ReleaseV040BinanceDryRunExecutionClientAdapterBoundary.swift"
+            ),
+            encoding: .utf8
+        )
+
+        let upstreamData = try ReleaseV040DataEngineMessageBusRuntimeStep.deterministicEvidence()
+        let traderStep = try ReleaseV040TraderStrategyActorsRuntimeStep(runContext: upstreamData.runContext)
+        let traderEvidence = try traderStep.run(
+            marketInputs: ReleaseV040TraderStrategyActorsRuntimeStep.deterministicMessageBusMarketInputs(
+                runContext: upstreamData.runContext
+            ),
+            quantity: Quantity(0.10, field: "gh701Quantity")
+        )
+        let riskInputs = try traderEvidence.emissions.map { emission in
+            try ReleaseV040RiskEngineStrategyIntentInput(
+                runContext: traderEvidence.runContext,
+                upstreamEvidenceID: emission.messageBusEnvelope.evidenceID,
+                intentMessage: emission.intentMessage,
+                intentJournalEnvelope: emission.intentJournalEnvelope
+            )
+        }
+        let riskEvidence = try ReleaseV040RiskEnginePreTradeRehearsalGate(
+            runContext: traderEvidence.runContext
+        ).run(intentInputs: riskInputs)
+        let lifecycleEvidence = try ReleaseV040ExecutionOMSDryRunLifecycle(
+            runContext: riskEvidence.runContext
+        ).run(riskEvidence: riskEvidence)
+        let executableLogs = lifecycleEvidence.lifecycleLogs.filter(\.path.requiresAllowedRiskDecision)
+        let symbol = try Symbol(rawValue: "BTCUSDT")
+        let spotInstrument = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let perpInstrument = InstrumentIdentity.binance(productType: .usdsPerpetual, symbol: symbol)
+        let adapterQuantity = try Quantity(0.10, field: "gh701AdapterQuantity")
+        let adapterReferencePrice = try Price(42_500.0, field: "gh701AdapterReferencePrice")
+        let spotLog = try XCTUnwrap(executableLogs.first { $0.finalState == .filledSimulated })
+        let perpLog = try XCTUnwrap(executableLogs.first { $0.finalState == .cancelled })
+        let handoffs = try [
+            ReleaseV040BinanceDryRunExecutionClientOMSHandoff(
+                handoffID: Identifier.constant("gh-701-spot-oms-handoff"),
+                runContext: lifecycleEvidence.runContext,
+                sourceLifecycleLogID: spotLog.logID,
+                sourceOMSOrderID: spotLog.orderID,
+                sourceLifecyclePath: spotLog.path.rawValue,
+                sourceFinalState: spotLog.finalState.rawValue,
+                sourceEventIDs: spotLog.events.map(\.eventID),
+                sourceOMSEnvelopeIDs: spotLog.events.map(\.omsEnvelope.evidenceID),
+                instrument: spotInstrument,
+                targetExposure: .targetLong,
+                quantity: adapterQuantity,
+                referencePrice: adapterReferencePrice,
+                stateEvidence: spotLog.events.flatMap { [$0.fromState.rawValue, $0.toState.rawValue] }
+            ),
+            ReleaseV040BinanceDryRunExecutionClientOMSHandoff(
+                handoffID: Identifier.constant("gh-701-perp-oms-handoff"),
+                runContext: lifecycleEvidence.runContext,
+                sourceLifecycleLogID: perpLog.logID,
+                sourceOMSOrderID: perpLog.orderID,
+                sourceLifecyclePath: perpLog.path.rawValue,
+                sourceFinalState: perpLog.finalState.rawValue,
+                sourceEventIDs: perpLog.events.map(\.eventID),
+                sourceOMSEnvelopeIDs: perpLog.events.map(\.omsEnvelope.evidenceID),
+                instrument: perpInstrument,
+                targetExposure: .targetShort,
+                quantity: adapterQuantity,
+                referencePrice: adapterReferencePrice,
+                stateEvidence: perpLog.events.flatMap { [$0.fromState.rawValue, $0.toState.rawValue] }
+            )
+        ]
+        let adapter = try ReleaseV040BinanceDryRunExecutionClientAdapter(runContext: lifecycleEvidence.runContext)
+        let evidence = try adapter.run(omsHandoffs: handoffs)
+
+        XCTAssertTrue(lifecycleEvidence.evidenceHeld)
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-701")
+        XCTAssertEqual(evidence.upstreamIssueID.rawValue, "GH-700")
+        XCTAssertEqual(evidence.downstreamIssueID.rawValue, "GH-702")
+        XCTAssertEqual(evidence.runContext.runID, lifecycleEvidence.runContext.runID)
+        XCTAssertEqual(evidence.supportedProductTypes, [.spot, .usdsPerpetual])
+        XCTAssertEqual(evidence.supportedCommands, ReleaseV040BinanceDryRunExecutionClientCommandKind.allCases)
+        XCTAssertEqual(evidence.omsHandoffs.count, 2)
+        XCTAssertEqual(evidence.requestIntents.count, 6)
+        XCTAssertEqual(evidence.redactedRequests.count, 6)
+        XCTAssertEqual(evidence.acknowledgements.count, 6)
+        XCTAssertTrue(evidence.adapterCoverageHeld)
+        XCTAssertTrue(evidence.runScopedEvidenceHeld)
+        XCTAssertTrue(evidence.boundaryHeld)
+        XCTAssertEqual(
+            Set(evidence.redactedRequests.map { "\($0.productType.rawValue):\($0.commandKind.rawValue)" }),
+            Set(
+                ReleaseV040RehearsalRunContext.requiredProductTypes.flatMap { productType in
+                    ReleaseV040BinanceDryRunExecutionClientCommandKind.allCases.map {
+                        "\(productType.rawValue):\($0.rawValue)"
+                    }
+                }
+            )
+        )
+        XCTAssertEqual(evidence.unifiedEnvelopes.map(\.sequence), Array(1...evidence.unifiedEnvelopes.count))
+        XCTAssertTrue(evidence.unifiedEnvelopes.allSatisfy { $0.module == .executionClient })
+        XCTAssertTrue(evidence.unifiedEnvelopes.allSatisfy { $0.runID == evidence.runContext.runID })
+        XCTAssertTrue(evidence.requestIntents.allSatisfy(\.intentHeld))
+        XCTAssertTrue(evidence.redactedRequests.allSatisfy(\.requestHeld))
+        XCTAssertTrue(evidence.acknowledgements.allSatisfy(\.acknowledgementHeld))
+        XCTAssertTrue(evidence.redactedRequests.allSatisfy(\.redacted))
+        XCTAssertTrue(evidence.redactedRequests.allSatisfy(\.dryRunOnly))
+        XCTAssertTrue(
+            evidence.redactedRequests.allSatisfy {
+                $0.queryItems.contains { $0.name == "symbol" }
+                    && $0.queryItems.allSatisfy { $0.name.lowercased() != "signature" }
+            }
+        )
+        XCTAssertTrue(
+            evidence.redactedRequests
+                .filter { $0.productType == .spot }
+                .allSatisfy { $0.endpointPath.hasPrefix("/api/v3/") && $0.positionSide == nil }
+        )
+        XCTAssertTrue(
+            evidence.redactedRequests
+                .filter { $0.productType == .usdsPerpetual }
+                .allSatisfy { $0.endpointPath.hasPrefix("/fapi/v1/") && $0.positionSide != nil }
+        )
+
+        XCTAssertFalse(evidence.networkCallPerformed)
+        XCTAssertFalse(evidence.productionEndpointConnected)
+        XCTAssertFalse(evidence.productionSecretRead)
+        XCTAssertFalse(evidence.productionOrderSubmitted)
+        XCTAssertFalse(evidence.brokerGatewayTouched)
+        XCTAssertFalse(evidence.rawBrokerPayloadExposed)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertFalse(evidence.nonBinanceVenueEnabled)
+        XCTAssertFalse(evidence.startsNextMilestone)
+
+        for anchor in [
+            "V040-08-BINANCE-DRYRUN-EXECUTIONCLIENT-ADAPTER",
+            "V040-08-REQUEST-INTENT-REDACTED-REQUEST-ACK",
+            "V040-08-SPOT-PERP-MAPPING-ONLY",
+            "V040-08-NETWORK-PRODUCTION-ORDER-BLOCKED",
+            "TVM-RELEASE-V040-BINANCE-DRYRUN-EXECUTIONCLIENT-ADAPTER"
+        ] {
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+        }
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(automationReadiness.contains("Release v0.4.0 Binance dry-run ExecutionClient adapter anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV040BinanceDryRunExecutionClientAdapterBoundary.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH701BinanceDryRunExecutionClientAdapterMapsLifecycleRequestsWithoutNetworkCalls"
+            )
+        )
+        XCTAssertTrue(adapterSource.contains("ReleaseV040BinanceDryRunExecutionClientAdapter"))
+        XCTAssertTrue(adapterSource.contains("ReleaseV040BinanceDryRunExecutionClientRedactedRequest"))
+        XCTAssertFalse(adapterSource.contains("URLSession"))
+        XCTAssertFalse(adapterSource.contains("URLRequest"))
+
+        XCTAssertThrowsError(
+            try ReleaseV040BinanceDryRunExecutionClientQueryItem(name: "signature", value: "unsafe")
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("releaseV040BinanceDryRun.signatureValue"))
+        }
+        XCTAssertThrowsError(
+            try adapter.run(omsHandoffs: [handoffs[0]])
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "releaseV040BinanceDryRun.productCoverage",
+                    expected: "spot,usdsPerpetual",
+                    actual: "spot"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV040BinanceDryRunExecutionClientRedactedRequest(
+                requestID: Identifier.constant("gh-701-unsafe-request"),
+                requestIntent: evidence.requestIntents[0],
+                queryItems: evidence.redactedRequests[0].queryItems,
+                executionClientEnvelope: evidence.redactedRequests[0].executionClientEnvelope,
+                networkCallPerformed: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("releaseV040BinanceDryRun.request.networkCallPerformed")
+            )
+        }
+
+        let encoded = try JSONEncoder().encode(evidence)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["productionOrderSubmitted"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(ReleaseV040BinanceDryRunExecutionClientAdapterEvidence.self, from: data)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("productionOrderSubmitted"))
+        }
+    }
+
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

@@ -495,6 +495,24 @@ GH-700 必须建立的主要 anchors：
 - `V040-07-NO-PRODUCTION-BROKER-CALL`
 - `TVM-RELEASE-V040-EXECUTIONENGINE-OMS-DRYRUN-LIFECYCLE`
 
+## GH-701 Release v0.4.0 Binance Dry-run ExecutionClient Adapter Validation
+
+GH-701 的 required validation：
+
+- `docs/contracts/release-v0.4.0-binance-dryrun-executionclient-adapter-contract.md` 必须存在，并包含 `V040-08-BINANCE-DRYRUN-EXECUTIONCLIENT-ADAPTER`、`V040-08-REQUEST-INTENT-REDACTED-REQUEST-ACK`、`V040-08-SPOT-PERP-MAPPING-ONLY` 和 `V040-08-NETWORK-PRODUCTION-ORDER-BLOCKED`。
+- `Sources/ExecutionClient/FutureGate/ReleaseV040BinanceDryRunExecutionClientAdapterBoundary.swift` 必须定义 `ReleaseV040BinanceDryRunExecutionClientOMSHandoff`、`ReleaseV040BinanceDryRunExecutionClientRequestIntent`、`ReleaseV040BinanceDryRunExecutionClientRedactedRequest`、`ReleaseV040BinanceDryRunExecutionClientAcknowledgement`、`ReleaseV040BinanceDryRunExecutionClientAdapterEvidence` 和 `ReleaseV040BinanceDryRunExecutionClientAdapter`。
+- ExecutionClient adapter boundary 必须消费 #700 的 OMS handoff identity，生成 request intent、redacted request 和 dry-run acknowledgement evidence。
+- Evidence 必须覆盖 Binance Spot 和 USDⓈ-M Perpetual，且 networkCallPerformed、production endpoint、production secret、production order、broker gateway 和 raw broker payload 全部保持 false。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH701BinanceDryRunExecutionClientAdapterMapsLifecycleRequestsWithoutNetworkCalls`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-701 必须建立的主要 anchors：
+
+- `V040-08-BINANCE-DRYRUN-EXECUTIONCLIENT-ADAPTER`
+- `V040-08-REQUEST-INTENT-REDACTED-REQUEST-ACK`
+- `V040-08-SPOT-PERP-MAPPING-ONLY`
+- `V040-08-NETWORK-PRODUCTION-ORDER-BLOCKED`
+- `TVM-RELEASE-V040-BINANCE-DRYRUN-EXECUTIONCLIENT-ADAPTER`
+
 ## GH-657 Release v0.3.0 Runtime Rehearsal Contract Validation
 
 GH-657 的 required validation：
