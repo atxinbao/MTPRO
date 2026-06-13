@@ -7515,6 +7515,110 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH669OperatorRehearsalRunbookDocumentsStartObserveStopAndProductionProof() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let runbook = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/operators/release-v0.3.0-operator-rehearsal-runbook.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+
+        for anchor in [
+            "GH-669-RELEASE-V030-OPERATOR-REHEARSAL-RUNBOOK",
+            "V030-13-START-REHEARSAL",
+            "V030-13-OBSERVE-DASHBOARD-CLI-EVIDENCE",
+            "V030-13-STOP-REHEARSAL",
+            "V030-13-PRODUCTION-DISABLED-PROOF",
+            "TVM-RELEASE-V030-OPERATOR-REHEARSAL-RUNBOOK",
+            "GH-669-NON-AUTHORIZATION"
+        ] {
+            XCTAssertTrue(runbook.contains(anchor), "\(anchor) must stay in operator runbook")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+        }
+
+        for command in [
+            "git diff --check",
+            "bash checks/automation-readiness.sh",
+            "bash checks/verify-v0.3.0.sh",
+            "swift run mtpro rehearsal-status",
+            "DASHBOARD_SMOKE=1 swift run Dashboard",
+            "bash checks/run.sh"
+        ] {
+            XCTAssertTrue(runbook.contains(command), "\(command) must stay in runbook")
+        }
+
+        for observedEvidence in [
+            "mtpro rehearsal-status blocked",
+            "commandGateway=required",
+            "validationAnchor=TVM-RELEASE-V030-DASHBOARD-CLI-REHEARSAL-SURFACE",
+            "productTypes=spot,usdsPerpetual",
+            "strategies=ema,rsi",
+            "killSwitchStatus=blocked",
+            "noTradeStatus=blocked",
+            "commandsRouteThroughCommandGateway=true",
+            "boundaryHeld=true"
+        ] {
+            XCTAssertTrue(runbook.contains(observedEvidence), "\(observedEvidence) must stay in observe section")
+        }
+
+        for productionDisabledProof in [
+            "productionTradingEnabledByDefault=false",
+            "productionEndpointAutoConnect=false",
+            "productionSecretAutoRead=false",
+            "productionOrderSubmission=false",
+            "productionCutoverAuthorized=false"
+        ] {
+            XCTAssertTrue(runbook.contains(productionDisabledProof), "\(productionDisabledProof) must stay in proof")
+        }
+
+        for stopBoundary in [
+            "停止当前 shell command",
+            "保留 kill switch / no-trade blocked 状态",
+            "不执行 automatic recovery",
+            "不调用 broker emergency API",
+            "不执行 rollback command",
+            "不触发 submit / cancel / replace"
+        ] {
+            XCTAssertTrue(runbook.contains(stopBoundary), "\(stopBoundary) must stay in stop procedure")
+        }
+
+        XCTAssertTrue(validationPlan.contains("GH-669 Release v0.3.0 Operator Rehearsal Runbook"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V030-OPERATOR-REHEARSAL-RUNBOOK"))
+        XCTAssertTrue(tradingMatrix.contains("GH-670"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.3.0 operator rehearsal runbook anchor"))
+
+        for forbiddenAuthorization in [
+            "授权 production trading",
+            "授权 production cutover",
+            "读取 production secret",
+            "连接 production endpoint",
+            "发送真实 submit / cancel / replace",
+            "启动下一 milestone"
+        ] {
+            XCTAssertTrue(
+                runbook.contains("不\(forbiddenAuthorization)") || runbook.contains("不\(forbiddenAuthorization.dropFirst(2))"),
+                "runbook must explicitly deny \(forbiddenAuthorization)"
+            )
+        }
+    }
+
     func testGH643ProductionCutoverRuntimeHardeningContractFailsClosedWithoutProductionCutover() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

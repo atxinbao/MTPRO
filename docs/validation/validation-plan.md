@@ -77,6 +77,25 @@ bash checks/run.sh
 
 该矩阵记录 EMA parity、order book imbalance parity、fees / slippage、risk blocker、portfolio exposure 和 report evidence 的现有 coverage、验收证据边界和后续 issue 回填规则。
 
+## GH-669 Release v0.3.0 Operator Rehearsal Runbook
+
+GH-669 的 required validation：
+
+- `docs/operators/release-v0.3.0-operator-rehearsal-runbook.md` 必须存在，并包含 `GH-669-RELEASE-V030-OPERATOR-REHEARSAL-RUNBOOK`、`V030-13-START-REHEARSAL`、`V030-13-OBSERVE-DASHBOARD-CLI-EVIDENCE`、`V030-13-STOP-REHEARSAL`、`V030-13-PRODUCTION-DISABLED-PROOF` 和 `TVM-RELEASE-V030-OPERATOR-REHEARSAL-RUNBOOK`。
+- Runbook 必须说明 `git diff --check`、`bash checks/automation-readiness.sh`、`bash checks/verify-v0.3.0.sh`、`swift run mtpro rehearsal-status`、`DASHBOARD_SMOKE=1 swift run Dashboard` 和 `bash checks/run.sh` 的用途。
+- Runbook 必须说明 stop procedure：停止本地命令、保持 kill switch / no-trade blocked、禁止 automatic recovery、禁止 broker emergency API、禁止 rollback command、禁止 submit / cancel / replace。
+- Runbook 必须说明 production-disabled proof：`productionTradingEnabledByDefault=false`、`productionEndpointAutoConnect=false`、`productionSecretAutoRead=false`、`productionOrderSubmission=false` 和 `productionCutoverAuthorized=false`。
+- Required validation 为 `swift test --filter TargetGraphTests/testGH669OperatorRehearsalRunbookDocumentsStartObserveStopAndProductionProof`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-669 必须建立的主要 anchors：
+
+- `GH-669-RELEASE-V030-OPERATOR-REHEARSAL-RUNBOOK`
+- `V030-13-START-REHEARSAL`
+- `V030-13-OBSERVE-DASHBOARD-CLI-EVIDENCE`
+- `V030-13-STOP-REHEARSAL`
+- `V030-13-PRODUCTION-DISABLED-PROOF`
+- `TVM-RELEASE-V030-OPERATOR-REHEARSAL-RUNBOOK`
+
 ## GH-668 Release v0.3.0 Validation Suite
 
 GH-668 的 required validation：
