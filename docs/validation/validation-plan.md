@@ -419,6 +419,27 @@ GH-696 必须建立的主要 anchors：
 - `V040-03-FORBIDDEN-NETWORK-SECRET-PRODUCTION`
 - `TVM-RELEASE-V040-RUNTIME-KERNEL-DRY-RUN-ORCHESTRATOR`
 
+## GH-697 Release v0.4.0 DataEngine MessageBus Runtime Step Validation
+
+GH-697 的 required validation：
+
+- `docs/contracts/release-v0.4.0-dataengine-messagebus-runtime-step-contract.md` 必须存在，并包含 `V040-04-DATAENGINE-MESSAGEBUS-RUNTIME-STEP`、`V040-04-RUN-SCOPED-MARKET-EVENTS`、`V040-04-BINANCE-SPOT-PERP-PRODUCT-IDENTITY` 和 `V040-04-FORBIDDEN-NETWORK-SECRET-PRODUCTION`。
+- `Sources/DataEngine/ReleaseV040DataEngineMessageBusRuntimeStep.swift` 必须定义 `ReleaseV040DataEngineMessageBusPayloadType`、`ReleaseV040DataEngineMessageBusEmission`、`ReleaseV040DataEngineMessageBusRuntimeStepEvidence` 和 `ReleaseV040DataEngineMessageBusRuntimeStep`。
+- `Package.swift` 必须把 `ReleaseV040DataEngineMessageBusRuntimeStep.swift` 纳入 `DataEngine` target，并从 `Core` compatibility envelope 中排除。
+- DataEngine emission 必须同时包含 `ReleaseV040RehearsalRunContext`、DataEngine unified evidence envelope、MessageBus unified evidence envelope 和 `MessageBusJournalEnvelope`。
+- 所有 emission 必须共享同一个 `runID`，且 `MessageBusAppendOnlyJournal.replay` 必须与已 append envelope 一致。
+- Evidence 必须覆盖 Binance Spot 和 USDⓈ-M Perpetual product identity。
+- Contract 必须证明 network calls、secret reads、production endpoint、production broker、production order 和 production cutover 全部关闭。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH697DataEngineRuntimeStepPublishesRunScopedMarketEventsIntoMessageBus`、`bash checks/verify-v0.3.1.sh`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、testnet credential、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-697 必须建立的主要 anchors：
+
+- `V040-04-DATAENGINE-MESSAGEBUS-RUNTIME-STEP`
+- `V040-04-RUN-SCOPED-MARKET-EVENTS`
+- `V040-04-BINANCE-SPOT-PERP-PRODUCT-IDENTITY`
+- `V040-04-FORBIDDEN-NETWORK-SECRET-PRODUCTION`
+- `TVM-RELEASE-V040-DATAENGINE-MESSAGEBUS-RUNTIME-STEP`
+
 ## GH-657 Release v0.3.0 Runtime Rehearsal Contract Validation
 
 GH-657 的 required validation：
