@@ -2,7 +2,7 @@
 
 MTPRO 是 SwiftPM-first、local-first 的 macOS 原生专业交易工作台。
 
-它先建设 Research -> Backtest -> Report -> Paper 的可追溯证据链；最终目标是专业版交易工作台，包含 Live trading、实盘监控台、实盘执行控制、实盘风险控制和实盘审计 / 事故回放 / 停机控制。最新完成的 release construction scope 是 `MTPRO Release v0.3.0 Testnet / Shadow Production Rehearsal`：activeVenue == Binance，activeProductTypes == [spot, usdsPerpetual]，activeStrategies == [ema, rsi]，productionTradingEnabledByDefault == false。早期 public-read-only / paper-only / EMA-only 只作为历史 foundation evidence，不再作为当前 v0.3.0 边界。
+它先建设 Research -> Backtest -> Report -> Paper 的可追溯证据链；最终目标是专业版交易工作台，包含 Live trading、实盘监控台、实盘执行控制、实盘风险控制和实盘审计 / 事故回放 / 停机控制。最新完成的 release construction scope 是 `MTPRO Release v0.3.0 Testnet / Shadow Production Rehearsal`：activeVenue == Binance，activeProductTypes == [spot, usdsPerpetual]，activeStrategies == [ema, rsi]，productionTradingEnabledByDefault == false。v0.3.0 是 deterministic rehearsal evidence release，v0.3.1 是 rehearsal evidence hardening patch；v0.3.x 不表示已经存在真实 testnet / shadow runtime runner。早期 public-read-only / paper-only / EMA-only 只作为历史 foundation evidence，不再作为当前 v0.3.0 边界。
 
 MTPRO 借鉴 `nautilus_trader` 的 Kernel / MessageBus / Cache / Engine / Adapter 分层思想，也参考 `macos-trader` 的既有产品语义，但不引入 NautilusTrader 作为运行依赖，不复制 `macos-trader` 整仓代码。
 
@@ -46,6 +46,9 @@ Agent 进入仓库时按以下顺序读取：
 - `GH-670-RELEASE-V030-FINAL-STAGE-AUDIT-RELEASE-DOCS`
 - `GH-564-RELEASE-V020-ROOT-DOCS-BOUNDARY-REFRESH`
 - Latest completed release construction scope: `MTPRO Release v0.3.0 Testnet / Shadow Production Rehearsal`
+- v0.3.0 release semantic: deterministic rehearsal evidence release, not a real testnet / shadow runtime runner
+- v0.3.1 release semantic: rehearsal evidence hardening patch, still no production cutover
+- v0.4.0 handoff semantic: planned unified runtime rehearsal pipeline stage, not authorized by v0.3.x docs
 - activeVenue == Binance
 - activeProductTypes == [spot, usdsPerpetual]
 - activeStrategies == [ema, rsi]
