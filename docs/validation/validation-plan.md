@@ -376,6 +376,28 @@ GH-694 必须建立的主要 anchors：
 - `V040-01-FORBIDDEN-PRODUCTION-CAPABILITIES`
 - `TVM-RELEASE-V040-UNIFIED-RUNTIME-REHEARSAL-PIPELINE-CONTRACT`
 
+## GH-695 Release v0.4.0 RehearsalRunContext Envelope Validation
+
+GH-695 的 required validation：
+
+- `docs/contracts/release-v0.4.0-rehearsal-run-context-envelope-contract.md` 必须存在，并包含 `V040-02-REHEARSAL-RUN-CONTEXT`、`V040-02-UNIFIED-EVIDENCE-ENVELOPE`、`V040-02-MODULE-EVIDENCE-COVERAGE`、`V040-02-PRODUCT-STRATEGY-MODE-IDENTITY` 和 `V040-02-FORBIDDEN-PRODUCTION-RUNTIME`。
+- `Sources/DomainModel/ReleaseV040RehearsalRunContext.swift` 必须定义 `ReleaseV040RehearsalRunContext`、`ReleaseV040UnifiedEvidenceEnvelope`、`ReleaseV040UnifiedEvidenceModule` 和 `ReleaseV040UnifiedEvidenceEnvelopeFixture`。
+- `Package.swift` 必须把 `ReleaseV040RehearsalRunContext.swift` 纳入 `DomainModel` target。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 必须包含 `testGH695ReleaseV040RehearsalRunContextAndEnvelopeShareOneRunID`。
+- 所有 deterministic envelope 必须共享同一个 `runID`，并携带 mode、venue、product type、strategy、correlation id 和 causation id。
+- Envelope 必须覆盖 DataEngine、Trader、RiskEngine、ExecutionEngine、OMS、ExecutionClient、Event Store、Portfolio、Dashboard 和 CLI。
+- Contract 必须证明 production trading 默认关闭、production secret 不自动读取、production endpoint 不自动连接、production broker 不连接、production order 不提交、production cutover 未授权。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH695ReleaseV040RehearsalRunContextAndEnvelopeShareOneRunID`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-695 必须建立的主要 anchors：
+
+- `V040-02-REHEARSAL-RUN-CONTEXT`
+- `V040-02-UNIFIED-EVIDENCE-ENVELOPE`
+- `V040-02-MODULE-EVIDENCE-COVERAGE`
+- `V040-02-PRODUCT-STRATEGY-MODE-IDENTITY`
+- `V040-02-FORBIDDEN-PRODUCTION-RUNTIME`
+- `TVM-RELEASE-V040-REHEARSAL-RUN-CONTEXT-ENVELOPE`
+
 ## GH-657 Release v0.3.0 Runtime Rehearsal Contract Validation
 
 GH-657 的 required validation：

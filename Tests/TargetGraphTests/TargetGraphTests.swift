@@ -5360,6 +5360,125 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH695ReleaseV040RehearsalRunContextAndEnvelopeShareOneRunID() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let domainModelTarget = try packageTargetBlock(named: "DomainModel", packageSource: packageSource)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.4.0-rehearsal-run-context-envelope-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+
+        let context = try ReleaseV040RehearsalRunContext()
+        let envelopes = try ReleaseV040UnifiedEvidenceEnvelopeFixture.deterministicEnvelopes()
+
+        XCTAssertTrue(context.boundaryHeld)
+        XCTAssertTrue(context.productionDefaultsClosed)
+        XCTAssertEqual(context.runID.rawValue, "gh-695-v040-unified-rehearsal-run")
+        XCTAssertEqual(context.mode, .dryRun)
+        XCTAssertEqual(context.venue, "Binance")
+        XCTAssertEqual(context.productType, .spot)
+        XCTAssertEqual(context.strategy, .ema)
+        XCTAssertEqual(context.correlationID.rawValue, "gh-695-v040-correlation")
+        XCTAssertEqual(context.causationID.rawValue, "gh-694-v040-contract-causation")
+        XCTAssertEqual(ReleaseV040RehearsalRunContext.requiredProductTypes, [.spot, .usdsPerpetual])
+        XCTAssertEqual(ReleaseV040RehearsalRunContext.requiredStrategies, [.ema, .rsi])
+
+        XCTAssertTrue(ReleaseV040UnifiedEvidenceEnvelopeFixture.allEvidenceSharesOneRunID(envelopes))
+        XCTAssertEqual(envelopes.count, ReleaseV040UnifiedEvidenceModule.allCases.count)
+        XCTAssertEqual(envelopes.map(\.module), ReleaseV040UnifiedEvidenceModule.allCases)
+        XCTAssertTrue(envelopes.allSatisfy { $0.runID == context.runID })
+        XCTAssertTrue(envelopes.allSatisfy { $0.mode == context.mode })
+        XCTAssertTrue(envelopes.allSatisfy { $0.venue == context.venue })
+        XCTAssertTrue(envelopes.allSatisfy { $0.productType == context.productType })
+        XCTAssertTrue(envelopes.allSatisfy { $0.strategy == context.strategy })
+        XCTAssertTrue(envelopes.allSatisfy { $0.correlationID == context.correlationID })
+        XCTAssertTrue(envelopes.allSatisfy { $0.validationAnchor == "TVM-RELEASE-V040-REHEARSAL-RUN-CONTEXT-ENVELOPE" })
+        XCTAssertTrue(envelopes.allSatisfy { $0.boundaryHeld })
+        XCTAssertNil(envelopes.first?.upstreamEvidenceID)
+        for index in envelopes.indices.dropFirst() {
+            XCTAssertEqual(envelopes[index].upstreamEvidenceID, envelopes[index - 1].evidenceID)
+            XCTAssertEqual(envelopes[index].causationID, envelopes[index - 1].evidenceID)
+            XCTAssertEqual(envelopes[index].sequence, index + 1)
+        }
+
+        for anchor in [
+            "V040-02-REHEARSAL-RUN-CONTEXT",
+            "V040-02-UNIFIED-EVIDENCE-ENVELOPE",
+            "V040-02-MODULE-EVIDENCE-COVERAGE",
+            "V040-02-PRODUCT-STRATEGY-MODE-IDENTITY",
+            "V040-02-FORBIDDEN-PRODUCTION-RUNTIME",
+            "TVM-RELEASE-V040-REHEARSAL-RUN-CONTEXT-ENVELOPE"
+        ] {
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+        }
+        for module in ReleaseV040UnifiedEvidenceModule.allCases {
+            XCTAssertTrue(contractDoc.contains(module.rawValue), "\(module.rawValue) must stay in envelope coverage")
+        }
+
+        XCTAssertTrue(domainModelTarget.contains("\"ReleaseV040RehearsalRunContext.swift\""))
+        XCTAssertTrue(automationReadiness.contains("Release v0.4.0 RehearsalRunContext envelope anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV040RehearsalRunContext.swift"))
+        XCTAssertTrue(readinessScript.contains("testGH695ReleaseV040RehearsalRunContextAndEnvelopeShareOneRunID"))
+
+        XCTAssertThrowsError(
+            try ReleaseV040RehearsalRunContext(venue: "Coinbase")
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(field: "venue", expected: "Binance", actual: "Coinbase")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV040RehearsalRunContext(productionOrderSubmissionEnabled: true)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("productionOrderSubmissionEnabled")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV040UnifiedEvidenceEnvelope(
+                envelopeID: Identifier.constant("unsafe-gh-695-envelope"),
+                runContext: context,
+                module: .dataEngine,
+                sourceIssueID: Identifier.constant("MTP-695"),
+                evidenceID: Identifier.constant("unsafe-gh-695-evidence"),
+                upstreamEvidenceID: nil,
+                validationAnchor: "TVM-RELEASE-V040-REHEARSAL-RUN-CONTEXT-ENVELOPE",
+                sequence: 1
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(field: "sourceIssueID", expected: "GH-*", actual: "MTP-695")
+            )
+        }
+    }
+
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
