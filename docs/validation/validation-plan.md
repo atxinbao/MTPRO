@@ -635,6 +635,29 @@ GH-707 必须建立的主要 anchors：
 - `V040-14-PRODUCTION-DISABLED-BOUNDARY`
 - `TVM-RELEASE-V040-VERIFY-VALIDATION-SUITE`
 
+## GH-708 Release v0.4.0 Operator Runtime Rehearsal Runbook
+
+GH-708 的 required validation：
+
+- `docs/operators/release-v0.4.0-operator-runtime-rehearsal-runbook.md` 必须存在，并包含 `GH-708-RELEASE-V040-OPERATOR-RUNTIME-REHEARSAL-RUNBOOK`、`V040-15-START-REHEARSAL`、`V040-15-OBSERVE-DASHBOARD-CLI-EVIDENCE`、`V040-15-SHADOW-REPLAY-FLOW`、`V040-15-GUARDED-TESTNET-PROOF`、`V040-15-STOP-REHEARSAL`、`V040-15-FAILURE-ROLLBACK-NOTRADE-PROOF`、`V040-15-PRODUCTION-DISABLED-PROOF` 和 `TVM-RELEASE-V040-OPERATOR-RUNTIME-REHEARSAL-RUNBOOK`。
+- Runbook 必须说明 `git diff --check`、`bash checks/automation-readiness.sh`、`bash checks/verify-v0.4.0.sh`、`swift run mtpro unified-run-status`、`DASHBOARD_SMOKE=1 swift run Dashboard` 和 `bash checks/run.sh` 的用途。
+- Runbook 必须说明 shadow replay proof、guarded testnet proof、failure rollback no-trade proof 和 production disabled proof。
+- Runbook 必须明确 validation pass、Dashboard smoke、shadow replay success 或 guarded testnet evidence 都不构成 production cutover authorization。
+- Required validation 为 `swift test --filter TargetGraphTests/testGH708OperatorRuntimeRehearsalRunbookDocumentsStartObserveStopReplayAndProductionProof`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、真实 testnet network 或人工验收。
+
+GH-708 必须建立的主要 anchors：
+
+- `GH-708-RELEASE-V040-OPERATOR-RUNTIME-REHEARSAL-RUNBOOK`
+- `V040-15-START-REHEARSAL`
+- `V040-15-OBSERVE-DASHBOARD-CLI-EVIDENCE`
+- `V040-15-SHADOW-REPLAY-FLOW`
+- `V040-15-GUARDED-TESTNET-PROOF`
+- `V040-15-STOP-REHEARSAL`
+- `V040-15-FAILURE-ROLLBACK-NOTRADE-PROOF`
+- `V040-15-PRODUCTION-DISABLED-PROOF`
+- `TVM-RELEASE-V040-OPERATOR-RUNTIME-REHEARSAL-RUNBOOK`
+- `GH-708-NON-AUTHORIZATION`
+
 ## GH-657 Release v0.3.0 Runtime Rehearsal Contract Validation
 
 GH-657 的 required validation：

@@ -7399,6 +7399,136 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(verificationScript.contains("grep -Fv 'reject_file_contains'"))
     }
 
+    func testGH708OperatorRuntimeRehearsalRunbookDocumentsStartObserveStopReplayAndProductionProof() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let runbook = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/operators/release-v0.4.0-operator-runtime-rehearsal-runbook.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+
+        for anchor in [
+            "GH-708-RELEASE-V040-OPERATOR-RUNTIME-REHEARSAL-RUNBOOK",
+            "V040-15-START-REHEARSAL",
+            "V040-15-OBSERVE-DASHBOARD-CLI-EVIDENCE",
+            "V040-15-SHADOW-REPLAY-FLOW",
+            "V040-15-GUARDED-TESTNET-PROOF",
+            "V040-15-STOP-REHEARSAL",
+            "V040-15-FAILURE-ROLLBACK-NOTRADE-PROOF",
+            "V040-15-PRODUCTION-DISABLED-PROOF",
+            "TVM-RELEASE-V040-OPERATOR-RUNTIME-REHEARSAL-RUNBOOK",
+            "GH-708-NON-AUTHORIZATION"
+        ] {
+            XCTAssertTrue(runbook.contains(anchor), "\(anchor) must stay in operator runbook")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+        }
+
+        for command in [
+            "git diff --check",
+            "bash checks/automation-readiness.sh",
+            "bash checks/verify-v0.4.0.sh",
+            "swift run mtpro unified-run-status",
+            "swift test --filter TargetGraphTests/testGH706ShadowReplayModeUsesUnifiedRunContextWithoutNetworkBrokerCalls",
+            "swift test --filter TargetGraphTests/testGH702BinanceTestnetModeBoundaryRequiresExplicitOperatorConfirmation",
+            "DASHBOARD_SMOKE=1 swift run Dashboard",
+            "bash checks/run.sh"
+        ] {
+            XCTAssertTrue(runbook.contains(command), "\(command) must stay in runbook")
+        }
+
+        for observedEvidence in [
+            "mtpro unified-run-status blocked",
+            "issue=GH-705",
+            "validationAnchor=TVM-RELEASE-V040-DASHBOARD-CLI-UNIFIED-RUN-SURFACE",
+            "productTypes=spot,usdsPerpetual",
+            "strategies=EMA,RSI",
+            "adapterEvidenceVisible=true",
+            "portfolioProjectionVisible=true",
+            "blockedStatesExplained=true",
+            "rejectedStatesExplained=true",
+            "dashboardConsumesProjectionByRunID=true",
+            "cliConsumesProjectionByRunID=true",
+            "boundaryHeld=true"
+        ] {
+            XCTAssertTrue(runbook.contains(observedEvidence), "\(observedEvidence) must stay in observe section")
+        }
+
+        for shadowReplayProof in [
+            "ReleaseV040ShadowReplayMode",
+            "ReleaseV040RehearsalRunMode.shadow",
+            "networkCallsPerformed=false",
+            "brokerConnectionOpened=false",
+            "testnetConnected=false",
+            "productionEndpointConnected=false",
+            "productionSecretRead=false",
+            "productionOrderSubmitted=false",
+            "shadowSuccessTreatedAsProductionApproval=false"
+        ] {
+            XCTAssertTrue(runbook.contains(shadowReplayProof), "\(shadowReplayProof) must stay in shadow replay proof")
+        }
+
+        for guardedTestnetProof in [
+            "Default mode remains `dry-run`",
+            "explicit `testnet-guarded`",
+            "Operator confirmation evidence is required",
+            "networkCallPerformed=false",
+            "Production fallback is blocked"
+        ] {
+            XCTAssertTrue(runbook.contains(guardedTestnetProof), "\(guardedTestnetProof) must stay in testnet proof")
+        }
+
+        for productionDisabledProof in [
+            "productionTradingEnabledByDefault=false",
+            "productionEndpointConnected=false",
+            "productionSecretRead=false",
+            "productionOrderSubmitted=false",
+            "productionCutoverAuthorized=false"
+        ] {
+            XCTAssertTrue(runbook.contains(productionDisabledProof), "\(productionDisabledProof) must stay in proof")
+        }
+
+        for forbiddenBoundary in [
+            "production trading",
+            "production secret read",
+            "production endpoint",
+            "account endpoint",
+            "listenKey",
+            "real order lifecycle",
+            "automatic rollback command",
+            "broker emergency API",
+            "Live PRO Console runtime",
+            "real trading button",
+            "order form",
+            "non-Binance venue",
+            "non-EMA / non-RSI active strategy"
+        ] {
+            XCTAssertTrue(runbook.contains(forbiddenBoundary), "\(forbiddenBoundary) must stay forbidden")
+        }
+
+        XCTAssertTrue(validationPlan.contains("GH-708 Release v0.4.0 Operator Runtime Rehearsal Runbook"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V040-OPERATOR-RUNTIME-REHEARSAL-RUNBOOK"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.4.0 operator runtime rehearsal runbook anchor"))
+        XCTAssertTrue(readinessScript.contains("docs/operators/release-v0.4.0-operator-runtime-rehearsal-runbook.md"))
+    }
+
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
