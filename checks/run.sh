@@ -67,6 +67,7 @@ bash checks/automation-readiness.sh
 bash checks/release-v0.1.0-dryrun-testnet.sh
 bash checks/verify-v0.3.0.sh
 bash checks/verify-v0.3.1.sh
+bash checks/verify-v0.4.0.sh
 if [[ "$(uname -s)" == "Darwin" ]]; then
   swift build --product Dashboard
   DASHBOARD_SMOKE=1 swift run Dashboard

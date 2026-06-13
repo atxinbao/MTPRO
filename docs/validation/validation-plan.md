@@ -613,6 +613,28 @@ GH-706 必须建立的主要 anchors：
 - `V040-13-SHADOW-IS-NOT-PRODUCTION-APPROVAL`
 - `TVM-RELEASE-V040-SHADOW-REPLAY-MODE`
 
+## GH-707 Release v0.4.0 Validation Suite
+
+GH-707 的 required validation：
+
+- `docs/contracts/release-v0.4.0-validation-suite-contract.md` 必须存在，并包含 `V040-14-VERIFY-RELEASE-VALIDATION-SUITE`、`V040-14-COMPLETE-UNIFIED-RUNTIME-CHAIN`、`V040-14-SHADOW-REPLAY-SMOKE`、`V040-14-TESTNET-DISABLED-BY-DEFAULT` 和 `V040-14-PRODUCTION-DISABLED-BOUNDARY`。
+- `checks/verify-v0.4.0.sh` 必须存在，并包含 `GH-707-VERIFY-V040-RELEASE-VALIDATION-SUITE` 和 `TVM-RELEASE-V040-VERIFY-VALIDATION-SUITE`。
+- `checks/verify-v0.4.0.sh` 必须覆盖 GH-694 至 GH-706 focused TargetGraph tests，并执行 `swift run mtpro unified-run-status`。
+- CLI smoke 必须断言 `mtpro unified-run-status blocked`、`adapterEvidenceVisible=true`、`portfolioProjectionVisible=true`、`productionTradingEnabledByDefault=false`、`productionEndpointConnected=false`、`productionSecretRead=false`、`productionOrderSubmitted=false`、`productionCutoverAuthorized=false` 和 `boundaryHeld=true`。
+- Script 必须直接检查 dry-run source guard、testnet disabled-by-default / explicit guarded mode source guard，以及 shadow replay non-production-approval source guard。
+- `checks/run.sh` 必须调用 `bash checks/verify-v0.4.0.sh`，让统一验证入口覆盖 release v0.4.0 rehearsal suite。
+- Required validation 为 `bash checks/verify-v0.4.0.sh`、`swift test --filter TargetGraphTests/testGH707VerifyV040ReleaseValidationSuiteCoversUnifiedRuntimeShadowAndGuards`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、真实 testnet network 或人工验收。
+
+GH-707 必须建立的主要 anchors：
+
+- `GH-707-VERIFY-V040-RELEASE-VALIDATION-SUITE`
+- `V040-14-VERIFY-RELEASE-VALIDATION-SUITE`
+- `V040-14-COMPLETE-UNIFIED-RUNTIME-CHAIN`
+- `V040-14-SHADOW-REPLAY-SMOKE`
+- `V040-14-TESTNET-DISABLED-BY-DEFAULT`
+- `V040-14-PRODUCTION-DISABLED-BOUNDARY`
+- `TVM-RELEASE-V040-VERIFY-VALIDATION-SUITE`
+
 ## GH-657 Release v0.3.0 Runtime Rehearsal Contract Validation
 
 GH-657 的 required validation：
