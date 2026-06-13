@@ -6969,6 +6969,290 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH666DashboardCLIRehearsalSurfaceShowsStatusGatesAndCommandGatewayRoute() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let portfolioTarget = try packageTargetBlock(named: "Portfolio", packageSource: packageSource)
+        let databaseTarget = try packageTargetBlock(named: "Database", packageSource: packageSource)
+        let persistenceTarget = try packageTargetBlock(named: "Persistence", packageSource: packageSource)
+        let runtimeTarget = try packageTargetBlock(named: "Runtime", packageSource: packageSource)
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        let cliTarget = try packageTargetBlock(named: "MTPROCLI", packageSource: packageSource)
+        let databaseSources = try packageTargetSourcesBlock(targetBlock: databaseTarget)
+        let persistenceExcludes = try packageTargetExcludesBlock(targetBlock: persistenceTarget)
+        let runtimeExcludes = try packageTargetExcludesBlock(targetBlock: runtimeTarget)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.3.0-dashboard-cli-rehearsal-surface-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let portfolioSurfaceSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/Portfolio/ReleaseV030RehearsalSurface.swift"
+            ),
+            encoding: .utf8
+        )
+        let databaseCLISource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/Database/ReleaseV030CLIRehearsalSurface.swift"
+            ),
+            encoding: .utf8
+        )
+        let dashboardSurfaceSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/Dashboard/Report/ReleaseV030DashboardRehearsalSurface.swift"
+            ),
+            encoding: .utf8
+        )
+        let cliSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/MTPROCLI/main.swift"),
+            encoding: .utf8
+        )
+
+        let evidence = try ReleaseV030RehearsalSurface.deterministicEvidence()
+        let cliEvidence = try ReleaseV030CLIRehearsalSurface.deterministicEvidence()
+
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.boundaryHeld)
+        XCTAssertTrue(cliEvidence.cliBoundaryHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-666")
+        XCTAssertEqual(cliEvidence.issueID.rawValue, "GH-666")
+        XCTAssertEqual(evidence.upstreamIssueID.rawValue, "GH-665")
+        XCTAssertEqual(cliEvidence.upstreamIssueID.rawValue, "GH-665")
+        XCTAssertEqual(evidence.downstreamIssueID.rawValue, "GH-667")
+        XCTAssertEqual(cliEvidence.downstreamIssueID.rawValue, "GH-667")
+        XCTAssertEqual(evidence.canonicalQueueRange, "GH-657..GH-670")
+        XCTAssertEqual(cliEvidence.canonicalQueueRange, "GH-657..GH-670")
+        XCTAssertEqual(evidence.projectName, "MTPRO Release v0.3.0 Runtime Rehearsal v1")
+        XCTAssertEqual(evidence.releaseVersion, "v0.3.0")
+        XCTAssertEqual(cliEvidence.releaseVersion, "v0.3.0")
+        XCTAssertEqual(
+            evidence.upstreamPortfolioProjectionAnchor,
+            "TVM-RELEASE-V030-PORTFOLIO-PROJECTION-REHEARSAL"
+        )
+        XCTAssertEqual(
+            cliEvidence.upstreamPortfolioProjectionAnchor,
+            "TVM-RELEASE-V030-PORTFOLIO-PROJECTION-REHEARSAL"
+        )
+        XCTAssertEqual(evidence.runStatus, .blocked)
+        XCTAssertEqual(cliEvidence.runStatus, .blocked)
+        XCTAssertEqual(Set(evidence.productTypes), Set(ProductType.allCases))
+        XCTAssertEqual(Set(cliEvidence.productTypes), Set(ProductType.allCases))
+        XCTAssertEqual(
+            Set(evidence.strategies),
+            Set(ReleaseV030PortfolioProjectionRehearsalStrategyKind.allCases)
+        )
+        XCTAssertEqual(
+            Set(cliEvidence.strategies),
+            Set(ReleaseV030CLIRehearsalStrategyKind.allCases)
+        )
+        XCTAssertEqual(evidence.gates.map(\.gate), ReleaseV030RehearsalSurfaceGate.allCases)
+        XCTAssertEqual(cliEvidence.gates.map(\.gate), ReleaseV030CLIRehearsalGate.allCases)
+        XCTAssertTrue(evidence.gates.allSatisfy(\.gateHeld))
+        XCTAssertTrue(cliEvidence.gates.allSatisfy(\.gateHeld))
+        XCTAssertEqual(evidence.requirements, ReleaseV030RehearsalSurfaceRequirement.allCases)
+        XCTAssertEqual(
+            Set(evidence.forbiddenCapabilities),
+            Set(ReleaseV030RehearsalSurfaceForbiddenCapability.allCases)
+        )
+        XCTAssertEqual(evidence.killSwitchStatus, .blocked)
+        XCTAssertEqual(evidence.noTradeStatus, .blocked)
+        XCTAssertEqual(cliEvidence.killSwitchStatus, .blocked)
+        XCTAssertEqual(cliEvidence.noTradeStatus, .blocked)
+        XCTAssertTrue(evidence.failureReasons.contains { $0.contains("kill switch") })
+        XCTAssertTrue(evidence.failureReasons.contains { $0.contains("no-trade") })
+        XCTAssertTrue(cliEvidence.failureReasons.contains { $0.contains("kill switch") })
+        XCTAssertTrue(cliEvidence.failureReasons.contains { $0.contains("no-trade") })
+        XCTAssertTrue(evidence.dashboardStatusVisible)
+        XCTAssertTrue(evidence.cliStatusVisible)
+        XCTAssertTrue(evidence.failureReasonsVisible)
+        XCTAssertTrue(evidence.killSwitchStatusVisible)
+        XCTAssertTrue(evidence.noTradeStatusVisible)
+        XCTAssertTrue(evidence.commandsRouteThroughCommandGateway)
+        XCTAssertThrowsError(
+            try ReleaseV030RehearsalSurfaceGateEvidence(
+                gate: .commandGateway,
+                status: .ready,
+                failureReason: "unsafe bypass attempt",
+                bypassesCommandGateway: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability(
+                    "releaseV030RehearsalSurface.gate.bypassesCommandGateway"
+                )
+            )
+        }
+
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(evidence.productionSecretAutoReadEnabled)
+        XCTAssertFalse(evidence.productionOrderSubmissionEnabled)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertFalse(evidence.dashboardTradingButtonExposed)
+        XCTAssertFalse(evidence.liveCommandSurfaceExposed)
+        XCTAssertFalse(evidence.orderFormExposed)
+        XCTAssertFalse(evidence.brokerGatewayTouched)
+        XCTAssertFalse(evidence.accountEndpointRead)
+        XCTAssertFalse(evidence.dashboardBypassesCommandGateway)
+        XCTAssertFalse(evidence.cliBypassesCommandGateway)
+        XCTAssertFalse(evidence.startsNextMilestone)
+        XCTAssertFalse(cliEvidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(cliEvidence.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(cliEvidence.productionSecretAutoReadEnabled)
+        XCTAssertFalse(cliEvidence.productionOrderSubmissionEnabled)
+        XCTAssertFalse(cliEvidence.productionCutoverAuthorized)
+        XCTAssertFalse(cliEvidence.accountEndpointRead)
+        XCTAssertFalse(cliEvidence.brokerGatewayTouched)
+        XCTAssertFalse(cliEvidence.bypassesCommandGateway)
+        XCTAssertFalse(cliEvidence.startsNextMilestone)
+
+        let viewModel = try ReleaseV030DashboardRehearsalSurfaceViewModel.deterministic()
+        XCTAssertTrue(viewModel.dashboardSurfaceBoundaryHeld)
+        XCTAssertEqual(viewModel.issueID, "GH-666")
+        XCTAssertEqual(viewModel.matrixID, "TVM-RELEASE-V030-DASHBOARD-CLI-REHEARSAL-SURFACE")
+        XCTAssertEqual(viewModel.runStatusLabel, "blocked")
+        XCTAssertEqual(Set(viewModel.productTypeLabels), Set(ProductType.supportedRawValues))
+        XCTAssertEqual(viewModel.gateLabels, ReleaseV030RehearsalSurfaceGate.allCases.map(\.rawValue))
+        XCTAssertTrue(viewModel.dashboardStatusVisible)
+        XCTAssertTrue(viewModel.failureReasonsVisible)
+        XCTAssertTrue(viewModel.killSwitchStatusVisible)
+        XCTAssertTrue(viewModel.noTradeStatusVisible)
+        XCTAssertTrue(viewModel.commandsRouteThroughCommandGateway)
+        XCTAssertFalse(viewModel.commandSurfaceEnabled)
+        XCTAssertFalse(viewModel.providesTradingButton)
+        XCTAssertFalse(viewModel.exposesOrderForm)
+        XCTAssertFalse(viewModel.authorizesTradingExecution)
+        XCTAssertFalse(viewModel.readsSecret)
+        XCTAssertFalse(viewModel.opensProductionEndpoint)
+        XCTAssertFalse(viewModel.touchesAccountEndpoint)
+        XCTAssertFalse(viewModel.connectsBroker)
+        XCTAssertFalse(viewModel.submitsRealOrder)
+        XCTAssertFalse(viewModel.bypassesCommandGateway)
+
+        let cliOutput = try ReleaseV030CLIRehearsalSurface.commandLineOutput(arguments: ["rehearsal-status"])
+        XCTAssertTrue(cliOutput.contains("mtpro rehearsal-status blocked"))
+        XCTAssertTrue(cliOutput.contains("issue=GH-666"))
+        XCTAssertTrue(cliOutput.contains("upstream=GH-665"))
+        XCTAssertTrue(cliOutput.contains("commandGateway=required"))
+        XCTAssertTrue(cliOutput.contains("validationAnchor=TVM-RELEASE-V030-DASHBOARD-CLI-REHEARSAL-SURFACE"))
+        XCTAssertTrue(cliOutput.contains("killSwitchStatus=blocked"))
+        XCTAssertTrue(cliOutput.contains("noTradeStatus=blocked"))
+        XCTAssertTrue(cliOutput.contains("commandsRouteThroughCommandGateway=true"))
+        XCTAssertTrue(cliOutput.contains("productionTradingEnabledByDefault=false"))
+        XCTAssertTrue(cliOutput.contains("productionCutoverAuthorized=false"))
+        XCTAssertTrue(cliOutput.contains("boundaryHeld=true"))
+        XCTAssertThrowsError(try ReleaseV030CLIRehearsalSurface.commandLineOutput(arguments: ["submit"])) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "mtpro.rehearsal.arguments",
+                    expected: "rehearsal-status",
+                    actual: "submit"
+                )
+            )
+        }
+
+        for anchor in ReleaseV030RehearsalSurfaceEvidence.requiredValidationAnchors {
+            XCTAssertTrue(evidence.validationAnchors.contains(anchor), "\(anchor) must stay in Swift evidence")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in Dashboard / CLI rehearsal contract")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation-plan.md")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading-validation-matrix.md")
+        }
+        XCTAssertTrue(contractDoc.contains("GH-665"))
+        XCTAssertTrue(contractDoc.contains("GH-667"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.3.0 Dashboard / CLI rehearsal surface anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV030RehearsalSurface.swift"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV030CLIRehearsalSurface.swift"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV030DashboardRehearsalSurfaceViewModel"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH666DashboardCLIRehearsalSurfaceShowsStatusGatesAndCommandGatewayRoute"
+            )
+        )
+        XCTAssertTrue(portfolioTarget.contains("\"ReleaseV030RehearsalSurface.swift\""))
+        XCTAssertTrue(databaseSources.contains("\"ReleaseV030CLIRehearsalSurface.swift\""))
+        XCTAssertTrue(persistenceExcludes.contains("\"ReleaseV030CLIRehearsalSurface.swift\""))
+        XCTAssertTrue(runtimeExcludes.contains("\"Database/ReleaseV030CLIRehearsalSurface.swift\""))
+        XCTAssertTrue(coreTarget.contains("\"Portfolio/ReleaseV030RehearsalSurface.swift\""))
+        XCTAssertTrue(cliTarget.contains("dependencies: [\"Database\"]"))
+        XCTAssertFalse(cliTarget.contains("\"Portfolio\""))
+        XCTAssertFalse(cliTarget.contains("\"Core\""))
+        XCTAssertFalse(cliTarget.contains("\"MessageBus\""))
+        XCTAssertTrue(cliSource.contains("ReleaseV030CLIRehearsalSurface.cliCommand"))
+        XCTAssertTrue(
+            PortfolioParityOwnershipContract.gh634.activeSourcePaths.contains(
+                "Sources/Portfolio/ReleaseV030RehearsalSurface.swift"
+            )
+        )
+
+        for forbidden in [
+            "import ExecutionClient",
+            "import ExecutionEngine",
+            "import RiskEngine",
+            "URLSession",
+            "api.binance.com",
+            "fapi.binance.com",
+            "listenKey",
+            "secretValue",
+            "rawBrokerPayload:"
+        ] {
+            XCTAssertFalse(
+                portfolioSurfaceSource.contains(forbidden),
+                "Portfolio rehearsal surface source must not contain \(forbidden)"
+            )
+            XCTAssertFalse(
+                databaseCLISource.contains(forbidden),
+                "Database CLI rehearsal surface source must not contain \(forbidden)"
+            )
+            XCTAssertFalse(
+                dashboardSurfaceSource.contains(forbidden),
+                "Dashboard rehearsal surface source must not contain \(forbidden)"
+            )
+            XCTAssertFalse(
+                cliSource.contains(forbidden),
+                "CLI rehearsal surface route must not contain \(forbidden)"
+            )
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV030RehearsalSurfaceEvidence(
+                upstreamPortfolioProjectionAnchor: "UNSAFE-MISSING-GH-665-ANCHOR",
+                gates: evidence.gates
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "upstreamPortfolioProjectionAnchor",
+                    expected: "TVM-RELEASE-V030-PORTFOLIO-PROJECTION-REHEARSAL",
+                    actual: "UNSAFE-MISSING-GH-665-ANCHOR"
+                )
+            )
+        }
+    }
+
     func testGH643ProductionCutoverRuntimeHardeningContractFailsClosedWithoutProductionCutover() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
