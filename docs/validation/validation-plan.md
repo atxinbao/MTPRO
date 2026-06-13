@@ -477,6 +477,24 @@ GH-699 必须建立的主要 anchors：
 - `V040-06-EXECUTIONENGINE-RISK-APPROVED-ONLY`
 - `TVM-RELEASE-V040-RISKENGINE-PRETRADE-REHEARSAL-GATE`
 
+## GH-700 Release v0.4.0 ExecutionEngine OMS Dry-run Lifecycle Validation
+
+GH-700 的 required validation：
+
+- `docs/contracts/release-v0.4.0-execution-oms-dryrun-lifecycle-contract.md` 必须存在，并包含 `V040-07-EXECUTIONENGINE-OMS-DRYRUN-LIFECYCLE`、`V040-07-RISK-APPROVED-INTENT-TO-LOCAL-ORDER`、`V040-07-RUN-SCOPED-OMS-STATE-REPLAY` 和 `V040-07-NO-PRODUCTION-BROKER-CALL`。
+- `Sources/ExecutionEngine/OMSFutureGate/ReleaseV040ExecutionOMSDryRunLifecycle.swift` 必须定义 `ReleaseV040ExecutionOMSDryRunOrderIntent`、`ReleaseV040ExecutionOMSDryRunLifecycleEvent`、`ReleaseV040ExecutionOMSDryRunLifecycleLog`、`ReleaseV040ExecutionOMSDryRunLifecycleEvidence` 和 `ReleaseV040ExecutionOMSDryRunLifecycle`。
+- ExecutionEngine / OMS lifecycle 必须消费 #699 的 RiskEngine allow / reject decision evidence，只有 allow decision 可以生成本地 order intent。
+- OMS events 必须覆盖 created、accepted、submitted-dry-run、filled-simulated、cancelled 和 rejected，并携带统一 runID、causation metadata、ExecutionEngine envelope、OMS envelope 和 MessageBus replay evidence。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH700ExecutionOMSDryRunLifecycleConsumesRiskApprovedDecisionAndReplaysRunScopedEvents`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-700 必须建立的主要 anchors：
+
+- `V040-07-EXECUTIONENGINE-OMS-DRYRUN-LIFECYCLE`
+- `V040-07-RISK-APPROVED-INTENT-TO-LOCAL-ORDER`
+- `V040-07-RUN-SCOPED-OMS-STATE-REPLAY`
+- `V040-07-NO-PRODUCTION-BROKER-CALL`
+- `TVM-RELEASE-V040-EXECUTIONENGINE-OMS-DRYRUN-LIFECYCLE`
+
 ## GH-657 Release v0.3.0 Runtime Rehearsal Contract Validation
 
 GH-657 的 required validation：
