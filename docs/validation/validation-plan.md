@@ -440,6 +440,25 @@ GH-697 必须建立的主要 anchors：
 - `V040-04-FORBIDDEN-NETWORK-SECRET-PRODUCTION`
 - `TVM-RELEASE-V040-DATAENGINE-MESSAGEBUS-RUNTIME-STEP`
 
+## GH-698 Release v0.4.0 Trader Strategy Actors Runtime Step Validation
+
+GH-698 的 required validation：
+
+- `docs/contracts/release-v0.4.0-trader-strategy-actors-runtime-step-contract.md` 必须存在，并包含 `V040-05-TRADER-STRATEGY-ACTORS-RUNTIME-STEP`、`V040-05-EMA-RSI-RUN-SCOPED-INTENTS`、`V040-05-MESSAGEBUS-MARKET-CONSUMPTION` 和 `V040-05-NO-STRATEGY-EXECUTIONCLIENT-PATH`。
+- `Sources/Trader/Runtime/ReleaseV040TraderStrategyActorsRuntimeStep.swift` 必须定义 `ReleaseV040TraderStrategyMarketInput`、`ReleaseV040TraderStrategyActorEmission`、`ReleaseV040TraderStrategyActorsRuntimeStepEvidence` 和 `ReleaseV040TraderStrategyActorsRuntimeStep`。
+- `Package.swift` 必须把 `ReleaseV040TraderStrategyActorsRuntimeStep.swift` 纳入 `Trader` target。
+- Trader actor step 必须消费 MessageBus market event envelope，不 import DataEngine implementation。
+- EMA 与 RSI 必须输出 run-scoped `StrategyIntentMessage` evidence，并保持 EMA + RSI only、Binance only、Spot + USDⓈ-M Perpetual only。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH698TraderStrategyActorsConsumeMessageBusMarketEventsAndEmitRunScopedIntents`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-698 必须建立的主要 anchors：
+
+- `V040-05-TRADER-STRATEGY-ACTORS-RUNTIME-STEP`
+- `V040-05-EMA-RSI-RUN-SCOPED-INTENTS`
+- `V040-05-MESSAGEBUS-MARKET-CONSUMPTION`
+- `V040-05-NO-STRATEGY-EXECUTIONCLIENT-PATH`
+- `TVM-RELEASE-V040-TRADER-STRATEGY-ACTORS-RUNTIME-STEP`
+
 ## GH-657 Release v0.3.0 Runtime Rehearsal Contract Validation
 
 GH-657 的 required validation：
