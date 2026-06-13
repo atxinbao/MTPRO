@@ -102,6 +102,7 @@ let package = Package(
                 "ReleaseV020VerificationGates.swift",
                 "ReleaseV030CLIRehearsalSurface.swift",
                 "ReleaseV030EventStoreRehearsalEvidence.swift",
+                "ReleaseV040EventStoreRunJournal.swift",
                 "TargetGraph/DatabaseTargetBoundary.swift"
             ]
         ),
@@ -398,6 +399,7 @@ let package = Package(
                 "ReleaseV020VerificationGates.swift",
                 "ReleaseV030CLIRehearsalSurface.swift",
                 "ReleaseV030EventStoreRehearsalEvidence.swift",
+                "ReleaseV040EventStoreRunJournal.swift",
                 "ReplayProjection",
                 "TargetGraph"
             ],
@@ -432,6 +434,7 @@ let package = Package(
                 "Database/ReleaseV020VerificationGates.swift",
                 "Database/ReleaseV030CLIRehearsalSurface.swift",
                 "Database/ReleaseV030EventStoreRehearsalEvidence.swift",
+                "Database/ReleaseV040EventStoreRunJournal.swift",
                 "Database/Projections",
                 "Database/TargetGraph",
                 "DomainModel",

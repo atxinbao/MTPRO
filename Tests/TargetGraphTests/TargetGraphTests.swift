@@ -6689,6 +6689,145 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH703EventStoreRunJournalAppendsAndReplaysOneRunIDChain() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let databaseTarget = try packageTargetBlock(named: "Database", packageSource: packageSource)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.4.0-eventstore-run-journal-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let journalSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/Database/ReleaseV040EventStoreRunJournal.swift"
+            ),
+            encoding: .utf8
+        )
+
+        let evidence = try ReleaseV040EventStoreRunJournalBuilder.deterministicEvidence()
+
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-703")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-700", "GH-701"])
+        XCTAssertEqual(evidence.downstreamIssueID.rawValue, "GH-704")
+        XCTAssertEqual(evidence.releaseVersion, "v0.4.0")
+        XCTAssertEqual(evidence.records, evidence.replayedRecords)
+        XCTAssertEqual(evidence.records.map(\.sequence), Array(1...7))
+        XCTAssertEqual(
+            evidence.records.map(\.previousChecksum),
+            [ReleaseV040EventStoreRunJournal.genesisChecksum] + evidence.records.dropLast().map(\.checksum)
+        )
+        XCTAssertEqual(
+            evidence.records.enumerated().dropFirst().map { $0.element.causationID },
+            evidence.records.dropLast().map(\.recordID)
+        )
+        XCTAssertEqual(Set(evidence.records.map(\.runID)), [evidence.replayState.runID])
+        XCTAssertEqual(Set(evidence.records.map(\.correlationID)), [evidence.replayState.correlationID])
+        XCTAssertTrue(evidence.records.allSatisfy(\.recordHeld))
+        XCTAssertTrue(evidence.appendOnlyHeld)
+        XCTAssertTrue(evidence.boundaryHeld)
+        XCTAssertTrue(evidence.replayState.replayStateHeld)
+        XCTAssertTrue(evidence.replayState.dashboardCLIProjectionReplayReady)
+        XCTAssertEqual(evidence.replayState.moduleTrail, ReleaseV040EventStoreRunReplayState.requiredModuleTrail)
+        XCTAssertEqual(
+            evidence.replayState.sourceIssueTrail.map(\.rawValue),
+            ["GH-697", "GH-698", "GH-699", "GH-700", "GH-700", "GH-701", "GH-703"]
+        )
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionEndpointConnected)
+        XCTAssertFalse(evidence.productionSecretRead)
+        XCTAssertFalse(evidence.productionOrderSubmitted)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertFalse(evidence.productionEventStoreRuntimeEnabled)
+        XCTAssertFalse(evidence.mutableEventRewriteAllowed)
+        XCTAssertFalse(evidence.rawBrokerPayloadStored)
+        XCTAssertFalse(evidence.brokerGatewayTouched)
+        XCTAssertFalse(evidence.dashboardCommandSurfaceExposed)
+        XCTAssertFalse(evidence.startsNextMilestone)
+
+        for anchor in ReleaseV040EventStoreRunJournalEvidence.requiredValidationAnchors {
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+        }
+        XCTAssertTrue(databaseTarget.contains("\"ReleaseV040EventStoreRunJournal.swift\""))
+        XCTAssertFalse(databaseTarget.contains("\"ExecutionEngine\""))
+        XCTAssertFalse(databaseTarget.contains("\"ExecutionClient\""))
+        XCTAssertTrue(automationReadiness.contains("Release v0.4.0 Event Store run journal anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV040EventStoreRunJournal.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH703EventStoreRunJournalAppendsAndReplaysOneRunIDChain"
+            )
+        )
+        XCTAssertTrue(journalSource.contains("ReleaseV040EventStoreRunJournal"))
+        XCTAssertTrue(journalSource.contains("ReleaseV040EventStoreRunJournalRecord"))
+        XCTAssertTrue(journalSource.contains("ReleaseV040EventStoreRunReplayState"))
+        XCTAssertFalse(journalSource.contains("URLSession"))
+        XCTAssertFalse(journalSource.contains("URLRequest"))
+        XCTAssertFalse(journalSource.contains("import ExecutionEngine"))
+        XCTAssertFalse(journalSource.contains("import ExecutionClient"))
+        XCTAssertFalse(journalSource.contains("rawBrokerPayload:"))
+        XCTAssertTrue(try ReleaseV040EventStoreRunJournalBuilder.outOfOrderAppendRejected())
+
+        let sourceEnvelope = try ReleaseV040UnifiedEvidenceEnvelopeFixture.deterministicEnvelopes()[0]
+        XCTAssertThrowsError(
+            try ReleaseV040EventStoreRunJournalRecord(
+                sequence: 1,
+                recordID: Identifier.constant("gh-703-raw-payload"),
+                sourceEnvelope: sourceEnvelope,
+                causationID: nil,
+                stream: try ReleaseV040EventStoreRunJournal.requiredStreamID(),
+                sourceID: try ReleaseV040EventStoreRunJournal.requiredSourceID(),
+                payloadType: "database.release-v0.4.0.eventstore.raw-payload",
+                previousChecksum: ReleaseV040EventStoreRunJournal.genesisChecksum,
+                recordedAt: Date(timeIntervalSince1970: 1_705_003_010),
+                rawPayloadStored: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("releaseV040EventStore.record.rawPayloadStored")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV040EventStoreRunJournalEvidence(
+                records: evidence.records,
+                replayedRecords: evidence.replayedRecords,
+                replayState: evidence.replayState,
+                productionEventStoreRuntimeEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability(
+                    "releaseV040EventStore.evidence.productionEventStoreRuntimeEnabled"
+                )
+            )
+        }
+    }
+
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
