@@ -20,6 +20,7 @@ public enum ReleaseV040RehearsalStrategyKind: String, Codable, CaseIterable, Equ
 /// ReleaseV040UnifiedEvidenceModule 固定统一 evidence envelope 的 module 维度。
 public enum ReleaseV040UnifiedEvidenceModule: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
     case dataEngine = "DataEngine"
+    case messageBus = "MessageBus"
     case trader = "Trader"
     case riskEngine = "RiskEngine"
     case executionEngine = "ExecutionEngine"

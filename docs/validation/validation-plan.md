@@ -398,6 +398,27 @@ GH-695 必须建立的主要 anchors：
 - `V040-02-FORBIDDEN-PRODUCTION-RUNTIME`
 - `TVM-RELEASE-V040-REHEARSAL-RUN-CONTEXT-ENVELOPE`
 
+## GH-696 Release v0.4.0 RuntimeKernel Dry-run Orchestrator Validation
+
+GH-696 的 required validation：
+
+- `docs/contracts/release-v0.4.0-runtime-kernel-dry-run-orchestrator-contract.md` 必须存在，并包含 `V040-03-RUNTIME-KERNEL-DRY-RUN-ORCHESTRATOR`、`V040-03-ONE-RUNID-STEP-ORDER`、`V040-03-LOCAL-ONLY-DRY-RUN` 和 `V040-03-FORBIDDEN-NETWORK-SECRET-PRODUCTION`。
+- `Sources/ExecutionClient/FutureGate/ReleaseV040RuntimeKernelDryRunOrchestrator.swift` 必须定义 `ReleaseV040RuntimeKernelDryRunStep`、`ReleaseV040RuntimeKernelDryRunStepEvidence`、`ReleaseV040RuntimeKernelDryRunResult` 和 `ReleaseV040RuntimeKernelDryRunOrchestrator`。
+- `Package.swift` 必须继续由 `ExecutionClient` target 的 `FutureGate` source directory 编译该合同，且不得重新创建 `Sources/Runtime` source root 或向 `Runtime` compatibility envelope 添加新 source。
+- `ReleaseV040RuntimeKernelDryRunOrchestrator.deterministicFixture()` 必须复用 GH-695 `ReleaseV040RehearsalRunContext` 和 `ReleaseV040UnifiedEvidenceEnvelope`。
+- Step order 必须固定为 DataEngine -> MessageBus -> Trader / EMA / RSI -> RiskEngine -> ExecutionEngine / OMS -> ExecutionClient dry-run boundary -> Event Store -> Portfolio projection -> Dashboard / CLI projection。
+- 所有 step evidence 必须共享同一个 `runID`，且 `driveLocalDryRun()` 只能返回 local deterministic result。
+- Contract 必须证明 network calls、secret reads、testnet default enablement、production endpoint、production broker、production order 和 production cutover 全部关闭。
+- Required validation 仍为 `swift test --filter TargetGraphTests/testGH696RuntimeKernelDryRunOrchestratorDrivesLocalRunWithoutNetworkOrSecrets`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、testnet credential、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-696 必须建立的主要 anchors：
+
+- `V040-03-RUNTIME-KERNEL-DRY-RUN-ORCHESTRATOR`
+- `V040-03-ONE-RUNID-STEP-ORDER`
+- `V040-03-LOCAL-ONLY-DRY-RUN`
+- `V040-03-FORBIDDEN-NETWORK-SECRET-PRODUCTION`
+- `TVM-RELEASE-V040-RUNTIME-KERNEL-DRY-RUN-ORCHESTRATOR`
+
 ## GH-657 Release v0.3.0 Runtime Rehearsal Contract Validation
 
 GH-657 的 required validation：

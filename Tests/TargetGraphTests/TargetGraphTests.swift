@@ -5479,6 +5479,138 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH696RuntimeKernelDryRunOrchestratorDrivesLocalRunWithoutNetworkOrSecrets() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.4.0-runtime-kernel-dry-run-orchestrator-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let envelopeContract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.4.0-rehearsal-run-context-envelope-contract.md"
+            ),
+            encoding: .utf8
+        )
+
+        let orchestrator = try ReleaseV040RuntimeKernelDryRunOrchestrator.deterministicFixture()
+        let result = try orchestrator.driveLocalDryRun()
+        let envelopes = orchestrator.envelopes
+
+        XCTAssertEqual(orchestrator.issueID.rawValue, "GH-696")
+        XCTAssertEqual(orchestrator.runContext.runID.rawValue, "gh-696-v040-runtime-kernel-dry-run")
+        XCTAssertEqual(orchestrator.runContext.mode, .dryRun)
+        XCTAssertEqual(orchestrator.steps, ReleaseV040RuntimeKernelDryRunOrchestrator.requiredStepOrder)
+        XCTAssertEqual(orchestrator.steps, [
+            .dataEngine,
+            .messageBus,
+            .traderStrategies,
+            .riskEngine,
+            .executionEngineOMS,
+            .executionClientDryRunBoundary,
+            .eventStore,
+            .portfolioProjection,
+            .dashboardCLIProjection
+        ])
+        XCTAssertEqual(envelopes.map(\.module), ReleaseV040UnifiedEvidenceModule.allCases)
+        XCTAssertEqual(envelopes.map(\.sequence), Array(1...ReleaseV040UnifiedEvidenceModule.allCases.count))
+        XCTAssertTrue(envelopes.allSatisfy { $0.runID == orchestrator.runContext.runID })
+        XCTAssertTrue(orchestrator.stepEvidence.allSatisfy(\.boundaryHeld))
+        XCTAssertTrue(orchestrator.dryRunBoundaryHeld)
+        XCTAssertTrue(orchestrator.forbiddenRuntimeHeld)
+        XCTAssertTrue(result.boundaryHeld)
+        XCTAssertEqual(result.runID, orchestrator.runContext.runID)
+        XCTAssertEqual(result.envelopes, envelopes)
+        XCTAssertNil(envelopes.first?.upstreamEvidenceID)
+        for index in envelopes.indices.dropFirst() {
+            XCTAssertEqual(envelopes[index].upstreamEvidenceID, envelopes[index - 1].evidenceID)
+        }
+
+        XCTAssertTrue(orchestrator.localDryRunOnly)
+        XCTAssertFalse(orchestrator.networkCallsPerformed)
+        XCTAssertFalse(orchestrator.secretReadsPerformed)
+        XCTAssertFalse(orchestrator.testnetEnabledByDefault)
+        XCTAssertFalse(orchestrator.productionEndpointConnected)
+        XCTAssertFalse(orchestrator.productionBrokerConnected)
+        XCTAssertFalse(orchestrator.productionOrderSubmitted)
+        XCTAssertFalse(orchestrator.productionCutoverAuthorized)
+
+        for anchor in [
+            "V040-03-RUNTIME-KERNEL-DRY-RUN-ORCHESTRATOR",
+            "V040-03-ONE-RUNID-STEP-ORDER",
+            "V040-03-LOCAL-ONLY-DRY-RUN",
+            "V040-03-FORBIDDEN-NETWORK-SECRET-PRODUCTION",
+            "TVM-RELEASE-V040-RUNTIME-KERNEL-DRY-RUN-ORCHESTRATOR"
+        ] {
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+        }
+        XCTAssertTrue(envelopeContract.contains("MessageBus"))
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertFalse(coreTarget.contains("\"Runtime/ReleaseV040RuntimeKernelDryRunOrchestrator.swift\""))
+        XCTAssertTrue(automationReadiness.contains("Release v0.4.0 RuntimeKernel dry-run orchestrator anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV040RuntimeKernelDryRunOrchestrator.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH696RuntimeKernelDryRunOrchestratorDrivesLocalRunWithoutNetworkOrSecrets"
+            )
+        )
+
+        XCTAssertThrowsError(
+            try ReleaseV040RuntimeKernelDryRunOrchestrator(
+                runContext: try ReleaseV040RehearsalRunContext(mode: .shadow),
+                stepEvidence: ReleaseV040RuntimeKernelDryRunOrchestrator.deterministicStepEvidence(
+                    runContext: try ReleaseV040RehearsalRunContext(mode: .shadow)
+                )
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(field: "runContext.mode", expected: "dry-run", actual: "shadow")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV040RuntimeKernelDryRunOrchestrator(networkCallsPerformed: true)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("networkCallsPerformed"))
+        }
+
+        let encoded = try JSONEncoder().encode(orchestrator)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object["secretReadsPerformed"] = true
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        XCTAssertThrowsError(
+            try JSONDecoder().decode(ReleaseV040RuntimeKernelDryRunOrchestrator.self, from: data)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("secretReadsPerformed"))
+        }
+    }
+
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
