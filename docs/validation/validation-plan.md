@@ -3273,6 +3273,18 @@ swift test
 - 必须拒绝 `http://testnet.binance.vision`、production hosts、userinfo、path、query、fragment 和显式端口。
 - signed account read transport URL path 必须与 declared `/api/v3/account` read-only path 一致，不能漂移到 order、listenKey、production 或 broker path。
 - 验证不读取 production secret，不连接 production endpoint，不发送 submit / cancel / replace，不授权 production cutover。
+
+## GH-781 Release v0.7.0 CLI Runtime Session Surface Validation
+
+- GH-781-VERIFY-V070-CLI-RUNTIME-SESSION-SURFACE
+- TVM-RELEASE-V070-CLI-RUNTIME-SESSION-SURFACE
+- `bash checks/verify-v0.7.0-cli.sh`
+- `testGH781TopLevelCLIRunStatusVerifyUseV070RuntimeSessionSemantics`
+- `mtpro run --mode dry-run` 必须输出 v0.7.0 no-order runtime session surface，声明 `orderSubmissionAllowed=false` 和 `submitCancelReplaceAllowed=false`。
+- `mtpro status [runID]` 必须读取 v0.7.0 session / registry state wording，不再把 v0.4 `unified-run-status` 或 v0.5 observer 作为 active top-level surface。
+- `mtpro verify` 必须宣告 `verify-v0.7.0-contract`、`verify-v0.7.0-testnet-endpoint-policy`、`verify-v0.7.0-cli` 和 automation readiness gates。
+- `mtpro run --mode production`、`mtpro submit`、`mtpro cancel`、`mtpro replace` 必须 fail-closed。
+- 验证不启动 production trading，不读取 production secret，不连接 production endpoint，不发送真实 order，不授权 production cutover。
 - GH-766 Release v0.6.0 Final Audit Root Docs Validation
 - GH-766-RELEASE-V060-FINAL-AUDIT-ROOT-DOCS
 - GH-766-VERIFY-V060-FINAL-AUDIT-ROOT-DOCS

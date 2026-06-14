@@ -1312,3 +1312,12 @@
 - canonical Binance Spot testnet base URL: `https://testnet.binance.vision`
 - rejected endpoint shapes: http scheme、production hosts、userinfo、path、query、fragment、explicit port
 - signed account read transport path drift guard: URL path must stay `/api/v3/account`
+- TVM-RELEASE-V070-CLI-RUNTIME-SESSION-SURFACE
+- GH-781-VERIFY-V070-CLI-RUNTIME-SESSION-SURFACE
+- GH-781 Release v0.7.0 CLI Runtime Session Surface Validation
+- testGH781TopLevelCLIRunStatusVerifyUseV070RuntimeSessionSemantics
+- top-level `mtpro run/status/verify` active surface: v0.7.0 no-order runtime session
+- `mtpro run --mode dry-run`: local no-order session flow mapping, no order submission
+- `mtpro status [runID]`: v0.7.0 session / registry state wording, no v0.4 / v0.5 active top-level surface
+- `mtpro verify`: v0.7.0 contract / endpoint / CLI / automation gates
+- forbidden commands: production mode、submit、cancel、replace fail-closed
