@@ -296,13 +296,15 @@ public struct ReleaseV050DataEngineOperationalDryRunPath: Sendable {
     public let correlationID: Identifier
     public let firstRecordedAt: Date
     public let recordedAtStride: TimeInterval
+    public let eventIDPrefix: String
 
     public init(
         runID: Identifier = Identifier.constant("gh-732-v050-dataengine-dry-run"),
         streamID: MessageBusJournalStreamID? = nil,
         correlationID: Identifier = Identifier.constant("gh-732-v050-dataengine-correlation"),
         firstRecordedAt: Date = Date(timeIntervalSince1970: 1_800_000_732),
-        recordedAtStride: TimeInterval = 1
+        recordedAtStride: TimeInterval = 1,
+        eventIDPrefix: String = "gh-732-v050-dataengine-event"
     ) throws {
         guard recordedAtStride > 0 else {
             throw ReleaseV050DataEngineOperationalDryRunPathError.invalidRecordedAtStride(recordedAtStride)
@@ -312,6 +314,7 @@ public struct ReleaseV050DataEngineOperationalDryRunPath: Sendable {
         self.correlationID = correlationID
         self.firstRecordedAt = firstRecordedAt
         self.recordedAtStride = recordedAtStride
+        self.eventIDPrefix = try FoundationTargetID(eventIDPrefix, field: "runtimeEventIDPrefix").rawValue
     }
 
     public func run(
@@ -337,7 +340,7 @@ public struct ReleaseV050DataEngineOperationalDryRunPath: Sendable {
                 payloadType: payload.payloadType,
                 payload: payload,
                 recordedAt: firstRecordedAt.addingTimeInterval(TimeInterval(index) * recordedAtStride),
-                eventID: Identifier.constant("gh-732-v050-dataengine-event-\(index + 1)", field: "runtimeEventID")
+                eventID: Identifier.constant("\(eventIDPrefix)-\(index + 1)", field: "runtimeEventID")
             )
             causationID = envelope.eventID
             let cacheSnapshot = try cache.ingestMarketEvent(input.marketEvent, instrument: input.instrument)

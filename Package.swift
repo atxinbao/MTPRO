@@ -150,7 +150,7 @@ let package = Package(
         ),
         .target(
             name: "DataEngine",
-            dependencies: ["DomainModel", "DataClient", "MessageBus", "Cache"],
+            dependencies: ["DomainModel", "DataClient", "MessageBus", "Cache", "Database"],
             path: "Sources/DataEngine",
             exclude: [
                 "Ingest",
@@ -160,6 +160,7 @@ let package = Package(
                 "BinancePublicMarketDataRuntimePath.swift",
                 "DataEngineReadOnlyReplayPlan.swift",
                 "DataQuality/ScenarioDataQualityReportInput.swift",
+                "ReleaseV060DataEngineLocalDryRunRunner.swift",
                 "ReleaseV050DataEngineOperationalDryRunPath.swift",
                 "ReleaseV030DataEngineRuntimeRehearsalFlow.swift",
                 "ReleaseV040DataEngineMessageBusRuntimeStep.swift",
@@ -293,6 +294,7 @@ let package = Package(
                 "DataEngine/DataEngineReadOnlyReplayPlan.swift",
                 "DataEngine/DataQuality/ScenarioDataQualityReportInput.swift",
                 "DataEngine/Ingest",
+                "DataEngine/ReleaseV060DataEngineLocalDryRunRunner.swift",
                 "DataEngine/ReleaseV050DataEngineOperationalDryRunPath.swift",
                 "DataEngine/ReleaseV030DataEngineRuntimeRehearsalFlow.swift",
                 "DataEngine/ReleaseV040DataEngineMessageBusRuntimeStep.swift",
@@ -442,6 +444,7 @@ let package = Package(
                 "DataClient",
                 "DataEngine/BinancePublicMarketDataRuntimePath.swift",
                 "DataEngine/DataEngineReadOnlyReplayPlan.swift",
+                "DataEngine/ReleaseV060DataEngineLocalDryRunRunner.swift",
                 "DataEngine/ReleaseV050DataEngineOperationalDryRunPath.swift",
                 "DataEngine/ReleaseV030DataEngineRuntimeRehearsalFlow.swift",
                 "DataEngine/ReleaseV040DataEngineMessageBusRuntimeStep.swift",

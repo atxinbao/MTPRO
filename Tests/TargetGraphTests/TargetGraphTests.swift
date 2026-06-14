@@ -385,7 +385,7 @@ final class TargetGraphTests: XCTestCase {
 
         XCTAssertEqual(dataClient.allowedDependencies, ["DomainModel"])
         XCTAssertEqual(cache.allowedDependencies, ["DomainModel", "MessageBus"])
-        XCTAssertEqual(dataEngine.allowedDependencies, ["DomainModel", "DataClient", "MessageBus", "Cache"])
+        XCTAssertEqual(dataEngine.allowedDependencies, ["DomainModel", "DataClient", "MessageBus", "Cache", "Database"])
         XCTAssertEqual(dataClient.retainedCompatibilityEnvelope, "Adapters(re-export only)")
         XCTAssertEqual(cache.retainedCompatibilityEnvelope, "Core(re-export only)")
         XCTAssertEqual(dataEngine.retainedCompatibilityEnvelope, "Core/Runtime(deterministic matching compatibility, ingest workflow)")
@@ -8895,6 +8895,184 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(journalSource.contains("cancelOrder"))
         XCTAssertFalse(journalSource.contains("replaceOrder"))
         XCTAssertFalse(journalSource.contains("HMAC<"))
+    }
+
+    func testGH759DataEngineLocalDryRunRunnerWritesMarketEventsToLocalRunJournal() async throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let dataEngineTarget = try packageTargetBlock(named: "DataEngine", packageSource: packageSource)
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        let runtimeTarget = try packageTargetBlock(named: "Runtime", packageSource: packageSource)
+        let runnerSourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/DataEngine/ReleaseV060DataEngineLocalDryRunRunner.swift"
+        )
+        let gh732SourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/DataEngine/ReleaseV050DataEngineOperationalDryRunPath.swift"
+        )
+        let runnerSource = try String(contentsOf: runnerSourcePath, encoding: .utf8)
+        let gh732Source = try String(contentsOf: gh732SourcePath, encoding: .utf8)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.6.0-dataengine-local-dry-run-runner-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let runnerScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.6.0-dataengine-local-dry-run-runner.sh"),
+            encoding: .utf8
+        )
+
+        let storageRoot = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "MTPRO-GH759-DataEngineLocalDryRunRunner-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: storageRoot)
+        }
+
+        let contract = try ReleaseV060DataEngineLocalDryRunRunnerContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-759")
+        XCTAssertEqual(contract.upstreamIssueIDs.map(\.rawValue), ["GH-756", "GH-757", "GH-758"])
+        XCTAssertEqual(contract.previousIssueID.rawValue, "GH-758")
+        XCTAssertEqual(contract.allowedVenue, "binance")
+        XCTAssertEqual(contract.allowedProductTypes, [.spot, .usdsPerpetual])
+        XCTAssertFalse(contract.productionTradingEnabledByDefault)
+        XCTAssertFalse(contract.productionSecretAutoReadEnabled)
+        XCTAssertFalse(contract.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(contract.productionBrokerConnectionEnabled)
+        XCTAssertFalse(contract.productionOrderSubmissionEnabled)
+        XCTAssertFalse(contract.productionCutoverAuthorized)
+
+        let result = try await ReleaseV060DataEngineLocalDryRunRunner.deterministicEvidence(storageRootURL: storageRoot)
+        XCTAssertTrue(result.resultHeld)
+        XCTAssertTrue(result.dataEngineMarketEventJournalHeld)
+        XCTAssertTrue(result.productBoundaryHeld)
+        XCTAssertTrue(result.forbiddenRuntimeHeld)
+        XCTAssertEqual(result.issueID.rawValue, "GH-759")
+        XCTAssertEqual(result.upstreamIssueIDs.map(\.rawValue), ["GH-756", "GH-757", "GH-758"])
+        XCTAssertEqual(result.dataEngineEvidence.runID.rawValue, "gh-759-v060-dataengine-local-dry-run")
+        XCTAssertEqual(result.dataEngineEvidence.streamID.rawValue, "release-v060-dataengine-local-dry-run")
+        XCTAssertEqual(result.dataEngineEvidence.eventEnvelopes.map(\.payloadType), [.dataEngineMarketEvent, .dataEngineMarketEvent])
+        XCTAssertEqual(result.dataEngineEvidence.eventEnvelopes.map(\.sourceModule), [.dataEngine, .dataEngine])
+        XCTAssertEqual(result.dataEngineEvidence.eventEnvelopes.map(\.sequence), [1, 2])
+        XCTAssertTrue(result.dataEngineEvidence.eventEnvelopes.allSatisfy { $0.checksum.hasPrefix("sha256:") })
+        XCTAssertTrue(result.journal.records.allSatisfy { $0.envelope.payloadType == .dataEngineMarketEvent })
+        XCTAssertTrue(result.journal.records.allSatisfy { $0.envelope.checksum.hasPrefix("sha256:") })
+        XCTAssertTrue(result.journal.records.allSatisfy { $0.journalSHA256.hasPrefix("sha256:") })
+        XCTAssertEqual(result.journal.records.map(\.envelope), result.dataEngineEvidence.eventEnvelopes)
+        XCTAssertEqual(result.writerResult.status.eventCount, result.dataEngineEvidence.eventEnvelopes.count)
+        XCTAssertEqual(result.writerResult.manifest.eventCount, result.dataEngineEvidence.eventEnvelopes.count)
+        XCTAssertTrue(result.manifestValidation.validationHeld)
+        XCTAssertFalse(result.networkCallsPerformed)
+        XCTAssertFalse(result.secretReadsPerformed)
+        XCTAssertFalse(result.productionEndpointConnected)
+        XCTAssertFalse(result.productionBrokerConnected)
+        XCTAssertFalse(result.productionOrderSubmitted)
+        XCTAssertFalse(result.productionCutoverAuthorized)
+
+        XCTAssertTrue(FileManager.default.fileExists(atPath: result.writerResult.eventsJSONLPath))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: result.writerResult.projectionJSONPath))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: result.writerResult.summaryJSONPath))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: result.writerResult.statusJSONPath))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: result.writerResult.manifestJSONPath))
+
+        let eventsJSONL = try String(contentsOfFile: result.writerResult.eventsJSONLPath, encoding: .utf8)
+        let eventLines = eventsJSONL.split(separator: "\n").map(String.init)
+        XCTAssertEqual(eventLines.count, result.dataEngineEvidence.eventEnvelopes.count)
+        XCTAssertTrue(eventsJSONL.contains("\"DataEngineMarketEvent\""))
+        XCTAssertTrue(eventsJSONL.contains("\"journalSHA256\""))
+        XCTAssertTrue(eventsJSONL.contains("\"previousJournalSHA256\""))
+        XCTAssertTrue(eventsJSONL.contains("\"sha256:"))
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let decodedRecords = try eventLines.map {
+            try decoder.decode(ReleaseV050DurableLocalRunJournalRecord.self, from: Data($0.utf8))
+        }
+        XCTAssertEqual(decodedRecords, result.journal.records)
+        XCTAssertEqual(decodedRecords.map(\.envelope), result.dataEngineEvidence.eventEnvelopes)
+
+        XCTAssertThrowsError(
+            try ReleaseV060DataEngineLocalDryRunRunnerResult(
+                dataEngineEvidence: result.dataEngineEvidence,
+                journal: result.journal,
+                writerResult: result.writerResult,
+                manifestValidation: result.manifestValidation,
+                productionEndpointConnected: true
+            )
+        )
+        let runner = try ReleaseV060DataEngineLocalDryRunRunner(storageRootURL: storageRoot)
+        do {
+            _ = try await runner.run(inputs: [])
+            XCTFail("Empty GH-759 DataEngine local dry-run inputs must fail closed")
+        } catch {
+            XCTAssertEqual(error as? ReleaseV060DataEngineLocalDryRunRunnerError, .emptyInputs)
+        }
+
+        for anchor in ReleaseV060DataEngineLocalDryRunRunnerContract.requiredValidationAnchors {
+            XCTAssertTrue(contract.validationAnchors.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+        }
+
+        XCTAssertTrue(dataEngineTarget.contains("\"Database\""))
+        XCTAssertTrue(dataEngineTarget.contains("\"ReleaseV060DataEngineLocalDryRunRunner.swift\""))
+        XCTAssertTrue(coreTarget.contains("\"DataEngine/ReleaseV060DataEngineLocalDryRunRunner.swift\""))
+        XCTAssertTrue(runtimeTarget.contains("\"DataEngine/ReleaseV060DataEngineLocalDryRunRunner.swift\""))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: runnerSourcePath.path))
+        XCTAssertTrue(runnerSource.contains("ReleaseV060DataEngineLocalDryRunRunner"))
+        XCTAssertTrue(runnerSource.contains("ReleaseV060LocalRunJournalWriter"))
+        XCTAssertTrue(runnerSource.contains("ReleaseV050DurableLocalRunJournal"))
+        XCTAssertTrue(runnerSource.contains("DataEngineMarketEvent"))
+        XCTAssertTrue(runnerSource.contains("sha256:"))
+        XCTAssertTrue(gh732Source.contains("eventIDPrefix"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.6.0 DataEngine local dry-run runner anchor"))
+        XCTAssertTrue(readinessScript.contains("GH-759-VERIFY-V060-DATAENGINE-LOCAL-DRY-RUN-RUNNER"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.6.0-dataengine-local-dry-run-runner.sh"))
+        XCTAssertTrue(runnerScript.contains("testGH759DataEngineLocalDryRunRunnerWritesMarketEventsToLocalRunJournal"))
+
+        for forbidden in [
+            "URLSession",
+            "URLRequest",
+            "api.binance.com",
+            "fapi.binance.com",
+            "/api/v3/account",
+            "/api/v3/order",
+            "/api/v3/userDataStream",
+            "listenKey",
+            "submitOrder",
+            "cancelOrder",
+            "replaceOrder",
+            "HMAC<"
+        ] {
+            XCTAssertFalse(runnerSource.contains(forbidden), "GH-759 source must not contain \(forbidden)")
+        }
     }
 
     func testGH756LocalRunJournalWriterPersistsArtifactsAndClassifiesIncompleteRuns() async throws {

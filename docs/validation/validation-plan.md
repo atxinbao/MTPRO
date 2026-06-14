@@ -2589,6 +2589,10 @@ swift test
 - GH-758 Release v0.6.0 Runtime sha256 Checksum Validation
 - GH-758 禁止
 - GH-758-VERIFY-V060-RUNTIME-SHA256-CHECKSUM
+- GH-759
+- GH-759 Release v0.6.0 DataEngine Local Dry-run Runner Validation
+- GH-759 禁止
+- GH-759-VERIFY-V060-DATAENGINE-LOCAL-DRY-RUN-RUNNER
 - V060-002-LOCAL-RUN-JOURNAL-WRITER
 - V060-002-RUN-DIRECTORY-SHAPE
 - V060-002-APPEND-ONLY-EVENTS-JSONL
@@ -2605,6 +2609,11 @@ swift test
 - V060-004-FNV-COMPATIBILITY-EVIDENCE
 - V060-004-CHECKSUM-MISMATCH-FAILS-VALIDATION
 - V060-004-NO-PRODUCTION-AUTHORIZATION
+- V060-005-DATAENGINE-LOCAL-DRY-RUN-RUNNER
+- V060-005-LOCAL-FIXTURE-CATALOG-ONLY
+- V060-005-DATAENGINE-MARKET-EVENT-JOURNAL-WRITE
+- V060-005-BINANCE-SPOT-USDM-PERP-BOUNDARY
+- V060-005-NO-NETWORK-SECRET-ORDER
 - Backtest / Paper parity
 - Codex / Automation Validation
 - DASHBOARD_SMOKE=1 swift run Dashboard
@@ -2771,6 +2780,7 @@ swift test
 - TVM-RELEASE-V060-LOCAL-RUN-JOURNAL-WRITER
 - TVM-RELEASE-V060-RUN-MANIFEST-CHECKSUM
 - TVM-RELEASE-V060-RUNTIME-SHA256-CHECKSUM
+- TVM-RELEASE-V060-DATAENGINE-LOCAL-DRY-RUN-RUNNER
 - TVM-REPORT-EVIDENCE
 - TVM-RISK-BLOCKER
 - TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY
@@ -2803,6 +2813,7 @@ swift test
 - bash checks/verify-v0.5.0-testnet-readonly.sh
 - bash checks/verify-v0.5.0.sh
 - bash checks/verify-v0.6.0-boundary.sh
+- bash checks/verify-v0.6.0-dataengine-local-dry-run-runner.sh
 - bash checks/verify-v0.6.0-run-journal-writer.sh
 - bash checks/workbench-beta-acceptance.sh
 - docs/audit/inputs/
