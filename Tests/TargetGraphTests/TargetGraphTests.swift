@@ -8428,6 +8428,200 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(source.contains("HMAC<"))
     }
 
+    func testGH731DurableLocalRunJournalPersistsTypedEnvelopeShapeAndReplaysOneRun() async throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let databaseTarget = try packageTargetBlock(named: "Database", packageSource: packageSource)
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        let sourcePath = repositoryRoot.appendingPathComponent("Sources/Database/ReleaseV050DurableLocalRunJournal.swift")
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.5.0-durable-local-run-journal-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let journalScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.5.0-run-journal.sh"),
+            encoding: .utf8
+        )
+
+        let contract = try ReleaseV050DurableLocalRunJournalContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-731")
+        XCTAssertEqual(contract.upstreamIssueID.rawValue, "GH-730")
+        XCTAssertEqual(contract.previousIssueID.rawValue, "GH-730")
+        XCTAssertEqual(contract.downstreamIssueIDs.map(\.rawValue), ["GH-732", "GH-734", "GH-735", "GH-736", "GH-737", "GH-739"])
+        XCTAssertEqual(contract.storageRoot, ".local/mtpro/runs")
+        XCTAssertEqual(contract.eventFileName, "events.jsonl")
+        XCTAssertEqual(contract.projectionFileName, "projection.json")
+        XCTAssertEqual(contract.summaryFileName, "summary.json")
+        XCTAssertTrue(contract.productionDefaultsClosed)
+        XCTAssertFalse(contract.productionTradingEnabledByDefault)
+        XCTAssertFalse(contract.productionSecretAutoReadEnabled)
+        XCTAssertFalse(contract.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(contract.productionBrokerConnectionEnabled)
+        XCTAssertFalse(contract.productionOrderSubmissionEnabled)
+        XCTAssertFalse(contract.productionCutoverAuthorized)
+
+        let envelopes = try await ReleaseV050RuntimeMessageBusContract.deterministicEnvelopes()
+        let runID = try XCTUnwrap(envelopes.first?.runID)
+        var journal = try ReleaseV050DurableLocalRunJournal(runID: runID)
+        for envelope in envelopes {
+            let record = try journal.append(envelope: envelope)
+            XCTAssertEqual(record.journalSequence, envelope.sequence)
+            XCTAssertEqual(record.runID, runID)
+            XCTAssertEqual(record.envelope.eventID, envelope.eventID)
+            XCTAssertEqual(record.envelope.streamID, envelope.streamID)
+            XCTAssertEqual(record.envelope.correlationID, envelope.correlationID)
+            XCTAssertEqual(record.envelope.causationID, envelope.causationID)
+            XCTAssertEqual(record.envelope.sourceModule, envelope.sourceModule)
+            XCTAssertEqual(record.envelope.payloadType, envelope.payloadType)
+            XCTAssertEqual(record.envelope.checksum, envelope.checksum)
+            XCTAssertTrue(record.recordHeld)
+            XCTAssertFalse(record.mutableRewriteAllowed)
+            XCTAssertTrue(record.productionEndpointLeakageRejected)
+            XCTAssertTrue(record.secretValueLeakageRejected)
+        }
+
+        XCTAssertTrue(journal.appendOnlyHeld)
+        XCTAssertEqual(journal.paths.runDirectory, ".local/mtpro/runs/\(runID.rawValue)")
+        XCTAssertEqual(journal.paths.eventsJSONLPath, ".local/mtpro/runs/\(runID.rawValue)/events.jsonl")
+        XCTAssertEqual(journal.paths.projectionJSONPath, ".local/mtpro/runs/\(runID.rawValue)/projection.json")
+        XCTAssertEqual(journal.paths.summaryJSONPath, ".local/mtpro/runs/\(runID.rawValue)/summary.json")
+
+        let cursor = try ReleaseV050RunJournalReplayCursor(runID: runID)
+        let replayed = try journal.replay(cursor: cursor)
+        let limitedReplay = try journal.replay(
+            cursor: ReleaseV050RunJournalReplayCursor(runID: runID, afterJournalSequence: 2, limit: 2)
+        )
+        XCTAssertEqual(replayed, envelopes)
+        XCTAssertEqual(limitedReplay.map(\.sequence), [3, 4])
+        XCTAssertEqual(replayed.map(\.payloadType), RuntimeEventPayloadType.allCases)
+        XCTAssertEqual(replayed.dropFirst().compactMap(\.causationID), replayed.dropLast().map(\.eventID))
+
+        let projection = try journal.projection()
+        let summary = try journal.summary()
+        let artifact = try journal.artifact()
+        XCTAssertEqual(projection.eventCount, envelopes.count)
+        XCTAssertEqual(projection.payloadTypes, RuntimeEventPayloadType.allCases)
+        XCTAssertEqual(projection.sourceModules, RuntimeEventPayloadType.allCases.map(\.sourceModule))
+        XCTAssertEqual(projection.latestJournalChecksum, journal.latestJournalChecksum)
+        XCTAssertTrue(projection.dashboardCLIProjectionReady)
+        XCTAssertEqual(summary.eventCount, envelopes.count)
+        XCTAssertTrue(summary.appendOnlyHeld)
+        XCTAssertTrue(summary.replayCursorCanReconstructOneRun)
+        XCTAssertTrue(summary.typedRuntimeEnvelopeFieldsPreserved)
+        XCTAssertFalse(summary.secretValuesWritten)
+        XCTAssertFalse(summary.productionEndpointValuesWritten)
+        XCTAssertFalse(summary.productionTradingEnabledByDefault)
+        XCTAssertFalse(summary.productionSecretAutoReadEnabled)
+        XCTAssertFalse(summary.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(summary.productionBrokerConnectionEnabled)
+        XCTAssertFalse(summary.productionOrderSubmissionEnabled)
+        XCTAssertFalse(summary.productionCutoverAuthorized)
+        XCTAssertEqual(artifact.paths, journal.paths)
+        XCTAssertEqual(artifact.eventsJSONLLines.count, envelopes.count)
+        XCTAssertTrue(artifact.eventsJSONLLines[0].contains("\"eventID\""))
+        XCTAssertTrue(artifact.eventsJSONLLines[0].contains("\"runID\""))
+        XCTAssertTrue(artifact.eventsJSONLLines[0].contains("\"sequence\""))
+        XCTAssertTrue(artifact.eventsJSONLLines[0].contains("\"streamID\""))
+        XCTAssertTrue(artifact.eventsJSONLLines[0].contains("\"correlationID\""))
+        XCTAssertTrue(artifact.eventsJSONLLines[1].contains("\"causationID\""))
+        XCTAssertTrue(artifact.eventsJSONLLines[0].contains("\"sourceModule\""))
+        XCTAssertTrue(artifact.eventsJSONLLines[0].contains("\"payloadType\""))
+        XCTAssertTrue(artifact.eventsJSONLLines[0].contains("\"payload\""))
+        XCTAssertTrue(artifact.eventsJSONLLines[0].contains("\"recordedAt\""))
+        XCTAssertTrue(artifact.eventsJSONLLines[0].contains("\"checksum\""))
+        XCTAssertTrue(artifact.projectionJSON.contains("\"dashboardCLIProjectionReady\":true"))
+        XCTAssertTrue(artifact.summaryJSON.contains("\"appendOnlyHeld\":true"))
+
+        XCTAssertThrowsError(try journal.append(envelope: envelopes[0]))
+        XCTAssertThrowsError(
+            try ReleaseV050RunJournalReplayCursor(runID: runID, afterJournalSequence: -1)
+        )
+        XCTAssertThrowsError(
+            try journal.replay(cursor: ReleaseV050RunJournalReplayCursor(runID: .constant("gh-731-other-run")))
+        )
+
+        let leakingPayload = try ReleaseV050RuntimeEventPayload.dashboardReadModel(
+            DashboardReadModelEvent(
+                readModelID: .constant("gh-731-leak-read-model"),
+                sourceProjectionID: .constant("gh-731-leak-projection"),
+                statusSummary: "production-secret"
+            )
+        )
+        let leakingEnvelope = try RuntimeEventEnvelope(
+            eventID: .constant("gh-731-leak-event"),
+            runID: runID,
+            sequence: 1,
+            streamID: try MessageBusJournalStreamID("release-v050-run-journal-leak-test"),
+            correlationID: .constant("gh-731-leak-correlation"),
+            causationID: nil,
+            sourceModule: leakingPayload.sourceModule,
+            payloadType: leakingPayload.payloadType,
+            payload: leakingPayload,
+            recordedAt: Date(timeIntervalSince1970: 731)
+        )
+        var leakageJournal = try ReleaseV050DurableLocalRunJournal(runID: runID)
+        XCTAssertThrowsError(try leakageJournal.append(envelope: leakingEnvelope))
+
+        for anchor in ReleaseV050DurableLocalRunJournalContract.requiredValidationAnchors {
+            XCTAssertTrue(contract.validationAnchors.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+        }
+
+        XCTAssertTrue(databaseTarget.contains("\"ReleaseV050DurableLocalRunJournal.swift\""))
+        XCTAssertTrue(coreTarget.contains("\"Database\""))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: sourcePath.path))
+        XCTAssertTrue(source.contains("ReleaseV050DurableLocalRunJournal"))
+        XCTAssertTrue(source.contains("ReleaseV050RunJournalReplayCursor"))
+        XCTAssertTrue(source.contains(".local/mtpro/runs"))
+        XCTAssertTrue(source.contains("events.jsonl"))
+        XCTAssertTrue(source.contains("projection.json"))
+        XCTAssertTrue(source.contains("summary.json"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.5.0 durable local run journal anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV050DurableLocalRunJournal.swift"))
+        XCTAssertTrue(readinessScript.contains("testGH731DurableLocalRunJournalPersistsTypedEnvelopeShapeAndReplaysOneRun"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.5.0-run-journal.sh"))
+        XCTAssertTrue(journalScript.contains("GH-731-VERIFY-V050-DURABLE-LOCAL-RUN-JOURNAL"))
+        XCTAssertTrue(journalScript.contains("testGH731DurableLocalRunJournalPersistsTypedEnvelopeShapeAndReplaysOneRun"))
+        XCTAssertFalse(source.contains("URLSession"))
+        XCTAssertFalse(source.contains("URLRequest"))
+        XCTAssertFalse(source.contains("api.binance.com"))
+        XCTAssertFalse(source.contains("fapi.binance.com"))
+        XCTAssertFalse(source.contains("submitOrder"))
+        XCTAssertFalse(source.contains("cancelOrder"))
+        XCTAssertFalse(source.contains("replaceOrder"))
+        XCTAssertFalse(source.contains("HMAC<"))
+    }
+
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
