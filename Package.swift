@@ -71,6 +71,7 @@ let package = Package(
                 "PaperActionRiskDecision.swift",
                 "RichRoutingCompatibilityContract.swift",
                 "RiskPortfolioContracts.swift",
+                "RuntimeMessageBus.swift",
                 "StrategyIntentMessages.swift",
                 "StrategySignals.swift",
                 "TargetGraph/MessageBusTargetBoundary.swift"
@@ -325,6 +326,7 @@ let package = Package(
                 "MessageBus/PaperActionRiskDecision.swift",
                 "MessageBus/RichRoutingCompatibilityContract.swift",
                 "MessageBus/RiskPortfolioContracts.swift",
+                "MessageBus/RuntimeMessageBus.swift",
                 "MessageBus/StrategyIntentMessages.swift",
                 "MessageBus/StrategySignals.swift",
                 "MessageBus/TargetGraph",

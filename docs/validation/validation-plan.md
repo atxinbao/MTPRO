@@ -205,6 +205,40 @@ GH-729 必须建立的主要 anchors：
 - 不启动 Linear、Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-730 Release v0.5.0 Typed RuntimeMessageBus Validation
+
+GH-730 的 required validation：
+
+- `Package.swift` 必须让 `MessageBus` target 编译 `RuntimeMessageBus.swift`，并从 `Core` compatibility envelope 排除同一文件。
+- `Sources/MessageBus/RuntimeMessageBus.swift` 必须定义 `RuntimeMessageBus` actor、`RuntimeEventEnvelope<Payload>`、`RuntimeEventPayload`、`ReleaseV050RuntimeEventPayloadType` 和 `ReleaseV050RuntimeEventPayload`。
+- Typed event families 必须覆盖 `DataEngineMarketEvent`、`StrategyIntentEvent`、`RiskDecisionEvent`、`OMSLifecycleEvent`、`ExecutionClientDryRunEvent`、`PortfolioProjectionEvent` 和 `DashboardReadModelEvent`。
+- `RuntimeEventEnvelope<Payload>` 必须包含 eventID、runID、sequence、streamID、correlationID、causationID、sourceModule、payloadType、payload、recordedAt 和 checksum。
+- `RuntimeMessageBus` 必须用 actor isolation 维护 append-only sequence，并支持按 runID / streamID replay。
+- checksum mismatch、sourceModule / payload family mismatch 和非连续 sequence 必须 fail closed。
+- `docs/contracts/release-v0.5.0-typed-runtime-messagebus-contract.md` 必须存在，并包含 `V050-05-TYPED-RUNTIME-MESSAGEBUS-ACTOR`、`V050-05-RUNTIME-EVENT-ENVELOPE`、`V050-05-TYPED-EVENT-FAMILIES`、`V050-05-RUN-CORRELATION-CAUSATION-CHECKSUM` 和 `TVM-RELEASE-V050-TYPED-RUNTIME-MESSAGEBUS`。
+- Required validation 为 `swift test --filter TargetGraphTests/testGH730TypedRuntimeMessageBusActorPublishesAuditableEnvelopes`、`bash checks/verify-v0.5.0-messagebus.sh`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-730 必须建立的主要 anchors：
+
+- `V050-05-TYPED-RUNTIME-MESSAGEBUS-ACTOR`
+- `V050-05-RUNTIME-EVENT-ENVELOPE`
+- `V050-05-TYPED-EVENT-FAMILIES`
+- `V050-05-RUN-CORRELATION-CAUSATION-CHECKSUM`
+- `TVM-RELEASE-V050-TYPED-RUNTIME-MESSAGEBUS`
+- `testGH730TypedRuntimeMessageBusActorPublishesAuditableEnvelopes`
+
+## GH-730 禁止
+
+- 不实现 durable local run journal、DataEngine operational path、testnet read-only integration、RiskEngine runner、ExecutionEngine / OMS lifecycle、Portfolio projection、Dashboard / CLI observer、CI hardening 或 operator runbook。
+- 不连接 testnet / production endpoint、broker endpoint、account endpoint、listenKey 或 private WebSocket runtime。
+- 不读取、打印、保存或推导 production secret。
+- 不实现 broker gateway、ExecutionClient live adapter、real submit / cancel / replace、production OMS、Live PRO Console production command、trading button、live command 或 order form。
+- 不绕过 RiskEngine、ExecutionEngine、OMS、kill switch / no-trade 或 operator confirmation。
+- 不授权 production trading 或 production cutover。
+- 不创建下一 Project / Issue，不推进 release v0.5.0 之后的阶段。
+- 不启动 Linear、Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-669 Release v0.3.0 Operator Rehearsal Runbook
 
 GH-669 的 required validation：
