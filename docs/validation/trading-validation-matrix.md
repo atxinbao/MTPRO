@@ -1321,3 +1321,10 @@
 - `mtpro status [runID]`: v0.7.0 session / registry state wording, no v0.4 / v0.5 active top-level surface
 - `mtpro verify`: v0.7.0 contract / endpoint / CLI / automation gates
 - forbidden commands: production mode、submit、cancel、replace fail-closed
+- TVM-RELEASE-V070-DASHBOARD-MACOS-GUARDS
+- GH-782-VERIFY-V070-DASHBOARD-MACOS-GUARDS
+- GH-782 Release v0.7.0 Dashboard macOS Focused Guard Validation
+- testGH782DashboardMacOSChecksRunV070FocusedGuards
+- `dashboard-macos` required job guard: run `checks/verify-v0.7.0-dashboard-macos-guards.sh` before Dashboard build / smoke
+- focused guard coverage: run-detail observer、testnet read-only probe、testnet endpoint policy、CLI runtime-session surface
+- forbidden macOS guard scope: no UI trading command、no production endpoint / broker connection、no production secret read、no real order、no production cutover
