@@ -160,6 +160,12 @@ public enum RuntimeOMSState: String, Codable, CaseIterable, Equatable, Hashable,
     case created
     case riskApproved
     case accepted
+    case acceptedByOMS
+    case simulatedSubmitted
+    case simulatedPartiallyFilled
+    case simulatedFilled
+    case simulatedRejected
+    case simulatedCancelled
     case canceled
     case replaced
     case rejected

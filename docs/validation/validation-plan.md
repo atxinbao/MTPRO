@@ -367,6 +367,39 @@ GH-734 必须建立的主要 anchors：
 - 不启动 Linear、Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-735 Release v0.5.0 ExecutionEngine OMS Dry-run Lifecycle Validation
+
+GH-735 的 required validation：
+
+- `Sources/ExecutionEngine/OMSFutureGate/ReleaseV050ExecutionOMSDryRunLifecycle.swift` 必须定义 `ReleaseV050ExecutionOMSDryRunLifecycleRunner`、`ReleaseV050ExecutionOMSDryRunLifecycleEvidence`、`ReleaseV050ExecutionOMSDryRunLifecyclePath`、`ReleaseV050ExecutionOMSDryRunSuppression` 和 `ReleaseV050ExecutionOMSDryRunLifecycleContract`。
+- Runner 必须消费 GH-734 的 typed `RiskDecisionEvent` envelope；只有 `allowed` decision 可以创建 OMS lifecycle path。
+- Runner 必须发出 typed `OMSLifecycleEvent` 和 `ExecutionClientDryRunEvent` envelopes，并保留 runID、streamID、correlationID、causationID 和 checksum。
+- Evidence 必须覆盖 `created`、`riskApproved`、`acceptedByOMS`、`simulatedSubmitted`、`simulatedPartiallyFilled`、`simulatedFilled`、`simulatedRejected` 和 `simulatedCancelled` state vocabulary。
+- Evidence 必须证明 rejected / blocked RiskDecisionEvent 不产生 submit path，且 GH-734 risk evidence + GH-735 lifecycle events 可由 GH-731 local run journal replay chain 消费；不得新增真实 broker gateway 或 production OMS。
+- `docs/contracts/release-v0.5.0-execution-oms-dryrun-lifecycle-contract.md` 必须存在，并包含 `V050-10-EXECUTION-OMS-DRY-RUN-LIFECYCLE`、`V050-10-RISK-DECISION-TO-OMS-LIFECYCLE`、`V050-10-DRY-RUN-EXECUTION-EVENTS`、`V050-10-REJECTED-BLOCKED-RISK-NO-SUBMIT`、`V050-10-RUN-JOURNAL-REPLAYABLE-OMS-EXECUTION` 和 `TVM-RELEASE-V050-EXECUTION-OMS-DRY-RUN-LIFECYCLE`。
+- Required validation 为 `swift test --filter TargetGraphTests/testGH735ExecutionOMSDryRunLifecycleConsumesAllowedRiskDecisionAndBlocksRejectedOrBlockedSubmitPaths`、`bash checks/verify-v0.5.0-oms.sh`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-735 必须建立的主要 anchors：
+
+- `V050-10-EXECUTION-OMS-DRY-RUN-LIFECYCLE`
+- `V050-10-RISK-DECISION-TO-OMS-LIFECYCLE`
+- `V050-10-DRY-RUN-EXECUTION-EVENTS`
+- `V050-10-REJECTED-BLOCKED-RISK-NO-SUBMIT`
+- `V050-10-RUN-JOURNAL-REPLAYABLE-OMS-EXECUTION`
+- `TVM-RELEASE-V050-EXECUTION-OMS-DRY-RUN-LIFECYCLE`
+- `testGH735ExecutionOMSDryRunLifecycleConsumesAllowedRiskDecisionAndBlocksRejectedOrBlockedSubmitPaths`
+
+## GH-735 禁止
+
+- 不把 RiskDecisionEvent allow decision 解释为真实订单授权。
+- 不实现 real submit / cancel / replace，不连接 broker gateway，不打开 production OMS。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、broker endpoint、account endpoint、listenKey 或 private WebSocket runtime。
+- 不绕过 RiskEngine、ExecutionEngine、OMS、kill switch、no-trade 或 production-disabled gate。
+- 不创建下一 Project / Issue，不推进 release v0.5.0 之后的阶段。
+- 不启动 Linear、Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-669 Release v0.3.0 Operator Rehearsal Runbook
 
 GH-669 的 required validation：

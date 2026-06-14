@@ -9104,6 +9104,172 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(source.contains("HMAC<"))
     }
 
+    func testGH735ExecutionOMSDryRunLifecycleConsumesAllowedRiskDecisionAndBlocksRejectedOrBlockedSubmitPaths() async throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionEngineTarget = try packageTargetBlock(named: "ExecutionEngine", packageSource: packageSource)
+        let messageBusSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/MessageBus/RuntimeMessageBus.swift"),
+            encoding: .utf8
+        )
+        let sourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/ExecutionEngine/OMSFutureGate/ReleaseV050ExecutionOMSDryRunLifecycle.swift"
+        )
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.5.0-execution-oms-dryrun-lifecycle-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let omsScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.5.0-oms.sh"),
+            encoding: .utf8
+        )
+
+        let contract = try ReleaseV050ExecutionOMSDryRunLifecycleContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertTrue(contract.productionDefaultsClosed)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-735")
+        XCTAssertEqual(contract.upstreamIssueIDs.map(\.rawValue), ["GH-731", "GH-734"])
+        XCTAssertEqual(contract.previousIssueID.rawValue, "GH-734")
+        XCTAssertEqual(contract.downstreamIssueIDs.map(\.rawValue), ["GH-736", "GH-737", "GH-739"])
+        XCTAssertEqual(contract.canonicalQueueRange, "GH-726..GH-739")
+        XCTAssertEqual(
+            contract.supportedLifecycleStates,
+            ReleaseV050ExecutionOMSDryRunLifecycleContract.requiredLifecycleStates
+        )
+
+        let evidence = try await ReleaseV050ExecutionOMSDryRunLifecycleRunner.deterministicEvidence()
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.lifecycleStateCoverageHeld)
+        XCTAssertTrue(evidence.rejectedBlockedNoSubmitHeld)
+        XCTAssertTrue(evidence.boundaryHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-735")
+        XCTAssertEqual(evidence.lifecyclePaths.map(\.outcome), ReleaseV050ExecutionOMSDryRunOutcome.allCases)
+        XCTAssertEqual(Set(evidence.omsStates), Set(contract.supportedLifecycleStates))
+        XCTAssertEqual(evidence.lifecyclePaths.count, 3)
+        XCTAssertEqual(evidence.generatedEnvelopes.map(\.sequence), Array(9...27))
+        XCTAssertEqual(
+            evidence.journalCompatibleEnvelopes.dropFirst().compactMap(\.causationID),
+            evidence.journalCompatibleEnvelopes.dropLast().map(\.eventID)
+        )
+        XCTAssertEqual(evidence.replayedOMSEnvelopes, evidence.generatedEnvelopes.filter { $0.payloadType == .omsLifecycleEvent })
+        XCTAssertEqual(
+            evidence.replayedExecutionDryRunEnvelopes,
+            evidence.generatedEnvelopes.filter { $0.payloadType == .executionClientDryRunEvent }
+        )
+        XCTAssertEqual(evidence.executionDryRunEnvelopes.count, 4)
+        XCTAssertEqual(evidence.executionDryRunEvents.map(\.commandKind), [.submit, .submit, .submit, .cancel])
+        XCTAssertEqual(evidence.executionDryRunEvents.map(\.acceptedByDryRunAdapter), [true, false, true, true])
+        XCTAssertEqual(evidence.suppressedRiskDecisions.count, 3)
+        XCTAssertTrue(evidence.suppressedRiskDecisions.allSatisfy(\.suppressionHeld))
+        XCTAssertTrue(evidence.suppressedRiskDecisions.allSatisfy { $0.sourceRiskDecision != .allowed })
+        XCTAssertFalse(evidence.productionOMSAuthorized)
+        XCTAssertFalse(evidence.realOrderCommandsAvailable)
+        XCTAssertFalse(evidence.brokerGatewayConnected)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionEndpointConnected)
+        XCTAssertFalse(evidence.productionSecretAutoReadEnabled)
+        XCTAssertFalse(evidence.productionOrderSubmitted)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+
+        var journal = try ReleaseV050DurableLocalRunJournal(runID: evidence.runID)
+        for envelope in evidence.journalCompatibleEnvelopes {
+            try journal.append(envelope: envelope)
+        }
+        XCTAssertEqual(
+            try journal.replay(cursor: ReleaseV050RunJournalReplayCursor(runID: evidence.runID)),
+            evidence.journalCompatibleEnvelopes
+        )
+        XCTAssertTrue(journal.appendOnlyHeld)
+        XCTAssertFalse(try journal.summary().productionOrderSubmissionEnabled)
+        XCTAssertFalse(try journal.summary().productionCutoverAuthorized)
+
+        let riskEvidence = evidence.sourceRiskEvidence
+        do {
+            _ = try ReleaseV050ExecutionOMSDryRunLifecycleRequest(
+                riskEmission: try XCTUnwrap(riskEvidence.emissions.first { $0.decisionEvent.decision == .rejected }),
+                outcome: .simulatedFilled
+            )
+            XCTFail("GH-735 lifecycle must fail without allowed RiskDecisionEvent")
+        } catch {
+            XCTAssertEqual(
+                error as? ReleaseV050ExecutionOMSDryRunLifecycleError,
+                .rejectedOrBlockedDecisionCannotCreateLifecycle(.rejected)
+            )
+        }
+        do {
+            _ = try await ReleaseV050ExecutionOMSDryRunLifecycleRunner().run(
+                sourceRiskEvidence: riskEvidence,
+                lifecycleRequests: []
+            )
+            XCTFail("GH-735 lifecycle runner must reject empty requests")
+        } catch {
+            XCTAssertEqual(error as? ReleaseV050ExecutionOMSDryRunLifecycleError, .emptyLifecycleRequests)
+        }
+
+        for anchor in ReleaseV050ExecutionOMSDryRunLifecycleContract.requiredValidationAnchors {
+            XCTAssertTrue(contract.validationAnchors.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+        }
+
+        XCTAssertTrue(executionEngineTarget.contains("\"OMSFutureGate\""))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: sourcePath.path))
+        XCTAssertTrue(source.contains("ReleaseV050ExecutionOMSDryRunLifecycle"))
+        XCTAssertTrue(source.contains("RiskDecisionEvent"))
+        XCTAssertTrue(source.contains("OMSLifecycleEvent"))
+        XCTAssertTrue(source.contains("ExecutionClientDryRunEvent"))
+        XCTAssertTrue(source.contains("ReleaseV050RiskEngineRuntimeRunnerEvidence"))
+        XCTAssertTrue(messageBusSource.contains("acceptedByOMS"))
+        XCTAssertTrue(messageBusSource.contains("simulatedPartiallyFilled"))
+        XCTAssertTrue(messageBusSource.contains("simulatedCancelled"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.5.0 ExecutionEngine OMS dry-run lifecycle anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV050ExecutionOMSDryRunLifecycle.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH735ExecutionOMSDryRunLifecycleConsumesAllowedRiskDecisionAndBlocksRejectedOrBlockedSubmitPaths"
+            )
+        )
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.5.0-oms.sh"))
+        XCTAssertTrue(omsScript.contains("GH-735-VERIFY-V050-EXECUTION-OMS-DRY-RUN-LIFECYCLE"))
+        XCTAssertTrue(omsScript.contains("TVM-RELEASE-V050-EXECUTION-OMS-DRY-RUN-LIFECYCLE"))
+        XCTAssertFalse(source.contains("URLSession"))
+        XCTAssertFalse(source.contains("URLRequest"))
+        XCTAssertFalse(source.contains("api.binance.com"))
+        XCTAssertFalse(source.contains("fapi.binance.com"))
+        XCTAssertFalse(source.contains("submitOrder"))
+        XCTAssertFalse(source.contains("cancelOrder"))
+        XCTAssertFalse(source.contains("replaceOrder"))
+        XCTAssertFalse(source.contains("HMAC<"))
+    }
+
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
