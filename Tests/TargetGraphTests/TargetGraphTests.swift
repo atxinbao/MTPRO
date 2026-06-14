@@ -8819,6 +8819,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(eventsJSONL.contains("\"runID\""))
 
         let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
         let decodedStatus = try decoder.decode(
             ReleaseV060LocalRunJournalWriterStatus.self,
             from: Data(contentsOf: URL(fileURLWithPath: result.statusJSONPath))
@@ -8828,7 +8829,13 @@ final class TargetGraphTests: XCTestCase {
             from: Data(contentsOf: URL(fileURLWithPath: result.manifestJSONPath))
         )
         XCTAssertEqual(decodedStatus, result.status)
-        XCTAssertEqual(decodedManifest, result.manifest)
+        XCTAssertTrue(decodedManifest.manifestHeld)
+        XCTAssertEqual(decodedManifest.runID, result.manifest.runID)
+        XCTAssertEqual(decodedManifest.writeOrder, result.manifest.writeOrder)
+        XCTAssertEqual(decodedManifest.artifactMetadataSchemaVersion, result.manifest.artifactMetadataSchemaVersion)
+        XCTAssertEqual(decodedManifest.artifacts.map(\.path), result.manifest.artifacts.map(\.path))
+        XCTAssertEqual(decodedManifest.artifacts.map(\.sha256), result.manifest.artifacts.map(\.sha256))
+        XCTAssertEqual(decodedManifest.artifacts.map(\.bytes), result.manifest.artifacts.map(\.bytes))
 
         let inspectedCompleted = try writer.inspectRun(runID: journal.paths.runID)
         XCTAssertEqual(inspectedCompleted.state, .completed)
@@ -8889,6 +8896,160 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(readinessScript.contains("GH-756-VERIFY-V060-LOCAL-RUN-JOURNAL-WRITER"))
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.6.0-run-journal-writer.sh"))
         XCTAssertTrue(writerScript.contains("testGH756LocalRunJournalWriterPersistsArtifactsAndClassifiesIncompleteRuns"))
+        XCTAssertFalse(source.contains("URLSession"))
+        XCTAssertFalse(source.contains("URLRequest"))
+        XCTAssertFalse(source.contains("api.binance.com"))
+        XCTAssertFalse(source.contains("fapi.binance.com"))
+        XCTAssertFalse(source.contains("submitOrder"))
+        XCTAssertFalse(source.contains("cancelOrder"))
+        XCTAssertFalse(source.contains("replaceOrder"))
+        XCTAssertFalse(source.contains("HMAC<"))
+    }
+
+    func testGH757RunManifestRecordsSha256BytesAndRejectsCorruptedArtifacts() async throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let databaseTarget = try packageTargetBlock(named: "Database", packageSource: packageSource)
+        let sourcePath = repositoryRoot.appendingPathComponent("Sources/Database/ReleaseV060LocalRunJournalWriter.swift")
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.6.0-run-manifest-checksum-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let manifestScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.6.0-run-manifest-checksum.sh"),
+            encoding: .utf8
+        )
+
+        func completedRun(
+            suffix: String
+        ) async throws -> (
+            writer: ReleaseV060LocalRunJournalWriter,
+            journal: ReleaseV050DurableLocalRunJournal,
+            result: ReleaseV060LocalRunJournalWriterResult
+        ) {
+            let storageRoot = FileManager.default.temporaryDirectory.appendingPathComponent(
+                "MTPRO-GH757-RunManifestChecksum-\(suffix)-\(UUID().uuidString)",
+                isDirectory: true
+            )
+            addTeardownBlock {
+                try? FileManager.default.removeItem(at: storageRoot)
+            }
+            let writer = ReleaseV060LocalRunJournalWriter(storageRootURL: storageRoot)
+            let journal = try await ReleaseV050DurableLocalRunJournalContract.deterministicJournal()
+            let result = try writer.writeCompletedRun(journal: journal)
+            return (writer, journal, result)
+        }
+
+        let completed = try await completedRun(suffix: "valid")
+        let validation = try completed.writer.validateRunManifest(runID: completed.journal.paths.runID)
+        XCTAssertTrue(validation.validationHeld)
+        XCTAssertEqual(validation.issueID.rawValue, "GH-757")
+        XCTAssertEqual(validation.checkedArtifactCount, 4)
+        XCTAssertEqual(validation.artifacts.map { URL(fileURLWithPath: $0.path).lastPathComponent }, [
+            "events.jsonl",
+            "projection.json",
+            "summary.json",
+            "_RUN_STATUS.json"
+        ])
+        for artifact in validation.artifacts {
+            XCTAssertTrue(artifact.required)
+            XCTAssertEqual(artifact.schemaVersion, ReleaseV060LocalRunJournalArtifactMetadata.schemaVersion)
+            XCTAssertTrue(artifact.sha256.hasPrefix("sha256:"))
+            XCTAssertEqual(artifact.bytes, try Data(contentsOf: URL(fileURLWithPath: artifact.path)).count)
+            XCTAssertTrue(FileManager.default.fileExists(atPath: artifact.path))
+        }
+        XCTAssertEqual(completed.result.manifest.artifactMetadataSchemaVersion, ReleaseV060LocalRunJournalArtifactMetadata.schemaVersion)
+        XCTAssertTrue(completed.result.manifest.artifacts.allSatisfy(\.metadataHeld))
+        XCTAssertEqual(completed.result.manifest.writeOrder.last, "manifest.json")
+        XCTAssertTrue(completed.result.manifest.manifestWrittenLast)
+
+        let missing = try await completedRun(suffix: "missing")
+        try FileManager.default.removeItem(at: URL(fileURLWithPath: missing.result.projectionJSONPath))
+        XCTAssertThrowsError(try missing.writer.validateRunManifest(runID: missing.journal.paths.runID)) { error in
+            guard let writerError = error as? ReleaseV060LocalRunJournalWriterError,
+                  case .missingArtifact = writerError else {
+                return XCTFail("missing artifact must fail validation, got \(error)")
+            }
+        }
+
+        let checksumMismatch = try await completedRun(suffix: "checksum")
+        let checksumURL = URL(fileURLWithPath: checksumMismatch.result.eventsJSONLPath)
+        var checksumData = try Data(contentsOf: checksumURL)
+        XCTAssertFalse(checksumData.isEmpty)
+        checksumData[0] = checksumData[0] ^ 0x01
+        try checksumData.write(to: checksumURL, options: .atomic)
+        XCTAssertThrowsError(try checksumMismatch.writer.validateRunManifest(runID: checksumMismatch.journal.paths.runID)) { error in
+            guard let writerError = error as? ReleaseV060LocalRunJournalWriterError,
+                  case .checksumMismatch = writerError else {
+                return XCTFail("same-length artifact corruption must fail checksum validation, got \(error)")
+            }
+        }
+
+        let byteMismatch = try await completedRun(suffix: "bytes")
+        let byteURL = URL(fileURLWithPath: byteMismatch.result.summaryJSONPath)
+        var appended = try Data(contentsOf: byteURL)
+        appended.append(0x0A)
+        try appended.write(to: byteURL, options: .atomic)
+        XCTAssertThrowsError(try byteMismatch.writer.validateRunManifest(runID: byteMismatch.journal.paths.runID)) { error in
+            guard let writerError = error as? ReleaseV060LocalRunJournalWriterError,
+                  case .byteCountMismatch = writerError else {
+                return XCTFail("byte-count drift must fail validation, got \(error)")
+            }
+        }
+
+        for anchor in [
+            "V060-003-RUN-MANIFEST-ARTIFACT-CHECKSUM",
+            "V060-003-REQUIRED-ARTIFACT-METADATA",
+            "V060-003-SHA256-BYTECOUNT-VALIDATION",
+            "V060-003-MISSING-CORRUPTED-ARTIFACT-REJECTION",
+            "V060-003-MANIFEST-FINAL-COMPLETION-MARKER",
+            "TVM-RELEASE-V060-RUN-MANIFEST-CHECKSUM"
+        ] {
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+        }
+
+        XCTAssertTrue(databaseTarget.contains(".product(name: \"Crypto\", package: \"swift-crypto\")"))
+        XCTAssertTrue(source.contains("import Crypto"))
+        XCTAssertTrue(source.contains("ReleaseV060LocalRunJournalArtifactMetadata"))
+        XCTAssertTrue(source.contains("ReleaseV060LocalRunJournalManifestValidation"))
+        XCTAssertTrue(source.contains("sha256"))
+        XCTAssertTrue(source.contains("bytes"))
+        XCTAssertTrue(source.contains("createdAt"))
+        XCTAssertTrue(source.contains("required"))
+        XCTAssertTrue(source.contains("validateRunManifest"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.6.0 run manifest checksum anchor"))
+        XCTAssertTrue(readinessScript.contains("GH-757-VERIFY-V060-RUN-MANIFEST-CHECKSUM"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.6.0-run-manifest-checksum.sh"))
+        XCTAssertTrue(manifestScript.contains("testGH757RunManifestRecordsSha256BytesAndRejectsCorruptedArtifacts"))
         XCTAssertFalse(source.contains("URLSession"))
         XCTAssertFalse(source.contains("URLRequest"))
         XCTAssertFalse(source.contains("api.binance.com"))
