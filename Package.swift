@@ -189,6 +189,7 @@ let package = Package(
                 "ReleaseV040PortfolioReplayProjection.swift",
                 "ReleaseV050PortfolioRunJournalProjection.swift",
                 "ReleaseV060PortfolioJournalProjectionRunner.swift",
+                "ReleaseV060RunDetailObserverSurface.swift",
                 "ReleaseV050RunObserverSurface.swift",
                 "ReleaseV040UnifiedRunSurface.swift",
                 "TargetGraph/PortfolioTargetBoundary.swift"
@@ -354,6 +355,7 @@ let package = Package(
                 "Portfolio/ReleaseV040PortfolioReplayProjection.swift",
                 "Portfolio/ReleaseV050PortfolioRunJournalProjection.swift",
                 "Portfolio/ReleaseV060PortfolioJournalProjectionRunner.swift",
+                "Portfolio/ReleaseV060RunDetailObserverSurface.swift",
                 "Portfolio/ReleaseV050RunObserverSurface.swift",
                 "Portfolio/ReleaseV040UnifiedRunSurface.swift",
                 "RiskEngine/LiveGate",

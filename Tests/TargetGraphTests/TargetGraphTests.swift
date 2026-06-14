@@ -9879,6 +9879,275 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH764DashboardCLIRunDetailObserverReadsArtifactBackedRunJournal() async throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let portfolioTarget = try packageTargetBlock(named: "Portfolio", packageSource: packageSource)
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        let sourcePath = repositoryRoot.appendingPathComponent("Sources/Portfolio/ReleaseV060RunDetailObserverSurface.swift")
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+        let dashboardSourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/Dashboard/Report/ReleaseV060DashboardRunDetailObserverSurface.swift"
+        )
+        let dashboardSource = try String(contentsOf: dashboardSourcePath, encoding: .utf8)
+        let cliSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/MTPROCLI/main.swift"),
+            encoding: .utf8
+        )
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.6.0-run-detail-observer-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let verifierScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.6.0-run-detail-observer.sh"),
+            encoding: .utf8
+        )
+        let cliVerificationScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.5.0-cli.sh"),
+            encoding: .utf8
+        )
+
+        let storageRoot = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "MTPRO-GH764-RunDetailObserver-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        let portfolioStorageRoot = storageRoot.appendingPathComponent("portfolio", isDirectory: true)
+        let gapStorageRoot = storageRoot.appendingPathComponent("gap", isDirectory: true)
+        let corruptStorageRoot = storageRoot.appendingPathComponent("corrupt", isDirectory: true)
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: storageRoot)
+        }
+
+        func makeProjectionResult(
+            dataStorageRoot: URL,
+            portfolioRoot: URL
+        ) async throws -> ReleaseV060PortfolioJournalProjectionRunnerResult {
+            let dataEngineResult = try await ReleaseV060DataEngineLocalDryRunRunner.deterministicEvidence(
+                storageRootURL: dataStorageRoot
+            )
+            let strategyResult = try await ReleaseV060StrategyRuntimeRunner.deterministicEvidence(
+                dataEngineEnvelopes: dataEngineResult.journal.records.map(\.envelope)
+            )
+            let riskResult = try await ReleaseV060RiskEngineRuntimeRunner.deterministicEvidence(
+                upstreamJournalEnvelopes: strategyResult.journalCompatibleEnvelopes
+            )
+            let executionResult = try await ReleaseV060ExecutionOMSDryRunRunner.deterministicEvidence(
+                sourceRiskResult: riskResult
+            )
+            var journal = try ReleaseV050DurableLocalRunJournal(runID: executionResult.runID)
+            for envelope in executionResult.journalCompatibleEnvelopes {
+                try journal.append(envelope: envelope)
+            }
+            return try ReleaseV060PortfolioJournalProjectionRunner.deterministicEvidence(
+                journal: journal,
+                storageRootURL: portfolioRoot
+            )
+        }
+
+        let contract = try ReleaseV060RunDetailObserverContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertTrue(contract.productionDefaultsClosed)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-764")
+        XCTAssertEqual(contract.upstreamIssueIDs.map(\.rawValue), [
+            "GH-756",
+            "GH-757",
+            "GH-759",
+            "GH-760",
+            "GH-761",
+            "GH-762",
+            "GH-763"
+        ])
+        XCTAssertEqual(contract.previousIssueID.rawValue, "GH-763")
+        XCTAssertEqual(contract.downstreamIssueIDs.map(\.rawValue), ["GH-766"])
+
+        let projectionResult = try await makeProjectionResult(
+            dataStorageRoot: storageRoot.appendingPathComponent("data", isDirectory: true),
+            portfolioRoot: portfolioStorageRoot
+        )
+        let observer = ReleaseV060RunDetailObserverSurface(storageRootURL: portfolioStorageRoot)
+        let evidence = try observer.observe(runID: projectionResult.runID)
+        let viewModel = ReleaseV060DashboardRunDetailObserverViewModel(evidence: evidence)
+        let healthyState = try ReleaseV060RunDetailObserverSurface.readModelState(
+            storageRootURL: portfolioStorageRoot,
+            runID: projectionResult.runID
+        )
+
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.observerBoundaryHeld)
+        XCTAssertTrue(evidence.forbiddenBoundaryHeld)
+        XCTAssertEqual(evidence.selectedRunID, projectionResult.runID)
+        XCTAssertEqual(evidence.observedRunIDs, [projectionResult.runID])
+        XCTAssertEqual(evidence.writerStatus, projectionResult.writerResult.status)
+        XCTAssertEqual(evidence.manifestValidation, projectionResult.manifestValidation)
+        XCTAssertEqual(evidence.manifestArtifactPaths, projectionResult.manifestValidation.artifacts.map(\.path))
+        XCTAssertEqual(evidence.reconstructedJournal, projectionResult.sourceJournal)
+        XCTAssertEqual(evidence.decodedProjectionEvidence, projectionResult.projectionEvidence)
+        XCTAssertEqual(evidence.rebuiltProjectionEvidence, projectionResult.projectionEvidence)
+        XCTAssertEqual(evidence.sectionRecords.map(\.section), ReleaseV060RunDetailObserverSection.allCases)
+        XCTAssertEqual(evidence.cliCommands, ReleaseV060RunDetailObserverCommand.allCases)
+        XCTAssertTrue(evidence.riskDecisions.contains(.allowed))
+        XCTAssertTrue(evidence.riskDecisions.contains(.rejected))
+        XCTAssertTrue(evidence.riskDecisions.contains(.blocked))
+        XCTAssertTrue(evidence.omsStates.contains(.simulatedFilled))
+        XCTAssertTrue(evidence.payloadTypes.contains(.portfolioProjectionEvent))
+        XCTAssertTrue(evidence.dashboardReadsSameManifestAsCLI)
+        XCTAssertTrue(evidence.manifestValidatedBeforeHealthyState)
+        XCTAssertTrue(evidence.missingOrCorruptArtifactShownAsGap)
+        XCTAssertFalse(evidence.tradingButtonExposed)
+        XCTAssertFalse(evidence.orderFormExposed)
+        XCTAssertFalse(evidence.liveCommandSurfaceExposed)
+        XCTAssertFalse(evidence.brokerExecutionWriteEnabled)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionEndpointConnected)
+        XCTAssertFalse(evidence.productionSecretAutoReadEnabled)
+        XCTAssertFalse(evidence.productionOrderSubmitted)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+
+        XCTAssertTrue(viewModel.dashboardSurfaceBoundaryHeld)
+        XCTAssertTrue(viewModel.readModelOnly)
+        XCTAssertFalse(viewModel.commandSurfaceVisible)
+        XCTAssertFalse(viewModel.commandSurfaceEnabled)
+        XCTAssertFalse(viewModel.providesTradingButton)
+        XCTAssertFalse(viewModel.exposesOrderForm)
+        XCTAssertEqual(viewModel.runID, projectionResult.runID.rawValue)
+        XCTAssertEqual(viewModel.sectionLabels, ReleaseV060RunDetailObserverSection.allCases.map(\.rawValue))
+        XCTAssertTrue(healthyState.stateHeld)
+        XCTAssertTrue(healthyState.healthy)
+        XCTAssertEqual(healthyState.artifactHealth, .healthy)
+
+        let listOutput = try ReleaseV060RunDetailObserverSurface.commandLineOutput(
+            arguments: ["run-detail-observer", "list"],
+            storageRootURL: portfolioStorageRoot
+        )
+        let statusOutput = try ReleaseV060RunDetailObserverSurface.commandLineOutput(
+            arguments: ["run-detail-observer", "status", projectionResult.runID.rawValue],
+            storageRootURL: portfolioStorageRoot
+        )
+        let eventsOutput = try ReleaseV060RunDetailObserverSurface.commandLineOutput(
+            arguments: ["run-detail-observer", "events", projectionResult.runID.rawValue],
+            storageRootURL: portfolioStorageRoot
+        )
+        let projectionOutput = try ReleaseV060RunDetailObserverSurface.commandLineOutput(
+            arguments: ["run-detail-observer", "projection", projectionResult.runID.rawValue],
+            storageRootURL: portfolioStorageRoot
+        )
+        let riskOutput = try ReleaseV060RunDetailObserverSurface.commandLineOutput(
+            arguments: ["run-detail-observer", "risk", projectionResult.runID.rawValue],
+            storageRootURL: portfolioStorageRoot
+        )
+        XCTAssertTrue(listOutput.contains("mtpro run-detail-observer list blocked"))
+        XCTAssertTrue(listOutput.contains("issue=GH-764"))
+        XCTAssertTrue(listOutput.contains("runIDs=\(projectionResult.runID.rawValue)"))
+        XCTAssertTrue(statusOutput.contains("mtpro run-detail-observer status blocked"))
+        XCTAssertTrue(statusOutput.contains("dashboardReadsSameManifestAsCLI=true"))
+        XCTAssertTrue(statusOutput.contains("commandSurfaceEnabled=false"))
+        XCTAssertTrue(eventsOutput.contains("eventCount=27"))
+        XCTAssertTrue(eventsOutput.contains("manifestArtifactCount=4"))
+        XCTAssertTrue(projectionOutput.contains("projectionRebuiltFromEventsJSONL=true"))
+        XCTAssertTrue(riskOutput.contains("riskDecisions=allowed,rejected,blocked"))
+        XCTAssertTrue(riskOutput.contains("brokerExecutionWriteEnabled=false"))
+
+        let gapResult = try await makeProjectionResult(
+            dataStorageRoot: storageRoot.appendingPathComponent("gap-data", isDirectory: true),
+            portfolioRoot: gapStorageRoot
+        )
+        try FileManager.default.removeItem(at: URL(fileURLWithPath: gapResult.projectionJSONPath))
+        let gapState = try ReleaseV060RunDetailObserverSurface.readModelState(
+            storageRootURL: gapStorageRoot,
+            runID: gapResult.runID
+        )
+        XCTAssertTrue(gapState.stateHeld)
+        XCTAssertFalse(gapState.healthy)
+        XCTAssertEqual(gapState.artifactHealth, .gap)
+
+        let corruptResult = try await makeProjectionResult(
+            dataStorageRoot: storageRoot.appendingPathComponent("corrupt-data", isDirectory: true),
+            portfolioRoot: corruptStorageRoot
+        )
+        try "corrupted projection artifact".write(
+            to: URL(fileURLWithPath: corruptResult.projectionJSONPath),
+            atomically: true,
+            encoding: .utf8
+        )
+        let corruptState = try ReleaseV060RunDetailObserverSurface.readModelState(
+            storageRootURL: corruptStorageRoot,
+            runID: corruptResult.runID
+        )
+        XCTAssertTrue(corruptState.stateHeld)
+        XCTAssertFalse(corruptState.healthy)
+        XCTAssertEqual(corruptState.artifactHealth, .error)
+
+        for anchor in ReleaseV060RunDetailObserverEvidence.requiredValidationAnchors {
+            XCTAssertTrue(contract.validationAnchors.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+        }
+
+        XCTAssertTrue(portfolioTarget.contains("\"ReleaseV060RunDetailObserverSurface.swift\""))
+        XCTAssertTrue(coreTarget.contains("\"Portfolio/ReleaseV060RunDetailObserverSurface.swift\""))
+        XCTAssertTrue(source.contains("ReleaseV060RunDetailObserverSurface"))
+        XCTAssertTrue(source.contains("validateRunManifest"))
+        XCTAssertTrue(source.contains("events.jsonl"))
+        XCTAssertTrue(source.contains("projection.json"))
+        XCTAssertTrue(source.contains("manifest.json"))
+        XCTAssertTrue(source.contains("run-detail-observer"))
+        XCTAssertTrue(dashboardSource.contains("ReleaseV060DashboardRunDetailObserverViewModel"))
+        XCTAssertTrue(dashboardSource.contains("commandSurfaceEnabled = false"))
+        XCTAssertTrue(cliSource.contains("ReleaseV060RunDetailObserverSurface.cliCommand"))
+        XCTAssertTrue(cliSource.contains("ReleaseV060RunDetailObserverSurface.commandLineOutput"))
+        XCTAssertTrue(cliVerificationScript.contains("run-detail-observer"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.6.0 Dashboard / CLI run detail observer anchor"))
+        XCTAssertTrue(readinessScript.contains("GH-764-VERIFY-V060-RUN-DETAIL-OBSERVER"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.6.0-run-detail-observer.sh"))
+        XCTAssertTrue(
+            verifierScript.contains("testGH764DashboardCLIRunDetailObserverReadsArtifactBackedRunJournal")
+        )
+
+        for forbidden in [
+            "URLSession",
+            "URLRequest",
+            "api.binance.com",
+            "fapi.binance.com",
+            "/api/v3/account",
+            "/api/v3/order",
+            "/api/v3/userDataStream",
+            "listenKey",
+            "submitOrder",
+            "cancelOrder",
+            "replaceOrder",
+            "HMAC<"
+        ] {
+            XCTAssertFalse(source.contains(forbidden), "GH-764 source must not contain \(forbidden)")
+        }
+    }
+
     func testGH756LocalRunJournalWriterPersistsArtifactsAndClassifiesIncompleteRuns() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
