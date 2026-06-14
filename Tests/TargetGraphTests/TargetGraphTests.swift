@@ -8233,6 +8233,201 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH730TypedRuntimeMessageBusActorPublishesAuditableEnvelopes() async throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let messageBusTarget = try packageTargetBlock(named: "MessageBus", packageSource: packageSource)
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        let sourcePath = repositoryRoot.appendingPathComponent("Sources/MessageBus/RuntimeMessageBus.swift")
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.5.0-typed-runtime-messagebus-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let messageBusScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.5.0-messagebus.sh"),
+            encoding: .utf8
+        )
+
+        let contract = try ReleaseV050RuntimeMessageBusContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-730")
+        XCTAssertEqual(contract.upstreamIssueID.rawValue, "GH-726")
+        XCTAssertEqual(contract.previousIssueID.rawValue, "GH-729")
+        XCTAssertEqual(contract.downstreamIssueIDs.map(\.rawValue), ["GH-731", "GH-732", "GH-734", "GH-739"])
+        XCTAssertEqual(contract.requiredPayloadTypes, RuntimeEventPayloadType.allCases)
+        XCTAssertEqual(
+            contract.actorIsolationExpectation,
+            ReleaseV050RuntimeMessageBusContract.requiredActorIsolationExpectation
+        )
+        XCTAssertTrue(contract.productionDefaultsClosed)
+        XCTAssertFalse(contract.productionTradingEnabledByDefault)
+        XCTAssertFalse(contract.productionSecretAutoReadEnabled)
+        XCTAssertFalse(contract.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(contract.productionBrokerConnectionEnabled)
+        XCTAssertFalse(contract.productionOrderSubmissionEnabled)
+        XCTAssertFalse(contract.productionCutoverAuthorized)
+
+        let runID = Identifier.constant("gh-730-v050-runtime-run")
+        let streamID = try MessageBusJournalStreamID("gh-730-v050-runtime-stream")
+        let correlationID = Identifier.constant("gh-730-v050-correlation")
+        let baseDate = Date(timeIntervalSince1970: 730)
+        let payloads = try ReleaseV050RuntimeMessageBusContract.deterministicPayloads()
+        let bus = try RuntimeMessageBus<ReleaseV050RuntimeEventPayload>()
+        var envelopes: [RuntimeEventEnvelope<ReleaseV050RuntimeEventPayload>] = []
+        var previousEventID: Identifier?
+        for (index, payload) in payloads.enumerated() {
+            let envelope = try await bus.publish(
+                runID: runID,
+                streamID: streamID,
+                correlationID: correlationID,
+                causationID: previousEventID,
+                sourceModule: payload.sourceModule,
+                payloadType: payload.payloadType,
+                payload: payload,
+                recordedAt: baseDate.addingTimeInterval(TimeInterval(index)),
+                eventID: .constant("gh-730-test-event-\(index + 1)", field: "runtimeEventID")
+            )
+            XCTAssertEqual(envelope.sequence, index + 1)
+            XCTAssertEqual(envelope.runID, runID)
+            XCTAssertEqual(envelope.streamID, streamID)
+            XCTAssertEqual(envelope.correlationID, correlationID)
+            XCTAssertEqual(envelope.causationID, previousEventID)
+            XCTAssertEqual(envelope.sourceModule, payload.sourceModule)
+            XCTAssertEqual(envelope.payloadType, payload.payloadType)
+            XCTAssertFalse(envelope.checksum.isEmpty)
+            previousEventID = envelope.eventID
+            envelopes.append(envelope)
+        }
+
+        let snapshot = await bus.snapshot()
+        let replay = await bus.replay(runID: runID, streamID: streamID)
+        let deterministicEnvelopes = try await ReleaseV050RuntimeMessageBusContract.deterministicEnvelopes()
+        XCTAssertEqual(snapshot, envelopes)
+        XCTAssertEqual(replay, envelopes)
+        XCTAssertEqual(envelopes.map(\.payloadType), RuntimeEventPayloadType.allCases)
+        XCTAssertEqual(envelopes.map(\.sourceModule), RuntimeEventPayloadType.allCases.map(\.sourceModule))
+        XCTAssertEqual(envelopes.dropFirst().compactMap(\.causationID), envelopes.dropLast().map(\.eventID))
+        XCTAssertEqual(Set(envelopes.map(\.checksum)).count, envelopes.count)
+        XCTAssertEqual(deterministicEnvelopes.map(\.payloadType), RuntimeEventPayloadType.allCases)
+        XCTAssertEqual(deterministicEnvelopes.dropFirst().compactMap(\.causationID), deterministicEnvelopes.dropLast().map(\.eventID))
+
+        let expectedChecksum = try RuntimeEventEnvelope<ReleaseV050RuntimeEventPayload>.makeChecksum(
+            eventID: envelopes[0].eventID,
+            runID: envelopes[0].runID,
+            sequence: envelopes[0].sequence,
+            streamID: envelopes[0].streamID,
+            correlationID: envelopes[0].correlationID,
+            causationID: envelopes[0].causationID,
+            sourceModule: envelopes[0].sourceModule,
+            payloadType: envelopes[0].payloadType,
+            payload: envelopes[0].payload,
+            recordedAt: envelopes[0].recordedAt
+        )
+        XCTAssertEqual(envelopes[0].checksum, expectedChecksum)
+
+        XCTAssertThrowsError(
+            try RuntimeEventEnvelope(
+                eventID: .constant("gh-730-bad-source"),
+                runID: runID,
+                sequence: 1,
+                streamID: streamID,
+                correlationID: correlationID,
+                causationID: nil,
+                sourceModule: .dashboard,
+                payloadType: .dataEngineMarketEvent,
+                payload: payloads[0],
+                recordedAt: baseDate
+            )
+        )
+        XCTAssertThrowsError(
+            try RuntimeEventEnvelope(
+                eventID: .constant("gh-730-bad-checksum"),
+                runID: runID,
+                sequence: 1,
+                streamID: streamID,
+                correlationID: correlationID,
+                causationID: nil,
+                sourceModule: payloads[0].sourceModule,
+                payloadType: payloads[0].payloadType,
+                payload: payloads[0],
+                recordedAt: baseDate,
+                checksum: "bad-checksum"
+            )
+        )
+        let badSequenceEnvelope = try RuntimeEventEnvelope(
+            eventID: .constant("gh-730-bad-sequence"),
+            runID: runID,
+            sequence: 3,
+            streamID: streamID,
+            correlationID: correlationID,
+            causationID: nil,
+            sourceModule: payloads[0].sourceModule,
+            payloadType: payloads[0].payloadType,
+            payload: payloads[0],
+            recordedAt: baseDate
+        )
+        XCTAssertThrowsError(try RuntimeMessageBus<ReleaseV050RuntimeEventPayload>(envelopes: [badSequenceEnvelope]))
+
+        for anchor in ReleaseV050RuntimeMessageBusContract.requiredValidationAnchors {
+            XCTAssertTrue(contract.validationAnchors.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+        }
+
+        XCTAssertTrue(messageBusTarget.contains("\"RuntimeMessageBus.swift\""))
+        XCTAssertTrue(coreTarget.contains("\"MessageBus/RuntimeMessageBus.swift\""))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: sourcePath.path))
+        XCTAssertTrue(source.contains("public actor RuntimeMessageBus"))
+        XCTAssertTrue(source.contains("RuntimeEventEnvelope<Payload"))
+        XCTAssertTrue(source.contains("DataEngineMarketEvent"))
+        XCTAssertTrue(source.contains("StrategyIntentEvent"))
+        XCTAssertTrue(source.contains("RiskDecisionEvent"))
+        XCTAssertTrue(source.contains("OMSLifecycleEvent"))
+        XCTAssertTrue(source.contains("ExecutionClientDryRunEvent"))
+        XCTAssertTrue(source.contains("PortfolioProjectionEvent"))
+        XCTAssertTrue(source.contains("DashboardReadModelEvent"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.5.0 typed RuntimeMessageBus anchor"))
+        XCTAssertTrue(readinessScript.contains("RuntimeMessageBus.swift"))
+        XCTAssertTrue(readinessScript.contains("testGH730TypedRuntimeMessageBusActorPublishesAuditableEnvelopes"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.5.0-messagebus.sh"))
+        XCTAssertTrue(messageBusScript.contains("GH-730-VERIFY-V050-TYPED-RUNTIME-MESSAGEBUS"))
+        XCTAssertTrue(messageBusScript.contains("testGH730TypedRuntimeMessageBusActorPublishesAuditableEnvelopes"))
+        XCTAssertFalse(source.contains("URLSession"))
+        XCTAssertFalse(source.contains("URLRequest"))
+        XCTAssertFalse(source.contains("submitOrder"))
+        XCTAssertFalse(source.contains("cancelOrder"))
+        XCTAssertFalse(source.contains("replaceOrder"))
+        XCTAssertFalse(source.contains("HMAC<"))
+    }
+
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
