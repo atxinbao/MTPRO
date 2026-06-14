@@ -132,6 +132,7 @@ let package = Package(
                 "Binance/PublicMarketData/BinanceMarketDataReplayParity.swift",
                 "Binance/PrivateStream/BinancePrivateStreamAccountSnapshotRuntime.swift",
                 "Binance/SignedAccount/BinanceSignedAccountReadRuntime.swift",
+                "Binance/TestnetReadOnlyProbe/ReleaseV060TestnetReadOnlyProbe.swift",
                 "DataClientReadOnlyMarketDataSource.swift",
                 "TargetGraph/DataClientTargetBoundary.swift"
             ]
@@ -486,7 +487,7 @@ let package = Package(
         ),
         .executableTarget(
             name: "MTPROCLI",
-            dependencies: ["Database", "Portfolio"],
+            dependencies: ["Database", "DataClient", "Portfolio"],
             path: "Sources/MTPROCLI",
             sources: [
                 "main.swift"

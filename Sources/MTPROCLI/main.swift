@@ -1,4 +1,5 @@
 import Database
+import DataClient
 import Foundation
 import Portfolio
 
@@ -29,7 +30,8 @@ private enum MTPROCLIParserError: Error, CustomStringConvertible, Equatable {
 /// MTPROStrictCLI 固定 GH-727 的严格命令路由。
 ///
 /// 新 v0.5.0 shape 只暴露 `help`、`run`、`status`、`verify` 四类入口；历史
-/// `rehearsal-status`、`unified-run-status`、`run-observer`、`run-detail-observer`、`verify-fast`、`verify-release` 仍可被显式调用。
+/// `rehearsal-status`、`unified-run-status`、`run-observer`、`run-detail-observer`、
+/// `testnet-readonly-probe`、`verify-fast`、`verify-release` 仍可被显式调用。
 /// 任何其他命令必须在这里失败，不得 fallback 到旧 release surface。
 private enum MTPROStrictCLI {
     static let validationAnchor = "TVM-RELEASE-V050-STRICT-CLI-COMMAND-PARSER"
@@ -42,6 +44,7 @@ private enum MTPROStrictCLI {
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
         ReleaseV060RunDetailObserverSurface.cliCommand,
+        ReleaseV060TestnetReadOnlyProbe.cliCommand,
         "verify-fast",
         "verify-release"
     ]
@@ -71,6 +74,8 @@ private enum MTPROStrictCLI {
             return try await ReleaseV050RunObserverSurface.commandLineOutput(arguments: arguments)
         case ReleaseV060RunDetailObserverSurface.cliCommand:
             return try ReleaseV060RunDetailObserverSurface.commandLineOutput(arguments: arguments)
+        case ReleaseV060TestnetReadOnlyProbe.cliCommand:
+            return try await ReleaseV060TestnetReadOnlyProbe.commandLineOutput(arguments: arguments)
         case "verify-fast", "verify-release":
             return try ReleaseV020CLIProductSurface.commandLineOutput(arguments: arguments)
         default:
