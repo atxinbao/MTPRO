@@ -3318,6 +3318,17 @@ swift test
 - duplicate eventID 必须在已有 log 和同批 input 中都 fail-closed。
 - partial line 必须在下一次 append 前 deterministic truncate 到最后一个完整 newline；完整但 corrupt 的 line 必须验证失败。
 - 验证只覆盖 local append-only evidence，不实现 distributed log、broker event ingestion、production persistence cutover，不连接 production endpoint / broker，不读取 production secret，不发送真实 order，不授权 production cutover。
+
+## GH-785 Release v0.7.0 Run Registry / Supervisor Validation
+
+- GH-785-VERIFY-V070-RUN-REGISTRY-SUPERVISOR
+- TVM-RELEASE-V070-RUN-REGISTRY-SUPERVISOR
+- `bash checks/verify-v0.7.0-run-registry-supervisor.sh`
+- `testGH785RunRegistrySupervisorProvidesLocalNoOrderRunManagement`
+- RunRegistry 必须提供 deterministic `runs list` / inspect 数据源，且记录 local artifact locations。
+- RunSupervisor 必须只暴露 local registry state 给 observer / CLI，不启动 remote scheduler 或 concurrent production runtime。
+- archive / recover 必须是本地 metadata / recovery evidence 语义；archived run 不允许继续 mutate。
+- registry / supervisor 不能把 production trading 标记为 authorized，不能读取 production secret，不能连接 production endpoint / broker，不能发送真实 order，不能授权 production cutover。
 - GH-766 Release v0.6.0 Final Audit Root Docs Validation
 - GH-766-RELEASE-V060-FINAL-AUDIT-ROOT-DOCS
 - GH-766-VERIFY-V060-FINAL-AUDIT-ROOT-DOCS

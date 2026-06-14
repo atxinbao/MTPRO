@@ -1345,3 +1345,12 @@
 - recovery evidence: deterministic partial-line truncation before append, corrupt complete line validation failure
 - duplicate evidence: duplicate eventID rejected from existing journal and same append batch
 - forbidden scope: no distributed log service, no broker event ingestion, no production persistence cutover, no production endpoint / broker connection, no production secret read, no real order, no production cutover
+- TVM-RELEASE-V070-RUN-REGISTRY-SUPERVISOR
+- GH-785-VERIFY-V070-RUN-REGISTRY-SUPERVISOR
+- GH-785 Release v0.7.0 Run Registry / Supervisor Validation
+- testGH785RunRegistrySupervisorProvidesLocalNoOrderRunManagement
+- deterministic registry source: `runs list` / inspect read from local-run-registry-metadata
+- state management: archive and recover mutate local metadata only; archived run rejects further mutation
+- artifact locations: registry entries expose `.local/mtpro/runs/<runID>/events.jsonl`、projection、summary、status、manifest paths
+- CLI observer preparation: `mtpro run/status` use local registry-ready / local-run-registry-state wording
+- forbidden scope: no remote run service, no production scheduler, no concurrent production runtime, no production trading authorization, no production endpoint / broker connection, no production secret read, no real order, no production cutover

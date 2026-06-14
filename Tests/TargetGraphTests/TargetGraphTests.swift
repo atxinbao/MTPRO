@@ -21072,6 +21072,177 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(source.contains("HMAC<"))
     }
 
+    func testGH785RunRegistrySupervisorProvidesLocalNoOrderRunManagement() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        let source = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/ExecutionClient/FutureGate/ReleaseV070OperationalRunSession.swift"
+            ),
+            encoding: .utf8
+        )
+        let cliSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/MTPROCLI/main.swift"),
+            encoding: .utf8
+        )
+        let verificationScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.7.0-run-registry-supervisor.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+
+        var registry = try ReleaseV070RunRegistry.deterministicFixture()
+        XCTAssertTrue(registry.registryHeld)
+        let list = registry.listRuns()
+        XCTAssertTrue(list.listHeld)
+        XCTAssertEqual(list.deterministicDataSource, "local-run-registry-metadata")
+        XCTAssertEqual(list.entries.map(\.runID.rawValue), ["gh-785-run-alpha", "gh-785-run-beta"])
+        XCTAssertFalse(list.productionTradingAuthorized)
+
+        let inspected = try registry.inspect(runID: Identifier.constant("gh-785-run-alpha"))
+        XCTAssertTrue(inspected.entryHeld)
+        XCTAssertEqual(inspected.lifecycle, .active)
+        XCTAssertEqual(inspected.sessionState, .running)
+        XCTAssertEqual(inspected.artifactLocation.eventsJSONLPath, ".local/mtpro/runs/gh-785-run-alpha/events.jsonl")
+        XCTAssertFalse(inspected.productionTradingAuthorized)
+        XCTAssertFalse(inspected.productionSecretRead)
+        XCTAssertFalse(inspected.productionEndpointConnected)
+        XCTAssertFalse(inspected.productionBrokerConnected)
+        XCTAssertFalse(inspected.productionOrderSubmitted)
+        XCTAssertFalse(inspected.productionCutoverAuthorized)
+
+        let archived = try registry.archive(runID: Identifier.constant("gh-785-run-alpha"))
+        XCTAssertEqual(archived.lifecycle, .archived)
+        XCTAssertTrue(archived.archived)
+        XCTAssertThrowsError(try registry.archive(runID: Identifier.constant("gh-785-run-alpha"))) { error in
+            XCTAssertEqual(error as? ReleaseV070RunRegistryError, .cannotMutateArchivedRun("gh-785-run-alpha"))
+        }
+
+        let recovered = try registry.recover(
+            runID: Identifier.constant("gh-785-run-beta"),
+            reason: "runtime-append-recovery-evidence"
+        )
+        XCTAssertEqual(recovered.lifecycle, .recoveryEvidence)
+        XCTAssertEqual(recovered.sessionState, .recovered)
+        XCTAssertTrue(recovered.recoverable)
+        XCTAssertEqual(recovered.recoveryReason, "runtime-append-recovery-evidence")
+        XCTAssertThrowsError(try registry.inspect(runID: Identifier.constant("gh-785-missing-run"))) { error in
+            XCTAssertEqual(error as? ReleaseV070RunRegistryError, .missingRunID("gh-785-missing-run"))
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV070RunRegistry(
+                entries: [
+                    ReleaseV070RunRegistryEntry(
+                        runID: Identifier.constant("gh-785-duplicate"),
+                        lifecycle: .active,
+                        sessionState: .running
+                    ),
+                    ReleaseV070RunRegistryEntry(
+                        runID: Identifier.constant("gh-785-duplicate"),
+                        lifecycle: .recoveryEvidence,
+                        sessionState: .recovered
+                    )
+                ]
+            )
+        ) { error in
+            XCTAssertEqual(error as? ReleaseV070RunRegistryError, .duplicateRunID("gh-785-duplicate"))
+        }
+        XCTAssertThrowsError(
+            try ReleaseV070RunRegistryEntry(
+                runID: Identifier.constant("gh-785-production-drift"),
+                lifecycle: .active,
+                sessionState: .running,
+                productionTradingAuthorized: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? ReleaseV070RunRegistryError, .productionBoundaryDrift("registryEntry"))
+        }
+
+        var supervisor = try ReleaseV070RunSupervisor.deterministicFixture()
+        XCTAssertTrue(supervisor.supervisorHeld)
+        XCTAssertEqual(supervisor.observerSource, "local-run-registry-state")
+        XCTAssertEqual(supervisor.cliSource, "runs-list-inspect-local-registry")
+        XCTAssertEqual(try supervisor.inspect(runID: Identifier.constant("gh-785-run-alpha")).sessionState, .running)
+        XCTAssertEqual(
+            try supervisor.recover(runID: Identifier.constant("gh-785-run-beta"), reason: "operator-local-recovery").lifecycle,
+            .recoveryEvidence
+        )
+        XCTAssertEqual(
+            try supervisor.archive(runID: Identifier.constant("gh-785-run-alpha")).lifecycle,
+            .archived
+        )
+        XCTAssertFalse(supervisor.runsListSurface().productionTradingAuthorized)
+        XCTAssertThrowsError(
+            try ReleaseV070RunSupervisor(
+                registry: .deterministicFixture(),
+                productionTradingAuthorized: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? ReleaseV070RunRegistryError, .productionBoundaryDrift("runSupervisor"))
+        }
+
+        for anchor in [
+            "GH-785-VERIFY-V070-RUN-REGISTRY-SUPERVISOR",
+            "TVM-RELEASE-V070-RUN-REGISTRY-SUPERVISOR",
+            "GH-785 Release v0.7.0 Run Registry / Supervisor Validation",
+            "Release v0.7.0 run registry supervisor anchor"
+        ] {
+            XCTAssertTrue(
+                [verificationScript, validationPlan, tradingMatrix, automationReadiness, readinessScript].contains {
+                    $0.contains(anchor)
+                },
+                "\(anchor) must be anchored by the GH-785 verification chain"
+            )
+        }
+
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(source.contains("ReleaseV070RunRegistry"))
+        XCTAssertTrue(source.contains("ReleaseV070RunSupervisor"))
+        XCTAssertTrue(source.contains("ReleaseV070RunRegistryEntry"))
+        XCTAssertTrue(source.contains("ReleaseV070RunArtifactLocation"))
+        XCTAssertTrue(source.contains("listRuns"))
+        XCTAssertTrue(source.contains("inspect(runID:"))
+        XCTAssertTrue(source.contains("archive(runID:"))
+        XCTAssertTrue(source.contains("recover(runID:"))
+        XCTAssertTrue(source.contains("productionTradingAuthorized == false"))
+        XCTAssertTrue(cliSource.contains("runRegistryState=local-run-registry-ready"))
+        XCTAssertTrue(cliSource.contains("runsListSource=local-run-registry-metadata"))
+        XCTAssertTrue(cliSource.contains("runsInspectSource=local-run-registry-metadata"))
+        XCTAssertTrue(cliSource.contains("sessionRegistrySource=local-run-registry-state"))
+        XCTAssertTrue(cliSource.contains("recoverySemantics=local-evidence-only"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.7.0-run-registry-supervisor.sh"))
+        XCTAssertFalse(source.contains("URLSession"))
+        XCTAssertFalse(source.contains("URLRequest"))
+        XCTAssertFalse(source.contains("submitOrder"))
+        XCTAssertFalse(source.contains("cancelOrder"))
+        XCTAssertFalse(source.contains("replaceOrder"))
+        XCTAssertFalse(source.contains("HMAC<"))
+    }
+
     func testGH526BinancePrivateStreamAccountSnapshotRuntimeMapsEventsWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
