@@ -382,3 +382,345 @@ public struct ReleaseV070OperationalRunSession: Codable, Equatable, Sendable {
         }
     }
 }
+
+/// ReleaseV070RunRegistryError 描述 GH-785 本地 run registry / supervisor 错误。
+///
+/// 该错误只覆盖 local registry metadata、list / inspect / archive / recover 语义和
+/// no-order supervisor evidence；不表达远程 run service、production scheduler、
+/// concurrent production runtime 或真实订单能力。
+public enum ReleaseV070RunRegistryError: Error, Equatable, Sendable, CustomStringConvertible {
+    case emptyRunID
+    case duplicateRunID(String)
+    case missingRunID(String)
+    case cannotMutateArchivedRun(String)
+    case productionBoundaryDrift(String)
+
+    public var description: String {
+        switch self {
+        case .emptyRunID:
+            "Release v0.7.0 run registry requires a non-empty runID"
+        case let .duplicateRunID(runID):
+            "Release v0.7.0 run registry rejects duplicate runID \(runID)"
+        case let .missingRunID(runID):
+            "Release v0.7.0 run registry cannot find runID \(runID)"
+        case let .cannotMutateArchivedRun(runID):
+            "Release v0.7.0 run registry rejects archived run mutation for \(runID)"
+        case let .productionBoundaryDrift(field):
+            "Release v0.7.0 run registry boundary drift: \(field)"
+        }
+    }
+}
+
+/// ReleaseV070RunRegistryLifecycle 固定 GH-785 registry entry 可见 lifecycle。
+public enum ReleaseV070RunRegistryLifecycle: String, Codable, CaseIterable, Equatable, Sendable {
+    case active
+    case archived
+    case recoveryEvidence
+}
+
+/// ReleaseV070RunArtifactLocation 是 GH-785 registry 保存的本地 artifact path 视图。
+public struct ReleaseV070RunArtifactLocation: Codable, Equatable, Sendable {
+    public let runDirectoryPath: String
+    public let eventsJSONLPath: String
+    public let projectionJSONPath: String
+    public let summaryJSONPath: String
+    public let statusJSONPath: String
+    public let manifestJSONPath: String
+
+    public var locationHeld: Bool {
+        runDirectoryPath.isEmpty == false
+            && eventsJSONLPath.hasSuffix("events.jsonl")
+            && projectionJSONPath.hasSuffix("projection.json")
+            && summaryJSONPath.hasSuffix("summary.json")
+            && statusJSONPath.hasSuffix("_RUN_STATUS.json")
+            && manifestJSONPath.hasSuffix("manifest.json")
+    }
+
+    public init(runID: Identifier) throws {
+        guard runID.rawValue.isEmpty == false else {
+            throw ReleaseV070RunRegistryError.emptyRunID
+        }
+        let root = ".local/mtpro/runs/\(runID.rawValue)"
+        self.runDirectoryPath = root
+        self.eventsJSONLPath = "\(root)/events.jsonl"
+        self.projectionJSONPath = "\(root)/projection.json"
+        self.summaryJSONPath = "\(root)/summary.json"
+        self.statusJSONPath = "\(root)/_RUN_STATUS.json"
+        self.manifestJSONPath = "\(root)/manifest.json"
+        guard locationHeld else {
+            throw ReleaseV070RunRegistryError.productionBoundaryDrift("artifactLocation")
+        }
+    }
+}
+
+/// ReleaseV070RunRegistryEntry 是 GH-785 `runs list` / inspect 的 deterministic 数据源。
+public struct ReleaseV070RunRegistryEntry: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let releaseVersion: String
+    public let runID: Identifier
+    public let lifecycle: ReleaseV070RunRegistryLifecycle
+    public let sessionState: ReleaseV070OperationalRunSessionState
+    public let artifactLocation: ReleaseV070RunArtifactLocation
+    public let recoverable: Bool
+    public let archived: Bool
+    public let recoveryReason: String?
+    public let productionTradingAuthorized: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let productionBrokerConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public var entryHeld: Bool {
+        issueID.rawValue == "GH-785"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-783", "GH-784"]
+            && releaseVersion == "v0.7.0"
+            && runID.rawValue.isEmpty == false
+            && artifactLocation.locationHeld
+            && archived == (lifecycle == .archived)
+            && recoverable == (lifecycle == .recoveryEvidence)
+            && productionTradingAuthorized == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && productionBrokerConnected == false
+            && productionOrderSubmitted == false
+            && productionCutoverAuthorized == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-785"),
+        upstreamIssueIDs: [Identifier] = [Identifier.constant("GH-783"), Identifier.constant("GH-784")],
+        releaseVersion: String = "v0.7.0",
+        runID: Identifier,
+        lifecycle: ReleaseV070RunRegistryLifecycle,
+        sessionState: ReleaseV070OperationalRunSessionState,
+        artifactLocation: ReleaseV070RunArtifactLocation? = nil,
+        recoveryReason: String? = nil,
+        productionTradingAuthorized: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        productionBrokerConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) throws {
+        guard runID.rawValue.isEmpty == false else {
+            throw ReleaseV070RunRegistryError.emptyRunID
+        }
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.releaseVersion = releaseVersion
+        self.runID = runID
+        self.lifecycle = lifecycle
+        self.sessionState = sessionState
+        self.artifactLocation = try artifactLocation ?? ReleaseV070RunArtifactLocation(runID: runID)
+        self.recoverable = lifecycle == .recoveryEvidence
+        self.archived = lifecycle == .archived
+        self.recoveryReason = recoveryReason
+        self.productionTradingAuthorized = productionTradingAuthorized
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.productionBrokerConnected = productionBrokerConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+
+        guard entryHeld else {
+            throw ReleaseV070RunRegistryError.productionBoundaryDrift("registryEntry")
+        }
+    }
+}
+
+/// ReleaseV070RunRegistryListSurface 是 GH-785 `runs list` 的 deterministic 输出形状。
+public struct ReleaseV070RunRegistryListSurface: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public let entries: [ReleaseV070RunRegistryEntry]
+    public let deterministicDataSource: String
+    public let productionTradingAuthorized: Bool
+
+    public var listHeld: Bool {
+        issueID.rawValue == "GH-785"
+            && entries.isEmpty == false
+            && entries.allSatisfy(\.entryHeld)
+            && Set(entries.map(\.runID.rawValue)).count == entries.count
+            && deterministicDataSource == "local-run-registry-metadata"
+            && productionTradingAuthorized == false
+    }
+}
+
+/// ReleaseV070RunRegistry 让 v0.7 run session 成为可 list / inspect / archive / recover 的本地对象。
+public struct ReleaseV070RunRegistry: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public private(set) var entries: [ReleaseV070RunRegistryEntry]
+
+    public var registryHeld: Bool {
+        issueID.rawValue == "GH-785"
+            && entries.isEmpty == false
+            && entries.allSatisfy(\.entryHeld)
+            && Set(entries.map(\.runID.rawValue)).count == entries.count
+            && entries.allSatisfy { $0.productionTradingAuthorized == false }
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-785"),
+        entries: [ReleaseV070RunRegistryEntry]
+    ) throws {
+        self.issueID = issueID
+        self.entries = entries.sorted { $0.runID.rawValue < $1.runID.rawValue }
+        try validateEntries(self.entries)
+        guard registryHeld else {
+            throw ReleaseV070RunRegistryError.productionBoundaryDrift("runRegistry")
+        }
+    }
+
+    public func listRuns() -> ReleaseV070RunRegistryListSurface {
+        ReleaseV070RunRegistryListSurface(
+            issueID: issueID,
+            entries: entries,
+            deterministicDataSource: "local-run-registry-metadata",
+            productionTradingAuthorized: false
+        )
+    }
+
+    public func inspect(runID: Identifier) throws -> ReleaseV070RunRegistryEntry {
+        guard let entry = entries.first(where: { $0.runID == runID }) else {
+            throw ReleaseV070RunRegistryError.missingRunID(runID.rawValue)
+        }
+        return entry
+    }
+
+    public mutating func archive(runID: Identifier) throws -> ReleaseV070RunRegistryEntry {
+        let entry = try inspect(runID: runID)
+        guard entry.lifecycle != .archived else {
+            throw ReleaseV070RunRegistryError.cannotMutateArchivedRun(runID.rawValue)
+        }
+        return try replace(
+            entry: ReleaseV070RunRegistryEntry(
+                runID: runID,
+                lifecycle: .archived,
+                sessionState: entry.sessionState,
+                artifactLocation: entry.artifactLocation
+            )
+        )
+    }
+
+    public mutating func recover(runID: Identifier, reason: String) throws -> ReleaseV070RunRegistryEntry {
+        let entry = try inspect(runID: runID)
+        guard entry.lifecycle != .archived else {
+            throw ReleaseV070RunRegistryError.cannotMutateArchivedRun(runID.rawValue)
+        }
+        return try replace(
+            entry: ReleaseV070RunRegistryEntry(
+                runID: runID,
+                lifecycle: .recoveryEvidence,
+                sessionState: .recovered,
+                artifactLocation: entry.artifactLocation,
+                recoveryReason: reason
+            )
+        )
+    }
+
+    public static func deterministicFixture() throws -> ReleaseV070RunRegistry {
+        try ReleaseV070RunRegistry(
+            entries: [
+                ReleaseV070RunRegistryEntry(
+                    runID: Identifier.constant("gh-785-run-alpha"),
+                    lifecycle: .active,
+                    sessionState: .running
+                ),
+                ReleaseV070RunRegistryEntry(
+                    runID: Identifier.constant("gh-785-run-beta"),
+                    lifecycle: .recoveryEvidence,
+                    sessionState: .recovered,
+                    recoveryReason: "partial-line-recovery-evidence"
+                )
+            ]
+        )
+    }
+
+    @discardableResult
+    private mutating func replace(
+        entry: ReleaseV070RunRegistryEntry
+    ) throws -> ReleaseV070RunRegistryEntry {
+        guard let index = entries.firstIndex(where: { $0.runID == entry.runID }) else {
+            throw ReleaseV070RunRegistryError.missingRunID(entry.runID.rawValue)
+        }
+        entries[index] = entry
+        entries.sort { $0.runID.rawValue < $1.runID.rawValue }
+        try validateEntries(entries)
+        guard registryHeld else {
+            throw ReleaseV070RunRegistryError.productionBoundaryDrift("registryReplace")
+        }
+        return entry
+    }
+
+    private func validateEntries(
+        _ entries: [ReleaseV070RunRegistryEntry]
+    ) throws {
+        var runIDs = Set<String>()
+        for entry in entries {
+            guard runIDs.insert(entry.runID.rawValue).inserted else {
+                throw ReleaseV070RunRegistryError.duplicateRunID(entry.runID.rawValue)
+            }
+            guard entry.entryHeld else {
+                throw ReleaseV070RunRegistryError.productionBoundaryDrift("registryEntry")
+            }
+        }
+    }
+}
+
+/// ReleaseV070RunSupervisor 提供 GH-785 本地 no-order supervisor 视图。
+///
+/// Supervisor 只把 registry state 暴露给 observer / CLI；它不启动远程 scheduler，
+/// 不管理 concurrent production runtime，也不能把 production trading 标记为 authorized。
+public struct ReleaseV070RunSupervisor: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public private(set) var registry: ReleaseV070RunRegistry
+    public let observerSource: String
+    public let cliSource: String
+    public let productionTradingAuthorized: Bool
+
+    public var supervisorHeld: Bool {
+        issueID.rawValue == "GH-785"
+            && registry.registryHeld
+            && observerSource == "local-run-registry-state"
+            && cliSource == "runs-list-inspect-local-registry"
+            && productionTradingAuthorized == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-785"),
+        registry: ReleaseV070RunRegistry,
+        observerSource: String = "local-run-registry-state",
+        cliSource: String = "runs-list-inspect-local-registry",
+        productionTradingAuthorized: Bool = false
+    ) throws {
+        self.issueID = issueID
+        self.registry = registry
+        self.observerSource = observerSource
+        self.cliSource = cliSource
+        self.productionTradingAuthorized = productionTradingAuthorized
+        guard supervisorHeld else {
+            throw ReleaseV070RunRegistryError.productionBoundaryDrift("runSupervisor")
+        }
+    }
+
+    public func runsListSurface() -> ReleaseV070RunRegistryListSurface {
+        registry.listRuns()
+    }
+
+    public func inspect(runID: Identifier) throws -> ReleaseV070RunRegistryEntry {
+        try registry.inspect(runID: runID)
+    }
+
+    public mutating func archive(runID: Identifier) throws -> ReleaseV070RunRegistryEntry {
+        try registry.archive(runID: runID)
+    }
+
+    public mutating func recover(runID: Identifier, reason: String) throws -> ReleaseV070RunRegistryEntry {
+        try registry.recover(runID: runID, reason: reason)
+    }
+
+    public static func deterministicFixture() throws -> ReleaseV070RunSupervisor {
+        try ReleaseV070RunSupervisor(registry: .deterministicFixture())
+    }
+}
