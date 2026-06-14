@@ -3295,6 +3295,17 @@ swift test
 - GitHub required job `dashboard-macos` 必须在 Dashboard build / smoke 前执行 `checks/verify-v0.7.0-dashboard-macos-guards.sh`。
 - focused guard 必须覆盖 `checks/verify-v0.6.0-run-detail-observer.sh`、`checks/verify-v0.6.0-testnet-readonly-probe.sh`、`checks/verify-v0.7.0-testnet-endpoint-policy.sh` 和 `checks/verify-v0.7.0-cli.sh`。
 - 验证只覆盖 read-only / no-order / Dashboard observer / CLI runtime-session 边界，不新增 UI trading command，不连接 production endpoint，不读取 production secret，不发送真实 order，不授权 production cutover。
+
+## GH-783 Release v0.7.0 Operational Run Session Validation
+
+- GH-783-VERIFY-V070-OPERATIONAL-RUN-SESSION
+- TVM-RELEASE-V070-OPERATIONAL-RUN-SESSION
+- `bash checks/verify-v0.7.0-operational-run-session.sh`
+- `testGH783OperationalRunSessionLifecycleIsDeterministicNoOrderAndRejectsInvalidTransitions`
+- `OperationalRunSession` 状态必须固定为 created / starting / running / stopping / stopped / failed / completed / recovered。
+- command / event model 必须固定为 start / stop / complete / fail / recover，并拒绝 invalid ordering。
+- 每个 session event 必须携带同一 runID，并绑定 v0.7.0 no-order evidence envelope。
+- 验证不创建真实 runtime 进程，不连接 production endpoint / broker，不读取 production secret，不发送真实 order，不授权 production cutover。
 - GH-766 Release v0.6.0 Final Audit Root Docs Validation
 - GH-766-RELEASE-V060-FINAL-AUDIT-ROOT-DOCS
 - GH-766-VERIFY-V060-FINAL-AUDIT-ROOT-DOCS
