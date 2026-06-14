@@ -1,3 +1,4 @@
+import Crypto
 import DomainModel
 import Foundation
 
@@ -417,7 +418,7 @@ public struct RuntimeEventEnvelope<Payload: Codable & Equatable & Sendable>: Cod
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
         encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
-        return try RuntimeEventChecksum.fnv1aHex(encoder.encode(input))
+        return try RuntimeEventChecksum.sha256Hex(encoder.encode(input))
     }
 
     public static func makeChecksum(
@@ -753,6 +754,11 @@ private struct RuntimeEventChecksumInput<Payload: Encodable>: Encodable {
 }
 
 private enum RuntimeEventChecksum {
+    static func sha256Hex(_ data: Data) -> String {
+        let digest = SHA256.hash(data: data)
+        return "sha256:" + digest.map { String(format: "%02x", $0) }.joined()
+    }
+
     static func fnv1aHex(_ data: Data) -> String {
         var hash: UInt64 = 14_695_981_039_346_656_037
         for byte in data {

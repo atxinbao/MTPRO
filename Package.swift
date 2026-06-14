@@ -54,7 +54,10 @@ let package = Package(
         ),
         .target(
             name: "MessageBus",
-            dependencies: ["DomainModel"],
+            dependencies: [
+                "DomainModel",
+                .product(name: "Crypto", package: "swift-crypto")
+            ],
             path: "Sources/MessageBus",
             exclude: [
                 "CommandsAndQueries.swift",
