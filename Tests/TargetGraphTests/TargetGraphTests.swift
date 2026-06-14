@@ -9275,6 +9275,227 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH761RiskEngineRuntimeRunnerConsumesStrategyIntentsAndEmitsAllowRejectBlockedDecisions() async throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let riskEngineTarget = try packageTargetBlock(named: "RiskEngine", packageSource: packageSource)
+        let runnerSourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/RiskEngine/LiveGate/ReleaseV060RiskEngineRuntimeRunner.swift"
+        )
+        let runnerSource = try String(contentsOf: runnerSourcePath, encoding: .utf8)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.6.0-riskengine-runtime-runner-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let runnerScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.6.0-riskengine-runtime-runner.sh"),
+            encoding: .utf8
+        )
+
+        let storageRoot = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "MTPRO-GH761-RiskEngineRuntimeRunner-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: storageRoot)
+        }
+
+        let contract = try ReleaseV060RiskEngineRuntimeRunnerContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-761")
+        XCTAssertEqual(contract.upstreamIssueIDs.map(\.rawValue), ["GH-760"])
+        XCTAssertEqual(contract.previousIssueID.rawValue, "GH-760")
+        XCTAssertEqual(contract.downstreamIssueIDs.map(\.rawValue), ["GH-762", "GH-763", "GH-764", "GH-766"])
+        XCTAssertFalse(contract.productionTradingEnabledByDefault)
+        XCTAssertFalse(contract.productionSecretAutoReadEnabled)
+        XCTAssertFalse(contract.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(contract.productionBrokerConnectionEnabled)
+        XCTAssertFalse(contract.productionOrderSubmissionEnabled)
+        XCTAssertFalse(contract.productionCutoverAuthorized)
+
+        let dataEngineResult = try await ReleaseV060DataEngineLocalDryRunRunner.deterministicEvidence(
+            storageRootURL: storageRoot
+        )
+        let strategyResult = try await ReleaseV060StrategyRuntimeRunner.deterministicEvidence(
+            dataEngineEnvelopes: dataEngineResult.journal.records.map(\.envelope)
+        )
+        let result = try await ReleaseV060RiskEngineRuntimeRunner.deterministicEvidence(
+            upstreamJournalEnvelopes: strategyResult.journalCompatibleEnvelopes
+        )
+
+        XCTAssertTrue(result.resultHeld)
+        XCTAssertTrue(result.strategyIntentConsumptionHeld)
+        XCTAssertTrue(result.outcomeCoverageHeld)
+        XCTAssertTrue(result.journalCompatibilityHeld)
+        XCTAssertTrue(result.downstreamSuppressionHeld)
+        XCTAssertTrue(result.forbiddenRuntimeHeld)
+        XCTAssertEqual(result.issueID.rawValue, "GH-761")
+        XCTAssertEqual(result.runID, strategyResult.runID)
+        XCTAssertEqual(result.streamID, strategyResult.streamID)
+        XCTAssertEqual(result.correlationID, strategyResult.correlationID)
+        XCTAssertEqual(result.upstreamJournalEnvelopes, strategyResult.journalCompatibleEnvelopes)
+        XCTAssertEqual(result.intentInputs.map(\.intentEnvelope), strategyResult.strategyIntentEnvelopes)
+        XCTAssertEqual(result.emissions.map(\.scenario), [.allow, .reject, .killSwitchBlocked, .noTradeBlocked])
+        XCTAssertEqual(result.policyEvaluations.map(\.decision), [.allowed, .rejected, .blocked, .blocked])
+        XCTAssertEqual(result.policyEvaluations.map(\.reason), [
+            .dryRunAllowed,
+            .notionalLimitExceeded,
+            .killSwitchActive,
+            .noTradeActive
+        ])
+        XCTAssertEqual(result.riskDecisionEnvelopes.map(\.payloadType), [
+            .riskDecisionEvent,
+            .riskDecisionEvent,
+            .riskDecisionEvent,
+            .riskDecisionEvent
+        ])
+        XCTAssertEqual(result.riskDecisionEnvelopes.map(\.sourceModule), [.riskEngine, .riskEngine, .riskEngine, .riskEngine])
+        XCTAssertEqual(result.riskDecisionEnvelopes.map(\.sequence), [5, 6, 7, 8])
+        XCTAssertEqual(result.riskDecisionEnvelopes[0].causationID, strategyResult.journalCompatibleEnvelopes.last?.eventID)
+        XCTAssertEqual(result.riskDecisionEnvelopes[1].causationID, result.riskDecisionEnvelopes[0].eventID)
+        XCTAssertEqual(result.riskDecisionEnvelopes[2].causationID, result.riskDecisionEnvelopes[1].eventID)
+        XCTAssertEqual(result.riskDecisionEnvelopes[3].causationID, result.riskDecisionEnvelopes[2].eventID)
+        XCTAssertEqual(result.replayedDecisionEnvelopes, result.riskDecisionEnvelopes)
+        XCTAssertEqual(result.journalCompatibleEnvelopes.map(\.sequence), Array(1...8))
+        XCTAssertEqual(
+            result.journalCompatibleEnvelopes.dropFirst().compactMap(\.causationID),
+            result.journalCompatibleEnvelopes.dropLast().map(\.eventID)
+        )
+        XCTAssertEqual(Set(result.decisionEvents.map(\.sourceIntentID)), Set(strategyResult.intentEvents.map(\.strategyID)))
+        XCTAssertTrue(result.emissions.allSatisfy(\.downstreamSuppressionHeld))
+        XCTAssertTrue(
+            result.emissions.filter { $0.policyEvaluation.decision != .allowed }.allSatisfy {
+                $0.downstreamOMSLifecycleCreated == false
+                    && $0.executionClientRequestCreated == false
+                    && $0.submitPathCreated == false
+                    && $0.brokerCommandCreated == false
+            }
+        )
+        XCTAssertFalse(result.executionEngineBypassAllowed)
+        XCTAssertFalse(result.omsBypassAllowed)
+        XCTAssertFalse(result.executionClientAccessEnabled)
+        XCTAssertFalse(result.brokerGatewayAccessEnabled)
+        XCTAssertFalse(result.networkCallsPerformed)
+        XCTAssertFalse(result.secretReadsPerformed)
+        XCTAssertFalse(result.productionEndpointConnected)
+        XCTAssertFalse(result.productionBrokerConnected)
+        XCTAssertFalse(result.productionTradingEnabledByDefault)
+        XCTAssertFalse(result.productionOrderSubmitted)
+        XCTAssertFalse(result.productionCutoverAuthorized)
+
+        var replayJournal = try ReleaseV050DurableLocalRunJournal(runID: result.runID)
+        for envelope in result.journalCompatibleEnvelopes {
+            try replayJournal.append(envelope: envelope)
+        }
+        XCTAssertTrue(replayJournal.appendOnlyHeld)
+        XCTAssertEqual(
+            try replayJournal.replay(cursor: ReleaseV050RunJournalReplayCursor(runID: result.runID)),
+            result.journalCompatibleEnvelopes
+        )
+        XCTAssertEqual(try replayJournal.projection().payloadTypes, [
+            .dataEngineMarketEvent,
+            .dataEngineMarketEvent,
+            .strategyIntentEvent,
+            .strategyIntentEvent,
+            .riskDecisionEvent,
+            .riskDecisionEvent,
+            .riskDecisionEvent,
+            .riskDecisionEvent
+        ])
+        XCTAssertFalse(try replayJournal.summary().productionOrderSubmissionEnabled)
+        XCTAssertFalse(try replayJournal.summary().productionCutoverAuthorized)
+
+        XCTAssertThrowsError(
+            try ReleaseV060RiskEngineRuntimeRunnerResult(
+                runID: result.runID,
+                streamID: result.streamID,
+                correlationID: result.correlationID,
+                upstreamJournalEnvelopes: result.upstreamJournalEnvelopes,
+                intentInputs: result.intentInputs,
+                requests: result.requests,
+                emissions: result.emissions,
+                replayedDecisionEnvelopes: result.replayedDecisionEnvelopes,
+                journalCompatibleEnvelopes: result.journalCompatibleEnvelopes,
+                productionOrderSubmitted: true
+            )
+        )
+        let runner = try ReleaseV060RiskEngineRuntimeRunner()
+        do {
+            _ = try await runner.run(upstreamJournalEnvelopes: [])
+            XCTFail("Empty GH-761 RiskEngine runtime journal must fail closed")
+        } catch {
+            XCTAssertEqual(error as? ReleaseV060RiskEngineRuntimeRunnerError, .emptyJournal)
+        }
+
+        for anchor in ReleaseV060RiskEngineRuntimeRunnerContract.requiredValidationAnchors {
+            XCTAssertTrue(contract.validationAnchors.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+        }
+
+        XCTAssertTrue(riskEngineTarget.contains("\"LiveGate\""))
+        XCTAssertFalse(riskEngineTarget.contains("\"ExecutionClient\""))
+        XCTAssertFalse(riskEngineTarget.contains("\"ExecutionEngine\""))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: runnerSourcePath.path))
+        XCTAssertTrue(runnerSource.contains("ReleaseV060RiskEngineRuntimeRunner"))
+        XCTAssertTrue(runnerSource.contains("ReleaseV050RiskEngineRuntimePolicy"))
+        XCTAssertTrue(runnerSource.contains("StrategyIntentEvent"))
+        XCTAssertTrue(runnerSource.contains("RiskDecisionEvent"))
+        XCTAssertTrue(runnerSource.contains("RuntimeMessageBus<ReleaseV050RuntimeEventPayload>"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.6.0 RiskEngine runtime runner anchor"))
+        XCTAssertTrue(readinessScript.contains("GH-761-VERIFY-V060-RISKENGINE-RUNTIME-RUNNER"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.6.0-riskengine-runtime-runner.sh"))
+        XCTAssertTrue(
+            runnerScript.contains(
+                "testGH761RiskEngineRuntimeRunnerConsumesStrategyIntentsAndEmitsAllowRejectBlockedDecisions"
+            )
+        )
+
+        for forbidden in [
+            "URLSession",
+            "URLRequest",
+            "api.binance.com",
+            "fapi.binance.com",
+            "/api/v3/account",
+            "/api/v3/order",
+            "/api/v3/userDataStream",
+            "listenKey",
+            "submitOrder",
+            "cancelOrder",
+            "replaceOrder",
+            "HMAC<"
+        ] {
+            XCTAssertFalse(runnerSource.contains(forbidden), "GH-761 source must not contain \(forbidden)")
+        }
+    }
+
     func testGH756LocalRunJournalWriterPersistsArtifactsAndClassifiesIncompleteRuns() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
