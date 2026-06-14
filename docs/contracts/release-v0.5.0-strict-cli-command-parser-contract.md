@@ -32,7 +32,7 @@ v0.5.0 新 shape 固定为：
 - `status [runID]`
 - `verify`
 
-`help` 必须列出完整支持命令集合。`run` 在 GH-727 中只能输出 blocked dry-run shape，不启动 runtime。`status` 只能显式桥接到 v0.4.0 read-model-only `unified-run-status`。`verify` 只输出本地验证入口和 strict parser 证据，不执行 shell、不连接 endpoint。GH-737 后新增的 `run-observer` 也是显式只读 observer route，不属于未知命令 fallback。
+`help` 必须列出完整支持命令集合。`run` 在 GH-727 中只能输出 blocked dry-run shape，不启动 runtime。`status` 只能显式桥接到 v0.4.0 read-model-only `unified-run-status`。`verify` 只输出本地验证入口和 strict parser 证据，不执行 shell、不连接 endpoint。GH-737 后新增的 `run-observer` 和 GH-764 后新增的 `run-detail-observer` 都是显式只读 observer route，不属于未知命令 fallback。
 
 ## V050-02-LEGACY-COMMAND-WHITELIST
 
@@ -43,6 +43,7 @@ v0.5.0 新 shape 固定为：
 - `rehearsal-status`
 - `unified-run-status`
 - `run-observer`
+- `run-detail-observer`
 - `verify-fast`
 - `verify-release`
 

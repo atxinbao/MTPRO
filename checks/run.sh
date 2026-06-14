@@ -90,6 +90,7 @@ bash checks/verify-v0.6.0-strategy-runtime-runner.sh
 bash checks/verify-v0.6.0-riskengine-runtime-runner.sh
 bash checks/verify-v0.6.0-execution-oms-dry-run-runner.sh
 bash checks/verify-v0.6.0-portfolio-journal-projection.sh
+bash checks/verify-v0.6.0-run-detail-observer.sh
 if [[ "$(uname -s)" == "Darwin" ]]; then
   swift build --product Dashboard
   DASHBOARD_SMOKE=1 swift run Dashboard

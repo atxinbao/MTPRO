@@ -29,7 +29,7 @@ private enum MTPROCLIParserError: Error, CustomStringConvertible, Equatable {
 /// MTPROStrictCLI 固定 GH-727 的严格命令路由。
 ///
 /// 新 v0.5.0 shape 只暴露 `help`、`run`、`status`、`verify` 四类入口；历史
-/// `rehearsal-status`、`unified-run-status`、`run-observer`、`verify-fast`、`verify-release` 仍可被显式调用。
+/// `rehearsal-status`、`unified-run-status`、`run-observer`、`run-detail-observer`、`verify-fast`、`verify-release` 仍可被显式调用。
 /// 任何其他命令必须在这里失败，不得 fallback 到旧 release surface。
 private enum MTPROStrictCLI {
     static let validationAnchor = "TVM-RELEASE-V050-STRICT-CLI-COMMAND-PARSER"
@@ -41,6 +41,7 @@ private enum MTPROStrictCLI {
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
+        ReleaseV060RunDetailObserverSurface.cliCommand,
         "verify-fast",
         "verify-release"
     ]
@@ -68,6 +69,8 @@ private enum MTPROStrictCLI {
             return try ReleaseV040UnifiedRunSurface.commandLineOutput(arguments: arguments)
         case ReleaseV050RunObserverSurface.cliCommand:
             return try await ReleaseV050RunObserverSurface.commandLineOutput(arguments: arguments)
+        case ReleaseV060RunDetailObserverSurface.cliCommand:
+            return try ReleaseV060RunDetailObserverSurface.commandLineOutput(arguments: arguments)
         case "verify-fast", "verify-release":
             return try ReleaseV020CLIProductSurface.commandLineOutput(arguments: arguments)
         default:
