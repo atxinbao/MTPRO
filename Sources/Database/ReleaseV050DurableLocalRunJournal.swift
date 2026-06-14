@@ -1,3 +1,4 @@
+import Crypto
 import DomainModel
 import Foundation
 import MessageBus
@@ -74,6 +75,8 @@ public struct ReleaseV050DurableLocalRunJournalRecord: Codable, Equatable, Senda
     public let envelope: RuntimeEventEnvelope<ReleaseV050RuntimeEventPayload>
     public let previousJournalChecksum: String
     public let journalChecksum: String
+    public let previousJournalSHA256: String
+    public let journalSHA256: String
     public let mutableRewriteAllowed: Bool
     public let productionEndpointLeakageRejected: Bool
     public let secretValueLeakageRejected: Bool
@@ -98,6 +101,12 @@ public struct ReleaseV050DurableLocalRunJournalRecord: Codable, Equatable, Senda
                 envelope: envelope,
                 previousJournalChecksum: previousJournalChecksum
             )
+            && journalSHA256 == Self.stableSHA256(
+                journalSequence: journalSequence,
+                journalRecordID: journalRecordID,
+                envelope: envelope,
+                previousJournalSHA256: previousJournalSHA256
+            )
     }
 
     public init(
@@ -105,7 +114,9 @@ public struct ReleaseV050DurableLocalRunJournalRecord: Codable, Equatable, Senda
         journalRecordID: Identifier,
         envelope: RuntimeEventEnvelope<ReleaseV050RuntimeEventPayload>,
         previousJournalChecksum: String,
+        previousJournalSHA256: String,
         journalChecksum: String? = nil,
+        journalSHA256: String? = nil,
         mutableRewriteAllowed: Bool = false,
         productionEndpointLeakageRejected: Bool = true,
         secretValueLeakageRejected: Bool = true
@@ -134,10 +145,23 @@ public struct ReleaseV050DurableLocalRunJournalRecord: Codable, Equatable, Senda
             envelope: envelope,
             previousJournalChecksum: previousJournalChecksum
         )
+        let expectedSHA256 = Self.stableSHA256(
+            journalSequence: journalSequence,
+            journalRecordID: journalRecordID,
+            envelope: envelope,
+            previousJournalSHA256: previousJournalSHA256
+        )
+        let resolvedSHA256 = journalSHA256 ?? expectedSHA256
         guard resolvedChecksum == expectedChecksum else {
             throw ReleaseV050DurableLocalRunJournalError.checksumMismatch(
                 expected: expectedChecksum,
                 actual: resolvedChecksum
+            )
+        }
+        guard resolvedSHA256 == expectedSHA256 else {
+            throw ReleaseV050DurableLocalRunJournalError.checksumMismatch(
+                expected: expectedSHA256,
+                actual: resolvedSHA256
             )
         }
 
@@ -146,6 +170,8 @@ public struct ReleaseV050DurableLocalRunJournalRecord: Codable, Equatable, Senda
         self.envelope = envelope
         self.previousJournalChecksum = previousJournalChecksum
         self.journalChecksum = resolvedChecksum
+        self.previousJournalSHA256 = previousJournalSHA256
+        self.journalSHA256 = resolvedSHA256
         self.mutableRewriteAllowed = mutableRewriteAllowed
         self.productionEndpointLeakageRejected = productionEndpointLeakageRejected
         self.secretValueLeakageRejected = secretValueLeakageRejected
@@ -175,6 +201,30 @@ public struct ReleaseV050DurableLocalRunJournalRecord: Codable, Equatable, Senda
         return "fnv1a64:\(fnv1a64Hex(input))"
     }
 
+    public static func stableSHA256(
+        journalSequence: Int,
+        journalRecordID: Identifier,
+        envelope: RuntimeEventEnvelope<ReleaseV050RuntimeEventPayload>,
+        previousJournalSHA256: String
+    ) -> String {
+        let input = [
+            "\(journalSequence)",
+            journalRecordID.rawValue,
+            envelope.eventID.rawValue,
+            envelope.runID.rawValue,
+            "\(envelope.sequence)",
+            envelope.streamID.rawValue,
+            envelope.correlationID.rawValue,
+            envelope.causationID?.rawValue ?? "root",
+            envelope.sourceModule.rawValue,
+            envelope.payloadType.rawValue,
+            envelope.checksum,
+            previousJournalSHA256,
+            String(format: "%.6f", envelope.recordedAt.timeIntervalSince1970)
+        ].joined(separator: "|")
+        return sha256Hex(Data(input.utf8))
+    }
+
     private static func fnv1a64Hex(_ input: String) -> String {
         var hash: UInt64 = 0xcbf29ce484222325
         for byte in input.utf8 {
@@ -182,6 +232,11 @@ public struct ReleaseV050DurableLocalRunJournalRecord: Codable, Equatable, Senda
             hash = hash &* 0x100000001b3
         }
         return String(format: "%016llx", hash)
+    }
+
+    private static func sha256Hex(_ data: Data) -> String {
+        let digest = SHA256.hash(data: data)
+        return "sha256:" + digest.map { String(format: "%02x", $0) }.joined()
     }
 }
 
@@ -226,6 +281,7 @@ public struct ReleaseV050RunJournalProjection: Codable, Equatable, Sendable {
     public let firstEventID: Identifier
     public let latestEventID: Identifier
     public let latestJournalChecksum: String
+    public let latestJournalSHA256: String
     public let replayCursor: ReleaseV050RunJournalReplayCursor
     public let dashboardCLIProjectionReady: Bool
 }
@@ -241,6 +297,7 @@ public struct ReleaseV050RunJournalSummary: Codable, Equatable, Sendable {
     public let paths: ReleaseV050LocalRunJournalPath
     public let eventCount: Int
     public let appendOnlyHeld: Bool
+    public let sha256JournalChainAvailable: Bool
     public let replayCursorCanReconstructOneRun: Bool
     public let typedRuntimeEnvelopeFieldsPreserved: Bool
     public let secretValuesWritten: Bool
@@ -307,7 +364,8 @@ public struct ReleaseV050DurableLocalRunJournal: Codable, Equatable, Sendable {
             journalSequence: nextSequence,
             journalRecordID: Identifier.constant("gh-731-v050-run-journal-record-\(nextSequence)"),
             envelope: envelope,
-            previousJournalChecksum: records.last?.journalChecksum ?? Self.genesisChecksum
+            previousJournalChecksum: records.last?.journalChecksum ?? Self.genesisChecksum,
+            previousJournalSHA256: records.last?.journalSHA256 ?? Self.genesisSHA256
         )
         try Self.rejectForbiddenPayloadFragments(in: try Self.payloadAuditString(record.envelope.payload))
         records.append(record)
@@ -339,6 +397,12 @@ public struct ReleaseV050DurableLocalRunJournal: Codable, Equatable, Sendable {
         records.last?.journalChecksum ?? Self.genesisChecksum
     }
 
+    public static let genesisSHA256 = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+
+    public var latestJournalSHA256: String {
+        records.last?.journalSHA256 ?? Self.genesisSHA256
+    }
+
     public func projection() throws -> ReleaseV050RunJournalProjection {
         guard let first = records.first, let latest = records.last else {
             throw ReleaseV050DurableLocalRunJournalError.emptyJournal
@@ -357,6 +421,7 @@ public struct ReleaseV050DurableLocalRunJournal: Codable, Equatable, Sendable {
             firstEventID: first.eventID,
             latestEventID: latest.eventID,
             latestJournalChecksum: latest.journalChecksum,
+            latestJournalSHA256: latest.journalSHA256,
             replayCursor: cursor,
             dashboardCLIProjectionReady: records.last?.envelope.payloadType == .dashboardReadModelEvent
         )
@@ -382,6 +447,7 @@ public struct ReleaseV050DurableLocalRunJournal: Codable, Equatable, Sendable {
             paths: paths,
             eventCount: records.count,
             appendOnlyHeld: appendOnlyHeld,
+            sha256JournalChainAvailable: records.allSatisfy { $0.journalSHA256.hasPrefix("sha256:") },
             replayCursorCanReconstructOneRun: replayed == records.map(\.envelope),
             typedRuntimeEnvelopeFieldsPreserved: records.allSatisfy { $0.envelope.envelopeHeld },
             secretValuesWritten: false,
@@ -417,6 +483,7 @@ public struct ReleaseV050DurableLocalRunJournal: Codable, Equatable, Sendable {
         for (index, record) in records.enumerated() {
             let expectedSequence = index + 1
             let expectedPreviousChecksum = index == 0 ? Self.genesisChecksum : records[index - 1].journalChecksum
+            let expectedPreviousSHA256 = index == 0 ? Self.genesisSHA256 : records[index - 1].journalSHA256
             guard record.runID == runID else {
                 throw ReleaseV050DurableLocalRunJournalError.runIDMismatch(
                     expected: runID,
@@ -438,6 +505,12 @@ public struct ReleaseV050DurableLocalRunJournal: Codable, Equatable, Sendable {
                 throw ReleaseV050DurableLocalRunJournalError.checksumMismatch(
                     expected: expectedPreviousChecksum,
                     actual: record.previousJournalChecksum
+                )
+            }
+            guard record.previousJournalSHA256 == expectedPreviousSHA256 else {
+                throw ReleaseV050DurableLocalRunJournalError.checksumMismatch(
+                    expected: expectedPreviousSHA256,
+                    actual: record.previousJournalSHA256
                 )
             }
             guard record.recordHeld else {

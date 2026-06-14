@@ -8435,6 +8435,7 @@ final class TargetGraphTests: XCTestCase {
             XCTAssertEqual(envelope.sourceModule, payload.sourceModule)
             XCTAssertEqual(envelope.payloadType, payload.payloadType)
             XCTAssertFalse(envelope.checksum.isEmpty)
+            XCTAssertTrue(envelope.checksum.hasPrefix("sha256:"))
             previousEventID = envelope.eventID
             envelopes.append(envelope)
         }
@@ -8464,6 +8465,7 @@ final class TargetGraphTests: XCTestCase {
             recordedAt: envelopes[0].recordedAt
         )
         XCTAssertEqual(envelopes[0].checksum, expectedChecksum)
+        XCTAssertTrue(expectedChecksum.hasPrefix("sha256:"))
 
         XCTAssertThrowsError(
             try RuntimeEventEnvelope(
@@ -8615,6 +8617,10 @@ final class TargetGraphTests: XCTestCase {
             XCTAssertEqual(record.envelope.sourceModule, envelope.sourceModule)
             XCTAssertEqual(record.envelope.payloadType, envelope.payloadType)
             XCTAssertEqual(record.envelope.checksum, envelope.checksum)
+            XCTAssertTrue(record.envelope.checksum.hasPrefix("sha256:"))
+            XCTAssertTrue(record.journalChecksum.hasPrefix("fnv1a64:"))
+            XCTAssertTrue(record.previousJournalSHA256.hasPrefix("sha256:"))
+            XCTAssertTrue(record.journalSHA256.hasPrefix("sha256:"))
             XCTAssertTrue(record.recordHeld)
             XCTAssertFalse(record.mutableRewriteAllowed)
             XCTAssertTrue(record.productionEndpointLeakageRejected)
@@ -8644,9 +8650,11 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertEqual(projection.payloadTypes, RuntimeEventPayloadType.allCases)
         XCTAssertEqual(projection.sourceModules, RuntimeEventPayloadType.allCases.map(\.sourceModule))
         XCTAssertEqual(projection.latestJournalChecksum, journal.latestJournalChecksum)
+        XCTAssertEqual(projection.latestJournalSHA256, journal.latestJournalSHA256)
         XCTAssertTrue(projection.dashboardCLIProjectionReady)
         XCTAssertEqual(summary.eventCount, envelopes.count)
         XCTAssertTrue(summary.appendOnlyHeld)
+        XCTAssertTrue(summary.sha256JournalChainAvailable)
         XCTAssertTrue(summary.replayCursorCanReconstructOneRun)
         XCTAssertTrue(summary.typedRuntimeEnvelopeFieldsPreserved)
         XCTAssertFalse(summary.secretValuesWritten)
@@ -8670,8 +8678,12 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(artifact.eventsJSONLLines[0].contains("\"payload\""))
         XCTAssertTrue(artifact.eventsJSONLLines[0].contains("\"recordedAt\""))
         XCTAssertTrue(artifact.eventsJSONLLines[0].contains("\"checksum\""))
+        XCTAssertTrue(artifact.eventsJSONLLines[0].contains("\"journalSHA256\""))
+        XCTAssertTrue(artifact.eventsJSONLLines[0].contains("\"previousJournalSHA256\""))
         XCTAssertTrue(artifact.projectionJSON.contains("\"dashboardCLIProjectionReady\":true"))
+        XCTAssertTrue(artifact.projectionJSON.contains("\"latestJournalSHA256\""))
         XCTAssertTrue(artifact.summaryJSON.contains("\"appendOnlyHeld\":true"))
+        XCTAssertTrue(artifact.summaryJSON.contains("\"sha256JournalChainAvailable\":true"))
 
         XCTAssertThrowsError(try journal.append(envelope: envelopes[0]))
         XCTAssertThrowsError(
@@ -8734,6 +8746,155 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(source.contains("cancelOrder"))
         XCTAssertFalse(source.contains("replaceOrder"))
         XCTAssertFalse(source.contains("HMAC<"))
+    }
+
+    func testGH758RuntimeMessageBusAndRunJournalUseSHA256AuditChecksums() async throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let messageBusTarget = try packageTargetBlock(named: "MessageBus", packageSource: packageSource)
+        let databaseTarget = try packageTargetBlock(named: "Database", packageSource: packageSource)
+        let messageBusSourcePath = repositoryRoot.appendingPathComponent("Sources/MessageBus/RuntimeMessageBus.swift")
+        let journalSourcePath = repositoryRoot.appendingPathComponent("Sources/Database/ReleaseV050DurableLocalRunJournal.swift")
+        let messageBusSource = try String(contentsOf: messageBusSourcePath, encoding: .utf8)
+        let journalSource = try String(contentsOf: journalSourcePath, encoding: .utf8)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.6.0-runtime-sha256-checksum-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let checksumScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.6.0-runtime-sha256-checksum.sh"),
+            encoding: .utf8
+        )
+
+        let envelopes = try await ReleaseV050RuntimeMessageBusContract.deterministicEnvelopes()
+        XCTAssertTrue(envelopes.allSatisfy { $0.checksum.hasPrefix("sha256:") })
+        let first = try XCTUnwrap(envelopes.first)
+        let expectedEnvelopeSHA256 = try RuntimeEventEnvelope<ReleaseV050RuntimeEventPayload>.makeChecksum(
+            eventID: first.eventID,
+            runID: first.runID,
+            sequence: first.sequence,
+            streamID: first.streamID,
+            correlationID: first.correlationID,
+            causationID: first.causationID,
+            sourceModule: first.sourceModule,
+            payloadType: first.payloadType,
+            payload: first.payload,
+            recordedAt: first.recordedAt
+        )
+        XCTAssertEqual(first.checksum, expectedEnvelopeSHA256)
+        XCTAssertTrue(expectedEnvelopeSHA256.hasPrefix("sha256:"))
+        XCTAssertThrowsError(
+            try RuntimeEventEnvelope(
+                eventID: first.eventID,
+                runID: first.runID,
+                sequence: first.sequence,
+                streamID: first.streamID,
+                correlationID: first.correlationID,
+                causationID: first.causationID,
+                sourceModule: first.sourceModule,
+                payloadType: first.payloadType,
+                payload: first.payload,
+                recordedAt: first.recordedAt,
+                checksum: "fnv1a64:0000000000000000"
+            )
+        )
+
+        let journal = try await ReleaseV050DurableLocalRunJournalContract.deterministicJournal()
+        XCTAssertTrue(journal.records.allSatisfy { $0.envelope.checksum.hasPrefix("sha256:") })
+        XCTAssertTrue(journal.records.allSatisfy { $0.journalChecksum.hasPrefix("fnv1a64:") })
+        XCTAssertTrue(journal.records.allSatisfy { $0.journalSHA256.hasPrefix("sha256:") })
+        XCTAssertEqual(journal.records.first?.previousJournalSHA256, ReleaseV050DurableLocalRunJournal.genesisSHA256)
+        XCTAssertEqual(
+            journal.records.dropFirst().map(\.previousJournalSHA256),
+            journal.records.dropLast().map(\.journalSHA256)
+        )
+        XCTAssertEqual(journal.latestJournalSHA256, journal.records.last?.journalSHA256)
+        XCTAssertEqual(try journal.projection().latestJournalSHA256, journal.latestJournalSHA256)
+        XCTAssertTrue(try journal.summary().sha256JournalChainAvailable)
+
+        let badRecord = try ReleaseV050DurableLocalRunJournalRecord(
+            journalSequence: 1,
+            journalRecordID: Identifier.constant("gh-758-bad-previous-sha-record"),
+            envelope: first,
+            previousJournalChecksum: ReleaseV050DurableLocalRunJournal.genesisChecksum,
+            previousJournalSHA256: "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        )
+        XCTAssertThrowsError(try ReleaseV050DurableLocalRunJournal(runID: first.runID, records: [badRecord]))
+        XCTAssertThrowsError(
+            try ReleaseV050DurableLocalRunJournalRecord(
+                journalSequence: 1,
+                journalRecordID: Identifier.constant("gh-758-bad-journal-sha"),
+                envelope: first,
+                previousJournalChecksum: ReleaseV050DurableLocalRunJournal.genesisChecksum,
+                previousJournalSHA256: ReleaseV050DurableLocalRunJournal.genesisSHA256,
+                journalSHA256: "sha256:bad"
+            )
+        )
+
+        for anchor in [
+            "V060-004-RUNTIME-EVENT-SHA256-CHECKSUM",
+            "V060-004-JOURNAL-SHA256-CHAIN",
+            "V060-004-FNV-COMPATIBILITY-EVIDENCE",
+            "V060-004-CHECKSUM-MISMATCH-FAILS-VALIDATION",
+            "V060-004-NO-PRODUCTION-AUTHORIZATION",
+            "TVM-RELEASE-V060-RUNTIME-SHA256-CHECKSUM"
+        ] {
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+        }
+
+        XCTAssertTrue(messageBusTarget.contains(".product(name: \"Crypto\", package: \"swift-crypto\")"))
+        XCTAssertTrue(databaseTarget.contains(".product(name: \"Crypto\", package: \"swift-crypto\")"))
+        XCTAssertTrue(messageBusSource.contains("import Crypto"))
+        XCTAssertTrue(messageBusSource.contains("SHA256.hash"))
+        XCTAssertTrue(journalSource.contains("journalSHA256"))
+        XCTAssertTrue(journalSource.contains("previousJournalSHA256"))
+        XCTAssertTrue(journalSource.contains("latestJournalSHA256"))
+        XCTAssertTrue(journalSource.contains("sha256JournalChainAvailable"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.6.0 runtime sha256 checksum anchor"))
+        XCTAssertTrue(readinessScript.contains("GH-758-VERIFY-V060-RUNTIME-SHA256-CHECKSUM"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.6.0-runtime-sha256-checksum.sh"))
+        XCTAssertTrue(checksumScript.contains("testGH758RuntimeMessageBusAndRunJournalUseSHA256AuditChecksums"))
+        XCTAssertFalse(messageBusSource.contains("URLSession"))
+        XCTAssertFalse(messageBusSource.contains("URLRequest"))
+        XCTAssertFalse(messageBusSource.contains("submitOrder"))
+        XCTAssertFalse(messageBusSource.contains("cancelOrder"))
+        XCTAssertFalse(messageBusSource.contains("replaceOrder"))
+        XCTAssertFalse(journalSource.contains("URLSession"))
+        XCTAssertFalse(journalSource.contains("URLRequest"))
+        XCTAssertFalse(journalSource.contains("api.binance.com"))
+        XCTAssertFalse(journalSource.contains("fapi.binance.com"))
+        XCTAssertFalse(journalSource.contains("submitOrder"))
+        XCTAssertFalse(journalSource.contains("cancelOrder"))
+        XCTAssertFalse(journalSource.contains("replaceOrder"))
+        XCTAssertFalse(journalSource.contains("HMAC<"))
     }
 
     func testGH756LocalRunJournalWriterPersistsArtifactsAndClassifiesIncompleteRuns() async throws {
