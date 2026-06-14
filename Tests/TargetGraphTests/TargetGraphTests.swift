@@ -20654,6 +20654,71 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(cliVerificationScript.contains("reject_output_contains \"$status_output\" \"mtpro unified-run-status blocked\""))
     }
 
+    func testGH782DashboardMacOSChecksRunV070FocusedGuards() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let workflowSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(".github/workflows/checks.yml"),
+            encoding: .utf8
+        )
+        let macOSGuardScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.7.0-dashboard-macos-guards.sh"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+
+        for anchor in [
+            "GH-782-VERIFY-V070-DASHBOARD-MACOS-GUARDS",
+            "TVM-RELEASE-V070-DASHBOARD-MACOS-GUARDS",
+            "GH-782 Release v0.7.0 Dashboard macOS Focused Guard Validation",
+            "Release v0.7.0 Dashboard macOS focused guard anchor"
+        ] {
+            XCTAssertTrue(
+                [macOSGuardScript, validationPlan, tradingMatrix, automationReadiness, readinessScript].contains {
+                    $0.contains(anchor)
+                },
+                "\(anchor) must be anchored by the GH-782 Dashboard macOS guard chain"
+            )
+        }
+
+        XCTAssertTrue(workflowSource.contains("dashboard_macos:"))
+        XCTAssertTrue(workflowSource.contains("Verify v0.7.0 Dashboard macOS focused guards"))
+        XCTAssertTrue(workflowSource.contains("bash checks/verify-v0.7.0-dashboard-macos-guards.sh"))
+        XCTAssertTrue(workflowSource.contains("swift build --product Dashboard"))
+        XCTAssertTrue(workflowSource.contains("DASHBOARD_SMOKE=1 swift run Dashboard"))
+
+        for guardCommand in [
+            "bash checks/verify-v0.6.0-run-detail-observer.sh",
+            "bash checks/verify-v0.6.0-testnet-readonly-probe.sh",
+            "bash checks/verify-v0.7.0-testnet-endpoint-policy.sh",
+            "bash checks/verify-v0.7.0-cli.sh"
+        ] {
+            XCTAssertTrue(
+                macOSGuardScript.contains(guardCommand),
+                "\(guardCommand) must run inside the GH-782 macOS guard"
+            )
+        }
+
+        XCTAssertFalse(workflowSource.contains("productionCutoverAuthorized=true"))
+        XCTAssertFalse(macOSGuardScript.contains("swift run mtpro submit"))
+        XCTAssertFalse(macOSGuardScript.contains("swift run mtpro cancel"))
+        XCTAssertFalse(macOSGuardScript.contains("swift run mtpro replace"))
+    }
+
     func testGH526BinancePrivateStreamAccountSnapshotRuntimeMapsEventsWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

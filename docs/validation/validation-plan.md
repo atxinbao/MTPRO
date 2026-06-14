@@ -3285,6 +3285,16 @@ swift test
 - `mtpro verify` 必须宣告 `verify-v0.7.0-contract`、`verify-v0.7.0-testnet-endpoint-policy`、`verify-v0.7.0-cli` 和 automation readiness gates。
 - `mtpro run --mode production`、`mtpro submit`、`mtpro cancel`、`mtpro replace` 必须 fail-closed。
 - 验证不启动 production trading，不读取 production secret，不连接 production endpoint，不发送真实 order，不授权 production cutover。
+
+## GH-782 Release v0.7.0 Dashboard macOS Focused Guard Validation
+
+- GH-782-VERIFY-V070-DASHBOARD-MACOS-GUARDS
+- TVM-RELEASE-V070-DASHBOARD-MACOS-GUARDS
+- `bash checks/verify-v0.7.0-dashboard-macos-guards.sh`
+- `testGH782DashboardMacOSChecksRunV070FocusedGuards`
+- GitHub required job `dashboard-macos` 必须在 Dashboard build / smoke 前执行 `checks/verify-v0.7.0-dashboard-macos-guards.sh`。
+- focused guard 必须覆盖 `checks/verify-v0.6.0-run-detail-observer.sh`、`checks/verify-v0.6.0-testnet-readonly-probe.sh`、`checks/verify-v0.7.0-testnet-endpoint-policy.sh` 和 `checks/verify-v0.7.0-cli.sh`。
+- 验证只覆盖 read-only / no-order / Dashboard observer / CLI runtime-session 边界，不新增 UI trading command，不连接 production endpoint，不读取 production secret，不发送真实 order，不授权 production cutover。
 - GH-766 Release v0.6.0 Final Audit Root Docs Validation
 - GH-766-RELEASE-V060-FINAL-AUDIT-ROOT-DOCS
 - GH-766-VERIFY-V060-FINAL-AUDIT-ROOT-DOCS
