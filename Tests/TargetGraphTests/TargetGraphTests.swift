@@ -8622,6 +8622,168 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(source.contains("HMAC<"))
     }
 
+    func testGH732DataEngineOperationalDryRunPathPublishesTypedMarketEventsIntoMessageBusAndCache() async throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let dataEngineTarget = try packageTargetBlock(named: "DataEngine", packageSource: packageSource)
+        let sourcePath = repositoryRoot.appendingPathComponent("Sources/DataEngine/ReleaseV050DataEngineOperationalDryRunPath.swift")
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.5.0-dataengine-operational-dry-run-path-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let dataEngineScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.5.0-dataengine.sh"),
+            encoding: .utf8
+        )
+
+        let contract = try ReleaseV050DataEngineOperationalDryRunPathContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-732")
+        XCTAssertEqual(contract.upstreamIssueIDs.map(\.rawValue), ["GH-728", "GH-730", "GH-731"])
+        XCTAssertEqual(contract.previousIssueID.rawValue, "GH-731")
+        XCTAssertEqual(contract.downstreamIssueIDs.map(\.rawValue), ["GH-733", "GH-735", "GH-739"])
+        XCTAssertEqual(contract.allowedVenue, "binance")
+        XCTAssertEqual(contract.allowedProductTypes, [.spot, .usdsPerpetual])
+        XCTAssertTrue(contract.productionDefaultsClosed)
+        XCTAssertFalse(contract.productionTradingEnabledByDefault)
+        XCTAssertFalse(contract.productionSecretAutoReadEnabled)
+        XCTAssertFalse(contract.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(contract.productionBrokerConnectionEnabled)
+        XCTAssertFalse(contract.productionOrderSubmissionEnabled)
+        XCTAssertFalse(contract.productionCutoverAuthorized)
+
+        let evidence = try await ReleaseV050DataEngineOperationalDryRunPath.deterministicEvidence()
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.productIdentityCoverageHeld)
+        XCTAssertTrue(evidence.runScopedMessageBusHeld)
+        XCTAssertTrue(evidence.cacheProjectionHeld)
+        XCTAssertTrue(evidence.forbiddenRuntimeHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-732")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-728", "GH-730", "GH-731"])
+        XCTAssertEqual(evidence.productTypes, [.spot, .usdsPerpetual])
+        XCTAssertEqual(evidence.eventEnvelopes.map(\.payloadType), [.dataEngineMarketEvent, .dataEngineMarketEvent])
+        XCTAssertEqual(evidence.eventEnvelopes.map(\.sourceModule), [.dataEngine, .dataEngine])
+        XCTAssertEqual(evidence.eventEnvelopes.map(\.sequence), [1, 2])
+        XCTAssertEqual(evidence.eventEnvelopes[1].causationID, evidence.eventEnvelopes[0].eventID)
+        XCTAssertEqual(evidence.replayedEnvelopes, evidence.eventEnvelopes)
+        XCTAssertEqual(evidence.cacheSnapshot, evidence.replayedCacheSnapshot)
+        XCTAssertEqual(evidence.cacheSnapshot.marketData.marketEventCount, 2)
+        XCTAssertTrue(evidence.cacheSnapshot.productAwareBoundaryHeld)
+        XCTAssertEqual(Set(evidence.marketInputs.map(\.source.venue)), [.binance])
+        XCTAssertTrue(evidence.marketInputs.allSatisfy(\.source.publicReadOnlyBoundaryHeld))
+        XCTAssertTrue(evidence.marketInputs.allSatisfy { $0.instrument.venue.rawValue == "binance" })
+        XCTAssertTrue(evidence.marketInputs.allSatisfy { $0.runtimePrice.semantic == .price })
+        XCTAssertTrue(evidence.marketInputs.allSatisfy { $0.runtimeQuantity.semantic == .quantity })
+        XCTAssertFalse(evidence.networkCallsPerformed)
+        XCTAssertFalse(evidence.secretReadsPerformed)
+        XCTAssertFalse(evidence.productionEndpointConnected)
+        XCTAssertFalse(evidence.productionBrokerConnected)
+        XCTAssertFalse(evidence.productionOrderSubmitted)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+
+        XCTAssertThrowsError(try ReleaseV050DataEngineOperationalDryRunPath(recordedAtStride: 0))
+        let path = try ReleaseV050DataEngineOperationalDryRunPath()
+        do {
+            _ = try await path.run(inputs: [])
+            XCTFail("Empty GH-732 dry-run inputs must fail closed")
+        } catch {
+            XCTAssertEqual(error as? ReleaseV050DataEngineOperationalDryRunPathError, .emptyInputs)
+        }
+        let firstInput = try XCTUnwrap(ReleaseV050DataEngineOperationalDryRunPath.deterministicInputs().first)
+        let wrongSymbolSource = try DataClientReadOnlyMarketDataSource(
+            sourceID: try FoundationTargetID("gh-732-wrong-symbol-source"),
+            venue: .binance,
+            symbol: .constant("ETHUSDT"),
+            timeframe: .oneMinute,
+            datasetVersion: "v0.5.0-gh-732-wrong-symbol"
+        )
+        XCTAssertThrowsError(
+            try ReleaseV050DataEngineDryRunMarketInput(
+                source: wrongSymbolSource,
+                catalogEntry: firstInput.catalogEntry,
+                marketEvent: firstInput.marketEvent,
+                runtimePrice: firstInput.runtimePrice,
+                runtimeQuantity: firstInput.runtimeQuantity,
+                qualityTag: "wrong-symbol"
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV050DataEngineOperationalDryRunEvidence(
+                runID: evidence.runID,
+                streamID: evidence.streamID,
+                correlationID: evidence.correlationID,
+                emissions: evidence.emissions,
+                replayedEnvelopes: evidence.replayedEnvelopes,
+                cacheSnapshot: evidence.cacheSnapshot,
+                replayedCacheSnapshot: evidence.replayedCacheSnapshot,
+                productionEndpointConnected: true
+            )
+        )
+
+        for anchor in ReleaseV050DataEngineOperationalDryRunPathContract.requiredValidationAnchors {
+            XCTAssertTrue(contract.validationAnchors.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+        }
+
+        XCTAssertTrue(dataEngineTarget.contains("\"ReleaseV050DataEngineOperationalDryRunPath.swift\""))
+        XCTAssertTrue(dataEngineTarget.contains("\"DataClient\""))
+        XCTAssertTrue(dataEngineTarget.contains("\"MessageBus\""))
+        XCTAssertTrue(dataEngineTarget.contains("\"Cache\""))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: sourcePath.path))
+        XCTAssertTrue(source.contains("ReleaseV050DataEngineOperationalDryRunPath"))
+        XCTAssertTrue(source.contains("ReleaseV050DataEngineDryRunMarketInput"))
+        XCTAssertTrue(source.contains("DataEngineMarketEvent"))
+        XCTAssertTrue(source.contains("RuntimeMessageBus<ReleaseV050RuntimeEventPayload>"))
+        XCTAssertTrue(source.contains("ProductAwareCache"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.5.0 DataEngine operational dry-run path anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV050DataEngineOperationalDryRunPath.swift"))
+        XCTAssertTrue(readinessScript.contains("testGH732DataEngineOperationalDryRunPathPublishesTypedMarketEventsIntoMessageBusAndCache"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.5.0-dataengine.sh"))
+        XCTAssertTrue(dataEngineScript.contains("GH-732-VERIFY-V050-DATAENGINE-OPERATIONAL-DRY-RUN-PATH"))
+        XCTAssertTrue(dataEngineScript.contains("testGH732DataEngineOperationalDryRunPathPublishesTypedMarketEventsIntoMessageBusAndCache"))
+        XCTAssertFalse(source.contains("URLSession"))
+        XCTAssertFalse(source.contains("URLRequest"))
+        XCTAssertFalse(source.contains("api.binance.com"))
+        XCTAssertFalse(source.contains("fapi.binance.com"))
+        XCTAssertFalse(source.contains("/api/v3/account"))
+        XCTAssertFalse(source.contains("/api/v3/order"))
+        XCTAssertFalse(source.contains("/api/v3/userDataStream"))
+        XCTAssertFalse(source.contains("listenKey"))
+        XCTAssertFalse(source.contains("submitOrder"))
+        XCTAssertFalse(source.contains("cancelOrder"))
+        XCTAssertFalse(source.contains("replaceOrder"))
+        XCTAssertFalse(source.contains("HMAC<"))
+    }
+
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
