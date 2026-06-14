@@ -9699,6 +9699,186 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH763PortfolioJournalProjectionRebuildsProjectionJSONFromRealRunJournal() async throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let portfolioTarget = try packageTargetBlock(named: "Portfolio", packageSource: packageSource)
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        let writerSourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/Database/ReleaseV060LocalRunJournalWriter.swift"
+        )
+        let sourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/Portfolio/ReleaseV060PortfolioJournalProjectionRunner.swift"
+        )
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+        let writerSource = try String(contentsOf: writerSourcePath, encoding: .utf8)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.6.0-portfolio-journal-projection-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let runnerScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.6.0-portfolio-journal-projection.sh"),
+            encoding: .utf8
+        )
+
+        let storageRoot = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "MTPRO-GH763-PortfolioJournalProjection-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        let dataStorageRoot = storageRoot.appendingPathComponent("data", isDirectory: true)
+        let portfolioStorageRoot = storageRoot.appendingPathComponent("portfolio", isDirectory: true)
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: storageRoot)
+        }
+
+        let contract = try ReleaseV060PortfolioJournalProjectionRunnerContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertTrue(contract.productionDefaultsClosed)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-763")
+        XCTAssertEqual(contract.upstreamIssueIDs.map(\.rawValue), ["GH-761", "GH-762"])
+        XCTAssertEqual(contract.previousIssueID.rawValue, "GH-762")
+        XCTAssertEqual(contract.downstreamIssueIDs.map(\.rawValue), ["GH-764", "GH-766"])
+
+        let dataEngineResult = try await ReleaseV060DataEngineLocalDryRunRunner.deterministicEvidence(
+            storageRootURL: dataStorageRoot
+        )
+        let strategyResult = try await ReleaseV060StrategyRuntimeRunner.deterministicEvidence(
+            dataEngineEnvelopes: dataEngineResult.journal.records.map(\.envelope)
+        )
+        let riskResult = try await ReleaseV060RiskEngineRuntimeRunner.deterministicEvidence(
+            upstreamJournalEnvelopes: strategyResult.journalCompatibleEnvelopes
+        )
+        let executionResult = try await ReleaseV060ExecutionOMSDryRunRunner.deterministicEvidence(
+            sourceRiskResult: riskResult
+        )
+
+        var journal = try ReleaseV050DurableLocalRunJournal(runID: executionResult.runID)
+        for envelope in executionResult.journalCompatibleEnvelopes {
+            try journal.append(envelope: envelope)
+        }
+        let result = try ReleaseV060PortfolioJournalProjectionRunner.deterministicEvidence(
+            journal: journal,
+            storageRootURL: portfolioStorageRoot
+        )
+
+        XCTAssertTrue(result.resultHeld)
+        XCTAssertTrue(result.sourceBoundaryHeld)
+        XCTAssertTrue(result.forbiddenBoundaryHeld)
+        XCTAssertEqual(result.issueID.rawValue, "GH-763")
+        XCTAssertEqual(result.runID, executionResult.runID)
+        XCTAssertEqual(result.replayedEnvelopes, executionResult.journalCompatibleEnvelopes)
+        XCTAssertEqual(result.sourceJournal.records.map(\.envelope), executionResult.journalCompatibleEnvelopes)
+        XCTAssertEqual(result.projectionEvidence.replayedEnvelopes, executionResult.journalCompatibleEnvelopes)
+        XCTAssertEqual(result.projectionEvidence.fillEvidence.count, 1)
+        XCTAssertEqual(result.projectionEvidence.productProjections.count, 1)
+        XCTAssertEqual(result.projectionEvidence.portfolioProjectionEvents.count, 1)
+        XCTAssertEqual(result.projectionEvidence.projectionState.sourceJournalEventCount, executionResult.journalCompatibleEnvelopes.count)
+        XCTAssertEqual(result.decodedProjectionJSONEvidence, result.projectionEvidence)
+        XCTAssertEqual(result.rebuiltProjectionEvidence, result.projectionEvidence)
+        XCTAssertTrue(result.fixedPointExposureNotionalQuantityHeld)
+        XCTAssertTrue(result.projectionJSONWrittenThroughWriter)
+        XCTAssertTrue(result.projectionManifestValidated)
+        XCTAssertTrue(result.projectionRebuildFromJournalHeld)
+        XCTAssertTrue(result.writerResult.resultHeld)
+        XCTAssertTrue(result.manifestValidation.validationHeld)
+        XCTAssertEqual(result.writerResult.status.eventCount, executionResult.journalCompatibleEnvelopes.count)
+        XCTAssertEqual(result.writerResult.manifest.eventCount, executionResult.journalCompatibleEnvelopes.count)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: result.writerResult.eventsJSONLPath))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: result.writerResult.projectionJSONPath))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: result.writerResult.summaryJSONPath))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: result.writerResult.manifestJSONPath))
+        XCTAssertEqual(result.writerResult.projectionJSONPath, result.projectionJSONPath)
+
+        let persistedProjectionJSON = try String(contentsOfFile: result.projectionJSONPath, encoding: .utf8)
+        XCTAssertTrue(persistedProjectionJSON.contains("GH-736"))
+        XCTAssertTrue(persistedProjectionJSON.contains("\"sourceJournalEventCount\":27"))
+        XCTAssertTrue(persistedProjectionJSON.contains("\"grossExposure\""))
+        XCTAssertTrue(persistedProjectionJSON.contains("\"netPositionQuantity\""))
+        XCTAssertTrue(persistedProjectionJSON.contains("\"notionalExposure\""))
+        XCTAssertTrue(result.manifestValidation.artifacts.contains { $0.path == result.projectionJSONPath })
+        XCTAssertTrue(
+            try ReleaseV060PortfolioJournalProjectionRunnerResult.accountEndpointReadRejectedProbe(source: result)
+        )
+        XCTAssertFalse(result.productionAccountSynced)
+        XCTAssertFalse(result.accountEndpointRead)
+        XCTAssertFalse(result.brokerPositionRead)
+        XCTAssertFalse(result.brokerMarginRead)
+        XCTAssertFalse(result.brokerLeverageRead)
+        XCTAssertFalse(result.rawBrokerPayloadStored)
+        XCTAssertFalse(result.productionTradingEnabledByDefault)
+        XCTAssertFalse(result.productionEndpointConnected)
+        XCTAssertFalse(result.productionSecretAutoReadEnabled)
+        XCTAssertFalse(result.productionOrderSubmitted)
+        XCTAssertFalse(result.productionCutoverAuthorized)
+
+        for anchor in ReleaseV060PortfolioJournalProjectionRunnerContract.requiredValidationAnchors {
+            XCTAssertTrue(contract.validationAnchors.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+        }
+
+        XCTAssertTrue(portfolioTarget.contains("\"ReleaseV060PortfolioJournalProjectionRunner.swift\""))
+        XCTAssertTrue(coreTarget.contains("\"Portfolio/ReleaseV060PortfolioJournalProjectionRunner.swift\""))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: sourcePath.path))
+        XCTAssertTrue(source.contains("ReleaseV060PortfolioJournalProjectionRunner"))
+        XCTAssertTrue(source.contains("ReleaseV050PortfolioRunJournalProjection"))
+        XCTAssertTrue(source.contains("ReleaseV060LocalRunJournalWriter"))
+        XCTAssertTrue(source.contains("projectionJSON"))
+        XCTAssertTrue(writerSource.contains("projectionJSON: String? = nil"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.6.0 Portfolio journal projection anchor"))
+        XCTAssertTrue(readinessScript.contains("GH-763-VERIFY-V060-PORTFOLIO-JOURNAL-PROJECTION"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.6.0-portfolio-journal-projection.sh"))
+        XCTAssertTrue(
+            runnerScript.contains(
+                "testGH763PortfolioJournalProjectionRebuildsProjectionJSONFromRealRunJournal"
+            )
+        )
+
+        for forbidden in [
+            "URLSession",
+            "URLRequest",
+            "api.binance.com",
+            "fapi.binance.com",
+            "/api/v3/account",
+            "/api/v3/order",
+            "/api/v3/userDataStream",
+            "listenKey",
+            "submitOrder",
+            "cancelOrder",
+            "replaceOrder",
+            "HMAC<"
+        ] {
+            XCTAssertFalse(source.contains(forbidden), "GH-763 source must not contain \(forbidden)")
+        }
+    }
+
     func testGH756LocalRunJournalWriterPersistsArtifactsAndClassifiesIncompleteRuns() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
