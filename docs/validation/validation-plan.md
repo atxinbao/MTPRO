@@ -467,6 +467,34 @@ GH-737 必须建立的主要 anchors：
 - 不启动 Linear、Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-738 Release v0.5.0 CI Hardening Validation
+
+GH-738 的 required validation：
+
+- `.github/workflows/checks.yml` 必须保留 required check job name `checks`，并以 aggregate gate 方式依赖 `linux-checks` 和 `dashboard-macos`。
+- `linux-checks` 必须继续运行在 `ubuntu-24.04`，验证 runner-pinned Swift 6.3.x、安装 `libsqlite3-dev`、执行 `git diff --check` 和 `bash checks/run.sh`。
+- `dashboard-macos` 必须运行在 `macos-15`，验证 Swift 6.x toolchain，并执行 `git diff --check`、`bash checks/verify-v0.5.0-preflight.sh`、`swift build --product Dashboard` 和 `DASHBOARD_SMOKE=1 swift run Dashboard`。
+- Workflow 必须支持 `pull_request`、manual `workflow_dispatch` 和 `v*` tag push，确保 release/tag/manual validation coverage。
+- `checks/verify-v0.5.0-ci-hardening.sh` 必须机械验证 workflow job shape、Dashboard macOS smoke、preflight guard、aggregate required check 和 forbidden production capability absence，并接入 `checks/run.sh`。
+- Required validation 为 `bash checks/verify-v0.5.0-ci-hardening.sh`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、broker、testnet network 或人工验收。
+
+GH-738 必须建立的主要 anchors：
+
+- `GH-738-VERIFY-V050-CI-HARDENING`
+- `GH-738-CI-DASHBOARD-MACOS-REQUIRED-GATE`
+- `TVM-RELEASE-V050-CI-HARDENING`
+- `MTPRO required checks aggregate`
+
+## GH-738 禁止
+
+- 不把 CI hardening 解释为 runtime、testnet connection 或 production readiness。
+- 不在 workflow 中读取 GitHub secrets、production secret 或 credential value。
+- 不连接 production endpoint、broker endpoint、account endpoint、listenKey 或 private WebSocket。
+- 不提交、取消或替换真实订单，不授权 production trading 或 production cutover。
+- 不创建下一 Project / Issue，不推进 release v0.5.0 之后的阶段。
+- 不启动 Linear、Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-669 Release v0.3.0 Operator Rehearsal Runbook
 
 GH-669 的 required validation：

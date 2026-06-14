@@ -4,10 +4,14 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
 
 jobs:
-  checks:
-    name: checks
+  linux_checks:
+    name: linux-checks
     runs-on: ubuntu-24.04
     env:
       MTPRO_CI_SWIFT_VERSION_FAMILY: "6.3.x"
@@ -32,3 +36,43 @@ jobs:
 
       - name: Run MTPRO checks
         run: bash checks/run.sh
+
+  dashboard_macos:
+    name: dashboard-macos
+    runs-on: macos-15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify macOS Dashboard Swift toolchain
+        run: |
+          echo "MTPRO macOS Dashboard validation policy: required checks must build and smoke the SwiftUI Dashboard on macOS with Swift 6.x."
+          swift --version
+          swift --version | grep -E "Swift version 6\\."
+
+      - name: Check whitespace
+        run: git diff --check
+
+      - name: Verify v0.5.0 boundary preflight guard
+        run: bash checks/verify-v0.5.0-preflight.sh
+
+      - name: Build Dashboard
+        run: swift build --product Dashboard
+
+      - name: Run Dashboard smoke
+        run: DASHBOARD_SMOKE=1 swift run Dashboard
+
+  checks:
+    name: checks
+    runs-on: ubuntu-24.04
+    needs:
+      - linux_checks
+      - dashboard_macos
+    if: always()
+
+    steps:
+      - name: Aggregate required checks
+        run: |
+          echo "MTPRO required checks aggregate: linux-checks=${{ needs.linux_checks.result }} dashboard-macos=${{ needs.dashboard_macos.result }}"
+          test "${{ needs.linux_checks.result }}" = "success"
+          test "${{ needs.dashboard_macos.result }}" = "success"
