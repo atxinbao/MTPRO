@@ -365,7 +365,9 @@ public struct ReleaseV060LocalRunJournalWriter {
 
     @discardableResult
     public func writeCompletedRun(
-        journal: ReleaseV050DurableLocalRunJournal
+        journal: ReleaseV050DurableLocalRunJournal,
+        projectionJSON: String? = nil,
+        summaryJSON: String? = nil
     ) throws -> ReleaseV060LocalRunJournalWriterResult {
         let runID = journal.paths.runID
         let urls = artifactURLs(runID: runID)
@@ -379,8 +381,8 @@ public struct ReleaseV060LocalRunJournalWriter {
 
         let artifact = try journal.artifact()
         try appendEventsJSONL(artifact.eventsJSONLLines, to: urls.eventsURL)
-        try writeAtomicString(artifact.projectionJSON, to: urls.projectionURL)
-        try writeAtomicString(artifact.summaryJSON, to: urls.summaryURL)
+        try writeAtomicString(projectionJSON ?? artifact.projectionJSON, to: urls.projectionURL)
+        try writeAtomicString(summaryJSON ?? artifact.summaryJSON, to: urls.summaryURL)
 
         let status = try ReleaseV060LocalRunJournalWriterStatus(
             runID: runID,
