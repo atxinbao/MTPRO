@@ -9405,6 +9405,165 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(source.contains("HMAC<"))
     }
 
+    func testGH737DashboardCLIRunObserverReadsJournalProjectionAndBoundaryByRunID() async throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let portfolioTarget = try packageTargetBlock(named: "Portfolio", packageSource: packageSource)
+        let cliTarget = try packageTargetBlock(named: "MTPROCLI", packageSource: packageSource)
+        let observerSourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/Portfolio/ReleaseV050RunObserverSurface.swift"
+        )
+        let dashboardSourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/Dashboard/Report/ReleaseV050DashboardRunObserverSurface.swift"
+        )
+        let cliSourcePath = repositoryRoot.appendingPathComponent("Sources/MTPROCLI/main.swift")
+        let observerSource = try String(contentsOf: observerSourcePath, encoding: .utf8)
+        let dashboardSource = try String(contentsOf: dashboardSourcePath, encoding: .utf8)
+        let cliSource = try String(contentsOf: cliSourcePath, encoding: .utf8)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.5.0-run-observer-surface-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let observerScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.5.0-observer.sh"),
+            encoding: .utf8
+        )
+
+        let evidence = try await ReleaseV050RunObserverSurface.deterministicEvidence()
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.observerBoundaryHeld)
+        XCTAssertTrue(evidence.forbiddenBoundaryHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-737")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-731", "GH-735", "GH-736"])
+        XCTAssertEqual(evidence.previousIssueID.rawValue, "GH-736")
+        XCTAssertEqual(evidence.downstreamIssueIDs.map(\.rawValue), ["GH-738", "GH-739"])
+        XCTAssertEqual(evidence.canonicalQueueRange, "GH-726..GH-739")
+        XCTAssertEqual(evidence.dashboardSections.map(\.section), ReleaseV050RunObserverSection.allCases)
+        XCTAssertEqual(evidence.cliCommands, ReleaseV050RunObserverCommand.allCases)
+        XCTAssertEqual(evidence.sourceJournalEventCount, 14)
+        XCTAssertTrue(Set(evidence.sourcePayloadTypes).isSuperset(of: Set(ReleaseV050RunObserverSurfaceEvidence.requiredSourcePayloadTypes)))
+        XCTAssertEqual(evidence.riskDecisions, [.allowed, .rejected, .blocked])
+        XCTAssertTrue(evidence.riskReasons.contains("rejected:notionalLimitExceeded"))
+        XCTAssertTrue(evidence.riskReasons.contains("blocked:killSwitchActive"))
+        XCTAssertTrue(evidence.omsStates.contains(.simulatedFilled))
+        XCTAssertTrue(evidence.executionDryRunCommands.contains(.submit))
+        XCTAssertTrue(evidence.portfolioProjectionState.stateHeld)
+        XCTAssertFalse(evidence.portfolioProjectionState.brokerTruth)
+        XCTAssertTrue(evidence.dashboardReadsByRunID)
+        XCTAssertTrue(evidence.cliReadsByRunID)
+        XCTAssertTrue(evidence.consumesRunJournal)
+        XCTAssertTrue(evidence.consumesPortfolioProjection)
+        XCTAssertTrue(evidence.displaysBlockedRejectedReasons)
+        XCTAssertTrue(evidence.displaysBoundaryEvidence)
+        XCTAssertFalse(evidence.defaultDemoSnapshotUsedForV050Path)
+        XCTAssertFalse(evidence.brokerExecutionWriteEnabled)
+        XCTAssertFalse(evidence.tradingButtonExposed)
+        XCTAssertFalse(evidence.orderFormExposed)
+        XCTAssertFalse(evidence.liveCommandSurfaceExposed)
+        XCTAssertFalse(evidence.productionCommandSurfaceExposed)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionEndpointConnected)
+        XCTAssertFalse(evidence.productionSecretAutoReadEnabled)
+        XCTAssertFalse(evidence.productionOrderSubmitted)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+
+        let dashboardViewModel = ReleaseV050DashboardRunObserverSurfaceViewModel(evidence: evidence)
+        XCTAssertTrue(dashboardViewModel.dashboardSurfaceBoundaryHeld)
+        XCTAssertEqual(dashboardViewModel.issueID, "GH-737")
+        XCTAssertEqual(dashboardViewModel.runID, evidence.runID.rawValue)
+        XCTAssertEqual(dashboardViewModel.sectionLabels, ReleaseV050RunObserverSection.allCases.map(\.rawValue))
+        XCTAssertEqual(dashboardViewModel.cliCommands, ReleaseV050RunObserverCommand.allCases.map(\.rawValue))
+        XCTAssertTrue(dashboardViewModel.riskReasons.contains("rejected:notionalLimitExceeded"))
+        XCTAssertFalse(dashboardViewModel.commandSurfaceVisible)
+        XCTAssertFalse(dashboardViewModel.commandSurfaceEnabled)
+        XCTAssertFalse(dashboardViewModel.providesTradingButton)
+        XCTAssertFalse(dashboardViewModel.exposesOrderForm)
+
+        let runID = evidence.runID.rawValue
+        let listOutput = try await ReleaseV050RunObserverSurface.commandLineOutput(arguments: ["run-observer", "list"])
+        let statusOutput = try await ReleaseV050RunObserverSurface.commandLineOutput(arguments: ["run-observer", "status", runID])
+        let eventsOutput = try await ReleaseV050RunObserverSurface.commandLineOutput(arguments: ["run-observer", "events", runID])
+        let projectionOutput = try await ReleaseV050RunObserverSurface.commandLineOutput(arguments: ["run-observer", "projection", runID])
+        let riskOutput = try await ReleaseV050RunObserverSurface.commandLineOutput(arguments: ["run-observer", "risk", runID])
+        XCTAssertTrue(listOutput.contains("mtpro run-observer list blocked"))
+        XCTAssertTrue(statusOutput.contains("sections=Run Overview,Data Freshness,Strategy Intents,Risk Decisions"))
+        XCTAssertTrue(statusOutput.contains("defaultDemoSnapshotUsedForV050Path=false"))
+        XCTAssertTrue(eventsOutput.contains("payloadTypes=DataEngineMarketEvent"))
+        XCTAssertTrue(projectionOutput.contains("brokerTruth=false"))
+        XCTAssertTrue(riskOutput.contains("blockedRejectedReasons=rejected:notionalLimitExceeded|blocked:killSwitchActive"))
+        let commandSurfaceRejected = try await ReleaseV050RunObserverSurface.commandSurfaceRejected()
+        XCTAssertTrue(commandSurfaceRejected)
+        do {
+            _ = try await ReleaseV050RunObserverSurface.commandLineOutput(
+                arguments: ["run-observer", "status", "wrong-run"]
+            )
+            XCTFail("wrong runID must be rejected")
+        } catch let error as ReleaseV050RunObserverSurfaceError {
+            XCTAssertEqual(error, .runIDMismatch(expected: evidence.runID, actual: "wrong-run"))
+        }
+
+        for anchor in ReleaseV050RunObserverSurfaceEvidence.requiredValidationAnchors {
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+        }
+
+        XCTAssertTrue(portfolioTarget.contains("\"ReleaseV050RunObserverSurface.swift\""))
+        XCTAssertTrue(cliTarget.contains("\"Portfolio\""))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: observerSourcePath.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: dashboardSourcePath.path))
+        XCTAssertTrue(observerSource.contains("ReleaseV050RunObserverSurface"))
+        XCTAssertTrue(observerSource.contains("ReleaseV050PortfolioRunJournalProjection"))
+        XCTAssertTrue(observerSource.contains("DashboardReadModelEvent"))
+        XCTAssertTrue(dashboardSource.contains("ReleaseV050DashboardRunObserverSurfaceViewModel"))
+        XCTAssertTrue(cliSource.contains("try await MTPROStrictCLI.commandLineOutput(arguments: arguments)"))
+        XCTAssertTrue(cliSource.contains("ReleaseV050RunObserverSurface.commandLineOutput"))
+        XCTAssertTrue(cliSource.contains("run-observer"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.5.0 Dashboard / CLI run observer anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV050RunObserverSurface.swift"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV050DashboardRunObserverSurface.swift"))
+        XCTAssertTrue(readinessScript.contains("testGH737DashboardCLIRunObserverReadsJournalProjectionAndBoundaryByRunID"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.5.0-observer.sh"))
+        XCTAssertTrue(observerScript.contains("GH-737-VERIFY-V050-DASHBOARD-CLI-RUN-OBSERVER"))
+        XCTAssertTrue(observerScript.contains("swift run mtpro run-observer"))
+        XCTAssertFalse(observerSource.contains("URLSession"))
+        XCTAssertFalse(observerSource.contains("URLRequest"))
+        XCTAssertFalse(observerSource.contains("api.binance.com"))
+        XCTAssertFalse(observerSource.contains("fapi.binance.com"))
+        XCTAssertFalse(observerSource.contains("submitOrder"))
+        XCTAssertFalse(observerSource.contains("cancelOrder"))
+        XCTAssertFalse(observerSource.contains("replaceOrder"))
+        XCTAssertFalse(observerSource.contains("HMAC<"))
+        XCTAssertFalse(dashboardSource.contains("submitOrder"))
+        XCTAssertFalse(cliSource.contains("submitOrder"))
+    }
+
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
