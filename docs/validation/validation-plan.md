@@ -172,6 +172,39 @@ GH-728 必须建立的主要 anchors：
 - 不启动 Linear、Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-729 Release v0.5.0 Precision Primitives / InstrumentCatalog Validation
+
+GH-729 的 required validation：
+
+- `Package.swift` 必须让 `DomainModel` target 编译 `ReleaseV050PrecisionInstrumentCatalog.swift`。
+- `Sources/DomainModel/ReleaseV050PrecisionInstrumentCatalog.swift` 必须定义 `ReleaseV050FixedPointValue`、`ReleaseV050PrecisionPolicy`、`ReleaseV050InstrumentCatalogEntry` 和 `ReleaseV050InstrumentCatalog`。
+- `Sources/DomainModel/ProductType.swift` 的 `ProductType(contractValue:)` 必须保持 strict parsing，只接受 `spot` 与显式 `usdsPerpetual` 形态。
+- `docs/contracts/release-v0.5.0-precision-instrument-catalog-contract.md` 必须存在，并包含 `V050-04-PRECISION-PRIMITIVES-INSTRUMENT-CATALOG`、`V050-04-FIXED-POINT-MONEY-NOTIONAL-EXPOSURE-PRICE-QUANTITY`、`V050-04-BINANCE-SPOT-PERP-INSTRUMENT-FILTERS`、`V050-04-STRICT-PRODUCTTYPE-PARSING` 和 `TVM-RELEASE-V050-PRECISION-INSTRUMENT-CATALOG`。
+- InstrumentCatalog 必须覆盖 Binance Spot BTCUSDT 和 Binance USDⓈ-M Perpetual BTCUSDT，字段包含 venue、productType、symbol、assets、precision、tickSize、stepSize、minQty、minNotional、contractSize、funding interval 和 trading status。
+- `perpetual`、`futures`、`usdm`、`usdmPerpetual`、`usdsmPerpetual`、`coinMPerpetual` 必须被 `ProductType(contractValue:)` 拒绝。
+- Required validation 为 `swift test --filter TargetGraphTests/testGH729PrecisionPrimitivesAndInstrumentCatalogAreStrict`、`bash checks/verify-v0.5.0-instrument-catalog.sh`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-729 必须建立的主要 anchors：
+
+- `V050-04-PRECISION-PRIMITIVES-INSTRUMENT-CATALOG`
+- `V050-04-FIXED-POINT-MONEY-NOTIONAL-EXPOSURE-PRICE-QUANTITY`
+- `V050-04-BINANCE-SPOT-PERP-INSTRUMENT-FILTERS`
+- `V050-04-STRICT-PRODUCTTYPE-PARSING`
+- `TVM-RELEASE-V050-PRECISION-INSTRUMENT-CATALOG`
+- `testGH729PrecisionPrimitivesAndInstrumentCatalogAreStrict`
+
+## GH-729 禁止
+
+- 不添加非 Binance venue。
+- 不添加 Spot / USDⓈ-M Perpetual 之外的 active product。
+- 不连接 exchangeInfo endpoint、production endpoint、broker endpoint、account endpoint、listenKey 或 private WebSocket runtime。
+- 不读取、打印、保存或推导 production secret。
+- 不实现 broker gateway、ExecutionClient live adapter、real submit / cancel / replace、production OMS、Live PRO Console production command、trading button、live command 或 order form。
+- 不授权 production trading 或 production cutover。
+- 不创建下一 Project / Issue，不推进 release v0.5.0 之后的阶段。
+- 不启动 Linear、Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-669 Release v0.3.0 Operator Rehearsal Runbook
 
 GH-669 的 required validation：

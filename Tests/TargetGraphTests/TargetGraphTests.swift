@@ -8070,6 +8070,169 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH729PrecisionPrimitivesAndInstrumentCatalogAreStrict() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let domainModelTarget = try packageTargetBlock(named: "DomainModel", packageSource: packageSource)
+        let productTypeSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/DomainModel/ProductType.swift"),
+            encoding: .utf8
+        )
+        let sourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/DomainModel/ReleaseV050PrecisionInstrumentCatalog.swift"
+        )
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.5.0-precision-instrument-catalog-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let instrumentScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.5.0-instrument-catalog.sh"),
+            encoding: .utf8
+        )
+
+        let catalog = try ReleaseV050InstrumentCatalog.deterministicFixture()
+        XCTAssertTrue(catalog.catalogHeld)
+        XCTAssertEqual(catalog.issueID.rawValue, "GH-729")
+        XCTAssertEqual(catalog.upstreamIssueID.rawValue, "GH-726")
+        XCTAssertEqual(catalog.previousIssueID.rawValue, "GH-728")
+        XCTAssertEqual(catalog.downstreamIssueIDs.map(\.rawValue), ["GH-734", "GH-736", "GH-739"])
+        XCTAssertEqual(catalog.entries.count, 2)
+        XCTAssertEqual(catalog.entries.map(\.instrument.productType), [.spot, .usdsPerpetual])
+
+        let spotIdentity = InstrumentIdentity.binance(productType: .spot, symbol: .constant("BTCUSDT"))
+        let perpIdentity = InstrumentIdentity.binance(productType: .usdsPerpetual, symbol: .constant("BTCUSDT"))
+        let spotEntry = try XCTUnwrap(catalog.entry(for: spotIdentity))
+        let perpEntry = try XCTUnwrap(catalog.entry(for: perpIdentity))
+        XCTAssertTrue(spotEntry.entryHeld)
+        XCTAssertTrue(perpEntry.entryHeld)
+        XCTAssertEqual(spotEntry.baseAsset.rawValue, "BTC")
+        XCTAssertEqual(spotEntry.quoteAsset.rawValue, "USDT")
+        XCTAssertNil(spotEntry.marginAsset)
+        XCTAssertNil(spotEntry.contractSize)
+        XCTAssertNil(spotEntry.fundingIntervalHours)
+        XCTAssertEqual(perpEntry.marginAsset?.rawValue, "USDT")
+        XCTAssertEqual(perpEntry.contractSize?.description, "1.000")
+        XCTAssertEqual(perpEntry.fundingIntervalHours, 8)
+        XCTAssertEqual(spotEntry.tickSize.description, "0.01")
+        XCTAssertEqual(spotEntry.stepSize.description, "0.000001")
+        XCTAssertEqual(spotEntry.minQuantity.description, "0.001000")
+        XCTAssertEqual(spotEntry.minNotional.description, "10.00000000")
+        XCTAssertEqual(perpEntry.tickSize.description, "0.1")
+        XCTAssertEqual(perpEntry.stepSize.description, "0.001")
+        XCTAssertEqual(perpEntry.minNotional.description, "5.00000000")
+
+        let notional = try ReleaseV050FixedPointValue.notional(minorUnits: 123_456_789, scale: 8)
+        XCTAssertEqual(notional.semantic, .notional)
+        XCTAssertEqual(notional.description, "1.23456789")
+        XCTAssertTrue(spotEntry.minQuantity.isMultiple(of: spotEntry.stepSize))
+
+        XCTAssertEqual(try ProductType(contractValue: "spot"), .spot)
+        XCTAssertEqual(try ProductType(contractValue: "usdsPerpetual"), .usdsPerpetual)
+        XCTAssertEqual(try ProductType(contractValue: "usds-perpetual"), .usdsPerpetual)
+        XCTAssertEqual(try ProductType(contractValue: "usds_perpetual"), .usdsPerpetual)
+        for ambiguousProductType in [
+            "perpetual",
+            "futures",
+            "usdm",
+            "usdmPerpetual",
+            "usdsmPerpetual",
+            "coinMPerpetual"
+        ] {
+            XCTAssertThrowsError(
+                try ProductType(contractValue: ambiguousProductType),
+                "\(ambiguousProductType) must remain unsupported for v0.5.0 runtime parsing"
+            )
+        }
+
+        for anchor in ReleaseV050InstrumentCatalog.requiredValidationAnchors {
+            XCTAssertTrue(catalog.validationAnchors.contains(anchor), "\(anchor) must stay in Swift catalog")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+        }
+
+        XCTAssertTrue(domainModelTarget.contains("\"ReleaseV050PrecisionInstrumentCatalog.swift\""))
+        XCTAssertTrue(productTypeSource.contains("case \"usdsperpetual\""))
+        XCTAssertFalse(productTypeSource.contains("\"perpetual\":"))
+        XCTAssertFalse(productTypeSource.contains("\"usdmperpetual\""))
+        XCTAssertFalse(productTypeSource.contains("\"usdsmperpetual\""))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: sourcePath.path))
+        XCTAssertTrue(source.contains("ReleaseV050InstrumentCatalog"))
+        XCTAssertTrue(source.contains("ReleaseV050FixedPointValue"))
+        XCTAssertTrue(source.contains("ReleaseV050PrecisionPolicy"))
+        XCTAssertTrue(source.contains("tickSize"))
+        XCTAssertTrue(source.contains("stepSize"))
+        XCTAssertTrue(source.contains("minNotional"))
+        XCTAssertTrue(source.contains("fundingIntervalHours"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.5.0 precision instrument catalog anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV050PrecisionInstrumentCatalog.swift"))
+        XCTAssertTrue(readinessScript.contains("testGH729PrecisionPrimitivesAndInstrumentCatalogAreStrict"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.5.0-instrument-catalog.sh"))
+        XCTAssertTrue(instrumentScript.contains("GH-729-VERIFY-V050-PRECISION-INSTRUMENT-CATALOG"))
+        XCTAssertTrue(instrumentScript.contains("testGH729PrecisionPrimitivesAndInstrumentCatalogAreStrict"))
+        XCTAssertFalse(source.contains("URLSession"))
+        XCTAssertFalse(source.contains("URLRequest"))
+        XCTAssertFalse(source.contains("submitOrder"))
+        XCTAssertFalse(source.contains("cancelOrder"))
+        XCTAssertFalse(source.contains("replaceOrder"))
+
+        XCTAssertThrowsError(
+            try ReleaseV050FixedPointValue.price(minorUnits: 0, scale: 2)
+        )
+        XCTAssertThrowsError(
+            try ReleaseV050PrecisionPolicy(
+                moneyScale: 8,
+                notionalScale: 8,
+                exposureScale: 8,
+                priceScale: 19,
+                quantityScale: 6
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV050InstrumentCatalogEntry(
+                instrument: InstrumentIdentity(venue: "coinbase", productType: .spot, symbol: .constant("BTCUSDT")),
+                baseAsset: .constant("BTC", field: "instrumentCatalog.baseAsset"),
+                quoteAsset: .constant("USDT", field: "instrumentCatalog.quoteAsset"),
+                marginAsset: nil,
+                precisionPolicy: spotEntry.precisionPolicy,
+                tickSize: spotEntry.tickSize,
+                stepSize: spotEntry.stepSize,
+                minQuantity: spotEntry.minQuantity,
+                minNotional: spotEntry.minNotional,
+                contractSize: nil,
+                fundingIntervalHours: nil,
+                tradingStatus: .trading
+            )
+        )
+    }
+
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

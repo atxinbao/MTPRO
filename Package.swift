@@ -46,6 +46,7 @@ let package = Package(
                 "PerpetualContract.swift",
                 "ProductAwareOrderIntent.swift",
                 "ProductType.swift",
+                "ReleaseV050PrecisionInstrumentCatalog.swift",
                 "ReleaseV040RehearsalRunContext.swift",
                 "TargetExposureIntent.swift",
                 "TargetGraph/DomainModelTargetBoundary.swift"
@@ -302,6 +303,7 @@ let package = Package(
                 "DomainModel/PerpetualContract.swift",
                 "DomainModel/ProductType.swift",
                 "DomainModel/ProductAwareOrderIntent.swift",
+                "DomainModel/ReleaseV050PrecisionInstrumentCatalog.swift",
                 "DomainModel/ReleaseV040RehearsalRunContext.swift",
                 "DomainModel/TargetExposureIntent.swift",
                 "DomainModel/TargetGraph",

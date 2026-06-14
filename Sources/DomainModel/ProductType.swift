@@ -22,7 +22,7 @@ public enum ProductType: String, Codable, CaseIterable, Equatable, Hashable, Sen
         switch normalized {
         case Self.spot.rawValue:
             self = .spot
-        case "usdsperpetual", "usdsmperpetual", "usdmperpetual", "perpetual":
+        case "usdsperpetual":
             self = .usdsPerpetual
         default:
             throw DomainModelContractError.unsupportedProductType(contractValue)
