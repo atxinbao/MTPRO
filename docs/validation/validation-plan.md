@@ -2573,6 +2573,10 @@ swift test
 - GH-739 禁止
 - GH-739-RELEASE-V050-FINAL-AUDIT-RELEASE-DOCS
 - GH-739-VERIFY-V050-FINAL-AUDIT-RELEASE-DOCS
+- GH-755
+- GH-755 Release v0.6.0 Boundary / No-production Contract Validation
+- GH-755 禁止
+- GH-755-VERIFY-V060-BOUNDARY-NO-PRODUCTION
 - Backtest / Paper parity
 - Codex / Automation Validation
 - DASHBOARD_SMOKE=1 swift run Dashboard
@@ -2735,6 +2739,7 @@ swift test
 - TVM-RELEASE-V050-STRICT-CLI-COMMAND-PARSER
 - TVM-RELEASE-V050-TESTNET-READONLY-INTEGRATION-GATE
 - TVM-RELEASE-V050-TYPED-RUNTIME-MESSAGEBUS
+- TVM-RELEASE-V060-BOUNDARY-NO-PRODUCTION-CONTRACT
 - TVM-REPORT-EVIDENCE
 - TVM-RISK-BLOCKER
 - TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY
@@ -2766,6 +2771,7 @@ swift test
 - bash checks/verify-v0.5.0-run-journal.sh
 - bash checks/verify-v0.5.0-testnet-readonly.sh
 - bash checks/verify-v0.5.0.sh
+- bash checks/verify-v0.6.0-boundary.sh
 - bash checks/workbench-beta-acceptance.sh
 - docs/audit/inputs/
 - docs/audit/inputs/mtpro-live-monitoring-console-v1-stage-audit-input.md
