@@ -495,6 +495,38 @@ GH-738 必须建立的主要 anchors：
 - 不启动 Linear、Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-739 Release v0.5.0 Final Audit / Release Docs Validation
+
+GH-739 的 required validation：
+
+- `docs/audit/mtpro-release-v0.5.0-guarded-testnet-runtime-foundation-stage-code-audit.md` 必须存在，并包含 `GH-739-RELEASE-V050-FINAL-AUDIT-RELEASE-DOCS` 和 `TVM-RELEASE-V050-FINAL-AUDIT-RELEASE-DOCS`。
+- `docs/operators/release-v0.5.0-operator-guarded-testnet-runtime-foundation-runbook.md` 必须存在，并包含 `V050-14-VALIDATION-SUMMARY`、`V050-14-RUN-JOURNAL-OBSERVER`、`V050-14-TESTNET-GUARDED-PROOF` 和 `V050-14-NO-PRODUCTION-CUTOVER`。
+- `docs/release/mtpro-release-v0.5.0-guarded-testnet-runtime-foundation-notes.md` 必须存在，并说明 v0.5.0 是 closure docs，不创建 tag、不发布 production cutover、不创建下一 Project / Issue。
+- `checks/verify-v0.5.0.sh` 必须存在，并包含 `GH-739-VERIFY-V050-FINAL-AUDIT-RELEASE-DOCS`、`TVM-RELEASE-V050-FINAL-AUDIT-RELEASE-DOCS`，串联 GH-726 至 GH-738 的 focused verification scripts 和 read-only `mtpro run-observer status` smoke。
+- Root docs 必须把 Latest completed release construction scope 更新为 `MTPRO Release v0.5.0 Guarded Testnet Runtime Foundation / Deterministic-to-Operational Bridge`，同时保留 production trading disabled by default 和 no-next-project stop rule。
+- `Tests/TargetGraphTests/TargetGraphTests.swift` 的 `testGH739ReleaseV050FinalAuditAndReleaseDocsCloseCompletedFactsOnly` 必须守住 v0.5.0 current/latest docs anchors 和 v0.4.0 historical docs anchors。
+- Required validation 为 `bash checks/verify-v0.5.0.sh`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、broker、testnet network 或人工验收。
+
+GH-739 必须建立的主要 anchors：
+
+- `GH-739-RELEASE-V050-FINAL-AUDIT-RELEASE-DOCS`
+- `GH-739-VERIFY-V050-FINAL-AUDIT-RELEASE-DOCS`
+- `V050-14-VALIDATION-SUMMARY`
+- `V050-14-RUN-JOURNAL-OBSERVER`
+- `V050-14-NO-PRODUCTION-CUTOVER`
+- `TVM-RELEASE-V050-FINAL-AUDIT-RELEASE-DOCS`
+- `testGH739ReleaseV050FinalAuditAndReleaseDocsCloseCompletedFactsOnly`
+
+## GH-739 禁止
+
+- 不发布 GitHub Release tag，不移动任何既有 tag。
+- 不创建下一 Project / Issue，不推进 release v0.5.0 之后的阶段。
+- 不把 v0.5.0 observer、testnet read-only gate 或 CI success 解释为 production approval。
+- 不读取 production secret，不连接 production endpoint、broker endpoint、account endpoint、listenKey 或 private WebSocket。
+- 不提交、取消或替换真实订单，不授权 production trading 或 production cutover。
+- 不启动 Linear、Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-669 Release v0.3.0 Operator Rehearsal Runbook
 
 GH-669 的 required validation：

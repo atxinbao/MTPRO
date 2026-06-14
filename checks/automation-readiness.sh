@@ -424,6 +424,29 @@ require_contains "docs/automation/ci-reproducibility.md" "GH-738-CI-DASHBOARD-MA
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V050-CI-HARDENING"
 require_contains "docs/validation/validation-plan.md" "GH-738 Release v0.5.0 CI Hardening Validation"
 require_contains "docs/automation/automation-readiness.md" "Release v0.5.0 CI hardening anchor"
+require_file "checks/verify-v0.5.0.sh"
+require_file "docs/audit/mtpro-release-v0.5.0-guarded-testnet-runtime-foundation-stage-code-audit.md"
+require_file "docs/operators/release-v0.5.0-operator-guarded-testnet-runtime-foundation-runbook.md"
+require_file "docs/release/mtpro-release-v0.5.0-guarded-testnet-runtime-foundation-notes.md"
+require_contains "checks/verify-v0.5.0.sh" "GH-739-VERIFY-V050-FINAL-AUDIT-RELEASE-DOCS"
+require_contains "checks/verify-v0.5.0.sh" "TVM-RELEASE-V050-FINAL-AUDIT-RELEASE-DOCS"
+require_contains "checks/verify-v0.5.0.sh" "bash checks/verify-v0.5.0-preflight.sh"
+require_contains "checks/verify-v0.5.0.sh" "bash checks/verify-v0.5.0-ci-hardening.sh"
+require_contains "checks/verify-v0.5.0.sh" "swift run mtpro run-observer status"
+require_contains "docs/audit/mtpro-release-v0.5.0-guarded-testnet-runtime-foundation-stage-code-audit.md" "GH-739-RELEASE-V050-FINAL-AUDIT-RELEASE-DOCS"
+require_contains "docs/audit/mtpro-release-v0.5.0-guarded-testnet-runtime-foundation-stage-code-audit.md" "TVM-RELEASE-V050-FINAL-AUDIT-RELEASE-DOCS"
+require_contains "docs/operators/release-v0.5.0-operator-guarded-testnet-runtime-foundation-runbook.md" "V050-14-VALIDATION-SUMMARY"
+require_contains "docs/operators/release-v0.5.0-operator-guarded-testnet-runtime-foundation-runbook.md" "V050-14-RUN-JOURNAL-OBSERVER"
+require_contains "docs/operators/release-v0.5.0-operator-guarded-testnet-runtime-foundation-runbook.md" "V050-14-NO-PRODUCTION-CUTOVER"
+require_contains "docs/release/mtpro-release-v0.5.0-guarded-testnet-runtime-foundation-notes.md" "MTPRO Release v0.5.0 Guarded Testnet Runtime Foundation Notes"
+require_contains "README.md" "MTPRO Release v0.5.0 Guarded Testnet Runtime Foundation / Deterministic-to-Operational Bridge"
+require_contains "GOAL.md" "MTPRO Release v0.5.0 Guarded Testnet Runtime Foundation / Deterministic-to-Operational Bridge"
+require_contains "docs/roadmap.md" "Project Closure Count: 39 / 39 (100%)"
+require_contains "docs/validation/latest-verification-summary.md" "GH-739-RELEASE-V050-FINAL-AUDIT-RELEASE-DOCS"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V050-FINAL-AUDIT-RELEASE-DOCS"
+require_contains "docs/validation/validation-plan.md" "GH-739 Release v0.5.0 Final Audit / Release Docs Validation"
+require_contains "docs/automation/automation-readiness.md" "Release v0.5.0 final audit / release docs anchor"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH739ReleaseV050FinalAuditAndReleaseDocsCloseCompletedFactsOnly"
 require_file "Sources/DomainModel/ReleaseV040RehearsalRunContext.swift"
 require_file "docs/contracts/release-v0.4.0-rehearsal-run-context-envelope-contract.md"
 require_contains "Package.swift" "ReleaseV040RehearsalRunContext.swift"
@@ -661,12 +684,12 @@ require_contains "docs/audit/mtpro-release-v0.4.0-unified-runtime-rehearsal-pipe
 require_contains "docs/audit/mtpro-release-v0.4.0-unified-runtime-rehearsal-pipeline-stage-code-audit.md" "productionTradingEnabledByDefault=false"
 require_contains "docs/audit/mtpro-release-v0.4.0-unified-runtime-rehearsal-pipeline-stage-code-audit.md" "productionCutoverAuthorized=false"
 require_contains "docs/release/mtpro-release-v0.4.0-unified-runtime-rehearsal-pipeline-notes.md" "v0.4.0 是 unified runtime rehearsal pipeline closure"
-require_contains "README.md" 'Latest completed release construction scope: `MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline`'
+require_contains "README.md" "Historical release v0.4.0 evidence anchor"
 require_contains "GOAL.md" "MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline"
 require_contains "docs/roadmap.md" "MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline"
-require_contains "docs/roadmap.md" "Project Closure Count: 38 / 38 (100%)"
+require_contains "docs/roadmap.md" "Historical Project Closure Count: 38 / 38 (100%)"
 require_contains "docs/validation/latest-verification-summary.md" "GH-709-RELEASE-V040-FINAL-STAGE-AUDIT-RELEASE-DOCS"
-require_contains "docs/validation/latest-verification-summary.md" 'Current maturity statement：`MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline complete with production trading disabled by default`'
+require_contains "docs/validation/latest-verification-summary.md" 'Historical maturity statement：`MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline complete with production trading disabled by default`'
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V040-FINAL-STAGE-AUDIT-RELEASE-DOCS"
 require_contains "docs/validation/validation-plan.md" "GH-709 Release v0.4.0 Final Stage Audit / Release Docs"
 require_contains "docs/automation/automation-readiness.md" "Release v0.4.0 final stage audit / release docs anchor"
@@ -1629,7 +1652,7 @@ require_contains "docs/roadmap.md" "Final Product Goal Progress"
 require_contains "docs/roadmap.md" "Project Closure Count: 36 / 36 (100%)"
 require_contains "docs/roadmap.md" "Engine Maturity Roadmap Progress: 4 / 4 (100%)"
 require_contains "docs/roadmap.md" "Final Product Progress"
-require_contains "docs/roadmap.md" 'Current maturity statement：`MTPRO Release v0.2.0 Binance Spot + USDⓈ-M Perpetual + EMA/RSI validation complete with production trading disabled by default`'
+require_contains "docs/roadmap.md" 'Current maturity statement：`MTPRO Release v0.5.0 Guarded Testnet Runtime Foundation / Deterministic-to-Operational Bridge complete with production trading disabled by default`'
 require_contains "docs/roadmap.md" 'Next recommended maturity slice：无当前可执行推荐'
 require_contains "docs/roadmap.md" "根据蓝图和工程模块定义施工顺序"
 require_contains "docs/roadmap.md" "Roadmap Responsibility / 路线职责"
@@ -6822,7 +6845,7 @@ require_contains "docs/audit/mtpro-production-cutover-readiness-real-broker-enab
 require_contains "docs/audit/mtpro-production-cutover-readiness-real-broker-enablement-gate-v1-stage-code-audit.md" "no real submit / cancel / replace"
 require_contains "docs/automation/automation-readiness.md" "Production Cutover Readiness Stage Code Audit Report anchor"
 require_contains "docs/roadmap.md" 'Latest Completed Project：`MTPRO Release v0.2.0`'
-require_contains "docs/roadmap.md" 'Current maturity statement：`MTPRO Release v0.2.0 Binance Spot + USDⓈ-M Perpetual + EMA/RSI validation complete with production trading disabled by default`'
+require_contains "docs/roadmap.md" 'Current maturity statement：`MTPRO Release v0.5.0 Guarded Testnet Runtime Foundation / Deterministic-to-Operational Bridge complete with production trading disabled by default`'
 require_contains "docs/roadmap.md" "Project Closure Count: 36 / 36 (100%)"
 require_contains "docs/roadmap.md" "PR #511 至 #519 evidence"
 require_contains "docs/roadmap.md" "不授权真实 broker"
@@ -6853,7 +6876,7 @@ require_contains "BLUEPRINT.md" "mtpro-production-cutover-readiness-real-broker-
 require_contains "BLUEPRINT.md" "mtpro-l4-live-production-trading-commands-v1-stage-code-audit.md"
 require_contains "BLUEPRINT.md" "PR #448 后完成 final residual hardening audit"
 require_contains "BLUEPRINT.md" "production executable \`try!\` = 0"
-require_contains "GOAL.md" "MTPRO Release v0.1.0 Binance + EMA runtime validation complete with production trading disabled by default"
+require_contains "GOAL.md" '`MTPRO Release v0.1.0` Done / Binance + EMA runtime validation / production disabled by default'
 require_contains "GOAL.md" "不授权真实 broker"
 require_contains "GOAL.md" "Core Envelope Retirement / Real Module Ownership Completion 的 post-audit hardening addendum 已在 PR #448 后完成最终只读审计"
 require_contains "verification.md" "GH-541 Final Stage Code Audit and Root Docs Refresh"
