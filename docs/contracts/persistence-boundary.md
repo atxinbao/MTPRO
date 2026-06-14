@@ -1,333 +1,58 @@
 # Persistence Boundary
 
-Persistence Boundary 必须先于真实 database adapter 实现。
+日期：2026-05-18
+
+执行者：Codex
 
 ## 存储角色
 
 | 存储 | 角色 | 说明 |
 | --- | --- | --- |
-| Event Log | facts | append-only 事实源 |
-| SQLite | runtime state projection | 配置、订单、组合、会话状态等轻量投影 |
-| DuckDB | analytical projection | market data、backtest、研究分析 |
+| Event Log | facts source | append-only 事实源，所有 projection 可从它重建 |
+| SQLite | runtime state projection | paper session、risk rejection、portfolio projection 等轻量运行态投影 |
+| DuckDB | analytical projection | market data、backtest、research signal、analysis timeline 投影 |
 
-## 规则
+## 永久规则
 
 - 数据库只保存 facts 或 projection。
+- Event Log 是 append-only facts source。
+- SQLite / DuckDB projection disposable：projection 可删除并由 Event Log deterministic rebuild。
 - 数据库不作为页面展示模型。
-- 前端不得直接读取数据库表。
-- runtime object 不得直接持久化为 UI contract。
-
-## 当前状态
-
-当前已按 Linear issue 小步实现：
-
-- `MTP-17`：append-only 文件事件日志事实源。
-- `MTP-18`：SQLite runtime projection adapter 最小 rebuild / query snapshot 闭环。
-- `MTP-19`：DuckDB analytical projection adapter 最小 rebuild / query snapshot 闭环。
-
-## MTP-13 SQLite / DuckDB 投影与重放边界
-
-日期：2026-05-17
-
-执行者：Codex
-
-`Persistence` 在本事项中建立本地可测试的 persistence projection contract，不引入真实数据库 driver、schema migration 或 UI 直连数据库路径。
-
-契约结构：
-
-- `PersistenceReplayBoundary`：复用 `AppendOnlyEventLog`，按 `EventReplayCommand` 重放事件，并可重建 market cache、SQLite runtime projection 和 DuckDB analytical projection。
-- `SQLiteRuntimeProjectionStore`：从 replay envelope 构建 paper session、risk rejection 和 portfolio runtime read model。
-- `DuckDBAnalyticalProjectionStore`：从 replay envelope 构建 market data、backtest run、order book research run 和 analytical signal timeline。
-- `PersistenceBoundary`：显式声明 UI 只能消费稳定 read model projection，不暴露 database table 或 runtime object。
-
-契约要求：
-
-- Event Log 仍是 append-only facts source。
-- SQLite projection 只承载运行状态和轻量投影，不作为 UI 数据表契约。
-- DuckDB projection 只承载行情、回测和研究分析投影，不保存运行时对象。
-- 投影必须可从同一 replay envelope 确定性重建。
-- UI 后续只能消费 read model projection，不得直接读取 SQLite / DuckDB schema。
-
-本契约不包含：
-
-- 真实 SQLite driver。
-- 真实 DuckDB driver。
-- schema migration。
-- ORM model。
-- SwiftUI 页面。
-- Live execution persistence。
-- broker / exchange action。
-
-## MTP-17 文件事件日志持久化边界
-
-日期：2026-05-18
-
-执行者：Codex
-
-`Persistence` 在本事项中新增 append-only event log 文件事实源边界，为后续 SQLite / DuckDB adapter 提供稳定 replay 输入，但不实现真实数据库 adapter。
-
-契约结构：
-
-- `FileEventLogStore`：把 Core 已验证的 `EventEnvelope` 逐条追加写入本地文件。
-- `FileEventLogStore.readEnvelopes()`：读取文件事实并用 `AppendOnlyEventLog` 校验 sequence 连续性。
-- `FileEventLogStore.replay(_:)`：按 `EventReplayCommand` 从文件事实源输出 `EventReplayResult`。
-- `PersistenceReplayBoundary.init(fileStore:)`：从文件事件日志构建现有 replay / projection rebuild 边界。
-
-契约要求：
-
-- 文件事实源只接受 `EventEnvelope`，不得保存 runtime object。
-- append 前必须校验现有文件事实，并只允许写入 `existing.count + 1` 对应的下一个 sequence。
-- replay 输出仍是稳定事件 / read model projection 输入，不暴露文件格式。
-- 文件内部编码是 `Persistence` 私有实现细节，不成为 UI、数据库 schema 或外部 API contract。
-- 文件事件日志不得触发 Binance 网络、signed endpoint、broker action 或真实订单行为。
-
-本契约不包含：
-
-- SQLite adapter。
-- DuckDB adapter。
-- schema migration。
-- database table API。
-- SwiftUI 页面。
-- Live execution persistence。
-- broker / exchange side effect。
-
-## MTP-18 SQLite 运行时投影适配器边界
-
-日期：2026-05-18
-
-执行者：Codex
-
-`Persistence` 在本事项中新增 SQLite runtime projection adapter 的最小闭环，用于验证从 replay envelope 到本地 SQLite 投影再到稳定 query snapshot 的读写路径。
-
-契约结构：
-
-- `SQLiteRuntimeProjectionAdapter`：绑定本地 SQLite 文件，提供 rebuild 和 query snapshot。
-- `SQLiteRuntimeProjectionDatabase`：`Persistence` 私有实现，维护最小 key / kind / payload 投影记录和 last applied sequence metadata。
-- `PersistenceReplayBoundary.rebuildSQLiteRuntimeProjection(from:using:)`：以 event log replay 作为事实源驱动 SQLite adapter rebuild。
-
-契约要求：
-
-- append-only event log / replay envelope 仍是唯一事实源。
-- SQLite 只承载 paper session、risk rejection、portfolio projection 的运行时 read model 副本。
-- rebuild 必须事务性替换旧投影，避免 stale risk / portfolio 数据残留。
-- query snapshot 必须返回稳定 `SQLiteRuntimeProjectionSnapshot`，不返回 SQL row、table、column 或 schema 结构。
-- adapter 使用系统 SQLite3，不引入 ORM，不建立 migration framework。
-
-本契约不包含：
-
-- 完整 SQLite schema 设计。
-- migration framework。
-- ORM。
-- DuckDB adapter。
-- UI 直接读库。
-- database table API。
-- Binance 网络客户端。
-- Live execution persistence。
-- broker / exchange side effect。
-
-## MTP-19 DuckDB 分析投影适配器边界
-
-日期：2026-05-18
-
-执行者：Codex
-
-`Persistence` 在本事项中新增 DuckDB analytical projection adapter 的最小闭环，用于验证从 replay envelope 到本地 DuckDB 分析投影再到稳定 query snapshot 的读写路径。
-
-契约结构：
-
-- `DuckDBAnalyticalProjectionAdapter`：绑定本地 DuckDB 文件，提供 rebuild 和 query snapshot。
-- `DuckDBAnalyticalProjectionDatabase`：`Persistence` 私有实现，维护最小 key / kind / payload 投影记录和 last applied sequence metadata。
-- `PersistenceReplayBoundary.rebuildDuckDBAnalyticalProjection(from:using:)`：以 event log replay 作为事实源驱动 DuckDB adapter rebuild。
-
-契约要求：
-
-- append-only event log / replay envelope 仍是唯一事实源。
-- DuckDB 只承载 market data、backtest run、order book research run 和 signal timeline 的分析 read model 副本。
-- rebuild 必须事务性替换旧投影，避免 stale backtest / research / signal 数据残留。
-- query snapshot 必须返回稳定 `DuckDBAnalyticalProjectionSnapshot`，不返回 SQL row、table、column 或 schema 结构。
-- adapter 在 macOS runtime target 使用官方 SwiftPM 包 `duckdb/duckdb-swift`，不建立 migration framework。
-
-本契约不包含：
-
-- 完整 DuckDB schema 设计。
-- migration framework。
-- ORM。
-- SQLite runtime adapter 扩展。
-- UI 直接读库。
-- database table API。
-- Binance 网络客户端。
-- Live execution persistence。
-- broker / exchange side effect。
-
-## MTP-21 Ingest Replay Projection 边界
-
-日期：2026-05-18
-
-执行者：Codex
-
-`Runtime` 在本事项中把 market data ingest 结果写入 `FileEventLogStore`，再通过
-`PersistenceReplayBoundary` 重建 projection snapshots。
-
-契约结构：
-
-- `FileEventLogStore` 仍是 append-only facts source。
-- replay command 当前只选择 `.market` stream。
-- `SQLiteRuntimeProjectionSnapshot` 仍只表达 Paper / Risk / Portfolio runtime read model；market-only replay 输出稳定空 snapshot。
-- `DuckDBAnalyticalProjectionSnapshot` 承载 market bars、trades、best bid / ask、order book snapshot 和 delta。
-
-契约要求：
-
-- Runtime workflow 只接受空文件事实源，避免未定义的多 run 续写破坏 sequence 单调性。
-- Projection snapshots 必须来自 replay envelope，不得由 UI 或 ViewModel 直连 database schema。
-- SQLite / DuckDB adapter 仍是私有投影存储实现细节。
-
-本契约不包含：
-
-- 多 run event log 游标。
-- UI 直接读库。
-- database table API。
-- 真实 Binance 网络 required validation。
-- Live execution persistence、signed endpoint、broker action 或真实订单行为。
-
-## MTP-58 Market Data Replay Event Log / Projection Consistency 边界
-
-日期：2026-05-20
-
-执行者：Codex
-
-`Runtime` 在本事项中以 append-only event log replay 作为唯一事实源，生成 market data replay projection consistency summary：
-
-- `MarketDataReplayProjectionConsistency` 先校验 event log sequence 连续性，再按 `.market` stream replay。
-- `MarketDataReplayEventLogConsistencyEvidence` 只保存 event log sequence、stream 和 record count evidence，不暴露文件格式或数据库 schema。
-- `MarketDataReplayProjectionSnapshotConsistencySummary` 比较 replay output summary、cache snapshot、SQLite runtime projection 空快照和 DuckDB analytical projection snapshot。
-- SQLite runtime projection 在 market-only replay 中必须保持 Paper / Risk / Portfolio 空快照。
-- DuckDB analytical projection 只以稳定 `DuckDBAnalyticalProjectionSnapshot` 参与比较，不向 UI 暴露 table、column、SQL 或 migration 信息。
-
-契约要求：
-
-- append-only event log 仍是唯一 facts source。
-- projection consistency summary 必须是 read model evidence，不得成为 SQLite / DuckDB schema contract。
-- summary 不读取 adapter request、不暴露 Runtime object、不触发 production data pipeline。
-- schema / source boundary drift、event log drift 或 projection snapshot drift 必须由本地 deterministic tests 拒绝。
-
-本契约不包含：
-
-- 完整数据库 schema 设计。
-- migration framework。
-- production data pipeline。
-- UI 直接读库。
-- database table API、SQL statement API 或 ORM model。
-- Binance signed endpoint、account endpoint、listenKey。
-- Live execution persistence、broker action 或真实订单行为。
-
-## MTP-28 Risk Blocker / Portfolio Exposure Runtime Projection 边界
-
-日期：2026-05-18
-
-执行者：Codex
-
-`Persistence` 在本事项中扩展 SQLite runtime projection 的 Paper / Risk / Portfolio read model：
-
-- `SQLiteRiskBlockerEvidenceProjection`：保存 risk blocker evidence、paper action context、risk profile、reason、source sequence 和 projectedAt。
-- `SQLitePortfolioExposureProjection`：保存 paper-only exposure 的 portfolio ID、symbol、timeframe、quantity、reference price、gross notional、source sequence 和 projectedAt。
-- `SQLitePortfolioProjection.exposures`：把最小 exposure 指标挂到 portfolio runtime projection。
-
-契约要求：
-
-- append-only event log / replay envelope 仍是唯一事实源。
-- SQLite 只承载 Paper / Risk / Portfolio runtime read model 副本。
-- Risk blocker evidence 必须能从 projection 回溯到 source sequence。
-- Portfolio exposure 必须声明 `paperProjection` source，不得表达真实账户、margin、leverage 或 broker balance。
-
-本契约不包含：
-
-- 完整风险引擎。
-- 实时风控。
-- 仓位管理、保证金、杠杆。
-- 真实 broker balance 或 account endpoint。
-- Live execution persistence、signed endpoint、broker action 或真实订单行为。
-
-## MTP-34 Paper-only Portfolio Projection Update Runtime Projection 边界
-
-日期：2026-05-19
-
-执行者：Codex
-
-`Persistence` 在本事项中让 SQLite runtime projection 可以消费 `PortfolioEvent.paperProjectionUpdated`。
-MTP-42 之后，当前代码中的 update source 已收窄为 replay 后的 simulated fill evidence：
-
-- `PaperPortfolioProjectionUpdate` 保留 replayed simulated fill 的 source sequence。
-- `SQLitePortfolioExposureProjection.init(update:envelope:)` 把 update 转成 stable exposure read model。
-- `SQLiteRuntimeProjectionStore.project` 将 update 应用到 `SQLitePortfolioProjection.exposures`，并保持 `updated` state。
-
-契约要求：
-
-- append-only event log / replay envelope 仍是唯一事实源。
-- SQLite 只承载 Paper / Portfolio runtime read model 副本，不暴露 schema。
-- projection 中的 `sourceSequence` 只回溯本地 simulated fill event，不代表 broker order sequence 或交易所回报。
-- projection 不读取真实账户余额、不同步 broker position、不表达 margin / leverage。
-
-本契约不包含：
-
-- 完整 portfolio management。
-- 真实账户余额读取。
-- margin、leverage、broker position sync。
-- 真实 broker balance 或 account endpoint。
-- Live execution persistence、signed endpoint、broker action 或真实订单行为。
-
-## MTP-35 Paper Session Replay Evidence Persistence 边界
-
-日期：2026-05-19
-
-执行者：Codex
-
-`Persistence` 在本事项中继续把 append-only event log 作为唯一 replay facts source：
-
-- `FileEventLogStore` 保存 MTP-35 deterministic event log envelopes。
-- `FileEventLogStore.replay` 输出 `EventReplayResult`，再由 `PaperSessionReplayPath.summarize` 生成 evidence summary。
-- `PersistenceReplayBoundary.rebuildSQLiteRuntimeProjection` 使用同一 replay command 重建 Paper / Risk / Portfolio runtime projection。
-
-契约要求：
-
-- 文件 facts source 必须保持 sequence 连续追加，不能跳号或乱序。
-- replay summary 和 SQLite runtime projection 必须来自同一批 replay envelopes。
-- `PaperEvent.actionProposed` 可以参与 replay evidence summary，但不改变 SQLite paper session lifecycle state。
-- SQLite 仍只保存稳定 runtime projection snapshot，不暴露 schema 给 UI / API。
-
-本契约不包含：
-
-- 生产级 event sourcing 平台。
-- schema migration framework。
-- 真实 broker event replay。
-- 外部 execution venue。
-- database table API、ORM contract 或 UI 直连数据库。
-- Live execution persistence、signed endpoint、broker action 或真实订单行为。
-
-## MTP-42 Paper Execution Replay Projection Persistence 边界
-
-日期：2026-05-19
-
-执行者：Codex
-
-`Persistence` 在本事项中继续把 append-only event log / replay envelope 作为唯一事实源，
-让 paper execution order / fill facts 可以驱动 portfolio runtime projection：
-
-- `PaperEvent.executionDecisionRecorded`、`PaperEvent.orderIntentRecorded` 和 `PaperEvent.simulatedFillRecorded` 作为 `.paper` stream facts。
-- `PaperExecutionReplayProjectionPath` 从 replay result 中筛选 `simulatedFillRecorded` envelope。
-- `PaperPortfolioProjectionUpdate` 只能由 replay 后的 `PaperSimulatedFillEvidence` 构建。
-- `SQLiteRuntimeProjectionStore.project` 继续只从 `PortfolioEvent.paperProjectionUpdated` 更新稳定 portfolio projection。
-
-契约要求：
-
-- FileEventLogStore 仍负责 append-only sequence 校验，不在本事项中重写。
-- replay result 必须保持 sequence 单调；乱序 replay 不能被标记为 deterministic evidence。
-- portfolio exposure 的 `sourceSequence` 指向 simulated fill event sequence，不指向 risk decision、broker order 或真实成交回报。
-- SQLite adapter 仍只保存稳定 snapshot，不暴露 table、column、SQL statement 或 ORM model。
-
-本契约不包含：
-
-- 生产级 event sourcing 平台。
-- schema migration framework。
-- broker event replay。
-- 真实账户、真实 position、真实 broker fill。
-- signed endpoint、account endpoint、broker action 或真实订单行为。
+- 前端不得直接读取 database table、SQL row、schema、ORM model 或 runtime object。
+- Persistence 不触发 Binance 网络、signed endpoint、broker action 或真实订单行为。
+
+## 已完成事项压缩表
+
+| Issue | 边界 | 契约摘要 | 不包含 |
+| --- | --- | --- | --- |
+| MTP-13 | SQLite / DuckDB 投影与重放边界 | `PersistenceReplayBoundary` 复用 `AppendOnlyEventLog`，按 replay command 重建 market cache、SQLite runtime projection、DuckDB analytical projection | 真实 DB driver、schema migration、ORM、UI 直连、Live execution persistence |
+| MTP-17 | 文件事件日志持久化边界 | `FileEventLogStore` 逐条追加 `EventEnvelope`，读取时校验 sequence 连续性，replay 输出稳定 projection input | SQLite / DuckDB adapter、database table API、broker side effect |
+| MTP-18 | SQLite 运行时投影适配器边界 | `SQLiteRuntimeProjectionAdapter` rebuild / query snapshot；SQLite 只保存 paper session、risk rejection、portfolio projection 副本 | 完整 schema、migration framework、ORM、UI 直接读库 |
+| MTP-19 | DuckDB 分析投影适配器边界 | `DuckDBAnalyticalProjectionAdapter` rebuild / query snapshot；DuckDB 只保存 market data、backtest、research signal timeline 副本 | runtime adapter 扩展、UI 直接读库、Live execution persistence |
+| MTP-21 | Ingest Replay Projection 边界 | market data ingest 写入 `FileEventLogStore`，再通过 `PersistenceReplayBoundary` 重建 projection snapshots | 多 run 未定义续写、signed endpoint、broker action |
+| MTP-58 | Market Data Replay Event Log / Projection Consistency | replay event log 与 projection freshness / consistency evidence 对齐 | production ingestion platform、real broker stream |
+| MTP-28 | Risk Blocker / Portfolio Exposure Runtime Projection | risk blocker 与 portfolio exposure 进入 runtime projection read model | live account state、broker exposure sync |
+| MTP-34 | Paper-only Portfolio Projection Update Runtime Projection | paper-only portfolio update 由 event facts 重建 | real account / real PnL runtime |
+| MTP-35 | Paper Session Replay Evidence Persistence | paper session replay evidence 保持可追溯 | broker fill、real reconciliation |
+| MTP-42 | Paper Execution Replay Projection Persistence | paper execution lifecycle 进入 replay projection | execution report、real order lifecycle |
+
+## Query Snapshot Contract
+
+Projection adapter 对外只返回稳定 snapshot：
+
+- `SQLiteRuntimeProjectionSnapshot`
+- `DuckDBAnalyticalProjectionSnapshot`
+- paper / risk / portfolio / market / backtest / research read model
+
+禁止返回：
+
+- table / column / SQL row
+- file format
+- ORM entity
+- runtime object
+- adapter request
+- broker/account state
+
+## 验证边界
+
+Persistence 验证只证明本地 append-only facts、deterministic replay 和 projection rebuild 可用；不证明 production database、external data platform、signed endpoint、broker gateway、LiveExecutionAdapter、OMS 或 production trading 已实现。
