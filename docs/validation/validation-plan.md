@@ -2577,6 +2577,16 @@ swift test
 - GH-755 Release v0.6.0 Boundary / No-production Contract Validation
 - GH-755 禁止
 - GH-755-VERIFY-V060-BOUNDARY-NO-PRODUCTION
+- GH-756
+- GH-756 Release v0.6.0 Local Run Journal Writer Validation
+- GH-756 禁止
+- GH-756-VERIFY-V060-LOCAL-RUN-JOURNAL-WRITER
+- V060-002-LOCAL-RUN-JOURNAL-WRITER
+- V060-002-RUN-DIRECTORY-SHAPE
+- V060-002-APPEND-ONLY-EVENTS-JSONL
+- V060-002-ATOMIC-PROJECTION-SUMMARY-STATUS-MANIFEST
+- V060-002-MANIFEST-WRITTEN-LAST
+- V060-002-FAILED-INCOMPLETE-NOT-COMPLETED
 - Backtest / Paper parity
 - Codex / Automation Validation
 - DASHBOARD_SMOKE=1 swift run Dashboard
@@ -2740,6 +2750,7 @@ swift test
 - TVM-RELEASE-V050-TESTNET-READONLY-INTEGRATION-GATE
 - TVM-RELEASE-V050-TYPED-RUNTIME-MESSAGEBUS
 - TVM-RELEASE-V060-BOUNDARY-NO-PRODUCTION-CONTRACT
+- TVM-RELEASE-V060-LOCAL-RUN-JOURNAL-WRITER
 - TVM-REPORT-EVIDENCE
 - TVM-RISK-BLOCKER
 - TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY
@@ -2772,6 +2783,7 @@ swift test
 - bash checks/verify-v0.5.0-testnet-readonly.sh
 - bash checks/verify-v0.5.0.sh
 - bash checks/verify-v0.6.0-boundary.sh
+- bash checks/verify-v0.6.0-run-journal-writer.sh
 - bash checks/workbench-beta-acceptance.sh
 - docs/audit/inputs/
 - docs/audit/inputs/mtpro-live-monitoring-console-v1-stage-audit-input.md

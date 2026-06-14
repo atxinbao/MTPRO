@@ -82,6 +82,7 @@ bash checks/verify-v0.5.0-oms.sh
 bash checks/verify-v0.5.0-portfolio.sh
 bash checks/verify-v0.5.0-observer.sh
 bash checks/verify-v0.6.0-boundary.sh
+bash checks/verify-v0.6.0-run-journal-writer.sh
 if [[ "$(uname -s)" == "Darwin" ]]; then
   swift build --product Dashboard
   DASHBOARD_SMOKE=1 swift run Dashboard
