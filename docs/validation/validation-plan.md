@@ -400,6 +400,39 @@ GH-735 必须建立的主要 anchors：
 - 不启动 Linear、Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-736 Release v0.5.0 Portfolio Run Journal Projection Validation
+
+GH-736 的 required validation：
+
+- `Sources/Portfolio/ReleaseV050PortfolioRunJournalProjection.swift` 必须定义 `ReleaseV050PortfolioRunJournalProjectionRunner`、`ReleaseV050PortfolioRunJournalProjectionEvidence`、`ReleaseV050PortfolioRunJournalFillEvidence`、`ReleaseV050PortfolioRunJournalProductProjection`、`ReleaseV050PortfolioRunJournalProjectionState` 和 `ReleaseV050PortfolioRunJournalProjectionContract`。
+- Runner 必须只从 GH-731 durable local run journal replay、GH-735 dry-run OMS lifecycle evidence 和 GH-729 InstrumentCatalog fields 派生 Portfolio projection。
+- Projection 必须对 run journal 中实际出现的 Binance product 使用 product-aware fixed-point quantity / price / notional / money semantics。
+- Evidence 必须输出 replayable `PortfolioProjectionEvent`，并证明 projection 可以按 runID 复现。
+- Evidence 必须证明 broker account payload、real account state sync、broker position / margin / leverage read、real PnL、reconciliation runtime、production endpoint、production broker、production order 和 production cutover 全部保持关闭。
+- `docs/contracts/release-v0.5.0-portfolio-run-journal-projection-contract.md` 必须存在，并包含 `V050-11-PORTFOLIO-RUN-JOURNAL-PROJECTION`、`V050-11-JOURNAL-REPLAY-DERIVED-POSITION-EXPOSURE`、`V050-11-PNL-MARGIN-LIKE-REHEARSAL-METRICS`、`V050-11-INSTRUMENT-CATALOG-PRECISION-SOURCE`、`V050-11-NO-BROKER-ACCOUNT-PAYLOAD` 和 `TVM-RELEASE-V050-PORTFOLIO-RUN-JOURNAL-PROJECTION`。
+- Required validation 为 `swift test --filter TargetGraphTests/testGH736PortfolioProjectionDerivesReadModelFromRunJournalAndOMSDryRunEvidence`、`bash checks/verify-v0.5.0-portfolio.sh`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-736 必须建立的主要 anchors：
+
+- `V050-11-PORTFOLIO-RUN-JOURNAL-PROJECTION`
+- `V050-11-JOURNAL-REPLAY-DERIVED-POSITION-EXPOSURE`
+- `V050-11-PNL-MARGIN-LIKE-REHEARSAL-METRICS`
+- `V050-11-INSTRUMENT-CATALOG-PRECISION-SOURCE`
+- `V050-11-NO-BROKER-ACCOUNT-PAYLOAD`
+- `TVM-RELEASE-V050-PORTFOLIO-RUN-JOURNAL-PROJECTION`
+- `testGH736PortfolioProjectionDerivesReadModelFromRunJournalAndOMSDryRunEvidence`
+
+## GH-736 禁止
+
+- 不把 Portfolio projection 解释为 broker truth、account state 或 production readiness。
+- 不读取 broker account payload，不同步真实 positions、margin、leverage 或 real PnL。
+- 不连接 signed endpoint、account endpoint、listenKey、private WebSocket、broker endpoint 或 production endpoint。
+- 不实现 reconciliation runtime，不暴露 Dashboard / CLI command surface。
+- 不提交、取消或替换真实订单，不授权 production trading 或 production cutover。
+- 不创建下一 Project / Issue，不推进 release v0.5.0 之后的阶段。
+- 不启动 Linear、Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-669 Release v0.3.0 Operator Rehearsal Runbook
 
 GH-669 的 required validation：

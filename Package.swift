@@ -181,6 +181,7 @@ let package = Package(
                 "ReleaseV030RehearsalSurface.swift",
                 "ReleaseV030PortfolioProjectionRehearsal.swift",
                 "ReleaseV040PortfolioReplayProjection.swift",
+                "ReleaseV050PortfolioRunJournalProjection.swift",
                 "ReleaseV040UnifiedRunSurface.swift",
                 "TargetGraph/PortfolioTargetBoundary.swift"
             ]
@@ -341,6 +342,7 @@ let package = Package(
                 "Portfolio/ReleaseV030RehearsalSurface.swift",
                 "Portfolio/ReleaseV030PortfolioProjectionRehearsal.swift",
                 "Portfolio/ReleaseV040PortfolioReplayProjection.swift",
+                "Portfolio/ReleaseV050PortfolioRunJournalProjection.swift",
                 "Portfolio/ReleaseV040UnifiedRunSurface.swift",
                 "RiskEngine/LiveGate",
                 "RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift",
