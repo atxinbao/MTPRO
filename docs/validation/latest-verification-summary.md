@@ -16,15 +16,32 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 
 | 项 | 当前事实 |
 | --- | --- |
-| Latest completed release construction scope | `MTPRO Release v0.5.0 Guarded Testnet Runtime Foundation / Deterministic-to-Operational Bridge` |
-| Current release construction scope | activeVenue == Binance；activeProductTypes == [spot, usdsPerpetual]；activeStrategies == [ema, rsi]；runtimeModes == [dry-run, testnet-guarded, production-blocked]；productionTradingEnabledByDefault == false |
+| Latest completed release construction scope | `MTPRO Release v0.6.0 Local Operational Runtime + Testnet Read-only Probe Hardening` |
+| Current release construction scope | activeVenue == Binance；activeProductTypes == [spot, usdsPerpetual]；activeStrategies == [ema, rsi]；runtimeModes == [dry-run, testnet-read-only-probe, production-blocked]；productionTradingEnabledByDefault == false |
 | Active queue | 无 active GitHub fallback Project / Linear Project；下一阶段必须由 Human + `@001 / PLN` 重新规划 |
-| Stage Code Audit Report | `docs/audit/mtpro-release-v0.5.0-guarded-testnet-runtime-foundation-stage-code-audit.md` |
-| Progress | Project Closure Count: 39 / 39 (100%)；Current Foundation Progress: 4 / 4 (100%)；Final Product Goal Progress: 9 / 9 (100%)；Engine Maturity Roadmap Progress: 4 / 4（100%） |
+| Stage Code Audit Report | `docs/audit/mtpro-release-v0.6.0-local-operational-runtime-testnet-read-only-probe-hardening-stage-code-audit.md` |
+| Progress | Project Closure Count: 40 / 40 (100%)；Current Foundation Progress: 4 / 4 (100%)；Final Product Goal Progress: 9 / 9 (100%)；Engine Maturity Roadmap Progress: 4 / 4（100%） |
 
 ## Boundary
 
 productionTradingEnabledByDefault == false；productionCapabilityGatedNotMissing == true；oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true。不读取 production secret，不连接 production endpoint / broker endpoint，不发送真实 order，不授权 production cutover，不创建下一 Linear Project / Issue。
+
+## Release v0.6.0 Closure Snapshot
+
+`GH-766-RELEASE-V060-FINAL-AUDIT-ROOT-DOCS`
+
+`MTPRO Release v0.6.0 Local Operational Runtime + Testnet Read-only Probe Hardening` 已完成 GitHub fallback queue `#755` 至 `#766` 的 final closure。`#755` 至 `#765` 均已 `CLOSED / done`；PR `#767` 至 `#777` 均已 merged，required check `checks` 均为 `SUCCESS`；#766 closure PR 输出 Stage Code Audit Report、release notes、operator runbook、root docs refresh 和 aggregate verifier `checks/verify-v0.6.0.sh`。
+
+本阶段只收口 local operational runtime evidence、run journal writer、artifact checksum validator、Dashboard / CLI observer、testnet read-only probe 和 no-production guard。Production trading 仍默认关闭；不读取 production secret，不连接 production endpoint / broker endpoint，不发送真实 order，不授权 production cutover，不创建下一 Project / Issue。
+
+本地验证入口：
+
+```bash
+git diff --check
+bash checks/automation-readiness.sh
+bash checks/verify-v0.6.0.sh
+bash checks/run.sh
+```
 
 ## Required Evidence Anchors
 

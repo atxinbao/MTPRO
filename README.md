@@ -2,9 +2,9 @@
 
 MTPRO 是 SwiftPM-first、local-first 的 macOS 原生专业交易工作台。它以 Research -> Backtest -> Report -> Paper -> guarded runtime evidence 的可追溯链路为基础，最终目标是专业版交易工作台：Live trading、实盘监控、实盘执行控制、实盘风险控制、实盘审计、事故回放和停机控制。
 
-Latest completed release construction scope: `MTPRO Release v0.5.0 Guarded Testnet Runtime Foundation / Deterministic-to-Operational Bridge`。
+Latest completed release construction scope: `MTPRO Release v0.6.0 Local Operational Runtime + Testnet Read-only Probe Hardening`。
 
-当前最新完成范围：`MTPRO Release v0.5.0 Guarded Testnet Runtime Foundation / Deterministic-to-Operational Bridge`，已发布为 [`v0.5.0`](https://github.com/atxinbao/MTPRO/releases/tag/v0.5.0)。它是 guarded testnet runtime foundation closure，不是 production cutover。
+当前最新完成范围：`MTPRO Release v0.6.0 Local Operational Runtime + Testnet Read-only Probe Hardening`。它是 local operational runtime evidence 和 testnet read-only probe hardening closure，不是 GitHub Release 发布动作，也不是 production cutover。
 
 MTPRO 借鉴 `nautilus_trader` 的 Kernel / MessageBus / Cache / Engine / Adapter 分层思想，也参考 `macos-trader` 的产品语义；不引入 NautilusTrader 作为运行依赖，不复制 `macos-trader` 整仓代码。
 
@@ -12,14 +12,14 @@ MTPRO 借鉴 `nautilus_trader` 的 Kernel / MessageBus / Cache / Engine / Adapte
 
 | 项 | 当前事实 |
 | --- | --- |
-| Current maturity statement | `MTPRO Release v0.5.0 Guarded Testnet Runtime Foundation / Deterministic-to-Operational Bridge complete with production trading disabled by default` |
+| Current maturity statement | `MTPRO Release v0.6.0 Local Operational Runtime + Testnet Read-only Probe Hardening complete with production trading disabled by default` |
 | Active venue / products / strategies | `activeVenue == Binance`；`activeProductTypes == [spot, usdsPerpetual]`；`activeStrategies == [ema, rsi]` |
-| Runtime modes | `runtimeModes == [dry-run, testnet-guarded, production-blocked]` |
+| Runtime modes | `runtimeModes == [dry-run, testnet-read-only-probe, production-blocked]` |
 | Production default | `productionTradingEnabledByDefault == false` |
 | Production capability | `productionCapabilityGatedNotMissing == true` |
 | Historical boundary | `oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true` |
 
-Production trading、production secret、production endpoint、production broker connection、real submit / cancel / replace、production OMS 和 production cutover 都没有默认启用，也没有被 v0.5.0 授权。后续执行只能来自 Human 指定的唯一 live queue source，并且必须经过 Parent Codex queue preflight。
+Production trading、production secret、production endpoint、production broker connection、real submit / cancel / replace、production OMS 和 production cutover 都没有默认启用，也没有被 v0.6.0 授权。后续执行只能来自 Human 指定的唯一 live queue source，并且必须经过 Parent Codex queue preflight。
 
 ## 必读入口
 
@@ -56,7 +56,8 @@ Production trading、production secret、production endpoint、production broker
 
 | 类别 | 锚点 / 文件 |
 | --- | --- |
-| v0.5.0 | `GH-739-RELEASE-V050-FINAL-AUDIT-RELEASE-DOCS`；`docs/audit/mtpro-release-v0.5.0-guarded-testnet-runtime-foundation-stage-code-audit.md`；`docs/operators/release-v0.5.0-operator-guarded-testnet-runtime-foundation-runbook.md`；`docs/release/mtpro-release-v0.5.0-guarded-testnet-runtime-foundation-notes.md`；`checks/verify-v0.5.0.sh` |
+| v0.6.0 | `GH-766-RELEASE-V060-FINAL-AUDIT-ROOT-DOCS`；`docs/audit/mtpro-release-v0.6.0-local-operational-runtime-testnet-read-only-probe-hardening-stage-code-audit.md`；`docs/operators/release-v0.6.0-operator-local-operational-runtime-testnet-readonly-probe-runbook.md`；`docs/release/mtpro-release-v0.6.0-local-operational-runtime-testnet-read-only-probe-hardening-notes.md`；`checks/verify-v0.6.0.sh` |
+| v0.5.0 | Historical `MTPRO Release v0.5.0 Guarded Testnet Runtime Foundation / Deterministic-to-Operational Bridge`；`GH-739-RELEASE-V050-FINAL-AUDIT-RELEASE-DOCS`；`docs/audit/mtpro-release-v0.5.0-guarded-testnet-runtime-foundation-stage-code-audit.md`；`docs/operators/release-v0.5.0-operator-guarded-testnet-runtime-foundation-runbook.md`；`docs/release/mtpro-release-v0.5.0-guarded-testnet-runtime-foundation-notes.md`；`checks/verify-v0.5.0.sh` |
 | v0.4.0 | `GH-709-RELEASE-V040-FINAL-STAGE-AUDIT-RELEASE-DOCS`；Historical release v0.4.0 evidence anchor |
 | v0.3.0 | `GH-670-RELEASE-V030-FINAL-STAGE-AUDIT-RELEASE-DOCS`；Historical release v0.3.0 Stage Code Audit Report |
 | v0.2.0 | `GH-596-RELEASE-V020-ROOT-DOCS-REFRESH`；`GH-564-RELEASE-V020-ROOT-DOCS-BOUNDARY-REFRESH`；Historical Latest completed release construction scope: `MTPRO Release v0.2.0`；`docs/audit/mtpro-release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-stage-code-audit.md` |
@@ -74,7 +75,7 @@ bash checks/run.sh
 轻量当前 release guard：
 
 ```bash
-bash checks/verify-v0.5.0.sh
+bash checks/verify-v0.6.0.sh
 ```
 
 `checks/run.sh` 串联 whitespace、automation readiness、release verifiers、Dashboard build / smoke 和 Swift tests。
