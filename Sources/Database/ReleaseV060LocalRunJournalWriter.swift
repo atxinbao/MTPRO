@@ -344,6 +344,337 @@ public struct ReleaseV060LocalRunJournalWriterResult: Codable, Equatable, Sendab
     }
 }
 
+/// ReleaseV070RuntimeEventLogWriterError 描述 GH-784 runtime append / recovery 的本地 JSONL 错误。
+///
+/// 错误只覆盖 `.local/mtpro/runs/<runID>/events.jsonl` 的本地 append、checksum、
+/// duplicate eventID、partial line recovery 和 lock / fsync 证据；不表达 endpoint、
+/// secret、broker、OMS production runtime 或真实订单能力。
+public enum ReleaseV070RuntimeEventLogWriterError: Error, Equatable, Sendable, CustomStringConvertible {
+    case emptyRunID
+    case emptyAppendBatch
+    case emptyPayload(String)
+    case payloadContainsNewline(String)
+    case duplicateEventID(String)
+    case invalidEventLine(path: String, lineNumber: Int)
+    case eventChecksumMismatch(eventID: String, expected: String, actual: String)
+    case lineChecksumMismatch(eventID: String, expected: String, actual: String)
+    case previousLineChecksumMismatch(eventID: String, expected: String, actual: String)
+    case runIDMismatch(expected: String, actual: String)
+    case lockUnavailable(String)
+
+    public var description: String {
+        switch self {
+        case .emptyRunID:
+            "Release v0.7.0 runtime event log writer requires a non-empty runID"
+        case .emptyAppendBatch:
+            "Release v0.7.0 runtime event log writer requires at least one event per append batch"
+        case let .emptyPayload(eventID):
+            "Release v0.7.0 runtime event log writer rejects empty payload for event \(eventID)"
+        case let .payloadContainsNewline(eventID):
+            "Release v0.7.0 runtime event log writer rejects JSONL payload newline for event \(eventID)"
+        case let .duplicateEventID(eventID):
+            "Release v0.7.0 runtime event log writer rejects duplicate eventID \(eventID)"
+        case let .invalidEventLine(path, lineNumber):
+            "Release v0.7.0 runtime event log writer cannot decode event line \(lineNumber) at \(path)"
+        case let .eventChecksumMismatch(eventID, expected, actual):
+            "Release v0.7.0 runtime event log writer event checksum mismatch for \(eventID), expected \(expected), actual \(actual)"
+        case let .lineChecksumMismatch(eventID, expected, actual):
+            "Release v0.7.0 runtime event log writer line checksum mismatch for \(eventID), expected \(expected), actual \(actual)"
+        case let .previousLineChecksumMismatch(eventID, expected, actual):
+            "Release v0.7.0 runtime event log writer previous line checksum mismatch for \(eventID), expected \(expected), actual \(actual)"
+        case let .runIDMismatch(expected, actual):
+            "Release v0.7.0 runtime event log writer runID mismatch, expected \(expected), actual \(actual)"
+        case let .lockUnavailable(path):
+            "Release v0.7.0 runtime event log writer cannot acquire local append lock at \(path)"
+        }
+    }
+}
+
+/// ReleaseV070RuntimeEventLogRecoveryAction 固定 GH-784 partial line recovery 的可审计动作。
+public enum ReleaseV070RuntimeEventLogRecoveryAction: String, Codable, Equatable, Sendable {
+    case noRecoveryNeeded
+    case truncatedPartialLine
+}
+
+/// ReleaseV070RuntimeEventLogWritePolicy 固定 GH-784 本地 lock / fsync / recovery 策略。
+///
+/// Policy 只描述 local single-run JSONL append：使用 `.events.jsonl.lock` 目录作为
+/// local writer lock，batch append 后执行 `synchronizeFile()`，并在追加前把 partial line
+/// 截断到最后一个完整 newline。它不授权 distributed log、broker ingestion 或 production
+/// persistence cutover。
+public struct ReleaseV070RuntimeEventLogWritePolicy: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let releaseVersion: String
+    public let lockPolicy: String
+    public let fsyncPolicy: String
+    public let partialLineRecoveryPolicy: String
+    public let eventChecksumAlgorithm: String
+    public let lineChecksumAlgorithm: String
+    public let duplicateEventIDRejected: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretResolutionEnabled: Bool
+    public let productionEndpointConnectionEnabled: Bool
+    public let realOrderAuthorizationEnabled: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public var policyHeld: Bool {
+        issueID.rawValue == "GH-784"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-783", "GH-756"]
+            && releaseVersion == "v0.7.0"
+            && lockPolicy == "local-lock-directory-per-run"
+            && fsyncPolicy == "synchronize-file-after-each-batch"
+            && partialLineRecoveryPolicy == "truncate-to-last-complete-newline-before-append"
+            && eventChecksumAlgorithm == "sha256(payloadJSON)"
+            && lineChecksumAlgorithm == "sha256(runID|sequence|eventID|previousLineChecksum|eventChecksum|payloadJSON|createdAt)"
+            && duplicateEventIDRejected
+            && productionTradingEnabledByDefault == false
+            && productionSecretResolutionEnabled == false
+            && productionEndpointConnectionEnabled == false
+            && realOrderAuthorizationEnabled == false
+            && productionCutoverAuthorized == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-784"),
+        upstreamIssueIDs: [Identifier] = [Identifier.constant("GH-783"), Identifier.constant("GH-756")],
+        releaseVersion: String = "v0.7.0",
+        lockPolicy: String = "local-lock-directory-per-run",
+        fsyncPolicy: String = "synchronize-file-after-each-batch",
+        partialLineRecoveryPolicy: String = "truncate-to-last-complete-newline-before-append",
+        eventChecksumAlgorithm: String = "sha256(payloadJSON)",
+        lineChecksumAlgorithm: String = "sha256(runID|sequence|eventID|previousLineChecksum|eventChecksum|payloadJSON|createdAt)",
+        duplicateEventIDRejected: Bool = true,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretResolutionEnabled: Bool = false,
+        productionEndpointConnectionEnabled: Bool = false,
+        realOrderAuthorizationEnabled: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) throws {
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.releaseVersion = releaseVersion
+        self.lockPolicy = lockPolicy
+        self.fsyncPolicy = fsyncPolicy
+        self.partialLineRecoveryPolicy = partialLineRecoveryPolicy
+        self.eventChecksumAlgorithm = eventChecksumAlgorithm
+        self.lineChecksumAlgorithm = lineChecksumAlgorithm
+        self.duplicateEventIDRejected = duplicateEventIDRejected
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretResolutionEnabled = productionSecretResolutionEnabled
+        self.productionEndpointConnectionEnabled = productionEndpointConnectionEnabled
+        self.realOrderAuthorizationEnabled = realOrderAuthorizationEnabled
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+
+        guard policyHeld else {
+            throw ReleaseV070RuntimeEventLogWriterError.lineChecksumMismatch(
+                eventID: issueID.rawValue,
+                expected: "GH-784 policy held",
+                actual: "policy drift"
+            )
+        }
+    }
+}
+
+/// ReleaseV070RuntimeEventLogEvent 是 GH-784 append batch 的输入事件。
+public struct ReleaseV070RuntimeEventLogEvent: Codable, Equatable, Sendable {
+    public let eventID: Identifier
+    public let payloadJSON: String
+
+    public init(
+        eventID: Identifier,
+        payloadJSON: String
+    ) throws {
+        guard payloadJSON.isEmpty == false else {
+            throw ReleaseV070RuntimeEventLogWriterError.emptyPayload(eventID.rawValue)
+        }
+        guard payloadJSON.contains("\n") == false else {
+            throw ReleaseV070RuntimeEventLogWriterError.payloadContainsNewline(eventID.rawValue)
+        }
+        self.eventID = eventID
+        self.payloadJSON = payloadJSON
+    }
+}
+
+/// ReleaseV070RuntimeEventLogRecord 是 GH-784 `events.jsonl` 的单行 runtime append record。
+public struct ReleaseV070RuntimeEventLogRecord: Codable, Equatable, Sendable {
+    public static let genesisLineChecksum = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let releaseVersion: String
+    public let runID: Identifier
+    public let sequence: Int
+    public let eventID: Identifier
+    public let payloadJSON: String
+    public let eventChecksum: String
+    public let previousLineChecksum: String
+    public let lineChecksum: String
+    public let createdAt: Date
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretResolutionEnabled: Bool
+    public let productionEndpointConnectionEnabled: Bool
+    public let realOrderAuthorizationEnabled: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public var recordHeld: Bool {
+        let expectedEventChecksum = ReleaseV060LocalRunJournalWriter.sha256Hex(Data(payloadJSON.utf8))
+        return issueID.rawValue == "GH-784"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-783", "GH-756"]
+            && releaseVersion == "v0.7.0"
+            && runID.rawValue.isEmpty == false
+            && sequence > 0
+            && eventID.rawValue.isEmpty == false
+            && payloadJSON.isEmpty == false
+            && payloadJSON.contains("\n") == false
+            && eventChecksum == expectedEventChecksum
+            && lineChecksum == Self.computeLineChecksum(
+                runID: runID,
+                sequence: sequence,
+                eventID: eventID,
+                previousLineChecksum: previousLineChecksum,
+                eventChecksum: eventChecksum,
+                payloadJSON: payloadJSON,
+                createdAt: createdAt
+            )
+            && productionTradingEnabledByDefault == false
+            && productionSecretResolutionEnabled == false
+            && productionEndpointConnectionEnabled == false
+            && realOrderAuthorizationEnabled == false
+            && productionCutoverAuthorized == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-784"),
+        upstreamIssueIDs: [Identifier] = [Identifier.constant("GH-783"), Identifier.constant("GH-756")],
+        releaseVersion: String = "v0.7.0",
+        runID: Identifier,
+        sequence: Int,
+        eventID: Identifier,
+        payloadJSON: String,
+        previousLineChecksum: String,
+        createdAt: Date = Date(),
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretResolutionEnabled: Bool = false,
+        productionEndpointConnectionEnabled: Bool = false,
+        realOrderAuthorizationEnabled: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) throws {
+        guard runID.rawValue.isEmpty == false else {
+            throw ReleaseV070RuntimeEventLogWriterError.emptyRunID
+        }
+        let event = try ReleaseV070RuntimeEventLogEvent(eventID: eventID, payloadJSON: payloadJSON)
+        let eventChecksum = ReleaseV060LocalRunJournalWriter.sha256Hex(Data(event.payloadJSON.utf8))
+        let lineChecksum = Self.computeLineChecksum(
+            runID: runID,
+            sequence: sequence,
+            eventID: event.eventID,
+            previousLineChecksum: previousLineChecksum,
+            eventChecksum: eventChecksum,
+            payloadJSON: event.payloadJSON,
+            createdAt: createdAt
+        )
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.releaseVersion = releaseVersion
+        self.runID = runID
+        self.sequence = sequence
+        self.eventID = event.eventID
+        self.payloadJSON = event.payloadJSON
+        self.eventChecksum = eventChecksum
+        self.previousLineChecksum = previousLineChecksum
+        self.lineChecksum = lineChecksum
+        self.createdAt = createdAt
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretResolutionEnabled = productionSecretResolutionEnabled
+        self.productionEndpointConnectionEnabled = productionEndpointConnectionEnabled
+        self.realOrderAuthorizationEnabled = realOrderAuthorizationEnabled
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+
+        guard recordHeld else {
+            throw ReleaseV070RuntimeEventLogWriterError.lineChecksumMismatch(
+                eventID: eventID.rawValue,
+                expected: lineChecksum,
+                actual: "record held false"
+            )
+        }
+    }
+
+    public static func computeLineChecksum(
+        runID: Identifier,
+        sequence: Int,
+        eventID: Identifier,
+        previousLineChecksum: String,
+        eventChecksum: String,
+        payloadJSON: String,
+        createdAt: Date
+    ) -> String {
+        let input = [
+            runID.rawValue,
+            "\(sequence)",
+            eventID.rawValue,
+            previousLineChecksum,
+            eventChecksum,
+            payloadJSON,
+            String(format: "%.6f", createdAt.timeIntervalSince1970)
+        ].joined(separator: "|")
+        return ReleaseV060LocalRunJournalWriter.sha256Hex(Data(input.utf8))
+    }
+}
+
+/// ReleaseV070RuntimeEventLogAppendResult 汇总 GH-784 runtime batch append 结果。
+public struct ReleaseV070RuntimeEventLogAppendResult: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public let runID: Identifier
+    public let eventsJSONLPath: String
+    public let appendedEventCount: Int
+    public let totalEventCount: Int
+    public let recoveryAction: ReleaseV070RuntimeEventLogRecoveryAction
+    public let recoveredByteCount: Int
+    public let lineChecksums: [String]
+    public let eventChecksums: [String]
+    public let writePolicy: ReleaseV070RuntimeEventLogWritePolicy
+
+    public var appendHeld: Bool {
+        issueID.rawValue == "GH-784"
+            && runID.rawValue.isEmpty == false
+            && eventsJSONLPath.hasSuffix("events.jsonl")
+            && appendedEventCount > 0
+            && totalEventCount >= appendedEventCount
+            && recoveredByteCount >= 0
+            && lineChecksums.count == totalEventCount
+            && eventChecksums.count == totalEventCount
+            && lineChecksums.allSatisfy { $0.hasPrefix("sha256:") }
+            && eventChecksums.allSatisfy { $0.hasPrefix("sha256:") }
+            && writePolicy.policyHeld
+    }
+}
+
+/// ReleaseV070RuntimeEventLogValidation 是 GH-784 runtime event log 的校验结果。
+public struct ReleaseV070RuntimeEventLogValidation: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public let runID: Identifier
+    public let eventsJSONLPath: String
+    public let eventCount: Int
+    public let duplicateEventIDsRejected: Bool
+    public let lineChecksumValidationPassed: Bool
+    public let eventChecksumValidationPassed: Bool
+    public let previousLineChecksumValidationPassed: Bool
+    public let writePolicy: ReleaseV070RuntimeEventLogWritePolicy
+
+    public var validationHeld: Bool {
+        issueID.rawValue == "GH-784"
+            && runID.rawValue.isEmpty == false
+            && eventsJSONLPath.hasSuffix("events.jsonl")
+            && eventCount > 0
+            && duplicateEventIDsRejected
+            && lineChecksumValidationPassed
+            && eventChecksumValidationPassed
+            && previousLineChecksumValidationPassed
+            && writePolicy.policyHeld
+    }
+}
+
 /// ReleaseV060LocalRunJournalWriter 将 GH-731 的 deterministic journal artifact 落到真实本地文件。
 ///
 /// Writer 只写本地 filesystem。它不连接 Binance / production endpoint，不读取 secret，
@@ -504,6 +835,115 @@ public struct ReleaseV060LocalRunJournalWriter {
         )
     }
 
+    @discardableResult
+    public func appendRuntimeEvents(
+        runID: Identifier,
+        events: [ReleaseV070RuntimeEventLogEvent]
+    ) throws -> ReleaseV070RuntimeEventLogAppendResult {
+        guard runID.rawValue.isEmpty == false else {
+            throw ReleaseV070RuntimeEventLogWriterError.emptyRunID
+        }
+        guard events.isEmpty == false else {
+            throw ReleaseV070RuntimeEventLogWriterError.emptyAppendBatch
+        }
+
+        let urls = artifactURLs(runID: runID)
+        try ensureWritableRunDirectory(urls.runDirectoryURL)
+        return try withRuntimeAppendLock(for: urls.runDirectoryURL) {
+            let recovery = try recoverPartialEventLine(at: urls.eventsURL)
+            let existingRecords = try decodeRuntimeEventLogRecords(runID: runID, from: urls.eventsURL)
+            let existingEventIDs = Set(existingRecords.map(\.eventID.rawValue))
+            let incomingEventIDs = events.map(\.eventID.rawValue)
+            guard Set(incomingEventIDs).count == incomingEventIDs.count else {
+                throw ReleaseV070RuntimeEventLogWriterError.duplicateEventID(
+                    incomingEventIDs.first { id in incomingEventIDs.filter { $0 == id }.count > 1 } ?? "unknown"
+                )
+            }
+            if let duplicate = incomingEventIDs.first(where: existingEventIDs.contains) {
+                throw ReleaseV070RuntimeEventLogWriterError.duplicateEventID(duplicate)
+            }
+
+            var previousLineChecksum = existingRecords.last?.lineChecksum
+                ?? ReleaseV070RuntimeEventLogRecord.genesisLineChecksum
+            var appendedRecords: [ReleaseV070RuntimeEventLogRecord] = []
+            for (offset, event) in events.enumerated() {
+                let sequence = existingRecords.count + offset + 1
+                let record = try ReleaseV070RuntimeEventLogRecord(
+                    runID: runID,
+                    sequence: sequence,
+                    eventID: event.eventID,
+                    payloadJSON: event.payloadJSON,
+                    previousLineChecksum: previousLineChecksum,
+                    createdAt: Date(timeIntervalSince1970: Double(sequence))
+                )
+                previousLineChecksum = record.lineChecksum
+                appendedRecords.append(record)
+            }
+
+            try appendRuntimeRecordLines(appendedRecords, to: urls.eventsURL)
+            let allRecords = existingRecords + appendedRecords
+            try validateRuntimeRecords(allRecords, runID: runID, path: urls.eventsURL.path)
+            let policy = try ReleaseV070RuntimeEventLogWritePolicy()
+            let result = ReleaseV070RuntimeEventLogAppendResult(
+                issueID: Identifier.constant("GH-784"),
+                runID: runID,
+                eventsJSONLPath: urls.eventsURL.path,
+                appendedEventCount: appendedRecords.count,
+                totalEventCount: allRecords.count,
+                recoveryAction: recovery.action,
+                recoveredByteCount: recovery.recoveredByteCount,
+                lineChecksums: allRecords.map(\.lineChecksum),
+                eventChecksums: allRecords.map(\.eventChecksum),
+                writePolicy: policy
+            )
+            guard result.appendHeld else {
+                throw ReleaseV070RuntimeEventLogWriterError.lineChecksumMismatch(
+                    eventID: runID.rawValue,
+                    expected: "GH-784 append result held",
+                    actual: "append result drift"
+                )
+            }
+            return result
+        }
+    }
+
+    public func validateRuntimeEventLog(
+        runID: Identifier
+    ) throws -> ReleaseV070RuntimeEventLogValidation {
+        guard runID.rawValue.isEmpty == false else {
+            throw ReleaseV070RuntimeEventLogWriterError.emptyRunID
+        }
+        let urls = artifactURLs(runID: runID)
+        let records = try decodeRuntimeEventLogRecords(runID: runID, from: urls.eventsURL)
+        try validateRuntimeRecords(records, runID: runID, path: urls.eventsURL.path)
+        let validation = ReleaseV070RuntimeEventLogValidation(
+            issueID: Identifier.constant("GH-784"),
+            runID: runID,
+            eventsJSONLPath: urls.eventsURL.path,
+            eventCount: records.count,
+            duplicateEventIDsRejected: Set(records.map(\.eventID.rawValue)).count == records.count,
+            lineChecksumValidationPassed: records.allSatisfy(\.recordHeld),
+            eventChecksumValidationPassed: records.allSatisfy {
+                $0.eventChecksum == Self.sha256Hex(Data($0.payloadJSON.utf8))
+            },
+            previousLineChecksumValidationPassed: records.enumerated().allSatisfy { index, record in
+                let expected = index == 0
+                    ? ReleaseV070RuntimeEventLogRecord.genesisLineChecksum
+                    : records[index - 1].lineChecksum
+                return record.previousLineChecksum == expected
+            },
+            writePolicy: try ReleaseV070RuntimeEventLogWritePolicy()
+        )
+        guard validation.validationHeld else {
+            throw ReleaseV070RuntimeEventLogWriterError.lineChecksumMismatch(
+                eventID: runID.rawValue,
+                expected: "GH-784 validation held",
+                actual: "validation drift"
+            )
+        }
+        return validation
+    }
+
     private func writeTerminalStatus(
         runID: Identifier,
         state: ReleaseV060LocalRunJournalWriterState,
@@ -521,6 +961,175 @@ public struct ReleaseV060LocalRunJournalWriter {
         )
         try writeAtomicJSON(status, to: urls.statusURL)
         return status
+    }
+
+    private func withRuntimeAppendLock<Result>(
+        for runDirectoryURL: URL,
+        _ operation: () throws -> Result
+    ) throws -> Result {
+        let lockURL = runDirectoryURL.appendingPathComponent(".events.jsonl.lock", isDirectory: true)
+        do {
+            try fileManager.createDirectory(at: lockURL, withIntermediateDirectories: false)
+        } catch {
+            throw ReleaseV070RuntimeEventLogWriterError.lockUnavailable(lockURL.path)
+        }
+        defer {
+            try? fileManager.removeItem(at: lockURL)
+        }
+        return try operation()
+    }
+
+    private func recoverPartialEventLine(
+        at url: URL
+    ) throws -> (action: ReleaseV070RuntimeEventLogRecoveryAction, recoveredByteCount: Int) {
+        guard fileManager.fileExists(atPath: url.path) else {
+            return (.noRecoveryNeeded, 0)
+        }
+        let data = try Data(contentsOf: url)
+        guard data.isEmpty == false else {
+            return (.noRecoveryNeeded, 0)
+        }
+        guard data.last != 0x0A else {
+            return (.noRecoveryNeeded, 0)
+        }
+
+        let truncateOffset: UInt64
+        if let lastNewlineIndex = data.lastIndex(of: 0x0A) {
+            truncateOffset = UInt64(data.distance(from: data.startIndex, to: lastNewlineIndex) + 1)
+        } else {
+            truncateOffset = 0
+        }
+        let recoveredByteCount = data.count - Int(truncateOffset)
+        let handle = try FileHandle(forUpdating: url)
+        defer {
+            try? handle.close()
+        }
+        try handle.truncate(atOffset: truncateOffset)
+        handle.synchronizeFile()
+        return (.truncatedPartialLine, recoveredByteCount)
+    }
+
+    private func appendRuntimeRecordLines(
+        _ records: [ReleaseV070RuntimeEventLogRecord],
+        to url: URL
+    ) throws {
+        if fileManager.fileExists(atPath: url.path) == false {
+            fileManager.createFile(atPath: url.path, contents: nil)
+        }
+        let handle = try FileHandle(forWritingTo: url)
+        defer {
+            try? handle.close()
+        }
+        try handle.seekToEnd()
+        for record in records {
+            try handle.write(contentsOf: Data((Self.encodeRuntimeRecordLine(record) + "\n").utf8))
+        }
+        handle.synchronizeFile()
+    }
+
+    private func decodeRuntimeEventLogRecords(
+        runID: Identifier,
+        from url: URL
+    ) throws -> [ReleaseV070RuntimeEventLogRecord] {
+        guard fileManager.fileExists(atPath: url.path) else {
+            return []
+        }
+        let contents = try String(contentsOf: url, encoding: .utf8)
+        let lines = contents.split(separator: "\n", omittingEmptySubsequences: true)
+        let records = try lines.enumerated().map { index, line -> ReleaseV070RuntimeEventLogRecord in
+            do {
+                return try Self.decodeRuntimeRecordLine(String(line))
+            } catch {
+                throw ReleaseV070RuntimeEventLogWriterError.invalidEventLine(
+                    path: url.path,
+                    lineNumber: index + 1
+                )
+            }
+        }
+        try validateRuntimeRecords(records, runID: runID, path: url.path)
+        return records
+    }
+
+    private func validateRuntimeRecords(
+        _ records: [ReleaseV070RuntimeEventLogRecord],
+        runID: Identifier,
+        path: String
+    ) throws {
+        var eventIDs = Set<String>()
+        for (index, record) in records.enumerated() {
+            guard record.runID == runID else {
+                throw ReleaseV070RuntimeEventLogWriterError.runIDMismatch(
+                    expected: runID.rawValue,
+                    actual: record.runID.rawValue
+                )
+            }
+            guard eventIDs.insert(record.eventID.rawValue).inserted else {
+                throw ReleaseV070RuntimeEventLogWriterError.duplicateEventID(record.eventID.rawValue)
+            }
+            guard record.sequence == index + 1 else {
+                throw ReleaseV070RuntimeEventLogWriterError.invalidEventLine(
+                    path: path,
+                    lineNumber: index + 1
+                )
+            }
+            let expectedPreviousLineChecksum = index == 0
+                ? ReleaseV070RuntimeEventLogRecord.genesisLineChecksum
+                : records[index - 1].lineChecksum
+            guard record.previousLineChecksum == expectedPreviousLineChecksum else {
+                throw ReleaseV070RuntimeEventLogWriterError.previousLineChecksumMismatch(
+                    eventID: record.eventID.rawValue,
+                    expected: expectedPreviousLineChecksum,
+                    actual: record.previousLineChecksum
+                )
+            }
+            let expectedEventChecksum = Self.sha256Hex(Data(record.payloadJSON.utf8))
+            guard record.eventChecksum == expectedEventChecksum else {
+                throw ReleaseV070RuntimeEventLogWriterError.eventChecksumMismatch(
+                    eventID: record.eventID.rawValue,
+                    expected: expectedEventChecksum,
+                    actual: record.eventChecksum
+                )
+            }
+            let expectedLineChecksum = ReleaseV070RuntimeEventLogRecord.computeLineChecksum(
+                runID: record.runID,
+                sequence: record.sequence,
+                eventID: record.eventID,
+                previousLineChecksum: record.previousLineChecksum,
+                eventChecksum: record.eventChecksum,
+                payloadJSON: record.payloadJSON,
+                createdAt: record.createdAt
+            )
+            guard record.lineChecksum == expectedLineChecksum else {
+                throw ReleaseV070RuntimeEventLogWriterError.lineChecksumMismatch(
+                    eventID: record.eventID.rawValue,
+                    expected: expectedLineChecksum,
+                    actual: record.lineChecksum
+                )
+            }
+            guard record.recordHeld else {
+                throw ReleaseV070RuntimeEventLogWriterError.invalidEventLine(
+                    path: path,
+                    lineNumber: index + 1
+                )
+            }
+        }
+    }
+
+    private static func encodeRuntimeRecordLine(
+        _ record: ReleaseV070RuntimeEventLogRecord
+    ) throws -> String {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
+        return String(decoding: try encoder.encode(record), as: UTF8.self)
+    }
+
+    private static func decodeRuntimeRecordLine(
+        _ line: String
+    ) throws -> ReleaseV070RuntimeEventLogRecord {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode(ReleaseV070RuntimeEventLogRecord.self, from: Data(line.utf8))
     }
 
     private func ensureWritableRunDirectory(_ url: URL) throws {
