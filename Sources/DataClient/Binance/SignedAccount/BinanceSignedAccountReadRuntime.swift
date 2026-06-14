@@ -5,6 +5,71 @@ import Foundation
 import FoundationNetworking
 #endif
 
+/// BinanceSignedAccountReadEndpointPolicy 固定 GH-780 的 canonical testnet endpoint 规则。
+///
+/// signed account read-only runtime 只允许 Binance Spot testnet canonical base URL。
+/// 这里不接收 production host、userinfo、path、query、fragment 或显式端口，避免 operator
+/// read-only probe 在 request 构造前被非 canonical endpoint 污染。
+private enum BinanceSignedAccountReadEndpointPolicy {
+    static let canonicalTestnetHost = "testnet.binance.vision"
+    static let canonicalTestnetBaseURL = "https://testnet.binance.vision"
+
+    private static let forbiddenProductionHosts: Set<String> = [
+        "api.binance.com",
+        "fapi.binance.com",
+        "dapi.binance.com"
+    ]
+
+    static func validateCanonicalBaseURL(_ url: URL) throws {
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            throw BinanceSignedAccountReadRuntimeError.invalidBaseURL(url.absoluteString)
+        }
+        guard components.scheme?.lowercased() == "https" else {
+            throw BinanceSignedAccountReadRuntimeError.invalidBaseURL(url.absoluteString)
+        }
+        let host = components.host?.lowercased() ?? ""
+        guard forbiddenProductionHosts.contains(host) == false else {
+            throw BinanceSignedAccountReadRuntimeError.productionEndpointForbidden(host)
+        }
+        guard host == canonicalTestnetHost else {
+            throw BinanceSignedAccountReadRuntimeError.invalidBaseURL(url.absoluteString)
+        }
+        guard components.user == nil,
+              components.password == nil,
+              components.port == nil,
+              components.percentEncodedPath.isEmpty,
+              components.percentEncodedQuery == nil,
+              components.percentEncodedFragment == nil else {
+            throw BinanceSignedAccountReadRuntimeError.invalidBaseURL(url.absoluteString)
+        }
+    }
+
+    static func validateTransportURL(_ url: URL, expectedPath: String) throws {
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            throw BinanceSignedAccountReadRuntimeError.invalidURL(url.absoluteString)
+        }
+        guard components.scheme?.lowercased() == "https" else {
+            throw BinanceSignedAccountReadRuntimeError.invalidURL(url.absoluteString)
+        }
+        let host = components.host?.lowercased() ?? ""
+        guard forbiddenProductionHosts.contains(host) == false else {
+            throw BinanceSignedAccountReadRuntimeError.productionEndpointForbidden(host)
+        }
+        guard host == canonicalTestnetHost else {
+            throw BinanceSignedAccountReadRuntimeError.invalidURL(url.absoluteString)
+        }
+        guard components.user == nil,
+              components.password == nil,
+              components.port == nil,
+              components.percentEncodedFragment == nil else {
+            throw BinanceSignedAccountReadRuntimeError.invalidURL(url.absoluteString)
+        }
+        guard components.percentEncodedPath == expectedPath else {
+            throw BinanceSignedAccountReadRuntimeError.invalidURL(components.percentEncodedPath)
+        }
+    }
+}
+
 /// BinanceSignedAccountReadRuntimeError 描述 GH-525 signed account read-only runtime 的本地错误。
 ///
 /// 错误只覆盖 credential reference、testnet endpoint、签名请求构造和只读账户快照映射。
@@ -141,8 +206,9 @@ public struct BinanceStaticSignedAccountCredentialProvider: BinanceSignedAccount
 
 /// BinanceSignedAccountReadClientConfiguration 固定 signed account read-only runtime 的 endpoint gate。
 ///
-/// 默认使用 Binance Spot testnet base URL。自定义 URL 必须是 HTTPS，且不能是 production
-/// `api.binance.com` host。该配置不包含 secret value，也不打开 production trading。
+/// 默认使用 Binance Spot testnet canonical base URL。自定义 URL 必须精确保持 HTTPS
+/// `testnet.binance.vision`，且不能携带 userinfo、path、query、fragment 或端口。
+/// 该配置不包含 secret value，也不打开 production trading。
 public struct BinanceSignedAccountReadClientConfiguration: Equatable, Sendable {
     public let environment: BinanceSignedAccountReadEnvironment
     public let baseURL: URL
@@ -157,14 +223,7 @@ public struct BinanceSignedAccountReadClientConfiguration: Equatable, Sendable {
         guard receiveWindowMilliseconds > 0 else {
             throw BinanceSignedAccountReadRuntimeError.invalidReceiveWindow(receiveWindowMilliseconds)
         }
-        guard resolvedBaseURL.scheme == "https" else {
-            throw BinanceSignedAccountReadRuntimeError.invalidBaseURL(resolvedBaseURL.absoluteString)
-        }
-        if resolvedBaseURL.host?.lowercased() == "api.binance.com" {
-            throw BinanceSignedAccountReadRuntimeError.productionEndpointForbidden(
-                resolvedBaseURL.host ?? "api.binance.com"
-            )
-        }
+        try BinanceSignedAccountReadEndpointPolicy.validateCanonicalBaseURL(resolvedBaseURL)
 
         self.environment = environment
         self.baseURL = resolvedBaseURL
@@ -172,8 +231,10 @@ public struct BinanceSignedAccountReadClientConfiguration: Equatable, Sendable {
     }
 
     private static func defaultTestnetBaseURL() throws -> URL {
-        guard let url = URL(string: "https://testnet.binance.vision") else {
-            throw BinanceSignedAccountReadRuntimeError.invalidBaseURL("https://testnet.binance.vision")
+        guard let url = URL(string: BinanceSignedAccountReadEndpointPolicy.canonicalTestnetBaseURL) else {
+            throw BinanceSignedAccountReadRuntimeError.invalidBaseURL(
+                BinanceSignedAccountReadEndpointPolicy.canonicalTestnetBaseURL
+            )
         }
         return url
     }
@@ -204,6 +265,7 @@ public struct BinanceSignedAccountReadTransportRequest: Equatable, Sendable {
         guard path == Self.accountReadOnlyPath else {
             throw BinanceSignedAccountReadRuntimeError.forbiddenRequestCapability(path)
         }
+        try BinanceSignedAccountReadEndpointPolicy.validateTransportURL(url, expectedPath: Self.accountReadOnlyPath)
         let serialized = "\(path)?\(url.query ?? "") \(headers.keys.joined(separator: " "))".lowercased()
         for forbidden in Self.forbiddenFragments where serialized.contains(forbidden) {
             throw BinanceSignedAccountReadRuntimeError.forbiddenRequestCapability(forbidden)

@@ -20488,6 +20488,104 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertEqual(requests.first?.path, BinanceSignedAccountReadTransportRequest.accountReadOnlyPath)
     }
 
+    func testGH780BinanceSignedAccountReadConfigurationRejectsNonCanonicalTestnetBaseURLs() throws {
+        let accepted = try BinanceSignedAccountReadClientConfiguration(
+            baseURL: try XCTUnwrap(URL(string: "https://testnet.binance.vision"))
+        )
+        XCTAssertEqual(accepted.baseURL.absoluteString, "https://testnet.binance.vision")
+
+        let invalidBaseURLs = [
+            "http://testnet.binance.vision",
+            "https://user:pass@testnet.binance.vision",
+            "https://testnet.binance.vision/api/v3",
+            "https://testnet.binance.vision?recvWindow=5000",
+            "https://testnet.binance.vision#fragment",
+            "https://testnet.binance.vision:9443"
+        ]
+        for rawURL in invalidBaseURLs {
+            XCTAssertThrowsError(
+                try BinanceSignedAccountReadClientConfiguration(baseURL: try XCTUnwrap(URL(string: rawURL))),
+                "\(rawURL) must be rejected by the GH-780 canonical testnet URL policy"
+            ) { error in
+                XCTAssertEqual(
+                    error as? BinanceSignedAccountReadRuntimeError,
+                    .invalidBaseURL(rawURL)
+                )
+            }
+        }
+
+        for rawURL in ["https://api.binance.com", "https://fapi.binance.com", "https://dapi.binance.com"] {
+            let host = try XCTUnwrap(URL(string: rawURL)?.host)
+            XCTAssertThrowsError(
+                try BinanceSignedAccountReadClientConfiguration(baseURL: try XCTUnwrap(URL(string: rawURL))),
+                "\(rawURL) must remain production-blocked"
+            ) { error in
+                XCTAssertEqual(
+                    error as? BinanceSignedAccountReadRuntimeError,
+                    .productionEndpointForbidden(host)
+                )
+            }
+        }
+    }
+
+    func testGH780BinanceSignedAccountReadTransportRejectsURLPathDrift() throws {
+        let accountPath = BinanceSignedAccountReadTransportRequest.accountReadOnlyPath
+        let validURL = try XCTUnwrap(
+            URL(string: "https://testnet.binance.vision\(accountPath)?timestamp=1704067200000&signature=abc")
+        )
+        XCTAssertNoThrow(
+            try BinanceSignedAccountReadTransportRequest(
+                environment: .testnet,
+                method: "GET",
+                path: accountPath,
+                url: validURL,
+                headers: [BinanceSignedAccountReadTransportRequest.binanceKeyHeaderName: "fixture-key"],
+                unsignedQueryString: "timestamp=1704067200000",
+                credentialReference: "gh-780-fixture-credential"
+            )
+        )
+
+        let pathDriftURL = try XCTUnwrap(
+            URL(string: "https://testnet.binance.vision/api/v3/order?timestamp=1704067200000&signature=abc")
+        )
+        XCTAssertThrowsError(
+            try BinanceSignedAccountReadTransportRequest(
+                environment: .testnet,
+                method: "GET",
+                path: accountPath,
+                url: pathDriftURL,
+                headers: [BinanceSignedAccountReadTransportRequest.binanceKeyHeaderName: "fixture-key"],
+                unsignedQueryString: "timestamp=1704067200000",
+                credentialReference: "gh-780-fixture-credential"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? BinanceSignedAccountReadRuntimeError,
+                .invalidURL("/api/v3/order")
+            )
+        }
+
+        let productionURL = try XCTUnwrap(
+            URL(string: "https://api.binance.com\(accountPath)?timestamp=1704067200000&signature=abc")
+        )
+        XCTAssertThrowsError(
+            try BinanceSignedAccountReadTransportRequest(
+                environment: .testnet,
+                method: "GET",
+                path: accountPath,
+                url: productionURL,
+                headers: [BinanceSignedAccountReadTransportRequest.binanceKeyHeaderName: "fixture-key"],
+                unsignedQueryString: "timestamp=1704067200000",
+                credentialReference: "gh-780-fixture-credential"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? BinanceSignedAccountReadRuntimeError,
+                .productionEndpointForbidden("api.binance.com")
+            )
+        }
+    }
+
     func testGH526BinancePrivateStreamAccountSnapshotRuntimeMapsEventsWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
