@@ -8784,6 +8784,168 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(source.contains("HMAC<"))
     }
 
+    func testGH733TestnetReadOnlyIntegrationGateRequiresExplicitProfileAndNoSubmitProof() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        let sourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/ExecutionClient/FutureGate/ReleaseV050TestnetReadOnlyIntegrationGate.swift"
+        )
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.5.0-testnet-read-only-integration-gate-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let testnetReadOnlyScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.5.0-testnet-readonly.sh"),
+            encoding: .utf8
+        )
+
+        let contract = try ReleaseV050TestnetReadOnlyIntegrationGateContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertTrue(contract.productionDefaultsClosed)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-733")
+        XCTAssertEqual(contract.upstreamIssueIDs.map(\.rawValue), ["GH-728", "GH-732"])
+        XCTAssertEqual(contract.previousIssueID.rawValue, "GH-732")
+        XCTAssertEqual(contract.downstreamIssueIDs.map(\.rawValue), ["GH-738", "GH-739"])
+        XCTAssertEqual(contract.canonicalQueueRange, "GH-726..GH-739")
+        XCTAssertTrue(contract.defaultFailClosed)
+
+        let evidence = try ReleaseV050TestnetReadOnlyIntegrationGate.deterministicEvidence()
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-733")
+        XCTAssertEqual(evidence.environmentProfile.mode, .testnetGuarded)
+        XCTAssertTrue(evidence.environmentProfile.profileHeld)
+        XCTAssertEqual(
+            evidence.routeResolutions.map(\.route.kind),
+            [.signedAccountReadOnly, .privateStreamAccountSnapshot]
+        )
+        XCTAssertTrue(evidence.routeResolutions.allSatisfy(\.resolutionHeld))
+        XCTAssertEqual(
+            evidence.routeResolutions.map(\.route.sourcePath),
+            ["/api/v3/account", "/api/v3/userDataStream"]
+        )
+        XCTAssertTrue(evidence.routeResolutions.allSatisfy { $0.route.readModelOnly })
+        XCTAssertTrue(evidence.routeResolutions.allSatisfy { $0.endpointEvidence.decision == .testnetEndpointAllowed })
+        XCTAssertTrue(evidence.routeResolutions.allSatisfy { $0.endpointEvidence.networkConnectionOpened == false })
+        XCTAssertTrue(evidence.routeResolutions.allSatisfy { $0.redactedSecretProfileReference.hasSuffix(":<redacted>") })
+        XCTAssertTrue(evidence.noSubmitProof.proofHeld)
+        XCTAssertFalse(evidence.noSubmitProof.orderLifecycleCreated)
+        XCTAssertFalse(evidence.noSubmitProof.submitCommandEnabled)
+        XCTAssertFalse(evidence.noSubmitProof.cancelCommandEnabled)
+        XCTAssertFalse(evidence.noSubmitProof.replaceCommandEnabled)
+        XCTAssertFalse(evidence.noSubmitProof.brokerGatewayConnected)
+        XCTAssertTrue(evidence.productionEndpointRejected)
+        XCTAssertTrue(evidence.productionSecretRejected)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+
+        let explicitRoutes = try ReleaseV050TestnetReadOnlyReadModelRoute.deterministicRoutes(
+            endpointReference: "https://testnet.binance.vision"
+        )
+        XCTAssertThrowsError(
+            try ReleaseV050TestnetReadOnlyIntegrationGate().resolve(
+                profile: try ReleaseV050EnvironmentProfile.fixture(for: .testnetGuarded),
+                routes: explicitRoutes
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryContractMismatch(
+                    field: "explicitTestnetProfileAccepted",
+                    expected: "true",
+                    actual: "false"
+                )
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV050TestnetReadOnlyIntegrationGate(
+                explicitTestnetProfileAccepted: true
+            ).resolve(profile: try ReleaseV050EnvironmentProfile.fixture(for: .productionBlocked), routes: explicitRoutes)
+        ) { error in
+            XCTAssertEqual(
+                error as? CoreError,
+                .liveTradingBoundaryForbiddenCapability("testnetReadOnlyRequiresTestnetGuardedProfile")
+            )
+        }
+        let productionRoutes = try ReleaseV050TestnetReadOnlyReadModelRoute.deterministicRoutes(
+            endpointReference: "https://api.binance.com"
+        )
+        XCTAssertThrowsError(
+            try ReleaseV050TestnetReadOnlyIntegrationGate(
+                explicitTestnetProfileAccepted: true
+            ).resolve(profile: try ReleaseV050EnvironmentProfile.fixture(for: .testnetGuarded), routes: productionRoutes)
+        ) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("productionEndpointHost"))
+        }
+        XCTAssertThrowsError(try ReleaseV050TestnetReadOnlyNoSubmitProof(submitCommandEnabled: true)) { error in
+            XCTAssertEqual(error as? CoreError, .liveTradingBoundaryForbiddenCapability("submitCommandEnabled"))
+        }
+
+        for anchor in ReleaseV050TestnetReadOnlyIntegrationGateContract.requiredValidationAnchors {
+            XCTAssertTrue(contract.validationAnchors.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+        }
+
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: sourcePath.path))
+        XCTAssertTrue(source.contains("ReleaseV050TestnetReadOnlyIntegrationGate"))
+        XCTAssertTrue(source.contains("ReleaseV050EnvironmentProfile"))
+        XCTAssertTrue(source.contains("ReleaseV050EndpointPolicy"))
+        XCTAssertTrue(source.contains("ReleaseV050SecretProfileRef"))
+        XCTAssertTrue(source.contains("DataClient.BinanceSignedAccountReadSnapshot"))
+        XCTAssertTrue(source.contains("DataClient.BinancePrivateStreamAccountSnapshotReadModel"))
+        XCTAssertTrue(source.contains("/api/v3/account"))
+        XCTAssertTrue(source.contains("/api/v3/userDataStream"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.5.0 testnet read-only integration gate anchor"))
+        XCTAssertTrue(readinessScript.contains("ReleaseV050TestnetReadOnlyIntegrationGate.swift"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH733TestnetReadOnlyIntegrationGateRequiresExplicitProfileAndNoSubmitProof"
+            )
+        )
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.5.0-testnet-readonly.sh"))
+        XCTAssertTrue(testnetReadOnlyScript.contains("GH-733-VERIFY-V050-TESTNET-READONLY-INTEGRATION-GATE"))
+        XCTAssertTrue(
+            testnetReadOnlyScript.contains(
+                "testGH733TestnetReadOnlyIntegrationGateRequiresExplicitProfileAndNoSubmitProof"
+            )
+        )
+        XCTAssertFalse(source.contains("URLSession"))
+        XCTAssertFalse(source.contains("URLRequest"))
+        XCTAssertFalse(source.contains("HMAC<"))
+        XCTAssertFalse(source.contains("submitOrder"))
+        XCTAssertFalse(source.contains("cancelOrder"))
+        XCTAssertFalse(source.contains("replaceOrder"))
+    }
+
     func testGH657ReleaseV030RuntimeRehearsalContractDefinesDryRunTestnetShadowBoundary() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

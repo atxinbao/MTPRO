@@ -302,6 +302,38 @@ GH-732 必须建立的主要 anchors：
 - 不启动 Linear、Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-733 Release v0.5.0 Testnet Read-only Integration Gate Validation
+
+GH-733 的 required validation：
+
+- `Sources/ExecutionClient/FutureGate/ReleaseV050TestnetReadOnlyIntegrationGate.swift` 必须定义 `ReleaseV050TestnetReadOnlyIntegrationGate`、`ReleaseV050TestnetReadOnlyIntegrationEvidence`、`ReleaseV050TestnetReadOnlyReadModelRoute`、`ReleaseV050TestnetReadOnlyRouteResolution` 和 `ReleaseV050TestnetReadOnlyNoSubmitProof`。
+- Gate 必须默认 fail-closed，并且只接受 GH-728 的显式 `testnet-guarded` `ReleaseV050EnvironmentProfile`。
+- Gate 必须通过 `ReleaseV050EndpointPolicy` 与 `ReleaseV050SecretProfileRef` 生成 redacted read-model evidence，不读取 secret value，不打开 network connection。
+- `production-blocked` profile 和 production host 必须拒绝 account / private stream read-model resolution。
+- Evidence 必须覆盖 signed account read-only route、private stream account snapshot read-model route、redacted secret profile reference 和 no-submit proof。
+- `docs/contracts/release-v0.5.0-testnet-read-only-integration-gate-contract.md` 必须存在，并包含 `V050-08-TESTNET-READ-ONLY-INTEGRATION-GATE`、`V050-08-EXPLICIT-TESTNET-PROFILE-REQUIRED`、`V050-08-PRODUCTION-BLOCKED-REJECTS-READMODEL-RESOLUTION`、`V050-08-REDACTED-EVIDENCE-NO-SUBMIT-PROOF` 和 `TVM-RELEASE-V050-TESTNET-READONLY-INTEGRATION-GATE`。
+- Required validation 为 `swift test --filter TargetGraphTests/testGH733TestnetReadOnlyIntegrationGateRequiresExplicitProfileAndNoSubmitProof`、`bash checks/verify-v0.5.0-testnet-readonly.sh`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-733 必须建立的主要 anchors：
+
+- `V050-08-TESTNET-READ-ONLY-INTEGRATION-GATE`
+- `V050-08-EXPLICIT-TESTNET-PROFILE-REQUIRED`
+- `V050-08-PRODUCTION-BLOCKED-REJECTS-READMODEL-RESOLUTION`
+- `V050-08-REDACTED-EVIDENCE-NO-SUBMIT-PROOF`
+- `TVM-RELEASE-V050-TESTNET-READONLY-INTEGRATION-GATE`
+- `testGH733TestnetReadOnlyIntegrationGateRequiresExplicitProfileAndNoSubmitProof`
+
+## GH-733 禁止
+
+- 不把 testnet read-only evidence 扩大为 order command、ExecutionClient live adapter、broker gateway、OMS lifecycle、Dashboard command surface、trading button、live command 或 order form。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、broker endpoint、account endpoint、listenKey 或 private WebSocket runtime。
+- 不打开 network connection，不依赖真实 testnet network。
+- 不实现 real submit / cancel / replace，不授权 production trading 或 production cutover。
+- 不创建下一 Project / Issue，不推进 release v0.5.0 之后的阶段。
+- 不启动 Linear、Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-669 Release v0.3.0 Operator Rehearsal Runbook
 
 GH-669 的 required validation：
