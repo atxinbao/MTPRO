@@ -8736,6 +8736,169 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(source.contains("HMAC<"))
     }
 
+    func testGH756LocalRunJournalWriterPersistsArtifactsAndClassifiesIncompleteRuns() async throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let databaseTarget = try packageTargetBlock(named: "Database", packageSource: packageSource)
+        let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
+        let sourcePath = repositoryRoot.appendingPathComponent("Sources/Database/ReleaseV060LocalRunJournalWriter.swift")
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.6.0-local-run-journal-writer-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let writerScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.6.0-run-journal-writer.sh"),
+            encoding: .utf8
+        )
+
+        let storageRoot = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "MTPRO-GH756-LocalRunJournalWriter-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: storageRoot)
+        }
+
+        let writer = ReleaseV060LocalRunJournalWriter(storageRootURL: storageRoot)
+        let journal = try await ReleaseV050DurableLocalRunJournalContract.deterministicJournal()
+        let result = try writer.writeCompletedRun(journal: journal)
+
+        XCTAssertTrue(result.resultHeld)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: result.runDirectoryPath))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: result.eventsJSONLPath))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: result.projectionJSONPath))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: result.summaryJSONPath))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: result.statusJSONPath))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: result.manifestJSONPath))
+        XCTAssertEqual(result.manifest.writeOrder, [
+            "events.jsonl",
+            "projection.json",
+            "summary.json",
+            "_RUN_STATUS.json",
+            "manifest.json"
+        ])
+        XCTAssertTrue(result.manifest.manifestWrittenLast)
+        XCTAssertTrue(result.manifest.eventsAppendOnly)
+        XCTAssertTrue(result.manifest.atomicArtifactsWritten)
+        XCTAssertFalse(result.status.productionTradingEnabledByDefault)
+        XCTAssertFalse(result.status.productionSecretResolutionEnabled)
+        XCTAssertFalse(result.status.productionEndpointConnectionEnabled)
+        XCTAssertFalse(result.status.realOrderAuthorizationEnabled)
+        XCTAssertFalse(result.status.productionCutoverAuthorized)
+
+        let eventsJSONL = try String(contentsOfFile: result.eventsJSONLPath, encoding: .utf8)
+        XCTAssertEqual(eventsJSONL.split(separator: "\n").count, journal.records.count)
+        XCTAssertTrue(eventsJSONL.contains("\"journalChecksum\""))
+        XCTAssertTrue(eventsJSONL.contains("\"payloadType\""))
+        XCTAssertTrue(eventsJSONL.contains("\"runID\""))
+
+        let decoder = JSONDecoder()
+        let decodedStatus = try decoder.decode(
+            ReleaseV060LocalRunJournalWriterStatus.self,
+            from: Data(contentsOf: URL(fileURLWithPath: result.statusJSONPath))
+        )
+        let decodedManifest = try decoder.decode(
+            ReleaseV060LocalRunJournalWriterManifest.self,
+            from: Data(contentsOf: URL(fileURLWithPath: result.manifestJSONPath))
+        )
+        XCTAssertEqual(decodedStatus, result.status)
+        XCTAssertEqual(decodedManifest, result.manifest)
+
+        let inspectedCompleted = try writer.inspectRun(runID: journal.paths.runID)
+        XCTAssertEqual(inspectedCompleted.state, .completed)
+        XCTAssertTrue(inspectedCompleted.completed)
+        XCTAssertThrowsError(try writer.writeCompletedRun(journal: journal))
+
+        try FileManager.default.removeItem(at: URL(fileURLWithPath: result.manifestJSONPath))
+        let inspectedWithoutManifest = try writer.inspectRun(runID: journal.paths.runID)
+        XCTAssertEqual(inspectedWithoutManifest.state, .incomplete)
+        XCTAssertFalse(inspectedWithoutManifest.completed)
+        XCTAssertFalse(inspectedWithoutManifest.requiredArtifactsPresent)
+        XCTAssertFalse(inspectedWithoutManifest.manifestPresent)
+
+        let failedStatus = try writer.writeFailedRun(
+            runID: Identifier.constant("gh-756-failed-run"),
+            reason: "focused failure state"
+        )
+        let inspectedFailed = try writer.inspectRun(runID: Identifier.constant("gh-756-failed-run"))
+        XCTAssertEqual(failedStatus.state, .failed)
+        XCTAssertEqual(inspectedFailed.state, .failed)
+        XCTAssertFalse(inspectedFailed.completed)
+
+        let incompleteStatus = try writer.writeIncompleteRun(runID: Identifier.constant("gh-756-incomplete-run"))
+        let inspectedIncomplete = try writer.inspectRun(runID: Identifier.constant("gh-756-incomplete-run"))
+        XCTAssertEqual(incompleteStatus.state, .incomplete)
+        XCTAssertEqual(inspectedIncomplete.state, .incomplete)
+        XCTAssertFalse(inspectedIncomplete.completed)
+
+        for anchor in [
+            "V060-002-LOCAL-RUN-JOURNAL-WRITER",
+            "V060-002-RUN-DIRECTORY-SHAPE",
+            "V060-002-APPEND-ONLY-EVENTS-JSONL",
+            "V060-002-ATOMIC-PROJECTION-SUMMARY-STATUS-MANIFEST",
+            "V060-002-MANIFEST-WRITTEN-LAST",
+            "V060-002-FAILED-INCOMPLETE-NOT-COMPLETED",
+            "TVM-RELEASE-V060-LOCAL-RUN-JOURNAL-WRITER"
+        ] {
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+        }
+
+        XCTAssertTrue(databaseTarget.contains("\"ReleaseV060LocalRunJournalWriter.swift\""))
+        XCTAssertFalse(coreTarget.contains("\"Database/ReleaseV060LocalRunJournalWriter.swift\""))
+        XCTAssertTrue(packageSource.contains("\"Database/ReleaseV060LocalRunJournalWriter.swift\""))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: sourcePath.path))
+        XCTAssertTrue(source.contains("ReleaseV060LocalRunJournalWriter"))
+        XCTAssertTrue(source.contains("ReleaseV060LocalRunJournalWriterStatus"))
+        XCTAssertTrue(source.contains("ReleaseV060LocalRunJournalWriterManifest"))
+        XCTAssertTrue(source.contains("events.jsonl"))
+        XCTAssertTrue(source.contains("projection.json"))
+        XCTAssertTrue(source.contains("summary.json"))
+        XCTAssertTrue(source.contains("_RUN_STATUS.json"))
+        XCTAssertTrue(source.contains("manifest.json"))
+        XCTAssertTrue(source.contains(".atomic"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.6.0 local run journal writer anchor"))
+        XCTAssertTrue(readinessScript.contains("GH-756-VERIFY-V060-LOCAL-RUN-JOURNAL-WRITER"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.6.0-run-journal-writer.sh"))
+        XCTAssertTrue(writerScript.contains("testGH756LocalRunJournalWriterPersistsArtifactsAndClassifiesIncompleteRuns"))
+        XCTAssertFalse(source.contains("URLSession"))
+        XCTAssertFalse(source.contains("URLRequest"))
+        XCTAssertFalse(source.contains("api.binance.com"))
+        XCTAssertFalse(source.contains("fapi.binance.com"))
+        XCTAssertFalse(source.contains("submitOrder"))
+        XCTAssertFalse(source.contains("cancelOrder"))
+        XCTAssertFalse(source.contains("replaceOrder"))
+        XCTAssertFalse(source.contains("HMAC<"))
+    }
+
     func testGH732DataEngineOperationalDryRunPathPublishesTypedMarketEventsIntoMessageBusAndCache() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
