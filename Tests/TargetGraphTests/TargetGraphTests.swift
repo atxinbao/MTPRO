@@ -9496,6 +9496,209 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH762ExecutionOMSDryRunRunnerConsumesAllowedRiskDecisionAndBlocksRejectedOrBlockedSubmit() async throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionEngineTarget = try packageTargetBlock(named: "ExecutionEngine", packageSource: packageSource)
+        let messageBusSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/MessageBus/RuntimeMessageBus.swift"),
+            encoding: .utf8
+        )
+        let sourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/ExecutionEngine/OMSFutureGate/ReleaseV060ExecutionOMSDryRunRunner.swift"
+        )
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.6.0-execution-oms-dry-run-runner-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let runnerScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.6.0-execution-oms-dry-run-runner.sh"),
+            encoding: .utf8
+        )
+
+        let storageRoot = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "MTPRO-GH762-ExecutionOMSDryRunRunner-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: storageRoot)
+        }
+
+        let contract = try ReleaseV060ExecutionOMSDryRunRunnerContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertTrue(contract.productionDefaultsClosed)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-762")
+        XCTAssertEqual(contract.upstreamIssueIDs.map(\.rawValue), ["GH-761"])
+        XCTAssertEqual(contract.previousIssueID.rawValue, "GH-761")
+        XCTAssertEqual(contract.downstreamIssueIDs.map(\.rawValue), ["GH-763", "GH-764", "GH-766"])
+        XCTAssertEqual(contract.supportedLifecycleStates, ReleaseV060ExecutionOMSDryRunRunnerContract.requiredLifecycleStates)
+
+        let dataEngineResult = try await ReleaseV060DataEngineLocalDryRunRunner.deterministicEvidence(
+            storageRootURL: storageRoot
+        )
+        let strategyResult = try await ReleaseV060StrategyRuntimeRunner.deterministicEvidence(
+            dataEngineEnvelopes: dataEngineResult.journal.records.map(\.envelope)
+        )
+        let riskResult = try await ReleaseV060RiskEngineRuntimeRunner.deterministicEvidence(
+            upstreamJournalEnvelopes: strategyResult.journalCompatibleEnvelopes
+        )
+        let result = try await ReleaseV060ExecutionOMSDryRunRunner.deterministicEvidence(
+            sourceRiskResult: riskResult
+        )
+
+        XCTAssertTrue(result.resultHeld)
+        XCTAssertTrue(result.lifecycleStateCoverageHeld)
+        XCTAssertTrue(result.rejectedBlockedNoSubmitHeld)
+        XCTAssertTrue(result.boundaryHeld)
+        XCTAssertEqual(result.issueID.rawValue, "GH-762")
+        XCTAssertEqual(result.runID, riskResult.runID)
+        XCTAssertEqual(result.streamID, riskResult.streamID)
+        XCTAssertEqual(result.correlationID, riskResult.correlationID)
+        XCTAssertEqual(result.sourceRiskResult, riskResult)
+        XCTAssertEqual(result.lifecycleRequests.count, 3)
+        XCTAssertEqual(result.lifecyclePaths.map(\.outcome), ReleaseV050ExecutionOMSDryRunOutcome.allCases)
+        XCTAssertEqual(Set(result.omsStates), Set(contract.supportedLifecycleStates))
+        XCTAssertEqual(result.generatedEnvelopes.map(\.sequence), Array(9...27))
+        XCTAssertEqual(
+            result.journalCompatibleEnvelopes.dropFirst().compactMap(\.causationID),
+            result.journalCompatibleEnvelopes.dropLast().map(\.eventID)
+        )
+        XCTAssertEqual(result.replayedOMSEnvelopes, result.generatedEnvelopes.filter { $0.payloadType == .omsLifecycleEvent })
+        XCTAssertEqual(
+            result.replayedExecutionDryRunEnvelopes,
+            result.generatedEnvelopes.filter { $0.payloadType == .executionClientDryRunEvent }
+        )
+        XCTAssertEqual(result.executionDryRunEnvelopes.count, 4)
+        XCTAssertEqual(result.executionDryRunEvents.map(\.commandKind), [.submit, .submit, .submit, .cancel])
+        XCTAssertEqual(result.executionDryRunEvents.map(\.acceptedByDryRunAdapter), [true, false, true, true])
+        XCTAssertTrue(result.lifecyclePaths.allSatisfy { $0.realSubmitEnabled == false })
+        XCTAssertTrue(result.lifecyclePaths.allSatisfy { $0.realCancelEnabled == false })
+        XCTAssertTrue(result.lifecyclePaths.allSatisfy { $0.realReplaceEnabled == false })
+        XCTAssertEqual(result.suppressedRiskDecisions.count, 3)
+        XCTAssertTrue(result.suppressedRiskDecisions.allSatisfy(\.suppressionHeld))
+        XCTAssertTrue(result.suppressedRiskDecisions.allSatisfy { $0.sourceRiskDecision != .allowed })
+        XCTAssertFalse(result.productionOMSAuthorized)
+        XCTAssertFalse(result.realOrderCommandsAvailable)
+        XCTAssertFalse(result.brokerGatewayConnected)
+        XCTAssertFalse(result.networkCallsPerformed)
+        XCTAssertFalse(result.secretReadsPerformed)
+        XCTAssertFalse(result.productionTradingEnabledByDefault)
+        XCTAssertFalse(result.productionEndpointConnected)
+        XCTAssertFalse(result.productionSecretAutoReadEnabled)
+        XCTAssertFalse(result.productionOrderSubmitted)
+        XCTAssertFalse(result.productionCutoverAuthorized)
+
+        var journal = try ReleaseV050DurableLocalRunJournal(runID: result.runID)
+        for envelope in result.journalCompatibleEnvelopes {
+            try journal.append(envelope: envelope)
+        }
+        XCTAssertTrue(journal.appendOnlyHeld)
+        XCTAssertEqual(
+            try journal.replay(cursor: ReleaseV050RunJournalReplayCursor(runID: result.runID)),
+            result.journalCompatibleEnvelopes
+        )
+        XCTAssertEqual(try journal.projection().payloadTypes.suffix(4), [
+            .executionClientDryRunEvent,
+            .omsLifecycleEvent,
+            .executionClientDryRunEvent,
+            .omsLifecycleEvent
+        ])
+        XCTAssertFalse(try journal.summary().productionOrderSubmissionEnabled)
+        XCTAssertFalse(try journal.summary().productionCutoverAuthorized)
+
+        do {
+            _ = try ReleaseV060ExecutionOMSDryRunLifecycleRequest(
+                riskEmission: try XCTUnwrap(riskResult.emissions.first { $0.decisionEvent.decision == .rejected }),
+                outcome: .simulatedFilled
+            )
+            XCTFail("GH-762 lifecycle must fail without allowed RiskDecisionEvent")
+        } catch {
+            XCTAssertEqual(
+                error as? ReleaseV060ExecutionOMSDryRunRunnerError,
+                .rejectedOrBlockedDecisionCannotCreateLifecycle(.rejected)
+            )
+        }
+        do {
+            _ = try await ReleaseV060ExecutionOMSDryRunRunner().run(
+                sourceRiskResult: riskResult,
+                lifecycleRequests: []
+            )
+            XCTFail("GH-762 runner must reject empty lifecycle requests")
+        } catch {
+            XCTAssertEqual(error as? ReleaseV060ExecutionOMSDryRunRunnerError, .emptyLifecycleRequests)
+        }
+
+        for anchor in ReleaseV060ExecutionOMSDryRunRunnerContract.requiredValidationAnchors {
+            XCTAssertTrue(contract.validationAnchors.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+        }
+
+        XCTAssertTrue(executionEngineTarget.contains("\"OMSFutureGate\""))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: sourcePath.path))
+        XCTAssertTrue(source.contains("ReleaseV060ExecutionOMSDryRunRunner"))
+        XCTAssertTrue(source.contains("RiskDecisionEvent"))
+        XCTAssertTrue(source.contains("OMSLifecycleEvent"))
+        XCTAssertTrue(source.contains("ExecutionClientDryRunEvent"))
+        XCTAssertTrue(source.contains("ReleaseV060RiskEngineRuntimeRunnerResult"))
+        XCTAssertTrue(messageBusSource.contains("acceptedByOMS"))
+        XCTAssertTrue(messageBusSource.contains("simulatedSubmitted"))
+        XCTAssertTrue(messageBusSource.contains("simulatedRejected"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.6.0 ExecutionEngine OMS dry-run runner anchor"))
+        XCTAssertTrue(readinessScript.contains("GH-762-VERIFY-V060-EXECUTION-OMS-DRY-RUN-RUNNER"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.6.0-execution-oms-dry-run-runner.sh"))
+        XCTAssertTrue(
+            runnerScript.contains(
+                "testGH762ExecutionOMSDryRunRunnerConsumesAllowedRiskDecisionAndBlocksRejectedOrBlockedSubmit"
+            )
+        )
+
+        for forbidden in [
+            "URLSession",
+            "URLRequest",
+            "api.binance.com",
+            "fapi.binance.com",
+            "/api/v3/account",
+            "/api/v3/order",
+            "/api/v3/userDataStream",
+            "listenKey",
+            "submitOrder",
+            "cancelOrder",
+            "replaceOrder",
+            "HMAC<"
+        ] {
+            XCTAssertFalse(source.contains(forbidden), "GH-762 source must not contain \(forbidden)")
+        }
+    }
+
     func testGH756LocalRunJournalWriterPersistsArtifactsAndClassifiesIncompleteRuns() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
