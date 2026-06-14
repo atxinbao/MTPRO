@@ -233,6 +233,36 @@ GH-730 必须建立的主要 anchors：
 - 不连接 testnet / production endpoint、broker endpoint、account endpoint、listenKey 或 private WebSocket runtime。
 - 不读取、打印、保存或推导 production secret。
 - 不实现 broker gateway、ExecutionClient live adapter、real submit / cancel / replace、production OMS、Live PRO Console production command、trading button、live command 或 order form。
+
+## GH-731 Release v0.5.0 Durable Local Run Journal Validation
+
+GH-731 的 required validation：
+
+- `Package.swift` 必须让 `Database` target 编译 `ReleaseV050DurableLocalRunJournal.swift`，并从 `Persistence` / `Runtime` compatibility envelope 排除同一文件。
+- `Sources/Database/ReleaseV050DurableLocalRunJournal.swift` 必须定义 `ReleaseV050DurableLocalRunJournal`、`ReleaseV050DurableLocalRunJournalArtifact`、`ReleaseV050RunJournalReplayCursor`、`ReleaseV050RunJournalProjection`、`ReleaseV050RunJournalSummary` 和 `ReleaseV050DurableLocalRunJournalContract`。
+- Local run storage shape 必须固定为 `.local/mtpro/runs/<runID>/events.jsonl`、`projection.json` 和 `summary.json`。
+- `events.jsonl` 必须 append-only：journal sequence、typed envelope sequence、previous journal checksum 和 causation chain 必须连续。
+- Replay cursor 必须能按 runID 重建一条 typed `RuntimeEventEnvelope<ReleaseV050RuntimeEventPayload>` run chain。
+- Journal artifact 只允许表达本地 rehearsal evidence；secret value、production endpoint value、listenKey、signature、HMAC 或 broker payload fragment 必须 fail closed。
+- `docs/contracts/release-v0.5.0-durable-local-run-journal-contract.md` 必须存在，并包含 `V050-06-DURABLE-LOCAL-RUN-JOURNAL`、`V050-06-LOCAL-RUN-STORAGE-SHAPE`、`V050-06-APPEND-ONLY-REPLAY-CURSOR`、`V050-06-TYPED-RUNTIME-ENVELOPE-PRESERVATION`、`V050-06-NO-SECRET-ENDPOINT-LEAKAGE` 和 `TVM-RELEASE-V050-DURABLE-LOCAL-RUN-JOURNAL`。
+- Required validation 为 `swift test --filter TargetGraphTests/testGH731DurableLocalRunJournalPersistsTypedEnvelopeShapeAndReplaysOneRun`、`bash checks/verify-v0.5.0-run-journal.sh`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-731 必须建立的主要 anchors：
+
+- `V050-06-DURABLE-LOCAL-RUN-JOURNAL`
+- `V050-06-LOCAL-RUN-STORAGE-SHAPE`
+- `V050-06-APPEND-ONLY-REPLAY-CURSOR`
+- `V050-06-TYPED-RUNTIME-ENVELOPE-PRESERVATION`
+- `V050-06-NO-SECRET-ENDPOINT-LEAKAGE`
+- `TVM-RELEASE-V050-DURABLE-LOCAL-RUN-JOURNAL`
+- `testGH731DurableLocalRunJournalPersistsTypedEnvelopeShapeAndReplaysOneRun`
+
+## GH-731 禁止
+
+- 不实现 DataEngine operational path、testnet read-only integration、RiskEngine runner、ExecutionEngine / OMS lifecycle、Portfolio projection、Dashboard / CLI observer、CI hardening 或 operator runbook。
+- 不连接 testnet / production endpoint、broker endpoint、account endpoint、listenKey 或 private WebSocket runtime。
+- 不读取、打印、保存或推导 production secret。
+- 不实现 broker gateway、ExecutionClient live adapter、real submit / cancel / replace、production OMS、Live PRO Console production command、trading button、live command 或 order form。
 - 不绕过 RiskEngine、ExecutionEngine、OMS、kill switch / no-trade 或 operator confirmation。
 - 不授权 production trading 或 production cutover。
 - 不创建下一 Project / Issue，不推进 release v0.5.0 之后的阶段。
