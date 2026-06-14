@@ -87,7 +87,8 @@ public struct DataEngineTargetBoundary: Codable, Equatable, Sendable {
         "DomainModel",
         "DataClient",
         "MessageBus",
-        "Cache"
+        "Cache",
+        "Database"
     ]
 
     public static let requiredForbiddenDependencies = [

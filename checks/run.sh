@@ -85,6 +85,7 @@ bash checks/verify-v0.6.0-boundary.sh
 bash checks/verify-v0.6.0-run-journal-writer.sh
 bash checks/verify-v0.6.0-run-manifest-checksum.sh
 bash checks/verify-v0.6.0-runtime-sha256-checksum.sh
+bash checks/verify-v0.6.0-dataengine-local-dry-run-runner.sh
 if [[ "$(uname -s)" == "Darwin" ]]; then
   swift build --product Dashboard
   DASHBOARD_SMOKE=1 swift run Dashboard
