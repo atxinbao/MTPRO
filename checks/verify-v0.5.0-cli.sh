@@ -60,18 +60,20 @@ require_output_contains "$help_output" "commands=help,run,status,verify,rehearsa
 require_output_contains "$help_output" "productionTradingEnabledByDefault=false"
 
 run_output="$(swift run mtpro run)"
-require_output_contains "$run_output" "mtpro run blocked"
-require_output_contains "$run_output" "runtimeStarted=false"
+require_output_contains "$run_output" "mtpro run no-order-runtime-session"
+require_output_contains "$run_output" "runtimeSessionContract=v0.7.0"
 require_output_contains "$run_output" "testnetConnected=false"
 require_output_contains "$run_output" "productionOrderSubmitted=false"
 
 status_output="$(swift run mtpro status)"
-require_output_contains "$status_output" "mtpro status blocked"
-require_output_contains "$status_output" "mtpro unified-run-status blocked"
+require_output_contains "$status_output" "mtpro status no-order-runtime-session"
+require_output_contains "$status_output" "activeTopLevelStatusSurface=v0.7.0"
+reject_output_contains "$status_output" "mtpro unified-run-status blocked"
 require_output_contains "$status_output" "productionCutoverAuthorized=false"
 
 verify_output="$(swift run mtpro verify)"
-require_output_contains "$verify_output" "mtpro verify pass"
+require_output_contains "$verify_output" "mtpro verify v0.7.0"
+require_output_contains "$verify_output" "verify-v0.7.0-cli"
 require_output_contains "$verify_output" "legacyFallbackDisabled=true"
 require_output_contains "$verify_output" "unknownCommandFailure=mtpro.strict.arguments"
 

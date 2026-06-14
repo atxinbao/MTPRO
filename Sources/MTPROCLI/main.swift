@@ -29,12 +29,13 @@ private enum MTPROCLIParserError: Error, CustomStringConvertible, Equatable {
 
 /// MTPROStrictCLI 固定 GH-727 的严格命令路由。
 ///
-/// 新 v0.5.0 shape 只暴露 `help`、`run`、`status`、`verify` 四类入口；历史
+/// 新 v0.7.0 shape 只暴露 `help`、`run`、`status`、`verify` 四类入口；历史
 /// `rehearsal-status`、`unified-run-status`、`run-observer`、`run-detail-observer`、
 /// `testnet-readonly-probe`、`verify-fast`、`verify-release` 仍可被显式调用。
 /// 任何其他命令必须在这里失败，不得 fallback 到旧 release surface。
 private enum MTPROStrictCLI {
-    static let validationAnchor = "TVM-RELEASE-V050-STRICT-CLI-COMMAND-PARSER"
+    static let validationAnchor = "TVM-RELEASE-V070-CLI-RUNTIME-SESSION-SURFACE"
+    static let strictParserAnchor = "TVM-RELEASE-V050-STRICT-CLI-COMMAND-PARSER"
     static let supportedCommands = [
         "help",
         "run",
@@ -59,8 +60,7 @@ private enum MTPROStrictCLI {
             try requireExactCount(arguments, expected: 1, command: command)
             return helpOutput()
         case "run":
-            try requireExactCount(arguments, expected: 1, command: command)
-            return runOutput()
+            return try runOutput(arguments: arguments)
         case "status":
             return try statusOutput(arguments: arguments)
         case "verify":
@@ -95,10 +95,13 @@ private enum MTPROStrictCLI {
         let commandList = supportedCommands.joined(separator: ",")
         return [
             "mtpro help",
-            "issue=GH-727",
+            "issue=GH-781",
             "validationAnchor=\(validationAnchor)",
+            "strictParserAnchor=\(strictParserAnchor)",
             "commands=\(commandList)",
-            "defaultMode=dry-run",
+            "defaultMode=local-dry-run",
+            "runtimeSessionContract=v0.7.0",
+            "runtimeModes=local-dry-run,testnet-read-only-probe,production-blocked",
             "testnetRequiresOperatorConfirmation=true",
             "productionTradingEnabledByDefault=false",
             "productionSecretRead=false",
@@ -109,14 +112,21 @@ private enum MTPROStrictCLI {
         ].joined(separator: "\n")
     }
 
-    private static func runOutput() -> String {
-        [
-            "mtpro run blocked",
-            "issue=GH-727",
+    private static func runOutput(arguments: [String]) throws -> String {
+        let mode = try runMode(arguments: arguments)
+        return [
+            "mtpro run no-order-runtime-session",
+            "issue=GH-781",
             "validationAnchor=\(validationAnchor)",
-            "mode=dry-run",
-            "runtimeStarted=false",
+            "mode=\(mode)",
+            "runtimeSessionContract=v0.7.0",
+            "noOrderRuntimeSession=true",
+            "localNoOrderSessionFlow=gh-783-operational-run-session",
+            "sessionStarted=false",
+            "runRegistryState=awaiting-gh-785-run-registry",
             "testnetConnected=false",
+            "orderSubmissionAllowed=false",
+            "submitCancelReplaceAllowed=false",
             "productionTradingEnabledByDefault=false",
             "productionSecretRead=false",
             "productionEndpointConnected=false",
@@ -127,12 +137,12 @@ private enum MTPROStrictCLI {
     }
 
     private static func statusOutput(arguments: [String]) throws -> String {
-        let upstreamArguments: [String]
+        let runID: String
         switch arguments.count {
         case 1:
-            upstreamArguments = [ReleaseV040UnifiedRunSurface.cliCommand]
+            runID = "latest"
         case 2:
-            upstreamArguments = [ReleaseV040UnifiedRunSurface.cliCommand, arguments[1]]
+            runID = arguments[1]
         default:
             throw MTPROCLIParserError.invalidArguments(
                 field: "mtpro.status.arguments",
@@ -141,24 +151,21 @@ private enum MTPROStrictCLI {
             )
         }
 
-        let upstream = try ReleaseV040UnifiedRunSurface.commandLineOutput(arguments: upstreamArguments)
         return [
-            "mtpro status blocked",
-            "issue=GH-727",
-            "upstream=GH-705",
+            "mtpro status no-order-runtime-session",
+            "issue=GH-781",
             "validationAnchor=\(validationAnchor)",
-            upstream
-        ].joined(separator: "\n")
-    }
-
-    private static func verifyOutput() -> String {
-        [
-            "mtpro verify pass",
-            "issue=GH-727",
-            "validationAnchor=\(validationAnchor)",
-            "checks=verify-v0.5.0-preflight,verify-v0.5.0-cli,verify-v0.4.0,automation-readiness",
-            "unknownCommandFailure=mtpro.strict.arguments",
-            "legacyFallbackDisabled=true",
+            "runID=\(runID)",
+            "runtimeSessionContract=v0.7.0",
+            "activeTopLevelStatusSurface=v0.7.0",
+            "noOrderRuntimeSession=true",
+            "legacyV040StatusSurface=false",
+            "legacyV050ObserverSurface=false",
+            "sessionRegistrySource=gh-785-run-registry",
+            "sessionState=not-started",
+            "readOnlyProbeState=not-connected",
+            "orderSubmissionAllowed=false",
+            "submitCancelReplaceAllowed=false",
             "productionTradingEnabledByDefault=false",
             "productionSecretRead=false",
             "productionEndpointConnected=false",
@@ -166,6 +173,51 @@ private enum MTPROStrictCLI {
             "productionCutoverAuthorized=false",
             "boundaryHeld=true"
         ].joined(separator: "\n")
+    }
+
+    private static func verifyOutput() -> String {
+        [
+            "mtpro verify v0.7.0",
+            "issue=GH-781",
+            "validationAnchor=\(validationAnchor)",
+            "checks=verify-v0.7.0-contract,verify-v0.7.0-testnet-endpoint-policy,verify-v0.7.0-cli,automation-readiness,checks-run",
+            "unknownCommandFailure=mtpro.strict.arguments",
+            "legacyFallbackDisabled=true",
+            "legacyV040ActiveTopLevelSurface=false",
+            "legacyV050ActiveTopLevelSurface=false",
+            "noOrderRuntimeSession=true",
+            "orderSubmissionAllowed=false",
+            "submitCancelReplaceAllowed=false",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "productionCutoverAuthorized=false",
+            "boundaryHeld=true"
+        ].joined(separator: "\n")
+    }
+
+    private static func runMode(arguments: [String]) throws -> String {
+        switch arguments {
+        case ["run"]:
+            return "local-dry-run"
+        case ["run", "--mode", "dry-run"], ["run", "--mode", "local-dry-run"]:
+            return "local-dry-run"
+        case ["run", "--mode", "testnet-read-only-probe"]:
+            return "testnet-read-only-probe"
+        case ["run", "--mode", "production"], ["run", "--production"]:
+            throw MTPROCLIParserError.invalidArguments(
+                field: "mtpro.run.production",
+                expected: "production-blocked",
+                actual: arguments.joined(separator: " ")
+            )
+        default:
+            throw MTPROCLIParserError.invalidArguments(
+                field: "mtpro.run.arguments",
+                expected: "run [--mode dry-run|testnet-read-only-probe]",
+                actual: arguments.joined(separator: " ")
+            )
+        }
     }
 
     private static func requireExactCount(_ arguments: [String], expected: Int, command: String) throws {

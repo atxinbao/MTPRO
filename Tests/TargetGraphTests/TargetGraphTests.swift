@@ -20586,6 +20586,74 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH781TopLevelCLIRunStatusVerifyUseV070RuntimeSessionSemantics() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let cliSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/MTPROCLI/main.swift"),
+            encoding: .utf8
+        )
+        let cliVerificationScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.7.0-cli.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+
+        for anchor in [
+            "GH-781-VERIFY-V070-CLI-RUNTIME-SESSION-SURFACE",
+            "TVM-RELEASE-V070-CLI-RUNTIME-SESSION-SURFACE",
+            "GH-781 Release v0.7.0 CLI Runtime Session Surface Validation",
+            "Release v0.7.0 CLI runtime session surface anchor"
+        ] {
+            XCTAssertTrue(
+                [cliVerificationScript, validationPlan, tradingMatrix, automationReadiness, readinessScript].contains {
+                    $0.contains(anchor)
+                },
+                "\(anchor) must be anchored by the GH-781 verification chain"
+            )
+        }
+
+        XCTAssertTrue(cliSource.contains("TVM-RELEASE-V070-CLI-RUNTIME-SESSION-SURFACE"))
+        XCTAssertTrue(cliSource.contains("strictParserAnchor"))
+        XCTAssertTrue(cliSource.contains("mtpro run no-order-runtime-session"))
+        XCTAssertTrue(cliSource.contains("mtpro status no-order-runtime-session"))
+        XCTAssertTrue(cliSource.contains("mtpro verify v0.7.0"))
+        XCTAssertTrue(cliSource.contains("runMode(arguments: arguments)"))
+        XCTAssertTrue(cliSource.contains("activeTopLevelStatusSurface=v0.7.0"))
+        XCTAssertTrue(cliSource.contains("legacyV040StatusSurface=false"))
+        XCTAssertTrue(cliSource.contains("legacyV050ObserverSurface=false"))
+        XCTAssertTrue(cliSource.contains("orderSubmissionAllowed=false"))
+        XCTAssertTrue(cliSource.contains("submitCancelReplaceAllowed=false"))
+        XCTAssertTrue(cliSource.contains("mtpro.run.production"))
+        XCTAssertFalse(cliSource.contains("mtpro status blocked"))
+        XCTAssertFalse(cliSource.contains("upstream=GH-705"))
+
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.7.0-cli.sh"))
+        XCTAssertTrue(cliVerificationScript.contains("swift run mtpro run --mode dry-run"))
+        XCTAssertTrue(cliVerificationScript.contains("swift run mtpro status gh-781-local-session"))
+        XCTAssertTrue(cliVerificationScript.contains("swift run mtpro verify"))
+        XCTAssertTrue(cliVerificationScript.contains("swift run mtpro run --mode production"))
+        XCTAssertTrue(cliVerificationScript.contains("reject_output_contains \"$status_output\" \"mtpro unified-run-status blocked\""))
+    }
+
     func testGH526BinancePrivateStreamAccountSnapshotRuntimeMapsEventsWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
