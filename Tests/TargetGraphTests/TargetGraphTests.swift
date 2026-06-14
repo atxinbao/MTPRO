@@ -7883,6 +7883,96 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH779ReleaseV070NoOrderRuntimeSessionContractDefinesAllowedModesAndForbiddenCapabilities() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let contract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.7.0-no-order-runtime-session-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let verifyScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.7.0-contract.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+
+        for anchor in [
+            "V070-001-NO-ORDER-RUNTIME-SESSION-CONTRACT",
+            "V070-001-ALLOWED-MODES",
+            "V070-001-CANONICAL-MODULE-SEQUENCE",
+            "V070-001-EVIDENCE-ENVELOPE",
+            "V070-001-DOWNSTREAM-QUEUE-ORDER",
+            "V070-001-FORBIDDEN-CAPABILITIES",
+            "TVM-RELEASE-V070-NO-ORDER-RUNTIME-SESSION-CONTRACT",
+            "GH-779-VERIFY-V070-NO-ORDER-RUNTIME-SESSION-CONTRACT"
+        ] {
+            XCTAssertTrue(
+                contract.contains(anchor)
+                    || verifyScript.contains(anchor)
+                    || validationPlan.contains(anchor)
+                    || tradingMatrix.contains(anchor)
+                    || automationReadiness.contains(anchor),
+                "\(anchor) must stay wired into v0.7.0 contract evidence"
+            )
+        }
+
+        for allowedMode in [
+            "local-dry-run",
+            "testnet-read-only-probe",
+            "recovery-observe",
+            "production-blocked"
+        ] {
+            XCTAssertTrue(contract.contains(allowedMode), "\(allowedMode) must stay allowed by the contract")
+        }
+
+        for releaseBoundary in [
+            "venue=Binance",
+            "productTypes=spot,usdsPerpetual",
+            "strategies=EMA,RSI",
+            "noOrder=true",
+            "GH-779..GH-792",
+            "GH-780",
+            "GH-792"
+        ] {
+            XCTAssertTrue(contract.contains(releaseBoundary), "\(releaseBoundary) must stay fixed in contract")
+        }
+
+        for forbiddenAuthorization in [
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true",
+            "productionCutoverAuthorized=true",
+            "testnetOrderSubmissionAllowed=true",
+            "api.binance.com",
+            "fapi.binance.com"
+        ] {
+            XCTAssertFalse(contract.contains(forbiddenAuthorization), "v0.7.0 contract must not authorize \(forbiddenAuthorization)")
+        }
+
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.7.0-contract.sh"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.7.0 no-order runtime session contract anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-779 Release v0.7.0 No-order Runtime Session Contract Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V070-NO-ORDER-RUNTIME-SESSION-CONTRACT"))
+    }
+
     func testGH726ReleaseV050BoundaryPreflightContractDefinesGuardedRuntimeFoundation() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
