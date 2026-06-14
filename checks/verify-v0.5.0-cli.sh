@@ -56,7 +56,7 @@ swift test --filter TargetGraphTests/testGH727StrictCLICommandParserRejectsUnkno
 
 help_output="$(swift run mtpro help)"
 require_output_contains "$help_output" "mtpro help"
-require_output_contains "$help_output" "commands=help,run,status,verify,rehearsal-status,unified-run-status,verify-fast,verify-release"
+require_output_contains "$help_output" "commands=help,run,status,verify,rehearsal-status,unified-run-status,run-observer,verify-fast,verify-release"
 require_output_contains "$help_output" "productionTradingEnabledByDefault=false"
 
 run_output="$(swift run mtpro run)"
@@ -77,6 +77,11 @@ require_output_contains "$verify_output" "unknownCommandFailure=mtpro.strict.arg
 
 legacy_v040_output="$(swift run mtpro unified-run-status)"
 require_output_contains "$legacy_v040_output" "mtpro unified-run-status blocked"
+
+observer_output="$(swift run mtpro run-observer status)"
+require_output_contains "$observer_output" "mtpro run-observer status blocked"
+require_output_contains "$observer_output" "issue=GH-737"
+require_output_contains "$observer_output" "commandSurfaceEnabled=false"
 
 legacy_v030_output="$(swift run mtpro rehearsal-status)"
 require_output_contains "$legacy_v030_output" "mtpro rehearsal-status blocked"

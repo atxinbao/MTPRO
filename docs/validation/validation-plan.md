@@ -433,6 +433,40 @@ GH-736 必须建立的主要 anchors：
 - 不启动 Linear、Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-737 Release v0.5.0 Dashboard CLI Run Observer Validation
+
+GH-737 的 required validation：
+
+- `Sources/Portfolio/ReleaseV050RunObserverSurface.swift` 必须定义 `ReleaseV050RunObserverSurface`、`ReleaseV050RunObserverSurfaceEvidence`、`ReleaseV050RunObserverSectionRecord`、`ReleaseV050RunObserverCommand` 和 `ReleaseV050RunObserverSection`。
+- `Sources/Dashboard/Report/ReleaseV050DashboardRunObserverSurface.swift` 必须定义 `ReleaseV050DashboardRunObserverSurfaceViewModel`，并且只消费 `ReleaseV050RunObserverSurfaceEvidence`。
+- `Sources/MTPROCLI/main.swift` 必须显式路由 `run-observer`，支持 `list`、`status`、`events`、`projection` 和 `risk` observer subcommands。
+- Observer 必须只从 GH-731 durable run journal、GH-735 OMS dry-run evidence 和 GH-736 Portfolio projection 派生，不使用 v0.5.0 default demo snapshot。
+- Dashboard sections 必须覆盖 Run Overview、Data Freshness、Strategy Intents、Risk Decisions、OMS Timeline、Execution Dry-run Evidence、Portfolio Projection、Blocked / Rejected Reasons 和 Environment / Endpoint / Secret Boundary。
+- Evidence 必须证明 Dashboard / CLI 按 runID 读取 status/events/projection/risk，展示 blocked/rejected reasons 和 boundary evidence。
+- Evidence 必须证明 broker/execution write、trading button、order form、live command surface、production command surface、production endpoint、production secret、production order 和 production cutover 全部保持关闭。
+- `docs/contracts/release-v0.5.0-run-observer-surface-contract.md` 必须存在，并包含 `V050-12-DASHBOARD-CLI-RUN-OBSERVER`、`V050-12-RUNID-STATUS-EVENTS-PROJECTION-RISK`、`V050-12-DASHBOARD-SECTIONS-CONSUME-RUN-JOURNAL`、`V050-12-BLOCKED-REJECTED-BOUNDARY-EVIDENCE`、`V050-12-NO-PRODUCTION-COMMAND-SURFACE` 和 `TVM-RELEASE-V050-DASHBOARD-CLI-RUN-OBSERVER`。
+- Required validation 为 `swift test --filter TargetGraphTests/testGH737DashboardCLIRunObserverReadsJournalProjectionAndBoundaryByRunID`、`bash checks/verify-v0.5.0-observer.sh`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、broker、testnet network 或人工验收。
+
+GH-737 必须建立的主要 anchors：
+
+- `V050-12-DASHBOARD-CLI-RUN-OBSERVER`
+- `V050-12-RUNID-STATUS-EVENTS-PROJECTION-RISK`
+- `V050-12-DASHBOARD-SECTIONS-CONSUME-RUN-JOURNAL`
+- `V050-12-BLOCKED-REJECTED-BOUNDARY-EVIDENCE`
+- `V050-12-NO-PRODUCTION-COMMAND-SURFACE`
+- `TVM-RELEASE-V050-DASHBOARD-CLI-RUN-OBSERVER`
+- `testGH737DashboardCLIRunObserverReadsJournalProjectionAndBoundaryByRunID`
+
+## GH-737 禁止
+
+- 不把 Dashboard / CLI observer 升级为 command surface。
+- 不暴露 trading button、order form、live command、production command、submit、cancel 或 replace 入口。
+- 不写 broker / ExecutionClient / OMS runtime，不连接 endpoint，不读取 secret。
+- 不使用 production account payload，不提交真实订单，不授权 production cutover。
+- 不创建下一 Project / Issue，不推进 release v0.5.0 之后的阶段。
+- 不启动 Linear、Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-669 Release v0.3.0 Operator Rehearsal Runbook
 
 GH-669 的 required validation：
