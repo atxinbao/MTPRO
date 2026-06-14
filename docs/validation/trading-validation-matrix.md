@@ -1328,3 +1328,11 @@
 - `dashboard-macos` required job guard: run `checks/verify-v0.7.0-dashboard-macos-guards.sh` before Dashboard build / smoke
 - focused guard coverage: run-detail observer、testnet read-only probe、testnet endpoint policy、CLI runtime-session surface
 - forbidden macOS guard scope: no UI trading command、no production endpoint / broker connection、no production secret read、no real order、no production cutover
+- TVM-RELEASE-V070-OPERATIONAL-RUN-SESSION
+- GH-783-VERIFY-V070-OPERATIONAL-RUN-SESSION
+- GH-783 Release v0.7.0 Operational Run Session Validation
+- testGH783OperationalRunSessionLifecycleIsDeterministicNoOrderAndRejectsInvalidTransitions
+- session states: created、starting、running、stopping、stopped、failed、completed、recovered
+- command/event model: start、stop、complete、fail、recover
+- evidence envelope: runID-bound, local-dry-run, no-order, production/testnet order flags false
+- invalid ordering: reject complete before start, stop before running, recover before failed, production/order authorization drift

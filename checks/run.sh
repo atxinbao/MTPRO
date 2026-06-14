@@ -96,6 +96,7 @@ bash checks/verify-v0.6.0.sh
 bash checks/verify-v0.7.0-contract.sh
 bash checks/verify-v0.7.0-testnet-endpoint-policy.sh
 bash checks/verify-v0.7.0-cli.sh
+bash checks/verify-v0.7.0-operational-run-session.sh
 if [[ "$(uname -s)" == "Darwin" ]]; then
   swift build --product Dashboard
   DASHBOARD_SMOKE=1 swift run Dashboard

@@ -20719,6 +20719,145 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(macOSGuardScript.contains("swift run mtpro replace"))
     }
 
+    func testGH783OperationalRunSessionLifecycleIsDeterministicNoOrderAndRejectsInvalidTransitions() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let executionClientTarget = try packageTargetBlock(named: "ExecutionClient", packageSource: packageSource)
+        let source = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/ExecutionClient/FutureGate/ReleaseV070OperationalRunSession.swift"
+            ),
+            encoding: .utf8
+        )
+        let verificationScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.7.0-operational-run-session.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+
+        let completed = try ReleaseV070OperationalRunSession.deterministicCompletedFixture()
+        XCTAssertTrue(completed.lifecycleHeld)
+        XCTAssertTrue(completed.productionDefaultsClosed)
+        XCTAssertEqual(completed.issueID.rawValue, "GH-783")
+        XCTAssertEqual(completed.upstreamIssueIDs.map(\.rawValue), ["GH-779", "GH-781"])
+        XCTAssertEqual(completed.releaseVersion, "v0.7.0")
+        XCTAssertEqual(completed.state, .completed)
+        XCTAssertEqual(completed.events.map(\.command), [.start, .start, .complete])
+        XCTAssertEqual(completed.events.map(\.fromState), [.created, .starting, .running])
+        XCTAssertEqual(completed.events.map(\.toState), [.starting, .running, .completed])
+        XCTAssertEqual(completed.events.map(\.sequence), [1, 2, 3])
+        XCTAssertEqual(completed.events.map(\.runID), Array(repeating: completed.runID, count: 3))
+        XCTAssertEqual(completed.evidenceEnvelope.runID, completed.runID)
+        XCTAssertEqual(completed.evidenceEnvelope.sessionState, .completed)
+        XCTAssertEqual(completed.evidenceEnvelope.eventCount, 3)
+        XCTAssertEqual(completed.evidenceEnvelope.lastCommand, .complete)
+        XCTAssertEqual(completed.evidenceEnvelope.sessionMode, "local-dry-run")
+        XCTAssertEqual(completed.evidenceEnvelope.venue, "Binance")
+        XCTAssertEqual(completed.evidenceEnvelope.productTypes, ["spot", "usdsPerpetual"])
+        XCTAssertEqual(completed.evidenceEnvelope.strategies, ["EMA", "RSI"])
+        XCTAssertTrue(completed.evidenceEnvelope.noOrder)
+        XCTAssertFalse(completed.evidenceEnvelope.productionTradingEnabledByDefault)
+        XCTAssertFalse(completed.evidenceEnvelope.productionSecretRead)
+        XCTAssertFalse(completed.evidenceEnvelope.productionEndpointConnected)
+        XCTAssertFalse(completed.evidenceEnvelope.productionBrokerConnected)
+        XCTAssertFalse(completed.evidenceEnvelope.productionOrderSubmitted)
+        XCTAssertFalse(completed.evidenceEnvelope.productionCutoverAuthorized)
+        XCTAssertFalse(completed.evidenceEnvelope.testnetOrderSubmissionAllowed)
+
+        let recovered = try ReleaseV070OperationalRunSession.deterministicRecoveredFixture()
+        XCTAssertTrue(recovered.lifecycleHeld)
+        XCTAssertEqual(recovered.state, .recovered)
+        XCTAssertEqual(recovered.events.map(\.command), [.start, .fail, .recover])
+        XCTAssertEqual(recovered.events.map(\.toState), [.starting, .failed, .recovered])
+        XCTAssertEqual(recovered.events[1].reason, "operator-observed-local-start-failure")
+
+        XCTAssertThrowsError(
+            try ReleaseV070OperationalRunSession.created(runID: Identifier.constant("gh-783-invalid")).applying(.complete)
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV070OperationalRunSessionError,
+                .invalidTransition(command: .complete, from: .created)
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV070OperationalRunSession.created(runID: Identifier.constant("gh-783-invalid")).applying(.stop)
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV070OperationalRunSessionError,
+                .invalidTransition(command: .stop, from: .created)
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV070OperationalRunSession.created(runID: Identifier.constant("gh-783-invalid")).applying(.recover)
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV070OperationalRunSessionError,
+                .invalidTransition(command: .recover, from: .created)
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV070OperationalRunSessionEvidenceEnvelope(
+                runID: Identifier.constant("gh-783-boundary-drift"),
+                sessionState: .created,
+                eventCount: 0,
+                productionEndpointConnected: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV070OperationalRunSessionError,
+                .boundaryDrift("evidenceEnvelope")
+            )
+        }
+
+        for anchor in [
+            "GH-783-VERIFY-V070-OPERATIONAL-RUN-SESSION",
+            "TVM-RELEASE-V070-OPERATIONAL-RUN-SESSION",
+            "GH-783 Release v0.7.0 Operational Run Session Validation",
+            "Release v0.7.0 operational run session lifecycle anchor"
+        ] {
+            XCTAssertTrue(
+                [verificationScript, validationPlan, tradingMatrix, automationReadiness, readinessScript].contains {
+                    $0.contains(anchor)
+                },
+                "\(anchor) must be anchored by the GH-783 verification chain"
+            )
+        }
+
+        XCTAssertTrue(executionClientTarget.contains("\"FutureGate\""))
+        XCTAssertTrue(source.contains("ReleaseV070OperationalRunSession"))
+        XCTAssertTrue(source.contains("ReleaseV070OperationalRunSessionState"))
+        XCTAssertTrue(source.contains("ReleaseV070OperationalRunSessionCommand"))
+        XCTAssertTrue(source.contains("ReleaseV070OperationalRunSessionEvidenceEnvelope"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.7.0-operational-run-session.sh"))
+        XCTAssertFalse(source.contains("URLSession"))
+        XCTAssertFalse(source.contains("URLRequest"))
+        XCTAssertFalse(source.contains("submitOrder"))
+        XCTAssertFalse(source.contains("cancelOrder"))
+        XCTAssertFalse(source.contains("replaceOrder"))
+    }
+
     func testGH526BinancePrivateStreamAccountSnapshotRuntimeMapsEventsWithoutCommandSurface() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
