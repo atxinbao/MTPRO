@@ -334,6 +334,39 @@ GH-733 必须建立的主要 anchors：
 - 不启动 Linear、Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-734 Release v0.5.0 RiskEngine Runtime Runner Validation
+
+GH-734 的 required validation：
+
+- `Sources/RiskEngine/LiveGate/ReleaseV050RiskEngineRuntimeRunner.swift` 必须定义 `ReleaseV050RiskEngineRuntimeRunner`、`ReleaseV050RiskEngineRuntimeRunnerEvidence`、`ReleaseV050RiskEngineRuntimePolicy`、`ReleaseV050RiskEngineRuntimeDecisionEmission` 和 `ReleaseV050RiskEngineRuntimeRunnerContract`。
+- Runner 必须消费 GH-730 的 typed `StrategyIntentEvent` envelope，不 import Trader / TraderStrategies implementation，不绕过 RiskEngine。
+- Runner 必须发出 typed `RiskDecisionEvent` envelope，并保留 runID、streamID、correlationID、causationID 和 checksum。
+- Evidence 必须覆盖 allow、notional reject、kill-switch blocked 和 no-trade blocked。
+- Evidence 必须证明 risk decision envelopes 可由 GH-731 local run journal replay chain 消费；不得新增 `RiskEngine -> Database` target dependency。
+- `docs/contracts/release-v0.5.0-riskengine-runtime-runner-contract.md` 必须存在，并包含 `V050-09-RISKENGINE-RUNTIME-RUNNER`、`V050-09-STRATEGY-INTENT-TO-RISK-DECISION`、`V050-09-NOTIONAL-EXPOSURE-POLICY-EVIDENCE`、`V050-09-KILL-SWITCH-NO-TRADE-BLOCKS`、`V050-09-RUN-JOURNAL-REPLAYABLE-RISK-DECISIONS` 和 `TVM-RELEASE-V050-RISKENGINE-RUNTIME-RUNNER`。
+- Required validation 为 `swift test --filter TargetGraphTests/testGH734RiskEngineRuntimeRunnerConsumesStrategyIntentAndEmitsReplayableDecisions`、`bash checks/verify-v0.5.0-riskengine.sh`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-734 必须建立的主要 anchors：
+
+- `V050-09-RISKENGINE-RUNTIME-RUNNER`
+- `V050-09-STRATEGY-INTENT-TO-RISK-DECISION`
+- `V050-09-NOTIONAL-EXPOSURE-POLICY-EVIDENCE`
+- `V050-09-KILL-SWITCH-NO-TRADE-BLOCKS`
+- `V050-09-RUN-JOURNAL-REPLAYABLE-RISK-DECISIONS`
+- `TVM-RELEASE-V050-RISKENGINE-RUNTIME-RUNNER`
+- `testGH734RiskEngineRuntimeRunnerConsumesStrategyIntentAndEmitsReplayableDecisions`
+
+## GH-734 禁止
+
+- 不把 RiskEngine decision evidence 扩大为 ExecutionEngine / OMS order lifecycle、ExecutionClient live adapter、broker gateway、Dashboard command surface、trading button、live command 或 order form。
+- 不新增 `RiskEngine -> Database / ExecutionEngine / ExecutionClient` 依赖，不调用 broker，不路由 executable order command。
+- 不读取、打印、保存或推导 production secret。
+- 不连接 production endpoint、broker endpoint、account endpoint、listenKey 或 private WebSocket runtime。
+- 不实现 real submit / cancel / replace，不授权 production trading 或 production cutover。
+- 不创建下一 Project / Issue，不推进 release v0.5.0 之后的阶段。
+- 不启动 Linear、Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-669 Release v0.3.0 Operator Rehearsal Runbook
 
 GH-669 的 required validation：
