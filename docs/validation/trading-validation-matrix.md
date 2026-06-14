@@ -1304,3 +1304,11 @@
 - V070-001-EVIDENCE-ENVELOPE
 - V070-001-DOWNSTREAM-QUEUE-ORDER
 - V070-001-FORBIDDEN-CAPABILITIES
+- TVM-RELEASE-V070-TESTNET-ENDPOINT-POLICY
+- GH-780-VERIFY-V070-TESTNET-ENDPOINT-POLICY
+- GH-780 Release v0.7.0 Testnet Endpoint Policy Validation
+- testGH780BinanceSignedAccountReadConfigurationRejectsNonCanonicalTestnetBaseURLs
+- testGH780BinanceSignedAccountReadTransportRejectsURLPathDrift
+- canonical Binance Spot testnet base URL: `https://testnet.binance.vision`
+- rejected endpoint shapes: http scheme、production hosts、userinfo、path、query、fragment、explicit port
+- signed account read transport path drift guard: URL path must stay `/api/v3/account`

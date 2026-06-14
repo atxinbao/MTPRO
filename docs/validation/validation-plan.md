@@ -3261,6 +3261,18 @@ swift test
 - V070-001-EVIDENCE-ENVELOPE
 - V070-001-DOWNSTREAM-QUEUE-ORDER
 - V070-001-FORBIDDEN-CAPABILITIES
+
+## GH-780 Release v0.7.0 Testnet Endpoint Policy Validation
+
+- GH-780-VERIFY-V070-TESTNET-ENDPOINT-POLICY
+- TVM-RELEASE-V070-TESTNET-ENDPOINT-POLICY
+- `bash checks/verify-v0.7.0-testnet-endpoint-policy.sh`
+- `testGH780BinanceSignedAccountReadConfigurationRejectsNonCanonicalTestnetBaseURLs`
+- `testGH780BinanceSignedAccountReadTransportRejectsURLPathDrift`
+- Binance Spot signed account read-only runtime 只接受 canonical `https://testnet.binance.vision` base URL。
+- 必须拒绝 `http://testnet.binance.vision`、production hosts、userinfo、path、query、fragment 和显式端口。
+- signed account read transport URL path 必须与 declared `/api/v3/account` read-only path 一致，不能漂移到 order、listenKey、production 或 broker path。
+- 验证不读取 production secret，不连接 production endpoint，不发送 submit / cancel / replace，不授权 production cutover。
 - GH-766 Release v0.6.0 Final Audit Root Docs Validation
 - GH-766-RELEASE-V060-FINAL-AUDIT-ROOT-DOCS
 - GH-766-VERIFY-V060-FINAL-AUDIT-ROOT-DOCS
