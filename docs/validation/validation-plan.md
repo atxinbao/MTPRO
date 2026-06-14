@@ -3306,6 +3306,18 @@ swift test
 - command / event model 必须固定为 start / stop / complete / fail / recover，并拒绝 invalid ordering。
 - 每个 session event 必须携带同一 runID，并绑定 v0.7.0 no-order evidence envelope。
 - 验证不创建真实 runtime 进程，不连接 production endpoint / broker，不读取 production secret，不发送真实 order，不授权 production cutover。
+
+## GH-784 Release v0.7.0 Event Log Writer Recovery Validation
+
+- GH-784-VERIFY-V070-EVENT-LOG-WRITER-RECOVERY
+- TVM-RELEASE-V070-EVENT-LOG-WRITER-RECOVERY
+- `bash checks/verify-v0.7.0-event-log-writer-recovery.sh`
+- `testGH784RuntimeEventLogWriterAppendsValidatesAndRecoversPartialLines`
+- runtime `events.jsonl` append 必须支持 batch semantics，并在 batch 后执行 local fsync / `synchronizeFile()`。
+- 每条 runtime event line 必须同时携带 payload event checksum 和 line checksum，并验证 previous line checksum chain。
+- duplicate eventID 必须在已有 log 和同批 input 中都 fail-closed。
+- partial line 必须在下一次 append 前 deterministic truncate 到最后一个完整 newline；完整但 corrupt 的 line 必须验证失败。
+- 验证只覆盖 local append-only evidence，不实现 distributed log、broker event ingestion、production persistence cutover，不连接 production endpoint / broker，不读取 production secret，不发送真实 order，不授权 production cutover。
 - GH-766 Release v0.6.0 Final Audit Root Docs Validation
 - GH-766-RELEASE-V060-FINAL-AUDIT-ROOT-DOCS
 - GH-766-VERIFY-V060-FINAL-AUDIT-ROOT-DOCS

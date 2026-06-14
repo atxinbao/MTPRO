@@ -1336,3 +1336,12 @@
 - command/event model: start、stop、complete、fail、recover
 - evidence envelope: runID-bound, local-dry-run, no-order, production/testnet order flags false
 - invalid ordering: reject complete before start, stop before running, recover before failed, production/order authorization drift
+- TVM-RELEASE-V070-EVENT-LOG-WRITER-RECOVERY
+- GH-784-VERIFY-V070-EVENT-LOG-WRITER-RECOVERY
+- GH-784 Release v0.7.0 Event Log Writer Recovery Validation
+- testGH784RuntimeEventLogWriterAppendsValidatesAndRecoversPartialLines
+- runtime append batch: local `events.jsonl` batch append with local `.events.jsonl.lock`
+- checksum evidence: payload event checksum, line checksum, previous line checksum chain
+- recovery evidence: deterministic partial-line truncation before append, corrupt complete line validation failure
+- duplicate evidence: duplicate eventID rejected from existing journal and same append batch
+- forbidden scope: no distributed log service, no broker event ingestion, no production persistence cutover, no production endpoint / broker connection, no production secret read, no real order, no production cutover
