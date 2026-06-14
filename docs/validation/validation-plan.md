@@ -269,6 +269,39 @@ GH-731 必须建立的主要 anchors：
 - 不启动 Linear、Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
 - 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
 
+## GH-732 Release v0.5.0 DataEngine Operational Dry-run Path Validation
+
+GH-732 的 required validation：
+
+- `Package.swift` 必须让 `DataEngine` target 编译 `ReleaseV050DataEngineOperationalDryRunPath.swift`，并从 `Core` / `Runtime` compatibility envelope 排除同一文件。
+- `Sources/DataEngine/ReleaseV050DataEngineOperationalDryRunPath.swift` 必须定义 `ReleaseV050DataEngineOperationalDryRunPath`、`ReleaseV050DataEngineOperationalDryRunEvidence`、`ReleaseV050DataEngineOperationalDryRunEmission` 和 `ReleaseV050DataEngineOperationalDryRunMarketInput`。
+- DataEngine dry-run path 必须从 Binance public DataClient path 接收 Spot + USDⓈ-M Perpetual public market data，发布 typed `DataEngineMarketEvent` 到 `RuntimeMessageBus`，并把同一事件投影到 product-aware Cache。
+- 所有 emitted envelopes 必须带 runID、streamID、correlationID、causationID、sourceModule、payloadType、checksum、instrument identity 和 product identity。
+- Cache projection 必须能通过 `ProductAwareCacheReplayFact.marketEvent` replay 重建，且 replayed cache snapshot 与 live projection 相同。
+- `docs/contracts/release-v0.5.0-dataengine-operational-dry-run-path-contract.md` 必须存在，并包含 `V050-07-DATAENGINE-OPERATIONAL-DRY-RUN-PATH`、`V050-07-PUBLIC-MARKET-INPUT-DATACLIENT-DATAENGINE`、`V050-07-TYPED-DATAENGINE-MARKET-EVENTS`、`V050-07-RUN-SCOPED-MESSAGEBUS-CACHE-PROJECTION` 和 `TVM-RELEASE-V050-DATAENGINE-OPERATIONAL-DRY-RUN-PATH`。
+- Required validation 为 `swift test --filter TargetGraphTests/testGH732DataEngineOperationalDryRunPathPublishesTypedMarketEventsIntoMessageBusAndCache`、`bash checks/verify-v0.5.0-dataengine.sh`、`git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/run.sh`；不依赖真实 secret、production endpoint、真实 broker、production credential、真实 testnet network 或人工验收。
+
+GH-732 必须建立的主要 anchors：
+
+- `V050-07-DATAENGINE-OPERATIONAL-DRY-RUN-PATH`
+- `V050-07-PUBLIC-MARKET-INPUT-DATACLIENT-DATAENGINE`
+- `V050-07-TYPED-DATAENGINE-MARKET-EVENTS`
+- `V050-07-RUN-SCOPED-MESSAGEBUS-CACHE-PROJECTION`
+- `TVM-RELEASE-V050-DATAENGINE-OPERATIONAL-DRY-RUN-PATH`
+- `testGH732DataEngineOperationalDryRunPathPublishesTypedMarketEventsIntoMessageBusAndCache`
+
+## GH-732 禁止
+
+- 不实现 testnet read-only integration、RiskEngine runner、ExecutionEngine / OMS lifecycle、Portfolio projection、Dashboard / CLI observer、CI hardening 或 operator runbook。
+- 不连接 testnet / production endpoint、broker endpoint、account endpoint、listenKey 或 private WebSocket runtime。
+- 不读取、打印、保存或推导 production secret。
+- 不实现 broker gateway、ExecutionClient live adapter、real submit / cancel / replace、production OMS、Live PRO Console production command、trading button、live command 或 order form。
+- 不绕过 RiskEngine、ExecutionEngine、OMS、kill switch / no-trade 或 operator confirmation。
+- 不授权 production trading 或 production cutover。
+- 不创建下一 Project / Issue，不推进 release v0.5.0 之后的阶段。
+- 不启动 Linear、Symphony / symphony-issue，不运行 Graphify / code-index，不修改 Figma。
+- 不提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
 ## GH-669 Release v0.3.0 Operator Rehearsal Runbook
 
 GH-669 的 required validation：
