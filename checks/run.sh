@@ -76,6 +76,7 @@ bash checks/verify-v0.5.0-messagebus.sh
 bash checks/verify-v0.5.0-run-journal.sh
 bash checks/verify-v0.5.0-dataengine.sh
 bash checks/verify-v0.5.0-testnet-readonly.sh
+bash checks/verify-v0.5.0-riskengine.sh
 if [[ "$(uname -s)" == "Darwin" ]]; then
   swift build --product Dashboard
   DASHBOARD_SMOKE=1 swift run Dashboard
