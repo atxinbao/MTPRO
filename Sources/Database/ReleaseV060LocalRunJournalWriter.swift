@@ -1,3 +1,4 @@
+import Crypto
 import DomainModel
 import Foundation
 
@@ -10,6 +11,9 @@ public enum ReleaseV060LocalRunJournalWriterError: Error, Equatable, Sendable, C
     case completedRunRewriteRejected(String)
     case eventLogAlreadyContainsRecords(String)
     case missingArtifact(String)
+    case artifactMetadataMismatch(String)
+    case checksumMismatch(path: String, expected: String, actual: String)
+    case byteCountMismatch(path: String, expected: Int, actual: Int)
     case invalidStatusPayload(String)
 
     public var description: String {
@@ -22,6 +26,12 @@ public enum ReleaseV060LocalRunJournalWriterError: Error, Equatable, Sendable, C
             "Release v0.6.0 local run journal writer refuses to overwrite existing JSONL records at \(path)"
         case let .missingArtifact(path):
             "Release v0.6.0 local run journal writer cannot classify completed run without artifact \(path)"
+        case let .artifactMetadataMismatch(reason):
+            "Release v0.6.0 local run manifest artifact metadata is inconsistent: \(reason)"
+        case let .checksumMismatch(path, expected, actual):
+            "Release v0.6.0 local run artifact checksum mismatch at \(path), expected \(expected), actual \(actual)"
+        case let .byteCountMismatch(path, expected, actual):
+            "Release v0.6.0 local run artifact byte count mismatch at \(path), expected \(expected), actual \(actual)"
         case let .invalidStatusPayload(path):
             "Release v0.6.0 local run journal writer cannot decode status payload at \(path)"
         }
@@ -102,6 +112,49 @@ public struct ReleaseV060LocalRunJournalWriterStatus: Codable, Equatable, Sendab
     }
 }
 
+/// ReleaseV060LocalRunJournalArtifactMetadata 是 GH-757 `manifest.json` 中的 artifact 审计元数据。
+///
+/// 元数据只描述本地 artifact path、schemaVersion、sha256、bytes、createdAt 与 required 标记；
+/// 它不代表远程签名、生产 attestation、broker payload 或真实订单授权。
+public struct ReleaseV060LocalRunJournalArtifactMetadata: Codable, Equatable, Sendable {
+    public static let schemaVersion = "v0.6.0.local-run-artifact.v1"
+
+    public let path: String
+    public let schemaVersion: String
+    public let sha256: String
+    public let bytes: Int
+    public let createdAt: Date
+    public let required: Bool
+
+    public var metadataHeld: Bool {
+        path.isEmpty == false
+            && schemaVersion == Self.schemaVersion
+            && sha256.hasPrefix("sha256:")
+            && bytes >= 0
+            && required
+    }
+
+    public init(
+        path: String,
+        schemaVersion: String = Self.schemaVersion,
+        sha256: String,
+        bytes: Int,
+        createdAt: Date,
+        required: Bool = true
+    ) throws {
+        self.path = path
+        self.schemaVersion = schemaVersion
+        self.sha256 = sha256
+        self.bytes = bytes
+        self.createdAt = createdAt
+        self.required = required
+
+        guard metadataHeld else {
+            throw ReleaseV060LocalRunJournalWriterError.artifactMetadataMismatch(path)
+        }
+    }
+}
+
 /// ReleaseV060LocalRunJournalWriterManifest 是 GH-756 `manifest.json` 的本地完成证据。
 public struct ReleaseV060LocalRunJournalWriterManifest: Codable, Equatable, Sendable {
     public let issueID: Identifier
@@ -115,6 +168,8 @@ public struct ReleaseV060LocalRunJournalWriterManifest: Codable, Equatable, Send
     public let statusFileName: String
     public let manifestFileName: String
     public let writeOrder: [String]
+    public let artifactMetadataSchemaVersion: String
+    public let artifacts: [ReleaseV060LocalRunJournalArtifactMetadata]
     public let eventCount: Int
     public let eventsAppendOnly: Bool
     public let atomicArtifactsWritten: Bool
@@ -135,6 +190,10 @@ public struct ReleaseV060LocalRunJournalWriterManifest: Codable, Equatable, Send
             && statusFileName == "_RUN_STATUS.json"
             && manifestFileName == "manifest.json"
             && writeOrder == [eventFileName, projectionFileName, summaryFileName, statusFileName, manifestFileName]
+            && artifactMetadataSchemaVersion == ReleaseV060LocalRunJournalArtifactMetadata.schemaVersion
+            && artifacts.map { URL(fileURLWithPath: $0.path).lastPathComponent }
+                == [eventFileName, projectionFileName, summaryFileName, statusFileName]
+            && artifacts.allSatisfy(\.metadataHeld)
             && eventCount > 0
             && eventsAppendOnly
             && atomicArtifactsWritten
@@ -157,6 +216,7 @@ public struct ReleaseV060LocalRunJournalWriterManifest: Codable, Equatable, Send
         summaryFileName: String = "summary.json",
         statusFileName: String = "_RUN_STATUS.json",
         manifestFileName: String = "manifest.json",
+        artifacts: [ReleaseV060LocalRunJournalArtifactMetadata],
         eventCount: Int,
         eventsAppendOnly: Bool = true,
         atomicArtifactsWritten: Bool = true,
@@ -181,6 +241,8 @@ public struct ReleaseV060LocalRunJournalWriterManifest: Codable, Equatable, Send
         self.statusFileName = statusFileName
         self.manifestFileName = manifestFileName
         self.writeOrder = [eventFileName, projectionFileName, summaryFileName, statusFileName, manifestFileName]
+        self.artifactMetadataSchemaVersion = ReleaseV060LocalRunJournalArtifactMetadata.schemaVersion
+        self.artifacts = artifacts
         self.eventCount = eventCount
         self.eventsAppendOnly = eventsAppendOnly
         self.atomicArtifactsWritten = atomicArtifactsWritten
@@ -193,6 +255,71 @@ public struct ReleaseV060LocalRunJournalWriterManifest: Codable, Equatable, Send
 
         guard manifestHeld else {
             throw ReleaseV060LocalRunJournalWriterError.missingArtifact(manifestFileName)
+        }
+    }
+}
+
+/// ReleaseV060LocalRunJournalManifestValidation 是 GH-757 本地 manifest 校验结果。
+///
+/// Validation 只证明本地 required artifact 存在、bytes 与 sha256 和 manifest 一致；
+/// 它不连接 endpoint、不读取 secret、不执行 broker command、不授权 production cutover。
+public struct ReleaseV060LocalRunJournalManifestValidation: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let runID: Identifier
+    public let artifactMetadataSchemaVersion: String
+    public let checkedArtifactCount: Int
+    public let artifacts: [ReleaseV060LocalRunJournalArtifactMetadata]
+    public let validationPassed: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretResolutionEnabled: Bool
+    public let productionEndpointConnectionEnabled: Bool
+    public let realOrderAuthorizationEnabled: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public var validationHeld: Bool {
+        issueID.rawValue == "GH-757"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-756", "GH-755"]
+            && artifactMetadataSchemaVersion == ReleaseV060LocalRunJournalArtifactMetadata.schemaVersion
+            && checkedArtifactCount == artifacts.count
+            && checkedArtifactCount > 0
+            && artifacts.allSatisfy(\.metadataHeld)
+            && validationPassed
+            && productionTradingEnabledByDefault == false
+            && productionSecretResolutionEnabled == false
+            && productionEndpointConnectionEnabled == false
+            && realOrderAuthorizationEnabled == false
+            && productionCutoverAuthorized == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-757"),
+        upstreamIssueIDs: [Identifier] = [Identifier.constant("GH-756"), Identifier.constant("GH-755")],
+        runID: Identifier,
+        artifactMetadataSchemaVersion: String = ReleaseV060LocalRunJournalArtifactMetadata.schemaVersion,
+        artifacts: [ReleaseV060LocalRunJournalArtifactMetadata],
+        validationPassed: Bool = true,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretResolutionEnabled: Bool = false,
+        productionEndpointConnectionEnabled: Bool = false,
+        realOrderAuthorizationEnabled: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) throws {
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.runID = runID
+        self.artifactMetadataSchemaVersion = artifactMetadataSchemaVersion
+        self.checkedArtifactCount = artifacts.count
+        self.artifacts = artifacts
+        self.validationPassed = validationPassed
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretResolutionEnabled = productionSecretResolutionEnabled
+        self.productionEndpointConnectionEnabled = productionEndpointConnectionEnabled
+        self.realOrderAuthorizationEnabled = realOrderAuthorizationEnabled
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+
+        guard validationHeld else {
+            throw ReleaseV060LocalRunJournalWriterError.artifactMetadataMismatch("GH-757 validation result")
         }
     }
 }
@@ -264,9 +391,14 @@ public struct ReleaseV060LocalRunJournalWriter {
         )
         try writeAtomicJSON(status, to: urls.statusURL)
 
+        let artifacts = try artifactMetadata(
+            urls: urls,
+            createdAt: Date()
+        )
         let manifest = try ReleaseV060LocalRunJournalWriterManifest(
             runID: runID,
             runDirectoryPath: urls.runDirectoryURL.path,
+            artifacts: artifacts,
             eventCount: artifact.eventsJSONLLines.count
         )
         try writeAtomicJSON(manifest, to: urls.manifestURL)
@@ -338,7 +470,36 @@ public struct ReleaseV060LocalRunJournalWriter {
                 failureReason: "required artifacts incomplete"
             )
         }
+        _ = try validateRunManifest(runID: runID)
         return persistedStatus
+    }
+
+    public func validateRunManifest(runID: Identifier) throws -> ReleaseV060LocalRunJournalManifestValidation {
+        let urls = artifactURLs(runID: runID)
+        guard fileManager.fileExists(atPath: urls.manifestURL.path) else {
+            throw ReleaseV060LocalRunJournalWriterError.missingArtifact(urls.manifestURL.path)
+        }
+        let manifest = try decodeJSON(ReleaseV060LocalRunJournalWriterManifest.self, from: urls.manifestURL)
+        let requiredFileNames = [
+            manifest.eventFileName,
+            manifest.projectionFileName,
+            manifest.summaryFileName,
+            manifest.statusFileName
+        ]
+        let manifestFileNames = manifest.artifacts.filter(\.required)
+            .map { URL(fileURLWithPath: $0.path).lastPathComponent }
+        guard manifestFileNames == requiredFileNames else {
+            throw ReleaseV060LocalRunJournalWriterError.artifactMetadataMismatch(
+                "required artifact order \(manifestFileNames.joined(separator: ","))"
+            )
+        }
+        for artifact in manifest.artifacts where artifact.required {
+            try validateArtifactMetadata(artifact)
+        }
+        return try ReleaseV060LocalRunJournalManifestValidation(
+            runID: runID,
+            artifacts: manifest.artifacts
+        )
     }
 
     private func writeTerminalStatus(
@@ -390,11 +551,71 @@ public struct ReleaseV060LocalRunJournalWriter {
         try Data(value.utf8).write(to: url, options: .atomic)
     }
 
+    private func artifactMetadata(
+        urls: ArtifactURLs,
+        createdAt: Date
+    ) throws -> [ReleaseV060LocalRunJournalArtifactMetadata] {
+        try [
+            metadata(for: urls.eventsURL, createdAt: createdAt),
+            metadata(for: urls.projectionURL, createdAt: createdAt),
+            metadata(for: urls.summaryURL, createdAt: createdAt),
+            metadata(for: urls.statusURL, createdAt: createdAt)
+        ]
+    }
+
+    private func metadata(
+        for url: URL,
+        createdAt: Date
+    ) throws -> ReleaseV060LocalRunJournalArtifactMetadata {
+        guard fileManager.fileExists(atPath: url.path) else {
+            throw ReleaseV060LocalRunJournalWriterError.missingArtifact(url.path)
+        }
+        let data = try Data(contentsOf: url)
+        return try ReleaseV060LocalRunJournalArtifactMetadata(
+            path: url.path,
+            sha256: Self.sha256Hex(data),
+            bytes: data.count,
+            createdAt: createdAt,
+            required: true
+        )
+    }
+
+    private func validateArtifactMetadata(
+        _ artifact: ReleaseV060LocalRunJournalArtifactMetadata
+    ) throws {
+        guard fileManager.fileExists(atPath: artifact.path) else {
+            throw ReleaseV060LocalRunJournalWriterError.missingArtifact(artifact.path)
+        }
+        let data = try Data(contentsOf: URL(fileURLWithPath: artifact.path))
+        guard data.count == artifact.bytes else {
+            throw ReleaseV060LocalRunJournalWriterError.byteCountMismatch(
+                path: artifact.path,
+                expected: artifact.bytes,
+                actual: data.count
+            )
+        }
+        let actualChecksum = Self.sha256Hex(data)
+        guard actualChecksum == artifact.sha256 else {
+            throw ReleaseV060LocalRunJournalWriterError.checksumMismatch(
+                path: artifact.path,
+                expected: artifact.sha256,
+                actual: actualChecksum
+            )
+        }
+    }
+
+    public static func sha256Hex(_ data: Data) -> String {
+        let digest = SHA256.hash(data: data)
+        return "sha256:" + digest.map { String(format: "%02x", $0) }.joined()
+    }
+
     private func decodeJSON<Value: Decodable>(_ type: Value.Type, from url: URL) throws -> Value {
         guard fileManager.fileExists(atPath: url.path) else {
             throw ReleaseV060LocalRunJournalWriterError.invalidStatusPayload(url.path)
         }
-        return try JSONDecoder().decode(type, from: Data(contentsOf: url))
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode(type, from: Data(contentsOf: url))
     }
 
     private func existingEventByteCount(at url: URL) throws -> UInt64 {

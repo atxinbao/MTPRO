@@ -83,6 +83,7 @@ let package = Package(
                 "DomainModel",
                 "MessageBus",
                 "CSQLite",
+                .product(name: "Crypto", package: "swift-crypto"),
                 .product(
                     name: "DuckDB",
                     package: "duckdb-swift",
