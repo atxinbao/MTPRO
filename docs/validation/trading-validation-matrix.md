@@ -1382,3 +1382,18 @@
 - listenKey lifecycle: open / observe / close evidence is persisted with redacted reference only; raw listenKey is not persisted or displayed
 - read-model evidence: private stream frames map to account / position / balance read model only
 - forbidden scope: no executionReport command path, no production host, no submit / cancel / replace, no production secret auto-read, no broker endpoint, no production cutover
+- TVM-RELEASE-V070-DASHBOARD-READONLY-RUN-OPERATIONS
+- GH-788-VERIFY-V070-DASHBOARD-READONLY-RUN-OPERATIONS
+- V070-010-DASHBOARD-RUN-LIST-DETAILS-STATE-EVIDENCE
+- V070-010-LOCAL-DRY-RUN-START-STOP-RECOVER-SAFE-COMMANDS
+- V070-010-TESTNET-READONLY-PROBE-STATUS-VISIBILITY
+- V070-010-REGISTRY-JOURNAL-READMODEL-ONLY
+- V070-010-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND
+- V070-010-NO-ORDER-NO-PRODUCTION-BOUNDARY
+- GH-788 Release v0.7.0 Dashboard Read-only Run Operations Validation
+- testGH788DashboardReadOnlyRunOperationsSurfaceShowsRegistryJournalAndProbeStatusWithoutCommands
+- testGH788DashboardReadOnlyRunOperationsSurfaceIsAnchoredInV070Guards
+- Dashboard run operations: run list / detail / state / failure / replay / projection evidence must come from local run registry and journal artifact source identities
+- safe local controls: start / stop / recover are local dry-run session visibility only and must not expose order command, live command, production command or production cutover
+- testnet probe visibility: GH-786 / GH-787 status is visible only as redacted read-only artifact status; credential value、raw listenKey 和 raw private payload remain hidden
+- forbidden scope: no trading button, no order form, no submit / cancel / replace, no broker endpoint, no production endpoint, no production secret auto-read, no production trading, no production cutover

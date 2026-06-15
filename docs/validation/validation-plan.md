@@ -3363,6 +3363,25 @@ swift test
 - listenKey lifecycle 必须以 read-only evidence 形式覆盖 open / observe / close；artifact 只能保存 redacted listenKey reference，不保存 raw listenKey。
 - Private stream event frames 只能映射 account / position / balance read-model evidence；`executionReport` 和 command path 必须被拒绝。
 - Credential value、raw listenKey、raw private payload、production endpoint / broker、submit / cancel / replace、production secret auto-read 和 production cutover 必须被拒绝或保持 false。
+
+## GH-788 Release v0.7.0 Dashboard Read-only Run Operations Validation
+
+- GH-788-VERIFY-V070-DASHBOARD-READONLY-RUN-OPERATIONS
+- TVM-RELEASE-V070-DASHBOARD-READONLY-RUN-OPERATIONS
+- V070-010-DASHBOARD-RUN-LIST-DETAILS-STATE-EVIDENCE
+- V070-010-LOCAL-DRY-RUN-START-STOP-RECOVER-SAFE-COMMANDS
+- V070-010-TESTNET-READONLY-PROBE-STATUS-VISIBILITY
+- V070-010-REGISTRY-JOURNAL-READMODEL-ONLY
+- V070-010-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND
+- V070-010-NO-ORDER-NO-PRODUCTION-BOUNDARY
+- `bash checks/verify-v0.7.0-dashboard-readonly-run-operations.sh`
+- `testGH788DashboardReadOnlyRunOperationsSurfaceShowsRegistryJournalAndProbeStatusWithoutCommands`
+- `testGH788DashboardReadOnlyRunOperationsSurfaceIsAnchoredInV070Guards`
+- Dashboard 必须展示 local run list、run detail、state、failure summary、registry / journal / replay / projection artifact path 和 selected run evidence。
+- start / stop / recover 只能作为 local dry-run session command visibility，必须绑定 `ReleaseV070OperationalRunSessionCommand.safe-local`，不能变成 order command、live command 或 production command。
+- GH-786 signed account read-only probe 和 GH-787 private stream read-only probe status 必须以 redacted artifact status 可见；credential value、raw listenKey 和 raw private payload 不得显示。
+- Dashboard smoke 必须输出 `releaseV070RunOperations=2`、`releaseV070RunOperationControls=start,stop,recover`、`releaseV070RunOperationProbes=2` 和 `releaseV070RunOperationBoundary=confirmed`。
+- 禁止暴露 trading button、order form、live command、production command、submit / cancel / replace、broker endpoint、production endpoint、production secret auto-read、production trading 或 production cutover。
 - GH-766 Release v0.6.0 Final Audit Root Docs Validation
 - GH-766-RELEASE-V060-FINAL-AUDIT-ROOT-DOCS
 - GH-766-VERIFY-V060-FINAL-AUDIT-ROOT-DOCS

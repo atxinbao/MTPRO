@@ -469,6 +469,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
     public let title: String
     public let subtitle: String
     public let readModelSurface: DashboardShellReadModelSurfaceSnapshot
+    public let releaseV070RunOperationsSurface: ReleaseV070DashboardReadOnlyRunOperationsSurfaceViewModel
     public let sections: [DashboardShellSectionSnapshot]
 
     public init(
@@ -479,18 +480,20 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         self.title = title
         self.subtitle = subtitle
         self.readModelSurface = Self.makeReadModelSurfaceSnapshot(viewModel)
+        self.releaseV070RunOperationsSurface = .deterministicFixture
         self.sections = viewModel.sections.map { section in
             Self.makeSectionSnapshot(for: section, viewModel: viewModel)
         }
     }
 
     public var viewModelSources: [ViewModelSourceContract] {
-        sections.map(\.source) + readModelSurface.viewModelSources
+        sections.map(\.source) + readModelSurface.viewModelSources + [releaseV070RunOperationsSurface.source]
     }
 
     public var isReadModelOnly: Bool {
         viewModelSources.allSatisfy(\.isReadModelOnly)
             && readModelSurface.readModelOnlyBoundaryHeld
+            && releaseV070RunOperationsSurface.boundaryHeld
     }
 
     public var smokeSummary: String {
@@ -574,6 +577,22 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             "Errors",
             in: readModelSurface.liveMonitoringEvidenceMetrics
         )
+        let releaseV070RunOperations = Self.metricValue(
+            "Run operations",
+            in: releaseV070RunOperationsSurface.metrics
+        )
+        let releaseV070RunOperationControls = Self.metricValue(
+            "Safe local controls",
+            in: releaseV070RunOperationsSurface.metrics
+        )
+        let releaseV070RunOperationProbes = Self.metricValue(
+            "Probe statuses",
+            in: releaseV070RunOperationsSurface.metrics
+        )
+        let releaseV070RunOperationBoundary = Self.metricValue(
+            "Boundary",
+            in: releaseV070RunOperationsSurface.metrics
+        )
         let reportMetrics = sections.first { $0.section == .report }?.metrics ?? []
         let paperRuntimeEvidence = Self.metricValue("Runtime", in: reportMetrics)
         let paperWorkflowEvidence = Self.metricValue("Exec workflow", in: reportMetrics)
@@ -582,7 +601,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         let releaseCommandSurface = Self.metricValue("Release commands", in: reportMetrics)
         let releaseV020DashboardSurface = Self.metricValue("Release v0.2 dashboard", in: reportMetrics)
         let releaseKillSwitch = Self.metricValue("Release kill switch", in: reportMetrics)
-        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); dashboardReadModelOnly=\(readModelSurface.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); scenarioReplayEvidence=\(scenarioReplayEvidence); scenarioQualityGates=\(scenarioQualityGates); simulatedParityEvidence=\(simulatedParityEvidence); accountPositionBalanceEvidence=\(accountPositionBalanceEvidence); privateStreamSimulationGateEvidence=\(privateStreamSimulationGateEvidence); liveMonitoringReadOnlyConsoleV2Surface=\(liveMonitoringReadOnlyConsoleV2Surface); strategyTraderReadinessSurface=\(strategyTraderReadinessSurface); defaultDemoState=\(defaultDemoState); defaultDemoScenario=\(defaultDemoScenario); betaFirstRunFallbacks=\(betaFallbacks); betaAcceptancePaths=\(betaAcceptancePaths); betaAcceptanceScenario=\(betaAcceptanceScenario); betaAcceptanceTrace=\(betaAcceptanceTrace); paperRuntimeEvidence=\(paperRuntimeEvidence); paperWorkflowEvidence=\(paperWorkflowEvidence); paperPortfolioImpact=\(paperPortfolioImpact); releaseLiveMonitoringSurface=\(releaseLiveMonitoringSurface); releaseCommandSurface=\(releaseCommandSurface); releaseV020DashboardSurface=\(releaseV020DashboardSurface); releaseKillSwitch=\(releaseKillSwitch); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveReadOnlyDashboardBoundary=\(liveReadOnlyDashboardBoundary); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
+        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); dashboardReadModelOnly=\(readModelSurface.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); scenarioReplayEvidence=\(scenarioReplayEvidence); scenarioQualityGates=\(scenarioQualityGates); simulatedParityEvidence=\(simulatedParityEvidence); accountPositionBalanceEvidence=\(accountPositionBalanceEvidence); privateStreamSimulationGateEvidence=\(privateStreamSimulationGateEvidence); liveMonitoringReadOnlyConsoleV2Surface=\(liveMonitoringReadOnlyConsoleV2Surface); strategyTraderReadinessSurface=\(strategyTraderReadinessSurface); defaultDemoState=\(defaultDemoState); defaultDemoScenario=\(defaultDemoScenario); betaFirstRunFallbacks=\(betaFallbacks); betaAcceptancePaths=\(betaAcceptancePaths); betaAcceptanceScenario=\(betaAcceptanceScenario); betaAcceptanceTrace=\(betaAcceptanceTrace); paperRuntimeEvidence=\(paperRuntimeEvidence); paperWorkflowEvidence=\(paperWorkflowEvidence); paperPortfolioImpact=\(paperPortfolioImpact); releaseLiveMonitoringSurface=\(releaseLiveMonitoringSurface); releaseCommandSurface=\(releaseCommandSurface); releaseV020DashboardSurface=\(releaseV020DashboardSurface); releaseKillSwitch=\(releaseKillSwitch); releaseV070RunOperations=\(releaseV070RunOperations); releaseV070RunOperationControls=\(releaseV070RunOperationControls); releaseV070RunOperationProbes=\(releaseV070RunOperationProbes); releaseV070RunOperationBoundary=\(releaseV070RunOperationBoundary); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveReadOnlyDashboardBoundary=\(liveReadOnlyDashboardBoundary); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
     }
 
     private static func makeSectionSnapshot(
@@ -2068,6 +2087,7 @@ public struct DashboardShellView: View {
                 }
 
                 DashboardReadModelSurfacePanel(readModelSurface: snapshot.readModelSurface)
+                DashboardReleaseV070RunOperationsPanel(surface: snapshot.releaseV070RunOperationsSurface)
 
                 LazyVGrid(
                     columns: [
@@ -2110,6 +2130,20 @@ public struct DashboardShellView: Equatable, Sendable {
 #endif
 
 #if canImport(SwiftUI) && os(macOS)
+private struct DashboardReleaseV070RunOperationsPanel: View {
+    let surface: ReleaseV070DashboardReadOnlyRunOperationsSurfaceViewModel
+
+    var body: some View {
+        DashboardReadModelDetailGroup(
+            title: "Release v0.7 Run Operations",
+            systemImage: "list.bullet.rectangle.portrait",
+            metrics: surface.metrics,
+            details: surface.details
+        )
+        .help("Read-only local run operations and testnet probe status; no order or production command")
+    }
+}
+
 private struct DashboardReadModelSurfacePanel: View {
     let readModelSurface: DashboardShellReadModelSurfaceSnapshot
 

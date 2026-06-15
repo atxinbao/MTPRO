@@ -3199,6 +3199,79 @@ final class AppTests: XCTestCase {
         XCTAssertFalse(readModelSurface.authorizesTradingExecution)
     }
 
+    func testGH788DashboardReadOnlyRunOperationsSurfaceShowsRegistryJournalAndProbeStatusWithoutCommands() throws {
+        // 测试场景：GH-788 Dashboard 只展示 v0.7 local run registry / journal /
+        // projection 和 testnet read-only probe status；start / stop / recover 只作为
+        // local dry-run session controls 可见，不能升级为订单、live 或 production command。
+        let snapshot = DashboardShellSnapshot(viewModel: try makeDashboardViewModel())
+        let surface = snapshot.releaseV070RunOperationsSurface
+
+        XCTAssertEqual(surface.issueID, "GH-788")
+        XCTAssertEqual(surface.upstreamIssueIDs, ["GH-783", "GH-785", "GH-786", "GH-787"])
+        XCTAssertEqual(surface.releaseVersion, "v0.7.0")
+        XCTAssertTrue(surface.source.isReadModelOnly)
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertEqual(surface.records.map(\.runID), ["gh-785-run-alpha", "gh-785-run-beta"])
+        XCTAssertEqual(surface.records.map(\.state), ["running", "recovered"])
+        XCTAssertEqual(surface.records.map(\.lifecycle), ["active", "recoveryEvidence"])
+        XCTAssertTrue(surface.records.allSatisfy(\.recordHeld))
+        XCTAssertTrue(surface.records.allSatisfy(\.replayEvidenceVisible))
+        XCTAssertTrue(surface.records.allSatisfy(\.projectionEvidenceVisible))
+        XCTAssertEqual(
+            surface.records.map(\.eventsJSONLPath),
+            [
+                ".local/mtpro/runs/gh-785-run-alpha/events.jsonl",
+                ".local/mtpro/runs/gh-785-run-beta/events.jsonl"
+            ]
+        )
+        XCTAssertEqual(surface.safeLocalRunControls, [.start, .stop, .recover])
+        XCTAssertTrue(surface.safeLocalDryRunControlsVisible)
+        XCTAssertTrue(surface.safeLocalDryRunControlsWiredToSessionCommands)
+        XCTAssertEqual(surface.sessionCommandSourceIdentity, "ReleaseV070OperationalRunSessionCommand.safe-local")
+        XCTAssertEqual(surface.probeStatuses.map(\.issueID), ["GH-786", "GH-787"])
+        XCTAssertTrue(surface.probeStatuses.allSatisfy(\.statusHeld))
+        XCTAssertTrue(surface.probeStatuses.allSatisfy(\.redactedCredentialReferenceVisible))
+        XCTAssertTrue(surface.probeStatuses.contains { $0.redactedListenKeyReferenceVisible })
+        XCTAssertTrue(surface.probeStatuses.allSatisfy(\.accountPositionBalanceReadModelVisible))
+        XCTAssertTrue(surface.runListVisible)
+        XCTAssertTrue(surface.runDetailsVisible)
+        XCTAssertTrue(surface.failureEvidenceVisible)
+        XCTAssertTrue(surface.replayEvidenceVisible)
+        XCTAssertTrue(surface.projectionEvidenceVisible)
+        XCTAssertTrue(surface.registryJournalOnly)
+        XCTAssertTrue(surface.readModelOnly)
+        XCTAssertFalse(surface.tradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandEnabled)
+        XCTAssertFalse(surface.productionCommandEnabled)
+        XCTAssertFalse(surface.orderSubmitVisible)
+        XCTAssertFalse(surface.orderCancelVisible)
+        XCTAssertFalse(surface.orderReplaceVisible)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.productionSecretAutoReadEnabled)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+        XCTAssertEqual(metricValue("Run operations", in: surface.metrics), "2")
+        XCTAssertEqual(metricValue("Safe local controls", in: surface.metrics), "start,stop,recover")
+        XCTAssertEqual(metricValue("Probe statuses", in: surface.metrics), "2")
+        XCTAssertEqual(metricValue("Boundary", in: surface.metrics), "confirmed")
+        XCTAssertTrue(surface.details.contains("Trading button: none"))
+        XCTAssertTrue(surface.details.contains("Order form: none"))
+        XCTAssertTrue(surface.details.contains("Live command: none"))
+        XCTAssertTrue(surface.details.contains("Production command: none"))
+        XCTAssertTrue(surface.details.contains("Submit / cancel / replace: none"))
+        XCTAssertTrue(snapshot.isReadModelOnly)
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV070RunOperations=2"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV070RunOperationControls=start,stop,recover"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV070RunOperationProbes=2"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV070RunOperationBoundary=confirmed"))
+
+        for anchor in ReleaseV070DashboardReadOnlyRunOperationsSurfaceViewModel.requiredValidationAnchors {
+            XCTAssertTrue(surface.validationAnchors.contains(anchor), "\(anchor) must be part of GH-788 surface")
+        }
+    }
+
     func testReportDashboardAndTimelineRemainMTP78ReadModelOnly() throws {
         // 测试场景：MTP-78 要求 Report、Dashboard 和 Event Timeline 只能展示 paper-only /
         // read-model evidence。它们可以显示 paper order、simulated fill 和 portfolio projection，

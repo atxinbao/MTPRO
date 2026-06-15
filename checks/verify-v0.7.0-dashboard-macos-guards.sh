@@ -31,5 +31,6 @@ bash checks/verify-v0.6.0-run-detail-observer.sh
 bash checks/verify-v0.6.0-testnet-readonly-probe.sh
 bash checks/verify-v0.7.0-testnet-endpoint-policy.sh
 bash checks/verify-v0.7.0-cli.sh
+bash checks/verify-v0.7.0-dashboard-readonly-run-operations.sh
 
 echo "MTPRO release v0.7.0 Dashboard macOS focused guard verification passed."
