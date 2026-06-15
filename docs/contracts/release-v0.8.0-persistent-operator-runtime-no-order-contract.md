@@ -61,6 +61,23 @@ V080 persistent local artifact boundary 固定为：
 
 这些 artifact 只允许存储 local runtime state、redacted testnet read-only status、manual proof reference、read-only reconciliation review 和 no-order boundary evidence。它们不得存储 production credential value、raw listenKey、raw private stream payload、broker command payload、order request payload 或 production endpoint secret。
 
+## V080-003-RUN-REGISTRY-STORE
+
+`V080-003-RUN-REGISTRY-STORE`
+
+GH-809 把 v0.7 deterministic in-memory registry 推进为 persistent local `RunRegistryStore`。该 store 只写入 `.local/mtpro/runs/registry.json`，并使用 `.local/mtpro/runs/registry.lock` 作为本地 registry lock evidence。
+
+Required anchors：
+
+- `V080-003-REGISTRY-JSON-PATH`
+- `V080-003-REGISTRY-LOCK`
+- `V080-003-REGISTRY-CHECKSUM`
+- `V080-003-LIST-INSPECT-ARCHIVE-RECOVER`
+- `V080-003-MISSING-CORRUPTED-FAILS-CLOSED`
+- `V080-003-NO-PRODUCTION-BROKER-ORDER-FIELDS`
+
+Registry entry 必须记录 runID、state、artifact paths、lifecycle、timestamps 和 checksum。`list`、`inspect`、`archive` 和 `recover` 只修改本地 registry metadata。missing / corrupted registry、checksum mismatch、lock unavailable 或 archived mutation 必须 fail closed。Registry state 不得打开 production trading、production secret read、production endpoint / broker connection、testnet order routing、testnet order submission、real order、production OMS、Dashboard production command、trading button、order form 或 production cutover。
+
 ## V080-001-TESTNET-READONLY-MONITORING
 
 `V080-001-TESTNET-READONLY-MONITORING`

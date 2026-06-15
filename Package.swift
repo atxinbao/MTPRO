@@ -111,6 +111,7 @@ let package = Package(
                 "ReleaseV040EventStoreRunJournal.swift",
                 "ReleaseV050DurableLocalRunJournal.swift",
                 "ReleaseV060LocalRunJournalWriter.swift",
+                "ReleaseV080RunRegistryStore.swift",
                 "TargetGraph/DatabaseTargetBoundary.swift"
             ]
         ),
@@ -432,6 +433,7 @@ let package = Package(
                 "ReleaseV040EventStoreRunJournal.swift",
                 "ReleaseV050DurableLocalRunJournal.swift",
                 "ReleaseV060LocalRunJournalWriter.swift",
+                "ReleaseV080RunRegistryStore.swift",
                 "ReplayProjection",
                 "TargetGraph"
             ],
@@ -471,6 +473,7 @@ let package = Package(
                 "Database/ReleaseV040EventStoreRunJournal.swift",
                 "Database/ReleaseV050DurableLocalRunJournal.swift",
                 "Database/ReleaseV060LocalRunJournalWriter.swift",
+                "Database/ReleaseV080RunRegistryStore.swift",
                 "Database/Projections",
                 "Database/TargetGraph",
                 "DomainModel",
