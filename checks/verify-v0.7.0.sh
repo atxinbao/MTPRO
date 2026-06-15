@@ -6,6 +6,9 @@ set -euo pipefail
 # V070-013-AGGREGATE-FOCUSED-GUARDS
 # V070-013-CHECKS-RUN-V070-GATE
 # V070-013-PRODUCTION-DISABLED-DEFAULTS
+# GH-792-VERIFY-V070-FINAL-AUDIT-DOCS-RUNBOOK
+# TVM-RELEASE-V070-FINAL-AUDIT-DOCS-RUNBOOK
+# V070-014-VALIDATION-SUMMARY
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -54,6 +57,23 @@ require_file_contains "docs/automation/automation-readiness.md" "Release v0.7.0 
 require_file_contains "docs/validation/validation-plan.md" "GH-791 Release v0.7.0 CI / Release Validation Gate"
 require_file_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V070-CI-RELEASE-VALIDATION-GATE"
 require_file_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH791ReleaseV070AggregateValidationGateCoversFocusedGuardsAndProductionDisabledDefaults"
+require_file_contains "docs/audit/mtpro-release-v0.7.0-operator-runtime-session-testnet-read-only-connectivity-stage-code-audit.md" "GH-792-RELEASE-V070-FINAL-AUDIT-DOCS-RUNBOOK"
+require_file_contains "docs/audit/mtpro-release-v0.7.0-operator-runtime-session-testnet-read-only-connectivity-stage-code-audit.md" "TVM-RELEASE-V070-FINAL-AUDIT-DOCS-RUNBOOK"
+require_file_contains "docs/release/mtpro-release-v0.7.0-operator-runtime-session-testnet-read-only-connectivity-notes.md" "MTPRO Release v0.7.0 Operator Runtime Session + Real Testnet Read-only Connectivity Notes"
+require_file_contains "docs/operators/release-v0.7.0-operator-runtime-session-testnet-readonly-connectivity-runbook.md" "V070-014-VALIDATION-SUMMARY"
+require_file_contains "README.md" "MTPRO Release v0.7.0 Operator Runtime Session + Real Testnet Read-only Connectivity"
+require_file_contains "README.md" "bash checks/verify-v0.7.0.sh"
+require_file_contains "GOAL.md" "MTPRO Release v0.7.0 Operator Runtime Session + Real Testnet Read-only Connectivity"
+require_file_contains "BLUEPRINT.md" "v0.7.0 operator runtime session + real testnet read-only connectivity"
+require_file_contains "docs/roadmap.md" "GH-792-RELEASE-V070-FINAL-AUDIT-DOCS-RUNBOOK"
+require_file_contains "docs/roadmap.md" "Project Closure Count: 41 / 41 (100%)"
+require_file_contains "docs/validation/latest-verification-summary.md" "Release v0.7.0 Closure Snapshot"
+require_file_contains "docs/validation/latest-verification-summary.md" "docs/audit/mtpro-release-v0.7.0-operator-runtime-session-testnet-read-only-connectivity-stage-code-audit.md"
+require_file_contains "docs/validation/validation-plan.md" "GH-792 Release v0.7.0 Final Audit / Docs / Runbook Validation"
+require_file_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V070-FINAL-AUDIT-DOCS-RUNBOOK"
+require_file_contains "docs/automation/automation-readiness.md" "Release v0.7.0 final audit / docs / runbook anchor"
+require_file_contains "checks/automation-readiness.sh" "GH-792-VERIFY-V070-FINAL-AUDIT-DOCS-RUNBOOK"
+require_file_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH792ReleaseV070FinalAuditDocsAndRunbookCloseCompletedFactsOnly"
 
 for script in \
   "bash checks/verify-v0.7.0-contract.sh" \
@@ -88,7 +108,8 @@ for anchor in \
   "GH-788-VERIFY-V070-DASHBOARD-READONLY-RUN-OPERATIONS" \
   "GH-789-VERIFY-V070-LOCAL-RISK-POLICY-CONFIG" \
   "GH-790-VERIFY-V070-PORTFOLIO-READONLY-RECONCILIATION" \
-  "GH-791-VERIFY-V070-CI-RELEASE-VALIDATION-GATE"; do
+  "GH-791-VERIFY-V070-CI-RELEASE-VALIDATION-GATE" \
+  "GH-792-VERIFY-V070-FINAL-AUDIT-DOCS-RUNBOOK"; do
   require_file_contains "checks/automation-readiness.sh" "$anchor"
 done
 
@@ -98,5 +119,8 @@ reject_file_contains "docs/contracts/release-v0.7.0-no-order-runtime-session-con
 reject_file_contains "docs/contracts/release-v0.7.0-no-order-runtime-session-contract.md" "productionBrokerConnected=true"
 reject_file_contains "docs/contracts/release-v0.7.0-no-order-runtime-session-contract.md" "productionOrderSubmitted=true"
 reject_file_contains "docs/contracts/release-v0.7.0-no-order-runtime-session-contract.md" "productionCutoverAuthorized=true"
+reject_file_contains "docs/audit/mtpro-release-v0.7.0-operator-runtime-session-testnet-read-only-connectivity-stage-code-audit.md" "productionTradingEnabledByDefault=true"
+reject_file_contains "docs/release/mtpro-release-v0.7.0-operator-runtime-session-testnet-read-only-connectivity-notes.md" "productionTradingEnabledByDefault=true"
+reject_file_contains "docs/operators/release-v0.7.0-operator-runtime-session-testnet-readonly-connectivity-runbook.md" "productionTradingEnabledByDefault=true"
 
 echo "MTPRO release v0.7.0 aggregate CI / release validation gate passed."

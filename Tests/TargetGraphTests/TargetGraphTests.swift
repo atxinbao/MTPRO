@@ -7839,13 +7839,13 @@ final class TargetGraphTests: XCTestCase {
         }
 
         for completedFact in [
-            "Latest completed release construction scope: `MTPRO Release v0.6.0 Local Operational Runtime + Testnet Read-only Probe Hardening`",
-            "Project Closure Count: 40 / 40 (100%)",
-            "Current maturity statement：`MTPRO Release v0.6.0 Local Operational Runtime + Testnet Read-only Probe Hardening complete with production trading disabled by default`"
+            "MTPRO Release v0.6.0 Local Operational Runtime + Testnet Read-only Probe Hardening",
+            "Historical Project Closure Count: 40 / 40 (100%)",
+            "Historical guard retains previous Current maturity statement：`MTPRO Release v0.6.0 Local Operational Runtime + Testnet Read-only Probe Hardening complete with production trading disabled by default`"
         ] {
             XCTAssertTrue(
                 readme.contains(completedFact) || roadmap.contains(completedFact) || latestSummary.contains(completedFact),
-                "\(completedFact) must stay in current root docs"
+                "\(completedFact) must stay in historical v0.6.0 root docs evidence"
             )
         }
 
@@ -7880,6 +7880,133 @@ final class TargetGraphTests: XCTestCase {
             XCTAssertFalse(auditReport.contains(forbiddenAuthorization), "v0.6.0 audit must not authorize \(forbiddenAuthorization)")
             XCTAssertFalse(releaseNotes.contains(forbiddenAuthorization), "v0.6.0 release notes must not authorize \(forbiddenAuthorization)")
             XCTAssertFalse(runbook.contains(forbiddenAuthorization), "v0.6.0 runbook must not authorize \(forbiddenAuthorization)")
+        }
+    }
+
+    func testGH792ReleaseV070FinalAuditDocsAndRunbookCloseCompletedFactsOnly() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let readme = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("README.md"),
+            encoding: .utf8
+        )
+        let goal = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("GOAL.md"),
+            encoding: .utf8
+        )
+        let blueprint = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("BLUEPRINT.md"),
+            encoding: .utf8
+        )
+        let roadmap = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/roadmap.md"),
+            encoding: .utf8
+        )
+        let latestSummary = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/latest-verification-summary.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let aggregateVerifier = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.7.0.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let auditReport = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/audit/mtpro-release-v0.7.0-operator-runtime-session-testnet-read-only-connectivity-stage-code-audit.md"
+            ),
+            encoding: .utf8
+        )
+        let releaseNotes = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/release/mtpro-release-v0.7.0-operator-runtime-session-testnet-read-only-connectivity-notes.md"
+            ),
+            encoding: .utf8
+        )
+        let runbook = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/operators/release-v0.7.0-operator-runtime-session-testnet-readonly-connectivity-runbook.md"
+            ),
+            encoding: .utf8
+        )
+
+        for anchor in [
+            "GH-792-RELEASE-V070-FINAL-AUDIT-DOCS-RUNBOOK",
+            "GH-792-VERIFY-V070-FINAL-AUDIT-DOCS-RUNBOOK",
+            "TVM-RELEASE-V070-FINAL-AUDIT-DOCS-RUNBOOK",
+            "V070-014-VALIDATION-SUMMARY"
+        ] {
+            XCTAssertTrue(
+                auditReport.contains(anchor)
+                    || runbook.contains(anchor)
+                    || readinessScript.contains(anchor)
+                    || aggregateVerifier.contains(anchor)
+                    || validationPlan.contains(anchor)
+                    || tradingMatrix.contains(anchor),
+                "\(anchor) must stay wired into v0.7.0 final closure evidence"
+            )
+        }
+
+        for completedFact in [
+            "Latest completed release construction scope: `MTPRO Release v0.7.0 Operator Runtime Session + Real Testnet Read-only Connectivity`",
+            "Project Closure Count: 41 / 41 (100%)",
+            "Current maturity statement：`MTPRO Release v0.7.0 Operator Runtime Session + Real Testnet Read-only Connectivity complete with production trading disabled by default`"
+        ] {
+            XCTAssertTrue(
+                readme.contains(completedFact) || roadmap.contains(completedFact) || latestSummary.contains(completedFact),
+                "\(completedFact) must stay in current v0.7.0 root docs"
+            )
+        }
+
+        for issueNumber in 779...792 {
+            XCTAssertTrue(auditReport.contains("#\(issueNumber)"), "#\(issueNumber) must stay in v0.7.0 issue evidence")
+        }
+
+        for pullRequestNumber in 793...805 {
+            XCTAssertTrue(auditReport.contains("#\(pullRequestNumber)"), "#\(pullRequestNumber) must stay in v0.7.0 PR evidence")
+        }
+
+        XCTAssertTrue(runbook.contains("V070-014-VALIDATION-SUMMARY"))
+        XCTAssertTrue(runbook.contains("V070-014-TESTNET-READONLY-CONNECTIVITY"))
+        XCTAssertTrue(runbook.contains("V070-014-NO-PRODUCTION-CUTOVER"))
+        XCTAssertTrue(releaseNotes.contains("v0.7.0 是 `Operator Runtime Session + Real Testnet Read-only Connectivity` closure docs"))
+        XCTAssertTrue(releaseNotes.contains("不创建 tag"))
+        XCTAssertTrue(goal.contains("`MTPRO Release v0.7.0 Operator Runtime Session + Real Testnet Read-only Connectivity` Done"))
+        XCTAssertTrue(blueprint.contains("Release line 已推进到 v0.7.0 operator runtime session + real testnet read-only connectivity"))
+        XCTAssertTrue(validationPlan.contains("GH-792 Release v0.7.0 Final Audit / Docs / Runbook Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V070-FINAL-AUDIT-DOCS-RUNBOOK"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.7.0 final audit / docs / runbook anchor"))
+        XCTAssertTrue(aggregateVerifier.contains("bash checks/verify-v0.7.0-portfolio-readonly-reconciliation.sh"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.7.0.sh"))
+
+        for forbiddenAuthorization in [
+            "productionTradingEnabledByDefault=true",
+            "productionEndpointConnected=true",
+            "productionSecretRead=true",
+            "productionOrderSubmitted=true",
+            "productionCutoverAuthorized=true"
+        ] {
+            XCTAssertFalse(auditReport.contains(forbiddenAuthorization), "v0.7.0 audit must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(releaseNotes.contains(forbiddenAuthorization), "v0.7.0 release notes must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(runbook.contains(forbiddenAuthorization), "v0.7.0 runbook must not authorize \(forbiddenAuthorization)")
         }
     }
 
