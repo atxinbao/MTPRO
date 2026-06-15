@@ -1,6 +1,6 @@
 # 最近验证摘要
 
-日期：2026-06-14
+日期：2026-06-15
 
 执行者：Codex
 
@@ -16,15 +16,32 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 
 | 项 | 当前事实 |
 | --- | --- |
-| Latest completed release construction scope | `MTPRO Release v0.6.0 Local Operational Runtime + Testnet Read-only Probe Hardening` |
-| Current release construction scope | activeVenue == Binance；activeProductTypes == [spot, usdsPerpetual]；activeStrategies == [ema, rsi]；runtimeModes == [dry-run, testnet-read-only-probe, production-blocked]；productionTradingEnabledByDefault == false |
+| Latest completed release construction scope | `MTPRO Release v0.7.0 Operator Runtime Session + Real Testnet Read-only Connectivity` |
+| Current release construction scope | activeVenue == Binance；activeProductTypes == [spot, usdsPerpetual]；activeStrategies == [ema, rsi]；runtimeModes == [local-dry-run, testnet-read-only-probe, recovery-observe, production-blocked]；productionTradingEnabledByDefault == false |
 | Active queue | 无 active GitHub fallback Project / Linear Project；下一阶段必须由 Human + `@001 / PLN` 重新规划 |
-| Stage Code Audit Report | `docs/audit/mtpro-release-v0.6.0-local-operational-runtime-testnet-read-only-probe-hardening-stage-code-audit.md` |
-| Progress | Project Closure Count: 40 / 40 (100%)；Current Foundation Progress: 4 / 4 (100%)；Final Product Goal Progress: 9 / 9 (100%)；Engine Maturity Roadmap Progress: 4 / 4（100%） |
+| Stage Code Audit Report | `docs/audit/mtpro-release-v0.7.0-operator-runtime-session-testnet-read-only-connectivity-stage-code-audit.md` |
+| Progress | Project Closure Count: 41 / 41 (100%)；Current Foundation Progress: 4 / 4 (100%)；Final Product Goal Progress: 9 / 9 (100%)；Engine Maturity Roadmap Progress: 4 / 4（100%） |
 
 ## Boundary
 
 productionTradingEnabledByDefault == false；productionCapabilityGatedNotMissing == true；oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true。不读取 production secret，不连接 production endpoint / broker endpoint，不发送真实 order，不授权 production cutover，不创建下一 Linear Project / Issue。
+
+## Release v0.7.0 Closure Snapshot
+
+`GH-792-RELEASE-V070-FINAL-AUDIT-DOCS-RUNBOOK`
+
+`MTPRO Release v0.7.0 Operator Runtime Session + Real Testnet Read-only Connectivity` 已进入 GitHub fallback queue `#779` 至 `#792` 的 final closure。`#779` 至 `#791` 均已 `CLOSED / done`；PR `#793` 至 `#805` 均已 merged，required check `checks` 均为 `SUCCESS`；#792 closure PR 输出 Stage Code Audit Report、release notes、operator runbook、root docs refresh 和 aggregate verifier final guard。
+
+本阶段只收口 no-order runtime session evidence、real Binance testnet read-only connectivity、read-only Dashboard / CLI run operations、Portfolio explain-only reconciliation 和 no-production guard。Production trading 仍默认关闭；不读取 production secret，不连接 production endpoint / broker endpoint，不发送真实 order，不授权 production cutover，不创建下一 Project / Issue。
+
+本地验证入口：
+
+```bash
+git diff --check
+bash checks/automation-readiness.sh
+bash checks/verify-v0.7.0.sh
+bash checks/run.sh
+```
 
 ## Release v0.6.0 Closure Snapshot
 

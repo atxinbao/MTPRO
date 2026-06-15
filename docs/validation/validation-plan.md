@@ -3428,6 +3428,21 @@ swift test
 - Aggregate gate 必须按 GH-779 到 GH-790 的既有 verifier 顺序执行 v0.7.0 contract、endpoint policy、CLI、Dashboard macOS guard、OperationalRunSession、EventLogWriter、RunRegistry、signed account read-only probe、private stream read-only probe、Dashboard read-only operations、local Risk policy config 和 Portfolio read-only reconciliation。
 - `checks/run.sh` 必须包含 `bash checks/verify-v0.7.0.sh`，并继续保留各 focused verifier 的直接 coverage，避免 aggregate gate 被绕过。
 - CI / release gate 只能证明 no-order v0.7.0 behavior、testnet read-only evidence 和 production-disabled defaults；不得打开 production cutover、读取 production secret、连接 production endpoint / broker、提交 / cancel / replace 真实订单。
+
+## GH-792 Release v0.7.0 Final Audit / Docs / Runbook Validation
+
+- GH-792-VERIFY-V070-FINAL-AUDIT-DOCS-RUNBOOK
+- GH-792-RELEASE-V070-FINAL-AUDIT-DOCS-RUNBOOK
+- TVM-RELEASE-V070-FINAL-AUDIT-DOCS-RUNBOOK
+- V070-014-VALIDATION-SUMMARY
+- `docs/audit/mtpro-release-v0.7.0-operator-runtime-session-testnet-read-only-connectivity-stage-code-audit.md`
+- `docs/release/mtpro-release-v0.7.0-operator-runtime-session-testnet-read-only-connectivity-notes.md`
+- `docs/operators/release-v0.7.0-operator-runtime-session-testnet-readonly-connectivity-runbook.md`
+- `bash checks/verify-v0.7.0.sh`
+- `testGH792ReleaseV070FinalAuditDocsAndRunbookCloseCompletedFactsOnly`
+- Final audit / docs / runbook gate 必须核对 GH-779 至 GH-791 的 issue / PR / checks / merge evidence，并明确 #792 closure PR 通过 required check 后才关闭最终 issue。
+- Root docs refresh 只同步已发生的 v0.7.0 closure facts：latest completed release construction scope、Project Closure Count `41 / 41 (100%)`、stage audit path、release notes、operator runbook、validation command 和 no-default-production-trading boundary。
+- forbidden scope: no tag / release publication unless separately requested, no next Project / Issue, no production cutover, no production secret read, no production endpoint / broker connection, no real submit / cancel / replace order.
 - GH-766 Release v0.6.0 Final Audit Root Docs Validation
 - GH-766-RELEASE-V060-FINAL-AUDIT-ROOT-DOCS
 - GH-766-VERIFY-V060-FINAL-AUDIT-ROOT-DOCS

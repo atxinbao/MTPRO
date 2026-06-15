@@ -1434,3 +1434,13 @@
 - aggregate scripts: `checks/verify-v0.7.0.sh` must execute GH-779 through GH-790 focused verifiers
 - checks gate: `checks/run.sh` must call `bash checks/verify-v0.7.0.sh` while retaining direct focused verifier coverage
 - forbidden scope: no production cutover, no production secret read, no production endpoint / broker connection, no real submit / cancel / replace order
+- TVM-RELEASE-V070-FINAL-AUDIT-DOCS-RUNBOOK
+- GH-792-VERIFY-V070-FINAL-AUDIT-DOCS-RUNBOOK
+- GH-792-RELEASE-V070-FINAL-AUDIT-DOCS-RUNBOOK
+- V070-014-VALIDATION-SUMMARY
+- audit docs: `docs/audit/mtpro-release-v0.7.0-operator-runtime-session-testnet-read-only-connectivity-stage-code-audit.md`
+- release notes: `docs/release/mtpro-release-v0.7.0-operator-runtime-session-testnet-read-only-connectivity-notes.md`
+- operator runbook: `docs/operators/release-v0.7.0-operator-runtime-session-testnet-readonly-connectivity-runbook.md`
+- focused test: `testGH792ReleaseV070FinalAuditDocsAndRunbookCloseCompletedFactsOnly`
+- root docs refresh: latest completed release construction scope must be v0.7.0 and Project Closure Count must be `41 / 41 (100%)`
+- forbidden scope: no tag publication, no next Project / Issue, no production cutover, no production secret read, no production endpoint / broker connection, no real submit / cancel / replace order
